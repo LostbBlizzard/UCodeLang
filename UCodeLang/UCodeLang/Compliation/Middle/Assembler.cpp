@@ -70,10 +70,63 @@ void Assembler::Assemble(UClib* Output,UClib* Data)
 
 	ClassAssembly::Move(Data->Get_Assembly(), Output->Get_Assembly());
 }
+void Assembler::Reset()
+{
+	ResetRegistersData();
+}
 void Assembler::BuildBuffer()
 {
 	InstructionBuilder::Exit(ExitState::Failure, _Ins);
 	_OutPut->Add_Instruction(_Ins);
+}
+void Assembler::UpdateTypeData(ClassData* Data)
+{
+	for (auto Item : Tep)
+	{
+		if (Data == Item)
+		{
+			auto& Err = _ErrorsOutput->AddError(ErrorCodes::InValidType, 0, 0);
+			Err._Msg = "Cant get the sizeof " + Data->FullName;
+			return;
+		}
+	}
+
+	Tep.push_back(Data);
+
+	auto& ClassData = Data->_Class;
+	if (ClassData.Size == 0)
+	{
+		for (auto& Item : ClassData.Fields)
+		{
+			size_t TypeSize;
+			if (Item.FullNameType == Uint8TypeName)
+			{
+				TypeSize = sizeof(UInt8);
+			}
+			else
+			{
+				auto ClassT = GetType(Item.FullNameType);
+				if (ClassT)
+				{
+					TypeSize = ClassT->_Class.Size;
+				}
+				else
+				{
+					auto& Err = _ErrorsOutput->AddError(ErrorCodes::InValidType, 0, 0);
+					Err._Msg = "Cant find type " + Item.FullNameType;
+
+					TypeSize = 0;
+				}
+			}
+
+			Item.offset = ClassData.Size;
+			ClassData.Size += TypeSize;
+		}
+	}
+
+	size_t Index = Tep.size() - 1;
+	Tep.erase(Tep.begin() + Index);
+
 }
 void Assembler::GetSymbolInRegister(symbol* Symbol, RegisterID id)
 {

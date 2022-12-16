@@ -502,6 +502,31 @@ public:
 		Out.Value0_RegisterID = CharPtr;
 		Out.Value1_AsUInt64 = NullUInt64;
 	}
+	//Others
+	UCodeLangForceinline static void GenInst(Intermediate_Set Inst, const UInt64 Value0, const UInt64 Value1, Instruction& Out)
+	{
+		return InstructionBuilder::GenInst((InstructionSet_t)Inst, Value0, Value1, Out);
+	};
+	UCodeLangForceinline static void GenInst(Intermediate_Set Inst, const void* Value0, const void* Value1, Instruction& Out)
+	{
+		return InstructionBuilder::GenInst((InstructionSet_t)Inst, (UInt64)Value0, (UInt64)Value1, Out);
+	};
+	UCodeLangForceinline static void GenInst(Intermediate_Set Inst, const void* Value0, Instruction& Out)
+	{
+		return InstructionBuilder::GenInst((InstructionSet_t)Inst, (UInt64)Value0, (UInt64)NullAddress, Out);
+	};
+	UCodeLangForceinline static void GenInst(Intermediate_Set Inst, size_t Value0, Instruction& Out)
+	{
+		return InstructionBuilder::GenInst((InstructionSet_t)Inst, (UInt64)Value0, (UInt64)NullAddress, Out);
+	};
+	UCodeLangForceinline static void GenInst(Intermediate_Set Inst, RegisterID Register, size_t Value0, Instruction& Out)
+	{
+		return InstructionBuilder::GenInst((InstructionSet_t)Inst, (UInt64)Register, (UInt64)Value0, Out);
+	};
+	UCodeLangForceinline static void GenInst(Intermediate_Set Inst, Instruction& Out)
+	{
+		return InstructionBuilder::GenInst((InstructionSet_t)Inst, (UInt64)NullAddress, (UInt64)NullAddress, Out);
+	};
 };
 UCodeLangEnd
 

@@ -40,12 +40,50 @@ public:
 	static constexpr const char* const NameChars = NameCharSet;
 	static constexpr size_t NameChars_Size = sizeof(NameCharSet);
 
-	Lexer(): _LexerSuccess(false), _ErrorsOutput(nullptr), _Settings(nullptr)
-	{
-
-	}
+	Lexer(){}
+	~Lexer(){}
+	void Reset();
 	void Lex(const String& Text);
 
+	UCodeLangForceinline Vector<Token>& Get_Tokens() { return _Nodes; }
+	UCodeLangForceinline void Set_ErrorsOutput(CompliationErrors* V) { _ErrorsOutput = V; }
+	UCodeLangForceinline void Set_Settings(CompliationSettings* V) { _Settings = V; }
+	UCodeLangForceinline bool Get_LexerSuccess() {return _LexerSuccess;};
+	UCodeLangForceinline size_t Get_OnLine()
+	{
+		return OnLine;
+	}
+	UCodeLangForceinline size_t Get_TextIndex()
+	{
+		return TextIndex;
+	}
+private:
+	String _Text;
+	Vector<Token> _Nodes;
+	bool _LexerSuccess = false;
+	CompliationErrors* _ErrorsOutput = nullptr;
+	CompliationSettings* _Settings = nullptr;
+	
+	
+	Token _Token;
+	String NameBuffer;
+
+
+	size_t LastIndentationLevel = 0;
+	size_t IndentationLevel = 0;
+	bool IsIndentationing = true;
+
+	size_t OnLine = 1;
+	size_t TextIndex = 0;
+	size_t OnLinePos = 0;
+	CommentState  CommentState = CommentState::NoComment;
+	char NextChar ='\0';
+	ReadingNameState ReadingState = ReadingNameState::Name;
+
+	using TokenInedex = size_t;
+	Vector<TokenInedex> Indentations;
+	
+	
 	bool DoIndentation(bool& IsIndentationing, char Char, size_t& IndentationLevel, size_t& LastIndentationLevel, UCodeLang::Token& _Token);
 
 	
@@ -73,45 +111,6 @@ public:
 		}
 		return false;
 	}
-	inline Vector<Token>& Get_Tokens() { return _Nodes; }
-	inline void Set_ErrorsOutput(CompliationErrors* V) { _ErrorsOutput = V; }
-	inline void Set_Settings(CompliationSettings* V) { _Settings = V; }
-	inline bool Get_LexerSuccess() {return _LexerSuccess;};
-	inline size_t Get_OnLine()
-	{
-		return OnLine;
-	}
-	inline size_t Get_TextIndex()
-	{
-		return TextIndex;
-	}
-private:
-	String _Text;
-	Vector<Token> _Nodes;
-	bool _LexerSuccess;
-	CompliationErrors* _ErrorsOutput;
-	CompliationSettings* _Settings;
-	
-	
-	Token _Token;
-	String NameBuffer;
-
-
-	size_t LastIndentationLevel = 0;
-	size_t IndentationLevel = 0;
-	bool IsIndentationing = true;
-
-	size_t OnLine = 1;
-	size_t TextIndex = 0;
-	size_t OnLinePos = 0;
-	CommentState  CommentState = CommentState::NoComment;
-	char NextChar ='\0';
-	ReadingNameState ReadingState = ReadingNameState::Name;
-
-	using TokenInedex = size_t;
-	Vector<TokenInedex> Indentations;
-	
-	
 	void NameAndKeyWords(ReadingNameState& ReadingState, String& NameBuffer, Token& _Token);
 };
 UCodeLangEnd

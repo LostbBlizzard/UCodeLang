@@ -90,4 +90,8 @@ void Linker::Combine(const UCodeLang::Vector<const UCodeLang::UClib*>& libsToLin
 	}
 }
 
+void Linker::Reset()
+{
+}
+
 UCodeLangEnd

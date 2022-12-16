@@ -1,6 +1,6 @@
 #pragma once
 #include "../../LangCore.hpp"
-#include "../UClib.hpp"
+#include "LangCore/UClib.hpp"
 #include "../Helpers/CompliationErrors.hpp"
 #include "../Helpers/InstructionBuilder.hpp"
 #include "../CompliationSettings.hpp"
@@ -11,19 +11,14 @@ class Assembler
 {
 public:
 	void Assemble(UClib* Output,UClib* Data);
-    
+	void Reset();
 
-
-	inline UClib* Get_Output() { return _OutPut; }
-	inline bool Get_Success() { return _LinkSuccess; }
-	Assembler() : _LinkSuccess(false), _ErrorsOutput(nullptr), _Settings(nullptr), _Input(nullptr)
-	{
-		ResetRegistersData();
-	}
-	UCodeLangForceinline void Set_ErrorsOutput(CompliationErrors* V)
-	{
-		_ErrorsOutput = V;
-	}
+	Assembler(){}
+	~Assembler(){}
+	UCodeLangForceinline UClib* Get_Output() { return _OutPut; }
+	UCodeLangForceinline bool Get_Success() { return _LinkSuccess; }
+	
+	UCodeLangForceinline void Set_ErrorsOutput(CompliationErrors* V){_ErrorsOutput = V;}
 	UCodeLangForceinline void Set_Settings(CompliationSettings* V) { _Settings = V; }
 private:
 	struct Intermediate_Instruction
@@ -79,12 +74,12 @@ private:
 			UInt64 Value1_AsUMaxSizeInt;
 		};
 	};
-	UClib* _Input;
-	UClib* _OutPut;
-	bool _LinkSuccess;
-	CompliationErrors* _ErrorsOutput;
-	CompliationSettings* _Settings;
-	size_t Index;
+	UClib* _Input = nullptr;
+	UClib* _OutPut = nullptr;
+	bool _LinkSuccess = false;
+	CompliationErrors* _ErrorsOutput = nullptr;
+	CompliationSettings* _Settings = nullptr;
+	size_t Index =0;
 	SemanticAnalysisData Symbols;
 	ScopeHelper Scope;
 	RegisterID OutValue =RegisterID::NullRegister;
@@ -137,7 +132,7 @@ private:
 	UIntNative ParameterSize = 0;
 	RegistersInUseData RegistersInUse[RegisterCount];
 	unordered_map<String_view, UAddress> _Strings;
-	size_t Debugoffset;
+	size_t Debugoffset = 0;
 	
 
 	void UpdateAllTypes()
@@ -158,55 +153,7 @@ private:
 	}
 
 	Vector<ClassData*> Tep;
-	inline void UpdateTypeData(ClassData* Data)
-	{
-		for (auto Item : Tep)
-		{
-			if (Data == Item)
-			{
-				auto& Err = _ErrorsOutput->AddError(ErrorCodes::InValidType, 0, 0);
-				Err._Msg = "Cant get the sizeof " + Data->FullName;
-				return;
-			}
-		}
-		
-		Tep.push_back(Data);
-
-		auto& ClassData = Data->_Class;
-		if (ClassData.Size == 0)
-		{
-			for (auto& Item : ClassData.Fields)
-			{
-				size_t TypeSize;
-				if (Item.FullNameType == Uint8TypeName)
-				{
-					TypeSize = sizeof(UInt8);
-				}
-				else
-				{
-					auto ClassT = GetType(Item.FullNameType);
-					if (ClassT)
-					{
-						TypeSize = ClassT->_Class.Size;
-					}
-					else
-					{
-						auto& Err = _ErrorsOutput->AddError(ErrorCodes::InValidType, 0, 0);
-						Err._Msg = "Cant find type " + Item.FullNameType;
-						
-						TypeSize = 0;
-					}
-				}
-
-				Item.offset = ClassData.Size;
-				ClassData.Size += TypeSize;
-			}
-		}
-		
-		size_t Index = Tep.size() - 1;
-		Tep.erase(Tep.begin() + Index);
-
-	}
+	void UpdateTypeData(ClassData* Data);
 
 	void SetRegisterUse(RegisterID id, bool V)
 	{

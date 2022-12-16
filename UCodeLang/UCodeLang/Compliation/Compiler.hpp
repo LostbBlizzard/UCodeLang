@@ -3,8 +3,6 @@
 #include "Front/Lexer.hpp"
 #include "Front/Parser.hpp"
 #include "Front/SemanticAnalysis.hpp"
-#include "Front/Optimizer.hpp"
-#include "Front/IntermediateAssembler.hpp"
 #include "Middle/Linker.hpp"
 #include "Middle/Assembler.hpp"
 UCodeLangStart
@@ -37,19 +35,19 @@ public:
 	CompilerRet LinkFilesToFile(const CompilerPathData& Data);
 	
 
-	inline void FreeLinkFilesLibOut(UClib* Lib)
+	UCodeLangForceinline void FreeLinkFilesLibOut(UClib* Lib)
 	{
 		delete Lib;
 	}
-	inline UCodeLang::CompliationErrors& Get_Errors()
+	UCodeLangForceinline UCodeLang::CompliationErrors& Get_Errors()
 	{
 		return _Errors;
 	}
-	inline void ReMove_Errors()
+	UCodeLangForceinline void ReMove_Errors()
 	{
 		_Errors.Remove_Errors();
 	}
-	inline CompliationSettings& Get_Settings()
+	UCodeLangForceinline CompliationSettings& Get_Settings()
 	{
 		return _Settings;
 	}
@@ -57,11 +55,11 @@ public:
 private:
 	CompliationSettings _Settings;
 	UCodeLang::CompliationErrors _Errors;
+	//Front
 	UCodeLang::Lexer _Lexer;
 	UCodeLang::Parser _Parser;
 	UCodeLang::SemanticAnalysis _SemanticAnalysis;
-	UCodeLang::Optimizer _Optimizer;
-	UCodeLang::IntermediateAssembler _IntermediateAssembler;
+	//Middle
 	UCodeLang::Linker _Linker;
 	UCodeLang::Assembler _Assembler;
 };

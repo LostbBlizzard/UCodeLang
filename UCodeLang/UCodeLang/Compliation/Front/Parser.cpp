@@ -64,6 +64,10 @@ Data.GotNode = GotNodeType::failed; \
 Data.Node = nullptr; \
 return Data;
 
+void Parser::Reset()
+{
+}
+
 void Parser::Parse(const Vector<Token>&Tokens)
 {
 	for (const auto& Item : Tokens)
@@ -152,6 +156,7 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 	auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::EndTab);
 	NextToken();
 
+	return GotNodeType::Success;
 }
 
 GotNodeType Parser::GetClassNode(ClassNode& out)

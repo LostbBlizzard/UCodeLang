@@ -5,6 +5,10 @@
 UCodeLangStart
 Compiler::CompilerRet Compiler::Compile(const String& Text)
 {
+	_Lexer.Reset();
+	_Parser.Reset();
+	_SemanticAnalysis.Reset();
+	//
 	CompilerRet R;
 	R._State = CompilerState::Fail;
 	R.OutPut = nullptr;
@@ -14,14 +18,11 @@ Compiler::CompilerRet Compiler::Compile(const String& Text)
 	_Lexer.Set_Settings(&_Settings);
 	_Parser.Set_Settings(&_Settings);
 	_SemanticAnalysis.Set_Settings(&_Settings);
-	_Optimizer.Set_Settings(&_Settings);
-	_IntermediateAssembler.Set_Settings(&_Settings);
+	
 
 	_Lexer.Set_ErrorsOutput(Errors);
 	_Parser.Set_ErrorsOutput(Errors);
 	_SemanticAnalysis.Set_ErrorsOutput(Errors);
-	_Optimizer.Set_ErrorsOutput(Errors);
-	_IntermediateAssembler.Set_ErrorsOutput(Errors);
 	
 
 
@@ -36,25 +37,13 @@ Compiler::CompilerRet Compiler::Compile(const String& Text)
 	if (Errors->Has_Errors()) { return R; }
 
 	_SemanticAnalysis.DoAnalysis(_Parser.Get_Tree());
-	auto V = _SemanticAnalysis.Get_SemanticAnalysisRet();
-
-	if (Errors->Has_Errors()) { return R; }
-
-	_Optimizer.Optimiz(V);
 
 	if (Errors->Has_Errors()) { return R; }
 	
-	_IntermediateAssembler.Assemble(V);
-
-	if (Errors->Has_Errors()) { return R; }
 	
-	_Lexer = Lexer();
-	_Parser = Parser();
-	_SemanticAnalysis = SemanticAnalysis();
-	_Optimizer = Optimizer();
 
 	R._State = CompilerState::Success;
-	R.OutPut = &_IntermediateAssembler.Get_Output();
+	R.OutPut = &_SemanticAnalysis.Get_SemanticAnalysisRet().Lib;
 	return R;
 }
 Compiler::CompilerRet Compiler::CompilePath(const String& Path)
