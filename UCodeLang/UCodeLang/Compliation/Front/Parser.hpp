@@ -11,10 +11,6 @@ UCodeLangStart
 
 class Parser
 {	
-	struct MyStruct
-	{
-
-	};
 public:
 	static constexpr TokenType declareFunc = TokenType::bitwise_or;
 	static constexpr TokenType declareFuncParsStart = TokenType::Left_Bracket;
@@ -30,23 +26,22 @@ public:
 	static constexpr TokenType SizeofStart = TokenType::Left_Parentheses;
 	static constexpr TokenType SizeofEnd = TokenType::Right_Parentheses;
 	
-	Parser() : _TokenIndex(0), _ParseSuccess(false), _ErrorsOutput(nullptr), _Settings(nullptr)
-	{
-
-	}
-	inline void Set_ErrorsOutput(CompliationErrors* V){_ErrorsOutput = V;}
-	inline void Set_Settings(CompliationSettings* V) { _Settings = V; }
+	Parser(){}
+	~Parser(){}
+	void Reset();
+	UCodeLangForceinline void Set_ErrorsOutput(CompliationErrors* V){_ErrorsOutput = V;}
+	UCodeLangForceinline void Set_Settings(CompliationSettings* V) { _Settings = V; }
 
 	void Parse(const Vector<Token>& Tokens);
-	inline bool Get_ParseSucces() { return _ParseSuccess; }
-	inline FileNode& Get_Tree() { return _Tree; }
+	UCodeLangForceinline bool Get_ParseSucces() { return _ParseSuccess; }
+	UCodeLangForceinline FileNode& Get_Tree() { return _Tree; }
 private:
-	size_t _TokenIndex;
+	size_t _TokenIndex = 0;
 	Vector<Token> _Nodes;
 	FileNode _Tree;
-	bool _ParseSuccess;
-	CompliationErrors* _ErrorsOutput;
-	CompliationSettings* _Settings;
+	bool _ParseSuccess = false;
+	CompliationErrors* _ErrorsOutput = nullptr;
+	CompliationSettings* _Settings = nullptr;
 
 	inline Token* TryPeekNextToken(size_t offset)
 	{
@@ -60,10 +55,10 @@ private:
 			return nullptr;
 		}
 	}
-	inline Token* TryPeekNextToken() { return   TryPeekNextToken(1); }
-	inline Token* TryGetToken() { return TryPeekNextToken(0); }
-	inline void NextToken() { _TokenIndex++; }
-	inline void NextToken(size_t offfset) { _TokenIndex += offfset; }
+	UCodeLangForceinline Token* TryPeekNextToken() { return   TryPeekNextToken(1); }
+	UCodeLangForceinline Token* TryGetToken() { return TryPeekNextToken(0); }
+	UCodeLangForceinline void NextToken() { _TokenIndex++; }
+	UCodeLangForceinline void NextToken(size_t offfset) { _TokenIndex += offfset; }
 	
 	inline bool IsPostfixOperator(Token* Token)
 	{

@@ -3,3 +3,4 @@ Output
 *.sln
 *.filters
 *.vcxproj
+*.user

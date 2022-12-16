@@ -3,7 +3,7 @@
 #include "Parser.hpp"
 #include "../CompliationSettings.hpp"
 #include "../../LangCore/ReflectionData.hpp"
-
+#include "LangCore/UClib.hpp"
 UCodeLangStart
 
 using symbolType_t = UInt8;
@@ -55,7 +55,7 @@ public:
 	Vector<symbol> Symbols;
 	Vector<String_view> Use_;
 
-	void AddUseing(const String_view& Name)
+	UCodeLangForceinline void AddUseing(const String_view& Name)
 	{
 		Use_.push_back(Name);
 	}
@@ -84,11 +84,8 @@ public:
 class SemanticAnalysisRet
 {
 public:
-	FileNode* Tree = nullptr;
 	SemanticAnalysisData Symbols;
-	ClassAssembly AssemblyData;
-	SemanticAnalysisRet() {}
-	~SemanticAnalysisRet() {}
+	UClib Lib;
 };
 
 
@@ -96,30 +93,37 @@ public:
 class SemanticAnalysis
 {
 public:
-	SemanticAnalysis();
-	~SemanticAnalysis();
+	SemanticAnalysis(){}
+	~SemanticAnalysis() {}
+	void Reset();
 
-	void DoAnalysis(FileNode& Tree);
+	void DoAnalysis(const FileNode& Tree);
 
-	inline bool Get_Success()
+	UCodeLangForceinline bool Get_Success()
 	{
 		return  _Success;
 	}
-	inline SemanticAnalysisRet& Get_SemanticAnalysisRet()
+	UCodeLangForceinline SemanticAnalysisRet& Get_SemanticAnalysisRet()
 	{
 		return Value;
 	}
-	inline void Set_ErrorsOutput(CompliationErrors* V) { _ErrorsOutput = V; }
-	inline void Set_Settings(CompliationSettings* V) { _Settings = V; }
+	UCodeLangForceinline void Set_ErrorsOutput(CompliationErrors* V) { _ErrorsOutput = V; }
+	UCodeLangForceinline void Set_Settings(CompliationSettings* V) { _Settings = V; }
 private:
 	SemanticAnalysisRet Value;
-	bool _Success;
-	CompliationErrors* _ErrorsOutput;
-	CompliationSettings* _Settings;
+	bool _Success = false;
+	CompliationErrors* _ErrorsOutput = nullptr;
+	CompliationSettings * _Settings = nullptr;
 	//
 	ScopeHelper Scope;
 	std::stack<ClassData*> OnClass;
 	Vector<String> TepAttributes;
+	Instruction _Ins;
+	UCodeLangForceinline void ReSetIns()
+	{
+		_Ins = Instruction();
+	}
+
 
 	symbol& AddSymbol(const String& Name)
 	{
@@ -150,5 +154,39 @@ private:
 	{
 		return Value.Symbols.FindSymbol(Name, Scope.ThisScope);
 	}
+
+	unordered_map<String_view, UAddress> _Strings;
+	String TepString;
+	UCodeLangForceinline void ClearTepString()
+	{
+		TepString.clear();
+	}
+	UAddress AddDebug_String(const String_view& String)
+	{
+		if (_Strings.count(String))
+		{
+			return _Strings.at(String);
+		}
+		else
+		{
+			return _Strings[String] = Value.Lib.AddDebugBytes(String);
+		}
+	}
+	Vector<const Node*> _StaticVariables;
+
+	void BuildStaticVariable(const UCodeLang::Node* node);
+	void BuildNameSpace(const UCodeLang::Node* Tree);
+	void BuildClass(const UCodeLang::ClassNode& Node);
+	void BuildFunc(const UCodeLang::FuncNode& Node);
+	void BuildStatements(const UCodeLang::StatementsNode& BodyStatements);
+	void BuildStatement(const UCodeLang::Node* Statement);
+	void BuildExpressionType(const UCodeLang::Node* Statement);
+	void BuildExpressionValue(const UCodeLang::Node* Item);
+	void BuildUnaryExpression(const UCodeLang::Node* Item);
+	void BuildBinaryExpression(const UCodeLang::Node* Item);
+	//Helpers
+	void BuildReturnExpression();
+	void BuildStoreExpression(const String_view& VarName);
+	void BuildDeclareVariable(const String_view& VarName, const String_view& Type);
 };
 UCodeLangEnd
