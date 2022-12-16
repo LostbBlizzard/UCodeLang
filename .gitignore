@@ -1,1 +1,5 @@
-/target
+Output
+.vs
+*.sln
+*.filters
+*.vcxproj

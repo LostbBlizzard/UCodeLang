@@ -1,6 +1,0 @@
-
-struct Interpreter
-{
-
-    ProgramCounter :usize,
-}

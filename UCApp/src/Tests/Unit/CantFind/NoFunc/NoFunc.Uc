@@ -1,0 +1,3 @@
+TestMain[]:
+ NoFunc();
+ ret;

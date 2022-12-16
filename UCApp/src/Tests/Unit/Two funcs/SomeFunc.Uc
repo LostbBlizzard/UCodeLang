@@ -1,0 +1,2 @@
+LogSomeThing[]:
+ log("Hello World");
