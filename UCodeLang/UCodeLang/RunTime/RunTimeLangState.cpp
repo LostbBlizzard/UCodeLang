@@ -1,11 +1,7 @@
 #include "RunTimeLangState.hpp"
 UCodeLangStart
 
-Allocator::Allocator(Malloc_t malloc, Free_t free) :
-	_Malloc(malloc), _Free(free), _CanReserveData(false), _MallocOnlyInPages(true)
-{
-	Tep_Values.reserve(10);
-}
+
 PtrType Allocator::Malloc(RunTimeLangState& This, NSize_t Size)
 {
 	if (Size == 0) { return nullptr; }
@@ -195,6 +191,22 @@ PtrType Allocator::FindReservedPtr(NSize_t Size)
 		}
 	}
 	return nullptr;
+}
+
+void RunTimeLangState::LinkLibs()
+{
+	_Data.Link();
+
+
+	if (_StaticMemPtr) { Free(_StaticMemPtr); }
+	auto& Bits = _Data.GetStaticBytes();
+	_StaticMemPtr = Malloc(Bits.size());
+
+	UInt8* _StaticMemPtrBits = (UInt8*)_StaticMemPtr;
+	for (size_t i = 0; i < Bits.size(); i++)
+	{
+		_StaticMemPtrBits[i] = Bits[i];
+	}
 }
 
 UCodeLangEnd
