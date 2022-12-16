@@ -1,6 +1,6 @@
 #pragma once
-#include "RunTimeLangState.hpp"
-#include "../LangCore.hpp"
+#include "../RunTimeLangState.hpp"
+#include "..//../LangCore.hpp"
 UCodeLangStart
 
 
@@ -44,14 +44,8 @@ public:
 		}
 	};
 
-	Interpreter() : _CPU(), _State(nullptr), _CPPHelper(nullptr)
-	{
-
-	}
-	~Interpreter()
-	{
-		
-	}
+	Interpreter() {}
+	~Interpreter(){}
 
 
 	void Init(RunTimeLangState* State)
@@ -87,29 +81,15 @@ public:
 		return ThisCall((UAddress)This, Function.FullName, Pars);
 	}
 	//
-	inline PtrType Calloc(NSize_t Size) {
-		
-		UInt8* Ptr = (UInt8*)_State->Malloc(Size);
-		for (NSize_t i = 0; i < Size; i++)
-		{
-			Ptr[i] = 0;
-		}
-		return (PtrType)Ptr;
-	}	
-	__forceinline PtrType Realloc(PtrType OldPtr, NSize_t Size) { return _State->Realloc(OldPtr, Size); }
-	__forceinline void MemCopy(PtrType destination, const PtrType source, NSize_t Size) { memcpy(destination, source, Size); }
-	__forceinline PtrType Malloc(NSize_t Size) { return _State->Malloc(Size); }
-	__forceinline void Free(PtrType Ptr) { return _State->Free(Ptr); }
-	__forceinline void Log(const char* Ptr) { return _State->Log(Ptr); }
+	UCodeLangForceinline PtrType Calloc(NSize_t Size) { return _State->Calloc(Size); }
+	UCodeLangForceinline PtrType Realloc(PtrType OldPtr, NSize_t Size) { return _State->Realloc(OldPtr, Size); }
+	UCodeLangForceinline void MemCopy(PtrType destination, const PtrType source, NSize_t Size) { memcpy(destination, source, Size); }
+	UCodeLangForceinline PtrType Malloc(NSize_t Size) { return _State->Malloc(Size); }
+	UCodeLangForceinline void Free(PtrType Ptr) { return _State->Free(Ptr); }
+	UCodeLangForceinline void Log(const char* Ptr) { return _State->Log(Ptr); }
 
-	inline const UserMadeContext& Get_UserMadeContext()
-	{
-		return _UserMadeContext;
-	}
-	inline void Set_UserMadeContext(UserMadeContext Context)
-	{
-		_UserMadeContext = Context;
-	}
+	UCodeLangForceinline const UserMadeContext& Get_UserMadeContext(){return _UserMadeContext;}
+	UCodeLangForceinline void Set_UserMadeContext(UserMadeContext Context){_UserMadeContext = Context;}
 	
 private:
 	
@@ -261,14 +241,11 @@ private:
 		
 	};
 	CPUData _CPU;
-	RunTimeLangState* _State;
-	InterpreterCPPinterface* _CPPHelper;
+	RunTimeLangState* _State = nullptr;
+	InterpreterCPPinterface* _CPPHelper = nullptr;
 	UserMadeContext _UserMadeContext;
 
-	inline PtrType Get_StaticMemPtr()
-	{
-		return _State->Get_StaticMemPtr();
-	}
+	UCodeLangForceinline PtrType Get_StaticMemPtr(){return _State->Get_StaticMemPtr();}
 	UCodeLangConstexprForceinline Register& Get_ThisRegister() { return Get_Register(RegisterID::ThisRegister); }
 	UCodeLangConstexprForceinline Register& Get_OutRegister() { return Get_Register(RegisterID::OuPutRegister); }
 	UCodeLangConstexprForceinline Register& Get_InRegister() { return Get_Register(RegisterID::InPutRegister); }
@@ -322,47 +299,47 @@ public:
 			Get_OutPutRegister().Value = *(UInt64*)&Value;
 		}
 	}
-	template<typename T> inline T Get_This()
+	template<typename T> UCodeLangForceinline T Get_This()
 	{
 		constexpr bool IsBigerThenRegister =sizeof(T) > sizeof(Interpreter::Register);
 		static_assert(!IsBigerThenRegister, " 'T' is too big to be in a Register");
 		return *(T*)&Get_InPutRegister().Value;
 	}
 
-	inline const UserMadeContext& Get_UserMadeContext()
+	UCodeLangForceinline const UserMadeContext& Get_UserMadeContext()
 	{
 		return _Ptr->Get_UserMadeContext();
 	}
-	inline const RunTimeLangState* Get_State()
+	UCodeLangForceinline const RunTimeLangState* Get_State()
 	{
 		return _Ptr->_State;
 	}
 
-	inline parameters GetParametersOnStack()
+	UCodeLangForceinline parameters GetParametersOnStack()
 	{
 		UIntNative Size = _Ptr->_CPU.Stack.PopStack<UIntNative>();
 		return  _Ptr->_CPU.Stack.PopStackParameters(Size);
 	}
-	template<typename T> inline T GetParametersFromStack()
+	template<typename T> UCodeLangForceinline T GetParametersFromStack()
 	{
 		return parameters::From<T>(GetParametersOnStack());
 	}
-	inline auto& Get_InPutRegister() { return _Ptr->Get_InRegister(); }
-	inline auto& Get_OutPutRegister() { return _Ptr->Get_OutRegister(); }
-	inline auto& Get_ThisRegister() { return _Ptr->Get_ThisRegister(); }
+	UCodeLangForceinline auto& Get_InPutRegister() { return _Ptr->Get_InRegister(); }
+	UCodeLangForceinline auto& Get_OutPutRegister() { return _Ptr->Get_OutRegister(); }
+	UCodeLangForceinline auto& Get_ThisRegister() { return _Ptr->Get_ThisRegister(); }
 	
 //
-	PtrType Malloc(NSize_t Size) { return _Ptr->Malloc(Size); }
-	void Free(PtrType Ptr) { return _Ptr->Free(Ptr); }
-	PtrType Realloc(PtrType Ptr,NSize_t Size) { return _Ptr->Realloc(Ptr,Size); }
-	PtrType Calloc(NSize_t Size) { return _Ptr->Calloc(Size); }
+	UCodeLangForceinline PtrType Malloc(NSize_t Size) { return _Ptr->Malloc(Size); }
+	UCodeLangForceinline void Free(PtrType Ptr) { return _Ptr->Free(Ptr); }
+	UCodeLangForceinline PtrType Realloc(PtrType Ptr,NSize_t Size) { return _Ptr->Realloc(Ptr,Size); }
+	UCodeLangForceinline PtrType Calloc(NSize_t Size) { return _Ptr->Calloc(Size); }
 private:
 	InterpreterCPPinterface(Interpreter* Ptr) : _Ptr(Ptr)
 	{
 
 	}
 
-	Interpreter* _Ptr;
+	Interpreter* _Ptr = nullptr;
 };
 UCodeLangEnd
 
