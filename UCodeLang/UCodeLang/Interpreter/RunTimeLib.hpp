@@ -1,6 +1,6 @@
 #pragma once
 #include "../LangCore.hpp"
-#include "../Compliation/UClib.hpp"
+#include "LangCore/UClib.hpp"
 UCodeLangStart
 
 class InterpreterCPPinterface;
@@ -20,11 +20,11 @@ public:
 	RunTimeLib& operator=(const RunTimeLib& V) = delete;
 	void Init(UClib* Lib);
 	void UnLoad();
-	inline UClib* Get_Lib(){return _Lib;}
-	inline auto& Get_Instructions() { return _Instruction; }
-	inline auto& Get_CPPCalls() { return _NameToCppCall; }
+	UCodeLangForceinline UClib* Get_Lib(){return _Lib;}
+	UCodeLangForceinline auto& Get_Instructions() { return _Instruction; }
+	UCodeLangForceinline auto& Get_CPPCalls() { return _NameToCppCall; }
 
-	inline void Add_CPPCall(const String& Name, CPPCallBack CPP)
+	UCodeLangForceinline void Add_CPPCall(const String& Name, CPPCallBack CPP)
 	{
 		_NameToCppCall[Name] = CPP;
 	}

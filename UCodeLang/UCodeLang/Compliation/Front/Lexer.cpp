@@ -1,6 +1,9 @@
 #include "Lexer.hpp"
 #include "../Helpers/KeyWords.hpp"
 UCodeLangStart
+void Lexer::Reset()
+{
+}
 void Lexer::Lex(const String& Text)
 {
 #define GetNextChar(offset) Text.size() > (i + offset) ? Text[i + offset] : '\0';

@@ -1,24 +1,17 @@
 #pragma once
-#include "../LangCore.hpp"
-#include "../Compliation/Helpers/CompliationErrors.hpp"
-#include "../Compliation/UClib.hpp"
-#include "../Compliation/CompliationSettings.hpp"
+#include "LangCore.hpp"
+#include "Compliation/Helpers/CompliationErrors.hpp"
+#include "LangCore/UClib.hpp"
+#include "Compliation/CompliationSettings.hpp"
 UCodeLangStart
 class UAssembly
 {
 public:
-	UAssembly() :_ErrorsOutput(nullptr),_Settings(nullptr)
-	{
-
-	}
+	UAssembly(){}
+	~UAssembly(){}
 	void Build(const String& Text, UCodeLang::UClib* Out);
-	inline void Set_ErrorsOutput(CompliationErrors* V)
-	{
-		_ErrorsOutput = V;
-	}
-	inline void Set_Settings(CompliationSettings* V) {
-		_Settings = V;
-	}
+	UCodeLangForceinline void Set_ErrorsOutput(CompliationErrors* V){_ErrorsOutput = V;}
+	UCodeLangForceinline void Set_Settings(CompliationSettings* V) {_Settings = V;}
 
 
 	static String ToString(const UCodeLang::UClib* Lib);
@@ -42,8 +35,8 @@ public:
 		return "[&" + std::to_string(Pos) + "]";
 	}
 private:
-	CompliationErrors* _ErrorsOutput;
-	CompliationSettings* _Settings;
+	CompliationErrors* _ErrorsOutput = nullptr;
+	CompliationSettings* _Settings = nullptr;
 };
 UCodeLangEnd
 
