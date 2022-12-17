@@ -3,16 +3,9 @@
 UCodeLangStart
 void Lexer::Reset()
 {
-}
-void Lexer::Lex(const String& Text)
-{
-#define GetNextChar(offset) Text.size() > (i + offset) ? Text[i + offset] : '\0';
-	
-	_Text = Text;
 	_Nodes.clear();
 	_Token = Token();
-	NameBuffer ="";
-
+	ClearNameBuffer();
 
 	LastIndentationLevel = 0;
 	IndentationLevel = 0;
@@ -24,6 +17,14 @@ void Lexer::Lex(const String& Text)
 	CommentState = CommentState::NoComment;
 	NextChar = '\n';
 	ReadingState = ReadingNameState::Name;
+}
+void Lexer::Lex(const String_view& Text)
+{
+#define GetNextChar(offset) Text.size() > (i + offset) ? Text[i + offset] : '\0';
+	
+	_Text = Text;
+	Reset();
+
 	
 	for (size_t i = 0; i < Text.size(); i++)
 	{
@@ -70,7 +71,7 @@ void Lexer::Lex(const String& Text)
 			NextChar = GetNextChar(1);
 			
 		
-			NameAndKeyWords(ReadingState, NameBuffer, _Token);
+			NameAndKeyWords(ReadingState, _Token);
 			continue;
 		}
 		else
@@ -88,17 +89,15 @@ void Lexer::Lex(const String& Text)
 		switch (ReadingState)
 		{
 		case ReadingNameState::String:
-			if (Char != '\"')
+			if (Char == '\"')
 			{
-				NameBuffer += Char;
-			}
-			else
-			{
+				NameBufferEnd = i;
+
 				ReadingState = ReadingNameState::Name;
 				_Token.Type = TokenType::String_literal;
-				_Token.Value = NameBuffer;
+				_Token.Value = Get_NameBuffer();
 				_Nodes.push_back(_Token);
-				NameBuffer.clear();
+				ClearNameBuffer();
 			}
 			continue;
 			break;
@@ -109,18 +108,19 @@ void Lexer::Lex(const String& Text)
 
 
 
-		if (IsLetter(Char) || (NameBuffer.size() != 0 && IsNameChar(Char) ))// != 0 for Not geting names as numbers
+		if (IsLetter(Char) || (NameBufferSize() != 0 && IsNameChar(Char) ))// != 0 for Not geting names as numbers
 		{
-			NameBuffer += Char;
+			if (NameBufferStart == NameBufferNullValue){NameBufferStart = i;}
 			continue;
 		}
 		else if (IsDigit(Char))
 		{
 			ReadingState = ReadingNameState::Number;
-			NameBuffer += Char;
+
+			if (NameBufferStart == NameBufferNullValue){NameBufferStart = i;}
 			continue;
 		}
-		NameAndKeyWords(ReadingState, NameBuffer, _Token);
+		NameAndKeyWords(ReadingState,_Token);
 
 		
 
@@ -184,6 +184,7 @@ void Lexer::Lex(const String& Text)
 			break;
 		case '\"':
 			ReadingState = ReadingNameState::String;
+			NameBufferStart = i+1;
 			break;
 		case ';':
 			_Token.Type = TokenType::Semicolon;
@@ -440,7 +441,7 @@ void Lexer::Lex(const String& Text)
 
 	if (CommentState == CommentState::NoComment) 
 	{
-		NameAndKeyWords(ReadingState,NameBuffer, _Token);
+		NameAndKeyWords(ReadingState, _Token);
 	}
 	else if (CommentState == CommentState::MultLine)
 	{
@@ -515,11 +516,13 @@ bool Lexer::DoIndentation(bool& IsIndentationing, char Char, size_t& Indentation
 	}
 	return false;
 }
-void Lexer::NameAndKeyWords(ReadingNameState& ReadingState,String& NameBuffer, Token& _Token)
+void Lexer::NameAndKeyWords(ReadingNameState& ReadingState, Token& _Token)
 {
-	if (NameBuffer.size() != 0)
+	
+	if (NameBufferStart != NameBufferNullValue)
 	{
-
+		NameBufferEnd = TextIndex;
+		auto NameBuffer = Get_NameBuffer();
 		auto KeyWord = KeyWordHelper::GetToken(NameBuffer);
 		if (KeyWord != TokenType::Null)
 		{
@@ -554,7 +557,7 @@ void Lexer::NameAndKeyWords(ReadingNameState& ReadingState,String& NameBuffer, T
 
 
 		_Nodes.push_back(_Token);
-		NameBuffer.clear();
+		ClearNameBuffer();
 		_Token = Token();
 		_Token.OnLine = OnLine;
 		_Token.OnPos = TextIndex;

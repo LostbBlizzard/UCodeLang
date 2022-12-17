@@ -43,7 +43,7 @@ public:
 	Lexer(){}
 	~Lexer(){}
 	void Reset();
-	void Lex(const String& Text);
+	void Lex(const String_view& Text);
 
 	UCodeLangForceinline Vector<Token>& Get_Tokens() { return _Nodes; }
 	UCodeLangForceinline void Set_ErrorsOutput(CompliationErrors* V) { _ErrorsOutput = V; }
@@ -58,7 +58,7 @@ public:
 		return TextIndex;
 	}
 private:
-	String _Text;
+	String_view _Text;
 	Vector<Token> _Nodes;
 	bool _LexerSuccess = false;
 	CompliationErrors* _ErrorsOutput = nullptr;
@@ -66,8 +66,24 @@ private:
 	
 	
 	Token _Token;
-	String NameBuffer;
-
+	size_t NameBufferStart=0;
+	size_t NameBufferEnd=0;
+	static constexpr size_t NameBufferNullValue = -1;
+	UCodeLangForceinline size_t NameBufferSize()
+	{
+		return NameBufferEnd- NameBufferStart;
+	}
+	UCodeLangForceinline String_view Get_NameBuffer()
+	{
+		intptr_t V = (intptr_t)_Text.data() + (intptr_t)NameBufferStart;
+		const char* Charptr = (const char*)V;
+		return String_view(Charptr, NameBufferSize());
+	}
+	UCodeLangForceinline void ClearNameBuffer()
+	{
+		NameBufferStart = NameBufferNullValue;
+		NameBufferEnd = 0;
+	}
 
 	size_t LastIndentationLevel = 0;
 	size_t IndentationLevel = 0;
@@ -111,7 +127,7 @@ private:
 		}
 		return false;
 	}
-	void NameAndKeyWords(ReadingNameState& ReadingState, String& NameBuffer, Token& _Token);
+	void NameAndKeyWords(ReadingNameState& ReadingState, Token& _Token);
 };
 UCodeLangEnd
 
