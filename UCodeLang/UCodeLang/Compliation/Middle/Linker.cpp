@@ -77,7 +77,7 @@ void Linker::Combine(const UCodeLang::Vector<const UCodeLang::UClib*>& libsToLin
 		Debugoffset += (UAddress)DebugBytes.size();
 		
 		Tep.OpCode_AsInt = (InstructionSet_t)Intermediate_Set::FileEnd;
-		Tep.Value0_AsInt64 = Debugoffset;
+		Tep.Value0.AsInt64 = Debugoffset;
 		outLib->Add_Instruction(Tep);
 	}
 

@@ -9,8 +9,6 @@ UCodeLangStart
 #else
 #define UCodeLang_64BitSytem 0
 #define UCodeLang_32BitSytem 1
-
-static_assert(false,"UCode doesn't support 32 Bit")
 #endif
 
 #ifdef DEBUG
