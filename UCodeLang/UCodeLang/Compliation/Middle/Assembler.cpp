@@ -588,6 +588,12 @@ void Assembler::DeclareParameter(Intermediate_Instruction& Ins)
 	ParameterSize += TypeSize;
 }
 
+void Assembler::BuildAsm(Intermediate_Instruction& Ins)
+{
+	NextIns();
+	auto _AsmStr = Get_StringFromDebug(Ins.Value0_AsUInt64);
+}
+
 void Assembler::BuildDeclareFunc(Intermediate_Instruction& Ins)
 {
 	ResetRegistersData();
@@ -623,6 +629,9 @@ void Assembler::BuildDeclareFunc(Intermediate_Instruction& Ins)
 			break;
 		case Intermediate_Set::DeclareVar:
 			DeclareVar(*Inter);
+			break;
+		case Intermediate_Set::AsmBlock:
+			BuildAsm(*Inter);
 			break;
 		case Intermediate_Set::FuncEnd:
 			goto EndGetVarsLoop;

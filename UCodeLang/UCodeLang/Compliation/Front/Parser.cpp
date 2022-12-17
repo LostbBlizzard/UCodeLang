@@ -204,6 +204,90 @@ EndLoop:
 	return GotNodeType::Success;
 }
 
+GotNodeType Parser::GetStatementsorStatementNode(StatementsNode& out)
+{
+	auto TabToken = TryGetToken(); TokenNotNullCheck(TabToken);
+
+	if (TabToken->Type == TokenType::StartTab)
+	{
+		return GetStatements(out);
+	}
+	else
+	{
+		out._Nodes.push_back(nullptr);
+		auto& node = out._Nodes.back();
+		return GetStatement(node);
+	}
+}
+
+GotNodeType Parser::GetStatement(Node*& out)
+{
+	auto StatementTypeToken = TryGetToken();
+	switch (StatementTypeToken->Type)
+	{
+	case UCodeLang::TokenType::KeyWorld_asm:
+	{
+		auto r = GetAsmBlock();
+		out = r.Node;
+		return r.GotNode;
+	}
+	case UCodeLang::TokenType::StartTab:
+	{
+		auto r = GetStatements();
+		out = r.Node;
+		return r.GotNode;
+	};
+	case UCodeLang::TokenType::Class:
+	{
+		auto r = GetClassNode();
+		out = r.Node;
+		return r.GotNode;
+	};
+	case UCodeLang::TokenType::KeyWorld_use:
+	{
+		auto r = GetUseNode();
+		out = r.Node;
+		return r.GotNode;
+	};
+	default:
+		#if CompliationTypeSafety
+		throw std::exception("Cant UnWap BuildStatement");
+		#endif
+		return GotNodeType::failed;
+		break;
+	}
+}
+
+GotNodeType Parser::GetStatements(StatementsNode& out)
+{
+	auto TabToken = TryGetToken();
+	TokenTypeCheck(TabToken, TokenType::StartTab);
+	NextToken();
+
+	while (auto T = TryGetToken())
+	{
+		if (IsStartofaStatement(T->Type))
+		{
+			Node* V = nullptr;
+			GetStatement(V);
+			if (V){out._Nodes.push_back(V);}
+		}
+		else if (T->Type == TokenType::EndTab) { break; }
+		else
+		{
+			#if CompliationTypeSafety
+			throw std::exception("Cant UnWap BuildStatement");
+			#endif
+		}
+	}
+
+
+	auto EndToken = TryGetToken();
+	TokenTypeCheck(EndToken, TokenType::EndTab);
+	NextToken();
+	return GotNodeType::Success;
+}
+
 GotNodeType Parser::GetFuncNode(FuncNode& out)
 {
 	auto V = GetFuncSignatureNode(out.Signature);
@@ -217,6 +301,7 @@ GotNodeType Parser::GetFuncNode(FuncNode& out)
 		out.Body.HasValue = false;
 		break;
 	case TokenType::Colon:
+		NextToken();
 	    GetFuncBodyNode(out.Body.Item);
 		out.Body.HasValue = true;
 		break;
@@ -279,7 +364,7 @@ GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 }
 GotNodeType Parser::GetFuncBodyNode(FuncBodyNode& out)
 {
-	return GotNodeType();
+	return GetStatementsorStatementNode(out.Statements);
 }
 GotNodeType Parser::GetNamedParametersNode(NamedParametersNode& out)
 {
@@ -369,8 +454,16 @@ GotNodeType Parser::GetName(NameNode& out)
 
 GotNodeType Parser::GetType(TypeNode& out)
 {
-	GetName(out.Name);
-	TryGetGeneric(out.Generic);
+	auto Token = TryGetToken();
+	if (Token->Type == TokenType::Name) 
+	{
+		GetName(out.Name);
+	}
+	else 
+	{
+		TryGetGeneric(out.Generic);
+		NextToken();
+	}
 	return GotNodeType::Success;
 }
 
@@ -406,6 +499,55 @@ GotNodeType Parser::GetUseNode(UsingNode& out)
 
 	auto SemicolonToken = TryGetToken();TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
 	NextToken();
+
+	return GotNodeType::Success;
+}
+
+GotNodeType Parser::GetAsmBlock(AsmBlockNode& out)
+{
+	auto AsmToken = TryGetToken();
+	TokenTypeCheck(AsmToken, TokenType::KeyWorld_asm);
+	NextToken();
+
+	auto ColonToken = TryGetToken();
+	TokenTypeCheck(ColonToken, TokenType::Colon);
+	NextToken();
+
+	auto StartToken = TryGetToken(); TokenTypeCheck(StartToken, TokenType::StartTab);
+	if (StartToken->Type == TokenType::StartTab)
+	{
+		NextToken();
+		while (auto T = TryGetToken())
+		{
+			if (T->Type == TokenType::EndTab) { break; }
+			else 
+			{
+			
+
+				Token::PushString(out.AsmText, *T); NextToken();	
+				
+				switch (T->Type)
+				{
+				case TokenType::Number_literal:
+				case TokenType::String_literal:
+				case TokenType::Name:
+					out.AsmText += " ";
+					break;
+				default:break;
+				}
+			}
+		}
+
+		auto EndToken = TryGetToken();
+		TokenTypeCheck(EndToken, TokenType::EndTab);
+		NextToken();
+	}
+	else
+	{
+
+	}
+	
+
 
 	return GotNodeType::Success;
 }
