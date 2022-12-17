@@ -28,4 +28,9 @@ static_assert(false,"UCode doesn't support 32 Bit")
 
 #define UCodeLangConstexprForceinline constexpr UCodeLangForceinline
 
+
+#define UCodeLangHasMultipleThreads __STDCPP_THREADS__
+
+#define UCodeLangHasIsCPU_AMD64 _M_AMD64
+
 UCodeLangEnd

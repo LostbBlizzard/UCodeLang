@@ -1,5 +1,5 @@
 #include "UCodeLang/UCodeLang.hpp"
-#include "UCodeLang/UAssembly/UAssembly.hpp"
+#include "UCodeLang/Compliation/UAssembly/UAssembly.hpp"
 #include <fstream>
 #include <iostream>
 #include "main.h"
@@ -8,7 +8,7 @@
 #include "StandardLibraryBuilder.hpp"
 
 using namespace UCodeLang;
-const UCodeLang::String ScrDir = "C:/CoolStuff/CoolCodeingStuff/Stuff/C++/UCodeLang/UCApp/src/";
+const UCodeLang::String ScrDir = "C:/CoolStuff/CoolCodeingStuff/C++/Projects/UCodeLang/UCApp/src/";
 const UCodeLang::String TopTestDir = ScrDir + "Tests/";
 const UCodeLang::String TopTestUnitDir = TopTestDir + "Unit/";
 
@@ -42,7 +42,7 @@ int main()
 	UCodeLang::CompliationSettings& Settings =_Compiler.Get_Settings();
 	UCodeLang::Compiler::CompilerPathData Data;
 	
-	
+	/*
 	{//StandardLibrary
 		StandardLibraryBuilder::BuildLibraryToDir(StandardLibraryPath);
 		
@@ -54,6 +54,7 @@ int main()
 		_Compiler.LinkFilesToFile(Data);
 		LogErrors(_Compiler);
 	}
+	*/
 	
 	
 	//Main

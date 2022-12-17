@@ -110,6 +110,8 @@ enum class Intermediate_Set : InstructionSet_t
 
 	UnaryExpression,
 	bitwise_not,
+
+	AsmBlock,
 	FileEnd,
 
 	MAXVALUE
