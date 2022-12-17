@@ -1,13 +1,6 @@
-use SomeName::Idk;
+|Main[] -> byte:
+ use UCode;
+ asm:
+  |Store8 10,[E]
 
-%SomeName::InSomeName:
- $SomeClassInName:
-  |Main[] -> void;
 
- %OtherSomeName:
-  $SomeClassInName:
-   |Main[] -> void;
-$SomeClass:
- //
-
-|Main[] -> void;

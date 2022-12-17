@@ -1,8 +1,8 @@
 #pragma once
-#include "LangCore.hpp"
-#include "Compliation/Helpers/CompliationErrors.hpp"
-#include "LangCore/UClib.hpp"
-#include "Compliation/CompliationSettings.hpp"
+#include "UCodeLang/LangCore/UClib.hpp"
+#include "UCodeLang/Compliation/CompliationSettings.hpp"
+#include "UCodeLang/Compliation/Helpers/CompliationErrors.hpp"
+#include "UCodeLang/LangCore/UClib.hpp"
 UCodeLangStart
 class UAssembly
 {

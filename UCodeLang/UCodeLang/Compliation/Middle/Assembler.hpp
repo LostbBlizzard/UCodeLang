@@ -1,6 +1,6 @@
 #pragma once
 #include "../../LangCore.hpp"
-#include "LangCore/UClib.hpp"
+#include "UCodeLang/LangCore/UClib.hpp"
 #include "../Helpers/CompliationErrors.hpp"
 #include "../Helpers/InstructionBuilder.hpp"
 #include "../CompliationSettings.hpp"
@@ -309,6 +309,7 @@ private:
 	void DeclareThisVar(Intermediate_Instruction& Ins);
 	void DeclareThis(Intermediate_Instruction& Ins);
 	void DeclareParameter(Intermediate_Instruction& Ins);
+	void BuildAsm(Intermediate_Instruction& Ins);
 	void StoreVar(Intermediate_Instruction& Ins);
 	RegisterID GetVar(Intermediate_Instruction& Ins);
 	RegisterID DeclareExpression();

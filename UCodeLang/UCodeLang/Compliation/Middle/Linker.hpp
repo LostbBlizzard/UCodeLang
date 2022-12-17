@@ -2,13 +2,13 @@
 #include "../../LangCore.hpp"
 #include "../CompliationSettings.hpp"
 #include "../Helpers/CompliationErrors.hpp"
-#include "LangCore/UClib.hpp"
+#include "UCodeLang/LangCore/UClib.hpp"
 UCodeLangStart
 class Linker
 {
 public:
-	Linker();
-	~Linker();
+	Linker(){}
+	~Linker(){}
 
 	void Link(const UClib* ToSelf, UClib* outLib);
 	void Link(const Vector<const UClib*>& libsToLink, UClib* outLib);

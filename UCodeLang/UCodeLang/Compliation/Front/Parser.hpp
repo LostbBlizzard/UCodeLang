@@ -137,6 +137,27 @@ private:
 		auto r = GetFuncNode(*V);
 		return {r,V->As()};
 	}
+	GotNodeType GetStatementsorStatementNode(StatementsNode& out);
+	GotNodeType GetStatement(Node*& out);
+
+	bool IsStartofaStatement(TokenType type)
+	{
+		switch (type)
+		{
+		case UCodeLang::TokenType::KeyWorld_asm:return true;
+		case UCodeLang::TokenType::StartTab:return true;
+		case UCodeLang::TokenType::KeyWorld_use:return true;
+		case UCodeLang::TokenType::Class:return true;
+		default:return false;
+		}
+	}
+	TryGetNode GetStatements()
+	{
+		StatementsNode* V = StatementsNode::Gen();
+		auto r = GetStatements(*V);
+		return { r,V->As() };
+	}
+	GotNodeType GetStatements(StatementsNode& out);
 	
 	GotNodeType GetFuncNode(FuncNode& out);
 	GotNodeType GetFuncSignatureNode(FuncSignatureNode& out);
@@ -157,6 +178,14 @@ private:
 		return { r,V->As() };
 	}
 	GotNodeType GetUseNode(UsingNode& out);
+	//Statements
+	TryGetNode GetAsmBlock()
+	{
+		AsmBlockNode* V = AsmBlockNode::Gen();
+		auto r = GetAsmBlock(*V);
+		return { r,V->As() };
+	}
+	GotNodeType GetAsmBlock(AsmBlockNode& out);
 };
 UCodeLangEnd
 

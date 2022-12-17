@@ -74,7 +74,7 @@ project "UCodeLang"
    objdir ("Output/int/%{prj.name}/" .. OutDirPath)
    
    includedirs{
-      "%{prj.name}/%{prj.name}",
+      "%{prj.name}",
      }
    files { 
      "%{prj.name}/UCodeLang/**.c",
@@ -93,7 +93,7 @@ project "UCodeCross"
    objdir ("Output/int/%{prj.name}/" .. OutDirPath)
 
    includedirs{
-      "%{prj.name}/%{prj.name}",
+      "%{prj.name}",
       "UCodeLang",
      }
    files { 

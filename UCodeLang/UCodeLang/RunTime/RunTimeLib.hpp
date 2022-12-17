@@ -1,6 +1,6 @@
 #pragma once
 #include "../LangCore.hpp"
-#include "LangCore/UClib.hpp"
+#include "UCodeLang/LangCore/UClib.hpp"
 UCodeLangStart
 
 class InterpreterCPPinterface;

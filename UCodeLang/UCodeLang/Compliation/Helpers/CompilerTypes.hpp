@@ -104,6 +104,11 @@ enum class TokenType : TokenType_t
 class StringHelper
 {
 public:
+	static void PushString(String& out,TokenType V)
+	{
+		const char* str = ToString(V);
+		out += str;
+	}
 	constexpr static  const char* ToString(TokenType V)
 	{
 		switch (V)
@@ -114,20 +119,20 @@ public:
 		case UCodeLang::TokenType::Name:return "identifier";
 		case UCodeLang::TokenType::Namespace:return "%";
 		case UCodeLang::TokenType::Class:return "$";
-		case UCodeLang::TokenType::Left_Parentheses:return "'('";
-		case UCodeLang::TokenType::Right_Parentheses:return "')'";
-		case UCodeLang::TokenType::Left_Bracket:return "'['";
-		case UCodeLang::TokenType::Right_Bracket:return "']'";
-		case UCodeLang::TokenType::Colon:return "':'";
+		case UCodeLang::TokenType::Left_Parentheses:return "(";
+		case UCodeLang::TokenType::Right_Parentheses:return ")";
+		case UCodeLang::TokenType::Left_Bracket:return "[";
+		case UCodeLang::TokenType::Right_Bracket:return "]";
+		case UCodeLang::TokenType::Colon:return ":";
 		case UCodeLang::TokenType::StartTab:return "StartTab";
 		case UCodeLang::TokenType::EndTab:return "EndTab";
-		case UCodeLang::TokenType::Semicolon:return "';'";
-		case UCodeLang::TokenType::Dot:return "'.'";
-		case UCodeLang::TokenType::forwardslash:return "'/'";
-		case UCodeLang::TokenType::equal:return "'='";
-		case UCodeLang::TokenType::plus:return "'+'";
-		case UCodeLang::TokenType::minus:return "'-'";
-		case UCodeLang::TokenType::star:return "'*'";
+		case UCodeLang::TokenType::Semicolon:return ";";
+		case UCodeLang::TokenType::Dot:return ".";
+		case UCodeLang::TokenType::forwardslash:return "/";
+		case UCodeLang::TokenType::equal:return "=";
+		case UCodeLang::TokenType::plus:return "+";
+		case UCodeLang::TokenType::minus:return "-";
+		case UCodeLang::TokenType::star:return "*";
 
 		case UCodeLang::TokenType::Type:return "Type";
 		case UCodeLang::TokenType::KeyWorld_UInt8:return "uint8";
@@ -148,12 +153,12 @@ public:
 		case UCodeLang::TokenType::KeyWorld_True:return "true";
 		case UCodeLang::TokenType::KeyWorld_False:return "false";
 		case UCodeLang::TokenType::KeyWorld_var:return "var";
-		case UCodeLang::TokenType::Not:return "'!'";
+		case UCodeLang::TokenType::Not:return "!";
 		case UCodeLang::TokenType::equal_Comparison:return "==";
 		case UCodeLang::TokenType::Notequal_Comparison:return "!=";
-		case UCodeLang::TokenType::lessthan:return "'<'";
-		case UCodeLang::TokenType::greaterthan:return "'>'";
-		case UCodeLang::TokenType::less_than_or_equalto:return "'<='";
+		case UCodeLang::TokenType::lessthan:return "<";
+		case UCodeLang::TokenType::greaterthan:return ">";
+		case UCodeLang::TokenType::less_than_or_equalto:return "<=";
 		case UCodeLang::TokenType::greater_than_or_equalto:return ">=";
 		case UCodeLang::TokenType::logical_and:return "&&";
 		case UCodeLang::TokenType::logical_or:return "||";
@@ -252,5 +257,26 @@ struct Token
 	size_t OnLine =0;
 	size_t OnPos = 0;
 	static constexpr size_t EndOfFile = -1;
+
+	static void PushString(String& out,const Token& T)
+	{
+		switch (T.Type)
+		{
+		case TokenType::Name:
+			out += T.Value._String;
+			break;
+		case TokenType::Number_literal:
+			out += T.Value._String;
+			break;
+		case TokenType::String_literal:
+			out += "\"" + T.Value._String + "\"";
+			break;
+		default:
+			StringHelper::PushString(out, T.Type);
+			break;
+		}
+		
+	}
+
 }; 
 UCodeLangEnd

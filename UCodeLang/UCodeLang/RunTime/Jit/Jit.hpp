@@ -1,5 +1,5 @@
 #pragma once
-#include "LangCore.hpp"
+#include "UCodeLang/LangCore.hpp"
 
 UCodeLangStart
 enum class CPUBitSize : UInt8
@@ -53,12 +53,5 @@ struct AsmBuffer
 void GetCPUData(EnvironmentData& Out);
 
 const EnvironmentData& Get_EnvironmentData();
-
-
-
-
-class Jit
-{
-};
 
 UCodeLangEnd

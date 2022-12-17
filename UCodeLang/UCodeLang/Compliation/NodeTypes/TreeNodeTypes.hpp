@@ -7,7 +7,7 @@ UCodeLangStart
 
 struct NameNode
 {
-	AddforNodeAndWithList(NameNode);
+	AddforNode(NameNode);
 
 	Token* Token = nullptr;
 };
@@ -85,7 +85,7 @@ struct TypeNode
 		T->OnLine = ToGetLinesFrom.OnLine;
 		T->OnPos = ToGetLinesFrom.OnPos;
 		Value.HasMadeToken = true;
-		Value.Name.Token = new Token();
+		Value.Name.Token = T;
 	}
 	~TypeNode()
 	{
@@ -138,6 +138,10 @@ struct DeclareStaticVariableNode
 	AddforNode(DeclareStaticVariableNode);
 	DeclareVariableNode Variable;
 };
-
+struct AsmBlockNode
+{
+	AddforNode(AsmBlockNode);
+	String AsmText;
+};
 
 UCodeLangEnd

@@ -3,7 +3,7 @@
 #include "Parser.hpp"
 #include "../CompliationSettings.hpp"
 #include "../../LangCore/ReflectionData.hpp"
-#include "LangCore/UClib.hpp"
+#include "UCodeLang/LangCore/UClib.hpp"
 UCodeLangStart
 
 using symbolType_t = UInt8;
@@ -176,6 +176,7 @@ private:
 
 	void BuildStaticVariable(const UCodeLang::Node* node);
 	void BuildNameSpace(const UCodeLang::Node* Tree);
+	void BuildUseingNode(const UCodeLang::UsingNode& Item);
 	void BuildClass(const UCodeLang::ClassNode& Node);
 	void BuildFunc(const UCodeLang::FuncNode& Node);
 	void BuildStatements(const UCodeLang::StatementsNode& BodyStatements);
@@ -184,6 +185,8 @@ private:
 	void BuildExpressionValue(const UCodeLang::Node* Item);
 	void BuildUnaryExpression(const UCodeLang::Node* Item);
 	void BuildBinaryExpression(const UCodeLang::Node* Item);
+	//Statements
+	void BuildAsmBlock(const UCodeLang::AsmBlockNode& Asm);
 	//Helpers
 	void BuildReturnExpression();
 	void BuildStoreExpression(const String_view& VarName);

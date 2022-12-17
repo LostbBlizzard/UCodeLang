@@ -5,11 +5,14 @@ UCodeLangStart
 
 
 class InterpreterCPPinterface;
+class Jit_Interpreter;
 
 class Interpreter
 {
 public:
 	friend InterpreterCPPinterface;
+	friend Jit_Interpreter;
+
 	enum class RetState : ExitState_t
 	{
 		Null,
