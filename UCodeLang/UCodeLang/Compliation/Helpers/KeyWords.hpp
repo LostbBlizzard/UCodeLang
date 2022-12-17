@@ -130,7 +130,7 @@ constexpr size_t KeyWords_Size = sizeof(KeyWords) / sizeof(KeyWords[0]);
 class KeyWordHelper
 {
 public:
-	static bool IsKeyWord(const String& Str)
+	static bool IsKeyWord(const String_view& Str)
 	{
 		for (size_t i = 0; i < KeyWords_Size; i++)
 		{
@@ -138,7 +138,7 @@ public:
 		}
 		return false;
 	}
-	static TokenType GetToken(const String& Str)
+	static TokenType GetToken(const String_view& Str)
 	{
 		for (size_t i = 0; i < KeyWords_Size; i++)
 		{

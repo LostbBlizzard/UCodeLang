@@ -218,7 +218,7 @@ struct TokenValue
 
 
 	void* _Ptr;
-	String _String;
+	String_view _String;
 	Int8 _Int8;
 	
 	size_t _Size_t;
@@ -239,11 +239,6 @@ struct TokenValue
 		return *this;
 	}
 	TokenValue& operator=(String_view String_literal)
-	{
-		_String = String_literal;
-		return *this;
-	}
-	TokenValue& operator=(String String_literal)
 	{
 		_String = String_literal;
 		return *this;
@@ -269,7 +264,9 @@ struct Token
 			out += T.Value._String;
 			break;
 		case TokenType::String_literal:
-			out += "\"" + T.Value._String + "\"";
+			out += "\"";
+			out += T.Value._String;
+			out += +"\"";
 			break;
 		default:
 			StringHelper::PushString(out, T.Type);
