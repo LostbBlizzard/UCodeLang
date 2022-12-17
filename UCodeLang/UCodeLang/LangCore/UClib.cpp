@@ -216,10 +216,10 @@ UClib::LibRawBytes UClib::ToRawBytes(const UClib* Lib)
 			BitConverter::MoveBytes((InstructionSet_t)Item.OpCode, NewBits.Bytes, BitPos);
 			BitPos += sizeof(InstructionSet_t);
 
-			BitConverter::MoveBytes(Item.Value0_AsUInt64, NewBits.Bytes, BitPos);
+			BitConverter::MoveBytes(Item.Value0.AsUInt64, NewBits.Bytes, BitPos);
 			BitPos += sizeof(UInt64);
 
-			BitConverter::MoveBytes(Item.Value1_AsUInt64, NewBits.Bytes, BitPos);
+			BitConverter::MoveBytes(Item.Value1.AsUInt64, NewBits.Bytes, BitPos);
 			BitPos += sizeof(UInt64);
 		}
 	}
@@ -400,8 +400,8 @@ bool UClib::FromBytes(UClib* Lib, const LibRawBytes& Data)
 
 			PullUInt64AsE(Item.OpCode, InstructionSet);
 
-			PullUInt64(Item.Value0_AsUInt64);
-			PullUInt64(Item.Value1_AsUInt64);
+			PullUInt64(Item.Value0.AsUInt64);
+			PullUInt64(Item.Value1.AsUInt64);
 		
 		}
 

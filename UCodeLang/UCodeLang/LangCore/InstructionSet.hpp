@@ -116,25 +116,4 @@ enum class Intermediate_Set : InstructionSet_t
 
 	MAXVALUE
 };
-using RegisterID_t = UInt8;
-enum class RegisterID : RegisterID_t
-{
-	A, B, C, D, E, F,
-
-	//
-	StartRegister = (RegisterID_t)RegisterID::A,
-	EndRegister = (RegisterID_t)RegisterID::F,
-
-
-	ThisRegister = (RegisterID_t)RegisterID::D,
-	OuPutRegister = (RegisterID_t)RegisterID::E,
-	InPutRegister = (RegisterID_t)RegisterID::F,
-
-	PopAndTrashRegister = (RegisterID_t)RegisterID::D,
-	MathOuPutRegister = OuPutRegister,
-	BoolRegister = OuPutRegister,
-	BitwiseRegister = OuPutRegister,
-
-	NullRegister = 155,
-};
 UCodeLangEnd
