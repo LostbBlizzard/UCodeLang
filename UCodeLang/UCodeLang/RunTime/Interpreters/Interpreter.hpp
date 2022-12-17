@@ -1,6 +1,7 @@
 #pragma once
 #include "../RunTimeLangState.hpp"
 #include "..//../LangCore.hpp"
+#include "UCodeLang/LangCore/LangTypes.hpp"
 UCodeLangStart
 
 
@@ -22,7 +23,7 @@ public:
 	}; 
 	struct Register
 	{
-		AnyInt Value;
+		AnyInt64 Value;
 		constexpr  Register() :Value()
 		{
 
@@ -278,7 +279,7 @@ class InterpreterCPPinterface
 
 public:	
 	
-	template<typename T> inline T GetParameters()
+	template<typename T> UCodeLangForceinline T GetParameters()
 	{
 		constexpr bool IsBigerRegister = sizeof(T) > sizeof(Interpreter::Register);
 		if (IsBigerRegister)
@@ -290,7 +291,7 @@ public:
 			return *(T*)&Get_InPutRegister().Value;
 		}
 	}
-	template<typename T> inline void Set_Return(const T& Value) {
+	template<typename T> UCodeLangForceinline void Set_Return(const T& Value) {
 
 		constexpr bool IsBigerRegister = sizeof(T) > sizeof(Interpreter::Register);
 		if (IsBigerRegister) 

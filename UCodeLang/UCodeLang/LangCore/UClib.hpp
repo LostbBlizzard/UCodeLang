@@ -36,11 +36,13 @@ public:
 	UClib& operator=(const UClib& V) = delete;
 
 
-	inline void Add_NameToLastInstruction(const String& Name)
+
+	UCodeLangForceinline void Add_NameToLastInstruction(const String& Name)
 	{
 		_NameToPtr[Name] = (UAddress)(_Instructions.size() - 1);
 	}
-	inline void Add_NameToInstruction(UAddress Index, const String& Name)
+
+	UCodeLangForceinline void Add_NameToInstruction(UAddress Index, const String& Name)
 	{
 		_NameToPtr[Name] = (UAddress)(Index);
 	}
@@ -55,80 +57,81 @@ public:
 			return NullAddress;
 		}
 	}
-	inline bool Get_HasNameToPtr(const String& Name) const
+
+	UCodeLangForceinline bool Get_HasNameToPtr(const String& Name) const
 	{
 		return _NameToPtr.count(Name);
 	}
 
-	inline UAddress NothingThing_Instruction()
+	UCodeLangForceinline UAddress NothingThing_Instruction()
 	{
 		Instruction Data;
 		Data.OpCode = InstructionSet::DoNothing;
-		Data.Value0_AsUMaxSizeInt = (UInt64)nullptr;
-		Data.Value0_AsUMaxSizeInt = (UInt64)nullptr;
+		Data.Value0.AsUInt64 = (UInt64)nullptr;
+		Data.Value1.AsUInt64 = (UInt64)nullptr;
 		return Add_Instruction(Data);
 	}
-	inline UAddress Add_Instruction(const Instruction& V)
+	UCodeLangForceinline UAddress Add_Instruction(const Instruction& V)
 	{
 		auto R = (UAddress)_Instructions.size();
 		_Instructions.push_back(V);
 		return R;
 	}
-	inline UAddress GetLastInstruction()
+	UCodeLangForceinline UAddress GetLastInstruction()
 	{
 		return (UAddress)(_Instructions.size() - 1);
 	}
 	
 
-	inline const auto& Get_Instructions()const
+	UCodeLangForceinline const auto& Get_Instructions()const
 	{
 		return  _Instructions;
 	}
-	inline auto& Get_Instructions()
+	UCodeLangForceinline auto& Get_Instructions()
 	{
 		return  _Instructions;
 	}
-	inline void clear_Instructions()
+	UCodeLangForceinline void clear_Instructions()
 	{
 		_Instructions.clear();
 	}
 
-	inline auto& Get_NameToPtr() const
+	UCodeLangForceinline auto& Get_NameToPtr() const
 	{
 		return _NameToPtr;
 	}
-	inline void clear_NameToPtr()
+	UCodeLangForceinline void clear_NameToPtr()
 	{
 		_NameToPtr.clear();
 	}
 
-	inline auto& Get_StaticBytes() const //Static Variables nad stuff
+	UCodeLangForceinline auto& Get_StaticBytes() const //Static Variables nad stuff
 	{
 		return _StaticBytes;
 	};
-	inline void clear_StaticBytes()
+	UCodeLangForceinline void clear_StaticBytes()
 	{
 		_StaticBytes.clear();
 	}
 	
-	inline const auto& Get_DebugByte()const
+	UCodeLangForceinline const auto& Get_DebugByte()const
 	{
 		return  _DebugBytes;
 	}
-	inline auto& Get_DebugByte()
+	UCodeLangForceinline auto& Get_DebugByte()
 	{
 		return  _DebugBytes;
 	}
-	inline void clear_DebugBytes()
+	UCodeLangForceinline void clear_DebugBytes()
 	{
 		_DebugBytes.clear();
 	}
 	
-	inline void AddOffsetByte()
+	UCodeLangForceinline void AddOffsetByte()
 	{
 		if (_StaticBytes.size() == 0) { _StaticBytes.push_back('\0'); }
 	}
-	inline void AddOffsetDebug()
+	UCodeLangForceinline  void AddOffsetDebug()
 	{
 		if (_DebugBytes.size() == 0) { _DebugBytes.push_back('\0'); }
 	}
@@ -143,7 +146,7 @@ public:
 	}
 	//
 
-	inline UAddress AddStaticBytes(const String& Str)
+	UCodeLangForceinline  UAddress AddStaticBytes(const String& Str)
 	{
 		return AddStaticBytes(String_view(Str));
 	}
@@ -157,7 +160,7 @@ public:
 		_StaticBytes.push_back('\0');
 		return A;
 	}
-	inline UAddress AddStaticBytes(unsigned char Byte)
+	UCodeLangForceinline UAddress AddStaticBytes(unsigned char Byte)
 	{
 		UAddress A = _StaticBytes.size();
 		_StaticBytes.push_back(Byte);
@@ -191,7 +194,7 @@ public:
 		}
 		return A;
 	}
-	inline UAddress AddDebugBytes(const String& Str)
+	UCodeLangForceinline UAddress AddDebugBytes(const String& Str)
 	{
 		return AddDebugBytes(String_view(Str));
 	}
@@ -205,7 +208,7 @@ public:
 		_DebugBytes.push_back('\0');
 		return A;
 	}
-	inline UAddress AddDebugBytes(unsigned char Byte)
+	UCodeLangForceinline  UAddress AddDebugBytes(unsigned char Byte)
 	{
 		UAddress A = (UAddress)_DebugBytes.size();
 		_DebugBytes.push_back(Byte);
@@ -214,7 +217,7 @@ public:
 
 	//
 
-	inline Endian Get_LibEndianess() const { return LibEndianess; }
+	UCodeLangForceinline  Endian Get_LibEndianess() const { return LibEndianess; }
 	struct LibRawBytes
 	{
 		LibRawBytes():Bytes(nullptr),Size(0)
@@ -224,7 +227,7 @@ public:
 		unsigned char* Bytes;
 		size_t Size;
 	};
-	inline static void Free(const LibRawBytes& bits)
+	UCodeLangForceinline static void Free(const LibRawBytes& bits)
 	{
 		free(bits.Bytes);
 	}

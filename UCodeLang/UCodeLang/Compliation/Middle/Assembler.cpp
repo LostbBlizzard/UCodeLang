@@ -46,7 +46,7 @@ void Assembler::Assemble(UClib* Output,UClib* Data)
 		case Intermediate_Set::DeclareStaticVar:
 			break;
 		case Intermediate_Set::FileEnd:
-			Debugoffset = Inter->Value0_AsUInt64; NextIns();
+			Debugoffset = Inter->Value0.AsUInt64; NextIns();
 			break;
 		default:
 			#if CompliationTypeSafety
@@ -62,7 +62,7 @@ void Assembler::Assemble(UClib* Output,UClib* Data)
 		auto& Ins = In_s[i];
 		if (Ins.OpCode_AsInt == (InstructionSet_t)Intermediate_Set::TepFuncCall)
 		{
-			String_view FuncName = Get_StringFromDebug(Ins.Value0_AsAddress);
+			String_view FuncName = Get_StringFromDebug(Ins.Value0.AsAddress);
 			UAddress funcpos = _OutPut->Get_NameToInstruction(FuncName.data());
 			InstructionBuilder::Call(funcpos, Ins);
 		}
@@ -155,7 +155,7 @@ RegisterID Assembler::DeclareExpression()
 		case Intermediate_Set::StoreNumber:
 		{
 			NextIns();
-			auto _String = Get_StringFromDebug(Inter->Value0_AsUInt64);
+			auto _String = Get_StringFromDebug(Inter->Value0.AsUInt64);
 			auto V = std::stoi(_String.data());
 			auto Register = GetFreeRegister();
 			GenIns(InstructionBuilder::Store8(_Ins, Register, (UInt8)V)); PushIns();
@@ -179,7 +179,7 @@ RegisterID Assembler::DeclareExpression()
 }
 RegisterID Assembler::DeclareBinaryExpression(Intermediate_Instruction& Ins)
 {
-	Intermediate_Set Op = (Intermediate_Set)Ins.Value0_AsUInt64;
+	Intermediate_Set Op = (Intermediate_Set)Ins.Value0.AsUInt64;
 	
 
 	RegisterID r;
@@ -275,7 +275,7 @@ RegisterID Assembler::UnaryExpression(Intermediate_Instruction& Ins)
 {
 	NextIns();
 	RegisterID r = GetFreeRegister();
-	Intermediate_Set Op = (Intermediate_Set)Ins.Value0_AsUInt64;
+	Intermediate_Set Op = (Intermediate_Set)Ins.Value0.AsUInt64;
 
 	RegisterLock(r);
 
@@ -310,8 +310,8 @@ void Assembler::BuildStore64RegToReg(RegisterID id, RegisterID out)
 void Assembler::DeclareVar(Intermediate_Instruction& Ins)
 {
 	NextIns();
-	auto _VarType = Get_StringFromDebug(Ins.Value0_AsUInt64);
-	auto _VarName = Get_StringFromDebug(Ins.Value1_AsUInt64);
+	auto _VarType = Get_StringFromDebug(Ins.Value0.AsUInt64);
+	auto _VarName = Get_StringFromDebug(Ins.Value1.AsUInt64);
 
 	auto& syb = AddVarSymbol(_VarName,0,0);
 	syb.VarType = _VarType;
@@ -356,8 +356,8 @@ void Assembler::DeclareVar(Intermediate_Instruction& Ins)
 void Assembler::DeclareThisVar(Intermediate_Instruction& Ins)
 {
 	NextIns();
-	auto _VarType = Get_StringFromDebug(Ins.Value0_AsUInt64);
-	auto _VarName = Get_StringFromDebug(Ins.Value1_AsUInt64);
+	auto _VarType = Get_StringFromDebug(Ins.Value0.AsUInt64);
+	auto _VarName = Get_StringFromDebug(Ins.Value1.AsUInt64);
 
 	auto& syb = AddVarSymbol(_VarName, 0, 0);
 	syb.VarType = _VarType;
@@ -395,8 +395,8 @@ void Assembler::DeclareThisVar(Intermediate_Instruction& Ins)
 void Assembler::DeclareThis(Intermediate_Instruction& Ins)
 {
 	NextIns();
-	auto _VarType = Get_StringFromDebug(Ins.Value0_AsUInt64);
-	auto _VarName = Get_StringFromDebug(Ins.Value1_AsUInt64);
+	auto _VarType = Get_StringFromDebug(Ins.Value0.AsUInt64);
+	auto _VarName = Get_StringFromDebug(Ins.Value1.AsUInt64);
 
 	auto& syb = AddVarSymbol(_VarName, 0, 0);
 	syb.VarType = _VarType;
@@ -406,8 +406,8 @@ void Assembler::DeclareThis(Intermediate_Instruction& Ins)
 void Assembler::DeclareStaticVar(Intermediate_Instruction& Ins)
 {
 	NextIns();
-	auto _VarType = Get_StringFromDebug(Ins.Value0_AsUInt64);
-	auto _VarName = Get_StringFromDebug(Ins.Value1_AsUInt64);
+	auto _VarType = Get_StringFromDebug(Ins.Value0.AsUInt64);
+	auto _VarName = Get_StringFromDebug(Ins.Value1.AsUInt64);
 
 	auto& syb = AddVarSymbol(_VarName, 0, 0);
 	syb.Type = symbolType::StaticVar;
@@ -430,7 +430,7 @@ void Assembler::DeclareStaticVar(Intermediate_Instruction& Ins)
 void Assembler::StoreVar(Intermediate_Instruction& Ins)
 {
 	NextIns();
-	auto _VarName = Get_StringFromDebug(Ins.Value0_AsUInt64);
+	auto _VarName = Get_StringFromDebug(Ins.Value0.AsUInt64);
 	auto syb = FindVarSymbol(_VarName);
 	if (syb)
 	{
@@ -490,7 +490,7 @@ void Assembler::StoreVar(Intermediate_Instruction& Ins)
 RegisterID Assembler::GetVar(Intermediate_Instruction& Ins)
 {
 	NextIns();
-	auto _VarName = Get_StringFromDebug(Ins.Value0_AsUInt64);
+	auto _VarName = Get_StringFromDebug(Ins.Value0.AsUInt64);
 	auto syb = FindVarSymbol(_VarName);
 	if (syb)
 	{
@@ -566,8 +566,8 @@ RegisterID Assembler::GetVar(Intermediate_Instruction& Ins)
 void Assembler::DeclareParameter(Intermediate_Instruction& Ins)
 {
 	NextIns();
-	auto _VarType = Get_StringFromDebug(Ins.Value1_AsUInt64);
-	auto _VarName = Get_StringFromDebug(Ins.Value0_AsUInt64);
+	auto _VarType = Get_StringFromDebug(Ins.Value1.AsUInt64);
+	auto _VarName = Get_StringFromDebug(Ins.Value0.AsUInt64);
 
 	auto& syb = AddVarSymbol(_VarName, 0, 0);
 	syb.VarType = _VarType;
@@ -591,14 +591,14 @@ void Assembler::DeclareParameter(Intermediate_Instruction& Ins)
 void Assembler::BuildAsm(Intermediate_Instruction& Ins)
 {
 	NextIns();
-	auto _AsmStr = Get_StringFromDebug(Ins.Value0_AsUInt64);
+	auto _AsmStr = Get_StringFromDebug(Ins.Value0.AsUInt64);
 }
 
 void Assembler::BuildDeclareFunc(Intermediate_Instruction& Ins)
 {
 	ResetRegistersData();
 	NextIns();
-	auto _FuncName = Get_StringFromDebug(Ins.Value0_AsUInt64);
+	auto _FuncName = Get_StringFromDebug(Ins.Value0.AsUInt64);
 	auto& syb = AddFuncSymbol(_FuncName, 0, 0);
 
 	Scope.AddScope(_FuncName.data());
@@ -700,7 +700,7 @@ EndGetVarsLoop:
 
 			GenIns(
 				_Ins.OpCode_AsInt = (InstructionSet_t)Intermediate_Set::TepFuncCall;
-			_Ins.Value0_AsAddress = Inter->Value0_AsAddress;
+			_Ins.Value0.AsAddress = Inter->Value0.AsAddress;
 			);
 			PushIns();
 

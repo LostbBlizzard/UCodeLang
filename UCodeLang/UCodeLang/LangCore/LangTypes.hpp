@@ -46,9 +46,36 @@ using String_view = std::string_view;
 template<typename T> using Vector = std::vector<T>;
 template<typename T, typename T2> using unordered_map = std::unordered_map<T, T2>;
 
-struct AnyInt
+using RegisterID_t = UInt8;
+enum class RegisterID : RegisterID_t
 {
-	constexpr AnyInt() :Value(0)
+	A, B, C, D, E, F,
+
+	//
+	StartRegister = (RegisterID_t)RegisterID::A,
+	EndRegister = (RegisterID_t)RegisterID::F,
+
+
+	ThisRegister = (RegisterID_t)RegisterID::D,
+	OuPutRegister = (RegisterID_t)RegisterID::E,
+	InPutRegister = (RegisterID_t)RegisterID::F,
+
+	PopAndTrashRegister = (RegisterID_t)RegisterID::D,
+	MathOuPutRegister = OuPutRegister,
+	BoolRegister = OuPutRegister,
+	BitwiseRegister = OuPutRegister,
+
+	NullRegister = 155,
+};
+
+struct AnyInt64
+{
+	
+	constexpr AnyInt64() :Value(0)
+	{
+
+	}
+	constexpr AnyInt64(UInt64 V) : Value(V)
 	{
 
 	}
@@ -68,27 +95,31 @@ struct AnyInt
 		UInt32 AsUInt32;
 		UInt64 AsUInt64;
 
+		RegisterID AsRegister;
+
 		UIntNative AsUIntNative;
 		PtrType AsPtr;
 		UAddress AsAddress;
 	};
-	inline void operator=(bool V) { Asbool = V; }
-	inline void operator=(Int8 V) { AsInt8 = V; }
-	inline void operator=(Int16 V) { AsInt16 = V; }
-	inline void operator=(Int32 V) { AsInt32 = V; }
-	inline void operator=(Int64 V) { AsInt64 = V; }
+	UCodeLangForceinline void operator=(bool V) { Asbool = V; }
+	UCodeLangForceinline void operator=(Int8 V) { AsInt8 = V; }
+	UCodeLangForceinline void operator=(Int16 V) { AsInt16 = V; }
+	UCodeLangForceinline void operator=(Int32 V) { AsInt32 = V; }
+	UCodeLangForceinline void operator=(Int64 V) { AsInt64 = V; }
 
-	inline void operator=(UInt8 V) { AsUInt8 = V; }
-	inline void operator=(UInt16 V) { AsUInt16 = V; }
-	inline void operator=(UInt32 V) { AsUInt32 = V; }
-	inline void operator=(UInt64 V) { AsUInt64 = V; }
+	UCodeLangForceinline void operator=(UInt8 V) { AsUInt8 = V; }
+	UCodeLangForceinline void operator=(UInt16 V) { AsUInt16 = V; }
+	UCodeLangForceinline void operator=(UInt32 V) { AsUInt32 = V; }
+	UCodeLangForceinline void operator=(UInt64 V) { AsUInt64 = V; }
 
 
-
+	UCodeLangForceinline void operator=(RegisterID V) { AsRegister = V; }
 	//inline void operator=(UIntNative V) { AsUIntNative = V; }
-	inline void operator=(PtrType V) { AsPtr = V; }
+	UCodeLangForceinline void operator=(PtrType V) { AsPtr = V; }
+	
+	
+	
 };
-
 struct parameters
 {
 	void* Data;
@@ -96,12 +127,12 @@ struct parameters
 	constexpr parameters() :Data(nullptr), Size(0) {}
 	constexpr parameters(void* data, NSize_t size) : Data(data), Size(size) {}
 
-	template<typename T> inline static parameters As(const T& Value)
+	template<typename T> UCodeLangForceinline static parameters As(const T& Value)
 	{
 		return  parameters((void*)&Value,sizeof(T));
 	}
 
-	template<typename T> inline static const T& From(const parameters& Value)
+	template<typename T> UCodeLangForceinline static const T& From(const parameters& Value)
 	{
 		if (Value.Size != sizeof(T)) { throw std::exception("type mismatch"); }
 		//it not a really a type mismatch but you get what I mean. 
