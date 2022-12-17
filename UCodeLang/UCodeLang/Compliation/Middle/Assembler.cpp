@@ -1,4 +1,5 @@
 #include "Assembler.hpp"
+#include "UCodeLang/Compliation/Helpers/ParseHelper.hpp"
 UCodeLangStart
 
 #define GenIns(X) ReSetIns(); X
@@ -156,7 +157,8 @@ RegisterID Assembler::DeclareExpression()
 		{
 			NextIns();
 			auto _String = Get_StringFromDebug(Inter->Value0.AsUInt64);
-			auto V = std::stoi(_String.data());
+			Int8 V;
+			ParseHelper::ParseStringToInt8(_String,V);
 			auto Register = GetFreeRegister();
 			GenIns(InstructionBuilder::Store8(_Ins, Register, (UInt8)V)); PushIns();
 			return Register;
@@ -592,6 +594,8 @@ void Assembler::BuildAsm(Intermediate_Instruction& Ins)
 {
 	NextIns();
 	auto _AsmStr = Get_StringFromDebug(Ins.Value0.AsUInt64);
+
+	_Assembly.Assemble(_AsmStr, _OutPut, _ErrorsOutput);
 }
 
 void Assembler::BuildDeclareFunc(Intermediate_Instruction& Ins)
@@ -629,9 +633,6 @@ void Assembler::BuildDeclareFunc(Intermediate_Instruction& Ins)
 			break;
 		case Intermediate_Set::DeclareVar:
 			DeclareVar(*Inter);
-			break;
-		case Intermediate_Set::AsmBlock:
-			BuildAsm(*Inter);
 			break;
 		case Intermediate_Set::FuncEnd:
 			goto EndGetVarsLoop;
@@ -678,6 +679,9 @@ EndGetVarsLoop:
 		}	break;
 		case Intermediate_Set::StoreVar:
 			StoreVar(*Inter);
+			break;
+		case Intermediate_Set::AsmBlock:
+			BuildAsm(*Inter);
 			break;
 		case Intermediate_Set::Ret:
 			NextIns();

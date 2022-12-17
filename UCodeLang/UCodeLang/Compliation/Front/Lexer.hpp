@@ -4,13 +4,7 @@
 #include "../Helpers/CompilerTypes.hpp"
 #include "../Helpers/CompliationErrors.hpp"
 #include "../CompliationSettings.hpp"
-
-
-#define UpLettersCharSet "QWERTYUIOPASDFGHJKLZXCVBNM"
-#define LowLettersCharSet "qwertyuiopasdfghjklzxcvbnm"
-#define LettersCharSet UpLettersCharSet LowLettersCharSet
-#define digitCharSet "0123456789"
-#define NameCharSet LettersCharSet digitCharSet "_"
+#include "../LexerDefs.h"
 
 
 UCodeLangStart
@@ -31,15 +25,6 @@ class Lexer
 		MultLine,
 	};
 public:
-	static constexpr const char* const Letters = LettersCharSet;
-	static constexpr size_t Letters_Size = sizeof(LettersCharSet);
-	
-	static constexpr const char* const Digits = digitCharSet;
-	static constexpr size_t Digits_Size = sizeof(digitCharSet);
-
-	static constexpr const char* const NameChars = NameCharSet;
-	static constexpr size_t NameChars_Size = sizeof(NameCharSet);
-
 	Lexer(){}
 	~Lexer(){}
 	void Reset();
@@ -71,13 +56,11 @@ private:
 	static constexpr size_t NameBufferNullValue = -1;
 	UCodeLangForceinline size_t NameBufferSize()
 	{
-		return NameBufferEnd- NameBufferStart;
+		return NameBufferEnd - NameBufferStart;
 	}
 	UCodeLangForceinline String_view Get_NameBuffer()
 	{
-		intptr_t V = (intptr_t)_Text.data() + (intptr_t)NameBufferStart;
-		const char* Charptr = (const char*)V;
-		return String_view(Charptr, NameBufferSize());
+		return _Text.substr(NameBufferStart,NameBufferSize());
 	}
 	UCodeLangForceinline void ClearNameBuffer()
 	{
@@ -103,30 +86,7 @@ private:
 	bool DoIndentation(bool& IsIndentationing, char Char, size_t& IndentationLevel, size_t& LastIndentationLevel, UCodeLang::Token& _Token);
 
 	
-	static bool IsNameChar(char Char)
-	{
-		for (size_t i = 0; i < NameChars_Size; i++)
-		{
-			if (Char == NameChars[i]) { return true; }
-		}
-		return false;
-	}
-	static bool IsLetter(char Char)
-	{
-		for (size_t i = 0; i < Letters_Size; i++)
-		{
-			if (Char == Letters[i]) { return true; }
-		}
-		return false;
-	}
-	static bool IsDigit(char Char)
-	{
-		for (size_t i = 0; i < Digits_Size; i++)
-		{
-			if (Char == Digits[i]) { return true; }
-		}
-		return false;
-	}
+	
 	void NameAndKeyWords(ReadingNameState& ReadingState, Token& _Token);
 };
 UCodeLangEnd

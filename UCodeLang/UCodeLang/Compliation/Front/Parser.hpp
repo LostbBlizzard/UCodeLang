@@ -32,7 +32,7 @@ public:
 	UCodeLangForceinline void Set_ErrorsOutput(CompliationErrors* V){_ErrorsOutput = V;}
 	UCodeLangForceinline void Set_Settings(CompliationSettings* V) { _Settings = V; }
 
-	void Parse(const Vector<Token>& Tokens);
+	void Parse(String_view Text,const Vector<Token>& Tokens);
 	UCodeLangForceinline bool Get_ParseSucces() { return _ParseSuccess; }
 	UCodeLangForceinline FileNode& Get_Tree() { return _Tree; }
 private:
@@ -40,6 +40,7 @@ private:
 	Vector<Token> _Nodes;
 	FileNode _Tree;
 	bool _ParseSuccess = false;
+	String_view _Text;
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
 

@@ -108,12 +108,12 @@ void Lexer::Lex(const String_view& Text)
 
 
 
-		if (IsLetter(Char) || (NameBufferSize() != 0 && IsNameChar(Char) ))// != 0 for Not geting names as numbers
+		if (LexerHelper::IsLetter(Char) || (NameBufferSize() != 0 && LexerHelper::IsNameChar(Char) ))// != 0 for Not geting names as numbers
 		{
 			if (NameBufferStart == NameBufferNullValue){NameBufferStart = i;}
 			continue;
 		}
-		else if (IsDigit(Char))
+		else if (LexerHelper::IsDigit(Char))
 		{
 			ReadingState = ReadingNameState::Number;
 
@@ -403,7 +403,7 @@ void Lexer::Lex(const String_view& Text)
 			break;		
 		case '%':
 			NextChar = GetNextChar(1);
-			if (IsLetter(NextChar))
+			if (LexerHelper::IsLetter(NextChar))
 			{
 				ReadingState = ReadingNameState::Namespace;
 			}
@@ -422,7 +422,7 @@ void Lexer::Lex(const String_view& Text)
 		case ' ':
 			break;
 		case '\t':
-			break;
+			//break;
 		default:
 			if (_ErrorsOutput)
 			{
