@@ -27,7 +27,7 @@ public:
 	};
 	
 	
-	CompilerRet Compile(const String& Text);
+	CompilerRet Compile(const String_view& Text);
 	CompilerRet CompilePath(const String& Path);
 	CompilerRet CompilePathToObj(const String& Path, const String& OutLib);
 	CompilerRet CompileFiles(const CompilerPathData& Data);

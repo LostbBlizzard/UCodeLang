@@ -69,7 +69,7 @@ int main()
 		UCodeLang::UClib MLib;
 		UClib::FromFile(&MLib, OutFilePath);
 		{
-			auto Text = UAssembly::ToString(&MLib);
+			auto Text = UAssembly::UAssembly::ToString(&MLib);
 			String Path = OutFilePath + ".UA";
 			std::ofstream out(Path);
 			out << Text;

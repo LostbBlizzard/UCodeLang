@@ -2,10 +2,14 @@
 #define StackName "Stack"
 #define StackName_ "[" + StackName + "]"
 
-UCodeLangStart
+UAssemblyStart
 
-void UAssembly::Build(const String& Text, UCodeLang::UClib* Out)
+void UAssembly::Assemble(const String_view& Text, UCodeLang::UClib* Out,CompliationErrors* output)
 {
+	Lexer Lex; Lex.Set_ErrorsOutput(output);
+	Lex.Lex(Text);
+	Parser Parse;  Parse.Set_ErrorsOutput(output);
+	Parse.Parse(Lex.Get_Output(), Out);
 }
 String UAssembly::ToString(const UCodeLang::UClib* Lib)
 {
@@ -37,4 +41,4 @@ String UAssembly::ToString(const UCodeLang::UClib* Lib)
 
     return r;
 }
-UCodeLangEnd
+UAssemblyEnd
