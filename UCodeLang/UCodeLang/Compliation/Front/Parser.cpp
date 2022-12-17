@@ -1,5 +1,6 @@
 #include "Parser.hpp"
 #include "../Helpers/KeyWords.hpp"
+#include "..\UAssembly\UAssembly_Parser.hpp"
 UCodeLangStart
 
 #define TokenNotNullCheck(Var) \
@@ -68,8 +69,11 @@ void Parser::Reset()
 {
 }
 
-void Parser::Parse(const Vector<Token>&Tokens)
+
+
+void Parser::Parse(String_view Text, const Vector<Token>&Tokens)
 {
+	_Text = Text;
 	for (const auto& Item : Tokens)
 	{
 		_Nodes.push_back(Item);
@@ -517,26 +521,16 @@ GotNodeType Parser::GetAsmBlock(AsmBlockNode& out)
 	if (StartToken->Type == TokenType::StartTab)
 	{
 		NextToken();
+		size_t StringStart = StartToken->OnPos;
 		while (auto T = TryGetToken())
 		{
 			if (T->Type == TokenType::EndTab) { break; }
-			else 
-			{
-			
-
-				Token::PushString(out.AsmText, *T); NextToken();	
-				
-				switch (T->Type)
-				{
-				case TokenType::Number_literal:
-				case TokenType::String_literal:
-				case TokenType::Name:
-					out.AsmText += " ";
-					break;
-				default:break;
-				}
-			}
+			NextToken();
 		}
+		size_t StringEnd = TryGetToken()->OnPos;
+
+		size_t StringSize = StringEnd - StringStart;
+		out.AsmText = _Text.substr(StringStart, StringSize);
 
 		auto EndToken = TryGetToken();
 		TokenTypeCheck(EndToken, TokenType::EndTab);

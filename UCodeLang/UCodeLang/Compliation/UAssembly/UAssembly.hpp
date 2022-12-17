@@ -3,13 +3,17 @@
 #include "UCodeLang/Compliation/CompliationSettings.hpp"
 #include "UCodeLang/Compliation/Helpers/CompliationErrors.hpp"
 #include "UCodeLang/LangCore/UClib.hpp"
-UCodeLangStart
+#include "UAssembly_NameSpace.hpp"
+
+#include "UAssembly_Lexer.hpp"
+#include "UAssembly_Parser.hpp"
+UAssemblyStart
 class UAssembly
 {
 public:
 	UAssembly(){}
 	~UAssembly(){}
-	void Build(const String& Text, UCodeLang::UClib* Out);
+	void Assemble(const String_view& Text, UCodeLang::UClib* Out, CompliationErrors* output);
 	UCodeLangForceinline void Set_ErrorsOutput(CompliationErrors* V){_ErrorsOutput = V;}
 	UCodeLangForceinline void Set_Settings(CompliationSettings* V) {_Settings = V;}
 
@@ -38,5 +42,5 @@ private:
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
 };
-UCodeLangEnd
+UAssemblyEnd
 

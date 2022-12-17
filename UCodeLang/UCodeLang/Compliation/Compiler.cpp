@@ -3,7 +3,7 @@
 #include <filesystem>
 #include "../LangCore/FileHelper.hpp"
 UCodeLangStart
-Compiler::CompilerRet Compiler::Compile(const String& Text)
+Compiler::CompilerRet Compiler::Compile(const String_view& Text)
 {
 	_Lexer.Reset();
 	_Parser.Reset();
@@ -30,7 +30,7 @@ Compiler::CompilerRet Compiler::Compile(const String& Text)
 
 	if (Errors->Has_Errors()){ return R; }
 
-	_Parser.Parse(_Lexer.Get_Tokens());
+	_Parser.Parse(Text,_Lexer.Get_Tokens());
 
 	Errors->FixEndOfLine(_Lexer.Get_OnLine(), _Lexer.Get_TextIndex());
 

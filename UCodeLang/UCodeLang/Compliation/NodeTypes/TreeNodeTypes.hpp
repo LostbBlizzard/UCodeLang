@@ -141,7 +141,7 @@ struct DeclareStaticVariableNode
 struct AsmBlockNode
 {
 	AddforNode(AsmBlockNode);
-	String AsmText;
+	String_view AsmText;
 };
 
 UCodeLangEnd

@@ -5,6 +5,7 @@
 #include "../Helpers/InstructionBuilder.hpp"
 #include "../CompliationSettings.hpp"
 #include "../Front/SemanticAnalysis.hpp"
+#include "UCodeLang/Compliation/UAssembly/UAssembly.hpp"
 UCodeLangStart
 
 class Assembler
@@ -31,6 +32,27 @@ private:
 		AnyInt64 Value0;
 		AnyInt64 Value1;
 	};
+	enum class InUseState : UInt8
+	{
+		NotinUse,
+		HasSymbol,
+		HasNumber,
+	};
+	struct RegistersInUseData
+	{
+		InUseState InUse;
+		symbol* WhosInhere;//if this is null when Isuse then its for math.
+		RegistersInUseData() :InUse(InUseState::NotinUse), WhosInhere(nullptr)
+		{
+
+		}
+		
+	};
+
+	
+	static constexpr size_t RegisterMaxIndex = (RegisterID_t)RegisterID::EndRegister - (RegisterID_t)RegisterID::StartRegister;
+	static constexpr size_t RegisterCount = 1 + RegisterMaxIndex;
+	
 	UClib* _Input = nullptr;
 	UClib* _OutPut = nullptr;
 	bool _LinkSuccess = false;
@@ -40,6 +62,18 @@ private:
 	SemanticAnalysisData Symbols;
 	ScopeHelper Scope;
 	RegisterID OutValue =RegisterID::NullRegister;
+	UCodeLang::Instruction _Ins;
+	UIntNative funcStackSize = 0;
+	UIntNative StaticStackSize = 0;
+	UIntNative ParameterSize = 0;
+	RegistersInUseData RegistersInUse[RegisterCount];
+	unordered_map<String_view, UAddress> _Strings;
+	size_t Debugoffset = 0;
+	
+	Vector<ClassData*> Tep;
+	UAssembly::UAssembly _Assembly;
+
+
 	UCodeLangForceinline Intermediate_Instruction* Get_Ins()
 	{
 		if (Index < _Input->Get_Instructions().size())
@@ -62,34 +96,7 @@ private:
 
 	void BuildBuffer();
 
-	enum class InUseState : UInt8
-	{
-		NotinUse,
-		HasSymbol,
-		HasNumber,
-	};
-	struct RegistersInUseData
-	{
-		InUseState InUse;
-		symbol* WhosInhere;//if this is null when Isuse then its for math.
-		RegistersInUseData() :InUse(InUseState::NotinUse), WhosInhere(nullptr)
-		{
-
-		}
-		
-	};
-
 	
-	static constexpr size_t RegisterMaxIndex = (RegisterID_t)RegisterID::EndRegister - (RegisterID_t)RegisterID::StartRegister;
-	static constexpr size_t RegisterCount = 1 + RegisterMaxIndex;
-	
-	UCodeLang::Instruction _Ins;
-	UIntNative funcStackSize = 0;
-	UIntNative StaticStackSize = 0;
-	UIntNative ParameterSize = 0;
-	RegistersInUseData RegistersInUse[RegisterCount];
-	unordered_map<String_view, UAddress> _Strings;
-	size_t Debugoffset = 0;
 	
 
 	void UpdateAllTypes()
@@ -109,7 +116,6 @@ private:
 		return V;
 	}
 
-	Vector<ClassData*> Tep;
 	void UpdateTypeData(ClassData* Data);
 
 	void SetRegisterUse(RegisterID id, bool V)
