@@ -135,11 +135,11 @@ private:
 	GotNodeType GetNamespaceNode(NamespaceNode& out);
 	TryGetNode GetClassNode()
 	{
-		ClassNode* V = ClassNode::Gen();
-		auto r = GetClassNode(*V);
-		return { r,V->As() };
+		Node* V = nullptr;
+		auto r = GetClassTypeNode(V);
+		return { r,V};
 	}
-	GotNodeType GetClassNode(ClassNode& out);
+	GotNodeType GetClassTypeNode(Node*& out);
 	TryGetNode GetFuncNode()
 	{
 		FuncNode* V = FuncNode::Gen();
@@ -246,6 +246,8 @@ private:
 	GotNodeType GetDeclareVariable(DeclareVariableNode& out);
 
 	void GetDeclareVariableNoObject(TryGetNode& out);
+
+	GotNodeType GetAlias(Token* AliasName, GenericValuesNode& AliasGenerics, AliasNode& out);
 };
 UCodeLangEnd
 

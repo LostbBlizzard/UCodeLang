@@ -1,3 +1,11 @@
+
+$Hello = int;
+
+$E SomeEnum:
+ Red,
+ Blue,
+ Green,
+
 |Tep<T>[] -> T:ret 0;
 
 [DLL("Test")]

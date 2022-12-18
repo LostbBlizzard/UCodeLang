@@ -26,6 +26,7 @@ enum class NodeType :UInt8
 	BinaryExpressionNode,
 	RetStatementNode,
 	NumberliteralNode,
+	AliasNode,
 };
 
 

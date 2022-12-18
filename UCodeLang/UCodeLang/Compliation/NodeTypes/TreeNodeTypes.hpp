@@ -190,4 +190,13 @@ struct DeclareStaticforthreadVariableNode
 	DeclareVariableNode Variable;
 };
 
+struct AliasNode
+{
+	AddforNode(AliasNode);
+
+	NameNode AliasName;
+	GenericValuesNode Generic;
+	TypeNode Type;
+};
+
 UCodeLangEnd
