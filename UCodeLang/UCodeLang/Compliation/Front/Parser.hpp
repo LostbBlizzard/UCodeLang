@@ -220,6 +220,32 @@ private:
 		return { r,V->As() };
 	}
 	GotNodeType GetRetStatement(RetStatementNode& out);
+
+	TryGetNode GetDeclareStaticVariable()
+	{
+		DeclareStaticVariableNode* V = DeclareStaticVariableNode::Gen();
+		auto r = GetDeclareStaticVariable(*V);
+		return { r,V->As() };
+	}
+	GotNodeType GetDeclareStaticVariable(DeclareStaticVariableNode& out);
+	TryGetNode GetDeclareStaticforthreadVariable()
+	{
+		DeclareStaticforthreadVariableNode* V = DeclareStaticforthreadVariableNode::Gen();
+		auto r = GetDeclareStaticforthreadVariable(*V);
+		return { r,V->As() };
+	}
+	GotNodeType GetDeclareStaticforthreadVariable(DeclareStaticforthreadVariableNode& out);
+
+
+	TryGetNode GetDeclareVariable()
+	{
+		DeclareVariableNode* V = DeclareVariableNode::Gen();
+		auto r = GetDeclareVariable(*V);
+		return { r,V->As() };
+	}
+	GotNodeType GetDeclareVariable(DeclareVariableNode& out);
+
+	void GetDeclareVariableNoObject(TryGetNode& out);
 };
 UCodeLangEnd
 
