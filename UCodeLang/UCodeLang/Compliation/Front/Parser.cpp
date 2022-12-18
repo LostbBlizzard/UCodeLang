@@ -152,48 +152,89 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 
 	return GotNodeType::Success;
 }
+GotNodeType Parser::GetAlias(Token* AliasName,GenericValuesNode& AliasGenerics, AliasNode& out)
+{
+	out.AliasName.Token = AliasName;
+	out.Generic = AliasGenerics;//Move
 
-GotNodeType Parser::GetClassNode(ClassNode& out)
+	auto ClassToken = TryGetToken(); TokenTypeCheck(ClassToken, TokenType::equal);
+	NextToken();
+
+	auto r = GetType(out.Type);
+
+	auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
+	NextToken();
+
+	return r;
+}
+GotNodeType Parser::GetClassTypeNode(Node*& out)
 {
 	auto ClassToken = TryGetToken(); TokenTypeCheck(ClassToken, TokenType::Class);
-	out.ClassName.Token = ClassToken;
+
 	NextToken();
 
-	TryGetGeneric(out.Generic);
-
-	auto ColonToken = TryGetToken(); TokenTypeCheck(ColonToken, TokenType::Colon);
-	NextToken();
-
-	auto StartToken = TryGetToken(); TokenTypeCheck(StartToken, TokenType::StartTab);
-	NextToken();
-
-	while (auto T = TryGetToken())
+	String_view& ClassName = ClassToken->Value._String;
+	if (ClassName == "E")
 	{
-		TryGetNode V;
-
-		switch (T->Type)
-		{
-		case TokenType::EndTab:goto EndLoop;
-		case TokenType::Class:V = GetClassNode(); break;
-		case declareFunc:V = GetFuncNode(); break;
-		case TokenType::KeyWorld_use:V = GetUseNode(); break;
-		case TokenType::Left_Bracket:V = GetAttribute();break;
-		case TokenType::KeyWorld_static:V = GetDeclareStaticVariable(); break;
-		case TokenType::KeyWorld_staticforthread:V = GetDeclareStaticforthreadVariable(); break;
-		default:V = GetDeclareVariable();
-		}
-
-		if (V.Node)
-		{
-			out._Nodes.push_back(V.Node);
-		}
+		return {};
+	}
+	else if (ClassName == "A")
+	{
+		TokenTypeCheck(ClassToken, TokenType::StartTab);
 	}
 
-EndLoop:
-	auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::EndTab);
-	NextToken();
+	GenericValuesNode TepGenerics;
 
-	return GotNodeType::Success;
+	TryGetGeneric(TepGenerics);
+
+	auto ColonToken = TryGetToken(); TokenNotNullCheck(ColonToken);
+	if (ColonToken->Type == TokenType::equal)
+	{
+		auto V = AliasNode::Gen();
+		out = V->As();
+		return GetAlias(ClassToken, TepGenerics, *V);//TepGenerics Move
+	}
+	else
+	{
+		auto output = ClassNode::Gen();out = output->As();
+		output->ClassName.Token = ClassToken;
+		output->Generic = TepGenerics;
+		
+		TokenTypeCheck(ColonToken, TokenType::Colon);
+		NextToken();
+
+		auto StartToken = TryGetToken(); TokenTypeCheck(StartToken, TokenType::StartTab);
+		NextToken();
+
+		while (auto T = TryGetToken())
+		{
+			TryGetNode V;
+
+			switch (T->Type)
+			{
+			case TokenType::EndTab:goto EndLoop;
+			case TokenType::Class:V = GetClassNode(); break;
+			case declareFunc:V = GetFuncNode(); break;
+			case TokenType::KeyWorld_use:V = GetUseNode(); break;
+			case TokenType::Left_Bracket:V = GetAttribute(); break;
+			case TokenType::KeyWorld_static:V = GetDeclareStaticVariable(); break;
+			case TokenType::KeyWorld_staticforthread:V = GetDeclareStaticforthreadVariable(); break;
+			default:V = GetDeclareVariable();
+			}
+
+			if (V.Node)
+			{
+				output->_Nodes.push_back(V.Node);
+			}
+		}
+
+	EndLoop:
+		auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::EndTab);
+		NextToken();
+
+		return GotNodeType::Success;
+	}
+
 }
 
 GotNodeType Parser::GetStatementsorStatementNode(StatementsNode& out)
