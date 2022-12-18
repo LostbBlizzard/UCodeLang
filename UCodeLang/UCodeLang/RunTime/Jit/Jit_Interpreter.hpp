@@ -4,9 +4,11 @@
 #include "UCodeLang/Compliation/BackEnd/NativeAssembler.hpp"
 #include "UCodeLang/RunTime/Interpreters/Interpreter.hpp"
 UCodeLangStart
+
 class Jit_Interpreter
 {
 public:
+	using CPPInput = InterpreterCPPinterface&;
 	using JitFunc = RunTimeLib::CPPCallBack;
 	Jit_Interpreter(){}
 	~Jit_Interpreter(){}
