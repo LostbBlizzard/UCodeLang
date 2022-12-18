@@ -56,6 +56,7 @@ private:
 	static constexpr size_t NameBufferNullValue = -1;
 	UCodeLangForceinline size_t NameBufferSize()
 	{
+		if (NameBufferStart == NameBufferNullValue) { return 0; }
 		return NameBufferEnd - NameBufferStart;
 	}
 	UCodeLangForceinline String_view Get_NameBuffer()
