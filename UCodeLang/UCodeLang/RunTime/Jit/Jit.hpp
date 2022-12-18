@@ -48,6 +48,7 @@ struct AsmBuffer
 	void* Data;
 	AsmBuffer(const size_t PageSize);
 	void SetToExecuteMode();
+	void SetToReadWriteMode();
 	~AsmBuffer();
 };
 void GetCPUData(EnvironmentData& Out);

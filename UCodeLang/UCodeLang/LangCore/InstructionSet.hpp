@@ -49,7 +49,7 @@ enum class InstructionSet : InstructionSet_t
 	GetPointerOfStack, GetPointerOfStaticMem,IncrementStackPointer, DecrementStackPointer,
 	
 	Malloc,Free,MemCopy, Calloc,ReAlloc,
-	Log,CppCall,Link_Bytes,Link_Path,
+	Log,CPPCall,CppCallNamed,Link_Bytes,Link_Path,
 
 	MAXVALUE,
 

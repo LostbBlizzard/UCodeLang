@@ -82,41 +82,9 @@ int main()
 		State.AddLib(&Lib);
 		State.LinkLibs();
 
-
-		//State.ReservedBytes(64);
-
-		void* VP[] = {
-		State.Malloc(32),
-		State.Malloc(16),
-		State.Malloc(16),
-		};
-
-		State.Free(VP[1]);
-		State.Free(VP[2]);
-
-
-		if (VP[1] == State.Malloc(32))
-		{
-			std::cout << "Hay " << std::endl;
-		}
-		UCodeLang::Interpreter interpreter;
-		interpreter.Init(&State);
-
-		auto Vec2_ClassData = State.Get_Assembly().Find_Class((String_view)"Vec2", StandardLibrarynamespace);
-
-		auto Method = Vec2_ClassData->Get_ClassInit();
-
-
-		unsigned char Data[2];
-		interpreter.ThisCall(&Data, *Method);
-
-
-		
-
-		auto r = interpreter.Call(StaticVariablesInitializeFunc);
-
-		
-		r = interpreter.Call("Main");
+		UCodeLang::Jit_Interpreter interpreter;
+		interpreter.Init(&State);	
+		auto r = interpreter.Call("Main");
  		if (r._Succeed == UCodeLang::Interpreter::RetState::Error || r._Succeed == UCodeLang::Interpreter::RetState::Error_Function_doesnt_exist)
 		{
 			std::cout << "Calling Main Got us an Error" << std::endl;

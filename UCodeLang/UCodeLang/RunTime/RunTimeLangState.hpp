@@ -154,6 +154,10 @@ public:
 	{
 		return _Data.Get_Assembly();
 	}
+	UCodeLangForceinline UCLibManger& Get_Libs()
+	{
+		return _Data;
+	}
 	UCodeLangForceinline const UserMadeContext& Get_UserMadeContext()
 	{
 		return _UserMadeContext;

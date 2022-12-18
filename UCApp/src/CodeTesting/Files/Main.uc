@@ -1,6 +1,7 @@
 |Main[] -> byte:
  use UCode;
  asm:
-  Store8 10,[E]
+  Store8 244,[E]
+  Call 0
 
 

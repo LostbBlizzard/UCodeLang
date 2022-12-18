@@ -2,7 +2,7 @@
 #include "UAssembly_NameSpace.hpp"
 #include "UCodeLang/LangCore/UClib.hpp"
 
-#define AddMapValueValue(InsName,Op_0,Op_1) {#InsName, {#InsName,InstructionSet::##InsName,Op_0,Op_1} }
+#define AddMapValueValue(InsName,Ins,Op_0,Op_1) {#InsName, {#InsName,Ins,Op_0,Op_1} }
 
 UAssemblyStart
 using TokenType_t = UInt8;
@@ -78,6 +78,9 @@ enum class OpCodeType :OpCodeType_t
 	AnyInt64,
 
 	Register,
+
+	UIntPtr,
+	ReadPtrAsUIntPtr,
 };
 
 struct InsMapValue
@@ -88,13 +91,25 @@ struct InsMapValue
 	OpCodeType Op_1;
 };
 static inline const unordered_map<String_view, InsMapValue> StringToInsMap =
-{
-	AddMapValueValue(Store8,OpCodeType::AnyInt8,OpCodeType::Register),
+{	
+	AddMapValueValue(Exit,InstructionSet::Exit,OpCodeType::AnyInt8,OpCodeType::NoOpCode),
+	AddMapValueValue(Ret,InstructionSet::Return,OpCodeType::NoOpCode,OpCodeType::NoOpCode),
+	AddMapValueValue(Call,InstructionSet::Call,OpCodeType::UIntPtr,OpCodeType::NoOpCode),
+	AddMapValueValue(Callif,InstructionSet::CallIf,OpCodeType::UIntPtr,OpCodeType::NoOpCode),
+	AddMapValueValue(CallPtr,InstructionSet::CallPtr,OpCodeType::ReadPtrAsUIntPtr,OpCodeType::NoOpCode),
+
+	AddMapValueValue(Jump,InstructionSet::Jump,OpCodeType::UIntPtr,OpCodeType::NoOpCode),
+	AddMapValueValue(Jumpif,InstructionSet::Jumpif,OpCodeType::UIntPtr,OpCodeType::NoOpCode),
+	AddMapValueValue(JumpPtr,InstructionSet::JumpPtr,OpCodeType::ReadPtrAsUIntPtr,OpCodeType::NoOpCode),
+
+	AddMapValueValue(NoOp,InstructionSet::DoNothing,OpCodeType::NoOpCode,OpCodeType::NoOpCode),
+
+	AddMapValueValue(Store8,InstructionSet::Store8,OpCodeType::AnyInt8,OpCodeType::Register),
 };
 static inline unordered_map<InstructionSet, const InsMapValue*> InsToInsMapValue;
 inline void SetUp()
 {
-	for (auto Item : StringToInsMap)
+	for (auto& Item : StringToInsMap)
 	{
 		InsToInsMapValue[Item.second.OpCode] = &Item.second;
 	}

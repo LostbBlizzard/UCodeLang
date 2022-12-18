@@ -47,6 +47,12 @@ void AsmBuffer::SetToExecuteMode()
 	VirtualProtect(Data, sizeof(Data), PAGE_EXECUTE_READ, &old);
 }
 
+void AsmBuffer::SetToReadWriteMode()
+{
+	DWORD old;
+	VirtualProtect(Data, sizeof(Data), PAGE_READWRITE, &old);
+}
+
 AsmBuffer::~AsmBuffer()
 {
 	VirtualFree(Data, 0, MEM_RELEASE);
