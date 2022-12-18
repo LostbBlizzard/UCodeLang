@@ -147,15 +147,7 @@ struct FuncNode
 	FuncSignatureNode Signature;
 	Optional<FuncBodyNode> Body;
 };
-struct DeclareVariableNode
-{
-	AddforNode(DeclareVariableNode);
-};
-struct DeclareStaticVariableNode
-{
-	AddforNode(DeclareStaticVariableNode);
-	DeclareVariableNode Variable;
-};
+
 struct AsmBlockNode
 {
 	AddforNode(AsmBlockNode);
@@ -178,6 +170,24 @@ struct RetStatementNode
 {
 	AddforNode(RetStatementNode);
 	Node* Expression = nullptr;//Can be null.
+};
+
+struct DeclareVariableNode
+{
+	AddforNode(DeclareVariableNode);
+	TypeNode Type;
+	NameNode Name;
+	Node* Expression = nullptr;//Can be null.
+};
+struct DeclareStaticVariableNode
+{
+	AddforNode(DeclareStaticVariableNode);
+	DeclareVariableNode Variable;
+};
+struct DeclareStaticforthreadVariableNode
+{
+	AddforNode(DeclareStaticforthreadVariableNode);
+	DeclareVariableNode Variable;
 };
 
 UCodeLangEnd
