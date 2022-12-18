@@ -32,7 +32,7 @@ void SemanticAnalysis::BuildNameSpace(const Node* Tree)
 {
 	bool IsNameSpace = Tree->Get_Type() == NodeType::NamespaceNode;
 
-	const Vector<Node*>& Nodes = (Tree->Get_Type() == NodeType::NamespaceNode)
+	const Vector<Node*>& Nodes = IsNameSpace
 		? NamespaceNode::As(Tree)->_Nodes : FileNode::As(Tree)->_Nodes;
 
 	if (IsNameSpace)
@@ -48,6 +48,7 @@ void SemanticAnalysis::BuildNameSpace(const Node* Tree)
 
 		switch (Item->Get_Type())
 		{
+		case NodeType::AttributeNode:BuildAttributeNode(*AttributeNode::As(Item)); break;
 		case NodeType::NamespaceNode:BuildNameSpace(Item);break;
 		case NodeType::NameNode:BuildClass(*ClassNode::As(Item));break;
 		case NodeType::FuncNode:BuildFunc(*FuncNode::As(Item));break;
@@ -91,6 +92,10 @@ void SemanticAnalysis::BuildClass(const UCodeLang::ClassNode& node)
 		}
 
 	}
+}
+
+void SemanticAnalysis::BuildAttributeNode(const UCodeLang::AttributeNode& Node)
+{
 }
 
 void SemanticAnalysis::BuildFunc(const UCodeLang::FuncNode& Node)

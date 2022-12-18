@@ -19,6 +19,10 @@ enum class NodeType :UInt8
 	StatementsNode,
 	ScopedNameNode,
 	AsmBlockNode,
+	AttributeNode,
+	ValueParametersNode,
+	StringliteralNode,
+	BinaryExpressionNode,
 };
 
 

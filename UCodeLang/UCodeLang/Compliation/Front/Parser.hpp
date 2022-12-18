@@ -61,19 +61,19 @@ private:
 	UCodeLangForceinline void NextToken() { _TokenIndex++; }
 	UCodeLangForceinline void NextToken(size_t offfset) { _TokenIndex += offfset; }
 	
-	inline bool IsPostfixOperator(Token* Token)
+	inline static bool IsPostfixOperator(Token* Token)
 	{
 		return Token->Type == TokenType::increment
 			|| Token->Type == TokenType::decrement;
 	}
-	inline bool IsCompoundOperator(Token* Token)
+	inline static bool IsCompoundOperator(Token* Token)
 	{
 		return Token->Type == TokenType::CompoundAdd
 			|| Token->Type == TokenType::CompoundSub
 			|| Token->Type == TokenType::CompoundMult
 			|| Token->Type == TokenType::CompoundDiv;
 	}
-	inline bool IsUnaryOperator(Token* Token)
+	inline static bool IsUnaryOperator(Token* Token)
 	{
 		return Token->Type == TokenType::plus
 			|| Token->Type == TokenType::minus
@@ -83,7 +83,7 @@ private:
 			|| Token->Type == TokenType::Not
 			|| Token->Type == TokenType::bitwise_not;
 	}
-	inline bool IsOverLoadableOperator(Token* Token)
+	inline static bool IsOverLoadableOperator(Token* Token)
 	{
 		return Token->Type == TokenType::equal_Comparison
 			|| Token->Type == TokenType::Notequal_Comparison
@@ -92,7 +92,7 @@ private:
 			|| Token->Type == TokenType::greater_than_or_equalto
 			|| Token->Type == TokenType::less_than_or_equalto;
 	}
-	inline bool IsBinaryOperator(Token* Token)
+	inline static bool IsBinaryOperator(Token* Token)
 	{
 		return Token->Type == TokenType::plus
 			|| Token->Type == TokenType::minus
@@ -116,6 +116,14 @@ private:
 			|| Token->Type == TokenType::bitwise_RightShift
 			|| Token->Type == TokenType::bitwise_XOr;
 			
+	}
+	inline static GotNodeType Merge(GotNodeType A, GotNodeType B)
+	{
+		if (A == GotNodeType::Success && B == GotNodeType::Success)
+		{
+			return GotNodeType::Success;
+		}
+		return GotNodeType::failed;
 	}
 	
 	TryGetNode GetNamespaceNode()
@@ -164,6 +172,9 @@ private:
 	GotNodeType GetFuncSignatureNode(FuncSignatureNode& out);
 	GotNodeType GetFuncBodyNode(FuncBodyNode& out);
 	GotNodeType GetNamedParametersNode(NamedParametersNode& out);
+
+	GotNodeType GetValueParameterNode(Node*& out);
+	GotNodeType GetValueParametersNode(ValueParametersNode& out);
 	GotNodeType TryGetGeneric(GenericValuesNode& out);
 
 	GotNodeType GetName(ScopedNameNode& out);
@@ -171,7 +182,19 @@ private:
 	GotNodeType GetType(TypeNode& out);
 	GotNodeType GetTypeWithVoid(TypeNode& out);
 	GotNodeType GetNumericType(TypeNode& out);
-	
+
+
+	GotNodeType GetExpressionNode(Node*& out);
+	GotNodeType GetExpressionTypeNode(Node*& out);
+
+	TryGetNode GetAttribute()
+	{
+		AttributeNode* V = AttributeNode::Gen();
+		auto r = GetAttribute(*V);
+		return { r,V->As() };
+	}
+	GotNodeType GetAttribute(AttributeNode& out);
+
 	TryGetNode GetUseNode()
 	{
 		UsingNode* V = UsingNode::Gen();

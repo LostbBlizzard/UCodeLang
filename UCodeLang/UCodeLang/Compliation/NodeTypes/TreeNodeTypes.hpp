@@ -5,6 +5,13 @@
 #include "../..//LangCore/ScopeHelper.hpp"
 UCodeLangStart
 
+struct StringliteralNode
+{
+	AddforNode(StringliteralNode);
+
+	Token* Token = nullptr;
+};
+
 struct NameNode
 {
 	AddforNode(NameNode);
@@ -36,30 +43,6 @@ struct NamespaceNode
 
 	ScopedNameNode NamespaceName;
 };
-struct ClassNode
-{
-	AddforNodeAndWithList(ClassNode);
-
-	NameNode ClassName;
-};
-
-
-struct UsingNode
-{
-	AddforNodeAndWithList(UsingNode);
-
-	ScopedNameNode ScopedName;
-};
-
-struct ParameterValueNode
-{
-	NameNode Type;
-	String_view Name;
-};
-struct ParametersNode
-{
-	Vector<ParameterValueNode> Parameters;
-};
 struct GenericValueNode 
 {
 	Token* Token = nullptr;
@@ -73,6 +56,23 @@ struct GenericValuesNode
 		return Values.size();
 	}
 };
+struct ClassNode
+{
+	AddforNodeAndWithList(ClassNode);
+
+	NameNode ClassName;
+	GenericValuesNode Generic;
+};
+
+
+struct UsingNode
+{
+	AddforNodeAndWithList(UsingNode);
+
+	ScopedNameNode ScopedName;
+};
+
+
 struct TypeNode
 {
 	NameNode Name;
@@ -99,15 +99,26 @@ private:
 };
 struct NamedParameterNode
 {
-	NameNode Name;
 	TypeNode Type;
+	NameNode Name;
 };
 struct NamedParametersNode
 {
 	AddforNode(NamedParametersNode);
-	Vector<NamedParameterNode> Statements;
+	Vector<NamedParameterNode> Parameters;
 };
+struct ValueParametersNode
+{
+	AddforNodeAndWithList(ValueParametersNode);
+	Vector<Node*> Expressions;
+};
+struct AttributeNode
+{
+	AddforNode(AttributeNode);
 
+	ScopedNameNode ScopedName;
+	ValueParametersNode Parameters;
+};
 struct StatementsNode
 {
 	AddforNodeAndWithList(StatementsNode);
@@ -142,6 +153,19 @@ struct AsmBlockNode
 {
 	AddforNode(AsmBlockNode);
 	String_view AsmText;
+};
+struct BinaryExpressionNode
+{
+	AddforNode(BinaryExpressionNode);
+
+	Node* Value0 = nullptr;
+	Token* BinaryOp =nullptr;
+	Node* Value1 = nullptr;
+	~BinaryExpressionNode()
+	{
+		delete Value0;
+		delete Value1;
+	}
 };
 
 UCodeLangEnd

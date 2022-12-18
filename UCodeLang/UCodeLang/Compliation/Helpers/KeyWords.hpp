@@ -91,7 +91,7 @@ inline KeyWord KeyWords[] =
 	KeyWord(S_KeyWord_sintptr,TokenType::KeyWorld_sintptr),
 
 	//
-	KeyWord(S_KeyWord_ret,TokenType::Return),
+	KeyWord(S_KeyWord_ret,TokenType::KeyWorld_Ret),
 	KeyWord(S_KeyWord_void,TokenType::Void),
 	KeyWord(S_KeyWord_sizeof,TokenType::KeyWorld_Sizeof),
 	KeyWord(S_KeyWord_nameof,TokenType::KeyWorld_Nameof),
@@ -116,9 +116,6 @@ inline KeyWord KeyWords[] =
 	KeyWord(S_KeyWord_new,TokenType::KeyWorld_new),
 	KeyWord(S_KeyWord_static,TokenType::KeyWorld_static),
 
-	KeyWord(S_KeyWord_copy,TokenType::KeyWorld_copy),
-	KeyWord(S_KeyWord_move,TokenType::KeyWorld_move),
-	KeyWord(S_KeyWord_swap,TokenType::KeyWorld_swap),
 	KeyWord(S_KeyWord_pub,TokenType::KeyWorld_pub),
 	KeyWord(S_KeyWord_typeof,TokenType::KeyWorld_typeof),
 	KeyWord(S_KeyWord_get,TokenType::KeyWorld_get),

@@ -178,6 +178,7 @@ private:
 	void BuildNameSpace(const UCodeLang::Node* Tree);
 	void BuildUseingNode(const UCodeLang::UsingNode& Item);
 	void BuildClass(const UCodeLang::ClassNode& Node);
+	void BuildAttributeNode(const UCodeLang::AttributeNode& Node);
 	void BuildFunc(const UCodeLang::FuncNode& Node);
 	void BuildStatements(const UCodeLang::StatementsNode& BodyStatements);
 	void BuildStatement(const UCodeLang::Node* Statement);

@@ -35,6 +35,13 @@ const UCodeLang::String StandardLibraryinit = StandardLibraryOut + "init/";
 
 #define StandardLibrarynamespace "ULang"
 
+AnyInt64 Test(Jit_Interpreter::CPPInput Input)
+{
+
+
+
+	return NullAddress;
+}
 
 int main()
 {
@@ -78,8 +85,12 @@ int main()
 		UCodeLang::RunTimeLib Lib;
 		Lib.Init(&MLib);
 
+		UCodeLang::RunTimeLib DLLib;
+		Lib.Add_CPPCall("Test",Test);
+
 		UCodeLang::RunTimeLangState State;
 		State.AddLib(&Lib);
+		State.AddLib(&DLLib);
 		State.LinkLibs();
 
 		UCodeLang::Jit_Interpreter interpreter;
