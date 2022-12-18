@@ -105,8 +105,7 @@ void Lexer::Lex(const String_view& Text)
 			break;
 		}
 
-
-
+	
 
 		if (LexerHelper::IsLetter(Char) || (NameBufferSize() != 0 && LexerHelper::IsNameChar(Char) ))// != 0 for Not geting names as numbers
 		{

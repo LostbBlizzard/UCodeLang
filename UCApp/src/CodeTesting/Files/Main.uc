@@ -3,6 +3,9 @@
 [DLL("Test")]
 |Test[];
 
+
+int V = 5;
+
 |Main[] -> byte:
  use UCode;
  asm:

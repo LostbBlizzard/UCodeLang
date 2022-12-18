@@ -257,7 +257,9 @@ GotNodeType Parser::GetStatement(Node*& out)
 	};
 	case UCodeLang::TokenType::KeyWorld_Ret:
 	{
-
+		auto r = GetRetStatement();
+		out = r.Node;
+		return r.GotNode;
 	};
 	default:
 		#if CompliationTypeSafety
@@ -386,6 +388,15 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 	{
 		NextToken();
 		auto r = StringliteralNode::Gen();
+		r->Token = StatementTypeToken;
+		out = r->As();
+		return GotNodeType::Success;
+	}
+	case UCodeLang::TokenType::Number_literal:
+	{
+		NextToken();
+		auto r = NumberliteralNode::Gen();
+		r->Token = StatementTypeToken;
 		out = r->As();
 		return GotNodeType::Success;
 	}
@@ -420,6 +431,20 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 		return Ex;
 	}
 }
+GotNodeType Parser::GetNullAbleExpressionTypeNode(Node*& out)
+{
+	auto Token = TryGetToken(); TokenNotNullCheck(Token);
+	if (Token->Type == TokenType::Semicolon) 
+	{
+		NextToken();
+		out = nullptr;
+	}
+	else
+	{
+		GetExpressionTypeNode(out);
+	}
+}
+
 GotNodeType Parser::GetValueParameterNode(Node*& out)
 {
 	return GetExpressionTypeNode(out);//Just for consistency.
@@ -641,7 +666,17 @@ GotNodeType Parser::GetAsmBlock(AsmBlockNode& out)
 	return GotNodeType::Success;
 }
 
+GotNodeType Parser::GetRetStatement(RetStatementNode& out)
+{
+	auto RetToken = TryGetToken();
+	TokenTypeCheck(RetToken, TokenType::KeyWorld_Ret);
+	NextToken();
 
+	GetNullAbleExpressionTypeNode(out.Expression);
+
+	auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
+	NextToken();
+}
 
 
 

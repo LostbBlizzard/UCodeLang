@@ -12,6 +12,13 @@ struct StringliteralNode
 	Token* Token = nullptr;
 };
 
+struct NumberliteralNode
+{
+	AddforNode(NumberliteralNode);
+
+	Token* Token = nullptr;
+};
+
 struct NameNode
 {
 	AddforNode(NameNode);
@@ -166,6 +173,11 @@ struct BinaryExpressionNode
 		delete Value0;
 		delete Value1;
 	}
+};
+struct RetStatementNode
+{
+	AddforNode(RetStatementNode);
+	Node* Expression = nullptr;//Can be null.
 };
 
 UCodeLangEnd
