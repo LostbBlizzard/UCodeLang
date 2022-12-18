@@ -28,6 +28,10 @@ public:
 		{
 
 		}
+		constexpr  Register(AnyInt64 V) : Value(V)
+		{
+
+		}
 	};
 	struct Return_t
 	{
@@ -94,7 +98,11 @@ public:
 
 	UCodeLangForceinline const UserMadeContext& Get_UserMadeContext(){return _UserMadeContext;}
 	UCodeLangForceinline void Set_UserMadeContext(UserMadeContext Context){_UserMadeContext = Context;}
-	
+	UCodeLangForceinline auto Get_State() { return _State; }
+	void PushParameters(parameters Pars)
+	{
+		_CPU.Stack.PushParameters(Pars);
+	}
 private:
 	
 	struct CPUReturn_t
@@ -337,11 +345,13 @@ public:
 	UCodeLangForceinline void Free(PtrType Ptr) { return _Ptr->Free(Ptr); }
 	UCodeLangForceinline PtrType Realloc(PtrType Ptr,NSize_t Size) { return _Ptr->Realloc(Ptr,Size); }
 	UCodeLangForceinline PtrType Calloc(NSize_t Size) { return _Ptr->Calloc(Size); }
-private:
+	
 	InterpreterCPPinterface(Interpreter* Ptr) : _Ptr(Ptr)
 	{
 
 	}
+private:
+	
 
 	Interpreter* _Ptr = nullptr;
 };

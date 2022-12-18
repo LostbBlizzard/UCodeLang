@@ -35,13 +35,17 @@ void Parser::ParseIns()
 	const String_view& InsName = T->Value._String;
 	if (StringToInsMap.count(InsName))
 	{
+		NextToken();
 		auto& Item = StringToInsMap.at(InsName);
 		_TepIns.OpCode = Item.OpCode;
-		NextToken();
-		ParseOp(_TepIns.Value0, Item.Op_0); 
+
+		if (Item.Op_0 != OpCodeType::NoOpCode)
+		{
+			ParseOp(_TepIns.Value0, Item.Op_0);
+		}
 
 		auto CommaToken = TryGetToken();
-		if (CommaToken && CommaToken->Type == TokenType::Comma)
+		if (CommaToken && CommaToken->Type == TokenType::Comma && Item.Op_1 != OpCodeType::NoOpCode)
 		{
 			NextToken();	
 			ParseOp(_TepIns.Value1, Item.Op_1);
@@ -52,6 +56,7 @@ void Parser::ParseIns()
 	}
 	else
 	{
+		NextToken();
 		_ErrorsOutput->AddError(ErrorCodes::CantParseTree, T->OnLine, T->OnPos,(String)InsName + "Is Not a valid instrucion");
 	}
 
@@ -63,6 +68,7 @@ void Parser::ParseOp(AnyInt64& Out, OpCodeType Type)
 	{
 	case UCodeLang::UAssembly::OpCodeType::NoOpCode:
 		break;
+	case UCodeLang::UAssembly::OpCodeType::UIntPtr:
 	case UCodeLang::UAssembly::OpCodeType::AnyInt8:ParseAny8(Out);break;
 	case UCodeLang::UAssembly::OpCodeType::AnyInt16:
 		break;

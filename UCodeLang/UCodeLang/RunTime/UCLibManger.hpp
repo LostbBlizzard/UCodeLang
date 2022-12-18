@@ -49,6 +49,10 @@ public:
 	{
 		return  Assembly;
 	}
+	inline auto& GetInstructions()
+	{
+		return _Instructions;
+	}
 	inline void AddLib(RunTimeLib* lib){ Libs.push_back(lib); }
 	inline void Clears() { Libs.clear(); }
 private:

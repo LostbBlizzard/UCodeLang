@@ -334,7 +334,7 @@ void Interpreter::Extecute(Instruction& Inst)
 	}
 		break;
 		//Linking
-	case InstructionSet::CppCall:
+	case InstructionSet::CppCallNamed:
 	{
 		auto Ptr = (UIntNative)Get_StaticMemPtr();
 		auto NewPtr = Ptr + Inst.Value0.AsUIntNative;
@@ -353,6 +353,13 @@ void Interpreter::Extecute(Instruction& Inst)
 			_CPU.RetValue._Succeed = ExitState::Failure;
 			_CPU.Stack.StackOffSet = 0;
 		}
+	}break;
+	case InstructionSet::CPPCall:
+	{
+		auto CppV = (RunTimeLib::CPPCallBack)Inst.Value0.AsPtr;
+		auto& inter = *(InterpreterCPPinterface*)&_CPPHelper;
+		inter = InterpreterCPPinterface(this);
+		CppV(inter);
 	}break;
 	#pragma endregion
 	break;

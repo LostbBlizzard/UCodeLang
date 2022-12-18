@@ -10,6 +10,13 @@ UCodeLangStart
 
 class Amd64Assembler
 {
+public:
+	Amd64Assembler(){}
+	~Amd64Assembler(){}
+	void Reset();
+	bool BuildFunc(const Vector<Instruction>& Data, size_t Offset,Vector<UInt8>& Output);
+
+private:
 };
 
 UCodeLangEnd
