@@ -11,6 +11,7 @@ enum class NodeType :UInt8
 	UsingNode,
 	ScopedName,
 	DeclareStaticVariableNode,
+	DeclareStaticforthreadVariableNode,
 	DeclareVariableNode,
 	FuncNode,
 	NamedParameters, 

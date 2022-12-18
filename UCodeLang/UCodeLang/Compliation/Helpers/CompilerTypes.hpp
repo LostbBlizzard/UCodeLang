@@ -85,6 +85,7 @@ enum class TokenType : TokenType_t
 	KeyWorld_Drop,
 	KeyWorld_new,
 	KeyWorld_static,
+	KeyWorld_staticforthread,
 
 	KeyWorld_uintptr,
 	KeyWorld_sintptr,
@@ -183,8 +184,9 @@ public:
 
 		case UCodeLang::TokenType::KeyWorld_This: return "this";
 		case UCodeLang::TokenType::KeyWorld_Drop: return "drop";
-		case UCodeLang::TokenType::KeyWorld_new: return "new(keyword)";
+		case UCodeLang::TokenType::KeyWorld_new: return "new";
 		case UCodeLang::TokenType::KeyWorld_static: return "static";
+		case UCodeLang::TokenType::KeyWorld_staticforthread: return "staticforthread";
 
 		case UCodeLang::TokenType::KeyWorld_uintptr: return "uintptr";
 		case UCodeLang::TokenType::KeyWorld_sintptr: return "sintptr";
