@@ -39,7 +39,7 @@ enum class TokenType : TokenType_t
 	String_literal,
 	Number_literal,
 
-	Return,
+	KeyWorld_Ret,
 	RightArrow,
 	Void,
 	Comma,
@@ -89,9 +89,6 @@ enum class TokenType : TokenType_t
 	KeyWorld_uintptr,
 	KeyWorld_sintptr,
 
-	KeyWorld_copy,
-	KeyWorld_move,
-	KeyWorld_swap,
 	KeyWorld_pub,
 	KeyWorld_typeof,
 	KeyWorld_get,
@@ -116,7 +113,7 @@ public:
 		case UCodeLang::TokenType::Null:return "null";
 		case UCodeLang::TokenType::EndofFile:return "End of File";
 		case UCodeLang::TokenType::Error:return "Error";
-		case UCodeLang::TokenType::Name:return "identifier";
+		case UCodeLang::TokenType::Name:return "Name";
 		case UCodeLang::TokenType::Namespace:return "%";
 		case UCodeLang::TokenType::Class:return "$";
 		case UCodeLang::TokenType::Left_Parentheses:return "(";
@@ -142,7 +139,7 @@ public:
 		case UCodeLang::TokenType::String_literal:return "String literal";
 		case UCodeLang::TokenType::Number_literal:return "Number literal";
 
-		case UCodeLang::TokenType::Return:return "ret";
+		case UCodeLang::TokenType::KeyWorld_Ret:return "ret";
 		case UCodeLang::TokenType::RightArrow:return "->";
 		case UCodeLang::TokenType::Void:return "void";
 
@@ -192,9 +189,6 @@ public:
 		case UCodeLang::TokenType::KeyWorld_uintptr: return "uintptr";
 		case UCodeLang::TokenType::KeyWorld_sintptr: return "sintptr";
 
-		case UCodeLang::TokenType::KeyWorld_copy: return "copy";
-		case UCodeLang::TokenType::KeyWorld_move: return "move";
-		case UCodeLang::TokenType::KeyWorld_swap: return "swap";
 		case UCodeLang::TokenType::KeyWorld_pub: return "pub";
 		case UCodeLang::TokenType::KeyWorld_typeof: return "typeof";
 
