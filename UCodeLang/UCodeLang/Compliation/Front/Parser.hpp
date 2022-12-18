@@ -186,6 +186,8 @@ private:
 
 	GotNodeType GetExpressionNode(Node*& out);
 	GotNodeType GetExpressionTypeNode(Node*& out);
+	GotNodeType GetNullAbleExpressionTypeNode(Node*& out);//Will output nullptr if it finds an ';'
+	
 
 	TryGetNode GetAttribute()
 	{
@@ -210,6 +212,14 @@ private:
 		return { r,V->As() };
 	}
 	GotNodeType GetAsmBlock(AsmBlockNode& out);
+
+	TryGetNode GetRetStatement()
+	{
+		RetStatementNode* V = RetStatementNode::Gen();
+		auto r = GetRetStatement(*V);
+		return { r,V->As() };
+	}
+	GotNodeType GetRetStatement(RetStatementNode& out);
 };
 UCodeLangEnd
 
