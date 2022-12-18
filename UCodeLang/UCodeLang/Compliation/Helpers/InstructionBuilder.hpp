@@ -41,7 +41,7 @@ public:
 	}
 	UCodeLangForceinline static void CPPCall(UAddress StaticAddress, NSize_t ParsSize, Instruction& Out)
 	{
-		Out.OpCode = InstructionSet::CppCall;
+		Out.OpCode = InstructionSet::CppCallNamed;
 		Out.Value0.AsAddress = StaticAddress;
 		Out.Value1.AsUInt64 = ParsSize;
 	}

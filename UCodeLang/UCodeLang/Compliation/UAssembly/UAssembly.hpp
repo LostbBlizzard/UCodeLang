@@ -38,6 +38,7 @@ public:
 	{
 		return "[&" + std::to_string(Pos) + "]";
 	}
+	static void OpValueToString(OpCodeType OpType,const AnyInt64& In,String& out);
 private:
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;

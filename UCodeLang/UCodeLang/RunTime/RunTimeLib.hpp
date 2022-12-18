@@ -7,7 +7,7 @@ class InterpreterCPPinterface;
 class RunTimeLib
 {
 public:
-	typedef void (*CPPCallBack)(InterpreterCPPinterface& interpreter);
+	typedef AnyInt64(*CPPCallBack)(InterpreterCPPinterface& interpreter);
 
 	RunTimeLib(): _Lib(nullptr)
 	{
