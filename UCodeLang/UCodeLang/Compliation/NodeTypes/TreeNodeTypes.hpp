@@ -12,6 +12,12 @@ struct StringliteralNode
 	Token* Token = nullptr;
 };
 
+struct BoolliteralNode
+{
+	AddforNode(BoolliteralNode);
+
+	bool Value;
+};
 struct NumberliteralNode
 {
 	AddforNode(NumberliteralNode);
@@ -85,6 +91,26 @@ struct TypeNode
 	NameNode Name;
 	GenericValuesNode Generic;
 
+
+	static constexpr bool IsType(TokenType Type)
+	{
+		if (IsPrimitive(Type)){return true;}
+		else if (Type == TokenType::Name) { return true; }
+		else if (Type == TokenType::KeyWorld_This) { return true; }
+
+		return false;
+	}
+
+	static constexpr bool IsPrimitive(TokenType Type)
+	{
+		switch (Type)
+		{
+		case TokenType::KeyWorld_UInt8:return true;
+		case TokenType::KeyWorld_SInt8:return true;
+		default:return false;
+		}
+
+	}
 	
 	static void Gen_void(TypeNode& Value,Token& ToGetLinesFrom)
 	{
@@ -117,7 +143,6 @@ struct NamedParametersNode
 struct ValueParametersNode
 {
 	AddforNodeAndWithList(ValueParametersNode);
-	Vector<Node*> Expressions;
 };
 struct AttributeNode
 {
@@ -197,6 +222,42 @@ struct AliasNode
 	NameNode AliasName;
 	GenericValuesNode Generic;
 	TypeNode Type;
+};
+struct EnumValueNode
+{
+	NameNode AliasName;
+	Node* Expression = nullptr;//Can be null.
+	TypeNode BaseType;
+};
+struct EnumNode
+{
+	AddforNode(EnumNode);
+
+	NameNode AliasName;
+	Vector<EnumValueNode> Values;
+};
+
+struct AttributeTypeNode
+{
+	AddforNode(AttributeTypeNode);
+
+	NameNode AttributeName;
+	Vector<EnumValueNode> Values;
+};
+
+struct IfNode
+{
+	AddforNode(IfNode);
+
+	Node* Expression = nullptr;
+	StatementsNode Body;
+};
+struct ElseNode
+{
+	AddforNode(ElseNode);
+
+	Node* Expression = nullptr;
+	StatementsNode Body;
 };
 
 UCodeLangEnd

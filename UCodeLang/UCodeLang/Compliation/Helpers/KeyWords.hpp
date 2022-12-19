@@ -100,13 +100,6 @@ inline KeyWord KeyWords[] =
 	KeyWord(S_KeyWord_false,TokenType::KeyWorld_False),
 	KeyWord(S_KeyWord_var,TokenType::KeyWorld_var),
 
-	KeyWord(S_KeyWord_while,TokenType::KeyWorld_while),
-	KeyWord(S_KeyWord_for,TokenType::KeyWorld_for),
-	KeyWord(S_KeyWord_do,TokenType::KeyWorld_do),
-
-	KeyWord(S_KeyWord_if,TokenType::KeyWorld_if),
-	KeyWord(S_KeyWord_else,TokenType::KeyWorld_else),
-
 	KeyWord(S_KeyWord_invalid,TokenType::KeyWord_invalid),
 	KeyWord(S_KeyWord_break,TokenType::KeyWord_break),
 	KeyWord(S_KeyWord_use,TokenType::KeyWorld_use),

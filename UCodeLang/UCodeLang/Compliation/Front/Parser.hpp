@@ -26,6 +26,9 @@ public:
 	static constexpr TokenType SizeofStart = TokenType::Left_Parentheses;
 	static constexpr TokenType SizeofEnd = TokenType::Right_Parentheses;
 	
+	static constexpr TokenType IfToken = TokenType::bitwise_not;
+	static constexpr TokenType ElseToken = TokenType::bitwise_XOr;
+
 	Parser(){}
 	~Parser(){}
 	void Reset();
@@ -114,7 +117,9 @@ private:
 			|| Token->Type == TokenType::bitwise_or
 			|| Token->Type == TokenType::bitwise_LeftShift
 			|| Token->Type == TokenType::bitwise_RightShift
-			|| Token->Type == TokenType::bitwise_XOr;
+			|| Token->Type == TokenType::bitwise_XOr
+			
+			|| Token->Type == TokenType::approximate_Comparison;
 			
 	}
 	inline static GotNodeType Merge(GotNodeType A, GotNodeType B)
@@ -153,10 +158,12 @@ private:
 	{
 		switch (type)
 		{
-		case UCodeLang::TokenType::KeyWorld_asm:return true;
-		case UCodeLang::TokenType::StartTab:return true;
-		case UCodeLang::TokenType::KeyWorld_use:return true;
-		case UCodeLang::TokenType::Class:return true;
+		case TokenType::KeyWorld_asm:return true;
+		case TokenType::StartTab:return true;
+		case TokenType::KeyWorld_use:return true;
+		case TokenType::Class:return true;
+		case Parser::IfToken:return true;
+		case TokenType::Left_Bracket:return true;
 		default:return false;
 		}
 	}
@@ -248,6 +255,14 @@ private:
 	void GetDeclareVariableNoObject(TryGetNode& out);
 
 	GotNodeType GetAlias(Token* AliasName, GenericValuesNode& AliasGenerics, AliasNode& out);
+
+	TryGetNode GetIfNode()
+	{
+		IfNode* V = IfNode::Gen();
+		auto r = GetIfNode(*V);
+		return { r,V->As() };
+	}
+	GotNodeType GetIfNode(IfNode& out);
 };
 UCodeLangEnd
 

@@ -27,6 +27,11 @@ enum class NodeType :UInt8
 	RetStatementNode,
 	NumberliteralNode,
 	AliasNode,
+	EnumNode,
+	AttributeTypeNode,
+	IfNode,
+	ElseNode,
+	BoolliteralNode,
 };
 
 
