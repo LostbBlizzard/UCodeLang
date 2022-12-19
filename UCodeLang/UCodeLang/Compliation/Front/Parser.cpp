@@ -90,7 +90,7 @@ void Parser::Parse(String_view Text, const Vector<Token>&Tokens)
 		{
 		case TokenType::Namespace:V = GetNamespaceNode(); break;
 		case TokenType::Class:V = GetClassNode(); break;
-		case declareFunc:V = GetFuncNode(); break;
+		case Parser::declareFunc:V = GetFuncNode(); break;
 		case TokenType::KeyWorld_use:V = GetUseNode(); break;
 		case TokenType::Left_Bracket:V = GetAttribute(); break;
 		case TokenType::KeyWorld_static:V = GetDeclareStaticVariable(); break;
@@ -133,7 +133,7 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 		case TokenType::EndTab:goto EndLoop;
 		case TokenType::Namespace:V = GetNamespaceNode(); break;
 		case TokenType::Class:V = GetClassNode();break;
-		case declareFunc:V = GetFuncNode(); break;
+		case Parser::declareFunc:V = GetFuncNode(); break;
 		case TokenType::KeyWorld_use:V = GetUseNode(); break;
 		case TokenType::Left_Bracket:V = GetAttribute();break;
 		case TokenType::KeyWorld_static:V = GetDeclareStaticVariable(); break;
@@ -214,7 +214,7 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 			{
 			case TokenType::EndTab:goto EndLoop;
 			case TokenType::Class:V = GetClassNode(); break;
-			case declareFunc:V = GetFuncNode(); break;
+			case Parser::declareFunc:V = GetFuncNode(); break;
 			case TokenType::KeyWorld_use:V = GetUseNode(); break;
 			case TokenType::Left_Bracket:V = GetAttribute(); break;
 			case TokenType::KeyWorld_static:V = GetDeclareStaticVariable(); break;
@@ -258,31 +258,31 @@ GotNodeType Parser::GetStatement(Node*& out)
 	auto StatementTypeToken = TryGetToken();
 	switch (StatementTypeToken->Type)
 	{
-	case UCodeLang::TokenType::KeyWorld_asm:
+	case TokenType::KeyWorld_asm:
 	{
 		auto r = GetAsmBlock();
 		out = r.Node;
 		return r.GotNode;
 	}
-	case UCodeLang::TokenType::StartTab:
+	case TokenType::StartTab:
 	{
 		auto r = GetStatements();
 		out = r.Node;
 		return r.GotNode;
 	};
-	case UCodeLang::TokenType::Class:
+	case TokenType::Class:
 	{
 		auto r = GetClassNode();
 		out = r.Node;
 		return r.GotNode;
 	};
-	case UCodeLang::TokenType::KeyWorld_use:
+	case TokenType::KeyWorld_use:
 	{
 		auto r = GetUseNode();
 		out = r.Node;
 		return r.GotNode;
 	};
-	case UCodeLang::TokenType::KeyWorld_Ret:
+	case TokenType::KeyWorld_Ret:
 	{
 		auto r = GetRetStatement();
 		out = r.Node;
@@ -297,6 +297,13 @@ GotNodeType Parser::GetStatement(Node*& out)
 	case TokenType::KeyWorld_staticforthread:
 	{
 		auto r =GetDeclareStaticforthreadVariable();
+		out = r.Node;
+		return r.GotNode;
+	}
+	break;
+	case Parser::IfToken:
+	{
+		auto r = GetIfNode();
 		out = r.Node;
 		return r.GotNode;
 	}
@@ -367,7 +374,7 @@ GotNodeType Parser::GetFuncNode(FuncNode& out)
 GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 {
 	auto funcToken = TryGetToken();
-	TokenTypeCheck(funcToken, declareFunc);
+	TokenTypeCheck(funcToken, Parser::declareFunc);
 	NextToken();
 
 	auto NameToken = TryGetToken();
@@ -440,6 +447,22 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 		out = r->As();
 		return GotNodeType::Success;
 	}
+	case UCodeLang::TokenType::KeyWorld_True:
+	{
+		NextToken();
+		auto r = BoolliteralNode::Gen();
+		r->Value = true;
+		out = r->As();
+		return GotNodeType::Success;
+	}
+	case UCodeLang::TokenType::KeyWorld_False:
+	{
+		NextToken();
+		auto r = BoolliteralNode::Gen();
+		r->Value = false;
+		out = r->As();
+		return GotNodeType::Success;
+	}
 	default:
 		#if CompliationTypeSafety
 		throw std::exception("Cant UnWap BuildStatement");
@@ -463,6 +486,7 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 		r->Value0 = ExNode;
 		r->BinaryOp = Token;
 		r->Value1 = Other;
+		out = r->As();
 		return   Merge(Ex, Ex2);
 	}
 	else
@@ -598,12 +622,22 @@ GotNodeType Parser::GetName(NameNode& out)
 GotNodeType Parser::GetType(TypeNode& out)
 {
 	auto Token = TryGetToken();
+	if (Token->Type == TokenType::Name)
+	{
+		GetName(out.Name);
+		TryGetGeneric(out.Generic);
+		return GotNodeType::Success;
+	}
+	else if (TypeNode::IsPrimitive(Token->Type))
+	{
+		NextToken();
+		out.Name.Token = Token;
+		return GotNodeType::Success;
+	}
 	TokenTypeCheck(Token, TokenType::Name);
 
-	GetName(out.Name);
-	TryGetGeneric(out.Generic);
 
-	return GotNodeType::Success;
+	return GotNodeType::failed;
 }
 
 GotNodeType Parser::GetTypeWithVoid(TypeNode& out)
@@ -635,8 +669,9 @@ GotNodeType Parser::GetAttribute(AttributeNode& out)
 
 	auto ScopedName = GetName(out.ScopedName);
 
-	auto ParToken = TryGetToken();
-	if (ParToken && ParToken->Type == FuncCallStart)
+	auto ParToken = TryGetToken(); TokenNotNullCheck(ParToken);
+
+	if (ParToken->Type == FuncCallStart)
 	{
 		NextToken();
 		auto Pars = GetValueParametersNode(out.Parameters);
@@ -645,6 +680,11 @@ GotNodeType Parser::GetAttribute(AttributeNode& out)
 		TokenTypeCheck(Par2Token, FuncCallEnd);
 		NextToken();
 	}
+	else if (IsBinaryOperator(ParToken))
+	{
+
+	}
+
 
 
 	auto BracketToken = TryGetToken();
@@ -767,5 +807,44 @@ GotNodeType Parser::GetDeclareVariable(DeclareVariableNode& out)
 
 	return Merge(Type, Name);
 }
+GotNodeType Parser::GetIfNode(IfNode& out)
+{
+	auto RetToken = TryGetToken();
+	TokenTypeCheck(RetToken, Parser::IfToken);
+	NextToken();
 
+	auto Token = TryGetToken();
+	TokenTypeCheck(Token, Parser::declareFuncParsStart);
+	NextToken();
+
+	auto GetEx = GetExpressionTypeNode(out.Expression);
+	
+	auto Token2 = TryGetToken();
+	TokenTypeCheck(Token2, Parser::declareFuncParsEnd);
+	NextToken();
+
+	auto Token3 = TryGetToken();
+	TokenTypeCheck(Token3, TokenType::Colon);
+	NextToken();
+
+	auto Statements = GetStatementsorStatementNode(out.Body);
+
+	while (auto T = TryGetToken())
+	{
+		if (T->Type != Parser::ElseToken){break;}
+		TokenTypeCheck(RetToken, Parser::ElseToken);
+		NextToken();
+
+		auto T2 = TryGetToken();
+		if (T2->Type == Parser::declareFuncParsStart)
+		{
+
+		}
+		TokenTypeCheck(Token, Parser::declareFuncParsStart);
+		NextToken();
+
+	}
+
+	return Statements;
+}
 UCodeLangEnd
