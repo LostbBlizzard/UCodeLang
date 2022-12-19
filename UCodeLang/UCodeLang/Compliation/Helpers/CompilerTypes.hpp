@@ -40,6 +40,7 @@ enum class TokenType : TokenType_t
 	Number_literal,
 
 	KeyWorld_Ret,
+	leftArrow,
 	RightArrow,
 	Void,
 	Comma,
@@ -65,12 +66,6 @@ enum class TokenType : TokenType_t
 	bitwise_RightShift,
 	increment,
 	decrement,
-
-	KeyWorld_while,
-	KeyWorld_for,
-	KeyWorld_do,
-	KeyWorld_if,
-	KeyWorld_else,
 
 	CompoundAdd,
 	CompoundSub,
@@ -98,6 +93,8 @@ enum class TokenType : TokenType_t
 	KeyWorld_float32,
 	KeyWorld_float64,
 	KeyWorld_asm,
+
+	approximate_Comparison,
 };
 class StringHelper
 {
@@ -165,12 +162,6 @@ public:
 
 		case UCodeLang::TokenType::increment:return "++";
 		case UCodeLang::TokenType::decrement:return "--";
-
-		case UCodeLang::TokenType::KeyWorld_while:return "while";
-		case UCodeLang::TokenType::KeyWorld_for:return "for";
-		case UCodeLang::TokenType::KeyWorld_do:return "do";
-		case UCodeLang::TokenType::KeyWorld_if:return "if";
-		case UCodeLang::TokenType::KeyWorld_else:return "else";
 
 		case UCodeLang::TokenType::CompoundAdd:return "+=";
 		case UCodeLang::TokenType::CompoundSub:return "-=";

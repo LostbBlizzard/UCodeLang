@@ -1,22 +1,39 @@
 
-$Hello = int;
-
-$E SomeEnum:
- Red,
- Blue,
- Green,
-
-|Tep<T>[] -> T:ret 0;
-
-[DLL("Test")]
-|Test[];
-
-
-int V = 5;
 
 |Main[] -> byte:
- use UCode;
- asm:
-  Store8 244,[E]
 
 
+
+ //if
+ ~[1 == 8]:
+
+
+  <<-;//jump out.
+ ^[1 == 8]://if else
+  
+  <<-;
+
+ //else
+ ^:
+  
+  <<-; //jump out.
+ 
+ //if else
+ ~[true]:
+ 
+
+
+  ~ <-;
+
+ 
+ //Do Loop.
+ ~:
+  
+
+
+  ~[true]: ~ <-;
+
+
+ SomeJump:
+  
+  SomeJump <-;

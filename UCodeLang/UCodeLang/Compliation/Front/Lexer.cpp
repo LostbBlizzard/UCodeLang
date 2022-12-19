@@ -174,9 +174,20 @@ void Lexer::Lex(const String_view& Text)
 			_Nodes.push_back(_Token);
 			break;
 		case '~':
-			_Token.Type = TokenType::bitwise_not;
-			_Token.Value = nullptr;
-			_Nodes.push_back(_Token);
+			NextChar = GetNextChar(1);
+			if (NextChar == '=') 
+			{
+				i++;
+				_Token.Type = TokenType::approximate_Comparison;
+				_Token.Value = nullptr;
+				_Nodes.push_back(_Token);
+			}
+			else
+			{
+				_Token.Type = TokenType::bitwise_not;
+				_Token.Value = nullptr;
+				_Nodes.push_back(_Token);
+			}
 			break;
 		case '$':
 			ReadingState = ReadingNameState::Class;
@@ -257,6 +268,13 @@ void Lexer::Lex(const String_view& Text)
 			{
 				i++;
 				_Token.Type = TokenType::bitwise_LeftShift;
+				_Token.Value = nullptr;
+				_Nodes.push_back(_Token);
+			}
+			else if (NextChar == '-')
+			{
+				i++;
+				_Token.Type = TokenType::leftArrow;
 				_Token.Value = nullptr;
 				_Nodes.push_back(_Token);
 			}
