@@ -46,6 +46,10 @@ private:
 	{
 		_Ins = Instruction();
 	}
+	UCodeLangForceinline void PushIns()
+	{
+		Value.Lib.Add_Instruction(_Ins);
+	}
 
 	unordered_map<String_view, UAddress> _Strings;
 	String TepString;
@@ -70,6 +74,7 @@ private:
 	void BuildNameSpace(const UCodeLang::Node* Tree);
 	void BuildUseingNode(const UCodeLang::UsingNode& Item);
 	void BuildClass(const UCodeLang::ClassNode& Node);
+	void BuildEnum(const UCodeLang::EnumNode& Node);
 	void BuildAttributeNode(const UCodeLang::AttributeNode& Node);
 	void BuildFunc(const UCodeLang::FuncNode& Node);
 	void BuildParameter(const UCodeLang::NamedParameterNode& BodyStatements);

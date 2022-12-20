@@ -125,7 +125,7 @@ public:
 			}
 		}
 	}
-	String FilePath;
+	String FilePath = "File" + (String)FileExt::SourceFileWithDot;
 private:
 	Vector<Error> _Errors;
 };
