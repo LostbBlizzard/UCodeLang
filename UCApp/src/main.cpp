@@ -64,6 +64,7 @@ int main()
 	*/
 	
 	
+	
 	//Main
 	Settings._Type = OutPutType::Lib;
 	Data.FileDir = FileDir;

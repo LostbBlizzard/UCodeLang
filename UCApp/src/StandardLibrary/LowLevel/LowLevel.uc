@@ -1,12 +1,11 @@
 %ULang: 
  $LowLevel: 
   |Cast<T,U>[T Value] -> U;
-  |Malloc[uintptr Size] -> ptr;
-  |Calloc[uintptr Size] -> ptr;
-  |Realloc[ptr oldptr,uintptr Size] -> ptr;
-  |Free[ptr ptr] -> void;
+  |Malloc[uintptr Size] -> VoidPtr;
+  |Calloc[uintptr Size] -> VoidPtr;
+  |Realloc[VoidPtr oldptr,uintptr Size] -> VoidPtr;
+  |Free[VoidPtr ptr] -> void;
   
   // LowLevel
- $ptr = !uintptr; 
  
  // ULang

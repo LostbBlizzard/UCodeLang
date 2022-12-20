@@ -12,7 +12,8 @@
 #define UintPtrTypeName "uintptr"
 #define SintPtrTypeName "sintptr"
 
-#define VoidPtrTypeName "ptr"
+#define VoidPtrTypeName "VoidPtr"
+#define CStringTypeName "CString"
 
 #define CompilerGeneratedStart "(&"
 #define CompilerGeneratedEnd "&)"

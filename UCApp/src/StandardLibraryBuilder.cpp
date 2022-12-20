@@ -11,6 +11,23 @@
 #define Template_VarName2 "V"
 
 namespace fs = std::filesystem;
+void StandardLibraryBuilder::Get_BasicTypeFile(UCodeLang::String& Out)
+{
+	UCodeCross::UCodeTextBuilder Builder;
+	auto& Name = Builder.AddNameSpace(StandardLibrarynamespace);
+
+	Name.AddAlias(VoidPtrTypeName, "!" UintPtrTypeName);
+
+
+	Name.AddAlias(CStringTypeName, CharTypeName "[&]");
+
+	auto& HashClass = Name.AddClass("Hash");
+	HashClass.AddGeneric(Template_VarName0);
+
+
+	auto& BitsClass = Name.AddClass("Bits");
+	BitsClass.AddGeneric(Template_VarName0);
+}
 void StandardLibraryBuilder::Get_VecFile(UCodeLang::String& Out)
 {
 	UCodeCross::UCodeTextBuilder Builder;
@@ -94,7 +111,6 @@ void StandardLibraryBuilder::Get_LowLevelFile(UCodeLang::String& Out)
 	auto& Name = Builder.AddNameSpace(StandardLibrarynamespace);
 
 	auto& LowLevelClass = Name.AddClass("LowLevel");
-	Name.AddAlias(VoidPtrTypeName, "!" UintPtrTypeName);
 	{
 		auto& Method = LowLevelClass.AddMethod("Cast");
 		Method.AddGeneric(Template_VarName0);

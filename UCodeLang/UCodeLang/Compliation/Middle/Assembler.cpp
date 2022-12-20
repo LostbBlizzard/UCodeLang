@@ -2,8 +2,8 @@
 #include "UCodeLang/Compliation/Helpers/ParseHelper.hpp"
 UCodeLangStart
 
-#define GenIns(X) ReSetIns(); X
-
+#define GenIns(X) ReSetIns(); X;
+#define GenInsPush(X)  GenIns(X) PushIns();
 
 void Assembler::Reset()
 {
@@ -48,8 +48,7 @@ void Assembler::LinkIns()
 
 void Assembler::BuildBuffer()
 {
-	InstructionBuilder::Exit(ExitState::Failure, _Ins);
-	_OutPut->Add_Instruction(_Ins);
+	GenInsPush(InstructionBuilder::Exit(ExitState::Failure, _Ins));
 }
 void Assembler::BuildTypes()
 {
@@ -59,8 +58,8 @@ void Assembler::BuildTypes()
 	{
 		switch (Inter->OpCode)
 		{
-		default:
-			break;
+		case Intermediate_Set::FileEnd:Debugoffset = Inter->Value0.AsUInt64; NextIns(); break;
+		default:break;
 		}
 
 		NextIns();
@@ -76,17 +75,30 @@ void Assembler::BuildCode()
 		{
 		case Intermediate_Set::FileStart:
 		{
-			//Debugoffset = Inter->Value0.AsUInt64; NextIns();
-		}break;
-		case Intermediate_Set::FileEnd:
-			Debugoffset = Inter->Value0.AsUInt64; NextIns();
+			String_view FilePath = Get_StringFromDebug(Inter->Value0.AsUInt64);
+			ThisSymbolInfo.FilePath = FilePath;
+			NextIns();
+		}
+		break;
+		case Intermediate_Set::DeclareFunc:
 			break;
+		case Intermediate_Set::SetFilePos:SetFilePos(Inter); NextIns();break;
+		case Intermediate_Set::FileEnd:Debugoffset = Inter->Value0.AsUInt64; NextIns();break;
 		default:
 			break;
 		}
 	}
 }
+void Assembler::SetFilePos(UCodeLang::Assembler::Intermediate_Instruction* Inter)
+{
+	ThisSymbolInfo.Line = Inter->Value0.AsUInt64;
+	ThisSymbolInfo.Pos = Inter->Value1.AsUInt64;
+}
 void Assembler::BuildAsm(Intermediate_Instruction& Ins)
+{
+}
+
+void Assembler::GetType(TypeData& Out)
 {
 }
 

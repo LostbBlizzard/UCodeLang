@@ -35,48 +35,54 @@ public:
 	UCodeLangForceinline void Set_ErrorsOutput(CompliationErrors* V){_ErrorsOutput = V;}
 	UCodeLangForceinline void Set_Settings(CompliationSettings* V) { _Settings = V; }
 
-	void Parse(String_view Text,const Vector<Token>& Tokens);
+	struct FileData
+	{
+		String_view Text;//For AsmBlock to Work
+		String_view FilePath;
+	};
+
+	void Parse(const FileData& Data,const Vector<Token>& Tokens);
 	UCodeLangForceinline bool Get_ParseSucces() { return _ParseSuccess; }
 	UCodeLangForceinline FileNode& Get_Tree() { return _Tree; }
 private:
 	size_t _TokenIndex = 0;
-	Vector<Token> _Nodes;
+	const Vector<Token>* _Nodes = nullptr;
 	FileNode _Tree;
 	bool _ParseSuccess = false;
 	String_view _Text;
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
 
-	inline Token* TryPeekNextToken(size_t offset)
+	inline const Token* TryPeekNextToken(size_t offset)
 	{
 		size_t Index = _TokenIndex + offset;
-		if (Index < _Nodes.size()) 
+		if (Index < _Nodes->size()) 
 		{
-			return &_Nodes[Index];
+			return &_Nodes->at(Index);
 		}
 		else
 		{
 			return nullptr;
 		}
 	}
-	UCodeLangForceinline Token* TryPeekNextToken() { return   TryPeekNextToken(1); }
-	UCodeLangForceinline Token* TryGetToken() { return TryPeekNextToken(0); }
+	UCodeLangForceinline const Token* TryPeekNextToken() { return   TryPeekNextToken(1); }
+	UCodeLangForceinline const Token* TryGetToken() { return TryPeekNextToken(0); }
 	UCodeLangForceinline void NextToken() { _TokenIndex++; }
 	UCodeLangForceinline void NextToken(size_t offfset) { _TokenIndex += offfset; }
 	
-	inline static bool IsPostfixOperator(Token* Token)
+	inline static bool IsPostfixOperator(const Token* Token)
 	{
 		return Token->Type == TokenType::increment
 			|| Token->Type == TokenType::decrement;
 	}
-	inline static bool IsCompoundOperator(Token* Token)
+	inline static bool IsCompoundOperator(const Token* Token)
 	{
 		return Token->Type == TokenType::CompoundAdd
 			|| Token->Type == TokenType::CompoundSub
 			|| Token->Type == TokenType::CompoundMult
 			|| Token->Type == TokenType::CompoundDiv;
 	}
-	inline static bool IsUnaryOperator(Token* Token)
+	inline static bool IsUnaryOperator(const Token* Token)
 	{
 		return Token->Type == TokenType::plus
 			|| Token->Type == TokenType::minus
@@ -86,7 +92,7 @@ private:
 			|| Token->Type == TokenType::Not
 			|| Token->Type == TokenType::bitwise_not;
 	}
-	inline static bool IsOverLoadableOperator(Token* Token)
+	inline static bool IsOverLoadableOperator(const Token* Token)
 	{
 		return Token->Type == TokenType::equal_Comparison
 			|| Token->Type == TokenType::Notequal_Comparison
@@ -95,7 +101,7 @@ private:
 			|| Token->Type == TokenType::greater_than_or_equalto
 			|| Token->Type == TokenType::less_than_or_equalto;
 	}
-	inline static bool IsBinaryOperator(Token* Token)
+	inline static bool IsBinaryOperator(const Token* Token)
 	{
 		return Token->Type == TokenType::plus
 			|| Token->Type == TokenType::minus
@@ -254,7 +260,7 @@ private:
 
 	void GetDeclareVariableNoObject(TryGetNode& out);
 
-	GotNodeType GetAlias(Token* AliasName, GenericValuesNode& AliasGenerics, AliasNode& out);
+	GotNodeType GetAlias(const Token* AliasName, GenericValuesNode& AliasGenerics, AliasNode& out);
 
 	TryGetNode GetIfNode()
 	{
@@ -263,6 +269,11 @@ private:
 		return { r,V->As() };
 	}
 	GotNodeType GetIfNode(IfNode& out);
+
+
+	GotNodeType GetEnumNode(EnumNode& out);
+	GotNodeType GetEnumValueNode(EnumValueNode& out);
+	GotNodeType GetAttributeNode(AttributeTypeNode& out);
 };
 UCodeLangEnd
 

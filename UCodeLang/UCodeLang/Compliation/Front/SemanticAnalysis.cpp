@@ -3,28 +3,26 @@
 #include "../Helpers/InstructionBuilder.hpp"
 UCodeLangStart
 
-#define GenIns(X) ReSetIns(); X
-
+#define GenIns(X) ReSetIns(); X;
+#define GenInsPush(X)  GenIns(X) PushIns();
 void SemanticAnalysis::Reset()
 {
+	Scope.ThisScope = ScopeHelper::_globalScope;
+	_Ins = UCodeLang::Instruction();
 }
 
 void SemanticAnalysis::DoAnalysis(const FileNode& Tree)
 {
+	Reset();
 	Value.Lib.ClearState();
 	_StaticVariables.clear();
 
+
 	
-	Scope.ThisScope = ScopeHelper::_globalScope;
-	_Ins = UCodeLang::Instruction();
+	auto FileNamePos = AddDebug_String(Tree.FilePath);
+	GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::FileStart, FileNamePos, _Ins));
 
 	BuildNameSpace(&Tree._Node);
-
-
-	if (_StaticVariables.size() != 0)
-	{
-
-	}
 }
 
 
@@ -51,6 +49,7 @@ void SemanticAnalysis::BuildNameSpace(const Node* Tree)
 		case NodeType::AttributeNode:BuildAttributeNode(*AttributeNode::As(Item)); break;
 		case NodeType::NamespaceNode:BuildNameSpace(Item);break;
 		case NodeType::ClassNode:BuildClass(*ClassNode::As(Item));break;
+		case NodeType::EnumNode:
 		case NodeType::FuncNode:BuildFunc(*FuncNode::As(Item));break;
 		case NodeType::UsingNode:BuildUseingNode(*UsingNode::As(Item));break;
 		case NodeType::DeclareThreadVariableNode:BuildDeclareThreadVariable(*DeclareThreadVariableNode::As(Item)); break;
@@ -79,8 +78,7 @@ void SemanticAnalysis::BuildStaticVariable(const UCodeLang::Node* node)
 void SemanticAnalysis::BuildClass(const UCodeLang::ClassNode& node)
 {
 	auto _ClassName = AddDebug_String(node.ClassName.Token->Value._String);
-	GenIns(InstructionBuilder::GenInst(Intermediate_Set::Class, _ClassName, _Ins));
-	Value.Lib.Add_Instruction(_Ins);
+	GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::Class, _ClassName, _Ins));
 
 	for (const auto& Item : node._Nodes)
 	{
@@ -99,7 +97,28 @@ void SemanticAnalysis::BuildClass(const UCodeLang::ClassNode& node)
 		}
 	}
 
-	GenIns(InstructionBuilder::GenInst(Intermediate_Set::ClassEnd, _Ins));
+	GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::ClassEnd, _Ins));
+}
+
+void SemanticAnalysis::BuildEnum(const UCodeLang::EnumNode& Node)
+{
+	auto _ClassName = AddDebug_String(Node.EnumName.Token->Value._String);
+	GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::EnumClass, _ClassName, _Ins));
+	BuildType(Node.BaseType);
+
+	for (auto& item : Node.Values)
+	{
+		bool boolExpression = item.Expression;
+		GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::EnumValue, _ClassName, boolExpression, _Ins));
+		
+		if (boolExpression) 
+		{
+			BuildExpressionType(item.Expression);
+		}
+	}
+
+
+	GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::EnumEnd, _Ins));
 }
 
 void SemanticAnalysis::BuildAttributeNode(const UCodeLang::AttributeNode& Node)
@@ -109,8 +128,8 @@ void SemanticAnalysis::BuildAttributeNode(const UCodeLang::AttributeNode& Node)
 void SemanticAnalysis::BuildFunc(const UCodeLang::FuncNode& Node)
 {
 	auto _Block = AddDebug_String(Node.Signature.Name.Token->Value._String);
-	GenIns(InstructionBuilder::GenInst(Intermediate_Set::DeclareFunc, _Block, _Ins));
-	Value.Lib.Add_Instruction(_Ins);
+	GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::DeclareFunc, _Block, _Ins));
+	
 
 
 	BuildType(Node.Signature.ReturnType);
@@ -127,14 +146,13 @@ void SemanticAnalysis::BuildFunc(const UCodeLang::FuncNode& Node)
 	}
 
 
-	GenIns(InstructionBuilder::GenInst(Intermediate_Set::FuncEnd, _Block, _Ins));
-	Value.Lib.Add_Instruction(_Ins);
+	GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::FuncEnd, _Block, _Ins));
 }
 
 void SemanticAnalysis::BuildParameter(const UCodeLang::NamedParameterNode& par)
 {
 	auto _Name = AddDebug_String(par.Name.Token->Value._String);
-	GenIns(InstructionBuilder::GenInst(Intermediate_Set::DeclareParameter, _Name, _Ins));
+	GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::DeclareParameter, _Name, _Ins));
 	BuildType(par.Type);
 }
 

@@ -13,6 +13,7 @@ Compiler::CompilerRet Compiler::Compile(const String_view& Text)
 	R._State = CompilerState::Fail;
 	R.OutPut = nullptr;
 
+	_Errors.FilePath = _Errors.FilePath;
 	UCodeLang::CompliationErrors* Errors= &_Errors;
 
 	_Lexer.Set_Settings(&_Settings);
@@ -30,7 +31,8 @@ Compiler::CompilerRet Compiler::Compile(const String_view& Text)
 
 	if (Errors->Has_Errors()){ return R; }
 
-	_Parser.Parse(Text,_Lexer.Get_Tokens());
+	Parser::FileData FileData = {Text,_Errors.FilePath };
+	_Parser.Parse(FileData,_Lexer.Get_Tokens());
 
 	Errors->FixEndOfLine(_Lexer.Get_OnLine(), _Lexer.Get_TextIndex());
 
@@ -67,7 +69,7 @@ Compiler::CompilerRet Compiler::CompilePath(const String& Path)
 }
 Compiler::CompilerRet Compiler::CompilePathToObj(const String& Path, const String& OutLib)
 {
-	CompilerRet r = CompilePath(Path);//Cashing Stuff
+	CompilerRet r = CompilePath(Path);
 
 	if (r._State == CompilerState::Success) {
 		UClib::ToFile(r.OutPut, OutLib);

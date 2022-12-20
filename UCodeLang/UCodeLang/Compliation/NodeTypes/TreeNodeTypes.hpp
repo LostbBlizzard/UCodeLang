@@ -9,7 +9,7 @@ struct StringliteralNode
 {
 	AddforNode(StringliteralNode);
 
-	Token* Token = nullptr;
+	const Token* Token = nullptr;
 };
 
 
@@ -24,20 +24,20 @@ struct NumberliteralNode
 {
 	AddforNode(NumberliteralNode);
 
-	Token* Token = nullptr;
+	const Token* Token = nullptr;
 };
 
 struct NameNode
 {
 	AddforNode(NameNode);
 
-	Token* Token = nullptr;
+	const Token* Token = nullptr;
 };
 struct ScopedNameNode
 {
 	AddforNode(ScopedNameNode);
 
-	Vector<Token*> ScopedName;
+	Vector<const Token*> ScopedName;
 
 	inline void GetScopedName(String& out) const
 	{
@@ -67,7 +67,7 @@ struct NamespaceNode
 };
 struct GenericValueNode 
 {
-	Token* Token = nullptr;
+	const Token* Token = nullptr;
 };
 struct GenericValuesNode
 {
@@ -121,13 +121,27 @@ struct TypeNode
 
 	}
 	
-	static void Gen_void(TypeNode& Value,Token& ToGetLinesFrom)
+	
+	static void Gen_Type(TypeNode& Out,TokenType Type, const Token& ToGetLinesFrom)
 	{
 		auto T = new Token();
+		T->Type = Type;
 		T->OnLine = ToGetLinesFrom.OnLine;
 		T->OnPos = ToGetLinesFrom.OnPos;
-		Value.HasMadeToken = true;
-		Value.Name.Token = T;
+		Out.HasMadeToken = true;
+		Out.Name.Token = T;
+	}
+	static void Gen_void(TypeNode& Out, const Token& ToGetLinesFrom)
+	{
+		return Gen_Type(Out, TokenType::Void, ToGetLinesFrom);
+	}
+	static void Gen_Var(TypeNode& Out, const Token& ToGetLinesFrom)
+	{
+		return Gen_Type(Out, TokenType::KeyWorld_var, ToGetLinesFrom);
+	}
+	static void Gen_Byte(TypeNode& Out, const Token& ToGetLinesFrom)
+	{
+		return Gen_Type(Out, TokenType::KeyWorld_UInt8, ToGetLinesFrom);
 	}
 	~TypeNode()
 	{
@@ -192,7 +206,7 @@ struct BinaryExpressionNode
 	AddforNode(BinaryExpressionNode);
 
 	Node* Value0 = nullptr;
-	Token* BinaryOp =nullptr;
+	const Token* BinaryOp =nullptr;
 	Node* Value1 = nullptr;
 	~BinaryExpressionNode()
 	{
@@ -234,24 +248,23 @@ struct AliasNode
 };
 struct EnumValueNode
 {
-	NameNode AliasName;
+	NameNode Name;
 	Node* Expression = nullptr;//Can be null.
-	TypeNode BaseType;
 };
 struct EnumNode
 {
 	AddforNode(EnumNode);
 
-	NameNode AliasName;
+	NameNode EnumName;
 	Vector<EnumValueNode> Values;
+	TypeNode BaseType;
 };
 
 struct AttributeTypeNode
 {
-	AddforNode(AttributeTypeNode);
+	AddforNodeAndWithList(AttributeTypeNode);
 
 	NameNode AttributeName;
-	Vector<EnumValueNode> Values;
 };
 
 struct IfNode

@@ -33,7 +33,7 @@ struct TypeData
 };
 struct symbolInfo
 {
-	String_view File;
+	String_view FilePath;
 	size_t Line = 0;
 	size_t Pos = 0;
 	String_view Name;
@@ -279,14 +279,13 @@ private:
 	{
 		Index++;
 	}
-	UCodeLangForceinline UAddress PushIns()
-	{
-		return _OutPut->Add_Instruction(_Ins);
-	}
+	
 
 	void BuildBuffer();
 	void BuildTypes();
 	void BuildCode();
+
+	void SetFilePos(UCodeLang::Assembler::Intermediate_Instruction* Inter);
 	
 	String_view Get_StringFromDebug(UAddress I)
 	{
@@ -306,10 +305,16 @@ private:
 	{
 		return _OutPut->AddDebugBytes(Value);
 	}
-	inline void ReSetIns()
+	UCodeLangForceinline void ReSetIns()
 	{
 		_Ins = Instruction();
 	}
+	UCodeLangForceinline UAddress PushIns()
+	{
+		return _OutPut->Add_Instruction(_Ins);
+	}
 	void BuildAsm(Intermediate_Instruction& Ins);
+
+	void GetType(TypeData& Out);
 };
 UCodeLangEnd

@@ -139,5 +139,7 @@ Has_NodesList(Type); \
 struct FileNode
 {
 	AddforNodeAndWithList(FileNode);
+
+	String_view FilePath;
 };
 UCodeLangEnd

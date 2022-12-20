@@ -1,3 +1,9 @@
+use ULang;
+
+$E Red[byte]:
+ Red = 0,
+ Blue = 1,
+ Green = 2
+
 |Main[] -> byte:
- byte a = 5;
- ret a;
+ ret 5;

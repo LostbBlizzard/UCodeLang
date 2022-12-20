@@ -7,6 +7,7 @@
 class StandardLibraryBuilder
 {
 public:
+	static void Get_BasicTypeFile(UCodeLang::String& Out);
 	static void Get_VecFile(UCodeLang::String& Out);
 	static void Get_LibFile(UCodeLang::String& Out);
 	static void Get_LowLevelFile(UCodeLang::String& Out);

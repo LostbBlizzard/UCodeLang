@@ -67,19 +67,20 @@ return Data;
 
 void Parser::Reset()
 {
+	_TokenIndex = 0;
+	_Nodes = nullptr;
 }
 
 
 
-void Parser::Parse(String_view Text, const Vector<Token>&Tokens)
+void Parser::Parse(const FileData& Data, const Vector<Token>&Tokens)
 {
-	_Text = Text;
-	for (const auto& Item : Tokens)
-	{
-		_Nodes.push_back(Item);
-	}
-	_TokenIndex = 0;
-	GotNodeType GotNode = GotNodeType::Null;
+	Reset();
+	_Text = Data.Text;
+	_Tree.FilePath = Data.FilePath;
+	_Nodes = &Tokens;
+	
+	
 
 	while (auto T = TryGetToken())
 	{
@@ -152,7 +153,7 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 
 	return GotNodeType::Success;
 }
-GotNodeType Parser::GetAlias(Token* AliasName,GenericValuesNode& AliasGenerics, AliasNode& out)
+GotNodeType Parser::GetAlias(const Token* AliasName,GenericValuesNode& AliasGenerics, AliasNode& out)
 {
 	out.AliasName.Token = AliasName;
 	out.Generic = AliasGenerics;//Move
@@ -171,17 +172,25 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 {
 	auto ClassToken = TryGetToken(); TokenTypeCheck(ClassToken, TokenType::Class);
 
-	NextToken();
+	
 
-	String_view& ClassName = ClassToken->Value._String;
+	const String_view& ClassName = ClassToken->Value._String;
 	if (ClassName == "E")
 	{
-		return {};
+		NextToken();
+		auto ptr = EnumNode::Gen();
+		out = ptr->As();
+		return GetEnumNode(*ptr);
 	}
 	else if (ClassName == "A")
 	{
-		TokenTypeCheck(ClassToken, TokenType::StartTab);
+		NextToken();
+		auto ptr = AttributeTypeNode::Gen();
+		out = ptr->As();
+		return GetAttributeNode(*ptr);
 	}
+	
+	NextToken();
 
 	GenericValuesNode TepGenerics;
 
@@ -403,9 +412,9 @@ GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 		NextToken();
 		GetTypeWithVoid(out.ReturnType);
 	}
-	else if (Arrow->Type == TokenType::Colon || Arrow->Type == TokenType::Semicolon)
+	else if (Arrow->Type == TokenType::Colon)
 	{
-		TypeNode::Gen_void(out.ReturnType,*Arrow);
+		TypeNode::Gen_Var(out.ReturnType,*Arrow);
 	}
 	else
 	{
@@ -846,5 +855,92 @@ GotNodeType Parser::GetIfNode(IfNode& out)
 	}
 
 	return Statements;
+}
+GotNodeType Parser::GetEnumNode(EnumNode& out)
+{
+	GetName(out.EnumName);
+
+
+	auto LeftBracket = TryGetToken();
+	if (LeftBracket && LeftBracket->Type == TokenType::Left_Bracket)
+	{
+		NextToken();
+		GetType(out.BaseType);
+
+		auto RightToken = TryGetToken(); TokenTypeCheck(RightToken, TokenType::Right_Bracket);
+		NextToken();
+	}
+	else
+	{
+		if (LeftBracket) {
+			TypeNode::Gen_Byte(out.BaseType, *LeftBracket);
+		}
+	}
+
+	auto ColonToken = TryGetToken(); TokenTypeCheck(ColonToken, TokenType::Colon); NextToken();
+	auto StartToken = TryGetToken(); TokenTypeCheck(StartToken, TokenType::StartTab);
+	NextToken();
+
+	while (auto T = TryGetToken())
+	{
+		if (T == nullptr || T->Type == TokenType::EndTab) { break; }
+		EnumValueNode EnumValue;
+
+
+		
+		GetEnumValueNode(EnumValue);
+		out.Values.push_back(EnumValue);
+
+
+		auto ColonToken = TryGetToken();
+		if (ColonToken == nullptr || ColonToken->Type != TokenType::Comma){ break;}
+		NextToken();
+	}
+
+	auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::EndTab);
+	NextToken();
+
+	return GotNodeType::Success;
+}
+GotNodeType Parser::GetEnumValueNode(EnumValueNode& out)
+{
+	GetName(out.Name);
+
+	auto EqualToken = TryGetToken();
+	if (EqualToken && EqualToken->Type == TokenType::equal)
+	{
+		NextToken();
+		return GetExpressionNode(out.Expression);
+	}
+	return GotNodeType::Success;
+}
+GotNodeType Parser::GetAttributeNode(AttributeTypeNode& out)
+{
+	GetName(out.AttributeName);
+
+	auto ColonToken = TryGetToken(); TokenTypeCheck(ColonToken, TokenType::Colon); NextToken();
+	auto StartToken = TryGetToken(); TokenTypeCheck(StartToken, TokenType::StartTab);NextToken();
+
+	while (auto T = TryGetToken())
+	{
+		TryGetNode V;
+
+		switch (T->Type)
+		{
+		case TokenType::EndTab:goto EndLoop;
+		default:V = GetDeclareVariable();
+		}
+
+		if (V.Node)
+		{
+			out._Nodes.push_back(V.Node);
+		}
+	}
+
+EndLoop:
+	auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::EndTab);
+	NextToken();
+
+	return GotNodeType::Success;
 }
 UCodeLangEnd
