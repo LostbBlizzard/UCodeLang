@@ -235,13 +235,13 @@ private:
 		return { r,V->As() };
 	}
 	GotNodeType GetDeclareStaticVariable(DeclareStaticVariableNode& out);
-	TryGetNode GetDeclareStaticforthreadVariable()
+	TryGetNode GetDeclareThreadVariable()
 	{
-		DeclareStaticforthreadVariableNode* V = DeclareStaticforthreadVariableNode::Gen();
-		auto r = GetDeclareStaticforthreadVariable(*V);
+		DeclareThreadVariableNode* V = DeclareThreadVariableNode::Gen();
+		auto r = GetDeclareThreadVariable(*V);
 		return { r,V->As() };
 	}
-	GotNodeType GetDeclareStaticforthreadVariable(DeclareStaticforthreadVariableNode& out);
+	GotNodeType  GetDeclareThreadVariable(DeclareThreadVariableNode& out);
 
 
 	TryGetNode GetDeclareVariable()

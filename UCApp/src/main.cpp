@@ -35,12 +35,12 @@ const UCodeLang::String StandardLibraryinit = StandardLibraryOut + "init/";
 
 #define StandardLibrarynamespace "ULang"
 
-AnyInt64 Test(Jit_Interpreter::CPPInput Input)
+void Test(Jit_Interpreter::CPPInput Input)
 {
 
 
 
-	return NullAddress;
+	Input.Set_Return();
 }
 
 int main()
@@ -93,7 +93,7 @@ int main()
 		State.AddLib(&DLLib);
 		State.LinkLibs();
 
-		UCodeLang::Jit_Interpreter interpreter;
+		UCodeLang::Interpreter interpreter;
 		interpreter.Init(&State);	
 		auto r = interpreter.Call("Main");
  		if (r._Succeed == UCodeLang::Interpreter::RetState::Error || r._Succeed == UCodeLang::Interpreter::RetState::Error_Function_doesnt_exist)

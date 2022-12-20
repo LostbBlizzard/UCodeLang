@@ -2,9 +2,11 @@
 UCodeLangStart
 
 
-UInt8 Test()
+void Test(Jit_Interpreter::CPPInput input)
 {
-	return 8;
+	
+
+	input.Set_Return(5);
 }
 
 Interpreter::Return_t Jit_Interpreter::ThisCall(PtrType This, const String& FunctionName, parameters Pars)
@@ -46,11 +48,30 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address, parameters Pars)
 			ExBuffer.SetToReadWriteMode();
 
 			intptr_t Ptr = (intptr_t)ExBuffer.Data + (intptr_t)Insoffset;
-			memcpy((void*)Ptr, &TepOutBuffer[0], InsSize);
 
 			Insoffset += TepOutBuffer.size();
 			Item.Type = JitFuncType::CPPCall;
 			Item.Func = (JitFunc)Ptr;
+
+			for (auto Item : _Assembler.NullCalls)
+			{
+				Instruction& Ins = Insts[Item.UCodeAddress];
+				UAddress CodeFuncAddress = Ins.Value0.AsAddress + 1;
+				if (UFuncToCPPFunc.count(CodeFuncAddress))
+				{
+					auto& SomeV = UFuncToCPPFunc.at(CodeFuncAddress);
+				
+					_Assembler.SubCall((Amd64Assembler::VoidFunc)SomeV.Func, Item.CPPoffset, TepOutBuffer);
+				}
+				else
+				{
+					_Assembler.SubCall((Amd64Assembler::VoidFunc)OnUAddressCall, Item.CPPoffset, TepOutBuffer);
+				}
+			}
+			
+			
+			
+			memcpy((void*)Ptr, &TepOutBuffer[0], InsSize);
 
 			ExBuffer.SetToExecuteMode();
 
@@ -69,7 +90,9 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address, parameters Pars)
 			Item.UCodeFunc = address;
 		}
 	}
-	
+	InterpreterCPPinterface Inter = &_Interpreter;
+	Test(Inter);
+
 	if (Item.Type == JitFuncType::UCodeCall)
 	{
 		return _Interpreter.Call(Item.UCodeFunc, Pars);

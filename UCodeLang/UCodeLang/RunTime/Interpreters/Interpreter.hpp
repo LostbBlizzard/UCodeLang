@@ -311,11 +311,12 @@ public:
 			Get_OutPutRegister().Value = *(UInt64*)&Value;
 		}
 	}
-	template<typename T> UCodeLangForceinline T Get_This()
+	UCodeLangForceinline void Set_Return(void){}
+	template<typename T> UCodeLangForceinline T* Get_This()
 	{
 		constexpr bool IsBigerThenRegister =sizeof(T) > sizeof(Interpreter::Register);
 		static_assert(!IsBigerThenRegister, " 'T' is too big to be in a Register");
-		return *(T*)&Get_InPutRegister().Value;
+		return (T*)&Get_ThisRegister().Value;
 	}
 
 	UCodeLangForceinline const UserMadeContext& Get_UserMadeContext()

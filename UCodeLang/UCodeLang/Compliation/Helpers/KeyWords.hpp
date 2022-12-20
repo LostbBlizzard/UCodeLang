@@ -14,7 +14,7 @@ inline const char* S_KeyWord_uInt8 = "Uint8";
 inline const char* S_KeyWord_char = "char";
 inline const char* S_KeyWord_bool = "bool";
 
-inline const char* S_KeyWord_int = "int";
+inline const char* S_KeyWord_int = "sint32";
 inline const char* S_KeyWord_float = "float";
 inline const char* S_KeyWord_float32 = "float32";
 inline const char* S_KeyWord_float64 = "float64";
@@ -32,31 +32,21 @@ inline const char* S_KeyWord_true = "true";
 inline const char* S_KeyWord_false = "false";
 inline const char* S_KeyWord_var = "var";
 
-inline const char* S_KeyWord_while = "while";
-inline const char* S_KeyWord_for = "for";
-inline const char* S_KeyWord_do = "do";
-
-inline const char* S_KeyWord_if = "if";
-inline const char* S_KeyWord_else = "else";
 inline const char* S_KeyWord_invalid = "invalid";
 inline const char* S_KeyWord_break = "break";
 inline const char* S_KeyWord_use = "use";
 inline const char* S_KeyWord_this = "this";
 inline const char* S_KeyWord_drop = "drop";
 inline const char* S_KeyWord_new = "new";
-inline const char* S_KeyWord_copy = "copy";
-inline const char* S_KeyWord_move = "move";
-inline const char* S_KeyWord_swap = "swap";
 
 
 inline const char* S_KeyWord_static = "static";
+inline const char* S_KeyWord_thread = "thread";
 
 inline const char* S_KeyWord_uintptr = "uintptr";
 inline const char* S_KeyWord_sintptr = "sintptr";
 
 inline const char* S_KeyWord_pub = "pub";
-inline const char* S_KeyWord_get = "get";
-inline const char* S_KeyWord_set = "set";
 
 inline const char* S_KeyWord_asm = "asm";
 struct KeyWord
@@ -108,11 +98,10 @@ inline KeyWord KeyWords[] =
 	KeyWord(S_KeyWord_drop,TokenType::KeyWorld_Drop),
 	KeyWord(S_KeyWord_new,TokenType::KeyWorld_new),
 	KeyWord(S_KeyWord_static,TokenType::KeyWorld_static),
+	KeyWord(S_KeyWord_thread,TokenType::KeyWorld_Thread),
 
 	KeyWord(S_KeyWord_pub,TokenType::KeyWorld_pub),
 	KeyWord(S_KeyWord_typeof,TokenType::KeyWorld_typeof),
-	KeyWord(S_KeyWord_get,TokenType::KeyWorld_get),
-	KeyWord(S_KeyWord_set,TokenType::KeyWorld_set),
 
 	KeyWord(S_KeyWord_asm,TokenType::KeyWorld_asm),
 };

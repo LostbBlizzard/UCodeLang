@@ -50,9 +50,11 @@ void SemanticAnalysis::BuildNameSpace(const Node* Tree)
 		{
 		case NodeType::AttributeNode:BuildAttributeNode(*AttributeNode::As(Item)); break;
 		case NodeType::NamespaceNode:BuildNameSpace(Item);break;
-		case NodeType::NameNode:BuildClass(*ClassNode::As(Item));break;
+		case NodeType::ClassNode:BuildClass(*ClassNode::As(Item));break;
 		case NodeType::FuncNode:BuildFunc(*FuncNode::As(Item));break;
 		case NodeType::UsingNode:BuildUseingNode(*UsingNode::As(Item));break;
+		case NodeType::DeclareThreadVariableNode:BuildDeclareThreadVariable(*DeclareThreadVariableNode::As(Item)); break;
+		case NodeType::DeclareStaticVariableNode:BuildStaticDeclareVariable(*DeclareStaticVariableNode::As(Item)); break;
 		default:
 			#if CompliationTypeSafety
 			throw std::exception("Cant UnWap BuildStatement");
@@ -76,22 +78,28 @@ void SemanticAnalysis::BuildStaticVariable(const UCodeLang::Node* node)
 
 void SemanticAnalysis::BuildClass(const UCodeLang::ClassNode& node)
 {
+	auto _ClassName = AddDebug_String(node.ClassName.Token->Value._String);
+	GenIns(InstructionBuilder::GenInst(Intermediate_Set::Class, _ClassName, _Ins));
+	Value.Lib.Add_Instruction(_Ins);
+
 	for (const auto& Item : node._Nodes)
 	{
-
 		switch (Item->Get_Type())
 		{
 		case NodeType::NameNode:BuildClass(*ClassNode::As(Item)); break;
 		case NodeType::FuncNode:BuildFunc(*FuncNode::As(Item)); break;
 		case NodeType::UsingNode:BuildUseingNode(*UsingNode::As(Item)); break;
+		case NodeType::DeclareThreadVariableNode:BuildDeclareThreadVariable(*DeclareThreadVariableNode::As(Item)); break;
+		case NodeType::DeclareStaticVariableNode:BuildStaticDeclareVariable(*DeclareStaticVariableNode::As(Item)); break;
 		default:
 			#if CompliationTypeSafety
 			throw std::exception("Cant UnWap BuildStatement");
 			#endif
 			break;
 		}
-
 	}
+
+	GenIns(InstructionBuilder::GenInst(Intermediate_Set::ClassEnd, _Ins));
 }
 
 void SemanticAnalysis::BuildAttributeNode(const UCodeLang::AttributeNode& Node)
@@ -104,6 +112,15 @@ void SemanticAnalysis::BuildFunc(const UCodeLang::FuncNode& Node)
 	GenIns(InstructionBuilder::GenInst(Intermediate_Set::DeclareFunc, _Block, _Ins));
 	Value.Lib.Add_Instruction(_Ins);
 
+
+	BuildType(Node.Signature.ReturnType);
+
+	for (const auto& Item : Node.Signature.Parameters.Parameters)
+	{
+		BuildParameter(Item);
+	}
+
+
 	if (Node.Body.HasValue)
 	{
 		BuildStatements(Node.Body.Item.Statements);
@@ -112,6 +129,13 @@ void SemanticAnalysis::BuildFunc(const UCodeLang::FuncNode& Node)
 
 	GenIns(InstructionBuilder::GenInst(Intermediate_Set::FuncEnd, _Block, _Ins));
 	Value.Lib.Add_Instruction(_Ins);
+}
+
+void SemanticAnalysis::BuildParameter(const UCodeLang::NamedParameterNode& par)
+{
+	auto _Name = AddDebug_String(par.Name.Token->Value._String);
+	GenIns(InstructionBuilder::GenInst(Intermediate_Set::DeclareParameter, _Name, _Ins));
+	BuildType(par.Type);
 }
 
 void SemanticAnalysis::BuildStatements(const UCodeLang::StatementsNode& BodyStatements)
@@ -129,6 +153,10 @@ void SemanticAnalysis::BuildStatement(const UCodeLang::Node* Statement)
 	case NodeType::NameNode:BuildClass(*ClassNode::As(Statement)); break;
 	case NodeType::UsingNode:BuildUseingNode(*UsingNode::As(Statement)); break;
 	case NodeType::AsmBlockNode:BuildAsmBlock(*AsmBlockNode::As(Statement)); break;
+	case NodeType::DeclareThreadVariableNode:BuildDeclareThreadVariable(*DeclareThreadVariableNode::As(Statement)); break;
+	case NodeType::DeclareStaticVariableNode:BuildStaticDeclareVariable(*DeclareStaticVariableNode::As(Statement)); break;
+	case NodeType::DeclareVariableNode:BuildDeclareVariable(*DeclareVariableNode::As(Statement)); break;
+	case NodeType::RetStatementNode:BuildReturnExpression(*RetStatementNode::As(Statement)); break;
 	default:
 		#if CompliationTypeSafety
 		throw std::exception("Cant UnWap BuildStatement");
@@ -157,8 +185,12 @@ void SemanticAnalysis::BuildAsmBlock(const UCodeLang::AsmBlockNode& Asm)
 	GenIns(InstructionBuilder::GenInst(Intermediate_Set::AsmBlock,_Block, _Ins));
 	Value.Lib.Add_Instruction(_Ins);
 }
-void SemanticAnalysis::BuildReturnExpression()
+void SemanticAnalysis::BuildReturnExpression(const RetStatementNode& Item)
 {
+	if (Item.Expression) 
+	{
+		BuildExpressionType(Item.Expression);
+	}
 	GenIns(InstructionBuilder::GenInst(Intermediate_Set::Ret, _Ins));
 	Value.Lib.Add_Instruction(_Ins);
 }
@@ -168,12 +200,28 @@ void SemanticAnalysis::BuildStoreExpression(const String_view& VarName)
 	GenIns(InstructionBuilder::GenInst(Intermediate_Set::StoreVar, _VarPos, _Ins));
 	Value.Lib.Add_Instruction(_Ins);
 }
-void SemanticAnalysis::BuildDeclareVariable(const String_view& VarName, const String_view& Type)
+void SemanticAnalysis::BuildStaticDeclareVariable(const DeclareStaticVariableNode& Item)
 {
-	auto _VarPos = AddDebug_String(VarName);
-	auto _TypePos = AddDebug_String(Type);
-	
-	GenIns(InstructionBuilder::GenInst(Intermediate_Set::DeclareVar, _TypePos, _VarPos, _Ins));
-	Value.Lib.Add_Instruction(_Ins);
+	BuildDeclareVariable(Item.Variable, Intermediate_Set::DeclareStaticVar);
+}
+void SemanticAnalysis::BuildDeclareThreadVariable(const DeclareThreadVariableNode& Item)
+{
+	BuildDeclareVariable(Item.Variable,Intermediate_Set::DeclareThreadVar);
+}
+void SemanticAnalysis::BuildDeclareVariable(const DeclareVariableNode& Item, Intermediate_Set VarType)
+{
+	auto _VarNamePos = AddDebug_String(Item.Name.Token->Value._String);
+
+
+	if (Item.Expression)
+	{
+		BuildExpressionType(Item.Expression);
+	}
+	GenIns(InstructionBuilder::GenInst(VarType,_VarNamePos, _Ins)); Value.Lib.Add_Instruction(_Ins);
+	BuildType(Item.Type);
+}
+void SemanticAnalysis::BuildType(const TypeNode& Item)
+{
+
 }
 UCodeLangEnd

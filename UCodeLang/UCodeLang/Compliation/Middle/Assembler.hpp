@@ -8,30 +8,103 @@
 #include "UCodeLang/Compliation/UAssembly/UAssembly.hpp"
 UCodeLangStart
 
-class Assembler
+
+using symbolType_t = UInt8;
+enum class symbolType : symbolType_t
+{
+	Null,
+	Class,
+	Func,
+	Var,
+
+	Parameter,
+	Parameter_Input,//A parameter but its not on the stack its in the input reg
+	EnumValue,
+	ThisVar,
+	This,
+	StaticVar,
+	ClassValue,
+
+};
+
+struct TypeData
+{
+	String Name;
+};
+struct symbolInfo
+{
+	String_view File;
+	size_t Line = 0;
+	size_t Pos = 0;
+	String_view Name;
+};
+struct func_symbol
+{
+	symbolInfo Data;
+};
+
+class symbol
 {
 public:
-	void Assemble(UClib* Output,UClib* Data);
-	void Reset();
-
-	Assembler(){}
-	~Assembler(){}
-	UCodeLangForceinline UClib* Get_Output() { return _OutPut; }
-	UCodeLangForceinline bool Get_Success() { return _LinkSuccess; }
 	
-	UCodeLangForceinline void Set_ErrorsOutput(CompliationErrors* V){_ErrorsOutput = V;}
-	UCodeLangForceinline void Set_Settings(CompliationSettings* V) { _Settings = V; }
-private:
-	struct Intermediate_Instruction
+	symbolType Type;
+	union 
 	{
-		union
-		{
-			Intermediate_Set OpCode;
-			InstructionSet_t OpCode_AsInt;
-		};
-		AnyInt64 Value0;
-		AnyInt64 Value1;
+		symbolInfo Data;
+		func_symbol Func;
 	};
+};
+
+class SymbolManger
+{
+public:
+	ScopeHelper Scope;
+	Vector<symbol> Symbols;
+	Vector<String_view> Use_;
+
+	UCodeLangForceinline void AddUseing(const String_view& Name)
+	{
+		Use_.push_back(Name);
+	}
+
+	symbol* FindSymbol(const String_view& Name, const String_view& Scope = ScopeHelper::_globalScope)
+	{
+		String TepScope = Scope.data();
+
+		while (true)
+		{
+			String FullName = TepScope + Name.data();
+			for (auto& item : Symbols)
+			{
+				if (item.Data.Name == FullName)
+				{
+					return &item;
+				}
+			}
+
+			if (TepScope == ScopeHelper::_globalScope) { break; }
+			ScopeHelper::ReMoveScope(TepScope);
+		}
+		return nullptr;
+	}
+	//
+	symbol& AddSymbol(const String_view Name, symbolInfo& FileInfo)
+	{
+		Symbols.push_back({});
+		auto& V = Symbols.back();
+		V.Data = FileInfo;
+		return V;
+	};
+	void clear()
+	{
+		Scope.ThisScope = ScopeHelper::_globalScope;
+		Symbols.clear();
+	}
+};
+
+
+struct RegisterManger
+{
 	enum class InUseState : UInt8
 	{
 		NotinUse,
@@ -46,77 +119,13 @@ private:
 		{
 
 		}
-		
+
 	};
 
-	
 	static constexpr size_t RegisterMaxIndex = (RegisterID_t)RegisterID::EndRegister - (RegisterID_t)RegisterID::StartRegister;
 	static constexpr size_t RegisterCount = 1 + RegisterMaxIndex;
-	
-	UClib* _Input = nullptr;
-	UClib* _OutPut = nullptr;
-	bool _LinkSuccess = false;
-	CompliationErrors* _ErrorsOutput = nullptr;
-	CompliationSettings* _Settings = nullptr;
-	size_t Index =0;
-	SemanticAnalysisData Symbols;
-	ScopeHelper Scope;
-	RegisterID OutValue =RegisterID::NullRegister;
-	UCodeLang::Instruction _Ins;
-	UIntNative funcStackSize = 0;
-	UIntNative StaticStackSize = 0;
-	UIntNative ParameterSize = 0;
+
 	RegistersInUseData RegistersInUse[RegisterCount];
-	unordered_map<String_view, UAddress> _Strings;
-	size_t Debugoffset = 0;
-	
-	Vector<ClassData*> Tep;
-	UAssembly::UAssembly _Assembly;
-
-
-	UCodeLangForceinline Intermediate_Instruction* Get_Ins()
-	{
-		if (Index < _Input->Get_Instructions().size())
-		{
-			return (Intermediate_Instruction*)&_Input->Get_Instructions()[Index];
-		}
-		else
-		{
-			return nullptr;
-		}
-	}
-	UCodeLangForceinline void NextIns()
-	{
-		Index++;
-	}
-	UCodeLangForceinline UAddress PushIns()
-	{
-		return _OutPut->Add_Instruction(_Ins);
-	}
-
-	void BuildBuffer();
-
-	
-	
-
-	void UpdateAllTypes()
-	{
-		for (auto Item : _Input->Get_Assembly().Classes)
-		{
-			UpdateTypeData(Item);
-		}
-	}
-	inline ClassData* GetType(const String_view Name)
-	{
-		auto V = _Input->Get_Assembly().Find_Class(Name, ScopeHelper::_globalScope);
-		if (V)
-		{
-			UpdateTypeData(V);
-		}
-		return V;
-	}
-
-	void UpdateTypeData(ClassData* Data);
 
 	void SetRegisterUse(RegisterID id, bool V)
 	{
@@ -176,13 +185,6 @@ private:
 			RegistersInUse[i] = RegistersInUseData();
 		}
 	}
-
-	//generates code that puts a Symbol in a register
-	void GetSymbolInRegister(symbol* Symbol, RegisterID id);
-	void ForceSymbolInRegister(symbol* Symbol, RegisterID id);
-
-	
-
 	RegisterID GetSymbolInRegisterAndLock(symbol* Symbol)
 	{
 
@@ -201,85 +203,113 @@ private:
 
 
 		auto V = GetFreeRegister();
-		if (V != RegisterID::NullRegister) 
+		if (V != RegisterID::NullRegister)
 		{
-			GetSymbolInRegister(Symbol,V);
+			GetSymbolInRegister(Symbol, V);
 			RegisterLock(V);
 		}
 		return V;
 	}
+	//generates code that puts a Symbol in a register
+	void GetSymbolInRegister(symbol* Symbol, RegisterID id);
+};
 
-	inline void ReSetIns()
+class Assembler
+{
+public:
+	void Assemble(UClib* Output,UClib* Data);
+	void LinkIns();
+	void Reset();
+
+	Assembler(){}
+	~Assembler(){}
+	UCodeLangForceinline UClib* Get_Output() { return _OutPut; }
+	UCodeLangForceinline bool Get_Success() { return _LinkSuccess; }
+	
+	UCodeLangForceinline void Set_ErrorsOutput(CompliationErrors* V){_ErrorsOutput = V;}
+	UCodeLangForceinline void Set_Settings(CompliationSettings* V) { _Settings = V; }
+private:
+	struct Intermediate_Instruction
 	{
-		_Ins = Instruction();
+		union
+		{
+			Intermediate_Set OpCode;
+			InstructionSet_t OpCode_AsInt;
+		};
+		AnyInt64 Value0;
+		AnyInt64 Value1;
+	};
+	
+	
+	
+	UClib* _Input = nullptr;
+	UClib* _OutPut = nullptr;
+	bool _LinkSuccess = false;
+	CompliationErrors* _ErrorsOutput = nullptr;
+	CompliationSettings* _Settings = nullptr;
+	
+	SymbolManger Symbols;
+	symbolInfo ThisSymbolInfo;
+
+
+	UIntNative funcStackSize = 0;
+	UIntNative StaticStackSize = 0;
+	UIntNative ParameterSize = 0;
+	unordered_map<String_view, UAddress> _Strings;
+	
+	
+	
+
+	UAssembly::UAssembly _Assembly;
+	size_t Index =0;
+	size_t Debugoffset = 0;
+	
+	UCodeLangForceinline Intermediate_Instruction* Get_Ins()
+	{
+		if (Index < _Input->Get_Instructions().size())
+		{
+			return (Intermediate_Instruction*)&_Input->Get_Instructions()[Index];
+		}
+		else
+		{
+			return nullptr;
+		}
+	}
+	UCodeLangForceinline void NextIns()
+	{
+		Index++;
+	}
+	UCodeLangForceinline UAddress PushIns()
+	{
+		return _OutPut->Add_Instruction(_Ins);
 	}
 
-	symbol* FindSymbol(const String_view& Name)
-	{
-		return Symbols.FindSymbol(Name,Scope.ThisScope);
-	}
-	symbol* FindVarSymbol(const String_view& Name)
-	{
-		return FindSymbol(Name);
-	}
-	symbol* FindFuncSymbol(const String_view& Name)
-	{
-		return FindSymbol(Name);
-	}
-	symbol* FindClassSymbol(const String_view& Name)
-	{
-		return FindSymbol(Name);
-	}
+	void BuildBuffer();
+	void BuildTypes();
+	void BuildCode();
+	
 	String_view Get_StringFromDebug(UAddress I)
 	{
 		auto Ptr = &_Input->Get_DebugByte()[(UAddress)Debugoffset + I];
 		return String_view((const char*)Ptr);
 	}
-	//
-	symbol& AddSymbol(const String_view Name,size_t Line,size_t pos)
-	{
-		Symbols.Symbols.push_back(symbol(Scope.ThisScope + Name.data()));
-		auto& V = Symbols.Symbols.back();
-		V.Line = Line;
-		V.Pos = pos;
-		return V;
-	};
-	symbol& AddVarSymbol(const String_view Name, size_t Line, size_t pos)
-	{
-		auto& V = AddSymbol(Name,Line,pos);
-		V.Type = symbolType::Var;
-		return V;
-	};
-	symbol& AddFuncSymbol(const String_view Name, size_t Line, size_t pos)
-	{
-		auto& V = AddSymbol(Name, Line, pos);
-		V.Type = symbolType::Func;
-		return V;
-	};
-	//
-	UAddress Get_StaticString(const String_view& Value)
+	
+	//Building Stuff
+	RegisterID OutValue =RegisterID::NullRegister;
+	UCodeLang::Instruction _Ins;
+	RegisterManger _RegisterState;
+	UAddress Build_StaticString(const String_view& Value)
 	{
 		return _OutPut->AddStaticBytes(Value);
 	}
-	UAddress Get_DegugString(const String_view& Value)
+	UAddress Build_DegugString(const String_view& Value)
 	{
 		return _OutPut->AddDebugBytes(Value);
 	}
-	//helpers
-	void BuildDeclareFunc(Intermediate_Instruction& Ins);
-	void DeclareVar(Intermediate_Instruction& Ins);
-	void DeclareStaticVar(Intermediate_Instruction& Ins);
-	void DeclareThisVar(Intermediate_Instruction& Ins);
-	void DeclareThis(Intermediate_Instruction& Ins);
-	void DeclareParameter(Intermediate_Instruction& Ins);
+	inline void ReSetIns()
+	{
+		_Ins = Instruction();
+	}
 	void BuildAsm(Intermediate_Instruction& Ins);
-	void StoreVar(Intermediate_Instruction& Ins);
-	RegisterID GetVar(Intermediate_Instruction& Ins);
-	RegisterID DeclareExpression();
-	RegisterID DeclareBinaryExpression(Intermediate_Instruction& Ins);
-	RegisterID UnaryExpression(Intermediate_Instruction& Ins);
-	void BuildStore8RegToReg(RegisterID id, RegisterID out);
-	void BuildStore64RegToReg(RegisterID id, RegisterID out);
-	void BuildRawStringStaticOffset(RegisterID Register,const String_view& Value);
 };
 UCodeLangEnd

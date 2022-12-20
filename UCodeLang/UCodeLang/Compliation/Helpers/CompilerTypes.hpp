@@ -80,15 +80,13 @@ enum class TokenType : TokenType_t
 	KeyWorld_Drop,
 	KeyWorld_new,
 	KeyWorld_static,
-	KeyWorld_staticforthread,
+	KeyWorld_Thread,
 
 	KeyWorld_uintptr,
 	KeyWorld_sintptr,
 
 	KeyWorld_pub,
 	KeyWorld_typeof,
-	KeyWorld_get,
-	KeyWorld_set,
 	hash,
 	KeyWorld_float32,
 	KeyWorld_float64,
@@ -177,16 +175,13 @@ public:
 		case UCodeLang::TokenType::KeyWorld_Drop: return "drop";
 		case UCodeLang::TokenType::KeyWorld_new: return "new";
 		case UCodeLang::TokenType::KeyWorld_static: return "static";
-		case UCodeLang::TokenType::KeyWorld_staticforthread: return "staticforthread";
+		case UCodeLang::TokenType::KeyWorld_Thread: return "staticforthread";
 
 		case UCodeLang::TokenType::KeyWorld_uintptr: return "uintptr";
 		case UCodeLang::TokenType::KeyWorld_sintptr: return "sintptr";
 
 		case UCodeLang::TokenType::KeyWorld_pub: return "pub";
 		case UCodeLang::TokenType::KeyWorld_typeof: return "typeof";
-
-		case UCodeLang::TokenType::KeyWorld_get: return "get";
-		case UCodeLang::TokenType::KeyWorld_set: return "set";
 
 		case UCodeLang::TokenType::hash: return "#";
 
