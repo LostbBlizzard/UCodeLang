@@ -59,13 +59,18 @@ private:
 	};
 	unordered_map<UAddress, JitFuncData> UFuncToCPPFunc;
 	Vector<UInt8> TepOutBuffer;
+	static void OnUAddressCall(CPPInput Cpp)
+	{
+		UAddress V = Cpp.GetParameters<UAddress>();
+		//Call(V);
+	}
 
 	UCodeLangForceinline AnyInt64 Call_CPPFunc(JitFunc ToCall,parameters& Pars)
 	{
 		_Interpreter.PushParameters(Pars);
-		InterpreterCPPinterface Inter = &_Interpreter; ;
-		auto r = ToCall(Inter);
-		return r;
+		InterpreterCPPinterface Inter = &_Interpreter;
+		ToCall(Inter);
+		return Inter.Get_OutPutRegister().Value;
 	}
 };
 

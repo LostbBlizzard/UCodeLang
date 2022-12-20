@@ -12,11 +12,13 @@ struct StringliteralNode
 	Token* Token = nullptr;
 };
 
+
+
 struct BoolliteralNode
 {
 	AddforNode(BoolliteralNode);
 
-	bool Value;
+	bool Value = false;
 };
 struct NumberliteralNode
 {
@@ -49,6 +51,13 @@ struct ScopedNameNode
 			}
 		}
 	}
+};
+
+struct ReadVariableNode
+{
+	AddforNode(ReadVariableNode);
+
+	ScopedNameNode VariableName;
 };
 struct NamespaceNode
 {
@@ -209,9 +218,9 @@ struct DeclareStaticVariableNode
 	AddforNode(DeclareStaticVariableNode);
 	DeclareVariableNode Variable;
 };
-struct DeclareStaticforthreadVariableNode
+struct DeclareThreadVariableNode
 {
-	AddforNode(DeclareStaticforthreadVariableNode);
+	AddforNode(DeclareThreadVariableNode);
 	DeclareVariableNode Variable;
 };
 

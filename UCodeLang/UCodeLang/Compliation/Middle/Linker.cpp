@@ -39,16 +39,10 @@ void Linker::Combine(const UCodeLang::Vector<const UCodeLang::UClib*>& libsToLin
 		{
 			outLib->AddStaticBytes(Item);
 		}
-		ClassAssembly::Copy(Lib->Get_Assembly(),outLib->Get_Assembly());
-
-
-		Instruction Tep;
 		for (auto& Item : Instr)
 		{
 			outLib->Add_Instruction(Item);
 		}
-		
-		//
 
 		auto MyNameToPtr = Lib->Get_NameToPtr();
 		for (auto& Item : NameToPtr)
@@ -75,13 +69,12 @@ void Linker::Combine(const UCodeLang::Vector<const UCodeLang::UClib*>& libsToLin
 		Insoffset += (UAddress)Instr.size();
 		Staticoffset += (UAddress)StaticBytes.size();
 		Debugoffset += (UAddress)DebugBytes.size();
-		
+
+		Instruction Tep;
 		Tep.OpCode_AsInt = (InstructionSet_t)Intermediate_Set::FileEnd;
 		Tep.Value0.AsInt64 = Debugoffset;
 		outLib->Add_Instruction(Tep);
 	}
-
-	//
 
 	for (auto& item : _Strings)
 	{
