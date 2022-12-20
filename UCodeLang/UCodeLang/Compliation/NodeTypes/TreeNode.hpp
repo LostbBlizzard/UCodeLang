@@ -11,7 +11,7 @@ enum class NodeType :UInt8
 	UsingNode,
 	ScopedName,
 	DeclareStaticVariableNode,
-	DeclareStaticforthreadVariableNode,
+	DeclareThreadVariableNode,
 	DeclareVariableNode,
 	FuncNode,
 	NamedParameters, 
@@ -32,6 +32,7 @@ enum class NodeType :UInt8
 	IfNode,
 	ElseNode,
 	BoolliteralNode,
+	ReadVariableNode,
 };
 
 

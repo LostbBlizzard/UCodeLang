@@ -94,7 +94,7 @@ void Parser::Parse(String_view Text, const Vector<Token>&Tokens)
 		case TokenType::KeyWorld_use:V = GetUseNode(); break;
 		case TokenType::Left_Bracket:V = GetAttribute(); break;
 		case TokenType::KeyWorld_static:V = GetDeclareStaticVariable(); break;
-		case TokenType::KeyWorld_staticforthread:V = GetDeclareStaticforthreadVariable(); break;
+		case TokenType::KeyWorld_Thread:V = GetDeclareThreadVariable(); break;
 		default: GetDeclareVariableNoObject(V); break;
 		}
 		if (V.Node)
@@ -137,7 +137,7 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 		case TokenType::KeyWorld_use:V = GetUseNode(); break;
 		case TokenType::Left_Bracket:V = GetAttribute();break;
 		case TokenType::KeyWorld_static:V = GetDeclareStaticVariable(); break;
-		case TokenType::KeyWorld_staticforthread:V = GetDeclareStaticforthreadVariable(); break;
+		case TokenType::KeyWorld_Thread:V = GetDeclareThreadVariable(); break;
 		default: GetDeclareVariableNoObject(V); break;
 		}
 
@@ -218,7 +218,7 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 			case TokenType::KeyWorld_use:V = GetUseNode(); break;
 			case TokenType::Left_Bracket:V = GetAttribute(); break;
 			case TokenType::KeyWorld_static:V = GetDeclareStaticVariable(); break;
-			case TokenType::KeyWorld_staticforthread:V = GetDeclareStaticforthreadVariable(); break;
+			case TokenType::KeyWorld_Thread:V = GetDeclareThreadVariable(); break;
 			default:V = GetDeclareVariable();
 			}
 
@@ -294,9 +294,9 @@ GotNodeType Parser::GetStatement(Node*& out)
 		out = r.Node;
 		return r.GotNode;
 	}
-	case TokenType::KeyWorld_staticforthread:
+	case TokenType::KeyWorld_Thread:
 	{
-		auto r =GetDeclareStaticforthreadVariable();
+		auto r = GetDeclareThreadVariable();
 		out = r.Node;
 		return r.GotNode;
 	}
@@ -309,11 +309,12 @@ GotNodeType Parser::GetStatement(Node*& out)
 	}
 	break;
 	default:
-		#if CompliationTypeSafety
-		throw std::exception("Cant UnWap BuildStatement");
-		#endif
-		return GotNodeType::failed;
-		break;
+	{
+		auto r = GetDeclareVariable();
+		out = r.Node;
+		return r.GotNode;
+	}
+	break;
 	}
 }
 
@@ -325,19 +326,11 @@ GotNodeType Parser::GetStatements(StatementsNode& out)
 
 	while (auto T = TryGetToken())
 	{
-		if (IsStartofaStatement(T->Type))
-		{
-			Node* V = nullptr;
-			GetStatement(V);
-			if (V){out._Nodes.push_back(V);}
-		}
-		else if (T->Type == TokenType::EndTab) { break; }
-		else
-		{
-			#if CompliationTypeSafety
-			throw std::exception("Cant UnWap BuildStatement");
-			#endif
-		}
+		if (T->Type == TokenType::EndTab) { break; }
+
+		Node* V = nullptr;
+		GetStatement(V);
+		if (V) { out._Nodes.push_back(V); }
 	}
 
 
@@ -431,7 +424,7 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 	auto StatementTypeToken = TryGetToken();
 	switch (StatementTypeToken->Type)
 	{
-	case UCodeLang::TokenType::String_literal:
+	case TokenType::String_literal:
 	{
 		NextToken();
 		auto r = StringliteralNode::Gen();
@@ -439,7 +432,7 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 		out = r->As();
 		return GotNodeType::Success;
 	}
-	case UCodeLang::TokenType::Number_literal:
+	case TokenType::Number_literal:
 	{
 		NextToken();
 		auto r = NumberliteralNode::Gen();
@@ -447,7 +440,7 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 		out = r->As();
 		return GotNodeType::Success;
 	}
-	case UCodeLang::TokenType::KeyWorld_True:
+	case TokenType::KeyWorld_True:
 	{
 		NextToken();
 		auto r = BoolliteralNode::Gen();
@@ -455,11 +448,18 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 		out = r->As();
 		return GotNodeType::Success;
 	}
-	case UCodeLang::TokenType::KeyWorld_False:
+	case TokenType::KeyWorld_False:
 	{
 		NextToken();
 		auto r = BoolliteralNode::Gen();
 		r->Value = false;
+		out = r->As();
+		return GotNodeType::Success;
+	}
+	case TokenType::Name:
+	{
+		auto r = ReadVariableNode::Gen();
+		GetName(r->VariableName);
 		out = r->As();
 		return GotNodeType::Success;
 	}
@@ -769,10 +769,10 @@ GotNodeType Parser::GetDeclareStaticVariable(DeclareStaticVariableNode& out)
 	return GetDeclareVariable(out.Variable);
 }
 
-GotNodeType Parser::GetDeclareStaticforthreadVariable(DeclareStaticforthreadVariableNode& out)
+GotNodeType Parser::GetDeclareThreadVariable(DeclareThreadVariableNode& out)
 {
 	auto RetToken = TryGetToken();
-	TokenTypeCheck(RetToken, TokenType::KeyWorld_staticforthread);
+	TokenTypeCheck(RetToken, TokenType::KeyWorld_Thread);
 	NextToken();
 
 	return GetDeclareVariable(out.Variable);
@@ -784,7 +784,7 @@ void Parser::GetDeclareVariableNoObject(TryGetNode& out)
 	out.GotNode = GetDeclareVariable(node);
 	if (out.GotNode == GotNodeType::Success)
 	{
-		auto ptr = DeclareStaticforthreadVariableNode::Gen();
+		auto ptr = DeclareThreadVariableNode::Gen();
 		ptr->Variable = node;//Move
 		out.Node = ptr->As();
 	}

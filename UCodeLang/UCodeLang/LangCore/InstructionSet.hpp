@@ -66,6 +66,7 @@ enum class Intermediate_Set : InstructionSet_t
 	DeclareVar,
 	DeclareParameter,
 	DeclareStaticVar,
+	DeclareThreadVar,
 	DeclareThisVar,
 	DeclareThis,
 
@@ -112,6 +113,11 @@ enum class Intermediate_Set : InstructionSet_t
 	bitwise_not,
 
 	AsmBlock,
+
+	Class,
+	ClassEnd,
+
+	FileStart,
 	FileEnd,
 
 	MAXVALUE
