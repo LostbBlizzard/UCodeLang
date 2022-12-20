@@ -1,6 +1,6 @@
 %ULang: 
  $Console: 
-  |Log[ptr string] -> void;
+  |Log[VoidPtr string] -> void;
   |ReadLine[] -> void;
   
   // Console

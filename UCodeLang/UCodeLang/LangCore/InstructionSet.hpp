@@ -117,7 +117,12 @@ enum class Intermediate_Set : InstructionSet_t
 	Class,
 	ClassEnd,
 
+	EnumClass,
+	EnumValue,
+	EnumEnd,
+
 	FileStart,
+	SetFilePos,
 	FileEnd,
 
 	MAXVALUE
