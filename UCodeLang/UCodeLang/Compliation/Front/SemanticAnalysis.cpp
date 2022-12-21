@@ -49,7 +49,7 @@ void SemanticAnalysis::BuildNameSpace(const Node* Tree)
 		case NodeType::AttributeNode:BuildAttributeNode(*AttributeNode::As(Item)); break;
 		case NodeType::NamespaceNode:BuildNameSpace(Item);break;
 		case NodeType::ClassNode:BuildClass(*ClassNode::As(Item));break;
-		case NodeType::EnumNode:
+		case NodeType::EnumNode:BuildEnum(*EnumNode::As(Item)); break;
 		case NodeType::FuncNode:BuildFunc(*FuncNode::As(Item));break;
 		case NodeType::UsingNode:BuildUseingNode(*UsingNode::As(Item));break;
 		case NodeType::DeclareThreadVariableNode:BuildDeclareThreadVariable(*DeclareThreadVariableNode::As(Item)); break;
@@ -84,7 +84,9 @@ void SemanticAnalysis::BuildClass(const UCodeLang::ClassNode& node)
 	{
 		switch (Item->Get_Type())
 		{
-		case NodeType::NameNode:BuildClass(*ClassNode::As(Item)); break;
+		case NodeType::AttributeNode:BuildAttributeNode(*AttributeNode::As(Item)); break;
+		case NodeType::ClassNode:BuildClass(*ClassNode::As(Item)); break;
+		case NodeType::EnumNode:BuildEnum(*EnumNode::As(Item)); break;
 		case NodeType::FuncNode:BuildFunc(*FuncNode::As(Item)); break;
 		case NodeType::UsingNode:BuildUseingNode(*UsingNode::As(Item)); break;
 		case NodeType::DeclareThreadVariableNode:BuildDeclareThreadVariable(*DeclareThreadVariableNode::As(Item)); break;
@@ -129,9 +131,6 @@ void SemanticAnalysis::BuildFunc(const UCodeLang::FuncNode& Node)
 {
 	auto _Block = AddDebug_String(Node.Signature.Name.Token->Value._String);
 	GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::DeclareFunc, _Block, _Ins));
-	
-
-
 	BuildType(Node.Signature.ReturnType);
 
 	for (const auto& Item : Node.Signature.Parameters.Parameters)
@@ -168,7 +167,9 @@ void SemanticAnalysis::BuildStatement(const UCodeLang::Node* Statement)
 {
 	switch (Statement->Get_Type())
 	{
-	case NodeType::NameNode:BuildClass(*ClassNode::As(Statement)); break;
+	case NodeType::ClassNode:BuildClass(*ClassNode::As(Statement)); break;
+	case NodeType::AttributeNode:BuildAttributeNode(*AttributeNode::As(Statement)); break;
+	case NodeType::EnumNode:BuildEnum(*EnumNode::As(Statement)); break;
 	case NodeType::UsingNode:BuildUseingNode(*UsingNode::As(Statement)); break;
 	case NodeType::AsmBlockNode:BuildAsmBlock(*AsmBlockNode::As(Statement)); break;
 	case NodeType::DeclareThreadVariableNode:BuildDeclareThreadVariable(*DeclareThreadVariableNode::As(Statement)); break;
