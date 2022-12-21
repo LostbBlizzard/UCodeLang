@@ -129,27 +129,15 @@ public:
 	}
 
 	//math
-	UCodeLangForceinline static void Add8S(Instruction& Out, RegisterID reg, RegisterID reg2)
+	UCodeLangForceinline static void Add8(Instruction& Out, RegisterID reg, RegisterID reg2)
 	{
-		Out.OpCode = InstructionSet::AddS8;
-		Out.Value0.AsRegister = reg;
-		Out.Value1.AsRegister = reg2;
-	}
-	UCodeLangForceinline static void Add8U(Instruction& Out, RegisterID reg, RegisterID reg2)
-	{
-		Out.OpCode = InstructionSet::AddU8;
-		Out.Value0.AsRegister = reg;
-		Out.Value1.AsRegister = reg2;
-	}
-	UCodeLangForceinline static void Sub8S(Instruction& Out, RegisterID reg, RegisterID reg2)
-	{
-		Out.OpCode = InstructionSet::SubS8;
+		Out.OpCode = InstructionSet::Add8;
 		Out.Value0.AsRegister = reg;
 		Out.Value1.AsRegister = reg2;
 	}
 	UCodeLangForceinline static void Sub8U(Instruction& Out, RegisterID reg, RegisterID reg2)
 	{
-		Out.OpCode = InstructionSet::SubU8;
+		Out.OpCode = InstructionSet::Sub8;
 		Out.Value0.AsRegister = reg;
 		Out.Value1.AsRegister = reg2;
 	}

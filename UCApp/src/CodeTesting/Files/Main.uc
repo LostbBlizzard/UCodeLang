@@ -1,9 +1,19 @@
-use ULang;
+/*
+$Vec2:
+ int X;
+ int Y;
+ |this[]:
+  X = 0;
+  Y = 0;
+ |this[int x,int y]:
+  X = x;
+  Y = y;
 
-$E Red[byte]:
- Red = 0,
- Blue = 1,
- Green = 2
+|Main2[]:
+ Vec2 V = [5,3];
+ ret;
+*/
 
-|Main[] -> byte:
- ret 5;
+|Main[]:
+ int a = 5;
+ ret a;

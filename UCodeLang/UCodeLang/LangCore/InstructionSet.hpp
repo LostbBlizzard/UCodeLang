@@ -7,9 +7,9 @@ UCodeLangStart
 using ExitState_t = UInt8;
 enum class ExitState : ExitState_t
 {
-	Null,
 	Success,
 	Failure,
+	Null,
 };
 using InstructionSet_t = UInt64;
 enum class InstructionSet : InstructionSet_t
@@ -27,7 +27,7 @@ enum class InstructionSet : InstructionSet_t
 	Store8, Store8FromPtrToReg, Store8RegToPtr,Push8,Pop8, Store8RegToReg, Store8RegOnStack, Get8FromStack,
 	Get8FromStackSub,
 	
-	AddS8, AddU8, SubS8, SubU8, MultS8, MultU8, DivS8, DivU8,
+	Add8,Sub8, MultS8, MultU8, DivS8, DivU8,
 	
 	LogicalAnd8, Logicalor8,LogicalNot8,
 
