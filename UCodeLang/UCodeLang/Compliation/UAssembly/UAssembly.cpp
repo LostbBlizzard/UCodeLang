@@ -94,6 +94,9 @@ void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In, String& ou
 	case UCodeLang::UAssembly::OpCodeType::Register:
 		out += GetRegisterToString(In.AsRegister);
 		break;
+	case UCodeLang::UAssembly::OpCodeType::UIntPtr:
+		out += std::to_string(In.AsUInt64);
+		break;
 	default:
 		break;
 	}

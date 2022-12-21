@@ -110,7 +110,7 @@ void SemanticAnalysis::BuildEnum(const UCodeLang::EnumNode& Node)
 
 	for (auto& item : Node.Values)
 	{
-		bool boolExpression = item.Expression;
+		bool boolExpression = item.Expression.Value;
 		GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::EnumValue, _ClassName, boolExpression, _Ins));
 		
 		if (boolExpression) 
@@ -183,41 +183,74 @@ void SemanticAnalysis::BuildStatement(const UCodeLang::Node* Statement)
 		break;
 	}
 }
-void SemanticAnalysis::BuildExpressionType(const UCodeLang::Node* Statement)
+void SemanticAnalysis::BuildExpressionType(const UCodeLang::ExpressionNodeType& Item)
 {
+	auto Ex = Item.Value;
 
+	switch (Ex->Get_Type())
+	{
+	case NodeType::ValueExpressionNode:BuildExpressionValue(*ValueExpressionNode::As(Ex)); break;
+	case NodeType::BinaryExpressionNode:BuildBinaryExpression(*BinaryExpressionNode::As(Ex)); break;
+	default:
+		break;
+	}
 }
-void SemanticAnalysis::BuildExpressionValue(const UCodeLang::Node* Item)
+void SemanticAnalysis::BuildExpressionValue(const UCodeLang::ValueExpressionNode& Item)
 {
+	auto Ex = Item.Value;
 
+	GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::DeclareExpression, _Ins));
+	switch (Ex->Get_Type())
+	{
+	case NodeType::NumberliteralNode:
+	{
+		auto node = NumberliteralNode::As(Ex);
+		auto _StringPos = AddDebug_String(node->Token->Value._String);
+		GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::NumberNumberliteral, _StringPos, _Ins));
+	}	break;
+	case NodeType::ReadVariableNode:
+	{
+		auto node = ReadVariableNode::As(Ex);
+		GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::GetVar, _Ins));
+		BuildScopedName(node->VariableName);
+	}
+	break;
+	default:
+		throw std::exception("bad Node");
+		break;
+	}
 }
 void SemanticAnalysis::BuildUnaryExpression(const UCodeLang::Node* Item)
 {
 }
-void SemanticAnalysis::BuildBinaryExpression(const UCodeLang::Node* Item)
+void SemanticAnalysis::BuildBinaryExpression(const BinaryExpressionNode& Item)
+{
+	GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::DeclareBinaryExpression, _Ins));
+}
+void SemanticAnalysis::BuildScopedName(const ScopedNameNode& Name)
 {
 
+	auto& NameV = Name.ScopedName[0];
+	auto _Stringoffset = AddDebug_String(NameV->Value._String);
+	GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::Null, _Stringoffset, _Ins));
 }
 void SemanticAnalysis::BuildAsmBlock(const UCodeLang::AsmBlockNode& Asm)
 {
 	auto _Block = AddDebug_String(Asm.AsmText);
-	GenIns(InstructionBuilder::GenInst(Intermediate_Set::AsmBlock,_Block, _Ins));
-	Value.Lib.Add_Instruction(_Ins);
+	GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::AsmBlock,_Block, _Ins));
 }
 void SemanticAnalysis::BuildReturnExpression(const RetStatementNode& Item)
 {
-	if (Item.Expression) 
+	GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::Ret, _Ins));
+	if (Item.Expression.Value) 
 	{
 		BuildExpressionType(Item.Expression);
 	}
-	GenIns(InstructionBuilder::GenInst(Intermediate_Set::Ret, _Ins));
-	Value.Lib.Add_Instruction(_Ins);
 }
 void SemanticAnalysis::BuildStoreExpression(const String_view& VarName)
 {
 	auto _VarPos = AddDebug_String(VarName);
-	GenIns(InstructionBuilder::GenInst(Intermediate_Set::StoreVar, _VarPos, _Ins));
-	Value.Lib.Add_Instruction(_Ins);
+	GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::StoreVar, _VarPos, _Ins));
 }
 void SemanticAnalysis::BuildStaticDeclareVariable(const DeclareStaticVariableNode& Item)
 {
@@ -232,12 +265,14 @@ void SemanticAnalysis::BuildDeclareVariable(const DeclareVariableNode& Item, Int
 	auto _VarNamePos = AddDebug_String(Item.Name.Token->Value._String);
 
 
-	if (Item.Expression)
+	
+	GenInsPush(InstructionBuilder::GenInst(VarType,_VarNamePos, _Ins));
+	BuildType(Item.Type);
+	
+	if (Item.Expression.Value)
 	{
 		BuildExpressionType(Item.Expression);
 	}
-	GenIns(InstructionBuilder::GenInst(VarType,_VarNamePos, _Ins)); Value.Lib.Add_Instruction(_Ins);
-	BuildType(Item.Type);
 }
 void SemanticAnalysis::BuildType(const TypeNode& Item)
 {

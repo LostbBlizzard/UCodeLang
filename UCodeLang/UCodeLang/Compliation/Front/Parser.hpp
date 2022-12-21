@@ -198,9 +198,14 @@ private:
 
 
 	GotNodeType GetExpressionNode(Node*& out);
-	GotNodeType GetExpressionTypeNode(Node*& out);
-	GotNodeType GetNullAbleExpressionTypeNode(Node*& out);//Will output nullptr if it finds an ';'
+	GotNodeType GetExpressionNode(ValueExpressionNode& out);
 	
+	GotNodeType GetExpressionTypeNode(Node*& out);
+	GotNodeType GetExpressionTypeNode(ExpressionNodeType& out);
+
+	
+	GotNodeType GetNullAbleExpressionTypeNode(Node*& out);//Will output nullptr if it finds an ';'
+	GotNodeType GetNullAbleExpressionTypeNode(ExpressionNodeType& out);
 
 	TryGetNode GetAttribute()
 	{
