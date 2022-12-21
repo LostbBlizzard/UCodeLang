@@ -428,6 +428,14 @@ GotNodeType Parser::GetFuncBodyNode(FuncBodyNode& out)
 {
 	return GetStatementsorStatementNode(out.Statements);
 }
+GotNodeType Parser::GetExpressionNode(ValueExpressionNode& out)
+{
+	return GetExpressionNode(out.Value);
+}
+GotNodeType Parser::GetExpressionTypeNode(ExpressionNodeType& out)
+{
+	return GetExpressionTypeNode(out.Value);
+}
 GotNodeType Parser::GetExpressionNode(Node*& out)
 {
 	auto StatementTypeToken = TryGetToken();
@@ -492,15 +500,21 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 		auto Ex2 = GetExpressionTypeNode(Other);
 
 		auto r = BinaryExpressionNode::Gen();
-		r->Value0 = ExNode;
+
+		auto Ptr = ValueExpressionNode::Gen();
+		Ptr->Value = ExNode;
+		r->Value0.Value= Ptr->As();
+		
 		r->BinaryOp = Token;
-		r->Value1 = Other;
+		r->Value1.Value = Other;
 		out = r->As();
 		return   Merge(Ex, Ex2);
 	}
 	else
 	{
-		out = ExNode;
+		auto Ptr = ValueExpressionNode::Gen();
+		Ptr->Value = ExNode;
+		out = Ptr->As();
 		return Ex;
 	}
 }
@@ -518,7 +532,10 @@ GotNodeType Parser::GetNullAbleExpressionTypeNode(Node*& out)
 		return GetExpressionTypeNode(out);
 	}
 }
-
+GotNodeType Parser::GetNullAbleExpressionTypeNode(ExpressionNodeType& out)
+{
+	return GetNullAbleExpressionTypeNode(out.Value);
+}
 GotNodeType Parser::GetValueParameterNode(Node*& out)
 {
 	return GetExpressionTypeNode(out);//Just for consistency.
@@ -808,7 +825,7 @@ GotNodeType Parser::GetDeclareVariable(DeclareVariableNode& out)
 	if (Token && Token->Type == TokenType::equal)
 	{
 		NextToken();
-		GetExpressionNode(out.Expression);
+		GetExpressionTypeNode(out.Expression);
 	}
 
 	auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
@@ -910,7 +927,7 @@ GotNodeType Parser::GetEnumValueNode(EnumValueNode& out)
 	if (EqualToken && EqualToken->Type == TokenType::equal)
 	{
 		NextToken();
-		return GetExpressionNode(out.Expression);
+		return GetExpressionTypeNode(out.Expression);
 	}
 	return GotNodeType::Success;
 }

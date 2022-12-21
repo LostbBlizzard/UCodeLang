@@ -10,6 +10,11 @@ public:
 		out = std::stoi((String)string);
 		return true;
 	}
+	static bool ParseStringToUInt8(String_view string, UInt8& out)
+	{
+		out = std::stoi((String)string);
+		return true;
+	}
 	static bool ParseStringliteralToString(String_view string,String& out)
 	{
 		out = string;

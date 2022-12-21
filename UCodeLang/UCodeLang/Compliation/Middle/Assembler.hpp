@@ -30,6 +30,13 @@ enum class symbolType : symbolType_t
 struct TypeData
 {
 	String Name;
+	UAddress Size = 1;
+
+	static void SetToUInt8(TypeData& Out)
+	{
+		Out.Name = Uint8TypeName;
+		Out.Size = sizeof(UInt8);
+	}
 };
 struct symbolInfo
 {
@@ -43,28 +50,70 @@ struct func_symbol
 	symbolInfo Data;
 	TypeData RetType;
 };
+struct Var_symbol
+{
+	enum class LocationType : UInt8
+	{
+		Null,
+		Stack,
+	};
+	symbolInfo Data;
+	TypeData Type;
+
+	LocationType Location = LocationType::Null;
+	UAddress Address = 0;
+};
 
 class symbol
 {
 public:
 	
-	symbolType Type;
-	union 
-	{
-		symbolInfo Data;
+	symbolType _Type;
+	//union
+	//{
+	
 		func_symbol Func;
-	};
-	symbol()
+		Var_symbol Var;
+	//};
+	symbol(symbolType Type)
 	{
-
+		_Type = Type;
+		
 	}
-	symbol(const symbol& ToCopyFrom)
-	{
-
-	}
+	
 	~symbol()
 	{
 
+	}
+	inline void SetInfo(symbolInfo& Info)
+	{
+		switch (_Type)
+		{
+		case UCodeLang::symbolType::Null:
+			break;
+		case UCodeLang::symbolType::Func:
+			Func.Data = Info;
+			break;
+		case UCodeLang::symbolType::Var:
+			Var.Data = Info;
+			break;
+		default:
+			break;
+		}
+	}
+	inline symbolInfo& GetInfo()
+	{
+		switch (_Type)
+		{
+		case UCodeLang::symbolType::Null:
+			break;
+		case UCodeLang::symbolType::Func:
+			return Func.Data;
+		case UCodeLang::symbolType::Var:
+			return Var.Data;
+		default:
+			break;
+		}
 	}
 
 };
@@ -81,16 +130,32 @@ public:
 		Use_.push_back(Name);
 	}
 
-	symbol* FindSymbol(const String_view& Name, const String_view& Scope = ScopeHelper::_globalScope)
+	symbol* FindSymbol(const String_view& Name)
+	{
+		symbol* r = FindSymbol(Name, Scope.ThisScope);
+
+		if (r == nullptr)
+		{
+			for (auto Item : Use_)
+			{
+				r = FindSymbol(Name, Scope.ThisScope);
+				if (r != nullptr){return r;}
+			}
+		}
+		return r;
+	}
+
+	symbol* FindSymbol(const String_view& Name, const String_view& Scope)
 	{
 		String TepScope = Scope.data();
 
 		while (true)
 		{
-			String FullName = TepScope + Name.data();
+			String FullName = TepScope + ScopeHelper::_ScopeSep + Name.data();
 			for (auto& item : Symbols)
 			{
-				if (item.Data.Name == FullName)
+				auto& Info = item.GetInfo();
+				if (Info.Name == FullName)
 				{
 					return &item;
 				}
@@ -102,12 +167,22 @@ public:
 		return nullptr;
 	}
 	//
-	symbol& AddSymbol(const String_view Name, symbolInfo& FileInfo)
+	symbol& AddSymbol(const String_view Name,symbolType Type, symbolInfo& FileInfo)
 	{
-		Symbols.push_back({});
+		Symbols.push_back({ Type });
 		auto& V = Symbols.back();
-		V.Data = FileInfo;
+
+		FileInfo.Name = Name;
+		V.SetInfo(FileInfo);
 		return V;
+	};
+	func_symbol& AddFunc(const String_view Name, symbolInfo& FileInfo)
+	{
+		return AddSymbol(Name,symbolType::Func, FileInfo).Func;
+	};
+	Var_symbol& AddVar(const String_view Name, symbolInfo& FileInfo)
+	{
+		return AddSymbol(Name, symbolType::Var, FileInfo).Var;
 	};
 	void clear()
 	{
@@ -128,7 +203,7 @@ struct RegisterManger
 	struct RegistersInUseData
 	{
 		InUseState InUse;
-		symbol* WhosInhere;//if this is null when Isuse then its for math.
+		Var_symbol* WhosInhere;//if this is null when Isuse then its for math.
 		RegistersInUseData() :InUse(InUseState::NotinUse), WhosInhere(nullptr)
 		{
 
@@ -145,7 +220,7 @@ struct RegisterManger
 	{
 		RegistersInUse[(RegisterID_t)id].InUse = V ? InUseState::HasSymbol : InUseState::NotinUse;
 	}
-	void SetRegisterUse(RegisterID id, symbol* Symbol)
+	void SetRegisterUse(RegisterID id, Var_symbol* Symbol)
 	{
 		auto& V = RegistersInUse[(RegisterID_t)id];
 		V.InUse = InUseState::HasSymbol;
@@ -199,33 +274,7 @@ struct RegisterManger
 			RegistersInUse[i] = RegistersInUseData();
 		}
 	}
-	RegisterID GetSymbolInRegisterAndLock(symbol* Symbol)
-	{
 
-
-		for (size_t i = 0; i < RegisterCount; i++)
-		{
-			auto RID = (RegisterID)i;
-			auto& R = GetRegisterInUseData(RID);
-
-			if (R.WhosInhere == Symbol)
-			{
-				RegisterLock(RID);
-				return RID;
-			}
-		}
-
-
-		auto V = GetFreeRegister();
-		if (V != RegisterID::NullRegister)
-		{
-			GetSymbolInRegister(Symbol, V);
-			RegisterLock(V);
-		}
-		return V;
-	}
-	//generates code that puts a Symbol in a register
-	void GetSymbolInRegister(symbol* Symbol, RegisterID id);
 };
 
 class Assembler
@@ -306,9 +355,34 @@ private:
 		auto Ptr = &_Input->Get_DebugByte()[(UAddress)Debugoffset + I];
 		return String_view((const char*)Ptr);
 	}
+
+	//
+	Vector<String> AddVarTep;
+	UCodeLangForceinline Var_symbol& AddVar(const String_view Name)
+	{
+		AddVarTep.push_back({});
+		String& NewName = AddVarTep.back();
+		NewName = Symbols.Scope.ThisScope + ScopeHelper::_ScopeSep + (String)Name;
+
+		return Symbols.AddVar(NewName, ThisSymbolInfo);
+	}
+	UCodeLangForceinline func_symbol& AddFunc(const String_view Name)
+	{
+		AddVarTep.push_back({});
+		String& NewName = AddVarTep.back();
+		NewName = Symbols.Scope.ThisScope + ScopeHelper::_ScopeSep + (String)Name;
+
+		return Symbols.AddFunc(NewName, ThisSymbolInfo);
+	}
+	UCodeLangForceinline auto FindSymbol(const String_view Name)
+	{
+		return Symbols.FindSymbol(Name);
+	}
 	
+	TypeData* FuncType =nullptr;
+	TypeData* Exlooking =nullptr;
+
 	//Building Stuff
-	RegisterID OutValue =RegisterID::NullRegister;
 	UCodeLang::Instruction _Ins;
 	RegisterManger _RegisterState;
 	UAddress Build_StaticString(const String_view& Value)
@@ -327,11 +401,51 @@ private:
 	{
 		return _OutPut->Add_Instruction(_Ins);
 	}
+
 	void BuildAsm(Intermediate_Instruction& Ins);
-	void DeclareExpression(Intermediate_Instruction& Ins);
-	void DeclareExpression_(Intermediate_Instruction& Ins);
+
+	struct DeclareExpression_ret_t
+	{
+		RegisterID Value;
+		TypeData ExpressionType;
+	};
+	DeclareExpression_ret_t DeclareExpression(Intermediate_Instruction& Ins);
+	void BuildRet(Intermediate_Instruction& Ins);
 	void BuildDeclareVar(Intermediate_Instruction& Ins);
 
 	void GetType(TypeData& Out);
+	void BuildSetVar(Var_symbol* Sym, RegisterID Register);
+	void BuildRegToReg8(RegisterID A, RegisterID B);
+	//generates code that puts a Symbol in a register
+	RegisterID GetSymbolInFreeRegister(Var_symbol* Symbol)
+	{
+		auto V = GetSymbolInRegisterAndLock(Symbol);
+		_RegisterState.RegisterUnLock(V);
+		return V;
+	}
+	RegisterID GetSymbolInRegisterAndLock(Var_symbol* Symbol)
+	{
+		for (size_t i = 0; i < RegisterManger::RegisterCount; i++)
+		{
+			auto RID = (RegisterID)i;
+			auto& R = _RegisterState.GetRegisterInUseData(RID);
+
+			if (R.WhosInhere == Symbol)
+			{
+				_RegisterState.RegisterLock(RID);
+				return RID;
+			}
+		}
+
+
+		auto V = _RegisterState.GetFreeRegister();
+		if (V != RegisterID::NullRegister)
+		{
+			GetSymbolInRegister(Symbol, V);
+			_RegisterState.RegisterLock(V);
+		}
+		return V;
+	}
+	void GetSymbolInRegister(Var_symbol* Symbol, RegisterID id);
 };
 UCodeLangEnd

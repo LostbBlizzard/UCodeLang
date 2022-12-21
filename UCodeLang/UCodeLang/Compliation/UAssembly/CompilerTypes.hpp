@@ -80,7 +80,6 @@ enum class OpCodeType :OpCodeType_t
 	Register,
 
 	UIntPtr,
-	ReadPtrAsUIntPtr,
 };
 
 struct InsMapValue
@@ -96,17 +95,21 @@ static inline const unordered_map<String_view, InsMapValue> StringToInsMap =
 	AddMapValueValue(Ret,InstructionSet::Return,OpCodeType::NoOpCode,OpCodeType::NoOpCode),
 	AddMapValueValue(Call,InstructionSet::Call,OpCodeType::UIntPtr,OpCodeType::NoOpCode),
 	AddMapValueValue(Callif,InstructionSet::CallIf,OpCodeType::UIntPtr,OpCodeType::NoOpCode),
-	AddMapValueValue(CallPtr,InstructionSet::CallPtr,OpCodeType::ReadPtrAsUIntPtr,OpCodeType::NoOpCode),
+	AddMapValueValue(CallPtr,InstructionSet::CallPtr,OpCodeType::UIntPtr,OpCodeType::NoOpCode),
 
 	AddMapValueValue(Jump,InstructionSet::Jump,OpCodeType::UIntPtr,OpCodeType::NoOpCode),
 	AddMapValueValue(Jumpif,InstructionSet::Jumpif,OpCodeType::UIntPtr,OpCodeType::NoOpCode),
-	AddMapValueValue(JumpPtr,InstructionSet::JumpPtr,OpCodeType::ReadPtrAsUIntPtr,OpCodeType::NoOpCode),
+	AddMapValueValue(JumpPtr,InstructionSet::JumpPtr,OpCodeType::UIntPtr,OpCodeType::NoOpCode),
 
 	AddMapValueValue(NoOp,InstructionSet::DoNothing,OpCodeType::NoOpCode,OpCodeType::NoOpCode),
 
 	AddMapValueValue(Store8,InstructionSet::Store8,OpCodeType::AnyInt8,OpCodeType::Register),
 	AddMapValueValue(Add8,InstructionSet::Add8,OpCodeType::Register,OpCodeType::Register),
 	AddMapValueValue(Sub8,InstructionSet::Sub8,OpCodeType::Register,OpCodeType::Register),
+
+	AddMapValueValue(Store8RegOnStack,InstructionSet::Store8RegOnStack,OpCodeType::Register,OpCodeType::UIntPtr),
+	AddMapValueValue(Push8,InstructionSet::Push8,OpCodeType::Register,OpCodeType::NoOpCode),
+	AddMapValueValue(Pop8,InstructionSet::Pop8,OpCodeType::Register,OpCodeType::NoOpCode),
 };
 static inline unordered_map<InstructionSet, const InsMapValue*> InsToInsMapValue;
 inline void SetUp()
