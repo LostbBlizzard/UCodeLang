@@ -103,10 +103,13 @@ void Assembler::BuildCode()
 void Assembler::BuildDeclareFunc(Intermediate_Instruction& Inter)
 {
 	NextIns();
-	func_symbol Data;
+	
+	funcStackSize = 0;
 	auto FuncName = Get_StringFromDebug(Inter.Value0.AsUInt64);
-
+	func_symbol& Data =AddFunc(FuncName);
 	GetType(Data.RetType);
+	
+	FuncType = &Data.RetType;
 
 	UAddress FuncIndex = _OutPut->Get_Instructions().size();
 	while (Intermediate_Instruction* Inter = Get_Ins())
@@ -114,8 +117,8 @@ void Assembler::BuildDeclareFunc(Intermediate_Instruction& Inter)
 		switch (Inter->OpCode)
 		{
 		case Intermediate_Set::FuncEnd:goto EndWhile;
-		case Intermediate_Set::DeclareExpression:DeclareExpression(*Inter); break;
 		case Intermediate_Set::DeclareVar:BuildDeclareVar(*Inter); break;
+		case Intermediate_Set::Ret:BuildRet(*Inter); break;
 		case Intermediate_Set::AsmBlock:BuildAsm(*Inter); break;
 		default:
 			throw std::exception("");
@@ -123,6 +126,10 @@ void Assembler::BuildDeclareFunc(Intermediate_Instruction& Inter)
 		}
 	}
 EndWhile:
+	GenInsPush(InstructionBuilder::Return(ExitState::Success,_Ins));
+
+
+	FuncType = nullptr;
 	_OutPut->Add_NameToInstruction(FuncIndex,FuncName.data());
 	NextIns();
 }
@@ -139,18 +146,131 @@ void Assembler::BuildAsm(Intermediate_Instruction& Ins)
 	_Assembly.Assemble(AsmBlock, _OutPut);
 }
 
-void Assembler::DeclareExpression(Intermediate_Instruction& Ins)
+Assembler::DeclareExpression_ret_t Assembler::DeclareExpression(Intermediate_Instruction& Ins)
+{
+	Assembler::DeclareExpression_ret_t r;
+	NextIns();
+	if (Intermediate_Instruction* Inter = Get_Ins())
+	{
+		switch (Inter->OpCode)
+		{
+		case Intermediate_Set::NumberNumberliteral:
+		{	
+			NextIns();
+
+			String_view V = Get_StringFromDebug(Inter->Value0.AsUInt64);
+			UInt8 Num;
+			ParseHelper::ParseStringToUInt8(V, Num);
+			auto Register = _RegisterState.GetFreeRegister();
+			GenInsPush(InstructionBuilder::Store8(_Ins, Register,Num));
+			
+			
+			TypeData::SetToUInt8(r.ExpressionType);
+			r.Value = Register;
+
+			return r;
+		}
+		case Intermediate_Set::GetVar:
+		{
+			NextIns();
+			Inter = Get_Ins();
+			String_view V = Get_StringFromDebug(Inter->Value0.AsUInt64);
+			symbol* S = Symbols.FindSymbol(V);
+		
+			r.ExpressionType = S->Var.Type;
+			r.Value = GetSymbolInFreeRegister(&S->Var);
+
+			NextIns();
+			return r; 
+		}
+		break;
+		default:
+			throw std::exception("");
+			break;
+		}
+	}
+}
+
+void Assembler::BuildRet(Intermediate_Instruction& Ins)
 {
 	NextIns();
+	if (Intermediate_Instruction* Inter = Get_Ins())
+	{
+		if (Inter->OpCode == Intermediate_Set::DeclareExpression)
+		{
+			auto ExRegister = DeclareExpression(*Inter);
+			BuildRegToReg8(ExRegister.Value, RegisterID::OuPutRegister);
+		}
+	}
 }
 
 void Assembler::BuildDeclareVar(Intermediate_Instruction& Ins)
 {
 	NextIns();
+	String_view VarName = Get_StringFromDebug(Ins.Value0.AsUInt64);
+	Var_symbol& Symbol = AddVar(VarName);
+	GetType(Symbol.Type);
+	Exlooking = &Symbol.Type;
+
+	Symbol.Address = funcStackSize;
+	funcStackSize += Symbol.Type.Size;
+	Symbol.Location = Var_symbol::LocationType::Stack;
+
+	if (Intermediate_Instruction* Inter = Get_Ins())
+	{
+		if (Inter->OpCode == Intermediate_Set::DeclareExpression)
+		{
+			auto ExRegister = DeclareExpression(*Inter);
+			BuildSetVar(&Symbol, ExRegister.Value);
+		}
+	}
+	Exlooking = nullptr;
 }
 
 void Assembler::GetType(TypeData& Out)
 {
+}
+
+void Assembler::BuildSetVar(Var_symbol* Sym, RegisterID Register)
+{
+	switch (Sym->Location)
+	{
+	case Var_symbol::LocationType::Stack:
+		GenInsPush(InstructionBuilder::Store8RegOnStack(_Ins, Register,Sym->Address));
+		break;
+	default:
+		throw std::exception("");
+		break;
+	}
+
+	
+
+
+	_RegisterState.SetRegisterUse(Register, Sym);
+}
+
+void Assembler::BuildRegToReg8(RegisterID A, RegisterID B)
+{
+	if (A != B)
+	{
+		GenInsPush(InstructionBuilder::Push8(_Ins, A));
+		GenInsPush(InstructionBuilder::Pop8(_Ins, B));
+	}
+}
+
+void Assembler::GetSymbolInRegister(Var_symbol* Symbol, RegisterID id)
+{
+	switch (Symbol->Location)
+	{
+	case Var_symbol::LocationType::Stack:
+		GenInsPush(InstructionBuilder::Get8FromStack(_Ins, Symbol->Address, id));
+		break;
+	default:
+		throw std::exception("");
+		break;
+	}
+
+	_RegisterState.SetRegisterUse(id, Symbol);
 }
 
 

@@ -109,22 +109,22 @@ public:
 		Out.Value0.AsRegister = Reg;
 		Out.Value1.AsInt64 = NullUInt64;
 	}
-	UCodeLangForceinline static void Store8RegOnStack(Instruction& Out, RegisterID Reg, UIntNative Stackoffset)
+	UCodeLangForceinline static void Store8RegOnStack(Instruction& Out, RegisterID Reg, UAddress Stackoffset)
 	{
 		Out.OpCode = InstructionSet::Store8RegOnStack;
 		Out.Value0.AsRegister = Reg;
-		Out.Value1.AsUIntNative = Stackoffset;
+		Out.Value1.AsAddress = Stackoffset;
 	}
-	UCodeLangForceinline static void Get8FromStack(Instruction& Out, UIntNative Stackoffset, RegisterID Reg)
+	UCodeLangForceinline static void Get8FromStack(Instruction& Out, UAddress Stackoffset, RegisterID Reg)
 	{
 		Out.OpCode = InstructionSet::Get8FromStack;
-		Out.Value0.AsUIntNative = Stackoffset;
+		Out.Value0.AsAddress= Stackoffset;
 		Out.Value1.AsRegister = Reg;
 	}
-	UCodeLangForceinline static void Get8FromStackSub(Instruction& Out, UIntNative Stackoffset, RegisterID Reg)
+	UCodeLangForceinline static void Get8FromStackSub(Instruction& Out, UAddress Stackoffset, RegisterID Reg)
 	{
 		Out.OpCode = InstructionSet::Get8FromStackSub;
-		Out.Value0.AsUIntNative = Stackoffset;
+		Out.Value0.AsAddress = Stackoffset;
 		Out.Value1.AsRegister = Reg;
 	}
 

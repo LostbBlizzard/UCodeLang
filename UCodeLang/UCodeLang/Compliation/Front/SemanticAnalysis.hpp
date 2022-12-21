@@ -80,10 +80,11 @@ private:
 	void BuildParameter(const UCodeLang::NamedParameterNode& BodyStatements);
 	void BuildStatements(const UCodeLang::StatementsNode& BodyStatements);
 	void BuildStatement(const UCodeLang::Node* Statement);
-	void BuildExpressionType(const UCodeLang::Node* Statement);
-	void BuildExpressionValue(const UCodeLang::Node* Item);
+	void BuildExpressionType(const UCodeLang::ExpressionNodeType&);
+	void BuildExpressionValue(const UCodeLang::ValueExpressionNode& Item);
 	void BuildUnaryExpression(const UCodeLang::Node* Item);
-	void BuildBinaryExpression(const UCodeLang::Node* Item);
+	void BuildBinaryExpression(const UCodeLang::BinaryExpressionNode& Item);
+	void BuildScopedName(const ScopedNameNode& Name);
 	//Statements
 	void BuildAsmBlock(const UCodeLang::AsmBlockNode& Asm);
 	//Helpers

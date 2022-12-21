@@ -81,8 +81,8 @@ enum class Intermediate_Set : InstructionSet_t
 	DeclareFunc,
 	FuncEnd,
 	
-	StoreBool,
-	StoreNumber,
+	BoolNumberliteral,
+	NumberNumberliteral,
 
 	DeclareExpression,
 	DeclareBinaryExpression,

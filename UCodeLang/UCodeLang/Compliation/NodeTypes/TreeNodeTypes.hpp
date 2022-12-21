@@ -201,23 +201,39 @@ struct AsmBlockNode
 	AddforNode(AsmBlockNode);
 	String_view AsmText;
 };
+
+struct ExpressionNodeType
+{
+	AddforNode(ExpressionNodeType);
+	Node* Value = nullptr;
+	~ExpressionNodeType()
+	{
+		delete Value;
+	}
+};
+
+struct ValueExpressionNode 
+{
+	AddforNode(ValueExpressionNode);
+	Node* Value = nullptr;
+	~ValueExpressionNode()
+	{
+		delete Value;
+	}
+};
 struct BinaryExpressionNode
 {
 	AddforNode(BinaryExpressionNode);
 
-	Node* Value0 = nullptr;
+	ExpressionNodeType Value0;
 	const Token* BinaryOp =nullptr;
-	Node* Value1 = nullptr;
-	~BinaryExpressionNode()
-	{
-		delete Value0;
-		delete Value1;
-	}
-};
+	ExpressionNodeType Value1;
+}; 
+
 struct RetStatementNode
 {
 	AddforNode(RetStatementNode);
-	Node* Expression = nullptr;//Can be null.
+	ExpressionNodeType Expression;
 };
 
 struct DeclareVariableNode
@@ -225,7 +241,7 @@ struct DeclareVariableNode
 	AddforNode(DeclareVariableNode);
 	TypeNode Type;
 	NameNode Name;
-	Node* Expression = nullptr;//Can be null.
+	ExpressionNodeType Expression;
 };
 struct DeclareStaticVariableNode
 {
@@ -249,7 +265,7 @@ struct AliasNode
 struct EnumValueNode
 {
 	NameNode Name;
-	Node* Expression = nullptr;//Can be null.
+	ExpressionNodeType Expression;
 };
 struct EnumNode
 {
@@ -271,14 +287,14 @@ struct IfNode
 {
 	AddforNode(IfNode);
 
-	Node* Expression = nullptr;
+	ExpressionNodeType Expression;
 	StatementsNode Body;
 };
 struct ElseNode
 {
 	AddforNode(ElseNode);
 
-	Node* Expression = nullptr;
+	ExpressionNodeType Expression;
 	StatementsNode Body;
 };
 

@@ -23,6 +23,8 @@ enum class NodeType :UInt8
 	AttributeNode,
 	ValueParametersNode,
 	StringliteralNode,
+	ExpressionNodeType,
+	ValueExpressionNode,
 	BinaryExpressionNode,
 	RetStatementNode,
 	NumberliteralNode,
