@@ -133,20 +133,12 @@ void Interpreter::Extecute(Instruction& Inst)
 		Get_Register(Inst.Value1.AsRegister).Value.AsInt8 = _CPU.Stack.GetValueSub<Int8>(Inst.Value0.AsUIntNative);
 		break;
 
-	case InstructionSet::AddS8:
+	case InstructionSet::Add8:
 		Get_MathOutRegister().Value.AsInt8 = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 +
 			                      Get_Register(Inst.Value1.AsRegister).Value.AsInt8;
 		break;
-	case InstructionSet::AddU8:
+	case InstructionSet::Sub8:
 		Get_MathOutRegister().Value.AsInt8 = Get_Register(Inst.Value0.AsRegister).Value.AsUInt8 +
-			                      Get_Register(Inst.Value1.AsRegister).Value.AsUInt8;
-		break;
-	case InstructionSet::SubS8:
-		Get_MathOutRegister().Value.AsInt8 = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 -
-		                     	  Get_Register(Inst.Value1.AsRegister).Value.AsInt8;
-		break;
-	case InstructionSet::SubU8:
-		Get_MathOutRegister().Value.AsInt8 = Get_Register(Inst.Value0.AsRegister).Value.AsUInt8 -
 			                      Get_Register(Inst.Value1.AsRegister).Value.AsUInt8;
 		break;
 	case InstructionSet::MultS8:

@@ -41,6 +41,7 @@ struct symbolInfo
 struct func_symbol
 {
 	symbolInfo Data;
+	TypeData RetType;
 };
 
 class symbol
@@ -53,6 +54,19 @@ public:
 		symbolInfo Data;
 		func_symbol Func;
 	};
+	symbol()
+	{
+
+	}
+	symbol(const symbol& ToCopyFrom)
+	{
+
+	}
+	~symbol()
+	{
+
+	}
+
 };
 
 class SymbolManger
@@ -284,8 +298,8 @@ private:
 	void BuildBuffer();
 	void BuildTypes();
 	void BuildCode();
-
-	void SetFilePos(UCodeLang::Assembler::Intermediate_Instruction* Inter);
+	void BuildDeclareFunc(Intermediate_Instruction& Inter);
+	void SetFilePos(Intermediate_Instruction& Inter);
 	
 	String_view Get_StringFromDebug(UAddress I)
 	{
@@ -314,6 +328,9 @@ private:
 		return _OutPut->Add_Instruction(_Ins);
 	}
 	void BuildAsm(Intermediate_Instruction& Ins);
+	void DeclareExpression(Intermediate_Instruction& Ins);
+	void DeclareExpression_(Intermediate_Instruction& Ins);
+	void BuildDeclareVar(Intermediate_Instruction& Ins);
 
 	void GetType(TypeData& Out);
 };
