@@ -71,7 +71,7 @@ void Optimizer::optimiz_FuncForSize(UAddress FuncIndex)
 				Index--;//
 			}
 		}break;
-		case InstructionSet::StoreFromPtrToReg8:
+		case InstructionSet::StoreRegToReg8:
 		{
 			if (Item.Value0.AsRegister == Item.Value1.AsRegister) 
 			{
@@ -79,23 +79,6 @@ void Optimizer::optimiz_FuncForSize(UAddress FuncIndex)
 				continue;
 			}
 			
-			auto NextIns = GetLastIns();
-			if (NextIns == nullptr) { continue; }
-
-			if (NextIns->OpCode == InstructionSet::Store8)
-			{
-				if (NextIns->Value0.AsRegister == Item.Value1.AsRegister)
-				{
-					LibUpdate();
-					InstructionBuilder::Store8(*NextIns, Item.Value0.AsRegister, Item.Value0.AsUInt8);
-					RemoveIns(Index);
-
-					Index--;//
-				}
-			}
-		}break;
-		case InstructionSet::StoreRegOnStack8:
-		{
 			auto NextIns = GetLastIns();
 			if (NextIns == nullptr) { continue; }
 
