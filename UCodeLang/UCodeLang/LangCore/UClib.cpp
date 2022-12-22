@@ -138,8 +138,8 @@ UClib::LibRawBytes UClib::ToRawBytes(const UClib* Lib)
 	
 	size_t ByteSize =
 		sizeof(Size_tAsBits) + UClibSignature_Size
-		+ sizeof(UInt8) +
-		+ sizeof(UInt8) +
+		+ sizeof(InstructionSet_t) +
+		+ sizeof(InstructionSet_t) +
 		+ sizeof(UInt8) +
 
 		+ sizeof(BitSize) + sizeof(LibEndianess)
@@ -168,16 +168,12 @@ UClib::LibRawBytes UClib::ToRawBytes(const UClib* Lib)
 		BitPos += UClibSignature_Size;
 
 
-		if ((size_t)InstructionSet::MAXVALUE > (size_t)UInt8_MaxSize)
-		{
-			throw std::exception("");
-		}
+		
+		BitConverter::MoveBytes((InstructionSet_t)InstructionSet::MAXVALUE, NewBits.Bytes, BitPos);
+		BitPos += sizeof(InstructionSet_t);
 
-		BitConverter::MoveBytes((UInt8)InstructionSet::MAXVALUE, NewBits.Bytes, BitPos);
-		BitPos += sizeof(UInt8);
-
-		BitConverter::MoveBytes((UInt8)Intermediate_Set::MAXVALUE, NewBits.Bytes, BitPos);
-		BitPos += sizeof(UInt8);
+		BitConverter::MoveBytes((InstructionSet_t)Intermediate_Set::MAXVALUE, NewBits.Bytes, BitPos);
+		BitPos += sizeof(InstructionSet_t);
 	}
 
 	BitConverter::MoveBytes((NTypeSize_t)Lib->BitSize, NewBits.Bytes, BitPos);
@@ -345,21 +341,18 @@ bool UClib::FromBytes(UClib* Lib, const LibRawBytes& Data)
 			Indexoffset++;
 		}
 		
-		if ((size_t)Intermediate_Set::MAXVALUE > (size_t)UInt8_MaxSize)
-		{
-			throw std::exception("");
-		}
+	
 		
-		auto Value = (InstructionSet)BitConverter::BytesToChar(Data.Bytes, Indexoffset);
-		Indexoffset += sizeof(UInt8);
+		auto Value = (InstructionSet)BitConverter::BytesToUInt64(Data.Bytes, Indexoffset);
+		Indexoffset += sizeof(InstructionSet);
 		if (Value != InstructionSet::MAXVALUE)
 		{
 			return false;
 		}
 
-		auto Value2 = (UInt8)BitConverter::BytesToChar(Data.Bytes, Indexoffset);
-		Indexoffset += sizeof(UInt8);
-		if (Value2 != (UInt8)Intermediate_Set::MAXVALUE)
+		auto Value2 = (Intermediate_Set)BitConverter::BytesToUInt64(Data.Bytes, Indexoffset);
+		Indexoffset += sizeof(InstructionSet);
+		if (Value2 != Intermediate_Set::MAXVALUE)
 		{
 			return false;
 		}
