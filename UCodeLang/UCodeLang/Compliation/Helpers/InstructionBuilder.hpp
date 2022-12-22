@@ -97,6 +97,12 @@ public:
 		Out.Value0.AsRegister = Reg;
 		Out.Value1.AsRegister = pointer;
 	}
+	UCodeLangForceinline static void Store8RegToReg(Instruction& Out, RegisterID Reg, RegisterID OutReg)
+	{
+		Out.OpCode = InstructionSet::Store8RegToReg;
+		Out.Value0.AsRegister = Reg;
+		Out.Value1.AsRegister = OutReg;
+	}
 	UCodeLangForceinline static void Push8(Instruction& Out, RegisterID Reg)
 	{
 		Out.OpCode = InstructionSet::Push8;
