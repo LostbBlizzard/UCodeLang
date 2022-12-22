@@ -137,7 +137,7 @@ bool Amd64Assembler::BuildFunc(const Vector<Instruction>& Data, size_t Offset, V
 			auto NIns = NextIns();
 			if (NIns)
 			{
-				if (NIns->OpCode == InstructionSet::Store8RegOnStack)
+				if (NIns->OpCode == InstructionSet::StoreRegOnStack8)
 				{
 					_Output->push_back(0xC6);
 					_Output->push_back(0x45);
@@ -172,39 +172,6 @@ bool Amd64Assembler::BuildFunc(const Vector<Instruction>& Data, size_t Offset, V
 			auto V = BuildTepCall(Output);
 
 			NullCalls.push_back({ Offset + i,V });
-		}
-		break;
-		case InstructionSet::Store8RegOnStack:
-		{
-
-		}
-		break;
-		case InstructionSet::Get8FromStack:
-		{
-			auto NIns = NextIns();
-			if (NIns)
-			{
-				//if (NIns->OpCode == InstructionSet::ret)
-				{
-					_Output->push_back(0xC6);
-					_Output->push_back(0x45);
-					_Output->push_back(0x01 + NIns->Value1.AsUInt8);
-					_Output->push_back(Ins.Value1.AsUInt8);
-					i++;
-					continue;
-				}
-
-			}
-		}
-		break;
-		case InstructionSet::Push8:
-		{
-			//Output.push_back(GetPushReg16(Ins.Value1.AsRegister));
-		}
-		break;
-		case InstructionSet::Pop8:
-		{
-			//Output.push_back(GetPopReg16(Ins.Value1.AsRegister));
 		}
 		break;
 		case InstructionSet::DoNothing:

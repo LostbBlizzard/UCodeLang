@@ -88,6 +88,7 @@ void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In, String& ou
 	case UCodeLang::UAssembly::OpCodeType::AnyInt32:
 		out += std::to_string(In.AsUInt32) + "|" + std::to_string(In.AsInt32);
 		break;
+	case UCodeLang::UAssembly::OpCodeType::AnyIntNative:
 	case UCodeLang::UAssembly::OpCodeType::AnyInt64:
 		out += std::to_string(In.AsUInt64) + "|" + std::to_string(In.AsInt64);
 		break;

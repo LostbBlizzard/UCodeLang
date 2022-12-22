@@ -68,13 +68,15 @@ void Parser::ParseOp(AnyInt64& Out, OpCodeType Type)
 	{
 	case UCodeLang::UAssembly::OpCodeType::NoOpCode:
 		break;
-	case UCodeLang::UAssembly::OpCodeType::UIntPtr:
 	case UCodeLang::UAssembly::OpCodeType::AnyInt8:ParseAny8(Out);break;
 	case UCodeLang::UAssembly::OpCodeType::AnyInt16:
 		break;
 	case UCodeLang::UAssembly::OpCodeType::AnyInt32:
 		break;
+	case UCodeLang::UAssembly::OpCodeType::AnyIntNative:
+	case UCodeLang::UAssembly::OpCodeType::UIntPtr :
 	case UCodeLang::UAssembly::OpCodeType::AnyInt64:
+		ParseAny8(Out);
 		break;
 	case UCodeLang::UAssembly::OpCodeType::Register:ParseOpRegister(Out); break;
 	default:
@@ -133,7 +135,7 @@ void Parser::ParseOpRegister(AnyInt64& Out)
 	T = TryGetToken();
 	if (T == nullptr)
 	{
-		_ErrorsOutput->AddError(ErrorCodes::CantParseTree, T->OnLine, T->OnPos, "bad Token");
+		_ErrorsOutput->AddError(ErrorCodes::CantParseTree, -1,-1, "bad Token");
 		return;
 	}
 	if (T->Type != TokenType::Right_Bracket)
