@@ -12,6 +12,14 @@ enum class ExitState : ExitState_t
 	Null,
 };
 using InstructionSet_t = UInt64;
+
+#define AddSetInt(bitsize) \
+Store##bitsize, StoreFromPtrToReg##bitsize, StoreRegToPtr##bitsize, Push##bitsize, Pop##bitsize, StoreRegToReg##bitsize, StoreRegOnStack##bitsize, GetFromStack##bitsize, \
+GetFromStackSub##bitsize,\
+Add##bitsize, Sub##bitsize, MultS##bitsize, MultU##bitsize, DivS##bitsize, DivU##bitsize,\
+LogicalAnd##bitsize, Logicalor##bitsize, LogicalNot##bitsize,\
+equalto##bitsize, notequalto##bitsize, lessthan##bitsize, greaterthan##bitsize, equal_lessthan##bitsize, equal_greaterthan##bitsize,\
+bitwiseAnd##bitsize, bitwiseOr##bitsize, bitwiseLeftShift##bitsize, bitwiseRightShift##bitsize, bitwiseXor##bitsize, bitwise_Not##bitsize,
 enum class InstructionSet : InstructionSet_t
 {
 	Exit,Return,
@@ -23,28 +31,16 @@ enum class InstructionSet : InstructionSet_t
 	DoNothing,
 	
 	//Set 8 Bits
-
-	Store8, Store8FromPtrToReg, Store8RegToPtr,Push8,Pop8, Store8RegToReg, Store8RegOnStack, Get8FromStack,
-	Get8FromStackSub,
-	
-	Add8,Sub8, MultS8, MultU8, DivS8, DivU8,
-	
-	LogicalAnd8, Logicalor8,LogicalNot8,
-
-	equalto8, notequalto8, lessthan8, greaterthan8, equal_lessthan8, equal_greaterthan8,
-
-	bitwiseAnd8, bitwiseOr, bitwiseLeftShift8, bitwiseRightShift8, bitwiseXor8, bitwise_Not8,
+	AddSetInt(8)
+	//Set 16
+	AddSetInt(16)
 	//Set 32
-	Store32, Store32FromPtrToReg, Store32RegToPtr, Push32, Pop32,
-
-
+	AddSetInt(32)
 	//Set 64
-	Store64, Store64FromPtrToReg, Store64RegToPtr,Push64, Pop64, Store64RegToReg,
-	AddS64, AddU64, SubS64, SubU64, MultS64, MultU64, DivS64, DivU64,
+	AddSetInt(64)
 
 	//Not Real Instructions The RunTimeLib will tanslate them
-	StoreNativeU, StoreNativeS, StoreNativeFromPtrToReg, StoreNativeRegToPtr, PushNative, PopNative, StoreNativeRegToReg,
-	AddSNative, AddUNative, SubSNative, SubUNative, MultSNative, MultUNative, DivSNative, DivUNative,
+	AddSetInt(Native)
 	//Cpp func Set
 	GetPointerOfStack, GetPointerOfStaticMem,IncrementStackPointer, DecrementStackPointer,
 	
@@ -53,7 +49,7 @@ enum class InstructionSet : InstructionSet_t
 
 	MAXVALUE,
 
-	NativeSetMin = StoreNativeU,
+	NativeSetMin = StoreNative,
 	NativeSetMax = GetPointerOfStack -1,
 };
 enum class Intermediate_Set : InstructionSet_t

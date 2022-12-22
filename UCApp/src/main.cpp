@@ -42,7 +42,7 @@ void Test(Jit_Interpreter::CPPInput Input)
 
 	Input.Set_Return();
 }
-
+static UCodeRunTime RunTime;
 int main()
 {
 	UCodeLang::Compiler _Compiler;
@@ -70,18 +70,36 @@ int main()
 	Data.FileDir = FileDir;
 	Data.IntDir = IntPath;
 	Data.OutFile = OutFilePath;
+	Settings._Flags = OptimizationFlags::Debug;
 	_Compiler.CompileFiles(Data);
 	_Compiler.LinkFilesToFile(Data);
 	if (!LogErrors(_Compiler))
 	{
 		UCodeLang::UClib MLib;
-		UClib::FromFile(&MLib, OutFilePath);
+		if (UClib::FromFile(&MLib, Data.OutFile));
 		{
 			auto Text = UAssembly::UAssembly::ToString(&MLib);
-			String Path = OutFilePath + ".UA";
+			String Path = Data.OutFile + ".UA";
 			std::ofstream out(Path);
 			out << Text;
 			out.close();
+		}
+
+		{
+			Data.OutFile = OutFilePath + "Fast";
+			Settings._Flags = OptimizationFlags::ForMaxSpeed;
+			_Compiler.LinkFilesToFile(Data);
+
+			UCodeLang::UClib FastLib;
+			if (UClib::FromFile(&FastLib, Data.OutFile));
+			{
+				auto Text = UAssembly::UAssembly::ToString(&FastLib);
+				String Path = Data.OutFile + ".UA";
+				std::ofstream out(Path);
+				out << Text;
+				out.close();
+			}
+
 		}
 		UCodeLang::RunTimeLib Lib;
 		Lib.Init(&MLib);
@@ -94,9 +112,9 @@ int main()
 		State.AddLib(&DLLib);
 		State.LinkLibs();
 
-		UCodeLang::Interpreter interpreter;
-		interpreter.Init(&State);	
-		auto r = interpreter.Call("Main");
+		
+		RunTime.Init(&State);
+		auto r = RunTime.Call("Main");
  		if (r._Succeed == UCodeLang::Interpreter::RetState::Error || r._Succeed == UCodeLang::Interpreter::RetState::Error_Function_doesnt_exist)
 		{
 			std::cout << "Calling Main Got us an Error" << std::endl;
@@ -105,7 +123,7 @@ int main()
 
 		std::cout << " Got Value " << (void*)V << std::endl;
 
-		interpreter.Call(StaticVariablesUnLoadFunc);
+		RunTime.Call(StaticVariablesUnLoadFunc);
 
 
 	}

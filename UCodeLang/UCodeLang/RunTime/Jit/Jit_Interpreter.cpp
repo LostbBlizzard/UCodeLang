@@ -9,12 +9,12 @@ void Test(Jit_Interpreter::CPPInput input)
 	input.Set_Return(5);
 }
 
-Interpreter::Return_t Jit_Interpreter::ThisCall(PtrType This, const String& FunctionName, parameters Pars)
+Interpreter::Return_t Jit_Interpreter::ThisCall(UAddress This, const String& FunctionName, parameters Pars)
 {
 	return Interpreter::Return_t();
 }
 
-Interpreter::Return_t Jit_Interpreter::ThisCall(PtrType This, UAddress address, parameters Pars)
+Interpreter::Return_t Jit_Interpreter::ThisCall(UAddress This, UAddress address, parameters Pars)
 {
 	return Interpreter::Return_t();
 }
@@ -101,6 +101,16 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address, parameters Pars)
 	{
 		return { Interpreter::RetState::Success ,Interpreter::Register(Call_CPPFunc(Item.Func, Pars))};
 	}
+}
+AnyInt64  Jit_Interpreter::Call_CPPFunc(JitFunc ToCall, parameters& Pars)
+{
+	_Interpreter.PushParameters(Pars);
+	InterpreterCPPinterface Inter = &_Interpreter;
+	using V = JitFunc;
+	//V Func = (V)ToCall;
+	V Func = &Tep;
+	Func(Inter);
+	return _Interpreter.Get_OutRegister().Value;
 }
 
 UCodeLangEnd

@@ -10,6 +10,7 @@ class Jit_Interpreter
 public:
 	using CPPInput = InterpreterCPPinterface&;
 	using JitFunc = RunTimeLib::CPPCallBack;
+	using Return_t = Interpreter::Return_t;
 	Jit_Interpreter(){}
 	~Jit_Interpreter(){}
 
@@ -27,15 +28,15 @@ public:
 		return _Interpreter.Get_State();
 	}
 
-	Interpreter::Return_t ThisCall(PtrType This,const String& FunctionName, parameters Pars = NullParameters);
-	Interpreter::Return_t ThisCall(PtrType This, UAddress address, parameters Pars = NullParameters);
-	UCodeLangForceinline Interpreter::Return_t ThisCall(PtrType This, const ClassMethod& Function, parameters Pars = NullParameters)
+	Return_t ThisCall(UAddress This,const String& FunctionName, parameters Pars = NullParameters);
+	Return_t ThisCall(UAddress This, UAddress address, parameters Pars = NullParameters);
+	UCodeLangForceinline Return_t ThisCall(UAddress This, const ClassMethod& Function, parameters Pars = NullParameters)
 	{
-		return ThisCall((PtrType)This, Function.FullName, Pars);
+		return ThisCall(This, Function.FullName, Pars);
 	}
 
-	Interpreter::Return_t Call(const String& FunctionName, parameters Pars = NullParameters);
-	Interpreter::Return_t Call(UAddress address, parameters Pars = NullParameters);
+	Return_t Call(const String& FunctionName, parameters Pars = NullParameters);
+	Return_t Call(UAddress address, parameters Pars = NullParameters);
 private:
 	Interpreter _Interpreter;
 	NativeAssembler _Assembler;
@@ -65,13 +66,12 @@ private:
 		//Call(V);
 	}
 
-	UCodeLangForceinline AnyInt64 Call_CPPFunc(JitFunc ToCall,parameters& Pars)
+	static void UCodeLangAPI Tep(CPPInput Cpp)
 	{
-		_Interpreter.PushParameters(Pars);
-		InterpreterCPPinterface Inter = &_Interpreter;
-		ToCall(Inter);
-		return Inter.Get_OutPutRegister().Value;
+		Cpp.Set_Return(5);
 	}
+	AnyInt64 Call_CPPFunc(JitFunc ToCall, parameters& Pars);
+	
 };
 
 UCodeLangEnd

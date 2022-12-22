@@ -7,7 +7,8 @@ enum class OutPutType : UInt8
 	Lib,
 	DLL,
 };
-enum class OptimizationFlags : UInt8//There not Flags I cant think of a name for this type/
+typedef UInt8 OptimizationFlags_t;
+enum class OptimizationFlags : OptimizationFlags_t
 {
 	O_None = 0,
 	O_1 = 1 << 0,
