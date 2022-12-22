@@ -5,6 +5,7 @@
 #include "Front/SemanticAnalysis.hpp"
 #include "Middle/Linker.hpp"
 #include "Middle/Assembler.hpp"
+#include "Middle/Optimizer.hpp"
 UCodeLangStart
 class Compiler
 {
@@ -62,5 +63,6 @@ private:
 	//Middle
 	UCodeLang::Linker _Linker;
 	UCodeLang::Assembler _Assembler;
+	UCodeLang::Optimizer _Optimizer;
 };
 UCodeLangEnd

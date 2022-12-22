@@ -103,7 +103,7 @@ static inline const unordered_map<String_view, InsMapValue> StringToInsMap =
 
 	AddMapValueValue(NoOp,InstructionSet::DoNothing,OpCodeType::NoOpCode,OpCodeType::NoOpCode),
 
-	AddMapValueValue(Store8,InstructionSet::Store8,OpCodeType::AnyInt8,OpCodeType::Register),
+	AddMapValueValue(Store8,InstructionSet::Store8,OpCodeType::Register,OpCodeType::AnyInt8),
 	AddMapValueValue(Add8,InstructionSet::Add8,OpCodeType::Register,OpCodeType::Register),
 	AddMapValueValue(Sub8,InstructionSet::Sub8,OpCodeType::Register,OpCodeType::Register),
 
