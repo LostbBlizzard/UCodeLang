@@ -168,6 +168,10 @@ Compiler::CompilerRet Compiler::LinkFiles(const CompilerPathData& Data)
 	_Linker.Set_Settings(&_Settings);
 	_Assembler.Set_ErrorsOutput(&_Errors);
 	_Assembler.Set_Settings(&_Settings);
+
+	_Optimizer.Set_ErrorsOutput(&_Errors);
+	_Optimizer.Set_Settings(&_Settings);
+
 	_Linker.Link(List, &linkLib);
 	
 	for (auto Item : List)
@@ -178,6 +182,7 @@ Compiler::CompilerRet Compiler::LinkFiles(const CompilerPathData& Data)
 
 	UClib* outLib =new UClib();
 	_Assembler.Assemble(outLib,&linkLib);
+	_Optimizer.optimiz(*outLib);
 	
 	if (Errors->Has_Errors()) { delete outLib; return r; }
 
