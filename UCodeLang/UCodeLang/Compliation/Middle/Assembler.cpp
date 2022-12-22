@@ -236,7 +236,7 @@ void Assembler::BuildSetVar(Var_symbol* Sym, RegisterID Register)
 	switch (Sym->Location)
 	{
 	case Var_symbol::LocationType::Stack:
-		GenInsPush(InstructionBuilder::Store8RegOnStack(_Ins, Register,Sym->Address));
+		GenInsPush(InstructionBuilder::StoreRegOnStack8(_Ins, Register,Sym->Address));
 		break;
 	default:
 		throw std::exception("");
@@ -263,7 +263,7 @@ void Assembler::GetSymbolInRegister(Var_symbol* Symbol, RegisterID id)
 	switch (Symbol->Location)
 	{
 	case Var_symbol::LocationType::Stack:
-		GenInsPush(InstructionBuilder::Get8FromStack(_Ins, Symbol->Address, id));
+		GenInsPush(InstructionBuilder::GetFromStack8(_Ins, Symbol->Address, id));
 		break;
 	default:
 		throw std::exception("");

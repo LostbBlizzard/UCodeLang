@@ -65,7 +65,7 @@ void Optimizer::optimiz_FuncForSize(UAddress FuncIndex)
 			if (NextIns->OpCode == InstructionSet::Push8)
 			{
 				LibUpdate();
-				InstructionBuilder::Store8RegToReg(*NextIns, Item.Value0.AsRegister, NextIns->Value0.AsRegister);
+				InstructionBuilder::StoreRegToReg8(*NextIns, Item.Value0.AsRegister, NextIns->Value0.AsRegister);
 				RemoveIns(Index);
 				
 				Index--;//
@@ -94,7 +94,23 @@ void Optimizer::optimiz_FuncForSize(UAddress FuncIndex)
 				}
 			}
 		}break;
+		case InstructionSet::StoreRegOnStack8:
+		{
+			auto NextIns = GetLastIns();
+			if (NextIns == nullptr) { continue; }
 
+			if (NextIns->OpCode == InstructionSet::Store8)
+			{
+				if (NextIns->Value0.AsRegister == Item.Value1.AsRegister)
+				{
+					LibUpdate();
+					InstructionBuilder::Store8(*NextIns, Item.Value0.AsRegister, Item.Value0.AsUInt8);
+					RemoveIns(Index);
+
+					Index--;//
+				}
+			}
+		}break;
 		default:
 			break;
 		}

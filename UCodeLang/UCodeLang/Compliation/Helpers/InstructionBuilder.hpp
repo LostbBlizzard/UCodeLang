@@ -64,45 +64,45 @@ UCodeLangForceinline static void GetFromStackSub##bitsize(Instruction& Out, UAdd
 	Out.Value0.AsAddress = Stackoffset;\
 	Out.Value1.AsRegister = Reg;\
 }\
-UCodeLangForceinline static void Add(Instruction& Out, RegisterID reg, RegisterID reg2)\
+UCodeLangForceinline static void Add##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
 {\
 	Out.OpCode = InstructionSet::Add##bitsize;\
 	Out.Value0.AsRegister = reg;\
 	Out.Value1.AsRegister = reg2;\
 }\
-UCodeLangForceinline static void Sub(Instruction& Out, RegisterID reg, RegisterID reg2)\
+UCodeLangForceinline static void Sub##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
 {\
 	Out.OpCode = InstructionSet::Sub##bitsize;\
 	Out.Value0.AsRegister = reg;\
 	Out.Value1.AsRegister = reg2;\
 }\
-UCodeLangForceinline static void Mult8S(Instruction& Out, RegisterID reg, RegisterID reg2)\
+UCodeLangForceinline static void MultS##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
 {\
-	Out.OpCode = InstructionSet::MultS8;\
+	Out.OpCode = InstructionSet::MultS##bitsize;\
 	Out.Value0.AsRegister = reg;\
 	Out.Value1.AsRegister = reg2;\
 }\
-UCodeLangForceinline static void Mult8U(Instruction& Out, RegisterID reg, RegisterID reg2)\
+UCodeLangForceinline static void MultU##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
 {\
-	Out.OpCode = InstructionSet::MultU8;\
+	Out.OpCode = InstructionSet::MultU##bitsize;\
 	Out.Value0.AsRegister = reg;\
 	Out.Value1.AsRegister = reg2;\
 }\
-UCodeLangForceinline static void Div8S(Instruction& Out, RegisterID reg, RegisterID reg2)\
+UCodeLangForceinline static void DivS##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
 {\
-	Out.OpCode = InstructionSet::DivS8;\
+	Out.OpCode = InstructionSet::DivS##bitsize;\
 	Out.Value0.AsRegister = reg;\
 	Out.Value1.AsRegister = reg2;\
 }\
-UCodeLangForceinline static void Div8U(Instruction& Out, RegisterID reg, RegisterID reg2)\
+UCodeLangForceinline static void DivU##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
 {\
-	Out.OpCode = InstructionSet::DivU8;\
+	Out.OpCode = InstructionSet::DivU##bitsize;\
 	Out.Value0.AsRegister = reg;\
 	Out.Value1.AsRegister = reg2;\
 }\
-UCodeLangForceinline static void LogicalAnd8(Instruction& Out, RegisterID reg, RegisterID reg2) \
+UCodeLangForceinline static void LogicalAnd##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2) \
 {\
-	Out.OpCode = InstructionSet::LogicalAnd8;\
+	Out.OpCode = InstructionSet::LogicalAnd##bitsize;\
 	Out.Value0.AsRegister = reg;\
 	Out.Value1.AsRegister = reg2;\
 }\
