@@ -76,6 +76,7 @@ enum class OpCodeType :OpCodeType_t
 	AnyInt16,
 	AnyInt32,
 	AnyInt64,
+	AnyIntNative,
 
 	Register,
 
@@ -89,6 +90,16 @@ struct InsMapValue
 	OpCodeType Op_0;
 	OpCodeType Op_1;
 };
+
+#define MapValueIntSet(bitsize)\
+AddMapValueValue(Store##bitsize, InstructionSet::Store##bitsize, OpCodeType::Register, OpCodeType::AnyInt##bitsize),\
+AddMapValueValue(Add##bitsize, InstructionSet::Add##bitsize, OpCodeType::Register, OpCodeType::Register),\
+AddMapValueValue(Sub##bitsize, InstructionSet::Sub##bitsize, OpCodeType::Register, OpCodeType::Register),\
+AddMapValueValue(StoreRegOnStack##bitsize, InstructionSet::StoreRegOnStack##bitsize, OpCodeType::Register, OpCodeType::UIntPtr),\
+AddMapValueValue(Push##bitsize, InstructionSet::Push##bitsize, OpCodeType::Register, OpCodeType::NoOpCode),\
+AddMapValueValue(Pop##bitsize, InstructionSet::Pop##bitsize, OpCodeType::Register, OpCodeType::NoOpCode),\
+AddMapValueValue(StoreRegToReg##bitsize, InstructionSet::StoreRegToReg##bitsize, OpCodeType::Register, OpCodeType::Register),\
+
 static inline const unordered_map<String_view, InsMapValue> StringToInsMap =
 {	
 	AddMapValueValue(Exit,InstructionSet::Exit,OpCodeType::AnyInt8,OpCodeType::NoOpCode),
@@ -103,16 +114,11 @@ static inline const unordered_map<String_view, InsMapValue> StringToInsMap =
 
 	AddMapValueValue(NoOp,InstructionSet::DoNothing,OpCodeType::NoOpCode,OpCodeType::NoOpCode),
 
-	AddMapValueValue(Store8,InstructionSet::Store8,OpCodeType::Register,OpCodeType::AnyInt8),
-	AddMapValueValue(Add8,InstructionSet::Add8,OpCodeType::Register,OpCodeType::Register),
-	AddMapValueValue(Sub8,InstructionSet::Sub8,OpCodeType::Register,OpCodeType::Register),
-
-	AddMapValueValue(Store8RegOnStack,InstructionSet::Store8RegOnStack,OpCodeType::Register,OpCodeType::UIntPtr),
-	AddMapValueValue(Push8,InstructionSet::Push8,OpCodeType::Register,OpCodeType::NoOpCode),
-	AddMapValueValue(Pop8,InstructionSet::Pop8,OpCodeType::Register,OpCodeType::NoOpCode),
-
-
-	AddMapValueValue(Store8RegToReg,InstructionSet::Store8RegToReg,OpCodeType::Register,OpCodeType::Register),
+	MapValueIntSet(8)
+	MapValueIntSet(16)
+	MapValueIntSet(32)
+	MapValueIntSet(64)
+	MapValueIntSet(Native)
 };
 static inline unordered_map<InstructionSet, const InsMapValue*> InsToInsMapValue;
 inline void SetUp()

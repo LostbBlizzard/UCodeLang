@@ -2,6 +2,18 @@
 #include "../Compliation/Helpers/InstructionBuilder.hpp"
 UCodeLangStart
 
+#if UCodeLang_32BitSytem
+#define OtherV AsUInt64
+#define NativeFunc(FuncName,Pars) FuncName##32 Pars
+#else
+#define OtherV AsUInt32
+#define NativeFunc(FuncName,Pars) FuncName##64 Pars
+#endif // UCodeLang_32BitSytem
+
+
+
+
+
 void RunTimeLib::Init(UClib* Lib)
 {
 	_Lib = Lib;
@@ -9,7 +21,7 @@ void RunTimeLib::Init(UClib* Lib)
 	auto ThisE = BitConverter::Get_CPU_Endian();
 	
 	#if UCodeLang_32BitSytem
-	static_assert(false, "UCode doesn't support 32 Bit");
+	int TestNative = 5;
 	#endif // UCodeLang_64BitSytem
 
 	for (const auto& Item : _Lib->Get_Instructions())//Make set native
@@ -19,43 +31,30 @@ void RunTimeLib::Init(UClib* Lib)
 
 			switch (Item.OpCode)
 			{
-
-			#if UCodeLang_64BitSytem
-			case InstructionSet::Store8RegOnStack:
-				InstructionBuilder::Store8RegOnStack(NewInst, Item.Value0.AsRegister, (UIntNative)Item.Value1.AsUInt32);
+			case InstructionSet::StoreNative:
+				NativeFunc(InstructionBuilder::Store,(NewInst, Item.Value0.AsRegister, (UIntNative)Item.Value1. OtherV));
 				break;
-			case InstructionSet::Get8FromStack:
-				InstructionBuilder::Get8FromStack(NewInst,(UIntNative)Item.Value1.AsUInt32,Item.Value0.AsRegister);
+			case InstructionSet::StoreFromPtrToRegNative:
+				NativeFunc(InstructionBuilder::StoreFromPtrToReg,(NewInst, Item.Value0.AsRegister, Item.Value1.AsRegister));
 				break;
-
-			case InstructionSet::StoreNativeU:
-				InstructionBuilder::Store64(NewInst, Item.Value0.AsRegister, (UIntNative)Item.Value1.AsUInt32);
-				break;
-			case InstructionSet::StoreNativeS:
-				InstructionBuilder::Store64(NewInst, Item.Value0.AsRegister, (SIntNative)Item.Value1.AsInt32);
-				break;
-			case InstructionSet::StoreNativeFromPtrToReg:
-				InstructionBuilder::Store64FromPtrToReg(NewInst, Item.Value0.AsRegister, Item.Value1.AsRegister);
-				break;
-			case InstructionSet::StoreNativeRegToPtr:
-				InstructionBuilder::Store64RegToPtr(NewInst, Item.Value0.AsRegister, Item.Value1.AsRegister);
+			case InstructionSet::StoreRegToPtrNative:
+				NativeFunc(InstructionBuilder::StoreRegToPtr,(NewInst, Item.Value0.AsRegister, Item.Value1.AsRegister));
 				break;
 			case InstructionSet::PushNative:
-				InstructionBuilder::PushNative(NewInst, Item.Value0.AsRegister);
+				NativeFunc(InstructionBuilder::Push,(NewInst, Item.Value0.AsRegister));
 				break;
 			case InstructionSet::PopNative:
-				InstructionBuilder::PopNative(NewInst, Item.Value0.AsRegister);
+				NativeFunc(InstructionBuilder::Pop,(NewInst, Item.Value0.AsRegister));
 				break;
-			case InstructionSet::StoreNativeRegToReg:
-				InstructionBuilder::Store64RegToReg(NewInst, Item.Value0.AsRegister, Item.Value1.AsRegister);
+			case InstructionSet::StoreRegToRegNative:
+				NativeFunc(InstructionBuilder::StoreRegToReg,(NewInst, Item.Value0.AsRegister, Item.Value1.AsRegister));
 				break;
-			case InstructionSet::AddUNative:
-				InstructionBuilder::Add64U(NewInst, Item.Value0.AsRegister, Item.Value1.AsRegister);
+			case InstructionSet::AddNative:
+				NativeFunc(InstructionBuilder::Add,(NewInst, Item.Value0.AsRegister, Item.Value1.AsRegister));
 				break;
-			case InstructionSet::AddSNative:
-				InstructionBuilder::Add64S(NewInst, Item.Value0.AsRegister, Item.Value1.AsRegister);
+			case InstructionSet::SubNative:
+				NativeFunc(InstructionBuilder::Add,(NewInst, Item.Value0.AsRegister, Item.Value1.AsRegister));
 				break;
-			#endif // UCodeLang_64BitSytem
 			default:
 				#if CompliationTypeSafety
 				throw std::exception("unknown instruction");
