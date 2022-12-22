@@ -24,15 +24,32 @@ private:
 	UAddress Index = 0;
 	inline Instruction* GetNextIns()
 	{
-		return nullptr;
+		size_t NewIndex = GetNextInsIndex();
+
+		auto& Ins = _Lib->Get_Instructions();
+		if (NewIndex < Ins.size())
+		{
+			return &Ins[NewIndex];
+		}
+		else
+		{
+			return nullptr;
+		}
 	}
 	inline Instruction* GetLastIns()
 	{
 		if (Index == 0) { return nullptr; }
-		size_t NewIndex = 0;
+		size_t NewIndex = GetLastInsIndex();
 
-
-		return nullptr;
+		auto& Ins = _Lib->Get_Instructions();
+		if (NewIndex < Ins.size())
+		{
+			return &Ins[NewIndex];
+		}
+		else
+		{
+			return nullptr;
+		}
 	}
 
 	inline UAddress GetNextInsIndex()
@@ -46,6 +63,8 @@ private:
 	inline void RemoveIns(UAddress Index)
 	{
 		UpdatedLib = true;
+		auto& Ins = _Lib->Get_Instructions();
+		Ins.erase(Ins.begin() + Index);
 	}
 
 	bool UpdatedLib = false;

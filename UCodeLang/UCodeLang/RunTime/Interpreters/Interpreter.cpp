@@ -64,7 +64,121 @@ Interpreter::Return_t Interpreter::Call(UAddress address, parameters Pars)
 	return Return_t(State, Get_OutRegister());
 }
 
-#define NumMathSet(Bits) // for numbers
+#define IntSet(Bits,signedCType,unsignedCType,signedAnyIntValue,unsignedAnyIntValue) \
+case InstructionSet::Store##Bits: \
+	Get_Register((RegisterID)Inst.Value0.AsRegister).Value = Inst.Value1.AsInt8;\
+	break;\
+case InstructionSet::StoreFromPtrToReg##Bits:\
+	Get_Register(Inst.Value1.AsRegister).Value =\
+		*(Int8*)(Get_Register(Inst.Value0.AsRegister).Value.AsPtr);\
+	break;\
+case InstructionSet::StoreRegToPtr##Bits:\
+	*(Int8*)(Get_Register(Inst.Value1.AsRegister).Value.AsPtr) =\
+		Get_Register(Inst.Value0.AsRegister).Value.AsInt8;\
+	break;\
+case InstructionSet::Push##Bits:\
+	_CPU.Stack.PushStack(Get_Register(Inst.Value0.AsRegister).Value.AsInt8);\
+	break;\
+case InstructionSet::Pop##Bits:\
+	Get_Register(Inst.Value0.AsRegister).Value = _CPU.Stack.PopStack<Int8>();\
+	break;\
+case InstructionSet::StoreRegOnStack##Bits:\
+	_CPU.Stack.SetValue<Int8>(Get_Register(Inst.Value0.AsRegister).Value.AsInt8\
+		, Inst.Value1.AsUIntNative);\
+	break;\
+case InstructionSet::GetFromStack##Bits:\
+	Get_Register(Inst.Value1.AsRegister).Value.AsInt8 = _CPU.Stack.GetValue<Int8>(Inst.Value0.AsUIntNative);\
+	break;\
+case InstructionSet::GetFromStackSub##Bits:\
+	Get_Register(Inst.Value1.AsRegister).Value.AsInt8 = _CPU.Stack.GetValueSub<Int8>(Inst.Value0.AsUIntNative);\
+	break;\
+case InstructionSet::Add##Bits:\
+	Get_MathOutRegister().Value.AsInt8 = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 +\
+		Get_Register(Inst.Value1.AsRegister).Value.AsInt8;\
+	break;\
+case InstructionSet::Sub##Bits:\
+	Get_MathOutRegister().Value.AsInt8 = Get_Register(Inst.Value0.AsRegister).Value.AsUInt8 +\
+		Get_Register(Inst.Value1.AsRegister).Value.AsUInt8;\
+	break;\
+case InstructionSet::MultS##Bits:\
+	Get_MathOutRegister().Value.AsInt8 = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 *\
+		Get_Register(Inst.Value1.AsRegister).Value.AsInt8;\
+	break;\
+case InstructionSet::MultU##Bits:\
+	Get_MathOutRegister().Value.AsInt8 = Get_Register(Inst.Value0.AsRegister).Value.AsUInt8 *\
+		Get_Register(Inst.Value1.AsRegister).Value.AsUInt8;\
+	break;\
+case InstructionSet::DivS##Bits:\
+	Get_MathOutRegister().Value.AsInt8 = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 *\
+		Get_Register(Inst.Value1.AsRegister).Value.AsInt8;\
+	break;\
+case InstructionSet::DivU##Bits:\
+	Get_MathOutRegister().Value.AsInt8 = Get_Register(Inst.Value0.AsRegister).Value.AsUInt8 *\
+		Get_Register(Inst.Value1.AsRegister).Value.AsUInt8;\
+	break;\
+case InstructionSet::LogicalAnd##Bits:\
+{\
+	Get_BoolRegister().Value =\
+		Get_Register(Inst.Value0.AsRegister).Value.AsUInt8\
+		&& Get_Register(Inst.Value1.AsRegister).Value.AsUInt8;\
+}break;\
+case InstructionSet::Logicalor##Bits:\
+{\
+	Get_BoolRegister().Value =\
+		Get_Register(Inst.Value0.AsRegister).Value.AsUInt8\
+		|| Get_Register(Inst.Value1.AsRegister).Value.AsUInt8;\
+}break;\
+case InstructionSet::LogicalNot##Bits:\
+{\
+	Get_Register(Inst.Value1.AsRegister).Value.AsUInt8 = !Get_Register(Inst.Value0.AsRegister).Value.AsUInt8;\
+}break;\
+case InstructionSet::equalto##Bits:\
+	Get_BoolRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 ==\
+		Get_Register(Inst.Value1.AsRegister).Value.AsInt8;\
+	break;\
+case InstructionSet::notequalto##Bits:\
+	Get_BoolRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 !=\
+		Get_Register(Inst.Value1.AsRegister).Value.AsInt8;\
+	break;\
+case InstructionSet::lessthan##Bits:\
+	Get_BoolRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 <\
+		Get_Register(Inst.Value1.AsRegister).Value.AsInt8;\
+	break;\
+case InstructionSet::greaterthan##Bits:\
+	Get_BoolRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 >\
+		Get_Register(Inst.Value1.AsRegister).Value.AsInt8;\
+	break;\
+case InstructionSet::equal_lessthan##Bits:\
+	Get_BoolRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 <=\
+		Get_Register(Inst.Value1.AsRegister).Value.AsInt8;\
+	break;\
+case InstructionSet::equal_greaterthan##Bits:\
+	Get_BoolRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 >=\
+		Get_Register(Inst.Value1.AsRegister).Value.AsInt8;\
+	break;\
+case InstructionSet::bitwiseAnd##Bits:\
+	Get_bitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 &\
+		Get_Register(Inst.Value1.AsRegister).Value.AsInt8;\
+	break;\
+case InstructionSet::bitwiseOr##Bits:\
+	Get_bitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 |\
+		Get_Register(Inst.Value1.AsRegister).Value.AsInt8;\
+	break;\
+case InstructionSet::bitwiseLeftShift##Bits:\
+	Get_bitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 <<\
+		Get_Register(Inst.Value1.AsRegister).Value.AsInt8;\
+	break;\
+case InstructionSet::bitwiseRightShift##Bits:\
+	Get_bitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 >>\
+		Get_Register(Inst.Value1.AsRegister).Value.AsInt8;\
+	break;\
+case InstructionSet::bitwiseXor##Bits:\
+	Get_bitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 ^\
+		Get_Register(Inst.Value1.AsRegister).Value.AsInt8;\
+	break;\
+case InstructionSet::bitwise_Not##Bits:\
+	Get_Register(Inst.Value1.AsRegister).Value.AsUInt8 = ~Get_Register(Inst.Value0.AsRegister).Value.AsUInt8;\
+	break;\
 
 
 void Interpreter::Extecute(Instruction& Inst)
@@ -104,186 +218,10 @@ void Interpreter::Extecute(Instruction& Inst)
 		break;
 	case InstructionSet::DoNothing:break;
 		
-	#pragma region Set 8Bits
-	case InstructionSet::Store8:
-		Get_Register((RegisterID)Inst.Value0.AsRegister).Value = Inst.Value1.AsInt8;
-		break;
-	case InstructionSet::Store8FromPtrToReg:
-		Get_Register(Inst.Value1.AsRegister).Value =
-			*(Int8*)(Get_Register(Inst.Value0.AsRegister).Value.AsPtr);
-		break;
-	case InstructionSet::Store8RegToPtr:
-			*(Int8*)(Get_Register(Inst.Value1.AsRegister).Value.AsPtr) =
-			 Get_Register(Inst.Value0.AsRegister).Value.AsInt8;
-		break;
-	case InstructionSet::Push8:
-		_CPU.Stack.PushStack(Get_Register(Inst.Value0.AsRegister).Value.AsInt8);
-		break;
-	case InstructionSet::Pop8:
-		Get_Register(Inst.Value0.AsRegister).Value = _CPU.Stack.PopStack<Int8>();
-		break;
-	case InstructionSet::Store8RegOnStack:
-		_CPU.Stack.SetValue<Int8>(Get_Register(Inst.Value0.AsRegister).Value.AsInt8
-			                     ,Inst.Value1.AsUIntNative);
-		break;
-	case InstructionSet::Get8FromStack:
-		Get_Register(Inst.Value1.AsRegister).Value.AsInt8 = _CPU.Stack.GetValue<Int8>(Inst.Value0.AsUIntNative);
-		break;
-	case InstructionSet::Get8FromStackSub:
-		Get_Register(Inst.Value1.AsRegister).Value.AsInt8 = _CPU.Stack.GetValueSub<Int8>(Inst.Value0.AsUIntNative);
-		break;
-
-	case InstructionSet::Add8:
-		Get_MathOutRegister().Value.AsInt8 = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 +
-			                      Get_Register(Inst.Value1.AsRegister).Value.AsInt8;
-		break;
-	case InstructionSet::Sub8:
-		Get_MathOutRegister().Value.AsInt8 = Get_Register(Inst.Value0.AsRegister).Value.AsUInt8 +
-			                      Get_Register(Inst.Value1.AsRegister).Value.AsUInt8;
-		break;
-	case InstructionSet::MultS8:
-		Get_MathOutRegister().Value.AsInt8 = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 *
-			                      Get_Register(Inst.Value1.AsRegister).Value.AsInt8;
-		break;
-	case InstructionSet::MultU8:
-		Get_MathOutRegister().Value.AsInt8 = Get_Register(Inst.Value0.AsRegister).Value.AsUInt8 *
-			                      Get_Register(Inst.Value1.AsRegister).Value.AsUInt8;
-		break;
-	case InstructionSet::DivS8:
-		Get_MathOutRegister().Value.AsInt8 = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 *
-			                      Get_Register(Inst.Value1.AsRegister).Value.AsInt8;
-		break;
-	case InstructionSet::DivU8:
-		Get_MathOutRegister().Value.AsInt8 = Get_Register(Inst.Value0.AsRegister).Value.AsUInt8 *
-			                      Get_Register(Inst.Value1.AsRegister).Value.AsUInt8;
-		break;
-	case InstructionSet::LogicalAnd8:
-	{
-		Get_BoolRegister().Value =
-			Get_Register(Inst.Value0.AsRegister).Value.AsUInt8
-			&& Get_Register(Inst.Value1.AsRegister).Value.AsUInt8;
-	}break;
-	case InstructionSet::Logicalor8:
-	{
-		Get_BoolRegister().Value =
-			Get_Register(Inst.Value0.AsRegister).Value.AsUInt8
-			|| Get_Register(Inst.Value1.AsRegister).Value.AsUInt8;
-	}break;
-	case InstructionSet::LogicalNot8:
-	{	
-		Get_Register(Inst.Value1.AsRegister).Value.AsUInt8 = !Get_Register(Inst.Value0.AsRegister).Value.AsUInt8;
-	}break;
-	case InstructionSet::equalto8:
-		Get_BoolRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 ==
-			          Get_Register(Inst.Value1.AsRegister).Value.AsInt8;
-		break;
-	case InstructionSet::notequalto8:
-		Get_BoolRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 !=
-			Get_Register(Inst.Value1.AsRegister).Value.AsInt8;
-		break;
-	case InstructionSet::lessthan8:
-		Get_BoolRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 <
-			Get_Register(Inst.Value1.AsRegister).Value.AsInt8;
-		break;
-	case InstructionSet::greaterthan8:
-		Get_BoolRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 >
-			Get_Register(Inst.Value1.AsRegister).Value.AsInt8;
-		break;
-	case InstructionSet::equal_lessthan8:
-		Get_BoolRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 <=
-			Get_Register(Inst.Value1.AsRegister).Value.AsInt8;
-		break;
-	case InstructionSet::equal_greaterthan8:
-		Get_BoolRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 >=
-			Get_Register(Inst.Value1.AsRegister).Value.AsInt8;
-		break;
-	case InstructionSet::bitwiseAnd8:
-		Get_bitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 &
-			Get_Register(Inst.Value1.AsRegister).Value.AsInt8;
-		break;
-	case InstructionSet::bitwiseOr:
-		Get_bitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 |
-			Get_Register(Inst.Value1.AsRegister).Value.AsInt8;
-		break;
-	case InstructionSet::bitwiseLeftShift8:
-		Get_bitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 <<
-			Get_Register(Inst.Value1.AsRegister).Value.AsInt8;
-		break;
-	case InstructionSet::bitwiseRightShift8:
-		Get_bitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 >>
-			Get_Register(Inst.Value1.AsRegister).Value.AsInt8;
-		break;
-	case InstructionSet::bitwiseXor8:
-		Get_bitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsInt8 ^
-			Get_Register(Inst.Value1.AsRegister).Value.AsInt8;
-		break;
-	case InstructionSet::bitwise_Not8:
-	{
-		Get_Register(Inst.Value1.AsRegister).Value.AsUInt8 = ~Get_Register(Inst.Value0.AsRegister).Value.AsUInt8;
-	}	break;
-#pragma endregion
-
-	#pragma region Set 16Bits
-
-	#pragma endregion
-	#pragma region Set 32Bits
-
-	#pragma endregion
-	#pragma region Set 64Bits
-	case InstructionSet::Store64:
-		Get_Register(Inst.Value0.AsRegister).Value = Inst.Value1.AsInt64;
-		break;
-	case InstructionSet::Store64FromPtrToReg:
-		Get_Register(Inst.Value1.AsRegister).Value =
-			*(Int64*)(Get_Register(Inst.Value0.AsRegister).Value.AsPtr);
-		break;
-	case InstructionSet::Store64RegToPtr:
-		*(Int64*)(Get_Register(Inst.Value0.AsRegister).Value.AsPtr) =
-			      Get_Register(Inst.Value1.AsRegister).Value.AsInt64;
-		break;
-	case InstructionSet::Push64:
-		_CPU.Stack.PushStack(Get_Register(Inst.Value0.AsRegister).Value.AsInt64);
-		break;
-	case InstructionSet::Pop64:
-		Get_Register(Inst.Value0.AsRegister).Value = _CPU.Stack.PopStack<Int64>();
-		break;
-	case InstructionSet::Store64RegToReg:
-		Get_Register(Inst.Value1.AsRegister).Value.AsUInt64 = Get_Register(Inst.Value0.AsRegister).Value.AsUInt64;
-		break;
-
-	case InstructionSet::AddS64:
-		Get_MathOutRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsInt64 +
-			Get_Register(Inst.Value1.AsRegister).Value.AsInt64;
-		break;
-	case InstructionSet::AddU64:
-		Get_MathOutRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsUInt64 +
-			Get_Register(Inst.Value1.AsRegister).Value.AsUInt64;
-		break;
-	case InstructionSet::SubS64:
-		Get_MathOutRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsInt64 -
-			Get_Register(Inst.Value1.AsRegister).Value.AsInt64;
-		break;
-	case InstructionSet::SubU64:
-		Get_MathOutRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsUInt64 -
-			Get_Register(Inst.Value1.AsRegister).Value.AsUInt64;
-		break;
-	case InstructionSet::MultS64:
-		Get_MathOutRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsInt64 *
-			Get_Register(Inst.Value1.AsRegister).Value.AsInt64;
-		break;
-	case InstructionSet::MultU64:
-		Get_MathOutRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsUInt64 *
-			Get_Register(Inst.Value1.AsRegister).Value.AsUInt64;
-		break;
-	case InstructionSet::DivS64:
-		Get_MathOutRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsInt64 *
-			Get_Register(Inst.Value1.AsRegister).Value.AsInt64;
-		break;
-	case InstructionSet::DivU64:
-		Get_MathOutRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.AsUInt64 *
-			Get_Register(Inst.Value1.AsRegister).Value.AsUInt64;
-		break;
-	#pragma endregion
+	IntSet(8,Int8,UInt8, AsInt8, AsUInt8)
+	IntSet(16,Int8,UInt16, AsInt8, AsUInt16)
+	IntSet(32,Int8,UInt32, AsInt8, AsUInt32)
+	IntSet(64,Int8,UInt64, AsInt8, AsUInt64)
 	
 	#pragma region Cpp func Set
 	case InstructionSet::GetPointerOfStack:
