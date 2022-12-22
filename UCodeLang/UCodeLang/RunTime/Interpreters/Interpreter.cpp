@@ -64,6 +64,7 @@ Interpreter::Return_t Interpreter::Call(UAddress address, parameters Pars)
 	return Return_t(State, Get_OutRegister());
 }
 
+#pragma region MyRegion
 #define IntSet(Bits,signedCType,unsignedCType,signedAnyIntValue,unsignedAnyIntValue) \
 case InstructionSet::Store##Bits: \
 	Get_Register((RegisterID)Inst.Value0.AsRegister).Value = Inst.Value1.##signedAnyIntValue;\
@@ -177,6 +178,7 @@ case InstructionSet::bitwise_Not##Bits:\
 	Get_Register(Inst.Value1.AsRegister).Value.##unsignedAnyIntValue = ~Get_Register(Inst.Value0.AsRegister).Value.##unsignedAnyIntValue;\
 	break;\
 
+#pragma endregion
 
 void Interpreter::Extecute(Instruction& Inst)
 {
@@ -216,9 +218,9 @@ void Interpreter::Extecute(Instruction& Inst)
 	case InstructionSet::DoNothing:break;
 		
 	IntSet(8,Int8,UInt8, AsInt8, AsUInt8)
-	IntSet(16,Int8,UInt16, AsInt8, AsUInt16)
-	IntSet(32,Int8,UInt32, AsInt8, AsUInt32)
-	IntSet(64,Int8,UInt64, AsInt8, AsUInt64)
+	IntSet(16,Int8,UInt16, AsInt16, AsUInt16)
+	IntSet(32,Int8,UInt32, AsInt32, AsUInt32)
+	IntSet(64,Int8,UInt64, AsInt32, AsUInt64)
 	
 	#pragma region Cpp func Set
 	case InstructionSet::GetPointerOfStack:
