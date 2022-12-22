@@ -64,8 +64,10 @@ enum class Intermediate_Set : InstructionSet_t
 	DeclareStaticVar,
 	DeclareThreadVar,
 	DeclareThisVar,
-	DeclareThis,
+	DeclareThisParameter,
 
+
+	AssignVariable,
 	PushParameter,
 	PopParameter,
 	CallFunc,
@@ -73,6 +75,7 @@ enum class Intermediate_Set : InstructionSet_t
 	GetVar,
 	StoreVar,
 	Ret,
+	Type,
 
 	DeclareFunc,
 	FuncEnd,
@@ -122,5 +125,16 @@ enum class Intermediate_Set : InstructionSet_t
 	FileEnd,
 
 	MAXVALUE
+};
+
+using BitSizeType_t = UInt8;
+enum class BitSizeType : BitSizeType_t
+{
+	Null,
+	Bit8,
+	Bit16,
+	Bit32,
+	Bit64,
+	BitNative,
 };
 UCodeLangEnd

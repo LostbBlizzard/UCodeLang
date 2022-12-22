@@ -2,6 +2,7 @@
 #include "UCodeCrossNameSpace.hpp"
 #include "UCodeLang/Compliation/Front/SemanticAnalysis.hpp"
 #include "Typedef.hpp"
+#include "UCodeLang/Compliation/Helpers/KeyWords.hpp"
 UCodeCrossStart
 
 #define defaultAliasValue Uint8TypeName

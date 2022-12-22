@@ -1,16 +1,24 @@
 #pragma once
+//#include "UCodeLang/Compliation/Helpers/KeyWords.hpp"
 #define EnumBaseTypeName "base_t";
-#define Uint8TypeName "uint8"
-#define Sint8TypeName "sint8"
-#define CharTypeName "char"
-#define boolTypeName "bool"
 
+#define CharTypeName UCodeLang::S_KeyWord_char
+#define boolTypeName UCodeLang::S_KeyWord_bool
 
-#define Uint8TypeName32 Uint8TypeName
-#define Uint8TypeName64 Uint8TypeName
+#define Uint8TypeName UCodeLang::S_KeyWord_uInt8
+#define Sint8TypeName UCodeLang::S_KeyWord_sInt8
 
-#define UintPtrTypeName "uintptr"
-#define SintPtrTypeName "sintptr"
+#define Uint16TypeName UCodeLang::S_KeyWord_uInt8
+#define Sint16TypeName UCodeLang::S_KeyWord_sInt8
+
+#define Uint32TypeName UCodeLang::S_KeyWord_uInt32
+#define Sint32TypeName UCodeLang::S_KeyWord_sInt32
+
+#define Uint64TypeName UCodeLang::S_KeyWord_uInt64
+#define Sint64TypeName UCodeLang::S_KeyWord_sInt64
+
+#define UintPtrTypeName UCodeLang::S_KeyWord_uintptr
+#define SintPtrTypeName UCodeLang::S_KeyWord_sintptr
 
 #define VoidPtrTypeName "VoidPtr"
 #define CStringTypeName "CString"

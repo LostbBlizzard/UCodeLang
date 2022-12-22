@@ -192,6 +192,7 @@ private:
 
 	GotNodeType GetName(ScopedNameNode& out);
 	GotNodeType GetName(NameNode& out);
+	GotNodeType GetNameCheck(NameNode& out);
 	GotNodeType GetType(TypeNode& out);
 	GotNodeType GetTypeWithVoid(TypeNode& out);
 	GotNodeType GetNumericType(TypeNode& out);
@@ -262,6 +263,14 @@ private:
 		return { r,V->As() };
 	}
 	GotNodeType GetDeclareVariable(DeclareVariableNode& out);
+
+	TryGetNode GetAssignVariable()
+	{
+		AssignVariableNode* V = AssignVariableNode::Gen();
+		auto r = GetAssignVariable(*V);
+		return { r,V->As() };
+	}
+	GotNodeType GetAssignVariable(AssignVariableNode& out);
 
 	void GetDeclareVariableNoObject(TryGetNode& out);
 

@@ -139,9 +139,29 @@ struct TypeNode
 	{
 		return Gen_Type(Out, TokenType::KeyWorld_var, ToGetLinesFrom);
 	}
+	static void Gen_ThisMemberFunc(TypeNode& Out, const Token& ToGetLinesFrom)
+	{
+		return Gen_Type(Out, TokenType::KeyWorld_ThisMemberFunc, ToGetLinesFrom);
+	}
 	static void Gen_Byte(TypeNode& Out, const Token& ToGetLinesFrom)
 	{
 		return Gen_Type(Out, TokenType::KeyWorld_UInt8, ToGetLinesFrom);
+	}
+	bool IsThisMemberFunc() const
+	{
+		return Name.Token->Type == TokenType::KeyWorld_ThisMemberFunc;	
+	}
+	TypeNode()
+	{
+
+	}
+	TypeNode(const TypeNode& ToCopyFrom)
+	{
+		if (ToCopyFrom.HasMadeToken)
+		{
+			Name.Token =new Token(*ToCopyFrom.Name.Token);
+			bool HasMadeToken = true;
+		}
 	}
 	~TypeNode()
 	{
@@ -243,6 +263,14 @@ struct DeclareVariableNode
 	NameNode Name;
 	ExpressionNodeType Expression;
 };
+
+struct AssignVariableNode
+{
+	AddforNode(AssignVariableNode);
+	NameNode Name;
+	ExpressionNodeType Expression;
+};
+
 struct DeclareStaticVariableNode
 {
 	AddforNode(DeclareStaticVariableNode);
