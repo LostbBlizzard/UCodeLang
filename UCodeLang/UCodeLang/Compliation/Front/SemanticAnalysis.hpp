@@ -69,6 +69,15 @@ private:
 		}
 	}
 	Vector<const Node*> _StaticVariables;
+	Intermediate_Set Get_AsIntermediate(TokenType T)
+	{
+		switch (T)
+		{
+		case TokenType::plus:return Intermediate_Set::Binary_plus;
+		case TokenType::minus:return Intermediate_Set::Binary_minus;
+		default:throw std::exception();
+		}
+	}
 
 	void BuildStaticVariable(const UCodeLang::Node* node);
 	void BuildNameSpace(const UCodeLang::Node* Tree);
@@ -91,6 +100,7 @@ private:
 	void BuildReturnExpression(const RetStatementNode& Item);
 	void BuildStoreExpression(const String_view& VarName);
 
+	void BuildAssignVariableNode(const AssignVariableNode& Item);
 	void BuildStaticDeclareVariable(const DeclareStaticVariableNode& Item);
 	void BuildDeclareThreadVariable(const DeclareThreadVariableNode& Item);
 	void BuildDeclareVariable(const DeclareVariableNode& Item, Intermediate_Set VarType = Intermediate_Set::DeclareVar);

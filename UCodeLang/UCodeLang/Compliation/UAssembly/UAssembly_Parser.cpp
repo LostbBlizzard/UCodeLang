@@ -29,7 +29,7 @@ void Parser::ParseIns()
 	auto T = TryGetToken();
 	if (T == nullptr)
 	{
-		_ErrorsOutput->AddError(ErrorCodes::CantParseTree, T->OnLine, T->OnPos, "bad Token");
+		_ErrorsOutput->AddError(ErrorCodes::CantParseTree,-1,-1, "bad Token");
 		return;
 	}
 	const String_view& InsName = T->Value._String;
@@ -102,7 +102,7 @@ void Parser::ParseOpRegister(AnyInt64& Out)
 	T = TryGetToken();
 	if (T == nullptr)
 	{
-		_ErrorsOutput->AddError(ErrorCodes::CantParseTree, T->OnLine, T->OnPos, "bad Token");
+		_ErrorsOutput->AddError(ErrorCodes::CantParseTree,-1,-1, "bad Token");
 		return;
 	}
 	if (T->Type != TokenType::Name)

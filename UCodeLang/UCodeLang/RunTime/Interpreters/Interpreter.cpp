@@ -98,7 +98,7 @@ case InstructionSet::Add##Bits:\
 		Get_Register(Inst.Value1.AsRegister).Value.##signedAnyIntValue;\
 	break;\
 case InstructionSet::Sub##Bits:\
-	Get_MathOutRegister().Value.##signedAnyIntValue = Get_Register(Inst.Value0.AsRegister).Value.##unsignedAnyIntValue +\
+	Get_MathOutRegister().Value.##signedAnyIntValue = Get_Register(Inst.Value0.AsRegister).Value.##unsignedAnyIntValue -\
 		Get_Register(Inst.Value1.AsRegister).Value.##unsignedAnyIntValue;\
 	break;\
 case InstructionSet::MultS##Bits:\

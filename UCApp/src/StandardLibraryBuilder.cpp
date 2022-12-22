@@ -16,10 +16,11 @@ void StandardLibraryBuilder::Get_BasicTypeFile(UCodeLang::String& Out)
 	UCodeCross::UCodeTextBuilder Builder;
 	auto& Name = Builder.AddNameSpace(StandardLibrarynamespace);
 
-	Name.AddAlias(VoidPtrTypeName, "!" UintPtrTypeName);
+	auto V2 = Name.AddAlias(VoidPtrTypeName,"!");
+	V2.OldName += UintPtrTypeName;
 
-
-	Name.AddAlias(CStringTypeName, CharTypeName "[&]");
+	auto V =Name.AddAlias(CStringTypeName, CharTypeName);
+	V.OldName += "[&]";
 
 	auto& HashClass = Name.AddClass("Hash");
 	HashClass.AddGeneric(Template_VarName0);

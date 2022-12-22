@@ -319,7 +319,21 @@ GotNodeType Parser::GetStatement(Node*& out)
 	break;
 	default:
 	{
-		auto r = GetDeclareVariable();
+		size_t OldIndex = _TokenIndex;
+		NameNode Tep;
+		auto Name = GetNameCheck(Tep);
+		auto _Token = TryGetToken();
+
+		TryGetNode r;
+		_TokenIndex = OldIndex;
+		if (_Token && _Token->Type == TokenType::equal) 
+		{
+			r = GetAssignVariable();
+		}
+		else
+		{
+			r = GetDeclareVariable();
+		}
 		out = r.Node;
 		return r.GotNode;
 	}
@@ -559,16 +573,37 @@ GotNodeType Parser::GetValueParametersNode(ValueParametersNode& out)
 }
 GotNodeType Parser::GetNamedParametersNode(NamedParametersNode& out)
 {
-	auto Parameters = NamedParametersNode::Gen();
 	while (true)
 	{
 		NamedParameterNode Tep;
 		auto Token = TryGetToken();
 		if (!Token || Token->Type == TokenType::Right_Bracket) { break; }
 
+		
+		if (Token->Type == TokenType::KeyWorld_This)
+		{
+			NextToken();
+			auto Token2 = TryGetToken();
+			NextToken();
+			auto Token3 = TryGetToken();
+			if (Token2 && Token2->Type == TokenType::bitwise_and 
+				&& Token3 && (Token3->Type == TokenType::Comma || Token3->Type == TokenType::Right_Bracket) )
+			{
+				if (out.Parameters.size() != 0)
+				{
+					_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos,"this& Must be the first parameter");
+				}
+				TypeNode::Gen_ThisMemberFunc(Tep.Type,*Token);
+				goto End;
+			}
+			_TokenIndex-=2;//Move back
+		}
+
 		GetType(Tep.Type);
+			
 		GetName(Tep.Name);
 
+		End:
 		out.Parameters.push_back(Tep);
 
 		auto CommaToken = TryGetToken();
@@ -645,6 +680,20 @@ GotNodeType Parser::GetName(NameNode& out)
 	return GotNodeType::Success;
 }
 
+GotNodeType Parser::GetNameCheck(NameNode& out)
+{
+	auto NameToken = TryGetToken();
+	if (NameToken == nullptr || NameToken->Type != TokenType::Name)
+	{
+		NextToken();
+		return  GotNodeType::failed;
+	}
+
+	out.Token = NameToken;
+	NextToken();
+	return GotNodeType::Success;
+}
+
 GotNodeType Parser::GetType(TypeNode& out)
 {
 	auto Token = TryGetToken();
@@ -655,6 +704,12 @@ GotNodeType Parser::GetType(TypeNode& out)
 		return GotNodeType::Success;
 	}
 	else if (TypeNode::IsPrimitive(Token->Type))
+	{
+		NextToken();
+		out.Name.Token = Token;
+		return GotNodeType::Success;
+	}
+	else if (Token->Type == TokenType::KeyWorld_This)
 	{
 		NextToken();
 		out.Name.Token = Token;
@@ -832,6 +887,21 @@ GotNodeType Parser::GetDeclareVariable(DeclareVariableNode& out)
 	NextToken();
 
 	return Merge(Type, Name);
+}
+GotNodeType Parser::GetAssignVariable(AssignVariableNode& out)
+{
+	auto Name = GetName(out.Name);
+
+	auto Token = TryGetToken(); TokenTypeCheck(Token, TokenType::equal);
+
+	NextToken();
+	auto Ex =GetExpressionTypeNode(out.Expression);
+
+
+	auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
+	NextToken();
+
+	return Merge(Name, Ex);
 }
 GotNodeType Parser::GetIfNode(IfNode& out)
 {

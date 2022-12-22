@@ -35,6 +35,7 @@ enum class NodeType :UInt8
 	ElseNode,
 	BoolliteralNode,
 	ReadVariableNode,
+	AssignVariableNode,
 };
 
 
