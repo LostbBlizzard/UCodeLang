@@ -110,6 +110,9 @@ static inline const unordered_map<String_view, InsMapValue> StringToInsMap =
 	AddMapValueValue(Store8RegOnStack,InstructionSet::Store8RegOnStack,OpCodeType::Register,OpCodeType::UIntPtr),
 	AddMapValueValue(Push8,InstructionSet::Push8,OpCodeType::Register,OpCodeType::NoOpCode),
 	AddMapValueValue(Pop8,InstructionSet::Pop8,OpCodeType::Register,OpCodeType::NoOpCode),
+
+
+	AddMapValueValue(Store8RegToReg,InstructionSet::Store8RegToReg,OpCodeType::Register,OpCodeType::Register),
 };
 static inline unordered_map<InstructionSet, const InsMapValue*> InsToInsMapValue;
 inline void SetUp()

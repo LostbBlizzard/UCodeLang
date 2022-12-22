@@ -1,4 +1,5 @@
 
 |Main[]:
- int a = 5;
- ret a;
+ byte A = 8;
+ byte B = 5;
+ ret 5;

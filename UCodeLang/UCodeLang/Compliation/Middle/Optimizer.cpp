@@ -9,15 +9,25 @@ void Optimizer::optimiz(UClib& Lib)
 	
 	if (_Settings->_Flags == OptimizationFlags::NoOptimization) { return; }
 
+	auto Flags = (OptimizationFlags_t)_Settings->_Flags;
+
+	bool ForSize = Flags & (OptimizationFlags_t)OptimizationFlags::ForSize;
+	bool ForSpeed = Flags & (OptimizationFlags_t)OptimizationFlags::ForSpeed;
+	bool ForDebuging = Flags & (OptimizationFlags_t)OptimizationFlags::Debug;
 	
-	do
+		
+	if (ForSize)
 	{
-		UpdatedLib = false;
-		for (auto Item : Lib.Get_NameToPtr())
+		do
 		{
-			optimiz_FuncForSize(Item.second);
-		}
-	} while (UpdatedLib);
+			UpdatedLib = false;
+			for (auto Item : Lib.Get_NameToPtr())
+			{
+				optimiz_FuncForSize(Item.second);
+			}
+		} while (UpdatedLib);
+
+	}
 }
 void Optimizer::Reset()
 {
@@ -55,15 +65,34 @@ void Optimizer::optimiz_FuncForSize(UAddress FuncIndex)
 			if (NextIns->OpCode == InstructionSet::Push8)
 			{
 				LibUpdate();
-				InstructionBuilder::Store8RegToPtr(*NextIns, Item.Value0.AsRegister, NextIns->Value0.AsRegister);
+				InstructionBuilder::Store8RegToReg(*NextIns, Item.Value0.AsRegister, NextIns->Value0.AsRegister);
 				RemoveIns(Index);
 				
 				Index--;//
 			}
 		}break;
-		case InstructionSet::Store8RegToReg:
+		case InstructionSet::StoreFromPtrToReg8:
 		{
-			RemoveIns(Index);
+			if (Item.Value0.AsRegister == Item.Value1.AsRegister) 
+			{
+				RemoveIns(Index);
+				continue;
+			}
+			
+			auto NextIns = GetLastIns();
+			if (NextIns == nullptr) { continue; }
+
+			if (NextIns->OpCode == InstructionSet::Store8)
+			{
+				if (NextIns->Value0.AsRegister == Item.Value1.AsRegister)
+				{
+					LibUpdate();
+					InstructionBuilder::Store8(*NextIns, Item.Value0.AsRegister, Item.Value0.AsUInt8);
+					RemoveIns(Index);
+
+					Index--;//
+				}
+			}
 		}break;
 
 		default:

@@ -3,11 +3,13 @@
 #include "UCodeLang/LangCore/UClib.hpp"
 UCodeLangStart
 
+#define UCodeLangAPI __stdcall
 class InterpreterCPPinterface;
 class RunTimeLib
 {
 public:
-	typedef void (*CPPCallBack)(InterpreterCPPinterface& interpreter);
+
+	typedef void (UCodeLangAPI*CPPCallBack)(InterpreterCPPinterface& interpreter);
 
 	RunTimeLib(): _Lib(nullptr)
 	{
