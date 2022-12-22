@@ -76,7 +76,7 @@ int main()
 	if (!LogErrors(_Compiler))
 	{
 		UCodeLang::UClib MLib;
-		if (UClib::FromFile(&MLib, Data.OutFile));
+		if (UClib::FromFile(&MLib, Data.OutFile))
 		{
 			auto Text = UAssembly::UAssembly::ToString(&MLib);
 			String Path = Data.OutFile + ".UA";
@@ -91,7 +91,7 @@ int main()
 			_Compiler.LinkFilesToFile(Data);
 
 			UCodeLang::UClib FastLib;
-			if (UClib::FromFile(&FastLib, Data.OutFile));
+			if (UClib::FromFile(&FastLib, Data.OutFile))
 			{
 				auto Text = UAssembly::UAssembly::ToString(&FastLib);
 				String Path = Data.OutFile + ".UA";

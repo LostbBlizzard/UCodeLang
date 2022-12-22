@@ -93,6 +93,9 @@ enum class TokenType : TokenType_t
 	KeyWorld_asm,
 
 	approximate_Comparison,
+
+	//Made by The compiler
+	KeyWorld_ThisMemberFunc,
 };
 class StringHelper
 {

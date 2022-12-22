@@ -6,6 +6,7 @@
 #include "../CompliationSettings.hpp"
 #include "../Front/SemanticAnalysis.hpp"
 #include "UCodeLang/Compliation/UAssembly/UAssembly.hpp"
+#include "UCodeLang/Compliation/Helpers/KeyWords.hpp"
 UCodeLangStart
 
 
@@ -122,7 +123,7 @@ class SymbolManger
 {
 public:
 	ScopeHelper Scope;
-	Vector<symbol> Symbols;
+	Vector<symbol*> Symbols;
 	Vector<String_view> Use_;
 
 	UCodeLangForceinline void AddUseing(const String_view& Name)
@@ -154,10 +155,10 @@ public:
 			String FullName = TepScope + ScopeHelper::_ScopeSep + Name.data();
 			for (auto& item : Symbols)
 			{
-				auto& Info = item.GetInfo();
+				auto& Info = item->GetInfo();
 				if (Info.Name == FullName)
 				{
-					return &item;
+					return item;
 				}
 			}
 
@@ -169,12 +170,12 @@ public:
 	//
 	symbol& AddSymbol(const String_view Name,symbolType Type, symbolInfo& FileInfo)
 	{
-		Symbols.push_back({ Type });
+		Symbols.push_back(new symbol(Type));
 		auto& V = Symbols.back();
 
 		FileInfo.Name = Name;
-		V.SetInfo(FileInfo);
-		return V;
+		V->SetInfo(FileInfo);
+		return *V;
 	};
 	func_symbol& AddFunc(const String_view Name, symbolInfo& FileInfo)
 	{
@@ -184,8 +185,20 @@ public:
 	{
 		return AddSymbol(Name, symbolType::Var, FileInfo).Var;
 	};
+	~SymbolManger()
+	{
+		for (auto Item : Symbols)
+		{
+			delete Item;
+		}
+		Symbols.clear();
+	}
 	void clear()
 	{
+		for (auto Item : Symbols)
+		{
+			delete Item;
+		}
 		Scope.ThisScope = ScopeHelper::_globalScope;
 		Symbols.clear();
 	}
@@ -198,7 +211,7 @@ struct RegisterManger
 	{
 		NotinUse,
 		HasSymbol,
-		HasNumber,
+		HasData,
 	};
 	struct RegistersInUseData
 	{
@@ -216,9 +229,9 @@ struct RegisterManger
 
 	RegistersInUseData RegistersInUse[RegisterCount];
 
-	void SetRegisterUse(RegisterID id, bool V)
+	UCodeLangForceinline void SetRegisterUse(RegisterID id, bool V)
 	{
-		RegistersInUse[(RegisterID_t)id].InUse = V ? InUseState::HasSymbol : InUseState::NotinUse;
+		RegistersInUse[(RegisterID_t)id].InUse = V ? InUseState::HasData : InUseState::NotinUse;
 	}
 	void SetRegisterUse(RegisterID id, Var_symbol* Symbol)
 	{
@@ -227,8 +240,8 @@ struct RegisterManger
 		V.WhosInhere = Symbol;
 	}
 
-	inline void RegisterLock(RegisterID id) { SetRegisterUse(id, true); }
-	inline void RegisterUnLock(RegisterID id) { SetRegisterUse(id, false); }
+	UCodeLangForceinline void RegisterLock(RegisterID id) { SetRegisterUse(id, true); }
+	UCodeLangForceinline void RegisterUnLock(RegisterID id) { SetRegisterUse(id, false); }
 	RegisterID GetFreeRegister()
 	{
 		for (size_t i = 0; i < RegisterCount; i++)
@@ -261,7 +274,7 @@ struct RegisterManger
 	}
 	bool IsRegisterInUse(RegisterID id)
 	{
-		return RegistersInUse[(RegisterID_t)id].InUse == InUseState::NotinUse;
+		return RegistersInUse[(RegisterID_t)id].InUse != InUseState::NotinUse;
 	}
 	RegistersInUseData& GetRegisterInUseData(RegisterID id)
 	{
@@ -314,6 +327,7 @@ private:
 	SymbolManger Symbols;
 	symbolInfo ThisSymbolInfo;
 
+	std::stack<ClassData*> OnClass;
 
 	UIntNative funcStackSize = 0;
 	UIntNative StaticStackSize = 0;
@@ -347,13 +361,27 @@ private:
 	void BuildBuffer();
 	void BuildTypes();
 	void BuildCode();
+	void BuildClassType(Intermediate_Instruction& Inter);
+	void BuildClass(Intermediate_Instruction& Inter);
 	void BuildDeclareFunc(Intermediate_Instruction& Inter);
 	void SetFilePos(Intermediate_Instruction& Inter);
 	
+
+
 	String_view Get_StringFromDebug(UAddress I)
 	{
 		auto Ptr = &_Input->Get_DebugByte()[(UAddress)Debugoffset + I];
 		return String_view((const char*)Ptr);
+	}
+	inline bool IsExpression(Intermediate_Set Op)
+	{
+		switch (Op)
+		{
+		case UCodeLang::Intermediate_Set::DeclareExpression:return true;
+		case UCodeLang::Intermediate_Set::DeclareBinaryExpression:return true;
+		case UCodeLang::Intermediate_Set::UnaryExpression:return true;
+		default:return true;
+		}
 	}
 
 	//
@@ -409,13 +437,19 @@ private:
 		RegisterID Value;
 		TypeData ExpressionType;
 	};
+	DeclareExpression_ret_t DeclareExpressionType(Intermediate_Instruction& Ins);
 	DeclareExpression_ret_t DeclareExpression(Intermediate_Instruction& Ins);
+	DeclareExpression_ret_t DeclareBinaryExpression(Intermediate_Instruction& Ins);
 	void BuildRet(Intermediate_Instruction& Ins);
 	void BuildDeclareVar(Intermediate_Instruction& Ins);
 
 	void GetType(TypeData& Out);
 	void BuildSetVar(Var_symbol* Sym, RegisterID Register);
 	void BuildRegToReg8(RegisterID A, RegisterID B);
+	void BuildRegToReg16(RegisterID A, RegisterID B);
+	void BuildRegToReg32(RegisterID A, RegisterID B);
+	void BuildRegToReg64(RegisterID A, RegisterID B);
+	void BuildRegToRegNative(RegisterID A, RegisterID B);
 	//generates code that puts a Symbol in a register
 	RegisterID GetSymbolInFreeRegister(Var_symbol* Symbol)
 	{
@@ -447,5 +481,78 @@ private:
 		return V;
 	}
 	void GetSymbolInRegister(Var_symbol* Symbol, RegisterID id);
+
+
+	
+	
+	enum class MathType : UInt8
+	{
+		Null,
+		Add,
+		Sub,
+	};
+	struct MathData
+	{
+		MathType Type = MathType::Null;
+		BitSizeType DataSize = BitSizeType::Null;
+	};
+	MathType From(Intermediate_Set Op)
+	{
+		switch (Op)
+		{
+		case Intermediate_Set::Binary_plus:return MathType::Add;
+		case Intermediate_Set::Binary_minus:return MathType::Sub;
+		default:return MathType::Null;
+		}
+	}
+	RegisterID BuildStore8(UInt8 Num);
+	RegisterID BuildStoreNative(UIntNative Num);
+
+	
+	RegisterID DoMath_GetOffset(RegisterID Pointer, UIntNative offset)
+	{
+		constexpr auto NewV = RegisterID::MathOuPutRegister;
+		RegisterID R;
+		if (!_RegisterState.IsRegisterInUse(NewV))
+		{
+			R = NewV;
+			DoMath_GetOffset(Pointer, offset, R);
+		}
+		else
+		{
+			R = _RegisterState.GetFreeRegister();
+			_RegisterState.RegisterLock(R);
+			DoMath_GetOffset(Pointer, offset, R);
+			_RegisterState.RegisterUnLock(R);
+		}
+		return R;
+
+	}
+	void DoMath_GetOffset(RegisterID Pointer, UIntNative offset, RegisterID Out)
+	{
+		MathData Data;
+		Data.DataSize = BitSizeType::BitNative;
+		Data.Type = MathType::Add;
+		DoMath(Pointer,BuildStoreNative(offset), Data,Out);
+	}
+	void DoMath(RegisterID A, RegisterID B, MathData Type, RegisterID Out);
+	RegisterID DoMath(RegisterID A, RegisterID B, MathData Type)
+	{
+		constexpr auto NewV = RegisterID::OuPutRegister;
+		RegisterID R;
+		if (!_RegisterState.IsRegisterInUse(NewV))
+		{
+			R = NewV;
+			DoMath(A, B, Type,R);
+		}
+		else
+		{
+			R = _RegisterState.GetFreeRegister();
+			_RegisterState.RegisterLock(R);
+			DoMath(A, B, Type,R);
+			_RegisterState.RegisterUnLock(R);
+		}
+		return R;
+	}
 };
 UCodeLangEnd

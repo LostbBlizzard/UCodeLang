@@ -13,6 +13,7 @@ void Assembler::Reset()
 	_RegisterState.ResetRegistersData();
 	Symbols.clear();
 	ThisSymbolInfo = symbolInfo();
+	AddVarTep.reserve(50);
 }
 void Assembler::Assemble(UClib* Output,UClib* Data)
 {
@@ -68,6 +69,7 @@ void Assembler::BuildTypes()
 			NextIns();
 		}
 		break;
+		case Intermediate_Set::Class:BuildClassType(*Inter); break;
 		case Intermediate_Set::FileEnd:Debugoffset = Inter->Value0.AsUInt64; NextIns(); break;
 		default:break;
 		}
@@ -91,6 +93,7 @@ void Assembler::BuildCode()
 			NextIns();
 		}
 		break;
+		case Intermediate_Set::Class:BuildClass(*Inter); break;
 		case Intermediate_Set::DeclareFunc:BuildDeclareFunc(*Inter); break;
 		case Intermediate_Set::SetFilePos:SetFilePos(*Inter); break;
 		case Intermediate_Set::FileEnd:Debugoffset = Inter->Value0.AsUInt64; NextIns();break;
@@ -99,6 +102,49 @@ void Assembler::BuildCode()
 			break;
 		}
 	}
+}
+void Assembler::BuildClassType(Intermediate_Instruction& Inter)
+{
+	NextIns();
+
+	auto ClassName = Get_StringFromDebug(Inter.Value0.AsAddress);
+	auto ClassNameS = (String)ClassName;
+	Symbols.Scope.AddScope(ClassNameS);
+	auto& ClassData = _OutPut->Get_Assembly().AddClass(ClassNameS, Symbols.Scope.ThisScope);
+
+	OnClass.push(&ClassData);
+
+	while (Intermediate_Instruction* Inter = Get_Ins())
+	{
+		switch (Inter->OpCode)
+		{
+		case Intermediate_Set::ClassEnd:goto EndWhile;
+		default:break;
+		}
+	}
+
+EndWhile:
+	Symbols.Scope.ReMoveScope();
+	OnClass.pop();
+
+}
+void Assembler::BuildClass(Intermediate_Instruction& Inter)
+{
+	NextIns();
+
+	while (Intermediate_Instruction* Inter = Get_Ins())
+	{
+		switch (Inter->OpCode)
+		{
+		case Intermediate_Set::ClassEnd:goto EndWhile;
+		case Intermediate_Set::DeclareFunc:BuildDeclareFunc(*Inter); break;
+		default:
+			throw std::exception("");
+			break;
+		}
+	}
+EndWhile:
+	int a = 0;
 }
 void Assembler::BuildDeclareFunc(Intermediate_Instruction& Inter)
 {
@@ -146,6 +192,19 @@ void Assembler::BuildAsm(Intermediate_Instruction& Ins)
 	_Assembly.Assemble(AsmBlock, _OutPut);
 }
 
+Assembler::DeclareExpression_ret_t Assembler::DeclareExpressionType(Intermediate_Instruction& Ins)
+{
+	switch (Ins.OpCode)
+	{
+	case Intermediate_Set::DeclareExpression:return DeclareExpression(Ins);
+	case Intermediate_Set::DeclareBinaryExpression:return DeclareBinaryExpression(Ins);
+	default:
+		throw std::exception("");
+		break;
+	}
+	return DeclareExpression_ret_t();
+}
+
 Assembler::DeclareExpression_ret_t Assembler::DeclareExpression(Intermediate_Instruction& Ins)
 {
 	Assembler::DeclareExpression_ret_t r;
@@ -161,8 +220,7 @@ Assembler::DeclareExpression_ret_t Assembler::DeclareExpression(Intermediate_Ins
 			String_view V = Get_StringFromDebug(Inter->Value0.AsUInt64);
 			UInt8 Num;
 			ParseHelper::ParseStringToUInt8(V, Num);
-			auto Register = _RegisterState.GetFreeRegister();
-			GenInsPush(InstructionBuilder::Store8(_Ins, Register,Num));
+			auto Register = BuildStore8(Num);
 			
 			
 			TypeData::SetToUInt8(r.ExpressionType);
@@ -176,7 +234,12 @@ Assembler::DeclareExpression_ret_t Assembler::DeclareExpression(Intermediate_Ins
 			Inter = Get_Ins();
 			String_view V = Get_StringFromDebug(Inter->Value0.AsUInt64);
 			symbol* S = Symbols.FindSymbol(V);
-		
+			if (S == nullptr)
+			{
+				r.Value = RegisterID::NullRegister;
+				_ErrorsOutput->AddError(ErrorCodes::Null, ThisSymbolInfo.Line, ThisSymbolInfo.Pos, "Cant Find The Var Named" + (String)V);
+				return r;
+			}
 			r.ExpressionType = S->Var.Type;
 			r.Value = GetSymbolInFreeRegister(&S->Var);
 
@@ -191,14 +254,44 @@ Assembler::DeclareExpression_ret_t Assembler::DeclareExpression(Intermediate_Ins
 	}
 }
 
+Assembler::DeclareExpression_ret_t Assembler::DeclareBinaryExpression(Intermediate_Instruction& Ins)
+{
+	Intermediate_Set Type = (Intermediate_Set)Ins.Value0.AsUInt64;
+	NextIns();
+	if (Intermediate_Instruction* Inter = Get_Ins())
+	{
+		auto Ex0 = DeclareExpressionType(*Inter);
+		_RegisterState.RegisterLock(Ex0.Value);
+
+		if (Intermediate_Instruction* Inter2 = Get_Ins())
+		{
+			auto Ex1 = DeclareExpressionType(*Inter2);
+			_RegisterState.RegisterLock(Ex1.Value);
+
+			MathData Data;
+			Data.DataSize = BitSizeType::Bit8;
+			Data.Type = From(Type);
+			auto r = DoMath(Ex0.Value, Ex1.Value,Data);
+
+			_RegisterState.RegisterUnLock(Ex0.Value);
+			_RegisterState.RegisterUnLock(Ex1.Value);
+			return { r,Ex0.ExpressionType };
+		}
+
+		_RegisterState.RegisterUnLock(Ex0.Value);
+		return Ex0;
+	}
+	return {};
+}
+
 void Assembler::BuildRet(Intermediate_Instruction& Ins)
 {
 	NextIns();
 	if (Intermediate_Instruction* Inter = Get_Ins())
 	{
-		if (Inter->OpCode == Intermediate_Set::DeclareExpression)
+		if (IsExpression(Inter->OpCode))
 		{
-			auto ExRegister = DeclareExpression(*Inter);
+			auto ExRegister =DeclareExpressionType(*Inter);
 			BuildRegToReg8(ExRegister.Value, RegisterID::OuPutRegister);
 		}
 	}
@@ -218,9 +311,9 @@ void Assembler::BuildDeclareVar(Intermediate_Instruction& Ins)
 
 	if (Intermediate_Instruction* Inter = Get_Ins())
 	{
-		if (Inter->OpCode == Intermediate_Set::DeclareExpression)
+		if (IsExpression(Inter->OpCode))
 		{
-			auto ExRegister = DeclareExpression(*Inter);
+			auto ExRegister = DeclareExpressionType(*Inter);
 			BuildSetVar(&Symbol, ExRegister.Value);
 		}
 	}
@@ -229,6 +322,12 @@ void Assembler::BuildDeclareVar(Intermediate_Instruction& Ins)
 
 void Assembler::GetType(TypeData& Out)
 {
+	NextIns();
+	if (Intermediate_Instruction* Inter = Get_Ins())
+	{
+		Out.Name = Get_StringFromDebug(Inter->Value0.AsAddress);
+
+	}
 }
 
 void Assembler::BuildSetVar(Var_symbol* Sym, RegisterID Register)
@@ -258,6 +357,42 @@ void Assembler::BuildRegToReg8(RegisterID A, RegisterID B)
 	}
 }
 
+void Assembler::BuildRegToReg16(RegisterID A, RegisterID B)
+{
+	if (A != B)
+	{
+		GenInsPush(InstructionBuilder::Push16(_Ins, A));
+		GenInsPush(InstructionBuilder::Pop16(_Ins, B));
+	}
+}
+
+void Assembler::BuildRegToReg32(RegisterID A, RegisterID B)
+{
+	if (A != B)
+	{
+		GenInsPush(InstructionBuilder::Push32(_Ins, A));
+		GenInsPush(InstructionBuilder::Pop32(_Ins, B));
+	}
+}
+
+void Assembler::BuildRegToReg64(RegisterID A, RegisterID B)
+{
+	if (A != B)
+	{
+		GenInsPush(InstructionBuilder::Push64(_Ins, A));
+		GenInsPush(InstructionBuilder::Pop64(_Ins, B));
+	}
+}
+
+void Assembler::BuildRegToRegNative(RegisterID A, RegisterID B)
+{
+	if (A != B)
+	{
+		GenInsPush(InstructionBuilder::PushNative(_Ins, A));
+		GenInsPush(InstructionBuilder::PopNative(_Ins, B));
+	}
+}
+
 void Assembler::GetSymbolInRegister(Var_symbol* Symbol, RegisterID id)
 {
 	switch (Symbol->Location)
@@ -273,6 +408,68 @@ void Assembler::GetSymbolInRegister(Var_symbol* Symbol, RegisterID id)
 	_RegisterState.SetRegisterUse(id, Symbol);
 }
 
+RegisterID Assembler::BuildStore8(UInt8 Num)
+{
+	auto Register = _RegisterState.GetFreeRegister();
+	GenInsPush(InstructionBuilder::Store8(_Ins, Register, Num));
+	return Register;
+}
+
+RegisterID Assembler::BuildStoreNative(UIntNative Num)
+{
+	auto Register = _RegisterState.GetFreeRegister();
+	GenInsPush(InstructionBuilder::StoreNative(_Ins, Register, Num));
+	return Register;
+}
+
+void Assembler::DoMath(RegisterID A, RegisterID B, MathData Type, RegisterID Out)
+{
+
+#define DoMath_(bitSize,Ins)\
+	constexpr auto Op_Out = RegisterID::MathOuPutRegister; \
+		bool OutIsSameAsOpOut = Out == Op_Out; \
+		bool OutInUse = _RegisterState.IsRegisterInUse(Out); \
+		bool TepPush = OutIsSameAsOpOut && OutInUse; \
+		if (TepPush)\
+		{\
+			GenInsPush(InstructionBuilder::Push##bitSize(_Ins, Out)); \
+		}\
+			GenInsPush(InstructionBuilder::##Ins##bitSize(_Ins, A, B)); \
+			BuildRegToReg##bitSize(Op_Out, Out); \
+			if (TepPush)\
+			{\
+				GenInsPush(InstructionBuilder::Pop##bitSize(_Ins, Out)); \
+			}\
+
+#define Do_Math(bitSize){ \
+	switch (Type.Type)\
+	{\
+	case MathType::Add:\
+	{\
+		DoMath_(bitSize,Add)\
+	}	break;\
+	case MathType::Sub:\
+	{\
+		DoMath_(bitSize,Sub)\
+	}	break;\
+	default:\
+		throw std::exception("");\
+	break; \
+	}}\
+
+
+	switch (Type.DataSize)
+	{
+	case BitSizeType::Bit8:Do_Math(8); break;
+	case BitSizeType::Bit16:Do_Math(16); break;
+	case BitSizeType::Bit32:Do_Math(32); break;
+	case BitSizeType::Bit64:Do_Math(64); break;
+	case BitSizeType::BitNative:Do_Math(Native); break;
+	default:
+		throw std::exception("");
+		break;
+	}
+}
 
 UCodeLangEnd
 

@@ -77,9 +77,18 @@ void SemanticAnalysis::BuildStaticVariable(const UCodeLang::Node* node)
 
 void SemanticAnalysis::BuildClass(const UCodeLang::ClassNode& node)
 {
-	auto _ClassName = AddDebug_String(node.ClassName.Token->Value._String);
+	auto& ClassName = node.ClassName.Token->Value._String;
+	auto _ClassName = AddDebug_String(ClassName);
 	GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::Class, _ClassName, _Ins));
+	
+	ClassData ClassData(ClassType::Class);
+	OnClass.push(&ClassData);
+	ClassData.Name = ClassName;
+	ClassData.FullName = (String)Scope.ThisScope + ScopeHelper::_ScopeSep + (String)ClassName;
 
+
+	Scope.AddScope((String)ClassName);
+	Vector<DeclareVariableNode*> MemberVariables;
 	for (const auto& Item : node._Nodes)
 	{
 		switch (Item->Get_Type())
@@ -91,6 +100,7 @@ void SemanticAnalysis::BuildClass(const UCodeLang::ClassNode& node)
 		case NodeType::UsingNode:BuildUseingNode(*UsingNode::As(Item)); break;
 		case NodeType::DeclareThreadVariableNode:BuildDeclareThreadVariable(*DeclareThreadVariableNode::As(Item)); break;
 		case NodeType::DeclareStaticVariableNode:BuildStaticDeclareVariable(*DeclareStaticVariableNode::As(Item)); break;
+		case NodeType::DeclareVariableNode:MemberVariables.push_back(DeclareVariableNode::As(Item));break;
 		default:
 			#if CompliationTypeSafety
 			throw std::exception("Cant UnWap BuildStatement");
@@ -99,6 +109,25 @@ void SemanticAnalysis::BuildClass(const UCodeLang::ClassNode& node)
 		}
 	}
 
+	{
+		
+		String V = ClassInitializefuncNameC((String)ClassName);
+		auto _Block = AddDebug_String(V);
+		GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::DeclareFunc, _Block, _Ins));
+		
+		TypeNode ret;
+		TypeNode::Gen_void(ret, *node.ClassName.Token);
+		BuildType(ret);
+
+		for (auto& Item : MemberVariables)
+		{
+			BuildDeclareVariable(*Item, Intermediate_Set::DeclareThisVar);
+		}
+		GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::FuncEnd, _Block, _Ins));
+	}
+
+	Scope.ReMoveScope();
+	OnClass.pop();
 	GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::ClassEnd, _Ins));
 }
 
@@ -150,9 +179,22 @@ void SemanticAnalysis::BuildFunc(const UCodeLang::FuncNode& Node)
 
 void SemanticAnalysis::BuildParameter(const UCodeLang::NamedParameterNode& par)
 {
-	auto _Name = AddDebug_String(par.Name.Token->Value._String);
-	GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::DeclareParameter, _Name, _Ins));
-	BuildType(par.Type);
+
+	if (par.Type.IsThisMemberFunc())
+	{
+		if (OnClass.size() == 0)
+		{
+			auto Token = par.Type.Name.Token;
+			_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "this cant not be use here");
+		}
+		GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::DeclareThisParameter, _Ins));
+	}
+	else
+	{
+		auto _Name = AddDebug_String(par.Name.Token->Value._String);
+		GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::DeclareParameter, _Name, _Ins));
+		BuildType(par.Type);
+	}
 }
 
 void SemanticAnalysis::BuildStatements(const UCodeLang::StatementsNode& BodyStatements)
@@ -175,6 +217,7 @@ void SemanticAnalysis::BuildStatement(const UCodeLang::Node* Statement)
 	case NodeType::DeclareThreadVariableNode:BuildDeclareThreadVariable(*DeclareThreadVariableNode::As(Statement)); break;
 	case NodeType::DeclareStaticVariableNode:BuildStaticDeclareVariable(*DeclareStaticVariableNode::As(Statement)); break;
 	case NodeType::DeclareVariableNode:BuildDeclareVariable(*DeclareVariableNode::As(Statement)); break;
+	case NodeType::AssignVariableNode:BuildAssignVariableNode(*AssignVariableNode::As(Statement)); break;
 	case NodeType::RetStatementNode:BuildReturnExpression(*RetStatementNode::As(Statement)); break;
 	default:
 		#if CompliationTypeSafety
@@ -225,7 +268,10 @@ void SemanticAnalysis::BuildUnaryExpression(const UCodeLang::Node* Item)
 }
 void SemanticAnalysis::BuildBinaryExpression(const BinaryExpressionNode& Item)
 {
-	GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::DeclareBinaryExpression, _Ins));
+	Intermediate_Set V = Get_AsIntermediate(Item.BinaryOp->Type);
+	GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::DeclareBinaryExpression,(UInt64)V, _Ins));
+	BuildExpressionType(Item.Value0);
+	BuildExpressionType(Item.Value1);
 }
 void SemanticAnalysis::BuildScopedName(const ScopedNameNode& Name)
 {
@@ -252,6 +298,13 @@ void SemanticAnalysis::BuildStoreExpression(const String_view& VarName)
 	auto _VarPos = AddDebug_String(VarName);
 	GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::StoreVar, _VarPos, _Ins));
 }
+void SemanticAnalysis::BuildAssignVariableNode(const AssignVariableNode& Item)
+{
+	auto _VarPos = AddDebug_String(Item.Name.Token->Value._String);
+	GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::AssignVariable, _VarPos, _Ins));
+
+	BuildExpressionType(Item.Expression);
+}
 void SemanticAnalysis::BuildStaticDeclareVariable(const DeclareStaticVariableNode& Item)
 {
 	BuildDeclareVariable(Item.Variable, Intermediate_Set::DeclareStaticVar);
@@ -276,6 +329,46 @@ void SemanticAnalysis::BuildDeclareVariable(const DeclareVariableNode& Item, Int
 }
 void SemanticAnalysis::BuildType(const TypeNode& Item)
 {
+	bool IsThis = Item.Name.Token->Type == TokenType::KeyWorld_This;
+	if (IsThis)
+	{
+		if (OnClass.size() == 0) 
+		{
+			auto Token = Item.Name.Token;
+			_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "this cant not be use here");
+		}
+		return;
+	}
 
+	String_view TypeName;
+	auto T = Item.Name.Token->Type;
+	switch (T)
+	{
+	case TokenType::Name:
+		TypeName = Item.Name.Token->Value._String;
+		break;
+	case TokenType::KeyWorld_This:
+		TypeName = OnClass.top()->FullName;
+		break;
+	case TokenType::KeyWorld_var:
+	case TokenType::Void:
+		TypeName = StringHelper::ToString(T);
+		break;
+	default:
+	{
+		if (TypeNode::IsPrimitive(T))
+		{
+			TypeName = StringHelper::ToString(T);
+		}
+		else
+		{
+			throw std::exception();
+		}
+	}
+		break;
+	}
+
+	auto _VarPos = AddDebug_String(TypeName);
+	GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::Type, _VarPos, _Ins));
 }
 UCodeLangEnd
