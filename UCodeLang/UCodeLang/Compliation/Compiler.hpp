@@ -2,10 +2,9 @@
 #include "../LangCore.hpp"
 #include "Front/Lexer.hpp"
 #include "Front/Parser.hpp"
-#include "Front/SemanticAnalysis.hpp"
-#include "Middle/Linker.hpp"
-#include "Middle/Assembler.hpp"
-#include "Middle/Optimizer.hpp"
+
+
+#include "UCodeLang/LangCore/UClib.hpp"
 UCodeLangStart
 class Compiler
 {
@@ -18,7 +17,7 @@ public:
 	struct CompilerRet
 	{
 		CompilerState _State;
-		UCodeLang::UClib* OutPut;
+		UCodeLang::UClib* OutPut =nullptr;
 	};
 	struct CompilerPathData
 	{
@@ -28,11 +27,10 @@ public:
 	
 	
 	CompilerRet Compile(const String_view& Text);
-	CompilerRet CompilePath(const Path& path);
+	static String GetTextFromFile(const Path& path);
 	CompilerRet CompilePathToObj(const Path& path, const Path& OutLib);
 	CompilerRet CompileFiles(const CompilerPathData& Data);
-	CompilerRet LinkFiles(const CompilerPathData& Data);
-	CompilerRet LinkFilesToFile(const CompilerPathData& Data);
+	
 	
 
 	UCodeLangForceinline void FreeLinkFilesLibOut(UClib* Lib)
@@ -58,10 +56,7 @@ private:
 	//Front
 	UCodeLang::Lexer _Lexer;
 	UCodeLang::Parser _Parser;
-	UCodeLang::SemanticAnalysis _SemanticAnalysis;
 	//Middle
-	UCodeLang::Linker _Linker;
-	UCodeLang::Assembler _Assembler;
-	UCodeLang::Optimizer _Optimizer;
+
 };
 UCodeLangEnd
