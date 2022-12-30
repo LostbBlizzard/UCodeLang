@@ -68,11 +68,9 @@ int main()
 	//Main
 	Settings._Type = OutPutType::Lib;
 	Data.FileDir = FileDir;
-	Data.IntDir = IntPath;
 	Data.OutFile = OutFilePath;
 	Settings._Flags = OptimizationFlags::Debug;
 	_Compiler.CompileFiles(Data);
-	_Compiler.LinkFilesToFile(Data);
 	if (!LogErrors(_Compiler))
 	{
 		UCodeLang::UClib MLib;
@@ -83,23 +81,6 @@ int main()
 			std::ofstream out(Path);
 			out << Text;
 			out.close();
-		}
-
-		{
-			Data.OutFile = OutFilePath + "Fast";
-			Settings._Flags = OptimizationFlags::ForMaxSpeed;
-			_Compiler.LinkFilesToFile(Data);
-
-			UCodeLang::UClib FastLib;
-			if (UClib::FromFile(&FastLib, Data.OutFile))
-			{
-				auto Text = UAssembly::UAssembly::ToString(&FastLib);
-				String Path = Data.OutFile + ".UA";
-				std::ofstream out(Path);
-				out << Text;
-				out.close();
-			}
-
 		}
 
 

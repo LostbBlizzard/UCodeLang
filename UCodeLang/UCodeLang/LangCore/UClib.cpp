@@ -10,6 +10,10 @@ UClib::~UClib()
 {
 
 }
+UClib::UClib(UClib& GetFrom)
+{
+	throw std::exception("");
+}
 #define UpdateNewPtr() NewPtr = (void*)((size_t)NewBits.Bytes + (size_t)BitPos);
 #define UpdateReadPtr() NewPtr = (void*)((size_t)Data.Bytes + (size_t)Indexoffset);
 
