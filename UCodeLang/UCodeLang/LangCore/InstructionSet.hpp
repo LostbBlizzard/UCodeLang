@@ -80,7 +80,7 @@ enum class Intermediate_Set : InstructionSet_t
 	DeclareFunc,
 	FuncEnd,
 	
-	BoolNumberliteral,
+	Boolliteral,
 	NumberNumberliteral,
 
 	DeclareExpression,

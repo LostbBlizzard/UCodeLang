@@ -524,9 +524,9 @@ bool UClib::FromBytes(UClib* Lib, const LibRawBytes& Data)
 
 	return true;
 }
-bool UClib::ToFile(const UClib* Lib, const String& Path)
+bool UClib::ToFile(const UClib* Lib, const Path& path)
 {
-	std::ofstream File(Path, std::ios::binary);
+	std::ofstream File(path, std::ios::binary);
 	if (File.is_open())
 	{
 
@@ -545,9 +545,9 @@ bool UClib::ToFile(const UClib* Lib, const String& Path)
 		return false;
 	}
 }
-bool UClib::FromFile(UClib* Lib, const String& Path)
+bool UClib::FromFile(UClib* Lib, const Path& path)
 {
-	std::ifstream File(Path, std::ios::binary);
+	std::ifstream File(path, std::ios::binary);
 	if (File.is_open())
 	{
 		LibRawBytes Bits;

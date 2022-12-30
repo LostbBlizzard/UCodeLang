@@ -21,9 +21,9 @@ void Lexer::Reset()
 void Lexer::Lex(const String_view& Text)
 {
 #define GetNextChar(offset) Text.size() > (i + offset) ? Text[i + offset] : '\0';
-	
-	_Text = Text;
 	Reset();
+	_Text = Text;
+	
 
 	
 	for (size_t i = 0; i < Text.size(); i++)

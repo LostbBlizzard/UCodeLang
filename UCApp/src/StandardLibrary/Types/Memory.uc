@@ -1,6 +1,6 @@
 %ULang: 
- $Refc<T>: 
+ $Ref<T>: 
   
-  // Refc
+  // Ref
  
  // ULang

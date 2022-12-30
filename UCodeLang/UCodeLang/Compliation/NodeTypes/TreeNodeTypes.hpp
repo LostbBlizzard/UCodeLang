@@ -114,8 +114,13 @@ struct TypeNode
 	{
 		switch (Type)
 		{
-		case TokenType::KeyWorld_UInt8:return true;
-		case TokenType::KeyWorld_SInt8:return true;
+		case TokenType::KeyWorld_Bool:
+		case TokenType::KeyWorld_Char:
+		case TokenType::KeyWorld_UInt8:
+		case TokenType::KeyWorld_SInt8:
+		case TokenType::KeyWorld_uintptr:
+		case TokenType::KeyWorld_sintptr:
+			return true;
 		default:return false;
 		}
 
@@ -161,6 +166,10 @@ struct TypeNode
 		{
 			Name.Token =new Token(*ToCopyFrom.Name.Token);
 			bool HasMadeToken = true;
+		}
+		else
+		{
+			Name.Token = ToCopyFrom.Name.Token;
 		}
 	}
 	~TypeNode()

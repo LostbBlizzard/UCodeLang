@@ -71,10 +71,10 @@ void Assembler::BuildTypes()
 		break;
 		case Intermediate_Set::Class:BuildClassType(*Inter); break;
 		case Intermediate_Set::FileEnd:Debugoffset = Inter->Value0.AsUInt64; NextIns(); break;
-		default:break;
+		default:NextIns();break;
 		}
 
-		NextIns();
+		
 	}
 }
 void Assembler::BuildCode()
@@ -118,8 +118,9 @@ void Assembler::BuildClassType(Intermediate_Instruction& Inter)
 	{
 		switch (Inter->OpCode)
 		{
-		case Intermediate_Set::ClassEnd:goto EndWhile;
-		default:break;
+		case Intermediate_Set::ClassEnd:NextIns(); goto EndWhile;
+		default:NextIns();
+			break;
 		}
 	}
 
@@ -136,7 +137,7 @@ void Assembler::BuildClass(Intermediate_Instruction& Inter)
 	{
 		switch (Inter->OpCode)
 		{
-		case Intermediate_Set::ClassEnd:goto EndWhile;
+		case Intermediate_Set::ClassEnd:NextIns(); goto EndWhile;
 		case Intermediate_Set::DeclareFunc:BuildDeclareFunc(*Inter); break;
 		default:
 			throw std::exception("");
@@ -162,6 +163,12 @@ void Assembler::BuildDeclareFunc(Intermediate_Instruction& Inter)
 	{
 		switch (Inter->OpCode)
 		{
+		case Intermediate_Set::DeclareThisVar:
+			NextIns(); NextIns();  NextIns();
+			break;
+		case Intermediate_Set::DeclareParameter:
+			NextIns(); NextIns();
+			break;
 		case Intermediate_Set::FuncEnd:goto EndWhile;
 		case Intermediate_Set::DeclareVar:BuildDeclareVar(*Inter); break;
 		case Intermediate_Set::Ret:BuildRet(*Inter); break;
@@ -252,6 +259,8 @@ Assembler::DeclareExpression_ret_t Assembler::DeclareExpression(Intermediate_Ins
 			break;
 		}
 	}
+
+	return r;
 }
 
 Assembler::DeclareExpression_ret_t Assembler::DeclareBinaryExpression(Intermediate_Instruction& Ins)

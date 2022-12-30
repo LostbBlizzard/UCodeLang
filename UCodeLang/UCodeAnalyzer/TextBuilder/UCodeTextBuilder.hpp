@@ -1,9 +1,9 @@
 #pragma once
-#include "UCodeCrossNameSpace.hpp"
+#include "../UCodeAnalyzer.hpp"
 #include "UCodeLang/Compliation/Front/SemanticAnalysis.hpp"
 #include "Typedef.hpp"
 #include "UCodeLang/Compliation/Helpers/KeyWords.hpp"
-UCodeCrossStart
+UCodeAnalyzerStart
 
 #define defaultAliasValue Uint8TypeName
 
@@ -383,5 +383,5 @@ public:
 private:
 	NamespaceNode _GlobalNamespace;
 };
-UCodeCrossEnd
+UCodeAnalyzerEnd
 
