@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <string>
 #include <stack>
+#include <filesystem>
 UCodeLangStart
 
 
@@ -43,6 +44,8 @@ constexpr UInt64 NullUInt64 = (UInt64)nullptr;
 
 using String = std::string;
 using String_view = std::string_view;
+using Path = std::filesystem::path;
+
 template<typename T> using Vector = std::vector<T>;
 template<typename T, typename T2> using unordered_map = std::unordered_map<T, T2>;
 
@@ -184,7 +187,6 @@ class FileExt
 {
 public:
 	inline static const char* SourceFile = "uc";
-	inline static const char* IntLib = "uo";
 	inline static const char* Lib = "ulib";
 	inline static const char* Dll = "udll";
 
@@ -192,7 +194,6 @@ public:
 	inline static const char* AsmWithDot = ".ua";
 
 	inline static const char* SourceFileWithDot = ".uc";
-	inline static const char* IntLibWithDot = ".uo";
 	inline static const char* LibWithDot = ".ulib";
 	inline static const char* DllWithDot = ".udll";
 };

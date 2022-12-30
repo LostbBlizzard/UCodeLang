@@ -106,13 +106,13 @@ public:
 	{
 		switch (_Type)
 		{
-		case UCodeLang::symbolType::Null:
-			break;
 		case UCodeLang::symbolType::Func:
 			return Func.Data;
 		case UCodeLang::symbolType::Var:
 			return Var.Data;
+		case UCodeLang::symbolType::Null:
 		default:
+			throw std::exception();
 			break;
 		}
 	}
@@ -434,7 +434,7 @@ private:
 
 	struct DeclareExpression_ret_t
 	{
-		RegisterID Value;
+		RegisterID Value =RegisterID::NullRegister;
 		TypeData ExpressionType;
 	};
 	DeclareExpression_ret_t DeclareExpressionType(Intermediate_Instruction& Ins);

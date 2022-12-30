@@ -69,6 +69,8 @@ void Parser::Reset()
 {
 	_TokenIndex = 0;
 	_Nodes = nullptr;
+	_Text = String_view();
+	_Tree =FileNode();
 }
 
 
@@ -628,7 +630,14 @@ GotNodeType Parser::TryGetGeneric(GenericValuesNode& out)
 		{
 			GenericValueNode Item;
 			auto NameToken = TryGetToken();
-			TokenTypeCheck(NameToken, TokenType::Name);
+			if (NameToken && (NameToken->Type == TokenType::Name || TypeNode::IsPrimitive(NameToken->Type) ))
+			{
+
+			}
+			else
+			{
+				TokenTypeCheck(NameToken, TokenType::Name);
+			}
 			Item.Token = NameToken;
 			out.Values.push_back(Item);
 
@@ -703,13 +712,7 @@ GotNodeType Parser::GetType(TypeNode& out)
 		TryGetGeneric(out.Generic);
 		return GotNodeType::Success;
 	}
-	else if (TypeNode::IsPrimitive(Token->Type))
-	{
-		NextToken();
-		out.Name.Token = Token;
-		return GotNodeType::Success;
-	}
-	else if (Token->Type == TokenType::KeyWorld_This)
+	else if (TypeNode::IsType(Token->Type))
 	{
 		NextToken();
 		out.Name.Token = Token;

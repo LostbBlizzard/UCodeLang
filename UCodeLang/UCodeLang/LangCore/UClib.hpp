@@ -235,8 +235,8 @@ public:
 	static LibRawBytes ToRawBytes(const UClib* Lib);
 	static bool FromBytes(UClib* Lib,const LibRawBytes& Data);
 
-	static bool ToFile(const UClib* Lib,const String& Path);
-	static bool FromFile(UClib* Lib, const String& Path);
+	static bool ToFile(const UClib* Lib,const Path& path);
+	static bool FromFile(UClib* Lib, const Path& path);
 
 	NTypeSize BitSize = NTypeSize::intNative;
 	LibType _LibType = LibType::Object;

@@ -4,8 +4,8 @@
 #include <iostream>
 #include "main.h"
 
-#include "UCodeCross/Core/UCodeTextBuilder.hpp"
-#include "StandardLibraryBuilder.hpp"
+#include "UCodeAnalyzer/TextBuilder/UCodeTextBuilder.hpp"
+#include "UCodeAnalyzer/CodeBuilds/StandardLibraryBuilder.hpp"
 
 using namespace UCodeLang;
 const UCodeLang::String ScrDir = "C:/CoolStuff/CoolCodeingStuff/C++/Projects/UCodeLang/UCApp/src/";
@@ -50,13 +50,13 @@ int main()
 	UCodeLang::Compiler::CompilerPathData Data;
 	
 	/*
-	{//StandardLibrary
+	{
 		StandardLibraryBuilder::BuildLibraryToDir(StandardLibraryPath);
 		
 		Settings._Type = OutPutType::DLL;
 		Data.FileDir = StandardLibraryPath;
 		Data.IntDir = StandardLibraryinit;
-		Data.OutFile = StandardLibraryOut + StandardLibraryLibName + UCodeLang::FileExt::DllWithDot;
+		Data.OutFile = FileDir + StandardLibraryLibName + UCodeLang::FileExt::DllWithDot;
 		_Compiler.CompileFiles(Data);
 		_Compiler.LinkFilesToFile(Data);
 		LogErrors(_Compiler);
@@ -101,6 +101,9 @@ int main()
 			}
 
 		}
+
+
+	
 		UCodeLang::RunTimeLib Lib;
 		Lib.Init(&MLib);
 

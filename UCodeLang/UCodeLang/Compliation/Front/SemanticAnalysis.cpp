@@ -46,6 +46,10 @@ void SemanticAnalysis::BuildNameSpace(const Node* Tree)
 
 		switch (Item->Get_Type())
 		{
+		case NodeType::AliasNode:
+			break;
+		case NodeType::AttributeTypeNode:
+			break;
 		case NodeType::AttributeNode:BuildAttributeNode(*AttributeNode::As(Item)); break;
 		case NodeType::NamespaceNode:BuildNameSpace(Item);break;
 		case NodeType::ClassNode:BuildClass(*ClassNode::As(Item));break;
@@ -155,6 +159,10 @@ void SemanticAnalysis::BuildEnum(const UCodeLang::EnumNode& Node)
 void SemanticAnalysis::BuildAttributeNode(const UCodeLang::AttributeNode& Node)
 {
 }
+void SemanticAnalysis::BuildAttributeTypeNode(const UCodeLang::AttributeTypeNode& Node)
+{
+	
+}
 
 void SemanticAnalysis::BuildFunc(const UCodeLang::FuncNode& Node)
 {
@@ -250,6 +258,11 @@ void SemanticAnalysis::BuildExpressionValue(const UCodeLang::ValueExpressionNode
 		auto node = NumberliteralNode::As(Ex);
 		auto _StringPos = AddDebug_String(node->Token->Value._String);
 		GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::NumberNumberliteral, _StringPos, _Ins));
+	}	break;
+	case NodeType::BoolliteralNode:
+	{
+		auto node =BoolliteralNode::As(Ex);
+		GenInsPush(InstructionBuilder::GenInst(Intermediate_Set::Boolliteral, node->Value, _Ins));
 	}	break;
 	case NodeType::ReadVariableNode:
 	{

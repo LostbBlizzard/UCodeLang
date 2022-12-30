@@ -1,7 +1,7 @@
 #pragma once
-#include "UCodeCrossNameSpace.hpp"
+#include "../UCodeAnalyzer.hpp"
 #include "UCodeLang/LangCore.hpp"
-UCodeCrossStart
+UCodeAnalyzerStart
 
 using Int8 = UCodeLang::Int8;
 using Int16 = UCodeLang::Int16;
@@ -23,4 +23,4 @@ using StringView = UCodeLang::String_view;
 template<typename T> using Vector = UCodeLang::Vector<T>;
 template<typename T, typename T2> using unordered_map = UCodeLang::unordered_map<T, T2>;
 
-UCodeCrossEnd
+UCodeAnalyzerEnd

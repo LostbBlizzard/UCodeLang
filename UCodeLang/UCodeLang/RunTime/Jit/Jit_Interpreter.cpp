@@ -36,7 +36,7 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address, parameters Pars)
 	
 	
 	auto& Item = UFuncToCPPFunc[address];
-
+	/*
 	if (Item.Type == JitFuncType::Null)
 	{
 		auto& LibManger = Get_State()->Get_Libs();
@@ -101,6 +101,8 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address, parameters Pars)
 	{
 		return { Interpreter::RetState::Success ,Interpreter::Register(Call_CPPFunc(Item.Func, Pars))};
 	}
+	*/
+	return _Interpreter.Call(Item.UCodeFunc, Pars);
 }
 AnyInt64  Jit_Interpreter::Call_CPPFunc(JitFunc ToCall, parameters& Pars)
 {

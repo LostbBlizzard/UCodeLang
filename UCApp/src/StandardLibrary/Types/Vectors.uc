@@ -22,14 +22,14 @@
   T Z = 0;
   
   // Vec3i_t
- $Vec2_32 = Vec2_t<uint8>; 
- $Vec2_64 = Vec2_t<uint8>; 
- $Vec2i_32 = Vec2i_t<uint8>; 
- $Vec2i_64 = Vec2i_t<uint8>; 
- $Vec3_32 = Vec3_t<uint8>; 
- $Vec3_64 = Vec3_t<uint8>; 
- $Vec3i_32 = Vec3i_t<uint8>; 
- $Vec3i_64 = Vec3i_t<uint8>; 
+ $Vec2_32 = Vec2_t<Uint8>; 
+ $Vec2_64 = Vec2_t<Uint8>; 
+ $Vec2i_32 = Vec2i_t<Uint8>; 
+ $Vec2i_64 = Vec2i_t<Uint8>; 
+ $Vec3_32 = Vec3_t<Uint8>; 
+ $Vec3_64 = Vec3_t<Uint8>; 
+ $Vec3i_32 = Vec3i_t<Uint8>; 
+ $Vec3i_64 = Vec3i_t<Uint8>; 
  $Vec2 = Vec2_32; 
  $Vec2i = Vec2i_32; 
  $Vec3 = Vec3_32; 
