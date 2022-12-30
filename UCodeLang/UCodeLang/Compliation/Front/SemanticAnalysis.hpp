@@ -105,5 +105,6 @@ private:
 	void BuildDeclareThreadVariable(const DeclareThreadVariableNode& Item);
 	void BuildDeclareVariable(const DeclareVariableNode& Item, Intermediate_Set VarType = Intermediate_Set::DeclareVar);
 	void BuildType(const TypeNode& Item);
+	void BuildAttributeTypeNode(const UCodeLang::AttributeTypeNode& Node);
 };
 UCodeLangEnd

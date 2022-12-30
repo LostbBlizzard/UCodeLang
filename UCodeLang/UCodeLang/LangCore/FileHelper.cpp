@@ -5,6 +5,11 @@ String FileHelper::RelativePath(const String& SubPath, const String& Path)
     return SubPath.substr(Path.size());
 }
 
+Path FileHelper::RelativePath(const Path& SubPath, const Path& path)
+{
+	return SubPath.native().substr(path.native().size());
+}
+
 void FileHelper::ChangeExt(String& Path, const String& NewExt)
 {
 	size_t ExtIndex = 0;

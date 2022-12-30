@@ -4,7 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <filesystem>
-#include "UCodeCross/Core/UCodeTextBuilder.hpp"
+#include "UCodeAnalyzer/TextBuilder/UCodeTextBuilder.hpp"
 
 #define Template_VarName0 "T"
 #define Template_VarName1 "U"
@@ -13,7 +13,7 @@
 namespace fs = std::filesystem;
 void StandardLibraryBuilder::Get_BasicTypeFile(UCodeLang::String& Out)
 {
-	UCodeCross::UCodeTextBuilder Builder;
+	UCodeAnalyzer::UCodeTextBuilder Builder;
 	auto& Name = Builder.AddNameSpace(StandardLibrarynamespace);
 
 	auto V2 = Name.AddAlias(VoidPtrTypeName,"!");
@@ -31,7 +31,7 @@ void StandardLibraryBuilder::Get_BasicTypeFile(UCodeLang::String& Out)
 }
 void StandardLibraryBuilder::Get_VecFile(UCodeLang::String& Out)
 {
-	UCodeCross::UCodeTextBuilder Builder;
+	UCodeAnalyzer::UCodeTextBuilder Builder;
 	auto& Name = Builder.AddNameSpace(StandardLibrarynamespace);
 
 	Name.AddUseing("TestMath");
@@ -95,7 +95,7 @@ void StandardLibraryBuilder::Get_VecFile(UCodeLang::String& Out)
 
 void StandardLibraryBuilder::Get_LibFile(UCodeLang::String& Out)
 {
-	UCodeCross::UCodeTextBuilder Builder;
+	UCodeAnalyzer::UCodeTextBuilder Builder;
 	auto& Name = Builder.AddNameSpace(StandardLibrarynamespace);
 
 	{//DLLAttribute
@@ -108,7 +108,7 @@ void StandardLibraryBuilder::Get_LibFile(UCodeLang::String& Out)
 
 void StandardLibraryBuilder::Get_LowLevelFile(UCodeLang::String& Out)
 {
-	UCodeCross::UCodeTextBuilder Builder;
+	UCodeAnalyzer::UCodeTextBuilder Builder;
 	auto& Name = Builder.AddNameSpace(StandardLibrarynamespace);
 
 	auto& LowLevelClass = Name.AddClass("LowLevel");
@@ -148,17 +148,17 @@ void StandardLibraryBuilder::Get_LowLevelFile(UCodeLang::String& Out)
 
 void StandardLibraryBuilder::Get_ConsoleFile(UCodeLang::String& Out)
 {
-	UCodeCross::UCodeTextBuilder Builder;
+	UCodeAnalyzer::UCodeTextBuilder Builder;
 	auto& Name = Builder.AddNameSpace(StandardLibrarynamespace);
 
 	auto& Console = Name.AddClass("Console");
 	
 	{
 		auto& Method = Console.AddMethod("Log");
-		Method.AddParameter("string", VoidPtrTypeName);
+		Method.AddParameter("string", CStringTypeName);
 	}
 	{
-		//auto& Method = Console.AddMethod("Log");
+		//auto& Method = Console.AddMethod("Log_");
 		//Method.AddParameter("string", "String&");
 	}
 
@@ -169,7 +169,7 @@ void StandardLibraryBuilder::Get_ConsoleFile(UCodeLang::String& Out)
 
 void StandardLibraryBuilder::Get_MathFile(UCodeLang::String& Out)
 {
-	UCodeCross::UCodeTextBuilder Builder;
+	UCodeAnalyzer::UCodeTextBuilder Builder;
 	auto& Name = Builder.AddNameSpace(StandardLibrarynamespace);
 
 	auto& Console = Name.AddClass("Math");
@@ -180,7 +180,7 @@ void StandardLibraryBuilder::Get_MathFile(UCodeLang::String& Out)
 
 void StandardLibraryBuilder::Get_GenericContainersFile(UCodeLang::String& Out)
 {
-	UCodeCross::UCodeTextBuilder Builder;
+	UCodeAnalyzer::UCodeTextBuilder Builder;
 	auto& Name = Builder.AddNameSpace(StandardLibrarynamespace);
 
 	{
@@ -200,18 +200,18 @@ void StandardLibraryBuilder::Get_GenericContainersFile(UCodeLang::String& Out)
 		auto& Class = Name.AddClass("Optional");
 		Class.AddGeneric(Template_VarName0);
 		Class.AddMember("Item", Template_VarName0);
-		Class.AddMember("HasValue", boolTypeName,UCodeCross::KeyWordAndTokens::FalseKeyWord);
+		Class.AddMember("HasValue", boolTypeName, UCodeAnalyzer::KeyWordAndTokens::FalseKeyWord);
 	}
 	Builder.ToUCodeFile(Out);
 }
 
 void StandardLibraryBuilder::Get_MemoryFile(UCodeLang::String& Out)
 {
-	UCodeCross::UCodeTextBuilder Builder;
+	UCodeAnalyzer::UCodeTextBuilder Builder;
 	auto& Name = Builder.AddNameSpace(StandardLibrarynamespace);
 
 	{
-		auto& Class = Name.AddClass("Refc");
+		auto& Class = Name.AddClass("Ref");
 		Class.AddGeneric(Template_VarName0);
 	}
 

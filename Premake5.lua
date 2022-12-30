@@ -73,32 +73,12 @@ project "UCodeLang"
    targetdir ("Output/%{prj.name}/" .. OutDirPath)
    objdir ("Output/int/%{prj.name}/" .. OutDirPath)
    
-   includedirs{
-      "%{prj.name}",
-     }
    files { 
-     "%{prj.name}/UCodeLang/**.c",
-     "%{prj.name}/UCodeLang/**.h",
-     "%{prj.name}/UCodeLang/**.cpp",
-     "%{prj.name}/UCodeLang/**.hpp", 
+     "%{prj.name}/**.c",
+     "%{prj.name}/**.h",
+     "%{prj.name}/**.cpp",
+     "%{prj.name}/**.hpp", 
    }
-project "UCodeCross"
-   location "UCodeCross"
-   kind "StaticLib"
-   language "C++"
-
-   
-   
-   targetdir ("Output/%{prj.name}/" .. OutDirPath)
-   objdir ("Output/int/%{prj.name}/" .. OutDirPath)
-
    includedirs{
-      "%{prj.name}",
-      "UCodeLang",
-     }
-   files { 
-     "%{prj.name}/UCodeCross/**.c",
-     "%{prj.name}/UCodeCross/**.h",
-     "%{prj.name}/UCodeCross/**.cpp",
-     "%{prj.name}/UCodeCross/**.hpp", 
+    "UCodeLang",
    }

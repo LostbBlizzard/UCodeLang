@@ -1,5 +1,6 @@
 #include "UCodeTextBuilder.hpp"
-UCodeCrossStart
+UCodeAnalyzerStart
+
 
 #define ScopeCommonnet \
 Str.Str += "\n"; \
@@ -377,4 +378,4 @@ NamespaceNode::~NamespaceNode()
 	}
 	_Nodes.clear();
 }
-UCodeCrossEnd
+UCodeAnalyzerEnd

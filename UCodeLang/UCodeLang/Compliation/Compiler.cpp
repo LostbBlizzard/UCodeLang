@@ -48,9 +48,9 @@ Compiler::CompilerRet Compiler::Compile(const String_view& Text)
 	R.OutPut = &_SemanticAnalysis.Get_SemanticAnalysisRet().Lib;
 	return R;
 }
-Compiler::CompilerRet Compiler::CompilePath(const String& Path)
+Compiler::CompilerRet Compiler::CompilePath(const Path& path)
 {
-	std::ifstream File(Path);
+	std::ifstream File(path);
 	if (File.is_open())
 	{
 		std::string Text;
@@ -67,9 +67,9 @@ Compiler::CompilerRet Compiler::CompilePath(const String& Path)
 		return Data;
 	}
 }
-Compiler::CompilerRet Compiler::CompilePathToObj(const String& Path, const String& OutLib)
+Compiler::CompilerRet Compiler::CompilePathToObj(const Path& path, const Path& OutLib)
 {
-	CompilerRet r = CompilePath(Path);
+	CompilerRet r = CompilePath(path);
 
 	if (r._State == CompilerState::Success) {
 		UClib::ToFile(r.OutPut, OutLib);

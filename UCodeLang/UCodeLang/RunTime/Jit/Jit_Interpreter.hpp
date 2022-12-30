@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Jit.hpp"
-#include "UCodeLang/Compliation/BackEnd/NativeAssembler.hpp"
 #include "UCodeLang/RunTime/Interpreters/Interpreter.hpp"
 UCodeLangStart
 
@@ -39,7 +38,7 @@ public:
 	Return_t Call(UAddress address, parameters Pars = NullParameters);
 private:
 	Interpreter _Interpreter;
-	NativeAssembler _Assembler;
+	//NativeAssembler _Assembler;
 	AsmBuffer ExBuffer = AsmBuffer(Get_EnvironmentData().PageSize);
 	size_t Insoffset = 0;
 

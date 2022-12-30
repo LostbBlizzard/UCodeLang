@@ -23,14 +23,13 @@ public:
 	struct CompilerPathData
 	{
 		String FileDir;
-		String IntDir;
 		String OutFile;
 	};
 	
 	
 	CompilerRet Compile(const String_view& Text);
-	CompilerRet CompilePath(const String& Path);
-	CompilerRet CompilePathToObj(const String& Path, const String& OutLib);
+	CompilerRet CompilePath(const Path& path);
+	CompilerRet CompilePathToObj(const Path& path, const Path& OutLib);
 	CompilerRet CompileFiles(const CompilerPathData& Data);
 	CompilerRet LinkFiles(const CompilerPathData& Data);
 	CompilerRet LinkFilesToFile(const CompilerPathData& Data);
