@@ -1,6 +1,6 @@
 #pragma once
 #include "../UCodeAnalyzer.hpp"
-#include "UCodeLang/Compliation/Front/SemanticAnalysis.hpp"
+#include "UCodeLang/Compliation/Front/Parser.hpp"
 #include "Typedef.hpp"
 #include "UCodeLang/Compliation/Helpers/KeyWords.hpp"
 UCodeAnalyzerStart

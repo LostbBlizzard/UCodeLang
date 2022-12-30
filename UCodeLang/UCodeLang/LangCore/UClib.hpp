@@ -32,6 +32,8 @@ public:
 	UClib();
 	~UClib();
 
+	UClib(UClib& GetFrom);
+
 	UClib(const UClib& V) = delete;
 	UClib& operator=(const UClib& V) = delete;
 
