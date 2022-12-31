@@ -20,4 +20,14 @@ const BackEndInterface* UCodeBackEnd::Get()
 
 	return &BackEnd;
 }
+
+UCodeBackEndObject::UCodeBackEndObject()
+{
+}
+
+UCodeBackEndObject::~UCodeBackEndObject()
+{
+}
+
 UCodeLangEnd
+
