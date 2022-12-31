@@ -3,51 +3,51 @@
 UCodeLangStart
 
 
-
-
-
+//Int types
 inline const char* S_KeyWord_Int8 = "int8";
-inline const char* S_KeyWord_sInt8 = "Sint8"; 
-inline const char* S_KeyWord_sbyte = "Sbyte";
+inline const char* S_KeyWord_Int16 = "int16";
+inline const char* S_KeyWord_Int32 = "int32";
+inline const char* S_KeyWord_Int64 = "int64";
+
+inline const char* S_KeyWord_uInt8 = "uint8";
+inline const char* S_KeyWord_uInt16 = "uint16";
+inline const char* S_KeyWord_uInt32 = "uint32";
+inline const char* S_KeyWord_uInt64 = "uint64";
+
 inline const char* S_KeyWord_byte = "byte";
-inline const char* S_KeyWord_uInt8 = "Uint8";
+inline const char* S_KeyWord_sbyte = "Sbyte";
+
+//
 inline const char* S_KeyWord_char = "char";
 inline const char* S_KeyWord_bool = "bool";
 
-inline const char* S_KeyWord_int = "sint32";
+//floats
 inline const char* S_KeyWord_float = "float";
 inline const char* S_KeyWord_float32 = "float32";
 inline const char* S_KeyWord_float64 = "float64";
 
+
+
 inline const char* S_KeyWord_ret = "ret";
 inline const char* S_KeyWord_void = "void";
-
 inline const char* S_KeyWord_sizeof = "sizeof";
 inline const char* S_KeyWord_nameof = "nameof";
 inline const char* S_KeyWord_typeof = "typeof";
-
 inline const char* S_KeyWord_Log = "log";
-
 inline const char* S_KeyWord_true = "true";
 inline const char* S_KeyWord_false = "false";
 inline const char* S_KeyWord_var = "var";
-
 inline const char* S_KeyWord_invalid = "invalid";
 inline const char* S_KeyWord_break = "break";
 inline const char* S_KeyWord_use = "use";
 inline const char* S_KeyWord_this = "this";
 inline const char* S_KeyWord_drop = "drop";
 inline const char* S_KeyWord_new = "new";
-
-
 inline const char* S_KeyWord_static = "static";
 inline const char* S_KeyWord_thread = "thread";
-
 inline const char* S_KeyWord_uintptr = "uintptr";
 inline const char* S_KeyWord_sintptr = "sintptr";
-
 inline const char* S_KeyWord_pub = "pub";
-
 inline const char* S_KeyWord_asm = "asm";
 struct KeyWord
 {
@@ -65,14 +65,21 @@ inline KeyWord KeyWords[] =
 	//Types	
 	
 	KeyWord(S_KeyWord_Int8,TokenType::KeyWorld_SInt8),
-	KeyWord(S_KeyWord_sInt8,TokenType::KeyWorld_SInt8),
-	KeyWord(S_KeyWord_sbyte,TokenType::KeyWorld_SInt8),
-	KeyWord(S_KeyWord_byte,TokenType::KeyWorld_UInt8),
+	KeyWord(S_KeyWord_Int16,TokenType::KeyWorld_SInt16),
+	KeyWord(S_KeyWord_Int32,TokenType::KeyWorld_SInt32),
+	KeyWord(S_KeyWord_Int64,TokenType::KeyWorld_SInt64),
+
 	KeyWord(S_KeyWord_uInt8,TokenType::KeyWorld_UInt8),
+	KeyWord(S_KeyWord_uInt16,TokenType::KeyWorld_UInt16),
+	KeyWord(S_KeyWord_uInt32,TokenType::KeyWorld_UInt32),
+	KeyWord(S_KeyWord_uInt64,TokenType::KeyWorld_UInt64),
+
+	KeyWord(S_KeyWord_byte,TokenType::KeyWorld_UInt8),
+	KeyWord(S_KeyWord_sbyte,TokenType::KeyWorld_SInt8),
+	
 	KeyWord(S_KeyWord_char,TokenType::KeyWorld_Char),
 	KeyWord(S_KeyWord_bool,TokenType::KeyWorld_Bool),
 	
-	KeyWord(S_KeyWord_int,TokenType::KeyWorld_UInt8),
 	KeyWord(S_KeyWord_float32,TokenType::KeyWorld_float32),
 	KeyWord(S_KeyWord_float,TokenType::KeyWorld_float32),
 	KeyWord(S_KeyWord_float64,TokenType::KeyWorld_float64),
