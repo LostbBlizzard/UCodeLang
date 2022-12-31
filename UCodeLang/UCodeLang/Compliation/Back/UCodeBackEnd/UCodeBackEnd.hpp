@@ -18,8 +18,10 @@ public:
 	static void Bind(BackEndInterface& Obj);
 	static const BackEndInterface* Get();
 
-	static auto Gen() { return new UCodeBackEndObject(); }
-	static auto Delete(UCodeBackEnd* Obj) { delete Obj; }
+	//Just Copy and paste for your backend
+	using BackEnd = UCodeBackEndObject;
+	static auto Gen() { return new BackEnd(); }
+	static auto Delete(BackEnd* Obj) { delete Obj; }
 };
 UCodeLangEnd
 
