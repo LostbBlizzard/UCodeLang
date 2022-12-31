@@ -12,38 +12,35 @@ enum class TokenType : TokenType_t
 	Name,
 	Class,
 	Namespace,
-	Left_Parentheses,
-	Right_Parentheses,
-	Left_Bracket,
-	Right_Bracket,
-	Colon,
+	Left_Parentheses,//(
+	Right_Parentheses,//)
+	Left_Bracket,//[
+	Right_Bracket,//]
+	Colon,//:
 	
-	StartTab,
-	EndTab,
+	StartTab,//
+	EndTab,//
 
-	Semicolon,
-	Dot,
-	forwardslash,
-	equal,
-	plus,
-	minus,
-	star,
-	modulo,
+	Semicolon,//;
+	Dot,//.
+	forwardslash,// /
+	equal,//=
+	plus,//+
+	minus,//-
+	star,//*
+	modulo,//%
 	bitwise_XOr, //^,
 	bitwise_not, //~,
 	Type,
-	KeyWorld_UInt8,
-	KeyWorld_SInt8,
-	KeyWorld_Char,
-	KeyWorld_Bool,
-	String_literal,
-	Number_literal,
+	
+	String_literal,// "String"
+	Number_literal, // 100
 
-	KeyWorld_Ret,
-	leftArrow,
-	RightArrow,
-	Void,
-	Comma,
+	KeyWorld_Ret,//ret
+	leftArrow,//<-
+	RightArrow,//->
+	Void,//void
+	Comma,//,
 
 	KeyWorld_Sizeof,
 	KeyWorld_Nameof,
@@ -51,26 +48,26 @@ enum class TokenType : TokenType_t
 	KeyWorld_False,
 	KeyWorld_var,
 
-	Not,
-	equal_Comparison,
-	Notequal_Comparison,
-	greaterthan,
-	lessthan,
-	less_than_or_equalto,
-	greater_than_or_equalto,
-	logical_and,
-	logical_or,
-	bitwise_and,
-	bitwise_or,
-	bitwise_LeftShift,
-	bitwise_RightShift,
-	increment,
-	decrement,
+	Not,//!
+	equal_Comparison,//==
+	Notequal_Comparison,//!=
+	greaterthan,//>
+	lessthan,//<
+	less_than_or_equalto,//<=
+	greater_than_or_equalto,//>=
+	logical_and,//&&
+	logical_or,//||
+	bitwise_and,//&
+	bitwise_or,//|
+	bitwise_LeftShift,//<<
+	bitwise_RightShift,//>>
+	increment,//++
+	decrement,//--
 
-	CompoundAdd,
-	CompoundSub,
-	CompoundMult,
-	CompoundDiv,
+	CompoundAdd,//+=
+	CompoundSub,//-=
+	CompoundMult,//*=
+	CompoundDiv,// /=
 
 	KeyWord_invalid,
 	KeyWord_break,
@@ -82,18 +79,34 @@ enum class TokenType : TokenType_t
 	KeyWorld_static,
 	KeyWorld_Thread,
 
-	KeyWorld_uintptr,
-	KeyWorld_sintptr,
+
 
 	KeyWorld_pub,
 	KeyWorld_typeof,
 	hash,
+	KeyWorld_asm,//asm
+
+	approximate_Comparison,//~=
+
+	//Types
+	KeyWorld_UInt8,
+	KeyWorld_UInt16,
+	KeyWorld_UInt32,
+	KeyWorld_UInt64,
+
+	KeyWorld_SInt8,
+	KeyWorld_SInt16,
+	KeyWorld_SInt32,
+	KeyWorld_SInt64,
+
+	KeyWorld_Char,
+	KeyWorld_Bool,
+
 	KeyWorld_float32,
 	KeyWorld_float64,
-	KeyWorld_asm,
 
-	approximate_Comparison,
-
+	KeyWorld_uintptr,
+	KeyWorld_sintptr,
 	//Made by The compiler
 	KeyWorld_ThisMemberFunc,
 };

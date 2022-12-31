@@ -3,10 +3,11 @@
 #include <filesystem>
 #include "../LangCore/FileHelper.hpp"
 UCodeLangStart
-Compiler::CompilerRet Compiler::Compile(const String_view& Text)
+Compiler::CompilerRet Compiler::CompileText(const String_view& Text)
 {
 	_Lexer.Reset();
 	_Parser.Reset();
+	_Analyzer.Reset();
 	//
 	CompilerRet R;
 	R._State = CompilerState::Fail;
@@ -17,9 +18,11 @@ Compiler::CompilerRet Compiler::Compile(const String_view& Text)
 
 	_Lexer.Set_Settings(&_Settings);
 	_Parser.Set_Settings(&_Settings);
+	_Analyzer.Set_Settings(&_Settings);
 	
 	_Lexer.Set_ErrorsOutput(Errors);
 	_Parser.Set_ErrorsOutput(Errors);
+	_Analyzer.Set_ErrorsOutput(Errors);
 
 	_Lexer.Lex(Text);
 
@@ -32,8 +35,11 @@ Compiler::CompilerRet Compiler::Compile(const String_view& Text)
 
 	if (Errors->Has_Errors()) { return R; }
 
-	R._State = CompilerState::Success;
-	R.OutPut = nullptr;
+	bool v = _Analyzer.Analyze(_Parser.Get_Tree());
+
+
+	R._State = Errors->Has_Errors() ?CompilerState::Fail : CompilerState::Success ;
+	R.OutPut = &_Analyzer.Get_Output();
 	return R;
 }
 String Compiler::GetTextFromFile(const Path& path)
@@ -56,7 +62,7 @@ String Compiler::GetTextFromFile(const Path& path)
 Compiler::CompilerRet Compiler::CompilePathToObj(const Path& path, const Path& OutLib)
 {
 	auto Text = GetTextFromFile(path);
-	CompilerRet r = Compile(Text);
+	CompilerRet r = CompileText(Text);
 
 	if (r._State == CompilerState::Success) {
 		UClib::ToFile(r.OutPut, OutLib);
@@ -71,9 +77,8 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 
 	//TODO check if File Int  Dir is in Dir
 
-	Vector<FileNode> Files;
+	Vector<FileNode*> Files;
 	Vector<UClib*> Libs;
-
 
 	_Lexer.Set_ErrorsOutput(&_Errors);
 	_Parser.Set_ErrorsOutput(&_Errors);
@@ -109,7 +114,10 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 			if (!_Parser.Get_ParseSucces()) { continue; }
 			_Errors.FixEndOfLine(_Lexer.Get_OnLine(), _Lexer.Get_TextIndex());
 
-			Files.push_back(_Parser.Get_Tree());
+
+			FileNode* f =new FileNode();
+			*f = _Parser.Get_Tree();//move
+			Files.push_back(f);
 
 			_Lexer.Reset();
 			_Parser.Reset();
@@ -130,17 +138,31 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 
 	}
 
-
-
+	
+	CompilerRet r;
+	r._State = CompilerState::Fail;
+	r.OutPut = nullptr;
+	if (!_Errors.Has_Errors()) 
+	{
+		_Analyzer.Reset();
+		_Analyzer.Analyze(Files,Libs);
+		if (!_Errors.Has_Errors())
+		{
+			r.OutPut = &_Analyzer.Get_Output();
+		}
+	}
 
 	
-for (auto Item : Libs)
+	for (auto Item : Libs)
 	{
 		delete Item;
 	}
-	CompilerRet r;
-	r._State = CompilerState::Success;
-	r.OutPut = nullptr;
+	for (auto Item : Files)
+	{
+		delete Item;
+	}
+	
+	r._State = _Errors.Has_Errors() ? CompilerState::Fail : CompilerState::Success;
 	return r;
 }
 

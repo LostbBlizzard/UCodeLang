@@ -28,7 +28,7 @@ enum class ErrorCodes : ErrorCodes_t
 	InValidName,
 	//
 	SyntaxEnd,
-	//Link
+	//Middle
 	LinkStart = SyntaxEnd,
 
 	CouldNotFindFunc,
@@ -36,9 +36,12 @@ enum class ErrorCodes : ErrorCodes_t
 	Redefinition,
 	CantParseTree,
 	TreeAnalyerError,
+	//
+	BackEndError,
 
 	LinkEnd,
 
+	InternalCompilerError,
 };
 class CompliationErrors
 {
