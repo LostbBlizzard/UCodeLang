@@ -2,9 +2,10 @@
 #include "../LangCore.hpp"
 #include "Front/Lexer.hpp"
 #include "Front/Parser.hpp"
-
+#include "Middle/SystematicAnalysis.hpp"
 
 #include "UCodeLang/LangCore/UClib.hpp"
+#include "Back/UCodeBackEnd/BackEndInterface.hpp"
 UCodeLangStart
 class Compiler
 {
@@ -26,8 +27,12 @@ public:
 	};
 	
 	
-	CompilerRet Compile(const String_view& Text);
+	CompilerRet CompileText(const String_view& Text);
 	static String GetTextFromFile(const Path& path);
+	UCodeLangForceinline CompilerRet CompileFile(const Path& path)
+	{
+		return  CompileText(GetTextFromFile(path));
+	}
 	CompilerRet CompilePathToObj(const Path& path, const Path& OutLib);
 	CompilerRet CompileFiles(const CompilerPathData& Data);
 	
@@ -49,14 +54,20 @@ public:
 	{
 		return _Settings;
 	}
+	UCodeLangForceinline void Set_BackEnd(const BackEndObject* Value)
+	{
+		_BackEnd = Value;
+	}
 	
 private:
 	CompliationSettings _Settings;
-	UCodeLang::CompliationErrors _Errors;
+	CompliationErrors _Errors;
 	//Front
-	UCodeLang::Lexer _Lexer;
-	UCodeLang::Parser _Parser;
+	Lexer _Lexer;
+	Parser _Parser;
 	//Middle
-
+	SystematicAnalysis _Analyzer;
+	//Back
+	const BackEndInterface* _BackEnd = UCodeBackEnd::Get();
 };
 UCodeLangEnd

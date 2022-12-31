@@ -6,16 +6,16 @@
 #define boolTypeName UCodeLang::S_KeyWord_bool
 
 #define Uint8TypeName UCodeLang::S_KeyWord_uInt8
-#define Sint8TypeName UCodeLang::S_KeyWord_sInt8
+#define Sint8TypeName UCodeLang::S_KeyWord_Int8
 
-#define Uint16TypeName UCodeLang::S_KeyWord_uInt8
-#define Sint16TypeName UCodeLang::S_KeyWord_sInt8
+#define Uint16TypeName UCodeLang::S_KeyWord_uInt16
+#define Sint16TypeName UCodeLang::S_KeyWord_Int16
 
 #define Uint32TypeName UCodeLang::S_KeyWord_uInt32
-#define Sint32TypeName UCodeLang::S_KeyWord_sInt32
+#define Sint32TypeName UCodeLang::S_KeyWord_Int32
 
 #define Uint64TypeName UCodeLang::S_KeyWord_uInt64
-#define Sint64TypeName UCodeLang::S_KeyWord_sInt64
+#define Sint64TypeName UCodeLang::S_KeyWord_Int64
 
 #define UintPtrTypeName UCodeLang::S_KeyWord_uintptr
 #define SintPtrTypeName UCodeLang::S_KeyWord_sintptr
