@@ -204,9 +204,6 @@ private:
 	GotNodeType GetExpressionTypeNode(Node*& out);
 	GotNodeType GetExpressionTypeNode(ExpressionNodeType& out);
 
-	
-	GotNodeType GetNullAbleExpressionTypeNode(Node*& out);//Will output nullptr if it finds an ';'
-	GotNodeType GetNullAbleExpressionTypeNode(ExpressionNodeType& out);
 
 	TryGetNode GetAttribute()
 	{
@@ -284,10 +281,22 @@ private:
 	}
 	GotNodeType GetIfNode(IfNode& out);
 
-
+	TryGetNode GetEnumNode()
+	{
+		EnumNode* V = EnumNode::Gen();
+		auto r = GetEnumNode(*V);
+		return { r,V->As() };
+	}
 	GotNodeType GetEnumNode(EnumNode& out);
 	GotNodeType GetEnumValueNode(EnumValueNode& out);
-	GotNodeType GetAttributeNode(AttributeTypeNode& out);
+
+	TryGetNode GetTagNode()
+	{
+		TagTypeNode* V = TagTypeNode::Gen();
+		auto r = GetTagNode(*V);
+		return { r,V->As() };
+	}
+	GotNodeType GetTagNode(TagTypeNode& out);
 };
 UCodeLangEnd
 

@@ -76,9 +76,11 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 
 
 	//TODO check if File Int  Dir is in Dir
-
+	Vector<String*> FilesStrings;
+	Vector<Vector<Token>> _FilesTokens;
 	Vector<FileNode*> Files;
 	Vector<UClib*> Libs;
+	//Refs
 
 	_Lexer.Set_ErrorsOutput(&_Errors);
 	_Parser.Set_ErrorsOutput(&_Errors);
@@ -105,19 +107,21 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 		{
 			_Errors.FilePath = RePath;
 
-			auto Text = GetTextFromFile(dirEntry.path());
-			_Lexer.Lex(Text);
+			FilesStrings.push_back(new String(GetTextFromFile(dirEntry.path())));
+			auto Text = FilesStrings.back();
+			_Lexer.Lex(*Text);
 			Parser::FileData Data;
 			if (!_Lexer.Get_LexerSuccess()) { continue; }
 
-			_Parser.Parse(Data, _Lexer.Get_Tokens());
+			auto& Teknes = _Lexer.Get_Tokens();
+			_Parser.Parse(Data, Teknes);
 			if (!_Parser.Get_ParseSucces()) { continue; }
 			_Errors.FixEndOfLine(_Lexer.Get_OnLine(), _Lexer.Get_TextIndex());
 
-
-			FileNode* f =new FileNode();
-			*f = _Parser.Get_Tree();//move
+			FileNode* f = new FileNode(std::move(_Parser.Get_Tree()));
 			Files.push_back(f);
+
+			_FilesTokens.push_back(std::move(Teknes));
 
 			_Lexer.Reset();
 			_Parser.Reset();
@@ -144,11 +148,14 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 	r.OutPut = nullptr;
 	if (!_Errors.Has_Errors()) 
 	{
+		_Analyzer.Set_Settings(&_Settings);
+		_Analyzer.Set_ErrorsOutput(&_Errors);
 		_Analyzer.Reset();
 		_Analyzer.Analyze(Files,Libs);
 		if (!_Errors.Has_Errors())
 		{
 			r.OutPut = &_Analyzer.Get_Output();
+			UClib::ToFile(r.OutPut, Data.OutFile);
 		}
 	}
 
@@ -158,6 +165,10 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 		delete Item;
 	}
 	for (auto Item : Files)
+	{
+		delete Item;
+	}
+	for (auto Item : FilesStrings)
 	{
 		delete Item;
 	}

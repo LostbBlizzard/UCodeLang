@@ -9,6 +9,8 @@ inline const char* S_KeyWord_Int16 = "int16";
 inline const char* S_KeyWord_Int32 = "int32";
 inline const char* S_KeyWord_Int64 = "int64";
 
+inline const char* S_KeyWord_Int = "int";
+
 inline const char* S_KeyWord_uInt8 = "uint8";
 inline const char* S_KeyWord_uInt16 = "uint16";
 inline const char* S_KeyWord_uInt32 = "uint32";
@@ -26,14 +28,14 @@ inline const char* S_KeyWord_float = "float";
 inline const char* S_KeyWord_float32 = "float32";
 inline const char* S_KeyWord_float64 = "float64";
 
-
+inline const char* S_KeyWord_uintptr = "uintptr";
+inline const char* S_KeyWord_sintptr = "sintptr";
 
 inline const char* S_KeyWord_ret = "ret";
 inline const char* S_KeyWord_void = "void";
 inline const char* S_KeyWord_sizeof = "sizeof";
 inline const char* S_KeyWord_nameof = "nameof";
 inline const char* S_KeyWord_typeof = "typeof";
-inline const char* S_KeyWord_Log = "log";
 inline const char* S_KeyWord_true = "true";
 inline const char* S_KeyWord_false = "false";
 inline const char* S_KeyWord_var = "var";
@@ -45,10 +47,13 @@ inline const char* S_KeyWord_drop = "drop";
 inline const char* S_KeyWord_new = "new";
 inline const char* S_KeyWord_static = "static";
 inline const char* S_KeyWord_thread = "thread";
-inline const char* S_KeyWord_uintptr = "uintptr";
-inline const char* S_KeyWord_sintptr = "sintptr";
+
 inline const char* S_KeyWord_pub = "pub";
 inline const char* S_KeyWord_asm = "asm";
+inline const char* S_KeyWord_enum = "enum";
+inline const char* S_KeyWord_tag = "tag";
+
+inline const char* S_KeyWord_umut = "umut";
 struct KeyWord
 {
 	const char* keyWord;
@@ -73,6 +78,8 @@ inline KeyWord KeyWords[] =
 	KeyWord(S_KeyWord_uInt16,TokenType::KeyWorld_UInt16),
 	KeyWord(S_KeyWord_uInt32,TokenType::KeyWorld_UInt32),
 	KeyWord(S_KeyWord_uInt64,TokenType::KeyWorld_UInt64),
+
+	KeyWord(S_KeyWord_Int,TokenType::KeyWorld_SInt32),
 
 	KeyWord(S_KeyWord_byte,TokenType::KeyWorld_UInt8),
 	KeyWord(S_KeyWord_sbyte,TokenType::KeyWorld_SInt8),
@@ -111,6 +118,9 @@ inline KeyWord KeyWords[] =
 	KeyWord(S_KeyWord_typeof,TokenType::KeyWorld_typeof),
 
 	KeyWord(S_KeyWord_asm,TokenType::KeyWorld_asm),
+	KeyWord(S_KeyWord_enum,TokenType::KeyWorld_Enum),
+	KeyWord(S_KeyWord_tag,TokenType::KeyWorld_Tag),
+	KeyWord(S_KeyWord_umut,TokenType::KeyWorld_umut),
 };
 constexpr size_t KeyWords_Size = sizeof(KeyWords) / sizeof(KeyWords[0]);
 class KeyWordHelper

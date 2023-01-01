@@ -5,8 +5,15 @@
 #include "../..//LangCore/ScopeHelper.hpp"
 UCodeLangStart
 
-struct StringliteralNode
+struct StringliteralNode :Node
 {
+	StringliteralNode() :Node(NodeType::StringliteralNode)
+	{
+
+	}
+
+		
+
 	AddforNode(StringliteralNode);
 
 	const Token* Token = nullptr;
@@ -14,27 +21,51 @@ struct StringliteralNode
 
 
 
-struct BoolliteralNode
+struct BoolliteralNode :Node
 {
+	BoolliteralNode() :Node(NodeType::BoolliteralNode)
+	{
+
+	}
 	AddforNode(BoolliteralNode);
 
 	bool Value = false;
 };
-struct NumberliteralNode
+struct NumberliteralNode :Node
 {
+	NumberliteralNode() :Node(NodeType::NumberliteralNode)
+	{
+
+	}
 	AddforNode(NumberliteralNode);
 
 	const Token* Token = nullptr;
 };
 
-struct NameNode
+struct NameNode :Node
 {
+	NameNode() : Node(NodeType::NumberliteralNode)
+	{
+
+	}
 	AddforNode(NameNode);
 
 	const Token* Token = nullptr;
+	String AsString()const
+	{
+		return  String(Token->Value._String);
+	}
+	String_view AsStringView() const
+	{
+		return Token->Value._String;
+	}
 };
-struct ScopedNameNode
+struct ScopedNameNode :Node
 {
+	ScopedNameNode() : Node(NodeType::ScopedNameNode)
+	{
+
+	}
 	AddforNode(ScopedNameNode);
 
 	Vector<const Token*> ScopedName;
@@ -53,33 +84,55 @@ struct ScopedNameNode
 	}
 };
 
-struct ReadVariableNode
+struct ReadVariableNode :Node
 {
+	ReadVariableNode() : Node(NodeType::ReadVariableNode)
+	{
+
+	}
 	AddforNode(ReadVariableNode);
 
 	ScopedNameNode VariableName;
 };
-struct NamespaceNode
+struct NamespaceNode :Node
 {
+	NamespaceNode() : Node(NodeType::NamespaceNode)
+	{
+
+	}
+	NamespaceNode(NamespaceNode&& Source) = default;
 	AddforNodeAndWithList(NamespaceNode);
 
 	ScopedNameNode NamespaceName;
 };
-struct GenericValueNode 
+struct GenericValueNode :Node
 {
-	const Token* Token = nullptr;
+	GenericValueNode() : Node(NodeType::Null)
+	{
+
+	}
+const Token* Token = nullptr;
 };
-struct GenericValuesNode
+struct GenericValuesNode :Node
 {
+	GenericValuesNode() : Node(NodeType::Null)
+	{
+
+	}
 	Vector<GenericValueNode> Values;
 
 	UCodeLangForceinline bool HasGeneric()
-    {
+	{
 		return Values.size();
 	}
 };
-struct ClassNode
+struct ClassNode :Node
 {
+	ClassNode() : Node(NodeType::ClassNode)
+	{
+
+	}
+	ClassNode(ClassNode&& Source) = default;
 	AddforNodeAndWithList(ClassNode);
 
 	NameNode ClassName;
@@ -87,23 +140,32 @@ struct ClassNode
 };
 
 
-struct UsingNode
+struct UsingNode :Node
 {
-	AddforNodeAndWithList(UsingNode);
+
+	UsingNode() : Node(NodeType::UsingNode)
+	{
+
+	}
+	AddforNode(UsingNode);
 
 	ScopedNameNode ScopedName;
 };
 
 
-struct TypeNode
+struct TypeNode :Node
 {
+	TypeNode() : Node(NodeType::TagTypeNode)
+	{
+
+	}
 	NameNode Name;
 	GenericValuesNode Generic;
 
 
 	static constexpr bool IsType(TokenType Type)
 	{
-		if (IsPrimitive(Type)){return true;}
+		if (IsPrimitive(Type)) { return true; }
 		else if (Type == TokenType::Name) { return true; }
 		else if (Type == TokenType::KeyWorld_This) { return true; }
 
@@ -117,7 +179,13 @@ struct TypeNode
 		case TokenType::KeyWorld_Bool:
 		case TokenType::KeyWorld_Char:
 		case TokenType::KeyWorld_UInt8:
+		case TokenType::KeyWorld_UInt16:
+		case TokenType::KeyWorld_UInt32:
+		case TokenType::KeyWorld_UInt64:
 		case TokenType::KeyWorld_SInt8:
+		case TokenType::KeyWorld_SInt16:
+		case TokenType::KeyWorld_SInt32:
+		case TokenType::KeyWorld_SInt64:
 		case TokenType::KeyWorld_uintptr:
 		case TokenType::KeyWorld_sintptr:
 			return true;
@@ -125,9 +193,9 @@ struct TypeNode
 		}
 
 	}
-	
-	
-	static void Gen_Type(TypeNode& Out,TokenType Type, const Token& ToGetLinesFrom)
+
+
+	static void Gen_Type(TypeNode& Out, TokenType Type, const Token& ToGetLinesFrom)
 	{
 		auto T = new Token();
 		T->Type = Type;
@@ -154,13 +222,18 @@ struct TypeNode
 	}
 	bool IsThisMemberFunc() const
 	{
-		return Name.Token->Type == TokenType::KeyWorld_ThisMemberFunc;	
+		return Name.Token->Type == TokenType::KeyWorld_ThisMemberFunc;
 	}
-	TypeNode()
+	String AsString() const
 	{
-
+		auto T = Name.Token->Type;
+		if (IsPrimitive(T))
+		{
+			return StringHelper::ToString(T);
+		}
+		return String(Name.Token->Value._String);
 	}
-	TypeNode(const TypeNode& ToCopyFrom)
+	TypeNode(const TypeNode& ToCopyFrom) noexcept
 	{
 		if (ToCopyFrom.HasMadeToken)
 		{
@@ -172,7 +245,18 @@ struct TypeNode
 			Name.Token = ToCopyFrom.Name.Token;
 		}
 	}
-	~TypeNode()
+	TypeNode(TypeNode&& source) noexcept
+	{
+		if (source.HasMadeToken)
+		{
+			Name = std::move(source.Name);
+			Generic = std::move(source.Generic);
+
+			HasMadeToken = false;
+		}
+		HasMadeToken = false;
+	}
+	~TypeNode() noexcept
 	{
 		if (HasMadeToken)
 		{
@@ -182,76 +266,141 @@ struct TypeNode
 private:
 	bool HasMadeToken = false;
 };
-struct NamedParameterNode
+struct NamedParameterNode :Node
 {
+	NamedParameterNode() : Node(NodeType::Null)
+	{
+
+	}
 	TypeNode Type;
 	NameNode Name;
 };
-struct NamedParametersNode
+struct NamedParametersNode :Node
 {
+	NamedParametersNode() : Node(NodeType::NamedParametersNode)
+	{
+
+	}
 	AddforNode(NamedParametersNode);
 	Vector<NamedParameterNode> Parameters;
 };
-struct ValueParametersNode
+struct ValueParametersNode :Node
 {
+	ValueParametersNode() : Node(NodeType::ValueParametersNode)
+	{
+
+	}
+	ValueParametersNode(ValueParametersNode&& Source) = default;
 	AddforNodeAndWithList(ValueParametersNode);
 };
-struct AttributeNode
+struct AttributeNode :Node
 {
+	AttributeNode() : Node(NodeType::AttributeNode)
+	{
+
+	}
 	AddforNode(AttributeNode);
 
 	ScopedNameNode ScopedName;
 	ValueParametersNode Parameters;
 };
-struct StatementsNode
+struct StatementsNode :Node
 {
+	StatementsNode() : Node(NodeType::StatementsNode)
+	{
+
+	}
 	AddforNodeAndWithList(StatementsNode);
+	StatementsNode(StatementsNode&& source) = default;
+	StatementsNode& operator=(StatementsNode&& source) = default;
 };
-struct FuncSignatureNode
+struct FuncSignatureNode :Node
 {
 	NameNode Name;
 	GenericValuesNode Generic;
 	NamedParametersNode Parameters;
 	TypeNode ReturnType;
 };
-struct FuncBodyNode
+struct FuncBodyNode :Node
 {
 	StatementsNode Statements;
 };
-struct FuncNode
+struct FuncNode :Node
 {
+	FuncNode() : Node(NodeType::FuncNode)
+	{
+
+	}
+	~FuncNode()
+	{
+
+	}
+
+		
 	AddforNode(FuncNode);
 	FuncSignatureNode Signature;
 	Optional<FuncBodyNode> Body;
 };
 
-struct AsmBlockNode
+struct AsmBlockNode :Node
 {
+	AsmBlockNode() : Node(NodeType::AsmBlockNode)
+	{
+
+	}
 	AddforNode(AsmBlockNode);
 	String_view AsmText;
 };
 
-struct ExpressionNodeType
+struct ExpressionNodeType :Node
 {
+	ExpressionNodeType() : Node(NodeType::ExpressionNodeType)
+	{
+
+	}
 	AddforNode(ExpressionNodeType);
 	Node* Value = nullptr;
-	~ExpressionNodeType()
+	ExpressionNodeType(const ExpressionNodeType& ToCopyFrom) = delete;
+	ExpressionNodeType(ExpressionNodeType&& source) noexcept
 	{
-		delete Value;
+		Value = source.Value;
+		source.Value = nullptr;
+	}
+
+	~ExpressionNodeType()noexcept
+	{
+		if (Value) {
+			delete Value;
+		}
 	}
 };
 
-struct ValueExpressionNode 
+struct ValueExpressionNode :Node
 {
+	ValueExpressionNode() : Node(NodeType::ValueExpressionNode)
+	{
+
+	}
 	AddforNode(ValueExpressionNode);
 	Node* Value = nullptr;
-	~ValueExpressionNode()
+	ValueExpressionNode(const ValueExpressionNode& ToCopyFrom) = delete;
+	ValueExpressionNode(ValueExpressionNode&& source)noexcept
+	{
+		Value = source.Value;
+		source.Value = nullptr;
+	}
+
+	~ValueExpressionNode()noexcept
 	{
 		delete Value;
 	}
 };
-struct BinaryExpressionNode
+struct BinaryExpressionNode :Node
 {
+	BinaryExpressionNode() : Node(NodeType::BinaryExpressionNode)
+	{
+
+	}
 	AddforNode(BinaryExpressionNode);
 
 	ExpressionNodeType Value0;
@@ -259,53 +408,84 @@ struct BinaryExpressionNode
 	ExpressionNodeType Value1;
 }; 
 
-struct RetStatementNode
+struct RetStatementNode :Node
 {
+	RetStatementNode() : Node(NodeType::RetStatementNode)
+	{
+
+	}
 	AddforNode(RetStatementNode);
 	ExpressionNodeType Expression;
 };
 
-struct DeclareVariableNode
+struct DeclareVariableNode :Node
 {
+	DeclareVariableNode() : Node(NodeType::DeclareVariableNode)
+	{
+
+	}
 	AddforNode(DeclareVariableNode);
 	TypeNode Type;
 	NameNode Name;
 	ExpressionNodeType Expression;
+	DeclareVariableNode(DeclareVariableNode&& source) = default;
+	DeclareVariableNode& operator=(DeclareVariableNode&& source) = default;
 };
 
-struct AssignVariableNode
+struct AssignVariableNode :Node
 {
+	AssignVariableNode() : Node(NodeType::AssignVariableNode)
+	{
+
+	}
 	AddforNode(AssignVariableNode);
 	NameNode Name;
 	ExpressionNodeType Expression;
 };
 
-struct DeclareStaticVariableNode
+struct DeclareStaticVariableNode :Node
 {
+	DeclareStaticVariableNode() : Node(NodeType::DeclareStaticVariableNode)
+	{
+
+	}
 	AddforNode(DeclareStaticVariableNode);
 	DeclareVariableNode Variable;
 };
-struct DeclareThreadVariableNode
+struct DeclareThreadVariableNode :Node
 {
+	DeclareThreadVariableNode() : Node(NodeType::DeclareThreadVariableNode)
+	{
+
+	}
 	AddforNode(DeclareThreadVariableNode);
 	DeclareVariableNode Variable;
 };
 
-struct AliasNode
+struct AliasNode :Node
 {
+	AliasNode() : Node(NodeType::AliasNode)
+	{
+
+	}
 	AddforNode(AliasNode);
 
 	NameNode AliasName;
 	GenericValuesNode Generic;
 	TypeNode Type;
 };
-struct EnumValueNode
+struct EnumValueNode :Node
 {
+	
 	NameNode Name;
 	ExpressionNodeType Expression;
 };
-struct EnumNode
+struct EnumNode :Node
 {
+	EnumNode() : Node(NodeType::EnumNode)
+	{
+
+	}
 	AddforNode(EnumNode);
 
 	NameNode EnumName;
@@ -313,22 +493,37 @@ struct EnumNode
 	TypeNode BaseType;
 };
 
-struct AttributeTypeNode
+struct TagTypeNode :Node
 {
-	AddforNodeAndWithList(AttributeTypeNode);
+	TagTypeNode() : Node(NodeType::TagTypeNode)
+	{
+
+	}
+	AddforNodeAndWithList(TagTypeNode);
 
 	NameNode AttributeName;
+
+	TagTypeNode(TagTypeNode&& source) = default;
+	TagTypeNode& operator=(TagTypeNode&& source) = default;
 };
 
-struct IfNode
+struct IfNode :Node
 {
+	IfNode() : Node(NodeType::IfNode)
+	{
+
+	}
 	AddforNode(IfNode);
 
 	ExpressionNodeType Expression;
 	StatementsNode Body;
 };
-struct ElseNode
+struct ElseNode :Node
 {
+	ElseNode() : Node(NodeType::ElseNode)
+	{
+
+	}
 	AddforNode(ElseNode);
 
 	ExpressionNodeType Expression;

@@ -88,6 +88,10 @@ enum class TokenType : TokenType_t
 
 	approximate_Comparison,//~=
 
+	KeyWorld_Enum,
+	KeyWorld_Tag,
+	KeyWorld_umut,
+
 	//Types
 	KeyWorld_UInt8,
 	KeyWorld_UInt16,
@@ -146,6 +150,13 @@ public:
 		case UCodeLang::TokenType::Type:return "Type";
 		case UCodeLang::TokenType::KeyWorld_UInt8:return "uint8";
 		case UCodeLang::TokenType::KeyWorld_SInt8:return "sint8";
+		case UCodeLang::TokenType::KeyWorld_UInt16:return "uint16";
+		case UCodeLang::TokenType::KeyWorld_SInt16:return "sint16";
+		case UCodeLang::TokenType::KeyWorld_UInt32:return "uint32";
+		case UCodeLang::TokenType::KeyWorld_SInt32:return "sint32";
+		case UCodeLang::TokenType::KeyWorld_UInt64:return "uint64";
+		case UCodeLang::TokenType::KeyWorld_SInt64:return "sint64";
+
 		case UCodeLang::TokenType::KeyWorld_Char:return "char";
 		case UCodeLang::TokenType::KeyWorld_Bool:return "bool";
 		case UCodeLang::TokenType::String_literal:return "String literal";

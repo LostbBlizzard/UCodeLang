@@ -28,8 +28,8 @@ void UCLibManger::Link()
 				StaticBytes.push_back(Item);
 			}
 			
-				ClassAssembly::Copy(Item->Get_Lib()->Get_Assembly(), Assembly);
-			
+			auto& _Assembly = Item->Get_Lib()->Get_Assembly();
+			ClassAssembly::PushCopyClasses(Assembly, _Assembly);
 		}
 		for (const auto& Item2 : Item->Get_CPPCalls())
 		{

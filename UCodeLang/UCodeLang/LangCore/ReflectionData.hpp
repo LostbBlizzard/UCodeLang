@@ -83,7 +83,7 @@ public:
 	}
 };
 
-	class ClassData
+class ClassData
 {
 
 public:
@@ -117,18 +117,34 @@ public:
 			return nullptr;
 		}
 
-		const ClassMethod* Get_ClassInit(const String& ThisClassName) const
+		const ClassMethod* Get_ClassInit() const
 		{
-			return Get_ClassMethod(ClassInitializefuncNameC(ThisClassName));
-		}
+			return Get_ClassMethod(ClassInitializefuncName);
+		}//This May be null.
+		const ClassMethod* Get_ClassCopy() const
+		{
+			return Get_ClassMethod(ClassCopyFunc);
+		}//This May be null.
+
+		const ClassMethod* Get_ClassMove() const
+		{
+			return Get_ClassMethod(ClassMoveFunc);
+		}//This May be null.
+		const ClassMethod* Get_ClassSwap() const
+		{
+			return Get_ClassMethod(ClassSwapFunc);
+		}//This May be null.
+		const ClassMethod* Get_ClassDestructor() const
+		{
+			return Get_ClassMethod(ClassDestructorFunc);
+		}//This May be null.
+
 		const ClassMethod* Get_ClassMethod(const String& Name) const
 		{
 			String TepString;
 			for (auto& Item : Methods)
 			{
-				
-				if (Item.FullName == Name 
-					|| (String)ScopeHelper::_globalScope + ScopeHelper::_ScopeSep + Item.FullName == Name)
+				if (Item.FullName == Name)
 				{
 					return &Item;
 				}
@@ -167,18 +183,12 @@ public:
 	{
 		
 	}
-	
-
-	inline const ClassMethod* Get_ClassInit() const
-	{
-		return _Class.Get_ClassInit(FullName);
-	}
 };
 class ClassAssembly
 {
 public:
 	Vector<ClassData*> Classes;
-	inline ClassData& AddClass(const String& Name, const String& FullName)
+	inline ClassData& AddClass(const String& Name, const String& FullName = "")
 	{
 		Classes.push_back(new ClassData(ClassType::Class));
 		auto& r = *Classes.back();
@@ -186,7 +196,7 @@ public:
 		r.FullName = FullName;
 		return r;
 	}
-	inline ClassData& AddEnum(const String& Name, const String& FullName)
+	inline ClassData& AddEnum(const String& Name, const String& FullName = "")
 	{
 		Classes.push_back(new ClassData(ClassType::Enum));
 		auto& r = *Classes.back();
@@ -194,7 +204,7 @@ public:
 		r.FullName = FullName;
 		return r;
 	}
-	inline ClassData& AddAlias(const String& Name, const String& FullName)
+	inline ClassData& AddAlias(const String& Name, const String& FullName = "")
 	{
 		Classes.push_back(new ClassData(ClassType::Alias));
 		auto& r = *Classes.back();
@@ -204,17 +214,17 @@ public:
 	}
 	
 
-	inline ClassData::Class_Data& Add_Class(const String& Name, const String& FullName)
+	inline ClassData::Class_Data& Add_Class(const String& Name, const String& FullName = "")
 	{
 		auto& r = AddAlias(Name, FullName);
 		return r._Class;
 	}
-	inline ClassData::Enum_Data& Add_Enum(const String& Name, const String& FullName)
+	inline ClassData::Enum_Data& Add_Enum(const String& Name, const String& FullName = "")
 	{
 		auto& r = AddAlias(Name, FullName);
 		return r._Enum;
 	}
-	inline ClassData::Alias_Data& Add_Alias(const String& Name, const String& FullName)
+	inline ClassData::Alias_Data& Add_Alias(const String& Name, const String& FullName = "")
 	{
 		auto& r = AddAlias(Name,FullName);
 		return r._Alias;
@@ -233,28 +243,27 @@ public:
 	{
 		Clear();
 	}
-	void static Move(ClassAssembly& Value, ClassAssembly& To)
+	ClassAssembly(ClassAssembly&& source) noexcept
 	{
-		for (auto Item : Value.Classes)
+		for (auto Item : source.Classes)
 		{
-			To.Classes.push_back(Item);
+			Classes.push_back(Item);
 		}
 
-		Value.Classes.clear();
+		source.Classes.clear();
 	}
-	void static Copy(const ClassAssembly& Value, ClassAssembly& To)
+	static void PushCopyClasses(const ClassAssembly& source, ClassAssembly& Out)
 	{
-		for (auto Item : Value.Classes)
+		for (auto Item : source.Classes)
 		{
-			To.Classes.push_back(new ClassData(*Item));
+			Out.Classes.push_back(new ClassData(*Item));
 		}
-
 	}
-	ClassData* Find_Class(const String& Name, const String& Scope)
+	ClassData* Find_Class(const String& Name, const String& Scope ="")
 	{
 		return Find_Class((String_view)Name, (String_view)Scope);
 	}
-	ClassData* Find_Class(const String_view& Name, const String_view& Scope)
+	ClassData* Find_Class(const String_view& Name, const String_view& Scope="")
 	{
 		for (auto& Item : Classes)
 		{
@@ -266,17 +275,20 @@ public:
 		return nullptr;
 	}
 
-	const ClassData* Find_Class(const String& Name, const String& Scope) const
+	const ClassData* Find_Class(const String& Name, const String& Scope = "") const
 	{
 		return Find_Class((String_view)Name, (String_view)Scope);
 	}
-	const ClassData* Find_Class(const String_view& Name, const String_view& Scope) const
+	const ClassData* Find_Class(const String_view& Name, const String_view& Scope = "") const
 	{
+		String Tep = String(Name);
+		Tep += Scope;
 		for (auto& Item : Classes)
 		{
 			if (Item->Name == Name 
 		     || Item->FullName == Name
-			 || (String)ScopeHelper::_globalScope + ScopeHelper::_ScopeSep + Item->FullName == Name)
+			 || Item->Name == Tep
+			 || Item->FullName ==  Tep)
 			{
 				return Item;
 			}
