@@ -1,2 +1,0 @@
-|TestMain[int Input]: 
-	LogSomeThing();

@@ -45,26 +45,14 @@ void Test(Jit_Interpreter::CPPInput Input)
 static UCodeRunTime RunTime;
 int main()
 {
+	RunTests();
+
+	
+	
+	
 	UCodeLang::Compiler _Compiler;
 	UCodeLang::CompliationSettings& Settings =_Compiler.Get_Settings();
 	UCodeLang::Compiler::CompilerPathData Data;
-	
-	/*
-	{
-		StandardLibraryBuilder::BuildLibraryToDir(StandardLibraryPath);
-		
-		Settings._Type = OutPutType::DLL;
-		Data.FileDir = StandardLibraryPath;
-		Data.IntDir = StandardLibraryinit;
-		Data.OutFile = FileDir + StandardLibraryLibName + UCodeLang::FileExt::DllWithDot;
-		_Compiler.CompileFiles(Data);
-		_Compiler.LinkFilesToFile(Data);
-		LogErrors(_Compiler);
-	}
-	*/
-	
-	
-	
 	//Main
 	Settings._Type = OutPutType::Lib;
 	Data.FileDir = FileDir;

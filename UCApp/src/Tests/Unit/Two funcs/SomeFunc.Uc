@@ -1,2 +1,0 @@
-LogSomeThing[]:
- log("Hello World");
