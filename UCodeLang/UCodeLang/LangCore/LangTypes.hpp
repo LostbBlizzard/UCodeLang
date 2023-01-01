@@ -6,6 +6,7 @@
 #include <string>
 #include <stack>
 #include <filesystem>
+#include <optional>
 UCodeLangStart
 
 
@@ -46,6 +47,7 @@ using String = std::string;
 using String_view = std::string_view;
 using Path = std::filesystem::path;
 
+template<typename T> using Optional = std::optional<T>;
 template<typename T> using Vector = std::vector<T>;
 template<typename T, typename T2> using unordered_map = std::unordered_map<T, T2>;
 

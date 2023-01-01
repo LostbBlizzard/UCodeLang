@@ -5,7 +5,7 @@
 #include "Middle/SystematicAnalysis.hpp"
 
 #include "UCodeLang/LangCore/UClib.hpp"
-#include "Back/UCodeBackEnd/BackEndInterface.hpp"
+#include "Back/UCodeBackEnd/UCodeBackEnd.hpp"
 UCodeLangStart
 class Compiler
 {
@@ -17,7 +17,7 @@ public:
 	};
 	struct CompilerRet
 	{
-		CompilerState _State;
+		CompilerState _State= CompilerState::Null;
 		UCodeLang::UClib* OutPut =nullptr;
 	};
 	struct CompilerPathData
@@ -54,7 +54,7 @@ public:
 	{
 		return _Settings;
 	}
-	UCodeLangForceinline void Set_BackEnd(const BackEndObject* Value)
+	UCodeLangForceinline void Set_BackEnd(const BackEndInterface* Value)
 	{
 		_BackEnd = Value;
 	}

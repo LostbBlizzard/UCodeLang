@@ -30,7 +30,7 @@ enum class NodeType :UInt8
 	NumberliteralNode,
 	AliasNode,
 	EnumNode,
-	AttributeTypeNode,
+	TagTypeNode,
 	IfNode,
 	ElseNode,
 	BoolliteralNode,
@@ -41,36 +41,18 @@ enum class NodeType :UInt8
 
 struct Node
 {
-	typedef void (*Nodedone)(Node* ptr);
-	struct VptrData
-	{
-		NodeType _Type;
-		Nodedone _Destroy;
-		constexpr VptrData(NodeType Type, Nodedone Destroy): _Type(Type), _Destroy(Destroy)
-		{
+	Node() { _type = NodeType::Null; };
+	Node(NodeType T) { _type = T; };
 
-		}
-	};
-	const VptrData* _Vptr;
-	Node() : _Vptr(nullptr)
-	{
+	virtual ~Node(){} ;
 
-	};
-	Node(const VptrData* ptr) : _Vptr(ptr)
-	{
 
-	};
 	UCodeLangForceinline NodeType Get_Type() const
 	{
-		return _Vptr->_Type;
+		return _type;
 	}
-	~Node()
-	{
-		if (_Vptr)
-		{
-			_Vptr->_Destroy(this);
-		}
-	}
+private:
+	NodeType _type;
 };
 
 enum class GotNodeType :UInt8
@@ -81,26 +63,18 @@ enum class GotNodeType :UInt8
 	Error,
 	EndLoop,
 };
-template<typename T> struct Optional
-{
-	bool HasValue = false;
-	T Item;
-};
+
 template<typename T> struct TryGetNode_
 {
-	GotNodeType GotNode;
-	T* Node;
+	GotNodeType GotNode = GotNodeType::Null;
+	T* Node =nullptr;
 };
 using TryGetNode = TryGetNode_<Node>;
 
 
 //ALL nodes must have this as there first member. 
 #define AddforNode(Type) \
-static void _Destroy(Node* Value){auto V = As(Value);Value->_Vptr =nullptr; V->~##Type();};\
-static constexpr NodeType Node_t =NodeType::##Type;\
-static constexpr Node::VptrData VPtr= Node::VptrData(Node_t,##Type::_Destroy);\
-Node _Node = Node(&VPtr); \
-\
+static constexpr NodeType Node_t = NodeType::##Type;\
 Node* As(){return (Node*)this;}\
 static Type* Gen(){return new Type();} \
 static UCodeLangForceinline Node* As(Type* Value) {return (Node*)Value;} \
@@ -135,14 +109,27 @@ Vector<Node*> _Nodes; \
 }\
 
 
+
 #define AddforNodeAndWithList(Type) \
 AddforNode(Type); \
 Has_NodesList(Type); \
 
-struct FileNode
+struct FileNode : Node
 {
+	FileNode() :Node(NodeType::FileNode)
+	{
+	
+	}
+	FileNode(FileNode&& Source) = default;
 	AddforNodeAndWithList(FileNode);
 
+
 	String_view FilePath;
+	void Reset()
+	{
+		FilePath = "";
+		for (auto Item : _Nodes) { delete Item; } \
+		_Nodes.clear();
+	}
 };
 UCodeLangEnd

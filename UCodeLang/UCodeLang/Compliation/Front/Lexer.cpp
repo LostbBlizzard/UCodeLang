@@ -469,6 +469,7 @@ void Lexer::Lex(const String_view& Text)
 			Error._Msg = "ExpectingSequence \' */ \' To End MultLine Comment";
 		};
 	}
+	_LexerSuccess = !_ErrorsOutput->Has_Errors();
 }
 bool Lexer::DoIndentation(bool& IsIndentationing, char Char, size_t& IndentationLevel, size_t& LastIndentationLevel, UCodeLang::Token& _Token)
 {

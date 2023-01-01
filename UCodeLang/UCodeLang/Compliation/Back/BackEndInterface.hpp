@@ -13,10 +13,10 @@ public:
 
 
 	template<typename T> 
-	BackEndInterface& Set_GenBackEnd(GenBackEndCallBack<T> Value) { _GenBackEnd = Value; return *this; }
+	BackEndInterface& Set_GenBackEnd(GenBackEndCallBack<T> Value) { _GenBackEnd = (_GenBackEndCallBack)Value; return *this; }
 
 	template<typename T>
-	BackEndInterface& Set_DeleteBackEnd(JustObjectCallBack<T> Value) { _DeleteBackEnd = Value; return *this;}
+	BackEndInterface& Set_DeleteBackEnd(JustObjectCallBack<T> Value) { _DeleteBackEnd = (_JustObjectCallBack)Value; return *this;}
 
 	
 	

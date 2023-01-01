@@ -4,13 +4,21 @@
 UCodeLangStart
 struct ScopeHelper
 {
-	static inline const char* _globalScope = "[_global]";
+	static inline const char* _globalAssemblyObject = "[_global]";//where none class objs wiil be.
 	static inline const char _ScopeSep = ':';
 
 	String ThisScope;
+	inline void AddScope(const String_view& Name)
+	{
+		if (ThisScope.size()) 
+		{
+			ThisScope += _ScopeSep;
+		}
+		ThisScope += Name;
+	};
 	inline void AddScope(const String& Name)
 	{
-		ThisScope += _ScopeSep + Name;
+		AddScope(String_view(Name));
 	};
 	static void ReMoveScope(String& ThisScope)
 	{
@@ -20,9 +28,10 @@ struct ScopeHelper
 			if (C == _ScopeSep)
 			{
 				ThisScope = ThisScope.substr(0, i);
-				break;
+				return;
 			}
 		}
+		return ThisScope.clear();
 	};
 	void ReMoveScope()
 	{

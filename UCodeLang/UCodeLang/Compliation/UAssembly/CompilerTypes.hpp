@@ -61,7 +61,7 @@ struct TokenValue
 
 struct Token
 {
-	TokenType Type;
+	TokenType Type = TokenType::Null;
 	TokenValue Value;
 
 	size_t OnLine = 0;

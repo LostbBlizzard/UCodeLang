@@ -2,23 +2,23 @@
 //#include "UCodeLang/Compliation/Helpers/KeyWords.hpp"
 #define EnumBaseTypeName "base_t";
 
-#define CharTypeName UCodeLang::S_KeyWord_char
-#define boolTypeName UCodeLang::S_KeyWord_bool
+#define CharTypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_Char)
+#define boolTypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_Bool)
 
-#define Uint8TypeName UCodeLang::S_KeyWord_uInt8
-#define Sint8TypeName UCodeLang::S_KeyWord_Int8
+#define Uint8TypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_UInt8)
+#define Sint8TypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_SInt8)
 
-#define Uint16TypeName UCodeLang::S_KeyWord_uInt16
-#define Sint16TypeName UCodeLang::S_KeyWord_Int16
+#define Uint16TypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_UInt16)
+#define Sint16TypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_SInt16)
 
-#define Uint32TypeName UCodeLang::S_KeyWord_uInt32
-#define Sint32TypeName UCodeLang::S_KeyWord_Int32
+#define Uint32TypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_UInt32)
+#define Sint32TypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_SInt32)
 
-#define Uint64TypeName UCodeLang::S_KeyWord_uInt64
-#define Sint64TypeName UCodeLang::S_KeyWord_Int64
+#define Uint64TypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_UInt64)
+#define Sint64TypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_SInt64)
 
-#define UintPtrTypeName UCodeLang::S_KeyWord_uintptr
-#define SintPtrTypeName UCodeLang::S_KeyWord_sintptr
+#define UintPtrTypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_uintptr)
+#define SintPtrTypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_sintptr)
 
 #define VoidPtrTypeName "VoidPtr"
 #define CStringTypeName "CString"
@@ -27,8 +27,12 @@
 #define CompilerGeneratedEnd "&)"
 #define CompilerGenerated(x) CompilerGeneratedStart x CompilerGeneratedEnd
 
-#define ClassInitializefuncName CompilerGenerated("init")
-#define ClassInitializefuncNameC(ClassName) ClassName + "::" ClassInitializefuncName
+#define ClassInitializefuncName CompilerGenerated("_init")
+#define ClassConstructorfunc CompilerGenerated("_new")
+#define ClassDestructorFunc CompilerGenerated("_drop")
+#define ClassCopyFunc CompilerGenerated("_copy")
+#define ClassMoveFunc CompilerGenerated("_move")
+#define ClassSwapFunc CompilerGenerated("_swap")
 
 #define ThisSymbolName CompilerGenerated("this")
 
