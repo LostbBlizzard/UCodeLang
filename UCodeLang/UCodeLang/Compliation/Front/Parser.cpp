@@ -70,7 +70,7 @@ void Parser::Reset()
 	_TokenIndex = 0;
 	_Nodes = nullptr;
 	_Text = String_view();
-	_Tree =FileNode();
+	_Tree.Reset();
 }
 
 
@@ -92,6 +92,8 @@ void Parser::Parse(const FileData& Data, const Vector<Token>&Tokens)
 		switch (T->Type)
 		{
 		case TokenType::Namespace:V = GetNamespaceNode(); break;
+		case TokenType::KeyWorld_Tag:GetTagNode(); break;
+		case TokenType::KeyWorld_Enum:GetEnumNode(); break;
 		case TokenType::Class:V = GetClassNode(); break;
 		case Parser::declareFunc:V = GetFuncNode(); break;
 		case TokenType::KeyWorld_use:V = GetUseNode(); break;
@@ -105,6 +107,7 @@ void Parser::Parse(const FileData& Data, const Vector<Token>&Tokens)
 			_Tree._Nodes.push_back(V.Node);
 		}
 	}
+	_ParseSuccess= !_ErrorsOutput->Has_Errors();
 }
 
 GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
@@ -135,6 +138,8 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 		{
 		case TokenType::EndTab:goto EndLoop;
 		case TokenType::Namespace:V = GetNamespaceNode(); break;
+		case TokenType::KeyWorld_Tag:GetTagNode(); break;
+		case TokenType::KeyWorld_Enum:GetEnumNode(); break;
 		case TokenType::Class:V = GetClassNode();break;
 		case Parser::declareFunc:V = GetFuncNode(); break;
 		case TokenType::KeyWorld_use:V = GetUseNode(); break;
@@ -177,20 +182,7 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 	
 
 	const String_view& ClassName = ClassToken->Value._String;
-	if (ClassName == "E")
-	{
-		NextToken();
-		auto ptr = EnumNode::Gen();
-		out = ptr->As();
-		return GetEnumNode(*ptr);
-	}
-	else if (ClassName == "A")
-	{
-		NextToken();
-		auto ptr = AttributeTypeNode::Gen();
-		out = ptr->As();
-		return GetAttributeNode(*ptr);
-	}
+	
 	
 	NextToken();
 
@@ -224,6 +216,8 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 			switch (T->Type)
 			{
 			case TokenType::EndTab:goto EndLoop;
+			case TokenType::KeyWorld_Tag:GetTagNode(); break;
+			case TokenType::KeyWorld_Enum:GetEnumNode(); break;
 			case TokenType::Class:V = GetClassNode(); break;
 			case Parser::declareFunc:V = GetFuncNode(); break;
 			case TokenType::KeyWorld_use:V = GetUseNode(); break;
@@ -278,6 +272,18 @@ GotNodeType Parser::GetStatement(Node*& out)
 	case TokenType::StartTab:
 	{
 		auto r = GetStatements();
+		out = r.Node;
+		return r.GotNode;
+	};
+	case TokenType::KeyWorld_Tag:
+	{
+		auto r = GetTagNode();
+		out = r.Node;
+		return r.GotNode;
+	};
+	case TokenType::KeyWorld_Enum:
+	{
+		auto r = GetEnumNode();
 		out = r.Node;
 		return r.GotNode;
 	};
@@ -375,13 +381,15 @@ GotNodeType Parser::GetFuncNode(FuncNode& out)
 	{
 	case TokenType::Semicolon:
 		NextToken();
-		out.Body.HasValue = false;
+		out.Body = {};
 		break;
-	case TokenType::Colon:
+	case TokenType::Colon: 
+	{
 		NextToken();
-	    GetFuncBodyNode(out.Body.Item);
-		out.Body.HasValue = true;
-		break;
+		FuncBodyNode V;
+		GetFuncBodyNode(V);
+		out.Body = std::move(V);
+	}break;
 	default:
 		TokenTypeCheck(ColonToken, TokenType::Colon);
 		break;
@@ -533,24 +541,6 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 		out = Ptr->As();
 		return Ex;
 	}
-}
-GotNodeType Parser::GetNullAbleExpressionTypeNode(Node*& out)
-{
-	auto Token = TryGetToken(); TokenNotNullCheck(Token);
-	if (Token->Type == TokenType::Semicolon) 
-	{
-		NextToken();
-		out = nullptr;
-		return GotNodeType::Success;
-	}
-	else
-	{
-		return GetExpressionTypeNode(out);
-	}
-}
-GotNodeType Parser::GetNullAbleExpressionTypeNode(ExpressionNodeType& out)
-{
-	return GetNullAbleExpressionTypeNode(out.Value);
 }
 GotNodeType Parser::GetValueParameterNode(Node*& out)
 {
@@ -837,10 +827,20 @@ GotNodeType Parser::GetRetStatement(RetStatementNode& out)
 	TokenTypeCheck(RetToken, TokenType::KeyWorld_Ret);
 	NextToken();
 
-	GetNullAbleExpressionTypeNode(out.Expression);
+	auto Token = TryGetToken(); TokenNotNullCheck(Token);
+	if (Token->Type == TokenType::Semicolon)
+	{
+		NextToken();
+		out.Expression.Value = nullptr;
+		return GotNodeType::Success;
+	}
+	else
+	{
+		return GetExpressionTypeNode(out.Expression); 
+		auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
+		NextToken();
+	}
 
-	auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
-	NextToken();
 	return GotNodeType::Success;
 }
 
@@ -869,7 +869,8 @@ void Parser::GetDeclareVariableNoObject(TryGetNode& out)
 	if (out.GotNode == GotNodeType::Success)
 	{
 		auto ptr = DeclareThreadVariableNode::Gen();
-		ptr->Variable = node;//Move
+		_ErrorsOutput->AddError(ErrorCodes::InternalCompilerError, 0, 0, "Cant move varble");
+		//ptr->Variable = std::move(node);
 		out.Node = ptr->As();
 	}
 }
@@ -948,6 +949,9 @@ GotNodeType Parser::GetIfNode(IfNode& out)
 }
 GotNodeType Parser::GetEnumNode(EnumNode& out)
 {
+	auto Token = TryGetToken();
+	TokenTypeCheck(Token, TokenType::KeyWorld_Enum);
+	NextToken();
 	GetName(out.EnumName);
 
 
@@ -974,12 +978,10 @@ GotNodeType Parser::GetEnumNode(EnumNode& out)
 	while (auto T = TryGetToken())
 	{
 		if (T == nullptr || T->Type == TokenType::EndTab) { break; }
-		EnumValueNode EnumValue;
-
-
 		
+		out.Values.push_back({});
+		EnumValueNode& EnumValue =out.Values.back();
 		GetEnumValueNode(EnumValue);
-		out.Values.push_back(EnumValue);
 
 
 		auto ColonToken = TryGetToken();
@@ -1004,8 +1006,11 @@ GotNodeType Parser::GetEnumValueNode(EnumValueNode& out)
 	}
 	return GotNodeType::Success;
 }
-GotNodeType Parser::GetAttributeNode(AttributeTypeNode& out)
+GotNodeType Parser::GetTagNode(TagTypeNode& out)
 {
+	auto Token = TryGetToken();
+	TokenTypeCheck(Token, TokenType::KeyWorld_Tag);
+	NextToken();
 	GetName(out.AttributeName);
 
 	auto ColonToken = TryGetToken(); TokenTypeCheck(ColonToken, TokenType::Colon); NextToken();

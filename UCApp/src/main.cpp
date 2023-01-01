@@ -141,7 +141,6 @@ bool LogErrors(UCodeLang::Compiler& _Compiler)
 		{
 			Type = "N/A";
 		}
-
 		std::cout << Type  << " At Line:" << (Item.Line != Token::EndOfFile ? std::to_string(Item.Line) : "End of File") << ":" << Item._Msg << " In " << Item.File << std::endl;
 	}
 	return _Compiler.Get_Errors().Has_Errors();

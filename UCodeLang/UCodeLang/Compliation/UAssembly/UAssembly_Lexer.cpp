@@ -118,6 +118,8 @@ void Lexer::Lex(const String_view& Text)
 			break;
 		}
 	}
+
+	_LexerSuccess = !_ErrorsOutput->Has_Errors();
 }
 
 UAssemblyEnd
