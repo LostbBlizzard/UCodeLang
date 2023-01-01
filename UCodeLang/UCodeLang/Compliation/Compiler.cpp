@@ -176,5 +176,4 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 	r._State = _Errors.Has_Errors() ? CompilerState::Fail : CompilerState::Success;
 	return r;
 }
-
 UCodeLangEnd
