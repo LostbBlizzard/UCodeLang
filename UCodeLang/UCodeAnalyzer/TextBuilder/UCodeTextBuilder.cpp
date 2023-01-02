@@ -156,7 +156,7 @@ void UCodeTextBuilder::AddEnumToString(BuildState& Str, const EnumNode& Node)
 {
 	AddIndents(Str.Str, Str.IndentLevel);
 	AddAttributesToString(Str, Node.attributes);
-	Str.Str += KeyWordAndTokens::ClassKeyWord + (String)"E " + Node.Name;
+	Str.Str += KeyWordAndTokens::EnumKeyWord + (String)" " + Node.Name;
 
 	if (Node.BaseType.size())
 	{
@@ -193,7 +193,7 @@ void UCodeTextBuilder::AddAttributeNodeToString(BuildState& Str, const Attribute
 {
 	AddIndents(Str.Str, Str.IndentLevel);
 	AddAttributesToString(Str, Node.attributes);
-	Str.Str += KeyWordAndTokens::ClassKeyWord + (String)"A " + Node.Name;
+	Str.Str += KeyWordAndTokens::TagKeyWord + (String)" " + Node.Name;
 
 	Str.Str += ": \n";
 	Str.IndentLevel += 1;

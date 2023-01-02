@@ -12,6 +12,8 @@ class KeyWordAndTokens
 public:
 	constexpr static const char* NamespaceKeyWord = UCodeLang::StringHelper::ToString(UCodeLang::TokenType::Namespace);
 	constexpr static const char* ClassKeyWord = UCodeLang::StringHelper::ToString(UCodeLang::TokenType::Class);
+	constexpr static const char* EnumKeyWord = UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_Enum);
+	constexpr static const char* TagKeyWord = UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_Tag);
 	constexpr static const char* VarKeyWord = UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_var);
 	constexpr static const char* VoidKeyWord = UCodeLang::StringHelper::ToString(UCodeLang::TokenType::Void);
 	constexpr static const char* FuncKeyWord = UCodeLang::StringHelper::ToString(UCodeLang::TokenType::bitwise_or);
