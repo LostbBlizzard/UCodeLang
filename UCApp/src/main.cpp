@@ -116,21 +116,7 @@ bool LogErrors(UCodeLang::Compiler& _Compiler)
 	auto& Errors = _Compiler.Get_Errors().Get_Errors();
 	for (auto& Item : Errors)
 	{
-
-		const char* Type;
-		if (UCodeLang::CompliationErrors::IsError(Item._Code))
-		{
-			Type = "Error";
-		}
-		else if (UCodeLang::CompliationErrors::IsWarning(Item._Code))
-		{
-			Type = "Warning";
-		}
-		else
-		{
-			Type = "N/A";
-		}
-		std::cout << Type  << " At Line:" << (Item.Line != Token::EndOfFile ? std::to_string(Item.Line) : "End of File") << ":" << Item._Msg << " In " << Item.File << std::endl;
+		std::cout << Item.ToString() << std::endl;
 	}
 	return _Compiler.Get_Errors().Has_Errors();
 }

@@ -63,6 +63,23 @@ public:
 		{
 
 		};
+		String ToString()
+		{
+			const char* Type;
+			if (UCodeLang::CompliationErrors::IsError(_Code))
+			{
+				Type = "Error";
+			}
+			else if (UCodeLang::CompliationErrors::IsWarning(_Code))
+			{
+				Type = "Warning";
+			}
+			else
+			{
+				Type = "N/A";
+			}
+			return (String)Type + " At Line:" + (Line != Token::EndOfFile ? std::to_string(Line) : "End of File") + ":" + _Msg + " In " + File;
+		}
 	}; 
 	inline static bool IsWarning(ErrorCodes Code)
 		{
