@@ -1,7 +1,10 @@
 
+
+//enum Hello;
+//tag Hello2;
+
 [fastCass]
-$Hello:
- use Nan;
+$Hello;
 
 
 [fastCall]
