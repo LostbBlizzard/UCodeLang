@@ -199,6 +199,15 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 		out = V->As();
 		return GetAlias(ClassToken, TepGenerics, *V);//TepGenerics Move
 	}
+	else if (ColonToken->Type == TokenType::Semicolon)
+	{
+		NextToken();
+
+		auto output = ClassNode::Gen(); out = output->As();
+		output->ClassName.Token = ClassToken;
+		output->Generic = TepGenerics;
+		return GotNodeType::Success;
+	}
 	else
 	{
 		auto output = ClassNode::Gen();out = output->As();
@@ -974,7 +983,13 @@ GotNodeType Parser::GetEnumNode(EnumNode& out)
 		}
 	}
 
-	auto ColonToken = TryGetToken(); TokenTypeCheck(ColonToken, TokenType::Colon); NextToken();
+
+
+	auto ColonToken = TryGetToken(); TokenNotNullCheck(ColonToken);
+	if (ColonToken->Type == TokenType::Semicolon) { NextToken(); return GotNodeType::Success; }
+
+	TokenTypeCheck(ColonToken, TokenType::Colon); NextToken();
+
 	auto StartToken = TryGetToken(); TokenTypeCheck(StartToken, TokenType::StartTab);
 	NextToken();
 
@@ -1016,7 +1031,10 @@ GotNodeType Parser::GetTagNode(TagTypeNode& out)
 	NextToken();
 	GetName(out.AttributeName);
 
-	auto ColonToken = TryGetToken(); TokenTypeCheck(ColonToken, TokenType::Colon); NextToken();
+	auto ColonToken = TryGetToken(); TokenNotNullCheck(ColonToken);
+	if (ColonToken->Type == TokenType::Semicolon) { NextToken(); return GotNodeType::Success;}
+
+	TokenTypeCheck(ColonToken, TokenType::Colon); NextToken();
 	auto StartToken = TryGetToken(); TokenTypeCheck(StartToken, TokenType::StartTab);NextToken();
 
 	while (auto T = TryGetToken())

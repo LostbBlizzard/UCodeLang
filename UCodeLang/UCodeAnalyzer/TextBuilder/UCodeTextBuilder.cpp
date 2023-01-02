@@ -72,6 +72,13 @@ void UCodeTextBuilder::AddClassToString(BuildState& Str, const ClassNode& Node)
 	AddAttributesToString(Str, Node.attributes);
 	Str.Str += KeyWordAndTokens::ClassKeyWord + Node.Name;
 	AddGenericsToString(Str.Str,Node.GenericTypes);
+	if (Node.MemberVariables.size() == 0 &&
+		Node.Methods.size() == 0 &&
+		Node._Nodes.size() == 0)
+	{
+		Str.Str += ";";
+		return;
+	}
 	Str.Str += ": \n";
 	
 	Str.IndentLevel += 1;
@@ -162,6 +169,13 @@ void UCodeTextBuilder::AddEnumToString(BuildState& Str, const EnumNode& Node)
 	{
 		Str.Str += "[" + Node.BaseType + "]";
 	}
+
+	if (Node.Values.size() == 0)
+	{
+		Str.Str += ";";
+		return;
+	}
+
 	Str.Str += ": \n";
 	Str.IndentLevel += 1;
 	//
@@ -194,7 +208,11 @@ void UCodeTextBuilder::AddAttributeNodeToString(BuildState& Str, const Attribute
 	AddIndents(Str.Str, Str.IndentLevel);
 	AddAttributesToString(Str, Node.attributes);
 	Str.Str += KeyWordAndTokens::TagKeyWord + (String)" " + Node.Name;
-
+	if (0 == 0)//this will be Fixed this soon
+	{
+		Str.Str += ";";
+		return;
+	}
 	Str.Str += ": \n";
 	Str.IndentLevel += 1;
     //
