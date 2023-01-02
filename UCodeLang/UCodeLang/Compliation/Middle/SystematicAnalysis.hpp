@@ -71,6 +71,7 @@ private:
 	const Vector<UClib*>* _Libs = nullptr;
 	ScopeHelper2 _Sc;
 	std::stack<ClassData*> _ClassStack;
+	Vector<const AttributeNode*> _TepAttributes;
 
 	void Pass();
 	void OnFileNode(UCodeLang::FileNode* const& File);
@@ -79,9 +80,12 @@ private:
 	void OnFuncNode(const FuncNode& node);
 	void OnEnum(const EnumNode& node);
 	void OnNamespace(const NamespaceNode& node);
+	void OnAttributeNode(const AttributeNode& node);
+	void OnNonAttributeable(size_t Line, size_t Pos);
 	String GetScopedNameAsString(const ScopedNameNode& node);
 	void OnDeclareVariablenode(const DeclareVariableNode& node);
 	void CheckBackEnd();
+	void PushTepAttributesInTo(Vector<AttributeData>& Input);
 };
 UCodeLangEnd
 

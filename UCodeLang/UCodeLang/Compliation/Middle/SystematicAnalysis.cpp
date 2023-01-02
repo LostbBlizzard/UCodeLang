@@ -53,6 +53,7 @@ void SystematicAnalysis::OnNamespace(const NamespaceNode& node)
 		switch (node->Get_Type())
 		{
 		case NodeType::NamespaceNode:OnNamespace(*NamespaceNode::As(node)); break;
+		case NodeType::AttributeNode:OnAttributeNode(*AttributeNode::As(node)); break;
 		case NodeType::ClassNode: OnClassNode(*ClassNode::As(node)); break;
 		case NodeType::EnumNode:OnEnum(*EnumNode::As(node)); break;
 		case NodeType::FuncNode:OnFuncNode(*FuncNode::As(node)); break;
@@ -64,6 +65,22 @@ void SystematicAnalysis::OnNamespace(const NamespaceNode& node)
 
 	_Sc.RemovePopUseing(UseingIndex);
 }
+void SystematicAnalysis::OnAttributeNode(const AttributeNode& node)
+{
+	if (passtype == PassType::GetTypes) {
+		_TepAttributes.push_back(&node);
+	}
+}
+void SystematicAnalysis::OnNonAttributeable(size_t Line, size_t Pos)
+{
+	if (passtype == PassType::GetTypes)
+	{
+		if (_TepAttributes.size())
+		{
+			_ErrorsOutput->AddError(ErrorCodes::TreeAnalyerError, Line, Pos, "You cant put a Tag on this");
+		}
+	}
+}
 void SystematicAnalysis::OnFileNode(UCodeLang::FileNode* const& File)
 {
 	for (auto node : File->_Nodes)
@@ -71,6 +88,7 @@ void SystematicAnalysis::OnFileNode(UCodeLang::FileNode* const& File)
 		switch (node->Get_Type())
 		{
 		case NodeType::NamespaceNode:OnNamespace(*NamespaceNode::As(node)); break;
+		case NodeType::AttributeNode:OnAttributeNode(*AttributeNode::As(node)); break;
 		case NodeType::ClassNode: OnClassNode(*ClassNode::As(node)); break;
 		case NodeType::EnumNode:OnEnum(*EnumNode::As(node)); break;
 		case NodeType::FuncNode:OnFuncNode(*FuncNode::As(node)); break;
@@ -93,12 +111,18 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 		: *_Lib.Get_Assembly().Find_Class(_Sc._Scope.ThisScope);
 	_ClassStack.push(&Class);
 
+	if (passtype == PassType::GetTypes)
+	{
+		PushTepAttributesInTo(Class._Class.Attributes);
+	}
+
 	auto UseingIndex = _Sc.GetUseingIndex();
 
 	for (const auto& node : Node._Nodes)
 	{
 		switch (node->Get_Type())
 		{
+		case NodeType::AttributeNode:OnAttributeNode(*AttributeNode::As(node)); break;
 		case NodeType::ClassNode: OnClassNode(*ClassNode::As(node)); break;
 		case NodeType::EnumNode:OnEnum(*EnumNode::As(node)); break;
 		case NodeType::UsingNode: OnUseingNode(*UsingNode::As(node)); break;
@@ -150,6 +174,8 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 }
 void SystematicAnalysis::OnUseingNode(const UsingNode& node)
 {
+	auto T = node.ScopedName.ScopedName[0];
+	OnNonAttributeable(T->OnLine, T->OnPos);
 	const auto UseingString =GetScopedNameAsString(node.ScopedName);
 	_Sc.AddUseing(UseingString);
 
@@ -191,12 +217,18 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		Ptr = _ClassStack.top();
 	}
 
+	
+	
+
 	auto UseingIndex = _Sc.GetUseingIndex();
 
 	if (passtype == PassType::GetTypes)
 	{
 		ClassMethod V;
-		V.FullName = _Sc._Scope.ThisScope;
+		V.FullName = _Sc._Scope.ThisScope;		
+		PushTepAttributesInTo(V.Attributes);
+		
+		
 		Ptr->_Class.Methods.push_back(V);
 
 		//Testing
@@ -208,9 +240,12 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		}
 
 		InstructionBuilder::Return(ExitState::Success, _ins);
-		auto pos =_Lib.Add_Instruction(_ins);
+		auto pos = _Lib.Add_Instruction(_ins);
 
 		_Lib.Add_NameToLastInstruction(V.FullName);
+
+
+		
 	}
 
 	if (node.Body.has_value()) 
@@ -220,6 +255,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		{
 			switch (node2->Get_Type())
 			{
+			case NodeType::AttributeNode:OnAttributeNode(*AttributeNode::As(node2)); break;
 			case NodeType::ClassNode: OnClassNode(*ClassNode::As(node2)); break;
 			case NodeType::EnumNode:OnEnum(*EnumNode::As(node2)); break;
 			case NodeType::UsingNode: OnUseingNode(*UsingNode::As(node2)); break;
@@ -268,6 +304,16 @@ void SystematicAnalysis::CheckBackEnd()
 
 		return;
 	}
+}
+void SystematicAnalysis::PushTepAttributesInTo(Vector<AttributeData>& Input)
+{
+	for (auto& Item : _TepAttributes)
+	{
+		AttributeData Data;
+		Item->ScopedName.GetScopedName(Data.Name);
+		Input.push_back(Data);
+	}
+	_TepAttributes.clear();
 }
 UCodeLangEnd
 
