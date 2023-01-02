@@ -80,6 +80,7 @@ struct ScopedNameNode :Node
 			{
 				out += ScopeHelper::_ScopeSep;
 			}
+			out += item->Value._String;
 		}
 	}
 };

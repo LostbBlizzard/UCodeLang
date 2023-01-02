@@ -146,10 +146,11 @@ bool RunTestForFlag(const TestInfo& Test, OptimizationFlags flag)
 		}
 		catch (const std::exception& ex)
 		{
+			JitRunTime.UnLoad();
 			std::cerr << "fail from jit test [exception] " << ex.what() << ": " << "'" << Test.TestName << ModeType(flag) << "'" << std::endl;
 			return false;
 		}
-
+		JitRunTime.UnLoad();
 
 		if (Test.Condition == SuccessCondition::RunTimeValue)
 		{
@@ -165,11 +166,12 @@ bool RunTestForFlag(const TestInfo& Test, OptimizationFlags flag)
 				return false;
 			}
 		}
-		JitRunTime.UnLoad();
+		
 	}
 
 
 	rLib.UnLoad();
+	return true;
 }
 bool RunTest(const TestInfo& Test)
 {
