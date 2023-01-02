@@ -29,8 +29,8 @@ static const std::vector<TestInfo> Tests
 
 
 const UCodeLang::String _ScrDir = "C:/CoolStuff/CoolCodeingStuff/C++/Projects/UCodeLang/UCApp/src/";
-const std::string Test_UCodeFiles = _ScrDir + "Tests/Files/";
-const std::string Test_OutputFiles = _ScrDir + "Output/";
+const std::string Test_UCodeFiles = _ScrDir + "Tests/UCodeFiles/Files/";
+const std::string Test_OutputFiles = _ScrDir + "Tests/UCodeFiles/Output/";
 
 bool RunTest(const TestInfo& Test);
 
