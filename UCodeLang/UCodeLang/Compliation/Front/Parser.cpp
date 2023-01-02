@@ -836,7 +836,7 @@ GotNodeType Parser::GetRetStatement(RetStatementNode& out)
 	}
 	else
 	{
-		return GetExpressionTypeNode(out.Expression); 
+		GetExpressionTypeNode(out.Expression); 
 		auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
 		NextToken();
 	}

@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include "main.h"
+#include <future>
 
 #include "UCodeAnalyzer/TextBuilder/UCodeTextBuilder.hpp"
 #include "UCodeAnalyzer/CodeBuilds/StandardLibraryBuilder.hpp"
@@ -45,7 +46,7 @@ void Test(Jit_Interpreter::CPPInput Input)
 static UCodeRunTime RunTime;
 int main()
 {
-	RunTests();
+	//std::async(std::launch::async, [] { RunTests(); });
 
 	
 	
