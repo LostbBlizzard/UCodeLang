@@ -76,7 +76,7 @@ void UCodeTextBuilder::AddClassToString(BuildState& Str, const ClassNode& Node)
 		Node.Methods.size() == 0 &&
 		Node._Nodes.size() == 0)
 	{
-		Str.Str += ";";
+		Str.Str += ";\n";
 		return;
 	}
 	Str.Str += ": \n";
@@ -172,7 +172,7 @@ void UCodeTextBuilder::AddEnumToString(BuildState& Str, const EnumNode& Node)
 
 	if (Node.Values.size() == 0)
 	{
-		Str.Str += ";";
+		Str.Str += ";\n";
 		return;
 	}
 
@@ -210,7 +210,7 @@ void UCodeTextBuilder::AddAttributeNodeToString(BuildState& Str, const Attribute
 	Str.Str += KeyWordAndTokens::TagKeyWord + (String)" " + Node.Name;
 	if (0 == 0)//this will be Fixed this soon
 	{
-		Str.Str += ";";
+		Str.Str += ";\n";
 		return;
 	}
 	Str.Str += ": \n";

@@ -92,8 +92,8 @@ void Parser::Parse(const FileData& Data, const Vector<Token>&Tokens)
 		switch (T->Type)
 		{
 		case TokenType::Namespace:V = GetNamespaceNode(); break;
-		case TokenType::KeyWorld_Tag:GetTagNode(); break;
-		case TokenType::KeyWorld_Enum:GetEnumNode(); break;
+		case TokenType::KeyWorld_Tag:V = GetTagNode(); break;
+		case TokenType::KeyWorld_Enum:V = GetEnumNode(); break;
 		case TokenType::Class:V = GetClassNode(); break;
 		case Parser::declareFunc:V = GetFuncNode(); break;
 		case TokenType::KeyWorld_use:V = GetUseNode(); break;
@@ -139,8 +139,8 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 		{
 		case TokenType::EndTab:goto EndLoop;
 		case TokenType::Namespace:V = GetNamespaceNode(); break;
-		case TokenType::KeyWorld_Tag:GetTagNode(); break;
-		case TokenType::KeyWorld_Enum:GetEnumNode(); break;
+		case TokenType::KeyWorld_Tag:V = GetTagNode(); break;
+		case TokenType::KeyWorld_Enum:V = GetEnumNode(); break;
 		case TokenType::Class:V = GetClassNode();break;
 		case Parser::declareFunc:V = GetFuncNode(); break;
 		case TokenType::KeyWorld_use:V = GetUseNode(); break;
@@ -227,8 +227,8 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 			switch (T->Type)
 			{
 			case TokenType::EndTab:goto EndLoop;
-			case TokenType::KeyWorld_Tag:GetTagNode(); break;
-			case TokenType::KeyWorld_Enum:GetEnumNode(); break;
+			case TokenType::KeyWorld_Tag:V = GetTagNode(); break;
+			case TokenType::KeyWorld_Enum:V = GetEnumNode(); break;
 			case TokenType::Class:V = GetClassNode(); break;
 			case Parser::declareFunc:V = GetFuncNode(); break;
 			case TokenType::KeyWorld_use:V = GetUseNode(); break;
