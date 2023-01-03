@@ -11,13 +11,13 @@ UCLibManger::~UCLibManger()
 
 void UCLibManger::Link()
 {
-	for (auto Item : Libs)
+	for (const auto Item : Libs)
 	{
 		for (const auto& Item2 : Item->Get_Instructions())
 		{
 			_Instructions.push_back(Item2);
 		}
-		if (Item->Get_Lib()) 
+		if (Item->Get_Lib())
 		{
 			for (const auto& Item2 : Item->Get_Lib()->Get_NameToPtr())
 			{
@@ -27,9 +27,9 @@ void UCLibManger::Link()
 			{
 				StaticBytes.push_back(Item);
 			}
-			
+
 			auto& _Assembly = Item->Get_Lib()->Get_Assembly();
-			ClassAssembly::PushCopyClasses(Assembly, _Assembly);
+			ClassAssembly::PushCopyClasses(_Assembly, Assembly);
 		}
 		for (const auto& Item2 : Item->Get_CPPCalls())
 		{
