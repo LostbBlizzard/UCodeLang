@@ -110,10 +110,13 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 			FilesStrings.push_back(new String(GetTextFromFile(dirEntry.path())));
 			auto Text = FilesStrings.back();
 			_Lexer.Lex(*Text);
-			Parser::FileData Data;
+			
 			if (!_Lexer.Get_LexerSuccess()) { continue; }
 
 			auto& Teknes = _Lexer.Get_Tokens();
+			Parser::FileData Data;
+			Data.FilePath = RePath;
+			Data.Text = *Text;
 			_Parser.Parse(Data, Teknes);
 			if (!_Parser.Get_ParseSucces()) { continue; }
 			_Errors.FixEndOfLine(_Lexer.Get_OnLine(), _Lexer.Get_TextIndex());

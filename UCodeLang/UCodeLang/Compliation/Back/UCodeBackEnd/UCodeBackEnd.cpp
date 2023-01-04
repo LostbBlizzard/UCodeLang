@@ -5,7 +5,9 @@ void UCodeBackEnd::Bind(BackEndInterface& Obj)
 	Obj
 	.Set_GenBackEnd(Gen)
 	.Set_DeleteBackEnd(Delete)
-		
+	.Set_ErrorsOutput(Set_ErrorsOutput)
+	.Set_BuildStatements(BuildStatements)
+	.Set_Analysis(Set_Analysis)
 		;
 }
 const BackEndInterface* UCodeBackEnd::Get()
@@ -23,10 +25,28 @@ const BackEndInterface* UCodeBackEnd::Get()
 
 UCodeBackEndObject::UCodeBackEndObject()
 {
+	
 }
 
 UCodeBackEndObject::~UCodeBackEndObject()
 {
+}
+
+void UCodeBackEndObject::BuildStatements(const Vector<Node*>& nodes)
+{
+	for (const auto& node : nodes)
+	{
+		switch (node->Get_Type())
+		{
+		case NodeType::AsmBlockNode:BuildAsmNode(*AsmBlockNode::As(node)); break;
+		default:break;
+		}
+	}
+}
+
+void UCodeBackEndObject::BuildAsmNode(const AsmBlockNode& node)
+{
+//	UAssembly.Assemble(node.AsmText,)
 }
 
 UCodeLangEnd

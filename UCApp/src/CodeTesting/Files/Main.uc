@@ -1,4 +1,5 @@
 
-%Helo:
- tag Hi;
- tag Bye;
+|Main[]:
+ asm:
+  Store 5,[out]
+ ret;
