@@ -27,11 +27,18 @@ bool SystematicAnalysis::Analyze(const Vector<FileNode*>& Files, const Vector<UC
 	Pass();
 
 
+	BackEndObject = BackEnd->GenNewBackEnd();
+	BackEnd->SetBackEndAnalysis(BackEndObject, this);
+
 	passtype = PassType::FixedTypes;
 	Pass();
 
 	_Files = nullptr;
 	_Libs = nullptr;
+
+	BackEnd->DeleteBackEnd(BackEndObject);
+	BackEndObject = nullptr;
+
 	return !_ErrorsOutput->Has_Errors();
 }
 void SystematicAnalysis::Pass()
@@ -232,20 +239,25 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		Ptr->_Class.Methods.push_back(V);
 
 		//Testing
-		Instruction _ins;
-		if (_Lib.Get_Instructions().size() == 0)
+		if (node.Body.has_value())
 		{
-			InstructionBuilder::Exit(ExitState::Failure, _ins);
-			_Lib.Add_Instruction(_ins);
+			auto& Body = node.Body.value();
+			BackEnd->BuildStatements(BackEndObject, Body.Statements._Nodes);
 		}
+		else
+		{
+			Instruction _ins;
+			if (_Lib.Get_Instructions().size() == 0)
+			{
+				InstructionBuilder::Exit(ExitState::Failure, _ins);
+				_Lib.Add_Instruction(_ins);
+			}
 
-		InstructionBuilder::Return(ExitState::Success, _ins);
-		auto pos = _Lib.Add_Instruction(_ins);
+			InstructionBuilder::Return(ExitState::Success, _ins);
+			auto pos = _Lib.Add_Instruction(_ins);
 
-		_Lib.Add_NameToLastInstruction(V.FullName);
-
-
-		
+			_Lib.Add_NameToLastInstruction(V.FullName);
+		}
 	}
 
 	if (node.Body.has_value()) 

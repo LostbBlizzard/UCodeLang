@@ -111,3 +111,22 @@ project "UCodeLang"
    includedirs{
     "UCodeLang",
    }
+project "UBackEnd_C99"
+   location "UBackEnd_C99"
+   kind "StaticLib"
+   language "C++"
+
+   
+   
+   targetdir ("Output/%{prj.name}/" .. OutDirPath)
+   objdir ("Output/int/%{prj.name}/" .. OutDirPath)
+   
+   files { 
+     "%{prj.name}/**.c",
+     "%{prj.name}/**.h",
+     "%{prj.name}/**.cpp",
+     "%{prj.name}/**.hpp", 
+   }
+   includedirs{
+    "UCodeLang",
+   }

@@ -104,8 +104,7 @@ public:
 	{
 		Error R(_Error, Line, Pos);
 		R.File = FilePath;
-		_Errors.push_back(R);
-		return _Errors.back();
+		return AddError(R);
 	};
 	inline Error& AddError(const Error& _Error)
 	{
