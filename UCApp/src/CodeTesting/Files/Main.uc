@@ -1,5 +1,6 @@
 
 |Main[]:
  asm:
-  Store 5,[out]
+  Store8 [Out],5
+  Ret
  ret;

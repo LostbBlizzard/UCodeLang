@@ -2,6 +2,7 @@
 #include "UCodeLang/Compliation/Helpers/KeyWords.hpp"
 
 #include "UCodeLang/Compliation/Helpers/InstructionBuilder.hpp"
+#include "UCodeLang/Compliation/Back/UCodeBackEnd/UCodeBackEnd.hpp"
 UCodeLangStart
 
 void SystematicAnalysis::Reset()
@@ -19,6 +20,14 @@ bool SystematicAnalysis::Analyze(const FileNode& File)
 }
 bool SystematicAnalysis::Analyze(const Vector<FileNode*>& Files, const Vector<UClib*>& Libs)
 {
+	if (BackEnd==nullptr)
+	{
+		BackEnd = UCodeBackEnd::Get();
+	}
+	BackEndObject = BackEnd->GenNewBackEnd();
+	BackEnd->SetBackEndAnalysis(BackEndObject, this);
+	BackEnd->SetBackEndErrors(BackEndObject, _ErrorsOutput);
+
 	passtype = PassType::Null;
 	_Files = &Files;
 	_Libs = &Libs;
@@ -27,8 +36,7 @@ bool SystematicAnalysis::Analyze(const Vector<FileNode*>& Files, const Vector<UC
 	Pass();
 
 
-	BackEndObject = BackEnd->GenNewBackEnd();
-	BackEnd->SetBackEndAnalysis(BackEndObject, this);
+	
 
 	passtype = PassType::FixedTypes;
 	Pass();
