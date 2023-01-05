@@ -42,11 +42,12 @@ public:
 	using _AnalysisCallBack = void (*)(BackendPtr BackEndObject, SystematicAnalysis* analysis);
 	
 	//What SystematicAnalysis Sees
-	BackendPtr GenNewBackEnd() const{if (_GenBackEnd) { _GenBackEnd(); }}
+	BackendPtr GenNewBackEnd() const { if (_GenBackEnd) { return _GenBackEnd(); }return nullptr; }
 	void DeleteBackEnd(BackendPtr BackEndObject) const{if (_DeleteBackEnd) { _DeleteBackEnd(BackEndObject); }}
 	void BuildStatements(BackendPtr BackEndObject, const Vector<Node*>& nodes)const { if (_BuildStatements) { _BuildStatements(BackEndObject,nodes); } }
 	
 	void SetBackEndAnalysis(BackendPtr BackEndObject, SystematicAnalysis* analysis)const { if (_Analysis) { _Analysis(BackEndObject,analysis); } }
+	void SetBackEndErrors(BackendPtr BackEndObject, CompliationErrors* ErrorsOutput)const { if (_SetErrors) { _SetErrors(BackEndObject, ErrorsOutput); } }
 	//
 	_GenBackEndCallBack _GenBackEnd =nullptr;
 	_JustObjectCallBack _DeleteBackEnd = nullptr;

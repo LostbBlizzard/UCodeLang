@@ -1,4 +1,5 @@
 #include "UCodeBackEnd.hpp"
+#include "UCodeLang/Compliation/Middle/SystematicAnalysis.hpp"
 UCodeLangStart
 void UCodeBackEnd::Bind(BackEndInterface& Obj)
 {
@@ -46,7 +47,8 @@ void UCodeBackEndObject::BuildStatements(const Vector<Node*>& nodes)
 
 void UCodeBackEndObject::BuildAsmNode(const AsmBlockNode& node)
 {
-//	UAssembly.Assemble(node.AsmText,)
+	UAssembly.Set_ErrorsOutput(ErrorOutput);
+	UAssembly.Assemble(node.AsmText, &Analysis->Get_Output());
 }
 
 UCodeLangEnd
