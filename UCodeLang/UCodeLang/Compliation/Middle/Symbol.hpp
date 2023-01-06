@@ -89,6 +89,9 @@ public:
 	void Reset()
 	{
 		ClearUseings();
+		_Scope.ThisScope.clear();
+		Symbols.clear();
+		IDToSymbols.clear();
 	}
 
 		
