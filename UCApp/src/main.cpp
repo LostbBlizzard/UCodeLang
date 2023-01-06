@@ -46,7 +46,7 @@ void Test(Jit_Interpreter::CPPInput Input)
 static UCodeRunTime RunTime;
 int main()
 {
-	std::async(std::launch::async, [] { RunTests(); });
+	//std::async(std::launch::async, [] { RunTests(); });
 
 	
 	

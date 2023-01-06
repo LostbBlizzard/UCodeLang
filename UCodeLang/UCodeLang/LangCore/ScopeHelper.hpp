@@ -37,5 +37,22 @@ struct ScopeHelper
 	{
 		ReMoveScope(ThisScope);
 	};
+	static String GetNameFromFullName(String FullName)
+	{
+		return (String)GetNameFromFullName((String_view)FullName);
+	}
+
+	static String_view GetNameFromFullName(String_view FullName)
+	{
+		for (size_t i = FullName.size() - 1; i > 0; i--)
+		{
+			char C = FullName[i];
+			if (C == _ScopeSep)
+			{
+				return FullName.substr(0, i);
+			}
+		}
+		return FullName;
+	}
 };
 UCodeLangEnd

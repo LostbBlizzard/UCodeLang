@@ -3,29 +3,9 @@
 
 #include "UCodeLang/LangCore/UClib.hpp"
 #include "UCodeLang/Compliation/Back/BackEndInterface.hpp"
-#include "UCodeLang/LangCore/ScopeHelper.hpp"
+#include "Symbol.hpp"
 UCodeLangStart
 
-struct ScopeHelper2
-{
-public:
-	Vector<String> Useings;
-	ScopeHelper _Scope;
-
-
-	void AddUseing(const String_view& Name){Useings.push_back(Name.data());}
-	void AddUseing(const String& Name) { Useings.push_back(Name); }
-	void ClearUseings(){Useings.clear();}
-
-	size_t GetUseingIndex() { return Useings.size() - 1; }
-	void RemovePopUseing(size_t Index)
-	{
-	
-	}
-
-	void AddScope(const String_view& Name) { _Scope.AddScope(Name); }
-	void RemoveScope() { _Scope.ReMoveScope(); }
-};
 class SystematicAnalysis
 {
 
@@ -39,6 +19,8 @@ public:
 
 	bool Analyze(const FileNode& File);
 	bool Analyze(const Vector<FileNode*>& Files, const Vector<UClib*>& Libs);
+
+	void BuildCode();
 
 	UCodeLangForceinline UClib& Get_Output()
 	{
@@ -54,6 +36,7 @@ public:
 		Null,
 		GetTypes,
 		FixedTypes,
+		BuidCode,
 	};
 
 private:
@@ -69,9 +52,15 @@ private:
 
 	const Vector<FileNode*>* _Files =nullptr;
 	const Vector<UClib*>* _Libs = nullptr;
-	ScopeHelper2 _Sc;
+	SymbolTable _Table;
 	std::stack<ClassData*> _ClassStack;
 	Vector<const AttributeNode*> _TepAttributes;
+	bool _InStatements = false;
+	//
+	IRBuilder _Builder;
+	IRSeg _LastExpression;
+	IRField _LastExpressionField;
+	//
 
 	void Pass();
 	void OnFileNode(UCodeLang::FileNode* const& File);
@@ -84,8 +73,21 @@ private:
 	void OnNonAttributeable(size_t Line, size_t Pos);
 	String GetScopedNameAsString(const ScopedNameNode& node);
 	void OnDeclareVariablenode(const DeclareVariableNode& node);
+	void OnExpressionTypeNode(const Node* node);
+	void OnExpressionNode(const ValueExpressionNode& node);
+	void OnExpressionNode(const BinaryExpressionNode& node);
 	void CheckBackEnd();
 	void PushTepAttributesInTo(Vector<AttributeData>& Input);
+	void LoadLibSymbols();
+	void LoadLibSymbols(const UClib& lib);
+	UCodeLangForceinline auto OutputType()
+	{
+		return  _Settings->_Type;
+	}
+	UCodeLangForceinline auto OutputTypeAsLibType()
+	{
+		return   OutputType() == OutPutType::Lib ? LibType::Lib : LibType::Dll;
+	}
 };
 UCodeLangEnd
 

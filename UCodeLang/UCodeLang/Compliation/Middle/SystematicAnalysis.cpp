@@ -3,12 +3,14 @@
 
 #include "UCodeLang/Compliation/Helpers/InstructionBuilder.hpp"
 #include "UCodeLang/Compliation/Back/UCodeBackEnd/UCodeBackEnd.hpp"
+#include "UCodeLang/Compliation/Helpers/ParseHelper.hpp"
 UCodeLangStart
 
 void SystematicAnalysis::Reset()
 {
 	_Lib.ClearState();
 	passtype = PassType::Null;
+	_Builder.Reset();
 }
 
 bool SystematicAnalysis::Analyze(const FileNode& File)
@@ -20,13 +22,7 @@ bool SystematicAnalysis::Analyze(const FileNode& File)
 }
 bool SystematicAnalysis::Analyze(const Vector<FileNode*>& Files, const Vector<UClib*>& Libs)
 {
-	if (BackEnd==nullptr)
-	{
-		BackEnd = UCodeBackEnd::Get();
-	}
-	BackEndObject = BackEnd->GenNewBackEnd();
-	BackEnd->SetBackEndAnalysis(BackEndObject, this);
-	BackEnd->SetBackEndErrors(BackEndObject, _ErrorsOutput);
+
 
 	passtype = PassType::Null;
 	_Files = &Files;
@@ -35,19 +31,45 @@ bool SystematicAnalysis::Analyze(const Vector<FileNode*>& Files, const Vector<UC
 	passtype = PassType::GetTypes;
 	Pass();
 
+	if (_ErrorsOutput->Has_Errors()) { goto EndFunc; };
 
-	
-
+	LoadLibSymbols();
 	passtype = PassType::FixedTypes;
 	Pass();
 
+
+	if (!_ErrorsOutput->Has_Errors()) {
+		BuildCode();
+	}
+
+EndFunc:
 	_Files = nullptr;
 	_Libs = nullptr;
 
-	BackEnd->DeleteBackEnd(BackEndObject);
-	BackEndObject = nullptr;
+	_Lib._LibType = OutputTypeAsLibType();
 
 	return !_ErrorsOutput->Has_Errors();
+}
+void SystematicAnalysis::BuildCode()
+{
+	if (BackEnd == nullptr)
+	{
+		BackEnd = UCodeBackEnd::Get();
+	}
+	BackEndObject = BackEnd->GenNewBackEnd();
+	BackEnd->SetBackEndAnalysis(BackEndObject, this);
+	BackEnd->SetBackEndErrors(BackEndObject, _ErrorsOutput);
+
+	passtype = PassType::BuidCode;
+	Pass();
+
+	BackEndInput input;
+	input._Builder = &_Builder;
+	input._Table = &_Table;
+	BackEnd->Build(BackEndObject, input);
+
+	BackEnd->DeleteBackEnd(BackEndObject);
+	BackEndObject = nullptr;
 }
 void SystematicAnalysis::Pass()
 {
@@ -59,10 +81,10 @@ void SystematicAnalysis::Pass()
 }
 void SystematicAnalysis::OnNamespace(const NamespaceNode& node)
 {
-	auto UseingIndex = _Sc.GetUseingIndex();
+	auto UseingIndex = _Table.GetUseingIndex();
 
 	const auto Namespace = GetScopedNameAsString(node.NamespaceName);
-	_Sc.AddScope(Namespace);
+	_Table.AddScope(Namespace);
 	for (auto node : node._Nodes)
 	{
 		switch (node->Get_Type())
@@ -76,9 +98,9 @@ void SystematicAnalysis::OnNamespace(const NamespaceNode& node)
 		default:break;
 		}
 	}
-	_Sc.RemoveScope();
+	_Table.RemoveScope();
 
-	_Sc.RemovePopUseing(UseingIndex);
+	_Table.RemovePopUseing(UseingIndex);
 }
 void SystematicAnalysis::OnAttributeNode(const AttributeNode& node)
 {
@@ -111,19 +133,19 @@ void SystematicAnalysis::OnFileNode(UCodeLang::FileNode* const& File)
 		default:break;
 		}
 	}
-	_Sc.ClearUseings();
+	_Table.ClearUseings();
 }
 void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 {
 	const auto& ClassName = Node.ClassName.Token->Value._String;
 
 
-	_Sc.AddScope(ClassName);
+	_Table.AddScope(ClassName);
 
 	
 	auto& Class = passtype == PassType::GetTypes ?
-		_Lib.Get_Assembly().AddClass(String(ClassName), _Sc._Scope.ThisScope)
-		: *_Lib.Get_Assembly().Find_Class(_Sc._Scope.ThisScope);
+		_Lib.Get_Assembly().AddClass(String(ClassName), _Table._Scope.ThisScope)
+		: *_Lib.Get_Assembly().Find_Class(_Table._Scope.ThisScope);
 	_ClassStack.push(&Class);
 
 	if (passtype == PassType::GetTypes)
@@ -131,7 +153,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 		PushTepAttributesInTo(Class._Class.Attributes);
 	}
 
-	auto UseingIndex = _Sc.GetUseingIndex();
+	auto UseingIndex = _Table.GetUseingIndex();
 
 	for (const auto& node : Node._Nodes)
 	{
@@ -181,18 +203,18 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 		}
 	}
 
-	_Sc.RemovePopUseing(UseingIndex);
+	_Table.RemovePopUseing(UseingIndex);
 
 
 	_ClassStack.pop();
-	_Sc.RemoveScope();
+	_Table.RemoveScope();
 }
 void SystematicAnalysis::OnUseingNode(const UsingNode& node)
 {
 	auto T = node.ScopedName.ScopedName[0];
 	OnNonAttributeable(T->OnLine, T->OnPos);
 	const auto UseingString =GetScopedNameAsString(node.ScopedName);
-	_Sc.AddUseing(UseingString);
+	_Table.AddUseing(UseingString);
 
 }
 void SystematicAnalysis::OnFuncNode(const FuncNode& node)
@@ -212,7 +234,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		FuncName = ClassDestructorFunc;
 	}
 
-	_Sc.AddScope(FuncName);
+	_Table.AddScope(FuncName);
 
 	ClassData* Ptr = nullptr;
 	if (_ClassStack.empty())
@@ -235,42 +257,36 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	
 	
 
-	auto UseingIndex = _Sc.GetUseingIndex();
+	auto UseingIndex = _Table.GetUseingIndex();
 
 	if (passtype == PassType::GetTypes)
 	{
 		ClassMethod V;
-		V.FullName = _Sc._Scope.ThisScope;		
+		V.FullName = _Table._Scope.ThisScope;
 		PushTepAttributesInTo(V.Attributes);
-		
-		
+
+
 		Ptr->_Class.Methods.push_back(V);
 
 		//Testing
-		if (node.Body.has_value())
-		{
-			auto& Body = node.Body.value();
-			BackEnd->BuildStatements(BackEndObject, Body.Statements._Nodes);
-		}
-		else
-		{
-			Instruction _ins;
-			if (_Lib.Get_Instructions().size() == 0)
-			{
-				InstructionBuilder::Exit(ExitState::Failure, _ins);
-				_Lib.Add_Instruction(_ins);
-			}
 
-			InstructionBuilder::Return(ExitState::Success, _ins);
-			auto pos = _Lib.Add_Instruction(_ins);
-
-			_Lib.Add_NameToLastInstruction(V.FullName);
+		Instruction _ins;
+		if (_Lib.Get_Instructions().size() == 0)
+		{
+			InstructionBuilder::Exit(ExitState::Failure, _ins);
+			_Lib.Add_Instruction(_ins);
 		}
+
+		InstructionBuilder::Return(ExitState::Success, _ins);
+		auto pos = _Lib.Add_Instruction(_ins);
+
+		_Lib.Add_NameToLastInstruction(V.FullName);
 	}
 
 	if (node.Body.has_value()) 
 	{
 		auto& Body = node.Body.value();
+		_InStatements = true;
 		for (const auto& node2 : Body.Statements._Nodes)
 		{
 			switch (node2->Get_Type())
@@ -283,11 +299,12 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			default:break;
 			}
 		}
+		_InStatements = false;
 	}
 
-	_Sc.RemovePopUseing(UseingIndex);
+	_Table.RemovePopUseing(UseingIndex);
 
-	_Sc.RemoveScope();
+	_Table.RemoveScope();
 }
 void SystematicAnalysis::OnEnum(const EnumNode& node)
 {
@@ -304,16 +321,97 @@ String SystematicAnalysis::GetScopedNameAsString(const ScopedNameNode& node)
 }
 void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 {
-	auto& Class = *_ClassStack.top();
+	auto& StrVarName = node.Name.AsString();
+	auto FullName = _Table._Scope.ThisScope + StrVarName;
 
-	if (passtype == PassType::GetTypes) {
-		ClassField V;
+	SymbolID sybId = (SymbolID)&node;
+	Symbol* syb;
 
-		V.FullNameType = node.Type.AsString();
 
-		V.Name = node.Name.AsString();
+	if (passtype == PassType::GetTypes)
+	{
+		syb = &_Table.AddSybol(SymbolType::StackVarable, StrVarName, FullName);
+		_Table.AddSymbolID(*syb, sybId);
 
-		Class._Class.Fields.push_back(V);
+		if (_ClassStack.size() && _InStatements == false)
+		{
+			ClassField V;
+			auto& Class = *_ClassStack.top();
+			V.FullNameType = node.Type.AsString();
+
+			V.Name = node.Name.AsString();
+
+			Class._Class.Fields.push_back(V);
+		}
+	}
+	else
+	{
+		syb = &_Table.GetSymbol(sybId);
+	}
+
+	if (node.Expression.Value)
+	{
+		OnExpressionTypeNode(node.Expression.Value);
+	}
+
+	if (passtype == PassType::BuidCode)
+	{
+		auto Op = IROperand::AsLocation(_LastExpressionField);
+		auto NewOp = IROperand::AsVarable(sybId);
+		_Builder.Build_Assign(NewOp, Op);	
+	}
+}
+void SystematicAnalysis::OnExpressionTypeNode(const Node* node)
+{
+	switch (node->Get_Type())
+	{
+	case NodeType::BinaryExpressionNode:OnExpressionNode(*BinaryExpressionNode::As(node));break;
+	case NodeType::ValueExpressionNode:OnExpressionNode(*ValueExpressionNode::As(node)); break;
+	default:
+		break;
+	}
+	
+
+}
+void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
+{
+	
+	if (passtype == PassType::BuidCode)
+	{
+
+		switch (node.Value->Get_Type())
+		{
+		case NodeType::NumberliteralNode:
+		{
+			NumberliteralNode* num = NumberliteralNode::As(node.Value);
+			auto& Str = num->Token->Value._String;
+			UInt8 V;
+			ParseHelper::ParseStringToUInt8(Str, V);
+
+
+			_Builder.Build_Assign(IROperand::AsInt8(V));
+			_LastExpressionField = _Builder.GetLastField();
+		}
+		break;
+		default:
+			break;
+		}
+	}
+}
+void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
+{
+	OnExpressionTypeNode(node.Value1.Value);
+	auto Ex0 = _LastExpressionField;
+	OnExpressionTypeNode(node.Value0.Value);
+	auto Ex1 = _LastExpressionField;
+
+	if (passtype == PassType::BuidCode)
+	{
+		_Builder.MakeAdd8(
+			IROperand::AsLocation(Ex0), 
+			IROperand::AsLocation(Ex1));
+		
+		_LastExpressionField = _Builder.GetLastField();
 	}
 }
 void SystematicAnalysis::CheckBackEnd()
@@ -334,6 +432,59 @@ void SystematicAnalysis::PushTepAttributesInTo(Vector<AttributeData>& Input)
 		Input.push_back(Data);
 	}
 	_TepAttributes.clear();
+}
+void SystematicAnalysis::LoadLibSymbols()
+{
+	for (auto Item : *_Libs)
+	{
+		LoadLibSymbols(*Item);
+	}
+}
+void SystematicAnalysis::LoadLibSymbols(const UClib& lib)
+{
+	auto OutputType = OutputTypeAsLibType();
+	auto libType = lib._LibType;
+	
+	LibType ImportType;
+	if (OutputType == LibType::Lib)
+	{
+		ImportType = libType;
+	}
+	else
+	{
+		ImportType = LibType::Dll;
+	}
+
+	for (auto Item : lib.Get_NameToPtr())
+	{
+		const auto Offset = Item.second;
+		const auto& FuncStr = Item.first;
+		
+
+		auto SymbolType = ImportType == LibType::Dll ? SymbolType::ImportedDllFunc : SymbolType::ImportedLibFunc;
+		
+		auto& Syb = _Table.AddSybol(SymbolType,FuncStr, ScopeHelper::GetNameFromFullName(FuncStr));
+		
+		
+	}
+
+	for (auto Item : lib.Get_Assembly().Classes)
+	{
+		switch (Item->Type)
+		{
+		case ClassType::Class:
+		{
+
+		}
+			break;
+		case ClassType::Alias:
+			break;
+		case ClassType::Enum:
+			break;
+		default:
+			break;
+		}
+	}
 }
 UCodeLangEnd
 
