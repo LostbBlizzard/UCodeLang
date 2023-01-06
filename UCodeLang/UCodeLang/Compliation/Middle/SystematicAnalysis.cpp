@@ -234,6 +234,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		FuncName = ClassDestructorFunc;
 	}
 
+	
+	auto FullName = _Table._Scope.ThisScope + ScopeHelper::_ScopeSep + (String)FuncName;
 	_Table.AddScope(FuncName);
 
 	ClassData* Ptr = nullptr;
@@ -258,7 +260,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	
 	Symbol* syb;
 	SymbolID sybId = (SymbolID)&node;
-	auto FullName = _Table._Scope.ThisScope + ScopeHelper::_ScopeSep + (String)FuncName;
+	
 
 	auto UseingIndex = _Table.GetUseingIndex();
 
