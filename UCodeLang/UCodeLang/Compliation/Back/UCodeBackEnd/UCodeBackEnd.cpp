@@ -10,6 +10,7 @@ void UCodeBackEnd::Bind(BackEndInterface& Obj)
 	.Set_DeleteBackEnd(Delete)
 	.Set_ErrorsOutput(Set_ErrorsOutput)
 	.Set_Analysis(Set_Analysis)
+	.Set_BuildInput(Build)
 		;
 }
 const BackEndInterface* UCodeBackEnd::Get()
