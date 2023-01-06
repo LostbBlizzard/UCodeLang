@@ -235,8 +235,9 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	}
 
 	
-	auto FullName = _Table._Scope.ThisScope + ScopeHelper::_ScopeSep + (String)FuncName;
+	
 	_Table.AddScope(FuncName);
+	auto FullName = _Table._Scope.ThisScope;
 
 	ClassData* Ptr = nullptr;
 	if (_ClassStack.empty())
