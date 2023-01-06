@@ -7,7 +7,6 @@ UCodeLangStart
 using LibType_t = UInt8;
 enum class LibType : LibType_t
 {
-	Object,
 	Lib,
 	Dll,
 };

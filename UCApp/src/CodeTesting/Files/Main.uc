@@ -1,6 +1,4 @@
 
 |Main[]:
- asm:
-  Store8 [Out],5
-  Ret
- ret;
+ byte A = 5 + 2 + 6;
+ 
