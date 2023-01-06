@@ -38,7 +38,7 @@ using NSize_t = UIntNative;
 
 //A int that can Address any ULang Value
 using UAddress = UIntNative;
-constexpr UAddress NullAddress = (UAddress)nullptr;
+constexpr UAddress NullAddress = (UAddress)-1;
 
 //
 constexpr UInt64 NullUInt64 = (UInt64)nullptr;

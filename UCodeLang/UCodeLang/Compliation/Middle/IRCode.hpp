@@ -11,6 +11,9 @@ enum class IROperator : UInt8
 	Null,
 	Assign_Operand0,
 	Add8,
+
+	Func,
+	Ret,
 };
 
 enum class IRFieldInfoType : UInt8
@@ -23,6 +26,7 @@ enum class IRFieldInfoType : UInt8
 
 	IRLocation,
 	Var,
+	SymbolID,
 };
 struct IROperand
 {
@@ -44,6 +48,14 @@ struct IROperand
 		IROperand operand;
 		operand.Type = IRFieldInfoType::Int8;
 		operand.AnyValue = Value;
+		return operand;
+	}
+
+	UCodeLangForceinline static IROperand AsSymbol(SymbolID Value)
+	{
+		IROperand operand;
+		operand.Type = IRFieldInfoType::SymbolID;
+		operand.SymbolId = Value;
 		return operand;
 	}
 	UCodeLangForceinline static IROperand AsLocation(IRField Value)
@@ -118,6 +130,21 @@ public:
 		V.Operand0 = field;
 		V.Operator = IROperator::Assign_Operand0;
 	}
+
+	void Build_Func(SymbolID Value)
+	{
+		Code.push_back({});
+		auto& V = Code.back();
+		V.Operator = IROperator::Func;
+		V.Operand0 = IROperand::AsSymbol(Value);
+	}
+
+	void Build_Ret()
+	{
+		Code.push_back({});
+		auto& V = Code.back();
+		V.Operator = IROperator::Ret;
+	}
 	
 
 	void Reset() { Code.clear(); }
@@ -130,6 +157,10 @@ public:
 	IRField GetLastField()
 	{
 		return Code.size() - 1;
+	}
+	inline auto& Get_Code()
+	{
+		return Code;
 	}
 private:
 	Vector<IRThreeAddressCode> Code;

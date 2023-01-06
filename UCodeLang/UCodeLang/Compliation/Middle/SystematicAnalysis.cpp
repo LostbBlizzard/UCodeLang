@@ -281,6 +281,12 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	{
 		syb = &_Table.GetSymbol(sybId);
 	}
+	bool buidCode = passtype == PassType::BuidCode;
+	
+	if (buidCode)
+	{
+		_Builder.Build_Func(sybId);
+	}
 
 	if (node.Body.has_value()) 
 	{
@@ -299,6 +305,11 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			}
 		}
 		_InStatements = false;
+	}
+
+	if (buidCode)
+	{
+		_Builder.Build_Ret();
 	}
 
 	_Table.RemovePopUseing(UseingIndex);

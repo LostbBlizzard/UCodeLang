@@ -12,6 +12,7 @@ public:
 
 
 	void Build(BackEndInput& Input);
+	
 
 	void BuildAsmNode(const AsmBlockNode& node);
 	void BuildRetNode(const RetStatementNode& node);
@@ -30,6 +31,10 @@ public:
 	}
 private:
 	Instruction _Ins;
+	BackEndInput* _BackInput = nullptr;
+	size_t _Index = 0;
+	
+	void BuildFunc();
 };
 class UCodeBackEnd
 {

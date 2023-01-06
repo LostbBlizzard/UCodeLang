@@ -38,6 +38,18 @@ UCodeBackEndObject::~UCodeBackEndObject()
 
 void UCodeBackEndObject::Build(BackEndInput& Input)
 {
+	_BackInput = &Input;
+
+	auto& Code = Input._Builder->Get_Code();
+	
+	for (_Index = 0; _Index < Code.size(); _Index++)
+	{
+		auto& IR = Code[_Index];
+		if (IR.Operator == IROperator::Func)
+		{
+			BuildFunc();
+		}
+	}
 }
 
 void UCodeBackEndObject::BuildAsmNode(const AsmBlockNode& node)
@@ -60,6 +72,38 @@ void UCodeBackEndObject::BuildRetNode(const RetStatementNode& node)
 
 void UCodeBackEndObject::BuildExpression(const ExpressionNodeType& node)
 {
+}
+
+void UCodeBackEndObject::BuildFunc()
+{
+	auto& Code = _BackInput->_Builder->Get_Code();
+	auto& Func = Code[_Index];
+	auto SybID = Func.Operand0.SymbolId;
+	auto Sym = _BackInput->_Table->GetSymbol(SybID);
+
+	auto& ULib = Getliboutput();
+	
+	size_t FuncStart = _Index;
+
+
+	for (_Index = _Index + 1; _Index < Code.size(); _Index++)
+	{
+		auto& IR = Code[_Index];
+
+		switch (IR.Operator)
+		{
+			case IROperator::Ret:
+				goto EndLoop;
+			break;
+		}
+	}
+EndLoop:
+
+	GenIns(InstructionBuilder::Return(ExitState::Success, _Ins));
+	ULib.Add_Instruction(_Ins);
+
+
+	ULib.Add_NameToInstruction(FuncStart, Sym.FullName);
 }
 
 UCodeLangEnd
