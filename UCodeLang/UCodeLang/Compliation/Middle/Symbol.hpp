@@ -74,21 +74,25 @@ public:
 	//use a ptr for the Id;
 	Symbol& GetSymbol(SymbolID ID)
 	{
-		return *IDToSymbols[ID];
+		return Symbols[IDToSymbols[ID]];
 	}
 
 	void AddSymbolID(Symbol& Syb, SymbolID ID)
 	{
 		Syb.ID = ID;
-		IDToSymbols[ID] = &Syb;
+
+		Symbol* Pointer = &Symbols[0];
+		Symbol* SybPointer = &Syb;
+		size_t Index = SybPointer - Pointer;
+		IDToSymbols[ID] = Index;
 	}
 	void Reset()
 	{
-
+		ClearUseings();
 	}
 
 		
 private:
-	unordered_map<SymbolID, Symbol*> IDToSymbols;
+	unordered_map<SymbolID,size_t> IDToSymbols;
 };
 UCodeLangEnd
