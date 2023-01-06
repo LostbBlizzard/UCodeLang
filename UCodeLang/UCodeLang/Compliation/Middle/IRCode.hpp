@@ -32,7 +32,7 @@ struct IROperand
 	{
 		AnyInt64 AnyValue;
 		IRField IRLocation;
-		SymbolID SymbolID;
+		SymbolID SymbolId;
 	};
 	IROperand()
 	{
@@ -57,7 +57,7 @@ struct IROperand
 	{
 		IROperand operand;
 		operand.Type = IRFieldInfoType::Var;
-		operand.SymbolID = Value;
+		operand.SymbolId = Value;
 		return operand;
 	}
 };

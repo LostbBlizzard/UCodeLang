@@ -9,6 +9,8 @@ enum class LibType : LibType_t
 {
 	Lib,
 	Dll,
+
+	Default =Dll,
 };
 class UClib
 {
@@ -240,7 +242,7 @@ public:
 	static bool FromFile(UClib* Lib, const Path& path);
 
 	NTypeSize BitSize = NTypeSize::intNative;
-	LibType _LibType = LibType::Object;
+	LibType _LibType = LibType::Default;
 	inline ClassAssembly& Get_Assembly()
 	{
 		return _Assembly;

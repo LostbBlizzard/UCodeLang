@@ -24,7 +24,7 @@ public:
 	SymbolID ID;
 };
 
-struct SymbolTable
+class SymbolTable
 {
 public:
 	Vector<String> Useings;
