@@ -417,9 +417,19 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 
 	if (passtype == PassType::BuidCode)
 	{
-		_Builder.MakeAdd8(
-			IROperand::AsLocation(Ex0), 
-			IROperand::AsLocation(Ex1));
+		auto Op0 = IROperand::AsLocation(Ex0);
+			auto Op1 = IROperand::AsLocation(Ex1);
+
+			switch (node.BinaryOp->Type)
+			{
+			case TokenType::plus:_Builder.MakeAdd8(Op0, Op1);
+				break;
+			case TokenType::minus:_Builder.MakeSub8(Op0, Op1);
+				break;
+			default:
+				break;
+			}
+		
 		
 		_LastExpressionField = _Builder.GetLastField();
 	}
