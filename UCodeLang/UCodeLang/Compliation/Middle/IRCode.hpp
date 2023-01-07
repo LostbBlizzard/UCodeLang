@@ -6,14 +6,23 @@ UCodeLangStart
 
 using IRField = size_t;
 constexpr IRField NullIRField = 0;
+
+#define IROperatorIntSet(Bit) \
+Add##Bit,\
+Sub##Bit,\
+
+
 enum class IROperator : UInt8
 {
 	Null,
 	Assign_Operand0,
-	Add8,
-
 	Func,
 	Ret,
+	IROperatorIntSet(8)
+	IROperatorIntSet(16)
+	IROperatorIntSet(32)
+	IROperatorIntSet(64)
+	
 };
 
 enum class IRFieldInfoType : UInt8
@@ -112,6 +121,10 @@ public:
 	UCodeLangForceinline void MakeAdd8(IROperand field, IROperand field2)
 	{
 		MakeOperand(field,field2,IROperator::Add8);
+	}
+	UCodeLangForceinline void MakeSub8(IROperand field, IROperand field2)
+	{
+		MakeOperand(field, field2, IROperator::Sub8);
 	}
 
 	void Build_Assign(IROperand result, IROperand field)
