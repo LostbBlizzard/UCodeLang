@@ -534,15 +534,18 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 		_TokenIndex = OldIndex;
 		if (_Token->Type == FuncCallStart)
 		{
-			out = GetFuncCallNode().Node;
+			auto r = GetFuncCallNode();
+			out = r.Node;
+			return r.GotNode;
 		}
 		else
 		{
 			auto r = ReadVariableNode::Gen();
 			GetName(r->VariableName);
 			out = r->As();
+			return GotNodeType::Success;
 		}
-		return GotNodeType::Success;
+		
 	}
 	default:
 		#if CompliationTypeSafety
@@ -588,6 +591,12 @@ GotNodeType Parser::GetValueParameterNode(Node*& out)
 }
 GotNodeType Parser::GetValueParametersNode(ValueParametersNode& out)
 {
+	auto _Token = TryGetToken();
+	if (_Token && _Token->Type == FuncCallEnd)
+	{
+		return GotNodeType::Success;
+	}
+
 	while (true)
 	{
 		Node* node = nullptr;
@@ -794,11 +803,6 @@ GotNodeType Parser::GetAttribute(AttributeNode& out)
 		TokenTypeCheck(Par2Token, FuncCallEnd);
 		NextToken();
 	}
-	else if (IsBinaryOperator(ParToken))
-	{
-
-	}
-
 
 
 	auto BracketToken = TryGetToken();
@@ -1099,7 +1103,17 @@ GotNodeType Parser::GetFuncCallStatementNode(FuncCallStatementNode& out)
 GotNodeType Parser::GetFuncCallNode(FuncCallNode& out)
 {
 	GetName(out.FuncName);
+
+	auto ParToken = TryGetToken();
+	TokenTypeCheck(ParToken, FuncCallStart);
+	NextToken();
+	
 	GetValueParametersNode(out.Parameters);
+
+	auto Par2Token = TryGetToken();
+	TokenTypeCheck(Par2Token, FuncCallEnd);
+	NextToken();
+	
 	return GotNodeType::Success;
 }
 
