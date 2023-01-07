@@ -2,7 +2,10 @@
 #include "Jit/Jit_Interpreter.hpp"
 UCodeLangStart
 
-//This is Best used as static
+//This is Best used as obect static
+
+#define UCodeLangCPUCoreKnow
+#define UCodeLangCPUCoreCount 4
 class UCodeRunTime
 {
 public:
@@ -28,7 +31,13 @@ public:
 	Return_t Call(UAddress address, parameters Pars = NullParameters);
 private:
 	Jit_Interpreter _MainInterpreter;
+
+	#ifdef UCodeLangCPUCoreKnow
+	static constexpr size_t CPUCoresCount = UCodeLangCPUCoreCount;
+	Array<Jit_Interpreter,CPUCoresCount> _Interpreters;
+	#else
 	Vector<Jit_Interpreter> _Interpreters;
+	#endif // DEBUG
 };
 UCodeLangEnd
 
