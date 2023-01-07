@@ -2,6 +2,7 @@
 
 #include "Jit.hpp"
 #include "UCodeLang/RunTime/Interpreters/Interpreter.hpp"
+#include "JitCompilers.h"
 UCodeLangStart
 
 class Jit_Interpreter
@@ -38,7 +39,7 @@ public:
 	Return_t Call(UAddress address, parameters Pars = NullParameters);
 private:
 	Interpreter _Interpreter;
-	//NativeAssembler _Assembler;
+	NativeJitAssembler _Assembler;
 	AsmBuffer ExBuffer = AsmBuffer(Get_EnvironmentData().PageSize);
 	size_t Insoffset = 0;
 

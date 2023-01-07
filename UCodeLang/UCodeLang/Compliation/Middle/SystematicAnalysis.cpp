@@ -388,7 +388,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 	
 	if (passtype == PassType::BuidCode)
 	{
-
+		
 		switch (node.Value->Get_Type())
 		{
 		case NodeType::NumberliteralNode:
@@ -400,6 +400,19 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 
 
 			_Builder.Build_Assign(IROperand::AsInt8(V));
+			_LastExpressionField = _Builder.GetLastField();
+		}
+		break;
+		case NodeType::ReadVariableNode:
+		{
+			ReadVariableNode* nod = ReadVariableNode::As(node.Value);
+			auto Str = GetScopedNameAsString(nod->VariableName);
+
+			auto& Symbols = _Table.GetSymbolsWithName(Str);
+			auto Symbol = Symbols[0];
+			SymbolID sybId = Symbol->ID;
+				
+			_Builder.Build_Assign(IROperand::AsReadVarable(sybId));
 			_LastExpressionField = _Builder.GetLastField();
 		}
 		break;

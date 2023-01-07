@@ -2,12 +2,6 @@
 UCodeLangStart
 
 
-void Test(Jit_Interpreter::CPPInput input)
-{
-	
-
-	input.Set_Return(5);
-}
 
 Interpreter::Return_t Jit_Interpreter::ThisCall(UAddress This, const String& FunctionName, parameters Pars)
 {
@@ -36,7 +30,7 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address, parameters Pars)
 	
 	
 	auto& Item = UFuncToCPPFunc[address];
-	/*
+	
 	if (Item.Type == JitFuncType::Null)
 	{
 		auto& LibManger = Get_State()->Get_Libs();
@@ -53,6 +47,7 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address, parameters Pars)
 			Item.Type = JitFuncType::CPPCall;
 			Item.Func = (JitFunc)Ptr;
 
+			/*
 			for (auto Item : _Assembler.NullCalls)
 			{
 				Instruction& Ins = Insts[Item.UCodeAddress];
@@ -68,6 +63,7 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address, parameters Pars)
 					_Assembler.SubCall((Amd64Assembler::VoidFunc)OnUAddressCall, Item.CPPoffset, TepOutBuffer);
 				}
 			}
+			*/
 			
 			
 			
@@ -90,8 +86,7 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address, parameters Pars)
 			Item.UCodeFunc = address;
 		}
 	}
-	InterpreterCPPinterface Inter = &_Interpreter;
-	Test(Inter);
+
 
 	if (Item.Type == JitFuncType::UCodeCall)
 	{
@@ -101,8 +96,6 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address, parameters Pars)
 	{
 		return { Interpreter::RetState::Success ,Interpreter::Register(Call_CPPFunc(Item.Func, Pars))};
 	}
-	*/
-	return _Interpreter.Call(Item.UCodeFunc, Pars);
 }
 AnyInt64  Jit_Interpreter::Call_CPPFunc(JitFunc ToCall, parameters& Pars)
 {
