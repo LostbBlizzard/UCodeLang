@@ -313,6 +313,22 @@ private:
 		return { r,V->As() };
 	}
 	GotNodeType GetTagNode(TagTypeNode& out);
+
+	TryGetNode GetFuncCallStatementNode()
+	{
+		FuncCallStatementNode* V = FuncCallStatementNode::Gen();
+		auto r = GetFuncCallStatementNode(*V);
+		return { r,V->As() };
+	}
+	GotNodeType GetFuncCallStatementNode(FuncCallStatementNode& out);
+
+	TryGetNode GetFuncCallNode()
+	{
+		FuncCallNode* V = FuncCallNode::Gen();
+		auto r = GetFuncCallNode(*V);
+		return { r,V->As() };
+	}
+	GotNodeType GetFuncCallNode(FuncCallNode& out);
 };
 UCodeLangEnd
 

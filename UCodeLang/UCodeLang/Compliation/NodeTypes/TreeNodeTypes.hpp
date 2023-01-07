@@ -554,4 +554,24 @@ struct CompoundStatementNode :Node
 	ExpressionNodeType Expession;
 };
 
+struct FuncCallNode :Node
+{
+	FuncCallNode() : Node(NodeType::FuncCallNode)
+	{
+
+	}
+	AddforNode(FuncCallNode);
+	NameNode FuncName;
+	ValueParametersNode Parameters;
+};
+struct FuncCallStatementNode :Node
+{
+	FuncCallStatementNode() : Node(NodeType::FuncCallStatementNode)
+	{
+
+	}
+	AddforNode(FuncCallStatementNode);
+	FuncCallNode Base;
+};
+
 UCodeLangEnd

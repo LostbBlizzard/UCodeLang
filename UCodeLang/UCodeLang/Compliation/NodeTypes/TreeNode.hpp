@@ -38,6 +38,8 @@ enum class NodeType :UInt8
 	AssignVariableNode,
 	PostfixVariableNode,
 	CompoundStatementNode,
+	FuncCallNode, 
+	FuncCallStatementNode
 };
 
 

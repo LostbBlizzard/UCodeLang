@@ -354,7 +354,7 @@ GotNodeType Parser::GetStatement(Node*& out)
 			}
 			else if (_Token->Type == FuncCallStart)
 			{
-
+				r = GetFuncCallStatementNode();
 			}
 			else if (IsPostfixOperator(_Token))
 			{
@@ -526,9 +526,22 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 	}
 	case TokenType::Name:
 	{
-		auto r = ReadVariableNode::Gen();
-		GetName(r->VariableName);
-		out = r->As();
+		size_t OldIndex = _TokenIndex;
+		NameNode Tep;
+		auto Name = GetNameCheck(Tep);
+		auto _Token = TryGetToken();
+
+		_TokenIndex = OldIndex;
+		if (_Token->Type == FuncCallStart)
+		{
+			out = GetFuncCallNode().Node;
+		}
+		else
+		{
+			auto r = ReadVariableNode::Gen();
+			GetName(r->VariableName);
+			out = r->As();
+		}
 		return GotNodeType::Success;
 	}
 	default:
@@ -1072,6 +1085,21 @@ EndLoop:
 	auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::EndTab);
 	NextToken();
 
+	return GotNodeType::Success;
+}
+
+GotNodeType Parser::GetFuncCallStatementNode(FuncCallStatementNode& out)
+{
+	GetFuncCallNode(out.Base);
+
+	auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
+	NextToken();
+	return GotNodeType::Success;
+}
+GotNodeType Parser::GetFuncCallNode(FuncCallNode& out)
+{
+	GetName(out.FuncName);
+	GetValueParametersNode(out.Parameters);
 	return GotNodeType::Success;
 }
 
