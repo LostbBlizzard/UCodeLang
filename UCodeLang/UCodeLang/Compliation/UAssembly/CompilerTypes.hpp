@@ -99,7 +99,7 @@ AddMapValueValue(StoreRegOnStack##bitsize, InstructionSet::StoreRegOnStack##bits
 AddMapValueValue(Push##bitsize, InstructionSet::Push##bitsize, OpCodeType::Register, OpCodeType::NoOpCode),\
 AddMapValueValue(Pop##bitsize, InstructionSet::Pop##bitsize, OpCodeType::Register, OpCodeType::NoOpCode),\
 AddMapValueValue(StoreRegToReg##bitsize, InstructionSet::StoreRegToReg##bitsize, OpCodeType::Register, OpCodeType::Register),\
-AddMapValueValue(GetFromStack##bitsize, InstructionSet::GetFromStack##bitsize, OpCodeType::Register, OpCodeType::UIntPtr),\
+AddMapValueValue(GetFromStack##bitsize, InstructionSet::GetFromStack##bitsize, OpCodeType::UIntPtr,OpCodeType::Register),\
 
 static inline const unordered_map<String_view, InsMapValue> StringToInsMap =
 {	

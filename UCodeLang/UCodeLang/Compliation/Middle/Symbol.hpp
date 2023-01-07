@@ -58,6 +58,16 @@ public:
 	{
 		thread_local Vector<Symbol*> Tep;
 
+		String TepScope =_Scope.ThisScope;
+		String TepName = TepScope + ScopeHelper::_ScopeSep + (String)Name;
+
+		for (auto& Item : Symbols)
+		{
+			if (Item.FullName == TepName)
+			{
+				Tep.push_back(&Item);
+			}
+		}
 
 		return Tep;
 	}

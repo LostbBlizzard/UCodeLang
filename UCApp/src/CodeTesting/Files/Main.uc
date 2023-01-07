@@ -1,3 +1,4 @@
 
 |Main[]:
- byte A = 5 - 3 + 2;
+ byte A = 5;
+ byte B = A;

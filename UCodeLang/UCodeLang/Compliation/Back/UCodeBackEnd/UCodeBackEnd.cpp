@@ -112,6 +112,16 @@ void UCodeBackEndObject::BuildFunc()
 				ULib.Add_Instruction(_Ins);
 			}
 			break;
+			case IRFieldInfoType::ReadVar:
+			{
+				R = _Registers.GetFreeRegisterAndWeakLock();
+
+				Symbol& V = _BackInput->_Table->GetSymbol(IR.Operand0.SymbolId);
+
+				GenIns(InstructionBuilder::GetFromStack8(_Ins, 0, R));
+				ULib.Add_Instruction(_Ins);
+			}
+			break;
 			case IRFieldInfoType::IRLocation:
 			{
 				R = GetOperandInAnyRegister(IR.Operand0);

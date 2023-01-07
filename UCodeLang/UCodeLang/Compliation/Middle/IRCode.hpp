@@ -36,6 +36,7 @@ enum class IRFieldInfoType : UInt8
 	IRLocation,
 	Var,
 	SymbolID,
+	ReadVar
 };
 struct IROperand
 {
@@ -78,6 +79,13 @@ struct IROperand
 	{
 		IROperand operand;
 		operand.Type = IRFieldInfoType::Var;
+		operand.SymbolId = Value;
+		return operand;
+	}
+	UCodeLangForceinline static IROperand AsReadVarable(SymbolID Value)
+	{
+		IROperand operand;
+		operand.Type = IRFieldInfoType::ReadVar;
 		operand.SymbolId = Value;
 		return operand;
 	}
