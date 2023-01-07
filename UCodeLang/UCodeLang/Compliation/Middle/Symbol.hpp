@@ -6,6 +6,8 @@ UCodeLangStart
 enum class SymbolType : UInt8
 {
 	Null,
+
+	Varable_t,	
 	StackVarable,
 
 	Type,

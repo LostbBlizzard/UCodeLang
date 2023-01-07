@@ -73,6 +73,7 @@ private:
 	void OnNonAttributeable(size_t Line, size_t Pos);
 	String GetScopedNameAsString(const ScopedNameNode& node);
 	void OnDeclareVariablenode(const DeclareVariableNode& node);
+	void OnAssignVariableNode(const AssignVariableNode& node);
 	void OnExpressionTypeNode(const Node* node);
 	void OnExpressionNode(const ValueExpressionNode& node);
 	void OnExpressionNode(const BinaryExpressionNode& node);
@@ -88,6 +89,7 @@ private:
 	{
 		return   OutputType() == OutPutType::Lib ? LibType::Lib : LibType::Dll;
 	}
+	Symbol* GetSymbol(String_view Name, SymbolType Type);
 };
 UCodeLangEnd
 
