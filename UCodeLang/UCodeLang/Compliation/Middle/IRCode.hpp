@@ -105,7 +105,7 @@ public:
 		auto& V = Code.back();
 		V.Result =IROperand::AsLocation(GetLastField());
 		V.Operand0 = field;
-		V.Operand1 = field;
+		V.Operand1 = field2;
 		V.Operator = Op;
 
 	}

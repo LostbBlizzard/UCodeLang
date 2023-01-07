@@ -2,6 +2,7 @@
 #include "../BackEndInterface.hpp"
 #include "UCodeLang/Compliation/UAssembly/UAssembly.hpp"
 #include "UCodeLang/Compliation/Middle/SystematicAnalysis.hpp"
+#include "RegistersManager.hpp"
 UCodeLangStart
 
 class UCodeBackEndObject
@@ -13,10 +14,6 @@ public:
 
 	void Build(BackEndInput& Input);
 	
-
-	void BuildAsmNode(const AsmBlockNode& node);
-	void BuildRetNode(const RetStatementNode& node);
-	void BuildExpression(const ExpressionNodeType& node);
 
 	UAssembly::UAssembly UAssembly;
 	CompliationErrors* ErrorOutput = nullptr;
@@ -33,8 +30,11 @@ private:
 	Instruction _Ins;
 	BackEndInput* _BackInput = nullptr;
 	size_t _Index = 0;
-	
+	RegistersManager _Registers;
 	void BuildFunc();
+
+	RegisterID GetOperandInAnyRegister(const IROperand& operand);
+	void GetOperandInRegister(const IROperand& operand, RegisterID id);
 };
 class UCodeBackEnd
 {
