@@ -531,4 +531,27 @@ struct ElseNode :Node
 	StatementsNode Body;
 };
 
+struct PostfixVariableNode :Node
+{
+	PostfixVariableNode() : Node(NodeType::PostfixVariableNode)
+	{
+
+	}
+	AddforNode(PostfixVariableNode);
+	NameNode Name;
+	const Token* PostfixOp = nullptr;
+};
+
+struct CompoundStatementNode :Node
+{
+	CompoundStatementNode() : Node(NodeType::CompoundStatementNode)
+	{
+
+	}
+	AddforNode(CompoundStatementNode);
+	NameNode VariableName;
+	const Token* CompoundOp = nullptr;
+	ExpressionNodeType Expession;
+};
+
 UCodeLangEnd

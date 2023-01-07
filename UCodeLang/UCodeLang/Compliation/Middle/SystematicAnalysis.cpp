@@ -301,6 +301,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			case NodeType::EnumNode:OnEnum(*EnumNode::As(node2)); break;
 			case NodeType::UsingNode: OnUseingNode(*UsingNode::As(node2)); break;
 			case NodeType::DeclareVariableNode:OnDeclareVariablenode(*DeclareVariableNode::As(node2)); break;
+			case NodeType::AssignVariableNode:OnAssignVariableNode(*AssignVariableNode::As(node2));
 			default:break;
 			}
 		}
@@ -371,6 +372,20 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 		_Builder.Build_Assign(NewOp, Op);	
 	}
 }
+void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
+{
+	OnExpressionTypeNode(node.Expression.Value);
+
+	if (passtype == PassType::BuidCode)
+	{
+		auto Symbol = GetSymbol(node.Name.AsStringView(), SymbolType::Varable_t);
+		SymbolID sybId = Symbol->ID;
+
+		auto Op = IROperand::AsLocation(_LastExpressionField);
+		auto NewOp = IROperand::AsVarable(sybId);
+		_Builder.Build_Assign(NewOp, Op);
+	}
+}
 void SystematicAnalysis::OnExpressionTypeNode(const Node* node)
 {
 	switch (node->Get_Type())
@@ -408,8 +423,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 			ReadVariableNode* nod = ReadVariableNode::As(node.Value);
 			auto Str = GetScopedNameAsString(nod->VariableName);
 
-			auto& Symbols = _Table.GetSymbolsWithName(Str);
-			auto Symbol = Symbols[0];
+			auto Symbol = GetSymbol(Str,SymbolType::Varable_t);
 			SymbolID sybId = Symbol->ID;
 				
 			_Builder.Build_Assign(IROperand::AsReadVarable(sybId));
@@ -518,6 +532,12 @@ void SystematicAnalysis::LoadLibSymbols(const UClib& lib)
 			break;
 		}
 	}
+}
+Symbol* SystematicAnalysis::GetSymbol(String_view Name, SymbolType Type)
+{
+	auto& Symbols = _Table.GetSymbolsWithName(Name,Type);
+	auto& Symbol = Symbols[0];
+	return Symbol;
 }
 UCodeLangEnd
 

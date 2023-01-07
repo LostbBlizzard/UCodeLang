@@ -269,6 +269,22 @@ private:
 	}
 	GotNodeType GetAssignVariable(AssignVariableNode& out);
 
+	TryGetNode GetPostfixStatement()
+	{
+		PostfixVariableNode* V = PostfixVariableNode::Gen();
+		auto r = GetPostfixStatement(*V);
+		return { r,V->As() };
+	}
+	GotNodeType GetPostfixStatement(PostfixVariableNode& out);
+
+	TryGetNode GetCompoundStatement()
+	{
+		CompoundStatementNode* V = CompoundStatementNode::Gen();
+		auto r = GetCompoundStatement(*V);
+		return { r,V->As() };
+	}
+	GotNodeType GetCompoundStatement(CompoundStatementNode& out);
+
 	void GetDeclareVariableNoObject(TryGetNode& out);
 
 	GotNodeType GetAlias(const Token* AliasName, GenericValuesNode& AliasGenerics, AliasNode& out);

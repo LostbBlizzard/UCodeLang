@@ -346,13 +346,28 @@ GotNodeType Parser::GetStatement(Node*& out)
 
 		TryGetNode r;
 		_TokenIndex = OldIndex;
-		if (_Token && _Token->Type == TokenType::equal) 
+		if (_Token) 
 		{
-			r = GetAssignVariable();
-		}
-		else
-		{
-			r = GetDeclareVariable();
+			if (_Token->Type == TokenType::equal)
+			{
+				r = GetAssignVariable();
+			}
+			else if (_Token->Type == FuncCallStart)
+			{
+
+			}
+			else if (IsPostfixOperator(_Token))
+			{
+				r =GetPostfixStatement();
+			}
+			else if (IsCompoundOperator(_Token))
+			{
+				r = GetCompoundStatement();
+			}
+			else
+			{
+				r = GetDeclareVariable();
+			}
 		}
 		out = r.Node;
 		return r.GotNode;
@@ -1057,6 +1072,31 @@ EndLoop:
 	auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::EndTab);
 	NextToken();
 
+	return GotNodeType::Success;
+}
+
+GotNodeType Parser::GetPostfixStatement(PostfixVariableNode& out)
+{
+	auto Name = GetName(out.Name);
+	auto Token = TryGetToken(); TokenNotNullCheck(Token)
+	out.PostfixOp = Token;
+	NextToken();
+
+	auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
+	NextToken();
+	return GotNodeType::Success;
+}
+GotNodeType Parser::GetCompoundStatement(CompoundStatementNode& out)
+{
+	auto Name = GetName(out.VariableName);
+	auto Token = TryGetToken(); TokenNotNullCheck(Token)
+	out.CompoundOp= Token;
+	NextToken();
+
+	GetExpressionTypeNode(out.Expession);
+
+	auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
+	NextToken();
 	return GotNodeType::Success;
 }
 UCodeLangEnd

@@ -2,10 +2,12 @@
 #include "Jit/Jit_Interpreter.hpp"
 UCodeLangStart
 
-//This is Best used as obect static
 
-#define UCodeLangCPUCoreKnow
-#define UCodeLangCPUCoreCount 4
+//Use This if you know The CPU Core count at compile time.
+//#define UCodeLangCPUCoreKnow
+//#define UCodeLangCPUCoreCount 4
+ 
+//This is Best used as obect static
 class UCodeRunTime
 {
 public:
