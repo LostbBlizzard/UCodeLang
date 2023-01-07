@@ -3,8 +3,12 @@
 UCodeLangStart
 UCodeRunTime::UCodeRunTime()
 {
+	#ifdef UCodeLangCPUCoreKnow
+
+	#else
 	const auto& RunTimeData = Get_EnvironmentData();
 	_Interpreters.resize(RunTimeData.ProcessorsCount);
+	#endif // DEBUG
 }
 UCodeRunTime::~UCodeRunTime()
 {
