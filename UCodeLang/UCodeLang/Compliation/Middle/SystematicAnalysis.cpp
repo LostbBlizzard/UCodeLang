@@ -265,6 +265,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			}
 			GetTypesClass(Class);
 		}
+		Convert(node.Signature.ReturnType,syb->VarType);
 	}
 	else
 	{
@@ -281,6 +282,9 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	{
 		auto& Body = node.Body.value();
 		_InStatements = true;
+		bool HasARet = false;
+		LookingForTypes.push(syb->VarType);
+
 		for (const auto& node2 : Body.Statements._Nodes)
 		{
 			switch (node2->Get_Type())
@@ -293,11 +297,44 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			case NodeType::AssignVariableNode:OnAssignVariableNode(*AssignVariableNode::As(node2)); break;
 			case NodeType::PostfixVariableNode:OnPostfixVariableNode(*PostfixVariableNode::As(node2)); break;
 			case NodeType::CompoundStatementNode:OnCompoundStatementNode(*CompoundStatementNode::As(node2)); break;
+			case NodeType::RetStatementNode:
+				OnRetStatement(*RetStatementNode::As(node2)); 
+				HasARet = true;
+				if (passtype == PassType::FixedTypes && syb->VarType._Type == TypesEnum::Var)
+				{
+					Get_LookingForType() = syb->VarType = LastExpressionType;
 
+					if (LastExpressionType._Type == TypesEnum::Var)
+					{
+						auto Token = LastLookedAtToken;
+						_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
+							, "cant guess 'var' type");
+					}
+				}
+			break;
 			default:break;
 			}
 		}
 		_InStatements = false;
+
+		if (passtype == PassType::FixedTypes) 
+		{
+			if (!HasARet) 
+			{
+				if (syb->VarType._Type == TypesEnum::Var)
+				{
+					syb->VarType.SetType(TypesEnum::Void);
+				}
+				else if (syb->VarType._Type != TypesEnum::Void)//Update This when control flow get added.
+				{
+					auto Token = node.Signature.Name.Token;
+					_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
+						, "you must return something");
+				}
+
+			}
+		}
+		LookingForTypes.pop();
 	}
 
 	if (buidCode)
@@ -308,6 +345,30 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	_Table.RemovePopUseing(UseingIndex);
 
 	_Table.RemoveScope();
+}
+void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
+{
+	if (node.Expression.Value)
+	{
+		OnExpressionTypeNode(node.Expression.Value);
+	}
+	else
+	{
+		LastExpressionType.SetType(TypesEnum::Void);
+	}
+
+
+	if (passtype == PassType::FixedTypes) 
+	{
+		auto T = Get_LookingForType();
+		if (T._Type != TypesEnum::Var) {
+			if (!CanBeImplicitConverted(LastExpressionType, T))
+			{
+				_ErrorsOutput->AddError(ErrorCodes::InValidType, LastLookedAtToken->OnLine, LastLookedAtToken->OnPos,
+					"cant convert '" + ToString(LastExpressionType) + "' to" + "'" + ToString(T) + "'");
+			}
+		}
+	}
 }
 void SystematicAnalysis::OnEnum(const EnumNode& node)
 {
@@ -381,7 +442,6 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 			{
 				if (Ex._Type == TypesEnum::Var)
 				{
-
 					_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
 						, "cant guess 'var' type");
 				}
@@ -397,6 +457,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 			}
 		}
 	}
+	LookingForTypes.pop();
 
 	if (passtype == PassType::BuidCode)
 	{
@@ -496,10 +557,10 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 		{
 		case NodeType::NumberliteralNode:
 		{
-
-			if (passtype == PassType::BuidCode) 
+			NumberliteralNode* num = NumberliteralNode::As(node.Value);
+			if (passtype == PassType::BuidCode)
 			{
-				NumberliteralNode* num = NumberliteralNode::As(node.Value);
+
 				auto& Str = num->Token->Value._String;
 				UInt8 V;
 				ParseHelper::ParseStringToUInt8(Str, V);
@@ -507,17 +568,19 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 
 				_Builder.Build_Assign(IROperand::AsInt8(V));
 				_LastExpressionField = _Builder.GetLastField();
+
 			}
 
 
 			LastExpressionType.SetType(TypesEnum::Int_t);
+			LastLookedAtToken = num->Token;
 		}
 		break;
 		case NodeType::BoolliteralNode:
-		{
+		{BoolliteralNode* num = BoolliteralNode::As(node.Value);
 			if (passtype == PassType::BuidCode)
 			{
-				BoolliteralNode* num = BoolliteralNode::As(node.Value);
+				
 
 				_Builder.Build_Assign(IROperand::AsInt8((UInt8)num->Value));
 				_LastExpressionField = _Builder.GetLastField();
@@ -531,12 +594,14 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 			auto Str = GetScopedNameAsString(nod->VariableName);
 
 			auto Symbol = GetSymbol(Str, SymbolType::Varable_t);
+			auto Token = nod->VariableName.ScopedName[0];
 			if (Symbol == nullptr)
 			{
-				auto Token = nod->VariableName.ScopedName[0];
+				
 				_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 					, "Cant find Variable Named '" + Str + "'");
 					return;
+
 			}
 
 
@@ -550,6 +615,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 			}
 
 			LastExpressionType = Symbol->VarType;
+			LastLookedAtToken = Token;
 		}
 		break;
 		case NodeType::AnonymousObjectConstructorNode:
@@ -734,9 +800,13 @@ bool SystematicAnalysis::AreTheSame(const TypeSymbol& TypeA, const TypeSymbol& T
 		return true;
 	}
 
-	if (TypeA._CustomTypeSymbol == TypeB._CustomTypeSymbol)
+	if (TypeA._Type == TypesEnum::CustomType
+		&& TypeB._Type == TypesEnum::CustomType)
 	{
-		return true;
+		if (TypeA._CustomTypeSymbol == TypeB._CustomTypeSymbol)
+		{
+			return true;
+		}
 	}
 
 	return false;

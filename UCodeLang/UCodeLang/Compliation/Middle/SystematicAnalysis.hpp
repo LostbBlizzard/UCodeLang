@@ -66,6 +66,7 @@ private:
 	{
 		return LookingForTypes.top();
 	}
+	const Token* LastLookedAtToken =nullptr;
 	//
 
 	void Pass();
@@ -73,6 +74,7 @@ private:
 	void OnClassNode(const ClassNode& node);
 	void OnUseingNode(const UsingNode& node);
 	void OnFuncNode(const FuncNode& node);
+	void OnRetStatement(const RetStatementNode& node);
 	void OnEnum(const EnumNode& node);
 	void OnNamespace(const NamespaceNode& node);
 	void OnAttributeNode(const AttributeNode& node);

@@ -7,7 +7,7 @@ UCodeLangStart
 enum class TypesEnum :UInt8
 {
 	Null,
-
+	Void,
 	Var,
 	Int_t,
 	uInt_t,
