@@ -417,6 +417,23 @@ GotNodeType Parser::GetFuncNode(FuncNode& out)
 		GetFuncBodyNode(V);
 		out.Body = std::move(V);
 	}break;
+	case TokenType::RightAssignArrow:
+	{
+		NextToken();
+		FuncBodyNode V;
+		
+		V.Statements._Nodes.push_back(nullptr);
+
+		RetStatementNode* r = RetStatementNode::Gen();
+		GetExpressionTypeNode(r->Expression);
+		V.Statements._Nodes.back() = r;
+
+		out.Body = std::move(V);
+
+		auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
+		NextToken();
+	}
+	break;
 	default:
 		TokenTypeCheck(ColonToken, TokenType::Colon);
 		break;
@@ -457,7 +474,7 @@ GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 	NextToken();
 
 	Node* Ret_Type;
-	auto Arrow = TryGetToken();
+	auto Arrow = TryGetToken(); TokenNotNullCheck(Arrow);
 	if (Arrow->Type == TokenType::RightArrow)
 	{
 		NextToken();
@@ -478,6 +495,10 @@ GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 		{
 			GetTypeWithVoid(out.ReturnType);
 		}
+	}
+	else  if (Arrow->Type == TokenType::RightAssignArrow)
+	{
+		TypeNode::Gen_Var(out.ReturnType, *Arrow);
 	}
 	else if (Arrow->Type == TokenType::Colon)
 	{
@@ -598,6 +619,17 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 		r->Value1.Value = Other;
 		out = r->As();
 		return   Merge(Ex, Ex2);
+	}
+	else if (Token && Token->Type == TokenType::RightArrow)
+	{
+		NextToken();
+		auto cast = CastNode::Gen();
+		out = cast->As();
+
+
+		auto Type = GetType(cast->ToType);
+		cast->Expression.Value = ExNode;
+		return Merge(Ex,Type);
 	}
 	else
 	{

@@ -606,5 +606,15 @@ struct AnonymousObjectConstructorNode :Node
 	AddforNode(AnonymousObjectConstructorNode);
 	ValueParametersNode Fields;
 };
+struct CastNode :Node
+{
+	CastNode() : Node(NodeType::CastNode)
+	{
 
+	}
+	AddforNode(CastNode);
+
+	ExpressionNodeType Expression;
+	TypeNode ToType;
+};
 UCodeLangEnd

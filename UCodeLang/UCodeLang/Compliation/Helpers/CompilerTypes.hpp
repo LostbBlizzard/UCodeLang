@@ -7,11 +7,11 @@ using TokenType_t = UInt8;
 enum class TokenType : TokenType_t
 {
 	Null,
-	EndofFile,
-	Error,
-	Name,
-	Class,
-	Namespace,
+	EndofFile, //End?
+	Error,// Error
+	Name,// Name
+	Class,//$
+	Namespace,//%
 	Left_Parentheses,//(
 	Right_Parentheses,//)
 	Left_Bracket,//[
@@ -39,14 +39,17 @@ enum class TokenType : TokenType_t
 	KeyWorld_Ret,//ret
 	leftArrow,//<-
 	RightArrow,//->
+	RightAssignArrow,//=>
+
+
 	Void,//void
 	Comma,//,
 
-	KeyWorld_Sizeof,
-	KeyWorld_Nameof,
-	KeyWorld_True,
-	KeyWorld_False,
-	KeyWorld_var,
+	KeyWorld_Sizeof,//sizeof
+	KeyWorld_Nameof,//nameof
+	KeyWorld_True,//true
+	KeyWorld_False,//false
+	KeyWorld_var,//var
 
 	Not,//!
 	equal_Comparison,//==
@@ -69,28 +72,28 @@ enum class TokenType : TokenType_t
 	CompoundMult,//*=
 	CompoundDiv,// /=
 
-	KeyWord_invalid,
-	KeyWord_break,
-	ScopeResolution,
-	KeyWorld_use,
-	KeyWorld_This,
-	KeyWorld_Drop,
-	KeyWorld_new,
-	KeyWorld_static,
-	KeyWorld_Thread,
+	KeyWord_invalid,//invaild
+	KeyWord_break,//break
+	ScopeResolution,//::
+	KeyWorld_use,//use
+	KeyWorld_This,//this
+	KeyWorld_Drop,//drop
+	KeyWorld_new,//new
+	KeyWorld_static,// static
+	KeyWorld_Thread,// thread
 
 
 
-	KeyWorld_pub,
-	KeyWorld_typeof,
-	hash,
+	KeyWorld_pub,//pub
+	KeyWorld_typeof,//typeof
+	hash,//#
 	KeyWorld_asm,//asm
 
 	approximate_Comparison,//~=
 
-	KeyWorld_Enum,
-	KeyWorld_Tag,
-	KeyWorld_umut,
+	KeyWorld_Enum,//enum
+	KeyWorld_Tag,//tag
+	KeyWorld_umut,//umut
 
 	//Types
 	KeyWorld_UInt8,
