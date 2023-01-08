@@ -331,6 +331,14 @@ private:
 		return { r,V->As() };
 	}
 	GotNodeType GetFuncCallNode(FuncCallNode& out);
+
+	TryGetNode GetAnonymousObjectConstructorNode()
+	{
+		AnonymousObjectConstructorNode* V = AnonymousObjectConstructorNode::Gen();
+		auto r = GetAnonymousObjectConstructorNode(*V);
+		return { r,V->As() };
+	}
+	GotNodeType GetAnonymousObjectConstructorNode(AnonymousObjectConstructorNode& out);
 };
 UCodeLangEnd
 

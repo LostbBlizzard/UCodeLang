@@ -597,4 +597,14 @@ struct AnonymousTypeNode :Node
 	NamedParametersNode Fields;
 };
 
+struct AnonymousObjectConstructorNode :Node
+{
+	AnonymousObjectConstructorNode() : Node(NodeType::AnonymousObjectConstructorNode)
+	{
+
+	}
+	AddforNode(AnonymousObjectConstructorNode);
+	ValueParametersNode Fields;
+};
+
 UCodeLangEnd

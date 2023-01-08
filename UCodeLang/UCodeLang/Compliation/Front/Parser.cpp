@@ -540,6 +540,12 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 		out = r->As();
 		return GotNodeType::Success;
 	}
+	case AnonymousObjectStart:
+	{
+		auto r = GetAnonymousObjectConstructorNode();
+		out = r.Node;
+		return r.GotNode;
+	}
 	case TokenType::Name:
 	{
 		size_t OldIndex = _TokenIndex;
@@ -625,6 +631,7 @@ GotNodeType Parser::GetValueParametersNode(ValueParametersNode& out)
 		{
 			break;
 		}
+		NextToken();
 	}
 	return GotNodeType::Success;
 }
@@ -1154,6 +1161,18 @@ GotNodeType Parser::GetCompoundStatement(CompoundStatementNode& out)
 	GetExpressionTypeNode(out.Expession);
 
 	auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
+	NextToken();
+	return GotNodeType::Success;
+}
+
+GotNodeType Parser::GetAnonymousObjectConstructorNode(AnonymousObjectConstructorNode& out)
+{
+	auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, AnonymousObjectStart);
+	NextToken();
+
+	GetValueParametersNode(out.Fields);
+
+	auto SemicolonToken2 = TryGetToken(); TokenTypeCheck(SemicolonToken2, AnonymousObjectEnd);
 	NextToken();
 	return GotNodeType::Success;
 }
