@@ -42,6 +42,7 @@ enum class NodeType :UInt8
 	FuncCallStatementNode,
 	AnonymousTypeNode,
 	AnonymousObjectConstructorNode,
+	CastNode,
 };
 
 

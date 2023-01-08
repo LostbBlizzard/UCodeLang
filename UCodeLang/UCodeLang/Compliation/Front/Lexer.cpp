@@ -342,6 +342,13 @@ void Lexer::Lex(const String_view& Text)
 				_Token.Value = nullptr;
 				_Nodes.push_back(_Token);
 			}
+			else if (NextChar == '>')
+			{
+				i++;
+				_Token.Type = TokenType::RightAssignArrow;
+				_Token.Value = nullptr;
+				_Nodes.push_back(_Token);
+			}
 			else
 			{
 				_Token.Type = TokenType::equal;
