@@ -167,6 +167,7 @@ struct TypeNode :Node
 	static constexpr bool IsType(TokenType Type)
 	{
 		if (IsPrimitive(Type)) { return true; }
+		else if (Type == TokenType::KeyWorld_var) { return true; }
 		else if (Type == TokenType::Name) { return true; }
 		else if (Type == TokenType::KeyWorld_This) { return true; }
 
@@ -616,5 +617,15 @@ struct CastNode :Node
 
 	ExpressionNodeType Expression;
 	TypeNode ToType;
+};
+struct ParenthesesExpresionNode :Node
+{
+	ParenthesesExpresionNode() : Node(NodeType::ParenthesesExpresionNode)
+	{
+
+	}
+	AddforNode(ParenthesesExpresionNode);
+
+	ExpressionNodeType Expression;
 };
 UCodeLangEnd

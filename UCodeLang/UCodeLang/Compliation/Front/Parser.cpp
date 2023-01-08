@@ -590,6 +590,19 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 		}
 		
 	}
+	case TokenType::Left_Parentheses:
+	{
+		NextToken();
+		auto V = ParenthesesExpresionNode::Gen();
+		out = V;
+		auto r = GetExpressionTypeNode(V->Expression);
+
+		auto endtoken = TryGetToken();
+		TokenTypeCheck(endtoken, TokenType::Right_Parentheses);
+		NextToken();
+		return r;
+	}
+	break;
 	default:
 		#if CompliationTypeSafety
 		throw std::exception("Cant UnWap BuildStatement");
@@ -655,7 +668,8 @@ GotNodeType Parser::GetValueParameterNode(Node*& out)
 GotNodeType Parser::GetValueParametersNode(ValueParametersNode& out)
 {
 	auto _Token = TryGetToken();
-	if (_Token && _Token->Type == FuncCallEnd)
+	if (_Token && (_Token->Type == FuncCallEnd
+		|| _Token->Type == TokenType::Right_Bracket))
 	{
 		return GotNodeType::Success;
 	}

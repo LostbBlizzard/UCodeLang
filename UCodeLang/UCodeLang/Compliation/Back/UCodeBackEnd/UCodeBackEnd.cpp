@@ -67,14 +67,23 @@ void UCodeBackEndObject::Build(BackEndInput& Input)
 				_Registers.UnLockWeakRegister(Value1);\
 				\
 				auto ROut = RegisterID::MathOuPutRegister;\
-				auto& RInfo = _Registers.GetInfo(ROut);\
-				_Registers.WeakLockRegister(ROut);\
-				RInfo.IRField = IR.Result.IRLocation;\
+				SetSybToRegister(ROut,IR);\
 			}break; \
 
 #define BitSet(bit) \
 	OperatorBits(Add,bit)\
 	OperatorBits(Sub,bit)\
+
+
+#define IRFieldInt(bitsize) case IRFieldInfoType::Int##bitsize: \
+{\
+    auto Value =IR.Operand0.AnyValue.AsInt##bitsize;\
+	R = GetOperandInAnyRegister(IR.Operand0);\
+	GenIns(InstructionBuilder::Store##bitsize(_Ins, R, Value)); \
+	ULib.Add_Instruction(_Ins); \
+	SetSybToRegister(R,IR);\
+}\
+break;\
 
 void UCodeBackEndObject::BuildFunc()
 {
@@ -86,6 +95,7 @@ void UCodeBackEndObject::BuildFunc()
 	auto& ULib = Getliboutput();
 	
 	UAddress FuncStart = _Index;
+	if (_Index != 0) { FuncStart--; }
 	UAddress StackSize = 0;
 
 	for (_Index = _Index + 1; _Index < Code.size(); _Index++)
@@ -105,21 +115,38 @@ void UCodeBackEndObject::BuildFunc()
 			
 			switch (IR.Operand0.Type)
 			{
-			case IRFieldInfoType::Int8:
-			{
-				R = _Registers.GetFreeRegisterAndWeakLock();
-				GenIns(InstructionBuilder::Store8(_Ins, R, IR.Operand0.AnyValue.AsInt8));
-				ULib.Add_Instruction(_Ins);
-			}
-			break;
+			IRFieldInt(8)
+			IRFieldInt(16)
+			IRFieldInt(32)
+			IRFieldInt(64)
 			case IRFieldInfoType::ReadVar:
 			{
 				R = _Registers.GetFreeRegisterAndWeakLock();
 
-				Symbol& V = _BackInput->_Table->GetSymbol(IR.Operand0.SymbolId);
+				auto VarSymbolID = IR.Operand0.SymbolId;
+				Symbol& V = _BackInput->_Table->GetSymbol(VarSymbolID);
+				BuildData& Data = SymbolToData[VarSymbolID];
+				if (V.Type == SymbolType::StackVarable) 
+				{
+					auto V = _Registers.GetInfo(IR.Result.IRLocation);
 
-				GenIns(InstructionBuilder::GetFromStack8(_Ins, 0, R));
-				ULib.Add_Instruction(_Ins);
+					if (V == RegisterID::NullRegister) 
+					{
+						GenIns(InstructionBuilder::GetFromStack8(_Ins, Data.offset, R));
+						ULib.Add_Instruction(_Ins);
+
+						SetSybToRegister(R, IR);
+					}
+					else
+					{
+						_Registers.UnLockWeakRegister(R);
+						R = V;
+					}
+				}
+				else
+				{
+					throw std::exception();
+				}
 			}
 			break;
 			case IRFieldInfoType::IRLocation:
@@ -137,10 +164,26 @@ void UCodeBackEndObject::BuildFunc()
 			}
 			else if (IR.Result.Type == IRFieldInfoType::Var)
 			{ 
-				GenIns(InstructionBuilder::StoreRegOnStack8(_Ins,R,StackSize));
+				auto VarSymbolID = IR.Result.SymbolId;
+				BuildData* Data;
+				Symbol& Symbol = _BackInput->_Table->GetSymbol(VarSymbolID);
+				if (SymbolToData.count(VarSymbolID))
+				{
+					Data = &SymbolToData[VarSymbolID];
+				}
+				else
+				{
+					SymbolToData[VarSymbolID] = {};
+					Data = &SymbolToData[VarSymbolID];
+
+					Data->offset = StackSize;
+					StackSize += Symbol.Size;
+				}
+
+
+				GenIns(InstructionBuilder::StoreRegOnStack8(_Ins,R, Data->offset));
 				ULib.Add_Instruction(_Ins);
-				
-				StackSize += sizeof(UInt8);
+
 			}
 		}
 		break;
@@ -157,6 +200,17 @@ EndLoop:
 
 
 	ULib.Add_NameToInstruction(FuncStart, Sym.FullName);
+}
+
+void UCodeBackEndObject::SetSybToRegister(UCodeLang::RegisterID R, UCodeLang::IRThreeAddressCode& IR)
+{
+	auto& RInfo = _Registers.GetInfo(R); \
+		_Registers.WeakLockRegister(R); \
+		RInfo.IRField = IR.Result.IRLocation; \
+}
+
+void UCodeBackEndObject::SetIRToRegister(UCodeLang::RegisterID R, IRField IR)
+{
 }
 
 RegisterID UCodeBackEndObject::GetOperandInAnyRegister(const IROperand& operand)
@@ -178,7 +232,7 @@ void UCodeBackEndObject::GetOperandInRegister(const IROperand& operand, Register
 	if (R == RegisterID::NullRegister)
 	{
 		R = id;
-		int a = 0;
+		
 		return;
 	}
 
