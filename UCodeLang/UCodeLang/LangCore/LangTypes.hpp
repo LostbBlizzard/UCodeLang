@@ -50,6 +50,7 @@ using Path = std::filesystem::path;
 
 template<typename T> using Optional = std::optional<T>;
 template<typename T> using Vector = std::vector<T>;
+template<typename T> using Stack = std::stack<T>;
 template<typename T, typename T2> using unordered_map = std::unordered_map<T, T2>;
 
 template<typename T,size_t Size> using Array = std::array<T, Size>;

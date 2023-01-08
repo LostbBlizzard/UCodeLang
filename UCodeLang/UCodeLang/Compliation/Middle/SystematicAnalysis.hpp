@@ -40,7 +40,6 @@ public:
 	};
 
 private:
-	
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
 	UClib _Lib;
@@ -53,13 +52,20 @@ private:
 	const Vector<FileNode*>* _Files =nullptr;
 	const Vector<UClib*>* _Libs = nullptr;
 	SymbolTable _Table;
-	std::stack<ClassData*> _ClassStack;
+	Stack<ClassData*> _ClassStack;
 	Vector<const AttributeNode*> _TepAttributes;
 	bool _InStatements = false;
 	//
 	IRBuilder _Builder;
 	IRSeg _LastExpression;
 	IRField _LastExpressionField;
+	//
+	Stack<TypeSymbol> LookingForTypes;
+	TypeSymbol LastExpressionType;
+	TypeSymbol& Get_LookingForType()
+	{
+		return LookingForTypes.top();
+	}
 	//
 
 	void Pass();
@@ -94,6 +100,18 @@ private:
 	Symbol* GetSymbol(String_view Name, SymbolType Type);
 	static String GetFuncAnonymousObjectFullName(const String& FullFuncName);
 	void GetTypesClass(ClassData& data);
+
+	bool AreTheSame(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
+	bool HasBinaryOverLoadWith(const TypeSymbol& TypeA,TokenType BinaryOp, const TypeSymbol& TypeB);
+
+	String ToString(const TypeSymbol& Type);
+	String ToString(const TokenType& Type)
+	{
+		return StringHelper::ToString(Type);
+	}
+	void Convert(const TypeNode& V, TypeSymbol& Out);
+	bool IsVaidType(TypeSymbol& Out);
+	bool CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
 };
 UCodeLangEnd
 

@@ -33,8 +33,19 @@ private:
 	RegistersManager _Registers;
 	void BuildFunc();
 
+	void SetSybToRegister(UCodeLang::RegisterID R,IRThreeAddressCode& IR);
+	void SetIRToRegister(UCodeLang::RegisterID R, IRField IR);
+
 	RegisterID GetOperandInAnyRegister(const IROperand& operand);
 	void GetOperandInRegister(const IROperand& operand, RegisterID id);
+
+	struct BuildData
+	{
+		UAddress offset = NullAddress;
+		UAddress DataSize = NullAddress;
+	};
+
+	unordered_map<SymbolID, BuildData> SymbolToData;
 };
 class UCodeBackEnd
 {

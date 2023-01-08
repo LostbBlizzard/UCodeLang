@@ -336,6 +336,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 		syb = &_Table.AddSybol(SymbolType::StackVarable, StrVarName, FullName);
 		_Table.AddSymbolID(*syb, sybId);
 
+		syb->Size = sizeof(UInt8);
 		if (_ClassStack.size() && _InStatements == false)
 		{
 			ClassField V;
@@ -351,9 +352,50 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 		syb = &_Table.GetSymbol(sybId);
 	}
 
+	if (passtype == PassType::FixedTypes)
+	{
+		auto& VarType = syb->VarType;
+		Convert(node.Type, syb->VarType);
+		if (VarType._Type == TypesEnum::Var && node.Expression.Value == nullptr)
+		{
+			auto Token = node.Type.Name.Token;
+			_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
+				, "cant guess type theres no '=' [expression]");
+		}
+	}
+	LookingForTypes.push(syb->VarType);
+
 	if (node.Expression.Value)
 	{
 		OnExpressionTypeNode(node.Expression.Value);
+	}
+
+	if (passtype == PassType::FixedTypes)
+	{
+		if (node.Expression.Value)
+		{
+			auto& VarType = syb->VarType;
+			auto& Ex = LastExpressionType;
+			auto Token = node.Type.Name.Token;
+			if (VarType._Type == TypesEnum::Var)
+			{
+				if (Ex._Type == TypesEnum::Var)
+				{
+
+					_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
+						, "cant guess 'var' type");
+				}
+				else
+				{ 
+					VarType = Ex;
+				}
+			}
+			if (!CanBeImplicitConverted(Ex, VarType))
+			{
+				_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos,
+					"cant convert '" + ToString(Ex) + "' to" + "'" + ToString(VarType) + "'");
+			}
+		}
 	}
 
 	if (passtype == PassType::BuidCode)
@@ -446,21 +488,41 @@ void SystematicAnalysis::OnExpressionTypeNode(const Node* node)
 void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 {
 	
-	if (passtype == PassType::BuidCode)
+	if (passtype == PassType::BuidCode
+		|| passtype == PassType::FixedTypes)
 	{
 		
 		switch (node.Value->Get_Type())
 		{
 		case NodeType::NumberliteralNode:
 		{
-			NumberliteralNode* num = NumberliteralNode::As(node.Value);
-			auto& Str = num->Token->Value._String;
-			UInt8 V;
-			ParseHelper::ParseStringToUInt8(Str, V);
+
+			if (passtype == PassType::BuidCode) 
+			{
+				NumberliteralNode* num = NumberliteralNode::As(node.Value);
+				auto& Str = num->Token->Value._String;
+				UInt8 V;
+				ParseHelper::ParseStringToUInt8(Str, V);
 
 
-			_Builder.Build_Assign(IROperand::AsInt8(V));
-			_LastExpressionField = _Builder.GetLastField();
+				_Builder.Build_Assign(IROperand::AsInt8(V));
+				_LastExpressionField = _Builder.GetLastField();
+			}
+
+
+			LastExpressionType.SetType(TypesEnum::Int_t);
+		}
+		break;
+		case NodeType::BoolliteralNode:
+		{
+			if (passtype == PassType::BuidCode)
+			{
+				BoolliteralNode* num = BoolliteralNode::As(node.Value);
+
+				_Builder.Build_Assign(IROperand::AsInt8((UInt8)num->Value));
+				_LastExpressionField = _Builder.GetLastField();
+			}
+			LastExpressionType.SetType(TypesEnum::Bool);
 		}
 		break;
 		case NodeType::ReadVariableNode:
@@ -468,14 +530,41 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 			ReadVariableNode* nod = ReadVariableNode::As(node.Value);
 			auto Str = GetScopedNameAsString(nod->VariableName);
 
-			auto Symbol = GetSymbol(Str,SymbolType::Varable_t);
+			auto Symbol = GetSymbol(Str, SymbolType::Varable_t);
+			if (Symbol == nullptr)
+			{
+				auto Token = nod->VariableName.ScopedName[0];
+				_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+					, "Cant find Variable Named '" + Str + "'");
+					return;
+			}
+
+
 			SymbolID sybId = Symbol->ID;
-				
-			_Builder.Build_Assign(IROperand::AsReadVarable(sybId));
-			_LastExpressionField = _Builder.GetLastField();
+			if (passtype == PassType::BuidCode)
+			{
+
+
+				_Builder.Build_Assign(IROperand::AsReadVarable(sybId));
+				_LastExpressionField = _Builder.GetLastField();
+			}
+
+			LastExpressionType = Symbol->VarType;
+		}
+		break;
+		case NodeType::AnonymousObjectConstructorNode:
+		{
+			auto& Type = Get_LookingForType();
+			if (Type._Type != TypesEnum::Var)//function who called this can deal with var
+			{
+
+			}
+
+			LastExpressionType = Type;
 		}
 		break;
 		default:
+			throw std::exception("not added");
 			break;
 		}
 	}
@@ -484,25 +573,42 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 {
 	OnExpressionTypeNode(node.Value1.Value);
 	auto Ex0 = _LastExpressionField;
+	auto Ex0Type = LastExpressionType;
 	OnExpressionTypeNode(node.Value0.Value);
 	auto Ex1 = _LastExpressionField;
+	auto Ex1Type = LastExpressionType;
+
+	if (passtype == PassType::FixedTypes)
+	{
+		auto BinaryOp = node.BinaryOp;
+		bool V = HasBinaryOverLoadWith(Ex0Type, BinaryOp->Type, Ex1Type);
+		if (!V)
+		{
+			_ErrorsOutput->AddError(ErrorCodes::InValidType, BinaryOp->OnLine, BinaryOp->OnPos,
+				"The type '" + ToString(Ex0Type) + "'" + " cant be '"
+			+ ToString(BinaryOp->Type) + "' with '" + ToString(Ex1Type) + "'");
+		}
+	}
 
 	if (passtype == PassType::BuidCode)
 	{
 		auto Op0 = IROperand::AsLocation(Ex0);
-			auto Op1 = IROperand::AsLocation(Ex1);
+		auto Op1 = IROperand::AsLocation(Ex1);
 
-			switch (node.BinaryOp->Type)
-			{
-			case TokenType::plus:_Builder.MakeAdd8(Op0, Op1);
-				break;
-			case TokenType::minus:_Builder.MakeSub8(Op0, Op1);
-				break;
-			default:
-				break;
-			}
-		
-		
+		bool IsSame = AreTheSame(Ex0Type, Ex1Type);//For Testing
+
+
+		switch (node.BinaryOp->Type)
+		{
+		case TokenType::plus:_Builder.MakeAdd8(Op0, Op1);
+			break;
+		case TokenType::minus:_Builder.MakeSub8(Op0, Op1);
+			break;
+		default:
+			break;
+		}
+
+
 		_LastExpressionField = _Builder.GetLastField();
 	}
 }
@@ -620,6 +726,103 @@ void SystematicAnalysis::GetTypesClass(ClassData& Class)
 			Class._Class.Size += sizeof(UInt64);
 		}
 	}
+}
+bool SystematicAnalysis::AreTheSame(const TypeSymbol& TypeA, const TypeSymbol& TypeB)
+{
+	if (TypeA._Type == TypeB._Type)
+	{
+		return true;
+	}
+
+	if (TypeA._CustomTypeSymbol == TypeB._CustomTypeSymbol)
+	{
+		return true;
+	}
+
+	return false;
+}
+bool SystematicAnalysis::HasBinaryOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB)
+{
+	return false;
+}
+String SystematicAnalysis::ToString(const TypeSymbol& Type)
+{
+	switch (Type._Type)
+	{
+	case TypesEnum::Var:return "var";
+	case TypesEnum::Int_t:return "Int_t";
+	case TypesEnum::uInt_t:return "uInt_t";
+	case TypesEnum::sInt_t:return "sInt_t";
+
+
+	case TypesEnum::uInt8:return "uInt8";
+	case TypesEnum::uInt16:return "uInt16";
+	case TypesEnum::uInt32:return "uInt32";
+	case TypesEnum::uInt64:return "uInt64";
+
+
+	case TypesEnum::sInt8:return "sInt8";
+	case TypesEnum::sInt16:return "sInt16";
+	case TypesEnum::sInt32:return "sInt32";
+	case TypesEnum::sInt64:return "sInt64";
+
+	case TypesEnum::Bool:return "bool";
+	default:
+		break;
+	}
+	return "[Type Name Here]";
+}
+void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
+{
+	switch (V.Name.Token->Type)
+	{
+	case TokenType::KeyWorld_var:
+		Out._Type = TypesEnum::Var;
+		break;
+	case TokenType::KeyWorld_UInt8:
+		Out._Type = TypesEnum::uInt8;
+		break;
+	case TokenType::KeyWorld_UInt16:
+		Out._Type = TypesEnum::uInt16;
+		break;
+	case TokenType::KeyWorld_UInt32:
+		Out._Type = TypesEnum::uInt32;
+		break;
+	case TokenType::KeyWorld_UInt64:
+		Out._Type = TypesEnum::uInt64;
+		break;
+
+	case TokenType::KeyWorld_SInt8:
+		Out._Type = TypesEnum::sInt8;
+		break;
+	case TokenType::KeyWorld_SInt16:
+		Out._Type = TypesEnum::sInt16;
+		break;
+	case TokenType::KeyWorld_SInt32:
+		Out._Type = TypesEnum::sInt32;
+		break;
+	case TokenType::KeyWorld_SInt64:
+		Out._Type = TypesEnum::sInt64;
+		break;
+
+
+	case TokenType::KeyWorld_Bool:
+		Out._Type = TypesEnum::Bool;
+		break;
+	default:
+		throw std::exception("not added");
+		break;
+	}
+}
+bool SystematicAnalysis::IsVaidType(TypeSymbol& Out)
+{
+	return false;
+}
+bool SystematicAnalysis::CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type)
+{
+	if (AreTheSame(TypeToCheck, Type)) { return true; }
+
+	return false;
 }
 UCodeLangEnd
 

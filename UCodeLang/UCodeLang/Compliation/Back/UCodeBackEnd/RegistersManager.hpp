@@ -10,11 +10,13 @@ public:
 	{
 		NotInUse,
 		InUseSybol,
+		HasBitValue,
 	};
 	struct RegisterInfo 
 	{
 		RegisterInUse Inuse = RegisterInUse::NotInUse;
 		IRField IRField =0;
+		AnyInt64 BitValue;
 	};
 	
 	RegistersManager();
@@ -43,6 +45,18 @@ public:
 		}
 		return RegisterID::NullRegister;
 	}
+	RegisterID GetValue(AnyInt64 Value)
+	{
+		for (size_t i = 0; i < RegisterSize; i++)
+		{
+			auto& Info = Registers[i];
+			if (Info.Inuse == RegisterInUse::HasBitValue && Info.BitValue.Value==Value.Value)
+			{
+				return (RegisterID)i;
+			}
+		}
+		return RegisterID::NullRegister;
+	}
 
 	RegisterID GetFreeRegister()
 	{
@@ -54,7 +68,9 @@ public:
 				return (RegisterID)i;
 			}
 		}
-		return RegisterID::NullRegister;
+		
+		Reset();
+		return RegisterID::A;
 	}
 
 	RegisterID GetFreeRegisterAndWeakLock()
@@ -62,6 +78,14 @@ public:
 		RegisterID r = GetFreeRegister();
 		WeakLockRegister(r);
 		return r;
+	}
+
+	void WeakLockRegisterValue(RegisterID id,AnyInt64 Value)
+	{
+		if (id == RegisterID::NullRegister) { throw std::exception("Bad Register"); }
+		auto& Info = Registers[(size_t)id];
+		Info.Inuse = RegisterInUse::HasBitValue;
+		Info.BitValue = Value;
 	}
 
 	void WeakLockRegister(RegisterID id)

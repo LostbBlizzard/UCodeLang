@@ -3,6 +3,43 @@
 #include "IRCode.hpp"
 UCodeLangStart
 
+
+enum class TypesEnum :UInt8
+{
+	Null,
+
+	Var,
+	Int_t,
+	uInt_t,
+	sInt_t,
+
+	uInt8,
+	uInt16,
+	uInt32,
+	uInt64,
+
+	sInt8,
+	sInt16,
+	sInt32,
+	sInt64,
+
+	
+
+	Bool,
+
+	CustomType,
+};
+struct TypeSymbol
+{
+	TypesEnum _Type = TypesEnum::Null;
+	SymbolID  _CustomTypeSymbol = 0;
+
+	void SetType(TypesEnum type)
+	{
+		_Type = type;
+	}
+};
+
 enum class SymbolType : UInt8
 {
 	Null,
@@ -24,8 +61,10 @@ public:
 	SymbolType Type;
 	String FullName;
 	SymbolID ID;
+	//var
+	UAddress Size=NullAddress;
+	TypeSymbol VarType;
 };
-
 class SymbolTable
 {
 public:
