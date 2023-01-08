@@ -74,6 +74,8 @@ private:
 	String GetScopedNameAsString(const ScopedNameNode& node);
 	void OnDeclareVariablenode(const DeclareVariableNode& node);
 	void OnAssignVariableNode(const AssignVariableNode& node);
+	void OnPostfixVariableNode(const PostfixVariableNode& node);
+	void OnCompoundStatementNode(const CompoundStatementNode& node);
 	void OnExpressionTypeNode(const Node* node);
 	void OnExpressionNode(const ValueExpressionNode& node);
 	void OnExpressionNode(const BinaryExpressionNode& node);
