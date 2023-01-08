@@ -171,36 +171,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 
 	if (passtype == PassType::GetTypes)
 	{
-		for (auto& node : Class._Class.Fields)
-		{
-			if (node.FullNameType == Uint8TypeName|| node.FullNameType == Sint8TypeName
-				|| node.FullNameType == CharTypeName || node.FullNameType == boolTypeName)
-			{
-				node.offset = Class._Class.Size;
-				Class._Class.Size += sizeof(UInt8);
-			}
-			else if(node.FullNameType == Uint16TypeName || node.FullNameType == Sint16TypeName)
-			{
-				node.offset = Class._Class.Size;
-				Class._Class.Size += sizeof(UInt16);
-			}
-			else if (node.FullNameType == Uint32TypeName || node.FullNameType == Sint32TypeName)
-			{
-				node.offset = Class._Class.Size;
-				Class._Class.Size += sizeof(UInt32);
-			}
-			else if (node.FullNameType == Uint64TypeName || node.FullNameType == Sint64TypeName
-				|| node.FullNameType == UintPtrTypeName || node.FullNameType == SintPtrTypeName)
-			{
-				node.offset = Class._Class.Size;
-				Class._Class.Size += sizeof(UInt64);
-			}
-			else
-			{
-				node.offset = Class._Class.Size;
-				Class._Class.Size += sizeof(UInt64);
-			}
-		}
+		GetTypesClass(Class);
 	}
 
 	_Table.RemovePopUseing(UseingIndex);
@@ -281,7 +252,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		if (RetType && RetType->Get_Type() == NodeType::AnonymousTypeNode)
 		{
 			auto NewName = GetFuncAnonymousObjectFullName(FullName);
-			auto& Class = _Lib.Get_Assembly().AddClass(String(NewName), _Table._Scope.ThisScope);
+			auto& Class = _Lib.Get_Assembly().AddClass(NewName,NewName);
+			
 
 			AnonymousTypeNode* Typenode = AnonymousTypeNode::As(RetType);
 			for (auto& Item3 : Typenode->Fields.Parameters)
@@ -291,6 +263,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 				V.Name = Item3.Name.AsString();
 				Class._Class.Fields.push_back(V);
 			}
+			GetTypesClass(Class);
 		}
 	}
 	else
@@ -557,6 +530,39 @@ Symbol* SystematicAnalysis::GetSymbol(String_view Name, SymbolType Type)
 String SystematicAnalysis::GetFuncAnonymousObjectFullName(const String& FullFuncName)
 {
 	return FullFuncName + "!";
+}
+void SystematicAnalysis::GetTypesClass(ClassData& Class)
+{
+	for (auto& node : Class._Class.Fields)
+	{
+		if (node.FullNameType == Uint8TypeName || node.FullNameType == Sint8TypeName
+			|| node.FullNameType == CharTypeName || node.FullNameType == boolTypeName)
+		{
+			node.offset = Class._Class.Size;
+			Class._Class.Size += sizeof(UInt8);
+		}
+		else if (node.FullNameType == Uint16TypeName || node.FullNameType == Sint16TypeName)
+		{
+			node.offset = Class._Class.Size;
+			Class._Class.Size += sizeof(UInt16);
+		}
+		else if (node.FullNameType == Uint32TypeName || node.FullNameType == Sint32TypeName)
+		{
+			node.offset = Class._Class.Size;
+			Class._Class.Size += sizeof(UInt32);
+		}
+		else if (node.FullNameType == Uint64TypeName || node.FullNameType == Sint64TypeName
+			|| node.FullNameType == UintPtrTypeName || node.FullNameType == SintPtrTypeName)
+		{
+			node.offset = Class._Class.Size;
+			Class._Class.Size += sizeof(UInt64);
+		}
+		else
+		{
+			node.offset = Class._Class.Size;
+			Class._Class.Size += sizeof(UInt64);
+		}
+	}
 }
 UCodeLangEnd
 

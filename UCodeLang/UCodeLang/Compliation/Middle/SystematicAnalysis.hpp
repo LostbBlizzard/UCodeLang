@@ -91,6 +91,7 @@ private:
 	}
 	Symbol* GetSymbol(String_view Name, SymbolType Type);
 	static String GetFuncAnonymousObjectFullName(const String& FullFuncName);
+	void GetTypesClass(ClassData& data);
 };
 UCodeLangEnd
 
