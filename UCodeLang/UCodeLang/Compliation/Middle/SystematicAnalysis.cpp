@@ -291,6 +291,9 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			case NodeType::UsingNode: OnUseingNode(*UsingNode::As(node2)); break;
 			case NodeType::DeclareVariableNode:OnDeclareVariablenode(*DeclareVariableNode::As(node2)); break;
 			case NodeType::AssignVariableNode:OnAssignVariableNode(*AssignVariableNode::As(node2)); break;
+			case NodeType::PostfixVariableNode:OnPostfixVariableNode(*PostfixVariableNode::As(node2)); break;
+			case NodeType::CompoundStatementNode:OnCompoundStatementNode(*CompoundStatementNode::As(node2)); break;
+
 			default:break;
 			}
 		}
@@ -369,6 +372,60 @@ void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 		auto Symbol = GetSymbol(node.Name.AsStringView(), SymbolType::Varable_t);
 		SymbolID sybId = Symbol->ID;
 
+		auto Op = IROperand::AsLocation(_LastExpressionField);
+		auto NewOp = IROperand::AsVarable(sybId);
+		_Builder.Build_Assign(NewOp, Op);
+	}
+}
+void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
+{
+	if (passtype == PassType::BuidCode)
+	{
+		auto Symbol = GetSymbol(node.Name.AsStringView(), SymbolType::Varable_t);
+		SymbolID sybId = Symbol->ID;
+
+
+		_Builder.Build_Assign(IROperand::AsInt8(1));
+		auto V0 = IROperand::AsLocation(_Builder.GetLastField());
+		_Builder.Build_Assign(IROperand::AsReadVarable(sybId));
+		auto V1 = IROperand::AsLocation(_Builder.GetLastField());
+
+		if (node.PostfixOp->Type == TokenType::increment) 
+		{
+			_Builder.MakeAdd8(V0, V1);
+		}
+		else
+		{
+			_Builder.MakeSub8(V0, V1);
+		}
+		auto Op = IROperand::AsLocation(_LastExpressionField);
+		auto NewOp = IROperand::AsVarable(sybId);
+		_Builder.Build_Assign(NewOp, Op);
+	}
+}
+void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& node)
+{
+	OnExpressionTypeNode(node.Expession.Value);
+	if (passtype == PassType::BuidCode)
+	{
+		auto Symbol = GetSymbol(node.VariableName.AsStringView(), SymbolType::Varable_t);
+		SymbolID sybId = Symbol->ID;
+
+		auto V0 = IROperand::AsLocation(_Builder.GetLastField());
+		_Builder.Build_Assign(IROperand::AsReadVarable(sybId));
+		auto V1 = IROperand::AsLocation(_Builder.GetLastField());
+		switch (node.CompoundOp->Type)
+		{
+		case TokenType::CompoundAdd:
+			_Builder.MakeAdd8(V0, V1);
+			break;
+		case TokenType::CompoundSub:
+			_Builder.MakeSub8(V0, V1);
+			break;
+		default:
+			throw std::exception("Bad Op");
+			break;
+		}
 		auto Op = IROperand::AsLocation(_LastExpressionField);
 		auto NewOp = IROperand::AsVarable(sybId);
 		_Builder.Build_Assign(NewOp, Op);
