@@ -162,7 +162,7 @@ struct TypeNode :Node
 	}
 	NameNode Name;
 	GenericValuesNode Generic;
-
+	Node* node = nullptr;
 
 	static constexpr bool IsType(TokenType Type)
 	{
@@ -246,15 +246,24 @@ struct TypeNode :Node
 			Name.Token = ToCopyFrom.Name.Token;
 		}
 	}
-	TypeNode(TypeNode&& source) noexcept
+	TypeNode(TypeNode&& source)noexcept
 	{
+		Name = std::move(source.Name);
+		Generic = std::move(source.Generic);
 		if (source.HasMadeToken)
 		{
-			Name = std::move(source.Name);
-			Generic = std::move(source.Generic);
 
-			HasMadeToken = false;
+
+			source.HasMadeToken = false;
+
 		}
+
+		if (source.node)
+		{
+			node = source.node;
+			source.node = nullptr;
+		}
+
 		HasMadeToken = false;
 	}
 	~TypeNode() noexcept
@@ -262,6 +271,10 @@ struct TypeNode :Node
 		if (HasMadeToken)
 		{
 			delete Name.Token;
+		}
+		if (node)
+		{
+			delete node;
 		}
 	}
 private:
@@ -572,6 +585,16 @@ struct FuncCallStatementNode :Node
 	}
 	AddforNode(FuncCallStatementNode);
 	FuncCallNode Base;
+};
+
+struct AnonymousTypeNode :Node
+{
+	AnonymousTypeNode() : Node(NodeType::AnonymousTypeNode)
+	{
+
+	}
+	AddforNode(AnonymousTypeNode);
+	NamedParametersNode Fields;
 };
 
 UCodeLangEnd

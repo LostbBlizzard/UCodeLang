@@ -90,6 +90,7 @@ private:
 		return   OutputType() == OutPutType::Lib ? LibType::Lib : LibType::Dll;
 	}
 	Symbol* GetSymbol(String_view Name, SymbolType Type);
+	static String GetFuncAnonymousObjectFullName(const String& FullFuncName);
 };
 UCodeLangEnd
 

@@ -461,7 +461,23 @@ GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 	if (Arrow->Type == TokenType::RightArrow)
 	{
 		NextToken();
-		GetTypeWithVoid(out.ReturnType);
+		auto RetToken = TryGetToken(); TokenNotNullCheck(RetToken);
+		if (RetToken->Type == AnonymousObjectStart)
+		{
+			NextToken();
+			auto node = AnonymousTypeNode::Gen();
+			out.ReturnType.node = node;
+			GetNamedParametersNode(node->Fields);
+
+
+			auto AnonymousObjectEndToken = TryGetToken();
+			TokenTypeCheck(AnonymousObjectEndToken,AnonymousObjectEnd);
+			NextToken();
+		}
+		else
+		{
+			GetTypeWithVoid(out.ReturnType);
+		}
 	}
 	else if (Arrow->Type == TokenType::Colon)
 	{
@@ -645,7 +661,7 @@ GotNodeType Parser::GetNamedParametersNode(NamedParametersNode& out)
 		GetName(Tep.Name);
 
 		End:
-		out.Parameters.push_back(Tep);
+		out.Parameters.push_back(std::move(Tep));
 
 		auto CommaToken = TryGetToken();
 		if (CommaToken == nullptr || CommaToken->Type != TokenType::Comma)

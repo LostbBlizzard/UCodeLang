@@ -276,6 +276,22 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 		syb = &_Table.AddSybol(SymbolType::Func, (String)FuncName, FullName);
 		_Table.AddSymbolID(*syb, sybId);
+
+		auto RetType = node.Signature.ReturnType.node;
+		if (RetType && RetType->Get_Type() == NodeType::AnonymousTypeNode)
+		{
+			auto NewName = GetFuncAnonymousObjectFullName(FullName);
+			auto& Class = _Lib.Get_Assembly().AddClass(String(NewName), _Table._Scope.ThisScope);
+
+			AnonymousTypeNode* Typenode = AnonymousTypeNode::As(RetType);
+			for (auto& Item3 : Typenode->Fields.Parameters)
+			{
+				ClassField V;
+				V.FullNameType = Item3.Type.AsString();
+				V.Name = Item3.Name.AsString();
+				Class._Class.Fields.push_back(V);
+			}
+		}
 	}
 	else
 	{
@@ -301,7 +317,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			case NodeType::EnumNode:OnEnum(*EnumNode::As(node2)); break;
 			case NodeType::UsingNode: OnUseingNode(*UsingNode::As(node2)); break;
 			case NodeType::DeclareVariableNode:OnDeclareVariablenode(*DeclareVariableNode::As(node2)); break;
-			case NodeType::AssignVariableNode:OnAssignVariableNode(*AssignVariableNode::As(node2));
+			case NodeType::AssignVariableNode:OnAssignVariableNode(*AssignVariableNode::As(node2)); break;
 			default:break;
 			}
 		}
@@ -349,7 +365,6 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 			ClassField V;
 			auto& Class = *_ClassStack.top();
 			V.FullNameType = node.Type.AsString();
-
 			V.Name = node.Name.AsString();
 
 			Class._Class.Fields.push_back(V);
@@ -538,6 +553,10 @@ Symbol* SystematicAnalysis::GetSymbol(String_view Name, SymbolType Type)
 	auto& Symbols = _Table.GetSymbolsWithName(Name,Type);
 	auto& Symbol = Symbols[0];
 	return Symbol;
+}
+String SystematicAnalysis::GetFuncAnonymousObjectFullName(const String& FullFuncName)
+{
+	return FullFuncName + "!";
 }
 UCodeLangEnd
 
