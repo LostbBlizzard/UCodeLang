@@ -22,6 +22,7 @@ class ClassMethod
 public:
 	class ClassMethodPar
 	{
+	public:
 		String FullNameType;
 	};
 	Vector<AttributeData> Attributes;

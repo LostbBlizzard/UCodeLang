@@ -16,6 +16,8 @@ public:
 	static constexpr TokenType declareFuncParsStart = TokenType::Left_Bracket;
 	static constexpr TokenType declareFuncParsEnd = TokenType::Right_Bracket;
 	
+	static constexpr TokenType AnonymousObjectStart = TokenType::Left_Bracket;
+	static constexpr TokenType AnonymousObjectEnd = TokenType::Right_Bracket;
 
 	static constexpr TokenType FuncCallStart = TokenType::Left_Parentheses;
 	static constexpr TokenType FuncCallEnd = TokenType::Right_Parentheses;

@@ -27,10 +27,49 @@ String UAssembly::ToString(const UCodeLang::UClib* Lib)
 	{
 		AddressToName[Item2.second] = Item2.first;
 	}
-
+	r += "[ClassData]-- \n";
 	
+	auto& Assembly = Lib->Get_Assembly();
+	for (auto& Item : Assembly.Classes)
+	{
+		switch (Item->Type)
+		{
+		case ClassType::Class:
+		{
+			auto& Class = Item->_Class;
 
-	r += "[Instructions]-- \n";
+			for (auto Item2 : Class.Attributes)
+			{
+				r += Item2.Name;
+			}
+			r += "$" + (Item->FullName.size() ? Item->FullName : Item->Name) + ":\n";
+			
+			
+			for (auto Item2 : Class.Fields)
+			{
+				r += " " + Item2.FullNameType + " " + Item2.Name + ";//Offset " + std::to_string(Item2.offset) + "\n";
+			}
+
+			for (auto Item2 : Class.Methods)
+			{
+				r += " |" + Item2.FullName + "[";
+				for (auto& Item3 : Item2.ParsType)
+				{
+					r += Item3.FullNameType + ":";
+				}
+				r += "]->" + (Item2.RetType.FullNameType.size()
+					 ? Item2.RetType.FullNameType : " void") + ";" + "\n";
+					
+			}
+		}
+		break;
+		default:
+			break;
+		} 
+	}
+
+
+	r += "\n[Instructions]-- \n";
 	auto& Insts = Lib->Get_Instructions();
 	for (size_t i = 0; i < Insts.size(); i++)
 	{
