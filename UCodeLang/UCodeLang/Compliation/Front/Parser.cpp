@@ -603,6 +603,8 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 	Node* ExNode = nullptr;
 	auto Ex = GetExpressionNode(ExNode);
 	auto Token = TryGetToken();
+	GotNodeType r_t= GotNodeType::Null;
+	Node* r_out =nullptr;
 	if (Token && IsBinaryOperator(Token)) 
 	{
 		NextToken();
@@ -617,27 +619,34 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 		
 		r->BinaryOp = Token;
 		r->Value1.Value = Other;
-		out = r->As();
-		return   Merge(Ex, Ex2);
-	}
-	else if (Token && Token->Type == TokenType::RightArrow)
-	{
-		NextToken();
-		auto cast = CastNode::Gen();
-		out = cast->As();
-
-
-		auto Type = GetType(cast->ToType);
-		cast->Expression.Value = ExNode;
-		return Merge(Ex,Type);
+		r_out = r->As();
+		r_t = Merge(Ex, Ex2);
 	}
 	else
 	{
 		auto Ptr = ValueExpressionNode::Gen();
 		Ptr->Value = ExNode;
-		out = Ptr->As();
-		return Ex;
+		r_out = Ptr->As();
+		r_t = Ex;
 	}
+
+	auto Token2 = TryGetToken();
+	while (Token2 && Token2->Type == TokenType::RightArrow)
+	{
+		NextToken();
+		auto cast = CastNode::Gen();
+		
+
+
+		auto Type = GetType(cast->ToType);
+		cast->Expression.Value = r_out;
+		r_t = Merge(Ex,Type);
+		r_out = cast->As();
+		Token2 = TryGetToken();
+	}
+
+	out = r_out;
+	return r_t;
 }
 GotNodeType Parser::GetValueParameterNode(Node*& out)
 {
