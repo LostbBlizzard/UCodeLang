@@ -540,6 +540,7 @@ void SystematicAnalysis::OnExpressionTypeNode(const Node* node)
 	{
 	case NodeType::BinaryExpressionNode:OnExpressionNode(*BinaryExpressionNode::As(node));break;
 	case NodeType::ValueExpressionNode:OnExpressionNode(*ValueExpressionNode::As(node)); break;
+	case NodeType::CastNode:OnExpressionNode(*CastNode::As(node)); break;
 	default:
 		break;
 	}
@@ -676,6 +677,27 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 
 
 		_LastExpressionField = _Builder.GetLastField();
+	}
+}
+void SystematicAnalysis::OnExpressionNode(const CastNode& node)
+{
+	OnExpressionTypeNode(node.Expression.Value);
+	auto Ex0 = _LastExpressionField;
+	auto Ex0Type = LastExpressionType;
+
+
+	if (passtype == PassType::FixedTypes) 
+	{
+		TypeSymbol ToTypeAs;
+		Convert(node.ToType, ToTypeAs);
+		if (!CanBeExplicitlyConverted(Ex0Type, ToTypeAs))
+		{
+			auto  Token = node.ToType.Name.Token;
+
+			_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+				, "Cant cast Type '" + ToString(Ex0Type) + " to '" + ToString(ToTypeAs) + "'");
+		}
+		LastExpressionType = ToTypeAs;
 	}
 }
 void SystematicAnalysis::CheckBackEnd()
@@ -891,6 +913,12 @@ bool SystematicAnalysis::IsVaidType(TypeSymbol& Out)
 bool SystematicAnalysis::CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type)
 {
 	if (AreTheSame(TypeToCheck, Type)) { return true; }
+
+	return false;
+}
+bool SystematicAnalysis::CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type)
+{
+	if (CanBeImplicitConverted(TypeToCheck, Type)) { return true; }
 
 	return false;
 }

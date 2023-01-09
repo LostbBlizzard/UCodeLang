@@ -87,6 +87,7 @@ private:
 	void OnExpressionTypeNode(const Node* node);
 	void OnExpressionNode(const ValueExpressionNode& node);
 	void OnExpressionNode(const BinaryExpressionNode& node);
+	void OnExpressionNode(const CastNode& node);
 	void CheckBackEnd();
 	void PushTepAttributesInTo(Vector<AttributeData>& Input);
 	void LoadLibSymbols();
@@ -114,6 +115,7 @@ private:
 	void Convert(const TypeNode& V, TypeSymbol& Out);
 	bool IsVaidType(TypeSymbol& Out);
 	bool CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
+	bool CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
 };
 UCodeLangEnd
 
