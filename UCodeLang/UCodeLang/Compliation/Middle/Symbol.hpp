@@ -54,6 +54,9 @@ enum class SymbolType : UInt8
 	Func,
 	ImportedDllFunc,//
 	ImportedLibFunc,
+
+	FuncCall,
+	GenericFunc,
 };
 class Symbol
 {
@@ -64,6 +67,8 @@ public:
 	//var
 	UAddress Size=NullAddress;
 	TypeSymbol VarType;
+	//
+	void* SomePtr =nullptr;//most likey a node*
 };
 class SymbolTable
 {
@@ -79,39 +84,14 @@ public:
 	void ClearUseings() { Useings.clear(); }
 
 	size_t GetUseingIndex() { return Useings.size() - 1; }
-	void RemovePopUseing(size_t Index)
-	{
-
-	}
+	void RemovePopUseing(size_t Index);
 
 	void AddScope(const String_view& Name) { _Scope.AddScope(Name); }
 	void RemoveScope() { _Scope.ReMoveScope(); }
 
-	Vector<Symbol*>& GetSymbolsWithName(const String_view& Name,SymbolType Type)
-	{
-		auto& r = GetSymbolsWithName(Name);
-
-
-		return r;
-	}
-
-	Vector<Symbol*>& GetSymbolsWithName(const String_view& Name)
-	{
-		thread_local Vector<Symbol*> Tep;
-
-		String TepScope =_Scope.ThisScope;
-		String TepName = TepScope + ScopeHelper::_ScopeSep + (String)Name;
-
-		for (auto& Item : Symbols)
-		{
-			if (Item.FullName == TepName)
-			{
-				Tep.push_back(&Item);
-			}
-		}
-
-		return Tep;
-	}
+	Vector<Symbol*>& GetSymbolsWithName(const String_view& Name, SymbolType Type);
+	void GetSymbolsInNameSpace(const String_view& NameSpace, const String_view& Name, Vector<Symbol*>& Output);
+	Vector<Symbol*>& GetSymbolsWithName(const String_view& Name);
 
 	Symbol& AddSybol(SymbolType type, const String& Name, const String& FullName)
 	{

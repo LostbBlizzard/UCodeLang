@@ -37,6 +37,7 @@ public:
 		GetTypes,
 		FixedTypes,
 		BuidCode,
+		Done,
 	};
 
 private:
@@ -49,7 +50,7 @@ private:
 
 	PassType passtype = PassType::Null;
 
-	const Vector<FileNode*>* _Files =nullptr;
+	const Vector<FileNode*>* _Files = nullptr;
 	const Vector<UClib*>* _Libs = nullptr;
 	SymbolTable _Table;
 	Stack<ClassData*> _ClassStack;
@@ -58,7 +59,7 @@ private:
 	//
 	IRBuilder _Builder;
 	IRSeg _LastExpression;
-	IRField _LastExpressionField;
+	IRField _LastExpressionField =0;
 	//
 	Stack<TypeSymbol> LookingForTypes;
 	TypeSymbol LastExpressionType;
@@ -66,7 +67,7 @@ private:
 	{
 		return LookingForTypes.top();
 	}
-	const Token* LastLookedAtToken =nullptr;
+	const Token* LastLookedAtToken = nullptr;
 	//
 
 	void Pass();
@@ -88,6 +89,7 @@ private:
 	void OnExpressionNode(const ValueExpressionNode& node);
 	void OnExpressionNode(const BinaryExpressionNode& node);
 	void OnExpressionNode(const CastNode& node);
+	void OnFuncCallNode(const FuncCallNode& node);
 	void CheckBackEnd();
 	void PushTepAttributesInTo(Vector<AttributeData>& Input);
 	void LoadLibSymbols();
@@ -105,7 +107,7 @@ private:
 	void GetTypesClass(ClassData& data);
 
 	bool AreTheSame(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
-	bool HasBinaryOverLoadWith(const TypeSymbol& TypeA,TokenType BinaryOp, const TypeSymbol& TypeB);
+	bool HasBinaryOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
 
 	String ToString(const TypeSymbol& Type);
 	String ToString(const TokenType& Type)
@@ -116,6 +118,13 @@ private:
 	bool IsVaidType(TypeSymbol& Out);
 	bool CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
 	bool CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
+
+	//Generic
+	Stack<String> GenericFuncName;
+	void GenericFuncInstantiate(Symbol* Func,const FuncNode& FuncBase,
+		const Vector<TypeSymbol>& TypeToChage, 
+		const Vector<TypeSymbol>& Type);
+	String GetGenericFuncName(UCodeLang::Symbol* Func, const UCodeLang::Vector<UCodeLang::TypeSymbol>& Type);
 };
 UCodeLangEnd
 

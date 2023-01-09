@@ -1,5 +1,6 @@
 
+|Main2<T>[] => 7 -> T;
 
 |Main[] -> bool:
- ret 7 -> bool -> int64;
-|Func[] => 3;
+ byte A = Main2<byte>();
+ int B = Main2<int>();
