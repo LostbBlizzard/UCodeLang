@@ -1,5 +1,5 @@
 
 
 |Main[] -> bool:
- ret 7;
+ ret 7 -> bool -> int64;
 |Func[] => 3;
