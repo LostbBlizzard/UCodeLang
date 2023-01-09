@@ -575,7 +575,8 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 		auto _Token = TryGetToken();
 
 		_TokenIndex = OldIndex;
-		if (_Token->Type == FuncCallStart)
+		if (_Token->Type == TokenType::lessthan ||
+			_Token->Type == FuncCallStart)
 		{
 			auto r = GetFuncCallNode();
 			out = r.Node;
@@ -759,6 +760,36 @@ GotNodeType Parser::TryGetGeneric(GenericValuesNode& out)
 			out.Values.push_back(Item);
 
 			NextToken();
+			auto Token = TryGetToken();
+			if (Token == nullptr || Token->Type != TokenType::Comma)
+			{
+				break;
+			}
+			NextToken();
+		}
+
+		auto endtoken = TryGetToken();
+		TokenTypeCheck(endtoken, TokenType::greaterthan);
+		NextToken();
+	}
+	return GotNodeType::Success;
+}
+
+GotNodeType Parser::TryGetGeneric(UseGenericsNode& out)
+{
+	auto token = TryGetToken();
+	TokenNotNullCheck(token);
+	if (token->Type == TokenType::lessthan)
+	{
+		NextToken();
+
+		while (true)
+		{
+			UseGenericNode Item;
+			GetType(Item.node);
+			out.Values.push_back(Item);
+
+
 			auto Token = TryGetToken();
 			if (Token == nullptr || Token->Type != TokenType::Comma)
 			{
@@ -1183,6 +1214,13 @@ GotNodeType Parser::GetFuncCallNode(FuncCallNode& out)
 	GetName(out.FuncName);
 
 	auto ParToken = TryGetToken();
+	if (ParToken->Type == TokenType::lessthan)
+	{
+		TryGetGeneric(out.Generics);
+		ParToken = TryGetToken();
+	}
+
+
 	TokenTypeCheck(ParToken, FuncCallStart);
 	NextToken();
 	

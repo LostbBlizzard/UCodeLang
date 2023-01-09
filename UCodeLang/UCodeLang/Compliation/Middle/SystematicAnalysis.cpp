@@ -245,8 +245,17 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 		Ptr->_Class.Methods.push_back(V);
 
-		syb = &_Table.AddSybol(SymbolType::Func, (String)FuncName, FullName);
+		SymbolType Type = node.Signature.Generic.Values.size() ? SymbolType::GenericFunc : SymbolType::Func ;
+		syb = &_Table.AddSybol(Type, (String)FuncName, FullName);
 		_Table.AddSymbolID(*syb, sybId);
+
+		for (auto& Item : node.Signature.Generic.Values)
+		{
+			auto GenericTypeName = Item.AsString();
+			auto GenericType = &_Table.AddSybol(SymbolType::Type, GenericTypeName, FullName + ScopeHelper::_ScopeSep 
+				+ GenericTypeName);
+		}
+		syb->SomePtr = (void*)&node;//the node will not get update anyway.
 
 		auto RetType = node.Signature.ReturnType.node;
 		if (RetType && RetType->Get_Type() == NodeType::AnonymousTypeNode)
@@ -297,6 +306,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			case NodeType::AssignVariableNode:OnAssignVariableNode(*AssignVariableNode::As(node2)); break;
 			case NodeType::PostfixVariableNode:OnPostfixVariableNode(*PostfixVariableNode::As(node2)); break;
 			case NodeType::CompoundStatementNode:OnCompoundStatementNode(*CompoundStatementNode::As(node2)); break;
+			case NodeType::FuncCallNode:OnFuncCallNode(*FuncCallNode::As(node2)); break;
 			case NodeType::RetStatementNode:
 				OnRetStatement(*RetStatementNode::As(node2)); 
 				HasARet = true;
@@ -630,6 +640,11 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 			LastExpressionType = Type;
 		}
 		break;
+		case NodeType::FuncCallNode:
+		{
+			OnFuncCallNode(*FuncCallNode::As(node.Value));//LastExpressionType was set by OnFuncCall
+		}
+		break;
 		default:
 			throw std::exception("not added");
 			break;
@@ -698,6 +713,48 @@ void SystematicAnalysis::OnExpressionNode(const CastNode& node)
 				, "Cant cast Type '" + ToString(Ex0Type) + " to '" + ToString(ToTypeAs) + "'");
 		}
 		LastExpressionType = ToTypeAs;
+	}
+}
+void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
+{
+	if (passtype == PassType::FixedTypes)
+	{
+		auto FuncName = node.FuncName.AsStringView();
+		auto Syb = GetSymbol(FuncName, SymbolType::GenericFunc);
+		if (Syb == nullptr)
+		{
+			auto  Token = node.FuncName.Token;
+			_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+				, "Cant Find function '" + (String)FuncName);
+			return;
+		}
+		if (node.Generics.Values.size())
+		{
+
+			const FuncNode& fnode = *(const FuncNode*)Syb->SomePtr;
+			const auto& Tnode = node.Generics.Values[0];
+
+			TypeSymbol Type;Convert(Tnode.node, Type);
+			
+			auto TypeToSwap = GetSymbol((String)FuncName + ScopeHelper::_ScopeSep + "T", SymbolType::Type)->VarType;
+
+			Vector<TypeSymbol> TypesToChange;
+			Vector<TypeSymbol> TypeToHave;
+			TypesToChange.push_back(TypeToSwap);
+			TypeToHave.push_back(Type);
+
+			String NewName = GetGenericFuncName(Syb, TypeToHave);
+			auto GenerisESyb = GetSymbol(NewName, SymbolType::Func);
+			if (GenerisESyb == nullptr) 
+			{
+				GenericFuncInstantiate(Syb, fnode, TypesToChange, TypeToHave);
+			}
+			else
+			{
+				
+			}
+		}
+		LastExpressionType = Syb->VarType;
 	}
 }
 void SystematicAnalysis::CheckBackEnd()
@@ -775,7 +832,7 @@ void SystematicAnalysis::LoadLibSymbols(const UClib& lib)
 Symbol* SystematicAnalysis::GetSymbol(String_view Name, SymbolType Type)
 {
 	auto& Symbols = _Table.GetSymbolsWithName(Name,Type);
-	auto& Symbol = Symbols[0];
+	auto Symbol = Symbols.size() ? Symbols[0] : nullptr;
 	return Symbol;
 }
 String SystematicAnalysis::GetFuncAnonymousObjectFullName(const String& FullFuncName)
@@ -859,6 +916,18 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type)
 	case TypesEnum::sInt64:return "sInt64";
 
 	case TypesEnum::Bool:return "bool";
+	case TypesEnum::CustomType:
+	{
+		auto Syb = _Table.GetSymbol(Type._CustomTypeSymbol);
+		if (Syb.Type == SymbolType::Func) 
+		{
+			return ToString(Syb.VarType);
+		}
+		else
+		{
+			return Syb.FullName;
+		}
+	}
 	default:
 		break;
 	}
@@ -901,6 +970,11 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 	case TokenType::KeyWorld_Bool:
 		Out._Type = TypesEnum::Bool;
 		break;
+	case TokenType::Name: 
+	{
+		Out._Type = TypesEnum::CustomType;
+		Out._CustomTypeSymbol = GetSymbol(V.Name.AsStringView(), SymbolType::Type)->ID;
+	}break;
 	default:
 		throw std::exception("not added");
 		break;
@@ -921,6 +995,25 @@ bool SystematicAnalysis::CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck,
 	if (CanBeImplicitConverted(TypeToCheck, Type)) { return true; }
 
 	return false;
+}
+void SystematicAnalysis::GenericFuncInstantiate(Symbol* Func,const FuncNode& FuncBase, const Vector<TypeSymbol>& TypeToChage, const Vector<TypeSymbol>& Type)
+{
+	String NewName =GetGenericFuncName(Func, Type);
+
+}
+String SystematicAnalysis::GetGenericFuncName(UCodeLang::Symbol* Func, const UCodeLang::Vector<UCodeLang::TypeSymbol>& Type)
+{
+	String NewName = Func->FullName + "<";
+	for (auto& Item : Type)
+	{
+		NewName += ToString(Item);
+		if (&Type.back() != &Item)
+		{
+			NewName += ".";
+		}
+	}
+	NewName += ">";
+	return NewName;
 }
 UCodeLangEnd
 

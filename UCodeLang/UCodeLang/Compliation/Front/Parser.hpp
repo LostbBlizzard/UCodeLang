@@ -192,6 +192,8 @@ private:
 	GotNodeType GetValueParametersNode(ValueParametersNode& out);
 	GotNodeType TryGetGeneric(GenericValuesNode& out);
 
+	GotNodeType TryGetGeneric(UseGenericsNode& out);
+
 	GotNodeType GetName(ScopedNameNode& out);
 	GotNodeType GetName(NameNode& out);
 	GotNodeType GetNameCheck(NameNode& out);

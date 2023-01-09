@@ -112,7 +112,15 @@ struct GenericValueNode :Node
 	{
 
 	}
-const Token* Token = nullptr;
+	const Token* Token = nullptr;
+	String_view AsStringView() const
+	{
+		return Token->Value._String;
+	}
+	String AsString() const
+	{
+		return (String)AsStringView();
+	}
 };
 struct GenericValuesNode :Node
 {
@@ -127,6 +135,8 @@ struct GenericValuesNode :Node
 		return Values.size();
 	}
 };
+
+
 struct ClassNode :Node
 {
 	ClassNode() : Node(NodeType::ClassNode)
@@ -281,6 +291,30 @@ struct TypeNode :Node
 private:
 	bool HasMadeToken = false;
 };
+
+struct UseGenericNode :Node
+{
+	UseGenericNode() : Node(NodeType::Null)
+	{
+
+	}
+	TypeNode node;
+	
+};
+struct UseGenericsNode :Node
+{
+	UseGenericsNode() : Node(NodeType::Null)
+	{
+
+	}
+	Vector<UseGenericNode> Values;
+
+	UCodeLangForceinline bool HasGeneric()
+	{
+		return Values.size();
+	}
+};
+
 struct NamedParameterNode :Node
 {
 	NamedParameterNode() : Node(NodeType::Null)
@@ -576,6 +610,7 @@ struct FuncCallNode :Node
 	}
 	AddforNode(FuncCallNode);
 	NameNode FuncName;
+	UseGenericsNode Generics;
 	ValueParametersNode Parameters;
 };
 struct FuncCallStatementNode :Node
