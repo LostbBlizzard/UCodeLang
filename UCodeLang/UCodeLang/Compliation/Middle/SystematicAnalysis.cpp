@@ -190,7 +190,10 @@ void SystematicAnalysis::OnUseingNode(const UsingNode& node)
 }
 void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 {
-	auto FuncName = node.Signature.Name.AsStringView();
+	bool IsgenericInstantiation = GenericFuncName.size();
+
+	auto FuncName = IsgenericInstantiation ? GenericFuncName.top().GenericFuncName
+		: node.Signature.Name.AsStringView();
 	auto NameToken = node.Signature.Name.Token;
 	if (NameToken->Type == TokenType::KeyWorld_This)
 	{
@@ -231,7 +234,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	
 	
 	Symbol* syb;
-	SymbolID sybId = (SymbolID)&node;
+	SymbolID sybId = IsgenericInstantiation ? (SymbolID)GenericFuncName.top().Type : (SymbolID)&node;
 	
 
 	auto UseingIndex = _Table.GetUseingIndex();
@@ -245,17 +248,32 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 		Ptr->_Class.Methods.push_back(V);
 
-		SymbolType Type = node.Signature.Generic.Values.size() ? SymbolType::GenericFunc : SymbolType::Func ;
+		SymbolType Type = node.Signature.Generic.Values.size() && IsgenericInstantiation ==false ?
+			SymbolType::GenericFunc : SymbolType::Func ;
+
+
+
 		syb = &_Table.AddSybol(Type, (String)FuncName, FullName);
+		syb->SomePtr = (void*)&node;//the node will not get update anyway.
 		_Table.AddSymbolID(*syb, sybId);
 
-		for (auto& Item : node.Signature.Generic.Values)
+
+		auto& GenericList = node.Signature.Generic;
+		for (size_t i = 0; i < GenericList.Values.size(); i++)
 		{
+			auto& Item = GenericList.Values[i];
+			
 			auto GenericTypeName = Item.AsString();
-			auto GenericType = &_Table.AddSybol(SymbolType::Type, GenericTypeName, FullName + ScopeHelper::_ScopeSep 
+			auto GenericType = &_Table.AddSybol(SymbolType::Type, GenericTypeName, FullName + ScopeHelper::_ScopeSep
 				+ GenericTypeName);
+			
+			if (GenericFuncName.size())
+			{
+				GenericFuncInfo& V2 = GenericFuncName.top();
+				GenericType->VarType = V2.Type->operator[](i);
+
+			}
 		}
-		syb->SomePtr = (void*)&node;//the node will not get update anyway.
 
 		auto RetType = node.Signature.ReturnType.node;
 		if (RetType && RetType->Get_Type() == NodeType::AnonymousTypeNode)
@@ -274,6 +292,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			}
 			GetTypesClass(Class);
 		}
+
+		syb = &_Table.GetSymbol(sybId);//resized _Table
 		Convert(node.Signature.ReturnType,syb->VarType);
 	}
 	else
@@ -286,14 +306,19 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	{
 		_Builder.Build_Func(sybId);
 	}
-
-	if (node.Body.has_value()) 
+	
+	bool IsGenericS = node.Signature.Generic.Values.size();
+	bool ignoreBody = false;
+	if (!IsgenericInstantiation && IsGenericS) {
+		ignoreBody = true;
+	}
+	if (node.Body.has_value() && !ignoreBody)
 	{
 		auto& Body = node.Body.value();
 		_InStatements = true;
 		bool HasARet = false;
 		LookingForTypes.push(syb->VarType);
-
+		
 		for (const auto& node2 : Body.Statements._Nodes)
 		{
 			switch (node2->Get_Type())
@@ -307,9 +332,12 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			case NodeType::PostfixVariableNode:OnPostfixVariableNode(*PostfixVariableNode::As(node2)); break;
 			case NodeType::CompoundStatementNode:OnCompoundStatementNode(*CompoundStatementNode::As(node2)); break;
 			case NodeType::FuncCallNode:OnFuncCallNode(*FuncCallNode::As(node2)); break;
-			case NodeType::RetStatementNode:
-				OnRetStatement(*RetStatementNode::As(node2)); 
+			case NodeType::RetStatementNode: 
+				syb = &_Table.GetSymbol(sybId);
+
+				OnRetStatement(*RetStatementNode::As(node2));
 				HasARet = true;
+
 				if (passtype == PassType::FixedTypes && syb->VarType._Type == TypesEnum::Var)
 				{
 					Get_LookingForType() = syb->VarType = LastExpressionType;
@@ -321,10 +349,14 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 							, "cant guess 'var' type");
 					}
 				}
+			
 			break;
 			default:break;
 			}
 		}
+		
+		
+		
 		_InStatements = false;
 
 		if (passtype == PassType::FixedTypes) 
@@ -344,6 +376,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 			}
 		}
+
 		LookingForTypes.pop();
 	}
 
@@ -371,11 +404,14 @@ void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 	if (passtype == PassType::FixedTypes) 
 	{
 		auto T = Get_LookingForType();
-		if (T._Type != TypesEnum::Var) {
+		if (T._Type != TypesEnum::Var) 
+		{
 			if (!CanBeImplicitConverted(LastExpressionType, T))
 			{
-				_ErrorsOutput->AddError(ErrorCodes::InValidType, LastLookedAtToken->OnLine, LastLookedAtToken->OnPos,
-					"cant convert '" + ToString(LastExpressionType) + "' to" + "'" + ToString(T) + "'");
+				if (T._Type != TypesEnum::Null) {
+					_ErrorsOutput->AddError(ErrorCodes::InValidType, LastLookedAtToken->OnLine, LastLookedAtToken->OnPos,
+						"cant convert '" + ToString(LastExpressionType) + "' to" + "'" + ToString(T) + "'");
+				}
 			}
 		}
 	}
@@ -734,8 +770,8 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 			const FuncNode& fnode = *(const FuncNode*)Syb->SomePtr;
 			const auto& Tnode = node.Generics.Values[0];
 
-			TypeSymbol Type;Convert(Tnode.node, Type);
-			
+			TypeSymbol Type; Convert(Tnode.node, Type);
+
 			auto TypeToSwap = GetSymbol((String)FuncName + ScopeHelper::_ScopeSep + "T", SymbolType::Type)->VarType;
 
 			Vector<TypeSymbol> TypesToChange;
@@ -745,16 +781,18 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 
 			String NewName = GetGenericFuncName(Syb, TypeToHave);
 			auto GenerisESyb = GetSymbol(NewName, SymbolType::Func);
-			if (GenerisESyb == nullptr) 
+			if (GenerisESyb == nullptr)
 			{
 				GenericFuncInstantiate(Syb, fnode, TypesToChange, TypeToHave);
+				GenerisESyb = GetSymbol(NewName, SymbolType::Func);
 			}
-			else
-			{
-				
-			}
+
+			LastExpressionType = GenerisESyb->VarType;
+
 		}
-		LastExpressionType = Syb->VarType;
+		else {
+			LastExpressionType = Syb->VarType;
+		}
 	}
 }
 void SystematicAnalysis::CheckBackEnd()
@@ -919,7 +957,8 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type)
 	case TypesEnum::CustomType:
 	{
 		auto Syb = _Table.GetSymbol(Type._CustomTypeSymbol);
-		if (Syb.Type == SymbolType::Func) 
+		if (Syb.Type == SymbolType::Func
+			|| Syb.Type == SymbolType::GenericFunc)
 		{
 			return ToString(Syb.VarType);
 		}
@@ -928,6 +967,8 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type)
 			return Syb.FullName;
 		}
 	}
+	case TypesEnum::Null:
+		return "null (incomplete/broken Type)";
 	default:
 		break;
 	}
@@ -973,7 +1014,19 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 	case TokenType::Name: 
 	{
 		Out._Type = TypesEnum::CustomType;
-		Out._CustomTypeSymbol = GetSymbol(V.Name.AsStringView(), SymbolType::Type)->ID;
+
+		auto Name = V.Name.AsStringView();
+		auto SybV = GetSymbol(Name, SymbolType::Type);
+		if (SybV == nullptr)
+		{
+			auto Token = V.Name.Token;
+			_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+				, "Cant Find Type '" + (String)Name + "'");
+		}
+		else
+		{
+			Out =SybV->VarType;
+		}
 	}break;
 	default:
 		throw std::exception("not added");
@@ -996,10 +1049,25 @@ bool SystematicAnalysis::CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck,
 
 	return false;
 }
-void SystematicAnalysis::GenericFuncInstantiate(Symbol* Func,const FuncNode& FuncBase, const Vector<TypeSymbol>& TypeToChage, const Vector<TypeSymbol>& Type)
+void SystematicAnalysis::GenericFuncInstantiate(Symbol* Func, const FuncNode& FuncBase, const Vector<TypeSymbol>& TypeToChage, const Vector<TypeSymbol>& Type)
 {
-	String NewName =GetGenericFuncName(Func, Type);
+	String NewName = GetGenericFuncName(Func, Type);
+	GenericFuncInfo Info;
+	Info.GenericFuncName = NewName;
+	Info.Type = &Type;
+	Info.TypeToChage = &TypeToChage;
+	GenericFuncName.push(Info);
 
+	auto OldScope = _Table._Scope.ThisScope;
+	_Table._Scope.ThisScope.clear();
+
+	passtype = PassType::GetTypes;
+	OnFuncNode(FuncBase);
+	passtype = PassType::FixedTypes;
+	OnFuncNode(FuncBase);
+
+	//
+	_Table._Scope.ThisScope = OldScope;
 }
 String SystematicAnalysis::GetGenericFuncName(UCodeLang::Symbol* Func, const UCodeLang::Vector<UCodeLang::TypeSymbol>& Type)
 {

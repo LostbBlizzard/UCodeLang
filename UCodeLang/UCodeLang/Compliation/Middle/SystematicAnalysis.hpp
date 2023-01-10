@@ -120,11 +120,18 @@ private:
 	bool CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
 
 	//Generic
-	Stack<String> GenericFuncName;
+	struct GenericFuncInfo
+	{
+		String GenericFuncName;
+		const Vector<TypeSymbol>* TypeToChage=nullptr;
+		const Vector<TypeSymbol>* Type = nullptr;
+	};
+
+	Stack<GenericFuncInfo> GenericFuncName;
 	void GenericFuncInstantiate(Symbol* Func,const FuncNode& FuncBase,
 		const Vector<TypeSymbol>& TypeToChage, 
 		const Vector<TypeSymbol>& Type);
-	String GetGenericFuncName(UCodeLang::Symbol* Func, const UCodeLang::Vector<UCodeLang::TypeSymbol>& Type);
+	String GetGenericFuncName(Symbol* Func, const Vector<TypeSymbol>& Type);
 };
 UCodeLangEnd
 
