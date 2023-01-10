@@ -37,6 +37,12 @@ struct TypeSymbol
 	void SetType(TypesEnum type)
 	{
 		_Type = type;
+		_CustomTypeSymbol = 0;
+	}
+	void SetType(SymbolID CustomType)
+	{
+		_Type = TypesEnum::CustomType;
+		_CustomTypeSymbol = CustomType;
 	}
 };
 
