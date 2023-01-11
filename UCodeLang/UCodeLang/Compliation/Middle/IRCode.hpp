@@ -22,7 +22,7 @@ enum class IROperator : UInt8
 	IROperatorIntSet(16)
 	IROperatorIntSet(32)
 	IROperatorIntSet(64)
-	
+	FuncCall,
 };
 
 enum class IRFieldInfoType : UInt8
@@ -157,6 +157,13 @@ public:
 		Code.push_back({});
 		auto& V = Code.back();
 		V.Operator = IROperator::Func;
+		V.Operand0 = IROperand::AsSymbol(Value);
+	}
+	void Build_FuncCall(SymbolID Value)
+	{
+		Code.push_back({});
+		auto& V = Code.back();
+		V.Operator = IROperator::FuncCall;
 		V.Operand0 = IROperand::AsSymbol(Value);
 	}
 

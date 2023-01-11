@@ -92,12 +92,12 @@ String UAssembly::ToString(const UCodeLang::UClib* Lib)
 
 			if (MapData->Op_0 != OpCodeType::NoOpCode)
 			{
-				OpValueToString(MapData->Op_0,Item.Value0, r);
+				OpValueToString(MapData->Op_0,Item.Value0, AddressToName, r);
 			}
 			if (MapData->Op_1 != OpCodeType::NoOpCode)
 			{
 				r += ",";
-				OpValueToString(MapData->Op_1,Item.Value1, r);
+				OpValueToString(MapData->Op_1,Item.Value1, AddressToName, r);
 			}
 			
 		}
@@ -112,31 +112,45 @@ String UAssembly::ToString(const UCodeLang::UClib* Lib)
 
     return r;
 }
-void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In, String& out)
+void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In,const unordered_map<UAddress, String>& AddressToName, String& out)
 {
+
 	switch (OpType)
 	{
-	case UCodeLang::UAssembly::OpCodeType::NoOpCode:
+	case OpCodeType::NoOpCode:
 		break;
-	case UCodeLang::UAssembly::OpCodeType::AnyInt8:
+	case OpCodeType::AnyInt8:
 		out += std::to_string((UInt64)In.AsUInt8) + "|" + std::to_string((Int64)In.AsInt8);
 		break;
-	case UCodeLang::UAssembly::OpCodeType::AnyInt16:
+	case OpCodeType::AnyInt16:
 		out += std::to_string((UInt64)In.AsUInt16) + "|" + std::to_string((Int64)In.AsInt16);
 		break;
-	case UCodeLang::UAssembly::OpCodeType::AnyInt32:
+	case OpCodeType::AnyInt32:
 		out += std::to_string(In.AsUInt32) + "|" + std::to_string(In.AsInt32);
 		break;
-	case UCodeLang::UAssembly::OpCodeType::AnyIntNative:
-	case UCodeLang::UAssembly::OpCodeType::AnyInt64:
+	case OpCodeType::AnyIntNative:
+	case OpCodeType::AnyInt64:
 		out += std::to_string(In.AsUInt64) + "|" + std::to_string(In.AsInt64);
 		break;
-	case UCodeLang::UAssembly::OpCodeType::Register:
+	case OpCodeType::Register:
 		out += GetRegisterToString(In.AsRegister);
 		break;
-	case UCodeLang::UAssembly::OpCodeType::UIntPtr:
+	case OpCodeType::UIntPtr:
 		out += std::to_string(In.AsUInt64);
 		break;
+
+	case OpCodeType::InsAddress:
+	{
+		auto NewAddress = In.AsAddress + 1;
+		if (AddressToName.count(NewAddress))
+		{
+			out += "{" + AddressToName.at(NewAddress) + "}";
+		}
+		else
+		{
+			out += "{" + std::to_string(In.AsUInt64) + "}";
+		}
+	}	break;
 	default:
 		break;
 	}

@@ -32,6 +32,7 @@ private:
 	size_t _Index = 0;
 	RegistersManager _Registers;
 	void BuildFunc();
+	void Link();
 
 	void SetSybToRegister(UCodeLang::RegisterID R,IRThreeAddressCode& IR);
 	void SetIRToRegister(UCodeLang::RegisterID R, IRField IR);
@@ -46,6 +47,18 @@ private:
 	};
 
 	unordered_map<SymbolID, BuildData> SymbolToData;
+	
+	struct CallInfo
+	{
+		size_t CallIns=0;
+		SymbolID ID =0;
+	};
+	Vector<CallInfo> _InsCalls;
+	struct DeclareCall
+	{
+		size_t FuncAddress = 0;
+	};
+	unordered_map<SymbolID, DeclareCall> DeclareCalls;
 };
 class UCodeBackEnd
 {
