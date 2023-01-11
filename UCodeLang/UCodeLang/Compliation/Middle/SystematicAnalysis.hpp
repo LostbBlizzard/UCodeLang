@@ -135,7 +135,7 @@ private:
 
 	Stack<GenericFuncInfo> GenericFuncName;
 	
-
+	bool GetSize(TypeSymbol& Type,UAddress& OutSize);
 
 	void GenericFuncInstantiate(Symbol* Func,const FuncNode& FuncBase,
 		const Vector<TypeSymbol>& TypeToChage, 

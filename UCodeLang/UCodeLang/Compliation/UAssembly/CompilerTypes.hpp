@@ -81,6 +81,7 @@ enum class OpCodeType :OpCodeType_t
 	Register,
 
 	UIntPtr,
+	InsAddress,
 };
 
 struct InsMapValue
@@ -105,13 +106,13 @@ static inline const unordered_map<String_view, InsMapValue> StringToInsMap =
 {	
 	AddMapValueValue(Exit,InstructionSet::Exit,OpCodeType::AnyInt8,OpCodeType::NoOpCode),
 	AddMapValueValue(Ret,InstructionSet::Return,OpCodeType::NoOpCode,OpCodeType::NoOpCode),
-	AddMapValueValue(Call,InstructionSet::Call,OpCodeType::UIntPtr,OpCodeType::NoOpCode),
-	AddMapValueValue(Callif,InstructionSet::CallIf,OpCodeType::UIntPtr,OpCodeType::NoOpCode),
-	AddMapValueValue(CallPtr,InstructionSet::CallPtr,OpCodeType::UIntPtr,OpCodeType::NoOpCode),
+	AddMapValueValue(Call,InstructionSet::Call,OpCodeType::InsAddress,OpCodeType::NoOpCode),
+	AddMapValueValue(Callif,InstructionSet::CallIf,OpCodeType::InsAddress,OpCodeType::NoOpCode),
+	AddMapValueValue(CallPtr,InstructionSet::CallPtr,OpCodeType::InsAddress,OpCodeType::NoOpCode),
 
-	AddMapValueValue(Jump,InstructionSet::Jump,OpCodeType::UIntPtr,OpCodeType::NoOpCode),
-	AddMapValueValue(Jumpif,InstructionSet::Jumpif,OpCodeType::UIntPtr,OpCodeType::NoOpCode),
-	AddMapValueValue(JumpPtr,InstructionSet::JumpPtr,OpCodeType::UIntPtr,OpCodeType::NoOpCode),
+	AddMapValueValue(Jump,InstructionSet::Jump,OpCodeType::InsAddress,OpCodeType::NoOpCode),
+	AddMapValueValue(Jumpif,InstructionSet::Jumpif,OpCodeType::InsAddress,OpCodeType::NoOpCode),
+	AddMapValueValue(JumpPtr,InstructionSet::JumpPtr,OpCodeType::InsAddress,OpCodeType::NoOpCode),
 
 	AddMapValueValue(NoOp,InstructionSet::DoNothing,OpCodeType::NoOpCode,OpCodeType::NoOpCode),
 

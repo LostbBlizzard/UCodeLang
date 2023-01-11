@@ -13,6 +13,9 @@ enum class TypesEnum :UInt8
 	uInt_t,
 	sInt_t,
 
+	Bool,
+	Char,
+	
 	uInt8,
 	uInt16,
 	uInt32,
@@ -23,9 +26,10 @@ enum class TypesEnum :UInt8
 	sInt32,
 	sInt64,
 
+	IntPtr,
 	
 
-	Bool,
+	
 
 	CustomType,
 };

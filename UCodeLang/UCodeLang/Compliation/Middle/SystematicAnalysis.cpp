@@ -169,7 +169,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 		}
 	}
 
-	if (passtype == PassType::GetTypes)
+	if (passtype == PassType::BuidCode)
 	{
 		GetTypesClass(Class);
 	}
@@ -208,8 +208,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		FuncName = ClassDestructorFunc;
 	}
 
-	
-	
+
+
 	_Table.AddScope(FuncName);
 	auto FullName = _Table._Scope.ThisScope;
 
@@ -231,25 +231,18 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		Ptr = _ClassStack.top();
 	}
 
-	
-	
+
+
 	Symbol* syb;
 	SymbolID sybId = IsgenericInstantiation ? (SymbolID)GenericFuncName.top().Type : (SymbolID)&node;
-	
+
 
 	auto UseingIndex = _Table.GetUseingIndex();
 
 	if (passtype == PassType::GetTypes)
 	{
-		ClassMethod V;
-		V.FullName = _Table._Scope.ThisScope;
-		PushTepAttributesInTo(V.Attributes);
-
-
-		Ptr->_Class.Methods.push_back(V);
-
-		SymbolType Type = node.Signature.Generic.Values.size() && IsgenericInstantiation ==false ?
-			SymbolType::GenericFunc : SymbolType::Func ;
+		SymbolType Type = node.Signature.Generic.Values.size() && IsgenericInstantiation == false ?
+			SymbolType::GenericFunc : SymbolType::Func;
 
 
 
@@ -262,11 +255,11 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		for (size_t i = 0; i < GenericList.Values.size(); i++)
 		{
 			auto& Item = GenericList.Values[i];
-			
+
 			auto GenericTypeName = Item.AsString();
 			auto GenericType = &_Table.AddSybol(SymbolType::Type, GenericTypeName, FullName + ScopeHelper::_ScopeSep
 				+ GenericTypeName);
-			
+
 			if (GenericFuncName.size())
 			{
 				GenericFuncInfo& V2 = GenericFuncName.top();
@@ -279,8 +272,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		if (RetType && RetType->Get_Type() == NodeType::AnonymousTypeNode)
 		{
 			auto NewName = GetFuncAnonymousObjectFullName(FullName);
-			auto& Class = _Lib.Get_Assembly().AddClass(NewName,NewName);
-			
+			auto& Class = _Lib.Get_Assembly().AddClass(NewName, NewName);
+
 
 			AnonymousTypeNode* Typenode = AnonymousTypeNode::As(RetType);
 			for (auto& Item3 : Typenode->Fields.Parameters)
@@ -294,7 +287,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		}
 
 		syb = &_Table.GetSymbol(sybId);//resized _Table
-		Convert(node.Signature.ReturnType,syb->VarType);
+		Convert(node.Signature.ReturnType, syb->VarType);
 	}
 	else
 	{
@@ -306,20 +299,20 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	if (!IsgenericInstantiation && IsGenericS) {
 		ignoreBody = true;
 	}
-	
+
 	if (buidCode && !ignoreBody)
 	{
 		_Builder.Build_Func(sybId);
 	}
-	
-	
+
+
 	if (node.Body.has_value() && !ignoreBody)
 	{
 		auto& Body = node.Body.value();
 		_InStatements = true;
 		bool HasARet = false;
 		LookingForTypes.push(syb->VarType);
-		
+
 		for (const auto& node2 : Body.Statements._Nodes)
 		{
 			switch (node2->Get_Type())
@@ -333,7 +326,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			case NodeType::PostfixVariableNode:OnPostfixVariableNode(*PostfixVariableNode::As(node2)); break;
 			case NodeType::CompoundStatementNode:OnCompoundStatementNode(*CompoundStatementNode::As(node2)); break;
 			case NodeType::FuncCallStatementNode:OnFuncCallNode(FuncCallStatementNode::As(node2)->Base); break;
-			case NodeType::RetStatementNode: 
+			case NodeType::RetStatementNode:
 				syb = &_Table.GetSymbol(sybId);
 
 				OnRetStatement(*RetStatementNode::As(node2));
@@ -350,20 +343,20 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 							, "cant guess 'var' type");
 					}
 				}
-			
-			break;
+
+				break;
 			default:break;
 			}
 		}
-		
-		
-		
+
+
+
 		_InStatements = false;
 
 		syb = &_Table.GetSymbol(sybId);
-		if (passtype == PassType::FixedTypes) 
+		if (passtype == PassType::FixedTypes)
 		{
-			if (!HasARet) 
+			if (!HasARet)
 			{
 				if (syb->VarType._Type == TypesEnum::Var)
 				{
@@ -388,6 +381,20 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	}
 
 	_Table.RemovePopUseing(UseingIndex);
+
+
+
+	if (buidCode)
+	{
+		ClassMethod V;
+		V.FullName = _Table._Scope.ThisScope;
+		V.RetType.FullNameType = ToString(syb->VarType);
+
+		PushTepAttributesInTo(V.Attributes);
+
+
+		Ptr->_Class.Methods.push_back(V);
+	}
 
 	_Table.RemoveScope();
 }
@@ -776,7 +783,7 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 
 			auto TypeToSwap = GetSymbol((String)FuncName + ScopeHelper::_ScopeSep + "T", SymbolType::Type)->VarType;
 
-			Vector<TypeSymbol>* TypesToChange =new Vector<TypeSymbol>();
+			Vector<TypeSymbol>* TypesToChange =new Vector<TypeSymbol>();//Symbol ID is from Ptr
 			Vector<TypeSymbol>* TypeToHave = new Vector<TypeSymbol>();
 			TypesToChange->push_back(TypeToSwap);
 			TypeToHave->push_back(Type);
@@ -795,6 +802,16 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 		}
 		else {
 			LastExpressionType = Syb->VarType;
+		}
+	}
+
+	if (passtype == PassType::BuidCode)
+	{
+		if (!node.Generics.Values.size())
+		{
+			auto FuncName = node.FuncName.AsStringView();
+			Symbol* Syb = GetSymbol(FuncName, SymbolType::Func);
+			_Builder.Build_FuncCall(Syb->ID);
 		}
 	}
 }
@@ -884,33 +901,10 @@ void SystematicAnalysis::GetTypesClass(ClassData& Class)
 {
 	for (auto& node : Class._Class.Fields)
 	{
-		if (node.FullNameType == Uint8TypeName || node.FullNameType == Sint8TypeName
-			|| node.FullNameType == CharTypeName || node.FullNameType == boolTypeName)
-		{
-			node.offset = Class._Class.Size;
-			Class._Class.Size += sizeof(UInt8);
-		}
-		else if (node.FullNameType == Uint16TypeName || node.FullNameType == Sint16TypeName)
-		{
-			node.offset = Class._Class.Size;
-			Class._Class.Size += sizeof(UInt16);
-		}
-		else if (node.FullNameType == Uint32TypeName || node.FullNameType == Sint32TypeName)
-		{
-			node.offset = Class._Class.Size;
-			Class._Class.Size += sizeof(UInt32);
-		}
-		else if (node.FullNameType == Uint64TypeName || node.FullNameType == Sint64TypeName
-			|| node.FullNameType == UintPtrTypeName || node.FullNameType == SintPtrTypeName)
-		{
-			node.offset = Class._Class.Size;
-			Class._Class.Size += sizeof(UInt64);
-		}
-		else
-		{
-			node.offset = Class._Class.Size;
-			Class._Class.Size += sizeof(UInt64);
-		}
+		UAddress Size;
+		TypeSymbol Syb;
+		
+		GetSize(GetSymbol(node.FullNameType, SymbolType::Type)->VarType, Size);
 	}
 }
 bool SystematicAnalysis::AreTheSame(const TypeSymbol& TypeA, const TypeSymbol& TypeB)
@@ -957,6 +951,7 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type)
 	case TypesEnum::sInt64:return "sInt64";
 
 	case TypesEnum::Bool:return "bool";
+	case TypesEnum::Char:return "char";
 	case TypesEnum::CustomType:
 	{
 		auto Syb = _Table.GetSymbol(Type._CustomTypeSymbol);
@@ -970,11 +965,15 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type)
 			return Syb.FullName;
 		}
 	}
+	case TypesEnum::Void:
+		return "void";
 	case TypesEnum::Null:
 		return "null (incomplete/broken Type)";
 	default:
 		break;
 	}
+
+	throw std::exception("not added");
 	return "[Type Name Here]";
 }
 void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
@@ -1013,6 +1012,9 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 
 	case TokenType::KeyWorld_Bool:
 		Out._Type = TypesEnum::Bool;
+		break;
+	case TokenType::KeyWorld_Char:
+		Out._Type = TypesEnum::Char;
 		break;
 	case TokenType::Name: 
 	{
@@ -1069,6 +1071,40 @@ bool SystematicAnalysis::IsUIntType(const UCodeLang::TypeSymbol& TypeToCheck)
 		TypeToCheck._Type == TypesEnum::uInt16 ||
 		TypeToCheck._Type == TypesEnum::uInt32 ||
 		TypeToCheck._Type == TypesEnum::uInt64;
+}
+bool SystematicAnalysis::GetSize(TypeSymbol& Type, UAddress& OutSize)
+{
+	switch (Type._Type)
+	{
+	case TypesEnum::sInt8:
+	case TypesEnum::uInt8:
+	case TypesEnum::Bool:
+	case TypesEnum::Char:
+		OutSize = 1;
+		return true;
+	case TypesEnum::sInt16:
+	case TypesEnum::uInt16:
+		OutSize = sizeof(UInt16);
+		return true;
+
+	case TypesEnum::sInt32:return "sInt32";
+	case TypesEnum::uInt32:return "uInt32";
+		OutSize = sizeof(UInt32);
+		return true;
+	case TypesEnum::uInt64:
+	case TypesEnum::sInt64:
+		OutSize = sizeof(UInt64);
+		return true;
+
+	case TypesEnum::IntPtr:
+		OutSize = sizeof(UInt64);
+		return true;
+	default:
+		OutSize = 0;
+		return false;
+	}
+
+
 }
 void SystematicAnalysis::GenericFuncInstantiate(Symbol* Func, const FuncNode& FuncBase, const Vector<TypeSymbol>& TypeToChage, const Vector<TypeSymbol>& Type)
 {

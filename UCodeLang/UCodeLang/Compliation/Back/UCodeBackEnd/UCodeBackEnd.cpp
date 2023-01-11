@@ -50,6 +50,7 @@ void UCodeBackEndObject::Build(BackEndInput& Input)
 			BuildFunc();
 		}
 	}
+	Link();
 }
 
 #define OperatorBits(Func,bit) \
@@ -187,6 +188,16 @@ void UCodeBackEndObject::BuildFunc()
 		}
 		break;
 		
+		case IROperator::FuncCall:
+		{
+			auto VarSymbolID = IR.Operand0.SymbolId;
+			
+			GenIns(InstructionBuilder::Call(NullAddress,_Ins));
+			ULib.Add_Instruction(_Ins);
+			
+			_InsCalls.push_back({ULib.GetLastInstruction(),VarSymbolID });
+		}
+			break;
 		case IROperator::Ret:
 				goto EndLoop;
 		break;
@@ -196,9 +207,21 @@ EndLoop:
 
 	GenIns(InstructionBuilder::Return(ExitState::Success, _Ins));
 	ULib.Add_Instruction(_Ins);
+	_Registers.Reset();
 
 
+	DeclareCalls[SybID] = { FuncStart };
 	ULib.Add_NameToInstruction(FuncStart, Sym.FullName);
+}
+
+void UCodeBackEndObject::Link()
+{
+	auto& ULib = Getliboutput();
+	for (auto& Item : _InsCalls)
+	{
+		Instruction& Ins = ULib.Get_Instructions().operator[](Item.CallIns);
+		Ins.Value0 = DeclareCalls.at(Item.ID).FuncAddress -1;
+	}
 }
 
 void UCodeBackEndObject::SetSybToRegister(UCodeLang::RegisterID R, UCodeLang::IRThreeAddressCode& IR)
