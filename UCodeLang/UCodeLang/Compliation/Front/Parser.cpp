@@ -352,7 +352,7 @@ GotNodeType Parser::GetStatement(Node*& out)
 			{
 				r = GetAssignVariable();
 			}
-			else if (_Token->Type == FuncCallStart)
+			else if (_Token->Type == TokenType::lessthan || _Token->Type == FuncCallStart)
 			{
 				r = GetFuncCallStatementNode();
 			}
@@ -387,8 +387,9 @@ GotNodeType Parser::GetStatements(StatementsNode& out)
 		if (T->Type == TokenType::EndTab) { break; }
 
 		Node* V = nullptr;
-		GetStatement(V);
+		auto R = GetStatement(V);
 		if (V) { out._Nodes.push_back(V); }
+		if (R != GotNodeType::Success){ break; }
 	}
 
 
@@ -503,6 +504,10 @@ GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 	else if (Arrow->Type == TokenType::Colon)
 	{
 		TypeNode::Gen_Var(out.ReturnType,*Arrow);
+	}
+	else if (Arrow->Type == TokenType::Semicolon)
+	{
+		TypeNode::Gen_Var(out.ReturnType, *Arrow);
 	}
 	else
 	{
