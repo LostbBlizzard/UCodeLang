@@ -94,8 +94,7 @@ void UCodeBackEndObject::BuildFunc()
 
 	auto& ULib = Getliboutput();
 	
-	UAddress FuncStart = _Index;
-	if (_Index != 0) { FuncStart--; }
+	UAddress FuncStart = ULib.Get_Instructions().size();
 	UAddress StackSize = 0;
 
 	for (_Index = _Index + 1; _Index < Code.size(); _Index++)

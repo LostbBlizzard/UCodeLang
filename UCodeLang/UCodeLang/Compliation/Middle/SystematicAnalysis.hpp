@@ -119,6 +119,12 @@ private:
 	bool CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
 	bool CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
 
+	bool IsSIntType(const UCodeLang::TypeSymbol& TypeToCheck);
+	bool IsUIntType(const UCodeLang::TypeSymbol& TypeToCheck);
+	bool IsIntType(const UCodeLang::TypeSymbol& TypeToCheck)
+	{
+		return  IsSIntType(TypeToCheck) || IsUIntType(TypeToCheck);
+	}
 	//Generic
 	struct GenericFuncInfo
 	{
@@ -128,6 +134,9 @@ private:
 	};
 
 	Stack<GenericFuncInfo> GenericFuncName;
+	
+
+
 	void GenericFuncInstantiate(Symbol* Func,const FuncNode& FuncBase,
 		const Vector<TypeSymbol>& TypeToChage, 
 		const Vector<TypeSymbol>& Type);

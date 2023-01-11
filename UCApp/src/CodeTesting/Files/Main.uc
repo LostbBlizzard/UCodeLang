@@ -1,6 +1,7 @@
 
-|Main2<T>[] => 7 -> T;
+|Main2<T>[]:
+ int T =0;
 
 |Main[]:
- byte A = Main2<byte>();
- int B = Main2<int>();
+ Main2<byte>();
+ Main2<int>();
