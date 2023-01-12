@@ -138,6 +138,7 @@ void SystematicAnalysis::OnFileNode(UCodeLang::FileNode* const& File)
 void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 {
 	bool IsgenericInstantiation = GenericFuncName.size();
+	bool Isgeneric = Node.Generic.Values.size();
 	const auto& ClassName = Node.ClassName.Token->Value._String;
 
 

@@ -383,10 +383,21 @@ void Lexer::Lex(const String_view& Text)
 			NextChar = GetNextChar(1);
 			if (NextChar == '>')
 			{
-				_Token.Type = TokenType::RightArrow;
-				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
 				i++;
+				NextChar = GetNextChar(1);
+				if (NextChar == '>')
+				{
+					_Token.Type = TokenType::HardRightArrow;
+					_Token.Value = nullptr;
+					_Nodes.push_back(_Token);
+					i++;
+				}
+				else
+				{
+					_Token.Type = TokenType::RightArrow;
+					_Token.Value = nullptr;
+					_Nodes.push_back(_Token);
+				}
 			}
 			else if (NextChar == '-')
 			{

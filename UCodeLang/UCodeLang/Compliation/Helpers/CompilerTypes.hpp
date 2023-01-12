@@ -40,7 +40,7 @@ enum class TokenType : TokenType_t
 	leftArrow,//<-
 	RightArrow,//->
 	RightAssignArrow,//=>
-
+	HardRightArrow,//->>
 
 	Void,//void
 	Comma,//,
