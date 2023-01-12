@@ -89,7 +89,7 @@ public:
 
 
 
-	void AddUseing(const String_view& Name) { Useings.push_back(Name.data()); }
+	void AddUseing(const String_view& Name) { Useings.push_back((String)Name); }
 	void AddUseing(const String& Name) { Useings.push_back(Name); }
 	void ClearUseings() { Useings.clear(); }
 

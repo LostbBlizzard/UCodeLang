@@ -141,6 +141,8 @@ private:
 		const Vector<TypeSymbol>& TypeToChage, 
 		const Vector<TypeSymbol>& Type);
 	String GetGenericFuncName(Symbol* Func, const Vector<TypeSymbol>& Type);
+
+	unordered_map<const FuncCallNode*, SymbolID> FuncToSyboID;
 };
 UCodeLangEnd
 

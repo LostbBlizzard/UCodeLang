@@ -137,6 +137,7 @@ void SystematicAnalysis::OnFileNode(UCodeLang::FileNode* const& File)
 }
 void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 {
+	bool IsgenericInstantiation = GenericFuncName.size();
 	const auto& ClassName = Node.ClassName.Token->Value._String;
 
 
@@ -766,6 +767,7 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 	{
 		auto FuncName = node.FuncName.AsStringView();
 		auto Syb = GetSymbol(FuncName, SymbolType::GenericFunc);
+		SymbolID FuncSyb;
 		if (Syb == nullptr)
 		{
 			auto  Token = node.FuncName.Token;
@@ -795,24 +797,24 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 				GenericFuncInstantiate(Syb, fnode, *TypesToChange, *TypeToHave);
 				GenerisESyb = GetSymbol(NewName, SymbolType::Func);
 			}
-
+			FuncSyb = GenerisESyb->ID;
 			LastExpressionType = GenerisESyb->VarType;
 			delete  TypesToChange;
 			delete TypeToHave;
 		}
-		else {
+		else 
+		{
 			LastExpressionType = Syb->VarType;
+			FuncSyb = Syb->ID;
 		}
+
+		FuncToSyboID[&node] = FuncSyb;
 	}
 
 	if (passtype == PassType::BuidCode)
 	{
-		if (!node.Generics.Values.size())
-		{
-			auto FuncName = node.FuncName.AsStringView();
-			Symbol* Syb = GetSymbol(FuncName, SymbolType::Func);
-			_Builder.Build_FuncCall(Syb->ID);
-		}
+		auto SybID = FuncToSyboID.at(&node);
+		_Builder.Build_FuncCall(SybID);
 	}
 }
 void SystematicAnalysis::CheckBackEnd()
