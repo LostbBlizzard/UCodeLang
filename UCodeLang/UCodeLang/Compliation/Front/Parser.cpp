@@ -345,6 +345,7 @@ GotNodeType Parser::GetStatement(Node*& out)
 		auto _Token = TryGetToken();
 
 		TryGetNode r;
+		size_t NewIndex= _TokenIndex;
 		_TokenIndex = OldIndex;
 		if (_Token) 
 		{
@@ -352,9 +353,26 @@ GotNodeType Parser::GetStatement(Node*& out)
 			{
 				r = GetAssignVariable();
 			}
-			else if (_Token->Type == TokenType::lessthan || _Token->Type == FuncCallStart)
+			else if (_Token->Type == FuncCallStart)
 			{
 				r = GetFuncCallStatementNode();
+			}
+			else if (_Token->Type == TokenType::lessthan)
+			{
+				_TokenIndex = NewIndex;
+				UseGenericsNode V;
+				TryGetGeneric(V);
+				auto _Token2 = TryGetToken(); TokenNotNullCheck(_Token2);
+
+				_TokenIndex = OldIndex;
+				if (_Token2->Type == FuncCallStart)
+				{
+					r = GetFuncCallStatementNode();
+				}
+				else
+				{
+					r = GetDeclareVariable();
+				}
 			}
 			else if (IsPostfixOperator(_Token))
 			{
