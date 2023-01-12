@@ -19,7 +19,7 @@ if (Var->Type != _TokenType) \
 \
 if (Var->Type == TokenType::Name){	\
 Error._Msg = "Expecting " + (String)StringHelper::ToString(_TokenType) + \
-" Got " + (String)Var->Value._String.data(); \
+" Got " + (String)Var->Value._String; \
 }\
 else\
 {\

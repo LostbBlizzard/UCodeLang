@@ -87,7 +87,7 @@ String UAssembly::ToString(const UCodeLang::UClib* Lib)
 		if (InsMapData.count(Item.OpCode))
 		{
 			auto& MapData = InsMapData[Item.OpCode];
-			r += MapData->InsName.data();
+			r += (String)MapData->InsName;
 			r += " ";
 
 			if (MapData->Op_0 != OpCodeType::NoOpCode)

@@ -1,12 +1,9 @@
 
-|Hi[]:
- ret;
 
-|Main2<T>[]:
- int T =0;
-
+$Tep<T>:
+ T X;
+ T Y;
+ 
 |Main[]:
- Hi();
- Main2<char>();
- Main2<byte>();
- Main2<int>();
+ Tep<byte> A;
+ Tep<int> B;
