@@ -73,6 +73,7 @@ private:
 	void Pass();
 	void OnFileNode(UCodeLang::FileNode* const& File);
 	void OnClassNode(const ClassNode& node);
+	void OnAliasNode(const AliasNode& node);
 	void OnUseingNode(const UsingNode& node);
 	void OnFuncNode(const FuncNode& node);
 	void OnRetStatement(const RetStatementNode& node);

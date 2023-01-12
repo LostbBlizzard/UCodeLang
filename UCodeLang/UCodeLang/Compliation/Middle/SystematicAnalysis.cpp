@@ -92,6 +92,7 @@ void SystematicAnalysis::OnNamespace(const NamespaceNode& node)
 		case NodeType::NamespaceNode:OnNamespace(*NamespaceNode::As(node)); break;
 		case NodeType::AttributeNode:OnAttributeNode(*AttributeNode::As(node)); break;
 		case NodeType::ClassNode: OnClassNode(*ClassNode::As(node)); break;
+		case NodeType::AliasNode:OnAliasNode(*AliasNode::As(node)); break;
 		case NodeType::EnumNode:OnEnum(*EnumNode::As(node)); break;
 		case NodeType::FuncNode:OnFuncNode(*FuncNode::As(node)); break;
 		case NodeType::UsingNode: OnUseingNode(*UsingNode::As(node)); break;
@@ -126,6 +127,7 @@ void SystematicAnalysis::OnFileNode(UCodeLang::FileNode* const& File)
 		{
 		case NodeType::NamespaceNode:OnNamespace(*NamespaceNode::As(node)); break;
 		case NodeType::AttributeNode:OnAttributeNode(*AttributeNode::As(node)); break;
+		case NodeType::AliasNode:OnAliasNode(*AliasNode::As(node)); break;
 		case NodeType::ClassNode: OnClassNode(*ClassNode::As(node)); break;
 		case NodeType::EnumNode:OnEnum(*EnumNode::As(node)); break;
 		case NodeType::FuncNode:OnFuncNode(*FuncNode::As(node)); break;
@@ -140,46 +142,84 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 	bool IsgenericInstantiation = GenericFuncName.size();
 	bool Isgeneric = Node.Generic.Values.size();
 	const auto& ClassName = Node.ClassName.Token->Value._String;
-
-
 	_Table.AddScope(ClassName);
 
-	
-	auto& Class = passtype == PassType::GetTypes ?
-		_Lib.Get_Assembly().AddClass(String(ClassName), _Table._Scope.ThisScope)
-		: *_Lib.Get_Assembly().Find_Class(_Table._Scope.ThisScope);
-	_ClassStack.push(&Class);
+	auto SybID = (SymbolID)&Node;
+
+	auto& Syb = passtype == PassType::GetTypes ? 
+		_Table.GetSymbol(SybID) : 
+		_Table.AddSybol(Isgeneric ? SymbolType::Generic_class : SymbolType::Type_class
+		,(String)ClassName, _Table._Scope.ThisScope);
 
 	if (passtype == PassType::GetTypes)
 	{
-		PushTepAttributesInTo(Class._Class.Attributes);
+		_Table.AddSymbolID(Syb, SybID);
 	}
 
-	auto UseingIndex = _Table.GetUseingIndex();
-
-	for (const auto& node : Node._Nodes)
+	if (!Isgeneric) 
 	{
-		switch (node->Get_Type())
+		auto& Class = passtype == PassType::GetTypes ?
+			_Lib.Get_Assembly().AddClass(String(ClassName), _Table._Scope.ThisScope)
+			: *_Lib.Get_Assembly().Find_Class(_Table._Scope.ThisScope);
+		_ClassStack.push(&Class);
+
+		if (passtype == PassType::GetTypes)
 		{
-		case NodeType::AttributeNode:OnAttributeNode(*AttributeNode::As(node)); break;
-		case NodeType::ClassNode: OnClassNode(*ClassNode::As(node)); break;
-		case NodeType::EnumNode:OnEnum(*EnumNode::As(node)); break;
-		case NodeType::UsingNode: OnUseingNode(*UsingNode::As(node)); break;
-		case NodeType::FuncNode:OnFuncNode(*FuncNode::As(node)); break;
-		case NodeType::DeclareVariableNode:OnDeclareVariablenode(*DeclareVariableNode::As(node)); break;
-		default:break;
+			PushTepAttributesInTo(Class._Class.Attributes);
 		}
-	}
 
-	if (passtype == PassType::BuidCode)
+		auto UseingIndex = _Table.GetUseingIndex();
+
+		for (const auto& node : Node._Nodes)
+		{
+			switch (node->Get_Type())
+			{
+			case NodeType::AttributeNode:OnAttributeNode(*AttributeNode::As(node)); break;
+			case NodeType::ClassNode: OnClassNode(*ClassNode::As(node)); break;
+			case NodeType::AliasNode:OnAliasNode(*AliasNode::As(node)); break;
+			case NodeType::EnumNode:OnEnum(*EnumNode::As(node)); break;
+			case NodeType::UsingNode: OnUseingNode(*UsingNode::As(node)); break;
+			case NodeType::FuncNode:OnFuncNode(*FuncNode::As(node)); break;
+			case NodeType::DeclareVariableNode:OnDeclareVariablenode(*DeclareVariableNode::As(node)); break;
+			default:break;
+			}
+		}
+
+		if (passtype == PassType::BuidCode)
+		{
+			GetTypesClass(Class);
+		}
+
+		_Table.RemovePopUseing(UseingIndex);
+
+
+		_ClassStack.pop();
+		
+	}
+	else
 	{
-		GetTypesClass(Class);
+		Syb.SomePtr = (void*)&Node;
 	}
 
-	_Table.RemovePopUseing(UseingIndex);
+	
+	_Table.RemoveScope();
+}
+void SystematicAnalysis::OnAliasNode(const AliasNode& node)
+{
+	const auto& ClassName = node.AliasName.Token->Value._String;
+	auto SybID = (SymbolID)&node;
 
+	_Table.AddScope(ClassName);
+	auto& Syb = passtype == PassType::GetTypes ?
+		_Table.AddSybol(SymbolType::Type_alias, (String)ClassName, _Table._Scope.ThisScope) :
+		_Table.GetSymbol(SybID);
 
-	_ClassStack.pop();
+	if (passtype == PassType::GetTypes)
+	{
+		_Table.AddSymbolID(Syb, SybID);
+		Convert(node.Type, Syb.VarType);
+	}
+
 	_Table.RemoveScope();
 }
 void SystematicAnalysis::OnUseingNode(const UsingNode& node)
@@ -259,7 +299,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			auto& Item = GenericList.Values[i];
 
 			auto GenericTypeName = Item.AsString();
-			auto GenericType = &_Table.AddSybol(SymbolType::Type, GenericTypeName, FullName + ScopeHelper::_ScopeSep
+			auto GenericType = &_Table.AddSybol(SymbolType::Type_alias, GenericTypeName, FullName + ScopeHelper::_ScopeSep
 				+ GenericTypeName);
 
 			if (GenericFuncName.size())

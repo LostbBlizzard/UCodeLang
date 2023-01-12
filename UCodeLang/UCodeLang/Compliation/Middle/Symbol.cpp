@@ -53,5 +53,33 @@ void SymbolTable::GetSymbolsInNameSpace(const String_view& NameSpace, const Stri
 	return Tep;
 }
 
+ Symbol& SymbolTable::AddSybol(SymbolType type, const String& Name, const String& FullName)
+ {
+	 Symbols.push_back({});
+	 Symbol& V = Symbols.back();
+	 V.Type = type;
+	 V.FullName = FullName;
+
+	 return V;
+ }
+
+ void SymbolTable::AddSymbolID(Symbol& Syb, SymbolID ID)
+ {
+	 Syb.ID = ID;
+
+	 Symbol* Pointer = &Symbols[0];
+	 Symbol* SybPointer = &Syb;
+	 size_t Index = SybPointer - Pointer;
+	 IDToSymbols[ID] = Index;
+ }
+
+ void SymbolTable::Reset()
+ {
+	 ClearUseings();
+	 _Scope.ThisScope.clear();
+	 Symbols.clear();
+	 IDToSymbols.clear();
+ }
+
 UCodeLangEnd
 

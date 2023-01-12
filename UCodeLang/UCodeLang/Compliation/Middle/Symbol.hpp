@@ -50,6 +50,12 @@ struct TypeSymbol
 	}
 };
 
+class ClassInfo
+{
+public:
+};
+
+
 enum class SymbolType : UInt8
 {
 	Null,
@@ -59,6 +65,7 @@ enum class SymbolType : UInt8
 
 	Type,
 	Type_alias,
+	Type_class,
 	Enum,
 
 	Func,
@@ -67,6 +74,7 @@ enum class SymbolType : UInt8
 
 	FuncCall,
 	GenericFunc,
+	Generic_class
 };
 class Symbol
 {
@@ -78,8 +86,10 @@ public:
 	UAddress Size=NullAddress;
 	TypeSymbol VarType;
 	//
-	void* SomePtr =nullptr;//most likey a node*
+	void* SomePtr =nullptr;//most likey a node* or ClassInfo*
 };
+
+
 class SymbolTable
 {
 public:
@@ -103,37 +113,15 @@ public:
 	void GetSymbolsInNameSpace(const String_view& NameSpace, const String_view& Name, Vector<Symbol*>& Output);
 	Vector<Symbol*>& GetSymbolsWithName(const String_view& Name);
 
-	Symbol& AddSybol(SymbolType type, const String& Name, const String& FullName)
-	{
-		Symbols.push_back({});
-		Symbol& V = Symbols.back();
-		V.Type = type;
-		V.FullName = FullName;
-
-		return V;
-	}
+	Symbol& AddSybol(SymbolType type, const String& Name, const String& FullName);
 	//use a ptr for the Id;
 	Symbol& GetSymbol(SymbolID ID)
 	{
 		return Symbols[IDToSymbols[ID]];
 	}
 
-	void AddSymbolID(Symbol& Syb, SymbolID ID)
-	{
-		Syb.ID = ID;
-
-		Symbol* Pointer = &Symbols[0];
-		Symbol* SybPointer = &Syb;
-		size_t Index = SybPointer - Pointer;
-		IDToSymbols[ID] = Index;
-	}
-	void Reset()
-	{
-		ClearUseings();
-		_Scope.ThisScope.clear();
-		Symbols.clear();
-		IDToSymbols.clear();
-	}
+	void AddSymbolID(Symbol& Syb, SymbolID ID);
+	void Reset();
 
 		
 private:
