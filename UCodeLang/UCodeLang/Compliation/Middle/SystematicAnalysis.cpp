@@ -141,13 +141,14 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 {
 	bool IsgenericInstantiation = GenericFuncName.size();
 	bool Isgeneric = Node.Generic.Values.size();
+	bool Isgeneric_t = Isgeneric && IsgenericInstantiation == false;
 	const auto& ClassName = IsgenericInstantiation ? GenericFuncName.top().GenericFuncName : Node.ClassName.Token->Value._String;
 	_Table.AddScope(ClassName);
 
 	auto SybID = IsgenericInstantiation ? (SymbolID)GenericFuncName.top().Type : (SymbolID)&Node;
 
 	auto& Syb = passtype == PassType::GetTypes ?
-		_Table.AddSybol(Isgeneric && IsgenericInstantiation == false ? SymbolType::Generic_class : SymbolType::Type_class
+		_Table.AddSybol(Isgeneric_t ? SymbolType::Generic_class : SymbolType::Type_class
 			, (String)ClassName, _Table._Scope.ThisScope) :
 		_Table.GetSymbol(SybID);
 
@@ -174,7 +175,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 		}
 	}
 
-	if (!Isgeneric)
+	if (!Isgeneric_t)
 	{
 		auto& Class = passtype == PassType::GetTypes ?
 			_Lib.Get_Assembly().AddClass(String(ClassName), _Table._Scope.ThisScope)
@@ -352,8 +353,20 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			GetTypesClass(Class);
 		}
 
-		syb = &_Table.GetSymbol(sybId);//resized _Table
+		
 
+		for (auto& Item : node.Signature.Parameters.Parameters)
+		{
+			auto GenericTypeName = Item.Name.AsStringView();
+			auto GenericType = &_Table.AddSybol(SymbolType::ParameterVarable, (String)GenericTypeName,
+				_Table._Scope.GetApendedString(GenericTypeName)
+			);
+			auto ParSybID = (SymbolID)&Item;
+			_Table.AddSymbolID(*GenericType, ParSybID);
+		}
+		
+		
+		syb = &_Table.GetSymbol(sybId);//resized _Table
 	}
 	else
 	{
@@ -363,6 +376,15 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	if (passtype == PassType::FixedTypes)
 	{
 		Convert(node.Signature.ReturnType, syb->VarType);
+
+		for (auto& Item : node.Signature.Parameters.Parameters)
+		{
+			auto GenericTypeName = Item.Name.AsStringView();
+			auto ParSybID = (SymbolID)&Item;
+			auto Sybol = _Table.GetSymbol(ParSybID);
+
+			Convert(Item.Type, Sybol.VarType);
+		}
 	}
 
 	bool buidCode = passtype == PassType::BuidCode;
@@ -543,11 +565,16 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 	{
 		auto& VarType = syb->VarType;
 		Convert(node.Type, syb->VarType);
+		
 		if (VarType._Type == TypesEnum::Var && node.Expression.Value == nullptr)
 		{
 			auto Token = node.Type.Name.Token;
 			_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
 				, "cant guess type theres no '=' [expression]");
+		}
+		else
+		{
+			GetSize(VarType, syb->Size);
 		}
 	}
 	LookingForTypes.push(syb->VarType);
@@ -686,20 +713,81 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 		case NodeType::NumberliteralNode:
 		{
 			NumberliteralNode* num = NumberliteralNode::As(node.Value);
+#define Set_NumberliteralNodeU(x) \
+			UInt##x V; \
+			ParseHelper::ParseStringToUInt##x(Str, V); \
+			_Builder.Build_Assign(IROperand::AsInt##x(V));\
+
+#define Set_NumberliteralNodeS(x) \
+			Int##x V; \
+			ParseHelper::ParseStringToInt##x(Str, V); \
+			_Builder.Build_Assign(IROperand::AsInt##x(V));\
+
+
+			auto& lookT = Get_LookingForType();
 			if (passtype == PassType::BuidCode)
 			{
 				auto& Str = num->Token->Value._String;
-				UInt8 V;
-				ParseHelper::ParseStringToUInt8(Str, V);
+				
+
+				
+				switch (lookT._Type)
+				{
+				case TypesEnum::uInt8:
+				{
+					Set_NumberliteralNodeU(8);
+				};
+				break;
+				case TypesEnum::uInt16:
+				{
+					Set_NumberliteralNodeU(16);
+				};
+				break;
+				case TypesEnum::uInt32:
+				{
+					Set_NumberliteralNodeU(32);
+				};
+				break;
+				case TypesEnum::uInt64:
+				{
+					Set_NumberliteralNodeU(64);
+				};
+				break;
+
+				case TypesEnum::sInt8:
+				{
+					Set_NumberliteralNodeS(8);
+				};
+				break;
+				case TypesEnum::sInt16:
+				{
+					Set_NumberliteralNodeS(16);
+				};
+				break;
+				case TypesEnum::sInt32:
+				{
+					Set_NumberliteralNodeS(32);
+				};
+				break;
+				case TypesEnum::sInt64:
+				{
+					Set_NumberliteralNodeS(64);
+				};
+				break;
+				default:
+					throw std::exception("not added");
+					break;
+				} 
 
 
-				_Builder.Build_Assign(IROperand::AsInt8(V));
 				_LastExpressionField = _Builder.GetLastField();
 
 			}
 
+			TypesEnum NewEx = lookT._Type == TypesEnum::Var ? TypesEnum::sInt32 : lookT._Type;
+			
 
-			LastExpressionType.SetType(TypesEnum::sInt32);
+			LastExpressionType.SetType(NewEx);
 			LastLookedAtToken = num->Token;
 		}
 		break;
@@ -1267,6 +1355,7 @@ void SystematicAnalysis::GenericTypeInstantiate(Symbol* Class, const Vector<Type
 		passtype = PassType::BuidCode;
 		OnClassNode(*node);
 	}
+	passtype = PassType::FixedTypes;
 
 	GenericFuncName.pop();
 	//

@@ -53,13 +53,19 @@ struct IROperand
 		Type = IRFieldInfoType::Null;
 		AnyValue = (UInt64)0;
 	}
-	UCodeLangForceinline static IROperand AsInt8(UInt8 Value)
-	{
-		IROperand operand;
-		operand.Type = IRFieldInfoType::Int8;
-		operand.AnyValue = Value;
-		return operand;
-	}
+#define IROperand_Set(x) \
+	UCodeLangForceinline static IROperand AsInt##x(UInt##x Value)\
+	{\
+		IROperand operand;\
+		operand.Type = IRFieldInfoType::Int##x;\
+		operand.AnyValue = Value;\
+		return operand;\
+	}\
+
+	IROperand_Set(8);
+	IROperand_Set(16);
+	IROperand_Set(32);
+	IROperand_Set(64);
 
 	UCodeLangForceinline static IROperand AsSymbol(SymbolID Value)
 	{
@@ -108,6 +114,17 @@ struct IRSeg
 		return  End - Start;
 	}
 };
+
+#define IRBuilder_Set(X) \
+	UCodeLangForceinline void MakeAdd##X(IROperand field, IROperand field2) \
+	{ \
+		MakeOperand(field, field2, IROperator::Add##X);\
+	}\
+	UCodeLangForceinline void MakeSub##X(IROperand field, IROperand field2)\
+	{\
+		MakeOperand(field, field2, IROperator::Sub##X);\
+	}\
+
 class IRBuilder
 {
 public:
@@ -126,14 +143,10 @@ public:
 		V.Operator = Op;
 
 	}
-	UCodeLangForceinline void MakeAdd8(IROperand field, IROperand field2)
-	{
-		MakeOperand(field,field2,IROperator::Add8);
-	}
-	UCodeLangForceinline void MakeSub8(IROperand field, IROperand field2)
-	{
-		MakeOperand(field, field2, IROperator::Sub8);
-	}
+	IRBuilder_Set(8);
+	IRBuilder_Set(16);
+	IRBuilder_Set(32);
+	IRBuilder_Set(64);
 
 	void Build_Assign(IROperand result, IROperand field)
 	{

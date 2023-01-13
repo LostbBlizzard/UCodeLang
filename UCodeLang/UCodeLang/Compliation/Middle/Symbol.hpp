@@ -62,6 +62,7 @@ enum class SymbolType : UInt8
 
 	Varable_t,	
 	StackVarable,
+	ParameterVarable,
 
 	Type,
 	Type_alias,
