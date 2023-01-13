@@ -1,4 +1,10 @@
-$NewInt = int;
+$Tep<T>:
+ T X;
+ T Y;
+
+$Vec2 = Tep<int>;
 
 |Hi[]:
- NewInt Hello = 0;
+ Vec2 Hi;
+ Tep<byte> A;
+ Tep<int> B;

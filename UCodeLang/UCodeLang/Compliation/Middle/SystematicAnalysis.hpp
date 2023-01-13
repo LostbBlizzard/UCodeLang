@@ -143,6 +143,8 @@ private:
 		const Vector<TypeSymbol>& Type);
 	String GetGenericFuncName(Symbol* Func, const Vector<TypeSymbol>& Type);
 
+	void GenericTypeInstantiate(Symbol* Class , const Vector<TypeSymbol>& Type);
+
 	unordered_map<const FuncCallNode*, SymbolID> FuncToSyboID;
 };
 UCodeLangEnd
