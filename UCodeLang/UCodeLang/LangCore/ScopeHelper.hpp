@@ -10,16 +10,35 @@ struct ScopeHelper
 	String ThisScope;
 	inline void AddScope(const String_view& Name)
 	{
-		if (ThisScope.size()) 
-		{
-			ThisScope += _ScopeSep;
-		}
-		ThisScope += Name;
+		GetApendedString(ThisScope,Name);
 	};
-	inline void AddScope(const String& Name)
+	
+
+	inline void AddScope(const String& Name) 
 	{
 		AddScope(String_view(Name));
 	};
+
+	static void GetApendedString(String& Out,const String_view& Name)
+	{
+		if (Out.size())
+		{
+			Out += _ScopeSep;
+		}
+		Out += Name;
+	}
+	
+	String GetApendedString(const String_view& Name)const
+	{
+		String r = ThisScope;
+		GetApendedString(r, Name);
+		return r;
+	}
+
+	String GetApendedString(const String& Name)const
+	{
+		return GetApendedString((String_view)Name);
+	}
 	static void ReMoveScope(String& ThisScope)
 	{
 		for (size_t i = ThisScope.size() - 1; i > 0; i--)

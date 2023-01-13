@@ -808,8 +808,8 @@ GotNodeType Parser::TryGetGeneric(UseGenericsNode& out)
 
 		while (true)
 		{
-			UseGenericNode Item;
-			GetType(Item.node);
+			TypeNode Item;
+			GetType(Item);
 			out.Values.push_back(Item);
 
 

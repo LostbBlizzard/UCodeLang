@@ -163,6 +163,21 @@ struct UsingNode :Node
 	ScopedNameNode ScopedName;
 };
 
+struct TypeNode;
+
+struct UseGenericsNode :Node
+{
+	UseGenericsNode() : Node(NodeType::Null)
+	{
+
+	}
+	Vector<TypeNode> Values;
+
+	UCodeLangForceinline bool HasGeneric()
+	{
+		return Values.size();
+	}
+};
 
 struct TypeNode :Node
 {
@@ -171,7 +186,7 @@ struct TypeNode :Node
 
 	}
 	NameNode Name;
-	GenericValuesNode Generic;
+	UseGenericsNode Generic;
 	Node* node = nullptr;
 
 	static constexpr bool IsType(TokenType Type)
@@ -292,28 +307,6 @@ private:
 	bool HasMadeToken = false;
 };
 
-struct UseGenericNode :Node
-{
-	UseGenericNode() : Node(NodeType::Null)
-	{
-
-	}
-	TypeNode node;
-	
-};
-struct UseGenericsNode :Node
-{
-	UseGenericsNode() : Node(NodeType::Null)
-	{
-
-	}
-	Vector<UseGenericNode> Values;
-
-	UCodeLangForceinline bool HasGeneric()
-	{
-		return Values.size();
-	}
-};
 
 struct NamedParameterNode :Node
 {
