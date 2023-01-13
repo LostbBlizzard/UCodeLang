@@ -124,17 +124,29 @@ void UCodeBackEndObject::BuildFunc()
 				R = _Registers.GetFreeRegisterAndWeakLock();
 
 				auto VarSymbolID = IR.Operand0.SymbolId;
-				Symbol& V = _BackInput->_Table->GetSymbol(VarSymbolID);
+				Symbol& SybV = _BackInput->_Table->GetSymbol(VarSymbolID);
 				BuildData& Data = SymbolToData[VarSymbolID];
-				if (V.Type == SymbolType::StackVarable) 
+				if (SybV.Type == SymbolType::StackVarable)
 				{
 					auto V = _Registers.GetInfo(IR.Result.IRLocation);
 
 					if (V == RegisterID::NullRegister) 
 					{
-						GenIns(InstructionBuilder::GetFromStack8(_Ins, Data.offset, R));
-						ULib.Add_Instruction(_Ins);
+					#define ReadVarStackVarable(x) \
+						case TypesEnum::sInt##x:\
+						GenIns(InstructionBuilder::GetFromStack##x(_Ins, Data.offset, R));\
+						ULib.Add_Instruction(_Ins);\
+						break;\
 
+						switch (SybV.VarType._Type)
+						{
+							ReadVarStackVarable(8);
+							ReadVarStackVarable(16);
+							ReadVarStackVarable(32);
+							ReadVarStackVarable(64);
+						default:
+							break;
+						}
 						SetSybToRegister(R, IR);
 					}
 					else
@@ -163,7 +175,7 @@ void UCodeBackEndObject::BuildFunc()
 				RInfo.IRField = IR.Result.IRLocation;
 			}
 			else if (IR.Result.Type == IRFieldInfoType::Var)
-			{ 
+			{
 				auto VarSymbolID = IR.Result.SymbolId;
 				BuildData* Data;
 				Symbol& Symbol = _BackInput->_Table->GetSymbol(VarSymbolID);
@@ -180,10 +192,26 @@ void UCodeBackEndObject::BuildFunc()
 					StackSize += Symbol.Size;
 				}
 
+				#define StoreVarStackVarable(x) \
+						case TypesEnum::uInt##x:\
+						GenIns(InstructionBuilder::StoreRegOnStack##x(_Ins,R, Data->offset));\
+						ULib.Add_Instruction(_Ins); \
+						break; \
+						case TypesEnum::sInt##x:\
+						GenIns(InstructionBuilder::StoreRegOnStack##x(_Ins,R, Data->offset));\
+						ULib.Add_Instruction(_Ins); \
+						break; \
 
-				GenIns(InstructionBuilder::StoreRegOnStack8(_Ins,R, Data->offset));
-				ULib.Add_Instruction(_Ins);
-
+					switch (Symbol.VarType._Type)
+					{
+						StoreVarStackVarable(8);
+						StoreVarStackVarable(16);
+						StoreVarStackVarable(32);
+						StoreVarStackVarable(64);
+					default:
+						throw std::exception("not added");
+						break;
+					}
 			}
 		}
 		break;

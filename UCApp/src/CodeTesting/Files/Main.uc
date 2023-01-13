@@ -1,10 +1,8 @@
-$Tep<T>:
- T X;
- T Y;
 
-$Vec2 = Tep<int>;
 
 |Hi[]:
- Vec2 Hi;
- Tep<byte> A;
- Tep<int> B;
+ 
+ byte A = 0;
+ int16 B = 0;
+ int32 C = 0;
+ int64 D = 0;
