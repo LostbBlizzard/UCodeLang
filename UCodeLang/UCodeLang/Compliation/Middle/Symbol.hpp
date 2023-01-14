@@ -42,6 +42,7 @@ struct TypeSymbol
 
 	bool _IsAddress=false;
 	bool _IsAddressArray = false;
+	bool _Isimmutable = false;
 
 	void SetType(TypesEnum type)
 	{
@@ -63,6 +64,10 @@ struct TypeSymbol
 	{
 		_IsAddressArray = true;
 	}
+	void SetAsimmutable()
+	{
+		_Isimmutable = true;
+	}
 
 	bool IsAddress()const
 	{
@@ -71,6 +76,14 @@ struct TypeSymbol
 	bool IsAddressArray()const
 	{
 		return _IsAddressArray;
+	}
+	bool Isimmutable()const
+	{
+		return _Isimmutable;
+	}
+	bool Ismutable()const
+	{
+		return !Isimmutable();
 	}
 };
 
