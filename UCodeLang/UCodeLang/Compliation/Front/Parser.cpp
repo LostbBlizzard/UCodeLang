@@ -1117,7 +1117,27 @@ GotNodeType Parser::GetDeclareStaticVariable(DeclareStaticVariableNode& out)
 	TokenTypeCheck(RetToken, TokenType::KeyWorld_static);
 	NextToken();
 
-	return GetDeclareVariable(out.Variable);
+	size_t OldIndex = _TokenIndex;
+
+	NameNode NameValue;
+	GetNameCheck(NameValue);
+	auto Token3 = TryGetToken(); TokenNotNullCheck(Token3);
+	if (Token3->Type == TokenType::equal)
+	{
+		NextToken();
+
+		TypeNode::Gen_Var(out.Variable.Type, *NameValue.Token);
+		out.Variable.Name = std::move(NameValue);
+		GetExpressionTypeNode(out.Variable.Expression);
+
+		auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
+		NextToken();
+		return GotNodeType::Success;
+	}
+	else
+	{
+		return GetDeclareVariable(out.Variable);
+	}
 }
 
 GotNodeType Parser::GetDeclareThreadVariable(DeclareThreadVariableNode& out)
@@ -1126,7 +1146,28 @@ GotNodeType Parser::GetDeclareThreadVariable(DeclareThreadVariableNode& out)
 	TokenTypeCheck(RetToken, TokenType::KeyWorld_Thread);
 	NextToken();
 
-	return GetDeclareVariable(out.Variable);
+
+	size_t OldIndex = _TokenIndex;
+
+	NameNode NameValue;
+	GetNameCheck(NameValue);
+	auto Token3 = TryGetToken(); TokenNotNullCheck(Token3);
+	if (Token3->Type == TokenType::equal) 
+	{
+		NextToken();
+
+		TypeNode::Gen_Var(out.Variable.Type, *NameValue.Token);
+		out.Variable.Name = std::move(NameValue);
+		GetExpressionTypeNode(out.Variable.Expression);
+
+		auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
+		NextToken();
+		return GotNodeType::Success;
+	}
+	else
+	{
+		return GetDeclareVariable(out.Variable);
+	}
 }
 
 void Parser::GetDeclareVariableNoObject(TryGetNode& out)
