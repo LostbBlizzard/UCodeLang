@@ -10,7 +10,10 @@ constexpr IRField NullIRField = 0;
 #define IROperatorIntSet(Bit) \
 Add##Bit,\
 Sub##Bit,\
-
+MultU##Bit,\
+MultS##Bit,\
+DivU##Bit,\
+DivS##Bit,\
 
 enum class IROperator : UInt8
 {
@@ -58,6 +61,13 @@ struct IROperand
 	}
 #define IROperand_Set(x) \
 	UCodeLangForceinline static IROperand AsInt##x(UInt##x Value)\
+	{\
+		IROperand operand;\
+		operand.Type = IRFieldInfoType::Int##x;\
+		operand.AnyValue = Value;\
+		return operand;\
+	}\
+	UCodeLangForceinline static IROperand AsInt##x(Int##x Value)\
 	{\
 		IROperand operand;\
 		operand.Type = IRFieldInfoType::Int##x;\
@@ -126,6 +136,58 @@ struct IRSeg
 	UCodeLangForceinline void MakeSub##X(IROperand field, IROperand field2)\
 	{\
 		MakeOperand(field, field2, IROperator::Sub##X);\
+	}\
+	UCodeLangForceinline void MakeUMult##X(IROperand field, IROperand field2)\
+	{\
+		MakeOperand(field, field2, IROperator::MultU##X);\
+	}\
+	UCodeLangForceinline void MakeSMult##X(IROperand field, IROperand field2)\
+	{\
+		MakeOperand(field, field2, IROperator::MultS##X);\
+	}\
+	UCodeLangForceinline void MakeUDiv##X(IROperand field, IROperand field2)\
+	{\
+		MakeOperand(field, field2, IROperator::DivU##X);\
+	}\
+	UCodeLangForceinline void MakeSDiv##X(IROperand field, IROperand field2)\
+	{\
+		MakeOperand(field, field2, IROperator::DivS##X);\
+	}\
+	UCodeLangForceinline void Build_Increment##X(IROperand field,Int##X Value)\
+	{\
+		Build_Assign(IROperand::AsInt##X(Value));\
+		MakeAdd##X(field, IROperand::AsLocation(GetLastField()));\
+	}\
+	UCodeLangForceinline void Build_Increment##X(IROperand field,UInt##X Value)\
+	{\
+		Build_Assign(IROperand::AsInt##X(Value));\
+		MakeAdd##X(field, IROperand::AsLocation(GetLastField()));\
+	}\
+	UCodeLangForceinline void Build_Increment##X(Int##X Value)\
+	{\
+		Build_Increment##X(IROperand::AsLocation(GetLastField()),Value);\
+	}\
+	UCodeLangForceinline void Build_Increment##X(UInt##X Value)\
+	{\
+		Build_Increment##X( IROperand::AsLocation(GetLastField()),Value);\
+	}\
+	UCodeLangForceinline void Build_Decrement##X(IROperand field, UInt##X Value)\
+	{\
+		Build_Assign(IROperand::AsInt##X(Value));\
+		MakeSub##X(field, IROperand::AsLocation(GetLastField()));\
+	}\
+	UCodeLangForceinline void Build_Decrement##X(IROperand field, Int##X Value)\
+	{\
+		Build_Assign(IROperand::AsInt##X(Value));\
+		MakeSub##X(field, IROperand::AsLocation(GetLastField()));\
+	}\
+	UCodeLangForceinline void Build_Decrement##X(UInt##X Value)\
+	{\
+		Build_Decrement##X(IROperand::AsLocation(GetLastField()),Value);\
+	}\
+	UCodeLangForceinline void Build_Decrement##X(Int##X Value)\
+	{\
+		Build_Decrement##X(IROperand::AsLocation( GetLastField()),Value);\
 	}\
 
 class IRBuilder

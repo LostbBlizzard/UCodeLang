@@ -38,7 +38,11 @@ struct TypeSymbol
 	TypesEnum _Type = TypesEnum::Null;
 	SymbolID  _CustomTypeSymbol = 0;
 
+	
+
 	bool _IsAddress=false;
+	bool _IsAddressArray = false;
+
 	void SetType(TypesEnum type)
 	{
 		_Type = type;
@@ -55,9 +59,18 @@ struct TypeSymbol
 	{
 		_IsAddress = true;
 	}
-	bool  IsAddress()
+	void SetAsAddressArray()
+	{
+		_IsAddressArray = true;
+	}
+
+	bool IsAddress()const
 	{
 		return _IsAddress;
+	}
+	bool IsAddressArray()const
+	{
+		return _IsAddressArray;
 	}
 };
 

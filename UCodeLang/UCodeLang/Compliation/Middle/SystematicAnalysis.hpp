@@ -147,6 +147,46 @@ private:
 	void GenericTypeInstantiate(Symbol* Class , const Vector<TypeSymbol>& Type);
 
 	unordered_map<const FuncCallNode*, SymbolID> FuncToSyboID;
+
+	void Build_Assign_uIntPtr(UAddress Value)
+	{
+		_Builder.Build_Assign(IROperand::AsInt64(Value));
+	}
+	void Build_Assign_sIntPtr(SIntNative Value)
+	{
+		_Builder.Build_Assign(IROperand::AsInt64(Value));
+	}
+	void Build_Add_uIntPtr(IROperand field, IROperand field2)
+	{
+		_Builder.MakeAdd64(field, field2);
+	}
+	void Build_Sub_uIntPtr(IROperand field, IROperand field2)
+	{
+		_Builder.MakeSub64(field, field2);
+	}
+	void Build_Mult_uIntPtr(IROperand field, IROperand field2)
+	{
+		_Builder.MakeUMult64(field, field2);
+	}
+	
+	
+	void Build_Increment_uIntPtr(UAddress Value)
+	{
+		_Builder.Build_Increment64(Value);
+	}
+	void Build_Decrement_uIntPtr(UAddress Value)
+	{
+		_Builder.Build_Decrement64(Value);
+	}
+
+	void Build_Increment_sIntPtr(SIntNative Value)
+	{
+		_Builder.Build_Increment64(Value);
+	}
+	void Build_Decrement_sIntPtr(SIntNative Value)
+	{
+		_Builder.Build_Decrement64(Value);
+	}
 };
 UCodeLangEnd
 

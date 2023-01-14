@@ -74,6 +74,10 @@ void UCodeBackEndObject::Build(BackEndInput& Input)
 #define BitSet(bit) \
 	OperatorBits(Add,bit)\
 	OperatorBits(Sub,bit)\
+	OperatorBits(MultS,bit)\
+	OperatorBits(MultU,bit)\
+	OperatorBits(DivU,bit)\
+	OperatorBits(DivS,bit)\
 
 
 #define IRFieldInt(bitsize) case IRFieldInfoType::Int##bitsize: \
