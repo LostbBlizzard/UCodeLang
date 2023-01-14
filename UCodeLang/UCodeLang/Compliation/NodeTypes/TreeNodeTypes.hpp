@@ -656,4 +656,14 @@ struct ParenthesesExpresionNode :Node
 
 	ExpressionNodeType Expression;
 };
+struct SizeofExpresionNode :Node
+{
+	SizeofExpresionNode() : Node(NodeType::SizeofExpresionNode)
+	{
+
+	}
+	AddforNode(SizeofExpresionNode);
+
+	TypeNode Type;
+};
 UCodeLangEnd

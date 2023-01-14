@@ -626,6 +626,22 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 		NextToken();
 		return r;
 	}
+	case TokenType::KeyWorld_Sizeof:
+	{
+		NextToken();
+		auto V = SizeofExpresionNode::Gen();
+		out = V;
+
+		auto ParToken = TryGetToken();
+		TokenTypeCheck(ParToken, FuncCallStart);
+		NextToken();
+
+		GetType(V->Type);
+
+		auto Par2Token = TryGetToken();
+		TokenTypeCheck(Par2Token, FuncCallEnd);
+		NextToken();
+	}
 	break;
 	default:
 		#if CompliationTypeSafety

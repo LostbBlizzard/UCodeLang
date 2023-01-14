@@ -22,6 +22,7 @@ enum class IROperator : UInt8
 	IROperatorIntSet(16)
 	IROperatorIntSet(32)
 	IROperatorIntSet(64)
+	Ret_Value,
 	FuncCall,
 };
 
@@ -163,6 +164,15 @@ public:
 		V.Result =IROperand::AsLocation(Code.size() -1);
 		V.Operand0 = field;
 		V.Operator = IROperator::Assign_Operand0;
+	}
+
+	void Build_AssignRet(IROperand field)
+	{
+		Code.push_back({});
+		auto& V = Code.back();
+		V.Result = IROperand::AsLocation(Code.size() - 1);
+		V.Operand0 = field;
+		V.Operator = IROperator::Ret_Value;
 	}
 
 	void Build_Func(SymbolID Value)

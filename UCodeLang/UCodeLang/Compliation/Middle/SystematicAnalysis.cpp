@@ -792,7 +792,8 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 		}
 		break;
 		case NodeType::BoolliteralNode:
-		{BoolliteralNode* num = BoolliteralNode::As(node.Value);
+		{
+			BoolliteralNode* num = BoolliteralNode::As(node.Value);
 			if (passtype == PassType::BuidCode)
 			{
 				
@@ -847,6 +848,77 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 		case NodeType::FuncCallNode:
 		{
 			OnFuncCallNode(*FuncCallNode::As(node.Value));//LastExpressionType was set by OnFuncCall
+		}
+		break;
+		case NodeType::SizeofExpresionNode:
+		{
+			SizeofExpresionNode* nod = SizeofExpresionNode::As(node.Value);
+
+			auto& lookT = Get_LookingForType();
+			TypeSymbol Type;
+
+			if (passtype == PassType::FixedTypes)
+			{
+				switch (lookT._Type)
+				{
+				case TypesEnum::sInt8:
+				case TypesEnum::uInt8:
+					Type.SetType(TypesEnum::uInt8);
+					break;
+				case TypesEnum::sInt16:
+				case TypesEnum::uInt16:
+					Type.SetType(TypesEnum::uInt16);
+					break;
+				case TypesEnum::sInt32:
+				case TypesEnum::uInt32:
+					Type.SetType(TypesEnum::uInt32);
+					break;
+				case TypesEnum::sInt64:
+				case TypesEnum::uInt64:
+					Type.SetType(TypesEnum::uInt64);
+					break;
+				default:
+					Type.SetType(TypesEnum::IntPtr);
+					break;
+				}
+			}
+
+			if (passtype == PassType::BuidCode)
+			{
+				TypeSymbol Info;
+				Convert(nod->Type, Info);
+				UAddress TypeSize;
+				GetSize(Info, TypeSize);
+				switch (lookT._Type)
+				{
+				case TypesEnum::sInt8:
+				case TypesEnum::uInt8:
+					Type.SetType(TypesEnum::uInt8);
+					_Builder.Build_Assign(IROperand::AsInt8(TypeSize));
+					break;
+				case TypesEnum::sInt16:
+				case TypesEnum::uInt16:
+					Type.SetType(TypesEnum::uInt16);
+					_Builder.Build_Assign(IROperand::AsInt16(TypeSize));
+					break;
+				case TypesEnum::sInt32:
+				case TypesEnum::uInt32:
+					Type.SetType(TypesEnum::uInt32);
+					_Builder.Build_Assign(IROperand::AsInt32(TypeSize));
+					break;
+				case TypesEnum::sInt64:
+				case TypesEnum::uInt64:
+					Type.SetType(TypesEnum::uInt64);
+					_Builder.Build_Assign(IROperand::AsInt64(TypeSize));
+					break;
+				default:
+					Type.SetType(TypesEnum::IntPtr);
+					_Builder.Build_Assign(IROperand::AsInt64(TypeSize));
+					break;
+				}
+			}
+
+			LastExpressionType = Type;
 		}
 		break;
 		default:
