@@ -100,6 +100,7 @@ void Parser::Parse(const FileData& Data, const Vector<Token>&Tokens)
 		case TokenType::Left_Bracket:V = GetAttribute(); break;
 		case TokenType::KeyWorld_static:V = GetDeclareStaticVariable(); break;
 		case TokenType::KeyWorld_Thread:V = GetDeclareThreadVariable(); break;
+		case TokenType::KeyWorld_umut:V = GetumutVariableDeclare(); break;
 		default: GetDeclareVariableNoObject(V); break;
 		}
 		if (V.Node)
@@ -147,6 +148,7 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 		case TokenType::Left_Bracket:V = GetAttribute();break;
 		case TokenType::KeyWorld_static:V = GetDeclareStaticVariable(); break;
 		case TokenType::KeyWorld_Thread:V = GetDeclareThreadVariable(); break;
+		case TokenType::KeyWorld_umut:V = GetumutVariableDeclare(); break;
 		default: GetDeclareVariableNoObject(V); break;
 		}
 
@@ -235,6 +237,7 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 			case TokenType::Left_Bracket:V = GetAttribute(); break;
 			case TokenType::KeyWorld_static:V = GetDeclareStaticVariable(); break;
 			case TokenType::KeyWorld_Thread:V = GetDeclareThreadVariable(); break;
+			case TokenType::KeyWorld_umut:V = GetumutVariableDeclare(); break;
 			default:V = GetDeclareVariable();
 			}
 
@@ -340,6 +343,13 @@ GotNodeType Parser::GetStatement(Node*& out)
 	case TokenType::KeyWorld_Drop:
 	{
 		auto r = GetDropStatementNode();
+		out = r.Node;
+		return r.GotNode;
+	}
+	break;
+	case TokenType::KeyWorld_umut:
+	{
+		auto r = GetumutVariableDeclare();
 		out = r.Node;
 		return r.GotNode;
 	}
@@ -1425,5 +1435,83 @@ GotNodeType Parser::GetNewExpresionNode(NewExpresionNode& out)
 		TokenTypeCheck(ParToken, FuncCallStart);
 	}
 	return GotNodeType::Success;
+}
+GotNodeType Parser::GetumutVariableDeclare(Node*& out)
+{
+	auto NewToken = TryGetToken(); TokenTypeCheck(NewToken, TokenType::KeyWorld_umut);
+	NextToken();
+
+	auto Token2 = TryGetToken(); TokenNotNullCheck(Token2);
+
+	size_t OldIndex = _TokenIndex;
+	
+	NameNode NameValue;
+	GetNameCheck(NameValue);
+
+	
+	TypeNode* Tnode = nullptr;
+	auto Token3 = TryGetToken(); TokenNotNullCheck(Token3);
+
+	GotNodeType r;
+
+	if (Token3->Type == TokenType::equal)
+	{
+		NextToken();
+		DeclareVariableNode* V = DeclareVariableNode::Gen();//this need to be checked if this dose not happen at top scope
+
+		out = V;
+		TypeNode::Gen_Var(V->Type, *NameValue.Token);
+		V->Name = std::move(NameValue);
+		GetExpressionTypeNode(V->Expression);
+
+		auto SemicolonToken2 = TryGetToken(); TokenTypeCheck(SemicolonToken2, TokenType::Semicolon);
+		NextToken();
+
+		Tnode = &V->Type;
+		r = GotNodeType::Success;
+	}
+	else if (Token3->Type == TokenType::Semicolon)
+	{
+
+		auto Token = NameValue.Token;
+		_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
+			, "cant guess type theres no '=' [expression]");
+		NextToken();
+		return GotNodeType::Success;
+	}
+	else
+	{
+		_TokenIndex = OldIndex;
+		switch (Token2->Type)
+		{
+		case TokenType::KeyWorld_Thread:
+		{
+			DeclareThreadVariableNode* V = DeclareThreadVariableNode::Gen();
+			out = V;
+			r = GetDeclareThreadVariable(*V);
+
+			Tnode = &V->Variable.Type;
+		}
+		break;
+		case TokenType::KeyWorld_static:
+		{
+			DeclareStaticVariableNode* V = DeclareStaticVariableNode::Gen();
+			out = V;
+			r =GetDeclareStaticVariable(*V);
+
+			Tnode = &V->Variable.Type;
+		}break;
+		default:
+		{
+			DeclareVariableNode* V = DeclareVariableNode::Gen();
+			out = V;
+			r = GetDeclareVariable(*V);
+
+			Tnode = &V->Type;
+		}break;
+		}
+	}
+	Tnode->SetAsimmutable();
+	return r;
 }
 UCodeLangEnd

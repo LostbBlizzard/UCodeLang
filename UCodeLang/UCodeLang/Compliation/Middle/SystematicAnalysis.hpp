@@ -108,7 +108,9 @@ private:
 	static String GetFuncAnonymousObjectFullName(const String& FullFuncName);
 	void GetTypesClass(ClassData& data);
 
+
 	bool AreTheSame(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
+	bool AreTheSameWithOutimmutable(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
 	bool HasBinaryOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
 
 	String ToString(const TypeSymbol& Type);

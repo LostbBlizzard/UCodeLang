@@ -294,6 +294,7 @@ struct TypeNode :Node
 		HasMadeToken = false;
 		IsAddess = source.IsAddess;
 		IsAddessArray = source.IsAddessArray;
+		Isimmutable = source.Isimmutable;
 	}
 	~TypeNode() noexcept
 	{
@@ -314,12 +315,17 @@ struct TypeNode :Node
 	{
 		IsAddess = true;
 	}
+	void SetAsimmutable()
+	{
+		Isimmutable = true;
+	}
+
 	bool IsAddess = false;
 	bool IsAddessArray = false;
+	bool Isimmutable = false;
 private:
 	bool HasMadeToken = false;
 };
-
 
 struct NamedParameterNode :Node
 {

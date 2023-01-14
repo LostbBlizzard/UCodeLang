@@ -357,6 +357,14 @@ private:
 		return { r,V->As() };
 	}
 	GotNodeType GetNewExpresionNode(NewExpresionNode& out);
+
+	TryGetNode GetumutVariableDeclare()
+	{
+		Node* V = nullptr;
+		auto r = GetumutVariableDeclare(V);
+		return { r,V };
+	}
+	GotNodeType GetumutVariableDeclare(Node*& out);
 };
 UCodeLangEnd
 

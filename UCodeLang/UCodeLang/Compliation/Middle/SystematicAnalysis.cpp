@@ -604,7 +604,13 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 				}
 				else
 				{
+					bool WasImutable = VarType.Isimmutable();
+					
 					VarType = Ex;
+					if (WasImutable)
+					{
+						VarType.SetAsimmutable();
+					}
 				}
 			}
 			if (!CanBeImplicitConverted(Ex, VarType))
@@ -631,6 +637,28 @@ void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 {
 	OnExpressionTypeNode(node.Expression.Value);
 
+	if (passtype == PassType::FixedTypes)
+	{
+		auto Name = node.Name.AsStringView();
+		auto Symbol = GetSymbol(Name, SymbolType::Varable_t);
+		
+		if (Symbol->VarType.Isimmutable())
+		{
+			auto Token = node.Name.Token;
+			_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+				, "Cant modify '" + (String)Name +" it's immutable");
+		}
+
+		if (!CanBeImplicitConverted(LastExpressionType, Symbol->VarType))
+		{
+			auto  Token = LastLookedAtToken;
+
+			_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+				, "Cant cast Type '" + ToString(LastExpressionType) + " to '" + ToString(Symbol->VarType) + "'");
+
+		}
+	}
+	
 	if (passtype == PassType::BuidCode)
 	{
 		auto Symbol = GetSymbol(node.Name.AsStringView(), SymbolType::Varable_t);
@@ -643,6 +671,18 @@ void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 }
 void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 {
+	if (passtype == PassType::FixedTypes)
+	{
+		auto Name = node.Name.AsStringView();
+		auto Symbol = GetSymbol(Name, SymbolType::Varable_t);
+
+		if (Symbol->VarType.Isimmutable())
+		{
+			auto Token = node.Name.Token;
+			_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+				, "Cant modify '" + (String)Name + " it's immutable");
+		}
+	}
 	if (passtype == PassType::BuidCode)
 	{
 		auto Symbol = GetSymbol(node.Name.AsStringView(), SymbolType::Varable_t);
@@ -670,6 +710,19 @@ void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& node)
 {
 	OnExpressionTypeNode(node.Expession.Value);
+	
+	if (passtype == PassType::FixedTypes)
+	{
+		auto Name = node.VariableName.AsStringView();
+		auto Symbol = GetSymbol(Name, SymbolType::Varable_t);
+
+		if (Symbol->VarType.Isimmutable())
+		{
+			auto Token = node.VariableName.Token;
+			_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+				, "Cant modify '" + (String)Name + " it's immutable");
+		}
+	}
 	if (passtype == PassType::BuidCode)
 	{
 		auto Symbol = GetSymbol(node.VariableName.AsStringView(), SymbolType::Varable_t);
@@ -1309,12 +1362,35 @@ void SystematicAnalysis::GetTypesClass(ClassData& Class)
 		//GetSize(GetSymbol(node.FullNameType, SymbolType::Type)->VarType, Size);
 	}
 }
+
 bool SystematicAnalysis::AreTheSame(const TypeSymbol& TypeA, const TypeSymbol& TypeB)
 {
 	if (TypeA._Type == TypeB._Type &&
 		TypeA.IsAddress() == TypeB.IsAddress() && 
-		TypeA.IsAddressArray() == TypeB.IsAddressArray()
+		TypeA.IsAddressArray() == TypeB.IsAddressArray() &&
+		TypeA.Isimmutable() == TypeB.Isimmutable()
 	   )
+	{
+		return true;
+	}
+
+	if (TypeA._Type == TypesEnum::CustomType
+		&& TypeB._Type == TypesEnum::CustomType)
+	{
+		if (TypeA._CustomTypeSymbol == TypeB._CustomTypeSymbol)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+bool SystematicAnalysis::AreTheSameWithOutimmutable(const TypeSymbol& TypeA, const TypeSymbol& TypeB)
+{
+	if (TypeA._Type == TypeB._Type &&
+		TypeA.IsAddress() == TypeB.IsAddress() &&
+		TypeA.IsAddressArray() == TypeB.IsAddressArray() 
+		)
 	{
 		return true;
 	}
@@ -1337,6 +1413,11 @@ bool SystematicAnalysis::HasBinaryOverLoadWith(const TypeSymbol& TypeA, TokenTyp
 String SystematicAnalysis::ToString(const TypeSymbol& Type)
 {
 	String r;
+	if (Type.Isimmutable())
+	{
+		r = "umut ";
+	}
+
 	switch (Type._Type)
 	{
 	case TypesEnum::Var:r = "var";	break;
@@ -1491,6 +1572,10 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 	{
 		Out._IsAddressArray = true;
 	}
+	if (V.Isimmutable)
+	{
+		Out._Isimmutable = true;
+	}
 }
 bool SystematicAnalysis::IsVaidType(TypeSymbol& Out)
 {
@@ -1498,8 +1583,14 @@ bool SystematicAnalysis::IsVaidType(TypeSymbol& Out)
 }
 bool SystematicAnalysis::CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type)
 {
-	if (AreTheSame(TypeToCheck, Type)) { return true; }
+	if (AreTheSameWithOutimmutable(TypeToCheck, Type)) 
+	{ 
+		return
+			(!TypeToCheck.Isimmutable() == Type.Isimmutable()) ||
+			(TypeToCheck.Isimmutable() == Type.Isimmutable());
+	}
 
+	
 	
 	return false;
 }
