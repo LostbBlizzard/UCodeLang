@@ -44,6 +44,7 @@ enum class NodeType :UInt8
 	AnonymousObjectConstructorNode,
 	CastNode,
 	ParenthesesExpresionNode,
+	SizeofExpresionNode,
 };
 
 
