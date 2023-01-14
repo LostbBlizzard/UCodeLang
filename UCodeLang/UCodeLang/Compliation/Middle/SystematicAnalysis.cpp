@@ -419,6 +419,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			case NodeType::PostfixVariableNode:OnPostfixVariableNode(*PostfixVariableNode::As(node2)); break;
 			case NodeType::CompoundStatementNode:OnCompoundStatementNode(*CompoundStatementNode::As(node2)); break;
 			case NodeType::FuncCallStatementNode:OnFuncCallNode(FuncCallStatementNode::As(node2)->Base); break;
+			case NodeType::DropStatementNode:OnDropStatementNode(*DropStatementNode::As(node2)); break;
 			case NodeType::RetStatementNode:
 				syb = &_Table.GetSymbol(sybId);
 
@@ -505,7 +506,7 @@ void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 
 	if (passtype == PassType::FixedTypes) 
 	{
-		auto T = Get_LookingForType();
+		auto& T = Get_LookingForType();
 		if (T._Type != TypesEnum::Var) 
 		{
 			if (!CanBeImplicitConverted(LastExpressionType, T))
@@ -545,7 +546,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 		syb = &_Table.AddSybol(SymbolType::StackVarable, StrVarName, FullName);
 		_Table.AddSymbolID(*syb, sybId);
 
-		syb->Size = sizeof(UInt8);
+		syb->Size = NullAddress;
 		if (_ClassStack.size() && _InStatements == false)
 		{
 			ClassField V;
@@ -696,6 +697,7 @@ void SystematicAnalysis::OnExpressionTypeNode(const Node* node)
 	case NodeType::ValueExpressionNode:OnExpressionNode(*ValueExpressionNode::As(node)); break;
 	case NodeType::CastNode:OnExpressionNode(*CastNode::As(node)); break;
 	default:
+		throw std::exception("not added");
 		break;
 	}
 	
@@ -878,7 +880,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 					Type.SetType(TypesEnum::uInt64);
 					break;
 				default:
-					Type.SetType(TypesEnum::IntPtr);
+					Type.SetType(TypesEnum::uIntPtr);
 					break;
 				}
 			}
@@ -912,12 +914,32 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 					_Builder.Build_Assign(IROperand::AsInt64(TypeSize));
 					break;
 				default:
-					Type.SetType(TypesEnum::IntPtr);
+					Type.SetType(TypesEnum::uIntPtr);
 					_Builder.Build_Assign(IROperand::AsInt64(TypeSize));
 					break;
 				}
 			}
 
+			LastExpressionType = Type;
+		}
+		break;
+		case NodeType::NewExpresionNode:
+		{
+			NewExpresionNode* nod = NewExpresionNode::As(node.Value);
+			TypeSymbol Type;
+			Convert(nod->Type, Type);
+
+
+
+			if (passtype == PassType::BuidCode)
+			{
+				UAddress TypeSize;
+				GetSize(Type, TypeSize);
+
+				_Builder.Build_Malloc(TypeSize);
+				//Call ObjectNew
+			}
+			Type.SetAsAddress();
 			LastExpressionType = Type;
 		}
 		break;
@@ -963,6 +985,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 		case TokenType::minus:_Builder.MakeSub8(Op0, Op1);
 			break;
 		default:
+			throw std::exception("not added");
 			break;
 		}
 
@@ -1045,6 +1068,26 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 	{
 		auto SybID = FuncToSyboID.at(&node);
 		_Builder.Build_FuncCall(SybID);
+	}
+}
+void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
+{
+	OnExpressionTypeNode(node.expression.Value);
+	auto Ex0 = _LastExpressionField;
+	auto Ex0Type = LastExpressionType;
+	if (passtype == PassType::FixedTypes)
+	{
+		if (!Ex0Type.IsAddress())
+		{
+			auto Token = LastLookedAtToken;
+			_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos,
+				"expression must be an address not an '" + ToString(Ex0Type) + "'");
+			
+		}
+	}
+	if (passtype == PassType::BuidCode)
+	{
+		_Builder.Build_Free(IROperand::AsLocation(Ex0));
 	}
 }
 void SystematicAnalysis::CheckBackEnd()
@@ -1163,90 +1206,101 @@ bool SystematicAnalysis::HasBinaryOverLoadWith(const TypeSymbol& TypeA, TokenTyp
 }
 String SystematicAnalysis::ToString(const TypeSymbol& Type)
 {
+	String r;
 	switch (Type._Type)
 	{
-	case TypesEnum::Var:return "var";
-	case TypesEnum::Int_t:return "Int_t";
-	case TypesEnum::uInt_t:return "uInt_t";
-	case TypesEnum::sInt_t:return "sInt_t";
+	case TypesEnum::Var:r = "var";	break;
+	case TypesEnum::Int_t:r = "Int_t";	break;
+	case TypesEnum::uInt_t:r = "uInt_t";	break;
+	case TypesEnum::sInt_t:r = "sInt_t";	break;
 
 
-	case TypesEnum::uInt8:return "uInt8";
-	case TypesEnum::uInt16:return "uInt16";
-	case TypesEnum::uInt32:return "uInt32";
-	case TypesEnum::uInt64:return "uInt64";
+	case TypesEnum::uInt8:r = "uInt8";	break;
+	case TypesEnum::uInt16:r = "uInt16";	break;
+	case TypesEnum::uInt32:r = "uInt32";	break;
+	case TypesEnum::uInt64:r = "uInt64";	break;
 
 
-	case TypesEnum::sInt8:return "sInt8";
-	case TypesEnum::sInt16:return "sInt16";
-	case TypesEnum::sInt32:return "sInt32";
-	case TypesEnum::sInt64:return "sInt64";
+	case TypesEnum::sInt8:r = "sInt8";	break;
+	case TypesEnum::sInt16:r = "sInt16";	break;
+	case TypesEnum::sInt32:r = "sInt32";	break;
+	case TypesEnum::sInt64:r = "sInt64";	break;
 
-	case TypesEnum::Bool:return "bool";
-	case TypesEnum::Char:return "char";
+	case TypesEnum::Bool:r = "bool";	break;
+	case TypesEnum::Char:r = "char";	break;
 	case TypesEnum::CustomType:
 	{
 		auto Syb = _Table.GetSymbol(Type._CustomTypeSymbol);
 		if (Syb.Type == SymbolType::Func
 			|| Syb.Type == SymbolType::GenericFunc)
 		{
-			return ToString(Syb.VarType);
+			r = ToString(Syb.VarType);
 		}
 		else
 		{
-			return Syb.FullName;
+			r = Syb.FullName;
 		}
-	}
+	}	break;
 	case TypesEnum::Void:
-		return "void";
+		r = "void";	break;
 	case TypesEnum::Null:
-		return "null (incomplete/broken Type)";
+		r = "[badtype]";	break;
 	default:
 		break;
 	}
 
-	throw std::exception("not added");
-	return "[Type Name Here]";
+	if (Type._IsAddress)
+	{
+		r += "&";
+	}
+
+	return r;
 }
 void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 {
 	switch (V.Name.Token->Type)
 	{
 	case TokenType::KeyWorld_var:
-		Out._Type = TypesEnum::Var;
+		Out.SetType(TypesEnum::Var);
 		break;
 	case TokenType::KeyWorld_UInt8:
-		Out._Type = TypesEnum::uInt8;
+		Out.SetType(TypesEnum::uInt8);
 		break;
 	case TokenType::KeyWorld_UInt16:
-		Out._Type = TypesEnum::uInt16;
+		Out.SetType(TypesEnum::uInt16);
 		break;
 	case TokenType::KeyWorld_UInt32:
-		Out._Type = TypesEnum::uInt32;
+		Out.SetType(TypesEnum::uInt32);
 		break;
 	case TokenType::KeyWorld_UInt64:
-		Out._Type = TypesEnum::uInt64;
+		Out.SetType(TypesEnum::uInt64);
 		break;
 
 	case TokenType::KeyWorld_SInt8:
-		Out._Type = TypesEnum::sInt8;
+		Out.SetType(TypesEnum::sInt8);
 		break;
 	case TokenType::KeyWorld_SInt16:
-		Out._Type = TypesEnum::sInt16;
+		Out.SetType(TypesEnum::sInt16);
 		break;
 	case TokenType::KeyWorld_SInt32:
-		Out._Type = TypesEnum::sInt32;
+		Out.SetType(TypesEnum::sInt32);
 		break;
 	case TokenType::KeyWorld_SInt64:
-		Out._Type = TypesEnum::sInt64;
+		Out.SetType(TypesEnum::sInt64);
 		break;
 
+	case TokenType::KeyWorld_uintptr:
+		Out.SetType(TypesEnum::uInt64);
+		break;
+	case TokenType::KeyWorld_sintptr:
+		Out.SetType(TypesEnum::sInt64);
+		break;
 
 	case TokenType::KeyWorld_Bool:
-		Out._Type = TypesEnum::Bool;
+		Out.SetType(TypesEnum::Bool);
 		break;
 	case TokenType::KeyWorld_Char:
-		Out._Type = TypesEnum::Char;
+		Out.SetType(TypesEnum::Char);
 		break;
 	case TokenType::Name: 
 	{
@@ -1292,6 +1346,10 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 		throw std::exception("not added");
 		break;
 	}
+	if (V.IsAddess)
+	{
+		Out._IsAddress = true;
+	}
 }
 bool SystematicAnalysis::IsVaidType(TypeSymbol& Out)
 {
@@ -1317,7 +1375,8 @@ bool SystematicAnalysis::IsSIntType(const UCodeLang::TypeSymbol& TypeToCheck)
 		TypeToCheck._Type == TypesEnum::sInt8 ||
 		TypeToCheck._Type == TypesEnum::sInt16 ||
 		TypeToCheck._Type == TypesEnum::sInt32 ||
-		TypeToCheck._Type == TypesEnum::sInt64;
+		TypeToCheck._Type == TypesEnum::sInt64 ||
+		TypeToCheck._Type == TypesEnum::sIntPtr;
 }
 bool SystematicAnalysis::IsUIntType(const UCodeLang::TypeSymbol& TypeToCheck)
 {
@@ -1325,10 +1384,12 @@ bool SystematicAnalysis::IsUIntType(const UCodeLang::TypeSymbol& TypeToCheck)
 		TypeToCheck._Type == TypesEnum::uInt8 ||
 		TypeToCheck._Type == TypesEnum::uInt16 ||
 		TypeToCheck._Type == TypesEnum::uInt32 ||
-		TypeToCheck._Type == TypesEnum::uInt64;
+		TypeToCheck._Type == TypesEnum::uInt64 ||
+		TypeToCheck._Type == TypesEnum::uIntPtr ;
 }
 bool SystematicAnalysis::GetSize(TypeSymbol& Type, UAddress& OutSize)
 {
+	if (Type.IsAddress()){goto IntPtr;}
 	switch (Type._Type)
 	{
 	case TypesEnum::sInt8:
@@ -1351,13 +1412,16 @@ bool SystematicAnalysis::GetSize(TypeSymbol& Type, UAddress& OutSize)
 		OutSize = sizeof(UInt64);
 		return true;
 
-	case TypesEnum::IntPtr:
+	case TypesEnum::sIntPtr:
+	case TypesEnum::uIntPtr:
+	IntPtr:
 		OutSize = sizeof(UInt64);
 		return true;
 	default:
 		OutSize = 0;
 		return false;
 	}
+	
 
 
 }

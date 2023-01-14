@@ -45,6 +45,8 @@ enum class NodeType :UInt8
 	CastNode,
 	ParenthesesExpresionNode,
 	SizeofExpresionNode,
+	NewExpresionNode,
+	DropStatementNode,
 };
 
 

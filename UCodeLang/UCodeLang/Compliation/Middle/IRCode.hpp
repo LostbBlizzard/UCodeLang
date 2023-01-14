@@ -24,6 +24,8 @@ enum class IROperator : UInt8
 	IROperatorIntSet(64)
 	Ret_Value,
 	FuncCall,
+	Malloc,
+	Free,
 };
 
 enum class IRFieldInfoType : UInt8
@@ -188,6 +190,28 @@ public:
 		auto& V = Code.back();
 		V.Operator = IROperator::FuncCall;
 		V.Operand0 = IROperand::AsSymbol(Value);
+	}
+	
+	void Build_Malloc(UAddress Size)
+	{
+		Build_Assign(IROperand::AsInt64(Size));
+		Build_Malloc(IROperand::AsLocation(GetLastField()));
+	}
+	void Build_Malloc(IROperand Sizefield)
+	{
+		Code.push_back({});
+		auto& V = Code.back();
+		V.Result = IROperand::AsLocation(Code.size() - 1);
+		V.Operator = IROperator::Malloc;
+		V.Operand0 = Sizefield;
+	}
+
+	void Build_Free(IROperand field)
+	{
+		Code.push_back({});
+		auto& V = Code.back();
+		V.Operator = IROperator::Free;
+		V.Operand0 = field;
 	}
 
 	void Build_Ret()
