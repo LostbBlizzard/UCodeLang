@@ -101,6 +101,11 @@ enum class SymbolType : UInt8
 	GenericFunc,
 	Generic_class
 };
+enum class SymbolValidState : UInt8
+{
+	Invalid,
+	valid,
+};
 class Symbol
 {
 public:
@@ -112,6 +117,18 @@ public:
 	TypeSymbol VarType;
 	//
 	void* SomePtr =nullptr;//most likey a node* or ClassInfo*
+	
+	SymbolValidState ValidState = SymbolValidState::valid;
+	void SetToInvalid()
+	{
+		ValidState = SymbolValidState::Invalid;
+	}
+	void SetTovalid()
+	{
+		ValidState = SymbolValidState::valid;
+	}
+	bool IsInvalid() {return ValidState == SymbolValidState::Invalid;}
+	bool Isvalid() { return !IsInvalid(); }
 };
 
 

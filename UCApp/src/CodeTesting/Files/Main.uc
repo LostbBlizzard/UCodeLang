@@ -2,9 +2,7 @@
 
 |main[]:
 
- var B 
- = new int[88]; 
+ int InVaildValue;
 
- drop(B);
-
- ret 0;
+ int SomeValue = InVaildValue; 
+ 

@@ -587,9 +587,11 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 
 	if (passtype == PassType::FixedTypes)
 	{
+		syb = &_Table.GetSymbol(sybId);
 		if (node.Expression.Value)
 		{
-			syb = &_Table.GetSymbol(sybId);
+			syb->SetTovalid();
+
 			auto& VarType = syb->VarType;
 			auto& Ex = LastExpressionType;
 			auto Token = node.Type.Name.Token;
@@ -601,7 +603,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 						, "cant guess 'var' type");
 				}
 				else
-				{ 
+				{
 					VarType = Ex;
 				}
 			}
@@ -611,10 +613,14 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 					"cant convert '" + ToString(Ex) + "' to" + "'" + ToString(VarType) + "'");
 			}
 		}
+		else
+		{
+			syb->SetToInvalid();
+		}
 	}
 	LookingForTypes.pop();
 
-	if (passtype == PassType::BuidCode)
+	if (passtype == PassType::BuidCode && node.Expression.Value)
 	{
 		auto Op = IROperand::AsLocation(_LastExpressionField);
 		auto NewOp = IROperand::AsVarable(sybId);
@@ -836,7 +842,13 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 					return;
 
 			}
+			if (Symbol->IsInvalid())
+			{
+				_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+					, "the variable named '" + Str + "'" + " cant be read from you.can not read an invaid variable");
+				goto SetExpressionInfo;
 
+			}
 
 			SymbolID sybId = Symbol->ID;
 			if (passtype == PassType::BuidCode)
@@ -847,6 +859,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 				_LastExpressionField = _Builder.GetLastField();
 			}
 
+			SetExpressionInfo:
 			LastExpressionType = Symbol->VarType;
 			LastLookedAtToken = Token;
 		}
