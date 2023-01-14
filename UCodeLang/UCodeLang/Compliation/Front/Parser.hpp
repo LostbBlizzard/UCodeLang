@@ -197,7 +197,7 @@ private:
 	GotNodeType GetName(ScopedNameNode& out);
 	GotNodeType GetName(NameNode& out);
 	GotNodeType GetNameCheck(NameNode& out);
-	GotNodeType GetType(TypeNode& out);
+	GotNodeType GetType(TypeNode& out,bool ignoreRighthandOFtype =false);
 	GotNodeType GetTypeWithVoid(TypeNode& out);
 	GotNodeType GetNumericType(TypeNode& out);
 
@@ -349,6 +349,14 @@ private:
 		return { r,V->As() };
 	}
 	GotNodeType GetDropStatementNode(DropStatementNode& out);
+
+	TryGetNode GetNewExpresionNode()
+	{
+		NewExpresionNode* V =NewExpresionNode::Gen();
+		auto r = GetNewExpresionNode(*V);
+		return { r,V->As() };
+	}
+	GotNodeType GetNewExpresionNode(NewExpresionNode& out);
 };
 UCodeLangEnd
 

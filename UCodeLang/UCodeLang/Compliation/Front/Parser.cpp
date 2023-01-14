@@ -653,22 +653,9 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 	break;
 	case TokenType::KeyWorld_new:
 	{
-		NextToken();
-		auto V = NewExpresionNode::Gen();
-		out = V;
-		GetType(V->Type);
-
-		auto ParToken = TryGetToken();
-		
-		TokenTypeCheck(ParToken, FuncCallStart);
-		NextToken();
-
-		GetValueParametersNode(V->Parameters);
-
-		auto Par2Token = TryGetToken();
-		TokenTypeCheck(Par2Token, FuncCallEnd);
-		NextToken();
-		return GotNodeType::Success;
+		auto V = GetNewExpresionNode();
+		out = V.Node;
+		return V.GotNode;
 	}
 	break;
 	default:
@@ -918,7 +905,7 @@ GotNodeType Parser::GetNameCheck(NameNode& out)
 	return GotNodeType::Success;
 }
 
-GotNodeType Parser::GetType(TypeNode& out)
+GotNodeType Parser::GetType(TypeNode& out, bool ignoreRighthandOFtype)
 {
 	GotNodeType r;
 	auto Token = TryGetToken();
@@ -938,14 +925,54 @@ GotNodeType Parser::GetType(TypeNode& out)
 	{
 		TokenTypeCheck(Token, TokenType::Name);
 	}
+	
 
 	auto Token2 = TryGetToken();
-	if (Token2 && Token2->Type == TokenType::bitwise_and)
+	if (!ignoreRighthandOFtype && Token2)
 	{
-		NextToken();
-		out.PushAsAddess();
-	}
+		if (Token2->Type == TokenType::bitwise_and)
+		{
+			NextToken();
+			out.PushAsAddess();
+		}
+		
+		Token2 = TryGetToken();
+		if (Token2 && Token2->Type == TokenType::Left_Bracket)
+		{
+			NextToken();
+			Token2 = TryGetToken(); TokenNotNullCheck(Token2);
+			if (Token2->Type == TokenType::bitwise_and)
+			{
+				NextToken();
 
+				Token2 = TryGetToken(); TokenNotNullCheck(Token2);
+				if (Token2->Type == TokenType::Right_Bracket)
+				{
+					out.PushAsArrayAddess();
+					
+				}
+				else
+				{
+					throw std::exception("not added");
+				}
+			}
+			else if (Token2->Type == TokenType::Right_Bracket) 
+			{
+				throw std::exception("not added");
+				goto Done;
+			}
+			else
+			{
+				throw std::exception("not added");
+			}
+		
+		
+		Done:
+			Token2 = TryGetToken();
+			TokenTypeCheck(Token2, TokenType::Right_Bracket);
+			NextToken();
+		}
+	}
 	return r;
 }
 
@@ -1364,6 +1391,39 @@ GotNodeType Parser::GetDropStatementNode(DropStatementNode& out)
 
 	auto SemicolonToken2 = TryGetToken(); TokenTypeCheck(SemicolonToken2, TokenType::Semicolon);
 	NextToken();
+	return GotNodeType::Success;
+}
+GotNodeType Parser::GetNewExpresionNode(NewExpresionNode& out)
+{
+	auto NewToken = TryGetToken(); TokenTypeCheck(NewToken, TokenType::KeyWorld_new);
+	NextToken();
+	GetType(out.Type,true);
+
+	auto ParToken = TryGetToken(); TokenNotNullCheck(ParToken);
+	if (ParToken->Type == FuncCallStart) {
+
+		NextToken();
+
+		GetValueParametersNode(out.Parameters);
+
+		auto Par2Token = TryGetToken();
+		TokenTypeCheck(Par2Token, FuncCallEnd);
+		NextToken();
+	}
+	else if (ParToken->Type == TokenType::Left_Bracket)
+	{
+		NextToken();
+		
+		GetExpressionTypeNode(out.Arrayexpression);
+
+		auto Par2Token = TryGetToken();
+		TokenTypeCheck(Par2Token, TokenType::Right_Bracket);
+		NextToken();
+	}
+	else
+	{
+		TokenTypeCheck(ParToken, FuncCallStart);
+	}
 	return GotNodeType::Success;
 }
 UCodeLangEnd

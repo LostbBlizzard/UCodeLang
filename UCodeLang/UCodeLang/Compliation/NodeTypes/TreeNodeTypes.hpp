@@ -293,6 +293,7 @@ struct TypeNode :Node
 
 		HasMadeToken = false;
 		IsAddess = source.IsAddess;
+		IsAddessArray = source.IsAddessArray;
 	}
 	~TypeNode() noexcept
 	{
@@ -309,7 +310,12 @@ struct TypeNode :Node
 	{
 		IsAddess = true;
 	}
+	void PushAsArrayAddess()
+	{
+		IsAddess = true;
+	}
 	bool IsAddess = false;
+	bool IsAddessArray = false;
 private:
 	bool HasMadeToken = false;
 };
@@ -684,6 +690,8 @@ struct NewExpresionNode :Node
 
 	TypeNode Type;
 	ValueParametersNode Parameters;
+
+	ExpressionNodeType Arrayexpression;//can be null
 };
 
 struct DropStatementNode :Node

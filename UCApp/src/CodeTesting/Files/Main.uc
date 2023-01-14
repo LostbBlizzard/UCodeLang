@@ -1,10 +1,10 @@
 
 
 |main[]:
- 
- int& A = new int(); 
- 
 
- drop(A);
+ var B 
+ = new int[88]; 
+
+ drop(B);
 
  ret 0;
