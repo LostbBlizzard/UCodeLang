@@ -341,6 +341,14 @@ private:
 		return { r,V->As() };
 	}
 	GotNodeType GetAnonymousObjectConstructorNode(AnonymousObjectConstructorNode& out);
+
+	TryGetNode GetDropStatementNode()
+	{
+		DropStatementNode* V = DropStatementNode::Gen();
+		auto r = GetDropStatementNode(*V);
+		return { r,V->As() };
+	}
+	GotNodeType GetDropStatementNode(DropStatementNode& out);
 };
 UCodeLangEnd
 

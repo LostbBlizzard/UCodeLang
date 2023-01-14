@@ -271,6 +271,7 @@ struct TypeNode :Node
 		{
 			Name.Token = ToCopyFrom.Name.Token;
 		}
+		IsAddess = ToCopyFrom.IsAddess;
 	}
 	TypeNode(TypeNode&& source)noexcept
 	{
@@ -291,6 +292,7 @@ struct TypeNode :Node
 		}
 
 		HasMadeToken = false;
+		IsAddess = source.IsAddess;
 	}
 	~TypeNode() noexcept
 	{
@@ -303,6 +305,11 @@ struct TypeNode :Node
 			delete node;
 		}
 	}
+	void PushAsAddess()
+	{
+		IsAddess = true;
+	}
+	bool IsAddess = false;
 private:
 	bool HasMadeToken = false;
 };
@@ -666,4 +673,28 @@ struct SizeofExpresionNode :Node
 
 	TypeNode Type;
 };
+
+struct NewExpresionNode :Node
+{
+	NewExpresionNode() : Node(NodeType::NewExpresionNode)
+	{
+
+	}
+	AddforNode(NewExpresionNode);
+
+	TypeNode Type;
+	ValueParametersNode Parameters;
+};
+
+struct DropStatementNode :Node
+{
+	DropStatementNode() : Node(NodeType::DropStatementNode)
+	{
+
+	}
+	AddforNode(DropStatementNode);
+
+	ExpressionNodeType expression;
+};
+
 UCodeLangEnd

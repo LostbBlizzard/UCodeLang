@@ -218,9 +218,9 @@ void Interpreter::Extecute(Instruction& Inst)
 	case InstructionSet::DoNothing:break;
 		
 	IntSet(8,Int8,UInt8, AsInt8, AsUInt8)
-	IntSet(16,Int8,UInt16, AsInt16, AsUInt16)
-	IntSet(32,Int8,UInt32, AsInt32, AsUInt32)
-	IntSet(64,Int8,UInt64, AsInt32, AsUInt64)
+	IntSet(16,Int16,UInt16, AsInt16, AsUInt16)
+	IntSet(32,Int32,UInt32, AsInt32, AsUInt32)
+	IntSet(64,Int64,UInt64, AsInt32, AsUInt64)
 	
 	#pragma region Cpp func Set
 	case InstructionSet::GetPointerOfStack:

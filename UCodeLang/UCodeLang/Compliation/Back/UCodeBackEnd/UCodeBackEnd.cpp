@@ -138,14 +138,24 @@ void UCodeBackEndObject::BuildFunc()
 						ULib.Add_Instruction(_Ins);\
 						break;\
 
-						switch (SybV.VarType._Type)
+						if (SybV.VarType.IsAddress() ||
+							SybV.VarType._Type == TypesEnum::uIntPtr ||
+							SybV.VarType._Type == TypesEnum::sIntPtr)
 						{
-							ReadVarStackVarable(8);
-							ReadVarStackVarable(16);
-							ReadVarStackVarable(32);
-							ReadVarStackVarable(64);
-						default:
-							break;
+							GenIns(InstructionBuilder::GetFromStack64(_Ins, Data.offset, R));
+							ULib.Add_Instruction(_Ins);
+						}
+						else
+						{
+							switch (SybV.VarType._Type)
+							{
+								ReadVarStackVarable(8);
+								ReadVarStackVarable(16);
+								ReadVarStackVarable(32);
+								ReadVarStackVarable(64);
+							default:
+								break;
+							}
 						}
 						SetSybToRegister(R, IR);
 					}
@@ -202,6 +212,16 @@ void UCodeBackEndObject::BuildFunc()
 						ULib.Add_Instruction(_Ins); \
 						break; \
 
+
+				if (Symbol.VarType.IsAddress() || 
+					Symbol.VarType._Type == TypesEnum::uIntPtr ||
+					Symbol.VarType._Type == TypesEnum::sIntPtr)
+				{
+					GenIns(InstructionBuilder::StoreRegOnStack64(_Ins, R, Data->offset)); 
+					ULib.Add_Instruction(_Ins); 
+				}
+				else 
+				{
 					switch (Symbol.VarType._Type)
 					{
 						StoreVarStackVarable(8);
@@ -212,6 +232,7 @@ void UCodeBackEndObject::BuildFunc()
 						throw std::exception("not added");
 						break;
 					}
+				}
 			}
 		}
 		break;
@@ -225,10 +246,30 @@ void UCodeBackEndObject::BuildFunc()
 			
 			_InsCalls.push_back({ULib.GetLastInstruction(),VarSymbolID });
 		}
-			break;
-		case IROperator::Ret:
-				goto EndLoop;
 		break;
+		case IROperator::Free:
+		{
+			auto R = GetOperandInAnyRegister(IR.Operand0);
+			GenIns(InstructionBuilder::Free(_Ins,R));
+			ULib.Add_Instruction(_Ins);
+
+		}
+		break;
+		case IROperator::Malloc:
+		{
+			auto Size = GetOperandInAnyRegister(IR.Operand0);
+			_Registers.WeakLockRegister(Size);
+			auto ROut = _Registers.GetFreeRegister();
+			
+
+			GenIns(InstructionBuilder::Malloc(_Ins, Size, ROut));
+			ULib.Add_Instruction(_Ins);
+
+			_Registers.UnLockWeakRegister(Size);
+			SetSybToRegister(Size,IR);
+		}
+		break;
+		case IROperator::Ret:goto EndLoop;
 		}
 	}
 EndLoop:
@@ -252,15 +293,16 @@ void UCodeBackEndObject::Link()
 	}
 }
 
-void UCodeBackEndObject::SetSybToRegister(UCodeLang::RegisterID R, UCodeLang::IRThreeAddressCode& IR)
+void UCodeBackEndObject::SetSybToRegister(RegisterID R, IRThreeAddressCode& IR)
 {
-	auto& RInfo = _Registers.GetInfo(R); \
-		_Registers.WeakLockRegister(R); \
-		RInfo.IRField = IR.Result.IRLocation; \
+	SetIRToRegister(R,IR.Result.IRLocation);
 }
 
-void UCodeBackEndObject::SetIRToRegister(UCodeLang::RegisterID R, IRField IR)
+void UCodeBackEndObject::SetIRToRegister(RegisterID R, IRField IR)
 {
+	auto& RInfo = _Registers.GetInfo(R);
+	_Registers.WeakLockRegister(R);
+	RInfo.IRField = IR;
 }
 
 RegisterID UCodeBackEndObject::GetOperandInAnyRegister(const IROperand& operand)

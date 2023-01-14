@@ -91,6 +91,7 @@ private:
 	void OnExpressionNode(const BinaryExpressionNode& node);
 	void OnExpressionNode(const CastNode& node);
 	void OnFuncCallNode(const FuncCallNode& node);
+	void OnDropStatementNode(const DropStatementNode& node);
 	void CheckBackEnd();
 	void PushTepAttributesInTo(Vector<AttributeData>& Input);
 	void LoadLibSymbols();

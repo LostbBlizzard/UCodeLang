@@ -25,6 +25,7 @@ static const std::vector<TestInfo> Tests
 	{"main ret 1","BasicTests/main.uc","Main2",SuccessCondition::RunTimeValue,1},
 	{"BasicObjects_0","Objects/BasicObjects.uc","Main2",SuccessCondition::Compilation},
 	{"asm ret 1","asm/Get1.uc","Main",SuccessCondition::RunTimeValue,1},
+	{"NewAndDrop","NewAndDrop/main","Main",SuccessCondition::RunTimeValue,0},
 };
 
 

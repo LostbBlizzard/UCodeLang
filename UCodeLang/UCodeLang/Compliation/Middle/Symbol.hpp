@@ -26,8 +26,8 @@ enum class TypesEnum :UInt8
 	sInt32,
 	sInt64,
 
-	IntPtr,
-	
+	uIntPtr,
+	sIntPtr,
 
 	
 
@@ -38,15 +38,26 @@ struct TypeSymbol
 	TypesEnum _Type = TypesEnum::Null;
 	SymbolID  _CustomTypeSymbol = 0;
 
+	bool _IsAddress=false;
 	void SetType(TypesEnum type)
 	{
 		_Type = type;
 		_CustomTypeSymbol = 0;
+		_IsAddress = false;
 	}
 	void SetType(SymbolID CustomType)
 	{
 		_Type = TypesEnum::CustomType;
 		_CustomTypeSymbol = CustomType;
+		_IsAddress = false;
+	}
+	void SetAsAddress()
+	{
+		_IsAddress = true;
+	}
+	bool  IsAddress()
+	{
+		return _IsAddress;
 	}
 };
 

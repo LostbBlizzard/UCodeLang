@@ -337,6 +337,13 @@ GotNodeType Parser::GetStatement(Node*& out)
 		return r.GotNode;
 	}
 	break;
+	case TokenType::KeyWorld_Drop:
+	{
+		auto r = GetDropStatementNode();
+		out = r.Node;
+		return r.GotNode;
+	}
+	break;
 	default:
 	{
 		size_t OldIndex = _TokenIndex;
@@ -641,6 +648,27 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 		auto Par2Token = TryGetToken();
 		TokenTypeCheck(Par2Token, FuncCallEnd);
 		NextToken();
+		return GotNodeType::Success;
+	}
+	break;
+	case TokenType::KeyWorld_new:
+	{
+		NextToken();
+		auto V = NewExpresionNode::Gen();
+		out = V;
+		GetType(V->Type);
+
+		auto ParToken = TryGetToken();
+		
+		TokenTypeCheck(ParToken, FuncCallStart);
+		NextToken();
+
+		GetValueParametersNode(V->Parameters);
+
+		auto Par2Token = TryGetToken();
+		TokenTypeCheck(Par2Token, FuncCallEnd);
+		NextToken();
+		return GotNodeType::Success;
 	}
 	break;
 	default:
@@ -892,23 +920,33 @@ GotNodeType Parser::GetNameCheck(NameNode& out)
 
 GotNodeType Parser::GetType(TypeNode& out)
 {
+	GotNodeType r;
 	auto Token = TryGetToken();
 	if (Token->Type == TokenType::Name)
 	{
-		GetName(out.Name);
-		TryGetGeneric(out.Generic);
-		return GotNodeType::Success;
+		auto A = GetName(out.Name);
+		auto B = TryGetGeneric(out.Generic);
+		r = Merge(A,B);
 	}
 	else if (TypeNode::IsType(Token->Type))
 	{
 		NextToken();
 		out.Name.Token = Token;
-		return GotNodeType::Success;
+		r = GotNodeType::Success;
 	}
-	TokenTypeCheck(Token, TokenType::Name);
+	else
+	{
+		TokenTypeCheck(Token, TokenType::Name);
+	}
 
+	auto Token2 = TryGetToken();
+	if (Token2 && Token2->Type == TokenType::bitwise_and)
+	{
+		NextToken();
+		out.PushAsAddess();
+	}
 
-	return GotNodeType::failed;
+	return r;
 }
 
 GotNodeType Parser::GetTypeWithVoid(TypeNode& out)
@@ -1305,6 +1343,26 @@ GotNodeType Parser::GetAnonymousObjectConstructorNode(AnonymousObjectConstructor
 	GetValueParametersNode(out.Fields);
 
 	auto SemicolonToken2 = TryGetToken(); TokenTypeCheck(SemicolonToken2, AnonymousObjectEnd);
+	NextToken();
+	return GotNodeType::Success;
+}
+
+GotNodeType Parser::GetDropStatementNode(DropStatementNode& out)
+{
+	auto DropToken = TryGetToken(); TokenTypeCheck(DropToken, TokenType::KeyWorld_Drop);
+	NextToken();
+
+	auto ParToken = TryGetToken();
+	TokenTypeCheck(ParToken, FuncCallStart);
+	NextToken();
+
+	GetExpressionTypeNode(out.expression.Value);
+
+	auto Par2Token = TryGetToken();
+	TokenTypeCheck(Par2Token, FuncCallEnd);
+	NextToken();
+
+	auto SemicolonToken2 = TryGetToken(); TokenTypeCheck(SemicolonToken2, TokenType::Semicolon);
 	NextToken();
 	return GotNodeType::Success;
 }

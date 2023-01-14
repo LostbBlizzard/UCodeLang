@@ -51,7 +51,7 @@ int main()
 	
 	
 	
-	UCodeLang::Compiler _Compiler;
+ 	UCodeLang::Compiler _Compiler;
 	UCodeLang::CompliationSettings& Settings =_Compiler.Get_Settings();
 	UCodeLang::Compiler::CompilerPathData Data;
 	//Main
@@ -87,7 +87,7 @@ int main()
 
 		
 		RunTime.Init(&State);
-		auto r = RunTime.Call("Main");
+		auto r = RunTime.Call("main");
  		if (r._Succeed == UCodeLang::Interpreter::RetState::Error || r._Succeed == UCodeLang::Interpreter::RetState::Error_Function_doesnt_exist)
 		{
 			std::cout << "Calling Main Got us an Error" << std::endl;

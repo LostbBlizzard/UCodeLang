@@ -34,8 +34,8 @@ private:
 	void BuildFunc();
 	void Link();
 
-	void SetSybToRegister(UCodeLang::RegisterID R,IRThreeAddressCode& IR);
-	void SetIRToRegister(UCodeLang::RegisterID R, IRField IR);
+	void SetSybToRegister(RegisterID R,IRThreeAddressCode& IR);
+	void SetIRToRegister(RegisterID R, IRField IR);
 
 	RegisterID GetOperandInAnyRegister(const IROperand& operand);
 	void GetOperandInRegister(const IROperand& operand, RegisterID id);
