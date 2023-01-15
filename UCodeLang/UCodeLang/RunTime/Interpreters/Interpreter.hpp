@@ -314,7 +314,7 @@ public:
 	UCodeLangForceinline void Set_Return(void){}
 	template<typename T> UCodeLangForceinline T* Get_This()
 	{
-		constexpr bool IsBigerThenRegister =sizeof(T) > sizeof(Interpreter::Register);
+		constexpr bool IsBigerThenRegister =sizeof(T*) > sizeof(Interpreter::Register);
 		static_assert(!IsBigerThenRegister, " 'T' is too big to be in a Register");
 		return (T*)&Get_ThisRegister().Value;
 	}

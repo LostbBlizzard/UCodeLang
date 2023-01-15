@@ -47,7 +47,7 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address, parameters Pars)
 			Item.Type = JitFuncType::CPPCall;
 			Item.Func = (JitFunc)Ptr;
 
-			/*
+			
 			for (auto Item : _Assembler.NullCalls)
 			{
 				Instruction& Ins = Insts[Item.UCodeAddress];
@@ -56,14 +56,14 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address, parameters Pars)
 				{
 					auto& SomeV = UFuncToCPPFunc.at(CodeFuncAddress);
 				
-					_Assembler.SubCall((Amd64Assembler::VoidFunc)SomeV.Func, Item.CPPoffset, TepOutBuffer);
+					_Assembler.SubCall(SomeV.Func, Item.CPPoffset, TepOutBuffer);
 				}
 				else
 				{
-					_Assembler.SubCall((Amd64Assembler::VoidFunc)OnUAddressCall, Item.CPPoffset, TepOutBuffer);
+					_Assembler.SubCall(OnUAddressCall, Item.CPPoffset, TepOutBuffer);
 				}
 			}
-			*/
+			
 			
 			
 			
@@ -101,10 +101,7 @@ AnyInt64  Jit_Interpreter::Call_CPPFunc(JitFunc ToCall, parameters& Pars)
 {
 	_Interpreter.PushParameters(Pars);
 	InterpreterCPPinterface Inter = &_Interpreter;
-	using V = JitFunc;
-	//V Func = (V)ToCall;
-	V Func = &Tep;
-	Func(Inter);
+	ToCall(Inter);
 	return _Interpreter.Get_OutRegister().Value;
 }
 

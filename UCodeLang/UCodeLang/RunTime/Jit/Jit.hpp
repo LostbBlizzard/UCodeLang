@@ -1,6 +1,6 @@
 #pragma once
 #include "UCodeLang/LangCore.hpp"
-
+#include "UCodeLang/RunTime/RunTimeLib.hpp"
 UCodeLangStart
 enum class CPUBitSize : UInt8
 {
@@ -54,5 +54,16 @@ struct AsmBuffer
 void GetCPUData(EnvironmentData& Out);
 
 const EnvironmentData& Get_EnvironmentData();
+
+struct JitInfo
+{
+	using FuncType = RunTimeLib::CPPCallBack;
+};
+
+struct NullJitCalls
+{
+	UAddress UCodeAddress=NullAddress;
+	uintptr_t CPPoffset=0;
+};
 
 UCodeLangEnd

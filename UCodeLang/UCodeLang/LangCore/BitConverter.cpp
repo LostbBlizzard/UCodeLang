@@ -27,7 +27,7 @@ BitConverter::Byte32 BitConverter::GetBytes(int Value)
 
 	return R;
 }
-int BitConverter::BytesToInt(void* DataBytes, size_t Index)
+int BitConverter::BytesToInt(const void* DataBytes, size_t Index)
 {
 	UInt8* B = ((UInt8*)DataBytes) + Index;
 	Byte32 bits = *(Byte32*)B;
@@ -50,7 +50,7 @@ BitConverter::Byte16 BitConverter::GetBytes(Int16 Value)
 	G_FixEndianess
 	return R;
 }
-Int16 BitConverter::BytesToInt16(void* DataBytes, size_t Index)
+Int16 BitConverter::BytesToInt16(const void* DataBytes, size_t Index)
 {
 	UInt8* B = ((UInt8*)DataBytes) + Index;
 	Byte16 bits = *(Byte16*)B;
@@ -78,7 +78,7 @@ BitConverter::Byte64 BitConverter::GetBytes(Int64 Value)
 	G_FixEndianess
 	return R;
 }
-Int64 BitConverter::BytesToInt64(void* DataBytes, size_t Index)
+Int64 BitConverter::BytesToInt64(const void* DataBytes, size_t Index)
 {
 	UInt8* B = ((UInt8*)DataBytes) + Index;
 	Byte64 bits = *(Byte64*)B;
