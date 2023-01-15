@@ -69,6 +69,10 @@ Interpreter::Return_t Interpreter::Call(UAddress address, parameters Pars)
 case InstructionSet::Store##Bits: \
 	Get_Register((RegisterID)Inst.Value0.AsRegister).Value = Inst.Value1.##signedAnyIntValue;\
 	break;\
+case InstructionSet::StoreRegToReg##Bits:\
+	Get_Register(Inst.Value1.AsRegister).Value.##signedAnyIntValue\
+	= Get_Register(Inst.Value0.AsRegister).Value.##signedAnyIntValue;\
+	break;\
 case InstructionSet::StoreFromPtrToReg##Bits:\
 	Get_Register(Inst.Value1.AsRegister).Value =\
 		*(signedCType*)(Get_Register(Inst.Value0.AsRegister).Value.AsPtr);\
@@ -216,7 +220,7 @@ void Interpreter::Extecute(Instruction& Inst)
 		_CPU.ProgramCounter = *(UAddress*)Inst.Value0.AsAddress;
 		break;
 	case InstructionSet::DoNothing:break;
-		
+	
 	IntSet(8,Int8,UInt8, AsInt8, AsUInt8)
 	IntSet(16,Int16,UInt16, AsInt16, AsUInt16)
 	IntSet(32,Int32,UInt32, AsInt32, AsUInt32)

@@ -88,21 +88,21 @@ void X86_64JitCompiler::SubCall(JitInfo::FuncType Value, uintptr_t CPPOffset, Ve
 
 void X86_64JitCompiler::BuildBody()
 {
-	Instruction& V = Get_Ins();
+	const Instruction* V = &Get_Ins();
 	
-	while (V.OpCode != InstructionSet::Return)
+	while (V->OpCode != InstructionSet::Return)
 	{
 
-		switch (V.OpCode)
+		switch (V->OpCode)
 		{
 
 		case InstructionSet::Store8:
 		{
-			auto Register = V.Value0.AsRegister;
+			auto Register = V->Value0.AsRegister;
 			if (X86_64Registers::IsNewRegister8(Register)){PushBytes(0x41);}
 
 			PushBytes( ((UInt8)0xb0) + X86_64Registers::Get8BitRegister(Register)
-				, V.Value1.AsUInt8);
+				, V->Value1.AsUInt8);
 		}
 		break;
 		default:
@@ -111,7 +111,7 @@ void X86_64JitCompiler::BuildBody()
 		}
 
 		//
-		Next_Ins(); V = Get_Ins();
+		Next_Ins(); V = &Get_Ins();
 	}
 }
 

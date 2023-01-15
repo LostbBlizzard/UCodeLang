@@ -39,7 +39,7 @@ public:
 		BuidCode,
 		Done,
 	};
-
+	
 private:
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
@@ -189,6 +189,14 @@ private:
 	{
 		_Builder.Build_Decrement64(Value);
 	}
+public://Only for backends
+		
+		UAddress GetTypeSize(TypeSymbol& Type)
+		{
+			UAddress r;
+			GetSize(Type, r);
+			return r;
+		}
 };
 UCodeLangEnd
 

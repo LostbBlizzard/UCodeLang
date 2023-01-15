@@ -31,6 +31,10 @@ private:
 	BackEndInput* _BackInput = nullptr;
 	size_t _Index = 0;
 	RegistersManager _Registers;
+	RegisterID ParameterRegisterValue = RegisterID::StartParameterRegister;
+	RegisterID CallParameterRegisterValue = RegisterID::StartParameterRegister;
+	static constexpr size_t RegisterSize = sizeof(AnyInt64);
+
 	void BuildFunc();
 	void Link();
 
@@ -40,10 +44,16 @@ private:
 	RegisterID GetOperandInAnyRegister(const IROperand& operand);
 	void GetOperandInRegister(const IROperand& operand, RegisterID id);
 
+	enum class BuildData_t :UInt8
+	{
+		Null,
+		ParameterInRegister,
+	};
 	struct BuildData
 	{
 		UAddress offset = NullAddress;
 		UAddress DataSize = NullAddress;
+		BuildData_t Type = BuildData_t::Null;
 	};
 
 	unordered_map<SymbolID, BuildData> SymbolToData;

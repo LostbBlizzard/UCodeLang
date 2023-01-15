@@ -335,6 +335,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			}
 		}
 
+		
+
 		auto RetType = node.Signature.ReturnType.node;
 		if (RetType && RetType->Get_Type() == NodeType::AnonymousTypeNode)
 		{
@@ -381,7 +383,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		{
 			auto GenericTypeName = Item.Name.AsStringView();
 			auto ParSybID = (SymbolID)&Item;
-			auto Sybol = _Table.GetSymbol(ParSybID);
+			auto& Sybol = _Table.GetSymbol(ParSybID);
 
 			Convert(Item.Type, Sybol.VarType);
 		}
@@ -396,6 +398,11 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	if (buidCode && !ignoreBody)
 	{
 		_Builder.Build_Func(sybId);
+		for (auto& Item : node.Signature.Parameters.Parameters)
+		{
+			auto ParSybID = (SymbolID)&Item;
+			_Builder.Build_Parameter(ParSybID);
+		}
 	}
 
 
@@ -516,6 +523,12 @@ void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 						"cant convert '" + ToString(LastExpressionType) + "' to" + "'" + ToString(T) + "'");
 				}
 			}
+		}
+	}
+	if (passtype == PassType::BuidCode)
+	{
+		if (node.Expression.Value) {
+			_Builder.Build_AssignRet(IROperand::AsLocation(_Builder.GetLastField()));
 		}
 	}
 }
@@ -1210,13 +1223,31 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 			FuncSyb = Syb->ID;
 		}
 
+		for (auto& Item : node.Parameters._Nodes)
+		{
+			OnExpressionTypeNode(Item);
+		}
+
 		FuncToSyboID[&node] = FuncSyb;
 	}
-
-	if (passtype == PassType::BuidCode)
+	else if (passtype == PassType::BuidCode)
 	{
 		auto SybID = FuncToSyboID.at(&node);
+		
+		for (auto& Item : node.Parameters._Nodes)
+		{
+			OnExpressionTypeNode(Item);
+			_Builder.Build_PassLastAsParameter();
+		}
+
 		_Builder.Build_FuncCall(SybID);
+	}
+	else
+	{
+		for (auto& Item : node.Parameters._Nodes)
+		{
+			OnExpressionTypeNode(Item);
+		}
 	}
 }
 void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)

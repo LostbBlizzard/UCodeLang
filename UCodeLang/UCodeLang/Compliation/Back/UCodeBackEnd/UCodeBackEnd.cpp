@@ -137,6 +137,7 @@ void UCodeBackEndObject::BuildFunc()
 					if (V == RegisterID::NullRegister) 
 					{
 					#define ReadVarStackVarable(x) \
+						case TypesEnum::uInt##x:\
 						case TypesEnum::sInt##x:\
 						GenIns(InstructionBuilder::GetFromStack##x(_Ins, Data.offset, R));\
 						ULib.Add_Instruction(_Ins);\
@@ -158,6 +159,7 @@ void UCodeBackEndObject::BuildFunc()
 								ReadVarStackVarable(32);
 								ReadVarStackVarable(64);
 							default:
+								throw std::exception();
 								break;
 							}
 						}
@@ -167,6 +169,19 @@ void UCodeBackEndObject::BuildFunc()
 					{
 						_Registers.UnLockWeakRegister(R);
 						R = V;
+					}
+				}
+				else if (SybV.Type == SymbolType::ParameterVarable)
+				{
+					if (Data.Type == BuildData_t::ParameterInRegister)
+					{
+						_Registers.UnLockWeakRegister(R);
+						R = (RegisterID)Data.offset;
+						SetIRToRegister(R, IR.Result.IRLocation);
+					}
+					else
+					{
+						throw std::exception();
 					}
 				}
 				else
@@ -241,6 +256,46 @@ void UCodeBackEndObject::BuildFunc()
 		}
 		break;
 		
+		case IROperator::Func_Parameter:
+		{
+			auto VarSymbolID = IR.Operand0.SymbolId;
+			BuildData& Data = SymbolToData[VarSymbolID];
+			Symbol& ParSymbol = _BackInput->_Table->GetSymbol(VarSymbolID);
+			
+
+			auto TypeSize = Analysis->GetTypeSize(ParSymbol.VarType);
+			if (TypeSize < RegisterSize && ParameterRegisterValue != RegisterID::EndParameterRegister)
+			{
+				RegisterID ParInRegister = ParameterRegisterValue;
+				(*(RegisterID_t*)&ParameterRegisterValue)++;
+
+				Data.Type = BuildData_t::ParameterInRegister;
+				Data.offset = (RegisterID_t)ParInRegister;
+
+			}
+			else
+			{
+				throw std::exception();
+			}
+		}
+		break;
+		case IROperator::PassParameter:
+		{
+			auto TypeSize = 0;
+			if (TypeSize < RegisterSize && CallParameterRegisterValue != RegisterID::EndParameterRegister)
+			{
+				RegisterID ParInRegister = CallParameterRegisterValue;
+				(*(RegisterID_t*)&CallParameterRegisterValue)++;
+
+				GetOperandInRegister(IR.Operand0,ParInRegister);
+
+			}
+			else
+			{
+				throw std::exception();
+			}
+		}
+		break;
 		case IROperator::FuncCall:
 		{
 			auto VarSymbolID = IR.Operand0.SymbolId;
@@ -248,7 +303,9 @@ void UCodeBackEndObject::BuildFunc()
 			GenIns(InstructionBuilder::Call(NullAddress,_Ins));
 			ULib.Add_Instruction(_Ins);
 			
+			
 			_InsCalls.push_back({ULib.GetLastInstruction(),VarSymbolID });
+			CallParameterRegisterValue = RegisterID::StartParameterRegister;
 		}
 		break;
 		case IROperator::Free:
@@ -273,6 +330,21 @@ void UCodeBackEndObject::BuildFunc()
 			SetSybToRegister(Size,IR);
 		}
 		break;
+		case IROperator::Ret_Value:
+		{
+
+			auto RetTypeSize = Analysis->GetTypeSize(Sym.VarType);
+			if (RetTypeSize < RegisterSize)
+			{
+				GetOperandInRegister(IR.Operand0,RegisterID::OuPutRegister);
+				
+			}
+			else
+			{
+				throw std::exception();
+			}
+		}
+		break;
 		case IROperator::Ret:goto EndLoop;
 		}
 	}
@@ -281,6 +353,8 @@ EndLoop:
 	GenIns(InstructionBuilder::Return(ExitState::Success, _Ins));
 	ULib.Add_Instruction(_Ins);
 	_Registers.Reset();
+	ParameterRegisterValue = RegisterID::StartParameterRegister; 
+	CallParameterRegisterValue = RegisterID::StartParameterRegister;
 
 
 	DeclareCalls[SybID] = { FuncStart };
