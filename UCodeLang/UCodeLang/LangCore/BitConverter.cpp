@@ -2,13 +2,11 @@
 UCodeLangStart
 
 
-Endian BitConverter::_CPUEndian = Endian::NaN;
-
-#define G_FixEndianess  const Endian ThisEndian = Get_CPU_Endian();\
+#define G_FixEndianess  const Endian ThisEndian = _CPUEndian;\
 const Endian OutEndian = InputOutEndian;\
 if (ThisEndian != OutEndian) {return R.FlpBytes();}\
 
-#define R_FixEndianess const Endian ThisEndian = Get_CPU_Endian(); \
+#define R_FixEndianess const Endian ThisEndian = _CPUEndian;\
 const Endian InputEndian = InputOutEndian;\
 if (ThisEndian != InputEndian) {auto v = bits.FlpBytes();bits =v; }\
 

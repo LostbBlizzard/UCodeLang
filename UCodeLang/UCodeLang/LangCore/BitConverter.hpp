@@ -16,38 +16,15 @@ class BitConverter
 
 public:
 	
+	inline thread_local static Endian InputOutEndian = Endian::little;
 
-	static const Endian InputOutEndian = Endian::little;
-	static Endian _CPUEndian;
-	inline static Endian Get_CPU_Endian()
-	{
-		if (_CPUEndian == Endian::NaN)
-		{
-			_CPUEndian = _GetEndian();
-		}
+	#if UCodeLang_CPUBIs_BigEndian
+	static constexpr Endian _CPUEndian = Endian::Big;
+	#else
+	static constexpr Endian _CPUEndian = Endian::little;
+	#endif // UCodeLang_CPUBIs_BigEndian
 
-		return _CPUEndian;
-	}
-	inline static Endian _GetEndian()
-	{
-		union
-		{
-			int NumValue;
-			UInt8 _Bytes[4];
-		};
-		NumValue = 1;
-
-		if (_Bytes[0] == 1)
-		{
-			return Endian::little;
-		}
-		else
-		{
-			return Endian::Big;
-		}
-		return Endian::NaN;
-	}
-	//
+	
 	static_assert(sizeof(int) == 4, " 'int' is not 4 bytes");
 	static_assert(sizeof(UInt8) == 1, " 'Byte' is not 1 bytes");
 	static_assert(sizeof(Int16) == 2, " 'Int16' is not 2 bytes");

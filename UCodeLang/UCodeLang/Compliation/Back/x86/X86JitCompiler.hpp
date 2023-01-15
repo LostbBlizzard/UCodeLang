@@ -10,7 +10,7 @@ public:
 	void Reset();
 
 	
-	bool BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress, Vector<UInt8> X86Output);
+	bool BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress, Vector<UInt8>& X86Output);
 
 
 private:
