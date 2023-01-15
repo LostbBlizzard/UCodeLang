@@ -10,7 +10,7 @@ class ClassField
 public:
 	String Name;
 	String FullNameType;
-	size_t offset;
+	size_t offset=NullAddress;
 };
 class AttributeData
 {
