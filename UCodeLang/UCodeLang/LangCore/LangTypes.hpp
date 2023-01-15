@@ -29,8 +29,8 @@ using float64 = double;
 using SIntNative = Int64;
 using UIntNative = UInt64;
 #else
-using Int32 SIntNative;
-using UInt32 UIntNative;
+using SIntNative = Int32;
+using UIntNative = UInt32;
 #endif
 
 
@@ -69,10 +69,12 @@ enum class RegisterID : RegisterID_t
 	OuPutRegister = (RegisterID_t)RegisterID::E,
 	InPutRegister = (RegisterID_t)RegisterID::F,
 
-	PopAndTrashRegister = (RegisterID_t)RegisterID::D,
 	MathOuPutRegister = OuPutRegister,
 	BoolRegister = OuPutRegister,
 	BitwiseRegister = OuPutRegister,
+
+	StartParameterRegister = (RegisterID_t)RegisterID::D,//the range the runtime will pass funcion Parameters into Registers
+	EndParameterRegister = (RegisterID_t)RegisterID::F,
 
 	NullRegister = 155,
 };

@@ -2,7 +2,7 @@
 #include <fstream>
 UCodeLangStart
 
-UClib::UClib() : LibEndianess(BitConverter::Get_CPU_Endian())
+UClib::UClib() : LibEndianess(BitConverter::InputOutEndian)
 {
 }
 
@@ -328,6 +328,9 @@ UClib::LibRawBytes UClib::ToRawBytes(const UClib* Lib)
 }
 bool UClib::FromBytes(UClib* Lib, const LibRawBytes& Data)
 {
+	auto Old = BitConverter::InputOutEndian;
+	BitConverter::InputOutEndian = Lib->LibEndianess;
+
 	size_t Indexoffset = 0;
 	void* NewPtr = nullptr;
 	UpdateReadPtr();
@@ -526,6 +529,7 @@ bool UClib::FromBytes(UClib* Lib, const LibRawBytes& Data)
 		}
 	}
 
+	BitConverter::InputOutEndian = Old;
 	return true;
 }
 bool UClib::ToFile(const UClib* Lib, const Path& path)
