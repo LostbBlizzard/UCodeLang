@@ -68,7 +68,9 @@ private:
 
 	static void UCodeLangAPI Tep(CPPInput Cpp)
 	{
-		Cpp.Set_Return(5);
+
+
+		Cpp.Set_Return();
 	}
 	AnyInt64 Call_CPPFunc(JitFunc ToCall, parameters& Pars);
 	

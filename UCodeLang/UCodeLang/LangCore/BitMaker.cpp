@@ -1,6 +1,6 @@
 #include "BitMaker.hpp"
-CoreStart
+UCodeLangStart
 
 
-CoreEnd
+UCodeLangEnd
 

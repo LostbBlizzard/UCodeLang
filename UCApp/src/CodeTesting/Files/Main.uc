@@ -1,7 +1,5 @@
 
 
 |main[]:
-
- var Str = "Hello World";
-
- __Log(Str);
+ byte Hi = 1;
+ ret Hi;
