@@ -1,5 +1,7 @@
 
 
+|Func[byte A,byte B]:
+ ret A;
+
 |main[]:
- byte Hi = 1;
- ret Hi;
+ ret Func(5,10);

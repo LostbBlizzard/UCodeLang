@@ -19,7 +19,7 @@ enum class IROperator : UInt8
 {
 	Null,
 	Assign_Operand0,
-	Func,
+	Func, 
 	Ret,
 	IROperatorIntSet(8)
 	IROperatorIntSet(16)
@@ -29,6 +29,8 @@ enum class IROperator : UInt8
 	FuncCall,
 	Malloc,
 	Free,
+	Func_Parameter,
+	PassParameter,
 };
 
 enum class IRFieldInfoType : UInt8
@@ -246,6 +248,26 @@ public:
 		V.Operator = IROperator::Func;
 		V.Operand0 = IROperand::AsSymbol(Value);
 	}
+	void Build_Parameter(SymbolID Value)
+	{
+		Code.push_back({});
+		auto& V = Code.back();
+		V.Operator = IROperator::Func_Parameter;
+		V.Operand0 = IROperand::AsSymbol(Value);
+	}
+
+	void Build_PassParameter(IROperand field)
+	{
+		Code.push_back({});
+		auto& V = Code.back();
+		V.Operator = IROperator::PassParameter;
+		V.Operand0 = field;
+	}
+	void Build_PassLastAsParameter()
+	{
+		Build_PassParameter(IROperand::AsLocation(GetLastField()));
+	}
+
 	void Build_FuncCall(SymbolID Value)
 	{
 		Code.push_back({});
