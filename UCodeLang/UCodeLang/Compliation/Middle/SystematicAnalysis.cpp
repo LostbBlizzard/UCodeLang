@@ -648,7 +648,17 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 }
 void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 {
+	if (passtype != PassType::GetTypes)
+	{
+		auto Symbol = GetSymbol(node.Name.AsStringView(), SymbolType::Varable_t);
+		LookingForTypes.push(Symbol->VarType);
+	}
 	OnExpressionTypeNode(node.Expression.Value);
+	if (passtype != PassType::GetTypes)
+	{
+		LookingForTypes.pop();
+	}
+	
 
 	if (passtype == PassType::FixedTypes)
 	{
@@ -670,8 +680,12 @@ void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 				, "Cant cast Type '" + ToString(LastExpressionType) + " to '" + ToString(Symbol->VarType) + "'");
 
 		}
+		
 	}
+
 	
+
+
 	if (passtype == PassType::BuidCode)
 	{
 		auto Symbol = GetSymbol(node.Name.AsStringView(), SymbolType::Varable_t);

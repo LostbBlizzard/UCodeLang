@@ -33,6 +33,7 @@ private:
 	RegistersManager _Registers;
 	RegisterID ParameterRegisterValue = RegisterID::StartParameterRegister;
 	RegisterID CallParameterRegisterValue = RegisterID::StartParameterRegister;
+	UAddress StackSize = 0;
 	static constexpr size_t RegisterSize = sizeof(AnyInt64);
 
 	void BuildFunc();
@@ -43,6 +44,7 @@ private:
 
 	RegisterID GetOperandInAnyRegister(const IROperand& operand);
 	void GetOperandInRegister(const IROperand& operand, RegisterID id);
+	void StoreVar(const IRThreeAddressCode& IR, const RegisterID R);
 
 	enum class BuildData_t :UInt8
 	{

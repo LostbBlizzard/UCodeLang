@@ -100,7 +100,7 @@ void UCodeBackEndObject::BuildFunc()
 	auto& ULib = Getliboutput();
 	
 	UAddress FuncStart = ULib.Get_Instructions().size();
-	UAddress StackSize = 0;
+    StackSize = 0;
 
 	for (_Index = _Index + 1; _Index < Code.size(); _Index++)
 	{
@@ -193,6 +193,7 @@ void UCodeBackEndObject::BuildFunc()
 			case IRFieldInfoType::IRLocation:
 			{
 				R = GetOperandInAnyRegister(IR.Operand0);
+
 			}
 			break;
 			default:
@@ -205,53 +206,7 @@ void UCodeBackEndObject::BuildFunc()
 			}
 			else if (IR.Result.Type == IRFieldInfoType::Var)
 			{
-				auto VarSymbolID = IR.Result.SymbolId;
-				BuildData* Data;
-				Symbol& Symbol = _BackInput->_Table->GetSymbol(VarSymbolID);
-				if (SymbolToData.count(VarSymbolID))
-				{
-					Data = &SymbolToData[VarSymbolID];
-				}
-				else
-				{
-					SymbolToData[VarSymbolID] = {};
-					Data = &SymbolToData[VarSymbolID];
-
-					Data->offset = StackSize;
-					StackSize += Symbol.Size;
-				}
-
-				#define StoreVarStackVarable(x) \
-						case TypesEnum::uInt##x:\
-						GenIns(InstructionBuilder::StoreRegOnStack##x(_Ins,R, Data->offset));\
-						ULib.Add_Instruction(_Ins); \
-						break; \
-						case TypesEnum::sInt##x:\
-						GenIns(InstructionBuilder::StoreRegOnStack##x(_Ins,R, Data->offset));\
-						ULib.Add_Instruction(_Ins); \
-						break; \
-
-
-				if (Symbol.VarType.IsAddress() || 
-					Symbol.VarType._Type == TypesEnum::uIntPtr ||
-					Symbol.VarType._Type == TypesEnum::sIntPtr)
-				{
-					GenIns(InstructionBuilder::StoreRegOnStack64(_Ins, R, Data->offset)); 
-					ULib.Add_Instruction(_Ins); 
-				}
-				else 
-				{
-					switch (Symbol.VarType._Type)
-					{
-						StoreVarStackVarable(8);
-						StoreVarStackVarable(16);
-						StoreVarStackVarable(32);
-						StoreVarStackVarable(64);
-					default:
-						throw std::exception("not added");
-						break;
-					}
-				}
+				StoreVar(IR, R);
 			}
 		}
 		break;
@@ -268,8 +223,8 @@ void UCodeBackEndObject::BuildFunc()
 			{
 				Data.Type = BuildData_t::ParameterInRegister;
 				Data.offset = (RegisterID_t)ParameterRegisterValue;
+				SetIRToRegister(ParameterRegisterValue, IR.Result.IRLocation);
 				(*(RegisterID_t*)&ParameterRegisterValue)++;
-
 			}
 			else
 			{
@@ -407,6 +362,105 @@ void UCodeBackEndObject::GetOperandInRegister(const IROperand& operand, Register
 	{
 		GenIns(InstructionBuilder::StoreRegToReg8(_Ins, R, id));
 		ULib.Add_Instruction(_Ins);
+	}
+}
+
+void UCodeBackEndObject::StoreVar(const IRThreeAddressCode& IR, const RegisterID R)
+{
+	auto& ULib = Getliboutput();
+	auto VarSymbolID = IR.Result.SymbolId;
+	BuildData* Data;
+	Symbol& Symbol = _BackInput->_Table->GetSymbol(VarSymbolID);
+	if (SymbolToData.count(VarSymbolID))
+	{
+		Data = &SymbolToData[VarSymbolID];
+	}
+	else
+	{
+		if (Symbol.Type == SymbolType::StackVarable)
+		{
+			SymbolToData[VarSymbolID] = {};
+			Data = &SymbolToData[VarSymbolID];
+
+			Data->offset = StackSize;
+			StackSize += Symbol.Size;
+		}
+		else
+		{
+			throw std::exception("not added");
+		}
+	}
+
+	if (Data->Type == BuildData_t::ParameterInRegister)
+	{
+		int b = 0;
+		auto R2 = (RegisterID)Data->offset;
+#define StoreParameterInRegisterVarable(x) \
+						case TypesEnum::uInt##x:\
+						GenIns(InstructionBuilder::StoreRegToReg##x(_Ins,R,  R2));\
+						ULib.Add_Instruction(_Ins); \
+						break; \
+						case TypesEnum::sInt##x:\
+						GenIns(InstructionBuilder::StoreRegToReg##x(_Ins,R,  R2));\
+						ULib.Add_Instruction(_Ins); \
+						break; \
+					if (R != R2)
+					{
+						if (Symbol.VarType.IsAddress() ||
+							Symbol.VarType._Type == TypesEnum::uIntPtr ||
+							Symbol.VarType._Type == TypesEnum::sIntPtr)
+						{
+							GenIns(InstructionBuilder::StoreRegToReg64(_Ins, R, R2));
+							ULib.Add_Instruction(_Ins);
+						}
+						else
+						{
+							switch (Symbol.VarType._Type)
+							{
+								StoreParameterInRegisterVarable(8);
+								StoreParameterInRegisterVarable(16);
+								StoreParameterInRegisterVarable(32);
+								StoreParameterInRegisterVarable(64);
+							default:
+								throw std::exception("not added");
+								break;
+							}
+						}
+					}
+	}
+	else
+	{
+#define StoreVarStackVarable(x) \
+						case TypesEnum::uInt##x:\
+						GenIns(InstructionBuilder::StoreRegOnStack##x(_Ins,R, Data->offset));\
+						ULib.Add_Instruction(_Ins); \
+						break; \
+						case TypesEnum::sInt##x:\
+						GenIns(InstructionBuilder::StoreRegOnStack##x(_Ins,R, Data->offset));\
+						ULib.Add_Instruction(_Ins); \
+						break; \
+
+
+		if (Symbol.VarType.IsAddress() ||
+			Symbol.VarType._Type == TypesEnum::uIntPtr ||
+			Symbol.VarType._Type == TypesEnum::sIntPtr)
+		{
+			GenIns(InstructionBuilder::StoreRegOnStack64(_Ins, R, Data->offset));
+			ULib.Add_Instruction(_Ins);
+		}
+		else
+		{
+			switch (Symbol.VarType._Type)
+			{
+				StoreVarStackVarable(8);
+				StoreVarStackVarable(16);
+				StoreVarStackVarable(32);
+				StoreVarStackVarable(64);
+			default:
+				throw std::exception("not added");
+				break;
+			}
+		}
 	}
 }
 

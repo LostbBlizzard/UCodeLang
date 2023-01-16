@@ -5,7 +5,7 @@
 #include "JitCompilers.h"
 UCodeLangStart
 
-//UCodeLang_RemoveInterpreterFallback
+//UCodeLang_KeepJitInterpreterFallback
 class Jit_Interpreter
 {
 public:
@@ -17,7 +17,7 @@ public:
 
 	void Init(RunTimeLangState* State)
 	{
-		#if UCodeLang_RemoveInterpreterFallback
+		#if UCodeLang_KeepJitInterpreterFallback
 		_Interpreter.Init(State);
 		#else
 		this->State = State;
@@ -26,13 +26,13 @@ public:
 	void UnLoad()
 	{
 		UFuncToCPPFunc.clear();
-		#if UCodeLang_RemoveInterpreterFallback
+		#if UCodeLang_KeepJitInterpreterFallback
 		_Interpreter.UnLoad();
 		#endif
 	}
 	UCodeLangForceinline auto Get_State()
 	{
-		#if UCodeLang_RemoveInterpreterFallback
+		#if UCodeLang_KeepJitInterpreterFallback
 		return _Interpreter.Get_State();
 		#else
 		return State;
@@ -105,7 +105,7 @@ public:
 	
 	bool CheckIfFunctionExist(const String& FunctionName);
 private:
-	#if UCodeLang_RemoveInterpreterFallback
+	#if UCodeLang_KeepJitInterpreterFallback
 	Interpreter _Interpreter;
 	#else
 	RunTimeLangState* State = nullptr;
