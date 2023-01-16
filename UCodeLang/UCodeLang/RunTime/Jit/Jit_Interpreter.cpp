@@ -3,17 +3,17 @@ UCodeLangStart
 
 
 
-Interpreter::Return_t Jit_Interpreter::ThisCall(UAddress This, const String& FunctionName, parameters Pars)
+Interpreter::Return_t Jit_Interpreter::ThisCall(UAddress This, const String& FunctionName)
 {
 	return Interpreter::Return_t();
 }
 
-Interpreter::Return_t Jit_Interpreter::ThisCall(UAddress This, UAddress address, parameters Pars)
+Interpreter::Return_t Jit_Interpreter::ThisCall(UAddress This, UAddress address)
 {
 	return Interpreter::Return_t();
 }
 
-Interpreter::Return_t Jit_Interpreter::Call(const String& FunctionName, parameters Pars)
+Interpreter::Return_t Jit_Interpreter::Call(const String& FunctionName)
 {
 	auto address = Get_State()->FindAddress(FunctionName);
 	if (address == NullAddress)
@@ -21,10 +21,10 @@ Interpreter::Return_t Jit_Interpreter::Call(const String& FunctionName, paramete
 		return Interpreter::Return_t(Interpreter::RetState::Error_Function_doesnt_exist);
 	}
 
-	return Call(address, Pars);
+	return Call(address);
 }
 
-Interpreter::Return_t Jit_Interpreter::Call(UAddress address, parameters Pars)
+Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 {
 	if (!UFuncToCPPFunc.count(address)){UFuncToCPPFunc[address] = {};}
 	
@@ -90,16 +90,15 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address, parameters Pars)
 
 	if (Item.Type == JitFuncType::UCodeCall)
 	{
-		return _Interpreter.Call(Item.UCodeFunc, Pars);
+		return _Interpreter.Call(Item.UCodeFunc);
 	}
 	else
 	{
-		return { Interpreter::RetState::Success ,Interpreter::Register(Call_CPPFunc(Item.Func, Pars))};
+		return { Interpreter::RetState::Success ,Interpreter::Register(Call_CPPFunc(Item.Func))};
 	}
 }
-AnyInt64  Jit_Interpreter::Call_CPPFunc(JitFunc ToCall, parameters& Pars)
+AnyInt64  Jit_Interpreter::Call_CPPFunc(JitFunc ToCall)
 {
-	_Interpreter.PushParameters(Pars);
 	InterpreterCPPinterface Inter = &_Interpreter;
 	ToCall(Inter);
 	return _Interpreter.Get_OutRegister().Value;

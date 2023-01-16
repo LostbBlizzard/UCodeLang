@@ -22,15 +22,15 @@ public:
 		return _MainInterpreter.Get_State();
 	}
 
-	Return_t ThisCall(UAddress This, const String& FunctionName, parameters Pars = NullParameters);
-	Return_t ThisCall(UAddress This, UAddress address, parameters Pars = NullParameters);
-	UCodeLangForceinline Return_t ThisCall(UAddress This, const ClassMethod& Function, parameters Pars = NullParameters)
+	Return_t ThisCall(UAddress This, const String& FunctionName);
+	Return_t ThisCall(UAddress This, UAddress address);
+	UCodeLangForceinline Return_t ThisCall(UAddress This, const ClassMethod& Function)
 	{
-		return ThisCall(This, Function.FullName, Pars);
+		return ThisCall(This, Function.FullName);
 	}
 
-	Return_t Call(const String& FunctionName, parameters Pars = NullParameters);
-	Return_t Call(UAddress address, parameters Pars = NullParameters);
+	Return_t Call(const String& FunctionName);
+	Return_t Call(UAddress address);
 private:
 	Jit_Interpreter _MainInterpreter;
 

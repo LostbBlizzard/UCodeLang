@@ -3,23 +3,47 @@
 UCodeLangStart
 
 
-Interpreter::Return_t Interpreter::ThisCall(UAddress This, const String& FunctionName, parameters Pars)
+
+bool Interpreter::CheckIfFunctionExist(const String& FunctionName)
 {
 	auto address = _State->FindAddress(FunctionName);
 	if (address == NullAddress)
 	{
-		return Return_t(RetState::Error_Function_doesnt_exist);
+		return false;
+	}
+	return true;
+}
+
+void Interpreter::FlushParametersIntoCPU()
+{
+	RegisterID ParRegister = RegisterID::StartParameterRegister;
+
+	auto State = _Parameters.StartLoop();
+
+	while (_Parameters.Next(State))
+	{
+		auto Data = _Parameters.GetLoopData(State);
+
+		if (Data.DataSize <= sizeof(Register) && ParRegister < RegisterID::EndParameterRegister)
+			//the if must be the same for UCodeBackEnd CallFunc/Func_Parameter
+		{
+			void* RegPtr = &Get_Register(ParRegister).Value;
+
+			MemCopy(RegPtr, (const PtrType)Data.Pointer, Data.DataSize);
+
+
+			(*(RegisterID_t*)&ParRegister)++;
+		}
+		else
+		{
+			throw std::exception("not implemented");
+		}
 	}
 
-	return ThisCall(This,address, Pars);
-}
-Interpreter::Return_t Interpreter::ThisCall(UAddress This, UAddress address, parameters Pars)
-{
-	Get_ThisRegister().Value = This;
-	return Call(address, Pars);
+	_Parameters.Clear();
 }
 
-Interpreter::Return_t Interpreter::Call(const String& FunctionName, parameters Pars)
+Interpreter::Return_t Interpreter::Call(const String& FunctionName)
 {
 	auto address = _State->FindAddress(FunctionName);
 	if (address == NullAddress)
@@ -27,13 +51,13 @@ Interpreter::Return_t Interpreter::Call(const String& FunctionName, parameters P
 		return Return_t(RetState::Error_Function_doesnt_exist);
 	}
 	
-	return Call(address,Pars);
+	return Call(address);
 }
-Interpreter::Return_t Interpreter::Call(UAddress address, parameters Pars)
+Interpreter::Return_t Interpreter::Call(UAddress address)
 {
 	auto OldStackoffset = _CPU.Stack.StackOffSet;//for when UCode calls C++ calls UCode.
+	FlushParametersIntoCPU();
 
-	_CPU.Stack.PushParameters(Pars);
 	_CPU.Stack.PushStack(_CPU.ProgramCounter);
 	_CPU.ProgramCounter = address;
 	
