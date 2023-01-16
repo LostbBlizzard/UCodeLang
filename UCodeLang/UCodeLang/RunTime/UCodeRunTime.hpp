@@ -7,11 +7,22 @@ UCodeLangStart
 //#define UCodeLangCPUCoreKnow
 //#define UCodeLangCPUCoreCount 4
  
+//Use This if You cant jit on platfrom
+//#define RunTimeCantBeJit 1
+
 //This is Best used as obect static
 class UCodeRunTime
 {
 public:
-	using Return_t = Jit_Interpreter::Return_t;
+
+	#if RunTimeCantBeJit
+	using MyInterpreter = Interpreter;
+	#else
+	using MyInterpreter = Jit_Interpreter;
+	#endif // DEBUG
+
+	
+	using Return_t = MyInterpreter::Return_t;
 
 	UCodeRunTime();
 	~UCodeRunTime();
@@ -73,13 +84,13 @@ public:
 	void PushParameter(const void* Value, size_t ValueSize) { return _MainInterpreter.PushParameter(Value, ValueSize); }
 	bool CheckIfFunctionExist(const String& FunctionName) { return _MainInterpreter.CheckIfFunctionExist(FunctionName); }
 private:
-	Jit_Interpreter _MainInterpreter;
+	MyInterpreter _MainInterpreter;
 
 	#ifdef UCodeLangCPUCoreKnow
 	static constexpr size_t CPUCoresCount = UCodeLangCPUCoreCount;
 	Array<Jit_Interpreter,CPUCoresCount> _Interpreters;
 	#else
-	Vector<Jit_Interpreter> _Interpreters;
+	Vector<MyInterpreter> _Interpreters;
 	#endif // DEBUG
 };
 UCodeLangEnd

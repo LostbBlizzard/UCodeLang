@@ -9,9 +9,12 @@ using NativeJitAssembler = X86_64JitCompiler;
 #elif UCodeLang_CPUIs_x86
 using NativeJitAssembler = X86JitCompiler;
 #else
-using NativeJitAssembler = UInt8;
-#error "there's no support for jitCompiler for compilation Target"
+using NativeJitAssembler = X86_64JitCompiler;
+#warning "there's no support for jitCompiler for compilation Target"
+#define RunTimeCantBeJit 1
 #endif // CPUTypes
+
+#define UCodeLang_KeepJitInterpreterFallback 0
 
 UCodeLangEnd
 
