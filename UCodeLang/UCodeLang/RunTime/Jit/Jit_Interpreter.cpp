@@ -13,6 +13,16 @@ Interpreter::Return_t Jit_Interpreter::ThisCall(UAddress This, UAddress address)
 	return Interpreter::Return_t();
 }
 
+void Jit_Interpreter::PushParameter(const void* Value, size_t ValueSize)
+{
+	_Interpreter._Parameters.Push(Value, ValueSize);
+}
+
+bool Jit_Interpreter::CheckIfFunctionExist(const String& FunctionName)
+{
+	return _Interpreter.CheckIfFunctionExist(FunctionName);
+}
+
 Interpreter::Return_t Jit_Interpreter::Call(const String& FunctionName)
 {
 	auto address = Get_State()->FindAddress(FunctionName);
