@@ -4,6 +4,6 @@
  
  ret;
 
-|Main2[] -> int:
+|Main2[] -> byte:
  
  ret 1;

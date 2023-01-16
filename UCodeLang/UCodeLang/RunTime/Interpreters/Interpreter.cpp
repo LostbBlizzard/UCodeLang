@@ -248,11 +248,14 @@ void Interpreter::Extecute(Instruction& Inst)
 	IntSet(8,Int8,UInt8, AsInt8, AsUInt8)
 	IntSet(16,Int16,UInt16, AsInt16, AsUInt16)
 	IntSet(32,Int32,UInt32, AsInt32, AsUInt32)
-	IntSet(64,Int64,UInt64, AsInt32, AsUInt64)
+	IntSet(64,Int64,UInt64, AsInt64, AsUInt64)
 	
 	#pragma region Cpp func Set
 	case InstructionSet::GetPointerOfStack:
-		Get_Register(Inst.Value0.AsRegister).Value = _CPU.Stack.GetTopOfStack();
+		Get_Register(Inst.Value0.AsRegister).Value = _CPU.Stack.GetTopOfStackWithoffset(Inst.Value1.AsUIntNative);
+		break;
+	case InstructionSet::GetPointerOfStackSub:
+		Get_Register(Inst.Value0.AsRegister).Value = _CPU.Stack.GetTopOfStackWithoffsetSub(Inst.Value1.AsUIntNative);
 		break;
 	case InstructionSet::IncrementStackPointer:
 		_CPU.Stack.IncrementStack(Get_Register(Inst.Value0.AsRegister).Value.AsUIntNative);

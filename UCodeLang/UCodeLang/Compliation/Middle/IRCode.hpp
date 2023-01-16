@@ -44,7 +44,9 @@ enum class IRFieldInfoType : UInt8
 	IRLocation,
 	Var,
 	SymbolID,
-	ReadVar
+	ReadVar,
+	AsPointer,
+	ReadPointer,
 };
 struct IROperand
 {
@@ -110,8 +112,24 @@ struct IROperand
 		operand.SymbolId = Value;
 		return operand;
 	}
+
+
+	UCodeLangForceinline static IROperand AsPointer(SymbolID Value)
+	{
+		IROperand operand;
+		operand.Type = IRFieldInfoType::AsPointer;
+		operand.SymbolId = Value;
+		return operand;
+	}
+	UCodeLangForceinline static IROperand AsReadPointer(SymbolID Value)
+	{
+		IROperand operand;
+		operand.Type = IRFieldInfoType::ReadPointer;
+		operand.SymbolId = Value;
+		return operand;
+	}
 };
-struct IRThreeAddressCode
+struct IRCode
 {
 	IROperand Result;
 
@@ -309,7 +327,7 @@ public:
 	void Reset() { Code.clear(); }
 
 
-	UCodeLangForceinline IRThreeAddressCode& Get_IR(IRField field)
+	UCodeLangForceinline IRCode& Get_IR(IRField field)
 	{
 		return Code[(size_t)field];
 	}
@@ -322,7 +340,7 @@ public:
 		return Code;
 	}
 private:
-	Vector<IRThreeAddressCode> Code;
+	Vector<IRCode> Code;
 };
 
 UCodeLangEnd

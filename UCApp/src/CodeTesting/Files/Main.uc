@@ -1,8 +1,9 @@
+$Vec2i:
+ var X = 0;
+ var Y = 0;
 
-
-|Func[byte A,byte B]:
- A = 9;
- ret A;
 
 |main[]:
- ret Func(5,10);
+ var H = 5;
+ var& B = H;
+ ret B;

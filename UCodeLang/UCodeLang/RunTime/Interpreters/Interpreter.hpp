@@ -280,6 +280,17 @@ private:
 				void* DataPtr = (void*)((UIntNative)_Data + StackOffSet);
 				return  DataPtr;
 			}
+			PtrType GetTopOfStackWithoffset(NSize_t offset)
+			{
+				void* DataPtr = (void*)((UIntNative)_Data + StackOffSet + offset);
+				return  DataPtr;
+			}
+			PtrType GetTopOfStackWithoffsetSub(NSize_t offset)
+			{
+				void* DataPtr = (void*)((UIntNative)_Data + StackOffSet - offset);
+				return  DataPtr;
+			}
+
 			PtrType GetFloorOfStack()
 			{
 				void* DataPtr = (void*)((UIntNative)_Data);

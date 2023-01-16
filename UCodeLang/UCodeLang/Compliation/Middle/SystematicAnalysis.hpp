@@ -83,6 +83,7 @@ private:
 	void OnNonAttributeable(size_t Line, size_t Pos);
 	String GetScopedNameAsString(const ScopedNameNode& node);
 	void OnDeclareVariablenode(const DeclareVariableNode& node);
+	void CantgussTypesTheresnoassignment(const UCodeLang::Token* Token);
 	void OnAssignVariableNode(const AssignVariableNode& node);
 	void OnPostfixVariableNode(const PostfixVariableNode& node);
 	void OnCompoundStatementNode(const CompoundStatementNode& node);
@@ -91,6 +92,7 @@ private:
 	void OnExpressionNode(const BinaryExpressionNode& node);
 	void OnExpressionNode(const CastNode& node);
 	void OnFuncCallNode(const FuncCallNode& node);
+	void LogCantFindFuncError(const UCodeLang::Token* Token, UCodeLang::String_view& FuncName);
 	void OnDropStatementNode(const DropStatementNode& node);
 	void CheckBackEnd();
 	void PushTepAttributesInTo(Vector<AttributeData>& Input);
@@ -119,6 +121,7 @@ private:
 		return StringHelper::ToString(Type);
 	}
 	void Convert(const TypeNode& V, TypeSymbol& Out);
+	
 	bool IsVaidType(TypeSymbol& Out);
 	bool CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
 	bool CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
@@ -129,6 +132,11 @@ private:
 	{
 		return  IsSIntType(TypeToCheck) || IsUIntType(TypeToCheck);
 	}
+
+
+	bool IsimmutableRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
+
+	bool IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
 	//Generic
 	struct GenericFuncInfo
 	{
@@ -189,6 +197,27 @@ private:
 	{
 		_Builder.Build_Decrement64(Value);
 	}
+	
+	//Errors
+	void LogCantFindBinaryOpForTypes(const UCodeLang::Token* BinaryOp, UCodeLang::TypeSymbol& Ex0Type, UCodeLang::TypeSymbol& Ex1Type);
+	void ExpressionMustbeAnLocationValueError(const UCodeLang::Token* Token, UCodeLang::TypeSymbol& Ex0Type);
+	void YouMustReturnSomethingError(const UCodeLang::Token* Token);
+	void CantguessVarTypeError(const UCodeLang::Token* Token);
+	void CantUseThisKeyWordHereError(const UCodeLang::Token* NameToken);
+	void LogCantCastImplicitTypes(const UCodeLang::Token* Token, UCodeLang::TypeSymbol& Ex1Type, UCodeLang::TypeSymbol& UintptrType);
+	void LogReadingFromInvaidVariable(const UCodeLang::Token* Token, UCodeLang::String& Str);
+	void LogCantFindVarError(const UCodeLang::Token* Token, UCodeLang::String& Str);
+	void LogCantModifyiMutableError(const UCodeLang::Token* Token, UCodeLang::String_view& Name);
+	void LogCantCastExplicityTypes(const UCodeLang::Token* Token, UCodeLang::TypeSymbol& Ex0Type, UCodeLang::TypeSymbol& ToTypeAs);
+	void LogCantFindTypeError(const UCodeLang::Token* Token, UCodeLang::String_view& Name);
+	
+	struct ReadVarErrorCheck_t
+	{
+		bool CantFindVar = false;
+		bool VarIsInvalid = false;
+	};
+	ReadVarErrorCheck_t LogTryReadVar(String_view VarName, const UCodeLang::Token* Token, const Symbol* Syb);
+	void CheckVarWritingErrors(UCodeLang::Symbol* Symbol, const UCodeLang::Token* Token, UCodeLang::String_view& Name);
 public://Only for backends
 		
 		UAddress GetTypeSize(TypeSymbol& Type)
