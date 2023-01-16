@@ -15,12 +15,20 @@ Interpreter::Return_t Jit_Interpreter::ThisCall(UAddress This, UAddress address)
 
 void Jit_Interpreter::PushParameter(const void* Value, size_t ValueSize)
 {
+	#if UCodeLang_KeepJitInterpreterFallback
 	_Interpreter._Parameters.Push(Value, ValueSize);
+	#else
+	throw std::exception("not added");
+	#endif
 }
 
 bool Jit_Interpreter::CheckIfFunctionExist(const String& FunctionName)
 {
+	#if UCodeLang_KeepJitInterpreterFallback
 	return _Interpreter.CheckIfFunctionExist(FunctionName);
+	#else
+	throw std::exception("not added");
+	#endif
 }
 
 Interpreter::Return_t Jit_Interpreter::Call(const String& FunctionName)
@@ -97,7 +105,7 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 		}
 	}
 
-
+	#if UCodeLang_KeepJitInterpreterFallback
 	if (Item.Type == JitFuncType::UCodeCall)
 	{
 		return _Interpreter.Call(Item.UCodeFunc);
@@ -106,12 +114,19 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 	{
 		return { Interpreter::RetState::Success ,Interpreter::Register(Call_CPPFunc(Item.Func))};
 	}
+	#else
+	throw std::exception("not added");
+	#endif
 }
 AnyInt64  Jit_Interpreter::Call_CPPFunc(JitFunc ToCall)
 {
+	#if UCodeLang_KeepJitInterpreterFallback
 	InterpreterCPPinterface Inter = &_Interpreter;
 	ToCall(Inter);
 	return _Interpreter.Get_OutRegister().Value;
+	#else
+	throw std::exception("not added");
+	#endif
 }
 
 UCodeLangEnd

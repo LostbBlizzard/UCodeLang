@@ -5,6 +5,7 @@
 #include "JitCompilers.h"
 UCodeLangStart
 
+//UCodeLang_RemoveInterpreterFallback
 class Jit_Interpreter
 {
 public:
@@ -16,16 +17,26 @@ public:
 
 	void Init(RunTimeLangState* State)
 	{
+		#if UCodeLang_RemoveInterpreterFallback
 		_Interpreter.Init(State);
+		#else
+		this->State = State;
+		#endif
 	}
 	void UnLoad()
 	{
 		UFuncToCPPFunc.clear();
+		#if UCodeLang_RemoveInterpreterFallback
 		_Interpreter.UnLoad();
+		#endif
 	}
 	UCodeLangForceinline auto Get_State()
 	{
+		#if UCodeLang_RemoveInterpreterFallback
 		return _Interpreter.Get_State();
+		#else
+		return State;
+		#endif
 	}
 
 	
@@ -94,7 +105,11 @@ public:
 	
 	bool CheckIfFunctionExist(const String& FunctionName);
 private:
+	#if UCodeLang_RemoveInterpreterFallback
 	Interpreter _Interpreter;
+	#else
+	RunTimeLangState* State = nullptr;
+	#endif
 	NativeJitAssembler _Assembler;
 	AsmBuffer ExBuffer = AsmBuffer(Get_EnvironmentData().PageSize);
 	size_t Insoffset = 0;
