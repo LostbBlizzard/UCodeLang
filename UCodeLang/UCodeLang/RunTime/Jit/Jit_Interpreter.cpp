@@ -5,18 +5,20 @@ UCodeLangStart
 
 Interpreter::Return_t Jit_Interpreter::ThisCall(UAddress This, const String& FunctionName)
 {
-	return Interpreter::Return_t();
+	PushParameter(This);
+	return Call(FunctionName);
 }
 
 Interpreter::Return_t Jit_Interpreter::ThisCall(UAddress This, UAddress address)
 {
-	return Interpreter::Return_t();
+	PushParameter(This);
+	return Call(address);
 }
 
 void Jit_Interpreter::PushParameter(const void* Value, size_t ValueSize)
 {
 	#if UCodeLang_KeepJitInterpreterFallback
-	_Interpreter._Parameters.Push(Value, ValueSize);
+	_Interpreter.PushParameter(Value, ValueSize);
 	#else
 	throw std::exception("not added");
 	#endif

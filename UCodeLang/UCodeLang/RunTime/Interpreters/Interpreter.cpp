@@ -48,7 +48,7 @@ void Interpreter::FlushParametersIntoCPU()
 		}
 		else
 		{
-			throw std::exception("not implemented");
+			_CPU.Stack.PushBytes(Data.Pointer, Data.DataSize);
 		}
 	}
 

@@ -392,7 +392,13 @@ class InterpreterCPPinterface
 
 
 public:	
-	
+	template<typename... Args> void GetParameters(Args&... Outparameters)
+	{
+		([&]
+		{
+				GetParameter(Outparameters);
+		} (), ...);
+	}
 	template<typename T> UCodeLangForceinline T GetParameter()
 	{
 		constexpr bool IsBigerRegister = sizeof(T) > sizeof(Interpreter::Register);
@@ -410,7 +416,8 @@ public:
 		constexpr bool IsBigerRegister = sizeof(T) > sizeof(Interpreter::Register);
 		if (IsBigerRegister) 
 		{
-			throw std::exception("not added yet");
+			_Ptr->_CPU.Stack.SetValue(Value);
+			Get_OutPutRegister().Value = _Ptr->_CPU.Stack.GetTopOfStack();
 		}
 		else
 		{
