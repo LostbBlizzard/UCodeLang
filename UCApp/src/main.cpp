@@ -36,13 +36,30 @@ const UCodeLang::String StandardLibraryinit = StandardLibraryOut + "init/";
 
 #define StandardLibrarynamespace "ULang"
 
-void Test(Jit_Interpreter::CPPInput Input)
+
+struct MyStruct
+{
+	void Hi2(Int32 A)
+	{
+
+	}
+	Int32 Hi()
+	{
+		return 10;
+	}
+};
+
+void VoidTest(Int32 A)
 {
 
-
-
-	Input.Set_Return();
 }
+
+
+Int32 Test(Int32 A)
+{
+	return A;
+}
+
 static UCodeRunTime RunTime;
 int main()
 {
@@ -77,7 +94,10 @@ int main()
 		Lib.Init(&MLib);
 
 		UCodeLang::RunTimeLib DLLib;
-		Lib.Add_CPPCall("Test",Test);
+		Lib.Add_CPPCall<'0'>("Test", &Test);
+		Lib.Add_CPPCall<'1'>("VoidTest", &VoidTest);
+		//Lib.Add_CPPCall("Hi2", &MyStruct::Hi);
+		//Lib.Add_CPPCall("Hi", &MyStruct::Hi2);
 
 		UCodeLang::RunTimeLangState State;
 		State.AddLib(&Lib);
@@ -87,7 +107,10 @@ int main()
 		
 		RunTime.Init(&State);
 		
-		auto r = RunTime.retCall<int>("main2",(Int32)50);
+		auto Pointer = 50;
+
+		auto r =
+			RunTime.retCall<int>("main2",(Int32&)Pointer);
  		
 		
 

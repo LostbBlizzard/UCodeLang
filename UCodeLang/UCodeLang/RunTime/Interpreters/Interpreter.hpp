@@ -171,10 +171,11 @@ public:
 
 	template<typename... Args> void PushParameters(Args&&... parameters)
 	{
-		([&]
-			{
-				PushParameter(parameters);
-			} (), ...);
+		(
+		[&]
+		{
+		 PushParameter(parameters);
+		}(), ...);
 	}
 
 	template<typename T> UCodeLangForceinline void PushParameter(const T& Value)
@@ -392,14 +393,27 @@ class InterpreterCPPinterface
 
 
 public:	
-	template<typename... Args> void GetParameters(Args&... Outparameters)
+	
+
+	template<typename... Args> void GetParameters(Args&&... Out)
 	{
-		([&]
-		{
-				GetParameter(Outparameters);
-		} (), ...);
+
+		(
+		[&]
+		{	
+				Out;
+				//GetParameter(Out);
+		}
+		, ...);
+
 	}
-	template<typename T> UCodeLangForceinline T GetParameter()
+
+
+	template<typename T> void GetParameter(T& Out)
+	{
+		Out = GetParameter<T>();
+	}
+	template<typename T> T GetParameter()
 	{
 		constexpr bool IsBigerRegister = sizeof(T) > sizeof(Interpreter::Register);
 		if (IsBigerRegister)
@@ -411,12 +425,16 @@ public:
 			throw std::exception("not added yet");
 		}
 	}
-	template<typename T> UCodeLangForceinline void Set_Return(const T& Value) {
+
+	
+
+	template<typename T> void Set_Return(const T& Value) 
+	{
 
 		constexpr bool IsBigerRegister = sizeof(T) > sizeof(Interpreter::Register);
 		if (IsBigerRegister) 
 		{
-			_Ptr->_CPU.Stack.SetValue(Value);
+			_Ptr->_CPU.Stack.SetValue(Value,sizeof(T));
 			Get_OutPutRegister().Value = _Ptr->_CPU.Stack.GetTopOfStack();
 		}
 		else
@@ -424,11 +442,10 @@ public:
 			Get_OutPutRegister().Value = *(UInt64*)&Value;
 		}
 	}
-	UCodeLangForceinline void Set_Return(void){}
+	void Set_Return(void){}
+
 	template<typename T> UCodeLangForceinline T* Get_This()
 	{
-		constexpr bool IsBigerThenRegister =sizeof(T*) > sizeof(Interpreter::Register);
-		static_assert(!IsBigerThenRegister, " 'T' is too big to be in a Register");
 		return (T*)&Get_ThisRegister().Value;
 	}
 
