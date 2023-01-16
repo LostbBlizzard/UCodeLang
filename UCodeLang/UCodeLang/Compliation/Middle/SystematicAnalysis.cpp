@@ -266,7 +266,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		FuncName = ClassConstructorfunc;
 		if (_ClassStack.empty())
 		{
-			_ErrorsOutput->AddError(ErrorCodes::InValidType, NameToken->OnLine, NameToken->OnPos, "cant use this here");
+			CantUseThisKeyWordHereError(NameToken);
 		}
 	}
 	else if (NameToken->Type == TokenType::KeyWorld_Drop)
@@ -440,8 +440,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 					if (LastExpressionType._Type == TypesEnum::Var)
 					{
 						auto Token = LastLookedAtToken;
-						_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
-							, "cant guess 'var' type");
+						CantguessVarTypeError(Token);
 					}
 				}
 
@@ -466,8 +465,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 				else if (syb->VarType._Type != TypesEnum::Void)//Update This when control flow get added.
 				{
 					auto Token = node.Signature.Name.Token;
-					_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
-						, "you must return something");
+					YouMustReturnSomethingError(Token);
 				}
 
 			}
@@ -503,7 +501,13 @@ void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 {
 	if (node.Expression.Value)
 	{
+		auto LookForT = Get_LookingForType();
+		LookForT.SetAsRawValue();
+
+		LookingForTypes.push(LookForT);
 		OnExpressionTypeNode(node.Expression.Value);
+
+		LookingForTypes.pop();
 	}
 	else
 	{
@@ -518,9 +522,9 @@ void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 		{
 			if (!CanBeImplicitConverted(LastExpressionType, T))
 			{
-				if (T._Type != TypesEnum::Null) {
-					_ErrorsOutput->AddError(ErrorCodes::InValidType, LastLookedAtToken->OnLine, LastLookedAtToken->OnPos,
-						"cant convert '" + ToString(LastExpressionType) + "' to" + "'" + ToString(T) + "'");
+				if (T._Type != TypesEnum::Null) 
+				{
+					LogCantCastImplicitTypes(LastLookedAtToken, LastExpressionType, T);
 				}
 			}
 		}
@@ -578,13 +582,13 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 	if (passtype == PassType::FixedTypes)
 	{
 		auto& VarType = syb->VarType;
-		Convert(node.Type, syb->VarType);
+		Convert(node.Type, VarType);
+		VarType.SetAsLocation();
 		
 		if (VarType._Type == TypesEnum::Var && node.Expression.Value == nullptr)
 		{
 			auto Token = node.Type.Name.Token;
-			_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
-				, "cant guess type theres no '=' [expression]");
+			CantgussTypesTheresnoassignment(Token);
 		}
 		else
 		{
@@ -606,30 +610,32 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 			syb->SetTovalid();
 
 			auto& VarType = syb->VarType;
+
+
 			auto& Ex = LastExpressionType;
 			auto Token = node.Type.Name.Token;
 			if (VarType._Type == TypesEnum::Var)
 			{
 				if (Ex._Type == TypesEnum::Var)
 				{
-					_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
-						, "cant guess 'var' type");
+					CantguessVarTypeError(Token);
 				}
 				else
 				{
 					bool WasImutable = VarType.Isimmutable();
+					bool WasIsAddress = VarType.IsAddress();
 					
+
 					VarType = Ex;
-					if (WasImutable)
-					{
-						VarType.SetAsimmutable();
-					}
+					if (WasImutable) { VarType.SetAsimmutable(); }
+					if (WasIsAddress) { VarType.SetAsAddress(); }
+					VarType.SetAsLocation();
+					GetSize(VarType, syb->Size);
 				}
 			}
 			if (!CanBeImplicitConverted(Ex, VarType))
 			{
-				_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos,
-					"cant convert '" + ToString(Ex) + "' to" + "'" + ToString(VarType) + "'");
+				LogCantCastImplicitTypes(Token, Ex, VarType);
 			}
 		}
 		else
@@ -665,19 +671,12 @@ void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 		auto Name = node.Name.AsStringView();
 		auto Symbol = GetSymbol(Name, SymbolType::Varable_t);
 		
-		if (Symbol->VarType.Isimmutable())
-		{
-			auto Token = node.Name.Token;
-			_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
-				, "Cant modify '" + (String)Name +" it's immutable");
-		}
+		CheckVarWritingErrors(Symbol, node.Name.Token, Name);
 
 		if (!CanBeImplicitConverted(LastExpressionType, Symbol->VarType))
 		{
 			auto  Token = LastLookedAtToken;
-
-			_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
-				, "Cant cast Type '" + ToString(LastExpressionType) + " to '" + ToString(Symbol->VarType) + "'");
+			LogCantCastImplicitTypes(Token, LastExpressionType, Symbol->VarType);
 
 		}
 		
@@ -703,12 +702,8 @@ void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 		auto Name = node.Name.AsStringView();
 		auto Symbol = GetSymbol(Name, SymbolType::Varable_t);
 
-		if (Symbol->VarType.Isimmutable())
-		{
-			auto Token = node.Name.Token;
-			_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
-				, "Cant modify '" + (String)Name + " it's immutable");
-		}
+		CheckVarWritingErrors(Symbol, node.Name.Token, Name);
+		LogTryReadVar(Name, node.Name.Token, Symbol);
 	}
 	if (passtype == PassType::BuidCode)
 	{
@@ -742,13 +737,8 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 	{
 		auto Name = node.VariableName.AsStringView();
 		auto Symbol = GetSymbol(Name, SymbolType::Varable_t);
-
-		if (Symbol->VarType.Isimmutable())
-		{
-			auto Token = node.VariableName.Token;
-			_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
-				, "Cant modify '" + (String)Name + " it's immutable");
-		}
+		CheckVarWritingErrors(Symbol, node.VariableName.Token, Name);
+		LogTryReadVar(Name, node.VariableName.Token, Symbol);
 	}
 	if (passtype == PassType::BuidCode)
 	{
@@ -914,18 +904,16 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 
 			auto Symbol = GetSymbol(Str, SymbolType::Varable_t);
 			auto Token = nod->VariableName.ScopedName[0];
-			if (Symbol == nullptr)
-			{
-				
-				_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
-					, "Cant find Variable Named '" + Str + "'");
-					return;
 
-			}
-			if (Symbol->IsInvalid())
+			auto Info = LogTryReadVar(Str, Token, Symbol);
+			if (Info.CantFindVar)
 			{
-				_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
-					, "the variable named '" + Str + "'" + " cant be read from you.can not read an invaid variable");
+				LogCantFindVarError(Token, Str);
+				return;
+			}
+			if (Info.VarIsInvalid)
+			{
+				LogReadingFromInvaidVariable(Token, Str);
 				goto SetExpressionInfo;
 
 			}
@@ -933,9 +921,15 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 			SymbolID sybId = Symbol->ID;
 			if (passtype == PassType::BuidCode)
 			{
-
-
-				_Builder.Build_Assign(IROperand::AsReadVarable(sybId));
+				auto& LookForT = Get_LookingForType();
+				if (LookForT.IsLocationValue())
+				{
+					_Builder.Build_Assign(IROperand::AsPointer(sybId));
+				}
+				else
+				{
+					_Builder.Build_Assign(IROperand::AsReadVarable(sybId));
+				}
 				_LastExpressionField = _Builder.GetLastField();
 			}
 
@@ -1105,8 +1099,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 					{
 						auto  Token =LastLookedAtToken;
 
-						_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
-							, "Cant cast Type '" + ToString(Ex1Type) + " to '" + ToString(UintptrType) + "'");
+						LogCantCastImplicitTypes(Token, Ex1Type, UintptrType);
 
 					}
 
@@ -1125,6 +1118,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 		}
 	}
 }
+
 void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 {
 	OnExpressionTypeNode(node.Value1.Value);
@@ -1140,9 +1134,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 		bool V = HasBinaryOverLoadWith(Ex0Type, BinaryOp->Type, Ex1Type);
 		if (!V)
 		{
-			_ErrorsOutput->AddError(ErrorCodes::InValidType, BinaryOp->OnLine, BinaryOp->OnPos,
-				"The type '" + ToString(Ex0Type) + "'" + " cant be '"
-			+ ToString(BinaryOp->Type) + "' with '" + ToString(Ex1Type) + "'");
+			LogCantFindBinaryOpForTypes(BinaryOp, Ex0Type, Ex1Type);
 		}
 	}
 
@@ -1184,8 +1176,7 @@ void SystematicAnalysis::OnExpressionNode(const CastNode& node)
 		{
 			auto  Token = node.ToType.Name.Token;
 
-			_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
-				, "Cant cast Type '" + ToString(Ex0Type) + " to '" + ToString(ToTypeAs) + "'");
+			LogCantCastExplicityTypes(Token, Ex0Type, ToTypeAs);
 		}
 		LastExpressionType = ToTypeAs;
 	}
@@ -1200,8 +1191,7 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 		if (Syb == nullptr)
 		{
 			auto  Token = node.FuncName.Token;
-			_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
-				, "Cant Find function '" + (String)FuncName);
+			LogCantFindFuncError(Token, FuncName);
 			return;
 		}
 		if (node.Generics.Values.size())
@@ -1274,10 +1264,14 @@ void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 		if (!Ex0Type.IsAddress())
 		{
 			auto Token = LastLookedAtToken;
-			_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos,
-				"expression must be an address not an '" + ToString(Ex0Type) + "'");
-			
+			ExpressionMustbeAnLocationValueError(Token, Ex0Type);
 		}
+		else if (!Ex0Type.IsLocationValue())
+		{
+			auto Token = LastLookedAtToken;
+			ExpressionMustbeAnLocationValueError(Token, Ex0Type);
+		}
+			
 	}
 	if (passtype == PassType::BuidCode)
 	{
@@ -1313,15 +1307,6 @@ void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 			//Call Object Drop
 			_Builder.Build_Free(IROperand::AsLocation(Ex0));
 		}
-	}
-}
-void SystematicAnalysis::CheckBackEnd()
-{
-	if (BackEnd == nullptr)
-	{
-		_ErrorsOutput->AddError(ErrorCodes::BackEndError, 0, 0,"There is not backend to compile to");
-
-		return;
 	}
 }
 void SystematicAnalysis::PushTepAttributesInTo(Vector<AttributeData>& Input)
@@ -1432,9 +1417,10 @@ bool SystematicAnalysis::AreTheSame(const TypeSymbol& TypeA, const TypeSymbol& T
 }
 bool SystematicAnalysis::AreTheSameWithOutimmutable(const TypeSymbol& TypeA, const TypeSymbol& TypeB)
 {
-	if (TypeA._Type == TypeB._Type &&
-		TypeA.IsAddress() == TypeB.IsAddress() &&
-		TypeA.IsAddressArray() == TypeB.IsAddressArray() 
+	if (TypeA._Type == TypeB._Type 
+		//&&
+		//TypeA.IsAddress() == TypeB.IsAddress() &&
+		//TypeA.IsAddressArray() == TypeB.IsAddressArray() 
 		)
 	{
 		return true;
@@ -1597,8 +1583,8 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 		if (SybV == nullptr)
 		{
 			auto Token = V.Name.Token;
-			_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
-				, "Cant Find Type '" + (String)Name + "'");
+			
+			LogCantFindTypeError(Token, Name);
 		}
 		else
 		{
@@ -1609,19 +1595,11 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 		throw std::exception("not added");
 		break;
 	}
-	if (V.IsAddess)
-	{
-		Out._IsAddress = true;
-	}
-	if (V.IsAddessArray)
-	{
-		Out._IsAddressArray = true;
-	}
-	if (V.Isimmutable)
-	{
-		Out._Isimmutable = true;
-	}
+	if (V.IsAddess) {Out._IsAddress = true;}
+	if (V.IsAddessArray){Out._IsAddressArray = true;}
+	if (V.Isimmutable){Out._Isimmutable = true;}
 }
+
 bool SystematicAnalysis::IsVaidType(TypeSymbol& Out)
 {
 	return false;
@@ -1630,9 +1608,11 @@ bool SystematicAnalysis::CanBeImplicitConverted(const TypeSymbol& TypeToCheck, c
 {
 	if (AreTheSameWithOutimmutable(TypeToCheck, Type)) 
 	{ 
-		return
-			(!TypeToCheck.Isimmutable() == Type.Isimmutable()) ||
-			(TypeToCheck.Isimmutable() == Type.Isimmutable());
+		bool V0 =IsimmutableRulesfollowed(TypeToCheck, Type);
+
+		bool V1 = IsAddessAndLValuesRulesfollowed(TypeToCheck, Type);
+
+		return V0 && V1;
 	}
 
 	
@@ -1663,6 +1643,18 @@ bool SystematicAnalysis::IsUIntType(const UCodeLang::TypeSymbol& TypeToCheck)
 		TypeToCheck._Type == TypesEnum::uInt32 ||
 		TypeToCheck._Type == TypesEnum::uInt64 ||
 		TypeToCheck._Type == TypesEnum::uIntPtr ;
+}
+inline bool SystematicAnalysis::IsimmutableRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type)
+{
+	return  (!TypeToCheck.Isimmutable() == Type.Isimmutable()) ||
+		(TypeToCheck.Isimmutable() == Type.Isimmutable());
+}
+inline bool SystematicAnalysis::IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type)
+{
+	return (TypeToCheck.IsLocationValue() == Type.IsLocationValue()) ||
+		(!TypeToCheck.IsRawValue() == Type.IsAddress()) ||
+		(TypeToCheck.IsRawValue() == Type.IsRawValue())
+		;
 }
 bool SystematicAnalysis::GetSize(TypeSymbol& Type, UAddress& OutSize)
 {
@@ -1773,6 +1765,118 @@ void SystematicAnalysis::GenericTypeInstantiate(Symbol* Class, const Vector<Type
 	GenericFuncName.pop();
 	//
 	_Table._Scope.ThisScope = OldScope;
+}
+
+void SystematicAnalysis::CheckVarWritingErrors(UCodeLang::Symbol* Symbol, const Token* Token, UCodeLang::String_view& Name)
+{
+	if (Symbol->VarType.Isimmutable())
+	{
+		LogCantModifyiMutableError(Token, Name);
+	}
+}
+
+void SystematicAnalysis::LogCantCastImplicitTypes(const UCodeLang::Token* Token, UCodeLang::TypeSymbol& Ex1Type, UCodeLang::TypeSymbol& UintptrType)
+{
+	bool V1 = IsAddessAndLValuesRulesfollowed(Ex1Type, UintptrType);
+	if (!V1)
+	{
+		_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+			, "The expression is not an Location in memory'");
+	}
+	else
+	{
+		_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+			, "Cant cast Type '" + ToString(Ex1Type) + " to '" + ToString(UintptrType) + "'");
+	}
+}
+void SystematicAnalysis::LogReadingFromInvaidVariable(const UCodeLang::Token* Token, UCodeLang::String& Str)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+		, "the variable named '" + Str + "'" + " cant be read from you.can not read an invaid variable");
+}
+void SystematicAnalysis::LogCantFindVarError(const UCodeLang::Token* Token, UCodeLang::String& Str)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+		, "Cant find Variable Named '" + Str + "'");
+}
+void SystematicAnalysis::LogCantFindBinaryOpForTypes(const UCodeLang::Token* BinaryOp, UCodeLang::TypeSymbol& Ex0Type, UCodeLang::TypeSymbol& Ex1Type)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidType, BinaryOp->OnLine, BinaryOp->OnPos,
+		"The type '" + ToString(Ex0Type) + "'" + " cant be '"
+		+ ToString(BinaryOp->Type) + "' with '" + ToString(Ex1Type) + "'");
+}
+void SystematicAnalysis::ExpressionMustbeAnLocationValueError(const UCodeLang::Token* Token, UCodeLang::TypeSymbol& Ex0Type)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos,
+		"expression must be an Location not an Value'" + ToString(Ex0Type) + "'");
+}
+void SystematicAnalysis::YouMustReturnSomethingError(const UCodeLang::Token* Token)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
+		, "you must return something");
+}
+void SystematicAnalysis::CantguessVarTypeError(const UCodeLang::Token* Token)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
+		, "cant guess 'var' type");
+}
+void SystematicAnalysis::CantUseThisKeyWordHereError(const UCodeLang::Token* NameToken)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidType, NameToken->OnLine, NameToken->OnPos, "cant use this here");
+}
+void SystematicAnalysis::CantgussTypesTheresnoassignment(const UCodeLang::Token* Token)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
+		, "cant guess type theres no '=' [expression]");
+}
+void SystematicAnalysis::LogCantCastExplicityTypes(const UCodeLang::Token* Token, UCodeLang::TypeSymbol& Ex0Type, UCodeLang::TypeSymbol& ToTypeAs)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+		, "Cant cast Type '" + ToString(Ex0Type) + " to '" + ToString(ToTypeAs) + "'");
+}
+
+SystematicAnalysis::ReadVarErrorCheck_t SystematicAnalysis::LogTryReadVar(String_view VarName, const UCodeLang::Token* Token, const Symbol* Syb)
+{
+	ReadVarErrorCheck_t r;
+	if (Syb == nullptr)
+	{
+		LogCantFindVarError(Token, (String)VarName);
+		r.CantFindVar = true;
+	}
+	else
+	{
+		if (Syb->IsInvalid())
+		{
+			LogReadingFromInvaidVariable(Token, (String)VarName);
+			r.VarIsInvalid = true;
+		}
+	}
+	return r;
+}
+
+void SystematicAnalysis::LogCantFindFuncError(const UCodeLang::Token* Token, UCodeLang::String_view& FuncName)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+		, "Cant Find function '" + (String)FuncName);
+}
+void SystematicAnalysis::LogCantModifyiMutableError(const UCodeLang::Token* Token, UCodeLang::String_view& Name)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+		, "Cant modify '" + (String)Name + " it's immutable");
+}
+void SystematicAnalysis::LogCantFindTypeError(const UCodeLang::Token* Token, UCodeLang::String_view& Name)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+		, "Cant Find Type '" + (String)Name + "'");
+}
+void SystematicAnalysis::CheckBackEnd()
+{
+	if (BackEnd == nullptr)
+	{
+		_ErrorsOutput->AddError(ErrorCodes::BackEndError, 0, 0, "There is not backend to compile to");
+
+		return;
+	}
 }
 UCodeLangEnd
 

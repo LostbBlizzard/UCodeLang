@@ -33,6 +33,12 @@ enum class TypesEnum :UInt8
 
 	CustomType,
 };
+enum class TypeValueInfo : UInt8
+{
+	IsValue,
+	IsLocation,
+};
+
 struct TypeSymbol
 {
 	TypesEnum _Type = TypesEnum::Null;
@@ -43,6 +49,7 @@ struct TypeSymbol
 	bool _IsAddress=false;
 	bool _IsAddressArray = false;
 	bool _Isimmutable = false;
+	TypeValueInfo _ValueInfo = TypeValueInfo::IsValue;
 
 	void SetType(TypesEnum type)
 	{
@@ -68,6 +75,19 @@ struct TypeSymbol
 	{
 		_Isimmutable = true;
 	}
+	void SetValueInfo(TypeValueInfo ValueInfo)
+	{
+		_ValueInfo = ValueInfo;
+	}
+	void SetAsLocation()
+	{
+		 SetValueInfo(TypeValueInfo::IsLocation);
+	}
+	void SetAsRawValue()
+	{
+		 SetValueInfo(TypeValueInfo::IsValue);
+	}
+
 
 	bool IsAddress()const
 	{
@@ -77,13 +97,21 @@ struct TypeSymbol
 	{
 		return _IsAddressArray;
 	}
-	bool Isimmutable()const
+	bool Isimmutable() const
 	{
 		return _Isimmutable;
 	}
-	bool Ismutable()const
+	bool Ismutable() const
 	{
 		return !Isimmutable();
+	}
+	bool IsLocationValue()const
+	{
+		return _ValueInfo == TypeValueInfo::IsLocation;
+	}
+	bool IsRawValue()const
+	{
+		return !IsLocationValue();
 	}
 };
 
@@ -140,8 +168,8 @@ public:
 	{
 		ValidState = SymbolValidState::valid;
 	}
-	bool IsInvalid() {return ValidState == SymbolValidState::Invalid;}
-	bool Isvalid() { return !IsInvalid(); }
+	bool IsInvalid()const {return ValidState == SymbolValidState::Invalid;}
+	bool Isvalid()const { return !IsInvalid(); }
 };
 
 

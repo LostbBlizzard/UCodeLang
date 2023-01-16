@@ -37,14 +37,17 @@ private:
 	static constexpr size_t RegisterSize = sizeof(AnyInt64);
 
 	void BuildFunc();
+	void OnAsPointer(UCodeLang::RegisterID& R, UCodeLang::IRCode& IR);
+	void StoreResultIR(UCodeLang::IRCode& IR, UCodeLang::RegisterID R);
+	void OnReadVarOperand(UCodeLang::RegisterID& R, UCodeLang::IRCode& IR, UCodeLang::UClib& ULib);
 	void Link();
 
-	void SetSybToRegister(RegisterID R,IRThreeAddressCode& IR);
+	void SetSybToRegister(RegisterID R,IRCode& IR);
 	void SetIRToRegister(RegisterID R, IRField IR);
 
 	RegisterID GetOperandInAnyRegister(const IROperand& operand);
 	void GetOperandInRegister(const IROperand& operand, RegisterID id);
-	void StoreVar(const IRThreeAddressCode& IR, const RegisterID R);
+	void StoreVar(const IRCode& IR, const RegisterID R);
 
 	enum class BuildData_t :UInt8
 	{

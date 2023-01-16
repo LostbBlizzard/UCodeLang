@@ -105,6 +105,7 @@ AddMapValueValue(Push##bitsize, InstructionSet::Push##bitsize, OpCodeType::Regis
 AddMapValueValue(Pop##bitsize, InstructionSet::Pop##bitsize, OpCodeType::Register, OpCodeType::NoOpCode),\
 AddMapValueValue(StoreRegToReg##bitsize, InstructionSet::StoreRegToReg##bitsize, OpCodeType::Register, OpCodeType::Register),\
 AddMapValueValue(GetFromStack##bitsize, InstructionSet::GetFromStack##bitsize, OpCodeType::UIntPtr,OpCodeType::Register),\
+AddMapValueValue(GetFromStack##bitsize, InstructionSet::GetFromStack##bitsize, OpCodeType::UIntPtr,OpCodeType::Register),\
 
 static inline const unordered_map<String_view, InsMapValue> StringToInsMap =
 {	
@@ -129,6 +130,7 @@ static inline const unordered_map<String_view, InsMapValue> StringToInsMap =
 
 	AddMapValueValue(Malloc,InstructionSet::Malloc,OpCodeType::Register,OpCodeType::Register),
 	AddMapValueValue(Free,InstructionSet::Free,OpCodeType::Register,OpCodeType::NoOpCode),
+	AddMapValueValue(GetPointerOfStack,InstructionSet::GetPointerOfStack,OpCodeType::Register,OpCodeType::UIntPtr),
 };
 
 static inline unordered_map<InstructionSet, const InsMapValue*> InsToInsMapValue;

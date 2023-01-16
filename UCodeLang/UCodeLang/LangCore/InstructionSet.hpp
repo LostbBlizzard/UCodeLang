@@ -42,7 +42,7 @@ enum class InstructionSet : InstructionSet_t
 	//Not Real Instructions The RunTimeLib will tanslate them
 	AddSetInt(Native)
 	//Cpp func Set
-	GetPointerOfStack, GetPointerOfStaticMem,IncrementStackPointer, DecrementStackPointer,
+	GetPointerOfStack, GetPointerOfStackSub, GetPointerOfStaticMem,IncrementStackPointer, DecrementStackPointer,
 	
 	Malloc,Free,MemCopy, Calloc,ReAlloc,
 	Log,CPPCall,CppCallNamed,Link_Bytes,Link_Path,

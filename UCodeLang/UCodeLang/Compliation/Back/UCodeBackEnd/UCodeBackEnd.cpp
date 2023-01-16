@@ -3,6 +3,8 @@
 UCodeLangStart
 
 #define GenIns(x) ResetIns(); x;
+#define GenInsPush(x) ResetIns(); x;	ULib.Add_Instruction(_Ins);
+
 void UCodeBackEnd::Bind(BackEndInterface& Obj)
 {
 	Obj
@@ -52,23 +54,24 @@ void UCodeBackEndObject::Build(BackEndInput& Input)
 	}
 	Link();
 }
-
-#define OperatorBits(Func,bit) \
-			case IROperator::##Func##bit:\
-			{\
-				auto Value0 = GetOperandInAnyRegister(IR.Operand0);\
+#define OperatorBitsFunc(Func,bit) \
+	auto Value0 = GetOperandInAnyRegister(IR.Operand0);\
 				_Registers.WeakLockRegister(Value0);\
 				auto Value1 = GetOperandInAnyRegister(IR.Operand1);\
 				_Registers.WeakLockRegister(Value1);\
 				\
-				GenIns(InstructionBuilder::##Func##bit(_Ins, Value0, Value1));\
-				ULib.Add_Instruction(_Ins);\
+				GenInsPush(InstructionBuilder::##Func##bit(_Ins, Value0, Value1));\
 				\
 				_Registers.UnLockWeakRegister(Value0);\
 				_Registers.UnLockWeakRegister(Value1);\
 				\
 				auto ROut = RegisterID::MathOuPutRegister;\
 				SetSybToRegister(ROut,IR);\
+
+#define OperatorBits(Func,bit) \
+			case IROperator::##Func##bit:\
+			{\
+				OperatorBitsFunc(Func,bit);\
 			}break; \
 
 #define BitSet(bit) \
@@ -80,15 +83,47 @@ void UCodeBackEndObject::Build(BackEndInput& Input)
 	OperatorBits(DivS,bit)\
 
 
-#define IRFieldInt(bitsize) case IRFieldInfoType::Int##bitsize: \
-{\
-    auto Value =IR.Operand0.AnyValue.AsInt##bitsize;\
-	R = GetOperandInAnyRegister(IR.Operand0);\
+#define BuildIRStore(bitsize,Value2)\
+	auto Value = Value2; \
+	R = GetOperandInAnyRegister(IR.Operand0); \
 	GenIns(InstructionBuilder::Store##bitsize(_Ins, R, Value)); \
 	ULib.Add_Instruction(_Ins); \
-	SetSybToRegister(R,IR);\
+	SetSybToRegister(R, IR); \
+
+#define IRFieldInt(bitsize) case IRFieldInfoType::Int##bitsize: \
+{\
+    BuildIRStore(bitsize,IR.Operand0.AnyValue.AsInt##bitsize);\
 }\
 break;\
+
+
+
+#define BuildSybolIntSizeInsv(Ins,x,Pars) \
+						case TypesEnum::uInt##x:\
+						case TypesEnum::sInt##x:\
+						GenInsPush(InstructionBuilder::##Ins##x##Pars);\
+						break;\
+
+#define BuildSybolIntSizeIns(VarType,Ins,Pars) \
+if (VarType.IsAddress() || \
+	VarType._Type == TypesEnum::uIntPtr ||\
+	VarType._Type == TypesEnum::sIntPtr)\
+{\
+	GenInsPush(InstructionBuilder::##Ins##64##Pars);\
+}\
+else\
+{\
+	switch (VarType._Type)\
+	{\
+		BuildSybolIntSizeInsv(Ins,8,Pars);\
+		BuildSybolIntSizeInsv(Ins,16,Pars);\
+		BuildSybolIntSizeInsv(Ins,32,Pars);\
+		BuildSybolIntSizeInsv(Ins,64,Pars);\
+	default:\
+		throw std::exception();\
+		break;\
+	}\
+}\
 
 void UCodeBackEndObject::BuildFunc()
 {
@@ -125,89 +160,21 @@ void UCodeBackEndObject::BuildFunc()
 			IRFieldInt(64)
 			case IRFieldInfoType::ReadVar:
 			{
-				R = _Registers.GetFreeRegisterAndWeakLock();
-
-				auto VarSymbolID = IR.Operand0.SymbolId;
-				Symbol& SybV = _BackInput->_Table->GetSymbol(VarSymbolID);
-				BuildData& Data = SymbolToData[VarSymbolID];
-				if (SybV.Type == SymbolType::StackVarable)
-				{
-					auto V = _Registers.GetInfo(IR.Result.IRLocation);
-
-					if (V == RegisterID::NullRegister) 
-					{
-					#define ReadVarStackVarable(x) \
-						case TypesEnum::uInt##x:\
-						case TypesEnum::sInt##x:\
-						GenIns(InstructionBuilder::GetFromStack##x(_Ins, Data.offset, R));\
-						ULib.Add_Instruction(_Ins);\
-						break;\
-
-						if (SybV.VarType.IsAddress() ||
-							SybV.VarType._Type == TypesEnum::uIntPtr ||
-							SybV.VarType._Type == TypesEnum::sIntPtr)
-						{
-							GenIns(InstructionBuilder::GetFromStack64(_Ins, Data.offset, R));
-							ULib.Add_Instruction(_Ins);
-						}
-						else
-						{
-							switch (SybV.VarType._Type)
-							{
-								ReadVarStackVarable(8);
-								ReadVarStackVarable(16);
-								ReadVarStackVarable(32);
-								ReadVarStackVarable(64);
-							default:
-								throw std::exception();
-								break;
-							}
-						}
-						SetSybToRegister(R, IR);
-					}
-					else
-					{
-						_Registers.UnLockWeakRegister(R);
-						R = V;
-					}
-				}
-				else if (SybV.Type == SymbolType::ParameterVarable)
-				{
-					if (Data.Type == BuildData_t::ParameterInRegister)
-					{
-						_Registers.UnLockWeakRegister(R);
-						R = (RegisterID)Data.offset;
-						SetIRToRegister(R, IR.Result.IRLocation);
-					}
-					else
-					{
-						throw std::exception();
-					}
-				}
-				else
-				{
-					throw std::exception();
-				}
-			}
-			break;
+				OnReadVarOperand(R, IR, ULib);
+			}break;
 			case IRFieldInfoType::IRLocation:
 			{
 				R = GetOperandInAnyRegister(IR.Operand0);
-
-			}
-			break;
+			}break;
+			case IRFieldInfoType::AsPointer:
+			{
+				OnAsPointer(R, IR);
+			}break;
 			default:
+				throw std::exception("not added");
 				break;
 			}
-			if (IR.Result.Type == IRFieldInfoType::IRLocation)
-			{
-				auto& RInfo = _Registers.GetInfo(R);
-				RInfo.IRField = IR.Result.IRLocation;
-			}
-			else if (IR.Result.Type == IRFieldInfoType::Var)
-			{
-				StoreVar(IR, R);
-			}
+			StoreResultIR(IR, R);
 		}
 		break;
 		
@@ -251,9 +218,7 @@ void UCodeBackEndObject::BuildFunc()
 		{
 			auto VarSymbolID = IR.Operand0.SymbolId;
 			
-			GenIns(InstructionBuilder::Call(NullAddress,_Ins));
-			ULib.Add_Instruction(_Ins);
-			
+			GenInsPush(InstructionBuilder::Call(NullAddress,_Ins));
 			
 			_InsCalls.push_back({ULib.GetLastInstruction(),VarSymbolID });
 			CallParameterRegisterValue = RegisterID::StartParameterRegister;
@@ -262,8 +227,8 @@ void UCodeBackEndObject::BuildFunc()
 		case IROperator::Free:
 		{
 			auto R = GetOperandInAnyRegister(IR.Operand0);
-			GenIns(InstructionBuilder::Free(_Ins,R));
-			ULib.Add_Instruction(_Ins);
+			GenInsPush(InstructionBuilder::Free(_Ins,R));
+			
 
 		}
 		break;
@@ -274,8 +239,8 @@ void UCodeBackEndObject::BuildFunc()
 			auto ROut = _Registers.GetFreeRegister();
 			
 
-			GenIns(InstructionBuilder::Malloc(_Ins, Size, ROut));
-			ULib.Add_Instruction(_Ins);
+			GenInsPush(InstructionBuilder::Malloc(_Ins, Size, ROut));
+		
 
 			_Registers.UnLockWeakRegister(Size);
 			SetSybToRegister(Size,IR);
@@ -283,9 +248,8 @@ void UCodeBackEndObject::BuildFunc()
 		break;
 		case IROperator::Ret_Value:
 		{
-
 			auto RetTypeSize = Analysis->GetTypeSize(Sym.VarType);
-			if (RetTypeSize < RegisterSize)
+			if (RetTypeSize <= RegisterSize)
 			{
 				GetOperandInRegister(IR.Operand0,RegisterID::OuPutRegister);
 				
@@ -301,8 +265,8 @@ void UCodeBackEndObject::BuildFunc()
 	}
 EndLoop:
 
-	GenIns(InstructionBuilder::Return(ExitState::Success, _Ins));
-	ULib.Add_Instruction(_Ins);
+	GenInsPush(InstructionBuilder::Return(ExitState::Success, _Ins));
+	
 	_Registers.Reset();
 	ParameterRegisterValue = RegisterID::StartParameterRegister; 
 	CallParameterRegisterValue = RegisterID::StartParameterRegister;
@@ -310,6 +274,78 @@ EndLoop:
 
 	DeclareCalls[SybID] = { FuncStart };
 	ULib.Add_NameToInstruction(FuncStart, Sym.FullName);
+}
+
+void UCodeBackEndObject::OnAsPointer(UCodeLang::RegisterID& R, UCodeLang::IRCode& IR)
+{
+	auto& ULib = Getliboutput();
+	R = _Registers.GetFreeRegisterAndWeakLock();
+
+	auto VarSymbolID = IR.Operand0.SymbolId;
+	Symbol& SybV = _BackInput->_Table->GetSymbol(VarSymbolID);
+	BuildData& Data = SymbolToData[VarSymbolID];
+	if (SybV.Type == SymbolType::StackVarable)
+	{
+		GenInsPush(InstructionBuilder::GetPointerOfStack(_Ins, R,Data.offset));
+	}
+	else
+	{
+		throw std::exception("not added");
+	}
+}
+
+void UCodeBackEndObject::StoreResultIR(UCodeLang::IRCode& IR, UCodeLang::RegisterID R)
+{
+	if (IR.Result.Type == IRFieldInfoType::IRLocation)
+	{
+		auto& RInfo = _Registers.GetInfo(R);
+		RInfo.IRField = IR.Result.IRLocation;
+	}
+	else if (IR.Result.Type == IRFieldInfoType::Var)
+	{
+		StoreVar(IR, R);
+	}
+}
+
+void UCodeBackEndObject::OnReadVarOperand(UCodeLang::RegisterID& R, UCodeLang::IRCode& IR, UCodeLang::UClib& ULib)
+{
+	R = _Registers.GetFreeRegisterAndWeakLock();
+
+	auto VarSymbolID = IR.Operand0.SymbolId;
+	Symbol& SybV = _BackInput->_Table->GetSymbol(VarSymbolID);
+	BuildData& Data = SymbolToData[VarSymbolID];
+	if (SybV.Type == SymbolType::StackVarable)
+	{
+		auto V = _Registers.GetInfo(IR.Result.IRLocation);
+
+		if (V == RegisterID::NullRegister)
+		{
+			BuildSybolIntSizeIns(SybV.VarType, GetFromStack, (_Ins, Data.offset, R));
+			SetSybToRegister(R, IR);
+		}
+		else
+		{
+			_Registers.UnLockWeakRegister(R);
+			R = V;
+		}
+	}
+	else if (SybV.Type == SymbolType::ParameterVarable)
+	{
+		if (Data.Type == BuildData_t::ParameterInRegister)
+		{
+			_Registers.UnLockWeakRegister(R);
+			R = (RegisterID)Data.offset;
+			SetIRToRegister(R, IR.Result.IRLocation);
+		}
+		else
+		{
+			throw std::exception();
+		}
+	}
+	else
+	{
+		throw std::exception();
+	}
 }
 
 void UCodeBackEndObject::Link()
@@ -322,7 +358,7 @@ void UCodeBackEndObject::Link()
 	}
 }
 
-void UCodeBackEndObject::SetSybToRegister(RegisterID R, IRThreeAddressCode& IR)
+void UCodeBackEndObject::SetSybToRegister(RegisterID R, IRCode& IR)
 {
 	SetIRToRegister(R,IR.Result.IRLocation);
 }
@@ -353,19 +389,18 @@ void UCodeBackEndObject::GetOperandInRegister(const IROperand& operand, Register
 	if (R == RegisterID::NullRegister)
 	{
 		R = id;
-		
+		//throw std::exception("not added");
 		return;
 	}
 
 
 	if (R != id)
 	{
-		GenIns(InstructionBuilder::StoreRegToReg8(_Ins, R, id));
-		ULib.Add_Instruction(_Ins);
+		GenInsPush(InstructionBuilder::StoreRegToReg8(_Ins, R, id));
 	}
 }
 
-void UCodeBackEndObject::StoreVar(const IRThreeAddressCode& IR, const RegisterID R)
+void UCodeBackEndObject::StoreVar(const IRCode& IR, const RegisterID R)
 {
 	auto& ULib = Getliboutput();
 	auto VarSymbolID = IR.Result.SymbolId;
@@ -393,75 +428,18 @@ void UCodeBackEndObject::StoreVar(const IRThreeAddressCode& IR, const RegisterID
 
 	if (Data->Type == BuildData_t::ParameterInRegister)
 	{
-		int b = 0;
 		auto R2 = (RegisterID)Data->offset;
-#define StoreParameterInRegisterVarable(x) \
-						case TypesEnum::uInt##x:\
-						GenIns(InstructionBuilder::StoreRegToReg##x(_Ins,R,  R2));\
-						ULib.Add_Instruction(_Ins); \
-						break; \
-						case TypesEnum::sInt##x:\
-						GenIns(InstructionBuilder::StoreRegToReg##x(_Ins,R,  R2));\
-						ULib.Add_Instruction(_Ins); \
-						break; \
-					if (R != R2)
-					{
-						if (Symbol.VarType.IsAddress() ||
-							Symbol.VarType._Type == TypesEnum::uIntPtr ||
-							Symbol.VarType._Type == TypesEnum::sIntPtr)
-						{
-							GenIns(InstructionBuilder::StoreRegToReg64(_Ins, R, R2));
-							ULib.Add_Instruction(_Ins);
-						}
-						else
-						{
-							switch (Symbol.VarType._Type)
-							{
-								StoreParameterInRegisterVarable(8);
-								StoreParameterInRegisterVarable(16);
-								StoreParameterInRegisterVarable(32);
-								StoreParameterInRegisterVarable(64);
-							default:
-								throw std::exception("not added");
-								break;
-							}
-						}
-					}
+
+		if (R != R2)
+		{
+			BuildSybolIntSizeIns(Symbol.VarType, StoreRegToReg, (_Ins, R, R2));
+		}
 	}
 	else
 	{
-#define StoreVarStackVarable(x) \
-						case TypesEnum::uInt##x:\
-						GenIns(InstructionBuilder::StoreRegOnStack##x(_Ins,R, Data->offset));\
-						ULib.Add_Instruction(_Ins); \
-						break; \
-						case TypesEnum::sInt##x:\
-						GenIns(InstructionBuilder::StoreRegOnStack##x(_Ins,R, Data->offset));\
-						ULib.Add_Instruction(_Ins); \
-						break; \
-
-
-		if (Symbol.VarType.IsAddress() ||
-			Symbol.VarType._Type == TypesEnum::uIntPtr ||
-			Symbol.VarType._Type == TypesEnum::sIntPtr)
-		{
-			GenIns(InstructionBuilder::StoreRegOnStack64(_Ins, R, Data->offset));
-			ULib.Add_Instruction(_Ins);
-		}
-		else
-		{
-			switch (Symbol.VarType._Type)
-			{
-				StoreVarStackVarable(8);
-				StoreVarStackVarable(16);
-				StoreVarStackVarable(32);
-				StoreVarStackVarable(64);
-			default:
-				throw std::exception("not added");
-				break;
-			}
-		}
+		BuildSybolIntSizeIns(Symbol.VarType, StoreRegOnStack, (_Ins, R, Data->offset));
 	}
+	
 }
 
 UCodeLangEnd
