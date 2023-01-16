@@ -14,6 +14,18 @@ bool Interpreter::CheckIfFunctionExist(const String& FunctionName)
 	return true;
 }
 
+void Interpreter::Get_Return(void* Output, size_t OutputSize)
+{
+	if (OutputSize <= sizeof(Register))
+	{
+		MemCopy(Output, &Get_OutRegister().Value, OutputSize);
+	}
+	else
+	{
+		MemCopy(Output, *(void**)&Get_OutRegister().Value, OutputSize);
+	}
+}
+
 void Interpreter::FlushParametersIntoCPU()
 {
 	RegisterID ParRegister = RegisterID::StartParameterRegister;

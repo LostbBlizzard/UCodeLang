@@ -32,18 +32,22 @@ void UCodeRunTime::UnLoad()
 }
 UCodeRunTime::Return_t UCodeRunTime::ThisCall(UAddress This, const String& FunctionName)
 {
-	return _MainInterpreter.ThisCall(This, FunctionName);
+	return Get_MyInterpreter().ThisCall(This, FunctionName);
 }
 UCodeRunTime::Return_t UCodeRunTime::ThisCall(UAddress This, UAddress address)
 {
-	return _MainInterpreter.ThisCall(This,address);
+	return Get_MyInterpreter().ThisCall(This,address);
+}
+void UCodeRunTime::Get_Return(void* Output, size_t OutputSize)
+{
+	return Get_MyInterpreter().Get_Return(Output, OutputSize);
 }
 UCodeRunTime::Return_t UCodeRunTime::Call(const String& FunctionName)
 {
-	return _MainInterpreter.Call(FunctionName);
+	return Get_MyInterpreter().Call(FunctionName);
 }
 UCodeRunTime::Return_t UCodeRunTime::Call(UAddress address)
 {
-	return _MainInterpreter.Call(address);
+	return Get_MyInterpreter().Call(address);
 }
 UCodeLangEnd

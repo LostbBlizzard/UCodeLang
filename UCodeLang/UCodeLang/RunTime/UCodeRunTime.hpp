@@ -19,20 +19,24 @@ public:
 	using MyInterpreter = Interpreter;
 	#else
 	using MyInterpreter = Jit_Interpreter;
-	#endif // DEBUG
+	#endif // RunTimeCantBeJit
 
 	
 	using Return_t = MyInterpreter::Return_t;
+	using RetState = MyInterpreter::RetState;
 
 	UCodeRunTime();
 	~UCodeRunTime();
 	void Init(RunTimeLangState* State);
 	void UnLoad();
+	MyInterpreter& Get_MyInterpreter()
+	{
+		return _MainInterpreter;
+	}
 	UCodeLangForceinline auto Get_State()
 	{
-		return _MainInterpreter.Get_State();
+		return Get_MyInterpreter().Get_State();
 	}
-
 	
 
 	Return_t Call(const String& FunctionName);
@@ -49,20 +53,20 @@ public:
 
 	template<typename... Args> Return_t Call(const String& FunctionName, Args&&... parameters)
 	{
-		return _MainInterpreter.Call(FunctionName, parameters...);
+		return Get_MyInterpreter().Call(FunctionName, parameters...);
 	}
 	template<typename... Args> Return_t Call(UAddress address, Args&&... parameters)
 	{
-		return _MainInterpreter.Call(address, parameters...);
+		return Get_MyInterpreter().Call(address, parameters...);
 	}
 	
 	template<typename... Args> Return_t ThisCall(UAddress This, const String& FunctionName, Args&&... parameters)
 	{
-		return _MainInterpreter.ThisCall(This, FunctionName, parameters...);
+		return Get_MyInterpreter().ThisCall(This, FunctionName, parameters...);
 	}
 	template<typename... Args> Return_t ThisCall(UAddress This, UAddress address, Args&&... parameters)
 	{
-		return _MainInterpreter.ThisCall(This, address, parameters...);
+		return Get_MyInterpreter().ThisCall(This, address, parameters...);
 	}
 
 	template<typename... Args> UCodeLangForceinline Return_t ThisCall(UAddress This, const ClassMethod& Function, Args&&... parameters)
@@ -70,6 +74,40 @@ public:
 		return ThisCall(This, Function.FullName);
 	}
 
+
+	//
+	template<typename T, typename... Args>
+	T retCall(const String& FunctionName, Args&&... parameters)
+	{
+		if (CheckIfFunctionExist(FunctionName))
+		{
+			auto V = Call(FunctionName,parameters...);
+			if (V._Succeed == RetState::Success)
+			{
+				return Get_Return<T>();
+			}
+		}
+		return {};
+	}
+	template<typename T, typename... Args>
+	T retThisCall(PtrType This, const ClassMethod& Function, Args&&... parameters)
+	{
+		return retThisCall(This, Function.FullName, Args&&... parameters)
+	}
+	template<typename T, typename... Args> T retThisCall(PtrType This, const String& Function, Args&&... parameters)
+	{
+		if (CheckIfFunctionExist(FunctionName))
+		{
+			auto V = ThisCall(This, Function, parameters);
+			if (V._Succeed == RetState::Success)
+			{
+				return Get_Return<T>();
+			}
+		}
+		return {};
+	}
+
+	//
 	template<typename... Args> void PushParameters(Args&&... parameters)
 	{
 		([&]
@@ -81,8 +119,16 @@ public:
 	{
 		PushParameter((const void*)&Value, sizeof(Value));
 	}
-	void PushParameter(const void* Value, size_t ValueSize) { return _MainInterpreter.PushParameter(Value, ValueSize); }
-	bool CheckIfFunctionExist(const String& FunctionName) { return _MainInterpreter.CheckIfFunctionExist(FunctionName); }
+	void PushParameter(const void* Value, size_t ValueSize) { return Get_MyInterpreter().PushParameter(Value, ValueSize); }
+	bool CheckIfFunctionExist(const String& FunctionName) { return Get_MyInterpreter().CheckIfFunctionExist(FunctionName); }
+
+	template<typename T> T Get_Return()
+	{
+		T r;
+		Get_Return(&r, sizeof(T));
+		return r;
+	}
+	void Get_Return(void* Output, size_t OutputSize);
 private:
 	MyInterpreter _MainInterpreter;
 

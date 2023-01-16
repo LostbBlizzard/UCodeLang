@@ -12,6 +12,7 @@ public:
 	using CPPInput = InterpreterCPPinterface&;
 	using JitFunc = RunTimeLib::CPPCallBack;
 	using Return_t = Interpreter::Return_t;
+	using RetState = Interpreter::RetState;
 	Jit_Interpreter(){}
 	~Jit_Interpreter(){}
 
@@ -89,6 +90,39 @@ public:
 	}
 
 
+	template<typename T, typename... Args>
+	T retCall(const String& FunctionName, Args&&... parameters)
+	{
+		if (CheckIfFunctionExist(FunctionName))
+		{
+			auto V = Call(FunctionName,parameters...);
+			if (V._Succeed == RetState::Success)
+			{
+				return Get_Return<T>();
+			}
+		}
+		return {};
+	}
+	template<typename T, typename... Args>
+	T retThisCall(PtrType This, const ClassMethod& Function, Args&&... parameters)
+	{
+		return retThisCall(This, Function.FullName, Args&&... parameters)
+	}
+	template<typename T, typename... Args> T retThisCall(PtrType This, const String& Function, Args&&... parameters)
+	{
+		if (CheckIfFunctionExist(FunctionName))
+		{
+			auto V = ThisCall(This, Function, parameters);
+			if (V._Succeed == RetState::Success)
+			{
+				return Get_Return<T>();
+			}
+		}
+		return {};
+	}
+
+	//
+
 	template<typename... Args> void PushParameters(Args&&... parameters)
 	{
 		([&]
@@ -104,6 +138,14 @@ public:
 	
 	
 	bool CheckIfFunctionExist(const String& FunctionName);
+
+	template<typename T> T Get_Return()
+	{
+		T r;
+		Get_Return(&r, sizeof(T));
+		return r;
+	}
+	void Get_Return(void* Output, size_t OutputSize);
 private:
 	#if UCodeLang_KeepJitInterpreterFallback
 	Interpreter _Interpreter;
