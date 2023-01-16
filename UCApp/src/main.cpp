@@ -87,11 +87,11 @@ int main()
 		
 		RunTime.Init(&State);
 		
-		auto r = RunTime.retCall<int*>("main");
+		auto r = RunTime.retCall<int>("main2",(Int32)50);
  		
 		
 
-		std::cout << " Got Value " << (void*)r << std::endl;
+		std::cout << " Got Value " << r << std::endl;
 
 		RunTime.Call(StaticVariablesUnLoadFunc);
 
