@@ -43,7 +43,7 @@ void Test(Jit_Interpreter::CPPInput Input)
 
 	Input.Set_Return();
 }
-static Interpreter RunTime;
+static UCodeRunTime RunTime;
 int main()
 {
 	//std::async(std::launch::async, [] { RunTests(); });

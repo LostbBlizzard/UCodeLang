@@ -109,14 +109,15 @@ public:
 		{
 			PushParameter(This);
 			PushParameters(parameters...);
-			Call(FunctionName);
+			return Call(FunctionName);
 		}
+		return Return_t(RetState::Error_Function_doesnt_exist);
 	}
 	template<typename... Args> Return_t ThisCall(UAddress This, UAddress address, Args&&... parameters)
 	{
 		PushParameter(This);
 		PushParameters(parameters...);
-		Call(address);
+		return Call(address);
 	}
 	template<typename... Args> UCodeLangForceinline Return_t ThisCall(PtrType This, UAddress address, Args&&... parameters)
 	{

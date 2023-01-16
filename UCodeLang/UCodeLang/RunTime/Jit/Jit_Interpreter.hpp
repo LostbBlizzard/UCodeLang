@@ -28,6 +28,11 @@ public:
 		return _Interpreter.Get_State();
 	}
 
+	
+
+	Return_t Call(const String& FunctionName);
+	Return_t Call(UAddress address);
+	
 	Return_t ThisCall(UAddress This,const String& FunctionName);
 	Return_t ThisCall(UAddress This, UAddress address);
 	UCodeLangForceinline Return_t ThisCall(UAddress This, const ClassMethod& Function)
@@ -35,8 +40,59 @@ public:
 		return ThisCall(This, Function.FullName);
 	}
 
-	Return_t Call(const String& FunctionName);
-	Return_t Call(UAddress address);
+
+	//
+	template<typename... Args> Return_t Call(const String& FunctionName, Args&&... parameters)
+	{
+		if (CheckIfFunctionExist(FunctionName)) 
+		{
+			PushParameters(parameters...);
+			return Call(FunctionName);
+		}
+		return Return_t(RetState::Error_Function_doesnt_exist);
+	}
+	template<typename... Args> Return_t Call(UAddress address, Args&&... parameters)
+	{
+		PushParameters(parameters...);
+		return Call(address);
+	}
+	template<typename... Args> Return_t ThisCall(UAddress This, const String& FunctionName, Args&&... parameters)
+	{
+		if (CheckIfFunctionExist(FunctionName))
+		{
+			PushParameter(This);
+			PushParameters(parameters...);
+			return Call(FunctionName);
+		}
+		return Return_t(RetState::Error_Function_doesnt_exist);
+	}
+	template<typename... Args>	Return_t ThisCall(UAddress This, UAddress address, Args&&... parameters)
+	{
+		PushParameter(This);
+		PushParameters(parameters...);
+		return Call(address);
+	}
+	template<typename... Args> UCodeLangForceinline Return_t ThisCall(UAddress This, const ClassMethod& Function, Args&&... parameters)
+	{
+		return ThisCall(This, Function.FullName, parameters...);
+	}
+
+
+	template<typename... Args> void PushParameters(Args&&... parameters)
+	{
+		([&]
+		{
+				PushParameter(parameters);
+		} (), ...);
+	}
+	template<typename T> UCodeLangForceinline void PushParameter(const T& Value)
+	{
+		PushParameter((const void*)&Value, sizeof(Value));
+	}
+	void PushParameter(const void* Value, size_t ValueSize);
+	
+	
+	bool CheckIfFunctionExist(const String& FunctionName);
 private:
 	Interpreter _Interpreter;
 	NativeJitAssembler _Assembler;

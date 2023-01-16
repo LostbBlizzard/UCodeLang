@@ -22,15 +22,56 @@ public:
 		return _MainInterpreter.Get_State();
 	}
 
+	
+
+	Return_t Call(const String& FunctionName);
+	Return_t Call(UAddress address);
+	
 	Return_t ThisCall(UAddress This, const String& FunctionName);
 	Return_t ThisCall(UAddress This, UAddress address);
 	UCodeLangForceinline Return_t ThisCall(UAddress This, const ClassMethod& Function)
 	{
 		return ThisCall(This, Function.FullName);
 	}
+	//
+	
 
-	Return_t Call(const String& FunctionName);
-	Return_t Call(UAddress address);
+	template<typename... Args> Return_t Call(const String& FunctionName, Args&&... parameters)
+	{
+		return _MainInterpreter.Call(FunctionName, parameters...);
+	}
+	template<typename... Args> Return_t Call(UAddress address, Args&&... parameters)
+	{
+		return _MainInterpreter.Call(address, parameters...);
+	}
+	
+	template<typename... Args> Return_t ThisCall(UAddress This, const String& FunctionName, Args&&... parameters)
+	{
+		return _MainInterpreter.ThisCall(This, FunctionName, parameters...);
+	}
+	template<typename... Args> Return_t ThisCall(UAddress This, UAddress address, Args&&... parameters)
+	{
+		return _MainInterpreter.ThisCall(This, address, parameters...);
+	}
+
+	template<typename... Args> UCodeLangForceinline Return_t ThisCall(UAddress This, const ClassMethod& Function, Args&&... parameters)
+	{
+		return ThisCall(This, Function.FullName);
+	}
+
+	template<typename... Args> void PushParameters(Args&&... parameters)
+	{
+		([&]
+		{
+				PushParameter(parameters);
+		} (), ...);
+	}
+	template<typename T> UCodeLangForceinline void PushParameter(const T& Value)
+	{
+		PushParameter((const void*)&Value, sizeof(Value));
+	}
+	void PushParameter(const void* Value, size_t ValueSize) { return _MainInterpreter.PushParameter(Value, ValueSize); }
+	bool CheckIfFunctionExist(const String& FunctionName) { return _MainInterpreter.CheckIfFunctionExist(FunctionName); }
 private:
 	Jit_Interpreter _MainInterpreter;
 
