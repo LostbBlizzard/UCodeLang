@@ -31,6 +31,15 @@ bool Jit_Interpreter::CheckIfFunctionExist(const String& FunctionName)
 	#endif
 }
 
+void Jit_Interpreter::Get_Return(void* Output, size_t OutputSize)
+{
+	#if UCodeLang_KeepJitInterpreterFallback
+	return _Interpreter.Get_Return(Output, OutputSize);
+	#else
+	throw std::exception("not added");
+	#endif
+}
+
 Interpreter::Return_t Jit_Interpreter::Call(const String& FunctionName)
 {
 	auto address = Get_State()->FindAddress(FunctionName);

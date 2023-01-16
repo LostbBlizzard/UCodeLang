@@ -21,7 +21,7 @@ public:
 		Success,
 		Error,
 		Error_Function_doesnt_exist,
-	}; 
+	};
 	struct Register
 	{
 		AnyInt64 Value;
@@ -34,16 +34,17 @@ public:
 
 		}
 	};
+
 	struct Return_t
 	{
 		RetState _Succeed;
 		Register ReturnValue;
-		
+
 		constexpr Return_t() : _Succeed(RetState::Null), ReturnValue()
 		{
 
 		}
-		constexpr Return_t(RetState Succeed): _Succeed(Succeed), ReturnValue()
+		constexpr Return_t(RetState Succeed) : _Succeed(Succeed), ReturnValue()
 		{
 
 		}
@@ -54,7 +55,7 @@ public:
 	};
 
 	Interpreter() {}
-	~Interpreter(){}
+	~Interpreter() {}
 
 
 	void Init(RunTimeLangState* State)
@@ -74,7 +75,7 @@ public:
 	Return_t Call(UAddress address);
 
 	void Extecute(Instruction& Inst);
-	
+
 	Return_t ThisCall(UAddress This, const String& FunctionName)
 	{
 		if (CheckIfFunctionExist(FunctionName))
@@ -90,7 +91,7 @@ public:
 	}
 	UCodeLangForceinline Return_t ThisCall(PtrType This, UAddress address)
 	{
-		return ThisCall((UAddress)This,address);
+		return ThisCall((UAddress)This, address);
 	}
 	UCodeLangForceinline Return_t ThisCall(PtrType This, const String& FunctionName)
 	{
@@ -100,7 +101,7 @@ public:
 	{
 		return ThisCall((UAddress)This, Function.FullName);
 	}
-	
+
 
 
 	template<typename... Args> Return_t ThisCall(UAddress This, const String& FunctionName, Args&&... parameters)
@@ -131,26 +132,61 @@ public:
 	{
 		return ThisCall((UAddress)This, Function.FullName, parameters);
 	}
-	
+
+
+
+	template<typename T, typename... Args>
+	T retCall(const String& FunctionName, Args&&... parameters)
+	{
+		if (CheckIfFunctionExist(FunctionName))
+		{
+			PushParameters(parameters...);
+
+			auto V = Call(FunctionName);
+			if (V._Succeed == RetState::Success)
+			{
+				return Get_Return<T>();
+			}
+		}
+		return {};
+	}
+	template<typename T,typename... Args>
+	T retThisCall(PtrType This, const ClassMethod& Function, Args&&... parameters)
+	{
+		return retThisCall(This, Function.FullName, Args&&... parameters)
+	}
+	template<typename T, typename... Args> T retThisCall(PtrType This, const String& Function, Args&&... parameters)
+	{
+		if (CheckIfFunctionExist(FunctionName))
+		{
+			auto V = ThisCall(This, Function, parameters);
+			if (V._Succeed == RetState::Success)
+			{
+				return Get_Return<T>();
+			}
+		}
+		return {};
+	}
+	//
 
 	template<typename... Args> void PushParameters(Args&&... parameters)
 	{
 		([&]
-		{
-			PushParameter(parameters);
-		} (), ...);
+			{
+				PushParameter(parameters);
+			} (), ...);
 	}
 
 	template<typename T> UCodeLangForceinline void PushParameter(const T& Value)
 	{
-		PushParameter((const void*)&Value,sizeof(Value));
+		PushParameter((const void*)&Value, sizeof(Value));
 	}
 	void PushParameter(const void* Value, size_t ValueSize)
 	{
 		_Parameters.Push(Value, ValueSize);
 	}
-	
-	
+
+
 	//
 	UCodeLangForceinline PtrType Calloc(NSize_t Size) { return _State->Calloc(Size); }
 	UCodeLangForceinline PtrType Realloc(PtrType OldPtr, NSize_t Size) { return _State->Realloc(OldPtr, Size); }
@@ -159,10 +195,18 @@ public:
 	UCodeLangForceinline void Free(PtrType Ptr) { return _State->Free(Ptr); }
 	UCodeLangForceinline void Log(const char* Ptr) { return _State->Log(Ptr); }
 
-	UCodeLangForceinline const UserMadeContext& Get_UserMadeContext(){return _UserMadeContext;}
-	UCodeLangForceinline void Set_UserMadeContext(UserMadeContext Context){_UserMadeContext = Context;}
+	UCodeLangForceinline const UserMadeContext& Get_UserMadeContext() { return _UserMadeContext; }
+	UCodeLangForceinline void Set_UserMadeContext(UserMadeContext Context) { _UserMadeContext = Context; }
 	UCodeLangForceinline auto Get_State() { return _State; }
 	bool CheckIfFunctionExist(const String& FunctionName);
+
+	template<typename T> T Get_Return()
+	{
+		T r;
+		Get_Return(&r, sizeof(T));
+		return r;
+	}
+	void Get_Return(void* Output, size_t OutputSize);
 private:
 	
 	struct CPUReturn_t

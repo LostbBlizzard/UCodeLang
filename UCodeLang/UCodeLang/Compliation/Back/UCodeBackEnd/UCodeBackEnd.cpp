@@ -396,7 +396,7 @@ void UCodeBackEndObject::GetOperandInRegister(const IROperand& operand, Register
 
 	if (R != id)
 	{
-		GenInsPush(InstructionBuilder::StoreRegToReg8(_Ins, R, id));
+		GenInsPush(InstructionBuilder::StoreRegToReg64(_Ins, R, id));//Tem Fix for now
 	}
 }
 

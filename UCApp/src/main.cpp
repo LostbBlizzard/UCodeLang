@@ -86,16 +86,12 @@ int main()
 
 		
 		RunTime.Init(&State);
-		//RunTime.PushParameters("Hello", 3);
+		
+		auto r = RunTime.retCall<int*>("main");
+ 		
+		
 
-		auto r = RunTime.Call("main");
- 		if (r._Succeed == UCodeLang::Interpreter::RetState::Error || r._Succeed == UCodeLang::Interpreter::RetState::Error_Function_doesnt_exist)
-		{
-			std::cout << "Calling Main Got us an Error" << std::endl;
-		}
-		auto V = r.ReturnValue.Value.AsAddress;
-
-		std::cout << " Got Value " << (void*)V << std::endl;
+		std::cout << " Got Value " << (void*)r << std::endl;
 
 		RunTime.Call(StaticVariablesUnLoadFunc);
 
