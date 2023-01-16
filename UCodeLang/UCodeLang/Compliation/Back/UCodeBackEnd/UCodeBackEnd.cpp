@@ -264,13 +264,11 @@ void UCodeBackEndObject::BuildFunc()
 			
 
 			auto TypeSize = Analysis->GetTypeSize(ParSymbol.VarType);
-			if (TypeSize < RegisterSize && ParameterRegisterValue != RegisterID::EndParameterRegister)
+			if (TypeSize <= RegisterSize && ParameterRegisterValue < RegisterID::EndParameterRegister)
 			{
-				RegisterID ParInRegister = ParameterRegisterValue;
-				(*(RegisterID_t*)&ParameterRegisterValue)++;
-
 				Data.Type = BuildData_t::ParameterInRegister;
-				Data.offset = (RegisterID_t)ParInRegister;
+				Data.offset = (RegisterID_t)ParameterRegisterValue;
+				(*(RegisterID_t*)&ParameterRegisterValue)++;
 
 			}
 			else
@@ -282,13 +280,11 @@ void UCodeBackEndObject::BuildFunc()
 		case IROperator::PassParameter:
 		{
 			auto TypeSize = 0;
-			if (TypeSize < RegisterSize && CallParameterRegisterValue != RegisterID::EndParameterRegister)
+			if (TypeSize <= RegisterSize && CallParameterRegisterValue < RegisterID::EndParameterRegister)
 			{
-				RegisterID ParInRegister = CallParameterRegisterValue;
+
+				GetOperandInRegister(IR.Operand0, CallParameterRegisterValue);
 				(*(RegisterID_t*)&CallParameterRegisterValue)++;
-
-				GetOperandInRegister(IR.Operand0,ParInRegister);
-
 			}
 			else
 			{

@@ -30,20 +30,20 @@ void UCodeRunTime::UnLoad()
 		Item.UnLoad();
 	}
 }
-UCodeRunTime::Return_t UCodeRunTime::ThisCall(UAddress This, const String& FunctionName, parameters Pars)
+UCodeRunTime::Return_t UCodeRunTime::ThisCall(UAddress This, const String& FunctionName)
 {
-	return _MainInterpreter.ThisCall(This, FunctionName, Pars);
+	return _MainInterpreter.ThisCall(This, FunctionName);
 }
-UCodeRunTime::Return_t UCodeRunTime::ThisCall(UAddress This, UAddress address, parameters Pars)
+UCodeRunTime::Return_t UCodeRunTime::ThisCall(UAddress This, UAddress address)
 {
-	return _MainInterpreter.ThisCall(This,address, Pars);
+	return _MainInterpreter.ThisCall(This,address);
 }
-UCodeRunTime::Return_t UCodeRunTime::Call(const String& FunctionName, parameters Pars)
+UCodeRunTime::Return_t UCodeRunTime::Call(const String& FunctionName)
 {
-	return _MainInterpreter.Call(FunctionName, Pars);
+	return _MainInterpreter.Call(FunctionName);
 }
-UCodeRunTime::Return_t UCodeRunTime::Call(UAddress address, parameters Pars)
+UCodeRunTime::Return_t UCodeRunTime::Call(UAddress address)
 {
-	return _MainInterpreter.Call(address,Pars);
+	return _MainInterpreter.Call(address);
 }
 UCodeLangEnd

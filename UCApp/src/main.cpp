@@ -43,7 +43,7 @@ void Test(Jit_Interpreter::CPPInput Input)
 
 	Input.Set_Return();
 }
-static UCodeRunTime RunTime;
+static Interpreter RunTime;
 int main()
 {
 	//std::async(std::launch::async, [] { RunTests(); });
@@ -87,6 +87,8 @@ int main()
 
 		
 		RunTime.Init(&State);
+		RunTime.PushParameters("Hello", 3);
+
 		auto r = RunTime.Call("main");
  		if (r._Succeed == UCodeLang::Interpreter::RetState::Error || r._Succeed == UCodeLang::Interpreter::RetState::Error_Function_doesnt_exist)
 		{

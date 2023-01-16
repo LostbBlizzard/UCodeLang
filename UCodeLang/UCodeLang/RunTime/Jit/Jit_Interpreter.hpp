@@ -28,15 +28,15 @@ public:
 		return _Interpreter.Get_State();
 	}
 
-	Return_t ThisCall(UAddress This,const String& FunctionName, parameters Pars = NullParameters);
-	Return_t ThisCall(UAddress This, UAddress address, parameters Pars = NullParameters);
-	UCodeLangForceinline Return_t ThisCall(UAddress This, const ClassMethod& Function, parameters Pars = NullParameters)
+	Return_t ThisCall(UAddress This,const String& FunctionName);
+	Return_t ThisCall(UAddress This, UAddress address);
+	UCodeLangForceinline Return_t ThisCall(UAddress This, const ClassMethod& Function)
 	{
-		return ThisCall(This, Function.FullName, Pars);
+		return ThisCall(This, Function.FullName);
 	}
 
-	Return_t Call(const String& FunctionName, parameters Pars = NullParameters);
-	Return_t Call(UAddress address, parameters Pars = NullParameters);
+	Return_t Call(const String& FunctionName);
+	Return_t Call(UAddress address);
 private:
 	Interpreter _Interpreter;
 	NativeJitAssembler _Assembler;
@@ -62,7 +62,7 @@ private:
 	Vector<UInt8> TepOutBuffer;
 	static void OnUAddressCall(CPPInput Cpp)
 	{
-		UAddress V = Cpp.GetParameters<UAddress>();
+		//UAddress V = Cpp.GetParameters<UAddress>();
 		//Call(V);
 	}
 
@@ -72,7 +72,7 @@ private:
 
 		Cpp.Set_Return();
 	}
-	AnyInt64 Call_CPPFunc(JitFunc ToCall, parameters& Pars);
+	AnyInt64 Call_CPPFunc(JitFunc ToCall);
 	
 };
 

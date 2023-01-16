@@ -131,27 +131,6 @@ struct AnyInt64
 	
 	
 };
-struct parameters
-{
-	void* Data;
-	NSize_t Size;
-	constexpr parameters() :Data(nullptr), Size(0) {}
-	constexpr parameters(void* data, NSize_t size) : Data(data), Size(size) {}
-
-	template<typename T> UCodeLangForceinline static parameters As(const T& Value)
-	{
-		return  parameters((void*)&Value,sizeof(T));
-	}
-
-	template<typename T> UCodeLangForceinline static const T& From(const parameters& Value)
-	{
-		if (Value.Size != sizeof(T)) { throw std::exception("type mismatch"); }
-		//it not a really a type mismatch but you get what I mean. 
-
-		return  *(T*)Value.Data;
-	}
-};
-static constexpr parameters NullParameters = parameters(nullptr, 0);
 //MaxSize
 constexpr UInt8 UInt8_MinSize = 0x00;
 constexpr UInt8 UInt8_MaxSize = 0xff;
