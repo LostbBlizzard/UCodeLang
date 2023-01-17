@@ -391,8 +391,18 @@ class InterpreterCPPinterface
 {
 	friend Interpreter;
 
-
+	inline static thread_local void* GetParametersPointer = nullptr;
 public:	
+	void SetParametersPointer(void* V)
+	{
+		GetParametersPointer = V;
+	}
+
+	template<typename... Args>
+	void GetParametersIntoPointer()
+	{
+
+	}
 	
 
 	template<typename... Args> void GetParameters(Args&&... Out)

@@ -39,25 +39,25 @@ const UCodeLang::String StandardLibraryinit = StandardLibraryOut + "init/";
 
 struct MyStruct
 {
-	void Hi2(Int32 A)
+	void Hi2()
 	{
 
 	}
-	Int32 Hi()
+	Int32 Hi(void)
 	{
 		return 10;
 	}
 };
 
-void VoidTest(Int32 A)
+void VoidTest()
 {
 
 }
 
 
-Int32 Test(Int32 A)
+Int32 Test()
 {
-	return A;
+	return 0;
 }
 
 static UCodeRunTime RunTime;
@@ -88,16 +88,18 @@ int main()
 			out.close();
 		}
 
-
-	
+		
 		UCodeLang::RunTimeLib Lib;
 		Lib.Init(&MLib);
 
 		UCodeLang::RunTimeLib DLLib;
-		Lib.Add_CPPCall<'0'>("Test", &Test);
-		Lib.Add_CPPCall<'1'>("VoidTest", &VoidTest);
-		//Lib.Add_CPPCall("Hi2", &MyStruct::Hi);
-		//Lib.Add_CPPCall("Hi", &MyStruct::Hi2);
+		
+		
+		
+		Add_CppCall(Lib, &Test, "Test");
+		Add_CppCall(Lib, &VoidTest, "VoidTest");
+		Add_CppCall(Lib, &MyStruct::Hi, "Hi2");
+		Add_CppCall(Lib, &MyStruct::Hi2, "Hi");
 
 		UCodeLang::RunTimeLangState State;
 		State.AddLib(&Lib);
