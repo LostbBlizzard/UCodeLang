@@ -392,6 +392,8 @@ class InterpreterCPPinterface
 	friend Interpreter;
 
 	inline static thread_local void* GetParametersPointer = nullptr;
+	inline static thread_local RegisterID ParValue = RegisterID::StartParameterRegister;
+	inline static thread_local size_t ParStackOffset = 0;
 public:	
 	void SetParametersPointer(void* V)
 	{
@@ -428,11 +430,17 @@ public:
 		constexpr bool IsBigerRegister = sizeof(T) > sizeof(Interpreter::Register);
 		if (IsBigerRegister)
 		{
-			throw std::exception("not added yet");
+			ParStackOffset += sizeof(T);
+			auto r = *(T*)_Ptr->_CPU.Stack.GetTopOfStackWithoffset(ParStackOffset);
+
+			return r;
 		}
 		else
 		{
-			throw std::exception("not added yet");
+			auto r = *(T*)(&_Ptr->Get_Register(ParValue).Value);
+
+			(*(RegisterID_t*)&ParValue)++;
+			return r;
 		}
 	}
 

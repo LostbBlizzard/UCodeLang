@@ -43,9 +43,9 @@ struct MyStruct
 	{
 
 	}
-	Int32 Hi(void)
+	void Hi(Int32 A)
 	{
-		return 10;
+		
 	}
 };
 
@@ -111,8 +111,19 @@ int main()
 		
 		auto Pointer = 50;
 
+		Interpreter T;
+		T.Init(&State);
+		T.PushParameters(nullptr, 5);
+
+
+		auto grV = &T;
+
+
+		
+		auto V = State.FindCPPCall("Hi");
+		(*V)(  *(InterpreterCPPinterface*)&grV);
 		auto r =
-			RunTime.retCall<int>("main2",(Int32&)Pointer);
+			RunTime.retCall<int>("main",(Int32&)Pointer);
  		
 		
 
