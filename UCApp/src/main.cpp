@@ -37,27 +37,13 @@ const UCodeLang::String StandardLibraryinit = StandardLibraryOut + "init/";
 #define StandardLibrarynamespace "ULang"
 
 
-struct MyStruct
+void Test(int A)
 {
-	void Hi2()
-	{
-
-	}
-	void Hi(Int32 A)
-	{
-		
-	}
-};
-
-void VoidTest()
-{
-
+	std::cout << "DLLCall Got Value " << A << std::endl;
 }
-
-
-Int32 Test()
+static void UCodeLangAPI Invoke_Test(InterpreterCPPinterface& interpreter)
 {
-	return 0;
+	Test(interpreter.GetParameter<int>());
 }
 
 static UCodeRunTime RunTime;
@@ -95,12 +81,8 @@ int main()
 		UCodeLang::RunTimeLib DLLib;
 		
 		
-		
-		Add_CppCall(Lib, &Test, "Test");
-		Add_CppCall(Lib, &VoidTest, "VoidTest");
-		Add_CppCall(Lib, &MyStruct::Hi, "Hi2");
-		Add_CppCall(Lib, &MyStruct::Hi2, "Hi");
-
+		Lib.Add_CPPCall("DLLCall", Invoke_Test);
+		//Add_CppCall(Lib, &Test, "DLLCall");
 		UCodeLang::RunTimeLangState State;
 		State.AddLib(&Lib);
 		State.AddLib(&DLLib);
@@ -111,26 +93,12 @@ int main()
 		
 		auto Pointer = 50;
 
-		Interpreter T;
-		T.Init(&State);
-		T.PushParameters(nullptr, 5);
-
-
-		auto grV = &T;
-
-
 		
-		auto V = State.FindCPPCall("Hi");
-		(*V)(  *(InterpreterCPPinterface*)&grV);
-		auto r =
-			RunTime.retCall<int>("main",(Int32&)Pointer);
+		auto r =RunTime.Call("main");
  		
 		
 
-		std::cout << " Got Value " << r << std::endl;
-
-		RunTime.Call(StaticVariablesUnLoadFunc);
-
+		//std::cout << " Got Value " << r << std::endl;
 
 	}
 }

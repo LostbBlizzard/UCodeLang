@@ -30,6 +30,7 @@ enum class IROperator : UInt8
 	Malloc,
 	Free,
 	Func_Parameter,
+	DLLJump,
 	PassParameter,
 };
 
@@ -323,6 +324,15 @@ public:
 		V.Operator = IROperator::Ret;
 	}
 	
+
+	void Build_DLLJump(String_view FuncName)
+	{
+		Code.push_back({});
+		auto& V = Code.back();
+		V.Operator = IROperator::DLLJump;
+		V.Operand0.AnyValue.AsPtr = (void*)FuncName.data();
+		V.Operand1.AnyValue = FuncName.size();
+	}
 
 	void Reset() { Code.clear(); }
 

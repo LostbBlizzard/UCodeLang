@@ -1,5 +1,7 @@
-[DLL]|Main2[int a];
+[DLL]|DLLCall[int a];
 
 
-|main[int& Num] -> int:
- ret Num;
+|main[]:
+
+ DLLCall(5);
+

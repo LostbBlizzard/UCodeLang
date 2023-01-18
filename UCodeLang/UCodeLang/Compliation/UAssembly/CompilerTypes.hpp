@@ -82,6 +82,7 @@ enum class OpCodeType :OpCodeType_t
 
 	UIntPtr,
 	InsAddress,
+	StaticCString,
 };
 
 struct InsMapValue
@@ -131,6 +132,8 @@ static inline const unordered_map<String_view, InsMapValue> StringToInsMap =
 	AddMapValueValue(Malloc,InstructionSet::Malloc,OpCodeType::Register,OpCodeType::Register),
 	AddMapValueValue(Free,InstructionSet::Free,OpCodeType::Register,OpCodeType::NoOpCode),
 	AddMapValueValue(GetPointerOfStack,InstructionSet::GetPointerOfStack,OpCodeType::Register,OpCodeType::UIntPtr),
+
+	AddMapValueValue(CppCallNamed,InstructionSet::CppCallNamed,OpCodeType::StaticCString,OpCodeType::NoOpCode),
 };
 
 static inline unordered_map<InstructionSet, const InsMapValue*> InsToInsMapValue;

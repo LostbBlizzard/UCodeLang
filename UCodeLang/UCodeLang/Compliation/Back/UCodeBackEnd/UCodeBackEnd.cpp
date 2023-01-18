@@ -260,6 +260,19 @@ void UCodeBackEndObject::BuildFunc()
 			}
 		}
 		break;
+		case IROperator::DLLJump:
+		{
+			String_view FuncName = String_view(
+				(const char*)IR.Operand0.AnyValue.AsPtr,
+				IR.Operand1.AnyValue.AsUIntNative
+			);
+			auto offset = ULib.AddStaticBytes(FuncName);
+
+			GenInsPush(InstructionBuilder::CPPCall(offset, _Ins));
+
+			CallParameterRegisterValue = RegisterID::StartParameterRegister;
+		}
+		break;
 		case IROperator::Ret:goto EndLoop;
 		}
 	}

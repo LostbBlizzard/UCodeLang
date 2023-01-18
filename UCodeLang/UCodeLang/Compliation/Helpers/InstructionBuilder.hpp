@@ -231,11 +231,11 @@ public:
 		Out.Value0.AsAddress = addresstoReadFrom;
 		Out.Value1.AsUInt64 = NullUInt64;
 	}
-	UCodeLangForceinline static void CPPCall(UAddress StaticAddress, NSize_t ParsSize, Instruction& Out)
+	UCodeLangForceinline static void CPPCall(UAddress StaticAddress, Instruction& Out)
 	{
 		Out.OpCode = InstructionSet::CppCallNamed;
 		Out.Value0.AsAddress = StaticAddress;
-		Out.Value1.AsUInt64 = ParsSize;
+		Out.Value1.AsUInt64 = NullUInt64;
 	}
 
 	UCodeLangForceinline static void Jump(UAddress address, Instruction& Out)
