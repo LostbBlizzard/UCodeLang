@@ -43,7 +43,7 @@ void Test(int A)
 }
 static void UCodeLangAPI Invoke_Test(InterpreterCPPinterface& interpreter)
 {
-	Test(interpreter.GetParameter<int>());
+	Test(interpreter.GetParameter<int>()); interpreter.Set_Return();
 }
 
 static UCodeRunTime RunTime;
@@ -79,7 +79,6 @@ int main()
 		Lib.Init(&MLib);
 
 		UCodeLang::RunTimeLib DLLib;
-		
 		
 		Lib.Add_CPPCall("DLLCall", Invoke_Test);
 		//Add_CppCall(Lib, &Test, "DLLCall");

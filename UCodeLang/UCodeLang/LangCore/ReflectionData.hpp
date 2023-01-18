@@ -118,31 +118,31 @@ public:
 			return nullptr;
 		}
 
-		const ClassMethod* Get_ClassInit() const
+		const ClassMethod* Get_ClassInit(const String& ClassFullName) const
 		{
-			return Get_ClassMethod(ClassInitializefuncName);
+			return Get_ClassMethod(ClassFullName,ClassInitializefuncName);
 		}//This May be null.
-		const ClassMethod* Get_ClassCopy() const
+		const ClassMethod* Get_ClassCopy(const String& ClassFullName) const
 		{
-			return Get_ClassMethod(ClassCopyFunc);
-		}//This May be null.
-
-		const ClassMethod* Get_ClassMove() const
-		{
-			return Get_ClassMethod(ClassMoveFunc);
-		}//This May be null.
-		const ClassMethod* Get_ClassSwap() const
-		{
-			return Get_ClassMethod(ClassSwapFunc);
-		}//This May be null.
-		const ClassMethod* Get_ClassDestructor() const
-		{
-			return Get_ClassMethod(ClassDestructorFunc);
+			return Get_ClassMethod(ClassFullName,ClassCopyFunc);
 		}//This May be null.
 
-		const ClassMethod* Get_ClassMethod(const String& Name) const
+		const ClassMethod* Get_ClassMove(const String& ClassFullName) const
 		{
-			String TepString;
+			return Get_ClassMethod(ClassFullName,ClassMoveFunc);
+		}//This May be null.
+		const ClassMethod* Get_ClassSwap(const String& ClassFullName) const
+		{
+			return Get_ClassMethod(ClassFullName,ClassSwapFunc);
+		}//This May be null.
+		const ClassMethod* Get_ClassDestructor(const String& ClassFullName) const
+		{
+			return Get_ClassMethod(ClassFullName,ClassDestructorFunc);
+		}//This May be null.
+
+		const ClassMethod* Get_ClassMethod(const String& FullName,const String& Name) const
+		{
+			String TepString = FullName + ScopeHelper::_ScopeSep + Name;
 			for (auto& Item : Methods)
 			{
 				if (Item.FullName == Name)
