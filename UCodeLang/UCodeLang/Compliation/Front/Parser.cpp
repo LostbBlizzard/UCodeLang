@@ -108,6 +108,7 @@ void Parser::Parse(const FileData& Data, const Vector<Token>&Tokens)
 			_Tree._Nodes.push_back(V.Node);
 		}
 		else { break; }
+		if (V.GotNode != GotNodeType::Success) { break; }
 	}
 	_ParseSuccess= !_ErrorsOutput->Has_Errors();
 }
@@ -157,6 +158,7 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 			out._Nodes.push_back(V.Node);
 		}
 		else { break; }
+		if (V.GotNode != GotNodeType::Success) { break; }
 	}
 	EndLoop:
 	auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::EndTab);
@@ -246,6 +248,7 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 				output->_Nodes.push_back(V.Node);
 			}
 			else { break; }
+			if (V.GotNode != GotNodeType::Success) { break; }
 		}
 
 	EndLoop:
