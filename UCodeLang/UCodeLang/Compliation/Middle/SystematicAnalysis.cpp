@@ -1575,6 +1575,9 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 	case TokenType::KeyWorld_Char:
 		Out.SetType(TypesEnum::Char);
 		break;
+	case TokenType::Void:
+		Out.SetType(TypesEnum::Void);
+		break;
 	case TokenType::Name: 
 	{
 		Out._Type = TypesEnum::CustomType;
