@@ -81,13 +81,14 @@ public:
 		if (CheckIfFunctionExist(FunctionName))
 		{
 			PushParameter(This);
-			Call(FunctionName);
+			return Call(FunctionName);
 		}
+		return  Return_t(RetState::Error_Function_doesnt_exist);
 	}
 	Return_t ThisCall(UAddress This, UAddress address)
 	{
 		PushParameter(This);
-		Call(address);
+		return Call(address);
 	}
 	UCodeLangForceinline Return_t ThisCall(PtrType This, UAddress address)
 	{

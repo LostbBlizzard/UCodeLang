@@ -81,7 +81,7 @@ int main()
 		UCodeLang::RunTimeLib DLLib;
 		
 		Lib.Add_CPPCall("DLLCall", Invoke_Test);
-		//Add_CppCall(Lib, &Test, "DLLCall");
+		
 		UCodeLang::RunTimeLangState State;
 		State.AddLib(&Lib);
 		State.AddLib(&DLLib);
