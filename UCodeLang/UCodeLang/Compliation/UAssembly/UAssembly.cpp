@@ -92,12 +92,12 @@ String UAssembly::ToString(const UCodeLang::UClib* Lib)
 
 			if (MapData->Op_0 != OpCodeType::NoOpCode)
 			{
-				OpValueToString(MapData->Op_0,Item.Value0, AddressToName, r);
+				OpValueToString(MapData->Op_0,Item.Value0, AddressToName, r,Lib);
 			}
 			if (MapData->Op_1 != OpCodeType::NoOpCode)
 			{
 				r += ",";
-				OpValueToString(MapData->Op_1,Item.Value1, AddressToName, r);
+				OpValueToString(MapData->Op_1,Item.Value1, AddressToName, r, Lib);
 			}
 			
 		}
@@ -112,7 +112,7 @@ String UAssembly::ToString(const UCodeLang::UClib* Lib)
 
     return r;
 }
-void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In,const unordered_map<UAddress, String>& AddressToName, String& out)
+void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In,const unordered_map<UAddress, String>& AddressToName, String& out, const UCodeLang::UClib* Lib)
 {
 
 	switch (OpType)
@@ -137,6 +137,10 @@ void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In,const unord
 		break;
 	case OpCodeType::UIntPtr:
 		out += std::to_string(In.AsUInt64);
+		break;
+		
+	case OpCodeType::StaticCString:
+		out += "\"" + (String)(const char*)&Lib->Get_StaticBytes()[In.AsUIntNative] + "\"";
 		break;
 
 	case OpCodeType::InsAddress:

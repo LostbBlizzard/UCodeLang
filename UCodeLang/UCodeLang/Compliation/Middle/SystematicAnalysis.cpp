@@ -403,8 +403,25 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			auto ParSybID = (SymbolID)&Item;
 			_Builder.Build_Parameter(ParSybID);
 		}
+
+		bool DLLCall = false;
+		for (auto& Item : _TepAttributes)
+		{
+			String AttType;
+			Item->ScopedName.GetScopedName(AttType);
+			if (AttType == "DLL")
+			{
+				DLLCall = true;
+				break;
+			}
+		}
+		if (!node.Body.has_value()&& DLLCall)
+		{
+			_Builder.Build_DLLJump(node.Signature.Name.AsStringView());
+		}
 	}
 
+	
 
 	if (node.Body.has_value() && !ignoreBody)
 	{
@@ -1240,8 +1257,15 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 		
 		for (auto& Item : node.Parameters._Nodes)
 		{
+			TypeSymbol V;
+			V.SetType(TypesEnum::uInt32);
+			LookingForTypes.push(V);
+			
 			OnExpressionTypeNode(Item);
+			
 			_Builder.Build_PassLastAsParameter();
+		
+			LookingForTypes.pop();
 		}
 
 		_Builder.Build_FuncCall(SybID);

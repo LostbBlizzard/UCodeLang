@@ -172,10 +172,9 @@ public:
 	template<typename... Args> void PushParameters(Args&&... parameters)
 	{
 		(
-		[&]
-		{
-		 PushParameter(parameters);
-		}(), ...);
+		
+		 PushParameter(parameters)
+		, ...);
 	}
 
 	template<typename T> UCodeLangForceinline void PushParameter(const T& Value)
@@ -394,30 +393,30 @@ class InterpreterCPPinterface
 	inline static thread_local void* GetParametersPointer = nullptr;
 	inline static thread_local RegisterID ParValue = RegisterID::StartParameterRegister;
 	inline static thread_local size_t ParStackOffset = 0;
+
+	void ParInfoReset()
+	{
+		ParValue = RegisterID::StartParameterRegister;
+		ParStackOffset = 0;
+	}
 public:	
 	void SetParametersPointer(void* V)
 	{
+		ParInfoReset();
 		GetParametersPointer = V;
 	}
 
-	template<typename... Args>
-	void GetParametersIntoPointer()
-	{
-
-	}
-	
-
 	template<typename... Args> void GetParameters(Args&&... Out)
 	{
-
-		(
-		[&]
-		{	
-				Out;
-				//GetParameter(Out);
-		}
-		, ...);
-
+		throw std::exception("");
+		//The Compiler does not like me.
+		
+		//uncomment this and remove the exception if the Compiler let you Compile it.
+		// else you have use GetParameter manually.
+		// 
+		// 
+		//(//GetParameter(Out)
+			//,...);
 	}
 
 
