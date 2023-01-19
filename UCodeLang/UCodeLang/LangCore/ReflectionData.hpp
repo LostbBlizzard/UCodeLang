@@ -145,7 +145,7 @@ public:
 			String TepString = FullName + ScopeHelper::_ScopeSep + Name;
 			for (auto& Item : Methods)
 			{
-				if (Item.FullName == Name)
+				if (Item.FullName == TepString)
 				{
 					return &Item;
 				}

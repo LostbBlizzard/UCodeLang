@@ -128,10 +128,15 @@ public:
 	{
 		_Data.AddLib(lib);
 	}
-	UCodeLangForceinline void Clears()
+	UCodeLangForceinline void ClearsLibs()
 	{
-		_Data.Clears();
+		_Data.ClearLibs();
 	}
+	UCodeLangForceinline void ClearRunTimeState()
+	{
+		_Data.ClearRunTimeState();
+	}
+
 	void LinkLibs();
 	UCodeLangForceinline UAddress FindAddress(const String& FunctionName)
 	{
