@@ -105,9 +105,9 @@ void SystematicAnalysis::OnNamespace(const NamespaceNode& node)
 }
 void SystematicAnalysis::OnAttributeNode(const AttributeNode& node)
 {
-	if (passtype == PassType::GetTypes) {
+	//if (passtype == PassType::GetTypes) {
 		_TepAttributes.push_back(&node);
-	}
+	//}
 }
 void SystematicAnalysis::OnNonAttributeable(size_t Line, size_t Pos)
 {
@@ -182,7 +182,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			: *_Lib.Get_Assembly().Find_Class(_Table._Scope.ThisScope);
 		_ClassStack.push(&Class);
 
-		if (passtype == PassType::GetTypes)
+		//if (passtype == PassType::GetTypes)
 		{
 			PushTepAttributesInTo(Class._Class.Attributes);
 		}
