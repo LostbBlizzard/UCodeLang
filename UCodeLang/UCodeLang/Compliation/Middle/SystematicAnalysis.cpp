@@ -1408,12 +1408,39 @@ String SystematicAnalysis::GetFuncAnonymousObjectFullName(const String& FullFunc
 }
 void SystematicAnalysis::GetTypesClass(ClassData& Class)
 {
+	Class._Class.Size = 0;
 	for (auto& node : Class._Class.Fields)
 	{
 		UAddress Size;
 		TypeSymbol Syb;
+	
+		auto& Str = node.FullNameType;
+		if (Str == "uint8"){Syb.SetType(TypesEnum::uInt8);}
+		else if (Str == "uint16"){ Syb.SetType(TypesEnum::uInt16); }
+		else if (Str == "uint32") { Syb.SetType(TypesEnum::uInt32); }
+		else if (Str == "uint64") { Syb.SetType(TypesEnum::uInt64); }
 		
-		//GetSize(GetSymbol(node.FullNameType, SymbolType::Type)->VarType, Size);
+		else if (Str == "sint8") { Syb.SetType(TypesEnum::sInt8); }
+		else if (Str == "sint16") { Syb.SetType(TypesEnum::sInt16); }
+		else if (Str == "sint32") { Syb.SetType(TypesEnum::sInt32); }
+		else if (Str == "sint64") { Syb.SetType(TypesEnum::sInt64); }
+
+		else if (Str == "bool") { Syb.SetType(TypesEnum::Bool); }
+		else if (Str == "char") { Syb.SetType(TypesEnum::Char); }
+
+		else if (Str == "uintptr") { Syb.SetType(TypesEnum::uIntPtr); }
+		else if (Str == "sintptr") { Syb.SetType(TypesEnum::sIntPtr); }
+		else
+		{
+			auto _Syb = GetSymbol(Str, SymbolType::Type);
+			Syb = _Syb->VarType;
+		}
+
+		node.offset = Class._Class.Size;
+		
+		GetSize(Syb, Size);
+	
+		Class._Class.Size += Size;
 	}
 }
 
