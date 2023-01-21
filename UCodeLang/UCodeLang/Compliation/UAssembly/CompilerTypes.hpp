@@ -108,7 +108,7 @@ AddMapValueValue(StoreRegToReg##bitsize, InstructionSet::StoreRegToReg##bitsize,
 AddMapValueValue(GetFromStack##bitsize, InstructionSet::GetFromStack##bitsize, OpCodeType::UIntPtr,OpCodeType::Register),\
 AddMapValueValue(GetFromStack##bitsize, InstructionSet::GetFromStack##bitsize, OpCodeType::UIntPtr,OpCodeType::Register),\
 
-static inline const unordered_map<String_view, InsMapValue> StringToInsMap =
+static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 {	
 	AddMapValueValue(Exit,InstructionSet::Exit,OpCodeType::AnyInt8,OpCodeType::NoOpCode),
 	AddMapValueValue(Ret,InstructionSet::Return,OpCodeType::NoOpCode,OpCodeType::NoOpCode),
@@ -136,7 +136,7 @@ static inline const unordered_map<String_view, InsMapValue> StringToInsMap =
 	AddMapValueValue(CppCallNamed,InstructionSet::CppCallNamed,OpCodeType::StaticCString,OpCodeType::NoOpCode),
 };
 
-static inline unordered_map<InstructionSet, const InsMapValue*> InsToInsMapValue;
+static inline Unordered_map<InstructionSet, const InsMapValue*> InsToInsMapValue;
 inline void SetUp()
 {
 	for (auto& Item : StringToInsMap)

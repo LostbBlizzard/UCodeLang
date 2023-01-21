@@ -66,8 +66,8 @@ public:
 		StaticBytes.clear();
 	}
 private:
-	unordered_map<String, UAddress> _NameToAddress;
-	unordered_map<String, RunTimeLib::CPPCallBack> _NameToCPP;
+	Unordered_map<String, UAddress> _NameToAddress;
+	Unordered_map<String, RunTimeLib::CPPCallBack> _NameToCPP;
 	Vector<Instruction> _Instructions;
 	Vector<RunTimeLib*> Libs;
 	Vector <UInt8> StaticBytes;

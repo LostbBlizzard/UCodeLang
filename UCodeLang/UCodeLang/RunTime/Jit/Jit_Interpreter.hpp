@@ -171,7 +171,7 @@ private:
 			JitFunc Func = nullptr;
 		};
 	};
-	unordered_map<UAddress, JitFuncData> UFuncToCPPFunc;
+	Unordered_map<UAddress, JitFuncData> UFuncToCPPFunc;
 	Vector<UInt8> TepOutBuffer;
 	static void OnUAddressCall(CPPInput Cpp)
 	{

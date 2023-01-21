@@ -61,7 +61,7 @@ private:
 		BuildData_t Type = BuildData_t::Null;
 	};
 
-	unordered_map<SymbolID, BuildData> SymbolToData;
+	Unordered_map<SymbolID, BuildData> SymbolToData;
 	
 	struct CallInfo
 	{
@@ -73,7 +73,7 @@ private:
 	{
 		size_t FuncAddress = 0;
 	};
-	unordered_map<SymbolID, DeclareCall> DeclareCalls;
+	Unordered_map<SymbolID, DeclareCall> DeclareCalls;
 };
 class UCodeBackEnd
 {

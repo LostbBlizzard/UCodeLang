@@ -18,9 +18,20 @@ using float64 = UCodeLang::float64;
 
 using String = UCodeLang::String;
 using StringView = UCodeLang::String_view;
+using Path = UCodeLang::Path;
+
+template<typename T> using Unique_ptr = UCodeLang::Unique_ptr<T>;
+template<typename T> using Unique_Array = UCodeLang::Unique_ptr<T[]>;
+
+template<typename T> using Shared_ptr = UCodeLang::Shared_ptr<T>;
+template<typename T> using Weak_ptr = UCodeLang::Weak_ptr<T>;
 
 
+template<typename T> using Optional = UCodeLang::Optional<T>;
 template<typename T> using Vector = UCodeLang::Vector<T>;
-template<typename T, typename T2> using unordered_map = UCodeLang::unordered_map<T, T2>;
+template<typename T> using Stack = UCodeLang::Stack<T>;
+template<typename T, typename T2> using Unordered_map = UCodeLang::Unordered_map<T, T2>;
+
+template<typename T, size_t Size> using Array = UCodeLang::Array<T, Size>;
 
 UCodeAnalyzerEnd

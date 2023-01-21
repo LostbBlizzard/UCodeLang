@@ -119,7 +119,10 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 	NextToken();
 
 	auto ScopeResolutionToken = TryGetToken(); TokenNotNullCheck(ScopeResolutionToken);
-	out.NamespaceName.ScopedName.push_back(NamespaceToken);
+	ScopedName V;
+	V.Token = NamespaceToken;
+	
+	out.NamespaceName.ScopedName.push_back(std::move(V));
 	if (ScopeResolutionToken->Type == TokenType::ScopeResolution)
 	{
 		NextToken();
@@ -876,11 +879,14 @@ GotNodeType Parser::GetName(ScopedNameNode& out)
 {
 	while (true)
 	{
+		ScopedName V;
 		auto NameToken = TryGetToken();
 
 		TokenTypeCheck(NameToken, TokenType::Name);
 
-		out.ScopedName.push_back(NameToken);
+		V.Token = NameToken;
+
+		out.ScopedName.push_back(std::move(V));
 		NextToken();
 
 

@@ -159,7 +159,7 @@ public:
 	Vector<Method> Methods;
 	Vector<Attribute> attributes;
 	Vector<Generic> GenericTypes;
-	Vector<UCodeNode*> _Nodes;
+	Vector<Unique_ptr<UCodeNode>> _Nodes;
 
 	
 	Attribute& AddAttribute(const String& Name)
@@ -270,7 +270,7 @@ class NamespaceNode
 public:
 	String Name;
 
-	Vector<UCodeNode*> _Nodes;
+	Vector<Unique_ptr<UCodeNode>> _Nodes;
 	NamespaceNode()
 	{
 
@@ -299,6 +299,14 @@ public:
 	UseingStatement	Useings;
 	//};
 	
+	UCodeNode()
+	{
+
+	}
+	~UCodeNode()
+	{
+
+	}
 	
 	static UCodeLangForceinline void MakeNamesSpace(UCodeNode& nullNode, const String& Name)
 	{

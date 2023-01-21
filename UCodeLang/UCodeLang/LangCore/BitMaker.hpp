@@ -263,18 +263,18 @@ public:
 		_BitOffset += sizeof(float64);
 	}
 	//
-	void ReadCStringMustUseDelete(char*& Out)//Out Beter be a nullptr
+	Unique_Array<char> ReadCString()
 	{
 		SizeAsBits StrSize;
 		ReadType<SizeAsBits>(StrSize, 0);
 		size_t Size = StrSize;
 
-		Out = new char[Size];
+		auto Out =std::make_unique<char[]>(Size);
 		for (size_t i = 0; i < Size; i++)
 		{
 			ReadType(Out[i]);
 		}
-
+		return Out;
 	}
 	template<> void ReadType(String& Out)
 	{

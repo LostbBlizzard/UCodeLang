@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <optional>
 #include <array>
+#include <memory>
 UCodeLangStart
 
 
@@ -37,6 +38,8 @@ using UIntNative = UInt32;
 using PtrType = void*;
 using NSize_t = UIntNative;
 
+using Byte = UInt8;
+
 //A int that can Address any ULang Value
 using UAddress = UIntNative;
 constexpr UAddress NullAddress = (UAddress)-1;
@@ -48,10 +51,20 @@ using String = std::string;
 using String_view = std::string_view;
 using Path = std::filesystem::path;
 
+
+
+
+template<typename T> using Unique_ptr = std::unique_ptr<T>;
+template<typename T> using Unique_Array = std::unique_ptr<T[]>;
+
+template<typename T> using Shared_ptr = std::shared_ptr<T>;
+template<typename T> using Weak_ptr = std::weak_ptr<T>;
+
+
 template<typename T> using Optional = std::optional<T>;
 template<typename T> using Vector = std::vector<T>;
 template<typename T> using Stack = std::stack<T>;
-template<typename T, typename T2> using unordered_map = std::unordered_map<T, T2>;
+template<typename T, typename T2> using Unordered_map = std::unordered_map<T, T2>;
 
 template<typename T,size_t Size> using Array = std::array<T, Size>;
 
