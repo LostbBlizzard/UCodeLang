@@ -208,6 +208,6 @@ public:
 
 		
 private:
-	unordered_map<SymbolID,size_t> IDToSymbols;
+	Unordered_map<SymbolID,size_t> IDToSymbols;
 };
 UCodeLangEnd

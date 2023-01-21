@@ -18,7 +18,9 @@ public:
 
 
 	bool Analyze(const FileNode& File);
-	bool Analyze(const Vector<FileNode*>& Files, const Vector<UClib*>& Libs);
+	bool Analyze(const Vector<const FileNode*>& Files, const Vector<const UClib*>& Libs);
+
+	bool Analyze(const Vector<Unique_ptr<FileNode>>& Files, const Vector<Unique_ptr<UClib>>& Libs);
 
 	void BuildCode();
 
@@ -50,8 +52,8 @@ private:
 
 	PassType passtype = PassType::Null;
 
-	const Vector<FileNode*>* _Files = nullptr;
-	const Vector<UClib*>* _Libs = nullptr;
+	const Vector<const FileNode*>* _Files = nullptr;
+	const Vector<const UClib*>* _Libs = nullptr;
 	SymbolTable _Table;
 	Stack<ClassData*> _ClassStack;
 	Vector<const AttributeNode*> _TepAttributes;
@@ -71,7 +73,7 @@ private:
 	//
 
 	void Pass();
-	void OnFileNode(UCodeLang::FileNode* const& File);
+	void OnFileNode(const UCodeLang::FileNode* const& File);
 	void OnClassNode(const ClassNode& node);
 	void OnAliasNode(const AliasNode& node);
 	void OnUseingNode(const UsingNode& node);
@@ -156,7 +158,7 @@ private:
 
 	void GenericTypeInstantiate(Symbol* Class , const Vector<TypeSymbol>& Type);
 
-	unordered_map<const FuncCallNode*, SymbolID> FuncToSyboID;
+	Unordered_map<const FuncCallNode*, SymbolID> FuncToSyboID;
 
 	void Build_Assign_uIntPtr(UAddress Value)
 	{

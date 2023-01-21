@@ -163,13 +163,13 @@ public:
 		_StaticBytes.push_back('\0');
 		return A;
 	}
-	UCodeLangForceinline UAddress AddStaticBytes(unsigned char Byte)
+	UCodeLangForceinline UAddress AddStaticBytes(Byte Byte)
 	{
 		UAddress A = _StaticBytes.size();
 		_StaticBytes.push_back(Byte);
 		return A;
 	}
-	inline UAddress AddStaticBytes(unsigned char Byte, size_t Size)
+	inline UAddress AddStaticBytes(Byte Byte, size_t Size)
 	{
 		UAddress A = _StaticBytes.size();
 		for (size_t i = 0; i < Size; i++)
@@ -178,7 +178,7 @@ public:
 		}
 		return A;
 	}
-	inline UAddress AddStaticBytes(const unsigned char* Bits, size_t Size)
+	inline UAddress AddStaticBytes(const Byte* Bits, size_t Size)
 	{
 		UAddress A = (UAddress)_StaticBytes.size();
 		for (size_t i = 0; i < Size; i++)
@@ -188,7 +188,7 @@ public:
 		return A;
 	}
 
-	inline UAddress AddDebugBytes(const unsigned char* Bits,size_t Size)
+	inline UAddress AddDebugBytes(const Byte* Bits,size_t Size)
 	{
 		UAddress A = (UAddress)_DebugBytes.size();
 		for (size_t i = 0; i < Size; i++)
@@ -211,7 +211,7 @@ public:
 		_DebugBytes.push_back('\0');
 		return A;
 	}
-	UCodeLangForceinline  UAddress AddDebugBytes(unsigned char Byte)
+	UCodeLangForceinline  UAddress AddDebugBytes(Byte Byte)
 	{
 		UAddress A = (UAddress)_DebugBytes.size();
 		_DebugBytes.push_back(Byte);
@@ -227,7 +227,7 @@ public:
 		{
 			
 		}
-		unsigned char* Bytes;
+		Byte* Bytes;
 		size_t Size;
 	};
 	UCodeLangForceinline static void Free(const LibRawBytes& bits)
@@ -253,12 +253,12 @@ public:
 	}
 private:
 	Endian LibEndianess;
-	Vector<unsigned char> _StaticBytes;
+	Vector<Byte> _StaticBytes;
 
 	Vector<Instruction> _Instructions;
-	unordered_map<String, UAddress> _NameToPtr;
+	Unordered_map<String, UAddress> _NameToPtr;
 	//Debug
-	Vector<unsigned char> _DebugBytes;
+	Vector<Byte> _DebugBytes;
 	//
 	ClassAssembly _Assembly;
 };

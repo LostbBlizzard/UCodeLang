@@ -15,12 +15,28 @@ void SystematicAnalysis::Reset()
 
 bool SystematicAnalysis::Analyze(const FileNode& File)
 {
-	Vector< UClib*> Libs;
-	Vector<FileNode*> files;
-	files.push_back((FileNode*)&File);//shh
+	Vector<const UClib*> Libs;
+	Vector<const FileNode*> files;
+	files.push_back(&File);
 	return Analyze(files, Libs);
 }
-bool SystematicAnalysis::Analyze(const Vector<FileNode*>& Files, const Vector<UClib*>& Libs)
+bool SystematicAnalysis::Analyze(const Vector<Unique_ptr<FileNode>>& Files, const Vector<Unique_ptr<UClib>>& Libs)
+{
+	Vector<const UClib*> libs;
+	Vector<const FileNode*> files;
+
+	for (auto& Item : Files)
+	{
+		files.push_back(Item.get());
+	}
+	for (auto& Item : Libs)
+	{
+		libs.push_back(Item.get());
+	}
+
+	return Analyze(files,libs);
+}
+bool SystematicAnalysis::Analyze(const Vector<const FileNode*>& Files, const Vector<const UClib*>& Libs)
 {
 
 
@@ -119,7 +135,7 @@ void SystematicAnalysis::OnNonAttributeable(size_t Line, size_t Pos)
 		}
 	}
 }
-void SystematicAnalysis::OnFileNode(UCodeLang::FileNode* const& File)
+void SystematicAnalysis::OnFileNode(const UCodeLang::FileNode* const& File)
 {
 	for (auto node : File->_Nodes)
 	{
@@ -247,7 +263,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 }
 void SystematicAnalysis::OnUseingNode(const UsingNode& node)
 {
-	auto T = node.ScopedName.ScopedName[0];
+	auto T = node.ScopedName.ScopedName[0].Token;
 	OnNonAttributeable(T->OnLine, T->OnPos);
 	const auto UseingString =GetScopedNameAsString(node.ScopedName);
 	_Table.AddUseing(UseingString);
@@ -560,10 +576,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 String SystematicAnalysis::GetScopedNameAsString(const ScopedNameNode& node)
 {
 	String Text;
-	for (const auto& Item : node.ScopedName)
-	{
-		Text += Item->Value._String;
-	}
+	node.GetScopedName(Text);
 	return Text;
 }
 void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
@@ -920,7 +933,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 			auto Str = GetScopedNameAsString(nod->VariableName);
 
 			auto Symbol = GetSymbol(Str, SymbolType::Varable_t);
-			auto Token = nod->VariableName.ScopedName[0];
+			auto Token = nod->VariableName.ScopedName[0].Token;
 
 			auto Info = LogTryReadVar(Str, Token, Symbol);
 			if (Info.CantFindVar)
@@ -1221,8 +1234,8 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 
 			auto TypeToSwap = GetSymbol((String)FuncName + ScopeHelper::_ScopeSep + "T", SymbolType::Type)->VarType;
 
-			Vector<TypeSymbol>* TypesToChange =new Vector<TypeSymbol>();//Symbol ID is from Ptr
-			Vector<TypeSymbol>* TypeToHave = new Vector<TypeSymbol>();
+			auto TypesToChange =std::make_unique<Vector<TypeSymbol>>();//Symbol ID is from Ptr
+			auto TypeToHave = std::make_unique<Vector<TypeSymbol>>();
 			TypesToChange->push_back(TypeToSwap);
 			TypeToHave->push_back(Type);
 
@@ -1235,8 +1248,6 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 			}
 			FuncSyb = GenerisESyb->ID;
 			LastExpressionType = GenerisESyb->VarType;
-			delete  TypesToChange;
-			delete TypeToHave;
 		}
 		else 
 		{
@@ -1620,15 +1631,13 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 
 			auto TypeToSwap = GetSymbol((String)Name + ScopeHelper::_ScopeSep + "T", SymbolType::Type)->VarType;
 
-			Vector<TypeSymbol>* TypesToChange =new Vector<TypeSymbol>();//Symbol ID is from Ptr
-			Vector<TypeSymbol>* TypeToHave = new Vector<TypeSymbol>();
+			auto TypesToChange =std::make_unique<Vector<TypeSymbol>>();//Symbol ID is from Ptr
+			auto TypeToHave = std::make_unique<Vector<TypeSymbol>>();
 			TypesToChange->push_back(TypeToSwap);
 			TypeToHave->push_back(Type);
 
 			GenericTypeInstantiate(SybV, *TypeToHave);
 
-			delete TypesToChange;
-			delete TypeToHave;
 		}
 		else
 		{

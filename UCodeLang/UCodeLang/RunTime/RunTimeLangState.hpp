@@ -41,8 +41,8 @@ private:
 		bool IsfakePtr;
 		NSize_t Size;
 	};
-	unordered_map<PtrType, MemData> _Data;
-	unordered_map<PtrType, MemData> _ReservedData;
+	Unordered_map<PtrType, MemData> _Data;
+	Unordered_map<PtrType, MemData> _ReservedData;
 	Vector<void*> Tep_Values;
 	PtrType FindReservedPtr(NSize_t Size);
 };

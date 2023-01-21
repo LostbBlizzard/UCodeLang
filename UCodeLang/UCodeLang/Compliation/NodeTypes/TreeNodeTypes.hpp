@@ -60,6 +60,38 @@ struct NameNode :Node
 		return Token->Value._String;
 	}
 };
+
+
+struct GenericValuesNode;
+
+struct ScopedName
+{
+	enum class Operator_t :UInt8
+	{
+		Null,
+		ScopeResolution,// (::)
+		Dot,// (.)
+		IndirectMember,// (->)
+	};
+
+
+	
+	const Token* Token = nullptr;
+	Operator_t Operator = Operator_t::Null;
+	Unique_ptr<GenericValuesNode> Generic;//C++ doesn't like circular dependencies
+
+	inline void GetScopedName(String& out) const
+	{
+		Token::PushString(out, *Token);
+	}
+
+	
+	GenericValuesNode& Get_Generic()
+	{
+		return *Generic.get();
+	}
+};
+
 struct ScopedNameNode :Node
 {
 	ScopedNameNode() : Node(NodeType::ScopedNameNode)
@@ -68,19 +100,33 @@ struct ScopedNameNode :Node
 	}
 	AddforNode(ScopedNameNode);
 
-	Vector<const Token*> ScopedName;
+	Vector<ScopedName> ScopedName;
 
 	inline void GetScopedName(String& out) const
 	{
 		for (size_t i = 0; i < ScopedName.size(); i++)
 		{
-			auto item = ScopedName[i];
+			auto& item = ScopedName[i];
 
 			if (i != ScopedName.size() - 1)
 			{
-				out += ScopeHelper::_ScopeSep;
+				switch (item.Operator)
+				{
+				case ScopedName::Operator_t::ScopeResolution:
+					out += ScopeHelper::_ScopeSep;
+					break;
+				case ScopedName::Operator_t::Dot:
+					out += ".";
+					break;
+				case ScopedName::Operator_t::IndirectMember:
+					out += "->";
+					break;
+				default:
+					throw std::exception();
+					break;
+				}
 			}
-			out += item->Value._String;
+			item.GetScopedName(out);
 		}
 	}
 };

@@ -1,11 +1,11 @@
-$Hello:
- int X;
- int Y;
-
-[DLL]|DLLCall[int a];
-
+%UCode:
+ $Vec2:
+  int X;
+  int Y;
 
 |main[]:
-
- DLLCall(5);
+ use UCode; 
+ Vec2 Obj;
+ Obj.X = 0;
+ 
 
