@@ -41,6 +41,7 @@ enum class TokenType : TokenType_t
 	RightArrow,//->
 	RightAssignArrow,//=>
 	HardRightArrow,//->>
+	OptionalDot,//?.
 
 	Void,//void
 	Comma,//,
@@ -52,6 +53,7 @@ enum class TokenType : TokenType_t
 	KeyWorld_var,//var
 
 	Not,//!
+	QuestionMark,//?
 	equal_Comparison,//==
 	Notequal_Comparison,//!=
 	greaterthan,//>
