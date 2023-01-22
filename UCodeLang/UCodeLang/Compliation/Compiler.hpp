@@ -22,9 +22,9 @@ public:
 	};
 	struct CompilerPathData
 	{
-		Path FileDir;
-		Path IntDir;
-		Path OutFile;
+		String FileDir;
+		String IntDir;
+		String OutFile;
 	};
 	
 	

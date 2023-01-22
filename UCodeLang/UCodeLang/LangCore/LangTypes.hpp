@@ -207,6 +207,10 @@ struct BytesView
 	{
 
 	}
+	BytesView(Byte* ptr,size_t size) :Bytes(ptr), Size(size)
+	{
+
+	}
 	Byte* Bytes;
 	size_t Size;
 };
