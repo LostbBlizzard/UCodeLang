@@ -2,7 +2,7 @@
 #include "UCodeLang/Compliation/UAssembly/UAssembly.hpp"
 #include <fstream>
 #include <iostream>
-#include "main.h"
+#include "Tests/Test.hpp"
 #include <future>
 
 #include "UCodeAnalyzer/TextBuilder/UCodeTextBuilder.hpp"
@@ -49,7 +49,8 @@ static void UCodeLangAPI Invoke_Test(InterpreterCPPinterface& interpreter)
 static UCodeRunTime RunTime;
 int main()
 {
-	RunTests();
+	
+	ULangTest::RunTests();
 	
 	
 	UCodeLang::Compiler _Compiler;
@@ -61,7 +62,7 @@ int main()
 	Data.OutFile = OutFilePath;
 	Settings._Flags = OptimizationFlags::Debug;
 	_Compiler.CompileFiles(Data);
-	if (!LogErrors(_Compiler))
+	if (!ULangTest::LogErrors(std::cout,_Compiler))
 	{
 		UCodeLang::UClib MLib;
 		if (UClib::FromFile(&MLib, Data.OutFile))
@@ -99,23 +100,4 @@ int main()
 		//std::cout << " Got Value " << r << std::endl;
 
 	}
-}
-
-void CompileTests()
-{
-	const UCodeLang::String Output = TopDir + "Output/";
-	UCodeLang::Compiler _Compiler;
-	UCodeLang::CompliationSettings& Settings = _Compiler.Get_Settings();
-	UCodeLang::Compiler::CompilerPathData Data;
-	//Loop Dir for TestMain.Uc and make a test for it.
-}
-
-bool LogErrors(UCodeLang::Compiler& _Compiler)
-{
-	auto& Errors = _Compiler.Get_Errors().Get_Errors();
-	for (auto& Item : Errors)
-	{
-		std::cout << Item.ToString() << std::endl;
-	}
-	return _Compiler.Get_Errors().Has_Errors();
 }
