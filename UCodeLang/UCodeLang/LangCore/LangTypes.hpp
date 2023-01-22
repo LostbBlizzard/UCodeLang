@@ -189,6 +189,7 @@ public:
 	inline static const char* SourceFile = "uc";
 	inline static const char* Lib = "ulib";
 	inline static const char* Dll = "udll";
+	inline static const char* Object = "uo";
 
 	inline static const char* Asm = "ua";
 	inline static const char* AsmWithDot = ".ua";
@@ -196,6 +197,27 @@ public:
 	inline static const char* SourceFileWithDot = ".uc";
 	inline static const char* LibWithDot = ".ulib";
 	inline static const char* DllWithDot = ".udll";
+	inline static const char* ObjectWithDot = ".uo";
+};
+
+
+struct BytesView
+{
+	BytesView() :Bytes(nullptr), Size(0)
+	{
+
+	}
+	Byte* Bytes;
+	size_t Size;
+};
+struct BytesPtr
+{
+	BytesPtr() :Bytes(nullptr), Size(0)
+	{
+
+	}
+	Unique_Array<Byte> Bytes;
+	size_t Size;
 };
 
 UCodeLangEnd

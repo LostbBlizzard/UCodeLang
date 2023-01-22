@@ -65,9 +65,9 @@ using Size_tAsBits = int;
 const unsigned char UClibSignature[]= "Lost_blizzard_Ulib";
 constexpr size_t UClibSignature_Size = sizeof(UClibSignature);
 
-UClib::LibRawBytes UClib::ToRawBytes(const UClib* Lib)
+BytesPtr UClib::ToRawBytes(const UClib* Lib)
 {
-	LibRawBytes NewBits;
+	BytesPtr NewBits;
 	
 
 	size_t StaticBytesSize = Lib->_StaticBytes.size() * sizeof(unsigned char);
@@ -326,7 +326,7 @@ UClib::LibRawBytes UClib::ToRawBytes(const UClib* Lib)
 	}
 	return NewBits;
 }
-bool UClib::FromBytes(UClib* Lib, const LibRawBytes& Data)
+bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 {
 	auto Old = BitConverter::InputOutEndian;
 	BitConverter::InputOutEndian = Lib->LibEndianess;
@@ -538,12 +538,10 @@ bool UClib::ToFile(const UClib* Lib, const Path& path)
 	if (File.is_open())
 	{
 
-		LibRawBytes Bits = ToRawBytes(Lib);
+		BytesPtr Bits = ToRawBytes(Lib);
 
-		File.write((const char*)Bits.Bytes, Bits.Size);
+		File.write((const char*)Bits.Bytes.get(), Bits.Size);
 
-
-		Free(Bits);
 
 		File.close();
 		return true;
@@ -558,7 +556,7 @@ bool UClib::FromFile(UClib* Lib, const Path& path)
 	std::ifstream File(path, std::ios::binary);
 	if (File.is_open())
 	{
-		LibRawBytes Bits;
+		BytesPtr Bits;
 		File.seekg(0, File.end);
 		Bits.Size = File.tellg();
 		File.seekg(0, File.beg);
