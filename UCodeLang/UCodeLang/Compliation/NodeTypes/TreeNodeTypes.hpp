@@ -72,6 +72,7 @@ struct ScopedName
 		ScopeResolution,// (::)
 		Dot,// (.)
 		IndirectMember,// (->)
+		OptionalChain,
 	};
 
 
@@ -86,15 +87,7 @@ struct ScopedName
 	}
 	static bool Get_IsScoped(TokenType Type)
 	{
-		switch (Type)
-		{
-		case TokenType::RightArrow:
-		case TokenType::Dot:
-		case TokenType::ScopeResolution:
-			return true;
-		default:
-			return false;
-		}
+		return Get_Scoped(Type) != Operator_t::Null;
 	}
 	static Operator_t Get_Scoped(TokenType Type)
 	{
@@ -103,6 +96,7 @@ struct ScopedName
 		case TokenType::RightArrow:return Operator_t::IndirectMember;
 		case TokenType::Dot:return Operator_t::Dot;
 		case TokenType::ScopeResolution:return Operator_t::ScopeResolution;
+		case TokenType::OptionalDot:return Operator_t::OptionalChain;
 		default:return Operator_t::Null;
 		}
 	}

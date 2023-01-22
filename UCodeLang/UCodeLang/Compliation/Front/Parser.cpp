@@ -971,7 +971,8 @@ Parser::GetNameCheck_ret Parser::GetNameCheck(ScopedNameNode& out)
 		V.Generic = std::move(std::make_unique<UseGenericsNode>(std::move(Generic)));
 
 		bool MemAccess = V.Operator == ScopedName::Operator_t::Dot
-			|| V.Operator == ScopedName::Operator_t::IndirectMember;
+			|| V.Operator == ScopedName::Operator_t::IndirectMember
+			|| V.Operator == ScopedName::Operator_t::OptionalChain;
 
 		if (out.ScopedName.size())
 		{

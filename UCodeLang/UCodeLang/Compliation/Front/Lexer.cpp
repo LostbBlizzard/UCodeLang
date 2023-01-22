@@ -333,6 +333,22 @@ void Lexer::Lex(const String_view& Text)
 				_Nodes.push_back(_Token);
 			}
 			break;
+		case '?':
+			NextChar = GetNextChar(1);
+			if (NextChar == '.')
+			{
+				i++;
+				_Token.Type = TokenType::OptionalDot;
+				_Token.Value = nullptr;
+				_Nodes.push_back(_Token);
+			}
+			else
+			{
+				_Token.Type = TokenType::QuestionMark;
+				_Token.Value = nullptr;
+				_Nodes.push_back(_Token);
+			}
+			break;
 		case '=':
 			NextChar = GetNextChar(1);
 			if (NextChar == '=')
