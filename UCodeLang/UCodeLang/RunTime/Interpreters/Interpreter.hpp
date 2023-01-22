@@ -55,7 +55,7 @@ public:
 	};
 
 	Interpreter() {}
-	~Interpreter() {}
+	~Interpreter() { UnLoad(); }
 
 
 	void Init(RunTimeLangState* State)
@@ -68,7 +68,10 @@ public:
 	}
 	void UnLoad()
 	{
-		Free(_CPU.Stack._Data);
+		if (_CPU.Stack._Data) {
+			Free(_CPU.Stack._Data);
+			_CPU.Stack._Data = nullptr;
+		}
 	}
 
 	Return_t Call(const String& FunctionName);

@@ -89,7 +89,7 @@ void Parser::ParseOpRegister(AnyInt64& Out)
 	auto T = TryGetToken();
 	if (T == nullptr)
 	{
-		_ErrorsOutput->AddError(ErrorCodes::CantParseTree, T->OnLine, T->OnPos, "bad Token");
+		_ErrorsOutput->AddError(ErrorCodes::CantParseTree, 0, 0, "bad Token(no np)");
 		return;
 	}
 	if (T->Type != TokenType::Left_Bracket)

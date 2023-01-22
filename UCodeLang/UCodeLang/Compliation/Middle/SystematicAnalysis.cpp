@@ -101,17 +101,17 @@ void SystematicAnalysis::OnNamespace(const NamespaceNode& node)
 
 	const auto Namespace = GetScopedNameAsString(node.NamespaceName);
 	_Table.AddScope(Namespace);
-	for (auto node : node._Nodes)
+	for (auto& node : node._Nodes)
 	{
 		switch (node->Get_Type())
 		{
-		case NodeType::NamespaceNode:OnNamespace(*NamespaceNode::As(node)); break;
-		case NodeType::AttributeNode:OnAttributeNode(*AttributeNode::As(node)); break;
-		case NodeType::ClassNode: OnClassNode(*ClassNode::As(node)); break;
-		case NodeType::AliasNode:OnAliasNode(*AliasNode::As(node)); break;
-		case NodeType::EnumNode:OnEnum(*EnumNode::As(node)); break;
-		case NodeType::FuncNode:OnFuncNode(*FuncNode::As(node)); break;
-		case NodeType::UsingNode: OnUseingNode(*UsingNode::As(node)); break;
+		case NodeType::NamespaceNode:OnNamespace(*NamespaceNode::As(node.get())); break;
+		case NodeType::AttributeNode:OnAttributeNode(*AttributeNode::As(node.get())); break;
+		case NodeType::ClassNode: OnClassNode(*ClassNode::As(node.get())); break;
+		case NodeType::AliasNode:OnAliasNode(*AliasNode::As(node.get())); break;
+		case NodeType::EnumNode:OnEnum(*EnumNode::As(node.get())); break;
+		case NodeType::FuncNode:OnFuncNode(*FuncNode::As(node.get())); break;
+		case NodeType::UsingNode: OnUseingNode(*UsingNode::As(node.get())); break;
 		default:break;
 		}
 	}
@@ -137,17 +137,17 @@ void SystematicAnalysis::OnNonAttributeable(size_t Line, size_t Pos)
 }
 void SystematicAnalysis::OnFileNode(const UCodeLang::FileNode* const& File)
 {
-	for (auto node : File->_Nodes)
+	for (auto& node : File->_Nodes)
 	{
 		switch (node->Get_Type())
 		{
-		case NodeType::NamespaceNode:OnNamespace(*NamespaceNode::As(node)); break;
-		case NodeType::AttributeNode:OnAttributeNode(*AttributeNode::As(node)); break;
-		case NodeType::AliasNode:OnAliasNode(*AliasNode::As(node)); break;
-		case NodeType::ClassNode: OnClassNode(*ClassNode::As(node)); break;
-		case NodeType::EnumNode:OnEnum(*EnumNode::As(node)); break;
-		case NodeType::FuncNode:OnFuncNode(*FuncNode::As(node)); break;
-		case NodeType::UsingNode: OnUseingNode(*UsingNode::As(node)); break;
+		case NodeType::NamespaceNode:OnNamespace(*NamespaceNode::As(node.get())); break;
+		case NodeType::AttributeNode:OnAttributeNode(*AttributeNode::As(node.get())); break;
+		case NodeType::AliasNode:OnAliasNode(*AliasNode::As(node.get())); break;
+		case NodeType::ClassNode: OnClassNode(*ClassNode::As(node.get())); break;
+		case NodeType::EnumNode:OnEnum(*EnumNode::As(node.get())); break;
+		case NodeType::FuncNode:OnFuncNode(*FuncNode::As(node.get())); break;
+		case NodeType::UsingNode: OnUseingNode(*UsingNode::As(node.get())); break;
 		default:break;
 		}
 	}
@@ -209,13 +209,13 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 		{
 			switch (node->Get_Type())
 			{
-			case NodeType::AttributeNode:OnAttributeNode(*AttributeNode::As(node)); break;
-			case NodeType::ClassNode: OnClassNode(*ClassNode::As(node)); break;
-			case NodeType::AliasNode:OnAliasNode(*AliasNode::As(node)); break;
-			case NodeType::EnumNode:OnEnum(*EnumNode::As(node)); break;
-			case NodeType::UsingNode: OnUseingNode(*UsingNode::As(node)); break;
-			case NodeType::FuncNode:OnFuncNode(*FuncNode::As(node)); break;
-			case NodeType::DeclareVariableNode:OnDeclareVariablenode(*DeclareVariableNode::As(node)); break;
+			case NodeType::AttributeNode:OnAttributeNode(*AttributeNode::As(node.get())); break;
+			case NodeType::ClassNode: OnClassNode(*ClassNode::As(node.get())); break;
+			case NodeType::AliasNode:OnAliasNode(*AliasNode::As(node.get())); break;
+			case NodeType::EnumNode:OnEnum(*EnumNode::As(node.get())); break;
+			case NodeType::UsingNode: OnUseingNode(*UsingNode::As(node.get())); break;
+			case NodeType::FuncNode:OnFuncNode(*FuncNode::As(node.get())); break;
+			case NodeType::DeclareVariableNode:OnDeclareVariablenode(*DeclareVariableNode::As(node.get())); break;
 			default:break;
 			}
 		}
@@ -263,7 +263,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 }
 void SystematicAnalysis::OnUseingNode(const UsingNode& node)
 {
-	auto T = node.ScopedName.ScopedName[0].Token;
+	auto T = node.ScopedName.ScopedName[0].token;
 	OnNonAttributeable(T->OnLine, T->OnPos);
 	const auto UseingString =GetScopedNameAsString(node.ScopedName);
 	_Table.AddUseing(UseingString);
@@ -353,14 +353,14 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 		
 
-		auto RetType = node.Signature.ReturnType.node;
+		auto& RetType = node.Signature.ReturnType.node;
 		if (RetType && RetType->Get_Type() == NodeType::AnonymousTypeNode)
 		{
 			auto NewName = GetFuncAnonymousObjectFullName(FullName);
 			auto& Class = _Lib.Get_Assembly().AddClass(NewName, NewName);
 
 
-			AnonymousTypeNode* Typenode = AnonymousTypeNode::As(RetType);
+			AnonymousTypeNode* Typenode = AnonymousTypeNode::As(RetType.get());
 			for (auto& Item3 : Typenode->Fields.Parameters)
 			{
 				ClassField V;
@@ -450,20 +450,20 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		{
 			switch (node2->Get_Type())
 			{
-			case NodeType::AttributeNode:OnAttributeNode(*AttributeNode::As(node2)); break;
-			case NodeType::ClassNode: OnClassNode(*ClassNode::As(node2)); break;
-			case NodeType::EnumNode:OnEnum(*EnumNode::As(node2)); break;
-			case NodeType::UsingNode: OnUseingNode(*UsingNode::As(node2)); break;
-			case NodeType::DeclareVariableNode:OnDeclareVariablenode(*DeclareVariableNode::As(node2)); break;
-			case NodeType::AssignVariableNode:OnAssignVariableNode(*AssignVariableNode::As(node2)); break;
-			case NodeType::PostfixVariableNode:OnPostfixVariableNode(*PostfixVariableNode::As(node2)); break;
-			case NodeType::CompoundStatementNode:OnCompoundStatementNode(*CompoundStatementNode::As(node2)); break;
-			case NodeType::FuncCallStatementNode:OnFuncCallNode(FuncCallStatementNode::As(node2)->Base); break;
-			case NodeType::DropStatementNode:OnDropStatementNode(*DropStatementNode::As(node2)); break;
+			case NodeType::AttributeNode:OnAttributeNode(*AttributeNode::As(node2.get())); break;
+			case NodeType::ClassNode: OnClassNode(*ClassNode::As(node2.get())); break;
+			case NodeType::EnumNode:OnEnum(*EnumNode::As(node2.get())); break;
+			case NodeType::UsingNode: OnUseingNode(*UsingNode::As(node2.get())); break;
+			case NodeType::DeclareVariableNode:OnDeclareVariablenode(*DeclareVariableNode::As(node2.get())); break;
+			case NodeType::AssignVariableNode:OnAssignVariableNode(*AssignVariableNode::As(node2.get())); break;
+			case NodeType::PostfixVariableNode:OnPostfixVariableNode(*PostfixVariableNode::As(node2.get())); break;
+			case NodeType::CompoundStatementNode:OnCompoundStatementNode(*CompoundStatementNode::As(node2.get())); break;
+			case NodeType::FuncCallStatementNode:OnFuncCallNode(FuncCallStatementNode::As(node2.get())->Base); break;
+			case NodeType::DropStatementNode:OnDropStatementNode(*DropStatementNode::As(node2.get())); break;
 			case NodeType::RetStatementNode:
 				syb = &_Table.GetSymbol(sybId);
 
-				OnRetStatement(*RetStatementNode::As(node2));
+				OnRetStatement(*RetStatementNode::As(node2.get()));
 				HasARet = true;
 
 				if (passtype == PassType::FixedTypes && syb->VarType._Type == TypesEnum::Var)
@@ -534,11 +534,11 @@ void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 {
 	if (node.Expression.Value)
 	{
-		auto LookForT = Get_LookingForType();
+		auto& LookForT = Get_LookingForType();
 		LookForT.SetAsRawValue();
 
 		LookingForTypes.push(LookForT);
-		OnExpressionTypeNode(node.Expression.Value);
+		OnExpressionTypeNode(node.Expression.Value.get());
 
 		LookingForTypes.pop();
 	}
@@ -629,7 +629,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 
 	if (node.Expression.Value)
 	{
-		OnExpressionTypeNode(node.Expression.Value);
+		OnExpressionTypeNode(node.Expression.Value.get());
 	}
 
 	if (passtype == PassType::FixedTypes)
@@ -689,7 +689,7 @@ void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 		auto Symbol = GetSymbol(node.Name.AsStringView(), SymbolType::Varable_t);
 		LookingForTypes.push(Symbol->VarType);
 	}
-	OnExpressionTypeNode(node.Expression.Value);
+	OnExpressionTypeNode(node.Expression.Value.get());
 	if (passtype != PassType::GetTypes)
 	{
 		LookingForTypes.pop();
@@ -761,7 +761,7 @@ void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 }
 void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& node)
 {
-	OnExpressionTypeNode(node.Expession.Value);
+	OnExpressionTypeNode(node.Expession.Value.get());
 	
 	if (passtype == PassType::FixedTypes)
 	{
@@ -820,7 +820,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 		{
 		case NodeType::NumberliteralNode:
 		{
-			NumberliteralNode* num = NumberliteralNode::As(node.Value);
+			NumberliteralNode* num = NumberliteralNode::As(node.Value.get());
 #define Set_NumberliteralNodeU(x) \
 			UInt##x V; \
 			ParseHelper::ParseStringToUInt##x(Str, V); \
@@ -916,7 +916,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 		break;
 		case NodeType::BoolliteralNode:
 		{
-			BoolliteralNode* num = BoolliteralNode::As(node.Value);
+			BoolliteralNode* num = BoolliteralNode::As(node.Value.get());
 			if (passtype == PassType::BuidCode)
 			{
 				
@@ -929,11 +929,11 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 		break;
 		case NodeType::ReadVariableNode:
 		{
-			ReadVariableNode* nod = ReadVariableNode::As(node.Value);
+			ReadVariableNode* nod = ReadVariableNode::As(node.Value.get());
 			auto Str = GetScopedNameAsString(nod->VariableName);
 
 			auto Symbol = GetSymbol(Str, SymbolType::Varable_t);
-			auto Token = nod->VariableName.ScopedName[0].Token;
+			auto Token = nod->VariableName.ScopedName[0].token;
 
 			auto Info = LogTryReadVar(Str, Token, Symbol);
 			if (Info.CantFindVar)
@@ -981,12 +981,12 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 		break;
 		case NodeType::FuncCallNode:
 		{
-			OnFuncCallNode(*FuncCallNode::As(node.Value));//LastExpressionType was set by OnFuncCall
+			OnFuncCallNode(*FuncCallNode::As(node.Value.get()));//LastExpressionType was set by OnFuncCall
 		}
 		break;
 		case NodeType::SizeofExpresionNode:
 		{
-			SizeofExpresionNode* nod = SizeofExpresionNode::As(node.Value);
+			SizeofExpresionNode* nod = SizeofExpresionNode::As(node.Value.get());
 
 			auto& lookT = Get_LookingForType();
 			TypeSymbol Type;
@@ -1053,10 +1053,10 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 		break;
 		case NodeType::NewExpresionNode:
 		{
-			NewExpresionNode* nod = NewExpresionNode::As(node.Value);
+			NewExpresionNode* nod = NewExpresionNode::As(node.Value.get());
 			TypeSymbol Type;
 			Convert(nod->Type, Type);
-			bool IsArray = nod->Arrayexpression.Value;
+			bool IsArray = nod->Arrayexpression.Value.get();
 
 			
 
@@ -1076,7 +1076,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 					LookingForTypes.push(UintptrType);
 
 					
-					OnExpressionTypeNode(nod->Arrayexpression.Value);
+					OnExpressionTypeNode(nod->Arrayexpression.Value.get());
 					auto Ex0 = _LastExpressionField;
 
 					Build_Assign_uIntPtr(TypeSize);//UintptrSize is for the array length for Drop 
@@ -1121,7 +1121,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 					UintptrType.SetType(TypesEnum::uIntPtr);
 					LookingForTypes.push(UintptrType);
 
-					OnExpressionTypeNode(nod->Arrayexpression.Value);
+					OnExpressionTypeNode(nod->Arrayexpression.Value.get());
 					auto Ex1Type = LastExpressionType;
 					
 
@@ -1151,10 +1151,10 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 
 void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 {
-	OnExpressionTypeNode(node.Value1.Value);
+	OnExpressionTypeNode(node.Value1.Value.get());
 	auto Ex0 = _LastExpressionField;
 	auto Ex0Type = LastExpressionType;
-	OnExpressionTypeNode(node.Value0.Value);
+	OnExpressionTypeNode(node.Value0.Value.get());
 	auto Ex1 = _LastExpressionField;
 	auto Ex1Type = LastExpressionType;
 
@@ -1193,7 +1193,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 }
 void SystematicAnalysis::OnExpressionNode(const CastNode& node)
 {
-	OnExpressionTypeNode(node.Expression.Value);
+	OnExpressionTypeNode(node.Expression.Value.get());
 	auto Ex0 = _LastExpressionField;
 	auto Ex0Type = LastExpressionType;
 
@@ -1257,7 +1257,7 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 
 		for (auto& Item : node.Parameters._Nodes)
 		{
-			OnExpressionTypeNode(Item);
+			OnExpressionTypeNode(Item.get());
 		}
 
 		FuncToSyboID[&node] = FuncSyb;
@@ -1272,7 +1272,7 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 			V.SetType(TypesEnum::uInt32);
 			LookingForTypes.push(V);
 			
-			OnExpressionTypeNode(Item);
+			OnExpressionTypeNode(Item.get());
 			
 			_Builder.Build_PassLastAsParameter();
 		
@@ -1285,13 +1285,13 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 	{
 		for (auto& Item : node.Parameters._Nodes)
 		{
-			OnExpressionTypeNode(Item);
+			OnExpressionTypeNode(Item.get());
 		}
 	}
 }
 void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 {
-	OnExpressionTypeNode(node.expression.Value);
+	OnExpressionTypeNode(node.expression.Value.get());
 	auto Ex0 = _LastExpressionField;
 	auto Ex0Type = LastExpressionType;
 	if (passtype == PassType::FixedTypes)
@@ -1389,7 +1389,7 @@ void SystematicAnalysis::LoadLibSymbols(const UClib& lib)
 		
 	}
 
-	for (auto Item : lib.Get_Assembly().Classes)
+	for (auto& Item : lib.Get_Assembly().Classes)
 	{
 		switch (Item->Type)
 		{

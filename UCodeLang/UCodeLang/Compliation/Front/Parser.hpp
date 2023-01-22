@@ -72,64 +72,8 @@ private:
 	UCodeLangForceinline void NextToken() { _TokenIndex++; }
 	UCodeLangForceinline void NextToken(size_t offfset) { _TokenIndex += offfset; }
 	
-	inline static bool IsPostfixOperator(const Token* Token)
-	{
-		return Token->Type == TokenType::increment
-			|| Token->Type == TokenType::decrement;
-	}
-	inline static bool IsCompoundOperator(const Token* Token)
-	{
-		return Token->Type == TokenType::CompoundAdd
-			|| Token->Type == TokenType::CompoundSub
-			|| Token->Type == TokenType::CompoundMult
-			|| Token->Type == TokenType::CompoundDiv;
-	}
-	inline static bool IsUnaryOperator(const Token* Token)
-	{
-		return Token->Type == TokenType::plus
-			|| Token->Type == TokenType::minus
-			|| Token->Type == TokenType::KeyWorld_Sizeof
-		    || Token->Type == TokenType::KeyWorld_Nameof
-			|| Token->Type == TokenType::KeyWorld_typeof
-			|| Token->Type == TokenType::Not
-			|| Token->Type == TokenType::bitwise_not;
-	}
-	inline static bool IsOverLoadableOperator(const Token* Token)
-	{
-		return Token->Type == TokenType::equal_Comparison
-			|| Token->Type == TokenType::Notequal_Comparison
-			|| Token->Type == TokenType::greaterthan
-			|| Token->Type == TokenType::lessthan
-			|| Token->Type == TokenType::greater_than_or_equalto
-			|| Token->Type == TokenType::less_than_or_equalto;
-	}
-	inline static bool IsBinaryOperator(const Token* Token)
-	{
-		return Token->Type == TokenType::plus
-			|| Token->Type == TokenType::minus
-			|| Token->Type == TokenType::star
-			|| Token->Type == TokenType::forwardslash
-			|| Token->Type == TokenType::modulo
-			
-			|| Token->Type == TokenType::equal_Comparison
-			|| Token->Type == TokenType::Notequal_Comparison
-			|| Token->Type == TokenType::greaterthan
-			|| Token->Type == TokenType::lessthan
-			|| Token->Type == TokenType::greater_than_or_equalto
-			|| Token->Type == TokenType::less_than_or_equalto
-			
-			|| Token->Type == TokenType::logical_and
-			|| Token->Type == TokenType::logical_or
-			
-			|| Token->Type == TokenType::bitwise_and
-			|| Token->Type == TokenType::bitwise_or
-			|| Token->Type == TokenType::bitwise_LeftShift
-			|| Token->Type == TokenType::bitwise_RightShift
-			|| Token->Type == TokenType::bitwise_XOr
-			
-			|| Token->Type == TokenType::approximate_Comparison;
-			
-	}
+	
+
 	inline static GotNodeType Merge(GotNodeType A, GotNodeType B)
 	{
 		if (A == GotNodeType::Success && B == GotNodeType::Success)
@@ -197,6 +141,21 @@ private:
 	GotNodeType GetName(ScopedNameNode& out);
 	GotNodeType GetName(NameNode& out);
 	GotNodeType GetNameCheck(NameNode& out);
+
+
+	enum class NameCheck_t : UInt8
+	{
+		Null,
+		Name,
+		MemberAccess,
+	};
+	struct GetNameCheck_ret
+	{
+		NameCheck_t Type = NameCheck_t::Null;
+		GotNodeType Gotnode = GotNodeType::Null;
+	};
+	GetNameCheck_ret GetNameCheck(ScopedNameNode& out);
+
 	GotNodeType GetType(TypeNode& out,bool ignoreRighthandOFtype =false);
 	GotNodeType GetTypeWithVoid(TypeNode& out);
 	GotNodeType GetNumericType(TypeNode& out);
