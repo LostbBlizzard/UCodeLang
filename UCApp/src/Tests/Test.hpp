@@ -5,71 +5,77 @@
 #include <UCodeLang/LangCore/LangTypes.hpp>
 #include <filesystem>
 
-enum class SuccessCondition
+namespace ULangTest 
 {
-	Compilation,
-	CompilationFail,
-
-	RunTimeValue,
-};
-struct TestInfo
-{
-	const char* TestName;
-	std::string InputFilesOrDir;
-	std::string FuncToCall;
-	SuccessCondition Condition;
-	
-	
-	UCodeLang::Unique_Array<UCodeLang::Byte> RunTimeSuccess;
-	size_t RunTimeSuccessSize = 0;
-
-
-	
-	TestInfo(const char* TestName, const std::string InputFilesOrDir, std::string FuncToCall
-		, SuccessCondition Condition)
+	using namespace UCodeLang;
+	enum class SuccessCondition
 	{
-		this->TestName = TestName;
-		this->InputFilesOrDir = FuncToCall;
-		this->FuncToCall = FuncToCall;
-		this->Condition = Condition;
+		Compilation,
+		CompilationFail,
 
-	}
-
-
-	template<typename T>
-	TestInfo(const char* TestName, const std::string InputFilesOrDir, const std::string FuncToCall
-		, SuccessCondition Condition, const T& Value)
+		RunTimeValue,
+	};
+	struct TestInfo
 	{
-		this->TestName = TestName;
-		this->InputFilesOrDir = FuncToCall;
-		this->FuncToCall = FuncToCall;
-		this->Condition = Condition;
+		const char* TestName;
+	String	InputFilesOrDir;
+	String	FuncToCall;
+		SuccessCondition Condition;
 
-		RunTimeSuccessSize = sizeof(Value);
-		RunTimeSuccess = std::make_unique<Byte[]>(RunTimeSuccessSize);
 
-		memcpy(RunTimeSuccess.get(), &Value, RunTimeSuccessSize);
-	}
-};
+		Unique_Array<Byte> RunTimeSuccess;
+		size_t RunTimeSuccessSize = 0;
+
+
+
+		TestInfo(const char* TestName, const String InputFilesOrDir, String FuncToCall
+			, SuccessCondition Condition)
+		{
+			this->TestName = TestName;
+			this->InputFilesOrDir = InputFilesOrDir;
+			this->FuncToCall = FuncToCall;
+			this->Condition = Condition;
+
+		}
+
+
+		template<typename T>
+		TestInfo(const char* TestName, const String InputFilesOrDir, const String FuncToCall
+			, SuccessCondition Condition, const T& Value)
+		{
+			this->TestName = TestName;
+			this->InputFilesOrDir = InputFilesOrDir;
+			this->FuncToCall = FuncToCall;
+			this->Condition = Condition;
+
+			RunTimeSuccessSize = sizeof(Value);
+			RunTimeSuccess = std::make_unique<Byte[]>(RunTimeSuccessSize);
+
+			memcpy(RunTimeSuccess.get(), &Value, RunTimeSuccessSize);
+		}
+	};
 #define AddTest 
 #define AddTestEnd 
 
-static const UCodeLang::Array<TestInfo,5> Tests
-{
-	
-	AddTest TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation) AddTestEnd,
-	AddTest TestInfo("main ret 1","BasicTests/main.uc","Main2",SuccessCondition::RunTimeValue,(UCodeLang::Byte)1) AddTestEnd,
-	AddTest TestInfo("BasicObjects_0","Objects/BasicObjects.uc","Main2",SuccessCondition::Compilation) AddTestEnd,
-	AddTest TestInfo("NewAndDrop","NewAndDrop/main","Main",SuccessCondition::RunTimeValue,(UCodeLang::Byte)0) AddTestEnd ,
-	AddTest TestInfo("genericWithMemberAccess","Syntax/genericWithMemberAccess.uc","Main",SuccessCondition::CompilationFail) AddTestEnd,
-};
+	static const Array<TestInfo, 5> Tests
+	{
+
+		AddTest TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation) AddTestEnd,
+		AddTest TestInfo("main ret 1","BasicTests/main.uc","Main2",SuccessCondition::RunTimeValue,(UCodeLang::Byte)1) AddTestEnd,
+		AddTest TestInfo("BasicObjects_0","Objects/BasicObjects.uc","Main2",SuccessCondition::Compilation) AddTestEnd,
+		AddTest TestInfo("NewAndDrop","NewAndDrop/main.uc","Main",SuccessCondition::RunTimeValue,(UCodeLang::Byte)0) AddTestEnd ,
+		AddTest TestInfo("genericWithMemberAccess","Syntax/genericWithMemberAccess.uc","Main",SuccessCondition::CompilationFail) AddTestEnd,
+	};
 
 
 
-const UCodeLang::String _ScrDir = "C:/CoolStuff/CoolCodeingStuff/C++/Projects/UCodeLang/UCApp/src/";
-const std::string Test_UCodeFiles = _ScrDir + "Tests/UCodeFiles/Files/";
-const std::string Test_OutputFiles = _ScrDir + "Tests/UCodeFiles/Output/";
+	const String _ScrDir = "C:/CoolStuff/CoolCodeingStuff/C++/Projects/UCodeLang/UCApp/src/";
+	const String Test_UCodeFiles = _ScrDir + "Tests/UCodeFiles/Files/";
+	const String Test_OutputFiles = _ScrDir + "Tests/UCodeFiles/Output/";
 
-bool RunTest(const TestInfo& Test);
+	bool RunTest(const TestInfo& Test);
 
-void RunTests();
+	void RunTests();
+
+	bool LogErrors(std::ostream& out, UCodeLang::Compiler& _Compiler);
+}

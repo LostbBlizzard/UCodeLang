@@ -976,7 +976,7 @@ Parser::GetNameCheck_ret Parser::GetNameCheck(ScopedNameNode& out)
 
 GotNodeType Parser::GetType(TypeNode& out, bool ignoreRighthandOFtype)
 {
-	GotNodeType r;
+	GotNodeType r = GotNodeType::Success;
 	auto Token = TryGetToken();
 	if (Token->Type == TokenType::Name)
 	{
