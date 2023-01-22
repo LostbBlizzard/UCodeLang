@@ -171,9 +171,14 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 
 Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& Data)
 {
-	const Path DependencyPath = Data.IntDir.native() + Path(DependencyFile::FileName).native();
+	const Path DependencyPath = Data.IntDir + DependencyFile::FileName;
 
 	DependencyFile File;
+
+	CompilerRet r;
+	r._State = CompilerState::Fail;
+	r.OutPut = nullptr;
+	return  r;
 }
 
 UCodeLangEnd
