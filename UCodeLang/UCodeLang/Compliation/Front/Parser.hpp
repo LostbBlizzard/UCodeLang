@@ -64,7 +64,7 @@ private:
 		}
 		else
 		{
-			return nullptr;
+			return &_Nodes->back();
 		}
 	}
 	UCodeLangForceinline const Token* TryPeekNextToken() { return   TryPeekNextToken(1); }
@@ -72,7 +72,7 @@ private:
 	UCodeLangForceinline void NextToken() { _TokenIndex++; }
 	UCodeLangForceinline void NextToken(size_t offfset) { _TokenIndex += offfset; }
 	
-	
+	void TokenTypeCheck(const Token* Value, TokenType Type);
 
 	inline static GotNodeType Merge(GotNodeType A, GotNodeType B)
 	{
