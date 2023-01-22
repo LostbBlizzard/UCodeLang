@@ -49,8 +49,7 @@ static void UCodeLangAPI Invoke_Test(InterpreterCPPinterface& interpreter)
 static UCodeRunTime RunTime;
 int main()
 {
-	//std::async(std::launch::async, [] { RunTests(); });
-
+	RunTests();
 	
 	
 	UCodeLang::Compiler _Compiler;

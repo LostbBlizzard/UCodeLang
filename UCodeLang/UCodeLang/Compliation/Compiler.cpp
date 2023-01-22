@@ -56,7 +56,7 @@ String Compiler::GetTextFromFile(const Path& path)
 	}
 	else
 	{
-		return "";
+		return "*null";
 	}
 }
 Compiler::CompilerRet Compiler::CompilePathToObj(const Path& path, const Path& OutLib)
@@ -167,4 +167,10 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 	r._State = _Errors.Has_Errors() ? CompilerState::Fail : CompilerState::Success;
 	return r;
 }
+
+Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& Data)
+{
+
+}
+
 UCodeLangEnd

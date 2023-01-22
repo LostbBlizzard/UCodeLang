@@ -14,7 +14,7 @@ public:
 	using Return_t = Interpreter::Return_t;
 	using RetState = Interpreter::RetState;
 	Jit_Interpreter(){}
-	~Jit_Interpreter(){}
+	~Jit_Interpreter() { UnLoad(); }
 
 	void Init(RunTimeLangState* State)
 	{

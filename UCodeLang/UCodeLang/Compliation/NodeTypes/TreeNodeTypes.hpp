@@ -62,7 +62,7 @@ struct NameNode :Node
 };
 
 
-struct GenericValuesNode;
+struct UseGenericsNode;
 
 struct ScopedName
 {
@@ -76,17 +76,38 @@ struct ScopedName
 
 
 	
-	const Token* Token = nullptr;
+	const Token* token = nullptr;
 	Operator_t Operator = Operator_t::Null;
-	Unique_ptr<GenericValuesNode> Generic;//C++ doesn't like circular dependencies
+	Unique_ptr<UseGenericsNode> Generic;//C++ doesn't like circular dependencies
 
 	inline void GetScopedName(String& out) const
 	{
-		Token::PushString(out, *Token);
+		Token::PushString(out, *token);
 	}
-
+	static bool Get_IsScoped(TokenType Type)
+	{
+		switch (Type)
+		{
+		case TokenType::RightArrow:
+		case TokenType::Dot:
+		case TokenType::ScopeResolution:
+			return true;
+		default:
+			return false;
+		}
+	}
+	static Operator_t Get_Scoped(TokenType Type)
+	{
+		switch (Type)
+		{
+		case TokenType::RightArrow:return Operator_t::IndirectMember;
+		case TokenType::Dot:return Operator_t::Dot;
+		case TokenType::ScopeResolution:return Operator_t::ScopeResolution;
+		default:return Operator_t::Null;
+		}
+	}
 	
-	GenericValuesNode& Get_Generic()
+	UseGenericsNode& Get_Generic()
 	{
 		return *Generic.get();
 	}
@@ -233,7 +254,7 @@ struct TypeNode :Node
 	}
 	NameNode Name;
 	UseGenericsNode Generic;
-	Node* node = nullptr;
+	Unique_ptr<Node> node = nullptr;
 
 	static constexpr bool IsType(TokenType Type)
 	{
@@ -270,12 +291,12 @@ struct TypeNode :Node
 
 	static void Gen_Type(TypeNode& Out, TokenType Type, const Token& ToGetLinesFrom)
 	{
-		auto T = new Token();
+		auto T =std::make_unique<Token>();
 		T->Type = Type;
 		T->OnLine = ToGetLinesFrom.OnLine;
 		T->OnPos = ToGetLinesFrom.OnPos;
-		Out.HasMadeToken = true;
-		Out.Name.Token = T;
+		Out.GenToken = std::move(T);
+		Out.Name.Token =Out.GenToken.get();
 	}
 	static void Gen_void(TypeNode& Out, const Token& ToGetLinesFrom)
 	{
@@ -306,53 +327,9 @@ struct TypeNode :Node
 		}
 		return String(Name.Token->Value._String);
 	}
-	TypeNode(const TypeNode& ToCopyFrom) noexcept
-	{
-		if (ToCopyFrom.HasMadeToken)
-		{
-			Name.Token =new Token(*ToCopyFrom.Name.Token);
-			bool HasMadeToken = true;
-		}
-		else
-		{
-			Name.Token = ToCopyFrom.Name.Token;
-		}
-		IsAddess = ToCopyFrom.IsAddess;
-	}
-	TypeNode(TypeNode&& source)noexcept
-	{
-		Name = std::move(source.Name);
-		Generic = std::move(source.Generic);
-		if (source.HasMadeToken)
-		{
-
-
-			source.HasMadeToken = false;
-
-		}
-
-		if (source.node)
-		{
-			node = source.node;
-			source.node = nullptr;
-		}
-
-		HasMadeToken = false;
-		IsAddess = source.IsAddess;
-		IsAddessArray = source.IsAddessArray;
-		Isimmutable = source.Isimmutable;
-	}
-	~TypeNode() noexcept
-	{
-		if (HasMadeToken)
-		{
-			delete Name.Token;
-		}
-		if (node)
-		{
-			delete node;
-		}
-	}
+	TypeNode(const TypeNode& ToCopyFrom) = default;
+	TypeNode(TypeNode&& source) = default;
+	~TypeNode() = default;
 	void PushAsAddess()
 	{
 		IsAddess = true;
@@ -370,7 +347,7 @@ struct TypeNode :Node
 	bool IsAddessArray = false;
 	bool Isimmutable = false;
 private:
-	bool HasMadeToken = false;
+	Unique_ptr<Token> GenToken;
 };
 
 struct NamedParameterNode :Node
@@ -466,19 +443,68 @@ struct ExpressionNodeType :Node
 
 	}
 	AddforNode(ExpressionNodeType);
-	Node* Value = nullptr;
-	ExpressionNodeType(const ExpressionNodeType& ToCopyFrom) = delete;
-	ExpressionNodeType(ExpressionNodeType&& source) noexcept
-	{
-		Value = source.Value;
-		source.Value = nullptr;
-	}
+	Unique_ptr<Node> Value = nullptr;
+	ExpressionNodeType(const ExpressionNodeType& ToCopyFrom) = default;
+	ExpressionNodeType(ExpressionNodeType&& source) = default;
+	~ExpressionNodeType() = default;
 
-	~ExpressionNodeType()noexcept
+	inline static bool IsPostfixOperator(const Token* Token)
 	{
-		if (Value) {
-			delete Value;
-		}
+		return Token->Type == TokenType::increment
+			|| Token->Type == TokenType::decrement;
+	}
+	inline static bool IsCompoundOperator(const Token* Token)
+	{
+		return Token->Type == TokenType::CompoundAdd
+			|| Token->Type == TokenType::CompoundSub
+			|| Token->Type == TokenType::CompoundMult
+			|| Token->Type == TokenType::CompoundDiv;
+	}
+	inline static bool IsUnaryOperator(const Token* Token)
+	{
+		return Token->Type == TokenType::plus
+			|| Token->Type == TokenType::minus
+			|| Token->Type == TokenType::KeyWorld_Sizeof
+			|| Token->Type == TokenType::KeyWorld_Nameof
+			|| Token->Type == TokenType::KeyWorld_typeof
+			|| Token->Type == TokenType::Not
+			|| Token->Type == TokenType::bitwise_not;
+	}
+	inline static bool IsOverLoadableOperator(const Token* Token)
+	{
+		return Token->Type == TokenType::equal_Comparison
+			|| Token->Type == TokenType::Notequal_Comparison
+			|| Token->Type == TokenType::greaterthan
+			|| Token->Type == TokenType::lessthan
+			|| Token->Type == TokenType::greater_than_or_equalto
+			|| Token->Type == TokenType::less_than_or_equalto;
+	}
+	inline static bool IsBinaryOperator(const Token* Token)
+	{
+		return Token->Type == TokenType::plus
+			|| Token->Type == TokenType::minus
+			|| Token->Type == TokenType::star
+			|| Token->Type == TokenType::forwardslash
+			|| Token->Type == TokenType::modulo
+
+			|| Token->Type == TokenType::equal_Comparison
+			|| Token->Type == TokenType::Notequal_Comparison
+			|| Token->Type == TokenType::greaterthan
+			|| Token->Type == TokenType::lessthan
+			|| Token->Type == TokenType::greater_than_or_equalto
+			|| Token->Type == TokenType::less_than_or_equalto
+
+			|| Token->Type == TokenType::logical_and
+			|| Token->Type == TokenType::logical_or
+
+			|| Token->Type == TokenType::bitwise_and
+			|| Token->Type == TokenType::bitwise_or
+			|| Token->Type == TokenType::bitwise_LeftShift
+			|| Token->Type == TokenType::bitwise_RightShift
+			|| Token->Type == TokenType::bitwise_XOr
+
+			|| Token->Type == TokenType::approximate_Comparison;
+
 	}
 };
 
@@ -489,18 +515,11 @@ struct ValueExpressionNode :Node
 
 	}
 	AddforNode(ValueExpressionNode);
-	Node* Value = nullptr;
-	ValueExpressionNode(const ValueExpressionNode& ToCopyFrom) = delete;
-	ValueExpressionNode(ValueExpressionNode&& source)noexcept
-	{
-		Value = source.Value;
-		source.Value = nullptr;
-	}
-
-	~ValueExpressionNode()noexcept
-	{
-		delete Value;
-	}
+	Unique_ptr<Node> Value = nullptr;
+	ValueExpressionNode(const ValueExpressionNode& ToCopyFrom) = default;
+	ValueExpressionNode(ValueExpressionNode&& source) = default;
+	
+	~ValueExpressionNode() = default;
 };
 struct BinaryExpressionNode :Node
 {

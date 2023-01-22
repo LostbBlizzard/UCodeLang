@@ -22,8 +22,9 @@ public:
 	};
 	struct CompilerPathData
 	{
-		String FileDir;
-		String OutFile;
+		Path FileDir;
+		Path IntDir;
+		Path OutFile;
 	};
 	
 	
@@ -35,12 +36,10 @@ public:
 	}
 	CompilerRet CompilePathToObj(const Path& path, const Path& OutLib);
 	CompilerRet CompileFiles(const CompilerPathData& Data);
-	
 
-	UCodeLangForceinline void FreeLinkFilesLibOut(UClib* Lib)
-	{
-		delete Lib;
-	}
+	CompilerRet CompileFiles_UseIntDir(const CompilerPathData& Data);
+
+	
 	UCodeLangForceinline UCodeLang::CompliationErrors& Get_Errors()
 	{
 		return _Errors;

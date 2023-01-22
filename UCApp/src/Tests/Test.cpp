@@ -1,5 +1,8 @@
 #include "Test.hpp"
-
+#include <future>
+#include <memory>
+#include <sstream>
+#include <fstream>
 using namespace UCodeLang;
 std::string ModeType(OptimizationFlags Flags)
 {
@@ -24,13 +27,84 @@ std::string ModeType(OptimizationFlags Flags)
 	return r;
 }
 
-const std::vector<OptimizationFlags> OptimizationFlagsToCheck
+template< typename T >
+std::string int_to_hex(T i)
+{
+	std::stringstream stream;
+	stream << "0x"
+		<< std::setfill('0') << std::setw(sizeof(T) * 2)
+		<< std::hex << i;
+	return stream.str();
+}
+
+template< typename T >
+std::string int_to_hexV(T i)
+{
+	std::stringstream stream; 
+	stream
+		<< std::setfill('0') << std::setw(sizeof(T) * 2)
+		<< std::hex << i;
+	return stream.str();
+}
+
+
+std::string OutputBytesToString(Byte* Bytes,size_t Size)
+{
+	std::stringstream stream;
+	for (size_t i = 0; i < Size; i++)
+	{
+		if (i == 0)
+		{
+			stream << "0x";
+		}
+		stream << int_to_hexV(Bytes[i]);
+	}
+	return stream.str();
+}
+
+
+const UCodeLang::Array<OptimizationFlags,3> OptimizationFlagsToCheck
 {
 	OptimizationFlags::ForDebuging,
 	OptimizationFlags::O_2,
 	OptimizationFlags::O_3,
 };
-bool RunTestForFlag(const TestInfo& Test, OptimizationFlags flag)
+bool RunTimeOutput(
+	std::ostream& LogStream,
+	std::ostream& ErrStream,
+	const TestInfo& Test,
+	OptimizationFlags flag,
+	std::unique_ptr<Byte[]>& RetState,std::string Type = "jit")
+{
+	bool IsSame = true;
+
+	for (size_t i = 0; i < Test.RunTimeSuccessSize; i++)
+	{
+		if (RetState[i] != Test.RunTimeSuccess[i])
+		{
+			IsSame =false;
+			break;
+		}
+	}
+
+	if (IsSame)
+	{
+		LogStream << "Success from test '" << Test.TestName << "'" << std::endl;
+	}
+	else
+	{
+		ErrStream << "fail from got value '";
+		ErrStream << OutputBytesToString(RetState.get(), Test.RunTimeSuccessSize);
+		
+		ErrStream << "' but expecting '";
+		ErrStream << OutputBytesToString(Test.RunTimeSuccess.get(), Test.RunTimeSuccessSize);
+		ErrStream << ": '" << Type << "," << ModeType(flag) << "'" << std::endl;
+		return false;
+	}
+	return true;
+}
+
+bool RunTestForFlag(const TestInfo& Test, OptimizationFlags flag,std::ostream& LogStream, std::ostream& ErrStream)
 {
 	Compiler::CompilerPathData paths;
 	Compiler Com;
@@ -44,8 +118,14 @@ bool RunTestForFlag(const TestInfo& Test, OptimizationFlags flag)
 	std::filesystem::create_directories(OutFileDir);
 	std::string OutFilePath = OutFileDir + Test.TestName + ModeType(flag) + ".ulibtest";
 
+
+	
+
 	paths.FileDir = InputFilesPath;
 	paths.OutFile = OutFilePath;
+
+
+
 
 	if (std::filesystem::is_directory(InputFilesPath))
 	{
@@ -56,30 +136,21 @@ bool RunTestForFlag(const TestInfo& Test, OptimizationFlags flag)
 		Com_r = Com.CompilePathToObj(paths.FileDir, paths.OutFile);
 	}
 
-	if (Test.Condition == SuccessCondition::Compilation)
+	if (Test.Condition == SuccessCondition::Compilation
+		|| Test.Condition == SuccessCondition::CompilationFail)
 	{
-		if (Com_r._State == Compiler::CompilerState::Success)
+		if (
+			(Com_r._State == Compiler::CompilerState::Success && Test.Condition == SuccessCondition::Compilation)
+			||
+			(Com_r._State == Compiler::CompilerState::Fail && Test.Condition == SuccessCondition::CompilationFail)
+			)
 		{
-			std::cout << "Success from test '" << Test.TestName << "'" << std::endl;
+			LogStream << "Success from test '" << Test.TestName << "'" << std::endl;
 			return true;
 		}
 		else
 		{
-			std::cerr << "fail from test '" << Test.TestName << "'" << std::endl;
-			return false;
-		}
-
-	}
-	if (Test.Condition == SuccessCondition::CompilationFail)
-	{
-		if (Com_r._State != Compiler::CompilerState::Success)
-		{
-			std::cout << "Success from test '" << Test.TestName << "'" << std::endl;
-			return true;
-		}
-		else
-		{
-			std::cerr << "fail from test '" << Test.TestName << "'" << std::endl;
+			ErrStream << "fail from test '" << Test.TestName << "'" << std::endl;
 			return false;
 		}
 
@@ -87,7 +158,7 @@ bool RunTestForFlag(const TestInfo& Test, OptimizationFlags flag)
 
 	if (Com_r._State != Compiler::CompilerState::Success)
 	{
-		std::cerr << "fail from test [Cant Compile File/Files] '" << Test.TestName << "'" << std::endl;
+		ErrStream << "fail from test [Cant Compile File/Files] '" << Test.TestName << "'" << std::endl;
 		return false;
 	}
 
@@ -96,15 +167,79 @@ bool RunTestForFlag(const TestInfo& Test, OptimizationFlags flag)
 	UClib lib;
 	if (!UClib::FromFile(&lib, OutFilePath))
 	{
-		std::cerr << "fail from test [Cant Open ULib File] '" << Test.TestName << "'" << std::endl;
+		
+
+		ErrStream << "fail from test [Cant Open ULib File] '" << Test.TestName << "'" << std::endl;
 		return false;
+	}
+
+	{
+		auto Text = UAssembly::UAssembly::ToString(&lib);
+		String Path = OutFilePath + ".UA";
+		std::ofstream out(Path);
+		if (out.is_open()) {
+			out << Text;
+			out.close();
+		}
 	}
 	RunTimeLib rLib;
 	rLib.Init(&lib);
 	state.AddLib(&rLib);
+	state.LinkLibs();
 
 	{
 		Interpreter RunTime;
+		RunTime.Init(&state);
+
+		Interpreter::Return_t r;
+		try
+		{
+			r = RunTime.Call(Test.FuncToCall);
+		}
+		catch (const std::exception& ex)
+		{
+			ErrStream << "fail from test [exception] " << ex.what() << ": " << "'" << Test.TestName << "'" << std::endl;
+			return false;
+		}
+
+		if (Test.Condition == SuccessCondition::RunTimeValue)
+		{
+			std::unique_ptr<Byte[]> RetState = std::make_unique<Byte[]>(Test.RunTimeSuccessSize);
+			RunTime.Get_Return(RetState.get(), Test.RunTimeSuccessSize);
+
+			RunTimeOutput(LogStream, ErrStream, Test, flag, RetState, "Interpreter");
+		}
+		RunTime.UnLoad();
+	}
+
+	{
+		Jit_Interpreter RunTime;
+		RunTime.Init(&state);
+		
+		Interpreter::Return_t r;
+		try
+		{
+			r = RunTime.Call(Test.TestName);
+		}
+		catch (const std::exception& ex)
+		{
+			RunTime.UnLoad();
+			ErrStream << "fail from jit test [exception] " << ex.what() << ": " << "'" << Test.TestName << ModeType(flag) << "'" << std::endl;
+			return false;
+		}
+		RunTime.UnLoad();
+
+		if (Test.Condition == SuccessCondition::RunTimeValue)
+		{
+			std::unique_ptr<Byte[]> RetState = std::make_unique<Byte[]>(Test.RunTimeSuccessSize);
+			RunTime.Get_Return(RetState.get(), Test.RunTimeSuccessSize);
+
+			RunTimeOutput(LogStream, ErrStream, Test, flag, RetState, "Jit_Interpreter");
+		}
+	}
+
+	{
+		UCodeRunTime RunTime;
 		RunTime.Init(&state);
 
 		Interpreter::Return_t r;
@@ -114,90 +249,88 @@ bool RunTestForFlag(const TestInfo& Test, OptimizationFlags flag)
 		}
 		catch (const std::exception& ex)
 		{
-			std::cerr << "fail from test [exception] " << ex.what() << ": " << "'" << Test.TestName << "'" << std::endl;
+			RunTime.UnLoad();
+			ErrStream << "fail from UCodeRunTime test [exception] " << ex.what() << ": " << "'" << Test.TestName << ModeType(flag) << "'" << std::endl;
 			return false;
-		}
-
-		if (Test.Condition == SuccessCondition::RunTimeValue)
-		{
-			auto RValue = r.ReturnValue.Value.AsUInt8;
-			if (RValue == Test.RunTimeSuccess)
-			{
-				std::cout << "Success from test '" << Test.TestName << "'" << std::endl;
-			}
-			else
-			{
-				std::cerr << "fail from got value " << (int)RValue
-					<< " but expecting " << (int)Test.RunTimeSuccess << ": '" << Test.TestName << "'" << std::endl;
-				return false;
-			}
 		}
 		RunTime.UnLoad();
-	}
 
-	{
-		Jit_Interpreter JitRunTime;
-		JitRunTime.Init(&state);
 		
-		Interpreter::Return_t r;
-		try
-		{
-			r = JitRunTime.Call(Test.TestName);
-		}
-		catch (const std::exception& ex)
-		{
-			JitRunTime.UnLoad();
-			std::cerr << "fail from jit test [exception] " << ex.what() << ": " << "'" << Test.TestName << ModeType(flag) << "'" << std::endl;
-			return false;
-		}
-		JitRunTime.UnLoad();
+
+
 
 		if (Test.Condition == SuccessCondition::RunTimeValue)
 		{
-			auto RValue = r.ReturnValue.Value.AsUInt8;
-			if (RValue == Test.RunTimeSuccess)
-			{
-				std::cout << "Success from jit test '" << Test.TestName << ModeType(flag) << "'" << std::endl;
-			}
-			else
-			{
-				std::cerr << "fail jit test got  value " << (int)RValue
-					<< " but expecting " << (int)Test.RunTimeSuccess << ": '" << Test.TestName << ModeType(flag) << "'" << std::endl;
-				return false;
-			}
+			std::unique_ptr<Byte[]> RetState = std::make_unique<Byte[]>(Test.RunTimeSuccessSize);
+			RunTime.Get_Return(RetState.get(), Test.RunTimeSuccessSize);
+
+			RunTimeOutput(LogStream, ErrStream, Test, flag, RetState, "UCodeRunTime");
 		}
-		
 	}
 
 
 	rLib.UnLoad();
 	return true;
 }
+
+
+
+std::mutex Coutlock;
+
 bool RunTest(const TestInfo& Test)
 {
-	//std::cout << "Runing Test '" << Test.TestName << "'" << std::endl;
 	bool V =true;
+
+	std::stringstream Log;
+	std::stringstream Err;
+	Log << "Runing Test '" << Test.TestName << "'" << std::endl;
+
+	
 	for (auto Flag : OptimizationFlagsToCheck)
 	{
-		if (!RunTestForFlag(Test, Flag))
+		if (!RunTestForFlag(Test, Flag, Log, Err))
 		{
 			V = false;
 		}
 	}
+
+	Coutlock.lock();
+
+	std::cout << Log.str();
+	std::cout << Err.str();
+
+	Coutlock.unlock();
+
 	return V;
 }
+
 
 void RunTests()
 {
 	size_t TestPassed = 0;
 	std::cout << "---runing Test" << std::endl;
+
+	std::vector<std::future<bool>> List;
+	
+	UCodeLang::UAssembly::Get_InsToInsMapValue();
 	for (auto& Test : Tests)
 	{
-		if (RunTest(Test))
-		{
-			TestPassed++;
-		}
+		//if (RunTest(Test)) { TestPassed++; }
+		
+		auto F = std::async(std::launch::async, [&]
+			{
+				return RunTest(Test);
+			}
+		);
+		List.push_back(std::move(F));
 	}
+
+	for (auto& Item : List)
+	{
+		Item.wait();
+		if (Item.get()) { TestPassed++; };
+	}
+
 	std::cout << "---Tests ended" << std::endl;
 	std::cout << "passed " << TestPassed << "/" << Tests.size() << " Tests" << std::endl;
 }
