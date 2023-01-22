@@ -3,67 +3,7 @@
 #include "..\UAssembly\UAssembly_Parser.hpp"
 UCodeLangStart
 
-#define TokenNotNullCheck(Var) \
-if (Var == nullptr)\
-{\
-auto& Error = _ErrorsOutput->AddError(ErrorCodes::ExpectingToken, Token::EndOfFile, Token::EndOfFile); \
-Error._Msg = "was not expecting " + (String)StringHelper::ToString(TokenType::EndofFile); \
-return GotNodeType::failed;\
-}\
 
-#define TokenTypeCheck(Var,_TokenType) \
-TokenNotNullCheck(Var); \
-if (Var->Type != _TokenType) \
-{\
-	auto& Error = _ErrorsOutput->AddError(ErrorCodes::ExpectingToken, Var->OnLine,Var->OnPos);\
-\
-if (Var->Type == TokenType::Name){	\
-Error._Msg = "Expecting " + (String)StringHelper::ToString(_TokenType) + \
-" Got " + (String)Var->Value._String; \
-}\
-else\
-{\
-	Error._Msg = "Expecting " + (String)StringHelper::ToString(_TokenType) + \
-		" Got " + (String)StringHelper::ToString(Var->Type); \
-}\
- return GotNodeType::failed;\
-}\
-
-
-#define IsToken(Var,_TokenType) 
-
-#define ThrowError(ErrorCode,Msg) \
-auto& Error = _ErrorsOutput->AddError(ErrorCodes::ExpectingToken, Token::EndOfFile, Token::EndOfFile);\
-Error._Msg = Msg \
-
-#define ExpectingMsg(Var,_TokenType)  "Expecting " + (String)StringHelper::ToString(_TokenType) + \
-		" Got " + (String)StringHelper::ToString(Var->Type)
-
-#define ThrowErrorExpectingToken(Msg,Var) \
-auto& Error = _ErrorsOutput->AddError(ErrorCodes::ExpectingToken,Line, Pos);\
-Error._Msg = Msg \
-
-#define ThrowErrorExpectingToken2(Var,_TokenType) \
-auto& Error = _ErrorsOutput->AddError(ErrorCodes::ExpectingToken, Var->OnLine,Var->OnPos);\
-Error._Msg = ExpectingMsg(Var,_TokenType);  \
-
-
-#define ThrowErrorExpectingAToken(_TokenType) \
-auto& Error = _ErrorsOutput->AddError(ErrorCodes::ExpectingToken, Token::EndOfFile,Token::EndOfFile); \
-Error._Msg = "Expecting " + (String)StringHelper::ToString(_TokenType) + " Got " + (String)StringHelper::ToString(TokenType::Null)
-
-#define ThrowErrorExpecting(Text) \
-auto& Error = _ErrorsOutput->AddError(ErrorCodes::ExpectingToken, Token::EndOfFile, Token::EndOfFile); \
-Error._Msg = "Expecting " + Text;
-
-#define ThrowErrorExpectingOr(V2,_TokenType,_TokenType2) \
-auto& Error =V2 ? _ErrorsOutput->AddError(ErrorCodes::ExpectingToken, V2->OnLine, V2->OnPos) \
-	: _ErrorsOutput->AddError(ErrorCodes::ExpectingToken, Token::EndOfFile, Token::EndOfFile); \
-Error._Msg = "Expecting " + (String)StringHelper::ToString(TokenType::Colon) + " or " \
-+ (String)StringHelper::ToString(_TokenType) + " but got " + (String)StringHelper::ToString(_TokenType2) + "instead"; \
-Data.GotNode = GotNodeType::failed; \
-Data.Node = nullptr; \
-return Data;
 
 void Parser::Reset()
 {
@@ -84,8 +24,9 @@ void Parser::Parse(const FileData& Data, const Vector<Token>&Tokens)
 	
 	
 
-	while (auto T = TryGetToken())
+	while (TryGetToken()->Type != TokenType::EndofFile)
 	{
+		auto T = TryGetToken();
 		TryGetNode V;
 
 
@@ -113,12 +54,32 @@ void Parser::Parse(const FileData& Data, const Vector<Token>&Tokens)
 	_ParseSuccess= !_ErrorsOutput->Has_Errors();
 }
 
+
+void Parser::TokenTypeCheck(const Token* Value, TokenType Type)
+{
+	if (Value->Type != Type)
+	{
+		auto& Error = _ErrorsOutput->AddError(ErrorCodes::ExpectingToken, Value->OnLine, Value->OnPos);
+
+		if (Value->Type == TokenType::Name) {
+
+			Error._Msg = "Expecting " + (String)StringHelper::ToString(Type) +
+				" Got " + (String)Value->Value._String;
+		}
+		else
+		{
+			Error._Msg = "Expecting " + (String)StringHelper::ToString(Type) +
+				" Got " + (String)StringHelper::ToString(Value->Type);
+		}
+	}
+}
+
 GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 {
 	auto NamespaceToken = TryGetToken(); TokenTypeCheck(NamespaceToken, TokenType::Namespace);
 	NextToken();
 
-	auto ScopeResolutionToken = TryGetToken(); TokenNotNullCheck(ScopeResolutionToken);
+	auto ScopeResolutionToken = TryGetToken(); 
 	ScopedName V;
 	V.token = NamespaceToken;
 	
@@ -136,8 +97,9 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 	NextToken();
 
 
-	while (auto T = TryGetToken())
+	while (TryGetToken()->Type != TokenType::EndofFile)
 	{
+		auto T = TryGetToken();
 		TryGetNode V;
 
 		switch (T->Type)
@@ -199,7 +161,7 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 
 	TryGetGeneric(TepGenerics);
 
-	auto ColonToken = TryGetToken(); TokenNotNullCheck(ColonToken);
+	auto ColonToken = TryGetToken();
 	if (ColonToken->Type == TokenType::equal)
 	{
 		auto V = AliasNode::Gen();
@@ -227,8 +189,9 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 		auto StartToken = TryGetToken(); TokenTypeCheck(StartToken, TokenType::StartTab);
 		NextToken();
 
-		while (auto T = TryGetToken())
+		while (TryGetToken()->Type != TokenType::EndofFile)
 		{
+			auto T = TryGetToken();
 			TryGetNode V;
 
 			switch (T->Type)
@@ -265,7 +228,7 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 
 GotNodeType Parser::GetStatementsorStatementNode(StatementsNode& out)
 {
-	auto TabToken = TryGetToken(); TokenNotNullCheck(TabToken);
+	auto TabToken = TryGetToken();
 
 	if (TabToken->Type == TokenType::StartTab)
 	{
@@ -388,7 +351,7 @@ GotNodeType Parser::GetStatement(Node*& out)
 				_TokenIndex = NewIndex;
 				UseGenericsNode V;
 				TryGetGeneric(V);
-				auto _Token2 = TryGetToken(); TokenNotNullCheck(_Token2);
+				auto _Token2 = TryGetToken();
 
 				_TokenIndex = OldIndex;
 				if (_Token2->Type == FuncCallStart)
@@ -426,8 +389,9 @@ GotNodeType Parser::GetStatements(StatementsNode& out)
 	TokenTypeCheck(TabToken, TokenType::StartTab);
 	NextToken();
 
-	while (auto T = TryGetToken())
+	while (TryGetToken()->Type != TokenType::EndofFile)
 	{
+		auto T = TryGetToken();
 		if (T->Type == TokenType::EndTab) { break; }
 
 		Node* V = nullptr;
@@ -447,7 +411,7 @@ GotNodeType Parser::GetFuncNode(FuncNode& out)
 {
 	auto V = GetFuncSignatureNode(out.Signature);
 
-	auto ColonToken = TryGetToken(); TokenNotNullCheck(ColonToken);
+	auto ColonToken = TryGetToken(); 
 
 	switch (ColonToken->Type)
 	{
@@ -519,11 +483,11 @@ GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 	NextToken();
 
 	Node* Ret_Type;
-	auto Arrow = TryGetToken(); TokenNotNullCheck(Arrow);
+	auto Arrow = TryGetToken(); 
 	if (Arrow->Type == TokenType::RightArrow)
 	{
 		NextToken();
-		auto RetToken = TryGetToken(); TokenNotNullCheck(RetToken);
+		auto RetToken = TryGetToken(); 
 		if (RetToken->Type == AnonymousObjectStart)
 		{
 			NextToken();
@@ -725,7 +689,7 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 	}
 
 	auto Token2 = TryGetToken();
-	while (Token2 && Token2->Type == TokenType::RightArrow)
+	while (Token2->Type == TokenType::RightArrow)
 	{
 		NextToken();
 		auto cast = CastNode::Gen();
@@ -755,8 +719,10 @@ GotNodeType Parser::GetValueParametersNode(ValueParametersNode& out)
 		return GotNodeType::Success;
 	}
 
-	while (true)
+	while (TryGetToken()->Type != TokenType::EndofFile)
 	{
+		
+
 		Node* node = nullptr;
 		auto Ex = GetValueParameterNode(node);
 		out._Nodes.push_back(Unique_ptr<Node>(node));
@@ -773,7 +739,8 @@ GotNodeType Parser::GetValueParametersNode(ValueParametersNode& out)
 }
 GotNodeType Parser::GetNamedParametersNode(NamedParametersNode& out)
 {
-	while (true)
+
+	while (TryGetToken()->Type != TokenType::EndofFile)
 	{
 		NamedParameterNode Tep;
 		auto Token = TryGetToken();
@@ -819,12 +786,12 @@ GotNodeType Parser::GetNamedParametersNode(NamedParametersNode& out)
 GotNodeType Parser::TryGetGeneric(GenericValuesNode& out)
 {
 	auto token = TryGetToken();
-	TokenNotNullCheck(token);
 	if (token->Type == TokenType::lessthan)
 	{
 		NextToken();
 
-		while (true)
+
+		while (TryGetToken()->Type != TokenType::EndofFile)
 		{
 			GenericValueNode Item;
 			auto NameToken = TryGetToken();
@@ -858,12 +825,13 @@ GotNodeType Parser::TryGetGeneric(GenericValuesNode& out)
 GotNodeType Parser::TryGetGeneric(UseGenericsNode& out)
 {
 	auto token = TryGetToken();
-	TokenNotNullCheck(token);
+	
 	if (token->Type == TokenType::lessthan)
 	{
 		NextToken();
 
-		while (true)
+
+		while (TryGetToken()->Type != TokenType::EndofFile)
 		{
 			TypeNode Item;
 			GetType(Item);
@@ -887,7 +855,8 @@ GotNodeType Parser::TryGetGeneric(UseGenericsNode& out)
 
 GotNodeType Parser::GetName(ScopedNameNode& out)
 {
-	while (true)
+
+	while (TryGetToken()->Type != TokenType::EndofFile)
 	{
 		ScopedName V;
 		auto NameToken = TryGetToken();
@@ -942,7 +911,8 @@ Parser::GetNameCheck_ret Parser::GetNameCheck(ScopedNameNode& out)
 {
 	NameCheck_t LookingAtT = NameCheck_t::Name;
 
-	while (true)
+
+	while (TryGetToken()->Type != TokenType::EndofFile)
 	{
 		ScopedName V;
 		UseGenericsNode Generic;
@@ -1039,12 +1009,12 @@ GotNodeType Parser::GetType(TypeNode& out, bool ignoreRighthandOFtype)
 		if (Token2 && Token2->Type == TokenType::Left_Bracket)
 		{
 			NextToken();
-			Token2 = TryGetToken(); TokenNotNullCheck(Token2);
+			Token2 = TryGetToken(); 
 			if (Token2->Type == TokenType::bitwise_and)
 			{
 				NextToken();
 
-				Token2 = TryGetToken(); TokenNotNullCheck(Token2);
+				Token2 = TryGetToken();
 				if (Token2->Type == TokenType::Right_Bracket)
 				{
 					out.PushAsArrayAddess();
@@ -1078,7 +1048,6 @@ GotNodeType Parser::GetType(TypeNode& out, bool ignoreRighthandOFtype)
 GotNodeType Parser::GetTypeWithVoid(TypeNode& out)
 {
 	auto token = TryGetToken();
-	TokenNotNullCheck(token);
 	
 	if (token->Type == TokenType::Void)
 	{
@@ -1104,7 +1073,7 @@ GotNodeType Parser::GetAttribute(AttributeNode& out)
 
 	auto ScopedName = GetName(out.ScopedName);
 
-	auto ParToken = TryGetToken(); TokenNotNullCheck(ParToken);
+	auto ParToken = TryGetToken();
 
 	if (ParToken->Type == FuncCallStart)
 	{
@@ -1153,8 +1122,10 @@ GotNodeType Parser::GetAsmBlock(AsmBlockNode& out)
 	{
 		NextToken();
 		size_t StringStart = StartToken->OnPos;
-		while (auto T = TryGetToken())
+
+		while (TryGetToken()->Type != TokenType::EndofFile)
 		{
+			auto T = TryGetToken();
 			if (T->Type == TokenType::EndTab) { break; }
 			NextToken();
 		}
@@ -1183,7 +1154,7 @@ GotNodeType Parser::GetRetStatement(RetStatementNode& out)
 	TokenTypeCheck(RetToken, TokenType::KeyWorld_Ret);
 	NextToken();
 
-	auto Token = TryGetToken(); TokenNotNullCheck(Token);
+	auto Token = TryGetToken(); 
 	if (Token->Type == TokenType::Semicolon)
 	{
 		NextToken();
@@ -1210,7 +1181,7 @@ GotNodeType Parser::GetDeclareStaticVariable(DeclareStaticVariableNode& out)
 
 	NameNode NameValue;
 	GetNameCheck(NameValue);
-	auto Token3 = TryGetToken(); TokenNotNullCheck(Token3);
+	auto Token3 = TryGetToken();
 	if (Token3->Type == TokenType::equal)
 	{
 		NextToken();
@@ -1240,7 +1211,7 @@ GotNodeType Parser::GetDeclareThreadVariable(DeclareThreadVariableNode& out)
 
 	NameNode NameValue;
 	GetNameCheck(NameValue);
-	auto Token3 = TryGetToken(); TokenNotNullCheck(Token3);
+	auto Token3 = TryGetToken();
 	if (Token3->Type == TokenType::equal) 
 	{
 		NextToken();
@@ -1326,8 +1297,11 @@ GotNodeType Parser::GetIfNode(IfNode& out)
 
 	auto Statements = GetStatementsorStatementNode(out.Body);
 
-	while (auto T = TryGetToken())
+
+	while (TryGetToken()->Type != TokenType::EndofFile)
 	{
+		auto T = TryGetToken();
+	
 		if (T->Type != Parser::ElseToken){break;}
 		TokenTypeCheck(RetToken, Parser::ElseToken);
 		NextToken();
@@ -1370,7 +1344,7 @@ GotNodeType Parser::GetEnumNode(EnumNode& out)
 
 
 
-	auto ColonToken = TryGetToken(); TokenNotNullCheck(ColonToken);
+	auto ColonToken = TryGetToken();
 	if (ColonToken->Type == TokenType::Semicolon) { NextToken(); return GotNodeType::Success; }
 
 	TokenTypeCheck(ColonToken, TokenType::Colon); NextToken();
@@ -1378,8 +1352,11 @@ GotNodeType Parser::GetEnumNode(EnumNode& out)
 	auto StartToken = TryGetToken(); TokenTypeCheck(StartToken, TokenType::StartTab);
 	NextToken();
 
-	while (auto T = TryGetToken())
+
+	while (TryGetToken()->Type != TokenType::EndofFile)
 	{
+		auto T = TryGetToken();
+	
 		if (T == nullptr || T->Type == TokenType::EndTab) { break; }
 		
 		out.Values.push_back({});
@@ -1416,14 +1393,17 @@ GotNodeType Parser::GetTagNode(TagTypeNode& out)
 	NextToken();
 	GetName(out.AttributeName);
 
-	auto ColonToken = TryGetToken(); TokenNotNullCheck(ColonToken);
+	auto ColonToken = TryGetToken();
 	if (ColonToken->Type == TokenType::Semicolon) { NextToken(); return GotNodeType::Success;}
 
 	TokenTypeCheck(ColonToken, TokenType::Colon); NextToken();
 	auto StartToken = TryGetToken(); TokenTypeCheck(StartToken, TokenType::StartTab);NextToken();
 
-	while (auto T = TryGetToken())
+
+	while (TryGetToken()->Type != TokenType::EndofFile)
 	{
+		auto T = TryGetToken();
+	
 		TryGetNode V;
 
 		switch (T->Type)
@@ -1480,7 +1460,7 @@ GotNodeType Parser::GetFuncCallNode(FuncCallNode& out)
 GotNodeType Parser::GetPostfixStatement(PostfixVariableNode& out)
 {
 	auto Name = GetName(out.Name);
-	auto Token = TryGetToken(); TokenNotNullCheck(Token)
+	auto Token = TryGetToken(); 
 	out.PostfixOp = Token;
 	NextToken();
 
@@ -1491,7 +1471,7 @@ GotNodeType Parser::GetPostfixStatement(PostfixVariableNode& out)
 GotNodeType Parser::GetCompoundStatement(CompoundStatementNode& out)
 {
 	auto Name = GetName(out.VariableName);
-	auto Token = TryGetToken(); TokenNotNullCheck(Token)
+	auto Token = TryGetToken();
 	out.CompoundOp= Token;
 	NextToken();
 
@@ -1541,7 +1521,7 @@ GotNodeType Parser::GetNewExpresionNode(NewExpresionNode& out)
 	NextToken();
 	GetType(out.Type,true);
 
-	auto ParToken = TryGetToken(); TokenNotNullCheck(ParToken);
+	auto ParToken = TryGetToken();
 	if (ParToken->Type == FuncCallStart) {
 
 		NextToken();
@@ -1573,7 +1553,7 @@ GotNodeType Parser::GetumutVariableDeclare(Node*& out)
 	auto NewToken = TryGetToken(); TokenTypeCheck(NewToken, TokenType::KeyWorld_umut);
 	NextToken();
 
-	auto Token2 = TryGetToken(); TokenNotNullCheck(Token2);
+	auto Token2 = TryGetToken(); 
 
 	size_t OldIndex = _TokenIndex;
 	
@@ -1582,7 +1562,7 @@ GotNodeType Parser::GetumutVariableDeclare(Node*& out)
 
 	
 	TypeNode* Tnode = nullptr;
-	auto Token3 = TryGetToken(); TokenNotNullCheck(Token3);
+	auto Token3 = TryGetToken();
 
 	GotNodeType r;
 
