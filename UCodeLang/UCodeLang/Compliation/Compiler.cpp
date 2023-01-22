@@ -2,6 +2,7 @@
 #include <fstream>
 #include <filesystem>
 #include "../LangCore/FileHelper.hpp"
+#include "DependencyFile.hpp"
 UCodeLangStart
 Compiler::CompilerRet Compiler::CompileText(const String_view& Text)
 {
@@ -170,7 +171,9 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 
 Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& Data)
 {
+	const Path DependencyPath = Data.IntDir.native() + Path(DependencyFile::FileName).native();
 
+	DependencyFile File;
 }
 
 UCodeLangEnd

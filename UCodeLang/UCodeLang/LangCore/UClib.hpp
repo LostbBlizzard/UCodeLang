@@ -221,22 +221,10 @@ public:
 	//
 
 	UCodeLangForceinline  Endian Get_LibEndianess() const { return LibEndianess; }
-	struct LibRawBytes
-	{
-		LibRawBytes():Bytes(nullptr),Size(0)
-		{
-			
-		}
-		Byte* Bytes;
-		size_t Size;
-	};
-	UCodeLangForceinline static void Free(const LibRawBytes& bits)
-	{
-		free(bits.Bytes);
-	}
-
-	static LibRawBytes ToRawBytes(const UClib* Lib);
-	static bool FromBytes(UClib* Lib,const LibRawBytes& Data);
+	
+	
+	static BytesPtr ToRawBytes(const UClib* Lib);
+	static bool FromBytes(UClib* Lib,const BytesView& Data);
 
 	static bool ToFile(const UClib* Lib,const Path& path);
 	static bool FromFile(UClib* Lib, const Path& path);
