@@ -122,8 +122,8 @@ struct ScopedNameNode :Node
 		for (size_t i = 0; i < ScopedName.size(); i++)
 		{
 			auto& item = ScopedName[i];
-
-			if (i != ScopedName.size() - 1)
+item.GetScopedName(out);
+			if (&item != &ScopedName.back())
 			{
 				switch (item.Operator)
 				{
@@ -141,7 +141,7 @@ struct ScopedNameNode :Node
 					break;
 				}
 			}
-			item.GetScopedName(out);
+			
 		}
 	}
 };
@@ -559,7 +559,7 @@ struct AssignVariableNode :Node
 
 	}
 	AddforNode(AssignVariableNode);
-	NameNode Name;
+	ScopedNameNode Name;
 	ExpressionNodeType Expression;
 };
 
@@ -657,7 +657,7 @@ struct PostfixVariableNode :Node
 
 	}
 	AddforNode(PostfixVariableNode);
-	NameNode Name;
+	ScopedNameNode Name;
 	const Token* PostfixOp = nullptr;
 };
 
@@ -668,7 +668,7 @@ struct CompoundStatementNode :Node
 
 	}
 	AddforNode(CompoundStatementNode);
-	NameNode VariableName;
+	ScopedNameNode VariableName;
 	const Token* CompoundOp = nullptr;
 	ExpressionNodeType Expession;
 };
@@ -680,7 +680,7 @@ struct FuncCallNode :Node
 
 	}
 	AddforNode(FuncCallNode);
-	NameNode FuncName;
+	ScopedNameNode FuncName;
 	UseGenericsNode Generics;
 	ValueParametersNode Parameters;
 };

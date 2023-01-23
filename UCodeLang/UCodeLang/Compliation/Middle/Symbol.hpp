@@ -115,10 +115,7 @@ struct TypeSymbol
 	}
 };
 
-class ClassInfo
-{
-public:
-};
+
 
 
 enum class SymbolType : UInt8
@@ -147,6 +144,69 @@ enum class SymbolValidState : UInt8
 	Invalid,
 	valid,
 };
+
+
+class Symbol_Info
+{
+public:
+	Symbol_Info(){}
+	virtual ~Symbol_Info(){}
+};
+
+class FieldInfo
+{
+public:
+	String Name;
+	TypeSymbol Type;
+	FieldInfo()
+	{
+
+	}
+	FieldInfo(String Name, TypeSymbol Type)
+	{
+		this->Name = Name;
+		this->Type = Type;
+	}
+};
+
+class ClassInfo: Symbol_Info
+{
+public:
+	String FullName;
+	inline String_view Get_Name() const
+	{
+		return ScopeHelper::GetNameFromFullName((String_view)FullName);
+	}
+	UAddress Size = NullAddress;
+	Vector<FieldInfo> Fields;
+	bool SizeInitialized = false;
+
+	ClassInfo()
+	{
+
+	}
+	~ClassInfo()
+	{
+
+	}
+
+	FieldInfo* GetField(const String_view Name)
+	{
+		for (auto& Item : Fields)
+		{
+			if (Item.Name == Name) {
+				return &Item;
+			}
+		}
+		return nullptr;
+	}
+
+	void AddField(const String_view Name, TypeSymbol Type)
+	{
+		Fields.emplace_back((String)Name, Type);
+	}
+};
+
 class Symbol
 {
 public:
@@ -157,8 +217,11 @@ public:
 	UAddress Size=NullAddress;
 	TypeSymbol VarType;
 	//
-	void* SomePtr =nullptr;//most likey a node* or ClassInfo*
+	void* NodePtr =nullptr;//most likey a node*
+	Unique_ptr<Symbol_Info> Info;
+
 	
+
 	SymbolValidState ValidState = SymbolValidState::valid;
 	void SetToInvalid()
 	{
@@ -170,6 +233,15 @@ public:
 	}
 	bool IsInvalid()const {return ValidState == SymbolValidState::Invalid;}
 	bool Isvalid()const { return !IsInvalid(); }
+	Symbol()
+	{
+
+	}
+	Symbol(SymbolType Type,const String& FullName)
+	{
+		this->Type = Type;
+		this->FullName = FullName;
+	}
 };
 
 

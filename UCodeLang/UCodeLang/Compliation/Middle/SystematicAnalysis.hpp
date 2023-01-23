@@ -55,7 +55,7 @@ private:
 	const Vector<const FileNode*>* _Files = nullptr;
 	const Vector<const UClib*>* _Libs = nullptr;
 	SymbolTable _Table;
-	Stack<ClassData*> _ClassStack;
+	Stack<ClassInfo*> _ClassStack;
 	Vector<const AttributeNode*> _TepAttributes;
 	bool _InStatements = false;
 	//
@@ -71,6 +71,27 @@ private:
 	}
 	const Token* LastLookedAtToken = nullptr;
 	//
+
+	Vector<const ClassInfo*> ClassDependencies;
+	inline bool IsDependencies(const ClassInfo* Value)
+	{
+		for (auto Item : ClassDependencies)
+		{
+			if (Item == Value)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	inline void PushClassDependencie(const ClassInfo* Value)
+	{
+		ClassDependencies.push_back(Value);
+	}
+	inline void PopClassDependencie()
+	{
+		ClassDependencies.pop_back();
+	}
 
 	void Pass();
 	void OnFileNode(const UCodeLang::FileNode* const& File);
@@ -110,7 +131,7 @@ private:
 	}
 	Symbol* GetSymbol(String_view Name, SymbolType Type);
 	static String GetFuncAnonymousObjectFullName(const String& FullFuncName);
-	void GetTypesClass(ClassData& data);
+	void AddClass_tToAssemblyInfo(const ClassInfo* data);
 
 
 	bool AreTheSame(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
@@ -122,6 +143,8 @@ private:
 	{
 		return StringHelper::ToString(Type);
 	}
+	
+
 	void Convert(const TypeNode& V, TypeSymbol& Out);
 	
 	bool IsVaidType(TypeSymbol& Out);
@@ -149,7 +172,7 @@ private:
 
 	Stack<GenericFuncInfo> GenericFuncName;
 	
-	bool GetSize(TypeSymbol& Type,UAddress& OutSize);
+	bool GetSize(const TypeSymbol& Type,UAddress& OutSize);
 
 	void GenericFuncInstantiate(Symbol* Func,const FuncNode& FuncBase,
 		const Vector<TypeSymbol>& TypeToChage, 
@@ -212,7 +235,8 @@ private:
 	void LogCantModifyiMutableError(const UCodeLang::Token* Token, UCodeLang::String_view& Name);
 	void LogCantCastExplicityTypes(const UCodeLang::Token* Token, UCodeLang::TypeSymbol& Ex0Type, UCodeLang::TypeSymbol& ToTypeAs);
 	void LogCantFindTypeError(const UCodeLang::Token* Token, UCodeLang::String_view& Name);
-	
+	void LogTypeDependencyCycle(const UCodeLang::Token* Token, const ClassInfo* Value);
+
 	struct ReadVarErrorCheck_t
 	{
 		bool CantFindVar = false;
@@ -222,7 +246,7 @@ private:
 	void CheckVarWritingErrors(UCodeLang::Symbol* Symbol, const UCodeLang::Token* Token, UCodeLang::String_view& Name);
 public://Only for backends
 		
-		UAddress GetTypeSize(TypeSymbol& Type)
+		UAddress GetTypeSize(const TypeSymbol& Type)
 		{
 			UAddress r;
 			GetSize(Type, r);

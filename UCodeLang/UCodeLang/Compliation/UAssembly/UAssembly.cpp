@@ -44,6 +44,8 @@ String UAssembly::ToString(const UCodeLang::UClib* Lib)
 			}
 			r += "$" + (Item->FullName.size() ? Item->FullName : Item->Name) + ":\n";
 			
+
+			r += ".size:" + std::to_string(Class.Size) + "\n\n";
 			
 			for (auto Item2 : Class.Fields)
 			{

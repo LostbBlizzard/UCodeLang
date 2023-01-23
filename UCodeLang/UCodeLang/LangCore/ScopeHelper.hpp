@@ -52,6 +52,51 @@ struct ScopeHelper
 		}
 		return ThisScope.clear();
 	};
+
+	static void ReMoveScope(String_view& ThisScope)
+	{
+		for (size_t i = ThisScope.size() - 1; i > 0; i--)
+		{
+			char C = ThisScope[i];
+			if (C == _ScopeSep)
+			{
+				ThisScope = ThisScope.substr(0, i);
+				return;
+			}
+		}
+		ThisScope = "";
+	};
+
+	static String_view GetReMoveScope(String_view ThisScope)
+	{
+		ReMoveScope(ThisScope);
+		return ThisScope;
+	};
+	static String GetReMoveScope(String ThisScope)
+	{
+		ReMoveScope(ThisScope);
+		return ThisScope;
+	};
+
+	static String_view GetReMoveScopes(String_view ThisScope,size_t Count)
+	{
+		for (size_t i = 0; i < Count; i++)
+		{
+			ReMoveScope(ThisScope);
+		}
+		
+		return ThisScope;
+	};
+	static String GetReMoveScopes(String ThisScope, size_t Count)
+	{
+		for (size_t i = 0; i < Count; i++)
+		{
+			ReMoveScope(ThisScope);
+		}
+		return ThisScope;
+	};
+
+
 	void ReMoveScope()
 	{
 		ReMoveScope(ThisScope);
@@ -63,12 +108,13 @@ struct ScopeHelper
 
 	static String_view GetNameFromFullName(String_view FullName)
 	{
+		if (FullName.size() == 0) { return FullName; }
 		for (size_t i = FullName.size() - 1; i > 0; i--)
 		{
 			char C = FullName[i];
 			if (C == _ScopeSep)
 			{
-				return FullName.substr(0, i);
+				return FullName.substr(i+1);
 			}
 		}
 		return FullName;
