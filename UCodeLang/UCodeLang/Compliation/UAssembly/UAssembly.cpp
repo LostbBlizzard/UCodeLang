@@ -42,7 +42,7 @@ String UAssembly::ToString(const UCodeLang::UClib* Lib)
 			{
 				r += Item2.Name;
 			}
-			r += "$" + (Item->FullName.size() ? Item->FullName : Item->Name) + ":\n";
+			r += "$" + Item->FullName + ":\n";
 			
 
 			r += ".size:" + std::to_string(Class.Size) + "\n\n";
@@ -64,7 +64,12 @@ String UAssembly::ToString(const UCodeLang::UClib* Lib)
 					
 			}
 		}
-		break;
+		break; 
+		case ClassType::Alias:
+		{
+			auto& Class = Item->_Alias;
+			r += "$" + Item->FullName + " = " + Class.StringValue + ";\n";
+		}
 		default:
 			break;
 		} 
