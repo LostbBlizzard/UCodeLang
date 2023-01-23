@@ -274,6 +274,13 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 		Convert(node.Type, Syb.VarType);
 	}
 
+	if (passtype == PassType::BuidCode)
+	{
+		auto& V = _Lib.Get_Assembly().Add_Alias((String)ClassName, _Table._Scope.ThisScope);
+		V.StringValue = ToString(Syb.VarType);
+
+	}
+
 	_Table.RemoveScope();
 }
 void SystematicAnalysis::OnUseingNode(const UsingNode& node)
