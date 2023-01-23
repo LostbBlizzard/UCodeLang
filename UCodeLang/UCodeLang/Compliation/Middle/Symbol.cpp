@@ -17,7 +17,7 @@ Vector<Symbol*>& SymbolTable::GetSymbolsWithName(const String_view& Name, Symbol
 }
 void SymbolTable::GetSymbolsInNameSpace(const String_view& NameSpace, const String_view& Name, Vector<Symbol*>& Output)
 {
-	String TepScope = _Scope.ThisScope;
+	String TepScope = (String)NameSpace;
 	String TepNameSpace = (String)NameSpace + ScopeHelper::_ScopeSep + (String)Name;
 
 	
@@ -55,12 +55,7 @@ void SymbolTable::GetSymbolsInNameSpace(const String_view& NameSpace, const Stri
 
  Symbol& SymbolTable::AddSybol(SymbolType type, const String& Name, const String& FullName)
  {
-	 Symbols.push_back({});
-	 Symbol& V = Symbols.back();
-	 V.Type = type;
-	 V.FullName = FullName;
-
-	 return V;
+	 return Symbols.emplace_back(type, FullName);
  }
 
  void SymbolTable::AddSymbolID(Symbol& Syb, SymbolID ID)

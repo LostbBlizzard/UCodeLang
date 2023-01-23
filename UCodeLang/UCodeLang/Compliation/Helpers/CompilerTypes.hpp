@@ -275,6 +275,8 @@ struct Token
 	{
 		switch (T.Type)
 		{
+		case TokenType::Class:
+		case TokenType::Namespace:
 		case TokenType::Name:
 			out += T.Value._String;
 			break;

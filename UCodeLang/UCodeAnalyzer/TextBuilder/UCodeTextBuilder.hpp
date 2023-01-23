@@ -301,7 +301,7 @@ public:
 	
 	UCodeNode()
 	{
-
+		Type = UCodeClassType::Namespace;
 	}
 	~UCodeNode()
 	{

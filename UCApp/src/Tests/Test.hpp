@@ -57,7 +57,7 @@ namespace ULangTest
 #define AddTest 
 #define AddTestEnd 
 
-	static const Array<TestInfo, 5> Tests
+	static const Array<TestInfo, 9> Tests
 	{
 
 		AddTest TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation) AddTestEnd,
@@ -65,6 +65,12 @@ namespace ULangTest
 		AddTest TestInfo("BasicObjects_0","Objects/BasicObjects.uc","Main2",SuccessCondition::Compilation) AddTestEnd,
 		AddTest TestInfo("NewAndDrop","NewAndDrop/main.uc","Main",SuccessCondition::RunTimeValue,(UCodeLang::Byte)0) AddTestEnd ,
 		AddTest TestInfo("genericWithMemberAccess","Syntax/genericWithMemberAccess.uc","Main",SuccessCondition::CompilationFail) AddTestEnd,
+		
+		AddTest TestInfo("scopetest","BasicTests/scopetest.uc","Main",SuccessCondition::RunTimeValue,(UCodeLang::Byte)0) AddTestEnd,
+		AddTest TestInfo("BasicObjects ret 1","Objects/BasicObjects2.uc","Main",SuccessCondition::RunTimeValue,(UCodeLang::Byte)1) AddTestEnd,
+	
+		AddTest TestInfo("GenericSize_t ret 4","Objects/GenericSize_t.uc","Main",SuccessCondition::RunTimeValue,(uintptr_t)sizeof(4)) AddTestEnd,
+		AddTest TestInfo("DependencyCycle","Objects/DependencyCycle.uc","n/a",SuccessCondition::CompilationFail) AddTestEnd,
 	};
 
 

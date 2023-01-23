@@ -24,6 +24,15 @@ public:
 	{
 	public:
 		String FullNameType;
+
+		ClassMethodPar()
+		{
+
+		}
+		ClassMethodPar(String FullNameType)
+		{
+			this->FullNameType = FullNameType;
+		}
 	};
 	Vector<AttributeData> Attributes;
 	String FullName;
@@ -118,34 +127,34 @@ public:
 			return nullptr;
 		}
 
-		const ClassMethod* Get_ClassInit(const String& ClassFullName) const
+		const ClassMethod* Get_ClassInit() const
 		{
-			return Get_ClassMethod(ClassFullName,ClassInitializefuncName);
+			return Get_ClassMethod(ClassInitializefuncName);
 		}//This May be null.
-		const ClassMethod* Get_ClassCopy(const String& ClassFullName) const
+		const ClassMethod* Get_ClassCopy() const
 		{
-			return Get_ClassMethod(ClassFullName,ClassCopyFunc);
-		}//This May be null.
-
-		const ClassMethod* Get_ClassMove(const String& ClassFullName) const
-		{
-			return Get_ClassMethod(ClassFullName,ClassMoveFunc);
-		}//This May be null.
-		const ClassMethod* Get_ClassSwap(const String& ClassFullName) const
-		{
-			return Get_ClassMethod(ClassFullName,ClassSwapFunc);
-		}//This May be null.
-		const ClassMethod* Get_ClassDestructor(const String& ClassFullName) const
-		{
-			return Get_ClassMethod(ClassFullName,ClassDestructorFunc);
+			return Get_ClassMethod(ClassCopyFunc);
 		}//This May be null.
 
-		const ClassMethod* Get_ClassMethod(const String& FullName,const String& Name) const
+		const ClassMethod* Get_ClassMove() const
 		{
-			String TepString = FullName + ScopeHelper::_ScopeSep + Name;
+			return Get_ClassMethod(ClassMoveFunc);
+		}//This May be null.
+		const ClassMethod* Get_ClassSwap() const
+		{
+			return Get_ClassMethod(ClassSwapFunc);
+		}//This May be null.
+		const ClassMethod* Get_ClassDestructor() const
+		{
+			return Get_ClassMethod(ClassDestructorFunc);
+		}//This May be null.
+
+		const ClassMethod* Get_ClassMethod(const String& Name) const
+		{
 			for (auto& Item : Methods)
 			{
-				if (Item.FullName == TepString)
+				if (ScopeHelper::GetNameFromFullName(Item.FullName)
+					== Name)
 				{
 					return &Item;
 				}
@@ -258,7 +267,8 @@ public:
 	{
 		for (auto& Item : Classes)
 		{
-			if (Item->Name == Name || Item->FullName == Name)
+			if (ScopeHelper::GetNameFromFullName(Item->Name) == Name 
+				|| Item->FullName == Name)
 			{
 				return Item.get();
 			}
@@ -276,7 +286,7 @@ public:
 		Tep += Scope;
 		for (auto& Item : Classes)
 		{
-			if (Item->Name == Name 
+			if (ScopeHelper::GetNameFromFullName(Item->Name) == Name
 		     || Item->FullName == Name
 			 || Item->Name == Tep
 			 || Item->FullName ==  Tep)

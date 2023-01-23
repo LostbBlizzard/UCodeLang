@@ -130,7 +130,7 @@ void UCodeBackEndObject::BuildFunc()
 	auto& Code = _BackInput->_Builder->Get_Code();
 	auto& Func = Code[_Index];
 	auto SybID = Func.Operand0.SymbolId;
-	auto Sym = _BackInput->_Table->GetSymbol(SybID);
+	auto& Sym = _BackInput->_Table->GetSymbol(SybID);
 
 	auto& ULib = Getliboutput();
 	
