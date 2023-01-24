@@ -10,16 +10,35 @@ struct ScopeHelper
 	String ThisScope;
 	inline void AddScope(const String_view& Name)
 	{
-		if (ThisScope.size()) 
-		{
-			ThisScope += _ScopeSep;
-		}
-		ThisScope += Name;
+		GetApendedString(ThisScope,Name);
 	};
-	inline void AddScope(const String& Name)
+	
+
+	inline void AddScope(const String& Name) 
 	{
 		AddScope(String_view(Name));
 	};
+
+	static void GetApendedString(String& Out,const String_view& Name)
+	{
+		if (Out.size())
+		{
+			Out += _ScopeSep;
+		}
+		Out += Name;
+	}
+	
+	String GetApendedString(const String_view& Name)const
+	{
+		String r = ThisScope;
+		GetApendedString(r, Name);
+		return r;
+	}
+
+	String GetApendedString(const String& Name)const
+	{
+		return GetApendedString((String_view)Name);
+	}
 	static void ReMoveScope(String& ThisScope)
 	{
 		for (size_t i = ThisScope.size() - 1; i > 0; i--)
@@ -33,9 +52,72 @@ struct ScopeHelper
 		}
 		return ThisScope.clear();
 	};
+
+	static void ReMoveScope(String_view& ThisScope)
+	{
+		for (size_t i = ThisScope.size() - 1; i > 0; i--)
+		{
+			char C = ThisScope[i];
+			if (C == _ScopeSep)
+			{
+				ThisScope = ThisScope.substr(0, i);
+				return;
+			}
+		}
+		ThisScope = "";
+	};
+
+	static String_view GetReMoveScope(String_view ThisScope)
+	{
+		ReMoveScope(ThisScope);
+		return ThisScope;
+	};
+	static String GetReMoveScope(String ThisScope)
+	{
+		ReMoveScope(ThisScope);
+		return ThisScope;
+	};
+
+	static String_view GetReMoveScopes(String_view ThisScope,size_t Count)
+	{
+		for (size_t i = 0; i < Count; i++)
+		{
+			ReMoveScope(ThisScope);
+		}
+		
+		return ThisScope;
+	};
+	static String GetReMoveScopes(String ThisScope, size_t Count)
+	{
+		for (size_t i = 0; i < Count; i++)
+		{
+			ReMoveScope(ThisScope);
+		}
+		return ThisScope;
+	};
+
+
 	void ReMoveScope()
 	{
 		ReMoveScope(ThisScope);
 	};
+	static String GetNameFromFullName(String FullName)
+	{
+		return (String)GetNameFromFullName((String_view)FullName);
+	}
+
+	static String_view GetNameFromFullName(String_view FullName)
+	{
+		if (FullName.size() == 0) { return FullName; }
+		for (size_t i = FullName.size() - 1; i > 0; i--)
+		{
+			char C = FullName[i];
+			if (C == _ScopeSep)
+			{
+				return FullName.substr(i+1);
+			}
+		}
+		return FullName;
+	}
 };
 UCodeLangEnd

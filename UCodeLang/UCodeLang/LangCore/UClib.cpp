@@ -2,7 +2,7 @@
 #include <fstream>
 UCodeLangStart
 
-UClib::UClib() : LibEndianess(BitConverter::Get_CPU_Endian())
+UClib::UClib() : LibEndianess(BitConverter::InputOutEndian)
 {
 }
 
@@ -14,12 +14,12 @@ UClib::UClib(UClib& GetFrom)
 {
 	throw std::exception("");
 }
-#define UpdateNewPtr() NewPtr = (void*)((size_t)NewBits.Bytes + (size_t)BitPos);
+#define UpdateNewPtr() NewPtr = (void*)((size_t)NewBits.Bytes.get() + (size_t)BitPos);
 #define UpdateReadPtr() NewPtr = (void*)((size_t)Data.Bytes + (size_t)Indexoffset);
 
 
 #define PushString(Var) StringSize = Var .size(); \
-			BitConverter::MoveBytes((Size_tAsBits)StringSize, NewBits.Bytes, BitPos); \
+			BitConverter::MoveBytes((Size_tAsBits)StringSize, NewBits.Bytes.get(), BitPos); \
 			BitPos += sizeof(Size_tAsBits); \
 \
 			UpdateNewPtr();\
@@ -65,9 +65,9 @@ using Size_tAsBits = int;
 const unsigned char UClibSignature[]= "Lost_blizzard_Ulib";
 constexpr size_t UClibSignature_Size = sizeof(UClibSignature);
 
-UClib::LibRawBytes UClib::ToRawBytes(const UClib* Lib)
+BytesPtr UClib::ToRawBytes(const UClib* Lib)
 {
-	LibRawBytes NewBits;
+	BytesPtr NewBits;
 	
 
 	size_t StaticBytesSize = Lib->_StaticBytes.size() * sizeof(unsigned char);
@@ -155,7 +155,7 @@ UClib::LibRawBytes UClib::ToRawBytes(const UClib* Lib)
 		+ ClassAssemblySize;
 
 
-	NewBits.Bytes = (unsigned char*)malloc(ByteSize);
+	NewBits.Bytes =std::make_unique<Byte[]>(ByteSize);
 	NewBits.Size = ByteSize;
 
 	size_t BitPos = 0;
@@ -164,7 +164,7 @@ UClib::LibRawBytes UClib::ToRawBytes(const UClib* Lib)
 
 	//Ulib signature
 	{
-		BitConverter::MoveBytes((Size_tAsBits)UClibSignature_Size, NewBits.Bytes, BitPos);
+		BitConverter::MoveBytes((Size_tAsBits)UClibSignature_Size, NewBits.Bytes.get(), BitPos);
 		BitPos += sizeof(Size_tAsBits);
 
 		UpdateNewPtr();
@@ -173,20 +173,20 @@ UClib::LibRawBytes UClib::ToRawBytes(const UClib* Lib)
 
 
 		
-		BitConverter::MoveBytes((InstructionSet_t)InstructionSet::MAXVALUE, NewBits.Bytes, BitPos);
+		BitConverter::MoveBytes((InstructionSet_t)InstructionSet::MAXVALUE, NewBits.Bytes.get(), BitPos);
 		BitPos += sizeof(InstructionSet_t);
 
-		BitConverter::MoveBytes((InstructionSet_t)Intermediate_Set::MAXVALUE, NewBits.Bytes, BitPos);
+		BitConverter::MoveBytes((InstructionSet_t)Intermediate_Set::MAXVALUE, NewBits.Bytes.get(), BitPos);
 		BitPos += sizeof(InstructionSet_t);
 	}
 
-	BitConverter::MoveBytes((NTypeSize_t)Lib->BitSize, NewBits.Bytes, BitPos);
+	BitConverter::MoveBytes((NTypeSize_t)Lib->BitSize, NewBits.Bytes.get(), BitPos);
 	BitPos += sizeof(NTypeSize_t);
 	
-	BitConverter::MoveBytes((LibType_t)Lib->_LibType, NewBits.Bytes, BitPos);
+	BitConverter::MoveBytes((LibType_t)Lib->_LibType, NewBits.Bytes.get(), BitPos);
 	BitPos += sizeof(LibType_t);
 
-	BitConverter::MoveBytes((Endian_t)Lib->LibEndianess, NewBits.Bytes, BitPos);
+	BitConverter::MoveBytes((Endian_t)Lib->LibEndianess, NewBits.Bytes.get(), BitPos);
 	BitPos += sizeof(Lib->LibEndianess);
 
 	
@@ -194,7 +194,7 @@ UClib::LibRawBytes UClib::ToRawBytes(const UClib* Lib)
 
 	{//StaticBytes
 		auto StaticBits = Lib->_StaticBytes.size();
-		BitConverter::MoveBytes((Size_tAsBits)StaticBits, NewBits.Bytes, BitPos);
+		BitConverter::MoveBytes((Size_tAsBits)StaticBits, NewBits.Bytes.get(), BitPos);
 		BitPos += sizeof(Size_tAsBits);
 
 		UpdateNewPtr();
@@ -207,26 +207,26 @@ UClib::LibRawBytes UClib::ToRawBytes(const UClib* Lib)
 	{// Instructions
 
 		auto SizeBits = Lib->_Instructions.size();
-		BitConverter::MoveBytes((Size_tAsBits)SizeBits, NewBits.Bytes, BitPos);
+		BitConverter::MoveBytes((Size_tAsBits)SizeBits, NewBits.Bytes.get(), BitPos);
 		BitPos += sizeof(Size_tAsBits);
 		for (size_t i = 0; i < SizeBits; i++)
 		{
 			const auto& Item = Lib->_Instructions[i];
 
-			BitConverter::MoveBytes((InstructionSet_t)Item.OpCode, NewBits.Bytes, BitPos);
+			BitConverter::MoveBytes((InstructionSet_t)Item.OpCode, NewBits.Bytes.get(), BitPos);
 			BitPos += sizeof(InstructionSet_t);
 
-			BitConverter::MoveBytes(Item.Value0.AsUInt64, NewBits.Bytes, BitPos);
+			BitConverter::MoveBytes(Item.Value0.AsUInt64, NewBits.Bytes.get(), BitPos);
 			BitPos += sizeof(UInt64);
 
-			BitConverter::MoveBytes(Item.Value1.AsUInt64, NewBits.Bytes, BitPos);
+			BitConverter::MoveBytes(Item.Value1.AsUInt64, NewBits.Bytes.get(), BitPos);
 			BitPos += sizeof(UInt64);
 		}
 	}
 
 
 	{// _NameToPtr
-		BitConverter::MoveBytes((Size_tAsBits)Lib->_NameToPtr.size(), NewBits.Bytes, BitPos);
+		BitConverter::MoveBytes((Size_tAsBits)Lib->_NameToPtr.size(), NewBits.Bytes.get(), BitPos);
 		BitPos += sizeof(Size_tAsBits);
 
 		for (auto& Item : Lib->_NameToPtr)
@@ -235,14 +235,14 @@ UClib::LibRawBytes UClib::ToRawBytes(const UClib* Lib)
 			PushString(Item.first);
 			//
 
-			BitConverter::MoveBytes(Item.second, NewBits.Bytes, BitPos);
+			BitConverter::MoveBytes(Item.second, NewBits.Bytes.get(), BitPos);
 			BitPos += sizeof(Size_tAsBits);
 		}
 	}
 
 	{//Debug Bytes
 		auto StaticBits = Lib->_DebugBytes.size();
-		BitConverter::MoveBytes((Size_tAsBits)StaticBits, NewBits.Bytes, BitPos);
+		BitConverter::MoveBytes((Size_tAsBits)StaticBits, NewBits.Bytes.get(), BitPos);
 		BitPos += sizeof(Size_tAsBits);
 
 		UpdateNewPtr();
@@ -255,7 +255,7 @@ UClib::LibRawBytes UClib::ToRawBytes(const UClib* Lib)
 	//ClassAssembly
 	{
 		auto StaticBits = Lib->_Assembly.Classes.size();
-		BitConverter::MoveBytes((Size_tAsBits)StaticBits, NewBits.Bytes, BitPos);
+		BitConverter::MoveBytes((Size_tAsBits)StaticBits, NewBits.Bytes.get(), BitPos);
 		BitPos += sizeof(Size_tAsBits);
 
 		for (auto& Item : Lib->_Assembly.Classes)
@@ -264,7 +264,7 @@ UClib::LibRawBytes UClib::ToRawBytes(const UClib* Lib)
 			PushString(Item->Name);
 			PushString(Item->FullName);
 
-			BitConverter::MoveBytes((EnumSizez_t)Item->Type, NewBits.Bytes, BitPos);
+			BitConverter::MoveBytes((EnumSizez_t)Item->Type, NewBits.Bytes.get(), BitPos);
 			BitPos += sizeof(EnumSizez_t);
 			switch (Item->Type)
 			{
@@ -274,24 +274,24 @@ UClib::LibRawBytes UClib::ToRawBytes(const UClib* Lib)
 			case ClassType::Class:
 			{
 				auto& ClassData = Item->_Class;
-				BitConverter::MoveBytes((Size_tAsBits)ClassData.Size, NewBits.Bytes, BitPos);BitPos += sizeof(Size_tAsBits);
+				BitConverter::MoveBytes((Size_tAsBits)ClassData.Size, NewBits.Bytes.get(), BitPos);BitPos += sizeof(Size_tAsBits);
 
-				BitConverter::MoveBytes((Size_tAsBits)ClassData.Attributes.size(), NewBits.Bytes, BitPos);BitPos += sizeof(Size_tAsBits);
+				BitConverter::MoveBytes((Size_tAsBits)ClassData.Attributes.size(), NewBits.Bytes.get(), BitPos);BitPos += sizeof(Size_tAsBits);
 				for (auto& Item2 : ClassData.Attributes)
 				{
 					PushString(Item2.Name);
 				}
 
-				BitConverter::MoveBytes((Size_tAsBits)ClassData.Fields.size(), NewBits.Bytes, BitPos); BitPos += sizeof(Size_tAsBits);
+				BitConverter::MoveBytes((Size_tAsBits)ClassData.Fields.size(), NewBits.Bytes.get(), BitPos); BitPos += sizeof(Size_tAsBits);
 				for (auto& Item2 : ClassData.Fields)
 				{
 					PushString(Item2.Name);
 					PushString(Item2.FullNameType);
 					
-					BitConverter::MoveBytes((Size_tAsBits)Item2.offset, NewBits.Bytes, BitPos); BitPos += sizeof(Size_tAsBits);
+					BitConverter::MoveBytes((Size_tAsBits)Item2.offset, NewBits.Bytes.get(), BitPos); BitPos += sizeof(Size_tAsBits);
 				}
 
-				BitConverter::MoveBytes((Size_tAsBits)ClassData.Methods.size(), NewBits.Bytes, BitPos); BitPos += sizeof(Size_tAsBits);
+				BitConverter::MoveBytes((Size_tAsBits)ClassData.Methods.size(), NewBits.Bytes.get(), BitPos); BitPos += sizeof(Size_tAsBits);
 
 				for (auto& Item2 : ClassData.Methods)
 				{
@@ -301,20 +301,20 @@ UClib::LibRawBytes UClib::ToRawBytes(const UClib* Lib)
 				break;
 			case ClassType::Enum:
 			{
-				BitConverter::MoveBytes((EnumSizez_t)Item->_Enum.Size, NewBits.Bytes, BitPos);
+				BitConverter::MoveBytes((EnumSizez_t)Item->_Enum.Size, NewBits.Bytes.get(), BitPos);
 				BitPos += sizeof(EnumSizez_t);
 
 				auto StaticBits2 = Item->_Enum.Values.size();
-				BitConverter::MoveBytes((Size_tAsBits)StaticBits2, NewBits.Bytes, BitPos);
+				BitConverter::MoveBytes((Size_tAsBits)StaticBits2, NewBits.Bytes.get(), BitPos);
 				BitPos += sizeof(Size_tAsBits);
 				for (auto& Item2 : Item->_Enum.Values)
 				{
 					PushString(Item2.Name);
 
-					BitConverter::MoveBytes((UInt8)Item2._State, NewBits.Bytes, BitPos);
+					BitConverter::MoveBytes((UInt8)Item2._State, NewBits.Bytes.get(), BitPos);
 					BitPos += sizeof(UInt8);
 
-					BitConverter::MoveBytes((Size_tAsBits)Item2.Value, NewBits.Bytes, BitPos);
+					BitConverter::MoveBytes((Size_tAsBits)Item2.Value, NewBits.Bytes.get(), BitPos);
 					BitPos += sizeof(Size_tAsBits);
 				}
 			}
@@ -326,8 +326,11 @@ UClib::LibRawBytes UClib::ToRawBytes(const UClib* Lib)
 	}
 	return NewBits;
 }
-bool UClib::FromBytes(UClib* Lib, const LibRawBytes& Data)
+bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 {
+	auto Old = BitConverter::InputOutEndian;
+	BitConverter::InputOutEndian = Lib->LibEndianess;
+
 	size_t Indexoffset = 0;
 	void* NewPtr = nullptr;
 	UpdateReadPtr();
@@ -526,6 +529,7 @@ bool UClib::FromBytes(UClib* Lib, const LibRawBytes& Data)
 		}
 	}
 
+	BitConverter::InputOutEndian = Old;
 	return true;
 }
 bool UClib::ToFile(const UClib* Lib, const Path& path)
@@ -534,12 +538,10 @@ bool UClib::ToFile(const UClib* Lib, const Path& path)
 	if (File.is_open())
 	{
 
-		LibRawBytes Bits = ToRawBytes(Lib);
+		BytesPtr Bits = ToRawBytes(Lib);
 
-		File.write((const char*)Bits.Bytes, Bits.Size);
+		File.write((const char*)Bits.Bytes.get(), Bits.Size);
 
-
-		Free(Bits);
 
 		File.close();
 		return true;
@@ -554,17 +556,16 @@ bool UClib::FromFile(UClib* Lib, const Path& path)
 	std::ifstream File(path, std::ios::binary);
 	if (File.is_open())
 	{
-		LibRawBytes Bits;
+		BytesPtr Bits;
 		File.seekg(0, File.end);
 		Bits.Size = File.tellg();
 		File.seekg(0, File.beg);
-		Bits.Bytes = (unsigned char*)malloc(Bits.Size);
+		Bits.Bytes =std::make_unique<Byte[]>(Bits.Size);
 
-		File.read((char*)Bits.Bytes, Bits.Size);
+		File.read((char*)Bits.Bytes.get(), Bits.Size);
 		File.close();
-		auto V = FromBytes(Lib, Bits);
-		Free(Bits);
-
+		auto V = FromBytes(Lib, { Bits.Bytes.get(),Bits.Size });
+		
 		return V;
 	}
 	else

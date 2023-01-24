@@ -3,29 +3,9 @@
 
 #include "UCodeLang/LangCore/UClib.hpp"
 #include "UCodeLang/Compliation/Back/BackEndInterface.hpp"
-#include "UCodeLang/LangCore/ScopeHelper.hpp"
+#include "Symbol.hpp"
 UCodeLangStart
 
-struct ScopeHelper2
-{
-public:
-	Vector<String> Useings;
-	ScopeHelper _Scope;
-
-
-	void AddUseing(const String_view& Name){Useings.push_back(Name.data());}
-	void AddUseing(const String& Name) { Useings.push_back(Name); }
-	void ClearUseings(){Useings.clear();}
-
-	size_t GetUseingIndex() { return Useings.size() - 1; }
-	void RemovePopUseing(size_t Index)
-	{
-	
-	}
-
-	void AddScope(const String_view& Name) { _Scope.AddScope(Name); }
-	void RemoveScope() { _Scope.ReMoveScope(); }
-};
 class SystematicAnalysis
 {
 
@@ -38,7 +18,11 @@ public:
 
 
 	bool Analyze(const FileNode& File);
-	bool Analyze(const Vector<FileNode*>& Files, const Vector<UClib*>& Libs);
+	bool Analyze(const Vector<const FileNode*>& Files, const Vector<const UClib*>& Libs);
+
+	bool Analyze(const Vector<Unique_ptr<FileNode>>& Files, const Vector<Unique_ptr<UClib>>& Libs);
+
+	void BuildCode();
 
 	UCodeLangForceinline UClib& Get_Output()
 	{
@@ -54,10 +38,11 @@ public:
 		Null,
 		GetTypes,
 		FixedTypes,
+		BuidCode,
+		Done,
 	};
-
-private:
 	
+private:
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
 	UClib _Lib;
@@ -67,21 +52,206 @@ private:
 
 	PassType passtype = PassType::Null;
 
-	const Vector<FileNode*>* _Files =nullptr;
-	const Vector<UClib*>* _Libs = nullptr;
-	ScopeHelper2 _Sc;
-	std::stack<ClassData*> _ClassStack;
+	const Vector<const FileNode*>* _Files = nullptr;
+	const Vector<const UClib*>* _Libs = nullptr;
+	SymbolTable _Table;
+	Stack<ClassInfo*> _ClassStack;
+	Vector<const AttributeNode*> _TepAttributes;
+	bool _InStatements = false;
+	//
+	IRBuilder _Builder;
+	IRSeg _LastExpression;
+	IRField _LastExpressionField =0;
+	//
+	Stack<TypeSymbol> LookingForTypes;
+	TypeSymbol LastExpressionType;
+	TypeSymbol& Get_LookingForType()
+	{
+		return LookingForTypes.top();
+	}
+	const Token* LastLookedAtToken = nullptr;
+	//
+
+	Vector<const ClassInfo*> ClassDependencies;
+	inline bool IsDependencies(const ClassInfo* Value)
+	{
+		for (auto Item : ClassDependencies)
+		{
+			if (Item == Value)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	inline void PushClassDependencie(const ClassInfo* Value)
+	{
+		ClassDependencies.push_back(Value);
+	}
+	inline void PopClassDependencie()
+	{
+		ClassDependencies.pop_back();
+	}
 
 	void Pass();
-	void OnFileNode(UCodeLang::FileNode* const& File);
+	void OnFileNode(const UCodeLang::FileNode* const& File);
 	void OnClassNode(const ClassNode& node);
+	void OnAliasNode(const AliasNode& node);
 	void OnUseingNode(const UsingNode& node);
 	void OnFuncNode(const FuncNode& node);
+	void OnRetStatement(const RetStatementNode& node);
 	void OnEnum(const EnumNode& node);
 	void OnNamespace(const NamespaceNode& node);
+	void OnAttributeNode(const AttributeNode& node);
+	void OnNonAttributeable(size_t Line, size_t Pos);
 	String GetScopedNameAsString(const ScopedNameNode& node);
 	void OnDeclareVariablenode(const DeclareVariableNode& node);
+	void CantgussTypesTheresnoassignment(const UCodeLang::Token* Token);
+	void OnAssignVariableNode(const AssignVariableNode& node);
+	void OnPostfixVariableNode(const PostfixVariableNode& node);
+	void OnCompoundStatementNode(const CompoundStatementNode& node);
+	void OnExpressionTypeNode(const Node* node);
+	void OnExpressionNode(const ValueExpressionNode& node);
+	void OnExpressionNode(const BinaryExpressionNode& node);
+	void OnExpressionNode(const CastNode& node);
+	void OnFuncCallNode(const FuncCallNode& node);
+	void LogCantFindFuncError(const UCodeLang::Token* Token, UCodeLang::String_view& FuncName);
+	void OnDropStatementNode(const DropStatementNode& node);
 	void CheckBackEnd();
+	void PushTepAttributesInTo(Vector<AttributeData>& Input);
+	void LoadLibSymbols();
+	void LoadLibSymbols(const UClib& lib);
+	UCodeLangForceinline auto OutputType()
+	{
+		return  _Settings->_Type;
+	}
+	UCodeLangForceinline auto OutputTypeAsLibType()
+	{
+		return   OutputType() == OutPutType::Lib ? LibType::Lib : LibType::Dll;
+	}
+	Symbol* GetSymbol(String_view Name, SymbolType Type);
+	static String GetFuncAnonymousObjectFullName(const String& FullFuncName);
+	void AddClass_tToAssemblyInfo(const ClassInfo* data);
+
+
+	bool AreTheSame(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
+	bool AreTheSameWithOutimmutable(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
+	bool HasBinaryOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
+
+	String ToString(const TypeSymbol& Type);
+	String ToString(const TokenType& Type)
+	{
+		return StringHelper::ToString(Type);
+	}
+	
+
+	void Convert(const TypeNode& V, TypeSymbol& Out);
+	
+	bool IsVaidType(TypeSymbol& Out);
+	bool CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
+	bool CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
+
+	bool IsSIntType(const UCodeLang::TypeSymbol& TypeToCheck);
+	bool IsUIntType(const UCodeLang::TypeSymbol& TypeToCheck);
+	bool IsIntType(const UCodeLang::TypeSymbol& TypeToCheck)
+	{
+		return  IsSIntType(TypeToCheck) || IsUIntType(TypeToCheck);
+	}
+
+
+	bool IsimmutableRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
+
+	bool IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
+	//Generic
+	struct GenericFuncInfo
+	{
+		String GenericFuncName;
+		const Vector<TypeSymbol>* TypeToChage=nullptr;
+		const Vector<TypeSymbol>* Type = nullptr;
+	};
+
+	Stack<GenericFuncInfo> GenericFuncName;
+	
+	bool GetSize(const TypeSymbol& Type,UAddress& OutSize);
+
+	void GenericFuncInstantiate(Symbol* Func,const FuncNode& FuncBase,
+		const Vector<TypeSymbol>& TypeToChage, 
+		const Vector<TypeSymbol>& Type);
+	String GetGenericFuncName(Symbol* Func, const Vector<TypeSymbol>& Type);
+
+	void GenericTypeInstantiate(Symbol* Class , const Vector<TypeSymbol>& Type);
+
+	Unordered_map<const FuncCallNode*, SymbolID> FuncToSyboID;
+
+	void Build_Assign_uIntPtr(UAddress Value)
+	{
+		_Builder.Build_Assign(IROperand::AsInt64(Value));
+	}
+	void Build_Assign_sIntPtr(SIntNative Value)
+	{
+		_Builder.Build_Assign(IROperand::AsInt64(Value));
+	}
+	void Build_Add_uIntPtr(IROperand field, IROperand field2)
+	{
+		_Builder.MakeAdd64(field, field2);
+	}
+	void Build_Sub_uIntPtr(IROperand field, IROperand field2)
+	{
+		_Builder.MakeSub64(field, field2);
+	}
+	void Build_Mult_uIntPtr(IROperand field, IROperand field2)
+	{
+		_Builder.MakeUMult64(field, field2);
+	}
+	
+	
+	void Build_Increment_uIntPtr(UAddress Value)
+	{
+		_Builder.Build_Increment64(Value);
+	}
+	void Build_Decrement_uIntPtr(UAddress Value)
+	{
+		_Builder.Build_Decrement64(Value);
+	}
+
+	void Build_Increment_sIntPtr(SIntNative Value)
+	{
+		_Builder.Build_Increment64(Value);
+	}
+	void Build_Decrement_sIntPtr(SIntNative Value)
+	{
+		_Builder.Build_Decrement64(Value);
+	}
+	
+	//Errors
+	void LogCantFindBinaryOpForTypes(const UCodeLang::Token* BinaryOp, UCodeLang::TypeSymbol& Ex0Type, UCodeLang::TypeSymbol& Ex1Type);
+	void ExpressionMustbeAnLocationValueError(const UCodeLang::Token* Token, UCodeLang::TypeSymbol& Ex0Type);
+	void YouMustReturnSomethingError(const UCodeLang::Token* Token);
+	void CantguessVarTypeError(const UCodeLang::Token* Token);
+	void CantUseThisKeyWordHereError(const UCodeLang::Token* NameToken);
+	void LogCantCastImplicitTypes(const UCodeLang::Token* Token, UCodeLang::TypeSymbol& Ex1Type, UCodeLang::TypeSymbol& UintptrType);
+	void LogReadingFromInvaidVariable(const UCodeLang::Token* Token, UCodeLang::String& Str);
+	void LogCantFindVarError(const UCodeLang::Token* Token, UCodeLang::String& Str);
+	void LogCantModifyiMutableError(const UCodeLang::Token* Token, UCodeLang::String_view& Name);
+	void LogCantCastExplicityTypes(const UCodeLang::Token* Token, UCodeLang::TypeSymbol& Ex0Type, UCodeLang::TypeSymbol& ToTypeAs);
+	void LogCantFindTypeError(const UCodeLang::Token* Token, UCodeLang::String_view& Name);
+	void LogTypeDependencyCycle(const UCodeLang::Token* Token, const ClassInfo* Value);
+
+	struct ReadVarErrorCheck_t
+	{
+		bool CantFindVar = false;
+		bool VarIsInvalid = false;
+	};
+	ReadVarErrorCheck_t LogTryReadVar(String_view VarName, const UCodeLang::Token* Token, const Symbol* Syb);
+	void CheckVarWritingErrors(UCodeLang::Symbol* Symbol, const UCodeLang::Token* Token, UCodeLang::String_view& Name);
+public://Only for backends
+		
+		UAddress GetTypeSize(const TypeSymbol& Type)
+		{
+			UAddress r;
+			GetSize(Type, r);
+			return r;
+		}
 };
 UCodeLangEnd
 

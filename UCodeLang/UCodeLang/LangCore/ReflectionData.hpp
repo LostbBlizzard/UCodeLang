@@ -10,7 +10,7 @@ class ClassField
 public:
 	String Name;
 	String FullNameType;
-	size_t offset;
+	size_t offset=NullAddress;
 };
 class AttributeData
 {
@@ -22,7 +22,17 @@ class ClassMethod
 public:
 	class ClassMethodPar
 	{
+	public:
 		String FullNameType;
+
+		ClassMethodPar()
+		{
+
+		}
+		ClassMethodPar(String FullNameType)
+		{
+			this->FullNameType = FullNameType;
+		}
 	};
 	Vector<AttributeData> Attributes;
 	String FullName;
@@ -141,10 +151,10 @@ public:
 
 		const ClassMethod* Get_ClassMethod(const String& Name) const
 		{
-			String TepString;
 			for (auto& Item : Methods)
 			{
-				if (Item.FullName == Name)
+				if (ScopeHelper::GetNameFromFullName(Item.FullName)
+					== Name)
 				{
 					return &Item;
 				}
@@ -187,10 +197,11 @@ public:
 class ClassAssembly
 {
 public:
-	Vector<ClassData*> Classes;
+	Vector<Unique_ptr<ClassData>> Classes;
 	inline ClassData& AddClass(const String& Name, const String& FullName = "")
 	{
-		Classes.push_back(new ClassData(ClassType::Class));
+		auto V = std::make_unique<ClassData>(ClassType::Class);
+		Classes.push_back(std::move(V));
 		auto& r = *Classes.back();
 		r.Name = Name;
 		r.FullName = FullName;
@@ -198,7 +209,8 @@ public:
 	}
 	inline ClassData& AddEnum(const String& Name, const String& FullName = "")
 	{
-		Classes.push_back(new ClassData(ClassType::Enum));
+		auto V = std::make_unique<ClassData>(ClassType::Enum);
+		Classes.push_back(std::move(V));
 		auto& r = *Classes.back();
 		r.Name = Name;
 		r.FullName = FullName;
@@ -206,7 +218,8 @@ public:
 	}
 	inline ClassData& AddAlias(const String& Name, const String& FullName = "")
 	{
-		Classes.push_back(new ClassData(ClassType::Alias));
+		auto V = std::make_unique<ClassData>(ClassType::Alias);
+		Classes.push_back(std::move(V));
 		auto& r = *Classes.back();
 		r.Name = Name;
 		r.FullName = FullName;
@@ -231,11 +244,6 @@ public:
 	}
 	inline void Clear()
 	{
-		for (auto Item : Classes)
-		{
-			delete Item;
-		}
-	
 		Classes.clear();
 	}
 	ClassAssembly() {}
@@ -243,20 +251,12 @@ public:
 	{
 		Clear();
 	}
-	ClassAssembly(ClassAssembly&& source) noexcept
-	{
-		for (auto Item : source.Classes)
-		{
-			Classes.push_back(Item);
-		}
-
-		source.Classes.clear();
-	}
+	ClassAssembly(ClassAssembly&& source) = default;
 	static void PushCopyClasses(const ClassAssembly& source, ClassAssembly& Out)
 	{
-		for (auto Item : source.Classes)
+		for (auto& Item : source.Classes)
 		{
-			Out.Classes.push_back(new ClassData(*Item));
+			Out.Classes.push_back(std::make_unique<ClassData>(*Item));
 		}
 	}
 	ClassData* Find_Class(const String& Name, const String& Scope ="")
@@ -267,9 +267,10 @@ public:
 	{
 		for (auto& Item : Classes)
 		{
-			if (Item->Name == Name || Item->FullName == Name)
+			if (ScopeHelper::GetNameFromFullName(Item->Name) == Name 
+				|| Item->FullName == Name)
 			{
-				return Item;
+				return Item.get();
 			}
 		}
 		return nullptr;
@@ -285,12 +286,12 @@ public:
 		Tep += Scope;
 		for (auto& Item : Classes)
 		{
-			if (Item->Name == Name 
+			if (ScopeHelper::GetNameFromFullName(Item->Name) == Name
 		     || Item->FullName == Name
 			 || Item->Name == Tep
 			 || Item->FullName ==  Tep)
 			{
-				return Item;
+				return Item.get();
 			}
 		}
 		return nullptr;

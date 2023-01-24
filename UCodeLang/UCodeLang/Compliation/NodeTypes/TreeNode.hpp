@@ -36,6 +36,17 @@ enum class NodeType :UInt8
 	BoolliteralNode,
 	ReadVariableNode,
 	AssignVariableNode,
+	PostfixVariableNode,
+	CompoundStatementNode,
+	FuncCallNode, 
+	FuncCallStatementNode,
+	AnonymousTypeNode,
+	AnonymousObjectConstructorNode,
+	CastNode,
+	ParenthesesExpresionNode,
+	SizeofExpresionNode,
+	NewExpresionNode,
+	DropStatementNode,
 };
 
 
@@ -101,12 +112,7 @@ return (const Type*)Value; \
 
 
 #define Has_NodesList(Type) \
-Vector<Node*> _Nodes; \
-~##Type() \
-{ \
-	for (auto Item : _Nodes) { delete Item; } \
-	_Nodes.clear(); \
-}\
+Vector<Unique_ptr<Node>> _Nodes; \
 
 
 
@@ -128,7 +134,6 @@ struct FileNode : Node
 	void Reset()
 	{
 		FilePath = "";
-		for (auto Item : _Nodes) { delete Item; } \
 		_Nodes.clear();
 	}
 };

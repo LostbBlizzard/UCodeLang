@@ -22,15 +22,61 @@ String UAssembly::ToString(const UCodeLang::UClib* Lib)
 {
 	auto& InsMapData = Get_InsToInsMapValue();
     String r;
-	unordered_map<UAddress, String> AddressToName;
+	Unordered_map<UAddress, String> AddressToName;
 	for (const auto& Item2 : Lib->Get_NameToPtr())
 	{
 		AddressToName[Item2.second] = Item2.first;
 	}
-
+	r += "[ClassData]-- \n";
 	
+	auto& Assembly = Lib->Get_Assembly();
+	for (auto& Item : Assembly.Classes)
+	{
+		switch (Item->Type)
+		{
+		case ClassType::Class:
+		{
+			auto& Class = Item->_Class;
 
-	r += "[Instructions]-- \n";
+			for (auto Item2 : Class.Attributes)
+			{
+				r += Item2.Name;
+			}
+			r += "$" + Item->FullName + ":\n";
+			
+
+			r += ".size:" + std::to_string(Class.Size) + "\n\n";
+			
+			for (auto Item2 : Class.Fields)
+			{
+				r += " " + Item2.FullNameType + " " + Item2.Name + ";//Offset " + std::to_string(Item2.offset) + "\n";
+			}
+
+			for (auto Item2 : Class.Methods)
+			{
+				r += " |" + Item2.FullName + "[";
+				for (auto& Item3 : Item2.ParsType)
+				{
+					r += Item3.FullNameType + ":";
+				}
+				r += "]->" + (Item2.RetType.FullNameType.size()
+					 ? Item2.RetType.FullNameType : " void") + ";" + "\n";
+					
+			}
+		}
+		break; 
+		case ClassType::Alias:
+		{
+			auto& Class = Item->_Alias;
+			r += "$" + Item->FullName + " = " + Class.StringValue + ";\n";
+		}
+		default:
+			break;
+		} 
+	}
+
+
+	r += "\n[Instructions]-- \n";
 	auto& Insts = Lib->Get_Instructions();
 	for (size_t i = 0; i < Insts.size(); i++)
 	{
@@ -48,17 +94,17 @@ String UAssembly::ToString(const UCodeLang::UClib* Lib)
 		if (InsMapData.count(Item.OpCode))
 		{
 			auto& MapData = InsMapData[Item.OpCode];
-			r += MapData->InsName.data();
+			r += (String)MapData->InsName;
 			r += " ";
 
 			if (MapData->Op_0 != OpCodeType::NoOpCode)
 			{
-				OpValueToString(MapData->Op_0,Item.Value0, r);
+				OpValueToString(MapData->Op_0,Item.Value0, AddressToName, r,Lib);
 			}
 			if (MapData->Op_1 != OpCodeType::NoOpCode)
 			{
 				r += ",";
-				OpValueToString(MapData->Op_1,Item.Value1, r);
+				OpValueToString(MapData->Op_1,Item.Value1, AddressToName, r, Lib);
 			}
 			
 		}
@@ -73,31 +119,49 @@ String UAssembly::ToString(const UCodeLang::UClib* Lib)
 
     return r;
 }
-void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In, String& out)
+void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In,const Unordered_map<UAddress, String>& AddressToName, String& out, const UCodeLang::UClib* Lib)
 {
+
 	switch (OpType)
 	{
-	case UCodeLang::UAssembly::OpCodeType::NoOpCode:
+	case OpCodeType::NoOpCode:
 		break;
-	case UCodeLang::UAssembly::OpCodeType::AnyInt8:
+	case OpCodeType::AnyInt8:
 		out += std::to_string((UInt64)In.AsUInt8) + "|" + std::to_string((Int64)In.AsInt8);
 		break;
-	case UCodeLang::UAssembly::OpCodeType::AnyInt16:
+	case OpCodeType::AnyInt16:
 		out += std::to_string((UInt64)In.AsUInt16) + "|" + std::to_string((Int64)In.AsInt16);
 		break;
-	case UCodeLang::UAssembly::OpCodeType::AnyInt32:
+	case OpCodeType::AnyInt32:
 		out += std::to_string(In.AsUInt32) + "|" + std::to_string(In.AsInt32);
 		break;
-	case UCodeLang::UAssembly::OpCodeType::AnyIntNative:
-	case UCodeLang::UAssembly::OpCodeType::AnyInt64:
+	case OpCodeType::AnyIntNative:
+	case OpCodeType::AnyInt64:
 		out += std::to_string(In.AsUInt64) + "|" + std::to_string(In.AsInt64);
 		break;
-	case UCodeLang::UAssembly::OpCodeType::Register:
+	case OpCodeType::Register:
 		out += GetRegisterToString(In.AsRegister);
 		break;
-	case UCodeLang::UAssembly::OpCodeType::UIntPtr:
+	case OpCodeType::UIntPtr:
 		out += std::to_string(In.AsUInt64);
 		break;
+		
+	case OpCodeType::StaticCString:
+		out += "\"" + (String)(const char*)&Lib->Get_StaticBytes()[In.AsUIntNative] + "\"";
+		break;
+
+	case OpCodeType::InsAddress:
+	{
+		auto NewAddress = In.AsAddress + 1;
+		if (AddressToName.count(NewAddress))
+		{
+			out += "{" + AddressToName.at(NewAddress) + "}";
+		}
+		else
+		{
+			out += "{" + std::to_string(In.AsUInt64) + "}";
+		}
+	}	break;
 	default:
 		break;
 	}

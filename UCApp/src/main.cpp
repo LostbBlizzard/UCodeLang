@@ -2,7 +2,8 @@
 #include "UCodeLang/Compliation/UAssembly/UAssembly.hpp"
 #include <fstream>
 #include <iostream>
-#include "main.h"
+#include "Tests/Test.hpp"
+#include <future>
 
 #include "UCodeAnalyzer/TextBuilder/UCodeTextBuilder.hpp"
 #include "UCodeAnalyzer/CodeBuilds/StandardLibraryBuilder.hpp"
@@ -35,43 +36,33 @@ const UCodeLang::String StandardLibraryinit = StandardLibraryOut + "init/";
 
 #define StandardLibrarynamespace "ULang"
 
-void Test(Jit_Interpreter::CPPInput Input)
+
+void Test(int A)
 {
-
-
-
-	Input.Set_Return();
+	std::cout << "DLLCall Got Value " << A << std::endl;
 }
+static void UCodeLangAPI Invoke_Test(InterpreterCPPinterface& interpreter)
+{
+	Test(interpreter.GetParameter<int>()); interpreter.Set_Return();
+}
+
 static UCodeRunTime RunTime;
 int main()
 {
+	
+	//ULangTest::RunTests();
+	
+	
 	UCodeLang::Compiler _Compiler;
 	UCodeLang::CompliationSettings& Settings =_Compiler.Get_Settings();
 	UCodeLang::Compiler::CompilerPathData Data;
-	
-	/*
-	{
-		StandardLibraryBuilder::BuildLibraryToDir(StandardLibraryPath);
-		
-		Settings._Type = OutPutType::DLL;
-		Data.FileDir = StandardLibraryPath;
-		Data.IntDir = StandardLibraryinit;
-		Data.OutFile = FileDir + StandardLibraryLibName + UCodeLang::FileExt::DllWithDot;
-		_Compiler.CompileFiles(Data);
-		_Compiler.LinkFilesToFile(Data);
-		LogErrors(_Compiler);
-	}
-	*/
-	
-	
-	
 	//Main
 	Settings._Type = OutPutType::Lib;
 	Data.FileDir = FileDir;
 	Data.OutFile = OutFilePath;
 	Settings._Flags = OptimizationFlags::Debug;
 	_Compiler.CompileFiles(Data);
-	if (!LogErrors(_Compiler))
+	if (!ULangTest::LogErrors(std::cout,_Compiler))
 	{
 		UCodeLang::UClib MLib;
 		if (UClib::FromFile(&MLib, Data.OutFile))
@@ -83,14 +74,14 @@ int main()
 			out.close();
 		}
 
-
-	
+		
 		UCodeLang::RunTimeLib Lib;
 		Lib.Init(&MLib);
 
 		UCodeLang::RunTimeLib DLLib;
-		Lib.Add_CPPCall("Test",Test);
-
+		
+		Lib.Add_CPPCall("DLLCall", Invoke_Test);
+		
 		UCodeLang::RunTimeLangState State;
 		State.AddLib(&Lib);
 		State.AddLib(&DLLib);
@@ -98,50 +89,15 @@ int main()
 
 		
 		RunTime.Init(&State);
-		auto r = RunTime.Call("Main");
- 		if (r._Succeed == UCodeLang::Interpreter::RetState::Error || r._Succeed == UCodeLang::Interpreter::RetState::Error_Function_doesnt_exist)
-		{
-			std::cout << "Calling Main Got us an Error" << std::endl;
-		}
-		auto V = r.ReturnValue.Value.AsUInt8;
+		
+		auto Pointer = 50;
 
-		std::cout << " Got Value " << (void*)V << std::endl;
+		
+		auto r =RunTime.Call("main");
+ 		
+		
 
-		RunTime.Call(StaticVariablesUnLoadFunc);
-
+		//std::cout << " Got Value " << r << std::endl;
 
 	}
-}
-
-void CompileTests()
-{
-	const UCodeLang::String Output = TopDir + "Output/";
-	UCodeLang::Compiler _Compiler;
-	UCodeLang::CompliationSettings& Settings = _Compiler.Get_Settings();
-	UCodeLang::Compiler::CompilerPathData Data;
-	//Loop Dir for TestMain.Uc and make a test for it.
-}
-
-bool LogErrors(UCodeLang::Compiler& _Compiler)
-{
-	auto& Errors = _Compiler.Get_Errors().Get_Errors();
-	for (auto& Item : Errors)
-	{
-
-		const char* Type;
-		if (UCodeLang::CompliationErrors::IsError(Item._Code))
-		{
-			Type = "Error";
-		}
-		else if (UCodeLang::CompliationErrors::IsWarning(Item._Code))
-		{
-			Type = "Warning";
-		}
-		else
-		{
-			Type = "N/A";
-		}
-		std::cout << Type  << " At Line:" << (Item.Line != Token::EndOfFile ? std::to_string(Item.Line) : "End of File") << ":" << Item._Msg << " In " << Item.File << std::endl;
-	}
-	return _Compiler.Get_Errors().Has_Errors();
 }

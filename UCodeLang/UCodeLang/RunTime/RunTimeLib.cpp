@@ -18,7 +18,7 @@ void RunTimeLib::Init(UClib* Lib)
 {
 	_Lib = Lib;
 	_Instruction.clear();
-	auto ThisE = BitConverter::Get_CPU_Endian();
+	auto ThisE = BitConverter::_CPUEndian;
 	
 	#if UCodeLang_32BitSytem
 	int TestNative = 5;

@@ -13,7 +13,7 @@ class UAssembly
 public:
 	UAssembly(){}
 	~UAssembly(){}
-	void Assemble(const String_view& Text, UCodeLang::UClib* Out);
+	void Assemble(const String_view& Text, UClib* Out);
 	UCodeLangForceinline void Set_ErrorsOutput(CompliationErrors* V){_ErrorsOutput = V;}
 	UCodeLangForceinline void Set_Settings(CompliationSettings* V) {_Settings = V;}
 
@@ -38,7 +38,7 @@ public:
 	{
 		return "[&" + std::to_string(Pos) + "]";
 	}
-	static void OpValueToString(OpCodeType OpType,const AnyInt64& In,String& out);
+	static void OpValueToString(OpCodeType OpType,const AnyInt64& In,const Unordered_map<UAddress, String>& AddressToName,String& out, const UCodeLang::UClib* Lib);
 private:
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
