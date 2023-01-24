@@ -2,6 +2,7 @@
 #include <fstream>
 #include <filesystem>
 #include "../LangCore/FileHelper.hpp"
+#include "DependencyFile.hpp"
 UCodeLangStart
 Compiler::CompilerRet Compiler::CompileText(const String_view& Text)
 {
@@ -56,7 +57,7 @@ String Compiler::GetTextFromFile(const Path& path)
 	}
 	else
 	{
-		return "";
+		return "*null";
 	}
 }
 Compiler::CompilerRet Compiler::CompilePathToObj(const Path& path, const Path& OutLib)
@@ -76,10 +77,10 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 
 
 	//TODO check if File Int  Dir is in Dir
-	Vector<String*> FilesStrings;
+	Vector<Unique_ptr<String>> FilesStrings;
 	Vector<Vector<Token>> _FilesTokens;
-	Vector<FileNode*> Files;
-	Vector<UClib*> Libs;
+	Vector<Unique_ptr<FileNode>> Files;
+	Vector<Unique_ptr<UClib>> Libs;
 	//Refs
 
 	_Lexer.Set_ErrorsOutput(&_Errors);
@@ -106,20 +107,26 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 		if (Ext == FileExt::SourceFileWithDot)
 		{
 			_Errors.FilePath = RePath;
+			
+			auto V = std::make_unique<String>(GetTextFromFile(dirEntry.path()));
 
-			FilesStrings.push_back(new String(GetTextFromFile(dirEntry.path())));
-			auto Text = FilesStrings.back();
+			FilesStrings.push_back(std::move(V));
+
+			auto Text = FilesStrings.back().get();
 			_Lexer.Lex(*Text);
-			Parser::FileData Data;
+			
 			if (!_Lexer.Get_LexerSuccess()) { continue; }
 
 			auto& Teknes = _Lexer.Get_Tokens();
+			Parser::FileData Data;
+			Data.FilePath = RePath;
+			Data.Text = *Text;
 			_Parser.Parse(Data, Teknes);
 			if (!_Parser.Get_ParseSucces()) { continue; }
 			_Errors.FixEndOfLine(_Lexer.Get_OnLine(), _Lexer.Get_TextIndex());
 
-			FileNode* f = new FileNode(std::move(_Parser.Get_Tree()));
-			Files.push_back(f);
+			auto f = std::make_unique<FileNode>(std::move(_Parser.Get_Tree()));
+			Files.push_back(std::move(f));
 
 			_FilesTokens.push_back(std::move(Teknes));
 
@@ -128,16 +135,11 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 		}
 		else
 		{
-			UClib* lib =new UClib();
-			if (UClib::FromFile(lib, dirEntry.path()))
+			Unique_ptr<UClib> lib = std::make_unique<UClib>();
+			if (UClib::FromFile(lib.get(), dirEntry.path()))
 			{
-				Libs.push_back(lib);
+				Libs.push_back(std::move(lib));
 			}
-			else
-			{
-				delete lib;
-			}
-
 		}
 
 	}
@@ -151,6 +153,9 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 		_Analyzer.Set_Settings(&_Settings);
 		_Analyzer.Set_ErrorsOutput(&_Errors);
 		_Analyzer.Reset();
+
+
+
 		_Analyzer.Analyze(Files,Libs);
 		if (!_Errors.Has_Errors())
 		{
@@ -160,21 +165,20 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 	}
 
 	
-	for (auto Item : Libs)
-	{
-		delete Item;
-	}
-	for (auto Item : Files)
-	{
-		delete Item;
-	}
-	for (auto Item : FilesStrings)
-	{
-		delete Item;
-	}
-	
 	r._State = _Errors.Has_Errors() ? CompilerState::Fail : CompilerState::Success;
 	return r;
+}
+
+Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& Data)
+{
+	const Path DependencyPath = Data.IntDir + DependencyFile::FileName;
+
+	DependencyFile File;
+
+	CompilerRet r;
+	r._State = CompilerState::Fail;
+	r.OutPut = nullptr;
+	return  r;
 }
 
 UCodeLangEnd

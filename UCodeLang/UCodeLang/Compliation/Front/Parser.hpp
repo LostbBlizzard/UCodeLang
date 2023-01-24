@@ -16,6 +16,8 @@ public:
 	static constexpr TokenType declareFuncParsStart = TokenType::Left_Bracket;
 	static constexpr TokenType declareFuncParsEnd = TokenType::Right_Bracket;
 	
+	static constexpr TokenType AnonymousObjectStart = TokenType::Left_Bracket;
+	static constexpr TokenType AnonymousObjectEnd = TokenType::Right_Bracket;
 
 	static constexpr TokenType FuncCallStart = TokenType::Left_Parentheses;
 	static constexpr TokenType FuncCallEnd = TokenType::Right_Parentheses;
@@ -62,7 +64,7 @@ private:
 		}
 		else
 		{
-			return nullptr;
+			return &_Nodes->back();
 		}
 	}
 	UCodeLangForceinline const Token* TryPeekNextToken() { return   TryPeekNextToken(1); }
@@ -70,64 +72,8 @@ private:
 	UCodeLangForceinline void NextToken() { _TokenIndex++; }
 	UCodeLangForceinline void NextToken(size_t offfset) { _TokenIndex += offfset; }
 	
-	inline static bool IsPostfixOperator(const Token* Token)
-	{
-		return Token->Type == TokenType::increment
-			|| Token->Type == TokenType::decrement;
-	}
-	inline static bool IsCompoundOperator(const Token* Token)
-	{
-		return Token->Type == TokenType::CompoundAdd
-			|| Token->Type == TokenType::CompoundSub
-			|| Token->Type == TokenType::CompoundMult
-			|| Token->Type == TokenType::CompoundDiv;
-	}
-	inline static bool IsUnaryOperator(const Token* Token)
-	{
-		return Token->Type == TokenType::plus
-			|| Token->Type == TokenType::minus
-			|| Token->Type == TokenType::KeyWorld_Sizeof
-		    || Token->Type == TokenType::KeyWorld_Nameof
-			|| Token->Type == TokenType::KeyWorld_typeof
-			|| Token->Type == TokenType::Not
-			|| Token->Type == TokenType::bitwise_not;
-	}
-	inline static bool IsOverLoadableOperator(const Token* Token)
-	{
-		return Token->Type == TokenType::equal_Comparison
-			|| Token->Type == TokenType::Notequal_Comparison
-			|| Token->Type == TokenType::greaterthan
-			|| Token->Type == TokenType::lessthan
-			|| Token->Type == TokenType::greater_than_or_equalto
-			|| Token->Type == TokenType::less_than_or_equalto;
-	}
-	inline static bool IsBinaryOperator(const Token* Token)
-	{
-		return Token->Type == TokenType::plus
-			|| Token->Type == TokenType::minus
-			|| Token->Type == TokenType::star
-			|| Token->Type == TokenType::forwardslash
-			|| Token->Type == TokenType::modulo
-			
-			|| Token->Type == TokenType::equal_Comparison
-			|| Token->Type == TokenType::Notequal_Comparison
-			|| Token->Type == TokenType::greaterthan
-			|| Token->Type == TokenType::lessthan
-			|| Token->Type == TokenType::greater_than_or_equalto
-			|| Token->Type == TokenType::less_than_or_equalto
-			
-			|| Token->Type == TokenType::logical_and
-			|| Token->Type == TokenType::logical_or
-			
-			|| Token->Type == TokenType::bitwise_and
-			|| Token->Type == TokenType::bitwise_or
-			|| Token->Type == TokenType::bitwise_LeftShift
-			|| Token->Type == TokenType::bitwise_RightShift
-			|| Token->Type == TokenType::bitwise_XOr
-			
-			|| Token->Type == TokenType::approximate_Comparison;
-			
-	}
+	void TokenTypeCheck(const Token* Value, TokenType Type);
+
 	inline static GotNodeType Merge(GotNodeType A, GotNodeType B)
 	{
 		if (A == GotNodeType::Success && B == GotNodeType::Success)
@@ -190,10 +136,27 @@ private:
 	GotNodeType GetValueParametersNode(ValueParametersNode& out);
 	GotNodeType TryGetGeneric(GenericValuesNode& out);
 
+	GotNodeType TryGetGeneric(UseGenericsNode& out);
+
 	GotNodeType GetName(ScopedNameNode& out);
 	GotNodeType GetName(NameNode& out);
 	GotNodeType GetNameCheck(NameNode& out);
-	GotNodeType GetType(TypeNode& out);
+
+
+	enum class NameCheck_t : UInt8
+	{
+		Null,
+		Name,
+		MemberAccess,
+	};
+	struct GetNameCheck_ret
+	{
+		NameCheck_t Type = NameCheck_t::Null;
+		GotNodeType Gotnode = GotNodeType::Null;
+	};
+	GetNameCheck_ret GetNameCheck(ScopedNameNode& out);
+
+	GotNodeType GetType(TypeNode& out,bool ignoreRighthandOFtype =false);
 	GotNodeType GetTypeWithVoid(TypeNode& out);
 	GotNodeType GetNumericType(TypeNode& out);
 
@@ -269,6 +232,22 @@ private:
 	}
 	GotNodeType GetAssignVariable(AssignVariableNode& out);
 
+	TryGetNode GetPostfixStatement()
+	{
+		PostfixVariableNode* V = PostfixVariableNode::Gen();
+		auto r = GetPostfixStatement(*V);
+		return { r,V->As() };
+	}
+	GotNodeType GetPostfixStatement(PostfixVariableNode& out);
+
+	TryGetNode GetCompoundStatement()
+	{
+		CompoundStatementNode* V = CompoundStatementNode::Gen();
+		auto r = GetCompoundStatement(*V);
+		return { r,V->As() };
+	}
+	GotNodeType GetCompoundStatement(CompoundStatementNode& out);
+
 	void GetDeclareVariableNoObject(TryGetNode& out);
 
 	GotNodeType GetAlias(const Token* AliasName, GenericValuesNode& AliasGenerics, AliasNode& out);
@@ -297,6 +276,54 @@ private:
 		return { r,V->As() };
 	}
 	GotNodeType GetTagNode(TagTypeNode& out);
+
+	TryGetNode GetFuncCallStatementNode()
+	{
+		FuncCallStatementNode* V = FuncCallStatementNode::Gen();
+		auto r = GetFuncCallStatementNode(*V);
+		return { r,V->As() };
+	}
+	GotNodeType GetFuncCallStatementNode(FuncCallStatementNode& out);
+
+	TryGetNode GetFuncCallNode()
+	{
+		FuncCallNode* V = FuncCallNode::Gen();
+		auto r = GetFuncCallNode(*V);
+		return { r,V->As() };
+	}
+	GotNodeType GetFuncCallNode(FuncCallNode& out);
+
+	TryGetNode GetAnonymousObjectConstructorNode()
+	{
+		AnonymousObjectConstructorNode* V = AnonymousObjectConstructorNode::Gen();
+		auto r = GetAnonymousObjectConstructorNode(*V);
+		return { r,V->As() };
+	}
+	GotNodeType GetAnonymousObjectConstructorNode(AnonymousObjectConstructorNode& out);
+
+	TryGetNode GetDropStatementNode()
+	{
+		DropStatementNode* V = DropStatementNode::Gen();
+		auto r = GetDropStatementNode(*V);
+		return { r,V->As() };
+	}
+	GotNodeType GetDropStatementNode(DropStatementNode& out);
+
+	TryGetNode GetNewExpresionNode()
+	{
+		NewExpresionNode* V =NewExpresionNode::Gen();
+		auto r = GetNewExpresionNode(*V);
+		return { r,V->As() };
+	}
+	GotNodeType GetNewExpresionNode(NewExpresionNode& out);
+
+	TryGetNode GetumutVariableDeclare()
+	{
+		Node* V = nullptr;
+		auto r = GetumutVariableDeclare(V);
+		return { r,V };
+	}
+	GotNodeType GetumutVariableDeclare(Node*& out);
 };
 UCodeLangEnd
 

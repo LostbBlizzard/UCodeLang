@@ -3,8 +3,12 @@
 UCodeLangStart
 UCodeRunTime::UCodeRunTime()
 {
+	#ifdef UCodeLangCPUCoreKnow
+
+	#else
 	const auto& RunTimeData = Get_EnvironmentData();
 	_Interpreters.resize(RunTimeData.ProcessorsCount);
+	#endif // DEBUG
 }
 UCodeRunTime::~UCodeRunTime()
 {
@@ -26,20 +30,24 @@ void UCodeRunTime::UnLoad()
 		Item.UnLoad();
 	}
 }
-UCodeRunTime::Return_t UCodeRunTime::ThisCall(UAddress This, const String& FunctionName, parameters Pars)
+UCodeRunTime::Return_t UCodeRunTime::ThisCall(UAddress This, const String& FunctionName)
 {
-	return _MainInterpreter.ThisCall(This, FunctionName, Pars);
+	return Get_MyInterpreter().ThisCall(This, FunctionName);
 }
-UCodeRunTime::Return_t UCodeRunTime::ThisCall(UAddress This, UAddress address, parameters Pars)
+UCodeRunTime::Return_t UCodeRunTime::ThisCall(UAddress This, UAddress address)
 {
-	return _MainInterpreter.ThisCall(This,address, Pars);
+	return Get_MyInterpreter().ThisCall(This,address);
 }
-UCodeRunTime::Return_t UCodeRunTime::Call(const String& FunctionName, parameters Pars)
+void UCodeRunTime::Get_Return(void* Output, size_t OutputSize)
 {
-	return _MainInterpreter.Call(FunctionName, Pars);
+	return Get_MyInterpreter().Get_Return(Output, OutputSize);
 }
-UCodeRunTime::Return_t UCodeRunTime::Call(UAddress address, parameters Pars)
+UCodeRunTime::Return_t UCodeRunTime::Call(const String& FunctionName)
 {
-	return _MainInterpreter.Call(address,Pars);
+	return Get_MyInterpreter().Call(FunctionName);
+}
+UCodeRunTime::Return_t UCodeRunTime::Call(UAddress address)
+{
+	return Get_MyInterpreter().Call(address);
 }
 UCodeLangEnd

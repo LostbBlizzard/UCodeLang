@@ -52,6 +52,35 @@ project "UCApp"
    includedirs{
     "%{prj.name}/src",
     "UCodeLang",
+   }
+
+   links {
+      "UCodeLang.lib",
+   }
+   libdirs { 
+      "Output/UCodeLang/" .. OutDirPath,
+      "Output/UCodeCross/" .. OutDirPath,
+   }
+
+project "UC"
+   location "UC"
+   kind "ConsoleApp"
+   language "C++"
+
+   
+   
+   targetdir ("Output/%{prj.name}/" .. OutDirPath)
+   objdir ("Output/int/%{prj.name}/" .. OutDirPath)
+   
+   files { 
+     "%{prj.name}/src/**.c",
+     "%{prj.name}/src/**.h",
+     "%{prj.name}/src/**.cpp",
+     "%{prj.name}/src/**.hpp", 
+   }
+   includedirs{
+    "%{prj.name}/src",
+    "UCodeLang",
     "UCodeCross"
    }
 

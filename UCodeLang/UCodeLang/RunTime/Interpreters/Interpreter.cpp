@@ -3,23 +3,59 @@
 UCodeLangStart
 
 
-Interpreter::Return_t Interpreter::ThisCall(UAddress This, const String& FunctionName, parameters Pars)
+
+bool Interpreter::CheckIfFunctionExist(const String& FunctionName)
 {
 	auto address = _State->FindAddress(FunctionName);
 	if (address == NullAddress)
 	{
-		return Return_t(RetState::Error_Function_doesnt_exist);
+		return false;
+	}
+	return true;
+}
+
+void Interpreter::Get_Return(void* Output, size_t OutputSize)
+{
+	if (OutputSize <= sizeof(Register))
+	{
+		MemCopy(Output, &Get_OutRegister().Value, OutputSize);
+	}
+	else
+	{
+		MemCopy(Output, *(void**)&Get_OutRegister().Value, OutputSize);
+	}
+}
+
+void Interpreter::FlushParametersIntoCPU()
+{
+	RegisterID ParRegister = RegisterID::StartParameterRegister;
+
+	auto State = _Parameters.StartLoop();
+
+	while (_Parameters.Next(State))
+	{
+		auto Data = _Parameters.GetLoopData(State);
+
+		if (Data.DataSize <= sizeof(Register) && ParRegister < RegisterID::EndParameterRegister)
+			//the if must be the same for UCodeBackEnd CallFunc/Func_Parameter
+		{
+			void* RegPtr = &Get_Register(ParRegister).Value;
+
+			MemCopy(RegPtr, (const PtrType)Data.Pointer, Data.DataSize);
+
+
+			(*(RegisterID_t*)&ParRegister)++;
+		}
+		else
+		{
+			_CPU.Stack.PushBytes(Data.Pointer, Data.DataSize);
+		}
 	}
 
-	return ThisCall(This,address, Pars);
-}
-Interpreter::Return_t Interpreter::ThisCall(UAddress This, UAddress address, parameters Pars)
-{
-	Get_ThisRegister().Value = This;
-	return Call(address, Pars);
+	_Parameters.Clear();
 }
 
-Interpreter::Return_t Interpreter::Call(const String& FunctionName, parameters Pars)
+Interpreter::Return_t Interpreter::Call(const String& FunctionName)
 {
 	auto address = _State->FindAddress(FunctionName);
 	if (address == NullAddress)
@@ -27,13 +63,13 @@ Interpreter::Return_t Interpreter::Call(const String& FunctionName, parameters P
 		return Return_t(RetState::Error_Function_doesnt_exist);
 	}
 	
-	return Call(address,Pars);
+	return Call(address);
 }
-Interpreter::Return_t Interpreter::Call(UAddress address, parameters Pars)
+Interpreter::Return_t Interpreter::Call(UAddress address)
 {
 	auto OldStackoffset = _CPU.Stack.StackOffSet;//for when UCode calls C++ calls UCode.
+	FlushParametersIntoCPU();
 
-	_CPU.Stack.PushParameters(Pars);
 	_CPU.Stack.PushStack(_CPU.ProgramCounter);
 	_CPU.ProgramCounter = address;
 	
@@ -68,6 +104,10 @@ Interpreter::Return_t Interpreter::Call(UAddress address, parameters Pars)
 #define IntSet(Bits,signedCType,unsignedCType,signedAnyIntValue,unsignedAnyIntValue) \
 case InstructionSet::Store##Bits: \
 	Get_Register((RegisterID)Inst.Value0.AsRegister).Value = Inst.Value1.##signedAnyIntValue;\
+	break;\
+case InstructionSet::StoreRegToReg##Bits:\
+	Get_Register(Inst.Value1.AsRegister).Value.##signedAnyIntValue\
+	= Get_Register(Inst.Value0.AsRegister).Value.##signedAnyIntValue;\
 	break;\
 case InstructionSet::StoreFromPtrToReg##Bits:\
 	Get_Register(Inst.Value1.AsRegister).Value =\
@@ -216,15 +256,18 @@ void Interpreter::Extecute(Instruction& Inst)
 		_CPU.ProgramCounter = *(UAddress*)Inst.Value0.AsAddress;
 		break;
 	case InstructionSet::DoNothing:break;
-		
+	
 	IntSet(8,Int8,UInt8, AsInt8, AsUInt8)
-	IntSet(16,Int8,UInt16, AsInt16, AsUInt16)
-	IntSet(32,Int8,UInt32, AsInt32, AsUInt32)
-	IntSet(64,Int8,UInt64, AsInt32, AsUInt64)
+	IntSet(16,Int16,UInt16, AsInt16, AsUInt16)
+	IntSet(32,Int32,UInt32, AsInt32, AsUInt32)
+	IntSet(64,Int64,UInt64, AsInt64, AsUInt64)
 	
 	#pragma region Cpp func Set
 	case InstructionSet::GetPointerOfStack:
-		Get_Register(Inst.Value0.AsRegister).Value = _CPU.Stack.GetTopOfStack();
+		Get_Register(Inst.Value0.AsRegister).Value = _CPU.Stack.GetTopOfStackWithoffset(Inst.Value1.AsUIntNative);
+		break;
+	case InstructionSet::GetPointerOfStackSub:
+		Get_Register(Inst.Value0.AsRegister).Value = _CPU.Stack.GetTopOfStackWithoffsetSub(Inst.Value1.AsUIntNative);
 		break;
 	case InstructionSet::IncrementStackPointer:
 		_CPU.Stack.IncrementStack(Get_Register(Inst.Value0.AsRegister).Value.AsUIntNative);

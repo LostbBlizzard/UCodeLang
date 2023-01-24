@@ -231,11 +231,11 @@ public:
 		Out.Value0.AsAddress = addresstoReadFrom;
 		Out.Value1.AsUInt64 = NullUInt64;
 	}
-	UCodeLangForceinline static void CPPCall(UAddress StaticAddress, NSize_t ParsSize, Instruction& Out)
+	UCodeLangForceinline static void CPPCall(UAddress StaticAddress, Instruction& Out)
 	{
 		Out.OpCode = InstructionSet::CppCallNamed;
 		Out.Value0.AsAddress = StaticAddress;
-		Out.Value1.AsUInt64 = ParsSize;
+		Out.Value1.AsUInt64 = NullUInt64;
 	}
 
 	UCodeLangForceinline static void Jump(UAddress address, Instruction& Out)
@@ -277,17 +277,24 @@ public:
 	//Native Set
 	BuilderIntSet(Native, SIntNative, UIntNative, AsInt64, AsUInt64)
 	//C funcs
-	UCodeLangForceinline static void GetPointerOfStack(Instruction& Out, RegisterID out)
+	UCodeLangForceinline static void GetPointerOfStack(Instruction& Out, RegisterID out,UAddress offset)
 	{
 		Out.OpCode = InstructionSet::GetPointerOfStack;
 		Out.Value0.AsRegister = out;
-		Out.Value1.AsUInt64 = NullUInt64;
+		Out.Value1.AsUInt64 = offset;
 	}
-	UCodeLangForceinline static void GetPointerOfStaticMem(Instruction& Out, RegisterID out)
+	UCodeLangForceinline static void GetPointerOfStackSub(Instruction& Out, RegisterID out, UAddress offset)
+	{
+		Out.OpCode = InstructionSet::GetPointerOfStackSub;
+		Out.Value0.AsRegister = out;
+		Out.Value1.AsUInt64 = offset;
+	}
+
+	UCodeLangForceinline static void GetPointerOfStaticMem(Instruction& Out, RegisterID out, UAddress offset)
 	{
 		Out.OpCode = InstructionSet::GetPointerOfStaticMem;
 		Out.Value0.AsRegister = out;
-		Out.Value1.AsUInt64 = NullUInt64;
+		Out.Value1.AsUInt64 = offset;
 	}
 	UCodeLangForceinline static void IncrementStackPointer(Instruction& Out, RegisterID Value)
 	{

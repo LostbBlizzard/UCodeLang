@@ -333,12 +333,35 @@ void Lexer::Lex(const String_view& Text)
 				_Nodes.push_back(_Token);
 			}
 			break;
+		case '?':
+			NextChar = GetNextChar(1);
+			if (NextChar == '.')
+			{
+				i++;
+				_Token.Type = TokenType::OptionalDot;
+				_Token.Value = nullptr;
+				_Nodes.push_back(_Token);
+			}
+			else
+			{
+				_Token.Type = TokenType::QuestionMark;
+				_Token.Value = nullptr;
+				_Nodes.push_back(_Token);
+			}
+			break;
 		case '=':
 			NextChar = GetNextChar(1);
 			if (NextChar == '=')
 			{
 				i++;
 				_Token.Type = TokenType::equal_Comparison;
+				_Token.Value = nullptr;
+				_Nodes.push_back(_Token);
+			}
+			else if (NextChar == '>')
+			{
+				i++;
+				_Token.Type = TokenType::RightAssignArrow;
 				_Token.Value = nullptr;
 				_Nodes.push_back(_Token);
 			}
@@ -376,10 +399,21 @@ void Lexer::Lex(const String_view& Text)
 			NextChar = GetNextChar(1);
 			if (NextChar == '>')
 			{
-				_Token.Type = TokenType::RightArrow;
-				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
 				i++;
+				NextChar = GetNextChar(1);
+				if (NextChar == '>')
+				{
+					_Token.Type = TokenType::HardRightArrow;
+					_Token.Value = nullptr;
+					_Nodes.push_back(_Token);
+					i++;
+				}
+				else
+				{
+					_Token.Type = TokenType::RightArrow;
+					_Token.Value = nullptr;
+					_Nodes.push_back(_Token);
+				}
 			}
 			else if (NextChar == '-')
 			{
@@ -469,6 +503,12 @@ void Lexer::Lex(const String_view& Text)
 			Error._Msg = "ExpectingSequence \' */ \' To End MultLine Comment";
 		};
 	}
+
+
+	_Token = Token();
+	_Token.Type = TokenType::EndofFile;
+	_Nodes.push_back(_Token);
+
 	_LexerSuccess = !_ErrorsOutput->Has_Errors();
 }
 bool Lexer::DoIndentation(bool& IsIndentationing, char Char, size_t& IndentationLevel, size_t& LastIndentationLevel, UCodeLang::Token& _Token)

@@ -41,8 +41,8 @@ private:
 		bool IsfakePtr;
 		NSize_t Size;
 	};
-	unordered_map<PtrType, MemData> _Data;
-	unordered_map<PtrType, MemData> _ReservedData;
+	Unordered_map<PtrType, MemData> _Data;
+	Unordered_map<PtrType, MemData> _ReservedData;
 	Vector<void*> Tep_Values;
 	PtrType FindReservedPtr(NSize_t Size);
 };
@@ -128,10 +128,15 @@ public:
 	{
 		_Data.AddLib(lib);
 	}
-	UCodeLangForceinline void Clears()
+	UCodeLangForceinline void ClearsLibs()
 	{
-		_Data.Clears();
+		_Data.ClearLibs();
 	}
+	UCodeLangForceinline void ClearRunTimeState()
+	{
+		_Data.ClearRunTimeState();
+	}
+
 	void LinkLibs();
 	UCodeLangForceinline UAddress FindAddress(const String& FunctionName)
 	{

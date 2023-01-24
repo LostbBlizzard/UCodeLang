@@ -2,6 +2,7 @@
 #include "../RunTimeLangState.hpp"
 #include "..//../LangCore.hpp"
 #include "UCodeLang/LangCore/LangTypes.hpp"
+#include "ParameterPassingHelper.hpp"
 UCodeLangStart
 
 
@@ -20,7 +21,7 @@ public:
 		Success,
 		Error,
 		Error_Function_doesnt_exist,
-	}; 
+	};
 	struct Register
 	{
 		AnyInt64 Value;
@@ -33,16 +34,17 @@ public:
 
 		}
 	};
+
 	struct Return_t
 	{
 		RetState _Succeed;
 		Register ReturnValue;
-		
+
 		constexpr Return_t() : _Succeed(RetState::Null), ReturnValue()
 		{
 
 		}
-		constexpr Return_t(RetState Succeed): _Succeed(Succeed), ReturnValue()
+		constexpr Return_t(RetState Succeed) : _Succeed(Succeed), ReturnValue()
 		{
 
 		}
@@ -53,7 +55,7 @@ public:
 	};
 
 	Interpreter() {}
-	~Interpreter(){}
+	~Interpreter() { UnLoad(); }
 
 
 	void Init(RunTimeLangState* State)
@@ -66,28 +68,129 @@ public:
 	}
 	void UnLoad()
 	{
-		Free(_CPU.Stack._Data);
+		if (_CPU.Stack._Data) {
+			Free(_CPU.Stack._Data);
+			_CPU.Stack._Data = nullptr;
+		}
 	}
 
-	Return_t Call(const String& FunctionName, parameters Pars = NullParameters);
-	Return_t Call(UAddress address,parameters Pars = NullParameters);
+	Return_t Call(const String& FunctionName);
+	Return_t Call(UAddress address);
 
 	void Extecute(Instruction& Inst);
-	
-	Return_t ThisCall(UAddress This, const String& FunctionName, parameters Pars = NullParameters);
-	Return_t ThisCall(UAddress This, UAddress address, parameters Pars = NullParameters);
-	UCodeLangForceinline Return_t ThisCall(PtrType This, UAddress address, parameters Pars = NullParameters)
+
+	Return_t ThisCall(UAddress This, const String& FunctionName)
 	{
-		return ThisCall((UAddress)This,address,Pars);
+		if (CheckIfFunctionExist(FunctionName))
+		{
+			PushParameter(This);
+			return Call(FunctionName);
+		}
+		return  Return_t(RetState::Error_Function_doesnt_exist);
 	}
-	UCodeLangForceinline Return_t ThisCall(PtrType This, const String& FunctionName, parameters Pars = NullParameters)
+	Return_t ThisCall(UAddress This, UAddress address)
 	{
-		return ThisCall((UAddress)This, FunctionName, Pars);
+		PushParameter(This);
+		return Call(address);
 	}
-	UCodeLangForceinline Return_t ThisCall(PtrType This, const ClassMethod& Function, parameters Pars = NullParameters)
+	UCodeLangForceinline Return_t ThisCall(PtrType This, UAddress address)
 	{
-		return ThisCall((UAddress)This, Function.FullName, Pars);
+		return ThisCall((UAddress)This, address);
 	}
+	UCodeLangForceinline Return_t ThisCall(PtrType This, const String& FunctionName)
+	{
+		return ThisCall((UAddress)This, FunctionName);
+	}
+	UCodeLangForceinline Return_t ThisCall(PtrType This, const ClassMethod& Function)
+	{
+		return ThisCall((UAddress)This, Function.FullName);
+	}
+
+
+
+	template<typename... Args> Return_t ThisCall(UAddress This, const String& FunctionName, Args&&... parameters)
+	{
+		if (CheckIfFunctionExist(FunctionName))
+		{
+			PushParameter(This);
+			PushParameters(parameters...);
+			return Call(FunctionName);
+		}
+		return Return_t(RetState::Error_Function_doesnt_exist);
+	}
+	template<typename... Args> Return_t ThisCall(UAddress This, UAddress address, Args&&... parameters)
+	{
+		PushParameter(This);
+		PushParameters(parameters...);
+		return Call(address);
+	}
+	template<typename... Args> UCodeLangForceinline Return_t ThisCall(PtrType This, UAddress address, Args&&... parameters)
+	{
+		return ThisCall((UAddress)This, address, parameters);
+	}
+	template<typename... Args>UCodeLangForceinline Return_t ThisCall(PtrType This, const String& FunctionName, Args&&... parameters)
+	{
+		return ThisCall((UAddress)This, FunctionName, parameters);
+	}
+	template<typename... Args> UCodeLangForceinline Return_t ThisCall(PtrType This, const ClassMethod& Function, Args&&... parameters)
+	{
+		return ThisCall((UAddress)This, Function.FullName, parameters);
+	}
+
+
+
+	template<typename T, typename... Args>
+	T retCall(const String& FunctionName, Args&&... parameters)
+	{
+		if (CheckIfFunctionExist(FunctionName))
+		{
+			PushParameters(parameters...);
+
+			auto V = Call(FunctionName);
+			if (V._Succeed == RetState::Success)
+			{
+				return Get_Return<T>();
+			}
+		}
+		return {};
+	}
+	template<typename T,typename... Args>
+	T retThisCall(PtrType This, const ClassMethod& Function, Args&&... parameters)
+	{
+		return retThisCall(This, Function.FullName, Args&&... parameters)
+	}
+	template<typename T, typename... Args> T retThisCall(PtrType This, const String& Function, Args&&... parameters)
+	{
+		if (CheckIfFunctionExist(FunctionName))
+		{
+			auto V = ThisCall(This, Function, parameters);
+			if (V._Succeed == RetState::Success)
+			{
+				return Get_Return<T>();
+			}
+		}
+		return {};
+	}
+	//
+
+	template<typename... Args> void PushParameters(Args&&... parameters)
+	{
+		(
+		
+		 PushParameter(parameters)
+		, ...);
+	}
+
+	template<typename T> UCodeLangForceinline void PushParameter(const T& Value)
+	{
+		PushParameter((const void*)&Value, sizeof(Value));
+	}
+	void PushParameter(const void* Value, size_t ValueSize)
+	{
+		_Parameters.Push(Value, ValueSize);
+	}
+
+
 	//
 	UCodeLangForceinline PtrType Calloc(NSize_t Size) { return _State->Calloc(Size); }
 	UCodeLangForceinline PtrType Realloc(PtrType OldPtr, NSize_t Size) { return _State->Realloc(OldPtr, Size); }
@@ -96,13 +199,18 @@ public:
 	UCodeLangForceinline void Free(PtrType Ptr) { return _State->Free(Ptr); }
 	UCodeLangForceinline void Log(const char* Ptr) { return _State->Log(Ptr); }
 
-	UCodeLangForceinline const UserMadeContext& Get_UserMadeContext(){return _UserMadeContext;}
-	UCodeLangForceinline void Set_UserMadeContext(UserMadeContext Context){_UserMadeContext = Context;}
+	UCodeLangForceinline const UserMadeContext& Get_UserMadeContext() { return _UserMadeContext; }
+	UCodeLangForceinline void Set_UserMadeContext(UserMadeContext Context) { _UserMadeContext = Context; }
 	UCodeLangForceinline auto Get_State() { return _State; }
-	void PushParameters(parameters Pars)
+	bool CheckIfFunctionExist(const String& FunctionName);
+
+	template<typename T> T Get_Return()
 	{
-		_CPU.Stack.PushParameters(Pars);
+		T r;
+		Get_Return(&r, sizeof(T));
+		return r;
 	}
+	void Get_Return(void* Output, size_t OutputSize);
 private:
 	
 	struct CPUReturn_t
@@ -154,10 +262,6 @@ private:
 
 				StackOffSet += sizeof(T);
 			}
-			inline void PushParameters(const parameters V)
-			{
-				PushBytes(V.Data, V.Size);
-			}
 			void PushBytes(const void* Ptr,NSize_t Size)
 			{
 				void* DataPtr = (void*)((UIntNative)_Data + StackOffSet);
@@ -183,14 +287,7 @@ private:
 				void* DataPtr = (void*)((UIntNative)_Data + StackOffSet);
 				return *(T*)DataPtr;
 			}
-			parameters PopStackParameters(NSize_t DataSize)
-			{
-				if (StackOffSet - DataSize < 0) { throw std::exception("stack underflow"); }//This May not work
-
-				StackOffSet -= DataSize;
-				void* DataPtr = (void*)((UIntNative)_Data + StackOffSet);
-				return parameters(DataPtr, DataSize);
-			};
+			
 			
 			template<typename T> void SetValue(const T& V,NSize_t offset)
 			{
@@ -231,6 +328,17 @@ private:
 				void* DataPtr = (void*)((UIntNative)_Data + StackOffSet);
 				return  DataPtr;
 			}
+			PtrType GetTopOfStackWithoffset(NSize_t offset)
+			{
+				void* DataPtr = (void*)((UIntNative)_Data + StackOffSet + offset);
+				return  DataPtr;
+			}
+			PtrType GetTopOfStackWithoffsetSub(NSize_t offset)
+			{
+				void* DataPtr = (void*)((UIntNative)_Data + StackOffSet - offset);
+				return  DataPtr;
+			}
+
 			PtrType GetFloorOfStack()
 			{
 				void* DataPtr = (void*)((UIntNative)_Data);
@@ -256,6 +364,8 @@ private:
 	RunTimeLangState* _State = nullptr;
 	InterpreterCPPinterface* _CPPHelper = nullptr;
 	UserMadeContext _UserMadeContext;
+	ParameterPassingHelper _Parameters;
+	void FlushParametersIntoCPU();
 
 	UCodeLangForceinline PtrType Get_StaticMemPtr(){return _State->Get_StaticMemPtr();}
 	UCodeLangConstexprForceinline Register& Get_ThisRegister() { return Get_Register(RegisterID::ThisRegister); }
@@ -284,38 +394,79 @@ class InterpreterCPPinterface
 {
 	friend Interpreter;
 
+	inline static thread_local void* GetParametersPointer = nullptr;
+	inline static thread_local RegisterID ParValue = RegisterID::StartParameterRegister;
+	inline static thread_local size_t ParStackOffset = 0;
 
+	void ParInfoReset()
+	{
+		ParValue = RegisterID::StartParameterRegister;
+		ParStackOffset = 0;
+	}
 public:	
-	
-	template<typename T> UCodeLangForceinline T GetParameters()
+	void SetParametersPointer(void* V)
+	{
+		ParInfoReset();
+		GetParametersPointer = V;
+	}
+
+	template<typename... Args> void GetParameters(Args&&... Out)
+	{
+		throw std::exception("");
+		//The Compiler does not like me.
+		
+		//uncomment this and remove the exception if the Compiler let you Compile it.
+		// else you have use GetParameter manually.
+		// 
+		// 
+		//(//GetParameter(Out)
+			//,...);
+	}
+
+
+	template<typename T> void GetParameter(T& Out)
+	{
+		Out = GetParameter<T>();
+	}
+	template<typename T> T GetParameter()
 	{
 		constexpr bool IsBigerRegister = sizeof(T) > sizeof(Interpreter::Register);
 		if (IsBigerRegister)
 		{
-			return GetParametersFromStack<T>();
+			ParStackOffset += sizeof(T);
+			auto r = *(T*)_Ptr->_CPU.Stack.GetTopOfStackWithoffset(ParStackOffset);
+
+			return r;
 		}
 		else
 		{
-			return *(T*)&Get_InPutRegister().Value;
+			auto r = *(T*)(&_Ptr->Get_Register(ParValue).Value);
+
+			(*(RegisterID_t*)&ParValue)++;
+			return r;
 		}
 	}
-	template<typename T> UCodeLangForceinline void Set_Return(const T& Value) {
+
+	
+
+	template<typename T> void Set_Return(const T& Value) 
+	{
 
 		constexpr bool IsBigerRegister = sizeof(T) > sizeof(Interpreter::Register);
 		if (IsBigerRegister) 
 		{
-			_Ptr->_CPU.Stack.PushBytes(&Value,sizeof(T));
+			_Ptr->_CPU.Stack.SetValue(Value,sizeof(T));
+			Get_OutPutRegister().Value = _Ptr->_CPU.Stack.GetTopOfStack();
 		}
 		else
 		{
 			Get_OutPutRegister().Value = *(UInt64*)&Value;
 		}
 	}
-	UCodeLangForceinline void Set_Return(void){}
+	void Set_Return(void){}
+
 	template<typename T> UCodeLangForceinline T* Get_This()
 	{
-		constexpr bool IsBigerThenRegister =sizeof(T) > sizeof(Interpreter::Register);
-		static_assert(!IsBigerThenRegister, " 'T' is too big to be in a Register");
 		return (T*)&Get_ThisRegister().Value;
 	}
 
@@ -328,15 +479,6 @@ public:
 		return _Ptr->_State;
 	}
 
-	UCodeLangForceinline parameters GetParametersOnStack()
-	{
-		UIntNative Size = _Ptr->_CPU.Stack.PopStack<UIntNative>();
-		return  _Ptr->_CPU.Stack.PopStackParameters(Size);
-	}
-	template<typename T> UCodeLangForceinline T GetParametersFromStack()
-	{
-		return parameters::From<T>(GetParametersOnStack());
-	}
 	UCodeLangForceinline auto& Get_InPutRegister() { return _Ptr->Get_InRegister(); }
 	UCodeLangForceinline auto& Get_OutPutRegister() { return _Ptr->Get_OutRegister(); }
 	UCodeLangForceinline auto& Get_ThisRegister() { return _Ptr->Get_ThisRegister(); }

@@ -30,11 +30,13 @@ public:
 	{
 		_NameToCppCall[Name] = CPP;
 	}
+
 	
+
 private:
 	UClib* _Lib;
 	Vector<Instruction> _Instruction;
-	unordered_map<String, CPPCallBack> _NameToCppCall;
+	Unordered_map<String, CPPCallBack> _NameToCppCall;
 };
 
 UCodeLangEnd

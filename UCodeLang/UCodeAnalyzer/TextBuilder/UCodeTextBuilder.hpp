@@ -12,6 +12,8 @@ class KeyWordAndTokens
 public:
 	constexpr static const char* NamespaceKeyWord = UCodeLang::StringHelper::ToString(UCodeLang::TokenType::Namespace);
 	constexpr static const char* ClassKeyWord = UCodeLang::StringHelper::ToString(UCodeLang::TokenType::Class);
+	constexpr static const char* EnumKeyWord = UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_Enum);
+	constexpr static const char* TagKeyWord = UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_Tag);
 	constexpr static const char* VarKeyWord = UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_var);
 	constexpr static const char* VoidKeyWord = UCodeLang::StringHelper::ToString(UCodeLang::TokenType::Void);
 	constexpr static const char* FuncKeyWord = UCodeLang::StringHelper::ToString(UCodeLang::TokenType::bitwise_or);
@@ -157,7 +159,7 @@ public:
 	Vector<Method> Methods;
 	Vector<Attribute> attributes;
 	Vector<Generic> GenericTypes;
-	Vector<UCodeNode*> _Nodes;
+	Vector<Unique_ptr<UCodeNode>> _Nodes;
 
 	
 	Attribute& AddAttribute(const String& Name)
@@ -268,7 +270,7 @@ class NamespaceNode
 public:
 	String Name;
 
-	Vector<UCodeNode*> _Nodes;
+	Vector<Unique_ptr<UCodeNode>> _Nodes;
 	NamespaceNode()
 	{
 
@@ -297,6 +299,14 @@ public:
 	UseingStatement	Useings;
 	//};
 	
+	UCodeNode()
+	{
+		Type = UCodeClassType::Namespace;
+	}
+	~UCodeNode()
+	{
+
+	}
 	
 	static UCodeLangForceinline void MakeNamesSpace(UCodeNode& nullNode, const String& Name)
 	{

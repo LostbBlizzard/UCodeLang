@@ -7,6 +7,8 @@
 #include <stack>
 #include <filesystem>
 #include <optional>
+#include <array>
+#include <memory>
 UCodeLangStart
 
 
@@ -28,17 +30,19 @@ using float64 = double;
 using SIntNative = Int64;
 using UIntNative = UInt64;
 #else
-using Int32 SIntNative;
-using UInt32 UIntNative;
+using SIntNative = Int32;
+using UIntNative = UInt32;
 #endif
 
 
 using PtrType = void*;
 using NSize_t = UIntNative;
 
+using Byte = UInt8;
+
 //A int that can Address any ULang Value
 using UAddress = UIntNative;
-constexpr UAddress NullAddress = (UAddress)nullptr;
+constexpr UAddress NullAddress = (UAddress)-1;
 
 //
 constexpr UInt64 NullUInt64 = (UInt64)nullptr;
@@ -47,9 +51,22 @@ using String = std::string;
 using String_view = std::string_view;
 using Path = std::filesystem::path;
 
+
+
+
+template<typename T> using Unique_ptr = std::unique_ptr<T>;
+template<typename T> using Unique_Array = std::unique_ptr<T[]>;
+
+template<typename T> using Shared_ptr = std::shared_ptr<T>;
+template<typename T> using Weak_ptr = std::weak_ptr<T>;
+
+
 template<typename T> using Optional = std::optional<T>;
 template<typename T> using Vector = std::vector<T>;
-template<typename T, typename T2> using unordered_map = std::unordered_map<T, T2>;
+template<typename T> using Stack = std::stack<T>;
+template<typename T, typename T2> using Unordered_map = std::unordered_map<T, T2>;
+
+template<typename T,size_t Size> using Array = std::array<T, Size>;
 
 using RegisterID_t = UInt8;
 enum class RegisterID : RegisterID_t
@@ -65,10 +82,12 @@ enum class RegisterID : RegisterID_t
 	OuPutRegister = (RegisterID_t)RegisterID::E,
 	InPutRegister = (RegisterID_t)RegisterID::F,
 
-	PopAndTrashRegister = (RegisterID_t)RegisterID::D,
 	MathOuPutRegister = OuPutRegister,
 	BoolRegister = OuPutRegister,
 	BitwiseRegister = OuPutRegister,
+
+	StartParameterRegister = (RegisterID_t)RegisterID::D,//the range the runtime will pass funcion Parameters into Registers
+	EndParameterRegister = (RegisterID_t)RegisterID::F,
 
 	NullRegister = 155,
 };
@@ -125,27 +144,6 @@ struct AnyInt64
 	
 	
 };
-struct parameters
-{
-	void* Data;
-	NSize_t Size;
-	constexpr parameters() :Data(nullptr), Size(0) {}
-	constexpr parameters(void* data, NSize_t size) : Data(data), Size(size) {}
-
-	template<typename T> UCodeLangForceinline static parameters As(const T& Value)
-	{
-		return  parameters((void*)&Value,sizeof(T));
-	}
-
-	template<typename T> UCodeLangForceinline static const T& From(const parameters& Value)
-	{
-		if (Value.Size != sizeof(T)) { throw std::exception("type mismatch"); }
-		//it not a really a type mismatch but you get what I mean. 
-
-		return  *(T*)Value.Data;
-	}
-};
-static constexpr parameters NullParameters = parameters(nullptr, 0);
 //MaxSize
 constexpr UInt8 UInt8_MinSize = 0x00;
 constexpr UInt8 UInt8_MaxSize = 0xff;
@@ -191,6 +189,7 @@ public:
 	inline static const char* SourceFile = "uc";
 	inline static const char* Lib = "ulib";
 	inline static const char* Dll = "udll";
+	inline static const char* Object = "uo";
 
 	inline static const char* Asm = "ua";
 	inline static const char* AsmWithDot = ".ua";
@@ -198,6 +197,31 @@ public:
 	inline static const char* SourceFileWithDot = ".uc";
 	inline static const char* LibWithDot = ".ulib";
 	inline static const char* DllWithDot = ".udll";
+	inline static const char* ObjectWithDot = ".uo";
+};
+
+
+struct BytesView
+{
+	BytesView() :Bytes(nullptr), Size(0)
+	{
+
+	}
+	BytesView(Byte* ptr,size_t size) :Bytes(ptr), Size(size)
+	{
+
+	}
+	Byte* Bytes;
+	size_t Size;
+};
+struct BytesPtr
+{
+	BytesPtr() :Bytes(nullptr), Size(0)
+	{
+
+	}
+	Unique_Array<Byte> Bytes;
+	size_t Size;
 };
 
 UCodeLangEnd

@@ -12,7 +12,7 @@ void UCodeTextBuilder::ToUCodeFile(String& Str) const
 {
 	BuildState State;
 
-	for (auto Item : _GlobalNamespace._Nodes)
+	for (auto& Item : _GlobalNamespace._Nodes)
 	{
 		AddNodeToString(State,*Item);
 	}
@@ -27,7 +27,7 @@ void UCodeTextBuilder::AddNameSpaceToString(BuildState& Str,const NamespaceNode&
 	Str.IndentLevel += 1;
 	
 	//
-	for (auto Item : Node._Nodes)
+	for (auto& Item : Node._Nodes)
 	{
 		AddNodeToString(Str, *Item);
 	}
@@ -72,6 +72,13 @@ void UCodeTextBuilder::AddClassToString(BuildState& Str, const ClassNode& Node)
 	AddAttributesToString(Str, Node.attributes);
 	Str.Str += KeyWordAndTokens::ClassKeyWord + Node.Name;
 	AddGenericsToString(Str.Str,Node.GenericTypes);
+	if (Node.MemberVariables.size() == 0 &&
+		Node.Methods.size() == 0 &&
+		Node._Nodes.size() == 0)
+	{
+		Str.Str += ";\n";
+		return;
+	}
 	Str.Str += ": \n";
 	
 	Str.IndentLevel += 1;
@@ -92,7 +99,7 @@ void UCodeTextBuilder::AddClassToString(BuildState& Str, const ClassNode& Node)
 		AddMethodToString(Str,Item);
 	}
 
-	for (auto Item : Node._Nodes)
+	for (auto& Item : Node._Nodes)
 	{
 		AddNodeToString(Str, *Item);
 	}
@@ -156,12 +163,19 @@ void UCodeTextBuilder::AddEnumToString(BuildState& Str, const EnumNode& Node)
 {
 	AddIndents(Str.Str, Str.IndentLevel);
 	AddAttributesToString(Str, Node.attributes);
-	Str.Str += KeyWordAndTokens::ClassKeyWord + (String)"E " + Node.Name;
+	Str.Str += KeyWordAndTokens::EnumKeyWord + (String)" " + Node.Name;
 
 	if (Node.BaseType.size())
 	{
 		Str.Str += "[" + Node.BaseType + "]";
 	}
+
+	if (Node.Values.size() == 0)
+	{
+		Str.Str += ";\n";
+		return;
+	}
+
 	Str.Str += ": \n";
 	Str.IndentLevel += 1;
 	//
@@ -193,8 +207,12 @@ void UCodeTextBuilder::AddAttributeNodeToString(BuildState& Str, const Attribute
 {
 	AddIndents(Str.Str, Str.IndentLevel);
 	AddAttributesToString(Str, Node.attributes);
-	Str.Str += KeyWordAndTokens::ClassKeyWord + (String)"A " + Node.Name;
-
+	Str.Str += KeyWordAndTokens::TagKeyWord + (String)" " + Node.Name;
+	if (0 == 0)//this will be Fixed this soon
+	{
+		Str.Str += ";\n";
+		return;
+	}
 	Str.Str += ": \n";
 	Str.IndentLevel += 1;
     //
@@ -272,8 +290,8 @@ void UCodeTextBuilder::AddUseingToString(String& Str, const UseingItem& Node)
 
 ClassNode& ClassNode::AddClass(const String& Name)
 {
-	auto Ptr = new UCodeNode();
-	_Nodes.push_back(Ptr);
+	auto Ptr =std::make_unique<UCodeNode>();
+	_Nodes.push_back(std::move(Ptr));
 	UCodeNode::MakeClass(*Ptr, Name);
 
 	return Ptr->Class;
@@ -281,8 +299,8 @@ ClassNode& ClassNode::AddClass(const String& Name)
 
 AliasNode& ClassNode::AddAlias(const String& Name, const String& oldType)
 {
-	auto Ptr = new UCodeNode();
-	_Nodes.push_back(Ptr);
+	auto Ptr = std::make_unique < UCodeNode>();
+	_Nodes.push_back(std::move(Ptr));
 	UCodeNode::MakeAlias(*Ptr, Name, oldType);
 
 	return Ptr->Alias;
@@ -290,8 +308,8 @@ AliasNode& ClassNode::AddAlias(const String& Name, const String& oldType)
 
 EnumNode& ClassNode::AddEnum(const String& Name)
 {
-	auto Ptr = new UCodeNode();
-	_Nodes.push_back(Ptr);
+	auto Ptr = std::make_unique < UCodeNode>();
+	_Nodes.push_back(std::move(Ptr));
 	UCodeNode::MakeEnum(*Ptr, Name);
 
 	return Ptr->Enum;
@@ -299,8 +317,8 @@ EnumNode& ClassNode::AddEnum(const String& Name)
 
 AttributeNode& ClassNode::AddAttributeClass(const String& Name)
 {
-	auto Ptr = new UCodeNode();
-	_Nodes.push_back(Ptr);
+	auto Ptr = std::make_unique<UCodeNode>();
+	_Nodes.push_back(std::move(Ptr));
 	UCodeNode::MakeAttribute(*Ptr, Name);
 
 	return Ptr->Attribute;
@@ -308,18 +326,14 @@ AttributeNode& ClassNode::AddAttributeClass(const String& Name)
 
 ClassNode::~ClassNode()
 {
-	for (auto Item : _Nodes)
-	{
-		delete Item;
-	}
-	_Nodes.clear();
+	
 }
 
 
  NamespaceNode& NamespaceNode::AddNameSpace(const String& Name)
 {
-	auto Ptr = new UCodeNode();
-	_Nodes.push_back(Ptr);
+	auto Ptr = std::make_unique <UCodeNode>();
+	_Nodes.push_back(std::move(Ptr));
 	UCodeNode::MakeNamesSpace(*Ptr, Name);
 
 	return Ptr->NamesSpace;
@@ -327,8 +341,8 @@ ClassNode::~ClassNode()
 
  ClassNode& NamespaceNode::AddClass(const String& Name)
 {
-	auto Ptr = new UCodeNode();
-	_Nodes.push_back(Ptr);
+	auto Ptr = std::make_unique < UCodeNode>();
+	_Nodes.push_back(std::move(Ptr));
 	UCodeNode::MakeClass(*Ptr, Name);
 
 	return Ptr->Class;
@@ -336,8 +350,8 @@ ClassNode::~ClassNode()
 
  AliasNode& NamespaceNode::AddAlias(const String& Name, const String& oldType)
 {
-	auto Ptr = new UCodeNode();
-	_Nodes.push_back(Ptr);
+	auto Ptr = std::make_unique < UCodeNode>();
+	_Nodes.push_back(std::move(Ptr));
 	UCodeNode::MakeAlias(*Ptr, Name, oldType);
 
 	return Ptr->Alias;
@@ -345,8 +359,8 @@ ClassNode::~ClassNode()
 
  EnumNode& NamespaceNode::AddEnum(const String& Name)
 {
-	auto Ptr = new UCodeNode();
-	_Nodes.push_back(Ptr);
+	auto Ptr = std::make_unique<UCodeNode>();
+	_Nodes.push_back(std::move(Ptr));
 	UCodeNode::MakeEnum(*Ptr, Name);
 
 	return Ptr->Enum;
@@ -354,8 +368,8 @@ ClassNode::~ClassNode()
 
 AttributeNode& NamespaceNode::AddAttributeClass(const String& Name)
 {
-	auto Ptr = new UCodeNode();
-	_Nodes.push_back(Ptr);
+	auto Ptr = std::make_unique<UCodeNode>();
+	_Nodes.push_back(std::move(Ptr));
 	UCodeNode::MakeAttribute(*Ptr, Name);
 
 	return Ptr->Attribute;
@@ -363,8 +377,8 @@ AttributeNode& NamespaceNode::AddAttributeClass(const String& Name)
 
 UseingStatement& NamespaceNode::AddUseing(const String& Name)
 {
-	auto Ptr = new UCodeNode();
-	_Nodes.push_back(Ptr);
+	auto Ptr = std::make_unique<UCodeNode>();
+	_Nodes.push_back(std::move(Ptr));
 	UCodeNode::MakeUseing(*Ptr, Name);
 
 	return Ptr->Useings;
@@ -372,10 +386,6 @@ UseingStatement& NamespaceNode::AddUseing(const String& Name)
 
 NamespaceNode::~NamespaceNode()
 {
-	for (auto Item : _Nodes)
-	{
-		delete Item;
-	}
-	_Nodes.clear();
+
 }
 UCodeAnalyzerEnd

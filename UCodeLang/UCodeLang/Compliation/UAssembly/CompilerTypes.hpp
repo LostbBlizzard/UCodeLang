@@ -81,6 +81,8 @@ enum class OpCodeType :OpCodeType_t
 	Register,
 
 	UIntPtr,
+	InsAddress,
+	StaticCString,
 };
 
 struct InsMapValue
@@ -95,23 +97,28 @@ struct InsMapValue
 AddMapValueValue(Store##bitsize, InstructionSet::Store##bitsize, OpCodeType::Register, OpCodeType::AnyInt##bitsize),\
 AddMapValueValue(Add##bitsize, InstructionSet::Add##bitsize, OpCodeType::Register, OpCodeType::Register),\
 AddMapValueValue(Sub##bitsize, InstructionSet::Sub##bitsize, OpCodeType::Register, OpCodeType::Register),\
+AddMapValueValue(MultU##bitsize, InstructionSet::MultU##bitsize, OpCodeType::Register, OpCodeType::Register),\
+AddMapValueValue(MultS##bitsize, InstructionSet::MultS##bitsize, OpCodeType::Register, OpCodeType::Register),\
+AddMapValueValue(DivU##bitsize, InstructionSet::DivU##bitsize, OpCodeType::Register, OpCodeType::Register),\
+AddMapValueValue(DivS##bitsize, InstructionSet::DivS##bitsize, OpCodeType::Register, OpCodeType::Register),\
 AddMapValueValue(StoreRegOnStack##bitsize, InstructionSet::StoreRegOnStack##bitsize, OpCodeType::Register, OpCodeType::UIntPtr),\
 AddMapValueValue(Push##bitsize, InstructionSet::Push##bitsize, OpCodeType::Register, OpCodeType::NoOpCode),\
 AddMapValueValue(Pop##bitsize, InstructionSet::Pop##bitsize, OpCodeType::Register, OpCodeType::NoOpCode),\
 AddMapValueValue(StoreRegToReg##bitsize, InstructionSet::StoreRegToReg##bitsize, OpCodeType::Register, OpCodeType::Register),\
-AddMapValueValue(GetFromStack##bitsize, InstructionSet::GetFromStack##bitsize, OpCodeType::Register, OpCodeType::UIntPtr),\
+AddMapValueValue(GetFromStack##bitsize, InstructionSet::GetFromStack##bitsize, OpCodeType::UIntPtr,OpCodeType::Register),\
+AddMapValueValue(GetFromStack##bitsize, InstructionSet::GetFromStack##bitsize, OpCodeType::UIntPtr,OpCodeType::Register),\
 
-static inline const unordered_map<String_view, InsMapValue> StringToInsMap =
+static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 {	
 	AddMapValueValue(Exit,InstructionSet::Exit,OpCodeType::AnyInt8,OpCodeType::NoOpCode),
 	AddMapValueValue(Ret,InstructionSet::Return,OpCodeType::NoOpCode,OpCodeType::NoOpCode),
-	AddMapValueValue(Call,InstructionSet::Call,OpCodeType::UIntPtr,OpCodeType::NoOpCode),
-	AddMapValueValue(Callif,InstructionSet::CallIf,OpCodeType::UIntPtr,OpCodeType::NoOpCode),
-	AddMapValueValue(CallPtr,InstructionSet::CallPtr,OpCodeType::UIntPtr,OpCodeType::NoOpCode),
+	AddMapValueValue(Call,InstructionSet::Call,OpCodeType::InsAddress,OpCodeType::NoOpCode),
+	AddMapValueValue(Callif,InstructionSet::CallIf,OpCodeType::InsAddress,OpCodeType::NoOpCode),
+	AddMapValueValue(CallPtr,InstructionSet::CallPtr,OpCodeType::InsAddress,OpCodeType::NoOpCode),
 
-	AddMapValueValue(Jump,InstructionSet::Jump,OpCodeType::UIntPtr,OpCodeType::NoOpCode),
-	AddMapValueValue(Jumpif,InstructionSet::Jumpif,OpCodeType::UIntPtr,OpCodeType::NoOpCode),
-	AddMapValueValue(JumpPtr,InstructionSet::JumpPtr,OpCodeType::UIntPtr,OpCodeType::NoOpCode),
+	AddMapValueValue(Jump,InstructionSet::Jump,OpCodeType::InsAddress,OpCodeType::NoOpCode),
+	AddMapValueValue(Jumpif,InstructionSet::Jumpif,OpCodeType::InsAddress,OpCodeType::NoOpCode),
+	AddMapValueValue(JumpPtr,InstructionSet::JumpPtr,OpCodeType::InsAddress,OpCodeType::NoOpCode),
 
 	AddMapValueValue(NoOp,InstructionSet::DoNothing,OpCodeType::NoOpCode,OpCodeType::NoOpCode),
 
@@ -120,9 +127,16 @@ static inline const unordered_map<String_view, InsMapValue> StringToInsMap =
 	MapValueIntSet(32)
 	MapValueIntSet(64)
 	MapValueIntSet(Native)
+
+
+	AddMapValueValue(Malloc,InstructionSet::Malloc,OpCodeType::Register,OpCodeType::Register),
+	AddMapValueValue(Free,InstructionSet::Free,OpCodeType::Register,OpCodeType::NoOpCode),
+	AddMapValueValue(GetPointerOfStack,InstructionSet::GetPointerOfStack,OpCodeType::Register,OpCodeType::UIntPtr),
+
+	AddMapValueValue(CppCallNamed,InstructionSet::CppCallNamed,OpCodeType::StaticCString,OpCodeType::NoOpCode),
 };
 
-static inline unordered_map<InstructionSet, const InsMapValue*> InsToInsMapValue;
+static inline Unordered_map<InstructionSet, const InsMapValue*> InsToInsMapValue;
 inline void SetUp()
 {
 	for (auto& Item : StringToInsMap)

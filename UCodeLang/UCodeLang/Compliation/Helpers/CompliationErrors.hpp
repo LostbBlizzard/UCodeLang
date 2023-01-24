@@ -63,6 +63,23 @@ public:
 		{
 
 		};
+		String ToString()const
+		{
+			const char* Type;
+			if (UCodeLang::CompliationErrors::IsError(_Code))
+			{
+				Type = "Error";
+			}
+			else if (UCodeLang::CompliationErrors::IsWarning(_Code))
+			{
+				Type = "Warning";
+			}
+			else
+			{
+				Type = "N/A";
+			}
+			return (String)Type + " At Line:" + std::to_string(Line) + ":" + _Msg + " In " + File;
+		}
 	}; 
 	inline static bool IsWarning(ErrorCodes Code)
 		{
@@ -87,8 +104,7 @@ public:
 	{
 		Error R(_Error, Line, Pos);
 		R.File = FilePath;
-		_Errors.push_back(R);
-		return _Errors.back();
+		return AddError(R);
 	};
 	inline Error& AddError(const Error& _Error)
 	{

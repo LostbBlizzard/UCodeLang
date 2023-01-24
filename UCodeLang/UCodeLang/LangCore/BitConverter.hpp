@@ -16,38 +16,15 @@ class BitConverter
 
 public:
 	
+	inline thread_local static Endian InputOutEndian = Endian::little;
 
-	static const Endian InputOutEndian = Endian::little;
-	static Endian _CPUEndian;
-	inline static Endian Get_CPU_Endian()
-	{
-		if (_CPUEndian == Endian::NaN)
-		{
-			_CPUEndian = _GetEndian();
-		}
+	#if UCodeLang_CPUBIs_BigEndian
+	static constexpr Endian _CPUEndian = Endian::Big;
+	#else
+	static constexpr Endian _CPUEndian = Endian::little;
+	#endif // UCodeLang_CPUBIs_BigEndian
 
-		return _CPUEndian;
-	}
-	inline static Endian _GetEndian()
-	{
-		union
-		{
-			int NumValue;
-			UInt8 _Bytes[4];
-		};
-		NumValue = 1;
-
-		if (_Bytes[0] == 1)
-		{
-			return Endian::little;
-		}
-		else
-		{
-			return Endian::Big;
-		}
-		return Endian::NaN;
-	}
-	//
+	
 	static_assert(sizeof(int) == 4, " 'int' is not 4 bytes");
 	static_assert(sizeof(UInt8) == 1, " 'Byte' is not 1 bytes");
 	static_assert(sizeof(Int16) == 2, " 'Int16' is not 2 bytes");
@@ -118,7 +95,7 @@ public:
 	{
 		return (UInt8)Value;
 	}
-	inline static bool BytesToBool(void* DataBytes, size_t Index)
+	inline static bool BytesToBool(const void* DataBytes, size_t Index)
 	{
 		UInt8 B = ((UInt8*)DataBytes)[Index];
 		return B;
@@ -128,7 +105,7 @@ public:
 	{
 		return GetBytes((unsigned char)Value);
 	}
-	inline static signed char BytesToSChar(void* DataBytes, size_t Index)
+	inline static signed char BytesToSChar(const void* DataBytes, size_t Index)
 	{
 		return BytesToUChar(DataBytes, Index);
 	}
@@ -137,7 +114,7 @@ public:
 	{
 		return GetBytes((unsigned char)Value);
 	}
-	inline static char BytesToChar(void* DataBytes, size_t Index)
+	inline static char BytesToChar(const void* DataBytes, size_t Index)
 	{
 		return BytesToUChar(DataBytes, Index);
 	}
@@ -146,33 +123,33 @@ public:
 	{
 		return Value;
 	}
-	inline static unsigned char BytesToUChar(void* DataBytes, size_t Index)
+	inline static unsigned char BytesToUChar(const void* DataBytes, size_t Index)
 	{
 		UInt8 B = ((UInt8*)DataBytes)[Index];
 		return B;
 	}
 
 	static Byte16 GetBytes(Int16 Value);
-	static Int16 BytesToInt16(void* DataBytes, size_t Index);
+	static Int16 BytesToInt16(const void* DataBytes, size_t Index);
 
 	inline static Byte16 GetBytes(UInt16 Value) { return GetBytes(*(Int16*)&Value); }
-	inline static UInt16 BytesToUInt16(void* DataBytes, size_t Index) 
+	inline static UInt16 BytesToUInt16(const void* DataBytes, size_t Index)
 	{
 		auto V = BytesToInt16(DataBytes, Index);
 		return *(UInt16*)&V;
 	}
 
 	static Byte32 GetBytes(int Value);
-	static int BytesToInt(void* DataBytes, size_t Index);
+	static int BytesToInt(const void* DataBytes, size_t Index);
 
 	inline static Byte32 GetBytes(unsigned int Value) { return GetBytes(*(int*)&Value); }
-	inline static unsigned int BytesToUInt(void* DataBytes, size_t Index){ 
+	inline static unsigned int BytesToUInt(const void* DataBytes, size_t Index){
 		auto V = BytesToInt(DataBytes, Index);
 		return *(unsigned int*)&V;
 	}
 
 	inline static Byte32 GetBytes(float Value){ return GetBytes(*(int*)&Value); }
-	inline static float BytesTofloat(void* DataBytes, size_t Index)
+	inline static float BytesTofloat(const void* DataBytes, size_t Index)
 	{
 		auto V = BytesToInt(DataBytes, Index);
 		return *(float*)&V;
@@ -181,71 +158,71 @@ public:
 	
 
 	static Byte64 GetBytes(Int64 Value);
-	static Int64 BytesToInt64(void* DataBytes, size_t Index);
+	static Int64 BytesToInt64(const void* DataBytes, size_t Index);
 	
 	inline static Byte64 GetBytes(UInt64 Value) {return GetBytes(*(Int64*)&Value);}
-	inline static UInt64 BytesToUInt64(void* DataBytes, size_t Index) {
+	inline static UInt64 BytesToUInt64(const void* DataBytes, size_t Index) {
 		auto V = BytesToInt64(DataBytes, Index);
 		return *(UInt64*)&V;
 	}
 
 	inline static Byte64 GetBytes(float64 Value){ return GetBytes(*(Int64*)&Value); }
-	inline static float64 BytesTofloat64(void* DataBytes, size_t Index)
+	inline static float64 BytesTofloat64(const void* DataBytes, size_t Index)
 	{
 		auto V = BytesToInt64(DataBytes, Index);
 		return *(float64*)&V;
 	}
 	//Helpers
-	inline static void BytesToBool(void* DataBytes, size_t Index, bool* OutPut)
+	inline static void BytesToBool(const void* DataBytes, size_t Index, bool* OutPut)
 	{
 		OutPut[0] = BytesToBool(DataBytes, Index);
 	}
-	inline static void BytesToChar(void* DataBytes, size_t Index, signed char* OutPut)
+	inline static void BytesToChar(const void* DataBytes, size_t Index, signed char* OutPut)
 	{
 		OutPut[0] = BytesToSChar(DataBytes, Index);
 	}
-	inline static void BytesToChar(void* DataBytes, size_t Index, char* OutPut)
+	inline static void BytesToChar(const void* DataBytes, size_t Index, char* OutPut)
 	{
 		OutPut[0] = BytesToChar(DataBytes, Index);
 	}
-	inline static void BytesToChar(void* DataBytes, size_t Index, unsigned char* OutPut)
+	inline static void BytesToChar(const void* DataBytes, size_t Index, unsigned char* OutPut)
 	{
 		OutPut[0] = BytesToChar(DataBytes, Index);
 	}
 	
-	inline static void BytesToInt16(void* DataBytes, size_t Index, Int16* OutPut)
+	inline static void BytesToInt16(const void* DataBytes, size_t Index, Int16* OutPut)
 	{
 		OutPut[0] = BytesToInt16(DataBytes, Index);
 	}
-	inline static void BytesToInt16(void* DataBytes, size_t Index, UInt16* OutPut)
+	inline static void BytesToInt16(const void* DataBytes, size_t Index, UInt16* OutPut)
 	{
-		OutPut[0] = BytesToInt16(DataBytes, Index);
+		OutPut[0] = BytesToUInt16(DataBytes, Index);
 	}
 
-	inline static void BytesToInt(void* DataBytes, size_t Index, int* OutPut)
+	inline static void BytesToInt(const void* DataBytes, size_t Index, int* OutPut)
 	{
 		OutPut[0] = BytesToInt(DataBytes, Index);
 	}
-	inline static void BytesToInt(void* DataBytes, size_t Index, unsigned int* OutPut)
+	inline static void BytesToInt(const void* DataBytes, size_t Index, unsigned int* OutPut)
 	{
-		OutPut[0] = BytesToInt(DataBytes, Index);
+		OutPut[0] = BytesToUInt(DataBytes, Index);
 	}
 
-	inline static void BytesTofloat(void* DataBytes, size_t Index, float* OutPut)
+	inline static void BytesTofloat(const void* DataBytes, size_t Index, float* OutPut)
 	{
 		OutPut[0] = BytesTofloat(DataBytes, Index);
 	}
 	
-	inline static void BytesToInt64(void* DataBytes, size_t Index, Int64* OutPut)
+	inline static void BytesToInt64(const void* DataBytes, size_t Index, Int64* OutPut)
 	{
 		OutPut[0] = BytesToInt64(DataBytes, Index);
 	}
-	inline static void BytesToInt64(void* DataBytes, size_t Index, UInt64* OutPut)
+	inline static void BytesToInt64(const void* DataBytes, size_t Index, UInt64* OutPut)
 	{
 		OutPut[0] = BytesToInt64(DataBytes, Index);
 	}
 
-	inline static void BytesTofloat64(void* DataBytes, size_t Index, float64* OutPut)
+	inline static void BytesTofloat64(const void* DataBytes, size_t Index, float64* OutPut)
 	{
 		OutPut[0] = BytesTofloat64(DataBytes, Index);
 	}

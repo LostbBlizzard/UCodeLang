@@ -15,6 +15,8 @@ public:
 
 	void Link();
 
+	void LinkLib(RunTimeLib* Item);
+
 	inline UAddress FindAddress(const String& FunctionName)
 	{
 		if (_NameToAddress.count(FunctionName))
@@ -54,10 +56,18 @@ public:
 		return _Instructions;
 	}
 	inline void AddLib(RunTimeLib* lib){ Libs.push_back(lib); }
-	inline void Clears() { Libs.clear(); }
+	inline void ClearLibs() { Libs.clear(); }
+	void ClearRunTimeState()
+	{
+		_NameToAddress.clear();
+		_NameToCPP.clear();
+		_Instructions.clear();
+		Libs.clear();
+		StaticBytes.clear();
+	}
 private:
-	unordered_map<String, UAddress> _NameToAddress;
-	unordered_map<String, RunTimeLib::CPPCallBack> _NameToCPP;
+	Unordered_map<String, UAddress> _NameToAddress;
+	Unordered_map<String, RunTimeLib::CPPCallBack> _NameToCPP;
 	Vector<Instruction> _Instructions;
 	Vector<RunTimeLib*> Libs;
 	Vector <UInt8> StaticBytes;

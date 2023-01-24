@@ -23,25 +23,23 @@ public:
 	struct CompilerPathData
 	{
 		String FileDir;
+		String IntDir;
 		String OutFile;
 	};
 	
 	
 	CompilerRet CompileText(const String_view& Text);
 	static String GetTextFromFile(const Path& path);
-	UCodeLangForceinline CompilerRet CompileFile(const Path& path)
+	UCodeLangForceinline CompilerRet CompileFileToLib(const Path& path)
 	{
 		return  CompileText(GetTextFromFile(path));
 	}
 	CompilerRet CompilePathToObj(const Path& path, const Path& OutLib);
 	CompilerRet CompileFiles(const CompilerPathData& Data);
-	
-	
 
-	UCodeLangForceinline void FreeLinkFilesLibOut(UClib* Lib)
-	{
-		delete Lib;
-	}
+	CompilerRet CompileFiles_UseIntDir(const CompilerPathData& Data);
+
+	
 	UCodeLangForceinline UCodeLang::CompliationErrors& Get_Errors()
 	{
 		return _Errors;
