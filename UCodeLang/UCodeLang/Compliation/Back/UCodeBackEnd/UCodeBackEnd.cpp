@@ -125,6 +125,28 @@ else\
 	}\
 }\
 
+
+#define BuildSybolIntSizeIns2(VarType,Ins,Pars) \
+if (VarType.IsAddress() || \
+	VarType._Type == TypesEnum::uIntPtr ||\
+	VarType._Type == TypesEnum::sIntPtr)\
+{\
+	GenInsPush(InstructionBuilder::##Ins##64##Pars);\
+}\
+else\
+{\
+	switch (VarType._Type)\
+	{\
+		BuildSybolIntSizeInsv(Ins,8,Pars);\
+		BuildSybolIntSizeInsv(Ins,16,Pars);\
+		BuildSybolIntSizeInsv(Ins,32,Pars);\
+		BuildSybolIntSizeInsv(Ins,64,Pars);\
+	default:\
+		throw std::exception();\
+		break;\
+	}\
+}\
+
 void UCodeBackEndObject::BuildFunc()
 {
 	auto& Code = _BackInput->_Builder->Get_Code();
@@ -428,9 +450,11 @@ void UCodeBackEndObject::StoreVar(const IRCode& IR, const RegisterID R)
 		if (Symbol.Type == SymbolType::StackVarable)
 		{
 			SymbolToData[VarSymbolID] = {};
+		
 			Data = &SymbolToData[VarSymbolID];
-
+			Data->Type = BuildData_t::Null;
 			Data->offset = StackSize;
+			
 			StackSize += Symbol.Size;
 		}
 		else
@@ -439,18 +463,20 @@ void UCodeBackEndObject::StoreVar(const IRCode& IR, const RegisterID R)
 		}
 	}
 
+	const TypeSymbol& VarType =Symbol.Type == SymbolType::Type_class ? Symbol.VarType : *IR.InfoType;
+
 	if (Data->Type == BuildData_t::ParameterInRegister)
 	{
 		auto R2 = (RegisterID)Data->offset;
 
 		if (R != R2)
 		{
-			BuildSybolIntSizeIns(Symbol.VarType, StoreRegToReg, (_Ins, R, R2));
+			BuildSybolIntSizeIns(VarType, StoreRegToReg, (_Ins, R, R2));
 		}
 	}
 	else
 	{
-		BuildSybolIntSizeIns(Symbol.VarType, StoreRegOnStack, (_Ins, R, Data->offset));
+		BuildSybolIntSizeIns(VarType, StoreRegOnStack, (_Ins, R, Data->offset + IR.Operand1.AnyValue.AsAddress));
 	}
 	
 }

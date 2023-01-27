@@ -7,6 +7,7 @@ UCodeLangStart
 
 class UCodeBackEndObject
 {
+	
 public:
 	UCodeBackEndObject();
 	~UCodeBackEndObject();

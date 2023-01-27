@@ -15,6 +15,15 @@ MultS##Bit,\
 DivU##Bit,\
 DivS##Bit,\
 
+
+enum class IntSizes : UInt8
+{
+	Int8,
+	Int16,
+	Int32,
+	Int64,
+};
+
 enum class IROperator : UInt8
 {
 	Null,
@@ -64,6 +73,7 @@ struct IROperand
 		Type = IRFieldInfoType::Null;
 		AnyValue = (UInt64)0;
 	}
+
 #define IROperand_Set(x) \
 	UCodeLangForceinline static IROperand AsInt##x(UInt##x Value)\
 	{\
@@ -130,6 +140,9 @@ struct IROperand
 		return operand;
 	}
 };
+
+struct TypeSymbol;
+
 struct IRCode
 {
 	IROperand Result;
@@ -137,6 +150,7 @@ struct IRCode
 	IROperand Operand0;
 	IROperator Operator = IROperator::Null;
 	IROperand Operand1;
+	Shared_ptr<TypeSymbol> InfoType;//will be update if is class fleid
 };
 
 struct IRSeg
@@ -184,11 +198,11 @@ struct IRSeg
 		Build_Assign(IROperand::AsInt##X(Value));\
 		MakeAdd##X(field, IROperand::AsLocation(GetLastField()));\
 	}\
-	UCodeLangForceinline void Build_Increment##X(Int##X Value)\
+	UCodeLangForceinline void Build_Increment##X(UInt##X Value)\
 	{\
 		Build_Increment##X(IROperand::AsLocation(GetLastField()),Value);\
 	}\
-	UCodeLangForceinline void Build_Increment##X(UInt##X Value)\
+	UCodeLangForceinline void Build_Increment##X(Int##X Value)\
 	{\
 		Build_Increment##X( IROperand::AsLocation(GetLastField()),Value);\
 	}\
@@ -208,7 +222,7 @@ struct IRSeg
 	}\
 	UCodeLangForceinline void Build_Decrement##X(Int##X Value)\
 	{\
-		Build_Decrement##X(IROperand::AsLocation( GetLastField()),Value);\
+		Build_Decrement##X(IROperand::AsLocation(GetLastField()),Value);\
 	}\
 
 class IRBuilder
@@ -216,8 +230,6 @@ class IRBuilder
 public:
 	IRBuilder(){}
 	~IRBuilder(){}
-
-
 	
 	void MakeOperand( IROperand field, IROperand field2, IROperator Op)
 	{
@@ -234,21 +246,18 @@ public:
 	IRBuilder_Set(32);
 	IRBuilder_Set(64);
 
-	void Build_Assign(IROperand result, IROperand field)
+	void Build_Assign(IROperand result, IROperand field, UAddress offset = 0)
 	{
 		Code.push_back({});
 		auto& V = Code.back();
 		V.Result =result;
 		V.Operand0 = field;
+		V.Operand1 = IROperand::AsInt64(offset);
 		V.Operator = IROperator::Assign_Operand0;
 	}
-	void Build_Assign(IROperand field)
+	void Build_Assign(IROperand field,UAddress offset = 0)
 	{
-		Code.push_back({});
-		auto& V = Code.back();
-		V.Result =IROperand::AsLocation(Code.size() -1);
-		V.Operand0 = field;
-		V.Operator = IROperator::Assign_Operand0;
+		Build_Assign(IROperand::AsLocation(Code.size()), field,offset);
 	}
 
 	void Build_AssignRet(IROperand field)
@@ -340,6 +349,10 @@ public:
 	UCodeLangForceinline IRCode& Get_IR(IRField field)
 	{
 		return Code[(size_t)field];
+	}
+	UCodeLangForceinline IRCode& GetLast_IR()
+	{
+		return Get_IR(GetLastField());
 	}
 	IRField GetLastField()
 	{

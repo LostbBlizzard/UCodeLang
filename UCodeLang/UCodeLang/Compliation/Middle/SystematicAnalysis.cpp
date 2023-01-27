@@ -199,6 +199,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			ClassInf = new ClassInfo();
 			ClassInf->FullName = Syb.FullName;
 			Syb.Info.reset((Symbol_Info*)ClassInf);
+			Syb.VarType.SetType(Syb.ID);
 		}
 		else
 		{
@@ -646,14 +647,14 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 		syb->Size = NullAddress;
 		if (_ClassStack.size() && _InStatements == false)
 		{
-			
+			syb->Type = SymbolType::Class_Field;
 			auto& Class = *_ClassStack.top();
 
 			if (Class.GetField(FullName))
 			{
 				//TODO Err
 			}
-			Class.AddField(FullName, TypeSymbol());
+			Class.AddField(ScopeHelper::GetNameFromFullName((String_view)FullName), TypeSymbol());
 			
 		}
 	}
@@ -677,6 +678,9 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 		{
 			GetSize(VarType, syb->Size);
 		}
+
+		
+		
 	}
 	LookingForTypes.push(syb->VarType);
 
@@ -741,7 +745,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 				UAddress V;
 				//GetSize(Type, V);//for DependencyCycle
 			}
-			auto V = Class.GetField(FullName);
+			auto V = Class.GetField(ScopeHelper::GetNameFromFullName(FullName));
 			if (V)
 			{
 				V->Type = syb->VarType;
@@ -761,10 +765,14 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 }
 void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 {
+	GetMemberTypeSymbolFromVar_t MemberInfo;
 	if (passtype != PassType::GetTypes)
 	{
-		auto Symbol = GetSymbol(GetScopedNameAsString(node.Name), SymbolType::Varable_t);
-		LookingForTypes.push(Symbol->VarType);
+		if (!GetMemberTypeSymbolFromVar(node.Name, MemberInfo))
+		{
+			return;
+		}
+		LookingForTypes.push(MemberInfo.Type);
 	}
 	OnExpressionTypeNode(node.Expression.Value.get());
 	if (passtype != PassType::GetTypes)
@@ -775,15 +783,11 @@ void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 
 	if (passtype == PassType::FixedTypes)
 	{
-		auto Name = GetScopedNameAsString(node.Name);
-		auto Symbol = GetSymbol(Name, SymbolType::Varable_t);
-		
-		CheckVarWritingErrors(Symbol, node.Name.ScopedName.back().token, String_view(Name));
 
-		if (!CanBeImplicitConverted(LastExpressionType, Symbol->VarType))
+		if (!CanBeImplicitConverted(LastExpressionType, MemberInfo.Type))
 		{
 			auto  Token = LastLookedAtToken;
-			LogCantCastImplicitTypes(Token, LastExpressionType, Symbol->VarType);
+			LogCantCastImplicitTypes(Token, LastExpressionType, MemberInfo.Type);
 
 		}
 		
@@ -794,13 +798,101 @@ void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 
 	if (passtype == PassType::BuidCode)
 	{
-		auto Symbol = GetSymbol(GetScopedNameAsString(node.Name), SymbolType::Varable_t);
+		auto Token = node.Name.ScopedName.begin()->token;
+		auto& Str = Token->Value._String;
+		Symbol* Symbol = GetSymbol(Str, SymbolType::Varable_t);
+
 		SymbolID sybId = Symbol->ID;
 
 		auto Op = IROperand::AsLocation(_LastExpressionField);
 		auto NewOp = IROperand::AsVarable(sybId);
-		_Builder.Build_Assign(NewOp, Op);
+		_Builder.Build_Assign(NewOp, Op, MemberInfo.Offset);
+	
+	
+		auto& V =_Builder.GetLast_IR();
+		V.InfoType =std::make_unique<TypeSymbol>(MemberInfo.Type);
 	}
+}
+bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
+{
+	size_t VarOffset = 0;
+	auto Token = node.ScopedName.begin()->token;
+	auto& Str = Token->Value._String;
+	auto SymbolVar = GetSymbol(Str, SymbolType::Varable_t);
+	if (SymbolVar == nullptr)
+	{
+		LogCantFindVarError(Token, Str);
+		return false;
+	}
+
+	CheckVarWritingErrors(SymbolVar, Token, String_view(Token->Value._String));
+
+	TypeSymbol FeildType = SymbolVar->VarType;
+	Symbol* FeildTypeAsSymbol =nullptr;
+	
+	if (FeildType._Type == TypesEnum::CustomType)
+	{
+		FeildTypeAsSymbol = &_Table.GetSymbol(SymbolVar->VarType._CustomTypeSymbol);
+		FeildType = SymbolVar->VarType;
+	}
+	
+
+
+	for (size_t i = 1; i < node.ScopedName.size(); i++)
+	{
+		auto& Item = node.ScopedName[i];
+
+
+		auto& ItemToken = Item.token;
+
+		if (FeildType._Type != TypesEnum::CustomType)
+		{
+
+			if (passtype == PassType::FixedTypes) {
+				LogCantFindVarMemberError(ItemToken, ItemToken->Value._String, FeildType);
+			}break;
+		}
+		ClassInfo* CInfo = (ClassInfo*)FeildTypeAsSymbol->Info.get();
+
+
+		auto FeldInfo = CInfo->GetField(ItemToken->Value._String);
+		if (FeldInfo == nullptr)
+		{
+			if (passtype == PassType::FixedTypes) {
+				LogCantFindVarMemberError(ItemToken, ItemToken->Value._String, FeildType);
+			}
+			return false;
+		}
+
+		UAddress _FieldOffset = 0;
+		GetOffset(*CInfo, FeldInfo, _FieldOffset);
+
+		VarOffset+=_FieldOffset;
+		
+		auto& FieldType2 = FeldInfo->Type;
+		if (FieldType2._Type == TypesEnum::CustomType)
+		{
+			FeildTypeAsSymbol = &_Table.GetSymbol(FieldType2._CustomTypeSymbol);
+			FeildType = FieldType2;
+		}
+		else
+		{
+			FeildType = FieldType2;
+			
+			if (i + 1 < node.ScopedName.size())
+			{
+				auto Token2 = node.ScopedName[i + 1].token;
+				auto& Str2 = Token->Value._String;
+				if (passtype == PassType::FixedTypes) {
+					LogCantFindVarMemberError(Token2, Str2, FeildType);
+				}
+				break;
+			}
+		}
+	}
+	Out.Type = FeildType;
+	Out.Offset = VarOffset;
+	return true;
 }
 void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 {
@@ -1868,6 +1960,26 @@ bool SystematicAnalysis::GetSize(const TypeSymbol& Type, UAddress& OutSize)
 
 
 }
+bool SystematicAnalysis::GetOffset(const ClassInfo& Type, const FieldInfo* Field, UAddress& OutOffset)
+{
+	UAddress offset = 0;
+	
+
+	for (auto& Item : Type.Fields)
+	{
+		if (&Item == Field)
+		{
+			OutOffset = offset;
+			return true;
+		}
+		UAddress FieldSize = 0;
+		GetSize(Item.Type, FieldSize);
+		offset += FieldSize;
+	}
+
+	OutOffset = offset;
+	return false;
+}
 void SystematicAnalysis::GenericFuncInstantiate(Symbol* Func, const FuncNode& FuncBase, const Vector<TypeSymbol>& TypeToChage, const Vector<TypeSymbol>& Type)
 {
 	String NewName = GetGenericFuncName(Func, Type);
@@ -1968,10 +2080,15 @@ void SystematicAnalysis::LogReadingFromInvaidVariable(const UCodeLang::Token* To
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "the variable named '" + Str + "'" + " cant be read from you.can not read an invaid variable");
 }
-void SystematicAnalysis::LogCantFindVarError(const UCodeLang::Token* Token, UCodeLang::String& Str)
+void SystematicAnalysis::LogCantFindVarError(const UCodeLang::Token* Token, UCodeLang::String_view Str)
 {
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
-		, "Cant find Variable Named '" + Str + "'");
+		, "Cant find Variable Named '" + (String)Str + "'");
+}
+void SystematicAnalysis::LogCantFindVarMemberError(const UCodeLang::Token* Token, UCodeLang::String_view Str, const UCodeLang::TypeSymbol& OnType)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+		, "Cant find Member Named '" + (String)Str + "' on type '" + ToString(OnType) +"'");
 }
 void SystematicAnalysis::LogCantFindBinaryOpForTypes(const UCodeLang::Token* BinaryOp, UCodeLang::TypeSymbol& Ex0Type, UCodeLang::TypeSymbol& Ex1Type)
 {
@@ -2033,7 +2150,7 @@ void SystematicAnalysis::LogCantFindFuncError(const UCodeLang::Token* Token, UCo
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Cant Find function '" + (String)FuncName);
 }
-void SystematicAnalysis::LogCantModifyiMutableError(const UCodeLang::Token* Token, UCodeLang::String_view& Name)
+void SystematicAnalysis::LogCantModifyiMutableError(const UCodeLang::Token* Token, UCodeLang::String_view Name)
 {
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Cant modify '" + (String)Name + " it's immutable");
