@@ -15,7 +15,7 @@ enum class TypesEnum :UInt8
 
 	Bool,
 	Char,
-	
+
 	uInt8,
 	uInt16,
 	uInt32,
@@ -29,10 +29,11 @@ enum class TypesEnum :UInt8
 	uIntPtr,
 	sIntPtr,
 
-	
+
 
 	CustomType,
 };
+
 enum class TypeValueInfo : UInt8
 {
 	IsValue,
@@ -51,6 +52,8 @@ struct TypeSymbol
 	bool _Isimmutable = false;
 	TypeValueInfo _ValueInfo = TypeValueInfo::IsValue;
 
+
+	
 	void SetType(TypesEnum type)
 	{
 		_Type = type;
@@ -129,6 +132,7 @@ enum class SymbolType : UInt8
 	Type,
 	Type_alias,
 	Type_class,
+	Class_Field,
 	Enum,
 
 	Func,

@@ -108,6 +108,16 @@ private:
 	void OnDeclareVariablenode(const DeclareVariableNode& node);
 	void CantgussTypesTheresnoassignment(const UCodeLang::Token* Token);
 	void OnAssignVariableNode(const AssignVariableNode& node);
+
+
+	struct GetMemberTypeSymbolFromVar_t
+	{
+		UAddress Offset =NullAddress;
+		TypeSymbol Type;
+	};
+
+	bool GetMemberTypeSymbolFromVar(const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out);
+	
 	void OnPostfixVariableNode(const PostfixVariableNode& node);
 	void OnCompoundStatementNode(const CompoundStatementNode& node);
 	void OnExpressionTypeNode(const Node* node);
@@ -173,6 +183,7 @@ private:
 	Stack<GenericFuncInfo> GenericFuncName;
 	
 	bool GetSize(const TypeSymbol& Type,UAddress& OutSize);
+	bool GetOffset(const ClassInfo& Type,const FieldInfo* Field, UAddress& OutOffset);
 
 	void GenericFuncInstantiate(Symbol* Func,const FuncNode& FuncBase,
 		const Vector<TypeSymbol>& TypeToChage, 
@@ -231,11 +242,13 @@ private:
 	void CantUseThisKeyWordHereError(const UCodeLang::Token* NameToken);
 	void LogCantCastImplicitTypes(const UCodeLang::Token* Token, UCodeLang::TypeSymbol& Ex1Type, UCodeLang::TypeSymbol& UintptrType);
 	void LogReadingFromInvaidVariable(const UCodeLang::Token* Token, UCodeLang::String& Str);
-	void LogCantFindVarError(const UCodeLang::Token* Token, UCodeLang::String& Str);
-	void LogCantModifyiMutableError(const UCodeLang::Token* Token, UCodeLang::String_view& Name);
+	void LogCantFindVarError(const UCodeLang::Token* Token, UCodeLang::String_view Str);
+	void LogCantFindVarMemberError(const UCodeLang::Token* Token, UCodeLang::String_view Str,const UCodeLang::TypeSymbol& OnType);
+	void LogCantModifyiMutableError(const UCodeLang::Token* Token, UCodeLang::String_view Name);
 	void LogCantCastExplicityTypes(const UCodeLang::Token* Token, UCodeLang::TypeSymbol& Ex0Type, UCodeLang::TypeSymbol& ToTypeAs);
 	void LogCantFindTypeError(const UCodeLang::Token* Token, UCodeLang::String_view& Name);
 	void LogTypeDependencyCycle(const UCodeLang::Token* Token, const ClassInfo* Value);
+
 
 	struct ReadVarErrorCheck_t
 	{
