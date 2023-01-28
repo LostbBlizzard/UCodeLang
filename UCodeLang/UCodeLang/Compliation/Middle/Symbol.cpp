@@ -32,7 +32,21 @@ void SymbolTable::GetSymbolsInNameSpace(const String_view& NameSpace, const Stri
 				TepNameSpace + ScopeHelper::_ScopeSep + (String)Name : (String)Name;
 			if (Item.FullName == FullName)
 			{
-				Output.push_back(&Item);
+
+
+				bool HasItem = false;
+				for (auto& Item2 : Output)
+				{
+					if (&Item2 == &Item2)
+					{
+						HasItem = true;
+						break;
+					}
+				}
+
+				if (!HasItem) {
+					Output.push_back(&Item);
+				}
 			}
 		}
 	}

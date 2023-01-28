@@ -458,7 +458,7 @@ GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 
 	auto NameToken = TryGetToken();
 
-	if (NameToken->Type == TokenType::KeyWorld_This
+	if (NameToken->Type == TokenType::KeyWorld_new
 		|| NameToken->Type == TokenType::KeyWorld_Drop
 		|| ExpressionNodeType::IsOverLoadableOperator(NameToken))
 	{

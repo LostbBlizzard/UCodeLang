@@ -150,7 +150,8 @@ struct IRCode
 	IROperand Operand0;
 	IROperator Operator = IROperator::Null;
 	IROperand Operand1;
-	Shared_ptr<TypeSymbol> InfoType;//will be update if is class fleid
+	Unique_ptr<TypeSymbol> InfoType;//will be update if is class fleid
+	//Unique Pointer because depedency loop.
 };
 
 struct IRSeg

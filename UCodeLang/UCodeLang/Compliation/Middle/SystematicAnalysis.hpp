@@ -122,6 +122,7 @@ private:
 	void OnCompoundStatementNode(const CompoundStatementNode& node);
 	void OnExpressionTypeNode(const Node* node);
 	void OnExpressionNode(const ValueExpressionNode& node);
+	void OnReadVariable(const ReadVariableNode& nod);
 	void OnExpressionNode(const BinaryExpressionNode& node);
 	void OnExpressionNode(const CastNode& node);
 	void OnFuncCallNode(const FuncCallNode& node);
@@ -148,6 +149,8 @@ private:
 	bool AreTheSameWithOutimmutable(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
 	bool HasBinaryOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
 
+
+
 	String ToString(const TypeSymbol& Type);
 	String ToString(const TokenType& Type)
 	{
@@ -156,6 +159,11 @@ private:
 	
 
 	void Convert(const TypeNode& V, TypeSymbol& Out);
+	
+	Symbol* GetSymbol(const ClassInfo* Info)
+	{
+		return GetSymbol(Info->FullName,SymbolType::Type_class);
+	}
 	
 	bool IsVaidType(TypeSymbol& Out);
 	bool CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
@@ -185,6 +193,26 @@ private:
 	bool GetSize(const TypeSymbol& Type,UAddress& OutSize);
 	bool GetOffset(const ClassInfo& Type,const FieldInfo* Field, UAddress& OutOffset);
 
+
+	FuncInfo* GetFunc(
+		const TypeSymbol& Name,
+		const ValueParametersNode& Pars);;
+
+	FuncInfo* GetFunc(
+		const ScopedNameNode& Name,
+		const ValueParametersNode& Pars,
+		TypeSymbol Ret)
+	{
+		UseGenericsNode generics;
+		return GetFunc(Name, generics, Pars, Ret);
+	};
+
+	FuncInfo* GetFunc(
+		const ScopedNameNode& Name,
+		const UseGenericsNode&,
+		const ValueParametersNode& Pars,
+		TypeSymbol Ret);
+
 	void GenericFuncInstantiate(Symbol* Func,const FuncNode& FuncBase,
 		const Vector<TypeSymbol>& TypeToChage, 
 		const Vector<TypeSymbol>& Type);
@@ -192,7 +220,7 @@ private:
 
 	void GenericTypeInstantiate(Symbol* Class , const Vector<TypeSymbol>& Type);
 
-	Unordered_map<const FuncCallNode*, SymbolID> FuncToSyboID;
+	Unordered_map<const void*,const FuncInfo*> FuncToSyboID;
 
 	void Build_Assign_uIntPtr(UAddress Value)
 	{
@@ -241,14 +269,14 @@ private:
 	void CantguessVarTypeError(const UCodeLang::Token* Token);
 	void CantUseThisKeyWordHereError(const UCodeLang::Token* NameToken);
 	void LogCantCastImplicitTypes(const UCodeLang::Token* Token, UCodeLang::TypeSymbol& Ex1Type, UCodeLang::TypeSymbol& UintptrType);
-	void LogReadingFromInvaidVariable(const UCodeLang::Token* Token, UCodeLang::String& Str);
+	void LogReadingFromInvaidVariable(const UCodeLang::Token* Token, String_view Str);
 	void LogCantFindVarError(const UCodeLang::Token* Token, UCodeLang::String_view Str);
 	void LogCantFindVarMemberError(const UCodeLang::Token* Token, UCodeLang::String_view Str,const UCodeLang::TypeSymbol& OnType);
 	void LogCantModifyiMutableError(const UCodeLang::Token* Token, UCodeLang::String_view Name);
 	void LogCantCastExplicityTypes(const UCodeLang::Token* Token, UCodeLang::TypeSymbol& Ex0Type, UCodeLang::TypeSymbol& ToTypeAs);
 	void LogCantFindTypeError(const UCodeLang::Token* Token, UCodeLang::String_view& Name);
 	void LogTypeDependencyCycle(const UCodeLang::Token* Token, const ClassInfo* Value);
-
+	void LogCantUseThisHere(const UCodeLang::Token* Token);
 
 	struct ReadVarErrorCheck_t
 	{
