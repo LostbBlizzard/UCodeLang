@@ -122,7 +122,9 @@ private:
 	void OnCompoundStatementNode(const CompoundStatementNode& node);
 	void OnExpressionTypeNode(const Node* node);
 	void OnExpressionNode(const ValueExpressionNode& node);
+	void OnAnonymousObjectConstructor(UCodeLang::AnonymousObjectConstructorNode*& nod);
 	void OnReadVariable(const ReadVariableNode& nod);
+	void BindTypeToLastIR(UCodeLang::TypeSymbol& Type);
 	void OnExpressionNode(const BinaryExpressionNode& node);
 	void OnExpressionNode(const CastNode& node);
 	void OnFuncCallNode(const FuncCallNode& node);
@@ -169,6 +171,9 @@ private:
 	bool CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
 	bool CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
 
+	void DoImplicitConversion(IROperand Ex, const TypeSymbol& ToType);
+	void DoExplicitlConversion(IROperand Ex, const TypeSymbol& ToType);
+
 	bool IsSIntType(const UCodeLang::TypeSymbol& TypeToCheck);
 	bool IsUIntType(const UCodeLang::TypeSymbol& TypeToCheck);
 	bool IsIntType(const UCodeLang::TypeSymbol& TypeToCheck)
@@ -193,6 +198,8 @@ private:
 	bool GetSize(const TypeSymbol& Type,UAddress& OutSize);
 	bool GetOffset(const ClassInfo& Type,const FieldInfo* Field, UAddress& OutOffset);
 
+
+	void DoFuncCall(const FuncInfo* Func, const ScopedNameNode& Name, const ValueParametersNode& Pars);
 
 	FuncInfo* GetFunc(
 		const TypeSymbol& Name,
