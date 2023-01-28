@@ -467,7 +467,14 @@ void UCodeBackEndObject::StoreVar(const IRCode& IR, const RegisterID R)
 	}
 
 	const TypeSymbol& VarType =Symbol.VarType._Type != TypesEnum::CustomType ? Symbol.VarType : *IR.InfoType;
+	
+	
+	if (VarType._Type == TypesEnum::CustomType)
+	{
+		int a = 0;
 
+	}
+	else
 	if (Data->Type == BuildData_t::ParameterInRegister)
 	{
 		auto R2 = (RegisterID)Data->offset;
@@ -481,6 +488,7 @@ void UCodeBackEndObject::StoreVar(const IRCode& IR, const RegisterID R)
 	{
 		BuildSybolIntSizeIns(VarType, StoreRegOnStack, (_Ins, R, Data->offset + IR.Operand1.AnyValue.AsAddress));
 	}
+	
 	
 }
 
