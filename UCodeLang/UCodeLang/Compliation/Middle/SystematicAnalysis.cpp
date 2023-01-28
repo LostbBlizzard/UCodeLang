@@ -649,7 +649,7 @@ void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 	if (passtype == PassType::BuidCode)
 	{
 		auto& T = Get_LookingForType();
-		DoImplicitConversion(IROperand::AsLocation(_Builder.GetLastField()), T);
+		DoImplicitConversion(IROperand::AsLocation(_Builder.GetLastField()),LastExpressionType, T);
 		if (node.Expression.Value) 
 		{
 			_Builder.Build_AssignRet(IROperand::AsLocation(_Builder.GetLastField()));
@@ -796,7 +796,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 	if (passtype == PassType::BuidCode && node.Expression.Value)
 	{
 
-		DoImplicitConversion(IROperand::AsLocation(_Builder.GetLastField()), syb->VarType);
+		DoImplicitConversion(IROperand::AsLocation(_Builder.GetLastField()), LastExpressionType, syb->VarType);
 
 		auto Op = IROperand::AsLocation(_LastExpressionField);
 		auto NewOp = IROperand::AsVarable(sybId);
@@ -841,7 +841,7 @@ void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 	if (passtype == PassType::BuidCode)
 	{
 
-		DoImplicitConversion(IROperand::AsLocation(_Builder.GetLastField()), MemberInfo.Type);
+		DoImplicitConversion(IROperand::AsLocation(_Builder.GetLastField()), LastExpressionType, MemberInfo.Type);
 
 		auto Token = node.Name.ScopedName.begin()->token;
 		auto& Str = Token->Value._String;
@@ -1257,7 +1257,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 					OnExpressionTypeNode(nod->Arrayexpression.Value.get());
 				
 					auto Ex0 = _LastExpressionField;	
-					DoImplicitConversion(IROperand::AsLocation(_Builder.GetLastField()), UintptrType);
+					DoImplicitConversion(IROperand::AsLocation(_Builder.GetLastField()), LastExpressionType, UintptrType);
 
 					Ex0 = _LastExpressionField;
 
@@ -1498,7 +1498,7 @@ void SystematicAnalysis::OnExpressionNode(const CastNode& node)
 
 	if (passtype == PassType::BuidCode)
 	{
-		DoExplicitlConversion(IROperand::AsLocation(_Builder.GetLastField()), ToTypeAs);
+		DoExplicitlConversion(IROperand::AsLocation(_Builder.GetLastField()), LastExpressionType, ToTypeAs);
 
 		LastExpressionType = ToTypeAs;
 	}
@@ -1930,13 +1930,21 @@ bool SystematicAnalysis::CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck,
 	if (IsIntType(TypeToCheck) && IsIntType(TypeToCheck)) { return true; }
 	return false;
 }
-void SystematicAnalysis::DoImplicitConversion(IROperand Ex, const TypeSymbol& ToType)
+bool SystematicAnalysis::DoImplicitConversion(IROperand Ex, const TypeSymbol ExType, const TypeSymbol& ToType)
 {
 
+	if (AreTheSame(ExType, ToType))
+	{
+		return true;
+	}
+	return false;
 }
-void SystematicAnalysis::DoExplicitlConversion(IROperand Ex, const TypeSymbol& ToType)
+void SystematicAnalysis::DoExplicitlConversion(IROperand Ex, const TypeSymbol ExType, const TypeSymbol& ToType)
 {
-
+	if (!DoImplicitConversion(Ex, ExType, ToType))
+	{
+		//DO Stuff
+	}
 }
 bool SystematicAnalysis::IsSIntType(const UCodeLang::TypeSymbol& TypeToCheck)
 {
@@ -2098,6 +2106,7 @@ void SystematicAnalysis::DoFuncCall(const FuncInfo* Func, const ScopedNameNode& 
 		LookingForTypes.push(FuncParInfo);
 
 		OnExpressionTypeNode(Item.get());
+		DoImplicitConversion(IROperand::AsLocation(_Builder.GetLastField()), LastExpressionType, FuncParInfo);
 
 		_Builder.Build_PassLastAsParameter();
 
@@ -2108,9 +2117,8 @@ FuncInfo* SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGener
 {
 	auto& Symbols = _Table.GetSymbolsWithName(GetScopedNameAsString(Name),SymbolType::Any);
 	FuncInfo* r = nullptr;
-	
 
-	auto RetType = Get_LookingForType();
+	auto& RetType = Get_LookingForType();
 	Vector<TypeSymbol> ValueTypes;
 	ValueTypes.resize(Pars._Nodes.size());
 	for (size_t i = 0; i < Pars._Nodes.size(); i++)
@@ -2143,12 +2151,12 @@ FuncInfo* SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGener
 			{
 				auto& Item = Info->Pars[i];
 				auto& Item2 = ValueTypes[i];
-			}
-			if (Info->Pars.size() != ValueTypes.size())
-			{
-				continue;
-			}
 
+				if (!CanBeImplicitConverted(Item2, Item))
+				{
+					continue;
+				}
+			}
 			r = Info;
 		}
 	}

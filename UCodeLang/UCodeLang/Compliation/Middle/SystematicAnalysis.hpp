@@ -171,8 +171,8 @@ private:
 	bool CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
 	bool CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
 
-	void DoImplicitConversion(IROperand Ex, const TypeSymbol& ToType);
-	void DoExplicitlConversion(IROperand Ex, const TypeSymbol& ToType);
+	bool DoImplicitConversion(IROperand Ex,const TypeSymbol ExType, const TypeSymbol& ToType);
+	void DoExplicitlConversion(IROperand Ex, const TypeSymbol ExType, const TypeSymbol& ToType);
 
 	bool IsSIntType(const UCodeLang::TypeSymbol& TypeToCheck);
 	bool IsUIntType(const UCodeLang::TypeSymbol& TypeToCheck);
