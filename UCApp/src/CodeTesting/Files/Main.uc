@@ -4,12 +4,7 @@
 |Hey<T,X>[T A] -> X;
 
 
-|Main2[]:
- main();
+|Main2[] -> [int a,int b];
   
 |main[]:
- 
-
- bool A = [];
- 
- bool Vh = Hey(4);
+  var B = Main2();
