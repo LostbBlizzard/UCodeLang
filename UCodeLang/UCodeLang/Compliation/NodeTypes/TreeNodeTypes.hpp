@@ -302,7 +302,8 @@ struct TypeNode :Node
 	}
 	static void Gen_ThisMemberFunc(TypeNode& Out, const Token& ToGetLinesFrom)
 	{
-		return Gen_Type(Out, TokenType::KeyWorld_ThisMemberFunc, ToGetLinesFrom);
+		Out.PushAsAddess();
+		return Gen_Type(Out, TokenType::KeyWorld_This, ToGetLinesFrom);
 	}
 	static void Gen_Byte(TypeNode& Out, const Token& ToGetLinesFrom)
 	{
@@ -310,7 +311,8 @@ struct TypeNode :Node
 	}
 	bool IsThisMemberFunc() const
 	{
-		return Name.Token->Type == TokenType::KeyWorld_ThisMemberFunc;
+		return Name.Token->Type == TokenType::KeyWorld_This
+			&& IsAddess;
 	}
 	String AsString() const
 	{

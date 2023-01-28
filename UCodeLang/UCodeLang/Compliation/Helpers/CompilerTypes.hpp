@@ -116,8 +116,6 @@ enum class TokenType : TokenType_t
 
 	KeyWorld_uintptr,
 	KeyWorld_sintptr,
-	//Made by The compiler
-	KeyWorld_ThisMemberFunc,
 };
 class StringHelper
 {

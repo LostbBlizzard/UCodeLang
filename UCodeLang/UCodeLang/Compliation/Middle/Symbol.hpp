@@ -124,6 +124,7 @@ struct TypeSymbol
 enum class SymbolType : UInt8
 {
 	Null,
+	Any,
 
 	Varable_t,	
 	StackVarable,
@@ -141,7 +142,7 @@ enum class SymbolType : UInt8
 
 	FuncCall,
 	GenericFunc,
-	Generic_class
+	Generic_class,
 };
 enum class SymbolValidState : UInt8
 {
@@ -173,7 +174,34 @@ public:
 	}
 };
 
-class ClassInfo: Symbol_Info
+class FuncInfo :public Symbol_Info
+{
+public:
+	String FullName;
+	inline String_view Get_Name() const
+	{
+		return ScopeHelper::GetNameFromFullName((String_view)FullName);
+	}
+	Vector<TypeSymbol> Pars;
+	TypeSymbol Ret;
+	
+	FuncInfo()
+	{
+
+	}
+	~FuncInfo()
+	{
+
+	}
+
+	SymbolValidState ValidState = SymbolValidState::valid;
+	void SetToInvalid() { ValidState = SymbolValidState::Invalid; }
+	void SetTovalid() { ValidState = SymbolValidState::valid; }
+	bool IsInvalid()const { return ValidState == SymbolValidState::Invalid; }
+	bool Isvalid()const { return !IsInvalid(); }
+};
+
+class ClassInfo:public Symbol_Info
 {
 public:
 	String FullName;
@@ -227,14 +255,8 @@ public:
 	
 
 	SymbolValidState ValidState = SymbolValidState::valid;
-	void SetToInvalid()
-	{
-		ValidState = SymbolValidState::Invalid;
-	}
-	void SetTovalid()
-	{
-		ValidState = SymbolValidState::valid;
-	}
+	void SetToInvalid(){ValidState = SymbolValidState::Invalid;}
+	void SetTovalid(){ValidState = SymbolValidState::valid;}
 	bool IsInvalid()const {return ValidState == SymbolValidState::Invalid;}
 	bool Isvalid()const { return !IsInvalid(); }
 	Symbol()
