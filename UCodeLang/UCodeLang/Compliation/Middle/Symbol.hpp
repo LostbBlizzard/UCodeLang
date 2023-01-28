@@ -9,6 +9,7 @@ enum class TypesEnum :UInt8
 	Null,
 	Void,
 	Var,
+	Any,
 	Int_t,
 	uInt_t,
 	sInt_t,
@@ -197,6 +198,20 @@ public:
 	
 	Vector<SymbolID> _Generic;
 
+
+	bool IsObjectCall()
+	{
+		return Pars.size() && Pars.back().IsAddress();
+	}
+	TypeSymbol* GetObjectForCall()
+	{
+		if (IsObjectCall())
+		{
+			return &Pars.back();
+		}
+		return nullptr;
+	}
+
 	FuncInfo()
 	{
 
@@ -224,6 +239,8 @@ public:
 	UAddress Size = NullAddress;
 	Vector<FieldInfo> Fields;
 	bool SizeInitialized = false;
+
+	Vector<SymbolID> _Generic;
 
 	ClassInfo()
 	{

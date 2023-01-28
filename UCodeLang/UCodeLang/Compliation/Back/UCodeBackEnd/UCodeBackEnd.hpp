@@ -53,6 +53,7 @@ private:
 	enum class BuildData_t :UInt8
 	{
 		Null,
+		ThisObjectWithOffset,
 		ParameterInRegister,
 	};
 	struct BuildData

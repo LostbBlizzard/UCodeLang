@@ -1,10 +1,13 @@
-//|V[] -> [int X,int Y];
 
 
-|Hey<T,X>[T A] -> X;
 
+$Vec2:
+ int A;
+ |Set[this&]:
+  A = 0;
 
-|Main2[] -> [int a,int b];
-  
 |main[]:
-  var B = Main2();
+ int a = 0;
+ a+=5;
+ 
+
