@@ -37,7 +37,7 @@ void SymbolTable::GetSymbolsInNameSpace(const String_view& NameSpace, const Stri
 				bool HasItem = false;
 				for (auto& Item2 : Output)
 				{
-					if (&Item2 == &Item2)
+					if (&Item == Item2)
 					{
 						HasItem = true;
 						break;

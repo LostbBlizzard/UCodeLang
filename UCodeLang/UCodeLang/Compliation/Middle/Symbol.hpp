@@ -116,6 +116,14 @@ struct TypeSymbol
 	{
 		return !IsLocationValue();
 	}
+	bool IsAn(TypesEnum Type)const
+	{
+		return _Type == Type;
+	}
+	bool IsnotAn(TypesEnum Type)const
+	{
+		return !IsAn(Type);
+	}
 };
 
 
@@ -132,6 +140,7 @@ enum class SymbolType : UInt8
 
 	Type,
 	Type_alias,
+
 	Type_class,
 	Class_Field,
 	Enum,
@@ -143,6 +152,7 @@ enum class SymbolType : UInt8
 	FuncCall,
 	GenericFunc,
 	Generic_class,
+	Unmaped_Generic_Type,
 };
 enum class SymbolValidState : UInt8
 {
@@ -185,6 +195,8 @@ public:
 	Vector<TypeSymbol> Pars;
 	TypeSymbol Ret;
 	
+	Vector<SymbolID> _Generic;
+
 	FuncInfo()
 	{
 
