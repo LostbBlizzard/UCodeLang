@@ -380,21 +380,26 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		if (RetType && RetType->Get_Type() == NodeType::AnonymousTypeNode)
 		{
 			auto NewName = GetFuncAnonymousObjectFullName(FullName);
-			auto& Class = _Lib.Get_Assembly().AddClass(NewName, NewName);
 
-			throw std::exception("not added");
+
+			SymbolID AnonymousSybID = (SymbolID)RetType.get();
+			auto& AnonymousSyb = _Table.AddSybol(SymbolType::Type_class, (String)NewName, NewName); 
+			
+			_Table.AddSymbolID(AnonymousSyb,AnonymousSybID);
 
 
 			auto ClassInf = new ClassInfo();
-			syb->Info.reset(ClassInf);
+			ClassInf->FullName = NewName;
+			AnonymousSyb.Info.reset(ClassInf);
+			AnonymousSyb.VarType.SetType(AnonymousSyb.ID);
 
 			AnonymousTypeNode* Typenode = AnonymousTypeNode::As(RetType.get());
 			for (auto& Item3 : Typenode->Fields.Parameters)
 			{
-				ClassField V;
-				V.FullNameType = Item3.Type.AsString();
-				V.Name = Item3.Name.AsString();
-				Class._Class.Fields.push_back(V);
+				TypeSymbol T;
+				Convert(Item3.Type, T);
+
+				ClassInf->AddField(Item3.Name.AsString(), T);
 			}
 		}
 
@@ -433,10 +438,6 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			newInfo->Pars.push_back(VP);
 		}
 		
-		{
-
-
-		}
 		
 		syb = &_Table.GetSymbol(sybId);//resized _Table
 	}
@@ -449,8 +450,47 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	if (passtype == PassType::FixedTypes
 		|| (IsGenericS && passtype == PassType::GetTypes))
 	{
-		Convert(node.Signature.ReturnType, syb->VarType);
-		Info->Ret = syb->VarType;
+		
+		auto& RetType = node.Signature.ReturnType.node;
+		if (RetType && RetType->Get_Type() == NodeType::AnonymousTypeNode)
+		{
+			SymbolID AnonymousSybID = (SymbolID)RetType.get();
+			auto& V = _Table.GetSymbol(AnonymousSybID);
+
+			auto ClassInf = (ClassInfo*)V.Info.get(); 
+
+			AnonymousTypeNode* Typenode = AnonymousTypeNode::As(RetType.get());
+
+			for (size_t i = 0; i < Typenode->Fields.Parameters.size(); i++)
+			{
+				auto& Item3 = Typenode->Fields.Parameters[i];
+				auto ItemOut = ClassInf->Fields[i];
+				Convert(Item3.Type, ItemOut.Type);
+			}
+
+			
+			UAddress ClassSize=0;
+			for (auto& Item : ClassInf->Fields)
+			{
+				UAddress V = NullAddress;
+				GetSize(Item.Type, V);
+				ClassSize += V;
+			}
+
+			ClassInf->Size = ClassSize;
+			ClassInf->SizeInitialized = true;
+			
+
+			syb->VarType.SetType(AnonymousSybID);
+			Info->Ret = syb->VarType;
+		}
+		else
+		{
+			Convert(node.Signature.ReturnType, syb->VarType);
+			Info->Ret = syb->VarType;
+		}
+
+		
 
 		for (size_t i = 0; i < node.Signature.Parameters.Parameters.size(); i++)
 		{
@@ -509,6 +549,18 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 
 		Ptr->_Class.Methods.push_back(std::move(V));
+
+		auto& RetType = node.Signature.ReturnType.node;
+		if (RetType && RetType->Get_Type() == NodeType::AnonymousTypeNode)
+		{
+			SymbolID AnonymousSybID = (SymbolID)RetType.get();
+			auto& V = _Table.GetSymbol(AnonymousSybID);
+
+			auto ClassInf = (ClassInfo*)V.Info.get();
+
+			AddClass_tToAssemblyInfo(ClassInf);
+
+		}
 	}
 
 
