@@ -353,9 +353,12 @@ void UCodeBackEndObject::OnReadVarOperand(UCodeLang::RegisterID& R, UCodeLang::I
 	{
 		auto V = _Registers.GetInfo(IR.Result.IRLocation);
 
+		const TypeSymbol& VarType = SybV.VarType._Type != TypesEnum::CustomType ? SybV.VarType : *IR.InfoType;
+
+
 		if (V == RegisterID::NullRegister)
 		{
-			BuildSybolIntSizeIns(SybV.VarType, GetFromStack, (_Ins, Data.offset, R));
+			BuildSybolIntSizeIns(VarType, GetFromStack, (_Ins, Data.offset + IR.Operand1.AnyValue.AsAddress, R));
 			SetSybToRegister(R, IR);
 		}
 		else
@@ -463,7 +466,7 @@ void UCodeBackEndObject::StoreVar(const IRCode& IR, const RegisterID R)
 		}
 	}
 
-	const TypeSymbol& VarType =Symbol.Type == SymbolType::Type_class ? Symbol.VarType : *IR.InfoType;
+	const TypeSymbol& VarType =Symbol.VarType._Type != TypesEnum::CustomType ? Symbol.VarType : *IR.InfoType;
 
 	if (Data->Type == BuildData_t::ParameterInRegister)
 	{

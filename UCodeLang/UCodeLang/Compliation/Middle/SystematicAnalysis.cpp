@@ -794,7 +794,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 	{
 		auto Op = IROperand::AsLocation(_LastExpressionField);
 		auto NewOp = IROperand::AsVarable(sybId);
-		_Builder.Build_Assign(NewOp, Op);	
+		//_Builder.Build_Assign(NewOp, Op);	
 	}
 }
 void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
@@ -1376,13 +1376,17 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 	if (passtype == PassType::BuidCode)
 	{
 		auto& LookForT = Get_LookingForType();
-		if (LookForT.IsLocationValue())
+		//if (LookForT.IsLocationValue())
 		{
-			_Builder.Build_Assign(IROperand::AsPointer(sybId));
+			//_Builder.Build_Assign(IROperand::AsPointer(sybId));
 		}
-		else
+		//else
 		{
 			_Builder.Build_Assign(IROperand::AsReadVarable(sybId),V.Offset);
+
+			auto& V2 = _Builder.GetLast_IR();
+			V2.InfoType = std::make_unique<TypeSymbol>(V.Type);
+
 		}
 		_LastExpressionField = _Builder.GetLastField();
 	}

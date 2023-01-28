@@ -7,8 +7,8 @@
   int Y;
 
   |new[this&]:
-   X = 0;
-   Y = 0;
+   //X = 0;
+   //Y = 0;
    
    
 |main[]:
@@ -20,6 +20,8 @@
  pos.X = 5;
  pos.Y = 8;
  
- pos2.X =pos.X;
- pos2.Y =pos.Y;
+ var V =pos.X;
+
+
+ V =pos.Y;
 

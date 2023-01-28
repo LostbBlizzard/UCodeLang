@@ -249,8 +249,7 @@ public:
 
 	void Build_Assign(IROperand result, IROperand field, UAddress offset = 0)
 	{
-		Code.push_back({});
-		auto& V = Code.back();
+		auto& V = Code.emplace_back();
 		V.Result =result;
 		V.Operand0 = field;
 		V.Operand1 = IROperand::AsInt64(offset);
@@ -263,32 +262,28 @@ public:
 
 	void Build_AssignRet(IROperand field)
 	{
-		Code.push_back({});
-		auto& V = Code.back();
-		V.Result = IROperand::AsLocation(Code.size() - 1);
+		auto& V = Code.emplace_back();
+		V.Result = IROperand::AsLocation(GetLastField());
 		V.Operand0 = field;
 		V.Operator = IROperator::Ret_Value;
 	}
 
 	void Build_Func(SymbolID Value)
 	{
-		Code.push_back({});
-		auto& V = Code.back();
+		auto& V = Code.emplace_back();
 		V.Operator = IROperator::Func;
 		V.Operand0 = IROperand::AsSymbol(Value);
 	}
 	void Build_Parameter(SymbolID Value)
 	{
-		Code.push_back({});
-		auto& V = Code.back();
+		auto& V = Code.emplace_back();
 		V.Operator = IROperator::Func_Parameter;
 		V.Operand0 = IROperand::AsSymbol(Value);
 	}
 
 	void Build_PassParameter(IROperand field)
 	{
-		Code.push_back({});
-		auto& V = Code.back();
+		auto& V = Code.emplace_back();
 		V.Operator = IROperator::PassParameter;
 		V.Operand0 = field;
 	}
@@ -299,8 +294,7 @@ public:
 
 	void Build_FuncCall(SymbolID Value)
 	{
-		Code.push_back({});
-		auto& V = Code.back();
+		auto& V = Code.emplace_back();
 		V.Operator = IROperator::FuncCall;
 		V.Operand0 = IROperand::AsSymbol(Value);
 	}
@@ -312,25 +306,22 @@ public:
 	}
 	void Build_Malloc(IROperand Sizefield)
 	{
-		Code.push_back({});
-		auto& V = Code.back();
-		V.Result = IROperand::AsLocation(Code.size() - 1);
+		auto& V = Code.emplace_back();
+		V.Result = IROperand::AsLocation(GetLastField());
 		V.Operator = IROperator::Malloc;
 		V.Operand0 = Sizefield;
 	}
 
 	void Build_Free(IROperand field)
 	{
-		Code.push_back({});
-		auto& V = Code.back();
+		auto& V = Code.emplace_back();
 		V.Operator = IROperator::Free;
 		V.Operand0 = field;
 	}
 
 	void Build_Ret()
 	{
-		Code.push_back({});
-		auto& V = Code.back();
+		auto& V = Code.emplace_back();
 		V.Operator = IROperator::Ret;
 	}
 	
