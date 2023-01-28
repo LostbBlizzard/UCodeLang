@@ -135,7 +135,7 @@ void SystematicAnalysis::OnNonAttributeable(size_t Line, size_t Pos)
 		}
 	}
 }
-void SystematicAnalysis::OnFileNode(const UCodeLang::FileNode* const& File)
+void SystematicAnalysis::OnFileNode(const FileNode* const& File)
 {
 	for (auto& node : File->_Nodes)
 	{
@@ -161,7 +161,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 	const auto& ClassName = IsgenericInstantiation ? GenericFuncName.top().GenericFuncName : Node.ClassName.Token->Value._String;
 	_Table.AddScope(ClassName);
 
-	auto SybID = IsgenericInstantiation ? (SymbolID)GenericFuncName.top().Type : (SymbolID)&Node;
+	auto SybID = IsgenericInstantiation ? (SymbolID)GenericFuncName.top().GenericInput : (SymbolID)&Node;
 
 	auto& Syb = passtype == PassType::GetTypes ?
 		_Table.AddSybol(Isgeneric_t ? SymbolType::Generic_class : SymbolType::Type_class
@@ -182,11 +182,11 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			auto GenericType = &_Table.AddSybol(SymbolType::Type_alias, GenericTypeName,
 				_Table._Scope.GetApendedString(GenericTypeName));
 
-			if (GenericFuncName.size())
-			{
-				GenericFuncInfo& V2 = GenericFuncName.top();
-				GenericType->VarType = V2.Type->operator[](i);
 
+			
+			if (GenericFuncName.size())
+			{GenericFuncInfo& V2 = GenericFuncName.top();
+				GenericType->VarType = (*V2.GenericInput)[i];
 			}
 		}
 	}
@@ -323,7 +323,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	
 
 	Symbol* syb;
-	SymbolID sybId = IsgenericInstantiation ? (SymbolID)GenericFuncName.top().Type : (SymbolID)&node;
+	SymbolID sybId = IsgenericInstantiation ? (SymbolID)GenericFuncName.top().GenericInput : (SymbolID)&node;
 
 
 	auto UseingIndex = _Table.GetUseingIndex();
@@ -344,22 +344,34 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		
 		syb->Info.reset(newInfo);
 
-		auto& GenericList = node.Signature.Generic;
+		auto& GenericList = node.Signature.Generic;	
+		
+		
 		for (size_t i = 0; i < GenericList.Values.size(); i++)
 		{
 			auto& Item = GenericList.Values[i];
 
 			auto GenericTypeName = Item.AsString();
-			auto GenericType = &_Table.AddSybol(SymbolType::Type_alias, GenericTypeName, 
+			auto GenericType = &_Table.AddSybol(SymbolType::Unmaped_Generic_Type, GenericTypeName, 
 				_Table._Scope.GetApendedString(GenericTypeName)
 				);
 
-			if (GenericFuncName.size())
+			if (IsgenericInstantiation)
 			{
-				GenericFuncInfo& V2 = GenericFuncName.top();
-				GenericType->VarType = V2.Type->operator[](i);
+				GenericType->Type = SymbolType::Type_alias;
 
+				GenericFuncInfo& V2 = GenericFuncName.top();
+				GenericType->VarType = (*V2.GenericInput)[i];
 			}
+			else
+			{
+				GenericType->NodePtr = (void*)&Item;
+				SymbolID ID = (SymbolID)GenericType->NodePtr;
+				_Table.AddSymbolID(*GenericType,ID);	
+				
+				newInfo->_Generic.push_back(ID);
+			}
+		
 		}
 
 		
@@ -434,9 +446,11 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	}
 	FuncInfo* Info = (FuncInfo*)syb->Info.get();
 
-	if (passtype == PassType::FixedTypes)
+	if (passtype == PassType::FixedTypes
+		|| (IsGenericS && passtype == PassType::GetTypes))
 	{
 		Convert(node.Signature.ReturnType, syb->VarType);
+		Info->Ret = syb->VarType;
 
 		for (size_t i = 0; i < node.Signature.Parameters.Parameters.size(); i++)
 		{
@@ -448,8 +462,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			auto& Sybol = _Table.GetSymbol(ParSybID);
 			Convert(Item.Type, Sybol.VarType);
 			Item2 = Sybol.VarType;
+
 		}
-		Info->Ret = syb->VarType;
 		
 	}	
 	
@@ -1123,7 +1137,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 
 			}
 
-			TypesEnum NewEx = lookT._Type == TypesEnum::Var ? TypesEnum::sInt32 : lookT._Type;
+			TypesEnum NewEx = lookT._Type == TypesEnum::Var ? lookT._Type : TypesEnum::sInt32;
 			
 
 			LastExpressionType.SetType(NewEx);
@@ -1331,10 +1345,10 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 	}
 }
 
-void SystematicAnalysis::OnAnonymousObjectConstructor(UCodeLang::AnonymousObjectConstructorNode*& nod)
+void SystematicAnalysis::OnAnonymousObjectConstructor(AnonymousObjectConstructorNode*& nod)
 {
 	auto& Type = Get_LookingForType();
-	if (Type._Type != TypesEnum::Var)//function who called this can deal with var
+	if (Type.IsnotAn(TypesEnum::Var))//function who called this can deal with var
 	{
 		auto Func = GetFunc(Type, nod->Fields);
 
@@ -1421,7 +1435,7 @@ SetExpressionInfo:
 	LastLookedAtToken = Token;
 }
 
-void SystematicAnalysis::BindTypeToLastIR(UCodeLang::TypeSymbol& Type)
+void SystematicAnalysis::BindTypeToLastIR(TypeSymbol& Type)
 {
 
 	auto& V2 = _Builder.GetLast_IR();
@@ -1734,22 +1748,22 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type)
 	case TypesEnum::sInt_t:r = "sInt_t";	break;
 
 
-	case TypesEnum::uInt8:r = "uInt8";	break;
-	case TypesEnum::uInt16:r = "uInt16";	break;
-	case TypesEnum::uInt32:r = "uInt32";	break;
-	case TypesEnum::uInt64:r = "uInt64";	break;
+	case TypesEnum::uInt8:r = Uint8TypeName;	break;
+	case TypesEnum::uInt16:r = Uint16TypeName;	break;
+	case TypesEnum::uInt32:r = Uint32TypeName;	break;
+	case TypesEnum::uInt64:r = Uint64TypeName;	break;
 
 
-	case TypesEnum::sInt8:r = "sInt8";	break;
-	case TypesEnum::sInt16:r = "sInt16";	break;
-	case TypesEnum::sInt32:r = "sInt32";	break;
-	case TypesEnum::sInt64:r = "sInt64";	break;
+	case TypesEnum::sInt8:r = Sint8TypeName;	break;
+	case TypesEnum::sInt16:r = Sint16TypeName;	break;
+	case TypesEnum::sInt32:r = Sint32TypeName;	break;
+	case TypesEnum::sInt64:r = Sint64TypeName;	break;
 
-	case TypesEnum::uIntPtr:r = "uIntptr";	break;
-	case TypesEnum::sIntPtr:r = "sIntptr";	break;
+	case TypesEnum::uIntPtr:r = UintPtrTypeName;	break;
+	case TypesEnum::sIntPtr:r = SintPtrTypeName;	break;
 
-	case TypesEnum::Bool:r = "bool";	break;
-	case TypesEnum::Char:r = "char";	break;
+	case TypesEnum::Bool:r = boolTypeName;	break;
+	case TypesEnum::Char:r = CharTypeName;	break;
 	case TypesEnum::CustomType:
 	{
 		auto& Syb = _Table.GetSymbol(Type._CustomTypeSymbol);
@@ -1852,8 +1866,6 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 		break;
 	case TokenType::Name: 
 	{
-		Out._Type = TypesEnum::CustomType;
-
 		auto Name = V.Name.AsStringView();
 		Symbol* SybV;
 		if (V.Generic.Values.size())
@@ -1946,7 +1958,7 @@ void SystematicAnalysis::DoExplicitlConversion(IROperand Ex, const TypeSymbol Ex
 		//DO Stuff
 	}
 }
-bool SystematicAnalysis::IsSIntType(const UCodeLang::TypeSymbol& TypeToCheck)
+bool SystematicAnalysis::IsSIntType(const TypeSymbol& TypeToCheck)
 {
 	return
 		TypeToCheck._Type == TypesEnum::sInt8 ||
@@ -1955,7 +1967,7 @@ bool SystematicAnalysis::IsSIntType(const UCodeLang::TypeSymbol& TypeToCheck)
 		TypeToCheck._Type == TypesEnum::sInt64 ||
 		TypeToCheck._Type == TypesEnum::sIntPtr;
 }
-bool SystematicAnalysis::IsUIntType(const UCodeLang::TypeSymbol& TypeToCheck)
+bool SystematicAnalysis::IsUIntType(const TypeSymbol& TypeToCheck)
 {
 	return
 		TypeToCheck._Type == TypesEnum::uInt8 ||
@@ -1963,6 +1975,10 @@ bool SystematicAnalysis::IsUIntType(const UCodeLang::TypeSymbol& TypeToCheck)
 		TypeToCheck._Type == TypesEnum::uInt32 ||
 		TypeToCheck._Type == TypesEnum::uInt64 ||
 		TypeToCheck._Type == TypesEnum::uIntPtr ;
+}
+bool SystematicAnalysis::IsPrimitive(const TypeSymbol& TypeToCheck)
+{
+	return false;
 }
 inline bool SystematicAnalysis::IsimmutableRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type)
 {
@@ -2090,9 +2106,35 @@ FuncInfo* SystematicAnalysis::GetFunc(const TypeSymbol& Name, const ValueParamet
 }
 void SystematicAnalysis::DoFuncCall(const FuncInfo* Func, const ScopedNameNode& Name, const ValueParametersNode& Pars)
 {
+
+	{
+		auto ScopedName = GetScopedNameAsString(Name);
+
+		if (ScopedName == Uint8TypeName) 
+		{ 
+			if (Pars._Nodes.size())
+			{
+				TypeSymbol iNfo;
+				iNfo.SetType(TypesEnum::uInt8);
+				
+				LookingForTypes.push(iNfo);
+				
+				auto& Item = Pars._Nodes[0];
+				OnExpressionTypeNode(Item.get());
+				DoImplicitConversion(IROperand::AsLocation(_Builder.GetLastField()), LastExpressionType, iNfo);
+			
+				LookingForTypes.pop();
+			}
+			else
+			{
+				_Builder.Build_Assign(IROperand::AsInt8((UInt8)0),0);
+			}
+			return;
+		}
+	}
+
 	if (Func == nullptr)
 	{
-		LogCantFindFuncError(Name.ScopedName.back().token, (String_view)"");
 		return;
 	}
 
@@ -2112,13 +2154,51 @@ void SystematicAnalysis::DoFuncCall(const FuncInfo* Func, const ScopedNameNode& 
 
 		LookingForTypes.pop();
 	}
+	_Builder.Build_FuncCall(GetSymbol(Func)->ID);
 }
-FuncInfo* SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGenericsNode&, const ValueParametersNode& Pars, TypeSymbol Ret)
+FuncInfo* SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGenericsNode& Generics, const ValueParametersNode& Pars, TypeSymbol Ret)
 {
-	auto& Symbols = _Table.GetSymbolsWithName(GetScopedNameAsString(Name),SymbolType::Any);
+	auto ScopedName = GetScopedNameAsString(Name);
+	
+	{
+		
+	
+		if (ScopedName == Uint8TypeName) 
+		{
+
+			if (Pars._Nodes.size() > 1)
+			{
+				LogCanIncorrectParCount(Name.ScopedName.back().token, ScopedName, Pars._Nodes.size(), 1);
+			}
+
+			return nullptr;
+
+		}
+
+		
+		else if (ScopedName == Uint16TypeName){return nullptr;}
+		else if (ScopedName == Uint32TypeName) { return nullptr; }
+		else if (ScopedName == Uint64TypeName) { return nullptr; }
+
+		if (ScopedName == Sint8TypeName) { return nullptr; }
+		else if (ScopedName == Sint16TypeName) { return nullptr; }
+		else if (ScopedName == Sint32TypeName) { return nullptr; }
+		else if (ScopedName == Sint64TypeName) { return nullptr; }
+
+		else if (ScopedName == SintPtrTypeName) { return nullptr; }
+		else if (ScopedName == UintPtrTypeName) { return nullptr; }
+
+
+		else if (ScopedName == boolTypeName) { return nullptr; }
+		else if (ScopedName == CharTypeName) { return nullptr; }
+	}
+	
+	auto& Symbols = _Table.GetSymbolsWithName(ScopedName, SymbolType::Any);
 	FuncInfo* r = nullptr;
 
 	auto& RetType = Get_LookingForType();
+	bool RetIsSet = RetType.IsnotAn(TypesEnum::Var);
+
 	Vector<TypeSymbol> ValueTypes;
 	ValueTypes.resize(Pars._Nodes.size());
 	for (size_t i = 0; i < Pars._Nodes.size(); i++)
@@ -2129,16 +2209,17 @@ FuncInfo* SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGener
 		OnExpressionTypeNode(Item.get());
 		ValueItem = LastExpressionType;
 	}
-
 	for (auto& Item : Symbols)
 	{
-		if (Item->Type == SymbolType::Func) 
+		if (Item->Type == SymbolType::Func)
 		{
 			FuncInfo* Info = (FuncInfo*)Item->Info.get();
-
-			if (!AreTheSame(Info->Ret, RetType))
+			if (RetIsSet)
 			{
-				continue;
+				if (!AreTheSame(Info->Ret, RetType))
+				{
+					continue;
+				}
 			}
 
 			if (Info->Pars.size() != ValueTypes.size())
@@ -2158,19 +2239,106 @@ FuncInfo* SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGener
 				}
 			}
 			r = Info;
+			break;
+		}
+		else if (Item->Type == SymbolType::GenericFunc)
+		{
+			FuncInfo* Info = (FuncInfo*)Item->Info.get();
+
+			if (Info->Pars.size() != ValueTypes.size())
+			{
+				continue;
+			}
+
+			//I have felling this can be optimized
+			Vector<bool> HasBenAdded;
+			HasBenAdded.resize(Info->_Generic.size());
+
+
+			Vector<TypeSymbol> GenericInput;
+			for (size_t i = 0; i < Generics.Values.size(); i++)
+			{
+				auto& Item = Generics.Values[i];
+				Convert(Item, GenericInput.emplace_back());
+				HasBenAdded[i] = true;
+			}
+
+
+
+			for (size_t i = 0; i < ValueTypes.size(); i++)
+			{
+				auto& Item = ValueTypes[i];
+				auto& Par = Info->Pars[i];
+
+
+				for (size_t i2 = 0; i2 < Info->_Generic.size(); i2++)
+				{
+					auto& V3 = Info->_Generic[i2];
+					if (V3 == Par._CustomTypeSymbol)
+					{
+						if (HasBenAdded[i2] == false)
+						{
+							GenericInput.push_back(Item);
+							HasBenAdded[i2] = true;
+						}
+						break;
+					}
+				}
+			}
+
+
+			if (RetIsSet)
+			{
+				for (size_t i2 = 0; i2 < Info->_Generic.size(); i2++)
+				{
+					auto& V3 = Info->_Generic[i2];
+					if (V3 == Info->Ret._CustomTypeSymbol)
+					{
+						if (HasBenAdded[i2] == false)
+						{
+							GenericInput.push_back(Ret);
+							HasBenAdded[i2] = true;
+						}
+						break;
+					}
+				}
+
+			}
+
+
+			{
+				auto FuncSym = GetSymbol(Info);
+				String NewName = GetGenericFuncName(FuncSym, GenericInput);
+				bool FuncIsMade = GetSymbol(NewName,SymbolType::Func);
+
+				if (!FuncIsMade)
+				{
+					GenericFuncInstantiate(FuncSym, GenericInput);
+				}
+
+
+				FuncSym = GetSymbol(NewName, SymbolType::Func);
+				r = (FuncInfo*)FuncSym->Info.get();
+
+			}
+			break;
 		}
 	}
-
+	if (r == nullptr)
+	{
+		LogCantFindFuncError(Name.ScopedName.back().token, ScopedName, {}, ValueTypes,RetType);
+	}
 	return r;
 }
-void SystematicAnalysis::GenericFuncInstantiate(Symbol* Func, const FuncNode& FuncBase, const Vector<TypeSymbol>& TypeToChage, const Vector<TypeSymbol>& Type)
+void SystematicAnalysis::GenericFuncInstantiate(Symbol* Func, const Vector<TypeSymbol>& GenericInput)
 {
-	String NewName = GetGenericFuncName(Func, Type);
+	String NewName = GetGenericFuncName(Func, GenericInput);
 	GenericFuncInfo Info;
 	Info.GenericFuncName = NewName;
-	Info.Type = &Type;
-	Info.TypeToChage = &TypeToChage;
+	Info.GenericInput = &GenericInput;
 	GenericFuncName.push(Info);
+
+	FuncNode& FuncBase = *(FuncNode*)Func->NodePtr;
 
 	auto OldScope = _Table._Scope.ThisScope;
 	_Table._Scope.ThisScope.clear();
@@ -2179,7 +2347,7 @@ void SystematicAnalysis::GenericFuncInstantiate(Symbol* Func, const FuncNode& Fu
 	OnFuncNode(FuncBase);
 	passtype = PassType::FixedTypes;
 	OnFuncNode(FuncBase);
-	
+
 	if (!_ErrorsOutput->Has_Errors()) {
 		passtype = PassType::BuidCode;
 		OnFuncNode(FuncBase);
@@ -2190,7 +2358,7 @@ void SystematicAnalysis::GenericFuncInstantiate(Symbol* Func, const FuncNode& Fu
 	//
 	_Table._Scope.ThisScope = OldScope;
 }
-String SystematicAnalysis::GetGenericFuncName(UCodeLang::Symbol* Func, const UCodeLang::Vector<UCodeLang::TypeSymbol>& Type)
+String SystematicAnalysis::GetGenericFuncName(Symbol* Func, const Vector<TypeSymbol>& Type)
 {
 	String NewName = Func->FullName + "<";
 	for (auto& Item : Type)
@@ -2198,7 +2366,7 @@ String SystematicAnalysis::GetGenericFuncName(UCodeLang::Symbol* Func, const UCo
 		NewName += ToString(Item);
 		if (&Type.back() != &Item)
 		{
-			NewName += ".";
+			NewName += ",";
 		}
 	}
 	NewName += ">";
@@ -2211,8 +2379,7 @@ void SystematicAnalysis::GenericTypeInstantiate(Symbol* Class, const Vector<Type
 
 	GenericFuncInfo Info;
 	Info.GenericFuncName = NewName;
-	Info.Type = &Type;
-	Info.TypeToChage = &Type;
+	Info.GenericInput = &Type;
 	GenericFuncName.push(Info);
 
 
@@ -2236,7 +2403,7 @@ void SystematicAnalysis::GenericTypeInstantiate(Symbol* Class, const Vector<Type
 	_Table._Scope.ThisScope = OldScope;
 }
 
-void SystematicAnalysis::CheckVarWritingErrors(UCodeLang::Symbol* Symbol, const Token* Token, UCodeLang::String_view& Name)
+void SystematicAnalysis::CheckVarWritingErrors(Symbol* Symbol, const Token* Token, String_view& Name)
 {
 	if (Symbol->VarType.Isimmutable())
 	{
@@ -2244,7 +2411,7 @@ void SystematicAnalysis::CheckVarWritingErrors(UCodeLang::Symbol* Symbol, const 
 	}
 }
 
-void SystematicAnalysis::LogCantCastImplicitTypes(const UCodeLang::Token* Token, UCodeLang::TypeSymbol& Ex1Type, UCodeLang::TypeSymbol& UintptrType)
+void SystematicAnalysis::LogCantCastImplicitTypes(const Token* Token, TypeSymbol& Ex1Type, TypeSymbol& UintptrType)
 {
 	bool V1 = IsAddessAndLValuesRulesfollowed(Ex1Type, UintptrType);
 	if (!V1)
@@ -2258,58 +2425,58 @@ void SystematicAnalysis::LogCantCastImplicitTypes(const UCodeLang::Token* Token,
 			, "Cant cast Type '" + ToString(Ex1Type) + " to '" + ToString(UintptrType) + "'");
 	}
 }
-void SystematicAnalysis::LogReadingFromInvaidVariable(const UCodeLang::Token* Token, UCodeLang::String_view Str)
+void SystematicAnalysis::LogReadingFromInvaidVariable(const Token* Token, String_view Str)
 {
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "the variable named '" + (String)Str + "'" + " cant be read from you.can not read an invaid variable");
 }
-void SystematicAnalysis::LogCantFindVarError(const UCodeLang::Token* Token, UCodeLang::String_view Str)
+void SystematicAnalysis::LogCantFindVarError(const Token* Token, String_view Str)
 {
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Cant find Variable Named '" + (String)Str + "'");
 }
-void SystematicAnalysis::LogCantFindVarMemberError(const UCodeLang::Token* Token, UCodeLang::String_view Str, const UCodeLang::TypeSymbol& OnType)
+void SystematicAnalysis::LogCantFindVarMemberError(const Token* Token, String_view Str, const TypeSymbol& OnType)
 {
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Cant find Member Named '" + (String)Str + "' on type '" + ToString(OnType) +"'");
 }
-void SystematicAnalysis::LogCantFindBinaryOpForTypes(const UCodeLang::Token* BinaryOp, UCodeLang::TypeSymbol& Ex0Type, UCodeLang::TypeSymbol& Ex1Type)
+void SystematicAnalysis::LogCantFindBinaryOpForTypes(const Token* BinaryOp, TypeSymbol& Ex0Type, TypeSymbol& Ex1Type)
 {
 	_ErrorsOutput->AddError(ErrorCodes::InValidType, BinaryOp->OnLine, BinaryOp->OnPos,
 		"The type '" + ToString(Ex0Type) + "'" + " cant be '"
 		+ ToString(BinaryOp->Type) + "' with '" + ToString(Ex1Type) + "'");
 }
-void SystematicAnalysis::ExpressionMustbeAnLocationValueError(const UCodeLang::Token* Token, UCodeLang::TypeSymbol& Ex0Type)
+void SystematicAnalysis::ExpressionMustbeAnLocationValueError(const Token* Token, TypeSymbol& Ex0Type)
 {
 	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos,
 		"expression must be an Location not an Value'" + ToString(Ex0Type) + "'");
 }
-void SystematicAnalysis::YouMustReturnSomethingError(const UCodeLang::Token* Token)
+void SystematicAnalysis::YouMustReturnSomethingError(const Token* Token)
 {
 	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
 		, "you must return something");
 }
-void SystematicAnalysis::CantguessVarTypeError(const UCodeLang::Token* Token)
+void SystematicAnalysis::CantguessVarTypeError(const Token* Token)
 {
 	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
 		, "cant guess 'var' type");
 }
-void SystematicAnalysis::CantUseThisKeyWordHereError(const UCodeLang::Token* NameToken)
+void SystematicAnalysis::CantUseThisKeyWordHereError(const Token* NameToken)
 {
 	_ErrorsOutput->AddError(ErrorCodes::InValidType, NameToken->OnLine, NameToken->OnPos, "cant use this here");
 }
-void SystematicAnalysis::CantgussTypesTheresnoassignment(const UCodeLang::Token* Token)
+void SystematicAnalysis::CantgussTypesTheresnoassignment(const Token* Token)
 {
 	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
 		, "cant guess type theres no '=' [expression]");
 }
-void SystematicAnalysis::LogCantCastExplicityTypes(const UCodeLang::Token* Token, UCodeLang::TypeSymbol& Ex0Type, UCodeLang::TypeSymbol& ToTypeAs)
+void SystematicAnalysis::LogCantCastExplicityTypes(const Token* Token, TypeSymbol& Ex0Type, TypeSymbol& ToTypeAs)
 {
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Cant cast Type '" + ToString(Ex0Type) + " to '" + ToString(ToTypeAs) + "'");
 }
 
-SystematicAnalysis::ReadVarErrorCheck_t SystematicAnalysis::LogTryReadVar(String_view VarName, const UCodeLang::Token* Token, const Symbol* Syb)
+SystematicAnalysis::ReadVarErrorCheck_t SystematicAnalysis::LogTryReadVar(String_view VarName, const Token* Token, const Symbol* Syb)
 {
 	ReadVarErrorCheck_t r;
 	if (Syb == nullptr)
@@ -2328,22 +2495,69 @@ SystematicAnalysis::ReadVarErrorCheck_t SystematicAnalysis::LogTryReadVar(String
 	return r;
 }
 
-void SystematicAnalysis::LogCantFindFuncError(const UCodeLang::Token* Token, UCodeLang::String_view& FuncName)
+void SystematicAnalysis::LogCantFindFuncError(const Token* Token, String_view FuncName,
+	const Vector<TypeSymbol>& Generics,
+	const Vector<TypeSymbol>& WithTypes,
+	const TypeSymbol& RetType)
+{
+	String Text = "Cant Find function '" + (String)FuncName;
+
+
+	if (Generics.size())
+	{
+		Text += "<";
+
+		for (auto& Item : Generics)
+		{
+			Text += ToString(Item);
+			if (&Item != &Generics.back())
+			{
+				Text += ',';
+			}
+		}
+
+		Text += ">";
+
+	}
+
+	//if (WithTypes.size()) 
+	{
+		Text += "[";
+
+		for (auto& Item : WithTypes)
+		{
+			Text += ToString(Item);
+			if (&Item != &WithTypes.back())
+			{
+				Text += ',';
+			}
+
+			
+		}
+
+		Text += "]";
+	}
+
+	if (RetType.IsnotAn(TypesEnum::Null) && RetType.IsnotAn(TypesEnum::Var))
+	{
+		Text += " -> " + ToString(RetType);
+	}
+	Text += "'";
+
+	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+		, Text);
+}
+void SystematicAnalysis::LogCantModifyiMutableError(const Token* Token, String_view Name)
 {
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
-		, "Cant Find function '" + (String)FuncName);
+		, "Cant modify '" + (String)Name + "' it's immutable");
 }
-void SystematicAnalysis::LogCantModifyiMutableError(const UCodeLang::Token* Token, UCodeLang::String_view Name)
-{
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
-		, "Cant modify '" + (String)Name + " it's immutable");
-}
-void SystematicAnalysis::LogCantFindTypeError(const UCodeLang::Token* Token, UCodeLang::String_view& Name)
+void SystematicAnalysis::LogCantFindTypeError(const Token* Token, String_view Name)
 {
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Cant Find Type '" + (String)Name + "'");
 }
-void SystematicAnalysis::LogTypeDependencyCycle(const UCodeLang::Token* Token, const ClassInfo* Value)
+void SystematicAnalysis::LogTypeDependencyCycle(const Token* Token, const ClassInfo* Value)
 {
 	String Msg = "Class Dependency Cycle On Type '" + (String)Value->FullName + "' <- ";
 
@@ -2363,10 +2577,26 @@ void SystematicAnalysis::LogTypeDependencyCycle(const UCodeLang::Token* Token, c
 
 	
 }
-void SystematicAnalysis::LogCantUseThisHere(const UCodeLang::Token* Token)
+void SystematicAnalysis::LogCantUseThisHere(const Token* Token)
 {
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		,"Cant Find Type for '" + (String)StringHelper::ToString(TokenType::KeyWorld_This) + "'");
+}
+void SystematicAnalysis::LogCanIncorrectParCount(const Token* Token, String_view FuncName, size_t Count, size_t FuncCount)
+{
+	String Msg;
+
+	if (Count > FuncCount)
+	{
+		Msg = "Too Many parameters for function '" + (String)FuncName + "'";
+	}
+	else
+	{
+		Msg = "too little parameters for function '" + (String)FuncName + "'";
+	}
+
+	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+		, Msg);
 }
 void SystematicAnalysis::CheckBackEnd()
 {

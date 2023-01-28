@@ -115,6 +115,12 @@ else\
 {\
 	switch (VarType._Type)\
 	{\
+		case TypesEnum::Char:\
+		GenInsPush(InstructionBuilder::##Ins##8##Pars); \
+		break; \
+		case TypesEnum::Bool:\
+		GenInsPush(InstructionBuilder::##Ins##8##Pars);\
+		break;\
 		BuildSybolIntSizeInsv(Ins,8,Pars);\
 		BuildSybolIntSizeInsv(Ins,16,Pars);\
 		BuildSybolIntSizeInsv(Ins,32,Pars);\
@@ -232,7 +238,7 @@ void UCodeBackEndObject::BuildFunc()
 			}
 			else
 			{
-				throw std::exception();
+				//throw std::exception();
 			}
 		}
 		break;
