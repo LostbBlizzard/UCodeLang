@@ -2161,6 +2161,8 @@ void SystematicAnalysis::DoFuncCall(const FuncInfo* Func, const ScopedNameNode& 
 		LookingForTypes.pop();
 	}
 	_Builder.Build_FuncCall(GetSymbol(Func)->ID);
+
+	LastExpressionType = Func->Ret;
 }
 FuncInfo* SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGenericsNode& Generics, const ValueParametersNode& Pars, TypeSymbol Ret)
 {
