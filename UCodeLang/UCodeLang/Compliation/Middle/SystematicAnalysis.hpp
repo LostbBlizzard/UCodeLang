@@ -72,6 +72,12 @@ private:
 	const Token* LastLookedAtToken = nullptr;
 	//
 
+
+	struct NewFuncData
+	{
+		Unique_ptr<Vector<TypeSymbol>> Pointer;
+	};
+	Vector< NewFuncData> TepFuncs;
 	Vector<const ClassInfo*> ClassDependencies;
 	inline bool IsDependencies(const ClassInfo* Value)
 	{

@@ -323,7 +323,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	
 
 	Symbol* syb;
-	SymbolID sybId = IsgenericInstantiation ? (SymbolID)GenericFuncName.top().GenericInput : (SymbolID)&node;
+	SymbolID sybId = IsgenericInstantiation ? (SymbolID)GenericFuncName.top().GenericInput: (SymbolID)&node;
 
 
 	auto UseingIndex = _Table.GetUseingIndex();
@@ -513,14 +513,12 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 
 	bool buidCode = passtype == PassType::BuidCode;
-	bool ignoreBody = false;
-	if (!IsgenericInstantiation && IsGenericS) {
-		ignoreBody = true;
-	}
+	bool ignoreBody = !IsgenericInstantiation && IsGenericS;
 
 	if (buidCode && !ignoreBody)
 	{
 		_Builder.Build_Func(sybId);
+
 		for (auto& Item : node.Signature.Parameters.Parameters)
 		{
 			auto ParSybID = (SymbolID)&Item;
@@ -543,7 +541,6 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			_Builder.Build_DLLJump(node.Signature.Name.AsStringView());
 		}
 	}
-
 	
 
 	if (node.Body.has_value() && !ignoreBody)
@@ -2176,21 +2173,18 @@ FuncInfo* SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGener
 		}
 
 		
-		else if (ScopedName == Uint16TypeName){return nullptr;}
-		else if (ScopedName == Uint32TypeName) { return nullptr; }
-		else if (ScopedName == Uint64TypeName) { return nullptr; }
-
-		if (ScopedName == Sint8TypeName) { return nullptr; }
-		else if (ScopedName == Sint16TypeName) { return nullptr; }
-		else if (ScopedName == Sint32TypeName) { return nullptr; }
-		else if (ScopedName == Sint64TypeName) { return nullptr; }
-
-		else if (ScopedName == SintPtrTypeName) { return nullptr; }
-		else if (ScopedName == UintPtrTypeName) { return nullptr; }
-
-
-		else if (ScopedName == boolTypeName) { return nullptr; }
-		else if (ScopedName == CharTypeName) { return nullptr; }
+		if (ScopedName == Uint8TypeName ||
+			ScopedName == Uint16TypeName ||
+			ScopedName == Uint32TypeName ||
+			ScopedName == Uint64TypeName ||
+			ScopedName == Sint8TypeName ||
+			ScopedName == Sint16TypeName ||
+			ScopedName == Sint32TypeName ||
+			ScopedName == Sint64TypeName || 
+			ScopedName == SintPtrTypeName ||
+			ScopedName == UintPtrTypeName ||
+			ScopedName == boolTypeName ||
+			ScopedName == CharTypeName) {return nullptr;}
 	}
 	
 	auto& Symbols = _Table.GetSymbolsWithName(ScopedName, SymbolType::Any);
@@ -2307,19 +2301,39 @@ FuncInfo* SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGener
 
 
 			{
+				
+
+
+
 				auto FuncSym = GetSymbol(Info);
 				String NewName = GetGenericFuncName(FuncSym, GenericInput);
-				bool FuncIsMade = GetSymbol(NewName,SymbolType::Func);
-
+				auto FuncIsMade = GetSymbol(NewName,SymbolType::Func);
+				
+				
+				
 				if (!FuncIsMade)
 				{
-					GenericFuncInstantiate(FuncSym, GenericInput);
+					auto Pointer = std::make_unique<Vector<TypeSymbol>>(std::move(GenericInput));
+					//pointer must be unique so it cant be on the stack
+
+					GenericFuncInstantiate(FuncSym, *Pointer);
+
+					TepFuncs.push_back({ std::move(Pointer) });//keep pointer 
+
+
+					FuncSym = GetSymbol(NewName, SymbolType::Func);
+					r = (FuncInfo*)FuncSym->Info.get();
+				}
+				else
+				{
+					r = (FuncInfo*)FuncIsMade->Info.get();
 				}
 
 
-				FuncSym = GetSymbol(NewName, SymbolType::Func);
-				r = (FuncInfo*)FuncSym->Info.get();
+				
 
+
+			
 			}
 			break;
 		}
@@ -2340,23 +2354,31 @@ void SystematicAnalysis::GenericFuncInstantiate(Symbol* Func, const Vector<TypeS
 
 	FuncNode& FuncBase = *(FuncNode*)Func->NodePtr;
 
+	auto OldPass = passtype;
 	auto OldScope = _Table._Scope.ThisScope;
 	_Table._Scope.ThisScope.clear();
 
+
+
 	passtype = PassType::GetTypes;
 	OnFuncNode(FuncBase);
-	passtype = PassType::FixedTypes;
-	OnFuncNode(FuncBase);
 
-	if (!_ErrorsOutput->Has_Errors()) {
+	if (!_ErrorsOutput->Has_Errors())
+	{
+		passtype = PassType::FixedTypes;
+		OnFuncNode(FuncBase);
+	}
+	if (!_ErrorsOutput->Has_Errors())
+	{
 		passtype = PassType::BuidCode;
 		OnFuncNode(FuncBase);
 	}
-	passtype = PassType::FixedTypes;
+
 
 	GenericFuncName.pop();
 	//
 	_Table._Scope.ThisScope = OldScope;
+	passtype = OldPass;
 }
 String SystematicAnalysis::GetGenericFuncName(Symbol* Func, const Vector<TypeSymbol>& Type)
 {

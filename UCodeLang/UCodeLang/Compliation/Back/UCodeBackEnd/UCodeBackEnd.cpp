@@ -238,7 +238,7 @@ void UCodeBackEndObject::BuildFunc()
 			}
 			else
 			{
-				//throw std::exception();
+				throw std::exception();
 			}
 		}
 		break;
