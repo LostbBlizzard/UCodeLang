@@ -155,9 +155,11 @@ void SystematicAnalysis::OnFileNode(const FileNode* const& File)
 }
 void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 {
-	bool IsgenericInstantiation = GenericFuncName.size();
+	bool IsgenericInstantiation = GenericFuncName.size() && GenericFuncName.top().NodeTarget == &Node;
 	bool Isgeneric = Node.Generic.Values.size();
 	bool Isgeneric_t = Isgeneric && IsgenericInstantiation == false;
+
+
 	const auto& ClassName = IsgenericInstantiation ? GenericFuncName.top().GenericFuncName : Node.ClassName.Token->Value._String;
 	_Table.AddScope(ClassName);
 
@@ -168,11 +170,23 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			, (String)ClassName, _Table._Scope.ThisScope) :
 		_Table.GetSymbol(SybID);
 
+
+
+	ClassInfo* ClassInf = nullptr;
 	if (passtype == PassType::GetTypes)
 	{
 		_Table.AddSymbolID(Syb, SybID);
 		Syb.NodePtr = (void*)&Node;
 
+
+
+		ClassInf = new ClassInfo();
+		ClassInf->FullName = Syb.FullName;
+		Syb.Info.reset(ClassInf);
+		Syb.VarType.SetType(Syb.ID);
+
+
+		
 		auto& GenericList = Node.Generic;
 		for (size_t i = 0; i < GenericList.Values.size(); i++)
 		{
@@ -183,28 +197,35 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 				_Table._Scope.GetApendedString(GenericTypeName));
 
 
-			
-			if (GenericFuncName.size())
-			{GenericFuncInfo& V2 = GenericFuncName.top();
+
+			if (IsgenericInstantiation)
+			{
+				GenericType->Type = SymbolType::Type_alias;
+
+				GenericFuncInfo& V2 = GenericFuncName.top();
 				GenericType->VarType = (*V2.GenericInput)[i];
+			}
+			else
+			{
+				GenericType->Type = SymbolType::Unmaped_Generic_Type;
+
+				GenericType->NodePtr = (void*)&Item;
+				SymbolID ID = (SymbolID)GenericType->NodePtr;
+				_Table.AddSymbolID(*GenericType, ID);
+
+				ClassInf->_Generic.push_back(ID);
 			}
 		}
 	}
-
+	else
+	{
+		ClassInf = (ClassInfo*)Syb.Info.get();
+	}
+	
+	
 	if (!Isgeneric_t)
 	{
-		ClassInfo* ClassInf = nullptr;
-		if (passtype == PassType::GetTypes)
-		{
-			ClassInf = new ClassInfo();
-			ClassInf->FullName = Syb.FullName;
-			Syb.Info.reset(ClassInf);
-			Syb.VarType.SetType(Syb.ID);
-		}
-		else
-		{
-			ClassInf = (ClassInfo*)Syb.Info.get();
-		}
+		
 		_ClassStack.push(ClassInf);
 		PushClassDependencie(ClassInf);
 
@@ -294,7 +315,7 @@ void SystematicAnalysis::OnUseingNode(const UsingNode& node)
 }
 void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 {
-	bool IsgenericInstantiation = GenericFuncName.size();
+	bool IsgenericInstantiation = GenericFuncName.size() && GenericFuncName.top().NodeTarget == &node;
 	bool IsGenericS = node.Signature.Generic.Values.size();
 
 	auto FuncName = IsgenericInstantiation ? GenericFuncName.top().GenericFuncName
@@ -318,7 +339,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 	_Table.AddScope(FuncName);
 	auto FullName = _Table._Scope.ThisScope;
-
+	
 
 	
 
@@ -352,7 +373,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			auto& Item = GenericList.Values[i];
 
 			auto GenericTypeName = Item.AsString();
-			auto GenericType = &_Table.AddSybol(SymbolType::Unmaped_Generic_Type, GenericTypeName, 
+			auto GenericType = &_Table.AddSybol(SymbolType::Type_alias, GenericTypeName, 
 				_Table._Scope.GetApendedString(GenericTypeName)
 				);
 
@@ -365,6 +386,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			}
 			else
 			{
+				GenericType->Type = SymbolType::Unmaped_Generic_Type;
+
 				GenericType->NodePtr = (void*)&Item;
 				SymbolID ID = (SymbolID)GenericType->NodePtr;
 				_Table.AddSymbolID(*GenericType,ID);	
@@ -447,6 +470,10 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	}
 	FuncInfo* Info = (FuncInfo*)syb->Info.get();
 
+
+	_FuncStack.push(Info);
+
+
 	if (passtype == PassType::FixedTypes
 		|| (IsGenericS && passtype == PassType::GetTypes))
 	{
@@ -469,6 +496,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			}
 
 			
+			PushClassDependencie(ClassInf);
+
 			UAddress ClassSize=0;
 			for (auto& Item : ClassInf->Fields)
 			{
@@ -476,6 +505,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 				GetSize(Item.Type, V);
 				ClassSize += V;
 			}
+
+			PopClassDependencie();
 
 			ClassInf->Size = ClassSize;
 			ClassInf->SizeInitialized = true;
@@ -575,6 +606,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		{
 			auto ParSybID = (SymbolID)&Item;
 			_Builder.Build_Parameter(ParSybID);
+			IRParameters.push_back(ParSybID);
 		}
 
 		bool DLLCall = false;
@@ -668,7 +700,10 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	if (buidCode && !ignoreBody)
 	{
 		_Builder.Build_Ret();
+		IRParameters.clear();
 	}
+
+	_FuncStack.pop();
 
 	_Table.RemovePopUseing(UseingIndex);
 
@@ -910,12 +945,41 @@ void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 		auto& Str = Token->Value._String;
 		Symbol* Symbol = GetSymbol(Str, SymbolType::Varable_t);
 
-		SymbolID sybId = Symbol->ID;
 
-		auto Op = IROperand::AsLocation(_LastExpressionField);
-		auto NewOp = IROperand::AsVarable(sybId);
-		_Builder.Build_Assign(NewOp, Op, MemberInfo.Offset);
-		BindTypeToLastIR(MemberInfo.Type);
+		bool BuildVarableCode = true;
+
+		if (Symbol->Type == SymbolType::Class_Field && _FuncStack.size())
+		{
+			auto& Func = _FuncStack.top();
+
+			if (auto ObjectType = Func->GetObjectForCall())
+			{
+				TypeSymbol ThisClassType;
+
+				if (!AreTheSame(*ObjectType, ThisClassType))
+				{
+
+				}
+
+
+
+
+				auto Op = IROperand::AsLocation(_LastExpressionField);
+				auto NewOp = IROperand::AsPointer(IRParameters.front());
+				_Builder.Build_Assign(NewOp, Op, MemberInfo.Offset);
+				BindTypeToLastIR(MemberInfo.Type);
+			}
+
+		}
+		
+		if (BuildVarableCode) 
+		{
+			SymbolID sybId = Symbol->ID;
+			auto Op = IROperand::AsLocation(_LastExpressionField);
+			auto NewOp = IROperand::AsVarable(sybId);
+			_Builder.Build_Assign(NewOp, Op, MemberInfo.Offset);
+			BindTypeToLastIR(MemberInfo.Type);
+		}
 	}
 }
 bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
@@ -1008,28 +1072,131 @@ void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 
 		CheckVarWritingErrors(Symbol, node.Name.ScopedName.back().token,String_view(Name));
 		LogTryReadVar(Name, node.Name.ScopedName.back().token, Symbol);
+
+
+		if (!HasPostfixOverLoadWith(Symbol->VarType,node.PostfixOp->Type))
+		{
+			LogCantFindPostfixOpForTypes(node.PostfixOp, Symbol->VarType);
+		}
+
 	}
 	if (passtype == PassType::BuidCode)
 	{
 		auto Symbol = GetSymbol(GetScopedNameAsString(node.Name), SymbolType::Varable_t);
 		SymbolID sybId = Symbol->ID;
+		auto& Type = Symbol->VarType;
+
+		
+		#define buildPortFixS(x)\
+		_Builder.Build_Assign(IROperand::AsInt##x((Int##x)1));\
+		auto V0 = IROperand::AsLocation(_Builder.GetLastField());\
+		_Builder.Build_Assign(IROperand::AsReadVarable(sybId));\
+		auto V1 = IROperand::AsLocation(_Builder.GetLastField());\
+		if (node.PostfixOp->Type == TokenType::increment)\
+		{\
+			_Builder.MakeAdd##x(V0, V1);\
+		}\
+		else\
+		{\
+			_Builder.MakeSub##x(V0, V1);\
+		}\
+
+		#define buildPortFixU(x)\
+		_Builder.Build_Assign(IROperand::AsInt##x((UInt##x)1));\
+		auto V0 = IROperand::AsLocation(_Builder.GetLastField());\
+		_Builder.Build_Assign(IROperand::AsReadVarable(sybId));\
+		auto V1 = IROperand::AsLocation(_Builder.GetLastField());\
+		if (node.PostfixOp->Type == TokenType::increment)\
+		{\
+			_Builder.MakeAdd##x(V0, V1);\
+		}\
+		else\
+		{\
+			_Builder.MakeSub##x(V0, V1);\
+		}\
 
 
-		_Builder.Build_Assign(IROperand::AsInt8((UInt8)1));
-		auto V0 = IROperand::AsLocation(_Builder.GetLastField());
-
-
-		_Builder.Build_Assign(IROperand::AsReadVarable(sybId));
-		auto V1 = IROperand::AsLocation(_Builder.GetLastField());
-
-		if (node.PostfixOp->Type == TokenType::increment) 
+		switch (Type._Type)
 		{
-			_Builder.MakeAdd8(V0, V1);
-		}
-		else
+		case TypesEnum::uInt8:
 		{
-			_Builder.MakeSub8(V0, V1);
+			buildPortFixU(8);
 		}
+		break;
+
+		case TypesEnum::uInt16:
+		{
+			buildPortFixU(16);
+		}
+		break;
+		case TypesEnum::uInt32:
+		{
+			buildPortFixU(32);
+		}
+		break;
+		case TypesEnum::uInt64:
+		{
+			buildPortFixU(64);
+		}
+		break;
+		case TypesEnum::uIntPtr:
+		{
+			Build_Assign_uIntPtr(1);
+			auto V0 = IROperand::AsLocation(_Builder.GetLastField());
+			_Builder.Build_Assign(IROperand::AsReadVarable(sybId));
+			auto V1 = IROperand::AsLocation(_Builder.GetLastField());
+			if (node.PostfixOp->Type == TokenType::increment)
+			{
+				Build_Add_uIntPtr(V0, V1);; 
+			}
+			else
+			{
+				Build_Sub_uIntPtr(V0, V1);
+			}
+		}
+
+		case TypesEnum::sInt8:
+		{
+			buildPortFixS(8);
+		}
+		break;
+		case TypesEnum::sInt16:
+		{
+			buildPortFixS(16);
+		}
+		break;
+		case TypesEnum::sInt32:
+		{
+			buildPortFixS(32);
+		}
+		break;
+		case TypesEnum::sInt64:
+		{
+			buildPortFixS(64);
+		}
+		break;
+		case TypesEnum::sIntPtr:
+		{
+			Build_Assign_sIntPtr(1);
+			auto V0 = IROperand::AsLocation(_Builder.GetLastField());
+			_Builder.Build_Assign(IROperand::AsReadVarable(sybId));
+			auto V1 = IROperand::AsLocation(_Builder.GetLastField());
+			if (node.PostfixOp->Type == TokenType::increment)
+			{
+				Build_Add_sIntPtr(V0, V1);;
+			}
+			else
+			{
+				Build_Sub_sIntPtr(V0, V1);
+			}
+		}
+		
+		default:
+			break;
+		}
+	
+
+
 		auto Op = IROperand::AsLocation(_LastExpressionField);
 		auto NewOp = IROperand::AsVarable(sybId);
 		_Builder.Build_Assign(NewOp, Op);
@@ -1037,14 +1204,27 @@ void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 }
 void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& node)
 {
+	auto Name = GetScopedNameAsString(node.VariableName);
+	auto Symbol = GetSymbol(Name, SymbolType::Varable_t);
+	if (Symbol == nullptr){return;}
+
+	LookingForTypes.push(Symbol->VarType);
+
 	OnExpressionTypeNode(node.Expession.Value.get());
-	
+
+	LookingForTypes.pop();
+
+	auto ExType = LastExpressionType;
 	if (passtype == PassType::FixedTypes)
 	{
-		auto Name = GetScopedNameAsString(node.VariableName);
-		auto Symbol = GetSymbol(Name, SymbolType::Varable_t);
+	
 		CheckVarWritingErrors(Symbol, node.VariableName.ScopedName.back().token,String_view(Name));
 		LogTryReadVar(Name, node.VariableName.ScopedName.back().token, Symbol);
+
+		if (!HasCompoundOverLoadWith(Symbol->VarType, node.CompoundOp->Type, ExType))
+		{
+			LogCantFindCompoundOpForTypes(node.CompoundOp, Symbol->VarType, ExType);
+		}
 	}
 	if (passtype == PassType::BuidCode)
 	{
@@ -1054,20 +1234,119 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 		auto V0 = IROperand::AsLocation(_Builder.GetLastField());
 		_Builder.Build_Assign(IROperand::AsReadVarable(sybId));
 		BindTypeToLastIR(Symbol->VarType);
-
 		auto V1 = IROperand::AsLocation(_Builder.GetLastField());
-		switch (node.CompoundOp->Type)
-		{
-		case TokenType::CompoundAdd:
-			_Builder.MakeAdd8(V0, V1);
+
+#define Set_CompoundU(x) \
+			switch (node.CompoundOp->Type) \
+			{ \
+			case TokenType::CompoundAdd: \
+				_Builder.MakeAdd##x(V0, V1); \
+				break; \
+			case TokenType::CompoundSub:\
+				_Builder.MakeSub##x(V0, V1); \
+				break; \
+			default:\
+				throw std::exception("Bad Op"); \
+				break; \
+			}\
+
+#define Set_CompoundS(x) \
+		switch (node.CompoundOp->Type) \
+		{ \
+		case TokenType::CompoundAdd: \
+			_Builder.MakeAdd##x(V0, V1); \
+			break; \
+		case TokenType::CompoundSub:\
+			_Builder.MakeSub##x(V0, V1); \
+			break; \
+		default:\
+			throw std::exception("Bad Op"); \
+			break; \
+		}\
+
+
+			switch (Symbol->VarType._Type)
+			{
+			case TypesEnum::uInt8:
+			{
+				Set_CompoundU(8);
+			};
 			break;
-		case TokenType::CompoundSub:
-			_Builder.MakeSub8(V0, V1);
+			case TypesEnum::uInt16:
+			{
+				Set_CompoundU(16);
+			};
 			break;
-		default:
-			throw std::exception("Bad Op");
+			case TypesEnum::uInt32:
+			{
+				Set_CompoundU(32);
+			};
 			break;
-		}
+			case TypesEnum::uInt64:
+			{
+				Set_CompoundU(64);
+			};
+			break;
+
+			case TypesEnum::sInt8:
+			{
+				Set_CompoundS(8);
+			};
+			break;
+			case TypesEnum::sInt16:
+			{
+				Set_CompoundS(16);
+			};
+			break;
+			case TypesEnum::sInt32:
+			{
+				Set_CompoundS(32);
+			};
+			break;
+			case TypesEnum::sInt64:
+			{
+				Set_CompoundS(64);
+			};
+			break;
+
+			case TypesEnum::uIntPtr:
+			{
+				switch (node.CompoundOp->Type)
+				{
+				case TokenType::CompoundAdd:
+					Build_Add_uIntPtr(V0, V1);
+					break;
+				case TokenType::CompoundSub:
+					Build_Sub_uIntPtr(V0, V1);
+					break;
+				}
+			};
+			break;
+
+			case TypesEnum::sIntPtr:
+			{
+				switch (node.CompoundOp->Type)
+				{
+				case TokenType::CompoundAdd:
+					Build_Add_sIntPtr(V0, V1);
+					break;
+				case TokenType::CompoundSub:
+					Build_Sub_sIntPtr(V0, V1);
+					break;
+				}
+			};
+			break;
+
+
+
+			break;
+
+			default:
+				throw std::exception("Bad Op");
+				break;
+			}
+
+
 		auto Op = IROperand::AsLocation(_LastExpressionField);
 		auto NewOp = IROperand::AsVarable(sybId);
 		_Builder.Build_Assign(NewOp, Op);
@@ -1503,8 +1782,8 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 	if (passtype == PassType::FixedTypes)
 	{
 		auto BinaryOp = node.BinaryOp;
-		bool V = HasBinaryOverLoadWith(Ex0Type, BinaryOp->Type, Ex1Type);
-		if (!V)
+	
+		if (!HasBinaryOverLoadWith(Ex0Type, BinaryOp->Type, Ex1Type))
 		{
 			LogCantFindBinaryOpForTypes(BinaryOp, Ex0Type, Ex1Type);
 		}
@@ -1779,6 +2058,35 @@ bool SystematicAnalysis::AreTheSameWithOutimmutable(const TypeSymbol& TypeA, con
 }
 bool SystematicAnalysis::HasBinaryOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB)
 {
+
+	if (AreTheSame(TypeA, TypeB))
+	{	
+		if (IsIntType(TypeA))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+bool SystematicAnalysis::HasCompoundOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB)
+{
+	if (AreTheSame(TypeA, TypeB))
+	{
+		if (IsIntType(TypeA))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+bool SystematicAnalysis::HasPostfixOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp)
+{
+
+	if (IsIntType(TypeA))
+	{
+		return true;
+	}
+
 	return false;
 }
 String SystematicAnalysis::ToString(const TypeSymbol& Type)
@@ -1921,17 +2229,33 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 		{
 			SybV = GetSymbol(Name, SymbolType::Generic_class);
 
-			const auto& Tnode = V.Generic.Values[0];
-			TypeSymbol Type; Convert(Tnode, Type);
+			ClassInfo* CInfo = (ClassInfo*)SybV->Info.get();
 
-			auto TypeToSwap = GetSymbol((String)Name + ScopeHelper::_ScopeSep + "T", SymbolType::Type)->VarType;
+			if (CInfo->_Generic.size() != V.Generic.Values.size())
+			{
+				LogCanIncorrectGenericCount(V.Name.Token, Name, V.Generic.Values.size(), CInfo->_Generic.size());
+				return;
+			}
 
-			auto TypesToChange =std::make_unique<Vector<TypeSymbol>>();//Symbol ID is from Ptr
-			auto TypeToHave = std::make_unique<Vector<TypeSymbol>>();
-			TypesToChange->push_back(TypeToSwap);
-			TypeToHave->push_back(Type);
+			
+			auto GenericInput = std::make_unique<Vector<TypeSymbol>>();//pointer must be unique so it cant be on the stack
+			for (size_t i = 0; i < CInfo->_Generic.size(); i++)
+			{
+				const auto& Tnode = V.Generic.Values[i];
+				TypeSymbol Type; 
+				Convert(Tnode, Type);
+				
+				GenericInput->push_back(Type);
+			}
+			
+			String NewName = GetGenericFuncName(SybV, *GenericInput);
+			auto FuncIsMade = GetSymbol(NewName, SymbolType::Func);
+			if (!FuncIsMade)
+			{
+				GenericTypeInstantiate(SybV, *GenericInput);
 
-			GenericTypeInstantiate(SybV, *TypeToHave);
+				TepFuncs.push_back({std::move(GenericInput)});
+			}
 
 		}
 		else
@@ -2177,6 +2501,11 @@ void SystematicAnalysis::DoFuncCall(const FuncInfo* Func, const ScopedNameNode& 
 		}\
 
 		auto ScopedName = GetScopedNameAsString(Name);
+		auto SymbolsV = GetSymbol(ScopedName, SymbolType::Any);
+		if (SymbolsV->Type == SymbolType::Type_alias)
+		{
+			ScopedName = ToString(SymbolsV->VarType);
+		}
 
 		PrimitiveTypeCall(Uint8TypeName, TypesEnum::uInt8, _Builder.Build_Assign(IROperand::AsInt8((UInt8)0));)
 		else PrimitiveTypeCall(Uint16TypeName, TypesEnum::uInt16, _Builder.Build_Assign(IROperand::AsInt16((UInt16)0)))
@@ -2219,9 +2548,14 @@ void SystematicAnalysis::DoFuncCall(const FuncInfo* Func, const ScopedNameNode& 
 FuncInfo* SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGenericsNode& Generics, const ValueParametersNode& Pars, TypeSymbol Ret)
 {
 	auto ScopedName = GetScopedNameAsString(Name);
-	
+	LastLookedAtToken = Name.ScopedName.back().token;
 	{
-		
+
+		auto SymbolsV = GetSymbol(ScopedName, SymbolType::Any);
+		if (SymbolsV->Type == SymbolType::Type_alias)
+		{
+			ScopedName = ToString(SymbolsV->VarType);
+		}
 	
 		if (ScopedName == Uint8TypeName) 
 		{
@@ -2266,13 +2600,21 @@ FuncInfo* SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGener
 
 	Vector<TypeSymbol> ValueTypes;
 	ValueTypes.resize(Pars._Nodes.size());
+
+	TypeSymbol NullSymbol;
+	NullSymbol.SetType(TypesEnum::Any);
+
 	for (size_t i = 0; i < Pars._Nodes.size(); i++)
 	{
 		auto& Item = Pars._Nodes[i];
 		auto& ValueItem = ValueTypes[i];
 
+		LookingForTypes.push(NullSymbol);
+
 		OnExpressionTypeNode(Item.get());
 		ValueItem = LastExpressionType;
+
+		LookingForTypes.pop();
 	}
 	for (auto& Item : Symbols)
 	{
@@ -2415,15 +2757,33 @@ FuncInfo* SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGener
 	}
 	return r;
 }
+String SystematicAnalysis::GetGenericFuncName(Symbol* Func, const Vector<TypeSymbol>& Type)
+{
+	String NewName = Func->FullName + "<";
+	for (auto& Item : Type)
+	{
+		NewName += ToString(Item);
+		if (&Type.back() != &Item)
+		{
+			NewName += ",";
+		}
+	}
+	NewName += ">";
+	return NewName;
+}
 void SystematicAnalysis::GenericFuncInstantiate(Symbol* Func, const Vector<TypeSymbol>& GenericInput)
 {
 	String NewName = GetGenericFuncName(Func, GenericInput);
+	
+	FuncNode& FuncBase = *(FuncNode*)Func->NodePtr;
+
 	GenericFuncInfo Info;
 	Info.GenericFuncName = NewName;
 	Info.GenericInput = &GenericInput;
+	Info.NodeTarget = Func->NodePtr;
 	GenericFuncName.push(Info);
 
-	FuncNode& FuncBase = *(FuncNode*)Func->NodePtr;
+	
 
 	auto OldPass = passtype;
 	auto OldScope = _Table._Scope.ThisScope;
@@ -2451,49 +2811,42 @@ void SystematicAnalysis::GenericFuncInstantiate(Symbol* Func, const Vector<TypeS
 	_Table._Scope.ThisScope = OldScope;
 	passtype = OldPass;
 }
-String SystematicAnalysis::GetGenericFuncName(Symbol* Func, const Vector<TypeSymbol>& Type)
-{
-	String NewName = Func->FullName + "<";
-	for (auto& Item : Type)
-	{
-		NewName += ToString(Item);
-		if (&Type.back() != &Item)
-		{
-			NewName += ",";
-		}
-	}
-	NewName += ">";
-	return NewName;
-}
 void SystematicAnalysis::GenericTypeInstantiate(Symbol* Class, const Vector<TypeSymbol>& Type)
 {
 	String NewName = GetGenericFuncName(Class, Type);
-
+	const ClassNode* node = (const ClassNode*)Class->NodePtr;
 
 	GenericFuncInfo Info;
 	Info.GenericFuncName = NewName;
 	Info.GenericInput = &Type;
+	Info.NodeTarget = Class->NodePtr;
 	GenericFuncName.push(Info);
 
 
 	auto OldScope = _Table._Scope.ThisScope;
+	auto Oldpasstype = passtype;
 	_Table._Scope.ThisScope.clear();
 
-	const ClassNode* node = (const ClassNode*)Class->NodePtr;
+	
+
+
 	passtype = PassType::GetTypes;
 	OnClassNode(*node);
-	passtype = PassType::FixedTypes;
-	OnClassNode(*node);
+
+	if (!_ErrorsOutput->Has_Errors()) {
+		passtype = PassType::FixedTypes;
+		OnClassNode(*node);
+	}
 
 	if (!_ErrorsOutput->Has_Errors()) {
 		passtype = PassType::BuidCode;
 		OnClassNode(*node);
 	}
-	passtype = PassType::FixedTypes;
 
 	GenericFuncName.pop();
 	//
 	_Table._Scope.ThisScope = OldScope;
+	passtype = Oldpasstype;
 }
 
 void SystematicAnalysis::CheckVarWritingErrors(Symbol* Symbol, const Token* Token, String_view& Name)
@@ -2533,11 +2886,26 @@ void SystematicAnalysis::LogCantFindVarMemberError(const Token* Token, String_vi
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Cant find Member Named '" + (String)Str + "' on type '" + ToString(OnType) +"'");
 }
-void SystematicAnalysis::LogCantFindBinaryOpForTypes(const Token* BinaryOp, TypeSymbol& Ex0Type, TypeSymbol& Ex1Type)
+
+void SystematicAnalysis::LogCantFindCompoundOpForTypes(const Token* BinaryOp, TypeSymbol& Ex0Type, TypeSymbol& Ex1Type)
 {
 	_ErrorsOutput->AddError(ErrorCodes::InValidType, BinaryOp->OnLine, BinaryOp->OnPos,
 		"The type '" + ToString(Ex0Type) + "'" + " cant be '"
-		+ ToString(BinaryOp->Type) + "' with '" + ToString(Ex1Type) + "'");
+		+ ToString(BinaryOp->Type) + "' with '" + ToString(Ex0Type) + "'");
+}
+
+void SystematicAnalysis::LogCantFindPostfixOpForTypes(const Token* BinaryOp, TypeSymbol& Ex0Type)
+{
+		_ErrorsOutput->AddError(ErrorCodes::InValidType, BinaryOp->OnLine, BinaryOp->OnPos,
+			"The type '" + ToString(Ex0Type) + "'" + " cant be '"
+			+ ToString(BinaryOp->Type) + "'");
+}
+void SystematicAnalysis::LogCantFindBinaryOpForTypes(const Token* BinaryOp, TypeSymbol& Ex0Type, TypeSymbol& Ex1Type)
+{
+	
+	_ErrorsOutput->AddError(ErrorCodes::InValidType, BinaryOp->OnLine, BinaryOp->OnPos,
+		"The type '" + ToString(Ex0Type) + "'" + " cant be '"
+		+ ToString(BinaryOp->Type) + "' with '" + ToString(Ex0Type) + "'");
 }
 void SystematicAnalysis::ExpressionMustbeAnLocationValueError(const Token* Token, TypeSymbol& Ex0Type)
 {
@@ -2686,6 +3054,22 @@ void SystematicAnalysis::LogCanIncorrectParCount(const Token* Token, String_view
 	else
 	{
 		Msg = "too little parameters for function '" + (String)FuncName + "'";
+	}
+
+	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+		, Msg);
+}
+void SystematicAnalysis::LogCanIncorrectGenericCount(const Token* Token, String_view FuncName, size_t Count, size_t FuncCount)
+{
+	String Msg;
+
+	if (Count > FuncCount)
+	{
+		Msg = "Too Many Generic types for instantiation'" + (String)FuncName + "'";
+	}
+	else
+	{
+		Msg = "too little Generic types for instantiation'" + (String)FuncName + "'";
 	}
 
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos

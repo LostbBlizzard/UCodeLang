@@ -466,6 +466,14 @@ void UCodeBackEndObject::StoreVar(const IRCode& IR, const RegisterID R)
 			
 			StackSize += Symbol.Size;
 		}
+		else if (Symbol.Type == SymbolType::Class_Field)
+		{
+			SymbolToData[VarSymbolID] = {};
+
+			Data = &SymbolToData[VarSymbolID];
+			Data->Type = BuildData_t::ThisObjectWithOffset;
+			Data->offset = IR.Operand1.AnyValue.AsAddress;
+		}
 		else
 		{
 			throw std::exception("not added");
@@ -489,6 +497,12 @@ void UCodeBackEndObject::StoreVar(const IRCode& IR, const RegisterID R)
 		{
 			BuildSybolIntSizeIns(VarType, StoreRegToReg, (_Ins, R, R2));
 		}
+	}
+	else if (Data->Type == BuildData_t::ThisObjectWithOffset)
+	{
+		int q = 0;
+
+
 	}
 	else
 	{

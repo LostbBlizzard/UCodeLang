@@ -56,6 +56,7 @@ private:
 	const Vector<const UClib*>* _Libs = nullptr;
 	SymbolTable _Table;
 	Stack<ClassInfo*> _ClassStack;
+	Stack<FuncInfo*> _FuncStack;
 	Vector<const AttributeNode*> _TepAttributes;
 	bool _InStatements = false;
 	//
@@ -63,6 +64,11 @@ private:
 	IRSeg _LastExpression;
 	IRField _LastExpressionField =0;
 	//
+
+	Vector<SymbolID> IRParameters;
+
+
+
 	Stack<TypeSymbol> LookingForTypes;
 	TypeSymbol LastExpressionType;
 	TypeSymbol& Get_LookingForType()
@@ -154,8 +160,10 @@ private:
 
 	bool AreTheSame(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
 	bool AreTheSameWithOutimmutable(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
-	bool HasBinaryOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
 
+	bool HasBinaryOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
+	bool HasCompoundOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
+	bool HasPostfixOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp);
 
 
 	String ToString(const TypeSymbol& Type);
@@ -199,6 +207,7 @@ private:
 	{
 		String GenericFuncName;
 		const Vector<TypeSymbol>* GenericInput = nullptr;
+		void* NodeTarget = nullptr;
 	};
 
 	Stack<GenericFuncInfo> GenericFuncName;
@@ -244,6 +253,7 @@ private:
 	{
 		_Builder.Build_Assign(IROperand::AsInt64(Value));
 	}
+	
 	void Build_Add_uIntPtr(IROperand field, IROperand field2)
 	{
 		_Builder.MakeAdd64(field, field2);
@@ -252,6 +262,17 @@ private:
 	{
 		_Builder.MakeSub64(field, field2);
 	}
+	
+	void Build_Add_sIntPtr(IROperand field, IROperand field2)
+	{
+		_Builder.MakeAdd64(field, field2);
+	}
+	void Build_Sub_sIntPtr(IROperand field, IROperand field2)
+	{
+		_Builder.MakeSub64(field, field2);
+	}
+	
+	
 	void Build_Mult_uIntPtr(IROperand field, IROperand field2)
 	{
 		_Builder.MakeUMult64(field, field2);
@@ -276,8 +297,13 @@ private:
 		_Builder.Build_Decrement64(Value);
 	}
 	
+
 	//Errors
+
+	void LogCantFindCompoundOpForTypes(const Token* BinaryOp, TypeSymbol& Ex0Type, TypeSymbol& Ex1Type);
+	void LogCantFindPostfixOpForTypes(const Token* BinaryOp, TypeSymbol& Ex0Type);
 	void LogCantFindBinaryOpForTypes(const Token* BinaryOp, TypeSymbol& Ex0Type, TypeSymbol& Ex1Type);
+
 	void ExpressionMustbeAnLocationValueError(const Token* Token, TypeSymbol& Ex0Type);
 	void YouMustReturnSomethingError(const Token* Token);
 	void CantguessVarTypeError(const Token* Token);
@@ -293,6 +319,7 @@ private:
 	void LogCantUseThisHere(const Token* Token);
 
 	void LogCanIncorrectParCount(const Token* Token, String_view FuncName, size_t Count, size_t FuncCount);
+	void LogCanIncorrectGenericCount(const Token* Token, String_view FuncName, size_t Count, size_t FuncCount);
 	
 	void LogCantFindFuncError(const Token* Token, String_view FuncName,
 		const Vector<TypeSymbol>& Generics,
