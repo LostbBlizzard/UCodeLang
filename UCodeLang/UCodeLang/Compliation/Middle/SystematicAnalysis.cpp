@@ -1347,36 +1347,36 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(AnonymousObjectConstructor
 	auto& Type = Get_LookingForType();
 	if (Type.IsnotAn(TypesEnum::Var))//function who called this can deal with var
 	{
-		auto Func = GetFunc(Type, nod->Fields);
+		
 
 		if (passtype == PassType::FixedTypes)
 		{
-			FuncToSyboID[&nod] = Func;
+			auto Func = GetFunc(Type, nod->Fields);
+			FuncToSyboID[nod] = Func;
 		}
 		else if (passtype == PassType::BuidCode)
 		{
-			auto SybID = FuncToSyboID.at(&nod);
+			auto Func = FuncToSyboID.at(nod);
 
 
-			{
-
-				String B = ToString(Type);
-				Token T;
-				T.Type = TokenType::Name;
-				T.Value._String = B;
 
 
-				ScopedNameNode Tep;
-				ScopedName V;
-				V.token = &T;
+			String B = ToString(Type);
+			Token T;
+			T.Type = TokenType::Name;
+			T.Value._String = B;
 
-				Tep.ScopedName.push_back(std::move(V));
 
-				DoFuncCall(Func, Tep, nod->Fields);
+			ScopedNameNode Tep;
+			ScopedName V;
+			V.token = &T;
 
-			}
+			Tep.ScopedName.push_back(std::move(V));
+
+			DoFuncCall(Func, Tep, nod->Fields);
+
+
 		}
-
 	}
 
 	LastExpressionType = Type;
@@ -2103,33 +2103,42 @@ FuncInfo* SystematicAnalysis::GetFunc(const TypeSymbol& Name, const ValueParamet
 }
 void SystematicAnalysis::DoFuncCall(const FuncInfo* Func, const ScopedNameNode& Name, const ValueParametersNode& Pars)
 {
-
 	{
+#define PrimitiveTypeCall(FullName,TypeEnum,DefaultValue) if (ScopedName == FullName) \
+		{\
+			TypeSymbol iNfo;\
+			iNfo.SetType(TypeEnum);\
+			if (Pars._Nodes.size())\
+			{\
+				LookingForTypes.push(iNfo);\
+				auto& Item = Pars._Nodes[0];\
+				OnExpressionTypeNode(Item.get());\
+				DoImplicitConversion(IROperand::AsLocation(_Builder.GetLastField()), LastExpressionType, iNfo);\
+				LookingForTypes.pop();\
+			}\
+			else\
+			{\
+				LastExpressionType = iNfo;\
+				DefaultValue;\
+			}\
+			return;\
+		}\
+
 		auto ScopedName = GetScopedNameAsString(Name);
 
-		if (ScopedName == Uint8TypeName) 
-		{ 
-			if (Pars._Nodes.size())
-			{
-				TypeSymbol iNfo;
-				iNfo.SetType(TypesEnum::uInt8);
-				
-				LookingForTypes.push(iNfo);
-				
-				auto& Item = Pars._Nodes[0];
-				OnExpressionTypeNode(Item.get());
-				DoImplicitConversion(IROperand::AsLocation(_Builder.GetLastField()), LastExpressionType, iNfo);
-			
-				LookingForTypes.pop();
-			}
-			else
-			{
-				_Builder.Build_Assign(IROperand::AsInt8((UInt8)0),0);
-			}
-			return;
-		}
-	}
+		PrimitiveTypeCall(Uint8TypeName, TypesEnum::uInt8, _Builder.Build_Assign(IROperand::AsInt8((UInt8)0));)
+		else PrimitiveTypeCall(Uint16TypeName, TypesEnum::uInt16, _Builder.Build_Assign(IROperand::AsInt16((UInt16)0)))
+		else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _Builder.Build_Assign(IROperand::AsInt32((UInt32)0)))
+		else PrimitiveTypeCall(Uint16TypeName, TypesEnum::uInt64, _Builder.Build_Assign(IROperand::AsInt64((UInt64)0)))
 
+		else PrimitiveTypeCall(Sint8TypeName, TypesEnum::sInt8, _Builder.Build_Assign(IROperand::AsInt8((Int8)0));)
+		else PrimitiveTypeCall(Sint16TypeName, TypesEnum::sInt16, _Builder.Build_Assign(IROperand::AsInt16((Int16)0)))
+		else PrimitiveTypeCall(Sint32TypeName, TypesEnum::sInt32, _Builder.Build_Assign(IROperand::AsInt32((Int32)0)))
+		else PrimitiveTypeCall(Sint16TypeName, TypesEnum::sInt64, _Builder.Build_Assign(IROperand::AsInt64((Int64)0)))
+
+		else PrimitiveTypeCall(boolTypeName, TypesEnum::Bool, _Builder.Build_Assign(IROperand::AsInt8((UInt8)false));)
+		else PrimitiveTypeCall(CharTypeName, TypesEnum::Char, _Builder.Build_Assign(IROperand::AsInt8((UInt8)'\0')))
+	}
 	if (Func == nullptr)
 	{
 		return;
@@ -2184,7 +2193,15 @@ FuncInfo* SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGener
 			ScopedName == SintPtrTypeName ||
 			ScopedName == UintPtrTypeName ||
 			ScopedName == boolTypeName ||
-			ScopedName == CharTypeName) {return nullptr;}
+			ScopedName == CharTypeName)
+		{
+			
+			if (Pars._Nodes.size() > 1)
+			{
+				LogCanIncorrectParCount(Name.ScopedName.back().token, ScopedName, Pars._Nodes.size(), 1);
+			}
+			return nullptr;
+		}
 	}
 	
 	auto& Symbols = _Table.GetSymbolsWithName(ScopedName, SymbolType::Any);

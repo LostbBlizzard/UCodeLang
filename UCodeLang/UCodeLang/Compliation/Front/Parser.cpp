@@ -587,6 +587,7 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 		out = r.Node;
 		return r.GotNode;
 	}
+	TokenType_Name:
 	case TokenType::Name:
 	{
 		size_t OldIndex = _TokenIndex;
@@ -649,9 +650,16 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 	}
 	break;
 	default:
-		#if CompliationTypeSafety
-		throw std::exception("Cant UnWap BuildStatement");
-		#endif
+
+		if (TypeNode::IsType(StatementTypeToken->Type))
+		{
+			goto TokenType_Name;
+		}
+		else 
+		{
+			TokenTypeCheck(StatementTypeToken, TokenType::Name);
+		}
+
 		return GotNodeType::failed;
 		break;
 	}
@@ -861,7 +869,10 @@ GotNodeType Parser::GetName(ScopedNameNode& out)
 		ScopedName V;
 		auto NameToken = TryGetToken();
 
-		TokenTypeCheck(NameToken, TokenType::Name);
+		if (!TypeNode::IsType(NameToken->Type)) 
+		{
+			TokenTypeCheck(NameToken, TokenType::Name);
+		}
 
 		V.token = NameToken;
 
