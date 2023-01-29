@@ -41,6 +41,8 @@ enum class IROperator : UInt8
 	Func_Parameter,
 	DLLJump,
 	PassParameter,
+	IfFalseJump,
+	Jump,
 };
 
 enum class IRFieldInfoType : UInt8
@@ -318,6 +320,36 @@ public:
 		V.Operand0 = field;
 	}
 
+	void Build_IfFalseJump(IROperand Boolfield,IRField JumpToLoc)
+	{
+		auto& V = Code.emplace_back();
+		V.Operator = IROperator::IfFalseJump;
+		V.Operand0 = IROperand::AsLocation(JumpToLoc);
+		V.Operand1 = Boolfield;
+	}
+	
+	void Update_IfFalseJump(IRCode& V, IROperand Boolfield, IRField JumpToLoc)
+	{
+		V.Operator = IROperator::IfFalseJump;
+		V.Operand0 = IROperand::AsLocation(JumpToLoc);
+		V.Operand1 = Boolfield;
+	}
+
+	void Build_Jump(IRField JumpToLoc)
+	{
+		auto& V = Code.emplace_back();
+		V.Operator = IROperator::Jump;
+		V.Operand0 = IROperand::AsLocation(JumpToLoc);
+	}
+
+	void Update_Jump(IRCode& V, IRField JumpToLoc)
+	{
+		V.Operator = IROperator::Jump;
+		V.Operand0 = IROperand::AsLocation(JumpToLoc);
+	}
+
+
+
 	void Build_Ret()
 	{
 		auto& V = Code.emplace_back();
@@ -348,6 +380,10 @@ public:
 	IRField GetLastField()
 	{
 		return Code.size() - 1;
+	}
+	IRField GetNextField()
+	{
+		return GetLastField() + 1;
 	}
 	inline auto& Get_Code()
 	{
