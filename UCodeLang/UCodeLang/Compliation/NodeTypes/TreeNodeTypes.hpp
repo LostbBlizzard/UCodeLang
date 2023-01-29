@@ -665,6 +665,19 @@ struct WhileNode :Node
 	StatementsNode Body;
 };
 
+struct DoNode :Node
+{
+	DoNode() : Node(NodeType::DoNode)
+	{
+
+	}
+	AddforNode(DoNode);
+
+	
+	StatementsNode Body;
+	ExpressionNodeType Expression;
+};
+
 struct PostfixVariableNode :Node
 {
 	PostfixVariableNode() : Node(NodeType::PostfixVariableNode)

@@ -725,6 +725,7 @@ void SystematicAnalysis::OnStatement(const Unique_ptr<UCodeLang::Node>& node2)
 	case NodeType::DropStatementNode:OnDropStatementNode(*DropStatementNode::As(node2.get())); break;
 	case NodeType::IfNode:OnIfNode(*IfNode::As(node2.get())); break;
 	case NodeType::WhileNode:OnWhileNode(*WhileNode::As(node2.get())); break;
+	case NodeType::DoNode:OnDoNode(*DoNode::As(node2.get())); break;
 	case NodeType::RetStatementNode:OnRetStatement(*RetStatementNode::As(node2.get())); break;
 	default:break;
 	}
@@ -1140,6 +1141,60 @@ void SystematicAnalysis::OnWhileNode(const WhileNode& node)
 	}
 
 	_Table.RemoveScope();
+}
+void SystematicAnalysis::OnDoNode(const DoNode& node)
+{
+
+	String ScopeName = std::to_string((size_t)&node);
+	_Table.AddScope(ScopeName);
+
+
+	IRField StartIndex;
+	if (passtype == PassType::BuidCode)
+	{
+		StartIndex = _Builder.GetNextField();
+	}
+
+
+	for (const auto& node2 : node.Body._Nodes)
+	{
+		OnStatement(node2);
+	}
+
+	_Table.RemoveScope();
+
+	TypeSymbol BoolType;
+	BoolType.SetType(TypesEnum::Bool);
+	LookingForTypes.push(BoolType);
+
+	OnExpressionTypeNode(node.Expression.Value.get());
+
+	if (passtype == PassType::FixedTypes)
+	{
+		if (!CanBeImplicitConverted(LastExpressionType, BoolType))
+		{
+			auto  Token = LastLookedAtToken;
+			LogCantCastImplicitTypes(Token, LastExpressionType, BoolType);
+		}
+	}
+
+
+	IROperand BoolCode;
+	if (passtype == PassType::BuidCode)
+	{
+		DoImplicitConversion(IROperand::AsLocation(_Builder.GetLastField()), LastExpressionType, BoolType);
+
+		BoolCode = IROperand::AsLocation(_Builder.GetLastField());
+
+		_Builder.Build_IfFalseJump(BoolCode, _Builder.GetNextField() + 2);//???
+		_Builder.Build_Jump(StartIndex);
+	}
+
+
+
+
+	LookingForTypes.pop();
+
 }
 bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
 {

@@ -90,7 +90,9 @@ int main()
 		
 		RunTime.Init(&State);
 	
-		auto r =RunTime.retCall<int>("main",false);
+	
+
+		auto r =RunTime.retCall<int>("main",true);
  		
 		
 
