@@ -305,7 +305,7 @@ GotNodeType Parser::GetStatement(Node*& out)
 		return r.GotNode;
 	}
 	break;
-	case Parser::IfToken:
+	case  TokenType::KeyWorld_If:
 	{
 		auto r = GetIfNode();
 		out = r.Node;
@@ -1289,18 +1289,10 @@ GotNodeType Parser::GetAssignVariable(AssignVariableNode& out)
 GotNodeType Parser::GetIfNode(IfNode& out)
 {
 	auto RetToken = TryGetToken();
-	TokenTypeCheck(RetToken, Parser::IfToken);
-	NextToken();
-
-	auto Token = TryGetToken();
-	TokenTypeCheck(Token, Parser::declareFuncParsStart);
+	TokenTypeCheck(RetToken, TokenType::KeyWorld_If);
 	NextToken();
 
 	auto GetEx = GetExpressionTypeNode(out.Expression);
-	
-	auto Token2 = TryGetToken();
-	TokenTypeCheck(Token2, Parser::declareFuncParsEnd);
-	NextToken();
 
 	auto Token3 = TryGetToken();
 	TokenTypeCheck(Token3, TokenType::Colon);
@@ -1313,17 +1305,42 @@ GotNodeType Parser::GetIfNode(IfNode& out)
 	{
 		auto T = TryGetToken();
 	
-		if (T->Type != Parser::ElseToken){break;}
-		TokenTypeCheck(RetToken, Parser::ElseToken);
+		if (T->Type != TokenType::KeyWorld_Else){break;}
+		
 		NextToken();
-
 		auto T2 = TryGetToken();
-		if (T2->Type == Parser::declareFuncParsStart)
-		{
+	
+		if (T2->Type == TokenType::KeyWorld_If)
+		{//else if
 
+			NextToken();
+
+			auto elseifNode = std::make_unique<IfElseNode>();
+
+			auto GetEx = GetExpressionTypeNode(elseifNode->Expression);
+			
+			auto ColonToken = TryGetToken();
+			TokenTypeCheck(ColonToken, TokenType::Colon);
+			NextToken();
+			
+			auto Statements = GetStatementsorStatementNode(elseifNode->Body);
+
+			out._Nodes.push_back(std::move(elseifNode));
 		}
-		TokenTypeCheck(Token, Parser::declareFuncParsStart);
-		NextToken();
+		else
+		{//else
+			
+			auto elseNode = std::make_unique<ElseNode>();
+
+			auto ColonToken = TryGetToken();
+			TokenTypeCheck(ColonToken, TokenType::Colon);
+			NextToken();
+
+			auto Statements = GetStatementsorStatementNode(elseNode->Body);
+
+			out._Nodes.push_back(std::move(elseNode));
+			break;
+		}
 
 	}
 

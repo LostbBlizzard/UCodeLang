@@ -635,7 +635,7 @@ struct IfNode :Node
 	{
 
 	}
-	AddforNode(IfNode);
+	AddforNodeAndWithList(IfNode);
 
 	ExpressionNodeType Expression;
 	StatementsNode Body;
@@ -647,6 +647,17 @@ struct ElseNode :Node
 
 	}
 	AddforNode(ElseNode);
+
+	
+	StatementsNode Body;
+};
+struct IfElseNode :Node
+{
+	IfElseNode() : Node(NodeType::IfElseNode)
+	{
+
+	}
+	AddforNode(IfElseNode);
 
 	ExpressionNodeType Expression;
 	StatementsNode Body;

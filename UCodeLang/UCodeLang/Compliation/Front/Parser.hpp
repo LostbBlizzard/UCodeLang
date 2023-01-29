@@ -28,8 +28,7 @@ public:
 	static constexpr TokenType SizeofStart = TokenType::Left_Parentheses;
 	static constexpr TokenType SizeofEnd = TokenType::Right_Parentheses;
 	
-	static constexpr TokenType IfToken = TokenType::bitwise_not;
-	static constexpr TokenType ElseToken = TokenType::bitwise_XOr;
+	
 
 	Parser(){}
 	~Parser(){}
@@ -114,7 +113,7 @@ private:
 		case TokenType::StartTab:return true;
 		case TokenType::KeyWorld_use:return true;
 		case TokenType::Class:return true;
-		case Parser::IfToken:return true;
+		case TokenType::KeyWorld_If:return true;
 		case TokenType::Left_Bracket:return true;
 		default:return false;
 		}

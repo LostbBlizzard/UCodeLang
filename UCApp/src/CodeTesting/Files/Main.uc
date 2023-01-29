@@ -1,19 +1,12 @@
 
 
-
-
-
-$Test<T>:
- |Add[]:
-  T a = 0;
-  a *= 5;
-
-$IntTest = Test<int>;
-$ptrTest = Test<uintptr>;
-$ptrTest = Test<sintptr>;
-$ptrTest = Test<uint8>;
-$ptrTest = Test<int8>;
-
-|main[];
+|main[]:
  
+
+ if true:
+  a = 0;
+ else if true:
+  a = 1;
+ else:
+  a = 2;
 
