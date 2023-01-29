@@ -84,6 +84,8 @@ enum class TokenType : TokenType_t
 	KeyWorld_static,// static
 	KeyWorld_Thread,// thread
 
+	KeyWorld_If,
+	KeyWorld_Else,
 
 
 	KeyWorld_pub,//pub
