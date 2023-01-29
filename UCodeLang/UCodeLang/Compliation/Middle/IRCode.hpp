@@ -234,8 +234,7 @@ public:
 	
 	void MakeOperand( IROperand field, IROperand field2, IROperator Op)
 	{
-		Code.push_back({});
-		auto& V = Code.back();
+		auto& V = Code.emplace_back();
 		V.Result =IROperand::AsLocation(GetLastField());
 		V.Operand0 = field;
 		V.Operand1 = field2;

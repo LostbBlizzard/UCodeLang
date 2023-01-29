@@ -6,10 +6,11 @@
 $Test<T>:
  |Add[]:
   T a = 0;
-  a += 5;
+  a *= 5;
 
 $IntTest = Test<int>;
 $ptrTest = Test<uintptr>;
+$ptrTest = Test<sintptr>;
 $ptrTest = Test<uint8>;
 $ptrTest = Test<int8>;
 

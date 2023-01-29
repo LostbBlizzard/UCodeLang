@@ -1166,7 +1166,7 @@ void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 				Build_Sub_uIntPtr(V0, V1);
 			}
 		}
-
+		break;
 		case TypesEnum::sInt8:
 		{
 			buildPortFixS(8);
@@ -1243,13 +1243,16 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 	{
 		auto Symbol = GetSymbol(GetScopedNameAsString(node.VariableName), SymbolType::Varable_t);
 		SymbolID sybId = Symbol->ID;
+		auto& Type = Symbol->VarType;
 
 		auto V0 = IROperand::AsLocation(_Builder.GetLastField());
 		_Builder.Build_Assign(IROperand::AsReadVarable(sybId));
-		BindTypeToLastIR(Symbol->VarType);
+		BindTypeToLastIR(Type);
 
 		auto V1 = IROperand::AsLocation(_Builder.GetLastField());
-		BindTypeToLastIR(Symbol->VarType);
+		BindTypeToLastIR(Type);
+
+		
 
 #define Set_CompoundU(x) \
 			switch (node.CompoundOp->Type) \
@@ -1260,6 +1263,12 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 			case TokenType::CompoundSub:\
 				_Builder.MakeSub##x(V0, V1); \
 				break; \
+			case TokenType::CompoundMult:\
+				_Builder.MakeUMult##x(V0, V1);\
+			    break; \
+			case TokenType::CompoundDiv:\
+				_Builder.MakeUDiv##x(V0, V1);\
+			    break; \
 			default:\
 				throw std::exception("Bad Op"); \
 				break; \
@@ -1274,13 +1283,19 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 		case TokenType::CompoundSub:\
 			_Builder.MakeSub##x(V0, V1); \
 			break; \
+		case TokenType::CompoundMult:\
+			_Builder.MakeSMult##x(V0, V1);\
+			break; \
+			case TokenType::CompoundDiv:\
+			_Builder.MakeSDiv##x(V0, V1);\
+			break; \
 		default:\
 			throw std::exception("Bad Op"); \
 			break; \
 		}\
 
 
-			switch (Symbol->VarType._Type)
+			switch (Type._Type)
 			{
 			case TypesEnum::uInt8:
 			{
@@ -1334,6 +1349,12 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 				case TokenType::CompoundSub:
 					Build_Sub_uIntPtr(V0, V1);
 					break;
+				case TokenType::CompoundMult:
+					Build_Mult_uIntPtr(V0, V1);
+					break;
+				case TokenType::CompoundDiv:
+					Build_Div_uIntPtr(V0, V1);
+					break;
 				}
 			};
 			break;
@@ -1347,6 +1368,12 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 					break;
 				case TokenType::CompoundSub:
 					Build_Sub_sIntPtr(V0, V1);
+					break;
+				case TokenType::CompoundMult:
+					Build_Mult_sIntPtr(V0, V1);
+					break;
+				case TokenType::CompoundDiv:
+					Build_Div_sIntPtr(V0, V1);
 					break;
 				}
 			};
@@ -1814,20 +1841,56 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 		auto Op0 = IROperand::AsLocation(Ex0);
 		auto Op1 = IROperand::AsLocation(Ex1);
 
-		bool IsSame = AreTheSame(Ex0Type, Ex1Type);//For Testing
+		auto& Type = Ex0Type;
+		auto Op = node.BinaryOp->Type;
+
+		#define BindaryBuildU(x) switch (Op) \
+		{\
+		case TokenType::plus:_Builder.MakeAdd##x(Op0, Op1);\
+			break;\
+		case TokenType::minus:_Builder.MakeSub##x(Op0, Op1);\
+			break;\
+		case TokenType::star:_Builder.MakeUMult##x(Op0, Op1); \
+			break; \
+		case TokenType::forwardslash:_Builder.MakeUDiv##x(Op0, Op1); \
+			break; \
+		default:\
+			throw std::exception("not added");\
+			break;\
+		}\
+
+	
+		#define BindaryBuildS(x) switch (Op) \
+			{\
+			case TokenType::plus:_Builder.MakeAdd##x(Op0, Op1); \
+				break; \
+			case TokenType::minus:_Builder.MakeSub##x(Op0, Op1); \
+				break; \
+			case TokenType::star:_Builder.MakeSMult##x(Op0, Op1); \
+			break; \
+				case TokenType::forwardslash:_Builder.MakeSDiv##x(Op0, Op1); \
+			break; \
+			default:\
+				throw std::exception("not added"); \
+				break; \
+			}\
 
 
-		switch (node.BinaryOp->Type)
-		{
-		case TokenType::plus:_Builder.MakeAdd8(Op0, Op1);
-			break;
-		case TokenType::minus:_Builder.MakeSub8(Op0, Op1);
-			break;
-		default:
-			throw std::exception("not added");
-			break;
-		}
+			switch (Type._Type)
+			{
+			case TypesEnum::uInt8:BindaryBuildU(8);break;
+			case TypesEnum::uInt16:BindaryBuildU(16); break;
+			case TypesEnum::uInt32:BindaryBuildU(32); break;
+			case TypesEnum::uInt64:BindaryBuildU(64); break;
 
+
+			case TypesEnum::sInt8:BindaryBuildS(8); break;
+			case TypesEnum::sInt16:BindaryBuildS(16); break;
+			case TypesEnum::sInt32:BindaryBuildS(32); break;
+			case TypesEnum::sInt64:BindaryBuildS(64); break;
+			default:
+				break;
+			}
 
 		_LastExpressionField = _Builder.GetLastField();
 	}
