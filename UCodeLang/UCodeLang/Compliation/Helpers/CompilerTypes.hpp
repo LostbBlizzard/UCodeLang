@@ -86,6 +86,9 @@ enum class TokenType : TokenType_t
 
 	KeyWorld_If,
 	KeyWorld_Else,
+	KeyWorld_while,
+	KeyWorld_for,
+	KeyWorld_do,
 
 
 	KeyWorld_pub,//pub

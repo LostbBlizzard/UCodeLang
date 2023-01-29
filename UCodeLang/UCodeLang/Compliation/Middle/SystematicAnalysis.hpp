@@ -111,7 +111,7 @@ private:
 	void OnAliasNode(const AliasNode& node);
 	void OnUseingNode(const UsingNode& node);
 	void OnFuncNode(const FuncNode& node);
-	void OnStatement(const UCodeLang::Unique_ptr<UCodeLang::Node>& node2);
+	void OnStatement(const Unique_ptr<UCodeLang::Node>& node2);
 	void OnRetStatement(const RetStatementNode& node);
 	void OnEnum(const EnumNode& node);
 	void OnNamespace(const NamespaceNode& node);
@@ -122,6 +122,7 @@ private:
 	void CantgussTypesTheresnoassignment(const Token* Token);
 	void OnAssignVariableNode(const AssignVariableNode& node);
 	void OnIfNode(const IfNode& node);
+	void OnWhileNode(const WhileNode& node);
 		
 	struct GetMemberTypeSymbolFromVar_t
 	{

@@ -33,6 +33,7 @@ enum class NodeType :UInt8
 	TagTypeNode,
 	IfNode,
 	ElseNode,
+	WhileNode,
 	BoolliteralNode,
 	ReadVariableNode,
 	AssignVariableNode,
