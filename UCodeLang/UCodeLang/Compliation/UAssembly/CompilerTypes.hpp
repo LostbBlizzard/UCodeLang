@@ -107,18 +107,19 @@ AddMapValueValue(Pop##bitsize, InstructionSet::Pop##bitsize, OpCodeType::Registe
 AddMapValueValue(StoreRegToReg##bitsize, InstructionSet::StoreRegToReg##bitsize, OpCodeType::Register, OpCodeType::Register),\
 AddMapValueValue(GetFromStack##bitsize, InstructionSet::GetFromStack##bitsize, OpCodeType::UIntPtr,OpCodeType::Register),\
 AddMapValueValue(GetFromStack##bitsize, InstructionSet::GetFromStack##bitsize, OpCodeType::UIntPtr,OpCodeType::Register),\
+AddMapValueValue(LogicalNot##bitsize, InstructionSet::LogicalNot##bitsize, OpCodeType::Register, OpCodeType::Register), \
 
 static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 {	
 	AddMapValueValue(Exit,InstructionSet::Exit,OpCodeType::AnyInt8,OpCodeType::NoOpCode),
 	AddMapValueValue(Ret,InstructionSet::Return,OpCodeType::NoOpCode,OpCodeType::NoOpCode),
 	AddMapValueValue(Call,InstructionSet::Call,OpCodeType::InsAddress,OpCodeType::NoOpCode),
-	AddMapValueValue(Callif,InstructionSet::CallIf,OpCodeType::InsAddress,OpCodeType::NoOpCode),
-	AddMapValueValue(CallPtr,InstructionSet::CallPtr,OpCodeType::InsAddress,OpCodeType::NoOpCode),
+	AddMapValueValue(Callif,InstructionSet::CallIf,OpCodeType::InsAddress,OpCodeType::Register),
+	AddMapValueValue(CallReg,InstructionSet::CallReg,OpCodeType::Register,OpCodeType::NoOpCode),
 
 	AddMapValueValue(Jump,InstructionSet::Jump,OpCodeType::InsAddress,OpCodeType::NoOpCode),
-	AddMapValueValue(Jumpif,InstructionSet::Jumpif,OpCodeType::InsAddress,OpCodeType::NoOpCode),
-	AddMapValueValue(JumpPtr,InstructionSet::JumpPtr,OpCodeType::InsAddress,OpCodeType::NoOpCode),
+	AddMapValueValue(Jumpif,InstructionSet::Jumpif,OpCodeType::InsAddress,OpCodeType::Register),
+	AddMapValueValue(JumpReg,InstructionSet::JumpReg,OpCodeType::Register,OpCodeType::NoOpCode),
 
 	AddMapValueValue(NoOp,InstructionSet::DoNothing,OpCodeType::NoOpCode,OpCodeType::NoOpCode),
 

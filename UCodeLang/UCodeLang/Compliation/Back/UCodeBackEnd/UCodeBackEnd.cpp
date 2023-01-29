@@ -168,50 +168,51 @@ void UCodeBackEndObject::BuildFunc()
 	for (_Index = _Index + 1; _Index < Code.size(); _Index++)
 	{
 		auto& IR = Code[_Index];
+		IRCodeIndexToUAddressIndexs.push_back(ULib.Get_Instructions().size() + 1);
 
 		switch (IR.Operator)
 		{
-		BitSet(8)
-		BitSet(16)
-		BitSet(32)
-		BitSet(64)
+			BitSet(8)
+				BitSet(16)
+				BitSet(32)
+				BitSet(64)
 		case IROperator::Assign_Operand0:
-		{
-			RegisterID R = RegisterID::NullRegister;
-		
-			
-			switch (IR.Operand0.Type)
 			{
-			IRFieldInt(8)
-			IRFieldInt(16)
-			IRFieldInt(32)
-			IRFieldInt(64)
-			case IRFieldInfoType::ReadVar:
-			{
-				OnReadVarOperand(R, IR, ULib);
-			}break;
-			case IRFieldInfoType::IRLocation:
-			{
-				R = GetOperandInAnyRegister(IR.Operand0);
-			}break;
-			case IRFieldInfoType::AsPointer:
-			{
-				OnAsPointer(R, IR);
-			}break;
-			default:
-				throw std::exception("not added");
-				break;
+				RegisterID R = RegisterID::NullRegister;
+
+
+				switch (IR.Operand0.Type)
+				{
+					IRFieldInt(8)
+						IRFieldInt(16)
+						IRFieldInt(32)
+						IRFieldInt(64)
+				case IRFieldInfoType::ReadVar:
+					{
+						OnReadVarOperand(R, IR, ULib);
+					}break;
+				case IRFieldInfoType::IRLocation:
+				{
+					R = GetOperandInAnyRegister(IR.Operand0);
+				}break;
+				case IRFieldInfoType::AsPointer:
+				{
+					OnAsPointer(R, IR);
+				}break;
+				default:
+					throw std::exception("not added");
+					break;
+				}
+				StoreResultIR(IR, R);
 			}
-			StoreResultIR(IR, R);
-		}
-		break;
-		
+			break;
+
 		case IROperator::Func_Parameter:
 		{
 			auto VarSymbolID = IR.Operand0.SymbolId;
 			BuildData& Data = SymbolToData[VarSymbolID];
 			Symbol& ParSymbol = _BackInput->_Table->GetSymbol(VarSymbolID);
-			
+
 
 			auto TypeSize = Analysis->GetTypeSize(ParSymbol.VarType);
 			if (TypeSize <= RegisterSize && ParameterRegisterValue < RegisterID::EndParameterRegister)
@@ -245,18 +246,18 @@ void UCodeBackEndObject::BuildFunc()
 		case IROperator::FuncCall:
 		{
 			auto VarSymbolID = IR.Operand0.SymbolId;
-			
-			GenInsPush(InstructionBuilder::Call(NullAddress,_Ins));
-			
-			_InsCalls.push_back({ULib.GetLastInstruction(),VarSymbolID });
+
+			GenInsPush(InstructionBuilder::Call(NullAddress, _Ins));
+
+			_InsCalls.push_back({ ULib.GetLastInstruction(),VarSymbolID });
 			CallParameterRegisterValue = RegisterID::StartParameterRegister;
 		}
 		break;
 		case IROperator::Free:
 		{
 			auto R = GetOperandInAnyRegister(IR.Operand0);
-			GenInsPush(InstructionBuilder::Free(_Ins,R));
-			
+			GenInsPush(InstructionBuilder::Free(_Ins, R));
+
 
 		}
 		break;
@@ -265,13 +266,13 @@ void UCodeBackEndObject::BuildFunc()
 			auto Size = GetOperandInAnyRegister(IR.Operand0);
 			_Registers.WeakLockRegister(Size);
 			auto ROut = _Registers.GetFreeRegister();
-			
+
 
 			GenInsPush(InstructionBuilder::Malloc(_Ins, Size, ROut));
-		
+
 
 			_Registers.UnLockWeakRegister(Size);
-			SetSybToRegister(Size,IR);
+			SetSybToRegister(Size, IR);
 		}
 		break;
 		case IROperator::Ret_Value:
@@ -279,8 +280,8 @@ void UCodeBackEndObject::BuildFunc()
 			auto RetTypeSize = Analysis->GetTypeSize(Sym.VarType);
 			if (RetTypeSize <= RegisterSize)
 			{
-				GetOperandInRegister(IR.Operand0,RegisterID::OuPutRegister);
-				
+				GetOperandInRegister(IR.Operand0, RegisterID::OuPutRegister);
+
 			}
 			else
 			{
@@ -304,14 +305,18 @@ void UCodeBackEndObject::BuildFunc()
 		case IROperator::IfFalseJump:
 		{
 			auto R = GetOperandInAnyRegister(IR.Operand1);
-			
-			GenInsPush(InstructionBuilder::Jumpif(NullAddress,R, _Ins));
+
+			GenInsPush(InstructionBuilder::LogicalNot8(_Ins, R, R));
+			GenInsPush(InstructionBuilder::Jumpif(NullAddress, R, _Ins));
 			JumpCallsToUpdate.push_back({ ULib.GetLastInstruction() });
 		}
 		break;
 
 		case IROperator::Ret:goto EndLoop;
 		}
+
+
+		
 	}
 EndLoop:
 
@@ -412,7 +417,11 @@ void UCodeBackEndObject::Link()
 		Instruction& Ins = ULib.Get_Instructions().operator[](Item.CallIns);
 		Ins.Value0 = DeclareCalls.at(Item.ID).FuncAddress -1;
 	}
-
+	for (auto& Item : JumpCallsToUpdate)
+	{
+		Instruction& Ins = ULib.Get_Instructions().operator[](Item.InsAddress);
+		Ins.Value0 = IRCodeIndexToUAddressIndexs[Item.InsAddress];
+	}
 
 }
 
