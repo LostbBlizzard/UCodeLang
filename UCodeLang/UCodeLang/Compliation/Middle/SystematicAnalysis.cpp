@@ -344,8 +344,20 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	
 
 	Symbol* syb;
-	SymbolID sybId = IsgenericInstantiation ? (SymbolID)GenericFuncName.top().GenericInput: (SymbolID)&node;
-
+	SymbolID sybId;
+	if (IsgenericInstantiation)
+	{
+		sybId = (SymbolID)GenericFuncName.top().GenericInput;
+	}
+	else
+	{
+		sybId = (SymbolID)&node;
+		if (GenericFuncName.size())
+		{
+			sybId += (SymbolID)GenericFuncName.top().GenericInput;
+		}
+	}
+	
 
 	auto UseingIndex = _Table.GetUseingIndex();
 
@@ -1190,16 +1202,17 @@ void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 				Build_Sub_sIntPtr(V0, V1);
 			}
 		}
-		
+		break;
 		default:
 			break;
 		}
 	
 
 
-		auto Op = IROperand::AsLocation(_LastExpressionField);
+		auto Op = IROperand::AsLocation(_Builder.GetLastField());
 		auto NewOp = IROperand::AsVarable(sybId);
 		_Builder.Build_Assign(NewOp, Op);
+		BindTypeToLastIR(Type);
 	}
 }
 void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& node)
@@ -1234,7 +1247,9 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 		auto V0 = IROperand::AsLocation(_Builder.GetLastField());
 		_Builder.Build_Assign(IROperand::AsReadVarable(sybId));
 		BindTypeToLastIR(Symbol->VarType);
+
 		auto V1 = IROperand::AsLocation(_Builder.GetLastField());
+		BindTypeToLastIR(Symbol->VarType);
 
 #define Set_CompoundU(x) \
 			switch (node.CompoundOp->Type) \
@@ -1347,7 +1362,7 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 			}
 
 
-		auto Op = IROperand::AsLocation(_LastExpressionField);
+		auto Op = IROperand::AsLocation(_Builder.GetLastField());
 		auto NewOp = IROperand::AsVarable(sybId);
 		_Builder.Build_Assign(NewOp, Op);
 		BindTypeToLastIR(Symbol->VarType);
@@ -1365,7 +1380,10 @@ void SystematicAnalysis::OnExpressionTypeNode(const Node* node)
 		break;
 	}
 	
-
+	if (passtype == PassType::BuidCode)
+	{
+		BindTypeToLastIR(LastExpressionType);
+	}
 }
 void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 {
@@ -1394,9 +1412,9 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 			if (passtype == PassType::BuidCode)
 			{
 				auto& Str = num->Token->Value._String;
-				
 
-				
+
+
 				switch (lookT._Type)
 				{
 				case TypesEnum::uInt8:
@@ -1453,20 +1471,20 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 					ParseHelper::ParseStringToInt64(Str, V);
 					Build_Assign_sIntPtr(V);
 				};
-				
+
 				break;
 				default:
 					throw std::exception("not added");
 					break;
-				} 
+				}
 
 
 				_LastExpressionField = _Builder.GetLastField();
 
 			}
 
-			TypesEnum NewEx = lookT._Type == TypesEnum::Var ? lookT._Type : TypesEnum::sInt32;
-			
+			TypesEnum NewEx = lookT._Type == TypesEnum::Var || IsIntType(lookT) ? lookT._Type : TypesEnum::sInt32;
+
 
 			LastExpressionType.SetType(NewEx);
 			LastLookedAtToken = num->Token;
@@ -1481,6 +1499,8 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 
 				_Builder.Build_Assign(IROperand::AsInt8((UInt8)num->Value));
 				_LastExpressionField = _Builder.GetLastField();
+
+				
 			}
 			LastExpressionType.SetType(TypesEnum::Bool);
 		}
@@ -2502,7 +2522,7 @@ void SystematicAnalysis::DoFuncCall(const FuncInfo* Func, const ScopedNameNode& 
 
 		auto ScopedName = GetScopedNameAsString(Name);
 		auto SymbolsV = GetSymbol(ScopedName, SymbolType::Any);
-		if (SymbolsV->Type == SymbolType::Type_alias)
+		if (SymbolsV  && SymbolsV->Type == SymbolType::Type_alias)
 		{
 			ScopedName = ToString(SymbolsV->VarType);
 		}
@@ -2552,7 +2572,8 @@ FuncInfo* SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGener
 	{
 
 		auto SymbolsV = GetSymbol(ScopedName, SymbolType::Any);
-		if (SymbolsV->Type == SymbolType::Type_alias)
+
+		if (SymbolsV && SymbolsV->Type == SymbolType::Type_alias)
 		{
 			ScopedName = ToString(SymbolsV->VarType);
 		}
