@@ -2,7 +2,7 @@
 
 |main[bool T]:
  
-
- int a =0;
- while true:
-  a++;
+ //while T;
+ 
+ int a = 99;
+ do:while T;

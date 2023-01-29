@@ -267,6 +267,14 @@ private:
 	}
 	GotNodeType GetWhileNode(WhileNode& out);
 
+	TryGetNode GetDoNode()
+	{
+		DoNode* V = DoNode::Gen();
+		auto r = GetDoNode(*V);
+		return { r,V->As() };
+	}
+	GotNodeType GetDoNode(DoNode& out);
+
 	TryGetNode GetEnumNode()
 	{
 		EnumNode* V = EnumNode::Gen();

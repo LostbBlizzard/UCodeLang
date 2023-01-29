@@ -123,6 +123,7 @@ private:
 	void OnAssignVariableNode(const AssignVariableNode& node);
 	void OnIfNode(const IfNode& node);
 	void OnWhileNode(const WhileNode& node);
+	void OnDoNode(const DoNode& node);
 		
 	struct GetMemberTypeSymbolFromVar_t
 	{
