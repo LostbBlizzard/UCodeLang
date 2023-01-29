@@ -1310,27 +1310,26 @@ GotNodeType Parser::GetIfNode(IfNode& out)
 		
 		NextToken();
 		auto T2 = TryGetToken();
-	
-		if (T2->Type == TokenType::KeyWorld_If)
-		{//else if
+		
+		if (T2->Type != TokenType::Colon)
+		{//else if or Item();
+			auto elseNode = std::make_unique<ElseNode>();
 
-			NextToken();
-
-			auto elseifNode = std::make_unique<IfElseNode>();
-
-			auto GetEx = GetExpressionTypeNode(elseifNode->Expression);
+			//auto RetToken2 = TryGetToken();
+			//TokenTypeCheck(RetToken2, TokenType::KeyWorld_If);
 			
-			auto ColonToken = TryGetToken();
-			TokenTypeCheck(ColonToken, TokenType::Colon);
-			NextToken();
-			
-			auto Statements = GetStatementsorStatementNode(elseifNode->Body);
+			Node* V;
+			auto Statements = GetStatement(V);
+			if (V)
+			{
+				elseNode->Body._Nodes.push_back(Unique_ptr<Node>(V));
+			}
 
-			out._Nodes.push_back(std::move(elseifNode));
+			out.Else = std::move(elseNode);
+			break;
 		}
 		else
 		{//else
-			
 			auto elseNode = std::make_unique<ElseNode>();
 
 			auto ColonToken = TryGetToken();
@@ -1339,7 +1338,8 @@ GotNodeType Parser::GetIfNode(IfNode& out)
 
 			auto Statements = GetStatementsorStatementNode(elseNode->Body);
 
-			out._Nodes.push_back(std::move(elseNode));
+			out.Else = std::move(elseNode);
+
 			break;
 		}
 

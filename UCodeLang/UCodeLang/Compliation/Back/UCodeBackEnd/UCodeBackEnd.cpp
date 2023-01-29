@@ -307,9 +307,10 @@ void UCodeBackEndObject::BuildFunc()
 		case IROperator::IfFalseJump:
 		{
 			auto R = GetOperandInAnyRegister(IR.Operand1);
+			auto V = _Registers.GetFreeRegister();
 
-			GenInsPush(InstructionBuilder::LogicalNot8(_Ins, R, R));
-			GenInsPush(InstructionBuilder::Jumpif(NullAddress, R, _Ins));
+			GenInsPush(InstructionBuilder::LogicalNot8(_Ins, R, V));
+			GenInsPush(InstructionBuilder::Jumpif(NullAddress, V, _Ins));
 			JumpCallsToUpdate.push_back({ ULib.GetLastInstruction(),IR.Operand0.IRLocation });
 		}
 		break;

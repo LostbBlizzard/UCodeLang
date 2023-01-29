@@ -1,10 +1,10 @@
 
 
-|main[]:
+|main[bool T]:
  
- int a = 0;
- if true:
-  if true:
-   a++;
- 
- a--;
+ if T:
+  ret false;
+ else if T:
+  ret true;
+ else:
+  ret true;
