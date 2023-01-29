@@ -277,6 +277,19 @@ private:
 	{
 		_Builder.MakeUMult64(field, field2);
 	}
+	void Build_Mult_sIntPtr(IROperand field, IROperand field2)
+	{
+		_Builder.MakeSMult64(field, field2);
+	}
+
+	void Build_Div_uIntPtr(IROperand field, IROperand field2)
+	{
+		_Builder.MakeUDiv64(field, field2);
+	}
+	void Build_Div_sIntPtr(IROperand field, IROperand field2)
+	{
+		_Builder.MakeSDiv64(field, field2);
+	}
 	
 	
 	void Build_Increment_uIntPtr(UAddress Value)
