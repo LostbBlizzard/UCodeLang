@@ -165,10 +165,12 @@ void UCodeBackEndObject::BuildFunc()
 	UAddress FuncStart = ULib.Get_Instructions().size();
     StackSize = 0;
 
+	IRCodeIndexToUAddressIndexs.push_back(FuncStart);
+
 	for (_Index = _Index + 1; _Index < Code.size(); _Index++)
 	{
 		auto& IR = Code[_Index];
-		IRCodeIndexToUAddressIndexs.push_back(ULib.Get_Instructions().size() + 1);
+		IRCodeIndexToUAddressIndexs.push_back(ULib.Get_Instructions().size());
 
 		switch (IR.Operator)
 		{
@@ -308,13 +310,18 @@ void UCodeBackEndObject::BuildFunc()
 
 			GenInsPush(InstructionBuilder::LogicalNot8(_Ins, R, R));
 			GenInsPush(InstructionBuilder::Jumpif(NullAddress, R, _Ins));
-			JumpCallsToUpdate.push_back({ ULib.GetLastInstruction() });
+			JumpCallsToUpdate.push_back({ ULib.GetLastInstruction(),IR.Operand0.IRLocation });
+		}
+		break;
+		case IROperator::Jump:
+		{
+			GenInsPush(InstructionBuilder::Jump(NullAddress, _Ins));
+			JumpCallsToUpdate.push_back({ ULib.GetLastInstruction(),IR.Operand0.IRLocation });
 		}
 		break;
 
 		case IROperator::Ret:goto EndLoop;
 		}
-
 
 		
 	}
@@ -420,7 +427,7 @@ void UCodeBackEndObject::Link()
 	for (auto& Item : JumpCallsToUpdate)
 	{
 		Instruction& Ins = ULib.Get_Instructions().operator[](Item.InsAddress);
-		Ins.Value0 = IRCodeIndexToUAddressIndexs[Item.InsAddress];
+		Ins.Value0 = IRCodeIndexToUAddressIndexs[Item.IRField]-1;
 	}
 
 }

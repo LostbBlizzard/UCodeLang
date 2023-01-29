@@ -239,9 +239,9 @@ GotNodeType Parser::GetStatementsorStatementNode(StatementsNode& out)
 		Node* nodeptr = nullptr;
 
 		auto r= GetStatement(nodeptr);
-		
-		out._Nodes.push_back(Unique_ptr<Node>(nodeptr));
-		return r;
+		if (nodeptr) {
+			out._Nodes.push_back(Unique_ptr<Node>(nodeptr));
+		}return r;
 	}
 }
 
@@ -250,6 +250,7 @@ GotNodeType Parser::GetStatement(Node*& out)
 	auto StatementTypeToken = TryGetToken();
 	switch (StatementTypeToken->Type)
 	{
+	case TokenType::EndTab:return GotNodeType::EndLoop;
 	case TokenType::KeyWorld_asm:
 	{
 		auto r = GetAsmBlock();
