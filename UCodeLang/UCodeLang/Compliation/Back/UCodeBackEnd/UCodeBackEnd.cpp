@@ -312,7 +312,10 @@ EndLoop:
 	ParameterRegisterValue = RegisterID::StartParameterRegister; 
 	CallParameterRegisterValue = RegisterID::StartParameterRegister;
 
-
+	if (DeclareCalls.count(SybID))
+	{
+		throw std::exception("item readded");
+	}
 	DeclareCalls[SybID] = { FuncStart };
 	ULib.Add_NameToInstruction(FuncStart, Sym.FullName);
 }
@@ -359,7 +362,7 @@ void UCodeBackEndObject::OnReadVarOperand(UCodeLang::RegisterID& R, UCodeLang::I
 	{
 		auto V = _Registers.GetInfo(IR.Result.IRLocation);
 
-		const TypeSymbol& VarType = SybV.VarType._Type != TypesEnum::CustomType ? SybV.VarType : *IR.InfoType;
+		const TypeSymbol& VarType = !IR.InfoType ? SybV.VarType : *IR.InfoType;
 
 
 		if (V == RegisterID::NullRegister)
@@ -480,7 +483,7 @@ void UCodeBackEndObject::StoreVar(const IRCode& IR, const RegisterID R)
 		}
 	}
 
-	const TypeSymbol& VarType =Symbol.VarType._Type != TypesEnum::CustomType ? Symbol.VarType : *IR.InfoType;
+	const TypeSymbol& VarType = !IR.InfoType ? Symbol.VarType : *IR.InfoType;
 	
 	
 	if (VarType._Type == TypesEnum::CustomType)
