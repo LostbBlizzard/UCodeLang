@@ -237,23 +237,23 @@ void Interpreter::Extecute(Instruction& Inst)
 		_CPU.ProgramCounter = Inst.Value0.AsAddress;
 		break;
 	case InstructionSet::CallIf:
-		if (Get_BoolRegister().Value.Asbool) {
+		if (Get_Register(Inst.Value1.AsRegister).Value.Asbool) {
 			_CPU.Stack.PushStack(_CPU.ProgramCounter);
 			_CPU.ProgramCounter = Inst.Value0.AsAddress;
 		}break;
-	case InstructionSet::CallPtr:
+	case InstructionSet::CallReg:
 		_CPU.Stack.PushStack(_CPU.ProgramCounter);
-		_CPU.ProgramCounter = *(UAddress*)Inst.Value0.AsAddress;
+		_CPU.ProgramCounter = Get_Register(Inst.Value0.AsRegister).Value.AsAddress;
 		break;
 	case InstructionSet::Jump:
 		_CPU.ProgramCounter = Inst.Value0.AsAddress;
 		break;
 	case InstructionSet::Jumpif:
-		if (Get_BoolRegister().Value.Asbool) {
+		if (Get_Register(Inst.Value1.AsRegister).Value.Asbool) {
 			_CPU.ProgramCounter = Inst.Value0.AsAddress;
 		}break;
-	case InstructionSet::JumpPtr:
-		_CPU.ProgramCounter = *(UAddress*)Inst.Value0.AsAddress;
+	case InstructionSet::JumpReg:
+		_CPU.ProgramCounter = Get_Register(Inst.Value0.AsRegister).Value.AsAddress;
 		break;
 	case InstructionSet::DoNothing:break;
 	

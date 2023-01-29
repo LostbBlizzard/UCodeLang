@@ -648,22 +648,10 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 		for (const auto& node2 : Body.Statements._Nodes)
 		{
-			switch (node2->Get_Type())
+			OnStatement(node2);
+			if (node2->Get_Type() == NodeType::RetStatementNode)
 			{
-			case NodeType::AttributeNode:OnAttributeNode(*AttributeNode::As(node2.get())); break;
-			case NodeType::ClassNode: OnClassNode(*ClassNode::As(node2.get())); break;
-			case NodeType::EnumNode:OnEnum(*EnumNode::As(node2.get())); break;
-			case NodeType::UsingNode: OnUseingNode(*UsingNode::As(node2.get())); break;
-			case NodeType::DeclareVariableNode:OnDeclareVariablenode(*DeclareVariableNode::As(node2.get())); break;
-			case NodeType::AssignVariableNode:OnAssignVariableNode(*AssignVariableNode::As(node2.get())); break;
-			case NodeType::PostfixVariableNode:OnPostfixVariableNode(*PostfixVariableNode::As(node2.get())); break;
-			case NodeType::CompoundStatementNode:OnCompoundStatementNode(*CompoundStatementNode::As(node2.get())); break;
-			case NodeType::FuncCallStatementNode:OnFuncCallNode(FuncCallStatementNode::As(node2.get())->Base); break;
-			case NodeType::DropStatementNode:OnDropStatementNode(*DropStatementNode::As(node2.get())); break;
-			case NodeType::RetStatementNode:
 				syb = &_Table.GetSymbol(sybId);
-
-				OnRetStatement(*RetStatementNode::As(node2.get()));
 				HasARet = true;
 
 				if (passtype == PassType::FixedTypes && syb->VarType._Type == TypesEnum::Var)
@@ -678,11 +666,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 				}
 
 				break;
-			default:break;
 			}
 		}
-
-
 
 		_InStatements = false;
 
@@ -723,6 +708,26 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 	
 	_Table.RemoveScope();
+}
+void SystematicAnalysis::OnStatement(const UCodeLang::Unique_ptr<UCodeLang::Node>& node2)
+{
+	switch (node2->Get_Type())
+	{
+	case NodeType::AttributeNode:OnAttributeNode(*AttributeNode::As(node2.get())); break;
+	case NodeType::ClassNode: OnClassNode(*ClassNode::As(node2.get())); break;
+	case NodeType::EnumNode:OnEnum(*EnumNode::As(node2.get())); break;
+	case NodeType::UsingNode: OnUseingNode(*UsingNode::As(node2.get())); break;
+	case NodeType::DeclareVariableNode:OnDeclareVariablenode(*DeclareVariableNode::As(node2.get())); break;
+	case NodeType::AssignVariableNode:OnAssignVariableNode(*AssignVariableNode::As(node2.get())); break;
+	case NodeType::PostfixVariableNode:OnPostfixVariableNode(*PostfixVariableNode::As(node2.get())); break;
+	case NodeType::CompoundStatementNode:OnCompoundStatementNode(*CompoundStatementNode::As(node2.get())); break;
+	case NodeType::FuncCallStatementNode:OnFuncCallNode(FuncCallStatementNode::As(node2.get())->Base); break;
+	case NodeType::DropStatementNode:OnDropStatementNode(*DropStatementNode::As(node2.get())); break;
+	
+	case NodeType::IfNode:OnIfNode(*IfNode::As(node2.get())); break;
+	case NodeType::RetStatementNode:OnRetStatement(*RetStatementNode::As(node2.get())); break;
+	default:break;
+	}
 }
 void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 {
@@ -993,6 +998,55 @@ void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 			BindTypeToLastIR(MemberInfo.Type);
 		}
 	}
+}
+void SystematicAnalysis::OnIfNode(const IfNode& node)
+{
+
+	TypeSymbol BoolType;
+	BoolType.SetType(TypesEnum::Bool);
+
+	String ScopeName = std::to_string((size_t)&node);
+	_Table.AddScope(ScopeName);
+	
+	LookingForTypes.push(BoolType);
+
+	OnExpressionTypeNode(node.Expression.Value.get());
+
+	if (passtype == PassType::FixedTypes)
+	{
+		if (!CanBeImplicitConverted(LastExpressionType, BoolType))
+		{
+			auto  Token = LastLookedAtToken;
+			LogCantCastImplicitTypes(Token, LastExpressionType, BoolType);
+		}
+	}
+
+	
+	IRField IfIndex;
+	IROperand BoolCode;
+	if (passtype == PassType::BuidCode)
+	{
+		DoImplicitConversion(IROperand::AsLocation(_Builder.GetLastField()), LastExpressionType, BoolType);
+	
+		BoolCode = IROperand::AsLocation(_Builder.GetLastField());
+		_Builder.Build_IfFalseJump(BoolCode, 0);
+		IfIndex = _Builder.GetLastField();
+	}
+
+	LookingForTypes.pop();
+
+	for (const auto& node2 :node.Body._Nodes)
+	{
+		OnStatement(node2);
+	}
+
+	if (passtype == PassType::BuidCode) 
+	{
+		auto& IFFalseCode=_Builder.Get_IR(IfIndex);
+		_Builder.Update_IfFalseJump(IFFalseCode, BoolCode, _Builder.GetNextField());
+	}
+
+	_Table.RemoveScope();
 }
 bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
 {

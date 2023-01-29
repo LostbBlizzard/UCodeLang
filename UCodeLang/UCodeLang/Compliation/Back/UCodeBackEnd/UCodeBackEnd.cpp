@@ -301,6 +301,15 @@ void UCodeBackEndObject::BuildFunc()
 			CallParameterRegisterValue = RegisterID::StartParameterRegister;
 		}
 		break;
+		case IROperator::IfFalseJump:
+		{
+			auto R = GetOperandInAnyRegister(IR.Operand1);
+			
+			GenInsPush(InstructionBuilder::Jumpif(NullAddress,R, _Ins));
+			JumpCallsToUpdate.push_back({ ULib.GetLastInstruction() });
+		}
+		break;
+
 		case IROperator::Ret:goto EndLoop;
 		}
 	}
@@ -403,6 +412,8 @@ void UCodeBackEndObject::Link()
 		Instruction& Ins = ULib.Get_Instructions().operator[](Item.CallIns);
 		Ins.Value0 = DeclareCalls.at(Item.ID).FuncAddress -1;
 	}
+
+
 }
 
 void UCodeBackEndObject::SetSybToRegister(RegisterID R, IRCode& IR)

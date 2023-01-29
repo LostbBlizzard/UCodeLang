@@ -24,9 +24,9 @@ enum class InstructionSet : InstructionSet_t
 {
 	Exit,Return,
 	
-	Call,CallIf,CallPtr,
+	Call,CallIf,CallReg,
 	
-	Jump, Jumpif,JumpPtr,
+	Jump, Jumpif,JumpReg,
 
 	DoNothing,
 	

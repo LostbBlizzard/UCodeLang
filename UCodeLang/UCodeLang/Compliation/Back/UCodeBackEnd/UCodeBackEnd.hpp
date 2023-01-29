@@ -76,6 +76,13 @@ private:
 		size_t FuncAddress = 0;
 	};
 	Unordered_map<SymbolID, DeclareCall> DeclareCalls;
+	Unordered_map<IRField, UAddress> IRCodeIndexToUAddressIndexs;
+
+	struct JumpInsInfo
+	{
+		UAddress InsAddress = 0;
+	};
+	Vector<JumpInsInfo> JumpCallsToUpdate;
 };
 class UCodeBackEnd
 {
