@@ -67,13 +67,13 @@ private:
 	
 	struct CallInfo
 	{
-		size_t CallIns=0;
+		UAddress CallIns=0;
 		SymbolID ID =0;
 	};
 	Vector<CallInfo> _InsCalls;
 	struct DeclareCall
 	{
-		size_t FuncAddress = 0;
+		UAddress FuncAddress = 0;
 	};
 	Unordered_map<SymbolID, DeclareCall> DeclareCalls;
 	Vector<UAddress> IRCodeIndexToUAddressIndexs;
@@ -81,6 +81,7 @@ private:
 	struct JumpInsInfo
 	{
 		UAddress InsAddress = 0;
+		IRField IRField = 0;
 	};
 	Vector<JumpInsInfo> JumpCallsToUpdate;
 };

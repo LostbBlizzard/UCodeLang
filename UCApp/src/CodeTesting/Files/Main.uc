@@ -4,5 +4,7 @@
  
  int a = 0;
  if true:
-  a = 1;
-
+  if true:
+   a++;
+ 
+ a--;
