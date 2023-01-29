@@ -1033,20 +1033,60 @@ void SystematicAnalysis::OnIfNode(const IfNode& node)
 		IfIndex = _Builder.GetLastField();
 	}
 
+	
+	
+
 	LookingForTypes.pop();
 
 	for (const auto& node2 :node.Body._Nodes)
 	{
 		OnStatement(node2);
 	}
+	
+	_Table.RemoveScope();
+	
+	if (node.Else)
+	{
+		IRField ElseIndex;
+		if (passtype == PassType::BuidCode)
+		{
+			_Builder.Build_Jump(0);//ElseJump
+			ElseIndex = _Builder.GetLastField();
+		}
 
-	if (passtype == PassType::BuidCode) 
+
+		if (node.Else->Get_Type() != NodeType::ElseNode)
+		{
+			OnStatement(node.Else);
+		}
+		else
+		{
+			ElseNode* Elsenode = ElseNode::As(node.Else.get());
+
+			for (const auto& node3 : Elsenode->Body._Nodes)
+			{
+				OnStatement(node3);
+			}
+		}
+
+
+		if (passtype == PassType::BuidCode)
+		{
+			auto& ElseJumpCode = _Builder.Get_IR(ElseIndex);
+			_Builder.Update_Jump(ElseJumpCode,_Builder.GetNextField());
+
+			auto& IFFalseCode = _Builder.Get_IR(IfIndex);
+			_Builder.Update_IfFalseJump(IFFalseCode, BoolCode, ElseIndex + 1);
+		}
+	}
+
+	if (passtype == PassType::BuidCode && node.Else == nullptr)
 	{
 		auto& IFFalseCode=_Builder.Get_IR(IfIndex);
 		_Builder.Update_IfFalseJump(IFFalseCode, BoolCode, _Builder.GetNextField());
 	}
 
-	_Table.RemoveScope();
+	
 }
 bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
 {

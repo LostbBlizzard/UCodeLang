@@ -89,11 +89,8 @@ int main()
 
 		
 		RunTime.Init(&State);
-		
-		auto Pointer = 50;
-
-		
-		auto r =RunTime.Call("main");
+	
+		auto r =RunTime.retCall<int>("main",false);
  		
 		
 

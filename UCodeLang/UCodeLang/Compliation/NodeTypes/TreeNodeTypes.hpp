@@ -629,16 +629,18 @@ struct TagTypeNode :Node
 	TagTypeNode& operator=(TagTypeNode&& source) = default;
 };
 
+
 struct IfNode :Node
 {
 	IfNode() : Node(NodeType::IfNode)
 	{
 
 	}
-	AddforNodeAndWithList(IfNode);
+	AddforNode(IfNode);
 
 	ExpressionNodeType Expression;
 	StatementsNode Body;
+	Unique_ptr<Node> Else;
 };
 struct ElseNode :Node
 {
@@ -651,18 +653,6 @@ struct ElseNode :Node
 	
 	StatementsNode Body;
 };
-struct IfElseNode :Node
-{
-	IfElseNode() : Node(NodeType::IfElseNode)
-	{
-
-	}
-	AddforNode(IfElseNode);
-
-	ExpressionNodeType Expression;
-	StatementsNode Body;
-};
-
 struct PostfixVariableNode :Node
 {
 	PostfixVariableNode() : Node(NodeType::PostfixVariableNode)
