@@ -2,9 +2,7 @@
 
 |main[bool T]:
  
- if T:
-  ret false;
- else if T:
-  ret true;
- else:
-  ret true;
+
+ int a =0;
+ while true:
+  a++;

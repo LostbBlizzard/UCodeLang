@@ -306,6 +306,13 @@ GotNodeType Parser::GetStatement(Node*& out)
 		return r.GotNode;
 	}
 	break;
+	case  TokenType::KeyWorld_while:
+	{
+		auto r =GetWhileNode();
+		out = r.Node;
+		return r.GotNode;
+	}
+	break;
 	case  TokenType::KeyWorld_If:
 	{
 		auto r = GetIfNode();
@@ -1346,6 +1353,29 @@ GotNodeType Parser::GetIfNode(IfNode& out)
 	}
 
 	return Statements;
+}
+GotNodeType Parser::GetWhileNode(WhileNode& out)
+{
+	auto RetToken = TryGetToken();
+	TokenTypeCheck(RetToken, TokenType::KeyWorld_while);
+	NextToken();
+
+	auto GetEx = GetExpressionTypeNode(out.Expression);
+
+	auto Token3 = TryGetToken();
+	if (Token3->Type != TokenType::Semicolon)
+	{
+		TokenTypeCheck(Token3, TokenType::Colon);
+		NextToken();
+
+		auto Statements = GetStatementsorStatementNode(out.Body);
+	}
+	else
+	{
+		NextToken();
+	}
+
+	return GotNodeType::Success;
 }
 GotNodeType Parser::GetEnumNode(EnumNode& out)
 {

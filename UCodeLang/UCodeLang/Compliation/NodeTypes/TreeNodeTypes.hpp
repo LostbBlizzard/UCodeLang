@@ -653,6 +653,18 @@ struct ElseNode :Node
 	
 	StatementsNode Body;
 };
+struct WhileNode :Node
+{
+	WhileNode() : Node(NodeType::WhileNode)
+	{
+
+	}
+	AddforNode(WhileNode);
+
+	ExpressionNodeType Expression;
+	StatementsNode Body;
+};
+
 struct PostfixVariableNode :Node
 {
 	PostfixVariableNode() : Node(NodeType::PostfixVariableNode)

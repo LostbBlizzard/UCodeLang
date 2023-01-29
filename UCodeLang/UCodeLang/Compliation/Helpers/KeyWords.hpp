@@ -50,6 +50,9 @@ inline const char* S_KeyWord_thread = "thread";
 
 inline const char* S_KeyWord_if = "if";
 inline const char* S_KeyWord_else = "else";
+inline const char* S_KeyWord_while  = "while";
+inline const char* S_KeyWord_for = "for";
+inline const char* S_KeyWord_do = "while";
 
 inline const char* S_KeyWord_pub = "pub";
 inline const char* S_KeyWord_asm = "asm";
@@ -119,6 +122,8 @@ inline KeyWord KeyWords[] =
 
 	KeyWord(S_KeyWord_if,TokenType::KeyWorld_If),
 	KeyWord(S_KeyWord_else,TokenType::KeyWorld_Else),
+	KeyWord(S_KeyWord_while,TokenType::KeyWorld_while),
+	KeyWord(S_KeyWord_for,TokenType::KeyWorld_for),
 
 	KeyWord(S_KeyWord_pub,TokenType::KeyWorld_pub),
 	KeyWord(S_KeyWord_typeof,TokenType::KeyWorld_typeof),

@@ -259,6 +259,14 @@ private:
 	}
 	GotNodeType GetIfNode(IfNode& out);
 
+	TryGetNode GetWhileNode()
+	{
+		WhileNode* V = WhileNode::Gen();
+		auto r = GetWhileNode(*V);
+		return { r,V->As() };
+	}
+	GotNodeType GetWhileNode(WhileNode& out);
+
 	TryGetNode GetEnumNode()
 	{
 		EnumNode* V = EnumNode::Gen();
