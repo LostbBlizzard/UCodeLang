@@ -163,7 +163,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 	const auto& ClassName = IsgenericInstantiation ? GenericFuncName.top().GenericFuncName : Node.ClassName.Token->Value._String;
 	_Table.AddScope(ClassName);
 
-	auto SybID = IsgenericInstantiation ? (SymbolID)GenericFuncName.top().GenericInput : (SymbolID)&Node;
+	auto SybID = GetSymbolID(Node);
 
 	auto& Syb = passtype == PassType::GetTypes ?
 		_Table.AddSybol(Isgeneric_t ? SymbolType::Generic_class : SymbolType::Type_class
@@ -280,7 +280,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 {
 	const auto& ClassName = node.AliasName.Token->Value._String;
-	auto SybID = (SymbolID)&node;
+	auto SybID = GetSymbolID(node);
 
 	_Table.AddScope(ClassName);
 	auto& Syb = passtype == PassType::GetTypes ?
@@ -344,19 +344,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	
 
 	Symbol* syb;
-	SymbolID sybId;
-	if (IsgenericInstantiation)
-	{
-		sybId = (SymbolID)GenericFuncName.top().GenericInput;
-	}
-	else
-	{
-		sybId = (SymbolID)&node;
-		if (GenericFuncName.size())
-		{
-			sybId += (SymbolID)GenericFuncName.top().GenericInput;
-		}
-	}
+	SymbolID sybId =GetSymbolID(node);
 	
 
 	auto UseingIndex = _Table.GetUseingIndex();
@@ -614,11 +602,25 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	{
 		_Builder.Build_Func(sybId);
 
+		PushNewStackFrame();
+
 		for (auto& Item : node.Signature.Parameters.Parameters)
 		{
 			auto ParSybID = (SymbolID)&Item;
 			_Builder.Build_Parameter(ParSybID);
 			IRParameters.push_back(ParSybID);
+			
+			auto& V = _Table.GetSymbol(ParSybID);
+
+			if (HasDestructor(V.VarType))
+			{
+				ObjectToDrop V;
+				V.Object = _Builder.GetLastField();
+				V.Type = V.Type;
+
+				StackFrames.back().OnEndStackFrame.push_back(V);
+			}
+
 		}
 
 		bool DLLCall = false;
@@ -698,6 +700,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	{
 		_Builder.Build_Ret();
 		IRParameters.clear();
+
+		PopStackFrame();
 	}
 
 	_FuncStack.pop();
@@ -708,6 +712,40 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 	
 	_Table.RemoveScope();
+}
+void SystematicAnalysis::PushNewStackFrame()
+{
+	StackFrames.emplace_back();
+}
+void SystematicAnalysis::PopStackFrame()
+{
+	auto& TopStack = StackFrames.back();
+
+	for (auto& Item : TopStack.OnEndStackFrame)
+	{
+		DoDestructorCall(Item);
+	}
+
+
+	StackFrames.pop_back();
+}
+SymbolID SystematicAnalysis::GetSymbolID(const Node& node)
+{
+	bool IsgenericInstantiation = GenericFuncName.size() && GenericFuncName.top().NodeTarget == &node;
+	if (IsgenericInstantiation)
+	{
+		return (SymbolID)GenericFuncName.top().GenericInput;
+	}
+	else
+	{
+		auto sybId = (SymbolID)&node;
+		if (GenericFuncName.size())
+		{
+			sybId += (SymbolID)GenericFuncName.top().GenericInput;
+		}
+
+		return sybId;
+	}
 }
 void SystematicAnalysis::OnStatement(const Unique_ptr<UCodeLang::Node>& node2)
 {
@@ -787,7 +825,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 	auto& StrVarName = node.Name.AsString();
 	auto FullName = _Table._Scope.GetApendedString(StrVarName);
 
-	SymbolID sybId = (SymbolID)&node;
+	SymbolID sybId = GetSymbolID(node);
 	Symbol* syb;
 
 	bool InSideClass = _ClassStack.size() && _InStatements == false;
@@ -919,6 +957,15 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 		_Builder.Build_Assign(NewOp, Op);	
 		BindTypeToLastIR(syb->VarType);
 
+
+		if (HasDestructor(syb->VarType))
+		{
+			ObjectToDrop V;
+			V.Object = _Builder.GetLastField();
+			V.Type = syb->VarType;
+
+			StackFrames.back().OnEndStackFrame.push_back(V);
+		}
 	}
 }
 void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
@@ -1007,6 +1054,8 @@ void SystematicAnalysis::OnIfNode(const IfNode& node)
 	BoolType.SetType(TypesEnum::Bool);
 
 	String ScopeName = std::to_string((size_t)&node);
+
+	PushNewStackFrame();
 	_Table.AddScope(ScopeName);
 	
 	LookingForTypes.push(BoolType);
@@ -1044,6 +1093,7 @@ void SystematicAnalysis::OnIfNode(const IfNode& node)
 		OnStatement(node2);
 	}
 	
+	PopStackFrame();
 	_Table.RemoveScope();
 	
 	if (node.Else)
@@ -1095,6 +1145,8 @@ void SystematicAnalysis::OnWhileNode(const WhileNode& node)
 	BoolType.SetType(TypesEnum::Bool);
 
 	String ScopeName = std::to_string((size_t)&node);
+
+	PushNewStackFrame();
 	_Table.AddScope(ScopeName);
 
 	LookingForTypes.push(BoolType);
@@ -1140,12 +1192,16 @@ void SystematicAnalysis::OnWhileNode(const WhileNode& node)
 		_Builder.Update_IfFalseJump(IFFalseCode, BoolCode, _Builder.GetNextField());
 	}
 
+
 	_Table.RemoveScope();
+
+	PopStackFrame();
 }
 void SystematicAnalysis::OnDoNode(const DoNode& node)
 {
-
 	String ScopeName = std::to_string((size_t)&node);
+
+	PushNewStackFrame();
 	_Table.AddScope(ScopeName);
 
 
@@ -1162,6 +1218,7 @@ void SystematicAnalysis::OnDoNode(const DoNode& node)
 	}
 
 	_Table.RemoveScope();
+	PopStackFrame();
 
 	TypeSymbol BoolType;
 	BoolType.SetType(TypesEnum::Bool);
@@ -1840,7 +1897,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 					UintptrType.SetType(TypesEnum::uIntPtr);
 					UAddress UintptrSize;
 					GetSize(UintptrType, UintptrSize);
-					bool TypeHaveDestructor = false;
+					bool TypeHaveDestructor = HasDestructor(Type);
 
 					LookingForTypes.push(UintptrType);
 
@@ -2167,12 +2224,11 @@ void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 	}
 	if (passtype == PassType::BuidCode)
 	{
+		
+		bool TypeHaveDestructor = HasDestructor(Ex0Type);
 		if (Ex0Type.IsAddressArray())
 		{
 			Ex0Type._IsAddressArray = false;
-
-			bool TypeHaveDestructor = false;
-		
 			
 
 			if (TypeHaveDestructor)
@@ -2183,7 +2239,13 @@ void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 				GetSize(UintptrType, UintptrSize);
 
 				Build_Decrement_uIntPtr(UintptrSize);
-				//Def here to get size
+				//Decrement here to get size
+
+				auto ItemCount = _Builder.GetLastField();
+
+				//for loop
+
+
 
 				_Builder.Build_Free(IROperand::AsLocation(_Builder.GetLastField()));
 			}
@@ -2196,6 +2258,15 @@ void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 		}
 		else 
 		{
+			if (TypeHaveDestructor)
+			{
+				ObjectToDrop Data;
+				Data.Object = Ex0;
+				Data.Type = Ex0Type;
+				DoDestructorCall(Data);
+			}
+
+
 			//Call Object Drop
 			_Builder.Build_Free(IROperand::AsLocation(Ex0));
 		}
@@ -2636,7 +2707,9 @@ bool SystematicAnalysis::IsUIntType(const TypeSymbol& TypeToCheck)
 }
 bool SystematicAnalysis::IsPrimitive(const TypeSymbol& TypeToCheck)
 {
-	return false;
+	return  TypeToCheck.IsAddress() || IsIntType(TypeToCheck)
+		 || TypeToCheck._Type== TypesEnum::Bool
+		|| TypeToCheck._Type == TypesEnum::Char;
 }
 inline bool SystematicAnalysis::IsimmutableRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type)
 {
@@ -2649,6 +2722,19 @@ inline bool SystematicAnalysis::IsAddessAndLValuesRulesfollowed(const TypeSymbol
 		(!TypeToCheck.IsRawValue() == Type.IsAddress()) ||
 		(TypeToCheck.IsRawValue() == Type.IsRawValue())
 		;
+}
+bool SystematicAnalysis::HasDestructor(const TypeSymbol& TypeToCheck)
+{
+	bool DegBugFlag = (OptimizationFlags_t)_Settings->_Flags & (OptimizationFlags_t)OptimizationFlags::ForDebuging;
+
+
+	if (!DegBugFlag && IsPrimitive(TypeToCheck))
+	{
+		return false;
+	}
+
+
+	return true;
 }
 bool SystematicAnalysis::GetSize(const TypeSymbol& Type, UAddress& OutSize)
 {
@@ -2829,6 +2915,10 @@ void SystematicAnalysis::DoFuncCall(const FuncInfo* Func, const ScopedNameNode& 
 	_Builder.Build_FuncCall(GetSymbol(Func)->ID);
 
 	LastExpressionType = Func->Ret;
+}
+void SystematicAnalysis::DoDestructorCall(const ObjectToDrop& Object)
+{
+
 }
 FuncInfo* SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGenericsNode& Generics, const ValueParametersNode& Pars, TypeSymbol Ret)
 {
