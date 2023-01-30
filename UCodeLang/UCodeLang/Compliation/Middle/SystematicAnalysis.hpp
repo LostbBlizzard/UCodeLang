@@ -77,7 +77,21 @@ private:
 	}
 	const Token* LastLookedAtToken = nullptr;
 	//
+	struct ObjectToDrop
+	{
+		IRField Object;
+		TypeSymbol Type;
+	};
+	
+	struct IRCodeStackFrames
+	{
+		Vector< ObjectToDrop> OnEndStackFrame;
 
+
+	};
+	Vector<IRCodeStackFrames> StackFrames;
+	void PushNewStackFrame();
+	void PopStackFrame();
 
 	struct NewFuncData
 	{
@@ -104,6 +118,8 @@ private:
 	{
 		ClassDependencies.pop_back();
 	}
+
+	SymbolID GetSymbolID(const Node& node);
 
 	void Pass();
 	void OnFileNode(const FileNode* const& File);
@@ -205,6 +221,8 @@ private:
 	bool IsimmutableRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
 
 	bool IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
+	
+	bool HasDestructor(const TypeSymbol& TypeToCheck);
 	//Generic
 	struct GenericFuncInfo
 	{
@@ -220,6 +238,8 @@ private:
 
 
 	void DoFuncCall(const FuncInfo* Func, const ScopedNameNode& Name, const ValueParametersNode& Pars);
+
+	void DoDestructorCall(const ObjectToDrop& Object);
 
 	FuncInfo* GetFunc(
 		const TypeSymbol& Name,
