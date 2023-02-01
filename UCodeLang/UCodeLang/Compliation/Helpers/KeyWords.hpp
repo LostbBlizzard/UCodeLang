@@ -55,7 +55,6 @@ inline const char* S_KeyWord_for = "for";
 inline const char* S_KeyWord_do = "do";
 
 inline const char* S_KeyWord_pub = "pub";
-inline const char* S_KeyWord_asm = "asm";
 inline const char* S_KeyWord_enum = "enum";
 inline const char* S_KeyWord_tag = "tag";
 
@@ -129,7 +128,6 @@ inline KeyWord KeyWords[] =
 	KeyWord(S_KeyWord_pub,TokenType::KeyWorld_pub),
 	KeyWord(S_KeyWord_typeof,TokenType::KeyWorld_typeof),
 
-	KeyWord(S_KeyWord_asm,TokenType::KeyWorld_asm),
 	KeyWord(S_KeyWord_enum,TokenType::KeyWorld_Enum),
 	KeyWord(S_KeyWord_tag,TokenType::KeyWorld_Tag),
 	KeyWord(S_KeyWord_umut,TokenType::KeyWorld_umut),

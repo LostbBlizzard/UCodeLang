@@ -17,7 +17,6 @@ public:
 	constexpr static const char* VarKeyWord = UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_var);
 	constexpr static const char* VoidKeyWord = UCodeLang::StringHelper::ToString(UCodeLang::TokenType::Void);
 	constexpr static const char* FuncKeyWord = UCodeLang::StringHelper::ToString(UCodeLang::TokenType::bitwise_or);
-	constexpr static const char* AsmKeyWord = UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_asm);
 
 	constexpr static const char* TrueKeyWord = UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_True);
 	constexpr static const char* FalseKeyWord = UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_False);

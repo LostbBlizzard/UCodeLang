@@ -3,7 +3,7 @@
 
 #include "UCodeLang/LangCore/UClib.hpp"
 #include "UCodeLang/Compliation/Back/BackEndInterface.hpp"
-#include "Symbol.hpp"
+#include "../Middle/Symbol.hpp"
 UCodeLangStart
 
 class SystematicAnalysis
@@ -24,13 +24,10 @@ public:
 
 	void BuildCode();
 
-	UCodeLangForceinline UClib& Get_Output()
+	
+	UCodeLangForceinline IRBuilder& Get_Output()
 	{
-		return _Lib;
-	}
-	UCodeLangForceinline void Set_BackEnd(const BackEndInterface* Value)
-	{
-		BackEnd = Value;
+		return _Builder;
 	}
 
 	enum class PassType : UInt8
@@ -46,8 +43,6 @@ private:
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
 	UClib _Lib;
-	const BackEndInterface* BackEnd = nullptr;
-	BackEndInterface::BackendPtr BackEndObject = nullptr;
 
 
 	PassType passtype = PassType::Null;
@@ -153,14 +148,15 @@ private:
 	void OnCompoundStatementNode(const CompoundStatementNode& node);
 	void OnExpressionTypeNode(const Node* node);
 	void OnExpressionNode(const ValueExpressionNode& node);
+	void OnNewNode(NewExpresionNode* nod);
 	void OnAnonymousObjectConstructor(AnonymousObjectConstructorNode*& nod);
+	void DoFuncCall(TypeSymbol& Type, const const UCodeLang::FuncInfo*& Func,ValueParametersNode& ValuePars);
 	void OnReadVariable(const ReadVariableNode& nod);
 	void BindTypeToLastIR(TypeSymbol& Type);
 	void OnExpressionNode(const BinaryExpressionNode& node);
 	void OnExpressionNode(const CastNode& node);
 	void OnFuncCallNode(const FuncCallNode& node);
 	void OnDropStatementNode(const DropStatementNode& node);
-	void CheckBackEnd();
 	void PushTepAttributesInTo(Vector<AttributeData>& Input);
 	void LoadLibSymbols();
 	void LoadLibSymbols(const UClib& lib);
@@ -268,70 +264,22 @@ private:
 
 	Unordered_map<const void*,const FuncInfo*> FuncToSyboID;
 
-	void Build_Assign_uIntPtr(UAddress Value)
-	{
-		_Builder.Build_Assign(IROperand::AsInt64(Value));
-	}
-	void Build_Assign_sIntPtr(SIntNative Value)
-	{
-		_Builder.Build_Assign(IROperand::AsInt64(Value));
-	}
-	
-	void Build_Add_uIntPtr(IROperand field, IROperand field2)
-	{
-		_Builder.MakeAdd64(field, field2);
-	}
-	void Build_Sub_uIntPtr(IROperand field, IROperand field2)
-	{
-		_Builder.MakeSub64(field, field2);
-	}
-	
-	void Build_Add_sIntPtr(IROperand field, IROperand field2)
-	{
-		_Builder.MakeAdd64(field, field2);
-	}
-	void Build_Sub_sIntPtr(IROperand field, IROperand field2)
-	{
-		_Builder.MakeSub64(field, field2);
-	}
-	
-	
-	void Build_Mult_uIntPtr(IROperand field, IROperand field2)
-	{
-		_Builder.MakeUMult64(field, field2);
-	}
-	void Build_Mult_sIntPtr(IROperand field, IROperand field2)
-	{
-		_Builder.MakeSMult64(field, field2);
-	}
 
-	void Build_Div_uIntPtr(IROperand field, IROperand field2)
-	{
-		_Builder.MakeUDiv64(field, field2);
-	}
-	void Build_Div_sIntPtr(IROperand field, IROperand field2)
-	{
-		_Builder.MakeSDiv64(field, field2);
-	}
-	
-	
-	void Build_Increment_uIntPtr(UAddress Value)
-	{
-		_Builder.Build_Increment64(Value);
-	}
-	void Build_Decrement_uIntPtr(UAddress Value)
-	{
-		_Builder.Build_Decrement64(Value);
-	}
-
-	void Build_Increment_sIntPtr(SIntNative Value)
-	{
-		_Builder.Build_Increment64(Value);
-	}
-	void Build_Decrement_sIntPtr(SIntNative Value)
-	{
-		_Builder.Build_Decrement64(Value);
-	}
+	//uintptr
+	void Build_Assign_uIntPtr(UAddress Value);
+	void Build_Assign_sIntPtr(SIntNative Value);
+	void Build_Add_uIntPtr(IROperand field, IROperand field2);
+	void Build_Sub_uIntPtr(IROperand field, IROperand field2);
+	void Build_Add_sIntPtr(IROperand field, IROperand field2);
+	void Build_Sub_sIntPtr(IROperand field, IROperand field2);
+	void Build_Mult_uIntPtr(IROperand field, IROperand field2);
+	void Build_Mult_sIntPtr(IROperand field, IROperand field2);
+	void Build_Div_uIntPtr(IROperand field, IROperand field2);
+	void Build_Div_sIntPtr(IROperand field, IROperand field2);
+	void Build_Increment_uIntPtr(UAddress Value);
+	void Build_Decrement_uIntPtr(UAddress Value);
+	void Build_Increment_sIntPtr(SIntNative Value);
+	void Build_Decrement_sIntPtr(SIntNative Value);
 	
 
 	//Errors

@@ -134,7 +134,17 @@ struct IROperand
 		operand.SymbolId = Value;
 		return operand;
 	}
+
+
 	UCodeLangForceinline static IROperand AsReadPointer(SymbolID Value)
+	{
+		IROperand operand;
+		operand.Type = IRFieldInfoType::ReadPointer;
+		operand.SymbolId = Value;
+		return operand;
+	}
+
+	UCodeLangForceinline static IROperand AsWritingPointer(SymbolID Value)
 	{
 		IROperand operand;
 		operand.Type = IRFieldInfoType::ReadPointer;
@@ -143,17 +153,20 @@ struct IROperand
 	}
 };
 
-struct TypeSymbol;
 
 struct IRCode
 {
+	struct TypeSybol
+	{
+		size_t TypeSize;
+	};
 	IROperand Result;
 
 	IROperand Operand0;
 	IROperator Operator = IROperator::Null;
 	IROperand Operand1;
-	Unique_ptr<TypeSymbol> InfoType;//will be update if is class fleid
-	//Unique Pointer because depedency loop.
+
+	TypeSybol InfoType;
 };
 
 struct IRSeg
@@ -386,6 +399,10 @@ public:
 		return GetLastField() + 1;
 	}
 	inline auto& Get_Code()
+	{
+		return Code;
+	}
+	inline const auto& Get_Code() const
 	{
 		return Code;
 	}

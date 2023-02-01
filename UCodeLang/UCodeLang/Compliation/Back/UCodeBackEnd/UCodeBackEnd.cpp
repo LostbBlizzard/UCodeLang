@@ -5,28 +5,7 @@ UCodeLangStart
 #define GenIns(x) ResetIns(); x;
 #define GenInsPush(x) ResetIns(); x;	ULib.Add_Instruction(_Ins);
 
-void UCodeBackEnd::Bind(BackEndInterface& Obj)
-{
-	Obj
-	.Set_GenBackEnd(Gen)
-	.Set_DeleteBackEnd(Delete)
-	.Set_ErrorsOutput(Set_ErrorsOutput)
-	.Set_Analysis(Set_Analysis)
-	.Set_BuildInput(Build)
-		;
-}
-const BackEndInterface* UCodeBackEnd::Get()
-{
-	static bool IsMade = false;
-	static BackEndInterface BackEnd;
-	if (!IsMade)
-	{
-		Bind(BackEnd);
-		IsMade = true;
-	}
 
-	return &BackEnd;
-}
 
 UCodeBackEndObject::UCodeBackEndObject()
 {
@@ -38,11 +17,16 @@ UCodeBackEndObject::~UCodeBackEndObject()
 }
 
 
-void UCodeBackEndObject::Build(BackEndInput& Input)
+void UCodeBackEndObject::Reset()
 {
-	_BackInput = &Input;
 
-	auto& Code = Input._Builder->Get_Code();
+}
+
+void UCodeBackEndObject::Build(const IRBuilder* Input)
+{
+	_BackInput = Input;
+
+	auto& Code = Input->Get_Code();
 	
 	for (_Index = 0; _Index < Code.size(); _Index++)
 	{
@@ -155,10 +139,11 @@ else\
 
 void UCodeBackEndObject::BuildFunc()
 {
-	auto& Code = _BackInput->_Builder->Get_Code();
+	auto& Code = _BackInput->Get_Code();
 	auto& Func = Code[_Index];
 	auto SybID = Func.Operand0.SymbolId;
-	auto& Sym = _BackInput->_Table->GetSymbol(SybID);
+
+	String_view FuncName = "Help";
 
 	auto& ULib = Getliboutput();
 	
@@ -166,7 +151,7 @@ void UCodeBackEndObject::BuildFunc()
     StackSize = 0;
 
 	IRCodeIndexToUAddressIndexs.push_back(FuncStart);
-
+	/*
 	for (_Index = _Index + 1; _Index < Code.size(); _Index++)
 	{
 		auto& IR = Code[_Index];
@@ -213,10 +198,9 @@ void UCodeBackEndObject::BuildFunc()
 		{
 			auto VarSymbolID = IR.Operand0.SymbolId;
 			BuildData& Data = SymbolToData[VarSymbolID];
-			Symbol& ParSymbol = _BackInput->_Table->GetSymbol(VarSymbolID);
+		
 
-
-			auto TypeSize = Analysis->GetTypeSize(ParSymbol.VarType);
+			auto TypeSize = IR.InfoType.TypeSize;
 			if (TypeSize <= RegisterSize && ParameterRegisterValue < RegisterID::EndParameterRegister)
 			{
 				Data.Type = BuildData_t::ParameterInRegister;
@@ -326,10 +310,13 @@ void UCodeBackEndObject::BuildFunc()
 
 		
 	}
-EndLoop:
+	*/
+	EndLoop:
 
+	/*
 	GenInsPush(InstructionBuilder::Return(ExitState::Success, _Ins));
-	
+	*/
+
 	_Registers.Reset();
 	ParameterRegisterValue = RegisterID::StartParameterRegister; 
 	CallParameterRegisterValue = RegisterID::StartParameterRegister;
@@ -339,14 +326,16 @@ EndLoop:
 		throw std::exception("item readded");
 	}
 	DeclareCalls[SybID] = { FuncStart };
-	ULib.Add_NameToInstruction(FuncStart, Sym.FullName);
+	ULib.Add_NameToInstruction(FuncStart, (String)FuncName);
 }
 
-void UCodeBackEndObject::OnAsPointer(UCodeLang::RegisterID& R, UCodeLang::IRCode& IR)
+void UCodeBackEndObject::OnAsPointer(UCodeLang::RegisterID& R, const IRCode& IR)
 {
 	auto& ULib = Getliboutput();
 	R = _Registers.GetFreeRegisterAndWeakLock();
 
+
+	/*
 	auto VarSymbolID = IR.Operand0.SymbolId;
 	Symbol& SybV = _BackInput->_Table->GetSymbol(VarSymbolID);
 	BuildData& Data = SymbolToData[VarSymbolID];
@@ -358,9 +347,10 @@ void UCodeBackEndObject::OnAsPointer(UCodeLang::RegisterID& R, UCodeLang::IRCode
 	{
 		throw std::exception("not added");
 	}
+	*/
 }
 
-void UCodeBackEndObject::StoreResultIR(UCodeLang::IRCode& IR, UCodeLang::RegisterID R)
+void UCodeBackEndObject::StoreResultIR(const IRCode& IR, UCodeLang::RegisterID R)
 {
 	if (IR.Result.Type == IRFieldInfoType::IRLocation)
 	{
@@ -373,10 +363,11 @@ void UCodeBackEndObject::StoreResultIR(UCodeLang::IRCode& IR, UCodeLang::Registe
 	}
 }
 
-void UCodeBackEndObject::OnReadVarOperand(UCodeLang::RegisterID& R, UCodeLang::IRCode& IR, UCodeLang::UClib& ULib)
+void UCodeBackEndObject::OnReadVarOperand(UCodeLang::RegisterID& R, const IRCode& IR, UCodeLang::UClib& ULib)
 {
 	R = _Registers.GetFreeRegisterAndWeakLock();
 
+	/*
 	auto VarSymbolID = IR.Operand0.SymbolId;
 	Symbol& SybV = _BackInput->_Table->GetSymbol(VarSymbolID);
 	BuildData& Data = SymbolToData[VarSymbolID];
@@ -415,6 +406,7 @@ void UCodeBackEndObject::OnReadVarOperand(UCodeLang::RegisterID& R, UCodeLang::I
 	{
 		throw std::exception();
 	}
+	*/
 }
 
 void UCodeBackEndObject::Link()
@@ -433,7 +425,7 @@ void UCodeBackEndObject::Link()
 
 }
 
-void UCodeBackEndObject::SetSybToRegister(RegisterID R, IRCode& IR)
+void UCodeBackEndObject::SetSybToRegister(RegisterID R, const IRCode& IR)
 {
 	SetIRToRegister(R,IR.Result.IRLocation);
 }
@@ -480,6 +472,8 @@ void UCodeBackEndObject::StoreVar(const IRCode& IR, const RegisterID R)
 	auto& ULib = Getliboutput();
 	auto VarSymbolID = IR.Result.SymbolId;
 	BuildData* Data;
+
+	/*
 	Symbol& Symbol = _BackInput->_Table->GetSymbol(VarSymbolID);
 	if (SymbolToData.count(VarSymbolID))
 	{
@@ -540,7 +534,7 @@ void UCodeBackEndObject::StoreVar(const IRCode& IR, const RegisterID R)
 		BuildSybolIntSizeIns(VarType, StoreRegOnStack, (_Ins, R, Data->offset + IR.Operand1.AnyValue.AsAddress));
 	}
 	
-	
+	*/
 }
 
 UCodeLangEnd

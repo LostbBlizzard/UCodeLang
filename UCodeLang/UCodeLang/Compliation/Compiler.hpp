@@ -1,10 +1,13 @@
 #pragma once
 #include "../LangCore.hpp"
-#include "Front/Lexer.hpp"
-#include "Front/Parser.hpp"
-#include "Middle/SystematicAnalysis.hpp"
 
+#include "Front/FrontEndObject.hpp"
+#include "Middle/IROptimizer.hpp"
 #include "UCodeLang/LangCore/UClib.hpp"
+
+
+
+#include "Front/UCodeFrontEndObject.hpp"
 #include "Back/UCodeBackEnd/UCodeBackEnd.hpp"
 UCodeLangStart
 class Compiler
@@ -18,7 +21,7 @@ public:
 	struct CompilerRet
 	{
 		CompilerState _State= CompilerState::Null;
-		UCodeLang::UClib* OutPut =nullptr;
+		UClib* OutPut =nullptr;
 	};
 	struct CompilerPathData
 	{
@@ -30,6 +33,7 @@ public:
 	
 	CompilerRet CompileText(const String_view& Text);
 	static String GetTextFromFile(const Path& path);
+	static BytesPtr GetBytesFromFile(const Path& path);
 	UCodeLangForceinline CompilerRet CompileFileToLib(const Path& path)
 	{
 		return  CompileText(GetTextFromFile(path));
@@ -52,7 +56,13 @@ public:
 	{
 		return _Settings;
 	}
-	UCodeLangForceinline void Set_BackEnd(const BackEndInterface* Value)
+
+
+	UCodeLangForceinline void Set_FrontEnd(FrontEndObject_Ptr Value)
+	{
+		_FrontEnd = Value;
+	}
+	UCodeLangForceinline void Set_BackEnd(BackEndObject_Ptr Value)
 	{
 		_BackEnd = Value;
 	}
@@ -61,11 +71,14 @@ private:
 	CompliationSettings _Settings;
 	CompliationErrors _Errors;
 	//Front
-	Lexer _Lexer;
-	Parser _Parser;
+	Unique_ptr<FrontEndObject> _FrontEndObject;
 	//Middle
-	SystematicAnalysis _Analyzer;
+	IROptimizer _Optimizer;
 	//Back
-	const BackEndInterface* _BackEnd = UCodeBackEnd::Get();
+	Unique_ptr<BackEndObject> _BackEndObject;
+
+
+	FrontEndObject_Ptr _FrontEnd = &UCodeFrontEndObject::MakeObject;
+	BackEndObject_Ptr _BackEnd = &UCodeBackEndObject::MakeObject;
 };
 UCodeLangEnd
