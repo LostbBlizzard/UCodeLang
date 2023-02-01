@@ -26,29 +26,42 @@ void UCodeFrontEndObject::Reset()
 
 Unique_ptr<FileNode_t> UCodeFrontEndObject::BuildFile(String_view Text)
 {
-	auto Err = Get_Errors();
-	auto Sett = Get_Settings();
 
-	_Lexer.Set_ErrorsOutput(Err);
-	_Parser.Set_ErrorsOutput(Err);
-	
+	if (_FileType == UCodeLangInfo::FileTypes::SourceFile) {
+		auto Err = Get_Errors();
+		auto Sett = Get_Settings();
 
-	_Lexer.Set_Settings(Sett);
-	_Parser.Set_Settings(Sett);
-	
-	//
-
-	_Lexer.Lex(Text);
-	
-	if (Err->Has_Errors()) { return {}; }
-	
-
-	_Parser.Parse(_Lexer.Get_Tokens());
-
-	if (Err->Has_Errors()) { return {}; }
+		_Lexer.Set_ErrorsOutput(Err);
+		_Parser.Set_ErrorsOutput(Err);
 
 
-	return Unique_ptr<FileNode_t>(new FileNode(std::move(_Parser.Get_Tree())));
+		_Lexer.Set_Settings(Sett);
+		_Parser.Set_Settings(Sett);
+
+		//
+
+		_Lexer.Lex(Text);
+
+		if (Err->Has_Errors()) { return {}; }
+
+
+		_Parser.Parse(_Lexer.Get_Tokens());
+
+		if (Err->Has_Errors()) { return {}; }
+
+
+		return Unique_ptr<FileNode_t>(new FileNode(std::move(_Parser.Get_Tree())));
+	}
+	else
+	{
+		LibImportNode tep;
+		BytesView Bits;
+		if (UClib::FromBytes(&tep.LIb, Bits)) 
+		{
+			FileNode* tepn = (FileNode*)&tep;
+			return Unique_ptr<FileNode_t>(new FileNode(std::move(*tepn)));
+		}
+	}
 }
 void UCodeFrontEndObject::BuildIR(const Vector<Unique_ptr<FileNode_t>>& fileNode)
 {
@@ -60,11 +73,21 @@ void UCodeFrontEndObject::BuildIR(const Vector<Unique_ptr<FileNode_t>>& fileNode
 	//
 
 	Vector<const FileNode*> V;
-	V.resize(fileNode.size());
+	Vector<const UClib*> L;
 	for (size_t i = 0; i < fileNode.size(); i++)
 	{
-		V[i] = (const FileNode*)fileNode[i].get();
+		auto Item = (const FileNode*)fileNode[i].get();
+
+		if (Item->Get_Type() == NodeType::LibImportNode)
+		{
+			auto N = (const LibImportNode*)Item;
+			L.push_back(&N->LIb);
+		}
+		else
+		{
+			V.push_back(Item);
+		}
 	}
-	_Analyzer.Analyze(V, {});
+	_Analyzer.Analyze(V, L);
 }
 UCodeLangEnd
