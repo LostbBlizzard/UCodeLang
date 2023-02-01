@@ -1,5 +1,6 @@
 #pragma once
 #include "../../LangCore.hpp"
+#include "../Front/FrontEndObject.hpp"
 UCodeLangStart
 
 enum class NodeType :UInt8
@@ -52,7 +53,7 @@ enum class NodeType :UInt8
 };
 
 
-struct Node
+struct Node 
 {
 	Node() { _type = NodeType::Null; };
 	Node(NodeType T) { _type = T; };
@@ -122,7 +123,7 @@ Vector<Unique_ptr<Node>> _Nodes; \
 AddforNode(Type); \
 Has_NodesList(Type); \
 
-struct FileNode : Node
+struct FileNode : FileNode_t,Node
 {
 	FileNode() :Node(NodeType::FileNode)
 	{

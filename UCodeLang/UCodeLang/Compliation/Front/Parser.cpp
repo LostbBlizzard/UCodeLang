@@ -9,17 +9,14 @@ void Parser::Reset()
 {
 	_TokenIndex = 0;
 	_Nodes = nullptr;
-	_Text = String_view();
 	_Tree.Reset();
 }
 
 
 
-void Parser::Parse(const FileData& Data, const Vector<Token>&Tokens)
+void Parser::Parse(const Vector<Token>&Tokens)
 {
 	Reset();
-	_Text = Data.Text;
-	_Tree.FilePath = Data.FilePath;
 	_Nodes = &Tokens;
 	
 	
@@ -251,12 +248,6 @@ GotNodeType Parser::GetStatement(Node*& out)
 	switch (StatementTypeToken->Type)
 	{
 	case TokenType::EndTab:return GotNodeType::EndLoop;
-	case TokenType::KeyWorld_asm:
-	{
-		auto r = GetAsmBlock();
-		out = r.Node;
-		return r.GotNode;
-	}
 	case TokenType::StartTab:
 	{
 		auto r = GetStatements();
@@ -1133,46 +1124,6 @@ GotNodeType Parser::GetUseNode(UsingNode& out)
 	return GotNodeType::Success;
 }
 
-GotNodeType Parser::GetAsmBlock(AsmBlockNode& out)
-{
-	auto AsmToken = TryGetToken();
-	TokenTypeCheck(AsmToken, TokenType::KeyWorld_asm);
-	NextToken();
-
-	auto ColonToken = TryGetToken();
-	TokenTypeCheck(ColonToken, TokenType::Colon);
-	NextToken();
-
-	auto StartToken = TryGetToken(); TokenTypeCheck(StartToken, TokenType::StartTab);
-	if (StartToken->Type == TokenType::StartTab)
-	{
-		NextToken();
-		size_t StringStart = StartToken->OnPos;
-
-		while (TryGetToken()->Type != TokenType::EndofFile)
-		{
-			auto T = TryGetToken();
-			if (T->Type == TokenType::EndTab) { break; }
-			NextToken();
-		}
-		size_t StringEnd = TryGetToken()->OnPos;
-
-		size_t StringSize = StringEnd - StringStart;
-		out.AsmText = _Text.substr(StringStart, StringSize);
-
-		auto EndToken = TryGetToken();
-		TokenTypeCheck(EndToken, TokenType::EndTab);
-		NextToken();
-	}
-	else
-	{
-
-	}
-	
-
-
-	return GotNodeType::Success;
-}
 
 GotNodeType Parser::GetRetStatement(RetStatementNode& out)
 {

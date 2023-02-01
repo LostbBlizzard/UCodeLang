@@ -36,13 +36,8 @@ public:
 	UCodeLangForceinline void Set_ErrorsOutput(CompliationErrors* V){_ErrorsOutput = V;}
 	UCodeLangForceinline void Set_Settings(CompliationSettings* V) { _Settings = V; }
 
-	struct FileData
-	{
-		String_view Text;//For AsmBlock to Work
-		String_view FilePath;
-	};
-
-	void Parse(const FileData& Data,const Vector<Token>& Tokens);
+	
+	void Parse(const Vector<Token>& Tokens);
 	UCodeLangForceinline bool Get_ParseSucces() { return _ParseSuccess; }
 	UCodeLangForceinline FileNode& Get_Tree() { return _Tree; }
 private:
@@ -50,7 +45,6 @@ private:
 	const Vector<Token>* _Nodes = nullptr;
 	FileNode _Tree;
 	bool _ParseSuccess = false;
-	String_view _Text;
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
 
@@ -109,7 +103,6 @@ private:
 	{
 		switch (type)
 		{
-		case TokenType::KeyWorld_asm:return true;
 		case TokenType::StartTab:return true;
 		case TokenType::KeyWorld_use:return true;
 		case TokenType::Class:return true;
@@ -183,13 +176,6 @@ private:
 	}
 	GotNodeType GetUseNode(UsingNode& out);
 	//Statements
-	TryGetNode GetAsmBlock()
-	{
-		AsmBlockNode* V = AsmBlockNode::Gen();
-		auto r = GetAsmBlock(*V);
-		return { r,V->As() };
-	}
-	GotNodeType GetAsmBlock(AsmBlockNode& out);
 
 	TryGetNode GetRetStatement()
 	{

@@ -94,7 +94,6 @@ enum class TokenType : TokenType_t
 	KeyWorld_pub,//pub
 	KeyWorld_typeof,//typeof
 	hash,//#
-	KeyWorld_asm,//asm
 
 	approximate_Comparison,//~=
 
@@ -219,8 +218,6 @@ public:
 		case UCodeLang::TokenType::KeyWorld_typeof: return "typeof";
 
 		case UCodeLang::TokenType::hash: return "#";
-
-		case UCodeLang::TokenType::KeyWorld_asm: return "asm";
 
 		case UCodeLang::TokenType::KeyWorld_Enum:return "enum";
 		case UCodeLang::TokenType::KeyWorld_umut:return "umut";

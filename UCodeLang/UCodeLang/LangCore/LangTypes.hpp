@@ -43,7 +43,7 @@ using Byte = UInt8;
 //A int that can Address any ULang Value
 using UAddress = UIntNative;
 constexpr UAddress NullAddress = (UAddress)-1;
-
+constexpr Byte DebugGarbageByte = 'Y';
 //
 constexpr UInt64 NullUInt64 = (UInt64)nullptr;
 
