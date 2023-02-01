@@ -50,6 +50,7 @@ enum class NodeType :UInt8
 	SizeofExpresionNode,
 	NewExpresionNode,
 	DropStatementNode,
+	LibImportNode,
 };
 
 
@@ -139,5 +140,16 @@ struct FileNode : FileNode_t,Node
 		FilePath = "";
 		_Nodes.clear();
 	}
+};
+
+struct LibImportNode :FileNode_t, Node
+{
+	LibImportNode() : Node(NodeType::LibImportNode)
+	{
+
+	}
+	AddforNode(LibImportNode);
+
+	UClib LIb;
 };
 UCodeLangEnd
