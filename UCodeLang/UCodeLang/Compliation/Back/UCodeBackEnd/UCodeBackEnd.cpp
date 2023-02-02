@@ -82,38 +82,25 @@ break;\
 
 
 
-#define BuildSybolIntSizeInsv(Ins,x,Pars) \
-						case TypesEnum::uInt##x:\
-						case TypesEnum::sInt##x:\
-						GenInsPush(InstructionBuilder::##Ins##x##Pars);\
-						break;\
-
 #define BuildSybolIntSizeIns(VarType,Ins,Pars) \
-if (VarType.IsAddress() || \
-	VarType._Type == TypesEnum::uIntPtr ||\
-	VarType._Type == TypesEnum::sIntPtr)\
-{\
-	GenInsPush(InstructionBuilder::##Ins##64##Pars);\
-}\
-else\
-{\
-	switch (VarType._Type)\
+	switch (VarType.InfoType.TypeSize)\
 	{\
-		case TypesEnum::Char:\
+		case sizeof(UInt8):\
 		GenInsPush(InstructionBuilder::##Ins##8##Pars); \
 		break; \
-		case TypesEnum::Bool:\
-		GenInsPush(InstructionBuilder::##Ins##8##Pars);\
-		break;\
-		BuildSybolIntSizeInsv(Ins,8,Pars);\
-		BuildSybolIntSizeInsv(Ins,16,Pars);\
-		BuildSybolIntSizeInsv(Ins,32,Pars);\
-		BuildSybolIntSizeInsv(Ins,64,Pars);\
+		case sizeof(UInt16):\
+		GenInsPush(InstructionBuilder::##Ins##16##Pars); \
+		break; \
+		case sizeof(UInt32):\
+		GenInsPush(InstructionBuilder::##Ins##32##Pars); \
+		break; \
+		case sizeof(UInt64):\
+		GenInsPush(InstructionBuilder::##Ins##64##Pars); \
+		break; \
 	default:\
 		throw std::exception();\
 		break;\
 	}\
-}\
 
 
 #define BuildSybolIntSizeIns2(VarType,Ins,Pars) \
@@ -143,7 +130,7 @@ void UCodeBackEndObject::BuildFunc()
 	auto& Func = Code[_Index];
 	auto SybID = Func.Operand0.SymbolId;
 
-	String_view FuncName = "Help";
+	String_view FuncName = Func.InfoType.Name;
 
 	auto& ULib = Getliboutput();
 	
@@ -151,7 +138,7 @@ void UCodeBackEndObject::BuildFunc()
     StackSize = 0;
 
 	IRCodeIndexToUAddressIndexs.push_back(FuncStart);
-	/*
+	
 	for (_Index = _Index + 1; _Index < Code.size(); _Index++)
 	{
 		auto& IR = Code[_Index];
@@ -263,7 +250,7 @@ void UCodeBackEndObject::BuildFunc()
 		break;
 		case IROperator::Ret_Value:
 		{
-			auto RetTypeSize = Analysis->GetTypeSize(Sym.VarType);
+			auto RetTypeSize = IR.InfoType.TypeSize;
 			if (RetTypeSize <= RegisterSize)
 			{
 				GetOperandInRegister(IR.Operand0, RegisterID::OuPutRegister);
@@ -310,12 +297,12 @@ void UCodeBackEndObject::BuildFunc()
 
 		
 	}
-	*/
+	
 	EndLoop:
 
-	/*
+	
 	GenInsPush(InstructionBuilder::Return(ExitState::Success, _Ins));
-	*/
+	
 
 	_Registers.Reset();
 	ParameterRegisterValue = RegisterID::StartParameterRegister; 
@@ -335,11 +322,11 @@ void UCodeBackEndObject::OnAsPointer(UCodeLang::RegisterID& R, const IRCode& IR)
 	R = _Registers.GetFreeRegisterAndWeakLock();
 
 
-	/*
+	
 	auto VarSymbolID = IR.Operand0.SymbolId;
-	Symbol& SybV = _BackInput->_Table->GetSymbol(VarSymbolID);
+	
 	BuildData& Data = SymbolToData[VarSymbolID];
-	if (SybV.Type == SymbolType::StackVarable)
+	if (Data.Type == BuildData_t::StackVarable)
 	{
 		GenInsPush(InstructionBuilder::GetPointerOfStack(_Ins, R,Data.offset));
 	}
@@ -347,7 +334,7 @@ void UCodeBackEndObject::OnAsPointer(UCodeLang::RegisterID& R, const IRCode& IR)
 	{
 		throw std::exception("not added");
 	}
-	*/
+	
 }
 
 void UCodeBackEndObject::StoreResultIR(const IRCode& IR, UCodeLang::RegisterID R)
@@ -367,20 +354,16 @@ void UCodeBackEndObject::OnReadVarOperand(UCodeLang::RegisterID& R, const IRCode
 {
 	R = _Registers.GetFreeRegisterAndWeakLock();
 
-	/*
+
 	auto VarSymbolID = IR.Operand0.SymbolId;
-	Symbol& SybV = _BackInput->_Table->GetSymbol(VarSymbolID);
 	BuildData& Data = SymbolToData[VarSymbolID];
-	if (SybV.Type == SymbolType::StackVarable)
+	if (Data.Type == BuildData_t::StackVarable)
 	{
 		auto V = _Registers.GetInfo(IR.Result.IRLocation);
 
-		const TypeSymbol& VarType = !IR.InfoType ? SybV.VarType : *IR.InfoType;
-
-
 		if (V == RegisterID::NullRegister)
 		{
-			BuildSybolIntSizeIns(VarType, GetFromStack, (_Ins, Data.offset + IR.Operand1.AnyValue.AsAddress, R));
+			BuildSybolIntSizeIns(IR, GetFromStack, (_Ins, Data.offset + IR.Operand1.AnyValue.AsAddress, R));
 			SetSybToRegister(R, IR);
 		}
 		else
@@ -389,24 +372,18 @@ void UCodeBackEndObject::OnReadVarOperand(UCodeLang::RegisterID& R, const IRCode
 			R = V;
 		}
 	}
-	else if (SybV.Type == SymbolType::ParameterVarable)
+	else if (Data.Type == BuildData_t::ParameterInRegister)
 	{
-		if (Data.Type == BuildData_t::ParameterInRegister)
-		{
-			_Registers.UnLockWeakRegister(R);
-			R = (RegisterID)Data.offset;
-			SetIRToRegister(R, IR.Result.IRLocation);
-		}
-		else
-		{
-			throw std::exception();
-		}
+
+		_Registers.UnLockWeakRegister(R);
+		R = (RegisterID)Data.offset;
+		SetIRToRegister(R, IR.Result.IRLocation);
 	}
 	else
 	{
 		throw std::exception();
 	}
-	*/
+	
 }
 
 void UCodeBackEndObject::Link()
@@ -473,68 +450,42 @@ void UCodeBackEndObject::StoreVar(const IRCode& IR, const RegisterID R)
 	auto VarSymbolID = IR.Result.SymbolId;
 	BuildData* Data;
 
-	/*
-	Symbol& Symbol = _BackInput->_Table->GetSymbol(VarSymbolID);
+	
 	if (SymbolToData.count(VarSymbolID))
 	{
 		Data = &SymbolToData[VarSymbolID];
 	}
 	else
 	{
-		if (Symbol.Type == SymbolType::StackVarable)
-		{
-			SymbolToData[VarSymbolID] = {};
-		
-			Data = &SymbolToData[VarSymbolID];
-			Data->Type = BuildData_t::Null;
-			Data->offset = StackSize;
-			
-			StackSize += Symbol.Size;
-		}
-		else if (Symbol.Type == SymbolType::Class_Field)
-		{
-			SymbolToData[VarSymbolID] = {};
+		SymbolToData[VarSymbolID] = {};
 
-			Data = &SymbolToData[VarSymbolID];
-			Data->Type = BuildData_t::ThisObjectWithOffset;
-			Data->offset = IR.Operand1.AnyValue.AsAddress;
-		}
-		else
-		{
-			throw std::exception("not added");
-		}
+		Data = &SymbolToData[VarSymbolID];
+		Data->Type = BuildData_t::StackVarable;
+		Data->offset = StackSize;
+
+		StackSize += Data->DataSize;
 	}
-
-	const TypeSymbol& VarType = !IR.InfoType ? Symbol.VarType : *IR.InfoType;
 	
-	
-	if (VarType._Type == TypesEnum::CustomType)
-	{
-		int a = 0;
 
-	}
-	else
 	if (Data->Type == BuildData_t::ParameterInRegister)
 	{
 		auto R2 = (RegisterID)Data->offset;
 
 		if (R != R2)
 		{
-			BuildSybolIntSizeIns(VarType, StoreRegToReg, (_Ins, R, R2));
+			BuildSybolIntSizeIns(IR, StoreRegToReg, (_Ins, R, R2));
 		}
 	}
 	else if (Data->Type == BuildData_t::ThisObjectWithOffset)
 	{
-		int q = 0;
-
-
+		throw std::exception("not added");
 	}
 	else
 	{
-		BuildSybolIntSizeIns(VarType, StoreRegOnStack, (_Ins, R, Data->offset + IR.Operand1.AnyValue.AsAddress));
+		BuildSybolIntSizeIns(IR, StoreRegOnStack, (_Ins, R, Data->offset + IR.Operand1.AnyValue.AsAddress));
 	}
 	
-	*/
+	
 }
 
 UCodeLangEnd

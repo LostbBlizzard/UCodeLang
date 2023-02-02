@@ -47,6 +47,7 @@ private:
 	enum class BuildData_t :UInt8
 	{
 		Null,
+		StackVarable,
 		ThisObjectWithOffset,
 		ParameterInRegister,
 	};

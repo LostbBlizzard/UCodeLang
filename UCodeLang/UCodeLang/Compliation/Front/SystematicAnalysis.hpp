@@ -152,7 +152,7 @@ private:
 	void OnAnonymousObjectConstructor(AnonymousObjectConstructorNode*& nod);
 	void DoFuncCall(TypeSymbol& Type, const const UCodeLang::FuncInfo*& Func,ValueParametersNode& ValuePars);
 	void OnReadVariable(const ReadVariableNode& nod);
-	void BindTypeToLastIR(TypeSymbol& Type);
+	
 	void OnExpressionNode(const BinaryExpressionNode& node);
 	void OnExpressionNode(const CastNode& node);
 	void OnFuncCallNode(const FuncCallNode& node);
@@ -281,7 +281,7 @@ private:
 	void Build_Increment_sIntPtr(SIntNative Value);
 	void Build_Decrement_sIntPtr(SIntNative Value);
 	
-
+	void BindTypeToLastIR(TypeSymbol& Type);
 	//Errors
 
 	void LogCantFindCompoundOpForTypes(const Token* BinaryOp, TypeSymbol& Ex0Type, TypeSymbol& Ex1Type);
