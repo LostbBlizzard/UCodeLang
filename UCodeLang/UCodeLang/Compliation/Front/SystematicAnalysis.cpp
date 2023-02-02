@@ -584,7 +584,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 	if (buidCode && !ignoreBody)
 	{
-		_Builder.Build_Func(sybId);
+		_Builder.Build_Func(sybId,syb->FullName);
 
 		PushNewStackFrame();
 
@@ -2081,11 +2081,11 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 	if (passtype == PassType::BuidCode)
 	{
 		auto& LookForT = Get_LookingForType();
-		//if (LookForT.IsLocationValue())
+		if (LookForT.IsAddress())
 		{
-			//_Builder.Build_Assign(IROperand::AsPointer(sybId));
+			_Builder.Build_Assign(IROperand::AsPointer(sybId));
 		}
-		//else
+		else
 		{
 			_Builder.Build_Assign(IROperand::AsReadVarable(sybId),V.Offset);
 
@@ -2102,9 +2102,8 @@ SetExpressionInfo:
 
 void SystematicAnalysis::BindTypeToLastIR(TypeSymbol& Type)
 {
-
-	//auto& V2 = _Builder.GetLast_IR();
-	//V2.InfoType = std::make_unique<TypeSymbol>(Type);
+	auto& V2 = _Builder.GetLast_IR();
+	GetSize(Type, V2.InfoType.TypeSize);
 }
 
 void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)

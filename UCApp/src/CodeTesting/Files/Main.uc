@@ -1,10 +1,7 @@
 
 
 
-|main[bool T]: 
+|main[]: 
 
-
- bool V =true;
- bool& H =V;
-
- H =true;
+ int a = 5 + 6 ;
+ ret a;

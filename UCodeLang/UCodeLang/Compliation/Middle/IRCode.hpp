@@ -159,6 +159,7 @@ struct IRCode
 	struct TypeSybol
 	{
 		size_t TypeSize;
+		String_view Name;
 	};
 	IROperand Result;
 
@@ -282,11 +283,12 @@ public:
 		V.Operator = IROperator::Ret_Value;
 	}
 
-	void Build_Func(SymbolID Value)
+	void Build_Func(SymbolID Value,String_view FuncName)
 	{
 		auto& V = Code.emplace_back();
 		V.Operator = IROperator::Func;
 		V.Operand0 = IROperand::AsSymbol(Value);
+		V.InfoType.Name = FuncName;
 	}
 	void Build_Parameter(SymbolID Value)
 	{
