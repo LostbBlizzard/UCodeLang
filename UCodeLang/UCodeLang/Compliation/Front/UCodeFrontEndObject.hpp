@@ -48,6 +48,8 @@ public:
 
 	const LangDefInfo* GetInfo() override { return  &UCodeLangInfo::GetLangInfo(); }
 
+	UClib* Get_Lib() override {return &_Analyzer.Get_Lib(); }
+
 	static FrontEndObject* MakeObject() { return new UCodeFrontEndObject(); }
 private:
 	Lexer _Lexer;

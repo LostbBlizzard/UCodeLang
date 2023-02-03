@@ -224,4 +224,18 @@ struct BytesPtr
 	size_t Size;
 };
 
+enum class IntSizes : UInt8
+{
+	Int8,
+	Int16,
+	Int32,
+	Int64,
+
+	#if UCodeLang_64BitSytem
+	Native = Int64,
+	#else
+	Native = Int32,
+	#endif // 0
+};
+
 UCodeLangEnd

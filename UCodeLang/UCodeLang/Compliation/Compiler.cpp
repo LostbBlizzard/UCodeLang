@@ -191,10 +191,10 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 			_BackEndObject->Set_Settings(&_Settings);
 			_BackEndObject->Set_ErrorsOutput(&_Errors);
 
-
 			auto output = _FrontEndObject->Get_Builder();
 			if (output) 
 			{
+				_BackEndObject->Set_Output(_FrontEndObject->Get_Lib());
 				_BackEndObject->Build(output);
 
 				r.OutPut = &_BackEndObject->Getliboutput();

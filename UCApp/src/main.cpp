@@ -56,6 +56,8 @@ int main()
 	UCodeLang::Compiler _Compiler;
 	UCodeLang::CompliationSettings& Settings =_Compiler.Get_Settings();
 	UCodeLang::Compiler::CompilerPathData Data;
+	Settings.PtrSize = IntSizes::Int8;
+
 	//Main
 	Settings._Type = OutPutType::Lib;
 	Data.FileDir = FileDir;

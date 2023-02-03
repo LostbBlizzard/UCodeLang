@@ -1,10 +1,10 @@
 
-
+$Vec2:
+ uintptr X;
+ uintptr Y;
 
 |main[bool V]: 
 
- do: 
+ uintptr A = 8;
 
- while V;
- 
  ret V;

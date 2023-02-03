@@ -31,5 +31,6 @@ struct CompliationSettings
 {
 	OutPutType _Type = OutPutType::Lib;
 	OptimizationFlags _Flags = OptimizationFlags::ForDebuging;
+	IntSizes PtrSize = IntSizes::Native;
 };
 UCodeLangEnd

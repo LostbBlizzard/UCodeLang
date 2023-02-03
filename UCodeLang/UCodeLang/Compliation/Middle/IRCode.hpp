@@ -16,13 +16,6 @@ DivU##Bit,\
 DivS##Bit,\
 
 
-enum class IntSizes : UInt8
-{
-	Int8,
-	Int16,
-	Int32,
-	Int64,
-};
 
 enum class IROperator : UInt8
 {
@@ -184,26 +177,38 @@ struct IRSeg
 	UCodeLangForceinline void MakeAdd##X(IROperand field, IROperand field2) \
 	{ \
 		MakeOperand(field, field2, IROperator::Add##X);\
+		auto& V2 = GetLast_IR();	\
+		V2.InfoType.TypeSize =sizeof(Int##X);\
 	}\
 	UCodeLangForceinline void MakeSub##X(IROperand field, IROperand field2)\
 	{\
 		MakeOperand(field, field2, IROperator::Sub##X);\
+		auto& V2 = GetLast_IR();	\
+		V2.InfoType.TypeSize =sizeof(Int##X);\
 	}\
 	UCodeLangForceinline void MakeUMult##X(IROperand field, IROperand field2)\
 	{\
 		MakeOperand(field, field2, IROperator::MultU##X);\
+		auto& V2 = GetLast_IR();	\
+		V2.InfoType.TypeSize =sizeof(Int##X);\
 	}\
 	UCodeLangForceinline void MakeSMult##X(IROperand field, IROperand field2)\
 	{\
 		MakeOperand(field, field2, IROperator::MultS##X);\
+		auto& V2 = GetLast_IR();	\
+		V2.InfoType.TypeSize =sizeof(Int##X);\
 	}\
 	UCodeLangForceinline void MakeUDiv##X(IROperand field, IROperand field2)\
 	{\
 		MakeOperand(field, field2, IROperator::DivU##X);\
+		auto& V2 =GetLast_IR();	\
+		V2.InfoType.TypeSize =sizeof(Int##X);\
 	}\
 	UCodeLangForceinline void MakeSDiv##X(IROperand field, IROperand field2)\
 	{\
 		MakeOperand(field, field2, IROperator::DivS##X);\
+		auto& V2 = GetLast_IR();	\
+		V2.InfoType.TypeSize =sizeof(Int##X);\
 	}\
 	UCodeLangForceinline void Build_Increment##X(IROperand field,Int##X Value)\
 	{\
