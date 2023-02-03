@@ -5,7 +5,7 @@ using UToken = UCodeLang::Token;
 using UTokenType = UCodeLang::TokenType;
 bool IsKeyWord(UTokenType T)
 {
-
+	return false;
 }
 
 void SyntaxHighlighter::Parse(StringView Text)

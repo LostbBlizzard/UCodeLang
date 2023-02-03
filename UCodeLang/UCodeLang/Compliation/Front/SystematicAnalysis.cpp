@@ -1343,8 +1343,10 @@ void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 		
 		#define buildPortFixS(x)\
 		_Builder.Build_Assign(IROperand::AsInt##x((Int##x)1));\
+		BindTypeToLastIR(Type);\
 		auto V0 = IROperand::AsLocation(_Builder.GetLastField());\
 		_Builder.Build_Assign(IROperand::AsReadVarable(sybId));\
+		BindTypeToLastIR(Type);\
 		auto V1 = IROperand::AsLocation(_Builder.GetLastField());\
 		if (node.PostfixOp->Type == TokenType::increment)\
 		{\
@@ -1357,8 +1359,10 @@ void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 
 		#define buildPortFixU(x)\
 		_Builder.Build_Assign(IROperand::AsInt##x((UInt##x)1));\
+		BindTypeToLastIR(Type);\
 		auto V0 = IROperand::AsLocation(_Builder.GetLastField());\
 		_Builder.Build_Assign(IROperand::AsReadVarable(sybId));\
+		BindTypeToLastIR(Type);\
 		auto V1 = IROperand::AsLocation(_Builder.GetLastField());\
 		if (node.PostfixOp->Type == TokenType::increment)\
 		{\
@@ -1398,6 +1402,7 @@ void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 			Build_Assign_uIntPtr(1);
 			auto V0 = IROperand::AsLocation(_Builder.GetLastField());
 			_Builder.Build_Assign(IROperand::AsReadVarable(sybId));
+			BindTypeToLastIR(Type);
 			auto V1 = IROperand::AsLocation(_Builder.GetLastField());
 			if (node.PostfixOp->Type == TokenType::increment)
 			{
@@ -1434,6 +1439,7 @@ void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 			Build_Assign_sIntPtr(1);
 			auto V0 = IROperand::AsLocation(_Builder.GetLastField());
 			_Builder.Build_Assign(IROperand::AsReadVarable(sybId));
+			BindTypeToLastIR(Type);
 			auto V1 = IROperand::AsLocation(_Builder.GetLastField());
 			if (node.PostfixOp->Type == TokenType::increment)
 			{
@@ -1448,7 +1454,6 @@ void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 		default:
 			break;
 		}
-	
 
 
 		auto Op = IROperand::AsLocation(_Builder.GetLastField());
@@ -2588,10 +2593,10 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 		break;
 
 	case TokenType::KeyWorld_uintptr:
-		Out.SetType(TypesEnum::uInt64);
+		Out.SetType(TypesEnum::uIntPtr);
 		break;
 	case TokenType::KeyWorld_sintptr:
-		Out.SetType(TypesEnum::sInt64);
+		Out.SetType(TypesEnum::sIntPtr);
 		break;
 
 	case TokenType::KeyWorld_Bool:
@@ -2805,7 +2810,25 @@ bool SystematicAnalysis::GetSize(const TypeSymbol& Type, UAddress& OutSize)
 	case TypesEnum::sIntPtr:
 	case TypesEnum::uIntPtr:
 	IntPtr:
-		OutSize = sizeof(UInt64);
+
+		switch (_Settings->PtrSize)
+		{
+		case IntSizes::Int8:
+			OutSize = sizeof(UInt8);
+			break;
+		case IntSizes::Int16:
+			OutSize = sizeof(UInt8);
+			break;
+		case IntSizes::Int32:
+			OutSize = sizeof(UInt32);
+			break;
+		case IntSizes::Int64:
+			OutSize = sizeof(UInt64);
+			break;
+		default:
+			throw std::exception("");
+			break;
+		}
 		return true;
 
 	case TypesEnum::CustomType:
@@ -3303,74 +3326,262 @@ void SystematicAnalysis::GenericTypeInstantiate(Symbol* Class, const Vector<Type
 	passtype = Oldpasstype;
 }
 
-inline void SystematicAnalysis::Build_Assign_uIntPtr(UAddress Value)
+void SystematicAnalysis::Build_Assign_uIntPtr(UAddress Value)
 {
-	_Builder.Build_Assign(IROperand::AsInt64(Value));
+
+	switch (_Settings->PtrSize)
+	{
+	case IntSizes::Int8:
+		_Builder.Build_Assign(IROperand::AsInt8((UInt8)Value));
+		break;
+	case IntSizes::Int16:
+		_Builder.Build_Assign(IROperand::AsInt16((UInt16)Value));
+		break;
+	case IntSizes::Int32:
+		_Builder.Build_Assign(IROperand::AsInt32((UInt32)Value));
+		break;
+	case IntSizes::Int64:
+		_Builder.Build_Assign(IROperand::AsInt64((UInt64)Value));
+		break;
+	default:
+		throw std::exception("");
+		break;
+	}
+}
+void SystematicAnalysis::Build_Assign_sIntPtr(SIntNative Value)
+{
+	return Build_Assign_uIntPtr((UAddress)Value);
 }
 
-inline void SystematicAnalysis::Build_Assign_sIntPtr(SIntNative Value)
+void SystematicAnalysis::Build_Add_uIntPtr(IROperand field, IROperand field2)
 {
-	_Builder.Build_Assign(IROperand::AsInt64(Value));
+	switch (_Settings->PtrSize)
+	{
+	case IntSizes::Int8:
+		_Builder.MakeAdd8(field, field2);
+		break;	
+	case IntSizes::Int16:
+		_Builder.MakeAdd16(field, field2);
+		break;
+	case IntSizes::Int32:
+		_Builder.MakeAdd32(field, field2);
+		break;
+	case IntSizes::Int64:
+		_Builder.MakeAdd64(field, field2);
+		break;
+	default:
+		throw std::exception("");
+		break;
+
+	}
 }
 
-inline void SystematicAnalysis::Build_Add_uIntPtr(IROperand field, IROperand field2)
+void SystematicAnalysis::Build_Sub_uIntPtr(IROperand field, IROperand field2)
 {
-	_Builder.MakeAdd64(field, field2);
+	switch (_Settings->PtrSize)
+	{
+	case IntSizes::Int8:
+		_Builder.MakeSub8(field, field2);
+		break;
+	case IntSizes::Int16:
+		_Builder.MakeSub16(field, field2);
+		break;
+	case IntSizes::Int32:
+		_Builder.MakeSub32(field, field2);
+		break;
+	case IntSizes::Int64:
+		_Builder.MakeSub64(field, field2);
+		break;
+	default:
+		throw std::exception("");
+		break;
+	}
 }
 
-inline void SystematicAnalysis::Build_Sub_uIntPtr(IROperand field, IROperand field2)
+void SystematicAnalysis::Build_Add_sIntPtr(IROperand field, IROperand field2)
 {
-	_Builder.MakeSub64(field, field2);
+	switch (_Settings->PtrSize)
+	{
+	case IntSizes::Int8:
+		_Builder.MakeAdd8(field, field2);
+		break;
+	case IntSizes::Int16:
+		_Builder.MakeAdd16(field, field2);
+		break;
+	case IntSizes::Int32:
+		_Builder.MakeAdd32(field, field2);
+		break;
+	case IntSizes::Int64:
+		_Builder.MakeAdd64(field, field2);
+		break;
+	default:
+		throw std::exception("");
+		break;
+	}
 }
 
-inline void SystematicAnalysis::Build_Add_sIntPtr(IROperand field, IROperand field2)
+void SystematicAnalysis::Build_Sub_sIntPtr(IROperand field, IROperand field2)
 {
-	_Builder.MakeAdd64(field, field2);
+	switch (_Settings->PtrSize)
+	{
+	case IntSizes::Int8:
+		_Builder.MakeSub8(field, field2);
+		break;
+	case IntSizes::Int16:
+		_Builder.MakeSub16(field, field2);
+		break;
+	case IntSizes::Int32:
+		_Builder.MakeSub32(field, field2);
+		break;
+	case IntSizes::Int64:
+		_Builder.MakeSub64(field, field2);
+		break;
+	default:
+		throw std::exception("");
+		break;
+	}
 }
 
-inline void SystematicAnalysis::Build_Sub_sIntPtr(IROperand field, IROperand field2)
+void SystematicAnalysis::Build_Mult_uIntPtr(IROperand field, IROperand field2)
 {
-	_Builder.MakeSub64(field, field2);
+	switch (_Settings->PtrSize)
+	{
+	case IntSizes::Int8:
+		_Builder.MakeUMult8(field, field2);
+		break;
+	case IntSizes::Int16:
+		_Builder.MakeUMult16(field, field2);
+		break;
+	case IntSizes::Int32:
+		_Builder.MakeUMult32(field, field2);
+		break;
+	case IntSizes::Int64:
+		_Builder.MakeUMult64(field, field2);
+		break;
+	default:
+		throw std::exception("");
+		break;
+	}
 }
 
-inline void SystematicAnalysis::Build_Mult_uIntPtr(IROperand field, IROperand field2)
+ void SystematicAnalysis::Build_Mult_sIntPtr(IROperand field, IROperand field2)
 {
-	_Builder.MakeUMult64(field, field2);
+	 switch (_Settings->PtrSize)
+	 {
+	 case IntSizes::Int8:
+		 _Builder.MakeSMult8(field, field2);
+		 break;
+	 case IntSizes::Int16:
+		 _Builder.MakeSMult16(field, field2);
+		 break;
+	 case IntSizes::Int32:
+		 _Builder.MakeSMult32(field, field2);
+		 break;
+	 case IntSizes::Int64:
+		 _Builder.MakeSMult64(field, field2);
+		 break;
+	 default:
+		 throw std::exception("");
+		 break;
+	 }
 }
 
-inline void SystematicAnalysis::Build_Mult_sIntPtr(IROperand field, IROperand field2)
+void SystematicAnalysis::Build_Div_uIntPtr(IROperand field, IROperand field2)
 {
-	_Builder.MakeSMult64(field, field2);
+	switch (_Settings->PtrSize)
+	{
+	case IntSizes::Int8:
+		_Builder.MakeUDiv8(field, field2);
+		break;
+	case IntSizes::Int16:
+		_Builder.MakeUDiv16(field, field2);
+		break;
+	case IntSizes::Int32:
+		_Builder.MakeUDiv32(field, field2);
+		break;
+	case IntSizes::Int64:
+		_Builder.MakeUDiv64(field, field2);
+		break;
+	default:
+		throw std::exception("");
+		break;
+	}
 }
 
-inline void SystematicAnalysis::Build_Div_uIntPtr(IROperand field, IROperand field2)
+void SystematicAnalysis::Build_Div_sIntPtr(IROperand field, IROperand field2)
 {
-	_Builder.MakeUDiv64(field, field2);
+	switch (_Settings->PtrSize)
+	{
+	case IntSizes::Int8:
+		_Builder.MakeSDiv8(field, field2);
+		break;
+	case IntSizes::Int16:
+		_Builder.MakeSDiv16(field, field2);
+		break;
+	case IntSizes::Int32:
+		_Builder.MakeSDiv32(field, field2);
+		break;
+	case IntSizes::Int64:
+		_Builder.MakeSDiv64(field, field2);
+		break;
+	default:
+		throw std::exception("");
+		break;
+	}
 }
 
-inline void SystematicAnalysis::Build_Div_sIntPtr(IROperand field, IROperand field2)
+void SystematicAnalysis::Build_Increment_uIntPtr(UAddress Value)
 {
-	_Builder.MakeSDiv64(field, field2);
+	switch (_Settings->PtrSize)
+	{
+	case IntSizes::Int8:
+		_Builder.Build_Increment8((Int8)Value);
+		break;
+	case IntSizes::Int16:
+		_Builder.Build_Increment16((Int16)Value);
+		break;
+	case IntSizes::Int32:
+		_Builder.Build_Increment32((Int32)Value);
+		break;
+	case IntSizes::Int64:
+		_Builder.Build_Increment64((Int64)Value);
+		break;
+	default:
+		throw std::exception("");
+		break;
+	}
 }
 
-inline void SystematicAnalysis::Build_Increment_uIntPtr(UAddress Value)
+void SystematicAnalysis::Build_Decrement_uIntPtr(UAddress Value)
 {
-	_Builder.Build_Increment64(Value);
+	switch (_Settings->PtrSize)
+	{
+	case IntSizes::Int8:
+		_Builder.Build_Decrement8((Int8)Value);
+		break;
+	case IntSizes::Int16:
+		_Builder.Build_Decrement16((Int16)Value);
+		break;
+	case IntSizes::Int32:
+		_Builder.Build_Decrement32((Int32)Value);
+		break;
+	case IntSizes::Int64:
+		_Builder.Build_Decrement64((Int64)Value);
+		break;
+	default:
+		throw std::exception("");
+		break;
+	}
 }
 
-inline void SystematicAnalysis::Build_Decrement_uIntPtr(UAddress Value)
+void SystematicAnalysis::Build_Increment_sIntPtr(SIntNative Value)
 {
-	_Builder.Build_Decrement64(Value);
+	return Build_Increment_uIntPtr((UAddress)Value);
 }
 
-inline void SystematicAnalysis::Build_Increment_sIntPtr(SIntNative Value)
+void SystematicAnalysis::Build_Decrement_sIntPtr(SIntNative Value)
 {
-	_Builder.Build_Increment64(Value);
-}
-
-inline void SystematicAnalysis::Build_Decrement_sIntPtr(SIntNative Value)
-{
-	_Builder.Build_Decrement64(Value);
+	return Build_Decrement_uIntPtr((UAddress)Value);
 }
 
 void SystematicAnalysis::CheckVarWritingErrors(Symbol* Symbol, const Token* Token, String_view& Name)

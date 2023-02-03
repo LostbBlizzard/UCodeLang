@@ -60,7 +60,8 @@ public:
 
 	virtual const LangDefInfo* GetInfo() { return nullptr; }
 	virtual const IRBuilder* Get_Builder(){ return nullptr; }
-	
+	virtual UClib* Get_Lib() { return nullptr; }
+
 	void Set_ErrorsOutput(CompliationErrors* Err)
 	{
 		_ErrorsOutput = Err;

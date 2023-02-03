@@ -29,6 +29,10 @@ public:
 	{
 		return _Builder;
 	}
+	UCodeLangForceinline UClib& Get_Lib()
+	{
+		return _Lib;
+	}
 
 	enum class PassType : UInt8
 	{
@@ -43,7 +47,6 @@ private:
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
 	UClib _Lib;
-
 
 	PassType passtype = PassType::Null;
 

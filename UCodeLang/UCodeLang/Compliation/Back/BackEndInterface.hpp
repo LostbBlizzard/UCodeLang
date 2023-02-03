@@ -29,7 +29,7 @@ public:
 
 	UCodeLangForceinline UClib& Getliboutput()
 	{
-		return _Output;
+		return *_Output;
 	}
 
 
@@ -41,10 +41,14 @@ public:
 	{
 		_Settings = setting;
 	}
+	inline void Set_Output(UClib* output)
+	{
+		_Output = output;
+	}
 private:
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
-	UClib _Output;
+	UClib* _Output = nullptr;
 };
 
 using BackEndObject_Ptr = BackEndObject* (*)();
