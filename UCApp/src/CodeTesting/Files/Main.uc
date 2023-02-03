@@ -1,7 +1,10 @@
 
 
 
-|main[]: 
+|main[bool V]: 
 
- int a = 5 + 6 ;
- ret a;
+ do: 
+
+ while V;
+ 
+ ret V;
