@@ -1044,7 +1044,9 @@ void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 				}
 				ThisClassType = *ObjectType;
 
-				auto G = &_Table.GetSymbol(Symbol->VarType._CustomTypeSymbol);
+				auto G = &_Table.GetSymbol(ObjectType->_CustomTypeSymbol);
+
+				MemberInfo.Offset = 0;
 
 				GetMemberTypeSymbolFromVar(0, node.Name, ThisClassType,
 					G, MemberInfo.Offset);

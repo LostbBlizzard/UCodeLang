@@ -87,7 +87,7 @@ enum class RegisterID : RegisterID_t
 	BitwiseRegister = OuPutRegister,
 
 	StartParameterRegister = (RegisterID_t)RegisterID::D,//the range the runtime will pass funcion Parameters into Registers
-	EndParameterRegister = (RegisterID_t)RegisterID::F,
+	EndParameterRegister = (RegisterID_t)RegisterID::F + 1,
 
 	NullRegister = 155,
 };

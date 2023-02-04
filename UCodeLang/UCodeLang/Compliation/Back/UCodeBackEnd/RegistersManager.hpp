@@ -11,13 +11,13 @@ public:
 		NotInUse,
 		InUseSybol,
 		HasBitValue,
+		Locked,
 	};
 	struct RegisterInfo 
 	{
 		RegisterInUse Inuse = RegisterInUse::NotInUse;
 		IRField IRField =0;
 		AnyInt64 BitValue;
-		bool Locked = false;
 	};
 	
 	RegistersManager();
@@ -34,15 +34,15 @@ public:
 	}
 	void LockRegister(RegisterID id)
 	{
-		GetInfo(id).Locked = true;
+		GetInfo(id).Inuse = RegisterInUse::Locked;
 	}
 	void UnLockRegister(RegisterID id)
 	{
-		GetInfo(id).Locked = false;
+		GetInfo(id).Inuse = RegisterInUse::NotInUse;
 	}
 	bool IsLocked(RegisterID id)
 	{
-		return GetInfo(id).Locked;
+		return GetInfo(id).Inuse != RegisterInUse::NotInUse;
 	}
 
 	RegisterID GetInfo(IRField IRField)
@@ -50,8 +50,7 @@ public:
 		for (size_t i = 0; i < RegisterSize; i++)
 		{
 			auto& Info = Registers[i];
-			if (Info.Inuse == RegisterInUse::InUseSybol && Info.IRField == IRField
-				&& !Info.Locked)
+			if (Info.Inuse == RegisterInUse::InUseSybol && Info.IRField == IRField)
 			{
 				return (RegisterID)i;
 			}
@@ -76,7 +75,7 @@ public:
 		for (size_t i = 0; i < RegisterSize; i++)
 		{
 			auto& Info = Registers[i];
-			if (Info.Inuse == RegisterInUse::NotInUse)
+			if (!IsLocked((RegisterID)i))
 			{
 				return (RegisterID)i;
 			}
