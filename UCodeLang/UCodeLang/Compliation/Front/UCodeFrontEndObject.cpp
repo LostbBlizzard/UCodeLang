@@ -49,8 +49,9 @@ Unique_ptr<FileNode_t> UCodeFrontEndObject::BuildFile(String_view Text)
 
 		if (Err->Has_Errors()) { return {}; }
 
-
-		return Unique_ptr<FileNode_t>(new FileNode(std::move(_Parser.Get_Tree())));
+		auto V = new FileNode(std::move(_Parser.Get_Tree()));
+		V->Tokens = std::move(_Lexer.Get_Tokens());
+		return Unique_ptr<FileNode_t>(V);
 	}
 	else
 	{

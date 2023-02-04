@@ -1,13 +1,8 @@
+use ULang;
 
-$Vec2:
- int X;
- int Y;
- |new[this&]:
-  X = 0;
-  Y = 0;
 
 $Player:
- Vec2 Pos;
+ int2 Pos;
  int Hp;
  |new[this&]:
   Pos.X = 0;
@@ -18,10 +13,4 @@ $Player:
  |drop[this&];
  |DoSome[this&,int a];
  
-|main[bool V]: 
-
- Vec2 Value = [];
- //Vec2& V2 = Value;
-
- //Vec2::DoSome(Value,5);
- //Value.DoSome(5);
+|main[bool V];

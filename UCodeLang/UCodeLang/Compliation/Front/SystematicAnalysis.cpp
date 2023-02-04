@@ -258,8 +258,18 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 
 	}
 
+	if (IsgenericInstantiation) 
+	{
+		for (size_t i = 0; i < ScopeHelper::Get_ScopeCount(GenericFuncName.top().GenericFuncName) + 1; i++)
+		{
+			_Table.RemoveScope();
+		}
+	}
+	else
+	{
+		_Table.RemoveScope();
 
-	_Table.RemoveScope();
+	}
 }
 void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 {
@@ -1286,6 +1296,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, 
 	auto Token = node.ScopedName.begin()->token;
 	auto& Str = Token->Value._String;
 	auto SymbolVar = GetSymbol(Str, SymbolType::Varable_t);
+	LastLookedAtToken = Token;
 	if (SymbolVar == nullptr)
 	{
 		LogCantFindVarError(Token, Str);
@@ -1324,6 +1335,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t& Start, const U
 
 
 		auto& ItemToken = Item.token;
+		LastLookedAtToken = ItemToken;
 
 		if (FeildType._Type != TypesEnum::CustomType)
 		{
@@ -2127,7 +2139,6 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 	auto Symbol = GetSymbol(Str,SymbolType::Varable_t);
 	auto Token = nod.VariableName.ScopedName.back().token;
 	
-
 	
 	auto Info = LogTryReadVar(Str, Token, Symbol);
 	if (Info.CantFindVar)
@@ -2716,6 +2727,7 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 				TepFuncs.push_back({std::move(GenericInput)});
 			}
 
+			SybV = GetSymbol(NewName, SymbolType::Type);
 		}
 		else
 		{
@@ -3793,6 +3805,8 @@ void SystematicAnalysis::CheckVarWritingErrors(Symbol* Symbol, const Token* Toke
 
 void SystematicAnalysis::LogCantCastImplicitTypes(const Token* Token, TypeSymbol& Ex1Type, TypeSymbol& UintptrType)
 {
+	if (Ex1Type.IsBadType() || UintptrType.IsBadType()) { return; }
+
 	bool V1 = IsAddessAndLValuesRulesfollowed(Ex1Type, UintptrType);
 	if (!V1)
 	{
@@ -3817,12 +3831,16 @@ void SystematicAnalysis::LogCantFindVarError(const Token* Token, String_view Str
 }
 void SystematicAnalysis::LogCantFindVarMemberError(const Token* Token, String_view Str, const TypeSymbol& OnType)
 {
+	if (OnType.IsBadType()) { return; }
+
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Cant find Member Named '" + (String)Str + "' on type '" + ToString(OnType) +"'");
 }
 
 void SystematicAnalysis::LogCantFindCompoundOpForTypes(const Token* BinaryOp, TypeSymbol& Ex0Type, TypeSymbol& Ex1Type)
 {
+	if (Ex1Type.IsBadType() || Ex0Type.IsBadType()) { return; }
+
 	_ErrorsOutput->AddError(ErrorCodes::InValidType, BinaryOp->OnLine, BinaryOp->OnPos,
 		"The type '" + ToString(Ex0Type) + "'" + " cant be '"
 		+ ToString(BinaryOp->Type) + "' with '" + ToString(Ex0Type) + "'");
@@ -3830,19 +3848,23 @@ void SystematicAnalysis::LogCantFindCompoundOpForTypes(const Token* BinaryOp, Ty
 
 void SystematicAnalysis::LogCantFindPostfixOpForTypes(const Token* BinaryOp, TypeSymbol& Ex0Type)
 {
+	if (Ex0Type.IsBadType()) { return; }
+
 		_ErrorsOutput->AddError(ErrorCodes::InValidType, BinaryOp->OnLine, BinaryOp->OnPos,
 			"The type '" + ToString(Ex0Type) + "'" + " cant be '"
 			+ ToString(BinaryOp->Type) + "'");
 }
 void SystematicAnalysis::LogCantFindBinaryOpForTypes(const Token* BinaryOp, TypeSymbol& Ex0Type, TypeSymbol& Ex1Type)
 {
-	
+	if (Ex1Type.IsBadType() || Ex0Type.IsBadType()) { return; }
+
 	_ErrorsOutput->AddError(ErrorCodes::InValidType, BinaryOp->OnLine, BinaryOp->OnPos,
 		"The type '" + ToString(Ex0Type) + "'" + " cant be '"
 		+ ToString(BinaryOp->Type) + "' with '" + ToString(Ex0Type) + "'");
 }
 void SystematicAnalysis::ExpressionMustbeAnLocationValueError(const Token* Token, TypeSymbol& Ex0Type)
 {
+	if (Ex0Type.IsBadType() ) { return; }
 	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos,
 		"expression must be an Location not an Value'" + ToString(Ex0Type) + "'");
 }
@@ -3867,6 +3889,8 @@ void SystematicAnalysis::CantgussTypesTheresnoassignment(const Token* Token)
 }
 void SystematicAnalysis::LogCantCastExplicityTypes(const Token* Token, TypeSymbol& Ex0Type, TypeSymbol& ToTypeAs)
 {
+	if (Ex0Type.IsBadType() || ToTypeAs.IsBadType()){return;}
+
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Cant cast Type '" + ToString(Ex0Type) + " to '" + ToString(ToTypeAs) + "'");
 }

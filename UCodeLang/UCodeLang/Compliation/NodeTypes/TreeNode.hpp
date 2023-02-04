@@ -135,6 +135,7 @@ struct FileNode : FileNode_t,Node
 
 
 	String_view FilePath;
+	Vector<Token> Tokens;
 	void Reset()
 	{
 		FilePath = "";

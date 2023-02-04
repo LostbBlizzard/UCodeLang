@@ -129,6 +129,7 @@ struct TypeSymbol
 	{
 		return  IsAn(TypesEnum::Null);
 	}
+	bool IsBadType()const { return IsAn(TypesEnum::Null); }
 };
 
 
