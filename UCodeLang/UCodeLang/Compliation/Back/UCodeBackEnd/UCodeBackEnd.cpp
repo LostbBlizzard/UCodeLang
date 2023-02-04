@@ -39,7 +39,7 @@ void UCodeBackEndObject::Build(const IRBuilder* Input)
 	Link();
 }
 #define OperatorBitsFunc(Func,bit) \
-	auto Value0 = GetOperandInAnyRegister(IR.Operand0);\
+				auto Value0 = GetOperandInAnyRegister(IR.Operand0);\
 				_Registers.WeakLockRegister(Value0);\
 				auto Value1 = GetOperandInAnyRegister(IR.Operand1);\
 				_Registers.WeakLockRegister(Value1);\
@@ -51,6 +51,8 @@ void UCodeBackEndObject::Build(const IRBuilder* Input)
 				\
 				auto ROut = RegisterID::MathOuPutRegister;\
 				SetSybToRegister(ROut,IR);\
+
+
 
 #define OperatorBits(Func,bit) \
 			case IROperator::##Func##bit:\
@@ -118,6 +120,13 @@ void UCodeBackEndObject::BuildFunc()
     StackSize = 0;
 
 	IRCodeIndexToUAddressIndexs.push_back(FuncStart);
+
+	IntSizes PointerSize = Get_Settings().PtrSize;
+	bool Is64Bit = PointerSize == IntSizes::Int64;
+	if (PointerSize != IntSizes::Int32 && PointerSize != IntSizes::Int64)
+	{
+		Get_ErrorsOutput().AddError(ErrorCodes::BackEndError, 0, 0, "specified pointer size is not supported");
+	}
 	
 	for (_Index = _Index + 1; _Index < Code.size(); _Index++)
 	{
@@ -131,38 +140,69 @@ void UCodeBackEndObject::BuildFunc()
 				BitSet(32)
 				BitSet(64)
 		case IROperator::Assign_OperandOnPointer:
+			{
+				constexpr auto NewRegIfPointeroffset = RegisterID::MathOuPutRegister;
+				
+				auto pointeroffset = IR.Operand1.AnyValue.AsInt64;
+				if (pointeroffset)
+				{
+					_Registers.LockRegister(NewRegIfPointeroffset);
+				}
+
+
+				RegisterID ROut = RegisterID::NullRegister;
+				BuildOperandA(IR, ROut, ULib);
+				_Registers.LockRegister(ROut);
+				
+				RegisterID Regpointer = RegisterID::StartParameterRegister;//need to be updated
+
+				if (ROut == Regpointer)
+				{
+					throw std::exception("not added");
+				}
+
+				
+
+				if (pointeroffset)
+				{
+					RegisterID R;
+					if (Is64Bit)
+					{
+						BuildIRStore(64, (UInt64)pointeroffset);
+					}
+					else
+					{
+						BuildIRStore(32, (UInt32)pointeroffset);
+					}
+					_Registers.LockRegister(R);
+
+					if (Is64Bit)
+					{
+						GenInsPush(InstructionBuilder::Add64(_Ins, R, Regpointer));
+					}
+					else
+					{
+						GenInsPush(InstructionBuilder::Add32(_Ins, R, Regpointer));
+					}
+
+					Regpointer = NewRegIfPointeroffset;
+
+					_Registers.UnLockRegister(R);
+					_Registers.UnLockRegister(ROut);
+				}
+				else
+				{
+					_Registers.UnLockRegister(ROut);
+				}
+				BuildSybolIntSizeIns(IR, StoreRegToPtr, (_Ins, ROut, Regpointer));
+			}
+		break;
 		case IROperator::Assign_Operand0:
 			{
 				RegisterID R = RegisterID::NullRegister;
 
 
-				switch (IR.Operand0.Type)
-				{
-					IRFieldInt(8)
-					IRFieldInt(16)
-					IRFieldInt(32)
-					IRFieldInt(64)
-				case IRFieldInfoType::ReadVar:
-					{
-						OnReadVarOperand(R, IR, ULib);
-					}
-					break;
-				case IRFieldInfoType::IRLocation:
-				{
-					R = GetOperandInAnyRegister(IR.Operand0);
-				}
-				break;
-				case IRFieldInfoType::AsPointer:
-				{
-					OnAsPointer(R, IR);
-				}
-				break;
-				case IRFieldInfoType::Nothing:
-					break;
-				default:
-					throw std::exception("not added");
-					break;
-				}
+				BuildOperandA(IR, R, ULib);
 				StoreResultIR(IR, R);
 			}
 			break;
@@ -309,6 +349,37 @@ void UCodeBackEndObject::BuildFunc()
 	}
 	DeclareCalls[SybID] = { FuncStart };
 	ULib.Add_NameToInstruction(FuncStart, (String)FuncName);
+}
+
+void UCodeBackEndObject::BuildOperandA(const UCodeLang::IRCode& IR, UCodeLang::RegisterID& R, UCodeLang::UClib& ULib)
+{
+	switch (IR.Operand0.Type)
+	{
+		IRFieldInt(8)
+			IRFieldInt(16)
+			IRFieldInt(32)
+			IRFieldInt(64)
+	case IRFieldInfoType::ReadVar:
+		{
+			OnReadVarOperand(R, IR, ULib);
+		}
+		break;
+	case IRFieldInfoType::IRLocation:
+	{
+		R = GetOperandInAnyRegister(IR.Operand0);
+	}
+	break;
+	case IRFieldInfoType::AsPointer:
+	{
+		OnAsPointer(R, IR);
+	}
+	break;
+	case IRFieldInfoType::Nothing:
+		break;
+	default:
+		throw std::exception("not added");
+		break;
+	}
 }
 
 void UCodeBackEndObject::OnAsPointer(UCodeLang::RegisterID& R, const IRCode& IR)

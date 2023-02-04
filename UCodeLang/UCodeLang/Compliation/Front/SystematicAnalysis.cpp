@@ -1042,14 +1042,20 @@ void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 				{
 
 				}
+				ThisClassType = *ObjectType;
+
+				auto G = &_Table.GetSymbol(Symbol->VarType._CustomTypeSymbol);
+
+				GetMemberTypeSymbolFromVar(0, node.Name, ThisClassType,
+					G, MemberInfo.Offset);
 
 
 
 
-				auto Op = IROperand::AsLocation(_LastExpressionField);
-				//auto NewOp = IROperand::AsPointer(IRParameters.front());
-				//_Builder.Build_AssignOnPointer(Op, MemberInfo.Offset);
-				//BindTypeToLastIR(MemberInfo.Type);
+				auto ValueIr = IROperand::AsLocation(_LastExpressionField);
+				auto PointerIr = IROperand::AsReadVarable(IRParameters.front());
+				_Builder.Build_AssignOnPointer(PointerIr, ValueIr, MemberInfo.Offset);
+				BindTypeToLastIR(MemberInfo.Type);
 
 				BuildVarableCode = false;
 			}
@@ -1288,16 +1294,29 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, 
 
 	TypeSymbol FeildType = SymbolVar->VarType;
 	Symbol* FeildTypeAsSymbol =nullptr;
-	
+
 	if (FeildType._Type == TypesEnum::CustomType)
 	{
 		FeildTypeAsSymbol = &_Table.GetSymbol(SymbolVar->VarType._CustomTypeSymbol);
-		FeildType = SymbolVar->VarType;
+		FeildType = SymbolVar->VarType;	
 	}
 	
+	size_t Start = 1;
 
 
-	for (size_t i = 1; i < node.ScopedName.size(); i++)
+	if (!GetMemberTypeSymbolFromVar(Start, node, FeildType, FeildTypeAsSymbol, VarOffset))
+	{
+		return false;
+	}
+
+	Out.Type = FeildType;
+	Out.Offset = VarOffset;
+	return true;
+}
+bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t& Start, const UCodeLang::ScopedNameNode& node, UCodeLang::TypeSymbol& FeildType, UCodeLang::Symbol*& FeildTypeAsSymbol
+	, size_t& VarOffset)
+{
+	for (size_t i = Start; i < node.ScopedName.size(); i++)
 	{
 		auto& Item = node.ScopedName[i];
 
@@ -1326,8 +1345,8 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, 
 		UAddress _FieldOffset = 0;
 		GetOffset(*CInfo, FeldInfo, _FieldOffset);
 
-		VarOffset+=_FieldOffset;
-		
+		VarOffset += _FieldOffset;
+
 		auto& FieldType2 = FeldInfo->Type;
 		if (FieldType2._Type == TypesEnum::CustomType)
 		{
@@ -1337,9 +1356,11 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, 
 		else
 		{
 			FeildType = FieldType2;
-			
+
 			if (i + 1 < node.ScopedName.size())
 			{
+				const UCodeLang::Token* Token = node.ScopedName.begin()->token;
+
 				auto Token2 = node.ScopedName[i + 1].token;
 				auto& Str2 = Token->Value._String;
 				if (passtype == PassType::FixedTypes) {
@@ -1349,8 +1370,6 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, 
 			}
 		}
 	}
-	Out.Type = FeildType;
-	Out.Offset = VarOffset;
 	return true;
 }
 void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)

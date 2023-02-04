@@ -32,6 +32,7 @@ private:
 	static constexpr size_t RegisterSize = sizeof(AnyInt64);
 
 	void BuildFunc();
+	void BuildOperandA(const UCodeLang::IRCode& IR, UCodeLang::RegisterID& R, UCodeLang::UClib& ULib);
 	void OnAsPointer(UCodeLang::RegisterID& R, const UCodeLang::IRCode& IR);
 	void StoreResultIR(const IRCode& IR, UCodeLang::RegisterID R);
 	void OnReadVarOperand(UCodeLang::RegisterID& R, const IRCode& IR, UCodeLang::UClib& ULib);
