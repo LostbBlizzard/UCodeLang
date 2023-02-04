@@ -158,21 +158,26 @@ void UCodeBackEndObject::BuildFunc()
 				switch (IR.Operand0.Type)
 				{
 					IRFieldInt(8)
-						IRFieldInt(16)
-						IRFieldInt(32)
-						IRFieldInt(64)
+					IRFieldInt(16)
+					IRFieldInt(32)
+					IRFieldInt(64)
 				case IRFieldInfoType::ReadVar:
 					{
 						OnReadVarOperand(R, IR, ULib);
-					}break;
+					}
+					break;
 				case IRFieldInfoType::IRLocation:
 				{
 					R = GetOperandInAnyRegister(IR.Operand0);
-				}break;
+				}
+				break;
 				case IRFieldInfoType::AsPointer:
 				{
 					OnAsPointer(R, IR);
-				}break;
+				}
+				break;
+				case IRFieldInfoType::Nothing:
+					break;
 				default:
 					throw std::exception("not added");
 					break;
@@ -474,6 +479,8 @@ void UCodeBackEndObject::StoreVar(const IRCode& IR, const RegisterID R)
 
 		StackSize += Data->DataSize;
 	}
+
+	if (IR.Operand0.Type == IRFieldInfoType::Nothing) { return; }
 	
 
 	if (Data->Type == BuildData_t::ParameterInRegister)

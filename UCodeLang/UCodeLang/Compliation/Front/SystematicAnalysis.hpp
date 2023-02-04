@@ -87,6 +87,13 @@ private:
 
 
 	};
+	struct IRlocat
+	{
+		IRField V;
+		SymbolID ID;
+	};
+
+	Stack<IRlocat> IRlocations;//for Constructors
 	Vector<IRCodeStackFrames> StackFrames;
 	void PushNewStackFrame();
 	void PopStackFrame();
@@ -241,6 +248,7 @@ private:
 			NoThisPar,
 			PushFromLast,
 			PushFromScopedName,
+			OnIRlocationStack,
 		};
 		ThisPar_t ThisPar = ThisPar_t::NoThisPar;
 		const FuncInfo* Func = nullptr;
