@@ -52,6 +52,7 @@ enum class IRFieldInfoType : UInt8
 	ReadVar,
 	AsPointer,
 	ReadPointer,
+	Nothing,
 };
 struct IROperand
 {
@@ -134,6 +135,13 @@ struct IROperand
 		IROperand operand;
 		operand.Type = IRFieldInfoType::ReadPointer;
 		operand.SymbolId = Value;
+		return operand;
+	}
+
+	UCodeLangForceinline static IROperand AsNothing()
+	{
+		IROperand operand;
+		operand.Type = IRFieldInfoType::Nothing;
 		return operand;
 	}
 

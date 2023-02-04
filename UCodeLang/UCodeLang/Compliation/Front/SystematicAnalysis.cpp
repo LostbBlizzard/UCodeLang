@@ -858,8 +858,30 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 	}
 	LookingForTypes.push(syb->VarType);
 
+	IRField OnVarable;
+	bool Ind;
 	if (node.Expression.Value)
 	{
+		if (passtype == PassType::BuidCode)
+		{
+			Ind = !IsPrimitive(syb->VarType);
+			if (Ind) 
+			{
+				IRlocat Info;
+				Info.ID = sybId;
+				IRlocations.push(Info);
+
+
+
+				_Builder.Build_Assign(IROperand::AsVarable(sybId), IROperand::AsNothing());
+				OnVarable = _Builder.GetLastField();
+			}
+			else
+			{
+				BindTypeToLastIR(syb->VarType);
+			}
+				
+		}
 		OnExpressionTypeNode(node.Expression.Value.get());
 	}
 
@@ -935,10 +957,16 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 
 		DoImplicitConversion(IROperand::AsLocation(_Builder.GetLastField()), LastExpressionType, syb->VarType);
 
-		auto Op = IROperand::AsLocation(_LastExpressionField);
-		auto NewOp = IROperand::AsVarable(sybId);
-		_Builder.Build_Assign(NewOp, Op);	
-		BindTypeToLastIR(syb->VarType);
+		
+
+		if (!Ind)
+		{
+			auto Op = IROperand::AsLocation(_LastExpressionField);
+			auto NewOp = IROperand::AsLocation(OnVarable);
+			_Builder.Build_Assign(NewOp, Op);
+			BindTypeToLastIR(syb->VarType);
+			IRlocations.pop();
+		}
 
 
 		if (HasDestructor(syb->VarType))
@@ -2982,8 +3010,13 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 			BindTypeToLastIR(V.Type);
 			_Builder.Build_PassLastAsParameter();
 		}
-		else
+		else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::PushFromLast)
 		{
+			_Builder.Build_PassLastAsParameter();
+		}
+		else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::OnIRlocationStack)
+		{
+			_Builder.Build_Assign(IROperand::AsPointer(IRlocations.top().ID));
 			_Builder.Build_PassLastAsParameter();
 		}
 	}
@@ -3348,6 +3381,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 				{
 					FuncInfo* Info = (FuncInfo*)Item->Info.get();
 					r = Info;
+					ThisParType = Get_FuncInfo::ThisPar_t::OnIRlocationStack;
 					break;
 				}
 			}
