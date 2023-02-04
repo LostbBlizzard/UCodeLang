@@ -192,6 +192,9 @@ void UCodeBackEndObject::BuildFunc()
 			{
 				Data.Type = BuildData_t::ParameterInRegister;
 				Data.offset = (RegisterID_t)ParameterRegisterValue;
+
+				_Registers.LockRegister(ParameterRegisterValue);
+
 				SetIRToRegister(ParameterRegisterValue, IR.Result.IRLocation);
 				(*(RegisterID_t*)&ParameterRegisterValue)++;
 			}
@@ -206,6 +209,7 @@ void UCodeBackEndObject::BuildFunc()
 			auto TypeSize = 0;
 			if (TypeSize <= RegisterSize && CallParameterRegisterValue < RegisterID::EndParameterRegister)
 			{
+				_Registers.LockRegister(CallParameterRegisterValue);
 
 				GetOperandInRegister(IR.Operand0, CallParameterRegisterValue);
 				(*(RegisterID_t*)&CallParameterRegisterValue)++;
@@ -223,6 +227,11 @@ void UCodeBackEndObject::BuildFunc()
 			GenInsPush(InstructionBuilder::Call(NullAddress, _Ins));
 
 			_InsCalls.push_back({ ULib.GetLastInstruction(),VarSymbolID });
+			for (RegisterID_t i = (RegisterID_t)RegisterID::StartParameterRegister; i < (RegisterID_t)CallParameterRegisterValue; i++)
+			{
+				_Registers.UnLockRegister((RegisterID)i);
+			}
+
 			CallParameterRegisterValue = RegisterID::StartParameterRegister;
 		}
 		break;

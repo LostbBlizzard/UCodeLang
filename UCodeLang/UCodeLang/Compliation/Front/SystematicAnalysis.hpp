@@ -238,6 +238,8 @@ private:
 
 	void DoFuncCall(const FuncInfo* Func, const ScopedNameNode& Name, const ValueParametersNode& Pars);
 
+	
+
 	void DoDestructorCall(const ObjectToDrop& Object);
 
 	FuncInfo* GetFunc(

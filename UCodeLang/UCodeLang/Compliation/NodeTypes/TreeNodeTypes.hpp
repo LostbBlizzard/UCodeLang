@@ -79,7 +79,7 @@ struct ScopedName
 	
 	const Token* token = nullptr;
 	Operator_t Operator = Operator_t::Null;
-	Unique_ptr<UseGenericsNode> Generic;//C++ doesn't like circular dependencies
+	Shared_ptr<UseGenericsNode> Generic;//C++ doesn't like circular dependencies and this need to be copy able
 
 	inline void GetScopedName(String& out) const
 	{
