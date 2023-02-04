@@ -150,6 +150,7 @@ void UCodeBackEndObject::BuildFunc()
 				BitSet(16)
 				BitSet(32)
 				BitSet(64)
+		case IROperator::Assign_OperandOnPointer:
 		case IROperator::Assign_Operand0:
 			{
 				RegisterID R = RegisterID::NullRegister;
@@ -362,6 +363,10 @@ void UCodeBackEndObject::StoreResultIR(const IRCode& IR, UCodeLang::RegisterID R
 	{
 		StoreVar(IR, R);
 	}
+	else
+	{
+		throw std::exception();
+	}
 }
 
 void UCodeBackEndObject::OnReadVarOperand(UCodeLang::RegisterID& R, const IRCode& IR, UCodeLang::UClib& ULib)
@@ -476,7 +481,7 @@ void UCodeBackEndObject::StoreVar(const IRCode& IR, const RegisterID R)
 		Data = &SymbolToData[VarSymbolID];
 		Data->Type = BuildData_t::StackVarable;
 		Data->offset = StackSize;
-
+		Data->DataSize = IR.InfoType.TypeSize;
 		StackSize += Data->DataSize;
 	}
 
@@ -498,6 +503,13 @@ void UCodeBackEndObject::StoreVar(const IRCode& IR, const RegisterID R)
 	}
 	else
 	{
+		if (IR.Operator == IROperator::Assign_OperandOnPointer)
+		{
+
+			return;
+		}
+
+
 		BuildSybolIntSizeIns(IR, StoreRegOnStack, (_Ins, R, Data->offset + IR.Operand1.AnyValue.AsAddress));
 	}
 	

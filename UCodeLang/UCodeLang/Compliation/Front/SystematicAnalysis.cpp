@@ -858,13 +858,13 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 	}
 	LookingForTypes.push(syb->VarType);
 
-	IRField OnVarable;
-	bool Ind;
+	IRField OnVarable{};
+	bool Ind =false;
 	if (node.Expression.Value)
 	{
 		if (passtype == PassType::BuidCode)
 		{
-			Ind = !IsPrimitive(syb->VarType);
+			Ind = ! (IsPrimitive(syb->VarType) || syb->VarType.IsAddress());
 			if (Ind) 
 			{
 				IRlocat Info;
@@ -875,6 +875,8 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 
 				_Builder.Build_Assign(IROperand::AsVarable(sybId), IROperand::AsNothing());
 				OnVarable = _Builder.GetLastField();
+
+				BindTypeToLastIR(syb->VarType);
 			}
 			else
 			{
@@ -959,15 +961,17 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 
 		
 
-		if (!Ind)
+		if (Ind)
 		{
-			auto Op = IROperand::AsLocation(_LastExpressionField);
-			auto NewOp = IROperand::AsLocation(OnVarable);
-			_Builder.Build_Assign(NewOp, Op);
-			BindTypeToLastIR(syb->VarType);
 			IRlocations.pop();
 		}
-
+		else
+		{
+			auto Op = IROperand::AsLocation(_Builder.GetLastField());
+			auto NewOp = IROperand::AsVarable(sybId);
+			_Builder.Build_Assign(NewOp, Op);
+			BindTypeToLastIR(syb->VarType);
+		}
 
 		if (HasDestructor(syb->VarType))
 		{
@@ -1041,9 +1045,11 @@ void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 
 
 				auto Op = IROperand::AsLocation(_LastExpressionField);
-				auto NewOp = IROperand::AsPointer(IRParameters.front());
-				_Builder.Build_Assign(NewOp, Op, MemberInfo.Offset);
-				BindTypeToLastIR(MemberInfo.Type);
+				//auto NewOp = IROperand::AsPointer(IRParameters.front());
+				//_Builder.Build_AssignOnPointer(Op, MemberInfo.Offset);
+				//BindTypeToLastIR(MemberInfo.Type);
+
+				BuildVarableCode = false;
 			}
 
 		}
