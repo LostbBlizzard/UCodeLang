@@ -247,7 +247,7 @@ private:
 	};
 
 	void DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Name, const ValueParametersNode& Pars);
-	void DoFuncCall(TypeSymbol& Type, const Get_FuncInfo& Func, ValueParametersNode& ValuePars);
+	void DoFuncCall(const TypeSymbol& Type, const Get_FuncInfo& Func, ValueParametersNode& ValuePars);
 	
 
 	void DoDestructorCall(const ObjectToDrop& Object);

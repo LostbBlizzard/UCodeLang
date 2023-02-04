@@ -2038,7 +2038,7 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(AnonymousObjectConstructor
 	LastExpressionType = Type;
 }
 
-void SystematicAnalysis::DoFuncCall(TypeSymbol& Type, const Get_FuncInfo& Func, UCodeLang::ValueParametersNode& ValuePars)
+void SystematicAnalysis::DoFuncCall(const TypeSymbol& Type, const Get_FuncInfo& Func, UCodeLang::ValueParametersNode& ValuePars)
 {
 	String B = ToString(Type);
 	Token T;
@@ -2780,7 +2780,10 @@ bool SystematicAnalysis::HasDestructor(const TypeSymbol& TypeToCheck)
 	}
 
 
-	return true;
+	String TypeDestructorFuncName = ToString(TypeToCheck);
+	ScopeHelper::GetApendedString(TypeDestructorFuncName, ClassDestructorFunc);
+
+	return GetSymbol(TypeDestructorFuncName, SymbolType::Func);
 }
 bool SystematicAnalysis::GetSize(const TypeSymbol& Type, UAddress& OutSize)
 {
@@ -2979,6 +2982,10 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 			BindTypeToLastIR(V.Type);
 			_Builder.Build_PassLastAsParameter();
 		}
+		else
+		{
+			_Builder.Build_PassLastAsParameter();
+		}
 	}
 
 	for (size_t i = 0; i < Pars._Nodes.size(); i++)
@@ -3003,9 +3010,10 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 }
 void SystematicAnalysis::DoDestructorCall(const ObjectToDrop& Object)
 {
-	return;
+	
 	if (IsPrimitive(Object.Type))
 	{
+		return;
 		UAddress NewValue;
 		UAddress ObjectSize;
 		GetSize(Object.Type, ObjectSize);
@@ -3040,6 +3048,33 @@ void SystematicAnalysis::DoDestructorCall(const ObjectToDrop& Object)
 		auto NewOp = IROperand::AsLocation(Object.Object);
 		_Builder.Build_Assign(NewOp, Op);
 
+	}
+	else
+	{
+		if (Object.Type.IsAn(TypesEnum::CustomType))
+		{
+			int a = 0;
+			String TypeDestructorFuncName = ToString(Object.Type);
+			ScopeHelper::GetApendedString(TypeDestructorFuncName, ClassDestructorFunc);
+
+			Symbol* Sym = GetSymbol(TypeDestructorFuncName, SymbolType::Func);
+			if (Sym) 
+			{
+				FuncInfo* node = (FuncInfo*)Sym->Info.get();
+
+				Get_FuncInfo FuncInfo;
+				FuncInfo.Func = node;
+				FuncInfo.ThisPar = Get_FuncInfo::ThisPar_t::PushFromLast;
+				
+
+				//par
+				_Builder.Build_Assign(IROperand::AsLocation(Object.Object));
+				//
+
+				ValueParametersNode Vtemp;
+				DoFuncCall(Object.Type, FuncInfo, Vtemp);
+			}
+		}
 	}
 }
 SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGenericsNode& Generics, const ValueParametersNode& Pars, TypeSymbol Ret)
