@@ -599,6 +599,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			if (HasDestructor(V.VarType))
 			{
 				ObjectToDrop V;
+				V.ID = ParSybID;
 				V.Object = _Builder.GetLastField();
 				V.Type = V.Type;
 
@@ -976,6 +977,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 		if (HasDestructor(syb->VarType))
 		{
 			ObjectToDrop V;
+			V.ID = sybId;
 			V.Object = _Builder.GetLastField();
 			V.Type = syb->VarType;
 
@@ -3107,7 +3109,8 @@ void SystematicAnalysis::DoDestructorCall(const ObjectToDrop& Object)
 				
 
 				//par
-				_Builder.Build_Assign(IROperand::AsLocation(Object.Object));
+				_Builder.Build_Assign(IROperand::AsPointer(Object.ID));
+
 				//
 
 				ValueParametersNode Vtemp;
