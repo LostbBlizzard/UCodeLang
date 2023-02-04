@@ -17,6 +17,7 @@ public:
 		RegisterInUse Inuse = RegisterInUse::NotInUse;
 		IRField IRField =0;
 		AnyInt64 BitValue;
+		bool Locked = false;
 	};
 	
 	RegistersManager();
@@ -31,7 +32,18 @@ public:
 	{
 		return Registers[(size_t)id];
 	}
-
+	void LockRegister(RegisterID id)
+	{
+		GetInfo(id).Locked = true;
+	}
+	void UnLockRegister(RegisterID id)
+	{
+		GetInfo(id).Locked = false;
+	}
+	bool IsLocked(RegisterID id)
+	{
+		return GetInfo(id).Locked;
+	}
 
 	RegisterID GetInfo(IRField IRField)
 	{
@@ -69,7 +81,7 @@ public:
 			}
 		}
 		
-		Reset();
+		//Reset();
 		return RegisterID::A;
 	}
 

@@ -3023,7 +3023,49 @@ void SystematicAnalysis::DoDestructorCall(const ObjectToDrop& Object)
 }
 FuncInfo* SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGenericsNode& Generics, const ValueParametersNode& Pars, TypeSymbol Ret)
 {
-	auto ScopedName = GetScopedNameAsString(Name);
+	TypeSymbol _ThisType;
+	String ScopedName;
+	{
+
+		bool IsThisCall = false;
+		for (auto& Item : Name.ScopedName)
+		{
+			if (Item.Operator == ScopedName::Operator_t::Dot)
+			{
+				IsThisCall = true;
+			}
+		}
+
+		if (IsThisCall)
+		{
+			ScopedNameNode TepNode;
+			for (size_t i = 0; i < Name.ScopedName.size() - 1; i++)
+			{
+				auto& Item = Name.ScopedName[i];
+				TepNode.ScopedName.push_back(Item);
+			}
+
+			GetMemberTypeSymbolFromVar_t V;
+			if (GetMemberTypeSymbolFromVar(TepNode, V))
+			{
+				_ThisType = V.Type;
+				_ThisType.SetAsAddress();
+				ScopedName = ToString(V.Type) + ScopeHelper::_ScopeSep;
+				ScopedName += Name.ScopedName.back().token->Value._String;
+			}
+			else
+			{
+				return nullptr;
+			}
+		}
+		else 
+		{
+			GetScopedNameUsingName:
+			ScopedName = GetScopedNameAsString(Name);
+		}
+	}
+	bool _ThisTypeIsNotNull = !_ThisType.IsNull();
+	
 	LastLookedAtToken = Name.ScopedName.back().token;
 	{
 
@@ -3069,14 +3111,19 @@ FuncInfo* SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGener
 		}
 	}
 	
-	auto& Symbols = _Table.GetSymbolsWithName(ScopedName, SymbolType::Any);
+	
 	FuncInfo* r = nullptr;
 
 	auto& RetType = Get_LookingForType();
 	bool RetIsSet = RetType.IsnotAn(TypesEnum::Var);
 
 	Vector<TypeSymbol> ValueTypes;
-	ValueTypes.resize(Pars._Nodes.size());
+	ValueTypes.reserve(_ThisTypeIsNotNull ? Pars._Nodes.size() + 1 : Pars._Nodes.size());
+
+	if (_ThisTypeIsNotNull)
+	{
+		ValueTypes.push_back(_ThisType);
+	}
 
 	TypeSymbol NullSymbol;
 	NullSymbol.SetType(TypesEnum::Any);
@@ -3084,7 +3131,7 @@ FuncInfo* SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGener
 	for (size_t i = 0; i < Pars._Nodes.size(); i++)
 	{
 		auto& Item = Pars._Nodes[i];
-		auto& ValueItem = ValueTypes[i];
+		auto& ValueItem = ValueTypes.emplace_back();
 
 		LookingForTypes.push(NullSymbol);
 
@@ -3093,6 +3140,7 @@ FuncInfo* SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGener
 
 		LookingForTypes.pop();
 	}
+	auto& Symbols = _Table.GetSymbolsWithName(ScopedName, SymbolType::Any);
 	for (auto& Item : Symbols)
 	{
 		if (Item->Type == SymbolType::Func)
@@ -3115,7 +3163,8 @@ FuncInfo* SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGener
 			for (size_t i = 0; i < Info->Pars.size(); i++)
 			{
 				auto& Item = Info->Pars[i];
-				auto& Item2 = ValueTypes[i];
+				if (_ThisTypeIsNotNull && i == 0) { continue; }
+				auto& Item2 = ValueTypes[1];
 
 				if (!CanBeImplicitConverted(Item2, Item))
 				{
@@ -3152,6 +3201,8 @@ FuncInfo* SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGener
 			for (size_t i = 0; i < ValueTypes.size(); i++)
 			{
 				auto& Item = ValueTypes[i];
+				if (_ThisTypeIsNotNull && i == 0) { continue; }
+
 				auto& Par = Info->Pars[i];
 
 
@@ -3191,16 +3242,16 @@ FuncInfo* SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGener
 
 
 			{
-				
+
 
 
 
 				auto FuncSym = GetSymbol(Info);
 				String NewName = GetGenericFuncName(FuncSym, GenericInput);
-				auto FuncIsMade = GetSymbol(NewName,SymbolType::Func);
-				
-				
-				
+				auto FuncIsMade = GetSymbol(NewName, SymbolType::Func);
+
+
+
 				if (!FuncIsMade)
 				{
 					auto Pointer = std::make_unique<Vector<TypeSymbol>>(std::move(GenericInput));
@@ -3220,12 +3271,32 @@ FuncInfo* SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGener
 				}
 
 
-				
 
 
-			
+
+
 			}
 			break;
+		}
+		else if (Item->Type == SymbolType::Type_class)
+		{
+			ClassInfo* V = (ClassInfo*)Item->Info.get();
+
+			String Scope =V->FullName;
+			ScopeHelper::GetApendedString(Scope, ClassConstructorfunc);
+
+			auto& ConstructorSymbols = _Table.GetSymbolsWithName(Scope, SymbolType::Any);
+			for (auto& Item2 : ConstructorSymbols)
+			{
+				if (Item->Type == SymbolType::Func)
+				{
+					FuncInfo* Info = (FuncInfo*)Item->Info.get();
+					r = Info;
+					break;
+				}
+			}
+
+			if (r){break;}
 		}
 	}
 	if (r == nullptr)

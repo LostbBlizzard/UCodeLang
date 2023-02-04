@@ -125,6 +125,10 @@ struct TypeSymbol
 	{
 		return !IsAn(Type);
 	}
+	bool IsNull()const
+	{
+		return  IsAn(TypesEnum::Null);
+	}
 };
 
 
