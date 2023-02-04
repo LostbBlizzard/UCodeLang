@@ -154,7 +154,7 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 		if (FInfo->Type == FrontEndType::Text) 
 		{
 			auto V = std::make_unique<String>(GetTextFromFile(dirEntry.path()));
-			auto Filenode = _FrontEndObject->BuildFile((String_view)*V);
+			auto Filenode = _FrontEndObject->BuildFile(String_view(*V));
 
 			FilesStrings.push_back(std::move(V));
 			if (Filenode) { Files.push_back(std::move(Filenode)); }

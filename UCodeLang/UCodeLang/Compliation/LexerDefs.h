@@ -4,8 +4,10 @@
 #define LowLettersCharSet "qwertyuiopasdfghjklzxcvbnm"
 #define LettersCharSet UpLettersCharSet LowLettersCharSet
 #define digitCharSet "0123456789"
-#define NameCharSet LettersCharSet digitCharSet "_"
 
+#define Nondigit_NameCharSet LettersCharSet  "_"
+
+#define NameCharSet Nondigit_NameCharSet digitCharSet 
 struct LexerHelper
 {
 	static constexpr const char* const Letters = LettersCharSet;
@@ -16,6 +18,10 @@ struct LexerHelper
 
 	static constexpr const char* const NameChars = NameCharSet;
 	static constexpr size_t NameChars_Size = sizeof(NameCharSet);
+
+	static constexpr const char* const Nondigit_NameChars = Nondigit_NameCharSet;
+	static constexpr size_t Nondigit_NameChars_Size = sizeof(Nondigit_NameCharSet);
+
 	static bool IsNameChar(char Char)
 	{
 		for (size_t i = 0; i < LexerHelper::NameChars_Size; i++)
@@ -37,6 +43,14 @@ struct LexerHelper
 		for (size_t i = 0; i < LexerHelper::Digits_Size; i++)
 		{
 			if (Char == LexerHelper::Digits[i]) { return true; }
+		}
+		return false;
+	}
+	static bool IsNondigitName(char Char)
+	{
+		for (size_t i = 0; i < LexerHelper::Nondigit_NameChars_Size; i++)
+		{
+			if (Char == LexerHelper::Nondigit_NameChars[i]) { return true; }
 		}
 		return false;
 	}

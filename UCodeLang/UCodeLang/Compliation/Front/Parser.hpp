@@ -48,6 +48,22 @@ private:
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
 
+	bool _HasTripped = false;
+	void Tripped()
+	{
+		_HasTripped = true;
+	}
+	void GotVaild()
+	{
+		_HasTripped = false;
+	}
+	void TrippedCheck(GotNodeType T)
+	{
+		if (T != GotNodeType::Error)
+		{
+			GotVaild();
+		}
+	}
 	inline const Token* TryPeekNextToken(size_t offset)
 	{
 		size_t Index = _TokenIndex + offset;
@@ -80,6 +96,7 @@ private:
 	{
 		NamespaceNode* V = NamespaceNode::Gen();
 		auto r = GetNamespaceNode(*V);
+		TrippedCheck(r);
 		return { r,V->As() };
 	}
 	GotNodeType GetNamespaceNode(NamespaceNode& out);
@@ -87,6 +104,7 @@ private:
 	{
 		Node* V = nullptr;
 		auto r = GetClassTypeNode(V);
+		TrippedCheck(r);
 		return { r,V};
 	}
 	GotNodeType GetClassTypeNode(Node*& out);
@@ -94,6 +112,7 @@ private:
 	{
 		FuncNode* V = FuncNode::Gen();
 		auto r = GetFuncNode(*V);
+		TrippedCheck(r);
 		return {r,V->As()};
 	}
 	GotNodeType GetStatementsorStatementNode(StatementsNode& out);
@@ -115,6 +134,7 @@ private:
 	{
 		StatementsNode* V = StatementsNode::Gen();
 		auto r = GetStatements(*V);
+		TrippedCheck(r);
 		return { r,V->As() };
 	}
 	GotNodeType GetStatements(StatementsNode& out);
@@ -164,6 +184,7 @@ private:
 	{
 		AttributeNode* V = AttributeNode::Gen();
 		auto r = GetAttribute(*V);
+		TrippedCheck(r);
 		return { r,V->As() };
 	}
 	GotNodeType GetAttribute(AttributeNode& out);
@@ -172,6 +193,7 @@ private:
 	{
 		UsingNode* V = UsingNode::Gen();
 		auto r = GetUseNode(*V);
+		TrippedCheck(r);
 		return { r,V->As() };
 	}
 	GotNodeType GetUseNode(UsingNode& out);
@@ -181,6 +203,7 @@ private:
 	{
 		RetStatementNode* V = RetStatementNode::Gen();
 		auto r = GetRetStatement(*V);
+		TrippedCheck(r);
 		return { r,V->As() };
 	}
 	GotNodeType GetRetStatement(RetStatementNode& out);
@@ -189,6 +212,7 @@ private:
 	{
 		DeclareStaticVariableNode* V = DeclareStaticVariableNode::Gen();
 		auto r = GetDeclareStaticVariable(*V);
+		TrippedCheck(r);
 		return { r,V->As() };
 	}
 	GotNodeType GetDeclareStaticVariable(DeclareStaticVariableNode& out);
@@ -196,6 +220,7 @@ private:
 	{
 		DeclareThreadVariableNode* V = DeclareThreadVariableNode::Gen();
 		auto r = GetDeclareThreadVariable(*V);
+		TrippedCheck(r);
 		return { r,V->As() };
 	}
 	GotNodeType  GetDeclareThreadVariable(DeclareThreadVariableNode& out);
@@ -205,6 +230,7 @@ private:
 	{
 		DeclareVariableNode* V = DeclareVariableNode::Gen();
 		auto r = GetDeclareVariable(*V);
+		TrippedCheck(r);
 		return { r,V->As() };
 	}
 	GotNodeType GetDeclareVariable(DeclareVariableNode& out);
@@ -213,6 +239,7 @@ private:
 	{
 		AssignVariableNode* V = AssignVariableNode::Gen();
 		auto r = GetAssignVariable(*V);
+		TrippedCheck(r);
 		return { r,V->As() };
 	}
 	GotNodeType GetAssignVariable(AssignVariableNode& out);
@@ -221,6 +248,7 @@ private:
 	{
 		PostfixVariableNode* V = PostfixVariableNode::Gen();
 		auto r = GetPostfixStatement(*V);
+		TrippedCheck(r);
 		return { r,V->As() };
 	}
 	GotNodeType GetPostfixStatement(PostfixVariableNode& out);
@@ -229,6 +257,7 @@ private:
 	{
 		CompoundStatementNode* V = CompoundStatementNode::Gen();
 		auto r = GetCompoundStatement(*V);
+		TrippedCheck(r);
 		return { r,V->As() };
 	}
 	GotNodeType GetCompoundStatement(CompoundStatementNode& out);
@@ -241,6 +270,7 @@ private:
 	{
 		IfNode* V = IfNode::Gen();
 		auto r = GetIfNode(*V);
+		TrippedCheck(r);
 		return { r,V->As() };
 	}
 	GotNodeType GetIfNode(IfNode& out);
@@ -249,6 +279,7 @@ private:
 	{
 		WhileNode* V = WhileNode::Gen();
 		auto r = GetWhileNode(*V);
+		TrippedCheck(r);
 		return { r,V->As() };
 	}
 	GotNodeType GetWhileNode(WhileNode& out);
@@ -257,6 +288,7 @@ private:
 	{
 		DoNode* V = DoNode::Gen();
 		auto r = GetDoNode(*V);
+		TrippedCheck(r);
 		return { r,V->As() };
 	}
 	GotNodeType GetDoNode(DoNode& out);
@@ -265,6 +297,7 @@ private:
 	{
 		EnumNode* V = EnumNode::Gen();
 		auto r = GetEnumNode(*V);
+		TrippedCheck(r);
 		return { r,V->As() };
 	}
 	GotNodeType GetEnumNode(EnumNode& out);
@@ -274,6 +307,7 @@ private:
 	{
 		TagTypeNode* V = TagTypeNode::Gen();
 		auto r = GetTagNode(*V);
+		TrippedCheck(r);
 		return { r,V->As() };
 	}
 	GotNodeType GetTagNode(TagTypeNode& out);
@@ -282,6 +316,7 @@ private:
 	{
 		FuncCallStatementNode* V = FuncCallStatementNode::Gen();
 		auto r = GetFuncCallStatementNode(*V);
+		TrippedCheck(r);
 		return { r,V->As() };
 	}
 	GotNodeType GetFuncCallStatementNode(FuncCallStatementNode& out);
@@ -290,6 +325,7 @@ private:
 	{
 		FuncCallNode* V = FuncCallNode::Gen();
 		auto r = GetFuncCallNode(*V);
+		TrippedCheck(r);
 		return { r,V->As() };
 	}
 	GotNodeType GetFuncCallNode(FuncCallNode& out);
@@ -298,6 +334,7 @@ private:
 	{
 		AnonymousObjectConstructorNode* V = AnonymousObjectConstructorNode::Gen();
 		auto r = GetAnonymousObjectConstructorNode(*V);
+		TrippedCheck(r);
 		return { r,V->As() };
 	}
 	GotNodeType GetAnonymousObjectConstructorNode(AnonymousObjectConstructorNode& out);
@@ -306,6 +343,7 @@ private:
 	{
 		DropStatementNode* V = DropStatementNode::Gen();
 		auto r = GetDropStatementNode(*V);
+		TrippedCheck(r);
 		return { r,V->As() };
 	}
 	GotNodeType GetDropStatementNode(DropStatementNode& out);
@@ -314,6 +352,7 @@ private:
 	{
 		NewExpresionNode* V =NewExpresionNode::Gen();
 		auto r = GetNewExpresionNode(*V);
+		TrippedCheck(r);
 		return { r,V->As() };
 	}
 	GotNodeType GetNewExpresionNode(NewExpresionNode& out);
@@ -322,6 +361,7 @@ private:
 	{
 		Node* V = nullptr;
 		auto r = GetumutVariableDeclare(V);
+		TrippedCheck(r);
 		return { r,V };
 	}
 	GotNodeType GetumutVariableDeclare(Node*& out);
