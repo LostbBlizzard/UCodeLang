@@ -36,6 +36,7 @@ enum class IROperator : UInt8
 	PassParameter,
 	IfFalseJump,
 	Jump,
+	Assign_OperandOnPointer
 };
 
 enum class IRFieldInfoType : UInt8
@@ -142,14 +143,6 @@ struct IROperand
 	{
 		IROperand operand;
 		operand.Type = IRFieldInfoType::Nothing;
-		return operand;
-	}
-
-	UCodeLangForceinline static IROperand AsWritingPointer(SymbolID Value)
-	{
-		IROperand operand;
-		operand.Type = IRFieldInfoType::ReadPointer;
-		operand.SymbolId = Value;
 		return operand;
 	}
 };
@@ -286,6 +279,19 @@ public:
 	void Build_Assign(IROperand field,UAddress offset = 0)
 	{
 		Build_Assign(IROperand::AsLocation(Code.size()), field,offset);
+	}
+
+	void Build_AssignOnPointer(IROperand result, IROperand field, UAddress offset = 0)
+	{
+		auto& V = Code.emplace_back();
+		V.Result = result;
+		V.Operand0 = field;
+		V.Operand1 = IROperand::AsInt64(offset);
+		V.Operator = IROperator::Assign_OperandOnPointer;
+	}
+	void Build_AssignOnPointer(IROperand field, UAddress offset = 0)
+	{
+		Build_Assign(IROperand::AsLocation(Code.size()), field, offset);
 	}
 
 	void Build_AssignRet(IROperand field)
