@@ -91,10 +91,22 @@ int main()
 
 		
 		RunTime.Init(&State);
-	
-	
 
-		auto r =RunTime.retCall<int>("main",true);
+
+		struct MyStruct2
+		{
+			int X;
+			int Y;
+		};
+	
+		struct Player
+		{
+			MyStruct2 Pos;
+			int HP;
+		};
+		Player Test;
+
+		auto r =RunTime.Call("Player:" ClassConstructorfunc,&Test);
  		
 		
 

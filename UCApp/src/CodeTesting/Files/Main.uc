@@ -1,12 +1,20 @@
 
 $Vec2:
- uintptr X;
- uintptr Y;
- uintptr Z;
+ int X;
+ int Y;
  |new[this&]:
   X = 0;
   Y = 0;
-  Z = 0;
+
+$Player:
+ Vec2 Pos;
+ int Hp;
+ |new[this&]:
+  Pos.X = 0;
+  Pos.Y = 5;
+  Hp = 0;
+  
+
  |drop[this&];
  |DoSome[this&,int a];
  

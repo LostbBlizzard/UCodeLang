@@ -158,7 +158,16 @@ void UCodeBackEndObject::BuildFunc()
 
 				if (ROut == Regpointer)
 				{
-					throw std::exception("not added");
+					auto V = _Registers.GetFreeRegister();
+					if (ROut == V)
+					{
+						throw std::exception();
+					}
+				
+					
+					BuildSybolIntSizeIns(IR, StoreRegToReg,(_Ins,ROut, V));
+					
+					ROut = V; 
 				}
 
 				
@@ -189,6 +198,7 @@ void UCodeBackEndObject::BuildFunc()
 
 					_Registers.UnLockRegister(R);
 					_Registers.UnLockRegister(ROut);
+					_Registers.UnLockRegister(NewRegIfPointeroffset);
 				}
 				else
 				{
@@ -356,14 +366,14 @@ void UCodeBackEndObject::BuildOperandA(const UCodeLang::IRCode& IR, UCodeLang::R
 	switch (IR.Operand0.Type)
 	{
 		IRFieldInt(8)
-			IRFieldInt(16)
-			IRFieldInt(32)
-			IRFieldInt(64)
+		IRFieldInt(16)
+		IRFieldInt(32)
+		IRFieldInt(64)
 	case IRFieldInfoType::ReadVar:
-		{
+	{
 			OnReadVarOperand(R, IR, ULib);
-		}
-		break;
+	}
+	break;
 	case IRFieldInfoType::IRLocation:
 	{
 		R = GetOperandInAnyRegister(IR.Operand0);
@@ -486,7 +496,9 @@ void UCodeBackEndObject::SetIRToRegister(RegisterID R, IRField IR)
 
 RegisterID UCodeBackEndObject::GetOperandInAnyRegister(const IROperand& operand)
 {
-	auto IsInR = _Registers.GetInfo(operand.IRLocation);
+	
+	auto IsInR = operand.Type == IRFieldInfoType::IRLocation ?
+		_Registers.GetInfo(operand.IRLocation) : _Registers.GetValue(operand.AnyValue.AsInt64);
 	if (IsInR == RegisterID::NullRegister)
 	{
 		auto id = _Registers.GetFreeRegister();
@@ -499,7 +511,8 @@ RegisterID UCodeBackEndObject::GetOperandInAnyRegister(const IROperand& operand)
 void UCodeBackEndObject::GetOperandInRegister(const IROperand& operand, RegisterID id)
 {
 	auto& ULib = Getliboutput();
-	auto R = _Registers.GetInfo(operand.IRLocation);
+	auto R = operand.Type == IRFieldInfoType::IRLocation ? _Registers.GetInfo(operand.IRLocation)
+		: _Registers.GetValue(operand.AnyValue.AsInt64);
 	if (R == RegisterID::NullRegister)
 	{
 		R = id;
