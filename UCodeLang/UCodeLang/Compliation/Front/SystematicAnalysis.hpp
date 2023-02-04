@@ -153,7 +153,6 @@ private:
 	void OnExpressionNode(const ValueExpressionNode& node);
 	void OnNewNode(NewExpresionNode* nod);
 	void OnAnonymousObjectConstructor(AnonymousObjectConstructorNode*& nod);
-	void DoFuncCall(TypeSymbol& Type, const const UCodeLang::FuncInfo*& Func,ValueParametersNode& ValuePars);
 	void OnReadVariable(const ReadVariableNode& nod);
 	
 	void OnExpressionNode(const BinaryExpressionNode& node);
@@ -235,18 +234,29 @@ private:
 	bool GetSize(const TypeSymbol& Type,UAddress& OutSize);
 	bool GetOffset(const ClassInfo& Type,const FieldInfo* Field, UAddress& OutOffset);
 
+	struct Get_FuncInfo
+	{
+		enum class ThisPar_t : UInt8
+		{
+			NoThisPar,
+			PushFromLast,
+			PushFromScopedName,
+		};
+		ThisPar_t ThisPar = ThisPar_t::NoThisPar;
+		const FuncInfo* Func = nullptr;
+	};
 
-	void DoFuncCall(const FuncInfo* Func, const ScopedNameNode& Name, const ValueParametersNode& Pars);
-
+	void DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Name, const ValueParametersNode& Pars);
+	void DoFuncCall(TypeSymbol& Type, const Get_FuncInfo& Func, ValueParametersNode& ValuePars);
 	
 
 	void DoDestructorCall(const ObjectToDrop& Object);
 
-	FuncInfo* GetFunc(
+	Get_FuncInfo GetFunc(
 		const TypeSymbol& Name,
 		const ValueParametersNode& Pars);;
 
-	FuncInfo* GetFunc(
+	Get_FuncInfo GetFunc(
 		const ScopedNameNode& Name,
 		const ValueParametersNode& Pars,
 		TypeSymbol Ret)
@@ -255,11 +265,13 @@ private:
 		return GetFunc(Name, generics, Pars, Ret);
 	};
 
-	FuncInfo* GetFunc(
+	Get_FuncInfo GetFunc(
 		const ScopedNameNode& Name,
 		const UseGenericsNode&,
 		const ValueParametersNode& Pars,
 		TypeSymbol Ret);
+
+	void GetScopedNameRemovedLast(const UCodeLang::ScopedNameNode& Name, UCodeLang::ScopedNameNode& TepNode);
 
 	void GenericFuncInstantiate(Symbol* Func,const Vector<TypeSymbol>& GenericInput);
 
@@ -267,7 +279,7 @@ private:
 
 	void GenericTypeInstantiate(Symbol* Class , const Vector<TypeSymbol>& Type);
 
-	Unordered_map<const void*,const FuncInfo*> FuncToSyboID;
+	Unordered_map<const void*, Get_FuncInfo> FuncToSyboID;
 
 
 	//uintptr

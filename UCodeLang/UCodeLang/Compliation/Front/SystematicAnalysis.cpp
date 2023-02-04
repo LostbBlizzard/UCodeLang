@@ -2038,7 +2038,7 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(AnonymousObjectConstructor
 	LastExpressionType = Type;
 }
 
-void SystematicAnalysis::DoFuncCall(UCodeLang::TypeSymbol& Type, const const UCodeLang::FuncInfo*& Func, UCodeLang::ValueParametersNode& ValuePars)
+void SystematicAnalysis::DoFuncCall(TypeSymbol& Type, const Get_FuncInfo& Func, UCodeLang::ValueParametersNode& ValuePars)
 {
 	String B = ToString(Type);
 	Token T;
@@ -2762,7 +2762,7 @@ bool SystematicAnalysis::IsimmutableRulesfollowed(const TypeSymbol& TypeToCheck,
 	return  (!TypeToCheck.Isimmutable() == Type.Isimmutable()) ||
 		(TypeToCheck.Isimmutable() == Type.Isimmutable());
 }
- bool SystematicAnalysis::IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type)
+bool SystematicAnalysis::IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type)
 {
 	return (TypeToCheck.IsLocationValue() == Type.IsLocationValue()) ||
 		(TypeToCheck.IsRawValue() == Type.IsLocationValue()) ||
@@ -2896,7 +2896,7 @@ bool SystematicAnalysis::GetOffset(const ClassInfo& Type, const FieldInfo* Field
 	OutOffset = offset;
 	return false;
 }
-FuncInfo* SystematicAnalysis::GetFunc(const TypeSymbol& Name, const ValueParametersNode& Pars)
+SystematicAnalysis::Get_FuncInfo SystematicAnalysis::GetFunc(const TypeSymbol& Name, const ValueParametersNode& Pars)
 {
 	String B =ToString(Name);
 	Token T;
@@ -2912,7 +2912,7 @@ FuncInfo* SystematicAnalysis::GetFunc(const TypeSymbol& Name, const ValueParamet
 
 	return GetFunc(Tep, Pars, Name);
 }
-void SystematicAnalysis::DoFuncCall(const FuncInfo* Func, const ScopedNameNode& Name, const ValueParametersNode& Pars)
+void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Name, const ValueParametersNode& Pars)
 {
 	{
 #define PrimitiveTypeCall(FullName,TypeEnum,DefaultValue) if (ScopedName == FullName) \
@@ -2955,15 +2955,36 @@ void SystematicAnalysis::DoFuncCall(const FuncInfo* Func, const ScopedNameNode& 
 		else PrimitiveTypeCall(boolTypeName, TypesEnum::Bool, _Builder.Build_Assign(IROperand::AsInt8((UInt8)false));)
 		else PrimitiveTypeCall(CharTypeName, TypesEnum::Char, _Builder.Build_Assign(IROperand::AsInt8((UInt8)'\0')))
 	}
-	if (Func == nullptr)
+	if (Func.Func == nullptr)
 	{
 		return;
+	}
+
+	bool AutoPushThis = Func.ThisPar != Get_FuncInfo::ThisPar_t::NoThisPar;
+	if (AutoPushThis)
+	{
+		if (Func.ThisPar == Get_FuncInfo::ThisPar_t::PushFromScopedName)
+		{
+			ScopedNameNode TepNode;
+			GetScopedNameRemovedLast(Name, TepNode);
+
+			GetMemberTypeSymbolFromVar_t V;
+			GetMemberTypeSymbolFromVar(TepNode, V);
+
+			auto Str = TepNode.ScopedName.front().token->Value._String;
+			auto Symbol = GetSymbol(Str, SymbolType::Varable_t);
+			auto _SybolID = Symbol->ID;
+
+			_Builder.Build_Assign(IROperand::AsPointer(_SybolID), V.Offset);
+			BindTypeToLastIR(V.Type);
+			_Builder.Build_PassLastAsParameter();
+		}
 	}
 
 	for (size_t i = 0; i < Pars._Nodes.size(); i++)
 	{
 		auto& Item = Pars._Nodes[i];
-		auto& FuncParInfo = Func->Pars[i];
+		auto& FuncParInfo = Func.Func->Pars[AutoPushThis ? i + 1 : i];
 
 
 		
@@ -2976,9 +2997,9 @@ void SystematicAnalysis::DoFuncCall(const FuncInfo* Func, const ScopedNameNode& 
 
 		LookingForTypes.pop();
 	}
-	_Builder.Build_FuncCall(GetSymbol(Func)->ID);
+	_Builder.Build_FuncCall(GetSymbol(Func.Func)->ID);
 
-	LastExpressionType = Func->Ret;
+	LastExpressionType = Func.Func->Ret;
 }
 void SystematicAnalysis::DoDestructorCall(const ObjectToDrop& Object)
 {
@@ -3021,9 +3042,10 @@ void SystematicAnalysis::DoDestructorCall(const ObjectToDrop& Object)
 
 	}
 }
-FuncInfo* SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGenericsNode& Generics, const ValueParametersNode& Pars, TypeSymbol Ret)
+SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGenericsNode& Generics, const ValueParametersNode& Pars, TypeSymbol Ret)
 {
 	TypeSymbol _ThisType;
+	Get_FuncInfo::ThisPar_t ThisParType = Get_FuncInfo::ThisPar_t::NoThisPar;
 	String ScopedName;
 	{
 
@@ -3033,17 +3055,14 @@ FuncInfo* SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGener
 			if (Item.Operator == ScopedName::Operator_t::Dot)
 			{
 				IsThisCall = true;
+				break;
 			}
 		}
 
 		if (IsThisCall)
 		{
 			ScopedNameNode TepNode;
-			for (size_t i = 0; i < Name.ScopedName.size() - 1; i++)
-			{
-				auto& Item = Name.ScopedName[i];
-				TepNode.ScopedName.push_back(Item);
-			}
+			GetScopedNameRemovedLast(Name, TepNode);
 
 			GetMemberTypeSymbolFromVar_t V;
 			if (GetMemberTypeSymbolFromVar(TepNode, V))
@@ -3052,10 +3071,12 @@ FuncInfo* SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGener
 				_ThisType.SetAsAddress();
 				ScopedName = ToString(V.Type) + ScopeHelper::_ScopeSep;
 				ScopedName += Name.ScopedName.back().token->Value._String;
+
+				ThisParType = Get_FuncInfo::ThisPar_t::PushFromScopedName;
 			}
 			else
 			{
-				return nullptr;
+				return { Get_FuncInfo::ThisPar_t::NoThisPar, nullptr };
 			}
 		}
 		else 
@@ -3084,7 +3105,7 @@ FuncInfo* SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGener
 				LogCanIncorrectParCount(Name.ScopedName.back().token, ScopedName, Pars._Nodes.size(), 1);
 			}
 
-			return nullptr;
+			return { Get_FuncInfo::ThisPar_t::NoThisPar, nullptr };
 
 		}
 
@@ -3107,7 +3128,7 @@ FuncInfo* SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGener
 			{
 				LogCanIncorrectParCount(Name.ScopedName.back().token, ScopedName, Pars._Nodes.size(), 1);
 			}
-			return nullptr;
+			return { Get_FuncInfo::ThisPar_t::NoThisPar, nullptr };
 		}
 	}
 	
@@ -3303,7 +3324,15 @@ FuncInfo* SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGener
 	{
 		LogCantFindFuncError(Name.ScopedName.back().token, ScopedName, {}, ValueTypes,RetType);
 	}
-	return r;
+	return { ThisParType,r};
+}
+void SystematicAnalysis::GetScopedNameRemovedLast(const UCodeLang::ScopedNameNode& Name, UCodeLang::ScopedNameNode& TepNode)
+{
+	for (size_t i = 0; i < Name.ScopedName.size() - 1; i++)
+	{
+		auto& Item = Name.ScopedName[i];
+		TepNode.ScopedName.push_back(Item);
+	}
 }
 String SystematicAnalysis::GetGenericFuncName(Symbol* Func, const Vector<TypeSymbol>& Type)
 {
