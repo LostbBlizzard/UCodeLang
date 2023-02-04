@@ -50,7 +50,8 @@ public:
 		for (size_t i = 0; i < RegisterSize; i++)
 		{
 			auto& Info = Registers[i];
-			if (Info.Inuse == RegisterInUse::InUseSybol && Info.IRField == IRField)
+			if (Info.Inuse == RegisterInUse::InUseSybol && Info.IRField == IRField
+				&& !Info.Locked)
 			{
 				return (RegisterID)i;
 			}

@@ -281,17 +281,13 @@ public:
 		Build_Assign(IROperand::AsLocation(Code.size()), field,offset);
 	}
 
-	void Build_AssignOnPointer(IROperand result, IROperand field, UAddress offset = 0)
+	void Build_AssignOnPointer(IROperand pointer, IROperand field, UAddress pointeroffset = 0)
 	{
 		auto& V = Code.emplace_back();
-		V.Result = result;
+		V.Result = pointer;
 		V.Operand0 = field;
-		V.Operand1 = IROperand::AsInt64(offset);
+		V.Operand1 = IROperand::AsInt64(pointeroffset);
 		V.Operator = IROperator::Assign_OperandOnPointer;
-	}
-	void Build_AssignOnPointer(IROperand field, UAddress offset = 0)
-	{
-		Build_Assign(IROperand::AsLocation(Code.size()), field, offset);
 	}
 
 	void Build_AssignRet(IROperand field)

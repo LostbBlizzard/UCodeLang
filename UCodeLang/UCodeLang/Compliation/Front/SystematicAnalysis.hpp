@@ -154,6 +154,8 @@ private:
 	};
 
 	bool GetMemberTypeSymbolFromVar(const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out);
+
+	bool GetMemberTypeSymbolFromVar(const size_t& Start, const UCodeLang::ScopedNameNode& node, UCodeLang::TypeSymbol& FeildType, UCodeLang::Symbol*& FeildTypeAsSymbol, size_t& VarOffset);
 	
 	void OnPostfixVariableNode(const PostfixVariableNode& node);
 	void OnCompoundStatementNode(const CompoundStatementNode& node);
