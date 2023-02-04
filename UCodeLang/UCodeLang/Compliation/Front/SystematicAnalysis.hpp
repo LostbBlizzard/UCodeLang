@@ -77,7 +77,8 @@ private:
 	//
 	struct ObjectToDrop
 	{
-		IRField Object;
+		SymbolID ID =0;
+		IRField Object=0;
 		TypeSymbol Type;
 	};
 	
@@ -249,6 +250,7 @@ private:
 			PushFromLast,
 			PushFromScopedName,
 			OnIRlocationStack,
+			PushWasCalled,
 		};
 		ThisPar_t ThisPar = ThisPar_t::NoThisPar;
 		const FuncInfo* Func = nullptr;

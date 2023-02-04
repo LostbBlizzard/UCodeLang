@@ -11,7 +11,7 @@ $Vec2:
 |main[bool V]: 
 
  Vec2 Value = [];
- Vec2& V2 = Value;
+ //Vec2& V2 = Value;
 
  //Vec2::DoSome(Value,5);
  //Value.DoSome(5);

@@ -103,26 +103,6 @@ break;\
 	}\
 
 
-#define BuildSybolIntSizeIns2(VarType,Ins,Pars) \
-if (VarType.IsAddress() || \
-	VarType._Type == TypesEnum::uIntPtr ||\
-	VarType._Type == TypesEnum::sIntPtr)\
-{\
-	GenInsPush(InstructionBuilder::##Ins##64##Pars);\
-}\
-else\
-{\
-	switch (VarType._Type)\
-	{\
-		BuildSybolIntSizeInsv(Ins,8,Pars);\
-		BuildSybolIntSizeInsv(Ins,16,Pars);\
-		BuildSybolIntSizeInsv(Ins,32,Pars);\
-		BuildSybolIntSizeInsv(Ins,64,Pars);\
-	default:\
-		throw std::exception();\
-		break;\
-	}\
-}\
 
 void UCodeBackEndObject::BuildFunc()
 {
@@ -212,7 +192,7 @@ void UCodeBackEndObject::BuildFunc()
 		break;
 		case IROperator::PassParameter:
 		{
-			auto TypeSize = 0;
+			auto TypeSize = IR.InfoType.TypeSize;
 			if (TypeSize <= RegisterSize && CallParameterRegisterValue < RegisterID::EndParameterRegister)
 			{
 				_Registers.LockRegister(CallParameterRegisterValue);
