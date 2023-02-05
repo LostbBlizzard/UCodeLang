@@ -43,7 +43,7 @@ using Byte = UInt8;
 //A int that can Address any ULang Value
 using UAddress = UIntNative;
 constexpr UAddress NullAddress = (UAddress)-1;
-
+constexpr Byte DebugGarbageByte = 'Y';
 //
 constexpr UInt64 NullUInt64 = (UInt64)nullptr;
 
@@ -87,7 +87,7 @@ enum class RegisterID : RegisterID_t
 	BitwiseRegister = OuPutRegister,
 
 	StartParameterRegister = (RegisterID_t)RegisterID::D,//the range the runtime will pass funcion Parameters into Registers
-	EndParameterRegister = (RegisterID_t)RegisterID::F,
+	EndParameterRegister = (RegisterID_t)RegisterID::F + 1,
 
 	NullRegister = 155,
 };
@@ -222,6 +222,20 @@ struct BytesPtr
 	}
 	Unique_Array<Byte> Bytes;
 	size_t Size;
+};
+
+enum class IntSizes : UInt8
+{
+	Int8,
+	Int16,
+	Int32,
+	Int64,
+
+	#if UCodeLang_64BitSytem
+	Native = Int64,
+	#else
+	Native = Int32,
+	#endif // 0
 };
 
 UCodeLangEnd

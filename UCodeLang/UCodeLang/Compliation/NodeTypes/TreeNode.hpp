@@ -1,5 +1,6 @@
 #pragma once
 #include "../../LangCore.hpp"
+#include "../Front/FrontEndObject.hpp"
 UCodeLangStart
 
 enum class NodeType :UInt8
@@ -33,6 +34,8 @@ enum class NodeType :UInt8
 	TagTypeNode,
 	IfNode,
 	ElseNode,
+	WhileNode,
+	DoNode,
 	BoolliteralNode,
 	ReadVariableNode,
 	AssignVariableNode,
@@ -47,10 +50,11 @@ enum class NodeType :UInt8
 	SizeofExpresionNode,
 	NewExpresionNode,
 	DropStatementNode,
+	LibImportNode,
 };
 
 
-struct Node
+struct Node 
 {
 	Node() { _type = NodeType::Null; };
 	Node(NodeType T) { _type = T; };
@@ -120,7 +124,7 @@ Vector<Unique_ptr<Node>> _Nodes; \
 AddforNode(Type); \
 Has_NodesList(Type); \
 
-struct FileNode : Node
+struct FileNode : FileNode_t,Node
 {
 	FileNode() :Node(NodeType::FileNode)
 	{
@@ -131,10 +135,22 @@ struct FileNode : Node
 
 
 	String_view FilePath;
+	Vector<Token> Tokens;
 	void Reset()
 	{
 		FilePath = "";
 		_Nodes.clear();
 	}
+};
+
+struct LibImportNode :FileNode_t, Node
+{
+	LibImportNode() : Node(NodeType::LibImportNode)
+	{
+
+	}
+	AddforNode(LibImportNode);
+
+	UClib LIb;
 };
 UCodeLangEnd

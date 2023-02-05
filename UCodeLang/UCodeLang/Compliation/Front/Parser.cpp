@@ -9,17 +9,15 @@ void Parser::Reset()
 {
 	_TokenIndex = 0;
 	_Nodes = nullptr;
-	_Text = String_view();
 	_Tree.Reset();
+	_HasTripped = false;
 }
 
 
 
-void Parser::Parse(const FileData& Data, const Vector<Token>&Tokens)
+void Parser::Parse(const Vector<Token>&Tokens)
 {
 	Reset();
-	_Text = Data.Text;
-	_Tree.FilePath = Data.FilePath;
 	_Nodes = &Tokens;
 	
 	
@@ -59,17 +57,21 @@ void Parser::TokenTypeCheck(const Token* Value, TokenType Type)
 {
 	if (Value->Type != Type)
 	{
-		auto& Error = _ErrorsOutput->AddError(ErrorCodes::ExpectingToken, Value->OnLine, Value->OnPos);
-
-		if (Value->Type == TokenType::Name) {
-
-			Error._Msg = "Expecting " + (String)StringHelper::ToString(Type) +
-				" Got " + (String)Value->Value._String;
-		}
-		else
+		if (!_HasTripped) 
 		{
-			Error._Msg = "Expecting " + (String)StringHelper::ToString(Type) +
-				" Got " + (String)StringHelper::ToString(Value->Type);
+			auto& Error = _ErrorsOutput->AddError(ErrorCodes::ExpectingToken, Value->OnLine, Value->OnPos);
+
+			if (Value->Type == TokenType::Name) {
+
+				Error._Msg = "Expecting " + (String)StringHelper::ToString(Type) +
+					" Got " + (String)Value->Value._String;
+			}
+			else
+			{
+				Error._Msg = "Expecting " + (String)StringHelper::ToString(Type) +
+					" Got " + (String)StringHelper::ToString(Value->Type);
+			}
+			Tripped();
 		}
 	}
 }
@@ -239,8 +241,11 @@ GotNodeType Parser::GetStatementsorStatementNode(StatementsNode& out)
 		Node* nodeptr = nullptr;
 
 		auto r= GetStatement(nodeptr);
-		
-		out._Nodes.push_back(Unique_ptr<Node>(nodeptr));
+		if (nodeptr) 
+		{
+			out._Nodes.push_back(Unique_ptr<Node>(nodeptr));
+		}
+		TrippedCheck(r);
 		return r;
 	}
 }
@@ -250,12 +255,7 @@ GotNodeType Parser::GetStatement(Node*& out)
 	auto StatementTypeToken = TryGetToken();
 	switch (StatementTypeToken->Type)
 	{
-	case TokenType::KeyWorld_asm:
-	{
-		auto r = GetAsmBlock();
-		out = r.Node;
-		return r.GotNode;
-	}
+	case TokenType::EndTab:return GotNodeType::EndLoop;
 	case TokenType::StartTab:
 	{
 		auto r = GetStatements();
@@ -305,7 +305,21 @@ GotNodeType Parser::GetStatement(Node*& out)
 		return r.GotNode;
 	}
 	break;
-	case Parser::IfToken:
+	case  TokenType::KeyWorld_while:
+	{
+		auto r =GetWhileNode();
+		out = r.Node;
+		return r.GotNode;
+	}
+	break;
+	case  TokenType::KeyWorld_do:
+	{
+		auto r = GetDoNode();
+		out = r.Node;
+		return r.GotNode;
+	}
+	break;
+	case  TokenType::KeyWorld_If:
 	{
 		auto r = GetIfNode();
 		out = r.Node;
@@ -397,6 +411,8 @@ GotNodeType Parser::GetStatements(StatementsNode& out)
 		Node* V = nullptr;
 		auto R = GetStatement(V);
 		if (V) { out._Nodes.push_back(Unique_ptr<Node>(V)); }
+
+		TrippedCheck(R);
 		if (R != GotNodeType::Success){ break; }
 	}
 
@@ -458,7 +474,7 @@ GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 
 	auto NameToken = TryGetToken();
 
-	if (NameToken->Type == TokenType::KeyWorld_This
+	if (NameToken->Type == TokenType::KeyWorld_new
 		|| NameToken->Type == TokenType::KeyWorld_Drop
 		|| ExpressionNodeType::IsOverLoadableOperator(NameToken))
 	{
@@ -587,6 +603,7 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 		out = r.Node;
 		return r.GotNode;
 	}
+	TokenType_Name:
 	case TokenType::Name:
 	{
 		size_t OldIndex = _TokenIndex;
@@ -649,9 +666,16 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 	}
 	break;
 	default:
-		#if CompliationTypeSafety
-		throw std::exception("Cant UnWap BuildStatement");
-		#endif
+
+		if (TypeNode::IsType(StatementTypeToken->Type))
+		{
+			goto TokenType_Name;
+		}
+		else 
+		{
+			TokenTypeCheck(StatementTypeToken, TokenType::Name);
+		}
+
 		return GotNodeType::failed;
 		break;
 	}
@@ -746,31 +770,22 @@ GotNodeType Parser::GetNamedParametersNode(NamedParametersNode& out)
 		auto Token = TryGetToken();
 		if (!Token || Token->Type == TokenType::Right_Bracket) { break; }
 
-		
-		if (Token->Type == TokenType::KeyWorld_This)
-		{
-			NextToken();
-			auto Token2 = TryGetToken();
-			NextToken();
-			auto Token3 = TryGetToken();
-			if (Token2 && Token2->Type == TokenType::bitwise_and 
-				&& Token3 && (Token3->Type == TokenType::Comma || Token3->Type == TokenType::Right_Bracket) )
-			{
-				if (out.Parameters.size() != 0)
-				{
-					_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos,"this& Must be the first parameter");
-				}
-				TypeNode::Gen_ThisMemberFunc(Tep.Type,*Token);
-				goto End;
-			}
-			_TokenIndex-=2;//Move back
-		}
 
 		GetType(Tep.Type);
-			
-		GetName(Tep.Name);
 
-		End:
+		auto Token2 = TryGetToken();
+		if (Token2->Type == TokenType::Comma || Token2->Type == TokenType::Right_Bracket)
+		{
+			if (out.Parameters.size() != 0)
+			{
+				_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "this& Must be the first parameter");
+			}
+			
+		}
+		else 
+		{
+			GetName(Tep.Name);
+		}
 		out.Parameters.push_back(std::move(Tep));
 
 		auto CommaToken = TryGetToken();
@@ -795,16 +810,11 @@ GotNodeType Parser::TryGetGeneric(GenericValuesNode& out)
 		{
 			GenericValueNode Item;
 			auto NameToken = TryGetToken();
-			if (NameToken && (NameToken->Type == TokenType::Name || TypeNode::IsPrimitive(NameToken->Type) ))
-			{
-
-			}
-			else
-			{
-				TokenTypeCheck(NameToken, TokenType::Name);
-			}
+			
+			TokenTypeCheck(NameToken, TokenType::Name);
+			
 			Item.Token = NameToken;
-			out.Values.push_back(Item);
+			out.Values.push_back(std::move(Item));
 
 			NextToken();
 			auto Token = TryGetToken();
@@ -861,7 +871,10 @@ GotNodeType Parser::GetName(ScopedNameNode& out)
 		ScopedName V;
 		auto NameToken = TryGetToken();
 
-		TokenTypeCheck(NameToken, TokenType::Name);
+		if (!TypeNode::IsType(NameToken->Type)) 
+		{
+			TokenTypeCheck(NameToken, TokenType::Name);
+		}
 
 		V.token = NameToken;
 
@@ -1107,46 +1120,6 @@ GotNodeType Parser::GetUseNode(UsingNode& out)
 	return GotNodeType::Success;
 }
 
-GotNodeType Parser::GetAsmBlock(AsmBlockNode& out)
-{
-	auto AsmToken = TryGetToken();
-	TokenTypeCheck(AsmToken, TokenType::KeyWorld_asm);
-	NextToken();
-
-	auto ColonToken = TryGetToken();
-	TokenTypeCheck(ColonToken, TokenType::Colon);
-	NextToken();
-
-	auto StartToken = TryGetToken(); TokenTypeCheck(StartToken, TokenType::StartTab);
-	if (StartToken->Type == TokenType::StartTab)
-	{
-		NextToken();
-		size_t StringStart = StartToken->OnPos;
-
-		while (TryGetToken()->Type != TokenType::EndofFile)
-		{
-			auto T = TryGetToken();
-			if (T->Type == TokenType::EndTab) { break; }
-			NextToken();
-		}
-		size_t StringEnd = TryGetToken()->OnPos;
-
-		size_t StringSize = StringEnd - StringStart;
-		out.AsmText = _Text.substr(StringStart, StringSize);
-
-		auto EndToken = TryGetToken();
-		TokenTypeCheck(EndToken, TokenType::EndTab);
-		NextToken();
-	}
-	else
-	{
-
-	}
-	
-
-
-	return GotNodeType::Success;
-}
 
 GotNodeType Parser::GetRetStatement(RetStatementNode& out)
 {
@@ -1278,18 +1251,10 @@ GotNodeType Parser::GetAssignVariable(AssignVariableNode& out)
 GotNodeType Parser::GetIfNode(IfNode& out)
 {
 	auto RetToken = TryGetToken();
-	TokenTypeCheck(RetToken, Parser::IfToken);
-	NextToken();
-
-	auto Token = TryGetToken();
-	TokenTypeCheck(Token, Parser::declareFuncParsStart);
+	TokenTypeCheck(RetToken, TokenType::KeyWorld_If);
 	NextToken();
 
 	auto GetEx = GetExpressionTypeNode(out.Expression);
-	
-	auto Token2 = TryGetToken();
-	TokenTypeCheck(Token2, Parser::declareFuncParsEnd);
-	NextToken();
 
 	auto Token3 = TryGetToken();
 	TokenTypeCheck(Token3, TokenType::Colon);
@@ -1302,21 +1267,97 @@ GotNodeType Parser::GetIfNode(IfNode& out)
 	{
 		auto T = TryGetToken();
 	
-		if (T->Type != Parser::ElseToken){break;}
-		TokenTypeCheck(RetToken, Parser::ElseToken);
+		if (T->Type != TokenType::KeyWorld_Else){break;}
+		
 		NextToken();
-
 		auto T2 = TryGetToken();
-		if (T2->Type == Parser::declareFuncParsStart)
-		{
+		
+		if (T2->Type != TokenType::Colon)
+		{//else if or Item();
+			auto elseNode = std::make_unique<ElseNode>();
 
+			//auto RetToken2 = TryGetToken();
+			//TokenTypeCheck(RetToken2, TokenType::KeyWorld_If);
+			
+			Node* V;
+			auto Statements = GetStatement(V);
+			if (V)
+			{
+				elseNode->Body._Nodes.push_back(Unique_ptr<Node>(V));
+			}
+
+			out.Else = std::move(elseNode);
+			break;
 		}
-		TokenTypeCheck(Token, Parser::declareFuncParsStart);
-		NextToken();
+		else
+		{//else
+			auto elseNode = std::make_unique<ElseNode>();
+
+			auto ColonToken = TryGetToken();
+			TokenTypeCheck(ColonToken, TokenType::Colon);
+			NextToken();
+
+			auto Statements = GetStatementsorStatementNode(elseNode->Body);
+
+			out.Else = std::move(elseNode);
+
+			break;
+		}
 
 	}
 
 	return Statements;
+}
+GotNodeType Parser::GetWhileNode(WhileNode& out)
+{
+	auto RetToken = TryGetToken();
+	TokenTypeCheck(RetToken, TokenType::KeyWorld_while);
+	NextToken();
+
+	auto GetEx = GetExpressionTypeNode(out.Expression);
+
+	auto Token3 = TryGetToken();
+	if (Token3->Type != TokenType::Semicolon)
+	{
+		TokenTypeCheck(Token3, TokenType::Colon);
+		NextToken();
+
+		auto Statements = GetStatementsorStatementNode(out.Body);
+	}
+	else
+	{
+		NextToken();
+	}
+
+	return GotNodeType::Success;
+}
+GotNodeType Parser::GetDoNode(DoNode& out)
+{
+	auto RetToken = TryGetToken();
+	TokenTypeCheck(RetToken, TokenType::KeyWorld_do);
+	NextToken();
+
+	auto Token4 = TryGetToken();
+	TokenTypeCheck(Token4, TokenType::Colon);
+	NextToken();
+	
+
+	auto TabToken = TryGetToken();
+
+	if (TabToken->Type != TokenType::KeyWorld_while)
+	{
+		auto Statements = GetStatementsorStatementNode(out.Body);
+	}
+
+	auto Token3 = TryGetToken();
+	TokenTypeCheck(Token3, TokenType::KeyWorld_while);
+	NextToken();
+
+	auto GetEx = GetExpressionTypeNode(out.Expression);
+
+	auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
+	NextToken();
+	return GotNodeType::Success;
 }
 GotNodeType Parser::GetEnumNode(EnumNode& out)
 {

@@ -79,7 +79,7 @@ struct ScopedName
 	
 	const Token* token = nullptr;
 	Operator_t Operator = Operator_t::Null;
-	Unique_ptr<UseGenericsNode> Generic;//C++ doesn't like circular dependencies
+	Shared_ptr<UseGenericsNode> Generic;//C++ doesn't like circular dependencies and this need to be copy able
 
 	inline void GetScopedName(String& out) const
 	{
@@ -302,7 +302,8 @@ struct TypeNode :Node
 	}
 	static void Gen_ThisMemberFunc(TypeNode& Out, const Token& ToGetLinesFrom)
 	{
-		return Gen_Type(Out, TokenType::KeyWorld_ThisMemberFunc, ToGetLinesFrom);
+		Out.PushAsAddess();
+		return Gen_Type(Out, TokenType::KeyWorld_This, ToGetLinesFrom);
 	}
 	static void Gen_Byte(TypeNode& Out, const Token& ToGetLinesFrom)
 	{
@@ -310,7 +311,8 @@ struct TypeNode :Node
 	}
 	bool IsThisMemberFunc() const
 	{
-		return Name.Token->Type == TokenType::KeyWorld_ThisMemberFunc;
+		return Name.Token->Type == TokenType::KeyWorld_This
+			&& IsAddess;
 	}
 	String AsString() const
 	{
@@ -627,6 +629,7 @@ struct TagTypeNode :Node
 	TagTypeNode& operator=(TagTypeNode&& source) = default;
 };
 
+
 struct IfNode :Node
 {
 	IfNode() : Node(NodeType::IfNode)
@@ -637,6 +640,7 @@ struct IfNode :Node
 
 	ExpressionNodeType Expression;
 	StatementsNode Body;
+	Unique_ptr<Node> Else;
 };
 struct ElseNode :Node
 {
@@ -646,8 +650,32 @@ struct ElseNode :Node
 	}
 	AddforNode(ElseNode);
 
+	
+	StatementsNode Body;
+};
+struct WhileNode :Node
+{
+	WhileNode() : Node(NodeType::WhileNode)
+	{
+
+	}
+	AddforNode(WhileNode);
+
 	ExpressionNodeType Expression;
 	StatementsNode Body;
+};
+
+struct DoNode :Node
+{
+	DoNode() : Node(NodeType::DoNode)
+	{
+
+	}
+	AddforNode(DoNode);
+
+	
+	StatementsNode Body;
+	ExpressionNodeType Expression;
 };
 
 struct PostfixVariableNode :Node
@@ -769,5 +797,6 @@ struct DropStatementNode :Node
 
 	ExpressionNodeType expression;
 };
+
 
 UCodeLangEnd

@@ -9,13 +9,14 @@ enum class TypesEnum :UInt8
 	Null,
 	Void,
 	Var,
+	Any,
 	Int_t,
 	uInt_t,
 	sInt_t,
 
 	Bool,
 	Char,
-	
+
 	uInt8,
 	uInt16,
 	uInt32,
@@ -29,10 +30,11 @@ enum class TypesEnum :UInt8
 	uIntPtr,
 	sIntPtr,
 
-	
+
 
 	CustomType,
 };
+
 enum class TypeValueInfo : UInt8
 {
 	IsValue,
@@ -51,6 +53,8 @@ struct TypeSymbol
 	bool _Isimmutable = false;
 	TypeValueInfo _ValueInfo = TypeValueInfo::IsValue;
 
+
+	
 	void SetType(TypesEnum type)
 	{
 		_Type = type;
@@ -113,6 +117,19 @@ struct TypeSymbol
 	{
 		return !IsLocationValue();
 	}
+	bool IsAn(TypesEnum Type)const
+	{
+		return _Type == Type;
+	}
+	bool IsnotAn(TypesEnum Type)const
+	{
+		return !IsAn(Type);
+	}
+	bool IsNull()const
+	{
+		return  IsAn(TypesEnum::Null);
+	}
+	bool IsBadType()const { return IsAn(TypesEnum::Null); }
 };
 
 
@@ -121,6 +138,7 @@ struct TypeSymbol
 enum class SymbolType : UInt8
 {
 	Null,
+	Any,
 
 	Varable_t,	
 	StackVarable,
@@ -128,7 +146,9 @@ enum class SymbolType : UInt8
 
 	Type,
 	Type_alias,
+
 	Type_class,
+	Class_Field,
 	Enum,
 
 	Func,
@@ -137,7 +157,8 @@ enum class SymbolType : UInt8
 
 	FuncCall,
 	GenericFunc,
-	Generic_class
+	Generic_class,
+	Unmaped_Generic_Type,
 };
 enum class SymbolValidState : UInt8
 {
@@ -169,7 +190,50 @@ public:
 	}
 };
 
-class ClassInfo: Symbol_Info
+class FuncInfo :public Symbol_Info
+{
+public:
+	String FullName;
+	inline String_view Get_Name() const
+	{
+		return ScopeHelper::GetNameFromFullName((String_view)FullName);
+	}
+	Vector<TypeSymbol> Pars;
+	TypeSymbol Ret;
+	
+	Vector<SymbolID> _Generic;
+
+
+	bool IsObjectCall()
+	{
+		return Pars.size() && Pars.back().IsAddress();
+	}
+	TypeSymbol* GetObjectForCall()
+	{
+		if (IsObjectCall())
+		{
+			return &Pars.back();
+		}
+		return nullptr;
+	}
+
+	FuncInfo()
+	{
+
+	}
+	~FuncInfo()
+	{
+
+	}
+
+	SymbolValidState ValidState = SymbolValidState::valid;
+	void SetToInvalid() { ValidState = SymbolValidState::Invalid; }
+	void SetTovalid() { ValidState = SymbolValidState::valid; }
+	bool IsInvalid()const { return ValidState == SymbolValidState::Invalid; }
+	bool Isvalid()const { return !IsInvalid(); }
+};
+
+class ClassInfo:public Symbol_Info
 {
 public:
 	String FullName;
@@ -180,6 +244,8 @@ public:
 	UAddress Size = NullAddress;
 	Vector<FieldInfo> Fields;
 	bool SizeInitialized = false;
+
+	Vector<SymbolID> _Generic;
 
 	ClassInfo()
 	{
@@ -223,14 +289,8 @@ public:
 	
 
 	SymbolValidState ValidState = SymbolValidState::valid;
-	void SetToInvalid()
-	{
-		ValidState = SymbolValidState::Invalid;
-	}
-	void SetTovalid()
-	{
-		ValidState = SymbolValidState::valid;
-	}
+	void SetToInvalid(){ValidState = SymbolValidState::Invalid;}
+	void SetTovalid(){ValidState = SymbolValidState::valid;}
 	bool IsInvalid()const {return ValidState == SymbolValidState::Invalid;}
 	bool Isvalid()const { return !IsInvalid(); }
 	Symbol()

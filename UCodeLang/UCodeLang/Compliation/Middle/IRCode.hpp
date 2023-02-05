@@ -15,6 +15,8 @@ MultS##Bit,\
 DivU##Bit,\
 DivS##Bit,\
 
+
+
 enum class IROperator : UInt8
 {
 	Null,
@@ -32,6 +34,9 @@ enum class IROperator : UInt8
 	Func_Parameter,
 	DLLJump,
 	PassParameter,
+	IfFalseJump,
+	Jump,
+	Assign_OperandOnPointer
 };
 
 enum class IRFieldInfoType : UInt8
@@ -48,6 +53,7 @@ enum class IRFieldInfoType : UInt8
 	ReadVar,
 	AsPointer,
 	ReadPointer,
+	Nothing,
 };
 struct IROperand
 {
@@ -64,6 +70,7 @@ struct IROperand
 		Type = IRFieldInfoType::Null;
 		AnyValue = (UInt64)0;
 	}
+
 #define IROperand_Set(x) \
 	UCodeLangForceinline static IROperand AsInt##x(UInt##x Value)\
 	{\
@@ -122,6 +129,8 @@ struct IROperand
 		operand.SymbolId = Value;
 		return operand;
 	}
+
+
 	UCodeLangForceinline static IROperand AsReadPointer(SymbolID Value)
 	{
 		IROperand operand;
@@ -129,14 +138,30 @@ struct IROperand
 		operand.SymbolId = Value;
 		return operand;
 	}
+
+	UCodeLangForceinline static IROperand AsNothing()
+	{
+		IROperand operand;
+		operand.Type = IRFieldInfoType::Nothing;
+		return operand;
+	}
 };
+
+
 struct IRCode
 {
+	struct TypeSybol
+	{
+		size_t TypeSize;
+		String_view Name;
+	};
 	IROperand Result;
 
 	IROperand Operand0;
 	IROperator Operator = IROperator::Null;
 	IROperand Operand1;
+
+	TypeSybol InfoType;
 };
 
 struct IRSeg
@@ -153,26 +178,38 @@ struct IRSeg
 	UCodeLangForceinline void MakeAdd##X(IROperand field, IROperand field2) \
 	{ \
 		MakeOperand(field, field2, IROperator::Add##X);\
+		auto& V2 = GetLast_IR();	\
+		V2.InfoType.TypeSize =sizeof(Int##X);\
 	}\
 	UCodeLangForceinline void MakeSub##X(IROperand field, IROperand field2)\
 	{\
 		MakeOperand(field, field2, IROperator::Sub##X);\
+		auto& V2 = GetLast_IR();	\
+		V2.InfoType.TypeSize =sizeof(Int##X);\
 	}\
 	UCodeLangForceinline void MakeUMult##X(IROperand field, IROperand field2)\
 	{\
 		MakeOperand(field, field2, IROperator::MultU##X);\
+		auto& V2 = GetLast_IR();	\
+		V2.InfoType.TypeSize =sizeof(Int##X);\
 	}\
 	UCodeLangForceinline void MakeSMult##X(IROperand field, IROperand field2)\
 	{\
 		MakeOperand(field, field2, IROperator::MultS##X);\
+		auto& V2 = GetLast_IR();	\
+		V2.InfoType.TypeSize =sizeof(Int##X);\
 	}\
 	UCodeLangForceinline void MakeUDiv##X(IROperand field, IROperand field2)\
 	{\
 		MakeOperand(field, field2, IROperator::DivU##X);\
+		auto& V2 =GetLast_IR();	\
+		V2.InfoType.TypeSize =sizeof(Int##X);\
 	}\
 	UCodeLangForceinline void MakeSDiv##X(IROperand field, IROperand field2)\
 	{\
 		MakeOperand(field, field2, IROperator::DivS##X);\
+		auto& V2 = GetLast_IR();	\
+		V2.InfoType.TypeSize =sizeof(Int##X);\
 	}\
 	UCodeLangForceinline void Build_Increment##X(IROperand field,Int##X Value)\
 	{\
@@ -184,11 +221,11 @@ struct IRSeg
 		Build_Assign(IROperand::AsInt##X(Value));\
 		MakeAdd##X(field, IROperand::AsLocation(GetLastField()));\
 	}\
-	UCodeLangForceinline void Build_Increment##X(Int##X Value)\
+	UCodeLangForceinline void Build_Increment##X(UInt##X Value)\
 	{\
 		Build_Increment##X(IROperand::AsLocation(GetLastField()),Value);\
 	}\
-	UCodeLangForceinline void Build_Increment##X(UInt##X Value)\
+	UCodeLangForceinline void Build_Increment##X(Int##X Value)\
 	{\
 		Build_Increment##X( IROperand::AsLocation(GetLastField()),Value);\
 	}\
@@ -208,7 +245,7 @@ struct IRSeg
 	}\
 	UCodeLangForceinline void Build_Decrement##X(Int##X Value)\
 	{\
-		Build_Decrement##X(IROperand::AsLocation( GetLastField()),Value);\
+		Build_Decrement##X(IROperand::AsLocation(GetLastField()),Value);\
 	}\
 
 class IRBuilder
@@ -216,13 +253,10 @@ class IRBuilder
 public:
 	IRBuilder(){}
 	~IRBuilder(){}
-
-
 	
 	void MakeOperand( IROperand field, IROperand field2, IROperator Op)
 	{
-		Code.push_back({});
-		auto& V = Code.back();
+		auto& V = Code.emplace_back();
 		V.Result =IROperand::AsLocation(GetLastField());
 		V.Operand0 = field;
 		V.Operand1 = field2;
@@ -234,51 +268,53 @@ public:
 	IRBuilder_Set(32);
 	IRBuilder_Set(64);
 
-	void Build_Assign(IROperand result, IROperand field)
+	void Build_Assign(IROperand result, IROperand field, UAddress offset = 0)
 	{
-		Code.push_back({});
-		auto& V = Code.back();
+		auto& V = Code.emplace_back();
 		V.Result =result;
 		V.Operand0 = field;
+		V.Operand1 = IROperand::AsInt64(offset);
 		V.Operator = IROperator::Assign_Operand0;
 	}
-	void Build_Assign(IROperand field)
+	void Build_Assign(IROperand field,UAddress offset = 0)
 	{
-		Code.push_back({});
-		auto& V = Code.back();
-		V.Result =IROperand::AsLocation(Code.size() -1);
+		Build_Assign(IROperand::AsLocation(Code.size()), field,offset);
+	}
+
+	void Build_AssignOnPointer(IROperand pointer, IROperand field, UAddress pointeroffset = 0)
+	{
+		auto& V = Code.emplace_back();
+		V.Result = pointer;
 		V.Operand0 = field;
-		V.Operator = IROperator::Assign_Operand0;
+		V.Operand1 = IROperand::AsInt64(pointeroffset);
+		V.Operator = IROperator::Assign_OperandOnPointer;
 	}
 
 	void Build_AssignRet(IROperand field)
 	{
-		Code.push_back({});
-		auto& V = Code.back();
-		V.Result = IROperand::AsLocation(Code.size() - 1);
+		auto& V = Code.emplace_back();
+		V.Result = IROperand::AsLocation(GetLastField());
 		V.Operand0 = field;
 		V.Operator = IROperator::Ret_Value;
 	}
 
-	void Build_Func(SymbolID Value)
+	void Build_Func(SymbolID Value,String_view FuncName)
 	{
-		Code.push_back({});
-		auto& V = Code.back();
+		auto& V = Code.emplace_back();
 		V.Operator = IROperator::Func;
 		V.Operand0 = IROperand::AsSymbol(Value);
+		V.InfoType.Name = FuncName;
 	}
 	void Build_Parameter(SymbolID Value)
 	{
-		Code.push_back({});
-		auto& V = Code.back();
+		auto& V = Code.emplace_back();
 		V.Operator = IROperator::Func_Parameter;
 		V.Operand0 = IROperand::AsSymbol(Value);
 	}
 
 	void Build_PassParameter(IROperand field)
 	{
-		Code.push_back({});
-		auto& V = Code.back();
+		auto& V = Code.emplace_back();
 		V.Operator = IROperator::PassParameter;
 		V.Operand0 = field;
 	}
@@ -289,8 +325,7 @@ public:
 
 	void Build_FuncCall(SymbolID Value)
 	{
-		Code.push_back({});
-		auto& V = Code.back();
+		auto& V = Code.emplace_back();
 		V.Operator = IROperator::FuncCall;
 		V.Operand0 = IROperand::AsSymbol(Value);
 	}
@@ -302,25 +337,52 @@ public:
 	}
 	void Build_Malloc(IROperand Sizefield)
 	{
-		Code.push_back({});
-		auto& V = Code.back();
-		V.Result = IROperand::AsLocation(Code.size() - 1);
+		auto& V = Code.emplace_back();
+		V.Result = IROperand::AsLocation(GetLastField());
 		V.Operator = IROperator::Malloc;
 		V.Operand0 = Sizefield;
 	}
 
 	void Build_Free(IROperand field)
 	{
-		Code.push_back({});
-		auto& V = Code.back();
+		auto& V = Code.emplace_back();
 		V.Operator = IROperator::Free;
 		V.Operand0 = field;
 	}
 
+	void Build_IfFalseJump(IROperand Boolfield,IRField JumpToLoc)
+	{
+		auto& V = Code.emplace_back();
+		V.Operator = IROperator::IfFalseJump;
+		V.Operand0 = IROperand::AsLocation(JumpToLoc);
+		V.Operand1 = Boolfield;
+	}
+	
+	void Update_IfFalseJump(IRCode& V, IROperand Boolfield, IRField JumpToLoc)
+	{
+		V.Operator = IROperator::IfFalseJump;
+		V.Operand0 = IROperand::AsLocation(JumpToLoc);
+		V.Operand1 = Boolfield;
+	}
+
+	void Build_Jump(IRField JumpToLoc)
+	{
+		auto& V = Code.emplace_back();
+		V.Operator = IROperator::Jump;
+		V.Operand0 = IROperand::AsLocation(JumpToLoc);
+	}
+
+	void Update_Jump(IRCode& V, IRField JumpToLoc)
+	{
+		V.Operator = IROperator::Jump;
+		V.Operand0 = IROperand::AsLocation(JumpToLoc);
+	}
+
+
+
 	void Build_Ret()
 	{
-		Code.push_back({});
-		auto& V = Code.back();
+		auto& V = Code.emplace_back();
 		V.Operator = IROperator::Ret;
 	}
 	
@@ -341,11 +403,23 @@ public:
 	{
 		return Code[(size_t)field];
 	}
+	UCodeLangForceinline IRCode& GetLast_IR()
+	{
+		return Get_IR(GetLastField());
+	}
 	IRField GetLastField()
 	{
 		return Code.size() - 1;
 	}
+	IRField GetNextField()
+	{
+		return GetLastField() + 1;
+	}
 	inline auto& Get_Code()
+	{
+		return Code;
+	}
+	inline const auto& Get_Code() const
 	{
 		return Code;
 	}
