@@ -84,12 +84,16 @@ enum class TokenType : TokenType_t
 	KeyWorld_static,// static
 	KeyWorld_Thread,// thread
 
+	KeyWorld_If,
+	KeyWorld_Else,
+	KeyWorld_while,
+	KeyWorld_for,
+	KeyWorld_do,
 
 
 	KeyWorld_pub,//pub
 	KeyWorld_typeof,//typeof
 	hash,//#
-	KeyWorld_asm,//asm
 
 	approximate_Comparison,//~=
 
@@ -116,8 +120,6 @@ enum class TokenType : TokenType_t
 
 	KeyWorld_uintptr,
 	KeyWorld_sintptr,
-	//Made by The compiler
-	KeyWorld_ThisMemberFunc,
 };
 class StringHelper
 {
@@ -216,8 +218,6 @@ public:
 		case UCodeLang::TokenType::KeyWorld_typeof: return "typeof";
 
 		case UCodeLang::TokenType::hash: return "#";
-
-		case UCodeLang::TokenType::KeyWorld_asm: return "asm";
 
 		case UCodeLang::TokenType::KeyWorld_Enum:return "enum";
 		case UCodeLang::TokenType::KeyWorld_umut:return "umut";

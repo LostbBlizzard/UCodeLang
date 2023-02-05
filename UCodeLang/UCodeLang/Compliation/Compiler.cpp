@@ -6,41 +6,49 @@
 UCodeLangStart
 Compiler::CompilerRet Compiler::CompileText(const String_view& Text)
 {
-	_Lexer.Reset();
-	_Parser.Reset();
-	_Analyzer.Reset();
 	//
 	CompilerRet R;
 	R._State = CompilerState::Fail;
 	R.OutPut = nullptr;
 
 	_Errors.FilePath = _Errors.FilePath;
-	UCodeLang::CompliationErrors* Errors= &_Errors;
 
-	_Lexer.Set_Settings(&_Settings);
-	_Parser.Set_Settings(&_Settings);
-	_Analyzer.Set_Settings(&_Settings);
-	
-	_Lexer.Set_ErrorsOutput(Errors);
-	_Parser.Set_ErrorsOutput(Errors);
-	_Analyzer.Set_ErrorsOutput(Errors);
+	if (_FrontEndObject == nullptr)
+	{
+		_FrontEndObject.reset(_FrontEnd());
+	}
+	else
+	{
+		_FrontEndObject->Reset();
+	}
+	_FrontEndObject->Set_FileIDType(LangDefInfo::DefaultTextFileID);
 
-	_Lexer.Lex(Text);
+	_FrontEndObject->Set_Settings(&_Settings);
+	_FrontEndObject->Set_ErrorsOutput(&_Errors);
 
-	if (Errors->Has_Errors()){ return R; }
-
-	Parser::FileData FileData = {Text,_Errors.FilePath };
-	_Parser.Parse(FileData,_Lexer.Get_Tokens());
-
-	Errors->FixEndOfLine(_Lexer.Get_OnLine(), _Lexer.Get_TextIndex());
-
-	if (Errors->Has_Errors()) { return R; }
-
-	bool v = _Analyzer.Analyze(_Parser.Get_Tree());
+	if (_Errors.Has_Errors()) { return R; }
 
 
-	R._State = Errors->Has_Errors() ?CompilerState::Fail : CompilerState::Success ;
-	R.OutPut = &_Analyzer.Get_Output();
+	if (_BackEndObject == nullptr) 
+	{
+		_BackEndObject.reset(_BackEnd());
+	}
+	else
+	{
+		_BackEndObject->Reset();
+	}
+
+	_BackEndObject->Set_Settings(&_Settings);
+	_BackEndObject->Set_ErrorsOutput(&_Errors);
+
+
+	_BackEndObject->Build(_FrontEndObject->Get_Builder());
+
+
+	if (_Errors.Has_Errors()) { return R; }
+
+	R._State = _Errors.Has_Errors() ? CompilerState::Fail : CompilerState::Success;
+	R.OutPut = &_BackEndObject->Getliboutput();
 	return R;
 }
 String Compiler::GetTextFromFile(const Path& path)
@@ -60,6 +68,17 @@ String Compiler::GetTextFromFile(const Path& path)
 		return "*null";
 	}
 }
+BytesPtr Compiler::GetBytesFromFile(const Path& path)
+{
+	BytesPtr r;
+	std::ifstream File(path);
+	if (File.is_open())
+	{
+		throw std::exception("not added");
+	}
+	
+	return r;
+}
 Compiler::CompilerRet Compiler::CompilePathToObj(const Path& path, const Path& OutLib)
 {
 	auto Text = GetTextFromFile(path);
@@ -78,89 +97,109 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 
 	//TODO check if File Int  Dir is in Dir
 	Vector<Unique_ptr<String>> FilesStrings;
-	Vector<Vector<Token>> _FilesTokens;
-	Vector<Unique_ptr<FileNode>> Files;
+	Vector<BytesPtr> FilesBytes;
+	Vector<Unique_ptr<FileNode_t>> Files;
 	Vector<Unique_ptr<UClib>> Libs;
 	//Refs
 
-	_Lexer.Set_ErrorsOutput(&_Errors);
-	_Parser.Set_ErrorsOutput(&_Errors);
-	_Lexer.Set_Settings(&_Settings);
-	_Parser.Set_Settings(&_Settings);
-	
-	_Lexer.Reset();
-	_Parser.Reset();
+	if (_FrontEndObject == nullptr)
+	{
+		_FrontEndObject.reset(_FrontEnd());
+	}
+	else
+	{
+		_FrontEndObject->Reset();
+	}
+
+	const LangDefInfo* Lang = _FrontEndObject->GetInfo();
+	_FrontEndObject->Set_Settings(&_Settings);
+	_FrontEndObject->Set_ErrorsOutput(&_Errors);
+
+
+
 	for (const auto& dirEntry : fs::recursive_directory_iterator(Data.FileDir))
 	{
-		
+
 		if (!dirEntry.is_regular_file()) { continue; }
-		
+
 		auto Ext = dirEntry.path().extension();
-		if (Ext != FileExt::SourceFileWithDot
-		 && Ext != FileExt::LibWithDot
-		 && Ext != FileExt::DllWithDot) { continue; }
+
+		const LangDefInfo::FileInfo* FInfo = nullptr;
+		for (auto& Item : Lang->FileTypes)
+		{
+			if (Ext == Item.FileExtWithDot)
+			{
+				FInfo = &Item;
+			}
+		}
+		if (FInfo == nullptr) { continue; }
 
 		String FilePath = dirEntry.path().generic_u8string();
 
 		String RePath = FileHelper::RelativePath(FilePath, Data.FileDir);
-		
-		if (Ext == FileExt::SourceFileWithDot)
+
+		_Errors.FilePath = RePath;
+
+		if (_FrontEndObject == nullptr)
 		{
-			_Errors.FilePath = RePath;
-			
-			auto V = std::make_unique<String>(GetTextFromFile(dirEntry.path()));
-
-			FilesStrings.push_back(std::move(V));
-
-			auto Text = FilesStrings.back().get();
-			_Lexer.Lex(*Text);
-			
-			if (!_Lexer.Get_LexerSuccess()) { continue; }
-
-			auto& Teknes = _Lexer.Get_Tokens();
-			Parser::FileData Data;
-			Data.FilePath = RePath;
-			Data.Text = *Text;
-			_Parser.Parse(Data, Teknes);
-			if (!_Parser.Get_ParseSucces()) { continue; }
-			_Errors.FixEndOfLine(_Lexer.Get_OnLine(), _Lexer.Get_TextIndex());
-
-			auto f = std::make_unique<FileNode>(std::move(_Parser.Get_Tree()));
-			Files.push_back(std::move(f));
-
-			_FilesTokens.push_back(std::move(Teknes));
-
-			_Lexer.Reset();
-			_Parser.Reset();
+			_FrontEndObject.reset(_FrontEnd());
 		}
 		else
 		{
-			Unique_ptr<UClib> lib = std::make_unique<UClib>();
-			if (UClib::FromFile(lib.get(), dirEntry.path()))
-			{
-				Libs.push_back(std::move(lib));
-			}
+			_FrontEndObject->Reset();
 		}
+		_FrontEndObject->Set_FileIDType(FInfo->FileID);
 
+
+		if (FInfo->Type == FrontEndType::Text) 
+		{
+			auto V = std::make_unique<String>(GetTextFromFile(dirEntry.path()));
+			auto Filenode = _FrontEndObject->BuildFile(String_view(*V));
+
+			FilesStrings.push_back(std::move(V));
+			if (Filenode) { Files.push_back(std::move(Filenode)); }
+		}
+		else
+		{
+			auto V = GetBytesFromFile(dirEntry.path());
+			auto Filenode = _FrontEndObject->BuildFile(BytesView(V.Bytes.get(),V.Size));
+
+			FilesBytes.push_back(std::move(V));
+			if (Filenode) { Files.push_back(std::move(Filenode)); }
+		}
 	}
 
 	
 	CompilerRet r;
 	r._State = CompilerState::Fail;
 	r.OutPut = nullptr;
-	if (!_Errors.Has_Errors()) 
+	if (!_Errors.Has_Errors())
 	{
-		_Analyzer.Set_Settings(&_Settings);
-		_Analyzer.Set_ErrorsOutput(&_Errors);
-		_Analyzer.Reset();
+		_FrontEndObject->BuildIR(Files);
+	
 
-
-
-		_Analyzer.Analyze(Files,Libs);
 		if (!_Errors.Has_Errors())
 		{
-			r.OutPut = &_Analyzer.Get_Output();
-			UClib::ToFile(r.OutPut, Data.OutFile);
+			if (_BackEndObject == nullptr)
+			{
+				_BackEndObject.reset(_BackEnd());
+			}
+			else
+			{
+				_BackEndObject->Reset();
+			}
+			_BackEndObject->Set_Settings(&_Settings);
+			_BackEndObject->Set_ErrorsOutput(&_Errors);
+
+			auto output = _FrontEndObject->Get_Builder();
+			if (output) 
+			{
+				_BackEndObject->Set_Output(_FrontEndObject->Get_Lib());
+				_BackEndObject->Build(output);
+
+				r.OutPut = &_BackEndObject->Getliboutput();
+				UClib::ToFile(r.OutPut, Data.OutFile);
+			}
 		}
 	}
 

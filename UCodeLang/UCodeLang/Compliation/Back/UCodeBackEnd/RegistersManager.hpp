@@ -1,6 +1,6 @@
 #pragma once
 #include "../BackEndInterface.hpp"
-#include "UCodeLang/Compliation/Middle/SystematicAnalysis.hpp"
+#include "UCodeLang/Compliation/Front/SystematicAnalysis.hpp"
 
 UCodeLangStart
 class RegistersManager
@@ -11,6 +11,7 @@ public:
 		NotInUse,
 		InUseSybol,
 		HasBitValue,
+		Locked,
 	};
 	struct RegisterInfo 
 	{
@@ -31,7 +32,18 @@ public:
 	{
 		return Registers[(size_t)id];
 	}
-
+	void LockRegister(RegisterID id)
+	{
+		GetInfo(id).Inuse = RegisterInUse::Locked;
+	}
+	void UnLockRegister(RegisterID id)
+	{
+		GetInfo(id).Inuse = RegisterInUse::NotInUse;
+	}
+	bool IsLocked(RegisterID id)
+	{
+		return GetInfo(id).Inuse != RegisterInUse::NotInUse;
+	}
 
 	RegisterID GetInfo(IRField IRField)
 	{
@@ -63,13 +75,13 @@ public:
 		for (size_t i = 0; i < RegisterSize; i++)
 		{
 			auto& Info = Registers[i];
-			if (Info.Inuse == RegisterInUse::NotInUse)
+			if (!IsLocked((RegisterID)i))
 			{
 				return (RegisterID)i;
 			}
 		}
 		
-		Reset();
+		//Reset();
 		return RegisterID::A;
 	}
 

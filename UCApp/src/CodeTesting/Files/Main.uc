@@ -1,28 +1,16 @@
-%UCode:
+use ULang;
+
+
+$Player:
+ int2 Pos;
+ int Hp;
+ |new[this&]:
+  Pos.X = 0;
+  Pos.Y = 5;
+  Hp = 0;
+  
+
+ |drop[this&];
+ |DoSome[this&,int a];
  
- $CoolInt = byte;
- $CoolVec = Idk;
- 
-
- $Idk:
-  Vec3 X;
-
- $Vec3:
-  int A;
-  int Y;
-
-
-
- $Vec2:
-  int X;
-  int Y;
-  |Update[int a]->byte;
-
-|main[]:
- use UCode; 
-
- Vec2 Obj;
- //Obj.X = 0;
-
- 
-
+|main[bool V];

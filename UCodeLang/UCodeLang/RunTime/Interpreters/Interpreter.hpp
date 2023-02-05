@@ -381,11 +381,13 @@ private:
 		{
 		case UCodeLang::RegisterID::A:return _CPU.A;
 		case UCodeLang::RegisterID::B:return _CPU.B;
-		case UCodeLang::RegisterID::C:return _CPU.B;
+		case UCodeLang::RegisterID::C:return _CPU.C;
 		case UCodeLang::RegisterID::D:return _CPU.D;
 		case UCodeLang::RegisterID::E:return _CPU.E;
 		case UCodeLang::RegisterID::F:return _CPU.F;
-		default:return _CPU.D;
+		default:
+			throw std::exception("bad Register");
+			return _CPU.A;
 		}
 	}
 };

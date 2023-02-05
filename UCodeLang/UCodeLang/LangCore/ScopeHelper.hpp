@@ -18,6 +18,18 @@ struct ScopeHelper
 	{
 		AddScope(String_view(Name));
 	};
+	static size_t Get_ScopeCount(const String_view& Name)
+	{
+		size_t r=0;
+
+
+		for (size_t i = 0; i < Name.size(); i++)
+		{
+			if (Name[i] == _ScopeSep) { r++; }
+		}
+
+		return r;
+	}
 
 	static void GetApendedString(String& Out,const String_view& Name)
 	{

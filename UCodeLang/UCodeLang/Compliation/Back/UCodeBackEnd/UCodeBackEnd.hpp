@@ -1,34 +1,29 @@
 #pragma once
 #include "../BackEndInterface.hpp"
 #include "UCodeLang/Compliation/UAssembly/UAssembly.hpp"
-#include "UCodeLang/Compliation/Middle/SystematicAnalysis.hpp"
+#include "UCodeLang/Compliation/Front/SystematicAnalysis.hpp"
 #include "RegistersManager.hpp"
 UCodeLangStart
 
-class UCodeBackEndObject
+class UCodeBackEndObject : BackEndObject
 {
+	
 public:
 	UCodeBackEndObject();
-	~UCodeBackEndObject();
+	~UCodeBackEndObject() override;
 
-
-	void Build(BackEndInput& Input);
+	void Reset() override;
+	void Build(const IRBuilder* Input) override;
 	
-
-	UAssembly::UAssembly UAssembly;
-	CompliationErrors* ErrorOutput = nullptr;
-	SystematicAnalysis* Analysis = nullptr;
-	UCodeLangForceinline UClib& Getliboutput()
-	{
-		return Analysis->Get_Output();
-	}
+	static BackEndObject* MakeObject(){return new UCodeBackEndObject();}
+private:
 	UCodeLangForceinline void ResetIns()
 	{
 		_Ins = Instruction();
 	}
-private:
+
 	Instruction _Ins;
-	BackEndInput* _BackInput = nullptr;
+	const IRBuilder* _BackInput = nullptr;
 	size_t _Index = 0;
 	RegistersManager _Registers;
 	RegisterID ParameterRegisterValue = RegisterID::StartParameterRegister;
@@ -37,12 +32,13 @@ private:
 	static constexpr size_t RegisterSize = sizeof(AnyInt64);
 
 	void BuildFunc();
-	void OnAsPointer(UCodeLang::RegisterID& R, UCodeLang::IRCode& IR);
-	void StoreResultIR(UCodeLang::IRCode& IR, UCodeLang::RegisterID R);
-	void OnReadVarOperand(UCodeLang::RegisterID& R, UCodeLang::IRCode& IR, UCodeLang::UClib& ULib);
+	void BuildOperandA(const UCodeLang::IRCode& IR, UCodeLang::RegisterID& R, UCodeLang::UClib& ULib);
+	void OnAsPointer(UCodeLang::RegisterID& R, const UCodeLang::IRCode& IR);
+	void StoreResultIR(const IRCode& IR, UCodeLang::RegisterID R);
+	void OnReadVarOperand(UCodeLang::RegisterID& R, const IRCode& IR, UCodeLang::UClib& ULib);
 	void Link();
 
-	void SetSybToRegister(RegisterID R,IRCode& IR);
+	void SetSybToRegister(RegisterID R,const IRCode& IR);
 	void SetIRToRegister(RegisterID R, IRField IR);
 
 	RegisterID GetOperandInAnyRegister(const IROperand& operand);
@@ -52,6 +48,8 @@ private:
 	enum class BuildData_t :UInt8
 	{
 		Null,
+		StackVarable,
+		ThisObjectWithOffset,
 		ParameterInRegister,
 	};
 	struct BuildData
@@ -65,30 +63,23 @@ private:
 	
 	struct CallInfo
 	{
-		size_t CallIns=0;
+		UAddress CallIns=0;
 		SymbolID ID =0;
 	};
 	Vector<CallInfo> _InsCalls;
 	struct DeclareCall
 	{
-		size_t FuncAddress = 0;
+		UAddress FuncAddress = 0;
 	};
 	Unordered_map<SymbolID, DeclareCall> DeclareCalls;
-};
-class UCodeBackEnd
-{
-	//You can Reuse some parts of the default backend if needed.
-public:
-	static void Bind(BackEndInterface& Obj);
-	static const BackEndInterface* Get();
+	Vector<UAddress> IRCodeIndexToUAddressIndexs;
 
-	//Just Copy and paste for your backend
-	using BackEnd = UCodeBackEndObject;
-	static auto Gen() { return new BackEnd(); }
-	static auto Delete(BackEnd* Obj) { delete Obj; }
-	static auto Set_ErrorsOutput(BackEnd* Obj, CompliationErrors* Errors) { ((BackEnd*)Obj)->ErrorOutput = Errors; }
-	static auto Set_Analysis(BackEnd* Obj, SystematicAnalysis* Analysis){ ((BackEnd*)Obj)->Analysis = Analysis; }
-	static auto Build(BackEnd* Obj, BackEndInput& Input) { ((BackEnd*)Obj)->Build(Input); }
+	struct JumpInsInfo
+	{
+		UAddress InsAddress = 0;
+		IRField IRField = 0;
+	};
+	Vector<JumpInsInfo> JumpCallsToUpdate;
 };
 UCodeLangEnd
 

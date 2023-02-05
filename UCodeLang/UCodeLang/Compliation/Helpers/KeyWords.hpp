@@ -48,8 +48,13 @@ inline const char* S_KeyWord_new = "new";
 inline const char* S_KeyWord_static = "static";
 inline const char* S_KeyWord_thread = "thread";
 
+inline const char* S_KeyWord_if = "if";
+inline const char* S_KeyWord_else = "else";
+inline const char* S_KeyWord_while  = "while";
+inline const char* S_KeyWord_for = "for";
+inline const char* S_KeyWord_do = "do";
+
 inline const char* S_KeyWord_pub = "pub";
-inline const char* S_KeyWord_asm = "asm";
 inline const char* S_KeyWord_enum = "enum";
 inline const char* S_KeyWord_tag = "tag";
 
@@ -114,10 +119,15 @@ inline KeyWord KeyWords[] =
 	KeyWord(S_KeyWord_static,TokenType::KeyWorld_static),
 	KeyWord(S_KeyWord_thread,TokenType::KeyWorld_Thread),
 
+	KeyWord(S_KeyWord_if,TokenType::KeyWorld_If),
+	KeyWord(S_KeyWord_else,TokenType::KeyWorld_Else),
+	KeyWord(S_KeyWord_while,TokenType::KeyWorld_while),
+	KeyWord(S_KeyWord_for,TokenType::KeyWorld_for),
+	KeyWord(S_KeyWord_do,TokenType::KeyWorld_do),
+
 	KeyWord(S_KeyWord_pub,TokenType::KeyWorld_pub),
 	KeyWord(S_KeyWord_typeof,TokenType::KeyWorld_typeof),
 
-	KeyWord(S_KeyWord_asm,TokenType::KeyWorld_asm),
 	KeyWord(S_KeyWord_enum,TokenType::KeyWorld_Enum),
 	KeyWord(S_KeyWord_tag,TokenType::KeyWorld_Tag),
 	KeyWord(S_KeyWord_umut,TokenType::KeyWorld_umut),

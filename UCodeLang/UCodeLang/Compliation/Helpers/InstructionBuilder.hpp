@@ -219,16 +219,16 @@ public:
 		Out.Value0.AsAddress = address;
 		Out.Value1.AsUInt64 = NullUInt64;
 	}
-	UCodeLangForceinline static void CallIf(UAddress address, Instruction& Out)
+	UCodeLangForceinline static void CallIf(UAddress address, RegisterID Bool, Instruction& Out)
 	{
 		Out.OpCode = InstructionSet::CallIf;
 		Out.Value0.AsAddress = address;
-		Out.Value1.AsUInt64 = NullUInt64;
+		Out.Value1.AsRegister = Bool;
 	}
-	UCodeLangForceinline static void CallPtr(UAddress addresstoReadFrom, Instruction& Out)
+	UCodeLangForceinline static void CallReg(RegisterID Reg, Instruction& Out)
 	{
-		Out.OpCode = InstructionSet::CallPtr;
-		Out.Value0.AsAddress = addresstoReadFrom;
+		Out.OpCode = InstructionSet::CallReg;
+		Out.Value0.AsRegister = Reg;
 		Out.Value1.AsUInt64 = NullUInt64;
 	}
 	UCodeLangForceinline static void CPPCall(UAddress StaticAddress, Instruction& Out)
@@ -244,12 +244,19 @@ public:
 		Out.Value0.AsAddress = address;
 		Out.Value1.AsUInt64 = NullUInt64;
 	}
-	UCodeLangForceinline static void Jumpif(UAddress address, Instruction& Out)
+	UCodeLangForceinline static void Jumpif(UAddress address,RegisterID Bool, Instruction& Out)
 	{
 		Out.OpCode = InstructionSet::Jumpif;
 		Out.Value0.AsAddress = address;
+		Out.Value1.AsRegister = Bool;
+	}
+	UCodeLangForceinline static void JumpReg(RegisterID Reg, Instruction& Out)
+	{
+		Out.OpCode = InstructionSet::JumpReg;
+		Out.Value0.AsRegister= Reg;
 		Out.Value1.AsUInt64 = NullUInt64;
 	}
+
 
 	UCodeLangForceinline static void DoNothing(Instruction& Out)
 	{
