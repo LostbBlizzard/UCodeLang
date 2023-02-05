@@ -284,6 +284,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 	if (passtype == PassType::GetTypes)
 	{
 		_Table.AddSymbolID(Syb, SybID);
+		Convert(node.Type, Syb.VarType);
 	}
 	if (passtype == PassType::FixedTypes)
 	{
@@ -1339,10 +1340,11 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t& Start, const U
 
 		if (FeildType._Type != TypesEnum::CustomType)
 		{
-
-			if (passtype == PassType::FixedTypes) {
+			if (passtype == PassType::FixedTypes) 
+			{
 				LogCantFindVarMemberError(ItemToken, ItemToken->Value._String, FeildType);
-			}break;
+			}
+			break;
 		}
 		ClassInfo* CInfo = (ClassInfo*)FeildTypeAsSymbol->Info.get();
 
@@ -1350,7 +1352,8 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t& Start, const U
 		auto FeldInfo = CInfo->GetField(ItemToken->Value._String);
 		if (FeldInfo == nullptr)
 		{
-			if (passtype == PassType::FixedTypes) {
+			if (passtype == PassType::FixedTypes)
+			{
 				LogCantFindVarMemberError(ItemToken, ItemToken->Value._String, FeildType);
 			}
 			return false;
@@ -1377,7 +1380,8 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t& Start, const U
 
 				auto Token2 = node.ScopedName[i + 1].token;
 				auto& Str2 = Token->Value._String;
-				if (passtype == PassType::FixedTypes) {
+				if (passtype == PassType::FixedTypes) 
+				{
 					LogCantFindVarMemberError(Token2, Str2, FeildType);
 				}
 				break;

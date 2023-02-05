@@ -45,12 +45,13 @@ String UAssembly::ToString(const UCodeLang::UClib* Lib)
 			r += "$" + Item->FullName + ":\n";
 			
 
-			r += ".size:" + std::to_string(Class.Size) + "\n\n";
+			r += ".size:" + std::to_string(Class.Size) + "\n";
 			
 			for (auto Item2 : Class.Fields)
 			{
 				r += " " + Item2.FullNameType + " " + Item2.Name + ";//Offset " + std::to_string(Item2.offset) + "\n";
 			}
+			r += "\n";
 
 			for (auto Item2 : Class.Methods)
 			{
@@ -63,6 +64,7 @@ String UAssembly::ToString(const UCodeLang::UClib* Lib)
 					 ? Item2.RetType.FullNameType : " void") + ";" + "\n";
 					
 			}
+			r += "\n\n";
 		}
 		break; 
 		case ClassType::Alias:
@@ -70,6 +72,7 @@ String UAssembly::ToString(const UCodeLang::UClib* Lib)
 			auto& Class = Item->_Alias;
 			r += "$" + Item->FullName + " = " + Class.StringValue + ";\n";
 		}
+		break;
 		default:
 			break;
 		} 
