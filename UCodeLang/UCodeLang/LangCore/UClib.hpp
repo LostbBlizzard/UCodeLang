@@ -225,6 +225,16 @@ public:
 	
 	static BytesPtr ToRawBytes(const UClib* Lib);
 	static bool FromBytes(UClib* Lib,const BytesView& Data);
+	//
+	static void ToBytes(BitMaker& Output, AttributeData& Data)
+	{
+		Output.WriteType(Data.Name);
+	}
+	static void ToBytes(BitMaker& Output, ClassMethod& Data)
+	{
+		Output.WriteType(Data.FullName);
+	}
+	//
 
 	static bool ToFile(const UClib* Lib,const Path& path);
 	static bool FromFile(UClib* Lib, const Path& path);
