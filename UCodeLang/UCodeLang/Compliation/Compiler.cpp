@@ -213,6 +213,112 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 	const Path DependencyPath = Data.IntDir + DependencyFile::FileName;
 
 	DependencyFile File;
+	if (fs::exists(DependencyPath))
+	{
+		if (!DependencyFile::FromFile(&File, DependencyPath))
+		{
+			File = DependencyFile();
+		}
+	}
+	DependencyFile NewFile;
+
+
+	const LangDefInfo* Lang = _FrontEndObject->GetInfo();
+	_FrontEndObject->Set_Settings(&_Settings);
+	_FrontEndObject->Set_ErrorsOutput(&_Errors);
+
+
+	//check for removed.
+	for (auto& Item : NewFile.Files)
+	{
+		bool IsRemoved = false;
+
+		Path FileP = Path(Data.FileDir).native() + Item.FilePath.native();
+		if (!fs::exists(FileP))
+		{
+			IsRemoved = true;
+		}
+
+
+
+		if (IsRemoved)
+		{
+			//removed file
+		}
+	}
+	for (const auto& dirEntry : fs::recursive_directory_iterator(Data.FileDir))
+	{
+
+		if (!dirEntry.is_regular_file()) { continue; }
+
+		auto Ext = dirEntry.path().extension();
+
+		const LangDefInfo::FileInfo* FInfo = nullptr;
+		for (auto& Item : Lang->FileTypes)
+		{
+			if (Ext == Item.FileExtWithDot)
+			{
+				FInfo = &Item;
+			}
+		}
+		if (FInfo == nullptr) { continue; }
+
+		auto& FilePath_t = dirEntry.path();
+		String FilePath = FilePath_t.generic_u8string();
+
+		String RePath = FileHelper::RelativePath(FilePath, Data.FileDir);
+
+		_Errors.FilePath = RePath;
+		DependencyFile::FileInfo F;
+		F.FilePath = RePath;	
+		F.FileLastUpdated = *(UInt64*)&fs::last_write_time(FilePath_t);
+		F.FileSize = fs::file_size(FilePath_t);
+		F.FileHash = 0;
+	
+	
+
+		auto FileInfo = File.Get_Info(RePath);
+		if (FileInfo)
+		{
+			bool NeedToBeRecomiled = false;
+
+			if (FileInfo->FileLastUpdated != F.FileLastUpdated)
+			{
+				NeedToBeRecomiled = true;
+			}
+			else if (FileInfo->FileSize != F.FileSize)
+			{
+				NeedToBeRecomiled = true;
+			}
+			else
+			{
+				auto V = GetBytesFromFile(dirEntry.path());
+				String_view Bits = String_view((const char*)V.Bytes.get(),V.Size);
+			
+				auto hasher = std::hash<String_view>();
+				UInt64 BitsHash = hasher(Bits);
+				F.FileHash = BitsHash;
+				
+				if (BitsHash == F.FileHash)
+				{
+					NeedToBeRecomiled = true;
+				}
+			}
+			if (NeedToBeRecomiled)
+			{
+				//DO Cool Stuff
+			}
+ 		}
+		else
+		{
+			//new file
+		}
+	}
+
+
+
+	DependencyFile::ToFile(&NewFile, DependencyPath);
+
 
 	CompilerRet r;
 	r._State = CompilerState::Fail;
