@@ -155,6 +155,31 @@ public:
 		_BitOffset = 0;
 	}
 
+	UCodeLangForceinline void Set_offset(size_t Value)
+	{
+		_BitOffset = Value;
+	}
+	UCodeLangForceinline size_t Get_offset()
+	{
+		return _BitOffset;
+	}
+
+	UCodeLangForceinline size_t Increment_offset(size_t Value)
+	{
+		_BitOffset += Value;
+	}
+	UCodeLangForceinline size_t Decrement_offset(size_t Value)
+	{
+		_BitOffset += Value;
+	}
+	UCodeLangForceinline Byte& GetByteWith_offset(size_t Value)
+	{
+		return ((Byte*)_Bytes)[_BitOffset + Value];
+	}
+	UCodeLangForceinline Byte& GetByteWith_Noffset(size_t Value)
+	{
+		return  ((Byte*)_Bytes)[Value];
+	}
 
 
 	template<typename T>

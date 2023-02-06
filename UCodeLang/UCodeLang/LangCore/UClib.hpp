@@ -234,6 +234,14 @@ public:
 	{
 		Output.WriteType(Data.FullName);
 	}
+	static void FromBytes(BitReader& Input, AttributeData& Data)
+	{
+		Input.ReadType(Data.Name, Data.Name);
+	}
+	static void FromBytes(BitReader& Input,ClassMethod& Data)
+	{
+		Input.ReadType(Data.FullName, Data.FullName);
+	}
 	//
 
 	static bool ToFile(const UClib* Lib,const Path& path);
