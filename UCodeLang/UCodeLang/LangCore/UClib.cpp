@@ -1,5 +1,6 @@
 #include "UClib.hpp"
 #include <fstream>
+#include "UCodeLang/LangCore/BitMaker.hpp"
 UCodeLangStart
 
 UClib::UClib() : LibEndianess(BitConverter::InputOutEndian)
@@ -67,255 +68,102 @@ constexpr size_t UClibSignature_Size = sizeof(UClibSignature);
 
 BytesPtr UClib::ToRawBytes(const UClib* Lib)
 {
-	BytesPtr NewBits;
-	
-
-	size_t StaticBytesSize = Lib->_StaticBytes.size() * sizeof(unsigned char);
-	
-	size_t InstructionsBytesSize = Lib->_Instructions.size() * sizeof(Instruction);
-
-	size_t NameToPtrBytesSize =0;
-	for (auto& Item : Lib->_NameToPtr)
-	{
-		NameToPtrBytesSize += sizeof(Size_tAsBits) + Item.first.size();
-		NameToPtrBytesSize += sizeof((Size_tAsBits)Item.second);
-	}
-	size_t ClassAssemblySize = sizeof(Size_tAsBits);//size
-	for (auto& Item : Lib->_Assembly.Classes)
-	{
-		ClassAssemblySize += sizeof(Size_tAsBits) + Item->Name.size();
-		ClassAssemblySize += sizeof(Size_tAsBits) + Item->FullName.size();
-		ClassAssemblySize += (UInt8)Item->Type;
-		switch (Item->Type)
-		{
-		case ClassType::Alias:
-		{
-			auto& Data = Item->_Alias;
-			ClassAssemblySize += sizeof(Size_tAsBits) + Data.StringValue.size();
-		}break;
-		case ClassType::Class:
-		{
-			auto& Data = Item->_Class;
-			ClassAssemblySize += sizeof(Size_tAsBits);// Size
-
-			ClassAssemblySize += sizeof(Size_tAsBits);
-			for (auto& A : Data.Attributes) 
-			{
-				ClassAssemblySize += sizeof(Size_tAsBits) + A.Name.size();
-			}
-
-			ClassAssemblySize += sizeof(Size_tAsBits);
-			for (auto& A : Data.Fields)
-			{
-				ClassAssemblySize += sizeof(Size_tAsBits) + A.Name.size();
-				ClassAssemblySize += sizeof(Size_tAsBits) + A.FullNameType.size();
-				ClassAssemblySize += sizeof(Size_tAsBits);//offset
-			}
-
-			ClassAssemblySize += sizeof(Size_tAsBits);
-			for (auto& A : Data.Methods)
-			{
-				ClassAssemblySize += sizeof(Size_tAsBits) + A.FullName.size();
-			}
-		
-		}break;
-		case ClassType::Enum:
-		{
-			auto& Data = Item->_Enum;
-			ClassAssemblySize += sizeof(Data.Size);
-
-			ClassAssemblySize += sizeof(Size_tAsBits);
-			for (auto& Item : Data.Values)
-			{
-				ClassAssemblySize += sizeof(Item._State);
-				ClassAssemblySize += sizeof(Size_tAsBits) + Item.Name.size();
-				ClassAssemblySize += sizeof(Item.Value);
-			}
-		}
-			break;
-		default:
-			break;
-		}
-	}
-
-	size_t StaticDebugBytesSize = Lib->_DebugBytes.size() * sizeof(unsigned char);
-	
-	size_t ByteSize =
-		sizeof(Size_tAsBits) + UClibSignature_Size
-		+ sizeof(InstructionSet_t) +
-		+ sizeof(InstructionSet_t) +
-		+ sizeof(UInt8) +
-
-		+ sizeof(BitSize) + sizeof(LibEndianess)
-		+ sizeof(Size_tAsBits) + StaticBytesSize +
-		+ sizeof(Size_tAsBits) + InstructionsBytesSize
-		+ sizeof(Size_tAsBits) + NameToPtrBytesSize
-
-		+ sizeof(Size_tAsBits) + StaticDebugBytesSize
-		+ ClassAssemblySize;
+	BitMaker Output;
 
 
-	NewBits.Bytes =std::make_unique<Byte[]>(ByteSize);
-	NewBits.Size = ByteSize;
-
-	size_t BitPos = 0;
-	void* NewPtr = nullptr;
-	UpdateNewPtr();
 
 	//Ulib signature
 	{
-		BitConverter::MoveBytes((Size_tAsBits)UClibSignature_Size, NewBits.Bytes.get(), BitPos);
-		BitPos += sizeof(Size_tAsBits);
+		Output.WriteBytes(UClibSignature, UClibSignature_Size);
 
-		UpdateNewPtr();
-		memcpy(NewPtr, &UClibSignature, UClibSignature_Size);
-		BitPos += UClibSignature_Size;
+		Output.WriteType((InstructionSet_t)InstructionSet::MAXVALUE);
 
-
-		
-		BitConverter::MoveBytes((InstructionSet_t)InstructionSet::MAXVALUE, NewBits.Bytes.get(), BitPos);
-		BitPos += sizeof(InstructionSet_t);
-
-		BitConverter::MoveBytes((InstructionSet_t)Intermediate_Set::MAXVALUE, NewBits.Bytes.get(), BitPos);
-		BitPos += sizeof(InstructionSet_t);
+		Output.WriteType((InstructionSet_t)Intermediate_Set::MAXVALUE);
 	}
 
-	BitConverter::MoveBytes((NTypeSize_t)Lib->BitSize, NewBits.Bytes.get(), BitPos);
-	BitPos += sizeof(NTypeSize_t);
-	
-	BitConverter::MoveBytes((LibType_t)Lib->_LibType, NewBits.Bytes.get(), BitPos);
-	BitPos += sizeof(LibType_t);
+	Output.WriteType((NTypeSize_t)Lib->BitSize);
 
-	BitConverter::MoveBytes((Endian_t)Lib->LibEndianess, NewBits.Bytes.get(), BitPos);
-	BitPos += sizeof(Lib->LibEndianess);
+	Output.WriteType((LibType_t)Lib->_LibType);
 
-	
-	
+	Output.WriteType((Endian_t)Lib->LibEndianess);
 
 	{//StaticBytes
-		auto StaticBits = Lib->_StaticBytes.size();
-		BitConverter::MoveBytes((Size_tAsBits)StaticBits, NewBits.Bytes.get(), BitPos);
-		BitPos += sizeof(Size_tAsBits);
-
-		UpdateNewPtr();
-		if (StaticBits > 0) {
-			memcpy(NewPtr, &Lib->_StaticBytes[0], StaticBits);
-		}
-		BitPos += StaticBits;
+		Output.WriteBytes(&Lib->_StaticBytes[0], Lib->_StaticBytes.size());
 	}
 
 	{// Instructions
-
-		auto SizeBits = Lib->_Instructions.size();
-		BitConverter::MoveBytes((Size_tAsBits)SizeBits, NewBits.Bytes.get(), BitPos);
-		BitPos += sizeof(Size_tAsBits);
-		for (size_t i = 0; i < SizeBits; i++)
-		{
-			const auto& Item = Lib->_Instructions[i];
-
-			BitConverter::MoveBytes((InstructionSet_t)Item.OpCode, NewBits.Bytes.get(), BitPos);
-			BitPos += sizeof(InstructionSet_t);
-
-			BitConverter::MoveBytes(Item.Value0.AsUInt64, NewBits.Bytes.get(), BitPos);
-			BitPos += sizeof(UInt64);
-
-			BitConverter::MoveBytes(Item.Value1.AsUInt64, NewBits.Bytes.get(), BitPos);
-			BitPos += sizeof(UInt64);
-		}
+		Output.WriteBytes((const BitMaker::Byte*)&Lib->_Instructions[0], Lib->_Instructions.size() * sizeof(Instruction));
 	}
 
 
 	{// _NameToPtr
-		BitConverter::MoveBytes((Size_tAsBits)Lib->_NameToPtr.size(), NewBits.Bytes.get(), BitPos);
-		BitPos += sizeof(Size_tAsBits);
-
+	
+		Output.WriteType((Size_tAsBits)Lib->_NameToPtr.size());
 		for (auto& Item : Lib->_NameToPtr)
 		{
-			size_t StringSize;
-			PushString(Item.first);
-			//
-
-			BitConverter::MoveBytes(Item.second, NewBits.Bytes.get(), BitPos);
-			BitPos += sizeof(Size_tAsBits);
+			Output.WriteType(Item.first);
+			Output.WriteType((Size_tAsBits)Item.second);
 		}
 	}
 
 	{//Debug Bytes
-		auto StaticBits = Lib->_DebugBytes.size();
-		BitConverter::MoveBytes((Size_tAsBits)StaticBits, NewBits.Bytes.get(), BitPos);
-		BitPos += sizeof(Size_tAsBits);
-
-		UpdateNewPtr();
-		if (StaticBits > 0) {
-			memcpy(NewPtr, &Lib->_DebugBytes[0], StaticBits);
-		}
-		BitPos += StaticBits;
+		Output.WriteBytes(&Lib->_DebugBytes[0], Lib->_DebugBytes.size());
 	}
 	
 	//ClassAssembly
 	{
-		auto StaticBits = Lib->_Assembly.Classes.size();
-		BitConverter::MoveBytes((Size_tAsBits)StaticBits, NewBits.Bytes.get(), BitPos);
-		BitPos += sizeof(Size_tAsBits);
+
+		Output.WriteType((Size_tAsBits)Lib->_Assembly.Classes.size());
+
 
 		for (auto& Item : Lib->_Assembly.Classes)
 		{
-			size_t StringSize;
-			PushString(Item->Name);
-			PushString(Item->FullName);
+			Output.WriteType(Item->Name);
+			Output.WriteType(Item->FullName);
+			
+			Output.WriteType((ClassType_t)Item->Type);
 
-			BitConverter::MoveBytes((EnumSizez_t)Item->Type, NewBits.Bytes.get(), BitPos);
-			BitPos += sizeof(EnumSizez_t);
 			switch (Item->Type)
 			{
 			case ClassType::Alias:
-				PushString(Item->_Alias.StringValue);
-				break;
+			Output.WriteType(Item->_Alias.StringValue);
+			break;
 			case ClassType::Class:
 			{
 				auto& ClassData = Item->_Class;
-				BitConverter::MoveBytes((Size_tAsBits)ClassData.Size, NewBits.Bytes.get(), BitPos);BitPos += sizeof(Size_tAsBits);
-
-				BitConverter::MoveBytes((Size_tAsBits)ClassData.Attributes.size(), NewBits.Bytes.get(), BitPos);BitPos += sizeof(Size_tAsBits);
+				Output.WriteType((Size_tAsBits)ClassData.Size);
+				
+				
 				for (auto& Item2 : ClassData.Attributes)
 				{
-					PushString(Item2.Name);
+					ToBytes(Output, Item2);
 				}
 
-				BitConverter::MoveBytes((Size_tAsBits)ClassData.Fields.size(), NewBits.Bytes.get(), BitPos); BitPos += sizeof(Size_tAsBits);
+				Output.WriteType((Size_tAsBits)ClassData.Fields.size());
 				for (auto& Item2 : ClassData.Fields)
 				{
-					PushString(Item2.Name);
-					PushString(Item2.FullNameType);
-					
-					BitConverter::MoveBytes((Size_tAsBits)Item2.offset, NewBits.Bytes.get(), BitPos); BitPos += sizeof(Size_tAsBits);
+					Output.WriteType(Item2.Name);
+					Output.WriteType(Item2.FullNameType);
 				}
 
-				BitConverter::MoveBytes((Size_tAsBits)ClassData.Methods.size(), NewBits.Bytes.get(), BitPos); BitPos += sizeof(Size_tAsBits);
-
+				Output.WriteType((Size_tAsBits)ClassData.Methods.size());
 				for (auto& Item2 : ClassData.Methods)
 				{
-					PushString(Item2.FullName);
+					ToBytes(Output, Item2);
 				}
 			}
 				break;
 			case ClassType::Enum:
 			{
-				BitConverter::MoveBytes((EnumSizez_t)Item->_Enum.Size, NewBits.Bytes.get(), BitPos);
-				BitPos += sizeof(EnumSizez_t);
+				Output.WriteType((EnumSizez_t)Item->_Enum.Size);
+				
+				Output.WriteType((Size_tAsBits)Item->_Enum.Values.size());
 
-				auto StaticBits2 = Item->_Enum.Values.size();
-				BitConverter::MoveBytes((Size_tAsBits)StaticBits2, NewBits.Bytes.get(), BitPos);
-				BitPos += sizeof(Size_tAsBits);
 				for (auto& Item2 : Item->_Enum.Values)
 				{
-					PushString(Item2.Name);
-
-					BitConverter::MoveBytes((UInt8)Item2._State, NewBits.Bytes.get(), BitPos);
-					BitPos += sizeof(UInt8);
-
-					BitConverter::MoveBytes((Size_tAsBits)Item2.Value, NewBits.Bytes.get(), BitPos);
-					BitPos += sizeof(Size_tAsBits);
+					Output.WriteType(Item2.Name);
+					Output.WriteType(Item2._State);
+					Output.WriteType((Size_tAsBits)Item2.Value);
 				}
 			}
 			break;
@@ -324,7 +172,12 @@ BytesPtr UClib::ToRawBytes(const UClib* Lib)
 			}
 		}
 	}
-	return NewBits;
+
+	BytesPtr V;
+	V.Bytes.reset(new Byte[Output.Size()]);
+	std::memcpy(V.Bytes.get(), &Output.Get_Bytes()[0], Output.Size());
+	V.Size = Output.Size();
+	return V;
 }
 bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 {
