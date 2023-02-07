@@ -294,7 +294,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 	if (passtype == PassType::BuidCode)
 	{
 		auto& V = _Lib.Get_Assembly().Add_Alias((String)ClassName, _Table._Scope.ThisScope);
-		V.StringValue = ToString(Syb.VarType);
+		V.Type =ConvertToTypeInfo(Syb.VarType);
 
 	}
 
@@ -567,7 +567,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 		for (auto& Item : Info->Pars)
 		{
-			auto& VT = V.ParsType.emplace_back(ToString(Item));
+			auto F = V.ParsType.emplace_back();
+			auto& VT = ConvertToTypeInfo(Item);
 
 		}
 
@@ -952,7 +953,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 				}
 
 				auto& Type = syb->VarType;
-				UAddress V;
+				//UAddress V;
 				//GetSize(Type, V);//for DependencyCycle
 			}
 			auto V = Class.GetField(ScopeHelper::GetNameFromFullName(FullName));
@@ -2479,11 +2480,23 @@ void SystematicAnalysis::AddClass_tToAssemblyInfo(const ClassInfo* Class)
 		GetSize(node.Type, Size);
 	
 		Item.Name =ScopeHelper::GetNameFromFullName(node.Name);
-		Item.FullNameType = ToString(node.Type);
+		Item.Type = ConvertToTypeInfo(node.Type);
 		Item.offset = VClass.Size;
 		VClass.Size += Size;
 	}
 	
+}
+
+ReflectionTypeInfo SystematicAnalysis::ConvertToTypeInfo(const TypeSymbol& Type)
+{
+	ReflectionTypeInfo r;
+	r.FullNameType = ToString(Type);
+	return r;
+}
+
+TypeSymbol SystematicAnalysis::Convert(const ReflectionTypeInfo& Type)
+{
+	return TypeSymbol();
 }
 
 bool SystematicAnalysis::AreTheSame(const TypeSymbol& TypeA, const TypeSymbol& TypeB)

@@ -1,6 +1,5 @@
 #include "UClib.hpp"
 #include <fstream>
-#include "UCodeLang/LangCore/BitMaker.hpp"
 UCodeLangStart
 
 UClib::UClib() : LibEndianess(BitConverter::InputOutEndian)
@@ -82,7 +81,7 @@ BytesPtr UClib::ToRawBytes(const UClib* Lib)
 			switch (Item->Type)
 			{
 			case ClassType::Alias:
-			Output.WriteType(Item->_Alias.StringValue);
+			ToBytes(Output,Item->_Alias.Type);
 			break;
 			case ClassType::Class:
 			{
@@ -99,7 +98,8 @@ BytesPtr UClib::ToRawBytes(const UClib* Lib)
 				for (auto& Item2 : ClassData.Fields)
 				{
 					Output.WriteType(Item2.Name);
-					Output.WriteType(Item2.FullNameType);
+					ToBytes(Output, Item2.Type);
+					Output.WriteType((Size_tAsBits)Item2.offset);
 				}
 
 				Output.WriteType((Size_tAsBits)ClassData.Methods.size());
@@ -118,7 +118,7 @@ BytesPtr UClib::ToRawBytes(const UClib* Lib)
 				for (auto& Item2 : Item->_Enum.Values)
 				{
 					Output.WriteType(Item2.Name);
-					Output.WriteType(Item2._State);
+					Output.WriteType((EnumValues::State_t)Item2._State);
 					Output.WriteType((Size_tAsBits)Item2.Value);
 				}
 			}
@@ -294,7 +294,7 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 			{
 			case ClassType::Alias:
 			{
-				reader.ReadType(Item._Alias.StringValue);
+				FromBytes(reader, Item._Alias.Type);
 			}
 			break;
 			case ClassType::Class:
@@ -332,7 +332,7 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 				{
 					auto& Item2 = Item._Class.Fields[i2];
 					reader.ReadType(Item2.Name, Item2.Name);
-					reader.ReadType(Item2.FullNameType, Item2.FullNameType);
+					FromBytes(reader, Item2.Type);
 					reader.ReadType(Item2.offset, Item2.offset);
 				}
 
@@ -371,7 +371,7 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 				{
 					auto& Item2 = Item._Enum.Values[i2];
 					reader.ReadType(Item2.Name, Item2.Name);
-					reader.ReadType(Item2._State, Item2._State);
+					reader.ReadType(*(EnumValues::State_t*)&Item2._State, *(EnumValues::State_t*)&Item2._State);
 
 					union
 					{
