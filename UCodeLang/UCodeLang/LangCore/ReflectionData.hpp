@@ -5,11 +5,17 @@
 UCodeLangStart
 
 
+class ReflectionTypeInfo
+{
+public:
+	String FullNameType;
+};
+
 class ClassField
 {
 public:
 	String Name;
-	String FullNameType;
+	ReflectionTypeInfo Type;
 	size_t offset=NullAddress;
 };
 class AttributeData
@@ -36,13 +42,14 @@ public:
 	};
 	Vector<AttributeData> Attributes;
 	String FullName;
-	Vector<ClassMethodPar> ParsType;
-	ClassMethodPar RetType;
+	Vector<ReflectionTypeInfo> ParsType;
+	ReflectionTypeInfo RetType;
 };
 class EnumValues
 {
 public:
-	enum class State : UInt8
+	using State_t = UInt8;
+	enum class State : State_t
 	{
 		Ok,
 		Bad,
@@ -169,7 +176,7 @@ public:
 	};
 	struct Alias_Data
 	{
-		String StringValue;
+		ReflectionTypeInfo Type;
 	};
 	
 	String Name;

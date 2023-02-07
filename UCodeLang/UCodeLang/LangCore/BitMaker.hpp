@@ -164,11 +164,11 @@ public:
 		return _BitOffset;
 	}
 
-	UCodeLangForceinline size_t Increment_offset(size_t Value)
+	UCodeLangForceinline void Increment_offset(size_t Value)
 	{
 		_BitOffset += Value;
 	}
-	UCodeLangForceinline size_t Decrement_offset(size_t Value)
+	UCodeLangForceinline void Decrement_offset(size_t Value)
 	{
 		_BitOffset += Value;
 	}

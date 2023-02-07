@@ -2,6 +2,7 @@
 
 #include "../LangCore.hpp"
 #include "../LangCore/ReflectionData.hpp"
+#include "UCodeLang/LangCore/BitMaker.hpp"
 UCodeLangStart
 
 using LibType_t = UInt8;
@@ -226,14 +227,19 @@ public:
 	static BytesPtr ToRawBytes(const UClib* Lib);
 	static bool FromBytes(UClib* Lib,const BytesView& Data);
 	//
-	static void ToBytes(BitMaker& Output, AttributeData& Data)
+	static void ToBytes(BitMaker& Output,const AttributeData& Data)
 	{
 		Output.WriteType(Data.Name);
 	}
-	static void ToBytes(BitMaker& Output, ClassMethod& Data)
+	static void ToBytes(BitMaker& Output, const ClassMethod& Data)
 	{
 		Output.WriteType(Data.FullName);
 	}
+	static void ToBytes(BitMaker& Output, const ReflectionTypeInfo& Data)
+	{
+		Output.WriteType(Data.FullNameType);
+	}
+
 	static void FromBytes(BitReader& Input, AttributeData& Data)
 	{
 		Input.ReadType(Data.Name, Data.Name);
@@ -241,6 +247,10 @@ public:
 	static void FromBytes(BitReader& Input,ClassMethod& Data)
 	{
 		Input.ReadType(Data.FullName, Data.FullName);
+	}
+	static void FromBytes(BitReader& Input, ReflectionTypeInfo& Data)
+	{
+		Input.ReadType(Data.FullNameType, Data.FullNameType);
 	}
 	//
 

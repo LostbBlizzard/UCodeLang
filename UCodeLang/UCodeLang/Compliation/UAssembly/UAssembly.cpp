@@ -49,7 +49,7 @@ String UAssembly::ToString(const UCodeLang::UClib* Lib)
 			
 			for (auto Item2 : Class.Fields)
 			{
-				r += " " + Item2.FullNameType + " " + Item2.Name + ";//Offset " + std::to_string(Item2.offset) + "\n";
+				r += " " + Item2.Type.FullNameType + " " + Item2.Name + ";//Offset " + std::to_string(Item2.offset) + "\n";
 			}
 			r += "\n";
 
@@ -70,7 +70,7 @@ String UAssembly::ToString(const UCodeLang::UClib* Lib)
 		case ClassType::Alias:
 		{
 			auto& Class = Item->_Alias;
-			r += "$" + Item->FullName + " = " + Class.StringValue + ";\n";
+			r += "$" + Item->FullName + " = " + Class.Type.FullNameType + ";\n";
 		}
 		break;
 		default:
