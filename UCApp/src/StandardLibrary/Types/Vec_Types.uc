@@ -17,5 +17,5 @@
 
 
  //Typedefs
- $int2 = Vec2i_t<int>;
- $uintptr2 = Vec2i_t<uintptr>;
+ $Vec2i = Vec2i_t<int>;
+ //$Vec2 = Vec2f_t<float>;

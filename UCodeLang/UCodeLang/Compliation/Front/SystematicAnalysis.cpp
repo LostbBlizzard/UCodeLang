@@ -2444,11 +2444,17 @@ void SystematicAnalysis::LoadLibSymbols(const UClib& lib)
 		{
 
 		}
-			break;
+		break;
 		case ClassType::Alias:
-			break;
+		{
+
+		}
+		break;
 		case ClassType::Enum:
-			break;
+		{
+
+		}
+		break;
 		default:
 			break;
 		}

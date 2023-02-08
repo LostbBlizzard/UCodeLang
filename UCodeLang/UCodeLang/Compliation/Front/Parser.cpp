@@ -771,8 +771,8 @@ GotNodeType Parser::GetNamedParametersNode(NamedParametersNode& out)
 		if (!Token || Token->Type == TokenType::Right_Bracket) { break; }
 
 
-		GetType(Tep.Type);
-
+		GetType(Tep.Type,false,false);
+		
 		auto Token2 = TryGetToken();
 		if (Token2->Type == TokenType::Comma || Token2->Type == TokenType::Right_Bracket)
 		{
@@ -987,10 +987,21 @@ Parser::GetNameCheck_ret Parser::GetNameCheck(ScopedNameNode& out)
 	return{ LookingAtT,GotNodeType::Success };
 }
 
-GotNodeType Parser::GetType(TypeNode& out, bool ignoreRighthandOFtype)
+GotNodeType Parser::GetType(TypeNode& out, bool ignoreRighthandOFtype, bool ignoreleftHandType)
 {
 	GotNodeType r = GotNodeType::Success;
 	auto Token = TryGetToken();
+	if (!ignoreleftHandType)
+	{
+		if (Token->Type == TokenType::KeyWorld_umut)
+		{
+			out.SetAsimmutable();
+			NextToken();
+		}
+		
+
+	}
+
 	if (Token->Type == TokenType::Name)
 	{
 		auto A = GetName(out.Name);
@@ -1144,7 +1155,7 @@ GotNodeType Parser::GetRetStatement(RetStatementNode& out)
 	return GotNodeType::Success;
 }
 
-GotNodeType Parser::GetDeclareStaticVariable(DeclareStaticVariableNode& out)
+GotNodeType Parser::GetDeclareStaticVariable(DeclareStaticVariableNode& out, bool ignoreleftHandType)
 {
 	auto RetToken = TryGetToken();
 	TokenTypeCheck(RetToken, TokenType::KeyWorld_static);
@@ -1169,11 +1180,11 @@ GotNodeType Parser::GetDeclareStaticVariable(DeclareStaticVariableNode& out)
 	}
 	else
 	{
-		return GetDeclareVariable(out.Variable);
+		return GetDeclareVariable(out.Variable, ignoreleftHandType);
 	}
 }
 
-GotNodeType Parser::GetDeclareThreadVariable(DeclareThreadVariableNode& out)
+GotNodeType Parser::GetDeclareThreadVariable(DeclareThreadVariableNode& out, bool ignoreleftHandType)
 {
 	auto RetToken = TryGetToken();
 	TokenTypeCheck(RetToken, TokenType::KeyWorld_Thread);
@@ -1199,7 +1210,7 @@ GotNodeType Parser::GetDeclareThreadVariable(DeclareThreadVariableNode& out)
 	}
 	else
 	{
-		return GetDeclareVariable(out.Variable);
+		return GetDeclareVariable(out.Variable, ignoreleftHandType);
 	}
 }
 
@@ -1216,9 +1227,9 @@ void Parser::GetDeclareVariableNoObject(TryGetNode& out)
 	}
 }
 
-GotNodeType Parser::GetDeclareVariable(DeclareVariableNode& out)
+GotNodeType Parser::GetDeclareVariable(DeclareVariableNode& out, bool ignoreleftHandType)
 {
-	auto Type = GetType(out.Type);
+	auto Type = GetType(out.Type,false, ignoreleftHandType);
 	auto Name = GetName(out.Name);
 
 	auto Token = TryGetToken();
@@ -1641,7 +1652,7 @@ GotNodeType Parser::GetumutVariableDeclare(Node*& out)
 		{
 			DeclareThreadVariableNode* V = DeclareThreadVariableNode::Gen();
 			out = V;
-			r = GetDeclareThreadVariable(*V);
+			r = GetDeclareThreadVariable(*V,true);
 
 			Tnode = &V->Variable.Type;
 		}
@@ -1650,7 +1661,7 @@ GotNodeType Parser::GetumutVariableDeclare(Node*& out)
 		{
 			DeclareStaticVariableNode* V = DeclareStaticVariableNode::Gen();
 			out = V;
-			r =GetDeclareStaticVariable(*V);
+			r =GetDeclareStaticVariable(*V, true);
 
 			Tnode = &V->Variable.Type;
 		}break;
@@ -1658,7 +1669,7 @@ GotNodeType Parser::GetumutVariableDeclare(Node*& out)
 		{
 			DeclareVariableNode* V = DeclareVariableNode::Gen();
 			out = V;
-			r = GetDeclareVariable(*V);
+			r = GetDeclareVariable(*V,true);
 
 			Tnode = &V->Type;
 		}break;

@@ -168,7 +168,7 @@ private:
 	};
 	GetNameCheck_ret GetNameCheck(ScopedNameNode& out);
 
-	GotNodeType GetType(TypeNode& out,bool ignoreRighthandOFtype =false);
+	GotNodeType GetType(TypeNode& out,bool ignoreRighthandOFtype =false,bool ignoreleftHandType = true);
 	GotNodeType GetTypeWithVoid(TypeNode& out);
 	GotNodeType GetNumericType(TypeNode& out);
 
@@ -215,7 +215,7 @@ private:
 		TrippedCheck(r);
 		return { r,V->As() };
 	}
-	GotNodeType GetDeclareStaticVariable(DeclareStaticVariableNode& out);
+	GotNodeType GetDeclareStaticVariable(DeclareStaticVariableNode& out, bool ignoreleftHandType = false);
 	TryGetNode GetDeclareThreadVariable()
 	{
 		DeclareThreadVariableNode* V = DeclareThreadVariableNode::Gen();
@@ -223,7 +223,7 @@ private:
 		TrippedCheck(r);
 		return { r,V->As() };
 	}
-	GotNodeType  GetDeclareThreadVariable(DeclareThreadVariableNode& out);
+	GotNodeType  GetDeclareThreadVariable(DeclareThreadVariableNode& out, bool ignoreleftHandType = false);
 
 
 	TryGetNode GetDeclareVariable()
@@ -233,7 +233,7 @@ private:
 		TrippedCheck(r);
 		return { r,V->As() };
 	}
-	GotNodeType GetDeclareVariable(DeclareVariableNode& out);
+	GotNodeType GetDeclareVariable(DeclareVariableNode& out, bool ignoreleftHandType =false);
 
 	TryGetNode GetAssignVariable()
 	{

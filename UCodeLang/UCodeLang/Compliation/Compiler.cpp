@@ -71,10 +71,18 @@ String Compiler::GetTextFromFile(const Path& path)
 BytesPtr Compiler::GetBytesFromFile(const Path& path)
 {
 	BytesPtr r;
-	std::ifstream File(path);
+	std::ifstream File(path, std::ios::binary);
 	if (File.is_open())
 	{
-		throw std::exception("not added");
+		File.seekg(0, std::ios::end);
+		r.Size = File.tellg();
+		File.seekg(0, std::ios::beg);
+		
+		Byte* Ptr = new Byte[r.Size];
+		File.read((char*)Ptr, r.Size);
+		r.Bytes.reset(Ptr);
+
+		File.close();
 	}
 	
 	return r;

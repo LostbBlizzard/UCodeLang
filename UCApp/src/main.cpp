@@ -50,7 +50,6 @@ static void UCodeLangAPI Invoke_Test(InterpreterCPPinterface& interpreter)
 static UCodeRunTime RunTime;
 int main()
 {
-
 	{
 		namespace fs = std::filesystem;
 		std::stringstream Text;

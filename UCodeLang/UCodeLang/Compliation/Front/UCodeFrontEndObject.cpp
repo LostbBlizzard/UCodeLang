@@ -56,13 +56,14 @@ Unique_ptr<FileNode_t> UCodeFrontEndObject::BuildFile(String_view Text)
 	else
 	{
 		LibImportNode tep;
-		BytesView Bits;
+		BytesView Bits((Byte*)Text.data(), Text.size());
 		if (UClib::FromBytes(&tep.LIb, Bits)) 
 		{
 			FileNode* tepn = (FileNode*)&tep;
 			return Unique_ptr<FileNode_t>(new FileNode(std::move(*tepn)));
 		}
 	}
+	return nullptr;
 }
 void UCodeFrontEndObject::BuildIR(const Vector<Unique_ptr<FileNode_t>>& fileNode)
 {

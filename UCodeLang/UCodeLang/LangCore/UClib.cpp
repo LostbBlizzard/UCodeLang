@@ -43,11 +43,11 @@ BytesPtr UClib::ToRawBytes(const UClib* Lib)
 	Output.WriteType((Endian_t)Lib->LibEndianess);
 
 	{//StaticBytes
-		Output.WriteBytes(&Lib->_StaticBytes[0], Lib->_StaticBytes.size());
+		Output.WriteBytes(Lib->_StaticBytes.data(), Lib->_StaticBytes.size());
 	}
 
 	{// Instructions
-		Output.WriteBytes((const BitMaker::Byte*)&Lib->_Instructions[0], Lib->_Instructions.size() * sizeof(Instruction));
+		Output.WriteBytes((const Byte*)Lib->_Instructions.data(), Lib->_Instructions.size() * sizeof(Instruction));
 	}
 
 
@@ -62,7 +62,7 @@ BytesPtr UClib::ToRawBytes(const UClib* Lib)
 	}
 
 	{//Debug Bytes
-		Output.WriteBytes(&Lib->_DebugBytes[0], Lib->_DebugBytes.size());
+		Output.WriteBytes(Lib->_DebugBytes.data(), Lib->_DebugBytes.size());
 	}
 	
 	//ClassAssembly
@@ -137,20 +137,27 @@ BytesPtr UClib::ToRawBytes(const UClib* Lib)
 }
 bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 {
-	BitReader reader;
+	BitReader reader(Data.Bytes,Data.Size);
 	
 
 	
 
 	{
-		size_t bits=0;
-		reader.ReadType(bits, bits);
+		union 
+		{
+			Size_tAsBits bits_Size_tAsBits= 0;
+			size_t bits;
+		};
+
+		reader.ReadType(bits_Size_tAsBits, bits_Size_tAsBits);
+		
+		bits = bits_Size_tAsBits;
 
 		if (bits != UClibSignature_Size) { return false; }
 
 		for (size_t i = 0; i < UClibSignature_Size; i++)
 		{
-			char Bit = Data.Bytes[reader.Get_offset() + i];
+			char Bit = reader.GetByteWith_offset(i);
 			if (Bit != UClibSignature[i]) { return false; }
 		}
 		reader.Increment_offset(UClibSignature_Size);
@@ -182,9 +189,9 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 
 	{//StaticBytes
 
-		union 
+		union
 		{
-			Size_tAsBits bits =0;
+			Size_tAsBits bits = 0;
 			size_t bits_Size;
 		};
 
@@ -193,11 +200,9 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 
 		Lib->_StaticBytes.resize(bits_Size);
 
-		
-		if (bits_Size != 0) 
-		{
-			memcpy(&Lib->_StaticBytes[0],&reader.GetByteWith_offset(0), bits_Size);
-		}
+
+		memcpy(Lib->_StaticBytes.data(), &reader.GetByteWith_offset(0), bits_Size);
+
 		reader.Increment_offset(bits_Size);
 	}
 
@@ -213,11 +218,10 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 		bits_Size = bits;
 
 		Lib->_Instructions.resize(bits_Size);
-		
-		if (bits_Size != 0)
-		{
-			memcpy(&Lib->_Instructions[0], &reader.GetByteWith_offset(0), bits_Size * sizeof(Instruction));
-		}
+
+
+		memcpy(Lib->_Instructions.data(), &reader.GetByteWith_offset(0), bits_Size * sizeof(Instruction));
+
 		reader.Increment_offset(bits_Size * sizeof(Instruction));
 	}
 
@@ -265,10 +269,9 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 		Lib->_DebugBytes.resize(bits_Size);
 
 
-		if (bits_Size != 0)
-		{
-			memcpy(&Lib->_DebugBytes[0], &reader.GetByteWith_offset(0), bits_Size);
-		}
+
+		memcpy(Lib->_DebugBytes.data(), &reader.GetByteWith_offset(0), bits_Size);
+
 		reader.Increment_offset(bits_Size);
 	}
 	//ClassAssembly
