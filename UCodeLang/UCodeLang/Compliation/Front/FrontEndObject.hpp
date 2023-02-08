@@ -50,8 +50,8 @@ public:
 
 	virtual void Set_FileIDType(LangDefInfo::FileID ID){}
 
-	virtual Unique_ptr<FileNode_t> BuildFile(String_view Text) { return{}; }
-	virtual Unique_ptr<FileNode_t> BuildFile(const BytesView Bytes) { return{}; }
+	virtual Unique_ptr<FileNode_t> BuildFile(String_view Text) { return nullptr; }
+	virtual Unique_ptr<FileNode_t> BuildFile(const BytesView Bytes) { return nullptr; }
 
 	virtual void BuildIR(const Vector<Unique_ptr<FileNode_t>>& FileNode) {}
 

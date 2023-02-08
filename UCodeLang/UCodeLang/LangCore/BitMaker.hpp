@@ -251,7 +251,7 @@ public:
 	{
 		SizeCheck(sizeof(UInt32));
 		 BitConverter::BytesToInt(_Bytes, _BitOffset, &Out);
-		_BitOffset += sizeof(UInt64);
+		_BitOffset += sizeof(UInt32);
 	}
 	template<> void ReadType(Int32& Out)
 	{
