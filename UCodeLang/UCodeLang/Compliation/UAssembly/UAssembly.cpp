@@ -5,7 +5,7 @@
 
 UAssemblyStart
 
-void UAssembly::Assemble(const String_view& Text, UCodeLang::UClib* Out)
+void UAssembly::Assemble(const String_view& Text, UClib* Out)
 {
 	Lexer Lex; 
 	Parser Parse; 
@@ -18,7 +18,7 @@ void UAssembly::Assemble(const String_view& Text, UCodeLang::UClib* Out)
 	Lex.Lex(Text);
 	Parse.Parse(Lex.Get_Output(), Out);
 }
-String UAssembly::ToString(const UCodeLang::UClib* Lib)
+String UAssembly::ToString(const UClib* Lib)
 {
 	auto& InsMapData = Get_InsToInsMapValue();
     String r;
@@ -122,7 +122,7 @@ String UAssembly::ToString(const UCodeLang::UClib* Lib)
 
     return r;
 }
-void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In,const Unordered_map<UAddress, String>& AddressToName, String& out, const UCodeLang::UClib* Lib)
+void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In,const Unordered_map<UAddress, String>& AddressToName, String& out, const UClib* Lib)
 {
 
 	switch (OpType)
