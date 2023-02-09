@@ -3,7 +3,8 @@
 #include "TreeNodeTypes.hpp"
 #include "..//..//LangCore/TypeNames.hpp"
 #include "../..//LangCore/ScopeHelper.hpp"
-UCodeLangStart
+#include "../Front/UCodeFrontEndNameSpace.hpp"
+UCodeLangFrontStart
 
 struct StringliteralNode :Node
 {
@@ -798,6 +799,4 @@ struct DropStatementNode :Node
 
 	ExpressionNodeType expression;
 };
-
-
-UCodeLangEnd
+UCodeLangFrontEnd

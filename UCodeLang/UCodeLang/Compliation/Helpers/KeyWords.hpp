@@ -1,8 +1,7 @@
 #pragma once
 #include "../../LangCore.hpp"
-UCodeLangStart
-
-
+#include "UCodeLang/LangCore/UCodeLangNameSpace.hpp"
+UCodeLangFrontStart
 //Int types
 inline const char* S_KeyWord_Int8 = "int8";
 inline const char* S_KeyWord_Int16 = "int16";
@@ -154,6 +153,4 @@ public:
 		return TokenType::Null;
 	}
 };
-
-
-UCodeLangEnd
+UCodeLangFrontEnd

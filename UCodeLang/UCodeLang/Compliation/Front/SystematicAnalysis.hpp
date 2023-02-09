@@ -156,7 +156,7 @@ private:
 
 	bool GetMemberTypeSymbolFromVar(const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out);
 
-	bool GetMemberTypeSymbolFromVar(const size_t& Start, const UCodeLang::ScopedNameNode& node, UCodeLang::TypeSymbol& FeildType, UCodeLang::Symbol*& FeildTypeAsSymbol, size_t& VarOffset);
+	bool GetMemberTypeSymbolFromVar(const size_t& Start, const ScopedNameNode& node, TypeSymbol& FeildType, Symbol*& FeildTypeAsSymbol, size_t& VarOffset);
 	
 	void OnPostfixVariableNode(const PostfixVariableNode& node);
 	void OnCompoundStatementNode(const CompoundStatementNode& node);
@@ -285,7 +285,7 @@ private:
 		const ValueParametersNode& Pars,
 		TypeSymbol Ret);
 
-	void GetScopedNameRemovedLast(const UCodeLang::ScopedNameNode& Name, UCodeLang::ScopedNameNode& TepNode);
+	void GetScopedNameRemovedLast(const ScopedNameNode& Name, ScopedNameNode& TepNode);
 
 	void GenericFuncInstantiate(Symbol* Func,const Vector<TypeSymbol>& GenericInput);
 
