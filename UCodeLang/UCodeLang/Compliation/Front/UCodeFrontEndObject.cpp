@@ -1,6 +1,6 @@
 #include "UCodeFrontEndObject.hpp"
 
-UCodeLangStart
+UCodeLangFrontStart
 
 
 LangDefInfo& UCodeLangInfo::GetLangInfo()
@@ -92,4 +92,4 @@ void UCodeFrontEndObject::BuildIR(const Vector<Unique_ptr<FileNode_t>>& fileNode
 	}
 	_Analyzer.Analyze(V, L);
 }
-UCodeLangEnd
+UCodeLangFrontEnd

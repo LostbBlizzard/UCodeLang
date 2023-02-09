@@ -1,0 +1,2 @@
+%ULang:
+ $Vector<T>;

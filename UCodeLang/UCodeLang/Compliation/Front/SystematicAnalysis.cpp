@@ -4,7 +4,7 @@
 #include "UCodeLang/Compliation/Helpers/InstructionBuilder.hpp"
 #include "UCodeLang/Compliation/Back/UCodeBackEnd/UCodeBackEnd.hpp"
 #include "UCodeLang/Compliation/Helpers/ParseHelper.hpp"
-UCodeLangStart
+UCodeLangFrontStart
 
 void SystematicAnalysis::Reset()
 {
@@ -2716,6 +2716,7 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 		break;
 	case TokenType::Name: 
 	{
+		if (passtype == PassType::GetTypes) { return; }
 		auto Name = V.Name.AsStringView();
 		Symbol* SybV;
 		if (V.Generic.Values.size())
@@ -4056,6 +4057,6 @@ void SystematicAnalysis::LogCanIncorrectGenericCount(const Token* Token, String_
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, Msg);
 }
-UCodeLangEnd
+UCodeLangFrontEnd
 
 

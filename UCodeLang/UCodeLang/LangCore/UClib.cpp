@@ -43,10 +43,12 @@ BytesPtr UClib::ToRawBytes(const UClib* Lib)
 	Output.WriteType((Endian_t)Lib->LibEndianess);
 
 	{//StaticBytes
+		Output.WriteType((Size_tAsBits)Lib->_StaticBytes.size());
 		Output.WriteBytes(Lib->_StaticBytes.data(), Lib->_StaticBytes.size());
 	}
 
 	{// Instructions
+		Output.WriteType((Size_tAsBits)Lib->_Instructions.size());
 		Output.WriteBytes((const Byte*)Lib->_Instructions.data(), Lib->_Instructions.size() * sizeof(Instruction));
 	}
 
@@ -62,78 +64,112 @@ BytesPtr UClib::ToRawBytes(const UClib* Lib)
 	}
 
 	{//Debug Bytes
+		Output.WriteType((Size_tAsBits)Lib->_DebugBytes.size());
 		Output.WriteBytes(Lib->_DebugBytes.data(), Lib->_DebugBytes.size());
 	}
 	
 	//ClassAssembly
 	{
-
-		Output.WriteType((Size_tAsBits)Lib->_Assembly.Classes.size());
-
-
-		for (auto& Item : Lib->_Assembly.Classes)
-		{
-			Output.WriteType(Item->Name);
-			Output.WriteType(Item->FullName);
-			
-			Output.WriteType((ClassType_t)Item->Type);
-
-			switch (Item->Type)
-			{
-			case ClassType::Alias:
-			ToBytes(Output,Item->_Alias.Type);
-			break;
-			case ClassType::Class:
-			{
-				auto& ClassData = Item->_Class;
-				Output.WriteType((Size_tAsBits)ClassData.Size);
-				
-				
-				for (auto& Item2 : ClassData.Attributes)
-				{
-					ToBytes(Output, Item2);
-				}
-
-				Output.WriteType((Size_tAsBits)ClassData.Fields.size());
-				for (auto& Item2 : ClassData.Fields)
-				{
-					Output.WriteType(Item2.Name);
-					ToBytes(Output, Item2.Type);
-					Output.WriteType((Size_tAsBits)Item2.offset);
-				}
-
-				Output.WriteType((Size_tAsBits)ClassData.Methods.size());
-				for (auto& Item2 : ClassData.Methods)
-				{
-					ToBytes(Output, Item2);
-				}
-			}
-				break;
-			case ClassType::Enum:
-			{
-				Output.WriteType((EnumSizez_t)Item->_Enum.Size);
-				
-				Output.WriteType((Size_tAsBits)Item->_Enum.Values.size());
-
-				for (auto& Item2 : Item->_Enum.Values)
-				{
-					Output.WriteType(Item2.Name);
-					Output.WriteType((EnumValues::State_t)Item2._State);
-					Output.WriteType((Size_tAsBits)Item2.Value);
-				}
-			}
-			break;
-			default:
-				break;
-			}
-		}
+		auto& Assembly = Lib->_Assembly;
+		ToBytes(Output, Assembly);
 	}
 
 	BytesPtr V;
-	V.Bytes.reset(new Byte[Output.Size()]);
-	std::memcpy(V.Bytes.get(), &Output.Get_Bytes()[0], Output.Size());
-	V.Size = Output.Size();
+	V.Bytes.reset(new Byte[Output.size()]);
+	std::memcpy(V.Bytes.get(), Output.data(), Output.size());
+	V.Size = Output.size();
 	return V;
+}
+void UClib::ToBytes(UCodeLang::BitMaker& Output, const ClassAssembly& Assembly)
+{
+	Output.WriteType((Size_tAsBits)Assembly.Classes.size());
+
+
+	for (auto& Item : Assembly.Classes)
+	{
+		Output.WriteType(Item->Name);
+		Output.WriteType(Item->FullName);
+
+		Output.WriteType((ClassType_t)Item->Type);
+
+		switch (Item->Type)
+		{
+		case ClassType::Alias:
+		{
+			auto& Alias = Item->_Alias;
+			ToBytes(Output, Alias);
+		}
+		break;
+		case ClassType::Class:
+		{
+			auto& ClassData = Item->_Class;
+			ToBytes(Output, ClassData);
+		}
+		break;
+		case ClassType::Enum:
+		{
+			auto& EnumData = Item->_Enum;
+
+			ToBytes(Output, EnumData);
+		}
+		break;
+		default:
+			break;
+		}
+	}
+}
+void UClib::ToBytes(UCodeLang::BitMaker& Output, const ClassData::Enum_Data& EnumData)
+{
+	Output.WriteType(*(EnumSizez_t*)&EnumData.Size);
+
+	Output.WriteType((Size_tAsBits)EnumData.Values.size());
+
+	for (auto& Item2 : EnumData.Values)
+	{
+		Output.WriteType(Item2.Name);
+		Output.WriteType((EnumValues::State_t)Item2._State);
+		Output.WriteType((Size_tAsBits)Item2.Value);
+	}
+}
+void UClib::ToBytes(UCodeLang::BitMaker& Output, const ClassData::Alias_Data& Alias)
+{
+	ToBytes(Output, Alias.Type);
+}
+void UClib::ToBytes(UCodeLang::BitMaker& Output, const ClassData::Class_Data& ClassData)
+{
+	Output.WriteType((Size_tAsBits)ClassData.Size);
+
+	Output.WriteType((Size_tAsBits)ClassData.Attributes.size());
+	for (auto& Item2 : ClassData.Attributes)
+	{
+		ToBytes(Output, Item2);
+	}
+
+	Output.WriteType((Size_tAsBits)ClassData.Fields.size());
+	for (auto& Item2 : ClassData.Fields)
+	{
+		Output.WriteType(Item2.Name);
+		ToBytes(Output, Item2.Type);
+		Output.WriteType((Size_tAsBits)Item2.offset);
+	}
+
+	Output.WriteType((Size_tAsBits)ClassData.Methods.size());
+	for (auto& Item2 : ClassData.Methods)
+	{
+		ToBytes(Output, Item2);
+	}
+}
+void UClib::ToBytes(BitMaker& Output, const AttributeData& Data)
+{
+	Output.WriteType(Data.Name);
+}
+void UClib::ToBytes(BitMaker& Output, const ClassMethod& Data)
+{
+	Output.WriteType(Data.FullName);
+}
+void UClib::ToBytes(BitMaker& Output, const ReflectionTypeInfo& Data)
+{
+	Output.WriteType(Data.FullNameType);
 }
 bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 {
@@ -141,7 +177,7 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 	
 
 	
-
+	//Signature
 	{
 		union 
 		{
@@ -243,7 +279,7 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 			String V1;
 			union
 			{
-				UAddress V2 = 0;
+				Size_tAsBits V2 = 0;
 				size_t V2bits_Size;
 			};
 			reader.ReadType(V1, V1);
@@ -277,125 +313,156 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 	//ClassAssembly
 	{
 		auto& Assembly = Lib->Get_Assembly();
-		union
-		{
-			Size_tAsBits bits = 0;
-			size_t bits_Size;
-		};
-		reader.ReadType(bits, bits);
-		bits_Size = bits;
-		
-		for (size_t i = 0; i < bits_Size; i++)
-		{
-			auto& Item = Assembly.AddClass("","");
-
-			reader.ReadType(Item.Name, Item.Name);
-			reader.ReadType(Item.FullName, Item.FullName);
-			reader.ReadType(*(ClassType_t*)&Item.Type, *(ClassType_t*)&Item.Type);
-
-			switch (Item.Type)
-			{
-			case ClassType::Alias:
-			{
-				FromBytes(reader, Item._Alias.Type);
-			}
-			break;
-			case ClassType::Class:
-			{
-				Size_tAsBits _Classbits = 0;
-				reader.ReadType(_Classbits, _Classbits);
-				Item._Class.Size =bits;
-
-				union
-				{
-					Size_tAsBits  Attributes_Sizebits = 0;
-					size_t Attributes_Size;
-				};
-				reader.ReadType(Attributes_Sizebits, Attributes_Sizebits);
-				Attributes_Size = Attributes_Sizebits;
-
-				Item._Class.Attributes.resize(Attributes_Size);
-				for (size_t i2 = 0; i2 < Attributes_Size; i2++)
-				{
-					auto& Item2 = Item._Class.Attributes[i2];
-					FromBytes(reader,Item2);
-				}
-
-
-				union
-				{
-					Size_tAsBits  Feld_Sizebits = 0;
-					size_t Feld_Size;
-				};
-				reader.ReadType(Feld_Sizebits, Feld_Sizebits);
-				Feld_Size = Feld_Sizebits;
-
-				Item._Class.Fields.resize(Feld_Size);
-				for (size_t i2 = 0; i2 < Feld_Size; i2++)
-				{
-					auto& Item2 = Item._Class.Fields[i2];
-					reader.ReadType(Item2.Name, Item2.Name);
-					FromBytes(reader, Item2.Type);
-					reader.ReadType(Item2.offset, Item2.offset);
-				}
-
-				union
-				{
-					Size_tAsBits  Methods_Sizebits = 0;
-					size_t Methods_Size;
-				};
-				reader.ReadType(Methods_Sizebits, Methods_Sizebits);
-				Methods_Size = Methods_Sizebits;
-
-				Item._Class.Methods.resize(Methods_Size);
-				for (size_t i2 = 0; i2 < Methods_Size; i2++)
-				{
-					auto& Item2 = Item._Class.Methods[i2];
-					FromBytes(reader, Item2);
-				}
-
-			}
-				break;
-			case ClassType::Enum:
-			{
-				reader.ReadType(*(EnumSizez_t*)&Item._Enum.Size, *(EnumSizez_t*)&Item._Enum.Size);
-
-				union
-				{
-					Size_tAsBits  Sizebits = 0;
-					size_t Size;
-
-				};
-				reader.ReadType(Sizebits, Sizebits);
-				Size = Sizebits;
-
-				Item._Enum.Values.resize(Size);
-				for (size_t i2 = 0; i2 < Size; i2++)
-				{
-					auto& Item2 = Item._Enum.Values[i2];
-					reader.ReadType(Item2.Name, Item2.Name);
-					reader.ReadType(*(EnumValues::State_t*)&Item2._State, *(EnumValues::State_t*)&Item2._State);
-
-					union
-					{
-						Size_tAsBits  Sizebits = 0;
-						size_t Size;
-					};
-					reader.ReadType(Sizebits, Sizebits);
-					Size = Sizebits;
-					Item2.Value = Size;
-				}
-			}
-				break;
-			default:
-				break;
-			}
-			
-		}
+		FromBytes(reader, Assembly);
 	}
 
 	BitConverter::InputOutEndian = Old;
 	return true;
+}
+void UClib::FromBytes(UCodeLang::BitReader& reader, ClassAssembly& Assembly)
+{
+	union
+	{
+		Size_tAsBits bits = 0;
+		size_t bits_Size;
+	};
+	reader.ReadType(bits, bits);
+	bits_Size = bits;
+
+	for (size_t i = 0; i < bits_Size; i++)
+	{
+		auto& Item = Assembly.AddClass("", "");
+
+		reader.ReadType(Item.Name, Item.Name);
+		reader.ReadType(Item.FullName, Item.FullName);
+		reader.ReadType(*(ClassType_t*)&Item.Type, *(ClassType_t*)&Item.Type);
+
+		switch (Item.Type)
+		{
+		case ClassType::Alias:
+		{
+			auto& Alias = Item._Alias;
+			FromBytes(reader, Alias);
+		}
+		break;
+		case ClassType::Class:
+		{
+			auto& Class = Item._Class;
+			FromBytes(reader, Class);
+		}
+		break;
+		case ClassType::Enum:
+		{
+			auto& Enum = Item._Enum;
+			FromBytes(reader, Enum);
+		}
+		break;
+		default:
+			break;
+		}
+
+	}
+}
+void UClib::FromBytes(UCodeLang::BitReader& reader, UCodeLang::ClassData::Enum_Data& Enum)
+{
+	reader.ReadType(*(EnumSizez_t*)&Enum.Size, *(EnumSizez_t*)&Enum.Size);
+
+	union
+	{
+		Size_tAsBits  Sizebits = 0;
+		size_t Size;
+
+	};
+	reader.ReadType(Sizebits, Sizebits);
+	Size = Sizebits;
+
+	Enum.Values.resize(Size);
+	for (size_t i2 = 0; i2 < Size; i2++)
+	{
+		auto& Item2 = Enum.Values[i2];
+		reader.ReadType(Item2.Name, Item2.Name);
+		reader.ReadType(*(EnumValues::State_t*)&Item2._State, *(EnumValues::State_t*)&Item2._State);
+
+		union
+		{
+			Size_tAsBits  Sizebits = 0;
+			size_t Size;
+		};
+		reader.ReadType(Sizebits, Sizebits);
+		Size = Sizebits;
+		Item2.Value = Size;
+	}
+}
+void UClib::FromBytes(UCodeLang::BitReader& reader, UCodeLang::ClassData::Class_Data& Class)
+{
+
+	Size_tAsBits _Classbits = 0;
+	reader.ReadType(_Classbits, _Classbits);
+	Class.Size = _Classbits;
+
+	union
+	{
+		Size_tAsBits  Attributes_Sizebits = 0;
+		size_t Attributes_Size;
+	};
+	reader.ReadType(Attributes_Sizebits, Attributes_Sizebits);
+	Attributes_Size = Attributes_Sizebits;
+
+	Class.Attributes.resize(Attributes_Size);
+	for (size_t i2 = 0; i2 < Attributes_Size; i2++)
+	{
+		auto& Item2 = Class.Attributes[i2];
+		FromBytes(reader, Item2);
+	}
+
+
+	union
+	{
+		Size_tAsBits  Feld_Sizebits = 0;
+		size_t Feld_Size;
+	};
+	reader.ReadType(Feld_Sizebits, Feld_Sizebits);
+	Feld_Size = Feld_Sizebits;
+
+	Class.Fields.resize(Feld_Size);
+	for (size_t i2 = 0; i2 < Feld_Size; i2++)
+	{
+		auto& Item2 = Class.Fields[i2];
+		reader.ReadType(Item2.Name, Item2.Name);
+		FromBytes(reader, Item2.Type);
+		reader.ReadType(Item2.offset, Item2.offset);
+	}
+
+	union
+	{
+		Size_tAsBits  Methods_Sizebits = 0;
+		size_t Methods_Size;
+	};
+	reader.ReadType(Methods_Sizebits, Methods_Sizebits);
+	Methods_Size = Methods_Sizebits;
+
+	Class.Methods.resize(Methods_Size);
+	for (size_t i2 = 0; i2 < Methods_Size; i2++)
+	{
+		auto& Item2 = Class.Methods[i2];
+		FromBytes(reader, Item2);
+	}
+}
+void UClib::FromBytes(UCodeLang::BitReader& reader, UCodeLang::ClassData::Alias_Data& Alias)
+{
+	FromBytes(reader, Alias.Type);
+}
+void UClib::FromBytes(BitReader& Input, AttributeData& Data)
+{
+	Input.ReadType(Data.Name, Data.Name);
+}
+void UClib::FromBytes(BitReader& Input, ClassMethod& Data)
+{
+	Input.ReadType(Data.FullName, Data.FullName);
+}
+void UClib::FromBytes(BitReader& Input, ReflectionTypeInfo& Data)
+{
+	Input.ReadType(Data.FullNameType, Data.FullNameType);
 }
 bool UClib::ToFile(const UClib* Lib, const Path& path)
 {

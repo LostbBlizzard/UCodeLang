@@ -12,9 +12,9 @@ BytesPtr DependencyFile::ToRawBytes(const DependencyFile* Lib)
 		Item.ToBytes(bits);
 	}
 	BytesPtr V;
-	V.Bytes.reset(new Byte[bits.Size()]);
-	std::memcpy(V.Bytes.get(), &bits.Get_Bytes()[0], bits.Size());
-	V.Size = bits.Size();
+	V.Bytes.reset(new Byte[bits.size()]);
+	std::memcpy(V.Bytes.get(), bits.data(), bits.size());
+	V.Size = bits.size();
     return V;
 }
 

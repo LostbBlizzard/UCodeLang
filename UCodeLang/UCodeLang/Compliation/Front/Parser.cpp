@@ -1,8 +1,7 @@
 #include "Parser.hpp"
 #include "../Helpers/KeyWords.hpp"
 #include "..\UAssembly\UAssembly_Parser.hpp"
-UCodeLangStart
-
+UCodeLangFrontStart
 
 
 void Parser::Reset()
@@ -133,10 +132,10 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 
 	return GotNodeType::Success;
 }
-GotNodeType Parser::GetAlias(const Token* AliasName,GenericValuesNode& AliasGenerics, AliasNode& out)
+GotNodeType Parser::GetAlias(const Token* AliasName,GenericValuesNode&& AliasGenerics, AliasNode& out)
 {
 	out.AliasName.Token = AliasName;
-	out.Generic = AliasGenerics;//Move
+	out.Generic = AliasGenerics;
 
 	auto ClassToken = TryGetToken(); TokenTypeCheck(ClassToken, TokenType::equal);
 	NextToken();
@@ -168,7 +167,7 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 	{
 		auto V = AliasNode::Gen();
 		out = V->As();
-		return GetAlias(ClassToken, TepGenerics, *V);//TepGenerics Move
+		return GetAlias(ClassToken,std::move(TepGenerics), *V);
 	}
 	else if (ColonToken->Type == TokenType::Semicolon)
 	{
@@ -176,14 +175,14 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 
 		auto output = ClassNode::Gen(); out = output->As();
 		output->ClassName.Token = ClassToken;
-		output->Generic = TepGenerics;
+		output->Generic = std::move(TepGenerics);
 		return GotNodeType::Success;
 	}
 	else
 	{
 		auto output = ClassNode::Gen();out = output->As();
 		output->ClassName.Token = ClassToken;
-		output->Generic = TepGenerics;
+		output->Generic = std::move(TepGenerics);
 		
 		TokenTypeCheck(ColonToken, TokenType::Colon);
 		NextToken();
@@ -997,6 +996,7 @@ GotNodeType Parser::GetType(TypeNode& out, bool ignoreRighthandOFtype, bool igno
 		{
 			out.SetAsimmutable();
 			NextToken();
+			Token = TryGetToken();
 		}
 		
 
@@ -1221,8 +1221,11 @@ void Parser::GetDeclareVariableNoObject(TryGetNode& out)
 	if (out.GotNode == GotNodeType::Success)
 	{
 		auto ptr = DeclareThreadVariableNode::Gen();
-		_ErrorsOutput->AddError(ErrorCodes::InternalCompilerError, 0, 0, "Cant move varble");
 		//ptr->Variable = std::move(node);
+		ptr->Variable.Type = std::move(node.Type);
+		ptr->Variable.Name = std::move(node.Name);
+		ptr->Variable.Expression.Value = std::move(node.Expression.Value);
+		
 		out.Node = ptr->As();
 	}
 }
@@ -1678,4 +1681,4 @@ GotNodeType Parser::GetumutVariableDeclare(Node*& out)
 	Tnode->SetAsimmutable();
 	return r;
 }
-UCodeLangEnd
+UCodeLangFrontEnd

@@ -5,6 +5,9 @@
   |new[this&]:
    X = 0;
    Y = 0;
+  |new[this&,T x,T y]:
+   X = x;
+   Y = y;
 
  $Vec2f_t<T>:
   T X;
@@ -12,6 +15,9 @@
   |new[this&]:
    X = 0;
    Y = 0;
+  |new[this&,T x,T y]:
+   X = x;
+   Y = y;
 
 
 

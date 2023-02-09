@@ -78,7 +78,7 @@ private:
 	Unique_ptr<BackEndObject> _BackEndObject;
 
 
-	FrontEndObject_Ptr _FrontEnd = &UCodeFrontEndObject::MakeObject;
+	FrontEndObject_Ptr _FrontEnd = &FrontEnd::UCodeFrontEndObject::MakeObject;
 	BackEndObject_Ptr _BackEnd = &UCodeBackEndObject::MakeObject;
 };
 UCodeLangEnd

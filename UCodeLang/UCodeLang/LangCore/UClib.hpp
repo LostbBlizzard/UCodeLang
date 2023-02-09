@@ -225,33 +225,26 @@ public:
 	
 	
 	static BytesPtr ToRawBytes(const UClib* Lib);
-	static bool FromBytes(UClib* Lib,const BytesView& Data);
-	//
-	static void ToBytes(BitMaker& Output,const AttributeData& Data)
-	{
-		Output.WriteType(Data.Name);
-	}
-	static void ToBytes(BitMaker& Output, const ClassMethod& Data)
-	{
-		Output.WriteType(Data.FullName);
-	}
-	static void ToBytes(BitMaker& Output, const ReflectionTypeInfo& Data)
-	{
-		Output.WriteType(Data.FullNameType);
-	}
 
-	static void FromBytes(BitReader& Input, AttributeData& Data)
-	{
-		Input.ReadType(Data.Name, Data.Name);
-	}
-	static void FromBytes(BitReader& Input,ClassMethod& Data)
-	{
-		Input.ReadType(Data.FullName, Data.FullName);
-	}
-	static void FromBytes(BitReader& Input, ReflectionTypeInfo& Data)
-	{
-		Input.ReadType(Data.FullNameType, Data.FullNameType);
-	}
+	;
+	
+	//
+	static void ToBytes(BitMaker& Output, const ClassData::Enum_Data& EnumData);
+	static void ToBytes(BitMaker& Output, const ClassAssembly& Assembly);
+	static void ToBytes(BitMaker& Output, const ClassData::Alias_Data& Alias);
+	static void ToBytes(BitMaker& Output, const ClassData::Class_Data& ClassData);
+	static void ToBytes(BitMaker& Output, const AttributeData& Data);
+	static void ToBytes(BitMaker& Output, const ClassMethod& Data);
+	static void ToBytes(BitMaker& Output, const ReflectionTypeInfo& Data);
+	//
+	static bool FromBytes(UClib* Lib,const BytesView& Data);
+	static void FromBytes(BitReader& reader, ClassAssembly& Assembly);
+	static void FromBytes(BitReader& reader, ClassData::Enum_Data& Enum);
+	static void FromBytes(BitReader& reader, ClassData::Class_Data& Class);
+	static void FromBytes(BitReader& reader, ClassData::Alias_Data& Alias);
+	static void FromBytes(BitReader& Input, AttributeData& Data);
+	static void FromBytes(BitReader& Input, ClassMethod& Data);
+	static void FromBytes(BitReader& Input, ReflectionTypeInfo& Data);
 	//
 
 	static bool ToFile(const UClib* Lib,const Path& path);

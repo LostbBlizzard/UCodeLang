@@ -269,7 +269,6 @@ struct Token
 
 	size_t OnLine =0;
 	size_t OnPos = 0;
-	static constexpr size_t EndOfFile = -1;
 
 	static void PushString(String& out,const Token& T)
 	{

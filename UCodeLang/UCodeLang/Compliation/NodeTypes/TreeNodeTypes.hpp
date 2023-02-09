@@ -325,6 +325,7 @@ struct TypeNode :Node
 	}
 	TypeNode(const TypeNode& ToCopyFrom) = default;
 	TypeNode(TypeNode&& source) = default;
+	TypeNode& operator=(TypeNode&& source) = default;
 	~TypeNode() = default;
 	void PushAsAddess()
 	{
