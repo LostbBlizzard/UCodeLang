@@ -80,7 +80,7 @@ BytesPtr UClib::ToRawBytes(const UClib* Lib)
 	V.Size = Output.size();
 	return V;
 }
-void UClib::ToBytes(UCodeLang::BitMaker& Output, const ClassAssembly& Assembly)
+void UClib::ToBytes(BitMaker& Output, const ClassAssembly& Assembly)
 {
 	Output.WriteType((Size_tAsBits)Assembly.Classes.size());
 
@@ -118,7 +118,7 @@ void UClib::ToBytes(UCodeLang::BitMaker& Output, const ClassAssembly& Assembly)
 		}
 	}
 }
-void UClib::ToBytes(UCodeLang::BitMaker& Output, const ClassData::Enum_Data& EnumData)
+void UClib::ToBytes(BitMaker& Output, const ClassData::Enum_Data& EnumData)
 {
 	Output.WriteType(*(EnumSizez_t*)&EnumData.Size);
 
@@ -131,11 +131,11 @@ void UClib::ToBytes(UCodeLang::BitMaker& Output, const ClassData::Enum_Data& Enu
 		Output.WriteType((Size_tAsBits)Item2.Value);
 	}
 }
-void UClib::ToBytes(UCodeLang::BitMaker& Output, const ClassData::Alias_Data& Alias)
+void UClib::ToBytes(BitMaker& Output, const ClassData::Alias_Data& Alias)
 {
 	ToBytes(Output, Alias.Type);
 }
-void UClib::ToBytes(UCodeLang::BitMaker& Output, const ClassData::Class_Data& ClassData)
+void UClib::ToBytes(BitMaker& Output, const ClassData::Class_Data& ClassData)
 {
 	Output.WriteType((Size_tAsBits)ClassData.Size);
 
@@ -148,9 +148,7 @@ void UClib::ToBytes(UCodeLang::BitMaker& Output, const ClassData::Class_Data& Cl
 	Output.WriteType((Size_tAsBits)ClassData.Fields.size());
 	for (auto& Item2 : ClassData.Fields)
 	{
-		Output.WriteType(Item2.Name);
-		ToBytes(Output, Item2.Type);
-		Output.WriteType((Size_tAsBits)Item2.offset);
+		ToBytes(Output, Item2);
 	}
 
 	Output.WriteType((Size_tAsBits)ClassData.Methods.size());
@@ -158,6 +156,12 @@ void UClib::ToBytes(UCodeLang::BitMaker& Output, const ClassData::Class_Data& Cl
 	{
 		ToBytes(Output, Item2);
 	}
+}
+void UClib::ToBytes(UCodeLang::BitMaker& Output, const UCodeLang::ClassField& Item2)
+{
+	Output.WriteType(Item2.Name);
+	ToBytes(Output, Item2.Type);
+	Output.WriteType((Size_tAsBits)Item2.offset);
 }
 void UClib::ToBytes(BitMaker& Output, const AttributeData& Data)
 {
@@ -319,7 +323,7 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 	BitConverter::InputOutEndian = Old;
 	return true;
 }
-void UClib::FromBytes(UCodeLang::BitReader& reader, ClassAssembly& Assembly)
+void UClib::FromBytes(BitReader& reader, ClassAssembly& Assembly)
 {
 	union
 	{
@@ -363,7 +367,7 @@ void UClib::FromBytes(UCodeLang::BitReader& reader, ClassAssembly& Assembly)
 
 	}
 }
-void UClib::FromBytes(UCodeLang::BitReader& reader, UCodeLang::ClassData::Enum_Data& Enum)
+void UClib::FromBytes(BitReader& reader, ClassData::Enum_Data& Enum)
 {
 	reader.ReadType(*(EnumSizez_t*)&Enum.Size, *(EnumSizez_t*)&Enum.Size);
 
@@ -393,7 +397,7 @@ void UClib::FromBytes(UCodeLang::BitReader& reader, UCodeLang::ClassData::Enum_D
 		Item2.Value = Size;
 	}
 }
-void UClib::FromBytes(UCodeLang::BitReader& reader, UCodeLang::ClassData::Class_Data& Class)
+void UClib::FromBytes(BitReader& reader, ClassData::Class_Data& Class)
 {
 
 	Size_tAsBits _Classbits = 0;
@@ -428,9 +432,7 @@ void UClib::FromBytes(UCodeLang::BitReader& reader, UCodeLang::ClassData::Class_
 	for (size_t i2 = 0; i2 < Feld_Size; i2++)
 	{
 		auto& Item2 = Class.Fields[i2];
-		reader.ReadType(Item2.Name, Item2.Name);
-		FromBytes(reader, Item2.Type);
-		reader.ReadType(Item2.offset, Item2.offset);
+		FromBytes(reader, Item2);
 	}
 
 	union
@@ -448,7 +450,16 @@ void UClib::FromBytes(UCodeLang::BitReader& reader, UCodeLang::ClassData::Class_
 		FromBytes(reader, Item2);
 	}
 }
-void UClib::FromBytes(UCodeLang::BitReader& reader, UCodeLang::ClassData::Alias_Data& Alias)
+void UClib::FromBytes(UCodeLang::BitReader& reader, UCodeLang::ClassField& Item2)
+{
+	reader.ReadType(Item2.Name, Item2.Name);
+	FromBytes(reader, Item2.Type);
+
+	Size_tAsBits offset;
+	reader.ReadType(offset, offset);
+	Item2.offset = offset;
+}
+void UClib::FromBytes(BitReader& reader, ClassData::Alias_Data& Alias)
 {
 	FromBytes(reader, Alias.Type);
 }
