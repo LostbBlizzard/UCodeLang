@@ -1,7 +1,8 @@
 #pragma once
 #include "UCodeLang/LangCore/ScopeHelper.hpp"
 #include "IRCode.hpp"
-UCodeLangStart
+#include "../Front/UCodeFrontEndNameSpace.hpp"
+UCodeLangFrontStart
 
 
 enum class TypesEnum :UInt8
@@ -342,4 +343,4 @@ public:
 private:
 	Unordered_map<SymbolID,size_t> IDToSymbols;
 };
-UCodeLangEnd
+UCodeLangFrontEnd

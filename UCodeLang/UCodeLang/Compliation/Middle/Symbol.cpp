@@ -1,8 +1,7 @@
 #include "Symbol.hpp"
 
 
-UCodeLangStart
-
+UCodeLangFrontStart
 void SymbolTable::RemovePopUseing(size_t Index)
 {
 
@@ -90,5 +89,5 @@ void SymbolTable::GetSymbolsInNameSpace(const String_view& NameSpace, const Stri
 	 IDToSymbols.clear();
  }
 
-UCodeLangEnd
+ UCodeLangFrontEnd
 

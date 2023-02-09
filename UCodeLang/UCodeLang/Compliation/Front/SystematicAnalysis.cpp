@@ -1328,7 +1328,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, 
 	Out.Offset = VarOffset;
 	return true;
 }
-bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t& Start, const UCodeLang::ScopedNameNode& node, UCodeLang::TypeSymbol& FeildType, UCodeLang::Symbol*& FeildTypeAsSymbol
+bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t& Start, const ScopedNameNode& node, TypeSymbol& FeildType, Symbol*& FeildTypeAsSymbol
 	, size_t& VarOffset)
 {
 	for (size_t i = Start; i < node.ScopedName.size(); i++)
@@ -1953,7 +1953,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 	}
 }
 
-void SystematicAnalysis::OnNewNode(UCodeLang::NewExpresionNode* nod)
+void SystematicAnalysis::OnNewNode(NewExpresionNode* nod)
 {
 	TypeSymbol Type;
 	Convert(nod->Type, Type);
@@ -2112,7 +2112,7 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(AnonymousObjectConstructor
 	LastExpressionType = Type;
 }
 
-void SystematicAnalysis::DoFuncCall(const TypeSymbol& Type, const Get_FuncInfo& Func, UCodeLang::ValueParametersNode& ValuePars)
+void SystematicAnalysis::DoFuncCall(const TypeSymbol& Type, const Get_FuncInfo& Func, ValueParametersNode& ValuePars)
 {
 	String B = ToString(Type);
 	Token T;
@@ -3461,7 +3461,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 	}
 	return { ThisParType,r};
 }
-void SystematicAnalysis::GetScopedNameRemovedLast(const UCodeLang::ScopedNameNode& Name, UCodeLang::ScopedNameNode& TepNode)
+void SystematicAnalysis::GetScopedNameRemovedLast(const ScopedNameNode& Name, ScopedNameNode& TepNode)
 {
 	for (size_t i = 0; i < Name.ScopedName.size() - 1; i++)
 	{
