@@ -1,11 +1,18 @@
 
 // 
-// Packaged FilePath:Types/Math.uc
+// Packaged FilePath:Math/Math.uc
 // 
 
 %ULang:
  $Math:
   |Sqrt<T>[T Value] -> T;
+
+// 
+// Packaged FilePath:Types/Array.uc
+// 
+
+%ULang:
+ $Array<T,X>;// X is an uintptr
 
 // 
 // Packaged FilePath:Types/Optional.uc
@@ -31,7 +38,44 @@
    _HasValue = false;
   
   |HasValue[umut this&] => _HasValue;
-  |GetValue[umut this&] => _Value;
+  |Value[umut this&] => _Value;
+
+// 
+// Packaged FilePath:Types/Primitives.uc
+// 
+
+%ULang:
+  $Size_t = uintptr;
+
+  |ToString<T>[];//for ints 
+  |ToString<T>[];//for floats 
+
+// 
+// Packaged FilePath:Types/Span.uc
+// 
+
+%ULang:
+ $Span<T>;
+ $Span<T,X>;//compile time vir
+
+// 
+// Packaged FilePath:Types/String.uc
+// 
+
+%ULang:
+ 
+ $String;
+
+
+
+ $StringView = Span<char>;
+
+// 
+// Packaged FilePath:Types/Vector.uc
+// 
+
+%ULang:
+ $Vector<T>;
 
 // 
 // Packaged FilePath:Types/Vec_Types.uc
@@ -44,6 +88,9 @@
   |new[this&]:
    X = 0;
    Y = 0;
+  |new[this&,T x,T y]:
+   X = x;
+   Y = y;
 
  $Vec2f_t<T>:
   T X;
@@ -51,6 +98,9 @@
   |new[this&]:
    X = 0;
    Y = 0;
+  |new[this&,T x,T y]:
+   X = x;
+   Y = y;
 
 
 

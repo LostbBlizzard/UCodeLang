@@ -6,8 +6,8 @@
 #include "../CompliationSettings.hpp"
 #include "../LexerDefs.h"
 
-
-UCodeLangStart
+#include "UCodeFrontEndNameSpace.hpp"
+UCodeLangFrontStart
 class Lexer
 {
 	enum class ReadingNameState :UInt8
@@ -90,5 +90,5 @@ private:
 	
 	void NameAndKeyWords(ReadingNameState& ReadingState, Token& _Token);
 };
-UCodeLangEnd
+UCodeLangFrontEnd
 

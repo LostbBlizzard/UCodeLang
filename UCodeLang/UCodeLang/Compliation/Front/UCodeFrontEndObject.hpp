@@ -4,9 +4,10 @@
 #include "Lexer.hpp"
 #include "Parser.hpp"
 #include "SystematicAnalysis.hpp"
-UCodeLangStart
+#include "UCodeFrontEndNameSpace.hpp"
 
 
+UCodeLangFrontStart
 class UCodeLangInfo
 {
 public:
@@ -58,4 +59,4 @@ private:
 	UCodeLangInfo::FileTypes _FileType = UCodeLangInfo::FileTypes::SourceFile;
 };
 
-UCodeLangEnd
+UCodeLangFrontEnd

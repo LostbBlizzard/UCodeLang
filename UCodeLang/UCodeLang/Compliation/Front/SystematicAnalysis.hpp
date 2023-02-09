@@ -4,8 +4,9 @@
 #include "UCodeLang/LangCore/UClib.hpp"
 #include "UCodeLang/Compliation/Back/BackEndInterface.hpp"
 #include "../Middle/Symbol.hpp"
-UCodeLangStart
 
+#include "UCodeFrontEndNameSpace.hpp"
+UCodeLangFrontStart
 class SystematicAnalysis
 {
 
@@ -356,5 +357,6 @@ public://Only for backends
 			return r;
 		}
 };
-UCodeLangEnd
+UCodeLangFrontEnd
+
 

@@ -6,9 +6,9 @@
 #include "../Helpers/CompliationErrors.hpp"
 #include "../CompliationSettings.hpp"
 #include "../../LangCore/TypeNames.hpp"
-UCodeLangStart
 
-
+#include "UCodeFrontEndNameSpace.hpp"
+UCodeLangFrontStart
 class Parser
 {	
 public:
@@ -264,7 +264,7 @@ private:
 
 	void GetDeclareVariableNoObject(TryGetNode& out);
 
-	GotNodeType GetAlias(const Token* AliasName, GenericValuesNode& AliasGenerics, AliasNode& out);
+	GotNodeType GetAlias(const Token* AliasName, GenericValuesNode&& AliasGenerics, AliasNode& out);
 
 	TryGetNode GetIfNode()
 	{
@@ -366,5 +366,5 @@ private:
 	}
 	GotNodeType GetumutVariableDeclare(Node*& out);
 };
-UCodeLangEnd
+UCodeLangFrontEnd
 

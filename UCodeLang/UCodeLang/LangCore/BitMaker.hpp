@@ -31,10 +31,16 @@ public:
 
 	}
 
-	UCodeLangForceinline void Resize(size_t NewSize){ _Bytes.resize(NewSize);}
-	UCodeLangForceinline void Clear(){ _Bytes.clear();}
+	UCodeLangForceinline void resize(size_t NewSize){ _Bytes.resize(NewSize);}
+	UCodeLangForceinline void clear(){ _Bytes.clear();}
+	
+	UCodeLangForceinline size_t size() const {return _Bytes.size(); }
+	
 	UCodeLangForceinline auto& Get_Bytes() { return _Bytes; }
-	UCodeLangForceinline size_t Size() {return _Bytes.size(); }
+	UCodeLangForceinline auto data() { return _Bytes.data(); }
+
+	UCodeLangForceinline auto& Get_Bytes() const { return _Bytes; }
+	UCodeLangForceinline auto data() const { return _Bytes.data(); }
 
 	void WriteBytes(const Byte* Bits, size_t size)
 	{

@@ -18,4 +18,4 @@
    _HasValue = false;
   
   |HasValue[umut this&] => _HasValue;
-  |GetValue[umut this&] => _Value;
+  |Value[umut this&] => _Value;

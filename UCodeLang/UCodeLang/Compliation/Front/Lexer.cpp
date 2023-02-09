@@ -1,6 +1,6 @@
 #include "Lexer.hpp"
 #include "../Helpers/KeyWords.hpp"
-UCodeLangStart
+UCodeLangFrontStart
 void Lexer::Reset()
 {
 	_Nodes.clear();
@@ -507,6 +507,8 @@ void Lexer::Lex(const String_view& Text)
 
 	_Token = Token();
 	_Token.Type = TokenType::EndofFile;
+	_Token.OnLine = OnLine;
+	_Token.OnPos = TextIndex;
 	_Nodes.push_back(_Token);
 
 	_LexerSuccess = !_ErrorsOutput->Has_Errors();
@@ -621,4 +623,4 @@ void Lexer::NameAndKeyWords(ReadingNameState& ReadingState, Token& _Token)
 		_Token.OnPos = TextIndex;
 	}
 }
-UCodeLangEnd
+UCodeLangFrontEnd
