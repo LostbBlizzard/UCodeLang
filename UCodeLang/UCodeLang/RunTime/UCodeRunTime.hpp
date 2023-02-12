@@ -77,7 +77,7 @@ public:
 
 	//
 	template<typename T, typename... Args>
-	T retCall(const String& FunctionName, Args&&... parameters)
+	T RCall(const String& FunctionName, Args&&... parameters)
 	{
 		if (CheckIfFunctionExist(FunctionName))
 		{
@@ -90,11 +90,11 @@ public:
 		return {};
 	}
 	template<typename T, typename... Args>
-	T retThisCall(PtrType This, const ClassMethod& Function, Args&&... parameters)
+	T RThisCall(PtrType This, const ClassMethod& Function, Args&&... parameters)
 	{
-		return retThisCall(This, Function.FullName, Args&&... parameters)
+		return RThisCall(This, Function.FullName, Args&&... parameters)
 	}
-	template<typename T, typename... Args> T retThisCall(PtrType This, const String& Function, Args&&... parameters)
+	template<typename T, typename... Args> T RThisCall(PtrType This, const String& Function, Args&&... parameters)
 	{
 		if (CheckIfFunctionExist(FunctionName))
 		{

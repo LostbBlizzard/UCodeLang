@@ -1854,6 +1854,18 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 			LastExpressionType.SetType(TypesEnum::Bool);
 		}
 		break;
+		case NodeType::StringliteralNode:
+		{
+			StringliteralNode* nod = StringliteralNode::As(node.Value.get());
+
+			TypeSymbol CStringType;
+
+			CStringType.SetType(TypesEnum::Char);
+			CStringType.SetAsAddressArray();
+			CStringType.SetAsimmutable();
+
+			LastExpressionType = CStringType;
+		}break;
 		case NodeType::ReadVariableNode:
 		{
 			ReadVariableNode* nod = ReadVariableNode::As(node.Value.get());
@@ -3319,7 +3331,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 			{
 				auto& Item = Info->Pars[i];
 				if (_ThisTypeIsNotNull && i == 0) { continue; }
-				auto& Item2 = ValueTypes[1];
+				auto& Item2 = ValueTypes[i];
 
 				if (!CanBeImplicitConverted(Item2, Item))
 				{
@@ -3539,7 +3551,7 @@ void SystematicAnalysis::GenericTypeInstantiate(Symbol* Class, const Vector<Type
 	auto Oldpasstype = passtype;
 	_Table._Scope.ThisScope.clear();
 
-	
+	_Table._Scope.ThisScope  = ScopeHelper::GetReMoveScope(NewName);
 
 
 	passtype = PassType::GetTypes;

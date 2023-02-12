@@ -277,7 +277,9 @@ struct TypeNode :Node
 		case TokenType::KeyWorld_SInt64:
 		case TokenType::KeyWorld_uintptr:
 		case TokenType::KeyWorld_sintptr:
-			return true;
+		case TokenType::KeyWorld_float32:
+		case TokenType::KeyWorld_float64:
+		return true;
 		default:return false;
 		}
 

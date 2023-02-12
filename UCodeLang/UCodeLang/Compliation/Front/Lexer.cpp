@@ -20,19 +20,18 @@ void Lexer::Reset()
 }
 void Lexer::Lex(const String_view& Text)
 {
-#define GetNextChar(offset) Text.size() > (i + offset) ? Text[i + offset] : '\0';
+#define GetNextChar(offset) Text.size() > (TextIndex  + offset) ? Text[TextIndex  + offset] : '\0';
 	Reset();
 	_Text = Text;
 	
 
 	
-	for (size_t i = 0; i < Text.size(); i++)
+	for (TextIndex = 0; TextIndex < Text.size(); TextIndex++)
 	{
 		_Token = Token();
 		_Token.OnLine = OnLine;
-		_Token.OnPos = i;
-		TextIndex = i;
-		char Char = Text[i];
+		_Token.OnPos = TextIndex;
+		char Char = Text[TextIndex];
 
 		if (CommentState == CommentState::SingleLine)
 		{
@@ -55,7 +54,7 @@ void Lexer::Lex(const String_view& Text)
 				if (NextChar == '/')
 				{
 					CommentState = CommentState::NoComment;
-					i++;
+					TextIndex++;
 				}
 			}
 			continue;
@@ -91,7 +90,7 @@ void Lexer::Lex(const String_view& Text)
 		case ReadingNameState::String:
 			if (Char == '\"')
 			{
-				NameBufferEnd = i;
+				NameBufferEnd = TextIndex;
 
 				ReadingState = ReadingNameState::Name;
 				_Token.Type = TokenType::String_literal;
@@ -109,19 +108,21 @@ void Lexer::Lex(const String_view& Text)
 
 		if (LexerHelper::IsNondigitName(Char) || (NameBufferSize() != 0 && LexerHelper::IsNameChar(Char) ))// != 0 for Not geting names as numbers
 		{
-			if (NameBufferStart == NameBufferNullValue){NameBufferStart = i;}
+			if (NameBufferStart == NameBufferNullValue){NameBufferStart = TextIndex;}
 			continue;
 		}
 		else if (LexerHelper::IsDigit(Char))
 		{
 			ReadingState = ReadingNameState::Number;
 
-			if (NameBufferStart == NameBufferNullValue){NameBufferStart = i;}
+			if (NameBufferStart == NameBufferNullValue){NameBufferStart = TextIndex;}
 			continue;
 		}
+		auto OldNodesCount = _Nodes.size();
 		NameAndKeyWords(ReadingState,_Token);
 
-		
+		//if added token
+		if (OldNodesCount != _Nodes.size()){continue;}
 
 	
 
@@ -154,7 +155,7 @@ void Lexer::Lex(const String_view& Text)
 				_Token.Type = TokenType::ScopeResolution;
 				_Token.Value = nullptr;
 				_Nodes.push_back(_Token);
-				i++;
+				TextIndex++;
 			}
 			else
 			{
@@ -177,7 +178,7 @@ void Lexer::Lex(const String_view& Text)
 			NextChar = GetNextChar(1);
 			if (NextChar == '=') 
 			{
-				i++;
+				TextIndex++;
 				_Token.Type = TokenType::approximate_Comparison;
 				_Token.Value = nullptr;
 				_Nodes.push_back(_Token);
@@ -194,7 +195,7 @@ void Lexer::Lex(const String_view& Text)
 			break;
 		case '\"':
 			ReadingState = ReadingNameState::String;
-			NameBufferStart = i+1;
+			NameBufferStart = TextIndex +1;
 			break;
 		case ';':
 			_Token.Type = TokenType::Semicolon;
@@ -211,19 +212,19 @@ void Lexer::Lex(const String_view& Text)
 			if (NextChar == '*')
 			{
 				CommentState = CommentState::MultLine;
-				i++;
+				TextIndex++;
 			}
 			else if (NextChar == '/')
 			{
 				CommentState = CommentState::SingleLine;
-				i++;
+				TextIndex++;
 			}
 			else if (NextChar == '=')
 			{
 				_Token.Type = TokenType::CompoundMult;
 				_Token.Value = nullptr;
 				_Nodes.push_back(_Token);
-				i++;
+				TextIndex++;
 			}
 			else
 			{
@@ -236,14 +237,14 @@ void Lexer::Lex(const String_view& Text)
 			NextChar = GetNextChar(1);
 			if (NextChar == '=')
 			{
-				i++;
+				TextIndex++;
 				_Token.Type = TokenType::greater_than_or_equalto;
 				_Token.Value = nullptr;
 				_Nodes.push_back(_Token);
 			}
 			else if (NextChar == '>')
 			{
-				i++;
+				TextIndex++;
 				_Token.Type = TokenType::bitwise_RightShift;
 				_Token.Value = nullptr;
 				_Nodes.push_back(_Token);
@@ -259,21 +260,21 @@ void Lexer::Lex(const String_view& Text)
 			NextChar = GetNextChar(1);
 			if (NextChar == '=')
 			{
-				i++;
+				TextIndex++;
 				_Token.Type = TokenType::less_than_or_equalto;
 				_Token.Value = nullptr;
 				_Nodes.push_back(_Token);
 			}
 			else if(NextChar == '<')
 			{
-				i++;
+				TextIndex++;
 				_Token.Type = TokenType::bitwise_LeftShift;
 				_Token.Value = nullptr;
 				_Nodes.push_back(_Token);
 			}
 			else if (NextChar == '-')
 			{
-				i++;
+				TextIndex++;
 				_Token.Type = TokenType::leftArrow;
 				_Token.Value = nullptr;
 				_Nodes.push_back(_Token);
@@ -289,7 +290,7 @@ void Lexer::Lex(const String_view& Text)
 			NextChar = GetNextChar(1);
 			if (NextChar == '&')
 			{
-				i++;
+				TextIndex++;
 				_Token.Type = TokenType::logical_and;
 				_Token.Value = nullptr;
 				_Nodes.push_back(_Token);
@@ -305,7 +306,7 @@ void Lexer::Lex(const String_view& Text)
 			NextChar = GetNextChar(1);
 			if (NextChar == '|')
 			{
-				i++;
+				TextIndex++;
 				_Token.Type = TokenType::logical_or;
 				_Token.Value = nullptr;
 				_Nodes.push_back(_Token);
@@ -321,7 +322,7 @@ void Lexer::Lex(const String_view& Text)
 			NextChar = GetNextChar(1);
 			if (NextChar == '=')
 			{
-				i++;
+				TextIndex++;
 				_Token.Type = TokenType::Notequal_Comparison;
 				_Token.Value = nullptr;
 				_Nodes.push_back(_Token);
@@ -337,7 +338,7 @@ void Lexer::Lex(const String_view& Text)
 			NextChar = GetNextChar(1);
 			if (NextChar == '.')
 			{
-				i++;
+				TextIndex++;
 				_Token.Type = TokenType::OptionalDot;
 				_Token.Value = nullptr;
 				_Nodes.push_back(_Token);
@@ -353,14 +354,14 @@ void Lexer::Lex(const String_view& Text)
 			NextChar = GetNextChar(1);
 			if (NextChar == '=')
 			{
-				i++;
+				TextIndex++;
 				_Token.Type = TokenType::equal_Comparison;
 				_Token.Value = nullptr;
 				_Nodes.push_back(_Token);
 			}
 			else if (NextChar == '>')
 			{
-				i++;
+				TextIndex++;
 				_Token.Type = TokenType::RightAssignArrow;
 				_Token.Value = nullptr;
 				_Nodes.push_back(_Token);
@@ -379,14 +380,14 @@ void Lexer::Lex(const String_view& Text)
 				_Token.Type = TokenType::increment;
 				_Token.Value = nullptr;
 				_Nodes.push_back(_Token);
-				i++;
+				TextIndex++;
 			}
 			else if (NextChar == '=')
 			{
 				_Token.Type = TokenType::CompoundAdd;
 				_Token.Value = nullptr;
 				_Nodes.push_back(_Token);
-				i++;
+				TextIndex++;
 			}
 			else
 			{
@@ -399,14 +400,14 @@ void Lexer::Lex(const String_view& Text)
 			NextChar = GetNextChar(1);
 			if (NextChar == '>')
 			{
-				i++;
+				TextIndex++;
 				NextChar = GetNextChar(1);
 				if (NextChar == '>')
 				{
 					_Token.Type = TokenType::HardRightArrow;
 					_Token.Value = nullptr;
 					_Nodes.push_back(_Token);
-					i++;
+					TextIndex++;
 				}
 				else
 				{
@@ -420,14 +421,14 @@ void Lexer::Lex(const String_view& Text)
 				_Token.Type = TokenType::decrement;
 				_Token.Value = nullptr;
 				_Nodes.push_back(_Token);
-				i++;
+				TextIndex++;
 			}
 			else if (NextChar == '=')
 			{
 				_Token.Type = TokenType::CompoundSub;
 				_Token.Value = nullptr;
 				_Nodes.push_back(_Token);
-				i++;
+				TextIndex++;
 			}
 			else
 			{
@@ -443,7 +444,7 @@ void Lexer::Lex(const String_view& Text)
 				_Token.Type = TokenType::CompoundMult;
 				_Token.Value = nullptr;
 				_Nodes.push_back(_Token);
-				i++;
+				TextIndex++;
 			}
 			else
 			{
@@ -477,7 +478,7 @@ void Lexer::Lex(const String_view& Text)
 		default:
 			if (_ErrorsOutput)
 			{
-				auto& Error = _ErrorsOutput->AddError(ErrorCodes::UnknownChar, OnLine, i);
+				auto& Error = _ErrorsOutput->AddError(ErrorCodes::UnknownChar, OnLine, TextIndex);
 
 				String A(1, Char);
 				Error._Msg = "UnknownChar \'" + A + "\' ";
@@ -603,7 +604,43 @@ void Lexer::NameAndKeyWords(ReadingNameState& ReadingState, Token& _Token)
 				Type = TokenType::Namespace;
 				break;
 			case ReadingNameState::Number:
-				Type = TokenType::Number_literal;
+				{
+					size_t NexIndex = TextIndex ;
+					char NextChar = _Text.size() > NexIndex ? _Text[NexIndex] : '\0';
+					if (NextChar == '.')
+					{
+						TextIndex++;
+
+						bool IsReadingfloat = false;
+						while (TextIndex < _Text.size())
+						{
+
+							char LookingAtChar = _Text[TextIndex];
+							if (!LexerHelper::IsDigit(LookingAtChar))
+							{
+								size_t CharsRead =TextIndex - NexIndex +1;
+								NameBuffer = String_view(NameBuffer.data(), CharsRead);
+								break;
+							}
+							TextIndex++;
+							IsReadingfloat = true;
+						}
+						if (IsReadingfloat)
+						{
+							Type = TokenType::Float_literal;
+						}
+						else
+						{
+							NameBuffer = String_view(NameBuffer.data(), TextIndex-NexIndex);
+							Type = TokenType::Number_literal;
+							TextIndex=NexIndex-1;
+						}
+					}
+					else
+					{
+						Type = TokenType::Number_literal;
+					}
+				}
 				break;
 			default:
 				Type = TokenType::Null;

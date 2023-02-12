@@ -5,6 +5,11 @@
 #include "UCodeLang/LangCore/BitMaker.hpp"
 UCodeLangStart
 
+struct MyStruct
+{
+	
+};
+
 using LibType_t = UInt8;
 enum class LibType : LibType_t
 {
