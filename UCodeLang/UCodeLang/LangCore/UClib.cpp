@@ -157,7 +157,7 @@ void UClib::ToBytes(BitMaker& Output, const ClassData::Class_Data& ClassData)
 		ToBytes(Output, Item2);
 	}
 }
-void UClib::ToBytes(UCodeLang::BitMaker& Output, const UCodeLang::ClassField& Item2)
+void UClib::ToBytes(BitMaker& Output, const ClassField& Item2)
 {
 	Output.WriteType(Item2.Name);
 	ToBytes(Output, Item2.Type);
@@ -170,6 +170,7 @@ void UClib::ToBytes(BitMaker& Output, const AttributeData& Data)
 void UClib::ToBytes(BitMaker& Output, const ClassMethod& Data)
 {
 	Output.WriteType(Data.FullName);
+
 }
 void UClib::ToBytes(BitMaker& Output, const ReflectionTypeInfo& Data)
 {
@@ -450,7 +451,7 @@ void UClib::FromBytes(BitReader& reader, ClassData::Class_Data& Class)
 		FromBytes(reader, Item2);
 	}
 }
-void UClib::FromBytes(UCodeLang::BitReader& reader, UCodeLang::ClassField& Item2)
+void UClib::FromBytes(BitReader& reader, ClassField& Item2)
 {
 	reader.ReadType(Item2.Name, Item2.Name);
 	FromBytes(reader, Item2.Type);

@@ -35,6 +35,7 @@ enum class TokenType : TokenType_t
 	
 	String_literal,// "String"
 	Number_literal, // 100
+	Float_literal,
 
 	KeyWorld_Ret,//ret
 	leftArrow,//<-

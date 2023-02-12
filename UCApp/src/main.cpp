@@ -130,24 +130,14 @@ int main()
 		
 		RunTime.Init(&State);
 
+		
+		
+		bool item = true;
 
-		struct MyStruct2
-		{
-			int X;
-			int Y;
-		};
-	
-		struct Player
-		{
-			MyStruct2 Pos;
-			int HP;
-		};
-		Player Test;
-
-		auto r =RunTime.Call("Player:" ClassConstructorfunc,&Test);
+		auto r =RunTime.RCall<bool*>("main",&item);
  		
 		
-		//std::cout << " Got Value " << r << std::endl;
+	   std::cout << " Got Value " << item << std::endl;
 
 	}
 }
