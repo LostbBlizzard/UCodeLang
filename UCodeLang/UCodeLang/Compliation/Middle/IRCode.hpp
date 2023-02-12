@@ -423,6 +423,8 @@ public:
 	{
 		return Code;
 	}
+
+	String ToString();
 private:
 	Vector<IRCode> Code;
 };

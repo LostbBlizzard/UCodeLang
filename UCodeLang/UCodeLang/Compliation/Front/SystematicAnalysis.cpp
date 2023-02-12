@@ -890,12 +890,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 				OnVarable = _Builder.GetLastField();
 
 				BindTypeToLastIR(syb->VarType);
-			}
-			else
-			{
-				BindTypeToLastIR(syb->VarType);
-			}
-				
+			}	
 		}
 		OnExpressionTypeNode(node.Expression.Value.get());
 	}
@@ -2265,7 +2260,7 @@ SetExpressionInfo:
 	LastLookedAtToken = Token;
 }
 
-void SystematicAnalysis::BindTypeToLastIR(TypeSymbol& Type)
+void SystematicAnalysis::BindTypeToLastIR(const TypeSymbol& Type)
 {
 	auto& V2 = _Builder.GetLast_IR();
 	GetSize(Type, V2.InfoType.TypeSize);

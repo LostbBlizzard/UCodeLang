@@ -42,8 +42,8 @@ private:
 	void SetSybToRegister(RegisterID R,const IRCode& IR);
 	void SetIRToRegister(RegisterID R, IRField IR);
 
-	RegisterID GetOperandInAnyRegister(const IROperand& operand);
-	void GetOperandInRegister(const IROperand& operand, RegisterID id);
+	RegisterID GetOperandInAnyRegister(const IRCode& IR, const IROperand& operand);
+	void GetOperandInRegister(const IRCode& IR, const IROperand& operand, RegisterID id);
 	void StoreVar(const IRCode& IR, const RegisterID R);
 
 	enum class BuildData_t :UInt8
