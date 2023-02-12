@@ -17,6 +17,7 @@ class Lexer
 		Class,
 		String,
 		Number,
+		Char
 	};
 	enum class CommentState : Int8
 	{

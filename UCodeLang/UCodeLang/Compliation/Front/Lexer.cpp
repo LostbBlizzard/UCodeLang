@@ -99,7 +99,18 @@ void Lexer::Lex(const String_view& Text)
 				ClearNameBuffer();
 			}
 			continue;
-			break;
+		case ReadingNameState::Char:
+			if (Char == '\'')
+			{
+				NameBufferEnd = TextIndex;
+
+				ReadingState = ReadingNameState::Name;
+				_Token.Type = TokenType::Char_literal;
+				_Token.Value = Get_NameBuffer();
+				_Tokens.push_back(_Token);
+				ClearNameBuffer();
+			}
+			continue;
 		default:
 			break;
 		}
@@ -196,6 +207,10 @@ void Lexer::Lex(const String_view& Text)
 		case '\"':
 			ReadingState = ReadingNameState::String;
 			NameBufferStart = TextIndex +1;
+			break;
+		case '\'':
+			ReadingState = ReadingNameState::Char;
+			NameBufferStart = TextIndex + 1;
 			break;
 		case ';':
 			_Token.Type = TokenType::Semicolon;
@@ -604,52 +619,52 @@ void Lexer::NameAndKeyWords(ReadingNameState& ReadingState, Token& _Token)
 				Type = TokenType::Namespace;
 				break;
 			case ReadingNameState::Number:
+			{
+				size_t NexIndex = TextIndex;
+				char NextChar = _Text.size() > NexIndex ? _Text[NexIndex] : '\0';
+				if (NextChar == '.')
 				{
-					size_t NexIndex = TextIndex ;
-					char NextChar = _Text.size() > NexIndex ? _Text[NexIndex] : '\0';
-					if (NextChar == '.')
+					TextIndex++;
+
+					bool IsReadingfloat = false;
+					while (TextIndex < _Text.size())
 					{
+
+						char LookingAtChar = _Text[TextIndex];
+						if (!LexerHelper::IsDigit(LookingAtChar)) { break; }
 						TextIndex++;
-
-						bool IsReadingfloat = false;
-						while (TextIndex < _Text.size())
-						{
-
-							char LookingAtChar = _Text[TextIndex];
-							if (!LexerHelper::IsDigit(LookingAtChar)){break;}
-							TextIndex++;
-							IsReadingfloat = true;
-						}
-						if (IsReadingfloat)
-						{
-							Type = TokenType::Float_literal;
-							NameBuffer = String_view(NameBuffer.data(), NameBuffer.size() + (TextIndex - NexIndex));
-						}
-						else
-						{
-							NameBuffer = String_view(NameBuffer.data(), TextIndex-NexIndex);
-							Type = TokenType::Number_literal;
-							TextIndex=NexIndex;
-						}
+						IsReadingfloat = true;
+					}
+					if (IsReadingfloat)
+					{
+						Type = TokenType::Float_literal;
+						NameBuffer = String_view(NameBuffer.data(), NameBuffer.size() + (TextIndex - NexIndex));
 					}
 					else
 					{
+						NameBuffer = String_view(NameBuffer.data(), TextIndex - NexIndex);
 						Type = TokenType::Number_literal;
+						TextIndex = NexIndex;
 					}
 				}
-				break;
+				else
+				{
+					Type = TokenType::Number_literal;
+				}
+			}
+			break;
 			default:
 				Type = TokenType::Null;
 				break;
 			}
 
-			
+
 			_Token.Type = Type;
 			_Token.Value = NameBuffer;
 			ReadingState = ReadingNameState::Name;
 		}
 
-TextIndex--;
+		TextIndex--;
 
 		_Tokens.push_back(_Token);
 		ClearNameBuffer();

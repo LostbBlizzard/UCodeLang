@@ -226,6 +226,7 @@ private:
 	{
 		return  IsSIntType(TypeToCheck) || IsUIntType(TypeToCheck);
 	}
+	bool IsfloatType(const TypeSymbol& TypeToCheck);
 	bool IsPrimitive(const TypeSymbol& TypeToCheck);
 
 	bool IsimmutableRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);

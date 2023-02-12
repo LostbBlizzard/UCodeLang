@@ -31,7 +31,8 @@ enum class TypesEnum :UInt8
 	uIntPtr,
 	sIntPtr,
 
-
+	float32,
+	float64,
 
 	CustomType,
 };

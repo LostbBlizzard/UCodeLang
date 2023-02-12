@@ -580,19 +580,28 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 		out = r->As();
 		return GotNodeType::Success;
 	}
-	case TokenType::KeyWorld_True:
+	case TokenType::Float_literal:
 	{
 		NextToken();
-		auto r = BoolliteralNode::Gen();
-		r->Value = true;
+		auto r = FloatliteralNode::Gen();
+		r->Token = StatementTypeToken;
 		out = r->As();
 		return GotNodeType::Success;
 	}
+	case TokenType::Char_literal:
+	{
+		NextToken();
+		auto r = CharliteralNode::Gen();
+		r->Token = StatementTypeToken;
+		out = r->As();
+		return GotNodeType::Success;
+	}
+	case TokenType::KeyWorld_True:
 	case TokenType::KeyWorld_False:
 	{
 		NextToken();
 		auto r = BoolliteralNode::Gen();
-		r->Value = false;
+		r->Token = StatementTypeToken;
 		out = r->As();
 		return GotNodeType::Success;
 	}

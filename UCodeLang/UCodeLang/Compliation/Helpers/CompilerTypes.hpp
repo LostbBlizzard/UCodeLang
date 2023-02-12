@@ -36,6 +36,7 @@ enum class TokenType : TokenType_t
 	String_literal,// "String"
 	Number_literal, // 100
 	Float_literal,
+	Char_literal,
 
 	KeyWorld_Ret,//ret
 	leftArrow,//<-
@@ -167,8 +168,14 @@ public:
 
 		case UCodeLang::TokenType::KeyWorld_Char:return "char";
 		case UCodeLang::TokenType::KeyWorld_Bool:return "bool";
+
+		case UCodeLang::TokenType::KeyWorld_float32:return "float32";
+		case UCodeLang::TokenType::KeyWorld_float64:return "float64";
+
 		case UCodeLang::TokenType::String_literal:return "String literal";
 		case UCodeLang::TokenType::Number_literal:return "Number literal";
+		case UCodeLang::TokenType::Char_literal:return "Char_literal";
+		case UCodeLang::TokenType::Float_literal:return "Float_literal";
 
 		case UCodeLang::TokenType::KeyWorld_Ret:return "ret";
 		case UCodeLang::TokenType::RightArrow:return "->";

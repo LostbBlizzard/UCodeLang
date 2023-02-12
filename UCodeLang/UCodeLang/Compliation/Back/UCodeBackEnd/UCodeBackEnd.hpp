@@ -17,6 +17,7 @@ public:
 	
 	static BackEndObject* MakeObject(){return new UCodeBackEndObject();}
 private:
+	using UObjectSize = UInt64;
 	UCodeLangForceinline void ResetIns()
 	{
 		_Ins = Instruction();
@@ -28,7 +29,7 @@ private:
 	RegistersManager _Registers;
 	RegisterID ParameterRegisterValue = RegisterID::StartParameterRegister;
 	RegisterID CallParameterRegisterValue = RegisterID::StartParameterRegister;
-	UAddress StackSize = 0;
+	UObjectSize StackSize = 0;
 	static constexpr size_t RegisterSize = sizeof(AnyInt64);
 
 	void BuildFunc();
@@ -54,8 +55,8 @@ private:
 	};
 	struct BuildData
 	{
-		UAddress offset = NullAddress;
-		UAddress DataSize = NullAddress;
+		UObjectSize offset = NullAddress;
+		UObjectSize DataSize = NullAddress;
 		BuildData_t Type = BuildData_t::Null;
 	};
 
@@ -63,20 +64,20 @@ private:
 	
 	struct CallInfo
 	{
-		UAddress CallIns=0;
+		UObjectSize CallIns=0;
 		SymbolID ID =0;
 	};
 	Vector<CallInfo> _InsCalls;
 	struct DeclareCall
 	{
-		UAddress FuncAddress = 0;
+		UObjectSize FuncAddress = 0;
 	};
 	Unordered_map<SymbolID, DeclareCall> DeclareCalls;
-	Vector<UAddress> IRCodeIndexToUAddressIndexs;
+	Vector<UObjectSize> IRCodeIndexToUAddressIndexs;
 
 	struct JumpInsInfo
 	{
-		UAddress InsAddress = 0;
+		UObjectSize InsAddress = 0;
 		IRField IRField = 0;
 	};
 	Vector<JumpInsInfo> JumpCallsToUpdate;
