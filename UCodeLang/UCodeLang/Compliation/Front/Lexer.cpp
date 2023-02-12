@@ -3,7 +3,7 @@
 UCodeLangFrontStart
 void Lexer::Reset()
 {
-	_Nodes.clear();
+	_Tokens.clear();
 	_Token = Token();
 	ClearNameBuffer();
 
@@ -95,7 +95,7 @@ void Lexer::Lex(const String_view& Text)
 				ReadingState = ReadingNameState::Name;
 				_Token.Type = TokenType::String_literal;
 				_Token.Value = Get_NameBuffer();
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 				ClearNameBuffer();
 			}
 			continue;
@@ -118,11 +118,11 @@ void Lexer::Lex(const String_view& Text)
 			if (NameBufferStart == NameBufferNullValue){NameBufferStart = TextIndex;}
 			continue;
 		}
-		auto OldNodesCount = _Nodes.size();
+		auto OldNodesCount = _Tokens.size();
 		NameAndKeyWords(ReadingState,_Token);
 
 		//if added token
-		if (OldNodesCount != _Nodes.size()){continue;}
+		if (OldNodesCount != _Tokens.size()){continue;}
 
 	
 
@@ -131,22 +131,22 @@ void Lexer::Lex(const String_view& Text)
 		case '(':
 			_Token.Type = TokenType::Left_Parentheses;
 			_Token.Value = nullptr;
-			_Nodes.push_back(_Token);
+			_Tokens.push_back(_Token);
 			break;
 		case ')':
 			_Token.Type = TokenType::Right_Parentheses;
 			_Token.Value = nullptr;
-			_Nodes.push_back(_Token);
+			_Tokens.push_back(_Token);
 			break;
 		case '[':
 			_Token.Type = TokenType::Left_Bracket;
 			_Token.Value = nullptr;
-			_Nodes.push_back(_Token);
+			_Tokens.push_back(_Token);
 			break;
 		case ']':
 			_Token.Type = TokenType::Right_Bracket;
 			_Token.Value = nullptr;
-			_Nodes.push_back(_Token);
+			_Tokens.push_back(_Token);
 			break;
 		case ':':
 			NextChar = GetNextChar(1);
@@ -154,25 +154,25 @@ void Lexer::Lex(const String_view& Text)
 			{
 				_Token.Type = TokenType::ScopeResolution;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 				TextIndex++;
 			}
 			else
 			{
 				_Token.Type = TokenType::Colon;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 			}
 			break;
 		case '.':
 			_Token.Type = TokenType::Dot;
 			_Token.Value = nullptr;
-			_Nodes.push_back(_Token);
+			_Tokens.push_back(_Token);
 			break;
 		case '^':
 			_Token.Type = TokenType::bitwise_XOr;
 			_Token.Value = nullptr;
-			_Nodes.push_back(_Token);
+			_Tokens.push_back(_Token);
 			break;
 		case '~':
 			NextChar = GetNextChar(1);
@@ -181,13 +181,13 @@ void Lexer::Lex(const String_view& Text)
 				TextIndex++;
 				_Token.Type = TokenType::approximate_Comparison;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 			}
 			else
 			{
 				_Token.Type = TokenType::bitwise_not;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 			}
 			break;
 		case '$':
@@ -200,12 +200,12 @@ void Lexer::Lex(const String_view& Text)
 		case ';':
 			_Token.Type = TokenType::Semicolon;
 			_Token.Value = nullptr;
-			_Nodes.push_back(_Token);
+			_Tokens.push_back(_Token);
 			break;
 		case ',':
 			_Token.Type = TokenType::Comma;
 			_Token.Value = nullptr;
-			_Nodes.push_back(_Token);
+			_Tokens.push_back(_Token);
 			break;
 		case '/':
 			NextChar = GetNextChar(1);
@@ -223,14 +223,14 @@ void Lexer::Lex(const String_view& Text)
 			{
 				_Token.Type = TokenType::CompoundMult;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 				TextIndex++;
 			}
 			else
 			{
 				_Token.Type = TokenType::forwardslash;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 			}
 			break;
 		case '>':
@@ -240,20 +240,20 @@ void Lexer::Lex(const String_view& Text)
 				TextIndex++;
 				_Token.Type = TokenType::greater_than_or_equalto;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 			}
 			else if (NextChar == '>')
 			{
 				TextIndex++;
 				_Token.Type = TokenType::bitwise_RightShift;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 			}
 			else
 			{
 				_Token.Type = TokenType::greaterthan;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 			}
 			break;
 		case '<':
@@ -263,27 +263,27 @@ void Lexer::Lex(const String_view& Text)
 				TextIndex++;
 				_Token.Type = TokenType::less_than_or_equalto;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 			}
 			else if(NextChar == '<')
 			{
 				TextIndex++;
 				_Token.Type = TokenType::bitwise_LeftShift;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 			}
 			else if (NextChar == '-')
 			{
 				TextIndex++;
 				_Token.Type = TokenType::leftArrow;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 			}
 			else
 			{
 				_Token.Type = TokenType::lessthan;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 			}
 			break;
 		case '&':
@@ -293,13 +293,13 @@ void Lexer::Lex(const String_view& Text)
 				TextIndex++;
 				_Token.Type = TokenType::logical_and;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 			}
 			else
 			{
 				_Token.Type = TokenType::bitwise_and;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 			}
 			break;
 		case '|':
@@ -309,13 +309,13 @@ void Lexer::Lex(const String_view& Text)
 				TextIndex++;
 				_Token.Type = TokenType::logical_or;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 			}
 			else
 			{
 				_Token.Type = TokenType::bitwise_or;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 			}
 			break;
 		case '!':
@@ -325,13 +325,13 @@ void Lexer::Lex(const String_view& Text)
 				TextIndex++;
 				_Token.Type = TokenType::Notequal_Comparison;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 			}
 			else
 			{
 				_Token.Type = TokenType::Not;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 			}
 			break;
 		case '?':
@@ -341,13 +341,13 @@ void Lexer::Lex(const String_view& Text)
 				TextIndex++;
 				_Token.Type = TokenType::OptionalDot;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 			}
 			else
 			{
 				_Token.Type = TokenType::QuestionMark;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 			}
 			break;
 		case '=':
@@ -357,20 +357,20 @@ void Lexer::Lex(const String_view& Text)
 				TextIndex++;
 				_Token.Type = TokenType::equal_Comparison;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 			}
 			else if (NextChar == '>')
 			{
 				TextIndex++;
 				_Token.Type = TokenType::RightAssignArrow;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 			}
 			else
 			{
 				_Token.Type = TokenType::equal;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 			}
 			break;
 		case '+':
@@ -379,21 +379,21 @@ void Lexer::Lex(const String_view& Text)
 			{
 				_Token.Type = TokenType::increment;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 				TextIndex++;
 			}
 			else if (NextChar == '=')
 			{
 				_Token.Type = TokenType::CompoundAdd;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 				TextIndex++;
 			}
 			else
 			{
 				_Token.Type = TokenType::plus;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 			}
 			break;
 		case '-':
@@ -406,35 +406,35 @@ void Lexer::Lex(const String_view& Text)
 				{
 					_Token.Type = TokenType::HardRightArrow;
 					_Token.Value = nullptr;
-					_Nodes.push_back(_Token);
+					_Tokens.push_back(_Token);
 					TextIndex++;
 				}
 				else
 				{
 					_Token.Type = TokenType::RightArrow;
 					_Token.Value = nullptr;
-					_Nodes.push_back(_Token);
+					_Tokens.push_back(_Token);
 				}
 			}
 			else if (NextChar == '-')
 			{
 				_Token.Type = TokenType::decrement;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 				TextIndex++;
 			}
 			else if (NextChar == '=')
 			{
 				_Token.Type = TokenType::CompoundSub;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 				TextIndex++;
 			}
 			else
 			{
 				_Token.Type = TokenType::minus;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 			}
 			break;
 		case '*':
@@ -443,14 +443,14 @@ void Lexer::Lex(const String_view& Text)
 			{
 				_Token.Type = TokenType::CompoundMult;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 				TextIndex++;
 			}
 			else
 			{
 				_Token.Type = TokenType::star;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 			}
 			break;		
 		case '%':
@@ -463,13 +463,13 @@ void Lexer::Lex(const String_view& Text)
 			{
 				_Token.Type = TokenType::modulo;
 				_Token.Value = nullptr;
-				_Nodes.push_back(_Token);
+				_Tokens.push_back(_Token);
 			}
 			break;
 		case '#':
 			_Token.Type = TokenType::hash;
 			_Token.Value = nullptr;
-			_Nodes.push_back(_Token);
+			_Tokens.push_back(_Token);
 			break;
 		case ' ':
 			break;
@@ -510,7 +510,7 @@ void Lexer::Lex(const String_view& Text)
 	_Token.Type = TokenType::EndofFile;
 	_Token.OnLine = OnLine;
 	_Token.OnPos = TextIndex;
-	_Nodes.push_back(_Token);
+	_Tokens.push_back(_Token);
 
 	_LexerSuccess = !_ErrorsOutput->Has_Errors();
 }
@@ -537,14 +537,14 @@ bool Lexer::DoIndentation(bool& IsIndentationing, char Char, size_t& Indentation
 				{
 					_Token.Type = TokenType::StartTab;
 					_Token.Value = IndentationLevel;
-					_Nodes.push_back(_Token);
+					_Tokens.push_back(_Token);
 					
 					_Token = Token();
 					_Token.OnLine = OnLine;
 					_Token.OnPos = TextIndex;
 					LastIndentationLevel = IndentationLevel;
 
-					Indentations.push_back(_Nodes.size() - 1);
+					Indentations.push_back(_Tokens.size() - 1);
 				}
 				else
 				{
@@ -552,13 +552,13 @@ bool Lexer::DoIndentation(bool& IsIndentationing, char Char, size_t& Indentation
 					for (auto it = Indentations.rbegin(); it != Indentations.rend();)
 					{
 						auto Item_ = *it;
-						Token& Item = _Nodes[Item_];
+						Token& Item = _Tokens[Item_];
 						size_t IndentationLvl = Item.Value._Size_t;
 						if (IndentationLvl > IndentationLevel)
 						{
 							_Token.Type = TokenType::EndTab;
 							_Token.Value = nullptr;
-							_Nodes.push_back(_Token);
+							_Tokens.push_back(_Token);
 							_Token = Token();
 							_Token.OnLine = OnLine;
 							_Token.OnPos = TextIndex;
@@ -616,24 +616,20 @@ void Lexer::NameAndKeyWords(ReadingNameState& ReadingState, Token& _Token)
 						{
 
 							char LookingAtChar = _Text[TextIndex];
-							if (!LexerHelper::IsDigit(LookingAtChar))
-							{
-								size_t CharsRead =TextIndex - NexIndex +1;
-								NameBuffer = String_view(NameBuffer.data(), CharsRead);
-								break;
-							}
+							if (!LexerHelper::IsDigit(LookingAtChar)){break;}
 							TextIndex++;
 							IsReadingfloat = true;
 						}
 						if (IsReadingfloat)
 						{
 							Type = TokenType::Float_literal;
+							NameBuffer = String_view(NameBuffer.data(), NameBuffer.size() + (TextIndex - NexIndex));
 						}
 						else
 						{
 							NameBuffer = String_view(NameBuffer.data(), TextIndex-NexIndex);
 							Type = TokenType::Number_literal;
-							TextIndex=NexIndex-1;
+							TextIndex=NexIndex;
 						}
 					}
 					else
@@ -646,14 +642,16 @@ void Lexer::NameAndKeyWords(ReadingNameState& ReadingState, Token& _Token)
 				Type = TokenType::Null;
 				break;
 			}
+
+			
 			_Token.Type = Type;
 			_Token.Value = NameBuffer;
 			ReadingState = ReadingNameState::Name;
 		}
 
+TextIndex--;
 
-
-		_Nodes.push_back(_Token);
+		_Tokens.push_back(_Token);
 		ClearNameBuffer();
 		_Token = Token();
 		_Token.OnLine = OnLine;

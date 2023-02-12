@@ -30,7 +30,7 @@ public:
 	void Reset();
 	void Lex(const String_view& Text);
 
-	UCodeLangForceinline Vector<Token>& Get_Tokens() { return _Nodes; }
+	UCodeLangForceinline Vector<Token>& Get_Tokens() { return _Tokens; }
 	UCodeLangForceinline void Set_ErrorsOutput(CompliationErrors* V) { _ErrorsOutput = V; }
 	UCodeLangForceinline void Set_Settings(CompliationSettings* V) { _Settings = V; }
 	UCodeLangForceinline bool Get_LexerSuccess() {return _LexerSuccess;};
@@ -44,7 +44,7 @@ public:
 	}
 private:
 	String_view _Text;
-	Vector<Token> _Nodes;
+	Vector<Token> _Tokens;
 	bool _LexerSuccess = false;
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
