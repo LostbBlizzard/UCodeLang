@@ -51,6 +51,8 @@ enum class NodeType :UInt8
 	NewExpresionNode,
 	DropStatementNode,
 	LibImportNode,
+	FloatliteralNode,
+	CharliteralNode,
 };
 
 

@@ -19,9 +19,6 @@ struct StringliteralNode :Node
 
 	const Token* Token = nullptr;
 };
-
-
-
 struct BoolliteralNode :Node
 {
 	BoolliteralNode() :Node(NodeType::BoolliteralNode)
@@ -30,7 +27,12 @@ struct BoolliteralNode :Node
 	}
 	AddforNode(BoolliteralNode);
 
-	bool Value = false;
+
+	const Token* Token = nullptr;
+	inline bool Get_Value() const
+	{
+		return Token->Type == TokenType::KeyWorld_True;
+	}
 };
 struct NumberliteralNode :Node
 {
@@ -43,9 +45,31 @@ struct NumberliteralNode :Node
 	const Token* Token = nullptr;
 };
 
+struct FloatliteralNode :Node
+{
+	FloatliteralNode() :Node(NodeType::FloatliteralNode)
+	{
+
+	}
+	AddforNode(FloatliteralNode);
+
+	const Token* Token = nullptr;
+};
+
+struct CharliteralNode :Node
+{
+	CharliteralNode() :Node(NodeType::CharliteralNode)
+	{
+
+	}
+	AddforNode(CharliteralNode);
+
+	const Token* Token = nullptr;
+};
+
 struct NameNode :Node
 {
-	NameNode() : Node(NodeType::NumberliteralNode)
+	NameNode() : Node(NodeType::NameNode)
 	{
 
 	}

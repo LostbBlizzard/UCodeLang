@@ -119,6 +119,9 @@ struct AnyInt64
 		UInt32 AsUInt32;
 		UInt64 AsUInt64;
 
+		float32 Asfloat32;
+		float64 Asfloat64;
+
 		RegisterID AsRegister;
 
 		UIntNative AsUIntNative;
@@ -131,11 +134,15 @@ struct AnyInt64
 	UCodeLangForceinline void operator=(Int32 V) { AsInt32 = V; }
 	UCodeLangForceinline void operator=(Int64 V) { AsInt64 = V; }
 
+	
+
 	UCodeLangForceinline void operator=(UInt8 V) { AsUInt8 = V; }
 	UCodeLangForceinline void operator=(UInt16 V) { AsUInt16 = V; }
 	UCodeLangForceinline void operator=(UInt32 V) { AsUInt32 = V; }
 	UCodeLangForceinline void operator=(UInt64 V) { AsUInt64 = V; }
 
+	UCodeLangForceinline void operator=(float32 V) { Asfloat32 = V; }
+	UCodeLangForceinline void operator=(float64 V) { Asfloat64 = V; }
 
 	UCodeLangForceinline void operator=(RegisterID V) { AsRegister = V; }
 	//inline void operator=(UIntNative V) { AsUIntNative = V; }

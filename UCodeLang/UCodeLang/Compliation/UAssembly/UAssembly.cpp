@@ -136,11 +136,11 @@ void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In,const Unord
 		out += std::to_string((UInt64)In.AsUInt16) + "|" + std::to_string((Int64)In.AsInt16);
 		break;
 	case OpCodeType::AnyInt32:
-		out += std::to_string(In.AsUInt32) + "|" + std::to_string(In.AsInt32);
+		out += std::to_string(In.AsUInt32) + "|" + std::to_string(In.AsInt32) + ":" + std::to_string(In.Asfloat32);
 		break;
 	case OpCodeType::AnyIntNative:
 	case OpCodeType::AnyInt64:
-		out += std::to_string(In.AsUInt64) + "|" + std::to_string(In.AsInt64);
+		out += std::to_string(In.AsUInt64) + "|" + std::to_string(In.AsInt64) + ":" + std::to_string(In.Asfloat64);
 		break;
 	case OpCodeType::Register:
 		out += GetRegisterToString(In.AsRegister);

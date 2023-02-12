@@ -1818,9 +1818,28 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 					Int64 V;
 					ParseHelper::ParseStringToInt64(Str, V);
 					Build_Assign_sIntPtr(V);
+					break;
 				};
 
-				break;
+
+				case TypesEnum::float32:
+				{
+					Int32 V;
+					ParseHelper::ParseStringToInt32(Str, V); 
+					float32 V2 = V;
+					_Builder.Build_Assign(IROperand::AsInt32(*(UInt32*)&V));
+					_LastExpressionField = _Builder.GetLastField();
+					break;
+				};
+				case TypesEnum::float64:
+				{
+					Int64 V;
+					ParseHelper::ParseStringToInt64(Str, V);
+					float64 V2 = V;
+					_Builder.Build_Assign(IROperand::AsInt64(*(UInt64*)&V));
+					_LastExpressionField = _Builder.GetLastField();
+					break;
+				};
 				default:
 					throw std::exception("not added");
 					break;
@@ -1831,7 +1850,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 
 			}
 
-			TypesEnum NewEx = lookT._Type == TypesEnum::Var || IsIntType(lookT) ? lookT._Type : TypesEnum::sInt32;
+			TypesEnum NewEx = lookT._Type == TypesEnum::Var || (IsfloatType(lookT) ||IsIntType(lookT)) ? lookT._Type : TypesEnum::sInt32;
 
 
 			LastExpressionType.SetType(NewEx);
@@ -1846,12 +1865,68 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 			{
 				
 
-				_Builder.Build_Assign(IROperand::AsInt8((UInt8)num->Value));
+				_Builder.Build_Assign(IROperand::AsInt8((UInt8)num->Get_Value()));
 				_LastExpressionField = _Builder.GetLastField();
 
 				
 			}
 			LastExpressionType.SetType(TypesEnum::Bool);
+			LastLookedAtToken = num->Token;
+		}
+		break;
+		case NodeType::CharliteralNode:
+		{
+			CharliteralNode* num = CharliteralNode::As(node.Value.get());
+
+			if (passtype == PassType::BuidCode)
+			{
+				String V;
+				bool ItWorked = !ParseHelper::ParseCharliteralToChar(num->Token->Value._String,V);
+				
+				_Builder.Build_Assign(IROperand::AsInt8((UInt8)V.front()));
+				_LastExpressionField = _Builder.GetLastField();
+			}
+			LastExpressionType.SetType(TypesEnum::Char);
+			LastLookedAtToken = num->Token;
+		}
+		break;
+	case_FloatliteralNode:
+		case NodeType::FloatliteralNode:
+		{
+			FloatliteralNode* num = FloatliteralNode::As(node.Value.get());
+			auto& lookT = Get_LookingForType();
+			if (passtype == PassType::BuidCode)
+			{
+				switch (lookT._Type)
+				{
+				case TypesEnum::float32:
+				{
+					float32 V;
+					bool ItWorked = ParseHelper::ParseStringTofloat32(num->Token->Value._String, V);
+
+					_Builder.Build_Assign(IROperand::AsInt32(*(UInt32*)&V));
+					_LastExpressionField = _Builder.GetLastField();
+					break;
+				}
+				case TypesEnum::float64:
+				{
+					float64 V;
+					bool ItWorked = ParseHelper::ParseStringTofloat64(num->Token->Value._String, V);
+
+					_Builder.Build_Assign(IROperand::AsInt64(*(UInt64*)&V));
+					_LastExpressionField = _Builder.GetLastField();
+					break;
+				}
+				default:
+					throw std::exception("not added");
+					break;
+				}
+			}
+			TypesEnum NewEx = lookT._Type == TypesEnum::Var || IsfloatType(lookT) ? lookT._Type : TypesEnum::float32;
+
+
+			LastExpressionType.SetType(NewEx);
+			LastLookedAtToken = num->Token;
 		}
 		break;
 		case NodeType::StringliteralNode:
@@ -2626,6 +2701,9 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type)
 
 	case TypesEnum::Bool:r = boolTypeName;	break;
 	case TypesEnum::Char:r = CharTypeName;	break;
+
+	case TypesEnum::float32:r = float32TypeName;	break;
+	case TypesEnum::float64:r = float64TypeName;	break;
 	case TypesEnum::CustomType:
 	{
 		auto& Syb = _Table.GetSymbol(Type._CustomTypeSymbol);
@@ -2648,6 +2726,7 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type)
 	case TypesEnum::Null:
 		r = "[badtype]";	break;
 	default:
+		throw std::exception("bad Type");
 		break;
 	}
 
@@ -2707,6 +2786,12 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 		break;
 	case TokenType::KeyWorld_Char:
 		Out.SetType(TypesEnum::Char);
+		break;
+	case TokenType::KeyWorld_float32:
+		Out.SetType(TypesEnum::float32);
+		break;
+	case TokenType::KeyWorld_float64:
+		Out.SetType(TypesEnum::float64);
 		break;
 	case TokenType::Void:
 		Out.SetType(TypesEnum::Void);
@@ -2856,11 +2941,18 @@ bool SystematicAnalysis::IsUIntType(const TypeSymbol& TypeToCheck)
 		TypeToCheck._Type == TypesEnum::uInt64 ||
 		TypeToCheck._Type == TypesEnum::uIntPtr ;
 }
+bool SystematicAnalysis::IsfloatType(const TypeSymbol& TypeToCheck)
+{
+	return
+		TypeToCheck._Type == TypesEnum::float32 ||
+		TypeToCheck._Type == TypesEnum::float64;
+}
 bool SystematicAnalysis::IsPrimitive(const TypeSymbol& TypeToCheck)
 {
 	return  TypeToCheck.IsAddress() || IsIntType(TypeToCheck)
-		 || TypeToCheck._Type== TypesEnum::Bool
-		|| TypeToCheck._Type == TypesEnum::Char;
+		|| TypeToCheck._Type == TypesEnum::Bool
+		|| TypeToCheck._Type == TypesEnum::Char
+		|| IsfloatType(TypeToCheck);
 }
 bool SystematicAnalysis::IsimmutableRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type)
 {
@@ -2906,10 +2998,13 @@ bool SystematicAnalysis::GetSize(const TypeSymbol& Type, UAddress& OutSize)
 		OutSize = sizeof(UInt16);
 		return true;
 
+	case TypesEnum::float32:
 	case TypesEnum::sInt32:
 	case TypesEnum::uInt32:
 		OutSize = sizeof(UInt32);
 		return true;
+
+	case TypesEnum::float64:
 	case TypesEnum::uInt64:
 	case TypesEnum::sInt64:
 		OutSize = sizeof(UInt64);

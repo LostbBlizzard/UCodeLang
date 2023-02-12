@@ -25,8 +25,8 @@ public:
 
 	void Reset();
 
-	static constexpr size_t RegisterSize = (RegisterID_t)RegisterID::EndRegister - (RegisterID_t)RegisterID::StartRegister;
-	RegisterInfo Registers[RegisterSize];
+	static constexpr size_t RegisterSize = (RegisterID_t)RegisterID::EndRegister - (RegisterID_t)RegisterID::StartRegister+1;
+ Array<RegisterInfo, RegisterSize> Registers;
 
 	auto& GetInfo(RegisterID id)
 	{

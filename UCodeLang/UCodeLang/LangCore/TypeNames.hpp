@@ -20,6 +20,9 @@
 #define UintPtrTypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_uintptr)
 #define SintPtrTypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_sintptr)
 
+#define float32TypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_float32)
+#define float64TypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_float64)
+
 #define VoidPtrTypeName "VoidPtr"
 #define CStringTypeName "CString"
 
