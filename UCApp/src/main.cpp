@@ -50,7 +50,9 @@ static void UCodeLangAPI Invoke_Test(InterpreterCPPinterface& interpreter)
 static UCodeRunTime RunTime;
 int main()
 {
-	
+
+
+	/*
 	{
 		namespace fs = std::filesystem;
 		std::stringstream Text;
@@ -89,6 +91,8 @@ int main()
 			out.close();
 		}
 	}
+	*/
+
 	//ULangTest::RunTests();
 	
 	
@@ -135,7 +139,7 @@ int main()
 		
 		bool item = true;
 
-		auto r = RunTime.RCall < float64 > ("main", &item);
+		auto r = RunTime.RCall <char> ("main", &item);
  		
 		
 	   std::cout << " Got Value " << item << std::endl;

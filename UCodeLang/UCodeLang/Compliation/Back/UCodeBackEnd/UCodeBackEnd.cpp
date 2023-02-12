@@ -27,6 +27,14 @@ void UCodeBackEndObject::Build(const IRBuilder* Input)
 	_BackInput = Input;
 
 	auto& Code = Input->Get_Code();
+	//
+	IntSizes PointerSize = Get_Settings().PtrSize;
+	bool Is64Bit = PointerSize == IntSizes::Int64;
+	if (PointerSize != IntSizes::Int32 && PointerSize != IntSizes::Int64)
+	{
+		Get_ErrorsOutput().AddError(ErrorCodes::BackEndError, 0, 0, "specified pointer size is not supported");
+	}
+	//
 	
 	for (_Index = 0; _Index < Code.size(); _Index++)
 	{
@@ -39,9 +47,9 @@ void UCodeBackEndObject::Build(const IRBuilder* Input)
 	Link();
 }
 #define OperatorBitsFunc(Func,bit) \
-				auto Value0 = GetOperandInAnyRegister(IR.Operand0);\
+				auto Value0 = GetOperandInAnyRegister(IR,IR.Operand0);\
 				_Registers.WeakLockRegister(Value0);\
-				auto Value1 = GetOperandInAnyRegister(IR.Operand1);\
+				auto Value1 = GetOperandInAnyRegister(IR,IR.Operand1);\
 				_Registers.WeakLockRegister(Value1);\
 				\
 				GenInsPush(InstructionBuilder::##Func##bit(_Ins, Value0, Value1));\
@@ -71,7 +79,7 @@ void UCodeBackEndObject::Build(const IRBuilder* Input)
 
 #define BuildIRStore(bitsize,Value2)\
 	auto Value = Value2; \
-	R = GetOperandInAnyRegister(IR.Operand0); \
+	R = GetOperandInAnyRegister(IR,IR.Operand0); \
 	GenIns(InstructionBuilder::Store##bitsize(_Ins, R, Value)); \
 	ULib.Add_Instruction(_Ins); \
 	SetSybToRegister(R, IR); \
@@ -123,10 +131,32 @@ void UCodeBackEndObject::BuildFunc()
 
 	IntSizes PointerSize = Get_Settings().PtrSize;
 	bool Is64Bit = PointerSize == IntSizes::Int64;
-	if (PointerSize != IntSizes::Int32 && PointerSize != IntSizes::Int64)
+	
+	//
+	bool HasStackFrame = false;
+	size_t oldIndex = _Index;
+	for (_Index = _Index + 1; _Index < Code.size(); _Index++)
 	{
-		Get_ErrorsOutput().AddError(ErrorCodes::BackEndError, 0, 0, "specified pointer size is not supported");
+		auto& IR = Code[_Index];
+		if (IR.Result.Type == IRFieldInfoType::Var)
+		{
+			HasStackFrame = true;
+			break;
+		
+		}
+		if (IR.Operator == IROperator::Ret)
+		{
+			break;
+		}
 	}
+	if (HasStackFrame)
+	{
+
+		ULib.Add_Instruction(_Ins);
+		ULib.Add_Instruction(_Ins);
+	}
+	_Index=oldIndex;
+	//
 	
 	for (_Index = _Index + 1; _Index < Code.size(); _Index++)
 	{
@@ -247,7 +277,7 @@ void UCodeBackEndObject::BuildFunc()
 			{
 				_Registers.LockRegister(CallParameterRegisterValue);
 
-				GetOperandInRegister(IR.Operand0, CallParameterRegisterValue);
+				GetOperandInRegister(IR,IR.Operand0, CallParameterRegisterValue);
 				(*(RegisterID_t*)&CallParameterRegisterValue)++;
 			}
 			else
@@ -273,7 +303,7 @@ void UCodeBackEndObject::BuildFunc()
 		break;
 		case IROperator::Free:
 		{
-			auto R = GetOperandInAnyRegister(IR.Operand0);
+			auto R = GetOperandInAnyRegister(IR,IR.Operand0);
 			GenInsPush(InstructionBuilder::Free(_Ins, R));
 
 
@@ -281,7 +311,7 @@ void UCodeBackEndObject::BuildFunc()
 		break;
 		case IROperator::Malloc:
 		{
-			auto Size = GetOperandInAnyRegister(IR.Operand0);
+			auto Size = GetOperandInAnyRegister(IR,IR.Operand0);
 			_Registers.WeakLockRegister(Size);
 			auto ROut = _Registers.GetFreeRegister();
 
@@ -298,7 +328,7 @@ void UCodeBackEndObject::BuildFunc()
 			auto RetTypeSize = IR.InfoType.TypeSize;
 			if (RetTypeSize <= RegisterSize)
 			{
-				GetOperandInRegister(IR.Operand0, RegisterID::OuPutRegister);
+				GetOperandInRegister(IR,IR.Operand0, RegisterID::OuPutRegister);
 
 			}
 			else
@@ -322,7 +352,7 @@ void UCodeBackEndObject::BuildFunc()
 		break;
 		case IROperator::IfFalseJump:
 		{
-			auto R = GetOperandInAnyRegister(IR.Operand1);
+			auto R = GetOperandInAnyRegister(IR,IR.Operand1);
 			auto V = _Registers.GetFreeRegister();
 
 			GenInsPush(InstructionBuilder::LogicalNot8(_Ins, R, V));
@@ -337,16 +367,29 @@ void UCodeBackEndObject::BuildFunc()
 		}
 		break;
 
-		case IROperator::Ret:goto EndLoop;
+		case IROperator::Ret:break;
 		}
 
 		
 	}
 	
-	EndLoop:
 
-	
+	if (HasStackFrame)
+	{
+		Instruction& StackSizeIns = ULib.Get_Instructions()[FuncStart];
+		Instruction& StackIns = ULib.Get_Instructions()[FuncStart+1];
+
+		RegisterID R = RegisterID::A;
+		
+		//pres
+		InstructionBuilder::Store64(StackSizeIns, R, StackSize);
+		InstructionBuilder::IncrementStackPointer(StackIns, R);
+		//endfunc
+		GenInsPush(InstructionBuilder::Store64(_Ins, R, StackSize));
+		GenInsPush(InstructionBuilder::DecrementStackPointer(_Ins, R));
+	}
 	GenInsPush(InstructionBuilder::Return(ExitState::Success, _Ins));
+	
 	
 
 	_Registers.Reset();
@@ -376,7 +419,7 @@ void UCodeBackEndObject::BuildOperandA(const UCodeLang::IRCode& IR, UCodeLang::R
 	break;
 	case IRFieldInfoType::IRLocation:
 	{
-		R = GetOperandInAnyRegister(IR.Operand0);
+		R = GetOperandInAnyRegister(IR,IR.Operand0);
 	}
 	break;
 	case IRFieldInfoType::AsPointer:
@@ -494,7 +537,7 @@ void UCodeBackEndObject::SetIRToRegister(RegisterID R, IRField IR)
 	RInfo.IRField = IR;
 }
 
-RegisterID UCodeBackEndObject::GetOperandInAnyRegister(const IROperand& operand)
+RegisterID UCodeBackEndObject::GetOperandInAnyRegister(const IRCode& IR, const IROperand& operand)
 {
 	
 	auto IsInR = operand.Type == IRFieldInfoType::IRLocation ?
@@ -502,13 +545,13 @@ RegisterID UCodeBackEndObject::GetOperandInAnyRegister(const IROperand& operand)
 	if (IsInR == RegisterID::NullRegister)
 	{
 		auto id = _Registers.GetFreeRegister();
-		GetOperandInRegister(operand, id);
+		GetOperandInRegister(IR,operand, id);
 		return id;
 	}
 	return IsInR;
 }
 
-void UCodeBackEndObject::GetOperandInRegister(const IROperand& operand, RegisterID id)
+void UCodeBackEndObject::GetOperandInRegister(const IRCode& IR, const IROperand& operand, RegisterID id)
 {
 	auto& ULib = Getliboutput();
 	auto R = operand.Type == IRFieldInfoType::IRLocation ? _Registers.GetInfo(operand.IRLocation)
@@ -523,7 +566,7 @@ void UCodeBackEndObject::GetOperandInRegister(const IROperand& operand, Register
 
 	if (R != id)
 	{
-		GenInsPush(InstructionBuilder::StoreRegToReg64(_Ins, R, id));//Tem Fix for now
+		BuildSybolIntSizeIns(IR, StoreRegToReg, (_Ins, R, id));
 	}
 }
 

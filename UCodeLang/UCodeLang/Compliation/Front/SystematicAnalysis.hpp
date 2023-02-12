@@ -313,7 +313,7 @@ private:
 	void Build_Increment_sIntPtr(SIntNative Value);
 	void Build_Decrement_sIntPtr(SIntNative Value);
 	
-	void BindTypeToLastIR(TypeSymbol& Type);
+	void BindTypeToLastIR(const TypeSymbol& Type);
 	//Errors
 
 	void LogCantFindCompoundOpForTypes(const Token* BinaryOp, TypeSymbol& Ex0Type, TypeSymbol& Ex1Type);
