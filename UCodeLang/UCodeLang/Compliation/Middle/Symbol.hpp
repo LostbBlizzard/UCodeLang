@@ -275,6 +275,67 @@ public:
 	}
 };
 
+struct RawEvaluatedObject
+{
+	//union 
+	struct
+	{
+		AnyInt64 Object_Value;
+		Unique_Array<UInt8> Object_AsPointer;
+	};
+
+};
+
+
+class EnumFieldInfo
+{
+public:
+	String Name;
+	RawEvaluatedObject Ex;
+	EnumFieldInfo()
+	{
+
+	}
+};
+
+class EnumInfo :public Symbol_Info
+{
+public:
+	String FullName;
+	inline String_view Get_Name() const
+	{
+		return ScopeHelper::GetNameFromFullName((String_view)FullName);
+	}
+
+	TypeSymbol Basetype;
+	Vector<EnumFieldInfo> Fields;
+
+
+	void SetBaseType(const TypeSymbol& Symbol)
+	{
+		Basetype = Symbol;
+	}
+
+	EnumFieldInfo* GetField(const String_view Name)
+	{
+		for (auto& Item : Fields)
+		{
+			if (Item.Name == Name) {
+				return &Item;
+			}
+		}
+		return nullptr;
+	}
+
+
+	EnumFieldInfo& AddField(const String_view Name)
+	{
+		EnumFieldInfo& r = Fields.emplace_back();
+		r.Name = (String)Name;
+		return r;
+	}
+};
+
 class Symbol
 {
 public:

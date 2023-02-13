@@ -285,7 +285,7 @@ private:
 		const UseGenericsNode&,
 		const ValueParametersNode& Pars,
 		TypeSymbol Ret);
-
+	//Generics
 	void GetScopedNameRemovedLast(const ScopedNameNode& Name, ScopedNameNode& TepNode);
 
 	void GenericFuncInstantiate(Symbol* Func,const Vector<TypeSymbol>& GenericInput);
@@ -295,7 +295,17 @@ private:
 	void GenericTypeInstantiate(Symbol* Class , const Vector<TypeSymbol>& Type);
 
 	Unordered_map<const void*, Get_FuncInfo> FuncToSyboID;
+	//
+	struct EvaluatedEx
+	{
+		const TypeSymbol Type;
+		RawEvaluatedObject EvaluatedObject;
+	};
+	void* Get_Object(const TypeSymbol& Input, const RawEvaluatedObject& Input2);
+	void* Get_Object(const EvaluatedEx& Input);
 
+	bool ConstantExpressionAbleType(const TypeSymbol& Type);
+	bool Evaluate(EvaluatedEx& Out, const ValueExpressionNode& node);
 
 	//uintptr
 	void Build_Assign_uIntPtr(UAddress Value);
