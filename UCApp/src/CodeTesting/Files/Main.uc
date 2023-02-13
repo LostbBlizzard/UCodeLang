@@ -1,8 +1,7 @@
 use ULang;
 
+|Temp[] => true;
 
 |main[]:
-
- int a = 0;
- //a = V;
- //V = 1;
+ var A = Temp(); 
+ ret A; 

@@ -22,12 +22,19 @@ Compiler::CompilerRet Compiler::CompileText(const String_view& Text)
 		_FrontEndObject->Reset();
 	}
 	_FrontEndObject->Set_FileIDType(LangDefInfo::DefaultTextFileID);
-
 	_FrontEndObject->Set_Settings(&_Settings);
 	_FrontEndObject->Set_ErrorsOutput(&_Errors);
 
-	if (_Errors.Has_Errors()) { return R; }
+	auto Item = _FrontEndObject->BuildFile(Text);
 
+
+
+	if (Item == nullptr || _Errors.Has_Errors()) { return R; }
+
+
+	Vector < Unique_ptr<FileNode_t>> Files;
+	Files.push_back(std::move(Item));
+	_FrontEndObject->BuildIR(Files);
 
 	if (_BackEndObject == nullptr) 
 	{
@@ -41,13 +48,17 @@ Compiler::CompilerRet Compiler::CompileText(const String_view& Text)
 	_BackEndObject->Set_Settings(&_Settings);
 	_BackEndObject->Set_ErrorsOutput(&_Errors);
 
+	thread_local static UClib output;
 
+	_BackEndObject->Set_Output(&output);
 	_BackEndObject->Build(_FrontEndObject->Get_Builder());
 
 
 	if (_Errors.Has_Errors()) { return R; }
 
 	R._State = _Errors.Has_Errors() ? CompilerState::Fail : CompilerState::Success;
+
+	
 	R.OutPut = &_BackEndObject->Getliboutput();
 	return R;
 }
