@@ -809,6 +809,53 @@ void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 }
 void SystematicAnalysis::OnEnum(const EnumNode& node)
 {
+	SymbolID SybID = GetSymbolID(node);
+
+	const auto& ClassName = node.EnumName.Token->Value._String;
+	_Table.AddScope(ClassName);
+
+	auto& Syb = passtype == PassType::GetTypes ?
+		_Table.AddSybol(SymbolType::Enum
+			, (String)ClassName, _Table._Scope.ThisScope) :
+		_Table.GetSymbol(SybID);
+
+	EnumInfo* ClassInf;
+	if (passtype == PassType::GetTypes)
+	{
+		_Table.AddSymbolID(Syb, SybID);
+		Syb.NodePtr = (void*)&node;
+
+
+		ClassInf = new EnumInfo();
+		ClassInf->FullName = Syb.FullName;
+		Syb.Info.reset(ClassInf);
+		Syb.VarType.SetType(Syb.ID);
+	}
+	else
+	{
+		ClassInf = (EnumInfo*)Syb.Info.get();
+	}
+
+	for (auto& Item : node.Values)
+	{
+		String_view ItemName = Item.Name.Token->Value._String;
+
+		if (passtype == PassType::GetTypes)
+		{
+			ClassInf->AddField(ItemName);
+		}
+		else
+		{
+
+		}
+	}
+
+	if (passtype == PassType::BuidCode)
+	{
+
+	}
+
+	_Table.RemoveScope();
 }
 
 String SystematicAnalysis::GetScopedNameAsString(const ScopedNameNode& node)
@@ -3666,6 +3713,39 @@ void SystematicAnalysis::GenericTypeInstantiate(Symbol* Class, const Vector<Type
 	//
 	_Table._Scope.ThisScope = OldScope;
 	passtype = Oldpasstype;
+}
+
+
+//
+
+ void* SystematicAnalysis::Get_Object(const TypeSymbol& Input, const RawEvaluatedObject& Input2)
+{
+	 UAddress Size = 0;
+
+	 if (GetSize(Input, Size))
+	 {
+		 if (Size > sizeof(AnyInt64))
+		 {
+			 return Input2.Object_AsPointer.get();
+		 }
+		 return (void*)&Input2.Object_Value;
+	 }
+	 return nullptr;
+}
+
+void* SystematicAnalysis::Get_Object(const EvaluatedEx& Input)
+{
+	return Get_Object(Input.Type, Input.EvaluatedObject);
+}
+
+bool SystematicAnalysis::ConstantExpressionAbleType(const TypeSymbol& Type)
+{
+	return IsPrimitive(Type) && !Type.IsAddress() && !Type.IsAddressArray();
+}
+
+bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ValueExpressionNode& node)
+{
+	return false;
 }
 
 void SystematicAnalysis::Build_Assign_uIntPtr(UAddress Value)
