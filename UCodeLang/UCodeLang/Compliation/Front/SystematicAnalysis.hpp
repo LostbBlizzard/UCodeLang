@@ -352,6 +352,8 @@ private:
 		const Vector<TypeSymbol>& WithTypes,
 	    const TypeSymbol& RetType);
 
+	void LogTypeMustBeAnConstantExpressionAble(const Token* Token,const TypeSymbol& Type);
+
 	struct ReadVarErrorCheck_t
 	{
 		bool CantFindVar = false;

@@ -835,6 +835,17 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 	{
 		ClassInf = (EnumInfo*)Syb.Info.get();
 	}
+	if (passtype == PassType::FixedTypes)
+	{
+		Convert(node.BaseType, ClassInf->Basetype);
+		if (!ConstantExpressionAbleType(ClassInf->Basetype))
+		{
+			LogTypeMustBeAnConstantExpressionAble(node.BaseType.Name.Token, ClassInf->Basetype);
+			return;
+		}
+	}
+
+	//TODO call default type default Constructor
 
 	for (auto& Item : node.Values)
 	{
@@ -843,11 +854,28 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 		if (passtype == PassType::GetTypes)
 		{
 			ClassInf->AddField(ItemName);
-		}
-		else
-		{
 
+			if (Item.Expression.Value) 
+			{
+				OnExpressionTypeNode(Item.Expression.Value.get());
+			}
+			else
+			{
+
+			}
 		}
+		else if(passtype == PassType::FixedTypes)
+		{
+			if (Item.Expression.Value)
+			{
+				OnExpressionTypeNode(Item.Expression.Value.get());//get constant expression
+			}
+			else
+			{
+				//call ++ operator to get the nextValue
+			}
+		}
+
 	}
 
 	if (passtype == PassType::BuidCode)
@@ -4176,6 +4204,11 @@ void SystematicAnalysis::LogCantFindFuncError(const Token* Token, String_view Fu
 
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, Text);
+}
+void SystematicAnalysis::LogTypeMustBeAnConstantExpressionAble(const Token* Token, const TypeSymbol& Type)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
+		, "the type " + ToString(Type) + " must be an Constant Expression able type'");
 }
 void SystematicAnalysis::LogCantModifyiMutableError(const Token* Token, String_view Name)
 {
