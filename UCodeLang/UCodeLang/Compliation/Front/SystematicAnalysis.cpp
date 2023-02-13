@@ -803,6 +803,7 @@ void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 		if (node.Expression.Value) 
 		{
 			_Builder.Build_AssignRet(IROperand::AsLocation(_Builder.GetLastField()));
+			BindTypeToLastIR(T);
 		}
 	}
 }
@@ -2244,13 +2245,12 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 		if (LookForT.IsAddress())
 		{
 			_Builder.Build_Assign(IROperand::AsPointer(sybId));
+			BindTypeToLastIR(V.Type);
 		}
 		else
 		{
 			_Builder.Build_Assign(IROperand::AsReadVarable(sybId),V.Offset);
-
 			BindTypeToLastIR(V.Type);
-
 		}
 		_LastExpressionField = _Builder.GetLastField();
 	}
@@ -3152,6 +3152,9 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 
 		else PrimitiveTypeCall(boolTypeName, TypesEnum::Bool, _Builder.Build_Assign(IROperand::AsInt8((UInt8)false));)
 		else PrimitiveTypeCall(CharTypeName, TypesEnum::Char, _Builder.Build_Assign(IROperand::AsInt8((UInt8)'\0')))
+
+		else PrimitiveTypeCall(float32TypeName, TypesEnum::float32, float32 V = 0; _Builder.Build_Assign(IROperand::AsInt32(*(UInt32*)&V));)
+		else PrimitiveTypeCall(float64TypeName, TypesEnum::float64, float64 V = 0; _Builder.Build_Assign(IROperand::AsInt64(*(UInt64*)&V)))
 	}
 	if (Func.Func == nullptr)
 	{
@@ -3357,7 +3360,9 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 			ScopedName == SintPtrTypeName ||
 			ScopedName == UintPtrTypeName ||
 			ScopedName == boolTypeName ||
-			ScopedName == CharTypeName)
+			ScopedName == CharTypeName ||
+			ScopedName == float32TypeName ||
+			ScopedName == float64TypeName)
 		{
 			
 			if (Pars._Nodes.size() > 1)

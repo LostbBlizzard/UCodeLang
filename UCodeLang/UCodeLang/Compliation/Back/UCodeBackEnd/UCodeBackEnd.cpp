@@ -127,12 +127,14 @@ void UCodeBackEndObject::BuildFunc()
 	UAddress FuncStart = ULib.Get_Instructions().size();
     StackSize = 0;
 
+
 	IRCodeIndexToUAddressIndexs.push_back(FuncStart);
 
 	IntSizes PointerSize = Get_Settings().PtrSize;
 	bool Is64Bit = PointerSize == IntSizes::Int64;
 	
 	//
+	size_t fullStackSize = 0;
 	bool HasStackFrame = false;
 	size_t oldIndex = _Index;
 	for (_Index = _Index + 1; _Index < Code.size(); _Index++)
@@ -141,6 +143,7 @@ void UCodeBackEndObject::BuildFunc()
 		if (IR.Result.Type == IRFieldInfoType::Var)
 		{
 			HasStackFrame = true;
+			fullStackSize += IR.InfoType.TypeSize;
 			break;
 		
 		}
@@ -149,13 +152,14 @@ void UCodeBackEndObject::BuildFunc()
 			break;
 		}
 	}
+	
+	_Index=oldIndex;
 	if (HasStackFrame)
 	{
-
-		ULib.Add_Instruction(_Ins);
-		ULib.Add_Instruction(_Ins);
+		RegisterID R2 = RegisterID::A;
+		GenInsPush(InstructionBuilder::Store64(_Ins, R2, fullStackSize));
+		GenInsPush(InstructionBuilder::IncrementStackPointer(_Ins, R2));
 	}
-	_Index=oldIndex;
 	//
 	
 	for (_Index = _Index + 1; _Index < Code.size(); _Index++)
@@ -238,15 +242,14 @@ void UCodeBackEndObject::BuildFunc()
 			}
 		break;
 		case IROperator::Assign_Operand0:
-			{
-				RegisterID R = RegisterID::NullRegister;
+		{
+			RegisterID R = RegisterID::NullRegister;
 
 
-				BuildOperandA(IR, R, ULib);
-				StoreResultIR(IR, R);
-			}
-			break;
-
+			BuildOperandA(IR, R, ULib);
+			StoreResultIR(IR, R);
+		}
+		break;
 		case IROperator::Func_Parameter:
 		{
 			auto VarSymbolID = IR.Operand0.SymbolId;
@@ -367,26 +370,17 @@ void UCodeBackEndObject::BuildFunc()
 		}
 		break;
 
-		case IROperator::Ret:break;
+		case IROperator::Ret:goto FuncEnd;
 		}
 
 		
 	}
-	
-
+FuncEnd:
 	if (HasStackFrame)
 	{
-		Instruction& StackSizeIns = ULib.Get_Instructions()[FuncStart];
-		Instruction& StackIns = ULib.Get_Instructions()[FuncStart+1];
-
-		RegisterID R = RegisterID::A;
-		
-		//pres
-		InstructionBuilder::Store64(StackSizeIns, R, StackSize);
-		InstructionBuilder::IncrementStackPointer(StackIns, R);
-		//endfunc
-		GenInsPush(InstructionBuilder::Store64(_Ins, R, StackSize));
-		GenInsPush(InstructionBuilder::DecrementStackPointer(_Ins, R));
+		RegisterID R2 = RegisterID::A;
+		GenInsPush(InstructionBuilder::Store64(_Ins, R2, fullStackSize));
+		GenInsPush(InstructionBuilder::DecrementStackPointer(_Ins, R2));
 	}
 	GenInsPush(InstructionBuilder::Return(ExitState::Success, _Ins));
 	
@@ -615,7 +609,7 @@ void UCodeBackEndObject::StoreVar(const IRCode& IR, const RegisterID R)
 
 			return;
 		}
-
+		
 
 		BuildSybolIntSizeIns(IR, StoreRegOnStack, (_Ins, R, Data->offset + IR.Operand1.AnyValue.AsAddress));
 	}

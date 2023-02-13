@@ -58,10 +58,15 @@ namespace ULangTest
 		{
 			if (i == 0)
 			{
-				stream << "0x";
+				//stream << "0x";
 			}
-			stream << int_to_hexV(Bytes[i]);
+			stream << std::to_string(Bytes[i]);
+			if (i+1 != Size)
+			{
+				stream << ",";
+			}
 		}
+		stream << '\0';
 		return stream.str();
 	}
 
@@ -112,6 +117,8 @@ namespace ULangTest
 		Compiler::CompilerPathData paths;
 		Compiler Com;
 		Com.Get_Settings()._Flags = flag;
+		Com.Get_Settings().PtrSize = IntSizes::Native;
+		
 		Compiler::CompilerRet Com_r;
 		std::string InputFilesPath = Test_UCodeFiles + Test.InputFilesOrDir;
 		std::string OutFileDir = Test_OutputFiles + Test.TestName;
@@ -155,9 +162,7 @@ namespace ULangTest
 			{
 				ErrStream << "fail from test '" << Test.TestName << "'" << std::endl;
 				
-				ErrStream << "[";
 				LogErrors(ErrStream, Com);
-				ErrStream << "]";
 				return false;
 			}
 
@@ -167,9 +172,8 @@ namespace ULangTest
 		{
 			ErrStream << "fail from test [Cant Compile File/Files] '" << Test.TestName << "'" << std::endl;
 
-			ErrStream << "[";
+
 			LogErrors(ErrStream, Com);
-			ErrStream << "]";
 			return false;
 		}
 
@@ -357,11 +361,13 @@ namespace ULangTest
 
 	bool LogErrors(std::ostream& out, Compiler& _Compiler)
 	{
+		out << "[\n";
 		auto& Errors = _Compiler.Get_Errors().Get_Errors();
 		for (auto& Item : Errors)
 		{
 			out << Item.ToString() << std::endl;
 		}
+		out << "]\n";
 		return _Compiler.Get_Errors().Has_Errors();
 	}
 }
