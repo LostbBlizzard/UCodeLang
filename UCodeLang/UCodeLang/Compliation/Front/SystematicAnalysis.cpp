@@ -835,6 +835,8 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 	{
 		ClassInf = (EnumInfo*)Syb.Info.get();
 	}
+
+	EvaluatedEx ex;
 	if (passtype == PassType::FixedTypes)
 	{
 		Convert(node.BaseType, ClassInf->Basetype);
@@ -843,9 +845,12 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 			LogTypeMustBeAnConstantExpressionAble(node.BaseType.Name.Token, ClassInf->Basetype);
 			return;
 		}
+		ex = std::move(MakeEx(ClassInf->Basetype));
 	}
 
-	//TODO call default type default Constructor
+
+	bool HasCheckedForincrementOp = false;
+	LookingForTypes.push(ClassInf->Basetype);
 
 	for (auto& Item : node.Values)
 	{
@@ -855,29 +860,80 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 		{
 			ClassInf->AddField(ItemName);
 
-			if (Item.Expression.Value) 
+			if (Item.Expression.Value)
 			{
 				OnExpressionTypeNode(Item.Expression.Value.get());
 			}
-			else
-			{
 
-			}
 		}
-		else if(passtype == PassType::FixedTypes)
+		else if (passtype == PassType::FixedTypes)
 		{
+
+
+			auto& Field = *ClassInf->GetField(ItemName);
 			if (Item.Expression.Value)
 			{
-				OnExpressionTypeNode(Item.Expression.Value.get());//get constant expression
+				auto& Type = ClassInf->Basetype;
+				OnExpressionTypeNode(Item.Expression.Value.get());//check
+				if (!CanBeImplicitConverted(LastExpressionType, Type))
+				{
+					LogCantCastImplicitTypes(LastLookedAtToken, LastExpressionType, Type);
+					return;
+				}
+
+
+				Evaluate_t(ex, Item.Expression.Value.get());
+
+				Field.Ex = ex.EvaluatedObject;
 			}
 			else
 			{
-				//call ++ operator to get the nextValue
+				if (ex.HasValue())
+				{
+					auto& Type = ClassInf->Basetype;
+					if (HasCheckedForincrementOp == false)
+					{
+						const Token* LineDataToken = node.BaseType.Name.Token;
+						if (!HasPostfixOverLoadWith(Type, TokenType::increment))
+						{
+
+							Token temp;
+							temp.OnLine = LineDataToken->OnLine;
+							temp.OnPos = LineDataToken->OnPos;
+							temp.Type = TokenType::increment;
+
+							LogCantFindPostfixOpForTypes(&temp, Type);
+							return;
+						}
+						if (!HasConstantPostfixOperator(Type, TokenType::increment))
+						{
+							Token temp;
+							temp.OnLine = LineDataToken->OnLine;
+							temp.OnPos = LineDataToken->OnPos;
+							temp.Type = TokenType::increment;
+
+
+							LogCantDoPostfixOpForTypes_Constant(&temp, Type);
+							return;
+						}
+						HasCheckedForincrementOp = true;
+					}
+
+					EvaluatePostfixOperator(ex, TokenType::increment);
+				}
+				else
+				{
+					EvaluateDefaultConstructor(ex);
+				}
+
+
+				Field.Ex = ex.EvaluatedObject;
 			}
 		}
 
 	}
 
+	LookingForTypes.pop();
 	if (passtype == PassType::BuidCode)
 	{
 
@@ -3746,19 +3802,9 @@ void SystematicAnalysis::GenericTypeInstantiate(Symbol* Class, const Vector<Type
 
 //
 
- void* SystematicAnalysis::Get_Object(const TypeSymbol& Input, const RawEvaluatedObject& Input2)
+void* SystematicAnalysis::Get_Object(const TypeSymbol& Input, const RawEvaluatedObject& Input2)
 {
-	 UAddress Size = 0;
-
-	 if (GetSize(Input, Size))
-	 {
-		 if (Size > sizeof(AnyInt64))
-		 {
-			 return Input2.Object_AsPointer.get();
-		 }
-		 return (void*)&Input2.Object_Value;
-	 }
-	 return nullptr;
+	return Input2.Object_AsPointer.get();
 }
 
 void* SystematicAnalysis::Get_Object(const EvaluatedEx& Input)
@@ -3771,8 +3817,390 @@ bool SystematicAnalysis::ConstantExpressionAbleType(const TypeSymbol& Type)
 	return IsPrimitive(Type) && !Type.IsAddress() && !Type.IsAddressArray();
 }
 
+SystematicAnalysis::EvaluatedEx SystematicAnalysis::MakeEx(const TypeSymbol& Type)
+{
+	EvaluatedEx r;
+	r.Type = Type;
+
+	size_t Size = 0;
+	GetSize(Type, Size);
+
+	r.EvaluatedObject.Object_AsPointer = std::make_unique<Byte[]>(Size);
+	r.EvaluatedObject.ObjectSize = Size;
+
+	return r;
+}
+
+RawEvaluatedObject SystematicAnalysis::MakeExr(const TypeSymbol& Type)
+{
+	throw std::exception("not added");
+	return RawEvaluatedObject();
+}
+
+bool SystematicAnalysis::EvaluateDefaultConstructor(EvaluatedEx& Out)
+{
+	void* Object = Get_Object(Out);
+	switch (Out.Type._Type)
+	{
+	case TypesEnum::Char:
+	case TypesEnum::Bool:
+	case TypesEnum::sInt8:
+	case TypesEnum::uInt8:
+		*(UInt8*)Object = 0;
+		break;
+	case TypesEnum::uInt16:
+	case TypesEnum::sInt16:
+		*(UInt16*)Object = 0;
+		break;
+	case TypesEnum::uInt32:
+	case TypesEnum::sInt32:
+		*(UInt32*)Object = 0;
+		break;
+	case TypesEnum::uInt64:
+	case TypesEnum::sInt64:
+		*(UInt64*)Object = 0;
+		break;
+
+	case TypesEnum::uIntPtr:
+	case TypesEnum::sIntPtr:
+	{
+		size_t PtrSize = 0;
+		TypeSymbol V;
+		V.SetType(TypesEnum::uIntPtr);
+		GetSize(V, PtrSize);
+		switch (PtrSize)
+		{
+		case sizeof(UInt8): *(UInt8*)Object = 0; break;
+		case sizeof(UInt16) : *(UInt16*)Object = 0; break;
+		case sizeof(UInt32) : *(UInt32*)Object = 0; break;
+		case sizeof(UInt64) : *(UInt64*)Object = 0; break;
+		default:
+			throw std::exception("not added");
+			break;
+		}
+	}break;
+	
+	case TypesEnum::float32:
+		*(float32*)Object = 0;
+		break;
+	case TypesEnum::float64:
+		*(float64*)Object = 0;
+		break;
+	default:
+		throw std::exception("?");
+		break;
+	}
+	return false;
+}
+
 bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ValueExpressionNode& node)
 {
+	switch (node.Value->Get_Type())
+	{
+	case NodeType::NumberliteralNode:
+	{
+		NumberliteralNode* num = NumberliteralNode::As(node.Value.get());
+#define Set_NumberliteralNodeU(x) \
+			UInt##x V; \
+			ParseHelper::ParseStringToUInt##x(Str, V); \
+			*(UInt##x*)Get_Object(Out) = V;\
+
+#define Set_NumberliteralNodeS(x) \
+			Int##x V; \
+			ParseHelper::ParseStringToInt##x(Str, V); \
+			*(Int##x*)Get_Object(Out) = V;\
+
+
+		auto& lookT = Get_LookingForType();
+		//if (passtype == PassType::BuidCode)
+		{
+			auto& Str = num->Token->Value._String;
+
+
+
+			switch (lookT._Type)
+			{
+			case TypesEnum::uInt8:
+			{
+				Set_NumberliteralNodeU(8);
+			};
+			break;
+			case TypesEnum::uInt16:
+			{
+				Set_NumberliteralNodeU(16);
+			};
+			break;
+			case TypesEnum::uInt32:
+			{
+				Set_NumberliteralNodeU(32);
+			};
+			break;
+			case TypesEnum::uInt64:
+			{
+				Set_NumberliteralNodeU(64);
+			};
+			break;
+			case TypesEnum::uIntPtr:
+			{
+				UInt64 V;
+				ParseHelper::ParseStringToUInt64(Str, V);
+				Build_Assign_uIntPtr(V);
+			};
+			break;
+
+			case TypesEnum::sInt8:
+			{
+				Set_NumberliteralNodeS(8);
+			};
+			break;
+			case TypesEnum::sInt16:
+			{
+				Set_NumberliteralNodeS(16);
+			};
+			break;
+			case TypesEnum::sInt32:
+			{
+				Set_NumberliteralNodeS(32);
+			};
+			break;
+			case TypesEnum::sInt64:
+			{
+				Set_NumberliteralNodeS(64);
+			};
+			break;
+			case TypesEnum::sIntPtr:
+			{
+				Int64 V;
+				ParseHelper::ParseStringToInt64(Str, V);
+				Build_Assign_sIntPtr(V);
+				break;
+			};
+
+
+			case TypesEnum::float32:
+			{
+				Int32 V;
+				ParseHelper::ParseStringToInt32(Str, V);
+				float32 V2 = V;
+				_Builder.Build_Assign(IROperand::AsInt32(*(UInt32*)&V));
+				_LastExpressionField = _Builder.GetLastField();
+				break;
+			};
+			case TypesEnum::float64:
+			{
+				Int64 V;
+				ParseHelper::ParseStringToInt64(Str, V);
+				float64 V2 = V;
+				_Builder.Build_Assign(IROperand::AsInt64(*(UInt64*)&V));
+				_LastExpressionField = _Builder.GetLastField();
+				break;
+			};
+			default:
+				throw std::exception("not added");
+				break;
+			}
+
+
+			_LastExpressionField = _Builder.GetLastField();
+
+		}
+
+		TypesEnum NewEx = lookT._Type == TypesEnum::Var || (IsfloatType(lookT) || IsIntType(lookT)) ? lookT._Type : TypesEnum::sInt32;
+
+
+		LastExpressionType.SetType(NewEx);
+		LastLookedAtToken = num->Token;
+	}
+	break;
+	case NodeType::BoolliteralNode:
+	{
+		BoolliteralNode* num = BoolliteralNode::As(node.Value.get());
+
+		//if (passtype == PassType::BuidCode)
+		{
+			*(bool*)Get_Object(Out) = num->Get_Value();
+		}
+		LastExpressionType.SetType(TypesEnum::Bool);
+		LastLookedAtToken = num->Token;
+	}
+	break;
+	case NodeType::CharliteralNode:
+	{
+		CharliteralNode* num = CharliteralNode::As(node.Value.get());
+
+		if (passtype == PassType::BuidCode)
+		{
+			String V;
+			bool ItWorked = !ParseHelper::ParseCharliteralToChar(num->Token->Value._String, V);
+
+
+			*(char*)Get_Object(Out) = (UInt8)V.front();
+		}
+		LastExpressionType.SetType(TypesEnum::Char);
+		LastLookedAtToken = num->Token;
+	}
+	break;
+	default:
+		throw std::exception("not added");
+		break;
+	}
+}
+
+bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const BinaryExpressionNode& node)
+{
+	return false;
+}
+
+bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const CastNode& node)
+{
+	return false;
+}
+
+bool SystematicAnalysis::Evaluate_t(EvaluatedEx& Out, const Node* node)
+{
+	switch (node->Get_Type())
+	{
+	case NodeType::BinaryExpressionNode:return Evaluate(Out,*BinaryExpressionNode::As(node)); break;
+	case NodeType::ValueExpressionNode:return Evaluate(Out, *ValueExpressionNode::As(node)); break;
+	case NodeType::CastNode:return Evaluate(Out, *CastNode::As(node)); break;
+	default:
+		throw std::exception("not added");
+		break;
+	}
+}
+
+bool SystematicAnalysis::EvaluatePostfixOperator(EvaluatedEx& Out, TokenType Op)
+{
+	void* Object = Get_Object(Out);
+	switch (Out.Type._Type)
+	{
+
+	uint8case:
+	case TypesEnum::sInt8:
+	case TypesEnum::uInt8:
+	{
+		if (Op == TokenType::increment)
+		{
+			(*(UInt8*)Object)++;
+		}
+		else
+			if (Op == TokenType::decrement)
+			{
+				(*(UInt8*)Object)++;
+			}
+			else
+			{
+				throw std::exception("not added");
+			}
+	}
+	break;
+
+uint16case:
+	case TypesEnum::uInt16:
+	case TypesEnum::sInt16:
+	{
+		if (Op == TokenType::increment)
+		{
+			(*(UInt16*)Object)++;
+		}
+		else
+			if (Op == TokenType::decrement)
+			{
+				(*(UInt16*)Object)++;
+			}
+			else
+			{
+				throw std::exception("not added");
+			}
+	}break;
+
+uint32case:
+	case TypesEnum::uInt32:
+	case TypesEnum::sInt32:
+	{
+		if (Op == TokenType::increment)
+		{
+			(*(UInt32*)Object)++;
+		}
+		else
+			if (Op == TokenType::decrement)
+			{
+				(*(UInt32*)Object)++;
+			}
+			else
+			{
+				throw std::exception("not added");
+			}
+	}
+	break;
+uint64case:
+	case TypesEnum::uInt64:
+	case TypesEnum::sInt64:
+	{
+		if (Op == TokenType::increment)
+		{
+			(*(UInt64*)Object)++;
+		}
+		else
+			if (Op == TokenType::decrement)
+			{
+				(*(UInt64*)Object)++;
+			}
+			else
+			{
+				throw std::exception("not added");
+			}
+	}
+	break;
+
+	case TypesEnum::uIntPtr:
+	case TypesEnum::sIntPtr:
+	{
+		size_t PtrSize = 0;
+		TypeSymbol V;
+		V.SetType(TypesEnum::uIntPtr);
+		GetSize(V, PtrSize);
+		switch (PtrSize)
+		{
+			case sizeof(UInt8) : goto uint8case;
+			case sizeof(UInt16) : goto uint16case;
+			case sizeof(UInt32) : goto uint32case;
+			case sizeof(UInt64) : goto uint64case;
+			default:
+			throw std::exception("not added");
+			break;
+		}
+	}break;
+	default:
+		throw std::exception("not added");
+		break;
+	}
+}
+
+bool SystematicAnalysis::HasConstantPostfixOperator(const TypeSymbol& Type, TokenType Op)
+{
+	if ((Op == TokenType::increment || Op == TokenType::decrement) && IsIntType(Type))
+	{
+		return true;
+	}
+	return false;
+}
+
+bool SystematicAnalysis::CanEvaluateImplicitConversionConstant(const TypeSymbol& Type, const TypeSymbol& ToType)
+{
+	if (AreTheSame(Type, ToType))
+	{
+		return true;
+	}
+	return false;
+}
+
+bool SystematicAnalysis::EvaluateImplicitConversion(EvaluatedEx& In, const TypeSymbol& ToType, EvaluatedEx& Out)
+{
+	if (AreTheSame(In.Type, Out.Type))
+	{
+		return true;
+	}
 	return false;
 }
 
@@ -4204,6 +4632,15 @@ void SystematicAnalysis::LogCantFindFuncError(const Token* Token, String_view Fu
 
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, Text);
+}
+void SystematicAnalysis::LogCantFindPostfixOpForTypes_Constant(const Token* BinaryOp, TypeSymbol& Ex0Type)
+{
+	LogCantFindPostfixOpForTypes(BinaryOp, Ex0Type);
+}
+void SystematicAnalysis::LogCantDoPostfixOpForTypes_Constant(const Token* BinaryOp, TypeSymbol& Ex0Type)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidName, BinaryOp->OnLine, BinaryOp->OnPos
+		, "The Type operation '" + ToString(Ex0Type) + "' must be an compile time constant.");
 }
 void SystematicAnalysis::LogTypeMustBeAnConstantExpressionAble(const Token* Token, const TypeSymbol& Type)
 {

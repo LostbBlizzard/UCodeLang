@@ -280,10 +280,31 @@ struct RawEvaluatedObject
 	//union 
 	struct
 	{
-		AnyInt64 Object_Value;
-		Unique_Array<UInt8> Object_AsPointer;
+		Unique_Array<Byte> Object_AsPointer;
+		size_t ObjectSize = 0;
 	};
+	bool HasValue()
+	{
+		return Object_AsPointer.operator bool();
+	}
+	RawEvaluatedObject()
+	{
 
+	}
+	RawEvaluatedObject(const RawEvaluatedObject& ToCopyFrom)
+		:Object_AsPointer(new Byte[ToCopyFrom.ObjectSize]), ObjectSize(ToCopyFrom.ObjectSize)
+	{
+		memcpy(Object_AsPointer.get(), ToCopyFrom.Object_AsPointer.get(), ToCopyFrom.ObjectSize);
+	}
+	RawEvaluatedObject& operator=(const RawEvaluatedObject& ToCopyFrom)
+	{
+		Object_AsPointer.reset(new Byte[ToCopyFrom.ObjectSize]);
+		ObjectSize = ToCopyFrom.ObjectSize;
+
+		memcpy(Object_AsPointer.get(), ToCopyFrom.Object_AsPointer.get(), ToCopyFrom.ObjectSize);
+
+		return *this;
+	}
 };
 
 
