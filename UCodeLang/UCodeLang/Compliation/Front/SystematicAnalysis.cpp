@@ -4105,6 +4105,95 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ValueExpressionNode& n
 		LastExpressionType.SetType(NewEx);
 		LastLookedAtToken = num->Token;
 	}
+	case NodeType::SizeofExpresionNode:
+	{
+		SizeofExpresionNode* nod = SizeofExpresionNode::As(node.Value.get());
+
+		auto& lookT = Get_LookingForType();
+		TypeSymbol Type;
+
+		//if (passtype == PassType::FixedTypes || passtype == PassType::BuidCode)
+		{
+			switch (lookT._Type)
+			{
+			case TypesEnum::sInt8:
+			case TypesEnum::uInt8:
+				Type.SetType(TypesEnum::uInt8);
+				break;
+			case TypesEnum::sInt16:
+			case TypesEnum::uInt16:
+				Type.SetType(TypesEnum::uInt16);
+				break;
+			case TypesEnum::sInt32:
+			case TypesEnum::uInt32:
+				Type.SetType(TypesEnum::uInt32);
+				break;
+			case TypesEnum::sInt64:
+			case TypesEnum::uInt64:
+				Type.SetType(TypesEnum::uInt64);
+				break;
+			default:
+				Type.SetType(TypesEnum::uIntPtr);
+				break;
+			}
+		}
+
+		//if (passtype == PassType::BuidCode)
+		{
+			TypeSymbol Info;
+			Convert(nod->Type, Info);
+			UAddress TypeSize;
+			GetSize(Info, TypeSize);
+
+
+
+			switch (lookT._Type)
+			{
+			Int8Case:
+			case TypesEnum::sInt8:
+			case TypesEnum::uInt8:
+				*(UInt8*)Get_Object(Out) = (UInt8)TypeSize;
+				break;
+			Int16Case:
+			case TypesEnum::sInt16:
+			case TypesEnum::uInt16:
+				*(UInt16*)Get_Object(Out) = (UInt16)TypeSize;
+				break;
+			Int32Case:
+			case TypesEnum::sInt32:
+			case TypesEnum::uInt32:
+				*(UInt32*)Get_Object(Out) = (UInt32)TypeSize;
+				break;
+			Int64Case:
+			case TypesEnum::sInt64:
+			case TypesEnum::uInt64:
+				*(UInt64*)Get_Object(Out) = (UInt64)TypeSize;
+				break;
+			default:
+			{
+				Type.SetType(TypesEnum::uIntPtr);
+
+				UAddress PtrSize;
+				GetSize(Info, PtrSize);
+
+				switch (PtrSize)
+				{
+					case sizeof(UInt8) : goto Int8Case;
+					case sizeof(UInt16) : goto Int16Case;
+					case sizeof(UInt32) : goto Int32Case;
+					case sizeof(UInt64) : goto Int64Case;
+				default:
+					throw std::exception("not added");
+					break;
+				}
+
+			}break;
+			}
+		}
+
+		LastExpressionType = Type;
+	}
+	break;
 	default:
 		throw std::exception("not added");
 		break;
