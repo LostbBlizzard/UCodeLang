@@ -7,4 +7,4 @@ enum Item[Item_t]:
  Blue,
 
 
-|main[] => 0;
+|main[] => Item::Red;

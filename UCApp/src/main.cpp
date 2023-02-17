@@ -142,7 +142,7 @@ int main()
 		auto r = RunTime.RCall <char> ("main", &item);
  		
 		
-	   std::cout << " Got Value " << item << std::endl;
+	   std::cout << " Got Value " << r << std::endl;
 
 	}
 }
