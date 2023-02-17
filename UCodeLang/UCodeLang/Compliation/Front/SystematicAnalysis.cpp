@@ -1474,33 +1474,64 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t& Start, const S
 			}
 			break;
 		}
-		ClassInfo* CInfo = (ClassInfo*)FeildTypeAsSymbol->Info.get();
-
-
-		auto FeldInfo = CInfo->GetField(ItemToken->Value._String);
-		if (FeldInfo == nullptr)
+		if (FeildTypeAsSymbol->Type == SymbolType::Type_class) 
 		{
-			if (passtype == PassType::FixedTypes)
+			ClassInfo* CInfo = (ClassInfo*)FeildTypeAsSymbol->Info.get();
+
+
+			auto FeldInfo = CInfo->GetField(ItemToken->Value._String);
+			if (FeldInfo == nullptr)
 			{
-				LogCantFindVarMemberError(ItemToken, ItemToken->Value._String, FeildType);
+				if (passtype == PassType::FixedTypes)
+				{
+					LogCantFindVarMemberError(ItemToken, ItemToken->Value._String, FeildType);
+				}
+				return false;
 			}
-			return false;
+
+			UAddress _FieldOffset = 0;
+			GetOffset(*CInfo, FeldInfo, _FieldOffset);
+
+			VarOffset += _FieldOffset;
+
+			auto& FieldType2 = FeldInfo->Type;
+			if (FieldType2._Type == TypesEnum::CustomType)
+			{
+				FeildTypeAsSymbol = &_Table.GetSymbol(FieldType2._CustomTypeSymbol);
+				FeildType = FieldType2;
+			}
+			else
+			{
+				FeildType = FieldType2;
+
+				if (i + 1 < node.ScopedName.size())
+				{
+					const UCodeLang::Token* Token = node.ScopedName.begin()->token;
+
+					auto Token2 = node.ScopedName[i + 1].token;
+					auto& Str2 = Token->Value._String;
+					if (passtype == PassType::FixedTypes)
+					{
+						LogCantFindVarMemberError(Token2, Str2, FeildType);
+					}
+					break;
+				}
+			}
 		}
-
-		UAddress _FieldOffset = 0;
-		GetOffset(*CInfo, FeldInfo, _FieldOffset);
-
-		VarOffset += _FieldOffset;
-
-		auto& FieldType2 = FeldInfo->Type;
-		if (FieldType2._Type == TypesEnum::CustomType)
+		else if (FeildTypeAsSymbol->Type == SymbolType::Enum)
 		{
-			FeildTypeAsSymbol = &_Table.GetSymbol(FieldType2._CustomTypeSymbol);
-			FeildType = FieldType2;
-		}
-		else
-		{
-			FeildType = FieldType2;
+			EnumInfo* Einfo = (EnumInfo*)FeildTypeAsSymbol->Info.get();
+			auto FeldInfo = Einfo->GetField(ItemToken->Value._String);
+			if (FeldInfo == nullptr)
+			{
+				if (passtype == PassType::FixedTypes)
+				{
+					LogCantFindVarMemberError(ItemToken, ItemToken->Value._String, FeildType);
+				}
+				return false;
+			}
+
+
 
 			if (i + 1 < node.ScopedName.size())
 			{
@@ -1508,12 +1539,18 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t& Start, const S
 
 				auto Token2 = node.ScopedName[i + 1].token;
 				auto& Str2 = Token->Value._String;
-				if (passtype == PassType::FixedTypes) 
+				if (passtype == PassType::FixedTypes)
 				{
 					LogCantFindVarMemberError(Token2, Str2, FeildType);
 				}
 				break;
 			}
+
+			FeildType.SetType(FeildTypeAsSymbol->ID);
+		}
+		else
+		{
+			throw std::exception("bad object");
 		}
 	}
 	return true;
@@ -1977,7 +2014,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 
 			}
 
-			TypesEnum NewEx = lookT._Type == TypesEnum::Var || (IsfloatType(lookT) ||IsIntType(lookT)) ? lookT._Type : TypesEnum::sInt32;
+			TypesEnum NewEx = lookT._Type != TypesEnum::Var || (IsfloatType(lookT) ||IsIntType(lookT)) ? lookT._Type : TypesEnum::sInt32;
 
 
 			LastExpressionType.SetType(NewEx);
@@ -3190,6 +3227,11 @@ bool SystematicAnalysis::GetSize(const TypeSymbol& Type, UAddress& OutSize)
 		else if(V.Type == SymbolType::Type_alias)
 		{
 			return GetSize(V.VarType,OutSize);
+		}
+		else if (V.Type == SymbolType::Enum)
+		{
+			EnumInfo* Info = (EnumInfo*)V.Info.get();
+			return GetSize(Info->Basetype, OutSize);
 		}
 		else
 		{
