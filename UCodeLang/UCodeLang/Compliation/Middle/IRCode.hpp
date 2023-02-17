@@ -152,7 +152,7 @@ struct IRCode
 {
 	struct TypeSybol
 	{
-		size_t TypeSize;
+		size_t TypeSize=0;
 		String_view Name;
 	};
 	IROperand Result;

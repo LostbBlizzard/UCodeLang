@@ -1,8 +1,8 @@
 use ULang;
 
 
-enum Item[bool]:
- Red = 0,
+enum Item[int]:
+ Red,
  Green,
  Blue,
 
