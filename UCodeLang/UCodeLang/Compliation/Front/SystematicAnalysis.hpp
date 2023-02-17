@@ -323,7 +323,7 @@ private:
 	bool HasConstantPostfixOperator(const TypeSymbol& Type, TokenType Op);
 
 	bool CanEvaluateImplicitConversionConstant(const TypeSymbol& Type, const TypeSymbol& ToType);
-	bool EvaluateImplicitConversion(EvaluatedEx& In, const TypeSymbol& ToType, EvaluatedEx& Out);
+	bool EvaluateImplicitConversion(EvaluatedEx& In, const TypeSymbol& ToType, EvaluatedEx& out);
 	//uintptr
 	void Build_Assign_uIntPtr(UAddress Value);
 	void Build_Assign_sIntPtr(SIntNative Value);
@@ -372,7 +372,7 @@ private:
 	void LogTypeMustBeAnConstantExpressionAble(const Token* Token, const TypeSymbol& Type);
 	void LogCantFindPostfixOpForTypes_Constant(const Token* BinaryOp, TypeSymbol& Ex0Type);
 	void LogCantDoPostfixOpForTypes_Constant(const Token* BinaryOp, TypeSymbol& Ex0Type);
-
+	void LogCantCastImplicitTypes_Constant(const Token* Token, TypeSymbol& Ex1Type, TypeSymbol& UintptrType);
 	struct ReadVarErrorCheck_t
 	{
 		bool CantFindVar = false;
@@ -381,14 +381,6 @@ private:
 	ReadVarErrorCheck_t LogTryReadVar(String_view VarName, const Token* Token, const Symbol* Syb);
 	void CheckVarWritingErrors(Symbol* Symbol, const Token* Token, String_view& Name);
 
-public://Only for backends
-		
-		UAddress GetTypeSize(const TypeSymbol& Type)
-		{
-			UAddress r;
-			GetSize(Type, r);
-			return r;
-		}
 };
 UCodeLangFrontEnd
 

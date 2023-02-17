@@ -377,7 +377,7 @@ public:
 	void SetTovalid(){ValidState = SymbolValidState::valid;}
 	bool IsInvalid()const {return ValidState == SymbolValidState::Invalid;}
 	bool Isvalid()const { return !IsInvalid(); }
-	Symbol()
+	Symbol(): Type(SymbolType::Null), ID(0)
 	{
 
 	}
@@ -385,6 +385,11 @@ public:
 	{
 		this->Type = Type;
 		this->FullName = FullName;
+	}
+
+	template<typename T> T* Get_Info()
+	{
+		return (T*)Info.get();
 	}
 };
 
