@@ -3975,8 +3975,16 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ValueExpressionNode& n
 
 
 		auto& lookT = Get_LookingForType();
-		TypesEnum NewEx = lookT._Type == TypesEnum::Var || (IsfloatType(lookT) || IsIntType(lookT)) ? lookT._Type : TypesEnum::sInt32;
-		//if (passtype == PassType::BuidCode)
+		TypesEnum NewEx;
+		if (lookT._Type == TypesEnum::Var)
+		{
+			NewEx = TypesEnum::sInt32;
+		}
+		else
+		{
+			NewEx = (IsfloatType(lookT) || IsIntType(lookT)) ? lookT._Type : TypesEnum::sInt32;
+		}
+			//if (passtype == PassType::BuidCode)
 		{
 			auto& Str = num->Token->Value._String;
 
@@ -4093,8 +4101,16 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ValueExpressionNode& n
 		
 		auto& Str = num->Token->Value._String;
 		
-		
-		TypesEnum NewEx = lookT._Type == TypesEnum::Var || IsfloatType(lookT) ? lookT._Type : TypesEnum::float32;
+
+		TypesEnum NewEx;
+		if (lookT._Type == TypesEnum::Var)
+		{
+			NewEx = TypesEnum::float32;
+		}
+		else
+		{
+			NewEx = IsfloatType(lookT) ? lookT._Type : TypesEnum::float32;
+		}
 		//if (passtype == PassType::BuidCode)
 		{
 			switch (NewEx)
