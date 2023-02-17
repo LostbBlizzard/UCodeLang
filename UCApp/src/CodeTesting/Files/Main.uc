@@ -1,10 +1,13 @@
 use ULang;
 
-$Item_t = int;
-enum Item[Item_t]:
+
+enum Item[bool]:
  Red = 0,
  Green,
  Blue,
 
 
-|main[] => Item::Red;
+|main[] -> var:
+ var V =Item::Red;
+
+ ret 0;

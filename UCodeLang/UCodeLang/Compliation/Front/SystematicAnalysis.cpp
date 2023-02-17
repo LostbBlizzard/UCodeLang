@@ -2054,7 +2054,6 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 			LastLookedAtToken = num->Token;
 		}
 		break;
-	case_FloatliteralNode:
 		case NodeType::FloatliteralNode:
 		{
 			FloatliteralNode* num = FloatliteralNode::As(node.Value.get());
@@ -2086,7 +2085,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 					break;
 				}
 			}
-			TypesEnum NewEx = lookT._Type == TypesEnum::Var || IsfloatType(lookT) ? lookT._Type : TypesEnum::float32;
+			TypesEnum NewEx = lookT._Type != TypesEnum::Var || IsfloatType(lookT) ? lookT._Type : TypesEnum::float32;
 
 
 			LastExpressionType.SetType(NewEx);
@@ -3954,87 +3953,75 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ValueExpressionNode& n
 
 
 		auto& lookT = Get_LookingForType();
+		TypesEnum NewEx = lookT._Type != TypesEnum::Var || (IsfloatType(lookT) || IsIntType(lookT)) ? lookT._Type : TypesEnum::sInt32;
 		//if (passtype == PassType::BuidCode)
 		{
 			auto& Str = num->Token->Value._String;
 
 
 
-			switch (lookT._Type)
+			switch (NewEx)
 			{
+			sint8case:
+			case TypesEnum::sInt8:
 			case TypesEnum::uInt8:
 			{
 				Set_NumberliteralNodeU(8);
 			};
 			break;
+		sint16case:
+			case TypesEnum::sInt16:
 			case TypesEnum::uInt16:
 			{
 				Set_NumberliteralNodeU(16);
 			};
 			break;
+		sint32case:
+			case TypesEnum::sInt32:
 			case TypesEnum::uInt32:
 			{
 				Set_NumberliteralNodeU(32);
 			};
 			break;
+		sint64case:
+			case TypesEnum::sInt64:
 			case TypesEnum::uInt64:
 			{
 				Set_NumberliteralNodeU(64);
 			};
 			break;
+			case TypesEnum::sIntPtr:
 			case TypesEnum::uIntPtr:
 			{
-				UInt64 V;
-				ParseHelper::ParseStringToUInt64(Str, V);
-				Build_Assign_uIntPtr(V);
+				size_t PtrSize = 0;
+				TypeSymbol V;
+				V.SetType(TypesEnum::uIntPtr);
+				GetSize(V, PtrSize);
+				switch (PtrSize)
+				{
+					case sizeof(UInt8) : goto sint8case;
+					case sizeof(UInt16) : goto sint16case;
+					case sizeof(UInt32) : goto sint32case;
+					case sizeof(UInt64) : goto sint64case;
+					default:
+				    throw std::exception("not added");
+					break;
+				}
 			};
 			break;
-
-			case TypesEnum::sInt8:
-			{
-				Set_NumberliteralNodeS(8);
-			};
-			break;
-			case TypesEnum::sInt16:
-			{
-				Set_NumberliteralNodeS(16);
-			};
-			break;
-			case TypesEnum::sInt32:
-			{
-				Set_NumberliteralNodeS(32);
-			};
-			break;
-			case TypesEnum::sInt64:
-			{
-				Set_NumberliteralNodeS(64);
-			};
-			break;
-			case TypesEnum::sIntPtr:
-			{
-				Int64 V;
-				ParseHelper::ParseStringToInt64(Str, V);
-				Build_Assign_sIntPtr(V);
-				break;
-			};
-
 
 			case TypesEnum::float32:
 			{
 				Int32 V;
 				ParseHelper::ParseStringToInt32(Str, V);
-				float32 V2 = V;
-				_Builder.Build_Assign(IROperand::AsInt32(*(UInt32*)&V));
-				_LastExpressionField = _Builder.GetLastField();
+				*(float32*)Get_Object(Out) = V;
 				break;
 			};
 			case TypesEnum::float64:
 			{
 				Int64 V;
 				ParseHelper::ParseStringToInt64(Str, V);
-				float64 V2 = V;
-				_Builder.Build_Assign(IROperand::AsInt64(*(UInt64*)&V));
-				_LastExpressionField = _Builder.GetLastField();
+				*(float64*)Get_Object(Out) = V;
 				break;
 			};
 			default:
@@ -4046,8 +4033,6 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ValueExpressionNode& n
 			_LastExpressionField = _Builder.GetLastField();
 
 		}
-
-		TypesEnum NewEx = lookT._Type == TypesEnum::Var || (IsfloatType(lookT) || IsIntType(lookT)) ? lookT._Type : TypesEnum::sInt32;
 
 
 		LastExpressionType.SetType(NewEx);
@@ -4070,7 +4055,7 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ValueExpressionNode& n
 	{
 		CharliteralNode* num = CharliteralNode::As(node.Value.get());
 
-		if (passtype == PassType::BuidCode)
+		//if (passtype == PassType::BuidCode)
 		{
 			String V;
 			bool ItWorked = !ParseHelper::ParseCharliteralToChar(num->Token->Value._String, V);
@@ -4082,6 +4067,44 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ValueExpressionNode& n
 		LastLookedAtToken = num->Token;
 	}
 	break;
+	case NodeType::FloatliteralNode:
+	{
+		FloatliteralNode* num = FloatliteralNode::As(node.Value.get());
+		auto& lookT = Get_LookingForType();
+		
+		auto& Str = num->Token->Value._String;
+		
+		
+		TypesEnum NewEx = lookT._Type != TypesEnum::Var || IsfloatType(lookT) ? lookT._Type : TypesEnum::float32;
+		//if (passtype == PassType::BuidCode)
+		{
+			switch (NewEx)
+			{
+			case TypesEnum::float32:
+			{
+				float32 V;
+				ParseHelper::ParseStringTofloat32(Str, V);
+				*(float32*)Get_Object(Out) = V;
+				break;
+			}
+			case TypesEnum::float64:
+			{
+				float64 V;
+				ParseHelper::ParseStringTofloat64(Str, V);
+				*(float64*)Get_Object(Out) = V;
+				break;
+			}
+			default:
+				throw std::exception("not added");
+				break;
+			}
+		}
+		
+
+
+		LastExpressionType.SetType(NewEx);
+		LastLookedAtToken = num->Token;
+	}
 	default:
 		throw std::exception("not added");
 		break;
