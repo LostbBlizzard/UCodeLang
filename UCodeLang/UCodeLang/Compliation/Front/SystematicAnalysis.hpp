@@ -298,15 +298,32 @@ private:
 	//
 	struct EvaluatedEx
 	{
-		const TypeSymbol Type;
+		TypeSymbol Type;
 		RawEvaluatedObject EvaluatedObject;
+		bool HasValue()
+		{
+			return EvaluatedObject.HasValue();
+		}
 	};
+	EvaluatedEx MakeEx(const TypeSymbol& Type);
+	RawEvaluatedObject MakeExr(const TypeSymbol& Type);
 	void* Get_Object(const TypeSymbol& Input, const RawEvaluatedObject& Input2);
 	void* Get_Object(const EvaluatedEx& Input);
 
 	bool ConstantExpressionAbleType(const TypeSymbol& Type);
-	bool Evaluate(EvaluatedEx& Out, const ValueExpressionNode& node);
 
+	
+	bool EvaluateDefaultConstructor(EvaluatedEx& Out);
+	bool Evaluate(EvaluatedEx& Out, const ValueExpressionNode& node);
+	bool Evaluate(EvaluatedEx& Out, const BinaryExpressionNode& node);
+	bool Evaluate(EvaluatedEx& Out, const CastNode& node);
+	bool Evaluate_t(EvaluatedEx& Out,const Node* node);
+
+	bool EvaluatePostfixOperator(EvaluatedEx& Out,TokenType Op);
+	bool HasConstantPostfixOperator(const TypeSymbol& Type, TokenType Op);
+
+	bool CanEvaluateImplicitConversionConstant(const TypeSymbol& Type, const TypeSymbol& ToType);
+	bool EvaluateImplicitConversion(EvaluatedEx& In, const TypeSymbol& ToType, EvaluatedEx& Out);
 	//uintptr
 	void Build_Assign_uIntPtr(UAddress Value);
 	void Build_Assign_sIntPtr(SIntNative Value);
@@ -352,7 +369,9 @@ private:
 		const Vector<TypeSymbol>& WithTypes,
 	    const TypeSymbol& RetType);
 
-	void LogTypeMustBeAnConstantExpressionAble(const Token* Token,const TypeSymbol& Type);
+	void LogTypeMustBeAnConstantExpressionAble(const Token* Token, const TypeSymbol& Type);
+	void LogCantFindPostfixOpForTypes_Constant(const Token* BinaryOp, TypeSymbol& Ex0Type);
+	void LogCantDoPostfixOpForTypes_Constant(const Token* BinaryOp, TypeSymbol& Ex0Type);
 
 	struct ReadVarErrorCheck_t
 	{
@@ -361,6 +380,7 @@ private:
 	};
 	ReadVarErrorCheck_t LogTryReadVar(String_view VarName, const Token* Token, const Symbol* Syb);
 	void CheckVarWritingErrors(Symbol* Symbol, const Token* Token, String_view& Name);
+
 public://Only for backends
 		
 		UAddress GetTypeSize(const TypeSymbol& Type)
