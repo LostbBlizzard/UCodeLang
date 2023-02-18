@@ -1,11 +1,207 @@
 #include "App.hpp"
-#include "UCodeLang/Compliation/Compiler.hpp"
+
+#include <iostream>
+#include <fstream>
+#include <Windows.h>
 using namespace UCodeLang;
+
+
+struct AppInfo
+{
+	bool EndApp = false;
+	//in/out
+	std::ostream* output = nullptr;
+	std::istream* Input = nullptr;
+
+	std::ofstream OutputFile;
+	std::ifstream InputFile;
+
+	//compiler
+	Compiler::CompilerPathData _CompilerPaths;
+	Compiler _Compiler;
+	
+	//runtime
+	RunTimeLangState _RunTimeState;
+	UCodeRunTime _RunTime;
+};
+static AppInfo _This;
+
+#include <windows.h>
+
+VOID startup(LPCTSTR lpApplicationName)
+{
+	// additional information
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
+
+	// set the size of the structures
+	ZeroMemory(&si, sizeof(si));
+	si.cb = sizeof(si);
+	ZeroMemory(&pi, sizeof(pi));
+
+	// start the program up
+	CreateProcess(lpApplicationName,   // the path
+	nullptr,        // Command line
+		NULL,           // Process handle not inheritable
+		NULL,           // Thread handle not inheritable
+		FALSE,          // Set handle inheritance to FALSE
+		0,              // No creation flags
+		NULL,           // Use parent's environment block
+		NULL,           // Use parent's starting directory 
+		&si,            // Pointer to STARTUPINFO structure
+		&pi             // Pointer to PROCESS_INFORMATION structure (removed extra parentheses)
+	);
+	while (true)
+	{
+
+	}
+	// Close process and thread handles. 
+	CloseHandle(pi.hProcess);
+	CloseHandle(pi.hThread);
+}
 int App::main(int argc, char* argv[])
 {
+	_This.output = &std::cout;
+	_This.Input = &std::cin;
+
+	for (size_t i = 0; i < argc; i++)
+	{
+		ParseLine(String_view(argv[i]));
+	}
+
+
+	
+	while (_This.EndApp == false)
+	{
+		std::string line;
+		std::getline(*_This.Input, line);
+
+		ParseLine(line);
+	}
+
+	startup(L"C:/CoolStuff/CoolCodeingStuff/C++/Projects/UCodeLang/Output/UCApp/Win64/Debug/UCApp.exe");
+
+	return EXIT_SUCCESS;
+}
 
 
 
+template<typename T>
+bool InList(const T* buffer,size_t buffersize,T Value)
+{
+	for (size_t i = 0; i < buffersize; i++)
+	{
+		if (buffer[i] == Value) { return true; }
+	}
+	return false;
+}
 
-	return 0;
+bool IsList(const char* List,char V)
+{
+	return InList(List, strlen(List), V);
+}
+
+bool IsList(String_view List, char V)
+{
+	return InList(List.data(), List.size(), V);
+}
+
+#define Letersdef "QWERTYUIOPASDFGHJKLZXCVBNM" "qwertyuiopasdfghjklzxcvbnm"
+#define Numdef "1234567890"
+#define NameChardef "_"
+
+#define Worddef Letersdef Numdef NameChardef
+
+#define PathDef Letersdef Numdef ":/\\."
+
+String_view GetWord_t(String_view& Line,String_view GoodChars_t)
+{
+	bool Reading = false;
+	for (size_t i = 0; i < Line.size(); i++)
+	{
+		char V = Line[i];
+		bool GoodChar = IsList(GoodChars_t, V);
+		if (!GoodChar && Reading == true)
+		{
+			auto r = String_view(Line.data(), i);
+			Line = Line.substr(i+1);
+			return r;
+		}
+		else
+		{
+			if (GoodChar)
+			{
+				Reading = true;
+			}
+		}
+	}
+	auto r2 = String_view(Line.data(), Line.size());
+	Line = Line.substr(Line.size());
+	return r2;
+}
+String_view GetWord(String_view& Line)
+{
+	return GetWord_t(Line, Worddef);
+}
+
+String_view GetPath(String_view& Line)
+{
+	return GetWord_t(Line, PathDef);
+}
+
+void ParseLine(String_view Line)
+{
+
+	String_view Word1 = GetWord(Line);
+	if (Word1 == "uc")
+	{
+		String_view Word2 = GetWord(Line);
+
+
+		if (Word2 == "set_filedir"){_This._CompilerPaths.FileDir = GetPath(Line);}
+		else if (Word2 == "set_intDir") { _This._CompilerPaths.IntDir = GetPath(Line); }
+		else if (Word2 == "set_outFile") { _This._CompilerPaths.OutFile = GetPath(Line); }
+		else if (Word2 == "Build_file") { _This._Compiler.CompilePathToObj(_This._CompilerPaths.FileDir, _This._CompilerPaths.OutFile); }
+		else if (Word2 == "Build_dir"){_This._Compiler.CompileFiles(_This._CompilerPaths);}
+		else if (Word2 == "Build_dir_int") { _This._Compiler.CompileFiles_UseIntDir(_This._CompilerPaths); }
+		else
+		{
+			TokenCheck(Word1);
+		}
+	}
+	else if (Word1 == "uc_vm")
+	{
+
+	}
+	else if (Word1 == "parsefile")
+	{
+		std::ifstream file(GetPath(Line));
+		if (file.is_open())
+		{
+
+			for (std::string line; getline(file, line); )
+			{
+				ParseLine(line);
+			}
+
+			file.close();
+		}
+	}
+	else if (Word1 == "set_input_io")
+	{
+		
+	}
+	else if (Word1 == "close")
+	{
+		_This.EndApp = true;
+	}
+	else
+	{
+		TokenCheck(Word1);
+	}
+}
+
+void TokenCheck(const UCodeLang::String_view& Word1)
+{
+	*_This.output << "bad word '" << Word1 << "'" << std::endl;
 }

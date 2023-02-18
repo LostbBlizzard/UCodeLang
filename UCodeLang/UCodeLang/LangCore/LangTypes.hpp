@@ -229,6 +229,10 @@ struct BytesPtr
 	}
 	Unique_Array<Byte> Bytes;
 	size_t Size;
+	inline BytesView AsView()
+	{
+		return { Bytes.get(),Size };
+	}
 };
 
 enum class IntSizes : UInt8

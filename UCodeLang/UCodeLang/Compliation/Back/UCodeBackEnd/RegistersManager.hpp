@@ -16,7 +16,7 @@ public:
 	struct RegisterInfo 
 	{
 		RegisterInUse Inuse = RegisterInUse::NotInUse;
-		IRField IRField =0;
+		IRInstruction* IRField =0;
 		AnyInt64 BitValue;
 	};
 	
@@ -45,7 +45,7 @@ public:
 		return GetInfo(id).Inuse != RegisterInUse::NotInUse;
 	}
 
-	RegisterID GetInfo(IRField IRField)
+	RegisterID GetInfo(IRInstruction* IRField)
 	{
 		for (size_t i = 0; i < RegisterSize; i++)
 		{

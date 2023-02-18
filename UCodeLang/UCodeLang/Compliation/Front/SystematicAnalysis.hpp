@@ -2,6 +2,9 @@
 #include "UCodeLang/Compliation/Front/Parser.hpp"
 
 #include "UCodeLang/LangCore/UClib.hpp"
+
+
+#include "../Middle/IR.hpp"
 #include "UCodeLang/Compliation/Back/BackEndInterface.hpp"
 #include "../Middle/Symbol.hpp"
 
@@ -58,28 +61,16 @@ private:
 	Stack<FuncInfo*> _FuncStack;
 	Vector<const AttributeNode*> _TepAttributes;
 	bool _InStatements = false;
-	//
+	//IR Building
 	IRBuilder _Builder;
-	IRSeg _LastExpression;
-	IRField _LastExpressionField =0;
-	//
+	IRInstruction* _LastExpressionField =0;
+	IRFunc* LookingAtIRFunc = nullptr;
+	IRBlock* LookingAtIRBlock=nullptr;
 
-	Vector<SymbolID> IRParameters;
-
-
-
-	Stack<TypeSymbol> LookingForTypes;
-	TypeSymbol LastExpressionType;
-	TypeSymbol& Get_LookingForType()
-	{
-		return LookingForTypes.top();
-	}
-	const Token* LastLookedAtToken = nullptr;
-	//
 	struct ObjectToDrop
 	{
 		SymbolID ID =0;
-		IRField Object=0;
+		//IRField Object=0;
 		TypeSymbol Type;
 	};
 	
@@ -91,12 +82,28 @@ private:
 	};
 	struct IRlocat
 	{
-		IRField V;
+		//IRField V;
 		SymbolID ID;
 	};
 
 	Stack<IRlocat> IRlocations;//for Constructors
-	Vector<IRCodeStackFrames> StackFrames;
+	Vector<IRCodeStackFrames> StackFrames;	
+	Vector<SymbolID> IRParameters;
+	//
+
+	IRType ConvertToIR(const TypeSymbol& Value);
+
+
+
+	Stack<TypeSymbol> LookingForTypes;
+	TypeSymbol LastExpressionType;
+	TypeSymbol& Get_LookingForType()
+	{
+		return LookingForTypes.top();
+	}
+	const Token* LastLookedAtToken = nullptr;
+	//
+	
 	void PushNewStackFrame();
 	void PopStackFrame();
 
@@ -217,8 +224,8 @@ private:
 	bool CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
 	bool CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
 
-	bool DoImplicitConversion(IROperand Ex,const TypeSymbol ExType, const TypeSymbol& ToType);
-	void DoExplicitlConversion(IROperand Ex, const TypeSymbol ExType, const TypeSymbol& ToType);
+	bool DoImplicitConversion(IRInstruction* Ex,const TypeSymbol ExType, const TypeSymbol& ToType);
+	void DoExplicitlConversion(IRInstruction* Ex, const TypeSymbol ExType, const TypeSymbol& ToType);
 
 	bool IsSIntType(const TypeSymbol& TypeToCheck);
 	bool IsUIntType(const TypeSymbol& TypeToCheck);
@@ -260,12 +267,6 @@ private:
 		ThisPar_t ThisPar = ThisPar_t::NoThisPar;
 		const FuncInfo* Func = nullptr;
 	};
-
-	void DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Name, const ValueParametersNode& Pars);
-	void DoFuncCall(const TypeSymbol& Type, const Get_FuncInfo& Func, ValueParametersNode& ValuePars);
-	
-
-	void DoDestructorCall(const ObjectToDrop& Object);
 
 	Get_FuncInfo GetFunc(
 		const TypeSymbol& Name,
@@ -324,22 +325,28 @@ private:
 
 	bool CanEvaluateImplicitConversionConstant(const TypeSymbol& Type, const TypeSymbol& ToType);
 	bool EvaluateImplicitConversion(EvaluatedEx& In, const TypeSymbol& ToType, EvaluatedEx& out);
-	//uintptr
+	
+	//IR
+	void DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Name, const ValueParametersNode& Pars);
+	void DoFuncCall(const TypeSymbol& Type, const Get_FuncInfo& Func, ValueParametersNode& ValuePars);
+	
+
+	void DoDestructorCall(const ObjectToDrop& Object);
+
 	void Build_Assign_uIntPtr(UAddress Value);
 	void Build_Assign_sIntPtr(SIntNative Value);
-	void Build_Add_uIntPtr(IROperand field, IROperand field2);
-	void Build_Sub_uIntPtr(IROperand field, IROperand field2);
-	void Build_Add_sIntPtr(IROperand field, IROperand field2);
-	void Build_Sub_sIntPtr(IROperand field, IROperand field2);
-	void Build_Mult_uIntPtr(IROperand field, IROperand field2);
-	void Build_Mult_sIntPtr(IROperand field, IROperand field2);
-	void Build_Div_uIntPtr(IROperand field, IROperand field2);
-	void Build_Div_sIntPtr(IROperand field, IROperand field2);
+	void Build_Add_uIntPtr(IROperator field, IROperator field2);
+	void Build_Sub_uIntPtr(IROperator field, IROperator field2);
+	void Build_Add_sIntPtr(IROperator field, IROperator field2);
+	void Build_Sub_sIntPtr(IROperator field, IROperator field2);
+	void Build_Mult_uIntPtr(IROperator field, IROperator field2);
+	void Build_Mult_sIntPtr(IROperator field, IROperator field2);
+	void Build_Div_uIntPtr(IROperator field, IROperator field2);
+	void Build_Div_sIntPtr(IROperator field, IROperator field2);
 	void Build_Increment_uIntPtr(UAddress Value);
 	void Build_Decrement_uIntPtr(UAddress Value);
 	void Build_Increment_sIntPtr(SIntNative Value);
 	void Build_Decrement_sIntPtr(SIntNative Value);
-	
 	void BindTypeToLastIR(const TypeSymbol& Type);
 	//Errors
 

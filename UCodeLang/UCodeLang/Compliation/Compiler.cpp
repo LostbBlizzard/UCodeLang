@@ -2,7 +2,6 @@
 #include <fstream>
 #include <filesystem>
 #include "../LangCore/FileHelper.hpp"
-#include "DependencyFile.hpp"
 UCodeLangStart
 Compiler::CompilerRet Compiler::CompileText(const String_view& Text)
 {
@@ -48,11 +47,13 @@ Compiler::CompilerRet Compiler::CompileText(const String_view& Text)
 	_BackEndObject->Set_Settings(&_Settings);
 	_BackEndObject->Set_ErrorsOutput(&_Errors);
 
-	thread_local static UClib output;
+	
+	_BackEndObject->Set_OutputLib(_FrontEndObject->Get_Lib());
 
-	_BackEndObject->Set_Output(&output);
-	_BackEndObject->Build(_FrontEndObject->Get_Builder());
-
+	auto& IRCode = *_FrontEndObject->Get_Builder();
+	Optimize(IRCode);
+	
+	_BackEndObject->Build(&IRCode);
 
 	if (_Errors.Has_Errors()) { return R; }
 
@@ -211,13 +212,29 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 			_BackEndObject->Set_ErrorsOutput(&_Errors);
 
 			auto output = _FrontEndObject->Get_Builder();
-			if (output) 
+			if (output)
 			{
-				_BackEndObject->Set_Output(_FrontEndObject->Get_Lib());
+
+				Optimize(*output);
+
+				_BackEndObject->Set_OutputLib(_FrontEndObject->Get_Lib());
 				_BackEndObject->Build(output);
 
-				r.OutPut = &_BackEndObject->Getliboutput();
-				UClib::ToFile(r.OutPut, Data.OutFile);
+				auto Output = _BackEndObject->GetOutput();
+				if (Output.Size)
+				{
+					std::ofstream File(Data.OutFile, std::ios::binary);
+					if (File.is_open())
+					{
+						File.write((const char*)Output.Bytes, Output.Size);
+						File.close();
+					}
+				}
+				else
+				{
+					r.OutPut = &_BackEndObject->Getliboutput();
+					UClib::ToFile(r.OutPut, Data.OutFile);
+				}
 			}
 		}
 	}
@@ -246,6 +263,8 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 	_FrontEndObject->Set_Settings(&_Settings);
 	_FrontEndObject->Set_ErrorsOutput(&_Errors);
 
+
+	Vector<MyStruct> FilesInfo;
 
 	//check for removed.
 	for (auto& Item : NewFile.Files)
@@ -343,6 +362,14 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 	r._State = CompilerState::Fail;
 	r.OutPut = nullptr;
 	return  r;
+}
+
+void Compiler::Optimize(IRBuilder& IR)
+{
+	_Optimizer.Reset();
+	_Optimizer.Set_Settings(&_Settings);
+	_Optimizer.Set_ErrorsOutput(&_Errors);
+	_Optimizer.Optimized(IR);
 }
 
 UCodeLangEnd

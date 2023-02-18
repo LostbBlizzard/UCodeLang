@@ -9,6 +9,8 @@
 
 #include "Front/UCodeFrontEndObject.hpp"
 #include "Back/UCodeBackEnd/UCodeBackEnd.hpp"
+
+#include "DependencyFile.hpp"
 UCodeLangStart
 class Compiler
 {
@@ -66,7 +68,26 @@ public:
 	{
 		_BackEnd = Value;
 	}
-	
+
+
+
+	enum class MyEnumClass :UInt8
+	{
+		NewFile,
+		RemovedFile,
+		UpdatedFile,
+	};
+	struct MyStruct
+	{
+		const Path Path;
+		BytesPtr OpenedFile;
+		MyEnumClass Type;
+		DependencyFile::FileInfo* FileInfo = nullptr;
+		MyStruct()
+		{
+
+		}
+	};
 private:
 	CompliationSettings _Settings;
 	CompliationErrors _Errors;
@@ -80,5 +101,6 @@ private:
 
 	FrontEndObject_Ptr _FrontEnd = &FrontEnd::UCodeFrontEndObject::MakeObject;
 	BackEndObject_Ptr _BackEnd = &UCodeBackEndObject::MakeObject;
+	void Optimize(IRBuilder& IR);
 };
 UCodeLangEnd
