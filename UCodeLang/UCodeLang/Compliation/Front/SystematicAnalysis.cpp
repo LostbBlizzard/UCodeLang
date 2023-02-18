@@ -596,14 +596,14 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 	if (buidCode && !ignoreBody)
 	{
-		_Builder.Build_Func(sybId,syb->FullName);
-
+		LookingAtIRFunc =_Builder.NewFunc(syb->FullName, {});
+		LookingAtIRBlock = LookingAtIRFunc->NewBlock("");
 		PushNewStackFrame();
 
 		for (auto& Item : node.Signature.Parameters.Parameters)
 		{
 			auto ParSybID = (SymbolID)&Item;
-			_Builder.Build_Parameter(ParSybID);
+			//_Builder.Build_Parameter(ParSybID);
 			IRParameters.push_back(ParSybID);
 			
 			auto& V = _Table.GetSymbol(ParSybID);
@@ -612,7 +612,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			{
 				ObjectToDrop V;
 				V.ID = ParSybID;
-				V.Object = _Builder.GetLastField();
+				//V.Object = _Builder.GetLastField();
 				V.Type = V.Type;
 
 				StackFrames.back().OnEndStackFrame.push_back(V);
@@ -633,7 +633,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		}
 		if (!node.Body.has_value()&& DLLCall)
 		{
-			_Builder.Build_DLLJump(node.Signature.Name.AsStringView());
+			//_Builder.Build_DLLJump(node.Signature.Name.AsStringView());
 		}
 	}
 	
@@ -696,7 +696,9 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	if (buidCode && !ignoreBody)
 	{
 		PopStackFrame();
-		_Builder.Build_Ret();
+		
+		LookingAtIRBlock->NewRet();
+
 		IRParameters.clear();
 	}
 
@@ -708,6 +710,36 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 	
 	_Table.RemoveScope();
+}
+IRType SystematicAnalysis::ConvertToIR(const TypeSymbol& Value)
+{
+	
+	switch (Value._Type)
+	{
+	case TypesEnum::Bool:
+	case TypesEnum::Char:
+	case TypesEnum::sInt8:
+	case TypesEnum::uInt8:return IRType(IRTypes::i8);
+		
+	case TypesEnum::sInt16:
+	case TypesEnum::uInt16:return IRType(IRTypes::i16);
+
+	case TypesEnum::sInt32:
+	case TypesEnum::uInt32:return IRType(IRTypes::i32);
+
+	case TypesEnum::sInt64:
+	case TypesEnum::uInt64:return IRType(IRTypes::i64);
+
+	case TypesEnum::float32:return IRType(IRTypes::f32);
+	case TypesEnum::float64:return IRType(IRTypes::f64);
+
+	case TypesEnum::sIntPtr:
+	case TypesEnum::uIntPtr:
+
+	default:
+		throw std::exception("not added");
+		break;
+	}
 }
 void SystematicAnalysis::PushNewStackFrame()
 {
@@ -799,10 +831,10 @@ void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 	if (passtype == PassType::BuidCode)
 	{
 		auto& T = Get_LookingForType();
-		DoImplicitConversion(IROperand::AsLocation(_Builder.GetLastField()),LastExpressionType, T);
+		DoImplicitConversion(_LastExpressionField,LastExpressionType, T);
 		if (node.Expression.Value) 
 		{
-			_Builder.Build_AssignRet(IROperand::AsLocation(_Builder.GetLastField()));
+			LookingAtIRBlock->NewRetValue(_LastExpressionField);
 			BindTypeToLastIR(T);
 		}
 	}
@@ -1011,7 +1043,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 	}
 	LookingForTypes.push(syb->VarType);
 
-	IRField OnVarable{};
+	IRInstruction* OnVarable{};
 	bool Ind =false;
 	if (node.Expression.Value)
 	{
@@ -1019,17 +1051,18 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 		{
 			Ind = ! (IsPrimitive(syb->VarType) || syb->VarType.IsAddress());
 			if (Ind) 
-			{
+			{/*
 				IRlocat Info;
 				Info.ID = sybId;
 				IRlocations.push(Info);
 
-
-
+				
+				LookingAtIRBlock->NewStore()
 				_Builder.Build_Assign(IROperand::AsVarable(sybId), IROperand::AsNothing());
 				OnVarable = _Builder.GetLastField();
 
 				BindTypeToLastIR(syb->VarType);
+				*/
 			}	
 		}
 		OnExpressionTypeNode(node.Expression.Value.get());
@@ -1104,7 +1137,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 
 	if (passtype == PassType::BuidCode && node.Expression.Value)
 	{
-
+		/*
 		DoImplicitConversion(IROperand::AsLocation(_Builder.GetLastField()), LastExpressionType, syb->VarType);
 
 		
@@ -1130,6 +1163,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 
 			StackFrames.back().OnEndStackFrame.push_back(V);
 		}
+		*/
 	}
 }
 void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
@@ -1168,7 +1202,7 @@ void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 	if (passtype == PassType::BuidCode)
 	{
 
-		DoImplicitConversion(IROperand::AsLocation(_Builder.GetLastField()), LastExpressionType, MemberInfo.Type);
+		DoImplicitConversion(_LastExpressionField, LastExpressionType, MemberInfo.Type);
 
 		auto Token = node.Name.ScopedName.begin()->token;
 		auto& Str = Token->Value._String;
@@ -1200,11 +1234,12 @@ void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 
 
 
-
+				/*
 				auto ValueIr = IROperand::AsLocation(_LastExpressionField);
 				auto PointerIr = IROperand::AsReadVarable(IRParameters.front());
 				_Builder.Build_AssignOnPointer(PointerIr, ValueIr, MemberInfo.Offset);
 				BindTypeToLastIR(MemberInfo.Type);
+				*/
 
 				BuildVarableCode = false;
 			}
@@ -1213,11 +1248,13 @@ void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 		
 		if (BuildVarableCode) 
 		{
+			/*
 			SymbolID sybId = Symbol->ID;
 			auto Op = IROperand::AsLocation(_LastExpressionField);
 			auto NewOp = IROperand::AsVarable(sybId);
 			_Builder.Build_Assign(NewOp, Op, MemberInfo.Offset);
 			BindTypeToLastIR(MemberInfo.Type);
+			*/
 		}
 	}
 }
@@ -1245,18 +1282,18 @@ void SystematicAnalysis::OnIfNode(const IfNode& node)
 		}
 	}
 
-	
-	IRField IfIndex{};
+	/*
+	IRInstruction* IfIndex{};
 	IROperand BoolCode;
 	if (passtype == PassType::BuidCode)
 	{
-		DoImplicitConversion(IROperand::AsLocation(_Builder.GetLastField()), LastExpressionType, BoolType);
+		DoImplicitConversion(_LastExpressionField, LastExpressionType, BoolType);
 	
 		BoolCode = IROperand::AsLocation(_Builder.GetLastField());
 		_Builder.Build_IfFalseJump(BoolCode, 0);
 		IfIndex = _Builder.GetLastField();
 	}
-
+	*/
 	
 	
 
@@ -1272,11 +1309,13 @@ void SystematicAnalysis::OnIfNode(const IfNode& node)
 	
 	if (node.Else)
 	{
-		IRField ElseIndex{};
+		IRInstruction* ElseIndex{};
 		if (passtype == PassType::BuidCode)
 		{
+			/*
 			_Builder.Build_Jump(0);//ElseJump
 			ElseIndex = _Builder.GetLastField();
+			*/
 		}
 
 
@@ -1297,18 +1336,21 @@ void SystematicAnalysis::OnIfNode(const IfNode& node)
 
 		if (passtype == PassType::BuidCode)
 		{
+			/*
 			auto& ElseJumpCode = _Builder.Get_IR(ElseIndex);
 			_Builder.Update_Jump(ElseJumpCode,_Builder.GetNextField());
 
 			auto& IFFalseCode = _Builder.Get_IR(IfIndex);
 			_Builder.Update_IfFalseJump(IFFalseCode, BoolCode, ElseIndex + 1);
+			*/
 		}
 	}
 
 	if (passtype == PassType::BuidCode && node.Else == nullptr)
-	{
+	{/*
 		auto& IFFalseCode=_Builder.Get_IR(IfIndex);
 		_Builder.Update_IfFalseJump(IFFalseCode, BoolCode, _Builder.GetNextField());
+		*/
 	}
 
 	
@@ -1336,8 +1378,8 @@ void SystematicAnalysis::OnWhileNode(const WhileNode& node)
 		}
 	}
 
-
-	IRField IfIndex;
+	/*
+	IRInstruction* IfIndex;
 	IROperand BoolCode;
 	if (passtype == PassType::BuidCode)
 	{
@@ -1347,7 +1389,7 @@ void SystematicAnalysis::OnWhileNode(const WhileNode& node)
 		_Builder.Build_IfFalseJump(BoolCode, 0);
 		IfIndex = _Builder.GetLastField();
 	}
-
+	*/
 
 
 
@@ -1358,6 +1400,7 @@ void SystematicAnalysis::OnWhileNode(const WhileNode& node)
 		OnStatement(node2);
 	}
 
+	/*
 	if (passtype == PassType::BuidCode)
 	{
 		_Builder.Build_Jump(IfIndex);
@@ -1365,7 +1408,7 @@ void SystematicAnalysis::OnWhileNode(const WhileNode& node)
 		auto& IFFalseCode = _Builder.Get_IR(IfIndex);
 		_Builder.Update_IfFalseJump(IFFalseCode, BoolCode, _Builder.GetNextField());
 	}
-
+	*/
 
 	_Table.RemoveScope();
 
@@ -1379,10 +1422,10 @@ void SystematicAnalysis::OnDoNode(const DoNode& node)
 	_Table.AddScope(ScopeName);
 
 
-	IRField StartIndex;
+	IRInstruction* StartIndex;
 	if (passtype == PassType::BuidCode)
 	{
-		StartIndex = _Builder.GetNextField();
+		//StartIndex = _Builder.GetNextField();
 	}
 
 
@@ -1409,7 +1452,7 @@ void SystematicAnalysis::OnDoNode(const DoNode& node)
 		}
 	}
 
-
+	/*
 	IROperand BoolCode;
 	if (passtype == PassType::BuidCode)
 	{
@@ -1420,7 +1463,7 @@ void SystematicAnalysis::OnDoNode(const DoNode& node)
 		_Builder.Build_IfFalseJump(BoolCode, _Builder.GetNextField() + 2);//???
 		_Builder.Build_Jump(StartIndex);
 	}
-
+	*/
 
 
 
@@ -1582,6 +1625,7 @@ void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 	}
 	if (passtype == PassType::BuidCode)
 	{
+		/*
 		auto Symbol = GetSymbol(GetScopedNameAsString(node.Name), SymbolType::Varable_t);
 		SymbolID sybId = Symbol->ID;
 		auto& Type = Symbol->VarType;
@@ -1706,6 +1750,7 @@ void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 		auto NewOp = IROperand::AsVarable(sybId);
 		_Builder.Build_Assign(NewOp, Op);
 		BindTypeToLastIR(Type);
+		*/
 	}
 }
 void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& node)
@@ -1734,6 +1779,7 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 	}
 	if (passtype == PassType::BuidCode)
 	{
+		/*
 		auto Symbol = GetSymbol(GetScopedNameAsString(node.VariableName), SymbolType::Varable_t);
 		SymbolID sybId = Symbol->ID;
 		auto& Type = Symbol->VarType;
@@ -1886,6 +1932,7 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 		auto NewOp = IROperand::AsVarable(sybId);
 		_Builder.Build_Assign(NewOp, Op);
 		BindTypeToLastIR(Symbol->VarType);
+		*/
 	}
 }
 void SystematicAnalysis::OnExpressionTypeNode(const Node* node)
@@ -1920,12 +1967,12 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 #define Set_NumberliteralNodeU(x) \
 			UInt##x V; \
 			ParseHelper::ParseStringToUInt##x(Str, V); \
-			_Builder.Build_Assign(IROperand::AsInt##x(V));\
+			_LastExpressionField = LookingAtIRBlock->NewLoad(V);\
 
 #define Set_NumberliteralNodeS(x) \
 			Int##x V; \
 			ParseHelper::ParseStringToInt##x(Str, V); \
-			_Builder.Build_Assign(IROperand::AsInt##x(V));\
+			_LastExpressionField = LookingAtIRBlock->NewLoad(V);\
 
 
 			auto& lookT = Get_LookingForType();
@@ -1998,28 +2045,20 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 				{
 					Int32 V;
 					ParseHelper::ParseStringToInt32(Str, V); 
-					float32 V2 = (float32)V;
-					_Builder.Build_Assign(IROperand::AsInt32(*(UInt32*)&V2));
-					_LastExpressionField = _Builder.GetLastField();
+					_LastExpressionField = LookingAtIRBlock->NewLoad((float32)V);
 					break;
 				};
 				case TypesEnum::float64:
 				{
 					Int64 V;
 					ParseHelper::ParseStringToInt64(Str, V);
-					float64 V2 = (float64)V;
-					_Builder.Build_Assign(IROperand::AsInt64(*(UInt64*)&V2));
-					_LastExpressionField = _Builder.GetLastField();
+					_LastExpressionField = LookingAtIRBlock->NewLoad((float64)V);
 					break;
 				};
 				default:
 					throw std::exception("not added");
 					break;
 				}
-
-
-				_LastExpressionField = _Builder.GetLastField();
-
 			}
 			TypesEnum NewEx;
 			if (lookT._Type == TypesEnum::Var)
@@ -2041,12 +2080,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 			
 			if (passtype == PassType::BuidCode)
 			{
-				
-
-				_Builder.Build_Assign(IROperand::AsInt8((UInt8)num->Get_Value()));
-				_LastExpressionField = _Builder.GetLastField();
-
-				
+				_LastExpressionField = LookingAtIRBlock->NewLoad(num->Get_Value());
 			}
 			LastExpressionType.SetType(TypesEnum::Bool);
 			LastLookedAtToken = num->Token;
@@ -2061,8 +2095,8 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 				String V;
 				bool ItWorked = !ParseHelper::ParseCharliteralToChar(num->Token->Value._String,V);
 				
-				_Builder.Build_Assign(IROperand::AsInt8((UInt8)V.front()));
-				_LastExpressionField = _Builder.GetLastField();
+
+				_LastExpressionField = LookingAtIRBlock->NewLoad((char)V.front());
 			}
 			LastExpressionType.SetType(TypesEnum::Char);
 			LastLookedAtToken = num->Token;
@@ -2073,7 +2107,8 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 			FloatliteralNode* num = FloatliteralNode::As(node.Value.get());
 			auto& lookT = Get_LookingForType();
 			if (passtype == PassType::BuidCode)
-			{
+			{	
+				
 				switch (lookT._Type)
 				{
 				case TypesEnum::float32:
@@ -2081,23 +2116,21 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 					float32 V;
 					bool ItWorked = ParseHelper::ParseStringTofloat32(num->Token->Value._String, V);
 
-					_Builder.Build_Assign(IROperand::AsInt32(*(UInt32*)&V));
-					_LastExpressionField = _Builder.GetLastField();
+					_LastExpressionField = LookingAtIRBlock->NewLoad(V);
 					break;
 				}
 				case TypesEnum::float64:
 				{
 					float64 V;
 					bool ItWorked = ParseHelper::ParseStringTofloat64(num->Token->Value._String, V);
-
-					_Builder.Build_Assign(IROperand::AsInt64(*(UInt64*)&V));
-					_LastExpressionField = _Builder.GetLastField();
+					_LastExpressionField = LookingAtIRBlock->NewLoad(V);
 					break;
 				}
 				default:
 					throw std::exception("not added");
 					break;
 				}
+				
 			}
 
 			TypesEnum NewEx;
@@ -2189,19 +2222,19 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 				{
 				case TypesEnum::sInt8:
 				case TypesEnum::uInt8:
-					_Builder.Build_Assign(IROperand::AsInt8((UInt8)TypeSize));
+					_LastExpressionField = LookingAtIRBlock->NewLoad((UInt8)TypeSize);
 					break;
 				case TypesEnum::sInt16:
 				case TypesEnum::uInt16:
-					_Builder.Build_Assign(IROperand::AsInt16((UInt16)TypeSize));
+					_LastExpressionField = LookingAtIRBlock->NewLoad((UInt16)TypeSize);
 					break;
 				case TypesEnum::sInt32:
 				case TypesEnum::uInt32:
-					_Builder.Build_Assign(IROperand::AsInt32((UInt32)TypeSize));
+					_LastExpressionField = LookingAtIRBlock->NewLoad((UInt32)TypeSize);
 					break;
 				case TypesEnum::sInt64:
 				case TypesEnum::uInt64:
-					_Builder.Build_Assign(IROperand::AsInt64((UInt64)TypeSize));
+					_LastExpressionField = LookingAtIRBlock->NewLoad((UInt64)TypeSize);
 					break;
 				default:
 					Type.SetType(TypesEnum::uIntPtr);
@@ -2265,6 +2298,7 @@ void SystematicAnalysis::OnNewNode(NewExpresionNode* nod)
 		UAddress TypeSize;
 		GetSize(Type, TypeSize);
 
+		/*
 		if (IsArray)
 		{
 			TypeSymbol UintptrType = TypeSymbol();
@@ -2324,6 +2358,7 @@ void SystematicAnalysis::OnNewNode(NewExpresionNode* nod)
 				throw std::exception("not added");
 			}
 		}
+	*/
 	}
 
 	Type.SetAsAddress();
@@ -2431,6 +2466,7 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 	SymbolID sybId = Symbol->ID;
 	if (passtype == PassType::BuidCode)
 	{
+		/*
 		auto& LookForT = Get_LookingForType();
 		if (LookForT.IsAddress())
 		{
@@ -2443,6 +2479,7 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 			BindTypeToLastIR(V.Type);
 		}
 		_LastExpressionField = _Builder.GetLastField();
+		*/
 	}
 
 SetExpressionInfo:
@@ -2452,8 +2489,8 @@ SetExpressionInfo:
 
 void SystematicAnalysis::BindTypeToLastIR(const TypeSymbol& Type)
 {
-	auto& V2 = _Builder.GetLast_IR();
-	GetSize(Type, V2.InfoType.TypeSize);
+	//auto& V2 = _Builder.GetLast_IR();
+	//GetSize(Type, V2.InfoType.TypeSize);
 }
 
 void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
@@ -2477,6 +2514,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 
 	if (passtype == PassType::BuidCode)
 	{
+		/*
 		auto Op0 = IROperand::AsLocation(Ex0);
 		auto Op1 = IROperand::AsLocation(Ex1);
 
@@ -2532,6 +2570,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 			}
 
 		_LastExpressionField = _Builder.GetLastField();
+		*/
 	}
 }
 void SystematicAnalysis::OnExpressionNode(const CastNode& node)
@@ -2562,7 +2601,7 @@ void SystematicAnalysis::OnExpressionNode(const CastNode& node)
 
 	if (passtype == PassType::BuidCode)
 	{
-		DoExplicitlConversion(IROperand::AsLocation(_Builder.GetLastField()), LastExpressionType, ToTypeAs);
+		DoExplicitlConversion(_LastExpressionField, LastExpressionType, ToTypeAs);
 
 		LastExpressionType = ToTypeAs;
 	}
@@ -2621,23 +2660,24 @@ void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 				Build_Decrement_uIntPtr(UintptrSize);
 				//Decrement here to get size
 
-				auto ItemCount = _Builder.GetLastField();
+				//auto ItemCount = _Builder.GetLastField();
 
 				//for loop
 
 
 
-				_Builder.Build_Free(IROperand::AsLocation(_Builder.GetLastField()));
+				//_Builder.Build_Free(IROperand::AsLocation(_Builder.GetLastField()));
 			}
 			else
 			{
-				_Builder.Build_Free(IROperand::AsLocation(Ex0));
+				//_Builder.Build_Free(IROperand::AsLocation(Ex0));
 			}
 
 			Ex0Type._IsAddressArray = true;
 		}
 		else 
 		{
+			/*
 			if (TypeHaveDestructor)
 			{
 				ObjectToDrop Data;
@@ -2659,6 +2699,7 @@ void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 					DoDestructorCall(Data);//call on Ptr
 				}
 			}
+			*/
 
 		}
 	}
@@ -3092,7 +3133,7 @@ bool SystematicAnalysis::CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck,
 	if (IsIntType(TypeToCheck) && IsIntType(TypeToCheck)) { return true; }
 	return false;
 }
-bool SystematicAnalysis::DoImplicitConversion(IROperand Ex, const TypeSymbol ExType, const TypeSymbol& ToType)
+bool SystematicAnalysis::DoImplicitConversion(IRInstruction* Ex, const TypeSymbol ExType, const TypeSymbol& ToType)
 {
 
 	if (AreTheSame(ExType, ToType))
@@ -3101,7 +3142,7 @@ bool SystematicAnalysis::DoImplicitConversion(IROperand Ex, const TypeSymbol ExT
 	}
 	return false;
 }
-void SystematicAnalysis::DoExplicitlConversion(IROperand Ex, const TypeSymbol ExType, const TypeSymbol& ToType)
+void SystematicAnalysis::DoExplicitlConversion(IRInstruction* Ex, const TypeSymbol ExType, const TypeSymbol& ToType)
 {
 	if (!DoImplicitConversion(Ex, ExType, ToType))
 	{
@@ -3308,7 +3349,8 @@ SystematicAnalysis::Get_FuncInfo SystematicAnalysis::GetFunc(const TypeSymbol& N
 void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Name, const ValueParametersNode& Pars)
 {
 	{
-#define PrimitiveTypeCall(FullName,TypeEnum,DefaultValue) if (ScopedName == FullName) \
+		/*
+		#define PrimitiveTypeCall(FullName,TypeEnum,DefaultValue) if (ScopedName == FullName) \
 		{\
 			TypeSymbol iNfo;\
 			iNfo.SetType(TypeEnum);\
@@ -3317,7 +3359,7 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 				LookingForTypes.push(iNfo);\
 				auto& Item = Pars._Nodes[0];\
 				OnExpressionTypeNode(Item.get());\
-				DoImplicitConversion(IROperand::AsLocation(_Builder.GetLastField()), LastExpressionType, iNfo);\
+				DoImplicitConversion(_LastExpressionField, LastExpressionType, iNfo);\
 				LookingForTypes.pop();\
 			}\
 			else\
@@ -3350,6 +3392,7 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 
 		else PrimitiveTypeCall(float32TypeName, TypesEnum::float32, float32 V = 0; _Builder.Build_Assign(IROperand::AsInt32(*(UInt32*)&V));)
 		else PrimitiveTypeCall(float64TypeName, TypesEnum::float64, float64 V = 0; _Builder.Build_Assign(IROperand::AsInt64(*(UInt64*)&V)))
+		*/
 	}
 	if (Func.Func == nullptr)
 	{
@@ -3371,18 +3414,18 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 			auto Symbol = GetSymbol(Str, SymbolType::Varable_t);
 			auto _SybolID = Symbol->ID;
 
-			_Builder.Build_Assign(IROperand::AsPointer(_SybolID), V.Offset);
+			//_Builder.Build_Assign(IROperand::AsPointer(_SybolID), V.Offset);
 			BindTypeToLastIR(V.Type);
-			_Builder.Build_PassLastAsParameter();
+			//_Builder.Build_PassLastAsParameter();
 		}
 		else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::PushFromLast)
 		{
-			_Builder.Build_PassLastAsParameter();
+			//_Builder.Build_PassLastAsParameter();
 		}
 		else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::OnIRlocationStack)
 		{
-			_Builder.Build_Assign(IROperand::AsPointer(IRlocations.top().ID));
-			_Builder.Build_PassLastAsParameter();
+			//_Builder.Build_Assign(IROperand::AsPointer(IRlocations.top().ID));
+			//_Builder.Build_PassLastAsParameter();
 		}
 	}
 
@@ -3396,13 +3439,14 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 		LookingForTypes.push(FuncParInfo);
 
 		OnExpressionTypeNode(Item.get());
-		DoImplicitConversion(IROperand::AsLocation(_Builder.GetLastField()), LastExpressionType, FuncParInfo);
+		DoImplicitConversion(_LastExpressionField, LastExpressionType, FuncParInfo);
 
-		_Builder.Build_PassLastAsParameter();
+		LookingAtIRBlock->NewPushParameter(_LastExpressionField);
+		
 
 		LookingForTypes.pop();
 	}
-	_Builder.Build_FuncCall(GetSymbol(Func.Func)->ID);
+	LookingAtIRBlock->NewCall(GetSymbol(Func.Func)->ID);
 
 	LastExpressionType = Func.Func->Ret;
 }
@@ -3411,6 +3455,7 @@ void SystematicAnalysis::DoDestructorCall(const ObjectToDrop& Object)
 	
 	if (IsPrimitive(Object.Type))
 	{
+		/*
 		return;
 		UAddress NewValue;
 		UAddress ObjectSize;
@@ -3445,10 +3490,11 @@ void SystematicAnalysis::DoDestructorCall(const ObjectToDrop& Object)
 		auto Op = IROperand::AsLocation(_Builder.GetLastField());
 		auto NewOp = IROperand::AsLocation(Object.Object);
 		_Builder.Build_Assign(NewOp, Op);
-
+		*/
 	}
 	else
 	{
+		/*
 		if (Object.Type.IsAn(TypesEnum::CustomType))
 		{
 			int a = 0;
@@ -3474,6 +3520,7 @@ void SystematicAnalysis::DoDestructorCall(const ObjectToDrop& Object)
 				DoFuncCall(Object.Type, FuncInfo, Vtemp);
 			}
 		}
+		*/
 	}
 }
 SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGenericsNode& Generics, const ValueParametersNode& Pars, TypeSymbol Ret)
@@ -4403,16 +4450,16 @@ void SystematicAnalysis::Build_Assign_uIntPtr(UAddress Value)
 	switch (_Settings->PtrSize)
 	{
 	case IntSizes::Int8:
-		_Builder.Build_Assign(IROperand::AsInt8((UInt8)Value));
+		//_Builder.Build_Assign(IROperand::AsInt8((UInt8)Value));
 		break;
 	case IntSizes::Int16:
-		_Builder.Build_Assign(IROperand::AsInt16((UInt16)Value));
+		//_Builder.Build_Assign(IROperand::AsInt16((UInt16)Value));
 		break;
 	case IntSizes::Int32:
-		_Builder.Build_Assign(IROperand::AsInt32((UInt32)Value));
+		//_Builder.Build_Assign(IROperand::AsInt32((UInt32)Value));
 		break;
 	case IntSizes::Int64:
-		_Builder.Build_Assign(IROperand::AsInt64((UInt64)Value));
+		//_Builder.Build_Assign(IROperand::AsInt64((UInt64)Value));
 		break;
 	default:
 		throw std::exception("");
@@ -4424,21 +4471,21 @@ void SystematicAnalysis::Build_Assign_sIntPtr(SIntNative Value)
 	return Build_Assign_uIntPtr((UAddress)Value);
 }
 
-void SystematicAnalysis::Build_Add_uIntPtr(IROperand field, IROperand field2)
+void SystematicAnalysis::Build_Add_uIntPtr(IROperator field, IROperator field2)
 {
 	switch (_Settings->PtrSize)
 	{
 	case IntSizes::Int8:
-		_Builder.MakeAdd8(field, field2);
+		//_Builder.MakeAdd8(field, field2);
 		break;	
 	case IntSizes::Int16:
-		_Builder.MakeAdd16(field, field2);
+		//_Builder.MakeAdd16(field, field2);
 		break;
 	case IntSizes::Int32:
-		_Builder.MakeAdd32(field, field2);
+		//_Builder.MakeAdd32(field, field2);
 		break;
 	case IntSizes::Int64:
-		_Builder.MakeAdd64(field, field2);
+		//_Builder.MakeAdd64(field, field2);
 		break;
 	default:
 		throw std::exception("");
@@ -4447,21 +4494,21 @@ void SystematicAnalysis::Build_Add_uIntPtr(IROperand field, IROperand field2)
 	}
 }
 
-void SystematicAnalysis::Build_Sub_uIntPtr(IROperand field, IROperand field2)
+void SystematicAnalysis::Build_Sub_uIntPtr(IROperator field, IROperator field2)
 {
 	switch (_Settings->PtrSize)
 	{
 	case IntSizes::Int8:
-		_Builder.MakeSub8(field, field2);
+		//_Builder.MakeSub8(field, field2);
 		break;
 	case IntSizes::Int16:
-		_Builder.MakeSub16(field, field2);
+		//_Builder.MakeSub16(field, field2);
 		break;
 	case IntSizes::Int32:
-		_Builder.MakeSub32(field, field2);
+		//_Builder.MakeSub32(field, field2);
 		break;
 	case IntSizes::Int64:
-		_Builder.MakeSub64(field, field2);
+		//_Builder.MakeSub64(field, field2);
 		break;
 	default:
 		throw std::exception("");
@@ -4469,21 +4516,21 @@ void SystematicAnalysis::Build_Sub_uIntPtr(IROperand field, IROperand field2)
 	}
 }
 
-void SystematicAnalysis::Build_Add_sIntPtr(IROperand field, IROperand field2)
+void SystematicAnalysis::Build_Add_sIntPtr(IROperator field, IROperator field2)
 {
 	switch (_Settings->PtrSize)
 	{
 	case IntSizes::Int8:
-		_Builder.MakeAdd8(field, field2);
+		//_Builder.MakeAdd8(field, field2);
 		break;
 	case IntSizes::Int16:
-		_Builder.MakeAdd16(field, field2);
+		//_Builder.MakeAdd16(field, field2);
 		break;
 	case IntSizes::Int32:
-		_Builder.MakeAdd32(field, field2);
+		//_Builder.MakeAdd32(field, field2);
 		break;
 	case IntSizes::Int64:
-		_Builder.MakeAdd64(field, field2);
+		//_Builder.MakeAdd64(field, field2);
 		break;
 	default:
 		throw std::exception("");
@@ -4491,21 +4538,21 @@ void SystematicAnalysis::Build_Add_sIntPtr(IROperand field, IROperand field2)
 	}
 }
 
-void SystematicAnalysis::Build_Sub_sIntPtr(IROperand field, IROperand field2)
+void SystematicAnalysis::Build_Sub_sIntPtr(IROperator field, IROperator field2)
 {
 	switch (_Settings->PtrSize)
 	{
 	case IntSizes::Int8:
-		_Builder.MakeSub8(field, field2);
+		//_Builder.MakeSub8(field, field2);
 		break;
 	case IntSizes::Int16:
-		_Builder.MakeSub16(field, field2);
+		//_Builder.MakeSub16(field, field2);
 		break;
 	case IntSizes::Int32:
-		_Builder.MakeSub32(field, field2);
+		//_Builder.MakeSub32(field, field2);
 		break;
 	case IntSizes::Int64:
-		_Builder.MakeSub64(field, field2);
+		//_Builder.MakeSub64(field, field2);
 		break;
 	default:
 		throw std::exception("");
@@ -4513,21 +4560,21 @@ void SystematicAnalysis::Build_Sub_sIntPtr(IROperand field, IROperand field2)
 	}
 }
 
-void SystematicAnalysis::Build_Mult_uIntPtr(IROperand field, IROperand field2)
+void SystematicAnalysis::Build_Mult_uIntPtr(IROperator field, IROperator field2)
 {
 	switch (_Settings->PtrSize)
 	{
 	case IntSizes::Int8:
-		_Builder.MakeUMult8(field, field2);
+		//_Builder.MakeUMult8(field, field2);
 		break;
 	case IntSizes::Int16:
-		_Builder.MakeUMult16(field, field2);
+		//_Builder.MakeUMult16(field, field2);
 		break;
 	case IntSizes::Int32:
-		_Builder.MakeUMult32(field, field2);
+		//_Builder.MakeUMult32(field, field2);
 		break;
 	case IntSizes::Int64:
-		_Builder.MakeUMult64(field, field2);
+		//_Builder.MakeUMult64(field, field2);
 		break;
 	default:
 		throw std::exception("");
@@ -4535,21 +4582,21 @@ void SystematicAnalysis::Build_Mult_uIntPtr(IROperand field, IROperand field2)
 	}
 }
 
- void SystematicAnalysis::Build_Mult_sIntPtr(IROperand field, IROperand field2)
+ void SystematicAnalysis::Build_Mult_sIntPtr(IROperator field, IROperator field2)
 {
 	 switch (_Settings->PtrSize)
 	 {
 	 case IntSizes::Int8:
-		 _Builder.MakeSMult8(field, field2);
+		 //_Builder.MakeSMult8(field, field2);
 		 break;
 	 case IntSizes::Int16:
-		 _Builder.MakeSMult16(field, field2);
+		 //_Builder.MakeSMult16(field, field2);
 		 break;
 	 case IntSizes::Int32:
-		 _Builder.MakeSMult32(field, field2);
+		 //_Builder.MakeSMult32(field, field2);
 		 break;
 	 case IntSizes::Int64:
-		 _Builder.MakeSMult64(field, field2);
+		 //_Builder.MakeSMult64(field, field2);
 		 break;
 	 default:
 		 throw std::exception("");
@@ -4557,21 +4604,21 @@ void SystematicAnalysis::Build_Mult_uIntPtr(IROperand field, IROperand field2)
 	 }
 }
 
-void SystematicAnalysis::Build_Div_uIntPtr(IROperand field, IROperand field2)
+void SystematicAnalysis::Build_Div_uIntPtr(IROperator field, IROperator field2)
 {
 	switch (_Settings->PtrSize)
 	{
 	case IntSizes::Int8:
-		_Builder.MakeUDiv8(field, field2);
+		//_Builder.MakeUDiv8(field, field2);
 		break;
 	case IntSizes::Int16:
-		_Builder.MakeUDiv16(field, field2);
+		//_Builder.MakeUDiv16(field, field2);
 		break;
 	case IntSizes::Int32:
-		_Builder.MakeUDiv32(field, field2);
+		//_Builder.MakeUDiv32(field, field2);
 		break;
 	case IntSizes::Int64:
-		_Builder.MakeUDiv64(field, field2);
+		//_Builder.MakeUDiv64(field, field2);
 		break;
 	default:
 		throw std::exception("");
@@ -4579,21 +4626,21 @@ void SystematicAnalysis::Build_Div_uIntPtr(IROperand field, IROperand field2)
 	}
 }
 
-void SystematicAnalysis::Build_Div_sIntPtr(IROperand field, IROperand field2)
+void SystematicAnalysis::Build_Div_sIntPtr(IROperator field, IROperator field2)
 {
 	switch (_Settings->PtrSize)
 	{
 	case IntSizes::Int8:
-		_Builder.MakeSDiv8(field, field2);
+		//_Builder.MakeSDiv8(field, field2);
 		break;
 	case IntSizes::Int16:
-		_Builder.MakeSDiv16(field, field2);
+		//_Builder.MakeSDiv16(field, field2);
 		break;
 	case IntSizes::Int32:
-		_Builder.MakeSDiv32(field, field2);
+		//_Builder.MakeSDiv32(field, field2);
 		break;
 	case IntSizes::Int64:
-		_Builder.MakeSDiv64(field, field2);
+		//_Builder.MakeSDiv64(field, field2);
 		break;
 	default:
 		throw std::exception("");
@@ -4606,16 +4653,16 @@ void SystematicAnalysis::Build_Increment_uIntPtr(UAddress Value)
 	switch (_Settings->PtrSize)
 	{
 	case IntSizes::Int8:
-		_Builder.Build_Increment8((Int8)Value);
+		//_Builder.Build_Increment8((Int8)Value);
 		break;
 	case IntSizes::Int16:
-		_Builder.Build_Increment16((Int16)Value);
+		//_Builder.Build_Increment16((Int16)Value);
 		break;
 	case IntSizes::Int32:
-		_Builder.Build_Increment32((Int32)Value);
+		//_Builder.Build_Increment32((Int32)Value);
 		break;
 	case IntSizes::Int64:
-		_Builder.Build_Increment64((Int64)Value);
+		//_Builder.Build_Increment64((Int64)Value);
 		break;
 	default:
 		throw std::exception("");
@@ -4628,16 +4675,16 @@ void SystematicAnalysis::Build_Decrement_uIntPtr(UAddress Value)
 	switch (_Settings->PtrSize)
 	{
 	case IntSizes::Int8:
-		_Builder.Build_Decrement8((Int8)Value);
+		//_Builder.Build_Decrement8((Int8)Value);
 		break;
 	case IntSizes::Int16:
-		_Builder.Build_Decrement16((Int16)Value);
+		//_Builder.Build_Decrement16((Int16)Value);
 		break;
 	case IntSizes::Int32:
-		_Builder.Build_Decrement32((Int32)Value);
+		//_Builder.Build_Decrement32((Int32)Value);
 		break;
 	case IntSizes::Int64:
-		_Builder.Build_Decrement64((Int64)Value);
+		//_Builder.Build_Decrement64((Int64)Value);
 		break;
 	default:
 		throw std::exception("");

@@ -2,7 +2,8 @@
 #include "UCodeLang/LangCore/UClib.hpp"
 #include "UCodeLang/Compliation/Helpers/CompilerTypes.hpp"
 #include "UCodeLang/Compliation/Helpers/CompliationErrors.hpp"
-#include "UCodeLang/Compliation/Middle/IRCode.hpp"
+#include "UCodeLang/Compliation/CompliationSettings.hpp"
+#include "UCodeLang/Compliation/Middle/IR.hpp"
 UCodeLangStart
 
 
@@ -59,7 +60,7 @@ public:
 	virtual ~FrontEndObject() {}
 
 	virtual const LangDefInfo* GetInfo() { return nullptr; }
-	virtual const IRBuilder* Get_Builder(){ return nullptr; }
+	virtual IRBuilder* Get_Builder(){ return nullptr; }
 	virtual UClib* Get_Lib() { return nullptr; }
 
 	void Set_ErrorsOutput(CompliationErrors* Err)

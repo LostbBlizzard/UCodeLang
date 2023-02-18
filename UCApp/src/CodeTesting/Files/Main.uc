@@ -8,6 +8,5 @@ enum Item[int]:
 
 
 |main[] -> var:
- var V =Item::Red;
-
- ret 0;
+ int a = 0;
+ ret a;

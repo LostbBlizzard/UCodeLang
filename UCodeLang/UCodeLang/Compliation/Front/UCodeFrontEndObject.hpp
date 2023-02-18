@@ -45,7 +45,7 @@ public:
 
 	void BuildIR(const Vector<Unique_ptr<FileNode_t>>& FileNode) override;
 
-	const IRBuilder* Get_Builder() override {return &_Analyzer.Get_Output();}
+	IRBuilder* Get_Builder() override {return &_Analyzer.Get_Output();}
 
 	const LangDefInfo* GetInfo() override { return  &UCodeLangInfo::GetLangInfo(); }
 

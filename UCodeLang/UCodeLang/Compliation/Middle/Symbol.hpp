@@ -1,6 +1,6 @@
 #pragma once
 #include "UCodeLang/LangCore/ScopeHelper.hpp"
-#include "IRCode.hpp"
+#include "SymbolID.hpp"
 #include "../Front/UCodeFrontEndNameSpace.hpp"
 UCodeLangFrontStart
 
