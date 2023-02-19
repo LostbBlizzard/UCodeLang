@@ -21,8 +21,8 @@ private:
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
 	IRBuilder* Input = nullptr;
-
-	
+	bool _UpdatedCode = false;
+	void UpdatedCode() { _UpdatedCode = true; }
 
 	struct OptimizationState
 	{
@@ -31,6 +31,18 @@ private:
 	Array<OptimizationState, OptimizationCount> OptimizationListState;
 
 	void UpdateOptimizationList();
+	void UpdateCodePass();
+	void ConstantFoldOperator(IRInstruction& I,IROperator& Value);
+
+	struct MyStruct
+	{
+		bool IsReferenced = false;
+	};
+	Unordered_map<IRInstruction*, MyStruct> IRData;
+	auto& Get_IRData(IRInstruction* V)
+	{
+		return  IRData[V];
+	}
 };
 
 UCodeLangEnd
