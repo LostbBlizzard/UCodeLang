@@ -70,7 +70,7 @@ private:
 	struct ObjectToDrop
 	{
 		SymbolID ID =0;
-		//IRField Object=0;
+		IRInstruction* Object=0;
 		TypeSymbol Type;
 	};
 	

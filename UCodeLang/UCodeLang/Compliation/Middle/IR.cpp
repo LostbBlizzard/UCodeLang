@@ -27,7 +27,7 @@ String IRBuilder::ToString()
 		}
 		r += "] -> ";
 		r += ToString(Item->ReturnType);
-
+		r += ":";
 		if (Item->Blocks.size())
 		{
 			String Tabs = " ";
@@ -42,7 +42,10 @@ String IRBuilder::ToString()
 					auto& I = Block->Instructions[i];
 					if (I->Type == IRInstructionType::None){continue;}
 
-					r += Tabs;
+					if (I->Type != IRInstructionType::PushParameter)
+					{
+						r += Tabs;
+					}
 					switch (I->Type)
 					{
 					case IRInstructionType::LoadReturn:
@@ -75,6 +78,23 @@ String IRBuilder::ToString()
 					case IRInstructionType::UDiv:
 						r += ToStringBinary(State, I.get(), "/");
 						break;
+					case IRInstructionType::PushParameter:
+						State.TepPushedParameters.push_back(I.get());
+						continue;
+						break;
+					case IRInstructionType::Call:
+					{
+						r += ToString(I->ObjectType);
+						r += " " + State.GetName(I.get());
+						r += " = ";
+						r += FromID(I->Target().identifer) + "(";
+						for (auto& Item : State.TepPushedParameters)
+						{
+							r += State.PointerToName.at(Item->Target().Pointer);
+						}
+						State.TepPushedParameters.clear();
+						r += ")";
+					}break;
 					case IRInstructionType::Return:
 						if (i != 0 && Block->Instructions[i - 1]->Type == IRInstructionType::LoadReturn) { continue; }
 						r += "ret";
@@ -91,7 +111,7 @@ String IRBuilder::ToString()
 		{
 			r += ";\n";
 		}
-
+		r += "\n";
 	}
 
 	return r;
@@ -106,6 +126,9 @@ String IRBuilder::ToString(const IRType& Type)
 	case IRTypes::i64:return "int64";
 	case IRTypes::f32:return "float32";
 	case IRTypes::f64:return "float64";
+
+
+	case IRTypes::Void:return "void";
 	default:
 		break;
 	}
@@ -135,6 +158,8 @@ String IRBuilder::ToString(ToStringState& State, IRInstruction& Ins, IROperator&
 
 	case IROperatorType::IRInstruction:
 	{
+		//for
+
 		return  State.PointerToName.at(Value.Pointer);
 	}
 	default:return "[]";

@@ -50,7 +50,7 @@ void UCodeBackEndObject::OnBlock(const IRBlock* IR)
 	OnBlockBuildCode(IR);
 	
 }
-void UCodeBackEndObject::OnBlockBuildCode(const UCodeLang::IRBlock* IR)
+void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 {
 	for (auto& Item_ : IR->Instructions)
 	{

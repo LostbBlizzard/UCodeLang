@@ -603,22 +603,28 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		for (auto& Item : node.Signature.Parameters.Parameters)
 		{
 			auto ParSybID = (SymbolID)&Item;
-			//_Builder.Build_Parameter(ParSybID);
-			IRParameters.push_back(ParSybID);
-			
 			auto& V = _Table.GetSymbol(ParSybID);
+			IRParameters.push_back(ParSybID);
+
+			auto& d = LookingAtIRFunc->Pars.emplace_back();
+			d.identifier = V.FullName;
+			d.type = ConvertToIR(V.VarType);
+			
+			
+			
 
 			if (HasDestructor(V.VarType))
 			{
 				ObjectToDrop V;
 				V.ID = ParSybID;
-				//V.Object = _Builder.GetLastField();
+				//V.Object =IROperator(d);
 				V.Type = V.Type;
 
 				StackFrames.back().OnEndStackFrame.push_back(V);
 			}
 
 		}
+		LookingAtIRFunc->ReturnType = ConvertToIR(syb->VarType);
 
 		bool DLLCall = false;
 		for (auto& Item : _TepAttributes)
@@ -732,6 +738,8 @@ IRType SystematicAnalysis::ConvertToIR(const TypeSymbol& Value)
 
 	case TypesEnum::float32:return IRType(IRTypes::f32);
 	case TypesEnum::float64:return IRType(IRTypes::f64);
+
+	case TypesEnum::Void:return IRType(IRTypes::Void);
 
 	case TypesEnum::sIntPtr:
 	case TypesEnum::uIntPtr:
@@ -3407,8 +3415,9 @@ SystematicAnalysis::Get_FuncInfo SystematicAnalysis::GetFunc(const TypeSymbol& N
 }
 void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Name, const ValueParametersNode& Pars)
 {
+	if (passtype != PassType::BuidCode) { return; }
 	{
-		/*
+		
 		#define PrimitiveTypeCall(FullName,TypeEnum,DefaultValue) if (ScopedName == FullName) \
 		{\
 			TypeSymbol iNfo;\
@@ -3436,22 +3445,22 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 			ScopedName = ToString(SymbolsV->VarType);
 		}
 
-		PrimitiveTypeCall(Uint8TypeName, TypesEnum::uInt8, _Builder.Build_Assign(IROperand::AsInt8((UInt8)0));)
-		else PrimitiveTypeCall(Uint16TypeName, TypesEnum::uInt16, _Builder.Build_Assign(IROperand::AsInt16((UInt16)0)))
-		else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _Builder.Build_Assign(IROperand::AsInt32((UInt32)0)))
-		else PrimitiveTypeCall(Uint16TypeName, TypesEnum::uInt64, _Builder.Build_Assign(IROperand::AsInt64((UInt64)0)))
+		PrimitiveTypeCall(Uint8TypeName, TypesEnum::uInt8, LookingAtIRBlock->NewLoad((UInt8)0);)
+		else PrimitiveTypeCall(Uint16TypeName, TypesEnum::uInt16, LookingAtIRBlock->NewLoad((UInt16)0))
+		else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, LookingAtIRBlock->NewLoad((UInt32)0))
+		else PrimitiveTypeCall(Uint16TypeName, TypesEnum::uInt64, LookingAtIRBlock->NewLoad(((UInt64)0)))
 
-		else PrimitiveTypeCall(Sint8TypeName, TypesEnum::sInt8, _Builder.Build_Assign(IROperand::AsInt8((Int8)0));)
-		else PrimitiveTypeCall(Sint16TypeName, TypesEnum::sInt16, _Builder.Build_Assign(IROperand::AsInt16((Int16)0)))
-		else PrimitiveTypeCall(Sint32TypeName, TypesEnum::sInt32, _Builder.Build_Assign(IROperand::AsInt32((Int32)0)))
-		else PrimitiveTypeCall(Sint16TypeName, TypesEnum::sInt64, _Builder.Build_Assign(IROperand::AsInt64((Int64)0)))
+		else PrimitiveTypeCall(Sint8TypeName, TypesEnum::sInt8, LookingAtIRBlock->NewLoad((Int8)0);)
+		else PrimitiveTypeCall(Sint16TypeName, TypesEnum::sInt16, LookingAtIRBlock->NewLoad((Int16)0))
+		else PrimitiveTypeCall(Sint32TypeName, TypesEnum::sInt32, LookingAtIRBlock->NewLoad((Int32)0))
+		else PrimitiveTypeCall(Sint16TypeName, TypesEnum::sInt64, LookingAtIRBlock->NewLoad((Int64)0))
 
-		else PrimitiveTypeCall(boolTypeName, TypesEnum::Bool, _Builder.Build_Assign(IROperand::AsInt8((UInt8)false));)
-		else PrimitiveTypeCall(CharTypeName, TypesEnum::Char, _Builder.Build_Assign(IROperand::AsInt8((UInt8)'\0')))
+		else PrimitiveTypeCall(boolTypeName, TypesEnum::Bool, LookingAtIRBlock->NewLoad(false))
+		else PrimitiveTypeCall(CharTypeName, TypesEnum::Char, LookingAtIRBlock->NewLoad('\0'))
 
-		else PrimitiveTypeCall(float32TypeName, TypesEnum::float32, float32 V = 0; _Builder.Build_Assign(IROperand::AsInt32(*(UInt32*)&V));)
-		else PrimitiveTypeCall(float64TypeName, TypesEnum::float64, float64 V = 0; _Builder.Build_Assign(IROperand::AsInt64(*(UInt64*)&V)))
-		*/
+		else PrimitiveTypeCall(float32TypeName, TypesEnum::float32, LookingAtIRBlock->NewLoad((float32)0))
+		else PrimitiveTypeCall(float64TypeName, TypesEnum::float64, LookingAtIRBlock->NewLoad((float64)0))
+		
 	}
 	if (Func.Func == nullptr)
 	{
@@ -3475,16 +3484,16 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 
 			//_Builder.Build_Assign(IROperand::AsPointer(_SybolID), V.Offset);
 			BindTypeToLastIR(V.Type);
-			//_Builder.Build_PassLastAsParameter();
+			LookingAtIRBlock->NewPushParameter(_LastExpressionField);
 		}
 		else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::PushFromLast)
 		{
-			//_Builder.Build_PassLastAsParameter();
+			LookingAtIRBlock->NewPushParameter(_LastExpressionField);
 		}
 		else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::OnIRlocationStack)
 		{
 			//_Builder.Build_Assign(IROperand::AsPointer(IRlocations.top().ID));
-			//_Builder.Build_PassLastAsParameter();
+			LookingAtIRBlock->NewPushParameter(_LastExpressionField);
 		}
 	}
 
@@ -3505,7 +3514,7 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 
 		LookingForTypes.pop();
 	}
-	LookingAtIRBlock->NewCall(GetSymbol(Func.Func)->ID);
+	_LastExpressionField = LookingAtIRBlock->NewCall(_Builder.ToID(GetSymbol(Func.Func)->FullName));
 
 	LastExpressionType = Func.Func->Ret;
 }

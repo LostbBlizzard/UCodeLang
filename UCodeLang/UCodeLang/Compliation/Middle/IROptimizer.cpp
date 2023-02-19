@@ -86,7 +86,12 @@ void IROptimizer::UpdateCodePass()
 
 			for (auto& Ins : Block->Instructions)
 			{
-				
+				if (Ins->Type == IRInstructionType::PushParameter)
+				{
+
+					ConstantFoldOperator(*Ins, Ins->Input());
+					Get_IRData(Ins->Target().Pointer).IsReferenced =true;
+				}
 
 				if (Ins->Type == IRInstructionType::Reassign)
 				{
