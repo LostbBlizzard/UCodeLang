@@ -47,8 +47,12 @@ using IRInstructionType_t = UInt8;
 enum class IRInstructionType : IRInstructionType_t
 {
 	None,
-	Load,//Load Target
 	
+
+	LoadNone,//just a valid location
+	Load,//Load Target
+	Reassign,//Reassign Target
+
 	Call,//jump to Target 
 	PushParameter,//Push Target
 	LoadReturn,//Load Target as Return Value
@@ -122,7 +126,6 @@ struct IRInstruction
 	IRInstruction(IRInstructionType type, IROperator Value):Type(type){Target(Value);}
 	IRInstruction(IRInstructionType type, IROperator a, IROperator b) :Type(type), A(a),B(b){}
 	IRInstructionType Type;
-	IROperator Storage;
 
 
 	IROperator A;
@@ -138,6 +141,10 @@ struct IRInstruction
 	{
 		A = Value;
 	}
+
+	auto& Input(){return B;}
+	void Input(const IROperator& Value){B = Value;}
+
 	void SetAsNone()
 	{
 		*this = IRInstruction();
@@ -156,7 +163,7 @@ struct IRBlock
 	//Loading Values
 	IRInstruction* NewLoad(IRType Type)
 	{
-		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::None)).get();
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::LoadNone)).get();
 		V->ObjectType = Type;
 		return V;
 	}
@@ -230,10 +237,15 @@ struct IRBlock
 		return V;
 	}
 
+	IRInstruction* NewLoad(IRInstruction* Value)
+	{
+		return Instructions.emplace_back(new IRInstruction(IRInstructionType::Load, IROperator(Value))).get();
+	}
+
 	void NewStore(IRInstruction* Storage, IRInstruction* Value)
 	{
-		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Load,Value)).get();
-		V->Target(Storage);
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Reassign, Storage)).get();
+		V->Input(IROperator(Value));
 	}
 	
 	//math

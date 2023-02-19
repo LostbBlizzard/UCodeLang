@@ -2,8 +2,12 @@
 #include "UCodeLang/LangCore/ScopeHelper.hpp"
 #include "SymbolID.hpp"
 #include "../Front/UCodeFrontEndNameSpace.hpp"
-UCodeLangFrontStart
 
+UCodeLangStart
+struct IRInstruction;
+UCodeLangEnd
+
+UCodeLangFrontStart
 
 enum class TypesEnum :UInt8
 {
@@ -391,6 +395,7 @@ public:
 	{
 		return (T*)Info.get();
 	}
+	IRInstruction* IR_Ins=nullptr;
 };
 
 

@@ -93,7 +93,6 @@ private:
 
 	IRType ConvertToIR(const TypeSymbol& Value);
 
-	//use =: 0;
 
 	Stack<TypeSymbol> LookingForTypes;
 	TypeSymbol LastExpressionType;
@@ -172,7 +171,11 @@ private:
 	void OnNewNode(NewExpresionNode* nod);
 	void OnAnonymousObjectConstructor(AnonymousObjectConstructorNode*& nod);
 	void OnReadVariable(const ReadVariableNode& nod);
-	
+
+	Byte OperatorPrecedenceValue(const Node* node);
+	Byte OperatorPrecedence(TokenType V);
+	bool SwapForOperatorPrecedence(const Node* nodeA, const Node* nodeB);
+
 	void OnExpressionNode(const BinaryExpressionNode& node);
 	void OnExpressionNode(const CastNode& node);
 	void OnFuncCallNode(const FuncCallNode& node);
