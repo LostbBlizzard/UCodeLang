@@ -48,10 +48,18 @@ String IRBuilder::ToString()
 					case IRInstructionType::LoadReturn:
 						r += "ret " + ToString(State, *I, I->Target());
 						break;
+					case IRInstructionType::LoadNone:
+						r += ToString(I->ObjectType);
+						r += " " + State.GetName(I.get());
+						break;
 					case IRInstructionType::Load:
 						r += ToString(I->ObjectType);
 						r += " " + State.GetName(I.get());
 						r += " = " + ToString(State,*I, I->Target());
+						break;
+					case IRInstructionType::Reassign:
+						r += ToString(State,*I,I->Target());
+						r += " = " + ToString(State, *I, I->Input());
 						break;
 					case IRInstructionType::Add:
 						r += ToStringBinary(State, I.get(), "+");
@@ -127,7 +135,7 @@ String IRBuilder::ToString(ToStringState& State, IRInstruction& Ins, IROperator&
 
 	case IROperatorType::IRInstruction:
 	{
-		return  State.PointerToName[Value.Pointer];
+		return  State.PointerToName.at(Value.Pointer);
 	}
 	default:return "[]";
 	}

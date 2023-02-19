@@ -88,8 +88,13 @@ void IROptimizer::UpdateCodePass()
 			{
 				
 
-
-				if (Ins->Type == IRInstructionType::Load
+				if (Ins->Type == IRInstructionType::Reassign)
+				{
+					
+						ConstantFoldOperator(*Ins, Ins->Input());
+					
+				}
+				else if (Ins->Type == IRInstructionType::Load
 					|| Ins->Type == IRInstructionType::LoadReturn)
 				{
 					ConstantFoldOperator(*Ins, Ins->Target());
@@ -155,11 +160,30 @@ void IROptimizer::UpdateCodePass()
 
 			for (auto& Ins : Block->Instructions)
 			{
-				if (Ins->Type == IRInstructionType::Load) {
+				if (Ins->Type == IRInstructionType::Load) 
+				{
 					auto& Data = Get_IRData(Ins.get());
 					if (!Data.IsReferenced)
 					{
 						Ins->SetAsNone(); UpdatedCode();
+					}
+				}
+
+				if (Ins->Type == IRInstructionType::LoadNone)
+				{
+					auto& Data = Get_IRData(Ins.get());
+					if (!Data.IsReferenced)
+					{
+						Ins->SetAsNone(); UpdatedCode();
+					}
+				}
+
+				if (Ins->Type == IRInstructionType::Reassign)
+				{
+					if (Ins->Target().Pointer->Type == IRInstructionType::None)
+					{
+						Ins->SetAsNone();
+						UpdatedCode();
 					}
 				}
 			}

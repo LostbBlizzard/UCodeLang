@@ -1050,19 +1050,21 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 		if (passtype == PassType::BuidCode)
 		{
 			Ind = ! (IsPrimitive(syb->VarType) || syb->VarType.IsAddress());
+			
+			OnVarable = LookingAtIRBlock->NewLoad(ConvertToIR(syb->VarType));
+			syb->IR_Ins = OnVarable;
+			
 			if (Ind) 
-			{/*
+			{
 				IRlocat Info;
 				Info.ID = sybId;
 				IRlocations.push(Info);
 
 				
-				LookingAtIRBlock->NewStore()
-				_Builder.Build_Assign(IROperand::AsVarable(sybId), IROperand::AsNothing());
-				OnVarable = _Builder.GetLastField();
-
+				
+				
 				BindTypeToLastIR(syb->VarType);
-				*/
+				
 			}	
 		}
 		OnExpressionTypeNode(node.Expression.Value.get());
@@ -1137,8 +1139,8 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 
 	if (passtype == PassType::BuidCode && node.Expression.Value)
 	{
-		/*
-		DoImplicitConversion(IROperand::AsLocation(_Builder.GetLastField()), LastExpressionType, syb->VarType);
+		
+		DoImplicitConversion(_LastExpressionField, LastExpressionType, syb->VarType);
 
 		
 
@@ -1146,24 +1148,19 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 		{
 			IRlocations.pop();
 		}
-		else
-		{
-			auto Op = IROperand::AsLocation(_Builder.GetLastField());
-			auto NewOp = IROperand::AsVarable(sybId);
-			_Builder.Build_Assign(NewOp, Op);
-			BindTypeToLastIR(syb->VarType);
-		}
+		LookingAtIRBlock->NewStore(OnVarable,_LastExpressionField);
+		_LastExpressionField = nullptr;
 
 		if (HasDestructor(syb->VarType))
 		{
 			ObjectToDrop V;
 			V.ID = sybId;
-			V.Object = _Builder.GetLastField();
+			//V.Object = _Builder.GetLastField();
 			V.Type = syb->VarType;
 
 			StackFrames.back().OnEndStackFrame.push_back(V);
 		}
-		*/
+		
 	}
 }
 void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
@@ -1248,13 +1245,7 @@ void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 		
 		if (BuildVarableCode) 
 		{
-			/*
-			SymbolID sybId = Symbol->ID;
-			auto Op = IROperand::AsLocation(_LastExpressionField);
-			auto NewOp = IROperand::AsVarable(sybId);
-			_Builder.Build_Assign(NewOp, Op, MemberInfo.Offset);
-			BindTypeToLastIR(MemberInfo.Type);
-			*/
+			LookingAtIRBlock->NewStore(Symbol->IR_Ins, _LastExpressionField);
 		}
 	}
 }
@@ -2252,6 +2243,12 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 			OnNewNode(nod);
 		}
 		break;
+		case NodeType::ParenthesesExpresionNode:
+		{
+			ParenthesesExpresionNode* nod = ParenthesesExpresionNode::As(node.Value.get());
+			OnExpressionTypeNode(nod->Expression.Value.get());
+		}
+		break;
 		default:
 			throw std::exception("not added");
 			break;
@@ -2480,6 +2477,7 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 		}
 		_LastExpressionField = _Builder.GetLastField();
 		*/
+		_LastExpressionField = LookingAtIRBlock->NewLoad(Symbol->IR_Ins);
 	}
 
 SetExpressionInfo:
@@ -2493,23 +2491,90 @@ void SystematicAnalysis::BindTypeToLastIR(const TypeSymbol& Type)
 	//GetSize(Type, V2.InfoType.TypeSize);
 }
 
+Byte SystematicAnalysis::OperatorPrecedenceValue(const Node* node)
+{
+	if (node->Get_Type() == NodeType::ValueExpressionNode) 
+	{ 
+		const ValueExpressionNode* nod = ValueExpressionNode::As(node);
+		
+		if (nod->Value->Get_Type() == NodeType::ParenthesesExpresionNode)
+		{
+			return 8;
+		}
+	
+	}
+
+	if (node->Get_Type() == NodeType::BinaryExpressionNode)
+	{
+		const BinaryExpressionNode* nod = BinaryExpressionNode::As(node);
+
+		auto V = nod->BinaryOp->Type;
+		return OperatorPrecedence(V);
+	}
+
+
+	return 0;
+}
+
+Byte SystematicAnalysis::OperatorPrecedence(TokenType V)
+{
+	//https://en.cppreference.com/w/c/language/operator_precedence
+	
+	//the biger number will have a higher precedence
+	switch (V)
+	{
+	case TokenType::modulo:
+	case TokenType::forwardslash:
+	case TokenType::star:
+		return 6;
+
+	case TokenType::Not:
+	case TokenType::bitwise_not:
+
+	case TokenType::plus:
+	case TokenType::minus:
+	default:
+		return 0;
+	}
+}
+
+bool SystematicAnalysis::SwapForOperatorPrecedence(const Node* nodeA, const Node* nodeB)
+{
+	return OperatorPrecedenceValue(nodeA) < OperatorPrecedenceValue(nodeB);
+}
+
 void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 {
-	OnExpressionTypeNode(node.Value1.Value.get());
+	auto Ex0node = node.Value0.Value.get();
+	auto Ex1node = node.Value1.Value.get();
+
+	if (passtype == PassType::BuidCode && 
+		(
+			SwapForOperatorPrecedence(Ex0node,Ex1node) && SwapForOperatorPrecedence(&node, Ex1node)//i have no clue why this works
+		)
+		)
+	{
+		std::swap(Ex0node, Ex1node);
+	}
+
+	OnExpressionTypeNode(Ex1node);
 	auto Ex0 = _LastExpressionField;
 	auto Ex0Type = LastExpressionType;
-	OnExpressionTypeNode(node.Value0.Value.get());
+	
+	OnExpressionTypeNode(Ex0node);
 	auto Ex1 = _LastExpressionField;
 	auto Ex1Type = LastExpressionType;
 
 	if (passtype == PassType::FixedTypes)
 	{
 		auto BinaryOp = node.BinaryOp;
-	
+
 		if (!HasBinaryOverLoadWith(Ex0Type, BinaryOp->Type, Ex1Type))
 		{
 			LogCantFindBinaryOpForTypes(BinaryOp, Ex0Type, Ex1Type);
 		}
+		
+		
 	}
 
 	if (passtype == PassType::BuidCode)
@@ -4279,6 +4344,17 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ValueExpressionNode& n
 
 bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const BinaryExpressionNode& node)
 {
+	auto Ex0node = node.Value0.Value.get();
+	auto Ex1node = node.Value1.Value.get();
+	if (passtype == PassType::BuidCode && 
+		(
+		SwapForOperatorPrecedence(Ex0node, Ex1node) && SwapForOperatorPrecedence(&node, Ex1node)//i have no clue why this works
+		)
+		)
+	{
+		std::swap(Ex0node, Ex1node);
+	}
+
 	return false;
 }
 
