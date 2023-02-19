@@ -2514,63 +2514,57 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 
 	if (passtype == PassType::BuidCode)
 	{
-		/*
-		auto Op0 = IROperand::AsLocation(Ex0);
-		auto Op1 = IROperand::AsLocation(Ex1);
-
+	
 		auto& Type = Ex0Type;
 		auto Op = node.BinaryOp->Type;
 
-		#define BindaryBuildU(x) switch (Op) \
+#define BindaryBuildU(x) switch (Op) \
 		{\
-		case TokenType::plus:_Builder.MakeAdd##x(Op0, Op1);\
+		case TokenType::plus:_LastExpressionField=LookingAtIRBlock->NewAdd(Ex0, Ex1);\
 			break;\
-		case TokenType::minus:_Builder.MakeSub##x(Op0, Op1);\
+		case TokenType::minus:_LastExpressionField=LookingAtIRBlock->NewSub(Ex0, Ex1);\
 			break;\
-		case TokenType::star:_Builder.MakeUMult##x(Op0, Op1); \
+		case TokenType::star:_LastExpressionField=LookingAtIRBlock->NewUMul(Ex0, Ex1);\
 			break; \
-		case TokenType::forwardslash:_Builder.MakeUDiv##x(Op0, Op1); \
+		case TokenType::forwardslash:_LastExpressionField=LookingAtIRBlock->NewUDiv(Ex0, Ex1);\
 			break; \
 		default:\
 			throw std::exception("not added");\
 			break;\
 		}\
 
-	
-		#define BindaryBuildS(x) switch (Op) \
+
+#define BindaryBuildS(x) switch (Op) \
 			{\
-			case TokenType::plus:_Builder.MakeAdd##x(Op0, Op1); \
+			case TokenType::plus:_LastExpressionField=LookingAtIRBlock->NewAdd(Ex0, Ex1);\
+				break;\
+			case TokenType::minus:_LastExpressionField=LookingAtIRBlock->NewSub(Ex0, Ex1);\
+				break;\
+			case TokenType::star:_LastExpressionField=LookingAtIRBlock->NewSMul(Ex0, Ex1);\
 				break; \
-			case TokenType::minus:_Builder.MakeSub##x(Op0, Op1); \
+			case TokenType::forwardslash:_LastExpressionField=LookingAtIRBlock->NewSDiv(Ex0, Ex1);\
 				break; \
-			case TokenType::star:_Builder.MakeSMult##x(Op0, Op1); \
-			break; \
-				case TokenType::forwardslash:_Builder.MakeSDiv##x(Op0, Op1); \
-			break; \
 			default:\
 				throw std::exception("not added"); \
 				break; \
 			}\
 
 
-			switch (Type._Type)
-			{
-			case TypesEnum::uInt8:BindaryBuildU(8);break;
-			case TypesEnum::uInt16:BindaryBuildU(16); break;
-			case TypesEnum::uInt32:BindaryBuildU(32); break;
-			case TypesEnum::uInt64:BindaryBuildU(64); break;
+		switch (Type._Type)
+		{
+		case TypesEnum::uInt8:BindaryBuildU(8); break;
+		case TypesEnum::uInt16:BindaryBuildU(16); break;
+		case TypesEnum::uInt32:BindaryBuildU(32); break;
+		case TypesEnum::uInt64:BindaryBuildU(64); break;
 
 
-			case TypesEnum::sInt8:BindaryBuildS(8); break;
-			case TypesEnum::sInt16:BindaryBuildS(16); break;
-			case TypesEnum::sInt32:BindaryBuildS(32); break;
-			case TypesEnum::sInt64:BindaryBuildS(64); break;
-			default:
-				break;
-			}
-
-		_LastExpressionField = _Builder.GetLastField();
-		*/
+		case TypesEnum::sInt8:BindaryBuildS(8); break;
+		case TypesEnum::sInt16:BindaryBuildS(16); break;
+		case TypesEnum::sInt32:BindaryBuildS(32); break;
+		case TypesEnum::sInt64:BindaryBuildS(64); break;
+		default:
+			break;
+		}
 	}
 }
 void SystematicAnalysis::OnExpressionNode(const CastNode& node)

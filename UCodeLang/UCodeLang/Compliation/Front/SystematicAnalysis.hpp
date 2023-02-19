@@ -93,7 +93,7 @@ private:
 
 	IRType ConvertToIR(const TypeSymbol& Value);
 
-
+	//use =: 0;
 
 	Stack<TypeSymbol> LookingForTypes;
 	TypeSymbol LastExpressionType;

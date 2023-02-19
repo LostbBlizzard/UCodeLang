@@ -8,5 +8,6 @@ enum Item[int]:
 
 
 |main[] -> var:
- int a = 0;
- ret a;
+ var a = 5;
+ var b = 8;
+ ret a * b;

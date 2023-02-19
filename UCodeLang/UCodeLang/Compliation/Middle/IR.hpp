@@ -29,6 +29,11 @@ struct IRType
 	IRType():_Type(IRTypes::Null), _symbol(){}
 	IRType(IRTypes type) :_Type(type), _symbol(){}
 	IRType(IRSymbol symbol) :_Type(IRTypes::iRsymbol), _symbol(symbol){}
+
+	bool IsType(IRTypes Type)
+	{
+		return Type == _Type;
+	}
 };
 
 struct IRPar
@@ -43,11 +48,45 @@ enum class IRInstructionType : IRInstructionType_t
 {
 	None,
 	Load,//Load Target
-	Call,
+	
+	Call,//jump to Target 
 	PushParameter,//Push Target
 	LoadReturn,//Load Target as Return Value
-	Return,//
+	
+	Return,//return out of func
+
+	//Math
+	Add,
+	Sub,
+	UMult,
+	SMult,
+	UDiv,
+	SDiv,
+	//bitwise
+	BitWise_And,
+	BitWise_Or,
+	BitWise_XOr,
+	BitWise_ShiftL,
+	BitWise_ShiftR,
+	BitWise_Not,
+	//Logical
+	Logical_And,
+	Logical_Or,
+	Logical_Not,
+	//memory
 };
+
+
+
+inline bool IsBinary(IRInstructionType Value)
+{
+	return Value == IRInstructionType::Add
+		|| Value == IRInstructionType::Sub
+		|| Value == IRInstructionType::UMult
+		|| Value == IRInstructionType::SMult
+		|| Value == IRInstructionType::UDiv
+		|| Value == IRInstructionType::SDiv;
+}
 
 using IROperator_t = UInt8;
 enum class IROperatorType :IROperator_t
@@ -81,7 +120,7 @@ struct IRInstruction
 	IRInstruction():Type(IRInstructionType::None){}
 	IRInstruction(IRInstructionType type) :Type(type){}
 	IRInstruction(IRInstructionType type, IROperator Value):Type(type){Target(Value);}
-
+	IRInstruction(IRInstructionType type, IROperator a, IROperator b) :Type(type), A(a),B(b){}
 	IRInstructionType Type;
 	IROperator Storage;
 
@@ -98,6 +137,10 @@ struct IRInstruction
 	void Target(const IROperator& Value)
 	{
 		A = Value;
+	}
+	void SetAsNone()
+	{
+		*this = IRInstruction();
 	}
 };
 struct IRCall
@@ -128,7 +171,7 @@ struct IRBlock
 	//8bit
 	IRInstruction* NewLoad(UInt8 Value)
 	{
-		AnyInt64 NewValue = Value;
+		AnyInt64 NewValue; NewValue = Value;
 
 		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Load,IROperator(NewValue))).get();
 		V->ObjectType = IRType(IRTypes::i8);
@@ -140,18 +183,18 @@ struct IRBlock
 	//16bit
 	IRInstruction* NewLoad(UInt16 Value)
 	{
-		AnyInt64 NewValue = Value;
+		AnyInt64 NewValue; NewValue = Value;
 
 		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Load, IROperator(NewValue))).get();
 		V->ObjectType = IRType(IRTypes::i16);
 		return V;
 	}
-	IRInstruction* NewLoad(Int8 Value) { return NewLoad(*(UInt8*)&Value); }
+	IRInstruction* NewLoad(Int16 Value) { return NewLoad(*(UInt8*)&Value); }
 
 	//32bit
 	IRInstruction* NewLoad(UInt32 Value)
 	{
-		AnyInt64 NewValue = Value;
+		AnyInt64 NewValue; NewValue = Value;
 
 		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Load, IROperator(NewValue))).get();
 		V->ObjectType = IRType(IRTypes::i32);
@@ -160,7 +203,7 @@ struct IRBlock
 	IRInstruction* NewLoad(Int32 Value) { return NewLoad(*(UInt32*)&Value); }
 	IRInstruction* NewLoad(float32 Value) 
 	{
-		AnyInt64 NewValue = Value;
+		AnyInt64 NewValue; NewValue = Value;
 
 		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Load, IROperator(NewValue))).get();
 		V->ObjectType = IRType(IRTypes::f32);
@@ -171,7 +214,7 @@ struct IRBlock
 
 	IRInstruction* NewLoad(UInt64 Value)
 	{
-		AnyInt64 NewValue = Value;
+		AnyInt64 NewValue; NewValue = Value;
 
 		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Load, IROperator(NewValue))).get();
 		V->ObjectType = IRType(IRTypes::i64);
@@ -180,7 +223,7 @@ struct IRBlock
 	IRInstruction* NewLoad(Int64 Value) { return NewLoad(*(UInt64*)&Value); }
 	IRInstruction* NewLoad(float64 Value) 
 	{
-		AnyInt64 NewValue = Value;
+		AnyInt64 NewValue; NewValue = Value;
 
 		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Load, IROperator(NewValue))).get();
 		V->ObjectType = IRType(IRTypes::f64);
@@ -196,28 +239,29 @@ struct IRBlock
 	//math
 	IRInstruction* NewAdd(IRInstruction* A, IRInstruction* B)
 	{
-
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::Add,IROperator(A), IROperator(B))).get();
 	}
 	IRInstruction* NewSub(IRInstruction* A, IRInstruction* B)
 	{
-
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::Sub, IROperator(A), IROperator(B))).get();
 	}
 	IRInstruction* NewUMul(IRInstruction* A, IRInstruction* B)
 	{
-
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::UMult, IROperator(A), IROperator(B))).get();
 	}
 	IRInstruction* NewSMul(IRInstruction* A, IRInstruction* B)
 	{
-
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::SMult, IROperator(A), IROperator(B))).get();
 	}
 	IRInstruction* NewUDiv(IRInstruction* A, IRInstruction* B)
 	{
-
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::UDiv, IROperator(A), IROperator(B))).get();
 	}
 	IRInstruction* NewSDiv(IRInstruction* A, IRInstruction* B)
 	{
-
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::SDiv, IROperator(A), IROperator(B))).get();
 	}
+	
 
 	//call func
 	void NewPushParameter(IRInstruction* Value)
@@ -239,10 +283,6 @@ struct IRBlock
 	//vetor
 
 	Vector<Unique_ptr<IRInstruction>> Instructions;
-	inline IRInstruction* Get_LastIR()
-	{
-		return Instructions.back().get();
-	}
 };
 
 struct IRFunc
@@ -293,6 +333,28 @@ public:
 	Vector<Unique_ptr<IRFunc>> Funcs;
 	Unordered_map<IRidentifierID, IRidentifier> _Map;
 	void Reset();
+
+	struct ToStringState
+	{
+		Unordered_map<IRInstruction*, String> PointerToName;
+		
+		
+		size_t StrValue=0;
+		String GetName(IRInstruction* Ptr)
+		{
+			char r = 'A' + (char)StrValue;
+			StrValue++;
+			auto V = (String)String_view(&r, 1);
+			PointerToName[Ptr] = V;
+			return V;
+		}
+	};
+
+	//uses UCodeLang syntax
+	String ToString();
+	String ToString(const IRType& Type);
+	String ToString(ToStringState& State,IRInstruction& Ins, IROperator& Value);
+	String ToStringBinary(ToStringState& State, IRInstruction* Ins, const char* V);
 };
 
 UCodeLangEnd
