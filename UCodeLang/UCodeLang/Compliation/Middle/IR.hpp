@@ -99,8 +99,12 @@ enum class IROperatorType :IROperator_t
 	IRInstruction,
 	IRidentifier,
 	Value,
+	IRParameter,
+
+	IRInstructionPointer,//Gets the from the IRInstruction Pointer
 };
 
+struct IRPar;
 struct IRInstruction;
 struct IROperator
 {
@@ -110,14 +114,21 @@ struct IROperator
 		IRInstruction* Pointer;
 		AnyInt64 Value;
 		IRidentifierID identifer;
+		IRPar* Parameter;
 	};
 
 	IROperator():Type(IROperatorType::Null),Pointer(nullptr){}
 	IROperator(IROperatorType type):Type(type), Pointer(nullptr) {}
 	
+	
+
 	IROperator(IRInstruction* pointer):Type(IROperatorType::IRInstruction),Pointer(pointer){}
 	IROperator(AnyInt64 value) :Type(IROperatorType::Value), Value(value) {}
 	IROperator(IRidentifierID Value):Type(IROperatorType::IRidentifier), identifer(Value) {}
+	IROperator(IRPar* Value) :Type(IROperatorType::IRParameter), Parameter(Value) {}
+	
+	IROperator(IROperatorType type,IRInstruction* pointer) :Type(type), Pointer(pointer) {}
+	IROperator(IROperatorType type, IRidentifierID Value) :Type(type), identifer(Value) {}
 };
 struct IRInstruction
 {
@@ -242,10 +253,23 @@ struct IRBlock
 		return Instructions.emplace_back(new IRInstruction(IRInstructionType::Load, IROperator(Value))).get();
 	}
 
+
+	IRInstruction* NewLoadPtr(IRInstruction* Value)//Load the pointer of the Value
+	{
+		return Instructions.emplace_back(new IRInstruction(IRInstructionType::Load, IROperator(IROperatorType::IRInstructionPointer,Value))).get();
+	}
+
+
 	void NewStore(IRInstruction* Storage, IRInstruction* Value)
 	{
 		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Reassign, Storage)).get();
 		V->Input(IROperator(Value));
+	}
+	
+	void NewStorePtr(IRInstruction* Storage, IRInstruction* Value)
+	{
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Reassign, Storage)).get();
+		V->Input(IROperator(IROperatorType::IRInstructionPointer,Value));
 	}
 	
 	//math
@@ -349,9 +373,10 @@ public:
 	struct ToStringState
 	{
 		Unordered_map<IRInstruction*, String> PointerToName;
-		
+		Vector<IRInstruction*> TepPushedParameters;
 		
 		size_t StrValue=0;
+
 		String GetName(IRInstruction* Ptr)
 		{
 			char r = 'A' + (char)StrValue;
