@@ -71,6 +71,25 @@ void SystematicAnalysis::BuildCode()
 	passtype = PassType::BuidCode;
 	Pass();
 }
+const FileNode* SystematicAnalysis::Get_FileUseingSybol(Symbol* Syb)
+{
+	size_t Offset = (size_t)(Syb - _Table.Symbols.data());
+	size_t FileSybolsOffset = 0;
+	for (size_t i = 0; i < FileSegments.size(); i++)
+	{
+		auto& Item = FileSegments[i];
+		return nullptr;
+	}
+	return nullptr;
+}
+void SystematicAnalysis::AddDependencyToCurrentFile(Symbol* Syb)
+{
+	AddDependencyToCurrentFile(Get_FileUseingSybol(Syb));
+}
+void SystematicAnalysis::AddDependencyToCurrentFile(const FileNode* file)
+{
+
+}
 void SystematicAnalysis::Pass()
 {
 	for (const auto& File : *_Files)
@@ -85,6 +104,16 @@ void SystematicAnalysis::OnNamespace(const NamespaceNode& node)
 
 	const auto Namespace = GetScopedNameAsString(node.NamespaceName);
 	_Table.AddScope(Namespace);
+	
+	if (passtype == PassType::GetTypes)
+	{
+		if (!GetSymbol(String_view(Namespace),SymbolType::Namespace))
+		{
+			_Table.AddSybol(SymbolType::Namespace, Namespace, _Table._Scope.ThisScope);
+		}
+	}
+
+	
 	for (auto& node : node._Nodes)
 	{
 		switch (node->Get_Type())
@@ -119,8 +148,17 @@ void SystematicAnalysis::OnNonAttributeable(size_t Line, size_t Pos)
 		}
 	}
 }
-void SystematicAnalysis::OnFileNode(const FileNode* const& File)
+void SystematicAnalysis::OnFileNode(const FileNode* File)
 {
+	LookingAtFile = File;
+	_ErrorsOutput->FilePath = File->FileName;
+
+	if (passtype == PassType::GetTypes) 
+	{
+		SybolSegment V;
+		V.TokenIndex = _Table.Symbols.size();
+		FileSegments.push_back(V);
+	}
 	for (auto& node : File->_Nodes)
 	{
 		switch (node->Get_Type())
@@ -135,7 +173,15 @@ void SystematicAnalysis::OnFileNode(const FileNode* const& File)
 		default:break;
 		}
 	}
+
 	_Table.ClearUseings();
+
+	if (passtype == PassType::GetTypes)
+	{
+		SybolSegment& V =FileSegments.back();
+		V.Size = _Table.Symbols.size() - V.TokenIndex;
+
+	}
 }
 void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 {
@@ -307,6 +353,13 @@ void SystematicAnalysis::OnUseingNode(const UsingNode& node)
 	const auto UseingString =GetScopedNameAsString(node.ScopedName);
 	_Table.AddUseing(UseingString);
 
+	if (passtype == PassType::FixedTypes)
+	{
+		if (!GetSymbol(UseingString, SymbolType::Namespace))
+		{
+			LogCantFindNamespace(T, UseingString);
+		}
+	}
 }
 void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 {
@@ -1264,7 +1317,11 @@ void SystematicAnalysis::OnIfNode(const IfNode& node)
 	
 	LookingForTypes.push(BoolType);
 
+
+	
+
 	OnExpressionTypeNode(node.Expression.Value.get());
+
 
 	if (passtype == PassType::FixedTypes)
 	{
@@ -1275,18 +1332,16 @@ void SystematicAnalysis::OnIfNode(const IfNode& node)
 		}
 	}
 
-	/*
-	IRInstruction* IfIndex{};
-	IROperand BoolCode;
+	
+	IRBlock::NewConditionalFalseJump_t IfIndex;
+	IRInstruction* BoolCode;
 	if (passtype == PassType::BuidCode)
 	{
 		DoImplicitConversion(_LastExpressionField, LastExpressionType, BoolType);
-	
-		BoolCode = IROperand::AsLocation(_Builder.GetLastField());
-		_Builder.Build_IfFalseJump(BoolCode, 0);
-		IfIndex = _Builder.GetLastField();
+		BoolCode = _LastExpressionField;
+		IfIndex = LookingAtIRBlock->NewConditionalFalseJump(BoolCode);
 	}
-	*/
+	
 	
 	
 
@@ -1303,12 +1358,11 @@ void SystematicAnalysis::OnIfNode(const IfNode& node)
 	if (node.Else)
 	{
 		IRInstruction* ElseIndex{};
+		size_t ElseI;
 		if (passtype == PassType::BuidCode)
 		{
-			/*
-			_Builder.Build_Jump(0);//ElseJump
-			ElseIndex = _Builder.GetLastField();
-			*/
+			ElseIndex = LookingAtIRBlock->NewJump();
+			ElseI = LookingAtIRBlock->GetIndex();
 		}
 
 
@@ -1329,23 +1383,16 @@ void SystematicAnalysis::OnIfNode(const IfNode& node)
 
 		if (passtype == PassType::BuidCode)
 		{
-			/*
-			auto& ElseJumpCode = _Builder.Get_IR(ElseIndex);
-			_Builder.Update_Jump(ElseJumpCode,_Builder.GetNextField());
-
-			auto& IFFalseCode = _Builder.Get_IR(IfIndex);
-			_Builder.Update_IfFalseJump(IFFalseCode, BoolCode, ElseIndex + 1);
-			*/
+			auto JumpIndex = LookingAtIRBlock->GetIndex() + 1;
+			LookingAtIRBlock->UpdateJump(ElseIndex, JumpIndex);
+			LookingAtIRBlock->UpdateConditionaJump(IfIndex.ConditionalJump, BoolCode, ElseI);
 		}
 	}
-
-	if (passtype == PassType::BuidCode && node.Else == nullptr)
-	{/*
-		auto& IFFalseCode=_Builder.Get_IR(IfIndex);
-		_Builder.Update_IfFalseJump(IFFalseCode, BoolCode, _Builder.GetNextField());
-		*/
+	else if (passtype == PassType::BuidCode)
+	{
+		LookingAtIRBlock->UpdateConditionaJump(IfIndex.ConditionalJump, BoolCode, LookingAtIRBlock->GetIndex()+1);
 	}
-
+	
 	
 }
 void SystematicAnalysis::OnWhileNode(const WhileNode& node)
@@ -1360,6 +1407,12 @@ void SystematicAnalysis::OnWhileNode(const WhileNode& node)
 
 	LookingForTypes.push(BoolType);
 
+
+	size_t BoolCode;
+	if (passtype == PassType::BuidCode)
+	{
+		BoolCode = LookingAtIRBlock->GetIndex();
+	}
 	OnExpressionTypeNode(node.Expression.Value.get());
 
 	if (passtype == PassType::FixedTypes)
@@ -1371,18 +1424,17 @@ void SystematicAnalysis::OnWhileNode(const WhileNode& node)
 		}
 	}
 
-	/*
-	IRInstruction* IfIndex;
-	IROperand BoolCode;
+
+	IRBlock::NewConditionalFalseJump_t IfIndex;
+	IRInstruction* BoolCode2;
 	if (passtype == PassType::BuidCode)
 	{
-		DoImplicitConversion(IROperand::AsLocation(_Builder.GetLastField()), LastExpressionType, BoolType);
+		DoImplicitConversion(_LastExpressionField, LastExpressionType, BoolType);
+		BoolCode2 = _LastExpressionField;
+		IfIndex = LookingAtIRBlock->NewConditionalFalseJump(BoolCode2);
 
-		BoolCode = IROperand::AsLocation(_Builder.GetLastField());
-		_Builder.Build_IfFalseJump(BoolCode, 0);
-		IfIndex = _Builder.GetLastField();
 	}
-	*/
+
 
 
 
@@ -1393,15 +1445,13 @@ void SystematicAnalysis::OnWhileNode(const WhileNode& node)
 		OnStatement(node2);
 	}
 
-	/*
+
 	if (passtype == PassType::BuidCode)
 	{
-		_Builder.Build_Jump(IfIndex);
-		
-		auto& IFFalseCode = _Builder.Get_IR(IfIndex);
-		_Builder.Update_IfFalseJump(IFFalseCode, BoolCode, _Builder.GetNextField());
+		LookingAtIRBlock->NewJump(BoolCode);
+		LookingAtIRBlock->UpdateConditionaJump(IfIndex.ConditionalJump, BoolCode2, LookingAtIRBlock->GetIndex());
 	}
-	*/
+
 
 	_Table.RemoveScope();
 
@@ -1415,10 +1465,10 @@ void SystematicAnalysis::OnDoNode(const DoNode& node)
 	_Table.AddScope(ScopeName);
 
 
-	IRInstruction* StartIndex;
+	size_t StartIndex;
 	if (passtype == PassType::BuidCode)
 	{
-		//StartIndex = _Builder.GetNextField();
+		StartIndex= LookingAtIRBlock->GetIndex();
 	}
 
 
@@ -1445,18 +1495,14 @@ void SystematicAnalysis::OnDoNode(const DoNode& node)
 		}
 	}
 
-	/*
-	IROperand BoolCode;
+	
 	if (passtype == PassType::BuidCode)
 	{
-		DoImplicitConversion(IROperand::AsLocation(_Builder.GetLastField()), LastExpressionType, BoolType);
+		DoImplicitConversion(_LastExpressionField, LastExpressionType, BoolType);
 
-		BoolCode = IROperand::AsLocation(_Builder.GetLastField());
-
-		_Builder.Build_IfFalseJump(BoolCode, _Builder.GetNextField() + 2);//???
-		_Builder.Build_Jump(StartIndex);
+		LookingAtIRBlock->NewConditionalFalseJump(_LastExpressionField, StartIndex);
 	}
-	*/
+	
 
 
 
@@ -3879,7 +3925,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 	}
 	if (r == nullptr)
 	{
-		LogCantFindFuncError(Name.ScopedName.back().token, ScopedName, {}, ValueTypes,RetType);
+		LogCantFindFuncError(Name.ScopedName.back().token, ScopedName, {}, ValueTypes, RetType);
 	}
 	return { ThisParType,r};
 }
@@ -4971,6 +5017,11 @@ void SystematicAnalysis::LogCantCastImplicitTypes_Constant(const Token* Token, T
 {
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Casting Type '" + ToString(Ex1Type) + " to '" + ToString(UintptrType) + "' cant be done at compile time.");
+}
+void SystematicAnalysis::LogCantFindNamespace(const Token* Token, const String_view Namespace)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
+		, "the cant find the Namespace '" + (String)Namespace + "'.");
 }
 void SystematicAnalysis::LogTypeMustBeAnConstantExpressionAble(const Token* Token, const TypeSymbol& Type)
 {

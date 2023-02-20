@@ -136,11 +136,9 @@ struct FileNode : FileNode_t,Node
 	AddforNodeAndWithList(FileNode);
 
 
-	String_view FilePath;
 	Vector<Token> Tokens;
 	void Reset()
 	{
-		FilePath = "";
 		_Nodes.clear();
 	}
 };

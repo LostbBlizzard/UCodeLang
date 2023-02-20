@@ -85,11 +85,26 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 	V.token = NamespaceToken;
 	
 	out.NamespaceName.ScopedName.push_back(std::move(V));
-	if (ScopeResolutionToken->Type == TokenType::ScopeResolution)
+
+	NamespaceNode* tepout = &out;
+
+	while (ScopeResolutionToken->Type == TokenType::ScopeResolution)
 	{
 		NextToken();
+
+		Unique_ptr<NamespaceNode> TepNamespace = Unique_ptr<NamespaceNode>(NamespaceNode::Gen());
+		auto Ptr = TepNamespace.get();
+		tepout->_Nodes.push_back(std::move(TepNamespace));
+
+		
+		tepout = Ptr;
+		
+		out.NamespaceName.ScopedName.back().Operator =ScopedName::Operator_t::ScopeResolution;
 		GetName(out.NamespaceName);
+		ScopeResolutionToken = TryGetToken();
 	}
+
+
 
 	auto ColonToken = TryGetToken(); TokenTypeCheck(ColonToken, TokenType::Colon);
 	NextToken();
@@ -121,7 +136,7 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 
 		if (V.Node)
 		{
-			out._Nodes.push_back(Unique_ptr<Node>(V.Node));
+			tepout->_Nodes.push_back(Unique_ptr<Node>(V.Node));
 		}
 		else { break; }
 		if (V.GotNode != GotNodeType::Success) { break; }
@@ -615,7 +630,7 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 	case TokenType::Name:
 	{
 		size_t OldIndex = _TokenIndex;
-		NameNode Tep;
+		ScopedNameNode Tep;
 		auto Name = GetNameCheck(Tep);
 		auto _Token = TryGetToken();
 

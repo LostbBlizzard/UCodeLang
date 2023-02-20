@@ -133,9 +133,21 @@ private:
 	}
 
 	SymbolID GetSymbolID(const Node& node);
-
+	//File dependency analysis stuff
+	const FileNode* LookingAtFile = nullptr;
+	struct SybolSegment
+	{
+		const FileNode* File = nullptr;
+		size_t TokenIndex=0;
+		size_t Size = 0;
+	};
+	Vector< SybolSegment> FileSegments;
+	const FileNode* Get_FileUseingSybol(Symbol* Syb);
+	void AddDependencyToCurrentFile(Symbol* Syb);
+	void AddDependencyToCurrentFile(const FileNode* file);
+	//
 	void Pass();
-	void OnFileNode(const FileNode* const& File);
+	void OnFileNode(const FileNode* File);
 	void OnClassNode(const ClassNode& node);
 	void OnAliasNode(const AliasNode& node);
 	void OnUseingNode(const UsingNode& node);
@@ -384,6 +396,8 @@ private:
 	void LogCantFindPostfixOpForTypes_Constant(const Token* BinaryOp, TypeSymbol& Ex0Type);
 	void LogCantDoPostfixOpForTypes_Constant(const Token* BinaryOp, TypeSymbol& Ex0Type);
 	void LogCantCastImplicitTypes_Constant(const Token* Token, TypeSymbol& Ex1Type, TypeSymbol& UintptrType);
+	void LogCantFindNamespace(const Token* Token, const String_view Namespace);
+		
 	struct ReadVarErrorCheck_t
 	{
 		bool CantFindVar = false;

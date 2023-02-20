@@ -90,6 +90,9 @@ enum class IRInstructionType : IRInstructionType_t
 	SLessThanOrEqual,
 	SGreaterThanOrEqual,
 
+	//
+	Jump,
+	ConditionalJump,
 	//memory
 
 	//internal stuff
@@ -403,6 +406,37 @@ struct IRBlock
 	{
 		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::Logical_Not, IROperator(Value))).get();
 	}
+	//control flow
+	
+	IRInstruction* NewJump(size_t JumpTo =0)
+	{
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::Jump, IROperator(JumpTo))).get();
+	}
+	IRInstruction* NewConditionalJump(IRInstruction* Conditional, size_t JumpTo=0)
+	{
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::ConditionalJump, IROperator(JumpTo), IROperator(Conditional))).get();
+	}
+
+	struct NewConditionalFalseJump_t
+	{
+		IRInstruction* logicalNot;
+		IRInstruction* ConditionalJump;
+	};
+
+	NewConditionalFalseJump_t NewConditionalFalseJump(IRInstruction* Conditional, size_t JumpTo=0)
+	{
+		auto r = NewlogicalNot(Conditional);
+		return { r, NewConditionalJump(r, JumpTo) };
+	}
+
+	void UpdateJump(IRInstruction* This, size_t JumpTo)
+	{
+		*This = IRInstruction(IRInstructionType::Jump, IROperator(JumpTo));
+	}
+	void UpdateConditionaJump(IRInstruction* This, IRInstruction* Conditional, size_t JumpTo)
+	{
+		*This = IRInstruction(IRInstructionType::ConditionalJump, IROperator(JumpTo), IROperator(Conditional));
+	}
 
 	//call func
 	void NewPushParameter(IRInstruction* Value)
@@ -424,6 +458,10 @@ struct IRBlock
 	//vetor
 
 	Vector<Unique_ptr<IRInstruction>> Instructions;
+	size_t GetIndex()
+	{
+		return Instructions.size()-1;
+	}
 };
 
 struct IRFunc

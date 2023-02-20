@@ -105,6 +105,7 @@ int main()
 	Settings._Type = OutPutType::Lib;
 	Data.FileDir = FileDir;
 	Data.OutFile = OutFilePath;
+	Data.IntDir = IntPath;
 	Settings._Flags = OptimizationFlags::Debug;
 	_Compiler.CompileFiles(Data);
 	if (!ULangTest::LogErrors(std::cout,_Compiler))

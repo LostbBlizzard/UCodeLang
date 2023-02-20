@@ -165,6 +165,7 @@ enum class SymbolType : UInt8
 	GenericFunc,
 	Generic_class,
 	Unmaped_Generic_Type,
+	Namespace
 };
 enum class SymbolValidState : UInt8
 {

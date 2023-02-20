@@ -177,7 +177,11 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 			auto Filenode = _FrontEndObject->BuildFile(String_view(*V));
 
 			FilesStrings.push_back(std::move(V));
-			if (Filenode) { Files.push_back(std::move(Filenode)); }
+			if (Filenode) 
+			{
+				Filenode->FileName = RePath;
+				Files.push_back(std::move(Filenode)); 
+			}
 		}
 		else
 		{
@@ -185,7 +189,11 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 			auto Filenode = _FrontEndObject->BuildFile(BytesView(V.Bytes.get(),V.Size));
 
 			FilesBytes.push_back(std::move(V));
-			if (Filenode) { Files.push_back(std::move(Filenode)); }
+			if (Filenode) 
+			{ 
+				Filenode->FileName = RePath; 
+				Files.push_back(std::move(Filenode)); 
+			}
 		}
 	}
 
@@ -258,7 +266,14 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 	}
 	DependencyFile NewFile;
 
-
+	if (_FrontEndObject == nullptr)
+	{
+		_FrontEndObject.reset(_FrontEnd());
+	}
+	else
+	{
+		_FrontEndObject->Reset();
+	}
 	const LangDefInfo* Lang = _FrontEndObject->GetInfo();
 	_FrontEndObject->Set_Settings(&_Settings);
 	_FrontEndObject->Set_ErrorsOutput(&_Errors);
