@@ -84,6 +84,33 @@ String IRBuilder::ToString()
 					case IRInstructionType::NotEqualTo:
 						r += ToStringBinary(State, I.get(), "!=");
 						break;
+
+					case IRInstructionType::UGreaterThan:
+						r += ToStringBinary(State, I.get(), ">");
+						break;
+					case IRInstructionType::ULessThan:
+						r += ToStringBinary(State, I.get(), "<");
+						break;
+					case IRInstructionType::UGreaterThanOrEqual:
+						r += ToStringBinary(State, I.get(), ">=");
+						break;
+					case IRInstructionType::ULessThanOrEqual:
+						r += ToStringBinary(State, I.get(), "<="); 
+						break;
+
+					case IRInstructionType::SGreaterThan:
+						r += ToStringBinary(State, I.get(), ">");
+						break;
+					case IRInstructionType::SLessThan:
+						r += ToStringBinary(State, I.get(), "<");
+						break;
+					case IRInstructionType::SGreaterThanOrEqual:
+						r += ToStringBinary(State, I.get(), ">=");
+						break;
+					case IRInstructionType::SLessThanOrEqual:
+						r += ToStringBinary(State, I.get(), "<=");
+						break;
+
 					case IRInstructionType::Logical_And:
 						r += ToStringBinary(State, I.get(), "&&");
 						break;

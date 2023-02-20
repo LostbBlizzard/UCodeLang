@@ -80,10 +80,16 @@ enum class IRInstructionType : IRInstructionType_t
 	//Comparison
 	EqualTo,
 	NotEqualTo,
-	LessThan,
-	GreaterThan,
-	LessThanOrEqual,
-	GreaterThanOrEqual,
+	ULessThan,
+	UGreaterThan,
+	ULessThanOrEqual,
+	UGreaterThanOrEqual,
+	
+	SLessThan,
+	SGreaterThan,
+	SLessThanOrEqual,
+	SGreaterThanOrEqual,
+
 	//memory
 
 	//internal stuff
@@ -113,6 +119,16 @@ inline bool IsBinary(IRInstructionType Value)
 		
 		|| Value == IRInstructionType::EqualTo
 		|| Value == IRInstructionType::NotEqualTo
+
+		|| Value == IRInstructionType::UGreaterThan
+		|| Value == IRInstructionType::ULessThan
+		|| Value == IRInstructionType::UGreaterThanOrEqual
+		|| Value == IRInstructionType::ULessThanOrEqual
+
+		|| Value == IRInstructionType::SGreaterThan
+		|| Value == IRInstructionType::SLessThan
+		|| Value == IRInstructionType::SGreaterThanOrEqual
+		|| Value == IRInstructionType::SLessThanOrEqual
 
 		|| Value == IRInstructionType::Logical_And
 		|| Value == IRInstructionType::Logical_Or;
@@ -338,21 +354,40 @@ struct IRBlock
 	{
 		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::NotEqualTo, IROperator(A), IROperator(B))).get();
 	}
-	IRInstruction* NewC_LessThan(IRInstruction* A, IRInstruction* B)
+
+	IRInstruction* NewULessThan(IRInstruction* A, IRInstruction* B)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::LessThan, IROperator(A), IROperator(B))).get();
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::ULessThan, IROperator(A), IROperator(B))).get();
 	}
-	IRInstruction* NewC_GreaterThan(IRInstruction* A, IRInstruction* B)
+	IRInstruction* NewUGreaterThan(IRInstruction* A, IRInstruction* B)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::GreaterThan, IROperator(A), IROperator(B))).get();
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::UGreaterThan, IROperator(A), IROperator(B))).get();
 	}
-	IRInstruction* NewC_LessThanOrEqual(IRInstruction* A, IRInstruction* B)
+	IRInstruction* NewULessThanOrEqual(IRInstruction* A, IRInstruction* B)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::LessThanOrEqual, IROperator(A), IROperator(B))).get();
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::ULessThanOrEqual, IROperator(A), IROperator(B))).get();
 	}
-	IRInstruction* NewC_GreaterThanOrEqual(IRInstruction* A, IRInstruction* B)
+	IRInstruction* NewUGreaterThanOrEqual(IRInstruction* A, IRInstruction* B)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::GreaterThanOrEqual, IROperator(A), IROperator(B))).get();
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::UGreaterThanOrEqual, IROperator(A), IROperator(B))).get();
+	}
+
+
+	IRInstruction* NewSLessThan(IRInstruction* A, IRInstruction* B)
+	{
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::SLessThan, IROperator(A), IROperator(B))).get();
+	}
+	IRInstruction* NewSGreaterThan(IRInstruction* A, IRInstruction* B)
+	{
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::SGreaterThan, IROperator(A), IROperator(B))).get();
+	}
+	IRInstruction* NewSLessThanOrEqual(IRInstruction* A, IRInstruction* B)
+	{
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::SLessThanOrEqual, IROperator(A), IROperator(B))).get();
+	}
+	IRInstruction* NewSGreaterThanOrEqual(IRInstruction* A, IRInstruction* B)
+	{
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::SGreaterThanOrEqual, IROperator(A), IROperator(B))).get();
 	}
 	//logical operators
 
