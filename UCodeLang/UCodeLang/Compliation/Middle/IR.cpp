@@ -19,7 +19,7 @@ String IRBuilder::ToString()
 		r += "[";
 		for (auto& Par : Item->Pars)
 		{
-			r += Par.identifier + " " + ToString(Par.type);
+			r += ToString(Par.type) + " " + Par.identifier;
 			if (&Par != &Item->Pars.back())
 			{
 				r += ",";
@@ -78,6 +78,18 @@ String IRBuilder::ToString()
 					case IRInstructionType::UDiv:
 						r += ToStringBinary(State, I.get(), "/");
 						break;
+					case IRInstructionType::EqualTo:
+						r += ToStringBinary(State, I.get(), "==");
+						break;
+					case IRInstructionType::NotEqualTo:
+						r += ToStringBinary(State, I.get(), "!=");
+						break;
+					case IRInstructionType::Logical_And:
+						r += ToStringBinary(State, I.get(), "&&");
+						break;
+					case IRInstructionType::Logical_Or:
+						r += ToStringBinary(State, I.get(), "||");
+						break;
 					case IRInstructionType::PushParameter:
 						State.TepPushedParameters.push_back(I.get());
 						continue;
@@ -91,6 +103,10 @@ String IRBuilder::ToString()
 						for (auto& Item : State.TepPushedParameters)
 						{
 							r += State.PointerToName.at(Item->Target().Pointer);
+							if (&Item != &State.TepPushedParameters.back())
+							{
+								r += ",";
+							}
 						}
 						State.TepPushedParameters.clear();
 						r += ")";

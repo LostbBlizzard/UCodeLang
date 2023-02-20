@@ -7,8 +7,8 @@ enum Item[int]:
  Blue,
 
 
-|Func[int a]:
+|Func[int a,int b]:
  ret 1 + (2 * 3);
 
 |main[] -> var:
- ret Func(1) * 2;
+ ret true && 5;
