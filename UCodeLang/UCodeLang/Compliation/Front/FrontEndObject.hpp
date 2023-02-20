@@ -38,7 +38,8 @@ public:
 class FileNode_t
 {
 public:
-
+	Path FileName;
+	Vector<FileNode_t*> Dependencies;
 	virtual ~FileNode_t() {}
 };
 

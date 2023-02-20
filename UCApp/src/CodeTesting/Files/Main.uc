@@ -1,14 +1,9 @@
-use ULang;
-
-
-enum Item[int]:
- Red,
- Green,
- Blue,
-
-
-|Func[int a,int b]:
- ret 1 + (2 * 3);
 
 |main[] -> var:
- ret 4 < 5;
+
+ int a = 0;
+ do:
+  a = 1;
+ while a == 0;
+
+ ret a;

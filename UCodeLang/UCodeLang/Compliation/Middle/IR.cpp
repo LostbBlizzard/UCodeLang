@@ -37,15 +37,33 @@ String IRBuilder::ToString()
 			{
 				
 				r += Tabs + "//Block \n";
+
+				Unordered_map<size_t, String> Names;
 				for (size_t i = 0; i < Block->Instructions.size(); i++)
 				{
 					auto& I = Block->Instructions[i];
-					if (I->Type == IRInstructionType::None){continue;}
+					switch (I->Type)
+					{
+						case IRInstructionType::Jump:
+						
+						case IRInstructionType::ConditionalJump:
+							Names[I->Target().identifer] = "_label" + std::to_string(Names.size());
+						break;
+					}
+				}
+
+				for (size_t i = 0; i < Block->Instructions.size(); i++)
+				{
+					auto& I = Block->Instructions[i];
+					if (I->Type == IRInstructionType::None) { continue; }
 
 					if (I->Type != IRInstructionType::PushParameter)
 					{
 						r += Tabs;
 					}
+
+					
+
 					switch (I->Type)
 					{
 					case IRInstructionType::LoadReturn:
@@ -58,10 +76,10 @@ String IRBuilder::ToString()
 					case IRInstructionType::Load:
 						r += ToString(I->ObjectType);
 						r += " " + State.GetName(I.get());
-						r += " = " + ToString(State,*I, I->Target());
+						r += " = " + ToString(State, *I, I->Target());
 						break;
 					case IRInstructionType::Reassign:
-						r += ToString(State,*I,I->Target());
+						r += ToString(State, *I, I->Target());
 						r += " = " + ToString(State, *I, I->Input());
 						break;
 					case IRInstructionType::Add:
@@ -95,7 +113,7 @@ String IRBuilder::ToString()
 						r += ToStringBinary(State, I.get(), ">=");
 						break;
 					case IRInstructionType::ULessThanOrEqual:
-						r += ToStringBinary(State, I.get(), "<="); 
+						r += ToStringBinary(State, I.get(), "<=");
 						break;
 
 					case IRInstructionType::SGreaterThan:
@@ -120,6 +138,20 @@ String IRBuilder::ToString()
 					case IRInstructionType::PushParameter:
 						State.TepPushedParameters.push_back(I.get());
 						continue;
+					case IRInstructionType::Logical_Not:
+						r += ToString(I->ObjectType);
+						r += " " + State.GetName(I.get());
+						r += " = !" + ToString(State, *I, I->Target());
+						break;
+					case IRInstructionType::Jump:
+						r += "goto ";
+						r += Names[I->Target().identifer];
+						break;
+					case IRInstructionType::ConditionalJump:
+						r += "gotoif (";
+						r += ToString(State, *I, I->Input());
+						r += ") ";
+						r += Names[I->Target().identifer];
 						break;
 					case IRInstructionType::Call:
 					{
@@ -146,6 +178,17 @@ String IRBuilder::ToString()
 						break;
 					}
 					r += ";\n";
+
+					for (auto& Item : Names)
+					{
+						if (Item.first == i)
+						{
+r += Tabs;
+							r += Item.second + ":";
+							r += "\n";
+							
+						}
+					}
 				}
 				State.PointerToName.clear();
 			}

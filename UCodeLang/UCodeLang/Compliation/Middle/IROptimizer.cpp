@@ -38,7 +38,7 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 	Input = &IRcode;
 	UpdateOptimizationList();
 	
-
+	
 	do
 	{
 		auto S = Input->ToString();
@@ -47,6 +47,7 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 		std::cout << S;
 		_UpdatedCode = false;
 
+		return;
 		UpdateCodePass();
 	} while (_UpdatedCode);
 	
@@ -90,9 +91,19 @@ void IROptimizer::UpdateCodePass()
 				{
 
 					ConstantFoldOperator(*Ins, Ins->Input());
-					Get_IRData(Ins->Target().Pointer).IsReferenced =true;
+					if (Ins->Target().Type == IROperatorType::IRInstruction)
+					{
+						Get_IRData(Ins->Target().Pointer).IsReferenced = true;
+					}
 				}
-				else
+				else if (Ins->Type == IRInstructionType::Logical_Not)
+					{
+						ConstantFoldOperator(*Ins, Ins->Target());
+						if (Ins->Target().Type == IROperatorType::IRInstruction)
+						{
+							Get_IRData(Ins->Input().Pointer).IsReferenced = true;
+						}
+					}
 				if (Ins->Type == IRInstructionType::Reassign)
 				{
 					ConstantFoldOperator(*Ins, Ins->Input());
