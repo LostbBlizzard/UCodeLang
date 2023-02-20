@@ -11,4 +11,4 @@ enum Item[int]:
  ret 1 + (2 * 3);
 
 |main[] -> var:
- ret true && 5;
+ ret 4 < 5;
