@@ -177,6 +177,7 @@ private:
 	bool SwapForOperatorPrecedence(const Node* nodeA, const Node* nodeB);
 
 	void OnExpressionNode(const BinaryExpressionNode& node);
+	
 	void OnExpressionNode(const CastNode& node);
 	void OnFuncCallNode(const FuncCallNode& node);
 	void OnDropStatementNode(const DropStatementNode& node);
@@ -204,6 +205,7 @@ private:
 	bool HasCompoundOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
 	bool HasPostfixOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp);
 
+	TypeSymbol BinaryExpressionShouldRurn(TokenType Op, const TypeSymbol& Ex0Type);
 
 	String ToString(const TypeSymbol& Type);
 	String ToString(const TokenType& Type)
@@ -350,7 +352,6 @@ private:
 	void Build_Decrement_uIntPtr(UAddress Value);
 	void Build_Increment_sIntPtr(SIntNative Value);
 	void Build_Decrement_sIntPtr(SIntNative Value);
-	void BindTypeToLastIR(const TypeSymbol& Type);
 	//Errors
 
 	void LogCantFindCompoundOpForTypes(const Token* BinaryOp, TypeSymbol& Ex0Type, TypeSymbol& Ex1Type);

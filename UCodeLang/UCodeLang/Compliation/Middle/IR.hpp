@@ -77,10 +77,30 @@ enum class IRInstructionType : IRInstructionType_t
 	Logical_And,
 	Logical_Or,
 	Logical_Not,
+	//Comparison
+	EqualTo,
+	NotEqualTo,
+	LessThan,
+	GreaterThan,
+	LessThanOrEqual,
+	GreaterThanOrEqual,
 	//memory
+
+	//internal stuff
 };
 
+inline bool IsCommutative(IRInstructionType Value)
+{
+	return Value == IRInstructionType::Add
+		|| Value == IRInstructionType::UMult
+		|| Value == IRInstructionType::SMult
 
+		|| Value == IRInstructionType::EqualTo
+		|| Value == IRInstructionType::NotEqualTo
+
+		|| Value == IRInstructionType::Logical_And
+		|| Value == IRInstructionType::Logical_Or;
+}
 
 inline bool IsBinary(IRInstructionType Value)
 {
@@ -89,7 +109,18 @@ inline bool IsBinary(IRInstructionType Value)
 		|| Value == IRInstructionType::UMult
 		|| Value == IRInstructionType::SMult
 		|| Value == IRInstructionType::UDiv
-		|| Value == IRInstructionType::SDiv;
+		|| Value == IRInstructionType::SDiv
+		
+		|| Value == IRInstructionType::EqualTo
+		|| Value == IRInstructionType::NotEqualTo
+
+		|| Value == IRInstructionType::Logical_And
+		|| Value == IRInstructionType::Logical_Or;
+}
+inline bool IsUnary(IRInstructionType Value)
+{
+	return Value == IRInstructionType::Logical_Not
+		|| Value == IRInstructionType::BitWise_Not;
 }
 
 using IROperator_t = UInt8;
@@ -297,7 +328,46 @@ struct IRBlock
 	{
 		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::SDiv, IROperator(A), IROperator(B))).get();
 	}
-	
+
+	//comparison operators
+	IRInstruction* NewC_Equalto(IRInstruction* A, IRInstruction* B)
+	{
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::EqualTo, IROperator(A), IROperator(B))).get();
+	}
+	IRInstruction* NewC_NotEqualto(IRInstruction* A, IRInstruction* B)
+	{
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::NotEqualTo, IROperator(A), IROperator(B))).get();
+	}
+	IRInstruction* NewC_LessThan(IRInstruction* A, IRInstruction* B)
+	{
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::LessThan, IROperator(A), IROperator(B))).get();
+	}
+	IRInstruction* NewC_GreaterThan(IRInstruction* A, IRInstruction* B)
+	{
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::GreaterThan, IROperator(A), IROperator(B))).get();
+	}
+	IRInstruction* NewC_LessThanOrEqual(IRInstruction* A, IRInstruction* B)
+	{
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::LessThanOrEqual, IROperator(A), IROperator(B))).get();
+	}
+	IRInstruction* NewC_GreaterThanOrEqual(IRInstruction* A, IRInstruction* B)
+	{
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::GreaterThanOrEqual, IROperator(A), IROperator(B))).get();
+	}
+	//logical operators
+
+	IRInstruction* NewlogicalAnd(IRInstruction* A, IRInstruction* B)
+	{
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::Logical_And, IROperator(A), IROperator(B))).get();
+	}
+	IRInstruction* NewlogicalOr(IRInstruction* A, IRInstruction* B)
+	{
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::Logical_Or, IROperator(A), IROperator(B))).get();
+	}
+	IRInstruction* NewlogicalNot(IRInstruction* Value)
+	{
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::Logical_Not, IROperator(Value))).get();
+	}
 
 	//call func
 	void NewPushParameter(IRInstruction* Value)

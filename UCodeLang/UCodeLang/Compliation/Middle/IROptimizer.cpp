@@ -92,12 +92,27 @@ void IROptimizer::UpdateCodePass()
 					ConstantFoldOperator(*Ins, Ins->Input());
 					Get_IRData(Ins->Target().Pointer).IsReferenced =true;
 				}
-
+				else
 				if (Ins->Type == IRInstructionType::Reassign)
 				{
+					ConstantFoldOperator(*Ins, Ins->Input());
+
 					
-						ConstantFoldOperator(*Ins, Ins->Input());
-					
+					/*
+					if (Ins->Target().Type == IROperatorType::IRInstruction) 
+					{
+						auto Target = Ins->Target().Pointer;
+						if (Target->Type == IRInstructionType::LoadNone)
+						{
+							Target->Target(Ins->Input());
+							Target->Type = IRInstructionType::Load;
+
+							Ins->SetAsNone();
+							UpdatedCode();
+						}
+					}
+					*/
+
 				}
 				else if (Ins->Type == IRInstructionType::Load
 					|| Ins->Type == IRInstructionType::LoadReturn)
@@ -111,25 +126,18 @@ void IROptimizer::UpdateCodePass()
 					#define	ConstantBinaryFold(bits) \
 					switch (Ins->Type) \
 					{\
-					case IRInstructionType::Add:\
-						Ins->Target().Value.AsInt##bits = Ins->A.Value.AsInt##bits  + Ins->B.Value.AsInt##bits ;\
-						break;\
-					case IRInstructionType::Sub:\
-						Ins->Target().Value.AsInt##bits = Ins->A.Value.AsInt##bits  - Ins->B.Value.AsInt##bits ;\
-						break;\
-					case IRInstructionType::UMult:\
-						Ins->Target().Value.AsUInt##bits = Ins->A.Value.AsUInt##bits  * Ins->B.Value.AsUInt##bits ;\
-						break;\
-					case IRInstructionType::SMult:\
-						Ins->Target().Value.AsInt##bits  = Ins->A.Value.AsInt##bits  * Ins->B.Value.AsInt##bits ;\
-						break;\
-					case IRInstructionType::UDiv:\
-						Ins->Target().Value.AsUInt##bits  = Ins->A.Value.AsUInt##bits  / Ins->B.Value.AsUInt##bits ;\
-						break;\
-					case IRInstructionType::SDiv:\
-						Ins->Target().Value.AsInt##bits  = Ins->A.Value.AsInt##bits  / Ins->B.Value.AsInt##bits ;\
-						break;\
+					case IRInstructionType::Add:Ins->Target().Value.AsInt##bits = Ins->A.Value.AsInt##bits  + Ins->B.Value.AsInt##bits ;break;\
+					case IRInstructionType::Sub:Ins->Target().Value.AsInt##bits = Ins->A.Value.AsInt##bits  - Ins->B.Value.AsInt##bits ;break;\
+					case IRInstructionType::UMult:Ins->Target().Value.AsUInt##bits = Ins->A.Value.AsUInt##bits  * Ins->B.Value.AsUInt##bits ;break;\
+					case IRInstructionType::SMult:Ins->Target().Value.AsInt##bits  = Ins->A.Value.AsInt##bits  * Ins->B.Value.AsInt##bits ;break;\
+					case IRInstructionType::UDiv:Ins->Target().Value.AsUInt##bits  = Ins->A.Value.AsUInt##bits  / Ins->B.Value.AsUInt##bits ;break;\
+					case IRInstructionType::SDiv:Ins->Target().Value.AsInt##bits  = Ins->A.Value.AsInt##bits  / Ins->B.Value.AsInt##bits ;break;\
+					case IRInstructionType::EqualTo:Ins->Target().Value.AsInt##bits  = Ins->A.Value.AsInt##bits  == Ins->B.Value.AsInt##bits ;break;\
+					case IRInstructionType::NotEqualTo:Ins->Target().Value.AsInt##bits  = Ins->A.Value.AsInt##bits  != Ins->B.Value.AsInt##bits ;break;\
+					case IRInstructionType::Logical_And:Ins->Target().Value.AsInt##bits  = Ins->A.Value.AsInt##bits && Ins->B.Value.AsInt##bits ;break;\
+					case IRInstructionType::Logical_Or:Ins->Target().Value.AsInt##bits  = Ins->A.Value.AsInt##bits || Ins->B.Value.AsInt##bits ;break;\
 					default:\
+						throw std::exception("not added");\
 						break;\
 					}\
 
@@ -165,7 +173,7 @@ void IROptimizer::UpdateCodePass()
 
 			for (auto& Ins : Block->Instructions)
 			{
-				if (Ins->Type == IRInstructionType::Load) 
+				if (Ins->Type == IRInstructionType::Load) //removeing dead Instructions
 				{
 					auto& Data = Get_IRData(Ins.get());
 					if (!Data.IsReferenced)
@@ -174,7 +182,7 @@ void IROptimizer::UpdateCodePass()
 					}
 				}
 
-				if (Ins->Type == IRInstructionType::LoadNone)
+				if (Ins->Type == IRInstructionType::LoadNone)//removeing dead Instructions
 				{
 					auto& Data = Get_IRData(Ins.get());
 					if (!Data.IsReferenced)
@@ -183,7 +191,7 @@ void IROptimizer::UpdateCodePass()
 					}
 				}
 
-				if (Ins->Type == IRInstructionType::Reassign)
+				if (Ins->Type == IRInstructionType::Reassign)//removeing dead Instructions
 				{
 					if (Ins->Target().Pointer->Type == IRInstructionType::None)
 					{
