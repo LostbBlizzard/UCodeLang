@@ -191,6 +191,14 @@ UCodeLangForceinline static void bitwise_Not##bitsize(Instruction& Out, Register
 	Out.Value1.AsRegister = out;\
 }\
 
+#define BuilderfloatSet(bitsize,CType,AnyIntValue) \
+UCodeLangForceinline static void Storef##bitsize(Instruction& Out, RegisterID reg, CType Value) \
+{ \
+	Out.OpCode = InstructionSet::Store##bitsize##f;\
+	Out.Value0.AsRegister = reg;\
+	Out.Value1.##AnyIntValue = Value;\
+}\
+
 #pragma endregion
 	
 class InstructionBuilder
@@ -273,16 +281,20 @@ public:
 	}
 
 	//set 8
-	BuilderIntSet(8,Int8,UInt8, AsInt8, AsUInt8)
+	BuilderIntSet(8, Int8, UInt8, AsInt8, AsUInt8)
 	//set 16 
 	BuilderIntSet(16, Int16, UInt16, AsInt16, AsUInt16)
 	//set 32 
 	BuilderIntSet(32, Int32, UInt32, AsInt32, AsUInt32)
 	//set 64 
 	BuilderIntSet(64, Int64, UInt64, AsInt64, AsUInt64)
+
+	//float set 32
+	BuilderfloatSet(32, float32,Asfloat32)
+	//float set 64
+	BuilderfloatSet(64, float64,Asfloat64)
+
 	
-	//Native Set
-	BuilderIntSet(Native, SIntNative, UIntNative, AsInt64, AsUInt64)
 	//C funcs
 	UCodeLangForceinline static void GetPointerOfStack(Instruction& Out, RegisterID out,UAddress offset)
 	{

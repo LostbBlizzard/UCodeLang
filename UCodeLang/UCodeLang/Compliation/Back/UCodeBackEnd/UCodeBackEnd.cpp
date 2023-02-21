@@ -252,6 +252,12 @@ RegisterID UCodeBackEndObject::LoadOp(IRInstruction& Ins, IROperator Op)
 		case IRTypes::i32:
 			InstructionBuilder::Store32(_Ins, V, Op.Value.AsInt32); PushIns();
 			break;
+		case IRTypes::f32:
+			InstructionBuilder::Storef32(_Ins, V, Op.Value.Asfloat32); PushIns();
+			break;
+		case IRTypes::f64:
+			InstructionBuilder::Storef64(_Ins, V, Op.Value.Asfloat64); PushIns();
+			break;
 		case IRTypes::i64:
 			InstructionBuilder::Store64(_Ins, V, Op.Value.AsInt64); PushIns();
 			break;

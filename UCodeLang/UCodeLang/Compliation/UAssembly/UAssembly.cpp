@@ -130,18 +130,41 @@ void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In,const Unord
 	case OpCodeType::NoOpCode:
 		break;
 	case OpCodeType::AnyInt8:
-		out += std::to_string((UInt64)In.AsUInt8) + "|" + std::to_string((Int64)In.AsInt8);
-		break;
+	{
+		String tepS = std::to_string((UInt64)In.AsUInt8);
+		String teps2 = std::to_string((Int64)In.AsInt8);
+		out += (tepS == teps2) ? tepS : tepS + "|" + teps2;
+	}	
+	break;
 	case OpCodeType::AnyInt16:
-		out += std::to_string((UInt64)In.AsUInt16) + "|" + std::to_string((Int64)In.AsInt16);
-		break;
+	{
+		String tepS = std::to_string((UInt64)In.AsUInt16);
+		String teps2 = std::to_string((Int64)In.AsInt16);
+		out += (tepS == teps2) ? tepS : tepS + "|" + teps2;
+	}
+	break;
 	case OpCodeType::AnyInt32:
-		out += std::to_string(In.AsUInt32) + "|" + std::to_string(In.AsInt32);
-		break;
-	case OpCodeType::AnyIntNative:
+	{
+		String tepS = std::to_string((UInt64)In.AsUInt32);
+		String teps2 = std::to_string((Int64)In.AsInt32);
+		out += (tepS == teps2) ? tepS : tepS + "|" + teps2;
+	}	
+	break;
 	case OpCodeType::AnyInt64:
-		out += std::to_string(In.AsUInt64) + "|" + std::to_string(In.AsInt64);
+	{
+		String tepS = std::to_string((UInt64)In.AsUInt64);
+		String teps2 = std::to_string((Int64)In.AsInt64);
+		out += (tepS == teps2) ? tepS : tepS + "|" + teps2;
+	}	
+	break;
+
+	case OpCodeType::Anyfloat32:
+		out += std::to_string(In.Asfloat32);
 		break;
+	case OpCodeType::Anyfloat64:
+		out += std::to_string(In.Asfloat64);
+		break;
+
 	case OpCodeType::Register:
 		out += GetRegisterToString(In.AsRegister);
 		break;

@@ -168,13 +168,12 @@ private:
 		
 	struct GetMemberTypeSymbolFromVar_t
 	{
-		UAddress Offset =NullAddress;
 		TypeSymbol Type;
 	};
 
 	bool GetMemberTypeSymbolFromVar(const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out);
 
-	bool GetMemberTypeSymbolFromVar(const size_t& Start, const ScopedNameNode& node, TypeSymbol& FeildType, Symbol*& FeildTypeAsSymbol, size_t& VarOffset);
+	bool GetMemberTypeSymbolFromVar(const size_t& Start, const ScopedNameNode& node, TypeSymbol& FeildType, Symbol*& FeildTypeAsSymbol);
 	
 	void OnPostfixVariableNode(const PostfixVariableNode& node);
 	void OnCompoundStatementNode(const CompoundStatementNode& node);
