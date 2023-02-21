@@ -49,12 +49,18 @@ private:
 	}
 
 	//
-	Instruction Ins;
+	Instruction _Ins;
 	UAddress PushIns()
 	{
-	 return	_Output->Add_Instruction(Ins);
+	 return	_Output->Add_Instruction(_Ins);
 	}
 
+	RegistersManager _Registers;
+	RegisterID LoadOp(IRInstruction& Ins, IROperator Op);
+	void LoadOpToReg(IRInstruction& Ins, IROperator Op,RegisterID Out);
+	void RegToReg(IRTypes Type, RegisterID In, RegisterID Out);
+	RegisterID FindOp(IRInstruction& Ins, IROperator Op);
+	void FindOpToReg(IRInstruction& Ins, IROperator Op, RegisterID Out);
 };
 UCodeLangEnd
 

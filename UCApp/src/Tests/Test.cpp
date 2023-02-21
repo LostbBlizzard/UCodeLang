@@ -351,8 +351,16 @@ namespace ULangTest
 
 		for (auto& Item : List)
 		{
-			Item.wait();
+			try
+			{
+Item.wait();
 			if (Item.get()) { TestPassed++; };
+			}
+			catch (const std::exception&)
+			{
+
+			}
+			
 		}
 
 		std::cout << "---Tests ended" << std::endl;

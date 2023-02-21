@@ -18,7 +18,8 @@ public:
 	void Reset();
 	void FixTypes(IRBuilder* Input);
 private:
-	IRBuilder* Input;
+	IRBuilder* _Input;
 	CompliationErrors* _Errs;
+	void OnOp(IRInstruction& Ins, IROperator& Op);
 };
 UCodeLangEnd

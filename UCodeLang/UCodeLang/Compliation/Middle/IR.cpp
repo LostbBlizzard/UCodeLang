@@ -8,6 +8,20 @@ UCodeLangStart
 
 //uses UCodeLang syntax
 
+size_t IRBuilder::GetSize(const IRType& Type)
+{
+	switch (Type._Type)
+	{
+	case IRTypes::i8:return 1;
+	case IRTypes::i16:return 2;
+	case IRTypes::i32:return 4;
+	case IRTypes::i64:return 8;
+	default:
+		throw std::exception("not added");
+		break;
+	}
+}
+
 String IRBuilder::ToString()
 {
 	String r;
