@@ -31,7 +31,7 @@ static const Array<OptimizationInfo, IROptimizer::OptimizationCount> Optimizatio
 
 void IROptimizer::Reset() 
 {
-
+	_TypeFixer.Reset();
 }
 void IROptimizer::Optimized(IRBuilder& IRcode)
 {
@@ -41,12 +41,13 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 	
 	do
 	{
+		_TypeFixer.FixTypes(Input);
 		auto S = Input->ToString();
 		
 		std::cout << "-----" << std::endl;
 		std::cout << S;
 		_UpdatedCode = false;
-
+		
 		return;
 		UpdateCodePass();
 	} while (_UpdatedCode);

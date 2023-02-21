@@ -141,6 +141,13 @@ inline bool IsUnary(IRInstructionType Value)
 	return Value == IRInstructionType::Logical_Not
 		|| Value == IRInstructionType::BitWise_Not;
 }
+inline bool IsLoadValue(IRInstructionType Value)
+{
+	return Value == IRInstructionType::Load
+		|| Value == IRInstructionType::LoadReturn
+		|| Value == IRInstructionType::PushParameter
+		|| Value == IRInstructionType::ConditionalJump;
+}
 
 using IROperator_t = UInt8;
 enum class IROperatorType :IROperator_t
@@ -529,6 +536,7 @@ public:
 			return V;
 		}
 	};
+	size_t GetSize(const IRType& Type);
 
 	//uses UCodeLang syntax
 	String ToString();

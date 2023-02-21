@@ -26,7 +26,7 @@ public:
 	void Reset();
 
 	static constexpr size_t RegisterSize = (RegisterID_t)RegisterID::EndRegister - (RegisterID_t)RegisterID::StartRegister+1;
- Array<RegisterInfo, RegisterSize> Registers;
+	Array<RegisterInfo, RegisterSize> Registers;
 
 	auto& GetInfo(RegisterID id)
 	{
@@ -98,6 +98,14 @@ public:
 		auto& Info = Registers[(size_t)id];
 		Info.Inuse = RegisterInUse::HasBitValue;
 		Info.BitValue = Value;
+	}
+
+	void WeakLockRegisterValue(RegisterID id, IRInstruction* Value)
+	{
+		if (id == RegisterID::NullRegister) { throw std::exception("Bad Register"); }
+		auto& Info = Registers[(size_t)id];
+		Info.Inuse = RegisterInUse::InUseSybol;
+		Info.IRField = Value;
 	}
 
 	void WeakLockRegister(RegisterID id)

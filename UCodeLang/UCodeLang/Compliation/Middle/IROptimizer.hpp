@@ -2,6 +2,7 @@
 #include "IR.hpp"
 #include "../Helpers/CompliationErrors.hpp"
 #include "../CompliationSettings.hpp"
+#include "IRTypeFixer.hpp"
 UCodeLangStart
 class IROptimizer
 {
@@ -20,6 +21,7 @@ public:
 private:
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
+	IRTypeFixer _TypeFixer;
 	IRBuilder* Input = nullptr;
 	bool _UpdatedCode = false;
 	void UpdatedCode() { _UpdatedCode = true; }

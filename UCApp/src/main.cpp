@@ -93,7 +93,7 @@ int main()
 	}
 	*/
 
-	//ULangTest::RunTests();
+	ULangTest::RunTests();
 	
 	
 	UCodeLang::Compiler _Compiler;
@@ -140,7 +140,7 @@ int main()
 		
 		bool item = true;
 
-		auto r = RunTime.RCall <char> ("main", &item);
+		auto r = RunTime.RCall <Int8> ("main", &item);
  		
 		
 	   std::cout << " Got Value " << r << std::endl;
