@@ -2,7 +2,7 @@
 |Func[int a,int b]:
  ret 1;
 
-enum Item[int]:
- Red,
- Green,
- Blue,
+enum Item[float]:
+ Red = 1,
+ Green = 2,
+ Blue = 3,

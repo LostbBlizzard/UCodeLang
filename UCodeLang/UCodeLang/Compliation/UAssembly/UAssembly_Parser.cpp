@@ -73,7 +73,6 @@ void Parser::ParseOp(AnyInt64& Out, OpCodeType Type)
 		break;
 	case UCodeLang::UAssembly::OpCodeType::AnyInt32:
 		break;
-	case UCodeLang::UAssembly::OpCodeType::AnyIntNative:
 	case UCodeLang::UAssembly::OpCodeType::UIntPtr :
 	case UCodeLang::UAssembly::OpCodeType::AnyInt64:
 		ParseAny8(Out);

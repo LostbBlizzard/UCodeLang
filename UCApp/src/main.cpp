@@ -93,7 +93,7 @@ int main()
 	}
 	*/
 
-	ULangTest::RunTests();
+	//ULangTest::RunTests();
 	
 	
 	UCodeLang::Compiler _Compiler;
@@ -143,7 +143,7 @@ int main()
 		auto r = RunTime.RCall <Int8> ("main", &item);
  		
 		
-	   std::cout << " Got Value " << r << std::endl;
+	   std::cout << " Got Value " << (int)r << std::endl;
 
 	}
 }

@@ -1,5 +1,7 @@
 
 |main[] -> var:
- int a = 0;
- a+= 5 * 10;
+ 
+ var v = Item::Green;
+ var a = v;
+
  ret a;

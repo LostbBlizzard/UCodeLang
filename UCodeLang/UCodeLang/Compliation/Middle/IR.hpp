@@ -158,7 +158,7 @@ enum class IROperatorType :IROperator_t
 	Value,
 	IRParameter,
 
-	IRInstructionPointer,//Gets the from the IRInstruction Pointer
+	Get_PointerOf_IRInstruction,//Gets the from the IRInstruction Pointer
 };
 
 struct IRPar;
@@ -311,9 +311,9 @@ struct IRBlock
 	}
 
 
-	IRInstruction* NewLoadPtr(IRInstruction* Value)//Load the pointer of the Value
+	IRInstruction* NewLoadPtr(IRInstruction* Value)//get the pointer of the Value
 	{
-		return Instructions.emplace_back(new IRInstruction(IRInstructionType::Load, IROperator(IROperatorType::IRInstructionPointer,Value))).get();
+		return Instructions.emplace_back(new IRInstruction(IRInstructionType::Load, IROperator(IROperatorType::Get_PointerOf_IRInstruction,Value))).get();
 	}
 
 
@@ -326,7 +326,7 @@ struct IRBlock
 	void NewStorePtr(IRInstruction* Storage, IRInstruction* Value)
 	{
 		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Reassign, Storage)).get();
-		V->Input(IROperator(IROperatorType::IRInstructionPointer,Value));
+		V->Input(IROperator(IROperatorType::Get_PointerOf_IRInstruction,Value));
 	}
 	
 	//math

@@ -76,7 +76,8 @@ enum class OpCodeType :OpCodeType_t
 	AnyInt16,
 	AnyInt32,
 	AnyInt64,
-	AnyIntNative,
+	Anyfloat32,
+	Anyfloat64,
 
 	Register,
 
@@ -109,6 +110,10 @@ AddMapValueValue(GetFromStack##bitsize, InstructionSet::GetFromStack##bitsize, O
 AddMapValueValue(StoreRegToPtr##bitsize, InstructionSet::StoreRegToPtr##bitsize, OpCodeType::Register,OpCodeType::Register),\
 AddMapValueValue(LogicalNot##bitsize, InstructionSet::LogicalNot##bitsize, OpCodeType::Register, OpCodeType::Register), \
 
+
+#define MapValuefloatSet(bitsize)\
+AddMapValueValue(Store##bitsize##f, InstructionSet::Store##bitsize##f, OpCodeType::Register, OpCodeType::Anyfloat##bitsize),\
+
 static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 {	
 	AddMapValueValue(Exit,InstructionSet::Exit,OpCodeType::AnyInt8,OpCodeType::NoOpCode),
@@ -127,8 +132,10 @@ static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 	MapValueIntSet(16)
 	MapValueIntSet(32)
 	MapValueIntSet(64)
-	MapValueIntSet(Native)
+	
+	MapValuefloatSet(32)
 
+	MapValuefloatSet(64)
 
 	AddMapValueValue(Malloc,InstructionSet::Malloc,OpCodeType::Register,OpCodeType::Register),
 	AddMapValueValue(Free,InstructionSet::Free,OpCodeType::Register,OpCodeType::NoOpCode),

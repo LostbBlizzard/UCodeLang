@@ -775,6 +775,7 @@ IRType SystematicAnalysis::ConvertToIR(const TypeSymbol& Value)
 	
 	switch (Value._Type)
 	{
+		
 	case TypesEnum::Bool:
 	case TypesEnum::Char:
 	case TypesEnum::sInt8:
@@ -794,10 +795,30 @@ IRType SystematicAnalysis::ConvertToIR(const TypeSymbol& Value)
 
 	case TypesEnum::Void:return IRType(IRTypes::Void);
 
+	case TypesEnum::CustomType: 
+	{
+		Symbol& syb = _Table.GetSymbol(Value._CustomTypeSymbol);
+		if (syb.Type == SymbolType::Enum)
+		{
+			EnumInfo* V = syb.Get_Info <EnumInfo>();
+			return ConvertToIR(V->Basetype);
+		}
+		else if (syb.Type == SymbolType::Type_alias)
+		{
+			return ConvertToIR(syb.VarType);
+		}
+		else
+		{
+			throw std::exception("not added");
+		}
+	}
+		break;
+
 	case TypesEnum::sIntPtr:
 	case TypesEnum::uIntPtr:
 
 	default:
+		
 		throw std::exception("not added");
 		break;
 	}
@@ -945,8 +966,10 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 	bool HasCheckedForincrementOp = false;
 	LookingForTypes.push(ClassInf->Basetype);
 
-	for (auto& Item : node.Values)
+	for (size_t i = 0; i < node.Values.size(); i++)
 	{
+		auto& Item = node.Values[i];
+	
 		String_view ItemName = Item.Name.Token->Value._String;
 
 		if (passtype == PassType::GetTypes)
@@ -988,7 +1011,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 			}
 			else
 			{
-				if (ex.HasValue())
+				if (i != 0)
 				{
 					auto& Type = ClassInf->Basetype;
 					if (HasCheckedForincrementOp == false)
@@ -1279,12 +1302,11 @@ void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 
 				auto G = &_Table.GetSymbol(ObjectType->_CustomTypeSymbol);
 
-				MemberInfo.Offset = 0;
-
+				
 				GetMemberTypeSymbolFromVar(0, node.Name, ThisClassType,
-					G, MemberInfo.Offset);
+					G);
 
-
+				//LookingAtIRBlock->NewPushParameter(IRParameters.front());
 
 				/*
 				auto ValueIr = IROperand::AsLocation(_LastExpressionField);
@@ -1292,6 +1314,7 @@ void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 				_Builder.Build_AssignOnPointer(PointerIr, ValueIr, MemberInfo.Offset);
 				BindTypeToLastIR(MemberInfo.Type);
 				*/
+				throw std::exception("not added");
 
 				BuildVarableCode = false;
 			}
@@ -1511,7 +1534,6 @@ void SystematicAnalysis::OnDoNode(const DoNode& node)
 }
 bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
 {
-	size_t VarOffset = 0;
 	auto Token = node.ScopedName.begin()->token;
 	auto& Str = Token->Value._String;
 	auto SymbolVar = GetSymbol(Str, SymbolType::Varable_t);
@@ -1536,17 +1558,29 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, 
 	size_t Start = 1;
 
 
-	if (!GetMemberTypeSymbolFromVar(Start, node, FeildType, FeildTypeAsSymbol, VarOffset))
+	if (!GetMemberTypeSymbolFromVar(Start, node, FeildType, FeildTypeAsSymbol))
 	{
 		return false;
 	}
 
+	if (passtype == PassType::BuidCode)
+	{
+		if (node.ScopedName.size() == 1)
+		{
+			if (SymbolVar->Type == SymbolType::StackVarable) 
+			{
+				_LastExpressionField = LookingAtIRBlock->NewLoad(SymbolVar->IR_Ins);
+			}
+			else
+			{
+				throw std::exception("not added");
+			}
+		}
+	}
 	Out.Type = FeildType;
-	Out.Offset = VarOffset;
 	return true;
 }
-bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t& Start, const ScopedNameNode& node, TypeSymbol& FeildType, Symbol*& FeildTypeAsSymbol
-	, size_t& VarOffset)
+bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t& Start, const ScopedNameNode& node, TypeSymbol& FeildType, Symbol*& FeildTypeAsSymbol)
 {
 	for (size_t i = Start; i < node.ScopedName.size(); i++)
 	{
@@ -1582,7 +1616,6 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t& Start, const S
 			UAddress _FieldOffset = 0;
 			GetOffset(*CInfo, FeldInfo, _FieldOffset);
 
-			VarOffset += _FieldOffset;
 
 			auto& FieldType2 = FeldInfo->Type;
 			if (FieldType2._Type == TypesEnum::CustomType)
@@ -1606,6 +1639,10 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t& Start, const S
 					}
 					break;
 				}
+			}
+			if (passtype == PassType::BuidCode)
+			{
+				throw std::exception("not added");
 			}
 		}
 		else if (FeildTypeAsSymbol->Type == SymbolType::Enum)
@@ -1634,6 +1671,42 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t& Start, const S
 					LogCantFindVarMemberError(Token2, Str2, FeildType);
 				}
 				break;
+			}
+
+			if (passtype == PassType::BuidCode)
+			{
+				void* ObjectData = Get_Object(Einfo->Basetype,FeldInfo->Ex);
+
+				switch (Einfo->Basetype._Type)
+				{
+				case TypesEnum::Bool:
+				case TypesEnum::Char:
+				case TypesEnum::sInt8:
+				case TypesEnum::uInt8:
+					_LastExpressionField = LookingAtIRBlock->NewLoad(*(UInt8*)ObjectData);
+					break;
+				case TypesEnum::sInt16:
+				case TypesEnum::uInt16:
+					_LastExpressionField = LookingAtIRBlock->NewLoad(*(UInt16*)ObjectData);
+					break;
+				case TypesEnum::sInt32:
+				case TypesEnum::uInt32:
+					_LastExpressionField = LookingAtIRBlock->NewLoad(*(UInt32*)ObjectData);
+					break;
+				case TypesEnum::float32:
+					_LastExpressionField = LookingAtIRBlock->NewLoad(*(float32*)ObjectData);
+					break;
+				case TypesEnum::float64:
+					_LastExpressionField = LookingAtIRBlock->NewLoad(*(float64*)ObjectData);
+					break;
+				case TypesEnum::sInt64:
+				case TypesEnum::uInt64:
+					_LastExpressionField = LookingAtIRBlock->NewLoad(*(UInt64*)ObjectData);
+					break;
+				default:
+					throw std::exception("not added");
+					break;
+				}
 			}
 
 			FeildType.SetType(FeildTypeAsSymbol->ID);
@@ -2422,21 +2495,12 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 	SymbolID sybId = Symbol->ID;
 	if (passtype == PassType::BuidCode)
 	{
-		/*
+		
 		auto& LookForT = Get_LookingForType();
 		if (LookForT.IsAddress())
 		{
-			_Builder.Build_Assign(IROperand::AsPointer(sybId));
-			BindTypeToLastIR(V.Type);
+			_LastExpressionField = LookingAtIRBlock->NewLoadPtr(Symbol->IR_Ins);
 		}
-		else
-		{
-			_Builder.Build_Assign(IROperand::AsReadVarable(sybId),V.Offset);
-			BindTypeToLastIR(V.Type);
-		}
-		_LastExpressionField = _Builder.GetLastField();
-		*/
-		_LastExpressionField = LookingAtIRBlock->NewLoad(Symbol->IR_Ins);
 	}
 
 SetExpressionInfo:
@@ -4569,7 +4633,7 @@ bool SystematicAnalysis::EvaluateImplicitConversion(EvaluatedEx& In, const TypeS
 	if (AreTheSame(In.Type, ToType))
 	{
 		out.Type = In.Type;
-		out.EvaluatedObject = out.EvaluatedObject;
+		out.EvaluatedObject = In.EvaluatedObject;
 		return true;
 	}
 	return false;
