@@ -45,6 +45,8 @@ public:
 
 	CompilerRet CompileFiles_UseIntDir(const CompilerPathData& Data);
 
+	BytesPtr Compiler::OpenFile(const LangDefInfo::FileInfo* FInfo, const Path& path);
+
 	
 	UCodeLangForceinline UCodeLang::CompliationErrors& Get_Errors()
 	{
@@ -73,13 +75,14 @@ public:
 
 	enum class MyEnumClass :UInt8
 	{
+		FileNotChanged,
 		NewFile,
 		RemovedFile,
 		UpdatedFile,
 	};
 	struct MyStruct
 	{
-		const Path Path;
+		Path Path;
 		BytesPtr OpenedFile;
 		MyEnumClass Type;
 		DependencyFile::FileInfo* FileInfo = nullptr;

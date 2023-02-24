@@ -1,6 +1,38 @@
 #include "IR.hpp"
 UCodeLangStart
- void IRBuilder::Reset()
+
+bool In3list(char V,const char* N)
+{
+	for (size_t i = 0; i < strlen(N); i++)
+	{
+		if (N[i] == V) {
+			return true;
+		}
+	}
+	return false;
+}
+
+IRidentifierID IRBuilder::ToID(const IRidentifier& Value)
+{
+	String V = Value;
+
+
+	for (size_t i = 0; i < V.size(); i++)
+	{
+		auto C = V[i];
+
+
+		if (!In3list(C,"qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890"))
+		{
+			V[i] = '_';
+		}
+	}
+
+	auto r = std::hash<IRidentifier>()(V);
+	_Map[r] = V;
+	return r;
+}
+void IRBuilder::Reset()
 {
 	Funcs.clear();
 	_Map.clear();
@@ -33,7 +65,7 @@ String IRBuilder::ToString()
 		r += "[";
 		for (auto& Par : Item->Pars)
 		{
-			r += ToString(Par.type) + " " + Par.identifier;
+			r += ToString(Par.type) + " " + FromID(Par.identifier);
 			if (&Par != &Item->Pars.back())
 			{
 				r += ",";
@@ -229,6 +261,7 @@ String IRBuilder::ToString(const IRType& Type)
 
 
 	case IRTypes::Void:return "void";
+	case IRTypes::pointer:return "var&";
 	default:
 		break;
 	}
@@ -261,6 +294,10 @@ String IRBuilder::ToString(ToStringState& State, IRInstruction& Ins, IROperator&
 		//for
 
 		return  State.PointerToName.at(Value.Pointer);
+	}
+	case IROperatorType::Get_PointerOf_IRInstruction:
+	{
+		return State.PointerToName.at(Value.Pointer) + "-> var&";
 	}
 	default:return "[]";
 	}

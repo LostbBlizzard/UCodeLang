@@ -55,6 +55,9 @@ public:
 	virtual Unique_ptr<FileNode_t> BuildFile(String_view Text) { return nullptr; }
 	virtual Unique_ptr<FileNode_t> BuildFile(const BytesView Bytes) { return nullptr; }
 
+
+	virtual Vector<FileNode_t*> Get_Dependencies(FileNode_t* File) { return {}; }
+
 	virtual void BuildIR(const Vector<Unique_ptr<FileNode_t>>& FileNode) {}
 
 

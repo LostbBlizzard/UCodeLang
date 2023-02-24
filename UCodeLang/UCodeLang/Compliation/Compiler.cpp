@@ -150,6 +150,7 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 			if (Ext == Item.FileExtWithDot)
 			{
 				FInfo = &Item;
+				break;
 			}
 		}
 		if (FInfo == nullptr) { continue; }
@@ -281,94 +282,114 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 
 	Vector<MyStruct> FilesInfo;
 
-	//check for removed.
-	for (auto& Item : NewFile.Files)
 	{
-		bool IsRemoved = false;
-
-		Path FileP = Path(Data.FileDir).native() + Item.FilePath.native();
-		if (!fs::exists(FileP))
+		//check for removed.
+		for (auto& Item : NewFile.Files)
 		{
-			IsRemoved = true;
+bool IsRemoved = false;
+
+Path FileP = Path(Data.FileDir).native() + Item.FilePath.native();
+if (!fs::exists(FileP))
+{
+	IsRemoved = true;
+}
+
+
+
+if (IsRemoved)
+{
+	MyStruct T;
+	T.Type = MyEnumClass::RemovedFile;
+
+	FilesInfo.push_back(std::move(T));
+	//removed file
+}
 		}
-
-
-
-		if (IsRemoved)
+		for (const auto& dirEntry : fs::recursive_directory_iterator(Data.FileDir))
 		{
-			//removed file
-		}
-	}
-	for (const auto& dirEntry : fs::recursive_directory_iterator(Data.FileDir))
-	{
 
-		if (!dirEntry.is_regular_file()) { continue; }
+			if (!dirEntry.is_regular_file()) { continue; }
 
-		auto Ext = dirEntry.path().extension();
+			auto Ext = dirEntry.path().extension();
 
-		const LangDefInfo::FileInfo* FInfo = nullptr;
-		for (auto& Item : Lang->FileTypes)
-		{
-			if (Ext == Item.FileExtWithDot)
+			const LangDefInfo::FileInfo* FInfo = nullptr;
+			for (auto& Item : Lang->FileTypes)
 			{
-				FInfo = &Item;
+				if (Ext == Item.FileExtWithDot)
+				{
+					FInfo = &Item;
+					break;
+				}
 			}
-		}
-		if (FInfo == nullptr) { continue; }
+			if (FInfo == nullptr) { continue; }
 
-		auto& FilePath_t = dirEntry.path();
-		String FilePath = FilePath_t.generic_u8string();
+			auto& FilePath_t = dirEntry.path();
+			String FilePath = FilePath_t.generic_u8string();
 
-		String RePath = FileHelper::RelativePath(FilePath, Data.FileDir);
+			String RePath = FileHelper::RelativePath(FilePath, Data.FileDir);
 
-		_Errors.FilePath = RePath;
-		DependencyFile::FileInfo F;
-		F.FilePath = RePath;	
-		F.FileLastUpdated = *(UInt64*)&fs::last_write_time(FilePath_t);
-		F.FileSize = fs::file_size(FilePath_t);
-		F.FileHash = 0;
-	
-	
+			_Errors.FilePath = RePath;
+			DependencyFile::FileInfo F;
+			F.FilePath = RePath;
+			F.FileLastUpdated = *(UInt64*)&fs::last_write_time(FilePath_t);
+			F.FileSize = fs::file_size(FilePath_t);
+			F.FileHash = 0;
 
-		auto FileInfo = File.Get_Info(RePath);
-		if (FileInfo)
-		{
-			bool NeedToBeRecomiled = false;
+			const Path IntermediatePath = Path(Data.IntDir).native()+ Path(RePath).native();
 
-			if (FileInfo->FileLastUpdated != F.FileLastUpdated)
+			MyStruct T;
+			T.Path = Path(RePath);
+			auto FileInfo = File.Get_Info(RePath);
+			if (FileInfo)
 			{
-				NeedToBeRecomiled = true;
-			}
-			else if (FileInfo->FileSize != F.FileSize)
-			{
-				NeedToBeRecomiled = true;
-			}
-			else
-			{
-				auto V = GetBytesFromFile(dirEntry.path());
-				String_view Bits = String_view((const char*)V.Bytes.get(),V.Size);
-			
-				auto hasher = std::hash<String_view>();
-				UInt64 BitsHash = hasher(Bits);
-				F.FileHash = BitsHash;
-				
-				if (BitsHash == F.FileHash)
+				bool NeedToBeRecomiled = false;
+
+				if (FileInfo->FileLastUpdated != F.FileLastUpdated)
 				{
 					NeedToBeRecomiled = true;
 				}
+				else if (FileInfo->FileSize != F.FileSize)
+				{
+					NeedToBeRecomiled = true;
+				}
+				else
+				{
+					BytesPtr V = OpenFile(FInfo, dirEntry.path());
+					String_view Bits = String_view((const char*)V.Bytes.get(), V.Size);
+
+					auto hasher = std::hash<String_view>();
+					UInt64 BitsHash = hasher(Bits);
+
+
+					if (BitsHash != F.FileHash)
+					{
+						NeedToBeRecomiled = true;
+						F.FileHash = BitsHash;
+					}
+
+					T.OpenedFile = std::move(V);
+				}
+				T.FileInfo = FileInfo;
+				if (NeedToBeRecomiled)
+				{
+					T.Type = MyEnumClass::UpdatedFile;
+				}
+				else
+				{
+					T.Type = MyEnumClass::FileNotChanged;
+				}
 			}
-			if (NeedToBeRecomiled)
+			else
 			{
-				//DO Cool Stuff
+				T.Type = MyEnumClass::NewFile;
 			}
- 		}
-		else
-		{
-			//new file
+			FilesInfo.push_back(std::move(T));
 		}
 	}
 
+	{
 
+	}
 
 	DependencyFile::ToFile(&NewFile, DependencyPath);
 
@@ -377,6 +398,22 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 	r._State = CompilerState::Fail;
 	r.OutPut = nullptr;
 	return  r;
+}
+
+BytesPtr Compiler::OpenFile(const LangDefInfo::FileInfo* FInfo, const Path& path)
+{
+	if (FInfo->Type == FrontEndType::Text)
+	{
+		return GetBytesFromFile(path);
+	}
+	else
+	{
+		String tep = GetTextFromFile(path);
+		BytesPtr V;
+		V.Bytes.reset((Byte*)tep.data());
+		V.Size = tep.size();
+		return V;
+	}
 }
 
 void Compiler::Optimize(IRBuilder& IR)

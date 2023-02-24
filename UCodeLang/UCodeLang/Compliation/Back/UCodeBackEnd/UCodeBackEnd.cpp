@@ -42,8 +42,33 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 	{
 		OnBlock(IR->Blocks.front().get());
 	}
+	
+	if (_Stack.Size)
+	{
+		RegisterID V = RegisterID::A;
 
+		auto Ptr = Get_Settings().PtrSize;
+		auto& instr = _Output->Get_Instructions();
+		//useing insert is slow but it works
+		InstructionBuilder::IncrementStackPointer(_Ins, V);
+		instr.insert(instr.begin() + FuncStart, _Ins);
+		
+		if (Ptr == IntSizes::Int32)
+		{
+			InstructionBuilder::Store32(_Ins,V,(UInt32)_Stack.Size); 
+		}
+		else
+		{
+			InstructionBuilder::Store64(_Ins, V, (UInt64)_Stack.Size);
+		}
+		
+		instr.insert(instr.begin() + FuncStart, _Ins);
 
+		
+		
+	}
+
+	_Stack.Reset();
 	_Registers.Reset();
 	_Output->Add_NameToInstruction(FuncStart, _Input->FromID(IR->identifier));
 }
@@ -223,12 +248,33 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		}
 		break;
 		case IRInstructionType::Return:
+		
+		
+			DropStack();
+			
 			InstructionBuilder::Return(ExitState::Success, _Ins); PushIns();
 			break;
 		default:
 			throw std::exception("not added");
 			break;
 		}
+	}
+}
+void UCodeBackEndObject::DropStack()
+{
+	if (_Stack.Size)
+	{
+		auto Ptr = Get_Settings().PtrSize;
+		auto V = _Registers.GetFreeRegister();
+		if (Ptr == IntSizes::Int32)
+		{
+			InstructionBuilder::Store32(_Ins, V, (UInt32)_Stack.Size); PushIns();
+		}
+		else
+		{
+			InstructionBuilder::Store64(_Ins, V, (UInt64)_Stack.Size); PushIns();
+		}
+		InstructionBuilder::DecrementStackPointer(_Ins, V); PushIns();
 	}
 }
 RegisterID UCodeBackEndObject::LoadOp(IRInstruction& Ins, IROperator Op)
@@ -270,6 +316,65 @@ RegisterID UCodeBackEndObject::LoadOp(IRInstruction& Ins, IROperator Op)
 	else if (Op.Type == IROperatorType::IRInstruction)
 	{
 		return FindOp(Ins, Op);
+	}
+	else if (Op.Type == IROperatorType::Get_PointerOf_IRInstruction)
+	{
+		auto PointerV = Op.Pointer;
+		auto S = _Stack.Has(PointerV);
+		if (S)
+		{
+			auto V = _Registers.GetInfo(PointerV);
+			if (V == RegisterID::NullRegister)
+			{
+				V= _Registers.GetFreeRegister();
+				InstructionBuilder::GetPointerOfStackSub(_Ins, V, S->Offset); PushIns();
+				return V;
+			}
+			else
+			{
+				return V;
+			}
+		}
+		else
+		{
+			size_t StackPos = _Stack.Size;
+			auto V = _Registers.GetFreeRegister();	
+			
+			switch (PointerV->ObjectType._Type)
+			{
+			case IRTypes::i8://move value to stack
+				InstructionBuilder::DoNothing(_Ins); PushIns();
+				_Stack.Size += 1;
+				break;
+			case IRTypes::i16:
+				InstructionBuilder::DoNothing(_Ins); PushIns();
+				_Stack.Size += 2;
+				break;
+			case IRTypes::f32:
+			case IRTypes::i32:
+				InstructionBuilder::StoreRegOnStack32(_Ins, _Registers.GetInfo(PointerV),StackPos); PushIns();//move value to stack
+				_Stack.Size += 4;
+				break;
+			case IRTypes::f64:
+			case IRTypes::i64:
+				InstructionBuilder::DoNothing(_Ins); PushIns();
+				_Stack.Size += 8;
+				break;
+			default:
+				throw std::exception("not added");
+				break;
+			}
+			InstructionBuilder::GetPointerOfStackSub(_Ins,V,StackPos); PushIns();
+			
+			StackItem StItem;
+			StItem.Offset = StackPos;
+			StItem.IR = PointerV;
+			_Stack.Items.push_back(StItem);
+
+			//_Registers.WeakLockRegisterValue(V, PointerV);
+			
+			return V;
+		}
 	}
 
 	throw std::exception("not added");
