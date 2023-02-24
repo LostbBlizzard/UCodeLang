@@ -22,6 +22,35 @@ private:
 	UClib* _Output=nullptr;
 
 
+	struct StackItem
+	{
+		size_t Offset=0;
+		IRInstruction* IR=nullptr;
+	};
+	struct StackInfo
+	{
+		size_t Size = 0;
+
+		void Reset()
+		{
+			Size = 0;
+			Items.clear();
+		}
+		Vector<StackItem> Items;
+
+		StackItem* Has(IRInstruction* Value)
+		{
+			for (auto& Item : Items)
+			{
+				if (Item.IR == Value) 
+				{
+					return &Item;
+				}
+			}
+
+			return nullptr;
+		}
+	};
 	//
 	struct BlockData
 	{
@@ -43,6 +72,8 @@ private:
 
 	void OnBlockBuildCode(const UCodeLang::IRBlock* IR);
 
+	void DropStack();
+
 	inline UClib& Get_Output()
 	{
 		return Getliboutput();
@@ -56,6 +87,7 @@ private:
 	}
 
 	RegistersManager _Registers;
+	StackInfo _Stack;
 	RegisterID LoadOp(IRInstruction& Ins, IROperator Op);
 	void LoadOpToReg(IRInstruction& Ins, IROperator Op,RegisterID Out);
 	void RegToReg(IRTypes Type, RegisterID In, RegisterID Out);

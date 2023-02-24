@@ -218,7 +218,16 @@ case InstructionSet::bitwise_Not##Bits:\
 	Get_Register(Inst.Value1.AsRegister).Value.##unsignedAnyIntValue = ~Get_Register(Inst.Value0.AsRegister).Value.##unsignedAnyIntValue;\
 	break;\
 
+
+
+
 #pragma endregion
+
+#define floatSet(Bits,CType,AnyValue) \
+case InstructionSet::Store##Bits##f: \
+	Get_Register((RegisterID)Inst.Value0.AsRegister).Value = Inst.Value1.##AnyValue; \
+	break; \
+
 
 void Interpreter::Extecute(Instruction& Inst)
 {
@@ -262,6 +271,9 @@ void Interpreter::Extecute(Instruction& Inst)
 	IntSet(32,Int32,UInt32, AsInt32, AsUInt32)
 	IntSet(64,Int64,UInt64, AsInt64, AsUInt64)
 	
+	floatSet(32,float32,Asfloat32)
+	floatSet(64, float64,Asfloat64)
+
 	#pragma region Cpp func Set
 	case InstructionSet::GetPointerOfStack:
 		Get_Register(Inst.Value0.AsRegister).Value = _CPU.Stack.GetTopOfStackWithoffset(Inst.Value1.AsUIntNative);

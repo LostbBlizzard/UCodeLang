@@ -8,6 +8,7 @@
 #include "UCodeAnalyzer/TextBuilder/UCodeTextBuilder.hpp"
 #include "UCodeAnalyzer/CodeBuilds/StandardLibrary.hpp"
 #include <sstream>
+#include "UCodeLang/Compliation/Back/C98/C89Backend.hpp"
 
 using namespace UCodeLang;
 const UCodeLang::String ScrDir = "C:/CoolStuff/CoolCodeingStuff/C++/Projects/UCodeLang/UCApp/src/";
@@ -107,7 +108,12 @@ int main()
 	Data.OutFile = OutFilePath;
 	Data.IntDir = IntPath;
 	Settings._Flags = OptimizationFlags::Debug;
-	_Compiler.CompileFiles(Data);
+
+	_Compiler.Set_BackEnd(ULangTest::C89Backend::MakeObject);
+	
+	_Compiler.CompileFiles_UseIntDir(Data);
+
+
 	if (!ULangTest::LogErrors(std::cout,_Compiler))
 	{
 		UCodeLang::UClib MLib;
@@ -140,7 +146,7 @@ int main()
 		
 		bool item = true;
 
-		auto r = RunTime.RCall <Int8> ("main", &item);
+		auto r = RunTime.RCall <float*> ("main", &item);
  		
 		
 	   std::cout << " Got Value " << (int)r << std::endl;

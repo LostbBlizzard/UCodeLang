@@ -660,7 +660,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			IRParameters.push_back(ParSybID);
 
 			auto& d = LookingAtIRFunc->Pars.emplace_back();
-			d.identifier = V.FullName;
+			d.identifier =_Builder.ToID(V.FullName);
 			d.type = ConvertToIR(V.VarType);
 			
 			
@@ -772,7 +772,11 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 }
 IRType SystematicAnalysis::ConvertToIR(const TypeSymbol& Value)
 {
-	
+	if (Value.IsAddress() || Value.IsAddressArray())
+	{
+		return IRType(IRTypes::pointer);
+	}
+
 	switch (Value._Type)
 	{
 		

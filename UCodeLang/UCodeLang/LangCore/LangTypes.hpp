@@ -227,11 +227,21 @@ struct BytesPtr
 	{
 
 	}
+	BytesPtr(BytesPtr&& Value) :Bytes(nullptr), Size(0)
+	{
+		this->operator=(std::move(Value));
+	}
 	Unique_Array<Byte> Bytes;
 	size_t Size;
 	inline BytesView AsView()
 	{
 		return { Bytes.get(),Size };
+	}
+	BytesPtr& operator=(BytesPtr&& Value)
+	{
+		Bytes.reset(Value.Bytes.release());
+		Size = Value.Size;
+		return *this;
 	}
 };
 

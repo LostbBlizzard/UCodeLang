@@ -14,6 +14,8 @@ enum class IRTypes
 	i64,
 	f32,
 	f64,
+	
+	pointer,
 
 	iRsymbol,
 };
@@ -38,7 +40,7 @@ struct IRType
 
 struct IRPar
 {
-	IRidentifier identifier;
+	IRidentifierID identifier;
 	IRType type;
 };
 
@@ -505,12 +507,7 @@ public:
 		return NewFunc(ToID(identifier), ReturnType);
 	};
 
-	IRidentifierID ToID(const IRidentifier& Value)
-	{
-		auto r = std::hash<IRidentifier>()(Value);
-		_Map[r] = Value;
-		return r;
-	}
+	IRidentifierID ToID(const IRidentifier& Value);
 	IRidentifier FromID(IRidentifierID Value) const
 	{
 		return _Map.at(Value);
