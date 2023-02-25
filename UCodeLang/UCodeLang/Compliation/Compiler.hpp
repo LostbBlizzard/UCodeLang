@@ -73,24 +73,6 @@ public:
 
 
 
-	enum class MyEnumClass :UInt8
-	{
-		FileNotChanged,
-		NewFile,
-		RemovedFile,
-		UpdatedFile,
-	};
-	struct MyStruct
-	{
-		Path Path;
-		BytesPtr OpenedFile;
-		MyEnumClass Type;
-		DependencyFile::FileInfo* FileInfo = nullptr;
-		MyStruct()
-		{
-
-		}
-	};
 private:
 	CompliationSettings _Settings;
 	CompliationErrors _Errors;
