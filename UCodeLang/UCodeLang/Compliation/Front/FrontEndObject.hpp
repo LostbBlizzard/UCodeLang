@@ -48,23 +48,43 @@ class FrontEndObject
 {
 public:
 	virtual void Reset() {}
-
+	virtual ~FrontEndObject() {}
 
 	virtual void Set_FileIDType(LangDefInfo::FileID ID){}
 
 	virtual Unique_ptr<FileNode_t> BuildFile(String_view Text) { return nullptr; }
 	virtual Unique_ptr<FileNode_t> BuildFile(const BytesView Bytes) { return nullptr; }
 
+	virtual void SetSourcePath(const Path& filepath) {};
+	struct Gep_DepPreIR
+	{
+		bool CanGetDependencies = false;
+		Vector<Path> _Files;
+	};
 
-	virtual Vector<FileNode_t*> Get_Dependencies(FileNode_t* File) { return {}; }
+	virtual Gep_DepPreIR Get_DependenciesPreIR(FileNode_t* File) { return {}; }
+	virtual Vector<FileNode_t*> Get_DependenciesPostIR(FileNode_t* File) { return {}; }
+	
+	//
+	virtual Unique_ptr<FileNode_t> LoadIntFile(const Path& path) { return nullptr; }
 
-	virtual void BuildIR(const Vector<Unique_ptr<FileNode_t>>& FileNode) {}
+	virtual void ToIntFile(FileNode_t* File,const Path& path) { }
+
+	virtual void BuildIR(const Vector<FileNode_t*>& FileNode) {}
 
 
-	virtual ~FrontEndObject() {}
+
 
 	virtual const LangDefInfo* GetInfo() { return nullptr; }
+	
 	virtual IRBuilder* Get_Builder(){ return nullptr; }
+	
+	
+	//used if we can get the Dependencies befor IR may be used in 
+	// void BuildIR(const Vector<Unique_ptr<FileNode_t>>& FileNode)
+	// called after Get_Builder() 
+	virtual Unique_ptr<FileNode_t> ConvertOutputAsFile() { return nullptr; }
+
 	virtual UClib* Get_Lib() { return nullptr; }
 
 	void Set_ErrorsOutput(CompliationErrors* Err)

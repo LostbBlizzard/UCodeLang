@@ -21,6 +21,28 @@ public:
 		Vector<Path> Dependencies;
 		void ToBytes(BitMaker& Output) const;
 		static void FromBytes(BitReader& Input, FileInfo Out);
+		bool HasDependence(const Path& path) const
+		{
+			for (auto& Item : Dependencies)
+			{
+				if (Item == path) 
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+		bool HasDependence(const Vector<Path>& paths) const
+		{
+			for (auto& Item : paths)
+			{
+				if (HasDependence(Item))
+				{
+					return true;
+				}
+			}
+			return false;
+		}
 	};
 	
 	Vector< FileInfo> Files;

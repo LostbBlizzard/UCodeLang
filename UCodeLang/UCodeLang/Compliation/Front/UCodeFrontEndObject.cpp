@@ -65,7 +65,7 @@ Unique_ptr<FileNode_t> UCodeFrontEndObject::BuildFile(String_view Text)
 	}
 	return nullptr;
 }
-void UCodeFrontEndObject::BuildIR(const Vector<Unique_ptr<FileNode_t>>& fileNode)
+void UCodeFrontEndObject::BuildIR(const Vector<FileNode_t*>& fileNode)
 {
 	auto Err = Get_Errors();
 	auto Sett = Get_Settings(); 
@@ -78,7 +78,7 @@ void UCodeFrontEndObject::BuildIR(const Vector<Unique_ptr<FileNode_t>>& fileNode
 	Vector<const UClib*> L;
 	for (size_t i = 0; i < fileNode.size(); i++)
 	{
-		auto Item = (const FileNode*)fileNode[i].get();
+		auto Item = (const FileNode*)fileNode[i];
 
 		if (Item->Get_Type() == NodeType::LibImportNode)
 		{

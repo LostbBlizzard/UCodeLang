@@ -43,7 +43,7 @@ public:
 	Unique_ptr<FileNode_t> BuildFile(const BytesView Bytes)  override
 	{ return BuildFile(String_view((const char*)Bytes.Bytes, Bytes.Size) ); }
 
-	void BuildIR(const Vector<Unique_ptr<FileNode_t>>& FileNode) override;
+	void BuildIR(const Vector<FileNode_t*>& FileNode) override;
 
 	IRBuilder* Get_Builder() override {return &_Analyzer.Get_Output();}
 
