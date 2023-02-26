@@ -142,7 +142,7 @@ struct TypeSymbol
 
 
 
-enum class SymbolType : UInt8
+enum class SymbolType: UInt8
 {
 	Null,
 	Any,
@@ -153,6 +153,8 @@ enum class SymbolType : UInt8
 
 	Type,
 	Type_alias,
+	Hard_Type_alias,
+
 
 	Type_class,
 	Class_Field,

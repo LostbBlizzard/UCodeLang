@@ -118,7 +118,7 @@ struct ScopedName
 	{
 		switch (Type)
 		{
-		case TokenType::RightArrow:return Operator_t::IndirectMember;
+		//case TokenType::RightArrow:return Operator_t::IndirectMember;
 		case TokenType::Dot:return Operator_t::Dot;
 		case TokenType::ScopeResolution:return Operator_t::ScopeResolution;
 		case TokenType::OptionalDot:return Operator_t::OptionalChain;
@@ -623,6 +623,7 @@ struct AliasNode :Node
 	NameNode AliasName;
 	GenericValuesNode Generic;
 	TypeNode Type;
+	bool IsHardAlias = false;
 };
 struct EnumValueNode :Node
 {

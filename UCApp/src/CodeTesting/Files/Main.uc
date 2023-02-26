@@ -1,7 +1,10 @@
 
+$int2 = !int;
+
 |main[] -> var:
  
- var v = Item::Green;
- var& a = v;
+ int a =0;
+ int2 b = a -> int2;
+ a = b -> int;
 
- ret a;
+ ret 0;
