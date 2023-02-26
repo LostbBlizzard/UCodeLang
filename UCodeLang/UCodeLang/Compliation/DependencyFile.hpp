@@ -20,7 +20,7 @@ public:
 		
 		Vector<Path> Dependencies;
 		void ToBytes(BitMaker& Output) const;
-		static void FromBytes(BitReader& Input, FileInfo Out);
+		static void FromBytes(BitReader& Input, FileInfo& Out);
 		bool HasDependence(const Path& path) const
 		{
 			for (auto& Item : Dependencies)

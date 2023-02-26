@@ -91,7 +91,7 @@ void SystematicAnalysis::AddDependencyToCurrentFile(const FileNode* file)
 		
 		for (auto& Item : Data._Dependencys)
 		{
-			const FileNode_t* Itemfile_t = nullptr;
+			const FileNode_t* Itemfile_t = (const FileNode_t*)Item;
 			if (Itemfile_t == file_t)
 			{
 				return;
@@ -1658,6 +1658,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t& Start, const S
 			}
 			if (passtype == PassType::BuidCode)
 			{
+				AddDependencyToCurrentFile(FeildTypeAsSymbol);
 				throw std::exception("not added");
 			}
 		}
@@ -1723,6 +1724,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t& Start, const S
 					throw std::exception("not added");
 					break;
 				}
+				AddDependencyToCurrentFile(FeildTypeAsSymbol);
 			}
 
 			FeildType.SetType(FeildTypeAsSymbol->ID);

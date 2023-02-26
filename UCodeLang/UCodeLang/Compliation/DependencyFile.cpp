@@ -11,6 +11,7 @@ BytesPtr DependencyFile::ToRawBytes(const DependencyFile* Lib)
 	{
 		Item.ToBytes(bits);
 	}
+
 	BytesPtr V;
 	V.Bytes.reset(new Byte[bits.size()]);
 	std::memcpy(V.Bytes.get(), bits.data(), bits.size());
@@ -31,12 +32,13 @@ bool DependencyFile::FromBytes(DependencyFile* Lib, const BytesView& Data)
 	bits.ReadType(BitSize, BitSize);
 	Size = BitSize;
 
+	Lib->Files.resize(Size);
 	for (size_t i = 0; i < Size; i++)
 	{
-		FileInfo::FromBytes(bits, Lib->Files.emplace_back());
+		FileInfo::FromBytes(bits, Lib->Files[i]);
 	}
 
-    return false;
+    return true;
 }
 
 bool DependencyFile::ToFile(const DependencyFile* Lib, const Path& path)
@@ -111,7 +113,7 @@ void DependencyFile::FileInfo::ToBytes(BitMaker& Output)const
 	}
 }
 
-void DependencyFile::FileInfo::FromBytes(BitReader& Input, FileInfo Out)
+void DependencyFile::FileInfo::FromBytes(BitReader& Input, FileInfo& Out)
 {
 
 	String TepS;
