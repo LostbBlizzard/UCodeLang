@@ -269,7 +269,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 	{
 		Path path;
 		BytesPtr OpenedFile;
-		MyEnumClass Type;
+		MyEnumClass Type= MyEnumClass::FileNotChanged;
 		DependencyFile::FileInfo* FileInfo = nullptr;
 
 		Path InterPath;
@@ -558,15 +558,15 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 	if (!_Errors.Has_Errors())
 	{
 
-		if (!CanFindDependencyBeforIR) 
+		if (CanFindDependencyBeforIR) 
 		{
 
-
+			//Not added yet.
 
 
 
 		}
-		else
+		//else
 		{
 			_FrontEndObject->BuildIR(Files);
 
@@ -613,6 +613,12 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 					for (auto& Item : ChangedFiles)
 					{
 						_FrontEndObject->ToIntFile(Item->_File.get(),Item->InterPath);
+						auto FileDeps = _FrontEndObject->Get_DependenciesPostIR(Item->_File.get());
+
+						for (auto& Item2 : FileDeps)
+						{
+							int a = 0;
+						}
 					}
 				}
 			}

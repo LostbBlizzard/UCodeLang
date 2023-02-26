@@ -40,8 +40,14 @@ public:
 	void Set_FileIDType(LangDefInfo::FileID ID)  override { _FileType = (UCodeLangInfo::FileTypes)ID; }
 
 	Unique_ptr<FileNode_t> BuildFile(String_view Text)  override;
-	Unique_ptr<FileNode_t> BuildFile(const BytesView Bytes)  override
-	{ return BuildFile(String_view((const char*)Bytes.Bytes, Bytes.Size) ); }
+	Unique_ptr<FileNode_t> BuildFile(const BytesView Bytes)  override{ return BuildFile(String_view((const char*)Bytes.Bytes, Bytes.Size) ); }
+
+
+
+	Unique_ptr<FileNode_t> LoadIntFile(const Path& path) override;
+	Vector<const FileNode_t*> Get_DependenciesPostIR(FileNode_t* File);
+
+	void ToIntFile(FileNode_t* File, const Path& path) override;
 
 	void BuildIR(const Vector<FileNode_t*>& FileNode) override;
 

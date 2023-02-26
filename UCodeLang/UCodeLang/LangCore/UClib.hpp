@@ -39,7 +39,7 @@ public:
 	UClib();
 	~UClib();
 
-	UClib(UClib& GetFrom);
+	UClib(UClib&& source) = default;
 
 	UClib(const UClib& V) = delete;
 	UClib& operator=(const UClib& V) = delete;

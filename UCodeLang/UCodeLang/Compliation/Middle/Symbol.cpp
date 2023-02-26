@@ -29,22 +29,23 @@ void SymbolTable::GetSymbolsInNameSpace(const String_view& NameSpace, const Stri
 		{
 			String FullName = TepNameSpace.size() ?
 				TepNameSpace + ScopeHelper::_ScopeSep + (String)Name : (String)Name;
-			if (Item.FullName == FullName)
+			if (Item->FullName == FullName)
 			{
 
 
 				bool HasItem = false;
 				for (auto& Item2 : Output)
 				{
-					if (&Item == Item2)
+					if (Item.get() == Item2)
 					{
 						HasItem = true;
 						break;
 					}
 				}
 
-				if (!HasItem) {
-					Output.push_back(&Item);
+				if (!HasItem) 
+				{
+					Output.push_back(Item.get());
 				}
 			}
 		}
@@ -68,14 +69,15 @@ void SymbolTable::GetSymbolsInNameSpace(const String_view& NameSpace, const Stri
 
  Symbol& SymbolTable::AddSybol(SymbolType type, const String& Name, const String& FullName)
  {
-	 return Symbols.emplace_back(type, FullName);
+	Symbols.push_back(std::make_unique<Symbol>(type, FullName));
+	 return *Symbols.back();
  }
 
  void SymbolTable::AddSymbolID(Symbol& Syb, SymbolID ID)
  {
 	 Syb.ID = ID;
 
-	 Symbol* Pointer = &Symbols[0];
+	 Symbol* Pointer = &*Symbols.front();
 	 Symbol* SybPointer = &Syb;
 	 size_t Index = SybPointer - Pointer;
 	 IDToSymbols[ID] = Index;

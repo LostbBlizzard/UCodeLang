@@ -478,7 +478,7 @@ struct IRFunc
 	IRidentifierID identifier;
 	IRType ReturnType;
 	Vector<IRPar> Pars;
-	IRFunc()
+	IRFunc() : identifier(0)
 	{
 
 	}

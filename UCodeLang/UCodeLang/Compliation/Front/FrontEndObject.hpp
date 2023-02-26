@@ -63,11 +63,12 @@ public:
 	};
 
 	virtual Gep_DepPreIR Get_DependenciesPreIR(FileNode_t* File) { return {}; }
-	virtual Vector<FileNode_t*> Get_DependenciesPostIR(FileNode_t* File) { return {}; }
+	virtual Vector<const FileNode_t*> Get_DependenciesPostIR(FileNode_t* File) { return {}; }
 	
 	//
 	virtual Unique_ptr<FileNode_t> LoadIntFile(const Path& path) { return nullptr; }
 
+	
 	virtual void ToIntFile(FileNode_t* File,const Path& path) { }
 
 	virtual void BuildIR(const Vector<FileNode_t*>& FileNode) {}
