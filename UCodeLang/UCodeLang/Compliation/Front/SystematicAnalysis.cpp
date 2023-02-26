@@ -333,7 +333,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 
 	_Table.AddScope(ClassName);
 	auto& Syb = passtype == PassType::GetTypes ?
-		AddSybol(SymbolType::Type_alias, (String)ClassName, _Table._Scope.ThisScope) :
+		AddSybol(node.IsHardAlias ? SymbolType::Hard_Type_alias : SymbolType::Type_alias, (String)ClassName, _Table._Scope.ThisScope) :
 		_Table.GetSymbol(SybID);
 
 	if (passtype == PassType::GetTypes)
@@ -818,7 +818,8 @@ IRType SystematicAnalysis::ConvertToIR(const TypeSymbol& Value)
 			EnumInfo* V = syb.Get_Info <EnumInfo>();
 			return ConvertToIR(V->Basetype);
 		}
-		else if (syb.Type == SymbolType::Type_alias)
+		else if (syb.Type == SymbolType::Type_alias
+			|| syb.Type == SymbolType::Hard_Type_alias)
 		{
 			return ConvertToIR(syb.VarType);
 		}
@@ -3297,7 +3298,12 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 		{
 			if (SybV->Type == SymbolType::Type_alias)
 			{
+
 				Out = SybV->VarType;
+			}
+			else if (SybV->Type == SymbolType::Hard_Type_alias)
+			{
+				Out.SetType(SybV->ID);
 			}
 			else
 			{
@@ -3337,6 +3343,19 @@ bool SystematicAnalysis::CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck,
 {
 	if (CanBeImplicitConverted(TypeToCheck, Type)) { return true; }
 	
+	if (TypeToCheck._Type == TypesEnum::CustomType) 
+	{
+		Symbol& syb = _Table.GetSymbol(TypeToCheck._CustomTypeSymbol);
+		if (syb.Type == SymbolType::Hard_Type_alias)
+		{
+			if (AreTheSameWithOutimmutable(syb.VarType, Type))
+			{
+				return true;
+			}
+		}
+
+	}
+
 	if (IsIntType(TypeToCheck) && IsIntType(TypeToCheck)) { return true; }
 	return false;
 }
@@ -3353,6 +3372,19 @@ void SystematicAnalysis::DoExplicitlConversion(IRInstruction* Ex, const TypeSymb
 {
 	if (!DoImplicitConversion(Ex, ExType, ToType))
 	{
+		if (ExType._Type == TypesEnum::CustomType)
+		{
+			Symbol& syb = _Table.GetSymbol(ExType._CustomTypeSymbol);
+			if (syb.Type == SymbolType::Hard_Type_alias)
+			{
+				if (AreTheSameWithOutimmutable(syb.VarType, ExType))
+				{
+					return;//do nothing
+				}
+			}
+
+		}
+
 		//DO Stuff
 	}
 }
@@ -3494,7 +3526,8 @@ bool SystematicAnalysis::GetSize(const TypeSymbol& Type, UAddress& OutSize)
 			OutSize = Vp->Size;
 			return true;
 		}
-		else if(V.Type == SymbolType::Type_alias)
+		else if(V.Type == SymbolType::Type_alias
+			|| V.Type == SymbolType::Hard_Type_alias)
 		{
 			return GetSize(V.VarType,OutSize);
 		}
@@ -4952,7 +4985,7 @@ void SystematicAnalysis::LogCantCastImplicitTypes(const Token* Token, TypeSymbol
 	else
 	{
 		_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
-			, "Cant cast Type '" + ToString(Ex1Type) + " to '" + ToString(UintptrType) + "'");
+			, "Cant Implicitly cast Type '" + ToString(Ex1Type) + " to '" + ToString(UintptrType) + "'");
 	}
 }
 void SystematicAnalysis::LogReadingFromInvaidVariable(const Token* Token, String_view Str)
@@ -5028,7 +5061,7 @@ void SystematicAnalysis::LogCantCastExplicityTypes(const Token* Token, TypeSymbo
 	if (Ex0Type.IsBadType() || ToTypeAs.IsBadType()){return;}
 
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
-		, "Cant cast Type '" + ToString(Ex0Type) + " to '" + ToString(ToTypeAs) + "'");
+		, "Cant Explicity cast Type '" + ToString(Ex0Type) + "' to '" + ToString(ToTypeAs) + "'");
 }
 
 SystematicAnalysis::ReadVarErrorCheck_t SystematicAnalysis::LogTryReadVar(String_view VarName, const Token* Token, const Symbol* Syb)

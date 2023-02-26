@@ -155,6 +155,12 @@ GotNodeType Parser::GetAlias(const Token* AliasName,GenericValuesNode&& AliasGen
 	auto ClassToken = TryGetToken(); TokenTypeCheck(ClassToken, TokenType::equal);
 	NextToken();
 
+	if (TryGetToken()->Type == TokenType::Not)
+	{
+		out.IsHardAlias = true;
+		NextToken();
+	}
+
 	auto r = GetType(out.Type);
 
 	auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
@@ -969,11 +975,12 @@ Parser::GetNameCheck_ret Parser::GetNameCheck(ScopedNameNode& out)
 
 
 		auto Token = TryGetToken();
-		
 
-		if (Token) {
-		V.Operator = ScopedName::Get_Scoped(Token->Type);
-	}
+
+		if (Token) 
+		{
+			V.Operator = ScopedName::Get_Scoped(Token->Type);
+		}
 		V.Generic = std::move(std::make_unique<UseGenericsNode>(std::move(Generic)));
 
 		bool MemAccess = V.Operator == ScopedName::Operator_t::Dot
@@ -987,7 +994,7 @@ Parser::GetNameCheck_ret Parser::GetNameCheck(ScopedNameNode& out)
 			if (LookingAtT == NameCheck_t::MemberAccess && V.Generic.get()->Values.size())
 			{
 				auto Token = out.ScopedName[0].token;
-				_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence,Token->OnLine, Token->OnPos, 
+				_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos,
 					"generic cant be with a Memberaccess operator '" + (String)StringHelper::ToString(Token->Type) + "'");
 			}
 		}
@@ -995,16 +1002,17 @@ Parser::GetNameCheck_ret Parser::GetNameCheck(ScopedNameNode& out)
 		{
 			LookingAtT = NameCheck_t::MemberAccess;
 		}
+		
+		out.ScopedName.push_back(std::move(V));
 		if (Token == nullptr || !ScopedName::Get_IsScoped(Token->Type))
 		{
-			out.ScopedName.push_back(std::move(V));
 			break;
 		}
-		out.ScopedName.push_back(std::move(V));
 		
-		
-		
-		
+
+
+
+
 		NextToken();
 	}
 	return{ LookingAtT,GotNodeType::Success };

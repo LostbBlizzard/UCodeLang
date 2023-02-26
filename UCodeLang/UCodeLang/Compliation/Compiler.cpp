@@ -492,7 +492,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 							}
 						}
 
-						if (HasIt)
+						if (!HasIt)
 						{
 							ChangedFiles.push_back(&Item);
 						}
@@ -644,6 +644,8 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 	}
 
 
+	r._State = _Errors.Has_Errors() ? CompilerState::Fail : CompilerState::Success;
+
 	for (auto& Item : NewFilesInfo)
 	{
 		NewFile.Files.push_back(std::move(*Item));
@@ -653,8 +655,9 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 		NewFile.Files.push_back(std::move(*Item->FileInfo));
 	}
 
-	DependencyFile::ToFile(&NewFile, DependencyPath);
-
+	if (r._State == CompilerState::Success) {
+		DependencyFile::ToFile(&NewFile, DependencyPath);
+	}
 
 	return  r;
 
