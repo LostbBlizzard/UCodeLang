@@ -101,6 +101,14 @@ BytesPtr Compiler::GetBytesFromFile(const Path& path)
 }
 Compiler::CompilerRet Compiler::CompilePathToObj(const Path& path, const Path& OutLib)
 {
+	if (_FrontEndObject == nullptr)
+	{
+		_FrontEndObject.reset(_FrontEnd());
+	}
+	else
+	{
+		_FrontEndObject->Reset();
+	}
 
 	_FrontEndObject->SetSourcePath(path);
 	auto Text = GetTextFromFile(path);

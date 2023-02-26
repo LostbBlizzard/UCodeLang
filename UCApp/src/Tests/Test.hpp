@@ -73,7 +73,7 @@ namespace ULangTest
 		}
 	};
 
-	static const Array<TestInfo, 30> Tests
+	static const Array<TestInfo, 33> Tests
 	{
 
 		TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation),
@@ -119,6 +119,10 @@ namespace ULangTest
 		TestInfo("GenericsParameter","Generics/GenericsParameter.uc","main",SuccessCondition::RunTimeValue,(size_t)0),
 		TestInfo("GenericType","Generics/GenericType.uc","main",SuccessCondition::RunTimeValue,(size_t)0),
 		TestInfo("GenericsParameter2","Generics/GenericsParameter2.uc","main",SuccessCondition::RunTimeValue,(size_t)0),
+
+		TestInfo("HardAlias","BasicTests/HardAlias.uc","main",SuccessCondition::Compilation),
+		TestInfo("HardAlias2","BasicTests/HardAlias2.uc","main",SuccessCondition::CompilationFail),
+		TestInfo("HardAlias3","BasicTests/HardAlias3.uc","main",SuccessCondition::CompilationFail),
 	};
 
 
