@@ -76,11 +76,7 @@ void SymbolTable::GetSymbolsInNameSpace(const String_view& NameSpace, const Stri
  void SymbolTable::AddSymbolID(Symbol& Syb, SymbolID ID)
  {
 	 Syb.ID = ID;
-
-	 Symbol* Pointer = &*Symbols.front();
-	 Symbol* SybPointer = &Syb;
-	 size_t Index = SybPointer - Pointer;
-	 IDToSymbols[ID] = Index;
+	 IDToSymbols[ID] = &Syb;
  }
 
  void SymbolTable::Reset()

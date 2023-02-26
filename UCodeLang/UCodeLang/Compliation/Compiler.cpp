@@ -268,6 +268,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 	struct MyStruct
 	{
 		Path path;
+		Path Repath;
 		BytesPtr OpenedFile;
 		MyEnumClass Type= MyEnumClass::FileNotChanged;
 		DependencyFile::FileInfo* FileInfo = nullptr;
@@ -313,7 +314,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 	_FrontEndObject->Set_Settings(&_Settings);
 	_FrontEndObject->Set_ErrorsOutput(&_Errors);
 
-
+	Vector<Unique_ptr<DependencyFile::FileInfo>> NewFilesInfo;
 	Vector<MyStruct> FilesInfo;
 
 	//get file info
@@ -373,7 +374,8 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 			const Path IntermediatePath = Path(Data.IntDir).native() + Path(RePath).native() + Path(FileExt::ObjectWithDot).native();
 
 			MyStruct T;
-			T.path = Path(RePath);
+			T.path = FilePath_t;
+			T.Repath = Path(RePath);
 			T.InterPath = IntermediatePath;
 			T._FInfo = FInfo;
 			auto FileInfo = File.Get_Info(RePath);
@@ -395,7 +397,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 				}
 				else
 				{
-					BytesPtr V = OpenFile(FInfo, dirEntry.path());
+					BytesPtr V = OpenFile(FInfo, FilePath_t);
 					String_view Bits = String_view((const char*)V.Bytes.get(), V.Size);
 
 					auto hasher = std::hash<String_view>();
@@ -423,7 +425,15 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 			}
 			else
 			{
+				auto V = std::make_unique<DependencyFile::FileInfo>();
+				FileInfo = V.get();
+				NewFilesInfo.push_back(std::move(V));
+				
+				*FileInfo = F;
+
 				T.Type = MyEnumClass::NewFile;
+				T.FileInfo = FileInfo;
+			
 			}
 			FilesInfo.push_back(std::move(T));
 		}
@@ -452,6 +462,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 
 		do
 		{
+			OldSize = ChangedFiles.size();
 			//if dependence is an updated file
 			for (auto& Item : FilesInfo)
 			{
@@ -461,7 +472,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 
 					for (auto& Item2 : ChangedFiles)
 					{
-						if (Item.FileInfo->HasDependence(Item2->path))
+						if (Item.FileInfo->HasDependence(Item2->Repath))
 						{
 							IsDependence = true;
 							break;
@@ -517,6 +528,8 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 
 	Vector<FileNode_t*> Files;
 	bool CanFindDependencyBeforIR = true;
+
+	if (ChangedFiles.size())
 	{
 		for (auto& Item : UnChangedFiles)
 		{
@@ -530,10 +543,12 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 			{
 				Item->OpenedFile = OpenFile(Item->_FInfo, Item->path);
 			}
-
 			_FrontEndObject->SetSourcePath(Item->path);
 
 			Item->_File = _FrontEndObject->BuildFile(Item->OpenedFile.AsView());
+
+			Item->_File->FileName = Item->Repath;
+
 
 			auto V = _FrontEndObject->Get_DependenciesPreIR(Item->_File.get());
 			if (V.CanGetDependencies == false)
@@ -615,9 +630,12 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 						_FrontEndObject->ToIntFile(Item->_File.get(),Item->InterPath);
 						auto FileDeps = _FrontEndObject->Get_DependenciesPostIR(Item->_File.get());
 
+						auto Str = String_view((char*)Item->OpenedFile.Bytes.get(), Item->OpenedFile.Size);
+						Item->FileInfo->FileHash = (UInt64)std::hash<String_view>()(Str);
+						Item->FileInfo->Dependencies.clear();
 						for (auto& Item2 : FileDeps)
 						{
-							int a = 0;
+							Item->FileInfo->Dependencies.push_back(Item2->FileName);
 						}
 					}
 				}
@@ -625,6 +643,15 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 		}
 	}
 
+
+	for (auto& Item : NewFilesInfo)
+	{
+		NewFile.Files.push_back(std::move(*Item));
+	}
+	for (auto& Item : UnChangedFiles)
+	{
+		NewFile.Files.push_back(std::move(*Item->FileInfo));
+	}
 
 	DependencyFile::ToFile(&NewFile, DependencyPath);
 
@@ -635,7 +662,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 
 BytesPtr Compiler::OpenFile(const LangDefInfo::FileInfo* FInfo, const Path& path)
 {
-	if (FInfo->Type == FrontEndType::Text)
+	if (FInfo->Type != FrontEndType::Text)
 	{
 		return GetBytesFromFile(path);
 	}
@@ -643,8 +670,9 @@ BytesPtr Compiler::OpenFile(const LangDefInfo::FileInfo* FInfo, const Path& path
 	{
 		String tep = GetTextFromFile(path);
 		BytesPtr V;
-		V.Bytes.reset((Byte*)tep.data());
+		V.Bytes.reset(new Byte[tep.size()]);
 		V.Size = tep.size();
+		memcpy(V.Bytes.get(), tep.data(), V.Size);
 		return V;
 	}
 }

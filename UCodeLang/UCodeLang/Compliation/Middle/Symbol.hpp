@@ -432,7 +432,7 @@ public:
 	//use a ptr for the Id;
 	Symbol& GetSymbol(SymbolID ID)
 	{
-		return *Symbols[IDToSymbols[ID]];
+		return *IDToSymbols.at(ID);
 	}
 
 	void AddSymbolID(Symbol& Syb, SymbolID ID);
@@ -440,6 +440,6 @@ public:
 
 		
 private:
-	Unordered_map<SymbolID,size_t> IDToSymbols;
+	Unordered_map<SymbolID,Symbol*> IDToSymbols;
 };
 UCodeLangFrontEnd
