@@ -7,7 +7,6 @@
 #include "../Middle/IR.hpp"
 #include "UCodeLang/Compliation/Back/BackEndInterface.hpp"
 #include "../Middle/Symbol.hpp"
-
 #include "UCodeFrontEndNameSpace.hpp"
 UCodeLangFrontStart
 class SystematicAnalysis
@@ -46,7 +45,12 @@ public:
 		BuidCode,
 		Done,
 	};
-	
+
+	struct FileNodeData
+	{
+		Vector< const FileNode_t*> _Dependencys;
+	};
+	const FileNodeData& GetFileData(const FileNode_t* file) const { return _FilesData.at(file); }
 private:
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
@@ -135,16 +139,15 @@ private:
 	SymbolID GetSymbolID(const Node& node);
 	//File dependency analysis stuff
 	const FileNode* LookingAtFile = nullptr;
-	struct SybolSegment
-	{
-		const FileNode* File = nullptr;
-		size_t TokenIndex=0;
-		size_t Size = 0;
-	};
-	Vector< SybolSegment> FileSegments;
+
+
+	Unordered_map< const FileNode_t*, FileNodeData> _FilesData;
 	const FileNode* Get_FileUseingSybol(Symbol* Syb);
 	void AddDependencyToCurrentFile(Symbol* Syb);
 	void AddDependencyToCurrentFile(const FileNode* file);
+	void AddDependencyToCurrentFile(const TypeSymbol& type);
+	Symbol& AddSybol(SymbolType type, const String& Name, const String& FullName);
+	
 	//
 	void Pass();
 	void OnFileNode(const FileNode* File);
@@ -262,7 +265,7 @@ private:
 	{
 		String GenericFuncName;
 		const Vector<TypeSymbol>* GenericInput = nullptr;
-		void* NodeTarget = nullptr;
+		const void* NodeTarget = nullptr;
 	};
 
 	Stack<GenericFuncInfo> GenericFuncName;

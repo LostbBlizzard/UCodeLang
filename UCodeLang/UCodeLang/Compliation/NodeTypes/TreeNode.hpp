@@ -149,6 +149,10 @@ struct LibImportNode :FileNode_t, Node
 	{
 
 	}
+	LibImportNode(LibImportNode&& source) : Node(NodeType::LibImportNode), LIb(std::move(source.LIb))
+	{
+
+	}
 	AddforNode(LibImportNode);
 
 	UClib LIb;

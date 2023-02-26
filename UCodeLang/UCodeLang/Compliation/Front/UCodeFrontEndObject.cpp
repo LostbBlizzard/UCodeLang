@@ -1,5 +1,5 @@
 #include "UCodeFrontEndObject.hpp"
-
+#include "UCodeLang/Compliation/Compiler.hpp"
 UCodeLangFrontStart
 
 
@@ -59,12 +59,33 @@ Unique_ptr<FileNode_t> UCodeFrontEndObject::BuildFile(String_view Text)
 		BytesView Bits((Byte*)Text.data(), Text.size());
 		if (UClib::FromBytes(&tep.LIb, Bits)) 
 		{
-			FileNode* tepn = (FileNode*)&tep;
-			return Unique_ptr<FileNode_t>(new FileNode(std::move(*tepn)));
+			return Unique_ptr<FileNode_t>(new LibImportNode(std::move(tep)));
 		}
 	}
 	return nullptr;
 }
+Unique_ptr<FileNode_t> UCodeFrontEndObject::LoadIntFile(const Path& path) 
+{ 
+	auto Bytes = Compiler::GetBytesFromFile(path);
+
+	LibImportNode tep;
+	if (UClib::FromBytes(&tep.LIb, Bytes.AsView()))
+	{
+		return Unique_ptr<FileNode_t>(new LibImportNode(std::move(tep)));
+	}
+
+	return nullptr; 
+}
+Vector<const FileNode_t*> UCodeFrontEndObject::Get_DependenciesPostIR(FileNode_t* File)
+{
+	return  _Analyzer.GetFileData(File)._Dependencys;
+}
+void UCodeFrontEndObject::ToIntFile(FileNode_t* File, const Path& path) 
+{
+
+
+}
+
 void UCodeFrontEndObject::BuildIR(const Vector<FileNode_t*>& fileNode)
 {
 	auto Err = Get_Errors();

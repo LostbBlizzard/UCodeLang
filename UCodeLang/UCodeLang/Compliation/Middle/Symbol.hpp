@@ -5,6 +5,7 @@
 
 UCodeLangStart
 struct IRInstruction;
+struct FileNode;
 UCodeLangEnd
 
 UCodeLangFrontStart
@@ -362,6 +363,8 @@ public:
 	}
 };
 
+
+
 class Symbol
 {
 public:
@@ -372,10 +375,13 @@ public:
 	UAddress Size=NullAddress;
 	TypeSymbol VarType;
 	//
-	void* NodePtr =nullptr;//most likey a node*
+	const void* NodePtr =nullptr;//most likey a node*
 	Unique_ptr<Symbol_Info> Info;
-
 	
+	
+	const FileNode* _File = nullptr;
+	
+
 
 	SymbolValidState ValidState = SymbolValidState::valid;
 	void SetToInvalid(){ValidState = SymbolValidState::Invalid;}
@@ -405,8 +411,7 @@ class SymbolTable
 public:
 	Vector<String> Useings;
 	ScopeHelper _Scope;
-	Vector<Symbol> Symbols;
-
+	Vector<Unique_ptr<Symbol>> Symbols;
 
 
 	void AddUseing(const String_view& Name) { Useings.push_back((String)Name); }
@@ -427,7 +432,7 @@ public:
 	//use a ptr for the Id;
 	Symbol& GetSymbol(SymbolID ID)
 	{
-		return Symbols[IDToSymbols[ID]];
+		return *Symbols[IDToSymbols[ID]];
 	}
 
 	void AddSymbolID(Symbol& Syb, SymbolID ID);

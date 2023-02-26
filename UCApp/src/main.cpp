@@ -5,7 +5,6 @@
 #include "Tests/Test.hpp"
 #include <future>
 #include <optional>
-#include "UCodeAnalyzer/TextBuilder/UCodeTextBuilder.hpp"
 #include "UCodeAnalyzer/CodeBuilds/StandardLibrary.hpp"
 #include <sstream>
 #include "UCodeLang/Compliation/Back/C98/C89Backend.hpp"

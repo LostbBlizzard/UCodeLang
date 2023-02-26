@@ -10,10 +10,6 @@ UClib::~UClib()
 {
 
 }
-UClib::UClib(UClib& GetFrom)
-{
-	throw std::exception("");
-}
 using Size_tAsBits = BitMaker::SizeAsBits;
 
 
