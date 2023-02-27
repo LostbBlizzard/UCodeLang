@@ -168,13 +168,17 @@ enum class SymbolType: UInt8
 	GenericFunc,
 	Generic_class,
 	Unmaped_Generic_Type,
-	Namespace
+	Namespace,
+
+	Hard_Func_ptr,//no one will use this
+	Func_ptr,
 };
 enum class SymbolValidState : UInt8
 {
 	Invalid,
 	valid,
 };
+
 
 
 class Symbol_Info
@@ -365,7 +369,18 @@ public:
 	}
 };
 
+class FuncPtrInfo :public Symbol_Info
+{
+public:
+	String FullName;
+	inline String_view Get_Name() const
+	{
+		return ScopeHelper::GetNameFromFullName((String_view)FullName);
+	}
 
+	Vector<TypeSymbol> Pars;
+	TypeSymbol Ret;
+};
 
 class Symbol
 {

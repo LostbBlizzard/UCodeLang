@@ -71,6 +71,9 @@ private:
 	IRFunc* LookingAtIRFunc = nullptr;
 	IRBlock* LookingAtIRBlock=nullptr;
 
+	
+	
+	Vector<FuncPtrInfo> Tep_FuncPtr;
 	struct ObjectToDrop
 	{
 		SymbolID ID =0;
@@ -142,6 +145,8 @@ private:
 
 
 	Unordered_map< const FileNode_t*, FileNodeData> _FilesData;
+
+
 	const FileNode* Get_FileUseingSybol(Symbol* Syb);
 	void AddDependencyToCurrentFile(Symbol* Syb);
 	void AddDependencyToCurrentFile(const FileNode* file);
@@ -175,6 +180,10 @@ private:
 	};
 
 	bool GetMemberTypeSymbolFromVar(const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out);
+
+	Symbol* SystematicAnalysis::GetTepFuncPtrSyb(const String& TepFuncPtr, const FuncInfo* Finfo);
+
+	String GetTepFuncPtrName(Symbol* SymbolVar);
 
 	bool GetMemberTypeSymbolFromVar(const size_t& Start, const ScopedNameNode& node, TypeSymbol& FeildType, Symbol*& FeildTypeAsSymbol);
 	

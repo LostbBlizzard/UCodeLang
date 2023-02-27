@@ -161,8 +161,36 @@ GotNodeType Parser::GetAlias(const Token* AliasName,GenericValuesNode&& AliasGen
 		NextToken();
 	}
 
-	auto r = GetType(out.Type);
+	GotNodeType r;
+	auto FirtToken = TryGetToken();
+	if (FirtToken->Type == declareFunc)
+	{
+		NextToken();
 
+		out._Type = AliasType::Func;
+		auto Func = new AliasNode_Func();
+		out._Node.reset(Func);
+
+		auto LPToken = TryGetToken();
+		TokenTypeCheck(LPToken, declareFuncParsStart);
+		NextToken();
+
+		auto Parameters = GetNamedParametersNode(Func->Parameters);
+
+		auto RPToken = TryGetToken();
+		TokenTypeCheck(RPToken, declareFuncParsEnd);
+		NextToken();
+
+		auto Arrow = TryGetToken();
+		TokenTypeCheck(Arrow, TokenType::RightArrow);
+		NextToken();
+
+		r = GetTypeWithVoid(Func->ReturnType);
+	}
+	else 
+	{
+		r = GetType(out.Type);
+	}
 	auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
 	NextToken();
 

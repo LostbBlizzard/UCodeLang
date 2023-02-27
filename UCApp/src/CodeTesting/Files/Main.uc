@@ -1,10 +1,14 @@
 
-$int2 = !int;
+
+$FuncPtr2 = !|[] -> int;
+$FuncPtr = |[] -> int;
+
+
+|TestFunc[]:
+ ret 1;
 
 |main[] -> var:
  
- int a =0;
- int2 b = a -> int2;
- a = b -> int;
+ FuncPtr a = TestFunc;
 
- ret 0;
+ //ret a();

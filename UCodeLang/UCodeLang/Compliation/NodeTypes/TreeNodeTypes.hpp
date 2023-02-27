@@ -612,6 +612,12 @@ struct DeclareThreadVariableNode :Node
 	DeclareVariableNode Variable;
 };
 
+enum class AliasType
+{
+	Type,
+	Func,
+};
+
 struct AliasNode :Node
 {
 	AliasNode() : Node(NodeType::AliasNode)
@@ -623,8 +629,15 @@ struct AliasNode :Node
 	NameNode AliasName;
 	GenericValuesNode Generic;
 	TypeNode Type;
+
+	
 	bool IsHardAlias = false;
+	
+	AliasType _Type = AliasType::Type;
+	Unique_ptr<Node> _Node;
 };
+
+
 struct EnumValueNode :Node
 {
 	
@@ -825,5 +838,12 @@ struct DropStatementNode :Node
 	AddforNode(DropStatementNode);
 
 	ExpressionNodeType expression;
+};
+
+
+struct AliasNode_Func :Node
+{
+	NamedParametersNode Parameters;
+	TypeNode ReturnType;
 };
 UCodeLangFrontEnd
