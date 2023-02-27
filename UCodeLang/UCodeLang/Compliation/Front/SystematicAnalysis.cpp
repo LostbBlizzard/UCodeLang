@@ -339,11 +339,51 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 	if (passtype == PassType::GetTypes)
 	{
 		_Table.AddSymbolID(Syb, SybID);
-		Convert(node.Type, Syb.VarType);
+
+		if (node._Type == AliasType::Type) 
+		{
+			Convert(node.Type, Syb.VarType);
+		}
+		else
+		{
+			Syb.Type = node.IsHardAlias ? SymbolType::Hard_Func_ptr : SymbolType::Func_ptr;
+
+			AliasNode_Func* node_ = (AliasNode_Func*)node._Node.get();
+			auto V = new FuncPtrInfo();
+			Syb.Info.reset(V);
+
+			V->Pars.resize(node_->Parameters.Parameters.size());
+
+			for (size_t i = 0; i < V->Pars.size(); i++)
+			{
+				auto& NodePar = node_->Parameters.Parameters[i];
+				auto& Par = V->Pars[i];
+				Convert(NodePar.Type, Par);
+			}
+
+			Convert(node_->ReturnType, V->Ret);
+		}
 	}
 	if (passtype == PassType::FixedTypes)
 	{
-		Convert(node.Type, Syb.VarType);
+		if (node._Type == AliasType::Type) 
+		{
+			Convert(node.Type, Syb.VarType);
+		}
+		else
+		{
+			AliasNode_Func* node_ = (AliasNode_Func*)node._Node.get();
+			FuncPtrInfo* nodeinfo_ = (FuncPtrInfo*)Syb.Info.get();
+
+			for (size_t i = 0; i < nodeinfo_->Pars.size(); i++)
+			{
+				auto& NodePar = node_->Parameters.Parameters[i];
+				auto& Par = nodeinfo_->Pars[i];
+				Convert(NodePar.Type, Par);
+			}
+
+			Convert(node_->ReturnType, nodeinfo_->Ret);
+		}
 	}
 
 	if (passtype == PassType::BuidCode)
@@ -828,7 +868,7 @@ IRType SystematicAnalysis::ConvertToIR(const TypeSymbol& Value)
 			throw std::exception("not added");
 		}
 	}
-		break;
+	break;
 
 	case TypesEnum::sIntPtr:
 	case TypesEnum::uIntPtr:
@@ -1561,11 +1601,22 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, 
 		return false;
 	}
 
-	CheckVarWritingErrors(SymbolVar, Token, String_view(Token->Value._String));
+	CheckVarWritingErrors(SymbolVar, Token, String_view(Str));
 
 	TypeSymbol FeildType = SymbolVar->VarType;
 	Symbol* FeildTypeAsSymbol =nullptr;
-
+	
+	
+	if (SymbolVar->Type == SymbolType::Func)
+	{
+		FuncInfo* Finfo = SymbolVar->Get_Info<FuncInfo>();
+		String TepFuncPtr = GetTepFuncPtrName(SymbolVar);
+		
+		Symbol* V = GetTepFuncPtrSyb(TepFuncPtr,Finfo);
+		FeildTypeAsSymbol = V;
+		FeildType.SetType(V->ID);
+	}
+	else
 	if (FeildType._Type == TypesEnum::CustomType)
 	{
 		FeildTypeAsSymbol = &_Table.GetSymbol(SymbolVar->VarType._CustomTypeSymbol);
@@ -1596,6 +1647,28 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, 
 	}
 	Out.Type = FeildType;
 	return true;
+}
+Symbol* SystematicAnalysis::GetTepFuncPtrSyb(const String& TepFuncPtr, const FuncInfo* Finfo)
+{
+	Symbol* V =GetSymbol(TepFuncPtr, SymbolType::Func_ptr);
+	if (V == nullptr)
+	{
+		V = &_Table.AddSybol(SymbolType::Func_ptr, TepFuncPtr, TepFuncPtr);
+		FuncPtrInfo* V2 = new FuncPtrInfo();
+		V->Info.reset(V2);
+
+		SymbolID VID = (SymbolID)V;
+
+		V2->Pars = Finfo->Pars;
+		V2->Ret = Finfo->Ret;
+		_Table.AddSymbolID(*V, VID);
+	}
+
+	return V;
+}
+String SystematicAnalysis::GetTepFuncPtrName(Symbol* SymbolVar)
+{
+	return "_tepfptr|" + SymbolVar->FullName;
 }
 bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t& Start, const ScopedNameNode& node, TypeSymbol& FeildType, Symbol*& FeildTypeAsSymbol)
 {
@@ -1729,6 +1802,38 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t& Start, const S
 			}
 
 			FeildType.SetType(FeildTypeAsSymbol->ID);
+		}
+		else if (FeildTypeAsSymbol->Type == SymbolType::Func)
+		{
+			if (i + 1 < node.ScopedName.size())
+			{
+				const UCodeLang::Token* Token = node.ScopedName.begin()->token;
+
+				auto Token2 = node.ScopedName[i + 1].token;
+				auto& Str2 = Token->Value._String;
+				if (passtype == PassType::FixedTypes)
+				{
+					LogCantFindVarMemberError(Token2, Str2, FeildType);
+				}
+				break;
+			}
+
+
+			Symbol* Func = FeildTypeAsSymbol;
+
+			FuncInfo* Finfo = FeildTypeAsSymbol->Get_Info<FuncInfo>();
+			String TepFuncPtr = GetTepFuncPtrName(FeildTypeAsSymbol);
+
+			Symbol* V = GetTepFuncPtrSyb(TepFuncPtr, Finfo);
+			FeildTypeAsSymbol = V;
+			FeildType.SetType(V->ID);
+
+
+			if (passtype == PassType::BuidCode)
+			{
+				AddDependencyToCurrentFile(Func);
+			}
+
 		}
 		else
 		{
@@ -3150,6 +3255,24 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type)
 		{
 			r = ToString(Syb.VarType);
 		}
+		else if (Syb.Type == SymbolType::Func_ptr)
+		{
+			FuncPtrInfo* Funptr = (FuncPtrInfo*)Syb.Info.get();
+			r += "&|[";
+
+			for (auto& Item : Funptr->Pars)
+			{
+				r += ToString(Funptr->Ret);
+				if (&Item != &Funptr->Pars.back())
+				{
+					r += ",";
+				}
+			}
+
+			r += "] -> ";
+
+			r += ToString(Funptr->Ret);
+		}
 		else
 		{
 			r = Syb.FullName;
@@ -3288,6 +3411,7 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 		{
 			SybV = GetSymbol(Name, SymbolType::Type);
 		}
+
 		if (SybV == nullptr)
 		{
 			auto Token = V.Name.Token;
@@ -3529,12 +3653,20 @@ bool SystematicAnalysis::GetSize(const TypeSymbol& Type, UAddress& OutSize)
 		else if(V.Type == SymbolType::Type_alias
 			|| V.Type == SymbolType::Hard_Type_alias)
 		{
+
+		
+
 			return GetSize(V.VarType,OutSize);
 		}
 		else if (V.Type == SymbolType::Enum)
 		{
 			EnumInfo* Info = V.Get_Info<EnumInfo>();
 			return GetSize(Info->Basetype, OutSize);
+		}
+		else if (V.Type == SymbolType::Func_ptr
+			|| V.Type == SymbolType::Hard_Func_ptr)
+		{
+			goto IntPtr;
 		}
 		else
 		{
