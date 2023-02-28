@@ -145,7 +145,7 @@ int main()
 		
 		bool item = true;
 
-		auto r = RunTime.RCall <float*> ("main", &item);
+		auto r = RunTime.RCall <int*> ("main", &item);
  		
 		
 	   std::cout << " Got Value " << (int)r << std::endl;

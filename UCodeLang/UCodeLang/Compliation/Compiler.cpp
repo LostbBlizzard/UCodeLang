@@ -554,22 +554,24 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 			_FrontEndObject->SetSourcePath(Item->path);
 
 			Item->_File = _FrontEndObject->BuildFile(Item->OpenedFile.AsView());
-
-			Item->_File->FileName = Item->Repath;
-
-
-			auto V = _FrontEndObject->Get_DependenciesPreIR(Item->_File.get());
-			if (V.CanGetDependencies == false)
+			if (Item->_File) 
 			{
-				CanFindDependencyBeforIR = false;
-			}
-			else
-			{
-				Item->FileInfo->Dependencies =std::move(V._Files);
-			}
-				
+				Item->_File->FileName = Item->Repath;
 
-			Files.push_back(Item->_File.get());
+
+				auto V = _FrontEndObject->Get_DependenciesPreIR(Item->_File.get());
+				if (V.CanGetDependencies == false)
+				{
+					CanFindDependencyBeforIR = false;
+				}
+				else
+				{
+					Item->FileInfo->Dependencies = std::move(V._Files);
+				}
+
+
+				Files.push_back(Item->_File.get());
+			}
 		}
 	}
 

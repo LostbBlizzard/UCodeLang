@@ -369,20 +369,22 @@ private:
 
 	void DoDestructorCall(const ObjectToDrop& Object);
 
-	void Build_Assign_uIntPtr(UAddress Value);
-	void Build_Assign_sIntPtr(SIntNative Value);
-	void Build_Add_uIntPtr(IROperator field, IROperator field2);
-	void Build_Sub_uIntPtr(IROperator field, IROperator field2);
-	void Build_Add_sIntPtr(IROperator field, IROperator field2);
-	void Build_Sub_sIntPtr(IROperator field, IROperator field2);
-	void Build_Mult_uIntPtr(IROperator field, IROperator field2);
-	void Build_Mult_sIntPtr(IROperator field, IROperator field2);
-	void Build_Div_uIntPtr(IROperator field, IROperator field2);
-	void Build_Div_sIntPtr(IROperator field, IROperator field2);
-	void Build_Increment_uIntPtr(UAddress Value);
-	void Build_Decrement_uIntPtr(UAddress Value);
-	void Build_Increment_sIntPtr(SIntNative Value);
-	void Build_Decrement_sIntPtr(SIntNative Value);
+
+	
+	IRInstruction* IR_Load_UIntptr(UAddress Value);
+	IRInstruction* IR_Load_SIntptr(SIntNative Value);
+	IRInstruction* Build_Add_uIntPtr(IROperator field, IROperator field2);
+	IRInstruction* Build_Sub_uIntPtr(IROperator field, IROperator field2);
+	IRInstruction* Build_Add_sIntPtr(IROperator field, IROperator field2);
+	IRInstruction* Build_Sub_sIntPtr(IROperator field, IROperator field2);
+	IRInstruction* Build_Mult_uIntPtr(IROperator field, IROperator field2);
+	IRInstruction* Build_Mult_sIntPtr(IROperator field, IROperator field2);
+	IRInstruction* Build_Div_uIntPtr(IROperator field, IROperator field2);
+	IRInstruction* Build_Div_sIntPtr(IROperator field, IROperator field2);
+	IRInstruction* Build_Increment_uIntPtr(UAddress Value);
+	IRInstruction* Build_Decrement_uIntPtr(UAddress Value);
+	IRInstruction* Build_Increment_sIntPtr(SIntNative Value);
+	IRInstruction* Build_Decrement_sIntPtr(SIntNative Value);
 	//Errors
 
 	void LogCantFindCompoundOpForTypes(const Token* BinaryOp, TypeSymbol& Ex0Type, TypeSymbol& Ex1Type);

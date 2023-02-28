@@ -18,6 +18,7 @@ public:
 private:
 	String OutBuffer;
 	const IRBuilder* _Input =nullptr;
+	const IRFunc* _Func = nullptr;
 	struct ToStringState
 	{
 		Unordered_map<IRInstruction*, String> PointerToName;

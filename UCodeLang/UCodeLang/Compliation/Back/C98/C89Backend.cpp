@@ -76,6 +76,8 @@ String C89Backend::ToString()
 
 	for (auto& Item : _Input->Funcs)
 	{
+
+		_Func = Item.get();
 		r += ToString(Item->ReturnType) + " " + _Input->FromID(Item->identifier);
 		r += "(";
 		for (auto& Par : Item->Pars)
@@ -297,6 +299,12 @@ String C89Backend::ToString(ToStringState& State, IRInstruction& Ins, IROperator
 	case IROperatorType::Get_PointerOf_IRInstruction:
 	{
 		return "&" + State.PointerToName.at(Value.Pointer);
+	}
+	case IROperatorType::IRParameter:
+	{
+		const IRPar* Par = _Func->GetPar(Value.identifer);
+		
+		return _Input->FromID(Par->identifier);
 	}
 	default:return "[]";
 	}

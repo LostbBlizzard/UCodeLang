@@ -97,9 +97,11 @@ enum class IRInstructionType : IRInstructionType_t
 	ConditionalJump,
 
 	//funcptr 
-	LoadFuncPtr 
+	LoadFuncPtr,
 	
 	//memory
+	MallocCall,
+	FreeCall,
 
 	//internal stuff
 };
@@ -464,8 +466,16 @@ struct IRBlock
 	{
 		return Instructions.emplace_back(new IRInstruction(IRInstructionType::LoadFuncPtr, IROperator(identifier))).get();
 	}
-
-
+	
+	//mem
+	IRInstruction* NewMallocCall(IRInstruction* Size)
+	{
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::MallocCall, IROperator(Size))).get();
+	}
+	void NewFreeCall(IRInstruction* Ptr)
+	{
+		Instructions.emplace_back(new IRInstruction(IRInstructionType::FreeCall, IROperator(Ptr)));
+	}
 
 	//call func
 	void NewPushParameter(IRInstruction* Value)
@@ -505,6 +515,29 @@ struct IRFunc
 	IRFunc(IRidentifierID Identifier) : identifier(Identifier)
 	{
 
+	}
+	IRPar* GetPar(IRidentifierID Id)
+	{
+		for (auto& Syb : Pars)
+		{
+			if (Syb.identifier == Id)
+			{
+				return &Syb;
+			}
+		}
+		return nullptr;
+	}
+
+	const	IRPar* GetPar(IRidentifierID Id) const
+	{
+		for (auto& Syb : Pars)
+		{
+			if (Syb.identifier == Id)
+			{
+				return &Syb;
+			}
+		}
+		return nullptr;
 	}
 
 	IRBlock* NewBlock(const IRidentifier& identifier)
@@ -574,6 +607,7 @@ public:
 		Vector<IRInstruction*> TepPushedParameters;
 		
 		size_t StrValue=0;
+		IRFunc* _Func =nullptr;
 
 		String GetName(IRInstruction* Ptr)
 		{
