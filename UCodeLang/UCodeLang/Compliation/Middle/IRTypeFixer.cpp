@@ -33,6 +33,12 @@ void IRTypeFixer::FixTypes(IRBuilder* Input)
 				{
 					OnOp(*Ins, Ins->Target());
 				}
+				if (Ins->Type == IRInstructionType::MallocCall)
+				{
+					Ins->ObjectType= IRType(IRTypes::pointer);
+				}
+
+					
 			}
 		}
 

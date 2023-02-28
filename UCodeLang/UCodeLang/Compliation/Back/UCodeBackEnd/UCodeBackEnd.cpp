@@ -361,6 +361,18 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			_InputPar = RegisterID::StartParameterRegister;
 		}
 		break;
+		case IRInstructionType::MallocCall:
+		{
+			RegisterID ID=_Registers.GetFreeRegister();
+			LockRegister(ID);
+			InstructionBuilder::Malloc(_Ins, LoadOp(Item, Item.Target()), ID); PushIns();
+			_Registers.WeakLockRegisterValue(ID, &Item);
+		}
+		break;
+		case IRInstructionType::FreeCall:
+		{
+			InstructionBuilder::Free(_Ins, LoadOp(Item, Item.Target())); PushIns();
+		}break;
 		case IRInstructionType::Return:
 			DropStack();
 			DropPars();
@@ -483,15 +495,28 @@ RegisterID UCodeBackEndObject::LoadOp(IRInstruction& Ins, IROperator Op)
 				InstructionBuilder::DoNothing(_Ins); PushIns();
 				_Stack.Size += 2;
 				break;
+			Int32L:
 			case IRTypes::f32:
 			case IRTypes::i32:
 				InstructionBuilder::StoreRegOnStack32(_Ins, _Registers.GetInfo(PointerV),StackPos); PushIns();//move value to stack
 				_Stack.Size += 4;
 				break;
+
+			Int64L:
 			case IRTypes::f64:
 			case IRTypes::i64:
 				InstructionBuilder::DoNothing(_Ins); PushIns();
 				_Stack.Size += 8;
+				break;
+			case IRTypes::pointer:
+				switch (Get_Settings().PtrSize)
+				{
+				case IntSizes::Int32:goto Int32L;
+				case IntSizes::Int64:goto Int64L;
+				default:
+					throw std::exception("not added");
+					break;
+				}
 				break;
 			default:
 				throw std::exception("not added");
@@ -529,13 +554,26 @@ void UCodeBackEndObject::RegToReg(IRTypes Type, RegisterID In, RegisterID Out)
 		case IRTypes::i16:
 			InstructionBuilder::StoreRegToReg16(_Ins, In, Out); PushIns();
 			break;
+		Int32L:
 		case IRTypes::f32:
 		case IRTypes::i32:
 			InstructionBuilder::StoreRegToReg32(_Ins, In, Out); PushIns();
 			break;
+
+		Int64L:
 		case IRTypes::f64:
 		case IRTypes::i64:
 			InstructionBuilder::StoreRegToReg64(_Ins, In, Out); PushIns();
+			break;
+		case IRTypes::pointer:
+			switch (Get_Settings().PtrSize)
+			{
+			case IntSizes::Int32:goto Int32L;
+			case IntSizes::Int64:goto Int64L;
+			default:
+				throw std::exception("not added");
+				break;
+			}
 			break;
 		default:
 			throw std::exception("not added");

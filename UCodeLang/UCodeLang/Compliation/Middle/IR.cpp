@@ -61,6 +61,7 @@ String IRBuilder::ToString()
 
 	for (auto& Item : Funcs)
 	{
+		State._Func = Item.get();
 		r += "|" + FromID(Item->identifier);
 		r += "[";
 		for (auto& Par : Item->Pars)
@@ -112,6 +113,14 @@ String IRBuilder::ToString()
 
 					switch (I->Type)
 					{
+					case IRInstructionType::MallocCall:
+						r += ToString(I->ObjectType);
+						r += " " + State.GetName(I.get());
+						r += " = LowLevel::Malloc(" + ToString(State, *I, I->Target()) + ")";
+						break;
+					case IRInstructionType::FreeCall:
+						r += "LowLevel::Free(" + ToString(State, *I, I->Target()) + ")";
+						break;
 					case IRInstructionType::LoadReturn:
 						r += "ret " + ToString(State, *I, I->Target());
 						break;
@@ -298,6 +307,12 @@ String IRBuilder::ToString(ToStringState& State, IRInstruction& Ins, IROperator&
 	case IROperatorType::Get_PointerOf_IRInstruction:
 	{
 		return State.PointerToName.at(Value.Pointer) + "-> var&";
+	}
+	case IROperatorType::IRParameter:
+	{
+		const IRPar* Par = State._Func->GetPar(Value.identifer);
+
+		return FromID(Par->identifier);
 	}
 	default:return "[]";
 	}

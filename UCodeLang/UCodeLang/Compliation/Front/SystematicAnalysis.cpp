@@ -186,8 +186,8 @@ void SystematicAnalysis::OnFileNode(const FileNode* File)
 		case NodeType::EnumNode:OnEnum(*EnumNode::As(node.get())); break;
 		case NodeType::FuncNode:OnFuncNode(*FuncNode::As(node.get())); break;
 		case NodeType::UsingNode: OnUseingNode(*UsingNode::As(node.get())); break;
-		case NodeType::DeclareStaticVariableNode:OnDeclareStaticVariableNode(*DeclareStaticVariableNode::As(node2.get())); break;
-		case NodeType::DeclareThreadVariableNode:OnDeclareThreadVariableNode(*DeclareThreadVariableNode::As(node2.get())); break;
+		case NodeType::DeclareStaticVariableNode:OnDeclareStaticVariableNode(*DeclareStaticVariableNode::As(node.get())); break;
+		case NodeType::DeclareThreadVariableNode:OnDeclareThreadVariableNode(*DeclareThreadVariableNode::As(node.get())); break;
 		default:break;
 		}
 	}
@@ -293,8 +293,8 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			case NodeType::UsingNode: OnUseingNode(*UsingNode::As(node.get())); break;
 			case NodeType::FuncNode:OnFuncNode(*FuncNode::As(node.get())); break;
 			case NodeType::DeclareVariableNode:OnDeclareVariablenode(*DeclareVariableNode::As(node.get())); break;
-			case NodeType::DeclareStaticVariableNode:OnDeclareStaticVariableNode(*DeclareStaticVariableNode::As(node2.get())); break;
-			case NodeType::DeclareThreadVariableNode:OnDeclareThreadVariableNode(*DeclareThreadVariableNode::As(node2.get())); break;
+			case NodeType::DeclareStaticVariableNode:OnDeclareStaticVariableNode(*DeclareStaticVariableNode::As(node.get())); break;
+			case NodeType::DeclareThreadVariableNode:OnDeclareThreadVariableNode(*DeclareThreadVariableNode::As(node.get())); break;
 			default:break;
 			}
 		}
@@ -2207,7 +2207,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 				{
 					UInt64 V;
 					ParseHelper::ParseStringToUInt64(Str, V);
-					Build_Assign_uIntPtr(V);
+					IR_Load_UIntptr(V);
 				};
 				break;
 
@@ -2235,7 +2235,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 				{
 					Int64 V;
 					ParseHelper::ParseStringToInt64(Str, V);
-					Build_Assign_sIntPtr(V);
+					IR_Load_SIntptr(V);
 					break;
 				};
 
@@ -2429,7 +2429,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 					break;
 				default:
 					Type.SetType(TypesEnum::uIntPtr);
-					Build_Assign_uIntPtr(TypeSize);
+					IR_Load_UIntptr(TypeSize);
 					break;
 				}
 			}
@@ -2497,9 +2497,10 @@ void SystematicAnalysis::OnNewNode(NewExpresionNode* nod)
 		UAddress TypeSize;
 		GetSize(Type, TypeSize);
 
-		/*
+		
 		if (IsArray)
 		{
+			/*
 			TypeSymbol UintptrType = TypeSymbol();
 			UintptrType.SetType(TypesEnum::uIntPtr);
 			UAddress UintptrSize;
@@ -2540,24 +2541,28 @@ void SystematicAnalysis::OnNewNode(NewExpresionNode* nod)
 
 
 			LookingForTypes.pop();
+		*/
+			throw std::exception("hi");
 		}
 		else
 		{
-			_Builder.Build_Malloc(TypeSize);
+			auto SizeIR = IR_Load_UIntptr(TypeSize);
+			auto MallocPtr = _LastExpressionField =  LookingAtIRBlock->NewMallocCall(SizeIR);
+			
 			//Call ObjectNew
 
 
 			if (IsPrimitive(Type)) 
 			{
 				DoFuncCall(Type, Func, ValuePars);
-				_Builder.Build_Assign(IROperand::AsLocation(_Builder.GetLastField()));
+				//_Builder.Build_Assign(IROperand::AsLocation(_Builder.GetLastField()));
 			}
 			else
 			{
 				throw std::exception("not added");
 			}
 		}
-	*/
+	
 	}
 
 	Type.SetAsAddress();
@@ -2996,16 +3001,16 @@ void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 		}
 		else 
 		{
-			/*
+			
 			if (TypeHaveDestructor)
 			{
 				ObjectToDrop Data;
-				Data.Object = Ex0;
+				Data._Object = Ex0;
 				Data.Type = Ex0Type;
 				DoDestructorCall(Data);//call on Object
 			}
 			
-			_Builder.Build_Free(IROperand::AsLocation(Ex0));
+			LookingAtIRBlock->NewFreeCall(Ex0);
 			
 			if (Ex0Type.IsAddress())
 			{
@@ -3013,13 +3018,12 @@ void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 				if (HasDestructor(Ex0Type))
 				{
 					ObjectToDrop Data;
-					Data.Object = Ex0;
+					Data._Object = Ex0;
 					Data.Type = Ex0Type;
 					DoDestructorCall(Data);//call on Ptr
 				}
 			}
-			*/
-
+			
 		}
 	}
 }
@@ -4880,34 +4884,30 @@ bool SystematicAnalysis::EvaluateImplicitConversion(EvaluatedEx& In, const TypeS
 	return false;
 }
 
-void SystematicAnalysis::Build_Assign_uIntPtr(UAddress Value)
+IRInstruction* SystematicAnalysis::IR_Load_UIntptr(UAddress Value)
 {
 
 	switch (_Settings->PtrSize)
 	{
 	case IntSizes::Int8:
-		//_Builder.Build_Assign(IROperand::AsInt8((UInt8)Value));
-		break;
+		return LookingAtIRBlock->NewLoad((UInt8)Value);
 	case IntSizes::Int16:
-		//_Builder.Build_Assign(IROperand::AsInt16((UInt16)Value));
-		break;
+		return LookingAtIRBlock->NewLoad((UInt16)Value);
 	case IntSizes::Int32:
-		//_Builder.Build_Assign(IROperand::AsInt32((UInt32)Value));
-		break;
+		return LookingAtIRBlock->NewLoad((UInt32)Value);
 	case IntSizes::Int64:
-		//_Builder.Build_Assign(IROperand::AsInt64((UInt64)Value));
-		break;
+		return LookingAtIRBlock->NewLoad((UInt64)Value);
 	default:
 		throw std::exception("");
 		break;
 	}
 }
-void SystematicAnalysis::Build_Assign_sIntPtr(SIntNative Value)
+IRInstruction* SystematicAnalysis::IR_Load_SIntptr(SIntNative Value)
 {
-	return Build_Assign_uIntPtr((UAddress)Value);
+	return IR_Load_UIntptr(*(UAddress*)&Value);
 }
 
-void SystematicAnalysis::Build_Add_uIntPtr(IROperator field, IROperator field2)
+IRInstruction* SystematicAnalysis::Build_Add_uIntPtr(IROperator field, IROperator field2)
 {
 	switch (_Settings->PtrSize)
 	{
@@ -4930,7 +4930,7 @@ void SystematicAnalysis::Build_Add_uIntPtr(IROperator field, IROperator field2)
 	}
 }
 
-void SystematicAnalysis::Build_Sub_uIntPtr(IROperator field, IROperator field2)
+IRInstruction* SystematicAnalysis::Build_Sub_uIntPtr(IROperator field, IROperator field2)
 {
 	switch (_Settings->PtrSize)
 	{
@@ -4952,7 +4952,7 @@ void SystematicAnalysis::Build_Sub_uIntPtr(IROperator field, IROperator field2)
 	}
 }
 
-void SystematicAnalysis::Build_Add_sIntPtr(IROperator field, IROperator field2)
+IRInstruction* SystematicAnalysis::Build_Add_sIntPtr(IROperator field, IROperator field2)
 {
 	switch (_Settings->PtrSize)
 	{
@@ -4974,7 +4974,7 @@ void SystematicAnalysis::Build_Add_sIntPtr(IROperator field, IROperator field2)
 	}
 }
 
-void SystematicAnalysis::Build_Sub_sIntPtr(IROperator field, IROperator field2)
+IRInstruction* SystematicAnalysis::Build_Sub_sIntPtr(IROperator field, IROperator field2)
 {
 	switch (_Settings->PtrSize)
 	{
@@ -4996,7 +4996,7 @@ void SystematicAnalysis::Build_Sub_sIntPtr(IROperator field, IROperator field2)
 	}
 }
 
-void SystematicAnalysis::Build_Mult_uIntPtr(IROperator field, IROperator field2)
+IRInstruction* SystematicAnalysis::Build_Mult_uIntPtr(IROperator field, IROperator field2)
 {
 	switch (_Settings->PtrSize)
 	{
@@ -5018,7 +5018,7 @@ void SystematicAnalysis::Build_Mult_uIntPtr(IROperator field, IROperator field2)
 	}
 }
 
- void SystematicAnalysis::Build_Mult_sIntPtr(IROperator field, IROperator field2)
+IRInstruction* SystematicAnalysis::Build_Mult_sIntPtr(IROperator field, IROperator field2)
 {
 	 switch (_Settings->PtrSize)
 	 {
@@ -5040,7 +5040,7 @@ void SystematicAnalysis::Build_Mult_uIntPtr(IROperator field, IROperator field2)
 	 }
 }
 
-void SystematicAnalysis::Build_Div_uIntPtr(IROperator field, IROperator field2)
+IRInstruction* SystematicAnalysis::Build_Div_uIntPtr(IROperator field, IROperator field2)
 {
 	switch (_Settings->PtrSize)
 	{
@@ -5062,7 +5062,7 @@ void SystematicAnalysis::Build_Div_uIntPtr(IROperator field, IROperator field2)
 	}
 }
 
-void SystematicAnalysis::Build_Div_sIntPtr(IROperator field, IROperator field2)
+IRInstruction* SystematicAnalysis::Build_Div_sIntPtr(IROperator field, IROperator field2)
 {
 	switch (_Settings->PtrSize)
 	{
@@ -5084,7 +5084,7 @@ void SystematicAnalysis::Build_Div_sIntPtr(IROperator field, IROperator field2)
 	}
 }
 
-void SystematicAnalysis::Build_Increment_uIntPtr(UAddress Value)
+IRInstruction* SystematicAnalysis::Build_Increment_uIntPtr(UAddress Value)
 {
 	switch (_Settings->PtrSize)
 	{
@@ -5106,7 +5106,7 @@ void SystematicAnalysis::Build_Increment_uIntPtr(UAddress Value)
 	}
 }
 
-void SystematicAnalysis::Build_Decrement_uIntPtr(UAddress Value)
+IRInstruction* SystematicAnalysis::Build_Decrement_uIntPtr(UAddress Value)
 {
 	switch (_Settings->PtrSize)
 	{
@@ -5128,12 +5128,12 @@ void SystematicAnalysis::Build_Decrement_uIntPtr(UAddress Value)
 	}
 }
 
-void SystematicAnalysis::Build_Increment_sIntPtr(SIntNative Value)
+IRInstruction* SystematicAnalysis::Build_Increment_sIntPtr(SIntNative Value)
 {
 	return Build_Increment_uIntPtr((UAddress)Value);
 }
 
-void SystematicAnalysis::Build_Decrement_sIntPtr(SIntNative Value)
+IRInstruction* SystematicAnalysis::Build_Decrement_sIntPtr(SIntNative Value)
 {
 	return Build_Decrement_uIntPtr((UAddress)Value);
 }

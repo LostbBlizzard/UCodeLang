@@ -231,6 +231,8 @@ public:
 		case UCodeLang::TokenType::KeyWorld_umut:return "umut";
 		case UCodeLang::TokenType::KeyWorld_Tag: return "tag";
 
+		case UCodeLang::TokenType::QuestionMark:return "?";
+
 		default:return "Unknown token";
 		}
 	}
