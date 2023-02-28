@@ -31,18 +31,94 @@ void UCodeBackEndObject::Build(const IRBuilder* Input)
 	{
 		OnFunc(Item.get());
 	}
+
+
+	//link
+	for (auto& Item : FuncsToLink)
+	{
+		Instruction& Ins = Get_Output().Get_Instructions()[Item.Index];
+
+		if (Ins.OpCode == InstructionSet::Call)
+		{
+
+			UAddress funcpos = NullAddress;
+			for (auto& Item2 : _Funcpos)
+			{
+				if (Item2._FuncID == Item._FuncID)
+				{
+					funcpos = Item2.Index;
+					break;
+				}
+			}
+			InstructionBuilder::Call(funcpos, Ins);
+		}
+		else
+		{
+			throw std::exception("not added");
+		}
+
+		
+	}
 }
 void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 {
 
 	//build code
-	UAddress FuncStart = _Output->GetLastInstruction()+1;
+	UAddress FuncStart = _Output->GetLastInstruction() + 1;
 
-	if (IR->Blocks.size()) 
+
+	{
+		ParsPos.clear();
+		auto V = RegisterID::StartParameterRegister;
+		RegisterID_t& V2 = (RegisterID_t&)V;
+		size_t StackOffset = 0;
+		for (auto& Item : IR->Pars)
+		{
+			ParlocData Loc;
+
+
+			
+			if (V != RegisterID::NullRegister)
+			{
+				Loc.Par = &Item;
+				Loc._Reg = V;
+				Loc.Type = Parloc::Register;
+
+
+				V2++;
+				if (V > RegisterID::EndParameterRegister)
+				{
+					V = RegisterID::NullRegister;
+				}
+				_Registers.LockRegister(V);
+			}
+			else
+			{
+				Loc.Par = &Item;
+				Loc._Reg = V;
+				Loc.StackOffset = StackOffset;
+
+				StackOffset += _Input->GetSize(Item.type);
+
+			}
+			ParsPos.push_back(Loc);
+		}
+
+
+		
+		for (auto& Item : ParsPos)// flip offsets because how pushing and poping the stack works
+		{
+			//throw std::exception("not added");
+		}
+	}
+
+	if (IR->Blocks.size())
 	{
 		OnBlock(IR->Blocks.front().get());
 	}
-	
+
+	_InputPar = RegisterID::StartParameterRegister;
+
 	if (_Stack.Size)
 	{
 		RegisterID V = RegisterID::A;
@@ -52,25 +128,31 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 		//useing insert is slow but it works
 		InstructionBuilder::IncrementStackPointer(_Ins, V);
 		instr.insert(instr.begin() + FuncStart, _Ins);
-		
+
 		if (Ptr == IntSizes::Int32)
 		{
-			InstructionBuilder::Store32(_Ins,V,(UInt32)_Stack.Size); 
+			InstructionBuilder::Store32(_Ins, V, (UInt32)_Stack.Size);
 		}
 		else
 		{
 			InstructionBuilder::Store64(_Ins, V, (UInt64)_Stack.Size);
 		}
-		
+
 		instr.insert(instr.begin() + FuncStart, _Ins);
 
-		
-		
+
+
 	}
 
 	_Stack.Reset();
 	_Registers.Reset();
 	_Output->Add_NameToInstruction(FuncStart, _Input->FromID(IR->identifier));
+
+
+	Funcpos V;
+	V.Index = FuncStart-1;
+	V._FuncID = IR->identifier;
+	_Funcpos.push_back(V);
 }
 void UCodeBackEndObject::OnBlock(const IRBlock* IR)
 {
@@ -117,7 +199,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		{
 			RegisterID V = RegisterID::MathOuPutRegister;
 			RegisterID A = LoadOp(Item, Item.A);
-			_Registers.LockRegister(A);
+			LockRegister(A);
 			RegisterID B = LoadOp(Item, Item.B);
 			
 			switch (Item.ObjectType._Type)
@@ -139,7 +221,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		{
 			RegisterID V = RegisterID::MathOuPutRegister;
 			RegisterID A = LoadOp(Item, Item.A);
-			_Registers.LockRegister(A);
+			LockRegister(A);
 			RegisterID B = LoadOp(Item, Item.B);
 
 			switch (Item.ObjectType._Type)
@@ -162,7 +244,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		{
 			RegisterID V = RegisterID::MathOuPutRegister;
 			RegisterID A = LoadOp(Item, Item.A);
-			_Registers.LockRegister(A);
+			LockRegister(A);
 			RegisterID B = LoadOp(Item, Item.B);
 
 			switch (Item.ObjectType._Type)
@@ -184,7 +266,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		{
 			RegisterID V = RegisterID::MathOuPutRegister;
 			RegisterID A = LoadOp(Item, Item.A);
-			_Registers.LockRegister(A);
+			LockRegister(A);
 			RegisterID B = LoadOp(Item, Item.B);
 
 			switch (Item.ObjectType._Type)
@@ -207,7 +289,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		{
 			RegisterID V = RegisterID::MathOuPutRegister;
 			RegisterID A = LoadOp(Item, Item.A);
-			_Registers.LockRegister(A);
+			LockRegister(A);
 			RegisterID B = LoadOp(Item, Item.B);
 
 			switch (Item.ObjectType._Type)
@@ -229,7 +311,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		{
 			RegisterID V = RegisterID::MathOuPutRegister;
 			RegisterID A = LoadOp(Item, Item.A);
-			_Registers.LockRegister(A);
+			LockRegister(A);
 			RegisterID B = LoadOp(Item, Item.B);
 
 			switch (Item.ObjectType._Type)
@@ -247,11 +329,41 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			_Registers.WeakLockRegisterValue(V, &Item);
 		}
 		break;
-		case IRInstructionType::Return:
-		
-		
-			DropStack();
+		case IRInstructionType::PushParameter:
+		{
+			RegisterID_t& Reg = *(RegisterID_t*)&_InputPar;
+
+			auto Tep = RegisterID::EndParameterRegister;
+
+
+			if (Reg <= (RegisterID_t&)Tep)
+			{
+				Reg++;
+				LoadOpToReg(Item, Item.Target(), _InputPar);
+				LockRegister(_InputPar);
+			}
+			else
+			{
+				PushOpStack(Item,Item.Target());
+			}
+		}
+		break;
+		case IRInstructionType::Call: 
+		{
+			InstructionBuilder::Call(NullAddress, _Ins); PushIns();
 			
+			FuncInsID Tep;
+			Tep.Index = _Output->Get_Instructions().size() - 1;
+			Tep._FuncID = Item.Target().identifer;
+			
+			FuncsToLink.push_back(Tep);
+		
+			_InputPar = RegisterID::StartParameterRegister;
+		}
+		break;
+		case IRInstructionType::Return:
+			DropStack();
+			DropPars();
 			InstructionBuilder::Return(ExitState::Success, _Ins); PushIns();
 			break;
 		default:
@@ -259,6 +371,10 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			break;
 		}
 	}
+}
+void UCodeBackEndObject::LockRegister(RegisterID ID)
+{
+	_Registers.LockRegister(ID);
 }
 void UCodeBackEndObject::DropStack()
 {
@@ -276,6 +392,10 @@ void UCodeBackEndObject::DropStack()
 		}
 		InstructionBuilder::DecrementStackPointer(_Ins, V); PushIns();
 	}
+}
+void UCodeBackEndObject::DropPars()
+{
+
 }
 RegisterID UCodeBackEndObject::LoadOp(IRInstruction& Ins, IROperator Op)
 {
@@ -312,6 +432,19 @@ RegisterID UCodeBackEndObject::LoadOp(IRInstruction& Ins, IROperator Op)
 			break;
 		}
 		return V;
+	}
+	else if (Op.Type == IROperatorType::IRParameter)
+	{
+		auto V = GetParData(Op.Parameter);
+
+		if (V->Type == Parloc::Register)
+		{
+			return V->_Reg;
+		}
+		else
+		{
+			throw std::exception("not added");
+		}
 	}
 	else if (Op.Type == IROperatorType::IRInstruction)
 	{
@@ -410,6 +543,34 @@ void UCodeBackEndObject::RegToReg(IRTypes Type, RegisterID In, RegisterID Out)
 		}
 	}
 }
+void UCodeBackEndObject::PushOpStack(IRInstruction& Ins, IROperator Op)
+{
+	auto R =LoadOp(Ins,Op);
+	switch (Ins.ObjectType._Type)
+	{
+	case IRTypes::i8:
+		InstructionBuilder::Push8(_Ins, R); PushIns();
+		_Stack.PushedOffset += 1;
+		break;
+	case IRTypes::i16:
+		InstructionBuilder::Push16(_Ins, R); PushIns();
+		_Stack.PushedOffset += 2;
+		break;
+	case IRTypes::f32:
+	case IRTypes::i32:
+		InstructionBuilder::Push32(_Ins, R); PushIns();
+		_Stack.PushedOffset += 4;
+		break;
+	case IRTypes::f64:
+	case IRTypes::i64:
+		InstructionBuilder::Push64(_Ins, R); PushIns();
+		_Stack.PushedOffset += 8;
+		break;
+	default:
+		throw std::exception("not added");
+		break;
+	}
+}
 RegisterID UCodeBackEndObject::FindOp(IRInstruction& Ins, IROperator Op)
 {
 	auto V = _Registers.GetInfo(Op.Pointer);
@@ -422,6 +583,19 @@ RegisterID UCodeBackEndObject::FindOp(IRInstruction& Ins, IROperator Op)
 				auto T = _Registers.GetFreeRegister();
 				_Registers.WeakLockRegisterValue(T, Op.Pointer);
 				return T;
+			}
+			else
+			{
+				throw std::exception("not added");
+			}
+		}
+		else if (Op.Type == IROperatorType::IRParameter)
+		{
+			auto V = GetParData(Op.Parameter);
+
+			if (V->Type == Parloc::Register)
+			{
+				return V->_Reg;
 			}
 			else
 			{

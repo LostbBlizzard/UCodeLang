@@ -50,6 +50,10 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op)
 	{
 		Ins.ObjectType = IRType(IRTypes::pointer);
 	}
+	else if (Op.Type == IROperatorType::IRParameter)
+	{
+		Ins.ObjectType = IRType(Op.Parameter->type);
+	}
 }
 UCodeLangEnd
 
