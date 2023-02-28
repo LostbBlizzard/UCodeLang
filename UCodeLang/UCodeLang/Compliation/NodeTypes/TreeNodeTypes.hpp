@@ -1,6 +1,5 @@
 #pragma once
 #include "../../LangCore.hpp"
-#include "TreeNodeTypes.hpp"
 #include "..//..//LangCore/TypeNames.hpp"
 #include "../..//LangCore/ScopeHelper.hpp"
 #include "../Front/UCodeFrontEndNameSpace.hpp"

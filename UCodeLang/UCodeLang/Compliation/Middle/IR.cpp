@@ -40,7 +40,7 @@ void IRBuilder::Reset()
 
 //uses UCodeLang syntax
 
-size_t IRBuilder::GetSize(const IRType& Type)
+size_t IRBuilder::GetSize(const IRType& Type) const
 {
 	switch (Type._Type)
 	{

@@ -74,11 +74,23 @@ private:
 	
 	
 	Vector<FuncPtrInfo> Tep_FuncPtr;
+
+
+	enum class  ObjectToDropType
+	{
+		IRInstruction,
+		Operator,
+	};
 	struct ObjectToDrop
 	{
-		SymbolID ID =0;
-		IRInstruction* Object=0;
+		ObjectToDropType DropType= ObjectToDropType::IRInstruction;
+		SymbolID ID = 0;
+
+
+		IROperator _Operator;
+		IRInstruction* _Object = nullptr;
 		TypeSymbol Type;
+
 	};
 	
 	struct IRCodeStackFrames
@@ -87,15 +99,9 @@ private:
 
 
 	};
-	struct IRlocat
-	{
-		//IRField V;
-		SymbolID ID;
-	};
 
-	Stack<IRlocat> IRlocations;//for Constructors
+	Stack<IRInstruction*> IRlocations;//for Constructors
 	Vector<IRCodeStackFrames> StackFrames;	
-	Vector<SymbolID> IRParameters;
 	//
 
 	IRType ConvertToIR(const TypeSymbol& Value);

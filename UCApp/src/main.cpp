@@ -108,7 +108,7 @@ int main()
 	Data.IntDir = IntPath;
 	Settings._Flags = OptimizationFlags::Debug;
 
-	_Compiler.Set_BackEnd(ULangTest::C89Backend::MakeObject);
+	//_Compiler.Set_BackEnd(ULangTest::C89Backend::MakeObject);
 	
 	_Compiler.CompileFiles_UseIntDir(Data);
 

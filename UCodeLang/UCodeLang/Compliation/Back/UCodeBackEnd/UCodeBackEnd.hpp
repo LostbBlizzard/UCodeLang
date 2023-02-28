@@ -21,7 +21,7 @@ private:
 	const IRBuilder* _Input=nullptr;
 	UClib* _Output=nullptr;
 
-
+	
 	struct StackItem
 	{
 		size_t Offset=0;
@@ -30,10 +30,13 @@ private:
 	struct StackInfo
 	{
 		size_t Size = 0;
+		size_t PushedOffset = 0;
+
 
 		void Reset()
 		{
 			Size = 0;
+			PushedOffset = 0;
 			Items.clear();
 		}
 		Vector<StackItem> Items;
@@ -72,7 +75,10 @@ private:
 
 	void OnBlockBuildCode(const UCodeLang::IRBlock* IR);
 
+	void LockRegister(RegisterID ID);
+
 	void DropStack();
+	void DropPars();
 
 	inline UClib& Get_Output()
 	{
@@ -88,9 +94,58 @@ private:
 
 	RegistersManager _Registers;
 	StackInfo _Stack;
+
+	struct FuncInsID
+	{
+		UAddress Index;
+		IRidentifierID _FuncID;
+	};
+	Vector<FuncInsID> FuncsToLink;
+	
+	struct Funcpos
+	{
+		UAddress Index;
+		IRidentifierID _FuncID;
+	};
+	Vector<Funcpos> _Funcpos;
+
+	RegisterID _InputPar= RegisterID::NullRegister;
+	
+
+	enum class Parloc
+	{
+		Register,
+		Stack,
+	};
+
+	struct ParlocData
+	{
+		const IRPar* Par = nullptr;
+		
+		Parloc Type;
+
+		size_t StackOffset =0;
+		RegisterID _Reg = RegisterID::NullRegister;
+
+
+	};
+	Vector<ParlocData> ParsPos;
+	ParlocData* GetParData(const IRPar* Par)
+	{
+		for (auto& Item : ParsPos)
+		{
+			if (Item.Par == Par)
+			{
+				return &Item;
+			}
+		}
+		return nullptr;
+	}
+
 	RegisterID LoadOp(IRInstruction& Ins, IROperator Op);
 	void LoadOpToReg(IRInstruction& Ins, IROperator Op,RegisterID Out);
 	void RegToReg(IRTypes Type, RegisterID In, RegisterID Out);
+	void PushOpStack(IRInstruction& Ins, IROperator Op);
 	RegisterID FindOp(IRInstruction& Ins, IROperator Op);
 	void FindOpToReg(IRInstruction& Ins, IROperator Op, RegisterID Out);
 };

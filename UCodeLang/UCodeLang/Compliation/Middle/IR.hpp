@@ -95,6 +95,10 @@ enum class IRInstructionType : IRInstructionType_t
 	//
 	Jump,
 	ConditionalJump,
+
+	//funcptr 
+	LoadFuncPtr 
+	
 	//memory
 
 	//internal stuff
@@ -311,13 +315,22 @@ struct IRBlock
 	{
 		return Instructions.emplace_back(new IRInstruction(IRInstructionType::Load, IROperator(Value))).get();
 	}
-
+	IRInstruction* NewLoad(IRPar* Value)
+	{
+		return Instructions.emplace_back(new IRInstruction(IRInstructionType::Load, IROperator(Value))).get();
+	}
 
 	IRInstruction* NewLoadPtr(IRInstruction* Value)//get the pointer of the Value
 	{
 		return Instructions.emplace_back(new IRInstruction(IRInstructionType::Load, IROperator(IROperatorType::Get_PointerOf_IRInstruction,Value))).get();
 	}
 
+
+	void NewStore(IRPar* Storage, IRInstruction* Value)
+	{
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Reassign, Storage)).get();
+		V->Input(IROperator(Value));
+	}
 
 	void NewStore(IRInstruction* Storage, IRInstruction* Value)
 	{
@@ -446,6 +459,13 @@ struct IRBlock
 	{
 		*This = IRInstruction(IRInstructionType::ConditionalJump, IROperator(JumpTo), IROperator(Conditional));
 	}
+	//funcptr
+	IRInstruction* NewLoadFuncPtr(IRidentifierID identifier)
+	{
+		return Instructions.emplace_back(new IRInstruction(IRInstructionType::LoadFuncPtr, IROperator(identifier))).get();
+	}
+
+
 
 	//call func
 	void NewPushParameter(IRInstruction* Value)
@@ -533,7 +553,7 @@ public:
 			return V;
 		}
 	};
-	size_t GetSize(const IRType& Type);
+	size_t GetSize(const IRType& Type)const;
 
 	//uses UCodeLang syntax
 	String ToString();

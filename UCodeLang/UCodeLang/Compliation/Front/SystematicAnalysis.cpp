@@ -704,29 +704,36 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		LookingAtIRBlock = LookingAtIRFunc->NewBlock("");
 		PushNewStackFrame();
 
-		for (auto& Item : node.Signature.Parameters.Parameters)
+		auto& ParNodes = node.Signature.Parameters.Parameters;
+		
+		LookingAtIRFunc->Pars.resize(ParNodes.size());//becuase we are useing ptrs.
+		for (size_t i = 0; i < ParNodes.size(); i++)
 		{
+			auto& Item = ParNodes[i];
+
 			auto ParSybID = (SymbolID)&Item;
 			auto& V = _Table.GetSymbol(ParSybID);
-			IRParameters.push_back(ParSybID);
+			
 
-			auto& d = LookingAtIRFunc->Pars.emplace_back();
-			d.identifier =_Builder.ToID(V.FullName);
+			auto& d = LookingAtIRFunc->Pars[i];
+			d.identifier = _Builder.ToID(V.FullName);
 			d.type = ConvertToIR(V.VarType);
-			
-			
-			
+
+
+
 
 			if (HasDestructor(V.VarType))
 			{
 				ObjectToDrop V;
+				V.DropType = ObjectToDropType::Operator;
 				V.ID = ParSybID;
-				//V.Object =IROperator(d);
+				V._Operator = IROperator(&d);
 				V.Type = V.Type;
 
 				StackFrames.back().OnEndStackFrame.push_back(V);
 			}
 
+			V.IR_Ins = (IRInstruction*)&d;
 		}
 		LookingAtIRFunc->ReturnType = ConvertToIR(syb->VarType);
 
@@ -809,7 +816,6 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		
 		LookingAtIRBlock->NewRet();
 
-		IRParameters.clear();
 	}
 
 	_FuncStack.pop();
@@ -863,16 +869,20 @@ IRType SystematicAnalysis::ConvertToIR(const TypeSymbol& Value)
 		{
 			return ConvertToIR(syb.VarType);
 		}
+		else if (syb.Type == SymbolType::Func_ptr || syb.Type == SymbolType::Hard_Func_ptr)
+		{
+			goto PtrSize;
+		}
 		else
 		{
 			throw std::exception("not added");
 		}
 	}
 	break;
-
+	PtrSize:
 	case TypesEnum::sIntPtr:
 	case TypesEnum::uIntPtr:
-
+		return IRType(IRTypes::i64);
 	default:
 		
 		throw std::exception("not added");
@@ -1195,9 +1205,9 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 			
 			if (Ind) 
 			{
-				IRlocat Info;
-				Info.ID = sybId;
-				IRlocations.push(Info);
+				//IRlocat Info;
+				//Info.ID = sybId;
+				//IRlocations.push(Info);
 				
 			}	
 		}
@@ -1378,9 +1388,16 @@ void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 
 		}
 		
-		if (BuildVarableCode) 
+		if (BuildVarableCode)
 		{
-			LookingAtIRBlock->NewStore(Symbol->IR_Ins, _LastExpressionField);
+			if (Symbol->Type == SymbolType::ParameterVarable)
+			{
+				LookingAtIRBlock->NewStore((IRPar*)Symbol->IR_Ins, _LastExpressionField);
+			}
+			else
+			{
+				LookingAtIRBlock->NewStore(Symbol->IR_Ins, _LastExpressionField);
+			}
 		}
 	}
 }
@@ -1639,11 +1656,21 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, 
 			{
 				_LastExpressionField = LookingAtIRBlock->NewLoad(SymbolVar->IR_Ins);
 			}
+			else if (SymbolVar->Type == SymbolType::Func)
+			{
+				FuncInfo* Finfo = SymbolVar->Get_Info<FuncInfo>();
+				throw std::exception("not added");
+			}
+			else if (SymbolVar->Type == SymbolType::ParameterVarable)
+			{
+				_LastExpressionField = LookingAtIRBlock->NewLoad((IRPar*)SymbolVar->IR_Ins);
+			}
 			else
 			{
 				throw std::exception("not added");
 			}
 		}
+		AddDependencyToCurrentFile(SymbolVar);
 	}
 	Out.Type = FeildType;
 	return true;

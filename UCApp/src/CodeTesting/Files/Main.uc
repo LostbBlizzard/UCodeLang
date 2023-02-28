@@ -4,11 +4,13 @@ $FuncPtr2 = !|[] -> int;
 $FuncPtr = |[] -> int;
 
 
-|TestFunc[]:
- ret 1;
+|TestFunc[Item V]:
+ V =Item::Green;
+ ret V;
 
 |main[] -> var:
  
- FuncPtr a = TestFunc;
+ //FuncPtr a = TestFunc;
+ TestFunc(Item::Red);
 
  //ret a();
