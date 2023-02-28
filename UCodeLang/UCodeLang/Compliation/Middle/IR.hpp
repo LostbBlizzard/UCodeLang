@@ -514,10 +514,40 @@ struct IRFunc
 	Vector<Unique_ptr<IRBlock>> Blocks;
 };
 
+
+using IRSymbolType_t = int;
+enum class IRSymbolType : IRSymbolType_t
+{
+	StaticVarable,
+	ThreadLocalVarable,
+};
+struct IRSymbolData
+{
+	IRSymbolType SymType;
+
+
+	IRType Type;
+};
+
 class IRBuilder
 {
 public:
-	
+	IRSymbolData* NewThreadLocalVarable()
+	{
+		IRSymbolData* r = new IRSymbolData();
+		r->SymType = IRSymbolType::StaticVarable;//testing
+
+		_Symbols.emplace_back(r);
+		return r;
+	}
+	IRSymbolData* NewStaticVarable()
+	{
+		IRSymbolData* r = new IRSymbolData();
+		r->SymType = IRSymbolType::StaticVarable;
+
+		_Symbols.emplace_back(r);
+		return r;
+	}
 	IRFunc* NewFunc(IRidentifierID identifier, IRType ReturnType)
 	{
 		return Funcs.emplace_back(new IRFunc(identifier)).get();
@@ -533,6 +563,7 @@ public:
 		return _Map.at(Value);
 	}	
 
+	Vector<Unique_ptr<IRSymbolData>> _Symbols;
 	Vector<Unique_ptr<IRFunc>> Funcs;
 	Unordered_map<IRidentifierID, IRidentifier> _Map;
 	void Reset();

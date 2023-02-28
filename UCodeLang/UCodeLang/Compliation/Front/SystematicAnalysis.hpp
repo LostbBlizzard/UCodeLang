@@ -179,7 +179,9 @@ private:
 	void OnIfNode(const IfNode& node);
 	void OnWhileNode(const WhileNode& node);
 	void OnDoNode(const DoNode& node);
-		
+	void OnDeclareStaticVariableNode(const DeclareStaticVariableNode& node);
+	void OnDeclareThreadVariableNode(const DeclareThreadVariableNode& node);
+
 	struct GetMemberTypeSymbolFromVar_t
 	{
 		TypeSymbol Type;

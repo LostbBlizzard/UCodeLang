@@ -84,13 +84,13 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 				Loc._Reg = V;
 				Loc.Type = Parloc::Register;
 
+				_Registers.LockRegister(V);
 
 				V2++;
 				if (V > RegisterID::EndParameterRegister)
 				{
 					V = RegisterID::NullRegister;
 				}
-				_Registers.LockRegister(V);
 			}
 			else
 			{
@@ -338,9 +338,9 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 
 			if (Reg <= (RegisterID_t&)Tep)
 			{
-				Reg++;
 				LoadOpToReg(Item, Item.Target(), _InputPar);
 				LockRegister(_InputPar);
+				Reg++;
 			}
 			else
 			{
@@ -583,6 +583,10 @@ RegisterID UCodeBackEndObject::FindOp(IRInstruction& Ins, IROperator Op)
 				auto T = _Registers.GetFreeRegister();
 				_Registers.WeakLockRegisterValue(T, Op.Pointer);
 				return T;
+			}
+			else if (Op.Pointer->Type == IRInstructionType::Call)
+			{
+				return RegisterID::OuPutRegister;
 			}
 			else
 			{

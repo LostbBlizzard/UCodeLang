@@ -200,7 +200,7 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 {
 	auto ClassToken = TryGetToken(); TokenTypeCheck(ClassToken, TokenType::Class);
 
-	
+	SetNotTopScope();
 
 	const String_view& ClassName = ClassToken->Value._String;
 	
@@ -274,6 +274,8 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 		return GotNodeType::Success;
 	}
 
+
+	UnSetTopScope();
 }
 
 GotNodeType Parser::GetStatementsorStatementNode(StatementsNode& out)
@@ -1684,18 +1686,28 @@ GotNodeType Parser::GetumutVariableDeclare(Node*& out)
 	if (Token3->Type == TokenType::equal)
 	{
 		NextToken();
-		DeclareVariableNode* V = DeclareVariableNode::Gen();//this need to be checked if this dose not happen at top scope
 
-		out = V;
-		TypeNode::Gen_Var(V->Type, *NameValue.Token);
-		V->Name = std::move(NameValue);
-		GetExpressionTypeNode(V->Expression);
+		if (IsTopScope())
+		{
+			DeclareThreadVariableNode* V = DeclareThreadVariableNode::Gen();
+			out = V;
+			r = GetDeclareThreadVariable(*V, true);
+		}
+		else
+		{
+			DeclareVariableNode* V = DeclareVariableNode::Gen();//this need to be checked if this dose not happen at top scope
 
-		auto SemicolonToken2 = TryGetToken(); TokenTypeCheck(SemicolonToken2, TokenType::Semicolon);
-		NextToken();
+			out = V;
+			TypeNode::Gen_Var(V->Type, *NameValue.Token);
+			V->Name = std::move(NameValue);
+			GetExpressionTypeNode(V->Expression);
 
-		Tnode = &V->Type;
-		r = GotNodeType::Success;
+			auto SemicolonToken2 = TryGetToken(); TokenTypeCheck(SemicolonToken2, TokenType::Semicolon);
+			NextToken();
+
+			Tnode = &V->Type;
+			r = GotNodeType::Success;
+		}
 	}
 	else if (Token3->Type == TokenType::Semicolon)
 	{
