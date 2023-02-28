@@ -186,6 +186,8 @@ void SystematicAnalysis::OnFileNode(const FileNode* File)
 		case NodeType::EnumNode:OnEnum(*EnumNode::As(node.get())); break;
 		case NodeType::FuncNode:OnFuncNode(*FuncNode::As(node.get())); break;
 		case NodeType::UsingNode: OnUseingNode(*UsingNode::As(node.get())); break;
+		case NodeType::DeclareStaticVariableNode:OnDeclareStaticVariableNode(*DeclareStaticVariableNode::As(node2.get())); break;
+		case NodeType::DeclareThreadVariableNode:OnDeclareThreadVariableNode(*DeclareThreadVariableNode::As(node2.get())); break;
 		default:break;
 		}
 	}
@@ -291,6 +293,8 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			case NodeType::UsingNode: OnUseingNode(*UsingNode::As(node.get())); break;
 			case NodeType::FuncNode:OnFuncNode(*FuncNode::As(node.get())); break;
 			case NodeType::DeclareVariableNode:OnDeclareVariablenode(*DeclareVariableNode::As(node.get())); break;
+			case NodeType::DeclareStaticVariableNode:OnDeclareStaticVariableNode(*DeclareStaticVariableNode::As(node2.get())); break;
+			case NodeType::DeclareThreadVariableNode:OnDeclareThreadVariableNode(*DeclareThreadVariableNode::As(node2.get())); break;
 			default:break;
 			}
 		}
@@ -940,6 +944,8 @@ void SystematicAnalysis::OnStatement(const Unique_ptr<UCodeLang::Node>& node2)
 	case NodeType::IfNode:OnIfNode(*IfNode::As(node2.get())); break;
 	case NodeType::WhileNode:OnWhileNode(*WhileNode::As(node2.get())); break;
 	case NodeType::DoNode:OnDoNode(*DoNode::As(node2.get())); break;
+	case NodeType::DeclareStaticVariableNode:OnDeclareStaticVariableNode(*DeclareStaticVariableNode::As(node2.get())); break;
+	case NodeType::DeclareThreadVariableNode:OnDeclareThreadVariableNode(*DeclareThreadVariableNode::As(node2.get())); break;
 	case NodeType::RetStatementNode:OnRetStatement(*RetStatementNode::As(node2.get())); break;
 	default:break;
 	}
@@ -1606,6 +1612,15 @@ void SystematicAnalysis::OnDoNode(const DoNode& node)
 	LookingForTypes.pop();
 
 }
+void SystematicAnalysis::OnDeclareStaticVariableNode(const DeclareStaticVariableNode& node)
+{
+
+}
+void SystematicAnalysis::OnDeclareThreadVariableNode(const DeclareThreadVariableNode& node)
+{
+	OnDeclareStaticVariableNode((DeclareStaticVariableNode&)node);//for testing
+}
+
 bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
 {
 	auto Token = node.ScopedName.begin()->token;

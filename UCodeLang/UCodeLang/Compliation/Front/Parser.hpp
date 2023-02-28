@@ -48,6 +48,20 @@ private:
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
 
+	size_t TopScope = 0;
+	void SetNotTopScope()
+	{
+		TopScope++;
+	}
+	void UnSetTopScope()
+	{
+		TopScope--;
+	}
+	bool  IsTopScope()
+	{
+		return TopScope == 0;
+	}
+
 	bool _HasTripped = false;
 	void Tripped()
 	{
