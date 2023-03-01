@@ -189,7 +189,7 @@ private:
 
 	bool GetMemberTypeSymbolFromVar(const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out);
 
-	Symbol* SystematicAnalysis::GetTepFuncPtrSyb(const String& TepFuncPtr, const FuncInfo* Finfo);
+	Symbol* GetTepFuncPtrSyb(const String& TepFuncPtr, const FuncInfo* Finfo);
 
 	String GetTepFuncPtrName(Symbol* SymbolVar);
 
@@ -377,8 +377,8 @@ private:
 	IRInstruction* Build_Sub_uIntPtr(IROperator field, IROperator field2);
 	IRInstruction* Build_Add_sIntPtr(IROperator field, IROperator field2);
 	IRInstruction* Build_Sub_sIntPtr(IROperator field, IROperator field2);
-	IRInstruction* Build_Mult_uIntPtr(IROperator field, IROperator field2);
-	IRInstruction* Build_Mult_sIntPtr(IROperator field, IROperator field2);
+	IRInstruction* Build_Mult_uIntPtr(IRInstruction* field, IRInstruction* field2);
+	IRInstruction* Build_Mult_sIntPtr(IRInstruction* field, IRInstruction* field2);
 	IRInstruction* Build_Div_uIntPtr(IROperator field, IROperator field2);
 	IRInstruction* Build_Div_sIntPtr(IROperator field, IROperator field2);
 	IRInstruction* Build_Increment_uIntPtr(UAddress Value);
