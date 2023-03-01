@@ -2207,7 +2207,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 				{
 					UInt64 V;
 					ParseHelper::ParseStringToUInt64(Str, V);
-					IR_Load_UIntptr(V);
+					_LastExpressionField = IR_Load_UIntptr(V);
 				};
 				break;
 
@@ -2235,7 +2235,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 				{
 					Int64 V;
 					ParseHelper::ParseStringToInt64(Str, V);
-					IR_Load_SIntptr(V);
+					_LastExpressionField = IR_Load_SIntptr(V);
 					break;
 				};
 
@@ -2500,7 +2500,7 @@ void SystematicAnalysis::OnNewNode(NewExpresionNode* nod)
 		
 		if (IsArray)
 		{
-			/*
+			
 			TypeSymbol UintptrType = TypeSymbol();
 			UintptrType.SetType(TypesEnum::uIntPtr);
 			UAddress UintptrSize;
@@ -2513,36 +2513,35 @@ void SystematicAnalysis::OnNewNode(NewExpresionNode* nod)
 			OnExpressionTypeNode(nod->Arrayexpression.Value.get());
 
 			auto Ex0 = _LastExpressionField;
-			DoImplicitConversion(IROperand::AsLocation(_Builder.GetLastField()), LastExpressionType, UintptrType);
+			DoImplicitConversion(Ex0, LastExpressionType, UintptrType);
 
 			Ex0 = _LastExpressionField;
 
-			Build_Assign_uIntPtr(TypeSize);//UintptrSize is for the array length for Drop 
-			auto Ex1 = _Builder.GetLastField();
 
-			Build_Mult_uIntPtr(IROperand::AsLocation(Ex0), IROperand::AsLocation(Ex1));//uintptr
-			auto DataSize = _Builder.GetLastField();
+			auto SizeV = IR_Load_UIntptr(TypeSize);//UintptrSize is for the array length for Drop 
+
+		
+
+			auto DataSize = Build_Mult_uIntPtr(Ex0,SizeV);//uintptr 
+			//malloc(sizeof(Type) * ArrayExpression); 
+			
 
 			if (TypeHaveDestructor)
 			{
 				Build_Increment_uIntPtr(UintptrSize);//Make room for ItemSize onPtr
 			}
 
-			_Builder.Build_Malloc(IROperand::AsLocation(_Builder.GetLastField()));
-			auto MallocData = _Builder.GetLastField();
-
+			auto MallocData = _LastExpressionField = LookingAtIRBlock->NewMallocCall(DataSize);
 
 			if (TypeHaveDestructor)
 			{
-				//Call default on every
 				Build_Increment_uIntPtr(UintptrSize);
+				
 			}
 
-
+			//Call default on every
 
 			LookingForTypes.pop();
-		*/
-			throw std::exception("hi");
 		}
 		else
 		{
@@ -2991,10 +2990,11 @@ void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 
 
 				//_Builder.Build_Free(IROperand::AsLocation(_Builder.GetLastField()));
+				throw std::exception("not added");
 			}
 			else
 			{
-				//_Builder.Build_Free(IROperand::AsLocation(Ex0));
+				LookingAtIRBlock->NewFreeCall(Ex0);
 			}
 
 			Ex0Type._IsAddressArray = true;
@@ -4996,48 +4996,14 @@ IRInstruction* SystematicAnalysis::Build_Sub_sIntPtr(IROperator field, IROperato
 	}
 }
 
-IRInstruction* SystematicAnalysis::Build_Mult_uIntPtr(IROperator field, IROperator field2)
+IRInstruction* SystematicAnalysis::Build_Mult_uIntPtr(IRInstruction* field, IRInstruction* field2)
 {
-	switch (_Settings->PtrSize)
-	{
-	case IntSizes::Int8:
-		//_Builder.MakeUMult8(field, field2);
-		break;
-	case IntSizes::Int16:
-		//_Builder.MakeUMult16(field, field2);
-		break;
-	case IntSizes::Int32:
-		//_Builder.MakeUMult32(field, field2);
-		break;
-	case IntSizes::Int64:
-		//_Builder.MakeUMult64(field, field2);
-		break;
-	default:
-		throw std::exception("");
-		break;
-	}
+	return LookingAtIRBlock->NewUMul(field, field2);
 }
 
-IRInstruction* SystematicAnalysis::Build_Mult_sIntPtr(IROperator field, IROperator field2)
+IRInstruction* SystematicAnalysis::Build_Mult_sIntPtr(IRInstruction* field, IRInstruction* field2)
 {
-	 switch (_Settings->PtrSize)
-	 {
-	 case IntSizes::Int8:
-		 //_Builder.MakeSMult8(field, field2);
-		 break;
-	 case IntSizes::Int16:
-		 //_Builder.MakeSMult16(field, field2);
-		 break;
-	 case IntSizes::Int32:
-		 //_Builder.MakeSMult32(field, field2);
-		 break;
-	 case IntSizes::Int64:
-		 //_Builder.MakeSMult64(field, field2);
-		 break;
-	 default:
-		 throw std::exception("");
-		 break;
-	 }
+	return LookingAtIRBlock->NewSMul(field, field2);
 }
 
 IRInstruction* SystematicAnalysis::Build_Div_uIntPtr(IROperator field, IROperator field2)

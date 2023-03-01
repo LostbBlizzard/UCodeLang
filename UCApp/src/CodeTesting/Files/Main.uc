@@ -5,6 +5,6 @@ $FuncPtr = |[] -> int;
 
 
 |main[] -> var:
- var& V = new int();
+ var& V = new int[5];
  drop(V);
  //ret new int();
