@@ -141,6 +141,7 @@ private:
 		}
 		return nullptr;
 	}
+	
 
 	RegisterID LoadOp(IRInstruction& Ins, IROperator Op);
 	void LoadOpToReg(IRInstruction& Ins, IROperator Op,RegisterID Out);
@@ -148,6 +149,7 @@ private:
 	void PushOpStack(IRInstruction& Ins, IROperator Op);
 	RegisterID FindOp(IRInstruction& Ins, IROperator Op);
 	void FindOpToReg(IRInstruction& Ins, IROperator Op, RegisterID Out);
+	void LogicalNot(IRTypes Type, RegisterID In, RegisterID Out);
 };
 UCodeLangEnd
 

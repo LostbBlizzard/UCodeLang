@@ -1486,14 +1486,14 @@ void SystematicAnalysis::OnIfNode(const IfNode& node)
 
 		if (passtype == PassType::BuidCode)
 		{
-			auto JumpIndex = LookingAtIRBlock->GetIndex() + 1;
+			auto JumpIndex = LookingAtIRBlock->GetIndex() ;
 			LookingAtIRBlock->UpdateJump(ElseIndex, JumpIndex);
-			LookingAtIRBlock->UpdateConditionaJump(IfIndex.ConditionalJump, BoolCode, ElseI);
+			LookingAtIRBlock->UpdateConditionaJump(IfIndex.ConditionalJump, IfIndex.logicalNot, ElseI);
 		}
 	}
 	else if (passtype == PassType::BuidCode)
 	{
-		LookingAtIRBlock->UpdateConditionaJump(IfIndex.ConditionalJump, BoolCode, LookingAtIRBlock->GetIndex()+1);
+		LookingAtIRBlock->UpdateConditionaJump(IfIndex.ConditionalJump, BoolCode, LookingAtIRBlock->GetIndex());
 	}
 	
 	
@@ -1621,7 +1621,7 @@ void SystematicAnalysis::OnDeclareThreadVariableNode(const DeclareThreadVariable
 	OnDeclareStaticVariableNode((DeclareStaticVariableNode&)node);//for testing
 }
 
-bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
+bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out,MemberMode mode)
 {
 	auto Token = node.ScopedName.begin()->token;
 	auto& Str = Token->Value._String;
@@ -1658,7 +1658,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, 
 	size_t Start = 1;
 
 
-	if (!GetMemberTypeSymbolFromVar(Start, node, FeildType, FeildTypeAsSymbol))
+	if (!GetMemberTypeSymbolFromVar(Start, node, FeildType, FeildTypeAsSymbol,mode))
 	{
 		return false;
 	}
@@ -1712,7 +1712,7 @@ String SystematicAnalysis::GetTepFuncPtrName(Symbol* SymbolVar)
 {
 	return "_tepfptr|" + SymbolVar->FullName;
 }
-bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t& Start, const ScopedNameNode& node, TypeSymbol& FeildType, Symbol*& FeildTypeAsSymbol)
+bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t& Start, const ScopedNameNode& node, TypeSymbol& FeildType, Symbol*& FeildTypeAsSymbol, MemberMode mode)
 {
 	for (size_t i = Start; i < node.ScopedName.size(); i++)
 	{

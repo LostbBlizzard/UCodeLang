@@ -187,13 +187,19 @@ private:
 		TypeSymbol Type;
 	};
 
-	bool GetMemberTypeSymbolFromVar(const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out);
+	enum class MemberMode
+	{
+		Read,
+		Writing,
+	};
+
+	bool GetMemberTypeSymbolFromVar(const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out, MemberMode mode);
 
 	Symbol* GetTepFuncPtrSyb(const String& TepFuncPtr, const FuncInfo* Finfo);
 
 	String GetTepFuncPtrName(Symbol* SymbolVar);
 
-	bool GetMemberTypeSymbolFromVar(const size_t& Start, const ScopedNameNode& node, TypeSymbol& FeildType, Symbol*& FeildTypeAsSymbol);
+	bool GetMemberTypeSymbolFromVar(const size_t& Start, const ScopedNameNode& node, TypeSymbol& FeildType, Symbol*& FeildTypeAsSymbol, MemberMode mode);
 	
 	void OnPostfixVariableNode(const PostfixVariableNode& node);
 	void OnCompoundStatementNode(const CompoundStatementNode& node);
