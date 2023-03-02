@@ -136,14 +136,21 @@ namespace ULangTest
 
 
 
-
-		if (std::filesystem::is_directory(paths.FileDir))
+		try
 		{
-			Com_r = Com.CompileFiles(paths);
+			if (std::filesystem::is_directory(paths.FileDir))
+			{
+				Com_r = Com.CompileFiles(paths);
+			}
+			else
+			{
+				Com_r = Com.CompilePathToObj(paths.FileDir, paths.OutFile);
+			}
 		}
-		else
+		catch (const std::exception& ex)
 		{
-			Com_r = Com.CompilePathToObj(paths.FileDir, paths.OutFile);
+			ErrStream << "fail from Compile [exception] " << ex.what() << ": " << "'" << Test.TestName << "'" << std::endl;
+			return false;
 		}
 
 		if (Test.Condition == SuccessCondition::Compilation

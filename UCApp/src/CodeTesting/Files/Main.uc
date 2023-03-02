@@ -6,9 +6,8 @@ $FuncPtr = |[] -> int;
 
 |main[] -> var:
  int a = 0;
- do:
+ while 10 > a:
   a++;
- while 1;
-  
+
 
  ret a;
