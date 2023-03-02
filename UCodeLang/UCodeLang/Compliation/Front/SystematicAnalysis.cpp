@@ -1319,7 +1319,7 @@ void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 	GetMemberTypeSymbolFromVar_t MemberInfo;
 	if (passtype != PassType::GetTypes)
 	{
-		if (!GetMemberTypeSymbolFromVar(node.Name, MemberInfo))
+		if (!GetMemberTypeSymbolFromVar(node.Name, MemberInfo,MemberMode::Writing))
 		{
 			return;
 		}
@@ -1377,7 +1377,7 @@ void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 
 				
 				GetMemberTypeSymbolFromVar(0, node.Name, ThisClassType,
-					G);
+					G,MemberMode::Read);
 
 				//LookingAtIRBlock->NewPushParameter(IRParameters.front());
 
@@ -1665,24 +1665,27 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, 
 
 	if (passtype == PassType::BuidCode)
 	{
-		if (node.ScopedName.size() == 1)
+		if (mode == MemberMode::Read) 
 		{
-			if (SymbolVar->Type == SymbolType::StackVarable) 
+			if (node.ScopedName.size() == 1)
 			{
-				_LastExpressionField = LookingAtIRBlock->NewLoad(SymbolVar->IR_Ins);
-			}
-			else if (SymbolVar->Type == SymbolType::Func)
-			{
-				FuncInfo* Finfo = SymbolVar->Get_Info<FuncInfo>();
-				throw std::exception("not added");
-			}
-			else if (SymbolVar->Type == SymbolType::ParameterVarable)
-			{
-				_LastExpressionField = LookingAtIRBlock->NewLoad((IRPar*)SymbolVar->IR_Ins);
-			}
-			else
-			{
-				throw std::exception("not added");
+				if (SymbolVar->Type == SymbolType::StackVarable)
+				{
+					_LastExpressionField = LookingAtIRBlock->NewLoad(SymbolVar->IR_Ins);
+				}
+				else if (SymbolVar->Type == SymbolType::Func)
+				{
+					FuncInfo* Finfo = SymbolVar->Get_Info<FuncInfo>();
+					throw std::exception("not added");
+				}
+				else if (SymbolVar->Type == SymbolType::ParameterVarable)
+				{
+					_LastExpressionField = LookingAtIRBlock->NewLoad((IRPar*)SymbolVar->IR_Ins);
+				}
+				else
+				{
+					throw std::exception("not added");
+				}
 			}
 		}
 		AddDependencyToCurrentFile(SymbolVar);
@@ -2644,7 +2647,7 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 {
 	GetMemberTypeSymbolFromVar_t V;
 
-	if (!GetMemberTypeSymbolFromVar(nod.VariableName, V))
+	if (!GetMemberTypeSymbolFromVar(nod.VariableName, V,MemberMode::Read))
 	{
 		return;
 	}
@@ -3827,7 +3830,7 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 			GetScopedNameRemovedLast(Name, TepNode);
 
 			GetMemberTypeSymbolFromVar_t V;
-			GetMemberTypeSymbolFromVar(TepNode, V);
+			GetMemberTypeSymbolFromVar(TepNode, V,MemberMode::Read);
 
 			auto Str = TepNode.ScopedName.front().token->Value._String;
 			auto Symbol = GetSymbol(Str, SymbolType::Varable_t);
@@ -3968,7 +3971,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 			GetScopedNameRemovedLast(Name, TepNode);
 
 			GetMemberTypeSymbolFromVar_t V;
-			if (GetMemberTypeSymbolFromVar(TepNode, V))
+			if (GetMemberTypeSymbolFromVar(TepNode, V,MemberMode::Read))
 			{
 				_ThisType = V.Type;
 				_ThisType.SetAsAddress();
