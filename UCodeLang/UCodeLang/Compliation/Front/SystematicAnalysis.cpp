@@ -1552,7 +1552,7 @@ void SystematicAnalysis::OnWhileNode(const WhileNode& node)
 	if (passtype == PassType::BuidCode)
 	{
 		LookingAtIRBlock->NewJump(BoolCode);
-		LookingAtIRBlock->UpdateConditionaJump(IfIndex.ConditionalJump, BoolCode2, LookingAtIRBlock->GetIndex());
+		LookingAtIRBlock->UpdateConditionaJump(IfIndex.ConditionalJump, IfIndex.logicalNot, LookingAtIRBlock->GetIndex());
 	}
 
 
