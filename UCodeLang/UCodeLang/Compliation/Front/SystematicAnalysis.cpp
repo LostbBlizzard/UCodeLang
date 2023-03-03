@@ -2534,22 +2534,58 @@ void SystematicAnalysis::OnNewNode(NewExpresionNode* nod)
 				Build_Increment_uIntPtr(UintptrSize);//Make room for ItemSize onPtr
 			}
 
-			auto MallocData = _LastExpressionField = LookingAtIRBlock->NewMallocCall(DataSize);
+			auto MallocPtr = _LastExpressionField = LookingAtIRBlock->NewMallocCall(DataSize);
 
 			if (TypeHaveDestructor)
 			{
 				Build_Increment_uIntPtr(UintptrSize);
 				
 			}
-
+			
 			//Call default on every
+			
+			if (IsPrimitive(Type))
+			{
+
+				//our index
+
+				
+				auto Indexir = IR_Load_UIntptr(0);
+				
+
+size_t JumpLabel = LookingAtIRBlock->GetIndex();
+				auto Cmpbool = LookingAtIRBlock->NewC_Equalto(Indexir, Ex0);
+
+				
+				auto JumpIns = LookingAtIRBlock->NewConditionalJump(Cmpbool, NullUInt64);
+
+				auto OffsetIr = LookingAtIRBlock->New_Index_Vetor(MallocPtr, Indexir, SizeV);
+
+				//loop on evey
+				DoFuncCall(Type, Func, ValuePars);
+				LookingAtIRBlock->NewDereferenc_Store(OffsetIr, _LastExpressionField);
+
+				LookingAtIRBlock->New_Increment(Indexir);
+
+
+				
+				LookingAtIRBlock->NewJump(JumpLabel);
+
+				size_t ThisJumpLable = LookingAtIRBlock->GetIndex();
+				LookingAtIRBlock->UpdateConditionaJump(JumpIns, Cmpbool, ThisJumpLable);
+			}
+			else
+			{
+				throw std::exception("not added");
+			}
+			_LastExpressionField = MallocPtr;
 
 			LookingForTypes.pop();
 		}
 		else
 		{
 			auto SizeIR = IR_Load_UIntptr(TypeSize);
-			auto MallocPtr = _LastExpressionField =  LookingAtIRBlock->NewMallocCall(SizeIR);
+			auto MallocPtr =  LookingAtIRBlock->NewMallocCall(SizeIR);
 			
 			//Call ObjectNew
 
@@ -2557,12 +2593,13 @@ void SystematicAnalysis::OnNewNode(NewExpresionNode* nod)
 			if (IsPrimitive(Type)) 
 			{
 				DoFuncCall(Type, Func, ValuePars);
-				//_Builder.Build_Assign(IROperand::AsLocation(_Builder.GetLastField()));
+				LookingAtIRBlock->NewDereferenc_Store(MallocPtr, _LastExpressionField);
 			}
 			else
 			{
 				throw std::exception("not added");
 			}
+			_LastExpressionField = MallocPtr;
 		}
 	
 	}
@@ -3799,21 +3836,21 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 			ScopedName = ToString(SymbolsV->VarType);
 		}
 
-		PrimitiveTypeCall(Uint8TypeName, TypesEnum::uInt8, LookingAtIRBlock->NewLoad((UInt8)0);)
-		else PrimitiveTypeCall(Uint16TypeName, TypesEnum::uInt16, LookingAtIRBlock->NewLoad((UInt16)0))
-		else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, LookingAtIRBlock->NewLoad((UInt32)0))
-		else PrimitiveTypeCall(Uint16TypeName, TypesEnum::uInt64, LookingAtIRBlock->NewLoad(((UInt64)0)))
+		PrimitiveTypeCall(Uint8TypeName, TypesEnum::uInt8, _LastExpressionField = LookingAtIRBlock->NewLoad((UInt8)0);)
+		else PrimitiveTypeCall(Uint16TypeName, TypesEnum::uInt16, _LastExpressionField = LookingAtIRBlock->NewLoad((UInt16)0))
+		else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _LastExpressionField = LookingAtIRBlock->NewLoad((UInt32)0))
+		else PrimitiveTypeCall(Uint16TypeName, TypesEnum::uInt64, _LastExpressionField = LookingAtIRBlock->NewLoad(((UInt64)0)))
 
-		else PrimitiveTypeCall(Sint8TypeName, TypesEnum::sInt8, LookingAtIRBlock->NewLoad((Int8)0);)
-		else PrimitiveTypeCall(Sint16TypeName, TypesEnum::sInt16, LookingAtIRBlock->NewLoad((Int16)0))
-		else PrimitiveTypeCall(Sint32TypeName, TypesEnum::sInt32, LookingAtIRBlock->NewLoad((Int32)0))
-		else PrimitiveTypeCall(Sint16TypeName, TypesEnum::sInt64, LookingAtIRBlock->NewLoad((Int64)0))
+		else PrimitiveTypeCall(Sint8TypeName, TypesEnum::sInt8, _LastExpressionField = LookingAtIRBlock->NewLoad((Int8)0);)
+		else PrimitiveTypeCall(Sint16TypeName, TypesEnum::sInt16, _LastExpressionField = LookingAtIRBlock->NewLoad((Int16)0))
+		else PrimitiveTypeCall(Sint32TypeName, TypesEnum::sInt32, _LastExpressionField = LookingAtIRBlock->NewLoad((Int32)0))
+		else PrimitiveTypeCall(Sint16TypeName, TypesEnum::sInt64, _LastExpressionField = LookingAtIRBlock->NewLoad((Int64)0))
 
-		else PrimitiveTypeCall(boolTypeName, TypesEnum::Bool, LookingAtIRBlock->NewLoad(false))
-		else PrimitiveTypeCall(CharTypeName, TypesEnum::Char, LookingAtIRBlock->NewLoad('\0'))
+		else PrimitiveTypeCall(boolTypeName, TypesEnum::Bool, _LastExpressionField = LookingAtIRBlock->NewLoad(false))
+		else PrimitiveTypeCall(CharTypeName, TypesEnum::Char, _LastExpressionField = LookingAtIRBlock->NewLoad('\0'))
 
-		else PrimitiveTypeCall(float32TypeName, TypesEnum::float32, LookingAtIRBlock->NewLoad((float32)0))
-		else PrimitiveTypeCall(float64TypeName, TypesEnum::float64, LookingAtIRBlock->NewLoad((float64)0))
+		else PrimitiveTypeCall(float32TypeName, TypesEnum::float32, _LastExpressionField = LookingAtIRBlock->NewLoad((float32)0))
+		else PrimitiveTypeCall(float64TypeName, TypesEnum::float64, _LastExpressionField = LookingAtIRBlock->NewLoad((float64)0))
 		
 	}
 	if (Func.Func == nullptr)
