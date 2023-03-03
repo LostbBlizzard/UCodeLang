@@ -10,20 +10,20 @@ struct CodeGen
 
 	void PushByte(Byte Value)
 	{
-		InstructionsOutput.push_back(Value);
+		ByteOutput.push_back(Value);
 	}
 	void PushByte(const Byte* Value, size_t Size)
 	{
 		for (size_t i = 0; i < Size; i++)
 		{
-			InstructionsOutput.push_back(Value[i]);
+			ByteOutput.push_back(Value[i]);
 		}
 	}
 	void PushByteR(const Byte* Value, size_t Size)
 	{
 		for (int i = Size - 1; i >= 0; i--)
 		{
-			InstructionsOutput.push_back(Value[i]);
+			ByteOutput.push_back(Value[i]);
 		}
 	}
 

@@ -109,10 +109,11 @@ AddMapValueValue(StoreRegToReg##bitsize, InstructionSet::StoreRegToReg##bitsize,
 AddMapValueValue(GetFromStack##bitsize, InstructionSet::GetFromStack##bitsize, OpCodeType::UIntPtr,OpCodeType::Register),\
 AddMapValueValue(StoreRegToPtr##bitsize, InstructionSet::StoreRegToPtr##bitsize, OpCodeType::Register,OpCodeType::Register),\
 AddMapValueValue(LogicalNot##bitsize, InstructionSet::LogicalNot##bitsize, OpCodeType::Register, OpCodeType::Register), \
-
+AddMapValueValue(equalto##bitsize,InstructionSet::equalto##bitsize,OpCodeType::Register, OpCodeType::Register),
 
 #define MapValuefloatSet(bitsize)\
 AddMapValueValue(Store##bitsize##f, InstructionSet::Store##bitsize##f, OpCodeType::Register, OpCodeType::Anyfloat##bitsize),\
+
 
 static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 {	

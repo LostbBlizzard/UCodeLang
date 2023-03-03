@@ -225,6 +225,10 @@ String IRBuilder::ToString()
 						State.TepPushedParameters.clear();
 						r += ")";
 					}break;
+					case IRInstructionType::Reassign_dereference:
+						r += "*" + ToString(State, *I, I->Target());
+						r += " = " + ToString(State, *I, I->Input());
+						break;
 					case IRInstructionType::Return:
 						if (i != 0 && Block->Instructions[i - 1]->Type == IRInstructionType::LoadReturn) { continue; }
 						r += "ret";

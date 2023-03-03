@@ -5,9 +5,8 @@ $FuncPtr = |[] -> int;
 
 
 |main[] -> var:
- int a = 0;
- while 10 > a:
-  a++;
+ 
 
+ var A = new int[5];
 
- ret a;
+ ret 1;

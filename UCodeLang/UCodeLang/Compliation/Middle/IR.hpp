@@ -102,7 +102,7 @@ enum class IRInstructionType : IRInstructionType_t
 	//memory
 	MallocCall,
 	FreeCall,
-
+	Reassign_dereference,//Reassign Target
 	//internal stuff
 };
 
@@ -157,6 +157,16 @@ inline bool IsLoadValue(IRInstructionType Value)
 		|| Value == IRInstructionType::ConditionalJump;
 }
 
+inline bool IsLocation(IRInstructionType Value)
+{
+	return Value == IRInstructionType::Load
+		|| Value == IRInstructionType::LoadNone
+		|| Value == IRInstructionType::Call
+		|| Value == IRInstructionType::MallocCall
+		|| IsBinary(Value)
+		|| IsUnary(Value);
+}
+
 using IROperator_t = UInt8;
 enum class IROperatorType :IROperator_t
 {
@@ -167,6 +177,7 @@ enum class IROperatorType :IROperator_t
 	IRParameter,
 
 	Get_PointerOf_IRInstruction,//Gets the from the IRInstruction Pointer
+	Dereference,
 };
 
 struct IRPar;
@@ -477,6 +488,12 @@ struct IRBlock
 		Instructions.emplace_back(new IRInstruction(IRInstructionType::FreeCall, IROperator(Ptr)));
 	}
 
+	void NewDereferenc_Store(IRInstruction* Ptr,IRInstruction* Value)
+	{
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Reassign_dereference, Ptr)).get();
+		V->Input(IROperator(Value));
+	}
+
 	//call func
 	void NewPushParameter(IRInstruction* Value)
 	{
@@ -495,6 +512,30 @@ struct IRBlock
 		auto& V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Return));
 	}
 	//vetor
+	IRInstruction* New_Vetor_Index(IRInstruction* Ptr, IRInstruction* Index,UInt32 ObjectSize)
+	{
+		auto Tep = NewLoad(ObjectSize);
+		return New_Index_Vetor(Ptr,Index, Tep);
+	}
+	IRInstruction* New_Vetor_Index(IRInstruction* Ptr, IRInstruction* Index, UInt64 ObjectSize)
+	{
+		auto Tep = NewLoad(ObjectSize);
+		return New_Index_Vetor(Ptr, Index, Tep);
+	}
+	IRInstruction* New_Index_Vetor(IRInstruction* Ptr, IRInstruction* Index,IRInstruction* ObjectSize)
+	{
+		auto Offset = NewUMul(Index, ObjectSize);
+		return NewAdd(Ptr, Offset);
+	}
+	//
+	void New_Increment(IRInstruction* Object)
+	{
+		NewStore(Object,NewAdd(Object, NewLoad(1)));
+	}
+	void New_Decrement(IRInstruction* Object)
+	{
+		NewStore(Object, NewSub(Object, NewLoad(1)));
+	}
 
 	Vector<Unique_ptr<IRInstruction>> Instructions;
 	size_t GetIndex()

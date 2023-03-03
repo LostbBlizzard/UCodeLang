@@ -128,7 +128,7 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 		//useing insert is slow but it works
 		InstructionBuilder::IncrementStackPointer(_Ins, V);
 		instr.insert(instr.begin() + FuncStart, _Ins);
-
+		
 		if (Ptr == IntSizes::Int32)
 		{
 			InstructionBuilder::Store32(_Ins, V, (UInt32)_Stack.Size);
@@ -215,8 +215,23 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			{
 			case IRTypes::i8:InstructionBuilder::MultS8(_Ins, A, B); PushIns(); break;
 			case IRTypes::i16:InstructionBuilder::MultS16(_Ins, A, B); PushIns(); break;
+
+			bit32label:
 			case IRTypes::i32:InstructionBuilder::MultS32(_Ins, A, B); PushIns(); break;
+
+			bit64label:
 			case IRTypes::i64:InstructionBuilder::MultS64(_Ins, A, B); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					goto bit32label;
+				}
+				else
+				{
+					goto bit64label;
+				}
+				break;
 			default:
 				throw std::exception("not added");
 				break;
@@ -233,12 +248,27 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			LockRegister(A);
 			RegisterID B = LoadOp(Item, Item.B);
 
-			switch (Item.ObjectType._Type)
+			auto& Object_t = Item.ObjectType;
+			switch (Object_t._Type)
 			{
 			case IRTypes::i8:InstructionBuilder::MultU8(_Ins, A, B); PushIns(); break;
 			case IRTypes::i16:InstructionBuilder::MultU16(_Ins, A, B); PushIns(); break;
+
+			bit32label1:
 			case IRTypes::i32:InstructionBuilder::MultU32(_Ins, A, B); PushIns(); break;
+
+			bit64label1:
 			case IRTypes::i64:InstructionBuilder::MultU64(_Ins, A, B); PushIns(); break;
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					goto bit32label1;
+				}
+				else
+				{
+					goto bit64label1;
+				}
+				break;
 			default:
 				throw std::exception("not added");
 				break;
@@ -260,8 +290,23 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			{
 			case IRTypes::i8:InstructionBuilder::DivS8(_Ins, A, B); PushIns(); break;
 			case IRTypes::i16:InstructionBuilder::DivS16(_Ins, A, B); PushIns(); break;
+
+			bit32label2:
 			case IRTypes::i32:InstructionBuilder::DivS32(_Ins, A, B); PushIns(); break;
+
+			bit64label2:
 			case IRTypes::i64:InstructionBuilder::DivS64(_Ins, A, B); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					goto bit32label2;
+				}
+				else
+				{
+					goto bit64label2;
+				}
+				break;
 			default:
 				throw std::exception("not added");
 				break;
@@ -282,8 +327,23 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			{
 			case IRTypes::i8:InstructionBuilder::DivU8(_Ins, A, B); PushIns(); break;
 			case IRTypes::i16:InstructionBuilder::DivU16(_Ins, A, B); PushIns(); break;
+
+			bit32label5:
 			case IRTypes::i32:InstructionBuilder::DivU32(_Ins, A, B); PushIns(); break;
+
+			bit64label5:
 			case IRTypes::i64:InstructionBuilder::DivU64(_Ins, A, B); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					goto bit32label5;
+				}
+				else
+				{
+					goto bit64label5;
+				}
+				break;
 			default:
 				throw std::exception("not added");
 				break;
@@ -305,8 +365,23 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			{
 			case IRTypes::i8:InstructionBuilder::Add8(_Ins, A, B); PushIns(); break;
 			case IRTypes::i16:InstructionBuilder::Add16(_Ins, A, B); PushIns(); break;
+
+			bit32label6:
 			case IRTypes::i32:InstructionBuilder::Add32(_Ins, A, B); PushIns(); break;
+
+			bit64label6:
 			case IRTypes::i64:InstructionBuilder::Add64(_Ins, A, B); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					goto bit32label6;
+				}
+				else
+				{
+					goto bit64label6;
+				}
+				break;
 			default:
 				throw std::exception("not added");
 				break;
@@ -327,8 +402,22 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			{
 			case IRTypes::i8:InstructionBuilder::Sub8(_Ins, A, B); PushIns(); break;
 			case IRTypes::i16:InstructionBuilder::Sub16(_Ins, A, B); PushIns(); break;
+			bit32label4:
 			case IRTypes::i32:InstructionBuilder::Sub32(_Ins, A, B); PushIns(); break;
+
+			bit64label4:
 			case IRTypes::i64:InstructionBuilder::Sub64(_Ins, A, B); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					goto bit32label4;
+				}
+				else
+				{
+					goto bit64label4;
+				}
+				break;
 			default:
 				throw std::exception("not added");
 				break;
@@ -401,7 +490,55 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			LogicalNot(Item.ObjectType._Type,LoadOp(Item, Item.Target()),Out);
 			_Registers.WeakLockRegisterValue(Out, &Item);
 
-		}break; 
+		}
+		break;
+		case IRInstructionType::Reassign_dereference:
+		{
+			RegisterID A = LoadOp(Item, Item.Target());
+			LockRegister(A);
+			RegisterID B = LoadOp(Item, Item.Input());
+
+			InstructionBuilder::StoreRegToPtr64(_Ins, B,A); PushIns();
+
+			_Registers.UnLockRegister(A);
+		}
+		break; 
+		case IRInstructionType::EqualTo:
+		{
+			RegisterID V = RegisterID::BoolRegister;
+			RegisterID A = LoadOp(Item, Item.A);
+			LockRegister(A);
+			RegisterID B = LoadOp(Item, Item.B);
+
+			switch (Item.ObjectType._Type)
+			{
+			case IRTypes::i8:InstructionBuilder::equalto8(_Ins, A, B); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::equalto16(_Ins, A, B); PushIns(); break;
+
+			bit32label3:
+			case IRTypes::i32:InstructionBuilder::equalto32(_Ins, A, B); PushIns(); break;
+			bit64label3:
+			case IRTypes::i64:InstructionBuilder::equalto64(_Ins, A, B); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					goto bit32label3;
+				}
+				else
+				{
+					goto bit64label3;
+				}
+				break;
+			default:
+				throw std::exception("not added");
+				break;
+			}
+
+			_Registers.UnLockRegister(A);
+			_Registers.WeakLockRegisterValue(V, &Item);
+		}
+		break;
 		default:
 			throw std::exception("not added");
 			break;
@@ -462,6 +599,8 @@ RegisterID UCodeBackEndObject::LoadOp(IRInstruction& Ins, IROperator Op)
 		case IRTypes::i16:
 			InstructionBuilder::Store16(_Ins, V, Op.Value.AsInt16); PushIns();
 			break;
+
+		bit32label:
 		case IRTypes::i32:
 			InstructionBuilder::Store32(_Ins, V, Op.Value.AsInt32); PushIns();
 			break;
@@ -471,8 +610,21 @@ RegisterID UCodeBackEndObject::LoadOp(IRInstruction& Ins, IROperator Op)
 		case IRTypes::f64:
 			InstructionBuilder::Storef64(_Ins, V, Op.Value.Asfloat64); PushIns();
 			break;
+
+		bit64label:
 		case IRTypes::i64:
 			InstructionBuilder::Store64(_Ins, V, Op.Value.AsInt64); PushIns();
+			break;
+
+		case IRTypes::pointer:
+			if (Get_Settings().PtrSize == IntSizes::Int32)
+			{
+				goto bit32label;
+			}
+			else
+			{
+				goto bit64label;
+			}
 			break;
 		default:
 			throw std::exception("not added");
@@ -629,15 +781,30 @@ void UCodeBackEndObject::PushOpStack(IRInstruction& Ins, IROperator Op)
 		InstructionBuilder::Push16(_Ins, R); PushIns();
 		_Stack.PushedOffset += 2;
 		break;
+
+	bit32label:
 	case IRTypes::f32:
 	case IRTypes::i32:
 		InstructionBuilder::Push32(_Ins, R); PushIns();
 		_Stack.PushedOffset += 4;
 		break;
+
+	bit64label:
 	case IRTypes::f64:
 	case IRTypes::i64:
 		InstructionBuilder::Push64(_Ins, R); PushIns();
 		_Stack.PushedOffset += 8;
+		break;
+
+	case IRTypes::pointer:
+		if (Get_Settings().PtrSize == IntSizes::Int32)
+		{
+			goto bit32label;
+		}
+		else
+		{
+			goto bit64label;
+		}
 		break;
 	default:
 		throw std::exception("not added");
@@ -661,7 +828,7 @@ RegisterID UCodeBackEndObject::FindOp(IRInstruction& Ins, IROperator Op)
 			{
 				return RegisterID::OuPutRegister;
 			}
-			else if (Op.Pointer->Type == IRInstructionType::Load)
+			else if (IsLocation(Op.Pointer->Type))
 			{
 				return LoadOp(*Op.Pointer,Op.Pointer->Target());
 			}
