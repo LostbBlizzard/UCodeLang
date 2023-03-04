@@ -746,6 +746,52 @@ RegisterID UCodeBackEndObject::LoadOp(IRInstruction& Ins, IROperator Op)
 			return V;
 		}
 	}
+	else if (Op.Type == IROperatorType::DereferenceOf_IRInstruction
+	|| Op.Type == IROperatorType::DereferenceOf_IRParameter)
+	{
+		auto In = FindOp(Ins, Op);
+		auto Out = _Registers.GetFreeRegister();
+		if (Out == RegisterID::NullRegister)
+		{
+			throw std::exception("not added");
+			//
+		}
+
+		switch (Ins.ObjectType._Type)
+		{
+		case IRTypes::i8:
+			InstructionBuilder::StoreFromPtrToReg8(_Ins, In, Out); PushIns();
+			break;
+		case IRTypes::i16:
+			InstructionBuilder::StoreFromPtrToReg16(_Ins, In, Out); PushIns();
+			break;
+		Int32L5:
+		case IRTypes::f32:
+		case IRTypes::i32:
+			InstructionBuilder::StoreFromPtrToReg32(_Ins, In, Out); PushIns();
+			break;
+
+		Int64L5:
+		case IRTypes::f64:
+		case IRTypes::i64:
+			InstructionBuilder::StoreFromPtrToReg64(_Ins, In, Out); PushIns();
+			break;
+		case IRTypes::pointer:
+			switch (Get_Settings().PtrSize)
+			{
+			case IntSizes::Int32:goto Int32L;
+			case IntSizes::Int64:goto Int64L;
+			default:
+				throw std::exception("not added");
+				break;
+			}
+			break;
+		default:
+			throw std::exception("not added");
+			break;
+		}
+		return Out;
+	}
 
 	throw std::exception("not added");
 	return RegisterID::NullRegister;
@@ -841,7 +887,8 @@ RegisterID UCodeBackEndObject::FindOp(IRInstruction& Ins, IROperator Op)
 	auto V = _Registers.GetInfo(Op.Pointer);
 	if (V == RegisterID::NullRegister)
 	{
-		if (Op.Type == IROperatorType::IRInstruction)
+		if (Op.Type == IROperatorType::IRInstruction
+			|| Op.Type == IROperatorType::DereferenceOf_IRInstruction)
 		{
 			if (Op.Pointer->Type == IRInstructionType::LoadNone)
 			{
@@ -862,7 +909,8 @@ RegisterID UCodeBackEndObject::FindOp(IRInstruction& Ins, IROperator Op)
 				throw std::exception("not added");
 			}
 		}
-		else if (Op.Type == IROperatorType::IRParameter)
+		else if (Op.Type == IROperatorType::IRParameter
+			|| Op.Type == IROperatorType::DereferenceOf_IRParameter)
 		{
 			auto V = GetParData(Op.Parameter);
 

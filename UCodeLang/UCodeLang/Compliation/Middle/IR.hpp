@@ -177,7 +177,10 @@ enum class IROperatorType :IROperator_t
 	IRParameter,
 
 	Get_PointerOf_IRInstruction,//Gets the from the IRInstruction Pointer
-	Dereference,
+	Get_PointerOf_IRParameter,
+
+	DereferenceOf_IRInstruction,
+	DereferenceOf_IRParameter,
 };
 
 struct IRPar;
@@ -205,6 +208,7 @@ struct IROperator
 	
 	IROperator(IROperatorType type,IRInstruction* pointer) :Type(type), Pointer(pointer) {}
 	IROperator(IROperatorType type, IRidentifierID Value) :Type(type), identifer(Value) {}
+	IROperator(IROperatorType type, IRPar* Value) :Type(type), Parameter(Value) {}
 };
 struct IRInstruction
 {
@@ -337,7 +341,10 @@ struct IRBlock
 	{
 		return Instructions.emplace_back(new IRInstruction(IRInstructionType::Load, IROperator(IROperatorType::Get_PointerOf_IRInstruction,Value))).get();
 	}
-
+	IRInstruction* NewLoadPtr(IRPar* Value)//get the pointer of the Value
+	{
+		return Instructions.emplace_back(new IRInstruction(IRInstructionType::Load, IROperator(IROperatorType::Get_PointerOf_IRParameter, Value))).get();
+	}
 
 	void NewStore(IRPar* Storage, IRInstruction* Value)
 	{
@@ -497,6 +504,19 @@ struct IRBlock
 	{
 		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Reassign_dereference, Ptr)).get();
 		V->Input(IROperator(Value));
+	}
+
+	IRInstruction* NewLoad_Dereferenc(IRInstruction* Ptr, IRType Type)
+	{
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Load,IROperator(IROperatorType::DereferenceOf_IRInstruction,Ptr))).get();
+		V->ObjectType = Type;
+		return V;
+	}
+	IRInstruction* NewLoad_Dereferenc(IRPar* Ptr, IRType Type)
+	{
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Load, IROperator(IROperatorType::DereferenceOf_IRParameter, Ptr))).get();
+		V->ObjectType = Type;
+		return V;
 	}
 
 	//call func
