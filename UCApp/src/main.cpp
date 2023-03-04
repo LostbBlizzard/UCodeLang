@@ -143,9 +143,9 @@ int main()
 
 		
 		
-		int item;
+		int item = 5;
 
-		auto r = RunTime.RCall <int*> ("main", &item,(int)6);
+		auto r = RunTime.RCall <int*> ("main", &item);
  		
 		
 	   std::cout << " Got Value " << (int)r << std::endl;
