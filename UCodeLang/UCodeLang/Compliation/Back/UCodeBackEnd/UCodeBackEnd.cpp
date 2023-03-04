@@ -496,10 +496,35 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		{
 			RegisterID A = LoadOp(Item, Item.Target());
 			LockRegister(A);
+
 			RegisterID B = LoadOp(Item, Item.Input());
 
-			InstructionBuilder::StoreRegToPtr64(_Ins, B,A); PushIns();
 
+
+			switch (Item.ObjectType._Type)
+			{
+			case IRTypes::i8:InstructionBuilder::StoreRegToPtr8(_Ins, B, A); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::StoreRegToPtr16(_Ins, B, A); PushIns(); break;
+			bit32label9:
+			case IRTypes::i32:InstructionBuilder::StoreRegToPtr32(_Ins, B, A); PushIns(); break;
+
+			bit64label9:
+			case IRTypes::i64:InstructionBuilder::StoreRegToPtr64(_Ins, B, A); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					goto bit32label9;
+				}
+				else
+				{
+					goto bit64label9;
+				}
+				break;
+			default:
+				throw std::exception("not added");
+				break;
+			}
 			_Registers.UnLockRegister(A);
 		}
 		break; 

@@ -20,6 +20,10 @@ void IRTypeFixer::FixTypes(IRBuilder* Input)
 				{
 					OnOp(*Ins, Ins->Target());
 				}
+				if (Ins->Type == IRInstructionType::Reassign_dereference)
+				{
+					OnOp(*Ins, Ins->Input());
+				}
 
 				if (IsLoadValue(Ins->Type))
 				{
