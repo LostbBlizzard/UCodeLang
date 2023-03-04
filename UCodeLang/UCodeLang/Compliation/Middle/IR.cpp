@@ -310,11 +310,11 @@ String IRBuilder::ToString(ToStringState& State, IRInstruction& Ins, IROperator&
 	}
 	case IROperatorType::Get_PointerOf_IRInstruction:
 	{
-		return State.PointerToName.at(Value.Pointer) + "-> var&";
+		return "&" + State.PointerToName.at(Value.Pointer); 
 	}
 	case IROperatorType::IRParameter:
 	{
-		const IRPar* Par = State._Func->GetPar(Value.identifer);
+		const IRPar* Par = Value.Parameter;
 
 		return FromID(Par->identifier);
 	}

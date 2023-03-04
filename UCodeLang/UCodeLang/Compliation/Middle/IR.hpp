@@ -493,6 +493,11 @@ struct IRBlock
 		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Reassign_dereference, Ptr)).get();
 		V->Input(IROperator(Value));
 	}
+	void NewDereferenc_Store(IRPar* Ptr, IRInstruction* Value)
+	{
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Reassign_dereference, Ptr)).get();
+		V->Input(IROperator(Value));
+	}
 
 	//call func
 	void NewPushParameter(IRInstruction* Value)
