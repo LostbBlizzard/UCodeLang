@@ -5,6 +5,7 @@
 
 UCodeLangStart
 struct IRInstruction;
+struct IRPar;
 struct FileNode;
 UCodeLangEnd
 
@@ -419,7 +420,12 @@ public:
 	{
 		return (T*)Info.get();
 	}
-	IRInstruction* IR_Ins=nullptr;
+
+	union 
+	{
+		IRPar* IR_Par;
+		IRInstruction* IR_Ins = nullptr;
+	};
 };
 
 

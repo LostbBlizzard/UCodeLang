@@ -184,22 +184,52 @@ private:
 
 	struct GetMemberTypeSymbolFromVar_t
 	{
+		Symbol* Symbol =nullptr;
 		TypeSymbol Type;
+
+		//state
+		void* V1 = nullptr;	
+		void* V2 = nullptr;
+
+
+
+		template<typename T> void Set_V1(T* Value)
+		{
+			V1 = Value;
+		}
+		template<typename T>  T* Get_V1() const
+		{
+		  return (T*)V1;
+		}
+		template<typename T>  void Set_V2(T* Value)
+		{
+			V2 = Value;
+		}
+		template<typename T> T* Get_V2() const
+		{
+			return (T*)V2;
+		}
 	};
 
-	enum class MemberMode
+
+	bool GetMemberTypeSymbolFromVar(const size_t Start,const size_t End, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out);
+	bool GetMemberTypeSymbolFromVar(const size_t Start, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
 	{
-		Read,
-		Writing,
-	};
-
-	bool GetMemberTypeSymbolFromVar(const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out, MemberMode mode);
+		return GetMemberTypeSymbolFromVar(Start, -1, node, Out);
+	}
+	bool GetMemberTypeSymbolFromVar(const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out);
+	void BuildMemberDereferencStore(const GetMemberTypeSymbolFromVar_t& In, IRInstruction* Value);
+	void BuildMember_Store(const GetMemberTypeSymbolFromVar_t& In, IRInstruction* Value);
+	IRInstruction* BuildMember_GetPointer(const GetMemberTypeSymbolFromVar_t& In);
+	IRInstruction* BuildMember_GetValue(const GetMemberTypeSymbolFromVar_t& In);
+	IRInstruction* BuildMember_AsPointer(const GetMemberTypeSymbolFromVar_t& In);
+	IRInstruction* BuildMember_AsValue(const GetMemberTypeSymbolFromVar_t& In);
 
 	Symbol* GetTepFuncPtrSyb(const String& TepFuncPtr, const FuncInfo* Finfo);
 
 	String GetTepFuncPtrName(Symbol* SymbolVar);
 
-	bool GetMemberTypeSymbolFromVar(const size_t& Start, const ScopedNameNode& node, TypeSymbol& FeildType, Symbol*& FeildTypeAsSymbol, MemberMode mode);
+	
 	
 	void OnPostfixVariableNode(const PostfixVariableNode& node);
 	void OnCompoundStatementNode(const CompoundStatementNode& node);
@@ -329,7 +359,6 @@ private:
 		const ValueParametersNode& Pars,
 		TypeSymbol Ret);
 	//Generics
-	void GetScopedNameRemovedLast(const ScopedNameNode& Name, ScopedNameNode& TepNode);
 
 	void GenericFuncInstantiate(Symbol* Func,const Vector<TypeSymbol>& GenericInput);
 
