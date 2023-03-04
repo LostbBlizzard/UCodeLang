@@ -776,13 +776,28 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 				if (passtype == PassType::FixedTypes && syb->VarType._Type == TypesEnum::Var)
 				{
-					Get_LookingForType() = syb->VarType = LastExpressionType;
+					auto OldType = syb->VarType;
+
+					auto NewType = LastExpressionType;
+
+					if (OldType.IsAddress()) {
+						NewType.SetAsAddress();
+					}
+					if (OldType.IsAddressArray()) {
+						NewType.SetAsAddressArray();
+					}
+
+					
+
+					Get_LookingForType() = syb->VarType = NewType;
 
 					if (LastExpressionType._Type == TypesEnum::Var)
 					{
 						auto Token = LastLookedAtToken;
 						CantguessVarTypeError(Token);
 					}
+
+					OnStatement(node2);//re do
 				}
 
 				break;
@@ -952,10 +967,11 @@ void SystematicAnalysis::OnStatement(const Unique_ptr<UCodeLang::Node>& node2)
 }
 void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 {
+	auto& LookForT = Get_LookingForType();
 	if (node.Expression.Value)
 	{
-		auto& LookForT = Get_LookingForType();
-		LookForT.SetAsRawValue();
+
+		//LookForT.SetAsRawValue();
 
 		LookingForTypes.push(LookForT);
 		OnExpressionTypeNode(node.Expression.Value.get());
@@ -968,25 +984,22 @@ void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 	}
 
 
-	if (passtype == PassType::FixedTypes) 
+	if (passtype == PassType::FixedTypes)
 	{
-		auto& T = Get_LookingForType();
-		if (T._Type != TypesEnum::Var) 
+		auto& T = LookForT;
+		if (T._Type != TypesEnum::Var)
 		{
 			if (!CanBeImplicitConverted(LastExpressionType, T))
 			{
-				if (T._Type != TypesEnum::Null) 
-				{
-					LogCantCastImplicitTypes(LastLookedAtToken, LastExpressionType, T);
-				}
+				LogCantCastImplicitTypes(LastLookedAtToken, LastExpressionType, T);
 			}
 		}
 	}
 	if (passtype == PassType::BuidCode)
 	{
 		auto& T = Get_LookingForType();
-		DoImplicitConversion(_LastExpressionField,LastExpressionType, T);
-		if (node.Expression.Value) 
+		DoImplicitConversion(_LastExpressionField, LastExpressionType, T);
+		if (node.Expression.Value)
 		{
 			LookingAtIRBlock->NewRetValue(_LastExpressionField);
 		}
@@ -1405,15 +1418,7 @@ void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 		
 		if (BuildVarableCode)
 		{
-			if (SymbolType.IsAddress())
-			{
-				BuildMemberDereferencStore(MemberInfo, _LastExpressionField);
-			}
-			else
-			{
-				BuildMember_Store(MemberInfo, _LastExpressionField);
-			}
-			
+			BuildMember_Reassignment(MemberInfo, SymbolType, _LastExpressionField);
 		}
 	}
 }
@@ -1703,7 +1708,18 @@ void SystematicAnalysis::BuildMember_Store(const GetMemberTypeSymbolFromVar_t& I
 }
 IRInstruction* SystematicAnalysis::BuildMember_GetPointer(const GetMemberTypeSymbolFromVar_t& In)
 {
-	throw std::exception("not added");
+	switch (In.Symbol->Type)
+	{
+	case  SymbolType::StackVarable:
+		LookingAtIRBlock->NewLoadPtr(In.Symbol->IR_Ins);
+		break;
+	case  SymbolType::ParameterVarable:
+		LookingAtIRBlock->NewLoadPtr(In.Symbol->IR_Par);
+		break;
+	default:
+		throw std::exception("not added");
+		break;
+	}
 }
 void SystematicAnalysis::BuildMemberDereferencStore(const GetMemberTypeSymbolFromVar_t& In, IRInstruction* Value)
 {
@@ -1712,11 +1728,6 @@ void SystematicAnalysis::BuildMemberDereferencStore(const GetMemberTypeSymbolFro
 	case  SymbolType::StackVarable:
 		LookingAtIRBlock->NewDereferenc_Store(In.Symbol->IR_Ins,Value);
 		break;
-	case  SymbolType::Func:
-	{
-		throw std::exception("not added");
-	}
-	break;
 	case  SymbolType::ParameterVarable:
 		LookingAtIRBlock->NewDereferenc_Store(In.Symbol->IR_Par, Value);
 		break;
@@ -1794,15 +1805,44 @@ IRInstruction* SystematicAnalysis::BuildMember_AsPointer(const GetMemberTypeSymb
 		return BuildMember_GetPointer(In);
 	}
 }
+IRInstruction* SystematicAnalysis::BuildMember_DereferenceValue(const GetMemberTypeSymbolFromVar_t& In)
+{
+	TypeSymbol T = In.Type;
+	T._IsAddress = false;
+	IRType IRT = ConvertToIR(T);
+
+	switch (In.Symbol->Type)
+	{
+	case  SymbolType::StackVarable:
+		return LookingAtIRBlock->NewLoad_Dereferenc(In.Symbol->IR_Ins, IRT);
+		break;
+	case  SymbolType::ParameterVarable:
+		return  LookingAtIRBlock->NewLoad_Dereferenc(In.Symbol->IR_Par, IRT);
+		break;
+	default:
+		break;
+	}
+}
 IRInstruction* SystematicAnalysis::BuildMember_AsValue(const GetMemberTypeSymbolFromVar_t& In)
 {
 	if (In.Type.IsAddress())
 	{
-		throw std::exception("not added");
+		return BuildMember_DereferenceValue(In);
 	}
 	else
 	{
 		return BuildMember_GetValue(In);
+	}
+}
+void SystematicAnalysis::BuildMember_Reassignment(const GetMemberTypeSymbolFromVar_t& In, const TypeSymbol& Type, IRInstruction* Value)
+{
+	if (Type.IsAddress())
+	{
+		BuildMemberDereferencStore(In, Value);
+	}
+	else
+	{
+		BuildMember_Store(In, Value);
 	}
 }
 
@@ -1970,6 +2010,9 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t Start,const siz
 }
 void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 {
+	GetMemberTypeSymbolFromVar_t V;
+	if (!GetMemberTypeSymbolFromVar(node.Name, V)) { return; }
+
 	if (passtype == PassType::FixedTypes)
 	{
 		auto Name = GetScopedNameAsString(node.Name);
@@ -1995,15 +2038,16 @@ void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 
 		AddDependencyToCurrentFile(_Symbol);
 		
+		IRInstruction* LoadV = BuildMember_AsValue(V);
 
 		#define buildPortFixU(x)\
 		if (node.PostfixOp->Type == TokenType::increment)\
 		{\
-			_LastExpressionField=LookingAtIRBlock->NewAdd(_Symbol->IR_Ins,LookingAtIRBlock->NewLoad((UInt##x)1));\
+			_LastExpressionField=LookingAtIRBlock->NewAdd(LoadV,LookingAtIRBlock->NewLoad((UInt##x)1));\
 		}\
 		else\
 		{\
-			_LastExpressionField=LookingAtIRBlock->NewSub(_Symbol->IR_Ins, LookingAtIRBlock->NewLoad((UInt##x)1));\
+			_LastExpressionField=LookingAtIRBlock->NewSub(LoadV, LookingAtIRBlock->NewLoad((UInt##x)1));\
 		}\
 
 		
@@ -2067,16 +2111,32 @@ void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 			break;
 		}
 
-		LookingAtIRBlock->NewStore(_Symbol->IR_Ins, _LastExpressionField);
+		BuildMember_Reassignment(V, Type, _LastExpressionField);
 	}
 }
 void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& node)
 {
 	auto Name = GetScopedNameAsString(node.VariableName);
-	auto Symbol = GetSymbol(Name, SymbolType::Varable_t);
-	if (Symbol == nullptr){return;}
 
-	LookingForTypes.push(Symbol->VarType);
+	GetMemberTypeSymbolFromVar_t V;
+	if (!GetMemberTypeSymbolFromVar(node.VariableName, V)){return;}
+
+	TypeSymbol LookType = V.Symbol->VarType;
+
+	if (passtype == PassType::BuidCode)
+	{
+		if (IsPrimitive(LookType))
+		{
+			LookType._IsAddress = false;//we want to def if pointer
+		}
+		else
+		{
+			throw std::exception();
+		}
+
+	}
+
+	LookingForTypes.push(LookType);
 
 	OnExpressionTypeNode(node.Expession.Value.get());
 
@@ -2085,38 +2145,39 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 	auto ExType = LastExpressionType;
 	if (passtype == PassType::FixedTypes)
 	{
-	
-		CheckVarWritingErrors(Symbol, node.VariableName.ScopedName.back().token,String_view(Name));
-		LogTryReadVar(Name, node.VariableName.ScopedName.back().token, Symbol);
+		CheckVarWritingErrors(V.Symbol, node.VariableName.ScopedName.back().token,String_view(Name));
+		LogTryReadVar(Name, node.VariableName.ScopedName.back().token, V.Symbol);
 
-		if (!HasCompoundOverLoadWith(Symbol->VarType, node.CompoundOp->Type, ExType))
+		if (!HasCompoundOverLoadWith(V.Type, node.CompoundOp->Type, ExType))
 		{
-			LogCantFindCompoundOpForTypes(node.CompoundOp, Symbol->VarType, ExType);
+			LogCantFindCompoundOpForTypes(node.CompoundOp, V.Type, ExType);
 		}
 	}
 	if (passtype == PassType::BuidCode)
 	{
-
 		auto Symbol = GetSymbol(GetScopedNameAsString(node.VariableName), SymbolType::Varable_t);
 		SymbolID sybId = Symbol->ID;
 		auto& Type = Symbol->VarType;
 
 		AddDependencyToCurrentFile(Symbol);
 
+
+		IRInstruction* LoadV = BuildMember_AsValue(V);
+
 		#define Set_CompoundU(x) \
 			switch (node.CompoundOp->Type) \
 			{ \
 			case TokenType::CompoundAdd: \
-				_LastExpressionField=LookingAtIRBlock->NewAdd(Symbol->IR_Ins,_LastExpressionField);\
+				_LastExpressionField=LookingAtIRBlock->NewAdd(LoadV,_LastExpressionField);\
 				break; \
 			case TokenType::CompoundSub:\
-				_LastExpressionField=LookingAtIRBlock->NewSub(Symbol->IR_Ins,_LastExpressionField); \
+				_LastExpressionField=LookingAtIRBlock->NewSub(LoadV,_LastExpressionField); \
 				break; \
 			case TokenType::CompoundMult:\
-				_LastExpressionField = LookingAtIRBlock->NewUMul(Symbol->IR_Ins, _LastExpressionField);\
+				_LastExpressionField = LookingAtIRBlock->NewUMul(LoadV, _LastExpressionField);\
 			    break; \
 			case TokenType::CompoundDiv:\
-				_LastExpressionField = LookingAtIRBlock->NewUDiv(Symbol->IR_Ins, _LastExpressionField);\
+				_LastExpressionField = LookingAtIRBlock->NewUDiv(LoadV, _LastExpressionField);\
 			    break; \
 			default:\
 				throw std::exception("Bad Op"); \
@@ -2127,16 +2188,16 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 		switch (node.CompoundOp->Type) \
 		{ \
 		case TokenType::CompoundAdd: \
-				_LastExpressionField=LookingAtIRBlock->NewAdd(Symbol->IR_Ins,_LastExpressionField);\
+				_LastExpressionField=LookingAtIRBlock->NewAdd(LoadV,_LastExpressionField);\
 				break; \
 			case TokenType::CompoundSub:\
-				_LastExpressionField=LookingAtIRBlock->NewSub(Symbol->IR_Ins,_LastExpressionField); \
+				_LastExpressionField=LookingAtIRBlock->NewSub(LoadV,_LastExpressionField); \
 				break; \
 			case TokenType::CompoundMult:\
-				_LastExpressionField = LookingAtIRBlock->NewSMul(Symbol->IR_Ins, _LastExpressionField);\
+				_LastExpressionField = LookingAtIRBlock->NewSMul(LoadV, _LastExpressionField);\
 			    break; \
 			case TokenType::CompoundDiv:\
-				_LastExpressionField = LookingAtIRBlock->NewSDiv(Symbol->IR_Ins, _LastExpressionField);\
+				_LastExpressionField = LookingAtIRBlock->NewSDiv(LoadV, _LastExpressionField);\
 			    break; \
 			default:\
 				throw std::exception("Bad Op"); \
@@ -2144,7 +2205,7 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 		}\
 
 
-		switch (Type._Type)
+		switch (V.Type._Type)
 		{
 		case TypesEnum::uInt8:
 		{
@@ -2209,8 +2270,7 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 			break;
 		}
 
-
-		LookingAtIRBlock->NewStore(Symbol->IR_Ins, _LastExpressionField);
+		BuildMember_Reassignment(V, Type, _LastExpressionField); 
 	}
 }
 void SystematicAnalysis::OnExpressionTypeNode(const Node* node)
@@ -2805,16 +2865,36 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 			}
 
 			
+			bool LookIsAddress = LookForT.IsAddress();
+			bool AmIsAddress = V.Type.IsAddress();
+
+			bool AsPointer = LookForT.IsAddress();
+
+			//
 
 
-			if (LookForT.IsAddress())
+			if (LookIsAddress == true && AmIsAddress == true)
+			{
+				_LastExpressionField = BuildMember_GetValue(V);
+			}
+			else if (LookIsAddress == false && AmIsAddress == false)
+			{
+				_LastExpressionField = BuildMember_AsValue(V);
+			}
+			else if (LookIsAddress == true && AmIsAddress == false)
 			{
 				_LastExpressionField = BuildMember_AsPointer(V);
 			}
-			else
+			else if (LookIsAddress == false && AmIsAddress == true)
 			{
 				_LastExpressionField = BuildMember_AsValue(V);
-			}LastExpressionType = V.Type;
+			}
+			else
+			{
+				throw std::exception("bad path");
+			}
+
+			LastExpressionType = V.Type;
 		}
 	}
 
@@ -2878,7 +2958,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 	auto Ex0node = node.Value0.Value.get();
 	auto Ex1node = node.Value1.Value.get();
 
-	if (passtype == PassType::BuidCode && 
+	if (passtype != PassType::GetTypes && 
 		(
 			SwapForOperatorPrecedence(Ex0node,Ex1node) && SwapForOperatorPrecedence(&node, Ex1node)//i have no clue why this works
 		)
@@ -2898,14 +2978,23 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 	{
 		LookingForTypes.push(LookingForTypes.top());
 	}
-	
+
+	BinaryExpressionNode_Data* Data;
+	if (passtype == PassType::BuidCode)
+	{
+		Data = &BinaryExpressionNode_Datas.at(&node);
+		LookingForTypes.top() = Data->Op1;
+	}
 
 	OnExpressionTypeNode(Ex1node);
 	auto Ex0 = _LastExpressionField;
 	auto Ex0Type = LastExpressionType;
 	
-
-	LookingForTypes.top() = Ex0Type;
+	if (passtype == PassType::BuidCode)
+	{
+		LookingForTypes.top() = Data->Op0;
+	}
+	
 
 	OnExpressionTypeNode(Ex0node);
 	auto Ex1 = _LastExpressionField;
@@ -2922,9 +3011,24 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 		{
 			LogCantFindBinaryOpForTypes(BinaryOp, Ex0Type, Ex1Type);
 		}
-		
+
 		auto Op = node.BinaryOp->Type;
 		LastExpressionType = BinaryExpressionShouldRurn(Op, Ex0Type);
+
+		BinaryExpressionNode_Data V;
+		V.Op0 = Ex0Type;
+		V.Op1 = Ex1Type;
+		
+		
+		//all float bool int types
+		if (V.IsBuitIn())
+		{
+			V.Op0._IsAddress = false;
+			V.Op1._IsAddress = false;
+		}
+		BinaryExpressionNode_Datas[&node] = V;
+
+		
 	}
 
 	if (passtype == PassType::BuidCode)
@@ -3326,7 +3430,7 @@ bool SystematicAnalysis::AreTheSameWithOutimmutable(const TypeSymbol& TypeA, con
 bool SystematicAnalysis::HasBinaryOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB)
 {
 
-	if (AreTheSame(TypeA, TypeB))
+	if (AreTheSameWithOutimmutable(TypeA, TypeB))
 	{	
 		bool IsMathOp = BinaryOp == TokenType::plus
 			|| BinaryOp == TokenType::minus
@@ -3373,7 +3477,7 @@ bool SystematicAnalysis::HasBinaryOverLoadWith(const TypeSymbol& TypeA, TokenTyp
 }
 bool SystematicAnalysis::HasCompoundOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB)
 {
-	if (AreTheSame(TypeA, TypeB))
+	if (AreTheSameWithOutimmutable(TypeA, TypeB))
 	{
 		if (IsIntType(TypeA))
 		{
@@ -3734,10 +3838,18 @@ bool SystematicAnalysis::IsimmutableRulesfollowed(const TypeSymbol& TypeToCheck,
 }
 bool SystematicAnalysis::IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type)
 {
-	return (TypeToCheck.IsLocationValue() == Type.IsLocationValue()) ||
-		(TypeToCheck.IsRawValue() == Type.IsLocationValue()) ||
-		(TypeToCheck.IsRawValue() == Type.IsRawValue())
-		;
+	bool CheckIsLocation = TypeToCheck.IsLocationValue() || TypeToCheck.IsAddress();
+	bool WantsALocation = Type.IsLocationValue() || Type.IsAddress();
+	if (!CheckIsLocation && WantsALocation)
+	{
+		return false;
+	}
+
+	return ( 
+		(CheckIsLocation)
+
+		|| (TypeToCheck.IsRawValue() && Type.IsRawValue())//constant expression
+		);
 }
 bool SystematicAnalysis::HasDestructor(const TypeSymbol& TypeToCheck)
 {

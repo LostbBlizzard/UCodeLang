@@ -4,6 +4,10 @@ $FuncPtr2 = !|[] -> int;
 $FuncPtr = |[] -> int;
 
 
-|main[int& V] -> var:
+|main2[int& V] -> var&:
  V += V;
- ret 1;
+ ret 6;
+
+|main[int& V] -> int:
+ int& v = 0;
+ ret v;

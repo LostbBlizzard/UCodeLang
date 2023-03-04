@@ -308,16 +308,32 @@ String IRBuilder::ToString(ToStringState& State, IRInstruction& Ins, IROperator&
 
 		return  State.PointerToName.at(Value.Pointer);
 	}
-	case IROperatorType::Get_PointerOf_IRInstruction:
-	{
-		return "&" + State.PointerToName.at(Value.Pointer); 
-	}
 	case IROperatorType::IRParameter:
 	{
 		const IRPar* Par = Value.Parameter;
 
 		return FromID(Par->identifier);
 	}
+	case IROperatorType::Get_PointerOf_IRInstruction:
+	{
+		return "&" + State.PointerToName.at(Value.Pointer); 
+	}
+	case IROperatorType::Get_PointerOf_IRParameter:
+	{
+		const IRPar* Par = Value.Parameter;
+		return "&" + FromID(Par->identifier);
+	}
+
+	case IROperatorType::DereferenceOf_IRInstruction:
+	{
+		return "*" + State.PointerToName.at(Value.Pointer);
+	}
+	case IROperatorType::DereferenceOf_IRParameter:
+	{
+		const IRPar* Par = Value.Parameter;
+	    return "*" + FromID(Par->identifier);
+	}
+	
 	default:return "[]";
 	}
 }

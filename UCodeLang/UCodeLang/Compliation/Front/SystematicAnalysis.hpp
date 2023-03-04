@@ -222,8 +222,10 @@ private:
 	void BuildMember_Store(const GetMemberTypeSymbolFromVar_t& In, IRInstruction* Value);
 	IRInstruction* BuildMember_GetPointer(const GetMemberTypeSymbolFromVar_t& In);
 	IRInstruction* BuildMember_GetValue(const GetMemberTypeSymbolFromVar_t& In);
+	IRInstruction* BuildMember_DereferenceValue(const GetMemberTypeSymbolFromVar_t& In);
 	IRInstruction* BuildMember_AsPointer(const GetMemberTypeSymbolFromVar_t& In);
 	IRInstruction* BuildMember_AsValue(const GetMemberTypeSymbolFromVar_t& In);
+	void BuildMember_Reassignment(const GetMemberTypeSymbolFromVar_t& In, const TypeSymbol& Type, IRInstruction* Value);
 
 	Symbol* GetTepFuncPtrSyb(const String& TepFuncPtr, const FuncInfo* Finfo);
 
@@ -244,7 +246,21 @@ private:
 	bool SwapForOperatorPrecedence(const Node* nodeA, const Node* nodeB);
 
 	void OnExpressionNode(const BinaryExpressionNode& node);
-	
+
+	struct BinaryExpressionNode_Data
+	{
+		TypeSymbol Op0;
+		TypeSymbol Op1;
+
+		//func to call
+		Symbol* FuncToCall =nullptr;
+		bool IsBuitIn()
+		{
+			return  FuncToCall == nullptr;
+		}
+	};
+	Unordered_map<const void*, BinaryExpressionNode_Data> BinaryExpressionNode_Datas;
+
 	void OnExpressionNode(const CastNode& node);
 	void OnFuncCallNode(const FuncCallNode& node);
 	void OnDropStatementNode(const DropStatementNode& node);
