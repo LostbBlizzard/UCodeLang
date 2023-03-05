@@ -19,8 +19,8 @@ UCodeBackEndObject::~UCodeBackEndObject()
 
 void UCodeBackEndObject::Reset()
 {
-	_Input = nullptr;
-	_Output = nullptr;
+	this->~UCodeBackEndObject();
+	new (this)  UCodeBackEndObject;
 }
 
 void UCodeBackEndObject::Build(const IRBuilder* Input)

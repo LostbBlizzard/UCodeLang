@@ -3,20 +3,8 @@
 UCodeLangFrontStart
 void Lexer::Reset()
 {
-	_Tokens.clear();
-	_Token = Token();
-	ClearNameBuffer();
-
-	LastIndentationLevel = 0;
-	IndentationLevel = 0;
-	IsIndentationing = true;
-
-	OnLine = 1;
-	TextIndex = 0;
-	OnLinePos = 0;
-	CommentState = CommentState::NoComment;
-	NextChar = '\n';
-	ReadingState = ReadingNameState::Name;
+	this->~Lexer();
+	new (this)Lexer;
 }
 void Lexer::Lex(const String_view& Text)
 {

@@ -17,11 +17,19 @@ enum class IRTypes
 	
 	pointer,
 
-	iRsymbol,
+	IRsymbol,
 };
 struct IRSymbol
 {
-	IRidentifier  ID;
+	IRidentifierID  ID;
+	IRSymbol()
+	{
+		ID = 0;
+	}
+	IRSymbol(IRidentifierID V)
+	{
+		ID = V;
+	}
 };
 struct IRType
 {
@@ -29,12 +37,21 @@ struct IRType
 	IRSymbol _symbol;
 
 	IRType():_Type(IRTypes::Null), _symbol(){}
-	IRType(IRTypes type) :_Type(type), _symbol(){}
-	IRType(IRSymbol symbol) :_Type(IRTypes::iRsymbol), _symbol(symbol){}
+	IRType(IRTypes type) { SetType(type); }
+	IRType(IRSymbol symbol)  { SetType(symbol); }
 
 	bool IsType(IRTypes Type)
 	{
 		return Type == _Type;
+	}
+	void SetType(IRTypes Value)
+	{
+		_Type = Value;
+	}
+	void SetType(IRSymbol Value)
+	{
+		_Type = IRTypes::IRsymbol;
+		_symbol = Value;
 	}
 };
 
@@ -585,8 +602,18 @@ struct IRBlock
 	}
 };
 
+enum class IRCallConvention
+{
+	BackEndChoice,
+	Cdecl,
+	StdCall,
+	Winapi,
+	FastCall,
+};
+
 struct IRFunc
 {
+	IRCallConvention CallConvention = IRCallConvention::BackEndChoice;
 	IRidentifierID identifier;
 	IRType ReturnType;
 	Vector<IRPar> Pars;
@@ -635,34 +662,92 @@ enum class IRSymbolType : IRSymbolType_t
 {
 	StaticVarable,
 	ThreadLocalVarable,
+	Struct,
+	FuncPtr,
 };
+
+struct IRSymbol_Ex
+{
+	virtual ~IRSymbol_Ex(){}
+};
+
 struct IRSymbolData
 {
+	IRidentifierID identifier;
 	IRSymbolType SymType;
-
-
 	IRType Type;
+	Unique_ptr<IRSymbol_Ex> Ex;
+	template<typename T> T* Get_ExAs()
+	{
+		return (T*)Ex.get();
+	}
+};
+
+struct IRStructField
+{
+	IRType Type;
+	size_t Offset;
+};
+
+struct IRStruct : IRSymbol_Ex
+{
+	Vector<IRStructField> Fields;
+	size_t ObjectSize = 0;
+
+	void AddField(IRType Type,size_t ObjectSize)
+	{
+		IRStructField V;
+		V.Type = Type;
+		V.Offset = ObjectSize;
+		Fields.emplace_back(V);
+		this->ObjectSize += ObjectSize;
+	};
+};
+
+
+
+struct IRFuncPtr : IRSymbol_Ex
+{
+	IRCallConvention CallConvention = IRCallConvention::BackEndChoice;
+	Vector<IRType> Pars;
+	IRType Ret;
 };
 
 class IRBuilder
 {
 public:
-	IRSymbolData* NewThreadLocalVarable()
+	IRSymbolData* NewThreadLocalVarable(IRidentifierID identifier)
 	{
 		IRSymbolData* r = new IRSymbolData();
 		r->SymType = IRSymbolType::StaticVarable;//testing
-
+		r->identifier = identifier;
 		_Symbols.emplace_back(r);
 		return r;
 	}
-	IRSymbolData* NewStaticVarable()
+	IRSymbolData* NewStaticVarable(IRidentifierID identifier)
 	{
 		IRSymbolData* r = new IRSymbolData();
 		r->SymType = IRSymbolType::StaticVarable;
-
+		r->identifier = identifier;
 		_Symbols.emplace_back(r);
 		return r;
 	}
+	IRFuncPtr* NewFuncPtr(IRidentifierID identifier, IRType ReturnType)
+	{
+		IRFuncPtr* V = new IRFuncPtr();
+		V->Ret = ReturnType;
+		IRSymbolData* r = new IRSymbolData();
+
+		r->identifier = identifier;
+		r->SymType = IRSymbolType::FuncPtr;
+		r->Ex.reset(V);
+		r->Type.SetType({ identifier });
+
+		_Symbols.emplace_back(r);
+		return V;
+	}
+
+
 	IRFunc* NewFunc(IRidentifierID identifier, IRType ReturnType)
 	{
 		return Funcs.emplace_back(new IRFunc(identifier)).get();
@@ -702,6 +787,10 @@ public:
 	};
 	size_t GetSize(const IRType& Type)const;
 
+	void AddField(IRStruct* V, IRType Type)
+	{
+		V->AddField(Type, GetSize(Type));
+	}
 	//uses UCodeLang syntax
 	String ToString();
 	String ToString(const IRType& Type);

@@ -6,10 +6,8 @@ UCodeLangFrontStart
 
 void Parser::Reset()
 {
-	_TokenIndex = 0;
-	_Nodes = nullptr;
-	_Tree.Reset();
-	_HasTripped = false;
+	this->~Parser();
+	new (this) Parser;
 }
 
 

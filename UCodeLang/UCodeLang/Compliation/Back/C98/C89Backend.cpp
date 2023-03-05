@@ -11,7 +11,8 @@ C89Backend::~C89Backend()
 }
 void C89Backend::Reset()
 {
-	OutBuffer.clear();
+	this->~C89Backend();
+	new (this)  C89Backend;
 }
 void C89Backend::Build(const IRBuilder* Input)
 {

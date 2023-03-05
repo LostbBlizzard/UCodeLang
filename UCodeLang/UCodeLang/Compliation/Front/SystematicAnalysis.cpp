@@ -8,9 +8,8 @@ UCodeLangFrontStart
 
 void SystematicAnalysis::Reset()
 {
-	_Lib.ClearState();
-	passtype = PassType::Null;
-	_Builder.Reset();
+	this->~SystematicAnalysis();
+	new (this)SystematicAnalysis;
 }
 
 bool SystematicAnalysis::Analyze(const FileNode& File)

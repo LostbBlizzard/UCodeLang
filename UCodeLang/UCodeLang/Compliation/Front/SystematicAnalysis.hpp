@@ -101,6 +101,7 @@ private:
 	//
 
 	IRType ConvertToIR(const TypeSymbol& Value);
+	
 
 
 	Stack<TypeSymbol> LookingForTypes;

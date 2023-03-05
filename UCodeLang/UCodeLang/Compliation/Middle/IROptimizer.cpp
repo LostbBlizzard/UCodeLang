@@ -31,7 +31,8 @@ static const Array<OptimizationInfo, IROptimizer::OptimizationCount> Optimizatio
 
 void IROptimizer::Reset() 
 {
-	_TypeFixer.Reset();
+	this->~IROptimizer();
+	new (this) IROptimizer;
 }
 void IROptimizer::Optimized(IRBuilder& IRcode)
 {
