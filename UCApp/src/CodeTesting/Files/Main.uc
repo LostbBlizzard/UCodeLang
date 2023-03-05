@@ -9,4 +9,4 @@ $FuncPtr = |[] -> int;
  ret 5;
 
 |main[FuncPtr N] -> var: 
- ret N();
+ ret Func;

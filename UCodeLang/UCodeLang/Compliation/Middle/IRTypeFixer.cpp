@@ -4,8 +4,16 @@ UCodeLangStart
 
 void IRTypeFixer::Reset()
 {
+
+	auto ErrorsOutput = _Errs;
+
+	
 	this->~IRTypeFixer();
 	new (this)  IRTypeFixer;
+	
+	
+	this->_Errs = ErrorsOutput;
+
 }
 
 void IRTypeFixer::FixTypes(IRBuilder* Input)
@@ -47,7 +55,20 @@ void IRTypeFixer::FixTypes(IRBuilder* Input)
 				{
 					Ins->ObjectType = IRType(IRTypes::pointer);
 				}
-				
+				else if (Ins->Type == IRInstructionType::CallFuncPtr)
+				{
+					OnOp(*Ins, Ins->Target());
+					auto Ob_T = Ins->ObjectType;
+					if (Ob_T.IsType(IRTypes::IRsymbol))
+					{
+						auto V = Input->GetSymbol(Ob_T._symbol);
+						if (V->SymType == IRSymbolType::FuncPtr)
+						{
+							auto FuncPtr = V->Get_ExAs<IRFuncPtr>();
+							Ins->ObjectType = FuncPtr->Ret;
+						}
+					}
+				}
 				else if (Ins->Type == IRInstructionType::Call)
 				{
 					for (auto& Func2 : _Input->Funcs)

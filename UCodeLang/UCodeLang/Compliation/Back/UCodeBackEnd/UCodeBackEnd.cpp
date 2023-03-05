@@ -858,6 +858,7 @@ void UCodeBackEndObject::RegToReg(IRTypes Type, RegisterID In, RegisterID Out)
 		case IRTypes::i64:
 			InstructionBuilder::StoreRegToReg64(_Ins, In, Out); PushIns();
 			break;
+			Pointer:
 		case IRTypes::pointer:
 			switch (Get_Settings().PtrSize)
 			{
@@ -867,6 +868,11 @@ void UCodeBackEndObject::RegToReg(IRTypes Type, RegisterID In, RegisterID Out)
 				throw std::exception("not added");
 				break;
 			}
+			break;
+		case IRTypes::IRsymbol:
+		{
+			goto Pointer;
+		}//FuncPtrs
 			break;
 		default:
 			throw std::exception("not added");

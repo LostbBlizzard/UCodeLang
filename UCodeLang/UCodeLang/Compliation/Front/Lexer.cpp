@@ -3,8 +3,14 @@
 UCodeLangFrontStart
 void Lexer::Reset()
 {
+	auto ErrorsOutput = _ErrorsOutput;
+	auto Settings = _Settings;
+
 	this->~Lexer();
 	new (this)Lexer;
+	
+	this->_ErrorsOutput = ErrorsOutput;
+	this->_Settings = Settings;
 }
 void Lexer::Lex(const String_view& Text)
 {
@@ -56,7 +62,6 @@ void Lexer::Lex(const String_view& Text)
 			OnLine++;
 
 			NextChar = GetNextChar(1);
-			
 		
 			NameAndKeyWords(ReadingState, _Token);
 			continue;
@@ -84,6 +89,7 @@ void Lexer::Lex(const String_view& Text)
 				_Token.Type = TokenType::String_literal;
 				_Token.Value = Get_NameBuffer();
 				_Tokens.push_back(_Token);
+
 				ClearNameBuffer();
 			}
 			continue;
@@ -94,8 +100,10 @@ void Lexer::Lex(const String_view& Text)
 
 				ReadingState = ReadingNameState::Name;
 				_Token.Type = TokenType::Char_literal;
+
 				_Token.Value = Get_NameBuffer();
 				_Tokens.push_back(_Token);
+
 				ClearNameBuffer();
 			}
 			continue;

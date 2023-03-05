@@ -763,6 +763,38 @@ public:
 		return _Map.at(Value);
 	}	
 
+	IRSymbolData* GetSymbol(IRidentifierID Value)
+	{
+		for (auto& Item : _Symbols)
+		{
+			if (Value == Item->identifier)
+			{
+				return Item.get();
+			}
+		}
+		return nullptr;
+	}
+	IRSymbolData* GetSymbol(IRSymbol Value)
+	{
+		return GetSymbol(Value.ID);
+	}
+
+	const IRSymbolData* GetSymbol(IRidentifierID Value) const
+	{
+		for (auto& Item : _Symbols)
+		{
+			if (Value == Item->identifier)
+			{
+				return Item.get();
+			}
+		}
+		return nullptr;
+	}
+	const IRSymbolData* GetSymbol(IRSymbol Value) const
+	{
+		return GetSymbol(Value.ID);
+	}
+
 	Vector<Unique_ptr<IRSymbolData>> _Symbols;
 	Vector<Unique_ptr<IRFunc>> Funcs;
 	Unordered_map<IRidentifierID, IRidentifier> _Map;

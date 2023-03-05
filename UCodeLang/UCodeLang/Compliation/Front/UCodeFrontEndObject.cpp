@@ -31,6 +31,7 @@ Unique_ptr<FileNode_t> UCodeFrontEndObject::BuildFile(String_view Text)
 		auto Err = Get_Errors();
 		auto Sett = Get_Settings();
 
+
 		_Lexer.Set_ErrorsOutput(Err);
 		_Parser.Set_ErrorsOutput(Err);
 

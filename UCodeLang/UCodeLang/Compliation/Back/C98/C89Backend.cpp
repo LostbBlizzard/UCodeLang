@@ -11,6 +11,7 @@ C89Backend::~C89Backend()
 }
 void C89Backend::Reset()
 {
+
 	this->~C89Backend();
 	new (this)  C89Backend;
 }
