@@ -180,7 +180,6 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			break;
 		case IRInstructionType::Load:
 		{
-			int a = 0;
 			RegisterID V = LoadOp(Item, Item.Target());
 			_Registers.WeakLockRegisterValue(V, &Item);
 		}
@@ -463,7 +462,8 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		{
 			RegisterID ID = _Registers.GetFreeRegister();
 			LockRegister(ID);
-			InstructionBuilder::Malloc(_Ins, LoadOp(Item, Item.Target()), ID); PushIns();
+			auto SizeReg = LoadOp(Item, Item.Target());
+			InstructionBuilder::Malloc(_Ins, SizeReg, ID); PushIns();
 			_Registers.WeakLockRegisterValue(ID, &Item);
 		}
 		break;
@@ -494,10 +494,12 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		break;
 		case IRInstructionType::Reassign_dereference:
 		{
-			RegisterID A = LoadOp(Item, Item.Target());
-			LockRegister(A);
-
 			RegisterID B = LoadOp(Item, Item.Input());
+			LockRegister(B);
+			RegisterID A = LoadOp(Item, Item.Target());
+
+
+
 
 
 
@@ -525,7 +527,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 				throw std::exception("not added");
 				break;
 			}
-			_Registers.UnLockRegister(A);
+			_Registers.UnLockRegister(B);
 		}
 		break; 
 		case IRInstructionType::EqualTo:
@@ -575,10 +577,17 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 
 	for (auto& Item : InsToUpdate)
 	{
-		Instruction& Ins = Getliboutput().Get_Instructions()[Item.InsToUpdate-1];
+		Instruction& Ins = Getliboutput().Get_Instructions()[Item.InsToUpdate - 1];
 		UAddress JumpPos = IRToUCodeIns[Item.Jumpto];
 
-		InstructionBuilder::Jump(JumpPos,Ins);//Jump and Jumpif are the same
+		if (Ins.OpCode == InstructionSet::Jump) 
+		{
+			InstructionBuilder::Jump(JumpPos, Ins);
+		}
+		else
+		{
+			InstructionBuilder::Jumpif(JumpPos,Ins.Value1.AsRegister, Ins);
+		}
 	}
 }
 void UCodeBackEndObject::LockRegister(RegisterID ID)
@@ -899,6 +908,10 @@ RegisterID UCodeBackEndObject::FindOp(IRInstruction& Ins, IROperator Op)
 			else if (Op.Pointer->Type == IRInstructionType::Call)
 			{
 				return RegisterID::OuPutRegister;
+			}
+			else if (Op.Pointer->Type == IRInstructionType::MallocCall)
+			{
+				return  _Registers.GetInfo(Op.Pointer);
 			}
 			else if (IsLocation(Op.Pointer->Type))
 			{

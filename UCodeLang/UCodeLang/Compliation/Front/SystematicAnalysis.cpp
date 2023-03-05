@@ -989,9 +989,9 @@ void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 		auto& T = LookForT;
 		if (T._Type != TypesEnum::Var)
 		{
-			if (!CanBeImplicitConverted(LastExpressionType, T))
+			if (!CanBeImplicitConverted(LastExpressionType, T,false))
 			{
-				LogCantCastImplicitTypes(LastLookedAtToken, LastExpressionType, T);
+				LogCantCastImplicitTypes(LastLookedAtToken, LastExpressionType, T, false);
 			}
 		}
 	}
@@ -1076,9 +1076,9 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 			{
 				auto& Type = ClassInf->Basetype;
 				OnExpressionTypeNode(Item.Expression.Value.get());//check
-				if (!CanBeImplicitConverted(LastExpressionType, Type))
+				if (!CanBeImplicitConverted(LastExpressionType, Type,false))
 				{
-					LogCantCastImplicitTypes(LastLookedAtToken, LastExpressionType, Type);
+					LogCantCastImplicitTypes(LastLookedAtToken, LastExpressionType, Type,false);
 					return;
 				}
 				if (!CanEvaluateImplicitConversionConstant(LastExpressionType, Type))
@@ -1264,9 +1264,9 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 					GetSize(VarType, syb->Size);
 				}
 			}
-			if (!CanBeImplicitConverted(Ex, VarType))
+			if (!CanBeImplicitConverted(Ex, VarType,false))
 			{
-				LogCantCastImplicitTypes(Token, Ex, VarType);
+				LogCantCastImplicitTypes(Token, Ex, VarType,false);
 			}
 		}
 		else
@@ -1357,7 +1357,7 @@ void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 		if (!CanBeImplicitConverted(LastExpressionType, MemberInfo.Type))
 		{
 			auto  Token = LastLookedAtToken;
-			LogCantCastImplicitTypes(Token, LastExpressionType, MemberInfo.Type);
+			LogCantCastImplicitTypes(Token, LastExpressionType, MemberInfo.Type,true);
 
 		}
 		
@@ -1446,7 +1446,7 @@ void SystematicAnalysis::OnIfNode(const IfNode& node)
 		if (!CanBeImplicitConverted(LastExpressionType, BoolType))
 		{
 			auto  Token = LastLookedAtToken;
-			LogCantCastImplicitTypes(Token, LastExpressionType, BoolType);
+			LogCantCastImplicitTypes(Token, LastExpressionType, BoolType, true);
 		}
 	}
 
@@ -1538,7 +1538,7 @@ void SystematicAnalysis::OnWhileNode(const WhileNode& node)
 		if (!CanBeImplicitConverted(LastExpressionType, BoolType))
 		{
 			auto  Token = LastLookedAtToken;
-			LogCantCastImplicitTypes(Token, LastExpressionType, BoolType);
+			LogCantCastImplicitTypes(Token, LastExpressionType, BoolType,true);
 		}
 	}
 
@@ -1609,7 +1609,7 @@ void SystematicAnalysis::OnDoNode(const DoNode& node)
 		if (!CanBeImplicitConverted(LastExpressionType, BoolType))
 		{
 			auto  Token = LastLookedAtToken;
-			LogCantCastImplicitTypes(Token, LastExpressionType, BoolType);
+			LogCantCastImplicitTypes(Token, LastExpressionType, BoolType,true);
 		}
 	}
 
@@ -2619,7 +2619,7 @@ void SystematicAnalysis::OnNewNode(NewExpresionNode* nod)
 			if (!CanBeImplicitConverted(LastExpressionType, UintptrType))
 			{
 				auto  Token = LastLookedAtToken;
-				LogCantCastImplicitTypes(Token, LastExpressionType, UintptrType);
+				LogCantCastImplicitTypes(Token, LastExpressionType, UintptrType, true);
 			}
 
 			LookingForTypes.pop();
@@ -2763,7 +2763,7 @@ size_t JumpLabel = LookingAtIRBlock->GetIndex();
 			{
 				auto  Token = LastLookedAtToken;
 
-				LogCantCastImplicitTypes(Token, Ex1Type, UintptrType);
+				LogCantCastImplicitTypes(Token, Ex1Type, UintptrType, true);
 
 			}
 
@@ -3736,13 +3736,13 @@ bool SystematicAnalysis::IsVaidType(TypeSymbol& Out)
 {
 	return false;
 }
-bool SystematicAnalysis::CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type)
+bool SystematicAnalysis::CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode )
 {
 	if (AreTheSameWithOutimmutable(TypeToCheck, Type)) 
 	{ 
 		bool V0 =IsimmutableRulesfollowed(TypeToCheck, Type);
 
-		bool V1 = IsAddessAndLValuesRulesfollowed(TypeToCheck, Type);
+		bool V1 = IsAddessAndLValuesRulesfollowed(TypeToCheck, Type, ReassignMode);
 
 		return V0 && V1;
 	}
@@ -3836,8 +3836,9 @@ bool SystematicAnalysis::IsimmutableRulesfollowed(const TypeSymbol& TypeToCheck,
 	return  (!TypeToCheck.Isimmutable() == Type.Isimmutable()) ||
 		(TypeToCheck.Isimmutable() == Type.Isimmutable());
 }
-bool SystematicAnalysis::IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type)
+bool SystematicAnalysis::IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode)
 {
+	if (ReassignMode) { return true; }
 	bool CheckIsLocation = TypeToCheck.IsLocationValue() || TypeToCheck.IsAddress();
 	bool WantsALocation = Type.IsLocationValue() || Type.IsAddress();
 	if (!CheckIsLocation && WantsALocation)
@@ -3847,7 +3848,6 @@ bool SystematicAnalysis::IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeT
 
 	return ( 
 		(CheckIsLocation)
-
 		|| (TypeToCheck.IsRawValue() && Type.IsRawValue())//constant expression
 		);
 }
@@ -5346,11 +5346,11 @@ void SystematicAnalysis::CheckVarWritingErrors(Symbol* Symbol, const Token* Toke
 	}
 }
 
-void SystematicAnalysis::LogCantCastImplicitTypes(const Token* Token, TypeSymbol& Ex1Type, TypeSymbol& UintptrType)
+void SystematicAnalysis::LogCantCastImplicitTypes(const Token* Token, TypeSymbol& Ex1Type, TypeSymbol& UintptrType,bool ReassignMode)
 {
 	if (Ex1Type.IsBadType() || UintptrType.IsBadType()) { return; }
 
-	bool V1 = IsAddessAndLValuesRulesfollowed(Ex1Type, UintptrType);
+	bool V1 = IsAddessAndLValuesRulesfollowed(Ex1Type, UintptrType, ReassignMode);
 	if (!V1)
 	{
 		_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
