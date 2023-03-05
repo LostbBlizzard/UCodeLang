@@ -145,7 +145,7 @@ int main()
 		
 		int item = 0;
 
-		auto r = RunTime.RCall <int*> ("main", item);
+		auto r = RunTime.RCall <UAddress> ("main", item);
  		
 		
 	   std::cout << " Got Value " << (int)r << std::endl;
