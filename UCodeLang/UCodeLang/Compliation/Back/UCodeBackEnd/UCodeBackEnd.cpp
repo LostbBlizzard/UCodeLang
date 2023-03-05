@@ -38,34 +38,31 @@ void UCodeBackEndObject::Build(const IRBuilder* Input)
 	{
 		Instruction& Ins = Get_Output().Get_Instructions()[Item.Index];
 
+
+		UAddress funcpos = NullAddress;
+		for (auto& Item2 : _Funcpos)
+		{
+			if (Item2._FuncID == Item._FuncID)
+			{
+				funcpos = Item2.Index;
+				break;
+			}
+		}
+
 		if (Ins.OpCode == InstructionSet::Call)
 		{
-
-			UAddress funcpos = NullAddress;
-			for (auto& Item2 : _Funcpos)
-			{
-				if (Item2._FuncID == Item._FuncID)
-				{
-					funcpos = Item2.Index;
-					break;
-				}
-			}
-
-			if (Ins.OpCode == InstructionSet::Call) 
-			{
-				InstructionBuilder::Call(funcpos, Ins);
-			}
-			else
-			{
-				InstructionBuilder::LoadFuncPtr(funcpos, Ins.Value1.AsRegister, Ins);
-			}
+			InstructionBuilder::Call(funcpos, Ins);
+		}
+		else if (Ins.OpCode == InstructionSet::LoadFuncPtr)
+		{
+			InstructionBuilder::LoadFuncPtr(funcpos, Ins.Value1.AsRegister, Ins);
 		}
 		else
 		{
 			throw std::exception("not added");
 		}
 
-		
+
 	}
 }
 void UCodeBackEndObject::OnFunc(const IRFunc* IR)
@@ -576,13 +573,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		break;
 		case IRInstructionType::CallFuncPtr:
 		{
-			InstructionBuilder::LoadFuncPtr(NullAddress,LoadOp(Item,Item.Target()), _Ins); PushIns();
-
-			FuncInsID Tep;
-			Tep.Index = _Output->Get_Instructions().size() - 1;
-			Tep._FuncID = Item.Target().identifer;
-
-			FuncsToLink.push_back(Tep);
+			InstructionBuilder::CallReg(LoadOp(Item,Item.Target()), _Ins); PushIns();
 
 			_InputPar = RegisterID::StartParameterRegister;
 		}
@@ -822,6 +813,20 @@ RegisterID UCodeBackEndObject::LoadOp(IRInstruction& Ins, IROperator Op)
 		}
 		return Out;
 	}
+	else if (Op.Type == IROperatorType::Get_Func_Pointer)
+	{
+		auto V = _Registers.GetFreeRegister();
+
+		InstructionBuilder::LoadFuncPtr(NullAddress, V, _Ins); PushIns();
+
+		FuncInsID Tep;
+		Tep.Index = _Output->Get_Instructions().size() - 1;
+		Tep._FuncID = Op.identifer;
+
+		FuncsToLink.push_back(Tep);
+
+		return V;
+	}
 
 	throw std::exception("not added");
 	return RegisterID::NullRegister;
@@ -956,6 +961,10 @@ RegisterID UCodeBackEndObject::FindOp(IRInstruction& Ins, IROperator Op)
 			{
 				throw std::exception("not added");
 			}
+		}
+		else if (Op.Type == IROperatorType::Get_Func_Pointer)
+		{
+			throw std::exception("not added");
 		}
 		else
 		{

@@ -71,10 +71,6 @@ private:
 	IRFunc* LookingAtIRFunc = nullptr;
 	IRBlock* LookingAtIRBlock=nullptr;
 
-	
-	
-	Vector<FuncPtrInfo> Tep_FuncPtr;
-
 
 	enum class  ObjectToDropType
 	{
@@ -230,6 +226,7 @@ private:
 	Symbol* GetTepFuncPtrSyb(const String& TepFuncPtr, const FuncInfo* Finfo);
 
 	String GetTepFuncPtrName(Symbol* SymbolVar);
+	String_view GetTepFuncPtrNameAsName(const String_view Str);
 
 	
 	
@@ -365,6 +362,7 @@ private:
 		};
 		ThisPar_t ThisPar = ThisPar_t::NoThisPar;
 		const FuncInfo* Func = nullptr;
+		Symbol* SymFunc=nullptr;
 	};
 
 	Get_FuncInfo GetFunc(

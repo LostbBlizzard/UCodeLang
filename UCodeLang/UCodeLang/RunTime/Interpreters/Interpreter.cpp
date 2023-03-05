@@ -345,6 +345,11 @@ void Interpreter::Extecute(Instruction& Inst)
 		inter = InterpreterCPPinterface(this);
 		CppV(inter);
 	}break;
+	case InstructionSet::LoadFuncPtr:
+	{
+		Get_Register((RegisterID)Inst.Value1.AsRegister).Value = Inst.Value0.AsAddress; \
+	}
+	break;
 	#pragma endregion
 	break;
 	default:

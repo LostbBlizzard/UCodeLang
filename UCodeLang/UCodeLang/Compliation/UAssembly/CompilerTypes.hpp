@@ -141,6 +141,7 @@ static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 
 	AddMapValueValue(Malloc,InstructionSet::Malloc,OpCodeType::Register,OpCodeType::Register),
 	AddMapValueValue(Free,InstructionSet::Free,OpCodeType::Register,OpCodeType::NoOpCode),
+	AddMapValueValue(LoadFuncPtr,InstructionSet::LoadFuncPtr,OpCodeType::InsAddress,OpCodeType::Register),
 	AddMapValueValue(GetPointerOfStack,InstructionSet::GetPointerOfStack,OpCodeType::Register,OpCodeType::UIntPtr),
 	AddMapValueValue(GetPointerOfStackSub,InstructionSet::GetPointerOfStackSub,OpCodeType::Register,OpCodeType::UIntPtr),
 

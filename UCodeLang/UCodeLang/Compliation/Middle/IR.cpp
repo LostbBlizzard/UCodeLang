@@ -229,6 +229,22 @@ String IRBuilder::ToString()
 						r += "*" + ToString(State, *I, I->Target());
 						r += " = " + ToString(State, *I, I->Input());
 						break;
+					case IRInstructionType::CallFuncPtr:
+						r += ToString(I->ObjectType);
+						r += " " + State.GetName(I.get());
+						r += " = ";
+						r += ToString(State, *I, I->Target()) + "(";
+						for (auto& Item : State.TepPushedParameters)
+						{
+							r += State.PointerToName.at(Item->Target().Pointer);
+							if (&Item != &State.TepPushedParameters.back())
+							{
+								r += ",";
+							}
+						}
+						State.TepPushedParameters.clear();
+						r += ")";
+						break;
 					case IRInstructionType::Return:
 						if (i != 0 && Block->Instructions[i - 1]->Type == IRInstructionType::LoadReturn) { continue; }
 						r += "ret";

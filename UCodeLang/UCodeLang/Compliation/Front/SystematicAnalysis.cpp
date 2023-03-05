@@ -892,7 +892,7 @@ IRType SystematicAnalysis::ConvertToIR(const TypeSymbol& Value)
 		}
 		else if (syb.Type == SymbolType::Func_ptr || syb.Type == SymbolType::Hard_Func_ptr)
 		{
-			goto PtrSize;
+			return IRType(IRTypes::pointer);
 		}
 		else
 		{
@@ -956,7 +956,16 @@ void SystematicAnalysis::OnStatement(const Unique_ptr<UCodeLang::Node>& node2)
 	case NodeType::AssignVariableNode:OnAssignVariableNode(*AssignVariableNode::As(node2.get())); break;
 	case NodeType::PostfixVariableNode:OnPostfixVariableNode(*PostfixVariableNode::As(node2.get())); break;
 	case NodeType::CompoundStatementNode:OnCompoundStatementNode(*CompoundStatementNode::As(node2.get())); break;
-	case NodeType::FuncCallStatementNode:OnFuncCallNode(FuncCallStatementNode::As(node2.get())->Base); break;
+	case NodeType::FuncCallStatementNode:
+	{
+		TypeSymbol V; V.SetType(TypesEnum::Any);
+		LookingForTypes.push(V);
+
+		OnFuncCallNode(FuncCallStatementNode::As(node2.get())->Base);
+
+		LookingForTypes.pop();
+	}
+	break;
 	case NodeType::DropStatementNode:OnDropStatementNode(*DropStatementNode::As(node2.get())); break;
 	case NodeType::IfNode:OnIfNode(*IfNode::As(node2.get())); break;
 	case NodeType::WhileNode:OnWhileNode(*WhileNode::As(node2.get())); break;
@@ -1320,7 +1329,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 		{
 			ObjectToDrop V;
 			V.ID = sybId;
-			//V.Object = _Builder.GetLastField();
+			V._Object= OnVarable;
 			V.Type = syb->VarType;
 
 			StackFrames.back().OnEndStackFrame.push_back(V);
@@ -1660,15 +1669,14 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, 
 	{
 		FuncInfo* Finfo = SymbolVar->Get_Info<FuncInfo>();
 		String TepFuncPtr = GetTepFuncPtrName(SymbolVar);
-		
+		Finfo->FullName = TepFuncPtr;
+
 		Symbol* V = GetTepFuncPtrSyb(TepFuncPtr,Finfo);
-		FeildTypeAsSymbol = V;
 		FeildType.SetType(V->ID);
 	}
 	else
 	if (FeildType._Type == TypesEnum::CustomType)
 	{
-		FeildTypeAsSymbol = GetSymbol(SymbolVar->VarType._CustomTypeSymbol);
 		FeildType = SymbolVar->VarType;	
 	}
 	
@@ -1695,11 +1703,6 @@ void SystematicAnalysis::BuildMember_Store(const GetMemberTypeSymbolFromVar_t& I
 	case  SymbolType::StackVarable:
 		LookingAtIRBlock->NewStore(In.Symbol->IR_Ins, Value);
 		break;
-	case  SymbolType::Func:
-	{
-		throw std::exception("not added");
-	}
-	break;
 	case  SymbolType::ParameterVarable:
 		LookingAtIRBlock->NewStore(In.Symbol->IR_Par, Value);
 		break;
@@ -1747,6 +1750,10 @@ IRInstruction* SystematicAnalysis::BuildMember_GetValue(const GetMemberTypeSymbo
 	break;
 	case SymbolType::Hard_Func_ptr:
 	case SymbolType::Func_ptr:
+	{
+		FuncInfo* Finfo = In.Symbol->Get_Info<FuncInfo>();
+		return LookingAtIRBlock->NewLoadFuncPtr(_Builder.ToID((String)GetTepFuncPtrNameAsName(Finfo->FullName)));
+	}
 	case SymbolType::Func:
 	{
 		FuncInfo* Finfo = In.Symbol->Get_Info<FuncInfo>();
@@ -1856,7 +1863,7 @@ Symbol* SystematicAnalysis::GetTepFuncPtrSyb(const String& TepFuncPtr, const Fun
 	Symbol* V =GetSymbol(TepFuncPtr, SymbolType::Func_ptr);
 	if (V == nullptr)
 	{
-		V = &_Table.AddSybol(SymbolType::Func_ptr, TepFuncPtr, TepFuncPtr);
+		V = &AddSybol(SymbolType::Func_ptr, TepFuncPtr, TepFuncPtr);
 		FuncPtrInfo* V2 = new FuncPtrInfo();
 		V->Info.reset(V2);
 
@@ -1871,9 +1878,15 @@ Symbol* SystematicAnalysis::GetTepFuncPtrSyb(const String& TepFuncPtr, const Fun
 
 	return V;
 }
+
+#define TepFuncPtrNameMangleStr "_tepfptr|"
 String SystematicAnalysis::GetTepFuncPtrName(Symbol* SymbolVar)
 {
-	return "_tepfptr|" + SymbolVar->FullName;
+	return TepFuncPtrNameMangleStr + SymbolVar->FullName;
+}
+String_view SystematicAnalysis::GetTepFuncPtrNameAsName(const String_view Str)
+{
+	return Str.substr(sizeof(TepFuncPtrNameMangleStr)-1);//remove null char
 }
 bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t Start,const size_t End, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
 {
@@ -2580,7 +2593,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 					break;
 				default:
 					Type.SetType(TypesEnum::uIntPtr);
-					IR_Load_UIntptr(TypeSize);
+					_LastExpressionField = IR_Load_UIntptr(TypeSize);
 					break;
 				}
 			}
@@ -3411,15 +3424,6 @@ bool SystematicAnalysis::AreTheSame(const TypeSymbol& TypeA, const TypeSymbol& T
 }
 bool SystematicAnalysis::AreTheSameWithOutimmutable(const TypeSymbol& TypeA, const TypeSymbol& TypeB)
 {
-	if ( (IsPrimitive(TypeA) && IsPrimitive(TypeB) ) && TypeA._Type == TypeB._Type
-		//&&
-		//TypeA.IsAddress() == TypeB.IsAddress() &&
-		//TypeA.IsAddressArray() == TypeB.IsAddressArray() 
-		)
-	{
-		return true;
-	}
-
 	if (TypeA._Type == TypesEnum::CustomType
 		&& TypeB._Type == TypesEnum::CustomType)
 	{
@@ -3433,7 +3437,7 @@ bool SystematicAnalysis::AreTheSameWithOutimmutable(const TypeSymbol& TypeA, con
 		if (TypeOne.Type == SymbolType::Func_ptr && TypeTwo.Type == SymbolType::Func_ptr)
 		{
 			FuncInfo* F1 = TypeOne.Get_Info<FuncInfo>();
-			FuncInfo* F2 = TypeOne.Get_Info<FuncInfo>();
+			FuncInfo* F2 = TypeTwo.Get_Info<FuncInfo>();
 			if (F1->Pars.size() != F2->Pars.size())
 			{
 				return false;
@@ -3456,6 +3460,13 @@ bool SystematicAnalysis::AreTheSameWithOutimmutable(const TypeSymbol& TypeA, con
 		}
 
 	}
+	else if ((IsPrimitive(TypeA) && IsPrimitive(TypeB)) && TypeA._Type == TypeB._Type
+		)
+	{
+		return true;
+	}
+
+
 
 	return false;
 }
@@ -3600,6 +3611,9 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type)
 	}	break;
 	case TypesEnum::Void:
 		r = "void";	break;
+	case TypesEnum::Any:
+		r = "[any]";	
+		break;
 	case TypesEnum::Null:
 		r = "[badtype]";	break;
 	default:
@@ -4153,11 +4167,26 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 
 		LookingForTypes.pop();
 	}
-	auto Syb = GetSymbol(Func.Func);
+	auto Syb = Func.SymFunc;
 
 	AddDependencyToCurrentFile(Syb);
 	
-	_LastExpressionField = LookingAtIRBlock->NewCall(_Builder.ToID(Syb->FullName));
+	if (Syb->Type== SymbolType::Func)
+	{
+		_LastExpressionField = LookingAtIRBlock->NewCall(_Builder.ToID(Syb->FullName));
+	}
+	else if (Syb->Type == SymbolType::StackVarable)
+	{
+		_LastExpressionField = LookingAtIRBlock->NewCallFuncPtr(Syb->IR_Ins);
+	}
+	else if (Syb->Type == SymbolType::ParameterVarable)
+	{
+		_LastExpressionField = LookingAtIRBlock->NewCallFuncPtr(Syb->IR_Par);
+	}
+	else
+	{
+		throw std::exception("not added");
+	}
 
 	LastExpressionType = Func.Func->Ret;
 }
@@ -4323,11 +4352,12 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 		}
 	}
 	
-	
+	SymbolType T = SymbolType::Null;
+	Symbol* FuncSymbol = nullptr;
 	FuncInfo* r = nullptr;
 
 	auto& RetType = Get_LookingForType();
-	bool RetIsSet = RetType.IsnotAn(TypesEnum::Var);
+	bool RetIsSet = !(RetType.IsAn(TypesEnum::Var) || RetType.IsAn(TypesEnum::Any));
 
 	Vector<TypeSymbol> ValueTypes;
 	ValueTypes.reserve(_ThisTypeIsNotNull ? Pars._Nodes.size() + 1 : Pars._Nodes.size());
@@ -4371,20 +4401,23 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 				continue;
 			}
 
-
 			for (size_t i = 0; i < Info->Pars.size(); i++)
 			{
 				auto& Item = Info->Pars[i];
 				if (_ThisTypeIsNotNull && i == 0) { continue; }
 				auto& Item2 = ValueTypes[i];
 
-				if (!CanBeImplicitConverted(Item2, Item,true))
+				if (!CanBeImplicitConverted(Item2, Item, true))
 				{
-					continue;
+					goto ContinueOutloop;
 				}
 			}
 			r = Info;
+			FuncSymbol = Item;
+			T = SymbolType::FuncCall;
 			break;
+
+		ContinueOutloop:continue;
 		}
 		else if (Item->Type == SymbolType::GenericFunc)
 		{
@@ -4476,10 +4509,12 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 
 					FuncSym = GetSymbol(NewName, SymbolType::Func);
 					r = FuncSym->Get_Info<FuncInfo>();
+					FuncSymbol = Item;
 				}
 				else
 				{
 					r = FuncSym->Get_Info<FuncInfo>();
+					FuncSymbol = Item;
 				}
 
 
@@ -4504,6 +4539,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 				{
 					FuncInfo* Info = Item->Get_Info<FuncInfo>();
 					r = Info;
+					FuncSymbol = Item;
 					ThisParType = Get_FuncInfo::ThisPar_t::OnIRlocationStack;
 					break;
 				}
@@ -4511,12 +4547,47 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 
 			if (r) { break; }
 		}
+		else if (Item->Type == SymbolType::StackVarable|| Item->Type == SymbolType::ParameterVarable)
+		{
+			Symbol* Type = GetSymbol(Item->VarType);
+		    if (Type && (Type->Type == SymbolType::Func_ptr || Type->Type == SymbolType::Hard_Func_ptr))
+			{
+				FuncInfo* Info = Type->Get_Info<FuncInfo>();//must be the same as Item->Type == SymbolType::Func
+
+				if (RetIsSet)
+				{
+					if (!AreTheSame(Info->Ret, RetType))
+					{
+						continue;
+					}
+				}
+
+				if (Info->Pars.size() != ValueTypes.size())
+				{
+					continue;
+				}
+
+				for (size_t i = 0; i < Info->Pars.size(); i++)
+				{
+					auto& Item = Info->Pars[i];
+					if (_ThisTypeIsNotNull && i == 0) { continue; }
+					auto& Item2 = ValueTypes[i];
+
+					if (!CanBeImplicitConverted(Item2, Item, true))
+					{
+						goto ContinueOutloop;
+					}
+				}
+				FuncSymbol = Item;
+				r = Info;
+			}
+		}
 	}
 	if (r == nullptr)
 	{
 		LogCantFindFuncError(Name.ScopedName.back().token, ScopedName, {}, ValueTypes, RetType);
 	}
-	return { ThisParType,r};
+	return { ThisParType,r,FuncSymbol };
 }
 String SystematicAnalysis::GetGenericFuncName(Symbol* Func, const Vector<TypeSymbol>& Type)
 {
@@ -5404,7 +5475,7 @@ void SystematicAnalysis::LogCantCastImplicitTypes(const Token* Token, TypeSymbol
 	else
 	{
 		_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
-			, "Cant Implicitly cast Type '" + ToString(Ex1Type) + " to '" + ToString(UintptrType) + "'");
+			, "Cant Implicitly cast Type '" + ToString(Ex1Type) + "' to '" + ToString(UintptrType) + "'");
 	}
 }
 void SystematicAnalysis::LogReadingFromInvaidVariable(const Token* Token, String_view Str)
