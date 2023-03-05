@@ -3189,22 +3189,32 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 }
 void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 {
+	if (passtype == PassType::BuidCode)
+	{
+
+		auto TypeToPush = TypeSymbol();
+		TypeToPush.SetAsAddress();
+
+		LookingForTypes.push(TypeToPush);
+	}
+
 	OnExpressionTypeNode(node.expression.Value.get());
+
+	if (passtype == PassType::BuidCode)
+	{
+		LookingForTypes.pop();
+	}
+
 	auto Ex0 = _LastExpressionField;
 	auto Ex0Type = LastExpressionType;
 	if (passtype == PassType::FixedTypes)
 	{
-		if (!Ex0Type.IsAddress())
+		//if (!(Ex0Type.IsAddress() || Ex0Type.IsLocationValue()))
+		if (!(Ex0Type.IsAddress()))
 		{
 			auto Token = LastLookedAtToken;
 			ExpressionMustbeAnLocationValueError(Token, Ex0Type);
 		}
-		else if (!Ex0Type.IsLocationValue())
-		{
-			auto Token = LastLookedAtToken;
-			ExpressionMustbeAnLocationValueError(Token, Ex0Type);
-		}
-			
 	}
 	if (passtype == PassType::BuidCode)
 	{
@@ -4333,7 +4343,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 				if (_ThisTypeIsNotNull && i == 0) { continue; }
 				auto& Item2 = ValueTypes[i];
 
-				if (!CanBeImplicitConverted(Item2, Item))
+				if (!CanBeImplicitConverted(Item2, Item,true))
 				{
 					continue;
 				}
