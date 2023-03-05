@@ -363,6 +363,13 @@ public:
 		Out.Value0.AsRegister = ptr;
 		Out.Value1.AsRegister = size;
 	}
+
+	UCodeLangForceinline static void LoadFuncPtr(UAddress address, RegisterID ptr, Instruction& Out)
+	{
+		Out.OpCode = InstructionSet::LoadFuncPtr;
+		Out.Value0.AsAddress = address;
+		Out.Value1.AsRegister= ptr;
+	}
 	
 	UCodeLangForceinline static void Log(Instruction& Out, RegisterID CharPtr)
 	{

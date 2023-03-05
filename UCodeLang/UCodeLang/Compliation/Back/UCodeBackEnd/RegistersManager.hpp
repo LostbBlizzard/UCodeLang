@@ -121,4 +121,16 @@ public:
 		Info.Inuse = RegisterInUse::NotInUse;
 	}
 };
+
+class StaticMemoryManager
+{
+public:
+
+	void PushString(String_view String)
+	{
+
+	}
+
+};
+
 UCodeLangEnd

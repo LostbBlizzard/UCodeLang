@@ -50,7 +50,15 @@ void UCodeBackEndObject::Build(const IRBuilder* Input)
 					break;
 				}
 			}
-			InstructionBuilder::Call(funcpos, Ins);
+
+			if (Ins.OpCode == InstructionSet::Call) 
+			{
+				InstructionBuilder::Call(funcpos, Ins);
+			}
+			else
+			{
+				InstructionBuilder::LoadFuncPtr(funcpos, Ins.Value1.AsRegister, Ins);
+			}
 		}
 		else
 		{
@@ -564,6 +572,19 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 
 			_Registers.UnLockRegister(A);
 			_Registers.WeakLockRegisterValue(V, &Item);
+		}
+		break;
+		case IRInstructionType::CallFuncPtr:
+		{
+			InstructionBuilder::LoadFuncPtr(NullAddress,LoadOp(Item,Item.Target()), _Ins); PushIns();
+
+			FuncInsID Tep;
+			Tep.Index = _Output->Get_Instructions().size() - 1;
+			Tep._FuncID = Item.Target().identifer;
+
+			FuncsToLink.push_back(Tep);
+
+			_InputPar = RegisterID::StartParameterRegister;
 		}
 		break;
 		default:

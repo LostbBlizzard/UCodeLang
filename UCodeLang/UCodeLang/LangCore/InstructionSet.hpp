@@ -51,7 +51,7 @@ enum class InstructionSet : InstructionSet_t
 	//Cpp func Set
 	GetPointerOfStack, GetPointerOfStackSub, GetPointerOfStaticMem,IncrementStackPointer, DecrementStackPointer,
 	
-	Malloc,Free,MemCopy, Calloc,ReAlloc,
+	Malloc,Free,MemCopy, Calloc,ReAlloc,LoadFuncPtr,
 	Log,CPPCall,CppCallNamed,Link_Bytes,Link_Path,
 
 	MAXVALUE,
