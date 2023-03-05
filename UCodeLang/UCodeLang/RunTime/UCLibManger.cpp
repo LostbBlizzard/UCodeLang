@@ -30,6 +30,11 @@ void UCLibManger::LinkLib(UCodeLang::RunTimeLib* Item)
 		{
 			Tep.Value0.AsUIntNative += oldSize;
 		}
+		else
+		if (Tep.OpCode == InstructionSet::Call)
+		{
+			Tep.Value0.AsUIntNative += oldSize;
+		}
 
 		_Instructions.push_back(Tep);
 	}

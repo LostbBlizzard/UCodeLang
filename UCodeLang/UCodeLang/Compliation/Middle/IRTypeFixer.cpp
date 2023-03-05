@@ -105,6 +105,43 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op)
 	{
 		Ins.ObjectType =Op.Parameter->type;
 	}
+	else if (Op.Type == IROperatorType::Get_Func_Pointer)
+	{
+		for (auto& Func2 : _Input->Funcs)
+		{
+			if (Func2->identifier == Op.identifer)
+			{
+				
+				for (auto& FuncSyb : _Input->_Symbols)
+				{
+					if (FuncSyb->SymType == IRSymbolType::FuncPtr)
+					{
+						IRFuncPtr* V = FuncSyb->Get_ExAs<IRFuncPtr>();
+						bool Same = V->CallConvention == Func2->CallConvention 
+							&& V->Ret.IsSame(Func2->ReturnType) && V->Pars.size() == Func2->Pars.size();
+
+						for (size_t i = 0; i < V->Pars.size(); i++)
+						{
+							if (V->Pars[i].IsSame(Func2->Pars[i].type))
+							{
+								Ins.ObjectType.SetType(FuncSyb->identifier);
+								return;
+							}
+						}
+
+					}
+				}
+
+				break;
+			}
+		}
+
+		Ins.ObjectType.SetType(IRTypes::pointer);
+	}
+	else
+	{
+		throw std::exception("bad");
+	}
 }
 UCodeLangEnd
 

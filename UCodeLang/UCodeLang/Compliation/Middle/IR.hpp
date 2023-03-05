@@ -53,6 +53,10 @@ struct IRType
 		_Type = IRTypes::IRsymbol;
 		_symbol = Value;
 	}
+	bool IsSame(IRType Value) const
+	{
+		return _Type == Value._Type && _symbol.ID == Value._symbol.ID;
+	}
 };
 
 struct IRPar

@@ -59,6 +59,37 @@ String IRBuilder::ToString()
 	String r;
 	ToStringState State;
 
+	for (auto& Item : _Symbols)
+	{
+		String SybName =FromID(Item->identifier);
+		switch (Item->SymType)
+		{
+		case IRSymbolType::FuncPtr:
+		{
+			IRFuncPtr* V = Item->Get_ExAs<IRFuncPtr>();
+			r += "$" + SybName + " = |[";
+
+			for (auto& Item2 : V->Pars)
+			{
+				r += ToString(Item2);
+				if (&Item2 != &V->Pars.back())
+				{
+					r += ",";
+				}
+			}
+
+			r += +"] -> ";
+			r += ToString(V->Ret);
+			r += ";\n\n";
+		}
+		break;
+		default:
+			throw std::exception("not added");
+			break;
+		}
+	}
+	r += ";\n";
+
 	for (auto& Item : Funcs)
 	{
 		State._Func = Item.get();
@@ -290,7 +321,15 @@ String IRBuilder::ToString(const IRType& Type)
 
 
 	case IRTypes::Void:return "void";
-	case IRTypes::pointer:return "var&";
+	case IRTypes::pointer:return "void&";
+	case IRTypes::IRsymbol:
+	{
+		auto Syb = GetSymbol(Type._symbol);
+		if (Syb)
+		{
+			return FromID(Syb->identifier);
+		}
+	}
 	default:
 		break;
 	}
