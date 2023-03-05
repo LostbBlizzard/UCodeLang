@@ -307,6 +307,17 @@ private:
 	{
 		return GetSymbol(Info->FullName, SymbolType::Func);
 	}
+	Symbol* GetSymbol(const TypeSymbol& Info)
+	{
+		if (Info._Type == TypesEnum::CustomType) {
+			return GetSymbol(Info._CustomTypeSymbol);
+		}
+		return nullptr;
+	}
+	Symbol* GetSymbol(const SymbolID Info)
+	{
+		return &_Table.GetSymbol(Info);
+	}
 	
 	bool IsVaidType(TypeSymbol& Out);
 	bool CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode = true);

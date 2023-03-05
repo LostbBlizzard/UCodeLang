@@ -333,6 +333,10 @@ String IRBuilder::ToString(ToStringState& State, IRInstruction& Ins, IROperator&
 		const IRPar* Par = Value.Parameter;
 	    return "*" + FromID(Par->identifier);
 	}
+	case IROperatorType::Get_Func_Pointer:
+	{
+		return "(&)" + FromID(Value.identifer);
+	}
 	
 	default:return "[]";
 	}

@@ -3,8 +3,8 @@
 $FuncPtr2 = !|[] -> int;
 $FuncPtr = |[] -> int;
 
-|DropData[int& V]:
- drop(V);
+|DropData[int V] -> int:
+ ret V;
 
-|main[int& V] -> var:
- DropData(new int());
+|main[int& V] -> void:
+ FuncPtr H = DropData;

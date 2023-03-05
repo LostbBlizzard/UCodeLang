@@ -209,7 +209,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 	auto& Syb = passtype == PassType::GetTypes ?
 		AddSybol(Isgeneric_t ? SymbolType::Generic_class : SymbolType::Type_class
 			, (String)ClassName, _Table._Scope.ThisScope) :
-		_Table.GetSymbol(SybID);
+		*GetSymbol(SybID);
 
 
 
@@ -338,7 +338,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 	_Table.AddScope(ClassName);
 	auto& Syb = passtype == PassType::GetTypes ?
 		AddSybol(node.IsHardAlias ? SymbolType::Hard_Type_alias : SymbolType::Type_alias, (String)ClassName, _Table._Scope.ThisScope) :
-		_Table.GetSymbol(SybID);
+		*GetSymbol(SybID);
 
 	if (passtype == PassType::GetTypes)
 	{
@@ -366,6 +366,8 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 			}
 
 			Convert(node_->ReturnType, V->Ret);
+
+			Syb.VarType.SetType(SybID);
 		}
 	}
 	if (passtype == PassType::FixedTypes)
@@ -565,11 +567,11 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		}
 		
 		
-		syb = &_Table.GetSymbol(sybId);//resized _Table
+		syb = GetSymbol(sybId);//resized _Table
 	}
 	else
 	{
-		syb = &_Table.GetSymbol(sybId);
+		syb = GetSymbol(sybId);
 	}
 	FuncInfo* Info = syb->Get_Info<FuncInfo>();
 
@@ -585,7 +587,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		if (RetType && RetType->Get_Type() == NodeType::AnonymousTypeNode)
 		{
 			SymbolID AnonymousSybID = (SymbolID)RetType.get();
-			auto& V = _Table.GetSymbol(AnonymousSybID);
+			auto& V = *GetSymbol(AnonymousSybID);
 
 			auto ClassInf = (ClassInfo*)V.Get_Info<ClassInfo>();
 
@@ -633,7 +635,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 
 			auto ParSybID = (SymbolID)&Item;
-			auto& Sybol = _Table.GetSymbol(ParSybID);
+			auto& Sybol =*GetSymbol(ParSybID);
 			Convert(Item.Type, Sybol.VarType);
 			Item2 = Sybol.VarType;
 
@@ -689,7 +691,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		if (RetType && RetType->Get_Type() == NodeType::AnonymousTypeNode)
 		{
 			SymbolID AnonymousSybID = (SymbolID)RetType.get();
-			auto& V = _Table.GetSymbol(AnonymousSybID);
+			auto& V = *GetSymbol(AnonymousSybID);
 
 			auto ClassInf = V.Get_Info<ClassInfo>();
 
@@ -716,7 +718,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			auto& Item = ParNodes[i];
 
 			auto ParSybID = (SymbolID)&Item;
-			auto& V = _Table.GetSymbol(ParSybID);
+			auto& V = *GetSymbol(ParSybID);
 			
 
 			auto& d = LookingAtIRFunc->Pars[i];
@@ -771,7 +773,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			OnStatement(node2);
 			if (node2->Get_Type() == NodeType::RetStatementNode)
 			{
-				syb = &_Table.GetSymbol(sybId);
+				syb =GetSymbol(sybId);
 				HasARet = true;
 
 				if (passtype == PassType::FixedTypes && syb->VarType._Type == TypesEnum::Var)
@@ -806,7 +808,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 		_InStatements = false;
 
-		syb = &_Table.GetSymbol(sybId);
+		syb = GetSymbol(sybId);
 		if (passtype == PassType::FixedTypes)
 		{
 			if (!HasARet)
@@ -877,7 +879,7 @@ IRType SystematicAnalysis::ConvertToIR(const TypeSymbol& Value)
 
 	case TypesEnum::CustomType: 
 	{
-		Symbol& syb = _Table.GetSymbol(Value._CustomTypeSymbol);
+		Symbol& syb = *GetSymbol(Value._CustomTypeSymbol);
 		if (syb.Type == SymbolType::Enum)
 		{
 			EnumInfo* V = syb.Get_Info <EnumInfo>();
@@ -1015,7 +1017,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 	auto& Syb = passtype == PassType::GetTypes ?
 		AddSybol(SymbolType::Enum
 			, (String)ClassName, _Table._Scope.ThisScope) :
-		_Table.GetSymbol(SybID);
+		*GetSymbol(SybID);
 
 	EnumInfo* ClassInf;
 	if (passtype == PassType::GetTypes)
@@ -1187,7 +1189,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 	}
 	else
 	{
-		syb = &_Table.GetSymbol(sybId);
+		syb = GetSymbol(sybId);
 	}
 
 	if (passtype == PassType::FixedTypes)
@@ -1235,7 +1237,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 
 	if (passtype == PassType::FixedTypes)
 	{
-		syb = &_Table.GetSymbol(sybId);
+		syb = GetSymbol(sybId);
 		if (node.Expression.Value)
 		{
 			syb->SetTovalid();
@@ -1666,7 +1668,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, 
 	else
 	if (FeildType._Type == TypesEnum::CustomType)
 	{
-		FeildTypeAsSymbol = &_Table.GetSymbol(SymbolVar->VarType._CustomTypeSymbol);
+		FeildTypeAsSymbol = GetSymbol(SymbolVar->VarType._CustomTypeSymbol);
 		FeildType = SymbolVar->VarType;	
 	}
 	
@@ -1743,10 +1745,12 @@ IRInstruction* SystematicAnalysis::BuildMember_GetValue(const GetMemberTypeSymbo
 	case  SymbolType::StackVarable:
 		return LookingAtIRBlock->NewLoad(In.Symbol->IR_Ins);
 	break;
-	case  SymbolType::Func:
+	case SymbolType::Hard_Func_ptr:
+	case SymbolType::Func_ptr:
+	case SymbolType::Func:
 	{
 		FuncInfo* Finfo = In.Symbol->Get_Info<FuncInfo>();
-		throw std::exception("not added");
+		return LookingAtIRBlock->NewLoadFuncPtr(_Builder.ToID(Finfo->FullName));
 	}
 	break;
 	case  SymbolType::ParameterVarable:
@@ -1791,6 +1795,7 @@ IRInstruction* SystematicAnalysis::BuildMember_GetValue(const GetMemberTypeSymbo
 		}
 	}
 	default:
+		throw std::exception("not added");
 		break;
 	}
 }
@@ -1857,6 +1862,8 @@ Symbol* SystematicAnalysis::GetTepFuncPtrSyb(const String& TepFuncPtr, const Fun
 
 		SymbolID VID = (SymbolID)V;
 
+		V2->FullName = Finfo->FullName;
+
 		V2->Pars = Finfo->Pars;
 		V2->Ret = Finfo->Ret;
 		_Table.AddSymbolID(*V, VID);
@@ -1911,7 +1918,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t Start,const siz
 			auto& FieldType2 = FeldInfo->Type;
 			if (FieldType2._Type == TypesEnum::CustomType)
 			{
-				Out.Symbol = &_Table.GetSymbol(FieldType2._CustomTypeSymbol);
+				Out.Symbol = GetSymbol(FieldType2._CustomTypeSymbol);
 				Out.Type = FieldType2;
 			}
 			else
@@ -3392,32 +3399,19 @@ TypeSymbol SystematicAnalysis::Convert(const ReflectionTypeInfo& Type)
 {
 	return TypeSymbol();
 }
-
+bool AreSameimmutable(const TypeSymbol& TypeA, const TypeSymbol& TypeB)
+{
+	return 	TypeA.IsAddress() == TypeB.IsAddress() &&
+		TypeA.IsAddressArray() == TypeB.IsAddressArray() &&
+		TypeA.Isimmutable() == TypeB.Isimmutable();
+}
 bool SystematicAnalysis::AreTheSame(const TypeSymbol& TypeA, const TypeSymbol& TypeB)
 {
-	if (TypeA._Type == TypeB._Type &&
-		TypeA.IsAddress() == TypeB.IsAddress() && 
-		TypeA.IsAddressArray() == TypeB.IsAddressArray() &&
-		TypeA.Isimmutable() == TypeB.Isimmutable()
-	   )
-	{
-		return true;
-	}
-
-	if (TypeA._Type == TypesEnum::CustomType
-		&& TypeB._Type == TypesEnum::CustomType)
-	{
-		if (TypeA._CustomTypeSymbol == TypeB._CustomTypeSymbol)
-		{
-			return true;
-		}
-	}
-
-	return false;
+	return AreTheSameWithOutimmutable(TypeA, TypeB) && AreSameimmutable(TypeA, TypeB);
 }
 bool SystematicAnalysis::AreTheSameWithOutimmutable(const TypeSymbol& TypeA, const TypeSymbol& TypeB)
 {
-	if (TypeA._Type == TypeB._Type 
+	if ( (IsPrimitive(TypeA) && IsPrimitive(TypeB) ) && TypeA._Type == TypeB._Type
 		//&&
 		//TypeA.IsAddress() == TypeB.IsAddress() &&
 		//TypeA.IsAddressArray() == TypeB.IsAddressArray() 
@@ -3433,6 +3427,34 @@ bool SystematicAnalysis::AreTheSameWithOutimmutable(const TypeSymbol& TypeA, con
 		{
 			return true;
 		}
+
+		Symbol& TypeOne = *GetSymbol(TypeA);
+		Symbol& TypeTwo = *GetSymbol(TypeB);
+		if (TypeOne.Type == SymbolType::Func_ptr && TypeTwo.Type == SymbolType::Func_ptr)
+		{
+			FuncInfo* F1 = TypeOne.Get_Info<FuncInfo>();
+			FuncInfo* F2 = TypeOne.Get_Info<FuncInfo>();
+			if (F1->Pars.size() != F2->Pars.size())
+			{
+				return false;
+			}
+			if (!AreTheSameWithOutimmutable(F1->Ret, F2->Ret))
+			{
+				return false;
+			}
+
+			for (size_t i = 0; i < F1->Pars.size(); i++)
+			{
+				auto& Item1 = F1->Pars[i];
+				auto& Item2 = F2->Pars[i];
+				if (!AreTheSameWithOutimmutable(Item1, Item2))
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+
 	}
 
 	return false;
@@ -3543,7 +3565,7 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type)
 	case TypesEnum::float64:r = float64TypeName;	break;
 	case TypesEnum::CustomType:
 	{
-		auto& Syb = _Table.GetSymbol(Type._CustomTypeSymbol);
+		auto& Syb = *GetSymbol(Type._CustomTypeSymbol);
 		if (Syb.Type == SymbolType::Func
 			|| Syb.Type == SymbolType::GenericFunc)
 		{
@@ -3767,7 +3789,7 @@ bool SystematicAnalysis::CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck,
 	
 	if (TypeToCheck._Type == TypesEnum::CustomType) 
 	{
-		Symbol& syb = _Table.GetSymbol(TypeToCheck._CustomTypeSymbol);
+		Symbol& syb = *GetSymbol(TypeToCheck._CustomTypeSymbol);
 		if (syb.Type == SymbolType::Hard_Type_alias)
 		{
 			if (AreTheSameWithOutimmutable(syb.VarType, Type))
@@ -3796,7 +3818,7 @@ void SystematicAnalysis::DoExplicitlConversion(IRInstruction* Ex, const TypeSymb
 	{
 		if (ExType._Type == TypesEnum::CustomType)
 		{
-			Symbol& syb = _Table.GetSymbol(ExType._CustomTypeSymbol);
+			Symbol& syb = *GetSymbol(ExType._CustomTypeSymbol);
 			if (syb.Type == SymbolType::Hard_Type_alias)
 			{
 				if (AreTheSameWithOutimmutable(syb.VarType, ExType))
@@ -3836,10 +3858,21 @@ bool SystematicAnalysis::IsfloatType(const TypeSymbol& TypeToCheck)
 }
 bool SystematicAnalysis::IsPrimitive(const TypeSymbol& TypeToCheck)
 {
-	return  TypeToCheck.IsAddress() || IsIntType(TypeToCheck)
+	bool r = TypeToCheck.IsAddress() || IsIntType(TypeToCheck)
 		|| TypeToCheck._Type == TypesEnum::Bool
 		|| TypeToCheck._Type == TypesEnum::Char
 		|| IsfloatType(TypeToCheck);
+
+	if (!r && TypeToCheck.IsAn(TypesEnum::CustomType))
+	{
+		Symbol& V = *GetSymbol(TypeToCheck);
+		if (V.Type == SymbolType::Func_ptr)
+		{
+			return true;
+		}
+	}
+
+	return r;
 }
 bool SystematicAnalysis::IsimmutableRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type)
 {
@@ -3850,7 +3883,8 @@ bool SystematicAnalysis::IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeT
 {
 	if (ReassignMode) { return true; }
 	bool CheckIsLocation = TypeToCheck.IsLocationValue() || TypeToCheck.IsAddress();
-	bool WantsALocation = Type.IsLocationValue() || Type.IsAddress();
+	bool WantsALocation = Type.IsAddress();
+	
 	if (!CheckIsLocation && WantsALocation)
 	{
 		return false;
@@ -3858,6 +3892,7 @@ bool SystematicAnalysis::IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeT
 
 	return ( 
 		(CheckIsLocation)
+		|| (CheckIsLocation == false || WantsALocation == false)
 		|| (TypeToCheck.IsRawValue() && Type.IsRawValue())//constant expression
 		);
 }
@@ -3931,7 +3966,7 @@ bool SystematicAnalysis::GetSize(const TypeSymbol& Type, UAddress& OutSize)
 
 	case TypesEnum::CustomType:
 	{
-		Symbol& V = _Table.GetSymbol(Type._CustomTypeSymbol);
+		Symbol& V = *GetSymbol(Type._CustomTypeSymbol);
 	
 		if (V.Type == SymbolType::Type_class)
 		{

@@ -95,10 +95,9 @@ enum class IRInstructionType : IRInstructionType_t
 	//
 	Jump,
 	ConditionalJump,
+	//
+	CallFuncPtr,
 
-	//funcptr 
-	LoadFuncPtr,
-	
 	//memory
 	MallocCall,
 	FreeCall,
@@ -162,6 +161,7 @@ inline bool IsLocation(IRInstructionType Value)
 	return Value == IRInstructionType::Load
 		|| Value == IRInstructionType::LoadNone
 		|| Value == IRInstructionType::Call
+		|| Value == IRInstructionType::CallFuncPtr
 		|| Value == IRInstructionType::MallocCall
 		|| IsBinary(Value)
 		|| IsUnary(Value);
@@ -181,6 +181,8 @@ enum class IROperatorType :IROperator_t
 
 	DereferenceOf_IRInstruction,
 	DereferenceOf_IRParameter,
+
+	Get_Func_Pointer,
 };
 
 struct IRPar;
@@ -482,7 +484,11 @@ struct IRBlock
 	//funcptr
 	IRInstruction* NewLoadFuncPtr(IRidentifierID identifier)
 	{
-		return Instructions.emplace_back(new IRInstruction(IRInstructionType::LoadFuncPtr, IROperator(identifier))).get();
+		return Instructions.emplace_back(new IRInstruction(IRInstructionType::Load, IROperator(IROperatorType::Get_Func_Pointer,identifier))).get();
+	}
+	IRInstruction* NewCallFuncPtr(IRInstruction* FuncPtr)
+	{
+		return Instructions.emplace_back(new IRInstruction(IRInstructionType::CallFuncPtr, IROperator(FuncPtr))).get();
 	}
 	
 	//mem
