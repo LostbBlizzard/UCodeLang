@@ -8,8 +8,14 @@ UCodeLangFrontStart
 
 void SystematicAnalysis::Reset()
 {
+	auto ErrorsOutput = _ErrorsOutput;
+	auto Settings = _Settings;
+
 	this->~SystematicAnalysis();
 	new (this)SystematicAnalysis;
+	
+	this->_ErrorsOutput = ErrorsOutput;
+	this->_Settings = Settings;
 }
 
 bool SystematicAnalysis::Analyze(const FileNode& File)
@@ -891,7 +897,26 @@ IRType SystematicAnalysis::ConvertToIR(const TypeSymbol& Value)
 		}
 		else if (syb.Type == SymbolType::Func_ptr || syb.Type == SymbolType::Hard_Func_ptr)
 		{
-			return IRType(IRTypes::pointer);
+			if (SybToIRMap.count(syb.ID))
+			{
+				return IRType(SybToIRMap[syb.ID]);
+			}
+			else
+			{
+				FuncInfo* V = syb.Get_Info<FuncInfo>();
+				IRidentifierID IRid = _Builder.ToID(syb.FullName);
+				IRType r = IRid;
+				auto tep = _Builder.NewFuncPtr(_Builder.ToID(syb.FullName), ConvertToIR(V->Ret));
+
+				tep->Pars.resize(V->Pars.size());
+				for (auto& Item : tep->Pars)
+				{
+					Item = ConvertToIR(V->Ret);
+				}
+
+				SybToIRMap[syb.ID] = IRid;
+				return r;
+			}
 		}
 		else
 		{
@@ -902,7 +927,7 @@ IRType SystematicAnalysis::ConvertToIR(const TypeSymbol& Value)
 	PtrSize:
 	case TypesEnum::sIntPtr:
 	case TypesEnum::uIntPtr:
-		return IRType(IRTypes::i64);
+		return IRType(IRTypes::pointer);
 	default:
 		
 		throw std::exception("not added");
@@ -1749,16 +1774,11 @@ IRInstruction* SystematicAnalysis::BuildMember_GetValue(const GetMemberTypeSymbo
 	break;
 	case SymbolType::Hard_Func_ptr:
 	case SymbolType::Func_ptr:
+	case SymbolType::Func:
 	{
 		FuncInfo* Finfo = In.Symbol->Get_Info<FuncInfo>();
 		return LookingAtIRBlock->NewLoadFuncPtr(_Builder.ToID((String)GetTepFuncPtrNameAsName(Finfo->FullName)));
 	}
-	case SymbolType::Func:
-	{
-		FuncInfo* Finfo = In.Symbol->Get_Info<FuncInfo>();
-		return LookingAtIRBlock->NewLoadFuncPtr(_Builder.ToID(Finfo->FullName));
-	}
-	break;
 	case  SymbolType::ParameterVarable:
 		return LookingAtIRBlock->NewLoad(In.Symbol->IR_Par);
 	break;

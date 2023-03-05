@@ -52,7 +52,7 @@ private:
 	
 	
 	Token _Token;
-	size_t NameBufferStart=0;
+	size_t NameBufferStart= NameBufferNullValue;
 	size_t NameBufferEnd=0;
 	static constexpr size_t NameBufferNullValue = -1;
 	UCodeLangForceinline size_t NameBufferSize()

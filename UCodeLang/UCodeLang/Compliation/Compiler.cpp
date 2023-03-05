@@ -551,6 +551,8 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 			{
 				Item->OpenedFile = OpenFile(Item->_FInfo, Item->path);
 			}
+
+			_Errors.FilePath = Item->Repath;
 			_FrontEndObject->SetSourcePath(Item->path);
 
 			Item->_File = _FrontEndObject->BuildFile(Item->OpenedFile.AsView());

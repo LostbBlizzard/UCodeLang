@@ -101,7 +101,7 @@ private:
 	//
 
 	IRType ConvertToIR(const TypeSymbol& Value);
-	
+	Unordered_map<SymbolID, IRidentifierID> SybToIRMap;
 
 
 	Stack<TypeSymbol> LookingForTypes;

@@ -6,8 +6,14 @@ UCodeLangFrontStart
 
 void Parser::Reset()
 {
+	auto ErrorsOutput = _ErrorsOutput;
+	auto Settings = _Settings;
+
 	this->~Parser();
 	new (this) Parser;
+
+	this->_ErrorsOutput = ErrorsOutput;
+	this->_Settings = Settings;
 }
 
 
