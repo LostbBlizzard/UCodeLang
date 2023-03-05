@@ -16,6 +16,8 @@ void IRTypeFixer::FixTypes(IRBuilder* Input)
 		{
 			for (auto& Ins : Block->Instructions)
 			{
+				if (!Ins->ObjectType.IsType(IRTypes::Null)) { continue; }
+
 				if (Ins->Type == IRInstructionType::Reassign)
 				{
 					OnOp(*Ins, Ins->Target());
@@ -24,28 +26,45 @@ void IRTypeFixer::FixTypes(IRBuilder* Input)
 				{
 					OnOp(*Ins, Ins->Input());
 				}
+				else if (IsLoadValue(Ins->Type))
+				{
+					OnOp(*Ins, Ins->Target());
+				}
+				else if (IsUnary(Ins->Type))
+				{
+					OnOp(*Ins, Ins->Target());
+				}
+				else if (IsBinary(Ins->Type))
+				{
+					OnOp(*Ins, Ins->Target());
+				}
+				else if (IsAction(Ins->Type))
+				{
+					Ins->ObjectType._Type = IRTypes::Void;
+				}
+				else if (Ins->Type == IRInstructionType::MallocCall)
+				{
+					Ins->ObjectType = IRType(IRTypes::pointer);
+				}
+				
+				else if (Ins->Type == IRInstructionType::Call)
+				{
+					for (auto& Func2 : _Input->Funcs)
+					{
+						if (Func2->identifier == Ins->Target().identifer)
+						{
+							Ins->ObjectType = Func2->ReturnType;
+							break;
+						}
+					}
+				}
+				else
+				{
+					throw std::exception("not added");
+				}
 
-				if (IsLoadValue(Ins->Type))
-				{
-					OnOp(*Ins, Ins->Target());
-				}
-				if (IsUnary(Ins->Type))
-				{
-					OnOp(*Ins, Ins->Target());
-				}
-				if (IsBinary(Ins->Type))
-				{
-					OnOp(*Ins, Ins->Target());
-				}
-				if (Ins->Type == IRInstructionType::MallocCall)
-				{
-					Ins->ObjectType= IRType(IRTypes::pointer);
-				}
-
-					
 			}
 		}
-
 	}
 }
 void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op)
@@ -62,7 +81,7 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op)
 	}
 	else if (Op.Type == IROperatorType::IRParameter)
 	{
-		Ins.ObjectType = IRType(Op.Parameter->type);
+		Ins.ObjectType =Op.Parameter->type;
 	}
 }
 UCodeLangEnd

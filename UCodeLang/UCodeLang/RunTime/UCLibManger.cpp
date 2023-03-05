@@ -19,10 +19,21 @@ void UCLibManger::Link()
 
 void UCLibManger::LinkLib(UCodeLang::RunTimeLib* Item)
 {
-	for (const auto& Item2 : Item->Get_Instructions())
+	auto& Ins_s = Item->Get_Instructions();
+	size_t oldSize = _Instructions.size();
+	_Instructions.reserve(oldSize + Ins_s.size());
+	for (const auto& Item2 : Ins_s)
 	{
-		_Instructions.push_back(Item2);
+		Instruction Tep = Item2;
+
+		if (Tep.OpCode == InstructionSet::LoadFuncPtr)
+		{
+			Tep.Value0.AsUIntNative += oldSize;
+		}
+
+		_Instructions.push_back(Tep);
 	}
+
 	if (Item->Get_Lib())
 	{
 		for (const auto& Item2 : Item->Get_Lib()->Get_NameToPtr())

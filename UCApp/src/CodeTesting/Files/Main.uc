@@ -1,10 +1,12 @@
 
 
-$FuncPtr2 = !|[] -> int;
+
 $FuncPtr = |[] -> int;
 
-|DropData[int V] -> int:
- ret V;
+|Func[] -> int:
+ ret 1;
+|Func2[] -> int:
+ ret 5;
 
-|main[int& V] -> void:
- FuncPtr H = DropData;
+|main[FuncPtr N] -> var: 
+ ret Func();

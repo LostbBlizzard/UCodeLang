@@ -166,6 +166,12 @@ inline bool IsLocation(IRInstructionType Value)
 		|| IsBinary(Value)
 		|| IsUnary(Value);
 }
+inline bool IsAction(IRInstructionType Value)
+{
+	return Value == IRInstructionType::Return
+		|| Value == IRInstructionType::FreeCall;
+}
+
 
 using IROperator_t = UInt8;
 enum class IROperatorType :IROperator_t
@@ -487,6 +493,10 @@ struct IRBlock
 		return Instructions.emplace_back(new IRInstruction(IRInstructionType::Load, IROperator(IROperatorType::Get_Func_Pointer,identifier))).get();
 	}
 	IRInstruction* NewCallFuncPtr(IRInstruction* FuncPtr)
+	{
+		return Instructions.emplace_back(new IRInstruction(IRInstructionType::CallFuncPtr, IROperator(FuncPtr))).get();
+	}
+	IRInstruction* NewCallFuncPtr(IRPar* FuncPtr)
 	{
 		return Instructions.emplace_back(new IRInstruction(IRInstructionType::CallFuncPtr, IROperator(FuncPtr))).get();
 	}
