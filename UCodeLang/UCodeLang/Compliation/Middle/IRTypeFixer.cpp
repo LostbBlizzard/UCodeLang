@@ -4,7 +4,8 @@ UCodeLangStart
 
 void IRTypeFixer::Reset()
 {
-
+	this->~IRTypeFixer();
+	new (this)  IRTypeFixer;
 }
 
 void IRTypeFixer::FixTypes(IRBuilder* Input)

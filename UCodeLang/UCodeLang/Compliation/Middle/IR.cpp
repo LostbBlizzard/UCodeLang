@@ -34,8 +34,8 @@ IRidentifierID IRBuilder::ToID(const IRidentifier& Value)
 }
 void IRBuilder::Reset()
 {
-	Funcs.clear();
-	_Map.clear();
+	this->~IRBuilder();
+	new (this)   IRBuilder;
 }
 
 //uses UCodeLang syntax
