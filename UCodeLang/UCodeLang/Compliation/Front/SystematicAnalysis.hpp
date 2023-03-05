@@ -309,7 +309,7 @@ private:
 	}
 	
 	bool IsVaidType(TypeSymbol& Out);
-	bool CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
+	bool CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode = true);
 	bool CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
 
 	bool DoImplicitConversion(IRInstruction* Ex,const TypeSymbol ExType, const TypeSymbol& ToType);
@@ -326,7 +326,7 @@ private:
 
 	bool IsimmutableRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
 
-	bool IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
+	bool IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type,bool ReassignMode);
 	
 	bool HasDestructor(const TypeSymbol& TypeToCheck);
 	//Generic
@@ -446,7 +446,7 @@ private:
 	void YouMustReturnSomethingError(const Token* Token);
 	void CantguessVarTypeError(const Token* Token);
 	void CantUseThisKeyWordHereError(const Token* NameToken);
-	void LogCantCastImplicitTypes(const Token* Token, TypeSymbol& Ex1Type, TypeSymbol& UintptrType);
+	void LogCantCastImplicitTypes(const Token* Token, TypeSymbol& Ex1Type, TypeSymbol& UintptrType, bool ReassignMode);
 	void LogReadingFromInvaidVariable(const Token* Token, String_view Str);
 	void LogCantFindVarError(const Token* Token, String_view Str);
 	void LogCantFindVarMemberError(const Token* Token, String_view Str,const TypeSymbol& OnType);
