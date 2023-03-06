@@ -10,6 +10,7 @@ namespace x86
 		C,//Counter register
 		D,//Data register
 
+		Count,
 		Null,
 	};
 	enum class FloatingPointRegisters : Byte
@@ -23,7 +24,7 @@ namespace x86
 		ST6,
 		ST7,
 	};
-	Byte RegisterOffset(GeneralRegisters Value)
+	inline Byte RegisterOffset(GeneralRegisters Value)
 	{
 		switch (Value)
 		{

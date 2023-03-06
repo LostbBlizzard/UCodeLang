@@ -8,6 +8,7 @@
 #include "UCodeAnalyzer/CodeBuilds/StandardLibrary.hpp"
 #include <sstream>
 #include "UCodeLang/Compliation/Back/C98/C89Backend.hpp"
+#include "UCodeLang/Compliation/Back/x86/X86BackEnd.hpp"
 
 using namespace UCodeLang;
 const UCodeLang::String ScrDir = "C:/CoolStuff/CoolCodeingStuff/C++/Projects/UCodeLang/UCApp/src/";
@@ -108,10 +109,21 @@ int main()
 	Data.IntDir = IntPath;
 	Settings._Flags = OptimizationFlags::Debug;
 
-	//_Compiler.Set_BackEnd(ULangTest::C89Backend::MakeObject);
-	
+	_Compiler.Set_BackEnd(ULangTest::X86BackEnd::MakeObject);
 	_Compiler.CompileFiles_UseIntDir(Data);
 
+	
+	auto Bits = Compiler::GetBytesFromFile(Data.OutFile);
+
+	String Tep;
+	{
+		
+	}
+
+
+
+
+	
 
 	if (!ULangTest::LogErrors(std::cout,_Compiler))
 	{
