@@ -35,9 +35,32 @@ void IRToX86::OnBlock(const IRBlock* IR)
 
 		switch (Item.Type)
 		{
-		case IRInstructionType::Load:
-			X86Gen::GReg V = LoadOpINGeneralRegister(Item, Item.Target());
+		case IRInstructionType::LoadNone:
 			break;
+		case IRInstructionType::Load: 
+		{
+			X86Gen::GReg V = LoadOpINGeneralRegister(Item, Item.Target());
+			SetRegister(V, &Item);
+		}
+			break;
+		case IRInstructionType::Reassign:
+		{
+			auto V = FindOp(Item, Item.Target());
+			if (V != GReg::Null)
+			{
+				LoadOpToReg(Item, Item.Input(), V);
+			}
+			else
+			{
+				throw std::exception("not added");
+			}
+		}
+		break;
+		case IRInstructionType::LoadReturn:
+		{
+			LoadOpToReg(Item, Item.Target(), GReg::A);
+		}
+		break;
 		case IRInstructionType::Return:
 			_Output.Push_Ins_ret();
 			break;
@@ -48,7 +71,7 @@ void IRToX86::OnBlock(const IRBlock* IR)
 	}
 }
 
-X86Gen::GReg IRToX86::LoadOpINGeneralRegister(IRInstruction& Ins, IROperator Op)
+X86Gen::GReg IRToX86::LoadOpINGeneralRegister(IRInstruction& Ins, const IROperator& Op)
 {
 	if (Op.Type == IROperatorType::Value)
 	{
@@ -73,14 +96,17 @@ X86Gen::GReg IRToX86::LoadOpINGeneralRegister(IRInstruction& Ins, IROperator Op)
 			break;
 		case IRTypes::f32:
 			//InstructionBuilder::Storef32(_Ins, V, Op.Value.Asfloat32); PushIns();
+			throw std::exception("not added");
 			break;
 		case IRTypes::f64:
 			//InstructionBuilder::Storef64(_Ins, V, Op.Value.Asfloat64); PushIns();
+			throw std::exception("not added");
 			break;
 
 		bit64label:
 		case IRTypes::i64:
 			//InstructionBuilder::Store64(_Ins, V, Op.Value.AsInt64); PushIns();
+			throw std::exception("not added");
 			break;
 
 		case IRTypes::pointer:
@@ -99,6 +125,10 @@ X86Gen::GReg IRToX86::LoadOpINGeneralRegister(IRInstruction& Ins, IROperator Op)
 		}
 		return V;
 	}
+	else if (Op.Type == IROperatorType::IRInstruction)
+	{
+		return FindOp(Ins, Op);
+	}
 	else
 	{
 		throw std::exception("not added");
@@ -116,5 +146,101 @@ X86Gen::GReg IRToX86::GetFreeGeneralRegister()
 	}
 	return x86::GeneralRegisters::Null;
 }
+IRToX86::GReg IRToX86::FindGeneral(const IRInstruction* Ins)
+{
+	for (size_t i = 0; i < GeneralRegisters_Count; i++)
+	{
+		auto& Item = GeneralRegisters[i];
+		if (Item.State == GeneralRegisterDataState::HasIRValue
+			&& Item.HasValue == Ins)
+		{
+			return (x86::GeneralRegisters)i;
+		}
+	}
+	return GReg::Null;
+}
+void IRToX86::SetRegister(GReg Reg, IRInstruction* Ins)
+{
+	auto& Item = GeneralRegisters[(size_t)Reg];
+	Item.State = GeneralRegisterDataState::HasIRValue;
+	Item.HasValue = Ins;
+}
+void IRToX86::LoadOpToReg(IRInstruction& Ins, const IROperator& Op, GReg  Out)
+{
+	RegToReg(Ins.ObjectType._Type, FindOp(Ins, Op), Out);
+}
+void IRToX86::RegToReg(IRTypes Type, GReg In, GReg Out)
+{
+	if (In != Out)
+	{
+		switch (Type)
+		{
+		case IRTypes::i8:
+			_Output.Push_Ins_RegToReg8(In, Out);
+			break;
+		case IRTypes::i16:
+			_Output.Push_Ins_RegToReg16(In, Out);
+			break;
+		Int32L:
+		case IRTypes::f32:
+		case IRTypes::i32:
+			_Output.Push_Ins_RegToReg32(In, Out);
+			break;
 
+		Int64L:
+		case IRTypes::f64:
+		case IRTypes::i64:
+			throw std::exception("not added");
+			break;
+		Pointer:
+		case IRTypes::pointer:
+			switch (Get_Settings().PtrSize)
+			{
+			case IntSizes::Int32:goto Int32L;
+			case IntSizes::Int64:goto Int64L;
+			default:
+				throw std::exception("not added");
+				break;
+			}
+			break;
+		case IRTypes::IRsymbol:
+		{
+			goto Pointer;
+		}//FuncPtrs
+		break;
+		default:
+			throw std::exception("not added");
+			break;
+		}
+
+	}
+}
+IRToX86::GReg IRToX86::FindOp(IRInstruction& Ins, IROperator Op)
+{
+	auto V = FindGeneral(Op.Pointer);
+	if (V == GReg::Null)
+	{
+
+		if (Op.Type == IROperatorType::IRInstruction
+			|| Op.Type == IROperatorType::DereferenceOf_IRInstruction)
+		{
+			if (Op.Pointer->Type == IRInstructionType::LoadNone)
+			{
+				auto T = GetFreeGeneralRegister();
+				SetRegister(T, Op.Pointer);
+				return T;
+			}
+			else
+			{
+				throw std::exception("not added");
+			}
+		}
+		else
+		{
+			throw std::exception("not added");
+		}
+
+	}
+	return V;
+}
 UCodeLangEnd

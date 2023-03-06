@@ -40,6 +40,13 @@ AsmBuffer::AsmBuffer(const size_t PageSize)
 	DWORD type = MEM_RESERVE | MEM_COMMIT;
 	Data = VirtualAlloc(NULL, PageSize, type, PAGE_READWRITE);
 }
+AsmBuffer::AsmBuffer(const Byte* Asm, const size_t Size)
+{
+	DWORD type = MEM_RESERVE | MEM_COMMIT;
+	Data = VirtualAlloc(NULL, Size, type, PAGE_READWRITE);
+
+	memcpy(Data, Asm, Size);
+}
 
 void AsmBuffer::SetToExecuteMode()
 {

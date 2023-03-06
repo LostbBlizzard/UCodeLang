@@ -49,6 +49,15 @@ static void UCodeLangAPI Invoke_Test(InterpreterCPPinterface& interpreter)
 }
 
 static UCodeRunTime RunTime;
+template< typename T >
+std::string int_to_hex(T i)
+{
+	std::stringstream stream;
+	stream << "0x"
+		<< std::setfill('0') << std::setw(sizeof(T) * 2)
+		<< std::hex << i;
+	return stream.str();
+}
 int main()
 {
 
@@ -117,13 +126,22 @@ int main()
 
 	String Tep;
 	{
-		
+		char const hex_chars[16] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+		for (size_t i = 0; i < Bits.Size; i++)
+		{
+			Byte byte = Bits.Bytes[i];
+			Tep += hex_chars[(byte & 0xF0) >> 4];
+			Tep += hex_chars[(byte & 0x0F) >> 0];
+		}
 	}
 
 
+	AsmBuffer V = AsmBuffer(Bits.Bytes.get(), Bits.Size);
+	V.SetToExecuteMode();
+	using FuncP = int(*)();
 
-
-	
+	FuncP CallFunc = (FuncP)V.Data;
+	int tep = CallFunc();
 
 	if (!ULangTest::LogErrors(std::cout,_Compiler))
 	{
