@@ -13,20 +13,32 @@ class X86Gen
 #define Use86 using namespace x86;
 	
 public:
+	enum class GeneralRegisterDataState
+	{
+		notUsed,
+		HasIRValue,
+	};
+	struct GeneralRegisterData
+	{
+		GeneralRegisterDataState State = GeneralRegisterDataState::notUsed;
+		IRInstruction* HasValue =nullptr;
+	};
 	using Value8 = CodeGen::Value8;
 	using Value16 = CodeGen::Value16;
 	using Value32 = CodeGen::Value32;
 	using Value64 = CodeGen::Value64;
+
+	using GReg = x86::GeneralRegisters;
+	//
 	X86Gen() {}
 	~X86Gen() {}
-
+	//members
+	CodeGen _Output;
+	
 	void Reset()
 	{
 
 	}
-	void Build(const IRBuilder* Input);
-	void OnFunc(const IRFunc* IR);
-	void OnBlock(const IRBlock* IR);
 
 	//
 	void PushByte(Byte Value)
@@ -59,24 +71,25 @@ public:
 		PushByte(0x05);
 	}
 	void Push_Ins_ret()
-	{Use86
+	{
+		Use86
 		PushByte(0xc3);
 	}
 	//move imm
-	void Push_Ins_MovImm8(x86::GeneralRegisters Reg, Value8 Value)
+	void Push_Ins_MovImm8(GReg Reg, Value8 Value)
 	{
 		Use86
 		PushByte(0xb0 + RegisterOffset(Reg));
 		PushByte(Value);
 	}
-	void Push_Ins_MovImm16(x86::GeneralRegisters Reg, Value16 Value)
+	void Push_Ins_MovImm16(GReg Reg, Value16 Value)
 	{
 		Use86
 		PushByte(0x66);
 		PushByte(0xb9 + RegisterOffset(Reg));
 		PushValue_t_little_endian(Value);
 	}
-	void Push_Ins_MovImm32(x86::GeneralRegisters Reg, Value32 Value)
+	void Push_Ins_MovImm32(GReg Reg, Value32 Value)
 	{
 		Use86
 		PushByte(0xb8 + RegisterOffset(Reg));
@@ -84,17 +97,17 @@ public:
 	}
 
 	//reg to reg
-	void Push_Ins_RegToReg8(x86::GeneralRegisters Reg, x86::GeneralRegisters OutReg)
+	void Push_Ins_RegToReg8(GReg Reg, GReg OutReg)
 	{
 		Use86
 		
 	}
-	void Push_Ins_RegToReg16(x86::GeneralRegisters Reg, x86::GeneralRegisters OutReg)
+	void Push_Ins_RegToReg16(GReg Reg, GReg OutReg)
 	{
 		Use86
 
 	}
-	void Push_Ins_RegToReg32(x86::GeneralRegisters Reg, x86::GeneralRegisters OutReg)
+	void Push_Ins_RegToReg32(GReg Reg, GReg OutReg)
 	{
 		Use86
 
@@ -114,8 +127,43 @@ public:
 
 	
 
-	//members
-	const IRBuilder* _Input;
-	CodeGen _Output;
+	
+};
+
+class IRToX86
+{
+public:
+	using GReg = X86Gen::GReg;
+	enum class GeneralRegisterDataState
+	{
+		notUsed,
+		HasIRValue,
+	};
+	struct GeneralRegisterData
+	{
+		GeneralRegisterDataState State = GeneralRegisterDataState::notUsed;
+		IRInstruction* HasValue = nullptr;
+	};
+	void Reset();
+	void Build(const IRBuilder* Input);
+
+	X86Gen _Output;
+	CompliationSettings* _Settings = nullptr;
+private:
+	void OnFunc(const IRFunc* IR);
+	void OnBlock(const IRBlock* IR);
+
+	const IRBuilder* _Input = nullptr;
+	static constexpr size_t GeneralRegisters_Count = (size_t)GReg::Count;
+	Array<GeneralRegisterData, GeneralRegisters_Count> GeneralRegisters;
+
+
+	inline CompliationSettings& Get_Settings()
+	{
+		return *_Settings;
+	}
+
+	GReg LoadOpINGeneralRegister(IRInstruction& Ins, IROperator Op);
+	GReg GetFreeGeneralRegister();
 };
 UCodeLangEnd
