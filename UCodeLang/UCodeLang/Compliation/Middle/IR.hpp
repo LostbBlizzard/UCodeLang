@@ -609,10 +609,31 @@ struct IRBlock
 enum class IRCallConvention
 {
 	BackEndChoice,
+
+	/*
+	cdecl - In cdecl, subroutine arguments are passed on the stack.
+	Integer values and memory addresses are returned in the EAX register, 
+	floating point values in the ST0 x87 register. 
+	Registers EAX, ECX, and EDX are caller-saved, and the rest are callee-saved. 
+	The x87 floating point registers ST0 to ST7 must be empty (popped or freed) when calling a new function,
+	and ST1 to ST7 must be empty on exiting a function. ST0 must also be empty when not used for returning a value.
+	*/
 	Cdecl,
+	
+	/*
+	stdcall - The stdcall[4] calling convention is a variation on the Pascal calling convention in which the callee is responsible for cleaning up the stack, but the parameters are pushed onto the stack in right-to-left order, 
+	as in the _cdecl calling convention. Registers EAX, ECX, and EDX are designated for use within the function. 
+	Return values are stored in the EAX register.
+	*/
 	StdCall,
-	Winapi,
-	FastCall,
+	
+	/*
+	the first four arguments are passed in registers when possible, and additional arguments are passed on the stack. 
+	*/
+	Fastcall,
+
+	
+	UCCall = Fastcall,
 };
 
 struct IRFunc

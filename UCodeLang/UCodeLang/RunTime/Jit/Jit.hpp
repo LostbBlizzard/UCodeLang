@@ -47,6 +47,7 @@ struct AsmBuffer
 {
 	void* Data;
 	AsmBuffer(const size_t PageSize);
+	AsmBuffer(const Byte* Asm,const size_t Size);
 	void SetToExecuteMode();
 	void SetToReadWriteMode();
 	~AsmBuffer();

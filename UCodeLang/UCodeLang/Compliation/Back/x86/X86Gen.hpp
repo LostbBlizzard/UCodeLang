@@ -11,7 +11,7 @@ UCodeLangStart
 class X86Gen
 {
 #define Use86 using namespace x86;
-	
+#define X86Gen_NotAdded throw std::exception("not added");
 public:
 	enum class GeneralRegisterDataState
 	{
@@ -21,7 +21,7 @@ public:
 	struct GeneralRegisterData
 	{
 		GeneralRegisterDataState State = GeneralRegisterDataState::notUsed;
-		IRInstruction* HasValue =nullptr;
+		IRInstruction* HasValue = nullptr;
 	};
 	using Value8 = CodeGen::Value8;
 	using Value16 = CodeGen::Value16;
@@ -34,7 +34,7 @@ public:
 	~X86Gen() {}
 	//members
 	CodeGen _Output;
-	
+
 	void Reset()
 	{
 
@@ -45,7 +45,7 @@ public:
 	{
 		_Output.PushByte(Value);
 	}
-	void PushByte(const Byte* Value,size_t Size)
+	void PushByte(const Byte* Value, size_t Size)
 	{
 		_Output.PushByte(Value, Size);
 	}
@@ -67,67 +67,50 @@ public:
 	void Push_Ins_syscall()
 	{
 		Use86
-		PushByte(0xf);
+			PushByte(0xf);
 		PushByte(0x05);
 	}
 	void Push_Ins_ret()
 	{
 		Use86
-		PushByte(0xc3);
+			PushByte(0xc3);
 	}
-	//move imm
+
 	void Push_Ins_MovImm8(GReg Reg, Value8 Value)
 	{
 		Use86
-		PushByte(0xb0 + RegisterOffset(Reg));
+			PushByte(0xb0 + RegisterOffset(Reg));
 		PushByte(Value);
 	}
 	void Push_Ins_MovImm16(GReg Reg, Value16 Value)
 	{
 		Use86
-		PushByte(0x66);
+			PushByte(0x66);
 		PushByte(0xb9 + RegisterOffset(Reg));
 		PushValue_t_little_endian(Value);
 	}
 	void Push_Ins_MovImm32(GReg Reg, Value32 Value)
 	{
 		Use86
-		PushByte(0xb8 + RegisterOffset(Reg));
+			PushByte(0xb8 + RegisterOffset(Reg));
 		PushValue_t_little_endian(Value);
 	}
 
-	//reg to reg
 	void Push_Ins_RegToReg8(GReg Reg, GReg OutReg)
 	{
 		Use86
-		
+			X86Gen_NotAdded
 	}
 	void Push_Ins_RegToReg16(GReg Reg, GReg OutReg)
 	{
 		Use86
-
+			X86Gen_NotAdded
 	}
 	void Push_Ins_RegToReg32(GReg Reg, GReg OutReg)
 	{
 		Use86
-
+			X86Gen_NotAdded
 	}
-
-	//add
-
-	//sub
-
-	//mult
-
-	//div
-
-	//jump 
-
-	//call
-
-	
-
-	
 };
 
 class IRToX86
@@ -163,7 +146,14 @@ private:
 		return *_Settings;
 	}
 
-	GReg LoadOpINGeneralRegister(IRInstruction& Ins, IROperator Op);
+	
 	GReg GetFreeGeneralRegister();
+	GReg FindGeneral(const IRInstruction* Ins);
+	void SetRegister(GReg Reg, IRInstruction* Ins);
+	GReg LoadOpINGeneralRegister(IRInstruction& Ins,const IROperator& Op);
+	void LoadOpToReg(IRInstruction& Ins, const IROperator& Op, GReg Out);
+	
+	void RegToReg(IRTypes Type, GReg In, GReg Out);
+	GReg FindOp(IRInstruction& Ins, IROperator Op);
 };
 UCodeLangEnd
