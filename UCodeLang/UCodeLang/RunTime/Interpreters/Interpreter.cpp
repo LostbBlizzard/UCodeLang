@@ -328,9 +328,10 @@ void Interpreter::Extecute(Instruction& Inst)
 		if (Cpp)
 		{
 			auto CppV = *Cpp;
-			auto& inter = *(InterpreterCPPinterface*)&_CPPHelper;
-			inter = InterpreterCPPinterface(this);
-			CppV(inter);
+			//auto& inter = *(InterpreterCPPinterface*)&_CPPHelper;
+			//inter = InterpreterCPPinterface(this);
+			//CppV(inter);
+			throw std::exception("unknown instruction");
 		}
 		else
 		{
@@ -343,7 +344,10 @@ void Interpreter::Extecute(Instruction& Inst)
 		auto CppV = (RunTimeLib::CPPCallBack)Inst.Value0.AsPtr;
 		auto& inter = *(InterpreterCPPinterface*)&_CPPHelper;
 		inter = InterpreterCPPinterface(this);
-		CppV(inter);
+
+		throw std::exception("unknown instruction");
+
+		//CppV(inter);
 	}break;
 	case InstructionSet::LoadFuncPtr:
 	{

@@ -65,7 +65,14 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 		auto& LibManger = Get_State()->Get_Libs();
 		auto& Insts = LibManger.GetInstructions();
 		TepOutBuffer.clear();
-		if (_Assembler.BuildFunc(Insts, address, TepOutBuffer))
+
+		Instruction& NextIns = Insts[address];
+		if (NextIns.OpCode == InstructionSet::Call_Code)
+		{
+			Item.Type = JitFuncType::CPPCall;
+			Item.Func = Get_State()->Get_Libs().Get_ExFunc(NextIns.Value0.AsAddress);
+		}
+		else if (_Assembler.BuildFunc(Insts, address, TepOutBuffer))
 		{
 			size_t InsSize = TepOutBuffer.size();
 			ExBuffer.SetToReadWriteMode();
@@ -76,7 +83,7 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 			Item.Type = JitFuncType::CPPCall;
 			Item.Func = (JitFunc)Ptr;
 
-			
+
 			for (auto Item : _Assembler.NullCalls)
 			{
 				Instruction& Ins = Insts[Item.UCodeAddress];
@@ -84,7 +91,7 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 				if (UFuncToCPPFunc.count(CodeFuncAddress))
 				{
 					auto& SomeV = UFuncToCPPFunc.at(CodeFuncAddress);
-				
+
 					_Assembler.SubCall(SomeV.Func, Item.CPPoffset, TepOutBuffer);
 				}
 				else
@@ -92,10 +99,10 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 					_Assembler.SubCall(OnUAddressCall, Item.CPPoffset, TepOutBuffer);
 				}
 			}
-			
-			
-			
-			
+
+
+
+
 			memcpy((void*)Ptr, &TepOutBuffer[0], InsSize);
 
 			ExBuffer.SetToExecuteMode();
@@ -108,6 +115,7 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 					Item.Value0.AsPtr = (void*)Ptr;
 				}
 			}
+
 		}
 		else
 		{
@@ -129,13 +137,25 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 	throw std::exception("not added");
 	#endif
 }
-AnyInt64  Jit_Interpreter::Call_CPPFunc(JitFunc ToCall)
+CPPCallRet Jit_Interpreter::OnUAddressCall()
+{
+	//UAddress V = Cpp.GetParameters<UAddress>();
+	//Call(V);
+
+	return {};
+}
+CPPCallRet Jit_Interpreter::Call_CPPFunc(JitFunc ToCall)
 {
 	#if UCodeLang_KeepJitInterpreterFallback
-	InterpreterCPPinterface Inter = &_Interpreter;
-	ToCall(Inter);
-	return _Interpreter.Get_OutRegister().Value;
-	#else
+
+	//some how push pars
+
+	auto r = ToCall();
+	_Interpreter.Get_OutRegister().Value = r;
+	
+	return r;
+	
+#else
 	throw std::exception("not added");
 	#endif
 }

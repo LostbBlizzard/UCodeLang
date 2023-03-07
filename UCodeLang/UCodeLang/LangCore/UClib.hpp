@@ -105,6 +105,20 @@ public:
 		_Instructions.clear();
 	}
 
+	UCodeLangForceinline const auto& Get_Code()const
+	{
+		return  _Code;
+	}
+	UCodeLangForceinline auto& Get_Code()
+	{
+		return  _Code;
+	}
+	UCodeLangForceinline void clear_Code()
+	{
+		_Code.clear();
+	}
+
+
 	UCodeLangForceinline auto& Get_NameToPtr() const
 	{
 		return _NameToPtr;
@@ -272,6 +286,9 @@ private:
 	Vector<Byte> _StaticBytes;
 
 	Vector<Instruction> _Instructions;
+
+	Vector<Byte> _Code;
+
 	Unordered_map<String, UAddress> _NameToPtr;
 	//Debug
 	Vector<Byte> _DebugBytes;

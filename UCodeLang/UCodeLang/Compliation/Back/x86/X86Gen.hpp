@@ -132,6 +132,14 @@ public:
 
 	X86Gen _Output;
 	CompliationSettings* _Settings = nullptr;
+
+	struct FuncInfos
+	{
+		IRFunc* Func = nullptr;
+		size_t location = 0;
+	};
+	Vector<FuncInfos> _Funcs;
+
 private:
 	void OnFunc(const IRFunc* IR);
 	void OnBlock(const IRBlock* IR);

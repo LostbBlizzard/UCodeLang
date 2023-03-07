@@ -42,10 +42,11 @@ const UCodeLang::String StandardLibraryinit = StandardLibraryOut + "init/";
 void Test(int A)
 {
 	std::cout << "DLLCall Got Value " << A << std::endl;
-}
-static void UCodeLangAPI Invoke_Test(InterpreterCPPinterface& interpreter)
+} 
+static CPPCallRet UCodeLangAPI Invoke_Test(int A)
 {
-	Test(interpreter.GetParameter<int>()); interpreter.Set_Return();
+	Test(A);
+	return 0;
 }
 
 static UCodeRunTime RunTime;
@@ -118,30 +119,33 @@ int main()
 	Data.IntDir = IntPath;
 	Settings._Flags = OptimizationFlags::Debug;
 
-	_Compiler.Set_BackEnd(ULangTest::X86BackEnd::MakeObject);
+	_Compiler.Set_BackEnd(ULangTest::X86BackEnd_UCodeLib::MakeObject);
 	_Compiler.CompileFiles_UseIntDir(Data);
 
 	
 	auto Bits = Compiler::GetBytesFromFile(Data.OutFile);
 
-	String Tep;
-	{
-		char const hex_chars[16] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
-		for (size_t i = 0; i < Bits.Size; i++)
+
+	/*{
+		String Tep;
 		{
-			Byte byte = Bits.Bytes[i];
-			Tep += hex_chars[(byte & 0xF0) >> 4];
-			Tep += hex_chars[(byte & 0x0F) >> 0];
+			char const hex_chars[16] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+			for (size_t i = 0; i < Bits.Size; i++)
+			{
+				Byte byte = Bits.Bytes[i];
+				Tep += hex_chars[(byte & 0xF0) >> 4];
+				Tep += hex_chars[(byte & 0x0F) >> 0];
+			}
 		}
-	}
 
 
-	AsmBuffer V = AsmBuffer(Bits.Bytes.get(), Bits.Size);
-	V.SetToExecuteMode();
-	using FuncP = int(*)();
+		AsmBuffer V = AsmBuffer(Bits.Bytes.get(), Bits.Size);
+		V.SetToExecuteMode();
+		using FuncP = int(*)();
 
-	FuncP CallFunc = (FuncP)V.Data;
-	int tep = CallFunc();
+		FuncP CallFunc = (FuncP)V.Data;
+		int tep = CallFunc();
+	}*/
 
 	if (!ULangTest::LogErrors(std::cout,_Compiler))
 	{

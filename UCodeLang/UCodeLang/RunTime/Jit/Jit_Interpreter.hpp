@@ -15,6 +15,8 @@ public:
 	using RetState = Interpreter::RetState;
 	Jit_Interpreter(){}
 	~Jit_Interpreter() { UnLoad(); }
+	Jit_Interpreter(const Jit_Interpreter& Other) = delete;
+	Jit_Interpreter(Jit_Interpreter&& Other) = default;
 
 	void Init(RunTimeLangState* State)
 	{
@@ -173,19 +175,8 @@ private:
 	};
 	Unordered_map<UAddress, JitFuncData> UFuncToCPPFunc;
 	Vector<UInt8> TepOutBuffer;
-	static void OnUAddressCall(CPPInput Cpp)
-	{
-		//UAddress V = Cpp.GetParameters<UAddress>();
-		//Call(V);
-	}
-
-	static void UCodeLangAPI Tep(CPPInput Cpp)
-	{
-
-
-		Cpp.Set_Return();
-	}
-	AnyInt64 Call_CPPFunc(JitFunc ToCall);
+	static CPPCallRet OnUAddressCall();
+	CPPCallRet Call_CPPFunc(JitFunc ToCall);
 	
 };
 

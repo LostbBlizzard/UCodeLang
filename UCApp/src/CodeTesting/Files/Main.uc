@@ -1,4 +1,6 @@
 
 
 
-|main[] => 0;
+|main[] => 5;
+
+|PushPar[] -> void;

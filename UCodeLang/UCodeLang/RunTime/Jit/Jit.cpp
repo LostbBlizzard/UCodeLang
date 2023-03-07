@@ -37,15 +37,17 @@ const EnvironmentData& Get_EnvironmentData()
 
 AsmBuffer::AsmBuffer(const size_t PageSize)
 {
-	DWORD type = MEM_RESERVE | MEM_COMMIT;
-	Data = VirtualAlloc(NULL, PageSize, type, PAGE_READWRITE);
+	Alloc(PageSize);
 }
 AsmBuffer::AsmBuffer(const Byte* Asm, const size_t Size)
 {
-	DWORD type = MEM_RESERVE | MEM_COMMIT;
-	Data = VirtualAlloc(NULL, Size, type, PAGE_READWRITE);
+	Alloc(Asm,Size);
+}
 
-	memcpy(Data, Asm, Size);
+AsmBuffer::AsmBuffer(AsmBuffer&& Other)
+	:Data(Other.Data)
+{
+	Other.Data = nullptr;
 }
 
 void AsmBuffer::SetToExecuteMode()
@@ -60,17 +62,28 @@ void AsmBuffer::SetToReadWriteMode()
 	VirtualProtect(Data, sizeof(Data), PAGE_READWRITE, &old);
 }
 
-AsmBuffer::~AsmBuffer()
+void AsmBuffer::Alloc(const Byte* Asm, const size_t Size)
 {
-	VirtualFree(Data, 0, MEM_RELEASE);
+	Alloc(Size);
+	memcpy(Data, Asm, Size);
+}
+void AsmBuffer::Alloc(const size_t Size)
+{
+	if (Data)
+	{
+		VirtualFree(Data, 0, MEM_RELEASE);
+	}
+
+	DWORD type = MEM_RESERVE | MEM_COMMIT;
+	Data = VirtualAlloc(NULL, Size, type, PAGE_READWRITE);
 }
 
-class AMD64_Set
+AsmBuffer::~AsmBuffer()
 {
-public:
-	static constexpr UINT8 Mov = 0x48;
-	static constexpr UINT8 Ret = 0xC3;
-	static constexpr UINT8 rax = 0x89;
-	static constexpr UINT8 rdi = 0xf8;
-};
+	if (Data) 
+	{
+		VirtualFree(Data, 0, MEM_RELEASE);
+	}
+}
+
 UCodeLangEnd
