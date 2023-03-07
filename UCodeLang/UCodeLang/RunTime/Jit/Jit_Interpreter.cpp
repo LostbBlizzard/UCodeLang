@@ -139,9 +139,12 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 }
 CPPCallRet Jit_Interpreter::OnUAddressCall()
 {
+	//save all pars on stack and build code
+	//
 	//UAddress V = Cpp.GetParameters<UAddress>();
 	//Call(V);
 
+	throw std::exception("not added");
 	return {};
 }
 CPPCallRet Jit_Interpreter::Call_CPPFunc(JitFunc ToCall)

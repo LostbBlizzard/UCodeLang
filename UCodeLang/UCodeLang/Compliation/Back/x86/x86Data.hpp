@@ -10,6 +10,11 @@ namespace x86
 		C,//Counter register
 		D,//Data register
 
+		ESP,
+		EBP,
+		ESI,
+		EDI,
+
 		Count,
 		Null,
 	};
@@ -32,11 +37,17 @@ namespace x86
 		case GeneralRegisters::B:return 2;
 		case GeneralRegisters::C:return 1;
 		case GeneralRegisters::D:return 3;
+		case GeneralRegisters::ESP:return 4;
+		case GeneralRegisters::EBP:return 5;
+		case GeneralRegisters::ESI:return 6;
+		case GeneralRegisters::EDI:return 7;
 		default:return 0;
 
 		}
 	}
-
+	Byte modrm(GeneralRegisters src, GeneralRegisters dst) {
+		return (0b11 << 6) | (x86::RegisterOffset(src) << 3) | x86::RegisterOffset(dst);
+	}
 		
 }
 UCodeLangEnd
