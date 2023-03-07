@@ -83,12 +83,25 @@ String IRBuilder::ToString()
 			r += ";\n\n";
 		}
 		break;
+		case IRSymbolType::Struct:
+		{
+			IRStruct* V = Item->Get_ExAs<IRStruct>();
+			r += "$" + SybName + "\n";
+
+			for (size_t i = 0; i < V->Fields.size(); i++)
+			{
+				r += " " + ToString(V->Fields[i].Type) + " __" + std::to_string(i) + "; \n";
+			}
+
+			r += "\n";
+		}
+		break;
 		default:
 			throw std::exception("not added");
 			break;
 		}
 	}
-	r += ";\n";
+	r += "\n";
 
 	for (auto& Item : Funcs)
 	{
@@ -280,7 +293,13 @@ String IRBuilder::ToString()
 						if (i != 0 && Block->Instructions[i - 1]->Type == IRInstructionType::LoadReturn) { continue; }
 						r += "ret";
 						break;
+					case  IRInstructionType::Member_Access:
+					{
+						State.PointerToName[I.get()] = ToString(State, *I, I->Target()) + ".__" + std::to_string(I->Input().Value.AsUIntNative);
+						continue;
+					}
 					default:
+						throw std::exception("not added");
 						break;
 					}
 					r += ";\n";
@@ -392,7 +411,6 @@ String IRBuilder::ToString(ToStringState& State, IRInstruction& Ins, IROperator&
 	{
 		return "(&)" + FromID(Value.identifer);
 	}
-	
 	default:return "[]";
 	}
 }

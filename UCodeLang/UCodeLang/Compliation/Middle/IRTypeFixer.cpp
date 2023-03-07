@@ -81,6 +81,10 @@ void IRTypeFixer::FixTypes(IRBuilder* Input)
 						}
 					}
 				}
+				else if (Ins->Type == IRInstructionType::Member_Access)
+				{
+					
+				}
 				else
 				{
 					throw std::exception("not added");

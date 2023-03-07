@@ -52,18 +52,18 @@ bool SystematicAnalysis::Analyze(const Vector<const FileNode*>& Files, const Vec
 	passtype = PassType::GetTypes;
 	Pass();
 
-	if (_ErrorsOutput->Has_Errors()) { goto EndFunc; };
-
-	LoadLibSymbols();
-	passtype = PassType::FixedTypes;
-	Pass();
-
-
 	if (!_ErrorsOutput->Has_Errors()) {
-		BuildCode();
-	}
 
-EndFunc:
+		LoadLibSymbols();
+		passtype = PassType::FixedTypes;
+		Pass();
+
+
+		if (!_ErrorsOutput->Has_Errors()) {
+			BuildCode();
+		}
+	};
+
 	_Files = nullptr;
 	_Libs = nullptr;
 
@@ -73,6 +73,20 @@ EndFunc:
 }
 void SystematicAnalysis::BuildCode()
 {
+	for (auto& Item : _Table.Symbols)
+	{
+		switch (Item->Type)
+		{
+		case SymbolType::Type_class:
+		{
+			ConveToIRClassIR(*Item);
+		}
+			break;
+		default:
+			break;
+		}
+	}
+
 	passtype = PassType::BuidCode;
 	Pass();
 }
@@ -853,6 +867,30 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	
 	_Table.RemoveScope();
 }
+IRidentifierID SystematicAnalysis::ConveToIRClassIR(const Symbol& Class)
+{
+	auto ClassSybID = Class.ID;
+	if (SybToIRMap.count(ClassSybID))
+	{
+		return SybToIRMap[ClassSybID];
+	}
+	const ClassInfo* clasinfo = Class.Get_Info < ClassInfo>();
+
+	IRidentifierID V = _Builder.ToID(Class.FullName);
+	
+	auto IRStuct = _Builder.NewStruct(V);
+
+	IRStuct->Fields.resize(clasinfo->Fields.size());
+
+	for (size_t i = 0; i < clasinfo->Fields.size(); i++)
+	{
+		auto& Item = clasinfo->Fields[i];
+		auto& Out = IRStuct->Fields[i];
+		Out.Type = ConvertToIR(Item.Type);
+	}
+
+	SybToIRMap[ClassSybID] = V;
+}
 IRType SystematicAnalysis::ConvertToIR(const TypeSymbol& Value)
 {
 	if (Value.IsAddress() || Value.IsAddressArray())
@@ -917,6 +955,10 @@ IRType SystematicAnalysis::ConvertToIR(const TypeSymbol& Value)
 				SybToIRMap[syb.ID] = IRid;
 				return r;
 			}
+		}
+		else if (syb.Type == SymbolType::Type_class)
+		{
+			return IRType(ConveToIRClassIR(syb));
 		}
 		else
 		{
@@ -1254,8 +1296,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 		{
 			Ind = ! (IsPrimitive(syb->VarType) || syb->VarType.IsAddress());
 			
-			OnVarable = LookingAtIRBlock->NewLoad(ConvertToIR(syb->VarType));
-			syb->IR_Ins = OnVarable;
+			
 			
 			if (Ind) 
 			{
@@ -1266,6 +1307,14 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 			}	
 		}
 		OnExpressionTypeNode(node.Expression.Value.get());
+	}
+
+	if (passtype == PassType::BuidCode)
+	{
+		if (syb->Type == SymbolType::StackVarable) {
+			OnVarable = LookingAtIRBlock->NewLoad(ConvertToIR(syb->VarType));
+			syb->IR_Ins = OnVarable;
+		}
 	}
 
 	if (passtype == PassType::FixedTypes)
@@ -1717,18 +1766,72 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, 
 	{
 		AddDependencyToCurrentFile(SymbolVar);
 	}
-	Out.Type = FeildType;
 	return true;
 }
 void SystematicAnalysis::BuildMember_Store(const GetMemberTypeSymbolFromVar_t& In, IRInstruction* Value)
 {
+
+	IRInstruction* Output = nullptr;
+	{
+		TypeSymbol Last_Type = In.Symbol->VarType;
+		for (size_t i = 1; i < In.End; i++)
+		{
+			Symbol* Sym = GetSymbol(Last_Type);
+
+			auto& ITem = In.Start[i];
+			switch (Sym->Type)
+			{
+			case  SymbolType::Type_class:
+			{
+				auto* Classinfo = Sym->Get_Info<ClassInfo>();
+				size_t MemberIndex = Classinfo->GetFieldIndex(ITem.token->Value._String);
+				FieldInfo* FInfo = &Classinfo->Fields[MemberIndex];
+				if (Output == nullptr)
+				{
+					switch (In.Symbol->Type)
+					{
+					case  SymbolType::StackVarable:
+						Output = LookingAtIRBlock->New_Member_Access(In.Symbol->IR_Ins, MemberIndex);
+						break;
+					case  SymbolType::ParameterVarable:
+						Output = LookingAtIRBlock->New_Member_Access(In.Symbol->IR_Par, MemberIndex);
+						break;
+					}
+					Last_Type = FInfo->Type;
+				}
+				else
+				{
+					Output = LookingAtIRBlock->New_Member_Access(Output, MemberIndex);
+				}
+			}
+				break;
+			default:
+				throw std::exception("not added");
+				break;
+			}
+		}
+		if (Output == nullptr)
+		{
+			Output = In.Symbol->IR_Ins;
+		}
+	}
+	//
+
+	bool UseOutput = In.Symbol->IR_Ins != Output;
 	switch (In.Symbol->Type)
 	{
 	case  SymbolType::StackVarable:
-		LookingAtIRBlock->NewStore(In.Symbol->IR_Ins, Value);
+		LookingAtIRBlock->NewStore(Output, Value);
 		break;
 	case  SymbolType::ParameterVarable:
-		LookingAtIRBlock->NewStore(In.Symbol->IR_Par, Value);
+		if (UseOutput)
+		{
+			LookingAtIRBlock->NewStore(Output, Value);
+		}
+		else
+		{
+			LookingAtIRBlock->NewStore(In.Symbol->IR_Par, Value);
+		}
 		break;
 	default:
 		throw std::exception("not added");
@@ -1907,8 +2010,9 @@ String_view SystematicAnalysis::GetTepFuncPtrNameAsName(const String_view Str)
 {
 	return Str.substr(sizeof(TepFuncPtrNameMangleStr)-1);//remove null char
 }
-bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t Start,const size_t End, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
+bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t Start, const size_t End, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
 {
+	auto TepSyb = Out.Symbol;
 	for (size_t i = Start; i < node.ScopedName.size(); i++)
 	{
 
@@ -1922,12 +2026,13 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t Start,const siz
 
 		if (Out.Type._Type != TypesEnum::CustomType)
 		{
-			if (passtype == PassType::FixedTypes) 
+			if (passtype == PassType::FixedTypes)
 			{
 				LogCantFindVarMemberError(ItemToken, ItemToken->Value._String, Out.Type);
 			}
 			break;
 		}
+
 		if (Out.Symbol->Type == SymbolType::Type_class)
 		{
 			ClassInfo* CInfo = Out.Symbol->Get_Info<ClassInfo>();
@@ -1942,10 +2047,6 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t Start,const siz
 				}
 				return false;
 			}
-
-			UAddress _FieldOffset = 0;
-			GetOffset(*CInfo, FeldInfo, _FieldOffset);
-
 
 			auto& FieldType2 = FeldInfo->Type;
 			if (FieldType2._Type == TypesEnum::CustomType)
@@ -1973,7 +2074,6 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t Start,const siz
 			if (passtype == PassType::BuidCode)
 			{
 				AddDependencyToCurrentFile(Out.Symbol);
-				throw std::exception("not added");
 			}
 		}
 		else if (Out.Symbol->Type == SymbolType::Enum)
@@ -2040,11 +2140,83 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t Start,const siz
 			}
 
 		}
+		else if (Out.Symbol->Type == SymbolType::StackVarable)
+		{
+			TypeSymbol VarableType = Out.Symbol->VarType;
+			Symbol* TypeAsSybol = GetSymbol(VarableType);
+			if (TypeAsSybol)
+			{
+				ClassInfo* CInfo = TypeAsSybol->Get_Info<ClassInfo>();
+
+				auto FeldInfo = CInfo->GetField(ItemToken->Value._String);
+				if (FeldInfo == nullptr)
+				{
+					if (passtype == PassType::FixedTypes)
+					{
+						LogCantFindVarMemberError(ItemToken, ItemToken->Value._String, Out.Type);
+					}
+					return false;
+				}
+
+				auto& FieldType2 = FeldInfo->Type;
+				if (FieldType2._Type == TypesEnum::CustomType)
+				{
+					Out.Symbol = GetSymbol(FieldType2._CustomTypeSymbol);
+					Out.Type = FieldType2;
+				}
+				else
+				{
+					Out.Type = FieldType2;
+
+					if (i + 1 < node.ScopedName.size())
+					{
+						const UCodeLang::Token* Token = node.ScopedName.begin()->token;
+
+						auto Token2 = node.ScopedName[i + 1].token;
+						auto& Str2 = Token->Value._String;
+						if (passtype == PassType::FixedTypes)
+						{
+							LogCantFindVarMemberError(Token2, Str2, Out.Type);
+						}
+						break;
+					}
+				}
+				if (passtype == PassType::BuidCode)
+				{
+					AddDependencyToCurrentFile(Out.Symbol);
+					//throw std::exception("not added");
+				}
+			}
+			else
+			{
+				if (i + 1 < node.ScopedName.size())
+				{
+					const UCodeLang::Token* Token = node.ScopedName.begin()->token;
+
+					auto Token2 = node.ScopedName[i + 1].token;
+					auto& Str2 = Token->Value._String;
+					if (passtype == PassType::FixedTypes)
+					{
+						LogCantFindVarMemberError(Token2, Str2, VarableType);
+					}
+					break;
+				}
+			}
+
+		}
 		else
 		{
 			throw std::exception("bad object");
 		}
 	}
+
+	Out.Start = node.ScopedName.data();
+	Out.End = node.ScopedName.size();
+	if (End != -1)
+	{
+		throw std::exception("this was not added");
+	}
+	Out.Symbol = TepSyb;
 	return true;
 }
 void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
