@@ -281,6 +281,17 @@ public:
 		}
 		return nullptr;
 	}
+	size_t GetFieldIndex(const String_view Name) const
+	{
+		for (size_t i = 0; i < Fields.size(); i++)
+		{
+			if (Fields[i].Name == Name) {
+				return i;
+			}
+		}
+	
+		return -1;
+	}
 
 	void AddField(const String_view Name, TypeSymbol Type)
 	{
@@ -420,7 +431,10 @@ public:
 	{
 		return (T*)Info.get();
 	}
-
+	template<typename T> const T* Get_Info() const
+	{
+		return (T*)Info.get();
+	}
 	union 
 	{
 		IRPar* IR_Par;

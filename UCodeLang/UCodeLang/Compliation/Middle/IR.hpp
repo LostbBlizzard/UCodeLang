@@ -123,6 +123,10 @@ enum class IRInstructionType : IRInstructionType_t
 	MallocCall,
 	FreeCall,
 	Reassign_dereference,//Reassign Target
+
+	//structs
+	Member_Access,
+
 	//internal stuff
 };
 
@@ -598,6 +602,21 @@ struct IRBlock
 	{
 		NewStore(Object, NewSub(Object, NewLoad(1)));
 	}
+	//struct
+	IRInstruction* New_Member_Access(IRInstruction* ObjectSrc,size_t MemberIndex)
+	{
+		auto& V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Member_Access,IROperator(ObjectSrc)));
+		V->Input(MemberIndex);
+
+		return V.get();
+	}
+	IRInstruction* New_Member_Access(IRPar* ObjectSrc, size_t MemberIndex)
+	{
+		auto& V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Member_Access, IROperator(ObjectSrc)));
+		V->Input(MemberIndex);
+
+		return V.get();
+	}
 
 	Vector<Unique_ptr<IRInstruction>> Instructions;
 	size_t GetIndex()
@@ -757,6 +776,22 @@ public:
 		_Symbols.emplace_back(r);
 		return r;
 	}
+
+	IRStruct* NewStruct(IRidentifierID identifier)
+	{
+		IRStruct* V =new IRStruct();
+		IRSymbolData* r = new IRSymbolData();
+
+		r->identifier = identifier;
+		r->SymType = IRSymbolType::Struct;
+		r->Ex.reset(V);
+		r->Type.SetType({ identifier });
+
+		_Symbols.emplace_back(r);
+		return V;
+	}
+
+
 	IRFuncPtr* NewFuncPtr(IRidentifierID identifier, IRType ReturnType)
 	{
 		IRFuncPtr* V = new IRFuncPtr();

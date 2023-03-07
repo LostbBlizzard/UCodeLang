@@ -99,6 +99,8 @@ private:
 	Stack<IRInstruction*> IRlocations;//for Constructors
 	Vector<IRCodeStackFrames> StackFrames;	
 	//
+	
+	IRidentifierID ConveToIRClassIR(const Symbol& Class);
 
 	IRType ConvertToIR(const TypeSymbol& Value);
 	Unordered_map<SymbolID, IRidentifierID> SybToIRMap;
@@ -188,7 +190,8 @@ private:
 		void* V1 = nullptr;	
 		void* V2 = nullptr;
 
-
+		const ScopedName* Start = nullptr;
+		size_t End = 0;
 
 		template<typename T> void Set_V1(T* Value)
 		{
