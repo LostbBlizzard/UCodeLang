@@ -5,6 +5,7 @@ UCodeLangStart
 
 void IRToX86::Reset()
 {
+	_Funcs.clear();
 	_Output.Reset();
 }
 
@@ -13,8 +14,11 @@ void IRToX86::Build(const IRBuilder* Input)
 	_Input = Input;
 	for (auto& Item : Input->Funcs)
 	{
+		size_t FuncLoc = _Output._Output.ByteOutput.size();
 		OnFunc(Item.get());
+		_Funcs.push_back({ Item.get() ,FuncLoc });
 	}
+	
 }
 
 void IRToX86::OnFunc(const IRFunc* IR)

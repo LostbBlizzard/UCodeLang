@@ -53,6 +53,7 @@ enum class InstructionSet : InstructionSet_t
 	
 	Malloc,Free,MemCopy, Calloc,ReAlloc,LoadFuncPtr,
 	Log,CPPCall,CppCallNamed,Link_Bytes,Link_Path,
+	Call_Code,
 
 	MAXVALUE,
 };

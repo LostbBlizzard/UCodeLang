@@ -49,6 +49,11 @@ BytesPtr UClib::ToRawBytes(const UClib* Lib)
 	}
 
 
+	{// Code
+		Output.WriteType((Size_tAsBits)Lib->_Code.size());
+		Output.WriteBytes((const Byte*)Lib->_Code.data(), Lib->_Code.size());
+	}
+
 	{// _NameToPtr
 	
 		Output.WriteType((Size_tAsBits)Lib->_NameToPtr.size());
@@ -260,6 +265,25 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 		memcpy(Lib->_Instructions.data(), &reader.GetByteWith_offset(0), bits_Size * sizeof(Instruction));
 
 		reader.Increment_offset(bits_Size * sizeof(Instruction));
+	}
+
+	{// Code
+
+		union
+		{
+			Size_tAsBits bits = 0;
+			size_t bits_Size;
+		};
+
+		reader.ReadType(bits, bits);
+		bits_Size = bits;
+
+		Lib->_Code.resize(bits_Size);
+
+
+		memcpy(Lib->_Code.data(), &reader.GetByteWith_offset(0), bits_Size);
+
+		reader.Increment_offset(bits_Size);
 	}
 
 	{// _NameToPtr

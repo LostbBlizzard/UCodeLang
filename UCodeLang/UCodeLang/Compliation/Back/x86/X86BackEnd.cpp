@@ -1,4 +1,5 @@
 #include "X86BackEnd.hpp"
+#include "../../Helpers/InstructionBuilder.hpp"
 UCodeLangStart
 
 void X86BackEnd::Reset()
@@ -25,7 +26,20 @@ void X86BackEnd_UCodeLib::Build(const IRBuilder* Input)
 	Vector<Byte>& Output = _CodeGen._Output._Output.ByteOutput;
 
 	UClib& Lib = Getliboutput();
-	Set_Output(BytesView(Output.data(), Output.size()));//output bytes
+
+	Lib.Get_Code() = Output;
+
+	Instruction Ins;
+	for (const auto& Item : _CodeGen._Funcs)
+	{
+		const String FuncName =Input->FromID(Item.Func->identifier);
+
+		InstructionBuilder::CallCode(Item.location, Ins);
+		Lib.Add_NameToInstruction(Lib.Add_Instruction(Ins), FuncName);
+
+
+	}
+
 }
 UCodeLangEnd
 

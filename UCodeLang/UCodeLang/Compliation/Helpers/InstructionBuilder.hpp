@@ -370,6 +370,15 @@ public:
 		Out.Value0.AsAddress = address;
 		Out.Value1.AsRegister= ptr;
 	}
+
+
+	//Calls the native code in _Code in UClib/
+	UCodeLangForceinline static void CallCode(UAddress address, Instruction& Out)
+	{
+		Out.OpCode = InstructionSet::Call_Code;
+		Out.Value0.AsAddress = address;
+		Out.Value1.AsUInt64 = NullUInt64;
+	}
 	
 	UCodeLangForceinline static void Log(Instruction& Out, RegisterID CharPtr)
 	{
