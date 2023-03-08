@@ -212,8 +212,8 @@ private:
 	};
 
 
-	bool GetMemberTypeSymbolFromVar(const size_t Start,const size_t End, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out);
-	bool GetMemberTypeSymbolFromVar(const size_t Start, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
+	bool GetMemberTypeSymbolFromVar(size_t Start,size_t End, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out);
+	bool GetMemberTypeSymbolFromVar(size_t Start, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
 	{
 		return GetMemberTypeSymbolFromVar(Start, -1, node, Out);
 	}
@@ -225,6 +225,7 @@ private:
 	IRInstruction* BuildMember_DereferenceValue(const GetMemberTypeSymbolFromVar_t& In);
 	IRInstruction* BuildMember_AsPointer(const GetMemberTypeSymbolFromVar_t& In);
 	IRInstruction* BuildMember_AsValue(const GetMemberTypeSymbolFromVar_t& In);
+	void BuildMember_Access(const GetMemberTypeSymbolFromVar_t& In, IRInstruction*& Output);
 	void BuildMember_Reassignment(const GetMemberTypeSymbolFromVar_t& In, const TypeSymbol& Type, IRInstruction* Value);
 
 	Symbol* GetTepFuncPtrSyb(const String& TepFuncPtr, const FuncInfo* Finfo);
@@ -362,6 +363,7 @@ private:
 			PushFromLast,
 			PushFromScopedName,
 			OnIRlocationStack,
+			OnIRlocationStackNonedef,
 			PushWasCalled,
 		};
 		ThisPar_t ThisPar = ThisPar_t::NoThisPar;

@@ -148,7 +148,9 @@ String IRBuilder::ToString()
 					auto& I = Block->Instructions[i];
 					if (I->Type == IRInstructionType::None) { continue; }
 
-					if (I->Type != IRInstructionType::PushParameter)
+					if (I->Type != IRInstructionType::PushParameter
+						&& I->Type != IRInstructionType::Member_Access
+						&& I->Type != IRInstructionType::Member_Access_Dereference)
 					{
 						r += Tabs;
 					}
@@ -296,6 +298,11 @@ String IRBuilder::ToString()
 					case  IRInstructionType::Member_Access:
 					{
 						State.PointerToName[I.get()] = ToString(State, *I, I->Target()) + ".__" + std::to_string(I->Input().Value.AsUIntNative);
+						continue;
+					}
+					case  IRInstructionType::Member_Access_Dereference:
+					{
+						State.PointerToName[I.get()] = ToString(State, *I, I->Target()) + "->__" + std::to_string(I->Input().Value.AsUIntNative);
 						continue;
 					}
 					default:
