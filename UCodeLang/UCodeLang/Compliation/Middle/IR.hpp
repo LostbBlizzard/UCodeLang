@@ -126,6 +126,7 @@ enum class IRInstructionType : IRInstructionType_t
 
 	//structs
 	Member_Access,
+	Member_Access_Dereference,
 
 	//internal stuff
 };
@@ -613,6 +614,21 @@ struct IRBlock
 	IRInstruction* New_Member_Access(IRPar* ObjectSrc, size_t MemberIndex)
 	{
 		auto& V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Member_Access, IROperator(ObjectSrc)));
+		V->Input(MemberIndex);
+
+		return V.get();
+	}
+
+	IRInstruction* New_Member_Dereference(IRInstruction* ObjectSrc, size_t MemberIndex)
+	{
+		auto& V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Member_Access_Dereference, IROperator(ObjectSrc)));
+		V->Input(MemberIndex);
+
+		return V.get();
+	}
+	IRInstruction* New_Member_Dereference(IRPar* ObjectSrc, size_t MemberIndex)
+	{
+		auto& V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Member_Access_Dereference, IROperator(ObjectSrc)));
 		V->Input(MemberIndex);
 
 		return V.get();

@@ -1294,27 +1294,32 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 	{
 		if (passtype == PassType::BuidCode)
 		{
-			Ind = ! (IsPrimitive(syb->VarType) || syb->VarType.IsAddress());
-			
-			
-			
-			if (Ind) 
+		
+			if (syb->Type == SymbolType::StackVarable)
 			{
-				//IRlocat Info;
-				//Info.ID = sybId;
-				//IRlocations.push(Info);
-				
-			}	
+				OnVarable = LookingAtIRBlock->NewLoad(ConvertToIR(syb->VarType));
+				syb->IR_Ins = OnVarable;
+			}
+
+			Ind = !(IsPrimitive(syb->VarType) || syb->VarType.IsAddress());
+
+			if (Ind)
+			{
+				IRlocations.push(OnVarable);
+			}
+
 		}
 		OnExpressionTypeNode(node.Expression.Value.get());
 	}
-
-	if (passtype == PassType::BuidCode)
+	else if (passtype == PassType::BuidCode)
 	{
-		if (syb->Type == SymbolType::StackVarable) {
+		if (syb->Type == SymbolType::StackVarable)
+		{
 			OnVarable = LookingAtIRBlock->NewLoad(ConvertToIR(syb->VarType));
 			syb->IR_Ins = OnVarable;
 		}
+
+		
 	}
 
 	if (passtype == PassType::FixedTypes)
@@ -1395,7 +1400,10 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 		{
 			IRlocations.pop();
 		}
-		LookingAtIRBlock->NewStore(OnVarable,_LastExpressionField);
+		else 
+		{
+			LookingAtIRBlock->NewStore(OnVarable, _LastExpressionField);
+		}
 		_LastExpressionField = nullptr;
 
 		if (HasDestructor(syb->VarType))
@@ -1772,66 +1780,23 @@ void SystematicAnalysis::BuildMember_Store(const GetMemberTypeSymbolFromVar_t& I
 {
 
 	IRInstruction* Output = nullptr;
-	{
-		TypeSymbol Last_Type = In.Symbol->VarType;
-		for (size_t i = 1; i < In.End; i++)
-		{
-			Symbol* Sym = GetSymbol(Last_Type);
 
-			auto& ITem = In.Start[i];
-			switch (Sym->Type)
-			{
-			case  SymbolType::Type_class:
-			{
-				auto* Classinfo = Sym->Get_Info<ClassInfo>();
-				size_t MemberIndex = Classinfo->GetFieldIndex(ITem.token->Value._String);
-				FieldInfo* FInfo = &Classinfo->Fields[MemberIndex];
-				if (Output == nullptr)
-				{
-					switch (In.Symbol->Type)
-					{
-					case  SymbolType::StackVarable:
-						Output = LookingAtIRBlock->New_Member_Access(In.Symbol->IR_Ins, MemberIndex);
-						break;
-					case  SymbolType::ParameterVarable:
-						Output = LookingAtIRBlock->New_Member_Access(In.Symbol->IR_Par, MemberIndex);
-						break;
-					}
-					Last_Type = FInfo->Type;
-				}
-				else
-				{
-					Output = LookingAtIRBlock->New_Member_Access(Output, MemberIndex);
-				}
-			}
-				break;
-			default:
-				throw std::exception("not added");
-				break;
-			}
-		}
-		if (Output == nullptr)
-		{
-			Output = In.Symbol->IR_Ins;
-		}
+	BuildMember_Access(In, Output);
+	if (Output == nullptr)
+	{
+		Output = In.Symbol->IR_Ins;
 	}
+	bool UseOutput = In.Symbol->IR_Ins != Output;
 	//
 
-	bool UseOutput = In.Symbol->IR_Ins != Output;
+
 	switch (In.Symbol->Type)
 	{
 	case  SymbolType::StackVarable:
 		LookingAtIRBlock->NewStore(Output, Value);
 		break;
 	case  SymbolType::ParameterVarable:
-		if (UseOutput)
-		{
-			LookingAtIRBlock->NewStore(Output, Value);
-		}
-		else
-		{
-			LookingAtIRBlock->NewStore(In.Symbol->IR_Par, Value);
-		}
+		UseOutput ? LookingAtIRBlock->NewStore(Output, Value) : LookingAtIRBlock->NewStore(In.Symbol->IR_Par, Value);
 		break;
 	default:
 		throw std::exception("not added");
@@ -1840,13 +1805,22 @@ void SystematicAnalysis::BuildMember_Store(const GetMemberTypeSymbolFromVar_t& I
 }
 IRInstruction* SystematicAnalysis::BuildMember_GetPointer(const GetMemberTypeSymbolFromVar_t& In)
 {
+	IRInstruction* Output = nullptr;
+
+	BuildMember_Access(In, Output);
+	if (Output == nullptr)
+	{
+		Output = In.Symbol->IR_Ins;
+	}
+	bool UseOutput = In.Symbol->IR_Ins != Output;
+
 	switch (In.Symbol->Type)
 	{
 	case  SymbolType::StackVarable:
-		LookingAtIRBlock->NewLoadPtr(In.Symbol->IR_Ins);
+		return LookingAtIRBlock->NewLoadPtr(Output);
 		break;
 	case  SymbolType::ParameterVarable:
-		LookingAtIRBlock->NewLoadPtr(In.Symbol->IR_Par);
+		return UseOutput ? LookingAtIRBlock->NewLoadPtr(Output): LookingAtIRBlock->NewLoadPtr(In.Symbol->IR_Par);
 		break;
 	default:
 		throw std::exception("not added");
@@ -1873,7 +1847,32 @@ IRInstruction* SystematicAnalysis::BuildMember_GetValue(const GetMemberTypeSymbo
 	switch (In.Symbol->Type)
 	{
 	case  SymbolType::StackVarable:
-		return LookingAtIRBlock->NewLoad(In.Symbol->IR_Ins);
+	case  SymbolType::ParameterVarable:
+	{
+		IRInstruction* Output = nullptr;
+
+		BuildMember_Access(In, Output);
+		if (Output == nullptr)
+		{
+			Output = In.Symbol->IR_Ins;
+		}
+		bool UseOutput = In.Symbol->IR_Ins != Output;
+
+		if (In.Symbol->Type == SymbolType::StackVarable)
+		{
+			return LookingAtIRBlock->NewLoad(Output);
+		}
+		else if (In.Symbol->Type == SymbolType::ParameterVarable)
+		{
+			return UseOutput ? LookingAtIRBlock->NewLoad(Output) : LookingAtIRBlock->NewLoad(In.Symbol->IR_Par);
+		}
+		else
+		{
+			throw std::exception("not added");
+		}
+
+			
+	}
 	break;
 	case SymbolType::Hard_Func_ptr:
 	case SymbolType::Func_ptr:
@@ -1882,8 +1881,7 @@ IRInstruction* SystematicAnalysis::BuildMember_GetValue(const GetMemberTypeSymbo
 		FuncInfo* Finfo = In.Symbol->Get_Info<FuncInfo>();
 		return LookingAtIRBlock->NewLoadFuncPtr(_Builder.ToID((String)GetTepFuncPtrNameAsName(Finfo->FullName)));
 	}
-	case  SymbolType::ParameterVarable:
-		return LookingAtIRBlock->NewLoad(In.Symbol->IR_Par);
+	
 	break;
 	case SymbolType::Enum:
 	{
@@ -1980,6 +1978,55 @@ void SystematicAnalysis::BuildMember_Reassignment(const GetMemberTypeSymbolFromV
 	}
 }
 
+void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t& In, IRInstruction*& Output)
+{
+	TypeSymbol Last_Type = In.Symbol->VarType;
+	for (size_t i = 1; i < In.End; i++)
+	{
+		Symbol* Sym = GetSymbol(Last_Type);
+
+		auto& ITem = In.Start[i];
+		switch (Sym->Type)
+		{
+		case  SymbolType::Type_class:
+		{
+			auto* Classinfo = Sym->Get_Info<ClassInfo>();
+			size_t MemberIndex = Classinfo->GetFieldIndex(ITem.token->Value._String);
+			FieldInfo* FInfo = &Classinfo->Fields[MemberIndex];
+			if (Output == nullptr)
+			{
+				switch (In.Symbol->Type)
+				{
+				case  SymbolType::StackVarable:
+					Output = LookingAtIRBlock->New_Member_Access(In.Symbol->IR_Ins, MemberIndex);
+					break;
+				case  SymbolType::ParameterVarable:
+					Output = LookingAtIRBlock->New_Member_Access(In.Symbol->IR_Par, MemberIndex);
+					break;
+				}
+			}
+			else
+			{
+				TypeSymbol& TypeSys = Last_Type;
+				if (TypeSys.IsAddress())
+				{
+					Output = LookingAtIRBlock->New_Member_Dereference(Output, MemberIndex);
+				}
+				else
+				{
+					Output = LookingAtIRBlock->New_Member_Access(Output, MemberIndex);
+				}
+			}
+			Last_Type = FInfo->Type;
+		}
+		break;
+		default:
+			throw std::exception("not added");
+			break;
+		}
+	}
+}
+
 Symbol* SystematicAnalysis::GetTepFuncPtrSyb(const String& TepFuncPtr, const FuncInfo* Finfo)
 {
 	Symbol* V =GetSymbol(TepFuncPtr, SymbolType::Func_ptr);
@@ -2010,9 +2057,30 @@ String_view SystematicAnalysis::GetTepFuncPtrNameAsName(const String_view Str)
 {
 	return Str.substr(sizeof(TepFuncPtrNameMangleStr)-1);//remove null char
 }
-bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t Start, const size_t End, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
+bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start,size_t End, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
 {
 	auto TepSyb = Out.Symbol;
+	if (TepSyb == nullptr && Out.Type.IsBadType())
+	{
+
+		auto Token = node.ScopedName[Start].token;
+		auto& Str = Token->Value._String;
+		auto SymbolVar = GetSymbol(Str, SymbolType::Varable_t);
+		LastLookedAtToken = Token;
+		if (SymbolVar == nullptr)
+		{
+			LogCantFindVarError(Token, Str);
+			return false;
+		}
+
+		CheckVarWritingErrors(SymbolVar, Token, String_view(Str));
+
+		Out.Type = SymbolVar->VarType;
+		Out.Symbol = GetSymbol(SymbolVar->VarType);
+		TepSyb = SymbolVar;
+		Start++;
+		End--;
+	}
 	for (size_t i = Start; i < node.ScopedName.size(); i++)
 	{
 
@@ -2210,12 +2278,11 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const size_t Start, const si
 		}
 	}
 
-	Out.Start = node.ScopedName.data();
+	Out.Start = node.ScopedName.data();//intentional pointer arithmetic
 	Out.End = node.ScopedName.size();
-	if (End != -1)
-	{
-		throw std::exception("this was not added");
-	}
+
+
+
 	Out.Symbol = TepSyb;
 	return true;
 }
@@ -2938,10 +3005,10 @@ size_t JumpLabel = LookingAtIRBlock->GetIndex();
 		{
 			auto SizeIR = IR_Load_UIntptr(TypeSize);
 			auto MallocPtr =  LookingAtIRBlock->NewMallocCall(SizeIR);
+			_LastExpressionField = MallocPtr;
+			
 			
 			//Call ObjectNew
-
-
 			if (IsPrimitive(Type)) 
 			{
 				DoFuncCall(Type, Func, ValuePars);
@@ -2949,7 +3016,8 @@ size_t JumpLabel = LookingAtIRBlock->GetIndex();
 			}
 			else
 			{
-				throw std::exception("not added");
+				Func.ThisPar = Get_FuncInfo::ThisPar_t::PushFromLast;
+				DoFuncCall(Type, Func, ValuePars);
 			}
 			_LastExpressionField = MallocPtr;
 		}
@@ -4335,9 +4403,22 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 		}
 		else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::OnIRlocationStack)
 		{
+			auto Type = Func.Func->Pars[0];
+			if (Type.IsAddress())
+			{
+				Type._IsAddress = false;
+			}
+
+			auto Defe = LookingAtIRBlock->NewLoadPtr(IRlocations.top());
+			LookingAtIRBlock->NewPushParameter(Defe);
+		}
+		else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::OnIRlocationStackNonedef)
+		{
+			LookingAtIRBlock->NewPushParameter(IRlocations.top());
+		}
+		else
+		{
 			throw std::exception("not added");
-			//_Builder.Build_Assign(IROperand::AsPointer(IRlocations.top().ID));
-			//LookingAtIRBlock->NewPushParameter(_LastExpressionField);
 		}
 	}
 
@@ -4474,14 +4555,19 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 		if (IsThisCall)
 		{
 			GetMemberTypeSymbolFromVar_t V;
-			if (GetMemberTypeSymbolFromVar(0, Name.ScopedName.size() - 1, Name, V))
+			if (GetMemberTypeSymbolFromVar(0,Name.ScopedName.size() - 1, Name, V))
 			{
 				_ThisType = V.Type;
 				_ThisType.SetAsAddress();
-				ScopedName = ToString(V.Type) + ScopeHelper::_ScopeSep;
+
+				auto tep_ = V.Type;
+				if (tep_.IsAddress())
+				{
+					tep_._IsAddress = false;
+				}
+				ScopedName = ToString(tep_) + ScopeHelper::_ScopeSep;
 				ScopedName += Name.ScopedName.back().token->Value._String;
 
-				_LastExpressionField = BuildMember_AsPointer(V);
 				ThisParType = Get_FuncInfo::ThisPar_t::PushFromScopedName;
 			}
 			else
