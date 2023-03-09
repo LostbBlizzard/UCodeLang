@@ -347,7 +347,7 @@ String IRBuilder::ToString(const IRType& Type)
 
 
 	case IRTypes::Void:return "void";
-	case IRTypes::pointer:return "void&";
+	case IRTypes::pointer:return "void*";
 	case IRTypes::IRsymbol:
 	{
 		auto Syb = GetSymbol(Type._symbol);

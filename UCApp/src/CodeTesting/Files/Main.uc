@@ -16,11 +16,16 @@ $Player:
 
  |Hello[this&]:
   ret 0;
+ |drop[this&] -> void;
 
 |main[]:
 
  Player& Tep = new Player();
  Tep.Ptr.Other();
+
+ var H = Tep.Pos;
+ 
+ drop(Tep);
 
  Player Player1 = [];
  var H = Player1.Ptr.y;

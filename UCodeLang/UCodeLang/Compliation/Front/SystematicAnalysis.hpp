@@ -71,10 +71,10 @@ private:
 	IRFunc* LookingAtIRFunc = nullptr;
 	IRBlock* LookingAtIRBlock=nullptr;
 
-
 	enum class  ObjectToDropType
 	{
 		IRInstruction,
+		IRInstructionNoMod,
 		Operator,
 	};
 	struct ObjectToDrop
@@ -96,7 +96,13 @@ private:
 
 	};
 
-	Stack<IRInstruction*> IRlocations;//for Constructors
+	struct IRLocation_Cotr
+	{
+		IRInstruction* Value;
+		bool UsedlocationIR = false;
+	};
+
+	Stack<IRLocation_Cotr> IRlocations;//for Constructors
 	Vector<IRCodeStackFrames> StackFrames;	
 	//
 	
@@ -336,6 +342,7 @@ private:
 	}
 	bool IsfloatType(const TypeSymbol& TypeToCheck);
 	bool IsPrimitive(const TypeSymbol& TypeToCheck);
+	bool IsPrimitiveNotIncludingPointers(const TypeSymbol& TypeToCheck);
 
 	bool IsimmutableRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
 
