@@ -2057,9 +2057,10 @@ String_view SystematicAnalysis::GetTepFuncPtrNameAsName(const String_view Str)
 {
 	return Str.substr(sizeof(TepFuncPtrNameMangleStr)-1);//remove null char
 }
-bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start,size_t End, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
+bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
 {
 	auto TepSyb = Out.Symbol;
+	size_t ScopedCount = 0;
 	if (TepSyb == nullptr && Out.Type.IsBadType())
 	{
 
@@ -2080,11 +2081,14 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start,size_t End, con
 		TepSyb = SymbolVar;
 		Start++;
 		End--;
+		ScopedCount++;
 	}
 	for (size_t i = Start; i < node.ScopedName.size(); i++)
 	{
 
 		if (i > End) { break; }
+		ScopedCount++;
+
 
 		auto& Item = node.ScopedName[i];
 
@@ -2278,10 +2282,12 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start,size_t End, con
 		}
 	}
 
-	Out.Start = node.ScopedName.data();//intentional pointer arithmetic
-	Out.End = node.ScopedName.size();
-
-
+	Out.Start = &node.ScopedName[Start - 1];
+	Out.End = ScopedCount;
+	if (End == -1)
+	{
+		Out.End++;//i dont know why this needed its most likely its us useing two diff funcs for the same thing to get the start off syb.
+	}
 
 	Out.Symbol = TepSyb;
 	return true;

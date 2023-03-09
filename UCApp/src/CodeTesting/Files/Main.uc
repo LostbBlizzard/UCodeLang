@@ -4,6 +4,8 @@
 $Vec2i:
  int x;
  int y;
+ |Other[this&]:
+  ret 1;
 
 $Player:
  |new[this&] -> void;
@@ -18,10 +20,10 @@ $Player:
 |main[]:
 
  Player& Tep = new Player();
- Tep.Hello();
+ Tep.Ptr.Other();
 
  Player Player1 = [];
- var& H = Player1.Ptr.y;
+ var H = Player1.Ptr.y;
  
  //Player1.Hello();
  //Player::Hello(Player1);
