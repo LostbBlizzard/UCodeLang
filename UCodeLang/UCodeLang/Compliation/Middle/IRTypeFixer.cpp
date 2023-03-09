@@ -26,6 +26,7 @@ void IRTypeFixer::FixTypes(IRBuilder* Input)
 			for (auto& Ins : Block->Instructions)
 			{
 				if (!Ins->ObjectType.IsType(IRTypes::Null)) { continue; }
+				if (Ins->Type == IRInstructionType::None) { continue; }
 
 				if (Ins->Type == IRInstructionType::Reassign)
 				{
@@ -87,7 +88,7 @@ void IRTypeFixer::FixTypes(IRBuilder* Input)
 				}
 				else if (Ins->Type == IRInstructionType::Member_Access_Dereference)
 				{
-
+					
 				}
 				else
 				{

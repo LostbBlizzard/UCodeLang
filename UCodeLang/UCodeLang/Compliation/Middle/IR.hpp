@@ -219,6 +219,8 @@ enum class IROperatorType :IROperator_t
 
 struct IRPar;
 struct IRInstruction;
+
+
 struct IROperator
 {
 	IROperatorType Type;
@@ -281,6 +283,73 @@ struct IRCall
 	Vector<IRInstruction*> Parameters;
 };
 
+//
+enum class IRCallConvention
+{
+	BackEndChoice,
+
+	/*
+	cdecl - In cdecl, subroutine arguments are passed on the stack.
+	Integer values and memory addresses are returned in the EAX register,
+	floating point values in the ST0 x87 register.
+	Registers EAX, ECX, and EDX are caller-saved, and the rest are callee-saved.
+	The x87 floating point registers ST0 to ST7 must be empty (popped or freed) when calling a new function,
+	and ST1 to ST7 must be empty on exiting a function. ST0 must also be empty when not used for returning a value.
+	*/
+	Cdecl,
+
+	/*
+	stdcall - The stdcall[4] calling convention is a variation on the Pascal calling convention in which the callee is responsible for cleaning up the stack, but the parameters are pushed onto the stack in right-to-left order,
+	as in the _cdecl calling convention. Registers EAX, ECX, and EDX are designated for use within the function.
+	Return values are stored in the EAX register.
+	*/
+	StdCall,
+
+	/*
+	the first four arguments are passed in registers when possible, and additional arguments are passed on the stack.
+	*/
+	Fastcall,
+
+
+	UCCall = Fastcall,
+};
+struct IRSymbol_Ex
+{
+	virtual ~IRSymbol_Ex() {}
+};
+
+
+struct IRStructField
+{
+	IRType Type;
+	size_t Offset;
+};
+
+struct IRStruct : IRSymbol_Ex
+{
+	Vector<IRStructField> Fields;
+	size_t ObjectSize = 0;
+
+	void AddField(IRType Type, size_t ObjectSize)
+	{
+		IRStructField V;
+		V.Type = Type;
+		V.Offset = ObjectSize;
+		Fields.emplace_back(V);
+		this->ObjectSize += ObjectSize;
+	};
+};
+
+
+
+struct IRFuncPtr : IRSymbol_Ex
+{
+	IRCallConvention CallConvention = IRCallConvention::BackEndChoice;
+	Vector<IRType> Pars;
+	IRType Ret;
+};
+
+//
 
 struct IRBlock
 {
@@ -604,33 +673,38 @@ struct IRBlock
 		NewStore(Object, NewSub(Object, NewLoad(1)));
 	}
 	//struct
-	IRInstruction* New_Member_Access(IRInstruction* ObjectSrc,size_t MemberIndex)
+	IRInstruction* New_Member_Access(IRInstruction* ObjectSrc,const IRStruct* ObjectTypeofSrc,size_t MemberIndex)
 	{
 		auto& V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Member_Access,IROperator(ObjectSrc)));
 		V->Input(MemberIndex);
 
+		V->ObjectType = ObjectTypeofSrc->Fields[MemberIndex].Type;
+
 		return V.get();
 	}
-	IRInstruction* New_Member_Access(IRPar* ObjectSrc, size_t MemberIndex)
+	IRInstruction* New_Member_Access(IRPar* ObjectSrc, const IRStruct* ObjectTypeofSrc, size_t MemberIndex)
 	{
 		auto& V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Member_Access, IROperator(ObjectSrc)));
 		V->Input(MemberIndex);
 
+		V->ObjectType = ObjectTypeofSrc->Fields[MemberIndex].Type;
 		return V.get();
 	}
 
-	IRInstruction* New_Member_Dereference(IRInstruction* ObjectSrc, size_t MemberIndex)
+	IRInstruction* New_Member_Dereference(IRInstruction* ObjectSrc, const IRStruct* ObjectTypeofSrc, size_t MemberIndex)
 	{
 		auto& V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Member_Access_Dereference, IROperator(ObjectSrc)));
 		V->Input(MemberIndex);
 
+		V->ObjectType = ObjectTypeofSrc->Fields[MemberIndex].Type;
 		return V.get();
 	}
-	IRInstruction* New_Member_Dereference(IRPar* ObjectSrc, size_t MemberIndex)
+	IRInstruction* New_Member_Dereference(IRPar* ObjectSrc, const IRStruct* ObjectTypeofSrc, size_t MemberIndex)
 	{
 		auto& V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Member_Access_Dereference, IROperator(ObjectSrc)));
 		V->Input(MemberIndex);
 
+		V->ObjectType = ObjectTypeofSrc->Fields[MemberIndex].Type;
 		return V.get();
 	}
 
@@ -641,35 +715,7 @@ struct IRBlock
 	}
 };
 
-enum class IRCallConvention
-{
-	BackEndChoice,
 
-	/*
-	cdecl - In cdecl, subroutine arguments are passed on the stack.
-	Integer values and memory addresses are returned in the EAX register, 
-	floating point values in the ST0 x87 register. 
-	Registers EAX, ECX, and EDX are caller-saved, and the rest are callee-saved. 
-	The x87 floating point registers ST0 to ST7 must be empty (popped or freed) when calling a new function,
-	and ST1 to ST7 must be empty on exiting a function. ST0 must also be empty when not used for returning a value.
-	*/
-	Cdecl,
-	
-	/*
-	stdcall - The stdcall[4] calling convention is a variation on the Pascal calling convention in which the callee is responsible for cleaning up the stack, but the parameters are pushed onto the stack in right-to-left order, 
-	as in the _cdecl calling convention. Registers EAX, ECX, and EDX are designated for use within the function. 
-	Return values are stored in the EAX register.
-	*/
-	StdCall,
-	
-	/*
-	the first four arguments are passed in registers when possible, and additional arguments are passed on the stack. 
-	*/
-	Fastcall,
-
-	
-	UCCall = Fastcall,
-};
 
 struct IRFunc
 {
@@ -726,10 +772,6 @@ enum class IRSymbolType : IRSymbolType_t
 	FuncPtr,
 };
 
-struct IRSymbol_Ex
-{
-	virtual ~IRSymbol_Ex(){}
-};
 
 struct IRSymbolData
 {
@@ -743,35 +785,7 @@ struct IRSymbolData
 	}
 };
 
-struct IRStructField
-{
-	IRType Type;
-	size_t Offset;
-};
 
-struct IRStruct : IRSymbol_Ex
-{
-	Vector<IRStructField> Fields;
-	size_t ObjectSize = 0;
-
-	void AddField(IRType Type,size_t ObjectSize)
-	{
-		IRStructField V;
-		V.Type = Type;
-		V.Offset = ObjectSize;
-		Fields.emplace_back(V);
-		this->ObjectSize += ObjectSize;
-	};
-};
-
-
-
-struct IRFuncPtr : IRSymbol_Ex
-{
-	IRCallConvention CallConvention = IRCallConvention::BackEndChoice;
-	Vector<IRType> Pars;
-	IRType Ret;
-};
 
 class IRBuilder
 {

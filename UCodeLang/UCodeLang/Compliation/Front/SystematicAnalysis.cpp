@@ -1305,7 +1305,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 
 			if (Ind)
 			{
-				IRlocations.push(OnVarable);
+				IRlocations.push({ OnVarable ,false});
 			}
 
 		}
@@ -1398,6 +1398,20 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 
 		if (Ind)
 		{
+			if (IRlocations.top().UsedlocationIR == false)
+			{
+				
+				if (_LastExpressionField->Type == IRInstructionType::Load 
+					&& _LastExpressionField->Target().Type ==IROperatorType::IRInstruction)
+				{//to stop copying big objects
+					LookingAtIRBlock->NewStore(OnVarable, _LastExpressionField->Target().Pointer);
+					_LastExpressionField->SetAsNone();
+				}
+				else
+				{
+					LookingAtIRBlock->NewStore(OnVarable, _LastExpressionField);
+				}
+			}
 			IRlocations.pop();
 		}
 		else 
@@ -1993,15 +2007,16 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 			auto* Classinfo = Sym->Get_Info<ClassInfo>();
 			size_t MemberIndex = Classinfo->GetFieldIndex(ITem.token->Value._String);
 			FieldInfo* FInfo = &Classinfo->Fields[MemberIndex];
+			IRStruct* IRstruct = _Builder.GetSymbol(SybToIRMap[Sym->ID])->Get_ExAs<IRStruct>();
 			if (Output == nullptr)
 			{
 				switch (In.Symbol->Type)
 				{
 				case  SymbolType::StackVarable:
-					Output = LookingAtIRBlock->New_Member_Access(In.Symbol->IR_Ins, MemberIndex);
+					Output = LookingAtIRBlock->New_Member_Access(In.Symbol->IR_Ins, IRstruct, MemberIndex);
 					break;
 				case  SymbolType::ParameterVarable:
-					Output = LookingAtIRBlock->New_Member_Access(In.Symbol->IR_Par, MemberIndex);
+					Output = LookingAtIRBlock->New_Member_Access(In.Symbol->IR_Par, IRstruct, MemberIndex);
 					break;
 				}
 			}
@@ -2010,11 +2025,11 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 				TypeSymbol& TypeSys = Last_Type;
 				if (TypeSys.IsAddress())
 				{
-					Output = LookingAtIRBlock->New_Member_Dereference(Output, MemberIndex);
+					Output = LookingAtIRBlock->New_Member_Dereference(Output, IRstruct, MemberIndex);
 				}
 				else
 				{
-					Output = LookingAtIRBlock->New_Member_Access(Output, MemberIndex);
+					Output = LookingAtIRBlock->New_Member_Access(Output, IRstruct, MemberIndex);
 				}
 			}
 			Last_Type = FInfo->Type;
@@ -3541,25 +3556,21 @@ void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 			
 			if (TypeHaveDestructor)
 			{
+				TypeSymbol tep = Ex0Type;
+				if (tep.IsAddress())
+				{
+					tep._IsAddress = false;//DoDestructorCall will not do it if is IsPrimitive
+				}
+				
 				ObjectToDrop Data;
 				Data._Object = Ex0;
-				Data.Type = Ex0Type;
+				Data.Type = tep;
+				Data.DropType = ObjectToDropType::IRInstructionNoMod;
 				DoDestructorCall(Data);//call on Object
 			}
 			
 			LookingAtIRBlock->NewFreeCall(Ex0);
 			
-			if (Ex0Type.IsAddress())
-			{
-				Ex0Type.SetType(TypesEnum::uIntPtr);//so Destructorcall updated the pointer
-				if (HasDestructor(Ex0Type))
-				{
-					ObjectToDrop Data;
-					Data._Object = Ex0;
-					Data.Type = Ex0Type;
-					DoDestructorCall(Data);//call on Ptr
-				}
-			}
 			
 		}
 	}
@@ -4137,10 +4148,7 @@ bool SystematicAnalysis::IsfloatType(const TypeSymbol& TypeToCheck)
 }
 bool SystematicAnalysis::IsPrimitive(const TypeSymbol& TypeToCheck)
 {
-	bool r = TypeToCheck.IsAddress() || IsIntType(TypeToCheck)
-		|| TypeToCheck._Type == TypesEnum::Bool
-		|| TypeToCheck._Type == TypesEnum::Char
-		|| IsfloatType(TypeToCheck);
+	bool r = TypeToCheck.IsAddress() || IsPrimitiveNotIncludingPointers(TypeToCheck);
 
 	if (!r && TypeToCheck.IsAn(TypesEnum::CustomType))
 	{
@@ -4153,6 +4161,17 @@ bool SystematicAnalysis::IsPrimitive(const TypeSymbol& TypeToCheck)
 
 	return r;
 }
+bool SystematicAnalysis::IsPrimitiveNotIncludingPointers(const TypeSymbol& TypeToCheck)
+{
+	bool r = IsIntType(TypeToCheck)
+		|| TypeToCheck._Type == TypesEnum::Bool
+		|| TypeToCheck._Type == TypesEnum::Char
+		|| IsfloatType(TypeToCheck);
+
+
+	return r;
+}
+
 bool SystematicAnalysis::IsimmutableRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type)
 {
 	return  (!TypeToCheck.Isimmutable() == Type.Isimmutable()) ||
@@ -4185,8 +4204,12 @@ bool SystematicAnalysis::HasDestructor(const TypeSymbol& TypeToCheck)
 		return false;
 	}
 
-
-	String TypeDestructorFuncName = ToString(TypeToCheck);
+	TypeSymbol Tep = TypeToCheck;
+	if (Tep.IsAddress())
+	{
+		Tep._IsAddress = false;
+	}
+	String TypeDestructorFuncName = ToString(Tep);
 	ScopeHelper::GetApendedString(TypeDestructorFuncName, ClassDestructorFunc);
 
 	return GetSymbol(TypeDestructorFuncName, SymbolType::Func);
@@ -4415,12 +4438,18 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 				Type._IsAddress = false;
 			}
 
-			auto Defe = LookingAtIRBlock->NewLoadPtr(IRlocations.top());
+			auto Defe = LookingAtIRBlock->NewLoadPtr(IRlocations.top().Value);
+			IRlocations.top().UsedlocationIR = true;
 			LookingAtIRBlock->NewPushParameter(Defe);
 		}
 		else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::OnIRlocationStackNonedef)
 		{
-			LookingAtIRBlock->NewPushParameter(IRlocations.top());
+			LookingAtIRBlock->NewPushParameter(IRlocations.top().Value);
+			IRlocations.top().UsedlocationIR = true;
+		}
+		else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::PushWasCalled)
+		{
+
 		}
 		else
 		{
@@ -4512,11 +4541,19 @@ void SystematicAnalysis::DoDestructorCall(const ObjectToDrop& Object)
 	}
 	else
 	{
-		/*
+		
 		if (Object.Type.IsAn(TypesEnum::CustomType))
 		{
 			int a = 0;
-			String TypeDestructorFuncName = ToString(Object.Type);
+
+			TypeSymbol tep = Object.Type;
+			if (tep.IsAddress())
+			{
+				tep._IsAddress = false;
+			}
+
+
+			String TypeDestructorFuncName = ToString(tep);
 			ScopeHelper::GetApendedString(TypeDestructorFuncName, ClassDestructorFunc);
 
 			Symbol* Sym = GetSymbol(TypeDestructorFuncName, SymbolType::Func);
@@ -4526,19 +4563,36 @@ void SystematicAnalysis::DoDestructorCall(const ObjectToDrop& Object)
 
 				Get_FuncInfo FuncInfo;
 				FuncInfo.Func = node;
-				FuncInfo.ThisPar = Get_FuncInfo::ThisPar_t::PushFromLast;
+				FuncInfo.SymFunc = Sym;
 				
 
 				//par
-				_Builder.Build_Assign(IROperand::AsPointer(Object.ID));
+
+				switch (Object.DropType)
+				{
+				case ObjectToDropType::IRInstruction:
+					FuncInfo.ThisPar = Get_FuncInfo::ThisPar_t::OnIRlocationStack;
+					IRlocations.push({Object._Object, false});
+					break;	
+				case ObjectToDropType::IRInstructionNoMod:
+					FuncInfo.ThisPar = Get_FuncInfo::ThisPar_t::OnIRlocationStackNonedef;
+						IRlocations.push({ Object._Object, false });
+						break;
+				default:
+					throw std::exception("not added");
+					break;
+				}
 
 				//
 
 				ValueParametersNode Vtemp;
 				DoFuncCall(Object.Type, FuncInfo, Vtemp);
+			
+
+				IRlocations.pop();
 			}
 		}
-		*/
+		
 	}
 }
 SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNode& Name, const UseGenericsNode& Generics, const ValueParametersNode& Pars, TypeSymbol Ret)
