@@ -333,6 +333,7 @@ private:
 	}
 	void DoSymbolRedefinitionCheck(const Symbol* Syb,const Token* Value);
 	void DoSymbolRedefinitionCheck(const String_view FullName,SymbolType Type, const Token* Value);
+	void DoSymbolRedefinitionCheck(const Symbol* Syb, const FuncInfo* Fvalue, const Token* Value);
 
 	bool IsVaidType(TypeSymbol& Out);
 	bool CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode = true);
@@ -501,6 +502,8 @@ private:
 	void LogFuncMustBe(const Token* Token, const String_view FuncName, TypeSymbol& TypeSybToBe);
 	void LogSymbolRedefinition(const Token* Token, const Symbol* Symbol);
 	void LogUseingVarableBeforDeclared(const Token* Token);
+	void LogBeMoreSpecifiicForRetType(const String_view FuncName, const Token* Token);
+
 
 	struct ReadVarErrorCheck_t
 	{

@@ -20,10 +20,13 @@ $Player:
  |new[this&] -> void;
  |drop[this&] -> void;
 
+
+
+|main[int a] -> void;
+
 |main[]:
 
- int b = a;
- int a;
+ 
  
  //Player& Tep = new Player();
  //Tep.Ptr.Other();
