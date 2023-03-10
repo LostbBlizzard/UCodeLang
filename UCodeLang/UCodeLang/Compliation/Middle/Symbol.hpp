@@ -213,6 +213,19 @@ public:
 	{
 		return ScopeHelper::GetNameFromFullName((String_view)FullName);
 	}
+	enum class FuncType
+	{
+		NameFunc,
+		New,
+		Drop,
+		Copy_Ctor,
+		Move,
+
+		//operator overloading
+	};
+	FuncType _FuncType = FuncType::NameFunc;
+
+
 	Vector<TypeSymbol> Pars;
 	TypeSymbol Ret;
 	
@@ -256,6 +269,8 @@ public:
 	{
 		return ScopeHelper::GetNameFromFullName((String_view)FullName);
 	}
+
+
 	UAddress Size = NullAddress;
 	Vector<FieldInfo> Fields;
 	bool SizeInitialized = false;

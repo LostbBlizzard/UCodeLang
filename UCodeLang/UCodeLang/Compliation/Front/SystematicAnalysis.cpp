@@ -126,6 +126,7 @@ void SystematicAnalysis::AddDependencyToCurrentFile(const TypeSymbol& type)
 }
 Symbol& SystematicAnalysis::AddSybol(SymbolType type, const String& Name, const String& FullName)
 {
+
 	auto& r = _Table.AddSybol(type, Name, FullName);
 	r._File = LookingAtFile;
 	return r;
@@ -224,6 +225,12 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 	_Table.AddScope(ClassName);
 
 	auto SybID = GetSymbolID(Node);
+
+
+	if (passtype == PassType::GetTypes)
+	{
+		DoSymbolRedefinitionCheck((String_view)_Table._Scope.ThisScope,SymbolType::Type_class, Node.ClassName.Token);
+	}
 
 	auto& Syb = passtype == PassType::GetTypes ?
 		AddSybol(Isgeneric_t ? SymbolType::Generic_class : SymbolType::Type_class
@@ -355,6 +362,12 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 	auto SybID = GetSymbolID(node);
 
 	_Table.AddScope(ClassName);
+
+	if (passtype == PassType::GetTypes)
+	{
+		DoSymbolRedefinitionCheck((String_view)_Table._Scope.ThisScope, node.IsHardAlias ? SymbolType::Hard_Type_alias : SymbolType::Type_alias, node.AliasName.Token);
+	}
+
 	auto& Syb = passtype == PassType::GetTypes ?
 		AddSybol(node.IsHardAlias ? SymbolType::Hard_Type_alias : SymbolType::Type_alias, (String)ClassName, _Table._Scope.ThisScope) :
 		*GetSymbol(SybID);
@@ -369,8 +382,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 		}
 		else
 		{
-			Syb.Type = node.IsHardAlias ? SymbolType::Hard_Func_ptr : SymbolType::Func_ptr;
-
+			
 			AliasNode_Func* node_ = (AliasNode_Func*)node._Node.get();
 			auto V = new FuncPtrInfo();
 			Syb.Info.reset(V);
@@ -446,9 +458,13 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		: node.Signature.Name.AsStringView();
 	auto NameToken = node.Signature.Name.Token;
 
+
+	FuncInfo::FuncType FuncType = FuncInfo::FuncType::NameFunc;
+
 	if (NameToken->Type == TokenType::KeyWorld_new)
 	{
 		FuncName = ClassConstructorfunc;
+		FuncType = FuncInfo::FuncType::New;
 		if (_ClassStack.empty())
 		{
 			CantUseThisKeyWordHereError(NameToken);
@@ -457,6 +473,11 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	else if (NameToken->Type == TokenType::KeyWorld_Drop)
 	{
 		FuncName = ClassDestructorFunc;
+		FuncType = FuncInfo::FuncType::Drop;
+		if (_ClassStack.empty())
+		{
+			CantUseThisKeyWordHereError(NameToken);
+		}
 	}
 
 
@@ -486,6 +507,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 		FuncInfo* newInfo = new FuncInfo();
 		newInfo->FullName = FullName;
+		newInfo->_FuncType = FuncType;
 		
 		syb->Info.reset(newInfo);
 
@@ -792,7 +814,6 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			OnStatement(node2);
 			if (node2->Get_Type() == NodeType::RetStatementNode)
 			{
-				syb =GetSymbol(sybId);
 				HasARet = true;
 
 				if (passtype == PassType::FixedTypes && syb->VarType._Type == TypesEnum::Var)
@@ -827,7 +848,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 		_InStatements = false;
 
-		syb = GetSymbol(sybId);
+		
 		if (passtype == PassType::FixedTypes)
 		{
 			if (!HasARet)
@@ -858,6 +879,11 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 	}
 
+	if (passtype == PassType::FixedTypes)
+	{
+		FuncRetCheck(*node.Signature.Name.Token, syb, Info);
+	}
+
 	_FuncStack.pop();
 
 	_Table.RemovePopUseing(UseingIndex);
@@ -866,6 +892,30 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 	
 	_Table.RemoveScope();
+}
+void SystematicAnalysis::FuncRetCheck(const Token& Name, const Symbol* FuncSyb, const FuncInfo* Func)
+{
+	switch (Func->_FuncType)
+	{
+	case FuncInfo::FuncType::Copy_Ctor:
+	case FuncInfo::FuncType::Drop:
+	case FuncInfo::FuncType::New:
+	{
+
+		TypeSymbol V;
+		V.SetType(TypesEnum::Void);
+		if (!AreTheSame(Func->Ret, V)) 
+		{
+			LogFuncMustBe(&Name, FuncSyb->FullName, V);
+		}
+	}
+	break;
+	case FuncInfo::FuncType::NameFunc:
+		break;
+	default:
+		throw std::exception("not added");
+		break;
+	}
 }
 IRidentifierID SystematicAnalysis::ConveToIRClassIR(const Symbol& Class)
 {
@@ -1089,6 +1139,11 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 	const auto& ClassName = node.EnumName.Token->Value._String;
 	_Table.AddScope(ClassName);
 
+	if (passtype == PassType::GetTypes)
+	{
+		DoSymbolRedefinitionCheck((String_view)_Table._Scope.ThisScope, SymbolType::Type_class, node.EnumName.Token);
+	}
+
 	auto& Syb = passtype == PassType::GetTypes ?
 		AddSybol(SymbolType::Enum
 			, (String)ClassName, _Table._Scope.ThisScope) :
@@ -1245,6 +1300,9 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 
 	if (passtype == PassType::GetTypes)
 	{
+		DoSymbolRedefinitionCheck(FullName, SymbolType::StackVarable, node.Name.Token);
+
+
 		syb = &AddSybol(SymbolType::StackVarable, StrVarName, FullName);
 		_Table.AddSymbolID(*syb, sybId);
 
@@ -1259,8 +1317,9 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 				//TODO Err
 			}
 			Class.AddField(ScopeHelper::GetNameFromFullName((String_view)FullName), TypeSymbol());
-			
+
 		}
+		syb->NodePtr = (void*)node.Name.Token->OnPos;//a tep solution. 
 	}
 	else
 	{
@@ -3135,8 +3194,8 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 	}
 	
 
-	
-	auto Str = nod.VariableName.ScopedName.front().token->Value._String;
+	auto FToken = nod.VariableName.ScopedName.front().token;
+	auto Str = FToken->Value._String;
 	auto Symbol = GetSymbol(Str,SymbolType::Varable_t);
 	auto Token = nod.VariableName.ScopedName.back().token;
 	
@@ -3145,6 +3204,14 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 	if (Info.CantFindVar)
 	{
 		return;
+	}
+	if (Symbol->Type == SymbolType::StackVarable)
+	{
+		size_t declaredpos = (size_t)Symbol->NodePtr;//just tep solution
+		if (declaredpos > FToken->OnPos)
+		{
+			LogUseingVarableBeforDeclared(FToken);
+		}
 	}
 	if (!Info.VarIsInvalid)
 	{
@@ -4053,6 +4120,22 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 	if (V.IsAddessArray){Out._IsAddressArray = true;}
 	if (V.Isimmutable){Out._Isimmutable = true;}
 }
+void SystematicAnalysis::DoSymbolRedefinitionCheck(const Symbol* Syb, const Token* Value)
+{
+	auto other = GetSymbol(Syb->FullName,Syb->Type);
+	if (other)
+	{
+		LogSymbolRedefinition(Value,Syb);
+	}
+}
+void SystematicAnalysis::DoSymbolRedefinitionCheck(const String_view FullName, SymbolType Type, const Token* Value)
+{
+	auto other = GetSymbol(FullName,Type);
+	if (other)
+	{
+		LogSymbolRedefinition(Value, other);
+	}
+}
 
 bool SystematicAnalysis::IsVaidType(TypeSymbol& Out)
 {
@@ -4166,6 +4249,7 @@ bool SystematicAnalysis::IsPrimitiveNotIncludingPointers(const TypeSymbol& TypeT
 	bool r = IsIntType(TypeToCheck)
 		|| TypeToCheck._Type == TypesEnum::Bool
 		|| TypeToCheck._Type == TypesEnum::Char
+		|| TypeToCheck._Type == TypesEnum::Void
 		|| IsfloatType(TypeToCheck);
 
 
@@ -6052,6 +6136,23 @@ void SystematicAnalysis::LogCanIncorrectGenericCount(const Token* Token, String_
 
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, Msg);
+}
+void SystematicAnalysis::LogFuncMustBe(const Token* Token, const String_view FuncName, TypeSymbol& TypeSybToBe)
+{
+
+	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+		,"The function named " + (String)FuncName + " must return to the type of '" + ToString(TypeSybToBe) + '\'');
+}
+void SystematicAnalysis::LogSymbolRedefinition(const Token* Token, const Symbol* Symbol)
+{
+
+	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+		, "the symbol '"+  Symbol->FullName + "\' is already define. try useing a different name");
+}
+void SystematicAnalysis::LogUseingVarableBeforDeclared(const Token* Token)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+		, "trying to use the varable '" + (String)Token->Value._String + "\' before its defined.");
 }
 UCodeLangFrontEnd
 

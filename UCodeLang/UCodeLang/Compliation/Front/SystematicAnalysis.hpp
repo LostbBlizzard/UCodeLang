@@ -27,7 +27,7 @@ public:
 
 	void BuildCode();
 
-	
+
 	UCodeLangForceinline IRBuilder& Get_Output()
 	{
 		return _Builder;
@@ -67,9 +67,9 @@ private:
 	bool _InStatements = false;
 	//IR Building
 	IRBuilder _Builder;
-	IRInstruction* _LastExpressionField =0;
+	IRInstruction* _LastExpressionField = 0;
 	IRFunc* LookingAtIRFunc = nullptr;
-	IRBlock* LookingAtIRBlock=nullptr;
+	IRBlock* LookingAtIRBlock = nullptr;
 
 	enum class  ObjectToDropType
 	{
@@ -79,7 +79,7 @@ private:
 	};
 	struct ObjectToDrop
 	{
-		ObjectToDropType DropType= ObjectToDropType::IRInstruction;
+		ObjectToDropType DropType = ObjectToDropType::IRInstruction;
 		SymbolID ID = 0;
 
 
@@ -88,7 +88,7 @@ private:
 		TypeSymbol Type;
 
 	};
-	
+
 	struct IRCodeStackFrames
 	{
 		Vector< ObjectToDrop> OnEndStackFrame;
@@ -103,9 +103,9 @@ private:
 	};
 
 	Stack<IRLocation_Cotr> IRlocations;//for Constructors
-	Vector<IRCodeStackFrames> StackFrames;	
+	Vector<IRCodeStackFrames> StackFrames;
 	//
-	
+
 	IRidentifierID ConveToIRClassIR(const Symbol& Class);
 
 	IRType ConvertToIR(const TypeSymbol& Value);
@@ -120,9 +120,11 @@ private:
 	}
 	const Token* LastLookedAtToken = nullptr;
 	//
-	
+
 	void PushNewStackFrame();
 	void PopStackFrame();
+
+
 
 	struct NewFuncData
 	{
@@ -163,7 +165,7 @@ private:
 	void AddDependencyToCurrentFile(const FileNode* file);
 	void AddDependencyToCurrentFile(const TypeSymbol& type);
 	Symbol& AddSybol(SymbolType type, const String& Name, const String& FullName);
-	
+
 	//
 	void Pass();
 	void OnFileNode(const FileNode* File);
@@ -187,13 +189,16 @@ private:
 	void OnDeclareStaticVariableNode(const DeclareStaticVariableNode& node);
 	void OnDeclareThreadVariableNode(const DeclareThreadVariableNode& node);
 
+
+	void FuncRetCheck(const Token& Name, const Symbol* FuncSyb, const FuncInfo* Func);
+
 	struct GetMemberTypeSymbolFromVar_t
 	{
-		Symbol* Symbol =nullptr;
+		Symbol* Symbol = nullptr;
 		TypeSymbol Type;
 
 		//state
-		void* V1 = nullptr;	
+		void* V1 = nullptr;
 		void* V2 = nullptr;
 
 		const ScopedName* Start = nullptr;
@@ -205,7 +210,7 @@ private:
 		}
 		template<typename T>  T* Get_V1() const
 		{
-		  return (T*)V1;
+			return (T*)V1;
 		}
 		template<typename T>  void Set_V2(T* Value)
 		{
@@ -218,7 +223,7 @@ private:
 	};
 
 
-	bool GetMemberTypeSymbolFromVar(size_t Start,size_t End, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out);
+	bool GetMemberTypeSymbolFromVar(size_t Start, size_t End, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out);
 	bool GetMemberTypeSymbolFromVar(size_t Start, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
 	{
 		return GetMemberTypeSymbolFromVar(Start, -1, node, Out);
@@ -239,8 +244,8 @@ private:
 	String GetTepFuncPtrName(Symbol* SymbolVar);
 	String_view GetTepFuncPtrNameAsName(const String_view Str);
 
-	
-	
+
+
 	void OnPostfixVariableNode(const PostfixVariableNode& node);
 	void OnCompoundStatementNode(const CompoundStatementNode& node);
 	void OnExpressionTypeNode(const Node* node);
@@ -261,7 +266,7 @@ private:
 		TypeSymbol Op1;
 
 		//func to call
-		Symbol* FuncToCall =nullptr;
+		Symbol* FuncToCall = nullptr;
 		bool IsBuitIn()
 		{
 			return  FuncToCall == nullptr;
@@ -303,13 +308,13 @@ private:
 	{
 		return StringHelper::ToString(Type);
 	}
-	
+
 
 	void Convert(const TypeNode& V, TypeSymbol& Out);
-	
+
 	Symbol* GetSymbol(const ClassInfo* Info)
 	{
-		return GetSymbol(Info->FullName,SymbolType::Type_class);
+		return GetSymbol(Info->FullName, SymbolType::Type_class);
 	}
 	Symbol* GetSymbol(const FuncInfo* Info)
 	{
@@ -326,12 +331,14 @@ private:
 	{
 		return &_Table.GetSymbol(Info);
 	}
-	
+	void DoSymbolRedefinitionCheck(const Symbol* Syb,const Token* Value);
+	void DoSymbolRedefinitionCheck(const String_view FullName,SymbolType Type, const Token* Value);
+
 	bool IsVaidType(TypeSymbol& Out);
 	bool CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode = true);
 	bool CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
 
-	bool DoImplicitConversion(IRInstruction* Ex,const TypeSymbol ExType, const TypeSymbol& ToType);
+	bool DoImplicitConversion(IRInstruction* Ex, const TypeSymbol ExType, const TypeSymbol& ToType);
 	void DoExplicitlConversion(IRInstruction* Ex, const TypeSymbol ExType, const TypeSymbol& ToType);
 
 	bool IsSIntType(const TypeSymbol& TypeToCheck);
@@ -346,8 +353,8 @@ private:
 
 	bool IsimmutableRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
 
-	bool IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type,bool ReassignMode);
-	
+	bool IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode);
+
 	bool HasDestructor(const TypeSymbol& TypeToCheck);
 	//Generic
 	struct GenericFuncInfo
@@ -358,9 +365,9 @@ private:
 	};
 
 	Stack<GenericFuncInfo> GenericFuncName;
-	
-	bool GetSize(const TypeSymbol& Type,UAddress& OutSize);
-	bool GetOffset(const ClassInfo& Type,const FieldInfo* Field, UAddress& OutOffset);
+
+	bool GetSize(const TypeSymbol& Type, UAddress& OutSize);
+	bool GetOffset(const ClassInfo& Type, const FieldInfo* Field, UAddress& OutOffset);
 
 	struct Get_FuncInfo
 	{
@@ -375,7 +382,7 @@ private:
 		};
 		ThisPar_t ThisPar = ThisPar_t::NoThisPar;
 		const FuncInfo* Func = nullptr;
-		Symbol* SymFunc=nullptr;
+		Symbol* SymFunc = nullptr;
 	};
 
 	Get_FuncInfo GetFunc(
@@ -398,11 +405,11 @@ private:
 		TypeSymbol Ret);
 	//Generics
 
-	void GenericFuncInstantiate(Symbol* Func,const Vector<TypeSymbol>& GenericInput);
+	void GenericFuncInstantiate(Symbol* Func, const Vector<TypeSymbol>& GenericInput);
 
 	String GetGenericFuncName(Symbol* Func, const Vector<TypeSymbol>& Type);
 
-	void GenericTypeInstantiate(Symbol* Class , const Vector<TypeSymbol>& Type);
+	void GenericTypeInstantiate(Symbol* Class, const Vector<TypeSymbol>& Type);
 
 	Unordered_map<const void*, Get_FuncInfo> FuncToSyboID;
 	//
@@ -422,28 +429,28 @@ private:
 
 	bool ConstantExpressionAbleType(const TypeSymbol& Type);
 
-	
+
 	bool EvaluateDefaultConstructor(EvaluatedEx& Out);
 	bool Evaluate(EvaluatedEx& Out, const ValueExpressionNode& node);
 	bool Evaluate(EvaluatedEx& Out, const BinaryExpressionNode& node);
 	bool Evaluate(EvaluatedEx& Out, const CastNode& node);
-	bool Evaluate_t(EvaluatedEx& Out,const Node* node);
+	bool Evaluate_t(EvaluatedEx& Out, const Node* node);
 
-	bool EvaluatePostfixOperator(EvaluatedEx& Out,TokenType Op);
+	bool EvaluatePostfixOperator(EvaluatedEx& Out, TokenType Op);
 	bool HasConstantPostfixOperator(const TypeSymbol& Type, TokenType Op);
 
 	bool CanEvaluateImplicitConversionConstant(const TypeSymbol& Type, const TypeSymbol& ToType);
 	bool EvaluateImplicitConversion(EvaluatedEx& In, const TypeSymbol& ToType, EvaluatedEx& out);
-	
+
 	//IR
 	void DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Name, const ValueParametersNode& Pars);
 	void DoFuncCall(const TypeSymbol& Type, const Get_FuncInfo& Func, ValueParametersNode& ValuePars);
-	
+
 
 	void DoDestructorCall(const ObjectToDrop& Object);
 
 
-	
+
 	IRInstruction* IR_Load_UIntptr(UAddress Value);
 	IRInstruction* IR_Load_SIntptr(SIntNative Value);
 	IRInstruction* Build_Add_uIntPtr(IROperator field, IROperator field2);
@@ -471,7 +478,7 @@ private:
 	void LogCantCastImplicitTypes(const Token* Token, TypeSymbol& Ex1Type, TypeSymbol& UintptrType, bool ReassignMode);
 	void LogReadingFromInvaidVariable(const Token* Token, String_view Str);
 	void LogCantFindVarError(const Token* Token, String_view Str);
-	void LogCantFindVarMemberError(const Token* Token, String_view Str,const TypeSymbol& OnType);
+	void LogCantFindVarMemberError(const Token* Token, String_view Str, const TypeSymbol& OnType);
 	void LogCantModifyiMutableError(const Token* Token, String_view Name);
 	void LogCantCastExplicityTypes(const Token* Token, TypeSymbol& Ex0Type, TypeSymbol& ToTypeAs);
 	void LogCantFindTypeError(const Token* Token, String_view Name);
@@ -480,18 +487,21 @@ private:
 
 	void LogCanIncorrectParCount(const Token* Token, String_view FuncName, size_t Count, size_t FuncCount);
 	void LogCanIncorrectGenericCount(const Token* Token, String_view FuncName, size_t Count, size_t FuncCount);
-	
+
 	void LogCantFindFuncError(const Token* Token, String_view FuncName,
 		const Vector<TypeSymbol>& Generics,
 		const Vector<TypeSymbol>& WithTypes,
-	    const TypeSymbol& RetType);
+		const TypeSymbol& RetType);
 
 	void LogTypeMustBeAnConstantExpressionAble(const Token* Token, const TypeSymbol& Type);
 	void LogCantFindPostfixOpForTypes_Constant(const Token* BinaryOp, TypeSymbol& Ex0Type);
 	void LogCantDoPostfixOpForTypes_Constant(const Token* BinaryOp, TypeSymbol& Ex0Type);
 	void LogCantCastImplicitTypes_Constant(const Token* Token, TypeSymbol& Ex1Type, TypeSymbol& UintptrType);
 	void LogCantFindNamespace(const Token* Token, const String_view Namespace);
-		
+	void LogFuncMustBe(const Token* Token, const String_view FuncName, TypeSymbol& TypeSybToBe);
+	void LogSymbolRedefinition(const Token* Token, const Symbol* Symbol);
+	void LogUseingVarableBeforDeclared(const Token* Token);
+
 	struct ReadVarErrorCheck_t
 	{
 		bool CantFindVar = false;

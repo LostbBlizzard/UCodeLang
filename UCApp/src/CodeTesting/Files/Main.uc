@@ -4,11 +4,12 @@
 $Vec2i:
  int x;
  int y;
+
  |Other[this&]:
   ret 1;
 
 $Player:
- |new[this&] -> void;
+ 
  Vec2i Pos;
  int Hp;
 
@@ -16,19 +17,23 @@ $Player:
 
  |Hello[this&]:
   ret 0;
+ |new[this&] -> void;
  |drop[this&] -> void;
 
 |main[]:
 
- Player& Tep = new Player();
- Tep.Ptr.Other();
-
- var H = Tep.Pos;
+ int b = a;
+ int a;
  
- drop(Tep);
+ //Player& Tep = new Player();
+ //Tep.Ptr.Other();
 
- Player Player1 = [];
- var H = Player1.Ptr.y;
+ //var H = Tep.Pos;
+ 
+ //drop(Tep);
+
+ //Player Player1 = [];
+ //var H = Player1.Ptr.y;
  
  //Player1.Hello();
  //Player::Hello(Player1);
