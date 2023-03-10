@@ -879,9 +879,20 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 	}
 
+	
+
 	if (passtype == PassType::FixedTypes)
 	{
-		FuncRetCheck(*node.Signature.Name.Token, syb, Info);
+		if (!node.Body.has_value() && syb->VarType._Type == TypesEnum::Var)
+		{
+			auto Token = node.Signature.Name.Token;
+			LogBeMoreSpecifiicForRetType(FuncName, Token);
+		}
+		else {
+			FuncRetCheck(*node.Signature.Name.Token, syb, Info);
+			auto Token = node.Signature.Name.Token;
+			DoSymbolRedefinitionCheck(syb, Info, Token);
+		}
 	}
 
 	_FuncStack.pop();
@@ -4136,6 +4147,53 @@ void SystematicAnalysis::DoSymbolRedefinitionCheck(const String_view FullName, S
 		LogSymbolRedefinition(Value, other);
 	}
 }
+void SystematicAnalysis::DoSymbolRedefinitionCheck(const Symbol* Syb, const FuncInfo* Fvalue, const Token* Value)
+{
+	auto other = GetSymbol(Syb->FullName, Syb->Type);
+	if (other != Syb)
+	{
+		bool Good = false;
+
+		if (other->Type == SymbolType::Func)
+		{
+			FuncInfo* SybValue = other->Get_Info<FuncInfo>();
+
+
+			/*if (!AreTheSameWithOutimmutable(Fvalue->Ret, SybValue->Ret))
+			{
+				goto GoodJump;
+			}
+			*/
+
+			if (SybValue->Pars.size() == Fvalue->Pars.size())
+			{
+
+				for (size_t i = 0; i < Fvalue->Pars.size(); i++)
+				{
+					auto& V1 = Fvalue->Pars[i];
+					auto& V2 = SybValue->Pars[i];
+					if (!AreTheSameWithOutimmutable(V1, V2))
+					{
+
+						return;
+					}
+				}
+				goto GoodJump;
+			}
+			else 
+			{
+				return;
+			}
+		}
+
+
+		GoodJump:
+		if (!Good) 
+		{
+			LogSymbolRedefinition(Value, Syb);
+		}
+	}
+}
 
 bool SystematicAnalysis::IsVaidType(TypeSymbol& Out)
 {
@@ -6153,6 +6211,11 @@ void SystematicAnalysis::LogUseingVarableBeforDeclared(const Token* Token)
 {
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "trying to use the varable '" + (String)Token->Value._String + "\' before its defined.");
+}
+void SystematicAnalysis::LogBeMoreSpecifiicForRetType(const String_view FuncName, const Token* Token)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+		, "be more Specifiic For return Type. like |" + (String)FuncName + "[...] -> [Type]; or give the funcion a body.");
 }
 UCodeLangFrontEnd
 
