@@ -401,6 +401,7 @@ private:
 			OnIRlocationStack,
 			OnIRlocationStackNonedef,
 			PushWasCalled,
+			AutoPushThis,
 		};
 		ThisPar_t ThisPar = ThisPar_t::NoThisPar;
 		const FuncInfo* Func = nullptr;

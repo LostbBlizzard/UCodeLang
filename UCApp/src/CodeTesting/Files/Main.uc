@@ -13,11 +13,11 @@ $Player:
  int Hp;
 
  |new[this&] -> void:
- this.Hello();
+  Hello(5);
 
  |drop[this&] -> void;
  
- |Hello[this&] -> void;
+ |Hello[this&,int a] -> void;
  
 
 
@@ -25,5 +25,5 @@ $Player:
 |main[]:
  Player Player1 = [];
  
- Player1.Hello();
+ Player1.Hello(7);
  
