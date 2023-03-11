@@ -484,10 +484,10 @@ private:
 	IRInstruction* Build_Mult_sIntPtr(IRInstruction* field, IRInstruction* field2);
 	IRInstruction* Build_Div_uIntPtr(IROperator field, IROperator field2);
 	IRInstruction* Build_Div_sIntPtr(IROperator field, IROperator field2);
-	IRInstruction* Build_Increment_uIntPtr(UAddress Value);
-	IRInstruction* Build_Decrement_uIntPtr(UAddress Value);
-	IRInstruction* Build_Increment_sIntPtr(SIntNative Value);
-	IRInstruction* Build_Decrement_sIntPtr(SIntNative Value);
+	void Build_Increment_uIntPtr(IRInstruction* field, UAddress Value);
+	void Build_Decrement_uIntPtr(IRInstruction* field, UAddress Value);
+	void Build_Increment_sIntPtr(IRInstruction* field, SIntNative Value);
+	void Build_Decrement_sIntPtr(IRInstruction* field, SIntNative Value);
 	//Errors
 
 	void LogCantFindCompoundOpForTypes(const Token* BinaryOp, TypeSymbol& Ex0Type, TypeSymbol& Ex1Type);

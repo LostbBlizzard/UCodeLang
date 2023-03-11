@@ -1099,42 +1099,44 @@ GotNodeType Parser::GetType(TypeNode& out, bool ignoreRighthandOFtype, bool igno
 			NextToken();
 			out.PushAsAddess();
 		}
-		
-		Token2 = TryGetToken();
-		if (Token2 && Token2->Type == TokenType::Left_Bracket)
+		else 
 		{
-			NextToken();
-			Token2 = TryGetToken(); 
-			if (Token2->Type == TokenType::bitwise_and)
+			Token2 = TryGetToken();
+			if (Token2 && Token2->Type == TokenType::Left_Bracket)
 			{
 				NextToken();
-
 				Token2 = TryGetToken();
-				if (Token2->Type == TokenType::Right_Bracket)
+				if (Token2->Type == TokenType::bitwise_and)
 				{
-					out.PushAsArrayAddess();
-					
+					NextToken();
+
+					Token2 = TryGetToken();
+					if (Token2->Type == TokenType::Right_Bracket)
+					{
+						out.PushAsArrayAddess();
+
+					}
+					else
+					{
+						throw std::exception("not added");
+					}
+				}
+				else if (Token2->Type == TokenType::Right_Bracket)
+				{
+					throw std::exception("not added");
+					goto Done;
 				}
 				else
 				{
 					throw std::exception("not added");
 				}
+
+
+			Done:
+				Token2 = TryGetToken();
+				TokenTypeCheck(Token2, TokenType::Right_Bracket);
+				NextToken();
 			}
-			else if (Token2->Type == TokenType::Right_Bracket) 
-			{
-				throw std::exception("not added");
-				goto Done;
-			}
-			else
-			{
-				throw std::exception("not added");
-			}
-		
-		
-		Done:
-			Token2 = TryGetToken();
-			TokenTypeCheck(Token2, TokenType::Right_Bracket);
-			NextToken();
 		}
 	}
 	return r;

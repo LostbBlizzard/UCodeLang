@@ -1,15 +1,7 @@
 
 
 
-$Vec2i:
- int x;
- int y;
-
- |Other[this&]:
-  ret 1;
-
 $Player:
- Vec2i Pos;
  int Hp;
 
  |new[this&] -> void:
@@ -23,7 +15,7 @@ $Player:
 
 
 |main[]:
- Player Player1 = [];
+ Player[&] Player1 = new Player[5];
  
- Player1.Hello(7);
+ drop(Player1);
  

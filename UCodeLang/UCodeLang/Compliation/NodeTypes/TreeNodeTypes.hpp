@@ -360,7 +360,7 @@ struct TypeNode :Node
 	}
 	void PushAsArrayAddess()
 	{
-		IsAddess = true;
+		IsAddessArray = true;
 	}
 	void SetAsimmutable()
 	{

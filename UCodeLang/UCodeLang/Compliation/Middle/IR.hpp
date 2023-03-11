@@ -672,6 +672,16 @@ struct IRBlock
 	{
 		NewStore(Object, NewSub(Object, NewLoad(1)));
 	}
+
+	void New_Increment(IRInstruction* Object, IRInstruction* ValueToAdd)
+	{
+		NewStore(Object, NewAdd(Object, ValueToAdd));
+	}
+	void New_Decrement(IRInstruction* Object, IRInstruction* ValueToAdd)
+	{
+		NewStore(Object, NewSub(Object, ValueToAdd));
+	}
+
 	//struct
 	IRInstruction* New_Member_Access(IRInstruction* ObjectSrc,const IRStruct* ObjectTypeofSrc,size_t MemberIndex)
 	{
