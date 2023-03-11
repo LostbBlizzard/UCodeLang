@@ -9,34 +9,21 @@ $Vec2i:
   ret 1;
 
 $Player:
- 
  Vec2i Pos;
  int Hp;
 
- Vec2i& Ptr;
+ |new[this&] -> void:
+  Hp++;
 
- |Hello[this&]:
-  ret 0;
- |new[this&] -> void;
  |drop[this&] -> void;
+ 
+ |Hello[this&] -> void;
+ 
 
 
-
-|main[int a] -> void;
 
 |main[]:
-
+ Player Player1 = [];
  
+ Player1.Hello();
  
- //Player& Tep = new Player();
- //Tep.Ptr.Other();
-
- //var H = Tep.Pos;
- 
- //drop(Tep);
-
- //Player Player1 = [];
- //var H = Player1.Ptr.y;
- 
- //Player1.Hello();
- //Player::Hello(Player1);

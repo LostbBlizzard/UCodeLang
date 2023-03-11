@@ -70,6 +70,7 @@ private:
 	IRInstruction* _LastExpressionField = 0;
 	IRFunc* LookingAtIRFunc = nullptr;
 	IRBlock* LookingAtIRBlock = nullptr;
+	
 
 	enum class  ObjectToDropType
 	{
@@ -331,6 +332,12 @@ private:
 	{
 		return &_Table.GetSymbol(Info);
 	}
+
+	bool _InSideClass()
+	{
+		return  _ClassStack.size() && _InStatements == false;
+	}
+
 	void DoSymbolRedefinitionCheck(const Symbol* Syb,const Token* Value);
 	void DoSymbolRedefinitionCheck(const String_view FullName,SymbolType Type, const Token* Value);
 	void DoSymbolRedefinitionCheck(const Symbol* Syb, const FuncInfo* Fvalue, const Token* Value);
