@@ -846,4 +846,17 @@ struct AliasNode_Func :Node
 	NamedParametersNode Parameters;
 	TypeNode ReturnType;
 };
+
+
+struct IndexedExpresionNode :Node
+{
+	IndexedExpresionNode() : Node(NodeType::IndexedExpresionNode)
+	{
+
+	}
+	AddforNode(IndexedExpresionNode);
+
+	ExpressionNodeType SourceExpression;// ex[SomeEx]
+	ExpressionNodeType IndexExpression;// SomeVar[ex]
+};
 UCodeLangFrontEnd
