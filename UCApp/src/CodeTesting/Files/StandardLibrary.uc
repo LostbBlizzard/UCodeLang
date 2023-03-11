@@ -8,13 +8,6 @@
   |Sqrt<T>[T Value] -> T;
 
 // 
-// Packaged FilePath:Types/alias.uc
-// 
-
-%ULang:
- $size_t = uintptr;
-
-// 
 // Packaged FilePath:Types/Array.uc
 // 
 
@@ -56,10 +49,10 @@
 // 
 
 %ULang:
-  $Size_t = uintptr;
+  $size_t = uintptr;
 
-  |ToString<T>[];//for ints 
-  |ToString<T>[];//for floats 
+  |ToString<T>[] -> String;//for ints 
+  |ToStringf<T>[] -> String;//for floats 
 
 // 
 // Packaged FilePath:Types/String.uc
@@ -71,7 +64,7 @@
 
 
 
- $StringView = Span<char>;
+ $StringView = View<char>;
 
 // 
 // Packaged FilePath:Types/Vector.uc

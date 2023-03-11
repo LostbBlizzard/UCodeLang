@@ -2761,6 +2761,7 @@ void SystematicAnalysis::OnExpressionTypeNode(const Node* node)
 	case NodeType::BinaryExpressionNode:OnExpressionNode(*BinaryExpressionNode::As(node));break;
 	case NodeType::ValueExpressionNode:OnExpressionNode(*ValueExpressionNode::As(node)); break;
 	case NodeType::CastNode:OnExpressionNode(*CastNode::As(node)); break;
+	case NodeType::IndexedExpresionNode:OnExpressionNode(*IndexedExpresionNode::As(node)); break;
 	default:
 		throw std::exception("not added");
 		break;
@@ -3687,6 +3688,81 @@ void SystematicAnalysis::OnExpressionNode(const CastNode& node)
 	}
 	LookingForTypes.pop();
 }
+void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
+{
+	if (LookingForTypes.size() && LookingForTypes.top()._Type != TypesEnum::Var)
+	{
+		TypeSymbol V; V.SetType(TypesEnum::Any);
+		LookingForTypes.push(V);
+	}
+	else
+	{
+		LookingForTypes.push(LookingForTypes.top());
+	}
+
+	if (passtype == PassType::GetTypes)
+	{
+		OnExpressionTypeNode(node.SourceExpression.Value.get());
+		OnExpressionTypeNode(node.IndexExpression.Value.get());
+	}
+
+	if (passtype == PassType::FixedTypes)
+	{
+
+		OnExpressionTypeNode(node.SourceExpression.Value.get());
+		TypeSymbol SourcType = LastExpressionType;
+
+		OnExpressionTypeNode(node.IndexExpression.Value.get());
+		TypeSymbol IndexType = LastExpressionType;
+
+		if (!HasIndexedOverLoadWith(SourcType, IndexType))
+		{
+			auto  Token = LastLookedAtToken;
+			LogCantBeIndexWithType(Token, SourcType, IndexType);
+		}
+
+
+
+		TypeSymbol lookingfor = LookingForTypes.top();
+
+
+		BinaryExpressionNode_Data V;
+		V.Op0 = SourcType;
+		V.Op1 = IndexType;
+
+
+		//all float bool int types
+		if (V.IsBuitIn())
+		{
+			V.Op0._IsAddress = false;
+			V.Op1._IsAddress = false;
+
+			if (lookingfor.IsAddressArray())
+			{
+				LastExpressionType = lookingfor;
+			}
+			else
+			{
+				lookingfor.SetAsAddress();
+				lookingfor._IsAddressArray = false;
+
+				LastExpressionType = lookingfor;
+			}
+
+		}
+
+		IndexedExpresion_Datas[&node] = V;
+
+	}
+
+
+	if (passtype == PassType::BuidCode)
+	{
+		throw std::exception("not added");
+	}
+
+	LookingForTypes.pop();
+}
 void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 {
 	if (passtype == PassType::FixedTypes)
@@ -4078,6 +4154,18 @@ bool SystematicAnalysis::HasPostfixOverLoadWith(const TypeSymbol& TypeA, TokenTy
 
 	return false;
 }
+bool SystematicAnalysis::HasIndexedOverLoadWith(const TypeSymbol& TypeA, const TypeSymbol& TypeB)
+{
+	if (TypeA.IsAddressArray())
+	{
+		TypeSymbol Tep;
+		Tep.SetType(TypesEnum::uIntPtr);
+		return AreTheSame(Tep, TypeB);
+	}
+
+
+	return false;
+}
 String SystematicAnalysis::ToString(const TypeSymbol& Type)
 {
 	String r;
@@ -4249,7 +4337,13 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 		if (V.Generic.Values.size())
 		{
 			SybV = GetSymbol(Name, SymbolType::Generic_class);
+			if (SybV == nullptr)
+			{
+				auto Token = V.Name.Token;
 
+				LogCantFindTypeError(Token, Name);
+				return;
+			}
 			ClassInfo* CInfo = SybV->Get_Info<ClassInfo>();
 
 			if (CInfo->_Generic.size() != V.Generic.Values.size())
@@ -6422,6 +6516,13 @@ void SystematicAnalysis::LogBeMoreSpecifiicForRetType(const String_view FuncName
 {
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "be more Specifiic For return Type. like |" + (String)FuncName + "[...] -> [Type]; or give the funcion a body.");
+}
+void SystematicAnalysis::LogCantBeIndexWithType(const Token* Token, const  TypeSymbol& Ex0Type, const  TypeSymbol& IndexType)
+{
+	if (Ex0Type.IsBadType() || IndexType.IsBadType()) { return; }
+
+	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+		, "The Type '" + ToString(Ex0Type) + "\' Cant be Index with '" + ToString(IndexType) + "'.");
 }
 UCodeLangFrontEnd
 

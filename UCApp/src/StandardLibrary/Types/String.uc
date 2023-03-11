@@ -4,4 +4,4 @@
 
 
 
- $StringView = Span<char>;
+ $StringView = View<char>;
