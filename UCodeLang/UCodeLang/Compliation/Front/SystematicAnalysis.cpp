@@ -1424,11 +1424,14 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 				{
 					bool WasImutable = VarType.Isimmutable();
 					bool WasIsAddress = VarType.IsAddress();
-
+					bool WasIsAddressArry = VarType.IsAddressArray();
 
 					VarType = Ex;
+
 					if (WasImutable) { VarType.SetAsimmutable(); }
 					if (WasIsAddress) { VarType.SetAsAddress(); }
+					if (WasIsAddressArry) { VarType.SetAsAddressArray(); }
+
 					VarType.SetAsLocation();
 					GetSize(VarType, syb->Size);
 				}
@@ -2965,7 +2968,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 		{
 			StringliteralNode* nod = StringliteralNode::As(node.Value.get());
 
-			TypeSymbol CStringType;
+			TypeSymbol CStringType;//umut char[&]
 
 			CStringType.SetType(TypesEnum::Char);
 			CStringType.SetAsAddressArray();
@@ -3101,11 +3104,22 @@ void SystematicAnalysis::OnNewNode(NewExpresionNode* nod)
 			}
 
 			LookingForTypes.pop();
+
 		}
+	
 		auto Func = GetFunc(Type, nod->Parameters);
 		FuncToSyboID[nod] = Func;
 
 
+
+		if (IsArray)
+		{
+			Type.SetAsAddressArray();
+		}
+		else
+		{
+			Type.SetAsAddress();
+		}
 	}
 
 	if (passtype == PassType::BuidCode)
@@ -3122,7 +3136,7 @@ void SystematicAnalysis::OnNewNode(NewExpresionNode* nod)
 		
 		if (IsArray)
 		{
-			
+
 			TypeSymbol UintptrType = TypeSymbol();
 			UintptrType.SetType(TypesEnum::uIntPtr);
 			UAddress UintptrSize;
@@ -3142,61 +3156,64 @@ void SystematicAnalysis::OnNewNode(NewExpresionNode* nod)
 
 			auto SizeV = IR_Load_UIntptr(TypeSize);//UintptrSize is for the array length for Drop 
 
-		
 
-			auto DataSize = Build_Mult_uIntPtr(Ex0,SizeV);//uintptr 
+
+			auto DataSize = Build_Mult_uIntPtr(Ex0, SizeV);//uintptr 
 			//malloc(sizeof(Type) * ArrayExpression); 
-			
+
 
 			if (TypeHaveDestructor)
 			{
-				Build_Increment_uIntPtr(UintptrSize);//Make room for ItemSize onPtr
+				Build_Increment_uIntPtr(DataSize,UintptrSize);//Make room for Size on the Ptr
 			}
 
 			auto MallocPtr = _LastExpressionField = LookingAtIRBlock->NewMallocCall(DataSize);
 
 			if (TypeHaveDestructor)
 			{
-				Build_Increment_uIntPtr(UintptrSize);
-				
+				LookingAtIRBlock->NewDereferenc_Store(MallocPtr, DataSize);//set Size.
+				Build_Increment_uIntPtr(MallocPtr,UintptrSize);//move pointer
+
 			}
-			
+
 			//Call default on every
-			
-			if (IsPrimitive(Type))
+
+			//our index
+			auto Indexir = IR_Load_UIntptr(0);
+
+			size_t JumpLabel = LookingAtIRBlock->GetIndex();
+			auto Cmpbool = LookingAtIRBlock->NewC_Equalto(Indexir, Ex0);
+
+
+			auto JumpIns = LookingAtIRBlock->NewConditionalJump(Cmpbool, NullUInt64);
+
+			auto OffsetIr = LookingAtIRBlock->New_Index_Vetor(MallocPtr, Indexir, SizeV);
+
+			//loop on every
+			bool IsPrimitiveType = IsPrimitive(Type);
+
+			if (!IsPrimitiveType) 
 			{
+				Func.ThisPar = Get_FuncInfo::ThisPar_t::PushFromLast;
+				_LastExpressionField = OffsetIr;
+			}
 
-				//our index
+			DoFuncCall(Type, Func, ValuePars);
 
-				
-				auto Indexir = IR_Load_UIntptr(0);
-				
-
-size_t JumpLabel = LookingAtIRBlock->GetIndex();
-				auto Cmpbool = LookingAtIRBlock->NewC_Equalto(Indexir, Ex0);
-
-				
-				auto JumpIns = LookingAtIRBlock->NewConditionalJump(Cmpbool, NullUInt64);
-
-				auto OffsetIr = LookingAtIRBlock->New_Index_Vetor(MallocPtr, Indexir, SizeV);
-
-				//loop on evey
-				DoFuncCall(Type, Func, ValuePars);
+			if (IsPrimitiveType)
+			{
 				LookingAtIRBlock->NewDereferenc_Store(OffsetIr, _LastExpressionField);
-
-				LookingAtIRBlock->New_Increment(Indexir);
-
-
-				
-				LookingAtIRBlock->NewJump(JumpLabel);
-
-				size_t ThisJumpLable = LookingAtIRBlock->GetIndex();
-				LookingAtIRBlock->UpdateConditionaJump(JumpIns, Cmpbool, ThisJumpLable);
 			}
-			else
-			{
-				throw std::exception("not added");
-			}
+
+			LookingAtIRBlock->New_Increment(Indexir);//index++
+
+
+
+			LookingAtIRBlock->NewJump(JumpLabel);
+
+			size_t ThisJumpLable = LookingAtIRBlock->GetIndex();
+			LookingAtIRBlock->UpdateConditionaJump(JumpIns, Cmpbool, ThisJumpLable);
+
 			_LastExpressionField = MallocPtr;
 
 			LookingForTypes.pop();
@@ -3220,37 +3237,13 @@ size_t JumpLabel = LookingAtIRBlock->GetIndex();
 				DoFuncCall(Type, Func, ValuePars);
 			}
 			_LastExpressionField = MallocPtr;
+			
 		}
 	
 	}
 
-	Type.SetAsAddress();
+	
 
-	if (IsArray)
-	{
-		if (passtype != PassType::BuidCode)
-		{
-			TypeSymbol UintptrType = TypeSymbol();
-			UintptrType.SetType(TypesEnum::uIntPtr);
-			LookingForTypes.push(UintptrType);
-
-			OnExpressionTypeNode(nod->Arrayexpression.Value.get());
-			auto Ex1Type = LastExpressionType;
-
-
-			if (!CanBeImplicitConverted(Ex1Type, UintptrType))
-			{
-				auto  Token = LastLookedAtToken;
-
-				LogCantCastImplicitTypes(Token, Ex1Type, UintptrType, true);
-
-			}
-
-			LookingForTypes.pop();
-		}
-		Type.SetAsAddressArray();
-
-	}
 
 	LastExpressionType = Type;
 }
@@ -3729,8 +3722,8 @@ void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 	auto Ex0Type = LastExpressionType;
 	if (passtype == PassType::FixedTypes)
 	{
-		//if (!(Ex0Type.IsAddress() || Ex0Type.IsLocationValue()))
-		if (!(Ex0Type.IsAddress()))
+
+		if (!(Ex0Type.IsAddress() || Ex0Type.IsAddressArray()))
 		{
 			auto Token = LastLookedAtToken;
 			ExpressionMustbeAnLocationValueError(Token, Ex0Type);
@@ -3752,10 +3745,11 @@ void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 				UAddress UintptrSize;
 				GetSize(UintptrType, UintptrSize);
 
-				Build_Decrement_uIntPtr(UintptrSize);
-				//Decrement here to get size
+				auto StartArrPointer = LookingAtIRBlock->NewLoad(Ex0);
+				Build_Decrement_uIntPtr(Ex0,UintptrSize);//get the size the object
+				auto ArrSize = LookingAtIRBlock->NewLoad_Dereferenc(Ex0,ConvertToIR(UintptrType));
+				
 
-				//auto ItemCount = _Builder.GetLastField();
 
 				//for loop
 
@@ -3920,6 +3914,11 @@ bool SystematicAnalysis::AreTheSame(const TypeSymbol& TypeA, const TypeSymbol& T
 }
 bool SystematicAnalysis::AreTheSameWithOutimmutable(const TypeSymbol& TypeA, const TypeSymbol& TypeB)
 {
+	if (TypeA.IsAddressArray() != TypeB.IsAddressArray())
+	{
+		return false;
+	}
+
 	if (TypeA._Type == TypesEnum::CustomType
 		&& TypeB._Type == TypesEnum::CustomType)
 	{
@@ -4493,6 +4492,11 @@ bool SystematicAnalysis::HasDestructor(const TypeSymbol& TypeToCheck)
 	{
 		Tep._IsAddress = false;
 	}
+	if (Tep.IsAddressArray())
+	{
+		Tep._IsAddressArray = false;
+	}
+
 	String TypeDestructorFuncName = ToString(Tep);
 	ScopeHelper::GetApendedString(TypeDestructorFuncName, ClassDestructorFunc);
 
@@ -4913,6 +4917,12 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 				{
 					tep_._IsAddress = false;
 				}
+				if (tep_.IsAddressArray())
+				{
+					tep_._IsAddressArray = false;
+				}
+
+
 				ScopedName = ToString(tep_) + ScopeHelper::_ScopeSep;
 				ScopedName += Name.ScopedName.back().token->Value._String;
 
@@ -5999,6 +6009,7 @@ IRInstruction* SystematicAnalysis::Build_Mult_sIntPtr(IRInstruction* field, IRIn
 
 IRInstruction* SystematicAnalysis::Build_Div_uIntPtr(IROperator field, IROperator field2)
 {
+	throw std::exception("");
 	switch (_Settings->PtrSize)
 	{
 	case IntSizes::Int8:
@@ -6021,6 +6032,7 @@ IRInstruction* SystematicAnalysis::Build_Div_uIntPtr(IROperator field, IROperato
 
 IRInstruction* SystematicAnalysis::Build_Div_sIntPtr(IROperator field, IROperator field2)
 {
+	throw std::exception("");
 	switch (_Settings->PtrSize)
 	{
 	case IntSizes::Int8:
@@ -6041,21 +6053,15 @@ IRInstruction* SystematicAnalysis::Build_Div_sIntPtr(IROperator field, IROperato
 	}
 }
 
-IRInstruction* SystematicAnalysis::Build_Increment_uIntPtr(UAddress Value)
+void SystematicAnalysis::Build_Increment_uIntPtr(IRInstruction* field, UAddress Value)
 {
 	switch (_Settings->PtrSize)
 	{
-	case IntSizes::Int8:
-		//_Builder.Build_Increment8((Int8)Value);
-		break;
-	case IntSizes::Int16:
-		//_Builder.Build_Increment16((Int16)Value);
-		break;
 	case IntSizes::Int32:
-		//_Builder.Build_Increment32((Int32)Value);
+		LookingAtIRBlock->New_Increment(field,LookingAtIRBlock->NewLoad((UInt32)Value));
 		break;
 	case IntSizes::Int64:
-		//_Builder.Build_Increment64((Int64)Value);
+		LookingAtIRBlock->New_Increment(field,LookingAtIRBlock->NewLoad((UInt64)Value));
 		break;
 	default:
 		throw std::exception("");
@@ -6063,21 +6069,15 @@ IRInstruction* SystematicAnalysis::Build_Increment_uIntPtr(UAddress Value)
 	}
 }
 
-IRInstruction* SystematicAnalysis::Build_Decrement_uIntPtr(UAddress Value)
+void SystematicAnalysis::Build_Decrement_uIntPtr(IRInstruction* field, UAddress Value)
 {
 	switch (_Settings->PtrSize)
 	{
-	case IntSizes::Int8:
-		//_Builder.Build_Decrement8((Int8)Value);
-		break;
-	case IntSizes::Int16:
-		//_Builder.Build_Decrement16((Int16)Value);
-		break;
 	case IntSizes::Int32:
-		//_Builder.Build_Decrement32((Int32)Value);
+		LookingAtIRBlock->New_Decrement(field, LookingAtIRBlock->NewLoad((UInt32)Value));
 		break;
 	case IntSizes::Int64:
-		//_Builder.Build_Decrement64((Int64)Value);
+		LookingAtIRBlock->New_Decrement(field, LookingAtIRBlock->NewLoad((UInt64)Value));
 		break;
 	default:
 		throw std::exception("");
@@ -6085,14 +6085,14 @@ IRInstruction* SystematicAnalysis::Build_Decrement_uIntPtr(UAddress Value)
 	}
 }
 
-IRInstruction* SystematicAnalysis::Build_Increment_sIntPtr(SIntNative Value)
+void SystematicAnalysis::Build_Increment_sIntPtr(IRInstruction* field, SIntNative Value)
 {
-	return Build_Increment_uIntPtr((UAddress)Value);
+	return Build_Increment_uIntPtr(field, *(UAddress*)&Value);
 }
 
-IRInstruction* SystematicAnalysis::Build_Decrement_sIntPtr(SIntNative Value)
+void SystematicAnalysis::Build_Decrement_sIntPtr(IRInstruction* field, SIntNative Value)
 {
-	return Build_Decrement_uIntPtr((UAddress)Value);
+	return Build_Decrement_uIntPtr(field,*(UAddress*)&Value);
 }
 
 void SystematicAnalysis::CheckVarWritingErrors(Symbol* Symbol, const Token* Token, String_view& Name)
