@@ -53,6 +53,7 @@ enum class NodeType :UInt8
 	LibImportNode,
 	FloatliteralNode,
 	CharliteralNode,
+	IndexedExpresionNode,
 };
 
 
