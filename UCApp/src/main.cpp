@@ -63,7 +63,7 @@ int main()
 {
 
 
-	/*
+	
 	{
 		namespace fs = std::filesystem;
 		std::stringstream Text;
@@ -78,6 +78,7 @@ int main()
 			out.close();
 		}
 
+		/*
 		{
 			String outpath = "C:/CoolStuff/CoolCodeingStuff/C++/Projects/UCodeLang/UCodeLang/"
 				"UCodeAnalyzer/CodeBuilds/StandardLibrary.cpp";
@@ -101,8 +102,9 @@ int main()
 			out << Str2;
 			out.close();
 		}
+		*/
 	}
-	*/
+	
 
 	//ULangTest::RunTests();
 	
