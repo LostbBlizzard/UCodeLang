@@ -12,10 +12,10 @@ $Player:
  |Hello[this&,int a] -> void;
  
 
+|newPlayers[] -> Player[&]:
+ ret new Player[5];
+|droplayers[Player[&] V]:
+ drop(V);
 
-
-|main[]:
- Player[&] Player1 = new Player[5];
- 
- drop(Player1);
+|main[]-> void;
  

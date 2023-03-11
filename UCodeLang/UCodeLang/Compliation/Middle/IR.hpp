@@ -178,8 +178,11 @@ inline bool IsLoadValue(IRInstructionType Value)
 {
 	return Value == IRInstructionType::Load
 		|| Value == IRInstructionType::LoadReturn
-		|| Value == IRInstructionType::PushParameter
-		|| Value == IRInstructionType::ConditionalJump;
+		|| Value == IRInstructionType::PushParameter;
+}
+inline bool IsLoadValueOnInput(IRInstructionType Value)
+{
+	return Value == IRInstructionType::ConditionalJump;
 }
 
 inline bool IsLocation(IRInstructionType Value)

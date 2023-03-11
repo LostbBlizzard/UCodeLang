@@ -105,6 +105,11 @@ String IRBuilder::ToString()
 
 	for (auto& Item : Funcs)
 	{
+		State.StrValue = 0;
+		State.PointerToName.clear();
+		State.TepPushedParameters.clear();
+		//
+
 		State._Func = Item.get();
 		r += "|" + FromID(Item->identifier);
 		r += "[";

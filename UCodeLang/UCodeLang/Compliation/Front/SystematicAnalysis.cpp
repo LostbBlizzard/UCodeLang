@@ -2046,7 +2046,7 @@ IRInstruction* SystematicAnalysis::BuildMember_GetValue(const GetMemberTypeSymbo
 }
 IRInstruction* SystematicAnalysis::BuildMember_AsPointer(const GetMemberTypeSymbolFromVar_t& In)
 {
-	if (In.Type.IsAddress())
+	if (In.Type.IsAddress()|| In.Type.IsAddressArray())
 	{
 		return BuildMember_GetValue(In);
 	}
@@ -2076,7 +2076,7 @@ IRInstruction* SystematicAnalysis::BuildMember_DereferenceValue(const GetMemberT
 }
 IRInstruction* SystematicAnalysis::BuildMember_AsValue(const GetMemberTypeSymbolFromVar_t& In)
 {
-	if (In.Type.IsAddress())
+	if (In.Type.IsAddress() || In.Type.IsAddressArray())
 	{
 		return BuildMember_DereferenceValue(In);
 	}
@@ -3138,9 +3138,11 @@ void SystematicAnalysis::OnNewNode(NewExpresionNode* nod)
 		{
 
 			TypeSymbol UintptrType = TypeSymbol();
-			UintptrType.SetType(TypesEnum::uIntPtr);
 			UAddress UintptrSize;
-			GetSize(UintptrType, UintptrSize);
+			{
+				UintptrType.SetType(TypesEnum::uIntPtr);
+				GetSize(UintptrType, UintptrSize);
+			}
 			bool TypeHaveDestructor = HasDestructor(Type);
 
 			LookingForTypes.push(UintptrType);
@@ -3171,7 +3173,7 @@ void SystematicAnalysis::OnNewNode(NewExpresionNode* nod)
 
 			if (TypeHaveDestructor)
 			{
-				LookingAtIRBlock->NewDereferenc_Store(MallocPtr, DataSize);//set Size.
+				LookingAtIRBlock->NewDereferenc_Store(MallocPtr, Ex0);//set Size.
 				Build_Increment_uIntPtr(MallocPtr,UintptrSize);//move pointer
 
 			}
@@ -3740,23 +3742,65 @@ void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 
 			if (TypeHaveDestructor)
 			{
-				TypeSymbol UintptrType = TypeSymbol();
-				UintptrType.SetType(TypesEnum::uIntPtr);
 				UAddress UintptrSize;
-				GetSize(UintptrType, UintptrSize);
+				TypeSymbol UintptrType;
+				{
+					UintptrType = TypeSymbol();
+					UintptrType.SetType(TypesEnum::uIntPtr);
+					GetSize(UintptrType, UintptrSize);
+				}
+				UAddress TypeObjectSize;
+				TypeSymbol TypeOfArr;
+				{
+					TypeOfArr = Ex0Type;
+					TypeOfArr._IsAddressArray = false;
+					GetSize(TypeOfArr, TypeObjectSize);
+				}
 
 				auto StartArrPointer = LookingAtIRBlock->NewLoad(Ex0);
-				Build_Decrement_uIntPtr(Ex0,UintptrSize);//get the size the object
+				Build_Decrement_uIntPtr(Ex0, UintptrSize);//get the size the object
 				auto ArrSize = LookingAtIRBlock->NewLoad_Dereferenc(Ex0,ConvertToIR(UintptrType));
-				
-
-
-				//for loop
 
 
 
-				//_Builder.Build_Free(IROperand::AsLocation(_Builder.GetLastField()));
-				throw std::exception("not added");
+
+				//Call default on every
+
+				//our index
+				auto Indexir = IR_Load_UIntptr(0);
+
+				size_t JumpLabel = LookingAtIRBlock->GetIndex();
+				auto Cmpbool = LookingAtIRBlock->NewC_Equalto(Indexir, Ex0);
+
+
+				auto JumpIns = LookingAtIRBlock->NewConditionalJump(Cmpbool, NullUInt64);
+
+				auto OffsetIr = LookingAtIRBlock->New_Index_Vetor(StartArrPointer, Indexir, IR_Load_UIntptr(TypeObjectSize));
+
+				//loop on every
+				bool IsPrimitiveType = IsPrimitive(TypeOfArr);
+
+
+				{
+					ObjectToDrop Data;
+					Data._Object = OffsetIr;
+					Data.Type = TypeOfArr;
+					Data.DropType = ObjectToDropType::IRInstructionNoMod;
+					DoDestructorCall(Data);//call on Object
+				}
+
+
+				LookingAtIRBlock->New_Increment(Indexir);//index++
+
+
+
+				LookingAtIRBlock->NewJump(JumpLabel);
+
+				size_t ThisJumpLable = LookingAtIRBlock->GetIndex();
+				LookingAtIRBlock->UpdateConditionaJump(JumpIns, Cmpbool, ThisJumpLable);
+
+
+				LookingAtIRBlock->NewFreeCall(Ex0);
 			}
 			else
 			{
