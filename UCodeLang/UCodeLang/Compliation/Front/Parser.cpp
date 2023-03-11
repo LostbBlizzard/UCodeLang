@@ -994,7 +994,12 @@ Parser::GetNameCheck_ret Parser::GetNameCheck(ScopedNameNode& out)
 		UseGenericsNode Generic;
 		auto NameToken = TryGetToken();
 
-		if (NameToken == nullptr || NameToken->Type != TokenType::Name)
+		if (NameToken == nullptr 
+			|| 
+			(
+				NameToken->Type != TokenType::Name && !(NameToken->Type == TokenType::KeyWorld_This && out.ScopedName.size() == 0)
+			)
+			)
 		{
 			NextToken();
 			return { LookingAtT,GotNodeType::failed };

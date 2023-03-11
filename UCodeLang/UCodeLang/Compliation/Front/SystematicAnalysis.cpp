@@ -1296,8 +1296,22 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 String SystematicAnalysis::GetScopedNameAsString(const ScopedNameNode& node)
 {
 	String Text;
-	node.GetScopedName(Text);
-	return Text;
+	if (node.ScopedName[0].token->Type == TokenType::KeyWorld_This)
+	{
+		auto Type = *_FuncStack.top()->GetObjectForCall();
+		Type._IsAddress = false;
+
+		Text += ToString(Type);
+
+		if (node.ScopedName.size() > 1) 
+		{
+			Text += ScopeHelper::_ScopeSep;
+			node.GetScopedName(Text, 1);
+		}
+	}
+	else {
+		node.GetScopedName(Text);
+	}return Text;
 }
 void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 {
@@ -1771,37 +1785,69 @@ void SystematicAnalysis::OnDeclareThreadVariableNode(const DeclareThreadVariable
 bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
 {
 	auto Token = node.ScopedName.begin()->token;
-	auto& Str = Token->Value._String;
-	auto SymbolVar = GetSymbol(Str, SymbolType::Varable_t);
-	LastLookedAtToken = Token;
-	if (SymbolVar == nullptr)
+
+	TypeSymbol FeildType;
+	Symbol* FeildTypeAsSymbol;
+	if (Token->Type != TokenType::KeyWorld_This) 
 	{
-		LogCantFindVarError(Token, Str);
-		return false;
-	}
+		auto& Str = Token->Value._String;
+		auto SymbolVar = GetSymbol(Str, SymbolType::Varable_t);
+		LastLookedAtToken = Token;
+		if (SymbolVar == nullptr)
+		{
+			LogCantFindVarError(Token, Str);
+			return false;
+		}
 
-	CheckVarWritingErrors(SymbolVar, Token, String_view(Str));
+		CheckVarWritingErrors(SymbolVar, Token, String_view(Str));
 
-	TypeSymbol FeildType = SymbolVar->VarType;
-	Symbol* FeildTypeAsSymbol = SymbolVar;
-	
-	
-	if (SymbolVar->Type == SymbolType::Func)
-	{
-		FuncInfo* Finfo = SymbolVar->Get_Info<FuncInfo>();
-		String TepFuncPtr = GetTepFuncPtrName(SymbolVar);
-		Finfo->FullName = TepFuncPtr;
+		FeildType = SymbolVar->VarType;
+		FeildTypeAsSymbol = SymbolVar;
 
-		Symbol* V = GetTepFuncPtrSyb(TepFuncPtr,Finfo);
-		FeildType.SetType(V->ID);
+
+		if (SymbolVar->Type == SymbolType::Func)
+		{
+			FuncInfo* Finfo = SymbolVar->Get_Info<FuncInfo>();
+			String TepFuncPtr = GetTepFuncPtrName(SymbolVar);
+			Finfo->FullName = TepFuncPtr;
+
+			Symbol* V = GetTepFuncPtrSyb(TepFuncPtr, Finfo);
+			FeildType.SetType(V->ID);
+		}
+		else if (FeildType._Type == TypesEnum::CustomType)
+		{
+			FeildType = SymbolVar->VarType;
+		}
 	}
 	else
-	if (FeildType._Type == TypesEnum::CustomType)
 	{
-		FeildType = SymbolVar->VarType;	
+		if (_ClassStack.size() == 0)
+		{
+			CantUseThisKeyWordHereError(Token);
+			return false;
+		}
+
+
+		if (!IsInThisFuncCall())
+		{
+
+			//throw err.
+		}
+
+
+
+		auto& Func = _FuncStack.top();
+		auto ObjectType = Func->GetObjectForCall();
+
+		auto objecttypesyb = GetSymbol(*ObjectType);
+		ClassInfo* V = objecttypesyb->Get_Info<ClassInfo>();
+
+		FeildType = *Func->GetObjectForCall();
+		FeildTypeAsSymbol = GetSymbol(*ObjectType);
 	}
-	
+
 	size_t Start = 1;
+
 
 	Out.Symbol = FeildTypeAsSymbol;
 	Out.Type = FeildType;
@@ -1812,22 +1858,14 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, 
 
 	if (passtype == PassType::BuidCode)
 	{
-		AddDependencyToCurrentFile(SymbolVar);
+		AddDependencyToCurrentFile(FeildTypeAsSymbol);
 	}
 	
 	if (Out.Symbol->Type == SymbolType::Class_Field && _FuncStack.size() && _ClassStack.top())
 	{
-		auto& Func = _FuncStack.top();
-		if (auto ObjectType = Func->GetObjectForCall())
+		if (!IsInThisFuncCall())
 		{
-			auto objecttypesyb = GetSymbol(*ObjectType);
-			ClassInfo* V = objecttypesyb->Get_Info<ClassInfo>();
-
-			bool AreSameClass = _ClassStack.top() == V;
-			if (!AreSameClass)
-			{
-				//throw err.
-			}
+			//throw err
 		}
 	}
 
@@ -1849,6 +1887,7 @@ void SystematicAnalysis::BuildMember_Store(const GetMemberTypeSymbolFromVar_t& I
 
 	switch (In.Symbol->Type)
 	{
+		case  SymbolType::Type_class://this
 	case  SymbolType::Class_Field:
 	case  SymbolType::StackVarable:
 		LookingAtIRBlock->NewStore(Output, Value);
@@ -1874,6 +1913,7 @@ IRInstruction* SystematicAnalysis::BuildMember_GetPointer(const GetMemberTypeSym
 
 	switch (In.Symbol->Type)
 	{
+	case  SymbolType::Type_class://this
 	case  SymbolType::Class_Field:
 	case  SymbolType::StackVarable:
 		return LookingAtIRBlock->NewLoadPtr(Output);
@@ -1982,6 +2022,20 @@ IRInstruction* SystematicAnalysis::BuildMember_GetValue(const GetMemberTypeSymbo
 			break;
 		}
 	}
+	case SymbolType::Type_class:
+	{
+		if (In.Start[0].token->Type == TokenType::KeyWorld_This)
+		{
+			IRInstruction* Output = nullptr;
+			BuildMember_Access(In, Output);
+			return LookingAtIRBlock->NewLoad(Output);
+		}
+		else
+		{
+			throw std::exception("not added");
+		}
+	}
+		break;
 	default:
 		throw std::exception("not added");
 		break;
@@ -2071,7 +2125,14 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 		Output = LookingAtIRBlock->New_Member_Dereference(&PointerIr, F, MemberIndex);
 		return;
 	}
+	if (In.Start[0].token->Type == TokenType::KeyWorld_This)
+	{
+		auto& PointerIr = LookingAtIRFunc->Pars.front();
+		Output = LookingAtIRBlock->NewLoad(&PointerIr);
 
+		auto& Func = _FuncStack.top();
+		Last_Type = *Func->GetObjectForCall();
+	}
 	//
 
 
@@ -2159,25 +2220,63 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 	if (TepSyb == nullptr && Out.Type.IsBadType())
 	{
 
-		auto Token = node.ScopedName[Start].token;
-		auto& Str = Token->Value._String;
-		auto SymbolVar = GetSymbol(Str, SymbolType::Varable_t);
-		LastLookedAtToken = Token;
-		if (SymbolVar == nullptr)
+
+		if (node.ScopedName[Start].token->Type != TokenType::KeyWorld_This)
 		{
-			LogCantFindVarError(Token, Str);
-			return false;
+			auto Token = node.ScopedName[Start].token;
+			auto& Str = Token->Value._String;
+			auto SymbolVar = GetSymbol(Str, SymbolType::Varable_t);
+			LastLookedAtToken = Token;
+			if (SymbolVar == nullptr)
+			{
+				LogCantFindVarError(Token, Str);
+				return false;
+			}
+
+			CheckVarWritingErrors(SymbolVar, Token, String_view(Str));
+
+			Out.Type = SymbolVar->VarType;
+			Out.Symbol = GetSymbol(SymbolVar->VarType);
+			//
+			TepSyb = SymbolVar;
+			Start++;
+			End--;
+			ScopedCount++;
 		}
+		else
+		{
+			if (_ClassStack.size() == 0)
+			{
+				CantUseThisKeyWordHereError(node.ScopedName[Start].token);
+				return false;
+			}
 
-		CheckVarWritingErrors(SymbolVar, Token, String_view(Str));
 
-		Out.Type = SymbolVar->VarType;
-		Out.Symbol = GetSymbol(SymbolVar->VarType);
-		TepSyb = SymbolVar;
-		Start++;
-		End--;
-		ScopedCount++;
+			if (!IsInThisFuncCall())
+			{
+
+				//throw err.
+			}
+
+
+
+			auto& Func = _FuncStack.top();
+			auto ObjectType = Func->GetObjectForCall();
+
+			auto objecttypesyb = GetSymbol(*ObjectType);
+			ClassInfo* V = objecttypesyb->Get_Info<ClassInfo>();
+
+			Out.Type = *Func->GetObjectForCall();
+			Out.Symbol = GetSymbol(*ObjectType);
+			//
+			TepSyb = Out.Symbol;
+			Start++;
+			End--;
+			ScopedCount++;
+		}
 	}
+
+
 	for (size_t i = Start; i < node.ScopedName.size(); i++)
 	{
 
@@ -2200,7 +2299,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 			break;
 		}
 
-		if (Out.Symbol->Type == SymbolType::Type_class)
+		if (TepSyb->Type == SymbolType::Type_class)
 		{
 			ClassInfo* CInfo = Out.Symbol->Get_Info<ClassInfo>();
 
@@ -3216,9 +3315,41 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 	
 
 	auto FToken = nod.VariableName.ScopedName.front().token;
-	auto Str = FToken->Value._String;
-	auto Symbol = GetSymbol(Str,SymbolType::Varable_t);
+
+	Symbol* Symbol;
 	auto Token = nod.VariableName.ScopedName.back().token;
+	if (FToken->Type == TokenType::KeyWorld_This)
+	{
+		if (_ClassStack.size() == 0)
+		{
+			CantUseThisKeyWordHereError(FToken);
+			return;
+		}
+
+
+		if (!IsInThisFuncCall())
+		{
+
+			//throw err.
+		}
+
+		
+		auto& Func = _FuncStack.top();
+		auto ObjectType = Func->GetObjectForCall();
+
+		auto objecttypesyb = GetSymbol(*ObjectType);
+		ClassInfo* V = objecttypesyb->Get_Info<ClassInfo>();
+
+		
+		Symbol = GetSymbol(*ObjectType);
+			
+		goto DoStuff;
+		
+	}
+
+
+	auto Str = FToken->Value._String;
+	Symbol = GetSymbol(Str,SymbolType::Varable_t);
 	
 	
 	auto Info = LogTryReadVar(Str, Token, Symbol);
@@ -3234,9 +3365,10 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 			LogUseingVarableBeforDeclared(FToken);
 		}
 	}
+
 	if (!Info.VarIsInvalid)
 	{
-
+	DoStuff:
 		SymbolID sybId = Symbol->ID;
 		if (passtype == PassType::BuidCode)
 		{

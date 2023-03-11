@@ -141,12 +141,13 @@ struct ScopedNameNode :Node
 
 	Vector<ScopedName> ScopedName;
 
-	inline void GetScopedName(String& out) const
+	
+	inline void GetScopedName(String& out,size_t Start =0 ) const
 	{
-		for (size_t i = 0; i < ScopedName.size(); i++)
+		for (size_t i = Start; i < ScopedName.size(); i++)
 		{
 			auto& item = ScopedName[i];
-item.GetScopedName(out);
+			item.GetScopedName(out);
 			if (&item != &ScopedName.back())
 			{
 				switch (item.Operator)
@@ -165,7 +166,7 @@ item.GetScopedName(out);
 					break;
 				}
 			}
-			
+
 		}
 	}
 };

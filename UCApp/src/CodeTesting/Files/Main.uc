@@ -13,7 +13,7 @@ $Player:
  int Hp;
 
  |new[this&] -> void:
-  Hp++;
+ this.Hello();
 
  |drop[this&] -> void;
  

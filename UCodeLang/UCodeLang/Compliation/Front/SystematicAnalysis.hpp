@@ -337,6 +337,20 @@ private:
 	{
 		return  _ClassStack.size() && _InStatements == false;
 	}
+	bool IsInThisFuncCall()
+	{
+		if (_FuncStack.size()) {
+			auto& Func = _FuncStack.top();
+			if (auto ObjectType = Func->GetObjectForCall())
+			{
+				auto objecttypesyb = GetSymbol(*ObjectType);
+				ClassInfo* V = objecttypesyb->Get_Info<ClassInfo>();
+
+				return _ClassStack.top() == V;
+			}
+		}
+		return false;
+	}
 
 	void DoSymbolRedefinitionCheck(const Symbol* Syb,const Token* Value);
 	void DoSymbolRedefinitionCheck(const String_view FullName,SymbolType Type, const Token* Value);
