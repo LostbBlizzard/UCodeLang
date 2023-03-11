@@ -532,7 +532,7 @@ private:
 	void LogUseingVarableBeforDeclared(const Token* Token);
 	void LogBeMoreSpecifiicForRetType(const String_view FuncName, const Token* Token);
 	void LogCantBeIndexWithType(const Token* Token, const  TypeSymbol& Ex0Type, const  TypeSymbol& IndexType);
-
+	void LogCantUseThisInStaticFunction(const Token* Token);
 
 	struct ReadVarErrorCheck_t
 	{
