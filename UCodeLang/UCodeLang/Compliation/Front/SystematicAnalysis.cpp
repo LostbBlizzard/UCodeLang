@@ -1833,8 +1833,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, 
 
 		if (!IsInThisFuncCall())
 		{
-
-			//throw err.
+			LogCantUseThisInStaticFunction(Token);
 		}
 
 
@@ -1868,7 +1867,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, 
 	{
 		if (!IsInThisFuncCall())
 		{
-			//throw err
+			LogCantUseThisInStaticFunction(Token);
 		}
 	}
 
@@ -2257,8 +2256,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 
 			if (!IsInThisFuncCall())
 			{
-
-				//throw err.
+				LogCantUseThisInStaticFunction(node.ScopedName[Start].token);
 			}
 
 
@@ -3325,8 +3323,7 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 
 		if (!IsInThisFuncCall())
 		{
-
-			//throw err.
+			LogCantUseThisInStaticFunction(FToken);
 		}
 
 		
@@ -6523,6 +6520,11 @@ void SystematicAnalysis::LogCantBeIndexWithType(const Token* Token, const  TypeS
 
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "The Type '" + ToString(Ex0Type) + "\' Cant be Index with '" + ToString(IndexType) + "'.");
+}
+void SystematicAnalysis::LogCantUseThisInStaticFunction(const Token* Token)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+		, "The 'this' parameter can be accessed in a static function.A this function must look like |[this&,...] -> [Type];");
 }
 UCodeLangFrontEnd
 
