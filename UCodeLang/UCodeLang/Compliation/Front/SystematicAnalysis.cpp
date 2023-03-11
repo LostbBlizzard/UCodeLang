@@ -1307,7 +1307,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 	SymbolID sybId = GetSymbolID(node);
 	Symbol* syb;
 
-	bool InSideClass = _ClassStack.size() && _InStatements == false;
+	bool InSideClass = _InSideClass();
 
 	if (passtype == PassType::GetTypes)
 	{
@@ -1323,10 +1323,6 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 			syb->Type = SymbolType::Class_Field;
 			auto& Class = *_ClassStack.top();
 
-			if (Class.GetField(FullName))
-			{
-				//TODO Err
-			}
 			Class.AddField(ScopeHelper::GetNameFromFullName((String_view)FullName), TypeSymbol());
 
 		}
@@ -1430,7 +1426,9 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 		}
 		else
 		{
-			syb->SetToInvalid();
+			if (!InSideClass) {
+				syb->SetToInvalid();
+			}
 		}
 
 
@@ -1536,7 +1534,6 @@ void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 			LogCantCastImplicitTypes(Token, LastExpressionType, MemberInfo.Type,true);
 
 		}
-		
 	}
 
 	
@@ -1552,50 +1549,9 @@ void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 		Symbol* Symbol = GetSymbol(Str, SymbolType::Varable_t);
 		TypeSymbol& SymbolType = Symbol->VarType;
 
-		bool BuildVarableCode = true;
 
-		if (Symbol->Type == SymbolType::Class_Field && _FuncStack.size())
-		{
-			auto& Func = _FuncStack.top();
+		BuildMember_Reassignment(MemberInfo, SymbolType, _LastExpressionField);
 
-			if (auto ObjectType = Func->GetObjectForCall())
-			{
-
-				throw std::exception("not added"); 
-				/*
-				TypeSymbol ThisClassType;
-
-				if (!AreTheSame(*ObjectType, ThisClassType))
-				{
-
-				}
-				ThisClassType = *ObjectType;
-
-				auto G = &_Table.GetSymbol(ObjectType->_CustomTypeSymbol);
-
-				
-				GetMemberTypeSymbolFromVar(0, node.Name, ThisClassType,
-					G);
-
-				//LookingAtIRBlock->NewPushParameter(IRParameters.front());
-
-				/*
-				auto ValueIr = IROperand::AsLocation(_LastExpressionField);
-				auto PointerIr = IROperand::AsReadVarable(IRParameters.front());
-				_Builder.Build_AssignOnPointer(PointerIr, ValueIr, MemberInfo.Offset);
-				BindTypeToLastIR(MemberInfo.Type);
-				*/
-				throw std::exception("not added");
-
-				BuildVarableCode = false;
-			}
-
-		}
-		
-		if (BuildVarableCode)
-		{
-			BuildMember_Reassignment(MemberInfo, SymbolType, _LastExpressionField);
-		}
 	}
 }
 void SystematicAnalysis::OnIfNode(const IfNode& node)
@@ -1858,6 +1814,23 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, 
 	{
 		AddDependencyToCurrentFile(SymbolVar);
 	}
+	
+	if (Out.Symbol->Type == SymbolType::Class_Field && _FuncStack.size() && _ClassStack.top())
+	{
+		auto& Func = _FuncStack.top();
+		if (auto ObjectType = Func->GetObjectForCall())
+		{
+			auto objecttypesyb = GetSymbol(*ObjectType);
+			ClassInfo* V = objecttypesyb->Get_Info<ClassInfo>();
+
+			bool AreSameClass = _ClassStack.top() == V;
+			if (!AreSameClass)
+			{
+				//throw err.
+			}
+		}
+	}
+
 	return true;
 }
 void SystematicAnalysis::BuildMember_Store(const GetMemberTypeSymbolFromVar_t& In, IRInstruction* Value)
@@ -1876,6 +1849,7 @@ void SystematicAnalysis::BuildMember_Store(const GetMemberTypeSymbolFromVar_t& I
 
 	switch (In.Symbol->Type)
 	{
+	case  SymbolType::Class_Field:
 	case  SymbolType::StackVarable:
 		LookingAtIRBlock->NewStore(Output, Value);
 		break;
@@ -1900,6 +1874,7 @@ IRInstruction* SystematicAnalysis::BuildMember_GetPointer(const GetMemberTypeSym
 
 	switch (In.Symbol->Type)
 	{
+	case  SymbolType::Class_Field:
 	case  SymbolType::StackVarable:
 		return LookingAtIRBlock->NewLoadPtr(Output);
 		break;
@@ -1930,6 +1905,7 @@ IRInstruction* SystematicAnalysis::BuildMember_GetValue(const GetMemberTypeSymbo
 {
 	switch (In.Symbol->Type)
 	{
+	case  SymbolType::Class_Field:
 	case  SymbolType::StackVarable:
 	case  SymbolType::ParameterVarable:
 	{
@@ -1942,7 +1918,8 @@ IRInstruction* SystematicAnalysis::BuildMember_GetValue(const GetMemberTypeSymbo
 		}
 		bool UseOutput = In.Symbol->IR_Ins != Output;
 
-		if (In.Symbol->Type == SymbolType::StackVarable)
+		if (In.Symbol->Type == SymbolType::StackVarable
+			|| In.Symbol->Type == SymbolType::Class_Field)
 		{
 			return LookingAtIRBlock->NewLoad(Output);
 		}
@@ -2029,6 +2006,7 @@ IRInstruction* SystematicAnalysis::BuildMember_DereferenceValue(const GetMemberT
 
 	switch (In.Symbol->Type)
 	{
+	case  SymbolType::Class_Field:
 	case  SymbolType::StackVarable:
 		return LookingAtIRBlock->NewLoad_Dereferenc(In.Symbol->IR_Ins, IRT);
 		break;
@@ -2065,6 +2043,38 @@ void SystematicAnalysis::BuildMember_Reassignment(const GetMemberTypeSymbolFromV
 void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t& In, IRInstruction*& Output)
 {
 	TypeSymbol Last_Type = In.Symbol->VarType;
+
+	//
+
+	if (In.Symbol->Type == SymbolType::Class_Field && _FuncStack.size() && _ClassStack.top())
+	{
+		auto& Func = _FuncStack.top();
+		auto& PointerIr = LookingAtIRFunc->Pars.front();
+
+		auto ObjectType = *Func->GetObjectForCall();
+		ObjectType._IsAddress = false;
+
+		auto objecttypesyb = GetSymbol(ObjectType);
+
+
+
+
+		auto IRStructV = ConveToIRClassIR(*objecttypesyb);
+		auto F = _Builder.GetSymbol(ConveToIRClassIR(*objecttypesyb))->Get_ExAs<IRStruct>();
+
+		auto Token = In.Start[In.End - 1].token;
+		auto& Str = Token->Value._String;
+		ClassInfo* V = objecttypesyb->Get_Info<ClassInfo>();
+		size_t MemberIndex = V->GetFieldIndex(Str);
+
+
+		Output = LookingAtIRBlock->New_Member_Dereference(&PointerIr, F, MemberIndex);
+		return;
+	}
+
+	//
+
+
 	for (size_t i = 1; i < In.End; i++)
 	{
 		Symbol* Sym = GetSymbol(Last_Type);
