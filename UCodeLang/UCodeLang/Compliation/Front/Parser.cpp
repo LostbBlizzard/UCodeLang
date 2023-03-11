@@ -776,18 +776,40 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 	}
 
 	auto Token2 = TryGetToken();
-	while (Token2->Type == TokenType::RightArrow)
+	while (Token2->Type == TokenType::RightArrow
+		|| Token2->Type == TokenType::Left_Bracket)
 	{
 		NextToken();
-		auto cast = CastNode::Gen();
-		
+
+		if (Token2->Type == TokenType::RightArrow) 
+		{
+			auto cast = CastNode::Gen();
 
 
-		auto Type = GetType(cast->ToType);
-		cast->Expression.Value = Unique_ptr<Node>(r_out);
-		r_t = Merge(Ex,Type);
-		r_out = cast->As();
-		Token2 = TryGetToken();
+			auto Type = GetType(cast->ToType);
+			cast->Expression.Value = Unique_ptr<Node>(r_out);
+			r_t = Merge(Ex, Type);
+			r_out = cast->As();
+			Token2 = TryGetToken();
+		}
+		else if (Token2->Type == TokenType::Left_Bracket)
+		{
+			auto IndexExNode = IndexedExpresionNode::Gen();
+			auto V = GetExpressionTypeNode(IndexExNode->IndexExpression);
+			IndexExNode->SourceExpression.Value = Unique_ptr<Node>(r_out);
+
+			r_out = IndexExNode->As();
+
+			Token2 = TryGetToken();
+			TokenTypeCheck(Token2, TokenType::Right_Bracket);
+			NextToken();
+
+			Token2 = TryGetToken();
+		}
+		else
+		{
+			throw std::exception("not added");
+		}
 	}
 
 	out = r_out;
