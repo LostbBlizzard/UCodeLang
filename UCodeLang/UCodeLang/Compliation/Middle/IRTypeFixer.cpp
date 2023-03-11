@@ -27,6 +27,7 @@ void IRTypeFixer::FixTypes(IRBuilder* Input)
 			{
 				if (!Ins->ObjectType.IsType(IRTypes::Null)) { continue; }
 				if (Ins->Type == IRInstructionType::None) { continue; }
+				if (Ins->Type == IRInstructionType::Jump) { continue; }
 
 				if (Ins->Type == IRInstructionType::Reassign)
 				{
@@ -34,6 +35,10 @@ void IRTypeFixer::FixTypes(IRBuilder* Input)
 				}
 				else
 				if (Ins->Type == IRInstructionType::Reassign_dereference)
+				{
+					OnOp(*Ins, Ins->Input());
+				}
+				else if (IsLoadValueOnInput(Ins->Type))
 				{
 					OnOp(*Ins, Ins->Input());
 				}
@@ -107,7 +112,8 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op)
 	{
 		Ins.ObjectType = Op.Pointer->ObjectType;
 	}
-	else if (Op.Type == IROperatorType::Get_PointerOf_IRInstruction)
+	else if (Op.Type == IROperatorType::Get_PointerOf_IRInstruction
+		|| Op.Type == IROperatorType::Get_PointerOf_IRParameter)
 	{
 		Ins.ObjectType = IRType(IRTypes::pointer);
 	}
