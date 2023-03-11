@@ -3703,7 +3703,7 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 	}
 	else if (passtype == PassType::BuidCode)
 	{
-		auto SybID = FuncToSyboID.at(&node);
+		auto& SybID = FuncToSyboID.at(&node);
 		DoFuncCall(SybID, node.FuncName, node.Parameters);
 	}
 }
@@ -4735,6 +4735,10 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 		{
 
 		}
+		else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::AutoPushThis)
+		{
+			LookingAtIRBlock->NewPushParameter(LookingAtIRBlock->NewLoad(&LookingAtIRFunc->Pars.front()));
+		}
 		else
 		{
 			throw std::exception("not added");
@@ -4973,6 +4977,8 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 		}
 	}
 	
+	bool AutoThisCall = false;
+	
 	SymbolType T = SymbolType::Null;
 	Symbol* FuncSymbol = nullptr;
 	FuncInfo* r = nullptr;
@@ -5004,6 +5010,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 		LookingForTypes.pop();
 	}
 	auto& Symbols = _Table.GetSymbolsWithName(ScopedName, SymbolType::Any);
+	StartSymbolsLoop:
 	for (auto& Item : Symbols)
 	{
 		if (Item->Type == SymbolType::Func)
@@ -5206,7 +5213,20 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 	}
 	if (r == nullptr)
 	{
-		LogCantFindFuncError(Name.ScopedName.back().token, ScopedName, {}, ValueTypes, RetType);
+		bool MayBeAutoThisFuncCall = Name.ScopedName.size() == 1 && IsInThisFuncCall();
+
+		if (MayBeAutoThisFuncCall && AutoThisCall == false)
+		{
+			AutoThisCall = true;
+
+			ValueTypes.insert(ValueTypes.begin(),*_FuncStack.top()->GetObjectForCall());
+			ThisParType = Get_FuncInfo::ThisPar_t::AutoPushThis;
+			goto StartSymbolsLoop;
+		}
+		else 
+		{
+			LogCantFindFuncError(Name.ScopedName.back().token, ScopedName, {}, ValueTypes, RetType);
+		}
 	}
 	return { ThisParType,r,FuncSymbol };
 }
