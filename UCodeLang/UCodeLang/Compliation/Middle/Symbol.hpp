@@ -67,13 +67,21 @@ struct TypeSymbol
 	{
 		_Type = type;
 		_CustomTypeSymbol = 0;
+
 		_IsAddress = false;
+		_IsAddressArray = false;
+		_Isimmutable = false;
+		_ValueInfo = TypeValueInfo::IsValue;
 	}
 	void SetType(SymbolID CustomType)
 	{
 		_Type = TypesEnum::CustomType;
 		_CustomTypeSymbol = CustomType;
+
 		_IsAddress = false;
+		_IsAddressArray = false;
+		_Isimmutable = false;
+		_ValueInfo = TypeValueInfo::IsValue;
 	}
 	void SetAsAddress()
 	{

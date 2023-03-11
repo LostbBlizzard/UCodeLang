@@ -1,5 +1,5 @@
 %ULang:
-  $Size_t = uintptr;
+  $size_t = uintptr;
 
-  |ToString<T>[];//for ints 
-  |ToString<T>[];//for floats 
+  |ToString<T>[] -> String;//for ints 
+  |ToStringf<T>[] -> String;//for floats 

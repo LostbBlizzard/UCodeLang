@@ -70,7 +70,7 @@ private:
 	IRInstruction* _LastExpressionField = 0;
 	IRFunc* LookingAtIRFunc = nullptr;
 	IRBlock* LookingAtIRBlock = nullptr;
-	
+
 
 	enum class  ObjectToDropType
 	{
@@ -275,7 +275,12 @@ private:
 	};
 	Unordered_map<const void*, BinaryExpressionNode_Data> BinaryExpressionNode_Datas;
 
+	using IndexedExpresion_Data = BinaryExpressionNode_Data;
+	Unordered_map<const void*, IndexedExpresion_Data> IndexedExpresion_Datas;
+
 	void OnExpressionNode(const CastNode& node);
+	void OnExpressionNode(const IndexedExpresionNode& node);
+
 	void OnFuncCallNode(const FuncCallNode& node);
 	void OnDropStatementNode(const DropStatementNode& node);
 	void PushTepAttributesInTo(Vector<AttributeData>& Input);
@@ -301,6 +306,7 @@ private:
 	bool HasBinaryOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
 	bool HasCompoundOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
 	bool HasPostfixOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp);
+	bool HasIndexedOverLoadWith(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
 
 	TypeSymbol BinaryExpressionShouldRurn(TokenType Op, const TypeSymbol& Ex0Type);
 
@@ -352,8 +358,8 @@ private:
 		return false;
 	}
 
-	void DoSymbolRedefinitionCheck(const Symbol* Syb,const Token* Value);
-	void DoSymbolRedefinitionCheck(const String_view FullName,SymbolType Type, const Token* Value);
+	void DoSymbolRedefinitionCheck(const Symbol* Syb, const Token* Value);
+	void DoSymbolRedefinitionCheck(const String_view FullName, SymbolType Type, const Token* Value);
 	void DoSymbolRedefinitionCheck(const Symbol* Syb, const FuncInfo* Fvalue, const Token* Value);
 
 	bool IsVaidType(TypeSymbol& Out);
@@ -525,6 +531,7 @@ private:
 	void LogSymbolRedefinition(const Token* Token, const Symbol* Symbol);
 	void LogUseingVarableBeforDeclared(const Token* Token);
 	void LogBeMoreSpecifiicForRetType(const String_view FuncName, const Token* Token);
+	void LogCantBeIndexWithType(const Token* Token, const  TypeSymbol& Ex0Type, const  TypeSymbol& IndexType);
 
 
 	struct ReadVarErrorCheck_t
