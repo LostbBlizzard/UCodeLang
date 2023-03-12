@@ -3746,7 +3746,7 @@ void SystematicAnalysis::OnExpressionNode(const CastNode& node)
 }
 void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 {
-	if (LookingForTypes.size() && LookingForTypes.top()._Type != TypesEnum::Var)
+	if (LookingForTypes.size() && LookingForTypes.top()._Type == TypesEnum::Var)
 	{
 		TypeSymbol V; V.SetType(TypesEnum::Any);
 		LookingForTypes.push(V);
@@ -3768,8 +3768,23 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 		OnExpressionTypeNode(node.SourceExpression.Value.get());
 		TypeSymbol SourcType = LastExpressionType;
 
+		
+		TypeSymbol gesstype;
+		gesstype.SetType(TypesEnum::Any);
+		if (SourcType.IsAddressArray())
+		{
+			gesstype.SetType(TypesEnum::uIntPtr);
+		}
+
+
+		LookingForTypes.push(gesstype);
+
+
 		OnExpressionTypeNode(node.IndexExpression.Value.get());
 		TypeSymbol IndexType = LastExpressionType;
+
+
+		LookingForTypes.pop();
 
 		if (!HasIndexedOverLoadWith(SourcType, IndexType))
 		{
@@ -3782,7 +3797,7 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 		TypeSymbol lookingfor = LookingForTypes.top();
 
 
-		BinaryExpressionNode_Data V;
+		IndexedExpresion_Data V;
 		V.Op0 = SourcType;
 		V.Op1 = IndexType;
 
@@ -3790,15 +3805,17 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 		//all float bool int types
 		if (V.IsBuitIn())
 		{
-			V.Op0._IsAddress = false;
+			V.Op0._IsAddress = true;
 			V.Op1._IsAddress = false;
 
 			if (lookingfor.IsAddressArray())
 			{
+				lookingfor = SourcType;
 				LastExpressionType = lookingfor;
 			}
 			else
 			{
+				lookingfor = SourcType;
 				lookingfor.SetAsAddress();
 				lookingfor._IsAddressArray = false;
 
@@ -3814,7 +3831,55 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 
 	if (passtype == PassType::BuidCode)
 	{
-		throw std::exception("not added");
+		auto& Data = IndexedExpresion_Datas[&node];
+
+		if (Data.IsBuitIn())
+		{
+			LookingForTypes.push(Data.Op0);
+			OnExpressionTypeNode(node.SourceExpression.Value.get());
+			LookingForTypes.pop();
+
+			auto Pointer = _LastExpressionField;
+			auto SourcType = LastExpressionType;
+
+			LookingForTypes.push(Data.Op1);
+			OnExpressionTypeNode(node.IndexExpression.Value.get());
+			LookingForTypes.pop();
+
+			auto IndexField = _LastExpressionField;
+
+			TypeSymbol IndexedObjectPointer = Data.Op0;
+			IndexedObjectPointer._IsAddressArray = false;
+			IndexedObjectPointer._IsAddress = false;
+
+			UAddress V; GetSize(IndexedObjectPointer, V);
+
+			_LastExpressionField = LookingAtIRBlock->New_Index_Vetor(Pointer, IndexField,LookingAtIRBlock->NewLoad(V));
+
+			TypeSymbol lookingfor = LookingForTypes.top();
+			{
+				if (lookingfor.IsAddressArray())
+				{
+					lookingfor = SourcType;
+					LastExpressionType = lookingfor;
+				}
+				else
+				{
+					lookingfor = SourcType;
+					lookingfor.SetAsAddress();
+					lookingfor._IsAddressArray = false;
+
+					LastExpressionType = lookingfor;
+				}
+			}
+
+			LastExpressionType = lookingfor;
+		}
+		else
+		{
+			throw std::exception("not added");
+		}
+
 	}
 
 	LookingForTypes.pop();
@@ -4219,9 +4284,7 @@ bool SystematicAnalysis::HasIndexedOverLoadWith(const TypeSymbol& TypeA, const T
 {
 	if (TypeA.IsAddressArray())
 	{
-		TypeSymbol Tep;
-		Tep.SetType(TypesEnum::uIntPtr);
-		return AreTheSame(Tep, TypeB);
+		return IsUIntType(TypeB);
 	}
 
 
