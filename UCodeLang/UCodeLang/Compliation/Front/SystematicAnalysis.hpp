@@ -496,7 +496,7 @@ private:
 	void GenericTypeInstantiate(Symbol* Class, const Vector<TypeSymbol>& Type);
 
 	Unordered_map<const void*, Get_FuncInfo> FuncToSyboID;
-	//
+	// ConstantExpression
 	struct EvaluatedEx
 	{
 		TypeSymbol Type;
@@ -525,6 +525,8 @@ private:
 
 	bool CanEvaluateImplicitConversionConstant(const TypeSymbol& Type, const TypeSymbol& ToType);
 	bool EvaluateImplicitConversion(EvaluatedEx& In, const TypeSymbol& ToType, EvaluatedEx& out);
+
+	Unordered_map<void*, SymbolID> _ConstantExpressionMap;
 
 	//IR
 	void DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Name, const ValueParametersNode& Pars);

@@ -959,6 +959,7 @@ GotNodeType Parser::TryGetGeneric(UseGenericsNode& out)
 				auto Rtoken = TryGetToken();
 				TokenTypeCheck(Rtoken, TokenType::Right_Parentheses);
 				NextToken();
+				out.Values.push_back(std::move(Item));
 			}
 			else 
 			{
@@ -1222,7 +1223,7 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 					NameToken->OnLine = Token2->OnLine;
 					NameToken->OnPos = Token2->OnPos;
 					NameToken->Type = TokenType::Name;
-					NameToken->Value._String = UCode_VectorType;
+					NameToken->Value._String = UCode_ArrayType;
 
 					_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
 

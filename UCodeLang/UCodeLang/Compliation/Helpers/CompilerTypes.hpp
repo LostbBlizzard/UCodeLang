@@ -122,6 +122,8 @@ enum class TokenType : TokenType_t
 
 	KeyWorld_uintptr,
 	KeyWorld_sintptr,
+	//used internally
+	internal_Constant_expression
 };
 class StringHelper
 {
