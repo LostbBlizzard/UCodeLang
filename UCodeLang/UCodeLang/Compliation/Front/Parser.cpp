@@ -1079,7 +1079,7 @@ Parser::GetNameCheck_ret Parser::GetNameCheck(ScopedNameNode& out)
 	return{ LookingAtT,GotNodeType::Success };
 }
 
-GotNodeType Parser::GetType(TypeNode& out, bool ignoreRighthandOFtype, bool ignoreleftHandType)
+GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ignoreleftHandType)
 {
 	GotNodeType r = GotNodeType::Success;
 	auto Token = TryGetToken();
@@ -1087,7 +1087,7 @@ GotNodeType Parser::GetType(TypeNode& out, bool ignoreRighthandOFtype, bool igno
 	{
 		if (Token->Type == TokenType::KeyWorld_umut)
 		{
-			out.SetAsimmutable();
+			out->SetAsimmutable();
 			NextToken();
 			Token = TryGetToken();
 		}
@@ -1097,14 +1097,14 @@ GotNodeType Parser::GetType(TypeNode& out, bool ignoreRighthandOFtype, bool igno
 
 	if (Token->Type == TokenType::Name)
 	{
-		auto A = GetName(out.Name);
-		auto B = TryGetGeneric(out.Generic);
+		auto A = GetName(out->Name);
+		auto B = TryGetGeneric(out->Generic);
 		r = Merge(A,B);
 	}
 	else if (TypeNode::IsType(Token->Type))
 	{
 		NextToken();
-		out.Name.Token = Token;
+		out->Name.Token = Token;
 		r = GotNodeType::Success;
 	}
 	else
@@ -1119,11 +1119,10 @@ GotNodeType Parser::GetType(TypeNode& out, bool ignoreRighthandOFtype, bool igno
 		if (Token2->Type == TokenType::bitwise_and)
 		{
 			NextToken();
-			out.PushAsAddess();
+			out->PushAsAddess();
 		}
 		else 
 		{
-			Token2 = TryGetToken();
 			if (Token2 && Token2->Type == TokenType::Left_Bracket)
 			{
 				NextToken();
@@ -1135,7 +1134,7 @@ GotNodeType Parser::GetType(TypeNode& out, bool ignoreRighthandOFtype, bool igno
 					Token2 = TryGetToken();
 					if (Token2->Type == TokenType::Right_Bracket)
 					{
-						out.PushAsArrayAddess();
+						out->PushAsArrayAddess();
 
 					}
 					else
@@ -1159,11 +1158,43 @@ GotNodeType Parser::GetType(TypeNode& out, bool ignoreRighthandOFtype, bool igno
 				TokenTypeCheck(Token2, TokenType::Right_Bracket);
 				NextToken();
 			}
+			else if (Token2->Type == TokenType::QuestionMark)
+			{
+				NextToken();
+				TypeNode* New = new TypeNode();
+				
+				New->Isimmutable = out->Isimmutable;
+				out->Isimmutable = false;
+				New->Generic.Values.push_back(std::move(*out));
+
+				auto NameToken = new UCodeLang::Token();
+				NameToken->OnLine = Token2->OnLine;
+				NameToken->OnPos = Token2->OnPos;
+				NameToken->Type = TokenType::Name;
+				NameToken->Value._String = UCode_OptionalType;
+
+				_Tree.TemporaryTokens.push_back( Unique_ptr<UCodeLang::Token>(NameToken));
+
+				New->Name.Token = NameToken;
+				out = New;
+
+					
+			}
 		}
 	}
 	return r;
 }
 
+GotNodeType Parser::GetType(TypeNode& out, bool ignoreRighthandOFtype, bool ignoreleftHandType)
+{
+	TypeNode tep;
+	TypeNode* tepptr = &tep;
+	auto r = GetType(tepptr,ignoreRighthandOFtype, ignoreleftHandType);
+
+	out = std::move(*tepptr);
+
+	return r;
+}
 GotNodeType Parser::GetTypeWithVoid(TypeNode& out)
 {
 	auto token = TryGetToken();

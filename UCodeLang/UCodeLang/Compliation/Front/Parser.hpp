@@ -182,7 +182,8 @@ private:
 	};
 	GetNameCheck_ret GetNameCheck(ScopedNameNode& out);
 
-	GotNodeType GetType(TypeNode& out,bool ignoreRighthandOFtype =false,bool ignoreleftHandType = true);
+	GotNodeType GetType(TypeNode*& out,bool ignoreRighthandOFtype =false,bool ignoreleftHandType = true);
+	GotNodeType GetType(TypeNode& out, bool ignoreRighthandOFtype = false, bool ignoreleftHandType = true);
 	GotNodeType GetTypeWithVoid(TypeNode& out);
 	GotNodeType GetNumericType(TypeNode& out);
 

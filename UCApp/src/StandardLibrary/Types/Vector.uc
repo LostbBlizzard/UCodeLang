@@ -1,4 +1,6 @@
 %ULang:
+
+ //has built in alias in compiler.Ex: int[]
  $Vector<T>:
   T[&] _Data;
   size_t _Size;
