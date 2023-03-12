@@ -1,9 +1,9 @@
 
 |main[ int[&] V ] -> int&:
- int[&] C = V[1];
- int& B = V[1];
- B = 10;
+ //int[&] C = V[1];
+ //int& B = V[1];
+ //B = 10;
 
- int& o = B;
+ int o = V[0];
 
- ret B;
+ ret V[0];

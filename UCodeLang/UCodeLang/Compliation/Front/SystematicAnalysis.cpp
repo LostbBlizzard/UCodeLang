@@ -3437,7 +3437,7 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 			}
 
 			
-			bool LookIsAddress = LookForT.IsAddress();
+			bool LookIsAddress = LookForT.IsAddress() || LookForT.IsAddressArray();
 			bool AmIsAddress = V.Type.IsAddress();
 
 			bool AsPointer = LookForT.IsAddress();
