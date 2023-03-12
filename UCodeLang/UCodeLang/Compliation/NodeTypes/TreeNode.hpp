@@ -138,6 +138,7 @@ struct FileNode : FileNode_t,Node
 
 
 	Vector<Token> Tokens;
+	Vector<Unique_ptr<Token>> TemporaryTokens;//int?,int[],int[10],int[:] etc.
 	void Reset()
 	{
 		_Nodes.clear();

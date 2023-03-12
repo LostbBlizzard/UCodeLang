@@ -1,9 +1,10 @@
 
-|main[ int[&] V ] -> int&:
- //int[&] C = V[1];
- //int& B = V[1];
- //B = 10;
+$Optional<T>;
 
- int o = V[0];
+|main[ int[&] V ] -> int&:
+ 
+ int? Hello;
+ 
+
 
  ret V[0];

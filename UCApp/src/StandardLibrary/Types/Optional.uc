@@ -1,6 +1,6 @@
 %ULang:
  
- 
+ //has built in alias in compiler.Ex: int?
  $Optional<T>:
   bool _HasValue;
   T _Value;
