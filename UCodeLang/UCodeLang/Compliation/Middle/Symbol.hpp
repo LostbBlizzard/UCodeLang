@@ -223,6 +223,12 @@ public:
 		this->Type = Type;
 	}
 };
+struct GenericData
+{
+	SymbolID SybID;
+	bool IsConstantExpression = false;
+};
+
 
 class FuncInfo :public Symbol_Info
 {
@@ -248,7 +254,7 @@ public:
 	Vector<TypeSymbol> Pars;
 	TypeSymbol Ret;
 	
-	Vector<SymbolID> _Generic;
+	Vector<GenericData> _Generic;
 
 	bool FrontParIsUnNamed = false;
 	bool IsObjectCall() const
@@ -302,7 +308,7 @@ public:
 	Vector<FieldInfo> Fields;
 	bool SizeInitialized = false;
 
-	Vector<SymbolID> _Generic;
+	Vector<GenericData> _Generic;
 
 	ClassInfo()
 	{
