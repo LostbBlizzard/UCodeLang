@@ -1114,17 +1114,20 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 	
 
 	auto Token2 = TryGetToken();
-	if (!ignoreRighthandOFtype && Token2)
+	while (!ignoreRighthandOFtype && Token2)
 	{
 		if (Token2->Type == TokenType::bitwise_and)
 		{
 			NextToken();
 			out->PushAsAddess();
+			break;
 		}
 		else 
 		{
+			
 			if (Token2 && Token2->Type == TokenType::Left_Bracket)
 			{
+				bool Break = false;
 				NextToken();
 				Token2 = TryGetToken();
 				if (Token2->Type == TokenType::bitwise_and)
@@ -1132,15 +1135,28 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 					NextToken();
 
 					Token2 = TryGetToken();
-					if (Token2->Type == TokenType::Right_Bracket)
-					{
-						out->PushAsArrayAddess();
+					out->PushAsArrayAddess();
+					Break = true;
+				}
+				else if (Token2->Type == TokenType::Colon)
+				{
+					NextToken();
+					TypeNode* New = new TypeNode();
 
-					}
-					else
-					{
-						throw std::exception("not added");
-					}
+					New->Isimmutable = out->Isimmutable;
+					out->Isimmutable = false;
+					New->Generic.Values.push_back(std::move(*out));
+
+					auto NameToken = new UCodeLang::Token();
+					NameToken->OnLine = Token2->OnLine;
+					NameToken->OnPos = Token2->OnPos;
+					NameToken->Type = TokenType::Name;
+					NameToken->Value._String = UCode_ViewType;
+
+					_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
+
+					New->Name.Token = NameToken;
+					out = New;
 				}
 				else if (Token2->Type == TokenType::Right_Bracket)
 				{
@@ -1157,6 +1173,10 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 				Token2 = TryGetToken();
 				TokenTypeCheck(Token2, TokenType::Right_Bracket);
 				NextToken();
+				if (Break)
+				{
+					break;
+				}
 			}
 			else if (Token2->Type == TokenType::QuestionMark)
 			{
@@ -1178,8 +1198,13 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 				New->Name.Token = NameToken;
 				out = New;
 
-					
+				Token2 = TryGetToken();
 			}
+			else
+			{
+				break;
+			}
+
 		}
 	}
 	return r;
