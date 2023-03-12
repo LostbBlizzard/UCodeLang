@@ -591,6 +591,10 @@ private:
 	void LogCantBeIndexWithType(const Token* Token, const  TypeSymbol& Ex0Type, const  TypeSymbol& IndexType);
 	void LogCantUseThisInStaticFunction(const Token* Token);
 	void LogFuncDependencyCycle(const Token* Token, const FuncInfo* Value);
+
+	void LogGenericInputWantsaExpressionNotType(const Token* Token,const String_view NameOfPar);
+	void LogGenericInputWantsaTypeNotExpression(const Token* Token, const String_view NameOfPar);
+
 	struct ReadVarErrorCheck_t
 	{
 		bool CantFindVar = false;
