@@ -896,10 +896,27 @@ GotNodeType Parser::TryGetGeneric(GenericValuesNode& out)
 			GenericValueNode Item;
 			auto NameToken = TryGetToken();
 			
-			TokenTypeCheck(NameToken, TokenType::Name);
-			
-			Item.Token = NameToken;
-			out.Values.push_back(std::move(Item));
+			if (NameToken->Type == TokenType::Left_Parentheses)
+			{
+				NextToken();
+				NameToken = TryGetToken();
+				TokenTypeCheck(NameToken, TokenType::Name);
+
+				NextToken();
+				auto RPar = TryGetToken();
+				TokenTypeCheck(RPar, TokenType::Right_Parentheses);
+
+				Item.Token = NameToken;
+				Item.IsConstantExpression = true;
+				out.Values.push_back(std::move(Item));
+			}
+			else
+			{
+				TokenTypeCheck(NameToken, TokenType::Name);
+
+				Item.Token = NameToken;
+				out.Values.push_back(std::move(Item));
+			}
 
 			NextToken();
 			auto Token = TryGetToken();
@@ -928,11 +945,27 @@ GotNodeType Parser::TryGetGeneric(UseGenericsNode& out)
 
 		while (TryGetToken()->Type != TokenType::EndofFile)
 		{
-			TypeNode Item;
-			GetType(Item);
-			out.Values.push_back(std::move(Item));
+			if (TryGetToken()->Type == TokenType::Left_Parentheses) 
+			{
+				NextToken();
+				TypeNode Item;
+				TypeNode::Gen_Expression(Item, *TryGetToken());
 
+				ExpressionNodeType* node = new ExpressionNodeType();
+				GetExpressionTypeNode(*node);
+				
+				Item.node.reset(node);
 
+				auto Rtoken = TryGetToken();
+				TokenTypeCheck(Rtoken, TokenType::Right_Parentheses);
+				NextToken();
+			}
+			else 
+			{
+				TypeNode Item;
+				GetType(Item);
+				out.Values.push_back(std::move(Item));
+			}
 			auto Token = TryGetToken();
 			if (Token == nullptr || Token->Type != TokenType::Comma)
 			{
