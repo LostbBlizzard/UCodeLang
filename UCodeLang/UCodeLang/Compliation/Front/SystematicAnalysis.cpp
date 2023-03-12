@@ -4492,6 +4492,33 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 				const auto& GenericInfo = CInfo->_Generic[i];
 				TypeSymbol Type; 
 				Convert(Tnode, Type);
+
+				{
+					bool InputTypeIsConstantExpression = false;
+
+					auto TypeSyb = GetSymbol(Type);
+					if (TypeSyb)
+					{
+						InputTypeIsConstantExpression = TypeSyb->Type == SymbolType::ConstantExpression;
+					}
+
+					if (InputTypeIsConstantExpression != GenericInfo.IsConstantExpression)
+					{
+						const Token* nodeToken = Tnode.Name.Token;
+						const ClassNode* classnode = (const ClassNode*)SybV->NodePtr;
+						auto& GenericNo = classnode->Generic.Values[i];
+						if (InputTypeIsConstantExpression)
+						{
+							LogGenericInputWantsaExpressionNotType(nodeToken, GenericNo.Token->Value._String);
+						}
+						else
+						{
+							LogGenericInputWantsaExpressionNotType(nodeToken, GenericNo.Token->Value._String);
+						}
+
+					}	
+				}
+
 				
 				GenericInput->push_back(Type);
 			}
@@ -6747,6 +6774,17 @@ void SystematicAnalysis::LogFuncDependencyCycle(const Token* Token, const FuncIn
 	Msg += ".";
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, Msg);
+
+}
+void SystematicAnalysis::LogGenericInputWantsaExpressionNotType(const Token* Token, const String_view NameOfPar)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+		, "Generic The generic parameter '" + (String)NameOfPar + "' Wants a Expression not a Type.");
+}
+void SystematicAnalysis::LogGenericInputWantsaTypeNotExpression(const Token* Token, const String_view NameOfPar)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+		, "Generic The generic parameter '" + (String)NameOfPar + "'Type Wants a  not a Expression.");
 
 }
 UCodeLangFrontEnd
