@@ -594,6 +594,10 @@ private:
 
 	void LogGenericInputWantsaExpressionNotType(const Token* Token,const String_view NameOfPar);
 	void LogGenericInputWantsaTypeNotExpression(const Token* Token, const String_view NameOfPar);
+	
+	void LogExpectedSymbolToBea(const Token* Token, const Symbol& Syb, SymbolType Value);
+	
+	String ToString(SymbolType Value);
 
 	struct ReadVarErrorCheck_t
 	{

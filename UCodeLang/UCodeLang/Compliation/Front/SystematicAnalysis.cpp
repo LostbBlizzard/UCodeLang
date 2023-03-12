@@ -4476,6 +4476,12 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 				LogCantFindTypeError(Token, Name);
 				return;
 			}
+			if (SybV->Type != SymbolType::Generic_class)
+			{
+				LogExpectedSymbolToBea(V.Name.Token, *SybV, SymbolType::Generic_class);
+				return;
+			}
+
 			ClassInfo* CInfo = SybV->Get_Info<ClassInfo>();
 
 			if (CInfo->_Generic.size() != V.Generic.Values.size())
@@ -4516,6 +4522,7 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 							LogGenericInputWantsaExpressionNotType(nodeToken, GenericNo.Token->Value._String);
 						}
 
+						return;
 					}	
 				}
 
@@ -5498,6 +5505,28 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 
 				if (!FuncIsMade)
 				{
+
+					{
+
+						for (size_t i = 0; i < GenericInput.size(); i++)
+						{
+							const auto& Tnode = GenericInput[i];
+							const auto& GenericInfo = Info->_Generic[i];
+
+							bool InputTypeIsConstantExpression = false;
+
+							auto TypeSyb = GetSymbol(GenericInfo.IsConstantExpression);
+							if (TypeSyb)
+							{
+								InputTypeIsConstantExpression = TypeSyb->Type == SymbolType::ConstantExpression;
+							}
+
+							if (InputTypeIsConstantExpression != GenericInfo.IsConstantExpression)
+							{
+								goto ContinueOutloop;
+							}
+						}
+					}
 					auto Pointer = std::make_unique<Vector<TypeSymbol>>(std::move(GenericInput));
 					//pointer must be unique so it cant be on the stack
 
@@ -6786,6 +6815,43 @@ void SystematicAnalysis::LogGenericInputWantsaTypeNotExpression(const Token* Tok
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Generic The generic parameter '" + (String)NameOfPar + "'Type Wants a  not a Expression.");
 
+}
+
+void SystematicAnalysis::LogExpectedSymbolToBea(const Token* Token, const Symbol& Syb, SymbolType Value)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+		, "Did not expect Symbol the Symbol '" + Syb.FullName + "' to be '" + ToString(Syb.Type) + 
+		"' .Expected '" + ToString(Value) + '\'');
+
+}
+String SystematicAnalysis::ToString(SymbolType Value)
+{
+	switch (Value)
+	{
+	case UCodeLang::FrontEnd::SymbolType::Null:return "null";
+	case UCodeLang::FrontEnd::SymbolType::Any:return "Any";
+	case UCodeLang::FrontEnd::SymbolType::Varable_t:return "Varable_t";
+	case UCodeLang::FrontEnd::SymbolType::StackVarable:return "StackVarable";
+	case UCodeLang::FrontEnd::SymbolType::ParameterVarable:return "ParameterVarable";
+	case UCodeLang::FrontEnd::SymbolType::Type:return "Type";
+	case UCodeLang::FrontEnd::SymbolType::Type_alias:return "Type_alias";
+	case UCodeLang::FrontEnd::SymbolType::Hard_Type_alias:return "Hard_Type_alias";
+	case UCodeLang::FrontEnd::SymbolType::Type_class:return "Type_class";
+	case UCodeLang::FrontEnd::SymbolType::Class_Field:return "Class_Field";
+	case UCodeLang::FrontEnd::SymbolType::Enum:return "Enum";
+	case UCodeLang::FrontEnd::SymbolType::Func:return "Func";
+	case UCodeLang::FrontEnd::SymbolType::ImportedDllFunc:return "ImportedDllFunc";
+	case UCodeLang::FrontEnd::SymbolType::ImportedLibFunc:return "ImportedLibFunc";
+	case UCodeLang::FrontEnd::SymbolType::FuncCall:return "FuncCall";
+	case UCodeLang::FrontEnd::SymbolType::GenericFunc:return "GenericFunc";
+	case UCodeLang::FrontEnd::SymbolType::Generic_class:return"Generic_class";
+	case UCodeLang::FrontEnd::SymbolType::Unmaped_Generic_Type:return "Unmaped_Generic_Type";
+	case UCodeLang::FrontEnd::SymbolType::Namespace:return "Namespace";
+	case UCodeLang::FrontEnd::SymbolType::Hard_Func_ptr:return "Hard_Func_ptr";
+	case UCodeLang::FrontEnd::SymbolType::Func_ptr:return "Func_ptr";
+	case UCodeLang::FrontEnd::SymbolType::ConstantExpression:return "ConstantExpression";
+	default:return "[n/a]";
+	}
 }
 UCodeLangFrontEnd
 
