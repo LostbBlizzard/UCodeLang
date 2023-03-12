@@ -4526,6 +4526,31 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 			}
 		}
 	}break;
+	case TokenType::internal_Constant_expression:
+	{
+		//note this can only happen in a generic substitution
+		auto* node = V.node.get();
+		if (_ConstantExpressionMap.count(node))
+		{
+			auto& item = _ConstantExpressionMap[node];
+			Out.SetType(item);
+		}
+		else
+		{
+			SymbolID id = (SymbolID)node;
+			auto& Syb = AddSybol(SymbolType::ConstantExpression, "?", "?");
+			_Table.AddSymbolID(Syb, id);
+
+			ConstantExpressionInfo* info = new ConstantExpressionInfo();
+			info->Exnode = ExpressionNodeType::As(node);
+
+			Syb.Info.reset(info);
+
+
+			Out.SetType(id);
+		}
+	}
+	break;
 	default:
 		throw std::exception("not added");
 		break;

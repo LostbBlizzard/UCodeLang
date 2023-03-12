@@ -340,7 +340,7 @@ struct TypeNode :Node
 	}
 	static void Gen_Expression(TypeNode& Out, const Token& ToGetLinesFrom)
 	{
-		return Gen_Type(Out, TokenType::Null, ToGetLinesFrom);
+		return Gen_Type(Out, TokenType::internal_Constant_expression, ToGetLinesFrom);
 	}
 
 	bool IsThisMemberFunc() const

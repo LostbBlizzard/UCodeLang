@@ -190,6 +190,8 @@ enum class SymbolType: UInt8
 
 	Hard_Func_ptr,//no one will use this
 	Func_ptr,
+
+	ConstantExpression,
 };
 enum class SymbolValidState : UInt8
 {
@@ -432,6 +434,25 @@ public:
 
 	Vector<TypeSymbol> Pars;
 	TypeSymbol Ret;
+};
+
+
+struct  ExpressionNodeType;
+
+class ConstantExpressionInfo :public Symbol_Info
+{
+public:
+	ExpressionNodeType* Exnode;
+	
+
+	ConstantExpressionInfo()
+	{
+
+	}
+	~ConstantExpressionInfo()
+	{
+
+	}
 };
 
 class Symbol
