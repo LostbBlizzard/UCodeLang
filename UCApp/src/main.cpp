@@ -71,10 +71,12 @@ int main()
 
 		String Str = Text.str();
 		
+
+
 		{
 			String outpath = FileDir + "StandardLibrary.uc";
 			std::ofstream out(outpath);
-			out << Str;
+			//out << Str;
 			out.close();
 		}
 

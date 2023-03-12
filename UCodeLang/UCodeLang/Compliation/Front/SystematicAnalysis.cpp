@@ -355,6 +355,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 		_Table.RemoveScope();
 
 	}
+	Syb.PassState = passtype;
 }
 void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 {
@@ -433,6 +434,8 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 	}
 
 	_Table.RemoveScope();
+
+	Syb.PassState = passtype;
 }
 void SystematicAnalysis::OnUseingNode(const UsingNode& node)
 {
@@ -451,6 +454,8 @@ void SystematicAnalysis::OnUseingNode(const UsingNode& node)
 }
 void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 {
+
+
 	bool IsgenericInstantiation = GenericFuncName.size() && GenericFuncName.top().NodeTarget == &node;
 	bool IsGenericS = node.Signature.Generic.Values.size();
 
@@ -604,6 +609,10 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			auto ParSybID = (SymbolID)&Item;
 			_Table.AddSymbolID(*GenericType, ParSybID);
 
+			if (Item.Name.Token == nullptr)
+			{
+				newInfo->FrontParIsUnNamed = true;
+			}
 			newInfo->Pars.push_back(VP);
 		}
 		
@@ -614,10 +623,17 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	{
 		syb = GetSymbol(sybId);
 	}
+
+	//we may jump to this node non linearly
+	if (syb->PassState == passtype)
+	{
+		_Table.RemoveScope();
+		return;
+	}
 	FuncInfo* Info = syb->Get_Info<FuncInfo>();
 
 
-	_FuncStack.push(Info);
+	_FuncStack.push_back(Info);
 
 
 	if (passtype == PassType::FixedTypes
@@ -809,6 +825,43 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		bool HasARet = false;
 		LookingForTypes.push(syb->VarType);
 
+
+		if (passtype == PassType::FixedTypes && IsRetDependencies(Info) && syb->VarType._Type == TypesEnum::Var)
+		{
+			for (const auto& node2 : Body.Statements._Nodes)
+			{
+				if (node2->Get_Type() == NodeType::RetStatementNode)
+				{
+					OnStatement(node2);
+
+					auto OldType = syb->VarType;
+
+					auto NewType = LastExpressionType;
+
+					if (OldType.IsAddress()) {
+						NewType.SetAsAddress();
+					}
+					if (OldType.IsAddressArray()) {
+						NewType.SetAsAddressArray();
+					}
+
+					Get_LookingForType() = syb->VarType = NewType;
+					break;
+				}
+			}
+
+			if (syb->VarType._Type == TypesEnum::Var)
+			{
+				syb->VarType.SetType(TypesEnum::Void);
+			}
+			else if (syb->VarType._Type != TypesEnum::Void
+				 && !syb->VarType.IsBadType())//Update This when control flow get added.
+			{
+				auto Token = node.Signature.Name.Token;
+				YouMustReturnSomethingError(Token);
+			}
+		}
+
 		for (const auto& node2 : Body.Statements._Nodes)
 		{
 			OnStatement(node2);
@@ -857,7 +910,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 				{
 					syb->VarType.SetType(TypesEnum::Void);
 				}
-				else if (syb->VarType._Type != TypesEnum::Void)//Update This when control flow get added.
+				else if (syb->VarType._Type != TypesEnum::Void
+					&& !syb->VarType.IsBadType())//Update This when control flow get added.
 				{
 					auto Token = node.Signature.Name.Token;
 					YouMustReturnSomethingError(Token);
@@ -895,7 +949,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		}
 	}
 
-	_FuncStack.pop();
+	_FuncStack.pop_back();
 
 	_Table.RemovePopUseing(UseingIndex);
 
@@ -903,6 +957,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 	
 	_Table.RemoveScope();
+
+	syb->PassState = passtype;
 }
 void SystematicAnalysis::FuncRetCheck(const Token& Name, const Symbol* FuncSyb, const FuncInfo* Func)
 {
@@ -1105,16 +1161,19 @@ void SystematicAnalysis::OnStatement(const Unique_ptr<UCodeLang::Node>& node2)
 }
 void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 {
+
 	auto& LookForT = Get_LookingForType();
 	if (node.Expression.Value)
 	{
-
+	_FuncStack.back().IsOnRetStatemnt = true;
 		//LookForT.SetAsRawValue();
 
 		LookingForTypes.push(LookForT);
 		OnExpressionTypeNode(node.Expression.Value.get());
 
 		LookingForTypes.pop();
+
+		_FuncStack.back().IsOnRetStatemnt = false;
 	}
 	else
 	{
@@ -1298,7 +1357,7 @@ String SystematicAnalysis::GetScopedNameAsString(const ScopedNameNode& node)
 	String Text;
 	if (node.ScopedName[0].token->Type == TokenType::KeyWorld_This)
 	{
-		auto Type = *_FuncStack.top()->GetObjectForCall();
+		auto Type = *_FuncStack.back().Pointer->GetObjectForCall();
 		Type._IsAddress = false;
 
 		Text += ToString(Type);
@@ -1838,7 +1897,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, 
 
 
 
-		auto& Func = _FuncStack.top();
+		auto& Func = _FuncStack.back().Pointer;
 		auto ObjectType = Func->GetObjectForCall();
 
 		auto objecttypesyb = GetSymbol(*ObjectType);
@@ -2104,10 +2163,10 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 
 	if (In.Symbol->Type == SymbolType::Class_Field && _FuncStack.size() && _ClassStack.top())
 	{
-		auto& Func = _FuncStack.top();
+		auto& Func = _FuncStack.back();
 		auto& PointerIr = LookingAtIRFunc->Pars.front();
 
-		auto ObjectType = *Func->GetObjectForCall();
+		auto ObjectType = *Func.Pointer->GetObjectForCall();
 		ObjectType._IsAddress = false;
 
 		auto objecttypesyb = GetSymbol(ObjectType);
@@ -2132,8 +2191,8 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 		auto& PointerIr = LookingAtIRFunc->Pars.front();
 		Output = LookingAtIRBlock->NewLoad(&PointerIr);
 
-		auto& Func = _FuncStack.top();
-		Last_Type = *Func->GetObjectForCall();
+		auto& Func = _FuncStack.back();
+		Last_Type = *Func.Pointer->GetObjectForCall();
 	}
 	//
 
@@ -2261,7 +2320,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 
 
 
-			auto& Func = _FuncStack.top();
+			auto& Func = _FuncStack.back().Pointer;
 			auto ObjectType = Func->GetObjectForCall();
 
 			auto objecttypesyb = GetSymbol(*ObjectType);
@@ -3327,8 +3386,8 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 		}
 
 		
-		auto& Func = _FuncStack.top();
-		auto ObjectType = Func->GetObjectForCall();
+		auto& Func = _FuncStack.back();
+		auto ObjectType = Func.Pointer->GetObjectForCall();
 
 		auto objecttypesyb = GetSymbol(*ObjectType);
 		ClassInfo* V = objecttypesyb->Get_Info<ClassInfo>();
@@ -3768,6 +3827,11 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 
 		DoFuncCall(Info, node.FuncName, node.Parameters);
 		FuncToSyboID[&node] = Info;
+		
+		if (Info.Func)
+		{
+			LastExpressionType = Info.Func->Ret;
+		}
 	}
 	else if (passtype == PassType::BuidCode)
 	{
@@ -5160,7 +5224,13 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 	{
 		if (Item->Type == SymbolType::Func)
 		{
+			
+
 			FuncInfo* Info = Item->Get_Info<FuncInfo>();
+			
+			
+
+			/*
 			if (RetIsSet)
 			{
 				if (!AreTheSame(Info->Ret, RetType))
@@ -5168,11 +5238,43 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 					continue;
 				}
 			}
+			*/
 
 			if (Info->Pars.size() != ValueTypes.size())
 			{
 				continue;
 			}
+
+
+			//
+			if (Item->PassState != passtype)
+			{
+				if (!IsDependencies(Info)) 
+				{
+					auto OldPass = passtype;
+					auto OldScope = _Table._Scope.ThisScope;
+					_Table._Scope.ThisScope = Info->FullName;
+					ScopeHelper::ReMoveScope(_Table._Scope.ThisScope);
+
+					_RetLoopStack.push_back(Info);
+
+					OnFuncNode(*(FuncNode*)Item->NodePtr);
+
+					_RetLoopStack.pop_back();
+
+					_Table._Scope.ThisScope = OldScope;
+				}
+				else
+				{
+					auto V = GetDependencies(Info);
+					if (V->IsOnRetStatemnt)
+					{
+						LogFuncDependencyCycle(Name.ScopedName.back().token, Info);
+						Info->Ret.SetType(TypesEnum::Null);//to stop err spam
+					}
+				}
+			}
+			//
 
 			for (size_t i = 0; i < Info->Pars.size(); i++)
 			{
@@ -5364,7 +5466,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 		{
 			AutoThisCall = true;
 
-			ValueTypes.insert(ValueTypes.begin(),*_FuncStack.top()->GetObjectForCall());
+			ValueTypes.insert(ValueTypes.begin(),*_FuncStack.back().Pointer->GetObjectForCall());
 			ThisParType = Get_FuncInfo::ThisPar_t::AutoPushThis;
 			goto StartSymbolsLoop;
 		}
@@ -6524,7 +6626,31 @@ void SystematicAnalysis::LogCantBeIndexWithType(const Token* Token, const  TypeS
 void SystematicAnalysis::LogCantUseThisInStaticFunction(const Token* Token)
 {
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
-		, "The 'this' parameter can be accessed in a static function.A this function must look like |[this&,...] -> [Type];");
+		, "The 'this' parameter can't be accessed in a static function.A 'this' function must look like |[this&,...] -> [Type];");
+}
+void SystematicAnalysis::LogFuncDependencyCycle(const Token* Token, const FuncInfo* Value)
+{
+	String Msg = "function return type Dependency Cycle On function '" + (String)Value->FullName + "' <- ";
+
+	for (int i = _FuncStack.size() - 1; i >= 0; i--)
+	{
+		auto& Item = _FuncStack[i];
+
+		Msg += "'" + (String)Item.Pointer->FullName + "'";
+		if (&Item != &_FuncStack.front())
+		{
+			Msg += " <- ";
+		}
+
+		if (Item.Pointer->Ret.IsBadType())
+		{
+			return;
+		}
+	}
+	Msg += ".";
+	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+		, Msg);
+
 }
 UCodeLangFrontEnd
 

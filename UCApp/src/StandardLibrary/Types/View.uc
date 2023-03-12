@@ -7,7 +7,7 @@
   |new[this&]:
    _Size = 0;
 
-  |new[T[&] Data,size_t Size]:
+  |new[this&,T[&] Data,size_t Size]:
    _Data = Data;
    _Size = Size;
 
