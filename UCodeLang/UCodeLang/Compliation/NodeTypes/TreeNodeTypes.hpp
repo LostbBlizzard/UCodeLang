@@ -336,6 +336,11 @@ struct TypeNode :Node
 	{
 		return Gen_Type(Out, TokenType::KeyWorld_UInt8, ToGetLinesFrom);
 	}
+	static void Gen_Expression(TypeNode& Out, const Token& ToGetLinesFrom)
+	{
+		return Gen_Type(Out, TokenType::Null, ToGetLinesFrom);
+	}
+
 	bool IsThisMemberFunc() const
 	{
 		return Name.Token->Type == TokenType::KeyWorld_This

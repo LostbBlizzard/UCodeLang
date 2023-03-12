@@ -1122,67 +1122,24 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 			out->PushAsAddess();
 			break;
 		}
-		else 
+		else if (Token2 && Token2->Type == TokenType::Left_Bracket)
 		{
-			
-			if (Token2 && Token2->Type == TokenType::Left_Bracket)
+			bool Break = false;
+			NextToken();
+			Token2 = TryGetToken();
+			if (Token2->Type == TokenType::bitwise_and)
 			{
-				bool Break = false;
 				NextToken();
+
 				Token2 = TryGetToken();
-				if (Token2->Type == TokenType::bitwise_and)
-				{
-					NextToken();
-
-					Token2 = TryGetToken();
-					out->PushAsArrayAddess();
-					Break = true;
-				}
-				else if (Token2->Type == TokenType::Colon)
-				{
-					NextToken();
-					TypeNode* New = new TypeNode();
-
-					New->Isimmutable = out->Isimmutable;
-					out->Isimmutable = false;
-					New->Generic.Values.push_back(std::move(*out));
-
-					auto NameToken = new UCodeLang::Token();
-					NameToken->OnLine = Token2->OnLine;
-					NameToken->OnPos = Token2->OnPos;
-					NameToken->Type = TokenType::Name;
-					NameToken->Value._String = UCode_ViewType;
-
-					_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
-
-					New->Name.Token = NameToken;
-					out = New;
-				}
-				else if (Token2->Type == TokenType::Right_Bracket)
-				{
-					throw std::exception("not added");
-					goto Done;
-				}
-				else
-				{
-					throw std::exception("not added");
-				}
-
-
-			Done:
-				Token2 = TryGetToken();
-				TokenTypeCheck(Token2, TokenType::Right_Bracket);
-				NextToken();
-				if (Break)
-				{
-					break;
-				}
+				out->PushAsArrayAddess();
+				Break = true;
 			}
-			else if (Token2->Type == TokenType::QuestionMark)
+			else if (Token2->Type == TokenType::Colon)//int[:] => View<int>
 			{
 				NextToken();
 				TypeNode* New = new TypeNode();
-				
+
 				New->Isimmutable = out->Isimmutable;
 				out->Isimmutable = false;
 				New->Generic.Values.push_back(std::move(*out));
@@ -1191,22 +1148,110 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 				NameToken->OnLine = Token2->OnLine;
 				NameToken->OnPos = Token2->OnPos;
 				NameToken->Type = TokenType::Name;
-				NameToken->Value._String = UCode_OptionalType;
+				NameToken->Value._String = UCode_ViewType;
 
-				_Tree.TemporaryTokens.push_back( Unique_ptr<UCodeLang::Token>(NameToken));
+				_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
 
 				New->Name.Token = NameToken;
 				out = New;
-
-				Token2 = TryGetToken();
 			}
-			else
+			else if (Token2->Type == TokenType::Right_Bracket)//int[] => Vector<int>
+			{
+				TypeNode* New = new TypeNode();
+
+				New->Isimmutable = out->Isimmutable;
+				out->Isimmutable = false;
+				New->Generic.Values.push_back(std::move(*out));
+
+				auto NameToken = new UCodeLang::Token();
+				NameToken->OnLine = Token2->OnLine;
+				NameToken->OnPos = Token2->OnPos;
+				NameToken->Type = TokenType::Name;
+				NameToken->Value._String = UCode_VectorType;
+
+				_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
+
+				New->Name.Token = NameToken;
+				out = New;
+			}
+			else//int[0] => Array<int,(0)>
+			{
+				//NextToken();
+				
+
+				TypeNode* New = new TypeNode();
+				{
+					New->Isimmutable = out->Isimmutable;
+					out->Isimmutable = false;
+					New->Generic.Values.push_back(std::move(*out));
+
+					auto NameToken = new UCodeLang::Token();
+					NameToken->OnLine = Token2->OnLine;
+					NameToken->OnPos = Token2->OnPos;
+					NameToken->Type = TokenType::Name;
+					NameToken->Value._String = UCode_VectorType;
+
+					_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
+
+					New->Name.Token = NameToken;
+				}
+
+				{//Array expression
+					auto ExTypeNode = TypeNode();
+					TypeNode::Gen_Expression(ExTypeNode, *TryGetToken());
+
+
+					auto ExNode = new ExpressionNodeType();
+					ExTypeNode.node.reset(ExNode);
+					auto Ex = GetExpressionTypeNode(*ExNode);
+					
+					New->Generic.Values.push_back(std::move(ExTypeNode));
+				}
+
+
+				out = New;
+			}
+
+
+		Done:
+			Token2 = TryGetToken();
+			TokenTypeCheck(Token2, TokenType::Right_Bracket);
+			NextToken();
+			if (Break)
 			{
 				break;
 			}
-
+			Token2 = TryGetToken();
 		}
+		else if (Token2->Type == TokenType::QuestionMark)//int? => Optional<int>
+		{
+			NextToken();
+			TypeNode* New = new TypeNode();
+
+			New->Isimmutable = out->Isimmutable;
+			out->Isimmutable = false;
+			New->Generic.Values.push_back(std::move(*out));
+
+			auto NameToken = new UCodeLang::Token();
+			NameToken->OnLine = Token2->OnLine;
+			NameToken->OnPos = Token2->OnPos;
+			NameToken->Type = TokenType::Name;
+			NameToken->Value._String = UCode_OptionalType;
+
+			_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
+
+			New->Name.Token = NameToken;
+			out = New;
+
+			Token2 = TryGetToken();
+		}
+		else
+		{
+			break;
+		}
+
 	}
+	
 	return r;
 }
 
