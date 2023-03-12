@@ -11,6 +11,15 @@ UCodeLangEnd
 
 UCodeLangFrontStart
 
+enum class PassType : UInt8
+{
+	Null,
+	GetTypes,
+	FixedTypes,
+	BuidCode,
+	Done,
+};
+
 enum class TypesEnum :UInt8
 {
 	Null,
@@ -239,16 +248,24 @@ public:
 	
 	Vector<SymbolID> _Generic;
 
-
-	bool IsObjectCall()
+	bool FrontParIsUnNamed = false;
+	bool IsObjectCall() const
 	{
-		return Pars.size() && Pars.back().IsAddress();
+		return Pars.size() && Pars.front().IsAddress() && FrontParIsUnNamed;
 	}
 	TypeSymbol* GetObjectForCall()
 	{
 		if (IsObjectCall())
 		{
-			return &Pars.back();
+			return &Pars.front();
+		}
+		return nullptr;
+	}
+	const TypeSymbol* GetObjectForCall() const
+	{
+		if (IsObjectCall())
+		{
+			return &Pars.front();
 		}
 		return nullptr;
 	}
@@ -436,6 +453,8 @@ public:
 
 
 	SymbolValidState ValidState = SymbolValidState::valid;
+	PassType PassState = PassType::Null;
+
 	void SetToInvalid(){ValidState = SymbolValidState::Invalid;}
 	void SetTovalid(){ValidState = SymbolValidState::valid;}
 	bool IsInvalid()const {return ValidState == SymbolValidState::Invalid;}

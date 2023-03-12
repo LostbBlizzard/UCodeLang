@@ -37,14 +37,7 @@ public:
 		return _Lib;
 	}
 
-	enum class PassType : UInt8
-	{
-		Null,
-		GetTypes,
-		FixedTypes,
-		BuidCode,
-		Done,
-	};
+	
 
 	struct FileNodeData
 	{
@@ -62,7 +55,59 @@ private:
 	const Vector<const UClib*>* _Libs = nullptr;
 	SymbolTable _Table;
 	Stack<ClassInfo*> _ClassStack;
-	Stack<FuncInfo*> _FuncStack;
+
+	struct FuncStackInfo
+	{
+		FuncInfo* Pointer = nullptr;
+		bool IsOnRetStatemnt = false;
+		FuncStackInfo(FuncInfo* V)
+		{
+			Pointer = V;
+		}
+	};
+
+	Vector<FuncStackInfo> _FuncStack;
+
+	inline bool IsDependencies(const FuncInfo* Value)
+	{
+		for (auto& Item : _FuncStack)
+		{
+			if (Item.Pointer == Value)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	inline FuncStackInfo* GetDependencies(const FuncInfo* Value)
+	{
+		for (auto& Item : _FuncStack)
+		{
+			if (Item.Pointer == Value)
+			{
+				return &Item;
+			}
+		}
+		return nullptr;
+	}
+
+
+	Vector< FuncInfo*>_RetLoopStack;
+	inline bool IsRetDependencies(const FuncInfo* Value)
+	{
+		for (auto& Item : _RetLoopStack)
+		{
+			if (Item == Value)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+
+
 	Vector<const AttributeNode*> _TepAttributes;
 	bool _InStatements = false;
 	//IR Building
@@ -152,6 +197,10 @@ private:
 	{
 		ClassDependencies.pop_back();
 	}
+
+
+	
+	
 
 	SymbolID GetSymbolID(const Node& node);
 	//File dependency analysis stuff
@@ -346,17 +395,23 @@ private:
 	bool IsInThisFuncCall()
 	{
 		if (_FuncStack.size()) {
-			auto& Func = _FuncStack.top();
-			if (auto ObjectType = Func->GetObjectForCall())
-			{
-				auto objecttypesyb = GetSymbol(*ObjectType);
-				ClassInfo* V = objecttypesyb->Get_Info<ClassInfo>();
-
-				return _ClassStack.top() == V;
-			}
+			return IsThisFuncCall(_FuncStack.back().Pointer);
 		}
 		return false;
 	}
+	bool IsThisFuncCall(const FuncInfo* Func)
+	{
+		if (auto ObjectType = Func->GetObjectForCall())
+		{
+			auto objecttypesyb = GetSymbol(*ObjectType);
+			ClassInfo* V = objecttypesyb->Get_Info<ClassInfo>();
+
+			return _ClassStack.top() == V;
+		}
+
+		return false;
+	}
+	
 
 	void DoSymbolRedefinitionCheck(const Symbol* Syb, const Token* Value);
 	void DoSymbolRedefinitionCheck(const String_view FullName, SymbolType Type, const Token* Value);
@@ -533,7 +588,7 @@ private:
 	void LogBeMoreSpecifiicForRetType(const String_view FuncName, const Token* Token);
 	void LogCantBeIndexWithType(const Token* Token, const  TypeSymbol& Ex0Type, const  TypeSymbol& IndexType);
 	void LogCantUseThisInStaticFunction(const Token* Token);
-
+	void LogFuncDependencyCycle(const Token* Token, const FuncInfo* Value);
 	struct ReadVarErrorCheck_t
 	{
 		bool CantFindVar = false;
