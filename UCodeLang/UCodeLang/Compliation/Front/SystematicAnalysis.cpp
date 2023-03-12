@@ -280,7 +280,11 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 				SymbolID ID = (SymbolID)GenericType->NodePtr;
 				_Table.AddSymbolID(*GenericType, ID);
 
-				ClassInf->_Generic.push_back(ID);
+				GenericData Info;
+				Info.SybID = ID;
+				Info.IsConstantExpression = Item.IsConstantExpression;
+
+				ClassInf->_Generic.push_back(Info);
 			}
 		}
 	}
@@ -543,7 +547,11 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 				SymbolID ID = (SymbolID)GenericType->NodePtr;
 				_Table.AddSymbolID(*GenericType,ID);	
 				
-				newInfo->_Generic.push_back(ID);
+				GenericData Info;
+				Info.SybID = ID;
+				Info.IsConstantExpression = Item.IsConstantExpression;
+
+				newInfo->_Generic.push_back(Info);
 			}
 		
 		}
@@ -4478,9 +4486,10 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 
 			
 			auto GenericInput = std::make_unique<Vector<TypeSymbol>>();//pointer must be unique so it cant be on the stack
-			for (size_t i = 0; i < CInfo->_Generic.size(); i++)
+			for (size_t i = 0; i < V.Generic.Values.size(); i++)
 			{
 				const auto& Tnode = V.Generic.Values[i];
+				const auto& GenericInfo = CInfo->_Generic[i];
 				TypeSymbol Type; 
 				Convert(Tnode, Type);
 				
@@ -4488,7 +4497,7 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 			}
 			
 			String NewName = GetGenericFuncName(SybV, *GenericInput);
-			auto FuncIsMade = GetSymbol(NewName, SymbolType::Func);
+			auto FuncIsMade = GetSymbol(NewName, SymbolType::Class_Field);
 			if (!FuncIsMade)
 			{
 				GenericTypeInstantiate(SybV, *GenericInput);
@@ -5417,7 +5426,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 				for (size_t i2 = 0; i2 < Info->_Generic.size(); i2++)
 				{
 					auto& V3 = Info->_Generic[i2];
-					if (V3 == Par._CustomTypeSymbol)
+					if (V3.SybID == Par._CustomTypeSymbol)
 					{
 						if (HasBenAdded[i2] == false)
 						{
@@ -5435,7 +5444,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 				for (size_t i2 = 0; i2 < Info->_Generic.size(); i2++)
 				{
 					auto& V3 = Info->_Generic[i2];
-					if (V3 == Info->Ret._CustomTypeSymbol)
+					if (V3.SybID == Info->Ret._CustomTypeSymbol)
 					{
 						if (HasBenAdded[i2] == false)
 						{

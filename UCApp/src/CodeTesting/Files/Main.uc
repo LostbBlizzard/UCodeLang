@@ -10,6 +10,7 @@ $Array<T,(Size)>;
  Array<int,(4)> Hello;
  int[4] Hello2;
 
+ Array<int,int> G;
 
 
  ret V[0];
