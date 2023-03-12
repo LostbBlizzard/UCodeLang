@@ -199,6 +199,8 @@ struct GenericValueNode :Node
 
 	}
 	const Token* Token = nullptr;
+	bool IsConstantExpression = false;
+
 	String_view AsStringView() const
 	{
 		return Token->Value._String;
