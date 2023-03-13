@@ -1150,10 +1150,10 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 	auto Token2 = TryGetToken();
 	while (!ignoreRighthandOFtype && Token2)
 	{
-		if (Token2->Type == TokenType::bitwise_and)
+		if (Token2->Type == TokenType::bitwise_and)//int&
 		{
 			NextToken();
-			out->PushAsAddess();
+			out->SetAsAddess();
 			break;
 		}
 		else if (Token2 && Token2->Type == TokenType::Left_Bracket)
@@ -1161,14 +1161,28 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 			bool Break = false;
 			NextToken();
 			Token2 = TryGetToken();
-			if (Token2->Type == TokenType::bitwise_and)
+			if (Token2->Type == TokenType::bitwise_and)//int[&]
 			{
 				NextToken();
 
 				Token2 = TryGetToken();
-				out->PushAsArrayAddess();
+				out->SetAsArrayAddess();
 				Break = true;
 			}
+			else if (Token2->Type == TokenType::forwardslash)//int[/10] or int[/]  
+			{
+				NextToken();
+				auto _NextToken = TryGetToken();
+				if (_NextToken->Type != TokenType::Right_Bracket)//Array expression
+				{
+					auto ExNode = new ExpressionNodeType();
+					out->node.reset(ExNode);
+					auto Ex = GetExpressionTypeNode(*ExNode);
+				}
+				out->SetAsStaticArray();
+				Break = true;
+			}
+
 			else if (Token2->Type == TokenType::Colon)//int[:] => View<int>
 			{
 				NextToken();

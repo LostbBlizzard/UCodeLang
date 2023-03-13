@@ -331,7 +331,7 @@ struct TypeNode :Node
 	}
 	static void Gen_ThisMemberFunc(TypeNode& Out, const Token& ToGetLinesFrom)
 	{
-		Out.PushAsAddess();
+		Out.SetAsAddess();
 		return Gen_Type(Out, TokenType::KeyWorld_This, ToGetLinesFrom);
 	}
 	static void Gen_Byte(TypeNode& Out, const Token& ToGetLinesFrom)
@@ -361,11 +361,11 @@ struct TypeNode :Node
 	TypeNode(TypeNode&& source) = default;
 	TypeNode& operator=(TypeNode&& source) = default;
 	~TypeNode() = default;
-	void PushAsAddess()
+	void SetAsAddess()
 	{
 		IsAddess = true;
 	}
-	void PushAsArrayAddess()
+	void SetAsArrayAddess()
 	{
 		IsAddessArray = true;
 	}
@@ -373,10 +373,15 @@ struct TypeNode :Node
 	{
 		Isimmutable = true;
 	}
+	void SetAsStaticArray()
+	{
+		IsStackArray = true;
+	}
 
 	bool IsAddess = false;
 	bool IsAddessArray = false;
 	bool Isimmutable = false;
+	bool IsStackArray = false;
 private:
 	Unique_ptr<Token> GenToken;
 };

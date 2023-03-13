@@ -9,8 +9,10 @@ $Array<T,(Size)>;
 
 |main[ int[&] V ] -> int&:
  
- int[;4] V = [10,10,10,10];
- int[;] V = [10,10,10,10];
+ int[/4] A = [10,10,10,10];
+ int[/] B = [10,10,10,10];
+ 
+ char[/] String = "Hello";
 
 
  ret V[0];
