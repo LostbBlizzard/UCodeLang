@@ -192,6 +192,7 @@ enum class SymbolType: UInt8
 	Func_ptr,
 
 	ConstantExpression,
+	Type_StaticArray,
 };
 enum class SymbolValidState : UInt8
 {
@@ -448,7 +449,7 @@ struct  ExpressionNodeType;
 class ConstantExpressionInfo :public Symbol_Info
 {
 public:
-	ExpressionNodeType* Exnode;
+	ExpressionNodeType* Exnode = nullptr;
 	
 
 	ConstantExpressionInfo()
@@ -456,6 +457,25 @@ public:
 
 	}
 	~ConstantExpressionInfo()
+	{
+
+	}
+};
+
+class StaticArrayInfo :public Symbol_Info
+{
+public:
+	TypeSymbol Type;
+	size_t Count = 0;
+	bool IsCountInitialized = false;
+
+	ExpressionNodeType* Exnode = nullptr;
+
+	StaticArrayInfo()
+	{
+
+	}
+	~StaticArrayInfo()
 	{
 
 	}
