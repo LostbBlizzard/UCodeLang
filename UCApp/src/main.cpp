@@ -108,7 +108,7 @@ int main()
 	}
 	
 
-	//ULangTest::RunTests();
+	ULangTest::RunTests();
 	
 	
 	UCodeLang::Compiler _Compiler;

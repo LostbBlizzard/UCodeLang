@@ -73,7 +73,7 @@ namespace ULangTest
 		}
 	};
 
-	static const Array<TestInfo, 33> Tests
+	static const Array<TestInfo, 38> Tests
 	{
 
 		TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation),
@@ -123,6 +123,13 @@ namespace ULangTest
 		TestInfo("HardAlias","BasicTests/HardAlias.uc","main",SuccessCondition::Compilation),
 		TestInfo("HardAlias2","BasicTests/HardAlias2.uc","main",SuccessCondition::CompilationFail),
 		TestInfo("HardAlias3","BasicTests/HardAlias3.uc","main",SuccessCondition::CompilationFail),
+
+		TestInfo("Index","BasicTests/Index.uc","main",SuccessCondition::RunTimeValue,(int)1),
+		TestInfo("Index","BasicTests/Index2.uc","main",SuccessCondition::RunTimeValue,(int)1),
+
+		TestInfo("GenericsExpression","Generics/GenericsExpression.uc","main",SuccessCondition::RunTimeValue,(int)1),
+		TestInfo("GenericsExpression2","Generics/GenericsExpression2.uc","main",SuccessCondition::CompilationFail),
+		TestInfo("GenericsExpression3","Generics/GenericsExpression3.uc","main",SuccessCondition::CompilationFail),
 	};
 
 
