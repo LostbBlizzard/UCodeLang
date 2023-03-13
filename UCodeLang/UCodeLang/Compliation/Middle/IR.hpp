@@ -352,6 +352,12 @@ struct IRFuncPtr : IRSymbol_Ex
 	IRType Ret;
 };
 
+
+struct IRStaticArray : IRSymbol_Ex
+{
+	IRType Type;
+	size_t Count=0;
+};
 //
 
 struct IRBlock
@@ -783,6 +789,7 @@ enum class IRSymbolType : IRSymbolType_t
 	ThreadLocalVarable,
 	Struct,
 	FuncPtr,
+	StaticArray,
 };
 
 
@@ -843,6 +850,22 @@ public:
 
 		r->identifier = identifier;
 		r->SymType = IRSymbolType::FuncPtr;
+		r->Ex.reset(V);
+		r->Type.SetType({ identifier });
+
+		_Symbols.emplace_back(r);
+		return V;
+	}
+
+	IRStaticArray* NewStaticArray(IRidentifierID identifier,IRType Type,size_t Count)
+	{
+		IRStaticArray* V = new IRStaticArray();
+		V->Count = Count;
+		V->Type = Type;
+		IRSymbolData* r = new IRSymbolData();
+
+		r->identifier = identifier;
+		r->SymType = IRSymbolType::StaticArray;
 		r->Ex.reset(V);
 		r->Type.SetType({ identifier });
 

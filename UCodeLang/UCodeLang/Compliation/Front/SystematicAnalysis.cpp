@@ -81,6 +81,11 @@ void SystematicAnalysis::BuildCode()
 		{
 			ConveToIRClassIR(*Item);
 		}
+		break;
+		case SymbolType::Type_StaticArray:
+		{
+			ConveToStaticArray(*Item);
+		}
 			break;
 		default:
 			break;
@@ -1016,6 +1021,24 @@ IRidentifierID SystematicAnalysis::ConveToIRClassIR(const Symbol& Class)
 
 	SybToIRMap[ClassSybID] = V;
 }
+
+IRidentifierID SystematicAnalysis::ConveToStaticArray(const Symbol& Class)
+{
+	auto ClassSybID = Class.ID;
+	if (SybToIRMap.count(ClassSybID))
+	{
+		return SybToIRMap[ClassSybID];
+	}
+	const StaticArrayInfo* clasinfo = Class.Get_Info <StaticArrayInfo>();
+
+	IRidentifierID V = _Builder.ToID(Class.FullName);
+
+	auto IRStuct = _Builder.NewStaticArray(V,ConvertToIR(clasinfo->Type),clasinfo->Count);
+
+
+	SybToIRMap[ClassSybID] = V;
+}
+
 IRType SystematicAnalysis::ConvertToIR(const TypeSymbol& Value)
 {
 	if (Value.IsAddress() || Value.IsAddressArray())
@@ -1084,6 +1107,10 @@ IRType SystematicAnalysis::ConvertToIR(const TypeSymbol& Value)
 		else if (syb.Type == SymbolType::Type_class)
 		{
 			return IRType(ConveToIRClassIR(syb));
+		}
+		else if (syb.Type == SymbolType::Type_StaticArray)
+		{
+			return IRType(ConveToStaticArray(syb));
 		}
 		else
 		{
@@ -1464,6 +1491,11 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 			}
 
 			Ind = !(IsPrimitive(syb->VarType) || syb->VarType.IsAddress());
+			if (Ind == false && syb->VarType._Type == TypesEnum::CustomType)
+			{
+				auto V = GetSymbol(syb->VarType);
+				Ind = V->Type == SymbolType::Type_StaticArray;
+			}
 
 			if (Ind)
 			{
@@ -3374,10 +3406,18 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(AnonymousObjectConstructor
 			{
 				auto& BufferIR = IRlocations.top();
 				BufferIR.UsedlocationIR = true;
-				auto& BufferIRIns = BufferIR.Value;
+				auto BufferIRIns = BufferIR.Value;
 				
 				const auto& ArrItemType = StaticArr->Type;
 				const auto IRItemType = ConvertToIR(ArrItemType);
+				UAddress Size;
+				GetSize(ArrItemType, Size);
+				auto ValueSizeIR = IR_Load_UIntptr(Size);
+
+				if (!Type.IsAddress())
+				{
+					BufferIRIns = LookingAtIRBlock->NewLoadPtr(BufferIRIns);
+				}
 
 				for (size_t i = 0; i < nod->Fields._Nodes.size(); i++)
 				{
@@ -3385,7 +3425,9 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(AnonymousObjectConstructor
 
 					DoImplicitConversion(_LastExpressionField,LastExpressionType, ArrItemType);
 
-					LookingAtIRBlock->New_Index_Vetor(BufferIRIns, LookingAtIRBlock->NewLoad(i), _LastExpressionField);
+					auto V = LookingAtIRBlock->New_Index_Vetor(BufferIRIns, LookingAtIRBlock->NewLoad(i), ValueSizeIR);
+					
+					LookingAtIRBlock->NewDereferenc_Store(V, _LastExpressionField);
 				}
 			}
 

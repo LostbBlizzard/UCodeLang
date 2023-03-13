@@ -6,7 +6,7 @@ $Array<T,(Size)>;
 
 
 
-|main[ int[&] V ] -> int&:
+|main[ int[&] V ] -> int:
  
  //int[/4] A = [10,10,10,10];
  //int[/] B = [10,10,10,10];
@@ -18,4 +18,4 @@ $Array<T,(Size)>;
  //char[/] String = "Hello";
 
 
- ret V[0];
+ ret 0;
