@@ -9,12 +9,8 @@ $Array<T,(Size)>;
 
 |main[ int[&] V ] -> int&:
  
+ int[;4] V = [10,10,10,10];
+ int[;] V = [10,10,10,10];
 
- Array<int,(4)> Hello;
- int[4] Hello2;
-
- Array<(0),int> G;
-
- Hello<int,(0)> CC;
 
  ret V[0];
