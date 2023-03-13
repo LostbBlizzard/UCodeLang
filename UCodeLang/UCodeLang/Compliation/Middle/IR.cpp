@@ -96,6 +96,12 @@ String IRBuilder::ToString()
 			r += "\n";
 		}
 		break;
+		case IRSymbolType::StaticArray:
+		{
+			IRStaticArray* V = Item->Get_ExAs<IRStaticArray>();
+			r += "$" + SybName + " = " + ToString(V->Type) + "[/" + std::to_string(V->Count) + "]";
+		}
+		break;
 		default:
 			throw std::exception("not added");
 			break;

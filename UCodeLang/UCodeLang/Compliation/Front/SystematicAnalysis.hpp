@@ -153,6 +153,7 @@ private:
 	//
 
 	IRidentifierID ConveToIRClassIR(const Symbol& Class);
+	IRidentifierID ConveToStaticArray(const Symbol& Class);
 
 	IRType ConvertToIR(const TypeSymbol& Value);
 	Unordered_map<SymbolID, IRidentifierID> SybToIRMap;
