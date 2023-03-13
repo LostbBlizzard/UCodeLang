@@ -383,7 +383,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 
 		if (node._Type == AliasType::Type) 
 		{
-			Convert(node.Type, Syb.VarType);
+			ConvertAndValidateType(node.Type, Syb.VarType);
 		}
 		else
 		{
@@ -398,10 +398,10 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 			{
 				auto& NodePar = node_->Parameters.Parameters[i];
 				auto& Par = V->Pars[i];
-				Convert(NodePar.Type, Par);
+				ConvertAndValidateType(NodePar.Type, Par);
 			}
 
-			Convert(node_->ReturnType, V->Ret);
+			ConvertAndValidateType(node_->ReturnType, V->Ret);
 
 			Syb.VarType.SetType(SybID);
 		}
@@ -410,7 +410,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 	{
 		if (node._Type == AliasType::Type) 
 		{
-			Convert(node.Type, Syb.VarType);
+			ConvertAndValidateType(node.Type, Syb.VarType);
 		}
 		else
 		{
@@ -421,10 +421,10 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 			{
 				auto& NodePar = node_->Parameters.Parameters[i];
 				auto& Par = nodeinfo_->Pars[i];
-				Convert(NodePar.Type, Par);
+				ConvertAndValidateType(NodePar.Type, Par);
 			}
 
-			Convert(node_->ReturnType, nodeinfo_->Ret);
+			ConvertAndValidateType(node_->ReturnType, nodeinfo_->Ret);
 		}
 	}
 
@@ -579,7 +579,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			for (auto& Item3 : Typenode->Fields.Parameters)
 			{
 				TypeSymbol T;
-				Convert(Item3.Type, T);
+				ConvertAndValidateType(Item3.Type, T);
 
 				ClassInf->AddField(Item3.Name.AsString(), T);
 			}
@@ -591,7 +591,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		for (auto& Item : node.Signature.Parameters.Parameters)
 		{
 			TypeSymbol VP;
-			Convert(Item.Type,VP);
+			ConvertAndValidateType(Item.Type,VP);
 
 
 
@@ -662,7 +662,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			{
 				auto& Item3 = Typenode->Fields.Parameters[i];
 				auto ItemOut = ClassInf->Fields[i];
-				Convert(Item3.Type, ItemOut.Type);
+				ConvertAndValidateType(Item3.Type, ItemOut.Type);
 			}
 
 			
@@ -687,7 +687,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		}
 		else
 		{
-			Convert(node.Signature.ReturnType, syb->VarType);
+			ConvertAndValidateType(node.Signature.ReturnType, syb->VarType);
 			Info->Ret = syb->VarType;
 		}
 
@@ -701,7 +701,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 			auto ParSybID = (SymbolID)&Item;
 			auto& Sybol =*GetSymbol(ParSybID);
-			Convert(Item.Type, Sybol.VarType);
+			ConvertAndValidateType(Item.Type, Sybol.VarType);
 			Item2 = Sybol.VarType;
 
 		}
@@ -1247,7 +1247,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 	EvaluatedEx ex;
 	if (passtype == PassType::FixedTypes)
 	{
-		Convert(node.BaseType, ClassInf->Basetype);
+		ConvertAndValidateType(node.BaseType, ClassInf->Basetype);
 		if (ClassInf->Basetype.IsBadType()) { return; }
 		if (!ConstantExpressionAbleType(ClassInf->Basetype))
 		{
@@ -1417,13 +1417,28 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 	if (passtype == PassType::FixedTypes)
 	{
 		auto& VarType = syb->VarType;
-		Convert(node.Type, VarType);
+		ConvertAndValidateType(node.Type, VarType);
 		VarType.SetAsLocation();
+		
 		
 		if (VarType._Type == TypesEnum::Var && node.Expression.Value == nullptr)
 		{
 			auto Token = node.Type.Name.Token;
 			CantgussTypesTheresnoassignment(Token);
+		}
+		else if (VarType._Type == TypesEnum::CustomType && node.Expression.Value == nullptr)
+		{
+			auto Syb = GetSymbol(VarType);
+			if (Syb->Type == SymbolType::Type_StaticArray)
+			{
+				StaticArrayInfo* V = Syb->Get_Info<StaticArrayInfo>();
+
+				if (!V->IsCountInitialized)
+				{
+					auto Token = node.Type.Name.Token;
+					LogBeMoreSpecifiicWithStaticArrSize(Token, V->Type);
+				}
+			}
 		}
 		else
 		{
@@ -3097,7 +3112,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 			if (passtype == PassType::BuidCode)
 			{
 				TypeSymbol Info;
-				Convert(nod->Type, Info);
+				ConvertAndValidateType(nod->Type, Info);
 				UAddress TypeSize;
 				GetSize(Info, TypeSize);
 				switch (lookT._Type)
@@ -3319,6 +3334,29 @@ void SystematicAnalysis::OnNewNode(NewExpresionNode* nod)
 void SystematicAnalysis::OnAnonymousObjectConstructor(AnonymousObjectConstructorNode*& nod)
 {
 	auto& Type = Get_LookingForType();
+
+	if (Type._Type == TypesEnum::CustomType)
+	{
+		auto V = GetSymbol(Type);
+		if (V->Type == SymbolType::Type_StaticArray)
+		{
+			StaticArrayInfo* StaticArr = V->Get_Info< StaticArrayInfo>();
+			if (StaticArr->IsCountInitialized)
+			{
+				if (StaticArr->Count != nod->Fields._Nodes.size())
+				{
+					const Token* Token = LastLookedAtToken;
+					LogCanIncorrectStaticArrCount(Token, Type, StaticArr->Count, nod->Fields._Nodes.size());
+				}
+			}
+			else
+			{
+				StaticArr->Count = nod->Fields._Nodes.size();
+				StaticArr->IsCountInitialized = true;
+			}
+		}
+	}
+
 	if (Type.IsnotAn(TypesEnum::Var))//function who called this can deal with var
 	{
 		
@@ -3721,7 +3759,7 @@ TypeSymbol SystematicAnalysis::BinaryExpressionShouldRurn(TokenType Op, const Ty
 void SystematicAnalysis::OnExpressionNode(const CastNode& node)
 {
 	TypeSymbol ToTypeAs;
-	Convert(node.ToType, ToTypeAs);
+	ConvertAndValidateType(node.ToType, ToTypeAs);
 	LookingForTypes.push(ToTypeAs);
 	
 	
@@ -3734,7 +3772,7 @@ void SystematicAnalysis::OnExpressionNode(const CastNode& node)
 	if (passtype == PassType::FixedTypes) 
 	{
 		TypeSymbol ToTypeAs;
-		Convert(node.ToType, ToTypeAs);
+		ConvertAndValidateType(node.ToType, ToTypeAs);
 		if (!CanBeExplicitlyConverted(Ex0Type, ToTypeAs))
 		{
 			auto  Token = node.ToType.Name.Token;
@@ -4363,10 +4401,19 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type)
 
 			r += ToString(Funptr->Ret);
 		}
+		else if (Syb.Type == SymbolType::Type_StaticArray)
+		{
+			StaticArrayInfo* Info = Syb.Get_Info<StaticArrayInfo>();
+			r += ToString(Info->Type);
+			r += "[/";
+			r += std::to_string(Info->Count);
+			r += "]";
+		}
 		else
 		{
 			r = Syb.FullName;
 		}
+	
 	}	break;
 	case TypesEnum::Void:
 		r = "void";	break;
@@ -4497,7 +4544,7 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 				const auto& Tnode = V.Generic.Values[i];
 				const auto& GenericInfo = CInfo->_Generic[i];
 				TypeSymbol Type; 
-				Convert(Tnode, Type);
+				ConvertAndValidateType(Tnode, Type);
 
 				{
 					bool InputTypeIsConstantExpression = false;
@@ -4601,7 +4648,103 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 	if (V.IsAddess) {Out._IsAddress = true;}
 	if (V.IsAddessArray){Out._IsAddressArray = true;}
 	if (V.Isimmutable){Out._Isimmutable = true;}
+
+	if (V.IsStackArray)
+	{
+		ExpressionNodeType* node = (ExpressionNodeType*)V.node.get();
+		SymbolID id = (SymbolID)node;
+		auto BaseTypeName = ToString(Out);
+		auto FullName = CompilerGenerated("StaticArray_") + BaseTypeName + std::to_string(id);
+
+		if (passtype == PassType::GetTypes)
+		{
+			throw std::exception("must be called on FixedTypes");
+		}
+
+		Symbol* Syb = GetSymbol(FullName,SymbolType::Null);
+		if (Syb == nullptr)
+		{
+			Syb = &AddSybol(SymbolType::Type_StaticArray, FullName, FullName);
+			//_Table.AddSymbolID(*Syb, id);
+
+			StaticArrayInfo* info = new StaticArrayInfo();
+
+
+			info->Type = Out;
+			info->Exnode = node;
+			
+			Syb->Info.reset(info);
+
+		}
+		StaticArrayInfo& Info = *Syb->Get_Info<StaticArrayInfo>();
+
+		if (passtype == PassType::FixedTypes && node != nullptr && Info.IsCountInitialized == false)
+		{
+			TypeSymbol UIntType;
+			UIntType.SetType(TypesEnum::uIntPtr);
+
+			auto NodeV = node->Value.get();
+
+			LookingForTypes.push(UIntType);
+
+			OnExpressionTypeNode(NodeV);//check
+			
+			LookingForTypes.pop();
+			
+			if (!CanBeImplicitConverted(LastExpressionType, UIntType, false))
+			{
+				LogCantCastImplicitTypes(LastLookedAtToken, LastExpressionType, UIntType, false);
+				Out.SetType(TypesEnum::Null);
+				return;
+			}
+			if (!CanEvaluateImplicitConversionConstant(LastExpressionType, UIntType))
+			{
+				Out.SetType(TypesEnum::Null);
+				LogCantCastImplicitTypes_Constant(LastLookedAtToken, LastExpressionType, UIntType);
+				return;
+			}
+			EvaluatedEx Ex;
+			EvaluatedEx ex1 = MakeEx(LastExpressionType);
+			Evaluate_t(ex1, NodeV);
+
+			EvaluateImplicitConversion(ex1, UIntType, Ex);
+
+
+			void* V = Get_Object(Ex);
+
+			Info.Count = *(size_t*)V;
+			Info.IsCountInitialized = true;
+
+		}
+	}
 }
+void SystematicAnalysis::ConvertAndValidateType(const TypeNode& V, TypeSymbol& Out)
+{
+	Convert(V, Out);
+	if (ValidateType(Out,V.Name.Token) == false)
+	{
+		Out.SetType(TypesEnum::Null);
+	}
+}
+bool SystematicAnalysis::ValidateType(const TypeSymbol& V, const Token* Token)
+{
+	if (V._Type == TypesEnum::CustomType)
+	{
+		auto Syb = GetSymbol(V);
+		if (Syb->Type == SymbolType::Type_StaticArray)
+		{
+			StaticArrayInfo* V = Syb->Get_Info<StaticArrayInfo>();
+
+			if (!V->IsCountInitialized)
+			{
+				LogBeMoreSpecifiicWithStaticArrSize(Token, V->Type);
+				return false;
+			}
+		}
+	}
+}
+
+
 void SystematicAnalysis::DoSymbolRedefinitionCheck(const Symbol* Syb, const Token* Value)
 {
 	auto other = GetSymbol(Syb->FullName,Syb->Type);
@@ -4928,6 +5071,13 @@ bool SystematicAnalysis::GetSize(const TypeSymbol& Type, UAddress& OutSize)
 			|| V.Type == SymbolType::Hard_Func_ptr)
 		{
 			goto IntPtr;
+		}
+		else if (V.Type == SymbolType::Type_StaticArray)
+		{
+			StaticArrayInfo* Info = V.Get_Info< StaticArrayInfo>();
+			bool V = GetSize(Info->Type,OutSize);
+			OutSize *= Info->Count;
+			return V;
 		}
 		else
 		{
@@ -6728,6 +6878,8 @@ void SystematicAnalysis::LogCanIncorrectParCount(const Token* Token, String_view
 		Msg = "too little parameters for function '" + (String)FuncName + "'";
 	}
 
+	Msg += "Wanted " + std::to_string(FuncCount) + " parameters Found " + std::to_string(Count);
+
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, Msg);
 }
@@ -6743,6 +6895,8 @@ void SystematicAnalysis::LogCanIncorrectGenericCount(const Token* Token, String_
 	{
 		Msg = "too little Generic types for instantiation'" + (String)FuncName + "'";
 	}
+
+	Msg += "Wanted " + std::to_string(FuncCount) + " Generic types Found " + std::to_string(Count);
 
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, Msg);
@@ -6852,6 +7006,29 @@ String SystematicAnalysis::ToString(SymbolType Value)
 	case UCodeLang::FrontEnd::SymbolType::ConstantExpression:return "ConstantExpression";
 	default:return "[n/a]";
 	}
+}
+void SystematicAnalysis::LogCanIncorrectStaticArrCount(const Token* Token, const TypeSymbol& Type, size_t Count, size_t FuncCount)
+{
+	String Msg;
+
+	if (Count > FuncCount)
+	{
+		Msg = "Too Many Values for Type '" + ToString(Type) + "'";
+	}
+	else
+	{
+		Msg = "too little Values for Type'" + ToString(Type) + "'";
+	}
+
+	Msg += "Wanted " + std::to_string(FuncCount) + " Values Found " + std::to_string(Count);
+
+	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+		, Msg);
+}
+void SystematicAnalysis::LogBeMoreSpecifiicWithStaticArrSize(const Token* Token, const TypeSymbol& Type)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+		, "Be More Specifiic with Static Array Size.Ex: " + ToString(Type) + "[/1]");
 }
 UCodeLangFrontEnd
 

@@ -367,6 +367,8 @@ private:
 
 
 	void Convert(const TypeNode& V, TypeSymbol& Out);
+	void ConvertAndValidateType(const TypeNode& V, TypeSymbol& Out);
+	bool ValidateType(const TypeSymbol& V,const Token* Token);
 
 	Symbol* GetSymbol(const ClassInfo* Info)
 	{
@@ -597,6 +599,9 @@ private:
 	
 	void LogExpectedSymbolToBea(const Token* Token, const Symbol& Syb, SymbolType Value);
 	
+	void LogCanIncorrectStaticArrCount(const Token* Token, const TypeSymbol& Type, size_t Count, size_t FuncCount);
+	void LogBeMoreSpecifiicWithStaticArrSize(const Token* Token, const TypeSymbol& Type);
+
 	String ToString(SymbolType Value);
 
 	struct ReadVarErrorCheck_t
