@@ -1417,7 +1417,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 	if (passtype == PassType::FixedTypes)
 	{
 		auto& VarType = syb->VarType;
-		ConvertAndValidateType(node.Type, VarType);
+		Convert(node.Type, VarType);
 		VarType.SetAsLocation();
 		
 		
@@ -3339,21 +3339,58 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(AnonymousObjectConstructor
 	{
 		auto V = GetSymbol(Type);
 		if (V->Type == SymbolType::Type_StaticArray)
-		{
-			StaticArrayInfo* StaticArr = V->Get_Info< StaticArrayInfo>();
-			if (StaticArr->IsCountInitialized)
+		{StaticArrayInfo* StaticArr = V->Get_Info< StaticArrayInfo>();
+			if (passtype == PassType::FixedTypes)
 			{
-				if (StaticArr->Count != nod->Fields._Nodes.size())
+				
+				if (StaticArr->IsCountInitialized)
 				{
-					const Token* Token = LastLookedAtToken;
-					LogCanIncorrectStaticArrCount(Token, Type, StaticArr->Count, nod->Fields._Nodes.size());
+					if (StaticArr->Count != nod->Fields._Nodes.size())
+					{
+						const Token* Token = LastLookedAtToken;
+						LogCanIncorrectStaticArrCount(Token, Type, nod->Fields._Nodes.size(), StaticArr->Count);
+						LastExpressionType.SetType(TypesEnum::Null);
+						return;
+					}
+				}
+				else
+				{
+					StaticArr->Count = nod->Fields._Nodes.size();
+					StaticArr->IsCountInitialized = true;
+				}
+				 
+				const auto& ArrItemType =StaticArr->Type;
+				for (size_t i = 0; i < nod->Fields._Nodes.size(); i++)
+				{
+					OnExpressionTypeNode(nod->Fields._Nodes[i].get());
+
+					if (!CanBeImplicitConverted(LastExpressionType, ArrItemType, false))
+					{
+						LogCantCastImplicitTypes(LastLookedAtToken, LastExpressionType, ArrItemType, false);
+					}
 				}
 			}
-			else
+			if (passtype == PassType::BuidCode)
 			{
-				StaticArr->Count = nod->Fields._Nodes.size();
-				StaticArr->IsCountInitialized = true;
+				auto& BufferIR = IRlocations.top();
+				BufferIR.UsedlocationIR = true;
+				auto& BufferIRIns = BufferIR.Value;
+				
+				const auto& ArrItemType = StaticArr->Type;
+				const auto IRItemType = ConvertToIR(ArrItemType);
+
+				for (size_t i = 0; i < nod->Fields._Nodes.size(); i++)
+				{
+					OnExpressionTypeNode(nod->Fields._Nodes[i].get());
+
+					DoImplicitConversion(_LastExpressionField,LastExpressionType, ArrItemType);
+
+					LookingAtIRBlock->New_Index_Vetor(BufferIRIns, LookingAtIRBlock->NewLoad(i), _LastExpressionField);
+				}
 			}
+
+			LastExpressionType = Type;
+			return;
 		}
 	}
 
@@ -3376,6 +3413,70 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(AnonymousObjectConstructor
 			DoFuncCall(Type, Func, ValuePars);
 
 
+		}
+	}
+	else
+	{
+		if (passtype == PassType::FixedTypes)
+		{
+			{
+				TypeSymbol AnyType; AnyType.SetType(TypesEnum::Any);
+				LookingForTypes.push(AnyType);
+			}
+
+			TypeSymbol ArrItemType;
+			if (nod->Fields._Nodes.size())
+			{
+				OnExpressionTypeNode(nod->Fields._Nodes[0].get());
+				ArrItemType = LastExpressionType;
+				LookingForTypes.top() = ArrItemType;
+			}
+			else
+			{
+				ArrItemType.SetType(TypesEnum::uInt8);
+			}
+
+
+			TypeSymbol NewType;
+			StaticArrayInfo* info = nullptr;
+			{
+				SymbolID id = (SymbolID)nod;
+				auto FullName = CompilerGenerated("StaticArray_") + ToString(ArrItemType) + std::to_string(id);
+
+
+				auto Syb = &AddSybol(SymbolType::Type_StaticArray, FullName, FullName);
+				_Table.AddSymbolID(*Syb, id);
+
+				info = new StaticArrayInfo();
+
+
+				info->Type = ArrItemType;
+				info->Exnode = nullptr;
+
+				Syb->Info.reset(info);
+
+				NewType.SetType(id);
+			}
+
+
+			info->Count = nod->Fields._Nodes.size();
+			info->IsCountInitialized = true;
+
+			for (size_t i = 1; i < nod->Fields._Nodes.size(); i++)
+			{
+				OnExpressionTypeNode(nod->Fields._Nodes[i].get());
+				
+				if (!CanBeImplicitConverted(LastExpressionType, ArrItemType,false))
+				{
+					LogCantCastImplicitTypes(LastLookedAtToken,LastExpressionType, ArrItemType, false);
+				}
+			}
+
+			LastExpressionType = NewType;
+			{
+				LookingForTypes.pop();
+			}
+			return;
 		}
 	}
 
@@ -4664,8 +4765,9 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 		Symbol* Syb = GetSymbol(FullName,SymbolType::Null);
 		if (Syb == nullptr)
 		{
+			SymbolID id = (SymbolID)node;
 			Syb = &AddSybol(SymbolType::Type_StaticArray, FullName, FullName);
-			//_Table.AddSymbolID(*Syb, id);
+			_Table.AddSymbolID(*Syb, id);
 
 			StaticArrayInfo* info = new StaticArrayInfo();
 
@@ -4716,6 +4818,7 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 			Info.IsCountInitialized = true;
 
 		}
+		Out.SetType(Syb->ID);
 	}
 }
 void SystematicAnalysis::ConvertAndValidateType(const TypeNode& V, TypeSymbol& Out)
@@ -6643,7 +6746,7 @@ void SystematicAnalysis::CheckVarWritingErrors(Symbol* Symbol, const Token* Toke
 	}
 }
 
-void SystematicAnalysis::LogCantCastImplicitTypes(const Token* Token, TypeSymbol& Ex1Type, TypeSymbol& UintptrType,bool ReassignMode)
+void SystematicAnalysis::LogCantCastImplicitTypes(const Token* Token, const TypeSymbol& Ex1Type,const TypeSymbol& UintptrType,bool ReassignMode)
 {
 	if (Ex1Type.IsBadType() || UintptrType.IsBadType()) { return; }
 
@@ -6815,7 +6918,7 @@ void SystematicAnalysis::LogCantDoPostfixOpForTypes_Constant(const Token* Binary
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, BinaryOp->OnLine, BinaryOp->OnPos
 		, "The Type operation '" + ToString(Ex0Type) + "' must be an compile time constant.");
 }
-void SystematicAnalysis::LogCantCastImplicitTypes_Constant(const Token* Token, TypeSymbol& Ex1Type, TypeSymbol& UintptrType)
+void SystematicAnalysis::LogCantCastImplicitTypes_Constant(const Token* Token,const TypeSymbol& Ex1Type, const TypeSymbol& UintptrType)
 {
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Casting Type '" + ToString(Ex1Type) + " to '" + ToString(UintptrType) + "' cant be done at compile time.");

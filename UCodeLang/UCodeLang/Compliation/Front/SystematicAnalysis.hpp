@@ -563,7 +563,7 @@ private:
 	void YouMustReturnSomethingError(const Token* Token);
 	void CantguessVarTypeError(const Token* Token);
 	void CantUseThisKeyWordHereError(const Token* NameToken);
-	void LogCantCastImplicitTypes(const Token* Token, TypeSymbol& Ex1Type, TypeSymbol& UintptrType, bool ReassignMode);
+	void LogCantCastImplicitTypes(const Token* Token, const TypeSymbol& Ex1Type, const TypeSymbol& UintptrType, bool ReassignMode);
 	void LogReadingFromInvaidVariable(const Token* Token, String_view Str);
 	void LogCantFindVarError(const Token* Token, String_view Str);
 	void LogCantFindVarMemberError(const Token* Token, String_view Str, const TypeSymbol& OnType);
@@ -584,7 +584,7 @@ private:
 	void LogTypeMustBeAnConstantExpressionAble(const Token* Token, const TypeSymbol& Type);
 	void LogCantFindPostfixOpForTypes_Constant(const Token* BinaryOp, TypeSymbol& Ex0Type);
 	void LogCantDoPostfixOpForTypes_Constant(const Token* BinaryOp, TypeSymbol& Ex0Type);
-	void LogCantCastImplicitTypes_Constant(const Token* Token, TypeSymbol& Ex1Type, TypeSymbol& UintptrType);
+	void LogCantCastImplicitTypes_Constant(const Token* Token, const TypeSymbol& Ex1Type, const TypeSymbol& UintptrType);
 	void LogCantFindNamespace(const Token* Token, const String_view Namespace);
 	void LogFuncMustBe(const Token* Token, const String_view FuncName, TypeSymbol& TypeSybToBe);
 	void LogSymbolRedefinition(const Token* Token, const Symbol* Symbol);
