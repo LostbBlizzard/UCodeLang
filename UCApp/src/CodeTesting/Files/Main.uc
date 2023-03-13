@@ -5,13 +5,12 @@ $Vector<T>;
 $Array<T,(Size)>;
 
 
-|Hello<T,(Size)>[] -> void;
 
 |main[ int[&] V ] -> int&:
  
- int[/4] A = [10,10,10];
+ //int[/4] A = [10,10,10,10];
  //int[/] B = [10,10,10,10];
- //var C = [10,10];
+ var C = [1,2];
  
  
 
