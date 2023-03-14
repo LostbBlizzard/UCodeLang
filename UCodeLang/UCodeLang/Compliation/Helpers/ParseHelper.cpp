@@ -6,7 +6,7 @@ size_t ParseHelper::ParseStringliteralToString(String_view string, String& out)
 {
 	for (size_t i = 0; i < string.size();)
 	{
-		String_view V = String_view(string.data(), string.size() + i);
+		String_view V = String_view(string.data() + i, string.size() - i);
 
 		size_t R = ParseCharliteralToChar(V, out);
 		if (R==0)

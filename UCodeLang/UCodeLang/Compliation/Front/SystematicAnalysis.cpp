@@ -3081,13 +3081,113 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 		{
 			StringliteralNode* nod = StringliteralNode::As(node.Value.get());
 
-			TypeSymbol CStringType;//umut char[&]
 
-			CStringType.SetType(TypesEnum::Char);
-			CStringType.SetAsAddressArray();
-			CStringType.SetAsimmutable();
+			auto& Type = Get_LookingForType();
 
-			LastExpressionType = CStringType;
+			bool IsStaticArr = false;
+			if (Type._Type == TypesEnum::CustomType)
+			{
+				auto V = GetSymbol(Type);
+				if (V->Type == SymbolType::Type_StaticArray)
+				{
+					StaticArrayInfo* StaticArr = V->Get_Info< StaticArrayInfo>();
+
+					TypeSymbol CharType;
+					CharType.SetType(TypesEnum::Char);
+
+					IsStaticArr = AreTheSame(CharType,StaticArr->Type);
+				}
+			}
+			
+
+			if (IsStaticArr) 
+			{
+				auto V = GetSymbol(Type);
+				StaticArrayInfo* StaticArr = V->Get_Info< StaticArrayInfo>();
+
+				if (passtype == PassType::FixedTypes)
+				{
+					String V;
+					bool ItWorked = !ParseHelper::ParseStringliteralToString(nod->Token->Value._String, V);
+					size_t BufferSize = V.size() + 1;
+
+					if (StaticArr->IsCountInitialized == false)
+					{
+
+
+						StaticArr->Count = V.size() + 1;//with null char;
+						StaticArr->IsCountInitialized = true;
+
+					}
+					else
+					{
+						if (StaticArr->Count != BufferSize)
+						{
+							const Token* Token = LastLookedAtToken;
+							LogCanIncorrectStaticArrCount(Token, Type, BufferSize, StaticArr->Count);
+							LastExpressionType.SetType(TypesEnum::Null);
+							return;
+						}
+					}
+				}
+
+				if (passtype == PassType::BuidCode)
+				{
+					String V;
+					bool ItWorked = !ParseHelper::ParseStringliteralToString(nod->Token->Value._String, V);
+
+					auto& BufferIR = IRlocations.top();
+					BufferIR.UsedlocationIR = true;
+					auto BufferIRIns = BufferIR.Value;
+
+					const auto& ArrItemType = StaticArr->Type;
+					const auto IRItemType = ConvertToIR(ArrItemType);
+					UAddress Size;
+					GetSize(ArrItemType, Size);
+					auto ValueSizeIR = IR_Load_UIntptr(Size);
+
+					if (!Type.IsAddress())
+					{
+						BufferIRIns = LookingAtIRBlock->NewLoadPtr(BufferIRIns);
+					}
+
+					for (size_t i = 0; i < V.size(); i++)
+					{
+						auto VIR = LookingAtIRBlock->NewLoad(V[i]);
+					
+
+						auto f = LookingAtIRBlock->New_Index_Vetor(BufferIRIns,IR_Load_UIntptr(i), ValueSizeIR);
+
+						LookingAtIRBlock->NewDereferenc_Store(f, VIR);
+					}
+
+					{
+						auto VIR = LookingAtIRBlock->NewLoad('\0');
+
+
+						auto f = LookingAtIRBlock->New_Index_Vetor(BufferIRIns, IR_Load_UIntptr(V.size()), ValueSizeIR);
+
+						LookingAtIRBlock->NewDereferenc_Store(f, VIR);
+					}
+				}
+
+				LastExpressionType = Type;
+			}
+			else
+			{
+				TypeSymbol CStringType;//umut char[&]
+
+				CStringType.SetType(TypesEnum::Char);
+				CStringType.SetAsAddressArray();
+				CStringType.SetAsimmutable();
+				LastExpressionType = CStringType;
+			}
+
+
+				
+	
+
+			
 		}break;
 		case NodeType::ReadVariableNode:
 		{
@@ -3371,10 +3471,11 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(AnonymousObjectConstructor
 	{
 		auto V = GetSymbol(Type);
 		if (V->Type == SymbolType::Type_StaticArray)
-		{StaticArrayInfo* StaticArr = V->Get_Info< StaticArrayInfo>();
+		{
+			StaticArrayInfo* StaticArr = V->Get_Info< StaticArrayInfo>();
 			if (passtype == PassType::FixedTypes)
 			{
-				
+
 				if (StaticArr->IsCountInitialized)
 				{
 					if (StaticArr->Count != nod->Fields._Nodes.size())
@@ -3390,8 +3491,8 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(AnonymousObjectConstructor
 					StaticArr->Count = nod->Fields._Nodes.size();
 					StaticArr->IsCountInitialized = true;
 				}
-				 
-				const auto& ArrItemType =StaticArr->Type;
+
+				const auto& ArrItemType = StaticArr->Type;
 				for (size_t i = 0; i < nod->Fields._Nodes.size(); i++)
 				{
 					OnExpressionTypeNode(nod->Fields._Nodes[i].get());
@@ -3407,7 +3508,7 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(AnonymousObjectConstructor
 				auto& BufferIR = IRlocations.top();
 				BufferIR.UsedlocationIR = true;
 				auto BufferIRIns = BufferIR.Value;
-				
+
 				const auto& ArrItemType = StaticArr->Type;
 				const auto IRItemType = ConvertToIR(ArrItemType);
 				UAddress Size;
@@ -3423,10 +3524,10 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(AnonymousObjectConstructor
 				{
 					OnExpressionTypeNode(nod->Fields._Nodes[i].get());
 
-					DoImplicitConversion(_LastExpressionField,LastExpressionType, ArrItemType);
+					DoImplicitConversion(_LastExpressionField, LastExpressionType, ArrItemType);
 
-					auto V = LookingAtIRBlock->New_Index_Vetor(BufferIRIns, LookingAtIRBlock->NewLoad(i), ValueSizeIR);
-					
+					auto V = LookingAtIRBlock->New_Index_Vetor(BufferIRIns, IR_Load_UIntptr(i), ValueSizeIR);
+
 					LookingAtIRBlock->NewDereferenc_Store(V, _LastExpressionField);
 				}
 			}

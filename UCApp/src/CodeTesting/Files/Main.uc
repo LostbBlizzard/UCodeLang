@@ -10,12 +10,11 @@ $Array<T,(Size)>;
  
  //int[/4] A = [10,10,10,10];
  //int[/] B = [10,10,10,10];
- var C = [1,2];
  
  
 
 
- //char[/] String = "Hello";
+ char[/] StringBuffer = "Hello";
 
 
  ret 0;
