@@ -389,6 +389,7 @@ struct IRBlock
 	}
 	IRInstruction* NewLoad(Int8 Value) { return NewLoad(*(UInt8*)&Value); }
 	IRInstruction* NewLoad(bool Value) { return NewLoad(*(UInt8*)&Value); }
+	IRInstruction* NewLoad(char Value) { return NewLoad(*(UInt8*)&Value); }
 
 	//16bit
 	IRInstruction* NewLoad(UInt16 Value)

@@ -49,6 +49,7 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 		std::cout << S;
 		_UpdatedCode = false;
 		
+
 		return;
 		UpdateCodePass();
 	} while (_UpdatedCode);
