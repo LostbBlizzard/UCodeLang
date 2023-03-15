@@ -4,9 +4,10 @@
 #include "Lexer.hpp"
 #include "Parser.hpp"
 #include "SystematicAnalysis.hpp"
-UCodeLangStart
+#include "UCodeFrontEndNameSpace.hpp"
 
 
+UCodeLangFrontStart
 class UCodeLangInfo
 {
 public:
@@ -39,12 +40,18 @@ public:
 	void Set_FileIDType(LangDefInfo::FileID ID)  override { _FileType = (UCodeLangInfo::FileTypes)ID; }
 
 	Unique_ptr<FileNode_t> BuildFile(String_view Text)  override;
-	Unique_ptr<FileNode_t> BuildFile(const BytesView Bytes)  override
-	{ return BuildFile(String_view((const char*)Bytes.Bytes, Bytes.Size) ); }
+	Unique_ptr<FileNode_t> BuildFile(const BytesView Bytes)  override{ return BuildFile(String_view((const char*)Bytes.Bytes, Bytes.Size) ); }
 
-	void BuildIR(const Vector<Unique_ptr<FileNode_t>>& FileNode) override;
 
-	const IRBuilder* Get_Builder() override {return &_Analyzer.Get_Output();}
+
+	Unique_ptr<FileNode_t> LoadIntFile(const Path& path) override;
+	Vector<const FileNode_t*> Get_DependenciesPostIR(FileNode_t* File);
+
+	void ToIntFile(FileNode_t* File, const Path& path) override;
+
+	void BuildIR(const Vector<FileNode_t*>& FileNode) override;
+
+	IRBuilder* Get_Builder() override {return &_Analyzer.Get_Output();}
 
 	const LangDefInfo* GetInfo() override { return  &UCodeLangInfo::GetLangInfo(); }
 
@@ -58,4 +65,4 @@ private:
 	UCodeLangInfo::FileTypes _FileType = UCodeLangInfo::FileTypes::SourceFile;
 };
 
-UCodeLangEnd
+UCodeLangFrontEnd

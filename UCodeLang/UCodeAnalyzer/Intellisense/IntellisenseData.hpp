@@ -21,9 +21,9 @@ private:
 	UCodeLang::CompliationErrors _Errors;
 	UCodeLang::CompliationSettings _Settings;
 
-	UCodeLang::Lexer _Lexer;
-	UCodeLang::Parser _Parser;
-	UCodeLang::SystematicAnalysis _SystematicAnalysis;
+	UCodeLang::FrontEnd::Lexer _Lexer;
+	UCodeLang::FrontEnd::Parser _Parser;
+	UCodeLang::FrontEnd::SystematicAnalysis _SystematicAnalysis;
 	
 };
 UCodeAnalyzerEnd

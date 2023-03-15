@@ -1,9 +1,7 @@
 
 
-|Main[]:
- 
- ret;
+|Char_Test[] => '1';
 
-|Main2[] -> byte:
- 
- ret 1;
+|Byte_Test[] => 1;
+
+|Float_Test[] => 1.5;

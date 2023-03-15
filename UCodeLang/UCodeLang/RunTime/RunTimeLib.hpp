@@ -3,13 +3,16 @@
 #include "UCodeLang/LangCore/UClib.hpp"
 UCodeLangStart
 
-#define UCodeLangAPI __stdcall
+#define UCodeLangAPI __cdecl 
 class InterpreterCPPinterface;
+
+using CPPCallRet = UInt64;
+
 class RunTimeLib
 {
 public:
 
-	typedef void (UCodeLangAPI*CPPCallBack)(InterpreterCPPinterface& interpreter);
+	typedef CPPCallRet(UCodeLangAPI*CPPCallBack)();
 
 	RunTimeLib(): _Lib(nullptr)
 	{
@@ -31,7 +34,23 @@ public:
 		_NameToCppCall[Name] = CPP;
 	}
 
-	
+	template<typename... T>
+	using CppCallBack_t = CPPCallRet(UCodeLangAPI*)(T...);
+
+	template<typename... T>
+	using CppCallBackv_t = void(UCodeLangAPI*)(T...);
+
+	template<typename... T>
+	UCodeLangForceinline void Add_CPPCall(const String& Name, CppCallBack_t<T...> CPP)
+	{
+		Add_CPPCall(Name, (CPPCallBack)CPP);
+	}
+
+	template<typename... T>
+	UCodeLangForceinline void Add_CPPCall(const String& Name, CppCallBackv_t<T...> CPP)
+	{
+		Add_CPPCall(Name, (CPPCallBack)CPP);
+	}
 
 private:
 	UClib* _Lib;

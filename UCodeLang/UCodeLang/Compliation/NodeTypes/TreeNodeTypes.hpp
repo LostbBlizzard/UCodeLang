@@ -1,9 +1,9 @@
 #pragma once
 #include "../../LangCore.hpp"
-#include "TreeNodeTypes.hpp"
 #include "..//..//LangCore/TypeNames.hpp"
 #include "../..//LangCore/ScopeHelper.hpp"
-UCodeLangStart
+#include "../Front/UCodeFrontEndNameSpace.hpp"
+UCodeLangFrontStart
 
 struct StringliteralNode :Node
 {
@@ -18,9 +18,6 @@ struct StringliteralNode :Node
 
 	const Token* Token = nullptr;
 };
-
-
-
 struct BoolliteralNode :Node
 {
 	BoolliteralNode() :Node(NodeType::BoolliteralNode)
@@ -29,7 +26,12 @@ struct BoolliteralNode :Node
 	}
 	AddforNode(BoolliteralNode);
 
-	bool Value = false;
+
+	const Token* Token = nullptr;
+	inline bool Get_Value() const
+	{
+		return Token->Type == TokenType::KeyWorld_True;
+	}
 };
 struct NumberliteralNode :Node
 {
@@ -42,9 +44,31 @@ struct NumberliteralNode :Node
 	const Token* Token = nullptr;
 };
 
+struct FloatliteralNode :Node
+{
+	FloatliteralNode() :Node(NodeType::FloatliteralNode)
+	{
+
+	}
+	AddforNode(FloatliteralNode);
+
+	const Token* Token = nullptr;
+};
+
+struct CharliteralNode :Node
+{
+	CharliteralNode() :Node(NodeType::CharliteralNode)
+	{
+
+	}
+	AddforNode(CharliteralNode);
+
+	const Token* Token = nullptr;
+};
+
 struct NameNode :Node
 {
-	NameNode() : Node(NodeType::NumberliteralNode)
+	NameNode() : Node(NodeType::NameNode)
 	{
 
 	}
@@ -93,7 +117,7 @@ struct ScopedName
 	{
 		switch (Type)
 		{
-		case TokenType::RightArrow:return Operator_t::IndirectMember;
+		//case TokenType::RightArrow:return Operator_t::IndirectMember;
 		case TokenType::Dot:return Operator_t::Dot;
 		case TokenType::ScopeResolution:return Operator_t::ScopeResolution;
 		case TokenType::OptionalDot:return Operator_t::OptionalChain;
@@ -117,12 +141,13 @@ struct ScopedNameNode :Node
 
 	Vector<ScopedName> ScopedName;
 
-	inline void GetScopedName(String& out) const
+	
+	inline void GetScopedName(String& out,size_t Start =0 ) const
 	{
-		for (size_t i = 0; i < ScopedName.size(); i++)
+		for (size_t i = Start; i < ScopedName.size(); i++)
 		{
 			auto& item = ScopedName[i];
-item.GetScopedName(out);
+			item.GetScopedName(out);
 			if (&item != &ScopedName.back())
 			{
 				switch (item.Operator)
@@ -141,7 +166,7 @@ item.GetScopedName(out);
 					break;
 				}
 			}
-			
+
 		}
 	}
 };
@@ -174,6 +199,8 @@ struct GenericValueNode :Node
 
 	}
 	const Token* Token = nullptr;
+	bool IsConstantExpression = false;
+
 	String_view AsStringView() const
 	{
 		return Token->Value._String;
@@ -276,7 +303,9 @@ struct TypeNode :Node
 		case TokenType::KeyWorld_SInt64:
 		case TokenType::KeyWorld_uintptr:
 		case TokenType::KeyWorld_sintptr:
-			return true;
+		case TokenType::KeyWorld_float32:
+		case TokenType::KeyWorld_float64:
+		return true;
 		default:return false;
 		}
 
@@ -302,13 +331,18 @@ struct TypeNode :Node
 	}
 	static void Gen_ThisMemberFunc(TypeNode& Out, const Token& ToGetLinesFrom)
 	{
-		Out.PushAsAddess();
+		Out.SetAsAddess();
 		return Gen_Type(Out, TokenType::KeyWorld_This, ToGetLinesFrom);
 	}
 	static void Gen_Byte(TypeNode& Out, const Token& ToGetLinesFrom)
 	{
 		return Gen_Type(Out, TokenType::KeyWorld_UInt8, ToGetLinesFrom);
 	}
+	static void Gen_Expression(TypeNode& Out, const Token& ToGetLinesFrom)
+	{
+		return Gen_Type(Out, TokenType::internal_Constant_expression, ToGetLinesFrom);
+	}
+
 	bool IsThisMemberFunc() const
 	{
 		return Name.Token->Type == TokenType::KeyWorld_This
@@ -325,23 +359,29 @@ struct TypeNode :Node
 	}
 	TypeNode(const TypeNode& ToCopyFrom) = default;
 	TypeNode(TypeNode&& source) = default;
+	TypeNode& operator=(TypeNode&& source) = default;
 	~TypeNode() = default;
-	void PushAsAddess()
+	void SetAsAddess()
 	{
 		IsAddess = true;
 	}
-	void PushAsArrayAddess()
+	void SetAsArrayAddess()
 	{
-		IsAddess = true;
+		IsAddessArray = true;
 	}
 	void SetAsimmutable()
 	{
 		Isimmutable = true;
 	}
+	void SetAsStaticArray()
+	{
+		IsStackArray = true;
+	}
 
 	bool IsAddess = false;
 	bool IsAddessArray = false;
 	bool Isimmutable = false;
+	bool IsStackArray = false;
 private:
 	Unique_ptr<Token> GenToken;
 };
@@ -584,6 +624,12 @@ struct DeclareThreadVariableNode :Node
 	DeclareVariableNode Variable;
 };
 
+enum class AliasType
+{
+	Type,
+	Func,
+};
+
 struct AliasNode :Node
 {
 	AliasNode() : Node(NodeType::AliasNode)
@@ -595,7 +641,15 @@ struct AliasNode :Node
 	NameNode AliasName;
 	GenericValuesNode Generic;
 	TypeNode Type;
+
+	
+	bool IsHardAlias = false;
+	
+	AliasType _Type = AliasType::Type;
+	Unique_ptr<Node> _Node;
 };
+
+
 struct EnumValueNode :Node
 {
 	
@@ -799,4 +853,22 @@ struct DropStatementNode :Node
 };
 
 
-UCodeLangEnd
+struct AliasNode_Func :Node
+{
+	NamedParametersNode Parameters;
+	TypeNode ReturnType;
+};
+
+
+struct IndexedExpresionNode :Node
+{
+	IndexedExpresionNode() : Node(NodeType::IndexedExpresionNode)
+	{
+
+	}
+	AddforNode(IndexedExpresionNode);
+
+	ExpressionNodeType SourceExpression;// ex[SomeEx]
+	ExpressionNodeType IndexExpression;// SomeVar[ex]
+};
+UCodeLangFrontEnd

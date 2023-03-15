@@ -17,69 +17,139 @@ public:
 	
 	static BackEndObject* MakeObject(){return new UCodeBackEndObject();}
 private:
-	UCodeLangForceinline void ResetIns()
+	using UObjectSize_t = UInt64;
+	const IRBuilder* _Input=nullptr;
+	UClib* _Output=nullptr;
+
+	
+	struct StackItem
 	{
-		_Ins = Instruction();
+		size_t Offset=0;
+		IRInstruction* IR=nullptr;
+	};
+	struct StackInfo
+	{
+		size_t Size = 0;
+		size_t PushedOffset = 0;
+
+
+		void Reset()
+		{
+			Size = 0;
+			PushedOffset = 0;
+			Items.clear();
+		}
+		Vector<StackItem> Items;
+
+		StackItem* Has(IRInstruction* Value)
+		{
+			for (auto& Item : Items)
+			{
+				if (Item.IR == Value) 
+				{
+					return &Item;
+				}
+			}
+
+			return nullptr;
+		}
+	};
+	//
+	struct BlockData
+	{
+
+	};
+	Unordered_map< const IRBlock*, BlockData> IRToBlockData;
+	BlockData& GetBlockData(const IRBlock* V)
+	{
+		return IRToBlockData.at(V);
+	}
+	void BindBlockData(BlockData& Data,const IRBlock* V)
+	{
+		IRToBlockData[V] = Data;
+	}
+	//
+
+	void OnFunc(const IRFunc* IR);
+	void OnBlock(const IRBlock* IR);
+
+	void OnBlockBuildCode(const UCodeLang::IRBlock* IR);
+
+	void LockRegister(RegisterID ID);
+
+	void DropStack();
+	void DropPars();
+
+	inline UClib& Get_Output()
+	{
+		return Getliboutput();
 	}
 
+	//
 	Instruction _Ins;
-	const IRBuilder* _BackInput = nullptr;
-	size_t _Index = 0;
+	UAddress PushIns()
+	{
+	 return	_Output->Add_Instruction(_Ins);
+	}
+
 	RegistersManager _Registers;
-	RegisterID ParameterRegisterValue = RegisterID::StartParameterRegister;
-	RegisterID CallParameterRegisterValue = RegisterID::StartParameterRegister;
-	UAddress StackSize = 0;
-	static constexpr size_t RegisterSize = sizeof(AnyInt64);
+	StackInfo _Stack;
 
-	void BuildFunc();
-	void BuildOperandA(const UCodeLang::IRCode& IR, UCodeLang::RegisterID& R, UCodeLang::UClib& ULib);
-	void OnAsPointer(UCodeLang::RegisterID& R, const UCodeLang::IRCode& IR);
-	void StoreResultIR(const IRCode& IR, UCodeLang::RegisterID R);
-	void OnReadVarOperand(UCodeLang::RegisterID& R, const IRCode& IR, UCodeLang::UClib& ULib);
-	void Link();
-
-	void SetSybToRegister(RegisterID R,const IRCode& IR);
-	void SetIRToRegister(RegisterID R, IRField IR);
-
-	RegisterID GetOperandInAnyRegister(const IROperand& operand);
-	void GetOperandInRegister(const IROperand& operand, RegisterID id);
-	void StoreVar(const IRCode& IR, const RegisterID R);
-
-	enum class BuildData_t :UInt8
+	struct FuncInsID
 	{
-		Null,
-		StackVarable,
-		ThisObjectWithOffset,
-		ParameterInRegister,
+		UAddress Index;
+		IRidentifierID _FuncID;
 	};
-	struct BuildData
-	{
-		UAddress offset = NullAddress;
-		UAddress DataSize = NullAddress;
-		BuildData_t Type = BuildData_t::Null;
-	};
-
-	Unordered_map<SymbolID, BuildData> SymbolToData;
+	Vector<FuncInsID> FuncsToLink;
 	
-	struct CallInfo
+	struct Funcpos
 	{
-		UAddress CallIns=0;
-		SymbolID ID =0;
+		UAddress Index;
+		IRidentifierID _FuncID;
 	};
-	Vector<CallInfo> _InsCalls;
-	struct DeclareCall
-	{
-		UAddress FuncAddress = 0;
-	};
-	Unordered_map<SymbolID, DeclareCall> DeclareCalls;
-	Vector<UAddress> IRCodeIndexToUAddressIndexs;
+	Vector<Funcpos> _Funcpos;
 
-	struct JumpInsInfo
+	RegisterID _InputPar= RegisterID::NullRegister;
+	
+
+	enum class Parloc
 	{
-		UAddress InsAddress = 0;
-		IRField IRField = 0;
+		Register,
+		Stack,
 	};
-	Vector<JumpInsInfo> JumpCallsToUpdate;
+
+	struct ParlocData
+	{
+		const IRPar* Par = nullptr;
+		
+		Parloc Type;
+
+		size_t StackOffset =0;
+		RegisterID _Reg = RegisterID::NullRegister;
+
+
+	};
+	Vector<ParlocData> ParsPos;
+	ParlocData* GetParData(const IRPar* Par)
+	{
+		for (auto& Item : ParsPos)
+		{
+			if (Item.Par == Par)
+			{
+				return &Item;
+			}
+		}
+		return nullptr;
+	}
+	
+
+	RegisterID LoadOp(IRInstruction& Ins, IROperator Op);
+	void LoadOpToReg(IRInstruction& Ins, IROperator Op,RegisterID Out);
+	void RegToReg(IRTypes Type, RegisterID In, RegisterID Out);
+	void PushOpStack(IRInstruction& Ins, IROperator Op);
+	RegisterID FindOp(IRInstruction& Ins, IROperator Op);
+	void FindOpToReg(IRInstruction& Ins, IROperator Op, RegisterID Out);
+	void LogicalNot(IRTypes Type, RegisterID In, RegisterID Out);
 };
 UCodeLangEnd
 

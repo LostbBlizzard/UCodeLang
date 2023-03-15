@@ -1,6 +1,6 @@
 #include "UCodeFrontEndObject.hpp"
-
-UCodeLangStart
+#include "UCodeLang/Compliation/Compiler.hpp"
+UCodeLangFrontStart
 
 
 LangDefInfo& UCodeLangInfo::GetLangInfo()
@@ -31,6 +31,7 @@ Unique_ptr<FileNode_t> UCodeFrontEndObject::BuildFile(String_view Text)
 		auto Err = Get_Errors();
 		auto Sett = Get_Settings();
 
+
 		_Lexer.Set_ErrorsOutput(Err);
 		_Parser.Set_ErrorsOutput(Err);
 
@@ -56,15 +57,37 @@ Unique_ptr<FileNode_t> UCodeFrontEndObject::BuildFile(String_view Text)
 	else
 	{
 		LibImportNode tep;
-		BytesView Bits;
+		BytesView Bits((Byte*)Text.data(), Text.size());
 		if (UClib::FromBytes(&tep.LIb, Bits)) 
 		{
-			FileNode* tepn = (FileNode*)&tep;
-			return Unique_ptr<FileNode_t>(new FileNode(std::move(*tepn)));
+			return Unique_ptr<FileNode_t>(new LibImportNode(std::move(tep)));
 		}
 	}
+	return nullptr;
 }
-void UCodeFrontEndObject::BuildIR(const Vector<Unique_ptr<FileNode_t>>& fileNode)
+Unique_ptr<FileNode_t> UCodeFrontEndObject::LoadIntFile(const Path& path) 
+{ 
+	auto Bytes = Compiler::GetBytesFromFile(path);
+
+	LibImportNode tep;
+	if (UClib::FromBytes(&tep.LIb, Bytes.AsView()))
+	{
+		return Unique_ptr<FileNode_t>(new LibImportNode(std::move(tep)));
+	}
+
+	return nullptr; 
+}
+Vector<const FileNode_t*> UCodeFrontEndObject::Get_DependenciesPostIR(FileNode_t* File)
+{
+	return  _Analyzer.GetFileData(File)._Dependencys;
+}
+void UCodeFrontEndObject::ToIntFile(FileNode_t* File, const Path& path) 
+{
+
+
+}
+
+void UCodeFrontEndObject::BuildIR(const Vector<FileNode_t*>& fileNode)
 {
 	auto Err = Get_Errors();
 	auto Sett = Get_Settings(); 
@@ -77,7 +100,7 @@ void UCodeFrontEndObject::BuildIR(const Vector<Unique_ptr<FileNode_t>>& fileNode
 	Vector<const UClib*> L;
 	for (size_t i = 0; i < fileNode.size(); i++)
 	{
-		auto Item = (const FileNode*)fileNode[i].get();
+		auto Item = (const FileNode*)fileNode[i];
 
 		if (Item->Get_Type() == NodeType::LibImportNode)
 		{
@@ -91,4 +114,4 @@ void UCodeFrontEndObject::BuildIR(const Vector<Unique_ptr<FileNode_t>>& fileNode
 	}
 	_Analyzer.Analyze(V, L);
 }
-UCodeLangEnd
+UCodeLangFrontEnd

@@ -15,14 +15,38 @@ void UCLibManger::Link()
 	{
 		LinkLib(Item);
 	}
+	InitExCode();
 }
 
 void UCLibManger::LinkLib(UCodeLang::RunTimeLib* Item)
 {
-	for (const auto& Item2 : Item->Get_Instructions())
+	auto& Ins_s = Item->Get_Instructions();
+	size_t oldSize = _Instructions.size();
+	_Instructions.reserve(oldSize + Ins_s.size());
+
+	size_t oldSize2 = _Code.size();
+	_Code.reserve(oldSize2 + _Code.size());
+
+	for (const auto& Item2 : Ins_s)
 	{
-		_Instructions.push_back(Item2);
+		Instruction Tep = Item2;
+
+		if (Tep.OpCode == InstructionSet::LoadFuncPtr)
+		{
+			Tep.Value0.AsUIntNative += oldSize;
+		}
+		else if (Tep.OpCode == InstructionSet::Call)
+		{
+			Tep.Value0.AsUIntNative += oldSize;
+		}
+		else if (Tep.OpCode == InstructionSet::Call_Code)
+		{
+			Tep.Value0.AsUIntNative += oldSize;
+		}
+
+		_Instructions.push_back(Tep);
 	}
+
 	if (Item->Get_Lib())
 	{
 		for (const auto& Item2 : Item->Get_Lib()->Get_NameToPtr())
@@ -34,6 +58,11 @@ void UCLibManger::LinkLib(UCodeLang::RunTimeLib* Item)
 			StaticBytes.push_back(Item);
 		}
 
+		for (const auto& Item : Item->Get_Lib()->Get_Code())
+		{
+			_Code.push_back(Item);
+		}
+
 		auto& _Assembly = Item->Get_Lib()->Get_Assembly();
 		ClassAssembly::PushCopyClasses(_Assembly, Assembly);
 	}
@@ -41,6 +70,12 @@ void UCLibManger::LinkLib(UCodeLang::RunTimeLib* Item)
 	{
 		_NameToCPP[Item2.first] = Item2.second;
 	}
+}
+
+void UCLibManger::InitExCode()
+{
+	_ExCode.Alloc(_Code.data(), _Code.size());
+	_ExCode.SetToExecuteMode();
 }
 
 UCodeLangEnd
