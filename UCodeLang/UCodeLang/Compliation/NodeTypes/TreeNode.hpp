@@ -51,6 +51,9 @@ enum class NodeType :UInt8
 	NewExpresionNode,
 	DropStatementNode,
 	LibImportNode,
+	FloatliteralNode,
+	CharliteralNode,
+	IndexedExpresionNode,
 };
 
 
@@ -134,11 +137,10 @@ struct FileNode : FileNode_t,Node
 	AddforNodeAndWithList(FileNode);
 
 
-	String_view FilePath;
 	Vector<Token> Tokens;
+	Vector<Unique_ptr<Token>> TemporaryTokens;//int?,int[],int[10],int[:] etc.
 	void Reset()
 	{
-		FilePath = "";
 		_Nodes.clear();
 	}
 };
@@ -146,6 +148,10 @@ struct FileNode : FileNode_t,Node
 struct LibImportNode :FileNode_t, Node
 {
 	LibImportNode() : Node(NodeType::LibImportNode)
+	{
+
+	}
+	LibImportNode(LibImportNode&& source) : Node(NodeType::LibImportNode), LIb(std::move(source.LIb))
 	{
 
 	}

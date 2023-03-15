@@ -5,9 +5,10 @@
 #include "Tests/Test.hpp"
 #include <future>
 #include <optional>
-#include "UCodeAnalyzer/TextBuilder/UCodeTextBuilder.hpp"
 #include "UCodeAnalyzer/CodeBuilds/StandardLibrary.hpp"
 #include <sstream>
+#include "UCodeLang/Compliation/Back/C98/C89Backend.hpp"
+#include "UCodeLang/Compliation/Back/x86/X86BackEnd.hpp"
 
 using namespace UCodeLang;
 const UCodeLang::String ScrDir = "C:/CoolStuff/CoolCodeingStuff/C++/Projects/UCodeLang/UCApp/src/";
@@ -41,16 +42,28 @@ const UCodeLang::String StandardLibraryinit = StandardLibraryOut + "init/";
 void Test(int A)
 {
 	std::cout << "DLLCall Got Value " << A << std::endl;
-}
-static void UCodeLangAPI Invoke_Test(InterpreterCPPinterface& interpreter)
+} 
+static CPPCallRet UCodeLangAPI Invoke_Test(int A)
 {
-	Test(interpreter.GetParameter<int>()); interpreter.Set_Return();
+	Test(A);
+	return 0;
 }
 
 static UCodeRunTime RunTime;
+template< typename T >
+std::string int_to_hex(T i)
+{
+	std::stringstream stream;
+	stream << "0x"
+		<< std::setfill('0') << std::setw(sizeof(T) * 2)
+		<< std::hex << i;
+	return stream.str();
+}
 int main()
 {
 
+
+	
 	{
 		namespace fs = std::filesystem;
 		std::stringstream Text;
@@ -58,13 +71,16 @@ int main()
 
 		String Str = Text.str();
 		
+
+
 		{
 			String outpath = FileDir + "StandardLibrary.uc";
 			std::ofstream out(outpath);
-			out << Str;
+			//out << Str;
 			out.close();
 		}
 
+		/*
 		{
 			String outpath = "C:/CoolStuff/CoolCodeingStuff/C++/Projects/UCodeLang/UCodeLang/"
 				"UCodeAnalyzer/CodeBuilds/StandardLibrary.cpp";
@@ -88,7 +104,10 @@ int main()
 			out << Str2;
 			out.close();
 		}
+		*/
 	}
+	
+
 	//ULangTest::RunTests();
 	
 	
@@ -101,8 +120,38 @@ int main()
 	Settings._Type = OutPutType::Lib;
 	Data.FileDir = FileDir;
 	Data.OutFile = OutFilePath;
+	Data.IntDir = IntPath;
 	Settings._Flags = OptimizationFlags::Debug;
-	_Compiler.CompileFiles(Data);
+
+	//_Compiler.Set_BackEnd(ULangTest::X86BackEnd_UCodeLib::MakeObject);
+	_Compiler.CompileFiles_UseIntDir(Data);
+
+	
+	
+
+
+	/*auto Bits = Compiler::GetBytesFromFile(Data.OutFile);
+	{
+		String Tep;
+		{
+			char const hex_chars[16] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+			for (size_t i = 0; i < Bits.Size; i++)
+			{
+				Byte byte = Bits.Bytes[i];
+				Tep += hex_chars[(byte & 0xF0) >> 4];
+				Tep += hex_chars[(byte & 0x0F) >> 0];
+			}
+		}
+
+
+		AsmBuffer V = AsmBuffer(Bits.Bytes.get(), Bits.Size);
+		V.SetToExecuteMode();
+		using FuncP = int(*)();
+
+		FuncP CallFunc = (FuncP)V.Data;
+		int tep = CallFunc();
+	}*/
+
 	if (!ULangTest::LogErrors(std::cout,_Compiler))
 	{
 		UCodeLang::UClib MLib;
@@ -131,24 +180,14 @@ int main()
 		
 		RunTime.Init(&State);
 
+		
+		
+		int item[2] = { 0,0 };
 
-		struct MyStruct2
-		{
-			int X;
-			int Y;
-		};
-	
-		struct Player
-		{
-			MyStruct2 Pos;
-			int HP;
-		};
-		Player Test;
-
-		auto r =RunTime.Call("Player:" ClassConstructorfunc,&Test);
+		auto r = RunTime.RCall <UAddress> ("main", &item);
  		
 		
-		//std::cout << " Got Value " << r << std::endl;
+	   std::cout << " Got Value " << (int)r << std::endl;
 
 	}
 }

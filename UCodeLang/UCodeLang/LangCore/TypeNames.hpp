@@ -20,6 +20,9 @@
 #define UintPtrTypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_uintptr)
 #define SintPtrTypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_sintptr)
 
+#define float32TypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_float32)
+#define float64TypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWorld_float64)
+
 #define VoidPtrTypeName "VoidPtr"
 #define CStringTypeName "CString"
 
@@ -44,3 +47,14 @@
 #define StandardLibraryLibName StandardLibraryName ".lib"
 
 #define DLLCallAttributeName "DLL"
+
+
+
+//standard Library
+#define UCode_OptionalType "Optional"//int?
+#define UCode_ArrayType "Array"//int[10]
+#define UCode_VectorType "Vector"//int[]
+#define UCode_ViewType "View"//int[:]
+
+#define UCode_Shared_ptr "Unique_ptr"//int^ 
+#define Ucode_Unique_ptr "Shared_ptr"//int%
