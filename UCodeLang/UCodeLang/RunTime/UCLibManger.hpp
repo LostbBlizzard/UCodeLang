@@ -2,6 +2,7 @@
 
 #include "../LangCore.hpp"
 #include "RunTimeLib.hpp"
+#include "Jit/Jit.hpp"
 UCodeLangStart
 
 class UCLibManger
@@ -65,12 +66,35 @@ public:
 		Libs.clear();
 		StaticBytes.clear();
 	}
+
+	inline const auto& Get_Code()
+	{
+		return _Code;
+	}
+	inline const AsmBuffer& Get_ExCode()
+	{
+		return _ExCode;
+	}
+
+	using CallAble =RunTimeLib::CPPCallBack;
+	inline CallAble Get_ExFunc(size_t Offset)
+	{
+		uintptr_t Ex = (uintptr_t)_ExCode.Data;
+		Ex += Offset;
+		return CallAble(Ex);
+	}
+
+	void InitExCode();
 private:
 	Unordered_map<String, UAddress> _NameToAddress;
 	Unordered_map<String, RunTimeLib::CPPCallBack> _NameToCPP;
 	Vector<Instruction> _Instructions;
-	Vector<RunTimeLib*> Libs;
+
+	Vector<Byte> _Code;
+	AsmBuffer _ExCode;
+	
 	Vector <UInt8> StaticBytes;
+	Vector<RunTimeLib*> Libs;
 	ClassAssembly Assembly;
 };
 UCodeLangEnd

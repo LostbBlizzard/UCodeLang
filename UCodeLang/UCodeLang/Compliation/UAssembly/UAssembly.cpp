@@ -5,7 +5,7 @@
 
 UAssemblyStart
 
-void UAssembly::Assemble(const String_view& Text, UCodeLang::UClib* Out)
+void UAssembly::Assemble(const String_view& Text, UClib* Out)
 {
 	Lexer Lex; 
 	Parser Parse; 
@@ -18,7 +18,7 @@ void UAssembly::Assemble(const String_view& Text, UCodeLang::UClib* Out)
 	Lex.Lex(Text);
 	Parse.Parse(Lex.Get_Output(), Out);
 }
-String UAssembly::ToString(const UCodeLang::UClib* Lib)
+String UAssembly::ToString(const UClib* Lib)
 {
 	auto& InsMapData = Get_InsToInsMapValue();
     String r;
@@ -49,7 +49,7 @@ String UAssembly::ToString(const UCodeLang::UClib* Lib)
 			
 			for (auto Item2 : Class.Fields)
 			{
-				r += " " + Item2.FullNameType + " " + Item2.Name + ";//Offset " + std::to_string(Item2.offset) + "\n";
+				r += " " + Item2.Type.FullNameType + " " + Item2.Name + ";//Offset " + std::to_string(Item2.offset) + "\n";
 			}
 			r += "\n";
 
@@ -70,7 +70,7 @@ String UAssembly::ToString(const UCodeLang::UClib* Lib)
 		case ClassType::Alias:
 		{
 			auto& Class = Item->_Alias;
-			r += "$" + Item->FullName + " = " + Class.StringValue + ";\n";
+			r += "$" + Item->FullName + " = " + Class.Type.FullNameType + ";\n";
 		}
 		break;
 		default:
@@ -122,7 +122,7 @@ String UAssembly::ToString(const UCodeLang::UClib* Lib)
 
     return r;
 }
-void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In,const Unordered_map<UAddress, String>& AddressToName, String& out, const UCodeLang::UClib* Lib)
+void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In,const Unordered_map<UAddress, String>& AddressToName, String& out, const UClib* Lib)
 {
 
 	switch (OpType)
@@ -130,18 +130,41 @@ void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In,const Unord
 	case OpCodeType::NoOpCode:
 		break;
 	case OpCodeType::AnyInt8:
-		out += std::to_string((UInt64)In.AsUInt8) + "|" + std::to_string((Int64)In.AsInt8);
-		break;
+	{
+		String tepS = std::to_string((UInt64)In.AsUInt8);
+		String teps2 = std::to_string((Int64)In.AsInt8);
+		out += (tepS == teps2) ? tepS : tepS + "|" + teps2;
+	}	
+	break;
 	case OpCodeType::AnyInt16:
-		out += std::to_string((UInt64)In.AsUInt16) + "|" + std::to_string((Int64)In.AsInt16);
-		break;
+	{
+		String tepS = std::to_string((UInt64)In.AsUInt16);
+		String teps2 = std::to_string((Int64)In.AsInt16);
+		out += (tepS == teps2) ? tepS : tepS + "|" + teps2;
+	}
+	break;
 	case OpCodeType::AnyInt32:
-		out += std::to_string(In.AsUInt32) + "|" + std::to_string(In.AsInt32);
-		break;
-	case OpCodeType::AnyIntNative:
+	{
+		String tepS = std::to_string((UInt64)In.AsUInt32);
+		String teps2 = std::to_string((Int64)In.AsInt32);
+		out += (tepS == teps2) ? tepS : tepS + "|" + teps2;
+	}	
+	break;
 	case OpCodeType::AnyInt64:
-		out += std::to_string(In.AsUInt64) + "|" + std::to_string(In.AsInt64);
+	{
+		String tepS = std::to_string((UInt64)In.AsUInt64);
+		String teps2 = std::to_string((Int64)In.AsInt64);
+		out += (tepS == teps2) ? tepS : tepS + "|" + teps2;
+	}	
+	break;
+
+	case OpCodeType::Anyfloat32:
+		out += std::to_string(In.Asfloat32);
 		break;
+	case OpCodeType::Anyfloat64:
+		out += std::to_string(In.Asfloat64);
+		break;
+
 	case OpCodeType::Register:
 		out += GetRegisterToString(In.AsRegister);
 		break;

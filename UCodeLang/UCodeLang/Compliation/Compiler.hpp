@@ -9,6 +9,8 @@
 
 #include "Front/UCodeFrontEndObject.hpp"
 #include "Back/UCodeBackEnd/UCodeBackEnd.hpp"
+
+#include "DependencyFile.hpp"
 UCodeLangStart
 class Compiler
 {
@@ -43,6 +45,8 @@ public:
 
 	CompilerRet CompileFiles_UseIntDir(const CompilerPathData& Data);
 
+	BytesPtr Compiler::OpenFile(const LangDefInfo::FileInfo* FInfo, const Path& path);
+
 	
 	UCodeLangForceinline UCodeLang::CompliationErrors& Get_Errors()
 	{
@@ -66,7 +70,9 @@ public:
 	{
 		_BackEnd = Value;
 	}
-	
+
+
+
 private:
 	CompliationSettings _Settings;
 	CompliationErrors _Errors;
@@ -78,7 +84,8 @@ private:
 	Unique_ptr<BackEndObject> _BackEndObject;
 
 
-	FrontEndObject_Ptr _FrontEnd = &UCodeFrontEndObject::MakeObject;
+	FrontEndObject_Ptr _FrontEnd = &FrontEnd::UCodeFrontEndObject::MakeObject;
 	BackEndObject_Ptr _BackEnd = &UCodeBackEndObject::MakeObject;
+	void Optimize(IRBuilder& IR);
 };
 UCodeLangEnd

@@ -49,7 +49,7 @@ public:
 	struct Error
 	{
 		ErrorCodes _Code;
-		String File;
+		Path File;
 		size_t Line;
 		size_t Pos;
 		String _Msg;
@@ -78,7 +78,7 @@ public:
 			{
 				Type = "N/A";
 			}
-			return (String)Type + " At Line:" + std::to_string(Line) + ":" + _Msg + " In " + File;
+			return (String)Type + " At Line:" + std::to_string(Line) + ":" + _Msg + " In " + File.generic_string();
 		}
 	}; 
 	inline static bool IsWarning(ErrorCodes Code)
@@ -144,7 +144,7 @@ public:
 			}
 		}
 	}
-	String FilePath = "File" + (String)FileExt::SourceFileWithDot;
+	Path FilePath = "File" + (String)FileExt::SourceFileWithDot;
 private:
 	Vector<Error> _Errors;
 };

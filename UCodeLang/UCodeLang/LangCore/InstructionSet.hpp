@@ -20,6 +20,10 @@ Add##bitsize, Sub##bitsize, MultS##bitsize, MultU##bitsize, DivS##bitsize, DivU#
 LogicalAnd##bitsize, Logicalor##bitsize, LogicalNot##bitsize,\
 equalto##bitsize, notequalto##bitsize, lessthan##bitsize, greaterthan##bitsize, equal_lessthan##bitsize, equal_greaterthan##bitsize,\
 bitwiseAnd##bitsize, bitwiseOr##bitsize, bitwiseLeftShift##bitsize, bitwiseRightShift##bitsize, bitwiseXor##bitsize, bitwise_Not##bitsize,
+
+#define AddSetfloat(bitsize)\
+Store##bitsize##f,
+
 enum class InstructionSet : InstructionSet_t
 {
 	Exit,Return,
@@ -39,18 +43,19 @@ enum class InstructionSet : InstructionSet_t
 	//Set 64
 	AddSetInt(64)
 
-	//Not Real Instructions The RunTimeLib will tanslate them
-	AddSetInt(Native)
+	//float 32
+	AddSetfloat(32)
+	//float 64
+	AddSetfloat(64)
+
 	//Cpp func Set
 	GetPointerOfStack, GetPointerOfStackSub, GetPointerOfStaticMem,IncrementStackPointer, DecrementStackPointer,
 	
-	Malloc,Free,MemCopy, Calloc,ReAlloc,
+	Malloc,Free,MemCopy, Calloc,ReAlloc,LoadFuncPtr,
 	Log,CPPCall,CppCallNamed,Link_Bytes,Link_Path,
+	Call_Code,
 
 	MAXVALUE,
-
-	NativeSetMin = StoreNative,
-	NativeSetMax = GetPointerOfStack -1,
 };
 enum class Intermediate_Set : InstructionSet_t
 {

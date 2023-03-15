@@ -46,9 +46,15 @@ struct EnvironmentData
 struct AsmBuffer
 {
 	void* Data;
+	AsmBuffer():Data(nullptr){}
 	AsmBuffer(const size_t PageSize);
+	AsmBuffer(const Byte* Asm,const size_t Size);
+	AsmBuffer(AsmBuffer&& Other);
 	void SetToExecuteMode();
 	void SetToReadWriteMode();
+
+	void Alloc(const Byte* Asm, const size_t Size);
+	void Alloc(const size_t Size);
 	~AsmBuffer();
 };
 void GetCPUData(EnvironmentData& Out);

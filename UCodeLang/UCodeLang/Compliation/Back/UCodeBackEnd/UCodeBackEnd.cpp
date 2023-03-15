@@ -19,566 +19,1011 @@ UCodeBackEndObject::~UCodeBackEndObject()
 
 void UCodeBackEndObject::Reset()
 {
-
+	this->~UCodeBackEndObject();
+	new (this)  UCodeBackEndObject;
 }
 
 void UCodeBackEndObject::Build(const IRBuilder* Input)
 {
-	_BackInput = Input;
-
-	auto& Code = Input->Get_Code();
-	
-	for (_Index = 0; _Index < Code.size(); _Index++)
+	_Input = Input;
+	_Output = &Get_Output();
+	for (auto& Item : Input->Funcs)
 	{
-		auto& IR = Code[_Index];
-		if (IR.Operator == IROperator::Func)
+		OnFunc(Item.get());
+	}
+
+
+	//link
+	for (auto& Item : FuncsToLink)
+	{
+		Instruction& Ins = Get_Output().Get_Instructions()[Item.Index];
+
+
+		UAddress funcpos = NullAddress;
+		for (auto& Item2 : _Funcpos)
 		{
-			BuildFunc();
+			if (Item2._FuncID == Item._FuncID)
+			{
+				funcpos = Item2.Index;
+				break;
+			}
+		}
+
+		if (Ins.OpCode == InstructionSet::Call)
+		{
+			InstructionBuilder::Call(funcpos, Ins);
+		}
+		else if (Ins.OpCode == InstructionSet::LoadFuncPtr)
+		{
+			InstructionBuilder::LoadFuncPtr(funcpos, Ins.Value1.AsRegister, Ins);
+		}
+		else
+		{
+			throw std::exception("not added");
+		}
+
+
+	}
+}
+void UCodeBackEndObject::OnFunc(const IRFunc* IR)
+{
+
+	//build code
+	UAddress FuncStart = _Output->GetLastInstruction() + 1;
+
+
+	{
+		ParsPos.clear();
+		auto V = RegisterID::StartParameterRegister;
+		RegisterID_t& V2 = (RegisterID_t&)V;
+		size_t StackOffset = 0;
+		for (auto& Item : IR->Pars)
+		{
+			ParlocData Loc;
+
+
+			
+			if (V != RegisterID::NullRegister)
+			{
+				Loc.Par = &Item;
+				Loc._Reg = V;
+				Loc.Type = Parloc::Register;
+
+				_Registers.LockRegister(V);
+
+				V2++;
+				if (V > RegisterID::EndParameterRegister)
+				{
+					V = RegisterID::NullRegister;
+				}
+			}
+			else
+			{
+				Loc.Par = &Item;
+				Loc._Reg = V;
+				Loc.StackOffset = StackOffset;
+
+				StackOffset += _Input->GetSize(Item.type);
+
+			}
+			ParsPos.push_back(Loc);
+		}
+
+
+		
+		for (auto& Item : ParsPos)// flip offsets because how pushing and poping the stack works
+		{
+			//throw std::exception("not added");
 		}
 	}
-	Link();
-}
-#define OperatorBitsFunc(Func,bit) \
-				auto Value0 = GetOperandInAnyRegister(IR.Operand0);\
-				_Registers.WeakLockRegister(Value0);\
-				auto Value1 = GetOperandInAnyRegister(IR.Operand1);\
-				_Registers.WeakLockRegister(Value1);\
-				\
-				GenInsPush(InstructionBuilder::##Func##bit(_Ins, Value0, Value1));\
-				\
-				_Registers.UnLockWeakRegister(Value0);\
-				_Registers.UnLockWeakRegister(Value1);\
-				\
-				auto ROut = RegisterID::MathOuPutRegister;\
-				SetSybToRegister(ROut,IR);\
 
-
-
-#define OperatorBits(Func,bit) \
-			case IROperator::##Func##bit:\
-			{\
-				OperatorBitsFunc(Func,bit);\
-			}break; \
-
-#define BitSet(bit) \
-	OperatorBits(Add,bit)\
-	OperatorBits(Sub,bit)\
-	OperatorBits(MultS,bit)\
-	OperatorBits(MultU,bit)\
-	OperatorBits(DivU,bit)\
-	OperatorBits(DivS,bit)\
-
-
-#define BuildIRStore(bitsize,Value2)\
-	auto Value = Value2; \
-	R = GetOperandInAnyRegister(IR.Operand0); \
-	GenIns(InstructionBuilder::Store##bitsize(_Ins, R, Value)); \
-	ULib.Add_Instruction(_Ins); \
-	SetSybToRegister(R, IR); \
-
-#define IRFieldInt(bitsize) case IRFieldInfoType::Int##bitsize: \
-{\
-    BuildIRStore(bitsize,IR.Operand0.AnyValue.AsInt##bitsize);\
-}\
-break;\
-
-
-
-#define BuildSybolIntSizeIns(VarType,Ins,Pars) \
-	switch (VarType.InfoType.TypeSize)\
-	{\
-		case sizeof(UInt8):\
-		GenInsPush(InstructionBuilder::##Ins##8##Pars); \
-		break; \
-		case sizeof(UInt16):\
-		GenInsPush(InstructionBuilder::##Ins##16##Pars); \
-		break; \
-		case sizeof(UInt32):\
-		GenInsPush(InstructionBuilder::##Ins##32##Pars); \
-		break; \
-		case sizeof(UInt64):\
-		GenInsPush(InstructionBuilder::##Ins##64##Pars); \
-		break; \
-	default:\
-		throw std::exception();\
-		break;\
-	}\
-
-
-
-void UCodeBackEndObject::BuildFunc()
-{
-	auto& Code = _BackInput->Get_Code();
-	auto& Func = Code[_Index];
-	auto SybID = Func.Operand0.SymbolId;
-
-	String_view FuncName = Func.InfoType.Name;
-
-	auto& ULib = Getliboutput();
-	
-	UAddress FuncStart = ULib.Get_Instructions().size();
-    StackSize = 0;
-
-	IRCodeIndexToUAddressIndexs.push_back(FuncStart);
-
-	IntSizes PointerSize = Get_Settings().PtrSize;
-	bool Is64Bit = PointerSize == IntSizes::Int64;
-	if (PointerSize != IntSizes::Int32 && PointerSize != IntSizes::Int64)
+	if (IR->Blocks.size())
 	{
-		Get_ErrorsOutput().AddError(ErrorCodes::BackEndError, 0, 0, "specified pointer size is not supported");
+		OnBlock(IR->Blocks.front().get());
 	}
-	
-	for (_Index = _Index + 1; _Index < Code.size(); _Index++)
+
+	_InputPar = RegisterID::StartParameterRegister;
+
+	if (_Stack.Size)
 	{
-		auto& IR = Code[_Index];
-		IRCodeIndexToUAddressIndexs.push_back(ULib.Get_Instructions().size());
+		RegisterID V = RegisterID::A;
 
-		switch (IR.Operator)
+		auto Ptr = Get_Settings().PtrSize;
+		auto& instr = _Output->Get_Instructions();
+		//useing insert is slow but it works
+		InstructionBuilder::IncrementStackPointer(_Ins, V);
+		instr.insert(instr.begin() + FuncStart, _Ins);
+		
+		if (Ptr == IntSizes::Int32)
 		{
-			BitSet(8)
-				BitSet(16)
-				BitSet(32)
-				BitSet(64)
-		case IROperator::Assign_OperandOnPointer:
+			InstructionBuilder::Store32(_Ins, V, (UInt32)_Stack.Size);
+		}
+		else
+		{
+			InstructionBuilder::Store64(_Ins, V, (UInt64)_Stack.Size);
+		}
+
+		instr.insert(instr.begin() + FuncStart, _Ins);
+
+
+
+	}
+
+	_Stack.Reset();
+	_Registers.Reset();
+	_Output->Add_NameToInstruction(FuncStart, _Input->FromID(IR->identifier));
+
+
+	Funcpos V;
+	V.Index = FuncStart-1;
+	V._FuncID = IR->identifier;
+	_Funcpos.push_back(V);
+}
+void UCodeBackEndObject::OnBlock(const IRBlock* IR)
+{
+	OnBlockBuildCode(IR);
+	
+}
+void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
+{
+	struct  InsToUpdate_t
+	{
+		size_t InsToUpdate;
+		size_t Jumpto;
+	};
+	Vector<InsToUpdate_t> InsToUpdate;
+	Unordered_map<size_t, UAddress> IRToUCodeIns;
+
+	for (size_t i = 0; i < IR->Instructions.size(); i++)
+	{
+		auto& Item_ = IR->Instructions[i];
+		auto& Item = *Item_;
+
+		switch (Item.Type)
+		{
+		case IRInstructionType::LoadNone:
+			break;
+		case IRInstructionType::Load:
+		{
+			RegisterID V = LoadOp(Item, Item.Target());
+			_Registers.WeakLockRegisterValue(V, &Item);
+		}
+		break;
+		case IRInstructionType::LoadReturn:
+		{
+			LoadOpToReg(Item, Item.Target(), RegisterID::OuPutRegister);
+		}
+		break;
+		case IRInstructionType::Reassign:
+		{
+			auto V = FindOp(Item, Item.Target());
+			if (V != RegisterID::NullRegister)
 			{
-				constexpr auto NewRegIfPointeroffset = RegisterID::MathOuPutRegister;
-				
-				auto pointeroffset = IR.Operand1.AnyValue.AsInt64;
-				if (pointeroffset)
+				LoadOpToReg(Item, Item.Input(), V);
+			}
+			else
+			{
+				throw std::exception("not added");
+			}
+		}
+		break;
+
+		case IRInstructionType::SMult:
+		{
+			RegisterID V = RegisterID::MathOuPutRegister;
+			RegisterID A = LoadOp(Item, Item.A);
+			LockRegister(A);
+			RegisterID B = LoadOp(Item, Item.B);
+
+			switch (Item.ObjectType._Type)
+			{
+			case IRTypes::i8:InstructionBuilder::MultS8(_Ins, A, B); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::MultS16(_Ins, A, B); PushIns(); break;
+
+			bit32label:
+			case IRTypes::i32:InstructionBuilder::MultS32(_Ins, A, B); PushIns(); break;
+
+			bit64label:
+			case IRTypes::i64:InstructionBuilder::MultS64(_Ins, A, B); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
 				{
-					_Registers.LockRegister(NewRegIfPointeroffset);
-				}
-
-
-				RegisterID ROut = RegisterID::NullRegister;
-				BuildOperandA(IR, ROut, ULib);
-				_Registers.LockRegister(ROut);
-				
-				RegisterID Regpointer = RegisterID::StartParameterRegister;//need to be updated
-
-				if (ROut == Regpointer)
-				{
-					auto V = _Registers.GetFreeRegister();
-					if (ROut == V)
-					{
-						throw std::exception();
-					}
-				
-					
-					BuildSybolIntSizeIns(IR, StoreRegToReg,(_Ins,ROut, V));
-					
-					ROut = V; 
-				}
-
-				
-
-				if (pointeroffset)
-				{
-					RegisterID R;
-					if (Is64Bit)
-					{
-						BuildIRStore(64, (UInt64)pointeroffset);
-					}
-					else
-					{
-						BuildIRStore(32, (UInt32)pointeroffset);
-					}
-					_Registers.LockRegister(R);
-
-					if (Is64Bit)
-					{
-						GenInsPush(InstructionBuilder::Add64(_Ins, R, Regpointer));
-					}
-					else
-					{
-						GenInsPush(InstructionBuilder::Add32(_Ins, R, Regpointer));
-					}
-
-					Regpointer = NewRegIfPointeroffset;
-
-					_Registers.UnLockRegister(R);
-					_Registers.UnLockRegister(ROut);
-					_Registers.UnLockRegister(NewRegIfPointeroffset);
+					goto bit32label;
 				}
 				else
 				{
-					_Registers.UnLockRegister(ROut);
+					goto bit64label;
 				}
-				BuildSybolIntSizeIns(IR, StoreRegToPtr, (_Ins, ROut, Regpointer));
+				break;
+			default:
+				throw std::exception("not added");
+				break;
 			}
+
+			_Registers.UnLockRegister(A);
+			_Registers.WeakLockRegisterValue(V, &Item);
+		}
 		break;
-		case IROperator::Assign_Operand0:
+		case IRInstructionType::UMult:
+		{
+			RegisterID V = RegisterID::MathOuPutRegister;
+			RegisterID A = LoadOp(Item, Item.A);
+			LockRegister(A);
+			RegisterID B = LoadOp(Item, Item.B);
+
+			auto& Object_t = Item.ObjectType;
+			switch (Object_t._Type)
 			{
-				RegisterID R = RegisterID::NullRegister;
+			case IRTypes::i8:InstructionBuilder::MultU8(_Ins, A, B); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::MultU16(_Ins, A, B); PushIns(); break;
 
+			bit32label1:
+			case IRTypes::i32:InstructionBuilder::MultU32(_Ins, A, B); PushIns(); break;
 
-				BuildOperandA(IR, R, ULib);
-				StoreResultIR(IR, R);
+			bit64label1:
+			case IRTypes::i64:InstructionBuilder::MultU64(_Ins, A, B); PushIns(); break;
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					goto bit32label1;
+				}
+				else
+				{
+					goto bit64label1;
+				}
+				break;
+			default:
+				throw std::exception("not added");
+				break;
 			}
+
+			_Registers.UnLockRegister(A);
+			_Registers.WeakLockRegisterValue(V, &Item);
+		}
+		break;
+
+		case IRInstructionType::SDiv:
+		{
+			RegisterID V = RegisterID::MathOuPutRegister;
+			RegisterID A = LoadOp(Item, Item.A);
+			LockRegister(A);
+			RegisterID B = LoadOp(Item, Item.B);
+
+			switch (Item.ObjectType._Type)
+			{
+			case IRTypes::i8:InstructionBuilder::DivS8(_Ins, A, B); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::DivS16(_Ins, A, B); PushIns(); break;
+
+			bit32label2:
+			case IRTypes::i32:InstructionBuilder::DivS32(_Ins, A, B); PushIns(); break;
+
+			bit64label2:
+			case IRTypes::i64:InstructionBuilder::DivS64(_Ins, A, B); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					goto bit32label2;
+				}
+				else
+				{
+					goto bit64label2;
+				}
+				break;
+			default:
+				throw std::exception("not added");
+				break;
+			}
+
+			_Registers.UnLockRegister(A);
+			_Registers.WeakLockRegisterValue(V, &Item);
+		}
+		break;
+		case IRInstructionType::UDiv:
+		{
+			RegisterID V = RegisterID::MathOuPutRegister;
+			RegisterID A = LoadOp(Item, Item.A);
+			LockRegister(A);
+			RegisterID B = LoadOp(Item, Item.B);
+
+			switch (Item.ObjectType._Type)
+			{
+			case IRTypes::i8:InstructionBuilder::DivU8(_Ins, A, B); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::DivU16(_Ins, A, B); PushIns(); break;
+
+			bit32label5:
+			case IRTypes::i32:InstructionBuilder::DivU32(_Ins, A, B); PushIns(); break;
+
+			bit64label5:
+			case IRTypes::i64:InstructionBuilder::DivU64(_Ins, A, B); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					goto bit32label5;
+				}
+				else
+				{
+					goto bit64label5;
+				}
+				break;
+			default:
+				throw std::exception("not added");
+				break;
+			}
+
+			_Registers.UnLockRegister(A);
+			_Registers.WeakLockRegisterValue(V, &Item);
+		}
+		break;
+
+		case IRInstructionType::Add:
+		{
+			RegisterID V = RegisterID::MathOuPutRegister;
+			RegisterID A = LoadOp(Item, Item.A);
+			LockRegister(A);
+			RegisterID B = LoadOp(Item, Item.B);
+
+			switch (Item.ObjectType._Type)
+			{
+			case IRTypes::i8:InstructionBuilder::Add8(_Ins, A, B); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::Add16(_Ins, A, B); PushIns(); break;
+
+			bit32label6:
+			case IRTypes::i32:InstructionBuilder::Add32(_Ins, A, B); PushIns(); break;
+
+			bit64label6:
+			case IRTypes::i64:InstructionBuilder::Add64(_Ins, A, B); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					goto bit32label6;
+				}
+				else
+				{
+					goto bit64label6;
+				}
+				break;
+			default:
+				throw std::exception("not added");
+				break;
+			}
+
+			_Registers.UnLockRegister(A);
+			_Registers.WeakLockRegisterValue(V, &Item);
+		}
+		break;
+		case IRInstructionType::Sub:
+		{
+			RegisterID V = RegisterID::MathOuPutRegister;
+			RegisterID A = LoadOp(Item, Item.A);
+			LockRegister(A);
+			RegisterID B = LoadOp(Item, Item.B);
+
+			switch (Item.ObjectType._Type)
+			{
+			case IRTypes::i8:InstructionBuilder::Sub8(_Ins, A, B); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::Sub16(_Ins, A, B); PushIns(); break;
+			bit32label4:
+			case IRTypes::i32:InstructionBuilder::Sub32(_Ins, A, B); PushIns(); break;
+
+			bit64label4:
+			case IRTypes::i64:InstructionBuilder::Sub64(_Ins, A, B); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					goto bit32label4;
+				}
+				else
+				{
+					goto bit64label4;
+				}
+				break;
+			default:
+				throw std::exception("not added");
+				break;
+			}
+
+			_Registers.UnLockRegister(A);
+			_Registers.WeakLockRegisterValue(V, &Item);
+		}
+		break;
+		case IRInstructionType::PushParameter:
+		{
+			RegisterID_t& Reg = *(RegisterID_t*)&_InputPar;
+
+			auto Tep = RegisterID::EndParameterRegister;
+
+
+			if (Reg <= (RegisterID_t&)Tep)
+			{
+				LoadOpToReg(Item, Item.Target(), _InputPar);
+				LockRegister(_InputPar);
+				Reg++;
+			}
+			else
+			{
+				PushOpStack(Item, Item.Target());
+			}
+		}
+		break;
+		case IRInstructionType::Call:
+		{
+			InstructionBuilder::Call(NullAddress, _Ins); PushIns();
+
+			FuncInsID Tep;
+			Tep.Index = _Output->Get_Instructions().size() - 1;
+			Tep._FuncID = Item.Target().identifer;
+
+			FuncsToLink.push_back(Tep);
+
+			_InputPar = RegisterID::StartParameterRegister;
+		}
+		break;
+		case IRInstructionType::MallocCall:
+		{
+			RegisterID ID = _Registers.GetFreeRegister();
+			LockRegister(ID);
+			auto SizeReg = LoadOp(Item, Item.Target());
+			InstructionBuilder::Malloc(_Ins, SizeReg, ID); PushIns();
+			_Registers.WeakLockRegisterValue(ID, &Item);
+		}
+		break;
+		case IRInstructionType::FreeCall:
+		{
+			InstructionBuilder::Free(_Ins, LoadOp(Item, Item.Target())); PushIns();
+		}break;
+		case IRInstructionType::Return:
+			DropStack();
+			DropPars();
+			InstructionBuilder::Return(ExitState::Success, _Ins); PushIns();
+			break;
+		case IRInstructionType::Jump:
+			InstructionBuilder::Jump(NullAddress, _Ins); PushIns();
+			InsToUpdate.push_back({Getliboutput().Get_Instructions().size(), Item.Target().Value.AsUIntNative });
+			break;
+		case IRInstructionType::ConditionalJump:
+			InstructionBuilder::Jumpif(NullAddress, LoadOp(Item, Item.Input()), _Ins); PushIns();
+			InsToUpdate.push_back({ Getliboutput().Get_Instructions().size(),Item.Target().Value.AsUIntNative });
+			break;
+		case IRInstructionType::Logical_Not:
+		{	
+			RegisterID Out = _Registers.GetFreeRegister();
+			LogicalNot(Item.ObjectType._Type,LoadOp(Item, Item.Target()),Out);
+			_Registers.WeakLockRegisterValue(Out, &Item);
+
+		}
+		break;
+		case IRInstructionType::Reassign_dereference:
+		{
+			RegisterID B = LoadOp(Item, Item.Input());
+			LockRegister(B);
+			RegisterID A = LoadOp(Item, Item.Target());
+
+
+
+
+
+
+			switch (Item.ObjectType._Type)
+			{
+			case IRTypes::i8:InstructionBuilder::StoreRegToPtr8(_Ins, B, A); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::StoreRegToPtr16(_Ins, B, A); PushIns(); break;
+			bit32label9:
+			case IRTypes::i32:InstructionBuilder::StoreRegToPtr32(_Ins, B, A); PushIns(); break;
+
+			bit64label9:
+			case IRTypes::i64:InstructionBuilder::StoreRegToPtr64(_Ins, B, A); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					goto bit32label9;
+				}
+				else
+				{
+					goto bit64label9;
+				}
+				break;
+			default:
+				throw std::exception("not added");
+				break;
+			}
+			_Registers.UnLockRegister(B);
+		}
+		break; 
+		case IRInstructionType::EqualTo:
+		{
+			RegisterID V = RegisterID::BoolRegister;
+			RegisterID A = LoadOp(Item, Item.A);
+			LockRegister(A);
+			RegisterID B = LoadOp(Item, Item.B);
+
+			switch (Item.ObjectType._Type)
+			{
+			case IRTypes::i8:InstructionBuilder::equalto8(_Ins, A, B); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::equalto16(_Ins, A, B); PushIns(); break;
+
+			bit32label3:
+			case IRTypes::i32:InstructionBuilder::equalto32(_Ins, A, B); PushIns(); break;
+			bit64label3:
+			case IRTypes::i64:InstructionBuilder::equalto64(_Ins, A, B); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					goto bit32label3;
+				}
+				else
+				{
+					goto bit64label3;
+				}
+				break;
+			default:
+				throw std::exception("not added");
+				break;
+			}
+
+			_Registers.UnLockRegister(A);
+			_Registers.WeakLockRegisterValue(V, &Item);
+		}
+		break;
+		case IRInstructionType::CallFuncPtr:
+		{
+			InstructionBuilder::CallReg(LoadOp(Item,Item.Target()), _Ins); PushIns();
+
+			_InputPar = RegisterID::StartParameterRegister;
+		}
+		break;
+		default:
+			throw std::exception("not added");
+			break;
+		}
+
+
+		IRToUCodeIns[i] = Getliboutput().Get_Instructions().size() - 1;
+	}
+
+	for (auto& Item : InsToUpdate)
+	{
+		Instruction& Ins = Getliboutput().Get_Instructions()[Item.InsToUpdate - 1];
+		UAddress JumpPos = IRToUCodeIns[Item.Jumpto];
+
+		if (Ins.OpCode == InstructionSet::Jump) 
+		{
+			InstructionBuilder::Jump(JumpPos, Ins);
+		}
+		else
+		{
+			InstructionBuilder::Jumpif(JumpPos,Ins.Value1.AsRegister, Ins);
+		}
+	}
+}
+void UCodeBackEndObject::LockRegister(RegisterID ID)
+{
+	_Registers.LockRegister(ID);
+}
+void UCodeBackEndObject::DropStack()
+{
+	if (_Stack.Size)
+	{
+		auto Ptr = Get_Settings().PtrSize;
+		auto V = _Registers.GetFreeRegister();
+		if (Ptr == IntSizes::Int32)
+		{
+			InstructionBuilder::Store32(_Ins, V, (UInt32)_Stack.Size); PushIns();
+		}
+		else
+		{
+			InstructionBuilder::Store64(_Ins, V, (UInt64)_Stack.Size); PushIns();
+		}
+		InstructionBuilder::DecrementStackPointer(_Ins, V); PushIns();
+	}
+}
+void UCodeBackEndObject::DropPars()
+{
+
+}
+RegisterID UCodeBackEndObject::LoadOp(IRInstruction& Ins, IROperator Op)
+{
+	if (Op.Type == IROperatorType::Value)
+	{
+		auto V = _Registers.GetFreeRegister();
+		if (V == RegisterID::NullRegister)
+		{
+			throw std::exception("not added");
+			//
+		}
+		switch (Ins.ObjectType._Type)
+		{
+		case IRTypes::i8:
+			InstructionBuilder::Store8(_Ins,V,Op.Value.AsInt8); PushIns();
+			break;
+		case IRTypes::i16:
+			InstructionBuilder::Store16(_Ins, V, Op.Value.AsInt16); PushIns();
 			break;
 
-		case IROperator::Func_Parameter:
-		{
-			auto VarSymbolID = IR.Operand0.SymbolId;
-			BuildData& Data = SymbolToData[VarSymbolID];
-		
+		bit32label:
+		case IRTypes::i32:
+			InstructionBuilder::Store32(_Ins, V, Op.Value.AsInt32); PushIns();
+			break;
+		case IRTypes::f32:
+			InstructionBuilder::Storef32(_Ins, V, Op.Value.Asfloat32); PushIns();
+			break;
+		case IRTypes::f64:
+			InstructionBuilder::Storef64(_Ins, V, Op.Value.Asfloat64); PushIns();
+			break;
 
-			auto TypeSize = IR.InfoType.TypeSize;
-			if (TypeSize <= RegisterSize && ParameterRegisterValue < RegisterID::EndParameterRegister)
+		bit64label:
+		case IRTypes::i64:
+			InstructionBuilder::Store64(_Ins, V, Op.Value.AsInt64); PushIns();
+			break;
+
+		case IRTypes::pointer:
+			if (Get_Settings().PtrSize == IntSizes::Int32)
 			{
-				Data.Type = BuildData_t::ParameterInRegister;
-				Data.offset = (RegisterID_t)ParameterRegisterValue;
-
-				_Registers.LockRegister(ParameterRegisterValue);
-
-				SetIRToRegister(ParameterRegisterValue, IR.Result.IRLocation);
-				(*(RegisterID_t*)&ParameterRegisterValue)++;
+				goto bit32label;
 			}
 			else
 			{
-				throw std::exception();
+				goto bit64label;
 			}
+			break;
+		default:
+			throw std::exception("not added");
+			break;
 		}
-		break;
-		case IROperator::PassParameter:
-		{
-			auto TypeSize = IR.InfoType.TypeSize;
-			if (TypeSize <= RegisterSize && CallParameterRegisterValue < RegisterID::EndParameterRegister)
-			{
-				_Registers.LockRegister(CallParameterRegisterValue);
-
-				GetOperandInRegister(IR.Operand0, CallParameterRegisterValue);
-				(*(RegisterID_t*)&CallParameterRegisterValue)++;
-			}
-			else
-			{
-				throw std::exception();
-			}
-		}
-		break;
-		case IROperator::FuncCall:
-		{
-			auto VarSymbolID = IR.Operand0.SymbolId;
-
-			GenInsPush(InstructionBuilder::Call(NullAddress, _Ins));
-
-			_InsCalls.push_back({ ULib.GetLastInstruction(),VarSymbolID });
-			for (RegisterID_t i = (RegisterID_t)RegisterID::StartParameterRegister; i < (RegisterID_t)CallParameterRegisterValue; i++)
-			{
-				_Registers.UnLockRegister((RegisterID)i);
-			}
-
-			CallParameterRegisterValue = RegisterID::StartParameterRegister;
-		}
-		break;
-		case IROperator::Free:
-		{
-			auto R = GetOperandInAnyRegister(IR.Operand0);
-			GenInsPush(InstructionBuilder::Free(_Ins, R));
-
-
-		}
-		break;
-		case IROperator::Malloc:
-		{
-			auto Size = GetOperandInAnyRegister(IR.Operand0);
-			_Registers.WeakLockRegister(Size);
-			auto ROut = _Registers.GetFreeRegister();
-
-
-			GenInsPush(InstructionBuilder::Malloc(_Ins, Size, ROut));
-
-
-			_Registers.UnLockWeakRegister(Size);
-			SetSybToRegister(Size, IR);
-		}
-		break;
-		case IROperator::Ret_Value:
-		{
-			auto RetTypeSize = IR.InfoType.TypeSize;
-			if (RetTypeSize <= RegisterSize)
-			{
-				GetOperandInRegister(IR.Operand0, RegisterID::OuPutRegister);
-
-			}
-			else
-			{
-				throw std::exception();
-			}
-		}
-		break;
-		case IROperator::DLLJump:
-		{
-			String_view FuncName = String_view(
-				(const char*)IR.Operand0.AnyValue.AsPtr,
-				IR.Operand1.AnyValue.AsUIntNative
-			);
-			auto offset = ULib.AddStaticBytes(FuncName);
-
-			GenInsPush(InstructionBuilder::CPPCall(offset, _Ins));
-
-			CallParameterRegisterValue = RegisterID::StartParameterRegister;
-		}
-		break;
-		case IROperator::IfFalseJump:
-		{
-			auto R = GetOperandInAnyRegister(IR.Operand1);
-			auto V = _Registers.GetFreeRegister();
-
-			GenInsPush(InstructionBuilder::LogicalNot8(_Ins, R, V));
-			GenInsPush(InstructionBuilder::Jumpif(NullAddress, V, _Ins));
-			JumpCallsToUpdate.push_back({ ULib.GetLastInstruction(),IR.Operand0.IRLocation });
-		}
-		break;
-		case IROperator::Jump:
-		{
-			GenInsPush(InstructionBuilder::Jump(NullAddress, _Ins));
-			JumpCallsToUpdate.push_back({ ULib.GetLastInstruction(),IR.Operand0.IRLocation });
-		}
-		break;
-
-		case IROperator::Ret:goto EndLoop;
-		}
-
-		
+		return V;
 	}
-	
-	EndLoop:
-
-	
-	GenInsPush(InstructionBuilder::Return(ExitState::Success, _Ins));
-	
-
-	_Registers.Reset();
-	ParameterRegisterValue = RegisterID::StartParameterRegister; 
-	CallParameterRegisterValue = RegisterID::StartParameterRegister;
-
-	if (DeclareCalls.count(SybID))
+	else if (Op.Type == IROperatorType::IRParameter)
 	{
-		throw std::exception("item readded");
+		auto V = GetParData(Op.Parameter);
+
+		if (V->Type == Parloc::Register)
+		{
+			return V->_Reg;
+		}
+		else
+		{
+			throw std::exception("not added");
+		}
 	}
-	DeclareCalls[SybID] = { FuncStart };
-	ULib.Add_NameToInstruction(FuncStart, (String)FuncName);
+	else if (Op.Type == IROperatorType::IRInstruction)
+	{
+		return FindOp(Ins, Op);
+	}
+	else if (Op.Type == IROperatorType::Get_PointerOf_IRInstruction)
+	{
+		auto PointerV = Op.Pointer;
+		auto S = _Stack.Has(PointerV);
+		if (S)
+		{
+			auto V = _Registers.GetInfo(PointerV);
+			if (V == RegisterID::NullRegister)
+			{
+				V= _Registers.GetFreeRegister();
+				InstructionBuilder::GetPointerOfStackSub(_Ins, V, S->Offset); PushIns();
+				return V;
+			}
+			else
+			{
+				return V;
+			}
+		}
+		else
+		{
+			size_t StackPos = _Stack.Size;
+			auto V = _Registers.GetFreeRegister();	
+			
+			switch (PointerV->ObjectType._Type)
+			{
+			case IRTypes::i8://move value to stack
+				InstructionBuilder::DoNothing(_Ins); PushIns();
+				_Stack.Size += 1;
+				break;
+			case IRTypes::i16:
+				InstructionBuilder::DoNothing(_Ins); PushIns();
+				_Stack.Size += 2;
+				break;
+			Int32L:
+			case IRTypes::f32:
+			case IRTypes::i32:
+				InstructionBuilder::StoreRegOnStack32(_Ins, _Registers.GetInfo(PointerV),StackPos); PushIns();//move value to stack
+				_Stack.Size += 4;
+				break;
+
+			Int64L:
+			case IRTypes::f64:
+			case IRTypes::i64:
+				InstructionBuilder::DoNothing(_Ins); PushIns();
+				_Stack.Size += 8;
+				break;
+			case IRTypes::pointer:
+				switch (Get_Settings().PtrSize)
+				{
+				case IntSizes::Int32:goto Int32L;
+				case IntSizes::Int64:goto Int64L;
+				default:
+					throw std::exception("not added");
+					break;
+				}
+				break;
+			default:
+				throw std::exception("not added");
+				break;
+			}
+			InstructionBuilder::GetPointerOfStackSub(_Ins,V,StackPos); PushIns();
+			
+			StackItem StItem;
+			StItem.Offset = StackPos;
+			StItem.IR = PointerV;
+			_Stack.Items.push_back(StItem);
+
+			//_Registers.WeakLockRegisterValue(V, PointerV);
+			
+			return V;
+		}
+	}
+	else if (Op.Type == IROperatorType::DereferenceOf_IRInstruction
+	|| Op.Type == IROperatorType::DereferenceOf_IRParameter)
+	{
+		auto In = FindOp(Ins, Op);
+		auto Out = _Registers.GetFreeRegister();
+		if (Out == RegisterID::NullRegister)
+		{
+			throw std::exception("not added");
+			//
+		}
+
+		switch (Ins.ObjectType._Type)
+		{
+		case IRTypes::i8:
+			InstructionBuilder::StoreFromPtrToReg8(_Ins, In, Out); PushIns();
+			break;
+		case IRTypes::i16:
+			InstructionBuilder::StoreFromPtrToReg16(_Ins, In, Out); PushIns();
+			break;
+		Int32L5:
+		case IRTypes::f32:
+		case IRTypes::i32:
+			InstructionBuilder::StoreFromPtrToReg32(_Ins, In, Out); PushIns();
+			break;
+
+		Int64L5:
+		case IRTypes::f64:
+		case IRTypes::i64:
+			InstructionBuilder::StoreFromPtrToReg64(_Ins, In, Out); PushIns();
+			break;
+		case IRTypes::pointer:
+			switch (Get_Settings().PtrSize)
+			{
+			case IntSizes::Int32:goto Int32L;
+			case IntSizes::Int64:goto Int64L;
+			default:
+				throw std::exception("not added");
+				break;
+			}
+			break;
+		default:
+			throw std::exception("not added");
+			break;
+		}
+		return Out;
+	}
+	else if (Op.Type == IROperatorType::Get_Func_Pointer)
+	{
+		auto V = _Registers.GetFreeRegister();
+
+		InstructionBuilder::LoadFuncPtr(NullAddress, V, _Ins); PushIns();
+
+		FuncInsID Tep;
+		Tep.Index = _Output->Get_Instructions().size() - 1;
+		Tep._FuncID = Op.identifer;
+
+		FuncsToLink.push_back(Tep);
+
+		return V;
+	}
+
+	throw std::exception("not added");
+	return RegisterID::NullRegister;
 }
-
-void UCodeBackEndObject::BuildOperandA(const UCodeLang::IRCode& IR, UCodeLang::RegisterID& R, UCodeLang::UClib& ULib)
+void UCodeBackEndObject::LoadOpToReg(IRInstruction& Ins, IROperator Op, RegisterID Out)
 {
-	switch (IR.Operand0.Type)
+	RegToReg(Ins.ObjectType._Type, LoadOp(Ins, Op), Out);
+}
+void UCodeBackEndObject::RegToReg(IRTypes Type, RegisterID In, RegisterID Out)
+{
+	if (In != Out)
 	{
-		IRFieldInt(8)
-		IRFieldInt(16)
-		IRFieldInt(32)
-		IRFieldInt(64)
-	case IRFieldInfoType::ReadVar:
-	{
-			OnReadVarOperand(R, IR, ULib);
+		switch (Type)
+		{
+		case IRTypes::i8:
+			InstructionBuilder::StoreRegToReg8(_Ins,In,Out); PushIns();
+			break;
+		case IRTypes::i16:
+			InstructionBuilder::StoreRegToReg16(_Ins, In, Out); PushIns();
+			break;
+		Int32L:
+		case IRTypes::f32:
+		case IRTypes::i32:
+			InstructionBuilder::StoreRegToReg32(_Ins, In, Out); PushIns();
+			break;
+
+		Int64L:
+		case IRTypes::f64:
+		case IRTypes::i64:
+			InstructionBuilder::StoreRegToReg64(_Ins, In, Out); PushIns();
+			break;
+			Pointer:
+		case IRTypes::pointer:
+			switch (Get_Settings().PtrSize)
+			{
+			case IntSizes::Int32:goto Int32L;
+			case IntSizes::Int64:goto Int64L;
+			default:
+				throw std::exception("not added");
+				break;
+			}
+			break;
+		case IRTypes::IRsymbol:
+		{
+			goto Pointer;
+		}//FuncPtrs
+			break;
+		default:
+			throw std::exception("not added");
+			break;
+		}
 	}
-	break;
-	case IRFieldInfoType::IRLocation:
+}
+void UCodeBackEndObject::PushOpStack(IRInstruction& Ins, IROperator Op)
+{
+	auto R =LoadOp(Ins,Op);
+	switch (Ins.ObjectType._Type)
 	{
-		R = GetOperandInAnyRegister(IR.Operand0);
-	}
-	break;
-	case IRFieldInfoType::AsPointer:
-	{
-		OnAsPointer(R, IR);
-	}
-	break;
-	case IRFieldInfoType::Nothing:
+	case IRTypes::i8:
+		InstructionBuilder::Push8(_Ins, R); PushIns();
+		_Stack.PushedOffset += 1;
+		break;
+	case IRTypes::i16:
+		InstructionBuilder::Push16(_Ins, R); PushIns();
+		_Stack.PushedOffset += 2;
+		break;
+
+	bit32label:
+	case IRTypes::f32:
+	case IRTypes::i32:
+		InstructionBuilder::Push32(_Ins, R); PushIns();
+		_Stack.PushedOffset += 4;
+		break;
+
+	bit64label:
+	case IRTypes::f64:
+	case IRTypes::i64:
+		InstructionBuilder::Push64(_Ins, R); PushIns();
+		_Stack.PushedOffset += 8;
+		break;
+
+	case IRTypes::pointer:
+		if (Get_Settings().PtrSize == IntSizes::Int32)
+		{
+			goto bit32label;
+		}
+		else
+		{
+			goto bit64label;
+		}
 		break;
 	default:
 		throw std::exception("not added");
 		break;
 	}
 }
-
-void UCodeBackEndObject::OnAsPointer(UCodeLang::RegisterID& R, const IRCode& IR)
+RegisterID UCodeBackEndObject::FindOp(IRInstruction& Ins, IROperator Op)
 {
-	auto& ULib = Getliboutput();
-	R = _Registers.GetFreeRegisterAndWeakLock();
-
-
-	
-	auto VarSymbolID = IR.Operand0.SymbolId;
-	
-	BuildData& Data = SymbolToData[VarSymbolID];
-	if (Data.Type == BuildData_t::StackVarable)
+	auto V = _Registers.GetInfo(Op.Pointer);
+	if (V == RegisterID::NullRegister)
 	{
-		GenInsPush(InstructionBuilder::GetPointerOfStack(_Ins, R,Data.offset));
-	}
-	else
-	{
-		throw std::exception("not added");
-	}
-	
-}
-
-void UCodeBackEndObject::StoreResultIR(const IRCode& IR, UCodeLang::RegisterID R)
-{
-	if (IR.Result.Type == IRFieldInfoType::IRLocation)
-	{
-		auto& RInfo = _Registers.GetInfo(R);
-		RInfo.IRField = IR.Result.IRLocation;
-	}
-	else if (IR.Result.Type == IRFieldInfoType::Var)
-	{
-		StoreVar(IR, R);
-	}
-	else
-	{
-		throw std::exception();
-	}
-}
-
-void UCodeBackEndObject::OnReadVarOperand(UCodeLang::RegisterID& R, const IRCode& IR, UCodeLang::UClib& ULib)
-{
-	R = _Registers.GetFreeRegisterAndWeakLock();
-
-
-	auto VarSymbolID = IR.Operand0.SymbolId;
-	BuildData& Data = SymbolToData[VarSymbolID];
-	if (Data.Type == BuildData_t::StackVarable)
-	{
-		auto V = _Registers.GetInfo(IR.Result.IRLocation);
-
-		if (V == RegisterID::NullRegister)
+		if (Op.Type == IROperatorType::IRInstruction
+			|| Op.Type == IROperatorType::DereferenceOf_IRInstruction)
 		{
-			BuildSybolIntSizeIns(IR, GetFromStack, (_Ins, Data.offset + IR.Operand1.AnyValue.AsAddress, R));
-			SetSybToRegister(R, IR);
+			if (Op.Pointer->Type == IRInstructionType::LoadNone)
+			{
+				auto T = _Registers.GetFreeRegister();
+				_Registers.WeakLockRegisterValue(T, Op.Pointer);
+				return T;
+			}
+			else if (Op.Pointer->Type == IRInstructionType::Call)
+			{
+				return RegisterID::OuPutRegister;
+			}
+			else if (Op.Pointer->Type == IRInstructionType::MallocCall)
+			{
+				return  _Registers.GetInfo(Op.Pointer);
+			}
+			else if (IsLocation(Op.Pointer->Type))
+			{
+				return LoadOp(*Op.Pointer,Op.Pointer->Target());
+			}
+			else
+			{
+				throw std::exception("not added");
+			}
+		}
+		else if (Op.Type == IROperatorType::IRParameter
+			|| Op.Type == IROperatorType::DereferenceOf_IRParameter)
+		{
+			auto V = GetParData(Op.Parameter);
+
+			if (V->Type == Parloc::Register)
+			{
+				return V->_Reg;
+			}
+			else
+			{
+				throw std::exception("not added");
+			}
+		}
+		else if (Op.Type == IROperatorType::Get_Func_Pointer)
+		{
+			throw std::exception("not added");
 		}
 		else
 		{
-			_Registers.UnLockWeakRegister(R);
-			R = V;
+			throw std::exception("not added");
 		}
 	}
-	else if (Data.Type == BuildData_t::ParameterInRegister)
-	{
-
-		_Registers.UnLockWeakRegister(R);
-		R = (RegisterID)Data.offset;
-		SetIRToRegister(R, IR.Result.IRLocation);
-	}
 	else
 	{
-		throw std::exception();
-	}
-	
-}
-
-void UCodeBackEndObject::Link()
-{
-	auto& ULib = Getliboutput();
-	for (auto& Item : _InsCalls)
-	{
-		Instruction& Ins = ULib.Get_Instructions().operator[](Item.CallIns);
-		Ins.Value0 = DeclareCalls.at(Item.ID).FuncAddress -1;
-	}
-	for (auto& Item : JumpCallsToUpdate)
-	{
-		Instruction& Ins = ULib.Get_Instructions().operator[](Item.InsAddress);
-		Ins.Value0 = IRCodeIndexToUAddressIndexs[Item.IRField]-1;
-	}
-
-}
-
-void UCodeBackEndObject::SetSybToRegister(RegisterID R, const IRCode& IR)
-{
-	SetIRToRegister(R,IR.Result.IRLocation);
-}
-
-void UCodeBackEndObject::SetIRToRegister(RegisterID R, IRField IR)
-{
-	auto& RInfo = _Registers.GetInfo(R);
-	_Registers.WeakLockRegister(R);
-	RInfo.IRField = IR;
-}
-
-RegisterID UCodeBackEndObject::GetOperandInAnyRegister(const IROperand& operand)
-{
-	
-	auto IsInR = operand.Type == IRFieldInfoType::IRLocation ?
-		_Registers.GetInfo(operand.IRLocation) : _Registers.GetValue(operand.AnyValue.AsInt64);
-	if (IsInR == RegisterID::NullRegister)
-	{
-		auto id = _Registers.GetFreeRegister();
-		GetOperandInRegister(operand, id);
-		return id;
-	}
-	return IsInR;
-}
-
-void UCodeBackEndObject::GetOperandInRegister(const IROperand& operand, RegisterID id)
-{
-	auto& ULib = Getliboutput();
-	auto R = operand.Type == IRFieldInfoType::IRLocation ? _Registers.GetInfo(operand.IRLocation)
-		: _Registers.GetValue(operand.AnyValue.AsInt64);
-	if (R == RegisterID::NullRegister)
-	{
-		R = id;
-		//throw std::exception("not added");
-		return;
-	}
-
-
-	if (R != id)
-	{
-		GenInsPush(InstructionBuilder::StoreRegToReg64(_Ins, R, id));//Tem Fix for now
+		return V;
 	}
 }
-
-void UCodeBackEndObject::StoreVar(const IRCode& IR, const RegisterID R)
+void UCodeBackEndObject::FindOpToReg(IRInstruction& Ins, IROperator Op, RegisterID Out)
 {
-	auto& ULib = Getliboutput();
-	auto VarSymbolID = IR.Result.SymbolId;
-	BuildData* Data;
-
-	
-	if (SymbolToData.count(VarSymbolID))
+	RegToReg(Ins.ObjectType._Type, FindOp(Ins, Op), Out);
+}
+void UCodeBackEndObject::LogicalNot(IRTypes Type, RegisterID In, RegisterID Out)
+{
+	if (In != Out)
 	{
-		Data = &SymbolToData[VarSymbolID];
-	}
-	else
-	{
-		SymbolToData[VarSymbolID] = {};
-
-		Data = &SymbolToData[VarSymbolID];
-		Data->Type = BuildData_t::StackVarable;
-		Data->offset = StackSize;
-		Data->DataSize = IR.InfoType.TypeSize;
-		StackSize += Data->DataSize;
-	}
-
-	if (IR.Operand0.Type == IRFieldInfoType::Nothing) { return; }
-	
-
-	if (Data->Type == BuildData_t::ParameterInRegister)
-	{
-		auto R2 = (RegisterID)Data->offset;
-
-		if (R != R2)
+		switch (Type)
 		{
-			BuildSybolIntSizeIns(IR, StoreRegToReg, (_Ins, R, R2));
+		case IRTypes::i8:
+			InstructionBuilder::LogicalNot8(_Ins, In, Out); PushIns();
+			break;
+		case IRTypes::i16:
+			InstructionBuilder::LogicalNot16(_Ins, In, Out); PushIns();
+			break;
+		Int32L:
+		case IRTypes::f32:
+		case IRTypes::i32:
+			InstructionBuilder::LogicalNot32(_Ins, In, Out); PushIns();
+			break;
+
+		Int64L:
+		case IRTypes::f64:
+		case IRTypes::i64:
+			InstructionBuilder::LogicalNot64(_Ins, In, Out); PushIns();
+			break;
+		case IRTypes::pointer:
+			switch (Get_Settings().PtrSize)
+			{
+			case IntSizes::Int32:goto Int32L;
+			case IntSizes::Int64:goto Int64L;
+			default:
+				throw std::exception("not added");
+				break;
+			}
+			break;
+		default:
+			throw std::exception("not added");
+			break;
 		}
 	}
-	else if (Data->Type == BuildData_t::ThisObjectWithOffset)
-	{
-		throw std::exception("not added");
-	}
-	else
-	{
-		if (IR.Operator == IROperator::Assign_OperandOnPointer)
-		{
-
-			return;
-		}
-
-
-		BuildSybolIntSizeIns(IR, StoreRegOnStack, (_Ins, R, Data->offset + IR.Operand1.AnyValue.AsAddress));
-	}
-	
-	
 }
-
 UCodeLangEnd
 

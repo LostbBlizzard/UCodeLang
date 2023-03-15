@@ -8,8 +8,12 @@ class SystematicAnalysis;
 class IRBuilder;
 class SymbolTable;
 
-
-
+enum class BackEndObjectOutputType
+{
+	UCLib,
+	Bytes,
+	Text,
+};
 
 class BackEndObject
 {
@@ -29,9 +33,12 @@ public:
 
 	UCodeLangForceinline UClib& Getliboutput()
 	{
-		return *_Output;
+		return *_OutputLib;
 	}
-
+	UCodeLangForceinline const BytesView GetOutput()
+	{
+		return _Output.AsView();
+	}
 
 	inline void Set_ErrorsOutput(CompliationErrors* Errors)
 	{
@@ -40,15 +47,29 @@ public:
 	inline void Set_Settings(CompliationSettings* setting)
 	{
 		_Settings = setting;
+
 	}
-	inline void Set_Output(UClib* output)
+	inline void Set_OutputLib(UClib* output)
 	{
-		_Output = output;
+		_OutputLib = output;
+	}
+protected:
+	
+	inline void Set_Output(String_view output)
+	{
+		Set_Output(BytesView((Byte*)output.data(), output.size()));
+	}
+	inline void Set_Output(const BytesView output)
+	{
+		_Output.Bytes.reset(new Byte[output.Size]);
+		_Output.Size = output.Size;
+		memcpy(_Output.Bytes.get(), output.Bytes, output.Size);
 	}
 private:
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
-	UClib* _Output = nullptr;
+	BytesPtr _Output;
+	UClib* _OutputLib;
 };
 
 using BackEndObject_Ptr = BackEndObject* (*)();

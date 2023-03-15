@@ -31,10 +31,16 @@ public:
 
 	}
 
-	UCodeLangForceinline void Resize(size_t NewSize){ _Bytes.resize(NewSize);}
-	UCodeLangForceinline void Clear(){ _Bytes.clear();}
+	UCodeLangForceinline void resize(size_t NewSize){ _Bytes.resize(NewSize);}
+	UCodeLangForceinline void clear(){ _Bytes.clear();}
+	
+	UCodeLangForceinline size_t size() const {return _Bytes.size(); }
+	
 	UCodeLangForceinline auto& Get_Bytes() { return _Bytes; }
-	UCodeLangForceinline size_t Size() {return _Bytes.size(); }
+	UCodeLangForceinline auto data() { return _Bytes.data(); }
+
+	UCodeLangForceinline auto& Get_Bytes() const { return _Bytes; }
+	UCodeLangForceinline auto data() const { return _Bytes.data(); }
 
 	void WriteBytes(const Byte* Bits, size_t size)
 	{
@@ -155,6 +161,31 @@ public:
 		_BitOffset = 0;
 	}
 
+	UCodeLangForceinline void Set_offset(size_t Value)
+	{
+		_BitOffset = Value;
+	}
+	UCodeLangForceinline size_t Get_offset()
+	{
+		return _BitOffset;
+	}
+
+	UCodeLangForceinline void Increment_offset(size_t Value)
+	{
+		_BitOffset += Value;
+	}
+	UCodeLangForceinline void Decrement_offset(size_t Value)
+	{
+		_BitOffset += Value;
+	}
+	UCodeLangForceinline Byte& GetByteWith_offset(size_t Value)
+	{
+		return ((Byte*)_Bytes)[_BitOffset + Value];
+	}
+	UCodeLangForceinline Byte& GetByteWith_Noffset(size_t Value)
+	{
+		return  ((Byte*)_Bytes)[Value];
+	}
 
 
 	template<typename T>
@@ -226,7 +257,7 @@ public:
 	{
 		SizeCheck(sizeof(UInt32));
 		 BitConverter::BytesToInt(_Bytes, _BitOffset, &Out);
-		_BitOffset += sizeof(UInt64);
+		_BitOffset += sizeof(UInt32);
 	}
 	template<> void ReadType(Int32& Out)
 	{
