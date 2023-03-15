@@ -10,7 +10,15 @@ $Player:
   Hp = 0;
   
 
- |drop[this&];
- |DoSome[this&,int a];
+|main[ int[&] V ] -> int:
  
-|main[bool V];
+ //int[/4] A = [10,10,10,10];
+ //int[/] B = [10,10,10,10];
+ 
+ 
+
+
+ char[/] StringBuffer = "Hello";
+
+
+ ret 0;
