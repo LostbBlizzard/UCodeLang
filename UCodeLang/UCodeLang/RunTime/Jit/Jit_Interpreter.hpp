@@ -15,6 +15,8 @@ public:
 	using RetState = Interpreter::RetState;
 	Jit_Interpreter(){}
 	~Jit_Interpreter() { UnLoad(); }
+	Jit_Interpreter(const Jit_Interpreter& Other) = delete;
+	Jit_Interpreter(Jit_Interpreter&& Other) = default;
 
 	void Init(RunTimeLangState* State)
 	{
@@ -91,7 +93,7 @@ public:
 
 
 	template<typename T, typename... Args>
-	T retCall(const String& FunctionName, Args&&... parameters)
+	T RCall(const String& FunctionName, Args&&... parameters)
 	{
 		if (CheckIfFunctionExist(FunctionName))
 		{
@@ -104,11 +106,11 @@ public:
 		return {};
 	}
 	template<typename T, typename... Args>
-	T retThisCall(PtrType This, const ClassMethod& Function, Args&&... parameters)
+	T RThisCall(PtrType This, const ClassMethod& Function, Args&&... parameters)
 	{
-		return retThisCall(This, Function.FullName, Args&&... parameters)
+		return RThisCall(This, Function.FullName, Args&&... parameters)
 	}
-	template<typename T, typename... Args> T retThisCall(PtrType This, const String& Function, Args&&... parameters)
+	template<typename T, typename... Args> T RThisCall(PtrType This, const String& Function, Args&&... parameters)
 	{
 		if (CheckIfFunctionExist(FunctionName))
 		{
@@ -173,19 +175,8 @@ private:
 	};
 	Unordered_map<UAddress, JitFuncData> UFuncToCPPFunc;
 	Vector<UInt8> TepOutBuffer;
-	static void OnUAddressCall(CPPInput Cpp)
-	{
-		//UAddress V = Cpp.GetParameters<UAddress>();
-		//Call(V);
-	}
-
-	static void UCodeLangAPI Tep(CPPInput Cpp)
-	{
-
-
-		Cpp.Set_Return();
-	}
-	AnyInt64 Call_CPPFunc(JitFunc ToCall);
+	static CPPCallRet OnUAddressCall();
+	CPPCallRet Call_CPPFunc(JitFunc ToCall);
 	
 };
 

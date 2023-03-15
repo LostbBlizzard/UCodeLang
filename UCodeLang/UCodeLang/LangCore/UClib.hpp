@@ -2,7 +2,13 @@
 
 #include "../LangCore.hpp"
 #include "../LangCore/ReflectionData.hpp"
+#include "UCodeLang/LangCore/BitMaker.hpp"
 UCodeLangStart
+
+struct MyStruct
+{
+	
+};
 
 using LibType_t = UInt8;
 enum class LibType : LibType_t
@@ -33,7 +39,7 @@ public:
 	UClib();
 	~UClib();
 
-	UClib(UClib& GetFrom);
+	UClib(UClib&& source) = default;
 
 	UClib(const UClib& V) = delete;
 	UClib& operator=(const UClib& V) = delete;
@@ -98,6 +104,20 @@ public:
 	{
 		_Instructions.clear();
 	}
+
+	UCodeLangForceinline const auto& Get_Code()const
+	{
+		return  _Code;
+	}
+	UCodeLangForceinline auto& Get_Code()
+	{
+		return  _Code;
+	}
+	UCodeLangForceinline void clear_Code()
+	{
+		_Code.clear();
+	}
+
 
 	UCodeLangForceinline auto& Get_NameToPtr() const
 	{
@@ -224,7 +244,29 @@ public:
 	
 	
 	static BytesPtr ToRawBytes(const UClib* Lib);
+
+	;
+	
+	//
+	static void ToBytes(BitMaker& Output, const ClassData::Enum_Data& EnumData);
+	static void ToBytes(BitMaker& Output, const ClassAssembly& Assembly);
+	static void ToBytes(BitMaker& Output, const ClassData::Alias_Data& Alias);
+	static void ToBytes(BitMaker& Output, const ClassData::Class_Data& ClassData);
+	static void ToBytes(BitMaker& Output, const ClassField& Item2);
+	static void ToBytes(BitMaker& Output, const AttributeData& Data);
+	static void ToBytes(BitMaker& Output, const ClassMethod& Data);
+	static void ToBytes(BitMaker& Output, const ReflectionTypeInfo& Data);
+	//
 	static bool FromBytes(UClib* Lib,const BytesView& Data);
+	static void FromBytes(BitReader& reader, ClassAssembly& Assembly);
+	static void FromBytes(BitReader& reader, ClassData::Enum_Data& Enum);
+	static void FromBytes(BitReader& reader, ClassData::Class_Data& Class);
+	static void FromBytes(BitReader& reader, ClassField& Item2);
+	static void FromBytes(BitReader& reader, ClassData::Alias_Data& Alias);
+	static void FromBytes(BitReader& Input, AttributeData& Data);
+	static void FromBytes(BitReader& Input, ClassMethod& Data);
+	static void FromBytes(BitReader& Input, ReflectionTypeInfo& Data);
+	//
 
 	static bool ToFile(const UClib* Lib,const Path& path);
 	static bool FromFile(UClib* Lib, const Path& path);
@@ -244,6 +286,9 @@ private:
 	Vector<Byte> _StaticBytes;
 
 	Vector<Instruction> _Instructions;
+
+	Vector<Byte> _Code;
+
 	Unordered_map<String, UAddress> _NameToPtr;
 	//Debug
 	Vector<Byte> _DebugBytes;

@@ -1,8 +1,24 @@
 #pragma once
 #include "UCodeLang/LangCore/ScopeHelper.hpp"
-#include "IRCode.hpp"
-UCodeLangStart
+#include "SymbolID.hpp"
+#include "../Front/UCodeFrontEndNameSpace.hpp"
 
+UCodeLangStart
+struct IRInstruction;
+struct IRPar;
+struct FileNode;
+UCodeLangEnd
+
+UCodeLangFrontStart
+
+enum class PassType : UInt8
+{
+	Null,
+	GetTypes,
+	FixedTypes,
+	BuidCode,
+	Done,
+};
 
 enum class TypesEnum :UInt8
 {
@@ -30,7 +46,8 @@ enum class TypesEnum :UInt8
 	uIntPtr,
 	sIntPtr,
 
-
+	float32,
+	float64,
 
 	CustomType,
 };
@@ -59,13 +76,21 @@ struct TypeSymbol
 	{
 		_Type = type;
 		_CustomTypeSymbol = 0;
+
 		_IsAddress = false;
+		_IsAddressArray = false;
+		_Isimmutable = false;
+		_ValueInfo = TypeValueInfo::IsValue;
 	}
 	void SetType(SymbolID CustomType)
 	{
 		_Type = TypesEnum::CustomType;
 		_CustomTypeSymbol = CustomType;
+
 		_IsAddress = false;
+		_IsAddressArray = false;
+		_Isimmutable = false;
+		_ValueInfo = TypeValueInfo::IsValue;
 	}
 	void SetAsAddress()
 	{
@@ -135,7 +160,7 @@ struct TypeSymbol
 
 
 
-enum class SymbolType : UInt8
+enum class SymbolType: UInt8
 {
 	Null,
 	Any,
@@ -146,6 +171,8 @@ enum class SymbolType : UInt8
 
 	Type,
 	Type_alias,
+	Hard_Type_alias,
+
 
 	Type_class,
 	Class_Field,
@@ -159,12 +186,20 @@ enum class SymbolType : UInt8
 	GenericFunc,
 	Generic_class,
 	Unmaped_Generic_Type,
+	Namespace,
+
+	Hard_Func_ptr,//no one will use this
+	Func_ptr,
+
+	ConstantExpression,
+	Type_StaticArray,
 };
 enum class SymbolValidState : UInt8
 {
 	Invalid,
 	valid,
 };
+
 
 
 class Symbol_Info
@@ -189,6 +224,12 @@ public:
 		this->Type = Type;
 	}
 };
+struct GenericData
+{
+	SymbolID SybID;
+	bool IsConstantExpression = false;
+};
+
 
 class FuncInfo :public Symbol_Info
 {
@@ -198,21 +239,42 @@ public:
 	{
 		return ScopeHelper::GetNameFromFullName((String_view)FullName);
 	}
+	enum class FuncType
+	{
+		NameFunc,
+		New,
+		Drop,
+		Copy_Ctor,
+		Move,
+
+		//operator overloading
+	};
+	FuncType _FuncType = FuncType::NameFunc;
+
+
 	Vector<TypeSymbol> Pars;
 	TypeSymbol Ret;
 	
-	Vector<SymbolID> _Generic;
+	Vector<GenericData> _Generic;
 
-
-	bool IsObjectCall()
+	bool FrontParIsUnNamed = false;
+	bool IsObjectCall() const
 	{
-		return Pars.size() && Pars.back().IsAddress();
+		return Pars.size() && Pars.front().IsAddress() && FrontParIsUnNamed;
 	}
 	TypeSymbol* GetObjectForCall()
 	{
 		if (IsObjectCall())
 		{
-			return &Pars.back();
+			return &Pars.front();
+		}
+		return nullptr;
+	}
+	const TypeSymbol* GetObjectForCall() const
+	{
+		if (IsObjectCall())
+		{
+			return &Pars.front();
 		}
 		return nullptr;
 	}
@@ -241,11 +303,13 @@ public:
 	{
 		return ScopeHelper::GetNameFromFullName((String_view)FullName);
 	}
+
+
 	UAddress Size = NullAddress;
 	Vector<FieldInfo> Fields;
 	bool SizeInitialized = false;
 
-	Vector<SymbolID> _Generic;
+	Vector<GenericData> _Generic;
 
 	ClassInfo()
 	{
@@ -266,10 +330,154 @@ public:
 		}
 		return nullptr;
 	}
+	size_t GetFieldIndex(const String_view Name) const
+	{
+		for (size_t i = 0; i < Fields.size(); i++)
+		{
+			if (Fields[i].Name == Name) {
+				return i;
+			}
+		}
+	
+		return -1;
+	}
 
 	void AddField(const String_view Name, TypeSymbol Type)
 	{
 		Fields.emplace_back((String)Name, Type);
+	}
+};
+
+struct RawEvaluatedObject
+{
+	//union 
+	struct
+	{
+		Unique_Array<Byte> Object_AsPointer;
+		size_t ObjectSize = 0;
+	};
+	bool HasValue()
+	{
+		return Object_AsPointer.operator bool();
+	}
+	RawEvaluatedObject()
+	{
+
+	}
+	RawEvaluatedObject(const RawEvaluatedObject& ToCopyFrom)
+		:Object_AsPointer(new Byte[ToCopyFrom.ObjectSize]), ObjectSize(ToCopyFrom.ObjectSize)
+	{
+		memcpy(Object_AsPointer.get(), ToCopyFrom.Object_AsPointer.get(), ToCopyFrom.ObjectSize);
+	}
+	RawEvaluatedObject& operator=(const RawEvaluatedObject& ToCopyFrom)
+	{
+		Object_AsPointer.reset(new Byte[ToCopyFrom.ObjectSize]);
+		ObjectSize = ToCopyFrom.ObjectSize;
+
+		memcpy(Object_AsPointer.get(), ToCopyFrom.Object_AsPointer.get(), ToCopyFrom.ObjectSize);
+
+		return *this;
+	}
+};
+
+
+class EnumFieldInfo
+{
+public:
+	String Name;
+	RawEvaluatedObject Ex;
+	EnumFieldInfo()
+	{
+
+	}
+};
+
+class EnumInfo :public Symbol_Info
+{
+public:
+	String FullName;
+	inline String_view Get_Name() const
+	{
+		return ScopeHelper::GetNameFromFullName((String_view)FullName);
+	}
+
+	TypeSymbol Basetype;
+	Vector<EnumFieldInfo> Fields;
+
+
+	void SetBaseType(const TypeSymbol& Symbol)
+	{
+		Basetype = Symbol;
+	}
+
+	EnumFieldInfo* GetField(const String_view Name)
+	{
+		for (auto& Item : Fields)
+		{
+			if (Item.Name == Name) {
+				return &Item;
+			}
+		}
+		return nullptr;
+	}
+
+
+	EnumFieldInfo& AddField(const String_view Name)
+	{
+		EnumFieldInfo& r = Fields.emplace_back();
+		r.Name = (String)Name;
+		return r;
+	}
+};
+
+class FuncPtrInfo :public Symbol_Info
+{
+public:
+	String FullName;
+	inline String_view Get_Name() const
+	{
+		return ScopeHelper::GetNameFromFullName((String_view)FullName);
+	}
+
+	Vector<TypeSymbol> Pars;
+	TypeSymbol Ret;
+};
+
+
+struct  ExpressionNodeType;
+
+class ConstantExpressionInfo :public Symbol_Info
+{
+public:
+	ExpressionNodeType* Exnode = nullptr;
+	
+
+	ConstantExpressionInfo()
+	{
+
+	}
+	~ConstantExpressionInfo()
+	{
+
+	}
+};
+
+class StaticArrayInfo :public Symbol_Info
+{
+public:
+	TypeSymbol Type;
+	size_t Count = 0;
+	bool IsCountInitialized = false;
+
+	ExpressionNodeType* Exnode = nullptr;
+
+	StaticArrayInfo()
+	{
+
+	}
+	~StaticArrayInfo()
+	{
+
 	}
 };
 
@@ -283,17 +491,22 @@ public:
 	UAddress Size=NullAddress;
 	TypeSymbol VarType;
 	//
-	void* NodePtr =nullptr;//most likey a node*
+	const void* NodePtr =nullptr;//most likey a node*
 	Unique_ptr<Symbol_Info> Info;
-
+	
+	
+	const FileNode* _File = nullptr;
 	
 
+
 	SymbolValidState ValidState = SymbolValidState::valid;
+	PassType PassState = PassType::Null;
+
 	void SetToInvalid(){ValidState = SymbolValidState::Invalid;}
 	void SetTovalid(){ValidState = SymbolValidState::valid;}
 	bool IsInvalid()const {return ValidState == SymbolValidState::Invalid;}
 	bool Isvalid()const { return !IsInvalid(); }
-	Symbol()
+	Symbol(): Type(SymbolType::Null), ID(0)
 	{
 
 	}
@@ -302,6 +515,20 @@ public:
 		this->Type = Type;
 		this->FullName = FullName;
 	}
+
+	template<typename T> T* Get_Info()
+	{
+		return (T*)Info.get();
+	}
+	template<typename T> const T* Get_Info() const
+	{
+		return (T*)Info.get();
+	}
+	union 
+	{
+		IRPar* IR_Par;
+		IRInstruction* IR_Ins = nullptr;
+	};
 };
 
 
@@ -310,8 +537,7 @@ class SymbolTable
 public:
 	Vector<String> Useings;
 	ScopeHelper _Scope;
-	Vector<Symbol> Symbols;
-
+	Vector<Unique_ptr<Symbol>> Symbols;
 
 
 	void AddUseing(const String_view& Name) { Useings.push_back((String)Name); }
@@ -332,7 +558,7 @@ public:
 	//use a ptr for the Id;
 	Symbol& GetSymbol(SymbolID ID)
 	{
-		return Symbols[IDToSymbols[ID]];
+		return *IDToSymbols.at(ID);
 	}
 
 	void AddSymbolID(Symbol& Syb, SymbolID ID);
@@ -340,6 +566,6 @@ public:
 
 		
 private:
-	Unordered_map<SymbolID,size_t> IDToSymbols;
+	Unordered_map<SymbolID,Symbol*> IDToSymbols;
 };
-UCodeLangEnd
+UCodeLangFrontEnd

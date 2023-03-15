@@ -8,6 +8,9 @@
 #define Nondigit_NameCharSet LettersCharSet  "_"
 
 #define NameCharSet Nondigit_NameCharSet digitCharSet 
+
+#define Ascii_CharSet NameCharSet ""
+
 struct LexerHelper
 {
 	static constexpr const char* const Letters = LettersCharSet;
@@ -21,6 +24,9 @@ struct LexerHelper
 
 	static constexpr const char* const Nondigit_NameChars = Nondigit_NameCharSet;
 	static constexpr size_t Nondigit_NameChars_Size = sizeof(Nondigit_NameCharSet);
+
+	static constexpr const char* const Ascii_CharSet_NameChars = Ascii_CharSet;
+	static constexpr size_t Ascii_CharSet_NameChars_Size = sizeof(Ascii_CharSet);
 
 	static bool IsNameChar(char Char)
 	{
@@ -53,5 +59,10 @@ struct LexerHelper
 			if (Char == LexerHelper::Nondigit_NameChars[i]) { return true; }
 		}
 		return false;
+	}
+
+	static bool IsAsciiChar(char Char)
+	{
+		return isascii(Char);
 	}
 };

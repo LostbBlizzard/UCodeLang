@@ -6,8 +6,8 @@
 #include "../CompliationSettings.hpp"
 #include "../LexerDefs.h"
 
-
-UCodeLangStart
+#include "UCodeFrontEndNameSpace.hpp"
+UCodeLangFrontStart
 class Lexer
 {
 	enum class ReadingNameState :UInt8
@@ -17,6 +17,7 @@ class Lexer
 		Class,
 		String,
 		Number,
+		Char
 	};
 	enum class CommentState : Int8
 	{
@@ -30,7 +31,7 @@ public:
 	void Reset();
 	void Lex(const String_view& Text);
 
-	UCodeLangForceinline Vector<Token>& Get_Tokens() { return _Nodes; }
+	UCodeLangForceinline Vector<Token>& Get_Tokens() { return _Tokens; }
 	UCodeLangForceinline void Set_ErrorsOutput(CompliationErrors* V) { _ErrorsOutput = V; }
 	UCodeLangForceinline void Set_Settings(CompliationSettings* V) { _Settings = V; }
 	UCodeLangForceinline bool Get_LexerSuccess() {return _LexerSuccess;};
@@ -44,14 +45,14 @@ public:
 	}
 private:
 	String_view _Text;
-	Vector<Token> _Nodes;
+	Vector<Token> _Tokens;
 	bool _LexerSuccess = false;
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
 	
 	
 	Token _Token;
-	size_t NameBufferStart=0;
+	size_t NameBufferStart= NameBufferNullValue;
 	size_t NameBufferEnd=0;
 	static constexpr size_t NameBufferNullValue = -1;
 	UCodeLangForceinline size_t NameBufferSize()
@@ -90,5 +91,5 @@ private:
 	
 	void NameAndKeyWords(ReadingNameState& ReadingState, Token& _Token);
 };
-UCodeLangEnd
+UCodeLangFrontEnd
 

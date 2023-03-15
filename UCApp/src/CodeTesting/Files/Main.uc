@@ -1,14 +1,10 @@
-use ULang;
+
+$Optional<T>;
+$View<T>;
+$Vector<T>;
+$Array<T,(Size)>;
 
 
-$Player:
- int2 Pos;
- int Hp;
- |new[this&]:
-  Pos.X = 0;
-  Pos.Y = 5;
-  Hp = 0;
-  
 
 |main[ int[&] V ] -> int:
  

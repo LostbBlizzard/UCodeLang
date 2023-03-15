@@ -35,6 +35,8 @@ enum class TokenType : TokenType_t
 	
 	String_literal,// "String"
 	Number_literal, // 100
+	Float_literal,
+	Char_literal,
 
 	KeyWorld_Ret,//ret
 	leftArrow,//<-
@@ -120,6 +122,8 @@ enum class TokenType : TokenType_t
 
 	KeyWorld_uintptr,
 	KeyWorld_sintptr,
+	//used internally
+	internal_Constant_expression
 };
 class StringHelper
 {
@@ -166,8 +170,14 @@ public:
 
 		case UCodeLang::TokenType::KeyWorld_Char:return "char";
 		case UCodeLang::TokenType::KeyWorld_Bool:return "bool";
+
+		case UCodeLang::TokenType::KeyWorld_float32:return "float32";
+		case UCodeLang::TokenType::KeyWorld_float64:return "float64";
+
 		case UCodeLang::TokenType::String_literal:return "String literal";
 		case UCodeLang::TokenType::Number_literal:return "Number literal";
+		case UCodeLang::TokenType::Char_literal:return "Char_literal";
+		case UCodeLang::TokenType::Float_literal:return "Float_literal";
 
 		case UCodeLang::TokenType::KeyWorld_Ret:return "ret";
 		case UCodeLang::TokenType::RightArrow:return "->";
@@ -223,6 +233,8 @@ public:
 		case UCodeLang::TokenType::KeyWorld_umut:return "umut";
 		case UCodeLang::TokenType::KeyWorld_Tag: return "tag";
 
+		case UCodeLang::TokenType::QuestionMark:return "?";
+
 		default:return "Unknown token";
 		}
 	}
@@ -269,7 +281,6 @@ struct Token
 
 	size_t OnLine =0;
 	size_t OnPos = 0;
-	static constexpr size_t EndOfFile = -1;
 
 	static void PushString(String& out,const Token& T)
 	{
