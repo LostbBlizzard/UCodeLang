@@ -17,7 +17,7 @@ UCodeLangStart
 	{\
 		##__VA_ARGS__ V;\
 		Input.GetParameter<##__VA_ARGS__>(&V);\
-		auto r = FuncName(); \
+		auto r = FuncName(V); \
 		SetCPPRet(r);\
 	};\
 

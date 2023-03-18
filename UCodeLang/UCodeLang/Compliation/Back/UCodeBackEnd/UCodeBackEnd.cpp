@@ -117,6 +117,17 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 		}
 	}
 
+
+	auto FuncName = _Input->FromID(IR->identifier);
+
+	if (IR->IsCPPCall)
+	{
+		auto Ptr = _Output->AddStaticBytes((String_view)FuncName);
+		InstructionBuilder::CPPCall(Ptr, _Ins); PushIns();
+	}
+
+
+
 	if (IR->Blocks.size())
 	{
 		OnBlock(IR->Blocks.front().get());
@@ -151,7 +162,7 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 
 	_Stack.Reset();
 	_Registers.Reset();
-	_Output->Add_NameToInstruction(FuncStart, _Input->FromID(IR->identifier));
+	_Output->Add_NameToInstruction(FuncStart, FuncName);
 
 
 	Funcpos V;

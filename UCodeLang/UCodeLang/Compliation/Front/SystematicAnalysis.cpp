@@ -713,123 +713,122 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		
 	}	
 	
-	if (passtype == PassType::BuidCode)
-	{
-		ClassData* Ptr = nullptr;
-		if (_ClassStack.empty())
-		{
-			auto& Assembly = _Lib.Get_Assembly();
-
-			auto globalAssemblyObjectName = (String_view)ScopeHelper::_globalAssemblyObject;
-
-			Ptr = Assembly.Find_Class(globalAssemblyObjectName);
-			if (Ptr == nullptr)
-			{
-				Ptr = &_Lib.Get_Assembly().AddClass(String(globalAssemblyObjectName), String(globalAssemblyObjectName));
-			}
-		}
-		else
-		{
-			auto& Assembly = _Lib.Get_Assembly();
-			for (auto& Item : Assembly.Classes)
-			{
-				if (Item->FullName == ScopeHelper::GetReMoveScope((String_view)FullName))
-				{
-					Ptr = Item.get();
-					break;
-				}
-		
-			}
-		}
-		ClassMethod V;
-		V.FullName = FullName;
-		V.RetType.FullNameType = ToString(syb->VarType);
-
-		for (auto& Item : Info->Pars)
-		{
-			auto F = V.ParsType.emplace_back();
-			auto& VT = ConvertToTypeInfo(Item);
-
-		}
-
-		PushTepAttributesInTo(V.Attributes);
-
-
-		Ptr->_Class.Methods.push_back(std::move(V));
-
-		auto& RetType = node.Signature.ReturnType.node;
-		if (RetType && RetType->Get_Type() == NodeType::AnonymousTypeNode)
-		{
-			SymbolID AnonymousSybID = (SymbolID)RetType.get();
-			auto& V = *GetSymbol(AnonymousSybID);
-
-			auto ClassInf = V.Get_Info<ClassInfo>();
-
-			AddClass_tToAssemblyInfo(ClassInf);
-
-		}
-	}
+	
 
 
 	bool buidCode = passtype == PassType::BuidCode;
 	bool ignoreBody = !IsgenericInstantiation && IsGenericS;
 
-	if (buidCode && !ignoreBody)
+
+	if (buidCode) 
 	{
-		LookingAtIRFunc =_Builder.NewFunc(syb->FullName, {});
-		LookingAtIRBlock = LookingAtIRFunc->NewBlock("");
-		PushNewStackFrame();
+		if (!ignoreBody)
+		{
+			LookingAtIRFunc = _Builder.NewFunc(syb->FullName, {});
+			LookingAtIRBlock = LookingAtIRFunc->NewBlock("");
+			PushNewStackFrame();
 
-		auto& ParNodes = node.Signature.Parameters.Parameters;
+			auto& ParNodes = node.Signature.Parameters.Parameters;
+
+			LookingAtIRFunc->Pars.resize(ParNodes.size());//becuase we are useing ptrs.
+			for (size_t i = 0; i < ParNodes.size(); i++)
+			{
+				auto& Item = ParNodes[i];
+
+				auto ParSybID = (SymbolID)&Item;
+				auto& V = *GetSymbol(ParSybID);
+
+
+				auto& d = LookingAtIRFunc->Pars[i];
+				d.identifier = _Builder.ToID(V.FullName);
+				d.type = ConvertToIR(V.VarType);
+
+
+
+
+				if (HasDestructor(V.VarType))
+				{
+					ObjectToDrop V;
+					V.DropType = ObjectToDropType::Operator;
+					V.ID = ParSybID;
+					V._Operator = IROperator(&d);
+					V.Type = V.Type;
+
+					StackFrames.back().OnEndStackFrame.push_back(V);
+				}
+
+				V.IR_Par = &d;
+			}
+			LookingAtIRFunc->ReturnType = ConvertToIR(syb->VarType);
+
+			for (auto& Item : _TepAttributes)
+			{
+				String AttType;
+				Item->ScopedName.GetScopedName(AttType);
+				if (AttType == "CPPCall")
+				{
+					LookingAtIRFunc->IsCPPCall = true;
+					break;
+				}
+			}
+		}
 		
-		LookingAtIRFunc->Pars.resize(ParNodes.size());//becuase we are useing ptrs.
-		for (size_t i = 0; i < ParNodes.size(); i++)
 		{
-			auto& Item = ParNodes[i];
-
-			auto ParSybID = (SymbolID)&Item;
-			auto& V = *GetSymbol(ParSybID);
-			
-
-			auto& d = LookingAtIRFunc->Pars[i];
-			d.identifier = _Builder.ToID(V.FullName);
-			d.type = ConvertToIR(V.VarType);
-
-
-
-
-			if (HasDestructor(V.VarType))
+			ClassData* Ptr = nullptr;
+			if (_ClassStack.empty())
 			{
-				ObjectToDrop V;
-				V.DropType = ObjectToDropType::Operator;
-				V.ID = ParSybID;
-				V._Operator = IROperator(&d);
-				V.Type = V.Type;
+				auto& Assembly = _Lib.Get_Assembly();
 
-				StackFrames.back().OnEndStackFrame.push_back(V);
+				auto globalAssemblyObjectName = (String_view)ScopeHelper::_globalAssemblyObject;
+
+				Ptr = Assembly.Find_Class(globalAssemblyObjectName);
+				if (Ptr == nullptr)
+				{
+					Ptr = &_Lib.Get_Assembly().AddClass(String(globalAssemblyObjectName), String(globalAssemblyObjectName));
+				}
+			}
+			else
+			{
+				auto& Assembly = _Lib.Get_Assembly();
+				for (auto& Item : Assembly.Classes)
+				{
+					if (Item->FullName == ScopeHelper::GetReMoveScope((String_view)FullName))
+					{
+						Ptr = Item.get();
+						break;
+					}
+
+				}
+			}
+			ClassMethod V;
+			V.FullName = FullName;
+			V.RetType.FullNameType = ToString(syb->VarType);
+
+			for (auto& Item : Info->Pars)
+			{
+				auto F = V.ParsType.emplace_back();
+				auto& VT = ConvertToTypeInfo(Item);
+
 			}
 
-			V.IR_Par = &d;
-		}
-		LookingAtIRFunc->ReturnType = ConvertToIR(syb->VarType);
+			PushTepAttributesInTo(V.Attributes);
 
-		bool DLLCall = false;
-		for (auto& Item : _TepAttributes)
-		{
-			String AttType;
-			Item->ScopedName.GetScopedName(AttType);
-			if (AttType == "DLL")
+
+			Ptr->_Class.Methods.push_back(std::move(V));
+
+			auto& RetType = node.Signature.ReturnType.node;
+			if (RetType && RetType->Get_Type() == NodeType::AnonymousTypeNode)
 			{
-				DLLCall = true;
-				break;
+				SymbolID AnonymousSybID = (SymbolID)RetType.get();
+				auto& V = *GetSymbol(AnonymousSybID);
+
+				auto ClassInf = V.Get_Info<ClassInfo>();
+
+				AddClass_tToAssemblyInfo(ClassInf);
+
 			}
-		}
-		if (!node.Body.has_value()&& DLLCall)
-		{
-			//_Builder.Build_DLLJump(node.Signature.Name.AsStringView());
 		}
 	}
-	
 
 	if (node.Body.has_value() && !ignoreBody)
 	{

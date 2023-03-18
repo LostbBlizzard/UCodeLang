@@ -39,9 +39,10 @@ const UCodeLang::String StandardLibraryinit = StandardLibraryOut + "init/";
 #define StandardLibrarynamespace "ULang"
 
 
-void Test(int A)
+int Test(int A)
 {
 	std::cout << "DLLCall Got Value " << A << std::endl;
+	return A;
 } 
 
 void Test2()
@@ -49,7 +50,7 @@ void Test2()
 	std::cout << "Hello World" << std::endl;
 }
 
-MakeNewCPPCall_void(Test,int);
+MakeNewCPPCall(Test,int,int);
 
 MakeNewCPPCall_voidNoPar(Test2);
 
@@ -154,7 +155,7 @@ int main()
 		int tep = CallFunc();
 	}*/
 
-	if (!ULangTest::LogErrors(std::cout,_Compiler))
+	if (!ULangTest::LogErrors(std::cout, _Compiler))
 	{
 		UCodeLang::UClib MLib;
 		if (UClib::FromFile(&MLib, Data.OutFile))
@@ -166,31 +167,32 @@ int main()
 			out.close();
 		}
 
-		
+
 		UCodeLang::RunTimeLib Lib;
 		Lib.Init(&MLib);
 
 		UCodeLang::RunTimeLib DLLib;
-		
-		Lib.Add_CPPCall("DLLCall", GetCPPCallName(Test));
-		Lib.Add_CPPCall("DLLCall2", GetCPPCallName(Test2));
-		
+
+		Lib.Add_CPPCall("Test", GetCPPCallName(Test));
+		Lib.Add_CPPCall("Test2", GetCPPCallName(Test2));
+
 		UCodeLang::RunTimeLangState State;
 		State.AddLib(&Lib);
 		State.AddLib(&DLLib);
 		State.LinkLibs();
 
-		
+
 		RunTime.Init(&State);
 
-		
-		
+
+
 		int item[2] = { 0,0 };
 
-		auto r = RunTime.RCall <UAddress> ("main", &item);
- 		
-		
-	   std::cout << " Got Value " << (int)r << std::endl;
+		auto r = RunTime.RCall <UAddress>("main", &item);
 
+
+		std::cout << " Got Value " << (int)r << std::endl;
+	
+		RunTime.UnLoad();
 	}
 }

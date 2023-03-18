@@ -58,12 +58,12 @@ void Interpreter::FlushParametersIntoCPU()
 Interpreter::Return_t Interpreter::Call(const String& FunctionName)
 {
 	auto address = _State->FindAddress(FunctionName);
-	if (address == NullAddress)
+	if (!address.has_value())
 	{
 		return Return_t(RetState::Error_Function_doesnt_exist);
 	}
 	
-	return Call(address);
+	return Call(address.value());
 }
 Interpreter::Return_t Interpreter::Call(UAddress address)
 {
@@ -328,13 +328,16 @@ void Interpreter::Extecute(Instruction& Inst)
 		if (Cpp)
 		{
 			auto CppV = *Cpp;
-			//auto& inter = *(InterpreterCPPinterface*)&_CPPHelper;
-			//inter = InterpreterCPPinterface(this);
-			//CppV(inter);
-			throw std::exception("unknown instruction");
+			auto& inter = *(InterpreterCPPinterface*)&_CPPHelper;
+			inter = InterpreterCPPinterface(this);
+			(*CppV)(inter);
 		}
 		else
 		{
+			String CantFindMsg = "Cant find cpp Call named " + Str;
+			_State->Log(CantFindMsg.c_str());
+
+			throw std::exception("bad cpp call.");//Cant find CPPCall.
 			_CPU.RetValue._Succeed = ExitState::Failure;
 			_CPU.Stack.StackOffSet = 0;
 		}

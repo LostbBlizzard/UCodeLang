@@ -1,10 +1,10 @@
 
 
 
-[CPPCall]|Test[int A] -> void;
+[CPPCall]|Test[int A] -> int;
 
 |main[] -> int:
  
- Test(5);
+ 
 
- ret 0;
+ ret Test(5) + 5;

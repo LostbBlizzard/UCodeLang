@@ -138,11 +138,11 @@ public:
 	}
 
 	void LinkLibs();
-	UCodeLangForceinline UAddress FindAddress(const String& FunctionName)
+	UCodeLangForceinline Optional<UAddress> FindAddress(const String& FunctionName)
 	{
 		return _Data.FindAddress(FunctionName);
 	}
-	UCodeLangForceinline RunTimeLib::CPPCallBack* FindCPPCall(const String& FunctionName)
+	UCodeLangForceinline Optional<RunTimeLib::CPPCallBack*> FindCPPCall(const String& FunctionName)
 	{
 		return _Data.FindCPPCall(FunctionName);
 	}

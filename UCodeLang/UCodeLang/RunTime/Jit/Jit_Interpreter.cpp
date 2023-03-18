@@ -45,12 +45,12 @@ void Jit_Interpreter::Get_Return(void* Output, size_t OutputSize)
 Interpreter::Return_t Jit_Interpreter::Call(const String& FunctionName)
 {
 	auto address = Get_State()->FindAddress(FunctionName);
-	if (address == NullAddress)
+	if (!address.has_value())
 	{
 		return Interpreter::Return_t(Interpreter::RetState::Error_Function_doesnt_exist);
 	}
 
-	return Call(address);
+	return Call(address.value());
 }
 
 Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
