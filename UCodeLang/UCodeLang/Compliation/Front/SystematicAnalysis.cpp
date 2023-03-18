@@ -1118,7 +1118,6 @@ IRType SystematicAnalysis::ConvertToIR(const TypeSymbol& Value)
 		}
 	}
 	break;
-	PtrSize:
 	case TypesEnum::sIntPtr:
 	case TypesEnum::uIntPtr:
 		return IRType(IRTypes::pointer);
@@ -1714,8 +1713,8 @@ void SystematicAnalysis::OnIfNode(const IfNode& node)
 	}
 
 	
-	IRBlock::NewConditionalFalseJump_t IfIndex;
-	IRInstruction* BoolCode;
+	IRBlock::NewConditionalFalseJump_t IfIndex{};
+	IRInstruction* BoolCode{};
 	if (passtype == PassType::BuidCode)
 	{
 		DoImplicitConversion(_LastExpressionField, LastExpressionType, BoolType);
@@ -3081,6 +3080,11 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 		{
 			StringliteralNode* nod = StringliteralNode::As(node.Value.get());
 
+			if (passtype == PassType::GetTypes)
+			{//check for ok string
+
+			}
+
 
 			auto& Type = Get_LookingForType();
 
@@ -3099,6 +3103,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 				}
 			}
 			
+			
 
 			if (IsStaticArr) 
 			{
@@ -3109,7 +3114,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 				{
 					String V;
 					bool ItWorked = !ParseHelper::ParseStringliteralToString(nod->Token->Value._String, V);
-					size_t BufferSize = V.size() + 1;
+					size_t BufferSize = V.size();
 
 					if (StaticArr->IsCountInitialized == false)
 					{
@@ -3161,26 +3166,33 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 						LookingAtIRBlock->NewDereferenc_Store(f, VIR);
 					}
 
-					{
-						auto VIR = LookingAtIRBlock->NewLoad('\0');
-
-
-						auto f = LookingAtIRBlock->New_Index_Vetor(BufferIRIns, IR_Load_UIntptr(V.size()), ValueSizeIR);
-
-						LookingAtIRBlock->NewDereferenc_Store(f, VIR);
-					}
+					
 				}
 
 				LastExpressionType = Type;
 			}
 			else
 			{
-				TypeSymbol CStringType;//umut char[&]
 
+				TypeSymbol CStringType;//umut char[&]
 				CStringType.SetType(TypesEnum::Char);
 				CStringType.SetAsAddressArray();
 				CStringType.SetAsimmutable();
 				LastExpressionType = CStringType;
+
+				if (passtype == PassType::BuidCode)
+				{
+					String V;
+					bool ItWorked = !ParseHelper::ParseStringliteralToString(nod->Token->Value._String, V);
+
+					String_view Buffer{ V.c_str(),V.size() + 1 };//for null char
+
+					auto BufferIR = _Builder.FindOrAddConstStrings(Buffer);
+					_LastExpressionField =  LookingAtIRBlock->NewLoadPtr(BufferIR);
+
+
+				}
+				
 			}
 
 
@@ -3661,6 +3673,8 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 
 	Symbol* Symbol;
 	auto Token = nod.VariableName.ScopedName.back().token;
+	auto Str = FToken->Value._String;
+
 	if (FToken->Type == TokenType::KeyWorld_This)
 	{
 		if (_ClassStack.size() == 0)
@@ -3690,7 +3704,6 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 	}
 
 
-	auto Str = FToken->Value._String;
 	Symbol = GetSymbol(Str,SymbolType::Varable_t);
 	
 	
@@ -4590,42 +4603,42 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type)
 
 	switch (Type._Type)
 	{
-	case TypesEnum::Var:r = "var";	break;
-	case TypesEnum::Int_t:r = "Int_t";	break;
-	case TypesEnum::uInt_t:r = "uInt_t";	break;
-	case TypesEnum::sInt_t:r = "sInt_t";	break;
+	case TypesEnum::Var:r += "var";	break;
+	case TypesEnum::Int_t:r += "Int_t";	break;
+	case TypesEnum::uInt_t:r += "uInt_t";	break;
+	case TypesEnum::sInt_t:r += "sInt_t";	break;
 
 
-	case TypesEnum::uInt8:r = Uint8TypeName;	break;
-	case TypesEnum::uInt16:r = Uint16TypeName;	break;
-	case TypesEnum::uInt32:r = Uint32TypeName;	break;
-	case TypesEnum::uInt64:r = Uint64TypeName;	break;
+	case TypesEnum::uInt8:r += Uint8TypeName;	break;
+	case TypesEnum::uInt16:r += Uint16TypeName;	break;
+	case TypesEnum::uInt32:r += Uint32TypeName;	break;
+	case TypesEnum::uInt64:r += Uint64TypeName;	break;
 
 
-	case TypesEnum::sInt8:r = Sint8TypeName;	break;
-	case TypesEnum::sInt16:r = Sint16TypeName;	break;
-	case TypesEnum::sInt32:r = Sint32TypeName;	break;
-	case TypesEnum::sInt64:r = Sint64TypeName;	break;
+	case TypesEnum::sInt8:r += Sint8TypeName;	break;
+	case TypesEnum::sInt16:r += Sint16TypeName;	break;
+	case TypesEnum::sInt32:r += Sint32TypeName;	break;
+	case TypesEnum::sInt64:r += Sint64TypeName;	break;
 
-	case TypesEnum::uIntPtr:r = UintPtrTypeName;	break;
-	case TypesEnum::sIntPtr:r = SintPtrTypeName;	break;
+	case TypesEnum::uIntPtr:r += UintPtrTypeName;	break;
+	case TypesEnum::sIntPtr:r += SintPtrTypeName;	break;
 
-	case TypesEnum::Bool:r = boolTypeName;	break;
-	case TypesEnum::Char:r = CharTypeName;	break;
+	case TypesEnum::Bool:r += boolTypeName;	break;
+	case TypesEnum::Char:r += CharTypeName;	break;
 
-	case TypesEnum::float32:r = float32TypeName;	break;
-	case TypesEnum::float64:r = float64TypeName;	break;
+	case TypesEnum::float32:r += float32TypeName;	break;
+	case TypesEnum::float64:r += float64TypeName;	break;
 	case TypesEnum::CustomType:
 	{
 		auto& Syb = *GetSymbol(Type._CustomTypeSymbol);
 		if (Syb.Type == SymbolType::Func
 			|| Syb.Type == SymbolType::GenericFunc)
 		{
-			r = ToString(Syb.VarType);
+			r += ToString(Syb.VarType);
 		}
 		else if (Syb.Type == SymbolType::Type_alias)
 		{
-			r = ToString(Syb.VarType);
+			r += ToString(Syb.VarType);
 		}
 		else if (Syb.Type == SymbolType::Func_ptr)
 		{
@@ -4655,17 +4668,17 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type)
 		}
 		else
 		{
-			r = Syb.FullName;
+			r += Syb.FullName;
 		}
 	
 	}	break;
 	case TypesEnum::Void:
-		r = "void";	break;
+		r += "void";	break;
 	case TypesEnum::Any:
-		r = "[any]";	
+		r += "[any]";	
 		break;
 	case TypesEnum::Null:
-		r = "[badtype]";	break;
+		r += "[badtype]";	break;
 	default:
 		throw std::exception("bad Type");
 		break;
@@ -5176,8 +5189,17 @@ bool SystematicAnalysis::IsPrimitiveNotIncludingPointers(const TypeSymbol& TypeT
 
 bool SystematicAnalysis::IsimmutableRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type)
 {
-	return  (!TypeToCheck.Isimmutable() == Type.Isimmutable()) ||
-		(TypeToCheck.Isimmutable() == Type.Isimmutable());
+
+	bool Chechimm = TypeToCheck.Isimmutable();
+	bool CmpTypeimm = Type.Isimmutable();
+
+
+	if (Chechimm == CmpTypeimm || CmpTypeimm == true)
+	{
+		return true;
+	}
+
+	return false;
 }
 bool SystematicAnalysis::IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode)
 {
@@ -6696,91 +6718,22 @@ IRInstruction* SystematicAnalysis::IR_Load_SIntptr(SIntNative Value)
 
 IRInstruction* SystematicAnalysis::Build_Add_uIntPtr(IROperator field, IROperator field2)
 {
-	switch (_Settings->PtrSize)
-	{
-	case IntSizes::Int8:
-		//_Builder.MakeAdd8(field, field2);
-		break;	
-	case IntSizes::Int16:
-		//_Builder.MakeAdd16(field, field2);
-		break;
-	case IntSizes::Int32:
-		//_Builder.MakeAdd32(field, field2);
-		break;
-	case IntSizes::Int64:
-		//_Builder.MakeAdd64(field, field2);
-		break;
-	default:
-		throw std::exception("");
-		break;
-
-	}
+	throw std::exception("");
 }
 
 IRInstruction* SystematicAnalysis::Build_Sub_uIntPtr(IROperator field, IROperator field2)
 {
-	switch (_Settings->PtrSize)
-	{
-	case IntSizes::Int8:
-		//_Builder.MakeSub8(field, field2);
-		break;
-	case IntSizes::Int16:
-		//_Builder.MakeSub16(field, field2);
-		break;
-	case IntSizes::Int32:
-		//_Builder.MakeSub32(field, field2);
-		break;
-	case IntSizes::Int64:
-		//_Builder.MakeSub64(field, field2);
-		break;
-	default:
-		throw std::exception("");
-		break;
-	}
+	throw std::exception("");
 }
 
 IRInstruction* SystematicAnalysis::Build_Add_sIntPtr(IROperator field, IROperator field2)
 {
-	switch (_Settings->PtrSize)
-	{
-	case IntSizes::Int8:
-		//_Builder.MakeAdd8(field, field2);
-		break;
-	case IntSizes::Int16:
-		//_Builder.MakeAdd16(field, field2);
-		break;
-	case IntSizes::Int32:
-		//_Builder.MakeAdd32(field, field2);
-		break;
-	case IntSizes::Int64:
-		//_Builder.MakeAdd64(field, field2);
-		break;
-	default:
-		throw std::exception("");
-		break;
-	}
+	throw std::exception("");
 }
 
 IRInstruction* SystematicAnalysis::Build_Sub_sIntPtr(IROperator field, IROperator field2)
 {
-	switch (_Settings->PtrSize)
-	{
-	case IntSizes::Int8:
-		//_Builder.MakeSub8(field, field2);
-		break;
-	case IntSizes::Int16:
-		//_Builder.MakeSub16(field, field2);
-		break;
-	case IntSizes::Int32:
-		//_Builder.MakeSub32(field, field2);
-		break;
-	case IntSizes::Int64:
-		//_Builder.MakeSub64(field, field2);
-		break;
-	default:
-		throw std::exception("");
-		break;
-	}
+	throw std::exception("");
 }
 
 IRInstruction* SystematicAnalysis::Build_Mult_uIntPtr(IRInstruction* field, IRInstruction* field2)

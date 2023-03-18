@@ -3,6 +3,8 @@ workspace "UCodeLang"
    platforms { "Win32", "Win64"}
    defines {}
    
+   
+
    startproject "UCApp"
    
    dependson {"UCApp","UCodeLang","UCodeCross"}

@@ -99,7 +99,41 @@ String IRBuilder::ToString()
 		case IRSymbolType::StaticArray:
 		{
 			IRStaticArray* V = Item->Get_ExAs<IRStaticArray>();
-			r += "$" + SybName + " = " + ToString(V->Type) + "[/" + std::to_string(V->Count) + "]";
+			r += "$" + SybName + " = " + ToString(V->Type) + "[/" + std::to_string(V->Count) + "]\n";
+		}
+		break;
+		case IRSymbolType::StaticVarable:
+		{
+			IRBufferData* V = Item->Get_ExAs<IRBufferData>();
+			r += "static " + (String)"uint8" + "[/" + std::to_string(V->Bytes.size()) + "]" + " " + SybName + "= [";
+			
+			for (auto& Item2 : V->Bytes)
+			{
+				r += std::to_string(Item2);
+
+				if (&Item2 != &V->Bytes.back()) {
+					r += ",";
+				}
+			}
+
+			r += "];\n";
+		}
+		break;
+		case IRSymbolType::ThreadLocalVarable:
+		{
+			IRBufferData* V = Item->Get_ExAs<IRBufferData>();
+			r += "thread " + (String)"uint8" + "[/" + std::to_string(V->Bytes.size()) + "]" + " " + SybName + "= [";
+
+			for (auto& Item2 : V->Bytes)
+			{
+				r += std::to_string(Item2);
+
+				if (&Item2 != &V->Bytes.back()) {
+					r += ",";
+				}
+			}
+
+			r += "];\n";
 		}
 		break;
 		default:
@@ -415,6 +449,10 @@ String IRBuilder::ToString(ToStringState& State, IRInstruction& Ins, IROperator&
 		const IRPar* Par = Value.Parameter;
 		return "&" + FromID(Par->identifier);
 	}
+	case IROperatorType::Get_PointerOf_IRidentifier:
+	{
+		return "&" + FromID(Value.identifer);
+	}
 
 	case IROperatorType::DereferenceOf_IRInstruction:
 	{
@@ -425,6 +463,7 @@ String IRBuilder::ToString(ToStringState& State, IRInstruction& Ins, IROperator&
 		const IRPar* Par = Value.Parameter;
 	    return "*" + FromID(Par->identifier);
 	}
+	
 	case IROperatorType::Get_Func_Pointer:
 	{
 		return "(&)" + FromID(Value.identifer);

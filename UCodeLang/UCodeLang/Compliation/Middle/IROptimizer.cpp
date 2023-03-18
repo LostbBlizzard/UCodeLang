@@ -7,12 +7,12 @@ using OptimizationFunc = void(IROptimizer::*)();
 struct OptimizationInfo
 {
 	OptimizationFlags AcitveIf;
-	bool InverseAcitveIf;
+	bool InverseAcitveIf=false;
 
 	
 	union 
 	{
-		OptimizationFunc FuncCall;
+		OptimizationFunc FuncCall=nullptr;
 	};
 	OptimizationInfo()
 	{

@@ -14,7 +14,10 @@ $Array<T,(Size)>;
  
 
 
- char[/] StringBuffer = "Hello";
+ umut char[&] StringBuffer = "Hello";
 
+ umut char[&] StringBuffer2 = "Hello";
+
+ umut char[&] f =StringBuffer2[1];
 
  ret 0;

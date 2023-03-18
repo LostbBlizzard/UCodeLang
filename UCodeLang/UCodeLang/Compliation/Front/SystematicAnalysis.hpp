@@ -274,6 +274,13 @@ private:
 	};
 
 
+	enum class GetValueMode
+	{
+		Read,
+		Write,
+	};
+	Stack<GetValueMode> GetExpressionMode;
+
 	bool GetMemberTypeSymbolFromVar(size_t Start, size_t End, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out);
 	bool GetMemberTypeSymbolFromVar(size_t Start, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
 	{

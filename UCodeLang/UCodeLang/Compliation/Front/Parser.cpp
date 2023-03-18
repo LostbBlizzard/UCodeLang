@@ -1261,7 +1261,7 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 			}
 
 
-		Done:
+
 			Token2 = TryGetToken();
 			TokenTypeCheck(Token2, TokenType::Right_Bracket);
 			NextToken();
