@@ -2,7 +2,9 @@
 
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 #include <Windows.h>
+#include "UCodeLang/Compliation/ModuleFile.hpp"
 using namespace UCodeLang;
 
 
@@ -79,7 +81,7 @@ int App::main(int argc, char* argv[])
 		ParseLine(line);
 	}
 
-	startup(L"C:/CoolStuff/CoolCodeingStuff/C++/Projects/UCodeLang/Output/UCApp/Win64/Debug/UCApp.exe");
+	
 
 	return EXIT_SUCCESS;
 }
@@ -112,7 +114,7 @@ bool IsList(String_view List, char V)
 
 #define Worddef Letersdef Numdef NameChardef
 
-#define PathDef Letersdef Numdef ":/\\."
+#define PathDef Letersdef Numdef ":/\\.+()"
 
 String_view GetWord_t(String_view& Line,String_view GoodChars_t)
 {
@@ -151,23 +153,97 @@ String_view GetPath(String_view& Line)
 
 void ParseLine(String_view Line)
 {
-
+	namespace fs = std::filesystem;
 	String_view Word1 = GetWord(Line);
-	if (Word1 == "uc")
-	{
-		String_view Word2 = GetWord(Line);
 
+	if (Word1 == "Build") 
+	{ 
+		auto _Path = GetPath(Line);
+		auto _PathAsPath = Path(_Path);
 
-		if (Word2 == "set_filedir"){_This._CompilerPaths.FileDir = GetPath(Line);}
-		else if (Word2 == "set_intDir") { _This._CompilerPaths.IntDir = GetPath(Line); }
-		else if (Word2 == "set_outFile") { _This._CompilerPaths.OutFile = GetPath(Line); }
-		else if (Word2 == "Build_file") { _This._Compiler.CompilePathToObj(_This._CompilerPaths.FileDir, _This._CompilerPaths.OutFile); }
-		else if (Word2 == "Build_dir"){_This._Compiler.CompileFiles(_This._CompilerPaths);}
-		else if (Word2 == "Build_dir_int") { _This._Compiler.CompileFiles_UseIntDir(_This._CompilerPaths); }
+		auto _PathVar2 = GetPath(Line);
+		//
+		_This._CompilerPaths.FileDir = _Path;
+		
+		Path Backpath = _PathAsPath;
+		_This._CompilerPaths.OutFile = Path(Backpath.native() + Path("out").native()).generic_string();
+		_This._CompilerPaths.IntDir  = Path(Backpath.native() + Path("int").native()).generic_string();
+		//
+		_This._Compiler.Get_Errors().Remove_Errors();
+
+		if (fs::is_directory(_PathAsPath))
+		{
+			_This._Compiler.CompileFiles(_This._CompilerPaths);
+		}
 		else
 		{
-			TokenCheck(Word1);
+			auto _PathExt = _PathAsPath.extension();
+			if (_PathExt == UCodeLang::ModuleFile::FileExtWithDot)
+			{
+				UCodeLang::ModuleFile module;
+				if (!UCodeLang::ModuleFile::FromFile(&module, _PathAsPath))
+				{
+					*_This.output << "Cant Open module file\n";
+					return;
+				}
+				if (module.BuildModule(_This._Compiler)._State ==Compiler::CompilerState::Fail)
+				{
+					*_This.output << "Compiler Fail:\n";
+					*_This.output << _This._Compiler.Get_Errors().ToString();
+				}
+				else
+				{
+					*_This.output << "Compiler Success:\n";
+					*_This.output << "output is in " + _This._CompilerPaths.OutFile;
+				}
+			}
+			else
+			{
+				if (_PathVar2.size())
+				{
+					_This._CompilerPaths.OutFile = Path(Backpath.native() + Path(_PathVar2).native()).generic_string();
+				}
+
+				_This._Compiler.CompilePathToObj(_This._CompilerPaths.FileDir, _This._CompilerPaths.OutFile);
+			}
 		}
+	}
+	else if (Word1 == "make")
+	{
+		
+		std::string TepNameBuffer;
+		std::string TepOwnerBuffer;
+
+
+		auto _Path = GetPath(Line);
+		auto Name = GetPath(Line);
+
+		auto OwnerName = GetPath(Line);
+
+		if (Name.size() == 0)
+		{
+			*_This.output << "Enter Module Name:";
+
+			std::getline(*_This.Input, TepNameBuffer);
+			Name = TepNameBuffer;
+		}
+
+		if (OwnerName.size() == 0)
+		{
+			*_This.output << "Enter Owner/Author Name:";
+
+			std::getline(*_This.Input, TepOwnerBuffer);
+			Name = TepOwnerBuffer;
+		}
+
+		Path NewDir = Path(_Path).native() + Path(Name).native();
+		Path modePath = NewDir.native() + Path(Name).native() + Path(ModuleFile::FileExtWithDot).native();
+
+		fs::create_directories(NewDir);
+
+		UCodeLang::ModuleFile module;
+		module.NewInit((String)Name, (String)OwnerName);
+		UCodeLang::ModuleFile::ToFile(&module, modePath);
 	}
 	else if (Word1 == "uc_vm")
 	{

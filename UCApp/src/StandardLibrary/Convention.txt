@@ -1,2 +1,0 @@
-Underscore Prefix (_underScore) for private members
-TO DO Add info.

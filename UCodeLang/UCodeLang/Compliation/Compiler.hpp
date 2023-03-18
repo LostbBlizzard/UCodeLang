@@ -44,6 +44,7 @@ public:
 	CompilerRet CompileFiles(const CompilerPathData& Data);
 
 	CompilerRet CompileFiles_UseIntDir(const CompilerPathData& Data);
+	CompilerRet CompileFiles_UseIntDir(const Vector<Path>& files, const Path& intDir);
 
 	BytesPtr Compiler::OpenFile(const LangDefInfo::FileInfo* FInfo, const Path& path);
 
