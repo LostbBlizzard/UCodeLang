@@ -7,3 +7,9 @@
 [CPPCall]|__LogBuffer[char Value,uintptr Size] -> void;
 
 [CPPCall]|__ReadChar[] -> char;
+
+
+$AsyncHandle = !uintptr;
+$VoidFunc = |[];
+
+[CPPCall]|__AsyncCall[VoidFunc Call] -> AsyncHandle;

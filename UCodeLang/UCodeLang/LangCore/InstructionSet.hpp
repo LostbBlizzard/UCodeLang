@@ -141,6 +141,10 @@ enum class InstructionSysCall : InstructionSet_t
 	Cout_Buffer,
 	
 	Cout_ReadChar,
+
+	File_Open,
+	File_Close,
+	File_Read,
 };
 
 using BitSizeType_t = UInt8;
