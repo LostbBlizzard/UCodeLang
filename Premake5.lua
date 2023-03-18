@@ -7,9 +7,13 @@ workspace "UCodeLang"
 
    startproject "UCApp"
    
-   dependson {"UCApp","UCodeLang","UCodeCross"}
+   dependson {"UCApp","UCodeLang","UC","UCodeAPI/StandardLibrary","UCodeAPI/Win32"}
 
    OutDirPath ="%{cfg.platform}/%{cfg.buildcfg}"
+
+   UCPathExeDir = "%{wks.location}Output/UC/" .. OutDirPath .. "/"
+   UCPathExeName ="uc.exe"
+   UCPathExe = UCPathExeDir ..  UCPathExeName
 
    filter { "platforms:Win32" }
     system "Windows"
@@ -35,6 +39,9 @@ workspace "UCodeLang"
       defines { "PUBLISHED" , "RELASE"}
       optimize "Speed"
       symbols "off"
+
+
+   
 project "UCApp"
    location "UCApp"
    kind "ConsoleApp"
@@ -113,3 +120,47 @@ project "UCodeLang"
    includedirs{
     "UCodeLang",
    }
+group "UCodeAPIs"
+ project "StandardLibrary"
+  location "UCodeAPI/StandardLibrary"
+  kind "StaticLib"
+  language "C"
+
+  targetdir ("Output/%{prj.name}/" .. OutDirPath)
+  objdir ("Output/int/%{prj.name}/" .. OutDirPath)
+
+  files { 
+  "%{prj.name}/src/**.uc",
+  "%{prj.name}/%{prj.name}.ucm",
+
+  "%{prj.name}/src/**.c",
+  "%{prj.name}/src/**.h",
+  "%{prj.name}/src/**.cpp",
+  "%{prj.name}/src/**.hpp", 
+  }
+
+
+ 
+
+  postbuildcommands {
+
+   "start " .. UCPathExeDir .. UCPathExeName .. " \"Build " .. "%{wks.location}UCodeAPI/%{prj.name}/%{prj.name}.ucm" .. "\""
+
+  }
+ project "Win32"
+  location "UCodeAPI/Win32"
+  kind "StaticLib"
+  language "C"
+
+  targetdir ("Output/%{prj.name}/" .. OutDirPath)
+  objdir ("Output/int/%{prj.name}/" .. OutDirPath)
+
+  files { 
+  "%{prj.name}/src/**.uc",
+  "%{prj.name}/%{prj.name}.ucm",
+
+  "%{prj.name}/src/**.c",
+  "%{prj.name}/src/**.h",
+  "%{prj.name}/src/**.cpp",
+  "%{prj.name}/src/**.hpp", 
+  }

@@ -144,6 +144,17 @@ public:
 			}
 		}
 	}
+
+	String ToString()const
+	{
+		String out;
+		for (auto& Item : _Errors)
+		{
+			out += Item.ToString() + '\n';
+		}
+		return out;
+	}
+
 	Path FilePath = "File" + (String)FileExt::SourceFileWithDot;
 private:
 	Vector<Error> _Errors;
