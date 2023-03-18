@@ -64,7 +64,8 @@ struct UserMadeContext
 class RunTimeLangState
 {
 public:
-	typedef void(*LogCallBack)(RunTimeLangState& This,const char* Text);
+	typedef void(*LogCallBack)(RunTimeLangState& This,const char* Text,size_t Size);
+	typedef char(*ReadCharCallBack)(RunTimeLangState& This);
 
 	static PtrType Default_Malloc(RunTimeLangState& This, NSize_t Size)
 	{
@@ -75,7 +76,7 @@ public:
 		return free(Ptr);
 	}
 
-	RunTimeLangState():_Allocator(Default_Malloc,Default_Free), _StaticMemPtr(nullptr), _Log(nullptr)
+	RunTimeLangState():_Allocator(Default_Malloc,Default_Free), _StaticMemPtr(nullptr), _Log(nullptr),_Read(nullptr)
 	{
 
 	}
@@ -96,7 +97,7 @@ public:
 	UCodeLangForceinline void Free(PtrType Ptr) { _Allocator.Free(*this, Ptr); }
 	UCodeLangForceinline PtrType Realloc(PtrType Ptr, NSize_t Size) {return _Allocator.Realloc(*this, Ptr, Size);}
 	UCodeLangForceinline void ReservedBytes(NSize_t Size){_Allocator.ReservedBytes(*this, Size);}
-	UCodeLangForceinline PtrType Calloc(NSize_t Size) 
+	PtrType Calloc(NSize_t Size) 
 	{
 
 		UInt8* Ptr = (UInt8*)Malloc(Size);
@@ -113,16 +114,34 @@ public:
 	
 	UCodeLangForceinline void Log(const char* ptr)
 	{
-		if (_Log) 
+		Log(ptr, strlen(ptr));
+	}
+	void Log(const char* ptr,size_t Size)
+	{
+		if (_Log)
 		{
-			_Log(*this,ptr);
+			_Log(*this, ptr, Size);
 		}
 		else
 		{
-			std::cout << "ULang::Log:" << ptr << std::endl;
+			std::cout.write(ptr, Size);
 		}
 	}
-	//
+
+	char ReadChar()
+	{
+		if (_Read)
+		{
+			return _Read(*this);
+		}
+		else
+		{
+			char Value;
+			std::cin.read(&Value,1);
+			return Value;
+		}
+	}
+
 	
 	UCodeLangForceinline void AddLib(RunTimeLib* lib)
 	{
@@ -176,6 +195,7 @@ private:
 	UCLibManger _Data;
 	PtrType _StaticMemPtr;
 	LogCallBack _Log;
+	ReadCharCallBack _Read;
 
 	UserMadeContext _UserMadeContext;
 };

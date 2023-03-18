@@ -443,6 +443,7 @@ private:
 	bool IsfloatType(const TypeSymbol& TypeToCheck);
 	bool IsPrimitive(const TypeSymbol& TypeToCheck);
 	bool IsPrimitiveNotIncludingPointers(const TypeSymbol& TypeToCheck);
+	bool IsStaticArray(const TypeSymbol& TypeToCheck);
 
 	bool IsimmutableRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
 

@@ -185,8 +185,11 @@ int main()
 		RunTime.Init(&State);
 
 
+		char Buffer[] = "hello ";
 
 		int item[2] = { 0,0 };
+
+		auto Value = RunTime.RCall<char>("__ReadChar");
 
 		auto r = RunTime.RCall <UAddress>("main", &item);
 

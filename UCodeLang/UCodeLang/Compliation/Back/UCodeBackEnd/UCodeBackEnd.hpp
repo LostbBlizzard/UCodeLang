@@ -150,6 +150,7 @@ private:
 	RegisterID FindOp(IRInstruction& Ins, IROperator Op);
 	void FindOpToReg(IRInstruction& Ins, IROperator Op, RegisterID Out);
 	void LogicalNot(IRTypes Type, RegisterID In, RegisterID Out);
+	void DoCPPCall(const IRidentifier& FuncName);
 };
 UCodeLangEnd
 

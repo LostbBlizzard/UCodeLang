@@ -4073,8 +4073,14 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 		
 		TypeSymbol gesstype;
 		gesstype.SetType(TypesEnum::Any);
-		if (SourcType.IsAddressArray())
+
+
+		bool IsSrcAddress = SourcType.IsAddress();
+		bool IsSrcStaticArray = IsStaticArray(SourcType);
+
+		if (IsSrcAddress || IsSrcStaticArray)
 		{
+
 			gesstype.SetType(TypesEnum::uIntPtr);
 		}
 
@@ -4110,9 +4116,17 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 			V.Op0._IsAddress = true;
 			V.Op1._IsAddress = false;
 
-			if (lookingfor.IsAddressArray())
+			if (IsSrcAddress)
 			{
 				lookingfor = SourcType;
+				LastExpressionType = lookingfor;
+			}
+			else if (IsSrcStaticArray)
+			{
+				auto Syb = GetSymbol(SourcType);
+				lookingfor = Syb->Get_Info<StaticArrayInfo>()->Type;
+				lookingfor.SetAsAddress();
+
 				LastExpressionType = lookingfor;
 			}
 			else
@@ -4584,11 +4598,19 @@ bool SystematicAnalysis::HasPostfixOverLoadWith(const TypeSymbol& TypeA, TokenTy
 }
 bool SystematicAnalysis::HasIndexedOverLoadWith(const TypeSymbol& TypeA, const TypeSymbol& TypeB)
 {
-	if (TypeA.IsAddressArray())
-	{
-		return IsUIntType(TypeB);
-	}
 
+	if (IsUIntType(TypeB)) 
+	{
+		if (TypeA.IsAddressArray())
+		{
+			return true;
+		}
+
+		if (IsStaticArray(TypeA))
+		{
+			return true;
+		}
+	}
 
 	return false;
 }
@@ -5185,6 +5207,18 @@ bool SystematicAnalysis::IsPrimitiveNotIncludingPointers(const TypeSymbol& TypeT
 
 	return r;
 }
+bool SystematicAnalysis::IsStaticArray(const TypeSymbol& TypeToCheck)
+{
+	if (TypeToCheck.IsAn(TypesEnum::CustomType))
+	{
+		auto Syb = GetSymbol(TypeToCheck);
+		return Syb->Type == SymbolType::Type_StaticArray;
+	}
+
+
+	return false;
+}
+
 
 bool SystematicAnalysis::IsimmutableRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type)
 {
