@@ -199,7 +199,8 @@ public:
 	UCodeLangForceinline void MemCopy(PtrType destination, const PtrType source, NSize_t Size) { memcpy(destination, source, Size); }
 	UCodeLangForceinline PtrType Malloc(NSize_t Size) { return _State->Malloc(Size); }
 	UCodeLangForceinline void Free(PtrType Ptr) { return _State->Free(Ptr); }
-	UCodeLangForceinline void Log(const char* Ptr) { return _State->Log(Ptr); }
+	UCodeLangForceinline void Log(const char* Ptr) { return _State->Log(Ptr);}
+	UCodeLangForceinline void Log(const char* Ptr,size_t Size) { return _State->Log(Ptr,Size); }
 
 	UCodeLangForceinline const UserMadeContext& Get_UserMadeContext() { return _UserMadeContext; }
 	UCodeLangForceinline void Set_UserMadeContext(UserMadeContext Context) { _UserMadeContext = Context; }
@@ -392,6 +393,7 @@ private:
 			return _CPU.A;
 		}
 	}
+	void InterpreterSysCall(InstructionSysCall SysCall,RegisterID ParReg);
 };
 
 class InterpreterCPPinterface

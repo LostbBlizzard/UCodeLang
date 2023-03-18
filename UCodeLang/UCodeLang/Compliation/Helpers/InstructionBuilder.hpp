@@ -380,12 +380,35 @@ public:
 		Out.Value1.AsUInt64 = NullUInt64;
 	}
 	
+
+	UCodeLangForceinline static void SysCall(Instruction& Out,InstructionSysCall Type,RegisterID InReg = RegisterID::NullRegister)
+	{
+		Out.OpCode = InstructionSet::SysCall;
+		Out.Value0.AsUInt64 = *(UInt64*)&Type;
+		Out.Value1.AsRegister = InReg;
+	}
+
+	//Sys Calls
 	UCodeLangForceinline static void Log(Instruction& Out, RegisterID CharPtr)
 	{
-		Out.OpCode = InstructionSet::Log;
-		Out.Value0.AsRegister = CharPtr; 
-		Out.Value1.AsUInt64 = NullUInt64;
+		SysCall(Out,InstructionSysCall::Cout_CString, CharPtr);
 	}
+	UCodeLangForceinline static void LogChar(Instruction& Out, RegisterID Char)
+	{
+		SysCall(Out, InstructionSysCall::Cout_Char, Char);
+	}
+
+	//size will be in Input Reg
+	UCodeLangForceinline static void LogBuffer(Instruction& Out, RegisterID Char)
+	{
+		SysCall(Out, InstructionSysCall::Cout_Buffer, Char);
+	}
+
+	UCodeLangForceinline static void ReadChar(Instruction& Out, RegisterID Char)
+	{
+		SysCall(Out, InstructionSysCall::Cout_ReadChar, Char);
+	}
+
 	//Others
 	UCodeLangForceinline static void GenInst(Intermediate_Set Inst, const UInt64 Value0, const UInt64 Value1, Instruction& Out)
 	{

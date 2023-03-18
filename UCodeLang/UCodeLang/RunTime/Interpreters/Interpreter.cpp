@@ -311,10 +311,9 @@ void Interpreter::Extecute(Instruction& Inst)
 			Realloc(Get_Register(Inst.Value0.AsRegister).Value.AsPtr
 				   ,Get_Register(Inst.Value1.AsRegister).Value.AsUIntNative);
 		break;
-	case InstructionSet::Log: 
+	case InstructionSet::SysCall: 
 	{
-		const char* Ptr = (const char*)Get_Register(Inst.Value0.AsRegister).Value.AsPtr;
-		Log(Ptr);
+		InterpreterSysCall(*(InstructionSysCall*)&Inst.Value0, Inst.Value1.AsRegister);
 	}
 		break;
 		//Linking
@@ -368,6 +367,7 @@ void Interpreter::Extecute(Instruction& Inst)
 		break;
 	}
 }
+
 
 UCodeLangEnd
 

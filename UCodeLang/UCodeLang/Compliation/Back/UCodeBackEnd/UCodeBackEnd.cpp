@@ -122,8 +122,7 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 
 	if (IR->IsCPPCall)
 	{
-		auto Ptr = _Output->AddStaticBytes((String_view)FuncName);
-		InstructionBuilder::CPPCall(Ptr, _Ins); PushIns();
+		DoCPPCall(FuncName);
 	}
 
 
@@ -1035,6 +1034,34 @@ void UCodeBackEndObject::LogicalNot(IRTypes Type, RegisterID In, RegisterID Out)
 			break;
 		}
 	}
+}
+void UCodeBackEndObject::DoCPPCall(const IRidentifier& FuncName)
+{
+	if (FuncName == "__Log")
+	{
+		InstructionBuilder::Log(_Ins, RegisterID::StartParameterRegister); PushIns();
+	}
+	else if(FuncName == "__LogChar")
+	{
+		InstructionBuilder::LogChar(_Ins, RegisterID::StartParameterRegister); PushIns();
+	}
+	else if (FuncName == "__LogBuffer")
+	{
+		//move next Par to input
+		RegToReg(IRTypes::i8, RegisterID((RegisterID_t)RegisterID::StartParameterRegister + 1), RegisterID::InPutRegister);
+		
+		InstructionBuilder::LogBuffer(_Ins, RegisterID::StartParameterRegister); PushIns();
+	}
+	else if (FuncName == "__ReadChar")
+	{
+		InstructionBuilder::ReadChar(_Ins,RegisterID::OuPutRegister); PushIns();
+	}
+	else
+	{
+		auto Ptr = _Output->AddStaticBytes((String_view)FuncName);
+		InstructionBuilder::CPPCall(Ptr, _Ins); PushIns();
+	}
+
 }
 UCodeLangEnd
 

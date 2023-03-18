@@ -151,6 +151,7 @@ static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 	AddMapValueValue(Call_Code,InstructionSet::Call_Code,OpCodeType::UIntPtr,OpCodeType::NoOpCode),
 
 	AddMapValueValue(CppCallNamed,InstructionSet::CppCallNamed,OpCodeType::StaticCString,OpCodeType::NoOpCode),
+AddMapValueValue(SysCall,InstructionSet::SysCall,OpCodeType::AnyInt64,OpCodeType::Register),
 };
 
 static inline Unordered_map<InstructionSet, const InsMapValue*> InsToInsMapValue;

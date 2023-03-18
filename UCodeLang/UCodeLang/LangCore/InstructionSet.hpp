@@ -52,7 +52,8 @@ enum class InstructionSet : InstructionSet_t
 	GetPointerOfStack, GetPointerOfStackSub, GetPointerOfStaticMem,IncrementStackPointer, DecrementStackPointer,
 	
 	Malloc,Free,MemCopy, Calloc,ReAlloc,LoadFuncPtr,
-	Log,CPPCall,CppCallNamed,Link_Bytes,Link_Path,
+	CPPCall,CppCallNamed,Link_Bytes,Link_Path,
+	SysCall,
 	Call_Code,
 
 	MAXVALUE,
@@ -130,6 +131,16 @@ enum class Intermediate_Set : InstructionSet_t
 	FileEnd,
 
 	MAXVALUE
+};
+
+
+enum class InstructionSysCall : InstructionSet_t
+{
+	Cout_CString,
+	Cout_Char,
+	Cout_Buffer,
+	
+	Cout_ReadChar,
 };
 
 using BitSizeType_t = UInt8;
