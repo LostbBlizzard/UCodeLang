@@ -103,7 +103,7 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 
 
 
-			memcpy((void*)Ptr, &TepOutBuffer[0], InsSize);
+			memcpy((void*)Ptr, TepOutBuffer.data(), InsSize);
 
 			ExBuffer.SetToExecuteMode();
 

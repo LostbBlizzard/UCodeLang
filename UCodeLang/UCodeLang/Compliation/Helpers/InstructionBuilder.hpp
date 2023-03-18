@@ -409,6 +409,9 @@ public:
 		SysCall(Out, InstructionSysCall::Cout_ReadChar, Char);
 	}
 
+	
+
+
 	//Others
 	UCodeLangForceinline static void GenInst(Intermediate_Set Inst, const UInt64 Value0, const UInt64 Value1, Instruction& Out)
 	{

@@ -3,7 +3,10 @@
 #include "Jit.hpp"
 #include "UCodeLang/RunTime/Interpreters/Interpreter.hpp"
 #include "JitCompilers.h"
+#include "Jit_State.hpp"
 UCodeLangStart
+
+
 
 //UCodeLang_KeepJitInterpreterFallback
 class Jit_Interpreter
@@ -16,15 +19,16 @@ public:
 	Jit_Interpreter(){}
 	~Jit_Interpreter() { UnLoad(); }
 	Jit_Interpreter(const Jit_Interpreter& Other) = delete;
-	Jit_Interpreter(Jit_Interpreter&& Other) = default;
+	Jit_Interpreter& operator=(const Jit_Interpreter& Other) = default;
 
-	void Init(RunTimeLangState* State)
+	void Init(RunTimeLangState* State,Jit_State* JitState = nullptr)
 	{
 		#if UCodeLang_KeepJitInterpreterFallback
 		_Interpreter.Init(State);
 		#else
 		this->State = State;
 		#endif
+		this->jitState = JitState;
 	}
 	void UnLoad()
 	{
@@ -148,16 +152,23 @@ public:
 		return r;
 	}
 	void Get_Return(void* Output, size_t OutputSize);
-private:
-	#if UCodeLang_KeepJitInterpreterFallback
-	Interpreter _Interpreter;
-	#else
-	RunTimeLangState* State = nullptr;
-	#endif
-	NativeJitAssembler _Assembler;
-	AsmBuffer ExBuffer = AsmBuffer(Get_EnvironmentData().PageSize);
-	size_t Insoffset = 0;
 
+
+	using WakeUpCallBack= void(*)(Jit_Interpreter& This);
+	void SetWakeUpCall(WakeUpCallBack Call)
+	{
+		WakeUp = Call;
+	}
+	void WakeUpThis()
+	{
+		if (WakeUp)
+		{
+			WakeUp(*this);
+		}
+	}
+
+private:
+	
 	enum class JitFuncType :UInt8
 	{
 		Null,
@@ -173,11 +184,25 @@ private:
 			JitFunc Func = nullptr;
 		};
 	};
+//	
+	#if UCodeLang_KeepJitInterpreterFallback
+	Interpreter _Interpreter;
+	#else
+	RunTimeLangState* State = nullptr;
+	#endif
+	Jit_State* jitState = nullptr;
+
+	NativeJitAssembler _Assembler;
+	AsmBuffer ExBuffer = AsmBuffer(Get_EnvironmentData().PageSize);
+	size_t Insoffset = 0;
+
+	
 	Unordered_map<UAddress, JitFuncData> UFuncToCPPFunc;
-	Vector<UInt8> TepOutBuffer;
+	Vector<Byte> TepOutBuffer;
+	WakeUpCallBack WakeUp = nullptr;
+	
 	static CPPCallRet OnUAddressCall(CPPCallParsNone);
 	CPPCallRet Call_CPPFunc(JitFunc ToCall);
-	
 };
 
 UCodeLangEnd

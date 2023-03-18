@@ -27,7 +27,11 @@ public:
 
 	UCodeRunTime();
 	~UCodeRunTime();
-	void Init(RunTimeLangState* State);
+
+	UCodeRunTime(const UCodeRunTime& Other) = delete;
+	UCodeRunTime& operator=(const UCodeRunTime& Other) = default;
+
+	void Init(RunTimeLangState* State, Optional<int> SubInterpreterCount = {});
 	void UnLoad();
 	MyInterpreter& Get_MyInterpreter()
 	{
@@ -129,6 +133,15 @@ public:
 		return r;
 	}
 	void Get_Return(void* Output, size_t OutputSize);
+
+	MyInterpreter& Get_MainInterpreter()
+	{
+		return _MainInterpreter;
+	}
+	auto& GetInterpretersList()
+	{
+		return  _Interpreters;
+	}
 private:
 	MyInterpreter _MainInterpreter;
 
@@ -138,6 +151,7 @@ private:
 	#else
 	Vector<MyInterpreter> _Interpreters;
 	#endif // DEBUG
+	Jit_State _State;
 };
 UCodeLangEnd
 
