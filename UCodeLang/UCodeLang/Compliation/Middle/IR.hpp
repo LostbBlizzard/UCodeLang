@@ -793,6 +793,7 @@ struct IRFunc
 		return Blocks.emplace_back(new IRBlock()).get();
 	}
 	Vector<Unique_ptr<IRBlock>> Blocks;
+	bool IsCPPCall = false;
 };
 
 
