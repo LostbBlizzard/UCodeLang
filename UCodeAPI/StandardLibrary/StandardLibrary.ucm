@@ -1,0 +1,17 @@
+AuthorName: "LostbBlizzard"
+ModuleName: "StandardLibarary"
+Version: 0.0.0
+Files: "src"
+objs: "int"
+out: "out"
+Dependencies: [
+
+[
+
+AuthorName: "LostbBlizzard"
+ModuleName: "NStandardLibarary"
+Version: 0.0.0
+
+]
+
+]

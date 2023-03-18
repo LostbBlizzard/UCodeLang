@@ -7,7 +7,7 @@ workspace "UCodeLang"
 
    startproject "UCApp"
    
-   dependson {"UCApp","UCodeLang","UC","UCodeAPI/StandardLibrary","UCodeAPI/Win32"}
+   dependson {"UCApp","UCodeLang","UC","UCodeAPI/StandardLibrary","UCodeAPI/NWin32","UCodeAPI/Win32"}
 
    OutDirPath ="%{cfg.platform}/%{cfg.buildcfg}"
 
@@ -147,6 +147,32 @@ group "UCodeAPIs"
    "start " .. UCPathExeDir .. UCPathExeName .. " \"Build " .. "%{wks.location}UCodeAPI/%{prj.name}/%{prj.name}.ucm" .. "\""
 
   }
+  project "NStandardLibrary"
+  location "UCodeAPI/NStandardLibrary"
+  kind "StaticLib"
+  language "C"
+
+  targetdir ("Output/%{prj.name}/" .. OutDirPath)
+  objdir ("Output/int/%{prj.name}/" .. OutDirPath)
+
+  files { 
+  "%{prj.name}/src/**.uc",
+  "%{prj.name}/%{prj.name}.ucm",
+
+  "%{prj.name}/src/**.c",
+  "%{prj.name}/src/**.h",
+  "%{prj.name}/src/**.cpp",
+  "%{prj.name}/src/**.hpp", 
+  }
+
+
+ 
+
+  postbuildcommands {
+
+   "start " .. UCPathExeDir .. UCPathExeName .. " \"Build " .. "%{wks.location}UCodeAPI/%{prj.name}/%{prj.name}.ucm" .. "\""
+
+  }
  project "Win32"
   location "UCodeAPI/Win32"
   kind "StaticLib"
@@ -164,3 +190,32 @@ group "UCodeAPIs"
   "%{prj.name}/src/**.cpp",
   "%{prj.name}/src/**.hpp", 
   }
+
+  postbuildcommands {
+
+   "start " .. UCPathExeDir .. UCPathExeName .. " \"Build " .. "%{wks.location}UCodeAPI/%{prj.name}/%{prj.name}.ucm" .. "\""
+
+  }
+ project "NWin32"
+   location "UCodeAPI/NWin32"
+   kind "StaticLib"
+   language "C"
+
+   targetdir ("Output/%{prj.name}/" .. OutDirPath)
+   objdir ("Output/int/%{prj.name}/" .. OutDirPath)
+
+   files { 
+   "%{prj.name}/src/**.uc",
+   "%{prj.name}/%{prj.name}.ucm",
+
+   "%{prj.name}/src/**.c",
+   "%{prj.name}/src/**.h",
+   "%{prj.name}/src/**.cpp",
+   "%{prj.name}/src/**.hpp", 
+   }
+
+   postbuildcommands {
+
+    "start " .. UCPathExeDir .. UCPathExeName .. " \"Build " .. "%{wks.location}UCodeAPI/%{prj.name}/%{prj.name}.ucm" .. "\""
+
+   }

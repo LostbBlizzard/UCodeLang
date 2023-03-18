@@ -1,0 +1,15 @@
+AuthorName: "LostbBlizzard"
+ModuleName: "Win32"
+Version: 0.0.0
+Files: "src"
+objs: "int"
+out: "out"
+Dependencies: [
+
+[
+AuthorName: "LostbBlizzard"
+ModuleName: "NWin32"
+Version: 0.0.0
+]
+
+]
