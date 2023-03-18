@@ -175,7 +175,7 @@ private:
 	};
 	Unordered_map<UAddress, JitFuncData> UFuncToCPPFunc;
 	Vector<UInt8> TepOutBuffer;
-	static CPPCallRet OnUAddressCall();
+	static CPPCallRet OnUAddressCall(CPPCallParsNone);
 	CPPCallRet Call_CPPFunc(JitFunc ToCall);
 	
 };

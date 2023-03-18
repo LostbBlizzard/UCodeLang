@@ -131,13 +131,14 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 	}
 	else
 	{
-		return { Interpreter::RetState::Success ,Interpreter::Register(Call_CPPFunc(Item.Func))};
+		//return { Interpreter::RetState::Success ,Interpreter::Register(Call_CPPFunc(Item.Func))};
+		return { Interpreter::RetState::Success ,_Interpreter.Get_OutRegister() };
 	}
 	#else
 	throw std::exception("not added");
 	#endif
 }
-CPPCallRet Jit_Interpreter::OnUAddressCall()
+CPPCallRet Jit_Interpreter::OnUAddressCall(CPPCallParsNone)
 {
 	//save all pars on stack and build code
 	//
@@ -145,18 +146,22 @@ CPPCallRet Jit_Interpreter::OnUAddressCall()
 	//Call(V);
 
 	throw std::exception("not added");
-	return {};
+	SetCPPRetNone
 }
 CPPCallRet Jit_Interpreter::Call_CPPFunc(JitFunc ToCall)
 {
 	#if UCodeLang_KeepJitInterpreterFallback
 
-	//some how push pars
+	{
+		//push pars
 
-	auto r = ToCall();
-	_Interpreter.Get_OutRegister().Value = r;
+	}
+
+
+	ToCall(InterpreterCPPinterface(&_Interpreter));
+	//_Interpreter.Get_OutRegister().Value = r;
 	
-	return r;
+	SetCPPRetNone
 	
 #else
 	throw std::exception("not added");
