@@ -800,8 +800,8 @@ RegisterID UCodeBackEndObject::LoadOp(IRInstruction& Ins, IROperator Op)
 		case IRTypes::pointer:
 			switch (Get_Settings().PtrSize)
 			{
-			case IntSizes::Int32:goto Int32L;
-			case IntSizes::Int64:goto Int64L;
+			case IntSizes::Int32:goto Int32L5;
+			case IntSizes::Int64:goto Int64L5;
 			default:
 				throw std::exception("not added");
 				break;

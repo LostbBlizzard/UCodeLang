@@ -226,7 +226,7 @@ public:
 };
 struct GenericData
 {
-	SymbolID SybID;
+	SymbolID SybID=0;
 	bool IsConstantExpression = false;
 };
 

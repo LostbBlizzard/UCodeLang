@@ -113,7 +113,8 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op)
 		Ins.ObjectType = Op.Pointer->ObjectType;
 	}
 	else if (Op.Type == IROperatorType::Get_PointerOf_IRInstruction
-		|| Op.Type == IROperatorType::Get_PointerOf_IRParameter)
+		|| Op.Type == IROperatorType::Get_PointerOf_IRParameter
+		|| Op.Type == IROperatorType::Get_PointerOf_IRidentifier)
 	{
 		Ins.ObjectType = IRType(IRTypes::pointer);
 	}
@@ -154,6 +155,7 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op)
 
 		Ins.ObjectType.SetType(IRTypes::pointer);
 	}
+	
 	else
 	{
 		throw std::exception("bad");

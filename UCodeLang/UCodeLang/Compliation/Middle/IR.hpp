@@ -61,7 +61,7 @@ struct IRType
 
 struct IRPar
 {
-	IRidentifierID identifier;
+	IRidentifierID identifier=0;
 	IRType type;
 };
 
@@ -213,6 +213,7 @@ enum class IROperatorType :IROperator_t
 
 	Get_PointerOf_IRInstruction,//Gets the from the IRInstruction Pointer
 	Get_PointerOf_IRParameter,
+	Get_PointerOf_IRidentifier,//like static objects
 
 	DereferenceOf_IRInstruction,
 	DereferenceOf_IRParameter,
@@ -325,7 +326,7 @@ struct IRSymbol_Ex
 struct IRStructField
 {
 	IRType Type;
-	size_t Offset;
+	size_t Offset=0;
 };
 
 struct IRStruct : IRSymbol_Ex
@@ -358,6 +359,13 @@ struct IRStaticArray : IRSymbol_Ex
 	IRType Type;
 	size_t Count=0;
 };
+
+
+struct IRBufferData : IRSymbol_Ex
+{
+	Vector<Byte> Bytes;
+};
+
 //
 
 struct IRBlock
@@ -457,6 +465,11 @@ struct IRBlock
 	IRInstruction* NewLoadPtr(IRPar* Value)//get the pointer of the Value
 	{
 		return Instructions.emplace_back(new IRInstruction(IRInstructionType::Load, IROperator(IROperatorType::Get_PointerOf_IRParameter, Value))).get();
+	}
+
+	IRInstruction* NewLoadPtr(IRidentifierID Value)//get the pointer of the static object or similar.
+	{
+		return Instructions.emplace_back(new IRInstruction(IRInstructionType::Load, IROperator(IROperatorType::Get_PointerOf_IRidentifier, Value))).get();
 	}
 
 	void NewStore(IRPar* Storage, IRInstruction* Value)
@@ -786,6 +799,7 @@ struct IRFunc
 using IRSymbolType_t = int;
 enum class IRSymbolType : IRSymbolType_t
 {
+	Null,
 	StaticVarable,
 	ThreadLocalVarable,
 	Struct,
@@ -797,7 +811,7 @@ enum class IRSymbolType : IRSymbolType_t
 struct IRSymbolData
 {
 	IRidentifierID identifier;
-	IRSymbolType SymType;
+	IRSymbolType SymType =IRSymbolType::Null;
 	IRType Type;
 	Unique_ptr<IRSymbol_Ex> Ex;
 	template<typename T> T* Get_ExAs()
@@ -811,22 +825,60 @@ struct IRSymbolData
 class IRBuilder
 {
 public:
-	IRSymbolData* NewThreadLocalVarable(IRidentifierID identifier)
+
+	struct ExternalVarable
 	{
+		IRBufferData* Pointer;
+		IRidentifierID identifier;
+	};
+
+	ExternalVarable NewThreadLocalVarable(IRidentifierID identifier, IRType Type)
+	{
+		IRBufferData* V = new IRBufferData();
+
 		IRSymbolData* r = new IRSymbolData();
 		r->SymType = IRSymbolType::StaticVarable;//testing
 		r->identifier = identifier;
+		r->Type = Type;
+		r->Ex.reset(V);
+
 		_Symbols.emplace_back(r);
-		return r;
+		return { V, identifier };
 	}
-	IRSymbolData* NewStaticVarable(IRidentifierID identifier)
+	ExternalVarable NewStaticVarable(IRidentifierID identifier,IRType Type)
 	{
+		IRBufferData* V = new IRBufferData();
+
 		IRSymbolData* r = new IRSymbolData();
 		r->SymType = IRSymbolType::StaticVarable;
 		r->identifier = identifier;
+		r->Type = Type;
+		r->Ex.reset(V);
+
 		_Symbols.emplace_back(r);
-		return r;
+		return { V, identifier };
 	}
+
+
+	//note will not add a null char at the end.
+	IRidentifierID FindOrAddConstStrings(String_view Buffer)
+	{
+		if (ConstStaticStrings.count(Buffer))
+		{
+			return ConstStaticStrings[Buffer];
+		}
+		IRidentifierID identifier = ToID(".Const.String:" + (String)Buffer);
+		auto V = NewStaticVarable(identifier,IRType(IRTypes::i8));
+
+		V.Pointer->Bytes.resize(Buffer.size());
+		memcpy(V.Pointer->Bytes.data(), Buffer.data(), Buffer.size());
+
+		ConstStaticStrings[Buffer] = identifier;
+
+		return identifier;
+	}
+
+
 
 	IRStruct* NewStruct(IRidentifierID identifier)
 	{
@@ -925,6 +977,9 @@ public:
 	Vector<Unique_ptr<IRSymbolData>> _Symbols;
 	Vector<Unique_ptr<IRFunc>> Funcs;
 	Unordered_map<IRidentifierID, IRidentifier> _Map;
+
+	Unordered_map<String_view, IRidentifierID> ConstStaticStrings;
+
 	void Reset();
 
 	struct ToStringState
