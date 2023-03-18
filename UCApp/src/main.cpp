@@ -43,11 +43,15 @@ void Test(int A)
 {
 	std::cout << "DLLCall Got Value " << A << std::endl;
 } 
-static CPPCallRet UCodeLangAPI Invoke_Test(int A)
+
+void Test2()
 {
-	Test(A);
-	return 0;
+	std::cout << "Hello World" << std::endl;
 }
+
+MakeNewCPPCall_void(Test,int);
+
+MakeNewCPPCall_voidNoPar(Test2);
 
 static UCodeRunTime RunTime;
 template< typename T >
@@ -62,8 +66,7 @@ std::string int_to_hex(T i)
 int main()
 {
 
-
-	
+	/*
 	{
 		namespace fs = std::filesystem;
 		std::stringstream Text;
@@ -104,10 +107,9 @@ int main()
 			out << Str2;
 			out.close();
 		}
-		*/
+		
 	}
-	
-
+	*/
 	//ULangTest::RunTests();
 	
 	
@@ -170,7 +172,8 @@ int main()
 
 		UCodeLang::RunTimeLib DLLib;
 		
-		Lib.Add_CPPCall("DLLCall", Invoke_Test);
+		Lib.Add_CPPCall("DLLCall", GetCPPCallName(Test));
+		Lib.Add_CPPCall("DLLCall2", GetCPPCallName(Test2));
 		
 		UCodeLang::RunTimeLangState State;
 		State.AddLib(&Lib);

@@ -1,23 +1,10 @@
 
-$Optional<T>;
-$View<T>;
-$Vector<T>;
-$Array<T,(Size)>;
 
 
+[CPPCall]|Test[int A] -> void;
 
-|main[ int[&] V ] -> int:
+|main[] -> int:
  
- //int[/4] A = [10,10,10,10];
- //int[/] B = [10,10,10,10];
- 
- 
-
-
- umut char[&] StringBuffer = "Hello";
-
- umut char[&] StringBuffer2 = "Hello";
-
- umut char[&] f =StringBuffer2[1];
+ Test(5);
 
  ret 0;

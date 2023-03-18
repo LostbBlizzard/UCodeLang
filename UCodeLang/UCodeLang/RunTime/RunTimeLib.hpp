@@ -4,15 +4,52 @@
 UCodeLangStart
 
 #define UCodeLangAPI __cdecl 
+
+#define CPPCallPars(Pars) InterpreterCPPinterface& Input
+#define CPPCallParsNone InterpreterCPPinterface& Input
+
+#define SetCPPRet(Value)  Input.Set_Return(Value); 
+#define SetCPPRetNone 
+
+
+#define GetCPPCallName(x) CPP_Invoke##x
+#define MakeNewCPPCall(FuncName,Ret_t,...) CPPCallRet UCodeLangAPI GetCPPCallName(FuncName)(CPPCallPars(Pars)) \
+	{\
+		##__VA_ARGS__ V;\
+		Input.GetParameter<##__VA_ARGS__>(&V);\
+		auto r = FuncName(); \
+		SetCPPRet(r);\
+	};\
+
+#define MakeNewCPPCall_void(FuncName,...) CPPCallRet UCodeLangAPI GetCPPCallName(FuncName)(CPPCallPars(Pars)) \
+	{\
+		##__VA_ARGS__ V;\
+		Input.GetParameter<##__VA_ARGS__>(&V);\
+		FuncName(V); \
+		SetCPPRetNone \
+	};\
+
+#define MakeNewCPPCall_voidNoPar(FuncName) CPPCallRet UCodeLangAPI GetCPPCallName(FuncName)(CPPCallPars(Pars)) \
+	{\
+		FuncName(); \
+		SetCPPRetNone \
+	};\
+
+#define MakeNewCPPCall_NoPar(FuncName) CPPCallRet UCodeLangAPI GetCPPCallName(FuncName)(CPPCallPars(Pars)) \
+	{\
+		auto r = FuncName(); \
+		SetCPPRet(r);\
+	};\
+
 class InterpreterCPPinterface;
 
-using CPPCallRet = UInt64;
+using CPPCallRet = void;
 
 class RunTimeLib
 {
 public:
 
-	typedef CPPCallRet(UCodeLangAPI*CPPCallBack)();
+	typedef CPPCallRet(UCodeLangAPI*CPPCallBack)(InterpreterCPPinterface& Input);
 
 	RunTimeLib(): _Lib(nullptr)
 	{
@@ -33,24 +70,7 @@ public:
 	{
 		_NameToCppCall[Name] = CPP;
 	}
-
-	template<typename... T>
-	using CppCallBack_t = CPPCallRet(UCodeLangAPI*)(T...);
-
-	template<typename... T>
-	using CppCallBackv_t = void(UCodeLangAPI*)(T...);
-
-	template<typename... T>
-	UCodeLangForceinline void Add_CPPCall(const String& Name, CppCallBack_t<T...> CPP)
-	{
-		Add_CPPCall(Name, (CPPCallBack)CPP);
-	}
-
-	template<typename... T>
-	UCodeLangForceinline void Add_CPPCall(const String& Name, CppCallBackv_t<T...> CPP)
-	{
-		Add_CPPCall(Name, (CPPCallBack)CPP);
-	}
+	
 
 private:
 	UClib* _Lib;

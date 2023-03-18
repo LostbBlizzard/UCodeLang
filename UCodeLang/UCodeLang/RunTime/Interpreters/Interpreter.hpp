@@ -414,7 +414,7 @@ public:
 		GetParametersPointer = V;
 	}
 
-	template<typename... Args> void GetParameters(Args&&... Out)
+	template<typename... Args> void GetParameters(Args*... Out)
 	{
 		throw std::exception("");
 		//The Compiler does not like me.
@@ -427,11 +427,15 @@ public:
 			//,...);
 	}
 
-
 	template<typename T> void GetParameter(T& Out)
 	{
 		Out = GetParameter<T>();
 	}
+	template<typename T> void GetParameter(T* Out)
+	{
+		*Out = GetParameter<T>();
+	}
+
 	template<typename T> T GetParameter()
 	{
 		constexpr bool IsBigerRegister = sizeof(T) > sizeof(Interpreter::Register);
