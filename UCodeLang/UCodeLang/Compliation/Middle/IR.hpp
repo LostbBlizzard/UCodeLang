@@ -201,6 +201,18 @@ inline bool IsAction(IRInstructionType Value)
 		|| Value == IRInstructionType::FreeCall;
 }
 
+inline bool IsOperatorValueInTarget(IRInstructionType Value)
+{
+	return IsBinary(Value)
+		|| IsUnary(Value)
+		|| IsLoadValue(Value);
+}
+inline bool IsOperatorValueInInput(IRInstructionType Value)
+{
+	return IsBinary(Value)
+		|| IsLoadValueOnInput(Value);
+}
+
 
 using IROperator_t = UInt8;
 enum class IROperatorType :IROperator_t

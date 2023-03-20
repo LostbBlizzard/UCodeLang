@@ -36,6 +36,16 @@ private:
 	void UpdateCodePass();
 	void ConstantFoldOperator(IRInstruction& I,IROperator& Value);
 
+
+	struct InLineData
+	{
+		IRBlock* Block = nullptr;
+		size_t CallIns = 0;
+	};
+
+	void InLineFunc(InLineData& Data);
+	void InLineSubOperator(InLineData& Data, IROperator& Op);
+
 	struct MyStruct
 	{
 		bool IsReferenced = false;
