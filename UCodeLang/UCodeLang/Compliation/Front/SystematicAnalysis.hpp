@@ -156,7 +156,7 @@ private:
 	IRidentifierID ConveToStaticArray(const Symbol& Class);
 
 	IRType ConvertToIR(const TypeSymbol& Value);
-	Unordered_map<SymbolID, IRidentifierID> SybToIRMap;
+	BinaryVectorMap<SymbolID, IRidentifierID> SybToIRMap;
 
 
 	Stack<TypeSymbol> LookingForTypes;
@@ -208,7 +208,7 @@ private:
 	const FileNode* LookingAtFile = nullptr;
 
 
-	Unordered_map< const FileNode_t*, FileNodeData> _FilesData;
+	BinaryVectorMap<const FileNode_t*, FileNodeData> _FilesData;
 
 
 	const FileNode* Get_FileUseingSybol(Symbol* Syb);
@@ -330,10 +330,10 @@ private:
 			return  FuncToCall == nullptr;
 		}
 	};
-	Unordered_map<const void*, BinaryExpressionNode_Data> BinaryExpressionNode_Datas;
+	BinaryVectorMap<const void*, BinaryExpressionNode_Data> BinaryExpressionNode_Datas;
 
 	using IndexedExpresion_Data = BinaryExpressionNode_Data;
-	Unordered_map<const void*, IndexedExpresion_Data> IndexedExpresion_Datas;
+	BinaryVectorMap<const void*, IndexedExpresion_Data> IndexedExpresion_Datas;
 
 	void OnExpressionNode(const CastNode& node);
 	void OnExpressionNode(const IndexedExpresionNode& node);
@@ -515,7 +515,7 @@ private:
 
 	void GenericTypeInstantiate(Symbol* Class, const Vector<TypeSymbol>& Type);
 
-	Unordered_map<const void*, Get_FuncInfo> FuncToSyboID;
+	BinaryVectorMap<const void*, Get_FuncInfo> FuncToSyboID;
 	// ConstantExpression
 	struct EvaluatedEx
 	{
@@ -546,7 +546,7 @@ private:
 	bool CanEvaluateImplicitConversionConstant(const TypeSymbol& Type, const TypeSymbol& ToType);
 	bool EvaluateImplicitConversion(EvaluatedEx& In, const TypeSymbol& ToType, EvaluatedEx& out);
 
-	Unordered_map<void*, SymbolID> _ConstantExpressionMap;
+	BinaryVectorMap<void*, SymbolID> _ConstantExpressionMap;
 
 	//IR
 	void DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Name, const ValueParametersNode& Pars);

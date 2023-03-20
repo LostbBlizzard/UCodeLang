@@ -272,7 +272,7 @@ void IROptimizer::InLineFunc(InLineData& Data)
 		{
 			for (auto& Item : Block->Instructions)
 			{
-				auto NewIns = std::make_unique<IRInstruction>(new IRInstruction(*Item));
+				auto NewIns = Unique_ptr<IRInstruction>(new IRInstruction(*Item));
 				
 				if (IsOperatorValueInTarget(NewIns->Type))
 				{

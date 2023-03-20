@@ -1002,9 +1002,9 @@ void SystematicAnalysis::FuncRetCheck(const Token& Name, const Symbol* FuncSyb, 
 IRidentifierID SystematicAnalysis::ConveToIRClassIR(const Symbol& Class)
 {
 	auto ClassSybID = Class.ID;
-	if (SybToIRMap.count(ClassSybID))
+	if (SybToIRMap.HasValue(ClassSybID))
 	{
-		return SybToIRMap[ClassSybID];
+		return SybToIRMap.at(ClassSybID);
 	}
 	const ClassInfo* clasinfo = Class.Get_Info < ClassInfo>();
 
@@ -1027,9 +1027,9 @@ IRidentifierID SystematicAnalysis::ConveToIRClassIR(const Symbol& Class)
 IRidentifierID SystematicAnalysis::ConveToStaticArray(const Symbol& Class)
 {
 	auto ClassSybID = Class.ID;
-	if (SybToIRMap.count(ClassSybID))
+	if (SybToIRMap.HasValue(ClassSybID))
 	{
-		return SybToIRMap[ClassSybID];
+		return SybToIRMap.at(ClassSybID);
 	}
 	const StaticArrayInfo* clasinfo = Class.Get_Info <StaticArrayInfo>();
 
@@ -1085,9 +1085,9 @@ IRType SystematicAnalysis::ConvertToIR(const TypeSymbol& Value)
 		}
 		else if (syb.Type == SymbolType::Func_ptr || syb.Type == SymbolType::Hard_Func_ptr)
 		{
-			if (SybToIRMap.count(syb.ID))
+			if (SybToIRMap.HasValue(syb.ID))
 			{
-				return IRType(SybToIRMap[syb.ID]);
+				return IRType(SybToIRMap.at(syb.ID));
 			}
 			else
 			{
@@ -4946,9 +4946,9 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 	{
 		//note this can only happen in a generic substitution
 		auto* node = V.node.get();
-		if (_ConstantExpressionMap.count(node))
+		if (_ConstantExpressionMap.HasValue(node))
 		{
-			auto& item = _ConstantExpressionMap[node];
+			auto& item = _ConstantExpressionMap.at(node);
 			Out.SetType(item);
 		}
 		else
