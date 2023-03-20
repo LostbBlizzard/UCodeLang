@@ -1,5 +1,6 @@
 #pragma once
 #include "UCodeLang/LangCore/LangTypes.hpp"
+#include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
 UCodeLangStart
 
 using IRidentifier = String;
@@ -876,9 +877,9 @@ public:
 	//note will not add a null char at the end.
 	IRidentifierID FindOrAddConstStrings(String_view Buffer)
 	{
-		if (ConstStaticStrings.count(Buffer))
+		if (ConstStaticStrings.HasValue(Buffer))
 		{
-			return ConstStaticStrings[Buffer];
+			return ConstStaticStrings.at(Buffer);
 		}
 		IRidentifierID identifier = ToID(".Const.String:" + (String)Buffer);
 		auto V = NewStaticVarable(identifier,IRType(IRTypes::i8));
@@ -989,9 +990,9 @@ public:
 
 	Vector<Unique_ptr<IRSymbolData>> _Symbols;
 	Vector<Unique_ptr<IRFunc>> Funcs;
-	Unordered_map<IRidentifierID, IRidentifier> _Map;
+	BinaryVectorMap<IRidentifierID, IRidentifier> _Map;
 
-	Unordered_map<String_view, IRidentifierID> ConstStaticStrings;
+	VectorMap<String_view, IRidentifierID> ConstStaticStrings;
 
 	void Reset();
 

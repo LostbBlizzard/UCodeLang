@@ -2,7 +2,7 @@
 #include "UCodeLang/LangCore/ScopeHelper.hpp"
 #include "SymbolID.hpp"
 #include "../Front/UCodeFrontEndNameSpace.hpp"
-
+#include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
 UCodeLangStart
 struct IRInstruction;
 struct IRPar;
@@ -566,6 +566,6 @@ public:
 
 		
 private:
-	Unordered_map<SymbolID,Symbol*> IDToSymbols;
+	BinaryVectorMap<SymbolID,Symbol*> IDToSymbols;
 };
 UCodeLangFrontEnd
