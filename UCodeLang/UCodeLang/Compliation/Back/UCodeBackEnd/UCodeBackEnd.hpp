@@ -57,9 +57,9 @@ private:
 	//
 	struct BlockData
 	{
-
+		
 	};
-	Unordered_map< const IRBlock*, BlockData> IRToBlockData;
+	BinaryVectorMap< const IRBlock*, BlockData> IRToBlockData;
 	BlockData& GetBlockData(const IRBlock* V)
 	{
 		return IRToBlockData.at(V);

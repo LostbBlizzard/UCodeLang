@@ -1,5 +1,7 @@
 #include "UAssembly.hpp"
 #include "CompilerTypes.hpp"
+#include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
+
 #define StackName "Stack"
 #define StackName_ "[" + StackName + "]"
 
@@ -22,7 +24,7 @@ String UAssembly::ToString(const UClib* Lib)
 {
 	auto& InsMapData = Get_InsToInsMapValue();
     String r;
-	Unordered_map<UAddress, String> AddressToName;
+	BinaryVectorMap<UAddress, String> AddressToName;
 	for (const auto& Item2 : Lib->Get_NameToPtr())
 	{
 		AddressToName[Item2.second] = Item2.first;
@@ -122,7 +124,7 @@ String UAssembly::ToString(const UClib* Lib)
 
     return r;
 }
-void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In,const Unordered_map<UAddress, String>& AddressToName, String& out, const UClib* Lib)
+void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In,const BinaryVectorMap<UAddress, String>& AddressToName, String& out, const UClib* Lib)
 {
 
 	switch (OpType)

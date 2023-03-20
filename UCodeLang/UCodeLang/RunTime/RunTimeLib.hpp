@@ -1,6 +1,7 @@
 #pragma once
 #include "../LangCore.hpp"
 #include "UCodeLang/LangCore/UClib.hpp"
+#include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
 UCodeLangStart
 
 #define UCodeLangAPI __cdecl 
@@ -75,7 +76,7 @@ public:
 private:
 	UClib* _Lib;
 	Vector<Instruction> _Instruction;
-	Unordered_map<String, CPPCallBack> _NameToCppCall;
+	VectorMap<String, CPPCallBack> _NameToCppCall;
 };
 
 UCodeLangEnd

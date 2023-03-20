@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include "Jit/Jit.hpp"
+#include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
 UCodeLangStart
 
 class RunTimeLangState;
@@ -41,8 +42,8 @@ private:
 		bool IsfakePtr;
 		NSize_t Size;
 	};
-	Unordered_map<PtrType, MemData> _Data;
-	Unordered_map<PtrType, MemData> _ReservedData;
+	BinaryVectorMap<PtrType, MemData> _Data;
+	BinaryVectorMap<PtrType, MemData> _ReservedData;
 	Vector<void*> Tep_Values;
 	PtrType FindReservedPtr(NSize_t Size);
 };

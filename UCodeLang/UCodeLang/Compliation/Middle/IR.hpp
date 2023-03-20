@@ -998,7 +998,7 @@ public:
 
 	struct ToStringState
 	{
-		Unordered_map<IRInstruction*, String> PointerToName;
+		BinaryVectorMap<IRInstruction*, String> PointerToName;
 		Vector<IRInstruction*> TepPushedParameters;
 		
 		size_t StrValue=0;

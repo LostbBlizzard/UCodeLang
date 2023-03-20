@@ -50,7 +50,7 @@ private:
 	{
 		bool IsReferenced = false;
 	};
-	Unordered_map<IRInstruction*, MyStruct> IRData;
+	BinaryVectorMap<IRInstruction*, MyStruct> IRData;
 	auto& Get_IRData(IRInstruction* V)
 	{
 		return  IRData[V];
