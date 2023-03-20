@@ -1,5 +1,6 @@
 #include "UCodeBackEnd.hpp"
 #include "UCodeLang/Compliation/Helpers/InstructionBuilder.hpp"
+#include "UCodeLang/Compliation/Helpers/NameDecoratior.hpp"
 UCodeLangStart
 
 #define GenIns(x) ResetIns(); x;
@@ -1108,22 +1109,23 @@ void UCodeBackEndObject::LogicalNot(IRTypes Type, RegisterID In, RegisterID Out)
 }
 void UCodeBackEndObject::DoCPPCall(const IRidentifier& FuncName)
 {
-	if (FuncName == "__Log")
+	auto VFuncName = NameDecoratior::GetUnDecoratedName(FuncName);
+	if (VFuncName == "__Log")
 	{
 		InstructionBuilder::Log(_Ins, RegisterID::StartParameterRegister); PushIns();
 	}
-	else if(FuncName == "__LogChar")
+	else if(VFuncName == "__LogChar")
 	{
 		InstructionBuilder::LogChar(_Ins, RegisterID::StartParameterRegister); PushIns();
 	}
-	else if (FuncName == "__LogBuffer")
+	else if (VFuncName == "__LogBuffer")
 	{
 		//move next Par to input
 		RegToReg(IRTypes::i8, RegisterID((RegisterID_t)RegisterID::StartParameterRegister + 1), RegisterID::InPutRegister);
 		
 		InstructionBuilder::LogBuffer(_Ins, RegisterID::StartParameterRegister); PushIns();
 	}
-	else if (FuncName == "__ReadChar")
+	else if (VFuncName == "__ReadChar")
 	{
 		InstructionBuilder::ReadChar(_Ins,RegisterID::OuPutRegister); PushIns();
 	}
