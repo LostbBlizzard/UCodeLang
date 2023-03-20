@@ -51,7 +51,7 @@ void UCLibManger::LinkLib(UCodeLang::RunTimeLib* Item)
 	{
 		for (const auto& Item2 : Item->Get_Lib()->Get_NameToPtr())
 		{
-			_NameToAddress[Item2.first] = Item2.second;
+			_NameToAddress[Item2._Key] = Item2._Value;
 		}
 		for (const auto& Item : Item->Get_Lib()->Get_StaticBytes())
 		{
@@ -68,7 +68,7 @@ void UCLibManger::LinkLib(UCodeLang::RunTimeLib* Item)
 	}
 	for (const auto& Item2 : Item->Get_CPPCalls())
 	{
-		_NameToCPP[Item2.first] = Item2.second;
+		_NameToCPP[Item2._Key] = Item2._Value;
 	}
 }
 

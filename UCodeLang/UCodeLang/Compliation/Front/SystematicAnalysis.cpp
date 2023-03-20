@@ -4431,10 +4431,10 @@ void SystematicAnalysis::LoadLibSymbols(const UClib& lib)
 		ImportType = LibType::Dll;
 	}
 
-	for (auto Item : lib.Get_NameToPtr())
+	for (const auto& Item : lib.Get_NameToPtr())
 	{
-		const auto Offset = Item.second;
-		const auto& FuncStr = Item.first;
+		const auto& Offset = Item._Value;
+		const auto& FuncStr = Item._Key;
 		
 
 		auto SymbolType = ImportType == LibType::Dll ? SymbolType::ImportedDllFunc : SymbolType::ImportedLibFunc;

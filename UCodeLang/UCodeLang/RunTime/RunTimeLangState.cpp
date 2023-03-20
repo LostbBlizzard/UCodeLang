@@ -65,7 +65,7 @@ void Allocator::FreeAllAllocations(RunTimeLangState& This)
 {
 	for (auto& Item : _Data)
 	{
-		PtrType ptr = Item.first;
+		PtrType ptr = Item._Key;
 		auto& M = _Data[ptr];
 		if (_CanReserveData)
 		{
@@ -81,9 +81,9 @@ void Allocator::FreeAllReservedAllocations(RunTimeLangState& This)
 {
 	for (auto& Item : _ReservedData)
 	{
-		if (!Item.second.IsfakePtr)
+		if (!Item._Value.IsfakePtr)
 		{
-			_Free(This, Item.first);
+			_Free(This, Item._Key);
 		}
 	}
 	_ReservedData.clear();
@@ -94,12 +94,16 @@ void Allocator::MergeReservedAllocations()//This no work
 	for (auto it = _ReservedData.begin();it != _ReservedData.end();)
 	{
 		bool ReMoved = false;
-		auto & Item = *it;
+		auto& Item = *it;
+
+		
+		auto& ItemPtr = Item._Key;
+		auto& ItemValue = Item._Value;
 	
-		NSize_t ItemSize = Item.second.Size;
+		NSize_t ItemSize = ItemValue.Size;
 		NSize_t BuffSize = ItemSize;
-		void* Ptr = (void*)((uintptr_t)Item.first + (uintptr_t)ItemSize);
-		Tep_Values.push_back(Item.first);
+		void* Ptr = (void*)((uintptr_t)ItemPtr + (uintptr_t)ItemSize);
+		Tep_Values.push_back(ItemPtr);
 		while (true)
 		{
 			if (_ReservedData.count(Ptr))
@@ -107,7 +111,7 @@ void Allocator::MergeReservedAllocations()//This no work
 				auto& NewData = _ReservedData.at(Ptr);
 				BuffSize += NewData.Size;
 				Tep_Values.push_back(Ptr);
-				Ptr = (void*)((uintptr_t)Item.first + (uintptr_t)NewData.Size);
+				Ptr = (void*)((uintptr_t)ItemPtr + (uintptr_t)NewData.Size);
 			}
 			else
 			{
@@ -137,28 +141,31 @@ PtrType Allocator::FindReservedPtr(NSize_t Size)
 {
 	for (auto& Item : _ReservedData)
 	{
-		if (Item.second.Size >= Size)
+		auto& Itemfirst = Item._Key;
+		auto& Itemsecond = Item._Value;
+
+		if (Itemsecond.Size >= Size)
 		{
-			auto Ptr = Item.first;
+			auto Ptr = Itemfirst;
 
 
-			_Data[Ptr] = { Item.second.IsfakePtr, Size };
+			_Data[Ptr] = { Itemsecond.IsfakePtr, Size };
 
-			auto Sizediff = Item.second.Size - Size;
+			auto Sizediff = Itemsecond.Size - Size;
 			if (Sizediff != 0)
 			{
 				void* subptr = (void*)((uintptr_t)Ptr + (uintptr_t)Sizediff);
 				_ReservedData[subptr] = { true,Sizediff };
 			}
-			_ReservedData.erase(Ptr);
+			_ReservedData.erase(Itemfirst);
 			return Ptr;
 		}
 		else
 		{
-			NSize_t ItemSize = Item.second.Size;
+			NSize_t ItemSize = Itemsecond.Size;
 			NSize_t BuffSize = ItemSize;
-			void* Ptr = (void*)((uintptr_t)Item.first - (uintptr_t)ItemSize);
-			Tep_Values.push_back(Item.first);
+			void* Ptr = (void*)((uintptr_t)Itemfirst - (uintptr_t)ItemSize);
+			Tep_Values.push_back(Itemfirst);
 			while (true)
 			{
 				if (_ReservedData.count(Ptr))
@@ -168,7 +175,7 @@ PtrType Allocator::FindReservedPtr(NSize_t Size)
 					Tep_Values.push_back(Ptr);
 					if (BuffSize >= Size)
 					{
-						_Data[Ptr] = { Item.second.IsfakePtr, Size };
+						_Data[Ptr] = { Itemsecond.IsfakePtr, Size };
 						auto Sizediff = BuffSize - Size;
 						if (Sizediff != 0)
 						{
@@ -180,7 +187,7 @@ PtrType Allocator::FindReservedPtr(NSize_t Size)
 						Tep_Values.clear();
 						return Ptr;
 					}
-					Ptr = (void*)((uintptr_t)Item.first - (uintptr_t)NewData.Size);
+					Ptr = (void*)((uintptr_t)Itemfirst - (uintptr_t)NewData.Size);
 				}
 				else
 				{
