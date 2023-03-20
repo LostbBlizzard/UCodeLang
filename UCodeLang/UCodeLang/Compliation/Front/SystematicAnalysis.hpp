@@ -330,7 +330,7 @@ private:
 	void BuildMember_Access(const GetMemberTypeSymbolFromVar_t& In, IRInstruction*& Output);
 	void BuildMember_Reassignment(const GetMemberTypeSymbolFromVar_t& In, const TypeSymbol& Type, IRInstruction* Value);
 	Symbol* GetTepFuncPtrSyb(const String& TepFuncPtr, const FuncInfo* Finfo);
-	String GetTepFuncPtrName(Symbol* SymbolVar);
+	String GetTepFuncPtrName(FuncInfo* SymbolVar);
 	String_view GetTepFuncPtrNameAsName(const String_view Str);
 
 	void OnPostfixVariableNode(const PostfixVariableNode& node);

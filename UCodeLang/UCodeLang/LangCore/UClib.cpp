@@ -140,7 +140,7 @@ void UClib::ToBytes(BitMaker& Output, const ClassData::Class_Data& ClassData)
 {
 	Output.WriteType((Size_tAsBits)ClassData.Size);
 
-	ToBytes(Output, ClassData);
+	ToBytes(Output, ClassData.Attributes);
 
 	Output.WriteType((Size_tAsBits)ClassData.Fields.size());
 	for (auto& Item2 : ClassData.Fields)
@@ -438,7 +438,7 @@ void UClib::FromBytes(BitReader& reader, ClassData::Class_Data& Class)
 	reader.ReadType(_Classbits, _Classbits);
 	Class.Size = _Classbits;
 
-	FromBytes(reader, Class);
+	FromBytes(reader, Class.Attributes);
 
 
 	union

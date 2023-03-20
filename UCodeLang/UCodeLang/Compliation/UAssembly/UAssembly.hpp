@@ -19,6 +19,7 @@ public:
 
 
 	static String ToString(const UCodeLang::UClib* Lib);
+	static String ToString(const ReflectionTypeInfo& Value);
 	static String GetRegisterToString(RegisterID reg)
 	{
 		switch (reg)

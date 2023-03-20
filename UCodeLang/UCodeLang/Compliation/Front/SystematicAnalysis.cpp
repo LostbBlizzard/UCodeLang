@@ -719,7 +719,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	{
 		
 		auto DecName = MangleName(Info);
-		LookingAtIRFunc = _Builder.NewFunc(Info->FullName, {});
+		LookingAtIRFunc = _Builder.NewFunc(DecName, {});
 		LookingAtIRBlock = LookingAtIRFunc->NewBlock("");
 		PushNewStackFrame();
 
@@ -1913,7 +1913,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, 
 		if (SymbolVar->Type == SymbolType::Func)
 		{
 			FuncInfo* Finfo = SymbolVar->Get_Info<FuncInfo>();
-			String TepFuncPtr = GetTepFuncPtrName(SymbolVar);
+			String TepFuncPtr = GetTepFuncPtrName(Finfo);
 			Finfo->FullName = TepFuncPtr;
 
 			Symbol* V = GetTepFuncPtrSyb(TepFuncPtr, Finfo);
@@ -2084,7 +2084,8 @@ IRInstruction* SystematicAnalysis::BuildMember_GetValue(const GetMemberTypeSymbo
 	case SymbolType::Func:
 	{
 		FuncInfo* Finfo = In.Symbol->Get_Info<FuncInfo>();
-		return LookingAtIRBlock->NewLoadFuncPtr(_Builder.ToID((String)GetTepFuncPtrNameAsName(Finfo->FullName)));
+		auto FuncName = MangleName(Finfo); 
+		return LookingAtIRBlock->NewLoadFuncPtr(_Builder.ToID(FuncName));
 	}
 	
 	break;
@@ -2332,7 +2333,7 @@ Symbol* SystematicAnalysis::GetTepFuncPtrSyb(const String& TepFuncPtr, const Fun
 }
 
 #define TepFuncPtrNameMangleStr "_tepfptr|"
-String SystematicAnalysis::GetTepFuncPtrName(Symbol* SymbolVar)
+String SystematicAnalysis::GetTepFuncPtrName(FuncInfo* SymbolVar)
 {
 	return TepFuncPtrNameMangleStr + SymbolVar->FullName;
 }
@@ -2523,7 +2524,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 			Symbol* Func = Out.Symbol;
 
 			FuncInfo* Finfo = Out.Symbol->Get_Info<FuncInfo>();
-			String TepFuncPtr = GetTepFuncPtrName(Out.Symbol);
+			String TepFuncPtr = GetTepFuncPtrName(Finfo);
 
 			Symbol* V = GetTepFuncPtrSyb(TepFuncPtr, Finfo);
 			Out.Symbol = V;
@@ -5651,7 +5652,7 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 	
 	if (Syb->Type== SymbolType::Func)
 	{
-		_LastExpressionField = LookingAtIRBlock->NewCall(_Builder.ToID(Syb->FullName));
+		_LastExpressionField = LookingAtIRBlock->NewCall(_Builder.ToID(MangleName(Func.Func)));
 	}
 	else if (Syb->Type == SymbolType::StackVarable)
 	{

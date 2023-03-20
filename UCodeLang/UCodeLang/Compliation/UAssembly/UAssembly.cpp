@@ -60,10 +60,9 @@ String UAssembly::ToString(const UClib* Lib)
 				r += " |" + Item2.FullName + "[";
 				for (auto& Item3 : Item2.ParsType)
 				{
-					r += Item3.FullNameType + ":";
+					r += ToString(Item3);
 				}
-				r += "]->" + (Item2.RetType.FullNameType.size()
-					 ? Item2.RetType.FullNameType : " void") + ";" + "\n";
+				r += "] ->" + ToString(Item2.RetType) + ";" + "\n";
 					
 			}
 			r += "\n\n";
@@ -72,7 +71,7 @@ String UAssembly::ToString(const UClib* Lib)
 		case ClassType::Alias:
 		{
 			auto& Class = Item->_Alias;
-			r += "$" + Item->FullName + " = " + Class.Type.FullNameType + ";\n";
+			r += "$" + Item->FullName + " = " + ToString(Class.Type) + ";\n";
 		}
 		break;
 		default:
@@ -123,6 +122,13 @@ String UAssembly::ToString(const UClib* Lib)
 	}
 
     return r;
+}
+String UAssembly::ToString(const ReflectionTypeInfo& Value)
+{
+	String r;
+
+	r += Value.FullNameType;
+	return r;
 }
 void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In,const BinaryVectorMap<UAddress, String>& AddressToName, String& out, const UClib* Lib)
 {

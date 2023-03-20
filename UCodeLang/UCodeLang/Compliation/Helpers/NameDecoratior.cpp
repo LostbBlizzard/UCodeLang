@@ -12,7 +12,7 @@ String NameDecoratior::GetDecoratedName(const String_view funcName, const Vector
 
 	if (Pars.size())
 	{
-		r += "!";
+		r += "^";
 		for (auto& Item : Pars)
 		{
 			r += DecoratedNameType(Item);
@@ -49,5 +49,16 @@ String NameDecoratior::DecoratedNameType(const ReflectionTypeInfo& Type)
 	*/
 
 	return Type.FullNameType;
+}
+String NameDecoratior::GetUnDecoratedName(const String& DecoratedName)
+{
+	for (size_t i = 0; i < DecoratedName.size(); i++)
+	{
+		if (DecoratedName[i] == '^')
+		{
+			return DecoratedName.substr(0, i);
+		}
+	}
+	return DecoratedName;
 }
 UCodeLangEnd
