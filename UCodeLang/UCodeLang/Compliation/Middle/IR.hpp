@@ -811,7 +811,7 @@ enum class IRSymbolType : IRSymbolType_t
 
 struct IRSymbolData
 {
-	IRidentifierID identifier;
+	IRidentifierID identifier{};
 	IRSymbolType SymType =IRSymbolType::Null;
 	IRType Type;
 	Unique_ptr<IRSymbol_Ex> Ex;

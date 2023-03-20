@@ -24,13 +24,18 @@ void UCodeRunTime::Init(RunTimeLangState* State, Optional<int> OtherInterpreterC
 		const auto& RunTimeData = Get_EnvironmentData();
 		_Interpreters.resize(RunTimeData.ProcessorsCount);
 	}
+
+	for (size_t i = 0; i < _Interpreters.size(); i++)
+	{
+		_Interpreters[i].reset(new MyInterpreter());
+	}
 	#endif // DEBUG
 
 
 	_MainInterpreter.Init(State);
 	for (auto& Item : _Interpreters)
 	{
-		Item.Init(State,&_State);
+		Item->Init(State,&_State);
 	}
 }
 
@@ -39,7 +44,7 @@ void UCodeRunTime::UnLoad()
 	_MainInterpreter.UnLoad();
 	for (auto& Item : _Interpreters)
 	{
-		Item.UnLoad();
+		Item->UnLoad();
 	}
 }
 UCodeRunTime::Return_t UCodeRunTime::ThisCall(UAddress This, const String& FunctionName)
