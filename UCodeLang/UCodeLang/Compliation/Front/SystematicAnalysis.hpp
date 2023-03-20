@@ -144,7 +144,7 @@ private:
 
 	struct IRLocation_Cotr
 	{
-		IRInstruction* Value;
+		IRInstruction* Value=nullptr;
 		bool UsedlocationIR = false;
 	};
 
@@ -498,6 +498,14 @@ private:
 		const UseGenericsNode&,
 		const ValueParametersNode& Pars,
 		TypeSymbol Ret);
+
+	
+	bool IsCompatible(Symbol* Item, const Vector<TypeSymbol>& ValueTypes, bool _ThisTypeIsNotNull, const Token* Token);
+
+	int GetCompatibleScore(const TypeSymbol& ParFunc, const TypeSymbol& Value);
+	int GetCompatibleScore(const FuncInfo* Func, const Vector<TypeSymbol>& ValueTypes);
+
+
 	//Generics
 
 	void GenericFuncInstantiate(Symbol* Func, const Vector<TypeSymbol>& GenericInput);

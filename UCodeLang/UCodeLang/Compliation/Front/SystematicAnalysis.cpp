@@ -730,6 +730,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 			auto& ParNodes = node.Signature.Parameters.Parameters;
 
+			
+
 			LookingAtIRFunc->Pars.resize(ParNodes.size());//becuase we are useing ptrs.
 			for (size_t i = 0; i < ParNodes.size(); i++)
 			{
@@ -740,7 +742,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 
 				auto& d = LookingAtIRFunc->Pars[i];
-				d.identifier = _Builder.ToID(V.FullName);
+				d.identifier = _Builder.ToID(ScopeHelper::GetNameFromFullName(V.FullName));
 				d.type = ConvertToIR(V.VarType);
 
 
@@ -1476,7 +1478,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 	LookingForTypes.push(syb->VarType);
 
 	IRInstruction* OnVarable{};
-	bool Ind =false;
+	bool IsStructObjectPassRef =false;
 	if (node.Expression.Value)
 	{
 		if (passtype == PassType::BuidCode)
@@ -1488,14 +1490,14 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 				syb->IR_Ins = OnVarable;
 			}
 
-			Ind = !(IsPrimitive(syb->VarType) || syb->VarType.IsAddress());
-			if (Ind == false && syb->VarType._Type == TypesEnum::CustomType)
+			IsStructObjectPassRef = !(IsPrimitive(syb->VarType) || syb->VarType.IsAddress());
+			if (IsStructObjectPassRef == false && syb->VarType._Type == TypesEnum::CustomType)
 			{
 				auto V = GetSymbol(syb->VarType);
-				Ind = V->Type == SymbolType::Type_StaticArray;
+				IsStructObjectPassRef = V->Type == SymbolType::Type_StaticArray;
 			}
 
-			if (Ind)
+			if (IsStructObjectPassRef)
 			{
 				IRlocations.push({ OnVarable ,false});
 			}
@@ -1593,12 +1595,12 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 
 		
 
-		if (Ind)
+		if (IsStructObjectPassRef)
 		{
 			if (IRlocations.top().UsedlocationIR == false)
 			{
 				
-				if (_LastExpressionField->Type == IRInstructionType::Load 
+				if (_LastExpressionField->Type == IRInstructionType::Load
 					&& _LastExpressionField->Target().Type ==IROperatorType::IRInstruction)
 				{//to stop copying big objects
 					LookingAtIRBlock->NewStore(OnVarable, _LastExpressionField->Target().Pointer);
@@ -1737,7 +1739,7 @@ void SystematicAnalysis::OnIfNode(const IfNode& node)
 	if (node.Else)
 	{
 		IRInstruction* ElseIndex{};
-		size_t ElseI;
+		size_t ElseI{};
 		if (passtype == PassType::BuidCode)
 		{
 			ElseIndex = LookingAtIRBlock->NewJump();
@@ -2410,6 +2412,10 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 				LogCantFindVarMemberError(ItemToken, ItemToken->Value._String, Out.Type);
 			}
 			break;
+		}
+		if (TepSyb == nullptr)
+		{
+			return false;
 		}
 
 		if (TepSyb->Type == SymbolType::Type_class)
@@ -3140,6 +3146,8 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 					String V;
 					bool ItWorked = !ParseHelper::ParseStringliteralToString(nod->Token->Value._String, V);
 
+
+
 					auto& BufferIR = IRlocations.top();
 					BufferIR.UsedlocationIR = true;
 					auto BufferIRIns = BufferIR.Value;
@@ -3559,7 +3567,7 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(AnonymousObjectConstructor
 		}
 		else if (passtype == PassType::BuidCode)
 		{
-			auto Func = FuncToSyboID.at(nod);
+			const auto& Func = FuncToSyboID.at(nod);
 			auto& ValuePars = nod->Fields;
 
 
@@ -3853,7 +3861,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 		LookingForTypes.push(LookingForTypes.top());
 	}
 
-	BinaryExpressionNode_Data* Data;
+	BinaryExpressionNode_Data* Data =nullptr;
 	if (passtype == PassType::BuidCode)
 	{
 		Data = &BinaryExpressionNode_Datas.at(&node);
@@ -5501,6 +5509,15 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 		}
 		else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::OnIRlocationStack)
 		{
+			bool UseedTopIR = IRlocations.top().UsedlocationIR;
+			if (UseedTopIR)
+			{
+				IRLocation_Cotr V;
+				V.Value = LookingAtIRBlock->NewLoad(IRlocations.top().Value->ObjectType);
+				IRlocations.push(V);
+			}
+
+
 			auto Type = Func.Func->Pars[0];
 			if (Type.IsAddress())
 			{
@@ -5510,11 +5527,30 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 			auto Defe = LookingAtIRBlock->NewLoadPtr(IRlocations.top().Value);
 			IRlocations.top().UsedlocationIR = true;
 			LookingAtIRBlock->NewPushParameter(Defe);
+
+			if (UseedTopIR)
+			{
+				IRlocations.pop();
+			}
 		}
 		else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::OnIRlocationStackNonedef)
 		{
+			bool UseedTopIR = IRlocations.top().UsedlocationIR;
+			if (UseedTopIR)
+			{
+				IRLocation_Cotr V;
+				V.Value = LookingAtIRBlock->NewLoad(IRlocations.top().Value->ObjectType);
+				IRlocations.push(V);
+			}
+
+
 			LookingAtIRBlock->NewPushParameter(IRlocations.top().Value);
 			IRlocations.top().UsedlocationIR = true;
+
+			if (UseedTopIR)
+			{
+				IRlocations.pop();
+			}
 		}
 		else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::PushWasCalled)
 		{
@@ -5533,7 +5569,7 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 	for (size_t i = 0; i < Pars._Nodes.size(); i++)
 	{
 		auto& Item = Pars._Nodes[i];
-		auto& FuncParInfo = Func.Func->Pars[AutoPushThis ? i + 1 : i];
+		auto& FuncParInfo = Func.Func->Pars[ i + (AutoPushThis ? 1 : 0)];
 
 
 		
@@ -5776,6 +5812,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 
 	auto& RetType = Get_LookingForType();
 	bool RetIsSet = !(RetType.IsAn(TypesEnum::Var) || RetType.IsAn(TypesEnum::Any));
+	
 
 	Vector<TypeSymbol> ValueTypes;
 	ValueTypes.reserve(_ThisTypeIsNotNull ? Pars._Nodes.size() + 1 : Pars._Nodes.size());
@@ -5800,83 +5837,31 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 
 		LookingForTypes.pop();
 	}
-	auto& Symbols = _Table.GetSymbolsWithName(ScopedName, SymbolType::Any);
+	auto Symbols = _Table.GetSymbolsWithName(ScopedName, SymbolType::Any);
 	StartSymbolsLoop:
+
+	Vector<Get_FuncInfo> OkFuncions;
 	for (auto& Item : Symbols)
 	{
+
 		if (Item->Type == SymbolType::Func)
 		{
-			
 
 			FuncInfo* Info = Item->Get_Info<FuncInfo>();
-			
-			
 
-			/*
-			if (RetIsSet)
-			{
-				if (!AreTheSame(Info->Ret, RetType))
-				{
-					continue;
-				}
-			}
-			*/
-
-			if (Info->Pars.size() != ValueTypes.size())
+			if (!IsCompatible(Item, ValueTypes, _ThisTypeIsNotNull, Name.ScopedName.back().token))
 			{
 				continue;
 			}
 
-
-			//
-			if (Item->PassState != passtype)
 			{
-				if (!IsDependencies(Info)) 
-				{
-					auto OldPass = passtype;
-					auto OldScope = _Table._Scope.ThisScope;
-					_Table._Scope.ThisScope = Info->FullName;
-					ScopeHelper::ReMoveScope(_Table._Scope.ThisScope);
-
-					_RetLoopStack.push_back(Info);
-
-					OnFuncNode(*(FuncNode*)Item->NodePtr);
-
-					_RetLoopStack.pop_back();
-
-					_Table._Scope.ThisScope = OldScope;
-				}
-				else
-				{
-					auto V = GetDependencies(Info);
-					if (V->IsOnRetStatemnt)
-					{
-						LogFuncDependencyCycle(Name.ScopedName.back().token, Info);
-						Info->Ret.SetType(TypesEnum::Null);//to stop err spam
-					}
-				}
+				r = Info;
+				FuncSymbol = Item;
+				T = SymbolType::FuncCall;
+				OkFuncions.push_back({ ThisParType,r,FuncSymbol });
 			}
-			//
-
-			for (size_t i = 0; i < Info->Pars.size(); i++)
-			{
-				auto& Item = Info->Pars[i];
-				if (_ThisTypeIsNotNull && i == 0) { continue; }
-				auto& Item2 = ValueTypes[i];
-
-				if (!CanBeImplicitConverted(Item2, Item, true))
-				{
-					goto ContinueOutloop;
-				}
-			}
-			r = Info;
-			FuncSymbol = Item;
-			T = SymbolType::FuncCall;
-			break;
-
-		ContinueOutloop:continue;
 		}
-		else if (Item->Type == SymbolType::GenericFunc)
+		else if (Item->Type == SymbolType::GenericFunc)//TODO try for other befor this
 		{
 			FuncInfo* Info = Item->Get_Info<FuncInfo>();
 
@@ -5923,7 +5908,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 				}
 			}
 
-
+			/*
 			if (RetIsSet)
 			{
 				for (size_t i2 = 0; i2 < Info->_Generic.size(); i2++)
@@ -5941,7 +5926,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 				}
 
 			}
-
+			*/
 
 			{
 
@@ -6011,75 +5996,114 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 			String Scope = V->FullName;
 			ScopeHelper::GetApendedString(Scope, ClassConstructorfunc);
 
-			auto& ConstructorSymbols = _Table.GetSymbolsWithName(Scope, SymbolType::Any);
+			auto ConstructorSymbols = _Table.GetSymbolsWithName(Scope, SymbolType::Any);
+
+
 			for (auto& Item2 : ConstructorSymbols)
 			{
-				if (Item->Type == SymbolType::Func)
+				if (Item2->Type == SymbolType::Func)
 				{
-					FuncInfo* Info = Item->Get_Info<FuncInfo>();
-					r = Info;
-					FuncSymbol = Item;
-					ThisParType = Get_FuncInfo::ThisPar_t::OnIRlocationStack;
-					break;
-				}
-			}
+					FuncInfo* Info = Item2->Get_Info<FuncInfo>();
+					bool PushThisPar = Info->IsObjectCall();
 
-			if (r) { break; }
-		}
-		else if (Item->Type == SymbolType::StackVarable|| Item->Type == SymbolType::ParameterVarable)
-		{
-			Symbol* Type = GetSymbol(Item->VarType);
-		    if (Type && (Type->Type == SymbolType::Func_ptr || Type->Type == SymbolType::Hard_Func_ptr))
-			{
-				FuncInfo* Info = Type->Get_Info<FuncInfo>();//must be the same as Item->Type == SymbolType::Func
 
-				if (RetIsSet)
-				{
-					if (!AreTheSame(Info->Ret, RetType))
+					if (PushThisPar)
+					{
+						TypeSymbol V;
+						V.SetType(Item->ID);
+						V.SetAsAddress();
+						ValueTypes.insert(ValueTypes.begin(), V);
+					}
+
+					bool Compatible = IsCompatible(Item2, ValueTypes, _ThisTypeIsNotNull, Name.ScopedName.back().token);
+					
+					if (PushThisPar)
+					{
+						ValueTypes.erase(ValueTypes.begin());
+					}
+
+					if (!Compatible)
 					{
 						continue;
 					}
-				}
 
-				if (Info->Pars.size() != ValueTypes.size())
+					{
+						r = Info;
+						FuncSymbol = Item2;
+						T = SymbolType::FuncCall;
+						OkFuncions.push_back({ PushThisPar ? Get_FuncInfo::ThisPar_t::OnIRlocationStack : ThisParType,r,FuncSymbol });
+					}
+				}
+			}
+		}
+		else if (Item->Type == SymbolType::StackVarable || Item->Type == SymbolType::ParameterVarable)
+		{
+			Symbol* Type = GetSymbol(Item->VarType);
+			if (Type && (Type->Type == SymbolType::Func_ptr || Type->Type == SymbolType::Hard_Func_ptr))
+			{
+				FuncInfo* Info = Type->Get_Info<FuncInfo>();//must be the same as Item->Type == SymbolType::Func
+
+				if (!IsCompatible(Item, ValueTypes, _ThisTypeIsNotNull, Name.ScopedName.back().token))
 				{
 					continue;
 				}
 
-				for (size_t i = 0; i < Info->Pars.size(); i++)
 				{
-					auto& Item = Info->Pars[i];
-					if (_ThisTypeIsNotNull && i == 0) { continue; }
-					auto& Item2 = ValueTypes[i];
-
-					if (!CanBeImplicitConverted(Item2, Item, true))
-					{
-						goto ContinueOutloop;
-					}
+					r = Info;
+					FuncSymbol = Item;
+					T = SymbolType::FuncCall;
+					OkFuncions.push_back({ ThisParType,r,FuncSymbol });
 				}
-				FuncSymbol = Item;
-				r = Info;
 			}
 		}
+
+		ContinueOutloop:continue;
 	}
-	if (r == nullptr)
+	if (OkFuncions.size() == 0)
 	{
 		bool MayBeAutoThisFuncCall = Name.ScopedName.size() == 1 && IsInThisFuncCall();
 
-		if (MayBeAutoThisFuncCall && AutoThisCall == false)
-		{
-			AutoThisCall = true;
 
-			ValueTypes.insert(ValueTypes.begin(),*_FuncStack.back().Pointer->GetObjectForCall());
-			ThisParType = Get_FuncInfo::ThisPar_t::AutoPushThis;
-			goto StartSymbolsLoop;
+		if (ThisParType == Get_FuncInfo::ThisPar_t::NoThisPar) {
+
+			if (MayBeAutoThisFuncCall && AutoThisCall == false)
+			{
+				AutoThisCall = true;
+
+				ValueTypes.insert(ValueTypes.begin(), *_FuncStack.back().Pointer->GetObjectForCall());
+				ThisParType = Get_FuncInfo::ThisPar_t::AutoPushThis;
+				goto StartSymbolsLoop;
+			}
 		}
 		else 
 		{
 			LogCantFindFuncError(Name.ScopedName.back().token, ScopedName, {}, ValueTypes, RetType);
+			return { };
 		}
 	}
-	return { ThisParType,r,FuncSymbol };
+	else
+	{
+		
+		Optional<int> MinScore;
+		Get_FuncInfo* Ret =nullptr;
+		for (auto& Item : OkFuncions)
+		{
+			int Score = GetCompatibleScore(Item.Func, ValueTypes);
+			if (!MinScore.has_value() ||  Score > MinScore.value())
+			{
+				MinScore = Score;
+				Ret = &Item;
+			}
+		}
+		if (Ret == nullptr) {
+			throw std::exception("bad path");
+		}
+		
+		return *Ret;
+		
+		
+	}
+	return { };
 }
 String SystematicAnalysis::GetGenericFuncName(Symbol* Func, const Vector<TypeSymbol>& Type)
 {
@@ -6210,6 +6234,112 @@ SystematicAnalysis::EvaluatedEx SystematicAnalysis::MakeEx(const TypeSymbol& Typ
 	r.EvaluatedObject.ObjectSize = Size;
 
 	return r;
+}
+
+bool SystematicAnalysis::IsCompatible(Symbol* Item, const Vector<TypeSymbol>& ValueTypes, bool _ThisTypeIsNotNull, const Token* Token)
+{
+	FuncInfo* Info = Item->Get_Info<FuncInfo>();
+	/*
+	if (RetIsSet)
+	{
+	if (!AreTheSame(Info->Ret, RetType))
+	{
+	continue;
+	}
+	}
+	*/
+
+	if (Info->Pars.size() != ValueTypes.size())
+	{
+		return false;
+	}
+
+
+	//
+	if (Item->PassState != passtype)
+	{
+		if (!IsDependencies(Info))
+		{
+			auto OldPass = passtype;
+			auto OldScope = _Table._Scope.ThisScope;
+			_Table._Scope.ThisScope = Info->FullName;
+			ScopeHelper::ReMoveScope(_Table._Scope.ThisScope);
+
+			_RetLoopStack.push_back(Info);
+
+			OnFuncNode(*(FuncNode*)Item->NodePtr);
+
+			_RetLoopStack.pop_back();
+
+			_Table._Scope.ThisScope = OldScope;
+		}
+		else
+		{
+			auto V = GetDependencies(Info);
+			if (V->IsOnRetStatemnt)
+			{
+				LogFuncDependencyCycle(Token, Info);
+				Info->Ret.SetType(TypesEnum::Null);//to stop err spam
+			}
+			return false;
+		}
+	}
+	//
+
+	for (size_t i = _ThisTypeIsNotNull ? 1 : 0; i < Info->Pars.size(); i++)
+	{
+		auto& Item = Info->Pars[i];
+		auto& Item2 = ValueTypes[i];
+
+		if (!CanBeImplicitConverted(Item2, Item, true))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+int SystematicAnalysis::GetCompatibleScore(const TypeSymbol& ParFunc, const TypeSymbol& Value)
+{
+	int r = 0;
+	
+	if (AreTheSameWithOutimmutable(ParFunc,Value))
+	{
+		r += 5;
+	}
+	else if (CanBeImplicitConverted(ParFunc, Value, false))
+	{
+		r += 3;
+	}
+	else if (CanBeExplicitlyConverted(ParFunc,Value))
+	{
+		r += 1;
+	}
+
+
+	if (ParFunc.IsAddress() == Value.IsAddress())
+	{
+		r += 1;
+	}
+	if (ParFunc.Isimmutable() == Value.Isimmutable())
+	{
+		r += 1;
+	}
+
+
+	return r;
+}
+
+int SystematicAnalysis::GetCompatibleScore(const FuncInfo* Func, const Vector<TypeSymbol>& ValueTypes)
+{
+
+	float r = 0;
+	for (size_t i = 0; i < ValueTypes.size(); i++)
+	{
+		r += GetCompatibleScore(Func->Pars[i], ValueTypes[i]);
+	}
+
+	return r / ValueTypes.size();
 }
 
 RawEvaluatedObject SystematicAnalysis::MakeExr(const TypeSymbol& Type)

@@ -10,6 +10,7 @@
 
 
 $AsyncHandle = !uintptr;
-$VoidFunc = |[];
 
-[CPPCall]|__AsyncCall[VoidFunc Call] -> AsyncHandle;
+
+//$VoidFunc = |[] -> void;
+//[CPPCall]|__AsyncCall[VoidFunc Call] -> AsyncHandle;

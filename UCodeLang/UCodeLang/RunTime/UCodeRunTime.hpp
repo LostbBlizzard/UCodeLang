@@ -149,7 +149,7 @@ private:
 	static constexpr size_t CPUCoresCount = UCodeLangCPUCoreCount;
 	Array<Jit_Interpreter,CPUCoresCount> _Interpreters;
 	#else
-	Vector<MyInterpreter> _Interpreters;
+	Vector<Unique_ptr<MyInterpreter>> _Interpreters;
 	#endif // DEBUG
 	Jit_State _State;
 };
