@@ -562,31 +562,32 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		}
 
 		
-
-		auto& RetType = node.Signature.ReturnType.node;
-		if (RetType && RetType->Get_Type() == NodeType::AnonymousTypeNode)
 		{
-			auto NewName = GetFuncAnonymousObjectFullName(FullName);
-
-
-			SymbolID AnonymousSybID = (SymbolID)RetType.get();
-			auto& AnonymousSyb =AddSybol(SymbolType::Type_class, (String)NewName, NewName); 
-			
-			_Table.AddSymbolID(AnonymousSyb,AnonymousSybID);
-
-
-			auto ClassInf = new ClassInfo();
-			ClassInf->FullName = NewName;
-			AnonymousSyb.Info.reset(ClassInf);
-			AnonymousSyb.VarType.SetType(AnonymousSyb.ID);
-
-			AnonymousTypeNode* Typenode = AnonymousTypeNode::As(RetType.get());
-			for (auto& Item3 : Typenode->Fields.Parameters)
+			auto& RetType = node.Signature.ReturnType.node;
+			if (RetType && RetType->Get_Type() == NodeType::AnonymousTypeNode)
 			{
-				TypeSymbol T;
-				ConvertAndValidateType(Item3.Type, T);
+				auto NewName = GetFuncAnonymousObjectFullName(FullName);
 
-				ClassInf->AddField(Item3.Name.AsString(), T);
+
+				SymbolID AnonymousSybID = (SymbolID)RetType.get();
+				auto& AnonymousSyb = AddSybol(SymbolType::Type_class, (String)NewName, NewName);
+
+				_Table.AddSymbolID(AnonymousSyb, AnonymousSybID);
+
+
+				auto ClassInf = new ClassInfo();
+				ClassInf->FullName = NewName;
+				AnonymousSyb.Info.reset(ClassInf);
+				AnonymousSyb.VarType.SetType(AnonymousSyb.ID);
+
+				AnonymousTypeNode* Typenode = AnonymousTypeNode::As(RetType.get());
+				for (auto& Item3 : Typenode->Fields.Parameters)
+				{
+					TypeSymbol T;
+					ConvertAndValidateType(Item3.Type, T);
+
+					ClassInf->AddField(Item3.Name.AsString(), T);
+				}
 			}
 		}
 
@@ -601,7 +602,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 
 			String_view GenericTypeName;
-			if (VP.IsAddress()  && (ClassSymBool && VP._CustomTypeSymbol == ClassSymBool->VarType._CustomTypeSymbol) )
+			if (Item.Name.Token == nullptr)
 			{
 				GenericTypeName = ThisSymbolName;
 			}
@@ -2270,11 +2271,34 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 				switch (In.Symbol->Type)
 				{
 				case  SymbolType::StackVarable:
-					Output = LookingAtIRBlock->New_Member_Access(In.Symbol->IR_Ins, IRstruct, MemberIndex);
+				{
+					TypeSymbol& TypeSys = Last_Type;
+					if (TypeSys.IsAddress())
+					{
+						Output = LookingAtIRBlock->New_Member_Dereference(In.Symbol->IR_Ins, IRstruct, MemberIndex);
+					}
+					else
+					{
+						Output = LookingAtIRBlock->New_Member_Access(In.Symbol->IR_Ins, IRstruct, MemberIndex);
+					}
+				}
+
+					
 					break;
 				case  SymbolType::ParameterVarable:
-					Output = LookingAtIRBlock->New_Member_Access(In.Symbol->IR_Par, IRstruct, MemberIndex);
-					break;
+				{
+					TypeSymbol& TypeSys = Last_Type;
+					if (TypeSys.IsAddress())
+					{
+						Output = LookingAtIRBlock->New_Member_Dereference(In.Symbol->IR_Par, IRstruct, MemberIndex);
+					}
+					else
+					{
+						Output = LookingAtIRBlock->New_Member_Access(In.Symbol->IR_Par, IRstruct, MemberIndex);
+					}
+
+				}
+				break;
 				}
 			}
 			else
@@ -2525,7 +2549,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 			}
 
 		}
-		else if (Out.Symbol->Type == SymbolType::StackVarable)
+		else if (IsVarableType(Out.Symbol->Type))
 		{
 			TypeSymbol VarableType = Out.Symbol->VarType;
 			Symbol* TypeAsSybol = GetSymbol(VarableType);
@@ -3564,6 +3588,9 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(AnonymousObjectConstructor
 		{
 			auto Func = GetFunc(Type, nod->Fields);
 			FuncToSyboID[nod] = Func;
+
+			SetFuncRetAsLastEx(Func);
+			return;
 		}
 		else if (passtype == PassType::BuidCode)
 		{
@@ -4217,10 +4244,7 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 		DoFuncCall(Info, node.FuncName, node.Parameters);
 		FuncToSyboID[&node] = Info;
 		
-		if (Info.Func)
-		{
-			LastExpressionType = Info.Func->Ret;
-		}
+		SetFuncRetAsLastEx(Info);
 	}
 	else if (passtype == PassType::BuidCode)
 	{
@@ -4228,6 +4252,22 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 		DoFuncCall(SybID, node.FuncName, node.Parameters);
 	}
 }
+void SystematicAnalysis::SetFuncRetAsLastEx(Get_FuncInfo& Info)
+{
+	if (Info.Func)
+	{
+		if (Info.Func->_FuncType == FuncInfo::FuncType::New)
+		{
+			LastExpressionType = (*Info.Func->GetObjectForCall());
+			LastExpressionType._IsAddress = false;
+		}
+		else
+		{
+			LastExpressionType = Info.Func->Ret;
+		}
+	}
+}
+
 void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 {
 	if (passtype == PassType::BuidCode)
@@ -5174,6 +5214,18 @@ bool SystematicAnalysis::IsSIntType(const TypeSymbol& TypeToCheck)
 		TypeToCheck._Type == TypesEnum::sInt64 ||
 		TypeToCheck._Type == TypesEnum::sIntPtr;
 }
+inline bool SystematicAnalysis::IsVarableType(SymbolType type)
+{
+	switch (type)
+	{
+	case SymbolType::ParameterVarable:
+	case SymbolType::StackVarable:
+		return true;
+	default:
+		return false;
+		break;
+	}
+}
 bool SystematicAnalysis::IsUIntType(const TypeSymbol& TypeToCheck)
 {
 	return
@@ -5492,6 +5544,7 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 		return;
 	}
 
+	IRInstruction* PushIRStackRet = false;
 	bool AutoPushThis = Func.ThisPar != Get_FuncInfo::ThisPar_t::NoThisPar;
 	if (AutoPushThis)
 	{
@@ -5509,45 +5562,61 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 		}
 		else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::OnIRlocationStack)
 		{
-			bool UseedTopIR = IRlocations.top().UsedlocationIR;
-			if (UseedTopIR)
+
+			bool UseedTopIR = IRlocations.size() != 0 && IRlocations.top().UsedlocationIR == false;
+			if (!UseedTopIR)
 			{
-				IRLocation_Cotr V;
-				V.Value = LookingAtIRBlock->NewLoad(IRlocations.top().Value->ObjectType);
-				IRlocations.push(V);
+				IRLocation_Cotr tep;
+				tep.UsedlocationIR = false;
+
+				auto Type = Func.Func->Pars[0];
+				if (Type.IsAddress())
+				{
+					Type._IsAddress = false;
+				}
+
+				PushIRStackRet =tep.Value = LookingAtIRBlock->NewLoad(ConvertToIR(Type));
+				IRlocations.push(tep);
 			}
 
 
-			auto Type = Func.Func->Pars[0];
-			if (Type.IsAddress())
+
 			{
-				Type._IsAddress = false;
+				auto Defe = LookingAtIRBlock->NewLoadPtr(IRlocations.top().Value);
+				IRlocations.top().UsedlocationIR = true;
+				LookingAtIRBlock->NewPushParameter(Defe);
 			}
 
-			auto Defe = LookingAtIRBlock->NewLoadPtr(IRlocations.top().Value);
-			IRlocations.top().UsedlocationIR = true;
-			LookingAtIRBlock->NewPushParameter(Defe);
-
-			if (UseedTopIR)
+			if (!UseedTopIR)
 			{
 				IRlocations.pop();
 			}
+
 		}
 		else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::OnIRlocationStackNonedef)
 		{
-			bool UseedTopIR = IRlocations.top().UsedlocationIR;
-			if (UseedTopIR)
+			bool UseedTopIR = IRlocations.size() != 0 && IRlocations.top().UsedlocationIR == false;
+			if (!UseedTopIR)
 			{
-				IRLocation_Cotr V;
-				V.Value = LookingAtIRBlock->NewLoad(IRlocations.top().Value->ObjectType);
-				IRlocations.push(V);
+				IRLocation_Cotr tep;
+				tep.UsedlocationIR = false;
+
+				auto Type = Func.Func->Pars[0];
+				if (Type.IsAddress())
+				{
+					Type._IsAddress = false;
+				}
+
+				PushIRStackRet =tep.Value = LookingAtIRBlock->NewLoad(ConvertToIR(Type));
+				IRlocations.push(tep);
 			}
 
+			{
+				LookingAtIRBlock->NewPushParameter(IRlocations.top().Value);
+				IRlocations.top().UsedlocationIR = true;
+			}
 
-			LookingAtIRBlock->NewPushParameter(IRlocations.top().Value);
-			IRlocations.top().UsedlocationIR = true;
-
-			if (UseedTopIR)
+			if (!UseedTopIR)
 			{
 				IRlocations.pop();
 			}
@@ -5602,6 +5671,11 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 	else
 	{
 		throw std::exception("not added");
+	}
+
+	if (Get_LookingForType().IsnotAn(TypesEnum::Void) && PushIRStackRet)//constructors are just void funcions so just set last as the input this
+	{
+		_LastExpressionField = PushIRStackRet;
 	}
 
 	LastExpressionType = Func.Func->Ret;
@@ -6098,6 +6172,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 		if (Ret == nullptr) {
 			throw std::exception("bad path");
 		}
+		
 		
 		return *Ret;
 		

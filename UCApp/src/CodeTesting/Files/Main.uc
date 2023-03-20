@@ -11,17 +11,18 @@ $Vec2:
  |new[this&,int X,int Y]:
   x = X;
   y = Y;
-  DoSomeThing();
 
- |DoSomeThing[]:
-  x = 0;
+ |Tep[this&,this& Other] -> Vec2:
+  ret Vec2(x + Other.x,y + Other.y);
 
+
+|G[Vec2 V] -> void;
 
 |main[] -> int:
  
  Vec2 X = [];
  Vec2 Y = [1,1];
 
- Y.DoSomeThing();
+ G(Vec2());
 
  ret 1;
