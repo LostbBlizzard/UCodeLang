@@ -599,6 +599,7 @@ private:
 
 
 	String MangleName(const FuncInfo* Func);
+	IRidentifierID GetIRID(const FuncInfo* Func);
 };
 UCodeLangFrontEnd
 

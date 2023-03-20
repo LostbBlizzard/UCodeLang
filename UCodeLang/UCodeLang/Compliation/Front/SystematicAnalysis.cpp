@@ -719,7 +719,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	{
 		
 		auto DecName = MangleName(Info);
-		LookingAtIRFunc = _Builder.NewFunc(DecName, {});
+		LookingAtIRFunc = _Builder.NewFunc(GetIRID(Info), {});
 		LookingAtIRBlock = LookingAtIRFunc->NewBlock("");
 		PushNewStackFrame();
 
@@ -2084,8 +2084,8 @@ IRInstruction* SystematicAnalysis::BuildMember_GetValue(const GetMemberTypeSymbo
 	case SymbolType::Func:
 	{
 		FuncInfo* Finfo = In.Symbol->Get_Info<FuncInfo>();
-		auto FuncName = MangleName(Finfo); 
-		return LookingAtIRBlock->NewLoadFuncPtr(_Builder.ToID(FuncName));
+		
+		return LookingAtIRBlock->NewLoadFuncPtr(GetIRID(Finfo));
 	}
 	
 	break;
@@ -5652,7 +5652,7 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 	
 	if (Syb->Type== SymbolType::Func)
 	{
-		_LastExpressionField = LookingAtIRBlock->NewCall(_Builder.ToID(MangleName(Func.Func)));
+		_LastExpressionField = LookingAtIRBlock->NewCall(GetIRID(Func.Func));
 	}
 	else if (Syb->Type == SymbolType::StackVarable)
 	{
@@ -7047,6 +7047,12 @@ String SystematicAnalysis::MangleName(const FuncInfo* Func)
 	}
 
 	return NameDecoratior::GetDecoratedName(Func->FullName, Vect);
+}
+
+IRidentifierID SystematicAnalysis::GetIRID(const FuncInfo* Func)
+{
+	auto FuncName = MangleName(Func);
+	return _Builder.ToID(FuncName);
 }
 
 void SystematicAnalysis::LogCantCastImplicitTypes(const Token* Token, const TypeSymbol& Ex1Type,const TypeSymbol& UintptrType,bool ReassignMode)
