@@ -244,4 +244,68 @@ void IROptimizer::ConstantFoldOperator(IRInstruction& I, IROperator& Value)
 		Get_IRData(Ptr).IsReferenced = true;
 	}
 }
+void IROptimizer::InLineFunc(InLineData& Data)
+{
+	IRInstruction* Call = Data.Block->Instructions[Data.CallIns].get();
+	IRFunc* CallFunc = nullptr;
+
+
+	auto FuncParsCount = CallFunc->Pars.size();
+	Vector<IRInstruction*> PushIns;//its Parameters are backwards
+	PushIns.resize(CallFunc->Pars.size());
+
+	for (int i = Data.CallIns - 1; i >= 0; i--)
+	{
+		IRInstruction* Ins = Data.Block->Instructions[Data.CallIns].get();
+		if (Ins->Type != IRInstructionType::PushParameter)
+		{
+			continue;
+		}
+
+		PushIns.push_back(Ins);
+		if (PushIns.size() == FuncParsCount) { break; }
+	}
+
+	{//move func at call site
+
+		for (auto& Block : CallFunc->Blocks)
+		{
+			for (auto& Item : Block->Instructions)
+			{
+				auto NewIns = std::make_unique<IRInstruction>(new IRInstruction(*Item));
+				
+				if (IsOperatorValueInTarget(NewIns->Type))
+				{
+					InLineSubOperator(Data, NewIns->Target());
+				}
+
+				if (IsOperatorValueInInput(NewIns->Type))
+				{
+					InLineSubOperator(Data, NewIns->Input());
+				}
+
+				//
+				Data.Block->Instructions.insert(Data.Block->Instructions.begin() + Data.CallIns,std::move(NewIns));
+			}
+		}
+	}
+
+}
+void IROptimizer::InLineSubOperator(InLineData& Data, IROperator& Op)
+{
+	IRInstruction* Call = Data.Block->Instructions[Data.CallIns].get();
+	IRFunc* CallFunc = nullptr;
+	if (Op.Type == IROperatorType::IRParameter)
+	{
+
+	}
+	else if (Op.Type == IROperatorType::DereferenceOf_IRParameter)
+	{
+
+	}
+	else if (Op.Type == IROperatorType::Get_PointerOf_IRParameter)
+	{
+
+	}
+}
 UCodeLangEnd
