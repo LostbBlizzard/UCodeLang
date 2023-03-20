@@ -216,7 +216,7 @@ private:
 	void AddDependencyToCurrentFile(const FileNode* file);
 	void AddDependencyToCurrentFile(const TypeSymbol& type);
 	Symbol& AddSybol(SymbolType type, const String& Name, const String& FullName);
-
+	bool IsVarableType(SymbolType type);
 	//
 	void Pass();
 	void OnFileNode(const FileNode* File);
@@ -499,6 +499,7 @@ private:
 		const ValueParametersNode& Pars,
 		TypeSymbol Ret);
 
+	void SetFuncRetAsLastEx(Get_FuncInfo& Info);
 	
 	bool IsCompatible(Symbol* Item, const Vector<TypeSymbol>& ValueTypes, bool _ThisTypeIsNotNull, const Token* Token);
 
