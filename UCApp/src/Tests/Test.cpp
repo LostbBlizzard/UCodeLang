@@ -372,6 +372,10 @@ Item.wait();
 
 		std::cout << "---Tests ended" << std::endl;
 		std::cout << "passed " << TestPassed << "/" << Tests.size() << " Tests" << std::endl;
+
+
+
+		
 	}
 
 	bool LogErrors(std::ostream& out, Compiler& _Compiler)

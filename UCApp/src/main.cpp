@@ -128,7 +128,7 @@ int main()
 
 	//_Compiler.Set_BackEnd(ULangTest::X86BackEnd_UCodeLib::MakeObject);
 
-	//for (size_t i = 0; i < 10; i++)
+	for (size_t i = 0; i < 1000; i++)
 	{
 
 		_Compiler.CompileFiles_UseIntDir(Data);

@@ -1,5 +1,5 @@
 #include "UCLibManger.hpp"
-
+#include "UCodeLang/Compliation/Helpers/NameDecoratior.hpp"
 UCodeLangStart
 UCLibManger::UCLibManger()
 {
@@ -69,6 +69,43 @@ void UCLibManger::LinkLib(UCodeLang::RunTimeLib* Item)
 	for (const auto& Item2 : Item->Get_CPPCalls())
 	{
 		_NameToCPP[Item2._Key] = Item2._Value;
+	}
+}
+
+Optional<UAddress> UCLibManger::FindAddress(const String& FunctionName)
+{
+	if (_NameToAddress.count(FunctionName))
+	{
+		return _NameToAddress[FunctionName];
+	}
+	else
+	{
+		auto tep = NameDecoratior::GetUnDecoratedName(FunctionName);
+		if (_NameToAddress.count(tep))
+		{
+			return _NameToAddress[tep];
+		}
+
+		return {};
+	}
+}
+
+Optional<RunTimeLib::CPPCallBack*> UCLibManger::FindCPPCall(const String& FunctionName)
+{
+	if (_NameToCPP.count(FunctionName))
+	{
+		return &_NameToCPP[FunctionName];
+	}
+	else
+	{
+		auto tep = NameDecoratior::GetUnDecoratedName(FunctionName);
+		if (_NameToCPP.count(tep))
+		{
+			return &_NameToCPP[tep];
+		}
+
+
+		return  {};
 	}
 }
 

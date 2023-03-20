@@ -43,11 +43,14 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 	do
 	{
 		_TypeFixer.FixTypes(Input);
-		auto S = Input->ToString();
-		
-		std::cout << "-----" << std::endl;
-		std::cout << S;
-		_UpdatedCode = false;
+
+		{//for debuging
+			//auto S = Input->ToString();
+
+			//std::cout << "-----" << std::endl;
+			//std::cout << S;
+		}
+			_UpdatedCode = false;
 		
 
 		return;
