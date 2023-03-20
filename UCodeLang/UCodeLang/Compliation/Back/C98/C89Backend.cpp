@@ -102,7 +102,7 @@ String C89Backend::ToString()
 
 				r += Tabs + "//Block \n";
 
-				Unordered_map<size_t, String> Names;
+				BinaryVectorMap<size_t, String> Names;
 				for (size_t i = 0; i < Block->Instructions.size(); i++)
 				{
 					auto& I = Block->Instructions[i];

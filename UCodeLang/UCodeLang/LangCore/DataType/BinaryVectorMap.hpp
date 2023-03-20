@@ -178,7 +178,7 @@ private:
 };
 
 
-//Use this To Map  without the possibility of a unordered_map collision uses a linear searc to Find Items
+//Use this To Map  without the possibility of a unordered_map collision uses a linear search to Find Items
 //Key should have the == overload
 template<typename Key, typename Value>
 class VectorMap

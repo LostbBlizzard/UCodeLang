@@ -289,7 +289,7 @@ private:
 
 	Vector<Byte> _Code;
 
-	Unordered_map<String, UAddress> _NameToPtr;
+	VectorMap<String, UAddress> _NameToPtr;
 	//Debug
 	Vector<Byte> _DebugBytes;
 	//

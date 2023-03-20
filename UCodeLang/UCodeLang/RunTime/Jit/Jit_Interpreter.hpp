@@ -4,6 +4,7 @@
 #include "UCodeLang/RunTime/Interpreters/Interpreter.hpp"
 #include "JitCompilers.h"
 #include "Jit_State.hpp"
+#include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
 UCodeLangStart
 
 
@@ -197,7 +198,7 @@ private:
 	size_t Insoffset = 0;
 
 	
-	Unordered_map<UAddress, JitFuncData> UFuncToCPPFunc;
+	BinaryVectorMap<UAddress, JitFuncData> UFuncToCPPFunc;
 	Vector<Byte> TepOutBuffer;
 	WakeUpCallBack WakeUp = nullptr;
 	

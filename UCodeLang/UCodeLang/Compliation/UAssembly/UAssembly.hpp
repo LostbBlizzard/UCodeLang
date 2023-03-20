@@ -38,7 +38,7 @@ public:
 	{
 		return "[&" + std::to_string(Pos) + "]";
 	}
-	static void OpValueToString(OpCodeType OpType,const AnyInt64& In,const Unordered_map<UAddress, String>& AddressToName,String& out, const UCodeLang::UClib* Lib);
+	static void OpValueToString(OpCodeType OpType,const AnyInt64& In,const BinaryVectorMap<UAddress, String>& AddressToName,String& out, const UCodeLang::UClib* Lib);
 private:
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;

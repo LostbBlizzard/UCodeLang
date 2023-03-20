@@ -182,7 +182,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		size_t Jumpto;
 	};
 	Vector<InsToUpdate_t> InsToUpdate;
-	Unordered_map<size_t, UAddress> IRToUCodeIns;
+	VectorMap<size_t, UAddress> IRToUCodeIns;
 
 	for (size_t i = 0; i < IR->Instructions.size(); i++)
 	{

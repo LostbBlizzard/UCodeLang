@@ -86,8 +86,8 @@ public:
 
 	void InitExCode();
 private:
-	Unordered_map<String, UAddress> _NameToAddress;
-	Unordered_map<String, RunTimeLib::CPPCallBack> _NameToCPP;
+	VectorMap<String, UAddress> _NameToAddress;
+	VectorMap<String, RunTimeLib::CPPCallBack> _NameToCPP;
 	Vector<Instruction> _Instructions;
 
 	Vector<Byte> _Code;
