@@ -26,24 +26,14 @@ public:
 class ClassMethod
 {
 public:
-	class ClassMethodPar
-	{
-	public:
-		String FullNameType;
-
-		ClassMethodPar()
-		{
-
-		}
-		ClassMethodPar(String FullNameType)
-		{
-			this->FullNameType = FullNameType;
-		}
-	};
-	Vector<AttributeData> Attributes;
 	String FullName;
-	Vector<ReflectionTypeInfo> ParsType;
+	String DecorationName;
+	
+	
 	ReflectionTypeInfo RetType;
+	Vector<ReflectionTypeInfo> ParsType;
+
+	Vector<AttributeData> Attributes;
 };
 class EnumValues
 {

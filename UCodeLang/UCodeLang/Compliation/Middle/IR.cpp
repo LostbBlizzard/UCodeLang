@@ -1,32 +1,11 @@
 #include "IR.hpp"
 UCodeLangStart
 
-bool In3list(char V,const char* N)
-{
-	for (size_t i = 0; i < strlen(N); i++)
-	{
-		if (N[i] == V) {
-			return true;
-		}
-	}
-	return false;
-}
+
 
 IRidentifierID IRBuilder::ToID(const IRidentifier& Value)
 {
 	String V = Value;
-
-
-	for (size_t i = 0; i < V.size(); i++)
-	{
-		auto C = V[i];
-
-
-		if (!In3list(C,"qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890"))
-		{
-			V[i] = '_';
-		}
-	}
 
 	auto r = std::hash<IRidentifier>()(V);
 	_Map[r] = V;
@@ -40,6 +19,27 @@ void IRBuilder::Reset()
 
 //uses UCodeLang syntax
 
+
+void IRBuilder::Fix_Size(IRStruct* Struct)
+{
+	size_t R = 0;
+
+	for (size_t i = 0; i < Struct->Fields.size(); i++)
+	{
+		auto& Item = Struct->Fields[i];
+		if (!Item.Offset.has_value())
+		{
+			size_t fieldsize = GetSize(Struct->Fields[i].Type);
+			R += fieldsize;
+			Item.Offset = R;
+		}
+	}
+	Struct->ObjectSize = R;
+}
+
+
+//for backends
+
 size_t IRBuilder::GetSize(const IRType& Type) const
 {
 	switch (Type._Type)
@@ -48,10 +48,42 @@ size_t IRBuilder::GetSize(const IRType& Type) const
 	case IRTypes::i16:return 2;
 	case IRTypes::i32:return 4;
 	case IRTypes::i64:return 8;
+
+	Pointer:
+	case IRTypes::pointer:return 8;
+	case IRTypes::IRsymbol:
+	{
+		const IRSymbolData* Sym = GetSymbol(Type._symbol);
+		switch (Sym->SymType)
+		{
+		case IRSymbolType::Struct:
+			return Sym->Get_ExAs<IRStruct>()->ObjectSize;
+			break;
+		case IRSymbolType::StaticArray:
+		{
+			auto V = Sym->Get_ExAs<IRStaticArray>();
+			return V->Count * GetSize(V->Type);
+		}
+		case IRSymbolType::FuncPtr:goto Pointer;
+		default:break;
+		}
+	}
+	break;
 	default:
 		throw std::exception("not added");
 		break;
 	}
+	return 0;
+}
+
+size_t IRBuilder::GetSize(const IRStruct* Struct) const
+{
+	return  Struct->ObjectSize;
+}
+
+size_t IRBuilder::GetOffset(const IRStruct* Struct, size_t Index) const
+{
+	return  Struct->Fields[Index].Offset.value();
 }
 
 String IRBuilder::ToString()

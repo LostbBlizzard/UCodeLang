@@ -50,7 +50,7 @@ public:
 	Return_t ThisCall(UAddress This, UAddress address);
 	UCodeLangForceinline Return_t ThisCall(UAddress This, const ClassMethod& Function)
 	{
-		return ThisCall(This, Function.FullName);
+		return ThisCall(This, Function.DecorationName);
 	}
 	//
 	
@@ -75,7 +75,7 @@ public:
 
 	template<typename... Args> UCodeLangForceinline Return_t ThisCall(UAddress This, const ClassMethod& Function, Args&&... parameters)
 	{
-		return ThisCall(This, Function.FullName);
+		return ThisCall(This, Function.DecorationName);
 	}
 
 
@@ -96,7 +96,7 @@ public:
 	template<typename T, typename... Args>
 	T RThisCall(PtrType This, const ClassMethod& Function, Args&&... parameters)
 	{
-		return RThisCall(This, Function.FullName, Args&&... parameters)
+		return RThisCall(This, Function.DecorationName, Args&&... parameters)
 	}
 	template<typename T, typename... Args> T RThisCall(PtrType This, const String& Function, Args&&... parameters)
 	{

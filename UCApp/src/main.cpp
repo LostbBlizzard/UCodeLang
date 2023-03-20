@@ -127,7 +127,12 @@ int main()
 	Settings._Flags = OptimizationFlags::Debug;
 
 	//_Compiler.Set_BackEnd(ULangTest::X86BackEnd_UCodeLib::MakeObject);
-	_Compiler.CompileFiles_UseIntDir(Data);
+
+	//for (size_t i = 0; i < 10; i++)
+	{
+
+		_Compiler.CompileFiles_UseIntDir(Data);
+	}
 
 	
 	

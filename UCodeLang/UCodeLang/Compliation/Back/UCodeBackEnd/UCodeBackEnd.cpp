@@ -588,6 +588,52 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			_InputPar = RegisterID::StartParameterRegister;
 		}
 		break;
+		
+
+		case IRInstructionType::Member_Access://Vec2.X
+		{
+			IRType ObjectType;
+			switch (Item.Target().Type)
+			{
+			case IROperatorType::IRInstruction:
+				ObjectType = Item.Target().Pointer->ObjectType;
+				break;
+			case IROperatorType::IRParameter:
+				ObjectType = Item.Target().Parameter->type;
+				break;
+			default:
+				throw std::exception("not added");
+				break;
+			}
+		}
+		break;
+		case IRInstructionType::Member_Access_Dereference://Vec2->X
+		{
+			IRType ObjectType = Item.ObjectType;
+			const IRStruct* Struct = _Input->GetSymbol(ObjectType._symbol)->Get_ExAs<IRStruct>();
+
+			size_t StructIndex = Item.Input().Value.AsUIntNative;
+			size_t Offset = _Input->GetOffset(Struct, StructIndex);
+
+			RegisterID B = LoadOp(Item, Item.Target());
+			LockRegister(B);
+
+			if (!Offset)
+			{
+				_Registers.WeakLockRegisterValue(B, &Item);
+			}
+			else
+			{
+				RegisterID tep = _Registers.GetFreeRegister();
+				InstructionBuilder::Store64(_Ins, tep, (UInt64)Offset); PushIns();
+				InstructionBuilder::Add64(_Ins, B,tep); PushIns();
+				_Registers.UnLockRegister(RegisterID::MathOuPutRegister);
+			}
+			_Registers.UnLockRegister(B);
+
+		}
+		break;
+		
 		default:
 			throw std::exception("not added");
 			break;
@@ -761,7 +807,25 @@ RegisterID UCodeBackEndObject::LoadOp(IRInstruction& Ins, IROperator Op)
 					break;
 				}
 				break;
+			case IRTypes::IRsymbol:
+			{
+				auto Syb = _Input->GetSymbol(PointerV->ObjectType._symbol);
+				switch (Syb->SymType)
+				{
+				case IRSymbolType::Struct:
+				{
+					const IRStruct* V = Syb->Get_ExAs<IRStruct>();
+					_Stack.Size += _Input->GetSize(V);
+				}
+				break;
+				default:
+					throw std::exception("not added");
+					break;
+				}
+			}
+				break;
 			default:
+
 				throw std::exception("not added");
 				break;
 			}
@@ -958,6 +1022,13 @@ RegisterID UCodeBackEndObject::FindOp(IRInstruction& Ins, IROperator Op)
 			else if (IsLocation(Op.Pointer->Type))
 			{
 				return LoadOp(*Op.Pointer,Op.Pointer->Target());
+			}
+			else if (Op.Pointer->Type == IRInstructionType::Member_Access_Dereference)
+			{
+				auto V = LoadOp(*Op.Pointer, Op.Pointer->Target());
+				auto r =  _Registers.GetFreeRegister();
+				InstructionBuilder::StoreFromPtrToReg64(_Ins, V, r); PushIns();
+				return r;
 			}
 			else
 			{

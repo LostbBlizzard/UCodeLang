@@ -70,7 +70,18 @@ struct TypeSymbol
 	bool _Isimmutable = false;
 	TypeValueInfo _ValueInfo = TypeValueInfo::IsValue;
 
+	TypeSymbol()
+	{
 
+	}
+	TypeSymbol(TypesEnum type)
+	{
+		SetType(type);
+	}
+	TypeSymbol(SymbolID type)
+	{
+		SetType(type);
+	}
 	
 	void SetType(TypesEnum type)
 	{
@@ -320,7 +331,7 @@ public:
 
 	}
 
-	FieldInfo* GetField(const String_view Name)
+	Optional< FieldInfo*> GetField(const String_view Name)
 	{
 		for (auto& Item : Fields)
 		{
@@ -328,9 +339,9 @@ public:
 				return &Item;
 			}
 		}
-		return nullptr;
+		return {};
 	}
-	size_t GetFieldIndex(const String_view Name) const
+	Optional<size_t> GetFieldIndex(const String_view Name) const
 	{
 		for (size_t i = 0; i < Fields.size(); i++)
 		{
@@ -339,7 +350,7 @@ public:
 			}
 		}
 	
-		return -1;
+		return {};
 	}
 
 	void AddField(const String_view Name, TypeSymbol Type)
@@ -484,19 +495,20 @@ public:
 class Symbol
 {
 public:
-	SymbolType Type;
+	SymbolType Type = SymbolType::Null;
 	String FullName;
-	SymbolID ID;
+	SymbolID ID = 0;
 	//var
-	UAddress Size=NullAddress;
 	TypeSymbol VarType;
 	//
 	const void* NodePtr =nullptr;//most likey a node*
 	Unique_ptr<Symbol_Info> Info;
-	
-	
 	const FileNode* _File = nullptr;
-	
+	union 
+	{
+		IRPar* IR_Par;
+		IRInstruction* IR_Ins = nullptr;
+	};
 
 
 	SymbolValidState ValidState = SymbolValidState::valid;
@@ -506,7 +518,7 @@ public:
 	void SetTovalid(){ValidState = SymbolValidState::valid;}
 	bool IsInvalid()const {return ValidState == SymbolValidState::Invalid;}
 	bool Isvalid()const { return !IsInvalid(); }
-	Symbol(): Type(SymbolType::Null), ID(0)
+	Symbol()
 	{
 
 	}
@@ -524,11 +536,7 @@ public:
 	{
 		return (T*)Info.get();
 	}
-	union 
-	{
-		IRPar* IR_Par;
-		IRInstruction* IR_Ins = nullptr;
-	};
+	
 };
 
 

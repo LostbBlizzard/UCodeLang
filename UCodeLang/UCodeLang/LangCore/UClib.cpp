@@ -140,11 +140,7 @@ void UClib::ToBytes(BitMaker& Output, const ClassData::Class_Data& ClassData)
 {
 	Output.WriteType((Size_tAsBits)ClassData.Size);
 
-	Output.WriteType((Size_tAsBits)ClassData.Attributes.size());
-	for (auto& Item2 : ClassData.Attributes)
-	{
-		ToBytes(Output, Item2);
-	}
+	ToBytes(Output, ClassData);
 
 	Output.WriteType((Size_tAsBits)ClassData.Fields.size());
 	for (auto& Item2 : ClassData.Fields)
@@ -154,6 +150,14 @@ void UClib::ToBytes(BitMaker& Output, const ClassData::Class_Data& ClassData)
 
 	Output.WriteType((Size_tAsBits)ClassData.Methods.size());
 	for (auto& Item2 : ClassData.Methods)
+	{
+		ToBytes(Output, Item2);
+	}
+}
+void UClib::ToBytes(UCodeLang::BitMaker& Output, const Vector<AttributeData>& Attributes)
+{
+	Output.WriteType((Size_tAsBits)Attributes.size());
+	for (auto& Item2 : Attributes)
 	{
 		ToBytes(Output, Item2);
 	}
@@ -171,7 +175,16 @@ void UClib::ToBytes(BitMaker& Output, const AttributeData& Data)
 void UClib::ToBytes(BitMaker& Output, const ClassMethod& Data)
 {
 	Output.WriteType(Data.FullName);
+	Output.WriteType(Data.DecorationName);
 
+	ToBytes(Output, Data.RetType);
+	Output.WriteType((Size_tAsBits)Data.ParsType.size());
+	for (auto& Item : Data.ParsType)
+	{
+		ToBytes(Output,Item);
+	}
+
+	ToBytes(Output, Data.Attributes);
 }
 void UClib::ToBytes(BitMaker& Output, const ReflectionTypeInfo& Data)
 {
@@ -425,20 +438,7 @@ void UClib::FromBytes(BitReader& reader, ClassData::Class_Data& Class)
 	reader.ReadType(_Classbits, _Classbits);
 	Class.Size = _Classbits;
 
-	union
-	{
-		Size_tAsBits  Attributes_Sizebits = 0;
-		size_t Attributes_Size;
-	};
-	reader.ReadType(Attributes_Sizebits, Attributes_Sizebits);
-	Attributes_Size = Attributes_Sizebits;
-
-	Class.Attributes.resize(Attributes_Size);
-	for (size_t i2 = 0; i2 < Attributes_Size; i2++)
-	{
-		auto& Item2 = Class.Attributes[i2];
-		FromBytes(reader, Item2);
-	}
+	FromBytes(reader, Class);
 
 
 	union
@@ -471,6 +471,23 @@ void UClib::FromBytes(BitReader& reader, ClassData::Class_Data& Class)
 		FromBytes(reader, Item2);
 	}
 }
+void UClib::FromBytes(BitReader& reader,Vector<AttributeData>& Attributes)
+{
+	union
+	{
+		Size_tAsBits  Attributes_Sizebits = 0;
+		size_t Attributes_Size;
+	};
+	reader.ReadType(Attributes_Sizebits, Attributes_Sizebits);
+	Attributes_Size = Attributes_Sizebits;
+
+	Attributes.resize(Attributes_Size);
+	for (size_t i2 = 0; i2 < Attributes_Size; i2++)
+	{
+		auto& Item2 = Attributes[i2];
+		FromBytes(reader, Item2);
+	}
+}
 void UClib::FromBytes(BitReader& reader, ClassField& Item2)
 {
 	reader.ReadType(Item2.Name, Item2.Name);
@@ -491,6 +508,30 @@ void UClib::FromBytes(BitReader& Input, AttributeData& Data)
 void UClib::FromBytes(BitReader& Input, ClassMethod& Data)
 {
 	Input.ReadType(Data.FullName, Data.FullName);
+	Input.ReadType(Data.DecorationName, Data.DecorationName);
+
+
+
+	FromBytes(Input, Data.RetType);
+
+	{
+		union
+		{
+			Size_tAsBits bits_Size_tAsBits = 0;
+			size_t bits;
+		};
+
+		Input.ReadType(bits_Size_tAsBits, bits_Size_tAsBits);
+
+		bits = bits_Size_tAsBits;
+		Data.ParsType.resize(bits);
+
+		for (size_t i = 0; i < bits; i++)
+		{
+			FromBytes(Input,Data.ParsType[i]);
+		}
+	}
+	FromBytes(Input, Data.Attributes);
 }
 void UClib::FromBytes(BitReader& Input, ReflectionTypeInfo& Data)
 {

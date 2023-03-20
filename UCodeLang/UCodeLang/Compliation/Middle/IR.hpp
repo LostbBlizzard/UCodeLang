@@ -339,7 +339,7 @@ struct IRSymbol_Ex
 struct IRStructField
 {
 	IRType Type;
-	size_t Offset=0;
+	Optional<size_t> Offset=0;
 };
 
 struct IRStruct : IRSymbol_Ex
@@ -737,20 +737,20 @@ struct IRBlock
 		return V.get();
 	}
 
-	IRInstruction* New_Member_Dereference(IRInstruction* ObjectSrc, const IRStruct* ObjectTypeofSrc, size_t MemberIndex)
+	IRInstruction* New_Member_Dereference(IRInstruction* ObjectSrc, const IRType Type, size_t MemberIndex)
 	{
 		auto& V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Member_Access_Dereference, IROperator(ObjectSrc)));
 		V->Input(MemberIndex);
 
-		V->ObjectType = ObjectTypeofSrc->Fields[MemberIndex].Type;
+		V->ObjectType = Type;
 		return V.get();
 	}
-	IRInstruction* New_Member_Dereference(IRPar* ObjectSrc, const IRStruct* ObjectTypeofSrc, size_t MemberIndex)
+	IRInstruction* New_Member_Dereference(IRPar* ObjectSrc, const IRType Type, size_t MemberIndex)
 	{
 		auto& V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Member_Access_Dereference, IROperator(ObjectSrc)));
 		V->Input(MemberIndex);
 
-		V->ObjectType = ObjectTypeofSrc->Fields[MemberIndex].Type;
+		V->ObjectType = Type;
 		return V.get();
 	}
 
@@ -832,8 +832,11 @@ struct IRSymbolData
 	{
 		return (T*)Ex.get();
 	}
+	 template<typename T>const T* Get_ExAs() const
+	{
+		return (T*)Ex.get();
+	}
 };
-
 
 
 class IRBuilder
@@ -1013,7 +1016,7 @@ public:
 			return V;
 		}
 	};
-	size_t GetSize(const IRType& Type)const;
+	
 
 	void AddField(IRStruct* V, IRType Type)
 	{
@@ -1024,6 +1027,12 @@ public:
 	String ToString(const IRType& Type);
 	String ToString(ToStringState& State,IRInstruction& Ins, IROperator& Value);
 	String ToStringBinary(ToStringState& State, IRInstruction* Ins, const char* V);
+	//pre backends
+	void Fix_Size(IRStruct* Struct);
+	//for backends
+	size_t GetSize(const IRType& Type)const;
+	size_t GetSize(const IRStruct* Struct) const;
+	size_t GetOffset(const IRStruct* Struct, size_t Index) const;
 };
 
 UCodeLangEnd

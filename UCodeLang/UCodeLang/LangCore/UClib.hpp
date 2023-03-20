@@ -250,6 +250,7 @@ public:
 	static void ToBytes(BitMaker& Output, const ClassAssembly& Assembly);
 	static void ToBytes(BitMaker& Output, const ClassData::Alias_Data& Alias);
 	static void ToBytes(BitMaker& Output, const ClassData::Class_Data& ClassData);
+	static void ToBytes(BitMaker& Output, const Vector<AttributeData>& Attributes);
 	static void ToBytes(BitMaker& Output, const ClassField& Item2);
 	static void ToBytes(BitMaker& Output, const AttributeData& Data);
 	static void ToBytes(BitMaker& Output, const ClassMethod& Data);
@@ -259,6 +260,7 @@ public:
 	static void FromBytes(BitReader& reader, ClassAssembly& Assembly);
 	static void FromBytes(BitReader& reader, ClassData::Enum_Data& Enum);
 	static void FromBytes(BitReader& reader, ClassData::Class_Data& Class);
+	static void FromBytes(BitReader& reader, Vector<AttributeData>& Attributes);
 	static void FromBytes(BitReader& reader, ClassField& Item2);
 	static void FromBytes(BitReader& reader, ClassData::Alias_Data& Alias);
 	static void FromBytes(BitReader& Input, AttributeData& Data);
