@@ -19,6 +19,22 @@ void IRTypeFixer::Reset()
 void IRTypeFixer::FixTypes(IRBuilder* Input)
 {
 	_Input = Input;
+
+	//FixSize
+	for (auto& Sys : _Input->_Symbols)
+	{
+		switch (Sys->SymType)
+		{
+		case IRSymbolType::Struct:
+		{
+			Input->Fix_Size(Sys->Get_ExAs<IRStruct>());
+		}
+			break;
+		default:
+			break;
+		}
+	}
+
 	for (auto& Func : _Input->Funcs)
 	{
 		for (auto& Block : Func->Blocks)
@@ -89,11 +105,39 @@ void IRTypeFixer::FixTypes(IRBuilder* Input)
 				}
 				else if (Ins->Type == IRInstructionType::Member_Access)
 				{
-					
+					if (Ins->Target().Type == IROperatorType::IRInstruction)
+					{
+						auto ClassType = Ins->Target().Pointer->ObjectType;
+						GetMemberAccessTypeForIns(ClassType, Input, Ins);
+					}
+					else if (Ins->Target().Type == IROperatorType::IRParameter)
+					{
+						auto ClassType = Ins->Target().Parameter->type;
+						GetMemberAccessTypeForIns(ClassType, Input, Ins);
+					}
+					else
+					{
+
+						throw std::exception("not added");
+					}
 				}
 				else if (Ins->Type == IRInstructionType::Member_Access_Dereference)
 				{
-					
+					if (Ins->Target().Type == IROperatorType::IRInstruction) 
+					{
+						auto ClassType = Ins->Target().Pointer->ObjectType;
+						GetMemberAccessTypeForIns(ClassType, Input, Ins);
+					}
+					else if (Ins->Target().Type == IROperatorType::IRParameter)
+					{
+						auto ClassType = Ins->Target().Parameter->type;
+						GetMemberAccessTypeForIns(ClassType, Input, Ins);
+					}
+					else
+					{
+
+						throw std::exception("not added");
+					}
 				}
 				else
 				{
@@ -104,13 +148,33 @@ void IRTypeFixer::FixTypes(IRBuilder* Input)
 		}
 	}
 }
+void IRTypeFixer::GetMemberAccessTypeForIns(UCodeLang::IRType& ClassType, UCodeLang::IRBuilder* Input, UCodeLang::Unique_ptr<UCodeLang::IRInstruction>& Ins)
+{
+	if (ClassType.IsType(IRTypes::IRsymbol))
+	{
+		auto Syb = Input->GetSymbol(ClassType._symbol);
+		auto StructType = Syb->Get_ExAs<IRStruct>();
+
+
+		Ins->ObjectType = StructType->Fields[Ins->Input().Value.AsUIntNative].Type;
+	}
+}
 void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op)
 {
 	//Ins->Type =
 
 	if (Op.Type == IROperatorType::IRInstruction)
 	{
-		Ins.ObjectType = Op.Pointer->ObjectType;
+		if (Op.Pointer->Type == IRInstructionType::Member_Access_Dereference)
+		{
+			auto& StructType = Op.Pointer->ObjectType;
+			auto Type = _Input->GetSymbol(StructType._symbol)->Get_ExAs<IRStruct>();
+			auto feildType = Type->Fields[Op.Pointer->Input().Value.AsUIntNative].Type;
+			Ins.ObjectType= feildType;
+		}
+		else {
+			Ins.ObjectType = Op.Pointer->ObjectType;
+		}
 	}
 	else if (Op.Type == IROperatorType::Get_PointerOf_IRInstruction
 		|| Op.Type == IROperatorType::Get_PointerOf_IRParameter

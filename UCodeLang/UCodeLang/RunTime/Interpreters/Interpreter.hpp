@@ -105,7 +105,7 @@ public:
 	}
 	UCodeLangForceinline Return_t ThisCall(PtrType This, const ClassMethod& Function)
 	{
-		return ThisCall((UAddress)This, Function.FullName);
+		return ThisCall((UAddress)This, Function.DecorationName);
 	}
 
 
@@ -136,7 +136,7 @@ public:
 	}
 	template<typename... Args> UCodeLangForceinline Return_t ThisCall(PtrType This, const ClassMethod& Function, Args&&... parameters)
 	{
-		return ThisCall((UAddress)This, Function.FullName, parameters);
+		return ThisCall((UAddress)This, Function.DecorationName, parameters);
 	}
 
 
@@ -159,7 +159,7 @@ public:
 	template<typename T,typename... Args>
 	T RThisCall(PtrType This, const ClassMethod& Function, Args&&... parameters)
 	{
-		return RThisCall(This, Function.FullName, Args&&... parameters)
+		return RThisCall(This, Function.DecorationName, Args&&... parameters)
 	}
 	template<typename T, typename... Args> T RThisCall(PtrType This, const String& Function, Args&&... parameters)
 	{

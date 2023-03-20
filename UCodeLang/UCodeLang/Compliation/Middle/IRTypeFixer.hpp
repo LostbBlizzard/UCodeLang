@@ -17,6 +17,7 @@ public:
 	}
 	void Reset();
 	void FixTypes(IRBuilder* Input);
+	void GetMemberAccessTypeForIns(UCodeLang::IRType& ClassType, UCodeLang::IRBuilder* Input, UCodeLang::Unique_ptr<UCodeLang::IRInstruction>& Ins);
 private:
 	IRBuilder* _Input=nullptr;
 	CompliationErrors* _Errs=nullptr;

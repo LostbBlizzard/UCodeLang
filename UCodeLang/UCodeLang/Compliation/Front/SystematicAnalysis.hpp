@@ -45,78 +45,20 @@ public:
 	};
 	const FileNodeData& GetFileData(const FileNode_t* file) const { return _FilesData.at(file); }
 private:
-	CompliationErrors* _ErrorsOutput = nullptr;
-	CompliationSettings* _Settings = nullptr;
-	UClib _Lib;
-
-	PassType passtype = PassType::Null;
-
-	const Vector<const FileNode*>* _Files = nullptr;
-	const Vector<const UClib*>* _Libs = nullptr;
-	SymbolTable _Table;
-	Stack<ClassInfo*> _ClassStack;
-
-	struct FuncStackInfo
+	//Types
+	struct BinaryExpressionNode_Data
 	{
-		FuncInfo* Pointer = nullptr;
-		bool IsOnRetStatemnt = false;
-		FuncStackInfo(FuncInfo* V)
+		TypeSymbol Op0;
+		TypeSymbol Op1;
+
+		//func to call
+		Symbol* FuncToCall = nullptr;
+		bool IsBuitIn()
 		{
-			Pointer = V;
+			return  FuncToCall == nullptr;
 		}
 	};
-
-	Vector<FuncStackInfo> _FuncStack;
-
-	inline bool IsDependencies(const FuncInfo* Value)
-	{
-		for (auto& Item : _FuncStack)
-		{
-			if (Item.Pointer == Value)
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-
-	inline FuncStackInfo* GetDependencies(const FuncInfo* Value)
-	{
-		for (auto& Item : _FuncStack)
-		{
-			if (Item.Pointer == Value)
-			{
-				return &Item;
-			}
-		}
-		return nullptr;
-	}
-
-
-	Vector< FuncInfo*>_RetLoopStack;
-	inline bool IsRetDependencies(const FuncInfo* Value)
-	{
-		for (auto& Item : _RetLoopStack)
-		{
-			if (Item == Value)
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-
-
-
-	Vector<const AttributeNode*> _TepAttributes;
-	bool _InStatements = false;
-	//IR Building
-	IRBuilder _Builder;
-	IRInstruction* _LastExpressionField = 0;
-	IRFunc* LookingAtIRFunc = nullptr;
-	IRBlock* LookingAtIRBlock = nullptr;
-
-
+	using IndexedExpresion_Data = BinaryExpressionNode_Data;
 	enum class  ObjectToDropType
 	{
 		IRInstruction,
@@ -134,115 +76,30 @@ private:
 		TypeSymbol Type;
 
 	};
-
+	struct NewFuncData
+	{
+		Unique_ptr<Vector<TypeSymbol>> Pointer;
+	};
 	struct IRCodeStackFrames
 	{
 		Vector< ObjectToDrop> OnEndStackFrame;
 
 
 	};
-
+	struct FuncStackInfo
+	{
+		FuncInfo* Pointer = nullptr;
+		bool IsOnRetStatemnt = false;
+		FuncStackInfo(FuncInfo* V)
+		{
+			Pointer = V;
+		}
+	};
 	struct IRLocation_Cotr
 	{
 		IRInstruction* Value=nullptr;
 		bool UsedlocationIR = false;
 	};
-
-	Stack<IRLocation_Cotr> IRlocations;//for Constructors
-	Vector<IRCodeStackFrames> StackFrames;
-	//
-
-	IRidentifierID ConveToIRClassIR(const Symbol& Class);
-	IRidentifierID ConveToStaticArray(const Symbol& Class);
-
-	IRType ConvertToIR(const TypeSymbol& Value);
-	BinaryVectorMap<SymbolID, IRidentifierID> SybToIRMap;
-
-
-	Stack<TypeSymbol> LookingForTypes;
-	TypeSymbol LastExpressionType;
-	TypeSymbol& Get_LookingForType()
-	{
-		return LookingForTypes.top();
-	}
-	const Token* LastLookedAtToken = nullptr;
-	//
-
-	void PushNewStackFrame();
-	void PopStackFrame();
-
-
-
-	struct NewFuncData
-	{
-		Unique_ptr<Vector<TypeSymbol>> Pointer;
-	};
-	Vector< NewFuncData> TepFuncs;
-	Vector<const ClassInfo*> ClassDependencies;
-	inline bool IsDependencies(const ClassInfo* Value)
-	{
-		for (auto Item : ClassDependencies)
-		{
-			if (Item == Value)
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-	inline void PushClassDependencie(const ClassInfo* Value)
-	{
-		ClassDependencies.push_back(Value);
-	}
-	inline void PopClassDependencie()
-	{
-		ClassDependencies.pop_back();
-	}
-
-
-	
-	
-
-	SymbolID GetSymbolID(const Node& node);
-	//File dependency analysis stuff
-	const FileNode* LookingAtFile = nullptr;
-
-
-	BinaryVectorMap<const FileNode_t*, FileNodeData> _FilesData;
-
-
-	const FileNode* Get_FileUseingSybol(Symbol* Syb);
-	void AddDependencyToCurrentFile(Symbol* Syb);
-	void AddDependencyToCurrentFile(const FileNode* file);
-	void AddDependencyToCurrentFile(const TypeSymbol& type);
-	Symbol& AddSybol(SymbolType type, const String& Name, const String& FullName);
-	bool IsVarableType(SymbolType type);
-	//
-	void Pass();
-	void OnFileNode(const FileNode* File);
-	void OnClassNode(const ClassNode& node);
-	void OnAliasNode(const AliasNode& node);
-	void OnUseingNode(const UsingNode& node);
-	void OnFuncNode(const FuncNode& node);
-	void OnStatement(const Unique_ptr<UCodeLang::Node>& node2);
-	void OnRetStatement(const RetStatementNode& node);
-	void OnEnum(const EnumNode& node);
-	void OnNamespace(const NamespaceNode& node);
-	void OnAttributeNode(const AttributeNode& node);
-	void OnNonAttributeable(size_t Line, size_t Pos);
-	String GetScopedNameAsString(const ScopedNameNode& node);
-	void OnDeclareVariablenode(const DeclareVariableNode& node);
-	void CantgussTypesTheresnoassignment(const Token* Token);
-	void OnAssignVariableNode(const AssignVariableNode& node);
-	void OnIfNode(const IfNode& node);
-	void OnWhileNode(const WhileNode& node);
-	void OnDoNode(const DoNode& node);
-	void OnDeclareStaticVariableNode(const DeclareStaticVariableNode& node);
-	void OnDeclareThreadVariableNode(const DeclareThreadVariableNode& node);
-
-
-	void FuncRetCheck(const Token& Name, const Symbol* FuncSyb, const FuncInfo* Func);
-
 	struct GetMemberTypeSymbolFromVar_t
 	{
 		Symbol* Symbol = nullptr;
@@ -272,15 +129,191 @@ private:
 			return (T*)V2;
 		}
 	};
-
-
 	enum class GetValueMode
 	{
 		Read,
 		Write,
 	};
-	Stack<GetValueMode> GetExpressionMode;
+	struct Get_FuncInfo
+	{
+		enum class ThisPar_t : UInt8
+		{
+			NoThisPar,
+			PushFromLast,
+			PushFromScopedName,
+			OnIRlocationStack,
+			OnIRlocationStackNonedef,
+			PushWasCalled,
+			AutoPushThis,
+		};
+		ThisPar_t ThisPar = ThisPar_t::NoThisPar;
+		const FuncInfo* Func = nullptr;
+		Symbol* SymFunc = nullptr;
+	};
+	struct ReadVarErrorCheck_t
+	{
+		bool CantFindVar = false;
+		bool VarIsInvalid = false;
+	};
+	struct EvaluatedEx
+	{
+		TypeSymbol Type;
+		RawEvaluatedObject EvaluatedObject;
+		bool HasValue()
+		{
+			return EvaluatedObject.HasValue();
+		}
+	};
+	struct GenericFuncInfo
+	{
+		String GenericFuncName;
+		const Vector<TypeSymbol>* GenericInput = nullptr;
+		const void* NodeTarget = nullptr;
+	};
+    //Members
+	CompliationErrors* _ErrorsOutput = nullptr;
+	CompliationSettings* _Settings = nullptr;
+	UClib _Lib;
 
+	PassType passtype = PassType::Null;
+
+	const Vector<const FileNode*>* _Files = nullptr;
+	const Vector<const UClib*>* _Libs = nullptr;
+	SymbolTable _Table;
+	Stack<ClassInfo*> _ClassStack;
+
+	
+	const FileNode* LookingAtFile = nullptr;
+	BinaryVectorMap<const FileNode_t*, FileNodeData> _FilesData;
+	BinaryVectorMap<const void*, BinaryExpressionNode_Data> BinaryExpressionNode_Datas;
+	BinaryVectorMap<const void*, IndexedExpresion_Data> IndexedExpresion_Datas;
+
+	Vector<FuncStackInfo> _FuncStack;
+
+	const Token* LastLookedAtToken = nullptr;
+
+	//
+	Stack<TypeSymbol> LookingForTypes;
+	TypeSymbol LastExpressionType;
+	BinaryVectorMap<const void*, Get_FuncInfo> FuncToSyboID;
+	Vector< NewFuncData> TepFuncs;
+	Vector<const ClassInfo*> ClassDependencies;
+	Vector< FuncInfo*>_RetLoopStack;
+	Vector<const AttributeNode*> _TepAttributes;
+	bool _InStatements = false;
+	//IR Building
+	IRBuilder _Builder;
+	IRInstruction* _LastExpressionField = 0;
+	IRFunc* LookingAtIRFunc = nullptr;
+	IRBlock* LookingAtIRBlock = nullptr;
+	Stack<IRLocation_Cotr> IRlocations;//for Constructors
+	Vector<IRCodeStackFrames> StackFrames;
+
+	
+	BinaryVectorMap<void*, SymbolID> _ConstantExpressionMap;
+	Stack<GetValueMode> GetExpressionMode;
+	
+
+	Stack<GenericFuncInfo> GenericFuncName;
+
+	//Funcs
+
+	IRidentifierID ConveToIRClassIR(const Symbol& Class);
+	IRidentifierID ConveToStaticArray(const Symbol& Class);
+
+	IRType ConvertToIR(const TypeSymbol& Value);
+	BinaryVectorMap<SymbolID, IRidentifierID> SybToIRMap;
+	void PushNewStackFrame();
+	void PopStackFrame();
+	TypeSymbol& Get_LookingForType()
+	{
+		return LookingForTypes.top();
+	}
+	SymbolID GetSymbolID(const Node& node);
+
+	//File dependency analysis stuff
+
+	inline bool IsDependencies(const ClassInfo* Value)
+	{
+		for (auto Item : ClassDependencies)
+		{
+			if (Item == Value)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	inline void PushClassDependencie(const ClassInfo* Value)
+	{
+		ClassDependencies.push_back(Value);
+	}
+	inline void PopClassDependencie()
+	{
+		ClassDependencies.pop_back();
+	}
+	inline bool IsDependencies(const FuncInfo* Value)
+	{
+		for (auto& Item : _FuncStack)
+		{
+			if (Item.Pointer == Value)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	inline FuncStackInfo* GetDependencies(const FuncInfo* Value)
+	{
+		for (auto& Item : _FuncStack)
+		{
+			if (Item.Pointer == Value)
+			{
+				return &Item;
+			}
+		}
+		return nullptr;
+	}
+	inline bool IsRetDependencies(const FuncInfo* Value)
+	{
+		for (auto& Item : _RetLoopStack)
+		{
+			if (Item == Value)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	const FileNode* Get_FileUseingSybol(Symbol* Syb);
+	void AddDependencyToCurrentFile(Symbol* Syb);
+	void AddDependencyToCurrentFile(const FileNode* file);
+	void AddDependencyToCurrentFile(const TypeSymbol& type);
+	Symbol& AddSybol(SymbolType type, const String& Name, const String& FullName);
+	bool IsVarableType(SymbolType type);
+	void Pass();
+	void OnFileNode(const FileNode* File);
+	void OnClassNode(const ClassNode& node);
+	void OnAliasNode(const AliasNode& node);
+	void OnUseingNode(const UsingNode& node);
+	void OnFuncNode(const FuncNode& node);
+	void OnStatement(const Unique_ptr<UCodeLang::Node>& node2);
+	void OnRetStatement(const RetStatementNode& node);
+	void OnEnum(const EnumNode& node);
+	void OnNamespace(const NamespaceNode& node);
+	void OnAttributeNode(const AttributeNode& node);
+	void OnNonAttributeable(size_t Line, size_t Pos);
+	String GetScopedNameAsString(const ScopedNameNode& node);
+	void OnDeclareVariablenode(const DeclareVariableNode& node);
+	void CantgussTypesTheresnoassignment(const Token* Token);
+	void OnAssignVariableNode(const AssignVariableNode& node);
+	void OnIfNode(const IfNode& node);
+	void OnWhileNode(const WhileNode& node);
+	void OnDoNode(const DoNode& node);
+	void OnDeclareStaticVariableNode(const DeclareStaticVariableNode& node);
+	void OnDeclareThreadVariableNode(const DeclareThreadVariableNode& node);
+	void FuncRetCheck(const Token& Name, const Symbol* FuncSyb, const FuncInfo* Func);
 	bool GetMemberTypeSymbolFromVar(size_t Start, size_t End, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out);
 	bool GetMemberTypeSymbolFromVar(size_t Start, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
 	{
@@ -296,13 +329,9 @@ private:
 	IRInstruction* BuildMember_AsValue(const GetMemberTypeSymbolFromVar_t& In);
 	void BuildMember_Access(const GetMemberTypeSymbolFromVar_t& In, IRInstruction*& Output);
 	void BuildMember_Reassignment(const GetMemberTypeSymbolFromVar_t& In, const TypeSymbol& Type, IRInstruction* Value);
-
 	Symbol* GetTepFuncPtrSyb(const String& TepFuncPtr, const FuncInfo* Finfo);
-
 	String GetTepFuncPtrName(Symbol* SymbolVar);
 	String_view GetTepFuncPtrNameAsName(const String_view Str);
-
-
 
 	void OnPostfixVariableNode(const PostfixVariableNode& node);
 	void OnCompoundStatementNode(const CompoundStatementNode& node);
@@ -311,43 +340,22 @@ private:
 	void OnNewNode(NewExpresionNode* nod);
 	void OnAnonymousObjectConstructor(AnonymousObjectConstructorNode*& nod);
 	void OnReadVariable(const ReadVariableNode& nod);
-
 	Byte OperatorPrecedenceValue(const Node* node);
 	Byte OperatorPrecedence(TokenType V);
 	bool SwapForOperatorPrecedence(const Node* nodeA, const Node* nodeB);
-
 	void OnExpressionNode(const BinaryExpressionNode& node);
-
-	struct BinaryExpressionNode_Data
-	{
-		TypeSymbol Op0;
-		TypeSymbol Op1;
-
-		//func to call
-		Symbol* FuncToCall = nullptr;
-		bool IsBuitIn()
-		{
-			return  FuncToCall == nullptr;
-		}
-	};
-	BinaryVectorMap<const void*, BinaryExpressionNode_Data> BinaryExpressionNode_Datas;
-
-	using IndexedExpresion_Data = BinaryExpressionNode_Data;
-	BinaryVectorMap<const void*, IndexedExpresion_Data> IndexedExpresion_Datas;
-
 	void OnExpressionNode(const CastNode& node);
 	void OnExpressionNode(const IndexedExpresionNode& node);
-
 	void OnFuncCallNode(const FuncCallNode& node);
 	void OnDropStatementNode(const DropStatementNode& node);
 	void PushTepAttributesInTo(Vector<AttributeData>& Input);
 	void LoadLibSymbols();
 	void LoadLibSymbols(const UClib& lib);
-	UCodeLangForceinline auto OutputType()
+	auto OutputType()
 	{
 		return  _Settings->_Type;
 	}
-	UCodeLangForceinline auto OutputTypeAsLibType()
+	auto OutputTypeAsLibType()
 	{
 		return   OutputType() == OutPutType::Lib ? LibType::Lib : LibType::Dll;
 	}
@@ -359,7 +367,6 @@ private:
 
 	bool AreTheSame(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
 	bool AreTheSameWithOutimmutable(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
-
 	bool HasBinaryOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
 	bool HasCompoundOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
 	bool HasPostfixOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp);
@@ -376,6 +383,7 @@ private:
 
 	void Convert(const TypeNode& V, TypeSymbol& Out);
 	void ConvertAndValidateType(const TypeNode& V, TypeSymbol& Out);
+	TypeSymbol ConvertAndValidateType(const TypeNode& V);
 	bool ValidateType(const TypeSymbol& V,const Token* Token);
 
 	Symbol* GetSymbol(const ClassInfo* Info)
@@ -450,54 +458,38 @@ private:
 	bool IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode);
 
 	bool HasDestructor(const TypeSymbol& TypeToCheck);
-	//Generic
-	struct GenericFuncInfo
+
+	Optional<size_t> GetSize(const TypeSymbol& Type)
 	{
-		String GenericFuncName;
-		const Vector<TypeSymbol>* GenericInput = nullptr;
-		const void* NodeTarget = nullptr;
-	};
-
-	Stack<GenericFuncInfo> GenericFuncName;
-
+		UAddress V;
+		if (GetSize(Type, V))
+		{
+			return V;
+		}
+		return {};
+	}
 	bool GetSize(const TypeSymbol& Type, UAddress& OutSize);
+
+	Optional<size_t> GetOffset(const ClassInfo& Type, const FieldInfo* Field)
+	{
+		UAddress V;
+		if (GetOffset(Type, Field, V))
+		{
+			return V;
+		}
+		return {};
+	}
 	bool GetOffset(const ClassInfo& Type, const FieldInfo* Field, UAddress& OutOffset);
 
-	struct Get_FuncInfo
-	{
-		enum class ThisPar_t : UInt8
-		{
-			NoThisPar,
-			PushFromLast,
-			PushFromScopedName,
-			OnIRlocationStack,
-			OnIRlocationStackNonedef,
-			PushWasCalled,
-			AutoPushThis,
-		};
-		ThisPar_t ThisPar = ThisPar_t::NoThisPar;
-		const FuncInfo* Func = nullptr;
-		Symbol* SymFunc = nullptr;
-	};
 
-	Get_FuncInfo GetFunc(
-		const TypeSymbol& Name,
-		const ValueParametersNode& Pars);;
 
-	Get_FuncInfo GetFunc(
-		const ScopedNameNode& Name,
-		const ValueParametersNode& Pars,
-		TypeSymbol Ret)
+	Get_FuncInfo GetFunc(const TypeSymbol& Name,const ValueParametersNode& Pars);
+	Get_FuncInfo GetFunc(const ScopedNameNode& Name,const ValueParametersNode& Pars,TypeSymbol Ret)
 	{
 		UseGenericsNode generics;
 		return GetFunc(Name, generics, Pars, Ret);
 	};
-
-	Get_FuncInfo GetFunc(
-		const ScopedNameNode& Name,
-		const UseGenericsNode&,
-		const ValueParametersNode& Pars,
-		TypeSymbol Ret);
+	Get_FuncInfo GetFunc(const ScopedNameNode& Name,const UseGenericsNode&,const ValueParametersNode& Pars,TypeSymbol Ret);
 
 	void SetFuncRetAsLastEx(Get_FuncInfo& Info);
 	
@@ -512,61 +504,42 @@ private:
 	void GenericFuncInstantiate(Symbol* Func, const Vector<TypeSymbol>& GenericInput);
 
 	String GetGenericFuncName(Symbol* Func, const Vector<TypeSymbol>& Type);
+	
 
 	void GenericTypeInstantiate(Symbol* Class, const Vector<TypeSymbol>& Type);
 
-	BinaryVectorMap<const void*, Get_FuncInfo> FuncToSyboID;
-	// ConstantExpression
-	struct EvaluatedEx
-	{
-		TypeSymbol Type;
-		RawEvaluatedObject EvaluatedObject;
-		bool HasValue()
-		{
-			return EvaluatedObject.HasValue();
-		}
-	};
 	EvaluatedEx MakeEx(const TypeSymbol& Type);
 	RawEvaluatedObject MakeExr(const TypeSymbol& Type);
 	void* Get_Object(const TypeSymbol& Input, const RawEvaluatedObject& Input2);
 	void* Get_Object(const EvaluatedEx& Input);
 
 	bool ConstantExpressionAbleType(const TypeSymbol& Type);
-
-
 	bool EvaluateDefaultConstructor(EvaluatedEx& Out);
 	bool Evaluate(EvaluatedEx& Out, const ValueExpressionNode& node);
 	bool Evaluate(EvaluatedEx& Out, const BinaryExpressionNode& node);
 	bool Evaluate(EvaluatedEx& Out, const CastNode& node);
 	bool Evaluate_t(EvaluatedEx& Out, const Node* node);
-
 	bool EvaluatePostfixOperator(EvaluatedEx& Out, TokenType Op);
 	bool HasConstantPostfixOperator(const TypeSymbol& Type, TokenType Op);
-
 	bool CanEvaluateImplicitConversionConstant(const TypeSymbol& Type, const TypeSymbol& ToType);
 	bool EvaluateImplicitConversion(EvaluatedEx& In, const TypeSymbol& ToType, EvaluatedEx& out);
-
-	BinaryVectorMap<void*, SymbolID> _ConstantExpressionMap;
 
 	//IR
 	void DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Name, const ValueParametersNode& Pars);
 	void DoFuncCall(const TypeSymbol& Type, const Get_FuncInfo& Func, ValueParametersNode& ValuePars);
 
-
 	void DoDestructorCall(const ObjectToDrop& Object);
-
-
 
 	IRInstruction* IR_Load_UIntptr(UAddress Value);
 	IRInstruction* IR_Load_SIntptr(SIntNative Value);
-	IRInstruction* Build_Add_uIntPtr(IROperator field, IROperator field2);
-	IRInstruction* Build_Sub_uIntPtr(IROperator field, IROperator field2);
-	IRInstruction* Build_Add_sIntPtr(IROperator field, IROperator field2);
-	IRInstruction* Build_Sub_sIntPtr(IROperator field, IROperator field2);
+	IRInstruction* Build_Add_uIntPtr(IRInstruction* field, IRInstruction* field2);
+	IRInstruction* Build_Sub_uIntPtr(IRInstruction* field, IRInstruction* field2);
+	IRInstruction* Build_Add_sIntPtr(IRInstruction* field, IRInstruction* field2);
+	IRInstruction* Build_Sub_sIntPtr(IRInstruction* field, IRInstruction* field2);
 	IRInstruction* Build_Mult_uIntPtr(IRInstruction* field, IRInstruction* field2);
 	IRInstruction* Build_Mult_sIntPtr(IRInstruction* field, IRInstruction* field2);
-	IRInstruction* Build_Div_uIntPtr(IROperator field, IROperator field2);
-	IRInstruction* Build_Div_sIntPtr(IROperator field, IROperator field2);
+	IRInstruction* Build_Div_uIntPtr(IRInstruction* field, IRInstruction* field2);
+	IRInstruction* Build_Div_sIntPtr(IRInstruction* field, IRInstruction* field2);
 	void Build_Increment_uIntPtr(IRInstruction* field, UAddress Value);
 	void Build_Decrement_uIntPtr(IRInstruction* field, UAddress Value);
 	void Build_Increment_sIntPtr(IRInstruction* field, SIntNative Value);
@@ -621,15 +594,11 @@ private:
 	void LogBeMoreSpecifiicWithStaticArrSize(const Token* Token, const TypeSymbol& Type);
 
 	String ToString(SymbolType Value);
-
-	struct ReadVarErrorCheck_t
-	{
-		bool CantFindVar = false;
-		bool VarIsInvalid = false;
-	};
 	ReadVarErrorCheck_t LogTryReadVar(String_view VarName, const Token* Token, const Symbol* Syb);
 	void CheckVarWritingErrors(Symbol* Symbol, const Token* Token, String_view& Name);
 
+
+	String MangleName(const FuncInfo* Func);
 };
 UCodeLangFrontEnd
 
