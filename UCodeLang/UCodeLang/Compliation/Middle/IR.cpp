@@ -358,12 +358,12 @@ String IRBuilder::ToString()
 
 					for (auto& Item : Names)
 					{
-						if (Item.first == i)
+						if (Item._Key == i)
 						{
-r += Tabs;
-							r += Item.second + ":";
+							r += Tabs;
+							r += Item._Value + ":";
 							r += "\n";
-							
+
 						}
 					}
 				}

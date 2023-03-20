@@ -3,12 +3,10 @@
 #include "../LangCore.hpp"
 #include "../LangCore/ReflectionData.hpp"
 #include "UCodeLang/LangCore/BitMaker.hpp"
+#include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
 UCodeLangStart
 
-struct MyStruct
-{
-	
-};
+
 
 using LibType_t = UInt8;
 enum class LibType : LibType_t

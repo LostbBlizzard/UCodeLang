@@ -13,8 +13,8 @@ class BinaryVectorMap
 
 public:
 	using ConstKey = const Key&;
-	using HashValue = size_t;
-private:
+	using HashValue = Key;
+
 	struct VectorBase
 	{
 		HashValue _Key{};
@@ -34,7 +34,7 @@ private:
 
 		~VectorBase(){}
 	};
-public:
+	
 
 	BinaryVectorMap() {}
 	~BinaryVectorMap(){}
@@ -77,10 +77,12 @@ public:
 
 	Value& GetValue(ConstKey key)
 	{
+		#ifdef DEBUG
 		if (!HasValue(key))
 		{
 			throw std::exception("there no Value for the key");
 		}
+		#endif // DEBUG
 		return 	GetBase(key)->_Value;
 	}
 	const Value& GetValue(ConstKey key) const
@@ -116,14 +118,44 @@ public:
 	{
 		return  GetValue(key);
 	}
-	size_t count() const { return HasValue(); }
+	size_t count(ConstKey key) const { return HasValue(key); }
 
+	//
 	void clear() {Base.clear();}
 	size_t size() const { return Base.size(); }
 	size_t capacity() const { return Base.capacity(); }
+	void reserve(size_t capacity) { Base.reserve(capacity); }
+
+	using _VectorBase = Vector<VectorBase>;
+	using iterator = typename _VectorBase::iterator;
+	using const_iterator = typename _VectorBase::const_iterator;
+
+	iterator  begin(){ OrderedCheck(); return Base.begin(); }
+	iterator  end(){ return Base.end(); }
+
+	const_iterator begin() const { return Base.begin(); }
+	const_iterator end()const { return Base.end(); }
+
+	iterator erase(const_iterator _Where)
+	{
+		return Base.erase(_Where);
+	}
+	iterator erase(ConstKey _Where)
+	{
+		#ifdef DEBUG
+
+		if (!HasBase(_Where))
+		{
+			throw std::exception("there no Value for the key");
+		}
+
+		#endif // DEBUG
+		return Base.erase(Base.begin() + GetBaseIndex(_Where).value());
+	}
+
 private:
-	Vector<VectorBase> Base;
-	bool IsOrdered = false;
+	_VectorBase Base;
+	bool IsOrdered = false; 
 	void AddVectorBase(VectorBase&& Value)
 	{
 		IsOrdered = false;
@@ -148,32 +180,42 @@ private:
 	{
 		return  GetBase(V) != nullptr;
 	}
+
 	const VectorBase* GetBase(ConstKey V) const
 	{
-		HashValue hash = Hash(V);
-		for (auto& Item : Base)
+		auto index = GetBaseIndex(V);
+
+		if (index)
 		{
-			if (Item._Key == hash)
-			{
-				return &Item;
-			}
+			auto item = *index;
+			return &Base[item];
+		}
+		return nullptr;
+	}
+	VectorBase* GetBase(ConstKey V)
+	{
+		auto index = GetBaseIndex(V);
+
+		if (index)
+		{
+			auto item = *index;
+			return &Base[item];
 		}
 		return nullptr;
 	}
 
-	VectorBase* GetBase(ConstKey V)
+	const Optional<size_t> GetBaseIndex(ConstKey V) const
 	{
-		OrderedCheck();
-
 		HashValue hash = Hash(V);
-		for (auto& Item : Base)
+		for (size_t i = 0; i < Base.size(); i++)
 		{
-			if (Item._Key == hash)
+			if (Base[i]._Key == hash)
 			{
-				return &Item;
+				return i;
 			}
 		}
-		return nullptr;
+
+		return {};
 	}
 };
 
@@ -187,7 +229,7 @@ class VectorMap
 public:
 	using ConstKey = const Key&;
 	using HashValue = Key;
-private:
+
 	struct VectorBase
 	{
 		HashValue _Key{};
@@ -207,8 +249,7 @@ private:
 
 		~VectorBase() {}
 	};
-public:
-
+	
 	VectorMap() {}
 	~VectorMap() {}
 
@@ -252,10 +293,13 @@ public:
 
 	Value& GetValue(ConstKey key)
 	{
+		#ifdef DEBUG
 		if (!HasValue(key))
 		{
 			throw std::exception("there no Value for the key");
 		}
+		#endif // DEBUG
+		
 		return 	GetBase(key)->_Value;
 	}
 	const Value& GetValue(ConstKey key) const
@@ -293,11 +337,41 @@ public:
 	{
 		return  GetValue(key);
 	}
-	size_t count(ConstKey key) const { return HasValue(); }
+	size_t count(ConstKey key) const { return HasValue(key); }
 
 	void clear() { Base.clear(); }
 	size_t size() const { return Base.size(); }
 	size_t capacity() const { return Base.capacity(); }
+	void reserve(size_t capacity) { Base.reserve(capacity); }
+
+
+	using _VectorBase = Vector<VectorBase>;
+	using iterator = typename _VectorBase::iterator;
+	using const_iterator = typename _VectorBase::const_iterator;
+
+	iterator  begin(){return Base.begin(); }
+	iterator  end() { return Base.end(); }
+
+	const_iterator begin() const { return Base.begin(); }
+	const_iterator end() const { return Base.end(); }
+
+	iterator erase(const_iterator _Where)
+	{ 
+		return Base.erase(_Where);
+	}
+	iterator erase(ConstKey _Where)
+	{
+		#ifdef DEBUG
+
+		if (!HasBase(_Where))
+		{
+			throw std::exception("there no Value for the key");
+		}
+		
+		#endif // DEBUG
+		return Base.erase(Base.begin() + GetBaseIndex(_Where).value());
+	}
+
 private:
 	Vector<VectorBase> Base;
 	void AddVectorBase(VectorBase&& Value)
@@ -314,29 +388,40 @@ private:
 	}
 	const VectorBase* GetBase(ConstKey V) const
 	{
-		HashValue hash = Hash(V);
-		for (auto& Item : Base)
+		auto index = GetBaseIndex(V);
+		
+		if (index)
 		{
-			if (Item._Key == hash)
-			{
-				return &Item;
-			}
+			auto item = *index;
+			return &Base[item];
+		}
+		return nullptr;
+	}
+	VectorBase* GetBase(ConstKey V)
+	{
+		auto index = GetBaseIndex(V);
+
+		if (index)
+		{
+			auto item = *index;
+			return &Base[item];
 		}
 		return nullptr;
 	}
 
-	VectorBase* GetBase(ConstKey V)
+	const Optional<size_t> GetBaseIndex(ConstKey V) const
 	{
-		
 		HashValue hash = Hash(V);
-		for (auto& Item : Base)
+		for (size_t i = 0; i < Base.size(); i++)
 		{
-			if (Item._Key == hash)
+			if (Base[i]._Key == hash)
 			{
-				return &Item;
+				return i;
 			}
 		}
-		return nullptr;
+	
+		return {};
 	}
+
 };
 UCodeLangEnd

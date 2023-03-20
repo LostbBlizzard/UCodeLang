@@ -42,8 +42,8 @@ private:
 		bool IsfakePtr;
 		NSize_t Size;
 	};
-	BinaryVectorMap<PtrType, MemData> _Data;
-	BinaryVectorMap<PtrType, MemData> _ReservedData;
+	VectorMap<PtrType, MemData> _Data;
+	VectorMap<PtrType, MemData> _ReservedData;
 	Vector<void*> Tep_Values;
 	PtrType FindReservedPtr(NSize_t Size);
 };

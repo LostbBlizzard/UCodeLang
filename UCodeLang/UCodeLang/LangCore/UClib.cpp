@@ -59,8 +59,8 @@ BytesPtr UClib::ToRawBytes(const UClib* Lib)
 		Output.WriteType((Size_tAsBits)Lib->_NameToPtr.size());
 		for (auto& Item : Lib->_NameToPtr)
 		{
-			Output.WriteType(Item.first);
-			Output.WriteType((Size_tAsBits)Item.second);
+			Output.WriteType(Item._Key);
+			Output.WriteType((Size_tAsBits)Item._Value);
 		}
 	}
 

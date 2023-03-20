@@ -245,10 +245,10 @@ String C89Backend::ToString()
 
 					for (auto& Item : Names)
 					{
-						if (Item.first == i)
+						if (Item._Key == i)
 						{
 							r += Tabs;
-							r += Item.second + ":";
+							r += Item._Value + ":";
 							r += "\n";
 
 						}

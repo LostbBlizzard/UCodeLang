@@ -27,7 +27,7 @@ String UAssembly::ToString(const UClib* Lib)
 	BinaryVectorMap<UAddress, String> AddressToName;
 	for (const auto& Item2 : Lib->Get_NameToPtr())
 	{
-		AddressToName[Item2.second] = Item2.first;
+		AddressToName[Item2._Value] = Item2._Key;
 	}
 	r += "[ClassData]-- \n";
 	
