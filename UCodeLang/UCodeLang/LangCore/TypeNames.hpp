@@ -48,7 +48,9 @@
 
 #define DLLCallAttributeName "DLL"
 
-
+//Op
+#define Overload_Plus_Func CompilerGenerated("Plus")
+#define Overload_minus_Func CompilerGenerated("minus")
 
 //standard Library
 #define UCode_OptionalType "Optional"//int?

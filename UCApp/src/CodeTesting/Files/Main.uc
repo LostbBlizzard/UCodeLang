@@ -1,11 +1,19 @@
 
 
-enum Colors:
- Red,
- Green,
- Blue,
+$Vec2i:
+ int X;
+ int Y;
+ |new[this&] -> void;
+ |new[this&,int x,int y]:
+  X = x;
+  Y = y;
+
+ |+[this&,this& Other] -> this:
+  ret [X + Other.X,Y + Other.Y];
 
 
 |main[] -> var:
+ Vec2i A = [1,1];
+ Vec2i B = [2,2];
 
- ret Colors::Red;
+ ret B + A;
