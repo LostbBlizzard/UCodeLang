@@ -476,24 +476,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 	FuncInfo::FuncType FuncType = FuncInfo::FuncType::NameFunc;
 
-	if (NameToken->Type == TokenType::KeyWorld_new)
-	{
-		FuncName = ClassConstructorfunc;
-		FuncType = FuncInfo::FuncType::New;
-		if (_ClassStack.empty())
-		{
-			CantUseThisKeyWordHereError(NameToken);
-		}
-	}
-	else if (NameToken->Type == TokenType::KeyWorld_Drop)
-	{
-		FuncName = ClassDestructorFunc;
-		FuncType = FuncInfo::FuncType::Drop;
-		if (_ClassStack.empty())
-		{
-			CantUseThisKeyWordHereError(NameToken);
-		}
-	}
+	FuncGetName(NameToken, FuncName, FuncType);
 
 
 
@@ -770,34 +753,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		}
 
 
-		ClassData* Ptr = nullptr;
-		{
-			if (_ClassStack.empty())
-			{
-				auto& Assembly = _Lib.Get_Assembly();
-
-				auto globalAssemblyObjectName = (String_view)ScopeHelper::_globalAssemblyObject;
-
-				Ptr = Assembly.Find_Class(globalAssemblyObjectName);
-				if (Ptr == nullptr)
-				{
-					Ptr = &_Lib.Get_Assembly().AddClass(String(globalAssemblyObjectName), String(globalAssemblyObjectName));
-				}
-			}
-			else
-			{
-				auto& Assembly = _Lib.Get_Assembly();
-				for (auto& Item : Assembly.Classes)
-				{
-					if (Item->FullName == ScopeHelper::GetReMoveScope((String_view)FullName))
-					{
-						Ptr = Item.get();
-						break;
-					}
-
-				}
-			}
-		}
+		ClassData* Ptr = GetAssemblyClass(FullName);
 
 		ClassMethod V;
 		V.FullName = FullName;
@@ -935,11 +891,84 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 	syb->PassState = passtype;
 }
+void SystematicAnalysis::FuncGetName(const UCodeLang::Token* NameToken, std::string_view& FuncName, UCodeLang::FrontEnd::FuncInfo::FuncType& FuncType)
+{
+	bool ObjectOverLoad = false;
+	switch (NameToken->Type)
+	{
+	case TokenType::KeyWorld_new:
+		FuncName = ClassConstructorfunc;
+		FuncType = FuncInfo::FuncType::New;
+		ObjectOverLoad = true;
+		break;
+	case TokenType::KeyWorld_Drop:
+		FuncName = ClassDestructorFunc;
+		FuncType = FuncInfo::FuncType::Drop;
+		ObjectOverLoad = true;
+		break;
+	case TokenType::Name:
+		break;
+	default:
+
+
+		for (auto& Item : Systematic_BinaryOverloadData::Data)
+		{
+			if (NameToken->Type == Item.token)
+			{
+				FuncName = Item.CompilerName;
+				FuncType = Item.Type;
+				ObjectOverLoad = true;
+				goto DoStuff;
+			}
+		}
+
+		throw std::exception("not added");
+		break;
+	}
+
+	DoStuff:
+	if (ObjectOverLoad) 
+	{
+		if (_ClassStack.empty())
+		{
+			CantUseThisKeyWordHereError(NameToken);
+		}
+	}
+}
+ClassData* SystematicAnalysis::GetAssemblyClass(const String& FullName)
+{
+	if (_ClassStack.empty())
+	{
+		auto& Assembly = _Lib.Get_Assembly();
+
+		auto globalAssemblyObjectName = (String_view)ScopeHelper::_globalAssemblyObject;
+
+		auto Ptr =  Assembly.Find_Class(globalAssemblyObjectName);
+		if (Ptr == nullptr)
+		{
+			return &_Lib.Get_Assembly().AddClass(String(globalAssemblyObjectName), String(globalAssemblyObjectName));
+		}
+		return Ptr;
+	}
+	else
+	{
+		auto& Assembly = _Lib.Get_Assembly();
+		auto ClassName = ScopeHelper::GetReMoveScope((String_view)FullName);
+		for (auto& Item : Assembly.Classes)
+		{
+			if (Item->FullName == ClassName)
+			{
+				return Item.get();
+			}
+
+		}
+	}
+	throw std::exception("bad path");
+}
 void SystematicAnalysis::FuncRetCheck(const Token& Name, const Symbol* FuncSyb, const FuncInfo* Func)
 {
 	switch (Func->_FuncType)
 	{
-	case FuncInfo::FuncType::Copy_Ctor:
 	case FuncInfo::FuncType::Drop:
 	case FuncInfo::FuncType::New:
 	{
@@ -954,7 +983,13 @@ void SystematicAnalysis::FuncRetCheck(const Token& Name, const Symbol* FuncSyb, 
 	case FuncInfo::FuncType::NameFunc:
 		break;
 	default:
-		throw std::exception("not added");
+		if (FuncInfo::IsBinaryOverload(Func->_FuncType))
+		{
+			if (Func->Pars.size() != 2) 
+			{
+				LogBinaryOverloadPars(Name, Func);
+			}
+		}
 		break;
 	}
 }
@@ -981,6 +1016,7 @@ IRidentifierID SystematicAnalysis::ConveToIRClassIR(const Symbol& Class)
 	}
 
 	SybToIRMap[ClassSybID] = V;
+	return V;
 }
 
 IRidentifierID SystematicAnalysis::ConveToStaticArray(const Symbol& Class)
@@ -998,6 +1034,7 @@ IRidentifierID SystematicAnalysis::ConveToStaticArray(const Symbol& Class)
 
 
 	SybToIRMap[ClassSybID] = V;
+	return V;
 }
 
 IRType SystematicAnalysis::ConvertToIR(const TypeSymbol& Value)
@@ -2143,6 +2180,7 @@ IRInstruction* SystematicAnalysis::BuildMember_DereferenceValue(const GetMemberT
 	default:
 		break;
 	}
+	throw std::exception("bad path");
 }
 IRInstruction* SystematicAnalysis::BuildMember_AsValue(const GetMemberTypeSymbolFromVar_t& In)
 {
@@ -3879,17 +3917,24 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 	}
 
 	BinaryExpressionNode_Data* Data =nullptr;
-	if (passtype == PassType::BuidCode)
+	bool BuildCode = passtype == PassType::BuidCode;
+	if (BuildCode)
 	{
 		Data = &BinaryExpressionNode_Datas.at(&node);
 		LookingForTypes.top() = Data->Op1;
+
+		if (Data->FuncToCall)
+		{
+			LookingForTypes.pop();
+			goto BuildCodePart;
+		}
 	}
 
 	OnExpressionTypeNode(Ex1node);
 	auto Ex0 = _LastExpressionField;
 	auto Ex0Type = LastExpressionType;
 	
-	if (passtype == PassType::BuidCode)
+	if (BuildCode)
 	{
 		LookingForTypes.top() = Data->Op0;
 	}
@@ -3905,8 +3950,9 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 	if (passtype == PassType::FixedTypes)
 	{
 		auto BinaryOp = node.BinaryOp;
+		auto Info = HasBinaryOverLoadWith(Ex0Type, BinaryOp->Type, Ex1Type);
 
-		if (!HasBinaryOverLoadWith(Ex0Type, BinaryOp->Type, Ex1Type))
+		if (!Info.HasValue)
 		{
 			LogCantFindBinaryOpForTypes(BinaryOp, Ex0Type, Ex1Type);
 		}
@@ -3917,24 +3963,64 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 		BinaryExpressionNode_Data V;
 		V.Op0 = Ex0Type;
 		V.Op1 = Ex1Type;
-		
+	
 		
 		//all float bool int types
-		if (V.IsBuitIn())
+		if (Info.Value.has_value())
+		{
+			FuncInfo* f = Info.Value.value()->Get_Info<FuncInfo>();
+			V.Op0 = f->Pars[0];
+			V.Op1 = f->Pars[1];
+			V.FuncToCall = Info.Value.value();
+		}
+		else
 		{
 			V.Op0._IsAddress = false;
 			V.Op1._IsAddress = false;
 		}
+
 		BinaryExpressionNode_Datas[&node] = V;
 
 		
 	}
 
+
+	BuildCodePart:
 	if (passtype == PassType::BuidCode)
 	{
-	
-		auto& Type = Ex0Type;
-		auto Op = node.BinaryOp->Type;
+		auto& Data = BinaryExpressionNode_Datas[&node];
+
+		if (Data.FuncToCall)
+		{
+			FuncInfo* f = Data.FuncToCall->Get_Info<FuncInfo>();
+
+
+			Get_FuncInfo V;
+			V.Func = f;
+			V.SymFunc = Data.FuncToCall;
+			V.ThisPar = Get_FuncInfo::ThisPar_t::NoThisPar;
+			
+			
+			ScopedNameNode Tep;
+			ScopedName TepV;
+			TepV.token = node.BinaryOp;
+			Tep.ScopedName.push_back(TepV);
+
+			ValueParametersNode pars;
+			pars._Nodes.push_back(Unique_ptr<Node>(Ex0node));
+			pars._Nodes.push_back(Unique_ptr<Node>(Ex1node));
+
+			DoFuncCall(V, Tep,pars);
+
+			//save so not free mem
+			auto par0 = pars._Nodes[0].release();
+			auto par1 = pars._Nodes[1].release();
+			//its ok.no mem leak Par node has Unique_ptr to Ex0 and Ex1 just borrowing them
+		}
+		else 
+		{
+			auto& Type = Ex0Type;
+			auto Op = node.BinaryOp->Type;
 #define BindaryBuildU(x) switch (Op) \
 		{\
 		case TokenType::plus:_LastExpressionField=LookingAtIRBlock->NewAdd(Ex1, Ex0);break;\
@@ -3970,47 +4056,48 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 				break; \
 			}\
 
-		switch (Type._Type)
-		{
-		case TypesEnum::uInt8:BindaryBuildU(8); break;
-		case TypesEnum::uInt16:BindaryBuildU(16); break;
-		case TypesEnum::uInt32:BindaryBuildU(32); break;
-		case TypesEnum::uInt64:BindaryBuildU(64); break;
-
-
-		case TypesEnum::sInt8:BindaryBuildS(8); break;
-		case TypesEnum::sInt16:BindaryBuildS(16); break;
-		case TypesEnum::sInt32:BindaryBuildS(32); break;
-		case TypesEnum::sInt64:BindaryBuildS(64); break;
-
-		case TypesEnum::float32:BindaryBuildS(32); break;
-		case TypesEnum::float64:BindaryBuildS(64); break;
-
-
-		case TypesEnum::Bool:
-			switch (Op) 
+			switch (Type._Type)
 			{
-			case TokenType::equal_Comparison:_LastExpressionField = LookingAtIRBlock->NewC_Equalto(Ex1, Ex0); break; 
-			case TokenType::Notequal_Comparison:_LastExpressionField = LookingAtIRBlock->NewC_NotEqualto(Ex1, Ex0); break; 
-			case TokenType::logical_and:_LastExpressionField = LookingAtIRBlock->NewlogicalAnd(Ex1, Ex0); break;
-			case TokenType::logical_or:_LastExpressionField = LookingAtIRBlock->NewlogicalOr(Ex1, Ex0); break;
+			case TypesEnum::uInt8:BindaryBuildU(8); break;
+			case TypesEnum::uInt16:BindaryBuildU(16); break;
+			case TypesEnum::uInt32:BindaryBuildU(32); break;
+			case TypesEnum::uInt64:BindaryBuildU(64); break;
+
+
+			case TypesEnum::sInt8:BindaryBuildS(8); break;
+			case TypesEnum::sInt16:BindaryBuildS(16); break;
+			case TypesEnum::sInt32:BindaryBuildS(32); break;
+			case TypesEnum::sInt64:BindaryBuildS(64); break;
+
+			case TypesEnum::float32:BindaryBuildS(32); break;
+			case TypesEnum::float64:BindaryBuildS(64); break;
+
+
+			case TypesEnum::Bool:
+				switch (Op)
+				{
+				case TokenType::equal_Comparison:_LastExpressionField = LookingAtIRBlock->NewC_Equalto(Ex1, Ex0); break;
+				case TokenType::Notequal_Comparison:_LastExpressionField = LookingAtIRBlock->NewC_NotEqualto(Ex1, Ex0); break;
+				case TokenType::logical_and:_LastExpressionField = LookingAtIRBlock->NewlogicalAnd(Ex1, Ex0); break;
+				case TokenType::logical_or:_LastExpressionField = LookingAtIRBlock->NewlogicalOr(Ex1, Ex0); break;
+				default:
+					throw std::exception("not added");
+					break;
+				}
+				break;
+			case TypesEnum::Char:
+				switch (Op)
+				{
+				case TokenType::equal_Comparison:_LastExpressionField = LookingAtIRBlock->NewC_Equalto(Ex1, Ex0); break;
+				case TokenType::Notequal_Comparison:_LastExpressionField = LookingAtIRBlock->NewC_NotEqualto(Ex1, Ex0); break;
+				default:
+					throw std::exception("not added");
+					break;
+				}
+				break;
 			default:
-				throw std::exception("not added"); 
 				break;
 			}
-			break;
-		case TypesEnum::Char:
-			switch (Op)
-			{
-			case TokenType::equal_Comparison:_LastExpressionField = LookingAtIRBlock->NewC_Equalto(Ex1, Ex0); break;
-			case TokenType::Notequal_Comparison:_LastExpressionField = LookingAtIRBlock->NewC_NotEqualto(Ex1, Ex0); break;
-			default:
-				throw std::exception("not added");
-				break;
-			}
-			break;
-		default:
-			break;
 		}
 	}
 }
@@ -4565,7 +4652,7 @@ bool SystematicAnalysis::AreTheSameWithOutimmutable(const TypeSymbol& TypeA, con
 
 	return false;
 }
-bool SystematicAnalysis::HasBinaryOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB)
+SystematicAnalysis::BinaryOverLoadWith_t SystematicAnalysis::HasBinaryOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB)
 {
 
 	if (AreTheSameWithOutimmutable(TypeA, TypeB))
@@ -4594,24 +4681,66 @@ bool SystematicAnalysis::HasBinaryOverLoadWith(const TypeSymbol& TypeA, TokenTyp
 
 		if (IsIntType(TypeA))
 		{
-			return IsMathOp || IsSameValueComparisonOp || IsMathValueComparisonOp || Isbitwise;
+			return { IsMathOp || IsSameValueComparisonOp || IsMathValueComparisonOp || Isbitwise ,{} };
 		}
 		if (IsfloatType(TypeA))
 		{
-			return IsMathOp || IsSameValueComparisonOp || IsMathValueComparisonOp;
+			return { IsMathOp || IsSameValueComparisonOp || IsMathValueComparisonOp,{} };
 		}
 
 		if (TypeA._Type == TypesEnum::Char)
 		{
-			return IsSameValueComparisonOp;
+			return { IsSameValueComparisonOp, {} };
 		}
 		if (TypeA._Type == TypesEnum::Bool)
 		{
-			return IsSameValueComparisonOp || IslogicalOperator;
+			return { IsSameValueComparisonOp || IslogicalOperator , {} };
 		}
 
 	}
-	return false;
+
+	auto Syb = GetSymbol(TypeA);
+	if (Syb)
+	{
+		if (Syb->Type == SymbolType::Type_class)
+		{
+
+			for (auto& Item : Systematic_BinaryOverloadData::Data)
+			{
+				if (Item.token == BinaryOp)
+				{
+					String funcName = Syb->FullName;
+					ScopeHelper::GetApendedString(funcName,Item.CompilerName);
+
+					auto& V = _Table.GetSymbolsWithName(funcName, SymbolType::Func);
+
+					for (auto& Item : V)
+					{
+						if (Item->Type == SymbolType::Func)
+						{
+							auto funcInfo = Item->Get_Info<FuncInfo>();
+							if (funcInfo->Pars.size() == 2)
+							{
+								bool r = CanBeImplicitConverted(TypeA, funcInfo->Pars[0])
+									&& CanBeImplicitConverted(TypeB, funcInfo->Pars[1]);
+								if (r)
+								{
+									return { r, Item };
+								}
+								else
+								{
+									return { r,{} };
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+
+	return {};
 }
 bool SystematicAnalysis::HasCompoundOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB)
 {
@@ -6406,13 +6535,14 @@ int SystematicAnalysis::GetCompatibleScore(const TypeSymbol& ParFunc, const Type
 int SystematicAnalysis::GetCompatibleScore(const FuncInfo* Func, const Vector<TypeSymbol>& ValueTypes)
 {
 
-	float r = 0;
+	int r = 0;
 	for (size_t i = 0; i < ValueTypes.size(); i++)
 	{
 		r += GetCompatibleScore(Func->Pars[i], ValueTypes[i]);
 	}
 
-	return r / ValueTypes.size();
+
+	return ValueTypes.size() ? r / ValueTypes.size() : r;
 }
 
 RawEvaluatedObject SystematicAnalysis::MakeExr(const TypeSymbol& Type)
@@ -7446,12 +7576,17 @@ void SystematicAnalysis::LogBeMoreSpecifiicWithStaticArrSize(const Token* Token,
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Be More Specifiic with Static Array Size.Ex: " + ToString(Type) + "[/1]");
 }
-void SystematicAnalysis::LogWantedAVariable(const UCodeLang::Token* const& Item, UCodeLang::FrontEnd::Symbol* TepSyb)
+void SystematicAnalysis::LogWantedAVariable(const Token* const& Item,Symbol* TepSyb)
 {
 	_ErrorsOutput->AddError(ErrorCodes::BackEndError, Item->OnLine, Item->OnPos,
 		"found a " + ToString(TepSyb->Type) + "(" + TepSyb->FullName + ")" + ".but wanted a Variable or a class field");
 }
 
+void SystematicAnalysis::LogBinaryOverloadPars(const Token& Name, const FuncInfo* Func)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidType, Name.OnLine, Name.OnPos
+		, "The Binary Overload '" + ToString(Name.Type) + "'" + " must have two paameters it has " + std::to_string(Func->Pars.size()) + " Pameters");
+}
 UCodeLangFrontEnd
 
 

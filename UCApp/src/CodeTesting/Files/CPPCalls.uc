@@ -1,3 +1,4 @@
+/*
 [CPPCall]|Test[int A] -> int;
 
 [CPPCall]|__Log[umut char[&] Buff] -> void;
@@ -11,6 +12,7 @@
 
 $AsyncHandle = !uintptr;
 
+*/
 
 //$VoidFunc = |[] -> void;
 //[CPPCall]|__AsyncCall[VoidFunc Call] -> AsyncHandle;

@@ -9,6 +9,29 @@
 #include "../Middle/Symbol.hpp"
 #include "UCodeFrontEndNameSpace.hpp"
 UCodeLangFrontStart
+
+
+struct Systematic_BinaryOverloadData
+{
+public:
+	struct Data
+	{
+		TokenType token;
+		String CompilerName;
+		FuncInfo::FuncType Type;
+		Data(TokenType t, String compilerName, FuncInfo::FuncType f)
+			:token(t), CompilerName(compilerName),Type(f)
+		{
+
+		}
+	};
+	inline static const Array<Data,2> Data =
+	{
+		Data(TokenType::plus,Overload_Plus_Func,FuncInfo::FuncType::plus),
+		Data(TokenType::minus,Overload_minus_Func,FuncInfo::FuncType::minus),
+	};
+};
+
 class SystematicAnalysis
 {
 
@@ -170,6 +193,11 @@ private:
 		const Vector<TypeSymbol>* GenericInput = nullptr;
 		const void* NodeTarget = nullptr;
 	};
+	struct BinaryOverLoadWith_t
+	{
+		bool HasValue = false;
+		Optional<Symbol*> Value;
+	};
     //Members
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
@@ -298,6 +326,7 @@ private:
 	void OnAliasNode(const AliasNode& node);
 	void OnUseingNode(const UsingNode& node);
 	void OnFuncNode(const FuncNode& node);
+	void FuncGetName(const UCodeLang::Token* NameToken, std::string_view& FuncName, UCodeLang::FrontEnd::FuncInfo::FuncType& FuncType);
 	void OnStatement(const Unique_ptr<UCodeLang::Node>& node2);
 	void OnRetStatement(const RetStatementNode& node);
 	void OnEnum(const EnumNode& node);
@@ -314,6 +343,7 @@ private:
 	void OnDeclareStaticVariableNode(const DeclareStaticVariableNode& node);
 	void OnDeclareThreadVariableNode(const DeclareThreadVariableNode& node);
 	void FuncRetCheck(const Token& Name, const Symbol* FuncSyb, const FuncInfo* Func);
+
 	bool GetMemberTypeSymbolFromVar(size_t Start, size_t End, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out);
 	bool GetMemberTypeSymbolFromVar(size_t Start, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
 	{
@@ -367,7 +397,9 @@ private:
 
 	bool AreTheSame(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
 	bool AreTheSameWithOutimmutable(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
-	bool HasBinaryOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
+	
+	
+	BinaryOverLoadWith_t HasBinaryOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
 	bool HasCompoundOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
 	bool HasPostfixOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp);
 	bool HasIndexedOverLoadWith(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
@@ -592,12 +624,13 @@ private:
 	
 	void LogCanIncorrectStaticArrCount(const Token* Token, const TypeSymbol& Type, size_t Count, size_t FuncCount);
 	void LogBeMoreSpecifiicWithStaticArrSize(const Token* Token, const TypeSymbol& Type);
+	void LogBinaryOverloadPars(const Token& Name, const FuncInfo* Func);
 
 	String ToString(SymbolType Value);
 	ReadVarErrorCheck_t LogTryReadVar(String_view VarName, const Token* Token, const Symbol* Syb);
 	void CheckVarWritingErrors(Symbol* Symbol, const Token* Token, String_view& Name);
 	void LogWantedAVariable(const Token* const& Item, Symbol* TepSyb);
-
+	ClassData* SystematicAnalysis::GetAssemblyClass(const String& FullName);
 
 	String MangleName(const FuncInfo* Func);
 	IRidentifierID GetIRID(const FuncInfo* Func);

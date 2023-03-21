@@ -256,11 +256,28 @@ public:
 		NameFunc,
 		New,
 		Drop,
-		Copy_Ctor,
-		Move,
+		
 
 		//operator overloading
+		plus,
+		minus,
 	};
+	static bool IsBinaryOverload(FuncType Type)
+	{
+		switch (Type)
+		{
+		case FuncInfo::FuncType::plus:
+		case FuncInfo::FuncType::minus:
+			return true;
+		default:
+			return false;
+		}
+
+	}
+
+		
+
+
 	FuncType _FuncType = FuncType::NameFunc;
 
 

@@ -45,10 +45,10 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 		_TypeFixer.FixTypes(Input);
 
 		{//for debuging
-			//auto S = Input->ToString();
+			auto S = Input->ToString();
 
-			//std::cout << "-----" << std::endl;
-			//std::cout << S;
+			std::cout << "-----" << std::endl;
+			std::cout << S;
 		}
 			_UpdatedCode = false;
 		
