@@ -350,7 +350,14 @@ namespace ULangTest
 
 			auto F = std::async(std::launch::async, [&]
 				{
-					return RunTest(Test);
+					try
+					{
+						return RunTest(Test);
+					}
+					catch (const std::exception& why)
+					{
+						std::cout << why.what();
+					}
 				}
 			);
 			List.push_back(std::move(F));
@@ -360,12 +367,12 @@ namespace ULangTest
 		{
 			try
 			{
-Item.wait();
-			if (Item.get()) { TestPassed++; };
+				Item.wait();
+				if (Item.get()) { TestPassed++; };
 			}
-			catch (const std::exception&)
+			catch (const std::exception& why)
 			{
-
+				std::cout << why.what();
 			}
 			
 		}
