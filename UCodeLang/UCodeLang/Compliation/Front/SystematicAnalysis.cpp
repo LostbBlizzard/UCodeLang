@@ -837,42 +837,6 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		LookingForTypes.push(syb->VarType);
 
 
-		if (passtype == PassType::FixedTypes && IsRetDependencies(Info) && syb->VarType._Type == TypesEnum::Var)
-		{
-			for (const auto& node2 : Body.Statements._Nodes)
-			{
-				if (node2->Get_Type() == NodeType::RetStatementNode)
-				{
-					OnStatement(node2);
-
-					auto OldType = syb->VarType;
-
-					auto NewType = LastExpressionType;
-
-					if (OldType.IsAddress()) {
-						NewType.SetAsAddress();
-					}
-					if (OldType.IsAddressArray()) {
-						NewType.SetAsAddressArray();
-					}
-
-					Get_LookingForType() = syb->VarType = NewType;
-					break;
-				}
-			}
-
-			if (syb->VarType._Type == TypesEnum::Var)
-			{
-				syb->VarType.SetType(TypesEnum::Void);
-			}
-			else if (syb->VarType._Type != TypesEnum::Void
-				 && !syb->VarType.IsBadType())//Update This when control flow get added.
-			{
-				auto Token = node.Signature.Name.Token;
-				YouMustReturnSomethingError(Token);
-			}
-		}
-
 		for (const auto& node2 : Body.Statements._Nodes)
 		{
 			OnStatement(node2);
@@ -931,10 +895,6 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			}
 
 			Info->Ret = syb->VarType;
-			if (syb->VarType.IsAn(TypesEnum::Null))
-			{
-				int a = 0;
-			}
 		}
 
 		LookingForTypes.pop();
@@ -1303,12 +1263,20 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 				OnExpressionTypeNode(Item.Expression.Value.get());
 			}
 
+
+			_Table._Scope.AddScope(ItemName);
+			{
+				auto& EnumFeild = AddSybol(SymbolType::Enum_Field, (String)ItemName, _Table._Scope.ThisScope);
+				EnumFeild.NodePtr = &Item;
+			}
+			_Table._Scope.ReMoveScope();
+
 		}
 		else if (passtype == PassType::FixedTypes)
 		{
 
 
-			auto& Field = *ClassInf->GetField(ItemName);
+			auto& Field = *ClassInf->GetField(ItemName).value();
 			if (Item.Expression.Value)
 			{
 				auto& Type = ClassInf->Basetype;
@@ -2089,9 +2057,9 @@ IRInstruction* SystematicAnalysis::BuildMember_GetValue(const GetMemberTypeSymbo
 	}
 	
 	break;
-	case SymbolType::Enum:
+	case SymbolType::Enum_Field:
 	{
-		auto Einfo = In.Symbol->Get_Info<EnumInfo>();
+		auto Einfo = In.Get_V2<EnumInfo>();
 		auto FeldInfo = In.Get_V1<EnumFieldInfo>();
 
 		void* ObjectData = Get_Object( Einfo->Basetype, FeldInfo->Ex);
@@ -2476,8 +2444,10 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 		else if (Out.Symbol->Type == SymbolType::Enum)
 		{
 			EnumInfo* Einfo = Out.Symbol->Get_Info<EnumInfo>();
-			auto FeldInfo = Einfo->GetField(ItemToken->Value._String);
-			if (FeldInfo == nullptr)
+			auto& NameString = ItemToken->Value._String;
+
+			auto FeldInfo = Einfo->GetField(NameString);
+			if (!FeldInfo.has_value())
 			{
 				if (passtype == PassType::FixedTypes)
 				{
@@ -2500,10 +2470,25 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 				}
 				break;
 			}
-			Out.Set_V1(&FeldInfo->Ex);
+
+		
+			Out.Type.SetType(Out.Symbol->ID);//set enum type
+			
+			{
+				String FeildSymFullName = Out.Symbol->FullName;
+				ScopeHelper::GetApendedString(FeildSymFullName, NameString);
+
+				Symbol* FeildSym = GetSymbol(FeildSymFullName, SymbolType::Enum_Field);
+				
+				Out.Symbol = TepSyb = FeildSym;//set symbol as enum feild
+
+
+				Out.Set_V1(*FeldInfo);
+				Out.Set_V2(Einfo);
+
+			}
 
 			AddDependencyToCurrentFile(Out.Symbol);
-			Out.Type.SetType(Out.Symbol->ID);
 		}
 		else if (Out.Symbol->Type == SymbolType::Func)
 		{
@@ -2615,6 +2600,24 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 	}
 
 	Out.Symbol = TepSyb;
+
+	if (!(TepSyb->Type ==SymbolType::Class_Field
+		|| TepSyb->Type == SymbolType::Enum_Field
+		|| IsVarableType(TepSyb->Type)))
+	{
+		Out.Type.SetType(TypesEnum::Null);
+		Out.Symbol = nullptr;
+		
+		if (passtype == PassType::FixedTypes)
+		{
+			auto& Item = node.ScopedName.back().token;
+			LogWantedAVariable(Item, TepSyb);
+		}
+		
+		return false;
+	}
+
+
 	return true;
 }
 void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
@@ -5057,6 +5060,7 @@ bool SystematicAnalysis::ValidateType(const TypeSymbol& V, const Token* Token)
 			}
 		}
 	}
+	return true;
 }
 
 TypeSymbol SystematicAnalysis::ConvertAndValidateType(const TypeNode& V)
@@ -7442,6 +7446,12 @@ void SystematicAnalysis::LogBeMoreSpecifiicWithStaticArrSize(const Token* Token,
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Be More Specifiic with Static Array Size.Ex: " + ToString(Type) + "[/1]");
 }
+void SystematicAnalysis::LogWantedAVariable(const UCodeLang::Token* const& Item, UCodeLang::FrontEnd::Symbol* TepSyb)
+{
+	_ErrorsOutput->AddError(ErrorCodes::BackEndError, Item->OnLine, Item->OnPos,
+		"found a " + ToString(TepSyb->Type) + "(" + TepSyb->FullName + ")" + ".but wanted a Variable or a class field");
+}
+
 UCodeLangFrontEnd
 
 

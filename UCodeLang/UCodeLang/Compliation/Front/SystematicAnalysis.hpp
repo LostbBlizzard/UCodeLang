@@ -596,6 +596,7 @@ private:
 	String ToString(SymbolType Value);
 	ReadVarErrorCheck_t LogTryReadVar(String_view VarName, const Token* Token, const Symbol* Syb);
 	void CheckVarWritingErrors(Symbol* Symbol, const Token* Token, String_view& Name);
+	void LogWantedAVariable(const Token* const& Item, Symbol* TepSyb);
 
 
 	String MangleName(const FuncInfo* Func);

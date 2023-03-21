@@ -188,6 +188,7 @@ enum class SymbolType: UInt8
 	Type_class,
 	Class_Field,
 	Enum,
+	Enum_Field,
 
 	Func,
 	ImportedDllFunc,//
@@ -421,7 +422,7 @@ public:
 		Basetype = Symbol;
 	}
 
-	EnumFieldInfo* GetField(const String_view Name)
+	Optional<EnumFieldInfo*> GetField(const String_view Name)
 	{
 		for (auto& Item : Fields)
 		{
@@ -429,7 +430,7 @@ public:
 				return &Item;
 			}
 		}
-		return nullptr;
+		return {};
 	}
 
 

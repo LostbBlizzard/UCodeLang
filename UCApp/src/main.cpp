@@ -74,7 +74,7 @@ int main()
 		UCodeAnalyzer::StandardLibraryBuilder::PackageUCodeTextFiles(Text, StandardLibraryPath);
 
 		String Str = Text.str();
-		
+
 
 
 		{
@@ -88,11 +88,11 @@ int main()
 		{
 			String outpath = "C:/CoolStuff/CoolCodeingStuff/C++/Projects/UCodeLang/UCodeLang/"
 				"UCodeAnalyzer/CodeBuilds/StandardLibrary.cpp";
-			
+
 			String Str2 = "#include \"StandardLibrary.hpp\"\ \n" "UCodeAnalyzerStart \n";
 
 			Str2 += "StringView StandardLibraryBuilder::UCodeStandardLibrary = \" ";
-			
+
 			for (size_t i = 0; i < Str.size(); i++)
 			{
 				char V = Str[i];
@@ -108,7 +108,7 @@ int main()
 			out << Str2;
 			out.close();
 		}
-		
+
 	}
 	*/
 	//ULangTest::RunTests();
@@ -128,37 +128,36 @@ int main()
 
 	//_Compiler.Set_BackEnd(ULangTest::X86BackEnd_UCodeLib::MakeObject);
 
-	for (size_t i = 0; i < 1000; i++)
+	/*
+	size_t ErrCount = 0;
+	size_t GoodCount = 0;
+	for (size_t i = 0; i < 100; i++)
 	{
 
 		_Compiler.CompileFiles_UseIntDir(Data);
-	}
 
-	
-	
-
-
-	/*auto Bits = Compiler::GetBytesFromFile(Data.OutFile);
-	{
-		String Tep;
+		if (_Compiler.Get_Errors().Has_Errors())
 		{
-			char const hex_chars[16] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
-			for (size_t i = 0; i < Bits.Size; i++)
-			{
-				Byte byte = Bits.Bytes[i];
-				Tep += hex_chars[(byte & 0xF0) >> 4];
-				Tep += hex_chars[(byte & 0x0F) >> 0];
-			}
+			int a = 0;
+			//ULangTest::LogErrors(std::cout, _Compiler);
+			ErrCount++;
 		}
+		else
+		{
+			GoodCount++;
+		}
+		_Compiler.Get_Errors().Remove_Errors();
+			
+	}
+	std::cout << std::to_string(ErrCount) + ","  + std::to_string(GoodCount);
+	*/
+	
+
+	_Compiler.CompileFiles_UseIntDir(Data);
 
 
-		AsmBuffer V = AsmBuffer(Bits.Bytes.get(), Bits.Size);
-		V.SetToExecuteMode();
-		using FuncP = int(*)();
-
-		FuncP CallFunc = (FuncP)V.Data;
-		int tep = CallFunc();
-	}*/
+	
+	
 
 	if (!ULangTest::LogErrors(std::cout, _Compiler))
 	{
