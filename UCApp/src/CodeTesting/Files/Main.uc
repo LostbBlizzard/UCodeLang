@@ -11,8 +11,8 @@ $Vec2i:
  |+[this&,this& Other] -> this:
   ret [X + Other.X,Y + Other.Y];
  
- |[][this&,int Index] -> int:
-  ret Index;
+ |++[this&] -> void:
+  X++;
  
  |()[this&,int Par1,int Par2]:
   ret Par1 + Par2;
@@ -21,6 +21,6 @@ $Vec2i:
  Vec2i A = [1,1];
  Vec2i B = [2,2];
 
- var r = A(5,8);
+ A++;
 
- ret r;
+ ret 0;

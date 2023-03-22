@@ -53,6 +53,10 @@
 #define Overload_minus_Func CompilerGenerated("minus")
 
 
+//Postfix
+#define Overload_increment_Func CompilerGenerated("increment")
+#define Overload_decrement_Func CompilerGenerated("decrement")
+
 //others Op
 #define Overload_Index_Func CompilerGenerated("Index")
 #define Overload_Invoke_Func CompilerGenerated("Invoke")
