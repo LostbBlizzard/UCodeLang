@@ -534,6 +534,18 @@ GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 	{
 		NextToken();
 	}
+	else if (NameToken->Type == TokenType::Left_Bracket)
+	{
+		NextToken();
+		TokenTypeCheck(NameToken, TokenType::Right_Bracket);
+		NextToken();
+	}
+	else if (NameToken->Type == TokenType::Right_Parentheses)
+	{
+		NextToken();
+		TokenTypeCheck(NameToken, TokenType::Left_Parentheses);
+		NextToken();
+	}
 	else
 	{
 		TokenTypeCheck(NameToken, TokenType::Name);
