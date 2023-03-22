@@ -4788,23 +4788,57 @@ bool SystematicAnalysis::HasPostfixOverLoadWith(const TypeSymbol& TypeA, TokenTy
 
 	return false;
 }
-bool SystematicAnalysis::HasIndexedOverLoadWith(const TypeSymbol& TypeA, const TypeSymbol& TypeB)
+SystematicAnalysis::IndexOverLoadWith_t SystematicAnalysis::HasIndexedOverLoadWith(const TypeSymbol& TypeA, const TypeSymbol& TypeB)
 {
 
 	if (IsUIntType(TypeB)) 
 	{
 		if (TypeA.IsAddressArray())
 		{
-			return true;
+			return { true, {} };
 		}
 
 		if (IsStaticArray(TypeA))
 		{
-			return true;
+			return { true,{} };
 		}
 	}
 
-	return false;
+	auto Syb = GetSymbol(TypeA);
+	if (Syb)
+	{
+		if (Syb->Type == SymbolType::Type_class)
+		{
+
+			String funcName = Syb->FullName;
+			ScopeHelper::GetApendedString(funcName,Overload_Index_Func);
+
+			auto& V = _Table.GetSymbolsWithName(funcName, SymbolType::Func);
+
+			for (auto& Item : V)
+			{
+				if (Item->Type == SymbolType::Func)
+				{
+					auto funcInfo = Item->Get_Info<FuncInfo>();
+					if (funcInfo->Pars.size() == 2)
+					{
+						bool r = CanBeImplicitConverted(TypeA, funcInfo->Pars[0])
+							&& CanBeImplicitConverted(TypeB, funcInfo->Pars[1]);
+						if (r)
+						{
+							return { r, Item };
+						}
+						else
+						{
+							return { r,{} };
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return {};
 }
 String SystematicAnalysis::ToString(const TypeSymbol& Type)
 {
