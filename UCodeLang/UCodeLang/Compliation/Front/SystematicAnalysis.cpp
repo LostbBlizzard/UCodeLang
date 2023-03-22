@@ -4299,7 +4299,34 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 	{
 		auto& Data = IndexedExpresion_Datas[&node];
 
-		if (Data.IsBuitIn())
+		if (Data.FuncToCall)
+		{
+			FuncInfo* f =Data.FuncToCall->Get_Info<FuncInfo>();
+
+			Get_FuncInfo V;
+			V.Func = f;
+			V.SymFunc = Data.FuncToCall;
+			V.ThisPar = Get_FuncInfo::ThisPar_t::NoThisPar;
+
+
+			ScopedNameNode Tep;
+			ScopedName TepV;
+			TepV.token = LastLookedAtToken;
+			Tep.ScopedName.push_back(TepV);
+
+			ValueParametersNode pars;
+			pars._Nodes.push_back(Unique_ptr<Node>(node.SourceExpression.Value.get()));
+			pars._Nodes.push_back(Unique_ptr<Node>(node.IndexExpression.Value.get()));
+
+			DoFuncCall(V, Tep, pars);
+
+			//save so not free mem
+			auto par0 = pars._Nodes[0].release();
+			auto par1 = pars._Nodes[1].release();
+			//its ok.no mem leak Par node has Unique_ptr to SourceExpression and IndexExpression just borrowing them
+			LastExpressionType = V.Func->Ret;
+		}
+		else
 		{
 			LookingForTypes.push(Data.Op0);
 			OnExpressionTypeNode(node.SourceExpression.Value.get());
@@ -4340,10 +4367,6 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 			}
 
 			LastExpressionType = lookingfor;
-		}
-		else
-		{
-			throw std::exception("not added");
 		}
 
 	}
