@@ -4231,7 +4231,8 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 
 		LookingForTypes.pop();
 
-		if (!HasIndexedOverLoadWith(SourcType, IndexType))
+		auto HasInfo = HasIndexedOverLoadWith(SourcType, IndexType);
+		if (!HasInfo.HasValue)
 		{
 			auto  Token = LastLookedAtToken;
 			LogCantBeIndexWithType(Token, SourcType, IndexType);
@@ -4239,17 +4240,28 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 
 
 
-		TypeSymbol lookingfor = LookingForTypes.top();
+		
 
 
 		IndexedExpresion_Data V;
-		V.Op0 = SourcType;
-		V.Op1 = IndexType;
+		
 
 
 		//all float bool int types
-		if (V.IsBuitIn())
+		if (HasInfo.Value.has_value())
 		{
+			FuncInfo* f = HasInfo.Value.value()->Get_Info<FuncInfo>();
+
+			V.Op0 = f->Pars[0];
+			V.Op1 = f->Pars[1];
+
+			LastExpressionType = f->Ret;
+		}
+		else
+		{
+			TypeSymbol lookingfor = LookingForTypes.top();
+			V.Op0 = SourcType;
+			V.Op1 = IndexType;
 			V.Op0._IsAddress = true;
 			V.Op1._IsAddress = false;
 
@@ -4274,8 +4286,9 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 
 				LastExpressionType = lookingfor;
 			}
-
 		}
+
+			
 
 		IndexedExpresion_Datas[&node] = V;
 
