@@ -30,6 +30,49 @@ public:
 		Data(TokenType::plus,Overload_Plus_Func,FuncInfo::FuncType::plus),
 		Data(TokenType::minus,Overload_minus_Func,FuncInfo::FuncType::minus),
 	};
+	static bool IsBinaryOverload(FuncInfo::FuncType Type)
+	{
+		for (auto& Item : Data)
+		{
+			if (Item.Type == Type)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+};
+
+struct Systematic_PostfixOverloadData
+{
+public:
+	struct Data
+	{
+		TokenType token;
+		String CompilerName;
+		FuncInfo::FuncType Type;
+		Data(TokenType t, String compilerName, FuncInfo::FuncType f)
+			:token(t), CompilerName(compilerName), Type(f)
+		{
+
+		}
+	};
+	inline static const Array<Data, 2> Data =
+	{
+		Data(TokenType::increment,Overload_increment_Func,FuncInfo::FuncType::increment),
+		Data(TokenType::decrement,Overload_decrement_Func,FuncInfo::FuncType::decrement),
+	};
+	static bool IsPostfixOverload(FuncInfo::FuncType Type)
+	{
+		for (auto& Item : Data)
+		{
+			if (Item.Type == Type)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
 };
 
 class SystematicAnalysis
@@ -82,6 +125,19 @@ private:
 		}
 	};
 	using IndexedExpresion_Data = BinaryExpressionNode_Data;
+	struct PostFixExpressionNode_Data
+	{
+		TypeSymbol Op0;
+
+		//func to call
+		Symbol* FuncToCall = nullptr;
+		bool IsBuitIn()
+		{
+			return  FuncToCall == nullptr;
+		}
+	};
+
+
 	enum class  ObjectToDropType
 	{
 		IRInstruction,
@@ -199,11 +255,8 @@ private:
 		bool HasValue = false;
 		Optional<Symbol*> Value;
 	};
-	struct IndexOverLoadWith_t
-	{
-		bool HasValue = false;
-		Optional<Symbol*> Value;
-	};
+	using IndexOverLoadWith_t = BinaryOverLoadWith_t;
+	using PostFixOverLoadWith_t = BinaryOverLoadWith_t;
     //Members
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
@@ -221,6 +274,7 @@ private:
 	BinaryVectorMap<const FileNode_t*, FileNodeData> _FilesData;
 	BinaryVectorMap<const void*, BinaryExpressionNode_Data> BinaryExpressionNode_Datas;
 	BinaryVectorMap<const void*, IndexedExpresion_Data> IndexedExpresion_Datas;
+	BinaryVectorMap<const void*, PostFixExpressionNode_Data> PostFix_Datas;
 
 	Vector<FuncStackInfo> _FuncStack;
 
@@ -407,7 +461,7 @@ private:
 	
 	BinaryOverLoadWith_t HasBinaryOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
 	bool HasCompoundOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
-	bool HasPostfixOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp);
+	PostFixOverLoadWith_t HasPostfixOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp);
 	IndexOverLoadWith_t  HasIndexedOverLoadWith(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
 
 	TypeSymbol BinaryExpressionShouldRurn(TokenType Op, const TypeSymbol& Ex0Type);
@@ -632,6 +686,7 @@ private:
 	void LogBeMoreSpecifiicWithStaticArrSize(const Token* Token, const TypeSymbol& Type);
 	void LogBinaryOverloadPars(const Token& Name, const FuncInfo* Func);
 	void LogIndexOverloadPars(const Token& Name, const FuncInfo* Func);
+	void LogPostfixOverloadPars(const Token& Name, const FuncInfo* Func);
 
 	String ToString(SymbolType Value);
 	ReadVarErrorCheck_t LogTryReadVar(String_view VarName, const Token* Token, const Symbol* Syb);

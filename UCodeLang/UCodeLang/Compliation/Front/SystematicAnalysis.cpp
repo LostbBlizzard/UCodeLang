@@ -932,6 +932,17 @@ void SystematicAnalysis::FuncGetName(const UCodeLang::Token* NameToken, std::str
 			}
 		}
 
+		for (auto& Item : Systematic_PostfixOverloadData::Data)
+		{
+			if (NameToken->Type == Item.token)
+			{
+				FuncName = Item.CompilerName;
+				FuncType = Item.Type;
+				ObjectOverLoad = true;
+				goto DoStuff;
+			}
+		}
+
 		throw std::exception("not added");
 		break;
 	}
@@ -994,18 +1005,26 @@ void SystematicAnalysis::FuncRetCheck(const Token& Name, const Symbol* FuncSyb, 
 	{
 		if (Func->Pars.size() != 2)
 		{
-			LogBinaryOverloadPars(Name, Func);
+			LogIndexOverloadPars(Name, Func);
 		}
 	}
 	break;
 	case FuncInfo::FuncType::NameFunc:
 		break;
 	default:
-		if (FuncInfo::IsBinaryOverload(Func->_FuncType))
+		if (Systematic_BinaryOverloadData::IsBinaryOverload(Func->_FuncType))
 		{
 			if (Func->Pars.size() != 2) 
 			{
 				LogBinaryOverloadPars(Name, Func);
+			}
+		}
+
+		if (Systematic_PostfixOverloadData::IsPostfixOverload(Func->_FuncType))
+		{
+			if (Func->Pars.size() != 1)
+			{
+				LogPostfixOverloadPars(Name, Func);
 			}
 		}
 		break;
@@ -1362,7 +1381,10 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 					if (HasCheckedForincrementOp == false)
 					{
 						const Token* LineDataToken = Item.Name.Token;
-						if (!HasPostfixOverLoadWith(Type, TokenType::increment))
+
+						auto HasInfo = HasPostfixOverLoadWith(Type, TokenType::increment);
+
+						if (!HasInfo.HasValue)
 						{
 
 							Token temp;
@@ -2690,25 +2712,68 @@ void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 		LogTryReadVar(Name, node.Name.ScopedName.back().token, Symbol);
 
 
-		if (!HasPostfixOverLoadWith(Symbol->VarType,node.PostfixOp->Type))
+		auto HasInfo = HasPostfixOverLoadWith(Symbol->VarType, node.PostfixOp->Type);
+		if (!HasInfo.HasValue)
 		{
 			LogCantFindPostfixOpForTypes(node.PostfixOp, Symbol->VarType);
 		}
 
+
+		PostFixExpressionNode_Data t;
+		
+		if (HasInfo.Value) 
+		{
+			FuncInfo* f = HasInfo.Value.value()->Get_Info<FuncInfo>();
+			t.FuncToCall = HasInfo.Value.value();
+			t.Op0 = f->Pars[0];
+		}
+		else
+		{
+			t.Op0 = LastExpressionType;
+		}
+
+		PostFix_Datas.AddValue(&node,t);
 	}
 	if (passtype == PassType::BuidCode)
 	{
-		
-		
-		auto _Symbol = GetSymbol(GetScopedNameAsString(node.Name), SymbolType::Varable_t);
-		SymbolID sybId = _Symbol->ID;
-		auto& Type = _Symbol->VarType;
+		const PostFixExpressionNode_Data& Data = PostFix_Datas.at(&node);
 
-		AddDependencyToCurrentFile(_Symbol);
-		
-		IRInstruction* LoadV = BuildMember_AsValue(V);
+		if (Data.FuncToCall)
+		{
+			
+			IRInstruction* LoadV = _LastExpressionField = BuildMember_AsPointer(V);
 
-		#define buildPortFixU(x)\
+			FuncInfo* f = Data.FuncToCall->Get_Info<FuncInfo>();
+
+			Get_FuncInfo V;
+			V.Func = f;
+			V.SymFunc = Data.FuncToCall;
+			V.ThisPar = Get_FuncInfo::ThisPar_t::PushFromLast;
+
+
+			ScopedNameNode Tep;
+			ScopedName TepV;
+			TepV.token = LastLookedAtToken;
+			Tep.ScopedName.push_back(TepV);
+
+			ValueParametersNode pars;
+			
+
+			DoFuncCall(V, Tep, pars);
+
+			
+			LastExpressionType = V.Func->Ret;
+		}
+		else {
+			auto _Symbol = GetSymbol(GetScopedNameAsString(node.Name), SymbolType::Varable_t);
+			SymbolID sybId = _Symbol->ID;
+			auto& Type = _Symbol->VarType;
+
+			AddDependencyToCurrentFile(_Symbol);
+
+			IRInstruction* LoadV = BuildMember_AsValue(V);
+
+#define buildPortFixU(x)\
 		if (node.PostfixOp->Type == TokenType::increment)\
 		{\
 			_LastExpressionField=LookingAtIRBlock->NewAdd(LoadV,LookingAtIRBlock->NewLoad((UInt##x)1));\
@@ -2718,68 +2783,69 @@ void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 			_LastExpressionField=LookingAtIRBlock->NewSub(LoadV, LookingAtIRBlock->NewLoad((UInt##x)1));\
 		}\
 
-		
 
-		#define buildPortFixS(x) buildPortFixU(x)
 
-		switch (Type._Type)
-		{
-		case TypesEnum::uInt8:
-		{
-			buildPortFixU(8);
-		}
-		break;
+#define buildPortFixS(x) buildPortFixU(x)
 
-		case TypesEnum::uInt16:
-		{
-			buildPortFixU(16);
-		}
-		break;
-		case TypesEnum::uInt32:
-		{
-			buildPortFixU(32);
-		}
-		break;
-		case TypesEnum::uInt64:
-		{
-			buildPortFixU(64);
-		}
-		break;
-		case TypesEnum::uIntPtr:
-		{
-			throw std::exception("not added");
-		}
-		break;
-		case TypesEnum::sInt8:
-		{
-			buildPortFixS(8);
-		}
-		break;
-		case TypesEnum::sInt16:
-		{
-			buildPortFixS(16);
-		}
-		break;
-		case TypesEnum::sInt32:
-		{
-			buildPortFixS(32);
-		}
-		break;
-		case TypesEnum::sInt64:
-		{
-			buildPortFixS(64);
-		}
-		break;
-		case TypesEnum::sIntPtr:
-		{
-			throw std::exception("not added");
-		}
-		break;
-		default:
+			switch (Type._Type)
+			{
+			case TypesEnum::uInt8:
+			{
+				buildPortFixU(8);
+			}
 			break;
-		}
 
-		BuildMember_Reassignment(V, Type, _LastExpressionField);
+			case TypesEnum::uInt16:
+			{
+				buildPortFixU(16);
+			}
+			break;
+			case TypesEnum::uInt32:
+			{
+				buildPortFixU(32);
+			}
+			break;
+			case TypesEnum::uInt64:
+			{
+				buildPortFixU(64);
+			}
+			break;
+			case TypesEnum::uIntPtr:
+			{
+				throw std::exception("not added");
+			}
+			break;
+			case TypesEnum::sInt8:
+			{
+				buildPortFixS(8);
+			}
+			break;
+			case TypesEnum::sInt16:
+			{
+				buildPortFixS(16);
+			}
+			break;
+			case TypesEnum::sInt32:
+			{
+				buildPortFixS(32);
+			}
+			break;
+			case TypesEnum::sInt64:
+			{
+				buildPortFixS(64);
+			}
+			break;
+			case TypesEnum::sIntPtr:
+			{
+				throw std::exception("not added");
+			}
+			break;
+			default:
+				break;
+			}
+
+			BuildMember_Reassignment(V, Type, _LastExpressionField);
+		}
 	}
 }
 void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& node)
@@ -4793,6 +4859,7 @@ SystematicAnalysis::BinaryOverLoadWith_t SystematicAnalysis::HasBinaryOverLoadWi
 							}
 						}
 					}
+					break;
 				}
 			}
 		}
@@ -4812,15 +4879,52 @@ bool SystematicAnalysis::HasCompoundOverLoadWith(const TypeSymbol& TypeA, TokenT
 	}
 	return false;
 }
-bool SystematicAnalysis::HasPostfixOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp)
+SystematicAnalysis::PostFixOverLoadWith_t SystematicAnalysis::HasPostfixOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp)
 {
 
 	if (IsIntType(TypeA))
 	{
-		return true;
+		return { true,{} };
 	}
 
-	return false;
+	auto Syb = GetSymbol(TypeA);
+	if (Syb)
+	{
+		if (Syb->Type == SymbolType::Type_class)
+		{
+
+			for (auto& Item : Systematic_PostfixOverloadData::Data)
+			{
+				if (Item.token == BinaryOp)
+				{
+					String funcName = Syb->FullName;
+					ScopeHelper::GetApendedString(funcName, Item.CompilerName);
+
+					auto& V = _Table.GetSymbolsWithName(funcName, SymbolType::Func);
+
+					for (auto& Item : V)
+					{
+						if (Item->Type == SymbolType::Func)
+						{
+							auto funcInfo = Item->Get_Info<FuncInfo>();
+							if (funcInfo->Pars.size() == 1)
+							{
+								bool r = CanBeImplicitConverted(TypeA, funcInfo->Pars[0]);
+								if (r)
+								{
+									return { r, Item };
+								}
+
+							}
+						}
+					}
+					break;
+				}
+			}
+		}
+	}
+
+	return {  };
 }
 SystematicAnalysis::IndexOverLoadWith_t SystematicAnalysis::HasIndexedOverLoadWith(const TypeSymbol& TypeA, const TypeSymbol& TypeB)
 {
@@ -7731,12 +7835,17 @@ void SystematicAnalysis::LogWantedAVariable(const Token* const& Item,Symbol* Tep
 void SystematicAnalysis::LogBinaryOverloadPars(const Token& Name, const FuncInfo* Func)
 {
 	_ErrorsOutput->AddError(ErrorCodes::InValidType, Name.OnLine, Name.OnPos
-		, "The Binary Overload '" + ToString(Name.Type) + "'" + " must have two paameters it has " + std::to_string(Func->Pars.size()) + " Pameters");
+		, "The Binary Overload '" + ToString(Name.Type) + "'" + " must have 2 paameters it has " + std::to_string(Func->Pars.size()) + " Pameters");
 }
 void SystematicAnalysis::LogIndexOverloadPars(const Token& Name, const FuncInfo* Func)
 {
 	_ErrorsOutput->AddError(ErrorCodes::InValidType, Name.OnLine, Name.OnPos
-		, "The Index Overload '" + ToString(Name.Type) + "'" + " must have two paameters it has " + std::to_string(Func->Pars.size()) + " Pameters");
+		, "The Index Overload '" + ToString(Name.Type) + "'" + " must have 2 paameters it has " + std::to_string(Func->Pars.size()) + " Pameters");
+}
+void SystematicAnalysis::LogPostfixOverloadPars(const Token& Name, const FuncInfo* Func)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidType, Name.OnLine, Name.OnPos
+		, "The Index Overload '" + ToString(Name.Type) + "'" + " must have 1 paameters it has " + std::to_string(Func->Pars.size()) + " Pameters");
 }
 UCodeLangFrontEnd
 

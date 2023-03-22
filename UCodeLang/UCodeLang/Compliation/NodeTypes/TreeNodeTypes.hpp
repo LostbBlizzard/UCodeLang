@@ -515,7 +515,8 @@ struct ExpressionNodeType :Node
 			|| Token->Type == TokenType::greater_than_or_equalto
 			|| Token->Type == TokenType::less_than_or_equalto
 			|| Token->Type == TokenType::plus
-			|| Token->Type == TokenType::minus;
+			|| Token->Type == TokenType::minus
+			|| IsPostfixOperator(Token);
 	}
 	inline static bool IsBinaryOperator(const Token* Token)
 	{

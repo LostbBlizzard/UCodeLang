@@ -262,23 +262,14 @@ public:
 		plus,
 		minus,
 
+		//Postfix
+		increment,
+		decrement,
+
 		//other operators
 		Index,
 		Invoke,
 	};
-	static bool IsBinaryOverload(FuncType Type)
-	{
-		switch (Type)
-		{
-		case FuncInfo::FuncType::plus:
-		case FuncInfo::FuncType::minus:
-			return true;
-		default:
-			return false;
-		}
-
-	}
-
 		
 
 
