@@ -3958,7 +3958,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 		}
 
 		auto Op = node.BinaryOp->Type;
-		LastExpressionType = BinaryExpressionShouldRurn(Op, Ex0Type);
+		
 
 		BinaryExpressionNode_Data V;
 		V.Op0 = Ex0Type;
@@ -3972,11 +3972,14 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 			V.Op0 = f->Pars[0];
 			V.Op1 = f->Pars[1];
 			V.FuncToCall = Info.Value.value();
+		
+			LastExpressionType = f->Ret;
 		}
 		else
 		{
 			V.Op0._IsAddress = false;
 			V.Op1._IsAddress = false;
+			LastExpressionType = BinaryExpressionShouldRurn(Op, Ex0Type);
 		}
 
 		BinaryExpressionNode_Datas[&node] = V;
@@ -4016,11 +4019,15 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 			auto par0 = pars._Nodes[0].release();
 			auto par1 = pars._Nodes[1].release();
 			//its ok.no mem leak Par node has Unique_ptr to Ex0 and Ex1 just borrowing them
+			LastExpressionType = V.Func->Ret;
 		}
 		else 
 		{
+
 			auto& Type = Ex0Type;
 			auto Op = node.BinaryOp->Type;
+			LastExpressionType = BinaryExpressionShouldRurn(Op, Ex0Type);
+
 #define BindaryBuildU(x) switch (Op) \
 		{\
 		case TokenType::plus:_LastExpressionField=LookingAtIRBlock->NewAdd(Ex1, Ex0);break;\
