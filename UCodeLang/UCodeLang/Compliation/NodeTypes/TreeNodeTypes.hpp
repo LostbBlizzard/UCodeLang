@@ -508,15 +508,10 @@ struct ExpressionNodeType :Node
 	}
 	inline static bool IsOverLoadableOperator(const Token* Token)
 	{
-		return Token->Type == TokenType::equal_Comparison
-			|| Token->Type == TokenType::Notequal_Comparison
-			|| Token->Type == TokenType::greaterthan
-			|| Token->Type == TokenType::lessthan
-			|| Token->Type == TokenType::greater_than_or_equalto
-			|| Token->Type == TokenType::less_than_or_equalto
-			|| Token->Type == TokenType::plus
-			|| Token->Type == TokenType::minus
-			|| IsPostfixOperator(Token);
+		return  IsBinaryOperator(Token)
+			|| IsPostfixOperator(Token)
+			|| IsUnaryOperator(Token)
+			|| IsCompoundOperator(Token);
 	}
 	inline static bool IsBinaryOperator(const Token* Token)
 	{

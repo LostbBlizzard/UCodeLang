@@ -265,6 +265,11 @@ public:
 		//Postfix
 		increment,
 		decrement,
+		//Urinary
+		Not,
+		//Compound
+		Compound_plus,
+		Compound_Minus,
 
 		//other operators
 		Index,
