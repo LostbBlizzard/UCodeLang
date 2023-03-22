@@ -625,6 +625,7 @@ private:
 	void LogCanIncorrectStaticArrCount(const Token* Token, const TypeSymbol& Type, size_t Count, size_t FuncCount);
 	void LogBeMoreSpecifiicWithStaticArrSize(const Token* Token, const TypeSymbol& Type);
 	void LogBinaryOverloadPars(const Token& Name, const FuncInfo* Func);
+	void LogIndexOverloadPars(const Token& Name, const FuncInfo* Func);
 
 	String ToString(SymbolType Value);
 	ReadVarErrorCheck_t LogTryReadVar(String_view VarName, const Token* Token, const Symbol* Syb);

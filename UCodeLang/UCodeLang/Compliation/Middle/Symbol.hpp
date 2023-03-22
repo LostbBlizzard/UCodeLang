@@ -261,6 +261,10 @@ public:
 		//operator overloading
 		plus,
 		minus,
+
+		//other operators
+		Index,
+		Invoke,
 	};
 	static bool IsBinaryOverload(FuncType Type)
 	{
