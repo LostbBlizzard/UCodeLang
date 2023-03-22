@@ -10,7 +10,9 @@ $Vec2i:
 
  |+[this&,this& Other] -> this:
   ret [X + Other.X,Y + Other.Y];
-
+ 
+ |[][this&,int Index] -> int:
+  ret Index;
 
 |main[] -> var:
  Vec2i A = [1,1];
