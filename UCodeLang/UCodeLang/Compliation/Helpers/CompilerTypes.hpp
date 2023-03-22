@@ -42,8 +42,10 @@ enum class TokenType : TokenType_t
 	leftArrow,//<-
 	RightArrow,//->
 	RightAssignArrow,//=>
-	HardRightArrow,//->>
+
 	OptionalDot,//?.
+	IndirectMember,//~>
+	ExclamationDot,//!.
 
 	Void,//void
 	Comma,//,

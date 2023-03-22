@@ -190,6 +190,13 @@ void Lexer::Lex(const String_view& Text)
 				_Token.Value = nullptr;
 				_Tokens.push_back(_Token);
 			}
+			else if (NextChar == '>')
+			{
+				TextIndex++;
+				_Token.Type = TokenType::IndirectMember;
+				_Token.Value = nullptr;
+				_Tokens.push_back(_Token);
+			}
 			else
 			{
 				_Token.Type = TokenType::bitwise_not;
@@ -338,6 +345,13 @@ void Lexer::Lex(const String_view& Text)
 				_Token.Value = nullptr;
 				_Tokens.push_back(_Token);
 			}
+			else if (NextChar == '.')
+			{
+				TextIndex++;
+				_Token.Type = TokenType::ExclamationDot;
+				_Token.Value = nullptr;
+				_Tokens.push_back(_Token);
+			}
 			else
 			{
 				_Token.Type = TokenType::Not;
@@ -412,20 +426,10 @@ void Lexer::Lex(const String_view& Text)
 			if (NextChar == '>')
 			{
 				TextIndex++;
-				NextChar = GetNextChar(1);
-				if (NextChar == '>')
-				{
-					_Token.Type = TokenType::HardRightArrow;
-					_Token.Value = nullptr;
-					_Tokens.push_back(_Token);
-					TextIndex++;
-				}
-				else
-				{
-					_Token.Type = TokenType::RightArrow;
-					_Token.Value = nullptr;
-					_Tokens.push_back(_Token);
-				}
+
+				_Token.Type = TokenType::RightArrow;
+				_Token.Value = nullptr;
+				_Tokens.push_back(_Token);
 			}
 			else if (NextChar == '-')
 			{

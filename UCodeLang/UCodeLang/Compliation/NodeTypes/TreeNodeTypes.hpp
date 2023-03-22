@@ -95,8 +95,9 @@ struct ScopedName
 		Null,
 		ScopeResolution,// (::)
 		Dot,// (.)
-		IndirectMember,// (->)
-		OptionalChain,
+		IndirectMember,// (~>)
+		OptionalChain,// (?.)
+		ExclamationMember, // (!.)
 	};
 
 
@@ -113,15 +114,25 @@ struct ScopedName
 	{
 		return Get_Scoped(Type) != Operator_t::Null;
 	}
+
+	static Operator_t GetOverloadable_Scoped(TokenType Type)
+	{
+		switch (Type)
+		{
+		case TokenType::IndirectMember:return Operator_t::IndirectMember;
+		case TokenType::OptionalDot:return Operator_t::OptionalChain;
+		case TokenType::ExclamationDot:return Operator_t::ExclamationMember;
+		default:return Operator_t::Null;
+		}
+	}
+
 	static Operator_t Get_Scoped(TokenType Type)
 	{
 		switch (Type)
 		{
-		//case TokenType::RightArrow:return Operator_t::IndirectMember;
 		case TokenType::Dot:return Operator_t::Dot;
 		case TokenType::ScopeResolution:return Operator_t::ScopeResolution;
-		case TokenType::OptionalDot:return Operator_t::OptionalChain;
-		default:return Operator_t::Null;
+		default:return GetOverloadable_Scoped(Type);
 		}
 	}
 	
@@ -511,8 +522,14 @@ struct ExpressionNodeType :Node
 		return  IsBinaryOperator(Token)
 			|| IsPostfixOperator(Token)
 			|| IsUnaryOperator(Token)
-			|| IsCompoundOperator(Token);
+			|| IsCompoundOperator(Token)
+			|| IsMemberAccessOperator(Token);
 	}
+	inline static bool IsMemberAccessOperator(const Token* Token)
+	{
+		return ScopedName::Get_Scoped(Token->Type) != ScopedName::Operator_t::Null;
+	}
+
 	inline static bool IsBinaryOperator(const Token* Token)
 	{
 		return Token->Type == TokenType::plus
