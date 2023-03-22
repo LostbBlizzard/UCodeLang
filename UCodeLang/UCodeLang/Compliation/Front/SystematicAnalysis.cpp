@@ -607,8 +607,6 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			newInfo->Pars.push_back(ConvertAndValidateType(Item.Type));
 		}
 
-
-		syb = GetSymbol(sybId);//resized _Table
 	}
 	else
 	{
@@ -2338,7 +2336,7 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 		size_t MemberIndex = V->GetFieldIndex(Str).value();
 
 
-		Output = LookingAtIRBlock->New_Member_Dereference(&PointerIr,IRType(IRSymbol(IRStructV)), MemberIndex);
+		Output = LookingAtIRBlock->New_Member_Dereference(&PointerIr, IRType(IRSymbol(IRStructV)), MemberIndex);
 		return;
 	}
 	if (In.Start[0].token->Type == TokenType::KeyWorld_This)
@@ -2357,6 +2355,66 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 		Symbol* Sym = GetSymbol(Last_Type);
 
 		auto& ITem = In.Start[i];
+		ScopedName::Operator_t OpType = i == 0 ? ScopedName::Operator_t::Null : In.Start[i - 1].Operator;
+
+		if (!(OpType == ScopedName::Operator_t::Null
+			|| OpType == ScopedName::Operator_t::Dot
+			|| OpType == ScopedName::Operator_t::ScopeResolution))
+		{
+
+			auto Datav = Systematic_MemberOverloadData::GetOverloadData(OpType);
+			if (Datav.has_value())
+			{
+				auto& Data = *Datav.value();
+				String Scope = ToString(Last_Type);
+				ScopeHelper::GetApendedString(Scope, Data.CompilerName);
+
+				auto ConstructorSymbols = _Table.GetSymbolsWithName(Scope, SymbolType::Any);
+
+				Symbol* funcToCallSys = nullptr;
+
+				for (auto& Item2 : ConstructorSymbols)
+				{
+					if (Item2->Type == SymbolType::Func)
+					{
+						auto Info = Item2->Get_Info<FuncInfo>();
+
+						if (Info->Pars.size() == 1) {
+							funcToCallSys = Item2;
+						}
+						break;
+					}
+				}
+				if (!funcToCallSys)
+				{
+					throw std::exception("bad path");
+				}
+
+				auto Funcf = funcToCallSys->Get_Info< FuncInfo>();
+				Get_FuncInfo V;
+				V.Func = Funcf;
+				V.SymFunc = funcToCallSys;
+				V.ThisPar = Get_FuncInfo::ThisPar_t::PushFromLast;
+
+				if (Output == nullptr)
+				{
+					_LastExpressionField = In.Symbol->IR_Ins;
+				}
+				else
+				{
+					_LastExpressionField = Output;
+				}
+
+
+				ValueParametersNode h;
+				DoFuncCall(Last_Type, V, h);
+
+				Last_Type = Funcf->Ret;
+				Sym = GetSymbol(Last_Type);
+				Output = _LastExpressionField;
+			}
+		}
+
 		switch (Sym->Type)
 		{
 		case  SymbolType::Type_class:
@@ -2382,8 +2440,8 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 					}
 				}
 
-					
-					break;
+
+				break;
 				case  SymbolType::ParameterVarable:
 				{
 					TypeSymbol& TypeSys = Last_Type;
@@ -2405,7 +2463,7 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 				TypeSymbol& TypeSys = Last_Type;
 				if (TypeSys.IsAddress())
 				{
-					Output = LookingAtIRBlock->New_Member_Dereference(Output,ConvertToIR(Sym->VarType), MemberIndex);
+					Output = LookingAtIRBlock->New_Member_Dereference(Output, ConvertToIR(Sym->VarType), MemberIndex);
 				}
 				else
 				{
@@ -2415,11 +2473,13 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 			Last_Type = FInfo->Type;
 		}
 		break;
+
 		default:
 			throw std::exception("not added");
 			break;
 		}
 	}
+
 }
 
 Symbol* SystematicAnalysis::GetTepFuncPtrSyb(const String& TepFuncPtr, const FuncInfo* Finfo)
@@ -2454,6 +2514,9 @@ String_view SystematicAnalysis::GetTepFuncPtrNameAsName(const String_view Str)
 }
 bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
 {
+
+	if (passtype == PassType::GetTypes) { return false; }
+
 	auto TepSyb = Out.Symbol;
 	size_t ScopedCount = 0;
 	if (TepSyb == nullptr && Out.Type.IsBadType())
@@ -2540,10 +2603,11 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 		{
 			return false;
 		}
+		ScopedName::Operator_t OpType = i == 0 ? ScopedName::Operator_t::Null : node.ScopedName[i - 1].Operator;
 
-		if (Item.Operator == ScopedName::Operator_t::Null
-			|| Item.Operator == ScopedName::Operator_t::ScopeResolution
-			|| Item.Operator == ScopedName::Operator_t::Dot)
+		if (OpType == ScopedName::Operator_t::Null
+			|| OpType == ScopedName::Operator_t::ScopeResolution
+			|| OpType == ScopedName::Operator_t::Dot)
 		{
 
 			if (Out.Symbol->Type == SymbolType::Type_class)
@@ -2742,11 +2806,11 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 		}
 		else//overloadable
 		{
-			auto Datav = Systematic_MemberOverloadData::GetOverloadData(Item.Operator);
+			auto Datav = Systematic_MemberOverloadData::GetOverloadData(OpType);
 			if (Datav.has_value())
 			{
 				auto& Data = *Datav.value();
-				String Scope = Out.Symbol->FullName;
+				String Scope = ToString(Out.Type);
 				ScopeHelper::GetApendedString(Scope, Data.CompilerName);
 
 				auto ConstructorSymbols = _Table.GetSymbolsWithName(Scope, SymbolType::Any);
@@ -6915,8 +6979,10 @@ bool SystematicAnalysis::IsCompatible(Symbol* Item, const Vector<TypeSymbol>& Va
 
 
 	//
-	if (Item->PassState != passtype)
+	if ((PassType_t)Item->PassState < (PassType_t)passtype)
 	{
+		
+
 		if (!IsDependencies(Info))
 		{
 			auto OldPass = passtype;
