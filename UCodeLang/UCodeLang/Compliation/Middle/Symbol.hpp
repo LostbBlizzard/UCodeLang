@@ -11,7 +11,8 @@ UCodeLangEnd
 
 UCodeLangFrontStart
 
-enum class PassType : UInt8
+using PassType_t = UInt8;
+enum class PassType : PassType_t
 {
 	Null,
 	GetTypes,

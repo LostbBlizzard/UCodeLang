@@ -14,6 +14,6 @@ $Optional<T>:
 
 
 |main[] -> var:
- Vec2i? Test;
+ Vec2i? Test = [];
  
  ret Test~>X;
