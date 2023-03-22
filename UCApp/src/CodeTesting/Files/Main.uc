@@ -21,6 +21,6 @@ $Vec2i:
  Vec2i A = [1,1];
  Vec2i B = [2,2];
 
- var r = A[5];
+ var r = A(5,8);
 
  ret r;
