@@ -303,7 +303,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 	if (!Isgeneric_t)
 	{
 		
-		_ClassStack.push(ClassInf);
+		_ClassStack.push({ ClassInf });
 		PushClassDependencie(ClassInf);
 
 		//if (passtype == PassType::GetTypes)
@@ -482,13 +482,13 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 	_Table.AddScope(FuncName);
 	auto FullName = _Table._Scope.ThisScope;
-	
 
-	
+
+
 
 	Symbol* syb;
-	SymbolID sybId =GetSymbolID(node);
-	
+	SymbolID sybId = GetSymbolID(node);
+
 
 	auto UseingIndex = _Table.GetUseingIndex();
 
@@ -497,7 +497,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		SymbolType Type = IsGenericS && IsgenericInstantiation == false ?
 			SymbolType::GenericFunc : SymbolType::Func;
 
-		
+
 
 		syb = &AddSybol(Type, (String)FuncName, FullName);
 		syb->NodePtr = (void*)&node;//the node will not get update anyway.
@@ -506,20 +506,20 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		FuncInfo* newInfo = new FuncInfo();
 		newInfo->FullName = FullName;
 		newInfo->_FuncType = FuncType;
-		
+
 		syb->Info.reset(newInfo);
 
-		auto& GenericList = node.Signature.Generic;	
-		
-		
+		auto& GenericList = node.Signature.Generic;
+
+
 		for (size_t i = 0; i < GenericList.Values.size(); i++)
 		{
 			auto& Item = GenericList.Values[i];
 
 			auto GenericTypeName = Item.AsString();
-			auto GenericType = &AddSybol(SymbolType::Type_alias, GenericTypeName, 
+			auto GenericType = &AddSybol(SymbolType::Type_alias, GenericTypeName,
 				_Table._Scope.GetApendedString(GenericTypeName)
-				);
+			);
 
 			if (IsgenericInstantiation)
 			{
@@ -534,18 +534,18 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 				GenericType->NodePtr = (void*)&Item;
 				SymbolID ID = (SymbolID)GenericType->NodePtr;
-				_Table.AddSymbolID(*GenericType,ID);	
-				
+				_Table.AddSymbolID(*GenericType, ID);
+
 				GenericData Info;
 				Info.SybID = ID;
 				Info.IsConstantExpression = Item.IsConstantExpression;
 
 				newInfo->_Generic.push_back(Info);
 			}
-		
+
 		}
 
-		
+
 		{
 			auto& RetType = node.Signature.ReturnType.node;
 			if (RetType && RetType->Get_Type() == NodeType::AnonymousTypeNode)
@@ -572,12 +572,12 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			}
 		}
 
-		
 
-		auto ClassSymBool = _ClassStack.size() ? GetSymbol(_ClassStack.top()) : nullptr;
+
+		auto ClassSymBool = _ClassStack.size() ? GetSymbol(_ClassStack.top().Info) : nullptr;
 		for (auto& Item : node.Signature.Parameters.Parameters)
 		{
-			
+
 			String_view GenericTypeName;
 			if (Item.Name.Token == nullptr)
 			{
@@ -606,8 +606,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			}
 			newInfo->Pars.push_back(ConvertAndValidateType(Item.Type));
 		}
-		
-		
+
+
 		syb = GetSymbol(sybId);//resized _Table
 	}
 	else
@@ -630,7 +630,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	if (passtype == PassType::FixedTypes
 		|| (IsGenericS && passtype == PassType::GetTypes))
 	{
-		
+
 		auto& RetType = node.Signature.ReturnType.node;
 		if (RetType && RetType->Get_Type() == NodeType::AnonymousTypeNode)
 		{
@@ -648,10 +648,10 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 				ConvertAndValidateType(Item3.Type, ItemOut.Type);
 			}
 
-			
+
 			PushClassDependencie(ClassInf);
 
-			UAddress ClassSize=0;
+			UAddress ClassSize = 0;
 			for (auto& Item : ClassInf->Fields)
 			{
 				UAddress V = NullAddress;
@@ -663,7 +663,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 			ClassInf->Size = ClassSize;
 			ClassInf->SizeInitialized = true;
-			
+
 
 			syb->VarType.SetType(AnonymousSybID);
 			Info->Ret = syb->VarType;
@@ -674,7 +674,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			Info->Ret = syb->VarType;
 		}
 
-		
+
 
 		for (size_t i = 0; i < node.Signature.Parameters.Parameters.size(); i++)
 		{
@@ -683,15 +683,15 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 
 			auto ParSybID = (SymbolID)&Item;
-			auto& Sybol =*GetSymbol(ParSybID);
+			auto& Sybol = *GetSymbol(ParSybID);
 			ConvertAndValidateType(Item.Type, Sybol.VarType);
 			Item2 = Sybol.VarType;
 
 		}
-		
-	}	
-	
-	
+
+	}
+
+
 
 
 	bool buidCode = passtype == PassType::BuidCode;
@@ -700,7 +700,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 	if (buidCode)
 	{
-		
+
 		auto DecName = MangleName(Info);
 		LookingAtIRFunc = _Builder.NewFunc(GetIRID(Info), {});
 		LookingAtIRBlock = LookingAtIRFunc->NewBlock("");
@@ -788,7 +788,9 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	if (node.Body.has_value() && !ignoreBody)
 	{
 		auto& Body = node.Body.value();
-		_InStatements = true;
+
+		SetInStatetements(true);
+
 		bool HasARet = false;
 		LookingForTypes.push(syb->VarType);
 
@@ -813,7 +815,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 						NewType.SetAsAddressArray();
 					}
 
-					
+
 
 					Get_LookingForType() = syb->VarType = NewType;
 
@@ -830,9 +832,9 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			}
 		}
 
-		_InStatements = false;
+		SetInStatetements(false);
 
-		
+
 		if (passtype == PassType::FixedTypes)
 		{
 			if (!HasARet)
@@ -847,7 +849,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 					auto Token = node.Signature.Name.Token;
 					YouMustReturnSomethingError(Token);
 				}
-				
+
 			}
 
 			Info->Ret = syb->VarType;
@@ -856,15 +858,16 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		LookingForTypes.pop();
 	}
 
+
 	if (buidCode && !ignoreBody)
 	{
 		PopStackFrame();
-		
+
 		LookingAtIRBlock->NewRet();
 
 	}
 
-	
+
 
 	if (passtype == PassType::FixedTypes)
 	{
@@ -886,10 +889,18 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 
 
-	
+
 	_Table.RemoveScope();
 
 	syb->PassState = passtype;
+
+}
+void SystematicAnalysis::SetInStatetements(bool Value)
+{
+	if (_ClassStack.size())
+	{
+		_ClassStack.top()._InStatements = Value;
+	}
 }
 void SystematicAnalysis::FuncGetName(const UCodeLang::Token* NameToken, std::string_view& FuncName, UCodeLang::FrontEnd::FuncInfo::FuncType& FuncType)
 {
@@ -1528,7 +1539,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 		if (InSideClass)
 		{
 			syb->Type = SymbolType::Class_Field;
-			auto& Class = *_ClassStack.top();
+			auto& Class = *_ClassStack.top().Info;
 
 			Class.AddField(ScopeHelper::GetNameFromFullName((String_view)FullName), TypeSymbol());
 
@@ -1656,7 +1667,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 
 		if (InSideClass)
 		{
-			auto& Class = *_ClassStack.top();
+			auto& Class = *_ClassStack.top().Info;
 			if (!Class.SizeInitialized)
 			{
 				if (Class.Size == NullAddress)
@@ -2064,7 +2075,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, 
 		AddDependencyToCurrentFile(FeildTypeAsSymbol);
 	}
 	
-	if (Out.Symbol->Type == SymbolType::Class_Field && _FuncStack.size() && _ClassStack.top())
+	if (Out.Symbol->Type == SymbolType::Class_Field && _FuncStack.size() && _ClassStack.top().Info)
 	{
 		if (!IsInThisFuncCall())
 		{
@@ -2305,7 +2316,7 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 
 	//
 
-	if (In.Symbol->Type == SymbolType::Class_Field && _FuncStack.size() && _ClassStack.top())
+	if (In.Symbol->Type == SymbolType::Class_Field && _FuncStack.size() && _ClassStack.top().Info)
 	{
 		auto& Func = _FuncStack.back();
 		auto& PointerIr = LookingAtIRFunc->Pars.front();
@@ -2530,137 +2541,15 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 			return false;
 		}
 
-		if (TepSyb->Type == SymbolType::Type_class)
+		if (Item.Operator == ScopedName::Operator_t::Null
+			|| Item.Operator == ScopedName::Operator_t::ScopeResolution
+			|| Item.Operator == ScopedName::Operator_t::Dot)
 		{
-			ClassInfo* CInfo = Out.Symbol->Get_Info<ClassInfo>();
 
-
-			auto FeldInfo = CInfo->GetField(ItemToken->Value._String);
-			if (!FeldInfo.has_value())
+			if (Out.Symbol->Type == SymbolType::Type_class)
 			{
-				if (passtype == PassType::FixedTypes)
-				{
-					LogCantFindVarMemberError(ItemToken, ItemToken->Value._String, Out.Type);
-				}
-				return false;
-			}
+				ClassInfo* CInfo = Out.Symbol->Get_Info<ClassInfo>();
 
-			auto& FieldType2 = (*FeldInfo)->Type;
-			if (FieldType2._Type == TypesEnum::CustomType)
-			{
-				Out.Symbol = GetSymbol(FieldType2._CustomTypeSymbol);
-				Out.Type = FieldType2;
-			}
-			else
-			{
-				Out.Type = FieldType2;
-
-				if (i + 1 < node.ScopedName.size())
-				{
-					const UCodeLang::Token* Token = node.ScopedName.begin()->token;
-
-					auto Token2 = node.ScopedName[i + 1].token;
-					auto& Str2 = Token->Value._String;
-					if (passtype == PassType::FixedTypes)
-					{
-						LogCantFindVarMemberError(Token2, Str2, Out.Type);
-					}
-					break;
-				}
-			}
-			if (passtype == PassType::BuidCode)
-			{
-				AddDependencyToCurrentFile(Out.Symbol);
-			}
-		}
-		else if (Out.Symbol->Type == SymbolType::Enum)
-		{
-			EnumInfo* Einfo = Out.Symbol->Get_Info<EnumInfo>();
-			auto& NameString = ItemToken->Value._String;
-
-			auto FeldInfo = Einfo->GetField(NameString);
-			if (!FeldInfo.has_value())
-			{
-				if (passtype == PassType::FixedTypes)
-				{
-					LogCantFindVarMemberError(ItemToken, ItemToken->Value._String, Out.Type);
-				}
-				return false;
-			}
-
-
-
-			if (i + 1 < node.ScopedName.size())
-			{
-				const UCodeLang::Token* Token = node.ScopedName.begin()->token;
-
-				auto Token2 = node.ScopedName[i + 1].token;
-				auto& Str2 = Token->Value._String;
-				if (passtype == PassType::FixedTypes)
-				{
-					LogCantFindVarMemberError(Token2, Str2, Out.Type);
-				}
-				break;
-			}
-
-		
-			Out.Type.SetType(Out.Symbol->ID);//set enum type
-			
-			{
-				String FeildSymFullName = Out.Symbol->FullName;
-				ScopeHelper::GetApendedString(FeildSymFullName, NameString);
-
-				Symbol* FeildSym = GetSymbol(FeildSymFullName, SymbolType::Enum_Field);
-				
-				Out.Symbol = TepSyb = FeildSym;//set symbol as enum feild
-
-
-				Out.Set_V1(*FeldInfo);
-				Out.Set_V2(Einfo);
-
-			}
-
-			AddDependencyToCurrentFile(Out.Symbol);
-		}
-		else if (Out.Symbol->Type == SymbolType::Func)
-		{
-			if (i + 1 < node.ScopedName.size())
-			{
-				const UCodeLang::Token* Token = node.ScopedName.begin()->token;
-
-				auto Token2 = node.ScopedName[i + 1].token;
-				auto& Str2 = Token->Value._String;
-				if (passtype == PassType::FixedTypes)
-				{
-					LogCantFindVarMemberError(Token2, Str2, Out.Type);
-				}
-				break;
-			}
-
-
-			Symbol* Func = Out.Symbol;
-
-			FuncInfo* Finfo = Out.Symbol->Get_Info<FuncInfo>();
-			String TepFuncPtr = GetTepFuncPtrName(Finfo);
-
-			Symbol* V = GetTepFuncPtrSyb(TepFuncPtr, Finfo);
-			Out.Symbol = V;
-			Out.Type.SetType(V->ID);
-
-
-			if (passtype == PassType::BuidCode)
-			{
-				AddDependencyToCurrentFile(Func);
-			}
-
-		}
-		else if (IsVarableType(Out.Symbol->Type))
-		{
-			TypeSymbol VarableType = Out.Symbol->VarType;
-			Symbol* TypeAsSybol = GetSymbol(VarableType);
-			if (TypeAsSybol)
-			{
-				ClassInfo* CInfo = TypeAsSybol->Get_Info<ClassInfo>();
 
 				auto FeldInfo = CInfo->GetField(ItemToken->Value._String);
 				if (!FeldInfo.has_value())
@@ -2698,10 +2587,58 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 				if (passtype == PassType::BuidCode)
 				{
 					AddDependencyToCurrentFile(Out.Symbol);
-					//throw std::exception("not added");
 				}
 			}
-			else
+			else if (Out.Symbol->Type == SymbolType::Enum)
+			{
+				EnumInfo* Einfo = Out.Symbol->Get_Info<EnumInfo>();
+				auto& NameString = ItemToken->Value._String;
+
+				auto FeldInfo = Einfo->GetField(NameString);
+				if (!FeldInfo.has_value())
+				{
+					if (passtype == PassType::FixedTypes)
+					{
+						LogCantFindVarMemberError(ItemToken, ItemToken->Value._String, Out.Type);
+					}
+					return false;
+				}
+
+
+
+				if (i + 1 < node.ScopedName.size())
+				{
+					const UCodeLang::Token* Token = node.ScopedName.begin()->token;
+
+					auto Token2 = node.ScopedName[i + 1].token;
+					auto& Str2 = Token->Value._String;
+					if (passtype == PassType::FixedTypes)
+					{
+						LogCantFindVarMemberError(Token2, Str2, Out.Type);
+					}
+					break;
+				}
+
+
+				Out.Type.SetType(Out.Symbol->ID);//set enum type
+
+				{
+					String FeildSymFullName = Out.Symbol->FullName;
+					ScopeHelper::GetApendedString(FeildSymFullName, NameString);
+
+					Symbol* FeildSym = GetSymbol(FeildSymFullName, SymbolType::Enum_Field);
+
+					Out.Symbol = FeildSym;//set symbol as enum feild
+
+
+					Out.Set_V1(*FeldInfo);
+					Out.Set_V2(Einfo);
+
+				}
+
+				AddDependencyToCurrentFile(Out.Symbol);
+			}
+			else if (Out.Symbol->Type == SymbolType::Func)
 			{
 				if (i + 1 < node.ScopedName.size())
 				{
@@ -2711,16 +2648,139 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 					auto& Str2 = Token->Value._String;
 					if (passtype == PassType::FixedTypes)
 					{
-						LogCantFindVarMemberError(Token2, Str2, VarableType);
+						LogCantFindVarMemberError(Token2, Str2, Out.Type);
 					}
 					break;
 				}
+
+
+				Symbol* Func = Out.Symbol;
+
+				FuncInfo* Finfo = Out.Symbol->Get_Info<FuncInfo>();
+				String TepFuncPtr = GetTepFuncPtrName(Finfo);
+
+				Symbol* V = GetTepFuncPtrSyb(TepFuncPtr, Finfo);
+				Out.Symbol = V;
+				Out.Type.SetType(V->ID);
+
+
+				if (passtype == PassType::BuidCode)
+				{
+					AddDependencyToCurrentFile(Func);
+				}
+
+			}
+			else if (IsVarableType(Out.Symbol->Type))
+			{
+				TypeSymbol VarableType = Out.Symbol->VarType;
+				Symbol* TypeAsSybol = GetSymbol(VarableType);
+				if (TypeAsSybol)
+				{
+					ClassInfo* CInfo = TypeAsSybol->Get_Info<ClassInfo>();
+
+					auto FeldInfo = CInfo->GetField(ItemToken->Value._String);
+					if (!FeldInfo.has_value())
+					{
+						if (passtype == PassType::FixedTypes)
+						{
+							LogCantFindVarMemberError(ItemToken, ItemToken->Value._String, Out.Type);
+						}
+						return false;
+					}
+
+					auto& FieldType2 = (*FeldInfo)->Type;
+					if (FieldType2._Type == TypesEnum::CustomType)
+					{
+						Out.Symbol = GetSymbol(FieldType2._CustomTypeSymbol);
+						Out.Type = FieldType2;
+					}
+					else
+					{
+						Out.Type = FieldType2;
+
+						if (i + 1 < node.ScopedName.size())
+						{
+							const UCodeLang::Token* Token = node.ScopedName.begin()->token;
+
+							auto Token2 = node.ScopedName[i + 1].token;
+							auto& Str2 = Token->Value._String;
+							if (passtype == PassType::FixedTypes)
+							{
+								LogCantFindVarMemberError(Token2, Str2, Out.Type);
+							}
+							break;
+						}
+					}
+					if (passtype == PassType::BuidCode)
+					{
+						AddDependencyToCurrentFile(Out.Symbol);
+						//throw std::exception("not added");
+					}
+				}
+				else
+				{
+					if (i + 1 < node.ScopedName.size())
+					{
+						const UCodeLang::Token* Token = node.ScopedName.begin()->token;
+
+						auto Token2 = node.ScopedName[i + 1].token;
+						auto& Str2 = Token->Value._String;
+						if (passtype == PassType::FixedTypes)
+						{
+							LogCantFindVarMemberError(Token2, Str2, VarableType);
+						}
+						break;
+					}
+				}
+
+			}
+			else
+			{
+				throw std::exception("bad object");
 			}
 
 		}
-		else
+		else//overloadable
 		{
-			throw std::exception("bad object");
+			auto Datav = Systematic_MemberOverloadData::GetOverloadData(Item.Operator);
+			if (Datav.has_value())
+			{
+				auto& Data = *Datav.value();
+				String Scope = Out.Symbol->FullName;
+				ScopeHelper::GetApendedString(Scope, Data.CompilerName);
+
+				auto ConstructorSymbols = _Table.GetSymbolsWithName(Scope, SymbolType::Any);
+
+				Symbol* funcToCallSys = nullptr;
+
+				for (auto& Item2 : ConstructorSymbols)
+				{
+					if (Item2->Type == SymbolType::Func)
+					{
+						auto Info = Item2->Get_Info<FuncInfo>();
+						
+						if (Info->Pars.size() == 1) {
+							funcToCallSys = Item2;
+						}
+						break;
+					}
+				}
+				if (!funcToCallSys)
+				{
+					Out.Type.SetType(TypesEnum::Null);
+					Out.Symbol = nullptr;
+
+					auto& Item = ItemToken;
+
+					LogCantFindMemberOverloadForType(Item, Data.token, Out.Type);
+					return false;
+				}
+				else
+				{
+					Out.Symbol = funcToCallSys;
+					Out.Type = funcToCallSys->Get_Info< FuncInfo>()->Ret;
+				}
+			}
 		}
 	}
 
@@ -5284,7 +5344,7 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 
 		if (_ClassStack.size()) 
 		{
-			Symbol* SybV = GetSymbol(_ClassStack.top());
+			Symbol* SybV = GetSymbol(_ClassStack.top().Info);
 			Out = SybV->VarType;
 		}
 		else
@@ -7998,6 +8058,13 @@ void SystematicAnalysis::LogPostfixOverloadPars(const Token& Name, const FuncInf
 void SystematicAnalysis::LogCantOverLoadOverload(const UCodeLang::Token* NameToken)
 {
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, NameToken->OnLine, NameToken->OnPos, "You may not Overload '" + ToString(NameToken->Type) + "'.");
+}
+
+void SystematicAnalysis::LogCantFindMemberOverloadForType(const Token* Item, TokenType Op, const TypeSymbol& Out)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidName, Item->OnLine, Item->OnPos
+		, "Cant find operator overload for '" + ToString(Op) + "' For Type " + ToString(Out));
+
 }
 UCodeLangFrontEnd
 
