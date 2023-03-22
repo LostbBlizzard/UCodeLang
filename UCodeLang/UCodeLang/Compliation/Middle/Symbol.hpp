@@ -270,7 +270,11 @@ public:
 		//Compound
 		Compound_plus,
 		Compound_Minus,
-
+		//Member
+		IndirectMember,
+		OptionalDot,
+		ExclamationDot,
+		
 		//other operators
 		Index,
 		Invoke,

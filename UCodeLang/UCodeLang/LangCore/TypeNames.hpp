@@ -61,6 +61,11 @@
 #define Overload_Compoundplus_Func CompilerGenerated("Compound_Plus")
 #define Overload_CompoundSub_Func CompilerGenerated("Compound_Sub")
 
+//Member
+#define Overload_IndirectMember_Func CompilerGenerated("IndirectMember")
+#define Overload_OptionalDot_Func CompilerGenerated("OptionalDot")
+#define Overload_ExclamationDot_Func CompilerGenerated("ExclamationDot")
+
 //others Op
 #define Overload_Index_Func CompilerGenerated("Index")
 #define Overload_Invoke_Func CompilerGenerated("Invoke")

@@ -138,6 +138,39 @@ public:
 	}
 };
 
+struct Systematic_MemberOverloadData
+{
+public:
+	struct Data
+	{
+		TokenType token;
+		String CompilerName;
+		FuncInfo::FuncType Type;
+		Data(TokenType t, String compilerName, FuncInfo::FuncType f)
+			:token(t), CompilerName(compilerName), Type(f)
+		{
+
+		}
+	};
+	inline static const Array<Data, 3> Data =
+	{
+		Data(TokenType::IndirectMember,Overload_IndirectMember_Func ,FuncInfo::FuncType::IndirectMember),
+		Data(TokenType::OptionalDot, Overload_OptionalDot_Func,FuncInfo::FuncType::OptionalDot),
+		Data(TokenType::ExclamationDot, Overload_ExclamationDot_Func,FuncInfo::FuncType::ExclamationDot),
+	};
+	static bool IsMemerOverload(FuncInfo::FuncType Type)
+	{
+		for (auto& Item : Data)
+		{
+			if (Item.Type == Type)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+};
+
 class SystematicAnalysis
 {
 

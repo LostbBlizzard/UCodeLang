@@ -965,6 +965,16 @@ void SystematicAnalysis::FuncGetName(const UCodeLang::Token* NameToken, std::str
 			}
 		}
 
+		for (auto& Item : Systematic_MemberOverloadData::Data)
+		{
+			if (NameToken->Type == Item.token)
+			{
+				FuncName = Item.CompilerName;
+				FuncType = Item.Type;
+				ObjectOverLoad = true;
+				goto DoStuff;
+			}
+		}
 
 		LogCantOverLoadOverload(NameToken);
 
@@ -1043,8 +1053,28 @@ void SystematicAnalysis::FuncRetCheck(const Token& Name, const Symbol* FuncSyb, 
 				LogBinaryOverloadPars(Name, Func);
 			}
 		}
-
-		if (Systematic_PostfixOverloadData::IsPostfixOverload(Func->_FuncType))
+		else if (Systematic_PostfixOverloadData::IsPostfixOverload(Func->_FuncType))
+		{
+			if (Func->Pars.size() != 1)
+			{
+				LogPostfixOverloadPars(Name, Func);
+			}
+		}
+		else if (Systematic_CompoundOverloadData::IsCompoundOverload(Func->_FuncType))
+		{
+			if (Func->Pars.size() != 2)
+			{
+				LogBinaryOverloadPars(Name, Func);
+			}
+		}
+		else if (Systematic_UrinaryOverloadData::IsUrinaryOverload(Func->_FuncType))
+		{
+			if (Func->Pars.size() != 1)
+			{
+				LogPostfixOverloadPars(Name, Func);
+			}
+		}
+		else if (Systematic_MemberOverloadData::IsMemerOverload(Func->_FuncType))
 		{
 			if (Func->Pars.size() != 1)
 			{
