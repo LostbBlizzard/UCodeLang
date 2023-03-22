@@ -198,6 +198,11 @@ private:
 		bool HasValue = false;
 		Optional<Symbol*> Value;
 	};
+	struct IndexOverLoadWith_t
+	{
+		bool HasValue = false;
+		Optional<Symbol*> Value;
+	};
     //Members
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
@@ -402,7 +407,7 @@ private:
 	BinaryOverLoadWith_t HasBinaryOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
 	bool HasCompoundOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
 	bool HasPostfixOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp);
-	bool HasIndexedOverLoadWith(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
+	IndexOverLoadWith_t  HasIndexedOverLoadWith(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
 
 	TypeSymbol BinaryExpressionShouldRurn(TokenType Op, const TypeSymbol& Ex0Type);
 
