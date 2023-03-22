@@ -13,6 +13,9 @@ $Vec2i:
  
  |[][this&,int Index] -> int:
   ret Index;
+ 
+ |()[this&,int Par1,int Par2]:
+  ret Par1 + Par2;
 
 |main[] -> var:
  Vec2i A = [1,1];
