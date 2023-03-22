@@ -141,22 +141,22 @@ public:
 struct Systematic_MemberOverloadData
 {
 public:
-	struct Data
+	struct Data_t
 	{
 		TokenType token;
 		String CompilerName;
 		FuncInfo::FuncType Type;
-		Data(TokenType t, String compilerName, FuncInfo::FuncType f)
+		Data_t(TokenType t, String compilerName, FuncInfo::FuncType f)
 			:token(t), CompilerName(compilerName), Type(f)
 		{
 
 		}
 	};
-	inline static const Array<Data, 3> Data =
+	inline static const Array<Data_t, 3> Data =
 	{
-		Data(TokenType::IndirectMember,Overload_IndirectMember_Func ,FuncInfo::FuncType::IndirectMember),
-		Data(TokenType::OptionalDot, Overload_OptionalDot_Func,FuncInfo::FuncType::OptionalDot),
-		Data(TokenType::ExclamationDot, Overload_ExclamationDot_Func,FuncInfo::FuncType::ExclamationDot),
+		Data_t(TokenType::IndirectMember,Overload_IndirectMember_Func ,FuncInfo::FuncType::IndirectMember),
+		Data_t(TokenType::OptionalDot, Overload_OptionalDot_Func,FuncInfo::FuncType::OptionalDot),
+		Data_t(TokenType::ExclamationDot, Overload_ExclamationDot_Func,FuncInfo::FuncType::ExclamationDot),
 	};
 	static bool IsMemerOverload(FuncInfo::FuncType Type)
 	{
@@ -168,6 +168,33 @@ public:
 			}
 		}
 		return false;
+	}
+
+	static Optional<const Data_t*> GetOverloadData(TokenType type)
+	{
+		for (auto& Item : Data)
+		{
+			if (Item.token== type)
+			{
+				return { &Item };
+			}
+		}
+		return {};
+	}
+	static Optional<const Data_t*> GetOverloadData(ScopedName::Operator_t type)
+	{
+		return GetOverloadData(To(type));
+	}
+
+	static TokenType To(ScopedName::Operator_t type)
+	{
+		switch (type)
+		{
+		case ScopedName::Operator_t::IndirectMember:return TokenType::IndirectMember;
+		case ScopedName::Operator_t::OptionalChain:return TokenType::OptionalDot;
+		case ScopedName::Operator_t::ExclamationMember:return TokenType::ExclamationDot;
+		default:return TokenType::Null;
+		}
 	}
 };
 
@@ -354,6 +381,12 @@ private:
 	using IndexOverLoadWith_t = BinaryOverLoadWith_t;
 	using PostFixOverLoadWith_t = BinaryOverLoadWith_t;
 	using CompoundOverLoadWith_t = BinaryOverLoadWith_t;
+
+	struct ClassStackInfo
+	{
+		ClassInfo* Info =nullptr;
+		bool _InStatements = false;
+	};
     //Members
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
@@ -364,7 +397,10 @@ private:
 	const Vector<const FileNode*>* _Files = nullptr;
 	const Vector<const UClib*>* _Libs = nullptr;
 	SymbolTable _Table;
-	Stack<ClassInfo*> _ClassStack;
+
+
+
+	Stack<ClassStackInfo> _ClassStack;
 
 	
 	const FileNode* LookingAtFile = nullptr;
@@ -386,7 +422,6 @@ private:
 	Vector<const ClassInfo*> ClassDependencies;
 	Vector< FuncInfo*>_RetLoopStack;
 	Vector<const AttributeNode*> _TepAttributes;
-	bool _InStatements = false;
 	//IR Building
 	IRBuilder _Builder;
 	IRInstruction* _LastExpressionField = 0;
@@ -484,6 +519,7 @@ private:
 	void OnAliasNode(const AliasNode& node);
 	void OnUseingNode(const UsingNode& node);
 	void OnFuncNode(const FuncNode& node);
+	void SetInStatetements(bool Value);
 	void FuncGetName(const UCodeLang::Token* NameToken, std::string_view& FuncName, UCodeLang::FrontEnd::FuncInfo::FuncType& FuncType);
 	
 	void OnStatement(const Unique_ptr<UCodeLang::Node>& node2);
@@ -599,7 +635,7 @@ private:
 
 	bool _InSideClass()
 	{
-		return  _ClassStack.size() && _InStatements == false;
+		return  _ClassStack.size() && _ClassStack.top()._InStatements == false;
 	}
 	bool IsInThisFuncCall()
 	{
@@ -615,7 +651,7 @@ private:
 			auto objecttypesyb = GetSymbol(*ObjectType);
 			ClassInfo* V = objecttypesyb->Get_Info<ClassInfo>();
 
-			return _ClassStack.top() == V;
+			return _ClassStack.top().Info == V;
 		}
 
 		return false;
@@ -787,6 +823,7 @@ private:
 	void LogIndexOverloadPars(const Token& Name, const FuncInfo* Func);
 	void LogPostfixOverloadPars(const Token& Name, const FuncInfo* Func);
 	void LogCantOverLoadOverload(const UCodeLang::Token* NameToken);
+	void LogCantFindMemberOverloadForType(const Token* Item, TokenType Op, const TypeSymbol& Out);
 
 	String ToString(SymbolType Value);
 	ReadVarErrorCheck_t LogTryReadVar(String_view VarName, const Token* Token, const Symbol* Syb);
