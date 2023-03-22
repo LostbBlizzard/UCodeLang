@@ -954,6 +954,17 @@ void SystematicAnalysis::FuncGetName(const UCodeLang::Token* NameToken, std::str
 			}
 		}
 
+		for (auto& Item : Systematic_CompoundOverloadData::Data)
+		{
+			if (NameToken->Type == Item.token)
+			{
+				FuncName = Item.CompilerName;
+				FuncType = Item.Type;
+				ObjectOverLoad = true;
+				goto DoStuff;
+			}
+		}
+
 
 		LogCantOverLoadOverload(NameToken);
 
@@ -2872,22 +2883,15 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 
 	if (passtype == PassType::BuidCode)
 	{
-		if (IsPrimitive(LookType))
-		{
-			LookType._IsAddress = false;//we want to def if pointer
-		}
-		else
-		{
-			throw std::exception();
-		}
-
+		LookType = Compound_Datas.at(&node).Op1;
 	}
+	else {
+		LookingForTypes.push(LookType);
 
-	LookingForTypes.push(LookType);
+		OnExpressionTypeNode(node.Expession.Value.get());
 
-	OnExpressionTypeNode(node.Expession.Value.get());
-
-	LookingForTypes.pop();
+		LookingForTypes.pop();
+	}
 
 	auto ExType = LastExpressionType;
 	if (passtype == PassType::FixedTypes)
@@ -2895,10 +2899,31 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 		CheckVarWritingErrors(V.Symbol, node.VariableName.ScopedName.back().token,String_view(Name));
 		LogTryReadVar(Name, node.VariableName.ScopedName.back().token, V.Symbol);
 
-		if (!HasCompoundOverLoadWith(V.Type, node.CompoundOp->Type, ExType))
+		auto HasInfo = HasCompoundOverLoadWith(V.Type, node.CompoundOp->Type, ExType);
+		if (!HasInfo.HasValue)
 		{
 			LogCantFindCompoundOpForTypes(node.CompoundOp, V.Type, ExType);
 		}
+
+		CompoundExpresion_Data r;
+		
+		if (HasInfo.Value) 
+		{
+			FuncInfo* f = HasInfo.Value.value()->Get_Info<FuncInfo>();
+			r.FuncToCall = HasInfo.Value.value();
+			r.Op0 = f->Pars[0];
+			r.Op1 = f->Pars[1];
+		}
+		else
+		{
+			r.Op0 = V.Type;
+			r.Op1 = LastExpressionType;
+			
+			r.Op0._IsAddress = false;
+			r.Op1._IsAddress = false;
+		}
+
+		Compound_Datas.AddValue(&node,r);
 	}
 	if (passtype == PassType::BuidCode)
 	{
@@ -2909,9 +2934,48 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 		AddDependencyToCurrentFile(Symbol);
 
 
-		IRInstruction* LoadV = BuildMember_AsValue(V);
+		
+		const auto& Data = Compound_Datas.at(&node);
 
-		#define Set_CompoundU(x) \
+		if (Data.FuncToCall) 
+		{
+			IRInstruction* LoadV = _LastExpressionField = BuildMember_AsPointer(V);
+
+			FuncInfo* f = Data.FuncToCall->Get_Info<FuncInfo>();
+
+			Get_FuncInfo V;
+			V.Func = f;
+			V.SymFunc = Data.FuncToCall;
+			V.ThisPar = Get_FuncInfo::ThisPar_t::PushFromLast;
+
+
+			ScopedNameNode Tep;
+			ScopedName TepV;
+			TepV.token = LastLookedAtToken;
+			Tep.ScopedName.push_back(TepV);
+
+			ValueParametersNode pars;
+			pars._Nodes.push_back(Unique_ptr<Node>(node.Expession.Value.get()));
+
+
+			DoFuncCall(V, Tep, pars);
+
+			pars._Nodes[0].release();
+			//no mem leak node as a Unique_ptr to Ex
+
+			LastExpressionType = V.Func->Ret;
+		}
+		else
+		{
+			
+			LookingForTypes.push(LookType);
+
+			OnExpressionTypeNode(node.Expession.Value.get());
+
+			LookingForTypes.pop();
+			
+			IRInstruction* LoadV = BuildMember_AsValue(V);
+#define Set_CompoundU(x) \
 			switch (node.CompoundOp->Type) \
 			{ \
 			case TokenType::CompoundAdd: \
@@ -2931,7 +2995,7 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 				break; \
 			}\
 
-		#define Set_CompoundS(x) \
+#define Set_CompoundS(x) \
 		switch (node.CompoundOp->Type) \
 		{ \
 		case TokenType::CompoundAdd: \
@@ -2952,72 +3016,73 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 		}\
 
 
-		switch (V.Type._Type)
-		{
-		case TypesEnum::uInt8:
-		{
-			Set_CompoundU(8);
-		};
-		break;
-		case TypesEnum::uInt16:
-		{
-			Set_CompoundU(16);
-		};
-		break;
-		case TypesEnum::uInt32:
-		{
-			Set_CompoundU(32);
-		};
-		break;
-		case TypesEnum::uInt64:
-		{
-			Set_CompoundU(64);
-		};
-		break;
-
-		case TypesEnum::sInt8:
-		{
-			Set_CompoundS(8);
-		};
-		break;
-		case TypesEnum::sInt16:
-		{
-			Set_CompoundS(16);
-		};
-		break;
-		case TypesEnum::sInt32:
-		{
-			Set_CompoundS(32);
-		};
-		break;
-		case TypesEnum::sInt64:
-		{
-			Set_CompoundS(64);
-		};
-		break;
-
-		case TypesEnum::uIntPtr:
-		{
-			throw std::exception("not added");
-		};
-		break;
-
-		case TypesEnum::sIntPtr:
-		{
-			throw std::exception("not added");
-		};
-		break;
-
-
-
-		break;
-
-		default:
-			throw std::exception("Bad Op");
+			switch (V.Type._Type)
+			{
+			case TypesEnum::uInt8:
+			{
+				Set_CompoundU(8);
+			};
 			break;
-		}
+			case TypesEnum::uInt16:
+			{
+				Set_CompoundU(16);
+			};
+			break;
+			case TypesEnum::uInt32:
+			{
+				Set_CompoundU(32);
+			};
+			break;
+			case TypesEnum::uInt64:
+			{
+				Set_CompoundU(64);
+			};
+			break;
 
-		BuildMember_Reassignment(V, Type, _LastExpressionField); 
+			case TypesEnum::sInt8:
+			{
+				Set_CompoundS(8);
+			};
+			break;
+			case TypesEnum::sInt16:
+			{
+				Set_CompoundS(16);
+			};
+			break;
+			case TypesEnum::sInt32:
+			{
+				Set_CompoundS(32);
+			};
+			break;
+			case TypesEnum::sInt64:
+			{
+				Set_CompoundS(64);
+			};
+			break;
+
+			case TypesEnum::uIntPtr:
+			{
+				throw std::exception("not added");
+			};
+			break;
+
+			case TypesEnum::sIntPtr:
+			{
+				throw std::exception("not added");
+			};
+			break;
+
+
+
+			break;
+
+			default:
+				throw std::exception("Bad Op");
+				break;
+			}
+
+			BuildMember_Reassignment(V, Type, _LastExpressionField);
+		}
 	}
 }
 void SystematicAnalysis::OnExpressionTypeNode(const Node* node)
@@ -4881,16 +4946,55 @@ SystematicAnalysis::BinaryOverLoadWith_t SystematicAnalysis::HasBinaryOverLoadWi
 
 	return {};
 }
-bool SystematicAnalysis::HasCompoundOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB)
+SystematicAnalysis::CompoundOverLoadWith_t SystematicAnalysis::HasCompoundOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB)
 {
 	if (AreTheSameWithOutimmutable(TypeA, TypeB))
 	{
 		if (IsIntType(TypeA))
 		{
-			return true;
+			return { true };
 		}
 	}
-	return false;
+
+	auto Syb = GetSymbol(TypeA);
+	if (Syb)
+	{
+		if (Syb->Type == SymbolType::Type_class)
+		{
+
+			for (auto& Item : Systematic_CompoundOverloadData::Data)
+			{
+				if (Item.token == BinaryOp)
+				{
+					String funcName = Syb->FullName;
+					ScopeHelper::GetApendedString(funcName, Item.CompilerName);
+
+					auto& V = _Table.GetSymbolsWithName(funcName, SymbolType::Func);
+
+					for (auto& Item : V)
+					{
+						if (Item->Type == SymbolType::Func)
+						{
+							auto funcInfo = Item->Get_Info<FuncInfo>();
+							if (funcInfo->Pars.size() == 2)
+							{
+								bool r = CanBeImplicitConverted(TypeA, funcInfo->Pars[0])
+									 && CanBeImplicitConverted(TypeB, funcInfo->Pars[1]);
+								if (r)
+								{
+									return { r, Item };
+								}
+
+							}
+						}
+					}
+					break;
+				}
+			}
+		}
+	}
+
+	return {};
 }
 SystematicAnalysis::PostFixOverLoadWith_t SystematicAnalysis::HasPostfixOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp)
 {

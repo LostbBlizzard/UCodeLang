@@ -11,8 +11,9 @@ $Vec2i:
  |+[this&,this& Other] -> this:
   ret [X + Other.X,Y + Other.Y];
  
- |![this&] -> int:
-  ret 1;
+ |+=[this&,this& Other]:
+  X += Other.X;
+  Y += Other.Y;
  
  |()[this&,int Par1,int Par2]:
   ret Par1 + Par2;
@@ -21,5 +22,6 @@ $Vec2i:
  Vec2i A = [1,1];
  Vec2i B = [2,2];
 
+ A += B;
  
- ret !A;
+ ret A;
