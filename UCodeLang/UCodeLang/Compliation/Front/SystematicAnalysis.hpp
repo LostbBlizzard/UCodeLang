@@ -199,7 +199,7 @@ private:
 			return  FuncToCall == nullptr;
 		}
 	};
-
+	using CompoundExpresion_Data = BinaryExpressionNode_Data;
 
 	enum class  ObjectToDropType
 	{
@@ -339,6 +339,7 @@ private:
 	BinaryVectorMap<const void*, BinaryExpressionNode_Data> BinaryExpressionNode_Datas;
 	BinaryVectorMap<const void*, IndexedExpresion_Data> IndexedExpresion_Datas;
 	BinaryVectorMap<const void*, PostFixExpressionNode_Data> PostFix_Datas;
+	BinaryVectorMap<const void*, CompoundExpresion_Data> Compound_Datas;
 
 	Vector<FuncStackInfo> _FuncStack;
 
@@ -525,7 +526,7 @@ private:
 	
 	
 	BinaryOverLoadWith_t HasBinaryOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
-	bool HasCompoundOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
+	CompoundOverLoadWith_t HasCompoundOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
 	PostFixOverLoadWith_t HasPostfixOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp);
 	IndexOverLoadWith_t  HasIndexedOverLoadWith(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
 
