@@ -164,6 +164,7 @@ private:
 			NoThisPar,
 			PushFromLast,
 			PushFromScopedName,
+			FullScopedName,
 			OnIRlocationStack,
 			OnIRlocationStackNonedef,
 			PushWasCalled,

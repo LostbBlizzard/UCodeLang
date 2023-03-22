@@ -912,7 +912,7 @@ void SystematicAnalysis::FuncGetName(const UCodeLang::Token* NameToken, std::str
 		ObjectOverLoad = true;
 		break;
 	case TokenType::Left_Parentheses:
-		FuncName = Overload_Index_Func;
+		FuncName = Overload_Invoke_Func;
 		FuncType = FuncInfo::FuncType::Invoke;
 		ObjectOverLoad = true;
 		break;
@@ -4254,6 +4254,7 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 
 			V.Op0 = f->Pars[0];
 			V.Op1 = f->Pars[1];
+			V.FuncToCall = HasInfo.Value.value();
 
 			LastExpressionType = f->Ret;
 		}
@@ -4788,10 +4789,7 @@ SystematicAnalysis::BinaryOverLoadWith_t SystematicAnalysis::HasBinaryOverLoadWi
 								{
 									return { r, Item };
 								}
-								else
-								{
-									return { r,{} };
-								}
+								
 							}
 						}
 					}
@@ -4864,13 +4862,10 @@ SystematicAnalysis::IndexOverLoadWith_t SystematicAnalysis::HasIndexedOverLoadWi
 						{
 							return { r, Item };
 						}
-						else
-						{
-							return { r,{} };
-						}
+						
 					}
 				}
-			}
+			}	
 		}
 	}
 
@@ -5770,6 +5765,15 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 	bool AutoPushThis = Func.ThisPar != Get_FuncInfo::ThisPar_t::NoThisPar;
 	if (AutoPushThis)
 	{
+		if (Func.ThisPar == Get_FuncInfo::ThisPar_t::FullScopedName)
+		{
+
+			GetMemberTypeSymbolFromVar_t V;
+			GetMemberTypeSymbolFromVar(0, Name.ScopedName.size(), Name, V);
+
+			LookingAtIRBlock->NewPushParameter(BuildMember_AsPointer(V));
+		}
+		else
 		if (Func.ThisPar == Get_FuncInfo::ThisPar_t::PushFromScopedName)
 		{
 			
@@ -6332,23 +6336,70 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 				}
 			}
 		}
-		else if (Item->Type == SymbolType::StackVarable || Item->Type == SymbolType::ParameterVarable)
+		else if (IsVarableType(Item->Type))
 		{
 			Symbol* Type = GetSymbol(Item->VarType);
-			if (Type && (Type->Type == SymbolType::Func_ptr || Type->Type == SymbolType::Hard_Func_ptr))
+			if (Type) 
 			{
-				FuncInfo* Info = Type->Get_Info<FuncInfo>();//must be the same as Item->Type == SymbolType::Func
-
-				if (!IsCompatible(Item, ValueTypes, _ThisTypeIsNotNull, Name.ScopedName.back().token))
+				if (Type->Type == SymbolType::Func_ptr || Type->Type == SymbolType::Hard_Func_ptr)
 				{
-					continue;
+					FuncInfo* Info = Type->Get_Info<FuncInfo>();//must be the same as Item->Type == SymbolType::Func
+
+					if (!IsCompatible(Item, ValueTypes, _ThisTypeIsNotNull, Name.ScopedName.back().token))
+					{
+						continue;
+					}
+
+					{
+						r = Info;
+						FuncSymbol = Item;
+						T = SymbolType::FuncCall;
+						OkFuncions.push_back({ ThisParType,r,FuncSymbol });
+					}
 				}
-
+				else if (Type->Type == SymbolType::Type_class)
 				{
-					r = Info;
-					FuncSymbol = Item;
-					T = SymbolType::FuncCall;
-					OkFuncions.push_back({ ThisParType,r,FuncSymbol });
+					String Scope = Type->FullName;
+					ScopeHelper::GetApendedString(Scope, Overload_Invoke_Func);
+					auto ConstructorSymbols = _Table.GetSymbolsWithName(Scope, SymbolType::Any);
+
+
+					for (auto& Item2 : ConstructorSymbols)
+					{
+						if (Item2->Type == SymbolType::Func)
+						{
+							FuncInfo* Info = Item2->Get_Info<FuncInfo>();
+							bool PushThisPar = Info->IsObjectCall();
+
+
+							if (PushThisPar)
+							{
+								TypeSymbol V;
+								V.SetType(Type->ID);
+								V.SetAsAddress();
+								ValueTypes.insert(ValueTypes.begin(), V);
+							}
+
+							bool Compatible = IsCompatible(Item2, ValueTypes, _ThisTypeIsNotNull, Name.ScopedName.back().token);
+
+							if (PushThisPar)
+							{
+								ValueTypes.erase(ValueTypes.begin());
+							}
+
+							if (!Compatible)
+							{
+								continue;
+							}
+
+							{
+								r = Info;
+								FuncSymbol = Item2;
+								T = SymbolType::FuncCall;
+								OkFuncions.push_back({ Get_FuncInfo::ThisPar_t::FullScopedName,r,FuncSymbol });
+							}
+						}
+					}
 				}
 			}
 		}
