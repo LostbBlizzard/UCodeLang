@@ -52,6 +52,11 @@
 #define Overload_Plus_Func CompilerGenerated("Plus")
 #define Overload_minus_Func CompilerGenerated("minus")
 
+
+//others Op
+#define Overload_Index_Func CompilerGenerated("Index")
+#define Overload_Invoke_Func CompilerGenerated("Invoke")
+
 //standard Library
 #define UCode_OptionalType "Optional"//int?
 #define UCode_ArrayType "Array"//int[10]

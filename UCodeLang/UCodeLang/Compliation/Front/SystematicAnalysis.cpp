@@ -906,6 +906,16 @@ void SystematicAnalysis::FuncGetName(const UCodeLang::Token* NameToken, std::str
 		FuncType = FuncInfo::FuncType::Drop;
 		ObjectOverLoad = true;
 		break;
+	case TokenType::Left_Bracket:
+		FuncName = Overload_Index_Func;
+		FuncType = FuncInfo::FuncType::Index;
+		ObjectOverLoad = true;
+		break;
+	case TokenType::Left_Parentheses:
+		FuncName = Overload_Index_Func;
+		FuncType = FuncInfo::FuncType::Invoke;
+		ObjectOverLoad = true;
+		break;
 	case TokenType::Name:
 		break;
 	default:
@@ -977,6 +987,14 @@ void SystematicAnalysis::FuncRetCheck(const Token& Name, const Symbol* FuncSyb, 
 		if (!AreTheSame(Func->Ret, V)) 
 		{
 			LogFuncMustBe(&Name, FuncSyb->FullName, V);
+		}
+	}
+	break;
+	case FuncInfo::FuncType::Index:
+	{
+		if (Func->Pars.size() != 2)
+		{
+			LogBinaryOverloadPars(Name, Func);
 		}
 	}
 	break;
@@ -7593,6 +7611,11 @@ void SystematicAnalysis::LogBinaryOverloadPars(const Token& Name, const FuncInfo
 {
 	_ErrorsOutput->AddError(ErrorCodes::InValidType, Name.OnLine, Name.OnPos
 		, "The Binary Overload '" + ToString(Name.Type) + "'" + " must have two paameters it has " + std::to_string(Func->Pars.size()) + " Pameters");
+}
+void SystematicAnalysis::LogIndexOverloadPars(const Token& Name, const FuncInfo* Func)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidType, Name.OnLine, Name.OnPos
+		, "The Index Overload '" + ToString(Name.Type) + "'" + " must have two paameters it has " + std::to_string(Func->Pars.size()) + " Pameters");
 }
 UCodeLangFrontEnd
 
