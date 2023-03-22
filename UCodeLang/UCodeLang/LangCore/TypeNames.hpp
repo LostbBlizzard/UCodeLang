@@ -57,6 +57,10 @@
 #define Overload_increment_Func CompilerGenerated("increment")
 #define Overload_decrement_Func CompilerGenerated("decrement")
 
+//Compound
+#define Overload_Compoundplus_Func CompilerGenerated("Compound_Plus")
+#define Overload_CompoundSub_Func CompilerGenerated("Compound_Sub")
+
 //others Op
 #define Overload_Index_Func CompilerGenerated("Index")
 #define Overload_Invoke_Func CompilerGenerated("Invoke")

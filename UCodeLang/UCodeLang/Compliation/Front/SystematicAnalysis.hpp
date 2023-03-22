@@ -75,6 +75,69 @@ public:
 	}
 };
 
+struct Systematic_UrinaryOverloadData
+{
+public:
+	struct Data
+	{
+		TokenType token;
+		String CompilerName;
+		FuncInfo::FuncType Type;
+		Data(TokenType t, String compilerName, FuncInfo::FuncType f)
+			:token(t), CompilerName(compilerName), Type(f)
+		{
+
+		}
+	};
+	inline static const Array<Data, 1> Data =
+	{
+		Data(TokenType::Not,Overload_increment_Func,FuncInfo::FuncType::Not),
+	};
+	static bool IsUrinaryOverload(FuncInfo::FuncType Type)
+	{
+		for (auto& Item : Data)
+		{
+			if (Item.Type == Type)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+};
+
+struct Systematic_CompoundOverloadData
+{
+public:
+	struct Data
+	{
+		TokenType token;
+		String CompilerName;
+		FuncInfo::FuncType Type;
+		Data(TokenType t, String compilerName, FuncInfo::FuncType f)
+			:token(t), CompilerName(compilerName), Type(f)
+		{
+
+		}
+	};
+	inline static const Array<Data, 2> Data =
+	{
+		Data(TokenType::CompoundAdd,Overload_Compoundplus_Func ,FuncInfo::FuncType::Compound_plus),
+		Data(TokenType::CompoundSub,Overload_CompoundSub_Func,FuncInfo::FuncType::Compound_Minus),
+	};
+	static bool IsCompoundOverload(FuncInfo::FuncType Type)
+	{
+		for (auto& Item : Data)
+		{
+			if (Item.Type == Type)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+};
+
 class SystematicAnalysis
 {
 
@@ -257,6 +320,7 @@ private:
 	};
 	using IndexOverLoadWith_t = BinaryOverLoadWith_t;
 	using PostFixOverLoadWith_t = BinaryOverLoadWith_t;
+	using CompoundOverLoadWith_t = BinaryOverLoadWith_t;
     //Members
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
@@ -387,6 +451,7 @@ private:
 	void OnUseingNode(const UsingNode& node);
 	void OnFuncNode(const FuncNode& node);
 	void FuncGetName(const UCodeLang::Token* NameToken, std::string_view& FuncName, UCodeLang::FrontEnd::FuncInfo::FuncType& FuncType);
+	
 	void OnStatement(const Unique_ptr<UCodeLang::Node>& node2);
 	void OnRetStatement(const RetStatementNode& node);
 	void OnEnum(const EnumNode& node);
@@ -687,6 +752,7 @@ private:
 	void LogBinaryOverloadPars(const Token& Name, const FuncInfo* Func);
 	void LogIndexOverloadPars(const Token& Name, const FuncInfo* Func);
 	void LogPostfixOverloadPars(const Token& Name, const FuncInfo* Func);
+	void LogCantOverLoadOverload(const UCodeLang::Token* NameToken);
 
 	String ToString(SymbolType Value);
 	ReadVarErrorCheck_t LogTryReadVar(String_view VarName, const Token* Token, const Symbol* Syb);

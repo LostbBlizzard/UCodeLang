@@ -943,7 +943,20 @@ void SystematicAnalysis::FuncGetName(const UCodeLang::Token* NameToken, std::str
 			}
 		}
 
-		throw std::exception("not added");
+		for (auto& Item : Systematic_UrinaryOverloadData::Data)
+		{
+			if (NameToken->Type == Item.token)
+			{
+				FuncName = Item.CompilerName;
+				FuncType = Item.Type;
+				ObjectOverLoad = true;
+				goto DoStuff;
+			}
+		}
+
+
+		LogCantOverLoadOverload(NameToken);
+
 		break;
 	}
 
@@ -7846,6 +7859,11 @@ void SystematicAnalysis::LogPostfixOverloadPars(const Token& Name, const FuncInf
 {
 	_ErrorsOutput->AddError(ErrorCodes::InValidType, Name.OnLine, Name.OnPos
 		, "The Index Overload '" + ToString(Name.Type) + "'" + " must have 1 paameters it has " + std::to_string(Func->Pars.size()) + " Pameters");
+}
+
+void SystematicAnalysis::LogCantOverLoadOverload(const UCodeLang::Token* NameToken)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidName, NameToken->OnLine, NameToken->OnPos, "You may not Overload '" + ToString(NameToken->Type) + "'.");
 }
 UCodeLangFrontEnd
 
