@@ -54,6 +54,7 @@ enum class NodeType :UInt8
 	FloatliteralNode,
 	CharliteralNode,
 	IndexedExpresionNode,
+	ForNode,
 };
 
 
