@@ -1974,8 +1974,8 @@ GotNodeType Parser::GetForNode(ForNode& out)
 	if (Assemnt->Type == TokenType::equal)
 	{
 
-		out.Traditional_Type = std::move(V);
-		out.Traditional_Name = NameToken;
+		out.TypeNode = std::move(V);
+		out.Name = NameToken;
 		out.Type = ForNode::ForType::Traditional;
 
 		NextToken();
@@ -1992,8 +1992,8 @@ GotNodeType Parser::GetForNode(ForNode& out)
 	else if (Assemnt->Type == TokenType::Colon)
 	{
 		NextToken();
-		out.Modern_Type = std::move(V);
-		out.Modern_Name = NameToken;
+		out.TypeNode = std::move(V);
+		out.Name = NameToken;
 		out.Type = ForNode::ForType::modern;
 
 		auto NameListToken = TryGetToken(); TokenTypeCheck(NameListToken, TokenType::Name);
@@ -2017,7 +2017,7 @@ GotNodeType Parser::GetForNode(ForNode& out)
 		TokenTypeCheck(Token3, TokenType::Colon);
 		NextToken();
 
-		auto Statements = GetStatementsorStatementNode(out.Statements);
+		auto Statements = GetStatementsorStatementNode(out.Body);
 	}
 	else
 	{
