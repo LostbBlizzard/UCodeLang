@@ -530,6 +530,9 @@ private:
 	void OnNonAttributeable(size_t Line, size_t Pos);
 	String GetScopedNameAsString(const ScopedNameNode& node);
 	void OnDeclareVariablenode(const DeclareVariableNode& node);
+	void OnStoreVarable(bool IsStructObjectPassRef, UCodeLang::IRInstruction* OnVarable, UCodeLang::FrontEnd::Symbol* syb, const UCodeLang::SymbolID& sybId);
+	void ExDeclareVariableTypeCheck(UCodeLang::FrontEnd::TypeSymbol& VarType, UCodeLang::FrontEnd::TypeSymbol& Ex, const UCodeLang::Token* Token);
+	void ExTypeDeclareVarableCheck(TypeSymbol& VarType, const Node* Ex, const Token* Token);
 	void CantgussTypesTheresnoassignment(const Token* Token);
 	void OnAssignVariableNode(const AssignVariableNode& node);
 	void OnIfNode(const IfNode& node);
@@ -538,6 +541,9 @@ private:
 	void OnDeclareStaticVariableNode(const DeclareStaticVariableNode& node);
 	void OnDeclareThreadVariableNode(const DeclareThreadVariableNode& node);
 	void FuncRetCheck(const Token& Name, const Symbol* FuncSyb, const FuncInfo* Func);
+	void OnForNode(const ForNode& node);
+
+	bool ISStructPassByRef(Symbol* syb);
 
 	bool GetMemberTypeSymbolFromVar(size_t Start, size_t End, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out);
 	bool GetMemberTypeSymbolFromVar(size_t Start, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)

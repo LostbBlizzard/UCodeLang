@@ -906,17 +906,15 @@ struct ForNode :Node
 	ForType Type = ForType::Traditional;
 
 	//Traditional
-	TypeNode Traditional_Type;
-	const Token* Traditional_Name = nullptr;
 	ExpressionNodeType Traditional_Assignment_Expression;
 	ExpressionNodeType BoolExpression;
 	PostfixVariableNode OnNextStatement;
 	//Modern
-	TypeNode Modern_Type;
-	const Token* Modern_Name = nullptr;
 	const Token* Modern_List_Name = nullptr;
 	//Both
-	StatementsNode Statements;
+	TypeNode TypeNode;
+	const Token* Name = nullptr;
+	StatementsNode Body;
 };
 
 UCodeLangFrontEnd

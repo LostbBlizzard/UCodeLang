@@ -318,6 +318,8 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 
 		auto UseingIndex = _Table.GetUseingIndex();
 
+
+
 		for (const auto& node : Node._Nodes)
 		{
 			switch (node->Get_Type())
@@ -1093,6 +1095,181 @@ void SystematicAnalysis::FuncRetCheck(const Token& Name, const Symbol* FuncSyb, 
 		break;
 	}
 }
+void SystematicAnalysis::OnForNode(const ForNode& node)
+{
+	auto& StrVarName = node.Name->Value._String;
+	auto FullName = _Table._Scope.GetApendedString(StrVarName);
+
+	SymbolID sybId = GetSymbolID(node);
+	Symbol* syb;
+
+	String ScopeName = std::to_string((size_t)&node);
+
+	PushNewStackFrame();
+	_Table.AddScope(ScopeName);
+
+	if (passtype == PassType::GetTypes)
+	{
+		DoSymbolRedefinitionCheck(FullName, SymbolType::StackVarable, node.Name);
+
+
+		syb = &AddSybol(SymbolType::StackVarable, (String)StrVarName, FullName);
+		_Table.AddSymbolID(*syb, sybId);
+	}
+	else
+	{
+		syb = GetSymbol(sybId);
+	}
+
+	if (passtype == PassType::FixedTypes)
+	{
+		if (node.Type == ForNode::ForType::Traditional)
+		{
+			{
+				auto& VarType = syb->VarType;
+				Convert(node.TypeNode, VarType);
+				VarType.SetAsLocation();
+
+
+				auto Ex = node.Traditional_Assignment_Expression.Value.get();
+				ExTypeDeclareVarableCheck(VarType, Ex, node.TypeNode.Name.Token);
+				
+				if (node.Traditional_Assignment_Expression.Value)
+				{
+					OnExpressionTypeNode(node.Traditional_Assignment_Expression.Value.get());
+
+
+
+					syb->SetTovalid();
+
+					auto& VarType = syb->VarType;
+
+
+					auto& Ex = LastExpressionType;
+					auto Token = node.TypeNode.Name.Token;
+					ExDeclareVariableTypeCheck(VarType, Ex, Token);
+				}
+			}
+
+			{
+				TypeSymbol BoolType(TypesEnum::Bool);
+
+				LookingForTypes.push(BoolType);
+				OnExpressionTypeNode(node.BoolExpression.Value.get());
+				LookingForTypes.pop();
+
+				if (passtype == PassType::FixedTypes)
+				{
+					if (!CanBeImplicitConverted(LastExpressionType, BoolType))
+					{
+						auto  Token = LastLookedAtToken;
+						LogCantCastImplicitTypes(Token, LastExpressionType, BoolType, true);
+					}
+				}
+			}
+
+			{
+				OnPostfixVariableNode(node.OnNextStatement);
+			}
+
+			for (const auto& node2 : node.Body._Nodes)
+			{
+				OnStatement(node2);
+			}
+		}
+		else
+		{
+			throw std::exception("not added");
+		}
+
+	}
+
+	if (passtype == PassType::BuidCode)
+	{
+
+		if (node.Type == ForNode::ForType::Traditional)
+		{
+			IRInstruction* OnVarable{};
+			bool IsStructObjectPassRef = false;
+			if (node.Traditional_Assignment_Expression.Value)
+			{
+
+
+				OnVarable = LookingAtIRBlock->NewLoad(ConvertToIR(syb->VarType));
+				syb->IR_Ins = OnVarable;
+
+
+				IsStructObjectPassRef = ISStructPassByRef(syb);
+
+				if (IsStructObjectPassRef)
+				{
+					IRlocations.push({ OnVarable ,false });
+				}
+
+
+				OnExpressionTypeNode(node.Traditional_Assignment_Expression.Value.get());
+
+				DoImplicitConversion(_LastExpressionField, LastExpressionType, syb->VarType);
+
+				OnStoreVarable(IsStructObjectPassRef, OnVarable, syb, sybId);
+
+				AddDependencyToCurrentFile(syb->VarType);
+			}
+
+
+			{
+				TypeSymbol BoolType(TypesEnum::Bool);
+				LookingForTypes.push(BoolType);
+
+				size_t BoolCode;
+				if (passtype == PassType::BuidCode)
+				{
+					BoolCode = LookingAtIRBlock->GetIndex();
+				}
+				OnExpressionTypeNode(node.BoolExpression.Value.get());
+
+				DoImplicitConversion(_LastExpressionField, LastExpressionType, BoolType);
+
+				IRInstruction* BoolCode2 = _LastExpressionField;
+				IRBlock::NewConditionalFalseJump_t IfIndex = LookingAtIRBlock->NewConditionalFalseJump(BoolCode2);
+
+
+				LookingForTypes.pop();
+
+
+				for (const auto& node2 : node.Body._Nodes)
+				{
+					OnStatement(node2);
+				}
+
+				OnPostfixVariableNode(node.OnNextStatement);
+
+				LookingAtIRBlock->NewJump(BoolCode);
+				LookingAtIRBlock->UpdateConditionaJump(IfIndex.ConditionalJump, IfIndex.logicalNot, LookingAtIRBlock->GetIndex());
+
+			}
+
+		}
+		else
+		{
+			throw std::exception("not added");
+		}
+	}
+
+	_Table.RemoveScope();
+
+	PopStackFrame();
+}
+bool SystematicAnalysis::ISStructPassByRef(Symbol* syb)
+{
+	auto r = !(IsPrimitive(syb->VarType) || syb->VarType.IsAddress());
+	if (r == false && syb->VarType._Type == TypesEnum::CustomType)
+	{
+		auto V = GetSymbol(syb->VarType);
+		r = V->Type == SymbolType::Type_StaticArray;
+	}
+	return r;
+}
 IRidentifierID SystematicAnalysis::ConveToIRClassIR(const Symbol& Class)
 {
 	auto ClassSybID = Class.ID;
@@ -1287,6 +1464,7 @@ void SystematicAnalysis::OnStatement(const Unique_ptr<UCodeLang::Node>& node2)
 	case NodeType::DoNode:OnDoNode(*DoNode::As(node2.get())); break;
 	case NodeType::DeclareStaticVariableNode:OnDeclareStaticVariableNode(*DeclareStaticVariableNode::As(node2.get())); break;
 	case NodeType::DeclareThreadVariableNode:OnDeclareThreadVariableNode(*DeclareThreadVariableNode::As(node2.get())); break;
+	case NodeType::ForNode:OnForNode(*ForNode::As(node2.get())); break;
 	case NodeType::RetStatementNode:OnRetStatement(*RetStatementNode::As(node2.get())); break;
 	default:break;
 	}
@@ -1556,25 +1734,8 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 		VarType.SetAsLocation();
 		
 		
-		if (VarType._Type == TypesEnum::Var && node.Expression.Value == nullptr)
-		{
-			auto Token = node.Type.Name.Token;
-			CantgussTypesTheresnoassignment(Token);
-		}
-		else if (VarType._Type == TypesEnum::CustomType && node.Expression.Value == nullptr)
-		{
-			auto Syb = GetSymbol(VarType);
-			if (Syb->Type == SymbolType::Type_StaticArray)
-			{
-				StaticArrayInfo* V = Syb->Get_Info<StaticArrayInfo>();
-
-				if (!V->IsCountInitialized)
-				{
-					auto Token = node.Type.Name.Token;
-					LogBeMoreSpecifiicWithStaticArrSize(Token, V->Type);
-				}
-			}
-		}
+		auto Ex = node.Expression.Value.get();
+		ExTypeDeclareVarableCheck(VarType, Ex, node.Name.Token);
 	}
 	LookingForTypes.push(syb->VarType);
 
@@ -1591,12 +1752,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 				syb->IR_Ins = OnVarable;
 			}
 
-			IsStructObjectPassRef = !(IsPrimitive(syb->VarType) || syb->VarType.IsAddress());
-			if (IsStructObjectPassRef == false && syb->VarType._Type == TypesEnum::CustomType)
-			{
-				auto V = GetSymbol(syb->VarType);
-				IsStructObjectPassRef = V->Type == SymbolType::Type_StaticArray;
-			}
+			IsStructObjectPassRef = ISStructPassByRef(syb);
 
 			if (IsStructObjectPassRef)
 			{
@@ -1629,31 +1785,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 
 			auto& Ex = LastExpressionType;
 			auto Token = node.Type.Name.Token;
-			if (VarType._Type == TypesEnum::Var)
-			{
-				if (Ex._Type == TypesEnum::Var)
-				{
-					CantguessVarTypeError(Token);
-				}
-				else
-				{
-					bool WasImutable = VarType.Isimmutable();
-					bool WasIsAddress = VarType.IsAddress();
-					bool WasIsAddressArry = VarType.IsAddressArray();
-
-					VarType = Ex;
-
-					if (WasImutable) { VarType.SetAsimmutable(); }
-					if (WasIsAddress) { VarType.SetAsAddress(); }
-					if (WasIsAddressArry) { VarType.SetAsAddressArray(); }
-
-					VarType.SetAsLocation();
-				}
-			}
-			if (!CanBeImplicitConverted(Ex, VarType,false))
-			{
-				LogCantCastImplicitTypes(Token, Ex, VarType,false);
-			}
+			ExDeclareVariableTypeCheck(VarType, Ex, Token);
 		}
 		else
 		{
@@ -1692,43 +1824,94 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 		
 		DoImplicitConversion(_LastExpressionField, LastExpressionType, syb->VarType);
 
-		
-
-		if (IsStructObjectPassRef)
-		{
-			if (IRlocations.top().UsedlocationIR == false)
-			{
-				
-				if (_LastExpressionField->Type == IRInstructionType::Load
-					&& _LastExpressionField->Target().Type ==IROperatorType::IRInstruction)
-				{//to stop copying big objects
-					LookingAtIRBlock->NewStore(OnVarable, _LastExpressionField->Target().Pointer);
-					_LastExpressionField->SetAsNone();
-				}
-				else
-				{
-					LookingAtIRBlock->NewStore(OnVarable, _LastExpressionField);
-				}
-			}
-			IRlocations.pop();
-		}
-		else 
-		{
-			LookingAtIRBlock->NewStore(OnVarable, _LastExpressionField);
-		}
-		_LastExpressionField = nullptr;
-
-		if (HasDestructor(syb->VarType))
-		{
-			ObjectToDrop V;
-			V.ID = sybId;
-			V._Object= OnVarable;
-			V.Type = syb->VarType;
-
-			StackFrames.back().OnEndStackFrame.push_back(V);
-		}
+	
+		OnStoreVarable(IsStructObjectPassRef, OnVarable, syb, sybId);
 		
 		AddDependencyToCurrentFile(syb->VarType);
+	}
+}
+void SystematicAnalysis::OnStoreVarable(bool IsStructObjectPassRef, UCodeLang::IRInstruction* OnVarable, UCodeLang::FrontEnd::Symbol* syb, const UCodeLang::SymbolID& sybId)
+{
+	if (IsStructObjectPassRef)
+	{
+		if (IRlocations.top().UsedlocationIR == false)
+		{
+
+			if (_LastExpressionField->Type == IRInstructionType::Load
+				&& _LastExpressionField->Target().Type == IROperatorType::IRInstruction)
+			{//to stop copying big objects
+				LookingAtIRBlock->NewStore(OnVarable, _LastExpressionField->Target().Pointer);
+				_LastExpressionField->SetAsNone();
+			}
+			else
+			{
+				LookingAtIRBlock->NewStore(OnVarable, _LastExpressionField);
+			}
+		}
+		IRlocations.pop();
+	}
+	else
+	{
+		LookingAtIRBlock->NewStore(OnVarable, _LastExpressionField);
+	}
+	_LastExpressionField = nullptr;
+
+	if (HasDestructor(syb->VarType))
+	{
+		ObjectToDrop V;
+		V.ID = sybId;
+		V._Object = OnVarable;
+		V.Type = syb->VarType;
+
+		StackFrames.back().OnEndStackFrame.push_back(V);
+	}
+}
+void SystematicAnalysis::ExDeclareVariableTypeCheck(UCodeLang::FrontEnd::TypeSymbol& VarType, UCodeLang::FrontEnd::TypeSymbol& Ex, const UCodeLang::Token* Token)
+{
+	if (VarType._Type == TypesEnum::Var)
+	{
+		if (Ex._Type == TypesEnum::Var)
+		{
+			CantguessVarTypeError(Token);
+		}
+		else
+		{
+			bool WasImutable = VarType.Isimmutable();
+			bool WasIsAddress = VarType.IsAddress();
+			bool WasIsAddressArry = VarType.IsAddressArray();
+
+			VarType = Ex;
+
+			if (WasImutable) { VarType.SetAsimmutable(); }
+			if (WasIsAddress) { VarType.SetAsAddress(); }
+			if (WasIsAddressArry) { VarType.SetAsAddressArray(); }
+
+			VarType.SetAsLocation();
+		}
+	}
+	if (!CanBeImplicitConverted(Ex, VarType, false))
+	{
+		LogCantCastImplicitTypes(Token, Ex, VarType, false);
+	}
+}
+void SystematicAnalysis::ExTypeDeclareVarableCheck(TypeSymbol& VarType, const Node* Ex, const Token* Token)
+{
+	if (VarType._Type == TypesEnum::Var && Ex == nullptr)
+	{
+		CantgussTypesTheresnoassignment(Token);
+	}
+	else if (VarType._Type == TypesEnum::CustomType && Ex == nullptr)
+	{
+		auto Syb = GetSymbol(VarType);
+		if (Syb->Type == SymbolType::Type_StaticArray)
+		{
+			StaticArrayInfo* V = Syb->Get_Info<StaticArrayInfo>();
+
+			if (!V->IsCountInitialized)
+			{
+				LogBeMoreSpecifiicWithStaticArrSize(Token, V->Type);
+			}
+		}
 	}
 }
 void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
@@ -4439,6 +4622,10 @@ TypeSymbol SystematicAnalysis::BinaryExpressionShouldRurn(TokenType Op, const Ty
 	case TokenType::logical_or:
 	case TokenType::equal_Comparison:
 	case TokenType::Notequal_Comparison:
+	case TokenType::lessthan:
+	case TokenType::greaterthan:
+	case TokenType::less_than_or_equalto:
+	case TokenType::greater_than_or_equalto:
 		V.SetType(TypesEnum::Bool);
 		break;
 	default:
