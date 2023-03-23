@@ -553,6 +553,10 @@ GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 		TokenTypeCheck(TryGetToken(), TokenType::Right_Parentheses);
 		NextToken();
 	}
+	else if (NameToken->Type == TokenType::KeyWorld_for)
+	{
+		NextToken();
+	}
 	else
 	{
 		TokenTypeCheck(NameToken, TokenType::Name);
@@ -1996,13 +2000,7 @@ GotNodeType Parser::GetForNode(ForNode& out)
 		out.Name = NameToken;
 		out.Type = ForNode::ForType::modern;
 
-		auto NameListToken = TryGetToken(); TokenTypeCheck(NameListToken, TokenType::Name);
-
-		out.Modern_List_Name = NameListToken; 
-		
-		NextToken();
-
-		
+		GetExpressionTypeNode(out.Modern_List);
 	}
 	else
 	{

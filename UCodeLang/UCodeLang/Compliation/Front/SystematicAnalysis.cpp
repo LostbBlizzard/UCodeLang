@@ -927,6 +927,11 @@ void SystematicAnalysis::FuncGetName(const UCodeLang::Token* NameToken, std::str
 		FuncType = FuncInfo::FuncType::Invoke;
 		ObjectOverLoad = true;
 		break;
+	case TokenType::KeyWorld_for:
+		FuncName = Overload_For_Func;
+		FuncType = FuncInfo::FuncType::For;
+		ObjectOverLoad = true;
+		break;
 	case TokenType::Name:
 		break;
 	default:
@@ -1115,6 +1120,27 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 
 		syb = &AddSybol(SymbolType::StackVarable, (String)StrVarName, FullName);
 		_Table.AddSymbolID(*syb, sybId);
+
+
+		if (node.Type == ForNode::ForType::Traditional)
+		{
+			TypeSymbol BoolType(TypesEnum::Bool);
+
+			LookingForTypes.push(BoolType);
+			OnExpressionTypeNode(node.BoolExpression.Value.get());
+			LookingForTypes.pop();
+		
+			OnPostfixVariableNode(node.OnNextStatement);
+		}
+		else
+		{
+			OnExpressionTypeNode(node.Modern_List.Value.get());
+		}
+
+		for (const auto& node2 : node.Body._Nodes)
+		{
+			OnStatement(node2);
+		}
 	}
 	else
 	{
@@ -1179,7 +1205,34 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 		}
 		else
 		{
-			throw std::exception("not added");
+			auto Ex = node.Modern_List.Value.get();
+
+			{
+				LookingForTypes.push(TypeSymbol(TypesEnum::Any));
+				OnExpressionTypeNode(Ex);
+				LookingForTypes.pop();
+			}
+			auto& ExType = LastExpressionType;
+
+			auto HasInfo = HasForOverLoadWith(ExType);
+			if (!HasInfo.HasValue)
+			{
+				auto  Token = LastLookedAtToken;
+				TypeDoesNotHaveForOverload(Token, ExType);
+				
+			}
+			else
+			{
+				if (HasInfo.Value.value()) 
+				{
+					FuncInfo* FuncSym = HasInfo.Value.value()->Get_Info< FuncInfo>();
+					const auto& TypeForType = FuncSym->Ret;
+				}
+				else
+				{
+					throw std::exception("bad path");
+				}
+			}
 		}
 
 	}
@@ -1259,6 +1312,12 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 	_Table.RemoveScope();
 
 	PopStackFrame();
+}
+void SystematicAnalysis::TypeDoesNotHaveForOverload(const UCodeLang::Token* Token, UCodeLang::FrontEnd::TypeSymbol& ExType)
+{
+	if (ExType.IsBadType()) { return; }
+	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+		, "The Type '" + ToString(ExType) + "\' does not have the for overload.");
 }
 bool SystematicAnalysis::ISStructPassByRef(Symbol* syb)
 {
@@ -5428,6 +5487,40 @@ SystematicAnalysis::IndexOverLoadWith_t SystematicAnalysis::HasIndexedOverLoadWi
 					}
 				}
 			}	
+		}
+	}
+
+	return {};
+}
+SystematicAnalysis::ForOverLoadWith_t SystematicAnalysis::HasForOverLoadWith(const TypeSymbol& TypeA)
+{
+	auto Syb = GetSymbol(TypeA);
+	if (Syb)
+	{
+		if (Syb->Type == SymbolType::Type_class)
+		{
+
+			String funcName = Syb->FullName;
+			ScopeHelper::GetApendedString(funcName, Overload_For_Func);
+
+			auto& V = _Table.GetSymbolsWithName(funcName, SymbolType::Func);
+
+			for (auto& Item : V)
+			{
+				if (Item->Type == SymbolType::Func)
+				{
+					auto funcInfo = Item->Get_Info<FuncInfo>();
+					if (funcInfo->Pars.size() == 1)
+					{
+						bool r = CanBeImplicitConverted(TypeA, funcInfo->Pars[0]);
+						if (r)
+						{
+							return { r, Item };
+						}
+
+					}
+				}
+			}
 		}
 	}
 

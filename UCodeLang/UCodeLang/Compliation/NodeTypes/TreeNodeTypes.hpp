@@ -910,7 +910,7 @@ struct ForNode :Node
 	ExpressionNodeType BoolExpression;
 	PostfixVariableNode OnNextStatement;
 	//Modern
-	const Token* Modern_List_Name = nullptr;
+	ExpressionNodeType Modern_List;
 	//Both
 	TypeNode TypeNode;
 	const Token* Name = nullptr;
