@@ -69,6 +69,7 @@
 //others Op
 #define Overload_Index_Func CompilerGenerated("Index")
 #define Overload_Invoke_Func CompilerGenerated("Invoke")
+#define Overload_For_Func CompilerGenerated("For")
 
 //standard Library
 #define UCode_OptionalType "Optional"//int?

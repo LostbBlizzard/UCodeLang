@@ -279,6 +279,7 @@ public:
 		//other operators
 		Index,
 		Invoke,
+		For
 	};
 		
 

@@ -381,6 +381,7 @@ private:
 	using IndexOverLoadWith_t = BinaryOverLoadWith_t;
 	using PostFixOverLoadWith_t = BinaryOverLoadWith_t;
 	using CompoundOverLoadWith_t = BinaryOverLoadWith_t;
+	using ForOverLoadWith_t = BinaryOverLoadWith_t;
 
 	struct ClassStackInfo
 	{
@@ -543,6 +544,8 @@ private:
 	void FuncRetCheck(const Token& Name, const Symbol* FuncSyb, const FuncInfo* Func);
 	void OnForNode(const ForNode& node);
 
+	void TypeDoesNotHaveForOverload(const UCodeLang::Token* Token, UCodeLang::FrontEnd::TypeSymbol& ExType);
+
 	bool ISStructPassByRef(Symbol* syb);
 
 	bool GetMemberTypeSymbolFromVar(size_t Start, size_t End, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out);
@@ -604,6 +607,8 @@ private:
 	CompoundOverLoadWith_t HasCompoundOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
 	PostFixOverLoadWith_t HasPostfixOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp);
 	IndexOverLoadWith_t  HasIndexedOverLoadWith(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
+	ForOverLoadWith_t HasForOverLoadWith(const TypeSymbol& TypeA);
+
 
 	TypeSymbol BinaryExpressionShouldRurn(TokenType Op, const TypeSymbol& Ex0Type);
 
