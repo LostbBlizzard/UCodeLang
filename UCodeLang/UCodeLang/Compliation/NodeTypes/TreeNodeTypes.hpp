@@ -886,4 +886,37 @@ struct IndexedExpresionNode :Node
 	ExpressionNodeType SourceExpression;// ex[SomeEx]
 	ExpressionNodeType IndexExpression;// SomeVar[ex]
 };
+
+struct ForNode :Node
+{
+	//for [int a = 0;a < 10;a++;]
+	enum class ForType
+	{
+		Traditional,//for [int a = 0;a < 10;a++];
+		modern,//for [var& Item : List];
+	};
+
+	ForNode() : Node(NodeType::ForNode)
+	{
+
+	}
+	AddforNode(ForNode);
+
+
+	ForType Type = ForType::Traditional;
+
+	//Traditional
+	TypeNode Traditional_Type;
+	const Token* Traditional_Name = nullptr;
+	ExpressionNodeType Traditional_Assignment_Expression;
+	ExpressionNodeType BoolExpression;
+	PostfixVariableNode OnNextStatement;
+	//Modern
+	TypeNode Modern_Type;
+	const Token* Modern_Name = nullptr;
+	const Token* Modern_List_Name = nullptr;
+	//Both
+	StatementsNode Statements;
+};
+
 UCodeLangFrontEnd

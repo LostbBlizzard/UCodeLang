@@ -380,6 +380,13 @@ GotNodeType Parser::GetStatement(Node*& out)
 		return r.GotNode;
 	}
 	break;
+	case TokenType::KeyWorld_for:
+	{
+		auto r = GetForNode();
+		out = r.Node;
+		return r.GotNode;
+	}
+	break;
 	case TokenType::KeyWorld_Drop:
 	{
 		auto r = GetDropStatementNode();
@@ -1768,15 +1775,17 @@ GotNodeType Parser::GetFuncCallNode(FuncCallNode& out)
 	return GotNodeType::Success;
 }
 
-GotNodeType Parser::GetPostfixStatement(PostfixVariableNode& out)
+GotNodeType Parser::GetPostfixStatement(PostfixVariableNode& out,bool DoSemicolon)
 {
 	auto Name = GetName(out.Name);
 	auto Token = TryGetToken(); 
 	out.PostfixOp = Token;
 	NextToken();
 
-	auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
-	NextToken();
+	if (DoSemicolon) {
+		auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
+		NextToken();
+	}
 	return GotNodeType::Success;
 }
 GotNodeType Parser::GetCompoundStatement(CompoundStatementNode& out)
@@ -1946,5 +1955,75 @@ GotNodeType Parser::GetumutVariableDeclare(Node*& out)
 	}
 	Tnode->SetAsimmutable();
 	return r;
+}
+GotNodeType Parser::GetForNode(ForNode& out)
+{
+	auto ForToken = TryGetToken(); TokenTypeCheck(ForToken, TokenType::KeyWorld_for);
+	NextToken();
+
+	auto LeftBracket = TryGetToken(); TokenTypeCheck(LeftBracket, TokenType::Left_Bracket);
+	NextToken();
+	
+	TypeNode V;
+	auto TypeV = GetType(V, false, false);
+
+	auto NameToken = TryGetToken(); TokenTypeCheck(NameToken, TokenType::Name);
+	NextToken();
+
+	auto Assemnt = TryGetToken();
+	if (Assemnt->Type == TokenType::equal)
+	{
+
+		out.Traditional_Type = std::move(V);
+		out.Traditional_Name = NameToken;
+		out.Type = ForNode::ForType::Traditional;
+
+		NextToken();
+		GetExpressionTypeNode(out.Traditional_Assignment_Expression);
+
+		TokenTypeCheck(TryGetToken(), TokenType::Semicolon); NextToken();
+
+		GetExpressionTypeNode(out.BoolExpression);
+
+		TokenTypeCheck(TryGetToken(), TokenType::Semicolon); NextToken();
+
+		GetPostfixStatement(out.OnNextStatement,false);
+	}
+	else if (Assemnt->Type == TokenType::Colon)
+	{
+		NextToken();
+		out.Modern_Type = std::move(V);
+		out.Modern_Name = NameToken;
+		out.Type = ForNode::ForType::modern;
+
+		auto NameListToken = TryGetToken(); TokenTypeCheck(NameListToken, TokenType::Name);
+
+		out.Modern_List_Name = NameListToken; 
+		
+		NextToken();
+
+		
+	}
+	else
+	{
+		TokenTypeCheck(NameToken, TokenType::equal);
+	}
+	
+	auto RightBracket = TryGetToken(); TokenTypeCheck(RightBracket, TokenType::Right_Bracket); NextToken();
+
+	auto Token3 = TryGetToken();
+	if (Token3->Type != TokenType::Semicolon)
+	{
+		TokenTypeCheck(Token3, TokenType::Colon);
+		NextToken();
+
+		auto Statements = GetStatementsorStatementNode(out.Statements);
+	}
+	else
+	{
+		NextToken();
+	}
+
+	return GotNodeType::Success;
 }
 UCodeLangFrontEnd

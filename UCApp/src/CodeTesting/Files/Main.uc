@@ -1,19 +1,18 @@
 
 
 
-$Vec2i:
- int X;
- int Y;
 
-$Optional<T>:
- T Value;
- bool HasValue;
- |new[this&] -> void;
+$Loopable:
+ $LoopObject:
+  |new[this&] -> void;
+  |?[this&] -> bool;
 
- |~>[this&] -> T&:ret Value;
-
+ |For[this&] => LoopObject();
 
 |main[] -> var:
- Vec2i? Test = [];
  
- ret Test~>X;
+ for [int a = 0; a < 10; a++];
+
+ for [var& Item : List];
+
+ ret 0;

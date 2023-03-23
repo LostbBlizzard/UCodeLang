@@ -259,14 +259,14 @@ private:
 	}
 	GotNodeType GetAssignVariable(AssignVariableNode& out);
 
-	TryGetNode GetPostfixStatement()
+	TryGetNode GetPostfixStatement(bool DoSemicolon =true)
 	{
 		PostfixVariableNode* V = PostfixVariableNode::Gen();
-		auto r = GetPostfixStatement(*V);
+		auto r = GetPostfixStatement(*V,DoSemicolon);
 		TrippedCheck(r);
 		return { r,V->As() };
 	}
-	GotNodeType GetPostfixStatement(PostfixVariableNode& out);
+	GotNodeType GetPostfixStatement(PostfixVariableNode& out,bool DoSemicolon = true);
 
 	TryGetNode GetCompoundStatement()
 	{
@@ -380,6 +380,16 @@ private:
 		return { r,V };
 	}
 	GotNodeType GetumutVariableDeclare(Node*& out);
+
+
+	TryGetNode GetForNode()
+	{
+		ForNode* V = ForNode::Gen();
+		auto r = GetForNode(*V);
+		TrippedCheck(r);
+		return { r,V->As() };
+	}
+	GotNodeType GetForNode(ForNode& out);
 };
 UCodeLangFrontEnd
 
