@@ -932,6 +932,11 @@ void SystematicAnalysis::FuncGetName(const UCodeLang::Token* NameToken, std::str
 		FuncType = FuncInfo::FuncType::For;
 		ObjectOverLoad = true;
 		break;
+	case TokenType::RightArrow:
+		FuncName = Overload_Cast_Func;
+		FuncType = FuncInfo::FuncType::Cast;
+		ObjectOverLoad = true;
+		break;
 	case TokenType::Name:
 		break;
 	default:
@@ -1041,6 +1046,18 @@ void SystematicAnalysis::FuncRetCheck(const Token& Name, const Symbol* FuncSyb, 
 	switch (Func->_FuncType)
 	{
 	case FuncInfo::FuncType::Drop:
+	{
+		TypeSymbol V(TypesEnum::Void);
+		if (!AreTheSame(Func->Ret, V))
+		{
+			LogFuncMustBe(&Name, FuncSyb->FullName, V);
+		}
+		if (Func->Pars.size() != 1)
+		{
+			LogPostfixOverloadPars(Name, Func);
+		}
+		break;
+	}
 	case FuncInfo::FuncType::New:
 	{
 
@@ -1056,6 +1073,14 @@ void SystematicAnalysis::FuncRetCheck(const Token& Name, const Symbol* FuncSyb, 
 		if (Func->Pars.size() != 2)
 		{
 			LogIndexOverloadPars(Name, Func);
+		}
+	}
+	break;
+	case FuncInfo::FuncType::Cast:
+	{
+		if (Func->Pars.size() != 1)
+		{
+			LogPostfixOverloadPars(Name, Func);
 		}
 	}
 	break;
@@ -1205,6 +1230,12 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 		}
 		else
 		{
+			{
+				auto& VarType = syb->VarType;
+				Convert(node.TypeNode, VarType);
+				VarType.SetAsLocation();
+			}
+
 			auto Ex = node.Modern_List.Value.get();
 
 			{
@@ -1223,10 +1254,76 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 			}
 			else
 			{
-				if (HasInfo.Value.value()) 
+				if (HasInfo.Value.value())
 				{
 					FuncInfo* FuncSym = HasInfo.Value.value()->Get_Info< FuncInfo>();
 					const auto& TypeForType = FuncSym->Ret;
+
+					Optional<Symbol*> GetFunc = {};
+
+					if (syb->VarType.IsAn(TypesEnum::Var))
+					{
+						auto tep = GetAnExplicitlyConvertedFunc(TypeForType);
+						if (tep.has_value())
+						{
+							GetFunc = GetSymbol(tep.value());
+						}
+					}
+					else
+					{
+						auto Tep = CanBeExplicitlyConverted(TypeForType, syb->VarType);
+						if (Tep.HasValue && Tep.Value.has_value())
+						{
+							GetFunc = Tep.Value.value();
+						}
+					}
+
+					Optional<Symbol*>CheckFunc = {};
+					auto V = HasUrinaryOverLoadWith(TypeForType, TokenType::QuestionMark);
+
+					if (V.HasValue && V.Value.has_value())
+					{
+						CheckFunc = V.Value.value();
+					}
+
+					if (!GetFunc.has_value())
+					{
+						const Token* token = node.TypeNode.Name.Token;
+
+						if (syb->VarType.IsAn(TypesEnum::Var)) {
+							_ErrorsOutput->AddError(ErrorCodes::InValidType, token->OnLine, token->OnPos,
+								"The Type '" + ToString(TypeForType) + "' has no cast(->) overload.it is needed to access the object for the 'for' loop.");
+						}
+						else
+						{
+							_ErrorsOutput->AddError(ErrorCodes::InValidType, token->OnLine, token->OnPos,
+								"The Type '" + ToString(TypeForType) + "' has no explicit cast(->) overload for the type '" + ToString(syb->VarType) + "'.it is needed to access the object for  the 'for' loop.");
+						}
+
+						syb->VarType.SetType(TypesEnum::Null);
+					}
+					else if (!CheckFunc.has_value())
+					{
+						const Token* token = node.TypeNode.Name.Token;
+
+						_ErrorsOutput->AddError(ErrorCodes::InValidType, token->OnLine, token->OnPos,
+							"The Type '" + ToString(TypeForType) + "' has no exist(?) overload.it is needed to check when to end the loop.");
+
+						syb->VarType.SetType(TypesEnum::Null);
+					}
+					else 
+					{
+						ForExpresion_Data g;
+						g.FuncToGet = GetFunc.value();
+						g.FuncToCheck = GetFunc.value();
+						For_Datas.AddValue(&node, g);
+
+						if (syb->VarType.IsAn(TypesEnum::Var)) 
+						{
+							syb->VarType = g.FuncToCheck->VarType;
+
+						}
+					}
 				}
 				else
 				{
@@ -4710,7 +4807,9 @@ void SystematicAnalysis::OnExpressionNode(const CastNode& node)
 	{
 		TypeSymbol ToTypeAs;
 		ConvertAndValidateType(node.ToType, ToTypeAs);
-		if (!CanBeExplicitlyConverted(Ex0Type, ToTypeAs))
+
+		auto HasInfo = CanBeExplicitlyConverted(Ex0Type, ToTypeAs);
+		if (!HasInfo.HasValue)
 		{
 			auto  Token = node.ToType.Name.Token;
 
@@ -5526,6 +5625,47 @@ SystematicAnalysis::ForOverLoadWith_t SystematicAnalysis::HasForOverLoadWith(con
 
 	return {};
 }
+SystematicAnalysis::UrinaryOverLoadWith_t SystematicAnalysis::HasUrinaryOverLoadWith(const TypeSymbol& TypeA, TokenType Op)
+{
+	auto Syb = GetSymbol(TypeA);
+	if (Syb)
+	{
+		if (Syb->Type == SymbolType::Type_class)
+		{
+
+			for (auto& Item : Systematic_UrinaryOverloadData::Data)
+			{
+				if (Item.token == Op)
+				{
+					String funcName = Syb->FullName;
+					ScopeHelper::GetApendedString(funcName, Item.CompilerName);
+
+					auto& V = _Table.GetSymbolsWithName(funcName, SymbolType::Func);
+
+					for (auto& Item : V)
+					{
+						if (Item->Type == SymbolType::Func)
+						{
+							auto funcInfo = Item->Get_Info<FuncInfo>();
+							if (funcInfo->Pars.size() == 1)
+							{
+								bool r = CanBeImplicitConverted(TypeA, funcInfo->Pars[0]);
+								if (r)
+								{
+									return { r, Item };
+								}
+
+							}
+						}
+					}
+					break;
+				}
+			}
+		}
+	}
+
+	return {  };
+}
 String SystematicAnalysis::ToString(const TypeSymbol& Type)
 {
 	String r;
@@ -6028,9 +6168,9 @@ bool SystematicAnalysis::CanBeImplicitConverted(const TypeSymbol& TypeToCheck, c
 	
 	return false;
 }
-bool SystematicAnalysis::CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type)
+SystematicAnalysis::CastOverLoadWith_t  SystematicAnalysis::CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type)
 {
-	if (CanBeImplicitConverted(TypeToCheck, Type)) { return true; }
+	if (CanBeImplicitConverted(TypeToCheck, Type)) { return { true }; }
 	
 	if (TypeToCheck._Type == TypesEnum::CustomType) 
 	{
@@ -6039,14 +6179,80 @@ bool SystematicAnalysis::CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck,
 		{
 			if (AreTheSameWithOutimmutable(syb.VarType, Type))
 			{
-				return true;
+				return { true};
 			}
 		}
 
 	}
 
-	if (IsIntType(TypeToCheck) && IsIntType(TypeToCheck)) { return true; }
-	return false;
+	if (IsIntType(TypeToCheck) && IsIntType(TypeToCheck)) { return { true }; }
+
+	auto Syb = GetSymbol(TypeToCheck);
+	if (Syb)
+	{
+		if (Syb->Type == SymbolType::Type_class)
+		{
+
+			String funcName = Syb->FullName;
+			ScopeHelper::GetApendedString(funcName, Overload_Cast_Func);
+
+			auto& V = _Table.GetSymbolsWithName(funcName, SymbolType::Func);
+
+			for (auto& Item : V)
+			{
+				if (Item->Type == SymbolType::Func)
+				{
+					auto funcInfo = Item->Get_Info<FuncInfo>();
+					if (funcInfo->Pars.size() == 1)
+					{
+						bool r = AreTheSame(Type, funcInfo->Ret)
+							&& CanBeImplicitConverted(TypeToCheck, funcInfo->Pars[0]);
+						if (r)
+						{
+							return { r, Item };
+						}
+
+					}
+				}
+			}
+		}
+	}
+
+	return { false };
+}
+Optional < FuncInfo*> SystematicAnalysis::GetAnExplicitlyConvertedFunc(const TypeSymbol& TypeToCheck)
+{
+
+	auto Syb = GetSymbol(TypeToCheck);
+	if (Syb)
+	{
+		if (Syb->Type == SymbolType::Type_class)
+		{
+
+			String funcName = Syb->FullName;
+			ScopeHelper::GetApendedString(funcName, Overload_Cast_Func);
+
+			auto& V = _Table.GetSymbolsWithName(funcName, SymbolType::Func);
+
+			for (auto& Item : V)
+			{
+				if (Item->Type == SymbolType::Func)
+				{
+					auto funcInfo = Item->Get_Info<FuncInfo>();
+					if (funcInfo->Pars.size() == 1)
+					{
+						bool r = CanBeImplicitConverted(TypeToCheck, funcInfo->Pars[0]);
+						if (r)
+						{
+							return  funcInfo;
+						}
+
+					}
+				}
+			}
+		}
+	}
+	return {nullptr};
 }
 bool SystematicAnalysis::DoImplicitConversion(IRInstruction* Ex, const TypeSymbol ExType, const TypeSymbol& ToType)
 {
@@ -7316,7 +7522,7 @@ int SystematicAnalysis::GetCompatibleScore(const TypeSymbol& ParFunc, const Type
 	{
 		r += 3;
 	}
-	else if (CanBeExplicitlyConverted(ParFunc,Value))
+	else if (CanBeExplicitlyConverted(ParFunc,Value).HasValue)
 	{
 		r += 1;
 	}

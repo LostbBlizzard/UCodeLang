@@ -515,7 +515,8 @@ struct ExpressionNodeType :Node
 			|| Token->Type == TokenType::KeyWorld_Nameof
 			|| Token->Type == TokenType::KeyWorld_typeof
 			|| Token->Type == TokenType::Not
-			|| Token->Type == TokenType::bitwise_not;
+			|| Token->Type == TokenType::bitwise_not
+			|| Token->Type == TokenType::QuestionMark;
 	}
 	inline static bool IsOverLoadableOperator(const Token* Token)
 	{
