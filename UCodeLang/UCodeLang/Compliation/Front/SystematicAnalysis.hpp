@@ -264,6 +264,7 @@ private:
 	using CompoundExpresion_Data = BinaryExpressionNode_Data;
 	struct ForExpresion_Data
 	{
+		Symbol* FuncGetLoopAble= nullptr;
 		Symbol* FuncToGet = nullptr;
 		Symbol* FuncToCheck = nullptr;
 	};
@@ -542,6 +543,8 @@ private:
 	String GetScopedNameAsString(const ScopedNameNode& node);
 	void OnDeclareVariablenode(const DeclareVariableNode& node);
 	void OnStoreVarable(bool IsStructObjectPassRef, UCodeLang::IRInstruction* OnVarable, UCodeLang::FrontEnd::Symbol* syb, const UCodeLang::SymbolID& sybId);
+	void AddDestructorToStack(Symbol* syb, const SymbolID& sybId, IRInstruction* OnVarable);
+	void AddDestructorToStack(const TypeSymbol& Type, IRInstruction* OnVarable);
 	void ExDeclareVariableTypeCheck(UCodeLang::FrontEnd::TypeSymbol& VarType, UCodeLang::FrontEnd::TypeSymbol& Ex, const UCodeLang::Token* Token);
 	void ExTypeDeclareVarableCheck(TypeSymbol& VarType, const Node* Ex, const Token* Token);
 	void CantgussTypesTheresnoassignment(const Token* Token);

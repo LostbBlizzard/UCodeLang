@@ -1250,7 +1250,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 			{
 				auto  Token = LastLookedAtToken;
 				TypeDoesNotHaveForOverload(Token, ExType);
-				
+
 			}
 			else
 			{
@@ -1281,9 +1281,19 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 					Optional<Symbol*>CheckFunc = {};
 					auto V = HasUrinaryOverLoadWith(TypeForType, TokenType::QuestionMark);
 
-					if (V.HasValue && V.Value.has_value())
+					if (V.HasValue && V.Value.has_value() )
 					{
-						CheckFunc = V.Value.value();
+						auto BoolType = TypeSymbol(TypesEnum::Bool);
+						auto retType = V.Value.value()->VarType;
+						if (CanBeImplicitConverted(retType, BoolType, false)) 
+						{
+							CheckFunc = V.Value.value();
+						}
+						else
+						{
+							auto  Token = LastLookedAtToken;
+							LogCantCastImplicitTypes(Token, BoolType, retType, false);
+						}
 					}
 
 					if (!GetFunc.has_value())
@@ -1311,24 +1321,30 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 
 						syb->VarType.SetType(TypesEnum::Null);
 					}
-					else 
+					else
 					{
 						ForExpresion_Data g;
+						g.FuncGetLoopAble = HasInfo.Value.value();
 						g.FuncToGet = GetFunc.value();
-						g.FuncToCheck = GetFunc.value();
+						g.FuncToCheck = CheckFunc.value();
 						For_Datas.AddValue(&node, g);
 
-						if (syb->VarType.IsAn(TypesEnum::Var)) 
-						{
-							syb->VarType = g.FuncToCheck->VarType;
 
-						}
+						
+						auto Token = node.TypeNode.Name.Token;
+						ExDeclareVariableTypeCheck(syb->VarType, g.FuncToGet->Get_Info<FuncInfo>()->Ret, Token);
 					}
 				}
 				else
 				{
 					throw std::exception("bad path");
 				}
+			}
+
+
+			for (const auto& node2 : node.Body._Nodes)
+			{
+				OnStatement(node2);
 			}
 		}
 
@@ -1402,7 +1418,98 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 		}
 		else
 		{
-			throw std::exception("not added");
+
+			const ForExpresion_Data& Data = For_Datas.at(&node);
+			{
+				AddDependencyToCurrentFile(Data.FuncGetLoopAble);
+				AddDependencyToCurrentFile(Data.FuncToCheck);
+				AddDependencyToCurrentFile(Data.FuncToGet);
+			}
+
+			{
+				auto finfo = Data.FuncGetLoopAble->Get_Info<FuncInfo>();
+				auto Ex = node.Modern_List.Value.get();
+				LookingForTypes.push(finfo->Pars[0]);
+				OnExpressionTypeNode(Ex);
+				LookingForTypes.pop();
+
+				AddDestructorToStack(LastExpressionType,_LastExpressionField);
+			}
+			
+			{
+				Get_FuncInfo f;
+				f.Func = Data.FuncGetLoopAble->Get_Info<FuncInfo>();
+				f.SymFunc = Data.FuncGetLoopAble;
+				f.ThisPar = Get_FuncInfo::ThisPar_t::PushFromLast;
+				DoFuncCall(f, {}, {});
+			}
+			IRInstruction* Loopobject = _LastExpressionField;
+			auto LoopObjectType = LastExpressionType;
+			{
+				TypeSymbol BoolType(TypesEnum::Bool);
+				LookingForTypes.push(BoolType);
+				auto BoolCode = LookingAtIRBlock->GetIndex();
+
+				{//get if check
+					Get_FuncInfo f;
+					f.Func = Data.FuncToCheck->Get_Info<FuncInfo>();
+					f.SymFunc = Data.FuncToCheck;
+					f.ThisPar = Get_FuncInfo::ThisPar_t::PushFromLast;
+
+					
+					if (f.Func->Pars[0].IsAddress())
+					{
+						if (!LoopObjectType.IsAddress())
+						{
+							_LastExpressionField = LookingAtIRBlock->NewLoadPtr(Loopobject);
+						}
+					}
+
+					DoFuncCall(f, {}, {});
+
+					DoImplicitConversion(_LastExpressionField, LastExpressionType, TypesEnum::Bool);
+				}
+				LookingForTypes.pop();
+
+				IRInstruction* BoolCode2 = _LastExpressionField;
+				IRBlock::NewConditionalFalseJump_t IfIndex = LookingAtIRBlock->NewConditionalFalseJump(BoolCode2);
+
+				{//get item
+					_LastExpressionField = Loopobject;
+					Get_FuncInfo f;
+					f.Func = Data.FuncToGet->Get_Info<FuncInfo>();
+					f.SymFunc = Data.FuncToGet;
+					f.ThisPar = Get_FuncInfo::ThisPar_t::PushFromLast;
+
+					if (f.Func->Pars[0].IsAddress())
+					{
+						if (!LoopObjectType.IsAddress())
+						{
+							_LastExpressionField = LookingAtIRBlock->NewLoadPtr(Loopobject);
+						}
+					}
+
+					DoFuncCall(f, {}, {});
+
+					DoImplicitConversion(_LastExpressionField, LastExpressionType, syb->VarType);
+					auto FuncRet = _LastExpressionField;
+					syb->IR_Ins = FuncRet;
+				}
+
+				for (const auto& node2 : node.Body._Nodes)
+				{
+					OnStatement(node2);
+				}
+
+
+				LookingAtIRBlock->NewJump(BoolCode);
+				LookingAtIRBlock->UpdateConditionaJump(IfIndex.ConditionalJump, IfIndex.logicalNot, LookingAtIRBlock->GetIndex());
+			
+				AddDestructorToStack(syb, syb->ID,syb->IR_Ins);
+				
+			}
+			
+			
 		}
 	}
 
@@ -1832,7 +1939,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 String SystematicAnalysis::GetScopedNameAsString(const ScopedNameNode& node)
 {
 	String Text;
-	if (node.ScopedName[0].token->Type == TokenType::KeyWorld_This)
+	if (node.ScopedName.size() && node.ScopedName[0].token->Type == TokenType::KeyWorld_This)
 	{
 		auto Type = *_FuncStack.back().Pointer->GetObjectForCall();
 		Type._IsAddress = false;
@@ -2012,12 +2119,28 @@ void SystematicAnalysis::OnStoreVarable(bool IsStructObjectPassRef, UCodeLang::I
 	}
 	_LastExpressionField = nullptr;
 
+	AddDestructorToStack(syb, sybId, OnVarable);
+}
+void SystematicAnalysis::AddDestructorToStack(UCodeLang::FrontEnd::Symbol* syb, const UCodeLang::SymbolID& sybId, UCodeLang::IRInstruction* OnVarable)
+{
 	if (HasDestructor(syb->VarType))
 	{
 		ObjectToDrop V;
 		V.ID = sybId;
 		V._Object = OnVarable;
 		V.Type = syb->VarType;
+
+		StackFrames.back().OnEndStackFrame.push_back(V);
+	}
+}
+void SystematicAnalysis::AddDestructorToStack(const TypeSymbol& Type, IRInstruction* OnVarable)
+{
+	if (HasDestructor(Type))
+	{
+		ObjectToDrop V;
+		V._Object = OnVarable;
+		V.Type = Type;
+		V.DropType = ObjectToDropType::IRInstruction;
 
 		StackFrames.back().OnEndStackFrame.push_back(V);
 	}
@@ -6760,7 +6883,7 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 		throw std::exception("not added");
 	}
 
-	if (Get_LookingForType().IsnotAn(TypesEnum::Void) && PushIRStackRet)//constructors are just void funcions so just set last as the input this
+	if (LookingForTypes.size() && Get_LookingForType().IsnotAn(TypesEnum::Void) && PushIRStackRet)//constructors are just void funcions so just set last as the input this
 	{
 		_LastExpressionField = PushIRStackRet;
 	}
