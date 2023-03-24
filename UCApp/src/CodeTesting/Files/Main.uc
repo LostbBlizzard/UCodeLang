@@ -2,25 +2,13 @@
 
 
 
-$Loopable:
- $IntV:
-   |new[this&] -> void;
-   |drop[this&] -> void;
- $LoopObject:
-  |new[this&] -> void;
-  
-  |->[this&] -> IntV;
-  |?[this&] -> bool;
-  |drop[this&] -> void;
-
- |for[this&] => LoopObject();
+$Test:
  |new[this&] -> void;
- |drop[this&] -> void;
+ |->[this&] -> int;
+ |drop[this] -> void;
 
 |main[] -> var:
  
- Loopable List = [];
- for [var Item : List]:
-  ret Item;
+ Test Item = [];
 
- ret 0;
+ ret Item -> int;

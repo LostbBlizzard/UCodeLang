@@ -4919,18 +4919,44 @@ void SystematicAnalysis::OnExpressionNode(const CastNode& node)
 	ConvertAndValidateType(node.ToType, ToTypeAs);
 	LookingForTypes.push(ToTypeAs);
 	
-	
-	OnExpressionTypeNode(node.Expression.Value.get());
-	auto Ex0 = _LastExpressionField;
-	auto Ex0Type = LastExpressionType;
 
+	if (passtype == PassType::BuidCode)
+	{
+		auto& Item =CastDatas.at(&node);
+		if (Item.FuncToCall) 
+		{
+			LookingForTypes.push(Item.FuncToCall->Get_Info<FuncInfo>()->Pars[0]);
+
+			OnExpressionTypeNode(node.Expression.Value.get());
+			auto Ex0 = _LastExpressionField;
+			auto Ex0Type = LastExpressionType;
+
+			LookingForTypes.pop();
+		}
+		else
+		{
+			OnExpressionTypeNode(node.Expression.Value.get());
+			auto Ex0 = _LastExpressionField;
+			auto Ex0Type = LastExpressionType;
+		}
+	}
+	else
+	{
+		OnExpressionTypeNode(node.Expression.Value.get());
+		auto Ex0 = _LastExpressionField;
+		auto Ex0Type = LastExpressionType;
+	}
 	
 
 	if (passtype == PassType::FixedTypes) 
 	{
+		CastExpressionNode_Data data;
+		
+
 		TypeSymbol ToTypeAs;
 		ConvertAndValidateType(node.ToType, ToTypeAs);
 
+		auto Ex0Type = LastExpressionType;
 		auto HasInfo = CanBeExplicitlyConverted(Ex0Type, ToTypeAs);
 		if (!HasInfo.HasValue)
 		{
@@ -4938,12 +4964,27 @@ void SystematicAnalysis::OnExpressionNode(const CastNode& node)
 
 			LogCantCastExplicityTypes(Token, Ex0Type, ToTypeAs);
 		}
-		LastExpressionType = ToTypeAs;
+		else
+		{
+			if (HasInfo.Value.has_value()) 
+			{
+				data.FuncToCall = HasInfo.Value.value();
+				LastExpressionType = HasInfo.Value.value()->Get_Info<FuncInfo>()->Ret;
+			}
+			else
+			{
+				LastExpressionType = ToTypeAs;
+			}
+
+		}
+
+		
+		CastDatas.AddValue(&node, data);
 	}
 
 	if (passtype == PassType::BuidCode)
 	{
-		DoExplicitlConversion(_LastExpressionField, LastExpressionType, ToTypeAs);
+		DoExplicitlConversion(_LastExpressionField, LastExpressionType, ToTypeAs,CastDatas.at(&node));
 
 		LastExpressionType = ToTypeAs;
 	}
@@ -6386,7 +6427,7 @@ bool SystematicAnalysis::DoImplicitConversion(IRInstruction* Ex, const TypeSymbo
 	}
 	return false;
 }
-void SystematicAnalysis::DoExplicitlConversion(IRInstruction* Ex, const TypeSymbol ExType, const TypeSymbol& ToType)
+void SystematicAnalysis::DoExplicitlConversion(IRInstruction* Ex, const TypeSymbol ExType, const TypeSymbol& ToType, const CastExpressionNode_Data& Data)
 {
 	if (!DoImplicitConversion(Ex, ExType, ToType))
 	{
@@ -6404,6 +6445,18 @@ void SystematicAnalysis::DoExplicitlConversion(IRInstruction* Ex, const TypeSymb
 		}
 
 		//DO Stuff
+		if (Data.FuncToCall)
+		{
+			FuncInfo* f = Data.FuncToCall->Get_Info<FuncInfo>();
+			Get_FuncInfo v;
+			v.Func = f;
+			v.SymFunc = Data.FuncToCall;
+			v.ThisPar = Get_FuncInfo::ThisPar_t::PushFromLast;
+			
+			_LastExpressionField = Ex;
+
+			DoFuncCall(v, {}, {});
+		}
 	}
 }
 bool SystematicAnalysis::IsSIntType(const TypeSymbol& TypeToCheck)
