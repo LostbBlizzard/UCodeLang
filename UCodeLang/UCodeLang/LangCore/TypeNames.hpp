@@ -50,12 +50,16 @@
 
 //Op
 #define Overload_Plus_Func CompilerGenerated("Plus")
-#define Overload_minus_Func CompilerGenerated("minus")
+#define Overload_minus_Func CompilerGenerated("Minus")
 
 
 //Postfix
-#define Overload_increment_Func CompilerGenerated("increment")
-#define Overload_decrement_Func CompilerGenerated("decrement")
+#define Overload_increment_Func CompilerGenerated("Increment")
+#define Overload_decrement_Func CompilerGenerated("Decrement")
+//Urinary
+#define Overload_Not_Func CompilerGenerated("Not")
+#define Overload_Bitwise_Not CompilerGenerated("BitwiseNot")
+#define Overload_exist_Func CompilerGenerated("Exist")
 
 //Compound
 #define Overload_Compoundplus_Func CompilerGenerated("Compound_Plus")
@@ -70,6 +74,7 @@
 #define Overload_Index_Func CompilerGenerated("Index")
 #define Overload_Invoke_Func CompilerGenerated("Invoke")
 #define Overload_For_Func CompilerGenerated("For")
+#define Overload_Cast_Func CompilerGenerated("Cast")
 
 //standard Library
 #define UCode_OptionalType "Optional"//int?

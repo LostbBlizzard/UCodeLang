@@ -89,9 +89,11 @@ public:
 
 		}
 	};
-	inline static const Array<Data, 1> Data =
+	inline static const Array<Data, 3> Data =
 	{
-		Data(TokenType::Not,Overload_increment_Func,FuncInfo::FuncType::Not),
+		Data(TokenType::Not,Overload_Not_Func ,FuncInfo::FuncType::Not),
+		Data(TokenType::bitwise_not,Overload_Bitwise_Not  ,FuncInfo::FuncType::Not),
+		Data(TokenType::QuestionMark, Overload_exist_Func,FuncInfo::FuncType::Not),
 	};
 	static bool IsUrinaryOverload(FuncInfo::FuncType Type)
 	{
@@ -260,6 +262,11 @@ private:
 		}
 	};
 	using CompoundExpresion_Data = BinaryExpressionNode_Data;
+	struct ForExpresion_Data
+	{
+		Symbol* FuncToGet = nullptr;
+		Symbol* FuncToCheck = nullptr;
+	};
 
 	enum class  ObjectToDropType
 	{
@@ -382,6 +389,8 @@ private:
 	using PostFixOverLoadWith_t = BinaryOverLoadWith_t;
 	using CompoundOverLoadWith_t = BinaryOverLoadWith_t;
 	using ForOverLoadWith_t = BinaryOverLoadWith_t;
+	using CastOverLoadWith_t = BinaryOverLoadWith_t;
+	using UrinaryOverLoadWith_t = BinaryOverLoadWith_t;
 
 	struct ClassStackInfo
 	{
@@ -410,6 +419,7 @@ private:
 	BinaryVectorMap<const void*, IndexedExpresion_Data> IndexedExpresion_Datas;
 	BinaryVectorMap<const void*, PostFixExpressionNode_Data> PostFix_Datas;
 	BinaryVectorMap<const void*, CompoundExpresion_Data> Compound_Datas;
+	BinaryVectorMap<const void*, ForExpresion_Data> For_Datas;
 
 	Vector<FuncStackInfo> _FuncStack;
 
@@ -608,7 +618,7 @@ private:
 	PostFixOverLoadWith_t HasPostfixOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp);
 	IndexOverLoadWith_t  HasIndexedOverLoadWith(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
 	ForOverLoadWith_t HasForOverLoadWith(const TypeSymbol& TypeA);
-
+	UrinaryOverLoadWith_t HasUrinaryOverLoadWith(const TypeSymbol& TypeA, TokenType Op);
 
 	TypeSymbol BinaryExpressionShouldRurn(TokenType Op, const TypeSymbol& Ex0Type);
 
@@ -675,7 +685,8 @@ private:
 
 	bool IsVaidType(TypeSymbol& Out);
 	bool CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode = true);
-	bool CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
+	CastOverLoadWith_t  CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
+	Optional<FuncInfo*> GetAnExplicitlyConvertedFunc(const TypeSymbol& TypeToCheck);
 
 	bool DoImplicitConversion(IRInstruction* Ex, const TypeSymbol ExType, const TypeSymbol& ToType);
 	void DoExplicitlConversion(IRInstruction* Ex, const TypeSymbol ExType, const TypeSymbol& ToType);

@@ -5,7 +5,9 @@
 $Loopable:
  $LoopObject:
   |new[this&] -> void;
-  |t[this&] -> bool;
+  
+  |->[this&] -> int;
+  |?[this&] -> bool;
 
  |for[this&] => LoopObject();
 

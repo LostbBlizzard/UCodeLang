@@ -557,6 +557,10 @@ GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 	{
 		NextToken();
 	}
+	else if (NameToken->Type == TokenType::RightArrow)
+	{
+		NextToken();
+	}
 	else
 	{
 		TokenTypeCheck(NameToken, TokenType::Name);
