@@ -268,6 +268,7 @@ private:
 		Symbol* FuncToGet = nullptr;
 		Symbol* FuncToCheck = nullptr;
 	};
+	using CastExpressionNode_Data =PostFixExpressionNode_Data;
 
 	enum class  ObjectToDropType
 	{
@@ -421,6 +422,7 @@ private:
 	BinaryVectorMap<const void*, PostFixExpressionNode_Data> PostFix_Datas;
 	BinaryVectorMap<const void*, CompoundExpresion_Data> Compound_Datas;
 	BinaryVectorMap<const void*, ForExpresion_Data> For_Datas;
+	BinaryVectorMap < const void*, CastExpressionNode_Data> CastDatas;
 
 	Vector<FuncStackInfo> _FuncStack;
 
@@ -692,7 +694,7 @@ private:
 	Optional<FuncInfo*> GetAnExplicitlyConvertedFunc(const TypeSymbol& TypeToCheck);
 
 	bool DoImplicitConversion(IRInstruction* Ex, const TypeSymbol ExType, const TypeSymbol& ToType);
-	void DoExplicitlConversion(IRInstruction* Ex, const TypeSymbol ExType, const TypeSymbol& ToType);
+	void DoExplicitlConversion(IRInstruction* Ex, const TypeSymbol ExType, const TypeSymbol& ToType,const CastExpressionNode_Data& Data);
 
 	bool IsSIntType(const TypeSymbol& TypeToCheck);
 	bool IsUIntType(const TypeSymbol& TypeToCheck);
