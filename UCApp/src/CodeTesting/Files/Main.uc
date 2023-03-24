@@ -9,14 +9,20 @@ $Test:
 
 |main[] -> var:
  
+ int a =0;
 
+ while true:
+  Test H = [];
+  continue;
+  int v = 0;
+  break;
+  int i = 0;
+
+ /*
  do:
-  continue;
+  //continue;
   break;
-
  while true;
-  continue;
-  break;
 
  for [int a = 0;a > 10;a++]:
   continue;
@@ -25,5 +31,5 @@ $Test:
  continue;//Err
  break;
   
-
- ret Item -> int;
+ */
+ ret 0;

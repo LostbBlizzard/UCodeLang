@@ -2,9 +2,14 @@
 
 
 UCodeLangFrontStart
+size_t SymbolTable::GetUseingIndex() { return Useings.size()  ? Useings.size() - 1 : 0; }
 void SymbolTable::RemovePopUseing(size_t Index)
 {
-
+	size_t toremove =Useings.size() - Index;
+	for (size_t i = 0; i < toremove; i++)
+	{
+		Useings.pop_back();
+	}
 }
 
 Vector<Symbol*>& SymbolTable::GetSymbolsWithName(const String_view& Name, SymbolType Type)

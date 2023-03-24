@@ -577,7 +577,7 @@ public:
 	void AddUseing(const String& Name) { Useings.push_back(Name); }
 	void ClearUseings() { Useings.clear(); }
 
-	size_t GetUseingIndex() { return Useings.size() - 1; }
+	size_t GetUseingIndex();
 	void RemovePopUseing(size_t Index);
 
 	void AddScope(const String_view& Name) { _Scope.AddScope(Name); }

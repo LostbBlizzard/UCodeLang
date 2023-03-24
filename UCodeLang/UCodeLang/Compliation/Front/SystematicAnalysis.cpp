@@ -1388,9 +1388,11 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 				LookingForTypes.push(BoolType);
 
 				size_t BoolCode;
+				size_t BoolJumps;
 				if (passtype == PassType::BuidCode)
 				{
 					BoolCode = LookingAtIRBlock->GetIndex();
+					BoolJumps =GetJumpsIndex();
 				}
 				OnExpressionTypeNode(node.BoolExpression.Value.get());
 
@@ -1411,8 +1413,13 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 				OnPostfixVariableNode(node.OnNextStatement);
 
 				LookingAtIRBlock->NewJump(BoolCode);
-				LookingAtIRBlock->UpdateConditionaJump(IfIndex.ConditionalJump, IfIndex.logicalNot, LookingAtIRBlock->GetIndex());
 
+				size_t BreakCode = LookingAtIRBlock->GetIndex();
+
+				LookingAtIRBlock->UpdateConditionaJump(IfIndex.ConditionalJump, IfIndex.logicalNot, BreakCode);
+
+
+				DoJumpsBreakAndContiunes(BoolJumps,BoolCode, BreakCode);
 			}
 
 		}
@@ -1449,7 +1456,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 				TypeSymbol BoolType(TypesEnum::Bool);
 				LookingForTypes.push(BoolType);
 				auto BoolCode = LookingAtIRBlock->GetIndex();
-
+				auto BoolJumps = GetJumpsIndex();
 				{//get if check
 					Get_FuncInfo f;
 					f.Func = Data.FuncToCheck->Get_Info<FuncInfo>();
@@ -1494,6 +1501,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 					DoImplicitConversion(_LastExpressionField, LastExpressionType, syb->VarType);
 					auto FuncRet = _LastExpressionField;
 					syb->IR_Ins = FuncRet;
+					AddDestructorToStack(syb, syb->ID,syb->IR_Ins);
 				}
 
 				for (const auto& node2 : node.Body._Nodes)
@@ -1503,10 +1511,16 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 
 
 				LookingAtIRBlock->NewJump(BoolCode);
-				LookingAtIRBlock->UpdateConditionaJump(IfIndex.ConditionalJump, IfIndex.logicalNot, LookingAtIRBlock->GetIndex());
+
+				size_t BreakCode = LookingAtIRBlock->GetIndex();
+
+				LookingAtIRBlock->UpdateConditionaJump(IfIndex.ConditionalJump, IfIndex.logicalNot, BreakCode);
 			
-				AddDestructorToStack(syb, syb->ID,syb->IR_Ins);
 				
+			
+
+				
+				DoJumpsBreakAndContiunes(BoolJumps,BoolCode, BreakCode);
 			}
 			
 			
@@ -1516,6 +1530,62 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 	_Table.RemoveScope();
 
 	PopStackFrame();
+}
+void SystematicAnalysis::DoJumpsBreakAndContiunes(size_t JumpIndex, size_t BoolCode, size_t BreakCode)
+{
+	for (size_t i = JumpIndex; i < _Jumps.size(); i++)
+	{
+		auto& Item = _Jumps[i];
+
+		switch (Item.Type)
+		{
+		case Jumps_t::Break:
+		{
+			LookingAtIRBlock->UpdateJump(Item.JumpIns, BreakCode);
+		}
+		break;
+		case Jumps_t::Continue:
+		{
+			LookingAtIRBlock->UpdateJump(Item.JumpIns, BoolCode);
+		}
+		break;
+		default:
+			break;
+		}
+	}
+	RemoveJumps(JumpIndex);
+}
+void SystematicAnalysis::OnContinueNode(const ContinueNode& node)
+{
+	if (passtype == PassType::GetTypes)
+	{
+
+	}
+
+
+	if (passtype == PassType::BuidCode)
+	{
+
+		JumpsData v;
+		v.Type = Jumps_t::Continue;
+		v.JumpIns = LookingAtIRBlock->NewJump();
+		_Jumps.push_back(v);
+	}
+}
+void SystematicAnalysis::OnBreakNode(const BreakNode& node)
+{
+	if (passtype == PassType::GetTypes)
+	{
+
+	}
+
+	if (passtype == PassType::BuidCode)
+	{
+		JumpsData v;
+		v.Type = Jumps_t::Break;
+		v.JumpIns = LookingAtIRBlock->NewJump();
+		_Jumps.push_back(v);
+	}
 }
 void SystematicAnalysis::TypeDoesNotHaveForOverload(const UCodeLang::Token* Token, UCodeLang::FrontEnd::TypeSymbol& ExType)
 {
@@ -1532,6 +1602,18 @@ bool SystematicAnalysis::ISStructPassByRef(Symbol* syb)
 		r = V->Type == SymbolType::Type_StaticArray;
 	}
 	return r;
+}
+
+//Funcs
+
+size_t SystematicAnalysis::GetJumpsIndex() { return _Jumps.size() ? _Jumps.size() - 1 : 0; }
+void SystematicAnalysis::RemoveJumps(size_t Index)
+{
+	size_t toremove = _Jumps.size() - Index;
+	for (size_t i = 0; i < toremove; i++)
+	{
+		_Jumps.pop_back();
+	}
 }
 IRidentifierID SystematicAnalysis::ConveToIRClassIR(const Symbol& Class)
 {
@@ -1728,6 +1810,8 @@ void SystematicAnalysis::OnStatement(const Unique_ptr<UCodeLang::Node>& node2)
 	case NodeType::DeclareStaticVariableNode:OnDeclareStaticVariableNode(*DeclareStaticVariableNode::As(node2.get())); break;
 	case NodeType::DeclareThreadVariableNode:OnDeclareThreadVariableNode(*DeclareThreadVariableNode::As(node2.get())); break;
 	case NodeType::ForNode:OnForNode(*ForNode::As(node2.get())); break;
+	case NodeType::ContinueNode:OnContinueNode(*ContinueNode::As(node2.get())); break;
+	case NodeType::BreakNode:OnBreakNode(*BreakNode::As(node2.get())); break;
 	case NodeType::RetStatementNode:OnRetStatement(*RetStatementNode::As(node2.get())); break;
 	default:break;
 	}
@@ -2349,9 +2433,11 @@ void SystematicAnalysis::OnWhileNode(const WhileNode& node)
 
 
 	size_t BoolCode;
+	size_t BoolJumps;
 	if (passtype == PassType::BuidCode)
 	{
 		BoolCode = LookingAtIRBlock->GetIndex();
+		BoolJumps = GetJumpsIndex();
 	}
 	OnExpressionTypeNode(node.Expression.Value.get());
 
@@ -2389,7 +2475,12 @@ void SystematicAnalysis::OnWhileNode(const WhileNode& node)
 	if (passtype == PassType::BuidCode)
 	{
 		LookingAtIRBlock->NewJump(BoolCode);
-		LookingAtIRBlock->UpdateConditionaJump(IfIndex.ConditionalJump, IfIndex.logicalNot, LookingAtIRBlock->GetIndex());
+
+		size_t BreakCode = LookingAtIRBlock->GetIndex();
+
+		LookingAtIRBlock->UpdateConditionaJump(IfIndex.ConditionalJump, IfIndex.logicalNot, BreakCode);
+
+		DoJumpsBreakAndContiunes(BoolJumps,BoolCode, BreakCode);
 	}
 
 
@@ -2406,9 +2497,11 @@ void SystematicAnalysis::OnDoNode(const DoNode& node)
 
 
 	size_t StartIndex;
+	size_t JumpIndex;
 	if (passtype == PassType::BuidCode)
 	{
 		StartIndex= LookingAtIRBlock->GetIndex();
+		JumpIndex = GetJumpsIndex();
 	}
 
 
@@ -2422,6 +2515,13 @@ void SystematicAnalysis::OnDoNode(const DoNode& node)
 
 	TypeSymbol BoolType(TypesEnum::Bool);
 	LookingForTypes.push(BoolType);
+
+	size_t boolCode;
+	if (passtype == PassType::BuidCode)
+	{
+		boolCode = LookingAtIRBlock->GetIndex();
+	}
+
 
 	OnExpressionTypeNode(node.Expression.Value.get());
 
@@ -2439,7 +2539,12 @@ void SystematicAnalysis::OnDoNode(const DoNode& node)
 	{
 		DoImplicitConversion(_LastExpressionField, LastExpressionType, BoolType);
 
+		size_t BreakCode = 0;
+
 		LookingAtIRBlock->NewConditionalFalseJump(_LastExpressionField, StartIndex);
+
+
+		DoJumpsBreakAndContiunes(JumpIndex,StartIndex, BreakCode);
 	}
 	
 

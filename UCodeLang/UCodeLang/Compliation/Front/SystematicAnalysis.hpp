@@ -399,6 +399,17 @@ private:
 		ClassInfo* Info =nullptr;
 		bool _InStatements = false;
 	};
+
+	enum class Jumps_t
+	{
+		Continue,
+		Break,
+	};
+	struct JumpsData
+	{
+		Jumps_t Type = Jumps_t::Continue;
+		IRInstruction* JumpIns = nullptr;
+	};
     //Members
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
@@ -450,8 +461,12 @@ private:
 	
 
 	Stack<GenericFuncInfo> GenericFuncName;
+	
+	Vector< JumpsData> _Jumps;
 
 	//Funcs
+	size_t GetJumpsIndex();
+	void RemoveJumps(size_t Index);
 
 	IRidentifierID ConveToIRClassIR(const Symbol& Class);
 	IRidentifierID ConveToStaticArray(const Symbol& Class);
@@ -558,6 +573,12 @@ private:
 	void OnDeclareThreadVariableNode(const DeclareThreadVariableNode& node);
 	void FuncRetCheck(const Token& Name, const Symbol* FuncSyb, const FuncInfo* Func);
 	void OnForNode(const ForNode& node);
+
+	void DoJumpsBreakAndContiunes(size_t JumpIndex,size_t BoolCode,size_t BreakCode);
+
+	void OnContinueNode(const ContinueNode& node);
+	void OnBreakNode(const BreakNode& node);
+
 
 	void TypeDoesNotHaveForOverload(const UCodeLang::Token* Token, UCodeLang::FrontEnd::TypeSymbol& ExType);
 
