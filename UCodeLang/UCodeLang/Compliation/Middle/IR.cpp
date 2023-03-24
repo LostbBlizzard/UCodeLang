@@ -215,8 +215,10 @@ String IRBuilder::ToString()
 						case IRInstructionType::Jump:
 						
 						case IRInstructionType::ConditionalJump:
-							Names[I->Target().identifer] = "_label" + std::to_string(Names.size());
-						break;
+							if (!Names.HasValue(I->Target().identifer)) {
+								Names.AddValue(I->Target().identifer, "_label" + std::to_string(Names.size()));
+							}
+							break;
 					}
 				}
 

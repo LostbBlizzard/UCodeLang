@@ -2051,6 +2051,7 @@ GotNodeType Parser::GetContinueNode(ContinueNode& out)
 	NextToken();
 
 	out.token = KeyToken;
+	return  GotNodeType::Success;
 }
 GotNodeType Parser::GetBreakNode(BreakNode& out)
 {
@@ -2061,5 +2062,6 @@ GotNodeType Parser::GetBreakNode(BreakNode& out)
 	NextToken();
 
 	out.token = KeyToken;
+	return  GotNodeType::Success;
 }
 UCodeLangFrontEnd
