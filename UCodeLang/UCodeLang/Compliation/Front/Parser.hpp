@@ -390,6 +390,25 @@ private:
 		return { r,V->As() };
 	}
 	GotNodeType GetForNode(ForNode& out);
+
+
+	TryGetNode GetContinueNode()
+	{
+		ContinueNode* V = ContinueNode::Gen();
+		auto r = GetContinueNode(*V);
+		TrippedCheck(r);
+		return { r,V->As() };
+	}
+	GotNodeType GetContinueNode(ContinueNode& out);
+
+	TryGetNode GetBreakNode()
+	{
+		BreakNode* V = BreakNode::Gen();
+		auto r = GetBreakNode(*V);
+		TrippedCheck(r);
+		return { r,V->As() };
+	}
+	GotNodeType GetBreakNode(BreakNode& out);
 };
 UCodeLangFrontEnd
 

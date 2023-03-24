@@ -39,6 +39,7 @@ inline const char* S_KeyWord_true = "true";
 inline const char* S_KeyWord_false = "false";
 inline const char* S_KeyWord_var = "var";
 inline const char* S_KeyWord_invalid = "invalid";
+inline const char* S_KeyWord_continue = "continue";
 inline const char* S_KeyWord_break = "break";
 inline const char* S_KeyWord_use = "use";
 inline const char* S_KeyWord_this = "this";
@@ -109,6 +110,7 @@ inline KeyWord KeyWords[] =
 	KeyWord(S_KeyWord_var,TokenType::KeyWorld_var),
 
 	KeyWord(S_KeyWord_invalid,TokenType::KeyWord_invalid),
+	KeyWord(S_KeyWord_continue,TokenType::KeyWord_continue),
 	KeyWord(S_KeyWord_break,TokenType::KeyWord_break),
 	KeyWord(S_KeyWord_use,TokenType::KeyWorld_use),
 
