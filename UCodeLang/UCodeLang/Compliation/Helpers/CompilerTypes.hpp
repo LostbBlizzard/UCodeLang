@@ -79,6 +79,7 @@ enum class TokenType : TokenType_t
 	CompoundDiv,// /=
 
 	KeyWord_invalid,//invaild
+	KeyWord_continue,//continue
 	KeyWord_break,//break
 	ScopeResolution,//::
 	KeyWorld_use,//use

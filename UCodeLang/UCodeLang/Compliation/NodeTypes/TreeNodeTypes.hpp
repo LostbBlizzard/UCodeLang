@@ -918,4 +918,29 @@ struct ForNode :Node
 	StatementsNode Body;
 };
 
+
+struct ContinueNode :Node
+{
+
+	ContinueNode() : Node(NodeType::ContinueNode)
+	{
+
+	}
+	AddforNode(ContinueNode);
+	
+	const Token* token = nullptr;
+};
+
+struct BreakNode :Node
+{
+
+	BreakNode() : Node(NodeType::BreakNode)
+	{
+
+	}
+	AddforNode(BreakNode);
+
+	const Token* token = nullptr;
+};
+
 UCodeLangFrontEnd

@@ -380,6 +380,20 @@ GotNodeType Parser::GetStatement(Node*& out)
 		return r.GotNode;
 	}
 	break;
+	case TokenType::KeyWord_continue:
+	{
+		auto r = GetContinueNode();
+		out = r.Node;
+		return r.GotNode;
+	}
+	break;
+	case TokenType::KeyWord_break:
+	{
+		auto r = GetBreakNode();
+		out = r.Node;
+		return r.GotNode;
+	}
+	break;
 	case TokenType::KeyWorld_for:
 	{
 		auto r = GetForNode();
@@ -2027,5 +2041,25 @@ GotNodeType Parser::GetForNode(ForNode& out)
 	}
 
 	return GotNodeType::Success;
+}
+GotNodeType Parser::GetContinueNode(ContinueNode& out)
+{
+	auto KeyToken = TryGetToken(); TokenTypeCheck(KeyToken, TokenType::KeyWord_continue);
+	NextToken();
+
+	auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::Semicolon);
+	NextToken();
+
+	out.token = KeyToken;
+}
+GotNodeType Parser::GetBreakNode(BreakNode& out)
+{
+	auto KeyToken = TryGetToken(); TokenTypeCheck(KeyToken, TokenType::KeyWord_break);
+	NextToken();
+
+	auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::Semicolon);
+	NextToken();
+
+	out.token = KeyToken;
 }
 UCodeLangFrontEnd

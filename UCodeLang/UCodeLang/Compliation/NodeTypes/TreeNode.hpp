@@ -55,6 +55,8 @@ enum class NodeType :UInt8
 	CharliteralNode,
 	IndexedExpresionNode,
 	ForNode,
+	ContinueNode,
+	BreakNode,
 };
 
 
