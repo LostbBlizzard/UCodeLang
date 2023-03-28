@@ -53,6 +53,14 @@ Interpreter::Return_t Jit_Interpreter::Call(const String& FunctionName)
 	return Call(address.value());
 }
 
+struct JitRuningState
+{
+	Jit_Interpreter* _This = nullptr;
+	Stack<UAddress> StackFrames;
+};
+
+thread_local JitRuningState _ThisState = {};
+
 Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 {
 	if (!UFuncToCPPFunc.count(address)){UFuncToCPPFunc[address] = {};}
@@ -60,6 +68,35 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 	
 	auto& Item = UFuncToCPPFunc[address];
 	
+	BuildCheck(Item, address);
+
+	#if UCodeLang_KeepJitInterpreterFallback
+	if (Item.Type == JitFuncType::UCodeCall)
+	{
+		return _Interpreter.Call(Item.UCodeFunc);
+	}
+	else
+	{
+		_ThisState._This = this;
+		_ThisState.StackFrames.push(Item.UCodeFunc);
+		{
+			using Func = UInt64(*)();
+			auto V = (*(Func*)&Item.Func)();
+			_Interpreter.Get_OutRegister().Value = V;
+		}
+		_ThisState.StackFrames.pop();
+
+		return { Interpreter::RetState::Success ,_Interpreter.Get_OutRegister() };
+	}
+	#else
+	throw std::exception("not added");
+	#endif
+}
+
+
+
+void Jit_Interpreter::BuildCheck(UCodeLang::Jit_Interpreter::JitFuncData& Item, const UCodeLang::UAddress& address)
+{
 	if (Item.Type == JitFuncType::Null)
 	{
 		auto& LibManger = Get_State()->Get_Libs();
@@ -96,7 +133,7 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 				}
 				else
 				{
-					_Assembler.SubCall(OnUAddressCall, Item.CPPoffset, TepOutBuffer);
+					_Assembler.SubCall((JitInfo::FuncType)OnUAddressCall, Item.CPPoffset, TepOutBuffer);
 				}
 			}
 
@@ -123,25 +160,39 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 			Item.UCodeFunc = address;
 		}
 	}
+}
+UInt64 Jit_Interpreter::OnUAddressCall()
+{
+	//save all pars on stack and build code
+
+	UAddress TryingToCall = _ThisState._This->_Assembler.OnUAddressPar;
+	UAddress address = _ThisState.StackFrames.top();
+	auto& Item = _ThisState._This->UFuncToCPPFunc[TryingToCall];
+	_ThisState._This->BuildCheck(Item, address);
+
+
 
 	#if UCodeLang_KeepJitInterpreterFallback
 	if (Item.Type == JitFuncType::UCodeCall)
 	{
-		return _Interpreter.Call(Item.UCodeFunc);
+		_ThisState._This->_Interpreter.Call(Item.UCodeFunc);
+		return _ThisState._This->_Interpreter.Get_OutRegister().Value.AsUInt64;
 	}
 	else
 	{
-		//return { Interpreter::RetState::Success ,Interpreter::Register(Call_CPPFunc(Item.Func))};
-		return { Interpreter::RetState::Success ,_Interpreter.Get_OutRegister() };
+		_ThisState.StackFrames.push(Item.UCodeFunc);
+		{
+			using Func = UInt64(*)();
+			auto V = (*(Func*)&Item.Func)();
+			
+			_ThisState.StackFrames.pop();
+			return V;
+		}
 	}
 	#else
 	throw std::exception("not added");
 	#endif
-}
-CPPCallRet Jit_Interpreter::OnUAddressCall(CPPCallParsNone)
-{
-	//save all pars on stack and build code
-	//
+	
 	//UAddress V = Cpp.GetParameters<UAddress>();
 	//Call(V);
 

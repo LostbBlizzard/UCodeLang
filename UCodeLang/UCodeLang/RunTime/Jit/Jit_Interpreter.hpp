@@ -202,8 +202,11 @@ private:
 	Vector<Byte> TepOutBuffer;
 	WakeUpCallBack WakeUp = nullptr;
 	
-	static CPPCallRet OnUAddressCall(CPPCallParsNone);
+	static UInt64 OnUAddressCall();
 	CPPCallRet Call_CPPFunc(JitFunc ToCall);
+
+
+	void BuildCheck(Jit_Interpreter::JitFuncData& Item, const UCodeLang::UAddress& address);
 };
 
 UCodeLangEnd

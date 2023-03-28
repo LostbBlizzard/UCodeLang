@@ -12,7 +12,10 @@ namespace x86_64
 		C,//Counter register
 		D,//Data register
 	
-	
+		rdi,
+		r8,
+		r9,
+		r10,
 		Null,
 	};
 	enum class FloatingPointRegisters : Byte
@@ -35,7 +38,7 @@ namespace x86_64
 		xmm15,
 	};
 
-	x86::GeneralRegisters To_x86(GeneralRegisters Value)
+	inline x86::GeneralRegisters To_x86(GeneralRegisters Value)
 	{
 		switch (Value)
 		{
@@ -43,9 +46,26 @@ namespace x86_64
 		case GeneralRegisters::B:return x86::GeneralRegisters::B;
 		case GeneralRegisters::C:return x86::GeneralRegisters::C;
 		case GeneralRegisters::D:return x86::GeneralRegisters::D;
+		case GeneralRegisters::rdi:return x86::GeneralRegisters::ESI;
 		default:return x86::GeneralRegisters::Null;
 		}
 	}
+	
+	
+	enum ModRM {
+		mod = 0xC0,
+		spare_register = 0x38,
+		rm = 0x07
+	};
+	
+	inline Byte modrm(GeneralRegisters src, GeneralRegisters dst) {
+		return (mod) | (x86::RegisterOffset(To_x86(src)) << 3) | x86::RegisterOffset(To_x86(dst));
+	}
+
+	inline Byte modrm2(GeneralRegisters src, GeneralRegisters dst) {
+		return (rm) | (x86::RegisterOffset(To_x86(src)) << 3) | x86::RegisterOffset(To_x86(dst));
+	}
+	
 
 }
 UCodeLangEnd

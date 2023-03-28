@@ -1,48 +1,27 @@
 #include "X86_64JitCompiler.hpp"
+
+#include <sstream>
+#include <iostream>
 UCodeLangStart
 
 
-struct X86_64Registers
+x86_64::GeneralRegisters GetGeneralRegister(RegisterID Value)
 {
-
-	//volatile 64-bit registers
-	static constexpr UInt8 rax = 0;
-	static constexpr UInt8 rcx = 0;
-	static constexpr UInt8 rdx = 0;
-	static constexpr UInt8 r8 = 0;
-	static constexpr UInt8 r9 = 0;
-	static constexpr UInt8 r10 = 0;
-
-	static constexpr UInt8 al = 0;
-	static constexpr UInt8 cl = 1;
-	static constexpr UInt8 dl = 2;
-	static constexpr UInt8 r8b = 0;
-	static constexpr UInt8 r9b = 1;
-	static constexpr UInt8 r10b = 2;
-	static UInt8 Get8BitRegister(RegisterID Value)
+	switch (Value)
 	{
-		switch (Value)
-		{
-		case RegisterID::A:return al;
-		case RegisterID::B:return cl;
-		case RegisterID::C:return dl;
-		case RegisterID::D:return r8b;
-		case RegisterID::E:return r9b;
-		case RegisterID::F:return r10b;
-		default:return al;
-		}
+	case UCodeLang::RegisterID::A:return x86_64::GeneralRegisters::D;
+	case UCodeLang::RegisterID::B:return x86_64::GeneralRegisters::C;
+	case UCodeLang::RegisterID::C:return x86_64::GeneralRegisters::r8;
+	case UCodeLang::RegisterID::D:return x86_64::GeneralRegisters::r9;
+	case UCodeLang::RegisterID::E:return x86_64::GeneralRegisters::A;
+	case UCodeLang::RegisterID::F:return x86_64::GeneralRegisters::B;
+
+
+	case UCodeLang::RegisterID::NullRegister:
+	default:return x86_64::GeneralRegisters::Null;
 	}
-	static bool IsNewRegister8(RegisterID Value)
-	{
-		switch (Value)
-		{
-		case RegisterID::D:return true;
-		case RegisterID::E:return true;
-		case RegisterID::F:return true;
-		default:return false;
-		}
-	}
-};
+}
+
 
 X86_64JitCompiler::X86_64JitCompiler()
 {
@@ -56,63 +35,127 @@ void X86_64JitCompiler::Reset()
 {
 }
 
+const char HEX_MAP[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+
+char replace(unsigned char c)
+{
+	return HEX_MAP[c & 0x0f];
+}
+
+std::string char_to_hex(unsigned char c)
+{
+	std::string hex;
+
+	// First four bytes
+	char left = (c >> 4);
+	// Second four bytes
+	char right = (c & 0x0f);
+
+	hex += replace(left);
+	hex += replace(right);
+
+	return hex;
+}
 bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress, Vector<UInt8>& X64Output)
 {
 	Output = &X64Output;
 	_Ins = &Ins;
-	Index = funcAddress;
-	IsGood = true;
 	
-	//func start
-	PushBytes("\x55\x48\x89\xE5");
-	//push rbp
-	//mov rbp, rsp
+	//
+	for (size_t i = funcAddress; i < Ins.size(); i++)
+	{
+		auto& Item = Ins[i];
 	
-	BuildBody();
+		switch (Item.OpCode)
+		{
+		case InstructionSet::StoreRegToReg8:_Gen.Push_Ins_RegToReg8(GetGeneralRegister(Item.Value0.AsRegister), GetGeneralRegister(Item.Value1.AsRegister)); break;
+		case InstructionSet::StoreRegToReg16:_Gen.Push_Ins_RegToReg16(GetGeneralRegister(Item.Value0.AsRegister), GetGeneralRegister(Item.Value1.AsRegister)); break;
+		case InstructionSet::StoreRegToReg32:_Gen.Push_Ins_RegToReg32(GetGeneralRegister(Item.Value0.AsRegister), GetGeneralRegister(Item.Value1.AsRegister)); break;
+		case InstructionSet::StoreRegToReg64:_Gen.Push_Ins_RegToReg64(GetGeneralRegister(Item.Value0.AsRegister), GetGeneralRegister(Item.Value1.AsRegister)); break;
+		
+		case InstructionSet::Store8:_Gen.Push_Ins_MovImm8(GetGeneralRegister(Item.Value0.AsRegister), Item.Value1.AsInt8); break;
+		case InstructionSet::Store16:_Gen.Push_Ins_MovImm16(GetGeneralRegister(Item.Value0.AsRegister), Item.Value1.AsInt16); break;
+		case InstructionSet::Store32:_Gen.Push_Ins_MovImm32(GetGeneralRegister(Item.Value0.AsRegister), Item.Value1.AsInt32); break;
+		case InstructionSet::Store64:_Gen.Push_Ins_MovImm64(GetGeneralRegister(Item.Value0.AsRegister), Item.Value1.AsInt64); break;
 
-	//func end
-	PushBytes("\x5D\xC3");
-	//pop rbp
-	//ret
 
-	
+
+		case InstructionSet::Add8:_Gen.Push_Ins_Add8(GetGeneralRegister(Item.Value0.AsRegister), GetGeneralRegister(Item.Value1.AsRegister), GetGeneralRegister(RegisterID::OuPutRegister)); break;
+		case InstructionSet::Add16:_Gen.Push_Ins_Add16(GetGeneralRegister(Item.Value0.AsRegister), GetGeneralRegister(Item.Value1.AsRegister), GetGeneralRegister(RegisterID::OuPutRegister));  break;
+		case InstructionSet::Add32:_Gen.Push_Ins_Add32(GetGeneralRegister(Item.Value0.AsRegister), GetGeneralRegister(Item.Value1.AsRegister), GetGeneralRegister(RegisterID::OuPutRegister)); break;
+		case InstructionSet::Add64:_Gen.Push_Ins_Add64(GetGeneralRegister(Item.Value0.AsRegister), GetGeneralRegister(Item.Value1.AsRegister), GetGeneralRegister(RegisterID::OuPutRegister));  break;
+		
+		case InstructionSet::Call:
+		{
+			
+			_Gen.Push_Ins_MovImm64(X86_64Gen::GReg::A, (uintptr_t)&OnUAddressPar);
+			_Gen.Push_Ins_MovImm64(X86_64Gen::GReg::B, i);
+
+			_Gen.Push_Ins_MovReg64ToPtrdereference(X86_64Gen::GReg::A, X86_64Gen::GReg::B);
+			//pass to 
+			//static UInt64 OnUAddressCall(UAddress TryingToCall);
+			NullCalls.push_back({ i, _Gen.GetIndex() }); _Gen.Push_Ins_Callptr(0);
+
+
+
+		}break;
+		//case InstructionSet::SysCall: BuildSysCallIns(*(InstructionSysCall*)&Item.Value0, Item.Value1.AsRegister);
+		case InstructionSet::Return:_Gen.Push_Ins_ret(); goto EndLoop;
+		default:return false;
+		}
+	}
+	EndLoop:
+	//
 	_Ins = nullptr;
 	Output = nullptr;
 
-	return IsGood;
-}
-
-void X86_64JitCompiler::SubCall(JitInfo::FuncType Value, uintptr_t CPPOffset, Vector<UInt8>& X64Output)
-{
-}
-
-void X86_64JitCompiler::BuildBody()
-{
-	const Instruction* V = &Get_Ins();
+	X64Output = std::move(_Gen._Base._Output.ByteOutput);
 	
-	while (V->OpCode != InstructionSet::Return)
+
+
+
+	{
+		String V;
+		for (auto& Item : X64Output)
+		{
+			V += char_to_hex(Item);
+		};
+		int a = 0;
+	}
+	return true;
+}
+
+
+
+
+
+void BuildSysCallIns(InstructionSysCall Ins, RegisterID Reg)
+{
+	switch (Ins)
 	{
 
-		switch (V->OpCode)
-		{
-
-		case InstructionSet::Store8:
-		{
-			auto Register = V->Value0.AsRegister;
-			if (X86_64Registers::IsNewRegister8(Register)){PushBytes(0x41);}
-
-			PushBytes( ((UInt8)0xb0) + X86_64Registers::Get8BitRegister(Register)
-				, V->Value1.AsUInt8);
-		}
+	case UCodeLang::InstructionSysCall::Cout_CString:
 		break;
-		default:
-			IsGood = false;
-			return;
-		}
-
-		//
-		Next_Ins(); V = &Get_Ins();
+	case UCodeLang::InstructionSysCall::Cout_Char:
+		break;
+	case UCodeLang::InstructionSysCall::Cout_Buffer:
+		break;
+	case UCodeLang::InstructionSysCall::Cout_ReadChar:
+		
+		break;
+	case UCodeLang::InstructionSysCall::File_Open:
+		break;
+	case UCodeLang::InstructionSysCall::File_Close:
+		break;
+	case UCodeLang::InstructionSysCall::File_Read:
+		break;
+	default:
+		break;
 	}
+}
+void X86_64JitCompiler::SubCall(JitInfo::FuncType Value, uintptr_t CPPOffset, Vector<UInt8>& X64Output)
+{
+	_Gen.Sub_Ins_Callptr(&X64Output[CPPOffset], *(uint64_t*)&Value);
 }
 
 UCodeLangEnd

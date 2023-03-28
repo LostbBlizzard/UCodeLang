@@ -8,18 +8,18 @@ struct CodeGen
 	using Value32 = Int32;
 	using Value64 = Int64;
 
-	void PushByte(Byte Value)
+	inline void PushByte(Byte Value)
 	{
 		ByteOutput.push_back(Value);
 	}
-	void PushByte(const Byte* Value, size_t Size)
+	inline void PushByte(const Byte* Value, size_t Size)
 	{
 		for (size_t i = 0; i < Size; i++)
 		{
 			ByteOutput.push_back(Value[i]);
 		}
 	}
-	void PushByteR(const Byte* Value, size_t Size)
+	inline void PushByteR(const Byte* Value, size_t Size)
 	{
 		for (int i = Size - 1; i >= 0; i--)
 		{
@@ -27,7 +27,7 @@ struct CodeGen
 		}
 	}
 
-	void PushByte_Big_endian(const Byte* Value, size_t Size)
+	inline void PushByte_Big_endian(const Byte* Value, size_t Size)
 	{
 		if (BitConverter::_CPUEndian == Endian::Big)
 		{
@@ -38,7 +38,7 @@ struct CodeGen
 			PushByteR(Value, Size);
 		}
 	}
-	void PushByte_little_endian(const Byte* Value, size_t Size)
+	inline void PushByte_little_endian(const Byte* Value, size_t Size)
 	{
 		if (BitConverter::_CPUEndian == Endian::little)
 		{
@@ -63,6 +63,57 @@ struct CodeGen
 	{
 		PushByte_Big_endian((const Byte*)&Value, sizeof(Value));
 	}
+	inline size_t GetIndex() { return ByteOutput.size(); }
 	Vector<Byte> ByteOutput;
+
+	//
+
+	static inline void SubByte(Byte* BufferToUpdate, const Byte* Value, size_t Size)
+	{
+		for (size_t i = 0; i < Size; i++)
+		{
+			BufferToUpdate[i] = Value[i];
+		}
+	}
+	static inline void SubByteR(Byte* BufferToUpdate,const Byte* Value, size_t Size)
+	{
+		for (int i = Size - 1; i >= 0; i--)
+		{
+			BufferToUpdate[i] = Value[i];
+		}
+	}
+
+	static inline void SubByte_Big_endian(Byte* BufferToUpdate, const Byte* Value, size_t Size)
+	{
+		if (BitConverter::_CPUEndian == Endian::Big)
+		{
+			SubByte(BufferToUpdate,Value, Size);
+		}
+		else
+		{
+			SubByteR(BufferToUpdate,Value, Size);
+		}
+	}
+	static inline void SubByte_little_endian(Byte* BufferToUpdate, const Byte* Value, size_t Size)
+	{
+		if (BitConverter::_CPUEndian == Endian::little)
+		{
+			SubByteR(BufferToUpdate, Value, Size);
+		}
+		else
+		{
+			SubByteR(BufferToUpdate, Value, Size);
+		}
+	}
+
+
+	template<typename T>static void SubByte_t_little_endian(Byte* BufferToUpdate, const T& Value)
+	{
+		SubByte_little_endian(BufferToUpdate,(const Byte*)&Value, sizeof(Value));
+	}
+	template<typename T>static void SubByte_t_Big_endian(Byte* BufferToUpdate, const T& Value)
+	{
+		SubByte_Big_endian(BufferToUpdate,(const Byte*)&Value, sizeof(Value));
+	}
 };
 UCodeLangEnd

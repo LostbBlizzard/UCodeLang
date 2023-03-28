@@ -45,7 +45,7 @@ namespace x86
 
 		}
 	}
-	Byte modrm(GeneralRegisters src, GeneralRegisters dst) {
+	inline Byte modrm(GeneralRegisters src, GeneralRegisters dst) {
 		return (0b11 << 6) | (x86::RegisterOffset(src) << 3) | x86::RegisterOffset(dst);
 	}
 		

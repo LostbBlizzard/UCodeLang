@@ -1,6 +1,6 @@
 #pragma once
 #include "../Jit/Jit.hpp"
-
+#include "X86Gen.hpp"
 UCodeLangStart
 class X86JitCompiler
 {
@@ -14,7 +14,7 @@ public:
 
 
 private:
-	
+	X86Gen _Gen;
 };
 UCodeLangEnd
 
