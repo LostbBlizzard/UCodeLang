@@ -193,9 +193,9 @@ int main()
 
 		int item[2] = { 0,0 };
 
-		auto Value = RunTime.RCall<char>("__ReadChar");
+		//auto Value = RunTime.RCall<char>("__ReadChar");
 
-		auto r = RunTime.RCall <UAddress>("main", &item);
+		auto r = RunTime.RCall <UAddress>("main");
 
 
 		std::cout << " Got Value " << (int)r << std::endl;
