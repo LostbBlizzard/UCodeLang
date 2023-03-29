@@ -114,6 +114,19 @@ int main()
 	//ULangTest::RunTests();
 	
 	
+	{
+		UCodeLang::TokenType_t v = (UCodeLang::TokenType_t)UCodeLang::TokenType::Null;
+		while (v != (UCodeLang::TokenType_t)UCodeLang::TokenType::internal_Constant_expression)
+		{
+			auto str =UCodeLang::StringHelper::ToString((UCodeLang::TokenType)v);
+			if ((String)str == (String)"Unknown token")
+			{
+				throw std::exception("not added");
+			}
+			v++;
+		}
+	}
+
 	UCodeLang::Compiler _Compiler;
 	UCodeLang::CompliationSettings& Settings =_Compiler.Get_Settings();
 	UCodeLang::Compiler::CompilerPathData Data;
