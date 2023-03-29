@@ -74,30 +74,30 @@ inline KeyWord KeyWords[] =
 
 	//Types	
 	
-	KeyWord(S_KeyWord_Int8,TokenType::KeyWorld_SInt8),
-	KeyWord(S_KeyWord_Int16,TokenType::KeyWorld_SInt16),
-	KeyWord(S_KeyWord_Int32,TokenType::KeyWorld_SInt32),
-	KeyWord(S_KeyWord_Int64,TokenType::KeyWorld_SInt64),
+	KeyWord(S_KeyWord_Int8,TokenType::KeyWord_SInt8),
+	KeyWord(S_KeyWord_Int16,TokenType::KeyWord_SInt16),
+	KeyWord(S_KeyWord_Int32,TokenType::KeyWord_SInt32),
+	KeyWord(S_KeyWord_Int64,TokenType::KeyWord_SInt64),
 
-	KeyWord(S_KeyWord_uInt8,TokenType::KeyWorld_UInt8),
-	KeyWord(S_KeyWord_uInt16,TokenType::KeyWorld_UInt16),
-	KeyWord(S_KeyWord_uInt32,TokenType::KeyWorld_UInt32),
-	KeyWord(S_KeyWord_uInt64,TokenType::KeyWorld_UInt64),
+	KeyWord(S_KeyWord_uInt8,TokenType::KeyWord_UInt8),
+	KeyWord(S_KeyWord_uInt16,TokenType::KeyWord_UInt16),
+	KeyWord(S_KeyWord_uInt32,TokenType::KeyWord_UInt32),
+	KeyWord(S_KeyWord_uInt64,TokenType::KeyWord_UInt64),
 
-	KeyWord(S_KeyWord_Int,TokenType::KeyWorld_SInt32),
+	KeyWord(S_KeyWord_Int,TokenType::KeyWord_SInt32),
 
-	KeyWord(S_KeyWord_byte,TokenType::KeyWorld_UInt8),
-	KeyWord(S_KeyWord_sbyte,TokenType::KeyWorld_SInt8),
+	KeyWord(S_KeyWord_byte,TokenType::KeyWord_UInt8),
+	KeyWord(S_KeyWord_sbyte,TokenType::KeyWord_SInt8),
 	
-	KeyWord(S_KeyWord_char,TokenType::KeyWorld_Char),
-	KeyWord(S_KeyWord_bool,TokenType::KeyWorld_Bool),
+	KeyWord(S_KeyWord_char,TokenType::KeyWord_Char),
+	KeyWord(S_KeyWord_bool,TokenType::KeyWord_Bool),
 	
-	KeyWord(S_KeyWord_float32,TokenType::KeyWorld_float32),
-	KeyWord(S_KeyWord_float,TokenType::KeyWorld_float32),
-	KeyWord(S_KeyWord_float64,TokenType::KeyWorld_float64),
+	KeyWord(S_KeyWord_float32,TokenType::KeyWord_float32),
+	KeyWord(S_KeyWord_float,TokenType::KeyWord_float32),
+	KeyWord(S_KeyWord_float64,TokenType::KeyWord_float64),
 
-	KeyWord(S_KeyWord_uintptr,TokenType::KeyWorld_uintptr),
-	KeyWord(S_KeyWord_sintptr,TokenType::KeyWorld_sintptr),
+	KeyWord(S_KeyWord_uintptr,TokenType::KeyWord_uintptr),
+	KeyWord(S_KeyWord_sintptr,TokenType::KeyWord_sintptr),
 
 	//
 	KeyWord(S_KeyWord_ret,TokenType::KeyWorld_Ret),
@@ -112,19 +112,19 @@ inline KeyWord KeyWords[] =
 	KeyWord(S_KeyWord_invalid,TokenType::KeyWord_invalid),
 	KeyWord(S_KeyWord_continue,TokenType::KeyWord_continue),
 	KeyWord(S_KeyWord_break,TokenType::KeyWord_break),
-	KeyWord(S_KeyWord_use,TokenType::KeyWorld_use),
+	KeyWord(S_KeyWord_use,TokenType::KeyWord_use),
 
-	KeyWord(S_KeyWord_this,TokenType::KeyWorld_This),
-	KeyWord(S_KeyWord_drop,TokenType::KeyWorld_Drop),
-	KeyWord(S_KeyWord_new,TokenType::KeyWorld_new),
-	KeyWord(S_KeyWord_static,TokenType::KeyWorld_static),
-	KeyWord(S_KeyWord_thread,TokenType::KeyWorld_Thread),
+	KeyWord(S_KeyWord_this,TokenType::KeyWord_This),
+	KeyWord(S_KeyWord_drop,TokenType::KeyWord_Drop),
+	KeyWord(S_KeyWord_new,TokenType::KeyWord_new),
+	KeyWord(S_KeyWord_static,TokenType::KeyWord_static),
+	KeyWord(S_KeyWord_thread,TokenType::KeyWord_Thread),
 
-	KeyWord(S_KeyWord_if,TokenType::KeyWorld_If),
-	KeyWord(S_KeyWord_else,TokenType::KeyWorld_Else),
-	KeyWord(S_KeyWord_while,TokenType::KeyWorld_while),
-	KeyWord(S_KeyWord_for,TokenType::KeyWorld_for),
-	KeyWord(S_KeyWord_do,TokenType::KeyWorld_do),
+	KeyWord(S_KeyWord_if,TokenType::KeyWord_If),
+	KeyWord(S_KeyWord_else,TokenType::KeyWord_Else),
+	KeyWord(S_KeyWord_while,TokenType::KeyWord_while),
+	KeyWord(S_KeyWord_for,TokenType::KeyWord_for),
+	KeyWord(S_KeyWord_do,TokenType::KeyWord_do),
 
 	KeyWord(S_KeyWord_pub,TokenType::KeyWorld_pub),
 	KeyWord(S_KeyWord_typeof,TokenType::KeyWorld_typeof),

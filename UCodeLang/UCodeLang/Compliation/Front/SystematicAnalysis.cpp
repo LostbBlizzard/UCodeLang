@@ -907,12 +907,12 @@ void SystematicAnalysis::FuncGetName(const UCodeLang::Token* NameToken, std::str
 	bool ObjectOverLoad = false;
 	switch (NameToken->Type)
 	{
-	case TokenType::KeyWorld_new:
+	case TokenType::KeyWord_new:
 		FuncName = ClassConstructorfunc;
 		FuncType = FuncInfo::FuncType::New;
 		ObjectOverLoad = true;
 		break;
-	case TokenType::KeyWorld_Drop:
+	case TokenType::KeyWord_Drop:
 		FuncName = ClassDestructorFunc;
 		FuncType = FuncInfo::FuncType::Drop;
 		ObjectOverLoad = true;
@@ -927,7 +927,7 @@ void SystematicAnalysis::FuncGetName(const UCodeLang::Token* NameToken, std::str
 		FuncType = FuncInfo::FuncType::Invoke;
 		ObjectOverLoad = true;
 		break;
-	case TokenType::KeyWorld_for:
+	case TokenType::KeyWord_for:
 		FuncName = Overload_For_Func;
 		FuncType = FuncInfo::FuncType::For;
 		ObjectOverLoad = true;
@@ -2023,7 +2023,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 String SystematicAnalysis::GetScopedNameAsString(const ScopedNameNode& node)
 {
 	String Text;
-	if (node.ScopedName.size() && node.ScopedName[0].token->Type == TokenType::KeyWorld_This)
+	if (node.ScopedName.size() && node.ScopedName[0].token->Type == TokenType::KeyWord_This)
 	{
 		auto Type = *_FuncStack.back().Pointer->GetObjectForCall();
 		Type._IsAddress = false;
@@ -2568,7 +2568,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, 
 
 	TypeSymbol FeildType;
 	Symbol* FeildTypeAsSymbol;
-	if (Token->Type != TokenType::KeyWorld_This) 
+	if (Token->Type != TokenType::KeyWord_This) 
 	{
 		auto& Str = Token->Value._String;
 		auto SymbolVar = GetSymbol(Str, SymbolType::Varable_t);
@@ -2804,7 +2804,7 @@ IRInstruction* SystematicAnalysis::BuildMember_GetValue(const GetMemberTypeSymbo
 	}
 	case SymbolType::Type_class:
 	{
-		if (In.Start[0].token->Type == TokenType::KeyWorld_This)
+		if (In.Start[0].token->Type == TokenType::KeyWord_This)
 		{
 			IRInstruction* Output = nullptr;
 			BuildMember_Access(In, Output);
@@ -2906,7 +2906,7 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 		Output = LookingAtIRBlock->New_Member_Dereference(&PointerIr, IRType(IRSymbol(IRStructV)), MemberIndex);
 		return;
 	}
-	if (In.Start[0].token->Type == TokenType::KeyWorld_This)
+	if (In.Start[0].token->Type == TokenType::KeyWord_This)
 	{
 		auto& PointerIr = LookingAtIRFunc->Pars.front();
 		Output = LookingAtIRBlock->NewLoad(&PointerIr);
@@ -3090,7 +3090,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 	{
 
 
-		if (node.ScopedName[Start].token->Type != TokenType::KeyWorld_This)
+		if (node.ScopedName[Start].token->Type != TokenType::KeyWord_This)
 		{
 			auto Token = node.ScopedName[Start].token;
 			auto& Str = Token->Value._String;
@@ -4620,7 +4620,7 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 	auto Token = nod.VariableName.ScopedName.back().token;
 	auto Str = FToken->Value._String;
 
-	if (FToken->Type == TokenType::KeyWorld_This)
+	if (FToken->Type == TokenType::KeyWord_This)
 	{
 		if (_ClassStack.size() == 0)
 		{
@@ -6044,55 +6044,55 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 	case TokenType::KeyWorld_var:
 		Out.SetType(TypesEnum::Var);
 		break;
-	case TokenType::KeyWorld_UInt8:
+	case TokenType::KeyWord_UInt8:
 		Out.SetType(TypesEnum::uInt8);
 		break;
-	case TokenType::KeyWorld_UInt16:
+	case TokenType::KeyWord_UInt16:
 		Out.SetType(TypesEnum::uInt16);
 		break;
-	case TokenType::KeyWorld_UInt32:
+	case TokenType::KeyWord_UInt32:
 		Out.SetType(TypesEnum::uInt32);
 		break;
-	case TokenType::KeyWorld_UInt64:
+	case TokenType::KeyWord_UInt64:
 		Out.SetType(TypesEnum::uInt64);
 		break;
 
-	case TokenType::KeyWorld_SInt8:
+	case TokenType::KeyWord_SInt8:
 		Out.SetType(TypesEnum::sInt8);
 		break;
-	case TokenType::KeyWorld_SInt16:
+	case TokenType::KeyWord_SInt16:
 		Out.SetType(TypesEnum::sInt16);
 		break;
-	case TokenType::KeyWorld_SInt32:
+	case TokenType::KeyWord_SInt32:
 		Out.SetType(TypesEnum::sInt32);
 		break;
-	case TokenType::KeyWorld_SInt64:
+	case TokenType::KeyWord_SInt64:
 		Out.SetType(TypesEnum::sInt64);
 		break;
 
-	case TokenType::KeyWorld_uintptr:
+	case TokenType::KeyWord_uintptr:
 		Out.SetType(TypesEnum::uIntPtr);
 		break;
-	case TokenType::KeyWorld_sintptr:
+	case TokenType::KeyWord_sintptr:
 		Out.SetType(TypesEnum::sIntPtr);
 		break;
 
-	case TokenType::KeyWorld_Bool:
+	case TokenType::KeyWord_Bool:
 		Out.SetType(TypesEnum::Bool);
 		break;
-	case TokenType::KeyWorld_Char:
+	case TokenType::KeyWord_Char:
 		Out.SetType(TypesEnum::Char);
 		break;
-	case TokenType::KeyWorld_float32:
+	case TokenType::KeyWord_float32:
 		Out.SetType(TypesEnum::float32);
 		break;
-	case TokenType::KeyWorld_float64:
+	case TokenType::KeyWord_float64:
 		Out.SetType(TypesEnum::float64);
 		break;
 	case TokenType::Void:
 		Out.SetType(TypesEnum::Void);
 		break;
-	case TokenType::KeyWorld_This: 
+	case TokenType::KeyWord_This: 
 	{
 
 		if (_ClassStack.size()) 
@@ -8699,7 +8699,7 @@ void SystematicAnalysis::LogTypeDependencyCycle(const Token* Token, const ClassI
 void SystematicAnalysis::LogCantUseThisHere(const Token* Token)
 {
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
-		,"Cant Find Type for '" + (String)StringHelper::ToString(TokenType::KeyWorld_This) + "'");
+		,"Cant Find Type for '" + (String)StringHelper::ToString(TokenType::KeyWord_This) + "'");
 }
 void SystematicAnalysis::LogCanIncorrectParCount(const Token* Token, String_view FuncName, size_t Count, size_t FuncCount)
 {
