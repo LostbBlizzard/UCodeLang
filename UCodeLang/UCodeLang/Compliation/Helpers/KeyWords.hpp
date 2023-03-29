@@ -48,6 +48,9 @@ inline const char* S_KeyWord_new = "new";
 inline const char* S_KeyWord_static = "static";
 inline const char* S_KeyWord_thread = "thread";
 
+inline const char* S_KeyWord_moved = "moved";
+inline const char* S_KeyWord_move = "move";
+
 inline const char* S_KeyWord_if = "if";
 inline const char* S_KeyWord_else = "else";
 inline const char* S_KeyWord_while  = "while";
@@ -119,6 +122,9 @@ inline KeyWord KeyWords[] =
 	KeyWord(S_KeyWord_new,TokenType::KeyWord_new),
 	KeyWord(S_KeyWord_static,TokenType::KeyWord_static),
 	KeyWord(S_KeyWord_thread,TokenType::KeyWord_Thread),
+
+	KeyWord(S_KeyWord_moved,TokenType::KeyWord_moved),
+	KeyWord(S_KeyWord_move,TokenType::KeyWord_move),
 
 	KeyWord(S_KeyWord_if,TokenType::KeyWord_If),
 	KeyWord(S_KeyWord_else,TokenType::KeyWord_Else),

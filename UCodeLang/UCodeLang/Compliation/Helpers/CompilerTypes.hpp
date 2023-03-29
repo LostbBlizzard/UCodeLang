@@ -88,12 +88,14 @@ enum class TokenType : TokenType_t
 	KeyWord_Drop,//drop
 	KeyWord_static,// static
 	KeyWord_Thread,// thread
+	KeyWord_move,// move
+	KeyWord_moved,// moved
 
-	KeyWord_If,
-	KeyWord_Else,
-	KeyWord_while,
-	KeyWord_for,
-	KeyWord_do,
+	KeyWord_If,//if
+	KeyWord_Else,//else
+	KeyWord_while,//while
+	KeyWord_for,//for
+	KeyWord_do,//do
 
 
 	KeyWorld_pub,//pub
@@ -140,103 +142,103 @@ public:
 	{
 		switch (V)
 		{
-		case UCodeLang::TokenType::Null:return "null";
-		case UCodeLang::TokenType::EndofFile:return "End of File";
-		case UCodeLang::TokenType::Error:return "Error";
-		case UCodeLang::TokenType::Name:return "Name";
-		case UCodeLang::TokenType::Namespace:return "%";
-		case UCodeLang::TokenType::Class:return "$";
-		case UCodeLang::TokenType::Left_Parentheses:return "(";
-		case UCodeLang::TokenType::Right_Parentheses:return ")";
-		case UCodeLang::TokenType::Left_Bracket:return "[";
-		case UCodeLang::TokenType::Right_Bracket:return "]";
-		case UCodeLang::TokenType::Colon:return ":";
-		case UCodeLang::TokenType::StartTab:return "StartTab";
-		case UCodeLang::TokenType::EndTab:return "EndTab";
-		case UCodeLang::TokenType::Semicolon:return ";";
-		case UCodeLang::TokenType::Dot:return ".";
-		case UCodeLang::TokenType::forwardslash:return "/";
-		case UCodeLang::TokenType::equal:return "=";
-		case UCodeLang::TokenType::plus:return "+";
-		case UCodeLang::TokenType::minus:return "-";
-		case UCodeLang::TokenType::star:return "*";
+		case TokenType::Null:return "null";
+		case TokenType::EndofFile:return "End of File";
+		case TokenType::Error:return "Error";
+		case TokenType::Name:return "Name";
+		case TokenType::Namespace:return "%";
+		case TokenType::Class:return "$";
+		case TokenType::Left_Parentheses:return "(";
+		case TokenType::Right_Parentheses:return ")";
+		case TokenType::Left_Bracket:return "[";
+		case TokenType::Right_Bracket:return "]";
+		case TokenType::Colon:return ":";
+		case TokenType::StartTab:return "StartTab";
+		case TokenType::EndTab:return "EndTab";
+		case TokenType::Semicolon:return ";";
+		case TokenType::Dot:return ".";
+		case TokenType::forwardslash:return "/";
+		case TokenType::equal:return "=";
+		case TokenType::plus:return "+";
+		case TokenType::minus:return "-";
+		case TokenType::star:return "*";
 
-		case UCodeLang::TokenType::Type:return "Type";
-		case UCodeLang::TokenType::KeyWord_UInt8:return "uint8";
-		case UCodeLang::TokenType::KeyWord_SInt8:return "sint8";
-		case UCodeLang::TokenType::KeyWord_UInt16:return "uint16";
-		case UCodeLang::TokenType::KeyWord_SInt16:return "sint16";
-		case UCodeLang::TokenType::KeyWord_UInt32:return "uint32";
-		case UCodeLang::TokenType::KeyWord_SInt32:return "sint32";
-		case UCodeLang::TokenType::KeyWord_UInt64:return "uint64";
-		case UCodeLang::TokenType::KeyWord_SInt64:return "sint64";
+		case TokenType::Type:return "Type";
+		case TokenType::KeyWord_UInt8:return "uint8";
+		case TokenType::KeyWord_SInt8:return "sint8";
+		case TokenType::KeyWord_UInt16:return "uint16";
+		case TokenType::KeyWord_SInt16:return "sint16";
+		case TokenType::KeyWord_UInt32:return "uint32";
+		case TokenType::KeyWord_SInt32:return "sint32";
+		case TokenType::KeyWord_UInt64:return "uint64";
+		case TokenType::KeyWord_SInt64:return "sint64";
 
-		case UCodeLang::TokenType::KeyWord_Char:return "char";
-		case UCodeLang::TokenType::KeyWord_Bool:return "bool";
+		case TokenType::KeyWord_Char:return "char";
+		case TokenType::KeyWord_Bool:return "bool";
 
-		case UCodeLang::TokenType::KeyWord_float32:return "float32";
-		case UCodeLang::TokenType::KeyWord_float64:return "float64";
+		case TokenType::KeyWord_float32:return "float32";
+		case TokenType::KeyWord_float64:return "float64";
 
-		case UCodeLang::TokenType::String_literal:return "String literal";
-		case UCodeLang::TokenType::Number_literal:return "Number literal";
-		case UCodeLang::TokenType::Char_literal:return "Char_literal";
-		case UCodeLang::TokenType::Float_literal:return "Float_literal";
+		case TokenType::String_literal:return "String literal";
+		case TokenType::Number_literal:return "Number literal";
+		case TokenType::Char_literal:return "Char_literal";
+		case TokenType::Float_literal:return "Float_literal";
 
-		case UCodeLang::TokenType::KeyWorld_Ret:return "ret";
-		case UCodeLang::TokenType::RightArrow:return "->";
-		case UCodeLang::TokenType::Void:return "void";
+		case TokenType::KeyWorld_Ret:return "ret";
+		case TokenType::RightArrow:return "->";
+		case TokenType::Void:return "void";
 
-		case UCodeLang::TokenType::Comma:return ",";
+		case TokenType::Comma:return ",";
 
-		case UCodeLang::TokenType::KeyWorld_Sizeof:return "sizeof";
-		case UCodeLang::TokenType::KeyWorld_Nameof:return "nameof";
-		case UCodeLang::TokenType::KeyWorld_True:return "true";
-		case UCodeLang::TokenType::KeyWorld_False:return "false";
-		case UCodeLang::TokenType::KeyWorld_var:return "var";
-		case UCodeLang::TokenType::Not:return "!";
-		case UCodeLang::TokenType::equal_Comparison:return "==";
-		case UCodeLang::TokenType::Notequal_Comparison:return "!=";
-		case UCodeLang::TokenType::lessthan:return "<";
-		case UCodeLang::TokenType::greaterthan:return ">";
-		case UCodeLang::TokenType::less_than_or_equalto:return "<=";
-		case UCodeLang::TokenType::greater_than_or_equalto:return ">=";
-		case UCodeLang::TokenType::logical_and:return "&&";
-		case UCodeLang::TokenType::logical_or:return "||";
-		case UCodeLang::TokenType::bitwise_and:return "&";
-		case UCodeLang::TokenType::bitwise_or:return "|";
+		case TokenType::KeyWorld_Sizeof:return "sizeof";
+		case TokenType::KeyWorld_Nameof:return "nameof";
+		case TokenType::KeyWorld_True:return "true";
+		case TokenType::KeyWorld_False:return "false";
+		case TokenType::KeyWorld_var:return "var";
+		case TokenType::Not:return "!";
+		case TokenType::equal_Comparison:return "==";
+		case TokenType::Notequal_Comparison:return "!=";
+		case TokenType::lessthan:return "<";
+		case TokenType::greaterthan:return ">";
+		case TokenType::less_than_or_equalto:return "<=";
+		case TokenType::greater_than_or_equalto:return ">=";
+		case TokenType::logical_and:return "&&";
+		case TokenType::logical_or:return "||";
+		case TokenType::bitwise_and:return "&";
+		case TokenType::bitwise_or:return "|";
 
-		case UCodeLang::TokenType::increment:return "++";
-		case UCodeLang::TokenType::decrement:return "--";
+		case TokenType::increment:return "++";
+		case TokenType::decrement:return "--";
 
-		case UCodeLang::TokenType::CompoundAdd:return "+=";
-		case UCodeLang::TokenType::CompoundSub:return "-=";
-		case UCodeLang::TokenType::CompoundMult:return "*=";
-		case UCodeLang::TokenType::CompoundDiv:return "/=";
+		case TokenType::CompoundAdd:return "+=";
+		case TokenType::CompoundSub:return "-=";
+		case TokenType::CompoundMult:return "*=";
+		case TokenType::CompoundDiv:return "/=";
 
-		case UCodeLang::TokenType::KeyWord_invalid:return "invalid";
-		case UCodeLang::TokenType::KeyWord_break: return "break";
-		case UCodeLang::TokenType::ScopeResolution: return "::";
-		case UCodeLang::TokenType::KeyWord_use: return "use";
+		case TokenType::KeyWord_invalid:return "invalid";
+		case TokenType::KeyWord_break: return "break";
+		case TokenType::ScopeResolution: return "::";
+		case TokenType::KeyWord_use: return "use";
 
-		case UCodeLang::TokenType::KeyWord_This: return "this";
-		case UCodeLang::TokenType::KeyWord_Drop: return "drop";
-		case UCodeLang::TokenType::KeyWord_new: return "new";
-		case UCodeLang::TokenType::KeyWord_static: return "static";
-		case UCodeLang::TokenType::KeyWord_Thread: return "staticforthread";
+		case TokenType::KeyWord_This: return "this";
+		case TokenType::KeyWord_Drop: return "drop";
+		case TokenType::KeyWord_new: return "new";
+		case TokenType::KeyWord_static: return "static";
+		case TokenType::KeyWord_Thread: return "staticforthread";
 
-		case UCodeLang::TokenType::KeyWord_uintptr: return "uintptr";
-		case UCodeLang::TokenType::KeyWord_sintptr: return "sintptr";
+		case TokenType::KeyWord_uintptr: return "uintptr";
+		case TokenType::KeyWord_sintptr: return "sintptr";
 
-		case UCodeLang::TokenType::KeyWorld_pub: return "pub";
-		case UCodeLang::TokenType::KeyWorld_typeof: return "typeof";
+		case TokenType::KeyWorld_pub: return "pub";
+		case TokenType::KeyWorld_typeof: return "typeof";
 
-		case UCodeLang::TokenType::hash: return "#";
+		case TokenType::hash: return "#";
 
-		case UCodeLang::TokenType::KeyWorld_Enum:return "enum";
-		case UCodeLang::TokenType::KeyWorld_umut:return "umut";
-		case UCodeLang::TokenType::KeyWorld_Tag: return "tag";
+		case TokenType::KeyWorld_Enum:return "enum";
+		case TokenType::KeyWorld_umut:return "umut";
+		case TokenType::KeyWorld_Tag: return "tag";
 
-		case UCodeLang::TokenType::QuestionMark:return "?";
+		case TokenType::QuestionMark:return "?";
 
 		default:return "Unknown token";
 		}
