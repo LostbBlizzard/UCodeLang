@@ -38,10 +38,10 @@ void Parser::Parse(const Vector<Token>&Tokens)
 		case TokenType::KeyWorld_Enum:V = GetEnumNode(); break;
 		case TokenType::Class:V = GetClassNode(); break;
 		case Parser::declareFunc:V = GetFuncNode(); break;
-		case TokenType::KeyWorld_use:V = GetUseNode(); break;
+		case TokenType::KeyWord_use:V = GetUseNode(); break;
 		case TokenType::Left_Bracket:V = GetAttribute(); break;
-		case TokenType::KeyWorld_static:V = GetDeclareStaticVariable(); break;
-		case TokenType::KeyWorld_Thread:V = GetDeclareThreadVariable(); break;
+		case TokenType::KeyWord_static:V = GetDeclareStaticVariable(); break;
+		case TokenType::KeyWord_Thread:V = GetDeclareThreadVariable(); break;
 		case TokenType::KeyWorld_umut:V = GetumutVariableDeclare(); break;
 		default: GetDeclareVariableNoObject(V); break;
 		}
@@ -130,10 +130,10 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 		case TokenType::KeyWorld_Enum:V = GetEnumNode(); break;
 		case TokenType::Class:V = GetClassNode();break;
 		case Parser::declareFunc:V = GetFuncNode(); break;
-		case TokenType::KeyWorld_use:V = GetUseNode(); break;
+		case TokenType::KeyWord_use:V = GetUseNode(); break;
 		case TokenType::Left_Bracket:V = GetAttribute();break;
-		case TokenType::KeyWorld_static:V = GetDeclareStaticVariable(); break;
-		case TokenType::KeyWorld_Thread:V = GetDeclareThreadVariable(); break;
+		case TokenType::KeyWord_static:V = GetDeclareStaticVariable(); break;
+		case TokenType::KeyWord_Thread:V = GetDeclareThreadVariable(); break;
 		case TokenType::KeyWorld_umut:V = GetumutVariableDeclare(); break;
 		default: GetDeclareVariableNoObject(V); break;
 		}
@@ -255,10 +255,10 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 			case TokenType::KeyWorld_Enum:V = GetEnumNode(); break;
 			case TokenType::Class:V = GetClassNode(); break;
 			case Parser::declareFunc:V = GetFuncNode(); break;
-			case TokenType::KeyWorld_use:V = GetUseNode(); break;
+			case TokenType::KeyWord_use:V = GetUseNode(); break;
 			case TokenType::Left_Bracket:V = GetAttribute(); break;
-			case TokenType::KeyWorld_static:V = GetDeclareStaticVariable(); break;
-			case TokenType::KeyWorld_Thread:V = GetDeclareThreadVariable(); break;
+			case TokenType::KeyWord_static:V = GetDeclareStaticVariable(); break;
+			case TokenType::KeyWord_Thread:V = GetDeclareThreadVariable(); break;
 			case TokenType::KeyWorld_umut:V = GetumutVariableDeclare(); break;
 			default:V = GetDeclareVariable();
 			}
@@ -334,7 +334,7 @@ GotNodeType Parser::GetStatement(Node*& out)
 		out = r.Node;
 		return r.GotNode;
 	};
-	case TokenType::KeyWorld_use:
+	case TokenType::KeyWord_use:
 	{
 		auto r = GetUseNode();
 		out = r.Node;
@@ -346,34 +346,34 @@ GotNodeType Parser::GetStatement(Node*& out)
 		out = r.Node;
 		return r.GotNode;
 	};
-	case TokenType::KeyWorld_static:
+	case TokenType::KeyWord_static:
 	{
 		auto r = GetDeclareStaticVariable();
 		out = r.Node;
 		return r.GotNode;
 	}
-	case TokenType::KeyWorld_Thread:
+	case TokenType::KeyWord_Thread:
 	{
 		auto r = GetDeclareThreadVariable();
 		out = r.Node;
 		return r.GotNode;
 	}
 	break;
-	case  TokenType::KeyWorld_while:
+	case  TokenType::KeyWord_while:
 	{
 		auto r =GetWhileNode();
 		out = r.Node;
 		return r.GotNode;
 	}
 	break;
-	case  TokenType::KeyWorld_do:
+	case  TokenType::KeyWord_do:
 	{
 		auto r = GetDoNode();
 		out = r.Node;
 		return r.GotNode;
 	}
 	break;
-	case  TokenType::KeyWorld_If:
+	case  TokenType::KeyWord_If:
 	{
 		auto r = GetIfNode();
 		out = r.Node;
@@ -394,14 +394,14 @@ GotNodeType Parser::GetStatement(Node*& out)
 		return r.GotNode;
 	}
 	break;
-	case TokenType::KeyWorld_for:
+	case TokenType::KeyWord_for:
 	{
 		auto r = GetForNode();
 		out = r.Node;
 		return r.GotNode;
 	}
 	break;
-	case TokenType::KeyWorld_Drop:
+	case TokenType::KeyWord_Drop:
 	{
 		auto r = GetDropStatementNode();
 		out = r.Node;
@@ -549,8 +549,8 @@ GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 
 	auto NameToken = TryGetToken();
 
-	if (NameToken->Type == TokenType::KeyWorld_new
-		|| NameToken->Type == TokenType::KeyWorld_Drop
+	if (NameToken->Type == TokenType::KeyWord_new
+		|| NameToken->Type == TokenType::KeyWord_Drop
 		|| ExpressionNodeType::IsOverLoadableOperator(NameToken))
 	{
 		NextToken();
@@ -567,7 +567,7 @@ GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 		TokenTypeCheck(TryGetToken(), TokenType::Right_Parentheses);
 		NextToken();
 	}
-	else if (NameToken->Type == TokenType::KeyWorld_for)
+	else if (NameToken->Type == TokenType::KeyWord_for)
 	{
 		NextToken();
 	}
@@ -762,7 +762,7 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 		return GotNodeType::Success;
 	}
 	break;
-	case TokenType::KeyWorld_new:
+	case TokenType::KeyWord_new:
 	{
 		auto V = GetNewExpresionNode();
 		out = V.Node;
@@ -1094,7 +1094,7 @@ Parser::GetNameCheck_ret Parser::GetNameCheck(ScopedNameNode& out)
 		if (NameToken == nullptr 
 			|| 
 			(
-				NameToken->Type != TokenType::Name && !(NameToken->Type == TokenType::KeyWorld_This && out.ScopedName.size() == 0)
+				NameToken->Type != TokenType::Name && !(NameToken->Type == TokenType::KeyWord_This && out.ScopedName.size() == 0)
 			)
 			)
 		{
@@ -1404,7 +1404,7 @@ GotNodeType Parser::GetAttribute(AttributeNode& out)
 
 GotNodeType Parser::GetUseNode(UsingNode& out)
 {
-	auto UseToken = TryGetToken(); TokenTypeCheck(UseToken, TokenType::KeyWorld_use);
+	auto UseToken = TryGetToken(); TokenTypeCheck(UseToken, TokenType::KeyWord_use);
 	NextToken();
 
 	GetName(out.ScopedName);
@@ -1443,7 +1443,7 @@ GotNodeType Parser::GetRetStatement(RetStatementNode& out)
 GotNodeType Parser::GetDeclareStaticVariable(DeclareStaticVariableNode& out, bool ignoreleftHandType)
 {
 	auto RetToken = TryGetToken();
-	TokenTypeCheck(RetToken, TokenType::KeyWorld_static);
+	TokenTypeCheck(RetToken, TokenType::KeyWord_static);
 	NextToken();
 
 	size_t OldIndex = _TokenIndex;
@@ -1472,7 +1472,7 @@ GotNodeType Parser::GetDeclareStaticVariable(DeclareStaticVariableNode& out, boo
 GotNodeType Parser::GetDeclareThreadVariable(DeclareThreadVariableNode& out, bool ignoreleftHandType)
 {
 	auto RetToken = TryGetToken();
-	TokenTypeCheck(RetToken, TokenType::KeyWorld_Thread);
+	TokenTypeCheck(RetToken, TokenType::KeyWord_Thread);
 	NextToken();
 
 
@@ -1550,7 +1550,7 @@ GotNodeType Parser::GetAssignVariable(AssignVariableNode& out)
 GotNodeType Parser::GetIfNode(IfNode& out)
 {
 	auto RetToken = TryGetToken();
-	TokenTypeCheck(RetToken, TokenType::KeyWorld_If);
+	TokenTypeCheck(RetToken, TokenType::KeyWord_If);
 	NextToken();
 
 	auto GetEx = GetExpressionTypeNode(out.Expression);
@@ -1566,7 +1566,7 @@ GotNodeType Parser::GetIfNode(IfNode& out)
 	{
 		auto T = TryGetToken();
 	
-		if (T->Type != TokenType::KeyWorld_Else){break;}
+		if (T->Type != TokenType::KeyWord_Else){break;}
 		
 		NextToken();
 		auto T2 = TryGetToken();
@@ -1610,7 +1610,7 @@ GotNodeType Parser::GetIfNode(IfNode& out)
 GotNodeType Parser::GetWhileNode(WhileNode& out)
 {
 	auto RetToken = TryGetToken();
-	TokenTypeCheck(RetToken, TokenType::KeyWorld_while);
+	TokenTypeCheck(RetToken, TokenType::KeyWord_while);
 	NextToken();
 
 	auto GetEx = GetExpressionTypeNode(out.Expression);
@@ -1633,7 +1633,7 @@ GotNodeType Parser::GetWhileNode(WhileNode& out)
 GotNodeType Parser::GetDoNode(DoNode& out)
 {
 	auto RetToken = TryGetToken();
-	TokenTypeCheck(RetToken, TokenType::KeyWorld_do);
+	TokenTypeCheck(RetToken, TokenType::KeyWord_do);
 	NextToken();
 
 	auto Token4 = TryGetToken();
@@ -1643,13 +1643,13 @@ GotNodeType Parser::GetDoNode(DoNode& out)
 
 	auto TabToken = TryGetToken();
 
-	if (TabToken->Type != TokenType::KeyWorld_while)
+	if (TabToken->Type != TokenType::KeyWord_while)
 	{
 		auto Statements = GetStatementsorStatementNode(out.Body);
 	}
 
 	auto Token3 = TryGetToken();
-	TokenTypeCheck(Token3, TokenType::KeyWorld_while);
+	TokenTypeCheck(Token3, TokenType::KeyWord_while);
 	NextToken();
 
 	auto GetEx = GetExpressionTypeNode(out.Expression);
@@ -1838,7 +1838,7 @@ GotNodeType Parser::GetAnonymousObjectConstructorNode(AnonymousObjectConstructor
 
 GotNodeType Parser::GetDropStatementNode(DropStatementNode& out)
 {
-	auto DropToken = TryGetToken(); TokenTypeCheck(DropToken, TokenType::KeyWorld_Drop);
+	auto DropToken = TryGetToken(); TokenTypeCheck(DropToken, TokenType::KeyWord_Drop);
 	NextToken();
 
 	auto ParToken = TryGetToken();
@@ -1859,7 +1859,7 @@ GotNodeType Parser::GetDropStatementNode(DropStatementNode& out)
 }
 GotNodeType Parser::GetNewExpresionNode(NewExpresionNode& out)
 {
-	auto NewToken = TryGetToken(); TokenTypeCheck(NewToken, TokenType::KeyWorld_new);
+	auto NewToken = TryGetToken(); TokenTypeCheck(NewToken, TokenType::KeyWord_new);
 	NextToken();
 	GetType(out.Type,true);
 
@@ -1948,7 +1948,7 @@ GotNodeType Parser::GetumutVariableDeclare(Node*& out)
 		_TokenIndex = OldIndex;
 		switch (Token2->Type)
 		{
-		case TokenType::KeyWorld_Thread:
+		case TokenType::KeyWord_Thread:
 		{
 			DeclareThreadVariableNode* V = DeclareThreadVariableNode::Gen();
 			out = V;
@@ -1957,7 +1957,7 @@ GotNodeType Parser::GetumutVariableDeclare(Node*& out)
 			Tnode = &V->Variable.Type;
 		}
 		break;
-		case TokenType::KeyWorld_static:
+		case TokenType::KeyWord_static:
 		{
 			DeclareStaticVariableNode* V = DeclareStaticVariableNode::Gen();
 			out = V;
@@ -1980,7 +1980,7 @@ GotNodeType Parser::GetumutVariableDeclare(Node*& out)
 }
 GotNodeType Parser::GetForNode(ForNode& out)
 {
-	auto ForToken = TryGetToken(); TokenTypeCheck(ForToken, TokenType::KeyWorld_for);
+	auto ForToken = TryGetToken(); TokenTypeCheck(ForToken, TokenType::KeyWord_for);
 	NextToken();
 
 	auto LeftBracket = TryGetToken(); TokenTypeCheck(LeftBracket, TokenType::Left_Bracket);

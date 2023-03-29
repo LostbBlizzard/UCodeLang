@@ -1,4 +1,12 @@
 
-|go[] => 10;
+$Vec2:
+ int x = 0;
+ int y = 0;
+ |new[this&] -> void;
+ |DoSomething[this&,moved this& Test] -> void;
 
-|main[] => 5 + go();
+
+|main[]:
+ Vec2 v = [];
+ Vec2 v2 = [];
+ v.DoSomething(move v2);

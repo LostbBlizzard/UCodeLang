@@ -137,9 +137,9 @@ private:
 		switch (type)
 		{
 		case TokenType::StartTab:return true;
-		case TokenType::KeyWorld_use:return true;
+		case TokenType::KeyWord_use:return true;
 		case TokenType::Class:return true;
-		case TokenType::KeyWorld_If:return true;
+		case TokenType::KeyWord_If:return true;
 		case TokenType::Left_Bracket:return true;
 		default:return false;
 		}

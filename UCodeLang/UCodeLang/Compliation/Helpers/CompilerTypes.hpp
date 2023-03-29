@@ -82,18 +82,18 @@ enum class TokenType : TokenType_t
 	KeyWord_continue,//continue
 	KeyWord_break,//break
 	ScopeResolution,//::
-	KeyWorld_use,//use
-	KeyWorld_This,//this
-	KeyWorld_Drop,//drop
-	KeyWorld_new,//new
-	KeyWorld_static,// static
-	KeyWorld_Thread,// thread
+	KeyWord_new,//new
+	KeyWord_This,//this
+	KeyWord_use,//use
+	KeyWord_Drop,//drop
+	KeyWord_static,// static
+	KeyWord_Thread,// thread
 
-	KeyWorld_If,
-	KeyWorld_Else,
-	KeyWorld_while,
-	KeyWorld_for,
-	KeyWorld_do,
+	KeyWord_If,
+	KeyWord_Else,
+	KeyWord_while,
+	KeyWord_for,
+	KeyWord_do,
 
 
 	KeyWorld_pub,//pub
@@ -107,24 +107,24 @@ enum class TokenType : TokenType_t
 	KeyWorld_umut,//umut
 
 	//Types
-	KeyWorld_UInt8,
-	KeyWorld_UInt16,
-	KeyWorld_UInt32,
-	KeyWorld_UInt64,
+	KeyWord_UInt8,
+	KeyWord_UInt16,
+	KeyWord_UInt32,
+	KeyWord_UInt64,
 
-	KeyWorld_SInt8,
-	KeyWorld_SInt16,
-	KeyWorld_SInt32,
-	KeyWorld_SInt64,
+	KeyWord_SInt8,
+	KeyWord_SInt16,
+	KeyWord_SInt32,
+	KeyWord_SInt64,
 
-	KeyWorld_Char,
-	KeyWorld_Bool,
+	KeyWord_Char,
+	KeyWord_Bool,
 
-	KeyWorld_float32,
-	KeyWorld_float64,
+	KeyWord_float32,
+	KeyWord_float64,
 
-	KeyWorld_uintptr,
-	KeyWorld_sintptr,
+	KeyWord_uintptr,
+	KeyWord_sintptr,
 	//used internally
 	internal_Constant_expression
 };
@@ -162,20 +162,20 @@ public:
 		case UCodeLang::TokenType::star:return "*";
 
 		case UCodeLang::TokenType::Type:return "Type";
-		case UCodeLang::TokenType::KeyWorld_UInt8:return "uint8";
-		case UCodeLang::TokenType::KeyWorld_SInt8:return "sint8";
-		case UCodeLang::TokenType::KeyWorld_UInt16:return "uint16";
-		case UCodeLang::TokenType::KeyWorld_SInt16:return "sint16";
-		case UCodeLang::TokenType::KeyWorld_UInt32:return "uint32";
-		case UCodeLang::TokenType::KeyWorld_SInt32:return "sint32";
-		case UCodeLang::TokenType::KeyWorld_UInt64:return "uint64";
-		case UCodeLang::TokenType::KeyWorld_SInt64:return "sint64";
+		case UCodeLang::TokenType::KeyWord_UInt8:return "uint8";
+		case UCodeLang::TokenType::KeyWord_SInt8:return "sint8";
+		case UCodeLang::TokenType::KeyWord_UInt16:return "uint16";
+		case UCodeLang::TokenType::KeyWord_SInt16:return "sint16";
+		case UCodeLang::TokenType::KeyWord_UInt32:return "uint32";
+		case UCodeLang::TokenType::KeyWord_SInt32:return "sint32";
+		case UCodeLang::TokenType::KeyWord_UInt64:return "uint64";
+		case UCodeLang::TokenType::KeyWord_SInt64:return "sint64";
 
-		case UCodeLang::TokenType::KeyWorld_Char:return "char";
-		case UCodeLang::TokenType::KeyWorld_Bool:return "bool";
+		case UCodeLang::TokenType::KeyWord_Char:return "char";
+		case UCodeLang::TokenType::KeyWord_Bool:return "bool";
 
-		case UCodeLang::TokenType::KeyWorld_float32:return "float32";
-		case UCodeLang::TokenType::KeyWorld_float64:return "float64";
+		case UCodeLang::TokenType::KeyWord_float32:return "float32";
+		case UCodeLang::TokenType::KeyWord_float64:return "float64";
 
 		case UCodeLang::TokenType::String_literal:return "String literal";
 		case UCodeLang::TokenType::Number_literal:return "Number literal";
@@ -216,16 +216,16 @@ public:
 		case UCodeLang::TokenType::KeyWord_invalid:return "invalid";
 		case UCodeLang::TokenType::KeyWord_break: return "break";
 		case UCodeLang::TokenType::ScopeResolution: return "::";
-		case UCodeLang::TokenType::KeyWorld_use: return "use";
+		case UCodeLang::TokenType::KeyWord_use: return "use";
 
-		case UCodeLang::TokenType::KeyWorld_This: return "this";
-		case UCodeLang::TokenType::KeyWorld_Drop: return "drop";
-		case UCodeLang::TokenType::KeyWorld_new: return "new";
-		case UCodeLang::TokenType::KeyWorld_static: return "static";
-		case UCodeLang::TokenType::KeyWorld_Thread: return "staticforthread";
+		case UCodeLang::TokenType::KeyWord_This: return "this";
+		case UCodeLang::TokenType::KeyWord_Drop: return "drop";
+		case UCodeLang::TokenType::KeyWord_new: return "new";
+		case UCodeLang::TokenType::KeyWord_static: return "static";
+		case UCodeLang::TokenType::KeyWord_Thread: return "staticforthread";
 
-		case UCodeLang::TokenType::KeyWorld_uintptr: return "uintptr";
-		case UCodeLang::TokenType::KeyWorld_sintptr: return "sintptr";
+		case UCodeLang::TokenType::KeyWord_uintptr: return "uintptr";
+		case UCodeLang::TokenType::KeyWord_sintptr: return "sintptr";
 
 		case UCodeLang::TokenType::KeyWorld_pub: return "pub";
 		case UCodeLang::TokenType::KeyWorld_typeof: return "typeof";

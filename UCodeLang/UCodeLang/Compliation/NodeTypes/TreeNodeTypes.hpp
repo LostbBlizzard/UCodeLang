@@ -293,7 +293,7 @@ struct TypeNode :Node
 		if (IsPrimitive(Type)) { return true; }
 		else if (Type == TokenType::KeyWorld_var) { return true; }
 		else if (Type == TokenType::Name) { return true; }
-		else if (Type == TokenType::KeyWorld_This) { return true; }
+		else if (Type == TokenType::KeyWord_This) { return true; }
 
 		return false;
 	}
@@ -302,20 +302,20 @@ struct TypeNode :Node
 	{
 		switch (Type)
 		{
-		case TokenType::KeyWorld_Bool:
-		case TokenType::KeyWorld_Char:
-		case TokenType::KeyWorld_UInt8:
-		case TokenType::KeyWorld_UInt16:
-		case TokenType::KeyWorld_UInt32:
-		case TokenType::KeyWorld_UInt64:
-		case TokenType::KeyWorld_SInt8:
-		case TokenType::KeyWorld_SInt16:
-		case TokenType::KeyWorld_SInt32:
-		case TokenType::KeyWorld_SInt64:
-		case TokenType::KeyWorld_uintptr:
-		case TokenType::KeyWorld_sintptr:
-		case TokenType::KeyWorld_float32:
-		case TokenType::KeyWorld_float64:
+		case TokenType::KeyWord_Bool:
+		case TokenType::KeyWord_Char:
+		case TokenType::KeyWord_UInt8:
+		case TokenType::KeyWord_UInt16:
+		case TokenType::KeyWord_UInt32:
+		case TokenType::KeyWord_UInt64:
+		case TokenType::KeyWord_SInt8:
+		case TokenType::KeyWord_SInt16:
+		case TokenType::KeyWord_SInt32:
+		case TokenType::KeyWord_SInt64:
+		case TokenType::KeyWord_uintptr:
+		case TokenType::KeyWord_sintptr:
+		case TokenType::KeyWord_float32:
+		case TokenType::KeyWord_float64:
 		return true;
 		default:return false;
 		}
@@ -343,11 +343,11 @@ struct TypeNode :Node
 	static void Gen_ThisMemberFunc(TypeNode& Out, const Token& ToGetLinesFrom)
 	{
 		Out.SetAsAddess();
-		return Gen_Type(Out, TokenType::KeyWorld_This, ToGetLinesFrom);
+		return Gen_Type(Out, TokenType::KeyWord_This, ToGetLinesFrom);
 	}
 	static void Gen_Byte(TypeNode& Out, const Token& ToGetLinesFrom)
 	{
-		return Gen_Type(Out, TokenType::KeyWorld_UInt8, ToGetLinesFrom);
+		return Gen_Type(Out, TokenType::KeyWord_UInt8, ToGetLinesFrom);
 	}
 	static void Gen_Expression(TypeNode& Out, const Token& ToGetLinesFrom)
 	{
@@ -356,7 +356,7 @@ struct TypeNode :Node
 
 	bool IsThisMemberFunc() const
 	{
-		return Name.Token->Type == TokenType::KeyWorld_This
+		return Name.Token->Type == TokenType::KeyWord_This
 			&& IsAddess;
 	}
 	String AsString() const
