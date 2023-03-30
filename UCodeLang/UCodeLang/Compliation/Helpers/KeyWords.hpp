@@ -135,9 +135,9 @@ inline KeyWord KeyWords[] =
 	KeyWord(S_KeyWord_pub,TokenType::KeyWorld_pub),
 	KeyWord(S_KeyWord_typeof,TokenType::KeyWorld_typeof),
 
-	KeyWord(S_KeyWord_enum,TokenType::KeyWorld_Enum),
-	KeyWord(S_KeyWord_tag,TokenType::KeyWorld_Tag),
-	KeyWord(S_KeyWord_umut,TokenType::KeyWorld_umut),
+	KeyWord(S_KeyWord_enum,TokenType::KeyWord_Enum),
+	KeyWord(S_KeyWord_tag,TokenType::KeyWord_Tag),
+	KeyWord(S_KeyWord_umut,TokenType::KeyWord_umut),
 };
 constexpr size_t KeyWords_Size = sizeof(KeyWords) / sizeof(KeyWords[0]);
 class KeyWordHelper

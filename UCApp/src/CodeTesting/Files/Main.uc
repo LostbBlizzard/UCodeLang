@@ -1,7 +1,7 @@
 
 $Vec2:
- int x = 0;
- int y = 0;
+ int x;
+ moved int y;
  |new[this&] -> void;
  |DoSomething[this&,moved this& Test] -> void;
 
@@ -9,4 +9,4 @@ $Vec2:
 |main[]:
  Vec2 v = [];
  Vec2 v2 = [];
- v.DoSomething(move v2);
+ v.DoSomething(v2);

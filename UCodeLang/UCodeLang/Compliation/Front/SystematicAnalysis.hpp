@@ -421,7 +421,14 @@ private:
 	const Vector<const UClib*>* _Libs = nullptr;
 	SymbolTable _Table;
 
-
+	enum class NodeSyb_t 
+	{
+		Any,
+		Varable,
+		Parameter,
+		ClassFeild,
+		Ret,
+	};
 
 	Stack<ClassStackInfo> _ClassStack;
 
@@ -607,6 +614,13 @@ private:
 	void OnCompoundStatementNode(const CompoundStatementNode& node);
 	void OnExpressionTypeNode(const Node* node);
 	void OnExpressionNode(const ValueExpressionNode& node);
+	void OnMovedNode(UCodeLang::FrontEnd::MoveNode* nod);
+	void OnNumberliteralNode(NumberliteralNode* num);
+	void OnBoolliteralNode(BoolliteralNode* num);
+	void OnCharliteralNode(CharliteralNode* num);
+	void OnFloatLiteralNode(FloatliteralNode* num);
+	void OnStringLiteral(StringliteralNode* nod, bool& retflag);
+	void OnSizeofNode(SizeofExpresionNode* nod);
 	void OnNewNode(NewExpresionNode* nod);
 	void OnAnonymousObjectConstructor(AnonymousObjectConstructorNode*& nod);
 	void OnReadVariable(const ReadVariableNode& nod);
@@ -656,9 +670,11 @@ private:
 
 
 	void Convert(const TypeNode& V, TypeSymbol& Out);
-	void ConvertAndValidateType(const TypeNode& V, TypeSymbol& Out);
-	TypeSymbol ConvertAndValidateType(const TypeNode& V);
-	bool ValidateType(const TypeSymbol& V,const Token* Token);
+	void ConvertAndValidateType(const TypeNode& V, TypeSymbol& Out,NodeSyb_t Syb);
+	TypeSymbol ConvertAndValidateType(const TypeNode& V, NodeSyb_t Syb);
+	bool ValidateType(const TypeSymbol& V,const Token* Token,NodeSyb_t Syb);
+
+	
 
 	Symbol* GetSymbol(const ClassInfo* Info)
 	{
@@ -870,8 +886,9 @@ private:
 	void LogBinaryOverloadPars(const Token& Name, const FuncInfo* Func);
 	void LogIndexOverloadPars(const Token& Name, const FuncInfo* Func);
 	void LogPostfixOverloadPars(const Token& Name, const FuncInfo* Func);
-	void LogCantOverLoadOverload(const UCodeLang::Token* NameToken);
+	void LogCantOverLoadOverload(const Token* NameToken);
 	void LogCantFindMemberOverloadForType(const Token* Item, TokenType Op, const TypeSymbol& Out);
+	void LogCantUseMoveTypeHere(const Token* Token);
 
 	String ToString(SymbolType Value);
 	ReadVarErrorCheck_t LogTryReadVar(String_view VarName, const Token* Token, const Symbol* Syb);

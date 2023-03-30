@@ -58,6 +58,11 @@ enum class TypeValueInfo : UInt8
 	IsValue,
 	IsLocation,
 };
+enum class MoveData
+{
+	None,
+	Moved,
+};
 
 struct TypeSymbol
 {
@@ -70,6 +75,7 @@ struct TypeSymbol
 	bool _IsAddressArray = false;
 	bool _Isimmutable = false;
 	TypeValueInfo _ValueInfo = TypeValueInfo::IsValue;
+	MoveData _MoveData = MoveData::None;
 
 	TypeSymbol()
 	{
@@ -93,6 +99,7 @@ struct TypeSymbol
 		_IsAddressArray = false;
 		_Isimmutable = false;
 		_ValueInfo = TypeValueInfo::IsValue;
+		_MoveData = MoveData::None;
 	}
 	void SetType(SymbolID CustomType)
 	{
@@ -103,6 +110,7 @@ struct TypeSymbol
 		_IsAddressArray = false;
 		_Isimmutable = false;
 		_ValueInfo = TypeValueInfo::IsValue;
+		_MoveData = MoveData::None;
 	}
 	void SetAsAddress()
 	{
@@ -129,6 +137,10 @@ struct TypeSymbol
 		 SetValueInfo(TypeValueInfo::IsValue);
 	}
 
+	void SetAsMoved()
+	{
+		_MoveData = MoveData::Moved;
+	}
 
 	bool IsAddress()const
 	{

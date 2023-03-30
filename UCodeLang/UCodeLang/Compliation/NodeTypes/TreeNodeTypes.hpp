@@ -388,11 +388,16 @@ struct TypeNode :Node
 	{
 		IsStackArray = true;
 	}
+	void SetMovedType()
+	{
+		IsTypedMoved = true;
+	}
 
 	bool IsAddess = false;
 	bool IsAddessArray = false;
 	bool Isimmutable = false;
 	bool IsStackArray = false;
+	bool IsTypedMoved = false;
 private:
 	Unique_ptr<Token> GenToken;
 };
@@ -942,5 +947,17 @@ struct BreakNode :Node
 
 	const Token* token = nullptr;
 };
+
+struct MoveNode :Node
+{
+	MoveNode() : Node(NodeType::MoveNode)
+	{
+
+	}
+	AddforNode(MoveNode);
+
+	ExpressionNodeType expression;
+};
+
 
 UCodeLangFrontEnd
