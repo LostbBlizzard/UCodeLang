@@ -440,11 +440,18 @@ private:
 	BinaryVectorMap<const void*, PostFixExpressionNode_Data> PostFix_Datas;
 	BinaryVectorMap<const void*, CompoundExpresion_Data> Compound_Datas;
 	BinaryVectorMap<const void*, ForExpresion_Data> For_Datas;
-	BinaryVectorMap < const void*, CastExpressionNode_Data> CastDatas;
+	BinaryVectorMap<const void*, CastExpressionNode_Data> CastDatas;
 
 	Vector<FuncStackInfo> _FuncStack;
 
 	const Token* LastLookedAtToken = nullptr;
+	enum class DeclareStaticVariableNode_t
+	{
+		Stack,
+		Static,
+		Thread,
+		ClassField,
+	};
 
 	//
 	Stack<TypeSymbol> LookingForTypes;
@@ -565,7 +572,7 @@ private:
 	void OnAttributeNode(const AttributeNode& node);
 	void OnNonAttributeable(size_t Line, size_t Pos);
 	String GetScopedNameAsString(const ScopedNameNode& node);
-	void OnDeclareVariablenode(const DeclareVariableNode& node);
+	void OnDeclareVariablenode(const DeclareVariableNode& node,DeclareStaticVariableNode_t type);
 	void OnStoreVarable(bool IsStructObjectPassRef, UCodeLang::IRInstruction* OnVarable, UCodeLang::FrontEnd::Symbol* syb, const UCodeLang::SymbolID& sybId);
 	void AddDestructorToStack(Symbol* syb, const SymbolID& sybId, IRInstruction* OnVarable);
 	void AddDestructorToStack(const TypeSymbol& Type, IRInstruction* OnVarable);

@@ -1024,6 +1024,7 @@ public:
 	}
 	//uses UCodeLang syntax
 	String ToString();
+	void ToString(ToStringState& State, IRFunc* Item, String& r);
 	String ToString(const IRType& Type);
 	String ToString(ToStringState& State,IRInstruction& Ins, IROperator& Value);
 	String ToStringBinary(ToStringState& State, IRInstruction* Ins, const char* V);
@@ -1033,6 +1034,13 @@ public:
 	size_t GetSize(const IRType& Type)const;
 	size_t GetSize(const IRStruct* Struct) const;
 	size_t GetOffset(const IRStruct* Struct, size_t Index) const;
+
+
+	//
+	IRFunc _StaticInit;
+	IRFunc _StaticdeInit;
+	IRFunc _threadInit;
+	IRFunc _threaddeInit;
 };
 
 UCodeLangEnd
