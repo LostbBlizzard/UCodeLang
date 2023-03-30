@@ -154,7 +154,7 @@ String IRBuilder::ToString()
 		case IRSymbolType::StaticVarable:
 		{
 			IRBufferData* V = Item->Get_ExAs<IRBufferData>();
-			r += "static " + (String)"uint8" + "[/" + std::to_string(V->Bytes.size()) + "]" + " " + SybName + "= [";
+			r += "static " + (String)"uint8" + "[/" + std::to_string(V->Bytes.size()) + "]:" + ToString(Item->Type) + " " + SybName + "= [";
 			
 			for (auto& Item2 : V->Bytes)
 			{
@@ -165,13 +165,13 @@ String IRBuilder::ToString()
 				}
 			}
 
-			r += "];\n";
+			r += "]\n";
 		}
 		break;
 		case IRSymbolType::ThreadLocalVarable:
 		{
 			IRBufferData* V = Item->Get_ExAs<IRBufferData>();
-			r += "thread " + (String)"uint8" + "[/" + std::to_string(V->Bytes.size()) + "]" + " " + SybName + "= [";
+			r += "thread " + (String)"uint8" + "[/" + std::to_string(V->Bytes.size()) + "]:" + ToString(Item->Type) + " " + SybName + "= [";
 
 			for (auto& Item2 : V->Bytes)
 			{
@@ -182,7 +182,7 @@ String IRBuilder::ToString()
 				}
 			}
 
-			r += "];\n";
+			r += "]\n";
 		}
 		break;
 		default:
