@@ -239,7 +239,12 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op)
 
 		Ins.ObjectType.SetType(IRTypes::pointer);
 	}
-	
+	else if (Op.Type == IROperatorType::IRidentifier)
+	{
+		auto V = _Input->GetSymbol(Op.identifer);
+		Ins.ObjectType =V->Type;
+
+	}
 	else
 	{
 		throw std::exception("bad");
