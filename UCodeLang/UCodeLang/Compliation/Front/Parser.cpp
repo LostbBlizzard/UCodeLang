@@ -1482,6 +1482,7 @@ GotNodeType Parser::GetDeclareStaticVariable(DeclareStaticVariableNode& out, boo
 	}
 	else
 	{
+		_TokenIndex = OldIndex;
 		return GetDeclareVariable(out.Variable, ignoreleftHandType);
 	}
 }
@@ -1512,6 +1513,7 @@ GotNodeType Parser::GetDeclareThreadVariable(DeclareThreadVariableNode& out, boo
 	}
 	else
 	{
+		_TokenIndex = OldIndex;
 		return GetDeclareVariable(out.Variable, ignoreleftHandType);
 	}
 }

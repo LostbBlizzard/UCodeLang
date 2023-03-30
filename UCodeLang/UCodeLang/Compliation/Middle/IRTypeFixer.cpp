@@ -35,6 +35,26 @@ void IRTypeFixer::FixTypes(IRBuilder* Input)
 		}
 	}
 
+
+	for (auto& Sys : _Input->_Symbols)
+	{
+		switch (Sys->SymType)
+		{
+		case IRSymbolType::ThreadLocalVarable:
+		case IRSymbolType::StaticVarable:
+		{
+			IRBufferData* b = Sys->Get_ExAs<IRBufferData>();
+			if (b->Bytes.size() == 0) 
+			{
+				b->Bytes.resize(_Input->GetSize(Sys->Type));
+			}
+		}
+		break;
+		default:
+			break;
+		}
+	}
+
 	for (auto& Func : _Input->Funcs)
 	{
 		for (auto& Block : Func->Blocks)

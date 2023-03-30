@@ -87,7 +87,17 @@ void SystematicAnalysis::BuildCode()
 		{
 			ConveToStaticArray(*Item);
 		}
-			break;
+		break;
+		case SymbolType::StaticVarable:
+		{
+			auto StaticVarIR = _Builder.NewStaticVarable(_Builder.ToID(Item->FullName),ConvertToIR(Item->VarType));
+		}
+		break;
+		case SymbolType::ThreadVarable:
+		{
+			auto ThreadVarIR = _Builder.NewThreadLocalVarable(_Builder.ToID(Item->FullName), ConvertToIR(Item->VarType));
+		}
+		break;
 		default:
 			break;
 		}
@@ -6672,6 +6682,8 @@ inline bool SystematicAnalysis::IsVarableType(SymbolType type)
 	{
 	case SymbolType::ParameterVarable:
 	case SymbolType::StackVarable:
+	case SymbolType::StaticVarable:
+	case SymbolType::ThreadVarable:
 		return true;
 	default:
 		return false;

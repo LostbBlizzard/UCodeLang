@@ -573,10 +573,10 @@ private:
 	void OnNonAttributeable(size_t Line, size_t Pos);
 	String GetScopedNameAsString(const ScopedNameNode& node);
 	void OnDeclareVariablenode(const DeclareVariableNode& node,DeclareStaticVariableNode_t type);
-	void OnStoreVarable(bool IsStructObjectPassRef, UCodeLang::IRInstruction* OnVarable, UCodeLang::FrontEnd::Symbol* syb, const UCodeLang::SymbolID& sybId);
+	void OnStoreVarable(bool IsStructObjectPassRef, IRInstruction* OnVarable, Symbol* syb, const SymbolID& sybId);
 	void AddDestructorToStack(Symbol* syb, const SymbolID& sybId, IRInstruction* OnVarable);
 	void AddDestructorToStack(const TypeSymbol& Type, IRInstruction* OnVarable);
-	void ExDeclareVariableTypeCheck(UCodeLang::FrontEnd::TypeSymbol& VarType, UCodeLang::FrontEnd::TypeSymbol& Ex, const UCodeLang::Token* Token);
+	void ExDeclareVariableTypeCheck(TypeSymbol& VarType, TypeSymbol& Ex, const Token* Token);
 	void ExTypeDeclareVarableCheck(TypeSymbol& VarType, const Node* Ex, const Token* Token);
 	void CantgussTypesTheresnoassignment(const Token* Token);
 	void OnAssignVariableNode(const AssignVariableNode& node);
@@ -594,7 +594,7 @@ private:
 	void OnBreakNode(const BreakNode& node);
 
 
-	void TypeDoesNotHaveForOverload(const UCodeLang::Token* Token, UCodeLang::FrontEnd::TypeSymbol& ExType);
+	void TypeDoesNotHaveForOverload(const Token* Token, TypeSymbol& ExType);
 
 	bool ISStructPassByRef(Symbol* syb);
 
