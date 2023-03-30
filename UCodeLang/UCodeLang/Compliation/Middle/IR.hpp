@@ -854,7 +854,7 @@ public:
 		IRBufferData* V = new IRBufferData();
 
 		IRSymbolData* r = new IRSymbolData();
-		r->SymType = IRSymbolType::StaticVarable;//testing
+		r->SymType = IRSymbolType::ThreadLocalVarable;
 		r->identifier = identifier;
 		r->Type = Type;
 		r->Ex.reset(V);
@@ -1037,6 +1037,7 @@ public:
 
 
 	//
+	IRBuilder();
 	IRFunc _StaticInit;
 	IRFunc _StaticdeInit;
 	IRFunc _threadInit;

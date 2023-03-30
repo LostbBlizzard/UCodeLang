@@ -86,6 +86,23 @@ size_t IRBuilder::GetOffset(const IRStruct* Struct, size_t Index) const
 	return  Struct->Fields[Index].Offset.value();
 }
 
+//
+
+IRBuilder::IRBuilder()
+{
+	_StaticInit.identifier = ToID("_StaticInit");
+	_StaticInit.ReturnType = IRTypes::Void;
+
+	_StaticdeInit.identifier = ToID("_Static_deInit");
+	_StaticdeInit.ReturnType = IRTypes::Void;
+
+	_threadInit.identifier = ToID("_threadInit");
+	_threadInit.ReturnType = IRTypes::Void;
+
+	_threaddeInit.identifier = ToID("_thread_deInit");
+	_threaddeInit.ReturnType = IRTypes::Void;
+}
+
 String IRBuilder::ToString()
 {
 	String r;
@@ -176,20 +193,20 @@ String IRBuilder::ToString()
 	r += "\n";
 
 
-	r += "//_Static_init\n";
+	//r += "//_Static_init\n";
 
 	ToString(State, &_StaticInit, r);
 
-	r += "//_Static_deInit\n";
+	//r += "//_Static_deInit\n";
 
 
 	ToString(State, &_StaticdeInit, r);
 
-	r += "//_threadInit\n";
+	//r += "//_threadInit\n";
 
 	ToString(State, &_threadInit, r);
 	
-	r += "//_thread_deInit\n";
+	//r += "//_thread_deInit\n";
 	
 	ToString(State, &_threaddeInit, r);
 
