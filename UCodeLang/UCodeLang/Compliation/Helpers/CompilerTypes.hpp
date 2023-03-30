@@ -104,9 +104,9 @@ enum class TokenType : TokenType_t
 
 	approximate_Comparison,//~=
 
-	KeyWorld_Enum,//enum
-	KeyWorld_Tag,//tag
-	KeyWorld_umut,//umut
+	KeyWord_Enum,//enum
+	KeyWord_Tag,//tag
+	KeyWord_umut,//umut
 
 	//Types
 	KeyWord_UInt8,
@@ -234,11 +234,12 @@ public:
 
 		case TokenType::hash: return "#";
 
-		case TokenType::KeyWorld_Enum:return "enum";
-		case TokenType::KeyWorld_umut:return "umut";
-		case TokenType::KeyWorld_Tag: return "tag";
+		case TokenType::KeyWord_Enum:return "enum";
+		case TokenType::KeyWord_umut:return "umut";
+		case TokenType::KeyWord_Tag: return "tag";
 
 		case TokenType::QuestionMark:return "?";
+		case TokenType::modulo:return "%";
 
 		default:return "Unknown token";
 		}

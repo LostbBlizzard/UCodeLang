@@ -391,7 +391,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 
 		if (node._Type == AliasType::Type) 
 		{
-			ConvertAndValidateType(node.Type, Syb.VarType);
+			ConvertAndValidateType(node.Type, Syb.VarType,NodeSyb_t::Any);
 		}
 		else
 		{
@@ -406,10 +406,10 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 			{
 				auto& NodePar = node_->Parameters.Parameters[i];
 				auto& Par = V->Pars[i];
-				ConvertAndValidateType(NodePar.Type, Par);
+				ConvertAndValidateType(NodePar.Type, Par,NodeSyb_t::Parameter);
 			}
 
-			ConvertAndValidateType(node_->ReturnType, V->Ret);
+			ConvertAndValidateType(node_->ReturnType, V->Ret,NodeSyb_t::Ret);
 
 			Syb.VarType.SetType(SybID);
 		}
@@ -418,7 +418,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 	{
 		if (node._Type == AliasType::Type) 
 		{
-			ConvertAndValidateType(node.Type, Syb.VarType);
+			ConvertAndValidateType(node.Type, Syb.VarType,NodeSyb_t::Any);
 		}
 		else
 		{
@@ -429,10 +429,10 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 			{
 				auto& NodePar = node_->Parameters.Parameters[i];
 				auto& Par = nodeinfo_->Pars[i];
-				ConvertAndValidateType(NodePar.Type, Par);
+				ConvertAndValidateType(NodePar.Type, Par, NodeSyb_t::Parameter);
 			}
 
-			ConvertAndValidateType(node_->ReturnType, nodeinfo_->Ret);
+			ConvertAndValidateType(node_->ReturnType, nodeinfo_->Ret,NodeSyb_t::Ret);
 		}
 	}
 
@@ -569,7 +569,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 				AnonymousTypeNode* Typenode = AnonymousTypeNode::As(RetType.get());
 				for (auto& Item3 : Typenode->Fields.Parameters)
 				{
-					ClassInf->AddField(Item3.Name.AsString(), ConvertAndValidateType(Item3.Type));
+					ClassInf->AddField(Item3.Name.AsString(), ConvertAndValidateType(Item3.Type,NodeSyb_t::Parameter));
 				}
 			}
 		}
@@ -606,7 +606,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			{
 				newInfo->FrontParIsUnNamed = true;
 			}
-			newInfo->Pars.push_back(ConvertAndValidateType(Item.Type));
+			newInfo->Pars.push_back(ConvertAndValidateType(Item.Type,NodeSyb_t::Parameter));
 		}
 
 	}
@@ -645,7 +645,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			{
 				auto& Item3 = Typenode->Fields.Parameters[i];
 				auto ItemOut = ClassInf->Fields[i];
-				ConvertAndValidateType(Item3.Type, ItemOut.Type);
+				ConvertAndValidateType(Item3.Type, ItemOut.Type,NodeSyb_t::Parameter);
 			}
 
 
@@ -670,7 +670,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		}
 		else
 		{
-			ConvertAndValidateType(node.Signature.ReturnType, syb->VarType);
+			ConvertAndValidateType(node.Signature.ReturnType, syb->VarType,NodeSyb_t::Ret);
 			Info->Ret = syb->VarType;
 		}
 
@@ -684,7 +684,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 			auto ParSybID = (SymbolID)&Item;
 			auto& Sybol = *GetSymbol(ParSybID);
-			ConvertAndValidateType(Item.Type, Sybol.VarType);
+			ConvertAndValidateType(Item.Type, Sybol.VarType,NodeSyb_t::Parameter);
 			Item2 = Sybol.VarType;
 
 		}
@@ -1896,7 +1896,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 	EvaluatedEx ex;
 	if (passtype == PassType::FixedTypes)
 	{
-		ConvertAndValidateType(node.BaseType, ClassInf->Basetype);
+		ConvertAndValidateType(node.BaseType, ClassInf->Basetype, NodeSyb_t::Any);
 		if (ClassInf->Basetype.IsBadType()) { return; }
 		if (!ConstantExpressionAbleType(ClassInf->Basetype))
 		{
@@ -2077,7 +2077,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node)
 	if (passtype == PassType::FixedTypes)
 	{
 		auto& VarType = syb->VarType;
-		Convert(node.Type, VarType);
+		ConvertAndValidateType(node.Type, VarType,NodeSyb_t::ClassFeild);
 		VarType.SetAsLocation();
 		
 		
@@ -3831,318 +3831,37 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 		case NodeType::NumberliteralNode:
 		{
 			NumberliteralNode* num = NumberliteralNode::As(node.Value.get());
-#define Set_NumberliteralNodeU(x) \
-			UInt##x V; \
-			ParseHelper::ParseStringToUInt##x(Str, V); \
-			_LastExpressionField = LookingAtIRBlock->NewLoad(V);\
 
-#define Set_NumberliteralNodeS(x) \
-			Int##x V; \
-			ParseHelper::ParseStringToInt##x(Str, V); \
-			_LastExpressionField = LookingAtIRBlock->NewLoad(V);\
-
-
-			auto& lookT = Get_LookingForType();
-			TypesEnum NewEx;
-			if (lookT._Type == TypesEnum::Var)
-			{
-				NewEx = TypesEnum::sInt32;
-			}
-			else
-			{
-				NewEx = (IsfloatType(lookT) || IsIntType(lookT)) ? lookT._Type : TypesEnum::sInt32;
-			}
-
-			if (passtype == PassType::BuidCode)
-			{
-				auto& Str = num->Token->Value._String;
-
-
-
-				switch (NewEx)
-				{
-				case TypesEnum::uInt8:
-				{
-					Set_NumberliteralNodeU(8);
-				};
-				break;
-				case TypesEnum::uInt16:
-				{
-					Set_NumberliteralNodeU(16);
-				};
-				break;
-				case TypesEnum::uInt32:
-				{
-					Set_NumberliteralNodeU(32);
-				};
-				break;
-				case TypesEnum::uInt64:
-				{
-					Set_NumberliteralNodeU(64);
-				};
-				break;
-				case TypesEnum::uIntPtr:
-				{
-					UInt64 V;
-					ParseHelper::ParseStringToUInt64(Str, V);
-					_LastExpressionField = IR_Load_UIntptr(V);
-				};
-				break;
-
-				case TypesEnum::sInt8:
-				{
-					Set_NumberliteralNodeS(8);
-				};
-				break;
-				case TypesEnum::sInt16:
-				{
-					Set_NumberliteralNodeS(16);
-				};
-				break;
-				case TypesEnum::sInt32:
-				{
-					Set_NumberliteralNodeS(32);
-				};
-				break;
-				case TypesEnum::sInt64:
-				{
-					Set_NumberliteralNodeS(64);
-				};
-				break;
-				case TypesEnum::sIntPtr:
-				{
-					Int64 V;
-					ParseHelper::ParseStringToInt64(Str, V);
-					_LastExpressionField = IR_Load_SIntptr(V);
-					break;
-				};
-
-
-				case TypesEnum::float32:
-				{
-					Int32 V;
-					ParseHelper::ParseStringToInt32(Str, V); 
-					_LastExpressionField = LookingAtIRBlock->NewLoad((float32)V);
-					break;
-				};
-				case TypesEnum::float64:
-				{
-					Int64 V;
-					ParseHelper::ParseStringToInt64(Str, V);
-					_LastExpressionField = LookingAtIRBlock->NewLoad((float64)V);
-					break;
-				};
-				default:
-					throw std::exception("not added");
-					break;
-				}
-			}
-			
-
-			LastExpressionType.SetType(NewEx);
-			LastLookedAtToken = num->Token;
+			OnNumberliteralNode(num);
 		}
 		break;
 		case NodeType::BoolliteralNode:
 		{
 			BoolliteralNode* num = BoolliteralNode::As(node.Value.get());
 			
-			if (passtype == PassType::BuidCode)
-			{
-				_LastExpressionField = LookingAtIRBlock->NewLoad(num->Get_Value());
-			}
-			LastExpressionType.SetType(TypesEnum::Bool);
-			LastLookedAtToken = num->Token;
+			OnBoolliteralNode(num);
 		}
 		break;
 		case NodeType::CharliteralNode:
 		{
 			CharliteralNode* num = CharliteralNode::As(node.Value.get());
 
-			if (passtype == PassType::BuidCode)
-			{
-				String V;
-				bool ItWorked = !ParseHelper::ParseCharliteralToChar(num->Token->Value._String,V);
-				
-
-				_LastExpressionField = LookingAtIRBlock->NewLoad((char)V.front());
-			}
-			LastExpressionType.SetType(TypesEnum::Char);
-			LastLookedAtToken = num->Token;
+			OnCharliteralNode(num);
 		}
 		break;
 		case NodeType::FloatliteralNode:
 		{
 			FloatliteralNode* num = FloatliteralNode::As(node.Value.get());
-			auto& lookT = Get_LookingForType();
-			if (passtype == PassType::BuidCode)
-			{	
-				
-				switch (lookT._Type)
-				{
-				case TypesEnum::float32:
-				{
-					float32 V;
-					bool ItWorked = ParseHelper::ParseStringTofloat32(num->Token->Value._String, V);
-
-					_LastExpressionField = LookingAtIRBlock->NewLoad(V);
-					break;
-				}
-				case TypesEnum::float64:
-				{
-					float64 V;
-					bool ItWorked = ParseHelper::ParseStringTofloat64(num->Token->Value._String, V);
-					_LastExpressionField = LookingAtIRBlock->NewLoad(V);
-					break;
-				}
-				default:
-					throw std::exception("not added");
-					break;
-				}
-				
-			}
-
-			TypesEnum NewEx;
-			if (lookT._Type == TypesEnum::Var)
-			{
-				NewEx = TypesEnum::float32;
-			}
-			else
-			{
-				NewEx = (IsfloatType(lookT)) ? lookT._Type : TypesEnum::float32;
-			}
-
-
-			LastExpressionType.SetType(NewEx);
-			LastLookedAtToken = num->Token;
+			OnFloatLiteralNode(num);
 		}
 		break;
 		case NodeType::StringliteralNode:
 		{
 			StringliteralNode* nod = StringliteralNode::As(node.Value.get());
 
-			if (passtype == PassType::GetTypes)
-			{//check for ok string
-
-			}
-
-
-			auto& Type = Get_LookingForType();
-
-			bool IsStaticArr = false;
-			if (Type._Type == TypesEnum::CustomType)
-			{
-				auto V = GetSymbol(Type);
-				if (V->Type == SymbolType::Type_StaticArray)
-				{
-					StaticArrayInfo* StaticArr = V->Get_Info< StaticArrayInfo>();
-
-					TypeSymbol CharType;
-					CharType.SetType(TypesEnum::Char);
-
-					IsStaticArr = AreTheSame(CharType,StaticArr->Type);
-				}
-			}
-			
-			
-
-			if (IsStaticArr) 
-			{
-				auto V = GetSymbol(Type);
-				StaticArrayInfo* StaticArr = V->Get_Info< StaticArrayInfo>();
-
-				if (passtype == PassType::FixedTypes)
-				{
-					String V;
-					bool ItWorked = !ParseHelper::ParseStringliteralToString(nod->Token->Value._String, V);
-					size_t BufferSize = V.size();
-
-					if (StaticArr->IsCountInitialized == false)
-					{
-
-
-						StaticArr->Count = V.size() + 1;//with null char;
-						StaticArr->IsCountInitialized = true;
-
-					}
-					else
-					{
-						if (StaticArr->Count != BufferSize)
-						{
-							const Token* Token = LastLookedAtToken;
-							LogCanIncorrectStaticArrCount(Token, Type, BufferSize, StaticArr->Count);
-							LastExpressionType.SetType(TypesEnum::Null);
-							return;
-						}
-					}
-				}
-
-				if (passtype == PassType::BuidCode)
-				{
-					String V;
-					bool ItWorked = !ParseHelper::ParseStringliteralToString(nod->Token->Value._String, V);
-
-
-
-					auto& BufferIR = IRlocations.top();
-					BufferIR.UsedlocationIR = true;
-					auto BufferIRIns = BufferIR.Value;
-
-					const auto& ArrItemType = StaticArr->Type;
-					const auto IRItemType = ConvertToIR(ArrItemType);
-					UAddress Size;
-					GetSize(ArrItemType, Size);
-					auto ValueSizeIR = IR_Load_UIntptr(Size);
-
-					if (!Type.IsAddress())
-					{
-						BufferIRIns = LookingAtIRBlock->NewLoadPtr(BufferIRIns);
-					}
-
-					for (size_t i = 0; i < V.size(); i++)
-					{
-						auto VIR = LookingAtIRBlock->NewLoad(V[i]);
-					
-
-						auto f = LookingAtIRBlock->New_Index_Vetor(BufferIRIns,IR_Load_UIntptr(i), ValueSizeIR);
-
-						LookingAtIRBlock->NewDereferenc_Store(f, VIR);
-					}
-
-					
-				}
-
-				LastExpressionType = Type;
-			}
-			else
-			{
-
-				TypeSymbol CStringType;//umut char[&]
-				CStringType.SetType(TypesEnum::Char);
-				CStringType.SetAsAddressArray();
-				CStringType.SetAsimmutable();
-				LastExpressionType = CStringType;
-
-				if (passtype == PassType::BuidCode)
-				{
-					String V;
-					bool ItWorked = !ParseHelper::ParseStringliteralToString(nod->Token->Value._String, V);
-
-					String_view Buffer{ V.c_str(),V.size() + 1 };//for null char
-
-					auto BufferIR = _Builder.FindOrAddConstStrings(Buffer);
-					_LastExpressionField =  LookingAtIRBlock->NewLoadPtr(BufferIR);
-
-
-				}
-				
-			}
-
-
-				
-	
-
-			
+			bool retflag;
+			OnStringLiteral(nod, retflag);
+			if (retflag) return;
 		}break;
 		case NodeType::ReadVariableNode:
 		{
@@ -4167,79 +3886,28 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 		{
 			SizeofExpresionNode* nod = SizeofExpresionNode::As(node.Value.get());
 
-			auto& lookT = Get_LookingForType();
-			TypeSymbol Type;
-
-			if (passtype == PassType::FixedTypes || passtype == PassType::BuidCode)
-			{
-				switch (lookT._Type)
-				{
-				case TypesEnum::sInt8:
-				case TypesEnum::uInt8:
-					Type.SetType(TypesEnum::uInt8);
-					break;
-				case TypesEnum::sInt16:
-				case TypesEnum::uInt16:
-					Type.SetType(TypesEnum::uInt16);
-					break;
-				case TypesEnum::sInt32:
-				case TypesEnum::uInt32:
-					Type.SetType(TypesEnum::uInt32);
-					break;
-				case TypesEnum::sInt64:
-				case TypesEnum::uInt64:
-					Type.SetType(TypesEnum::uInt64);
-					break;
-				default:
-					Type.SetType(TypesEnum::uIntPtr);
-					break;
-				}
-			}
-
-			if (passtype == PassType::BuidCode)
-			{
-				TypeSymbol Info;
-				ConvertAndValidateType(nod->Type, Info);
-				UAddress TypeSize;
-				GetSize(Info, TypeSize);
-				switch (lookT._Type)
-				{
-				case TypesEnum::sInt8:
-				case TypesEnum::uInt8:
-					_LastExpressionField = LookingAtIRBlock->NewLoad((UInt8)TypeSize);
-					break;
-				case TypesEnum::sInt16:
-				case TypesEnum::uInt16:
-					_LastExpressionField = LookingAtIRBlock->NewLoad((UInt16)TypeSize);
-					break;
-				case TypesEnum::sInt32:
-				case TypesEnum::uInt32:
-					_LastExpressionField = LookingAtIRBlock->NewLoad((UInt32)TypeSize);
-					break;
-				case TypesEnum::sInt64:
-				case TypesEnum::uInt64:
-					_LastExpressionField = LookingAtIRBlock->NewLoad((UInt64)TypeSize);
-					break;
-				default:
-					Type.SetType(TypesEnum::uIntPtr);
-					_LastExpressionField = IR_Load_UIntptr(TypeSize);
-					break;
-				}
-			}
-
-			LastExpressionType = Type;
+			OnSizeofNode(nod);
 		}
 		break;
 		case NodeType::NewExpresionNode:
 		{
 			NewExpresionNode* nod = NewExpresionNode::As(node.Value.get());
+
 			OnNewNode(nod);
 		}
 		break;
 		case NodeType::ParenthesesExpresionNode:
 		{
 			ParenthesesExpresionNode* nod = ParenthesesExpresionNode::As(node.Value.get());
+
 			OnExpressionTypeNode(nod->Expression.Value.get());
+		}
+		break;
+		case NodeType::MoveNode:
+		{
+			MoveNode* nod = MoveNode::As(node.Value.get());
+
+			OnMovedNode(nod);
 		}
 		break;
 		default:
@@ -4248,6 +3916,385 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 		}
 	}
 }
+
+void SystematicAnalysis::OnMovedNode(UCodeLang::FrontEnd::MoveNode* nod)
+{
+
+	OnExpressionTypeNode(nod->expression.Value.get());
+	
+	auto ExType = LastExpressionType;
+	ExType.SetAsMoved();
+	LastExpressionType = ExType;
+}
+
+void SystematicAnalysis::OnNumberliteralNode(UCodeLang::FrontEnd::NumberliteralNode* num)
+{
+	auto& lookT = Get_LookingForType();
+	TypesEnum NewEx;
+	if (lookT._Type == TypesEnum::Var)
+	{
+		NewEx = TypesEnum::sInt32;
+	}
+	else
+	{
+		NewEx = (IsfloatType(lookT) || IsIntType(lookT)) ? lookT._Type : TypesEnum::sInt32;
+	}
+#define Set_NumberliteralNodeU(x) \
+			UInt##x V; \
+			ParseHelper::ParseStringToUInt##x(Str, V); \
+			_LastExpressionField = LookingAtIRBlock->NewLoad(V);\
+
+#define Set_NumberliteralNodeS(x) \
+			Int##x V; \
+			ParseHelper::ParseStringToInt##x(Str, V); \
+			_LastExpressionField = LookingAtIRBlock->NewLoad(V);\
+
+	if (passtype == PassType::BuidCode)
+	{
+		auto& Str = num->Token->Value._String;
+
+
+
+		switch (NewEx)
+		{
+		case TypesEnum::uInt8:
+		{
+			Set_NumberliteralNodeU(8);
+		};
+		break;
+		case TypesEnum::uInt16:
+		{
+			Set_NumberliteralNodeU(16);
+		};
+		break;
+		case TypesEnum::uInt32:
+		{
+			Set_NumberliteralNodeU(32);
+		};
+		break;
+		case TypesEnum::uInt64:
+		{
+			Set_NumberliteralNodeU(64);
+		};
+		break;
+		case TypesEnum::uIntPtr:
+		{
+			UInt64 V;
+			ParseHelper::ParseStringToUInt64(Str, V);
+			_LastExpressionField = IR_Load_UIntptr(V);
+		};
+		break;
+
+		case TypesEnum::sInt8:
+		{
+			Set_NumberliteralNodeS(8);
+		};
+		break;
+		case TypesEnum::sInt16:
+		{
+			Set_NumberliteralNodeS(16);
+		};
+		break;
+		case TypesEnum::sInt32:
+		{
+			Set_NumberliteralNodeS(32);
+		};
+		break;
+		case TypesEnum::sInt64:
+		{
+			Set_NumberliteralNodeS(64);
+		};
+		break;
+		case TypesEnum::sIntPtr:
+		{
+			Int64 V;
+			ParseHelper::ParseStringToInt64(Str, V);
+			_LastExpressionField = IR_Load_SIntptr(V);
+			break;
+		};
+
+
+		case TypesEnum::float32:
+		{
+			Int32 V;
+			ParseHelper::ParseStringToInt32(Str, V);
+			_LastExpressionField = LookingAtIRBlock->NewLoad((float32)V);
+			break;
+		};
+		case TypesEnum::float64:
+		{
+			Int64 V;
+			ParseHelper::ParseStringToInt64(Str, V);
+			_LastExpressionField = LookingAtIRBlock->NewLoad((float64)V);
+			break;
+		};
+		default:
+			throw std::exception("not added");
+			break;
+		}
+	}
+
+
+	LastExpressionType.SetType(NewEx);
+	LastLookedAtToken = num->Token;
+}
+
+void SystematicAnalysis::OnBoolliteralNode(UCodeLang::FrontEnd::BoolliteralNode* num)
+{
+	if (passtype == PassType::BuidCode)
+	{
+		_LastExpressionField = LookingAtIRBlock->NewLoad(num->Get_Value());
+	}
+	LastExpressionType.SetType(TypesEnum::Bool);
+	LastLookedAtToken = num->Token;
+}
+
+void SystematicAnalysis::OnCharliteralNode(UCodeLang::FrontEnd::CharliteralNode* num)
+{
+	if (passtype == PassType::BuidCode)
+	{
+		String V;
+		bool ItWorked = !ParseHelper::ParseCharliteralToChar(num->Token->Value._String, V);
+
+
+		_LastExpressionField = LookingAtIRBlock->NewLoad((char)V.front());
+	}
+	LastExpressionType.SetType(TypesEnum::Char);
+	LastLookedAtToken = num->Token;
+}
+
+void SystematicAnalysis::OnFloatLiteralNode(UCodeLang::FrontEnd::FloatliteralNode* num)
+{
+	auto& lookT = Get_LookingForType();
+	if (passtype == PassType::BuidCode)
+	{
+
+		switch (lookT._Type)
+		{
+		case TypesEnum::float32:
+		{
+			float32 V;
+			bool ItWorked = ParseHelper::ParseStringTofloat32(num->Token->Value._String, V);
+
+			_LastExpressionField = LookingAtIRBlock->NewLoad(V);
+			break;
+		}
+		case TypesEnum::float64:
+		{
+			float64 V;
+			bool ItWorked = ParseHelper::ParseStringTofloat64(num->Token->Value._String, V);
+			_LastExpressionField = LookingAtIRBlock->NewLoad(V);
+			break;
+		}
+		default:
+			throw std::exception("not added");
+			break;
+		}
+
+	}
+
+	TypesEnum NewEx;
+	if (lookT._Type == TypesEnum::Var)
+	{
+		NewEx = TypesEnum::float32;
+	}
+	else
+	{
+		NewEx = (IsfloatType(lookT)) ? lookT._Type : TypesEnum::float32;
+	}
+
+
+	LastExpressionType.SetType(NewEx);
+	LastLookedAtToken = num->Token;
+}
+
+void SystematicAnalysis::OnStringLiteral(UCodeLang::FrontEnd::StringliteralNode* nod, bool& retflag)
+{
+	retflag = true;
+	if (passtype == PassType::GetTypes)
+	{//check for ok string
+
+	}
+
+
+	auto& Type = Get_LookingForType();
+
+	bool IsStaticArr = false;
+	if (Type._Type == TypesEnum::CustomType)
+	{
+		auto V = GetSymbol(Type);
+		if (V->Type == SymbolType::Type_StaticArray)
+		{
+			StaticArrayInfo* StaticArr = V->Get_Info< StaticArrayInfo>();
+
+			TypeSymbol CharType;
+			CharType.SetType(TypesEnum::Char);
+
+			IsStaticArr = AreTheSame(CharType, StaticArr->Type);
+		}
+	}
+
+
+
+	if (IsStaticArr)
+	{
+		auto V = GetSymbol(Type);
+		StaticArrayInfo* StaticArr = V->Get_Info< StaticArrayInfo>();
+
+		if (passtype == PassType::FixedTypes)
+		{
+			String V;
+			bool ItWorked = !ParseHelper::ParseStringliteralToString(nod->Token->Value._String, V);
+			size_t BufferSize = V.size();
+
+			if (StaticArr->IsCountInitialized == false)
+			{
+
+
+				StaticArr->Count = V.size() + 1;//with null char;
+				StaticArr->IsCountInitialized = true;
+
+			}
+			else
+			{
+				if (StaticArr->Count != BufferSize)
+				{
+					const Token* Token = LastLookedAtToken;
+					LogCanIncorrectStaticArrCount(Token, Type, BufferSize, StaticArr->Count);
+					LastExpressionType.SetType(TypesEnum::Null);
+					return;
+				}
+			}
+		}
+
+		if (passtype == PassType::BuidCode)
+		{
+			String V;
+			bool ItWorked = !ParseHelper::ParseStringliteralToString(nod->Token->Value._String, V);
+
+
+
+			auto& BufferIR = IRlocations.top();
+			BufferIR.UsedlocationIR = true;
+			auto BufferIRIns = BufferIR.Value;
+
+			const auto& ArrItemType = StaticArr->Type;
+			const auto IRItemType = ConvertToIR(ArrItemType);
+			UAddress Size;
+			GetSize(ArrItemType, Size);
+			auto ValueSizeIR = IR_Load_UIntptr(Size);
+
+			if (!Type.IsAddress())
+			{
+				BufferIRIns = LookingAtIRBlock->NewLoadPtr(BufferIRIns);
+			}
+
+			for (size_t i = 0; i < V.size(); i++)
+			{
+				auto VIR = LookingAtIRBlock->NewLoad(V[i]);
+
+
+				auto f = LookingAtIRBlock->New_Index_Vetor(BufferIRIns, IR_Load_UIntptr(i), ValueSizeIR);
+
+				LookingAtIRBlock->NewDereferenc_Store(f, VIR);
+			}
+
+
+		}
+
+		LastExpressionType = Type;
+	}
+	else
+	{
+
+		TypeSymbol CStringType;//umut char[&]
+		CStringType.SetType(TypesEnum::Char);
+		CStringType.SetAsAddressArray();
+		CStringType.SetAsimmutable();
+		LastExpressionType = CStringType;
+
+		if (passtype == PassType::BuidCode)
+		{
+			String V;
+			bool ItWorked = !ParseHelper::ParseStringliteralToString(nod->Token->Value._String, V);
+
+			String_view Buffer{ V.c_str(),V.size() + 1 };//for null char
+
+			auto BufferIR = _Builder.FindOrAddConstStrings(Buffer);
+			_LastExpressionField = LookingAtIRBlock->NewLoadPtr(BufferIR);
+
+
+		}
+
+	}
+	retflag = false;
+}
+
+void SystematicAnalysis::OnSizeofNode(UCodeLang::FrontEnd::SizeofExpresionNode* nod)
+{
+	auto& lookT = Get_LookingForType();
+	TypeSymbol Type;
+
+	if (passtype == PassType::FixedTypes || passtype == PassType::BuidCode)
+	{
+		switch (lookT._Type)
+		{
+		case TypesEnum::sInt8:
+		case TypesEnum::uInt8:
+			Type.SetType(TypesEnum::uInt8);
+			break;
+		case TypesEnum::sInt16:
+		case TypesEnum::uInt16:
+			Type.SetType(TypesEnum::uInt16);
+			break;
+		case TypesEnum::sInt32:
+		case TypesEnum::uInt32:
+			Type.SetType(TypesEnum::uInt32);
+			break;
+		case TypesEnum::sInt64:
+		case TypesEnum::uInt64:
+			Type.SetType(TypesEnum::uInt64);
+			break;
+		default:
+			Type.SetType(TypesEnum::uIntPtr);
+			break;
+		}
+	}
+
+	if (passtype == PassType::BuidCode)
+	{
+		TypeSymbol Info;
+		ConvertAndValidateType(nod->Type, Info,NodeSyb_t::Any);
+		UAddress TypeSize;
+		GetSize(Info, TypeSize);
+		switch (lookT._Type)
+		{
+		case TypesEnum::sInt8:
+		case TypesEnum::uInt8:
+			_LastExpressionField = LookingAtIRBlock->NewLoad((UInt8)TypeSize);
+			break;
+		case TypesEnum::sInt16:
+		case TypesEnum::uInt16:
+			_LastExpressionField = LookingAtIRBlock->NewLoad((UInt16)TypeSize);
+			break;
+		case TypesEnum::sInt32:
+		case TypesEnum::uInt32:
+			_LastExpressionField = LookingAtIRBlock->NewLoad((UInt32)TypeSize);
+			break;
+		case TypesEnum::sInt64:
+		case TypesEnum::uInt64:
+			_LastExpressionField = LookingAtIRBlock->NewLoad((UInt64)TypeSize);
+			break;
+		default:
+			Type.SetType(TypesEnum::uIntPtr);
+			_LastExpressionField = IR_Load_UIntptr(TypeSize);
+			break;
+		}
+	}
+
+	LastExpressionType = Type;
+}
+
 
 void SystematicAnalysis::OnNewNode(NewExpresionNode* nod)
 {
@@ -5021,7 +5068,7 @@ TypeSymbol SystematicAnalysis::BinaryExpressionShouldRurn(TokenType Op, const Ty
 void SystematicAnalysis::OnExpressionNode(const CastNode& node)
 {
 	TypeSymbol ToTypeAs;
-	ConvertAndValidateType(node.ToType, ToTypeAs);
+	ConvertAndValidateType(node.ToType, ToTypeAs,NodeSyb_t::Any);
 	LookingForTypes.push(ToTypeAs);
 	
 
@@ -5059,7 +5106,7 @@ void SystematicAnalysis::OnExpressionNode(const CastNode& node)
 		
 
 		TypeSymbol ToTypeAs;
-		ConvertAndValidateType(node.ToType, ToTypeAs);
+		ConvertAndValidateType(node.ToType, ToTypeAs, NodeSyb_t::Any);
 
 		auto Ex0Type = LastExpressionType;
 		auto HasInfo = CanBeExplicitlyConverted(Ex0Type, ToTypeAs);
@@ -5579,6 +5626,10 @@ bool SystematicAnalysis::AreTheSameWithOutimmutable(const TypeSymbol& TypeA, con
 	{
 		return false;
 	}
+	if (TypeA._MoveData != TypeB._MoveData)
+	{
+		return false;
+	}
 
 	if (TypeA._Type == TypesEnum::CustomType
 		&& TypeB._Type == TypesEnum::CustomType)
@@ -5943,6 +5994,12 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type)
 		r = "umut ";
 	}
 
+
+	if (Type._MoveData == MoveData::Moved)
+	{
+		r += "moved ";
+	}
+
 	switch (Type._Type)
 	{
 	case TypesEnum::Var:r += "var";	break;
@@ -6143,7 +6200,7 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 				const auto& Tnode = V.Generic.Values[i];
 				const auto& GenericInfo = CInfo->_Generic[i];
 				TypeSymbol Type; 
-				ConvertAndValidateType(Tnode, Type);
+				ConvertAndValidateType(Tnode, Type, NodeSyb_t::Any);
 
 				{
 					bool InputTypeIsConstantExpression = false;
@@ -6248,6 +6305,8 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 	if (V.IsAddessArray){Out._IsAddressArray = true;}
 	if (V.Isimmutable){Out._Isimmutable = true;}
 
+	if (V.IsTypedMoved) { Out._MoveData = MoveData::Moved; }
+
 	if (V.IsStackArray)
 	{
 		ExpressionNodeType* node = (ExpressionNodeType*)V.node.get();
@@ -6319,15 +6378,15 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 		Out.SetType(Syb->ID);
 	}
 }
-void SystematicAnalysis::ConvertAndValidateType(const TypeNode& V, TypeSymbol& Out)
+void SystematicAnalysis::ConvertAndValidateType(const TypeNode& V, TypeSymbol& Out,NodeSyb_t Syb)
 {
 	Convert(V, Out);
-	if (ValidateType(Out,V.Name.Token) == false)
+	if (ValidateType(Out,V.Name.Token,Syb) == false)
 	{
 		Out.SetType(TypesEnum::Null);
 	}
 }
-bool SystematicAnalysis::ValidateType(const TypeSymbol& V, const Token* Token)
+bool SystematicAnalysis::ValidateType(const TypeSymbol& V, const Token* Token,NodeSyb_t Syb)
 {
 	if (V._Type == TypesEnum::CustomType)
 	{
@@ -6343,13 +6402,22 @@ bool SystematicAnalysis::ValidateType(const TypeSymbol& V, const Token* Token)
 			}
 		}
 	}
+
+
+	if (V._MoveData == MoveData::Moved && Syb != NodeSyb_t::Parameter)
+	{
+		LogCantUseMoveTypeHere(Token);
+	}
+
 	return true;
 }
 
-TypeSymbol SystematicAnalysis::ConvertAndValidateType(const TypeNode& V)
+
+
+TypeSymbol SystematicAnalysis::ConvertAndValidateType(const TypeNode& V,NodeSyb_t Syb)
 {
 	TypeSymbol r;
-	ConvertAndValidateType(V, r);
+	ConvertAndValidateType(V, r,Syb);
 	return r;
 }
 
@@ -7573,6 +7641,9 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 	else
 	{
 		
+		
+
+
 		Optional<int> MinScore;
 		Get_FuncInfo* Ret =nullptr;
 		for (auto& Item : OkFuncions)
@@ -8898,6 +8969,11 @@ void SystematicAnalysis::LogCantFindMemberOverloadForType(const Token* Item, Tok
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Item->OnLine, Item->OnPos
 		, "Cant find operator overload for '" + ToString(Op) + "' For Type " + ToString(Out));
 
+}
+void SystematicAnalysis::LogCantUseMoveTypeHere(const UCodeLang::Token* Token)
+{
+
+	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Cant use moved Type Here.it can only be used in Parameters");
 }
 UCodeLangFrontEnd
 

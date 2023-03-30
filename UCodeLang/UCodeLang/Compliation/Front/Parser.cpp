@@ -34,15 +34,15 @@ void Parser::Parse(const Vector<Token>&Tokens)
 		switch (T->Type)
 		{
 		case TokenType::Namespace:V = GetNamespaceNode(); break;
-		case TokenType::KeyWorld_Tag:V = GetTagNode(); break;
-		case TokenType::KeyWorld_Enum:V = GetEnumNode(); break;
+		case TokenType::KeyWord_Tag:V = GetTagNode(); break;
+		case TokenType::KeyWord_Enum:V = GetEnumNode(); break;
 		case TokenType::Class:V = GetClassNode(); break;
 		case Parser::declareFunc:V = GetFuncNode(); break;
 		case TokenType::KeyWord_use:V = GetUseNode(); break;
 		case TokenType::Left_Bracket:V = GetAttribute(); break;
 		case TokenType::KeyWord_static:V = GetDeclareStaticVariable(); break;
 		case TokenType::KeyWord_Thread:V = GetDeclareThreadVariable(); break;
-		case TokenType::KeyWorld_umut:V = GetumutVariableDeclare(); break;
+		case TokenType::KeyWord_umut:V = GetumutVariableDeclare(); break;
 		default: GetDeclareVariableNoObject(V); break;
 		}
 		if (V.Node)
@@ -126,15 +126,15 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 		{
 		case TokenType::EndTab:goto EndLoop;
 		case TokenType::Namespace:V = GetNamespaceNode(); break;
-		case TokenType::KeyWorld_Tag:V = GetTagNode(); break;
-		case TokenType::KeyWorld_Enum:V = GetEnumNode(); break;
+		case TokenType::KeyWord_Tag:V = GetTagNode(); break;
+		case TokenType::KeyWord_Enum:V = GetEnumNode(); break;
 		case TokenType::Class:V = GetClassNode();break;
 		case Parser::declareFunc:V = GetFuncNode(); break;
 		case TokenType::KeyWord_use:V = GetUseNode(); break;
 		case TokenType::Left_Bracket:V = GetAttribute();break;
 		case TokenType::KeyWord_static:V = GetDeclareStaticVariable(); break;
 		case TokenType::KeyWord_Thread:V = GetDeclareThreadVariable(); break;
-		case TokenType::KeyWorld_umut:V = GetumutVariableDeclare(); break;
+		case TokenType::KeyWord_umut:V = GetumutVariableDeclare(); break;
 		default: GetDeclareVariableNoObject(V); break;
 		}
 
@@ -251,15 +251,15 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 			switch (T->Type)
 			{
 			case TokenType::EndTab:goto EndLoop;
-			case TokenType::KeyWorld_Tag:V = GetTagNode(); break;
-			case TokenType::KeyWorld_Enum:V = GetEnumNode(); break;
+			case TokenType::KeyWord_Tag:V = GetTagNode(); break;
+			case TokenType::KeyWord_Enum:V = GetEnumNode(); break;
 			case TokenType::Class:V = GetClassNode(); break;
 			case Parser::declareFunc:V = GetFuncNode(); break;
 			case TokenType::KeyWord_use:V = GetUseNode(); break;
 			case TokenType::Left_Bracket:V = GetAttribute(); break;
 			case TokenType::KeyWord_static:V = GetDeclareStaticVariable(); break;
 			case TokenType::KeyWord_Thread:V = GetDeclareThreadVariable(); break;
-			case TokenType::KeyWorld_umut:V = GetumutVariableDeclare(); break;
+			case TokenType::KeyWord_umut:V = GetumutVariableDeclare(); break;
 			default:V = GetDeclareVariable();
 			}
 
@@ -316,13 +316,13 @@ GotNodeType Parser::GetStatement(Node*& out)
 		out = r.Node;
 		return r.GotNode;
 	};
-	case TokenType::KeyWorld_Tag:
+	case TokenType::KeyWord_Tag:
 	{
 		auto r = GetTagNode();
 		out = r.Node;
 		return r.GotNode;
 	};
-	case TokenType::KeyWorld_Enum:
+	case TokenType::KeyWord_Enum:
 	{
 		auto r = GetEnumNode();
 		out = r.Node;
@@ -408,7 +408,7 @@ GotNodeType Parser::GetStatement(Node*& out)
 		return r.GotNode;
 	}
 	break;
-	case TokenType::KeyWorld_umut:
+	case TokenType::KeyWord_umut:
 	{
 		auto r = GetumutVariableDeclare();
 		out = r.Node;
@@ -764,9 +764,21 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 	break;
 	case TokenType::KeyWord_new:
 	{
-		auto V = GetNewExpresionNode();
-		out = V.Node;
-		return V.GotNode;
+		auto V = MoveNode::Gen();
+		out = V;
+
+		auto r = GetExpressionTypeNode(V->expression);
+
+		return r;
+	}
+	break;
+	case TokenType::KeyWord_move:
+	{
+		NextToken();
+		auto V = MoveNode::Gen();	out = V;
+		GetExpressionTypeNode(V->expression);
+	
+		return  GotNodeType::Success;
 	}
 	break;
 	default:
@@ -1160,14 +1172,19 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 	auto Token = TryGetToken();
 	if (!ignoreleftHandType)
 	{
-		if (Token->Type == TokenType::KeyWorld_umut)
+		if (Token->Type == TokenType::KeyWord_umut)
 		{
 			out->SetAsimmutable();
 			NextToken();
 			Token = TryGetToken();
 		}
-		
-
+		else
+		if (Token->Type == TokenType::KeyWord_moved)
+		{
+			out->SetMovedType();
+			NextToken();
+			Token = TryGetToken();
+		}
 	}
 
 	if (Token->Type == TokenType::Name)
@@ -1661,7 +1678,7 @@ GotNodeType Parser::GetDoNode(DoNode& out)
 GotNodeType Parser::GetEnumNode(EnumNode& out)
 {
 	auto Token = TryGetToken();
-	TokenTypeCheck(Token, TokenType::KeyWorld_Enum);
+	TokenTypeCheck(Token, TokenType::KeyWord_Enum);
 	NextToken();
 	GetName(out.EnumName);
 
@@ -1729,7 +1746,7 @@ GotNodeType Parser::GetEnumValueNode(EnumValueNode& out)
 GotNodeType Parser::GetTagNode(TagTypeNode& out)
 {
 	auto Token = TryGetToken();
-	TokenTypeCheck(Token, TokenType::KeyWorld_Tag);
+	TokenTypeCheck(Token, TokenType::KeyWord_Tag);
 	NextToken();
 	GetName(out.AttributeName);
 
@@ -1892,7 +1909,7 @@ GotNodeType Parser::GetNewExpresionNode(NewExpresionNode& out)
 }
 GotNodeType Parser::GetumutVariableDeclare(Node*& out)
 {
-	auto NewToken = TryGetToken(); TokenTypeCheck(NewToken, TokenType::KeyWorld_umut);
+	auto NewToken = TryGetToken(); TokenTypeCheck(NewToken, TokenType::KeyWord_umut);
 	NextToken();
 
 	auto Token2 = TryGetToken(); 

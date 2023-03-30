@@ -57,6 +57,7 @@ enum class NodeType :UInt8
 	ForNode,
 	ContinueNode,
 	BreakNode,
+	MoveNode,
 };
 
 
