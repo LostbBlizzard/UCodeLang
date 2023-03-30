@@ -175,6 +175,24 @@ String IRBuilder::ToString()
 	}
 	r += "\n";
 
+
+	r += "//_Static_init\n";
+
+	ToString(State, &_StaticInit, r);
+
+	r += "//_Static_deInit\n";
+
+
+	ToString(State, &_StaticdeInit, r);
+
+	r += "//_threadInit\n";
+
+	ToString(State, &_threadInit, r);
+	
+	r += "//_thread_deInit\n";
+	
+	ToString(State, &_threaddeInit, r);
+
 	for (auto& Item : Funcs)
 	{
 		State.StrValue = 0;
@@ -182,236 +200,240 @@ String IRBuilder::ToString()
 		State.TepPushedParameters.clear();
 		//
 
-		State._Func = Item.get();
-		r += "|" + FromID(Item->identifier);
-		r += "[";
-		for (auto& Par : Item->Pars)
-		{
-			r += ToString(Par.type) + " " + FromID(Par.identifier);
-			if (&Par != &Item->Pars.back())
-			{
-				r += ",";
-			}
-		}
-		r += "] -> ";
-		r += ToString(Item->ReturnType);
-		r += ":";
-		if (Item->Blocks.size())
-		{
-			String Tabs = " ";
-		
-			
-			for (auto& Block : Item->Blocks)
-			{
-				
-				r += Tabs + "//Block \n";
-
-				BinaryVectorMap<size_t, String> Names;
-				for (size_t i = 0; i < Block->Instructions.size(); i++)
-				{
-					auto& I = Block->Instructions[i];
-					switch (I->Type)
-					{
-						case IRInstructionType::Jump:
-						
-						case IRInstructionType::ConditionalJump:
-							if (!Names.HasValue(I->Target().identifer)) {
-								Names.AddValue(I->Target().identifer, "_label" + std::to_string(Names.size()));
-							}
-							break;
-					}
-				}
-
-				for (size_t i = 0; i < Block->Instructions.size(); i++)
-				{
-					auto& I = Block->Instructions[i];
-					if (I->Type == IRInstructionType::None) { continue; }
-
-					if (I->Type != IRInstructionType::PushParameter
-						&& I->Type != IRInstructionType::Member_Access
-						&& I->Type != IRInstructionType::Member_Access_Dereference)
-					{
-						r += Tabs;
-					}
-
-					
-
-					switch (I->Type)
-					{
-					case IRInstructionType::MallocCall:
-						r += ToString(I->ObjectType);
-						r += " " + State.GetName(I.get());
-						r += " = LowLevel::Malloc(" + ToString(State, *I, I->Target()) + ")";
-						break;
-					case IRInstructionType::FreeCall:
-						r += "LowLevel::Free(" + ToString(State, *I, I->Target()) + ")";
-						break;
-					case IRInstructionType::LoadReturn:
-						r += "ret " + ToString(State, *I, I->Target());
-						break;
-					case IRInstructionType::LoadNone:
-						r += ToString(I->ObjectType);
-						r += " " + State.GetName(I.get());
-						break;
-					case IRInstructionType::Load:
-						r += ToString(I->ObjectType);
-						r += " " + State.GetName(I.get());
-						r += " = " + ToString(State, *I, I->Target());
-						break;
-					case IRInstructionType::Reassign:
-						r += ToString(State, *I, I->Target());
-						r += " = " + ToString(State, *I, I->Input());
-						break;
-					case IRInstructionType::Add:
-						r += ToStringBinary(State, I.get(), "+");
-						break;
-					case IRInstructionType::Sub:
-						r += ToStringBinary(State, I.get(), "-");
-						break;
-					case IRInstructionType::UMult:
-					case IRInstructionType::SMult:
-						r += ToStringBinary(State, I.get(), "*");
-						break;
-					case IRInstructionType::SDiv:
-					case IRInstructionType::UDiv:
-						r += ToStringBinary(State, I.get(), "/");
-						break;
-					case IRInstructionType::EqualTo:
-						r += ToStringBinary(State, I.get(), "==");
-						break;
-					case IRInstructionType::NotEqualTo:
-						r += ToStringBinary(State, I.get(), "!=");
-						break;
-
-					case IRInstructionType::UGreaterThan:
-						r += ToStringBinary(State, I.get(), ">");
-						break;
-					case IRInstructionType::ULessThan:
-						r += ToStringBinary(State, I.get(), "<");
-						break;
-					case IRInstructionType::UGreaterThanOrEqual:
-						r += ToStringBinary(State, I.get(), ">=");
-						break;
-					case IRInstructionType::ULessThanOrEqual:
-						r += ToStringBinary(State, I.get(), "<=");
-						break;
-
-					case IRInstructionType::SGreaterThan:
-						r += ToStringBinary(State, I.get(), ">");
-						break;
-					case IRInstructionType::SLessThan:
-						r += ToStringBinary(State, I.get(), "<");
-						break;
-					case IRInstructionType::SGreaterThanOrEqual:
-						r += ToStringBinary(State, I.get(), ">=");
-						break;
-					case IRInstructionType::SLessThanOrEqual:
-						r += ToStringBinary(State, I.get(), "<=");
-						break;
-
-					case IRInstructionType::Logical_And:
-						r += ToStringBinary(State, I.get(), "&&");
-						break;
-					case IRInstructionType::Logical_Or:
-						r += ToStringBinary(State, I.get(), "||");
-						break;
-					case IRInstructionType::PushParameter:
-						State.TepPushedParameters.push_back(I.get());
-						continue;
-					case IRInstructionType::Logical_Not:
-						r += ToString(I->ObjectType);
-						r += " " + State.GetName(I.get());
-						r += " = !" + ToString(State, *I, I->Target());
-						break;
-					case IRInstructionType::Jump:
-						r += "goto ";
-						r += Names[I->Target().identifer];
-						break;
-					case IRInstructionType::ConditionalJump:
-						r += "gotoif (";
-						r += ToString(State, *I, I->Input());
-						r += ") ";
-						r += Names[I->Target().identifer];
-						break;
-					case IRInstructionType::Call:
-					{
-						r += ToString(I->ObjectType);
-						r += " " + State.GetName(I.get());
-						r += " = ";
-						r += FromID(I->Target().identifer) + "(";
-						for (auto& Item : State.TepPushedParameters)
-						{
-							r += State.PointerToName.at(Item->Target().Pointer);
-							if (&Item != &State.TepPushedParameters.back())
-							{
-								r += ",";
-							}
-						}
-						State.TepPushedParameters.clear();
-						r += ")";
-					}break;
-					case IRInstructionType::Reassign_dereference:
-						r += "*" + ToString(State, *I, I->Target());
-						r += " = " + ToString(State, *I, I->Input());
-						break;
-					case IRInstructionType::CallFuncPtr:
-						r += ToString(I->ObjectType);
-						r += " " + State.GetName(I.get());
-						r += " = ";
-						r += ToString(State, *I, I->Target()) + "(";
-						for (auto& Item : State.TepPushedParameters)
-						{
-							r += State.PointerToName.at(Item->Target().Pointer);
-							if (&Item != &State.TepPushedParameters.back())
-							{
-								r += ",";
-							}
-						}
-						State.TepPushedParameters.clear();
-						r += ")";
-						break;
-					case IRInstructionType::Return:
-						if (i != 0 && Block->Instructions[i - 1]->Type == IRInstructionType::LoadReturn) { continue; }
-						r += "ret";
-						break;
-					case  IRInstructionType::Member_Access:
-					{
-						State.PointerToName[I.get()] = ToString(State, *I, I->Target()) + ".__" + std::to_string(I->Input().Value.AsUIntNative);
-						continue;
-					}
-					case  IRInstructionType::Member_Access_Dereference:
-					{
-						State.PointerToName[I.get()] = ToString(State, *I, I->Target()) + "->__" + std::to_string(I->Input().Value.AsUIntNative);
-						continue;
-					}
-					default:
-						throw std::exception("not added");
-						break;
-					}
-					r += ";\n";
-
-					for (auto& Item : Names)
-					{
-						if (Item._Key == i)
-						{
-							r += Tabs;
-							r += Item._Value + ":";
-							r += "\n";
-
-						}
-					}
-				}
-				State.PointerToName.clear();
-			}
-		}
-		else
-		{
-			r += ";\n";
-		}
-		r += "\n";
+		ToString(State, Item.get(), r);
 	}
 
 	return r;
+}
+void IRBuilder::ToString(ToStringState& State, IRFunc* Item, String& r)
+{
+	State._Func = Item;
+	r += "|" + FromID(Item->identifier);
+	r += "[";
+	for (auto& Par : Item->Pars)
+	{
+		r += ToString(Par.type) + " " + FromID(Par.identifier);
+		if (&Par != &Item->Pars.back())
+		{
+			r += ",";
+		}
+	}
+	r += "] -> ";
+	r += ToString(Item->ReturnType);
+	r += ":";
+	if (Item->Blocks.size())
+	{
+		String Tabs = " ";
+
+
+		for (auto& Block : Item->Blocks)
+		{
+
+			r += Tabs + "//Block \n";
+
+			BinaryVectorMap<size_t, String> Names;
+			for (size_t i = 0; i < Block->Instructions.size(); i++)
+			{
+				auto& I = Block->Instructions[i];
+				switch (I->Type)
+				{
+				case IRInstructionType::Jump:
+
+				case IRInstructionType::ConditionalJump:
+					if (!Names.HasValue(I->Target().identifer)) {
+						Names.AddValue(I->Target().identifer, "_label" + std::to_string(Names.size()));
+					}
+					break;
+				}
+			}
+
+			for (size_t i = 0; i < Block->Instructions.size(); i++)
+			{
+				auto& I = Block->Instructions[i];
+				if (I->Type == IRInstructionType::None) { continue; }
+
+				if (I->Type != IRInstructionType::PushParameter
+					&& I->Type != IRInstructionType::Member_Access
+					&& I->Type != IRInstructionType::Member_Access_Dereference)
+				{
+					r += Tabs;
+				}
+
+
+
+				switch (I->Type)
+				{
+				case IRInstructionType::MallocCall:
+					r += ToString(I->ObjectType);
+					r += " " + State.GetName(I.get());
+					r += " = LowLevel::Malloc(" + ToString(State, *I, I->Target()) + ")";
+					break;
+				case IRInstructionType::FreeCall:
+					r += "LowLevel::Free(" + ToString(State, *I, I->Target()) + ")";
+					break;
+				case IRInstructionType::LoadReturn:
+					r += "ret " + ToString(State, *I, I->Target());
+					break;
+				case IRInstructionType::LoadNone:
+					r += ToString(I->ObjectType);
+					r += " " + State.GetName(I.get());
+					break;
+				case IRInstructionType::Load:
+					r += ToString(I->ObjectType);
+					r += " " + State.GetName(I.get());
+					r += " = " + ToString(State, *I, I->Target());
+					break;
+				case IRInstructionType::Reassign:
+					r += ToString(State, *I, I->Target());
+					r += " = " + ToString(State, *I, I->Input());
+					break;
+				case IRInstructionType::Add:
+					r += ToStringBinary(State, I.get(), "+");
+					break;
+				case IRInstructionType::Sub:
+					r += ToStringBinary(State, I.get(), "-");
+					break;
+				case IRInstructionType::UMult:
+				case IRInstructionType::SMult:
+					r += ToStringBinary(State, I.get(), "*");
+					break;
+				case IRInstructionType::SDiv:
+				case IRInstructionType::UDiv:
+					r += ToStringBinary(State, I.get(), "/");
+					break;
+				case IRInstructionType::EqualTo:
+					r += ToStringBinary(State, I.get(), "==");
+					break;
+				case IRInstructionType::NotEqualTo:
+					r += ToStringBinary(State, I.get(), "!=");
+					break;
+
+				case IRInstructionType::UGreaterThan:
+					r += ToStringBinary(State, I.get(), ">");
+					break;
+				case IRInstructionType::ULessThan:
+					r += ToStringBinary(State, I.get(), "<");
+					break;
+				case IRInstructionType::UGreaterThanOrEqual:
+					r += ToStringBinary(State, I.get(), ">=");
+					break;
+				case IRInstructionType::ULessThanOrEqual:
+					r += ToStringBinary(State, I.get(), "<=");
+					break;
+
+				case IRInstructionType::SGreaterThan:
+					r += ToStringBinary(State, I.get(), ">");
+					break;
+				case IRInstructionType::SLessThan:
+					r += ToStringBinary(State, I.get(), "<");
+					break;
+				case IRInstructionType::SGreaterThanOrEqual:
+					r += ToStringBinary(State, I.get(), ">=");
+					break;
+				case IRInstructionType::SLessThanOrEqual:
+					r += ToStringBinary(State, I.get(), "<=");
+					break;
+
+				case IRInstructionType::Logical_And:
+					r += ToStringBinary(State, I.get(), "&&");
+					break;
+				case IRInstructionType::Logical_Or:
+					r += ToStringBinary(State, I.get(), "||");
+					break;
+				case IRInstructionType::PushParameter:
+					State.TepPushedParameters.push_back(I.get());
+					continue;
+				case IRInstructionType::Logical_Not:
+					r += ToString(I->ObjectType);
+					r += " " + State.GetName(I.get());
+					r += " = !" + ToString(State, *I, I->Target());
+					break;
+				case IRInstructionType::Jump:
+					r += "goto ";
+					r += Names[I->Target().identifer];
+					break;
+				case IRInstructionType::ConditionalJump:
+					r += "gotoif (";
+					r += ToString(State, *I, I->Input());
+					r += ") ";
+					r += Names[I->Target().identifer];
+					break;
+				case IRInstructionType::Call:
+				{
+					r += ToString(I->ObjectType);
+					r += " " + State.GetName(I.get());
+					r += " = ";
+					r += FromID(I->Target().identifer) + "(";
+					for (auto& Item : State.TepPushedParameters)
+					{
+						r += State.PointerToName.at(Item->Target().Pointer);
+						if (&Item != &State.TepPushedParameters.back())
+						{
+							r += ",";
+						}
+					}
+					State.TepPushedParameters.clear();
+					r += ")";
+				}break;
+				case IRInstructionType::Reassign_dereference:
+					r += "*" + ToString(State, *I, I->Target());
+					r += " = " + ToString(State, *I, I->Input());
+					break;
+				case IRInstructionType::CallFuncPtr:
+					r += ToString(I->ObjectType);
+					r += " " + State.GetName(I.get());
+					r += " = ";
+					r += ToString(State, *I, I->Target()) + "(";
+					for (auto& Item : State.TepPushedParameters)
+					{
+						r += State.PointerToName.at(Item->Target().Pointer);
+						if (&Item != &State.TepPushedParameters.back())
+						{
+							r += ",";
+						}
+					}
+					State.TepPushedParameters.clear();
+					r += ")";
+					break;
+				case IRInstructionType::Return:
+					if (i != 0 && Block->Instructions[i - 1]->Type == IRInstructionType::LoadReturn) { continue; }
+					r += "ret";
+					break;
+				case  IRInstructionType::Member_Access:
+				{
+					State.PointerToName[I.get()] = ToString(State, *I, I->Target()) + ".__" + std::to_string(I->Input().Value.AsUIntNative);
+					continue;
+				}
+				case  IRInstructionType::Member_Access_Dereference:
+				{
+					State.PointerToName[I.get()] = ToString(State, *I, I->Target()) + "->__" + std::to_string(I->Input().Value.AsUIntNative);
+					continue;
+				}
+				default:
+					throw std::exception("not added");
+					break;
+				}
+				r += ";\n";
+
+				for (auto& Item : Names)
+				{
+					if (Item._Key == i)
+					{
+						r += Tabs;
+						r += Item._Value + ":";
+						r += "\n";
+
+					}
+				}
+			}
+			State.PointerToName.clear();
+		}
+	}
+	else
+	{
+		r += ";\n";
+	}
+	r += "\n";
 }
 String IRBuilder::ToString(const IRType& Type)
 {

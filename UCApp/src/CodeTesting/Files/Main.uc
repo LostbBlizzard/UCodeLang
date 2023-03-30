@@ -1,12 +1,13 @@
 
 $Vec2:
  int x;
- moved int y;
+ int y;
  |new[this&] -> void;
- |DoSomething[this&,moved this& Test] -> void;
 
+
+static s_a = 0;
+thread t_a = 0;
+int it_a = 0;
 
 |main[]:
- Vec2 v = [];
- Vec2 v2 = [];
- v.DoSomething(v2);
+ a = 10;
