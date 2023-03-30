@@ -2113,13 +2113,16 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 		
 		auto Ex = node.Expression.Value.get();
 		ExTypeDeclareVarableCheck(VarType, Ex, node.Name.Token);
+
+		
 	}
 	LookingForTypes.push(syb->VarType);
 
 	IRInstruction* OnVarable{};
 	bool IsStructObjectPassRef =false;
 	
-	
+	IRFunc* oldIRFunc{};
+	IRBlock* oldblock{};
 	
 	if (passtype == PassType::BuidCode) 
 	{
@@ -2131,6 +2134,46 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 			{
 				OnVarable = LookingAtIRBlock->NewLoad(ConvertToIR(syb->VarType));
 				syb->IR_Ins = OnVarable;
+
+
+			}
+			else if (syb->Type == SymbolType::StaticVarable)
+			{
+				oldIRFunc = LookingAtIRFunc;
+				oldblock = LookingAtIRBlock;
+
+			
+
+				if (_Builder._StaticInit.Blocks.size() == 0)
+				{
+					_Builder._StaticInit.NewBlock(".");
+				}	
+				
+				LookingAtIRFunc = &_Builder._StaticInit;
+				LookingAtIRBlock = LookingAtIRFunc->Blocks.front().get();
+
+				OnVarable = LookingAtIRBlock->NewLoad(ConvertToIR(syb->VarType));
+				
+			}
+			else if (syb->Type == SymbolType::ThreadVarable)
+			{
+				oldIRFunc = LookingAtIRFunc;
+				oldblock = LookingAtIRBlock;
+
+				if (_Builder._threadInit.Blocks.size() == 0)
+				{
+					_Builder._threadInit.NewBlock(".");
+				}
+
+				LookingAtIRFunc = &_Builder._threadInit;
+				LookingAtIRBlock = LookingAtIRFunc->Blocks.front().get();
+
+				OnVarable = LookingAtIRBlock->NewLoad(ConvertToIR(syb->VarType));
+				
+			}
+			else
+			{
+				throw std::exception("not added");
 			}
 
 			IsStructObjectPassRef = ISStructPassByRef(syb);
@@ -2139,7 +2182,6 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 			{
 				IRlocations.push({ OnVarable ,false });
 			}
-
 
 			OnExpressionTypeNode(node.Expression.Value.get());
 		}
@@ -2160,6 +2202,8 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 		syb = GetSymbol(sybId);
 		if (node.Expression.Value)
 		{
+			OnExpressionTypeNode(node.Expression.Value.get());
+
 			syb->SetTovalid();
 
 			auto& VarType = syb->VarType;
@@ -2210,35 +2254,115 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 		OnStoreVarable(IsStructObjectPassRef, OnVarable, syb, sybId);
 		
 		AddDependencyToCurrentFile(syb->VarType);
+	
+	
+		//
+		if (syb->Type == SymbolType::StaticVarable)
+		{
+			LookingAtIRFunc = oldIRFunc;
+			LookingAtIRBlock = oldblock;
+		}
+		else if (syb->Type == SymbolType::ThreadVarable)
+		{
+			LookingAtIRFunc = oldIRFunc;
+			LookingAtIRBlock = oldblock;
+		}
+	
 	}
 }
 void SystematicAnalysis::OnStoreVarable(bool IsStructObjectPassRef, UCodeLang::IRInstruction* OnVarable, UCodeLang::FrontEnd::Symbol* syb, const UCodeLang::SymbolID& sybId)
 {
-	if (IsStructObjectPassRef)
-	{
-		if (IRlocations.top().UsedlocationIR == false)
-		{
 
-			if (_LastExpressionField->Type == IRInstructionType::Load
-				&& _LastExpressionField->Target().Type == IROperatorType::IRInstruction)
-			{//to stop copying big objects
-				LookingAtIRBlock->NewStore(OnVarable, _LastExpressionField->Target().Pointer);
-				_LastExpressionField->SetAsNone();
+	if (syb->Type == SymbolType::StaticVarable || syb->Type == SymbolType::ThreadVarable)
+	{
+		auto id = _Builder.ToID(syb->FullName);
+		LookingAtIRBlock->NewStore(id, OnVarable);
+
+
+		if (HasDestructor(syb->VarType))
+		{
+			if (syb->Type == SymbolType::StaticVarable)
+			{
+				auto old = LookingAtIRBlock;
+				
+				if (_Builder._StaticdeInit.Blocks.size() == 0)
+				{
+					_Builder._StaticdeInit.NewBlock(".");
+				}
+				
+				LookingAtIRBlock = _Builder._StaticdeInit.Blocks.front().get();
+
+
+				auto Varable = LookingAtIRBlock->NewLoadPtr(id);
+
+				ObjectToDrop V;
+				V.ID = sybId;
+				V._Object = Varable;
+				V.DropType = ObjectToDropType::IRInstructionNoMod;
+				V.Type = syb->VarType;
+				DoDestructorCall(V);
+
+
+				LookingAtIRBlock = old;
 			}
 			else
 			{
-				LookingAtIRBlock->NewStore(OnVarable, _LastExpressionField);
+				auto old = LookingAtIRBlock;
+
+				if (_Builder._threaddeInit.Blocks.size() == 0)
+				{
+					_Builder._threaddeInit.NewBlock(".");
+				}
+
+				LookingAtIRBlock = _Builder._threaddeInit.Blocks.front().get();
+
+
+				auto Varable = LookingAtIRBlock->NewLoadPtr(id);
+
+				ObjectToDrop V;
+				V.ID = sybId;
+				V._Object = Varable;
+				V.DropType = ObjectToDropType::IRInstructionNoMod;
+				V.Type = syb->VarType;
+				DoDestructorCall(V);
+
+
+				LookingAtIRBlock = old;
 			}
 		}
-		IRlocations.pop();
+
+			
 	}
 	else
 	{
-		LookingAtIRBlock->NewStore(OnVarable, _LastExpressionField);
-	}
-	_LastExpressionField = nullptr;
 
-	AddDestructorToStack(syb, sybId, OnVarable);
+
+		if (IsStructObjectPassRef)
+		{
+			if (IRlocations.top().UsedlocationIR == false)
+			{
+
+				if (_LastExpressionField->Type == IRInstructionType::Load
+					&& _LastExpressionField->Target().Type == IROperatorType::IRInstruction)
+				{//to stop copying big objects
+					LookingAtIRBlock->NewStore(OnVarable, _LastExpressionField->Target().Pointer);
+					_LastExpressionField->SetAsNone();
+				}
+				else
+				{
+					LookingAtIRBlock->NewStore(OnVarable, _LastExpressionField);
+				}
+			}
+			IRlocations.pop();
+		}
+		else
+		{
+			LookingAtIRBlock->NewStore(OnVarable, _LastExpressionField);
+		}
+		_LastExpressionField = nullptr;
+
+		AddDestructorToStack(syb, sybId, OnVarable);
+	}
 }
 void SystematicAnalysis::AddDestructorToStack(UCodeLang::FrontEnd::Symbol* syb, const UCodeLang::SymbolID& sybId, UCodeLang::IRInstruction* OnVarable)
 {
