@@ -397,6 +397,11 @@ struct IRBlock
 		V->ObjectType = Type;
 		return V;
 	}
+	IRInstruction* NewLoad_IRID(const IRidentifierID& Value)
+	{
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Load, IROperator(Value))).get();
+		return V;
+	}
 
 	
 	//8bit
@@ -654,6 +659,11 @@ struct IRBlock
 		V->Input(IROperator(Value));
 	}
 	void NewDereferenc_Store(IRPar* Ptr, IRInstruction* Value)
+	{
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Reassign_dereference, Ptr)).get();
+		V->Input(IROperator(Value));
+	}
+	void NewDereferenc_Store(IRidentifierID Ptr, IRInstruction* Value)
 	{
 		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Reassign_dereference, Ptr)).get();
 		V->Input(IROperator(Value));

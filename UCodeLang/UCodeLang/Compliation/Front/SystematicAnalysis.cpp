@@ -2833,6 +2833,10 @@ void SystematicAnalysis::BuildMember_Store(const GetMemberTypeSymbolFromVar_t& I
 	case  SymbolType::ParameterVarable:
 		UseOutput ? LookingAtIRBlock->NewStore(Output, Value) : LookingAtIRBlock->NewStore(In.Symbol->IR_Par, Value);
 		break;
+	case SymbolType::StaticVarable:
+	case SymbolType::ThreadVarable:
+		LookingAtIRBlock->NewStore(_Builder.ToID(In.Symbol->FullName), Value);
+		break;
 	default:
 		throw std::exception("not added");
 		break;
@@ -2859,6 +2863,9 @@ IRInstruction* SystematicAnalysis::BuildMember_GetPointer(const GetMemberTypeSym
 	case  SymbolType::ParameterVarable:
 		return UseOutput ? LookingAtIRBlock->NewLoadPtr(Output): LookingAtIRBlock->NewLoadPtr(In.Symbol->IR_Par);
 		break;
+	case  SymbolType::StaticVarable:
+	case  SymbolType::ThreadVarable:
+		return LookingAtIRBlock->NewLoadPtr(_Builder.ToID(In.Symbol->FullName));
 	default:
 		throw std::exception("not added");
 		break;
@@ -2874,6 +2881,10 @@ void SystematicAnalysis::BuildMemberDereferencStore(const GetMemberTypeSymbolFro
 	case  SymbolType::ParameterVarable:
 		LookingAtIRBlock->NewDereferenc_Store(In.Symbol->IR_Par, Value);
 		break;
+	case  SymbolType::StaticVarable:
+	case  SymbolType::ThreadVarable:
+		LookingAtIRBlock->NewDereferenc_Store(_Builder.ToID(In.Symbol->FullName), Value);
+		break;
 	default:
 		throw std::exception("not added");
 		break;
@@ -2883,6 +2894,8 @@ IRInstruction* SystematicAnalysis::BuildMember_GetValue(const GetMemberTypeSymbo
 {
 	switch (In.Symbol->Type)
 	{
+	case SymbolType::StaticVarable:
+	case SymbolType::ThreadVarable:
 	case  SymbolType::Class_Field:
 	case  SymbolType::StackVarable:
 	case  SymbolType::ParameterVarable:
@@ -2904,6 +2917,10 @@ IRInstruction* SystematicAnalysis::BuildMember_GetValue(const GetMemberTypeSymbo
 		else if (In.Symbol->Type == SymbolType::ParameterVarable)
 		{
 			return UseOutput ? LookingAtIRBlock->NewLoad(Output) : LookingAtIRBlock->NewLoad(In.Symbol->IR_Par);
+		}
+		else if (In.Symbol->Type == SymbolType::StaticVarable || In.Symbol->Type == SymbolType::ThreadVarable)
+		{
+			return LookingAtIRBlock->NewLoad_IRID(_Builder.ToID(In.Symbol->FullName));
 		}
 		else
 		{
@@ -2974,7 +2991,6 @@ IRInstruction* SystematicAnalysis::BuildMember_GetValue(const GetMemberTypeSymbo
 			throw std::exception("not added");
 		}
 	}
-		break;
 	default:
 		throw std::exception("not added");
 		break;
