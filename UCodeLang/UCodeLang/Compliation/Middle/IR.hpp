@@ -496,6 +496,12 @@ struct IRBlock
 		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Reassign, Storage)).get();
 		V->Input(IROperator(Value));
 	}
+
+	void NewStore(IRidentifierID Storage, IRInstruction* Value)
+	{
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Reassign, Storage)).get();
+		V->Input(IROperator(Value));
+	}
 	
 	void NewStorePtr(IRInstruction* Storage, IRInstruction* Value)
 	{
