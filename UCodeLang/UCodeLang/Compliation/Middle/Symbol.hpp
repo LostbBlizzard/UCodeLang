@@ -7,6 +7,7 @@ UCodeLangStart
 struct IRInstruction;
 struct IRPar;
 struct FileNode;
+struct IRFunc;
 UCodeLangEnd
 
 UCodeLangFrontStart
@@ -397,6 +398,13 @@ public:
 	{
 		Fields.emplace_back((String)Name, Type);
 	}
+
+
+
+	bool _WillHaveFieldInit = false;
+	bool _WillHaveFielddeInit = false;
+	IRFunc* _ClassFieldInit=nullptr;
+	IRFunc* _ClassField_deInit = nullptr;
 };
 
 struct RawEvaluatedObject

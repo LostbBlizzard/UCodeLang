@@ -37,9 +37,17 @@ private:
 	};
 	String ToString();
 
+	void AddSybToString(UCodeLang::String& r);
+
+	void NewFunction(UCodeLang::String& r, UCodeLang::IRBufferData* V);
+
+	void ToString(String& r, const IRFunc* Item, C89Backend::ToStringState& State);
+
 	String ToString(const IRType& Type);
 
 	String ToString(ToStringState& State, IRInstruction& Ins, IROperator& Value);
 	String ToStringBinary(ToStringState& State, IRInstruction* Ins, const char* V);
+	String UpdateToCindentifier(const 	String& Value);
+	String FromIDToCindentifier(IRidentifierID Value);
 };
 UCodeLangEnd

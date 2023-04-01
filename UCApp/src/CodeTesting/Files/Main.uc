@@ -1,16 +1,17 @@
 
+$Test:
+ |new[this&] -> void;
+ |+[this&,this& Other] -> this;
+
 $dropable:
+ Test A = [];
+ int x =0;
  |new[this&] -> void;
  |drop[this&] -> void;
 
-static int s_a = 1;
-thread int t_a = 2;
-int it_a = 3;
-dropable H = [];
-static dropable V = [];
 
-static int& Test;
+Test __B;
+//int V = 5 * 7;
 
 |main[] -> void:
- Test = s_a;
- 
+ Test V = [] + [];
