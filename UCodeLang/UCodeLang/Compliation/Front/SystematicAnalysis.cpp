@@ -2098,6 +2098,19 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 
 		}
 		syb->NodePtr = (void*)node.Name.Token->OnPos;//a tep solution. 
+
+
+		//
+		if (type == DeclareStaticVariableNode_t::Static
+			|| type == DeclareStaticVariableNode_t::Thread)
+		{
+			if (!node.Expression.Value)
+			{
+				auto Token = node.Name.Token;
+				String VarType = type == DeclareStaticVariableNode_t::Static ? "Static" : "Thread";
+				_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, VarType + " Varable must be assigned.missing '='.");
+			}
+		}
 	}
 	else
 	{
@@ -2113,6 +2126,8 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 		
 		auto Ex = node.Expression.Value.get();
 		ExTypeDeclareVarableCheck(VarType, Ex, node.Name.Token);
+
+		
 
 		
 	}
@@ -2152,8 +2167,10 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 				LookingAtIRFunc = &_Builder._StaticInit;
 				LookingAtIRBlock = LookingAtIRFunc->Blocks.front().get();
 
-				OnVarable = LookingAtIRBlock->NewLoad(ConvertToIR(syb->VarType));
-				
+
+				if (ISStructPassByRef(syb)) {
+					OnVarable = LookingAtIRBlock->NewLoad(ConvertToIR(syb->VarType));
+				}
 			}
 			else if (syb->Type == SymbolType::ThreadVarable)
 			{
@@ -2168,8 +2185,42 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 				LookingAtIRFunc = &_Builder._threadInit;
 				LookingAtIRBlock = LookingAtIRFunc->Blocks.front().get();
 
-				OnVarable = LookingAtIRBlock->NewLoad(ConvertToIR(syb->VarType));
-				
+
+				if (ISStructPassByRef(syb)) {
+					OnVarable = LookingAtIRBlock->NewLoad(ConvertToIR(syb->VarType));
+				}
+			}
+			else if (syb->Type == SymbolType::Class_Field)
+			{
+				oldIRFunc = LookingAtIRFunc;
+				oldblock = LookingAtIRBlock;
+
+				auto* Classinfo = _ClassStack.top().Info;
+				if (Classinfo->_ClassFieldInit == nullptr)
+				{
+					String funcName = _Table._Scope.GetApendedString((String)ClassInitializefuncName);
+
+
+					Classinfo->_ClassFieldInit = _Builder.NewFunc(funcName, IRTypes::Void);
+					Classinfo->_ClassFieldInit->NewBlock(".");
+					{
+						auto Classtype = TypeSymbol(GetSymbol(Classinfo)->ID);
+						Classtype._IsAddress = true;
+
+						IRPar ThisPar;
+						ThisPar.identifier = _Builder.ToID(ThisSymbolName);
+						ThisPar.type = ConvertToIR(Classtype);
+						Classinfo->_ClassFieldInit->Pars.push_back(ThisPar);
+					}
+				}
+
+				LookingAtIRFunc = Classinfo->_ClassFieldInit;
+				LookingAtIRBlock = LookingAtIRFunc->Blocks.front().get();
+
+
+				if (ISStructPassByRef(syb)) {
+					OnVarable = LookingAtIRBlock->NewLoad(ConvertToIR(syb->VarType));
+				}
 			}
 			else
 			{
@@ -2240,7 +2291,19 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 				Item->Type = syb->VarType;
 
 				Class.Size += GetSize(Item->Type).value();
+				
+				if (node.Expression.Value) 
+				{
+					Class._WillHaveFieldInit= true;
+				}
+				if (HasDestructor(Item->Type))
+				{
+					Class._WillHaveFielddeInit = true;
+				}
 			}
+
+			
+
 		}
 	}
 	LookingForTypes.pop();
@@ -2267,6 +2330,11 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 			LookingAtIRFunc = oldIRFunc;
 			LookingAtIRBlock = oldblock;
 		}
+		else if (syb->Type == SymbolType::Class_Field)
+		{
+			LookingAtIRFunc = oldIRFunc;
+			LookingAtIRBlock = oldblock;
+		}
 	
 	}
 }
@@ -2276,7 +2344,16 @@ void SystematicAnalysis::OnStoreVarable(bool IsStructObjectPassRef, UCodeLang::I
 	if (syb->Type == SymbolType::StaticVarable || syb->Type == SymbolType::ThreadVarable)
 	{
 		auto id = _Builder.ToID(syb->FullName);
-		LookingAtIRBlock->NewStore(id, OnVarable);
+
+
+		if (IsStructObjectPassRef)
+		{
+			LookingAtIRBlock->NewStore(id, OnVarable);
+		}
+		else
+		{
+			LookingAtIRBlock->NewStore(id, _LastExpressionField);
+		}
 
 
 		if (HasDestructor(syb->VarType))
@@ -2284,12 +2361,12 @@ void SystematicAnalysis::OnStoreVarable(bool IsStructObjectPassRef, UCodeLang::I
 			if (syb->Type == SymbolType::StaticVarable)
 			{
 				auto old = LookingAtIRBlock;
-				
+
 				if (_Builder._StaticdeInit.Blocks.size() == 0)
 				{
 					_Builder._StaticdeInit.NewBlock(".");
 				}
-				
+
 				LookingAtIRBlock = _Builder._StaticdeInit.Blocks.front().get();
 
 
@@ -2331,7 +2408,27 @@ void SystematicAnalysis::OnStoreVarable(bool IsStructObjectPassRef, UCodeLang::I
 			}
 		}
 
-			
+
+	}
+	else if (syb->Type == SymbolType::Class_Field)
+	{
+		auto Classinfo = this->_ClassStack.top().Info;
+		auto classSb = GetSymbol(Classinfo);
+		auto Classtype = TypeSymbol(classSb->ID);
+		auto GG = classSb->Get_Info<ClassInfo>();
+		auto IndexFeild = GG->GetFieldIndex(ScopeHelper::GetNameFromFullName(syb->FullName)).value();
+
+		IRStruct* V = _Builder.GetSymbol(ConveToIRClassIR(*classSb))->Get_ExAs<IRStruct>();
+		auto output = LookingAtIRBlock->New_Member_Dereference(&LookingAtIRFunc->Pars[0], ConvertToIR(classSb->ID), IndexFeild);
+
+		if (IsStructObjectPassRef)
+		{
+			LookingAtIRBlock->NewStore(output, OnVarable);
+		}
+		else
+		{
+			LookingAtIRBlock->NewStore(output, _LastExpressionField);
+		}
 	}
 	else
 	{
@@ -5013,12 +5110,12 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 
 	if (LookingForTypes.size() && LookingForTypes.top()._Type != TypesEnum::Var)
 	{
-		TypeSymbol V; V.SetType(TypesEnum::Any);
-		LookingForTypes.push(V);
+		LookingForTypes.push(LookingForTypes.top());
 	}
 	else
 	{
-		LookingForTypes.push(LookingForTypes.top());
+		TypeSymbol V; V.SetType(TypesEnum::Any);
+		LookingForTypes.push(V);
 	}
 
 	BinaryExpressionNode_Data* Data =nullptr;
@@ -7150,6 +7247,9 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 
 	IRInstruction* PushIRStackRet = false;
 	bool AutoPushThis = Func.ThisPar != Get_FuncInfo::ThisPar_t::NoThisPar;
+
+	Vector< IRInstruction*> IRParsList;
+
 	if (AutoPushThis)
 	{
 		if (Func.ThisPar == Get_FuncInfo::ThisPar_t::FullScopedName)
@@ -7158,7 +7258,7 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 			GetMemberTypeSymbolFromVar_t V;
 			GetMemberTypeSymbolFromVar(0, Name.ScopedName.size(), Name, V);
 
-			LookingAtIRBlock->NewPushParameter(BuildMember_AsPointer(V));
+			IRParsList.push_back(BuildMember_AsPointer(V));
 		}
 		else
 		if (Func.ThisPar == Get_FuncInfo::ThisPar_t::PushFromScopedName)
@@ -7167,11 +7267,11 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 			GetMemberTypeSymbolFromVar_t V;
 			GetMemberTypeSymbolFromVar(0,Name.ScopedName.size() - 1, Name, V);
 
-			LookingAtIRBlock->NewPushParameter(BuildMember_AsPointer(V));
+			IRParsList.push_back(BuildMember_AsPointer(V));
 		}
 		else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::PushFromLast)
 		{
-			LookingAtIRBlock->NewPushParameter(_LastExpressionField);
+			IRParsList.push_back(_LastExpressionField);
 		}
 		else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::OnIRlocationStack)
 		{
@@ -7191,13 +7291,18 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 				PushIRStackRet =tep.Value = LookingAtIRBlock->NewLoad(ConvertToIR(Type));
 				IRlocations.push(tep);
 			}
+			else
+			{
+				PushIRStackRet = IRlocations.top().Value;
+
+			}
 
 
 
 			{
 				auto Defe = LookingAtIRBlock->NewLoadPtr(IRlocations.top().Value);
 				IRlocations.top().UsedlocationIR = true;
-				LookingAtIRBlock->NewPushParameter(Defe);
+				IRParsList.push_back(Defe);
 			}
 
 			if (!UseedTopIR)
@@ -7225,7 +7330,7 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 			}
 
 			{
-				LookingAtIRBlock->NewPushParameter(IRlocations.top().Value);
+				IRParsList.push_back(IRlocations.top().Value);
 				IRlocations.top().UsedlocationIR = true;
 			}
 
@@ -7236,11 +7341,11 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 		}
 		else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::PushWasCalled)
 		{
-
+			throw std::exception("not added");//just add IRPar list
 		}
 		else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::AutoPushThis)
 		{
-			LookingAtIRBlock->NewPushParameter(LookingAtIRBlock->NewLoad(&LookingAtIRFunc->Pars.front()));
+			IRParsList.push_back(LookingAtIRBlock->NewLoad(&LookingAtIRFunc->Pars.front()));
 		}
 		else
 		{
@@ -7260,7 +7365,7 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 		OnExpressionTypeNode(Item.get());
 		DoImplicitConversion(_LastExpressionField, LastExpressionType, FuncParInfo);
 
-		LookingAtIRBlock->NewPushParameter(_LastExpressionField);
+		IRParsList.push_back(_LastExpressionField);
 		
 
 		LookingForTypes.pop();
@@ -7269,6 +7374,15 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 
 	AddDependencyToCurrentFile(Syb);
 	
+	//
+
+	
+	for (auto& Item : IRParsList)
+	{
+		LookingAtIRBlock->NewPushParameter(Item);
+	}
+	//
+
 	if (Syb->Type== SymbolType::Func)
 	{
 		_LastExpressionField = LookingAtIRBlock->NewCall(GetIRID(Func.Func));
@@ -7288,10 +7402,26 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 
 	if (LookingForTypes.size() && Get_LookingForType().IsnotAn(TypesEnum::Void) && PushIRStackRet)//constructors are just void funcions so just set last as the input this
 	{
-		_LastExpressionField = PushIRStackRet;
-	}
 
-	LastExpressionType = Func.Func->Ret;
+		_LastExpressionField = PushIRStackRet;
+		LastExpressionType = Func.Func->Pars.front();
+		
+		
+		if (Get_LookingForType().IsAddress())
+		{
+			_LastExpressionField = LookingAtIRBlock->NewLoadPtr(_LastExpressionField);
+		}
+		else
+		{
+			LastExpressionType._IsAddress = false;
+		}
+		
+
+	}
+	else
+	{
+		LastExpressionType = Func.Func->Ret;
+	}
 }
 void SystematicAnalysis::DoDestructorCall(const ObjectToDrop& Object)
 {
@@ -7798,16 +7928,13 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 		bool MayBeAutoThisFuncCall = Name.ScopedName.size() == 1 && IsInThisFuncCall();
 
 
-		if (ThisParType == Get_FuncInfo::ThisPar_t::NoThisPar) {
+		if (ThisParType == Get_FuncInfo::ThisPar_t::NoThisPar && MayBeAutoThisFuncCall && AutoThisCall == false)
+		{
+			AutoThisCall = true;
 
-			if (MayBeAutoThisFuncCall && AutoThisCall == false)
-			{
-				AutoThisCall = true;
-
-				ValueTypes.insert(ValueTypes.begin(), *_FuncStack.back().Pointer->GetObjectForCall());
-				ThisParType = Get_FuncInfo::ThisPar_t::AutoPushThis;
-				goto StartSymbolsLoop;
-			}
+			ValueTypes.insert(ValueTypes.begin(), *_FuncStack.back().Pointer->GetObjectForCall());
+			ThisParType = Get_FuncInfo::ThisPar_t::AutoPushThis;
+			goto StartSymbolsLoop;
 		}
 		else 
 		{

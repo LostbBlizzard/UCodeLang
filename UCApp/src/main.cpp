@@ -140,7 +140,7 @@ int main()
 	Data.IntDir = IntPath;
 	Settings._Flags = OptimizationFlags::Debug;
 
-	//_Compiler.Set_BackEnd(ULangTest::X86BackEnd_UCodeLib::MakeObject);
+	//_Compiler.Set_BackEnd(ULangTest::C89Backend::MakeObject);
 
 	/*
 	size_t ErrCount = 0;
