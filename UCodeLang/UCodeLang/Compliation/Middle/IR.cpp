@@ -158,7 +158,13 @@ String IRBuilder::ToString()
 			
 			for (auto& Item2 : V->Bytes)
 			{
-				r += std::to_string(Item2);
+				if (V->IsInitialized) {
+					r += std::to_string(Item2);
+				}
+				else
+				{
+					r += '?';
+				}
 
 				if (&Item2 != &V->Bytes.back()) {
 					r += ",";
@@ -175,7 +181,13 @@ String IRBuilder::ToString()
 
 			for (auto& Item2 : V->Bytes)
 			{
-				r += std::to_string(Item2);
+				if (V->IsInitialized) {
+					r += std::to_string(Item2);
+				}
+				else
+				{
+					r += '?';
+				}
 
 				if (&Item2 != &V->Bytes.back()) {
 					r += ",";

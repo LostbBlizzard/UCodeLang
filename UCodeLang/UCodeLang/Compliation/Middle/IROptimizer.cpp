@@ -50,7 +50,7 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 			std::cout << "-----" << std::endl;
 			std::cout << S;
 		}
-			_UpdatedCode = false;
+		_UpdatedCode = false;
 		
 
 		return;

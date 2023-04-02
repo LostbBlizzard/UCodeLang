@@ -563,7 +563,7 @@ private:
 	void OnUseingNode(const UsingNode& node);
 	void OnFuncNode(const FuncNode& node);
 	void SetInStatetements(bool Value);
-	void FuncGetName(const UCodeLang::Token* NameToken, std::string_view& FuncName, UCodeLang::FrontEnd::FuncInfo::FuncType& FuncType);
+	void FuncGetName(const Token* NameToken, std::string_view& FuncName, FuncInfo::FuncType& FuncType);
 	
 	void OnStatement(const Unique_ptr<UCodeLang::Node>& node2);
 	void OnRetStatement(const RetStatementNode& node);
@@ -621,7 +621,7 @@ private:
 	void OnCompoundStatementNode(const CompoundStatementNode& node);
 	void OnExpressionTypeNode(const Node* node);
 	void OnExpressionNode(const ValueExpressionNode& node);
-	void OnMovedNode(UCodeLang::FrontEnd::MoveNode* nod);
+	void OnMovedNode(MoveNode* nod);
 	void OnNumberliteralNode(NumberliteralNode* num);
 	void OnBoolliteralNode(BoolliteralNode* num);
 	void OnCharliteralNode(CharliteralNode* num);

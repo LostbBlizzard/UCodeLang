@@ -339,7 +339,7 @@ struct IRSymbol_Ex
 struct IRStructField
 {
 	IRType Type;
-	Optional<size_t> Offset=0;
+	Optional<size_t> Offset;
 };
 
 struct IRStruct : IRSymbol_Ex
@@ -377,6 +377,7 @@ struct IRStaticArray : IRSymbol_Ex
 struct IRBufferData : IRSymbol_Ex
 {
 	Vector<Byte> Bytes;
+	bool IsInitialized = false;
 };
 
 //
@@ -903,6 +904,7 @@ public:
 		IRidentifierID identifier = ToID(".Const.String:" + (String)Buffer);
 		auto V = NewStaticVarable(identifier,IRType(IRTypes::i8));
 
+		V.Pointer->IsInitialized = true;
 		V.Pointer->Bytes.resize(Buffer.size());
 		memcpy(V.Pointer->Bytes.data(), Buffer.data(), Buffer.size());
 
