@@ -676,6 +676,7 @@ struct EnumValueNode :Node
 	
 	NameNode Name;
 	ExpressionNodeType Expression;
+	Optional<TypeNode> VariantType;
 };
 struct EnumNode :Node
 {
