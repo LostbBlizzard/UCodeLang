@@ -1737,6 +1737,83 @@ GotNodeType Parser::GetEnumValueNode(EnumValueNode& out)
 {
 	GetName(out.Name);
 
+
+	auto BToken = TryGetToken();
+	AnonymousTypeNode* ClassType = nullptr;
+	if (BToken->Type == TokenType::Left_Bracket)
+	{
+		NextToken();
+
+
+		while (true)
+		{
+			TypeNode V;
+			GetType(V);
+			
+
+			auto CToken = TryGetToken();
+			if (ClassType || CToken->Type == TokenType::Name)
+			{
+				NamedParameterNode pars;
+				if (CToken->Type == TokenType::Name)
+				{
+					pars.Name.Token = CToken;
+					NextToken();
+				}
+				else
+				{
+					pars.Name.Token = out.Name.Token;
+				}
+
+				if (ClassType == nullptr) {
+					ClassType = AnonymousTypeNode::Gen();
+				}
+
+				
+				
+				pars.Type = std::move(V);
+				ClassType->Fields.Parameters.push_back(std::move(pars));
+
+
+				auto ColonToken = TryGetToken();
+				if (ColonToken == nullptr || ColonToken->Type != TokenType::Comma) { break; }
+				NextToken();
+			}
+			else
+			{
+				if (CToken->Type == TokenType::Comma)
+				{
+					if (ClassType == nullptr) {
+						ClassType = AnonymousTypeNode::Gen();
+					}
+
+					NamedParameterNode pars;
+					pars.Name.Token = out.Name.Token;
+					pars.Type = std::move(V);
+					ClassType->Fields.Parameters.push_back(std::move(pars));
+					NextToken();
+					continue;
+				}
+
+				out.VariantType = std::move(V);
+				break;
+			}
+
+			
+
+		}
+		if (ClassType)
+		{
+			TypeNode V;
+			V.node.reset(ClassType);
+			out.VariantType = std::move(V);
+		}
+
+		auto RToken = TryGetToken();
+		TokenTypeCheck(RToken, TokenType::Right_Bracket);
+		NextToken();
+	}
+
 	auto EqualToken = TryGetToken();
 	if (EqualToken && EqualToken->Type == TokenType::equal)
 	{
