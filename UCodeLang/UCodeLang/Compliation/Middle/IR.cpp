@@ -22,19 +22,43 @@ void IRBuilder::Reset()
 
 void IRBuilder::Fix_Size(IRStruct* Struct)
 {
-	size_t R = 0;
-
-	for (size_t i = 0; i < Struct->Fields.size(); i++)
+	if (Struct->IsUnion) 
 	{
-		auto& Item = Struct->Fields[i];
-		if (!Item.Offset.has_value())
+		size_t R = 0;
+
+		for (size_t i = 0; i < Struct->Fields.size(); i++)
 		{
-			size_t fieldsize = GetSize(Struct->Fields[i].Type);
-			R += fieldsize;
-			Item.Offset = R;
+			auto& Item = Struct->Fields[i];
+			if (!Item.Offset.has_value())
+			{
+				size_t fieldsize = GetSize(Struct->Fields[i].Type);
+				
+				if (fieldsize > R) 
+				{
+					R = fieldsize;
+				}
+
+				Item.Offset = 0;
+			}
 		}
+		Struct->ObjectSize = R;
 	}
-	Struct->ObjectSize = R;
+	else
+	{
+		size_t R = 0;
+
+		for (size_t i = 0; i < Struct->Fields.size(); i++)
+		{
+			auto& Item = Struct->Fields[i];
+			if (!Item.Offset.has_value())
+			{
+				size_t fieldsize = GetSize(Struct->Fields[i].Type);
+				R += fieldsize;
+				Item.Offset = R;
+			}
+		}
+		Struct->ObjectSize = R;
+	}
 }
 
 
@@ -135,7 +159,15 @@ String IRBuilder::ToString()
 		case IRSymbolType::Struct:
 		{
 			IRStruct* V = Item->Get_ExAs<IRStruct>();
-			r += "$" + SybName + "\n";
+
+			if (V->IsUnion) 
+			{
+				r += "union " + SybName + "\n";
+			}
+			else
+			{
+				r += "$" + SybName + "\n";
+			}
 
 			for (size_t i = 0; i < V->Fields.size(); i++)
 			{
