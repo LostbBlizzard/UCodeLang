@@ -755,7 +755,11 @@ private:
 
 	bool IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode);
 
+
 	bool HasDestructor(const TypeSymbol& TypeToCheck);
+
+	void Update_ClassSym_ToFixedTypes(Symbol* Sym);
+	void Update_FuncSym_ToFixedTypes(Symbol* Sym);
 
 	Optional<size_t> GetSize(const TypeSymbol& Type)
 	{
