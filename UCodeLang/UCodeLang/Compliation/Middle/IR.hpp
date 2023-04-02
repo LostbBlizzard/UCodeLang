@@ -346,6 +346,7 @@ struct IRStruct : IRSymbol_Ex
 {
 	Vector<IRStructField> Fields;
 	size_t ObjectSize = 0;
+	bool IsUnion = false;
 
 	void AddField(IRType Type, size_t ObjectSize)
 	{
@@ -928,7 +929,12 @@ public:
 		_Symbols.emplace_back(r);
 		return V;
 	}
-
+	IRStruct* NewUnion(IRidentifierID identifier)
+	{
+		auto r = NewStruct(identifier);
+		r->IsUnion = true;
+		return r;
+	}
 
 	IRFuncPtr* NewFuncPtr(IRidentifierID identifier, IRType ReturnType)
 	{
