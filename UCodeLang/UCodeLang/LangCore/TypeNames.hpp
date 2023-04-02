@@ -30,12 +30,13 @@
 #define CompilerGeneratedEnd "&)"
 #define CompilerGenerated(x) CompilerGeneratedStart x CompilerGeneratedEnd
 
-#define ClassInitializefuncName CompilerGenerated("_init")
+
+
 #define ClassConstructorfunc CompilerGenerated("_new")
 #define ClassDestructorFunc CompilerGenerated("_drop")
-#define ClassCopyFunc CompilerGenerated("_copy")
-#define ClassMoveFunc CompilerGenerated("_move")
-#define ClassSwapFunc CompilerGenerated("_swap")
+
+#define ClassInitializefuncName CompilerGenerated("_init")
+#define ClassDeInitializefuncName CompilerGenerated("_de-init")
 
 #define ThisSymbolName CompilerGenerated("this")
 

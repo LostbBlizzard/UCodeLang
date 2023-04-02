@@ -128,19 +128,12 @@ public:
 		{
 			return Get_ClassMethod(ClassInitializefuncName);
 		}//This May be null.
-		const ClassMethod* Get_ClassCopy() const
+		
+		const ClassMethod* Get_ClassConstructor() const
 		{
-			return Get_ClassMethod(ClassCopyFunc);
+			return Get_ClassMethod(ClassConstructorfunc);
 		}//This May be null.
 
-		const ClassMethod* Get_ClassMove() const
-		{
-			return Get_ClassMethod(ClassMoveFunc);
-		}//This May be null.
-		const ClassMethod* Get_ClassSwap() const
-		{
-			return Get_ClassMethod(ClassSwapFunc);
-		}//This May be null.
 		const ClassMethod* Get_ClassDestructor() const
 		{
 			return Get_ClassMethod(ClassDestructorFunc);

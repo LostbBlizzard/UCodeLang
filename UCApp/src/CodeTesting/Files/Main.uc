@@ -1,17 +1,14 @@
 
-$Test:
- |new[this&] -> void;
- |+[this&,this& Other] -> this;
-
-$dropable:
- Test A = [];
- int x =0;
- |new[this&] -> void;
+$Droping:
  |drop[this&] -> void;
 
+$Test:
+ Droping X;
+ int Y =0;
+ |new[this&] -> void;
 
-Test __B;
+Test __B = [];
 //int V = 5 * 7;
 
-|main[] -> void:
- Test V = [] + [];
+|main[]:
+  Test V = [];
