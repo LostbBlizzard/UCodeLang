@@ -6,10 +6,12 @@ $Droping:
 $Test:
  Droping X = [];
  int Y = [];
+ |+[this&,this& Other] -> this;
 
+var __B = Test() + Test();
+int V = 5 * 7;
 
-Test __B = [];
-//int V = 5 * 7;
+|Add[Test& V] -> void;
 
 |main[]:
-  Test V = [];
+  Add(Test());

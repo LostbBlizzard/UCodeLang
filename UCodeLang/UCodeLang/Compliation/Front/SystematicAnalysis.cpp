@@ -7609,6 +7609,7 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 		}
 	}
 
+	
 	for (size_t i = 0; i < Pars._Nodes.size(); i++)
 	{
 		auto& Item = Pars._Nodes[i];
@@ -7654,6 +7655,35 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 	else
 	{
 		throw std::exception("not added");
+	}
+
+	{
+		auto Tep = _LastExpressionField;
+		for (size_t i = 0; i < IRParsList.size(); i++)
+		{
+			auto& Item = IRParsList[i];
+			auto& ItemType = Func.Func->Pars[i];
+
+			if (ItemType._IsAddress == false && HasDestructor(ItemType))
+			{
+				ObjectToDrop obj;
+				obj.DropType = ObjectToDropType::IRInstructionNoMod;
+				obj.Type = ItemType;
+				obj._Object = Item;
+
+
+
+				if (!obj.Type.IsAddress())//will not work if Destructor doesn't taken in pointer
+				{
+					obj._Object = LookingAtIRBlock->NewLoadPtr(obj._Object);
+				}
+
+				obj.Type._IsAddress = false;
+				DoDestructorCall(obj);
+			}
+
+		}
+		_LastExpressionField = Tep;
 	}
 
 	if (LookingForTypes.size() && Get_LookingForType().IsnotAn(TypesEnum::Void) && PushIRStackRet)//constructors are just void funcions so just set last as the input this
@@ -7760,6 +7790,16 @@ void SystematicAnalysis::DoDestructorCall(const ObjectToDrop& Object)
 					FuncInfo.ThisPar = Get_FuncInfo::ThisPar_t::OnIRlocationStackNonedef;
 						IRlocations.push({ Object._Object, false });
 						break;
+				case ObjectToDropType::Operator:
+					FuncInfo.ThisPar = Get_FuncInfo::ThisPar_t::OnIRlocationStackNonedef;
+
+					if (Object._Operator.Type != IROperatorType::IRInstruction)
+					{
+						throw std::exception("not added");
+					}
+
+					IRlocations.push({LookingAtIRBlock->NewLoad(Object._Operator.Pointer), false });
+					break;
 				default:
 					throw std::exception("not added");
 					break;
