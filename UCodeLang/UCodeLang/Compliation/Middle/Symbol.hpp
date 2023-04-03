@@ -456,6 +456,18 @@ public:
 	}
 };
 
+struct EnumVariantFeild
+{
+	Vector <TypeSymbol> Types;
+};
+
+struct EnumVariantData
+{
+	Optional<size_t> VariantSize = 0;
+
+	Vector<EnumVariantFeild> Variants;
+};
+
 class EnumInfo :public Symbol_Info
 {
 public:
@@ -485,6 +497,17 @@ public:
 		return {};
 	}
 
+	Optional<size_t> GetFieldIndex(const String_view Name)
+	{
+		for (size_t i = 0; i < Fields.size(); i++)
+		{
+			auto& Item = Fields[i];
+			if (Item.Name == Name) {
+				return i;
+			}
+		}
+		return {};
+	}
 
 	EnumFieldInfo& AddField(const String_view Name)
 	{
@@ -492,6 +515,8 @@ public:
 		r.Name = (String)Name;
 		return r;
 	}
+
+	Optional<EnumVariantData> VariantData;
 };
 
 class FuncPtrInfo :public Symbol_Info

@@ -484,6 +484,7 @@ private:
 
 	IRidentifierID ConveToIRClassIR(const Symbol& Class);
 	IRidentifierID ConveToStaticArray(const Symbol& Class);
+	IRidentifierID ConveToIRVariantEnum(const Symbol& Class);
 
 	IRType ConvertToIR(const TypeSymbol& Value);
 	BinaryVectorMap<SymbolID, IRidentifierID> SybToIRMap;
@@ -900,6 +901,7 @@ private:
 	void LogCantOverLoadOverload(const Token* NameToken);
 	void LogCantFindMemberOverloadForType(const Token* Item, TokenType Op, const TypeSymbol& Out);
 	void LogCantUseMoveTypeHere(const Token* Token);
+	void LogMustMakeEnumLikeafuncion(EnumInfo* Einfo, size_t Index, const Token* Token);
 
 	String ToString(SymbolType Value);
 	ReadVarErrorCheck_t LogTryReadVar(String_view VarName, const Token* Token, const Symbol* Syb);

@@ -83,6 +83,11 @@ void SystematicAnalysis::BuildCode()
 			ConveToIRClassIR(*Item);
 		}
 		break;
+		case SymbolType::Enum:
+		{
+			ConveToIRVariantEnum(*Item);
+		}
+		break;
 		case SymbolType::Type_StaticArray:
 		{
 			ConveToStaticArray(*Item);
@@ -1921,6 +1926,11 @@ IRidentifierID SystematicAnalysis::ConveToStaticArray(const Symbol& Class)
 	return V;
 }
 
+IRidentifierID SystematicAnalysis::ConveToIRVariantEnum(const Symbol& Enum)
+{
+	return 0;
+}
+
 IRType SystematicAnalysis::ConvertToIR(const TypeSymbol& Value)
 {
 	if (Value.IsAddress() || Value.IsAddressArray())
@@ -2195,10 +2205,74 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 			}
 			_Table._Scope.ReMoveScope();
 
+
+			if (Item.VariantType)
+			{
+				if (!ClassInf->VariantData.has_value())
+				{
+					ClassInf->VariantData = EnumVariantData();
+				}
+			}
 		}
 		else if (passtype == PassType::FixedTypes)
 		{
+			if (ClassInf->VariantData)
+			{
+				
+				EnumVariantData& EnumVa = ClassInf->VariantData.value();
+				
+				
+				if (Item.VariantType)
+				{
+					auto& VariantType_ = Item.VariantType.value();
+					if (VariantType_.node && VariantType_.node->Get_Type() == NodeType::AnonymousTypeNode)
+					{
+						EnumVariantFeild V;
 
+						{
+							//
+								_Table._Scope.AddScope(ItemName);
+								auto NewName = GetFuncAnonymousObjectFullName(_Table._Scope.ThisScope);
+								_Table._Scope.ReMoveScope();
+							//
+
+							SymbolID AnonymousSybID = (SymbolID)VariantType_.node.get();
+							auto& AnonymousSyb = AddSybol(SymbolType::Type_class, (String)NewName, NewName);
+
+							_Table.AddSymbolID(AnonymousSyb, AnonymousSybID);
+
+
+							auto ClassInf = new ClassInfo();
+							ClassInf->FullName = NewName;
+							AnonymousSyb.Info.reset(ClassInf);
+							AnonymousSyb.VarType.SetType(AnonymousSyb.ID);
+
+							AnonymousTypeNode* Typenode = AnonymousTypeNode::As(VariantType_.node.get());
+							for (auto& Item3 : Typenode->Fields.Parameters)
+							{
+								auto Fieldtype = ConvertAndValidateType(Item3.Type, NodeSyb_t::Parameter);
+								V.Types.push_back(Fieldtype);
+								ClassInf->AddField(Item3.Name.AsString(), Fieldtype);
+							}
+						} 
+
+						EnumVa.Variants.push_back(std::move(V));
+					}
+					else
+					{
+						EnumVariantFeild V; 
+						V.Types.push_back(ConvertAndValidateType(VariantType_,NodeSyb_t::Parameter));
+						
+						EnumVa.Variants.push_back(std::move(V));
+					}
+				}
+				else
+				{
+					EnumVariantFeild V; V.Types.push_back(TypesEnum::Void);
+					EnumVa.Variants.push_back(std::move(V));
+				}
+
+			}
 
 			auto& Field = *ClassInf->GetField(ItemName).value();
 			if (Item.Expression.Value)
@@ -2277,6 +2351,16 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 	if (passtype == PassType::BuidCode)
 	{
 		AddDependencyToCurrentFile(ClassInf->Basetype);
+		if (ClassInf->VariantData) 
+		{
+			for (auto& Item : ClassInf->VariantData.value().Variants)
+			{
+				for (auto& Item2 : Item.Types)
+				{
+					AddDependencyToCurrentFile(Item2);
+				}
+			}
+		}
 	}
 
 	_Table.RemoveScope();
@@ -3726,7 +3810,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 				EnumInfo* Einfo = Out.Symbol->Get_Info<EnumInfo>();
 				auto& NameString = ItemToken->Value._String;
 
-				auto FeldInfo = Einfo->GetField(NameString);
+				auto FeldInfo = Einfo->GetFieldIndex(NameString);
 				if (!FeldInfo.has_value())
 				{
 					if (passtype == PassType::FixedTypes)
@@ -3735,8 +3819,27 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 					}
 					return false;
 				}
+				else if (Einfo->VariantData)
+				{
+					auto& Item = Einfo->VariantData.value().Variants[FeldInfo.value()];
+					
+					bool IsOk = Item.Types.size() == 0;
+					if (!IsOk && Item.Types.size()==1)
+					{
+						auto VoidType = TypeSymbol(TypesEnum::Void);
+						if (AreTheSame(Item.Types.front(), VoidType))
+						{
+							IsOk = true;
+						}
+					}
 
+					if (!IsOk)
+					{
 
+						LogMustMakeEnumLikeafuncion(Einfo, FeldInfo.value(), ItemToken);
+						return false;
+					}
+				}
 
 				if (i + 1 < node.ScopedName.size())
 				{
@@ -3760,10 +3863,10 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 
 					Symbol* FeildSym = GetSymbol(FeildSymFullName, SymbolType::Enum_Field);
 
-					Out.Symbol = FeildSym;//set symbol as enum feild
+					TepSyb = FeildSym;//set symbol as enum feild
 
 
-					Out.Set_V1(*FeldInfo);
+					Out.Set_V1(&Einfo->Fields[*FeldInfo]);
 					Out.Set_V2(Einfo);
 
 				}
@@ -7383,7 +7486,39 @@ bool SystematicAnalysis::GetSize(const TypeSymbol& Type, UAddress& OutSize)
 		else if (V.Type == SymbolType::Enum)
 		{
 			EnumInfo* Info = V.Get_Info<EnumInfo>();
-			return GetSize(Info->Basetype, OutSize);
+			if (Info->VariantData.has_value()) 
+			{
+				auto tagsize = GetSize(Info->Basetype, OutSize);
+				auto& Item = Info->VariantData.value();
+				
+				
+				if (!Item.VariantSize.has_value())
+				{
+					auto MaxSize = 0;
+					
+					for (auto& Item2 : Item.Variants)
+					{
+						auto ItemSize = 0;
+						for (auto& Item3 : Item2.Types)
+						{
+							UAddress tep = 0;
+							GetSize(Item3, tep);
+							ItemSize += tep;
+						}
+						if (ItemSize > MaxSize)
+						{
+							MaxSize = ItemSize;
+						}
+					}
+					Item.VariantSize = MaxSize;
+				}
+
+				return tagsize + Item.VariantSize.value();
+			}
+			else
+			{
+				return GetSize(Info->Basetype, OutSize);
+			}
 		}
 		else if (V.Type == SymbolType::Func_ptr
 			|| V.Type == SymbolType::Hard_Func_ptr)
@@ -9597,6 +9732,26 @@ void SystematicAnalysis::LogCantFindMemberOverloadForType(const Token* Item, Tok
 	_ErrorsOutput->AddError(ErrorCodes::InValidName, Item->OnLine, Item->OnPos
 		, "Cant find operator overload for '" + ToString(Op) + "' For Type " + ToString(Out));
 
+}
+void SystematicAnalysis::LogMustMakeEnumLikeafuncion(EnumInfo* Einfo, size_t Index, const Token* Token)
+{
+	auto& Str = Einfo->Fields[Index].Name;
+	String Msg = "The enum field '" + Str + "' on '" + Einfo->FullName + "' must be created like a function.Ex:";
+	Msg += Einfo->FullName + "::" + Str + "(";
+
+	auto& List = Einfo->VariantData.value().Variants[Index].Types;
+	for (auto& Item2 : List)
+	{
+		Msg += ToString(Item2);
+
+		if (&Item2 != &List.back()) {
+			Msg += ",";
+		}
+	}
+
+	Msg += ")";
+	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos,
+		Msg);
 }
 void SystematicAnalysis::LogCantUseMoveTypeHere(const UCodeLang::Token* Token)
 {
