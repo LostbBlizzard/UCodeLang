@@ -8,9 +8,12 @@ enum Number:
     Complex2[float,float],
     None,
 
-|main[] -> void:
+|main[]:
 
 
  Number V1 =  Number::None;
  Number V2 = Number::Integer(1);
  Number V3 = Number::Complex(1.0,1.0);
+
+
+ ret sizeof(Number);

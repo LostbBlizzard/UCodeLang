@@ -7616,8 +7616,9 @@ bool SystematicAnalysis::GetSize(const TypeSymbol& Type, UAddress& OutSize)
 					}
 					Item.VariantSize = MaxSize;
 				}
+				OutSize += Item.VariantSize.value();
 
-				return tagsize + Item.VariantSize.value();
+				return true;
 			}
 			else
 			{
@@ -8650,6 +8651,8 @@ SystematicAnalysis::Get_FuncInfo SystematicAnalysis::GetEnumVariantFunc(Symbol* 
 		String FullName = Enuminfo->FullName;
 		ScopeHelper::GetApendedString(FullName, Feild.Name);
 		LogCanIncorrectParCount(Token, FullName, Pars._Nodes.size(), Feild_Variant.Types.size());
+		
+		LastExpressionType = TypeSymbol(EnumSyb->ID);
 		return {};
 	}
 
