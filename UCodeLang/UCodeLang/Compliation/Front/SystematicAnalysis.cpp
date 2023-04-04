@@ -7737,6 +7737,89 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 	}
 	if (Func.Func == nullptr)
 	{
+
+		if (Func.SymFunc)
+		{
+			if (Func.SymFunc->Type == SymbolType::Enum_Field)
+			{
+				auto ScopedName = GetScopedNameAsString(Name);
+				String EnumClassFullName = ScopedName;
+				ScopeHelper::ReMoveScope(EnumClassFullName);
+
+				
+
+				auto EnumSymbol = GetSymbol(EnumClassFullName, SymbolType::Enum);
+				if (EnumSymbol)
+				{
+					
+
+					EnumInfo* EnumSybInfo = EnumSymbol->Get_Info<EnumInfo>();
+					auto& VariantData = EnumSybInfo->VariantData.value();
+					size_t EnumIndex = EnumSybInfo->GetFieldIndex(ScopeHelper::GetNameFromFullName(ScopedName)).value();
+
+					EnumFieldInfo& EnumFieldinfo = EnumSybInfo->Fields[EnumIndex];
+					EnumVariantFeild& EnumVariantFeildData = VariantData.Variants[EnumIndex];
+
+					auto ID = _Builder.ToID(EnumSybInfo->FullName);
+
+					auto Key = LoadEvaluatedEx(EnumFieldinfo.Ex, EnumSybInfo->Basetype);
+
+					auto VariantClass = LookingAtIRBlock->NewLoad(IRType(ID));
+					IRStruct* V = _Builder.GetSymbol(ID)->Get_ExAs<IRStruct>();
+					auto Member = LookingAtIRBlock->New_Member_Access(VariantClass, V, 0);
+					LookingAtIRBlock->NewStore(Member, Key);
+					
+					auto UnionMember = LookingAtIRBlock->New_Member_Access(VariantClass, V, 1);
+
+					
+					String UnionName = GetEnumVariantUnionName(EnumSybInfo->FullName);
+					IRidentifierID UnionID = _Builder.ToID(UnionName);
+
+					auto ObjectMember = LookingAtIRBlock->New_Member_Access(UnionMember, _Builder.GetSymbol(UnionID)->Get_ExAs<IRStruct>(), EnumIndex);
+					
+					IRStruct* VStruct = nullptr;
+					if (Pars._Nodes.size() > 1)
+					{
+						TypeSymbol VSyb = TypeSymbol(EnumVariantFeildData.ClassSymbol.value());
+						VStruct = _Builder.GetSymbol(ConvertToIR(VSyb)._symbol)->Get_ExAs<IRStruct>();
+					}
+					//
+					for (size_t i = 0; i < Pars._Nodes.size(); i++)
+					{
+						auto& Item = Pars._Nodes[i];
+						auto& FuncParInfo = EnumVariantFeildData.Types[i];
+
+
+
+						LookingForTypes.push(FuncParInfo);
+
+						OnExpressionTypeNode(Item.get());
+						DoImplicitConversion(_LastExpressionField, LastExpressionType, FuncParInfo);
+
+						auto ParEx = _LastExpressionField;
+						
+						if (Pars._Nodes.size() > 1)
+						{
+							auto VMember = LookingAtIRBlock->New_Member_Access(ObjectMember, VStruct,i);
+							LookingAtIRBlock->NewStore(VMember, ParEx);
+						}
+						else 
+						{
+							LookingAtIRBlock->NewStore(ObjectMember, ParEx);
+						}
+						LookingForTypes.pop();
+					}
+					//
+
+
+					LastExpressionType = EnumSymbol->VarType;
+					_LastExpressionField = VariantClass;
+
+					
+				}
+			}
+		}
+
 		return;
 	}
 
@@ -8182,6 +8265,10 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 
 			return { Get_FuncInfo::ThisPar_t::NoThisPar, nullptr };
 		}
+	
+	
+	
+		
 	}
 	
 	bool AutoThisCall = false;
@@ -8483,7 +8570,26 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 				}
 			}
 		}
+		else if (Item->Type == SymbolType::Enum_Field)
+		{
+			String EnumClassFullName = ScopedName;
+			ScopeHelper::ReMoveScope(EnumClassFullName);
 
+			auto EnumSymbol = GetSymbol(EnumClassFullName, SymbolType::Enum);
+			if (EnumSymbol)
+			{
+				if (EnumSymbol->Type == SymbolType::Enum)
+				{
+					EnumInfo* Enuminfo = EnumSymbol->Get_Info<EnumInfo>();
+					if (Enuminfo->VariantData.has_value())
+					{
+						size_t FeildIndex = Enuminfo->GetFieldIndex(ScopeHelper::GetNameFromFullName(Item->FullName)).value();
+
+						return GetEnumVariantFunc(EnumSymbol, FeildIndex,Item, Pars,Name.ScopedName.back().token,ValueTypes);
+					}
+				}
+			}
+		}
 		ContinueOutloop:continue;
 	}
 	if (OkFuncions.size() == 0)
@@ -8533,6 +8639,40 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 	}
 	return { };
 }
+SystematicAnalysis::Get_FuncInfo SystematicAnalysis::GetEnumVariantFunc(Symbol* EnumSyb, size_t FeildIndex, Symbol* EnumFieldSyb,const ValueParametersNode& Pars, const Token* Token, const Vector<TypeSymbol>& ValueTypes)
+{
+	EnumInfo* Enuminfo = EnumSyb->Get_Info<EnumInfo>();
+	auto& Feild = Enuminfo->Fields[FeildIndex];
+	auto& Feild_Variant = Enuminfo->VariantData.value().Variants[FeildIndex];
+
+	if (Feild_Variant.Types.size() != Pars._Nodes.size())
+	{
+		String FullName = Enuminfo->FullName;
+		ScopeHelper::GetApendedString(FullName, Feild.Name);
+		LogCanIncorrectParCount(Token, FullName, Pars._Nodes.size(), Feild_Variant.Types.size());
+		return {};
+	}
+
+	for (size_t i = 0; i < Feild_Variant.Types.size(); i++)
+	{
+		auto& Item = Feild_Variant.Types[i];
+		auto& ExItemType = ValueTypes[i];
+
+		if (!CanBeImplicitConverted(ExItemType, Item))
+		{
+			LogCantCastImplicitTypes(Token, ExItemType, Item,true);
+		}
+	}
+
+	Get_FuncInfo r;
+	r.ThisPar = Get_FuncInfo::ThisPar_t::NoThisPar;
+	r.SymFunc = EnumFieldSyb;
+	r.Func = nullptr;
+
+	LastExpressionType = TypeSymbol(EnumSyb->ID);
+	return r;
+}
+
 String SystematicAnalysis::GetGenericFuncName(Symbol* Func, const Vector<TypeSymbol>& Type)
 {
 	String NewName = Func->FullName + "<";
