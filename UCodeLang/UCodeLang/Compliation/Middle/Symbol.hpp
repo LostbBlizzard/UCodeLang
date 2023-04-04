@@ -464,7 +464,7 @@ struct EnumVariantFeild
 
 struct EnumVariantData
 {
-	Optional<size_t> VariantSize = 0;
+	Optional<size_t> VariantSize;
 
 	Vector<EnumVariantFeild> Variants;
 };
