@@ -70,7 +70,11 @@ size_t IRBuilder::GetSize(const IRType& Type) const
 	{
 	case IRTypes::i8:return 1;
 	case IRTypes::i16:return 2;
+	
+	case IRTypes::f32:
 	case IRTypes::i32:return 4;
+	
+	case IRTypes::f64:
 	case IRTypes::i64:return 8;
 
 	Pointer:

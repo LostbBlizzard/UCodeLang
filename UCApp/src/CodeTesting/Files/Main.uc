@@ -10,7 +10,6 @@ enum Number:
 
 |main[] -> void:
 
- //Number V1 =  BadName::Number::Integer;//bad 
- Number V2 = Number::Integer;//bad
+
  Number V4 =  Number::None;
  //Number V3 = Number::Integer(1);//good

@@ -1928,6 +1928,72 @@ IRidentifierID SystematicAnalysis::ConveToStaticArray(const Symbol& Class)
 
 IRidentifierID SystematicAnalysis::ConveToIRVariantEnum(const Symbol& Enum)
 {
+	const EnumInfo* Info = Enum.Get_Info<EnumInfo>();
+	
+	if (Info->VariantData.has_value()) 
+	{
+		auto ClassSybID = Enum.ID;
+		if (SybToIRMap.HasValue(ClassSybID))
+		{
+			return SybToIRMap.at(ClassSybID);
+		}
+
+
+		IRidentifierID V = _Builder.ToID(Enum.FullName);
+		auto IRStuct = _Builder.NewStruct(V);
+
+
+		String UnionName = GetEnumVariantUnionName(Enum.FullName);
+
+		IRidentifierID UnionID = _Builder.ToID(UnionName);
+		auto IRUnion= _Builder.NewStruct(UnionID);
+		IRUnion->IsUnion = true;
+
+		auto& Item = Info->VariantData.value();
+		//
+
+		for (auto& Item2 : Item.Variants)
+		{
+			if (Item2.ClassSymbol.has_value())
+			{
+				SymbolID ClassSymbol = Item2.ClassSymbol.value();
+				Symbol* ClassSym = GetSymbol(ClassSymbol);
+
+				auto irstuctID = _Builder.ToID(ClassSym->FullName);
+				IRStructField Vtep;
+				Vtep.Type = IRType(irstuctID);
+				IRUnion->Fields.push_back(Vtep);
+			}
+			else 
+			{
+
+				auto VoidType = TypeSymbol(TypesEnum::Void);
+				if (!AreTheSame(Item2.Types.front(), VoidType))
+				{
+
+					IRStructField Vtep;
+					Vtep.Type = ConvertToIR(Item2.Types.front());
+					IRUnion->Fields.push_back(Vtep);
+				}
+			}
+		}
+		//
+		
+		{//key
+			IRStructField field;
+			field.Type = ConvertToIR(Info->Basetype);
+			IRStuct->Fields.push_back(field);
+		}
+		{//Union
+			IRStructField field;
+			field.Type = IRType(UnionID);
+			IRStuct->Fields.push_back(field);
+		}
+
+		//
+		SybToIRMap[ClassSybID] = UnionID;
+		return V;
+	}
 	return 0;
 }
 
@@ -1966,7 +2032,14 @@ IRType SystematicAnalysis::ConvertToIR(const TypeSymbol& Value)
 		if (syb.Type == SymbolType::Enum)
 		{
 			EnumInfo* V = syb.Get_Info <EnumInfo>();
-			return ConvertToIR(V->Basetype);
+			if (V->VariantData.has_value())
+			{
+				return IRType(_Builder.ToID(V->FullName));
+			}
+			else 
+			{
+				return ConvertToIR(V->Basetype);
+			}
 		}
 		else if (syb.Type == SymbolType::Type_alias
 			|| syb.Type == SymbolType::Hard_Type_alias)
@@ -2254,6 +2327,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 								V.Types.push_back(Fieldtype);
 								ClassInf->AddField(Item3.Name.AsString(), Fieldtype);
 							}
+							V.ClassSymbol = AnonymousSybID;
 						} 
 
 						EnumVa.Variants.push_back(std::move(V));
@@ -2773,6 +2847,10 @@ void SystematicAnalysis::OnStoreVarable(bool IsStructObjectPassRef, UCodeLang::I
 
 		AddDestructorToStack(syb, sybId, OnVarable);
 	}
+}
+String SystematicAnalysis::GetEnumVariantUnionName(const String& FullName)
+{
+	return FullName + "u";
 }
 void SystematicAnalysis::AddDestructorToStack(UCodeLang::FrontEnd::Symbol* syb, const UCodeLang::SymbolID& sybId, UCodeLang::IRInstruction* OnVarable)
 {
@@ -3355,37 +3433,21 @@ IRInstruction* SystematicAnalysis::BuildMember_GetValue(const GetMemberTypeSymbo
 		auto Einfo = In.Get_V2<EnumInfo>();
 		auto FeldInfo = In.Get_V1<EnumFieldInfo>();
 
-		void* ObjectData = Get_Object( Einfo->Basetype, FeldInfo->Ex);
-
-		switch (Einfo->Basetype._Type)
+		if (Einfo->VariantData.has_value())
 		{
-		case TypesEnum::Bool:
-		case TypesEnum::Char:
-		case TypesEnum::sInt8:
-		case TypesEnum::uInt8:
-			return LookingAtIRBlock->NewLoad(*(UInt8*)ObjectData);
-			break;
-		case TypesEnum::sInt16:
-		case TypesEnum::uInt16:
-			return LookingAtIRBlock->NewLoad(*(UInt16*)ObjectData);
-			break;
-		case TypesEnum::sInt32:
-		case TypesEnum::uInt32:
-			return LookingAtIRBlock->NewLoad(*(UInt32*)ObjectData);
-			break;
-		case TypesEnum::float32:
-			return LookingAtIRBlock->NewLoad(*(float32*)ObjectData);
-			break;
-		case TypesEnum::float64:
-			return LookingAtIRBlock->NewLoad(*(float64*)ObjectData);
-			break;
-		case TypesEnum::sInt64:
-		case TypesEnum::uInt64:
-			return LookingAtIRBlock->NewLoad(*(UInt64*)ObjectData);
-			break;
-		default:
-			throw std::exception("not added");
-			break;
+			auto ID = _Builder.ToID(Einfo->FullName);
+			
+			auto Key = LoadEvaluatedEx(FeldInfo->Ex, Einfo->Basetype);
+
+			auto VariantClass = LookingAtIRBlock->NewLoad(IRType(ID));
+			IRStruct* V = _Builder.GetSymbol(ID)->Get_ExAs<IRStruct>();
+			auto Member = LookingAtIRBlock->New_Member_Access(VariantClass, V, 0);
+			LookingAtIRBlock->NewStore(Member, Key);
+			return VariantClass;
+		}
+		else 
+		{
+			return LoadEvaluatedEx(FeldInfo->Ex, Einfo->Basetype);
 		}
 	}
 	case SymbolType::Type_class:
@@ -9281,6 +9343,40 @@ void SystematicAnalysis::Build_Decrement_uIntPtr(IRInstruction* field, UAddress 
 void SystematicAnalysis::Build_Increment_sIntPtr(IRInstruction* field, SIntNative Value)
 {
 	return Build_Increment_uIntPtr(field, *(UAddress*)&Value);
+}
+IRInstruction* SystematicAnalysis::LoadEvaluatedEx(const RawEvaluatedObject& Value,const TypeSymbol& ValueType)
+{
+	void* ObjectData = Get_Object(ValueType, Value);
+	switch (ValueType._Type)
+	{
+	case TypesEnum::Bool:
+	case TypesEnum::Char:
+	case TypesEnum::sInt8:
+	case TypesEnum::uInt8:
+		return LookingAtIRBlock->NewLoad(*(UInt8*)ObjectData);
+		break;
+	case TypesEnum::sInt16:
+	case TypesEnum::uInt16:
+		return LookingAtIRBlock->NewLoad(*(UInt16*)ObjectData);
+		break;
+	case TypesEnum::sInt32:
+	case TypesEnum::uInt32:
+		return LookingAtIRBlock->NewLoad(*(UInt32*)ObjectData);
+		break;
+	case TypesEnum::float32:
+		return LookingAtIRBlock->NewLoad(*(float32*)ObjectData);
+		break;
+	case TypesEnum::float64:
+		return LookingAtIRBlock->NewLoad(*(float64*)ObjectData);
+		break;
+	case TypesEnum::sInt64:
+	case TypesEnum::uInt64:
+		return LookingAtIRBlock->NewLoad(*(UInt64*)ObjectData);
+		break;
+	default:
+		throw std::exception("not added");
+		break;
+	}
 }
 
 void SystematicAnalysis::Build_Decrement_sIntPtr(IRInstruction* field, SIntNative Value)

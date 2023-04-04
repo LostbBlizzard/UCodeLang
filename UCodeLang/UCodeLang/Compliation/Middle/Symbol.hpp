@@ -458,6 +458,7 @@ public:
 
 struct EnumVariantFeild
 {
+	Optional<SymbolID> ClassSymbol;
 	Vector <TypeSymbol> Types;
 };
 
