@@ -565,6 +565,8 @@ private:
 	void OnFuncNode(const FuncNode& node);
 	void SetInStatetements(bool Value);
 	void FuncGetName(const Token* NameToken, std::string_view& FuncName, FuncInfo::FuncType& FuncType);
+
+	String GetEnumVariantUnionName(const String& FullName);
 	
 	void OnStatement(const Unique_ptr<UCodeLang::Node>& node2);
 	void OnRetStatement(const RetStatementNode& node);
@@ -847,6 +849,7 @@ private:
 	void Build_Decrement_uIntPtr(IRInstruction* field, UAddress Value);
 	void Build_Increment_sIntPtr(IRInstruction* field, SIntNative Value);
 	void Build_Decrement_sIntPtr(IRInstruction* field, SIntNative Value);
+	IRInstruction* LoadEvaluatedEx(const RawEvaluatedObject& Value, const TypeSymbol& ValueType);
 	//Errors
 
 	void LogCantFindCompoundOpForTypes(const Token* BinaryOp, TypeSymbol& Ex0Type, TypeSymbol& Ex1Type);
