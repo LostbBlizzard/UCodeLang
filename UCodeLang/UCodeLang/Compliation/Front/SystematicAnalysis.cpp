@@ -1966,9 +1966,7 @@ IRidentifierID SystematicAnalysis::ConveToIRVariantEnum(const Symbol& Enum)
 			}
 			else 
 			{
-
-				auto VoidType = TypeSymbol(TypesEnum::Void);
-				if (!AreTheSame(Item2.Types.front(), VoidType))
+				if (Item2.Types.size())
 				{
 
 					IRStructField Vtep;
@@ -2342,7 +2340,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 				}
 				else
 				{
-					EnumVariantFeild V; V.Types.push_back(TypesEnum::Void);
+					EnumVariantFeild V;
 					EnumVa.Variants.push_back(std::move(V));
 				}
 
@@ -2451,11 +2449,14 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 				}
 				else
 				{
-					ClassField V;
-					V.offset = 0;
-					V.Name = ClassInf->Fields[i].Name;
-					V.Type = ConvertToTypeInfo(Item.Types.front());
-					EnumUnion._Class.Fields.push_back(std::move(V));
+					if (Item.Types.size()) 
+					{
+						ClassField V;
+						V.offset = 0;
+						V.Name = ClassInf->Fields[i].Name;
+						V.Type = ConvertToTypeInfo(Item.Types.front());
+						EnumUnion._Class.Fields.push_back(std::move(V));
+					}
 				}
 
 
@@ -3928,14 +3929,6 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 					auto& Item = Einfo->VariantData.value().Variants[FeldInfo.value()];
 					
 					bool IsOk = Item.Types.size() == 0;
-					if (!IsOk && Item.Types.size()==1)
-					{
-						auto VoidType = TypeSymbol(TypesEnum::Void);
-						if (AreTheSame(Item.Types.front(), VoidType))
-						{
-							IsOk = true;
-						}
-					}
 
 					if (!IsOk)
 					{
@@ -7752,7 +7745,7 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 				auto EnumSymbol = GetSymbol(EnumClassFullName, SymbolType::Enum);
 				if (EnumSymbol)
 				{
-					
+
 
 					EnumInfo* EnumSybInfo = EnumSymbol->Get_Info<EnumInfo>();
 					auto& VariantData = EnumSybInfo->VariantData.value();
@@ -7769,54 +7762,54 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 					IRStruct* V = _Builder.GetSymbol(ID)->Get_ExAs<IRStruct>();
 					auto Member = LookingAtIRBlock->New_Member_Access(VariantClass, V, 0);
 					LookingAtIRBlock->NewStore(Member, Key);
-					
-					auto UnionMember = LookingAtIRBlock->New_Member_Access(VariantClass, V, 1);
 
-					
-					String UnionName = GetEnumVariantUnionName(EnumSybInfo->FullName);
-					IRidentifierID UnionID = _Builder.ToID(UnionName);
-
-					auto ObjectMember = LookingAtIRBlock->New_Member_Access(UnionMember, _Builder.GetSymbol(UnionID)->Get_ExAs<IRStruct>(), EnumIndex);
-					
-					IRStruct* VStruct = nullptr;
-					if (Pars._Nodes.size() > 1)
-					{
-						TypeSymbol VSyb = TypeSymbol(EnumVariantFeildData.ClassSymbol.value());
-						VStruct = _Builder.GetSymbol(ConvertToIR(VSyb)._symbol)->Get_ExAs<IRStruct>();
-					}
-					//
-					for (size_t i = 0; i < Pars._Nodes.size(); i++)
-					{
-						auto& Item = Pars._Nodes[i];
-						auto& FuncParInfo = EnumVariantFeildData.Types[i];
+					if (EnumVariantFeildData.Types.size()) {
+						auto UnionMember = LookingAtIRBlock->New_Member_Access(VariantClass, V, 1);
 
 
+						String UnionName = GetEnumVariantUnionName(EnumSybInfo->FullName);
+						IRidentifierID UnionID = _Builder.ToID(UnionName);
 
-						LookingForTypes.push(FuncParInfo);
+						auto ObjectMember = LookingAtIRBlock->New_Member_Access(UnionMember, _Builder.GetSymbol(UnionID)->Get_ExAs<IRStruct>(), EnumIndex);
 
-						OnExpressionTypeNode(Item.get());
-						DoImplicitConversion(_LastExpressionField, LastExpressionType, FuncParInfo);
-
-						auto ParEx = _LastExpressionField;
-						
+						IRStruct* VStruct = nullptr;
 						if (Pars._Nodes.size() > 1)
 						{
-							auto VMember = LookingAtIRBlock->New_Member_Access(ObjectMember, VStruct,i);
-							LookingAtIRBlock->NewStore(VMember, ParEx);
+							TypeSymbol VSyb = TypeSymbol(EnumVariantFeildData.ClassSymbol.value());
+							VStruct = _Builder.GetSymbol(ConvertToIR(VSyb)._symbol)->Get_ExAs<IRStruct>();
 						}
-						else 
+						//
+						for (size_t i = 0; i < Pars._Nodes.size(); i++)
 						{
-							LookingAtIRBlock->NewStore(ObjectMember, ParEx);
+							auto& Item = Pars._Nodes[i];
+							auto& FuncParInfo = EnumVariantFeildData.Types[i];
+
+
+
+							LookingForTypes.push(FuncParInfo);
+
+							OnExpressionTypeNode(Item.get());
+							DoImplicitConversion(_LastExpressionField, LastExpressionType, FuncParInfo);
+
+							auto ParEx = _LastExpressionField;
+
+							if (Pars._Nodes.size() > 1)
+							{
+								auto VMember = LookingAtIRBlock->New_Member_Access(ObjectMember, VStruct, i);
+								LookingAtIRBlock->NewStore(VMember, ParEx);
+							}
+							else
+							{
+								LookingAtIRBlock->NewStore(ObjectMember, ParEx);
+							}
+							LookingForTypes.pop();
 						}
-						LookingForTypes.pop();
+						//
+
+
 					}
-					//
-
-
 					LastExpressionType = EnumSymbol->VarType;
 					_LastExpressionField = VariantClass;
-
-					
 				}
 			}
 		}
@@ -8646,7 +8639,36 @@ SystematicAnalysis::Get_FuncInfo SystematicAnalysis::GetEnumVariantFunc(Symbol* 
 	auto& Feild = Enuminfo->Fields[FeildIndex];
 	auto& Feild_Variant = Enuminfo->VariantData.value().Variants[FeildIndex];
 
-	if (Feild_Variant.Types.size() != Pars._Nodes.size())
+	
+	if (Feild_Variant.Types.size() == 1)
+	{
+		TypeSymbol VoidType(TypesEnum::Void);
+
+		if (AreTheSame(VoidType, Feild_Variant.Types.front()))
+		{
+			if (Pars._Nodes.size() != 0)
+			{
+				String FullName = Enuminfo->FullName;
+				ScopeHelper::GetApendedString(FullName, Feild.Name);
+				LogCanIncorrectParCount(Token, FullName, Pars._Nodes.size(), 0);
+
+				LastExpressionType = TypeSymbol(EnumSyb->ID);
+				return {};
+			}
+			else
+			{
+				Get_FuncInfo r;
+				r.ThisPar = Get_FuncInfo::ThisPar_t::NoThisPar;
+				r.SymFunc = EnumFieldSyb;
+				r.Func = nullptr;
+
+				LastExpressionType = TypeSymbol(EnumSyb->ID);
+				return r;
+			}
+		}
+	}
+
+	if ( Feild_Variant.Types.size() != Pars._Nodes.size())
 	{
 		String FullName = Enuminfo->FullName;
 		ScopeHelper::GetApendedString(FullName, Feild.Name);
