@@ -567,7 +567,8 @@ private:
 	void FuncGetName(const Token* NameToken, std::string_view& FuncName, FuncInfo::FuncType& FuncType);
 
 	String GetEnumVariantUnionName(const String& FullName);
-	
+	String GetUnrefencedableName(const String& FullName);
+
 	void OnStatement(const Unique_ptr<UCodeLang::Node>& node2);
 	void OnRetStatement(const RetStatementNode& node);
 	void OnEnum(const EnumNode& node);

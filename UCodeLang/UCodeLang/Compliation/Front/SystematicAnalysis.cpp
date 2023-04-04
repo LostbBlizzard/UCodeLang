@@ -2427,13 +2427,51 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 		AddDependencyToCurrentFile(ClassInf->Basetype);
 		if (ClassInf->VariantData) 
 		{
-			for (auto& Item : ClassInf->VariantData.value().Variants)
+			ClassData& EnumUnion = _Lib.Get_Assembly().AddClass(GetEnumVariantUnionName(
+				GetUnrefencedableName((String)ClassInf->Get_Name())), GetUnrefencedableName(GetEnumVariantUnionName(ClassInf->FullName)));
+			
+
+			auto& List = ClassInf->VariantData.value().Variants;
+			for (size_t i = 0; i < List.size(); i++)
 			{
+				auto& Item = List[i];
+			
+				if (Item.ClassSymbol.has_value())
+				{
+					Symbol* Sym = GetSymbol(Item.ClassSymbol.value());
+
+					AddClass_tToAssemblyInfo(Sym->Get_Info<ClassInfo>());//has '!' post fix so its Unrefencedable
+
+
+					ClassField V;
+					V.offset = 0;
+					V.Name = ClassInf->Fields[i].Name;
+					V.Type = ConvertToTypeInfo(TypeSymbol(Sym->ID));
+					EnumUnion._Class.Fields.push_back(std::move(V));
+				}
+				else
+				{
+					ClassField V;
+					V.offset = 0;
+					V.Name = ClassInf->Fields[i].Name;
+					V.Type = ConvertToTypeInfo(Item.Types.front());
+					EnumUnion._Class.Fields.push_back(std::move(V));
+				}
+
+
 				for (auto& Item2 : Item.Types)
 				{
 					AddDependencyToCurrentFile(Item2);
 				}
+				
 			}
+			
+
+			int a = 0;
+		}
+		else
+		{
+			//enum
 		}
 	}
 
@@ -2863,6 +2901,10 @@ void SystematicAnalysis::AddDestructorToStack(UCodeLang::FrontEnd::Symbol* syb, 
 
 		StackFrames.back().OnEndStackFrame.push_back(V);
 	}
+}
+String SystematicAnalysis::GetUnrefencedableName(const String& FullName)
+{
+	return "#" + FullName;
 }
 void SystematicAnalysis::AddDestructorToStack(const TypeSymbol& Type, IRInstruction* OnVarable)
 {
