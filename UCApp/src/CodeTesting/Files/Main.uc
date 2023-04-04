@@ -11,5 +11,6 @@ enum Number:
 |main[] -> void:
 
 
- Number V4 =  Number::None;
- //Number V3 = Number::Integer(1);//good
+ Number V1 =  Number::None;
+ Number V2 = Number::Integer(1);
+ Number V3 = Number::Complex(1.0,1.0);

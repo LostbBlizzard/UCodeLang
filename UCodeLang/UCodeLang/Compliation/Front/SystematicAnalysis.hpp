@@ -797,6 +797,9 @@ private:
 	};
 	Get_FuncInfo GetFunc(const ScopedNameNode& Name,const UseGenericsNode&,const ValueParametersNode& Pars,TypeSymbol Ret);
 
+	Get_FuncInfo GetEnumVariantFunc(Symbol* EnumSyb, size_t FeildIndex, Symbol* EnumFieldSyb, const ValueParametersNode& Pars,const Token* Token,const Vector<TypeSymbol>& ValueTypes);
+
+
 	void SetFuncRetAsLastEx(Get_FuncInfo& Info);
 	
 	bool IsCompatible(Symbol* Item, const Vector<TypeSymbol>& ValueTypes, bool _ThisTypeIsNotNull, const Token* Token);
