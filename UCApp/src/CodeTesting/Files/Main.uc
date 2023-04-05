@@ -1,22 +1,12 @@
 
 
-enum Number:
-    Integer[int],
-    Float[float],
-    Named[float X],
-    Complex[float X,float Y],
-    Complex2[float,float],
-    None,
 
 |main[]:
 
- |
-  Number V1 = Number::None;
+ var Hello = |[x,y] => x * y;
+ var Hello2 = |[x,y] => x * y;
+                       
+ var Hello = |[x,y]() => x * y;
+ var Hello2 = |[x,y]() => x * y;
 
-  Number V2 = Number::Integer(1);
- |
-
- if V2 == Number::Integer(Out):
-
-
- ret sizeof(Number);
+ ret 0;

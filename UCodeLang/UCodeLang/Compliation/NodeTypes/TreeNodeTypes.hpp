@@ -960,5 +960,28 @@ struct MoveNode :Node
 	ExpressionNodeType expression;
 };
 
+struct LambdaCapture
+{
+	Optional<TypeNode> _Type;
+	NameNode _Name;
+	ExpressionNodeType _Expression;
+};
+
+struct LambdaCapturesData
+{
+	Vector<LambdaCapture> _Captures;
+};
+struct LambdaNode :Node
+{
+	LambdaNode() : Node(NodeType::LambdaNode)
+	{
+
+	}
+	AddforNode(LambdaNode);
+
+	const Token* LambdaStart = nullptr;
+	NamedParametersNode Pars;
+	Optional<LambdaCapturesData> _Capture;
+};
 
 UCodeLangFrontEnd
