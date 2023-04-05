@@ -409,6 +409,16 @@ private:
 		return { r,V->As() };
 	}
 	GotNodeType GetBreakNode(BreakNode& out);
+
+
+	TryGetNode GetLambdaNode()
+	{
+		LambdaNode* V = LambdaNode::Gen();
+		auto r = GetLambdaNode(*V);
+		TrippedCheck(r);
+		return { r,V->As() };
+	}
+	GotNodeType GetLambdaNode(LambdaNode& out);
 };
 UCodeLangFrontEnd
 

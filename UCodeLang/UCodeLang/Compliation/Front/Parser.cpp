@@ -769,12 +769,9 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 	break;
 	case TokenType::KeyWord_new:
 	{
-		auto V = MoveNode::Gen();
-		out = V;
-
-		auto r = GetExpressionTypeNode(V->expression);
-
-		return r;
+		auto V = GetNewExpresionNode();
+		out = V.Node;
+		return V.GotNode;
 	}
 	break;
 	case TokenType::KeyWord_move:
@@ -784,6 +781,13 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 		GetExpressionTypeNode(V->expression);
 	
 		return  GotNodeType::Success;
+	}
+	break;
+	case Parser::declareFunc:
+	{
+		auto V = GetLambdaNode();
+		out = V.Node;
+		return V.GotNode;
 	}
 	break;
 	default:
@@ -2164,5 +2168,51 @@ GotNodeType Parser::GetBreakNode(BreakNode& out)
 
 	out.token = KeyToken;
 	return  GotNodeType::Success;
+}
+GotNodeType Parser::GetLambdaNode(LambdaNode& out)
+{
+	auto KeyToken = TryGetToken(); TokenTypeCheck(KeyToken, Parser::declareFunc);
+	NextToken();
+
+
+	auto LeftBracket = TryGetToken(); TokenTypeCheck(LeftBracket, TokenType::Left_Bracket);
+	NextToken();
+
+	out.LambdaStart = KeyToken;
+	//
+	{  
+		const Token* LoopToken = TryGetToken();
+		while (LoopToken->Type != TokenType::Right_Bracket || LoopToken->Type != TokenType::EndofFile)
+		{
+			bool HasType = true;
+			if (LoopToken->Type == TokenType::Name)
+			{
+				auto NextToken = TryPeekNextToken(1);
+				if (NextToken->Type == TokenType::Comma || NextToken->Type == TokenType::Right_Bracket)
+				{
+					HasType = false;
+				}
+			}
+
+			if (HasType)
+			{
+				NamedParameterNode par;
+				GetType(par.Type, false, false);
+				GetName(par.Name);
+				out.Pars.Parameters.push_back(std::move(par));
+			}
+			else
+			{
+				NamedParameterNode par;
+				GetName(par.Name);
+
+				TypeNode::Gen_Var(par.Type,*par.Name.Token);
+
+				out.Pars.Parameters.push_back(std::move(par));
+			}
+		}
+	}
+	auto RightBracket = TryGetToken(); TokenTypeCheck(RightBracket, TokenType::Right_Bracket); NextToken();
+//
 }
 UCodeLangFrontEnd
