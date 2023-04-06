@@ -708,9 +708,48 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 	}
 	case AnonymousObjectStart:
 	{
-		auto r = GetAnonymousObjectConstructorNode();
-		out = r.Node;
-		return r.GotNode;
+		
+		size_t ThisIndex = _TokenIndex;
+		NextToken();
+		
+		bool ParenthesesExpresion = true;
+		while (TryGetToken()->Type == TokenType::Name)
+		{
+			NextToken();
+
+			if (TryGetToken()->Type == TokenType::Comma)
+			{
+				NextToken();
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		if (TryGetToken()->Type == TokenType::Right_Bracket)
+		{
+			NextToken();
+			auto Other = TryGetToken()->Type;
+			ParenthesesExpresion = 
+				!(Other == TokenType::RightAssignArrow || Other == TokenType::Colon);
+		}
+
+		_TokenIndex = ThisIndex;
+
+		if (ParenthesesExpresion)
+		{
+			auto r = GetAnonymousObjectConstructorNode();
+			out = r.Node;
+			return r.GotNode;
+		}
+		else
+		{
+			NextToken();
+			auto r = GetShortLambdaNode();
+			out = r.Node;
+			return r.GotNode;
+		}
 	}
 	TokenType_Name:
 	case TokenType::Name:
@@ -740,6 +779,7 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 	case TokenType::Left_Parentheses:
 	{
 		NextToken();
+
 		auto V = ParenthesesExpresionNode::Gen();
 		out = V;
 		auto r = GetExpressionTypeNode(V->Expression);
@@ -749,6 +789,7 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 		NextToken();
 		return r;
 	}
+	break;
 	case TokenType::KeyWorld_Sizeof:
 	{
 		NextToken();
@@ -2210,9 +2251,123 @@ GotNodeType Parser::GetLambdaNode(LambdaNode& out)
 
 				out.Pars.Parameters.push_back(std::move(par));
 			}
+
+			auto CommaToken = TryGetToken();
+			if (CommaToken->Type == TokenType::Comma)
+			{
+				NextToken();
+			}
+			else
+			{
+				break;
+			}
+
 		}
 	}
 	auto RightBracket = TryGetToken(); TokenTypeCheck(RightBracket, TokenType::Right_Bracket); NextToken();
-//
+	//
+	auto ParToken = TryGetToken();
+	if (ParToken->Type == TokenType::Left_Parentheses)
+	{
+		NextToken();
+		LambdaCapturesData Captures;
+
+		out._Capture = std::move(Captures);
+		auto OtherPar = TryGetToken(); TokenTypeCheck(OtherPar, TokenType::Right_Parentheses); NextToken();
+	}
+
+
+	auto AssmentToken = TryGetToken();
+	if (AssmentToken->Type == TokenType::Colon)
+	{
+		NextToken();
+		StatementsNode Statements;
+		GetStatementsorStatementNode(Statements);
+
+		out._Statements = std::move(Statements);
+	}
+	else if (AssmentToken->Type == TokenType::RightAssignArrow)
+	{
+		NextToken();
+		StatementsNode Statements;
+
+		RetStatementNode* r = RetStatementNode::Gen();
+		GetExpressionTypeNode(r->Expression);
+		Statements._Nodes.push_back(Unique_ptr<Node>(r));
+
+
+		out._Statements = std::move(Statements);
+		
+	}
+	else if (AssmentToken->Type == TokenType::Semicolon)
+	{
+		NextToken();
+	}
+	else
+	{
+		TokenTypeCheck(AssmentToken, TokenType::Colon);
+	}
+
+	return GotNodeType::Success;
+}
+TryGetNode Parser::GetShortLambdaNode()
+{
+	LambdaNode* r = LambdaNode::Gen();
+
+	while (TryGetToken()->Type == TokenType::Name)
+	{
+		NextToken();
+
+		if (TryGetToken()->Type == TokenType::Comma)
+		{
+			NextToken();
+		}
+		else
+		{
+			break;
+		}
+
+		NamedParameterNode par;
+		par.Name.Token = TryGetToken();
+		TypeNode::Gen_Var(par.Type, *par.Name.Token);
+		r->Pars.Parameters.push_back(std::move(par));
+	}
+
+
+	auto endtoken = TryGetToken();
+	TokenTypeCheck(endtoken, TokenType::Right_Bracket);
+	NextToken();
+
+	auto AssmentToken = TryGetToken();
+	if (AssmentToken->Type == TokenType::Colon)
+	{
+		NextToken();
+		StatementsNode Statements;
+		GetStatementsorStatementNode(Statements);
+
+		r->_Statements = std::move(Statements);
+	}
+	else if (AssmentToken->Type == TokenType::RightAssignArrow)
+	{
+		NextToken();
+		StatementsNode Statements;
+
+		RetStatementNode* r1 = RetStatementNode::Gen();
+		GetExpressionTypeNode(r1->Expression);
+		Statements._Nodes.push_back(Unique_ptr<Node>(r1));
+
+
+		r->_Statements = std::move(Statements);
+
+	}
+	else if (AssmentToken->Type == TokenType::Semicolon)
+	{
+	NextToken();
+	}
+	else
+	{
+		TokenTypeCheck(AssmentToken, TokenType::Colon);
+	}
+	return {GotNodeType::Success, r };
 }
 UCodeLangFrontEnd
