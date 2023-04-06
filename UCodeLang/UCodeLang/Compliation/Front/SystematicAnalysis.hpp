@@ -569,7 +569,7 @@ private:
 	String GetEnumVariantUnionName(const String& FullName);
 	String GetUnrefencedableName(const String& FullName);
 
-	void OnStatement(const Unique_ptr<UCodeLang::Node>& node2);
+	void OnStatement(const Node& node2);
 	void OnRetStatement(const RetStatementNode& node);
 	void OnEnum(const EnumNode& node);
 	void OnNamespace(const NamespaceNode& node);
@@ -596,7 +596,7 @@ private:
 
 	void OnContinueNode(const ContinueNode& node);
 	void OnBreakNode(const BreakNode& node);
-
+	void OnLambdaNode(const LambdaNode& node);
 
 	void TypeDoesNotHaveForOverload(const Token* Token, TypeSymbol& ExType);
 
