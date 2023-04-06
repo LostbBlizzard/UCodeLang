@@ -1049,7 +1049,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 		for (const auto& node2 : Body.Statements._Nodes)
 		{
-			OnStatement(node2);
+			OnStatement(*node2);
 			if (node2->Get_Type() == NodeType::RetStatementNode)
 			{
 				HasARet = true;
@@ -1077,7 +1077,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 						CantguessVarTypeError(Token);
 					}
 
-					OnStatement(node2);//re do
+					OnStatement(*node2);//re do
 				}
 
 				break;
@@ -1431,7 +1431,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 
 		for (const auto& node2 : node.Body._Nodes)
 		{
-			OnStatement(node2);
+			OnStatement(*node2);
 		}
 	}
 	else
@@ -1492,7 +1492,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 
 			for (const auto& node2 : node.Body._Nodes)
 			{
-				OnStatement(node2);
+				OnStatement(*node2);
 			}
 		}
 		else
@@ -1611,7 +1611,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 
 			for (const auto& node2 : node.Body._Nodes)
 			{
-				OnStatement(node2);
+				OnStatement(*node2);
 			}
 		}
 
@@ -1674,7 +1674,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 
 				for (const auto& node2 : node.Body._Nodes)
 				{
-					OnStatement(node2);
+					OnStatement(*node2);
 				}
 
 				OnPostfixVariableNode(node.OnNextStatement);
@@ -1773,7 +1773,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 
 				for (const auto& node2 : node.Body._Nodes)
 				{
-					OnStatement(node2);
+					OnStatement(*node2);
 				}
 
 
@@ -1852,6 +1852,30 @@ void SystematicAnalysis::OnBreakNode(const BreakNode& node)
 		v.Type = Jumps_t::Break;
 		v.JumpIns = LookingAtIRBlock->NewJump();
 		_Jumps.push_back(v);
+	}
+}
+void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
+{
+	if (passtype == PassType::GetTypes)
+	{
+		String LambdaName = "Lambda" + std::to_string((uintptr_t)&node);
+		_Table.AddScope(LambdaName);
+		if (node._Statements.has_value())
+		{
+			for (const auto& node2 : node._Statements.value()._Nodes)
+			{
+				OnStatement(*node2);
+			}
+		}
+		_Table.RemoveScope();
+	}
+	else if (passtype == PassType::FixedTypes)
+	{
+
+	}
+	else if (passtype == PassType::BuidCode)
+	{
+
 	}
 }
 void SystematicAnalysis::TypeDoesNotHaveForOverload(const UCodeLang::Token* Token, UCodeLang::FrontEnd::TypeSymbol& ExType)
@@ -2124,38 +2148,38 @@ SymbolID SystematicAnalysis::GetSymbolID(const Node& node)
 		return sybId;
 	}
 }
-void SystematicAnalysis::OnStatement(const Unique_ptr<UCodeLang::Node>& node2)
+void SystematicAnalysis::OnStatement(const Node& node2)
 {
-	switch (node2->Get_Type())
+	switch (node2.Get_Type())
 	{
-	case NodeType::AttributeNode:OnAttributeNode(*AttributeNode::As(node2.get())); break;
-	case NodeType::ClassNode: OnClassNode(*ClassNode::As(node2.get())); break;
-	case NodeType::EnumNode:OnEnum(*EnumNode::As(node2.get())); break;
-	case NodeType::UsingNode: OnUseingNode(*UsingNode::As(node2.get())); break;
-	case NodeType::DeclareVariableNode:OnDeclareVariablenode(*DeclareVariableNode::As(node2.get()),DeclareStaticVariableNode_t::Stack); break;
-	case NodeType::AssignVariableNode:OnAssignVariableNode(*AssignVariableNode::As(node2.get())); break;
-	case NodeType::PostfixVariableNode:OnPostfixVariableNode(*PostfixVariableNode::As(node2.get())); break;
-	case NodeType::CompoundStatementNode:OnCompoundStatementNode(*CompoundStatementNode::As(node2.get())); break;
+	case NodeType::AttributeNode:OnAttributeNode(*AttributeNode::As(&node2)); break;
+	case NodeType::ClassNode: OnClassNode(*ClassNode::As(&node2)); break;
+	case NodeType::EnumNode:OnEnum(*EnumNode::As(&node2)); break;
+	case NodeType::UsingNode: OnUseingNode(*UsingNode::As(&node2)); break;
+	case NodeType::DeclareVariableNode:OnDeclareVariablenode(*DeclareVariableNode::As(&node2),DeclareStaticVariableNode_t::Stack); break;
+	case NodeType::AssignVariableNode:OnAssignVariableNode(*AssignVariableNode::As(&node2)); break;
+	case NodeType::PostfixVariableNode:OnPostfixVariableNode(*PostfixVariableNode::As(&node2)); break;
+	case NodeType::CompoundStatementNode:OnCompoundStatementNode(*CompoundStatementNode::As(&node2)); break;
 	case NodeType::FuncCallStatementNode:
 	{
 		TypeSymbol V(TypesEnum::Any);
 		LookingForTypes.push(V);
 
-		OnFuncCallNode(FuncCallStatementNode::As(node2.get())->Base);
+		OnFuncCallNode(FuncCallStatementNode::As(&node2)->Base);
 
 		LookingForTypes.pop();
 	}
 	break;
-	case NodeType::DropStatementNode:OnDropStatementNode(*DropStatementNode::As(node2.get())); break;
-	case NodeType::IfNode:OnIfNode(*IfNode::As(node2.get())); break;
-	case NodeType::WhileNode:OnWhileNode(*WhileNode::As(node2.get())); break;
-	case NodeType::DoNode:OnDoNode(*DoNode::As(node2.get())); break;
-	case NodeType::DeclareStaticVariableNode:OnDeclareStaticVariableNode(*DeclareStaticVariableNode::As(node2.get())); break;
-	case NodeType::DeclareThreadVariableNode:OnDeclareThreadVariableNode(*DeclareThreadVariableNode::As(node2.get())); break;
-	case NodeType::ForNode:OnForNode(*ForNode::As(node2.get())); break;
-	case NodeType::ContinueNode:OnContinueNode(*ContinueNode::As(node2.get())); break;
-	case NodeType::BreakNode:OnBreakNode(*BreakNode::As(node2.get())); break;
-	case NodeType::RetStatementNode:OnRetStatement(*RetStatementNode::As(node2.get())); break;
+	case NodeType::DropStatementNode:OnDropStatementNode(*DropStatementNode::As(&node2)); break;
+	case NodeType::IfNode:OnIfNode(*IfNode::As(&node2)); break;
+	case NodeType::WhileNode:OnWhileNode(*WhileNode::As(&node2)); break;
+	case NodeType::DoNode:OnDoNode(*DoNode::As(&node2)); break;
+	case NodeType::DeclareStaticVariableNode:OnDeclareStaticVariableNode(*DeclareStaticVariableNode::As(&node2)); break;
+	case NodeType::DeclareThreadVariableNode:OnDeclareThreadVariableNode(*DeclareThreadVariableNode::As(&node2)); break;
+	case NodeType::ForNode:OnForNode(*ForNode::As(&node2)); break;
+	case NodeType::ContinueNode:OnContinueNode(*ContinueNode::As(&node2)); break;
+	case NodeType::BreakNode:OnBreakNode(*BreakNode::As(&node2)); break;
+	case NodeType::RetStatementNode:OnRetStatement(*RetStatementNode::As(&node2)); break;
 	default:break;
 	}
 }
@@ -3064,7 +3088,7 @@ void SystematicAnalysis::OnIfNode(const IfNode& node)
 
 	for (const auto& node2 :node.Body._Nodes)
 	{
-		OnStatement(node2);
+		OnStatement(*node2);
 	}
 	
 	PopStackFrame();
@@ -3083,7 +3107,7 @@ void SystematicAnalysis::OnIfNode(const IfNode& node)
 
 		if (node.Else->Get_Type() != NodeType::ElseNode)
 		{
-			OnStatement(node.Else);
+			OnStatement(*node.Else);
 		}
 		else
 		{
@@ -3091,7 +3115,7 @@ void SystematicAnalysis::OnIfNode(const IfNode& node)
 
 			for (const auto& node3 : Elsenode->Body._Nodes)
 			{
-				OnStatement(node3);
+				OnStatement(*node3);
 			}
 		}
 
@@ -3158,7 +3182,7 @@ void SystematicAnalysis::OnWhileNode(const WhileNode& node)
 
 	for (const auto& node2 : node.Body._Nodes)
 	{
-		OnStatement(node2);
+		OnStatement(*node2);
 	}
 
 
@@ -3197,7 +3221,7 @@ void SystematicAnalysis::OnDoNode(const DoNode& node)
 
 	for (const auto& node2 : node.Body._Nodes)
 	{
-		OnStatement(node2);
+		OnStatement(*node2);
 	}
 
 	_Table.RemoveScope();
