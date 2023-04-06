@@ -982,6 +982,7 @@ struct LambdaNode :Node
 	const Token* LambdaStart = nullptr;
 	NamedParametersNode Pars;
 	Optional<LambdaCapturesData> _Capture;
+	Optional<StatementsNode> _Statements;
 };
 
 UCodeLangFrontEnd

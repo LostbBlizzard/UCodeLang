@@ -419,6 +419,7 @@ private:
 		return { r,V->As() };
 	}
 	GotNodeType GetLambdaNode(LambdaNode& out);
+	TryGetNode GetShortLambdaNode();
 };
 UCodeLangFrontEnd
 
