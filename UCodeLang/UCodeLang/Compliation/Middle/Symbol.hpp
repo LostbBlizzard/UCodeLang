@@ -220,6 +220,8 @@ enum class SymbolType: UInt8
 	Hard_Func_ptr,//no one will use this
 	Func_ptr,
 
+	LambdaObject,
+
 	ConstantExpression,
 	Type_StaticArray,
 };
@@ -566,6 +568,23 @@ public:
 
 	}
 	~StaticArrayInfo()
+	{
+
+	}
+};
+
+class LambdaInfo :public Symbol_Info
+{
+public:
+	bool UsesOuterScope = false;
+
+	Vector<TypeSymbol> Pars;
+	TypeSymbol Ret;
+	LambdaInfo()
+	{
+
+	}
+	~LambdaInfo()
 	{
 
 	}

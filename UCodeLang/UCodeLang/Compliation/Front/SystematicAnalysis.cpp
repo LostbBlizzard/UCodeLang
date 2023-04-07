@@ -1856,10 +1856,24 @@ void SystematicAnalysis::OnBreakNode(const BreakNode& node)
 }
 void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 {
+	const String LambdaName = CompilerGenerated("Lambda") + std::to_string((uintptr_t)&node);
 	if (passtype == PassType::GetTypes)
 	{
-		String LambdaName = "Lambda" + std::to_string((uintptr_t)&node);
 		_Table.AddScope(LambdaName);
+
+		auto& LambdaSym = AddSybol(SymbolType::LambdaObject, LambdaName, _Table._Scope.ThisScope);
+		_Table.AddSymbolID(LambdaSym, (SymbolID)&node);
+		LambdaSym.Info =Unique_ptr<LambdaInfo>(new LambdaInfo());
+
+
+		for (auto& Item : node.Pars.Parameters)
+		{
+			auto& Sym = AddSybol(SymbolType::ParameterVarable, Item.Name.AsString()
+				, _Table._Scope.ScopeHelper::GetApendedString(Item.Name.AsStringView()));
+
+			_Table.AddSymbolID(Sym, (SymbolID)&Item);
+		}
+
 		if (node._Statements.has_value())
 		{
 			for (const auto& node2 : node._Statements.value()._Nodes)
@@ -1867,15 +1881,170 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 				OnStatement(*node2);
 			}
 		}
+
 		_Table.RemoveScope();
 	}
-	else if (passtype == PassType::FixedTypes)
+	else
+	if (passtype == PassType::FixedTypes)
 	{
+		
+		_Table.AddScope(LambdaName);
 
+		auto& LambdaSym = _Table.GetSymbol((SymbolID)&node);
+		LambdaInfo* Info = LambdaSym.Get_Info<LambdaInfo>();
+		Info->Ret = TypeSymbol(TypesEnum::Var);
+
+		for (size_t i = 0; i < node.Pars.Parameters.size(); i++)
+		{
+			auto& Item = node.Pars.Parameters[i];
+			Symbol& Sym = _Table.GetSymbol((SymbolID)&Item);
+
+			ConvertAndValidateType(Item.Type,Sym.VarType, NodeSyb_t::Parameter);
+			Info->Pars.push_back(Sym.VarType);
+		}
+		
+		{
+			SetInStatetements(true);
+			LookingForTypes.push(Info->Ret);
+
+			bool HasARet = false;
+			if (node._Statements.has_value())
+			{
+				for (const auto& node2 : node._Statements.value()._Nodes)
+				{
+					OnStatement(*node2);
+
+					if (node2->Get_Type() == NodeType::RetStatementNode)
+					{
+						HasARet = true;
+
+						if (Info->Ret._Type == TypesEnum::Var)
+						{
+							auto OldType = Info->Ret;
+
+							auto NewType = LastExpressionType;
+
+							if (OldType.IsAddress()) {
+								NewType.SetAsAddress();
+							}
+							if (OldType.IsAddressArray()) {
+								NewType.SetAsAddressArray();
+							}
+
+
+
+							Get_LookingForType() = Info->Ret = NewType;
+
+							if (LastExpressionType._Type == TypesEnum::Var)
+							{
+								auto Token = LastLookedAtToken;
+								CantguessVarTypeError(Token);
+							}
+
+							OnStatement(*node2);//re do
+						}
+
+						break;
+					}
+				}
+			}
+	
+			SetInStatetements(false);
+
+
+			if (passtype == PassType::FixedTypes)
+			{
+				if (!HasARet)
+				{
+					if (Info->Ret._Type == TypesEnum::Var)
+					{
+						Info->Ret.SetType(TypesEnum::Void);
+					}
+					else if (Info->Ret._Type != TypesEnum::Void
+						&& !Info->Ret.IsBadType())//Update This when control flow get added.
+					{
+						auto Token = node.LambdaStart;
+						YouMustReturnSomethingError(Token);
+					}
+
+				}
+
+			}
+
+			LookingForTypes.pop();
+		}
+		
+		_Table.RemoveScope();
+
+
+		if (Info->UsesOuterScope == false)
+		{
+			FuncInfo TepFuninfo;
+			TepFuninfo.Pars = Info->Pars;
+			TepFuninfo.Ret = Info->Ret;
+			auto TepLambdaFunc = GetTepFuncPtrSyb(GetLambdaFuncTepName(LambdaName), &TepFuninfo);
+
+			LastExpressionType = TypeSymbol(TepLambdaFunc->ID);
+		}
+		else
+		{
+			throw std::exception("not added");
+		}
 	}
 	else if (passtype == PassType::BuidCode)
 	{
+		_Table.AddScope(LambdaName);
 
+		auto& LambdaSym = _Table.GetSymbol((SymbolID)&node);
+		LambdaInfo* Info = LambdaSym.Get_Info<LambdaInfo>();
+
+		if (Info->UsesOuterScope == false)
+		{
+			auto oldFunc = LookingAtIRFunc;
+			auto oldblock = LookingAtIRBlock;
+			//
+			
+			LookingAtIRFunc = _Builder.NewFunc(GetLambdaFuncTepName(LambdaName), ConvertToIR(Info->Ret));
+			LookingAtIRBlock = LookingAtIRFunc->NewBlock(".");
+
+
+			LookingAtIRFunc->Pars.resize(node.Pars.Parameters.size());
+			for (size_t i = 0; i < node.Pars.Parameters.size(); i++)
+			{
+				auto& Item = node.Pars.Parameters[i];
+				Symbol& Sym = _Table.GetSymbol((SymbolID)&Item);
+
+				IRPar V;
+				V.type = ConvertToIR(Info->Pars[i]);
+				V.identifier = _Builder.ToID((IRidentifier)Item.Name.Token->Value._String);
+				LookingAtIRFunc->Pars[i] =V;
+
+				Sym.IR_Par = &LookingAtIRFunc->Pars[i];
+			}
+
+
+
+			if (node._Statements.has_value())
+			{
+				for (const auto& node2 : node._Statements.value()._Nodes)
+				{
+					OnStatement(*node2);
+				}
+			}
+			LookingAtIRBlock->NewRet();
+			//
+			LookingAtIRFunc = oldFunc;
+			LookingAtIRBlock = oldblock;
+		}
+		else
+		{
+			throw std::exception("not added");
+		}
+
+
+		_Table.RemoveScope();
+
+		_LastExpressionField = LookingAtIRBlock->NewLoadFuncPtr(_Builder.ToID(GetLambdaFuncTepName(LambdaName)));
 	}
 }
 void SystematicAnalysis::TypeDoesNotHaveForOverload(const UCodeLang::Token* Token, UCodeLang::FrontEnd::TypeSymbol& ExType)
@@ -2583,6 +2752,12 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 				String VarType = type == DeclareStaticVariableNode_t::Static ? "Static" : "Thread";
 				_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, VarType + " Varable must be assigned.missing '='.");
 			}
+		}
+
+		//
+		if (node.Expression.Value)
+		{
+			OnExpressionTypeNode(node.Expression.Value.get());
 		}
 	}
 	else
@@ -4548,7 +4723,11 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 {
 	
 	if (passtype == PassType::BuidCode
-		|| passtype == PassType::FixedTypes)
+		|| passtype == PassType::FixedTypes
+		
+		|| (passtype == PassType::GetTypes && 
+			(node.Value->Get_Type() == NodeType::LambdaNode)
+		))
 	{
 		
 		switch (node.Value->Get_Type())
@@ -4633,6 +4812,12 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 			MoveNode* nod = MoveNode::As(node.Value.get());
 
 			OnMovedNode(nod);
+		}
+		break;
+		case NodeType::LambdaNode:
+		{
+			auto nod = LambdaNode::As(node.Value.get());
+			OnLambdaNode(*nod);
 		}
 		break;
 		default:

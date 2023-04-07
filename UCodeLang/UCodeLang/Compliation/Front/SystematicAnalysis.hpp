@@ -598,6 +598,11 @@ private:
 	void OnBreakNode(const BreakNode& node);
 	void OnLambdaNode(const LambdaNode& node);
 
+	String GetLambdaFuncTepName(const String& LambdaName)
+	{
+		return LambdaName + "ptr";
+	}
+
 	void TypeDoesNotHaveForOverload(const Token* Token, TypeSymbol& ExType);
 
 	bool ISStructPassByRef(Symbol* syb);
