@@ -131,6 +131,64 @@ IRBuilder::IRBuilder()
 	_threaddeInit.ReturnType = IRTypes::Void;
 }
 
+bool IRBuilder::IsTheSame(const IRFuncPtr* Func, const IRFuncPtr* Func2)const
+{
+	bool Ok = Func->CallConvention == Func2->CallConvention
+		&& Func->Pars.size() == Func2->Pars.size()
+		&& IsTheSame(Func->Ret, Func2->Ret);
+
+	if (Ok)
+	{
+		for (size_t i = 0; i < Func2->Pars.size(); i++)
+		{
+			if (!IsTheSame(Func->Pars[i], Func2->Pars[i]))
+			{
+				return false;
+			}
+		}
+	}
+
+	return Ok;
+}
+bool IRBuilder::IsTheSame(const IRFuncPtr* Func, const IRFunc* Func2)const
+{
+	bool Ok = Func->CallConvention == Func2->CallConvention
+		&& Func->Pars.size() == Func2->Pars.size()
+		&& IsTheSame(Func->Ret, Func2->ReturnType);
+
+	if (Ok)
+	{
+		for (size_t i = 0; i < Func2->Pars.size(); i++)
+		{
+			if (!IsTheSame(Func->Pars[i], Func2->Pars[i].type))
+			{
+				return false;
+			}
+		}
+	}
+
+	return Ok;
+}
+bool IRBuilder::IsTheSame(const IRFunc* Func, const IRFunc* Func2)const
+{
+	bool Ok = Func->CallConvention == Func2->CallConvention
+		&& IsTheSame(Func->ReturnType, Func2->ReturnType)
+		&& Func->Pars.size() == Func2->Pars.size();
+
+	if (Ok)
+	{
+		for (size_t i = 0; i < Func2->Pars.size(); i++)
+		{
+			if (!IsTheSame(Func->Pars[i].type, Func2->Pars[i].type))
+			{
+				return false;
+			}
+		}
+	}
+
+	return Ok;
+}
+
 String IRBuilder::ToString()
 {
 	String r;
