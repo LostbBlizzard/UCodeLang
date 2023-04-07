@@ -598,6 +598,9 @@ private:
 	void OnBreakNode(const BreakNode& node);
 	void OnLambdaNode(const LambdaNode& node);
 
+
+	void OnStatementsWithSetableRet(const StatementsNode& node, TypeSymbol& RetOut, const Token* Token);
+
 	String GetLambdaFuncTepName(const String& LambdaName)
 	{
 		return LambdaName + "ptr";

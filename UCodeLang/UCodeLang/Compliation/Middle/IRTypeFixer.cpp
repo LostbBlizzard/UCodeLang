@@ -218,16 +218,10 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op)
 					if (FuncSyb->SymType == IRSymbolType::FuncPtr)
 					{
 						IRFuncPtr* V = FuncSyb->Get_ExAs<IRFuncPtr>();
-						bool Same = V->CallConvention == Func2->CallConvention 
-							&& V->Ret.IsSame(Func2->ReturnType) && V->Pars.size() == Func2->Pars.size();
-
-						for (size_t i = 0; i < V->Pars.size(); i++)
+						bool Same = _Input->IsTheSame(V,Func2.get());
+						if (Same)
 						{
-							if (V->Pars[i].IsSame(Func2->Pars[i].type))
-							{
-								Ins.ObjectType.SetType(FuncSyb->identifier);
-								return;
-							}
+							Ins.ObjectType.SetType(FuncSyb->identifier);
 						}
 
 					}

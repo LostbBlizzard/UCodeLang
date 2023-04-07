@@ -648,6 +648,8 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 			ConvertAndValidateType(node_->ReturnType, V->Ret,NodeSyb_t::Ret);
 
 			Syb.VarType.SetType(SybID);
+
+			Syb.Type = SymbolType::Func_ptr;
 		}
 	}
 	if (passtype == PassType::FixedTypes)
@@ -1040,74 +1042,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	if (node.Body.has_value() && !ignoreBody)
 	{
 		auto& Body = node.Body.value();
-
-		SetInStatetements(true);
-
-		bool HasARet = false;
-		LookingForTypes.push(syb->VarType);
-
-
-		for (const auto& node2 : Body.Statements._Nodes)
-		{
-			OnStatement(*node2);
-			if (node2->Get_Type() == NodeType::RetStatementNode)
-			{
-				HasARet = true;
-
-				if (passtype == PassType::FixedTypes && syb->VarType._Type == TypesEnum::Var)
-				{
-					auto OldType = syb->VarType;
-
-					auto NewType = LastExpressionType;
-
-					if (OldType.IsAddress()) {
-						NewType.SetAsAddress();
-					}
-					if (OldType.IsAddressArray()) {
-						NewType.SetAsAddressArray();
-					}
-
-
-
-					Get_LookingForType() = syb->VarType = NewType;
-
-					if (LastExpressionType._Type == TypesEnum::Var)
-					{
-						auto Token = LastLookedAtToken;
-						CantguessVarTypeError(Token);
-					}
-
-					OnStatement(*node2);//re do
-				}
-
-				break;
-			}
-		}
-
-		SetInStatetements(false);
-
-
-		if (passtype == PassType::FixedTypes)
-		{
-			if (!HasARet)
-			{
-				if (syb->VarType._Type == TypesEnum::Var)
-				{
-					syb->VarType.SetType(TypesEnum::Void);
-				}
-				else if (syb->VarType._Type != TypesEnum::Void
-					&& !syb->VarType.IsBadType())//Update This when control flow get added.
-				{
-					auto Token = node.Signature.Name.Token;
-					YouMustReturnSomethingError(Token);
-				}
-
-			}
-
-			Info->Ret = syb->VarType;
-		}
-
-		LookingForTypes.pop();
+		OnStatementsWithSetableRet(Body.Statements, Info->Ret, node.Signature.Name.Token);
+		syb->VarType = Info->Ret;
 	}
 
 
@@ -1903,76 +1839,12 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 			Info->Pars.push_back(Sym.VarType);
 		}
 		
+		
+		if (node._Statements.has_value())
 		{
-			SetInStatetements(true);
-			LookingForTypes.push(Info->Ret);
-
-			bool HasARet = false;
-			if (node._Statements.has_value())
-			{
-				for (const auto& node2 : node._Statements.value()._Nodes)
-				{
-					OnStatement(*node2);
-
-					if (node2->Get_Type() == NodeType::RetStatementNode)
-					{
-						HasARet = true;
-
-						if (Info->Ret._Type == TypesEnum::Var)
-						{
-							auto OldType = Info->Ret;
-
-							auto NewType = LastExpressionType;
-
-							if (OldType.IsAddress()) {
-								NewType.SetAsAddress();
-							}
-							if (OldType.IsAddressArray()) {
-								NewType.SetAsAddressArray();
-							}
-
-
-
-							Get_LookingForType() = Info->Ret = NewType;
-
-							if (LastExpressionType._Type == TypesEnum::Var)
-							{
-								auto Token = LastLookedAtToken;
-								CantguessVarTypeError(Token);
-							}
-
-							OnStatement(*node2);//re do
-						}
-
-						break;
-					}
-				}
-			}
-	
-			SetInStatetements(false);
-
-
-			if (passtype == PassType::FixedTypes)
-			{
-				if (!HasARet)
-				{
-					if (Info->Ret._Type == TypesEnum::Var)
-					{
-						Info->Ret.SetType(TypesEnum::Void);
-					}
-					else if (Info->Ret._Type != TypesEnum::Void
-						&& !Info->Ret.IsBadType())//Update This when control flow get added.
-					{
-						auto Token = node.LambdaStart;
-						YouMustReturnSomethingError(Token);
-					}
-
-				}
-
-			}
-
-			LookingForTypes.pop();
+			OnStatementsWithSetableRet(node._Statements.value(), Info->Ret, node.LambdaStart);
 		}
+
 		
 		_Table.RemoveScope();
 
@@ -1983,6 +1855,8 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 			TepFuninfo.Pars = Info->Pars;
 			TepFuninfo.Ret = Info->Ret;
 			auto TepLambdaFunc = GetTepFuncPtrSyb(GetLambdaFuncTepName(LambdaName), &TepFuninfo);
+			TepLambdaFunc->PassState = passtype;
+
 
 			LastExpressionType = TypeSymbol(TepLambdaFunc->ID);
 		}
@@ -2004,7 +1878,7 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 			auto oldblock = LookingAtIRBlock;
 			//
 			
-			LookingAtIRFunc = _Builder.NewFunc(GetLambdaFuncTepName(LambdaName), ConvertToIR(Info->Ret));
+			LookingAtIRFunc = _Builder.NewFunc(LambdaName, ConvertToIR(Info->Ret));
 			LookingAtIRBlock = LookingAtIRFunc->NewBlock(".");
 
 
@@ -2031,10 +1905,19 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 					OnStatement(*node2);
 				}
 			}
+
 			LookingAtIRBlock->NewRet();
 			//
 			LookingAtIRFunc = oldFunc;
 			LookingAtIRBlock = oldblock;
+
+			_LastExpressionField = LookingAtIRBlock->NewLoadFuncPtr(_Builder.ToID(LambdaName));
+
+
+			FuncInfo TepFuninfo;
+			TepFuninfo.Pars = Info->Pars;
+			TepFuninfo.Ret = Info->Ret;
+			LastExpressionType = TypeSymbol(GetTepFuncPtrSyb(GetLambdaFuncTepName(LambdaName), &TepFuninfo)->ID);
 		}
 		else
 		{
@@ -2043,8 +1926,69 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 
 
 		_Table.RemoveScope();
+	}
+}
+void SystematicAnalysis::OnStatementsWithSetableRet(const StatementsNode& node, TypeSymbol& RetOut, const Token* Token)
+{
+	LookingForTypes.push(RetOut);
 
-		_LastExpressionField = LookingAtIRBlock->NewLoadFuncPtr(_Builder.ToID(GetLambdaFuncTepName(LambdaName)));
+	bool  HasARet = false;
+
+	SetInStatetements(true);
+	for (const auto& node2 : node._Nodes)
+	{
+		OnStatement(*node2);
+
+		if (node2->Get_Type() == NodeType::RetStatementNode)
+		{
+			HasARet = true;
+
+			if (RetOut._Type == TypesEnum::Var)
+			{
+				auto OldType = RetOut;
+
+				auto NewType = LastExpressionType;
+
+				if (OldType.IsAddress()) {
+					NewType.SetAsAddress();
+				}
+				if (OldType.IsAddressArray()) {
+					NewType.SetAsAddressArray();
+				}
+
+
+
+				Get_LookingForType() = RetOut = NewType;
+
+				if (LastExpressionType._Type == TypesEnum::Var)
+				{
+					auto Token = LastLookedAtToken;
+					CantguessVarTypeError(Token);
+				}
+
+				OnStatement(*node2);//re do
+			}
+
+			break;
+		}
+	}
+	SetInStatetements(false);
+
+	LookingForTypes.pop();
+
+
+	if (!HasARet)
+	{
+		if (RetOut._Type == TypesEnum::Var)
+		{
+			RetOut.SetType(TypesEnum::Void);
+		}
+		else if (RetOut._Type != TypesEnum::Void
+			&& !RetOut.IsBadType())//Update This when control flow get added.
+		{
+			YouMustReturnSomethingError(Token);
+		}
+
 	}
 }
 void SystematicAnalysis::TypeDoesNotHaveForOverload(const UCodeLang::Token* Token, UCodeLang::FrontEnd::TypeSymbol& ExType)
@@ -2245,16 +2189,19 @@ IRType SystematicAnalysis::ConvertToIR(const TypeSymbol& Value)
 			}
 			else
 			{
-				FuncInfo* V = syb.Get_Info<FuncInfo>();
+				FuncPtrInfo* V = syb.Get_Info<FuncPtrInfo>();
 				IRidentifierID IRid = _Builder.ToID(syb.FullName);
 				IRType r = IRid;
 				auto tep = _Builder.NewFuncPtr(_Builder.ToID(syb.FullName), ConvertToIR(V->Ret));
 
 				tep->Pars.resize(V->Pars.size());
-				for (auto& Item : tep->Pars)
+				
+				for (size_t i = 0; i < tep->Pars.size(); i++)
 				{
-					Item = ConvertToIR(V->Ret);
+					auto& Item = tep->Pars[i];
+					Item = ConvertToIR(V->Pars[i]);
 				}
+				tep->Ret = ConvertToIR(V->Ret);
 
 				SybToIRMap[syb.ID] = IRid;
 				return r;
@@ -3478,7 +3425,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, 
 		{
 			FuncInfo* Finfo = SymbolVar->Get_Info<FuncInfo>();
 			String TepFuncPtr = GetTepFuncPtrName(Finfo);
-			Finfo->FullName = TepFuncPtr;
+			//Finfo->FullName = TepFuncPtr;
 
 			Symbol* V = GetTepFuncPtrSyb(TepFuncPtr, Finfo);
 			FeildType.SetType(V->ID);
@@ -4326,6 +4273,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 
 	if (!(TepSyb->Type ==SymbolType::Class_Field
 		|| TepSyb->Type == SymbolType::Enum_Field
+		|| TepSyb->Type == SymbolType::Func
 		|| IsVarableType(TepSyb->Type)))
 	{
 		Out.Type.SetType(TypesEnum::Null);
@@ -6553,8 +6501,8 @@ bool SystematicAnalysis::AreTheSameWithOutimmutable(const TypeSymbol& TypeA, con
 		Symbol& TypeTwo = *GetSymbol(TypeB);
 		if (TypeOne.Type == SymbolType::Func_ptr && TypeTwo.Type == SymbolType::Func_ptr)
 		{
-			FuncInfo* F1 = TypeOne.Get_Info<FuncInfo>();
-			FuncInfo* F2 = TypeTwo.Get_Info<FuncInfo>();
+			FuncPtrInfo* F1 = TypeOne.Get_Info<FuncPtrInfo>();
+			FuncPtrInfo* F2 = TypeTwo.Get_Info<FuncPtrInfo>();
 			if (F1->Pars.size() != F2->Pars.size())
 			{
 				return false;
@@ -8711,11 +8659,12 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 			Symbol* Type = GetSymbol(Item->VarType);
 			if (Type) 
 			{
+
 				if (Type->Type == SymbolType::Func_ptr || Type->Type == SymbolType::Hard_Func_ptr)
 				{
 					FuncInfo* Info = Type->Get_Info<FuncInfo>();//must be the same as Item->Type == SymbolType::Func
 
-					if (!IsCompatible(Item, ValueTypes, _ThisTypeIsNotNull, Name.ScopedName.back().token))
+					if (!IsCompatible(Type, ValueTypes, _ThisTypeIsNotNull, Name.ScopedName.back().token))
 					{
 						continue;
 					}

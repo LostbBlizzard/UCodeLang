@@ -1059,6 +1059,15 @@ public:
 	size_t GetSize(const IRStruct* Struct) const;
 	size_t GetOffset(const IRStruct* Struct, size_t Index) const;
 
+	bool IsTheSame(const IRType& Type0, const IRType& Type1)const
+	{
+		return Type0.IsSame(Type1);
+	}
+	bool IsTheSame(const IRFuncPtr* Func, const IRFuncPtr* Func2) const;
+	bool IsTheSame(const IRFuncPtr* Func, const IRFunc* Func2)const;
+	bool IsTheSame(const IRFunc* Func, const IRFunc* Func2)const;
+
+
 
 	//
 	IRBuilder();
