@@ -1963,10 +1963,15 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 		}
 		else
 		{
+			String funcPtrName = GetLambdaFuncTepName(LambdaName);
+			String funcFullName = _Table._Scope.ThisScope;
+			ScopeHelper::GetApendedString(funcFullName, funcPtrName);
+
 			FuncInfo TepFuninfo;
 			TepFuninfo.Pars = Info->Pars;
 			TepFuninfo.Ret = Info->Ret;
-			auto TepLambdaFunc = GetTepFuncPtrSyb(GetLambdaFuncTepName(LambdaName), &TepFuninfo);
+			TepFuninfo.FullName = funcFullName;
+			auto TepLambdaFunc = GetTepFuncPtrSyb(funcPtrName, &TepFuninfo);
 			TepLambdaFunc->PassState = passtype;
 
 
@@ -2124,7 +2129,9 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 			auto oldblock = LookingAtIRBlock;
 			//
 			
-			LookingAtIRFunc = _Builder.NewFunc(LambdaName, ConvertToIR(Info->Ret));
+			auto FuncName = _Table._Scope.ThisScope;
+
+			LookingAtIRFunc = _Builder.NewFunc(FuncName, ConvertToIR(Info->Ret));
 			LookingAtIRBlock = LookingAtIRFunc->NewBlock(".");
 
 
@@ -2157,13 +2164,17 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 			LookingAtIRFunc = oldFunc;
 			LookingAtIRBlock = oldblock;
 
-			_LastExpressionField = LookingAtIRBlock->NewLoadFuncPtr(_Builder.ToID(LambdaName));
+			_LastExpressionField = LookingAtIRBlock->NewLoadFuncPtr(_Builder.ToID(FuncName));
 
 
 			FuncInfo TepFuninfo;
 			TepFuninfo.Pars = Info->Pars;
 			TepFuninfo.Ret = Info->Ret;
-			LastExpressionType = TypeSymbol(GetTepFuncPtrSyb(GetLambdaFuncTepName(LambdaName), &TepFuninfo)->ID);
+
+			String funcPtrName = GetLambdaFuncTepName(LambdaName);
+			String funcFullName =ScopeHelper::GetReMoveScope(_Table._Scope.ThisScope);
+			ScopeHelper::GetApendedString(funcFullName, funcPtrName);
+			LastExpressionType = TypeSymbol(GetTepFuncPtrSyb(funcFullName, &TepFuninfo)->ID);
 		}
 
 
@@ -4172,7 +4183,7 @@ Symbol* SystematicAnalysis::GetTepFuncPtrSyb(const String& TepFuncPtr, const Fun
 	Symbol* V =GetSymbol(TepFuncPtr, SymbolType::Func_ptr);
 	if (V == nullptr)
 	{
-		V = &AddSybol(SymbolType::Func_ptr, TepFuncPtr, TepFuncPtr);
+		V = &AddSybol(SymbolType::Func_ptr, TepFuncPtr, Finfo->FullName);
 		FuncPtrInfo* V2 = new FuncPtrInfo();
 		V->Info.reset(V2);
 
