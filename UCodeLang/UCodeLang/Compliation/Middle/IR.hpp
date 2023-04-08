@@ -970,7 +970,9 @@ public:
 
 	IRFunc* NewFunc(IRidentifierID identifier, IRType ReturnType)
 	{
-		return Funcs.emplace_back(new IRFunc(identifier)).get();
+		auto Item = Funcs.emplace_back(new IRFunc(identifier)).get();
+		Item->ReturnType = ReturnType;
+		return Item;
 	};
 	IRFunc* NewFunc(const IRidentifier& identifier, IRType ReturnType)
 	{
@@ -1013,6 +1015,28 @@ public:
 	const IRSymbolData* GetSymbol(IRSymbol Value) const
 	{
 		return GetSymbol(Value.ID);
+	}
+	const IRFunc* GetFunc(IRidentifierID Value) const
+	{
+		for (auto& Item : Funcs)
+		{
+			if (Value == Item->identifier)
+			{
+				return Item.get();
+			}
+		}
+		return nullptr;
+	}
+	IRFunc* GetFunc(IRidentifierID Value) 
+	{
+		for (auto& Item : Funcs)
+		{
+			if (Value == Item->identifier)
+			{
+				return Item.get();
+			}
+		}
+		return nullptr;
 	}
 
 	Vector<Unique_ptr<IRSymbolData>> _Symbols;
