@@ -573,13 +573,27 @@ public:
 	}
 };
 
+
+class Symbol;
+struct LambdaFieldInfo
+{
+	String Name;
+	TypeSymbol Type;
+	Symbol* Sym = nullptr;
+};
+
 class LambdaInfo :public Symbol_Info
 {
 public:
-	bool UsesOuterScope = false;
+	bool UsesOuterScope()
+	{
+		return  _CapturedVarables.size()!=0;
+	}
 
 	Vector<TypeSymbol> Pars;
 	TypeSymbol Ret;
+
+	Vector<LambdaFieldInfo> _CapturedVarables;
 	LambdaInfo()
 	{
 
@@ -588,6 +602,7 @@ public:
 	{
 
 	}
+	FuncInfo* _ClassCall=nullptr;
 };
 
 class Symbol

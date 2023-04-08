@@ -1840,16 +1840,126 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 		}
 		
 		
+
+
 		if (node._Statements.has_value())
 		{
+			{
+				VarableUseData Data;
+				_Varable.push(std::move(Data));
+			}
+
 			OnStatementsWithSetableRet(node._Statements.value(), Info->Ret, node.LambdaStart);
+
+
+			//
+			{
+				VarableUseData& UseData = _Varable.top();
+				
+
+				for (auto& Item : UseData._UsedSymbols)
+				{
+					LambdaFieldInfo NewValue;
+					NewValue.Name = ScopeHelper::GetNameFromFullName(Item->FullName);
+					NewValue.Type = Item->VarType;
+					NewValue.Sym = Item;
+
+					Info->_CapturedVarables.push_back(std::move(NewValue));
+				}
+
+				_Varable.pop();
+			}
+			//
 		}
 
 		
 		_Table.RemoveScope();
 
 
-		if (Info->UsesOuterScope == false)
+		if (Info->UsesOuterScope())
+		{
+			{
+				Vector<LambdaFieldInfo> Tep_CapturedVarables;
+				for (auto& Item : Info->_CapturedVarables)
+				{
+					if (Item.Sym->Type == SymbolType::ThreadVarable
+						|| Item.Sym->Type == SymbolType::StaticVarable)
+					{
+						continue;
+					}
+
+
+					for (auto& Item2 : Tep_CapturedVarables)
+					{
+						if (Item.Name == Item2.Name)
+						{
+							goto OutLoop;
+						}
+					}
+
+
+					for (size_t i = 0; i < node.Pars.Parameters.size(); i++)
+					{
+						auto& ParItem = node.Pars.Parameters[i];
+						SymbolID ParID = (SymbolID)&ParItem;
+						if (Item.Sym->ID == ParID)
+						{
+							goto OutLoop;
+						}
+					}
+
+
+
+					Tep_CapturedVarables.push_back(Item);
+					OutLoop:continue;
+				}
+				Info->_CapturedVarables = std::move(Tep_CapturedVarables);
+			}
+		
+
+			const String LambdaClassName = LambdaName + "class";
+			auto& SymClass = AddSybol(SymbolType::Type_class, LambdaClassName, _Table._Scope.ThisScope + LambdaName);
+			const SymbolID ClassSymID = (SymbolID)&node._Capture;
+
+			_Table.AddSymbolID(SymClass, ClassSymID);
+
+			ClassInfo* Classinfo = new ClassInfo();
+			SymClass.Info =Unique_ptr<Symbol_Info>(Classinfo);
+
+			Classinfo->FullName = LambdaClassName;
+			//
+
+			for (auto& Item : Info->_CapturedVarables)
+			{
+				Classinfo->AddField(Item.Name, Item.Type);
+			}
+
+
+			{
+				FuncInfo TepFuninfo;
+				TepFuninfo.Pars = Info->Pars;
+				TepFuninfo.Ret = Info->Ret;
+				TepFuninfo.FrontParIsUnNamed = true;
+				TepFuninfo._FuncType = FuncInfo::FuncType::Invoke;
+
+				auto ClassPtr = TypeSymbol(ClassSymID);
+				ClassPtr._IsAddress = true;
+
+				TepFuninfo.Pars.insert(TepFuninfo.Pars.begin(),ClassPtr);
+
+				String funcFullName= SymClass.FullName;
+				ScopeHelper::GetApendedString(funcFullName, Overload_Invoke_Func);
+				auto& SymClass = AddSybol(SymbolType::Func,Overload_Invoke_Func, funcFullName);
+				SymClass.Info =Unique_ptr<FuncInfo>(new FuncInfo(std::move(TepFuninfo)));
+				SymClass.PassState = passtype;
+
+				Info->_ClassCall = (FuncInfo*)SymClass.Info.get();
+			}
+
+			//
+			LastExpressionType = TypeSymbol(ClassSymID);
+		}
+		else
 		{
 			FuncInfo TepFuninfo;
 			TepFuninfo.Pars = Info->Pars;
@@ -1860,10 +1970,6 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 
 			LastExpressionType = TypeSymbol(TepLambdaFunc->ID);
 		}
-		else
-		{
-			throw std::exception("not added");
-		}
 	}
 	else if (passtype == PassType::BuidCode)
 	{
@@ -1872,7 +1978,116 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 		auto& LambdaSym = _Table.GetSymbol((SymbolID)&node);
 		LambdaInfo* Info = LambdaSym.Get_Info<LambdaInfo>();
 
-		if (Info->UsesOuterScope == false)
+		if (Info->UsesOuterScope())
+		{
+			const SymbolID ClassSymID = (SymbolID)&node._Capture;
+			auto& SymClass = _Table.GetSymbol(ClassSymID);
+
+			auto ClassType = TypeSymbol(ClassSymID);
+			auto ClassTypeIR = ConvertToIR(ClassType);
+
+			auto ClassTypeIRPtr = ClassType;
+			ClassTypeIRPtr._IsAddress = true;
+
+			auto TepIRObject = LookingAtIRBlock->NewLoad(ClassTypeIR);
+
+
+			
+
+			IRStruct* ClassStruct = _Builder.GetSymbol(ClassTypeIR._symbol)->Get_ExAs<IRStruct>();
+
+			for (size_t i = 0; i < Info->_CapturedVarables.size(); i++)
+			{
+				auto& Item = Info->_CapturedVarables[i];
+
+
+				IRInstruction* Value = nullptr;
+				if (Item.Sym->Type == SymbolType::StackVarable)
+				{
+					Value = LookingAtIRBlock->NewLoad(Item.Sym->IR_Ins);
+				}
+				else if (Item.Sym->Type == SymbolType::ParameterVarable)
+				{
+					Value = LookingAtIRBlock->NewLoad(Item.Sym->IR_Par);
+				}
+				else
+				{
+					throw std::exception("not added");
+				}
+
+
+				auto Member = LookingAtIRBlock->New_Member_Access(TepIRObject, ClassStruct, i);
+				LookingAtIRBlock->NewStore(Member, Value);
+
+				{
+					auto FullName = _Table._Scope.ThisScope;
+					ScopeHelper::GetApendedString(FullName, Item.Name);
+					auto& Sym = AddSybol(SymbolType::Class_Field, Item.Name, FullName);//to make a this indirection.
+					Sym.VarType = Item.Type;
+				}
+			}
+			
+			
+			
+			{//build func
+				auto oldFunc = LookingAtIRFunc;
+				auto oldblock = LookingAtIRBlock;
+				//
+
+				LookingAtIRFunc = _Builder.NewFunc(LambdaName, ConvertToIR(Info->Ret));
+				LookingAtIRBlock = LookingAtIRFunc->NewBlock(".");
+
+
+				LookingAtIRFunc->Pars.resize(node.Pars.Parameters.size()+1);
+				{
+					IRPar V;
+					V.identifier = _Builder.ToID(ThisSymbolName);
+					V.type = ConvertToIR(ClassTypeIRPtr);
+					LookingAtIRFunc->Pars[0] = V;
+				}
+				for (size_t i = 0; i < node.Pars.Parameters.size(); i++)
+				{
+					auto& Item = node.Pars.Parameters[i];
+					Symbol& Sym = _Table.GetSymbol((SymbolID)&Item);
+
+					IRPar V;
+					V.type = ConvertToIR(Info->Pars[i]);
+					V.identifier = _Builder.ToID((IRidentifier)Item.Name.Token->Value._String);
+					LookingAtIRFunc->Pars[i+1] = V;
+
+					Sym.IR_Par = &LookingAtIRFunc->Pars[i+1];
+				}
+
+				ClassStackInfo _Data; 
+				_Data.Info = SymClass.Get_Info<ClassInfo>();
+				_Data._InStatements = true;
+				_ClassStack.push(_Data);
+
+				FuncStackInfo _FuncData(Info->_ClassCall);
+				_FuncStack.push_back(_FuncData);
+
+				if (node._Statements.has_value())
+				{
+					for (const auto& node2 : node._Statements.value()._Nodes)
+					{
+						OnStatement(*node2);
+					}
+				}
+
+				_ClassStack.pop();
+				_FuncStack.pop_back();
+
+				LookingAtIRBlock->NewRet();
+				//
+				LookingAtIRFunc = oldFunc;
+				LookingAtIRBlock = oldblock;
+			}
+
+
+			_LastExpressionField = TepIRObject;
+			LastExpressionType = ClassType;
+		}
+		else
 		{
 			auto oldFunc = LookingAtIRFunc;
 			auto oldblock = LookingAtIRBlock;
@@ -1918,10 +2133,6 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 			TepFuninfo.Pars = Info->Pars;
 			TepFuninfo.Ret = Info->Ret;
 			LastExpressionType = TypeSymbol(GetTepFuncPtrSyb(GetLambdaFuncTepName(LambdaName), &TepFuninfo)->ID);
-		}
-		else
-		{
-			throw std::exception("not added");
 		}
 
 
@@ -4289,6 +4500,11 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 	}
 
 
+	if (_Varable.size())
+	{
+		auto& Data = _Varable.top();
+		Data._UsedSymbols.push_back(TepSyb);
+	}
 	return true;
 }
 void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)

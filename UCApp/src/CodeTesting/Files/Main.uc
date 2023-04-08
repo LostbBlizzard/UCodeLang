@@ -7,8 +7,9 @@ $Func_t =|[] -> int;
 
 |main[]:
 
- var Hello = |[int x,int y] => x * y;
- var a = Hello();
 
- Func_t Hello2 = func;
- var b = Hello2();
+ int z = 10;
+ var Hello = |[int x,int y] => x * y * z;
+
+
+ Hello(5,5);
