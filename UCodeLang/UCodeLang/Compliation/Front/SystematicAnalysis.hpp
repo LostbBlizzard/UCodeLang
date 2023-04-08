@@ -359,6 +359,8 @@ private:
 			AutoPushThis,
 		};
 		ThisPar_t ThisPar = ThisPar_t::NoThisPar;
+
+
 		const FuncInfo* Func = nullptr;
 		Symbol* SymFunc = nullptr;
 	};
@@ -821,10 +823,31 @@ private:
 
 	void SetFuncRetAsLastEx(Get_FuncInfo& Info);
 	
-	bool IsCompatible(Symbol* Item, const Vector<TypeSymbol>& ValueTypes, bool _ThisTypeIsNotNull, const Token* Token);
+	struct  IsCompatiblePar
+	{
+		const Vector<TypeSymbol>* Pars;
+		const TypeSymbol* Ret;
+		Symbol* Item;
+		void SetAsFuncInfo(Symbol* Item)
+		{
+			FuncInfo* Info = Item->Get_Info<FuncInfo>();
+			Pars = &Info->Pars;
+			Ret = &Info->Ret;
+			this->Item = Item;
+		}
+		void SetAsFuncPtrInfo(Symbol* Item)
+		{
+			FuncPtrInfo* Info = Item->Get_Info<FuncPtrInfo>();
+			Pars = &Info->Pars;
+			Ret = &Info->Ret;
+			this->Item = Item;
+		}
+	};
+
+	bool IsCompatible(const IsCompatiblePar& FuncPar, const Vector<TypeSymbol>& ValueTypes, bool _ThisTypeIsNotNull, const Token* Token);
 
 	int GetCompatibleScore(const TypeSymbol& ParFunc, const TypeSymbol& Value);
-	int GetCompatibleScore(const FuncInfo* Func, const Vector<TypeSymbol>& ValueTypes);
+	int GetCompatibleScore(const IsCompatiblePar& Func, const Vector<TypeSymbol>& ValueTypes);
 
 
 	//Generics

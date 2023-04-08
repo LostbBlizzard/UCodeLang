@@ -1850,47 +1850,54 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 		
 		_Table.RemoveScope();
 
+		{
+			String LambdFuncScope = _Table._Scope.ThisScope;
+			ScopeHelper::GetApendedString(LambdFuncScope, LambdaName);
+
+			Vector<LambdaFieldInfo> Tep_CapturedVarables;
+			for (auto& Item : Info->_CapturedVarables)
+			{
+				if (Item.Sym->Type == SymbolType::ThreadVarable
+					|| Item.Sym->Type == SymbolType::StaticVarable)
+				{
+					continue;
+				}
+
+
+				for (auto& Item2 : Tep_CapturedVarables)
+				{
+					if (Item.Name == Item2.Name)
+					{
+						goto OutLoop;
+					}
+				}
+
+
+				for (size_t i = 0; i < node.Pars.Parameters.size(); i++)
+				{
+					auto& ParItem = node.Pars.Parameters[i];
+					SymbolID ParID = (SymbolID)&ParItem;
+					if (Item.Sym->ID == ParID)
+					{
+						goto OutLoop;
+					}
+				}
+
+
+				if (Item.Sym->FullName.size() > LambdFuncScope.size())
+				{
+					continue;
+				}
+
+				Tep_CapturedVarables.push_back(Item);
+			OutLoop:continue;
+			}
+			Info->_CapturedVarables = std::move(Tep_CapturedVarables);
+		}
 
 		if (Info->UsesOuterScope())
 		{
-			{
-				Vector<LambdaFieldInfo> Tep_CapturedVarables;
-				for (auto& Item : Info->_CapturedVarables)
-				{
-					if (Item.Sym->Type == SymbolType::ThreadVarable
-						|| Item.Sym->Type == SymbolType::StaticVarable)
-					{
-						continue;
-					}
-
-
-					for (auto& Item2 : Tep_CapturedVarables)
-					{
-						if (Item.Name == Item2.Name)
-						{
-							goto OutLoop;
-						}
-					}
-
-
-					for (size_t i = 0; i < node.Pars.Parameters.size(); i++)
-					{
-						auto& ParItem = node.Pars.Parameters[i];
-						SymbolID ParID = (SymbolID)&ParItem;
-						if (Item.Sym->ID == ParID)
-						{
-							goto OutLoop;
-						}
-					}
-
-
-
-					Tep_CapturedVarables.push_back(Item);
-				OutLoop:continue;
-				}
-				Info->_CapturedVarables = std::move(Tep_CapturedVarables);
-			}
-
+			
 
 			const String LambdaClassName = LambdaName + "class";
 			String FullName = _Table._Scope.ThisScope;
@@ -8366,7 +8373,9 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 	for (size_t i = 0; i < Pars._Nodes.size(); i++)
 	{
 		auto& Item = Pars._Nodes[i];
-		auto& FuncParInfo = Func.Func->Pars[ i + (AutoPushThis ? 1 : 0)];
+		auto& FuncParInfo = Func.SymFunc->Type == SymbolType::Func
+			? Func.Func->Pars[ i + (AutoPushThis ? 1 : 0)]
+			: ((FuncPtrInfo*)Func.Func)->Pars[i + (AutoPushThis ? 1 : 0)];
 
 
 		
@@ -8415,7 +8424,8 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 		for (size_t i = 0; i < IRParsList.size(); i++)
 		{
 			auto& Item = IRParsList[i];
-			auto& ItemType = Func.Func->Pars[i];
+			auto& ItemType = Func.SymFunc->Type == SymbolType::Func ? Func.Func->Pars[i]
+				: ((FuncPtrInfo*)Func.Func)->Pars[i];
 
 			if (ItemType._IsAddress == false && HasDestructor(ItemType))
 			{
@@ -8747,7 +8757,10 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 
 			FuncInfo* Info = Item->Get_Info<FuncInfo>();
 
-			if (!IsCompatible(Item, ValueTypes, _ThisTypeIsNotNull, Name.ScopedName.back().token))
+			IsCompatiblePar CMPPar;
+			CMPPar.SetAsFuncInfo(Item);
+
+			if (!IsCompatible(CMPPar, ValueTypes, _ThisTypeIsNotNull, Name.ScopedName.back().token))
 			{
 				continue;
 			}
@@ -8806,25 +8819,6 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 				}
 			}
 
-			/*
-			if (RetIsSet)
-			{
-				for (size_t i2 = 0; i2 < Info->_Generic.size(); i2++)
-				{
-					auto& V3 = Info->_Generic[i2];
-					if (V3.SybID == Info->Ret._CustomTypeSymbol)
-					{
-						if (HasBenAdded[i2] == false)
-						{
-							GenericInput.push_back(Ret);
-							HasBenAdded[i2] = true;
-						}
-						break;
-					}
-				}
-
-			}
-			*/
 
 			{
 
@@ -8913,7 +8907,10 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 						ValueTypes.insert(ValueTypes.begin(), V);
 					}
 
-					bool Compatible = IsCompatible(Item2, ValueTypes, _ThisTypeIsNotNull, Name.ScopedName.back().token);
+					IsCompatiblePar CMPPar;
+					CMPPar.SetAsFuncInfo(Item2);
+
+					bool Compatible = IsCompatible(CMPPar, ValueTypes, _ThisTypeIsNotNull, Name.ScopedName.back().token);
 					
 					if (PushThisPar)
 					{
@@ -8942,15 +8939,18 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 
 				if (Type->Type == SymbolType::Func_ptr || Type->Type == SymbolType::Hard_Func_ptr)
 				{
-					FuncInfo* Info = Type->Get_Info<FuncInfo>();//must be the same as Item->Type == SymbolType::Func
+					FuncPtrInfo* Info = Type->Get_Info<FuncPtrInfo>();//must be the same as Item->Type == SymbolType::Func
 
-					if (!IsCompatible(Type, ValueTypes, _ThisTypeIsNotNull, Name.ScopedName.back().token))
+					IsCompatiblePar CMPPar;
+					CMPPar.SetAsFuncPtrInfo(Type);
+
+					if (!IsCompatible(CMPPar, ValueTypes, _ThisTypeIsNotNull, Name.ScopedName.back().token))
 					{
 						continue;
 					}
 
 					{
-						r = Info;
+						r = (FuncInfo*)Info;
 						FuncSymbol = Item;
 						T = SymbolType::FuncCall;
 						OkFuncions.push_back({ ThisParType,r,FuncSymbol });
@@ -8979,7 +8979,10 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 								ValueTypes.insert(ValueTypes.begin(), V);
 							}
 
-							bool Compatible = IsCompatible(Item2, ValueTypes, _ThisTypeIsNotNull, Name.ScopedName.back().token);
+							IsCompatiblePar CMPPar;
+							CMPPar.SetAsFuncPtrInfo(Item);
+
+							bool Compatible = IsCompatible(CMPPar, ValueTypes, _ThisTypeIsNotNull, Name.ScopedName.back().token);
 
 							if (PushThisPar)
 							{
@@ -9053,7 +9056,30 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 		Get_FuncInfo* Ret =nullptr;
 		for (auto& Item : OkFuncions)
 		{
-			int Score = GetCompatibleScore(Item.Func, ValueTypes);
+			IsCompatiblePar CMPPar;
+			if (Item.SymFunc->Type == SymbolType::Func) 
+			{
+				CMPPar.SetAsFuncInfo(Item.SymFunc);
+			}
+			else if (IsVarableType(Item.SymFunc->Type))
+			{
+				Symbol* Type = GetSymbol(Item.SymFunc->VarType);
+				if (Type && (Type->Type == SymbolType::Func_ptr || Type->Type == SymbolType::Hard_Func_ptr))
+				{
+					CMPPar.SetAsFuncPtrInfo(Type);
+				}
+				else
+				{
+					throw std::exception("not added");
+				}	
+			}
+			else
+			{
+				throw std::exception("not added");
+			}
+
+
+			int Score = GetCompatibleScore(CMPPar, ValueTypes);
 			if (!MinScore.has_value() ||  Score > MinScore.value())
 			{
 				MinScore = Score;
@@ -9267,30 +9293,24 @@ SystematicAnalysis::EvaluatedEx SystematicAnalysis::MakeEx(const TypeSymbol& Typ
 	return r;
 }
 
-bool SystematicAnalysis::IsCompatible(Symbol* Item, const Vector<TypeSymbol>& ValueTypes, bool _ThisTypeIsNotNull, const Token* Token)
+bool SystematicAnalysis::IsCompatible(const IsCompatiblePar& FuncPar,const Vector<TypeSymbol>& ValueTypes, bool _ThisTypeIsNotNull, const Token* Token)
 {
-	FuncInfo* Info = Item->Get_Info<FuncInfo>();
-	/*
-	if (RetIsSet)
-	{
-	if (!AreTheSame(Info->Ret, RetType))
-	{
-	continue;
-	}
-	}
-	*/
 
-	if (Info->Pars.size() != ValueTypes.size())
+	if (FuncPar.Pars->size() != ValueTypes.size())
 	{
 		return false;
 	}
 
 
 	//
-	if ((PassType_t)Item->PassState < (PassType_t)passtype)
+	if ((PassType_t)FuncPar.Item->PassState < (PassType_t)passtype)
 	{
-		
+		if (FuncPar.Item->Type != SymbolType::Func)
+		{
+			throw std::exception("not added");
+		}
 
+		FuncInfo* Info = FuncPar.Item->Get_Info<FuncInfo>();
 		if (!IsDependencies(Info))
 		{
 			auto OldPass = passtype;
@@ -9300,7 +9320,7 @@ bool SystematicAnalysis::IsCompatible(Symbol* Item, const Vector<TypeSymbol>& Va
 
 			_RetLoopStack.push_back(Info);
 
-			OnFuncNode(*(FuncNode*)Item->NodePtr);
+			OnFuncNode(*(FuncNode*)FuncPar.Item->NodePtr);
 
 			_RetLoopStack.pop_back();
 
@@ -9319,9 +9339,9 @@ bool SystematicAnalysis::IsCompatible(Symbol* Item, const Vector<TypeSymbol>& Va
 	}
 	//
 
-	for (size_t i = _ThisTypeIsNotNull ? 1 : 0; i < Info->Pars.size(); i++)
+	for (size_t i = _ThisTypeIsNotNull ? 1 : 0; i < FuncPar.Pars->size(); i++)
 	{
-		auto& Item = Info->Pars[i];
+		auto& Item = (*FuncPar.Pars)[i];
 		auto& Item2 = ValueTypes[i];
 
 		if (!CanBeImplicitConverted(Item2, Item, true))
@@ -9363,13 +9383,13 @@ int SystematicAnalysis::GetCompatibleScore(const TypeSymbol& ParFunc, const Type
 	return r;
 }
 
-int SystematicAnalysis::GetCompatibleScore(const FuncInfo* Func, const Vector<TypeSymbol>& ValueTypes)
+int SystematicAnalysis::GetCompatibleScore(const IsCompatiblePar& Func, const Vector<TypeSymbol>& ValueTypes)
 {
 
 	int r = 0;
 	for (size_t i = 0; i < ValueTypes.size(); i++)
 	{
-		r += GetCompatibleScore(Func->Pars[i], ValueTypes[i]);
+		r += GetCompatibleScore((*Func.Pars)[i], ValueTypes[i]);
 	}
 
 
