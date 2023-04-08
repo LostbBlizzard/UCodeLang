@@ -603,6 +603,7 @@ public:
 
 	}
 	FuncInfo* _ClassCall=nullptr;
+	FuncInfo* _ClassDrop = nullptr;
 };
 
 class Symbol
