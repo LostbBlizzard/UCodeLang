@@ -114,13 +114,10 @@ void IRTypeFixer::FixTypes(IRBuilder* Input)
 				}
 				else if (Ins->Type == IRInstructionType::Call)
 				{
-					for (auto& Func2 : _Input->Funcs)
+					auto Item = _Input->GetFunc(Ins->Target().identifer);
+					if (Item) 
 					{
-						if (Func2->identifier == Ins->Target().identifer)
-						{
-							Ins->ObjectType = Func2->ReturnType;
-							break;
-						}
+						Ins->ObjectType = Item->ReturnType;
 					}
 				}
 				else if (Ins->Type == IRInstructionType::Member_Access)
@@ -208,28 +205,27 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op)
 	}
 	else if (Op.Type == IROperatorType::Get_Func_Pointer)
 	{
-		for (auto& Func2 : _Input->Funcs)
+		auto FunSym = _Input->GetFunc(Op.identifer);
+
+		if (FunSym)
 		{
-			if (Func2->identifier == Op.identifer)
+			for (auto& FuncSyb : _Input->_Symbols)
 			{
-				
-				for (auto& FuncSyb : _Input->_Symbols)
+				if (FuncSyb->SymType == IRSymbolType::FuncPtr)
 				{
-					if (FuncSyb->SymType == IRSymbolType::FuncPtr)
+					IRFuncPtr* V = FuncSyb->Get_ExAs<IRFuncPtr>();
+					bool Same = _Input->IsTheSame(V, FunSym);
+					if (Same)
 					{
-						IRFuncPtr* V = FuncSyb->Get_ExAs<IRFuncPtr>();
-						bool Same = _Input->IsTheSame(V,Func2.get());
-						if (Same)
-						{
-							Ins.ObjectType.SetType(FuncSyb->identifier);
-						}
-
+						Ins.ObjectType.SetType(FuncSyb->identifier);
+						return;
 					}
-				}
 
-				break;
+				}
 			}
+
 		}
+
 
 		Ins.ObjectType.SetType(IRTypes::pointer);
 	}

@@ -932,27 +932,29 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			auto& V = *GetSymbol(ParSybID);
 
 
+			auto& VarType = Info->Pars[i];
+
 			auto& d = LookingAtIRFunc->Pars[i];
 			d.identifier = _Builder.ToID(ScopeHelper::GetNameFromFullName(V.FullName));
-			d.type = ConvertToIR(V.VarType);
+			d.type = ConvertToIR(VarType);
 
 
 
 
-			if (HasDestructor(V.VarType))
+			if (HasDestructor(VarType))
 			{
 				ObjectToDrop V;
 				V.DropType = ObjectToDropType::Operator;
 				V.ID = ParSybID;
 				V._Operator = IROperator(&d);
-				V.Type = V.Type;
+				V.Type = VarType;
 
 				StackFrames.back().OnEndStackFrame.push_back(V);
 			}
 
 			V.IR_Par = &d;
 		}
-		LookingAtIRFunc->ReturnType = ConvertToIR(syb->VarType);
+		LookingAtIRFunc->ReturnType = ConvertToIR(Info->Ret);
 
 		for (auto& Item : _TepAttributes)
 		{
@@ -2148,7 +2150,6 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 
 				Sym.IR_Par = &LookingAtIRFunc->Pars[i];
 			}
-
 
 
 			if (node._Statements.has_value())
@@ -6510,14 +6511,21 @@ void SystematicAnalysis::SetFuncRetAsLastEx(Get_FuncInfo& Info)
 {
 	if (Info.Func)
 	{
-		if (Info.Func->_FuncType == FuncInfo::FuncType::New)
+		if (IsVarableType(Info.SymFunc->Type))
 		{
-			LastExpressionType = (*Info.Func->GetObjectForCall());
-			LastExpressionType._IsAddress = false;
+			LastExpressionType = ((FuncPtrInfo*)Info.Func)->Ret;
 		}
-		else
+		else 
 		{
-			LastExpressionType = Info.Func->Ret;
+			if (Info.Func->_FuncType == FuncInfo::FuncType::New)
+			{
+				LastExpressionType = (*Info.Func->GetObjectForCall());
+				LastExpressionType._IsAddress = false;
+			}
+			else
+			{
+				LastExpressionType = Info.Func->Ret;
+			}
 		}
 	}
 }
@@ -8991,7 +8999,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 							}
 
 							IsCompatiblePar CMPPar;
-							CMPPar.SetAsFuncPtrInfo(Item);
+							CMPPar.SetAsFuncInfo(Item2);
 
 							bool Compatible = IsCompatible(CMPPar, ValueTypes, _ThisTypeIsNotNull, Name.ScopedName.back().token);
 
@@ -9100,7 +9108,6 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 		if (Ret == nullptr) {
 			throw std::exception("bad path");
 		}
-		
 		
 		return *Ret;
 		
