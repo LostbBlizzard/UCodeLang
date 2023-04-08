@@ -53,6 +53,7 @@ struct ScopeHelper
 	}
 	static void ReMoveScope(String& ThisScope)
 	{
+		if (ThisScope.size() == 0) { return; }
 		for (size_t i = ThisScope.size() - 1; i > 0; i--)
 		{
 			char C = ThisScope[i];
@@ -67,6 +68,7 @@ struct ScopeHelper
 
 	static void ReMoveScope(String_view& ThisScope)
 	{
+		if (ThisScope.size() == 0) { return; }
 		for (size_t i = ThisScope.size() - 1; i > 0; i--)
 		{
 			char C = ThisScope[i];

@@ -478,6 +478,14 @@ private:
 	
 	Vector< JumpsData> _Jumps;
 
+	struct VarableUseData
+	{
+		String Scope;
+		Vector<Symbol*> _UsedSymbols;
+	};
+
+	Stack<VarableUseData> _Varable;
+
 	//Funcs
 	size_t GetJumpsIndex();
 	void RemoveJumps(size_t Index);
