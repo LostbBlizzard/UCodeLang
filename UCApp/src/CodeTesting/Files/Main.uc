@@ -1,5 +1,7 @@
 
 
+$Dropable:
+ |drop[this&] -> void;
 
 $Func_t =|[] -> int;
 
@@ -7,9 +9,10 @@ $Func_t =|[] -> int;
 
 |main[]:
 
+ Dropable Items = [];
+ //int z = 10;
+ //var Hello = |[int x,int y] => x * y * z;
 
- int z = 10;
- var Hello = |[int x,int y] => x * y * z;
+ var Tep = |[int x,int y] => Items;
 
-
- Hello(5,5);
+ ret Tep(5,5);

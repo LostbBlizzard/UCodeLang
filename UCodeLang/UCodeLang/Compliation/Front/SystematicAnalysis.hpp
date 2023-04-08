@@ -606,6 +606,9 @@ private:
 	void OnBreakNode(const BreakNode& node);
 	void OnLambdaNode(const LambdaNode& node);
 
+	Symbol* NewDropFuncSymbol(ClassInfo* ClassInfo, TypeSymbol& ClassAsType);
+	void BuildFuncDropUsesingFields(const ClassInfo* ClassInfo, const IRType& ThisPar);
+	
 
 	void OnStatementsWithSetableRet(const StatementsNode& node, TypeSymbol& RetOut, const Token* Token);
 
