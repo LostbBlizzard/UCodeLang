@@ -1832,7 +1832,7 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 			//
 			{
 				VarableUseData& UseData = _Varable.top();
-				
+
 
 				for (auto& Item : UseData._UsedSymbols)
 				{
@@ -1844,7 +1844,22 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 					Info->_CapturedVarables.push_back(std::move(NewValue));
 				}
 
-				_Varable.pop();
+
+				if (_Varable.size() > 1)//copy Symbols
+				{
+					VarableUseData UseData2 = UseData2;
+					_Varable.pop();
+					VarableUseData& ThisData = _Varable.top();
+					for (auto& Item : UseData2._UsedSymbols)
+					{
+						ThisData._UsedSymbols.push_back(Item);
+					}
+				}
+				else
+				{
+					_Varable.pop();
+				}
+
 			}
 			//
 		}
