@@ -484,6 +484,7 @@ private:
 	{
 		String Scope;
 		Vector<Symbol*> _UsedSymbols;
+		Vector<Symbol*> _SymbolsToPassBecauseInerLamdba;
 	};
 
 	Stack<VarableUseData> _Varable;

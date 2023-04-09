@@ -14,9 +14,13 @@ $Func_t =|[] -> int;
  int z = 10;
  
  var Tep = |[int x,int y]:
-  int z = 5;
-  var Tep2 = |[int x,int y] => z;
-  var TV = Tep2(0,0);
-  ret x * y * z * TV;
+  
+ 
+  var Tep2 = |[int x,int y]:
+   var item = [] => az;
+  ;
+  
+  
+  ret z;
  ;
  ret Tep(5,5);
