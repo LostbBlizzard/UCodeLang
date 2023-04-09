@@ -1,26 +1,8 @@
 
 
-$Dropable:
- |new[this&] -> void;
- |drop[this&] -> void;
+tag DllImport;
+trait Object;
 
-$Func_t =|[] -> int;
 
-|func[] -> int;
-
-|main[]:
-
- Dropable Items = [];
- int z = 10;
- 
- var Tep = |[int x,int y]:
-  
- 
-  var Tep2 = |[int x,int y]:
-   var item = [] => az;
-  ;
-  
-  
-  ret z;
- ;
- ret Tep(5,5);
+[DllImport]
+$Player[Object,int];

@@ -608,6 +608,10 @@ private:
 	void OnContinueNode(const ContinueNode& node);
 	void OnBreakNode(const BreakNode& node);
 	void OnLambdaNode(const LambdaNode& node);
+	void OnTrait(const TraitNode& node);
+	void OnTag(const TagTypeNode& node);
+
+		
 
 	Symbol* NewDropFuncSymbol(ClassInfo* ClassInfo, TypeSymbol& ClassAsType);
 	void BuildFuncDropUsesingFields(const ClassInfo* ClassInfo, const IRType& ThisPar);
