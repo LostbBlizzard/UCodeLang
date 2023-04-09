@@ -187,6 +187,8 @@ void SystematicAnalysis::OnNamespace(const NamespaceNode& node)
 		case NodeType::EnumNode:OnEnum(*EnumNode::As(node.get())); break;
 		case NodeType::FuncNode:OnFuncNode(*FuncNode::As(node.get())); break;
 		case NodeType::UsingNode: OnUseingNode(*UsingNode::As(node.get())); break;
+		case NodeType::TraitNode:OnTrait(*TraitNode::As(node.get())); break;
+		case NodeType::TagTypeNode:OnTag(*TagTypeNode::As(node.get())); break;
 		default:break;
 		}
 	}
@@ -229,6 +231,8 @@ void SystematicAnalysis::OnFileNode(const FileNode* File)
 		case NodeType::UsingNode: OnUseingNode(*UsingNode::As(node.get())); break;
 		case NodeType::DeclareStaticVariableNode:OnDeclareStaticVariableNode(*DeclareStaticVariableNode::As(node.get())); break;
 		case NodeType::DeclareThreadVariableNode:OnDeclareThreadVariableNode(*DeclareThreadVariableNode::As(node.get())); break;
+		case NodeType::TraitNode:OnTrait(*TraitNode::As(node.get())); break;
+		case NodeType::TagTypeNode:OnTag(*TagTypeNode::As(node.get())); break;
 		default:break;
 		}
 	}
@@ -348,6 +352,8 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			case NodeType::DeclareVariableNode:OnDeclareVariablenode(*DeclareVariableNode::As(node.get()), DeclareStaticVariableNode_t::ClassField); break;
 			case NodeType::DeclareStaticVariableNode:OnDeclareStaticVariableNode(*DeclareStaticVariableNode::As(node.get())); break;
 			case NodeType::DeclareThreadVariableNode:OnDeclareThreadVariableNode(*DeclareThreadVariableNode::As(node.get())); break;
+			case NodeType::TraitNode:OnTrait(*TraitNode::As(node.get())); break;
+			case NodeType::TagTypeNode:OnTag(*TagTypeNode::As(node.get())); break;
 			default:break;
 			}
 		}
@@ -2283,6 +2289,32 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 		_Table.RemoveScope();
 	}
 }
+void SystematicAnalysis::OnTrait(const TraitNode& node)
+{
+	SymbolID sybId = GetSymbolID(node);
+	const auto& ClassName = node._Name.Token->Value._String;
+	_Table.AddScope(ClassName);
+
+	auto& Syb = passtype == PassType::GetTypes ?
+		AddSybol(SymbolType::Trait_class
+			, (String)ClassName, _Table._Scope.ThisScope) :
+		*GetSymbol(sybId);
+
+
+}
+void SystematicAnalysis::OnTag(const TagTypeNode& node)
+{
+	SymbolID sybId = GetSymbolID(node);
+	const auto& ClassName = node.AttributeName.Token->Value._String;
+	_Table.AddScope(ClassName);
+
+	auto& Syb = passtype == PassType::GetTypes ?
+		AddSybol(SymbolType::Tag_class
+			, (String)ClassName, _Table._Scope.ThisScope) :
+		*GetSymbol(sybId);
+
+}
+
 Symbol* SystematicAnalysis::NewDropFuncSymbol(ClassInfo* ClassInfo, TypeSymbol& ClassAsType)
 {
 
@@ -2694,6 +2726,8 @@ void SystematicAnalysis::OnStatement(const Node& node2)
 	case NodeType::ContinueNode:OnContinueNode(*ContinueNode::As(&node2)); break;
 	case NodeType::BreakNode:OnBreakNode(*BreakNode::As(&node2)); break;
 	case NodeType::RetStatementNode:OnRetStatement(*RetStatementNode::As(&node2)); break;
+	case NodeType::TraitNode:OnTrait(*TraitNode::As(&node2)); break;
+	case NodeType::TagTypeNode:OnTag(*TagTypeNode::As(&node2)); break;
 	default:break;
 	}
 }

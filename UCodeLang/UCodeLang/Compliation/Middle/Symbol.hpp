@@ -224,6 +224,9 @@ enum class SymbolType: UInt8
 
 	ConstantExpression,
 	Type_StaticArray,
+
+	Trait_class,
+	Tag_class,
 };
 enum class SymbolValidState : UInt8
 {

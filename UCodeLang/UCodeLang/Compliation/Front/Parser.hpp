@@ -122,6 +122,7 @@ private:
 		return { r,V};
 	}
 	GotNodeType GetClassTypeNode(Node*& out);
+	GotNodeType DoClassType(ClassNode* output, const Token* ClassToken, GenericValuesNode& TepGenerics, const Token* ColonToken);
 	TryGetNode GetFuncNode()
 	{
 		FuncNode* V = FuncNode::Gen();
@@ -420,6 +421,16 @@ private:
 	}
 	GotNodeType GetLambdaNode(LambdaNode& out);
 	TryGetNode GetShortLambdaNode();
+
+	TryGetNode GetTraitNode()
+	{ 
+		auto V = TraitNode::Gen();
+		auto r = GetTraitNode(*V);
+		TrippedCheck(r);
+		return { r,V };
+	}
+	GotNodeType GetTraitNode(TraitNode& out);
+
 };
 UCodeLangFrontEnd
 

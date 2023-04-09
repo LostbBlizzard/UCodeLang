@@ -127,6 +127,7 @@ enum class TokenType : TokenType_t
 
 	KeyWord_uintptr,
 	KeyWord_sintptr,
+	KeyWord_trait,
 	//used internally
 	internal_Constant_expression
 };

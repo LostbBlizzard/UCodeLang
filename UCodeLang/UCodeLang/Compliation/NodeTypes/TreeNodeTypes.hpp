@@ -236,6 +236,12 @@ struct GenericValuesNode :Node
 };
 
 
+struct TypeNode;
+struct InheritedTypeData
+{
+	Vector<TypeNode> Values;
+};
+
 struct ClassNode :Node
 {
 	ClassNode() : Node(NodeType::ClassNode)
@@ -247,6 +253,7 @@ struct ClassNode :Node
 
 	NameNode ClassName;
 	GenericValuesNode Generic;
+	InheritedTypeData Inherited;
 };
 
 
@@ -262,7 +269,6 @@ struct UsingNode :Node
 	ScopedNameNode ScopedName;
 };
 
-struct TypeNode;
 
 struct UseGenericsNode :Node
 {
@@ -983,6 +989,17 @@ struct LambdaNode :Node
 	NamedParametersNode Pars;
 	Optional<LambdaCapturesData> _Capture;
 	Optional<StatementsNode> _Statements;
+};
+
+struct TraitNode :Node
+{
+	TraitNode() : Node(NodeType::TraitNode)
+	{
+
+	}
+	NameNode _Name;
+	AddforNodeAndWithList(TraitNode);
+
 };
 
 UCodeLangFrontEnd
