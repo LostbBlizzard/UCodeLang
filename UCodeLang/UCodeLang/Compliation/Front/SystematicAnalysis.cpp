@@ -1844,15 +1844,35 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 					Info->_CapturedVarables.push_back(std::move(NewValue));
 				}
 
+				for (auto& Item : UseData._SymbolsToPassBecauseInerLamdba)
+				{
+					LambdaFieldInfo NewValue;
+					NewValue.Name = ScopeHelper::GetNameFromFullName(Item->FullName);
+					NewValue.Type = Item->VarType;
+					NewValue.Sym = Item;
+
+					Info->_IndirectCapturedVarables.push_back(std::move(NewValue));
+				}
 
 				if (_Varable.size() > 1)//copy Symbols
 				{
-					VarableUseData UseData2 = UseData2;
-					_Varable.pop();
+					VarableUseData UseData2 = std::move(_Varable.top());_Varable.pop();
+
 					VarableUseData& ThisData = _Varable.top();
 					for (auto& Item : UseData2._UsedSymbols)
 					{
-						ThisData._UsedSymbols.push_back(Item);
+						/*
+						auto Item_Name = ScopeHelper::GetNameFromFullName(Item->FullName);
+						auto Item_FullName = _Table._Scope.ThisScope;
+						ScopeHelper::GetApendedString(Item_FullName, Item_Name);
+
+						auto& Sym = AddSybol(SymbolType::Class_Field, Item_Name
+							, Item_FullName);
+
+						_Table.AddSymbolID(Sym, (SymbolID)&Item);
+						*/
+
+						ThisData._SymbolsToPassBecauseInerLamdba.push_back(Item);
 					}
 				}
 				else
@@ -1870,46 +1890,112 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 		{
 			String LambdFuncScope = _Table._Scope.ThisScope;
 			ScopeHelper::GetApendedString(LambdFuncScope, LambdaName);
-
-			Vector<LambdaFieldInfo> Tep_CapturedVarables;
-			for (auto& Item : Info->_CapturedVarables)
 			{
-				if (Item.Sym->Type == SymbolType::ThreadVarable
-					|| Item.Sym->Type == SymbolType::StaticVarable)
+				Vector<LambdaFieldInfo> Tep_CapturedVarables;
+				for (auto& Item : Info->_CapturedVarables)
 				{
-					continue;
-				}
-
-
-				for (auto& Item2 : Tep_CapturedVarables)
-				{
-					if (Item.Name == Item2.Name)
+					if (Item.Sym->Type == SymbolType::ThreadVarable
+						|| Item.Sym->Type == SymbolType::StaticVarable)
 					{
-						goto OutLoop;
+						continue;
 					}
-				}
 
 
-				for (size_t i = 0; i < node.Pars.Parameters.size(); i++)
-				{
-					auto& ParItem = node.Pars.Parameters[i];
-					SymbolID ParID = (SymbolID)&ParItem;
-					if (Item.Sym->ID == ParID)
+					for (auto& Item2 : Tep_CapturedVarables)
 					{
-						goto OutLoop;
+						if (Item.Name == Item2.Name)
+						{
+							goto OutLoop;
+						}
 					}
+
+
+					for (size_t i = 0; i < node.Pars.Parameters.size(); i++)
+					{
+						auto& ParItem = node.Pars.Parameters[i];
+						SymbolID ParID = (SymbolID)&ParItem;
+						if (Item.Sym->ID == ParID)
+						{
+							goto OutLoop;
+						}
+					}
+
+
+					if (Item.Sym->FullName.size() > LambdFuncScope.size())
+					{
+						continue;
+					}
+
+					Tep_CapturedVarables.push_back(Item);
+				OutLoop:continue;
 				}
-
-
-				if (Item.Sym->FullName.size() > LambdFuncScope.size())
-				{
-					continue;
-				}
-
-				Tep_CapturedVarables.push_back(Item);
-			OutLoop:continue;
+				Info->_CapturedVarables = std::move(Tep_CapturedVarables);
 			}
-			Info->_CapturedVarables = std::move(Tep_CapturedVarables);
+			//
+			{
+
+				Vector<LambdaFieldInfo> Tep_CapturedVarables;
+				for (auto& Item : Info->_IndirectCapturedVarables)
+				{
+					if (Item.Sym->Type == SymbolType::ThreadVarable
+						|| Item.Sym->Type == SymbolType::StaticVarable)
+					{
+						continue;
+					}
+
+
+					for (auto& Item2 : Tep_CapturedVarables)
+					{
+						if (Item.Name == Item2.Name)
+						{
+							goto OutLoop2;
+						}
+					}
+
+					/*
+					for (auto& Item2 : Info->_CapturedVarables)
+					{
+						if (Item.Name == Item2.Name)
+						{
+							goto OutLoop2;
+						}
+					}
+					*/
+
+
+					for (size_t i = 0; i < node.Pars.Parameters.size(); i++)
+					{
+						auto& ParItem = node.Pars.Parameters[i];
+						SymbolID ParID = (SymbolID)&ParItem;
+						if (Item.Sym->ID == ParID)
+						{
+							goto OutLoop2;
+						}
+					}
+
+
+					if (Item.Sym->FullName.size() > LambdFuncScope.size())
+					{
+						continue;
+					}
+
+					Tep_CapturedVarables.push_back(Item);
+				OutLoop2:continue;
+				}
+				Info->_IndirectCapturedVarables = std::move(Tep_CapturedVarables);
+
+
+				for (auto& Item : Info->_IndirectCapturedVarables) 
+				{
+					const Token* Token =node.LambdaStart;
+
+					_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "cant indirect pass the varable  '" + 
+						Item.Name + "' between lambdas.be explicit and make a new varable and assign useing '"+ Item.Name + "' in this lambda.");
+
+					Info->_CapturedVarables.push_back(Item);
+				}
+				
+			}
 		}
 
 		if (Info->UsesOuterScope())

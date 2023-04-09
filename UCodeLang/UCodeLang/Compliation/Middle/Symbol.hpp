@@ -594,6 +594,7 @@ public:
 	TypeSymbol Ret;
 
 	Vector<LambdaFieldInfo> _CapturedVarables;
+	Vector<LambdaFieldInfo> _IndirectCapturedVarables;
 	LambdaInfo()
 	{
 
