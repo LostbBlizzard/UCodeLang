@@ -2332,6 +2332,7 @@ void SystematicAnalysis::OnStatementsWithSetableRet(const StatementsNode& node, 
 	SetInStatetements(true);
 	for (const auto& node2 : node._Nodes)
 	{
+		size_t ErrCount = _ErrorsOutput->Get_Errors().size();
 		OnStatement(*node2);
 
 		if (node2->Get_Type() == NodeType::RetStatementNode)
@@ -2361,7 +2362,9 @@ void SystematicAnalysis::OnStatementsWithSetableRet(const StatementsNode& node, 
 					CantguessVarTypeError(Token);
 				}
 
-				OnStatement(*node2);//re do
+				if (ErrCount == _ErrorsOutput->Get_Errors().size()) {
+					OnStatement(*node2);//re do
+				}
 			}
 
 			break;
