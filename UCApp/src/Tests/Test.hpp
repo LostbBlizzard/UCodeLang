@@ -73,7 +73,7 @@ namespace ULangTest
 		}
 	};
 
-	static const Array<TestInfo, 38> Tests
+	static const Array<TestInfo, 48> Tests
 	{
 
 		TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation),
@@ -130,6 +130,19 @@ namespace ULangTest
 		TestInfo("GenericsExpression","Generics/GenericsExpression.uc","main",SuccessCondition::RunTimeValue,(int)1),
 		TestInfo("GenericsExpression2","Generics/GenericsExpression2.uc","main",SuccessCondition::CompilationFail),
 		TestInfo("GenericsExpression3","Generics/GenericsExpression3.uc","main",SuccessCondition::CompilationFail),
+	
+		TestInfo("Lamdba 1","Objects/Lamdba.uc","main",SuccessCondition::RunTimeValue,(int)1),
+		TestInfo("Lamdba 2","Objects/Lamdba.uc","main2",SuccessCondition::RunTimeValue,(int)1),
+		TestInfo("Lamdba 3","Objects/Lamdba2.uc","main",SuccessCondition::RunTimeValue,(int)1),
+		TestInfo("Lamdba 4","Objects/Lamdba2.uc","main2",SuccessCondition::RunTimeValue,(int)1),
+		TestInfo("Lamdba 5","Objects/Lamdba3.uc","main",SuccessCondition::RunTimeValue,(int)1),
+		TestInfo("Lamdba 6","Objects/Lamdba3.uc","main2",SuccessCondition::RunTimeValue,(int)1),
+
+		TestInfo("enumvariant","Objects/enumvariant.uc","main",SuccessCondition::RunTimeValue,(int)1),
+
+		TestInfo("enumvariantdrop","NewAndDrop/enumvariantdrop.uc","main",SuccessCondition::RunTimeValue,(int)1),
+		TestInfo("StaticArrDrop","NewAndDrop/StaticArrDrop.uc","main",SuccessCondition::RunTimeValue,true),
+		TestInfo("dymArr","NewAndDrop/dymArr.uc","main",SuccessCondition::RunTimeValue,true),
 	};
 
 
