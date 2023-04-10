@@ -396,6 +396,7 @@ private:
 	using CastOverLoadWith_t = BinaryOverLoadWith_t;
 	using UrinaryOverLoadWith_t = BinaryOverLoadWith_t;
 
+	
 	struct ClassStackInfo
 	{
 		ClassInfo* Info =nullptr;
@@ -611,6 +612,7 @@ private:
 	void OnTrait(const TraitNode& node);
 	void OnTag(const TagTypeNode& node);
 
+	void InheritTrait(Symbol* Syb, const ClassInfo* ClassInfo, Symbol* Trait);
 		
 
 	Symbol* NewDropFuncSymbol(ClassInfo* ClassInfo, TypeSymbol& ClassAsType);
@@ -751,7 +753,7 @@ private:
 			auto objecttypesyb = GetSymbol(*ObjectType);
 			ClassInfo* V = objecttypesyb->Get_Info<ClassInfo>();
 
-			return _ClassStack.top().Info == V;
+			return _ClassStack.top().Info== V;
 		}
 
 		return false;

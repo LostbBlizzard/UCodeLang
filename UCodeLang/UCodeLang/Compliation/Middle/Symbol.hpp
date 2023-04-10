@@ -65,6 +65,7 @@ enum class MoveData
 	Moved,
 };
 
+class Symbol;
 struct TypeSymbol
 {
 	TypesEnum _Type = TypesEnum::Null;
@@ -403,7 +404,7 @@ public:
 	{
 		Fields.emplace_back((String)Name, Type);
 	}
-
+	Vector<Symbol*> _InheritedTypes;
 
 
 	bool _WillHaveFieldInit = false;
@@ -577,7 +578,6 @@ public:
 };
 
 
-class Symbol;
 struct LambdaFieldInfo
 {
 	String Name;
@@ -608,6 +608,24 @@ public:
 	}
 	FuncInfo* _ClassCall=nullptr;
 	FuncInfo* _ClassDrop = nullptr;
+};
+
+struct TraitFunc
+{
+	Symbol* Syb = nullptr;
+	bool HasBody = false;
+};
+
+class TraitInfo :public Symbol_Info
+{
+public:
+	String FullName;
+	inline String_view Get_Name() const
+	{
+		return ScopeHelper::GetNameFromFullName((String_view)FullName);
+	}
+	Vector<TraitFunc> _Funcs;
+	Symbol* TraitClassInfo = nullptr;
 };
 
 class Symbol

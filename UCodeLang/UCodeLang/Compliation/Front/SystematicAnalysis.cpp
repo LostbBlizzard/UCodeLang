@@ -444,6 +444,45 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 				DropFunc->PassState = PassType::FixedTypes;
 			}
 		}
+
+
+		//Inherited Values
+		for (auto& Item : Node.Inherited.Values)
+		{
+			auto& Str =Item.Token->Value._String;
+
+			auto Syb = GetSymbol(Str, SymbolType::Type);
+
+			if (Syb == nullptr)
+			{
+				LogCantFindTypeError(Item.Token, Str);
+				continue;
+			}
+
+			if (Syb->Type != SymbolType::Trait_class)
+			{
+				LogExpectedSymbolToBea(Item.Token, *Syb, SymbolType::Trait_class);
+				continue;
+			}
+
+			/*
+			for (auto& Item2 : ClassInf->_InheritedTypes)
+			{
+				if (Syb == Item2)
+				{
+					_ErrorsOutput->AddError(ErrorCodes::InValidType, Item.Token->OnLine, Item.Token->OnPos, 
+						"duplicate Inherit Trait");
+				}
+			}
+			*/
+
+			ClassInf->_InheritedTypes.push_back(Syb);
+		}
+
+		for (auto& Item : ClassInf->_InheritedTypes)
+		{
+			InheritTrait(&Syb, ClassInf, Item);
+		}
 	}
 	if (passtype == PassType::BuidCode)
 	{
@@ -2300,7 +2339,89 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 			, (String)ClassName, _Table._Scope.ThisScope) :
 		*GetSymbol(sybId);
 
+	if (passtype == PassType::GetTypes)
+	{
+		_Table.AddSymbolID(Syb, sybId);
 
+
+		TraitInfo* info = new TraitInfo();
+		Syb.Info.reset(info);
+
+
+		auto& SybClass = AddSybol(SymbolType::Type_class
+			, (String)ClassName + "%Class", _Table._Scope.ThisScope + "%Class");
+		_Table.AddSymbolID(SybClass, (SymbolID)&node._Name);
+
+		auto TepClass = new ClassInfo();
+		TepClass->FullName = SybClass.FullName;
+
+		info->TraitClassInfo = &SybClass;
+		SybClass.Info.reset(TepClass);
+
+
+
+		_ClassStack.push({ TepClass });
+
+		for (const auto& node : node._Nodes)
+		{
+			switch (node->Get_Type())
+			{
+			case NodeType::FuncNode:
+			{
+				size_t Index = _Table.Symbols.size();
+
+				FuncNode& funcnode = *FuncNode::As(node.get());
+
+				OnFuncNode(funcnode);
+
+				Symbol* funcSyb = _Table.Symbols[Index].get();
+
+				TraitFunc _Func;
+				_Func.Syb = funcSyb;
+				_Func.HasBody = funcnode.Body.has_value();
+
+				info->_Funcs.push_back(_Func);
+			}break;
+			default:break;
+			}
+		}
+
+		_ClassStack.pop();
+	}
+	else if (passtype == PassType::FixedTypes)
+	{
+		TraitInfo* info = Syb.Get_Info<TraitInfo>();
+
+		auto TepClass = info->TraitClassInfo->Get_Info<ClassInfo>();
+
+
+		_ClassStack.push({ TepClass });
+
+		for (const auto& node : node._Nodes)
+		{
+			switch (node->Get_Type())
+			{
+			case NodeType::FuncNode:
+			{
+				FuncNode& funcnode = *FuncNode::As(node.get());
+
+				OnFuncNode(funcnode);
+
+			}
+			break;
+			default:break;
+			}
+		}
+	
+		_ClassStack.pop();
+	}
+	else if (passtype == PassType::BuidCode)
+	{
+
+	}
+
+
+	_Table.RemoveScope();
 }
 void SystematicAnalysis::OnTag(const TagTypeNode& node)
 {
@@ -2313,8 +2434,68 @@ void SystematicAnalysis::OnTag(const TagTypeNode& node)
 			, (String)ClassName, _Table._Scope.ThisScope) :
 		*GetSymbol(sybId);
 
-}
+	if (passtype == PassType::GetTypes)
+	{
+		_Table.AddSymbolID(Syb, sybId);
+	}
+	else if (passtype == PassType::FixedTypes)
+	{
 
+	}
+	else if (passtype == PassType::BuidCode)
+	{
+
+	}
+
+	_Table.RemoveScope();
+}
+void SystematicAnalysis::InheritTrait(Symbol* Syb, const ClassInfo* ClassInfo, Symbol* Trait)
+{
+	TraitInfo* Traitinfo = Trait->Get_Info<TraitInfo>();
+
+	for (auto& Item : Traitinfo->_Funcs)
+	{
+		if (Item.HasBody)
+		{
+			//copy body
+		}
+		else
+		{
+			FuncInfo* Info = Item.Syb->Get_Info<FuncInfo>();
+
+			auto FuncName = Info->Get_Name();
+			auto& List = _Table.GetSymbolsWithName(Info->Get_Name());
+
+			
+			for (auto& ItemL : List)
+			{
+				if (ItemL->Type == SymbolType::Func)
+				{
+
+
+					continue;//check if same thing
+				}
+			}
+
+
+			String Msg = "Missing Funcion '" + (String)FuncName + "' with the parameters [";
+
+			for (auto& ItemP : Info->Pars)
+			{
+				Msg += ToString(ItemP);
+
+				if (&ItemP != &Info->Pars.back())
+				{
+					Msg += ",";
+				}
+			}
+
+			Msg += "] for the trait '" + Trait->FullName + '\'';
+
+			_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, 0, 0,Msg);
+		}
+	}
+}
 Symbol* SystematicAnalysis::NewDropFuncSymbol(ClassInfo* ClassInfo, TypeSymbol& ClassAsType)
 {
 
@@ -2339,6 +2520,7 @@ Symbol* SystematicAnalysis::NewDropFuncSymbol(ClassInfo* ClassInfo, TypeSymbol& 
 	DropFunc->PassState = PassType::FixedTypes;
 	return DropFunc;
 }
+
 void SystematicAnalysis::BuildFuncDropUsesingFields(const ClassInfo* ClassInfo, const IRType& ThisPar)
 {
 	for (int i = ClassInfo->Fields.size() - 1; i >= 0; i--)

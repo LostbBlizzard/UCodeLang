@@ -236,10 +236,10 @@ struct GenericValuesNode :Node
 };
 
 
-struct TypeNode;
+
 struct InheritedTypeData
 {
-	Vector<TypeNode> Values;
+	Vector<NameNode> Values;
 };
 
 struct ClassNode :Node
@@ -269,6 +269,7 @@ struct UsingNode :Node
 	ScopedNameNode ScopedName;
 };
 
+struct TypeNode;
 
 struct UseGenericsNode :Node
 {
@@ -283,7 +284,6 @@ struct UseGenericsNode :Node
 		return Values.size();
 	}
 };
-
 struct TypeNode :Node
 {
 	TypeNode() : Node(NodeType::TagTypeNode)
