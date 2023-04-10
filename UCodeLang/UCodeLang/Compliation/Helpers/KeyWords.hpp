@@ -62,6 +62,8 @@ inline const char* S_KeyWord_enum = "enum";
 inline const char* S_KeyWord_tag = "tag";
 
 inline const char* S_KeyWord_umut = "umut";
+
+inline const char* S_KeyWord_trait = "trait";
 struct KeyWord
 {
 	const char* keyWord;
@@ -138,6 +140,7 @@ inline KeyWord KeyWords[] =
 	KeyWord(S_KeyWord_enum,TokenType::KeyWord_Enum),
 	KeyWord(S_KeyWord_tag,TokenType::KeyWord_Tag),
 	KeyWord(S_KeyWord_umut,TokenType::KeyWord_umut),
+	KeyWord(S_KeyWord_trait,TokenType::KeyWord_trait),
 };
 constexpr size_t KeyWords_Size = sizeof(KeyWords) / sizeof(KeyWords[0]);
 class KeyWordHelper

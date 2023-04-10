@@ -230,8 +230,8 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 
 		do
 		{
-			TypeNode V;
-			GetType(V);
+			NameNode V;
+			GetName(V);
 			output->Inherited.Values.push_back(std::move(V));
 
 

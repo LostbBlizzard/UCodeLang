@@ -1,8 +1,11 @@
 
 
 tag DllImport;
-trait Object;
+
+trait Object:
+ |Update[this&] -> void;
+ |Update2[this&] => true;
 
 
 [DllImport]
-$Player[Object,int];
+$Player[Object];
