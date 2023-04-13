@@ -73,7 +73,7 @@ namespace ULangTest
 		}
 	};
 
-	static const Array<TestInfo, 48> Tests
+	static const Array<TestInfo, 50> Tests
 	{
 
 		TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation),
@@ -143,6 +143,9 @@ namespace ULangTest
 		TestInfo("enumvariantdrop","NewAndDrop/enumvariantdrop.uc","main",SuccessCondition::RunTimeValue,(int)1),
 		TestInfo("StaticArrDrop","NewAndDrop/StaticArrDrop.uc","main",SuccessCondition::RunTimeValue,true),
 		TestInfo("dymArr","NewAndDrop/dymArr.uc","main",SuccessCondition::RunTimeValue,true),
+
+		TestInfo("trait 1","Objects/trait.uc","main",SuccessCondition::RunTimeValue,(int)1),
+		TestInfo("trait 2","Objects/trait2.uc","main",SuccessCondition::CompilationFail),
 	};
 
 
