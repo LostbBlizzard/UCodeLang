@@ -2953,6 +2953,22 @@ IRType SystematicAnalysis::ConvertToIR(const TypeSymbol& Value)
 		{
 			return IRType(ConveToStaticArray(syb));
 		}
+		else if (syb.Type == SymbolType::Trait_class && Value._IsDynamic)
+		{
+			if (SybToIRMap.HasValue(syb.ID))
+			{
+				return IRType(SybToIRMap.at(syb.ID));
+			}
+			else
+			{
+				IRidentifierID IRid = {};
+				IRType r = IRid;
+
+
+				SybToIRMap[syb.ID] = IRid;
+				return r;
+			}
+		}
 		else
 		{
 			throw std::exception("not added");
@@ -8142,6 +8158,33 @@ void SystematicAnalysis::DoSymbolRedefinitionCheck(const Symbol* Syb, const Func
 	}
 }
 
+bool SystematicAnalysis::CanDoTypeToTrait(const TypeSymbol& TypeToCheck, const TypeSymbol& Type)
+{
+	if (Type._IsDynamic)
+	{
+		auto SybolB = GetSymbol(Type);
+		TraitInfo* Info = SybolB->Get_Info<TraitInfo>();
+		auto TypeSyb = GetSymbol(TypeToCheck);
+
+		if (TypeSyb)
+		{
+
+			if (TypeSyb->Type == SymbolType::Type_class)
+			{
+				ClassInfo* ClassF = TypeSyb->Get_Info<ClassInfo>();
+
+				auto& Indexo = ClassF->Get_InheritedTypesIndex(SybolB);
+
+				if (Indexo.has_value())
+				{
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
 bool SystematicAnalysis::IsVaidType(TypeSymbol& Out)
 {
 	return false;
@@ -8156,7 +8199,20 @@ bool SystematicAnalysis::CanBeImplicitConverted(const TypeSymbol& TypeToCheck, c
 
 		return V0 && V1;
 	}
+	
+	
+	if (CanDoTypeToTrait(TypeToCheck, Type))
+	{
 
+		if (TypeToCheck.IsAddress() || TypeToCheck._ValueInfo == TypeValueInfo::IsLocation)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
 	
 	
 	return false;
@@ -8254,6 +8310,14 @@ bool SystematicAnalysis::DoImplicitConversion(IRInstruction* Ex, const TypeSymbo
 	{
 		return true;
 	}
+
+	if (CanDoTypeToTrait(ExType,ToType))
+	{
+
+
+		return true;
+	}
+
 	return false;
 }
 void SystematicAnalysis::DoExplicitlConversion(IRInstruction* Ex, const TypeSymbol ExType, const TypeSymbol& ToType, const CastExpressionNode_Data& Data)
@@ -10519,7 +10583,7 @@ void SystematicAnalysis::Build_Increment_sIntPtr(IRInstruction* field, SIntNativ
 {
 	return Build_Increment_uIntPtr(field, *(UAddress*)&Value);
 }
-IRInstruction* SystematicAnalysis::LoadEvaluatedEx(const RawEvaluatedObject& Value,const TypeSymbol& ValueType)
+IRInstruction* SystematicAnalysis::LoadEvaluatedEx(const RawEvaluatedObject& Value, const TypeSymbol& ValueType)
 {
 	void* ObjectData = Get_Object(ValueType, Value);
 	switch (ValueType._Type)
@@ -10556,7 +10620,7 @@ IRInstruction* SystematicAnalysis::LoadEvaluatedEx(const RawEvaluatedObject& Val
 
 void SystematicAnalysis::Build_Decrement_sIntPtr(IRInstruction* field, SIntNative Value)
 {
-	return Build_Decrement_uIntPtr(field,*(UAddress*)&Value);
+	return Build_Decrement_uIntPtr(field, *(UAddress*)&Value);
 }
 
 void SystematicAnalysis::CheckVarWritingErrors(Symbol* Symbol, const Token* Token, String_view& Name)
@@ -10584,12 +10648,12 @@ IRidentifierID SystematicAnalysis::GetIRID(const FuncInfo* Func)
 	return _Builder.ToID(FuncName);
 }
 
-void SystematicAnalysis::LogCantCastImplicitTypes(const Token* Token, const TypeSymbol& Ex1Type,const TypeSymbol& UintptrType,bool ReassignMode)
+void SystematicAnalysis::LogCantCastImplicitTypes(const Token* Token, const TypeSymbol& Ex1Type, const TypeSymbol& UintptrType, bool ReassignMode)
 {
 	if (Ex1Type.IsBadType() || UintptrType.IsBadType()) { return; }
 
 	bool V1 = IsAddessAndLValuesRulesfollowed(Ex1Type, UintptrType, ReassignMode);
-	if (!V1)
+	if (!V1 || CanDoTypeToTrait(Ex1Type, UintptrType))
 	{
 		_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 			, "The expression is not an Location in memory'");

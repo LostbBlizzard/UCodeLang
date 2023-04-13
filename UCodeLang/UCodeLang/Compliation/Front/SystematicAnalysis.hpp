@@ -769,6 +769,8 @@ private:
 	void DoSymbolRedefinitionCheck(const String_view FullName, SymbolType Type, const Token* Value);
 	void DoSymbolRedefinitionCheck(const Symbol* Syb, const FuncInfo* Fvalue, const Token* Value);
 
+	bool CanDoTypeToTrait(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
+
 	bool IsVaidType(TypeSymbol& Out);
 	bool CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode = true);
 	CastOverLoadWith_t  CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
