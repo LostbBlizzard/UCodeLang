@@ -1297,8 +1297,22 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 		else
 		if (Token->Type == TokenType::KeyWord_moved)
 		{
-			out->SetMovedType();
+				out->SetMovedType();
+				NextToken();
+				Token = TryGetToken();
+		}
+		
+		
+		
+		if (Token->Type == TokenType::KeyWord_dynamic)
+		{
+			out->SetDynamic();
 			NextToken();
+			Token = TryGetToken();
+		   
+			TokenTypeCheck(Token, TokenType::lessthan);
+			NextToken();
+
 			Token = TryGetToken();
 		}
 	}
@@ -1474,6 +1488,12 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 
 	}
 	
+	if (out->IsDynamic)
+	{
+		TokenTypeCheck(TryGetToken(), TokenType::greaterthan);
+		NextToken();
+	}
+
 	return r;
 }
 

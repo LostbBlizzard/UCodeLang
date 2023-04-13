@@ -713,6 +713,7 @@ private:
 
 
 	void Convert(const TypeNode& V, TypeSymbol& Out);
+	
 	void ConvertAndValidateType(const TypeNode& V, TypeSymbol& Out,NodeSyb_t Syb);
 	TypeSymbol ConvertAndValidateType(const TypeNode& V, NodeSyb_t Syb);
 	bool ValidateType(const TypeSymbol& V,const Token* Token,NodeSyb_t Syb);
@@ -962,6 +963,9 @@ private:
 	void LogCantFindMemberOverloadForType(const Token* Item, TokenType Op, const TypeSymbol& Out);
 	void LogCantUseMoveTypeHere(const Token* Token);
 	void LogMustMakeEnumLikeafuncion(EnumInfo* Einfo, size_t Index, const Token* Token);
+	void LogDynamicMustBeRrait(const TypeNode& V, const TypeSymbol& Out);
+	void TraitCantBeAlone(const Token* Token);
+	void LogWantedAType(const TypeNode& V, Symbol* SybV);
 
 	String ToString(SymbolType Value);
 	ReadVarErrorCheck_t LogTryReadVar(String_view VarName, const Token* Token, const Symbol* Syb);

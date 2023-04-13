@@ -7610,6 +7610,11 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type)
 		r += "moved ";
 	}
 
+	if (Type._IsDynamic)
+	{
+		r += "dynamic<";
+	}
+
 	switch (Type._Type)
 	{
 	case TypesEnum::Var:r += "var";	break;
@@ -7691,6 +7696,11 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type)
 	default:
 		throw std::exception("bad Type");
 		break;
+	}
+
+	if (Type._IsDynamic)
+	{
+		r += ">";
 	}
 
 	if (Type.IsAddress())
@@ -7872,13 +7882,29 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 
 				Out = SybV->VarType;
 			}
-			else if (SybV->Type == SymbolType::Hard_Type_alias)
+			else if (SybV->Type == SymbolType::Hard_Type_alias
+				|| SybV->Type == SymbolType::Enum
+				|| SybV->Type == SymbolType::Type_class)
 			{
 				Out.SetType(SybV->ID);
 			}
+			else if (SybV->Type == SymbolType::Trait_class)
+			{
+				if (!V.IsDynamic)
+				{
+					auto Token = V.Name.Token;
+					TraitCantBeAlone(Token);
+					Out.SetType(TypesEnum::Null);
+				}
+				else
+				{
+					Out.SetType(SybV->ID);
+				}
+			}
 			else
 			{
-				Out.SetType(SybV->ID);
+				LogWantedAType(V, SybV);
+				Out.SetType(TypesEnum::Null);
 			}
 		}
 	}break;
@@ -7916,6 +7942,23 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 	if (V.Isimmutable){Out._Isimmutable = true;}
 
 	if (V.IsTypedMoved) { Out._MoveData = MoveData::Moved; }
+
+	if (V.IsDynamic)
+	{
+		auto syb = GetSymbol(Out);
+		bool IsTrait = false;
+		if (syb)
+		{
+			IsTrait = syb->Type==SymbolType::Trait_class;
+		}
+
+		if (!IsTrait)
+		{
+			LogDynamicMustBeRrait(V, Out);
+			Out.SetType(TypesEnum::Null);
+		}
+		Out._IsDynamic = true;
+	}
 
 	if (V.IsStackArray)
 	{
@@ -7988,6 +8031,9 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 		Out.SetType(Syb->ID);
 	}
 }
+
+
+
 void SystematicAnalysis::ConvertAndValidateType(const TypeNode& V, TypeSymbol& Out,NodeSyb_t Syb)
 {
 	Convert(V, Out);
@@ -10982,6 +11028,20 @@ void SystematicAnalysis::LogCantUseMoveTypeHere(const UCodeLang::Token* Token)
 {
 
 	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Cant use moved Type Here.it can only be used in Parameters");
+}
+void SystematicAnalysis::LogDynamicMustBeRrait(const TypeNode& V,const TypeSymbol& Out)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidType, V.Name.Token->OnLine, V.Name.Token->OnPos, "useing a Dynamic type on a none trait the type found '" + ToString(Out) + "'");
+}
+void SystematicAnalysis::TraitCantBeAlone(const UCodeLang::Token* Token)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "the Type uses a Trait.but Traits cant be use alone.");
+}
+
+void SystematicAnalysis::LogWantedAType(const UCodeLang::FrontEnd::TypeNode& V, UCodeLang::FrontEnd::Symbol* SybV)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidType, V.Name.Token->OnLine, V.Name.Token->OnPos,
+		"found a '" + ToString(SybV->Type) + "' for the Symbol " + SybV->FullName + " but wanted a type");
 }
 UCodeLangFrontEnd
 
