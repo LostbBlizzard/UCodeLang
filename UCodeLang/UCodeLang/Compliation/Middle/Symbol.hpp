@@ -353,6 +353,18 @@ public:
 	bool Isvalid()const { return !IsInvalid(); }
 };
 
+struct ClassInfo_InheritTypeInfo
+{
+	struct AddedFuncInfo
+	{
+		const void* FuncNode=nullptr;
+		Symbol* Func=nullptr;
+	};
+
+	Symbol* Syb = nullptr;
+	Vector<AddedFuncInfo> AddedFuncs;
+};
+
 class ClassInfo:public Symbol_Info
 {
 public:
@@ -404,8 +416,20 @@ public:
 	{
 		Fields.emplace_back((String)Name, Type);
 	}
-	Vector<Symbol*> _InheritedTypes;
+	Vector<ClassInfo_InheritTypeInfo> _InheritedTypes;
+	Optional<size_t> Get_InheritedTypesIndex(Symbol* ID) const
+	{
+		for (size_t i = 0; i < _InheritedTypes.size(); i++)
+		{
+			auto& Item = _InheritedTypes[i];
+			if (Item.Syb == ID)
+			{
+				return i;
+			}
+		}
 
+		return {};
+	}
 
 	bool _WillHaveFieldInit = false;
 	bool _WillHaveFielddeInit = false;

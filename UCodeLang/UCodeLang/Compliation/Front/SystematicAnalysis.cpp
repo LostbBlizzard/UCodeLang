@@ -449,7 +449,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 		//Inherited Values
 		for (auto& Item : Node.Inherited.Values)
 		{
-			auto& Str =Item.Token->Value._String;
+			auto& Str = Item.Token->Value._String;
 
 			auto Syb = GetSymbol(Str, SymbolType::Type);
 
@@ -470,18 +470,23 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			{
 				if (Syb == Item2)
 				{
-					_ErrorsOutput->AddError(ErrorCodes::InValidType, Item.Token->OnLine, Item.Token->OnPos, 
+					_ErrorsOutput->AddError(ErrorCodes::InValidType, Item.Token->OnLine, Item.Token->OnPos,
 						"duplicate Inherit Trait");
 				}
 			}
 			*/
 
-			ClassInf->_InheritedTypes.push_back(Syb);
+
+			ClassInfo_InheritTypeInfo _Data;
+			_Data.Syb = Syb;
+			ClassInf->_InheritedTypes.push_back(_Data);
+		
+
 		}
 
 		for (auto& Item : ClassInf->_InheritedTypes)
 		{
-			InheritTrait(&Syb, ClassInf, Item);
+			InheritTrait(&Syb, ClassInf, Item.Syb,Node.ClassName.Token);
 		}
 	}
 	if (passtype == PassType::BuidCode)
@@ -604,6 +609,11 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			//
 			LookingAtIRFunc = OldFunc;
 			LookingAtIRBlock = OldBlock;
+		}
+
+		for (auto& Item : ClassInf->_InheritedTypes)
+		{
+			BuildTrait(&Syb, ClassInf, Item.Syb, Node.ClassName.Token);
 		}
 	}
 
@@ -2359,6 +2369,8 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 		SybClass.Info.reset(TepClass);
 
 
+		SybClass.VarType.SetType(SybClass.ID);
+
 
 		_ClassStack.push({ TepClass });
 
@@ -2449,15 +2461,22 @@ void SystematicAnalysis::OnTag(const TagTypeNode& node)
 
 	_Table.RemoveScope();
 }
-void SystematicAnalysis::InheritTrait(Symbol* Syb, const ClassInfo* ClassInfo, Symbol* Trait)
+void SystematicAnalysis::InheritTrait(Symbol* Syb,ClassInfo* ClassInfo, Symbol* Trait, const Token* ClassNameToken)
 {
 	TraitInfo* Traitinfo = Trait->Get_Info<TraitInfo>();
+
+	auto ID = ClassInfo->Get_InheritedTypesIndex(Trait);
+	ClassInfo_InheritTypeInfo& IDSyb = ClassInfo->_InheritedTypes[ID.value()];
+
+	bool HasErr = false;
 
 	for (auto& Item : Traitinfo->_Funcs)
 	{
 		if (Item.HasBody)
 		{
-			//copy body
+			ClassInfo_InheritTypeInfo::AddedFuncInfo InfoB;
+			InfoB.FuncNode = Item.Syb->NodePtr;
+			IDSyb.AddedFuncs.push_back(InfoB);
 		}
 		else
 		{
@@ -2466,35 +2485,142 @@ void SystematicAnalysis::InheritTrait(Symbol* Syb, const ClassInfo* ClassInfo, S
 			auto FuncName = Info->Get_Name();
 			auto& List = _Table.GetSymbolsWithName(Info->Get_Name());
 
-			
+			bool HasFunc = false;
+
 			for (auto& ItemL : List)
 			{
+				if (HasFunc)
+				{
+					break;
+				}
 				if (ItemL->Type == SymbolType::Func)
 				{
+					FuncInfo* ItemFunc = ItemL->Get_Info<FuncInfo>();
 
 
-					continue;//check if same thing
+					if (ItemFunc->Pars.size() == Info->Pars.size())
+					{
+						for (size_t i = 0; i < Info->Pars.size(); i++)
+						{
+							const auto& TraitPar = Info->Pars[i];
+							const auto& FuncPar = ItemFunc->Pars[i];
+
+							auto SubTraitParType = TraitPar;
+
+							if (TraitPar._CustomTypeSymbol == Traitinfo->TraitClassInfo->ID)
+							{
+								SubTraitParType._CustomTypeSymbol = Syb->ID;
+							}
+
+							if (!AreTheSame(SubTraitParType, FuncPar))
+							{
+								goto ConstinueSybList;
+							}
+
+
+							HasFunc = true;
+						}
+					}
+
+
+				ConstinueSybList:continue;//check if same thing
 				}
 			}
 
 
-			String Msg = "Missing Funcion '" + (String)FuncName + "' with the parameters [";
-
-			for (auto& ItemP : Info->Pars)
-			{
-				Msg += ToString(ItemP);
-
-				if (&ItemP != &Info->Pars.back())
-				{
-					Msg += ",";
-				}
+			if (!HasFunc) {
+				LogMissingFuncionforTrait(FuncName, Info, Trait, ClassNameToken);
+				HasErr = true;
 			}
-
-			Msg += "] for the trait '" + Trait->FullName + '\'';
-
-			_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, 0, 0,Msg);
 		}
 	}
+
+
+	if (!HasErr)
+	{
+	
+		//
+		{
+			ClassStackInfo _ClStack;
+			_ClStack._InStatements = false;
+			_ClStack.Info = ClassInfo;
+			_ClassStack.push(_ClStack);
+		}
+		
+		auto oldpass = passtype;
+		passtype = PassType::GetTypes;
+
+
+		for (auto& Item : IDSyb.AddedFuncs)
+		{
+			const FuncNode& func = *(FuncNode*)Item.FuncNode;
+
+			auto SybsIndex = _Table.Symbols.size();
+
+			OnFuncNode(func);
+		
+
+			Item.Func = _Table.Symbols[SybsIndex].get();
+
+		}
+
+
+		passtype = PassType::FixedTypes;
+
+		for (auto& Item : IDSyb.AddedFuncs)
+		{
+			const FuncNode& func = *(FuncNode*)Item.FuncNode;
+			OnFuncNode(func);
+		}
+
+		{
+			passtype = oldpass;
+			_ClassStack.pop();
+		}
+	}
+}
+void SystematicAnalysis::BuildTrait(Symbol* Syb, ClassInfo* ClassInfo, Symbol* Trait, const Token* ClassNameToken)
+{
+
+	auto ID = ClassInfo->Get_InheritedTypesIndex(Trait);
+	ClassInfo_InheritTypeInfo& IDSyb = ClassInfo->_InheritedTypes[ID.value()];
+
+	{
+		ClassStackInfo _ClStack;
+		_ClStack._InStatements = false;
+		_ClStack.Info = ClassInfo;
+		_ClassStack.push(_ClStack);
+	}
+
+
+	for (auto& Item : IDSyb.AddedFuncs)
+	{
+		const FuncNode& func = *(FuncNode*)Item.FuncNode;
+		OnFuncNode(func);
+	}
+
+
+	{
+		_ClassStack.pop();
+	}
+}
+void SystematicAnalysis::LogMissingFuncionforTrait(UCodeLang::String_view& FuncName, UCodeLang::FrontEnd::FuncInfo* Info, UCodeLang::FrontEnd::Symbol* Trait, const UCodeLang::Token* ClassNameToken)
+{
+	String Msg = "Missing Funcion '" + (String)FuncName + "' with the parameters [";
+
+	for (auto& ItemP : Info->Pars)
+	{
+		Msg += ToString(ItemP);
+
+		if (&ItemP != &Info->Pars.back())
+		{
+			Msg += ",";
+		}
+	}
+
+	Msg += "] and returns '" + ToString(Info->Ret) + "' for the trait '" + Trait->FullName + '\'';
+
+	_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, ClassNameToken->OnLine, ClassNameToken->OnPos, Msg);
 }
 Symbol* SystematicAnalysis::NewDropFuncSymbol(ClassInfo* ClassInfo, TypeSymbol& ClassAsType)
 {
@@ -7644,7 +7770,7 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 		else
 		{
 			LogCantUseThisHere(V.Name.Token);
-			Out.SetType(TypesEnum::uInt8);
+			Out.SetType(TypesEnum::Null);
 		}
 	}
 		break;
