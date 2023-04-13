@@ -76,6 +76,7 @@ struct TypeSymbol
 	bool _IsAddress=false;
 	bool _IsAddressArray = false;
 	bool _Isimmutable = false;
+	bool _IsDynamic = false;
 	TypeValueInfo _ValueInfo = TypeValueInfo::IsValue;
 	MoveData _MoveData = MoveData::None;
 

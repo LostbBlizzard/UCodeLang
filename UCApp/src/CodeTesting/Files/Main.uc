@@ -13,3 +13,8 @@ trait Object:
 [DllImport]
 $Player[Object]:
  |Update[this&] -> void;
+
+
+|main[]:
+ Player Obj1 = [];
+ dynamic<Object> Hello = Obj1;

@@ -399,11 +399,17 @@ struct TypeNode :Node
 		IsTypedMoved = true;
 	}
 
+	void SetDynamic()
+	{
+		IsDynamic = true;
+	}
+
 	bool IsAddess = false;
 	bool IsAddessArray = false;
 	bool Isimmutable = false;
 	bool IsStackArray = false;
 	bool IsTypedMoved = false;
+	bool IsDynamic = false;
 private:
 	Unique_ptr<Token> GenToken;
 };
