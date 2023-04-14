@@ -362,8 +362,21 @@ struct ClassInfo_InheritTypeInfo
 		Symbol* Func=nullptr;
 	};
 
+	enum class FuncType
+	{
+		Added,
+		OverLoaded,
+	};
+	struct FuncIndex
+	{
+		size_t Index;
+		FuncType Type;
+	};
+
 	Symbol* Syb = nullptr;
 	Vector<AddedFuncInfo> AddedFuncs;
+	Vector<AddedFuncInfo> OverLoadedFuncs;
+	Vector<FuncIndex> Funcs;
 };
 
 class ClassInfo:public Symbol_Info

@@ -4,11 +4,7 @@ tag DllImport;
 
 trait Object:
  |Update[this&] -> void;
-
-
- |Update2[this&,int B] => true;
- |Update3[this&] => Update2(6);
- 
+ |AutoAdded[this&] => 0;
 
 [DllImport]
 $Player[Object]:
@@ -18,3 +14,5 @@ $Player[Object]:
 |main[]:
  Player Obj1 = [];
  dynamic<Object> Hello = Obj1;
+
+ //Hello.Update();
