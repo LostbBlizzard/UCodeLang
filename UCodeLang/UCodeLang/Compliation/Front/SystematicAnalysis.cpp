@@ -2429,7 +2429,25 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 	}
 	else if (passtype == PassType::BuidCode)
 	{
+		//
+		TraitInfo* info = Syb.Get_Info<TraitInfo>();
+		auto StructVtablueClass = _Builder.NewStruct(_Builder.ToID(GetTraitVStructTableName(Syb.FullName)));
+	
+		for (auto& Item : info->_Funcs)
+		{
+			FuncInfo* ItemInfo = Item.Syb->Get_Info<FuncInfo>();
+			auto StrFunc = GetTepFuncPtrName(ItemInfo);
+			auto PtrFunc = GetTepFuncPtrSyb(StrFunc, ItemInfo);
+			PtrFunc->FullName = StrFunc;
+			TypeSymbol PtrType = PtrFunc->ID;
 
+			auto IRType = ConvertToIR(PtrType);
+
+			IRStructField V;
+			V.Type = IRType;
+			StructVtablueClass->Fields.push_back(V);
+		}
+	
 	}
 
 
@@ -2461,6 +2479,18 @@ void SystematicAnalysis::OnTag(const TagTypeNode& node)
 
 	_Table.RemoveScope();
 }
+String SystematicAnalysis::GetClassWithTraitVTableName(const String& ClassFullName, const String& TraitFullName)
+{
+	return TraitFullName + ":$" + ClassFullName;
+}
+String SystematicAnalysis::GetTraitVTableName(const String& TraitName)
+{
+	return TraitName + "vtable";
+}
+String SystematicAnalysis::GetTraitVStructTableName(const String& TraitName)
+{
+	return TraitName + "vtable_type";
+}
 void SystematicAnalysis::InheritTrait(Symbol* Syb,ClassInfo* ClassInfo, Symbol* Trait, const Token* ClassNameToken)
 {
 	TraitInfo* Traitinfo = Trait->Get_Info<TraitInfo>();
@@ -2477,6 +2507,12 @@ void SystematicAnalysis::InheritTrait(Symbol* Syb,ClassInfo* ClassInfo, Symbol* 
 			ClassInfo_InheritTypeInfo::AddedFuncInfo InfoB;
 			InfoB.FuncNode = Item.Syb->NodePtr;
 			IDSyb.AddedFuncs.push_back(InfoB);
+
+
+			ClassInfo_InheritTypeInfo::FuncIndex V;
+			V.Index = IDSyb.AddedFuncs.size() - 1;
+			V.Type = ClassInfo_InheritTypeInfo::FuncType::Added;
+			IDSyb.Funcs.push_back(V);
 		}
 		else
 		{
@@ -2519,6 +2555,18 @@ void SystematicAnalysis::InheritTrait(Symbol* Syb,ClassInfo* ClassInfo, Symbol* 
 
 
 							HasFunc = true;
+							//
+							ClassInfo_InheritTypeInfo::AddedFuncInfo InfoB;
+							InfoB.FuncNode = ItemL->NodePtr;
+							InfoB.Func = ItemL;
+							IDSyb.OverLoadedFuncs.push_back(InfoB);
+
+
+							ClassInfo_InheritTypeInfo::FuncIndex V;
+							V.Index = IDSyb.OverLoadedFuncs.size() - 1;
+							V.Type = ClassInfo_InheritTypeInfo::FuncType::OverLoaded;
+							IDSyb.Funcs.push_back(V);
+							break;
 						}
 					}
 
@@ -2597,6 +2645,46 @@ void SystematicAnalysis::BuildTrait(Symbol* Syb, ClassInfo* ClassInfo, Symbol* T
 	{
 		const FuncNode& func = *(FuncNode*)Item.FuncNode;
 		OnFuncNode(func);
+	}
+
+	{
+		String VTableName = GetClassWithTraitVTableName(Syb->FullName, Trait->FullName);
+		auto StaticVarableToID = _Builder.ToID(VTableName);
+
+		auto StaticVarableType = IRType(_Builder.GetSymbol(_Builder.ToID(GetTraitVStructTableName(Trait->FullName)))->identifier);
+
+		auto StaticVarable = _Builder.NewStaticVarable(StaticVarableToID, StaticVarableType);
+
+
+		auto oldIRFunc = LookingAtIRFunc;
+		auto oldblock = LookingAtIRBlock;
+
+
+
+		if (_Builder._StaticInit.Blocks.size() == 0)
+		{
+			_Builder._StaticInit.NewBlock(".");
+		}
+
+		LookingAtIRFunc = &_Builder._StaticInit;
+		LookingAtIRBlock = LookingAtIRFunc->Blocks.front().get();
+
+		//
+
+		auto Ptr = LookingAtIRBlock->NewLoadPtr(StaticVarableToID);
+		for (size_t i = 0; i < IDSyb.Funcs.size(); i++)
+		{
+			auto& Item = IDSyb.Funcs[i];
+
+
+			Symbol* Func = Item.Type == ClassInfo_InheritTypeInfo::FuncType::Added ? IDSyb.AddedFuncs[Item.Index].Func : IDSyb.OverLoadedFuncs[Item.Index].Func;
+			
+			auto Member = LookingAtIRBlock->New_Member_Dereference(Ptr, StaticVarableType, i);
+			LookingAtIRBlock->NewStore(Member, LookingAtIRBlock->NewLoadFuncPtr(_Builder.ToID(Func->FullName)));
+		}
+		//
+		LookingAtIRFunc = oldIRFunc;
+		LookingAtIRBlock = oldblock;
 	}
 
 
@@ -2961,10 +3049,23 @@ IRType SystematicAnalysis::ConvertToIR(const TypeSymbol& Value)
 			}
 			else
 			{
-				IRidentifierID IRid = {};
+				String DynSybName = "Dynamic" + syb.FullName;
+
+				IRidentifierID IRid = _Builder.ToID(DynSybName);
+				auto StructIR = _Builder.NewStruct(IRid);
+
+				{
+					IRStructField V;
+					V.Type = IRType(IRTypes::pointer);
+					StructIR->Fields.push_back(V);
+				}
+				{
+					IRStructField V;
+					V.Type = IRType(IRTypes::pointer);
+					StructIR->Fields.push_back(V);
+				}
+
 				IRType r = IRid;
-
-
 				SybToIRMap[syb.ID] = IRid;
 				return r;
 			}
@@ -8313,8 +8414,29 @@ bool SystematicAnalysis::DoImplicitConversion(IRInstruction* Ex, const TypeSymbo
 
 	if (CanDoTypeToTrait(ExType,ToType))
 	{
+		auto IRType = ConvertToIR(ToType);
+		IRInstruction* structV = LookingAtIRBlock->NewLoad(IRType);
 
+		IRStruct* IRStructPtr = _Builder.GetSymbol(IRType._symbol)->Get_ExAs<IRStruct>();
 
+		auto Member = LookingAtIRBlock->New_Member_Access(structV, IRStructPtr, 0);
+		
+		if (!ExType.IsAddress())
+		{
+			LookingAtIRBlock->NewStore(Member, LookingAtIRBlock->NewLoadPtr(Ex));
+		}
+		else
+		{
+			LookingAtIRBlock->NewStore(Member, Ex);
+		}
+
+		auto Member2 = LookingAtIRBlock->New_Member_Access(structV, IRStructPtr, 0);
+
+		auto IDVTable = _Builder.ToID(GetClassWithTraitVTableName(GetSymbol(ExType)->FullName, GetSymbol(ToType)->FullName));
+
+		LookingAtIRBlock->NewStore(Member,LookingAtIRBlock->NewLoadPtr(IDVTable));
+
+		_LastExpressionField = structV;
 		return true;
 	}
 
@@ -8648,6 +8770,12 @@ bool SystematicAnalysis::GetSize(const TypeSymbol& Type, UAddress& OutSize)
 			bool V = GetSize(Info->Type,OutSize);
 			OutSize *= Info->Count;
 			return V;
+		}
+		else if (V.Type == SymbolType::Trait_class && Type._IsDynamic)
+		{
+			TypeSymbol pointer(TypesEnum::Bool);
+			pointer.SetAsAddress();
+			return GetSize(pointer).value() * 2;
 		}
 		else
 		{

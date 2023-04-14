@@ -612,11 +612,16 @@ private:
 	void OnTrait(const TraitNode& node);
 	void OnTag(const TagTypeNode& node);
 
+
+	String GetClassWithTraitVTableName(const String& ClassFullName, const String& TraitFullName);
+	String GetTraitVTableName(const String& TraitName);
+	String GetTraitVStructTableName(const String& TraitName);
+
 	void InheritTrait(Symbol* Syb,ClassInfo* ClassInfo, Symbol* Trait,const Token* ClassNameToken);
 
 	void BuildTrait(Symbol* Syb, ClassInfo* ClassInfo, Symbol* Trait, const Token* ClassNameToken);
 
-	void LogMissingFuncionforTrait(UCodeLang::String_view& FuncName, UCodeLang::FrontEnd::FuncInfo* Info, UCodeLang::FrontEnd::Symbol* Trait, const UCodeLang::Token* ClassNameToken);
+	void LogMissingFuncionforTrait(String_view& FuncName, FuncInfo* Info, Symbol* Trait, const Token* ClassNameToken);
 		
 
 	Symbol* NewDropFuncSymbol(ClassInfo* ClassInfo, TypeSymbol& ClassAsType);
