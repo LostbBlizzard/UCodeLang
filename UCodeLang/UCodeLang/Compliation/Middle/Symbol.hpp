@@ -662,6 +662,19 @@ public:
 	{
 		return ScopeHelper::GetNameFromFullName((String_view)FullName);
 	}
+
+	Optional<size_t> GetIndex_Func(Symbol* Syb) const
+	{
+		for (size_t i = 0; i < _Funcs.size(); i++)
+		{
+			if (_Funcs[i].Syb == Syb)
+			{
+				return i;
+			}
+		}
+		return {};
+	}
+
 	Vector<TraitFunc> _Funcs;
 	Symbol* TraitClassInfo = nullptr;
 };

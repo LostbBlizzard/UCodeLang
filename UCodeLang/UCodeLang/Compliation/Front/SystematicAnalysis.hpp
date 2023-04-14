@@ -357,6 +357,7 @@ private:
 			OnIRlocationStackNonedef,
 			PushWasCalled,
 			AutoPushThis,
+			PushFromScopedNameDynamicTrait,
 		};
 		ThisPar_t ThisPar = ThisPar_t::NoThisPar;
 
