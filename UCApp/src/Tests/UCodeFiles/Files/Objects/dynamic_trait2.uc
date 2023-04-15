@@ -1,4 +1,3 @@
-
 trait Object;
 
 
@@ -13,3 +12,4 @@ $Player[Object]:
  dynamic<Object> Hello = new Player();
  
  drop(Hello);
+ ret a;
