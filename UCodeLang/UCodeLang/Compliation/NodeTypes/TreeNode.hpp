@@ -60,6 +60,7 @@ enum class NodeType :UInt8
 	MoveNode,
 	LambdaNode,
 	TraitNode,
+	OutExpression,
 };
 
 

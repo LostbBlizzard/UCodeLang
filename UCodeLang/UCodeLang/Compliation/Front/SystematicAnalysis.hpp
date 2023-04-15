@@ -358,6 +358,7 @@ private:
 			PushWasCalled,
 			AutoPushThis,
 			PushFromScopedNameDynamicTrait,
+			NoThisPar_GetValue_EnumVariant,
 		};
 		ThisPar_t ThisPar = ThisPar_t::NoThisPar;
 
@@ -414,6 +415,15 @@ private:
 		Jumps_t Type = Jumps_t::Continue;
 		IRInstruction* JumpIns = nullptr;
 	};
+	enum class NodeSyb_t 
+	{
+		Any,
+		Varable,
+		Parameter,
+		ClassFeild,
+		Ret,
+	};
+
     //Members
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
@@ -425,15 +435,7 @@ private:
 	const Vector<const UClib*>* _Libs = nullptr;
 	SymbolTable _Table;
 
-	enum class NodeSyb_t 
-	{
-		Any,
-		Varable,
-		Parameter,
-		ClassFeild,
-		Ret,
-	};
-
+	
 	Stack<ClassStackInfo> _ClassStack;
 
 	
@@ -456,6 +458,13 @@ private:
 		Thread,
 		ClassField,
 	};
+	struct VarableUseData
+	{
+		String Scope;
+		Vector<Symbol*> _UsedSymbols;
+		Vector<Symbol*> _SymbolsToPassBecauseInerLamdba;
+	};
+	Vector<NodeType> NodeTypeStack;
 
 	//
 	Stack<TypeSymbol> LookingForTypes;
@@ -482,13 +491,7 @@ private:
 	
 	Vector< JumpsData> _Jumps;
 
-	struct VarableUseData
-	{
-		String Scope;
-		Vector<Symbol*> _UsedSymbols;
-		Vector<Symbol*> _SymbolsToPassBecauseInerLamdba;
-	};
-
+	
 	Stack<VarableUseData> _Varable;
 
 	//Funcs
@@ -541,6 +544,18 @@ private:
 		}
 		return false;
 	}
+
+
+
+	inline void PushToNodeScope(const Node& node)
+	{
+		NodeTypeStack.push_back(node.Get_Type());
+	}
+	inline void PopNodeScope()
+	{
+		NodeTypeStack.pop_back();
+	}
+
 
 	inline FuncStackInfo* GetDependencies(const FuncInfo* Value)
 	{
@@ -838,7 +853,9 @@ private:
 	};
 	Get_FuncInfo GetFunc(const ScopedNameNode& Name,const UseGenericsNode&,const ValueParametersNode& Pars,TypeSymbol Ret);
 
+
 	Get_FuncInfo GetEnumVariantFunc(Symbol* EnumSyb, size_t FeildIndex, Symbol* EnumFieldSyb, const ValueParametersNode& Pars,const Token* Token,const Vector<TypeSymbol>& ValueTypes);
+
 
 
 	void SetFuncRetAsLastEx(Get_FuncInfo& Info);
@@ -974,6 +991,9 @@ private:
 	void LogDynamicMustBeRrait(const TypeNode& V, const TypeSymbol& Out);
 	void TraitCantBeAlone(const Token* Token);
 	void LogWantedAType(const TypeNode& V, Symbol* SybV);
+	void LogOutCanOnlyBeInControlFlow(const Token* Token);
+	void LogParamterMustBeAnOutExpression(const Token* Token, const size_t& i);
+
 
 	String ToString(SymbolType Value);
 	ReadVarErrorCheck_t LogTryReadVar(String_view VarName, const Token* Token, const Symbol* Syb);

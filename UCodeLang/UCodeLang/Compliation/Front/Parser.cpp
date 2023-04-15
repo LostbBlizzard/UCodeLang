@@ -986,7 +986,42 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 }
 GotNodeType Parser::GetValueParameterNode(Node*& out)
 {
-	return GetExpressionTypeNode(out);//Just for consistency.
+	if (TryGetToken()->Type == TokenType::KeyWord_out)
+	{
+		NextToken();
+
+		size_t oldindex = this->_TokenIndex;
+		NextToken();
+
+		bool HasType = false;
+
+
+		auto ParToken = TryGetToken();
+		HasType =!(ParToken->Type == TokenType::Comma || ParToken->Type == TokenType::Right_Parentheses);
+
+
+		this->_TokenIndex = oldindex;
+
+
+		auto B = OutExpression::Gen();
+		out = B->As();
+
+		if (HasType)
+		{
+			GetType(B->_Type);
+		}
+		else
+		{
+			TypeNode::Gen_Var(B->_Type, *TryGetToken());
+		}
+
+
+		return GetName(B->_Name);
+	}
+	else
+	{
+		return GetExpressionTypeNode(out);//Just for consistency.
+	}
 }
 GotNodeType Parser::GetValueParametersNode(ValueParametersNode& out)
 {
