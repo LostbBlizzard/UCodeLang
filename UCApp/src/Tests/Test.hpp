@@ -73,7 +73,7 @@ namespace ULangTest
 		}
 	};
 
-	static const Array<TestInfo, 50> Tests
+	static const Array<TestInfo, 52> Tests
 	{
 
 		TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation),
@@ -146,6 +146,8 @@ namespace ULangTest
 
 		TestInfo("trait 1","Objects/trait.uc","main",SuccessCondition::RunTimeValue,(int)1),
 		TestInfo("trait 2","Objects/trait2.uc","main",SuccessCondition::CompilationFail),
+		TestInfo("trait 3","Objects/dynamic_trait.uc","main",SuccessCondition::RunTimeValue,(int)1),
+		TestInfo("trait 4","Objects/dynamic_trait2.uc","main",SuccessCondition::RunTimeValue,(int)1),
 	};
 
 
