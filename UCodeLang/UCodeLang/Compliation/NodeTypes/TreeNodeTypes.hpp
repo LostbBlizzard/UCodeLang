@@ -1007,5 +1007,15 @@ struct TraitNode :Node
 	AddforNodeAndWithList(TraitNode);
 
 };
+struct OutExpression :Node
+{
+	OutExpression() : Node(NodeType::OutExpression)
+	{
+
+	}
+	NameNode _Name;
+	TypeNode _Type;
+	AddforNode(OutExpression);
+};
 
 UCodeLangFrontEnd

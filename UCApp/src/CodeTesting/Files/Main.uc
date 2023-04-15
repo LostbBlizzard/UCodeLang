@@ -1,15 +1,19 @@
 
-trait Object;
+enum Test:
+ Value[int],
+ Value2[int A],
+ Value3[int],
 
-
-
-int a = 0;
-
-$Player[Object]:
- |drop[this&]:
-  a = 1;
-
-|main[]:
- dynamic<Object> Hello = new Player();
+|main[] -> int:
+ Test Obj = Test::Value2(5);
  
- drop(Hello);
+
+ //var Item = Test::Value(Obj,out Value);//bad 
+
+ if Test::Value2(Obj,out Value):
+  ret Value;
+
+ if Test::Value3(Obj,out Value):
+  ret Value;
+
+ ret [];
