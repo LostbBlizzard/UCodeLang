@@ -53,8 +53,8 @@ void IRBuilder::Fix_Size(IRStruct* Struct)
 			if (!Item.Offset.has_value())
 			{
 				size_t fieldsize = GetSize(Struct->Fields[i].Type);
-				R += fieldsize;
 				Item.Offset = R;
+				R += fieldsize;
 			}
 		}
 		Struct->ObjectSize = R;

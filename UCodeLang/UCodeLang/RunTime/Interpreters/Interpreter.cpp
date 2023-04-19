@@ -7,11 +7,7 @@ UCodeLangStart
 bool Interpreter::CheckIfFunctionExist(const String& FunctionName)
 {
 	auto address = _State->FindAddress(FunctionName);
-	if (address == NullAddress)
-	{
-		return false;
-	}
-	return true;
+	return address.has_value();
 }
 
 void Interpreter::Get_Return(void* Output, size_t OutputSize)

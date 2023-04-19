@@ -529,8 +529,8 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 				LookingAtIRBlock->NewPushParameter(LookingAtIRBlock->NewLoad(&LookingAtIRFunc->Pars.front()));
 				LookingAtIRBlock->NewCall(_Builder.ToID(ClassInit));
 
-				LookingAtIRBlock->NewRet();
-			}
+				
+			}LookingAtIRBlock->NewRet();
 
 			//
 			LookingAtIRFunc = OldFunc;
@@ -614,13 +614,18 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 					LookingAtIRBlock->NewPushParameter(LookingAtIRBlock->NewLoad(&LookingAtIRFunc->Pars.front()));
 					LookingAtIRBlock->NewCall(_Builder.ToID(ClassInit));
 
-					LookingAtIRBlock->NewRet();
-				}
+					
+				}LookingAtIRBlock->NewRet();
 			}
 
 			//
 			LookingAtIRFunc = OldFunc;
 			LookingAtIRBlock = OldBlock;
+		}
+
+		if (ClassInf->_ClassFieldInit)
+		{
+			ClassInf->_ClassFieldInit->Blocks[0]->NewRet();
 		}
 
 		for (auto& Item : ClassInf->_InheritedTypes)
@@ -641,6 +646,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 		_Table.RemoveScope();
 
 	}
+
 	
 	
 	
@@ -1106,7 +1112,9 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 				LookingAtIRBlock->NewPushParameter(LookingAtIRBlock->NewLoad(&LookingAtIRFunc->Pars.front()));
 				LookingAtIRBlock->NewCall(_Builder.ToID(InitFunc));
+				LookingAtIRBlock->NewRet();
 			}
+			
 		}
 
 		LookingAtIRBlock->NewRet();

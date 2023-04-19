@@ -54,7 +54,7 @@ MakeNewCPPCall(Test,int,int);
 
 MakeNewCPPCall_voidNoPar(Test2);
 
-static UCodeRunTime RunTime;
+static Interpreter RunTime;
 template< typename T >
 std::string int_to_hex(T i)
 {
@@ -139,7 +139,6 @@ int main()
 	Data.OutFile = OutFilePath;
 	Data.IntDir = IntPath;
 	Settings._Flags = OptimizationFlags::Debug;
-
 	//_Compiler.Set_BackEnd(ULangTest::C89Backend::MakeObject);
 
 	/*
@@ -205,11 +204,12 @@ int main()
 
 		char Buffer[] = "hello ";
 
-		int item[2] = { 0,0 };
+		int item[2];
 
 		//auto Value = RunTime.RCall<char>("__ReadChar");
 
-		auto r = RunTime.RCall <UAddress>("main");
+		auto r2 = RunTime.RCall <UAddress>("Player:(&_new&)^Player&", &item);
+		auto r = RunTime.RCall <UAddress>("Player:Update^Player&",&item);
 
 
 		std::cout << " Got Value " << (int)r << std::endl;
