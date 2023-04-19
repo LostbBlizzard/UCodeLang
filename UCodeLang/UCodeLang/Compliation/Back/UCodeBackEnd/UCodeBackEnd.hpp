@@ -151,6 +151,12 @@ private:
 	void FindOpToReg(IRInstruction& Ins, IROperator Op, RegisterID Out);
 	void LogicalNot(IRTypes Type, RegisterID In, RegisterID Out);
 	void DoCPPCall(const IRidentifier& FuncName);
+
+	void StoreValue(IRInstruction& Ins, IROperator& OutputLocationIR, IROperator& Input);
+
+	void StoreValueInPointer(IRType& ObjectType, RegisterID Pointer, IROperator& Value, IRInstruction& Ins);
+	void StoreValueInPointer(IRType& ObjectType, RegisterID Pointer, RegisterID Value);
+	RegisterID ReadValueFromPointer(IRType& ObjectType, RegisterID Pointer);
 };
 UCodeLangEnd
 

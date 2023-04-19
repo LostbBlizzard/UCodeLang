@@ -1,7 +1,11 @@
 #pragma once
-#include "../UCodeAnalyzer.hpp"
+#include "UCodeAnalyzer.hpp"
 #include "UCodeLang/LangCore.hpp"
+#include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
+#include "UCodeLang/LangCore/BitMaker.hpp"
 UCodeAnalyzerStart
+
+using Byte = UCodeLang::Byte;
 
 using Int8 = UCodeLang::Int8;
 using Int16 = UCodeLang::Int16;
@@ -34,4 +38,10 @@ template<typename T, typename T2> using Unordered_map = UCodeLang::Unordered_map
 
 template<typename T, size_t Size> using Array = UCodeLang::Array<T, Size>;
 
+using BytesView = UCodeLang::BytesView;
+
+template<typename Key,typename Value> using BinaryVectorMap = UCodeLang::BinaryVectorMap<Key, Value>;
+
+using BitMaker = UCodeLang::BitMaker;
+using BitReader = UCodeLang::BitReader;
 UCodeAnalyzerEnd

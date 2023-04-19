@@ -4,6 +4,33 @@
 #include "../CompliationSettings.hpp"
 #include "IRTypeFixer.hpp"
 UCodeLangStart
+
+
+
+
+enum class InlineState
+{
+	Null,
+	FuncionCantBeInline,
+	MayBeInlined,
+	AutoInline,
+};
+enum class FuncionType
+{
+	Null,
+	SimpleFuncion,
+	Recursive,
+};
+
+struct IROptimizationFuncData
+{
+public:
+	size_t FuncBodyHash = 0;
+	InlineState Inlinestate= InlineState::Null;
+};
+
+
+
 class IROptimizer
 {
 public:
@@ -34,13 +61,16 @@ private:
 
 	void UpdateOptimizationList();
 	void UpdateCodePass();
+	void UpdateCodePassFunc(const IRFunc* Func);
 	void ConstantFoldOperator(IRInstruction& I,IROperator& Value);
 
 
 	struct InLineData
 	{
+		IRFunc* Func =nullptr;
 		IRBlock* Block = nullptr;
 		size_t CallIns = 0;
+		Vector<IRInstruction*> InlinedPushedPars;
 	};
 
 	void InLineFunc(InLineData& Data);
@@ -55,6 +85,7 @@ private:
 	{
 		return  IRData[V];
 	}
+	BinaryVectorMap<IRFunc*, IROptimizationFuncData> Funcs;
 };
 
 UCodeLangEnd
