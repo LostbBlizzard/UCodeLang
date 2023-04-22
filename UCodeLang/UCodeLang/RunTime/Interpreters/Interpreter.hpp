@@ -240,6 +240,7 @@ private:
 
 	};
 	
+	
 	struct CPUData
 	{
 		UAddress ProgramCounter;
@@ -266,7 +267,7 @@ private:
 				T* SetData = (T*)DataPtr;
 				*SetData = V;
 
-				if (StackOffSet + sizeof(T) > MaxStackSize){throw std::exception("stack overflow");}
+				if (StackOffSet + sizeof(T) > MaxStackSize){ ThrowException("stack overflow");}
 
 				StackOffSet += sizeof(T);
 			}
@@ -276,7 +277,7 @@ private:
 				UInt8* StackBytes = (UInt8*)DataPtr;
 				UInt8* Bytes = (UInt8*)Ptr;
 
-				if (StackOffSet + Size > MaxStackSize){throw std::exception("stack overflow");}
+				if (StackOffSet + Size > MaxStackSize){ ThrowException("stack overflow");}
 
 				for (size_t i = 0; i < Size; i++)
 				{
@@ -289,7 +290,7 @@ private:
 			
 			template<typename T> T PopStack()
 			{
-				if (StackOffSet - sizeof(T) < 0) { throw std::exception("stack underflow"); }//This May not work
+				if (StackOffSet - sizeof(T) < 0) { ThrowException("stack underflow"); }//This May not work
 
 				StackOffSet -= sizeof(T);
 				void* DataPtr = (void*)((UIntNative)_Data + StackOffSet);
@@ -299,7 +300,7 @@ private:
 			
 			template<typename T> void SetValue(const T& V,NSize_t offset)
 			{
-				if (StackOffSet + offset + sizeof(T) < 0) { throw std::exception("stack overflow"); }
+				if (StackOffSet + offset + sizeof(T) < 0) { ThrowException("stack overflow"); }
 
 				void* DataPtr = (void*)((UIntNative)_Data + StackOffSet + offset);
 
@@ -307,7 +308,7 @@ private:
 			}
 			template<typename T> void SetValueSub(const T& V, NSize_t offset)
 			{
-				if (StackOffSet + offset + sizeof(T) < 0) { throw std::exception("stack overflow"); }
+				if (StackOffSet + offset + sizeof(T) < 0) { ThrowException("stack overflow"); }
 
 				void* DataPtr = (void*)((UIntNative)_Data + StackOffSet - offset);
 
@@ -315,7 +316,7 @@ private:
 			}
 			template<typename T> T GetValue(NSize_t offset)
 			{
-				if (StackOffSet + offset + sizeof(T) < 0) { throw std::exception("stack overflow"); }
+				if (StackOffSet + offset + sizeof(T) < 0) { ThrowException("stack overflow"); }
 
 				void* DataPtr = (void*)((UIntNative)_Data + StackOffSet + offset);
 
@@ -323,7 +324,7 @@ private:
 			}
 			template<typename T> T GetValueSub(NSize_t offset)
 			{
-				if (StackOffSet + offset - sizeof(T) < 0) { throw std::exception("stack overflow"); }
+				if (StackOffSet + offset - sizeof(T) < 0) { ThrowException("stack overflow"); }
 
 				void* DataPtr = (void*)((UIntNative)_Data + StackOffSet - offset);
 
@@ -360,6 +361,10 @@ private:
 				void* DataPtr = (void*)((UIntNative)_Data);
 				return  DataPtr;
 			}
+			void ThrowException(const char* Err)
+			{
+				throw std::exception(Err);
+			}
 		};
 		Stack Stack;
 		
@@ -374,7 +379,10 @@ private:
 		{
 			Stack._Data = StackValue;
 		}
-		
+		void ThrowException(const char* Err)
+		{
+			throw std::exception(Err);
+		}
 	};
 	CPUData _CPU;
 	RunTimeLangState* _State = nullptr;

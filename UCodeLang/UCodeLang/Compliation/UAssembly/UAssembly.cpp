@@ -62,7 +62,8 @@ String UAssembly::ToString(const UClib* Lib)
 				{
 					r += ToString(Item3);
 				}
-				r += "] ->" + ToString(Item2.RetType) + ";" + "\n";
+				r += "] -> " + ToString(Item2.RetType) + ";" ;
+				r += "//" + Item2.DecorationName + '\n';
 					
 			}
 			r += "\n\n";

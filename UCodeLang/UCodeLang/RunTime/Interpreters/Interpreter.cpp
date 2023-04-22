@@ -63,9 +63,10 @@ Interpreter::Return_t Interpreter::Call(const String& FunctionName)
 }
 Interpreter::Return_t Interpreter::Call(UAddress address)
 {
-	auto OldStackoffset = _CPU.Stack.StackOffSet;//for when UCode calls C++ calls UCode.
+	auto OldStackPrePars = _CPU.Stack.StackOffSet;
 	FlushParametersIntoCPU();
 
+	auto OldStackoffset = _CPU.Stack.StackOffSet;
 	_CPU.Stack.PushStack(_CPU.ProgramCounter);
 	_CPU.ProgramCounter = address;
 	
@@ -92,6 +93,8 @@ Interpreter::Return_t Interpreter::Call(UAddress address)
 		State = RetState::Null;
 		break;
 	}
+
+	_CPU.Stack.StackOffSet = OldStackPrePars;
 
 	return Return_t(State, Get_OutRegister());
 }
@@ -150,11 +153,11 @@ case InstructionSet::MultU##Bits:\
 		Get_Register(Inst.Value1.AsRegister).Value.##unsignedAnyIntValue;\
 	break;\
 case InstructionSet::DivS##Bits:\
-	Get_MathOutRegister().Value.##signedAnyIntValue = Get_Register(Inst.Value0.AsRegister).Value.##signedAnyIntValue *\
+	Get_MathOutRegister().Value.##signedAnyIntValue = Get_Register(Inst.Value0.AsRegister).Value.##signedAnyIntValue / \
 		Get_Register(Inst.Value1.AsRegister).Value.##signedAnyIntValue;\
 	break;\
 case InstructionSet::DivU##Bits:\
-	Get_MathOutRegister().Value.##signedAnyIntValue = Get_Register(Inst.Value0.AsRegister).Value.##unsignedAnyIntValue *\
+	Get_MathOutRegister().Value.##signedAnyIntValue = Get_Register(Inst.Value0.AsRegister).Value.##unsignedAnyIntValue / \
 		Get_Register(Inst.Value1.AsRegister).Value.##unsignedAnyIntValue;\
 	break;\
 case InstructionSet::LogicalAnd##Bits:\

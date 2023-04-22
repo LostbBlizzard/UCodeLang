@@ -202,7 +202,7 @@ int main()
 		RunTime.Init(&State);
 
 		auto FuncUpdate = State.Get_Assembly().Find_Class((String)"Player")->_Class.Get_ClassMethod("Update");
-		auto FuncMain  = State.Get_Assembly().Find_Class((String)UCodeLang::ScopeHelper::_globalAssemblyObject)->_Class.Get_ClassMethod("main");
+		auto FuncMain  = State.Get_Assembly().Get_GlobalObject_Class()->_Class.Get_ClassMethod("main");
 		char Buffer[] = "hello ";
 
 		int item[3];
@@ -211,7 +211,7 @@ int main()
 		RunTime.Call(StaticVariablesInitializeFunc);
 		RunTime.Call(ThreadVariablesInitializeFunc);
 
-
+		auto CallIndex = State.FindAddress(FuncMain->DecorationName);
 		auto AutoPtr = RunTime.RCall<UAddress>(*FuncMain,5,5,5,10,2);
 
 		auto r2 = RunTime.RCall <UAddress>("Player:(&_new&)^Player&", &item);

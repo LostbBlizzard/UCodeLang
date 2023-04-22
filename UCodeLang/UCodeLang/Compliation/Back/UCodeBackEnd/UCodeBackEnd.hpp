@@ -68,17 +68,20 @@ private:
 	StackInfo _Stack;
 	Vector<FuncInsID> FuncsToLink;
 	Vector<Funcpos> _Funcpos;
-	Vector<ParlocData> ParsPos;
+	Vector<ParlocData> CurrentFuncParPos;
 	const IRBuilder* _Input = nullptr;
 	UClib* _Output = nullptr;
 	BinaryVectorMap< const IRBlock*, BlockData> IRToBlockData;
 
-	RegisterID _InputPar = RegisterID::A;
+	
 	StaticMemoryManager _StaticMemory;
 	StaticMemoryManager _ThreadMemory;
 
 	size_t Index = 0;
 	const IRBlock* LookingBlock = nullptr;
+	
+	RegisterID _InputPar = RegisterID::StartParameterRegister;
+	size_t _CurrentParIndex = 0;
 	//code
 	
 
@@ -101,47 +104,21 @@ private:
 		return	_Output->Add_Instruction(_Ins);
 	}
 
-	bool IsReferenceingTheSame(const IROperator& Test,const IROperator& Other)
-	{
-		if (Test.Type == Other.Type)
-		{
-			if (Test.identifer == Test.identifer)
-			{
-				return true;
-			}
-		}
-
-		return false;
-	}
+	bool IsReferenceingTheSame(const IROperator& Test, const IROperator& Other);
 
 	bool IsReferencedAfterThisIndex(const IRInstruction* Op)
 	{
 		return  IsReferencedAfterThisIndex(IROperator((IRInstruction*)Op));
 	}
-	bool IsReferencedAfterThisIndex(const IROperator& Op)
+	
+	using WeightType = int;
+	WeightType IsReferencedAfterThisIndexWeighted(const IRInstruction* Op)
 	{
-		for (size_t i = Index+1; i < LookingBlock->Instructions.size(); i++)
-		{
-			auto Item = LookingBlock->Instructions[i].get();
-
-			if (IsOperatorValueInTarget(Item->Type))
-			{
-				if (IsReferenceingTheSame(Op,Item->Target())) 
-				{
-					return true;
-				}
-			}
-
-			if (IsOperatorValueInInput(Item->Type))
-			{
-				if (IsReferenceingTheSame(Op,Item->Input()))
-				{
-					return true;
-				}
-			}
-		}
-		return false;
+		return  IsReferencedAfterThisIndexWeighted(IROperator((IRInstruction*)Op));
 	}
+	WeightType IsReferencedAfterThisIndexWeighted(const IROperator& Op);
+
+	bool IsReferencedAfterThisIndex(const IROperator& Op);
 
 	void DropStack();
 	void DropPars();
@@ -153,7 +130,7 @@ private:
 	ParlocData* GetParData(const IRPar* Par)
 	{
 
-		for (auto& Item : ParsPos)
+		for (auto& Item : CurrentFuncParPos)
 		{
 			if (Item.Par == Par)
 			{
@@ -172,29 +149,24 @@ private:
 	void LockRegister(RegisterID ID);
 
 
-	void RegWillBeUsed(RegisterID Value)
-	{
-		auto& Info = _Registers.GetInfo(Value);
-		
-		if (Info.Inuse == RegistersManager::RegisterInUse::InUseSybol && IsReferencedAfterThisIndex(Info.IRField))
-		{
-			Info.Inuse = RegistersManager::RegisterInUse::NotInUse;
-			CopyValueToStack(Info.IRField, GetType(Info.IRField), Value);
-		}
-	}
+	void RegWillBeUsed(RegisterID Value);
 	IRType GetType(const IRInstruction* IR)
 	{
 		return IR->ObjectType;
+	}
+
+
+	void GiveNameToReg(RegisterID Value, const AnyInt64 Name)
+	{
+		_Registers.WeakLockRegisterValue(Value, Name);
 	}
 	void GiveNameToReg(RegisterID Value, const IRInstruction* Name)
 	{
 		_Registers.WeakLockRegisterValue(Value,Name);
 	}
 	RegisterID GetRegisterForTep();
-	Optional< RegisterID> FindIRInRegister(const IRInstruction* Value)
-	{
-		return _Registers.GetInfo(Value);
-	}
+	Optional<RegisterID> FindIRInRegister(const IRInstruction* Value);
+	Optional<RegisterID> FindValueInRegister(AnyInt64 Value);
 
 	void UnLockRegister(RegisterID ID)
 	{
@@ -212,15 +184,58 @@ private:
 	
 	void CopyValueToStack(const IRInstruction* IRName, const IRType& ObjectType, RegisterID Item);
 
+	void MoveValueToStack(const IRInstruction* IRName, const IRType& ObjectType, RegisterID Item);
+
 	void StoreValue(const IRInstruction& Ins, const  IROperator& OutputLocationIR,const IROperator& Input);
 
 	void StoreValueInPointer(const IRType& ObjectType, RegisterID Pointer, const  IROperator& Value, IRInstruction& Ins);
 	void StoreValueInPointer(const IRType& ObjectType, RegisterID Pointer, RegisterID Value);
 	RegisterID ReadValueFromPointer(const IRType& ObjectType, RegisterID Pointer);
 
-	void FuncCallStart();
+	struct  FuncCallEndData
+	{
+		Vector<IRPar> Pars;
+	};
+
+	FuncCallEndData FuncCallStart(const Vector<IRType>& Pars, const IRType& RetType);
+	FuncCallEndData FuncCallStart(const Vector<IRPar>& Pars, const IRType& RetType);
 	void FuncCallRet(const IRType& RetType);
-	void FuncCallEnd();
+	void FuncCallEnd(FuncCallEndData& Data);
+
+
+	struct FindParsLoc
+	{
+		Vector<ParlocData> ParsPos;
+		Vector<size_t> OverflowedPars;
+	};
+	FindParsLoc GetParsLoc(const Vector<IRType>& Pars);
+	FindParsLoc GetParsLoc(const Vector<IRPar>& Pars);
+
+	AnyInt64 ToAnyInt(const IRType& ObjectType, const  IROperator& Op);
+
+	size_t GetStatckOffset(const ParlocData& ItemStackOffset)
+	{
+		if (ItemStackOffset.Type == Parloc::StackPostCall)
+		{
+			return GetPostCallStackOffset(ItemStackOffset.StackOffset);
+		}
+		else
+		{
+			return GetPreCallStackOffset(ItemStackOffset.StackOffset);
+		}
+	}
+
+		
+	
+	size_t GetPostCallStackOffset(size_t ItemStackOffset)
+	{
+		return ItemStackOffset;
+	}
+	size_t GetPreCallStackOffset(size_t ItemStackOffset)
+	{
+		size_t FuncPointerSize = Get_Settings().PtrSize == IntSizes::Int64 ? 8 : 4;
+		return  ItemStackOffset + FuncPointerSize + 4;
+	}
 };
 UCodeLangEnd
 

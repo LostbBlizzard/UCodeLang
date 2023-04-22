@@ -16,7 +16,7 @@ public:
 	struct RegisterInfo 
 	{
 		RegisterInUse Inuse = RegisterInUse::NotInUse;
-		const IRInstruction* IRField =0;
+		const IRInstruction* IRField =nullptr;
 		AnyInt64 BitValue;
 	};
 	
@@ -38,7 +38,10 @@ public:
 	}
 	void UnLockRegister(RegisterID id)
 	{
-		GetInfo(id).Inuse = RegisterInUse::NotInUse;
+		auto& Info = GetInfo(id);
+		Info.Inuse = RegisterInUse::NotInUse;
+		Info.BitValue = AnyInt64();
+		Info.IRField = nullptr;
 	}
 	bool IsLocked(RegisterID id)
 	{
