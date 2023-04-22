@@ -188,7 +188,16 @@ bool IRBuilder::IsTheSame(const IRFunc* Func, const IRFunc* Func2)const
 
 	return Ok;
 }
+bool IRBuilder::IsPrimitive(const IRType& Type) const
+{
+	if (Type._Type == IRTypes::IRsymbol)
+	{
+		auto Syb = GetSymbol(Type._symbol);
 
+		return Syb->SymType == IRSymbolType::FuncPtr;
+	}
+	return true;
+}
 String IRBuilder::ToString()
 {
 	String r;

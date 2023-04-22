@@ -52,6 +52,12 @@ UCodeLangForceinline static void StoreRegOnStack##bitsize(Instruction& Out, Regi
 	Out.Value0.AsRegister = Reg;\
 	Out.Value1.AsAddress = Stackoffset;\
 }\
+UCodeLangForceinline static void StoreRegOnStackSub##bitsize(Instruction& Out, RegisterID Reg, UAddress Stackoffset)\
+{\
+	Out.OpCode = InstructionSet::StoreRegOnStackSub##bitsize;\
+	Out.Value0.AsRegister = Reg;\
+	Out.Value1.AsAddress = Stackoffset;\
+}\
 UCodeLangForceinline static void GetFromStack##bitsize(Instruction& Out, UAddress Stackoffset, RegisterID Reg)\
 {\
 	Out.OpCode = InstructionSet::GetFromStack##bitsize;\
@@ -381,11 +387,19 @@ public:
 	}
 	
 
-	UCodeLangForceinline static void SysCall(Instruction& Out,InstructionSysCall Type,RegisterID InReg = RegisterID::NullRegister)
+	UCodeLangForceinline static void SysCall(Instruction& Out, InstructionSysCall Type, Optional<RegisterID> InReg = {})
 	{
 		Out.OpCode = InstructionSet::SysCall;
 		Out.Value0.AsUInt64 = *(UInt64*)&Type;
-		Out.Value1.AsRegister = InReg;
+
+		if (InReg.has_value()) 
+		{
+			Out.Value1.AsRegister = InReg.value();
+		}
+		else
+		{
+			Out.Value1.AsUInt64 = NullUInt64;
+		}
 	}
 
 	//Sys Calls

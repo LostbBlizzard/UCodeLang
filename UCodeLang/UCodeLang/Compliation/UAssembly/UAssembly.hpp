@@ -30,7 +30,6 @@ public:
 		case UCodeLang::RegisterID::D:return "[D]";
 		case UCodeLang::RegisterID::E:return "[E]";
 		case UCodeLang::RegisterID::F:return "[F]";
-		case UCodeLang::RegisterID::NullRegister:return "[null]";
 		default:return "[bad]";
 		}
 	}

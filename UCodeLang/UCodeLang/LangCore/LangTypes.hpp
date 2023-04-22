@@ -79,8 +79,8 @@ enum class RegisterID : RegisterID_t
 
 
 	ThisRegister = (RegisterID_t)RegisterID::D,
-	OuPutRegister = (RegisterID_t)RegisterID::E,
-	InPutRegister = (RegisterID_t)RegisterID::F,
+	InPutRegister = (RegisterID_t)RegisterID::E,
+	OuPutRegister = (RegisterID_t)RegisterID::F,
 
 	MathOuPutRegister = OuPutRegister,
 	BoolRegister = OuPutRegister,
@@ -89,7 +89,7 @@ enum class RegisterID : RegisterID_t
 	StartParameterRegister = (RegisterID_t)RegisterID::D,//the range the runtime will pass funcion Parameters into Registers
 	EndParameterRegister = (RegisterID_t)RegisterID::F + 1,
 
-	NullRegister = 155,
+
 };
 
 struct AnyInt64

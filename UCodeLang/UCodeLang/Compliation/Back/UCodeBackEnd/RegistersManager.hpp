@@ -16,7 +16,7 @@ public:
 	struct RegisterInfo 
 	{
 		RegisterInUse Inuse = RegisterInUse::NotInUse;
-		IRInstruction* IRField =0;
+		const IRInstruction* IRField =0;
 		AnyInt64 BitValue;
 	};
 	
@@ -45,7 +45,7 @@ public:
 		return GetInfo(id).Inuse != RegisterInUse::NotInUse;
 	}
 
-	RegisterID GetInfo(IRInstruction* IRField)
+	Optional<RegisterID> GetInfo(const IRInstruction* IRField)
 	{
 		for (size_t i = 0; i < RegisterSize; i++)
 		{
@@ -55,9 +55,9 @@ public:
 				return (RegisterID)i;
 			}
 		}
-		return RegisterID::NullRegister;
+		return {};
 	}
-	RegisterID GetValue(AnyInt64 Value)
+	Optional<RegisterID> GetValue(AnyInt64 Value)
 	{
 		for (size_t i = 0; i < RegisterSize; i++)
 		{
@@ -67,10 +67,10 @@ public:
 				return (RegisterID)i;
 			}
 		}
-		return RegisterID::NullRegister;
+		return {};
 	}
 
-	RegisterID GetFreeRegister()
+	Optional<RegisterID> GetFreeRegister()
 	{
 		for (size_t i = 0; i < RegisterSize; i++)
 		{
@@ -82,27 +82,28 @@ public:
 		}
 		
 		//Reset();
-		return RegisterID::A;
+		return {};
 	}
 
-	RegisterID GetFreeRegisterAndWeakLock()
+	Optional< RegisterID> GetFreeRegisterAndWeakLock()
 	{
-		RegisterID r = GetFreeRegister();
-		WeakLockRegister(r);
+		auto r = GetFreeRegister();
+		if (r.has_value()) 
+		{
+			WeakLockRegister(r.value());
+		}
 		return r;
 	}
 
 	void WeakLockRegisterValue(RegisterID id,AnyInt64 Value)
 	{
-		if (id == RegisterID::NullRegister) { throw std::exception("Bad Register"); }
 		auto& Info = Registers[(size_t)id];
 		Info.Inuse = RegisterInUse::HasBitValue;
 		Info.BitValue = Value;
 	}
 
-	void WeakLockRegisterValue(RegisterID id, IRInstruction* Value)
+	void WeakLockRegisterValue(RegisterID id,const IRInstruction* Value)
 	{
-		if (id == RegisterID::NullRegister) { throw std::exception("Bad Register"); }
 		auto& Info = Registers[(size_t)id];
 		Info.Inuse = RegisterInUse::InUseSybol;
 		Info.IRField = Value;
@@ -110,13 +111,11 @@ public:
 
 	void WeakLockRegister(RegisterID id)
 	{
-		if (id == RegisterID::NullRegister) { throw std::exception("Bad Register"); }
 		auto& Info = Registers[(size_t)id];
 		Info.Inuse = RegisterInUse::InUseSybol;
 	}
 	void UnLockWeakRegister(RegisterID id)
 	{
-		if (id == RegisterID::NullRegister) { throw std::exception("Bad Register"); }
 		auto& Info = Registers[(size_t)id];
 		Info.Inuse = RegisterInUse::NotInUse;
 	}
@@ -125,12 +124,42 @@ public:
 class StaticMemoryManager
 {
 public:
-
-	void PushString(String_view String)
+	struct StaticMemInfo
 	{
-
-	}
-
+		size_t Offset=0;
+	};
+	BinaryVectorMap<IRidentifierID, StaticMemInfo> _List;
 };
+struct StackItem
+{
+	size_t Offset = 0;
+	const IRInstruction* IR = nullptr;
+};
+struct StackInfo
+{
+	size_t Size = 0;
+	size_t PushedOffset = 0;
 
+
+	void Reset()
+	{
+		Size = 0;
+		PushedOffset = 0;
+		Items.clear();
+	}
+	Vector<StackItem> Items;
+
+	StackItem* Has(IRInstruction* Value)
+	{
+		for (auto& Item : Items)
+		{
+			if (Item.IR == Value)
+			{
+				return &Item;
+			}
+		}
+
+		return nullptr;
+	}
+};
 UCodeLangEnd

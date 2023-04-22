@@ -123,6 +123,10 @@ case InstructionSet::StoreRegOnStack##Bits:\
 	_CPU.Stack.SetValue<##signedCType>(Get_Register(Inst.Value0.AsRegister).Value.##signedAnyIntValue\
 		, Inst.Value1.AsUIntNative);\
 	break;\
+case InstructionSet::StoreRegOnStackSub##Bits:\
+	_CPU.Stack.SetValueSub<##signedCType>(Get_Register(Inst.Value0.AsRegister).Value.##signedAnyIntValue\
+		, Inst.Value1.AsUIntNative);\
+	break;\
 case InstructionSet::GetFromStack##Bits:\
 	Get_Register(Inst.Value1.AsRegister).Value.##signedAnyIntValue = _CPU.Stack.GetValue<##signedCType>(Inst.Value0.AsUIntNative);\
 	break;\
