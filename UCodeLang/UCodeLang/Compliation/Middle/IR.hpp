@@ -1,11 +1,13 @@
 #pragma once
 #include "UCodeLang/LangCore/LangTypes.hpp"
 #include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
+#include "UCodeLang/LangCore/BitMaker.hpp"
 UCodeLangStart
 
 using IRidentifier = String;
 using IRidentifierID = size_t;
-enum class IRTypes
+using IRTypes_t = int;
+enum class IRTypes :IRTypes_t
 {
 	Null,
 	Void,
@@ -281,12 +283,17 @@ struct IRInstruction
 	{
 		return A;
 	}
+	const auto& Target()const
+	{
+		return A;
+	}
 	void Target(const IROperator& Value)
 	{
 		A = Value;
 	}
 
 	auto& Input(){return B;}
+	const auto& Input()const { return B; }
 	void Input(const IROperator& Value){B = Value;}
 
 	void SetAsNone()
@@ -301,33 +308,13 @@ struct IRCall
 };
 
 //
-enum class IRCallConvention
+using IRCallConvention_t = int;
+enum class IRCallConvention :IRCallConvention_t
 {
 	BackEndChoice,
-
-	/*
-	cdecl - In cdecl, subroutine arguments are passed on the stack.
-	Integer values and memory addresses are returned in the EAX register,
-	floating point values in the ST0 x87 register.
-	Registers EAX, ECX, and EDX are caller-saved, and the rest are callee-saved.
-	The x87 floating point registers ST0 to ST7 must be empty (popped or freed) when calling a new function,
-	and ST1 to ST7 must be empty on exiting a function. ST0 must also be empty when not used for returning a value.
-	*/
 	Cdecl,
-
-	/*
-	stdcall - The stdcall[4] calling convention is a variation on the Pascal calling convention in which the callee is responsible for cleaning up the stack, but the parameters are pushed onto the stack in right-to-left order,
-	as in the _cdecl calling convention. Registers EAX, ECX, and EDX are designated for use within the function.
-	Return values are stored in the EAX register.
-	*/
 	StdCall,
-
-	/*
-	the first four arguments are passed in registers when possible, and additional arguments are passed on the stack.
-	*/
 	Fastcall,
-
-
 	UCCall = Fastcall,
 };
 struct IRSymbol_Ex
@@ -783,8 +770,8 @@ struct IRBlock
 
 struct IRFunc
 {
-	IRCallConvention CallConvention = IRCallConvention::BackEndChoice;
 	IRidentifierID identifier;
+	IRCallConvention CallConvention = IRCallConvention::BackEndChoice;
 	IRType ReturnType;
 	Vector<IRPar> Pars;
 	IRFunc() : identifier(0)
@@ -825,6 +812,22 @@ struct IRFunc
 	}
 	Vector<Unique_ptr<IRBlock>> Blocks;
 	bool IsCPPCall = false;
+
+
+	size_t InstructionCount()const
+	{
+		size_t I = 0;
+		for (auto& Item : Blocks)
+		{
+			I += Item->Instructions.size();
+		}
+		return I;
+	}
+
+	bool HasInstructions() const
+	{
+		return InstructionCount() != 0;
+	}
 };
 
 
@@ -860,6 +863,16 @@ struct IRSymbolData
 class IRBuilder
 {
 public:
+	IRFunc _StaticInit;
+	IRFunc _StaticdeInit;
+	IRFunc _threadInit;
+	IRFunc _threaddeInit;
+	Vector<Unique_ptr<IRFunc>> Funcs;
+	Vector<Unique_ptr<IRSymbolData>> _Symbols;
+	BinaryVectorMap<IRidentifierID, IRidentifier> _Map;
+	VectorMap<String_view, IRidentifierID> ConstStaticStrings;
+
+
 
 	struct ExternalVarable
 	{
@@ -1039,12 +1052,6 @@ public:
 		return nullptr;
 	}
 
-	Vector<Unique_ptr<IRSymbolData>> _Symbols;
-	Vector<Unique_ptr<IRFunc>> Funcs;
-	BinaryVectorMap<IRidentifierID, IRidentifier> _Map;
-
-	VectorMap<String_view, IRidentifierID> ConstStaticStrings;
-
 	void Reset();
 
 	struct ToStringState
@@ -1091,14 +1098,24 @@ public:
 	bool IsTheSame(const IRFuncPtr* Func, const IRFunc* Func2)const;
 	bool IsTheSame(const IRFunc* Func, const IRFunc* Func2)const;
 
-
+	bool IsPrimitive(const IRType& Type) const;
 
 	//
 	IRBuilder();
-	IRFunc _StaticInit;
-	IRFunc _StaticdeInit;
-	IRFunc _threadInit;
-	IRFunc _threaddeInit;
+
+
+	BytesPtr ToBytes() const
+	{
+		BitMaker V;
+
+
+		return { };
+	}
+	static bool FromBytes(IRBuilder& Out, const BytesView Bytes)
+	{
+		return false;
+	}
 };
+
 
 UCodeLangEnd

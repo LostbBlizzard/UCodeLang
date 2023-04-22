@@ -9,15 +9,13 @@ x86_64::GeneralRegisters GetGeneralRegister(RegisterID Value)
 {
 	switch (Value)
 	{
-	case UCodeLang::RegisterID::A:return x86_64::GeneralRegisters::D;
-	case UCodeLang::RegisterID::B:return x86_64::GeneralRegisters::C;
-	case UCodeLang::RegisterID::C:return x86_64::GeneralRegisters::r8;
-	case UCodeLang::RegisterID::D:return x86_64::GeneralRegisters::r9;
-	case UCodeLang::RegisterID::E:return x86_64::GeneralRegisters::A;
-	case UCodeLang::RegisterID::F:return x86_64::GeneralRegisters::B;
+	case RegisterID::A:return x86_64::GeneralRegisters::D;
+	case RegisterID::B:return x86_64::GeneralRegisters::C;
+	case RegisterID::C:return x86_64::GeneralRegisters::r8;
+	case RegisterID::D:return x86_64::GeneralRegisters::r9;
+	case RegisterID::E:return x86_64::GeneralRegisters::A;
+	case RegisterID::F:return x86_64::GeneralRegisters::B;
 
-
-	case UCodeLang::RegisterID::NullRegister:
 	default:return x86_64::GeneralRegisters::Null;
 	}
 }

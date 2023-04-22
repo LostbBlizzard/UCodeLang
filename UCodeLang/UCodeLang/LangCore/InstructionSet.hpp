@@ -14,7 +14,7 @@ enum class ExitState : ExitState_t
 using InstructionSet_t = UInt64;
 
 #define AddSetInt(bitsize) \
-Store##bitsize, StoreFromPtrToReg##bitsize, StoreRegToPtr##bitsize, Push##bitsize, Pop##bitsize, StoreRegToReg##bitsize, StoreRegOnStack##bitsize, GetFromStack##bitsize, \
+Store##bitsize, StoreFromPtrToReg##bitsize, StoreRegToPtr##bitsize, Push##bitsize, Pop##bitsize, StoreRegToReg##bitsize, StoreRegOnStack##bitsize,StoreRegOnStackSub##bitsize, GetFromStack##bitsize, \
 GetFromStackSub##bitsize,\
 Add##bitsize, Sub##bitsize, MultS##bitsize, MultU##bitsize, DivS##bitsize, DivU##bitsize,\
 LogicalAnd##bitsize, Logicalor##bitsize, LogicalNot##bitsize,\

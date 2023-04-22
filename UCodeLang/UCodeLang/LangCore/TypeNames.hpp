@@ -43,6 +43,9 @@
 #define StaticVariablesInitializeFunc CompilerGenerated("StaticInit")
 #define StaticVariablesUnLoadFunc CompilerGenerated("StaticUnload")
 
+#define ThreadVariablesInitializeFunc CompilerGenerated("threadInit")
+#define ThreadVariablesUnLoadFunc CompilerGenerated("threadUnload")
+
 #define StandardLibraryName "UCode"
 
 #define StandardLibraryLibName StandardLibraryName ".lib"

@@ -128,15 +128,15 @@ public:
 	}
 	template<typename... Args> UCodeLangForceinline Return_t ThisCall(PtrType This, UAddress address, Args&&... parameters)
 	{
-		return ThisCall((UAddress)This, address, parameters);
+		return ThisCall((UAddress)This, address, parameters...);
 	}
 	template<typename... Args>UCodeLangForceinline Return_t ThisCall(PtrType This, const String& FunctionName, Args&&... parameters)
 	{
-		return ThisCall((UAddress)This, FunctionName, parameters);
+		return ThisCall((UAddress)This, FunctionName, parameters...);
 	}
 	template<typename... Args> UCodeLangForceinline Return_t ThisCall(PtrType This, const ClassMethod& Function, Args&&... parameters)
 	{
-		return ThisCall((UAddress)This, Function.DecorationName, parameters);
+		return ThisCall((UAddress)This, Function.DecorationName, parameters...);
 	}
 
 
@@ -156,16 +156,21 @@ public:
 		}
 		return {};
 	}
+	template<typename T, typename... Args>
+	T RCall(const ClassMethod& Function, Args&&... parameters)
+	{
+		return RCall<T>(Function.DecorationName, parameters...);
+	}
 	template<typename T,typename... Args>
 	T RThisCall(PtrType This, const ClassMethod& Function, Args&&... parameters)
 	{
-		return RThisCall(This, Function.DecorationName, Args&&... parameters)
+		return RThisCall<T>(This,Function.DecorationName,parameters...);
 	}
 	template<typename T, typename... Args> T RThisCall(PtrType This, const String& Function, Args&&... parameters)
 	{
-		if (CheckIfFunctionExist(FunctionName))
+		if (CheckIfFunctionExist(Function))
 		{
-			auto V = ThisCall(This, Function, parameters);
+			auto V = ThisCall(This, Function, parameters...);
 			if (V._Succeed == RetState::Success)
 			{
 				return Get_Return<T>();
@@ -297,6 +302,14 @@ private:
 				if (StackOffSet + offset + sizeof(T) < 0) { throw std::exception("stack overflow"); }
 
 				void* DataPtr = (void*)((UIntNative)_Data + StackOffSet + offset);
+
+				*(T*)DataPtr = V;
+			}
+			template<typename T> void SetValueSub(const T& V, NSize_t offset)
+			{
+				if (StackOffSet + offset + sizeof(T) < 0) { throw std::exception("stack overflow"); }
+
+				void* DataPtr = (void*)((UIntNative)_Data + StackOffSet - offset);
 
 				*(T*)DataPtr = V;
 			}
