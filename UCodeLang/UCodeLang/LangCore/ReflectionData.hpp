@@ -265,7 +265,15 @@ public:
 		}
 		return nullptr;
 	}
+	ClassData* Get_GlobalObject_Class()
+	{
+		return  Find_Class((String)ScopeHelper::_globalAssemblyObject);
+	}
 
+	const ClassData* Get_GlobalObject_Class()const
+	{
+		return  Find_Class((String)ScopeHelper::_globalAssemblyObject);
+	}
 	const ClassData* Find_Class(const String& Name, const String& Scope = "") const
 	{
 		return Find_Class((String_view)Name, (String_view)Scope);
