@@ -23,13 +23,9 @@ void UCodeBackEndObject::Reset()
 	this->~UCodeBackEndObject();
 	new (this)  UCodeBackEndObject;
 }
-
-void UCodeBackEndObject::Build(const IRBuilder* Input)
+void UCodeBackEndObject::BuildSymbols()
 {
-	_Input = Input;
-	_Output = &Get_Output();
-	
-	for (auto& Item : Input->_Symbols)
+	for (auto& Item : _Input->_Symbols)
 	{
 		if (Item->SymType == IRSymbolType::StaticVarable
 			|| Item->SymType == IRSymbolType::ThreadLocalVarable)
@@ -51,7 +47,7 @@ void UCodeBackEndObject::Build(const IRBuilder* Input)
 			}
 
 
-			if (Item->SymType == IRSymbolType::StaticVarable) 
+			if (Item->SymType == IRSymbolType::StaticVarable)
 			{
 				_StaticMemory._List.AddValue(Item->identifier, newinfo);
 			}
@@ -61,32 +57,112 @@ void UCodeBackEndObject::Build(const IRBuilder* Input)
 			}
 		}
 	}
-
-	if (Input->_StaticInit.HasInstructions()) {
-		OnFunc(&Input->_StaticInit);
+}
+void  UCodeBackEndObject::BuildFuncs()
+{
+	if (_Input->_StaticInit.HasInstructions()) {
+		OnFunc(&_Input->_StaticInit);
 	}
 
-	if (Input->_StaticdeInit.HasInstructions()) {
-		OnFunc(&Input->_StaticdeInit);
+	if (_Input->_StaticdeInit.HasInstructions()) {
+		OnFunc(&_Input->_StaticdeInit);
 	}
 
-	if (Input->_threadInit.HasInstructions()) {
-		OnFunc(&Input->_threadInit);
+	if (_Input->_threadInit.HasInstructions()) {
+		OnFunc(&_Input->_threadInit);
 	}
 
-	if (Input->_threaddeInit.HasInstructions()) {
-		OnFunc(&Input->_threaddeInit);
+	if (_Input->_threaddeInit.HasInstructions()) {
+		OnFunc(&_Input->_threaddeInit);
 	}
-	for (auto& Item : Input->Funcs)
+	for (auto& Item : _Input->Funcs)
 	{
 		OnFunc(Item.get());
 	}
+}
+void UCodeBackEndObject::Build(const IRBuilder* Input)
+{
+	_Input = Input;
+	_Output = &Get_Output();
 
 
-	//link
+	UpdateOptimizations();
+ 
+	BuildSymbols();
+
+	BuildFuncs();
 	
-		
-	
+	DoOptimizations();
+
+	LinkFuncs();
+}
+void UCodeBackEndObject::UpdateOptimizations()
+{
+	auto& Setings = Get_Settings();
+	bool Debug = (OptimizationFlags_t)Setings._Flags & (OptimizationFlags_t)OptimizationFlags::Debug;
+	bool ForSize = (OptimizationFlags_t)Setings._Flags & (OptimizationFlags_t)OptimizationFlags::ForSize;
+	bool ForSpeed = (OptimizationFlags_t)Setings._Flags & (OptimizationFlags_t)OptimizationFlags::ForSpeed;
+	bool ForMaxSpeed = (OptimizationFlags_t)Setings._Flags & (OptimizationFlags_t)OptimizationFlags::ForMaxSpeed;
+
+
+	if (Debug == false)
+	{
+		_Optimizations.InlineFuncionCopys = ForSize;
+	}
+	else
+	{
+		if (ForSpeed)
+		{
+			_Optimizations.ReOderForCacheHit = true;
+		}
+	}
+}
+void UCodeBackEndObject::DoOptimizations()
+{
+
+	if (_Optimizations.InlineFuncionCopys)
+	{
+		BinaryVectorMap<size_t, UCodeFunc*> FuncsHash;
+		for (auto& Item : Funcs)
+		{
+			Item->_Hash = UAssembly::UAssembly::BuildHashForSub(Item->_Ins.data(), Item->_Ins.size());
+		}
+
+		for (auto& Item : Funcs)
+		{
+			if (Item->_AutoJumpTo) { continue; }
+
+			size_t Hash = Item->_Hash.value();
+			for (auto& Item2 : Funcs)
+			{
+				if (Item2->_AutoJumpTo) { continue; }
+				if (Item.get() != Item2.get())
+				{
+					size_t Hash2 = Item2->_Hash.value();
+					if (Hash == Hash2)
+					{
+						Item2->_AutoJumpTo = Item.get();
+
+						Item2->_Ins.clear();
+						Item2->FuncsToLink.clear();
+
+						InstructionBuilder::Jump(NullAddress, _Ins);
+
+						FuncInsID Jump;
+						Jump.Index = 0;
+						Jump._FuncID = Item->IRName;
+						Item->FuncsToLink.push_back(Jump);
+					}
+					break;
+				}
+			}
+
+
+		}
+	}
+}
+void UCodeBackEndObject::LinkFuncs()
+{
 	for (auto& Item : FuncsToLink)
 	{
 		Instruction& Ins = Get_Output().Get_Instructions()[Item.Index];

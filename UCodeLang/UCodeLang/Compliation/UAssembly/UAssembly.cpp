@@ -201,4 +201,10 @@ void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In,const Binar
 		break;
 	}
 }
+static size_t BuildHashForSub(const Instruction* Pointer, size_t BufferSize)
+{
+	String_view Item((char*)Pointer, BufferSize * sizeof(Instruction));
+
+	return std::hash<String_view>()(Item);
+}
 UAssemblyEnd

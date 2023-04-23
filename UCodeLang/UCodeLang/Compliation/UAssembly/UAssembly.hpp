@@ -39,6 +39,8 @@ public:
 		return "[&" + std::to_string(Pos) + "]";
 	}
 	static void OpValueToString(OpCodeType OpType,const AnyInt64& In,const BinaryVectorMap<UAddress, String>& AddressToName,String& out, const UCodeLang::UClib* Lib);
+
+	static size_t BuildHashForSub(const Instruction* Pointer, size_t BufferSize);
 private:
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
