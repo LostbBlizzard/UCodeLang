@@ -431,6 +431,25 @@ private:
 	}
 	GotNodeType GetTraitNode(TraitNode& out);
 
+
+	TryGetNode GetBitCastExpression()
+	{
+		BitCastExpression* V = BitCastExpression::Gen();
+		auto r = GetBitCastExpression(*V);
+		TrippedCheck(r);
+		return { r,V->As() };
+	}
+	GotNodeType GetBitCastExpression(BitCastExpression& out);
+
+
+	TryGetNode GetPanicNode()
+	{
+		PanicNode* V = PanicNode::Gen();
+		auto r = GetPanicNode(*V);
+		TrippedCheck(r);
+		return { r,V->As() };
+	}
+	GotNodeType GetPanicNode(PanicNode& out);
 };
 UCodeLangFrontEnd
 

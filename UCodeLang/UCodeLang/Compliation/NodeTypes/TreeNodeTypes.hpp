@@ -1018,4 +1018,25 @@ struct OutExpression :Node
 	AddforNode(OutExpression);
 };
 
+struct BitCastExpression :Node
+{
+	BitCastExpression() : Node(NodeType::BitCastExpression)
+	{
+
+	}
+	TypeNode _Type;
+	ExpressionNodeType _Expression;
+	AddforNode(BitCastExpression);
+};
+
+struct PanicNode :Node
+{
+	PanicNode() : Node(NodeType::PanicNode)
+	{
+
+	}
+	Optional<ExpressionNodeType> _StringExpression;
+	AddforNode(PanicNode);
+};
+
 UCodeLangFrontEnd

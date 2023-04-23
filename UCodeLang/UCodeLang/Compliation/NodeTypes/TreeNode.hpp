@@ -61,6 +61,8 @@ enum class NodeType :UInt8
 	LambdaNode,
 	TraitNode,
 	OutExpression,
+	BitCastExpression,
+	PanicNode,
 };
 
 

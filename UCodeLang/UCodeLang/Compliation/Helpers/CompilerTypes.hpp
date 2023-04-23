@@ -130,6 +130,8 @@ enum class TokenType : TokenType_t
 	KeyWord_trait,
 	KeyWord_dynamic,
 	KeyWord_out,
+	KeyWord_bitcast,
+	KeyWord_panic,
 	//used internally
 	internal_Constant_expression
 };

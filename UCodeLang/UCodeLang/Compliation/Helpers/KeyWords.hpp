@@ -66,6 +66,9 @@ inline const char* S_KeyWord_umut = "umut";
 inline const char* S_KeyWord_trait = "trait";
 inline const char* S_KeyWord_dynamic = "dynamic";
 inline const char* S_KeyWord_out = "out";
+
+inline const char* S_KeyWord_bitcast = "bitcast";
+inline const char* S_KeyWord_panic = "panic";
 struct KeyWord
 {
 	const char* keyWord;
@@ -144,7 +147,9 @@ inline KeyWord KeyWords[] =
 	KeyWord(S_KeyWord_umut,TokenType::KeyWord_umut),
 	KeyWord(S_KeyWord_trait,TokenType::KeyWord_trait),
 	KeyWord(S_KeyWord_dynamic,TokenType::KeyWord_dynamic),
-	KeyWord(S_KeyWord_out ,TokenType::KeyWord_out),
+	KeyWord(S_KeyWord_out,TokenType::KeyWord_out),
+	KeyWord(S_KeyWord_bitcast,TokenType::KeyWord_bitcast),
+	KeyWord(S_KeyWord_panic,TokenType::KeyWord_panic),
 };
 constexpr size_t KeyWords_Size = sizeof(KeyWords) / sizeof(KeyWords[0]);
 class KeyWordHelper
