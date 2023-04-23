@@ -486,6 +486,13 @@ GotNodeType Parser::GetStatement(Node*& out)
 		return r.GotNode;
 	};
 	break;
+	case TokenType::KeyWord_panic:
+	{
+		auto r = GetPanicNode();
+		out = r.Node;
+		return r.GotNode;
+	}
+	break;
 	default:
 	{
 		size_t OldIndex = _TokenIndex;
@@ -893,6 +900,13 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 	case Parser::declareFunc:
 	{
 		auto V = GetLambdaNode();
+		out = V.Node;
+		return V.GotNode;
+	}
+	break;
+	case TokenType::KeyWord_bitcast:
+	{
+		auto V = GetBitCastExpression();
 		out = V.Node;
 		return V.GotNode;
 	}
@@ -2530,5 +2544,13 @@ EndLoop:
 	NextToken();
 
 	return GotNodeType::Success;
+}
+GotNodeType Parser::GetBitCastExpression(BitCastExpression& out)
+{
+	return GotNodeType();
+}
+GotNodeType Parser::GetPanicNode(PanicNode& out)
+{
+	return GotNodeType();
 }
 UCodeLangFrontEnd
