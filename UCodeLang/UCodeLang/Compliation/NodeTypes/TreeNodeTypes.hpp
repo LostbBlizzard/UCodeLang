@@ -638,6 +638,17 @@ struct AssignVariableNode :Node
 	ExpressionNodeType Expression;
 };
 
+struct AssignExpressionNode :Node
+{
+	AssignExpressionNode() : Node(NodeType::AssignExpressionNode)
+	{
+
+	}
+	AddforNode(AssignExpressionNode);
+	ExpressionNodeType ToAssign;
+	ExpressionNodeType Expression;
+};
+
 struct DeclareStaticVariableNode :Node
 {
 	DeclareStaticVariableNode() : Node(NodeType::DeclareStaticVariableNode)
@@ -773,7 +784,7 @@ struct PostfixVariableNode :Node
 
 	}
 	AddforNode(PostfixVariableNode);
-	ScopedNameNode Name;
+	ExpressionNodeType ToAssign;
 	const Token* PostfixOp = nullptr;
 };
 
@@ -784,7 +795,7 @@ struct CompoundStatementNode :Node
 
 	}
 	AddforNode(CompoundStatementNode);
-	ScopedNameNode VariableName;
+	ExpressionNodeType ToAssign;
 	const Token* CompoundOp = nullptr;
 	ExpressionNodeType Expession;
 };

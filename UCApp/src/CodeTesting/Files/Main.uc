@@ -25,10 +25,8 @@ $Player:
 
 
 
-|Panke[]:
- var& Item = bitcast<int&>(0);
- Item = 10;
- var Item2 = bitcast<int&>(Item);
- panic();
- panic("Help");
-  
+|Tep[]:
+ var Buffer = [0,0,0];
+ 
+ Buffer[0] = Buffer[1];
+ int[\0] Item = Buffer[0];

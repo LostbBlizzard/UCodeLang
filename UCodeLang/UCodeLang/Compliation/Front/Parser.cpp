@@ -496,52 +496,107 @@ GotNodeType Parser::GetStatement(Node*& out)
 	default:
 	{
 		size_t OldIndex = _TokenIndex;
-		ScopedNameNode Tep;
-		auto Name = GetNameCheck(Tep);
-		auto _Token = TryGetToken();
+
+		enum class MyEnum
+		{
+			DeclareVar,
+			Assign,
+			Postfix,
+			Compound,
+		};
+		MyEnum StatemeType = MyEnum::DeclareVar;
+		
+		bool BoolV = true;
+		while (BoolV)
+		{
+			
+			auto Token = TryGetToken();
+
+
+			if (Token->Type == TokenType::equal)
+			{
+
+				bool NameWasBefor = false;
+
+				auto Start = _TokenIndex - 1;
+				for (int i = Start; i >= OldIndex; i--)
+				{
+					auto& Token = _Nodes->operator[](i);
+
+					if (!NameWasBefor) 
+					{
+						if (Token.Type == TokenType::Name && i == Start)
+						{
+							NameWasBefor = true;
+						}
+						else
+						{
+							StatemeType = MyEnum::Assign;
+							BoolV = false;
+							break;
+						}
+
+					}
+					else
+					{
+						if (Token.Type == TokenType::Name
+							|| Token.Type == TokenType::greaterthan
+							|| TypeNode::IsType(Token.Type))
+						{
+							StatemeType = MyEnum::DeclareVar;
+						}
+						else
+						{
+							StatemeType = MyEnum::Assign;
+						}
+						BoolV = false;
+						break;
+					}
+				}
+
+				break;
+			}
+			else if (Token->Type == TokenType::Semicolon)
+			{
+				StatemeType = MyEnum::DeclareVar;
+				break;
+			}
+			else if (ExpressionNodeType::IsPostfixOperator(Token))
+			{
+				StatemeType = MyEnum::Postfix;
+				break;
+			}
+			else if (ExpressionNodeType::IsCompoundOperator(Token))
+			{
+				StatemeType = MyEnum::Compound;
+				break;
+			}
+			
+			NextToken();
+		}
 
 		TryGetNode r;
-		size_t NewIndex= _TokenIndex;
+		size_t NewIndex = _TokenIndex;
 		_TokenIndex = OldIndex;
-		if (_Token) 
-		{
-			if (_Token->Type == TokenType::equal)
-			{
-				r = GetAssignVariable();
-			}
-			else if (_Token->Type == FuncCallStart)
-			{
-				r = GetFuncCallStatementNode();
-			}
-			else if (_Token->Type == TokenType::lessthan)
-			{
-				_TokenIndex = NewIndex;
-				UseGenericsNode V;
-				TryGetGeneric(V);
-				auto _Token2 = TryGetToken();
 
-				_TokenIndex = OldIndex;
-				if (_Token2->Type == FuncCallStart)
-				{
-					r = GetFuncCallStatementNode();
-				}
-				else
-				{
-					r = GetDeclareVariable();
-				}
-			}
-			else if (ExpressionNodeType::IsPostfixOperator(_Token))
-			{
-				r =GetPostfixStatement();
-			}
-			else if (ExpressionNodeType::IsCompoundOperator(_Token))
-			{
-				r = GetCompoundStatement();
-			}
-			else
-			{
-				r = GetDeclareVariable();
-			}
+
+		switch (StatemeType)
+		{
+		case MyEnum::DeclareVar:
+			r = GetDeclareVariable();
+			break;
+		case MyEnum::Compound:
+			r = GetCompoundStatement();
+			break;
+		case MyEnum::Assign:
+			r = GetAssignVariable();
+			break;
+		case MyEnum::Postfix:
+			r = GetPostfixStatement();
+			break;
+		default:
+			throw std::exception("bad path");
+			break;
 		}
 		out = r.Node;
 		return r.GotNode;
@@ -1751,6 +1806,21 @@ GotNodeType Parser::GetAssignVariable(AssignVariableNode& out)
 
 	return Merge(Name, Ex);
 }
+GotNodeType Parser::GetAssignExpression(AssignExpressionNode& out)
+{
+	auto Name = GetExpressionTypeNode(out.Expression);
+
+	auto Token = TryGetToken(); TokenTypeCheck(Token, TokenType::equal);
+
+	NextToken();
+	auto Ex = GetExpressionTypeNode(out.Expression);
+
+
+	auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
+	NextToken();
+
+	return Merge(Name, Ex);
+}
 GotNodeType Parser::GetIfNode(IfNode& out)
 {
 	auto RetToken = TryGetToken();
@@ -2081,7 +2151,7 @@ GotNodeType Parser::GetFuncCallNode(FuncCallNode& out)
 
 GotNodeType Parser::GetPostfixStatement(PostfixVariableNode& out,bool DoSemicolon)
 {
-	auto Name = GetName(out.Name);
+	auto Name = GetExpressionTypeNode(out.ToAssign);
 	auto Token = TryGetToken(); 
 	out.PostfixOp = Token;
 	NextToken();
@@ -2094,7 +2164,7 @@ GotNodeType Parser::GetPostfixStatement(PostfixVariableNode& out,bool DoSemicolo
 }
 GotNodeType Parser::GetCompoundStatement(CompoundStatementNode& out)
 {
-	auto Name = GetName(out.VariableName);
+	auto Name = GetExpressionTypeNode(out.ToAssign);
 	auto Token = TryGetToken();
 	out.CompoundOp= Token;
 	NextToken();
