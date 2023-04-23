@@ -24,6 +24,7 @@ private:
 	{
 
 	};
+	
 	struct FuncInsID
 	{
 		UAddress Index;
@@ -62,6 +63,28 @@ private:
 		UAddress Index;
 		IRidentifierID _FuncID;
 	};
+	struct Optimizations
+	{
+		bool InlineFuncionCopys = false;
+		bool ReOderForCacheHit = false;
+	};
+	struct UCodeFunc
+	{
+		IRidentifierID IRName;
+		Vector<Instruction> _Ins;
+
+		Optional<size_t> _Hash;
+		Optional<UCodeFunc*> _AutoJumpTo;
+
+
+		Vector<FuncInsID> FuncsToLink;
+	};
+	struct FuncInsID_UCodeFunc
+	{
+		UCodeFunc* Func = nullptr;
+		UAddress Index;
+		IRidentifierID _FuncID;
+	};
 	//Data
 	Instruction _Ins;
 	RegistersManager _Registers;
@@ -69,10 +92,11 @@ private:
 	Vector<FuncInsID> FuncsToLink;
 	Vector<Funcpos> _Funcpos;
 	Vector<ParlocData> CurrentFuncParPos;
+	
 	const IRBuilder* _Input = nullptr;
 	UClib* _Output = nullptr;
 	BinaryVectorMap< const IRBlock*, BlockData> IRToBlockData;
-
+	
 	
 	StaticMemoryManager _StaticMemory;
 	StaticMemoryManager _ThreadMemory;
@@ -82,11 +106,27 @@ private:
 	
 	RegisterID _InputPar = RegisterID::StartParameterRegister;
 	size_t _CurrentParIndex = 0;
+
+	Vector<Unique_ptr<UCodeFunc>> Funcs;
+	UCodeFunc* BuildingFunc = nullptr;
+	Optimizations _Optimizations;
+
 	//code
 	
-
+	UCodeFunc* NewBuildFunc()
+	{
+		auto Item = new UCodeFunc();
+		Funcs.push_back(Unique_ptr<UCodeFunc>(Item));
+		return Item;
+	}
+	void UpdateOptimizations();
 	void OnFunc(const IRFunc* IR);
 	void OnBlock(const IRBlock* IR);
+	void DoOptimizations();
+	void LinkFuncs();
+
+	void BuildSymbols();
+	void BuildFuncs();
 
 	void OnBlockBuildCode(const IRBlock* IR);
 
