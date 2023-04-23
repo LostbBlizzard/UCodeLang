@@ -2534,6 +2534,27 @@ void SystematicAnalysis::OnTag(const TagTypeNode& node)
 
 	_Table.RemoveScope();
 }
+void SystematicAnalysis::OnBitCast(const BitCastExpression& node)
+{
+	
+	if (passtype == PassType::FixedTypes)
+	{
+		TypeSymbol ToType = ConvertAndValidateType(node._Type,NodeSyb_t::Any);
+		OnExpressionTypeNode(node._Expression.Value.get());
+		auto ExType = LastExpressionType;
+
+		LastExpressionType = ToType;
+	}
+	else if (passtype == PassType::BuidCode)
+	{
+		TypeSymbol ToType = ConvertAndValidateType(node._Type, NodeSyb_t::Any);
+
+		OnExpressionTypeNode(node._Expression.Value.get());
+		auto ExType = LastExpressionType;
+
+		LastExpressionType = ToType;
+	}
+}
 String SystematicAnalysis::GetClassWithTraitVTableName(const String& ClassFullName, const String& TraitFullName)
 {
 	return TraitFullName + ":$" + ClassFullName;
@@ -5697,6 +5718,12 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 		{
 			auto nod = LambdaNode::As(node.Value.get());
 			OnLambdaNode(*nod);
+		}
+		break;
+		case NodeType::BitCastExpression:
+		{
+			auto nod = BitCastExpression::As(node.Value.get());
+			OnBitCast(*nod);
 		}
 		break;
 		default:
