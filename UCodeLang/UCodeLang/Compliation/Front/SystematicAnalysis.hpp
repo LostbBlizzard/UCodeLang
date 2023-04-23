@@ -344,7 +344,9 @@ private:
 	{
 		Read,
 		Write,
+		ReadAndWrite,
 	};
+
 	struct Get_FuncInfo
 	{
 		enum class ThisPar_t : UInt8
@@ -495,6 +497,20 @@ private:
 	Stack<VarableUseData> _Varable;
 
 	//Funcs
+
+	static bool IsWrite(GetValueMode Value)
+	{
+		return Value == GetValueMode::Write || Value == GetValueMode::ReadAndWrite;
+	}
+	static bool IsRead(GetValueMode Value)
+	{
+		return Value == GetValueMode::Read || Value == GetValueMode::ReadAndWrite;
+	}
+	void WriteTo(IRInstruction* IR, IRInstruction* Value)
+	{
+		LookingAtIRBlock->NewStore(IR, Value);
+	}
+
 	size_t GetJumpsIndex();
 	void RemoveJumps(size_t Index);
 
@@ -676,7 +692,7 @@ private:
 
 	void OnPostfixVariableNode(const PostfixVariableNode& node);
 	void OnCompoundStatementNode(const CompoundStatementNode& node);
-	void OnExpressionTypeNode(const Node* node);
+	void OnExpressionTypeNode(const Node* node, GetValueMode Mode);
 	void OnExpressionNode(const ValueExpressionNode& node);
 	void OnMovedNode(MoveNode* nod);
 	void OnNumberliteralNode(NumberliteralNode* num);

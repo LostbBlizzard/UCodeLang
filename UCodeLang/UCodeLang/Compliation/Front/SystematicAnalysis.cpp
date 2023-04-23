@@ -1407,14 +1407,14 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 			TypeSymbol BoolType(TypesEnum::Bool);
 
 			LookingForTypes.push(BoolType);
-			OnExpressionTypeNode(node.BoolExpression.Value.get());
+			OnExpressionTypeNode(node.BoolExpression.Value.get(),GetValueMode::Read);
 			LookingForTypes.pop();
 		
 			OnPostfixVariableNode(node.OnNextStatement);
 		}
 		else
 		{
-			OnExpressionTypeNode(node.Modern_List.Value.get());
+			OnExpressionTypeNode(node.Modern_List.Value.get(), GetValueMode::Read);
 		}
 
 		for (const auto& node2 : node.Body._Nodes)
@@ -1442,10 +1442,9 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 				
 				if (node.Traditional_Assignment_Expression.Value)
 				{
-					OnExpressionTypeNode(node.Traditional_Assignment_Expression.Value.get());
+					OnExpressionTypeNode(node.Traditional_Assignment_Expression.Value.get(), GetValueMode::Read);
 
-
-
+					
 					syb->SetTovalid();
 
 					auto& VarType = syb->VarType;
@@ -1461,7 +1460,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 				TypeSymbol BoolType(TypesEnum::Bool);
 
 				LookingForTypes.push(BoolType);
-				OnExpressionTypeNode(node.BoolExpression.Value.get());
+				OnExpressionTypeNode(node.BoolExpression.Value.get(), GetValueMode::Read);
 				LookingForTypes.pop();
 
 				if (passtype == PassType::FixedTypes)
@@ -1495,7 +1494,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 
 			{
 				LookingForTypes.push(TypeSymbol(TypesEnum::Any));
-				OnExpressionTypeNode(Ex);
+				OnExpressionTypeNode(Ex, GetValueMode::Read);
 				LookingForTypes.pop();
 			}
 			auto& ExType = LastExpressionType;
@@ -1628,7 +1627,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 				}
 
 
-				OnExpressionTypeNode(node.Traditional_Assignment_Expression.Value.get());
+				OnExpressionTypeNode(node.Traditional_Assignment_Expression.Value.get(), GetValueMode::Read);
 
 				DoImplicitConversion(_LastExpressionField, LastExpressionType, syb->VarType);
 
@@ -1649,7 +1648,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 					BoolCode = LookingAtIRBlock->GetIndex();
 					BoolJumps =GetJumpsIndex();
 				}
-				OnExpressionTypeNode(node.BoolExpression.Value.get());
+				OnExpressionTypeNode(node.BoolExpression.Value.get(), GetValueMode::Read);
 
 				DoImplicitConversion(_LastExpressionField, LastExpressionType, BoolType);
 
@@ -1692,7 +1691,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 				auto finfo = Data.FuncGetLoopAble->Get_Info<FuncInfo>();
 				auto Ex = node.Modern_List.Value.get();
 				LookingForTypes.push(finfo->Pars[0]);
-				OnExpressionTypeNode(Ex);
+				OnExpressionTypeNode(Ex, GetValueMode::Read);
 				LookingForTypes.pop();
 
 				AddDestructorToStack(LastExpressionType,_LastExpressionField);
@@ -2540,7 +2539,7 @@ void SystematicAnalysis::OnBitCast(const BitCastExpression& node)
 	if (passtype == PassType::FixedTypes)
 	{
 		TypeSymbol ToType = ConvertAndValidateType(node._Type,NodeSyb_t::Any);
-		OnExpressionTypeNode(node._Expression.Value.get());
+		OnExpressionTypeNode(node._Expression.Value.get(), GetValueMode::Read);
 		auto ExType = LastExpressionType;
 
 		LastExpressionType = ToType;
@@ -2549,7 +2548,7 @@ void SystematicAnalysis::OnBitCast(const BitCastExpression& node)
 	{
 		TypeSymbol ToType = ConvertAndValidateType(node._Type, NodeSyb_t::Any);
 
-		OnExpressionTypeNode(node._Expression.Value.get());
+		OnExpressionTypeNode(node._Expression.Value.get(), GetValueMode::Read);
 		auto ExType = LastExpressionType;
 
 		LastExpressionType = ToType;
@@ -3245,7 +3244,7 @@ void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 		//LookForT.SetAsRawValue();
 
 		LookingForTypes.push(LookForT);
-		OnExpressionTypeNode(node.Expression.Value.get());
+		OnExpressionTypeNode(node.Expression.Value.get(), GetValueMode::Read);
 
 		LookingForTypes.pop();
 
@@ -3342,7 +3341,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 
 			if (Item.Expression.Value)
 			{
-				OnExpressionTypeNode(Item.Expression.Value.get());
+				OnExpressionTypeNode(Item.Expression.Value.get(),GetValueMode::Read);
 			}
 
 
@@ -3427,7 +3426,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 			if (Item.Expression.Value)
 			{
 				auto& Type = ClassInf->Basetype;
-				OnExpressionTypeNode(Item.Expression.Value.get());//check
+				OnExpressionTypeNode(Item.Expression.Value.get(),GetValueMode::Read);//check
 				if (!CanBeImplicitConverted(LastExpressionType, Type,false))
 				{
 					LogCantCastImplicitTypes(LastLookedAtToken, LastExpressionType, Type,false);
@@ -3642,7 +3641,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 		//
 		if (node.Expression.Value)
 		{
-			OnExpressionTypeNode(node.Expression.Value.get());
+			OnExpressionTypeNode(node.Expression.Value.get(), GetValueMode::Read);
 		}
 	}
 	else
@@ -3767,7 +3766,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 				IRlocations.push({ OnVarable ,false });
 			}
 
-			OnExpressionTypeNode(node.Expression.Value.get());
+			OnExpressionTypeNode(node.Expression.Value.get(), GetValueMode::Read);
 		}
 		else
 		{
@@ -3786,7 +3785,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 		syb = GetSymbol(sybId);
 		if (node.Expression.Value)
 		{
-			OnExpressionTypeNode(node.Expression.Value.get());
+			OnExpressionTypeNode(node.Expression.Value.get(), GetValueMode::Read);
 
 			syb->SetTovalid();
 
@@ -4068,7 +4067,7 @@ void SystematicAnalysis::OnAssignVariableNode(const AssignVariableNode& node)
 		}
 		LookingForTypes.push(Type);
 	}
-	OnExpressionTypeNode(node.Expression.Value.get());
+	OnExpressionTypeNode(node.Expression.Value.get(), GetValueMode::Write);
 	if (passtype != PassType::GetTypes)
 	{
 		LookingForTypes.pop();
@@ -4119,7 +4118,7 @@ void SystematicAnalysis::OnIfNode(const IfNode& node)
 
 	
 
-	OnExpressionTypeNode(node.Expression.Value.get());
+	OnExpressionTypeNode(node.Expression.Value.get(), GetValueMode::Read);
 
 
 	if (passtype == PassType::FixedTypes)
@@ -4213,7 +4212,7 @@ void SystematicAnalysis::OnWhileNode(const WhileNode& node)
 		BoolCode = LookingAtIRBlock->GetIndex();
 		BoolJumps = GetJumpsIndex();
 	}
-	OnExpressionTypeNode(node.Expression.Value.get());
+	OnExpressionTypeNode(node.Expression.Value.get(), GetValueMode::Read);
 
 	if (passtype == PassType::FixedTypes)
 	{
@@ -4299,7 +4298,7 @@ void SystematicAnalysis::OnDoNode(const DoNode& node)
 	}
 
 
-	OnExpressionTypeNode(node.Expression.Value.get());
+	OnExpressionTypeNode(node.Expression.Value.get(), GetValueMode::Read);
 
 	if (passtype == PassType::FixedTypes)
 	{
@@ -5241,22 +5240,23 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 }
 void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 {
-	GetMemberTypeSymbolFromVar_t V;
-	if (!GetMemberTypeSymbolFromVar(node.Name, V)) { return; }
-
+	if (passtype == PassType::GetTypes)
+	{
+		OnExpressionTypeNode(node.ToAssign.Value.get(),GetValueMode::ReadAndWrite);
+	}
+	else
 	if (passtype == PassType::FixedTypes)
 	{
-		auto Name = GetScopedNameAsString(node.Name);
-		auto Symbol = GetSymbol(Name, SymbolType::Varable_t);
+		LookingForTypes.push(TypesEnum::Any);
+		OnExpressionTypeNode(node.ToAssign.Value.get(), GetValueMode::ReadAndWrite);
+		LookingForTypes.pop();
 
-		CheckVarWritingErrors(Symbol, node.Name.ScopedName.back().token,String_view(Name));
-		LogTryReadVar(Name, node.Name.ScopedName.back().token, Symbol);
+		auto ExType = LastExpressionType;
 
-
-		auto HasInfo = HasPostfixOverLoadWith(Symbol->VarType, node.PostfixOp->Type);
+		auto HasInfo = HasPostfixOverLoadWith(ExType, node.PostfixOp->Type);
 		if (!HasInfo.HasValue)
 		{
-			LogCantFindPostfixOpForTypes(node.PostfixOp, Symbol->VarType);
+			LogCantFindPostfixOpForTypes(node.PostfixOp, ExType);
 		}
 
 
@@ -5275,44 +5275,38 @@ void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 
 		PostFix_Datas.AddValue(&node,t);
 	}
+	else
 	if (passtype == PassType::BuidCode)
 	{
 		const PostFixExpressionNode_Data& Data = PostFix_Datas.at(&node);
 
 		if (Data.FuncToCall)
 		{
-			
-			IRInstruction* LoadV = _LastExpressionField = BuildMember_AsPointer(V);
-
 			FuncInfo* f = Data.FuncToCall->Get_Info<FuncInfo>();
 
 			Get_FuncInfo V;
 			V.Func = f;
 			V.SymFunc = Data.FuncToCall;
-			V.ThisPar = Get_FuncInfo::ThisPar_t::PushFromLast;
-
+			V.ThisPar = Get_FuncInfo::ThisPar_t::NoThisPar;
 
 			ScopedNameNode Tep;
-			ScopedName TepV;
-			TepV.token = LastLookedAtToken;
-			Tep.ScopedName.push_back(TepV);
 
 			ValueParametersNode pars;
-			
+			pars._Nodes.push_back(Unique_ptr<Node>(node.ToAssign.Value.get()));
 
 			DoFuncCall(V, Tep, pars);
 
-			
+			pars._Nodes[0].release();//its ok Tree has pointer.
+
 			LastExpressionType = V.Func->Ret;
 		}
-		else {
-			auto _Symbol = GetSymbol(GetScopedNameAsString(node.Name), SymbolType::Varable_t);
-			SymbolID sybId = _Symbol->ID;
-			auto& Type = _Symbol->VarType;
+		else 
+		{
+			OnExpressionTypeNode(node.ToAssign.Value.get(), GetValueMode::ReadAndWrite);
 
-			AddDependencyToCurrentFile(_Symbol);
+			IRInstruction* LoadV = _LastExpressionField;
 
-			IRInstruction* LoadV = BuildMember_AsValue(V);
+			auto Type = LastExpressionType;
 
 #define buildPortFixU(x)\
 		if (node.PostfixOp->Type == TokenType::increment)\
@@ -5353,7 +5347,13 @@ void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 			break;
 			case TypesEnum::uIntPtr:
 			{
-				throw std::exception("not added");
+				if (_Settings->PtrSize == IntSizes::Int64) {
+					buildPortFixU(64)
+				}
+				else
+				{
+					buildPortFixU(32)
+				}
 			}
 			break;
 			case TypesEnum::sInt8:
@@ -5378,53 +5378,55 @@ void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 			break;
 			case TypesEnum::sIntPtr:
 			{
-				throw std::exception("not added");
+				if (_Settings->PtrSize == IntSizes::Int64) {
+					buildPortFixS(64)
+				}
+				else
+				{
+					buildPortFixS(32)
+				}
 			}
 			break;
 			default:
 				break;
 			}
-
-			BuildMember_Reassignment(V, Type, _LastExpressionField);
+			WriteTo(LoadV, _LastExpressionField);
 		}
 	}
 }
 void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& node)
 {
-	auto Name = GetScopedNameAsString(node.VariableName);
 
-	GetMemberTypeSymbolFromVar_t V;
-	if (!GetMemberTypeSymbolFromVar(node.VariableName, V)){return;}
-
-	TypeSymbol LookType = V.Symbol->VarType;
-
-	if (passtype == PassType::BuidCode)
+	if (passtype == PassType::GetTypes)
 	{
-		LookType = Compound_Datas.at(&node).Op1;
+		OnExpressionTypeNode(node.ToAssign.Value.get(),GetValueMode::ReadAndWrite);
+		OnExpressionTypeNode(node.Expession.Value.get(),GetValueMode::Read);
+		return;
 	}
-	else {
-		LookingForTypes.push(LookType);
-
-		OnExpressionTypeNode(node.Expession.Value.get());
-
+	else if (passtype == PassType::FixedTypes)
+	{
+		LookingForTypes.push(TypesEnum::Any);
+		OnExpressionTypeNode(node.ToAssign.Value.get(), GetValueMode::ReadAndWrite);
 		LookingForTypes.pop();
-	}
 
-	auto ExType = LastExpressionType;
-	if (passtype == PassType::FixedTypes)
-	{
-		CheckVarWritingErrors(V.Symbol, node.VariableName.ScopedName.back().token,String_view(Name));
-		LogTryReadVar(Name, node.VariableName.ScopedName.back().token, V.Symbol);
+		TypeSymbol ToAssignType = LastExpressionType;
 
-		auto HasInfo = HasCompoundOverLoadWith(V.Type, node.CompoundOp->Type, ExType);
+		LookingForTypes.push(TypesEnum::Any);
+		OnExpressionTypeNode(node.Expession.Value.get(), GetValueMode::Read);
+		LookingForTypes.pop();
+
+		auto ExType = LastExpressionType;
+
+
+		auto HasInfo = HasCompoundOverLoadWith(ToAssignType, node.CompoundOp->Type, ExType);
 		if (!HasInfo.HasValue)
 		{
-			LogCantFindCompoundOpForTypes(node.CompoundOp, V.Type, ExType);
+			LogCantFindCompoundOpForTypes(node.CompoundOp, ToAssignType, ExType);
 		}
 
 		CompoundExpresion_Data r;
-		
-		if (HasInfo.Value) 
+
+		if (HasInfo.Value)
 		{
 			FuncInfo* f = HasInfo.Value.value()->Get_Info<FuncInfo>();
 			r.FuncToCall = HasInfo.Value.value();
@@ -5433,30 +5435,21 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 		}
 		else
 		{
-			r.Op0 = V.Type;
-			r.Op1 = LastExpressionType;
-			
+			r.Op0 = ToAssignType;
+			r.Op1 = ExType;
+
 			r.Op0._IsAddress = false;
 			r.Op1._IsAddress = false;
 		}
 
-		Compound_Datas.AddValue(&node,r);
+		Compound_Datas.AddValue(&node, r);
 	}
-	if (passtype == PassType::BuidCode)
+	else if (passtype == PassType::BuidCode)
 	{
-		auto Symbol = GetSymbol(GetScopedNameAsString(node.VariableName), SymbolType::Varable_t);
-		SymbolID sybId = Symbol->ID;
-		auto& Type = Symbol->VarType;
-
-		AddDependencyToCurrentFile(Symbol);
-
-
-		
 		const auto& Data = Compound_Datas.at(&node);
 
-		if (Data.FuncToCall) 
+		if (Data.FuncToCall)
 		{
-			IRInstruction* LoadV = _LastExpressionField = BuildMember_AsPointer(V);
 
 			FuncInfo* f = Data.FuncToCall->Get_Info<FuncInfo>();
 
@@ -5472,26 +5465,36 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 			Tep.ScopedName.push_back(TepV);
 
 			ValueParametersNode pars;
+			pars._Nodes.push_back(Unique_ptr<Node>(node.ToAssign.Value.get()));
 			pars._Nodes.push_back(Unique_ptr<Node>(node.Expession.Value.get()));
 
 
 			DoFuncCall(V, Tep, pars);
 
 			pars._Nodes[0].release();
+			pars._Nodes[1].release();
 			//no mem leak node as a Unique_ptr to Ex
 
 			LastExpressionType = V.Func->Ret;
 		}
 		else
 		{
-			
-			LookingForTypes.push(LookType);
 
-			OnExpressionTypeNode(node.Expession.Value.get());
+			LookingForTypes.push(Data.Op0);
+
+			OnExpressionTypeNode(node.ToAssign.Value.get(), GetValueMode::ReadAndWrite);
 
 			LookingForTypes.pop();
-			
-			IRInstruction* LoadV = BuildMember_AsValue(V);
+
+			IRInstruction* LoadV = _LastExpressionField;
+
+			LookingForTypes.push(Data.Op1);
+
+			OnExpressionTypeNode(node.Expession.Value.get(), GetValueMode::Read);
+
+			LookingForTypes.pop();
+
+
 #define Set_CompoundU(x) \
 			switch (node.CompoundOp->Type) \
 			{ \
@@ -5533,7 +5536,7 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 		}\
 
 
-			switch (V.Type._Type)
+			switch (Data.Op0._Type)
 			{
 			case TypesEnum::uInt8:
 			{
@@ -5579,13 +5582,25 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 
 			case TypesEnum::uIntPtr:
 			{
-				throw std::exception("not added");
+				if (_Settings->PtrSize == IntSizes::Int64) {
+					Set_CompoundU(64)
+				}
+				else
+				{
+					Set_CompoundU(32)
+				}
 			};
 			break;
 
 			case TypesEnum::sIntPtr:
 			{
-				throw std::exception("not added");
+				if (_Settings->PtrSize == IntSizes::Int64) {
+					Set_CompoundS(64)
+				}
+				else
+				{
+					Set_CompoundS(32)
+				}
 			};
 			break;
 
@@ -5598,12 +5613,14 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 				break;
 			}
 
-			BuildMember_Reassignment(V, Type, _LastExpressionField);
+			WriteTo(LoadV, _LastExpressionField);
 		}
 	}
 }
-void SystematicAnalysis::OnExpressionTypeNode(const Node* node)
+void SystematicAnalysis::OnExpressionTypeNode(const Node* node, GetValueMode Mode)
 {
+	GetExpressionMode.push(Mode);
+
 	PushToNodeScope(*node);
 
 	switch (node->Get_Type())
@@ -5618,6 +5635,7 @@ void SystematicAnalysis::OnExpressionTypeNode(const Node* node)
 	}
 	
 	PopNodeScope();
+	GetExpressionMode.pop();
 }
 void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 {
@@ -5704,7 +5722,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 		{
 			ParenthesesExpresionNode* nod = ParenthesesExpresionNode::As(node.Value.get());
 
-			OnExpressionTypeNode(nod->Expression.Value.get());
+			OnExpressionTypeNode(nod->Expression.Value.get(), GetValueMode::Read);
 		}
 		break;
 		case NodeType::MoveNode:
@@ -5736,7 +5754,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 void SystematicAnalysis::OnMovedNode(UCodeLang::FrontEnd::MoveNode* nod)
 {
 
-	OnExpressionTypeNode(nod->expression.Value.get());
+	OnExpressionTypeNode(nod->expression.Value.get(), GetValueMode::Read);
 	
 	auto ExType = LastExpressionType;
 	ExType.SetAsMoved();
@@ -6125,7 +6143,7 @@ void SystematicAnalysis::OnNewNode(NewExpresionNode* nod)
 			TypeSymbol UintptrType(TypesEnum::uIntPtr);
 
 			LookingForTypes.push(UintptrType);
-			OnExpressionTypeNode(nod->Arrayexpression.Value.get());
+			OnExpressionTypeNode(nod->Arrayexpression.Value.get(),GetValueMode::Read);
 
 			if (!CanBeImplicitConverted(LastExpressionType, UintptrType))
 			{
@@ -6179,7 +6197,7 @@ void SystematicAnalysis::OnNewNode(NewExpresionNode* nod)
 			LookingForTypes.push(UintptrType);
 
 
-			OnExpressionTypeNode(nod->Arrayexpression.Value.get());
+			OnExpressionTypeNode(nod->Arrayexpression.Value.get(), GetValueMode::Read);
 
 			auto Ex0 = _LastExpressionField;
 			DoImplicitConversion(Ex0, LastExpressionType, UintptrType);
@@ -6318,7 +6336,7 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(AnonymousObjectConstructor
 				const auto& ArrItemType = StaticArr->Type;
 				for (size_t i = 0; i < nod->Fields._Nodes.size(); i++)
 				{
-					OnExpressionTypeNode(nod->Fields._Nodes[i].get());
+					OnExpressionTypeNode(nod->Fields._Nodes[i].get(), GetValueMode::Read);
 
 					if (!CanBeImplicitConverted(LastExpressionType, ArrItemType, false))
 					{
@@ -6345,7 +6363,7 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(AnonymousObjectConstructor
 
 				for (size_t i = 0; i < nod->Fields._Nodes.size(); i++)
 				{
-					OnExpressionTypeNode(nod->Fields._Nodes[i].get());
+					OnExpressionTypeNode(nod->Fields._Nodes[i].get(), GetValueMode::Read);
 
 					DoImplicitConversion(_LastExpressionField, LastExpressionType, ArrItemType);
 
@@ -6396,7 +6414,7 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(AnonymousObjectConstructor
 			TypeSymbol ArrItemType;
 			if (nod->Fields._Nodes.size())
 			{
-				OnExpressionTypeNode(nod->Fields._Nodes[0].get());
+				OnExpressionTypeNode(nod->Fields._Nodes[0].get(), GetValueMode::Read);
 				ArrItemType = LastExpressionType;
 				LookingForTypes.top() = ArrItemType;
 			}
@@ -6433,7 +6451,7 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(AnonymousObjectConstructor
 
 			for (size_t i = 1; i < nod->Fields._Nodes.size(); i++)
 			{
-				OnExpressionTypeNode(nod->Fields._Nodes[i].get());
+				OnExpressionTypeNode(nod->Fields._Nodes[i].get(), GetValueMode::Read);
 				
 				if (!CanBeImplicitConverted(LastExpressionType, ArrItemType,false))
 				{
@@ -6682,7 +6700,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 		}
 	}
 
-	OnExpressionTypeNode(Ex1node);
+	OnExpressionTypeNode(Ex1node, GetValueMode::Read);
 	auto Ex0 = _LastExpressionField;
 	auto Ex0Type = LastExpressionType;
 	
@@ -6692,7 +6710,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 	}
 	
 
-	OnExpressionTypeNode(Ex0node);
+	OnExpressionTypeNode(Ex0node, GetValueMode::Read);
 	auto Ex1 = _LastExpressionField;
 	auto Ex1Type = LastExpressionType;
 
@@ -6901,7 +6919,7 @@ void SystematicAnalysis::OnExpressionNode(const CastNode& node)
 		{
 			LookingForTypes.push(Item.FuncToCall->Get_Info<FuncInfo>()->Pars[0]);
 
-			OnExpressionTypeNode(node.Expression.Value.get());
+			OnExpressionTypeNode(node.Expression.Value.get(), GetValueMode::Read);
 			auto Ex0 = _LastExpressionField;
 			auto Ex0Type = LastExpressionType;
 
@@ -6909,14 +6927,14 @@ void SystematicAnalysis::OnExpressionNode(const CastNode& node)
 		}
 		else
 		{
-			OnExpressionTypeNode(node.Expression.Value.get());
+			OnExpressionTypeNode(node.Expression.Value.get(), GetValueMode::Read);
 			auto Ex0 = _LastExpressionField;
 			auto Ex0Type = LastExpressionType;
 		}
 	}
 	else
 	{
-		OnExpressionTypeNode(node.Expression.Value.get());
+		OnExpressionTypeNode(node.Expression.Value.get(), GetValueMode::Read);
 		auto Ex0 = _LastExpressionField;
 		auto Ex0Type = LastExpressionType;
 	}
@@ -6978,14 +6996,14 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 
 	if (passtype == PassType::GetTypes)
 	{
-		OnExpressionTypeNode(node.SourceExpression.Value.get());
-		OnExpressionTypeNode(node.IndexExpression.Value.get());
+		OnExpressionTypeNode(node.SourceExpression.Value.get(), GetValueMode::Read);
+		OnExpressionTypeNode(node.IndexExpression.Value.get(), GetValueMode::Read);
 	}
 
 	if (passtype == PassType::FixedTypes)
 	{
 
-		OnExpressionTypeNode(node.SourceExpression.Value.get());
+		OnExpressionTypeNode(node.SourceExpression.Value.get(), GetValueMode::Read);
 		TypeSymbol SourcType = LastExpressionType;
 
 		
@@ -7006,7 +7024,7 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 		LookingForTypes.push(gesstype);
 
 
-		OnExpressionTypeNode(node.IndexExpression.Value.get());
+		OnExpressionTypeNode(node.IndexExpression.Value.get(), GetValueMode::Read);
 		TypeSymbol IndexType = LastExpressionType;
 
 
@@ -7111,14 +7129,14 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 		else
 		{
 			LookingForTypes.push(Data.Op0);
-			OnExpressionTypeNode(node.SourceExpression.Value.get());
+			OnExpressionTypeNode(node.SourceExpression.Value.get(), GetValueMode::Read);
 			LookingForTypes.pop();
 
 			auto Pointer = _LastExpressionField;
 			auto SourcType = LastExpressionType;
 
 			LookingForTypes.push(Data.Op1);
-			OnExpressionTypeNode(node.IndexExpression.Value.get());
+			OnExpressionTypeNode(node.IndexExpression.Value.get(), GetValueMode::Read);
 			LookingForTypes.pop();
 
 			auto IndexField = _LastExpressionField;
@@ -7209,7 +7227,7 @@ void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 		LookingForTypes.push(TypeToPush);
 	}
 
-	OnExpressionTypeNode(node.expression.Value.get());
+	OnExpressionTypeNode(node.expression.Value.get(), GetValueMode::Read);
 
 	if (passtype == PassType::BuidCode)
 	{
@@ -8254,7 +8272,7 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 
 			LookingForTypes.push(UIntType);
 
-			OnExpressionTypeNode(NodeV);//check
+			OnExpressionTypeNode(NodeV, GetValueMode::Read);//check
 			
 			LookingForTypes.pop();
 			
@@ -8978,7 +8996,7 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 			{\
 				LookingForTypes.push(iNfo);\
 				auto& Item = Pars._Nodes[0];\
-				OnExpressionTypeNode(Item.get());\
+				OnExpressionTypeNode(Item.get(),GetValueMode::Read);\
 				DoImplicitConversion(_LastExpressionField, LastExpressionType, iNfo);\
 				LookingForTypes.pop();\
 			}\
@@ -8999,8 +9017,8 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 
 		PrimitiveTypeCall(Uint8TypeName, TypesEnum::uInt8, _LastExpressionField = LookingAtIRBlock->NewLoad((UInt8)0);)
 		else PrimitiveTypeCall(Uint16TypeName, TypesEnum::uInt16, _LastExpressionField = LookingAtIRBlock->NewLoad((UInt16)0))
-else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _LastExpressionField = LookingAtIRBlock->NewLoad((UInt32)0))
-	else PrimitiveTypeCall(Uint16TypeName, TypesEnum::uInt64, _LastExpressionField = LookingAtIRBlock->NewLoad(((UInt64)0)))
+		else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _LastExpressionField = LookingAtIRBlock->NewLoad((UInt32)0))
+		else PrimitiveTypeCall(Uint16TypeName, TypesEnum::uInt64, _LastExpressionField = LookingAtIRBlock->NewLoad(((UInt64)0)))
 
 		else PrimitiveTypeCall(Sint8TypeName, TypesEnum::sInt8, _LastExpressionField = LookingAtIRBlock->NewLoad((Int8)0);)
 		else PrimitiveTypeCall(Sint16TypeName, TypesEnum::sInt16, _LastExpressionField = LookingAtIRBlock->NewLoad((Int16)0))
@@ -9049,7 +9067,7 @@ else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _LastExpressionField =
 
 							LookingForTypes.push(Par);
 
-							OnExpressionTypeNode(Item.get());
+							OnExpressionTypeNode(Item.get(), GetValueMode::Read);
 							DoImplicitConversion(_LastExpressionField, LastExpressionType, Par);
 
 							ThisObj = _LastExpressionField;
@@ -9154,7 +9172,7 @@ else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _LastExpressionField =
 
 								LookingForTypes.push(FuncParInfo);
 
-								OnExpressionTypeNode(Item.get());
+								OnExpressionTypeNode(Item.get(), GetValueMode::Read);
 								DoImplicitConversion(_LastExpressionField, LastExpressionType, FuncParInfo);
 
 								auto ParEx = _LastExpressionField;
@@ -9312,7 +9330,7 @@ else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _LastExpressionField =
 
 		LookingForTypes.push(FuncParInfo);
 
-		OnExpressionTypeNode(Item.get());
+		OnExpressionTypeNode(Item.get(), GetValueMode::Read);
 		DoImplicitConversion(_LastExpressionField, LastExpressionType, FuncParInfo);
 
 		IRParsList.push_back(_LastExpressionField);
@@ -9670,7 +9688,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 			if (Pars._Nodes.size() == 1)
 			{
 				auto FuncType = LastExpressionType;
-				OnExpressionTypeNode(Pars._Nodes[0].get());
+				OnExpressionTypeNode(Pars._Nodes[0].get(), GetValueMode::Read);
 
 				if (CanBeImplicitConverted(LastExpressionType, FuncType, true))
 				{
@@ -9724,7 +9742,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 		}
 		else
 		{
-			OnExpressionTypeNode(Item.get());
+			OnExpressionTypeNode(Item.get(), GetValueMode::Read);
 			ValueItem = LastExpressionType;
 		}
 

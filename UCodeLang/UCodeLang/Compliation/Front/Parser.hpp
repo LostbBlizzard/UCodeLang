@@ -260,6 +260,15 @@ private:
 	}
 	GotNodeType GetAssignVariable(AssignVariableNode& out);
 
+	TryGetNode GetAssignExpression()
+	{
+		AssignExpressionNode* V = AssignExpressionNode::Gen();
+		auto r = GetAssignExpression(*V);
+		TrippedCheck(r);
+		return { r,V->As() };
+	}
+	GotNodeType GetAssignExpression(AssignExpressionNode& out);
+
 	TryGetNode GetPostfixStatement(bool DoSemicolon =true)
 	{
 		PostfixVariableNode* V = PostfixVariableNode::Gen();
