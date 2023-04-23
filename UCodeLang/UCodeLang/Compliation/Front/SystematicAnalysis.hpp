@@ -627,7 +627,7 @@ private:
 	void OnLambdaNode(const LambdaNode& node);
 	void OnTrait(const TraitNode& node);
 	void OnTag(const TagTypeNode& node);
-
+	void OnBitCast(const BitCastExpression& node);
 
 	String GetClassWithTraitVTableName(const String& ClassFullName, const String& TraitFullName);
 	String GetTraitVTableName(const String& TraitName);

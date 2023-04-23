@@ -2547,10 +2547,60 @@ EndLoop:
 }
 GotNodeType Parser::GetBitCastExpression(BitCastExpression& out)
 {
-	return GotNodeType();
+	auto Token = TryGetToken();
+	TokenTypeCheck(Token, TokenType::KeyWord_bitcast);
+	NextToken();
+
+
+	TokenTypeCheck(TryGetToken(), TokenType::lessthan); NextToken();
+
+	GetType(out._Type);
+
+	TokenTypeCheck(TryGetToken(), TokenType::greaterthan); NextToken();
+
+
+	auto LToken = TryGetToken();
+	TokenTypeCheck(LToken, TokenType::Left_Parentheses);
+	NextToken();
+
+	GetExpressionTypeNode(out._Expression);
+
+	auto RToken = TryGetToken();
+	TokenTypeCheck(RToken, TokenType::Right_Parentheses);
+	NextToken();
+
+	return  GotNodeType::Success;
 }
 GotNodeType Parser::GetPanicNode(PanicNode& out)
 {
-	return GotNodeType();
+	auto Token = TryGetToken();
+	TokenTypeCheck(Token, TokenType::KeyWord_panic);
+
+	NextToken();
+	auto LToken = TryGetToken();
+	TokenTypeCheck(LToken, TokenType::Left_Parentheses);
+	
+	NextToken();
+	auto ExToken = TryGetToken();
+	if (ExToken->Type != TokenType::Right_Parentheses)
+	{
+		ExpressionNodeType V;
+		GetExpressionTypeNode(V);
+		
+		
+		out._StringExpression.Value = std::move(V.Value);
+	}
+
+	auto RToken = TryGetToken();
+	TokenTypeCheck(RToken, TokenType::Right_Parentheses);
+	NextToken();
+
+
+	auto EndToken = TryGetToken();
+
+	TokenTypeCheck(EndToken, TokenType::Semicolon);
+	NextToken();
+
+	return GotNodeType::Success;
 }
 UCodeLangFrontEnd

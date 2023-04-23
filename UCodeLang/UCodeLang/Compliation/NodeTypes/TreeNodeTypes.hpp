@@ -1035,7 +1035,7 @@ struct PanicNode :Node
 	{
 
 	}
-	Optional<ExpressionNodeType> _StringExpression;
+	ExpressionNodeType  _StringExpression;
 	AddforNode(PanicNode);
 };
 

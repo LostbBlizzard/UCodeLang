@@ -26,7 +26,8 @@ $Player:
 
 
 |Panke[]:
- var Item = bitcast<int&>(0);
+ var& Item = bitcast<int&>(0);
+ Item = 10;
  var Item2 = bitcast<int&>(Item);
  panic();
  panic("Help");
