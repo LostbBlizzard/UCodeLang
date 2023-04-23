@@ -1,32 +1,12 @@
 
 
-$Buffer:
- int A=0;
- int B=0;
- int C=0;
-
-//int B = 10;
-
-$Player:
- int X = 0;
- int Y = 0;
- int Z = 0;
- |Update[this&,int a]:
-  Z += a;
-
-
-
-|Main2[]:
- //Buffer B = [];
- //ret main(B,10,2);
-
-|main[Buffer buffer,int D,int E] -> var:
- ret D / E;
-
-
-
-|Tep[]:
- var Buffer = [0,0,0];
+$V = int[/5];
+|Tep[ V& Buffer]:
  
+ 
+ //Buffer = [0,0,0];
+ int a =0;
+ a = 2;
+
  Buffer[0] = Buffer[1];
- int[\0] Item = Buffer[0];
+ //var Item = Buffer[0];
