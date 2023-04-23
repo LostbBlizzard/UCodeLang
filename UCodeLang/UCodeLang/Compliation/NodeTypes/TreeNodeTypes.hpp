@@ -627,17 +627,6 @@ struct DeclareVariableNode :Node
 	DeclareVariableNode& operator=(DeclareVariableNode&& source) = default;
 };
 
-struct AssignVariableNode :Node
-{
-	AssignVariableNode() : Node(NodeType::AssignVariableNode)
-	{
-
-	}
-	AddforNode(AssignVariableNode);
-	ScopedNameNode Name;
-	ExpressionNodeType Expression;
-};
-
 struct AssignExpressionNode :Node
 {
 	AssignExpressionNode() : Node(NodeType::AssignExpressionNode)

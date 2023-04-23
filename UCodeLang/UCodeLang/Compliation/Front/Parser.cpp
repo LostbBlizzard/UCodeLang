@@ -503,23 +503,23 @@ GotNodeType Parser::GetStatement(Node*& out)
 			Assign,
 			Postfix,
 			Compound,
+			FuncCall,
 		};
 		MyEnum StatemeType = MyEnum::DeclareVar;
 		
-		bool BoolV = true;
-		while (BoolV)
+		while (TryGetToken()->Type != TokenType::EndofFile)
 		{
 			
-			auto Token = TryGetToken();
+			auto TokenV = TryGetToken();
 
 
-			if (Token->Type == TokenType::equal)
+			if (TokenV->Type == TokenType::equal)
 			{
 
 				bool NameWasBefor = false;
 
 				auto Start = _TokenIndex - 1;
-				for (int i = Start; i >= OldIndex; i--)
+				for (int i = Start; i >= OldIndex-1; i--)
 				{
 					auto& Token = _Nodes->operator[](i);
 
@@ -532,8 +532,7 @@ GotNodeType Parser::GetStatement(Node*& out)
 						else
 						{
 							StatemeType = MyEnum::Assign;
-							BoolV = false;
-							break;
+							goto Done;
 						}
 
 					}
@@ -541,7 +540,8 @@ GotNodeType Parser::GetStatement(Node*& out)
 					{
 						if (Token.Type == TokenType::Name
 							|| Token.Type == TokenType::greaterthan
-							|| TypeNode::IsType(Token.Type))
+							|| TypeNode::IsType(Token.Type)
+							|| Token.Type == TokenType::Right_Bracket)
 						{
 							StatemeType = MyEnum::DeclareVar;
 						}
@@ -549,24 +549,31 @@ GotNodeType Parser::GetStatement(Node*& out)
 						{
 							StatemeType = MyEnum::Assign;
 						}
-						BoolV = false;
-						break;
+						goto Done;
 					}
 				}
 
 				break;
 			}
-			else if (Token->Type == TokenType::Semicolon)
+			else if (TokenV->Type == TokenType::Semicolon)
 			{
 				StatemeType = MyEnum::DeclareVar;
+
+				auto Start = _TokenIndex - 1;
+				auto& Token = _Nodes->operator[](Start);
+				if (Token.Type == TokenType::Right_Parentheses)
+				{
+					StatemeType = MyEnum::FuncCall;
+				}
+
 				break;
 			}
-			else if (ExpressionNodeType::IsPostfixOperator(Token))
+			else if (ExpressionNodeType::IsPostfixOperator(TokenV))
 			{
 				StatemeType = MyEnum::Postfix;
 				break;
 			}
-			else if (ExpressionNodeType::IsCompoundOperator(Token))
+			else if (ExpressionNodeType::IsCompoundOperator(TokenV))
 			{
 				StatemeType = MyEnum::Compound;
 				break;
@@ -574,7 +581,7 @@ GotNodeType Parser::GetStatement(Node*& out)
 			
 			NextToken();
 		}
-
+		Done:
 		TryGetNode r;
 		size_t NewIndex = _TokenIndex;
 		_TokenIndex = OldIndex;
@@ -589,10 +596,13 @@ GotNodeType Parser::GetStatement(Node*& out)
 			r = GetCompoundStatement();
 			break;
 		case MyEnum::Assign:
-			r = GetAssignVariable();
+			r =GetAssignExpression();
 			break;
 		case MyEnum::Postfix:
 			r = GetPostfixStatement();
+			break;
+		case MyEnum::FuncCall:
+			r =GetFuncCallStatementNode();
 			break;
 		default:
 			throw std::exception("bad path");
@@ -1791,24 +1801,10 @@ GotNodeType Parser::GetDeclareVariable(DeclareVariableNode& out, bool ignoreleft
 
 	return Merge(Type, Name);
 }
-GotNodeType Parser::GetAssignVariable(AssignVariableNode& out)
-{
-	auto Name = GetName(out.Name);
 
-	auto Token = TryGetToken(); TokenTypeCheck(Token, TokenType::equal);
-
-	NextToken();
-	auto Ex =GetExpressionTypeNode(out.Expression);
-
-
-	auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
-	NextToken();
-
-	return Merge(Name, Ex);
-}
 GotNodeType Parser::GetAssignExpression(AssignExpressionNode& out)
 {
-	auto Name = GetExpressionTypeNode(out.Expression);
+	auto Name = GetExpressionTypeNode(out.ToAssign);
 
 	auto Token = TryGetToken(); TokenTypeCheck(Token, TokenType::equal);
 

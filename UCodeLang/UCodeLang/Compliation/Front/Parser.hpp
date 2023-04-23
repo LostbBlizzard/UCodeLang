@@ -251,14 +251,7 @@ private:
 	}
 	GotNodeType GetDeclareVariable(DeclareVariableNode& out, bool ignoreleftHandType =false);
 
-	TryGetNode GetAssignVariable()
-	{
-		AssignVariableNode* V = AssignVariableNode::Gen();
-		auto r = GetAssignVariable(*V);
-		TrippedCheck(r);
-		return { r,V->As() };
-	}
-	GotNodeType GetAssignVariable(AssignVariableNode& out);
+	
 
 	TryGetNode GetAssignExpression()
 	{

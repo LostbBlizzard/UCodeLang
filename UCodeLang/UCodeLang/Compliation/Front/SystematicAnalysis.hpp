@@ -269,6 +269,7 @@ private:
 		Symbol* FuncToCheck = nullptr;
 	};
 	using CastExpressionNode_Data =PostFixExpressionNode_Data;
+	using AssignExpression_Data = BinaryExpressionNode_Data;
 
 	enum class  ObjectToDropType
 	{
@@ -449,6 +450,7 @@ private:
 	BinaryVectorMap<const void*, CompoundExpresion_Data> Compound_Datas;
 	BinaryVectorMap<const void*, ForExpresion_Data> For_Datas;
 	BinaryVectorMap<const void*, CastExpressionNode_Data> CastDatas;
+	BinaryVectorMap<const void*, AssignExpression_Data > AssignExpressionDatas;
 
 	Vector<FuncStackInfo> _FuncStack;
 
@@ -506,10 +508,7 @@ private:
 	{
 		return Value == GetValueMode::Read || Value == GetValueMode::ReadAndWrite;
 	}
-	void WriteTo(IRInstruction* IR, IRInstruction* Value)
-	{
-		LookingAtIRBlock->NewStore(IR, Value);
-	}
+	void WriteTo(IRInstruction* IR, IRInstruction* Value);
 
 	size_t GetJumpsIndex();
 	void RemoveJumps(size_t Index);
@@ -627,7 +626,7 @@ private:
 	void ExDeclareVariableTypeCheck(TypeSymbol& VarType, TypeSymbol& Ex, const Token* Token);
 	void ExTypeDeclareVarableCheck(TypeSymbol& VarType, const Node* Ex, const Token* Token);
 	void CantgussTypesTheresnoassignment(const Token* Token);
-	void OnAssignVariableNode(const AssignVariableNode& node);
+	void OnAssignExpressionNode(const AssignExpressionNode& node);
 	void OnIfNode(const IfNode& node);
 	void OnWhileNode(const WhileNode& node);
 	void OnDoNode(const DoNode& node);
