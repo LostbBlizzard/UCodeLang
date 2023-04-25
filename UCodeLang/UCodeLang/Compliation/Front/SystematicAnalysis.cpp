@@ -2912,11 +2912,28 @@ bool SystematicAnalysis::ISStructPassByRef(Symbol* syb)
 
 //Funcs
 
-void SystematicAnalysis::WriteTo(IRInstruction* IR, IRInstruction* Value)
+void SystematicAnalysis::WriteTo(IRInstruction* IR, const IROperator& Value)
 {
-	LookingAtIRBlock->NewStore((IRInstruction*)nullptr, Value);
+	LookingAtIRBlock->NewStore((IRInstruction*)nullptr, IR);
 	auto& Item = LookingAtIRBlock->Instructions.back();
-	Item->Target() = Value->Target();
+	Item->Target() = Value;
+}
+void SystematicAnalysis::WriteToDef(IRInstruction* IR, const IROperator& Value)
+{
+	LookingAtIRBlock->NewDereferenc_Store((IRInstruction*)nullptr, IR);
+	auto& Item = LookingAtIRBlock->Instructions.back();
+	Item->Target() = Value;
+}
+void SystematicAnalysis::WriteTo(IRInstruction* IR, const TypeSymbol& Type, const IROperator& Value)
+{
+	if (Type.IsAddress())
+	{
+		WriteToDef(IR, Value);
+	}
+	else
+	{
+		WriteTo(IR, Value);
+	}
 }
 
 size_t SystematicAnalysis::GetJumpsIndex() { return _Jumps.size() ? _Jumps.size() - 1 : 0; }
@@ -3212,7 +3229,6 @@ void SystematicAnalysis::OnStatement(const Node& node2)
 	case NodeType::EnumNode:OnEnum(*EnumNode::As(&node2)); break;
 	case NodeType::UsingNode: OnUseingNode(*UsingNode::As(&node2)); break;
 	case NodeType::DeclareVariableNode:OnDeclareVariablenode(*DeclareVariableNode::As(&node2),DeclareStaticVariableNode_t::Stack); break;
-	case NodeType::AssignVariableNode:OnAssignVariableNode(*AssignVariableNode::As(&node2)); break;
 	case NodeType::AssignExpressionNode:OnAssignExpressionNode(*AssignExpressionNode::As(&node2)); break;
 	case NodeType::PostfixVariableNode:OnPostfixVariableNode(*PostfixVariableNode::As(&node2)); break;
 	case NodeType::CompoundStatementNode:OnCompoundStatementNode(*CompoundStatementNode::As(&node2)); break;
@@ -4081,10 +4097,10 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 		auto AssignType = LastExpressionType;
 
 		
-		if (!CanBeImplicitConverted(ExpressionType,AssignType,false))
+		if (!CanBeImplicitConverted(AssignType, ExpressionType,false))
 		{
 			auto  Token = LastLookedAtToken;
-			LogCantCastImplicitTypes(Token, LastExpressionType, AssignType, false);
+			LogCantCastImplicitTypes(Token,AssignType, ExpressionType, false);
 
 		}
 		auto ID = GetSymbolID(node);
@@ -4120,7 +4136,7 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 		
 		auto AssignIR = _LastExpressionField;
 
-		WriteTo(AssignIR, ExIR);
+		WriteTo(ExIR, ExpressionType, _LastStoreField);
 	}
 }
 void SystematicAnalysis::OnIfNode(const IfNode& node)
@@ -4448,6 +4464,10 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, 
 }
 void SystematicAnalysis::BuildMember_Store(const GetMemberTypeSymbolFromVar_t& In, IRInstruction* Value)
 {
+	LookingAtIRBlock->NewStore(BuildMember_Store(In), Value);
+}
+IROperator  SystematicAnalysis::BuildMember_Store(const GetMemberTypeSymbolFromVar_t& In)
+{
 
 	IRInstruction* Output = nullptr;
 
@@ -4462,23 +4482,53 @@ void SystematicAnalysis::BuildMember_Store(const GetMemberTypeSymbolFromVar_t& I
 
 	switch (In.Symbol->Type)
 	{
-		case  SymbolType::Type_class://this
+	case  SymbolType::Type_class://this
 	case  SymbolType::Class_Field:
 	case  SymbolType::StackVarable:
-		LookingAtIRBlock->NewStore(Output, Value);
-		break;
+		return Output;
 	case  SymbolType::ParameterVarable:
-		UseOutput ? LookingAtIRBlock->NewStore(Output, Value) : LookingAtIRBlock->NewStore(In.Symbol->IR_Par, Value);
+		return UseOutput ? IROperator(Output) : IROperator(In.Symbol->IR_Par);
 		break;
 	case SymbolType::StaticVarable:
 	case SymbolType::ThreadVarable:
-		LookingAtIRBlock->NewStore(_Builder.ToID(In.Symbol->FullName), Value);
+		return IROperator(_Builder.ToID(In.Symbol->FullName));
 		break;
 	default:
 		throw std::exception("not added");
 		break;
 	}
 }
+IROperator  SystematicAnalysis::BuildMember_DereferencStore(const GetMemberTypeSymbolFromVar_t& In)
+{
+	switch (In.Symbol->Type)
+	{
+	case  SymbolType::StackVarable:
+		return IROperator(In.Symbol->IR_Ins);
+		break;
+	case  SymbolType::ParameterVarable:
+		return IROperator(In.Symbol->IR_Par);
+		break;
+	case  SymbolType::StaticVarable:
+	case  SymbolType::ThreadVarable:
+		return IROperator(_Builder.ToID(In.Symbol->FullName));
+		break;
+	default:
+		throw std::exception("not added");
+		break;
+	}
+}
+IROperator SystematicAnalysis::BuildMember_Store(const GetMemberTypeSymbolFromVar_t& In, const TypeSymbol& Type)
+{
+	if (Type.IsAddress())
+	{
+		return BuildMember_DereferencStore(In);
+	}
+	else
+	{
+		return BuildMember_Store(In);
+	}
+}
+
 IRInstruction* SystematicAnalysis::BuildMember_GetPointer(const GetMemberTypeSymbolFromVar_t& In)
 {
 	IRInstruction* Output = nullptr;
@@ -4510,22 +4560,7 @@ IRInstruction* SystematicAnalysis::BuildMember_GetPointer(const GetMemberTypeSym
 }
 void SystematicAnalysis::BuildMemberDereferencStore(const GetMemberTypeSymbolFromVar_t& In, IRInstruction* Value)
 {
-	switch (In.Symbol->Type)
-	{
-	case  SymbolType::StackVarable:
-		LookingAtIRBlock->NewDereferenc_Store(In.Symbol->IR_Ins,Value);
-		break;
-	case  SymbolType::ParameterVarable:
-		LookingAtIRBlock->NewDereferenc_Store(In.Symbol->IR_Par, Value);
-		break;
-	case  SymbolType::StaticVarable:
-	case  SymbolType::ThreadVarable:
-		LookingAtIRBlock->NewDereferenc_Store(_Builder.ToID(In.Symbol->FullName), Value);
-		break;
-	default:
-		throw std::exception("not added");
-		break;
-	}
+	LookingAtIRBlock->NewDereferenc_Store(BuildMember_DereferencStore(In), Value);
 }
 IRInstruction* SystematicAnalysis::BuildMember_GetValue(const GetMemberTypeSymbolFromVar_t& In)
 {
@@ -5126,6 +5161,11 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 				Symbol* TypeAsSybol = GetSymbol(VarableType);
 				if (TypeAsSybol)
 				{
+					if (TypeAsSybol->Type != SymbolType::Type_class)
+					{
+						LogCantFindVarMemberError(ItemToken, ItemToken->Value._String, Out.Type);
+						return false;
+					}
 					ClassInfo* CInfo = TypeAsSybol->Get_Info<ClassInfo>();
 
 					auto FeldInfo = CInfo->GetField(ItemToken->Value._String);
@@ -5427,7 +5467,7 @@ void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 			default:
 				break;
 			}
-			WriteTo(LoadV, _LastExpressionField);
+			WriteTo(_LastExpressionField, Type, _LastStoreField);
 		}
 	}
 }
@@ -5520,6 +5560,7 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 			LookingForTypes.push(Data.Op0);
 
 			OnExpressionTypeNode(node.ToAssign.Value.get(), GetValueMode::ReadAndWrite);
+			auto AssignType = LastExpressionType;
 
 			LookingForTypes.pop();
 
@@ -5650,7 +5691,7 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 				break;
 			}
 
-			WriteTo(LoadV, _LastExpressionField);
+			WriteTo(_LastExpressionField, AssignType, _LastStoreField);
 		}
 	}
 }
@@ -6577,6 +6618,8 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 	
 	ReadVarErrorCheck_t Info;
 
+	
+
 	if (IsRead(GetExpressionMode.top()))
 	{
 		Info = LogTryReadVar(Str, Token, Symbol);
@@ -6584,6 +6627,7 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 	if (IsWrite(GetExpressionMode.top()))
 	{
 		Symbol->SetTovalid();
+
 	}
 
 	if (Info.CantFindVar)
@@ -6609,7 +6653,7 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 
 			auto& LookForT = Get_LookingForType();
 
-			
+
 
 			GetMemberTypeSymbolFromVar_t V;
 			if (!GetMemberTypeSymbolFromVar(nod.VariableName, V))
@@ -6617,7 +6661,7 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 				return;
 			}
 
-			
+
 			bool LookIsAddress = LookForT.IsAddress() || LookForT.IsAddressArray();
 			bool AmIsAddress = V.Type.IsAddress();
 
@@ -6625,26 +6669,34 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 
 			//
 
+			if (IsWrite(GetExpressionMode.top()))
+			{
+				_LastStoreField = BuildMember_Store(V, V.Type);
+			}
 
-			if (LookIsAddress == true && AmIsAddress == true)
+			if (IsRead(GetExpressionMode.top())) 
 			{
-				_LastExpressionField = BuildMember_GetValue(V);
-			}
-			else if (LookIsAddress == false && AmIsAddress == false)
-			{
-				_LastExpressionField = BuildMember_AsValue(V);
-			}
-			else if (LookIsAddress == true && AmIsAddress == false)
-			{
-				_LastExpressionField = BuildMember_AsPointer(V);
-			}
-			else if (LookIsAddress == false && AmIsAddress == true)
-			{
-				_LastExpressionField = BuildMember_AsValue(V);
-			}
-			else
-			{
-				throw std::exception("bad path");
+				if (LookIsAddress == true && AmIsAddress == true)
+				{
+					_LastExpressionField = BuildMember_GetValue(V);
+				}
+				else if (LookIsAddress == false && AmIsAddress == false)
+				{
+					_LastExpressionField = BuildMember_AsValue(V);
+				}
+				else if (LookIsAddress == true && AmIsAddress == false)
+				{
+					_LastExpressionField = BuildMember_AsPointer(V);
+				}
+				else if (LookIsAddress == false && AmIsAddress == true)
+				{
+					_LastExpressionField = BuildMember_AsValue(V);
+				}
+				else
+				{
+					throw std::exception("bad path");
+				}
+
 			}
 
 			LastExpressionType = V.Type;
@@ -7228,6 +7280,11 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 			}
 
 			LastExpressionType = lookingfor;
+
+			if (IsWrite(GetExpressionMode.top()))
+			{
+				_LastStoreField =IROperator(_LastExpressionField);
+			}
 		}
 
 	}
@@ -8702,6 +8759,112 @@ void SystematicAnalysis::DoExplicitlConversion(IRInstruction* Ex, const TypeSymb
 
 			DoFuncCall(v, {}, {});
 		}
+		else
+		{
+			if (IsIntType(ToType))
+			{
+				
+				if (IsUIntType(ExType))
+				{
+					switch (ToType._Type)
+					{
+					case TypesEnum::sInt8:_LastExpressionField = LookingAtIRBlock->New_UIntToSInt(LookingAtIRBlock->New_UIntToUInt8(Ex));break;
+					case TypesEnum::sInt16:_LastExpressionField = LookingAtIRBlock->New_UIntToSInt(LookingAtIRBlock->New_UIntToUInt16(Ex));break;
+					
+					ULablesint32:
+					case TypesEnum::sInt32:_LastExpressionField = LookingAtIRBlock->New_UIntToSInt(LookingAtIRBlock->New_UIntToUInt32(Ex));break;
+					
+					ULablesint64:
+					case TypesEnum::sInt64:_LastExpressionField = LookingAtIRBlock->New_UIntToSInt(LookingAtIRBlock->New_UIntToUInt64(Ex));break;
+
+
+					case TypesEnum::uInt8:_LastExpressionField = LookingAtIRBlock->New_UIntToUInt8(Ex); break;
+					case TypesEnum::uInt16:_LastExpressionField = LookingAtIRBlock->New_UIntToUInt16(Ex); break;
+					
+					ULableuint32:
+					case TypesEnum::uInt32:_LastExpressionField = LookingAtIRBlock->New_UIntToUInt32(Ex); break;
+					
+					ULableuint64:
+					case TypesEnum::uInt64:_LastExpressionField = LookingAtIRBlock->New_UIntToUInt64(Ex); break;
+
+
+					case TypesEnum::sIntPtr:
+						if (_Settings->PtrSize == IntSizes::Int32)
+						{
+							goto ULablesint32;
+						}
+						else
+						{
+							goto ULablesint64;
+						}
+					case TypesEnum::uIntPtr:
+						if (_Settings->PtrSize == IntSizes::Int32)
+						{
+							goto ULableuint32;
+						}
+						else
+						{
+							goto ULableuint64;
+						}
+					default:throw std::exception("bad path"); break;
+					}
+				}
+				else if (IsSIntType(ExType))
+				{
+					switch (ToType._Type)
+					{
+					case TypesEnum::uInt8:_LastExpressionField = LookingAtIRBlock->New_SIntToUInt(LookingAtIRBlock->New_SIntToSInt8(Ex)); break;
+					case TypesEnum::uInt16:_LastExpressionField = LookingAtIRBlock->New_SIntToUInt(LookingAtIRBlock->New_SIntToSInt16(Ex)); break;
+					
+					SLableuint32:
+					case TypesEnum::uInt32:_LastExpressionField = LookingAtIRBlock->New_SIntToUInt(LookingAtIRBlock->New_SIntToSInt32(Ex)); break;
+					
+					SLableuint64:
+					case TypesEnum::uInt64:_LastExpressionField = LookingAtIRBlock->New_SIntToUInt(LookingAtIRBlock->New_SIntToSInt64(Ex)); break;
+
+
+					case TypesEnum::sInt8:_LastExpressionField = LookingAtIRBlock->New_SIntToSInt8(Ex); break;
+					case TypesEnum::sInt16:_LastExpressionField = LookingAtIRBlock->New_SIntToSInt16(Ex); break;
+				
+					SLablesint32:
+					case TypesEnum::sInt32:_LastExpressionField = LookingAtIRBlock->New_SIntToSInt32(Ex); break;
+					
+					SLablesint64:
+					case TypesEnum::sInt64:_LastExpressionField = LookingAtIRBlock->New_SIntToSInt64(Ex); break;
+
+					case TypesEnum::sIntPtr:
+						if (_Settings->PtrSize == IntSizes::Int32)
+						{
+							goto SLablesint32;
+						}
+						else
+						{
+							goto SLablesint64;
+						}
+					case TypesEnum::uIntPtr:
+						if (_Settings->PtrSize == IntSizes::Int32)
+						{
+							goto SLableuint32;
+						}
+						else
+						{
+							goto SLableuint64;
+						}
+					break;
+					default:throw std::exception("bad path"); break;
+					}
+				}
+				else
+				{
+					throw std::exception("bad path");
+				}
+			}
+			else
+			{
+				throw std::exception("bad path");
+			}
+		}
+
 	}
 }
 bool SystematicAnalysis::IsSIntType(const TypeSymbol& TypeToCheck)

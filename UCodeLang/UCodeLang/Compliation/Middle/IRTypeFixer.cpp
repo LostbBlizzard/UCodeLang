@@ -69,8 +69,7 @@ void IRTypeFixer::FixTypes(IRBuilder* Input)
 				{
 					OnOp(*Ins, Ins->Target());
 				}
-				else
-				if (Ins->Type == IRInstructionType::Reassign_dereference)
+				else if (Ins->Type == IRInstructionType::Reassign_dereference)
 				{
 					OnOp(*Ins, Ins->Input());
 				}

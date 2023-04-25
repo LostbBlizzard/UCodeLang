@@ -483,6 +483,7 @@ private:
 	IRInstruction* _LastExpressionField = 0;
 	IRFunc* LookingAtIRFunc = nullptr;
 	IRBlock* LookingAtIRBlock = nullptr;
+	IROperator _LastStoreField;
 	Stack<IRLocation_Cotr> IRlocations;//for Constructors
 	Vector<IRCodeStackFrames> StackFrames;
 
@@ -508,7 +509,10 @@ private:
 	{
 		return Value == GetValueMode::Read || Value == GetValueMode::ReadAndWrite;
 	}
-	void WriteTo(IRInstruction* IR, IRInstruction* Value);
+	void WriteTo(IRInstruction* IR, const IROperator& Value);
+	void WriteToDef(IRInstruction* IR, const IROperator& Value);
+
+	void WriteTo(IRInstruction* IR, const TypeSymbol& Type, const IROperator& Value);
 
 	size_t GetJumpsIndex();
 	void RemoveJumps(size_t Index);
@@ -678,6 +682,11 @@ private:
 	bool GetMemberTypeSymbolFromVar(const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out);
 	void BuildMemberDereferencStore(const GetMemberTypeSymbolFromVar_t& In, IRInstruction* Value);
 	void BuildMember_Store(const GetMemberTypeSymbolFromVar_t& In, IRInstruction* Value);
+
+	IROperator BuildMember_Store(const GetMemberTypeSymbolFromVar_t& In);
+	IROperator BuildMember_DereferencStore(const GetMemberTypeSymbolFromVar_t& In);
+	IROperator BuildMember_Store(const GetMemberTypeSymbolFromVar_t& In, const TypeSymbol& Type);
+
 	IRInstruction* BuildMember_GetPointer(const GetMemberTypeSymbolFromVar_t& In);
 	IRInstruction* BuildMember_GetValue(const GetMemberTypeSymbolFromVar_t& In);
 	IRInstruction* BuildMember_DereferenceValue(const GetMemberTypeSymbolFromVar_t& In);
