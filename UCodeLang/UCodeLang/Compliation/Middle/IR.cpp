@@ -541,6 +541,70 @@ void IRBuilder::ToString(ToStringState& State, IRFunc* Item, String& r)
 					State.PointerToName[I.get()] = ToString(State, *I, I->Target()) + "->__" + std::to_string(I->Input().Value.AsUIntNative);
 					continue;
 				}
+				case IRInstructionType::SIntToUInt:
+					r += ToString(I->ObjectType);
+					r += " " + State.GetName(I.get());
+					r += " = ";
+					r += ToString(State, *I, I->Target()) + " -> uint";
+					break;
+				case IRInstructionType::UIntToSInt:
+					r += ToString(I->ObjectType);
+					r += " " + State.GetName(I.get());
+					r += " = ";
+					r += ToString(State, *I, I->Target()) + " -> sint";
+					break;
+
+
+				case IRInstructionType::UIntToUInt8:
+					r += ToString(I->ObjectType);
+					r += " " + State.GetName(I.get());
+					r += " = ";
+					r += ToString(State, *I, I->Target()) + " -> uint8";
+					break;
+				case IRInstructionType::UIntToUInt16:
+					r += ToString(I->ObjectType);
+					r += " " + State.GetName(I.get());
+					r += " = ";
+					r += ToString(State, *I, I->Target()) + " -> uint16";
+					break;
+				case IRInstructionType::UIntToUInt32:
+					r += ToString(I->ObjectType);
+					r += " " + State.GetName(I.get());
+					r += " = ";
+					r += ToString(State, *I, I->Target()) + " -> uint32";
+					break;
+				case IRInstructionType::UIntToUInt64:
+					r += ToString(I->ObjectType);
+					r += " " + State.GetName(I.get());
+					r += " = ";
+					r += ToString(State, *I, I->Target()) + " -> uint64";
+				break;
+
+				case IRInstructionType::SIntToSInt8:
+					r += ToString(I->ObjectType);
+					r += " " + State.GetName(I.get());
+					r += " = ";
+					r += ToString(State, *I, I->Target()) + " -> sint8";
+					break;
+				case IRInstructionType::SIntToSInt16:
+					r += ToString(I->ObjectType);
+					r += " " + State.GetName(I.get());
+					r += " = ";
+					r += ToString(State, *I, I->Target()) + " -> sint16";
+					break;
+				case IRInstructionType::SIntToSInt32:
+					r += ToString(I->ObjectType);
+					r += " " + State.GetName(I.get());
+					r += " = ";
+					r += ToString(State, *I, I->Target()) + " -> sint32";
+					break;
+				case IRInstructionType::SIntToSInt64:
+					r += ToString(I->ObjectType);
+					r += " " + State.GetName(I.get());
+					r += " = ";
+					r += ToString(State, *I, I->Target()) + " -> sint64";
+					break;
+
 				default:
 					throw std::exception("not added");
 					break;

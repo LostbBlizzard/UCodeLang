@@ -541,7 +541,8 @@ GotNodeType Parser::GetStatement(Node*& out)
 						if (Token.Type == TokenType::Name
 							|| Token.Type == TokenType::greaterthan
 							|| TypeNode::IsType(Token.Type)
-							|| Token.Type == TokenType::Right_Bracket)
+							|| Token.Type == TokenType::Right_Bracket
+							|| Token.Type == TokenType::bitwise_and)
 						{
 							StatemeType = MyEnum::DeclareVar;
 						}

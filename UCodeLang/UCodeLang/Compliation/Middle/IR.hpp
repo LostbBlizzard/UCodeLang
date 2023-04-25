@@ -131,6 +131,19 @@ enum class IRInstructionType : IRInstructionType_t
 	Member_Access,
 	Member_Access_Dereference,
 
+	//casting U
+	UIntToUInt8,
+	UIntToUInt16,
+	UIntToUInt32,
+	UIntToUInt64,
+
+	SIntToSInt8,
+	SIntToSInt16,
+	SIntToSInt32,
+	SIntToSInt64,
+
+	UIntToSInt,
+	SIntToUInt,
 	//internal stuff
 };
 
@@ -175,7 +188,20 @@ inline bool IsBinary(IRInstructionType Value)
 inline bool IsUnary(IRInstructionType Value)
 {
 	return Value == IRInstructionType::Logical_Not
-		|| Value == IRInstructionType::BitWise_Not;
+		|| Value == IRInstructionType::BitWise_Not
+		
+		|| Value == IRInstructionType::UIntToUInt8
+		|| Value == IRInstructionType::UIntToUInt16
+		|| Value == IRInstructionType::UIntToUInt32
+		|| Value == IRInstructionType::UIntToUInt64
+		
+		|| Value == IRInstructionType::SIntToSInt8
+		|| Value == IRInstructionType::SIntToSInt16
+		|| Value == IRInstructionType::SIntToSInt32
+		|| Value == IRInstructionType::SIntToSInt64
+		
+		|| Value == IRInstructionType::SIntToUInt
+		|| Value == IRInstructionType::UIntToSInt;
 }
 inline bool IsLoadValue(IRInstructionType Value)
 {
@@ -217,6 +243,25 @@ inline bool IsOperatorValueInInput(IRInstructionType Value)
 }
 
 
+
+inline IRInstructionType GetInverse(IRInstructionType Value)
+{
+	switch (Value)
+	{
+	case IRInstructionType::BitWise_ShiftL:return IRInstructionType::BitWise_ShiftR;
+	case IRInstructionType::BitWise_ShiftR:return IRInstructionType::BitWise_ShiftL;
+	case IRInstructionType::Logical_Not:return IRInstructionType::Logical_Not;
+	case IRInstructionType::EqualTo:return IRInstructionType::NotEqualTo;
+	case IRInstructionType::NotEqualTo:return IRInstructionType::EqualTo;
+	case IRInstructionType::UIntToSInt:return IRInstructionType::SIntToUInt;
+	case IRInstructionType::SIntToUInt:return IRInstructionType::UIntToSInt;
+	default:return IRInstructionType::None;
+	}
+}
+inline bool HasInverse(IRInstructionType Value)
+{
+	return GetInverse(Value) != IRInstructionType::None;
+}
 using IROperator_t = UInt8;
 enum class IROperatorType :IROperator_t
 {
@@ -497,11 +542,18 @@ struct IRBlock
 		V->Input(IROperator(Value));
 	}
 	
+	void NewStore(IROperator Storage, IRInstruction* Value)
+	{
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Reassign, Storage)).get();
+		V->Input(IROperator(Value));
+	}
+
 	void NewStorePtr(IRInstruction* Storage, IRInstruction* Value)
 	{
 		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Reassign, Storage)).get();
 		V->Input(IROperator(IROperatorType::Get_PointerOf_IRInstruction,Value));
 	}
+
 	
 	//math
 	IRInstruction* NewAdd(IRInstruction* A, IRInstruction* B)
@@ -657,6 +709,11 @@ struct IRBlock
 		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Reassign_dereference, Ptr)).get();
 		V->Input(IROperator(Value));
 	}
+	void NewDereferenc_Store(IROperator Ptr, IRInstruction* Value)
+	{
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Reassign_dereference, Ptr)).get();
+		V->Input(IROperator(Value));
+	}
 
 	IRInstruction* NewLoad_Dereferenc(IRInstruction* Ptr, IRType Type)
 	{
@@ -722,6 +779,67 @@ struct IRBlock
 	{
 		NewStore(Object, NewSub(Object, ValueToAdd));
 	}
+	//casting
+	IRInstruction* New_UIntToUInt8(IRInstruction* Value)
+	{
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::UIntToUInt8, IROperator(Value))).get();
+		V->ObjectType = IRTypes::i8;
+		return V;
+	}
+	IRInstruction* New_UIntToUInt16(IRInstruction* Value)
+	{
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::UIntToUInt16, IROperator(Value))).get();
+		V->ObjectType = IRTypes::i16;
+		return V;
+	}
+	IRInstruction* New_UIntToUInt32(IRInstruction* Value)
+	{
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::UIntToUInt32, IROperator(Value))).get();
+		V->ObjectType = IRTypes::i32;
+		return V;
+	}
+	IRInstruction* New_UIntToUInt64(IRInstruction* Value)
+	{
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::UIntToUInt64, IROperator(Value))).get();
+		V->ObjectType = IRTypes::i64;
+		return V;
+	}
+
+	IRInstruction* New_SIntToSInt8(IRInstruction* Value)
+	{
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::SIntToSInt8, IROperator(Value))).get();
+		V->ObjectType = IRTypes::i8;
+		return V;
+	}
+	IRInstruction* New_SIntToSInt16(IRInstruction* Value)
+	{
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::SIntToSInt16, IROperator(Value))).get();
+		V->ObjectType = IRTypes::i16;
+		return V;
+	}
+	IRInstruction* New_SIntToSInt32(IRInstruction* Value)
+	{
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::SIntToSInt32, IROperator(Value))).get();
+		V->ObjectType = IRTypes::i32;
+		return V;
+	}
+	IRInstruction* New_SIntToSInt64(IRInstruction* Value)
+	{
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::SIntToSInt64, IROperator(Value))).get();
+		V->ObjectType = IRTypes::i64;
+		return V;
+	}
+
+
+	IRInstruction* New_UIntToSInt(IRInstruction* Value)
+	{
+		return Instructions.emplace_back(new IRInstruction(IRInstructionType::UIntToSInt, IROperator(Value))).get();
+	}
+	IRInstruction* New_SIntToUInt(IRInstruction* Value)
+	{
+		return Instructions.emplace_back(new IRInstruction(IRInstructionType::SIntToUInt, IROperator(Value))).get();
+	}
+
 
 	//struct
 	IRInstruction* New_Member_Access(IRInstruction* ObjectSrc,const IRStruct* ObjectTypeofSrc,size_t MemberIndex)

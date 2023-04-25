@@ -196,6 +196,18 @@ UCodeLangForceinline static void bitwise_Not##bitsize(Instruction& Out, Register
 	Out.Value0.AsRegister = reg;\
 	Out.Value1.AsRegister = out;\
 }\
+UCodeLangForceinline static void UInt##bitsize##To##SInt##bitsize(Instruction& Out, RegisterID reg, RegisterID out)\
+{\
+	Out.OpCode = InstructionSet::UInt##bitsizeToSInt##bitsize;\
+	Out.Value0.AsRegister = reg;\
+	Out.Value1.AsRegister = out;\
+}\
+UCodeLangForceinline static void SInt##bitsize##To##UInt##bitsize(Instruction& Out, RegisterID reg, RegisterID out)\
+{\
+	Out.OpCode = InstructionSet::SInt##bitsize##ToUInt##bitsiz;\
+	Out.Value0.AsRegister = reg;\
+	Out.Value1.AsRegister = out;\
+}\
 
 #define BuilderfloatSet(bitsize,CType,AnyIntValue) \
 UCodeLangForceinline static void Storef##bitsize(Instruction& Out, RegisterID reg, CType Value) \
@@ -300,7 +312,73 @@ public:
 	//float set 64
 	BuilderfloatSet(64, float64,Asfloat64)
 
-	
+	//Casting
+	UCodeLangForceinline static void Int8ToInt16(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+	{
+		Out.OpCode = InstructionSet::Int8ToInt16;
+		Out.Value0.AsRegister =Regin;
+		Out.Value1.AsRegister = Regout;
+	}
+	UCodeLangForceinline static void Int16ToInt32(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+	{
+		Out.OpCode = InstructionSet::Int16ToInt32;
+		Out.Value0.AsRegister = Regin;
+		Out.Value1.AsRegister = Regout;
+	}
+	UCodeLangForceinline static void Int32ToInt64(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+	{
+		Out.OpCode = InstructionSet::Int32ToInt64;
+		Out.Value0.AsRegister = Regin;
+		Out.Value1.AsRegister = Regout;
+	}
+
+	UCodeLangForceinline static void Int64ToInt32(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+	{
+		Out.OpCode = InstructionSet::Int64ToInt32;
+		Out.Value0.AsRegister = Regin;
+		Out.Value1.AsRegister = Regout;
+	}
+	UCodeLangForceinline static void Int32Int16(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+	{
+		Out.OpCode = InstructionSet::Int32ToInt16;
+		Out.Value0.AsRegister = Regin;
+		Out.Value1.AsRegister = Regout;
+	}
+	UCodeLangForceinline static void Int16ToInt8(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+	{
+		Out.OpCode = InstructionSet::Int16ToInt8;
+		Out.Value0.AsRegister = Regin;
+		Out.Value1.AsRegister = Regout;
+	}
+
+
+	UCodeLangForceinline static void float64ToInt64(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+	{
+		Out.OpCode = InstructionSet::float64ToInt64;
+		Out.Value0.AsRegister = Regin;
+		Out.Value1.AsRegister = Regout;
+	}
+	UCodeLangForceinline static void float32ToInt32(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+	{
+		Out.OpCode = InstructionSet::float32ToInt32;
+		Out.Value0.AsRegister = Regin;
+		Out.Value1.AsRegister = Regout;
+	}
+
+	UCodeLangForceinline static void Int64Tofloat64(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+	{
+		Out.OpCode = InstructionSet::float64ToInt64;
+		Out.Value0.AsRegister = Regin;
+		Out.Value1.AsRegister = Regout;
+	}
+	UCodeLangForceinline static void Int32Tofloat32(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+	{
+		Out.OpCode = InstructionSet::float32ToInt32;
+		Out.Value0.AsRegister = Regin;
+		Out.Value1.AsRegister = Regout;
+	}
+
+
 	//C funcs
 	UCodeLangForceinline static void GetPointerOfStack(Instruction& Out, RegisterID out,UAddress offset)
 	{

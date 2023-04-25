@@ -19,7 +19,8 @@ GetFromStackSub##bitsize,\
 Add##bitsize, Sub##bitsize, MultS##bitsize, MultU##bitsize, DivS##bitsize, DivU##bitsize,\
 LogicalAnd##bitsize, Logicalor##bitsize, LogicalNot##bitsize,\
 equalto##bitsize, notequalto##bitsize, lessthan##bitsize, greaterthan##bitsize, equal_lessthan##bitsize, equal_greaterthan##bitsize,\
-bitwiseAnd##bitsize, bitwiseOr##bitsize, bitwiseLeftShift##bitsize, bitwiseRightShift##bitsize, bitwiseXor##bitsize, bitwise_Not##bitsize,
+bitwiseAnd##bitsize, bitwiseOr##bitsize, bitwiseLeftShift##bitsize, bitwiseRightShift##bitsize, bitwiseXor##bitsize, bitwise_Not##bitsize,\
+UInt##bitsizeToSInt##bitsize,SInt##bitsize##ToUInt##bitsiz,\
 
 #define AddSetfloat(bitsize)\
 Store##bitsize##f,
@@ -47,6 +48,21 @@ enum class InstructionSet : InstructionSet_t
 	AddSetfloat(32)
 	//float 64
 	AddSetfloat(64)
+
+	//Casting
+	Int8ToInt16,
+	Int16ToInt32,
+	Int32ToInt64,
+
+	Int64ToInt32,
+	Int32ToInt16,
+	Int16ToInt8,
+
+	float32ToInt32,
+	float64ToInt64,
+
+	Int32Tofloat32,
+	Int64Tofloat64,
 
 	//Cpp func Set
 	GetPointerOfStack, GetPointerOfStackSub, GetPointerOfStaticMem,IncrementStackPointer, DecrementStackPointer,
