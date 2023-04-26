@@ -1190,6 +1190,8 @@ public:
 		}
 	};
 	
+	
+	//Helpers
 
 	void AddField(IRStruct* V, IRType Type)
 	{
@@ -1204,9 +1206,26 @@ public:
 	//pre backends
 	void Fix_Size(IRStruct* Struct);
 	//for backends
+
 	size_t GetSize(const IRType& Type)const;
 	size_t GetSize(const IRStruct* Struct) const;
 	size_t GetOffset(const IRStruct* Struct, size_t Index) const;
+
+	IRType GetType(const IRInstruction* IR) const
+	{
+		return IR->ObjectType;
+	}
+	IRType GetType(const IROperator& IR) const
+	{
+		switch (IR.Type)
+		{
+		case IROperatorType::IRInstruction:
+			return GetType(IR.Pointer);
+		default:
+			return {};
+			break;
+		}
+	}
 
 	bool IsTheSame(const IRType& Type0, const IRType& Type1)const
 	{

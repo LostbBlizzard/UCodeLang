@@ -72,5 +72,6 @@ size_t ParseHelper::ParseCharliteralToChar(String_view string, String& out)
 			return 0;
 		}
 	}
+	return 0;
 }
 UCodeLangEnd

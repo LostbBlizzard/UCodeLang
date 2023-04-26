@@ -703,7 +703,96 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		
 		}
 		break;
-		
+		case IRInstructionType::SIntToUInt:
+		{
+			RegisterID V = GetRegisterForTep();
+			RegisterID A = LoadOp(Item, Item.Target());
+			LockRegister(A);
+
+			switch (GetType(Item.Target())._Type)
+			{
+			case IRTypes::i8:InstructionBuilder::SInt8ToUInt8(_Ins, A, V); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::SInt16ToUInt16(_Ins, A, V); PushIns(); break;
+			bit32label44:
+			case IRTypes::i32:InstructionBuilder::SInt32ToUInt32(_Ins, A, V); PushIns(); break;
+
+			bit64label44:
+			case IRTypes::i64:InstructionBuilder::SInt64ToUInt64(_Ins, A, V); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					goto bit32label44;
+				}
+				else
+				{
+					goto bit64label44;
+				}
+				break;
+			default:
+				throw std::exception("not added");
+				break;
+			}
+
+			UnLockRegister(A);
+			GiveNameToReg(V, &Item);
+		}
+		break;
+		case IRInstructionType::UIntToSInt:
+		{
+			RegisterID V = GetRegisterForTep();
+			RegisterID A = LoadOp(Item, Item.Target());
+			LockRegister(A);
+
+			switch (GetType(Item.Target())._Type)
+			{
+			case IRTypes::i8:InstructionBuilder::UInt8ToSInt8(_Ins, A, V); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::UInt16ToSInt16(_Ins, A, V); PushIns(); break;
+			bit32label9:
+			case IRTypes::i32:InstructionBuilder::UInt32ToSInt32(_Ins, A, V); PushIns(); break;
+
+			bit64label9:
+			case IRTypes::i64:InstructionBuilder::UInt64ToSInt64(_Ins, A, V); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					goto bit32label9;
+				}
+				else
+				{
+					goto bit64label9;
+				}
+				break;
+			default:
+				throw std::exception("not added");
+				break;
+			}
+
+			UnLockRegister(A);
+			GiveNameToReg(V, &Item);
+		}
+		break;
+		case IRInstructionType::SIntToSInt8:
+		{
+			BuildSIntToIntCast(Item, Item.Target(), 1);
+		}
+		break;
+		case IRInstructionType::SIntToSInt16:
+		{
+			BuildSIntToIntCast(Item, Item.Target(), 2);
+		}
+		break;
+		case IRInstructionType::SIntToSInt32:
+		{
+			BuildSIntToIntCast(Item, Item.Target(), 4);
+		}
+		break;
+		case IRInstructionType::SIntToSInt64:
+		{
+			BuildSIntToIntCast(Item, Item.Target(), 8);
+		}
+		break;
 		default:
 			throw std::exception("not added");
 			break;
@@ -840,7 +929,7 @@ UCodeBackEndObject::FuncCallEndData  UCodeBackEndObject::FuncCallStart(const Vec
 			}
 			else
 			{
-				Item.Inuse == RegistersManager::RegisterInUse::NotInUse;
+				Item.Inuse = RegistersManager::RegisterInUse::NotInUse;
 			}
 
 		}
@@ -1048,6 +1137,36 @@ RegisterID  UCodeBackEndObject::ReadValueFromPointer(const IRType& ObjectType, R
 		break;
 	}
 	return Out;
+}
+inline void UCodeBackEndObject::BuildSIntToIntCast(const IRInstruction& Ins, const IROperator& Op, size_t IntSize)
+{
+	RegisterID V = GetRegisterForTep();
+	RegisterID A = LoadOp(Ins, Op);
+	LockRegister(A);
+
+	size_t ItemSize = _Input->GetSize(GetType(Op));
+
+
+	while (ItemSize != IntSize)
+	{
+		if (ItemSize > IntSize)//cast down
+		{
+			switch (ItemSize)
+			{
+			case 1:
+			default:break;
+			}
+		}
+		else//cast up
+		{
+
+		}
+
+
+	}
+
+	UnLockRegister(A);
+	GiveNameToReg(V, &Ins);
 }
 RegisterID UCodeBackEndObject::LoadOp(const IRInstruction& Ins, const  IROperator& Op)
 {
