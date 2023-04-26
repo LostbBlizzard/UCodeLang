@@ -204,7 +204,7 @@ UCodeLangForceinline static void UInt##bitsize##To##SInt##bitsize(Instruction& O
 }\
 UCodeLangForceinline static void SInt##bitsize##To##UInt##bitsize(Instruction& Out, RegisterID reg, RegisterID out)\
 {\
-	Out.OpCode = InstructionSet::SInt##bitsize##ToUInt##bitsiz;\
+	Out.OpCode = InstructionSet::SInt##bitsize##ToUInt##bitsize;\
 	Out.Value0.AsRegister = reg;\
 	Out.Value1.AsRegister = out;\
 }\

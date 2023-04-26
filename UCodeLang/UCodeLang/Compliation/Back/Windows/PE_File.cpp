@@ -48,6 +48,8 @@ bool PE_File::FromBytes(BytesView Bits, PE_File* Out)
 
 	}
 	BitConverter::InputOutEndian = OldOutEndian;
+
+	return true;
 }
 
 bool PE_File::ToFile(const PE_File* Lib, const Path& path)

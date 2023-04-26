@@ -192,7 +192,11 @@ private:
 	void RegWillBeUsed(RegisterID Value);
 	IRType GetType(const IRInstruction* IR)
 	{
-		return IR->ObjectType;
+		return _Input->GetType(IR);
+	}
+	IRType GetType(const IROperator& IR)
+	{
+		return _Input->GetType(IR);
 	}
 
 
@@ -231,6 +235,8 @@ private:
 	void StoreValueInPointer(const IRType& ObjectType, RegisterID Pointer, const  IROperator& Value, IRInstruction& Ins);
 	void StoreValueInPointer(const IRType& ObjectType, RegisterID Pointer, RegisterID Value);
 	RegisterID ReadValueFromPointer(const IRType& ObjectType, RegisterID Pointer);
+
+	void BuildSIntToIntCast(const IRInstruction& Item, const IROperator& Op, size_t IntSize);
 
 	struct  FuncCallEndData
 	{
