@@ -220,7 +220,12 @@ case InstructionSet::bitwiseXor##Bits:\
 case InstructionSet::bitwise_Not##Bits:\
 	Get_Register(Inst.Value1.AsRegister).Value.##unsignedAnyIntValue = ~Get_Register(Inst.Value0.AsRegister).Value.##unsignedAnyIntValue;\
 	break;\
-
+case InstructionSet::UInt##Bits##To##SInt##Bits:\
+	Get_Register(Inst.Value1.AsRegister).Value.##signedAnyIntValue = Get_Register(Inst.Value0.AsRegister).Value.##unsignedAnyIntValue;\
+	break;\
+case InstructionSet::SInt##Bits##ToUInt##Bits:\
+	Get_Register(Inst.Value1.AsRegister).Value.##unsignedAnyIntValue = Get_Register(Inst.Value0.AsRegister).Value.##signedAnyIntValue;\
+	break;\
 
 
 
@@ -276,6 +281,46 @@ void Interpreter::Extecute(Instruction& Inst)
 	
 	floatSet(32,float32,Asfloat32)
 	floatSet(64, float64,Asfloat64)
+
+
+	//Cast Set
+	case InstructionSet::Int8ToInt16:
+		Get_Register(Inst.Value1.AsRegister).Value = (Int16)Get_Register(Inst.Value0.AsRegister).Value.AsInt8;
+		break;
+	case InstructionSet::Int16ToInt32:
+		Get_Register(Inst.Value1.AsRegister).Value = (Int32)Get_Register(Inst.Value0.AsRegister).Value.AsInt16;
+		break;
+	case InstructionSet::Int32ToInt64:
+		Get_Register(Inst.Value1.AsRegister).Value = (Int64)Get_Register(Inst.Value0.AsRegister).Value.AsInt32;
+		break;
+
+	case InstructionSet::Int64ToInt32:
+		Get_Register(Inst.Value1.AsRegister).Value = (Int32)Get_Register(Inst.Value0.AsRegister).Value.AsInt64;
+		break;
+
+	case InstructionSet::Int32ToInt16:
+		Get_Register(Inst.Value1.AsRegister).Value = (Int16)Get_Register(Inst.Value0.AsRegister).Value.AsInt32;
+		break;
+
+	case InstructionSet::Int16ToInt8:
+		Get_Register(Inst.Value1.AsRegister).Value = (Int8)Get_Register(Inst.Value0.AsRegister).Value.AsInt16;
+		break;
+
+	case InstructionSet::float32ToInt32:
+		Get_Register(Inst.Value1.AsRegister).Value = (float32)Get_Register(Inst.Value0.AsRegister).Value.AsInt32;
+		break;
+
+	case InstructionSet::float64ToInt64:
+		Get_Register(Inst.Value1.AsRegister).Value = (float64)Get_Register(Inst.Value0.AsRegister).Value.AsInt64;
+		break;
+
+	case InstructionSet::Int32Tofloat32:
+		Get_Register(Inst.Value1.AsRegister).Value = (Int32)Get_Register(Inst.Value0.AsRegister).Value.Asfloat32;
+		break;
+
+	case InstructionSet::Int64Tofloat64:
+		Get_Register(Inst.Value1.AsRegister).Value = (Int64)Get_Register(Inst.Value0.AsRegister).Value.Asfloat64;
+		break;
 
 	#pragma region Cpp func Set
 	case InstructionSet::GetPointerOfStack:

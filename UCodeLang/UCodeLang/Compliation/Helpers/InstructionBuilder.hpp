@@ -198,7 +198,7 @@ UCodeLangForceinline static void bitwise_Not##bitsize(Instruction& Out, Register
 }\
 UCodeLangForceinline static void UInt##bitsize##To##SInt##bitsize(Instruction& Out, RegisterID reg, RegisterID out)\
 {\
-	Out.OpCode = InstructionSet::UInt##bitsizeToSInt##bitsize;\
+	Out.OpCode = InstructionSet::UInt##bitsize##ToSInt##bitsize;\
 	Out.Value0.AsRegister = reg;\
 	Out.Value1.AsRegister = out;\
 }\

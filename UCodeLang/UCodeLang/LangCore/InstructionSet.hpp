@@ -20,7 +20,7 @@ Add##bitsize, Sub##bitsize, MultS##bitsize, MultU##bitsize, DivS##bitsize, DivU#
 LogicalAnd##bitsize, Logicalor##bitsize, LogicalNot##bitsize,\
 equalto##bitsize, notequalto##bitsize, lessthan##bitsize, greaterthan##bitsize, equal_lessthan##bitsize, equal_greaterthan##bitsize,\
 bitwiseAnd##bitsize, bitwiseOr##bitsize, bitwiseLeftShift##bitsize, bitwiseRightShift##bitsize, bitwiseXor##bitsize, bitwise_Not##bitsize,\
-UInt##bitsizeToSInt##bitsize,SInt##bitsize##ToUInt##bitsiz,\
+UInt##bitsize##ToSInt##bitsize,SInt##bitsize##ToUInt##bitsize,\
 
 #define AddSetfloat(bitsize)\
 Store##bitsize##f,
@@ -49,7 +49,7 @@ enum class InstructionSet : InstructionSet_t
 	//float 64
 	AddSetfloat(64)
 
-	//Casting
+	//Casting Set
 	Int8ToInt16,
 	Int16ToInt32,
 	Int32ToInt64,
