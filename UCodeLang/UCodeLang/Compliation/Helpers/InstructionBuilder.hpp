@@ -338,7 +338,7 @@ public:
 		Out.Value0.AsRegister = Regin;
 		Out.Value1.AsRegister = Regout;
 	}
-	UCodeLangForceinline static void Int32Int16(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+	UCodeLangForceinline static void Int32ToInt16(Instruction& Out, RegisterID Regin, RegisterID  Regout)
 	{
 		Out.OpCode = InstructionSet::Int32ToInt16;
 		Out.Value0.AsRegister = Regin;

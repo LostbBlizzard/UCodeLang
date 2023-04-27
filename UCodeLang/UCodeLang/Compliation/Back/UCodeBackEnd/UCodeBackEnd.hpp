@@ -237,6 +237,7 @@ private:
 	RegisterID ReadValueFromPointer(const IRType& ObjectType, RegisterID Pointer);
 
 	void BuildSIntToIntCast(const IRInstruction& Item, const IROperator& Op, size_t IntSize);
+	void BuildUIntToIntCast(const IRInstruction& Item, const IROperator& Op, size_t IntSize);
 
 	struct  FuncCallEndData
 	{

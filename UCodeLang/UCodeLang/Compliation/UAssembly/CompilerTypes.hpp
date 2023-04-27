@@ -113,6 +113,9 @@ AddMapValueValue(StoreRegToPtr##bitsize, InstructionSet::StoreRegToPtr##bitsize,
 AddMapValueValue(LogicalNot##bitsize, InstructionSet::LogicalNot##bitsize, OpCodeType::Register, OpCodeType::Register), \
 AddMapValueValue(equalto##bitsize,InstructionSet::equalto##bitsize,OpCodeType::Register, OpCodeType::Register),\
 AddMapValueValue(StoreFromPtrToReg##bitsize,InstructionSet::StoreFromPtrToReg##bitsize,OpCodeType::Register, OpCodeType::Register),\
+AddMapValueValue(UInt##bitsize##ToSInt##bitsize,InstructionSet::UInt##bitsize##ToSInt##bitsize,OpCodeType::Register, OpCodeType::Register),\
+AddMapValueValue(SInt##bitsize##ToUInt##bitsize,InstructionSet::SInt##bitsize##ToUInt##bitsize,OpCodeType::Register, OpCodeType::Register),\
+
 
 #define MapValuefloatSet(bitsize)\
 AddMapValueValue(Store##bitsize##f, InstructionSet::Store##bitsize##f, OpCodeType::Register, OpCodeType::Anyfloat##bitsize),\
@@ -141,6 +144,20 @@ static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 
 	MapValuefloatSet(64)
 
+	AddMapValueValue(Int8ToInt16,InstructionSet::Int8ToInt16,OpCodeType::Register,OpCodeType::Register),
+	AddMapValueValue(Int16ToInt32,InstructionSet::Int16ToInt32,OpCodeType::Register,OpCodeType::Register),
+	AddMapValueValue(Int32ToInt64,InstructionSet::Int32ToInt64,OpCodeType::Register,OpCodeType::Register),
+
+	AddMapValueValue(Int64ToInt32,InstructionSet::Int8ToInt16,OpCodeType::Register,OpCodeType::Register),
+	AddMapValueValue(Int32ToInt16,InstructionSet::Int16ToInt32,OpCodeType::Register,OpCodeType::Register),
+	AddMapValueValue(Int16ToInt8,InstructionSet::Int16ToInt8,OpCodeType::Register,OpCodeType::Register),
+
+	AddMapValueValue(float32ToInt32,InstructionSet::float32ToInt32,OpCodeType::Register,OpCodeType::Register),
+	AddMapValueValue(float64ToInt64,InstructionSet::float64ToInt64,OpCodeType::Register,OpCodeType::Register),
+
+	AddMapValueValue(Int32Tofloat32,InstructionSet::Int32Tofloat32,OpCodeType::Register,OpCodeType::Register),
+	AddMapValueValue(Int64Tofloat64,InstructionSet::Int64Tofloat64,OpCodeType::Register,OpCodeType::Register),
+
 	AddMapValueValue(Malloc,InstructionSet::Malloc,OpCodeType::Register,OpCodeType::Register),
 	AddMapValueValue(Free,InstructionSet::Free,OpCodeType::Register,OpCodeType::NoOpCode),
 	AddMapValueValue(LoadFuncPtr,InstructionSet::LoadFuncPtr,OpCodeType::InsAddress,OpCodeType::Register),
@@ -153,7 +170,7 @@ static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 	AddMapValueValue(Call_Code,InstructionSet::Call_Code,OpCodeType::UIntPtr,OpCodeType::NoOpCode),
 
 	AddMapValueValue(CppCallNamed,InstructionSet::CppCallNamed,OpCodeType::StaticCString,OpCodeType::NoOpCode),
-AddMapValueValue(SysCall,InstructionSet::SysCall,OpCodeType::AnyInt64,OpCodeType::Register),
+	AddMapValueValue(SysCall,InstructionSet::SysCall,OpCodeType::AnyInt64,OpCodeType::Register),
 };
 
 static inline Unordered_map<InstructionSet, const InsMapValue*> InsToInsMapValue;
