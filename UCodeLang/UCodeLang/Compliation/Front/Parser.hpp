@@ -47,6 +47,17 @@ private:
 	bool _ParseSuccess = false;
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
+	Stack<AccessModifierType> _AccessModifier;
+
+	void AccessStart()
+	{
+		_AccessModifier.push(AccessModifierType::Default);
+	}
+
+	void AccessEnd()
+	{
+		_AccessModifier.pop();
+	}
 
 	size_t TopScope = 0;
 	void SetNotTopScope()
@@ -123,6 +134,8 @@ private:
 	}
 	GotNodeType GetClassTypeNode(Node*& out);
 	GotNodeType DoClassType(ClassNode* output, const Token* ClassToken, GenericValuesNode& TepGenerics, const Token* ColonToken);
+	void ClassTypeAccessModifierInerScope(Vector<Unique_ptr<Node>>& Out);
+	
 	TryGetNode GetFuncNode()
 	{
 		FuncNode* V = FuncNode::Gen();
@@ -433,6 +446,7 @@ private:
 	}
 	GotNodeType GetTraitNode(TraitNode& out);
 
+	void TraitAccessModifierInerScope(Vector< Unique_ptr<Node>>& Out);
 
 	TryGetNode GetBitCastExpression()
 	{
@@ -452,6 +466,13 @@ private:
 		return { r,V->As() };
 	}
 	GotNodeType GetPanicNode(PanicNode& out);
+
+	AccessModifierType GetModifier()
+	{
+		return _AccessModifier.size() ? _AccessModifier.top() : AccessModifierType::Default;
+	}
+
+		
 };
 UCodeLangFrontEnd
 

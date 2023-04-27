@@ -57,7 +57,9 @@ inline const char* S_KeyWord_while  = "while";
 inline const char* S_KeyWord_for = "for";
 inline const char* S_KeyWord_do = "do";
 
-inline const char* S_KeyWord_pub = "pub";
+inline const char* S_KeyWord_public = "public";
+inline const char* S_KeyWord_private = "private";
+
 inline const char* S_KeyWord_enum = "enum";
 inline const char* S_KeyWord_tag = "tag";
 
@@ -139,7 +141,9 @@ inline KeyWord KeyWords[] =
 	KeyWord(S_KeyWord_for,TokenType::KeyWord_for),
 	KeyWord(S_KeyWord_do,TokenType::KeyWord_do),
 
-	KeyWord(S_KeyWord_pub,TokenType::KeyWorld_pub),
+	KeyWord(S_KeyWord_public,TokenType::KeyWorld_public),
+	KeyWord(S_KeyWord_private,TokenType::KeyWorld_private),
+
 	KeyWord(S_KeyWord_typeof,TokenType::KeyWorld_typeof),
 
 	KeyWord(S_KeyWord_enum,TokenType::KeyWord_Enum),
