@@ -98,7 +98,8 @@ enum class TokenType : TokenType_t
 	KeyWord_do,//do
 
 
-	KeyWorld_pub,//pub
+	KeyWorld_public,//public
+	KeyWorld_private,//private
 	KeyWorld_typeof,//typeof
 	hash,//#
 
@@ -234,7 +235,9 @@ public:
 		case TokenType::KeyWord_uintptr: return "uintptr";
 		case TokenType::KeyWord_sintptr: return "sintptr";
 
-		case TokenType::KeyWorld_pub: return "pub";
+		case TokenType::KeyWorld_public: return "public";
+		case TokenType::KeyWorld_private: return "private";
+
 		case TokenType::KeyWorld_typeof: return "typeof";
 
 		case TokenType::hash: return "#";

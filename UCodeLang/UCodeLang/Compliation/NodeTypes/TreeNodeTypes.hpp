@@ -5,6 +5,14 @@
 #include "../Front/UCodeFrontEndNameSpace.hpp"
 UCodeLangFrontStart
 
+enum class AccessModifierType
+{
+	Public,
+	Private,
+
+	Default = Public,
+};
+
 struct StringliteralNode :Node
 {
 	StringliteralNode() :Node(NodeType::StringliteralNode)
@@ -254,6 +262,7 @@ struct ClassNode :Node
 	NameNode ClassName;
 	GenericValuesNode Generic;
 	InheritedTypeData Inherited;
+	AccessModifierType Access = AccessModifierType::Default;
 };
 
 
@@ -451,6 +460,8 @@ struct AttributeNode :Node
 
 	ScopedNameNode ScopedName;
 	ValueParametersNode Parameters;
+
+	AccessModifierType Access = AccessModifierType::Default;
 };
 struct StatementsNode :Node
 {
@@ -468,6 +479,7 @@ struct FuncSignatureNode :Node
 	GenericValuesNode Generic;
 	NamedParametersNode Parameters;
 	TypeNode ReturnType;
+	AccessModifierType Access = AccessModifierType::Default;
 };
 struct FuncBodyNode :Node
 {
@@ -623,6 +635,8 @@ struct DeclareVariableNode :Node
 	TypeNode Type;
 	NameNode Name;
 	ExpressionNodeType Expression;
+	AccessModifierType Access = AccessModifierType::Default;
+
 	DeclareVariableNode(DeclareVariableNode&& source) = default;
 	DeclareVariableNode& operator=(DeclareVariableNode&& source) = default;
 };
@@ -680,6 +694,8 @@ struct AliasNode :Node
 	
 	AliasType _Type = AliasType::Type;
 	Unique_ptr<Node> _Node;
+
+	AccessModifierType Access = AccessModifierType::Default;
 };
 
 
@@ -1004,6 +1020,7 @@ struct TraitNode :Node
 
 	}
 	NameNode _Name;
+	AccessModifierType Access = AccessModifierType::Default;
 	AddforNodeAndWithList(TraitNode);
 
 };
