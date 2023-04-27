@@ -336,7 +336,7 @@ GotNodeType Parser::DoClassType(ClassNode* output, const Token* ClassToken, Gene
 
 			ClassTypeAccessModifierInerScope(output->_Nodes);
 
-			TokenTypeCheck(TryGetToken(), TokenType::EndTab); NextToken();
+			TokenTypeCheck(TryGetToken(), TokenType::EndTab); NextToken(); continue;
 		};
 		break;
 		case TokenType::KeyWorld_private:
@@ -347,7 +347,7 @@ GotNodeType Parser::DoClassType(ClassNode* output, const Token* ClassToken, Gene
 
 			ClassTypeAccessModifierInerScope(output->_Nodes);
 
-			TokenTypeCheck(TryGetToken(), TokenType::EndTab); NextToken();
+			TokenTypeCheck(TryGetToken(), TokenType::EndTab); NextToken(); continue;
 		};
 		break;
 		default:V = GetDeclareVariable();
@@ -360,9 +360,10 @@ GotNodeType Parser::DoClassType(ClassNode* output, const Token* ClassToken, Gene
 		else { break; }
 		if (V.GotNode != GotNodeType::Success) { break; }
 	}
-	AccessEnd();
+	
 
 EndLoop:
+	AccessEnd();
 	auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::EndTab);
 	NextToken();
 
@@ -390,8 +391,14 @@ void Parser::ClassTypeAccessModifierInerScope(Vector<Unique_ptr<Node>>& Out)
 		case TokenType::KeyWord_trait:V = GetTraitNode(); break;
 		default:V = GetDeclareVariable();
 		}
+
+		if (V.Node)
+		{
+			Out.push_back(Unique_ptr<Node>(V.Node));
+		}
 	}
 EndLoop:
+	return;
 }
 GotNodeType Parser::GetStatementsorStatementNode(StatementsNode& out)
 {
@@ -2684,9 +2691,10 @@ GotNodeType Parser::GetTraitNode(TraitNode& out)
 			out._Nodes.push_back(Unique_ptr<Node>(V.Node));
 		}
 	}
-	AccessEnd();
+	
 
 EndLoop:
+	AccessEnd();
 	auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::EndTab);
 	NextToken();
 
@@ -2712,6 +2720,7 @@ void  Parser::TraitAccessModifierInerScope(Vector< Unique_ptr<Node>>& Out)
 		}
 	}
 EndLoop:
+	return;
 }
 GotNodeType Parser::GetBitCastExpression(BitCastExpression& out)
 {
