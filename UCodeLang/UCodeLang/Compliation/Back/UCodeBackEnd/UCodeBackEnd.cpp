@@ -793,6 +793,26 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			BuildSIntToIntCast(Item, Item.Target(), 8);
 		}
 		break;
+		case IRInstructionType::UIntToUInt8:
+		{
+			BuildSIntToIntCast(Item, Item.Target(), 1);
+		}
+		break;
+		case IRInstructionType::UIntToUInt16:
+		{
+			BuildSIntToIntCast(Item, Item.Target(), 2);
+		}
+		break;
+		case IRInstructionType::UIntToUInt32:
+		{
+			BuildSIntToIntCast(Item, Item.Target(), 4);
+		}
+		break;
+		case IRInstructionType::UIntToUInt64:
+		{
+			BuildSIntToIntCast(Item, Item.Target(), 8);
+		}
+		break;
 		default:
 			throw std::exception("not added");
 			break;
@@ -1138,7 +1158,7 @@ RegisterID  UCodeBackEndObject::ReadValueFromPointer(const IRType& ObjectType, R
 	}
 	return Out;
 }
-inline void UCodeBackEndObject::BuildSIntToIntCast(const IRInstruction& Ins, const IROperator& Op, size_t IntSize)
+void UCodeBackEndObject::BuildUIntToIntCast(const IRInstruction& Ins, const IROperator& Op, size_t IntSize)
 {
 	RegisterID V = GetRegisterForTep();
 	RegisterID A = LoadOp(Ins, Op);
@@ -1153,13 +1173,23 @@ inline void UCodeBackEndObject::BuildSIntToIntCast(const IRInstruction& Ins, con
 		{
 			switch (ItemSize)
 			{
-			case 1:
+			case 2:InstructionBuilder::Int16ToInt8(_Ins, A, V); PushIns(); ItemSize = 1; break;
+			case 4:InstructionBuilder::Int32ToInt16(_Ins, A, V); PushIns(); ItemSize = 2; break;
+			case 8:InstructionBuilder::Int64ToInt32(_Ins, A, V); PushIns(); ItemSize = 4; break;
 			default:break;
 			}
+			A = V;
 		}
 		else//cast up
 		{
-
+			switch (ItemSize)
+			{
+			case 1:InstructionBuilder::Int8ToInt16(_Ins, A, V); PushIns(); ItemSize = 2; break;
+			case 2:InstructionBuilder::Int16ToInt32(_Ins, A, V); PushIns(); ItemSize = 4; break;
+			case 4:InstructionBuilder::Int32ToInt64(_Ins, A, V); PushIns(); ItemSize = 8; break;
+			default:break;
+			}
+			A = V;
 		}
 
 
@@ -1167,6 +1197,10 @@ inline void UCodeBackEndObject::BuildSIntToIntCast(const IRInstruction& Ins, con
 
 	UnLockRegister(A);
 	GiveNameToReg(V, &Ins);
+}
+void UCodeBackEndObject::BuildSIntToIntCast(const IRInstruction& Ins, const IROperator& Op, size_t IntSize)
+{
+	BuildUIntToIntCast(Ins, Op, IntSize);
 }
 RegisterID UCodeBackEndObject::LoadOp(const IRInstruction& Ins, const  IROperator& Op)
 {
