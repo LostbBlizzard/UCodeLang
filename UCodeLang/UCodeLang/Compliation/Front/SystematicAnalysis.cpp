@@ -145,10 +145,10 @@ void SystematicAnalysis::AddDependencyToCurrentFile(const FileNode* file)
 void SystematicAnalysis::AddDependencyToCurrentFile(const TypeSymbol& type)
 {
 }
-Symbol& SystematicAnalysis::AddSybol(SymbolType type, const String& Name, const String& FullName)
+Symbol& SystematicAnalysis::AddSybol(SymbolType type, const String& Name, const String& FullName,AccessModifierType Access)
 {
 
-	auto& r = _Table.AddSybol(type, Name, FullName);
+	auto& r = _Table.AddSybol(type, Name, FullName,Access);
 	r._File = LookingAtFile;
 	return r;
 }
@@ -171,7 +171,7 @@ void SystematicAnalysis::OnNamespace(const NamespaceNode& node)
 	{
 		if (!GetSymbol(String_view(Namespace),SymbolType::Namespace))
 		{
-			AddSybol(SymbolType::Namespace, Namespace, _Table._Scope.ThisScope);
+			AddSybol(SymbolType::Namespace, Namespace, _Table._Scope.ThisScope,AccessModifierType::Public);
 		}
 	}
 
@@ -266,7 +266,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 
 	auto& Syb = passtype == PassType::GetTypes ?
 		AddSybol(Isgeneric_t ? SymbolType::Generic_class : SymbolType::Type_class
-			, (String)ClassName, _Table._Scope.ThisScope) :
+			, (String)ClassName, _Table._Scope.ThisScope,Node.Access) :
 		*GetSymbol(SybID);
 
 
@@ -293,7 +293,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 
 			auto GenericTypeName = Item.AsString();
 			auto GenericType = &AddSybol(SymbolType::Type_alias, GenericTypeName,
-				_Table._Scope.GetApendedString(GenericTypeName));
+				_Table._Scope.GetApendedString(GenericTypeName),Node.Access);
 
 
 
@@ -437,7 +437,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 		
 			if (HasDefaultConstructor == false)
 			{
-				auto DropFunc = &AddSybol(SymbolType::Func,ClassConstructorfunc, _Table._Scope.GetApendedString((String)ClassConstructorfunc));
+				auto DropFunc = &AddSybol(SymbolType::Func,ClassConstructorfunc, _Table._Scope.GetApendedString((String)ClassConstructorfunc),AccessModifierType::Public);
 				FuncInfo* V = new FuncInfo();
 				DropFunc->Info.reset(V);
 
@@ -666,7 +666,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 	}
 
 	auto& Syb = passtype == PassType::GetTypes ?
-		AddSybol(node.IsHardAlias ? SymbolType::Hard_Type_alias : SymbolType::Type_alias, (String)ClassName, _Table._Scope.ThisScope) :
+		AddSybol(node.IsHardAlias ? SymbolType::Hard_Type_alias : SymbolType::Type_alias, (String)ClassName, _Table._Scope.ThisScope,node.Access) :
 		*GetSymbol(SybID);
 
 	if (passtype == PassType::GetTypes)
@@ -786,7 +786,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 
 
-		syb = &AddSybol(Type, (String)FuncName, FullName);
+		syb = &AddSybol(Type, (String)FuncName, FullName,node.Signature.Access);
 		syb->NodePtr = (void*)&node;//the node will not get update anyway.
 		_Table.AddSymbolID(*syb, sybId);
 
@@ -806,7 +806,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			auto GenericTypeName = Item.AsString();
 			auto GenericType = &AddSybol(SymbolType::Type_alias, GenericTypeName,
 				_Table._Scope.GetApendedString(GenericTypeName)
-			);
+			,node.Signature.Access);
 
 			if (IsgenericInstantiation)
 			{
@@ -841,7 +841,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 
 				SymbolID AnonymousSybID = (SymbolID)RetType.get();
-				auto& AnonymousSyb = AddSybol(SymbolType::Type_class, (String)NewName, NewName);
+				auto& AnonymousSyb = AddSybol(SymbolType::Type_class, (String)NewName, NewName,node.Signature.Access);
 
 				_Table.AddSymbolID(AnonymousSyb, AnonymousSybID);
 
@@ -883,7 +883,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 			auto GenericType = &AddSybol(SymbolType::ParameterVarable, (String)GenericTypeName,
 				_Table._Scope.GetApendedString(GenericTypeName)
-			);
+			,node.Signature.Access);
 			auto ParSybID = (SymbolID)&Item;
 			_Table.AddSymbolID(*GenericType, ParSybID);
 
@@ -1398,7 +1398,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 		DoSymbolRedefinitionCheck(FullName, SymbolType::StackVarable, node.Name);
 
 
-		syb = &AddSybol(SymbolType::StackVarable, (String)StrVarName, FullName);
+		syb = &AddSybol(SymbolType::StackVarable, (String)StrVarName, FullName,AccessModifierType::Public);
 		_Table.AddSymbolID(*syb, sybId);
 
 
@@ -1848,7 +1848,7 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 	{
 		_Table.AddScope(LambdaName);
 
-		auto& LambdaSym = AddSybol(SymbolType::LambdaObject, LambdaName, _Table._Scope.ThisScope);
+		auto& LambdaSym = AddSybol(SymbolType::LambdaObject, LambdaName, _Table._Scope.ThisScope, AccessModifierType::Public);
 		_Table.AddSymbolID(LambdaSym, (SymbolID)&node);
 		LambdaSym.Info =Unique_ptr<LambdaInfo>(new LambdaInfo());
 
@@ -1856,7 +1856,7 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 		for (auto& Item : node.Pars.Parameters)
 		{
 			auto& Sym = AddSybol(SymbolType::ParameterVarable, Item.Name.AsString()
-				, _Table._Scope.ScopeHelper::GetApendedString(Item.Name.AsStringView()));
+				, _Table._Scope.ScopeHelper::GetApendedString(Item.Name.AsStringView()),AccessModifierType::Public);
 
 			_Table.AddSymbolID(Sym, (SymbolID)&Item);
 		}
@@ -2079,7 +2079,7 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 			const String LambdaClassName = LambdaName + "class";
 			String FullName = _Table._Scope.ThisScope;
 			ScopeHelper::GetApendedString(FullName, LambdaClassName);
-			auto& SymClass = AddSybol(SymbolType::Type_class, LambdaClassName, FullName);
+			auto& SymClass = AddSybol(SymbolType::Type_class, LambdaClassName, FullName,AccessModifierType::Public);
 		
 			const SymbolID ClassSymID = (SymbolID)&node._Capture;
 
@@ -2128,7 +2128,7 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 
 				TepFuninfo.FullName = funcFullName;
 
-				auto& SymClass = AddSybol(SymbolType::Func,Overload_Invoke_Func, funcFullName);
+				auto& SymClass = AddSybol(SymbolType::Func,Overload_Invoke_Func, funcFullName,AccessModifierType::Public);
 				SymClass.Info =Unique_ptr<FuncInfo>(new FuncInfo(std::move(TepFuninfo)));
 				SymClass.PassState = passtype;
 
@@ -2208,7 +2208,7 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 				{
 					auto FullName = _Table._Scope.ThisScope;
 					ScopeHelper::GetApendedString(FullName, Item.Name);
-					auto& Sym = AddSybol(SymbolType::Class_Field, Item.Name, FullName);//to make a this indirection.
+					auto& Sym = AddSybol(SymbolType::Class_Field, Item.Name, FullName,AccessModifierType::Public);//to make a this indirection.
 					Sym.VarType = Item.Type;
 				}
 			}
@@ -2365,7 +2365,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 
 	auto& Syb = passtype == PassType::GetTypes ?
 		AddSybol(SymbolType::Trait_class
-			, (String)ClassName, _Table._Scope.ThisScope) :
+			, (String)ClassName, _Table._Scope.ThisScope,node.Access) :
 		*GetSymbol(sybId);
 
 	if (passtype == PassType::GetTypes)
@@ -2378,7 +2378,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 
 
 		auto& SybClass = AddSybol(SymbolType::Type_class
-			, (String)ClassName + "%Class", _Table._Scope.ThisScope + "%Class");
+			, (String)ClassName + "%Class", _Table._Scope.ThisScope + "%Class",node.Access);
 		_Table.AddSymbolID(SybClass, (SymbolID)&node._Name);
 
 		auto TepClass = new ClassInfo();
@@ -2432,7 +2432,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 			ScopeHelper::GetApendedString(FuncDropFunc, ClassDestructorFunc);
 
 			TraitFunc _Func;
-			_Func.Syb =&AddSybol(SymbolType::Func,ClassDestructorFunc, FuncDropFunc);
+			_Func.Syb =&AddSybol(SymbolType::Func,ClassDestructorFunc, FuncDropFunc,AccessModifierType::Public);
 			
 			FuncInfo* Funcinfo = new FuncInfo();
 			_Func.Syb->Info.reset(Funcinfo);
@@ -2515,7 +2515,7 @@ void SystematicAnalysis::OnTag(const TagTypeNode& node)
 
 	auto& Syb = passtype == PassType::GetTypes ?
 		AddSybol(SymbolType::Tag_class
-			, (String)ClassName, _Table._Scope.ThisScope) :
+			, (String)ClassName, _Table._Scope.ThisScope,node.Access) :
 		*GetSymbol(sybId);
 
 	if (passtype == PassType::GetTypes)
@@ -2792,7 +2792,7 @@ Symbol* SystematicAnalysis::NewDropFuncSymbol(ClassInfo* ClassInfo, TypeSymbol& 
 	String FullName = ClassInfo->FullName;
 	ScopeHelper::GetApendedString(FullName, (String)ClassDestructorFunc);
 
-	auto DropFunc = &AddSybol(SymbolType::Func, ClassDestructorFunc, FullName);
+	auto DropFunc = &AddSybol(SymbolType::Func, ClassDestructorFunc, FullName,AccessModifierType::Public);
 	FuncInfo* V = new FuncInfo();
 	DropFunc->Info.reset(V);
 
@@ -3316,7 +3316,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 
 	auto& Syb = passtype == PassType::GetTypes ?
 		AddSybol(SymbolType::Enum
-			, (String)ClassName, _Table._Scope.ThisScope) :
+			, (String)ClassName, _Table._Scope.ThisScope,node.Access) :
 		*GetSymbol(SybID);
 
 	EnumInfo* ClassInf;
@@ -3371,7 +3371,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 
 			_Table._Scope.AddScope(ItemName);
 			{
-				auto& EnumFeild = AddSybol(SymbolType::Enum_Field, (String)ItemName, _Table._Scope.ThisScope);
+				auto& EnumFeild = AddSybol(SymbolType::Enum_Field, (String)ItemName, _Table._Scope.ThisScope,AccessModifierType::Public);
 				EnumFeild.NodePtr = &Item;
 			}
 			_Table._Scope.ReMoveScope();
@@ -3408,7 +3408,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 							//
 
 							SymbolID AnonymousSybID = (SymbolID)VariantType_.node.get();
-							auto& AnonymousSyb = AddSybol(SymbolType::Type_class, (String)NewName, NewName);
+							auto& AnonymousSyb = AddSybol(SymbolType::Type_class, (String)NewName, NewName,AccessModifierType::Public);
 
 							_Table.AddSymbolID(AnonymousSyb, AnonymousSybID);
 
@@ -3635,7 +3635,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 		DoSymbolRedefinitionCheck(FullName, SymbolType::StackVarable, node.Name.Token);
 
 
-		syb = &AddSybol(SysType, StrVarName, FullName);
+		syb = &AddSybol(SysType, StrVarName, FullName,node.Access);
 		_Table.AddSymbolID(*syb, sybId);
 
 
@@ -4885,7 +4885,7 @@ Symbol* SystematicAnalysis::GetTepFuncPtrSyb(const String& TepFuncPtr, const Fun
 	Symbol* V =GetSymbol(TepFuncPtr, SymbolType::Func_ptr);
 	if (V == nullptr)
 	{
-		V = &AddSybol(SymbolType::Func_ptr, TepFuncPtr, Finfo->FullName);
+		V = &AddSybol(SymbolType::Func_ptr, TepFuncPtr, Finfo->FullName,AccessModifierType::Public);
 		FuncPtrInfo* V2 = new FuncPtrInfo();
 		V->Info.reset(V2);
 
@@ -5035,6 +5035,14 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 					return false;
 				}
 
+				auto FeldFullName = Out.Symbol->FullName;
+				ScopeHelper::GetApendedString(FeldFullName, ItemToken->Value._String);
+				auto FeldSyb = GetSymbol(FeldFullName, SymbolType::Class_Field);
+				{
+					AccessCheck(FeldSyb, ItemToken);
+				}
+
+
 				auto& FieldType2 = (*FeldInfo)->Type;
 				if (FieldType2._Type == TypesEnum::CustomType)
 				{
@@ -5065,6 +5073,11 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 			}
 			else if (Out.Symbol->Type == SymbolType::Enum)
 			{
+				{
+					const UCodeLang::Token* Token = node.ScopedName.begin()->token;
+					AccessCheck(Out.Symbol, Token);
+				}
+
 				EnumInfo* Einfo = Out.Symbol->Get_Info<EnumInfo>();
 				auto& NameString = ItemToken->Value._String;
 
@@ -5161,12 +5174,23 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 				Symbol* TypeAsSybol = GetSymbol(VarableType);
 				if (TypeAsSybol)
 				{
+					{
+						const UCodeLang::Token* Token = node.ScopedName.begin()->token;
+						AccessCheck(Out.Symbol, Token);
+					}
 					if (TypeAsSybol->Type != SymbolType::Type_class)
 					{
 						LogCantFindVarMemberError(ItemToken, ItemToken->Value._String, Out.Type);
 						return false;
 					}
 					ClassInfo* CInfo = TypeAsSybol->Get_Info<ClassInfo>();
+
+					auto FeldFullName = TypeAsSybol->FullName;
+					ScopeHelper::GetApendedString(FeldFullName, ItemToken->Value._String);
+					auto FeldSyb = GetSymbol(FeldFullName, SymbolType::Class_Field);
+					{
+						AccessCheck(FeldSyb, ItemToken);
+					}
 
 					auto FeldInfo = CInfo->GetField(ItemToken->Value._String);
 					if (!FeldInfo.has_value())
@@ -6509,7 +6533,7 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(AnonymousObjectConstructor
 				auto FullName = CompilerGenerated("StaticArray_") + ToString(ArrItemType) + std::to_string(id);
 
 
-				auto Syb = &AddSybol(SymbolType::Type_StaticArray, FullName, FullName);
+				auto Syb = &AddSybol(SymbolType::Type_StaticArray, FullName, FullName,AccessModifierType::Public);
 				_Table.AddSymbolID(*Syb, id);
 
 				info = new StaticArrayInfo();
@@ -7538,7 +7562,7 @@ void SystematicAnalysis::LoadLibSymbols(const UClib& lib)
 
 		auto SymbolType = ImportType == LibType::Dll ? SymbolType::ImportedDllFunc : SymbolType::ImportedLibFunc;
 		
-		auto& Syb = AddSybol(SymbolType,FuncStr, ScopeHelper::GetNameFromFullName(FuncStr));
+		auto& Syb = AddSybol(SymbolType,FuncStr, ScopeHelper::GetNameFromFullName(FuncStr),AccessModifierType::Public);
 		
 		
 	}
@@ -8278,6 +8302,12 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 		}
 		else
 		{
+			if (AccessCheck(SybV,V.Name.Token))
+			{
+				Out.SetType(TypesEnum::Null);
+				return;
+			}
+
 			if (SybV->Type == SymbolType::Type_alias)
 			{
 
@@ -8321,7 +8351,7 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 		else
 		{
 			SymbolID id = (SymbolID)node;
-			auto& Syb = AddSybol(SymbolType::ConstantExpression, "?", "?");
+			auto& Syb = AddSybol(SymbolType::ConstantExpression, "?", "?",AccessModifierType::Private);
 			_Table.AddSymbolID(Syb, id);
 
 			ConstantExpressionInfo* info = new ConstantExpressionInfo();
@@ -8377,7 +8407,7 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 		if (Syb == nullptr)
 		{
 			SymbolID id = (SymbolID)node;
-			Syb = &AddSybol(SymbolType::Type_StaticArray, FullName, FullName);
+			Syb = &AddSybol(SymbolType::Type_StaticArray, FullName, FullName,AccessModifierType::Public);
 			_Table.AddSymbolID(*Syb, id);
 
 			StaticArrayInfo* info = new StaticArrayInfo();
@@ -9820,8 +9850,12 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 
 		if (IsThisCall)
 		{
+			GetExpressionMode.push(GetValueMode::Read);
 			GetMemberTypeSymbolFromVar_t V;
-			if (GetMemberTypeSymbolFromVar(0,Name.ScopedName.size() - 1, Name, V))
+			bool VBool = GetMemberTypeSymbolFromVar(0, Name.ScopedName.size() - 1, Name, V);
+			GetExpressionMode.pop();
+			
+			if (VBool)
 			{
 				_ThisType = V.Type;
 				_ThisType.SetAsAddress();
@@ -9849,7 +9883,6 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 				ScopedName = ToString(tep_) + ScopeHelper::_ScopeSep;
 				ScopedName += Name.ScopedName.back().token->Value._String;
 			}
-
 			else
 			{
 				return { Get_FuncInfo::ThisPar_t::NoThisPar, nullptr };
@@ -10361,7 +10394,9 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 			throw std::exception("bad path");
 		}
 		
-		return *Ret;
+		auto RValue = *Ret;
+		AccessCheck(RValue.SymFunc, Name.ScopedName.back().token);
+		return RValue;
 		
 		
 	}
@@ -10433,7 +10468,7 @@ SystematicAnalysis::Get_FuncInfo SystematicAnalysis::GetEnumVariantFunc(Symbol* 
 					String FullName = this->_Table._Scope.ThisScope;
 					ScopeHelper::GetApendedString(FullName, Str);
 
-					auto Syb = &AddSybol(SymbolType::StackVarable, (String)Str, FullName);
+					auto Syb = &AddSybol(SymbolType::StackVarable, (String)Str, FullName,AccessModifierType::Public);
 
 					this->LookingForTypes.push(ItemVariant);
 					Syb->VarType = ConvertAndValidateType(Ex->_Type, NodeSyb_t::Varable);
@@ -10752,6 +10787,15 @@ int SystematicAnalysis::GetCompatibleScore(const IsCompatiblePar& Func, const Ve
 
 
 	return ValueTypes.size() ? r / ValueTypes.size() : r;
+}
+bool SystematicAnalysis::AccessCheck(const Symbol* Syb,const Token* Token, const String_view Scope)
+{
+	if (Syb->Access == AccessModifierType::Private)
+	{
+		_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "Cant use the Symbol '" + Syb->FullName + "' its Private");
+		return true;
+	}
+	return false;
 }
 
 RawEvaluatedObject SystematicAnalysis::MakeExr(const TypeSymbol& Type)

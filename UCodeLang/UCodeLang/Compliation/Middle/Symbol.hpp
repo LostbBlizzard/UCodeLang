@@ -696,6 +696,7 @@ public:
 		IRPar* IR_Par;
 		IRInstruction* IR_Ins = nullptr;
 	};
+	AccessModifierType Access = AccessModifierType::Public;
 
 
 	SymbolValidState ValidState = SymbolValidState::valid;
@@ -749,7 +750,7 @@ public:
 	void GetSymbolsInNameSpace(const String_view& NameSpace, const String_view& Name, Vector<Symbol*>& Output);
 	Vector<Symbol*>& GetSymbolsWithName(const String_view& Name);
 
-	Symbol& AddSybol(SymbolType type, const String& Name, const String& FullName);
+	Symbol& AddSybol(SymbolType type, const String& Name, const String& FullName,AccessModifierType Access);
 	//use a ptr for the Id;
 	Symbol& GetSymbol(SymbolID ID)
 	{

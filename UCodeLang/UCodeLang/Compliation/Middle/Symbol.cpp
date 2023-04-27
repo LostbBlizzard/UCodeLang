@@ -72,10 +72,13 @@ void SymbolTable::GetSymbolsInNameSpace(const String_view& NameSpace, const Stri
 	return Tep;
 }
 
- Symbol& SymbolTable::AddSybol(SymbolType type, const String& Name, const String& FullName)
+ Symbol& SymbolTable::AddSybol(SymbolType type, const String& Name, const String& FullName, AccessModifierType Access)
  {
-	Symbols.push_back(std::make_unique<Symbol>(type, FullName));
-	 return *Symbols.back();
+	 Symbols.push_back(std::make_unique<Symbol>(type, FullName));
+	 auto& Item = *Symbols.back();
+
+	 Item.Access = Access;
+	 return Item;
  }
 
  void SymbolTable::AddSymbolID(Symbol& Syb, SymbolID ID)

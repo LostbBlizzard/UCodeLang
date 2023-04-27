@@ -259,4 +259,13 @@ enum class IntSizes : UInt8
 	#endif // 0
 };
 
+using AccessModifierType_t = UInt8;
+enum class AccessModifierType :AccessModifierType_t
+{
+	Public,
+	Private,
+
+	Default = Public,
+};
+
 UCodeLangEnd

@@ -602,7 +602,7 @@ private:
 	void AddDependencyToCurrentFile(Symbol* Syb);
 	void AddDependencyToCurrentFile(const FileNode* file);
 	void AddDependencyToCurrentFile(const TypeSymbol& type);
-	Symbol& AddSybol(SymbolType type, const String& Name, const String& FullName);
+	Symbol& AddSybol(SymbolType type, const String& Name, const String& FullName, AccessModifierType Access);
 	bool IsVarableType(SymbolType type);
 	void Pass();
 	void OnFileNode(const FileNode* File);
@@ -910,6 +910,11 @@ private:
 	int GetCompatibleScore(const TypeSymbol& ParFunc, const TypeSymbol& Value);
 	int GetCompatibleScore(const IsCompatiblePar& Func, const Vector<TypeSymbol>& ValueTypes);
 
+	bool AccessCheck(const Symbol* Syb, const  Token* Token, const String_view Scope);
+	bool AccessCheck(const Symbol* Syb, const  Token* Token)
+	{
+		return AccessCheck(Syb, Token, this->_Table._Scope.ThisScope);
+	}
 
 	//Generics
 

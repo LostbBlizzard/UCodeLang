@@ -5,13 +5,7 @@
 #include "../Front/UCodeFrontEndNameSpace.hpp"
 UCodeLangFrontStart
 
-enum class AccessModifierType
-{
-	Public,
-	Private,
 
-	Default = Public,
-};
 
 struct StringliteralNode :Node
 {
@@ -717,6 +711,7 @@ struct EnumNode :Node
 	NameNode EnumName;
 	Vector<EnumValueNode> Values;
 	TypeNode BaseType;
+	AccessModifierType Access = AccessModifierType::Default;
 };
 
 struct TagTypeNode :Node
@@ -728,6 +723,7 @@ struct TagTypeNode :Node
 	AddforNodeAndWithList(TagTypeNode);
 
 	NameNode AttributeName;
+	AccessModifierType Access = AccessModifierType::Default;
 
 	TagTypeNode(TagTypeNode&& source) = default;
 	TagTypeNode& operator=(TagTypeNode&& source) = default;
