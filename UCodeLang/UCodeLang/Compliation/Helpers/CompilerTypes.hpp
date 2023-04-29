@@ -79,6 +79,7 @@ enum class TokenType : TokenType_t
 	CompoundDiv,// /=
 
 	KeyWord_invalid,//invaild
+	KeyWord_valid,//vaild
 	KeyWord_continue,//continue
 	KeyWord_break,//break
 	ScopeResolution,//::
@@ -133,6 +134,11 @@ enum class TokenType : TokenType_t
 	KeyWord_out,
 	KeyWord_bitcast,
 	KeyWord_panic,
+
+
+	KeyWord_ClassIf,//$if
+	KeyWord_ClassElse,//$else
+
 	//used internally
 	internal_Constant_expression
 };

@@ -64,6 +64,8 @@ enum class NodeType :UInt8
 	BitCastExpression,
 	PanicNode,
 	AssignExpressionNode,
+	InvalidNode,
+	ValidNode,
 };
 
 

@@ -472,7 +472,25 @@ private:
 		return _AccessModifier.size() ? _AccessModifier.top() : AccessModifierType::Default;
 	}
 
-		
+	
+	TryGetNode GetInvalidNode()
+	{
+		InvalidNode* V = InvalidNode::Gen();
+		auto r = GetInvalidNode(*V);
+		TrippedCheck(r);
+		return { r,V->As() };
+	}
+	GotNodeType GetInvalidNode(InvalidNode& out);
+
+	TryGetNode GetValidNode()
+	{
+		ValidNode* V = ValidNode::Gen();
+		auto r = GetValidNode(*V);
+		TrippedCheck(r);
+		return { r,V->As() };
+	}
+	GotNodeType GetValidNode(ValidNode& out);
+
 };
 UCodeLangFrontEnd
 
