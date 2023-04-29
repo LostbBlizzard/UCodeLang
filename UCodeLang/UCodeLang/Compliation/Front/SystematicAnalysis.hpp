@@ -451,6 +451,7 @@ private:
 	BinaryVectorMap<const void*, ForExpresion_Data> For_Datas;
 	BinaryVectorMap<const void*, CastExpressionNode_Data> CastDatas;
 	BinaryVectorMap<const void*, AssignExpression_Data > AssignExpressionDatas;
+	BinaryVectorMap<const void*, bool> ValidNodes;
 
 	Vector<FuncStackInfo> _FuncStack;
 
@@ -721,6 +722,8 @@ private:
 	void OnFuncCallNode(const FuncCallNode& node);
 	void OnDropStatementNode(const DropStatementNode& node);
 	void OnInvalidNode(const InvalidNode& node);
+	void OnvalidNode(const ValidNode& node);
+
 	void PushTepAttributesInTo(Vector<AttributeData>& Input);
 	void LoadLibSymbols();
 	void LoadLibSymbols(const UClib& lib);
