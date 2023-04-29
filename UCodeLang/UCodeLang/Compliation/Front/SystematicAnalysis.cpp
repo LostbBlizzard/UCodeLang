@@ -3451,22 +3451,8 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 			if (Item.Expression.Value)
 			{
 				auto& Type = ClassInf->Basetype;
-				OnExpressionTypeNode(Item.Expression.Value.get(),GetValueMode::Read);//check
-				if (!CanBeImplicitConverted(LastExpressionType, Type,false))
-				{
-					LogCantCastImplicitTypes(LastLookedAtToken, LastExpressionType, Type,false);
-					return;
-				}
-				if (!CanEvaluateImplicitConversionConstant(LastExpressionType, Type))
-				{
-					LogCantCastImplicitTypes_Constant(LastLookedAtToken, LastExpressionType, Type);
-					return;
-				}
-
-				EvaluatedEx ex1 =MakeEx(LastExpressionType);
-				Evaluate_t(ex1, Item.Expression.Value.get());
-
-				EvaluateImplicitConversion(ex1, Type, ex);
+				
+				auto V = Evaluate(ex,Type, Item.Expression);
 
 				Field.Ex = ex.EvaluatedObject;
 			}
@@ -4648,6 +4634,11 @@ IRInstruction* SystematicAnalysis::BuildMember_GetValue(const GetMemberTypeSymbo
 			throw std::exception("not added");
 		}
 	}
+	case  SymbolType::ConstantExpression:
+	{
+		auto Item = In.Symbol->Get_Info<ConstantExpressionInfo>();
+		return LoadEvaluatedEx(Item->Ex, In.Symbol->VarType);
+	}
 	default:
 		throw std::exception("not added");
 		break;
@@ -5308,9 +5299,35 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 
 	Out.Symbol = TepSyb;
 
+	{
+		auto OldTepSyb = TepSyb;
+		auto ConstExCheck = TepSyb;
+		while (ConstExCheck &&
+			(ConstExCheck->Type == SymbolType::Type_alias || ConstExCheck->Type == SymbolType::Hard_Type_alias))
+		{
+			ConstExCheck = GetSymbol(ConstExCheck->VarType);
+		}
+		if (ConstExCheck == nullptr)
+		{
+			TepSyb = OldTepSyb;
+
+		}
+		else
+		if (ConstExCheck->Type == SymbolType::ConstantExpression)
+		{
+			ConstantExpressionInfo* ConstInfo = ConstExCheck->Get_Info<ConstantExpressionInfo>();
+
+			Out.Type = ConstExCheck->VarType;
+			Out.Symbol = ConstExCheck;
+
+			TepSyb = Out.Symbol;
+		}
+	}
+
 	if (!(TepSyb->Type ==SymbolType::Class_Field
 		|| TepSyb->Type == SymbolType::Enum_Field
 		|| TepSyb->Type == SymbolType::Func
+		|| TepSyb->Type == SymbolType::ConstantExpression
 		|| IsVarableType(TepSyb->Type)))
 	{
 		Out.Type.SetType(TypesEnum::Null);
@@ -8199,6 +8216,13 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type)
 			r += std::to_string(Info->Count);
 			r += "]";
 		}
+		else if (Syb.Type == SymbolType::ConstantExpression)
+		{
+			ConstantExpressionInfo* Info = Syb.Get_Info<ConstantExpressionInfo>();
+			r += "(" + ToString(Syb.VarType);
+			r += ";";
+			r += ToString(Syb.VarType,Info->Ex) + ")";
+		}
 		else
 		{
 			r += Syb.FullName;
@@ -8451,6 +8475,18 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 			ConstantExpressionInfo* info = new ConstantExpressionInfo();
 			info->Exnode = ExpressionNodeType::As(node);
 
+			LookingForTypes.push(TypesEnum::Any);
+
+			auto IsOk = EvaluateToAnyType(*info->Exnode);
+
+			LookingForTypes.pop();
+			
+			if (IsOk) 
+			{
+				info->Ex = IsOk.value().EvaluatedObject;
+				Syb.VarType = IsOk.value().Type;
+			}
+
 			Syb.Info.reset(info);
 
 
@@ -8520,41 +8556,23 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 			TypeSymbol UIntType;
 			UIntType.SetType(TypesEnum::uIntPtr);
 
-			auto NodeV = node->Value.get();
-
+		
 			LookingForTypes.push(UIntType);
-
-			OnExpressionTypeNode(NodeV, GetValueMode::Read);//check
-			
-			
-			
-			if (!CanBeImplicitConverted(LastExpressionType, UIntType, false))
-			{
-				LogCantCastImplicitTypes(LastLookedAtToken, LastExpressionType, UIntType, false);
-				Out.SetType(TypesEnum::Null);
-				return;
-			}
-			if (!CanEvaluateImplicitConversionConstant(LastExpressionType, UIntType))
-			{
-				Out.SetType(TypesEnum::Null);
-				LogCantCastImplicitTypes_Constant(LastLookedAtToken, LastExpressionType, UIntType);
-				return;
-			}
-			EvaluatedEx Ex;
-			EvaluatedEx ex1 = MakeEx(LastExpressionType);
-			Evaluate_t(ex1, NodeV);
-			
-			
+			auto IsOk = Evaluate(UIntType,*node);
 			LookingForTypes.pop();
 
-			EvaluateImplicitConversion(ex1, UIntType, Ex);
+			if (IsOk)
+			{
+				void* V = Get_Object(IsOk.value());
 
-
-			void* V = Get_Object(Ex);
-
-			Info.Count = *(size_t*)V;
-			Info.IsCountInitialized = true;
-
+				Info.Count = *(size_t*)V;
+				Info.IsCountInitialized = true;
+			}
+			else
+			{
+				Info.Count = 0;
+				Info.IsCountInitialized = true;
+			}
 		}
 		Out.SetType(Syb->ID);
 	}
@@ -11251,13 +11269,42 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ValueExpressionNode& n
 		LastExpressionType = Type;
 	}
 	break;
+	case NodeType::ReadVariableNode:
+	{
+		ReadVariableNode* nod = ReadVariableNode::As(node.Value.get());
+		Evaluate(Out,*nod);
+	}
+	break;
 	default:
 		throw std::exception("not added");
 		break;
 	}
 	return true;
 }
+bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ReadVariableNode& nod)
+{
+	GetExpressionMode.push(GetValueMode::Read);
+	GetMemberTypeSymbolFromVar_t V;
+	if (!GetMemberTypeSymbolFromVar(nod.VariableName, V))
+	{
+		return false;
+	}
+	GetExpressionMode.pop();
 
+	LastExpressionType = V.Type;
+	
+	if (V.Symbol)
+	{
+		if (V.Symbol->Type == SymbolType::ConstantExpression)
+		{
+			ConstantExpressionInfo* Info = V.Symbol->Get_Info<ConstantExpressionInfo>();
+			Out.EvaluatedObject = Info->Ex;
+			Out.Type = V.Type;
+			return true;
+		}
+	}
+	return false;
+}
 bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const BinaryExpressionNode& node)
 {
 	auto Ex0node = node.Value0.Value.get();
@@ -11276,7 +11323,38 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const BinaryExpressionNode& 
 
 bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const CastNode& node)
 {
-	return false;
+	TypeSymbol ToTypeAs;
+	ConvertAndValidateType(node.ToType, ToTypeAs, NodeSyb_t::Any);
+
+	LookingForTypes.push(ToTypeAs);
+
+	bool Ex0Bool = Evaluate_t(Out,node.Expression.Value.get());
+
+	LookingForTypes.pop();
+
+
+	auto Ex0Type = LastExpressionType;
+	auto HasInfo = CanBeExplicitlyConverted(Ex0Type, ToTypeAs);
+	if (!HasInfo.HasValue)
+	{
+		auto  Token = node.ToType.Name.Token;
+
+		LogCantCastExplicityTypes(Token, Ex0Type, ToTypeAs);
+		return false;
+	}
+	else
+	{
+		if (HasInfo.Value.has_value())
+		{
+			return false;
+		}
+		else
+		{
+			LastExpressionType = ToTypeAs;
+		}
+
+	}
+	return true;
 }
 
 bool SystematicAnalysis::Evaluate_t(EvaluatedEx& Out, const Node* node)
@@ -11428,6 +11506,126 @@ bool SystematicAnalysis::EvaluateImplicitConversion(EvaluatedEx& In, const TypeS
 		return true;
 	}
 	return false;
+}
+bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const TypeSymbol& MustBeType, const ExpressionNodeType& node)
+{
+	OnExpressionTypeNode(node.Value.get(), GetValueMode::Read);//check
+	if (!CanBeImplicitConverted(LastExpressionType, MustBeType, false))
+	{
+		LogCantCastImplicitTypes(LastLookedAtToken, LastExpressionType, MustBeType, false);
+		return false;
+	}
+	if (!CanEvaluateImplicitConversionConstant(LastExpressionType, MustBeType))
+	{
+		LogCantCastImplicitTypes_Constant(LastLookedAtToken, LastExpressionType, MustBeType);
+		return false;
+	}
+
+	EvaluatedEx ex1 = MakeEx(LastExpressionType);
+	if (Evaluate_t(ex1, node.Value.get()))
+	{
+		return EvaluateImplicitConversion(ex1, MustBeType, Out);
+	}
+	return false;
+}
+Optional<SystematicAnalysis::EvaluatedEx> SystematicAnalysis::Evaluate(const TypeSymbol& MustBeType, const ExpressionNodeType& node)
+{
+	EvaluatedEx Out;
+	bool V = Evaluate(Out, MustBeType, node);
+
+	if (V)
+	{
+		return { Out };
+	}
+	else
+	{
+		return {};
+	}
+}
+bool SystematicAnalysis::EvaluateToAnyType(EvaluatedEx& Out, const ExpressionNodeType& node)
+{
+	OnExpressionTypeNode(node.Value.get(), GetValueMode::Read);//check
+	
+
+	EvaluatedEx ex1 = MakeEx(LastExpressionType);
+	bool R=  Evaluate_t(ex1, node.Value.get());
+	Out = std::move(ex1);
+	return R;
+}
+Optional<SystematicAnalysis::EvaluatedEx> SystematicAnalysis::EvaluateToAnyType(const ExpressionNodeType& node)
+{
+	EvaluatedEx Out;
+	bool V = EvaluateToAnyType(Out, node);
+
+	if (V)
+	{
+		return { Out };
+	}
+	else
+	{
+		return {};
+	}
+}
+String SystematicAnalysis::ToString(const TypeSymbol& Type, const RawEvaluatedObject& Data)
+{
+	auto DataPtr = Get_Object(Type, Data);
+	switch (Type._Type)
+	{
+	case TypesEnum::sInt8:return std::to_string(*(const Int8*)DataPtr);
+	case TypesEnum::sInt16:return std::to_string(*(const Int16*)DataPtr);
+	
+	Sint32Case:
+	case TypesEnum::sInt32:return std::to_string(*(const Int32*)DataPtr);
+	
+	Sint64Case:
+	case TypesEnum::sInt64:return std::to_string(*(const Int64*)DataPtr);
+	case TypesEnum::uInt8:return std::to_string(*(const UInt8*)DataPtr);
+	case TypesEnum::uInt16:return std::to_string(*(const UInt16*)DataPtr);
+
+	Uint32Case:
+	case TypesEnum::uInt32:return std::to_string(*(const UInt32*)DataPtr);
+	
+	Uint64Case:
+	case TypesEnum::uInt64:return std::to_string(*(const UInt64*)DataPtr);
+	case TypesEnum::Char:return String(*(const char*)DataPtr, 1);
+	case TypesEnum::Bool:return *(bool*)DataPtr ? "true" : "false";
+	
+	case TypesEnum::uIntPtr:
+		if (_Settings->PtrSize == IntSizes::Int64)
+		{
+			goto Uint64Case;
+		}
+		else
+		{
+			goto Uint32Case;
+		}
+	case TypesEnum::sIntPtr:
+		if (_Settings->PtrSize == IntSizes::Int64)
+		{
+			goto Sint64Case;
+		}
+		else
+		{
+			goto Sint32Case;
+		}
+	default:
+		break;
+	}
+
+	String R = "{";
+	for (size_t i = 0; i < Data.ObjectSize; i++)
+	{
+		char V = ((const char*)DataPtr)[i];
+		R += std::to_string((Byte)V);
+
+		if (i != Data.ObjectSize-1)
+		{
+			R += ",";
+		}
+	}
+	R += "}";
+
+	return R;
 }
 
 IRInstruction* SystematicAnalysis::IR_Load_UIntptr(UAddress Value)

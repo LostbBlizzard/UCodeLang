@@ -34,7 +34,7 @@ inline const char* S_KeyWord_ret = "ret";
 inline const char* S_KeyWord_void = "void";
 inline const char* S_KeyWord_sizeof = "sizeof";
 inline const char* S_KeyWord_nameof = "nameof";
-inline const char* S_KeyWord_typeof = "typeof";
+
 inline const char* S_KeyWord_true = "true";
 inline const char* S_KeyWord_false = "false";
 inline const char* S_KeyWord_var = "var";
@@ -72,6 +72,10 @@ inline const char* S_KeyWord_out = "out";
 
 inline const char* S_KeyWord_bitcast = "bitcast";
 inline const char* S_KeyWord_panic = "panic";
+
+inline const char* S_KeyWord_typeof = "typeof";
+inline const char* S_KeyWord_type = "type";
+inline const char* S_KeyWord_bind = "bind";
 struct KeyWord
 {
 	const char* keyWord;
@@ -146,8 +150,6 @@ inline KeyWord KeyWords[] =
 	KeyWord(S_KeyWord_public,TokenType::KeyWorld_public),
 	KeyWord(S_KeyWord_private,TokenType::KeyWorld_private),
 
-	KeyWord(S_KeyWord_typeof,TokenType::KeyWorld_typeof),
-
 	KeyWord(S_KeyWord_enum,TokenType::KeyWord_Enum),
 	KeyWord(S_KeyWord_tag,TokenType::KeyWord_Tag),
 	KeyWord(S_KeyWord_umut,TokenType::KeyWord_umut),
@@ -156,6 +158,10 @@ inline KeyWord KeyWords[] =
 	KeyWord(S_KeyWord_out,TokenType::KeyWord_out),
 	KeyWord(S_KeyWord_bitcast,TokenType::KeyWord_bitcast),
 	KeyWord(S_KeyWord_panic,TokenType::KeyWord_panic),
+
+	KeyWord(S_KeyWord_typeof,TokenType::KeyWorld_typeof),
+	KeyWord(S_KeyWord_type,TokenType::KeyWord_type),
+	KeyWord(S_KeyWord_bind,TokenType::KeyWord_bind),
 };
 constexpr size_t KeyWords_Size = sizeof(KeyWords) / sizeof(KeyWords[0]);
 class KeyWordHelper

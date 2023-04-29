@@ -228,7 +228,7 @@ public:
 		return _Lib;
 	}
 
-	
+
 
 	struct FileNodeData
 	{
@@ -264,11 +264,11 @@ private:
 	using CompoundExpresion_Data = BinaryExpressionNode_Data;
 	struct ForExpresion_Data
 	{
-		Symbol* FuncGetLoopAble= nullptr;
+		Symbol* FuncGetLoopAble = nullptr;
 		Symbol* FuncToGet = nullptr;
 		Symbol* FuncToCheck = nullptr;
 	};
-	using CastExpressionNode_Data =PostFixExpressionNode_Data;
+	using CastExpressionNode_Data = PostFixExpressionNode_Data;
 	using AssignExpression_Data = BinaryExpressionNode_Data;
 
 	enum class  ObjectToDropType
@@ -309,7 +309,7 @@ private:
 	};
 	struct IRLocation_Cotr
 	{
-		IRInstruction* Value=nullptr;
+		IRInstruction* Value = nullptr;
 		bool UsedlocationIR = false;
 	};
 	struct GetMemberTypeSymbolFromVar_t
@@ -401,10 +401,10 @@ private:
 	using CastOverLoadWith_t = BinaryOverLoadWith_t;
 	using UrinaryOverLoadWith_t = BinaryOverLoadWith_t;
 
-	
+
 	struct ClassStackInfo
 	{
-		ClassInfo* Info =nullptr;
+		ClassInfo* Info = nullptr;
 		bool _InStatements = false;
 	};
 
@@ -418,7 +418,7 @@ private:
 		Jumps_t Type = Jumps_t::Continue;
 		IRInstruction* JumpIns = nullptr;
 	};
-	enum class NodeSyb_t 
+	enum class NodeSyb_t
 	{
 		Any,
 		Varable,
@@ -427,7 +427,7 @@ private:
 		Ret,
 	};
 
-    //Members
+	//Members
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
 	UClib _Lib;
@@ -438,10 +438,10 @@ private:
 	const Vector<const UClib*>* _Libs = nullptr;
 	SymbolTable _Table;
 
-	
+
 	Stack<ClassStackInfo> _ClassStack;
 
-	
+
 	const FileNode* LookingAtFile = nullptr;
 	BinaryVectorMap<const FileNode_t*, FileNodeData> _FilesData;
 	BinaryVectorMap<const void*, BinaryExpressionNode_Data> BinaryExpressionNode_Datas;
@@ -488,16 +488,16 @@ private:
 	Stack<IRLocation_Cotr> IRlocations;//for Constructors
 	Vector<IRCodeStackFrames> StackFrames;
 
-	
+
 	BinaryVectorMap<void*, SymbolID> _ConstantExpressionMap;
 	Stack<GetValueMode> GetExpressionMode;
-	
+
 
 	Stack<GenericFuncInfo> GenericFuncName;
-	
+
 	Vector< JumpsData> _Jumps;
 
-	
+
 	Stack<VarableUseData> _Varable;
 
 	//Funcs
@@ -624,7 +624,7 @@ private:
 	void OnAttributeNode(const AttributeNode& node);
 	void OnNonAttributeable(size_t Line, size_t Pos);
 	String GetScopedNameAsString(const ScopedNameNode& node);
-	void OnDeclareVariablenode(const DeclareVariableNode& node,DeclareStaticVariableNode_t type);
+	void OnDeclareVariablenode(const DeclareVariableNode& node, DeclareStaticVariableNode_t type);
 	void OnStoreVarable(bool IsStructObjectPassRef, IRInstruction* OnVarable, Symbol* syb, const SymbolID& sybId);
 	void AddDestructorToStack(Symbol* syb, const SymbolID& sybId, IRInstruction* OnVarable);
 	void AddDestructorToStack(const TypeSymbol& Type, IRInstruction* OnVarable);
@@ -640,7 +640,7 @@ private:
 	void FuncRetCheck(const Token& Name, const Symbol* FuncSyb, const FuncInfo* Func);
 	void OnForNode(const ForNode& node);
 
-	void DoJumpsBreakAndContiunes(size_t JumpIndex,size_t BoolCode,size_t BreakCode);
+	void DoJumpsBreakAndContiunes(size_t JumpIndex, size_t BoolCode, size_t BreakCode);
 
 	void OnContinueNode(const ContinueNode& node);
 	void OnBreakNode(const BreakNode& node);
@@ -653,16 +653,16 @@ private:
 	String GetTraitVTableName(const String& TraitName);
 	String GetTraitVStructTableName(const String& TraitName);
 
-	void InheritTrait(Symbol* Syb,ClassInfo* ClassInfo, Symbol* Trait,const Token* ClassNameToken);
+	void InheritTrait(Symbol* Syb, ClassInfo* ClassInfo, Symbol* Trait, const Token* ClassNameToken);
 
 	void BuildTrait(Symbol* Syb, ClassInfo* ClassInfo, Symbol* Trait, const Token* ClassNameToken);
 
 	void LogMissingFuncionforTrait(String_view& FuncName, FuncInfo* Info, Symbol* Trait, const Token* ClassNameToken);
-		
+
 
 	Symbol* NewDropFuncSymbol(ClassInfo* ClassInfo, TypeSymbol& ClassAsType);
 	void BuildFuncDropUsesingFields(const ClassInfo* ClassInfo, const IRType& ThisPar);
-	
+
 
 	void OnStatementsWithSetableRet(const StatementsNode& node, TypeSymbol& RetOut, const Token* Token);
 
@@ -743,7 +743,7 @@ private:
 
 	bool AreTheSame(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
 	bool AreTheSameWithOutimmutable(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
-	
+
 	struct StrExELav
 	{
 
@@ -751,8 +751,8 @@ private:
 		String_view Msg;
 		bool IsConstantExpression = false;
 	};
-	
-	
+
+
 	BinaryOverLoadWith_t HasBinaryOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
 	CompoundOverLoadWith_t HasCompoundOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
 	PostFixOverLoadWith_t HasPostfixOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp);
@@ -767,6 +767,7 @@ private:
 	{
 		return StringHelper::ToString(Type);
 	}
+	
 
 
 	void Convert(const TypeNode& V, TypeSymbol& Out);
@@ -948,12 +949,21 @@ private:
 	bool Evaluate(EvaluatedEx& Out, const ValueExpressionNode& node);
 	bool Evaluate(EvaluatedEx& Out, const BinaryExpressionNode& node);
 	bool Evaluate(EvaluatedEx& Out, const CastNode& node);
+	bool Evaluate(EvaluatedEx& Out, const ReadVariableNode& nod);
 	bool Evaluate_t(EvaluatedEx& Out, const Node* node);
 	bool EvaluatePostfixOperator(EvaluatedEx& Out, TokenType Op);
 	bool HasConstantPostfixOperator(const TypeSymbol& Type, TokenType Op);
 	bool CanEvaluateImplicitConversionConstant(const TypeSymbol& Type, const TypeSymbol& ToType);
 	bool EvaluateImplicitConversion(EvaluatedEx& In, const TypeSymbol& ToType, EvaluatedEx& out);
+	
 
+
+	bool Evaluate(EvaluatedEx& Out, const TypeSymbol& MustBeType, const ExpressionNodeType& node);
+	Optional<EvaluatedEx> Evaluate(const TypeSymbol& MustBeType, const ExpressionNodeType& node);
+
+	bool EvaluateToAnyType(EvaluatedEx& Out, const ExpressionNodeType& node);
+	Optional<EvaluatedEx> EvaluateToAnyType(const ExpressionNodeType& node);
+	String ToString(const TypeSymbol& Type, const RawEvaluatedObject& Data);
 	//IR
 	void DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Name, const ValueParametersNode& Pars);
 	void DoFuncCall(const TypeSymbol& Type, const Get_FuncInfo& Func, ValueParametersNode& ValuePars);

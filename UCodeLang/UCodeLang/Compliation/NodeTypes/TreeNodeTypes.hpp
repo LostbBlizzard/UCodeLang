@@ -1079,5 +1079,55 @@ struct ValidNode :Node
 	AddforNode(ValidNode);
 };
 
+struct CMPTypesNode :Node
+{
+	CMPTypesNode() : Node(NodeType::CMPTypesNode)
+	{
+
+	}
+	
+	TypeNode TypeOp1;
+	const Token* Op;
+	TypeNode TypeOp2;
+
+	static bool IsOp(TokenType Type)
+	{
+		switch (Type)
+		{
+		case TokenType::equal_Comparison:
+		case TokenType::Notequal_Comparison:
+		case TokenType::greaterthan:
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	AddforNode(CMPTypesNode);
+};
+
+struct TypeToValueNode :Node
+{
+	TypeToValueNode() : Node(NodeType::TypeToValueNode)
+	{
+
+	}
+
+	TypeNode TypeOp;
+
+	AddforNode(TypeToValueNode);
+};
+
+struct ExpressionToTypeValueNode :Node
+{
+	ExpressionToTypeValueNode() : Node(NodeType::ExpressionToTypeValueNode)
+	{
+
+	}
+
+	ExpressionNodeType TypeEx;
+
+	AddforNode(ExpressionToTypeValueNode);
+};
 
 UCodeLangFrontEnd
