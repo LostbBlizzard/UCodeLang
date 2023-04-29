@@ -1,5 +1,6 @@
 
 
 |main[]:
- ret valid(:Invalid("Hello World"););
+ invalid(8);
+ //ret valid(:);
 

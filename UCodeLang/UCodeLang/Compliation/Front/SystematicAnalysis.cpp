@@ -3254,6 +3254,7 @@ void SystematicAnalysis::OnStatement(const Node& node2)
 	case NodeType::RetStatementNode:OnRetStatement(*RetStatementNode::As(&node2)); break;
 	case NodeType::TraitNode:OnTrait(*TraitNode::As(&node2)); break;
 	case NodeType::TagTypeNode:OnTag(*TagTypeNode::As(&node2)); break;
+	case NodeType::InvalidNode:OnInvalidNode(*InvalidNode::As(&node2)); break;
 	default:break;
 	}
 	PopNodeScope();
@@ -7597,6 +7598,34 @@ Symbol* SystematicAnalysis::GetSymbol(String_view Name, SymbolType Type)
 	auto Symbol = Symbols.size() ? Symbols[0] : nullptr;
 	return Symbol;
 }
+void SystematicAnalysis::OnInvalidNode(const InvalidNode& node)
+{
+	if (passtype == PassType::GetTypes){return;}
+
+	if (node._StringExpression.Value)
+	{
+		auto StrData = GetStrEVal(node._StringExpression.Value.get());
+
+		if (StrData.IsConstantExpression) 
+		{
+			auto Token = node.KeyWord;
+			LogInvalidNodeError(Token, StrData.Msg);
+		}
+		else
+		{
+
+			TypeSymbol B = TypesEnum::Char;
+			B.SetAsAddressArray();
+
+			LogCantCastImplicitTypes_Constant(LastLookedAtToken, LastExpressionType,B);
+		}
+	}
+	else
+	{
+		auto Token = node.KeyWord;
+		LogEmptyInvalidError(Token);
+	}
+}
 String SystematicAnalysis::GetFuncAnonymousObjectFullName(const String& FullFuncName)
 {
 	return FullFuncName + "!";
@@ -10667,6 +10696,30 @@ void* SystematicAnalysis::Get_Object(const EvaluatedEx& Input)
 	return Get_Object(Input.Type, Input.EvaluatedObject);
 }
 
+
+SystematicAnalysis::StrExELav SystematicAnalysis::GetStrEVal(const Node* node)
+{
+	StrExELav R;
+
+	OnExpressionTypeNode(node, GetValueMode::Read);
+
+	if (node->Get_Type() == NodeType::ValueExpressionNode)
+	{
+		const ValueExpressionNode* V = ValueExpressionNode::As(node);
+		if (V->Value.get()->Get_Type() == NodeType::StringliteralNode)
+		{
+			StringliteralNode* strnod = StringliteralNode::As(V->Value.get());
+
+			String Buffer;
+			ParseHelper::ParseStringliteralToString(strnod->Token->Value._String, Buffer);
+			R.OwnedStr = std::move(Buffer);
+			R.Msg = R.OwnedStr;
+			R.IsConstantExpression = true;
+		}
+	}
+
+	return R;
+}
 bool SystematicAnalysis::ConstantExpressionAbleType(const TypeSymbol& Type)
 {
 	return IsPrimitive(Type) && !Type.IsAddress() && !Type.IsAddressArray();
@@ -11474,6 +11527,15 @@ IRidentifierID SystematicAnalysis::GetIRID(const FuncInfo* Func)
 {
 	auto FuncName = MangleName(Func);
 	return _Builder.ToID(FuncName);
+}
+
+void SystematicAnalysis::LogInvalidNodeError(const Token* Token, String_view ErrStr)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Invaild:" + (String)ErrStr);
+}
+void SystematicAnalysis::LogEmptyInvalidError(const Token* Token)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Reached Invaild Statemet");
 }
 
 void SystematicAnalysis::LogCantCastImplicitTypes(const Token* Token, const TypeSymbol& Ex1Type, const TypeSymbol& UintptrType, bool ReassignMode)
