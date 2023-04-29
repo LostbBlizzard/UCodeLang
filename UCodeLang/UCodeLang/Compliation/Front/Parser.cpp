@@ -552,6 +552,13 @@ GotNodeType Parser::GetStatement(Node*& out)
 		return r.GotNode;
 	}
 	break;
+	case TokenType::KeyWord_invalid:
+	{
+		auto r = GetInvalidNode();
+		out = r.Node;
+		return r.GotNode;
+	}
+	break;
 	default:
 	{
 		size_t OldIndex = _TokenIndex;
@@ -1034,6 +1041,13 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 	case TokenType::KeyWord_bitcast:
 	{
 		auto V = GetBitCastExpression();
+		out = V.Node;
+		return V.GotNode;
+	}
+	break;
+	case TokenType::KeyWord_valid:
+	{
+		auto V = GetValidNode();
 		out = V.Node;
 		return V.GotNode;
 	}
@@ -2779,5 +2793,85 @@ GotNodeType Parser::GetPanicNode(PanicNode& out)
 	NextToken();
 
 	return GotNodeType::Success;
+}
+GotNodeType Parser::GetInvalidNode(InvalidNode& out)
+{
+	auto Token = TryGetToken();
+	TokenTypeCheck(Token, TokenType::KeyWord_invalid);
+	out.KeyWord = Token;
+
+	NextToken();
+	auto LToken = TryGetToken();
+	TokenTypeCheck(LToken, TokenType::Left_Parentheses);
+
+	NextToken();
+	auto ExToken = TryGetToken();
+	if (ExToken->Type != TokenType::Right_Parentheses)
+	{
+		ExpressionNodeType V;
+		GetExpressionTypeNode(V);
+
+
+		out._StringExpression.Value = std::move(V.Value);
+	}
+
+	auto RToken = TryGetToken();
+	TokenTypeCheck(RToken, TokenType::Right_Parentheses);
+	NextToken();
+
+
+	auto EndToken = TryGetToken();
+
+	TokenTypeCheck(EndToken, TokenType::Semicolon);
+	NextToken();
+
+	return GotNodeType::Success;
+}
+GotNodeType Parser::GetValidNode(ValidNode& out)
+{
+	auto Token = TryGetToken();
+	TokenTypeCheck(Token, TokenType::KeyWord_invalid);
+
+	NextToken();
+	auto LToken = TryGetToken();
+	TokenTypeCheck(LToken, TokenType::Left_Parentheses);
+
+	NextToken();
+	auto ExToken = TryGetToken();
+	if (ExToken->Type != TokenType::Right_Parentheses)
+	{
+
+		if (ExToken->Type == TokenType::Colon)
+		{
+			NextToken();
+			StatementsNode V;
+			GetStatementsorStatementNode(V);
+
+			out._StatementToCheck = std::move(V);
+			out.IsExpression = false;
+		}
+		else
+		{
+			ExpressionNodeType V;
+			GetExpressionTypeNode(V);
+
+
+			out._ExpressionToCheck.Value = std::move(V.Value);
+			out.IsExpression = true;
+		}
+	}
+
+	auto RToken = TryGetToken();
+	TokenTypeCheck(RToken, TokenType::Right_Parentheses);
+	NextToken();
+
+
+	auto EndToken = TryGetToken();
+
+	TokenTypeCheck(EndToken, TokenType::Semicolon);
+	NextToken();
+
+	return GotNodeType::Success;
+
 }
 UCodeLangFrontEnd

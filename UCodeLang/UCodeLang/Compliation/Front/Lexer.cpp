@@ -602,7 +602,22 @@ void Lexer::NameAndKeyWords(ReadingNameState& ReadingState, Token& _Token)
 		auto KeyWord = KeyWordHelper::GetToken(NameBuffer);
 		if (KeyWord != TokenType::Null)
 		{
+			if (ReadingState == ReadingNameState::Class)
+			{
+				if (KeyWord == TokenType::KeyWord_If)
+				{
+					KeyWord = TokenType::KeyWord_ClassIf;
+					ReadingState = ReadingNameState::Name;
+				}
+				if (KeyWord == TokenType::KeyWord_Else)
+				{
+					KeyWord = TokenType::KeyWord_ClassElse;
+					ReadingState = ReadingNameState::Name;
+				}
+			}
 			_Token.Type = KeyWord;
+
+			
 		}
 		else
 		{

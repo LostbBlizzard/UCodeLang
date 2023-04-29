@@ -1052,4 +1052,32 @@ struct PanicNode :Node
 	AddforNode(PanicNode);
 };
 
+struct InvalidNode :Node
+{
+	InvalidNode() : Node(NodeType::InvalidNode)
+	{
+
+	}
+	ExpressionNodeType  _StringExpression;
+
+
+	const Token* KeyWord = nullptr;
+	AddforNode(InvalidNode);
+};
+
+struct ValidNode :Node
+{
+	ValidNode() : Node(NodeType::ValidNode)
+	{
+
+	}
+	bool IsExpression = true;
+
+	ExpressionNodeType  _ExpressionToCheck;
+	StatementsNode _StatementToCheck;
+
+	AddforNode(ValidNode);
+};
+
+
 UCodeLangFrontEnd
