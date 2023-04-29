@@ -491,6 +491,24 @@ private:
 	}
 	GotNodeType GetValidNode(ValidNode& out);
 
+
+	TryGetNode GeTypeExNode()
+	{
+		Node* V = nullptr;
+		auto r = GeTypeExNode(V);
+		TrippedCheck(r);
+		return { r,V };
+	}
+	GotNodeType GeTypeExNode(Node*& out);
+
+	TryGetNode GetExpressionToTypeValue()
+	{
+		ExpressionToTypeValueNode* V = ExpressionToTypeValueNode::Gen();
+		auto r = GetExpressionToTypeValue(*V);
+		TrippedCheck(r);
+		return { r,V->As() };
+	}
+	GotNodeType GetExpressionToTypeValue(ExpressionToTypeValueNode& out);
 };
 UCodeLangFrontEnd
 

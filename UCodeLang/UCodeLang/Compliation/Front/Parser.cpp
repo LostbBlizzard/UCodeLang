@@ -1052,6 +1052,13 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 		return V.GotNode;
 	}
 	break;
+	case TokenType::KeyWord_type:
+	{
+		auto V = GeTypeExNode();
+		out = V.Node;
+		return V.GotNode;
+	}
+	break;
 	default:
 
 		if (TypeNode::IsType(StatementTypeToken->Type))
@@ -2868,5 +2875,68 @@ GotNodeType Parser::GetValidNode(ValidNode& out)
 
 	return GotNodeType::Success;
 
+}
+GotNodeType Parser::GeTypeExNode(Node*& out)
+{
+	auto Token = TryGetToken();
+	TokenTypeCheck(Token, TokenType::KeyWord_type);
+
+	NextToken();
+	auto LToken = TryGetToken();
+	TokenTypeCheck(LToken, TokenType::Left_Parentheses);
+	NextToken();
+
+	{
+		TypeNode Op1;
+		GetType(Op1, false, false);
+
+
+		auto CMPToken = TryGetToken();
+		if (CMPTypesNode::IsOp(CMPToken->Type))
+		{
+			NextToken();
+			CMPTypesNode* V = CMPTypesNode::Gen();
+			V->TypeOp1 = std::move(Op1);
+			V->Op = CMPToken;
+			GetType(V->TypeOp1, false, false);
+			out = V;
+		}
+		else
+		{
+			TypeToValueNode* V = TypeToValueNode::Gen();
+			V->TypeOp = std::move(Op1);
+			out = V;
+		}
+
+
+
+	}
+
+	auto RToken = TryGetToken();
+	TokenTypeCheck(RToken, TokenType::Right_Parentheses);
+	NextToken();
+
+
+	return GotNodeType::Success;
+}
+GotNodeType Parser::GetExpressionToTypeValue(ExpressionToTypeValueNode& out)
+{
+	auto Token = TryGetToken();
+	TokenTypeCheck(Token, TokenType::KeyWord_type);
+
+	NextToken();
+	auto LToken = TryGetToken();
+	TokenTypeCheck(LToken, TokenType::Left_Parentheses);
+	NextToken();
+
+	{
+		GetExpressionTypeNode(out.TypeEx);
+	}
+	auto RToken = TryGetToken();
+	TokenTypeCheck(RToken, TokenType::Right_Parentheses);
+	NextToken();
+
+
+	return GotNodeType::Success;
 }
 UCodeLangFrontEnd

@@ -102,6 +102,8 @@ enum class TokenType : TokenType_t
 	KeyWorld_public,//public
 	KeyWorld_private,//private
 	KeyWorld_typeof,//typeof
+	KeyWord_type,//type
+	KeyWord_bind,//bind
 	hash,//#
 
 	approximate_Comparison,//~=
