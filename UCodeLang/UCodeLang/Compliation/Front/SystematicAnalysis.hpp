@@ -720,6 +720,7 @@ private:
 	void OnExpressionNode(const IndexedExpresionNode& node);
 	void OnFuncCallNode(const FuncCallNode& node);
 	void OnDropStatementNode(const DropStatementNode& node);
+	void OnInvalidNode(const InvalidNode& node);
 	void PushTepAttributesInTo(Vector<AttributeData>& Input);
 	void LoadLibSymbols();
 	void LoadLibSymbols(const UClib& lib);
@@ -739,6 +740,14 @@ private:
 
 	bool AreTheSame(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
 	bool AreTheSameWithOutimmutable(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
+	
+	struct StrExELav
+	{
+
+		String OwnedStr;
+		String_view Msg;
+		bool IsConstantExpression = false;
+	};
 	
 	
 	BinaryOverLoadWith_t HasBinaryOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
@@ -930,6 +939,7 @@ private:
 	void* Get_Object(const TypeSymbol& Input, const RawEvaluatedObject& Input2);
 	void* Get_Object(const EvaluatedEx& Input);
 
+	StrExELav GetStrEVal(const Node* node);
 	bool ConstantExpressionAbleType(const TypeSymbol& Type);
 	bool EvaluateDefaultConstructor(EvaluatedEx& Out);
 	bool Evaluate(EvaluatedEx& Out, const ValueExpressionNode& node);
@@ -1022,7 +1032,8 @@ private:
 	void LogWantedAType(const TypeNode& V, Symbol* SybV);
 	void LogOutCanOnlyBeInControlFlow(const Token* Token);
 	void LogParamterMustBeAnOutExpression(const Token* Token, const size_t& i);
-
+	void LogInvalidNodeError(const Token* Token, String_view ErrStr);
+	void LogEmptyInvalidError(const Token* Token);
 
 	String ToString(SymbolType Value);
 	ReadVarErrorCheck_t LogTryReadVar(String_view VarName, const Token* Token, const Symbol* Syb);
