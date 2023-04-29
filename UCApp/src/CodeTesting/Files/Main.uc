@@ -1,6 +1,5 @@
 
 
 |main[]:
- invalid(8);
- //ret valid(:);
+ ret valid(A);
 

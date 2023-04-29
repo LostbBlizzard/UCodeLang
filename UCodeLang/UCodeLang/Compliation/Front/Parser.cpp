@@ -2830,7 +2830,7 @@ GotNodeType Parser::GetInvalidNode(InvalidNode& out)
 GotNodeType Parser::GetValidNode(ValidNode& out)
 {
 	auto Token = TryGetToken();
-	TokenTypeCheck(Token, TokenType::KeyWord_invalid);
+	TokenTypeCheck(Token, TokenType::KeyWord_valid);
 
 	NextToken();
 	auto LToken = TryGetToken();
@@ -2865,11 +2865,6 @@ GotNodeType Parser::GetValidNode(ValidNode& out)
 	TokenTypeCheck(RToken, TokenType::Right_Parentheses);
 	NextToken();
 
-
-	auto EndToken = TryGetToken();
-
-	TokenTypeCheck(EndToken, TokenType::Semicolon);
-	NextToken();
 
 	return GotNodeType::Success;
 

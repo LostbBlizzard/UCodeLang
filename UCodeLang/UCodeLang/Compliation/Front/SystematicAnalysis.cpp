@@ -5847,6 +5847,12 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 			OnBitCast(*nod);
 		}
 		break;
+		case NodeType::ValidNode:
+		{
+			auto nod = ValidNode::As(node.Value.get());
+			OnvalidNode(*nod);
+		}
+		break;
 		default:
 			throw std::exception("not added");
 			break;
@@ -7624,6 +7630,65 @@ void SystematicAnalysis::OnInvalidNode(const InvalidNode& node)
 	{
 		auto Token = node.KeyWord;
 		LogEmptyInvalidError(Token);
+	}
+}
+void SystematicAnalysis::OnvalidNode(const ValidNode& node)
+{
+	if (passtype == PassType::GetTypes) 
+	{
+
+		if (node.IsExpression)
+		{
+			OnExpressionTypeNode(node._ExpressionToCheck.Value.get(), GetValueMode::Read);
+		}
+		else
+		{
+			for (auto& Item : node._StatementToCheck._Nodes)
+			{
+				OnStatement(*Item);
+			}
+		}
+		LastExpressionType = TypesEnum::Bool;
+	}
+	if (passtype == PassType::FixedTypes)
+	{
+		bool IsValid = true;
+	 	auto ErrCount = _ErrorsOutput->Get_Errors().size();
+
+		if (node.IsExpression)
+		{
+			OnExpressionTypeNode(node._ExpressionToCheck.Value.get(), GetValueMode::Read);
+		}
+		else
+		{
+			for (auto& Item : node._StatementToCheck._Nodes)
+			{
+				OnStatement(*Item);
+			}
+		}
+
+		if (ErrCount < _ErrorsOutput->Get_Errors().size())
+		{
+			size_t CountToPop = _ErrorsOutput->Get_Errors().size() - ErrCount;
+			for (size_t i = 0; i < CountToPop; i++)
+			{
+				_ErrorsOutput->Get_Errors().pop_back();
+			}
+			IsValid = false;
+		}
+
+	
+		LastExpressionType = TypesEnum::Bool;
+
+		ValidNodes.AddValue((void*)GetSymbolID(node), IsValid);
+	}
+	if (passtype == PassType::BuidCode)
+	{
+		bool IsValid = ValidNodes.at((void*)GetSymbolID(node));
+
+
+		_LastExpressionField = LookingAtIRBlock->NewLoad(IsValid);
+		LastExpressionType = TypesEnum::Bool;
 	}
 }
 String SystematicAnalysis::GetFuncAnonymousObjectFullName(const String& FullFuncName)
