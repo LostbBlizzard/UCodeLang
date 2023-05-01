@@ -3141,6 +3141,10 @@ IRType SystematicAnalysis::ConvertToIR(const TypeSymbol& Value)
 		{
 			return IRType(ConveToStaticArray(syb));
 		}
+		else if (syb.Type == SymbolType::ConstantExpression)
+		{
+			return  ConvertToIR(syb.VarType);
+		}
 		else if (syb.Type == SymbolType::Trait_class && Value._IsDynamic)
 		{
 			if (SybToIRMap.HasValue(syb.ID))
@@ -5870,11 +5874,62 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 			OnvalidNode(*nod);
 		}
 		break;
+		case NodeType::CMPTypesNode:
+		{
+			auto nod = CMPTypesNode::As(node.Value.get());
+			OnCMPTypesNode(*nod);
+		}
+		break;
 		default:
 			throw std::exception("not added");
 			break;
 		}
 	}
+}
+
+bool SystematicAnalysis::CMPGetValue(const TypeSymbol& Type0, const TypeSymbol& Type1,const Token* Value)
+{
+	bool CMPValue = false;
+	switch (Value->Type)
+	{
+	case TokenType::equal_Comparison:
+		CMPValue = AreTheSame(Type0, Type1);
+		break;
+	case TokenType::Notequal_Comparison:
+		CMPValue = !AreTheSame(Type0, Type1);
+		break;
+	case TokenType::approximate_Comparison:
+		CMPValue = AreTheSameWithOutimmutable(Type0, Type1);
+		break;
+	default:
+		break;
+	}
+	return CMPValue;
+}
+
+void SystematicAnalysis::OnCMPTypesNode(const CMPTypesNode& node)
+{
+	if (passtype == PassType::GetTypes)
+	{
+
+	}
+	if (passtype == PassType::FixedTypes)
+	{
+		TypeSymbol Type0 = ConvertAndValidateType(node.TypeOp0, NodeSyb_t::Any);
+		TypeSymbol Type1 = ConvertAndValidateType(node.TypeOp1, NodeSyb_t::Any);
+
+
+		bool CMPValue =CMPGetValue(Type0,Type1,node.Op);
+
+
+		ValidNodes.AddValue((void*)GetSymbolID(node), CMPValue);
+	}
+	if (passtype == PassType::BuidCode)
+	{
+		_LastExpressionField = LookingAtIRBlock->NewLoad(ValidNodes[(void*)GetSymbolID(node)]);
+	}
+
+	LastExpressionType.SetType(TypesEnum::Bool);
 }
 
 void SystematicAnalysis::OnMovedNode(UCodeLang::FrontEnd::MoveNode* nod)
@@ -8592,16 +8647,21 @@ bool SystematicAnalysis::ValidateType(const TypeSymbol& V, const Token* Token,No
 {
 	if (V._Type == TypesEnum::CustomType)
 	{
-		auto Syb = GetSymbol(V);
-		if (Syb->Type == SymbolType::Type_StaticArray)
+		auto Syb2 = GetSymbol(V);
+		if (Syb2->Type == SymbolType::Type_StaticArray)
 		{
-			StaticArrayInfo* V = Syb->Get_Info<StaticArrayInfo>();
+			StaticArrayInfo* V = Syb2->Get_Info<StaticArrayInfo>();
 
 			if (!V->IsCountInitialized)
 			{
 				LogBeMoreSpecifiicWithStaticArrSize(Token, V->Type);
 				return false;
 			}
+		}
+		if (Syb2->Type == SymbolType::ConstantExpression && Syb != NodeSyb_t::Any)
+		{
+			auto V = Syb2->FullName;
+			LogCantFindTypeError(Token,V);
 		}
 	}
 
@@ -11275,6 +11335,18 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ValueExpressionNode& n
 		Evaluate(Out,*nod);
 	}
 	break;
+	case NodeType::CMPTypesNode:
+	{
+		CMPTypesNode* nod = CMPTypesNode::As(node.Value.get());
+		return EvaluateCMPTypesNode(Out,*nod);
+	}
+	break;
+	case NodeType::ValidNode:
+	{
+		ValidNode* nod = ValidNode::As(node.Value.get());
+		return EvaluateValidNode(Out, *nod);
+	}
+	break;
 	default:
 		throw std::exception("not added");
 		break;
@@ -11552,6 +11624,48 @@ bool SystematicAnalysis::EvaluateToAnyType(EvaluatedEx& Out, const ExpressionNod
 	Out = std::move(ex1);
 	return R;
 }
+bool SystematicAnalysis::EvalutateCMPTypesNode(EvaluatedEx& Out, const CMPTypesNode& node)
+{
+	TypeSymbol Op0 = ConvertAndValidateType(node.TypeOp0, NodeSyb_t::Any);
+	TypeSymbol Op1 = ConvertAndValidateType(node.TypeOp1, NodeSyb_t::Any);
+
+	*((bool*)Get_Object(Out)) = CMPGetValue(Op0, Op1, node.Op);
+
+	return true;
+}
+bool SystematicAnalysis::EvalutateValidNode(EvaluatedEx& Out, const ValidNode& node)
+{
+
+	bool IsValid = true;
+	auto ErrCount = _ErrorsOutput->Get_Errors().size();
+
+	if (node.IsExpression)
+	{
+		OnExpressionTypeNode(node._ExpressionToCheck.Value.get(), GetValueMode::Read);
+	}
+	else
+	{
+		for (auto& Item : node._StatementToCheck._Nodes)
+		{
+			OnStatement(*Item);
+		}
+	}
+
+	if (ErrCount < _ErrorsOutput->Get_Errors().size())
+	{
+		size_t CountToPop = _ErrorsOutput->Get_Errors().size() - ErrCount;
+		for (size_t i = 0; i < CountToPop; i++)
+		{
+			_ErrorsOutput->Get_Errors().pop_back();
+		}
+		IsValid = false;
+	}
+
+	*((bool*)Get_Object(Out)) = IsValid;
+
+	LastExpressionType = TypesEnum::Bool;
+	return true;
+}
 Optional<SystematicAnalysis::EvaluatedEx> SystematicAnalysis::EvaluateToAnyType(const ExpressionNodeType& node)
 {
 	EvaluatedEx Out;
@@ -11756,6 +11870,17 @@ IRInstruction* SystematicAnalysis::LoadEvaluatedEx(const RawEvaluatedObject& Val
 	case TypesEnum::uInt64:
 		return LookingAtIRBlock->NewLoad(*(UInt64*)ObjectData);
 		break;
+
+	case TypesEnum::sIntPtr:
+	case TypesEnum::uIntPtr:
+		if (_Settings->PtrSize == IntSizes::Int64)
+		{
+			return LookingAtIRBlock->NewLoad(*(UInt64*)ObjectData);
+		}
+		else
+		{
+			return LookingAtIRBlock->NewLoad(*(UInt32*)ObjectData);
+		}
 	default:
 		throw std::exception("not added");
 		break;

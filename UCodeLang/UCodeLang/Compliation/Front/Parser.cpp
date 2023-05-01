@@ -2896,7 +2896,7 @@ GotNodeType Parser::GeTypeExNode(Node*& out)
 		{
 			NextToken();
 			CMPTypesNode* V = CMPTypesNode::Gen();
-			V->TypeOp1 = std::move(Op1);
+			V->TypeOp0 = std::move(Op1);
 			V->Op = CMPToken;
 			GetType(V->TypeOp1, false, false);
 			out = V;

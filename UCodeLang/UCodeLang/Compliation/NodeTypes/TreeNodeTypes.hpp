@@ -1086,9 +1086,9 @@ struct CMPTypesNode :Node
 
 	}
 	
-	TypeNode TypeOp1;
+	TypeNode TypeOp0;
 	const Token* Op;
-	TypeNode TypeOp2;
+	TypeNode TypeOp1;
 
 	static bool IsOp(TokenType Type)
 	{

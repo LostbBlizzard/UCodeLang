@@ -1,10 +1,7 @@
 
-$TypeInfo;
 
-$Arr<T,(Size)>:
- //int a = Size;
- int[/Size] Buffer;
 
-$Buffer = Arr<int,(8 -> uintptr)>;
+int PI = 314;
+int PI2 = 314;
 
-|main[] -> void;
+|main[] => vaild(A);
