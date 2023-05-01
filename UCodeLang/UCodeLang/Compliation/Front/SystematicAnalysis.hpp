@@ -649,6 +649,9 @@ private:
 	void OnTag(const TagTypeNode& node);
 	void OnBitCast(const BitCastExpression& node);
 
+	void OnCMPTypesNode(const CMPTypesNode& node);
+	bool CMPGetValue(const TypeSymbol& Type0, const TypeSymbol& Type1, const Token* Value);
+
 	String GetClassWithTraitVTableName(const String& ClassFullName, const String& TraitFullName);
 	String GetTraitVTableName(const String& TraitName);
 	String GetTraitVStructTableName(const String& TraitName);
@@ -955,7 +958,8 @@ private:
 	bool HasConstantPostfixOperator(const TypeSymbol& Type, TokenType Op);
 	bool CanEvaluateImplicitConversionConstant(const TypeSymbol& Type, const TypeSymbol& ToType);
 	bool EvaluateImplicitConversion(EvaluatedEx& In, const TypeSymbol& ToType, EvaluatedEx& out);
-	
+	bool EvalutateCMPTypesNode(EvaluatedEx& Out, const CMPTypesNode& node);
+	bool EvalutateValidNode(EvaluatedEx& Out, const ValidNode& node);
 
 
 	bool Evaluate(EvaluatedEx& Out, const TypeSymbol& MustBeType, const ExpressionNodeType& node);
@@ -967,7 +971,6 @@ private:
 	//IR
 	void DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Name, const ValueParametersNode& Pars);
 	void DoFuncCall(const TypeSymbol& Type, const Get_FuncInfo& Func, ValueParametersNode& ValuePars);
-
 	void DoDestructorCall(const ObjectToDrop& Object);
 
 	IRInstruction* IR_Load_UIntptr(UAddress Value);
