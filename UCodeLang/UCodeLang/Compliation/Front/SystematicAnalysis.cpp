@@ -11338,13 +11338,13 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ValueExpressionNode& n
 	case NodeType::CMPTypesNode:
 	{
 		CMPTypesNode* nod = CMPTypesNode::As(node.Value.get());
-		return EvaluateCMPTypesNode(Out,*nod);
+		return EvalutateCMPTypesNode(Out,*nod);
 	}
 	break;
 	case NodeType::ValidNode:
 	{
 		ValidNode* nod = ValidNode::As(node.Value.get());
-		return EvaluateValidNode(Out, *nod);
+		return EvalutateValidNode(Out, *nod);
 	}
 	break;
 	default:

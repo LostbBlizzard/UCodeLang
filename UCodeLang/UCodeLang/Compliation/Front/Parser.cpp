@@ -44,6 +44,7 @@ void Parser::Parse(const Vector<Token>&Tokens)
 		case TokenType::KeyWord_Thread:V = GetDeclareThreadVariable(); break;
 		case TokenType::KeyWord_umut:V = GetumutVariableDeclare(); break;
 		case TokenType::KeyWord_trait:V = GetTraitNode(); break;
+		case TokenType::KeyWord_eval:V = GetEvalDeclare(); break;
 		default: GetDeclareVariableNoObject(V); break;
 		}
 		if (V.Node)
@@ -137,6 +138,7 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 		case TokenType::KeyWord_Thread:V = GetDeclareThreadVariable(); break;
 		case TokenType::KeyWord_umut:V = GetumutVariableDeclare(); break;
 		case TokenType::KeyWord_trait:V = GetTraitNode(); break;
+		case TokenType::KeyWord_eval:V = GetEvalDeclare(); break;
 		default: GetDeclareVariableNoObject(V); break;
 		}
 
@@ -327,7 +329,7 @@ GotNodeType Parser::DoClassType(ClassNode* output, const Token* ClassToken, Gene
 		case TokenType::KeyWord_Thread:V = GetDeclareThreadVariable(); break;
 		case TokenType::KeyWord_umut:V = GetumutVariableDeclare(); break;
 		case TokenType::KeyWord_trait:V = GetTraitNode(); break;
-
+		case TokenType::KeyWord_eval:V = GetEvalDeclare(); break;
 		case TokenType::KeyWorld_public:
 		{
 			NextToken(); TokenTypeCheck(TryGetToken(), TokenType::Colon); NextToken();
@@ -388,6 +390,7 @@ void Parser::ClassTypeAccessModifierInerScope(Vector<Unique_ptr<Node>>& Out)
 		case TokenType::KeyWord_static:V = GetDeclareStaticVariable(); break;
 		case TokenType::KeyWord_Thread:V = GetDeclareThreadVariable(); break;
 		case TokenType::KeyWord_umut:V = GetumutVariableDeclare(); break;
+		case TokenType::KeyWord_eval:V = GetEvalDeclare(); break;
 		case TokenType::KeyWord_trait:V = GetTraitNode(); break;
 		default:V = GetDeclareVariable();
 		}
@@ -555,6 +558,13 @@ GotNodeType Parser::GetStatement(Node*& out)
 	case TokenType::KeyWord_invalid:
 	{
 		auto r = GetInvalidNode();
+		out = r.Node;
+		return r.GotNode;
+	}
+	break;
+	case TokenType::KeyWord_eval:
+	{
+		auto r = GetEvalDeclare();
 		out = r.Node;
 		return r.GotNode;
 	}
@@ -2354,7 +2364,7 @@ GotNodeType Parser::GetumutVariableDeclare(Node*& out)
 		}
 		else
 		{
-			DeclareVariableNode* V = DeclareVariableNode::Gen();//this need to be checked if this dose not happen at top scope
+			DeclareVariableNode* V = DeclareVariableNode::Gen();
 
 			out = V;
 			TypeNode::Gen_Var(V->Type, *NameValue.Token);
@@ -2938,5 +2948,57 @@ GotNodeType Parser::GetExpressionToTypeValue(ExpressionToTypeValueNode& out)
 
 
 	return GotNodeType::Success;
+}
+GotNodeType Parser::GetEvalDeclare(Node*& out)
+{
+
+	auto NewToken = TryGetToken(); TokenTypeCheck(NewToken, TokenType::KeyWord_eval);
+	NextToken();
+
+	auto Token2 = TryGetToken();
+
+	size_t OldIndex = _TokenIndex;
+
+	NameNode NameValue;
+	GetNameCheck(NameValue);
+
+
+	TypeNode* Tnode = nullptr;
+	auto Token3 = TryGetToken();
+
+	GotNodeType r;
+
+	if (Token3->Type == TokenType::equal)
+	{
+		DeclareEvalVariableNode* V = DeclareEvalVariableNode::Gen();
+
+		out = V;
+		TypeNode::Gen_Var(V->Variable.Type, *NameValue.Token);
+		V->Variable.Name = std::move(NameValue);
+		GetExpressionTypeNode(V->Variable.Expression);
+
+		auto SemicolonToken2 = TryGetToken(); TokenTypeCheck(SemicolonToken2, TokenType::Semicolon);
+		NextToken();
+
+		Tnode = &V->Variable.Type;
+		r = GotNodeType::Success;
+	}
+	else if (Token3->Type == TokenType::Semicolon)
+	{
+
+		auto Token = NameValue.Token;
+		_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
+			, "cant guess type theres no '=' [expression]");
+		NextToken();
+		return GotNodeType::Success;
+	}
+	else
+	{
+		_TokenIndex = OldIndex;
+		DeclareEvalVariableNode* V = DeclareEvalVariableNode::Gen();
+		r = GetDeclareVariable(V->Variable, true);
+		out = V;
+	}
+	return r;
 }
 UCodeLangFrontEnd

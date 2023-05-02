@@ -509,6 +509,15 @@ private:
 		return { r,V->As() };
 	}
 	GotNodeType GetExpressionToTypeValue(ExpressionToTypeValueNode& out);
+
+	TryGetNode GetEvalDeclare()
+	{
+		Node* V = nullptr;
+		auto r = GetEvalDeclare(V);
+		TrippedCheck(r);
+		return { r,V };
+	}
+	GotNodeType GetEvalDeclare(Node*& out);
 };
 UCodeLangFrontEnd
 
