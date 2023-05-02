@@ -236,6 +236,7 @@ void SystematicAnalysis::OnFileNode(const FileNode* File)
 		case NodeType::UsingNode: OnUseingNode(*UsingNode::As(node.get())); break;
 		case NodeType::DeclareStaticVariableNode:OnDeclareStaticVariableNode(*DeclareStaticVariableNode::As(node.get())); break;
 		case NodeType::DeclareThreadVariableNode:OnDeclareThreadVariableNode(*DeclareThreadVariableNode::As(node.get())); break;
+		case NodeType::DeclareEvalVariableNode:OnDeclareEvalVariableNode(*DeclareEvalVariableNode::As(node.get())); break;
 		case NodeType::TraitNode:OnTrait(*TraitNode::As(node.get())); break;
 		case NodeType::TagTypeNode:OnTag(*TagTypeNode::As(node.get())); break;
 		default:break;
@@ -360,6 +361,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			case NodeType::DeclareVariableNode:OnDeclareVariablenode(*DeclareVariableNode::As(node.get()), DeclareStaticVariableNode_t::ClassField); break;
 			case NodeType::DeclareStaticVariableNode:OnDeclareStaticVariableNode(*DeclareStaticVariableNode::As(node.get())); break;
 			case NodeType::DeclareThreadVariableNode:OnDeclareThreadVariableNode(*DeclareThreadVariableNode::As(node.get())); break;
+			case NodeType::DeclareEvalVariableNode:OnDeclareEvalVariableNode(*DeclareEvalVariableNode::As(node.get())); break;
 			case NodeType::TraitNode:OnTrait(*TraitNode::As(node.get())); break;
 			case NodeType::TagTypeNode:OnTag(*TagTypeNode::As(node.get())); break;
 			default:break;
@@ -3252,6 +3254,7 @@ void SystematicAnalysis::OnStatement(const Node& node2)
 	case NodeType::DoNode:OnDoNode(*DoNode::As(&node2)); break;
 	case NodeType::DeclareStaticVariableNode:OnDeclareStaticVariableNode(*DeclareStaticVariableNode::As(&node2)); break;
 	case NodeType::DeclareThreadVariableNode:OnDeclareThreadVariableNode(*DeclareThreadVariableNode::As(&node2)); break;
+	case NodeType::DeclareEvalVariableNode:OnDeclareEvalVariableNode(*DeclareEvalVariableNode::As(&node2)); break;
 	case NodeType::ForNode:OnForNode(*ForNode::As(&node2)); break;
 	case NodeType::ContinueNode:OnContinueNode(*ContinueNode::As(&node2)); break;
 	case NodeType::BreakNode:OnBreakNode(*BreakNode::As(&node2)); break;
@@ -3600,6 +3603,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 	Symbol* syb;
 
 	bool InSideClass = _InSideClass();
+	bool IsField = InSideClass && DeclareStaticVariableNode_t::Stack == type;
 
 	if (passtype == PassType::GetTypes)
 	{
@@ -3616,6 +3620,9 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 		case DeclareStaticVariableNode_t::Thread:
 			SysType = SymbolType::ThreadVarable;
 			break;
+		case DeclareStaticVariableNode_t::Eval:
+			SysType = SymbolType::ConstantExpression;
+			break;
 		case DeclareStaticVariableNode_t::ClassField:
 			break;
 		default:
@@ -3623,14 +3630,14 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 			break;
 		}
 		//
-		DoSymbolRedefinitionCheck(FullName, SymbolType::StackVarable, node.Name.Token);
+		DoSymbolRedefinitionCheck(FullName, SysType, node.Name.Token);
 
 
 		syb = &AddSybol(SysType, StrVarName, FullName,node.Access);
 		_Table.AddSymbolID(*syb, sybId);
 
 
-		if (InSideClass)
+		if (IsField)
 		{
 			syb->Type = SymbolType::Class_Field;
 			auto& Class = *_ClassStack.top().Info;
@@ -3640,15 +3647,38 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 		}
 		syb->NodePtr = (void*)node.Name.Token->OnPos;//a tep solution. 
 
+		if (syb->Type == SymbolType::ConstantExpression)
+		{
+			ConstantExpressionInfo* info = new ConstantExpressionInfo();
+			info->Exnode = &node.Expression;
+			syb->Info.reset(info);
+		}
 
 		//
 		if (type == DeclareStaticVariableNode_t::Static
-			|| type == DeclareStaticVariableNode_t::Thread)
+			|| type == DeclareStaticVariableNode_t::Thread
+			|| type == DeclareStaticVariableNode_t::Eval)
 		{
 			if (!node.Expression.Value)
 			{
 				auto Token = node.Name.Token;
-				String VarType = type == DeclareStaticVariableNode_t::Static ? "Static" : "Thread";
+				String VarType;
+				switch (type)
+				{
+				case DeclareStaticVariableNode_t::Static:
+					VarType = "static";
+					break;
+				case DeclareStaticVariableNode_t::Thread:
+					VarType = "thread";
+					break;
+				case DeclareStaticVariableNode_t::Eval:
+					VarType = "eval";
+					break;
+				default:
+					throw std::exception("not added");
+					break;
+				}
+
 				_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, VarType + " Varable must be assigned.missing '='.");
 			}
 		}
@@ -3667,16 +3697,12 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 	if (passtype == PassType::FixedTypes)
 	{
 		auto& VarType = syb->VarType;
-		ConvertAndValidateType(node.Type, VarType,NodeSyb_t::ClassFeild);
+		ConvertAndValidateType(node.Type, VarType, NodeSyb_t::ClassFeild);
 		VarType.SetAsLocation();
-		
-		
+
+
 		auto Ex = node.Expression.Value.get();
 		ExTypeDeclareVarableCheck(VarType, Ex, node.Name.Token);
-
-		
-
-		
 	}
 	LookingForTypes.push(syb->VarType);
 
@@ -3691,97 +3717,103 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 
 		if (node.Expression.Value)
 		{
-
-			if (syb->Type == SymbolType::StackVarable)
+			if (syb->Type != SymbolType::ConstantExpression)
 			{
-				OnVarable = LookingAtIRBlock->NewLoad(ConvertToIR(syb->VarType));
-				syb->IR_Ins = OnVarable;
 
 
-			}
-			else if (syb->Type == SymbolType::StaticVarable)
-			{
-				oldIRFunc = LookingAtIRFunc;
-				oldblock = LookingAtIRBlock;
 
-			
-
-				if (_Builder._StaticInit.Blocks.size() == 0)
+				if (syb->Type == SymbolType::StackVarable)
 				{
-					_Builder._StaticInit.NewBlock(".");
-				}	
-				
-				LookingAtIRFunc = &_Builder._StaticInit;
-				LookingAtIRBlock = LookingAtIRFunc->Blocks.front().get();
-
-
-				if (ISStructPassByRef(syb)) {
 					OnVarable = LookingAtIRBlock->NewLoad(ConvertToIR(syb->VarType));
-				}
-			}
-			else if (syb->Type == SymbolType::ThreadVarable)
-			{
-				oldIRFunc = LookingAtIRFunc;
-				oldblock = LookingAtIRBlock;
+					syb->IR_Ins = OnVarable;
 
-				if (_Builder._threadInit.Blocks.size() == 0)
+
+				}
+				else if (syb->Type == SymbolType::StaticVarable)
 				{
-					_Builder._threadInit.NewBlock(".");
-				}
-
-				LookingAtIRFunc = &_Builder._threadInit;
-				LookingAtIRBlock = LookingAtIRFunc->Blocks.front().get();
+					oldIRFunc = LookingAtIRFunc;
+					oldblock = LookingAtIRBlock;
 
 
-				if (ISStructPassByRef(syb)) {
-					OnVarable = LookingAtIRBlock->NewLoad(ConvertToIR(syb->VarType));
-				}
-			}
-			else if (syb->Type == SymbolType::Class_Field)
-			{
-				oldIRFunc = LookingAtIRFunc;
-				oldblock = LookingAtIRBlock;
 
-				auto* Classinfo = _ClassStack.top().Info;
-				if (Classinfo->_ClassFieldInit == nullptr)
-				{
-					String funcName = _Table._Scope.GetApendedString((String)ClassInitializefuncName);
-
-
-					Classinfo->_ClassFieldInit = _Builder.NewFunc(funcName, IRTypes::Void);
-					Classinfo->_ClassFieldInit->NewBlock(".");
+					if (_Builder._StaticInit.Blocks.size() == 0)
 					{
-						auto Classtype = TypeSymbol(GetSymbol(Classinfo)->ID);
-						Classtype._IsAddress = true;
+						_Builder._StaticInit.NewBlock(".");
+					}
 
-						IRPar ThisPar;
-						ThisPar.identifier = _Builder.ToID(ThisSymbolName);
-						ThisPar.type = ConvertToIR(Classtype);
-						Classinfo->_ClassFieldInit->Pars.push_back(ThisPar);
+					LookingAtIRFunc = &_Builder._StaticInit;
+					LookingAtIRBlock = LookingAtIRFunc->Blocks.front().get();
+
+
+					if (ISStructPassByRef(syb)) {
+						OnVarable = LookingAtIRBlock->NewLoad(ConvertToIR(syb->VarType));
 					}
 				}
+				else if (syb->Type == SymbolType::ThreadVarable)
+				{
+					oldIRFunc = LookingAtIRFunc;
+					oldblock = LookingAtIRBlock;
 
-				LookingAtIRFunc = Classinfo->_ClassFieldInit;
-				LookingAtIRBlock = LookingAtIRFunc->Blocks.front().get();
+					if (_Builder._threadInit.Blocks.size() == 0)
+					{
+						_Builder._threadInit.NewBlock(".");
+					}
+
+					LookingAtIRFunc = &_Builder._threadInit;
+					LookingAtIRBlock = LookingAtIRFunc->Blocks.front().get();
 
 
-				if (ISStructPassByRef(syb)) {
-					OnVarable = LookingAtIRBlock->NewLoad(ConvertToIR(syb->VarType));
+					if (ISStructPassByRef(syb)) {
+						OnVarable = LookingAtIRBlock->NewLoad(ConvertToIR(syb->VarType));
+					}
 				}
-			}
-			else
-			{
-				throw std::exception("not added");
+				else if (syb->Type == SymbolType::Class_Field)
+				{
+					oldIRFunc = LookingAtIRFunc;
+					oldblock = LookingAtIRBlock;
+
+					auto* Classinfo = _ClassStack.top().Info;
+					if (Classinfo->_ClassFieldInit == nullptr)
+					{
+						String funcName = _Table._Scope.GetApendedString((String)ClassInitializefuncName);
+
+
+						Classinfo->_ClassFieldInit = _Builder.NewFunc(funcName, IRTypes::Void);
+						Classinfo->_ClassFieldInit->NewBlock(".");
+						{
+							auto Classtype = TypeSymbol(GetSymbol(Classinfo)->ID);
+							Classtype._IsAddress = true;
+
+							IRPar ThisPar;
+							ThisPar.identifier = _Builder.ToID(ThisSymbolName);
+							ThisPar.type = ConvertToIR(Classtype);
+							Classinfo->_ClassFieldInit->Pars.push_back(ThisPar);
+						}
+					}
+
+					LookingAtIRFunc = Classinfo->_ClassFieldInit;
+					LookingAtIRBlock = LookingAtIRFunc->Blocks.front().get();
+
+
+					if (ISStructPassByRef(syb)) {
+						OnVarable = LookingAtIRBlock->NewLoad(ConvertToIR(syb->VarType));
+					}
+				}
+				else
+				{
+					throw std::exception("not added");
+				}
+
+				IsStructObjectPassRef = ISStructPassByRef(syb);
+
+				if (IsStructObjectPassRef)
+				{
+					IRlocations.push({ OnVarable ,false });
+				}
+
+				OnExpressionTypeNode(node.Expression.Value.get(), GetValueMode::Read);
 			}
 
-			IsStructObjectPassRef = ISStructPassByRef(syb);
-
-			if (IsStructObjectPassRef)
-			{
-				IRlocations.push({ OnVarable ,false });
-			}
-
-			OnExpressionTypeNode(node.Expression.Value.get(), GetValueMode::Read);
 		}
 		else
 		{
@@ -3810,16 +3842,30 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 			auto& Ex = LastExpressionType;
 			auto Token = node.Type.Name.Token;
 			ExDeclareVariableTypeCheck(VarType, Ex, Token);
+
+			if (syb->Type == SymbolType::ConstantExpression && !VarType.IsNull())
+			{
+				ConstantExpressionInfo* Info = syb->Get_Info<ConstantExpressionInfo>();
+
+				LookingForTypes.push(VarType);
+				auto Item = EvaluateToAnyType(node.Expression);
+				LookingForTypes.pop();
+
+				if (Item) 
+				{
+					Info->Ex =std::move(Item.value().EvaluatedObject);
+				}
+			}
 		}
 		else
 		{
-			if (!InSideClass) {
+			if (!IsField) {
 				syb->SetToInvalid();
 			}
 		}
 
 
-		if (InSideClass)
+		if (IsField)
 		{
 			auto& Class = *_ClassStack.top().Info;
 			if (!Class.SizeInitialized)
@@ -3857,32 +3903,33 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 
 	if (passtype == PassType::BuidCode && node.Expression.Value)
 	{
-		
-		DoImplicitConversion(_LastExpressionField, LastExpressionType, syb->VarType);
+		if (syb->Type != SymbolType::ConstantExpression) {
+			DoImplicitConversion(_LastExpressionField, LastExpressionType, syb->VarType);
 
-	
-		OnStoreVarable(IsStructObjectPassRef, OnVarable, syb, sybId);
-		
-		AddDependencyToCurrentFile(syb->VarType);
-	
-	
-		//
-		if (syb->Type == SymbolType::StaticVarable)
-		{
-			LookingAtIRFunc = oldIRFunc;
-			LookingAtIRBlock = oldblock;
+
+			OnStoreVarable(IsStructObjectPassRef, OnVarable, syb, sybId);
+
+			AddDependencyToCurrentFile(syb->VarType);
+
+
+			//
+			if (syb->Type == SymbolType::StaticVarable)
+			{
+				LookingAtIRFunc = oldIRFunc;
+				LookingAtIRBlock = oldblock;
+			}
+			else if (syb->Type == SymbolType::ThreadVarable)
+			{
+				LookingAtIRFunc = oldIRFunc;
+				LookingAtIRBlock = oldblock;
+			}
+			else if (syb->Type == SymbolType::Class_Field)
+			{
+				LookingAtIRFunc = oldIRFunc;
+				LookingAtIRBlock = oldblock;
+			}
+
 		}
-		else if (syb->Type == SymbolType::ThreadVarable)
-		{
-			LookingAtIRFunc = oldIRFunc;
-			LookingAtIRBlock = oldblock;
-		}
-		else if (syb->Type == SymbolType::Class_Field)
-		{
-			LookingAtIRFunc = oldIRFunc;
-			LookingAtIRBlock = oldblock;
-		}
-	
 	}
 }
 void SystematicAnalysis::OnStoreVarable(bool IsStructObjectPassRef, UCodeLang::IRInstruction* OnVarable, UCodeLang::FrontEnd::Symbol* syb, const UCodeLang::SymbolID& sybId)
@@ -4362,7 +4409,10 @@ void SystematicAnalysis::OnDeclareThreadVariableNode(const DeclareThreadVariable
 {
 	OnDeclareVariablenode(node.Variable, DeclareStaticVariableNode_t::Thread);
 }
-
+void SystematicAnalysis::OnDeclareEvalVariableNode(const DeclareEvalVariableNode& node)
+{
+	OnDeclareVariablenode(node.Variable, DeclareStaticVariableNode_t::Eval);
+}
 bool SystematicAnalysis::GetMemberTypeSymbolFromVar(const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
 {
 	if (passtype==PassType::GetTypes) {
