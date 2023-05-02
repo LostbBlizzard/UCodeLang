@@ -462,6 +462,7 @@ private:
 		Static,
 		Thread,
 		ClassField,
+		Eval,
 	};
 	struct VarableUseData
 	{
@@ -637,6 +638,8 @@ private:
 	void OnDoNode(const DoNode& node);
 	void OnDeclareStaticVariableNode(const DeclareStaticVariableNode& node);
 	void OnDeclareThreadVariableNode(const DeclareThreadVariableNode& node);
+
+	void OnDeclareEvalVariableNode(const DeclareEvalVariableNode& node);
 	void FuncRetCheck(const Token& Name, const Symbol* FuncSyb, const FuncInfo* Func);
 	void OnForNode(const ForNode& node);
 

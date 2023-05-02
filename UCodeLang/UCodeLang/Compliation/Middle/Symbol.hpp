@@ -583,7 +583,7 @@ struct  ExpressionNodeType;
 class ConstantExpressionInfo :public Symbol_Info
 {
 public:
-	ExpressionNodeType* Exnode = nullptr;
+	const ExpressionNodeType* Exnode = nullptr;
 	RawEvaluatedObject Ex;
 
 	ConstantExpressionInfo()

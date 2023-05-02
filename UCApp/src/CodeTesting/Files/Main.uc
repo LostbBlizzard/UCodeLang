@@ -1,8 +1,7 @@
 
 
 
-eval int PI = 314;
-eval PI2 = true;
+eval PI = type(int == bool);
 
 
 |main[] => PI;

@@ -2970,6 +2970,7 @@ GotNodeType Parser::GetEvalDeclare(Node*& out)
 
 	if (Token3->Type == TokenType::equal)
 	{
+		NextToken();
 		DeclareEvalVariableNode* V = DeclareEvalVariableNode::Gen();
 
 		out = V;
