@@ -1,7 +1,8 @@
 
 
 
-int PI = 314;
-int PI2 = 314;
+eval int PI = 314;
+eval PI2 = true;
 
-|main[] => vaild(A);
+
+|main[] => PI;

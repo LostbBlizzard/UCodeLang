@@ -69,6 +69,7 @@ enum class NodeType :UInt8
 	CMPTypesNode,
 	TypeToValueNode,
 	ExpressionToTypeValueNode,
+	DeclareEvalVariableNode,
 };
 
 

@@ -140,6 +140,8 @@ enum class TokenType : TokenType_t
 
 	KeyWord_ClassIf,//$if
 	KeyWord_ClassElse,//$else
+	KeyWord_eval,
+
 
 	//used internally
 	internal_Constant_expression

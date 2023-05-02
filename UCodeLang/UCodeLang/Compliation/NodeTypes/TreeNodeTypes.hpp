@@ -1130,4 +1130,14 @@ struct ExpressionToTypeValueNode :Node
 	AddforNode(ExpressionToTypeValueNode);
 };
 
+struct DeclareEvalVariableNode :Node
+{
+	DeclareEvalVariableNode() : Node(NodeType::DeclareEvalVariableNode)
+	{
+
+	}
+	AddforNode(DeclareEvalVariableNode);
+	DeclareVariableNode Variable;
+};
+
 UCodeLangFrontEnd
