@@ -569,6 +569,13 @@ GotNodeType Parser::GetStatement(Node*& out)
 		return r.GotNode;
 	}
 	break;
+	case TokenType::KeyWord_ClassIf:
+	{
+		auto r = GetCompileTimeIf();
+		out = r.Node;
+		return r.GotNode;
+	}
+	break;
 	default:
 	{
 		size_t OldIndex = _TokenIndex;
@@ -3001,5 +3008,65 @@ GotNodeType Parser::GetEvalDeclare(Node*& out)
 		out = V;
 	}
 	return r;
+}
+GotNodeType Parser::GetCompileTimeIf(CompileTimeIfNode*& out)
+{
+	auto Token = TryGetToken();
+	TokenTypeCheck(Token, TokenType::KeyWord_ClassIf);
+
+	NextToken();
+
+	GetExpressionTypeNode(out->Expression);	
+
+	auto Token3 = TryGetToken();
+	TokenTypeCheck(Token3, TokenType::Colon);
+	NextToken();
+
+	auto Statements = GetStatementsorStatementNode(out->Body);
+
+	while (TryGetToken()->Type != TokenType::EndofFile)
+	{
+		auto T = TryGetToken();
+
+		if (T->Type != TokenType::KeyWord_ClassElse) { break; }
+
+		NextToken();
+		auto T2 = TryGetToken();
+
+		if (T2->Type != TokenType::Colon)
+		{//else if or Item();
+			auto elseNode = std::make_unique<ElseNode>();
+
+			//auto RetToken2 = TryGetToken();
+			//TokenTypeCheck(RetToken2, TokenType::KeyWorld_If);
+
+			Node* V;
+			auto Statements = GetStatement(V);
+			if (V)
+			{
+				elseNode->Body._Nodes.push_back(Unique_ptr<Node>(V));
+			}
+
+			out->Else = std::move(elseNode);
+			break;
+		}
+		else
+		{//else
+			auto elseNode = std::make_unique<ElseNode>();
+
+			auto ColonToken = TryGetToken();
+			TokenTypeCheck(ColonToken, TokenType::Colon);
+			NextToken();
+
+			auto Statements = GetStatementsorStatementNode(elseNode->Body);
+
+			out->Else = std::move(elseNode);
+
+			break;
+		}
+
+	}
+
+	return Statements;
 }
 UCodeLangFrontEnd

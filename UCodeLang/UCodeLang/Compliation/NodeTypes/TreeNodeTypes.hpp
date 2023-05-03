@@ -1139,5 +1139,16 @@ struct DeclareEvalVariableNode :Node
 	AddforNode(DeclareEvalVariableNode);
 	DeclareVariableNode Variable;
 };
+struct CompileTimeIfNode :Node
+{
+	CompileTimeIfNode() : Node(NodeType::CompileTimeIfNode)
+	{
 
+	}
+	AddforNode(CompileTimeIfNode);
+
+	ExpressionNodeType Expression;
+	StatementsNode Body;
+	Unique_ptr<Node> Else;
+};
 UCodeLangFrontEnd
