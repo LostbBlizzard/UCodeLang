@@ -2770,6 +2770,98 @@ void SystematicAnalysis::BuildTrait(Symbol* Syb, ClassInfo* ClassInfo, Symbol* T
 		_ClassStack.pop();
 	}
 }
+void SystematicAnalysis::OnCompileTimeIfNode(const CompileTimeIfNode& node)
+{
+	if (passtype == PassType::GetTypes)
+	{
+		LookingForTypes.push(TypesEnum::Bool);
+		OnExpressionTypeNode(node.Expression.Value.get(),GetValueMode::Read);
+		LookingForTypes.pop();
+	}
+
+	if (passtype == PassType::FixedTypes)
+	{
+		
+		LookingForTypes.push(TypesEnum::Bool);
+		auto BoolValue = Evaluate(TypesEnum::Bool,node.Expression);
+		LookingForTypes.pop();
+
+		if (BoolValue.has_value())
+		{
+			const bool& EvalValue = *(bool*)Get_Object(BoolValue.value());
+		
+
+
+			if (EvalValue)
+			{
+				auto PassOld = passtype;
+				passtype = PassType::GetTypes;
+				for (auto& Item : node.Body._Nodes)
+				{
+					OnStatement(*Item.get());
+				}
+				passtype = PassType::FixedTypes;
+				for (auto& Item : node.Body._Nodes)
+				{
+					OnStatement(*Item.get());
+				}
+
+				passtype = PassOld;
+			}
+			else
+			{
+				if (node.Else.get())
+				{
+					ElseNode* Elsenode = ElseNode::As(node.Else.get());
+
+					auto PassOld = passtype;
+					passtype = PassType::GetTypes;
+					
+					for (const auto& node3 : Elsenode->Body._Nodes)
+					{
+						OnStatement(*node3);
+					}
+
+					passtype = PassType::FixedTypes;
+					
+					for (const auto& node3 : Elsenode->Body._Nodes)
+					{
+						OnStatement(*node3);
+					}
+
+					passtype = PassOld;
+				}
+			}
+
+			ValidNodes.AddValue((void*)GetSymbolID(node), EvalValue);
+
+		}
+
+	}
+
+
+	if (passtype == PassType::BuidCode)
+	{
+		const bool EvalValue = ValidNodes.at((void*)GetSymbolID(node));
+
+		if (EvalValue)
+		{
+			for (auto& Item : node.Body._Nodes)
+			{
+				OnStatement(*Item.get());
+			}
+		}
+		else
+		{
+			ElseNode* Elsenode = ElseNode::As(node.Else.get());
+
+			for (const auto& node3 : Elsenode->Body._Nodes)
+			{
+				OnStatement(*node3);
+			}
+		}
+	}
+}
 void SystematicAnalysis::LogMissingFuncionforTrait(UCodeLang::String_view& FuncName, UCodeLang::FrontEnd::FuncInfo* Info, UCodeLang::FrontEnd::Symbol* Trait, const UCodeLang::Token* ClassNameToken)
 {
 	String Msg = "Missing Funcion '" + (String)FuncName + "' with the parameters [";
@@ -3262,6 +3354,7 @@ void SystematicAnalysis::OnStatement(const Node& node2)
 	case NodeType::TraitNode:OnTrait(*TraitNode::As(&node2)); break;
 	case NodeType::TagTypeNode:OnTag(*TagTypeNode::As(&node2)); break;
 	case NodeType::InvalidNode:OnInvalidNode(*InvalidNode::As(&node2)); break;
+	case NodeType::CompileTimeIfNode:OnCompileTimeIfNode(*CompileTimeIfNode::As(&node2)); break;
 	default:break;
 	}
 	PopNodeScope();

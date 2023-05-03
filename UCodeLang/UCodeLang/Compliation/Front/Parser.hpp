@@ -518,6 +518,17 @@ private:
 		return { r,V };
 	}
 	GotNodeType GetEvalDeclare(Node*& out);
+
+	
+	TryGetNode GetCompileTimeIf()
+	{
+		CompileTimeIfNode* V = CompileTimeIfNode::Gen();
+		auto r = GetCompileTimeIf(V);
+		TrippedCheck(r);
+		return { r,V };
+	}
+	GotNodeType GetCompileTimeIf(CompileTimeIfNode*& out);
+
 };
 UCodeLangFrontEnd
 

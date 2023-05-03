@@ -652,6 +652,8 @@ private:
 	void OnTag(const TagTypeNode& node);
 	void OnBitCast(const BitCastExpression& node);
 
+	void OnCompileTimeIfNode(const CompileTimeIfNode& node);
+
 	void OnCMPTypesNode(const CMPTypesNode& node);
 	bool CMPGetValue(const TypeSymbol& Type0, const TypeSymbol& Type1, const Token* Value);
 

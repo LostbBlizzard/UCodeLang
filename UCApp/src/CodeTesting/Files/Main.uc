@@ -1,7 +1,14 @@
 
 
 
-eval PI = type(int == bool);
+
+eval Item = false;
 
 
-|main[] => PI;
+|main[]:
+ $if Item:
+  int V = 5 * 10 / 5;
+ $else:
+  int V = 5 - 10 + 5;
+
+ ret V;
