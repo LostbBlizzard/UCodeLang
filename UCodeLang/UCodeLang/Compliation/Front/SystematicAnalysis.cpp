@@ -2791,7 +2791,6 @@ void SystematicAnalysis::OnCompileTimeIfNode(const CompileTimeIfNode& node)
 			const bool& EvalValue = *(bool*)Get_Object(BoolValue.value());
 		
 
-
 			if (EvalValue)
 			{
 				auto PassOld = passtype;

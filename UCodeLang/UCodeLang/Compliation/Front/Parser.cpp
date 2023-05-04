@@ -2429,6 +2429,128 @@ GotNodeType Parser::GetumutVariableDeclare(Node*& out)
 	Tnode->SetAsimmutable();
 	return r;
 }
+
+void Parser::ForNodeModernIntLoop(ForNode& out, const Token* OtherToken,const Token* NameToken,TokenType BinaryOp, TokenType PostFixOp)
+{
+	ExpressionNodeType WhenToEnd;
+	GetExpressionTypeNode(WhenToEnd);
+
+
+	out.Type = ForNode::ForType::Traditional;
+
+	out.Traditional_Assignment_Expression.Value = std::move(out.Modern_List.Value);
+
+	if (PostFixOp == TokenType::decrement)
+	{
+		std::swap(out.Traditional_Assignment_Expression.Value, WhenToEnd.Value);
+	}
+
+	{
+		BinaryExpressionNode* BinExpression = new BinaryExpressionNode();
+		out.BoolExpression.Value.reset(BinExpression);
+
+		{
+			auto BinToken = Token();
+			BinToken.OnLine = OtherToken->OnLine;
+			BinToken.OnPos = OtherToken->OnPos;
+			BinToken.Type = BinaryOp;
+
+
+
+			auto V = std::make_unique<Token>(std::move(BinToken));
+			BinExpression->BinaryOp = V.get();
+			_Tree.TemporaryTokens.push_back(std::move(V));
+		}
+
+		{
+			ValueExpressionNode* ValuNode = new ValueExpressionNode();
+			BinExpression->Value0.Value.reset(ValuNode);
+
+			ReadVariableNode* ReadVarNode = new ReadVariableNode();
+			ValuNode->Value.reset(ReadVarNode);
+
+			ScopedName ScopeName;
+			ScopeName.token = NameToken;
+			ReadVarNode->VariableName.ScopedName.push_back(ScopeName);
+
+		}
+
+		BinExpression->Value1.Value = std::move(WhenToEnd.Value);
+
+		if (PostFixOp == TokenType::decrement)
+		{
+			BinaryExpressionNode* BinExpression2 = new BinaryExpressionNode();
+
+			BinExpression2->Value0.Value = std::move(BinExpression->Value1.Value);
+
+
+			BinExpression->Value1.Value.reset(BinExpression2);
+
+			{
+				auto BinToken = Token();
+				BinToken.OnLine = OtherToken->OnLine;
+				BinToken.OnPos = OtherToken->OnPos;
+				BinToken.Type = TokenType::minus;
+
+
+				auto V = std::make_unique<Token>(std::move(BinToken));
+				BinExpression2->BinaryOp = V.get();
+				_Tree.TemporaryTokens.push_back(std::move(V));
+			}
+			
+
+			{
+				ValueExpressionNode* NumNode = new ValueExpressionNode();
+				BinExpression2->Value1.Value.reset(NumNode);
+
+				NumberliteralNode* NumLiteral = new NumberliteralNode();
+				NumNode->Value.reset(NumLiteral);
+
+
+				auto BinToken = Token();
+				BinToken.OnLine = OtherToken->OnLine;
+				BinToken.OnPos = OtherToken->OnPos;
+				BinToken.Type = TokenType::Number_literal;
+				BinToken.Value._String = "1";
+
+
+				auto V = std::make_unique<Token>(std::move(BinToken));
+				NumLiteral->Token = V.get();
+				_Tree.TemporaryTokens.push_back(std::move(V));
+			}
+		}
+
+		
+		//
+	}
+
+
+	{
+
+		ValueExpressionNode* ValuNode = new ValueExpressionNode();
+		out.OnNextStatement.ToAssign.Value.reset(ValuNode);
+
+
+		ReadVariableNode* ReadVarNode = new ReadVariableNode();
+		ValuNode->Value.reset(ReadVarNode);
+
+		ScopedName ScopeName;
+		ScopeName.token = NameToken;
+		ReadVarNode->VariableName.ScopedName.push_back(ScopeName);
+
+
+		auto BinToken = Token();
+		BinToken.OnLine = OtherToken->OnLine;
+		BinToken.OnPos = OtherToken->OnPos;
+		BinToken.Type = PostFixOp;
+
+		auto V = std::make_unique<Token>(std::move(BinToken));
+		out.OnNextStatement.PostfixOp = V.get();
+		_Tree.TemporaryTokens.push_back(std::move(V));
+	}
+}
+
+
 GotNodeType Parser::GetForNode(ForNode& out)
 {
 	auto ForToken = TryGetToken(); TokenTypeCheck(ForToken, TokenType::KeyWord_for);
@@ -2470,6 +2592,26 @@ GotNodeType Parser::GetForNode(ForNode& out)
 		out.Type = ForNode::ForType::modern;
 
 		GetExpressionTypeNode(out.Modern_List);
+
+
+		
+
+		auto OtherToken = TryGetToken();
+
+		if (OtherToken->Type == TokenType::RightAssignArrow)
+		{
+			NextToken();
+
+			ForNodeModernIntLoop(out, OtherToken,NameToken, TokenType::lessthan, TokenType::increment);
+		}
+		else if (OtherToken->Type == TokenType::Comma)
+		{
+			NextToken();
+			TokenTypeCheck(TryGetToken(), TokenType::less_than_or_equalto);
+			NextToken();
+
+			ForNodeModernIntLoop(out, OtherToken,NameToken,TokenType::Notequal_Comparison, TokenType::decrement);
+		}
 	}
 	else
 	{
