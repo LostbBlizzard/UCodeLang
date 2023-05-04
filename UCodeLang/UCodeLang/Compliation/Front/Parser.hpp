@@ -386,6 +386,7 @@ private:
 		TrippedCheck(r);
 		return { r,V->As() };
 	}
+
 	GotNodeType GetNewExpresionNode(NewExpresionNode& out);
 
 	TryGetNode GetumutVariableDeclare()
@@ -407,6 +408,7 @@ private:
 	}
 	GotNodeType GetForNode(ForNode& out);
 
+	void ForNodeModernIntLoop(ForNode& out, const Token* OtherToken, const Token* NameToken, TokenType BinaryOp, TokenType PostFixOp);
 
 	TryGetNode GetContinueNode()
 	{

@@ -4,11 +4,21 @@
 
 eval Item = false;
 
+|DoSomeThing[] -> void;
 
 |main[]:
- $if Item:
-  int V = 5 * 10 / 5;
- $else:
-  int V = 5 - 10 + 5;
+ 
+ for [var I : 0 => 10]:
+  DoSomeThing();
 
- ret V;
+ 
+ //for [var A : 0 <= 10];
+ //for [var A = 10;A > (0-1);A--];
+ //for [var A = 10;(A-1) != 0;A--];
+
+ 
+ for [var A : 0 ,<= 10]:
+  DoSomeThing();
+ 
+
+ ret 1;
