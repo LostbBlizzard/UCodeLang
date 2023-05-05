@@ -2604,10 +2604,10 @@ GotNodeType Parser::GetForNode(ForNode& out)
 
 			ForNodeModernIntLoop(out, OtherToken,NameToken, TokenType::lessthan, TokenType::increment);
 		}
-		else if (OtherToken->Type == TokenType::Comma)
+		else if (OtherToken->Type == TokenType::equal)
 		{
 			NextToken();
-			TokenTypeCheck(TryGetToken(), TokenType::less_than_or_equalto);
+			TokenTypeCheck(TryGetToken(), TokenType::lessthan);
 			NextToken();
 
 			ForNodeModernIntLoop(out, OtherToken,NameToken,TokenType::Notequal_Comparison, TokenType::decrement);
