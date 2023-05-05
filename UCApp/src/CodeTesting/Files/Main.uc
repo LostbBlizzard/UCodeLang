@@ -1,24 +1,17 @@
 
 
 
+$ItenBuffer:
+ int A;
+ int B;
+ int C;
+ int D;
+ int E;
 
-eval Item = false;
+$Vec2:
+ int X;
+ int Y;
 
-|DoSomeThing[] -> void;
+|main[Vec2 V]:
+ ret V.X;
 
-|main[]:
- 
- for [var I : 0 => 10]:
-  DoSomeThing();
-
- 
- //for [var A : 0 <= 10];
- //for [var A = 10;A > (0-1);A--];
- //for [var A = 10;(A-1) != 0;A--];
-
- 
- for [var A : 0 ,<= 10]:
-  DoSomeThing();
- 
-
- ret 1;

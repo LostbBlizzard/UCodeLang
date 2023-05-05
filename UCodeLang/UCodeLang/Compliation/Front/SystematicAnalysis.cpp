@@ -3695,7 +3695,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 	Symbol* syb;
 
 	bool InSideClass = _InSideClass();
-	bool IsField = InSideClass && DeclareStaticVariableNode_t::Stack == type;
+	bool IsField = InSideClass && DeclareStaticVariableNode_t::ClassField == type;
 
 	if (passtype == PassType::GetTypes)
 	{
@@ -3716,6 +3716,12 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 			SysType = SymbolType::ConstantExpression;
 			break;
 		case DeclareStaticVariableNode_t::ClassField:
+		{
+			SysType = SymbolType::Class_Field;
+			auto& Class = *_ClassStack.top().Info;
+
+			Class.AddField(ScopeHelper::GetNameFromFullName((String_view)FullName), TypeSymbol());
+		}
 			break;
 		default:
 			SysType = SymbolType::StackVarable;
@@ -3729,14 +3735,6 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 		_Table.AddSymbolID(*syb, sybId);
 
 
-		if (IsField)
-		{
-			syb->Type = SymbolType::Class_Field;
-			auto& Class = *_ClassStack.top().Info;
-
-			Class.AddField(ScopeHelper::GetNameFromFullName((String_view)FullName), TypeSymbol());
-
-		}
 		syb->NodePtr = (void*)node.Name.Token->OnPos;//a tep solution. 
 
 		if (syb->Type == SymbolType::ConstantExpression)
@@ -5312,10 +5310,13 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 				Symbol* TypeAsSybol = GetSymbol(VarableType);
 				if (TypeAsSybol)
 				{
+					
+					if (Out.Symbol->Type == SymbolType::Class_Field)
 					{
 						const UCodeLang::Token* Token = node.ScopedName.begin()->token;
 						AccessCheck(Out.Symbol, Token);
 					}
+
 					if (TypeAsSybol->Type != SymbolType::Type_class)
 					{
 						LogCantFindVarMemberError(ItemToken, ItemToken->Value._String, Out.Type);
@@ -5323,13 +5324,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 					}
 					ClassInfo* CInfo = TypeAsSybol->Get_Info<ClassInfo>();
 
-					auto FeldFullName = TypeAsSybol->FullName;
-					ScopeHelper::GetApendedString(FeldFullName, ItemToken->Value._String);
-					auto FeldSyb = GetSymbol(FeldFullName, SymbolType::Class_Field);
-					{
-						AccessCheck(FeldSyb, ItemToken);
-					}
-
+					
 					auto FeldInfo = CInfo->GetField(ItemToken->Value._String);
 					if (!FeldInfo.has_value())
 					{
@@ -5338,6 +5333,15 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 							LogCantFindVarMemberError(ItemToken, ItemToken->Value._String, Out.Type);
 						}
 						return false;
+					}
+
+					{
+						auto FeldFullName = TypeAsSybol->FullName;
+						ScopeHelper::GetApendedString(FeldFullName, ItemToken->Value._String);
+						auto FeldSyb = GetSymbol(FeldFullName, SymbolType::Class_Field);
+						{
+							AccessCheck(FeldSyb, ItemToken);
+						}
 					}
 
 					auto& FieldType2 = (*FeldInfo)->Type;

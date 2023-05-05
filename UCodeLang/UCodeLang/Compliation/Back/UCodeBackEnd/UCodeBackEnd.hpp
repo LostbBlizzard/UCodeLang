@@ -38,10 +38,14 @@ private:
 	};
 	struct ParlocData
 	{
-		const IRPar* Par = nullptr;
 		Parloc Type;
-		size_t StackOffset = 0;
-		Optional<RegisterID> _Reg;
+		union 
+		{
+			size_t StackOffset = 0;
+			RegisterID _Reg;
+			const IRPar* Par;
+		};
+		
 		void SetAsStackPreCall(size_t Offset)
 		{
 			StackOffset = Offset;
@@ -84,6 +88,51 @@ private:
 		UCodeFunc* Func = nullptr;
 		UAddress Index;
 		IRidentifierID _FuncID;
+	};
+
+	enum class IRloc
+	{
+		Register,
+		StackPreCall,
+		StackPostCall,
+	};
+
+	struct IRlocData
+	{
+		IRloc Type;
+		IRType ObjectType;
+		union
+		{
+			size_t StackOffset = 0;
+			const IRPar* Par;
+			RegisterID _Reg;
+		};
+		
+		void SetAsStackPreCall(size_t Offset)
+		{
+			StackOffset = Offset;
+			Type = IRloc::StackPreCall;
+		}
+		void SetAsStackPostCall(size_t Offset)
+		{
+			StackOffset = Offset;
+			Type = IRloc::StackPostCall;
+		}
+		void SetAsRegister(RegisterID V)
+		{
+			_Reg = V;
+			Type = IRloc::Register;
+		}
+	};
+	
+	struct  FuncCallEndData
+	{
+		Vector<IRPar> Pars;
+	};
+	struct FindParsLoc
+	{
+		Vector<ParlocData> ParsPos;
+		Vector<size_t> OverflowedPars;
 	};
 	//Data
 	Instruction _Ins;
@@ -217,12 +266,23 @@ private:
 		_Registers.UnLockRegister(ID);
 	}
 
+	IRlocData GetIRLocData(const IRInstruction& Ins, const IROperator& Op);
+	void CopyValues(const IRlocData& Src, const IRlocData& Out);
+	void StoreValueInPointer(const IRType& ObjectType, RegisterID Pointer, const IRlocData& Value);
+	RegisterID MakeIntoRegister(const IRlocData& Value, Optional<RegisterID> RegisterToPut = {});
+	RegisterID MakeIntoRegister(const IRInstruction& Ins, const IROperator& Op, Optional<RegisterID> RegisterToPut = {})
+	{
+		auto Value = GetIRLocData(Ins,Op);
+		return MakeIntoRegister(Value,RegisterToPut);
+	}
+	void GiveNameTo(const IRlocData& Value, const IRInstruction& Name);
+
+	IRlocData GetPointerOf(const IRlocData& Value);
+
 	RegisterID LoadOp(const IRInstruction& Ins, const IROperator& Op);
 	void LoadOpToReg(const IRInstruction& Ins, const IROperator& Op, RegisterID Out);
 	void RegToReg(IRTypes Type, RegisterID In, RegisterID Out);
 	void PushOpStack(const IRInstruction& Ins, const IROperator& Op);
-	RegisterID FindOp(const IRInstruction& Ins, const IROperator& Op);
-	void FindOpToReg(const IRInstruction& Ins, const  IROperator& Op, RegisterID Out);
 	void LogicalNot(IRTypes Type, RegisterID In, RegisterID Out);
 	void DoCPPCall(const IRidentifier& FuncName);
 	
@@ -234,15 +294,15 @@ private:
 
 	void StoreValueInPointer(const IRType& ObjectType, RegisterID Pointer, const  IROperator& Value, IRInstruction& Ins);
 	void StoreValueInPointer(const IRType& ObjectType, RegisterID Pointer, RegisterID Value);
+	
+
+
 	RegisterID ReadValueFromPointer(const IRType& ObjectType, RegisterID Pointer);
 
 	void BuildSIntToIntCast(const IRInstruction& Item, const IROperator& Op, size_t IntSize);
 	void BuildUIntToIntCast(const IRInstruction& Item, const IROperator& Op, size_t IntSize);
 
-	struct  FuncCallEndData
-	{
-		Vector<IRPar> Pars;
-	};
+
 
 	FuncCallEndData FuncCallStart(const Vector<IRType>& Pars, const IRType& RetType);
 	FuncCallEndData FuncCallStart(const Vector<IRPar>& Pars, const IRType& RetType);
@@ -250,11 +310,7 @@ private:
 	void FuncCallEnd(FuncCallEndData& Data);
 
 
-	struct FindParsLoc
-	{
-		Vector<ParlocData> ParsPos;
-		Vector<size_t> OverflowedPars;
-	};
+
 	FindParsLoc GetParsLoc(const Vector<IRType>& Pars);
 	FindParsLoc GetParsLoc(const Vector<IRPar>& Pars);
 
@@ -271,9 +327,6 @@ private:
 			return GetPreCallStackOffset(ItemStackOffset.StackOffset);
 		}
 	}
-
-		
-	
 	size_t GetPostCallStackOffset(size_t ItemStackOffset)
 	{
 		return ItemStackOffset;
