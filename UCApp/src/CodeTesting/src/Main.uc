@@ -2,8 +2,8 @@
 
 
 
-|CoolFunc<T...>[int Buffer,T ParList]:
- $for [Item : ParList]:
+|CoolFunc<T...>[T ParList,int Buffer]://Err
+ $for [var Item : ParList]:
   var I = Item;
 
 

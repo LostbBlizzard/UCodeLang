@@ -288,8 +288,8 @@ String ModuleFile::ToStringBytes(const ModuleIdentifier* Value)
 	out += "ModuleName:" + Value->ModuleName;
 
 	out += "Version:" + std::to_string(Value->MajorVersion) 
-		+ "." + std::to_string(Value->MinorVersion) 
-		+ "." + std::to_string(Value->RevisionVersion);
+		+ ":" + std::to_string(Value->MinorVersion) 
+		+ ":" + std::to_string(Value->RevisionVersion);
 	return out;
 }
 String ModuleFile::ToStringBytes(const Path* Value)
@@ -304,18 +304,22 @@ String ModuleFile::ToStringBytes(const ModuleFile* Lib)
 	String out;
 	out += ToStringBytes(&Lib->ModuleName);
 
-	out += "Files:" + ToStringBytes(&Lib->ModuleSourcePath);
-	out += "obj:" + ToStringBytes(&Lib->ModuleIntPath);
-	out += "out:" + ToStringBytes(&Lib->ModuleOutPath);
+	out += "Src:" + ToStringBytes(&Lib->ModuleSourcePath);
+	out += "Obj:" + ToStringBytes(&Lib->ModuleIntPath);
+	out += "Out:" + ToStringBytes(&Lib->ModuleOutPath);
 
-	out += "Dependencies: [\n";
+	out += "\n";
+
 	for (auto& Item : Lib->ModuleDependencies)
 	{
-		out += "[\n";
-		out += ToStringBytes(&Item);
-		out += "\n]";
+		out += "import ";
+		out += Item.AuthorName;
+		out += "::" + Item.ModuleName;
+		out += + "[" + std::to_string(Item.MajorVersion) 
+			+ ':' + std::to_string(Item.MinorVersion)
+			+ ':' + std::to_string(Item.RevisionVersion) + "];";
 	}
-	out += "]";
+	
 
 	return out;
 }
@@ -337,19 +341,13 @@ bool ModuleFile::FromString(ModuleFile* Lib, const String_view& Data)
 
 	{
 		ModuleIdentifier Tep;
-		enum class FieldMode
-		{
-			ModuleName,
-			Dependencies,
-		};
 
-		FieldMode mode = FieldMode::ModuleName;
 
 #define IsGood(x) if (i > V.size()) {return false;}
 
 		for (size_t i = 0; i < V.size(); i++)
 		{
-			auto& Item = V[i];	
+			auto& Item = V[i];
 			if (Item.Type == TokenType::Name)
 			{
 				i++; IsGood(i);
@@ -382,22 +380,75 @@ bool ModuleFile::FromString(ModuleFile* Lib, const String_view& Data)
 					}
 					else if (Item.Value._String == "Version")
 					{
-
-						//
-						if (mode == FieldMode::ModuleName)
-						{
-							Lib->ModuleName = std::move(Tep);
-							mode = FieldMode::Dependencies;
-						}
-						else
-						{
-							Lib->ModuleDependencies.push_back(std::move(Tep));
-						}
+						Lib->ModuleName = std::move(Tep);
 					}
 				}
 
 			}
+			else if (Item.Type == TokenType::KeyWord_Import)
+			{
+				i++; IsGood(i);
+				if (V[i].Type == TokenType::Name)
+				{
+					auto& AuthorNameName = V[i];
+
+					i++; IsGood(i);
+					if (V[i].Type != TokenType::ScopeResolution)
+					{
+						return false;
+					}
+
+					i++; IsGood(i);
+					if (V[i].Type != TokenType::Name)
+					{
+						return false;
+					}	
+					auto& ModNameName = V[i];
+				
+					i++; IsGood(i);
+					if (V[i].Type != TokenType::Left_Bracket)
+					{
+						return false;
+					}
+
+					i++; IsGood(i);
+					if (V[i].Type != TokenType::Number_literal)
+					{
+						return false;
+					}
+					auto& Num0 = V[i];
+
+					i++;
+
+					i++; IsGood(i);
+					if (V[i].Type != TokenType::Number_literal)
+					{
+						return false;
+					}
+					auto& Num1 = V[i];
+
+					i++;
+
+					i++; IsGood(i);
+					if (V[i].Type != TokenType::Number_literal)
+					{
+						return false;
+					}
+					auto& Num2 = V[i];
+
+
+					Tep.AuthorName = AuthorNameName.Value._String;
+					Tep.ModuleName = ModNameName.Value._String;
+					
+					Tep.MajorVersion = std::stoi((String)Num0.Value._String);
+					Tep.MinorVersion = std::stoi((String)Num1.Value._String);
+					Tep.RevisionVersion = std::stoi((String)Num2.Value._String);
+
+					Lib->ModuleDependencies.push_back(std::move(Tep));
+				}
+			}
 		}
+
 	}
 	return true;
 }

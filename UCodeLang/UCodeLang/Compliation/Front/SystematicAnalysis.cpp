@@ -315,8 +315,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 
 				GenericData Info;
 				Info.SybID = ID;
-				Info.IsConstantExpression = Item.IsConstantExpression;
-
+				Info.type = GenericTypeToGenericDataType(Item.Generictype);
 				ClassInf->_Generic.push_back(Info);
 			}
 		}
@@ -827,7 +826,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 				GenericData Info;
 				Info.SybID = ID;
-				Info.IsConstantExpression = Item.IsConstantExpression;
+				Info.type = GenericTypeToGenericDataType(Item.Generictype);
 
 				newInfo->_Generic.push_back(Info);
 			}
@@ -8575,7 +8574,7 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 						InputTypeIsConstantExpression = TypeSyb->Type == SymbolType::ConstantExpression;
 					}
 
-					if (InputTypeIsConstantExpression != GenericInfo.IsConstantExpression)
+					if (InputTypeIsConstantExpression != GenericInfo.IsConstantExpression())
 					{
 						const Token* nodeToken = Tnode.Name.Token;
 						const ClassNode* classnode = (const ClassNode*)SybV->NodePtr;
@@ -8650,6 +8649,10 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 				{
 					Out.SetType(SybV->ID);
 				}
+			}
+			else if (SybV->Type == SymbolType::Unmaped_Generic_Type)
+			{
+				Out.SetType(SybV->ID);
 			}
 			else
 			{
@@ -10465,13 +10468,13 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 
 							bool InputTypeIsConstantExpression = false;
 
-							auto TypeSyb = GetSymbol(GenericInfo.IsConstantExpression);
+							auto TypeSyb = GetSymbol(GenericInfo.SybID);
 							if (TypeSyb)
 							{
 								InputTypeIsConstantExpression = TypeSyb->Type == SymbolType::ConstantExpression;
 							}
 
-							if (InputTypeIsConstantExpression != GenericInfo.IsConstantExpression)
+							if (InputTypeIsConstantExpression != GenericInfo.IsConstantExpression())
 							{
 								goto ContinueOutloop;
 							}
@@ -12061,6 +12064,25 @@ IRidentifierID SystematicAnalysis::GetIRID(const FuncInfo* Func)
 {
 	auto FuncName = MangleName(Func);
 	return _Builder.ToID(FuncName);
+}
+
+GenericData::Type SystematicAnalysis::GenericTypeToGenericDataType(GenericValueNode::GenericType type)
+{
+	switch (type)
+	{
+	case GenericValueNode::GenericType::Name:
+		return GenericData::Type::Name;
+		break;
+	case GenericValueNode::GenericType::ConstantExpression:
+		return GenericData::Type::ConstantExpression;
+		break;
+	case GenericValueNode::GenericType::Pack:
+		return GenericData::Type::Pack;
+		break;
+	default:
+		throw std::exception("bad");
+		break;
+	}
 }
 
 void SystematicAnalysis::LogInvalidNodeError(const Token* Token, String_view ErrStr)

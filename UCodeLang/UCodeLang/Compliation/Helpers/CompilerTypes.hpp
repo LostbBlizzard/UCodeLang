@@ -145,6 +145,7 @@ enum class TokenType : TokenType_t
 	KeyWord_ClassFor,//$for
 	KeyWord_eval,
 
+	KeyWord_Import,//import
 
 	//used internally
 	internal_Constant_expression

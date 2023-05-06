@@ -1297,7 +1297,7 @@ GotNodeType Parser::TryGetGeneric(GenericValuesNode& out)
 				TokenTypeCheck(RPar, TokenType::Right_Parentheses);
 
 				Item.Token = NameToken;
-				Item.IsConstantExpression = true;
+				Item.Generictype = GenericValueNode::GenericType::ConstantExpression;
 				out.Values.push_back(std::move(Item));
 			}
 			else
@@ -1305,6 +1305,20 @@ GotNodeType Parser::TryGetGeneric(GenericValuesNode& out)
 				TokenTypeCheck(NameToken, TokenType::Name);
 
 				Item.Token = NameToken;
+
+				
+				auto Token = TryPeekNextToken(1);
+				if (Token->Type == TokenType::ellipses)
+				{
+					Item.Generictype = GenericValueNode::GenericType::Pack;
+					NextToken();
+				}
+				else
+				{
+					
+				}
+
+
 				out.Values.push_back(std::move(Item));
 			}
 

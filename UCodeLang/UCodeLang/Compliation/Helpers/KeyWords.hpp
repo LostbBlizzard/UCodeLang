@@ -80,6 +80,8 @@ inline const char* S_KeyWord_bind = "bind";
 
 inline const char* S_KeyWord_eval = "eval";
 
+inline const char* S_KeyWord_import = "import";
+
 struct KeyWord
 {
 	const char* keyWord;
@@ -167,6 +169,7 @@ inline KeyWord KeyWords[] =
 	KeyWord(S_KeyWord_type,TokenType::KeyWord_type),
 	KeyWord(S_KeyWord_bind,TokenType::KeyWord_bind),
 	KeyWord(S_KeyWord_eval,TokenType::KeyWord_eval),
+	KeyWord(S_KeyWord_import,TokenType::KeyWord_Import),
 };
 constexpr size_t KeyWords_Size = sizeof(KeyWords) / sizeof(KeyWords[0]);
 class KeyWordHelper

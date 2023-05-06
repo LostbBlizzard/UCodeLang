@@ -262,8 +262,18 @@ public:
 };
 struct GenericData
 {
-	SymbolID SybID=0;
-	bool IsConstantExpression = false;
+	enum class Type
+	{
+		Name,
+		ConstantExpression,
+		Pack,
+	};
+	SymbolID SybID =0;
+	Type type = Type::Name;
+	bool IsConstantExpression() const
+	{
+		return type == Type::ConstantExpression;
+	}
 };
 
 
