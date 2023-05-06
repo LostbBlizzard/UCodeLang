@@ -205,14 +205,26 @@ struct NamespaceNode :Node
 
 	ScopedNameNode NamespaceName;
 };
+
+
+
 struct GenericValueNode :Node
 {
+
+	enum class GenericType
+	{
+		Name,
+		ConstantExpression,
+		Pack,
+	};
+
 	GenericValueNode() : Node(NodeType::Null)
 	{
 
 	}
 	const Token* Token = nullptr;
-	bool IsConstantExpression = false;
+	GenericType Generictype = GenericType::Name;
+
 
 	String_view AsStringView() const
 	{

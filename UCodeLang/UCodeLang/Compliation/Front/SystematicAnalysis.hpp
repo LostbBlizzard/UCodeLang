@@ -200,6 +200,8 @@ public:
 	}
 };
 
+
+
 class SystematicAnalysis
 {
 
@@ -1064,6 +1066,8 @@ private:
 
 	String MangleName(const FuncInfo* Func);
 	IRidentifierID GetIRID(const FuncInfo* Func);
+
+	GenericData::Type GenericTypeToGenericDataType(GenericValueNode::GenericType type);
 };
 UCodeLangFrontEnd
 

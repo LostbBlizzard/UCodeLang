@@ -177,13 +177,14 @@ void Lexer::Lex(const String_view& Text)
 			bool IsDot = true;
 			if (NextChar == '.')
 			{
-				NextChar = GetNextChar(1);
+				NextChar = GetNextChar(2);
 				if (NextChar == '.')
 				{
 					IsDot = false;
 					_Token.Type = TokenType::ellipses;
 					_Token.Value = nullptr;
 					_Tokens.push_back(_Token);
+					TextIndex+=2;
 				}
 			}
 
@@ -635,7 +636,7 @@ void Lexer::NameAndKeyWords(ReadingNameState& ReadingState, Token& _Token)
 				}
 				if (KeyWord == TokenType::KeyWord_for)
 				{
-					KeyWord = TokenType::KeyWord_for;
+					KeyWord = TokenType::KeyWord_ClassFor;
 					ReadingState = ReadingNameState::Name;
 				}
 			}

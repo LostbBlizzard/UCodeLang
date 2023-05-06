@@ -1,7 +1,6 @@
 AuthorName: "LostbBlizzard"
 ModuleName: "NWin32"
-Version: 0.0.0
-Files: "src"
-objs: "int"
-out: "out"
-Dependencies: []
+Version: 0:0:0
+Src: "src"
+Obj: "int"
+Out: "out"
