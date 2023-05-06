@@ -576,6 +576,13 @@ GotNodeType Parser::GetStatement(Node*& out)
 		return r.GotNode;
 	}
 	break;
+	case TokenType::KeyWord_ClassFor:
+	{
+		auto r = GetCompileTimeForNode();
+		out = r.Node;
+		return r.GotNode;
+	}
+	break;
 	default:
 	{
 		size_t OldIndex = _TokenIndex;
@@ -3210,5 +3217,208 @@ GotNodeType Parser::GetCompileTimeIf(CompileTimeIfNode*& out)
 	}
 
 	return Statements;
+}
+GotNodeType Parser::GetCompileTimeForNode(CompileTimeForNode& out)
+{
+	auto ForToken = TryGetToken(); TokenTypeCheck(ForToken, TokenType::KeyWord_ClassFor);
+	NextToken();
+
+	auto LeftBracket = TryGetToken(); TokenTypeCheck(LeftBracket, TokenType::Left_Bracket);
+	NextToken();
+
+	TypeNode V;
+	auto TypeV = GetType(V, false, false);
+
+	auto NameToken = TryGetToken(); TokenTypeCheck(NameToken, TokenType::Name);
+	NextToken();
+
+	auto Assemnt = TryGetToken();
+	if (Assemnt->Type == TokenType::equal)
+	{
+
+		out.TypeNode = std::move(V);
+		out.Name = NameToken;
+		out.Type = CompileTimeForNode::ForType::Traditional;
+
+		NextToken();
+		GetExpressionTypeNode(out.Traditional_Assignment_Expression);
+
+		TokenTypeCheck(TryGetToken(), TokenType::Semicolon); NextToken();
+
+		GetExpressionTypeNode(out.BoolExpression);
+
+		TokenTypeCheck(TryGetToken(), TokenType::Semicolon); NextToken();
+
+		GetPostfixStatement(out.OnNextStatement, false);
+	}
+	else if (Assemnt->Type == TokenType::Colon)
+	{
+		NextToken();
+		out.TypeNode = std::move(V);
+		out.Name = NameToken;
+		out.Type = CompileTimeForNode::ForType::modern;
+
+		GetExpressionTypeNode(out.Modern_List);
+
+
+
+
+		auto OtherToken = TryGetToken();
+
+		if (OtherToken->Type == TokenType::RightAssignArrow)
+		{
+			NextToken();
+
+			CompileTimeForNodeModernIntLoop(out, OtherToken, NameToken, TokenType::lessthan, TokenType::increment);
+		}
+		else if (OtherToken->Type == TokenType::equal)
+		{
+			NextToken();
+			TokenTypeCheck(TryGetToken(), TokenType::lessthan);
+			NextToken();
+
+			CompileTimeForNodeModernIntLoop(out, OtherToken, NameToken, TokenType::Notequal_Comparison, TokenType::decrement);
+		}
+	}
+	else
+	{
+		TokenTypeCheck(NameToken, TokenType::equal);
+	}
+
+	auto RightBracket = TryGetToken(); TokenTypeCheck(RightBracket, TokenType::Right_Bracket); NextToken();
+
+	auto Token3 = TryGetToken();
+	if (Token3->Type != TokenType::Semicolon)
+	{
+		TokenTypeCheck(Token3, TokenType::Colon);
+		NextToken();
+
+		auto Statements = GetStatementsorStatementNode(out.Body);
+	}
+	else
+	{
+		NextToken();
+	}
+
+	return GotNodeType::Success;
+}
+void Parser::CompileTimeForNodeModernIntLoop(CompileTimeForNode& out, const Token* OtherToken, const Token* NameToken, TokenType BinaryOp, TokenType PostFixOp)
+{
+	ExpressionNodeType WhenToEnd;
+	GetExpressionTypeNode(WhenToEnd);
+
+
+	out.Type = CompileTimeForNode::ForType::Traditional;
+
+	out.Traditional_Assignment_Expression.Value = std::move(out.Modern_List.Value);
+
+	if (PostFixOp == TokenType::decrement)
+	{
+		std::swap(out.Traditional_Assignment_Expression.Value, WhenToEnd.Value);
+	}
+
+	{
+		BinaryExpressionNode* BinExpression = new BinaryExpressionNode();
+		out.BoolExpression.Value.reset(BinExpression);
+
+		{
+			auto BinToken = Token();
+			BinToken.OnLine = OtherToken->OnLine;
+			BinToken.OnPos = OtherToken->OnPos;
+			BinToken.Type = BinaryOp;
+
+
+
+			auto V = std::make_unique<Token>(std::move(BinToken));
+			BinExpression->BinaryOp = V.get();
+			_Tree.TemporaryTokens.push_back(std::move(V));
+		}
+
+		{
+			ValueExpressionNode* ValuNode = new ValueExpressionNode();
+			BinExpression->Value0.Value.reset(ValuNode);
+
+			ReadVariableNode* ReadVarNode = new ReadVariableNode();
+			ValuNode->Value.reset(ReadVarNode);
+
+			ScopedName ScopeName;
+			ScopeName.token = NameToken;
+			ReadVarNode->VariableName.ScopedName.push_back(ScopeName);
+
+		}
+
+		BinExpression->Value1.Value = std::move(WhenToEnd.Value);
+
+		if (PostFixOp == TokenType::decrement)
+		{
+			BinaryExpressionNode* BinExpression2 = new BinaryExpressionNode();
+
+			BinExpression2->Value0.Value = std::move(BinExpression->Value1.Value);
+
+
+			BinExpression->Value1.Value.reset(BinExpression2);
+
+			{
+				auto BinToken = Token();
+				BinToken.OnLine = OtherToken->OnLine;
+				BinToken.OnPos = OtherToken->OnPos;
+				BinToken.Type = TokenType::minus;
+
+
+				auto V = std::make_unique<Token>(std::move(BinToken));
+				BinExpression2->BinaryOp = V.get();
+				_Tree.TemporaryTokens.push_back(std::move(V));
+			}
+
+
+			{
+				ValueExpressionNode* NumNode = new ValueExpressionNode();
+				BinExpression2->Value1.Value.reset(NumNode);
+
+				NumberliteralNode* NumLiteral = new NumberliteralNode();
+				NumNode->Value.reset(NumLiteral);
+
+
+				auto BinToken = Token();
+				BinToken.OnLine = OtherToken->OnLine;
+				BinToken.OnPos = OtherToken->OnPos;
+				BinToken.Type = TokenType::Number_literal;
+				BinToken.Value._String = "1";
+
+
+				auto V = std::make_unique<Token>(std::move(BinToken));
+				NumLiteral->Token = V.get();
+				_Tree.TemporaryTokens.push_back(std::move(V));
+			}
+		}
+
+
+		//
+	}
+
+
+	{
+
+		ValueExpressionNode* ValuNode = new ValueExpressionNode();
+		out.OnNextStatement.ToAssign.Value.reset(ValuNode);
+
+
+		ReadVariableNode* ReadVarNode = new ReadVariableNode();
+		ValuNode->Value.reset(ReadVarNode);
+
+		ScopedName ScopeName;
+		ScopeName.token = NameToken;
+		ReadVarNode->VariableName.ScopedName.push_back(ScopeName);
+
+
+		auto BinToken = Token();
+		BinToken.OnLine = OtherToken->OnLine;
+		BinToken.OnPos = OtherToken->OnPos;
+		BinToken.Type = PostFixOp;
+
+		auto V = std::make_unique<Token>(std::move(BinToken));
+		out.OnNextStatement.PostfixOp = V.get();
+		_Tree.TemporaryTokens.push_back(std::move(V));
+	}
 }
 UCodeLangFrontEnd

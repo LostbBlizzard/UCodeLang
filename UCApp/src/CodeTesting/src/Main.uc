@@ -1,21 +1,13 @@
 
 
 
-$ItenBuffer:
- int A;
- int B;
- int C;
- int D;
- int E;
 
-$Vec2:
- int X;
- int Y;
+|CoolFunc<T...>[int Buffer,T ParList]:
+ $for [Item : ParList]:
+  var I = Item;
+
 
 |main[]:
- var Ptr = bitcast<int&>(0);
+ CoolFunc<int,bool,char>(0,true,'H');
 
- Ptr &= new int();
- 
- ret Ptr;
 

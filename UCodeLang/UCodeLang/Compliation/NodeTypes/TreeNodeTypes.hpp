@@ -920,7 +920,6 @@ struct IndexedExpresionNode :Node
 
 struct ForNode :Node
 {
-	//for [int a = 0;a < 10;a++;]
 	enum class ForType
 	{
 		Traditional,//for [int a = 0;a < 10;a++];
@@ -1151,4 +1150,34 @@ struct CompileTimeIfNode :Node
 	StatementsNode Body;
 	Unique_ptr<Node> Else;
 };
+
+struct CompileTimeForNode :Node
+{
+	enum class ForType
+	{
+		Traditional,//for [int a = 0;a < 10;a++];
+		modern,//for [var& Item : List];
+	};
+
+	CompileTimeForNode() : Node(NodeType::CompileTimeForNode)
+	{
+
+	}
+	AddforNode(CompileTimeForNode);
+
+
+	ForType Type = ForType::Traditional;
+
+	//Traditional
+	ExpressionNodeType Traditional_Assignment_Expression;
+	ExpressionNodeType BoolExpression;
+	PostfixVariableNode OnNextStatement;
+	//Modern
+	ExpressionNodeType Modern_List;
+	//Both
+	TypeNode TypeNode;
+	const Token* Name = nullptr;
+	StatementsNode Body;
+};
+
 UCodeLangFrontEnd

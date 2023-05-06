@@ -172,10 +172,29 @@ void Lexer::Lex(const String_view& Text)
 			}
 			break;
 		case '.':
-			_Token.Type = TokenType::Dot;
-			_Token.Value = nullptr;
-			_Tokens.push_back(_Token);
-			break;
+		{
+			NextChar = GetNextChar(1);
+			bool IsDot = true;
+			if (NextChar == '.')
+			{
+				NextChar = GetNextChar(1);
+				if (NextChar == '.')
+				{
+					IsDot = false;
+					_Token.Type = TokenType::ellipses;
+					_Token.Value = nullptr;
+					_Tokens.push_back(_Token);
+				}
+			}
+
+			if (IsDot) 
+			{
+				_Token.Type = TokenType::Dot;
+				_Token.Value = nullptr;
+				_Tokens.push_back(_Token);
+			}
+		}
+		break;
 		case '^':
 			_Token.Type = TokenType::bitwise_XOr;
 			_Token.Value = nullptr;
@@ -612,6 +631,11 @@ void Lexer::NameAndKeyWords(ReadingNameState& ReadingState, Token& _Token)
 				if (KeyWord == TokenType::KeyWord_Else)
 				{
 					KeyWord = TokenType::KeyWord_ClassElse;
+					ReadingState = ReadingNameState::Name;
+				}
+				if (KeyWord == TokenType::KeyWord_for)
+				{
+					KeyWord = TokenType::KeyWord_for;
 					ReadingState = ReadingNameState::Name;
 				}
 			}

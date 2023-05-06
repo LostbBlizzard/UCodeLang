@@ -531,6 +531,17 @@ private:
 	}
 	GotNodeType GetCompileTimeIf(CompileTimeIfNode*& out);
 
+
+	TryGetNode GetCompileTimeForNode()
+	{
+		CompileTimeForNode* V = CompileTimeForNode::Gen();
+		auto r = GetCompileTimeForNode(*V);
+		TrippedCheck(r);
+		return { r,V->As() };
+	}
+	GotNodeType GetCompileTimeForNode(CompileTimeForNode& out);
+
+	void CompileTimeForNodeModernIntLoop(CompileTimeForNode& out, const Token* OtherToken, const Token* NameToken, TokenType BinaryOp, TokenType PostFixOp);
 };
 UCodeLangFrontEnd
 
