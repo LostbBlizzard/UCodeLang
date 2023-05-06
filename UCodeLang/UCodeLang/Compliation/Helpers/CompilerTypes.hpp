@@ -112,6 +112,8 @@ enum class TokenType : TokenType_t
 	KeyWord_Tag,//tag
 	KeyWord_umut,//umut
 
+	ellipses,//...
+
 	//Types
 	KeyWord_UInt8,
 	KeyWord_UInt16,
@@ -140,6 +142,7 @@ enum class TokenType : TokenType_t
 
 	KeyWord_ClassIf,//$if
 	KeyWord_ClassElse,//$else
+	KeyWord_ClassFor,//$for
 	KeyWord_eval,
 
 

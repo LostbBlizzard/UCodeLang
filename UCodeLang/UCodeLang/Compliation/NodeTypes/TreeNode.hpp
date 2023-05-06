@@ -71,6 +71,7 @@ enum class NodeType :UInt8
 	ExpressionToTypeValueNode,
 	DeclareEvalVariableNode,
 	CompileTimeIfNode,	
+	CompileTimeForNode,
 };
 
 
