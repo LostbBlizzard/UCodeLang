@@ -80,9 +80,9 @@ public:
 	}
 	UCodeLangForceinline UAddress Add_Instruction(const Instruction& V)
 	{
-		auto R = (UAddress)_Instructions.size();
+		auto CompilerRet = (UAddress)_Instructions.size();
 		_Instructions.push_back(V);
-		return R;
+		return CompilerRet;
 	}
 	UCodeLangForceinline UAddress GetLastInstruction()
 	{

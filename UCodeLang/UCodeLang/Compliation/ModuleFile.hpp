@@ -12,6 +12,51 @@ struct ModuleIdentifier
 	UInt64 RevisionVersion = 0;
 };
 
+class ModuleIndex
+{
+public:
+
+	struct IndexModuleFile
+	{
+		Path _ModuleFullPath; 
+		ModuleIdentifier _ModuleData;
+	};
+
+	ModuleIndex()
+	{
+
+	}
+	~ModuleIndex()
+	{
+
+	}
+
+	
+	static BytesPtr ToBytes(const ModuleIndex* Lib);
+	static bool FromBytes(ModuleIndex* Lib, const BytesView Bytes);
+	static bool ToFile(const ModuleIndex* Lib, const Path& path);
+	static bool FromFile(ModuleIndex* Lib, const Path& path);
+
+	Optional<size_t> FindFile(const ModuleIdentifier& ID) const;
+
+	Optional<size_t> FindFileFullPath(const Path& file) const;
+
+	Vector<IndexModuleFile> _IndexedFiles;
+	void AddModueToList(const Path& path);
+
+	static Path GetModuleIndexFilePath();
+	
+	static void WriteType(BitMaker& bit, const Path& Value);
+	static void FromType(BitReader& bit, Path& Value);
+
+	inline static const char* FileName = "ModuleIndex";
+	inline static const char* FileExtWithDot = ".ucmi";
+	inline static const char* FileExt = "ucmi";
+private:
+};
+
+
+
 class ModuleFile
 {
 public:
@@ -22,7 +67,11 @@ public:
 	Path ModuleIntPath = "int";
 	Path ModuleOutPath = "out";
 	
-	
+	struct ModuleRet
+	{
+		Compiler::CompilerRet CompilerRet;
+		Path OutputItemPath;
+	};
 
 	Vector<ModuleIdentifier> ModuleDependencies;
 
@@ -34,7 +83,15 @@ public:
 	{
 
 	}
-	Compiler::CompilerRet BuildModule(Compiler& Compiler);;
+	Compiler::CompilerPathData GetPaths(Compiler& Compiler) const;
+
+	static String ToName(const ModuleIdentifier& ID);
+	Path GetFullPathName()
+	{
+		return Path(ThisModuleDir) / (String(FileName) + FileExtWithDot);;
+	}
+
+	ModuleRet BuildModule(Compiler& Compiler,const ModuleIndex& Modules);
 	static bool ToFile(const ModuleFile* Lib, const Path& path);
 	static bool FromFile(ModuleFile* Lib, const Path& path);
 
@@ -47,6 +104,7 @@ public:
 	static String ToStringBytes(const  ModuleFile* Lib);
 	static bool FromString(ModuleFile* Lib, const String_view& Data);
 
+	inline static const char* FileName = "ULangModule";
 	inline static const char* FileExtWithDot = ".ucm";
 	inline static const char* FileExt = "ucm";
 };

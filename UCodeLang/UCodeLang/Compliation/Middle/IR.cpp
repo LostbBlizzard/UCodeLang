@@ -24,7 +24,7 @@ void IRBuilder::Fix_Size(IRStruct* Struct)
 {
 	if (Struct->IsUnion) 
 	{
-		size_t R = 0;
+		size_t CompilerRet = 0;
 
 		for (size_t i = 0; i < Struct->Fields.size(); i++)
 		{
@@ -33,19 +33,19 @@ void IRBuilder::Fix_Size(IRStruct* Struct)
 			{
 				size_t fieldsize = GetSize(Struct->Fields[i].Type);
 				
-				if (fieldsize > R) 
+				if (fieldsize > CompilerRet) 
 				{
-					R = fieldsize;
+					CompilerRet = fieldsize;
 				}
 
 				Item.Offset = 0;
 			}
 		}
-		Struct->ObjectSize = R;
+		Struct->ObjectSize = CompilerRet;
 	}
 	else
 	{
-		size_t R = 0;
+		size_t CompilerRet = 0;
 
 		for (size_t i = 0; i < Struct->Fields.size(); i++)
 		{
@@ -53,11 +53,11 @@ void IRBuilder::Fix_Size(IRStruct* Struct)
 			if (!Item.Offset.has_value())
 			{
 				size_t fieldsize = GetSize(Struct->Fields[i].Type);
-				Item.Offset = R;
-				R += fieldsize;
+				Item.Offset = CompilerRet;
+				CompilerRet += fieldsize;
 			}
 		}
-		Struct->ObjectSize = R;
+		Struct->ObjectSize = CompilerRet;
 	}
 }
 

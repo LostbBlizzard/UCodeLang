@@ -102,9 +102,9 @@ public:
 	};
 	inline Error& AddError(const ErrorCodes _Error, size_t Line, size_t Pos)
 	{
-		Error R(_Error, Line, Pos);
-		R.File = FilePath;
-		return AddError(R);
+		Error CompilerRet(_Error, Line, Pos);
+		CompilerRet.File = FilePath;
+		return AddError(CompilerRet);
 	};
 	inline Error& AddError(const Error& _Error)
 	{

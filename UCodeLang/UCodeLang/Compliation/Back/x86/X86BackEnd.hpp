@@ -10,7 +10,7 @@ public:
 	~X86BackEnd() override {}
 
 
-
+	virtual String GetBackEndName() { return "flat_x86"; }
 	static BackEndObject* MakeObject() { return new X86BackEnd(); }
 	void Reset() override;
 	void Build(const IRBuilder* Input) override;
@@ -25,6 +25,7 @@ public:
 	~X86BackEnd_UCodeLib() override {}
 
 
+	virtual String GetBackEndName() { return "UCodeVM_x86"; }
 	static BackEndObject* MakeObject() { return new X86BackEnd_UCodeLib(); }
 	void Reset() override;
 	void Build(const IRBuilder* Input) override;

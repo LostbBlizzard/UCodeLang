@@ -12,6 +12,10 @@ $Vec2:
  int X;
  int Y;
 
-|main[Vec2 V]:
- ret V.X;
+|main[]:
+ var Ptr = bitcast<int&>(0);
+
+ Ptr &= new int();
+ 
+ ret Ptr;
 

@@ -33,9 +33,9 @@ public:
 
 	template<typename T> T RInvoke(Interpreter_t& This)
 	{
-		T R;
-		RInvoke(This, &R, sizeof(T));
-		return R;
+		T CompilerRet;
+		RInvoke(This, &CompilerRet, sizeof(T));
+		return CompilerRet;
 	}
 
 	void RInvoke(Interpreter_t& This, void* OutObject, size_t ReturnObjectSize)

@@ -4,7 +4,7 @@ UCodeLangStart
 
 #define G_FixEndianess  const Endian ThisEndian = _CPUEndian;\
 const Endian OutEndian = InputOutEndian;\
-if (ThisEndian != OutEndian) {return R.FlpBytes();}\
+if (ThisEndian != OutEndian) {return CompilerRet.FlpBytes();}\
 
 #define R_FixEndianess const Endian ThisEndian = _CPUEndian;\
 const Endian InputEndian = InputOutEndian;\
@@ -12,79 +12,79 @@ if (ThisEndian != InputEndian) {auto v = bits.FlpBytes();bits =v; }\
 
 BitConverter::Byte32 BitConverter::GetBytes(int Value)
 {
-	Byte32 R;
+	Byte32 CompilerRet;
 	UInt8* VPointer = (UInt8*)&Value;
 
-	R.A = VPointer[0];
-	R.B = VPointer[1];
-	R.C = VPointer[2];
-	R.D = VPointer[3];
+	CompilerRet.A = VPointer[0];
+	CompilerRet.B = VPointer[1];
+	CompilerRet.C = VPointer[2];
+	CompilerRet.D = VPointer[3];
 
 
 
 	G_FixEndianess
 	
 
-	return R;
+	return CompilerRet;
 }
 int BitConverter::BytesToInt(const void* DataBytes, size_t Index)
 {
 	UInt8* B = ((UInt8*)DataBytes) + Index;
 	Byte32 bits = *(Byte32*)B;
-	int* R = (int*)&bits;
+	int* CompilerRet = (int*)&bits;
 
 	R_FixEndianess
 	
 
-	return *R;
+	return *CompilerRet;
 }
 
 BitConverter::Byte16 BitConverter::GetBytes(Int16 Value)
 {
-	Byte16 R;
+	Byte16 CompilerRet;
 	UInt8* VPointer = (UInt8*)&Value;
 
-	R.A = VPointer[0];
-	R.B = VPointer[1];
+	CompilerRet.A = VPointer[0];
+	CompilerRet.B = VPointer[1];
 	
 	G_FixEndianess
-	return R;
+	return CompilerRet;
 }
 Int16 BitConverter::BytesToInt16(const void* DataBytes, size_t Index)
 {
 	UInt8* B = ((UInt8*)DataBytes) + Index;
 	Byte16 bits = *(Byte16*)B;
-	Int16* R = (Int16*)&bits;
+	Int16* CompilerRet = (Int16*)&bits;
 
 	R_FixEndianess
-	return *R;
+	return *CompilerRet;
 }
 
 BitConverter::Byte64 BitConverter::GetBytes(Int64 Value)
 {
-	Byte64 R;
+	Byte64 CompilerRet;
 	UInt8* VPointer = (UInt8*)&Value;
 
-	R.A = VPointer[0];
-	R.B = VPointer[1];
-	R.C = VPointer[2];
-	R.D = VPointer[3];
+	CompilerRet.A = VPointer[0];
+	CompilerRet.B = VPointer[1];
+	CompilerRet.C = VPointer[2];
+	CompilerRet.D = VPointer[3];
 
-	R.E = VPointer[4];
-	R.F = VPointer[5];
-	R.G = VPointer[6];
-	R.H = VPointer[7];
+	CompilerRet.E = VPointer[4];
+	CompilerRet.F = VPointer[5];
+	CompilerRet.G = VPointer[6];
+	CompilerRet.H = VPointer[7];
 
 	G_FixEndianess
-	return R;
+	return CompilerRet;
 }
 Int64 BitConverter::BytesToInt64(const void* DataBytes, size_t Index)
 {
 	UInt8* B = ((UInt8*)DataBytes) + Index;
 	Byte64 bits = *(Byte64*)B;
-	Int64* R = (Int64*)&bits;
+	Int64* CompilerRet = (Int64*)&bits;
 
 	R_FixEndianess
-	return *R;
+	return *CompilerRet;
 }
 UCodeLangEnd

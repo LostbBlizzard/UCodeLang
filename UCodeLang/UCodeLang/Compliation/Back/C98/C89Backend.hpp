@@ -14,6 +14,8 @@ public:
 
 	void AddBaseTypes();
 
+
+	virtual String GetBackEndName() { return "CLang89"; }
 	static BackEndObject* MakeObject() { return new C89Backend(); }
 private:
 	String OutBuffer;
