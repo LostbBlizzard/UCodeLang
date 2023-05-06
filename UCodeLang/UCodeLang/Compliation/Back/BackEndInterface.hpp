@@ -22,6 +22,8 @@ public:
 	virtual void Build(const IRBuilder* Input) {};
 	virtual ~BackEndObject() {}
 
+	virtual String GetBackEndName() = 0;
+
 	inline CompliationErrors& Get_ErrorsOutput()
 	{
 		return *_ErrorsOutput;

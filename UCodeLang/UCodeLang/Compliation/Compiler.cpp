@@ -6,9 +6,9 @@ UCodeLangStart
 Compiler::CompilerRet Compiler::CompileText(const String_view& Text)
 {
 	//
-	CompilerRet R;
-	R._State = CompilerState::Fail;
-	R.OutPut = nullptr;
+	CompilerRet CompilerRet;
+	CompilerRet._State = CompilerState::Fail;
+	CompilerRet.OutPut = nullptr;
 
 	_Errors.FilePath = _Errors.FilePath;
 
@@ -28,7 +28,7 @@ Compiler::CompilerRet Compiler::CompileText(const String_view& Text)
 
 
 
-	if (Item == nullptr || _Errors.Has_Errors()) { return R; }
+	if (Item == nullptr || _Errors.Has_Errors()) { return CompilerRet; }
 
 
 	Vector<FileNode_t*> Files;
@@ -55,13 +55,13 @@ Compiler::CompilerRet Compiler::CompileText(const String_view& Text)
 	
 	_BackEndObject->Build(&IRCode);
 
-	if (_Errors.Has_Errors()) { return R; }
+	if (_Errors.Has_Errors()) { return CompilerRet; }
 
-	R._State = _Errors.Has_Errors() ? CompilerState::Fail : CompilerState::Success;
+	CompilerRet._State = _Errors.Has_Errors() ? CompilerState::Fail : CompilerState::Success;
 
 	
-	R.OutPut = &_BackEndObject->Getliboutput();
-	return R;
+	CompilerRet.OutPut = &_BackEndObject->Getliboutput();
+	return CompilerRet;
 }
 String Compiler::GetTextFromFile(const Path& path)
 {

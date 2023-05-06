@@ -199,7 +199,7 @@ GotNodeType Parser::GetAlias(const Token* AliasName,GenericValuesNode&& AliasGen
 	}
 	else 
 	{
-		r = GetType(out.Type);
+		r = GetType(out.Type,false,false);
 	}
 	auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
 	NextToken();
@@ -711,11 +711,11 @@ GotNodeType Parser::GetStatements(StatementsNode& out)
 		if (T->Type == TokenType::EndTab) { break; }
 
 		Node* V = nullptr;
-		auto R = GetStatement(V);
+		auto CompilerRet = GetStatement(V);
 		if (V) { out._Nodes.push_back(Unique_ptr<Node>(V)); }
 
-		TrippedCheck(R);
-		if (R != GotNodeType::Success){ break; }
+		TrippedCheck(CompilerRet);
+		if (CompilerRet != GotNodeType::Success){ break; }
 	}
 
 

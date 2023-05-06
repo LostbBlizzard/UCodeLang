@@ -15,6 +15,8 @@ public:
 	void Reset() override;
 	void Build(const IRBuilder* Input) override;
 
+
+	virtual String GetBackEndName() { return "UCodeVM"; }
 	static BackEndObject* MakeObject() { return new UCodeBackEndObject(); }
 private:
 

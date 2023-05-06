@@ -9,6 +9,7 @@
 #include <sstream>
 #include "UCodeLang/Compliation/Back/C98/C89Backend.hpp"
 #include "UCodeLang/Compliation/Back/x86/X86BackEnd.hpp"
+#include "UCodeLang/Compliation/ModuleFile.hpp"
 
 using namespace UCodeLang;
 const UCodeLang::String ScrDir = "C:/CoolStuff/CoolCodeingStuff/C++/Projects/UCodeLang/UCApp/src/";
@@ -16,6 +17,7 @@ const UCodeLang::String TopTestDir = ScrDir + "Tests/";
 const UCodeLang::String TopTestUnitDir = TopTestDir + "Unit/";
 
 const UCodeLang::String TopDir = ScrDir + "CodeTesting/";
+const UCodeLang::String CodeTestingModluePath = TopDir + "ULangModule.ucm";
 const UCodeLang::String FileDir = TopDir + "Files/";
 const UCodeLang::String DLLDir = TopDir + "Dlls/";
 
@@ -35,6 +37,10 @@ const UCodeLang::String StandardLibraryPath = ScrDir + "StandardLibrary/";
 
 const UCodeLang::String StandardLibraryOut = ScrDir + "StandardLibrary_Out/";
 const UCodeLang::String StandardLibraryinit = StandardLibraryOut + "init/";
+
+const UCodeLang::String UCodeLangVSProjectPath = "C:\\CoolStuff\\CoolCodeingStuff\\C++\\Projects\\UCodeLang";
+
+const UCodeLang::String UCodeLangVSAPIPath = UCodeLangVSProjectPath + "\\UCodeAPI";
 
 #define StandardLibrarynamespace "ULang"
 
@@ -66,53 +72,9 @@ std::string int_to_hex(T i)
 }
 int main()
 {
-	
-	/*
-	{
-		namespace fs = std::filesystem;
-		std::stringstream Text;
-		UCodeAnalyzer::StandardLibraryBuilder::PackageUCodeTextFiles(Text, StandardLibraryPath);
 
-		String Str = Text.str();
-
-
-
-		{
-			String outpath = FileDir + "StandardLibrary.uc";
-			std::ofstream out(outpath);
-			//out << Str;
-			out.close();
-		}
-
-		/*
-		{
-			String outpath = "C:/CoolStuff/CoolCodeingStuff/C++/Projects/UCodeLang/UCodeLang/"
-				"UCodeAnalyzer/CodeBuilds/StandardLibrary.cpp";
-
-			String Str2 = "#include \"StandardLibrary.hpp\"\ \n" "UCodeAnalyzerStart \n";
-
-			Str2 += "StringView StandardLibraryBuilder::UCodeStandardLibrary = \" ";
-
-			for (size_t i = 0; i < Str.size(); i++)
-			{
-				char V = Str[i];
-				if (V == '\n')
-				{
-					Str2 +='\\';
-				}
-				Str2 += V;
-			}
-			Str2 += "\" ; \n UCodeAnalyzerEnd";
-
-			std::ofstream out(outpath);
-			out << Str2;
-			out.close();
-		}
-
-	}
-	*/
 	//ULangTest::RunTests();
-	
+
 	/*
 	{
 		UCodeLang::TokenType_t v = (UCodeLang::TokenType_t)UCodeLang::TokenType::Null;
@@ -128,45 +90,38 @@ int main()
 	}
 	*/
 
+	
+		ModuleIndex LangIndex;
+		auto Path = ModuleIndex::GetModuleIndexFilePath();
+		//if (!std::filesystem::exists(Path))
+		{
+			LangIndex.AddModueToList(UCodeLangVSAPIPath + "\\StandardLibrary\\ULangModule.ucm");
+			LangIndex.AddModueToList(UCodeLangVSAPIPath + "\\Win32\\ULangModule.ucm");
+
+			LangIndex.AddModueToList(UCodeLangVSAPIPath + "\\NStandardLibrary\\ULangModule.ucm");
+			LangIndex.AddModueToList(UCodeLangVSAPIPath + "\\NWin32\\ULangModule.ucm");
+			ModuleIndex::ToFile(&LangIndex, Path);
+		}
+
+
+		ModuleIndex::FromFile(&LangIndex, Path);
+	
+
 	UCodeLang::Compiler _Compiler;
 	UCodeLang::CompliationSettings& Settings =_Compiler.Get_Settings();
-	UCodeLang::Compiler::CompilerPathData Data;
+	
 	//Settings.PtrSize = IntSizes::Int8;
 
-	//Main
+	
 	Settings._Type = OutPutType::Lib;
-	Data.FileDir = FileDir;
-	Data.OutFile = OutFilePath;
-	Data.IntDir = IntPath;
 	Settings._Flags = OptimizationFlags::Debug;
 	//_Compiler.Set_BackEnd(ULangTest::C89Backend::MakeObject);
 
-	/*
-	size_t ErrCount = 0;
-	size_t GoodCount = 0;
-	for (size_t i = 0; i < 100; i++)
-	{
-
-		_Compiler.CompileFiles_UseIntDir(Data);
-
-		if (_Compiler.Get_Errors().Has_Errors())
-		{
-			int a = 0;
-			//ULangTest::LogErrors(std::cout, _Compiler);
-			ErrCount++;
-		}
-		else
-		{
-			GoodCount++;
-		}
-		_Compiler.Get_Errors().Remove_Errors();
-			
-	}
-	std::cout << std::to_string(ErrCount) + ","  + std::to_string(GoodCount);
-	*/
+	ModuleFile Mfile;
+	ModuleFile::FromFile(&Mfile, CodeTestingModluePath);
 	
+	auto OutData = Mfile.BuildModule(_Compiler, LangIndex);
 
-	_Compiler.CompileFiles_UseIntDir(Data);
 
 
 	
@@ -175,10 +130,10 @@ int main()
 	if (!ULangTest::LogErrors(std::cout, _Compiler))
 	{
 		UCodeLang::UClib MLib;
-		if (UClib::FromFile(&MLib, Data.OutFile))
+		if (UClib::FromFile(&MLib, OutData.OutputItemPath))
 		{
 			auto Text = UAssembly::UAssembly::ToString(&MLib);
-			String Path = Data.OutFile + ".UA";
+			String Path =  OutData.OutputItemPath.generic_string() + ".UA";
 			std::ofstream out(Path);
 			out << Text;
 			out.close();

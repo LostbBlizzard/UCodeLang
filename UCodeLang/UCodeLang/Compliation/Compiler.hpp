@@ -72,7 +72,11 @@ public:
 		_BackEnd = Value;
 	}
 
-
+	String GetBackEndName()
+	{
+		Unique_ptr<BackEndObject> obj = Unique_ptr<BackEndObject>(_BackEnd());
+		return obj->GetBackEndName();
+	}
 
 private:
 	CompliationSettings _Settings;

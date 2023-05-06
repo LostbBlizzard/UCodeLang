@@ -10988,7 +10988,7 @@ void* SystematicAnalysis::Get_Object(const EvaluatedEx& Input)
 
 SystematicAnalysis::StrExELav SystematicAnalysis::GetStrEVal(const Node* node)
 {
-	StrExELav R;
+	StrExELav CompilerRet;
 
 	OnExpressionTypeNode(node, GetValueMode::Read);
 
@@ -11001,13 +11001,13 @@ SystematicAnalysis::StrExELav SystematicAnalysis::GetStrEVal(const Node* node)
 
 			String Buffer;
 			ParseHelper::ParseStringliteralToString(strnod->Token->Value._String, Buffer);
-			R.OwnedStr = std::move(Buffer);
-			R.Msg = R.OwnedStr;
-			R.IsConstantExpression = true;
+			CompilerRet.OwnedStr = std::move(Buffer);
+			CompilerRet.Msg = CompilerRet.OwnedStr;
+			CompilerRet.IsConstantExpression = true;
 		}
 	}
 
-	return R;
+	return CompilerRet;
 }
 bool SystematicAnalysis::ConstantExpressionAbleType(const TypeSymbol& Type)
 {
@@ -11766,9 +11766,9 @@ bool SystematicAnalysis::EvaluateToAnyType(EvaluatedEx& Out, const ExpressionNod
 	
 
 	EvaluatedEx ex1 = MakeEx(LastExpressionType);
-	bool R=  Evaluate_t(ex1, node.Value.get());
+	bool CompilerRet=  Evaluate_t(ex1, node.Value.get());
 	Out = std::move(ex1);
-	return R;
+	return CompilerRet;
 }
 bool SystematicAnalysis::EvalutateCMPTypesNode(EvaluatedEx& Out, const CMPTypesNode& node)
 {
@@ -11872,20 +11872,20 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type, const RawEvaluatedOb
 		break;
 	}
 
-	String R = "{";
+	String CompilerRet = "{";
 	for (size_t i = 0; i < Data.ObjectSize; i++)
 	{
 		char V = ((const char*)DataPtr)[i];
-		R += std::to_string((Byte)V);
+		CompilerRet += std::to_string((Byte)V);
 
 		if (i != Data.ObjectSize-1)
 		{
-			R += ",";
+			CompilerRet += ",";
 		}
 	}
-	R += "}";
+	CompilerRet += "}";
 
-	return R;
+	return CompilerRet;
 }
 
 IRInstruction* SystematicAnalysis::IR_Load_UIntptr(UAddress Value)

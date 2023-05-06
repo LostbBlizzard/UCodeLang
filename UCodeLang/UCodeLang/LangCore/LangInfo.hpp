@@ -1,16 +1,30 @@
 #pragma once
 #include "UCodeLangNameSpace.hpp"
+#include "LangTypes.hpp"
 UCodeLangStart
 class LangInfo
 {
 public:
-	enum class Vesion
+	class Vesion
 	{
-		Null,
-		_0_0_1,
+	public:
+		UInt64 MajorVersion = 0;
+		UInt64 MinorVersion = 0;
+		UInt64 RevisionVersion = 0;
+	
+		Vesion(UInt64 Major, UInt64 Minor, UInt64 Revision)
+		{
+			MajorVersion = Major;
+			MinorVersion = Minor;
+			RevisionVersion = Revision;
+		}
 	};
-	static constexpr Vesion CurrrentVersion = Vesion::_0_0_1;
+	inline static Vesion CurrrentVersion = Vesion(0,0,1);
 	static constexpr const char* VersionName = "0.0.1";
+	static Path GetUCodeGlobalDirectory();
+	static Path GetUCodeGlobalModulesDownloads();
+	static Path GetUCodeGlobalBin();
+	static Path GetUCodeGlobalCacheDirectory();
 };
 
 UCodeLangEnd

@@ -8,12 +8,12 @@ size_t ParseHelper::ParseStringliteralToString(String_view string, String& out)
 	{
 		String_view V = String_view(string.data() + i, string.size() - i);
 
-		size_t R = ParseCharliteralToChar(V, out);
-		if (R==0)
+		size_t CompilerRet = ParseCharliteralToChar(V, out);
+		if (CompilerRet==0)
 		{
 			return i;
 		}
-		i += R;
+		i += CompilerRet;
 	}
 	return 0;
 }

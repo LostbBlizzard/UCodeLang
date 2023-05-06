@@ -19,6 +19,7 @@ struct AppInfo
 	std::ifstream InputFile;
 
 	//compiler
+	ModuleIndex _ModuleIndex;
 	Compiler::CompilerPathData _CompilerPaths;
 	Compiler _Compiler;
 	
@@ -186,7 +187,7 @@ void ParseLine(String_view Line)
 					*_This.output << "Cant Open module file\n";
 					return;
 				}
-				if (module.BuildModule(_This._Compiler)._State ==Compiler::CompilerState::Fail)
+				if (module.BuildModule(_This._Compiler,_This._ModuleIndex).CompilerRet._State ==Compiler::CompilerState::Fail)
 				{
 					*_This.output << "Compiler Fail:\n";
 					*_This.output << _This._Compiler.Get_Errors().ToString();
