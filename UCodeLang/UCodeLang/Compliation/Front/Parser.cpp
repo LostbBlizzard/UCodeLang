@@ -1313,10 +1313,6 @@ GotNodeType Parser::TryGetGeneric(GenericValuesNode& out)
 					Item.Generictype = GenericValueNode::GenericType::Pack;
 					NextToken();
 				}
-				else
-				{
-					
-				}
 
 
 				out.Values.push_back(std::move(Item));

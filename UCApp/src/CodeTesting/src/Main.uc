@@ -2,7 +2,7 @@
 
 
 
-|CoolFunc<T...>[T ParList,int Buffer]://Err
+|CoolFunc<T...>[int Buffer,T ParList]:
  $for [var Item : ParList]:
   var I = Item;
 
