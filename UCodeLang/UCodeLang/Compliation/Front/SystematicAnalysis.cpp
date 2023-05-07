@@ -973,6 +973,26 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			ConvertAndValidateType(Item.Type, Sybol.VarType,NodeSyb_t::Parameter);
 			Item2 = Sybol.VarType;
 
+
+
+			{//Par Pack Err
+				if (Item2._CustomTypeSymbol && (&Item2 != &Info->Pars.back()))
+				{
+					for (auto& GenericItem : Info->_Generic)
+					{
+						if (GenericItem.SybID == Item2._CustomTypeSymbol)
+						{
+							if (GenericItem.type == GenericData::Type::Pack)
+							{
+								auto Token = Item.Name.Token;
+								LogParPackIsNotLast(Token);
+							}
+
+							break;
+						}
+					}
+				}
+			}
 		}
 
 	}
@@ -1151,6 +1171,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	syb->PassState = passtype;
 
 }
+
 void SystematicAnalysis::SetInStatetements(bool Value)
 {
 	if (_ClassStack.size())
@@ -12561,6 +12582,10 @@ void SystematicAnalysis::LogOutCanOnlyBeInControlFlow(const UCodeLang::Token* To
 void SystematicAnalysis::LogParamterMustBeAnOutExpression(const UCodeLang::Token* Token, const size_t& i)
 {
 	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "parameter '" + std::to_string(i) + "' does not use the out keyword");
+}
+void SystematicAnalysis::LogParPackIsNotLast(const UCodeLang::Token* Token)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Parameter  named " + (String)Token->Value._String + " is useing a Parameter pact.But Parameter pact must be last Paramter");
 }
 UCodeLangFrontEnd
 
