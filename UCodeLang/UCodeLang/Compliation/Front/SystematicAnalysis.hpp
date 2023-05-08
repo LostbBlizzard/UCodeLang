@@ -1058,6 +1058,7 @@ private:
 	void LogInvalidNodeError(const Token* Token, String_view ErrStr);
 	void LogEmptyInvalidError(const Token* Token);
 	void LogParPackIsNotLast(const Token* Token);
+	void LogParPackTypeIsNotLast(const Token* Token);
 
 	String ToString(SymbolType Value);
 	ReadVarErrorCheck_t LogTryReadVar(String_view VarName, const Token* Token, const Symbol* Syb);

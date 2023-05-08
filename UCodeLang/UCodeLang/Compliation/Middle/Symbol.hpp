@@ -276,6 +276,37 @@ struct GenericData
 	}
 };
 
+struct Generic
+{
+	Vector<GenericData> _Generic;
+
+	
+	inline bool IsGeneric()
+	{
+		return _Generic.size() != 0;
+	}
+	inline bool IsPack()
+	{
+		if (_Generic.size()) 
+		{
+			return  _Generic.back().type == GenericData::Type::Pack;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	inline size_t GetMinimumCount()
+	{
+		auto r = _Generic.size();
+		if (IsPack())
+		{
+			r -= 1;
+		}
+		return r;
+	}
+};
+
 
 class FuncInfo :public Symbol_Info
 {
@@ -324,7 +355,7 @@ public:
 	Vector<TypeSymbol> Pars;
 	TypeSymbol Ret;
 	
-	Vector<GenericData> _Generic;
+	Generic _GenericData;
 
 	bool FrontParIsUnNamed = false;
 	bool IsObjectCall() const
@@ -403,7 +434,7 @@ public:
 	Vector<FieldInfo> Fields;
 	bool SizeInitialized = false;
 
-	Vector<GenericData> _Generic;
+	Generic _GenericData;
 
 	ClassInfo()
 	{
