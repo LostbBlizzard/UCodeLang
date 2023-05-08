@@ -316,7 +316,16 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 				GenericData Info;
 				Info.SybID = ID;
 				Info.type = GenericTypeToGenericDataType(Item.Generictype);
-				ClassInf->_Generic.push_back(Info);
+				ClassInf->_GenericData._Generic.push_back(Info);
+				
+				if (Info.type== GenericData::Type::Pack)
+				{
+					bool IsLast = i == GenericList.Values.size() -1;
+					if (!IsLast)
+					{
+						LogParPackTypeIsNotLast(Item.Token);
+					}
+				}
 			}
 		}
 	}
@@ -828,7 +837,16 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 				Info.SybID = ID;
 				Info.type = GenericTypeToGenericDataType(Item.Generictype);
 
-				newInfo->_Generic.push_back(Info);
+				newInfo->_GenericData._Generic.push_back(Info);
+
+				if (Info.type == GenericData::Type::Pack)
+				{
+					bool IsLast = i == GenericList.Values.size() - 1;
+					if (!IsLast)
+					{
+						LogParPackTypeIsNotLast(Item.Token);
+					}
+				}
 			}
 
 		}
@@ -978,7 +996,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			{//Par Pack Err
 				if (Item2._CustomTypeSymbol && (&Item2 != &Info->Pars.back()))
 				{
-					for (auto& GenericItem : Info->_Generic)
+					for (auto& GenericItem : Info->_GenericData._Generic)
 					{
 						if (GenericItem.SybID == Item2._CustomTypeSymbol)
 						{
@@ -8571,9 +8589,9 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 
 			ClassInfo* CInfo = SybV->Get_Info<ClassInfo>();
 
-			if (CInfo->_Generic.size() != V.Generic.Values.size())
+			if (CInfo->_GenericData._Generic.size() != V.Generic.Values.size())
 			{
-				LogCanIncorrectGenericCount(V.Name.Token, Name, V.Generic.Values.size(), CInfo->_Generic.size());
+				LogCanIncorrectGenericCount(V.Name.Token, Name, V.Generic.Values.size(), CInfo->_GenericData._Generic.size());
 				return;
 			}
 
@@ -8582,7 +8600,7 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 			for (size_t i = 0; i < V.Generic.Values.size(); i++)
 			{
 				const auto& Tnode = V.Generic.Values[i];
-				const auto& GenericInfo = CInfo->_Generic[i];
+				const auto& GenericInfo = CInfo->_GenericData._Generic[i];
 				TypeSymbol Type; 
 				ConvertAndValidateType(Tnode, Type, NodeSyb_t::Any);
 
@@ -10422,53 +10440,103 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 		{
 			FuncInfo* Info = Item->Get_Info<FuncInfo>();
 
-			if (Info->Pars.size() != ValueTypes.size())
+			bool IsParPack = Info->_GenericData.IsPack();
+			bool LastParIsPack = IsParPack && Info->Pars.back()._CustomTypeSymbol == Info->_GenericData._Generic.back().SybID;
+
+			if (IsParPack)
 			{
-				continue;
+				if (LastParIsPack && Info->Pars.size()-1 >= ValueTypes.size())
+				{
+					continue;
+				}
+			}
+			else 
+			{
+				if (Info->Pars.size() != ValueTypes.size())
+				{
+					continue;
+				}
 			}
 
-			//I have felling this can be optimized
 			Vector<bool> HasBenAdded;
-			HasBenAdded.resize(Info->_Generic.size());
+			HasBenAdded.resize(Info->_GenericData._Generic.size());
 
+			if (LastParIsPack)
+			{
+				HasBenAdded.resize(Generics.Values.size());
+			}
+			else
+			{
+				HasBenAdded.resize(Info->_GenericData._Generic.size());
+			}
 
 			Vector<TypeSymbol> GenericInput;
 			for (size_t i = 0; i < Generics.Values.size(); i++)
 			{
 				auto& Item = Generics.Values[i];
 				Convert(Item, GenericInput.emplace_back());
+
+
 				HasBenAdded[i] = true;
 			}
+		
 
 
-
+			
 			for (size_t i = 0; i < ValueTypes.size(); i++)
 			{
 				auto& Item = ValueTypes[i];
 				if (_ThisTypeIsNotNull && i == 0) { continue; }
 
-				auto& Par = Info->Pars[i];
+				bool Added = false;
 
-
-				for (size_t i2 = 0; i2 < Info->_Generic.size(); i2++)
+				if (i < Info->Pars.size()) 
 				{
-					auto& V3 = Info->_Generic[i2];
-					if (V3.SybID == Par._CustomTypeSymbol)
+					auto& Par = Info->Pars[i];
+					for (size_t i2 = 0; i2 < Info->_GenericData._Generic.size(); i2++)
 					{
-						if (HasBenAdded[i2] == false)
+						auto& V3 = Info->_GenericData._Generic[i2];
+						if (V3.SybID == Par._CustomTypeSymbol)
 						{
-							GenericInput.push_back(Item);
-							HasBenAdded[i2] = true;
+							if (i2 >= HasBenAdded.size())
+							{
+								GenericInput.push_back(Item);
+								Added = true;
+								continue;
+							}
+							else if (HasBenAdded[i2] == false)
+							{
+								GenericInput.push_back(Item);
+								HasBenAdded[i2] = true;
+								Added = true;
+								continue;
+							}
+							break;
 						}
-						break;
+					}
+				}
+				 
+				if (Added == false
+					&& LastParIsPack
+					&& i >= Info->Pars.size() - 1
+					)
+				{
+					auto PackParsIndex = Info->Pars.size() - 1;
+					auto PackAddedPar = i - PackParsIndex;
+					
+					auto PackGenericIndex = Info->_GenericData._Generic.size() - 1;
+					auto PackAddedG = i - PackGenericIndex;
+					
+
+					bool CMPBool = true;
+					if (CMPBool) {
+						GenericInput.push_back(Item);
 					}
 				}
 			}
 
 
 			{
-
-
 
 
 				auto FuncSym = GetSymbol(Info);
@@ -10485,7 +10553,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 						for (size_t i = 0; i < GenericInput.size(); i++)
 						{
 							const auto& Tnode = GenericInput[i];
-							const auto& GenericInfo = Info->_Generic[i];
+							const auto& GenericInfo = Info->_GenericData._Generic[i];
 
 							bool InputTypeIsConstantExpression = false;
 
@@ -12585,7 +12653,11 @@ void SystematicAnalysis::LogParamterMustBeAnOutExpression(const UCodeLang::Token
 }
 void SystematicAnalysis::LogParPackIsNotLast(const UCodeLang::Token* Token)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Parameter  named " + (String)Token->Value._String + " is useing a Parameter pact.But Parameter pact must be last Paramter");
+	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Parameter  named '" + (String)Token->Value._String + "' is useing a Parameter pact.But Parameter pact must be last Paramter");
+}
+void SystematicAnalysis::LogParPackTypeIsNotLast(const UCodeLang::Token* Token)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Type Pack named '" + (String)Token->Value._String + "' is not declarded last.");
 }
 UCodeLangFrontEnd
 
