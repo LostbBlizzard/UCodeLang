@@ -5955,39 +5955,39 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 			(node.Value->Get_Type() == NodeType::LambdaNode)
 		))
 	{
-		
+		const auto Value = node.Value.get();
 		switch (node.Value->Get_Type())
 		{
 		case NodeType::NumberliteralNode:
 		{
-			NumberliteralNode* num = NumberliteralNode::As(node.Value.get());
+			const 	auto num = NumberliteralNode::As(Value);
 
 			OnNumberliteralNode(num);
 		}
 		break;
 		case NodeType::BoolliteralNode:
 		{
-			BoolliteralNode* num = BoolliteralNode::As(node.Value.get());
+			const 	auto num = BoolliteralNode::As(Value);
 			
 			OnBoolliteralNode(num);
 		}
 		break;
 		case NodeType::CharliteralNode:
 		{
-			CharliteralNode* num = CharliteralNode::As(node.Value.get());
+			const 	auto num = CharliteralNode::As(Value);
 
 			OnCharliteralNode(num);
 		}
 		break;
 		case NodeType::FloatliteralNode:
 		{
-			FloatliteralNode* num = FloatliteralNode::As(node.Value.get());
+			const 	auto num = FloatliteralNode::As(Value);
 			OnFloatLiteralNode(num);
 		}
 		break;
 		case NodeType::StringliteralNode:
 		{
-			StringliteralNode* nod = StringliteralNode::As(node.Value.get());
+			const 	auto nod = StringliteralNode::As(Value);
 
 			bool retflag;
 			OnStringLiteral(nod, retflag);
@@ -5995,72 +5995,70 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 		}break;
 		case NodeType::ReadVariableNode:
 		{
-			ReadVariableNode* nod = ReadVariableNode::As(node.Value.get());
+			const 	auto nod = ReadVariableNode::As(Value);
 			OnReadVariable(*nod);
 		}
 		break;
 		case NodeType::AnonymousObjectConstructorNode:
 		{
-			AnonymousObjectConstructorNode* nod = AnonymousObjectConstructorNode::As(node.Value.get());
-
-
+			const 	auto nod = AnonymousObjectConstructorNode::As(Value);
 			OnAnonymousObjectConstructor(nod);
 		}
 		break;
 		case NodeType::FuncCallNode:
 		{
-			OnFuncCallNode(*FuncCallNode::As(node.Value.get()));//LastExpressionType was set by OnFuncCall
+			OnFuncCallNode(*FuncCallNode::As(Value));
 		}
 		break;
 		case NodeType::SizeofExpresionNode:
 		{
-			SizeofExpresionNode* nod = SizeofExpresionNode::As(node.Value.get());
+			const 	auto nod = SizeofExpresionNode::As(Value);
 
 			OnSizeofNode(nod);
 		}
 		break;
 		case NodeType::NewExpresionNode:
 		{
-			NewExpresionNode* nod = NewExpresionNode::As(node.Value.get());
+			const 	auto nod = NewExpresionNode::As(Value);
 
 			OnNewNode(nod);
 		}
 		break;
 		case NodeType::ParenthesesExpresionNode:
 		{
-			ParenthesesExpresionNode* nod = ParenthesesExpresionNode::As(node.Value.get());
+			const ParenthesesExpresionNode* nod = ParenthesesExpresionNode::As(Value);
 
 			OnExpressionTypeNode(nod->Expression.Value.get(), GetValueMode::Read);
 		}
 		break;
 		case NodeType::MoveNode:
 		{
-			MoveNode* nod = MoveNode::As(node.Value.get());
+			const MoveNode* nod = MoveNode::As(Value);
 
 			OnMovedNode(nod);
 		}
 		break;
 		case NodeType::LambdaNode:
 		{
-			auto nod = LambdaNode::As(node.Value.get());
+			const  auto nod = LambdaNode::As(Value);
 			OnLambdaNode(*nod);
 		}
 		break;
 		case NodeType::BitCastExpression:
 		{
-			auto nod = BitCastExpression::As(node.Value.get());
+			const auto nod = BitCastExpression::As(Value);
 			OnBitCast(*nod);
 		}
 		break;
 		case NodeType::ValidNode:
 		{
-			auto nod = ValidNode::As(node.Value.get());
+			const 	auto nod = ValidNode::As(Value);
 			OnvalidNode(*nod);
 		}
 		break;
 		case NodeType::CMPTypesNode:
 		{
-			auto nod = CMPTypesNode::As(node.Value.get());
+			const 	auto nod = CMPTypesNode::As(Value);
 			OnCMPTypesNode(*nod);
 		}
 		break;
@@ -6669,7 +6667,7 @@ void SystematicAnalysis::OnNewNode(const NewExpresionNode* nod)
 
 }
 
-void SystematicAnalysis::OnAnonymousObjectConstructor(const AnonymousObjectConstructorNode*& nod)
+void SystematicAnalysis::OnAnonymousObjectConstructor(const AnonymousObjectConstructorNode* nod)
 {
 	auto& Type = Get_LookingForType();
 
