@@ -602,8 +602,8 @@ private:
 		}
 		return false;
 	}
-	const FileNode* Get_FileUseingSybol(Symbol* Syb);
-	void AddDependencyToCurrentFile(Symbol* Syb);
+	const FileNode* Get_FileUseingSybol(const Symbol* Syb);
+	void AddDependencyToCurrentFile(const Symbol* Syb);
 	void AddDependencyToCurrentFile(const FileNode* file);
 	void AddDependencyToCurrentFile(const TypeSymbol& type);
 	Symbol& AddSybol(SymbolType type, const String& Name, const String& FullName, AccessModifierType Access);
@@ -629,9 +629,9 @@ private:
 	String GetScopedNameAsString(const ScopedNameNode& node);
 	void OnDeclareVariablenode(const DeclareVariableNode& node, DeclareStaticVariableNode_t type);
 	void OnStoreVarable(bool IsStructObjectPassRef, IRInstruction* OnVarable, Symbol* syb, const SymbolID& sybId);
-	void AddDestructorToStack(Symbol* syb, const SymbolID& sybId, IRInstruction* OnVarable);
+	void AddDestructorToStack(const Symbol* syb, const SymbolID& sybId, IRInstruction* OnVarable);
 	void AddDestructorToStack(const TypeSymbol& Type, IRInstruction* OnVarable);
-	void ExDeclareVariableTypeCheck(TypeSymbol& VarType, TypeSymbol& Ex, const Token* Token);
+	void ExDeclareVariableTypeCheck(TypeSymbol& VarType,const TypeSymbol& Ex, const Token* Token);
 	void ExTypeDeclareVarableCheck(TypeSymbol& VarType, const Node* Ex, const Token* Token);
 	void CantgussTypesTheresnoassignment(const Token* Token);
 	void OnAssignExpressionNode(const AssignExpressionNode& node);
@@ -663,9 +663,9 @@ private:
 	String GetTraitVTableName(const String& TraitName);
 	String GetTraitVStructTableName(const String& TraitName);
 
-	void InheritTrait(Symbol* Syb, ClassInfo* ClassInfo, Symbol* Trait, const Token* ClassNameToken);
+	void InheritTrait(const Symbol* Syb, ClassInfo* ClassInfo, Symbol* Trait, const Token* ClassNameToken);
 
-	void BuildTrait(Symbol* Syb, ClassInfo* ClassInfo, Symbol* Trait, const Token* ClassNameToken);
+	void BuildTrait(const Symbol* Syb,ClassInfo* ClassInfo, Symbol* Trait, const Token* ClassNameToken);
 
 	void LogMissingFuncionforTrait(String_view& FuncName, FuncInfo* Info, Symbol* Trait, const Token* ClassNameToken);
 
@@ -713,15 +713,15 @@ private:
 	void OnCompoundStatementNode(const CompoundStatementNode& node);
 	void OnExpressionTypeNode(const Node* node, GetValueMode Mode);
 	void OnExpressionNode(const ValueExpressionNode& node);
-	void OnMovedNode(MoveNode* nod);
-	void OnNumberliteralNode(NumberliteralNode* num);
-	void OnBoolliteralNode(BoolliteralNode* num);
-	void OnCharliteralNode(CharliteralNode* num);
-	void OnFloatLiteralNode(FloatliteralNode* num);
-	void OnStringLiteral(StringliteralNode* nod, bool& retflag);
-	void OnSizeofNode(SizeofExpresionNode* nod);
-	void OnNewNode(NewExpresionNode* nod);
-	void OnAnonymousObjectConstructor(AnonymousObjectConstructorNode*& nod);
+	void OnMovedNode(const MoveNode* nod);
+	void OnNumberliteralNode(const NumberliteralNode* num);
+	void OnBoolliteralNode(const BoolliteralNode* num);
+	void OnCharliteralNode(const CharliteralNode* num);
+	void OnFloatLiteralNode(const FloatliteralNode* num);
+	void OnStringLiteral(const StringliteralNode* nod, bool& retflag);
+	void OnSizeofNode(const SizeofExpresionNode* nod);
+	void OnNewNode(const NewExpresionNode* nod);
+	void OnAnonymousObjectConstructor(const AnonymousObjectConstructorNode*& nod);
 	void OnReadVariable(const ReadVariableNode& nod);
 	Byte OperatorPrecedenceValue(const Node* node);
 	Byte OperatorPrecedence(TokenType V);
@@ -901,7 +901,7 @@ private:
 	Get_FuncInfo GetFunc(const ScopedNameNode& Name,const UseGenericsNode&,const ValueParametersNode& Pars,TypeSymbol Ret);
 
 
-	Get_FuncInfo GetEnumVariantFunc(Symbol* EnumSyb, size_t FeildIndex, Symbol* EnumFieldSyb, const ValueParametersNode& Pars,const Token* Token,const Vector<TypeSymbol>& ValueTypes);
+	Get_FuncInfo GetEnumVariantFunc(Symbol* EnumSyb, size_t FeildIndex,Symbol* EnumFieldSyb, const ValueParametersNode& Pars,const Token* Token,const Vector<TypeSymbol>& ValueTypes);
 
 
 
@@ -941,12 +941,12 @@ private:
 
 	//Generics
 
-	void GenericFuncInstantiate(Symbol* Func, const Vector<TypeSymbol>& GenericInput);
+	void GenericFuncInstantiate(const Symbol* Func, const Vector<TypeSymbol>& GenericInput);
 
-	String GetGenericFuncName(Symbol* Func, const Vector<TypeSymbol>& Type);
+	String GetGenericFuncName(const Symbol* Func, const Vector<TypeSymbol>& Type);
 	
 
-	void GenericTypeInstantiate(Symbol* Class, const Vector<TypeSymbol>& Type);
+	void GenericTypeInstantiate(const Symbol* Class, const Vector<TypeSymbol>& Type);
 
 	EvaluatedEx MakeEx(const TypeSymbol& Type);
 	RawEvaluatedObject MakeExr(const TypeSymbol& Type);
@@ -977,7 +977,7 @@ private:
 	String ToString(const TypeSymbol& Type, const RawEvaluatedObject& Data);
 	//IR
 	void DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Name, const ValueParametersNode& Pars);
-	void DoFuncCall(const TypeSymbol& Type, const Get_FuncInfo& Func, ValueParametersNode& ValuePars);
+	void DoFuncCall(const TypeSymbol& Type, const Get_FuncInfo& Func, const ValueParametersNode& ValuePars);
 	void DoDestructorCall(const ObjectToDrop& Object);
 
 	IRInstruction* IR_Load_UIntptr(UAddress Value);
