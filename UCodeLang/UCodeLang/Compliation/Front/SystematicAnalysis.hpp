@@ -721,7 +721,7 @@ private:
 	void OnStringLiteral(const StringliteralNode* nod, bool& retflag);
 	void OnSizeofNode(const SizeofExpresionNode* nod);
 	void OnNewNode(const NewExpresionNode* nod);
-	void OnAnonymousObjectConstructor(const AnonymousObjectConstructorNode*& nod);
+	void OnAnonymousObjectConstructor(const AnonymousObjectConstructorNode* nod);
 	void OnReadVariable(const ReadVariableNode& nod);
 	Byte OperatorPrecedenceValue(const Node* node);
 	Byte OperatorPrecedence(TokenType V);
