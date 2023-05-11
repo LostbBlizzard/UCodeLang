@@ -823,7 +823,19 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 				GenericType->Type = SymbolType::Type_alias;
 
 				GenericFuncInfo& V2 = GenericFuncName.top();
-				GenericType->VarType = (*V2.GenericInput)[i];
+			
+				auto TepVarable = GenericTypeToGenericDataType(Item.Generictype);
+				
+
+				if (TepVarable == GenericData::Type::Pack) 
+				{
+					GenericType->VarType = TypeSymbol(V2.Pack.value());
+				}
+				else
+				{
+					GenericType->VarType = (*V2.GenericInput)[i];
+				}
+			
 			}
 			else
 			{
@@ -1022,51 +1034,128 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	bool ignoreBody = !IsgenericInstantiation && IsGenericS;
 
 
-	if (buidCode)
+	if (buidCode && !ignoreBody)
 	{
-
+		bool IsBuildingIR = true;
 		auto DecName = MangleName(Info);
-		LookingAtIRFunc = _Builder.NewFunc(GetIRID(Info), {});
-		LookingAtIRBlock = LookingAtIRFunc->NewBlock("");
-		PushNewStackFrame();
-
-		auto& ParNodes = node.Signature.Parameters.Parameters;
-
-
-
-		LookingAtIRFunc->Pars.resize(ParNodes.size());//becuase we are useing ptrs.
-		for (size_t i = 0; i < ParNodes.size(); i++)
+		
+		if (IsBuildingIR)
 		{
-			auto& Item = ParNodes[i];
 
-			auto ParSybID = (SymbolID)&Item;
-			auto& V = *GetSymbol(ParSybID);
-
-
-			auto& VarType = Info->Pars[i];
-
-			auto& d = LookingAtIRFunc->Pars[i];
-			d.identifier = _Builder.ToID(ScopeHelper::GetNameFromFullName(V.FullName));
-			d.type = ConvertToIR(VarType);
+			LookingAtIRFunc = _Builder.NewFunc(GetIRID(Info), {});
+			LookingAtIRBlock = LookingAtIRFunc->NewBlock("");
+			PushNewStackFrame();
 
 
 
+			auto& ParNodes = node.Signature.Parameters.Parameters;
 
-			if (HasDestructor(VarType))
+			bool IsPackParLast = false;
+			if (IsgenericInstantiation && ParNodes.size())
 			{
-				ObjectToDrop V;
-				V.DropType = ObjectToDropType::Operator;
-				V.ID = ParSybID;
-				V._Operator = IROperator(&d);
-				V.Type = VarType;
-
-				StackFrames.back().OnEndStackFrame.push_back(V);
+				if (Info->Pars.back()._CustomTypeSymbol == GenericFuncName.top().Pack.value())
+				{
+					IsPackParLast = true;
+				}
 			}
 
-			V.IR_Par = &d;
-		}
-		LookingAtIRFunc->ReturnType = ConvertToIR(Info->Ret);
+			size_t ParNodeSize = ParNodes.size();
+			if (IsPackParLast)
+			{
+				size_t ParsCount = ParNodes.size() - 1;
 
+				const TypePackInfo* PackPar = GetSymbol(GenericFuncName.top().Pack.value())->Get_Info<TypePackInfo>();
+				ParsCount += PackPar->List.size();
+				LookingAtIRFunc->Pars.resize(ParsCount);
+
+				ParNodeSize -= 1;
+			}
+			else
+			{
+				LookingAtIRFunc->Pars.resize(ParNodes.size());//becuase we are useing ptrs.
+			}
+
+			for (size_t i = 0; i < ParNodeSize; i++)
+			{
+				auto& Item = ParNodes[i];
+
+				auto ParSybID = (SymbolID)&Item;
+				auto& V = *GetSymbol(ParSybID);
+
+
+				auto& VarType = Info->Pars[i];
+
+				auto& d = LookingAtIRFunc->Pars[i];
+				d.identifier = _Builder.ToID(ScopeHelper::GetNameFromFullName(V.FullName));
+				d.type = ConvertToIR(VarType);
+
+
+
+
+				if (HasDestructor(VarType))
+				{
+					ObjectToDrop V;
+					V.DropType = ObjectToDropType::Operator;
+					V.ID = ParSybID;
+					V._Operator = IROperator(&d);
+					V.Type = VarType;
+
+					StackFrames.back().OnEndStackFrame.push_back(V);
+				}
+
+				V.IR_Par = &d;
+			}
+
+			if (IsPackParLast)
+			{
+				const TypePackInfo* PackPar = GetSymbol(GenericFuncName.top().Pack.value())->Get_Info<TypePackInfo>();
+
+				size_t V = ParNodeSize;
+
+
+				auto PackParSybol = GetSymbol((SymbolID)&ParNodes.back());
+				auto PackParSybolName = ScopeHelper::GetNameFromFullName(PackParSybol->FullName);
+
+				for (size_t i = 0; i < PackPar->List.size(); i++)
+				{
+					auto& PackType = PackPar->List[i];
+					auto& d = LookingAtIRFunc->Pars[V];
+
+					auto ParName = PackParSybolName + std::to_string(i);
+
+
+
+					auto& TepPar = AddSybol(SymbolType::ParameterVarable, ParName, PackParSybol->FullName + std::to_string(i), AccessModifierType::Public);
+					auto ParSybID = (SymbolID)&TepPar;
+					TepPar.IR_Par = &d;
+
+					_Table.AddSymbolID(TepPar, ParSybID);
+
+
+					d.identifier = _Builder.ToID(ParName);
+					d.type = ConvertToIR(PackType);
+
+					if (HasDestructor(PackType))
+					{
+						ObjectToDrop V;
+						V.DropType = ObjectToDropType::Operator;
+						V.ID = ParSybID;
+						V._Operator = IROperator(&d);
+						V.Type = PackType;
+
+						StackFrames.back().OnEndStackFrame.push_back(V);
+					}
+
+
+					//
+
+					V++;
+				}
+			}
+
+
+			LookingAtIRFunc->ReturnType = ConvertToIR(Info->Ret);
+		}
 		for (auto& Item : _TepAttributes)
 		{
 			String AttType;
@@ -1110,18 +1199,20 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		}
 		//
 
-
-		if (FuncType == FuncInfo::FuncType::New)
+		if (IsBuildingIR) 
 		{
-			auto& Classinfo = _ClassStack.top().Info;
-			if (Classinfo->_WillHaveFieldInit)
+			if (FuncType == FuncInfo::FuncType::New)
 			{
-				auto InitFunc = Classinfo->FullName;
-				ScopeHelper::GetApendedString(InitFunc, ClassInitializefuncName);
+				auto& Classinfo = _ClassStack.top().Info;
+				if (Classinfo->_WillHaveFieldInit)
+				{
+					auto InitFunc = Classinfo->FullName;
+					ScopeHelper::GetApendedString(InitFunc, ClassInitializefuncName);
 
 
-				LookingAtIRBlock->NewPushParameter(LookingAtIRBlock->NewLoad(&LookingAtIRFunc->Pars.front()));
-				LookingAtIRBlock->NewCall(_Builder.ToID(InitFunc));
+					LookingAtIRBlock->NewPushParameter(LookingAtIRBlock->NewLoad(&LookingAtIRFunc->Pars.front()));
+					LookingAtIRBlock->NewCall(_Builder.ToID(InitFunc));
+				}
 			}
 		}
 		//
@@ -9947,11 +10038,31 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 	for (size_t i = 0; i < Pars._Nodes.size(); i++)
 	{
 		auto& Item = Pars._Nodes[i];
-		auto& FuncParInfo = Func.SymFunc->Type == SymbolType::Func
-			? Func.Func->Pars[i + (AutoPushThis ? 1 : 0)]
-			: ((FuncPtrInfo*)Func.Func)->Pars[i + (AutoPushThis ? 1 : 0)];
+
+		auto Index = i + (AutoPushThis ? 1 : 0);
+
+		const Vector<TypeSymbol>& Pars = Func.SymFunc->Type == SymbolType::Func
+			? Func.Func->Pars
+			: ((FuncPtrInfo*)Func.Func)->Pars;
 
 
+
+		auto* FuncParInfoPtr = Index < Pars.size() ? &Pars[Index]
+			: &Pars.back();
+
+		if (FuncParInfoPtr->_CustomTypeSymbol)
+		{
+			const auto Syb = GetSymbol(*FuncParInfoPtr);
+			if (Syb->Type == SymbolType::Type_Pack)
+			{
+				auto* typepack = Syb->Get_Info<TypePackInfo>();
+				size_t NewIndex = Index-(Pars.size()-1);
+
+
+				FuncParInfoPtr = &typepack->List[NewIndex];
+			} 
+		}
+		auto& FuncParInfo = *FuncParInfoPtr;
 
 		LookingForTypes.push(FuncParInfo);
 
@@ -10026,6 +10137,8 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 
 	{
 		auto Tep = _LastExpressionField;
+		
+		/*
 		for (size_t i = 0; i < IRParsList.size(); i++)
 		{
 			auto& Item = IRParsList[i];
@@ -10051,6 +10164,7 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 			}
 
 		}
+		*/
 		_LastExpressionField = Tep;
 	}
 
@@ -10581,13 +10695,16 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 
 
 					FuncSym = GetSymbol(NewName, SymbolType::Func);
-					r = FuncSym->Get_Info<FuncInfo>();
-					FuncSymbol = Item;
 				}
-				else
+			
+
+
+
 				{
 					r = FuncSym->Get_Info<FuncInfo>();
-					FuncSymbol = Item;
+					FuncSymbol = FuncSym;
+
+					OkFuncions.push_back({ThisParType,r,FuncSymbol });
 				}
 
 
@@ -10985,18 +11102,44 @@ String SystematicAnalysis::GetGenericFuncName(const Symbol* Func, const Vector<T
 void SystematicAnalysis::GenericFuncInstantiate(const Symbol* Func, const Vector<TypeSymbol>& GenericInput)
 {
 	String NewName = GetGenericFuncName(Func, GenericInput);
-	
-
-	const FuncInfo* FInfo = Func->Get_Info<FuncInfo>();
-
-
-	const FuncNode& FuncBase = *(FuncNode*)Func->NodePtr;
 
 	GenericFuncInfo Info;
 	Info.GenericFuncName = NewName;
 	Info.GenericInput = &GenericInput;
 	Info.NodeTarget = Func->NodePtr;
-	GenericFuncName.push(Info);
+
+	const FuncInfo* FInfo = Func->Get_Info<FuncInfo>();
+	if (FInfo->_GenericData.IsPack())
+	{
+		size_t Index = FInfo->_GenericData._Generic.size() - 1;
+		Vector<TypeSymbol> _PackList;
+
+		_PackList.resize(GenericInput.size() - Index);
+
+		size_t V = 0;
+		for (size_t i = Index; i < GenericInput.size(); i++)
+		{
+			auto& Item = GenericInput[i];
+			_PackList[V] = Item;
+			V++;
+		}
+
+
+
+		auto& PackSyb = AddSybol(SymbolType::Type_Pack, "!Pack", ScopeHelper::ApendedStrings(NewName, "!Pack"), AccessModifierType::Public);
+		_Table.AddSymbolID(PackSyb, (SymbolID)&PackSyb);
+		TypePackInfo* PackInfo = new TypePackInfo();
+		PackInfo->List = std::move(_PackList);
+
+		PackSyb.Info.reset(PackInfo);
+
+		Info.Pack = PackSyb.ID;
+	}
+
+	const FuncNode& FuncBase = *(FuncNode*)Func->NodePtr;
+
+	
+	GenericFuncName.push(std::move(Info));
 
 	
 
@@ -11221,13 +11364,13 @@ int SystematicAnalysis::GetCompatibleScore(const IsCompatiblePar& Func, const Ve
 {
 
 	int r = 0;
-	for (size_t i = 0; i < ValueTypes.size(); i++)
+	for (size_t i = 0; i < (*Func.Pars).size(); i++)
 	{
 		r += GetCompatibleScore((*Func.Pars)[i], ValueTypes[i]);
 	}
 
 
-	return ValueTypes.size() ? r / ValueTypes.size() : r;
+	return (*Func.Pars).size() ? r / (*Func.Pars).size() : r;
 }
 bool SystematicAnalysis::AccessCheck(const Symbol* Syb,const Token* Token, const String_view Scope)
 {

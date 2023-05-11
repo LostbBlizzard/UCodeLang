@@ -40,6 +40,14 @@ struct ScopeHelper
 		Out += Name;
 	}
 	
+	static String ApendedStrings(const String& Scope, const String_view& Name)
+	{
+		String R;
+		R = Scope;
+		GetApendedString(R,Name);
+		return R;
+	}
+
 	String GetApendedString(const String_view& Name)const
 	{
 		String r = ThisScope;
