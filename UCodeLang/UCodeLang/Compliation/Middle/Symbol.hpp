@@ -229,6 +229,7 @@ enum class SymbolType: UInt8
 
 	Trait_class,
 	Tag_class,
+	Type_Pack,
 };
 enum class SymbolValidState : UInt8
 {
@@ -243,6 +244,12 @@ class Symbol_Info
 public:
 	Symbol_Info(){}
 	virtual ~Symbol_Info(){}
+};
+
+class TypePackInfo :public Symbol_Info
+{
+public:
+	Vector<TypeSymbol> List;
 };
 
 class FieldInfo
@@ -281,11 +288,11 @@ struct Generic
 	Vector<GenericData> _Generic;
 
 	
-	inline bool IsGeneric()
+	inline bool IsGeneric() const
 	{
 		return _Generic.size() != 0;
 	}
-	inline bool IsPack()
+	inline bool IsPack()const
 	{
 		if (_Generic.size()) 
 		{
@@ -296,7 +303,7 @@ struct Generic
 			return false;
 		}
 	}
-	inline size_t GetMinimumCount()
+	inline size_t GetMinimumCount()const
 	{
 		auto r = _Generic.size();
 		if (IsPack())

@@ -390,6 +390,7 @@ private:
 		String GenericFuncName;
 		const Vector<TypeSymbol>* GenericInput = nullptr;
 		const void* NodeTarget = nullptr;
+		Optional<SymbolID> Pack;
 	};
 	struct BinaryOverLoadWith_t
 	{

@@ -4,7 +4,7 @@ $Vec2:
  int X;
  int Y;
 
-|CoolFunc<T...>[int B,T ParList]-> void;
+|CoolFunc<T...>[int B,T ParList] -> void;
 
 
 |main[]:
