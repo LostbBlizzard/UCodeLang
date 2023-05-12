@@ -2990,6 +2990,157 @@ void SystematicAnalysis::OnCompileTimeIfNode(const CompileTimeIfNode& node)
 		}
 	}
 }
+void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
+{
+	if (passtype == PassType::GetTypes)
+	{
+		if (node.Type == CompileTimeForNode::ForType::Traditional)
+		{
+			auto Token = node.Name;
+			_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "Traditional for loops are not yet added to CompileTimeforNode");
+		}
+		else
+		{
+
+		}
+	}
+	if (passtype == PassType::FixedTypes)
+	{
+		if (node.Type == CompileTimeForNode::ForType::modern)
+		{
+
+			LookingForTypes.push(TypesEnum::Any);
+			OnExpressionTypeNode(node.Modern_List.Value.get(), GetValueMode::Read);
+			LookingForTypes.pop();
+
+			auto ListType = LastExpressionType;
+
+			bool CanBeLooped = false;
+			Symbol* ListTypeSyb;
+			if (ListType._CustomTypeSymbol)
+			{
+				ListTypeSyb = GetSymbol(ListType);
+				if (ListTypeSyb)
+				{
+					if (ListTypeSyb->Type == SymbolType::Type_Pack)
+					{
+						CanBeLooped = true;
+					}
+				}
+			}
+
+
+			if (!CanBeLooped)
+			{
+				auto Token = node.Name;
+				_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "Cant Loop over type of '" + ToString(ListType) + "'");
+			}
+			else
+			{
+				if (ListTypeSyb->Type == SymbolType::Type_Pack)
+				{
+					const Node* NodePtr = node.Modern_List.Value.get();
+					if (NodePtr->Get_Type() == NodeType::ValueExpressionNode)
+					{
+						const ValueExpressionNode* ValueNodePtr = ValueExpressionNode::As(NodePtr);
+						const auto ExValuePtr = ValueNodePtr->Value.get();
+						if (ExValuePtr->Get_Type() == NodeType::ReadVariableNode)
+						{
+							const auto ReadVarablePtr = ReadVariableNode::As(ExValuePtr);
+
+							GetExpressionMode.push(GetValueMode::Read);
+							GetMemberTypeSymbolFromVar_t V;
+							bool VBool = GetMemberTypeSymbolFromVar(ReadVarablePtr->VariableName, V);
+							GetExpressionMode.pop();
+							
+							if (VBool)
+							{
+								auto ParSyb = V.Symbol;
+								if (ParSyb->Type == SymbolType::ParameterVarable)
+								{
+									const TypePackInfo* PackInfo = ListTypeSyb->Get_Info<TypePackInfo>();
+
+									const String ScopeName = std::to_string((size_t)&node);
+									const String VarableName = (String)node.Name->Value._String;
+
+									CompileTimeforNode TepData;
+									TepData.SybToLoopOver = V.Symbol;
+									
+
+									for (size_t i = 0; i < PackInfo->List.size(); i++)
+									{
+										auto& Item = PackInfo->List[i];
+									
+										_Table.AddScope(ScopeName + std::to_string(i));
+
+										
+										auto& ParSyb = AddSybol(SymbolType::ParameterVarable, VarableName, _Table._Scope.GetApendedString(VarableName), AccessModifierType::Public);
+										_Table.AddSymbolID(ParSyb, (SymbolID)&ParSyb);
+										ParSyb.VarType = Item;
+
+										{
+											auto TepPass = passtype;
+
+											passtype = PassType::GetTypes;
+											for (const auto& node2 : node.Body._Nodes)
+											{
+												OnStatement(*node2);
+											}
+
+											passtype = PassType::FixedTypes;
+											for (const auto& node2 : node.Body._Nodes)
+											{
+												OnStatement(*node2);
+											}
+
+											passtype = TepPass;
+										}
+										TepData.SybItems.push_back(&ParSyb);
+
+										
+										_Table.RemoveScope();
+									}
+
+									ForNodes.AddValue((void*)GetSymbolID(node),std::move(TepData));
+								}
+							}
+						}
+					}
+				
+				}
+				else
+				{
+					throw std::exception("bad path");
+				}
+			}
+		}
+	}
+	if (passtype == PassType::BuidCode)
+	{
+		CompileTimeforNode& Nodes = ForNodes.at((void*)GetSymbolID(node));
+		if (Nodes.SybToLoopOver->Type == SymbolType::ParameterVarable)
+		{
+			const String ScopeName = std::to_string((size_t)&node);
+			
+			for (size_t i = 0; i < Nodes.SybItems.size(); i++)
+			{
+				auto& Item = Nodes.SybItems[i];
+
+				Item->IR_Par =&LookingAtIRFunc->Pars[Nodes.SybItems.size() -1 + i];
+
+				_Table.AddScope(ScopeName + std::to_string(i));
+
+				for (const auto& node2 : node.Body._Nodes)
+				{
+					OnStatement(*node2);
+				}
+
+				_Table.RemoveScope();
+			}
+		}
+	}
+}
+
 void SystematicAnalysis::LogMissingFuncionforTrait(UCodeLang::String_view& FuncName, UCodeLang::FrontEnd::FuncInfo* Info, UCodeLang::FrontEnd::Symbol* Trait, const UCodeLang::Token* ClassNameToken)
 {
 	String Msg = "Missing Funcion '" + (String)FuncName + "' with the parameters [";
@@ -3483,6 +3634,7 @@ void SystematicAnalysis::OnStatement(const Node& node2)
 	case NodeType::TagTypeNode:OnTag(*TagTypeNode::As(&node2)); break;
 	case NodeType::InvalidNode:OnInvalidNode(*InvalidNode::As(&node2)); break;
 	case NodeType::CompileTimeIfNode:OnCompileTimeIfNode(*CompileTimeIfNode::As(&node2)); break;
+	case NodeType::CompileTimeForNode:OnCompileTimeforNode(*CompileTimeForNode::As(&node2)); break;
 	default:break;
 	}
 	PopNodeScope();
