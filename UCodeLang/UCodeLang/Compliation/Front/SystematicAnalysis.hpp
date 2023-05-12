@@ -429,7 +429,11 @@ private:
 		ClassFeild,
 		Ret,
 	};
-
+	struct CompileTimeforNode
+	{
+		Symbol* SybToLoopOver=nullptr;
+		Vector<Symbol*> SybItems;
+	};
 	//Members
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
@@ -455,6 +459,7 @@ private:
 	BinaryVectorMap<const void*, CastExpressionNode_Data> CastDatas;
 	BinaryVectorMap<const void*, AssignExpression_Data > AssignExpressionDatas;
 	BinaryVectorMap<const void*, bool> ValidNodes;
+	BinaryVectorMap<const void*, CompileTimeforNode> ForNodes;
 
 	Vector<FuncStackInfo> _FuncStack;
 
@@ -656,6 +661,8 @@ private:
 	void OnBitCast(const BitCastExpression& node);
 
 	void OnCompileTimeIfNode(const CompileTimeIfNode& node);
+
+	void OnCompileTimeforNode(const CompileTimeForNode& node);
 
 	void OnCMPTypesNode(const CMPTypesNode& node);
 	bool CMPGetValue(const TypeSymbol& Type0, const TypeSymbol& Type1, const Token* Value);
