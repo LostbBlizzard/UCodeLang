@@ -3126,7 +3126,8 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 			{
 				auto& Item = Nodes.SybItems[i];
 
-				Item->IR_Par =&LookingAtIRFunc->Pars[Nodes.SybItems.size() -1 + i];
+				size_t IRParIndex = LookingAtIRFunc->Pars.size() - Nodes.SybItems.size() + i;
+				Item->IR_Par =&LookingAtIRFunc->Pars[IRParIndex];
 
 				_Table.AddScope(ScopeName + std::to_string(i));
 
@@ -10847,6 +10848,10 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 
 
 					FuncSym = GetSymbol(NewName, SymbolType::Func);
+				}
+				else
+				{
+					FuncSym = FuncIsMade;
 				}
 			
 
