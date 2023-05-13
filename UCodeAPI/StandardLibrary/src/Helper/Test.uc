@@ -1,0 +1,2 @@
+%ULang:
+ $Test;

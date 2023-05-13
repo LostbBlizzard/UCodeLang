@@ -1,36 +1,40 @@
 %ULang:
 
  //has built in alias in compiler.Ex: int[]
- $Vector<T>:
-  T[&] _Data;
-  size_t _Size;
-  size_t _Capacity;
+ $Vector<T>[Buffer<T>]:
+  private:
+   T[&] _Data;
+   size_t _Size;
+   size_t _Capacity;
 
-  //new
-  |new[this&]:
-   _Size = 0;
-   _Capacity = 0;
+  public:
+   |new[this&]:
+    _Data &= bitcast<T[&]>(0);
+    _Size = 0;
+    _Capacity = 0;
 
-  |new[View<T> Data] -> void;
 
-  //umut
-  |Size[umut this&] => _Size;
-  |Data[umut this&] => _Data;
-  |Capacity[umut this&] => _Capacity;
+   |Size[umut this&] => _Size;
+   |Data[umut this&] => _Data;
+   |Capacity[umut this&] => _Capacity;
 
-  |SubView[umut this&,size_t Offset] => SubView(Offset,_Size);
-  |SubView[umut this&,size_t Offset,size_t Size] => View<T>(_Data[Offset],Size);
-  |View[umut this&] => SubView(0);
+   |AsView[umut this&] -> umut T[:]:ret [_Data,_Size];
+   |AsView[this&] -> T[:]:ret [_Data,_Size];
 
-  //mut
-  |Data[this&] => _Data;
+
+   |Add[this&,umut T& Item] -> void;
+   |Add[this&,moved T Item] -> void;
   
-  |SubView[this&,size_t Offset] => SubView(Offset,_Size);
-  |SubView[this&,size_t Offset,size_t Size] => View<T>(_Data[Offset],Size);
-  |View[this&] => SubView(0);
+   |Add[this&,umut T[:] Items] -> void;
+   |Add[this&,moved T[:] Items] -> void;
 
-  |Add[this&,umut T& Item] -> void;
-  |RemoveIndex[size_t Index] -> void;
+
+   |RemoveAtIndex[size_t Index] -> void;
+   |RemoveIf<T>[T CallAble]:
+    for [var& Item : AsView().AsReverseView()]:
+     if CallAble(Item):
+      Pop();
   
-  |Resize[this&,size_t Offset] -> void;
-  |Clear[this&] -> void;
+   |Resize[this&,size_t Offset] -> void;
+   |Clear[this&] -> void;
+   |Pop[this&] -> void;
