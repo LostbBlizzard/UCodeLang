@@ -698,7 +698,12 @@ private:
 	{
 		return GetMemberTypeSymbolFromVar(Start, -1, node, Out);
 	}
-	bool GetMemberTypeSymbolFromVar(const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out);
+	bool GetMemberTypeSymbolFromVar(const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
+	{
+		return GetMemberTypeSymbolFromVar(0, node, Out);
+	}
+	bool StepGetMemberTypeSymbolFromVar(const ScopedNameNode& node, size_t Index, ScopedName::Operator_t OpType, GetMemberTypeSymbolFromVar_t& Out);
+
 	void BuildMemberDereferencStore(const GetMemberTypeSymbolFromVar_t& In, IRInstruction* Value);
 	void BuildMember_Store(const GetMemberTypeSymbolFromVar_t& In, IRInstruction* Value);
 
@@ -712,6 +717,7 @@ private:
 	IRInstruction* BuildMember_AsPointer(const GetMemberTypeSymbolFromVar_t& In);
 	IRInstruction* BuildMember_AsValue(const GetMemberTypeSymbolFromVar_t& In);
 	void BuildMember_Access(const GetMemberTypeSymbolFromVar_t& In, IRInstruction*& Output);
+	void StepBuildMember_Access(const ScopedName& ITem, TypeSymbol& Last_Type, ScopedName::Operator_t OpType, const GetMemberTypeSymbolFromVar_t& In, IRInstruction*& Output);
 	void BuildMember_Reassignment(const GetMemberTypeSymbolFromVar_t& In, const TypeSymbol& Type, IRInstruction* Value);
 	Symbol* GetTepFuncPtrSyb(const String& TepFuncPtr, const FuncInfo* Finfo);
 	String GetTepFuncPtrName(FuncInfo* SymbolVar);
@@ -911,6 +917,8 @@ private:
 		return GetFunc(Name, generics, Pars, Ret);
 	};
 	Get_FuncInfo GetFunc(const ScopedNameNode& Name,const UseGenericsNode&,const ValueParametersNode& Pars,TypeSymbol Ret);
+
+	void RemoveTypeattributes(UCodeLang::FrontEnd::TypeSymbol& tep_);
 
 
 	Get_FuncInfo GetEnumVariantFunc(Symbol* EnumSyb, size_t FeildIndex,Symbol* EnumFieldSyb, const ValueParametersNode& Pars,const Token* Token,const Vector<TypeSymbol>& ValueTypes);
