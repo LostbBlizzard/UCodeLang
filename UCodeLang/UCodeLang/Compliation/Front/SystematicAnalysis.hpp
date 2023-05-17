@@ -741,6 +741,10 @@ private:
 	void OnDropStatementNode(const DropStatementNode& node);
 	void OnInvalidNode(const InvalidNode& node);
 	void OnvalidNode(const ValidNode& node);
+	void OnExpressionNode(const ExtendedScopeExpression& node);
+	void OnExpressionNode(const ExtendedFuncExpression& node);
+
+
 
 	void PushTepAttributesInTo(Vector<AttributeData>& Input);
 	void LoadLibSymbols();

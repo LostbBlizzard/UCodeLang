@@ -6181,6 +6181,8 @@ void SystematicAnalysis::OnExpressionTypeNode(const Node* node, GetValueMode Mod
 	case NodeType::ValueExpressionNode:OnExpressionNode(*ValueExpressionNode::As(node)); break;
 	case NodeType::CastNode:OnExpressionNode(*CastNode::As(node)); break;
 	case NodeType::IndexedExpresionNode:OnExpressionNode(*IndexedExpresionNode::As(node)); break;
+	case NodeType::ExtendedScopeExpression:OnExpressionNode(*ExtendedScopeExpression::As(node)); break;
+	case NodeType::ExtendedFuncExpression:OnExpressionNode(*ExtendedFuncExpression::As(node)); break;
 	default:
 		throw std::exception("not added");
 		break;
@@ -8187,6 +8189,62 @@ void SystematicAnalysis::OnvalidNode(const ValidNode& node)
 
 		_LastExpressionField = LookingAtIRBlock->NewLoad(IsValid);
 		LastExpressionType = TypesEnum::Bool;
+	}
+}
+void SystematicAnalysis::OnExpressionNode(const ExtendedScopeExpression& node)
+{
+	if (passtype == PassType::GetTypes)
+	{
+		LookingForTypes.push(TypesEnum::Any);
+		OnExpressionTypeNode(node.Expression.Value.get(), GetValueMode::Read);
+		LookingForTypes.pop();
+	}
+	if (passtype == PassType::FixedTypes)
+	{
+		LookingForTypes.push(TypesEnum::Any);
+		OnExpressionTypeNode(node.Expression.Value.get(), GetValueMode::Read);
+		LookingForTypes.pop();
+
+		auto ExpressionType = LastExpressionType;
+	
+		GetMemberTypeSymbolFromVar_t V;
+		
+		{
+			V.Type = ExpressionType;
+
+			ScopedName::Operator_t OpType = node.Operator;
+
+			if (OpType == ScopedName::Operator_t::Null
+				|| OpType == ScopedName::Operator_t::ScopeResolution
+				|| OpType == ScopedName::Operator_t::Dot)
+			{
+
+
+			}
+		}
+		
+		GetMemberTypeSymbolFromVar(0, node.Extended.ScopedName.size() - 1, node.Extended, V);
+
+
+	}
+	if (passtype == PassType::Done)
+	{
+
+	}
+}
+void SystematicAnalysis::OnExpressionNode(const ExtendedFuncExpression& node)
+{
+	if (passtype == PassType::GetTypes)
+	{
+
+	}
+	if (passtype == PassType::FixedTypes)
+	{
+
+	}
+	if (passtype == PassType::Done)
+	{
+
 	}
 }
 String SystematicAnalysis::GetFuncAnonymousObjectFullName(const String& FullFuncName)
