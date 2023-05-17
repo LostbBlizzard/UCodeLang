@@ -1132,7 +1132,8 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 
 	auto Token2 = TryGetToken();
 	while (Token2->Type == TokenType::RightArrow
-		|| Token2->Type == TokenType::Left_Bracket)
+		|| Token2->Type == TokenType::Left_Bracket
+		|| ScopedName::Get_IsScoped(Token2->Type))
 	{
 		NextToken();
 
@@ -1159,6 +1160,47 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 			TokenTypeCheck(Token2, TokenType::Right_Bracket);
 			NextToken();
 
+			Token2 = TryGetToken();
+		}
+		else if (ScopedName::Get_IsScoped(Token2->Type))
+		{
+			ScopedNameNode Name;
+			GetName(Name);
+
+			if (TryGetToken()->Type == TokenType::Left_Parentheses
+				|| TryGetToken()->Type == TokenType::lessthan)
+			{
+				auto ExtendedNode = ExtendedFuncExpression::Gen();
+				ExtendedNode->Expression.Value = Unique_ptr<Node>(r_out);
+				ExtendedNode->Operator = ScopedName::Get_Scoped(Token2->Type);
+				ExtendedNode->Extended.FuncName = std::move(Name);
+
+				TryGetGeneric(ExtendedNode->Extended.Generics);
+
+				TokenTypeCheck(TryGetToken(), TokenType::Left_Parentheses);
+				
+				{
+					NextToken();
+					auto Pars = GetValueParametersNode(ExtendedNode->Extended.Parameters);
+
+					auto Par2Token = TryGetToken();
+					TokenTypeCheck(Par2Token, FuncCallEnd);
+					NextToken();
+				}
+				
+
+				r_out = ExtendedNode->As();
+			}
+			else
+			{
+				auto ExtendedNode = ExtendedScopeExpression::Gen();
+				ExtendedNode->Expression.Value = Unique_ptr<Node>(r_out);
+				ExtendedNode->Operator = ScopedName::Get_Scoped(Token2->Type);
+				ExtendedNode->Extended = std::move(Name);
+
+				r_out = ExtendedNode->As();
+
+			}
 			Token2 = TryGetToken();
 		}
 		else

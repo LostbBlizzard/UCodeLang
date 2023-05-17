@@ -16,11 +16,17 @@
    |new[this&,umut PathChar[:] Value]:
     _Data.Add(Value);
 
-   |+[umut this&,umut PathChar[:] Other] -> this:ret [_Data + Other._Data];
+   |+[umut this&,umut PathChar[:] Other] -> this:ret [_Data + Other];
    |+[umut this&,umut this& Other] -> this:ret [_Data + Other._Data];
-   
+
+   |+[umut this&,moved this Other] -> this:ret [_Data + Other._Data];
+   |+[umut this&,moved PathChar[:] Other] -> this:ret [_Data + Other];
+
    |+=[this&,umut PathChar[:] Other]: _Data += Other._Data;
    |+=[this&,umut this& Other]: _Data += Other._Data;
+
+   |+=[this&,moved PathChar[:] Other]: _Data += Other._Data;
+   |+=[this&,moved this& Other]: _Data += Other._Data;
 
    |/=[this&,umut this& Other] -> void:
      this += PreferredPathSeparator;
@@ -28,5 +34,13 @@
      ret R;
    
    |/[umut this&,umut this& Other] -> this:ret [_Data + PreferredPathSeparator + Other._Data];
+
+
+   |/=[this&,moved this& Other] -> void:
+     this += PreferredPathSeparator;
+     this += Other;
+     ret R;
+   
+   |/[umut this&,moved this& Other] -> this:ret [_Data + PreferredPathSeparator + Other._Data];
 
  $PathView = StringView_t<PathChar>;
