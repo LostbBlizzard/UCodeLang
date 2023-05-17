@@ -33,12 +33,25 @@
 
    |+[umut this&,umut this& Other] => this + Other.AsView();
 
+   |+[umut this&,moved T[:] Other] -> this:
+     Vector<T> R;
+     R.Resize(Data.Size() + Other.Size());
+     
+     R.Add(AsView());
+     R.Add(Other);
+     ret R;
+
+   |+[umut this&,moved this Other] => this + Other.AsView();
 
    |+=[this&,umut T[:] Other] -> void:
      Data.Add(AsView());
 
-   |+=[this&,umut this& Other] => this + Other.AsView();
+   |+=[this&,umut this& Other]: this += Other.AsView();
 
+   |+=[this&,moved T[:] Other] -> void:
+     Data.Add(AsView());
+
+   |+=[this&,moved this Other]: this += Other.AsView();
 
  $StringView_t<T>:
 

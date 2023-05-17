@@ -1685,6 +1685,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 			throw std::exception("not added");
 		}
 	}
+	throw std::exception("not added");
 }
 void UCodeBackEndObject::CopyValues(const IRlocData& Src, const IRlocData& Out)
 {

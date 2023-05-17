@@ -5,7 +5,10 @@ $Vec2:
  int Y;
  |Update[this&]:
   X++;
+ 
+|Hello[] -> Vec2&;
 
-
-|main[] => 0;
+|main[]:
+ Hello().X = 12;
+ Hello().X() = 10;
 

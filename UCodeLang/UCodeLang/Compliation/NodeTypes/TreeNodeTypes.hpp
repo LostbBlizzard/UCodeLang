@@ -1192,4 +1192,31 @@ struct CompileTimeForNode :Node
 	StatementsNode Body;
 };
 
+struct ExtendedScopeExpression : Node
+{
+	ExpressionNodeType Expression;
+	ScopedName::Operator_t Operator = ScopedName::Operator_t::Null;
+	ScopedNameNode Extended;
+
+	AddforNode(ExtendedScopeExpression);
+
+	ExtendedScopeExpression() : Node(NodeType::ExtendedScopeExpression)
+	{
+
+	}
+};
+
+struct ExtendedFuncExpression : Node
+{
+	ExpressionNodeType Expression;
+	ScopedName::Operator_t Operator = ScopedName::Operator_t::Null;
+	FuncCallNode Extended;
+
+	AddforNode(ExtendedFuncExpression);
+
+	ExtendedFuncExpression() : Node(NodeType::ExtendedFuncExpression)
+	{
+
+	}
+};
 UCodeLangFrontEnd
