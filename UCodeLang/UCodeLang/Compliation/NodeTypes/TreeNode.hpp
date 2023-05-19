@@ -74,6 +74,8 @@ enum class NodeType :UInt8
 	CompileTimeForNode,
 	ExtendedScopeExpression,
 	ExtendedFuncExpression,
+	MatchStatement,
+	MatchExpression,
 };
 
 

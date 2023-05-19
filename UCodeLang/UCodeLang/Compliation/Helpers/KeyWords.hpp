@@ -77,6 +77,7 @@ inline const char* S_KeyWord_typeof = "typeof";
 inline const char* S_KeyWord_type = "type";
 inline const char* S_KeyWord_bind = "bind";
 
+inline const char* S_KeyWord_match = "match";
 
 inline const char* S_KeyWord_eval = "eval";
 
@@ -152,6 +153,7 @@ inline KeyWord KeyWords[] =
 	KeyWord(S_KeyWord_while,TokenType::KeyWord_while),
 	KeyWord(S_KeyWord_for,TokenType::KeyWord_for),
 	KeyWord(S_KeyWord_do,TokenType::KeyWord_do),
+	KeyWord(S_KeyWord_match,TokenType::KeyWord_match),
 
 	KeyWord(S_KeyWord_public,TokenType::KeyWorld_public),
 	KeyWord(S_KeyWord_private,TokenType::KeyWorld_private),

@@ -4,10 +4,11 @@
 #include <UCodeLang/UCodeLang.hpp>
 #include <UCodeLang/LangCore/LangTypes.hpp>
 #include <filesystem>
+#include "TestNameSpace.h"
+UCodeTestStart
 
-namespace ULangTest 
-{
-	using namespace UCodeLang;
+//Are for Unit testing and Regression Testing 
+	
 	enum class SuccessCondition
 	{
 		Compilation,
@@ -73,7 +74,7 @@ namespace ULangTest
 		}
 	};
 
-	static const Array<TestInfo, 53> Tests
+	static const Array<TestInfo, 54> Tests
 	{
 
 		TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation),
@@ -150,6 +151,8 @@ namespace ULangTest
 		TestInfo("trait 4","Objects/dynamic_trait2.uc","main",SuccessCondition::RunTimeValue,(int)1),
 
 		TestInfo("GenericsPack","Generics/GenericsPack.uc","main",SuccessCondition::RunTimeValue,(int)3),
+
+		TestInfo("ExtendedExpression","Objects/ExtendedExpression.uc","main",SuccessCondition::RunTimeValue,(int)2),
 	};
 
 
@@ -163,4 +166,5 @@ namespace ULangTest
 	void RunTests();
 
 	bool LogErrors(std::ostream& out, UCodeLang::Compiler& _Compiler);
-}
+	
+UCodeTestEnd
