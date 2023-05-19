@@ -529,6 +529,7 @@ struct ExpressionNodeType :Node
 	ExpressionNodeType(const ExpressionNodeType& ToCopyFrom) = default;
 	ExpressionNodeType(ExpressionNodeType&& source) = default;
 	~ExpressionNodeType() = default;
+	ExpressionNodeType& operator=(ExpressionNodeType&& source) = default;
 
 	inline static bool IsPostfixOperator(const Token* Token)
 	{
@@ -1215,6 +1216,46 @@ struct ExtendedFuncExpression : Node
 	AddforNode(ExtendedFuncExpression);
 
 	ExtendedFuncExpression() : Node(NodeType::ExtendedFuncExpression)
+	{
+
+	}
+};
+
+
+struct MatchStatementArm
+{
+	ExpressionNodeType Expression;
+	StatementsNode Statements;
+};
+
+struct MatchStatement : Node
+{
+	ExpressionNodeType Expression;
+	Vector<MatchStatementArm> Arms;
+	Optional<StatementsNode> InvaidCase;
+
+	AddforNode(MatchStatement);
+
+	MatchStatement() : Node(NodeType::MatchStatement)
+	{
+
+	}
+};
+
+struct MatchExpressionArm
+{
+	ExpressionNodeType Expression;
+	ExpressionNodeType AssignmentExpression;
+};
+struct MatchExpression : Node
+{
+	ExpressionNodeType Expression;
+	Vector<MatchExpressionArm> Arms;
+	Optional<ExpressionNodeType> InvaidCase;
+
+	AddforNode(MatchExpression);
+
+	MatchExpression() : Node(NodeType::MatchExpression)
 	{
 
 	}

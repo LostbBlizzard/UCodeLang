@@ -542,6 +542,25 @@ private:
 	GotNodeType GetCompileTimeForNode(CompileTimeForNode& out);
 
 	void CompileTimeForNodeModernIntLoop(CompileTimeForNode& out, const Token* OtherToken, const Token* NameToken, TokenType BinaryOp, TokenType PostFixOp);
+
+
+	TryGetNode GetMatchStatement()
+	{
+		MatchStatement* V = MatchStatement::Gen();
+		auto r = GetMatchStatement(*V);
+		TrippedCheck(r);
+		return { r,V };
+	}
+	GotNodeType GetMatchStatement(MatchStatement& out);
+
+	TryGetNode GetMatchExpression()
+	{
+		MatchExpression* V = MatchExpression::Gen();
+		auto r = GetMatchExpression(*V);
+		TrippedCheck(r);
+		return { r,V };
+	}
+	GotNodeType GetMatchExpression(MatchExpression& out);
 };
 UCodeLangFrontEnd
 

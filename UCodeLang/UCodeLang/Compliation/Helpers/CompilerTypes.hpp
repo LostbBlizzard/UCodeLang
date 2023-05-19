@@ -97,6 +97,7 @@ enum class TokenType : TokenType_t
 	KeyWord_while,//while
 	KeyWord_for,//for
 	KeyWord_do,//do
+	KeyWord_match,//match
 
 
 	KeyWorld_public,//public

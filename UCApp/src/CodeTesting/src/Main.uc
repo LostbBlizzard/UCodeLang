@@ -1,21 +1,16 @@
 
 
-$Cool:
- int V;
- int C;
-
-$Vec2:
- int X;
- int Y;
- Cool B;
- |Update[this&]:
-  //X++;
- |Func[this&] => 10;
- |Func2[this&] -> Vec2&;
-
-|Hello[] -> Vec2&;
 
 |main[]:
- //Hello().Func2() = 12;
- var Item = Hello().Func2().Func2().X.B.V;
+ int a = 10;
+ match a:
+  0:a = 0;
+  1:a = 10;
+  2:a = 20;
+  invalid:a = 0;
+   
 
+ int V = match a:
+  0 => 1;
+  1 => 2;
+  invalid => 0;

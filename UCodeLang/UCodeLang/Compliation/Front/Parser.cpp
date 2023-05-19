@@ -583,6 +583,13 @@ GotNodeType Parser::GetStatement(Node*& out)
 		return r.GotNode;
 	}
 	break;
+	case TokenType::KeyWord_match:
+	{
+		auto r = GetMatchStatement();
+		out = r.Node;
+		return r.GotNode;
+	}
+	break;
 	default:
 	{
 		size_t OldIndex = _TokenIndex;
@@ -1079,6 +1086,13 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 	case TokenType::KeyWord_type:
 	{
 		auto V = GeTypeExNode();
+		out = V.Node;
+		return V.GotNode;
+	}
+	break;
+	case TokenType::KeyWord_match:
+	{
+		auto V = GetMatchExpression();
 		out = V.Node;
 		return V.GotNode;
 	}
@@ -3472,5 +3486,121 @@ void Parser::CompileTimeForNodeModernIntLoop(CompileTimeForNode& out, const Toke
 		out.OnNextStatement.PostfixOp = V.get();
 		_Tree.TemporaryTokens.push_back(std::move(V));
 	}
+}
+GotNodeType Parser::GetMatchStatement(MatchStatement& out)
+{
+	auto MatchToken = TryGetToken(); TokenTypeCheck(MatchToken, TokenType::KeyWord_match);
+	NextToken();
+
+	GetExpressionTypeNode(out.Expression);
+
+	TokenTypeCheck(TryGetToken(), TokenType::Colon);
+	NextToken();
+
+	TokenTypeCheck(TryGetToken(), TokenType::StartTab);
+	NextToken();
+
+	while (TryGetToken()->Type != TokenType::EndTab
+		 && TryGetToken()->Type != TokenType::EndofFile)
+	{
+		
+		auto Token = TryGetToken();
+		if (Token->Type == TokenType::KeyWord_invalid)
+		{
+			NextToken();
+			TokenTypeCheck(TryGetToken(), TokenType::Colon);
+			NextToken();
+
+			StatementsNode V;
+			GetStatementsorStatementNode(V);
+
+
+			if (out.InvaidCase.has_value())
+			{
+				_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos,"Cant have more than one invalid cases in match");
+			}
+			else
+			{
+				out.InvaidCase = std::move(V);
+			}
+			
+		}
+		else
+		{
+			MatchStatementArm V;
+			GetExpressionTypeNode(V.Expression);
+
+			TokenTypeCheck(TryGetToken(), TokenType::Colon);
+			NextToken();
+
+			GetStatementsorStatementNode(V.Statements);
+
+			out.Arms.push_back(std::move(V));
+		}
+
+	}
+	TokenTypeCheck(TryGetToken(), TokenType::EndTab);
+	NextToken();
+
+	return GotNodeType::Success;
+}
+GotNodeType Parser::GetMatchExpression(MatchExpression& out)
+{
+	auto MatchToken = TryGetToken(); TokenTypeCheck(MatchToken, TokenType::KeyWord_match);
+	NextToken();
+
+	GetExpressionTypeNode(out.Expression);
+
+	TokenTypeCheck(TryGetToken(), TokenType::Colon);
+	NextToken();
+
+	TokenTypeCheck(TryGetToken(), TokenType::StartTab);
+	NextToken();
+
+	while (TryGetToken()->Type != TokenType::EndTab
+		&& TryGetToken()->Type != TokenType::EndofFile)
+	{
+
+		auto Token = TryGetToken();
+		if (Token->Type == TokenType::KeyWord_invalid)
+		{
+			NextToken();
+			TokenTypeCheck(TryGetToken(), TokenType::RightAssignArrow);
+			NextToken();
+
+			ExpressionNodeType V;
+			GetExpressionTypeNode(V);
+
+
+			if (out.InvaidCase.has_value())
+			{
+				_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "Cant have more than one invalid cases in match");
+			}
+			else
+			{
+				out.InvaidCase = std::move(V);
+			}
+		}
+		else
+		{
+			MatchExpressionArm V;
+			GetExpressionTypeNode(V.Expression);
+
+			TokenTypeCheck(TryGetToken(), TokenType::RightAssignArrow);
+			NextToken();
+
+			GetExpressionTypeNode(V.AssignmentExpression);
+
+			out.Arms.push_back(std::move(V));
+		}
+
+		TokenTypeCheck(TryGetToken(), TokenType::Semicolon);
+		NextToken();
+
+	}
+	TokenTypeCheck(TryGetToken(), TokenType::EndTab);
+	NextToken();
+
+	return GotNodeType::Success;
 }
 UCodeLangFrontEnd

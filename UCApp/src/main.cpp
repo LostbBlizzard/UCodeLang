@@ -11,6 +11,8 @@
 #include "UCodeLang/Compliation/Back/x86/X86BackEnd.hpp"
 #include "UCodeLang/Compliation/ModuleFile.hpp"
 
+#include "Tests/TestGenerator.hpp"
+
 using namespace UCodeLang;
 const UCodeLang::String ScrDir = "C:/CoolStuff/CoolCodeingStuff/C++/Projects/UCodeLang/UCApp/src/";
 const UCodeLang::String TopTestDir = ScrDir + "Tests/";
@@ -89,6 +91,15 @@ int main()
 		}
 	}
 	*/
+
+	ULangTest::TestGenerator V;
+	V.SetSeed(1);
+	
+	V.Reset();
+	V.MakeFile();
+
+	String OutFile =V.Get_OutFile();
+
 
 	
 		ModuleIndex LangIndex;
