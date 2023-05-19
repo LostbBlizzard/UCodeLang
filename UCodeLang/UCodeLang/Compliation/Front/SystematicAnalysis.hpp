@@ -405,6 +405,26 @@ private:
 	using UrinaryOverLoadWith_t = BinaryOverLoadWith_t;
 
 
+	struct MatchArm
+	{
+
+	};
+	struct MatchArmData
+	{
+		Vector<MatchArm> Arms;
+	};
+
+	struct MatchStatementData
+	{
+
+		MatchArmData ArmData;
+	};
+	struct MatchExpressionData
+	{
+		TypeSymbol  MatchAssignmentType;
+		MatchArmData ArmData;
+	};
+
 	struct ClassStackInfo
 	{
 		ClassInfo* Info = nullptr;
@@ -460,6 +480,10 @@ private:
 	BinaryVectorMap<const void*, AssignExpression_Data > AssignExpressionDatas;
 	BinaryVectorMap<const void*, bool> ValidNodes;
 	BinaryVectorMap<const void*, CompileTimeforNode> ForNodes;
+
+	BinaryVectorMap<const void*, MatchStatementData> MatchStatementDatas;
+
+	BinaryVectorMap<const void*, MatchExpressionData> MatchExpressionDatas;
 
 	Vector<FuncStackInfo> _FuncStack;
 
@@ -726,6 +750,10 @@ private:
 	void OnPostfixVariableNode(const PostfixVariableNode& node);
 	void OnCompoundStatementNode(const CompoundStatementNode& node);
 	void OnExpressionTypeNode(const Node* node, GetValueMode Mode);
+	void OnExpressionTypeNode(const ExpressionNodeType& node, GetValueMode Mode)
+	{
+		OnExpressionTypeNode(node.Value.get(), Mode);
+	}
 	void OnExpressionNode(const ValueExpressionNode& node);
 	void OnMovedNode(const MoveNode* nod);
 	void OnNumberliteralNode(const NumberliteralNode* num);
@@ -750,6 +778,21 @@ private:
 	void OnExpressionNode(const ExtendedScopeExpression& node);
 	void OnExpressionNode(const ExtendedFuncExpression& node);
 
+	void OnMatchStatement(const MatchStatement& node);
+	void CanMatch(const TypeSymbol& MatchItem, const ExpressionNodeType& node, MatchArmData& Data);
+	void CheckAllValuesAreMatched(const TypeSymbol& MatchItem, const MatchArmData& Data);
+	
+	struct BuildMatch_ret
+	{
+		IRInstruction* JumpToUpdateIFMatchTrue = nullptr;
+		IRInstruction* JumpToUpdateIFMatchFalse = nullptr;
+	};
+
+	BuildMatch_ret BuildMatch(const TypeSymbol& MatchItem, const IRInstruction* Item, const MatchArm& Arm, const ExpressionNodeType& ArmEx);
+	void EndMatch(BuildMatch_ret& Value);
+
+
+	void OnMatchExpression(const MatchExpression& node);
 
 
 	void PushTepAttributesInTo(Vector<AttributeData>& Input);

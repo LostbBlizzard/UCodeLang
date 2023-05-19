@@ -3636,6 +3636,7 @@ void SystematicAnalysis::OnStatement(const Node& node2)
 	case NodeType::InvalidNode:OnInvalidNode(*InvalidNode::As(&node2)); break;
 	case NodeType::CompileTimeIfNode:OnCompileTimeIfNode(*CompileTimeIfNode::As(&node2)); break;
 	case NodeType::CompileTimeForNode:OnCompileTimeforNode(*CompileTimeForNode::As(&node2)); break;
+	case NodeType::MatchStatement:OnMatchStatement(*MatchStatement::As(&node2)); break;
 	default:break;
 	}
 	PopNodeScope();
@@ -5590,7 +5591,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 
 
 			Out.Type = SymbolVar->VarType;
-			Out.Symbol = GetSymbol(SymbolVar->VarType);
+			Out.Symbol = SymbolVar;
 			//
 			Start++;
 			End--;
@@ -6217,6 +6218,12 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 		{
 			const 	auto nod = CMPTypesNode::As(Value);
 			OnCMPTypesNode(*nod);
+		}
+		break;
+		case NodeType::MatchExpression:
+		{
+			const auto nod = MatchExpression::As(Value);
+			OnMatchExpression(*nod);
 		}
 		break;
 		default:
@@ -8313,6 +8320,325 @@ void SystematicAnalysis::OnExpressionNode(const ExtendedFuncExpression& node)
 		{
 			auto Node = Item.release();//is ok it was borrwed.
 		}
+	}
+}
+void SystematicAnalysis::OnMatchStatement(const MatchStatement& node)
+{
+	if (passtype == PassType::GetTypes)
+	{
+		OnExpressionTypeNode(node.Expression,GetValueMode::Read);
+
+		size_t ScopeCounter = 0;
+		const String ScopeName = std::to_string((uintptr_t)&node);
+
+		for (auto& Item : node.Arms)
+		{
+
+			_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
+
+			OnExpressionTypeNode(Item.Expression, GetValueMode::Read);
+			
+			for (auto& Statement : Item.Statements._Nodes) 
+			{
+				OnStatement(*Statement);
+			}
+		}
+
+
+		if (node.InvaidCase.has_value())
+		{
+			_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
+
+			for (auto& Statement : node.InvaidCase.value()._Nodes)
+			{
+				OnStatement(*Statement);
+			}
+
+			_Table.RemoveScope();
+		}
+	}
+	if (passtype == PassType::FixedTypes)
+	{
+		OnExpressionTypeNode(node.Expression, GetValueMode::Read);
+		
+		size_t ScopeCounter = 0;
+
+		auto ToMatchType = LastExpressionType;
+
+		const String ScopeName = std::to_string((uintptr_t)&node);
+	
+
+		MatchStatementData V;
+
+		for (auto& Item : node.Arms)
+		{
+			_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
+			
+			CanMatch(ToMatchType, Item.Expression,V.ArmData);
+
+			for (auto& Statement : Item.Statements._Nodes)
+			{
+				OnStatement(*Statement);
+			}
+			
+			_Table.RemoveScope();
+
+			ScopeCounter++;
+		}
+
+		if (node.InvaidCase.has_value())
+		{
+			_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
+
+			for (auto& Statement : node.InvaidCase.value()._Nodes)
+			{
+				OnStatement(*Statement);
+			}
+
+			_Table.RemoveScope();
+		}
+		else
+		{
+			CheckAllValuesAreMatched(ToMatchType, V.ArmData);
+		}
+
+		MatchStatementDatas.AddValue((void*)GetSymbolID(node), std::move(V));
+	}
+	if (passtype == PassType::BuidCode)
+	{
+		size_t ScopeCounter = 0;
+		const String ScopeName = std::to_string((uintptr_t)&node);
+
+		OnExpressionTypeNode(node.Expression, GetValueMode::Read);
+
+		auto Ex = _LastExpressionField;
+		auto ToMatchType = LastExpressionType;
+
+		MatchStatementData& V = MatchStatementDatas.at((void*)GetSymbolID(node));
+	
+		Vector<BuildMatch_ret> MatchList;
+
+		for (size_t i = 0; i < node.Arms.size(); i++)
+		{
+			auto& Item = node.Arms[i];
+
+			auto& VItem = V.ArmData.Arms[i];
+
+			_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
+
+			auto V = BuildMatch(ToMatchType,Ex,VItem,Item.Expression);
+
+			for (auto& Statement : Item.Statements._Nodes)
+			{
+				OnStatement(*Statement);
+			}
+
+			EndMatch(V);
+
+			MatchList.push_back(std::move(V));
+
+			_Table.RemoveScope();
+
+			ScopeCounter++;
+		}
+	}
+}
+void SystematicAnalysis::CanMatch(const TypeSymbol& MatchItem, const ExpressionNodeType& node, MatchArmData& Data)
+{
+
+	if (IsIntType(MatchItem))
+	{
+
+		if (node.Value.get()->Get_Type() == NodeType::ValueExpressionNode)
+		{
+			LookingForTypes.push(MatchItem);
+			OnExpressionTypeNode(node, GetValueMode::Read);
+			LookingForTypes.pop();
+
+			auto Type = LastExpressionType;
+			if (!CanBeImplicitConverted(MatchItem, Type, false))
+			{
+				const Token* token = LastLookedAtToken;
+				LogCantCastImplicitTypes(token, MatchItem, Type, false);
+			}
+
+			Data.Arms.push_back({});
+		}
+		else
+		{
+			const Token* token = LastLookedAtToken;
+			_ErrorsOutput->AddError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "The Expression cant be Matched use only ValueExpression");
+		}
+		
+	}
+	else
+	{
+		const Token* token = LastLookedAtToken;
+		_ErrorsOutput->AddError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "The type cant be Matched");
+	}
+}
+void SystematicAnalysis::CheckAllValuesAreMatched(const TypeSymbol& MatchItem, const MatchArmData& Data)
+{
+
+}
+SystematicAnalysis::BuildMatch_ret SystematicAnalysis::BuildMatch(const TypeSymbol& MatchItem, const IRInstruction* Item, const MatchArm& Arm, const ExpressionNodeType& ArmEx)
+{
+	return {};
+}
+void SystematicAnalysis::EndMatch(BuildMatch_ret& Value)
+{
+	
+}
+void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
+{
+	if (passtype == PassType::GetTypes)
+	{
+
+		OnExpressionTypeNode(node.Expression, GetValueMode::Read);
+
+		size_t ScopeCounter = 0;
+		const String ScopeName = std::to_string((uintptr_t)&node);
+
+		for (auto& Item : node.Arms)
+		{
+
+			_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
+
+			OnExpressionTypeNode(Item.Expression, GetValueMode::Read);
+
+			OnExpressionTypeNode(Item.AssignmentExpression,GetValueMode::Read);
+		}
+
+
+		if (node.InvaidCase.has_value())
+		{
+			_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
+
+			OnExpressionTypeNode(node.InvaidCase.value(), GetValueMode::Read);
+
+			_Table.RemoveScope();
+		}
+	}
+	if (passtype == PassType::FixedTypes)
+	{
+		OnExpressionTypeNode(node.Expression, GetValueMode::Read);
+
+		size_t ScopeCounter = 0;
+
+		auto ToMatchType = LastExpressionType;
+
+		auto MatchAssignmentType = LookingForTypes.top();
+
+		const String ScopeName = std::to_string((uintptr_t)&node);
+
+
+		MatchExpressionData V;
+
+		for (auto& Item : node.Arms)
+		{
+			_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
+
+			CanMatch(ToMatchType, Item.Expression, V.ArmData);
+
+			OnExpressionTypeNode(Item.AssignmentExpression, GetValueMode::Read);
+			auto AssignmentType = LastExpressionType;
+			if (!CanBeImplicitConverted(AssignmentType, MatchAssignmentType))
+			{
+				const Token* token = LastLookedAtToken;
+				LogCantCastImplicitTypes(token, MatchAssignmentType, AssignmentType, false);
+			}
+
+
+			_Table.RemoveScope();
+
+			ScopeCounter++;
+		}
+
+
+		
+		if (node.InvaidCase.has_value())
+		{
+			_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
+
+			OnExpressionTypeNode(node.InvaidCase.value(), GetValueMode::Read);
+			auto AssignmentType = LastExpressionType;
+			if (!CanBeImplicitConverted(AssignmentType, MatchAssignmentType))
+			{
+				const Token* token = LastLookedAtToken;
+				LogCantCastImplicitTypes(token, MatchAssignmentType, AssignmentType, false);
+			}
+
+
+			_Table.RemoveScope();
+		}
+		else
+		{
+			CheckAllValuesAreMatched(ToMatchType,V.ArmData);
+		}
+
+		V.MatchAssignmentType = MatchAssignmentType;
+		MatchExpressionDatas.AddValue((void*)GetSymbolID(node), std::move(V));
+	}
+	if (passtype == PassType::BuidCode)
+	{
+		size_t ScopeCounter = 0;
+		const String ScopeName = std::to_string((uintptr_t)&node);
+
+		OnExpressionTypeNode(node.Expression, GetValueMode::Read);
+
+		auto Ex = _LastExpressionField;
+		auto ToMatchType = LastExpressionType;
+
+		MatchExpressionData& V = MatchExpressionDatas.at((void*)GetSymbolID(node));
+
+		Vector<BuildMatch_ret> MatchList;
+
+		IRInstruction* OutEx = LookingAtIRBlock->NewLoad(ConvertToIR(V.MatchAssignmentType));
+
+		
+		LookingForTypes.push(V.MatchAssignmentType);
+		for (size_t i = 0; i < node.Arms.size(); i++)
+		{
+			auto& Item = node.Arms[i];
+
+			auto& VItem = V.ArmData.Arms[i];
+
+			_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
+
+			auto V2 = BuildMatch(ToMatchType, Ex, VItem, Item.Expression);
+
+			OnExpressionTypeNode(Item.AssignmentExpression, GetValueMode::Read);
+
+			DoImplicitConversion(_LastExpressionField, LastExpressionType, V.MatchAssignmentType);
+
+			LookingAtIRBlock->NewStore(OutEx, _LastExpressionField);
+
+			EndMatch(V2);
+
+			MatchList.push_back(std::move(V2));
+
+			_Table.RemoveScope();
+
+			ScopeCounter++;
+		}
+
+		if (node.InvaidCase.has_value())
+		{
+			_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
+
+			OnExpressionTypeNode(node.InvaidCase.value(), GetValueMode::Read);
+
+			DoImplicitConversion(_LastExpressionField, LastExpressionType, V.MatchAssignmentType);
+
+			LookingAtIRBlock->NewStore(OutEx, _LastExpressionField);
+
+			_Table.RemoveScope();
+		}
+
+
+		LookingForTypes.pop();
+
+		_LastExpressionField = OutEx;
 	}
 }
 String SystematicAnalysis::GetFuncAnonymousObjectFullName(const String& FullFuncName)
