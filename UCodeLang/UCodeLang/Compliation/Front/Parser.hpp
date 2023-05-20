@@ -178,7 +178,7 @@ private:
 
 	GotNodeType TryGetGeneric(UseGenericsNode& out);
 
-	GotNodeType GetName(ScopedNameNode& out);
+	GotNodeType GetName(ScopedNameNode& out, bool CanHaveVarableName = false);
 	GotNodeType GetName(NameNode& out);
 	GotNodeType GetNameCheck(NameNode& out);
 
@@ -194,7 +194,7 @@ private:
 		NameCheck_t Type = NameCheck_t::Null;
 		GotNodeType Gotnode = GotNodeType::Null;
 	};
-	GetNameCheck_ret GetNameCheck(ScopedNameNode& out);
+	GetNameCheck_ret GetNameCheck(ScopedNameNode& out,bool CanHaveVarableName = false);
 
 	GotNodeType GetType(TypeNode*& out,bool ignoreRighthandOFtype =false,bool ignoreleftHandType = true);
 	GotNodeType GetType(TypeNode& out, bool ignoreRighthandOFtype = false, bool ignoreleftHandType = true);

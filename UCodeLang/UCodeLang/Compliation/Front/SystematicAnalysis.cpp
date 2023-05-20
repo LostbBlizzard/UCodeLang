@@ -4890,15 +4890,104 @@ bool SystematicAnalysis::StepGetMemberTypeSymbolFromVar(const ScopedNameNode& no
 	auto& ItemToken = Item.token;
 	LastLookedAtToken = ItemToken;
 
+
+	String_view ItemTokenString;
+	
+	if (ItemToken->Type == TokenType::Class)
+	{
+		if (passtype == PassType::FixedTypes) 
+		{
+			VarableMemberData Data;
+			ExpressionNodeType TepEx;
+			ValueExpressionNode TepExValue;
+			ReadVariableNode TepExName;
+			ScopedName ScopeN;
+			Token TepToken = *ItemToken;
+			TepToken.Type = TokenType::Name;
+
+
+			ScopeN.token = &TepToken;
+			TepExName.VariableName.ScopedName.push_back(ScopeN);
+
+			TepExValue.Value.reset(&TepExName);
+			TepEx.Value.reset(&TepExValue);
+
+
+			OnExpressionTypeNode(TepEx, GetValueMode::Read);
+
+			auto Type = LastExpressionType;
+
+			TypeSymbol StackCharArr;
+			StackCharArr.SetType(TypesEnum::Char);
+
+
+
+			bool IsCharArr = IsStaticCharArr(Type);
+
+
+			if (IsCharArr)
+			{
+				auto V = Evaluate(Type, TepEx);
+
+				{//stop double free 
+					TepEx.Value.release();
+					TepExValue.Value.release();
+				}
+
+				if (V.has_value())
+				{
+					auto BuffData = V.value();
+					char* Buffer = (char*)Get_Object(BuffData);
+
+
+					Data.MemberString.resize(BuffData.EvaluatedObject.ObjectSize);
+					memcpy(Data.MemberString.data(), BuffData.EvaluatedObject.Object_AsPointer.get(), BuffData.EvaluatedObject.ObjectSize);
+
+					
+					auto NodeSybPtr = (void*)GetSymbolID((Node&)Item);
+					VarableMemberDatas.AddValue(NodeSybPtr, std::move(Data));
+					ItemTokenString = VarableMemberDatas.at(NodeSybPtr).MemberString;
+				}
+				else
+				{
+					return false;
+				}
+			}
+			else
+			{
+
+				{//stop double free 
+					TepEx.Value.release();
+					TepExValue.Value.release();
+				}
+
+				auto Token = Item.token;
+				_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "Type must be a char[/] and not a '" + ToString(IsCharArr) + "' to be used as a identfier.");
+				return false;
+			}
+		}
+		else if (passtype == PassType::BuidCode)
+		{
+			auto Data = VarableMemberDatas.at((void*)GetSymbolID((Node&)Item));
+			ItemTokenString = Data.MemberString;
+		}
+
+	}
+	else
+	{
+		ItemTokenString = ItemToken->Value._String;
+	}
+
 	if (Out.Type._Type != TypesEnum::CustomType
 		|| Out.Symbol == nullptr)
 	{
 		if (passtype == PassType::FixedTypes)
 		{
-			LogCantFindVarMemberError(ItemToken, ItemToken->Value._String, Out.Type);
+			LogCantFindVarMemberError(ItemToken, ItemTokenString, Out.Type);
 		}
 		return false;
 	}
+
 
 
 	if (OpType == ScopedName::Operator_t::Null
@@ -4911,18 +5000,18 @@ bool SystematicAnalysis::StepGetMemberTypeSymbolFromVar(const ScopedNameNode& no
 			ClassInfo* CInfo = Out.Symbol->Get_Info<ClassInfo>();
 
 
-			auto FeldInfo = CInfo->GetField(ItemToken->Value._String);
+			auto FeldInfo = CInfo->GetField(ItemTokenString);
 			if (!FeldInfo.has_value())
 			{
 				if (passtype == PassType::FixedTypes)
 				{
-					LogCantFindVarMemberError(ItemToken, ItemToken->Value._String, Out.Type);
+					LogCantFindVarMemberError(ItemToken, ItemTokenString, Out.Type);
 				}
 				return false;
 			}
 
 			auto FeldFullName = Out.Symbol->FullName;
-			ScopeHelper::GetApendedString(FeldFullName, ItemToken->Value._String);
+			ScopeHelper::GetApendedString(FeldFullName, ItemTokenString);
 			auto FeldSyb = GetSymbol(FeldFullName, SymbolType::Class_Field);
 			{
 				AccessCheck(FeldSyb, ItemToken);
@@ -4965,14 +5054,14 @@ bool SystematicAnalysis::StepGetMemberTypeSymbolFromVar(const ScopedNameNode& no
 			}
 
 			EnumInfo* Einfo = Out.Symbol->Get_Info<EnumInfo>();
-			auto& NameString = ItemToken->Value._String;
+			auto& NameString = ItemTokenString;
 
 			auto FeldInfo = Einfo->GetFieldIndex(NameString);
 			if (!FeldInfo.has_value())
 			{
 				if (passtype == PassType::FixedTypes)
 				{
-					LogCantFindVarMemberError(ItemToken, ItemToken->Value._String, Out.Type);
+					LogCantFindVarMemberError(ItemToken, ItemTokenString, Out.Type);
 				}
 				return false;
 			}
@@ -5069,25 +5158,25 @@ bool SystematicAnalysis::StepGetMemberTypeSymbolFromVar(const ScopedNameNode& no
 
 				if (TypeAsSybol->Type != SymbolType::Type_class)
 				{
-					LogCantFindVarMemberError(ItemToken, ItemToken->Value._String, Out.Type);
+					LogCantFindVarMemberError(ItemToken, ItemTokenString, Out.Type);
 					return false;
 				}
 				ClassInfo* CInfo = TypeAsSybol->Get_Info<ClassInfo>();
 
 
-				auto FeldInfo = CInfo->GetField(ItemToken->Value._String);
+				auto FeldInfo = CInfo->GetField(ItemTokenString);
 				if (!FeldInfo.has_value())
 				{
 					if (passtype == PassType::FixedTypes)
 					{
-						LogCantFindVarMemberError(ItemToken, ItemToken->Value._String, Out.Type);
+						LogCantFindVarMemberError(ItemToken, ItemTokenString, Out.Type);
 					}
 					return false;
 				}
 
 				{
 					auto FeldFullName = TypeAsSybol->FullName;
-					ScopeHelper::GetApendedString(FeldFullName, ItemToken->Value._String);
+					ScopeHelper::GetApendedString(FeldFullName, ItemTokenString);
 					auto FeldSyb = GetSymbol(FeldFullName, SymbolType::Class_Field);
 					{
 						AccessCheck(FeldSyb, ItemToken);
@@ -5458,12 +5547,24 @@ void SystematicAnalysis::StepBuildMember_Access(const ScopedName& ITem, TypeSymb
 		}
 	}
 
+	String MemberName;
+	if (ITem.token->Type == TokenType::Class)
+	{
+		void* NodePtr = (void*)GetSymbolID((const Node&)ITem);
+		MemberName = VarableMemberDatas.at(NodePtr).MemberString;
+	}
+	else
+	{
+		MemberName = ITem.token->Value._String;
+	}
+
+
 	switch (Sym->Type)
 	{
 	case  SymbolType::Type_class:
 	{
 		auto* Classinfo = Sym->Get_Info<ClassInfo>();
-		size_t MemberIndex = Classinfo->GetFieldIndex(ITem.token->Value._String).value();
+		size_t MemberIndex = Classinfo->GetFieldIndex(MemberName).value();
 		FieldInfo* FInfo = &Classinfo->Fields[MemberIndex];
 		IRStruct* IRstruct = _Builder.GetSymbol(SybToIRMap[Sym->ID])->Get_ExAs<IRStruct>();
 		if (Output == nullptr)
@@ -6480,20 +6581,7 @@ void SystematicAnalysis::OnStringLiteral(const StringliteralNode* nod, bool& ret
 
 	auto& Type = Get_LookingForType();
 
-	bool IsStaticArr = false;
-	if (Type._Type == TypesEnum::CustomType)
-	{
-		auto V = GetSymbol(Type);
-		if (V->Type == SymbolType::Type_StaticArray)
-		{
-			StaticArrayInfo* StaticArr = V->Get_Info< StaticArrayInfo>();
-
-			TypeSymbol CharType;
-			CharType.SetType(TypesEnum::Char);
-
-			IsStaticArr = AreTheSame(CharType, StaticArr->Type);
-		}
-	}
+	bool IsStaticArr = IsStaticCharArr(Type);
 
 
 
@@ -6589,6 +6677,24 @@ void SystematicAnalysis::OnStringLiteral(const StringliteralNode* nod, bool& ret
 
 	}
 	retflag = false;
+}
+
+bool SystematicAnalysis::IsStaticCharArr(const TypeSymbol& Type)
+{
+	if (Type._Type == TypesEnum::CustomType)
+	{
+		auto V = GetSymbol(Type);
+		if (V->Type == SymbolType::Type_StaticArray)
+		{
+			StaticArrayInfo* StaticArr = V->Get_Info< StaticArrayInfo>();
+
+			TypeSymbol CharType;
+			CharType.SetType(TypesEnum::Char);
+
+			return AreTheSame(CharType, StaticArr->Type);
+		}
+	}
+	return false;
 }
 
 void SystematicAnalysis::OnSizeofNode(const SizeofExpresionNode* nod)
@@ -11978,9 +12084,23 @@ int SystematicAnalysis::GetCompatibleScore(const TypeSymbol& ParFunc, const Type
 
 int SystematicAnalysis::GetCompatibleScore(const IsCompatiblePar& Func, const Vector<TypeSymbol>& ValueTypes)
 {
+	bool IsNewFunc = false;
 
+	size_t StartIndex = 0;
+
+	if (Func.Item)
+	{
+		if (Func.Item->Type == SymbolType::Func)
+		{
+			auto Info = Func.Item->Get_Info<FuncInfo>();
+			if (Info->_FuncType == FuncInfo::FuncType::New)
+			{
+				StartIndex++;
+			}
+		}
+	}
 	int r = 0;
-	for (size_t i = 0; i < (*Func.Pars).size(); i++)
+	for (size_t i = StartIndex; i < (*Func.Pars).size(); i++)
 	{
 		r += GetCompatibleScore((*Func.Pars)[i], ValueTypes[i]);
 	}
@@ -12244,6 +12364,58 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ValueExpressionNode& n
 		LastExpressionType.SetType(NewEx);
 		LastLookedAtToken = num->Token;
 	}
+	case NodeType::StringliteralNode:
+	{
+		StringliteralNode* nod = StringliteralNode::As(node.Value.get());
+		auto& lookT = Get_LookingForType();
+
+		bool IsStaticArr = IsStaticCharArr(lookT);
+		if (IsStaticArr)
+		{
+			auto VSyb = GetSymbol(lookT);
+			StaticArrayInfo* StaticArr = VSyb->Get_Info<StaticArrayInfo>();
+
+
+			String V;
+			bool ItWorked = !ParseHelper::ParseStringliteralToString(nod->Token->Value._String, V);
+			size_t BufferSize = V.size();
+
+			if (StaticArr->IsCountInitialized == false)
+			{
+
+
+				StaticArr->Count = V.size() + 1;//with null char;
+				StaticArr->IsCountInitialized = true;
+
+			}
+			else
+			{
+				if (StaticArr->Count != BufferSize)
+				{
+					const Token* Token = LastLookedAtToken;
+					LogCanIncorrectStaticArrCount(Token, lookT, BufferSize, StaticArr->Count);
+					LastExpressionType.SetType(TypesEnum::Null);
+					return false;
+				}
+			}
+
+
+			Out = MakeEx(lookT);
+			char* OutExPointer = (char*)Get_Object(Out);
+
+			memcpy(OutExPointer, V.data(),V.size());
+
+			LastExpressionType = lookT;
+		}
+		else
+		{
+			auto Token = nod->Token;
+			_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "Cant use char[&] in Compile Time.");
+			LastExpressionType.SetType(TypesEnum::Null);
+			return false;
+		}
+	}
+	break;
 	case NodeType::SizeofExpresionNode:
 	{
 		SizeofExpresionNode* nod = SizeofExpresionNode::As(node.Value.get());

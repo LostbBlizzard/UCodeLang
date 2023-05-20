@@ -98,7 +98,7 @@ int main()
 	V.Reset();
 	V.MakeFile();
 
-	String OutFile =V.Get_OutFile();
+ 	String OutFile =V.Get_OutFile();
 
 
 	

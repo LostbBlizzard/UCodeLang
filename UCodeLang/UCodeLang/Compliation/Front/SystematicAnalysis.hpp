@@ -485,6 +485,13 @@ private:
 
 	BinaryVectorMap<const void*, MatchExpressionData> MatchExpressionDatas;
 
+	struct VarableMemberData
+	{
+		String MemberString;
+	};
+
+	BinaryVectorMap< const void*, VarableMemberData> VarableMemberDatas;//Var.$Item
+
 	Vector<FuncStackInfo> _FuncStack;
 
 	const Token* LastLookedAtToken = nullptr;
@@ -761,6 +768,7 @@ private:
 	void OnCharliteralNode(const CharliteralNode* num);
 	void OnFloatLiteralNode(const FloatliteralNode* num);
 	void OnStringLiteral(const StringliteralNode* nod, bool& retflag);
+	bool IsStaticCharArr(const TypeSymbol& Type);
 	void OnSizeofNode(const SizeofExpresionNode* nod);
 	void OnNewNode(const NewExpresionNode* nod);
 	void OnAnonymousObjectConstructor(const AnonymousObjectConstructorNode* nod);
