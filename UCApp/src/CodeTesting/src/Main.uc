@@ -1,5 +1,5 @@
 
-
+/*
 
 |main[]:
  int a = 10;
@@ -15,3 +15,17 @@
   70 => 700;
   invalid => 100;
  ;
+
+*/
+
+eval char[/1] VarableName = "Y";
+
+$Cool:
+ int X;
+ int Y;
+
+|main[]:
+ 
+ Cool V = [];
+
+ V.$VarableName = 5;

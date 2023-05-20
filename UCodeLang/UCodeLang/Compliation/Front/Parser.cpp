@@ -1008,7 +1008,7 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 		else
 		{
 			auto r = ReadVariableNode::Gen();
-			GetName(r->VariableName);
+			GetName(r->VariableName,true);
 			out = r->As();
 			return GotNodeType::Success;
 		}
@@ -1438,17 +1438,30 @@ GotNodeType Parser::TryGetGeneric(UseGenericsNode& out)
 	return GotNodeType::Success;
 }
 
-GotNodeType Parser::GetName(ScopedNameNode& out)
+GotNodeType Parser::GetName(ScopedNameNode& out, bool CanHaveVarableName)
 {
-
+	
 	while (TryGetToken()->Type != TokenType::EndofFile)
 	{
 		ScopedName V;
 		auto NameToken = TryGetToken();
 
-		if (!TypeNode::IsType(NameToken->Type)) 
+		if (!TypeNode::IsType(NameToken->Type))
 		{
-			TokenTypeCheck(NameToken, TokenType::Name);
+			bool V;
+			if (CanHaveVarableName)
+			{
+				
+				V = NameToken->Type != TokenType::Class;
+			}
+			else
+			{
+				V = true;
+			}
+			if (V)
+			{
+				TokenTypeCheck(NameToken, TokenType::Name);
+			}
 		}
 
 		V.token = NameToken;
@@ -1495,7 +1508,7 @@ GotNodeType Parser::GetNameCheck(NameNode& out)
 	return GotNodeType::Success;
 }
 
-Parser::GetNameCheck_ret Parser::GetNameCheck(ScopedNameNode& out)
+Parser::GetNameCheck_ret Parser::GetNameCheck(ScopedNameNode& out,bool CanHaveVarableName)
 {
 	NameCheck_t LookingAtT = NameCheck_t::Name;
 
@@ -2299,7 +2312,7 @@ GotNodeType Parser::GetFuncCallStatementNode(FuncCallStatementNode& out)
 }
 GotNodeType Parser::GetFuncCallNode(FuncCallNode& out)
 {
-	GetName(out.FuncName);
+	GetName(out.FuncName, true);
 
 	auto ParToken = TryGetToken();
 	if (ParToken->Type == TokenType::lessthan)
