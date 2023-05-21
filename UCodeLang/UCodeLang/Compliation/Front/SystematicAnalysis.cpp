@@ -17,6 +17,7 @@ void SystematicAnalysis::Reset()
 	
 	this->_ErrorsOutput = ErrorsOutput;
 	this->_Settings = Settings;
+
 }
 
 bool SystematicAnalysis::Analyze(const FileNode& File)
