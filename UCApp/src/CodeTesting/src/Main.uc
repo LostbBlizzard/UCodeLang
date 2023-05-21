@@ -26,9 +26,7 @@ $Cool:
 
 |main[]:
  
- Cool V = [];
- //eval typeinfo V_type = type(Cool);
- eval typeinfo V_type2 = type(int);
+ eval Item = type(Cool).Name();
+ eval Item2 = type(Cool).FullName();
 
- bind(V_type2) ItemB = 50;
- V.$VarableName = 5;
+ //umut char[&] Str = Item;

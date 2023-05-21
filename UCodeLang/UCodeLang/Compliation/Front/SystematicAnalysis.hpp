@@ -790,7 +790,7 @@ private:
 	void OnExpressionNode(const ExtendedFuncExpression& node);
 
 	void OnTypeToValueNode(const TypeToValueNode& node);
-	void LogCantOutputTypeinfo(const UCodeLang::Token* Token);
+	void LogCantOutputTypeinfo(const Token* Token);
 	void OnExpressionToTypeValueNode(const ExpressionToTypeValueNode& node);
 
 	void OnMatchStatement(const MatchStatement& node);
@@ -1064,6 +1064,21 @@ private:
 	bool EvaluateImplicitConversion(EvaluatedEx& In, const TypeSymbol& ToType, EvaluatedEx& out);
 	bool EvalutateCMPTypesNode(EvaluatedEx& Out, const CMPTypesNode& node);
 	bool EvalutateValidNode(EvaluatedEx& Out, const ValidNode& node);
+	bool EvalutateFunc(EvaluatedEx& Out, const FuncCallNode& node);
+	bool EvalutateFunc(EvaluatedEx& Out, const Get_FuncInfo& Func, const ScopedNameNode& Name, const ValueParametersNode& Pars);
+	bool EvalutateFunc(EvaluatedEx& Out, const TypeSymbol& Type, const Get_FuncInfo& Func, const ValueParametersNode& ValuePars);
+	bool Evalutate(EvaluatedEx& Out, const ExtendedScopeExpression& node);
+	bool Evalutate(EvaluatedEx& Out, const ExtendedFuncExpression& node);
+
+	bool EvalutateScopedName(EvaluatedEx& Out, size_t Start, size_t End, const ScopedNameNode& node);
+	bool EvalutateScopedName(EvaluatedEx& Out, size_t Start, const ScopedNameNode& node)
+	{
+		return EvalutateScopedName(Out, Start, -1, node);
+	}
+	bool EvalutateScopedName(EvaluatedEx& Out, const ScopedNameNode& node)
+	{
+		return EvalutateScopedName(Out, 0, node);
+	}
 
 
 	bool Evaluate(EvaluatedEx& Out, const TypeSymbol& MustBeType, const ExpressionNodeType& node);
