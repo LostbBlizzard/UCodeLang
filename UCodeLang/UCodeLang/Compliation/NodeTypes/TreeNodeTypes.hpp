@@ -337,6 +337,7 @@ struct TypeNode :Node
 		case TokenType::KeyWord_sintptr:
 		case TokenType::KeyWord_float32:
 		case TokenType::KeyWord_float64:
+		case TokenType::KeyWord_TypeInfo:
 		return true;
 		default:return false;
 		}
@@ -419,12 +420,18 @@ struct TypeNode :Node
 		IsDynamic = true;
 	}
 
+	void SetAsBinding()
+	{
+		IsTypeBinding = true;
+	}
+
 	bool IsAddess = false;
 	bool IsAddessArray = false;
 	bool Isimmutable = false;
 	bool IsStackArray = false;
 	bool IsTypedMoved = false;
 	bool IsDynamic = false;
+	bool IsTypeBinding = false;
 private:
 	Unique_ptr<Token> GenToken;
 };

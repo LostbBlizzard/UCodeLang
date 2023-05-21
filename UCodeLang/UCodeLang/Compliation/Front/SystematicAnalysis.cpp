@@ -1024,6 +1024,17 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 					}
 				}
 			}
+
+			if (Item2.IsAn(TypesEnum::Void))
+			{
+				auto Token = Item.Name.Token;
+				LogCantUseTypeVoidHere(Token);
+			}
+			if (Item2.IsTypeInfo())
+			{
+				auto Token = Item.Name.Token;
+				LogUseingTypeinfoInEvalFuncPar(Token);
+			}
 		}
 
 	}
@@ -3440,6 +3451,12 @@ IRType SystematicAnalysis::ConvertToIR(const TypeSymbol& Value)
 		return IRType(IRTypes::pointer);
 	}
 
+	if (Value.IsTypeInfo())
+	{
+		//Err
+		return {};
+	}
+
 	switch (Value._Type)
 	{
 		
@@ -4077,6 +4094,18 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 
 		auto Ex = node.Expression.Value.get();
 		ExTypeDeclareVarableCheck(VarType, Ex, node.Name.Token);
+
+		if (VarType.IsTypeInfo() && type != DeclareStaticVariableNode_t::Eval)
+		{
+			auto Token = node.Name.Token; 
+			LogUseingTypeinfoInNonEvalVarable(Token);
+		}
+
+		if (VarType.IsAn(TypesEnum::Void))
+		{
+			auto Token = node.Name.Token;
+			LogCantUseTypeVoidHere(Token);
+		}
 	}
 	LookingForTypes.push(syb->VarType);
 
@@ -4306,6 +4335,9 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 		}
 	}
 }
+
+
+
 void SystematicAnalysis::OnStoreVarable(bool IsStructObjectPassRef, UCodeLang::IRInstruction* OnVarable, UCodeLang::FrontEnd::Symbol* syb, const UCodeLang::SymbolID& sybId)
 {
 
@@ -4451,6 +4483,7 @@ void SystematicAnalysis::ExDeclareVariableTypeCheck(TypeSymbol& VarType, const T
 			bool WasImutable = VarType.Isimmutable();
 			bool WasIsAddress = VarType.IsAddress();
 			bool WasIsAddressArry = VarType.IsAddressArray();
+			auto OldTypeInfo = VarType._TypeInfo;
 
 			VarType = Ex;
 
@@ -4458,9 +4491,12 @@ void SystematicAnalysis::ExDeclareVariableTypeCheck(TypeSymbol& VarType, const T
 			if (WasIsAddress) { VarType.SetAsAddress(); }
 			if (WasIsAddressArry) { VarType.SetAsAddressArray(); }
 
+			VarType._TypeInfo = OldTypeInfo;
+
 			VarType.SetAsLocation();
 		}
 	}
+	
 	if (!CanBeImplicitConverted(Ex, VarType, false))
 	{
 		LogCantCastImplicitTypes(Token, Ex, VarType, false);
@@ -6326,6 +6362,18 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 		{
 			const auto nod = MatchExpression::As(Value);
 			OnMatchExpression(*nod);
+		}
+		break;
+		case NodeType::TypeToValueNode:
+		{
+			const auto nod = TypeToValueNode::As(Value);
+			OnTypeToValueNode(*nod);
+		}
+		break;
+		case NodeType::ExpressionToTypeValueNode:
+		{
+			const auto nod = ExpressionToTypeValueNode::As(Value);
+			OnExpressionToTypeValueNode(*nod);
 		}
 		break;
 		default:
@@ -8429,6 +8477,52 @@ void SystematicAnalysis::OnExpressionNode(const ExtendedFuncExpression& node)
 		}
 	}
 }
+void SystematicAnalysis::OnTypeToValueNode(const TypeToValueNode& node)
+{
+	if (passtype == PassType::GetTypes)
+	{
+
+	}
+	if (passtype == PassType::FixedTypes)
+	{
+		auto Type = ConvertAndValidateType(node.TypeOp, NodeSyb_t::Any);
+		Type.SetAsTypeInfo();
+
+
+		LastExpressionType = Type;
+	}
+	if (passtype == PassType::BuidCode)
+	{
+		const Token* Token = node.TypeOp.Name.Token; 
+		LogCantOutputTypeinfo(Token);
+	}
+}
+
+void SystematicAnalysis::OnExpressionToTypeValueNode(const ExpressionToTypeValueNode& node)
+{
+	if (passtype == PassType::GetTypes)
+	{
+		LookingForTypes.push(TypesEnum::Any);
+		OnExpressionTypeNode(node.TypeEx,GetValueMode::Read);
+		LookingForTypes.pop();
+	}
+	if (passtype == PassType::FixedTypes)
+	{
+		LookingForTypes.push(TypesEnum::Any);
+		OnExpressionTypeNode(node.TypeEx, GetValueMode::Read);
+		LookingForTypes.pop();
+
+		auto Type = LastExpressionType;
+		Type.SetAsTypeInfo();
+
+		LastExpressionType = Type;
+	}
+	if (passtype == PassType::BuidCode)
+	{
+		const Token* Token = LastLookedAtToken;
+		LogCantOutputTypeinfo(Token);
+	}
+}
 void SystematicAnalysis::OnMatchStatement(const MatchStatement& node)
 {
 	if (passtype == PassType::GetTypes)
@@ -8803,6 +8897,10 @@ bool SystematicAnalysis::AreTheSameWithOutimmutable(const TypeSymbol& TypeA, con
 		return false;
 	}
 	if (TypeA._MoveData != TypeB._MoveData)
+	{
+		return false;
+	}
+	if (TypeA.IsTypeInfo() != TypeB.IsTypeInfo())
 	{
 		return false;
 	}
@@ -9186,6 +9284,11 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type)
 		r += "moved ";
 	}
 
+	if (Type.IsTypeInfo())
+	{
+		r += "typeinfo<";
+	}
+
 	if (Type._IsDynamic)
 	{
 		r += "dynamic<";
@@ -9286,6 +9389,11 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type)
 		r += ">";
 	}
 
+	if (Type.IsTypeInfo())
+	{
+		r += ">";
+	}
+
 	if (Type.IsAddress())
 	{
 		r += "&";
@@ -9366,7 +9474,7 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 			Out.SetType(TypesEnum::Null);
 		}
 	}
-		break;
+	break;
 	case TokenType::Name: 
 	{
 		if (passtype == PassType::GetTypes) { return; }
@@ -9538,6 +9646,51 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 		}
 	}
 	break;
+	case TokenType::KeyWord_TypeInfo:
+	{
+		Out.SetType(TypesEnum::Var);
+		Out.SetAsTypeInfo();
+	}
+	break;
+	case TokenType::KeyWord_bind: 
+	{
+		if (passtype != PassType::GetTypes)
+		{
+			auto ExNode = ExpressionNodeType::As(V.node.get());
+
+			
+			auto IsOk = EvaluateToAnyType(*ExNode);
+
+			if (IsOk.has_value())
+			{
+				auto& Object = IsOk.value();
+
+				if (!Object.Type.IsTypeInfo())
+				{
+					Out.SetType(TypesEnum::Null);
+
+					auto Token = V.Name.Token;
+					auto& Type = Object.Type;
+					LogCantBindTypeItNotTypeInfo(Token, Type);
+				}
+				else 
+				{
+					auto* TypeSyb = Get_ObjectAs<TypeSymbol>(Object);
+					Out = *TypeSyb;
+					Out.BindType();
+				}
+			}
+			else
+			{
+				Out.SetType(TypesEnum::Null);
+			}
+		}
+		else
+		{
+			Out.SetType(TypesEnum::Null);
+		}
+
+	}break;
 	default:
 		throw std::exception("not added");
 		break;
@@ -9620,6 +9773,12 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 		}
 		Out.SetType(Syb->ID);
 	}
+}
+
+void SystematicAnalysis::LogCantBindTypeItNotTypeInfo(const UCodeLang::Token* Token, UCodeLang::FrontEnd::TypeSymbol& Type)
+{
+
+	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Cant Bind type.Expression is not a typeinfo it is an '" + ToString(Type) + "'");
 }
 
 
@@ -10221,6 +10380,13 @@ void  SystematicAnalysis::Update_FuncSym_ToFixedTypes(Symbol* Sym)
 bool SystematicAnalysis::GetSize(const TypeSymbol& Type, UAddress& OutSize)
 {
 	if (Type.IsAddress()){goto IntPtr;}
+	
+	if (Type.IsTypeInfo())
+	{
+		OutSize = sizeof(TypeSymbol);
+		return true;
+	}
+
 	switch (Type._Type)
 	{
 	case TypesEnum::sInt8:
@@ -12524,6 +12690,23 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ValueExpressionNode& n
 		return EvalutateValidNode(Out, *nod);
 	}
 	break;
+	case NodeType::TypeToValueNode:
+	{
+		OnTypeToValueNode(*TypeToValueNode::As(node.Value.get()));
+		memcpy(Out.EvaluatedObject.Object_AsPointer.get(),&LastExpressionType, sizeof(LastExpressionType));
+
+		return true;
+	}
+	break;
+	case NodeType::ExpressionToTypeValueNode:
+	{
+		OnExpressionToTypeValueNode(*ExpressionToTypeValueNode::As(node.Value.get()));
+		memcpy(Out.EvaluatedObject.Object_AsPointer.get(), &LastExpressionType, sizeof(LastExpressionType));
+		
+		return true;
+	}
+	break;
+
 	default:
 		throw std::exception("not added");
 		break;
@@ -13597,6 +13780,22 @@ void SystematicAnalysis::LogParPackIsNotLast(const UCodeLang::Token* Token)
 void SystematicAnalysis::LogParPackTypeIsNotLast(const UCodeLang::Token* Token)
 {
 	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Type Pack named '" + (String)Token->Value._String + "' is not declarded last.");
+}
+void SystematicAnalysis::LogUseingTypeinfoInNonEvalVarable(const UCodeLang::Token* Token)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "Trying to use typeinfo in a Non-eval Varable");
+}
+void SystematicAnalysis::LogUseingTypeinfoInEvalFuncPar(const UCodeLang::Token* Token)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "Trying to use typeinfo in a Non-eval Func");
+}
+void SystematicAnalysis::LogCantOutputTypeinfo(const UCodeLang::Token* Token)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Cant Output IR of an typeinfo. place this in an eval funcion or an eval varable");
+}
+void SystematicAnalysis::LogCantUseTypeVoidHere(const UCodeLang::Token* Token)
+{
+	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Cant use type void here");
 }
 UCodeLangFrontEnd
 

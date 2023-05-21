@@ -608,7 +608,11 @@ GotNodeType Parser::GetStatement(Node*& out)
 		{
 			
 			auto TokenV = TryGetToken();
-
+			if (TokenV->Type == TokenType::KeyWord_bind)
+			{
+				StatemeType = MyEnum::DeclareVar;
+				break;
+			}
 
 			if (TokenV->Type == TokenType::equal)
 			{
@@ -1079,6 +1083,13 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 	case TokenType::KeyWord_valid:
 	{
 		auto V = GetValidNode();
+		out = V.Node;
+		return V.GotNode;
+	}
+	break;
+	case TokenType::KeyWorld_typeof:
+	{
+		auto V = GetExpressionToTypeValue();
 		out = V.Node;
 		return V.GotNode;
 	}
@@ -1594,15 +1605,31 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 			NextToken();
 			Token = TryGetToken();
 		}
-		else
-		if (Token->Type == TokenType::KeyWord_moved)
+		else if (Token->Type == TokenType::KeyWord_moved)
 		{
-				out->SetMovedType();
-				NextToken();
-				Token = TryGetToken();
+			out->SetMovedType();
+			NextToken();
+			Token = TryGetToken();
 		}
 		
 		
+		if (Token->Type == TokenType::KeyWord_bind)
+		{
+			out->SetAsBinding();
+			NextToken();
+
+			TokenTypeCheck(TryGetToken(), TokenType::Left_Parentheses);
+			NextToken();
+
+			auto ExNode = new ExpressionNodeType();
+			out->node.reset(ExNode);
+			auto Ex = GetExpressionTypeNode(*ExNode);
+			out->Name.Token = Token;
+
+			TokenTypeCheck(TryGetToken(), TokenType::Right_Parentheses);
+			NextToken();
+			return  GotNodeType::Success;
+		}
 		
 		if (Token->Type == TokenType::KeyWord_dynamic)
 		{
@@ -3167,7 +3194,7 @@ GotNodeType Parser::GeTypeExNode(Node*& out)
 GotNodeType Parser::GetExpressionToTypeValue(ExpressionToTypeValueNode& out)
 {
 	auto Token = TryGetToken();
-	TokenTypeCheck(Token, TokenType::KeyWord_type);
+	TokenTypeCheck(Token, TokenType::KeyWorld_typeof);
 
 	NextToken();
 	auto LToken = TryGetToken();

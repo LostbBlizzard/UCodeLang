@@ -665,6 +665,9 @@ private:
 	void OnNonAttributeable(size_t Line, size_t Pos);
 	String GetScopedNameAsString(const ScopedNameNode& node);
 	void OnDeclareVariablenode(const DeclareVariableNode& node, DeclareStaticVariableNode_t type);
+	void LogCantUseTypeVoidHere(const Token* Token);
+	void LogUseingTypeinfoInNonEvalVarable(const Token* Token);
+	void LogUseingTypeinfoInEvalFuncPar(const Token* Token);
 	void OnStoreVarable(bool IsStructObjectPassRef, IRInstruction* OnVarable, Symbol* syb, const SymbolID& sybId);
 	void AddDestructorToStack(const Symbol* syb, const SymbolID& sybId, IRInstruction* OnVarable);
 	void AddDestructorToStack(const TypeSymbol& Type, IRInstruction* OnVarable);
@@ -786,6 +789,10 @@ private:
 	void OnExpressionNode(const ExtendedScopeExpression& node);
 	void OnExpressionNode(const ExtendedFuncExpression& node);
 
+	void OnTypeToValueNode(const TypeToValueNode& node);
+	void LogCantOutputTypeinfo(const UCodeLang::Token* Token);
+	void OnExpressionToTypeValueNode(const ExpressionToTypeValueNode& node);
+
 	void OnMatchStatement(const MatchStatement& node);
 	void CanMatch(const TypeSymbol& MatchItem, const ExpressionNodeType& node, MatchArmData& Data);
 	void CheckAllValuesAreMatched(const TypeSymbol& MatchItem, const MatchArmData& Data);
@@ -850,6 +857,8 @@ private:
 
 
 	void Convert(const TypeNode& V, TypeSymbol& Out);
+
+	void LogCantBindTypeItNotTypeInfo(const UCodeLang::Token* Token, UCodeLang::FrontEnd::TypeSymbol& Type);
 	
 	void ConvertAndValidateType(const TypeNode& V, TypeSymbol& Out,NodeSyb_t Syb);
 	TypeSymbol ConvertAndValidateType(const TypeNode& V, NodeSyb_t Syb);
@@ -1023,6 +1032,23 @@ private:
 	RawEvaluatedObject MakeExr(const TypeSymbol& Type);
 	void* Get_Object(const TypeSymbol& Input, const RawEvaluatedObject& Input2);
 	void* Get_Object(const EvaluatedEx& Input);
+	template<typename T> T* Get_ObjectAs(const TypeSymbol& Input, const RawEvaluatedObject& Input2)
+	{
+		if (Input2.ObjectSize == sizeof(T))
+		{
+			return (T*)Get_Object(Input, Input2);
+		}
+		else
+		{
+			String TepStr = "type miss-mach when EvaluatedObject To Cpp type '" + (String)typeid(T).name() + "' ";
+			throw std::exception(TepStr.c_str());
+		}
+	}
+	template<typename T> T* Get_ObjectAs(const EvaluatedEx& Input)
+	{
+		return Get_ObjectAs<T>(Input.Type, Input.EvaluatedObject);
+	}
+
 
 	StrExELav GetStrEVal(const Node* node);
 	bool ConstantExpressionAbleType(const TypeSymbol& Type);
