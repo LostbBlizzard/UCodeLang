@@ -74,7 +74,7 @@ UCodeTestStart
 		}
 	};
 
-	static const Array<TestInfo, 55> Tests
+	static const Array<TestInfo, 56> Tests
 	{
 
 		TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation),
@@ -155,6 +155,7 @@ UCodeTestStart
 		TestInfo("ExtendedExpression","Objects/ExtendedExpression.uc","main",SuccessCondition::RunTimeValue,(int)2),
 
 		TestInfo("EvalVarableMember","Objects/EvalVarableMember.uc","main",SuccessCondition::RunTimeValue,(int)1),
+		TestInfo("TypeBinding","Objects/TypeBinding.uc","main",SuccessCondition::RunTimeValue,(int)1),
 	};
 
 

@@ -12715,27 +12715,7 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ValueExpressionNode& n
 }
 bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ReadVariableNode& nod)
 {
-	GetExpressionMode.push(GetValueMode::Read);
-	GetMemberTypeSymbolFromVar_t V;
-	if (!GetMemberTypeSymbolFromVar(nod.VariableName, V))
-	{
-		return false;
-	}
-	GetExpressionMode.pop();
-
-	LastExpressionType = V.Type;
-	
-	if (V.Symbol)
-	{
-		if (V.Symbol->Type == SymbolType::ConstantExpression)
-		{
-			ConstantExpressionInfo* Info = V.Symbol->Get_Info<ConstantExpressionInfo>();
-			Out.EvaluatedObject = Info->Ex;
-			Out.Type = V.Type;
-			return true;
-		}
-	}
-	return false;
+	return EvalutateScopedName(Out, nod.VariableName);
 }
 bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const BinaryExpressionNode& node)
 {
@@ -12796,6 +12776,8 @@ bool SystematicAnalysis::Evaluate_t(EvaluatedEx& Out, const Node* node)
 	case NodeType::BinaryExpressionNode:return Evaluate(Out,*BinaryExpressionNode::As(node)); break;
 	case NodeType::ValueExpressionNode:return Evaluate(Out, *ValueExpressionNode::As(node)); break;
 	case NodeType::CastNode:return Evaluate(Out, *CastNode::As(node)); break;
+	case NodeType::ExtendedFuncExpression:return Evaluate(Out, *ExtendedFuncExpression::As(node)); break;
+	case NodeType::ExtendedScopeExpression:return Evaluate(Out, *ExtendedScopeExpression::As(node)); break;
 	default:
 		throw std::exception("not added");
 		break;
@@ -13025,6 +13007,63 @@ bool SystematicAnalysis::EvalutateValidNode(EvaluatedEx& Out, const ValidNode& n
 
 	LastExpressionType = TypesEnum::Bool;
 	return true;
+}
+bool SystematicAnalysis::EvalutateFunc(EvaluatedEx& Out, const FuncCallNode& node)
+{
+	return false;
+}
+bool EvalutateFunc(const TypeSymbol& Type, const Get_FuncInfo& Func, const ValueParametersNode& ValuePars)
+{
+	return false;
+}
+bool SystematicAnalysis::EvalutateFunc(EvaluatedEx& Out, const Get_FuncInfo& Func, const ScopedNameNode& Name, const ValueParametersNode& Pars)
+{
+	return false;
+}
+bool SystematicAnalysis::EvalutateFunc(EvaluatedEx& Out, const TypeSymbol& Type, const Get_FuncInfo& Func, const ValueParametersNode& ValuePars)
+{
+	String B = ToString(Type);
+	Token T;
+	T.Type = TokenType::Name;
+	T.Value._String = B;
+
+
+	ScopedNameNode Tep;
+	ScopedName V;
+	V.token = &T;
+
+	Tep.ScopedName.push_back(std::move(V));
+
+	return EvalutateFunc(Out,Func, Tep, ValuePars);
+}
+bool SystematicAnalysis::Evalutate(EvaluatedEx& Out, const ExtendedScopeExpression& node)
+{
+	return false;
+}
+bool SystematicAnalysis::Evalutate(EvaluatedEx& Out, const ExtendedFuncExpression& node)
+{
+	return false;
+}
+bool SystematicAnalysis::EvalutateScopedName(EvaluatedEx& Out, size_t Start, size_t End, const ScopedNameNode& node)
+{
+	GetExpressionMode.push(GetValueMode::Read);
+	GetMemberTypeSymbolFromVar_t V;
+	auto RetBool = GetMemberTypeSymbolFromVar(Start,End,node, V);
+	GetExpressionMode.pop();
+
+	LastExpressionType = V.Type;
+
+	if (V.Symbol)
+	{
+		if (V.Symbol->Type == SymbolType::ConstantExpression)
+		{
+			ConstantExpressionInfo* Info = V.Symbol->Get_Info<ConstantExpressionInfo>();
+			Out.EvaluatedObject = Info->Ex;
+			Out.Type = V.Type;
+			return true;
+		}
+	}
+	return false;
 }
 Optional<SystematicAnalysis::EvaluatedEx> SystematicAnalysis::EvaluateToAnyType(const ExpressionNodeType& node)
 {
