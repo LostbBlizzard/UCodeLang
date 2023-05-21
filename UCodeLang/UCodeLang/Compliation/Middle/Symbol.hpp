@@ -201,11 +201,11 @@ struct TypeSymbol
 	{
 		return  _TypeInfo != TypeInfoPrimitive::Null;
 	}
-	bool AsTypeInfo()
+	void SetAsTypeInfo()
 	{
 		_TypeInfo = TypeInfoPrimitive::TypeInfo;
 	}
-	bool BindType()
+	void BindType()
 	{
 		_TypeInfo = TypeInfoPrimitive::Null;
 	}
