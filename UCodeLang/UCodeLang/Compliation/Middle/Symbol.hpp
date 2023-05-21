@@ -59,26 +59,38 @@ enum class TypeValueInfo : UInt8
 	IsValue,
 	IsLocation,
 };
-enum class MoveData
+enum class MoveData :UInt8
 {
 	None,
 	Moved,
 };
 
+enum class TypeInfoPrimitive : UInt8
+{
+	Null,
+	TypeInfo,
+	ClassInfo,
+	EnumInfo,
+	AliasInfo,
+	FuncInfo,
+	FuncPtrInfo,
+	TraitInfo,
+	TagInfo,
+};
+
 class Symbol;
 struct TypeSymbol
 {
-	TypesEnum _Type = TypesEnum::Null;
 	SymbolID  _CustomTypeSymbol = 0;
-
 	
-
+	TypesEnum _Type = TypesEnum::Null;
 	bool _IsAddress=false;
 	bool _IsAddressArray = false;
 	bool _Isimmutable = false;
 	bool _IsDynamic = false;
 	TypeValueInfo _ValueInfo = TypeValueInfo::IsValue;
 	MoveData _MoveData = MoveData::None;
+	TypeInfoPrimitive _TypeInfo = TypeInfoPrimitive::Null;
 
 	TypeSymbol()
 	{
@@ -95,25 +107,27 @@ struct TypeSymbol
 	
 	void SetType(TypesEnum type)
 	{
-		_Type = type;
 		_CustomTypeSymbol = 0;
 
+		_Type = type;
 		_IsAddress = false;
 		_IsAddressArray = false;
 		_Isimmutable = false;
 		_ValueInfo = TypeValueInfo::IsValue;
 		_MoveData = MoveData::None;
+		_TypeInfo = TypeInfoPrimitive::Null;
 	}
 	void SetType(SymbolID CustomType)
 	{
-		_Type = TypesEnum::CustomType;
 		_CustomTypeSymbol = CustomType;
+		_Type = TypesEnum::CustomType;
 
 		_IsAddress = false;
 		_IsAddressArray = false;
 		_Isimmutable = false;
 		_ValueInfo = TypeValueInfo::IsValue;
 		_MoveData = MoveData::None;
+		_TypeInfo = TypeInfoPrimitive::Null;
 	}
 	void SetAsAddress()
 	{
@@ -182,6 +196,19 @@ struct TypeSymbol
 		return  IsAn(TypesEnum::Null);
 	}
 	bool IsBadType()const { return IsAn(TypesEnum::Null); }
+
+	bool IsTypeInfo() const
+	{
+		return  _TypeInfo != TypeInfoPrimitive::Null;
+	}
+	bool AsTypeInfo()
+	{
+		_TypeInfo = TypeInfoPrimitive::TypeInfo;
+	}
+	bool BindType()
+	{
+		_TypeInfo = TypeInfoPrimitive::Null;
+	}
 };
 
 

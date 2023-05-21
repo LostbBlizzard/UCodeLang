@@ -27,5 +27,7 @@ $Cool:
 |main[]:
  
  Cool V = [];
+ eval typeinfo V_type = type(Cool);
+ eval typeinfo V_type2 = typeof(V);
 
  V.$VarableName = 5;
