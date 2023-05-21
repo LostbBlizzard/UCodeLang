@@ -8374,16 +8374,7 @@ void SystematicAnalysis::OnExpressionNode(const ExtendedFuncExpression& node)
 		GetExpressionMode.push(GetExpressionMode.top());
 		{
 
-			TypeSymbol TypeToStart;
-
-			if (node.Operator == ScopedName::Operator_t::Dot)
-			{
-				TypeToStart = ExpressionType;
-			}
-			else
-			{
-				TypeToStart = TypesEnum::Null;
-			}
+			TypeSymbol TypeToStart = ExtendedFuncExpressionGetTypeToStart(ExpressionType, node);
 
 		
 			const Token& ToGetLinesFrom = *node.Extended.FuncName.ScopedName.begin()->token;
@@ -8476,6 +8467,19 @@ void SystematicAnalysis::OnExpressionNode(const ExtendedFuncExpression& node)
 			auto Node = Item.release();//is ok it was borrwed.
 		}
 	}
+}
+TypeSymbol SystematicAnalysis::ExtendedFuncExpressionGetTypeToStart(const TypeSymbol& ExpressionType, const ExtendedFuncExpression& node)
+{
+
+	if (node.Operator == ScopedName::Operator_t::Dot)
+	{
+		return ExpressionType;
+	}
+	else
+	{
+		return TypesEnum::Null;
+	}
+
 }
 void SystematicAnalysis::OnTypeToValueNode(const TypeToValueNode& node)
 {
@@ -12715,7 +12719,8 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ValueExpressionNode& n
 }
 bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ReadVariableNode& nod)
 {
-	return EvalutateScopedName(Out, nod.VariableName);
+	GetMemberTypeSymbolFromVar_t V;
+	return EvalutateScopedName(Out, nod.VariableName, V);
 }
 bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const BinaryExpressionNode& node)
 {
@@ -12740,7 +12745,7 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const CastNode& node)
 
 	LookingForTypes.push(ToTypeAs);
 
-	bool Ex0Bool = Evaluate_t(Out,node.Expression.Value.get());
+	bool Ex0Bool = Evaluate_t(Out,node.Expression.Value.get(),GetValueMode::Read);
 
 	LookingForTypes.pop();
 
@@ -12769,19 +12774,29 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const CastNode& node)
 	return true;
 }
 
-bool SystematicAnalysis::Evaluate_t(EvaluatedEx& Out, const Node* node)
+bool SystematicAnalysis::Evaluate_t(EvaluatedEx& Out, const Node* node, GetValueMode Mode)
 {
+	GetExpressionMode.push(Mode);
+	bool R =false;
 	switch (node->Get_Type())
 	{
-	case NodeType::BinaryExpressionNode:return Evaluate(Out,*BinaryExpressionNode::As(node)); break;
-	case NodeType::ValueExpressionNode:return Evaluate(Out, *ValueExpressionNode::As(node)); break;
-	case NodeType::CastNode:return Evaluate(Out, *CastNode::As(node)); break;
-	case NodeType::ExtendedFuncExpression:return Evaluate(Out, *ExtendedFuncExpression::As(node)); break;
-	case NodeType::ExtendedScopeExpression:return Evaluate(Out, *ExtendedScopeExpression::As(node)); break;
+	case NodeType::BinaryExpressionNode: R = Evaluate(Out,*BinaryExpressionNode::As(node)); break;
+	case NodeType::ValueExpressionNode: R = Evaluate(Out, *ValueExpressionNode::As(node)); break;
+	case NodeType::CastNode: R = Evaluate(Out, *CastNode::As(node)); break;
+	case NodeType::ExtendedFuncExpression: R = Evaluate(Out, *ExtendedFuncExpression::As(node)); break;
+	case NodeType::ExtendedScopeExpression: R = Evaluate(Out, *ExtendedScopeExpression::As(node)); break;
 	default:
 		throw std::exception("not added");
 		break;
 	}
+	GetExpressionMode.pop();
+
+	return R;
+}
+
+bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ExpressionNodeType& node, GetValueMode Mode)
+{
+	return Evaluate_t(Out, node.Value.get(),Mode);
 }
 
 bool SystematicAnalysis::EvaluatePostfixOperator(EvaluatedEx& Out, TokenType Op)
@@ -12921,6 +12936,14 @@ bool SystematicAnalysis::EvaluateImplicitConversion(EvaluatedEx& In, const TypeS
 	}
 	return false;
 }
+bool SystematicAnalysis::EvalutateStepScopedName(EvaluatedEx& Out, const ScopedNameNode& node, size_t Index, ScopedName::Operator_t OpType, GetMemberTypeSymbolFromVar_t& OtherOut)
+{
+
+}
+bool SystematicAnalysis::CanEvalutateFuncCheck(const Get_FuncInfo& Func)
+{
+	return false;
+}
 bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const TypeSymbol& MustBeType, const ExpressionNodeType& node)
 {
 	OnExpressionTypeNode(node.Value.get(), GetValueMode::Read);//check
@@ -12936,7 +12959,7 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const TypeSymbol& MustBeType
 	}
 
 	EvaluatedEx ex1 = MakeEx(LastExpressionType);
-	if (Evaluate_t(ex1, node.Value.get()))
+	if (Evaluate_t(ex1, node.Value.get(),GetValueMode::Read))
 	{
 		return EvaluateImplicitConversion(ex1, MustBeType, Out);
 	}
@@ -12962,7 +12985,7 @@ bool SystematicAnalysis::EvaluateToAnyType(EvaluatedEx& Out, const ExpressionNod
 	
 
 	EvaluatedEx ex1 = MakeEx(LastExpressionType);
-	bool CompilerRet=  Evaluate_t(ex1, node.Value.get());
+	bool CompilerRet=  Evaluate_t(ex1, node.Value.get(),GetValueMode::Read);
 	Out = std::move(ex1);
 	return CompilerRet;
 }
@@ -13010,17 +13033,42 @@ bool SystematicAnalysis::EvalutateValidNode(EvaluatedEx& Out, const ValidNode& n
 }
 bool SystematicAnalysis::EvalutateFunc(EvaluatedEx& Out, const FuncCallNode& node)
 {
+	Get_FuncInfo FuncInfo = GetFunc(node.FuncName, node.Generics, node.Parameters, Get_LookingForType());
+
+	if (CanEvalutateFuncCheck(FuncInfo))
+	{
+		Vector<EvaluatedEx> ValuePars;
+		ValuePars.resize(FuncInfo.Func->Pars.size());
+
+		for (size_t i = 0; i < node.Parameters._Nodes.size(); i++)
+		{
+			const TypeSymbol& Par = FuncInfo.Func->Pars[i];
+			auto& Item = node.Parameters._Nodes[i];
+
+			auto Info = Evaluate(Par, *Item.get());
+
+			if (!Info.has_value())
+			{
+				return false;
+			}
+
+			ValuePars.push_back(std::move(Info.value()));
+		}
+
+		return EvalutateFunc(Out, FuncInfo, node.FuncName, ValuePars);
+	}
 	return false;
 }
-bool EvalutateFunc(const TypeSymbol& Type, const Get_FuncInfo& Func, const ValueParametersNode& ValuePars)
+
+bool SystematicAnalysis::EvalutateFunc(EvaluatedEx& Out, const TypeSymbol& Type, const Get_FuncInfo& Func, const Vector<EvaluatedEx>& ValuePars)
 {
 	return false;
 }
-bool SystematicAnalysis::EvalutateFunc(EvaluatedEx& Out, const Get_FuncInfo& Func, const ScopedNameNode& Name, const ValueParametersNode& Pars)
+bool SystematicAnalysis::EvalutateFunc(EvaluatedEx& Out, const Get_FuncInfo& Func, const ScopedNameNode& Name, const Vector<EvaluatedEx>& ValuePars)
 {
 	return false;
 }
-bool SystematicAnalysis::EvalutateFunc(EvaluatedEx& Out, const TypeSymbol& Type, const Get_FuncInfo& Func, const ValueParametersNode& ValuePars)
+bool SystematicAnalysis::EvalutateFunc(EvaluatedEx& Out, const TypeSymbol& Type, const Get_FuncInfo& Func, const Vector<EvaluatedEx>& ValuePars)
 {
 	String B = ToString(Type);
 	Token T;
@@ -13036,15 +13084,138 @@ bool SystematicAnalysis::EvalutateFunc(EvaluatedEx& Out, const TypeSymbol& Type,
 
 	return EvalutateFunc(Out,Func, Tep, ValuePars);
 }
-bool SystematicAnalysis::Evalutate(EvaluatedEx& Out, const ExtendedScopeExpression& node)
+bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ExtendedScopeExpression& node)
 {
+	Optional<EvaluatedEx> Ex = EvaluateToAnyType(node.Expression);
+	
+	if (Ex.has_value()) 
+	{
+		auto ExpressionType = LastExpressionType;
+
+		GetMemberTypeSymbolFromVar_t V;
+
+		auto ExValue = Ex.value();
+
+		GetExpressionMode.push(GetExpressionMode.top());
+		{
+			V.Type = ExpressionType;
+			V.Symbol = GetSymbol(ExpressionType);
+
+
+			if (EvalutateStepScopedName(ExValue, node.Extended, 0, node.Operator, V))
+			{
+				return false;
+			}
+
+			for (size_t i = 1; i < node.Extended.ScopedName.size(); i++)
+			{
+				if (EvalutateStepScopedName(ExValue, node.Extended, i, node.Extended.ScopedName[i].Operator, V))
+				{
+					return false;
+				}
+			}
+		}
+		GetExpressionMode.pop();
+
+		LastExpressionType = V.Type;
+		Out = std::move(ExValue);
+		return true;
+	}
 	return false;
 }
-bool SystematicAnalysis::Evalutate(EvaluatedEx& Out, const ExtendedFuncExpression& node)
+bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ExtendedFuncExpression& node)
 {
+	Optional<EvaluatedEx> Ex = EvaluateToAnyType(node.Expression);
+
+	auto ExpressionType = LastExpressionType;
+
+	GetExpressionMode.push(GetExpressionMode.top());
+	{
+
+		TypeSymbol TypeToStart = ExtendedFuncExpressionGetTypeToStart(ExpressionType, node);
+
+		const Token& ToGetLinesFrom = *node.Extended.FuncName.ScopedName.begin()->token;
+
+		ScopedNameNode Name;
+
+		ScopedName TepV;
+
+
+		Token TepToken;
+
+		TepToken.OnLine = ToGetLinesFrom.OnLine;
+		TepToken.OnPos = ToGetLinesFrom.OnPos;
+		TepToken.Type = TokenType::Name;
+
+		RemoveTypeattributes(TypeToStart);
+
+		String Buffer = ToString(TypeToStart);
+
+		TepToken.Value._String = Buffer;
+
+		TepV.token = &TepToken;
+
+
+		TepV.Operator = ScopedName::Operator_t::ScopeResolution;
+		Name.ScopedName.push_back(std::move(TepV));
+
+		{
+
+			{
+				auto Copy = node.Extended.FuncName.ScopedName.back();
+				Name.ScopedName.push_back(std::move(Copy));
+			}
+			for (size_t i = 1; i < node.Extended.FuncName.ScopedName.size(); i++)
+			{
+				auto& Item = node.Extended.FuncName.ScopedName[i];
+				auto Copy = Item;
+				Name.ScopedName.push_back(std::move(Copy));
+			}
+		}
+
+		ValueParametersNode Pars;
+		Pars._Nodes.push_back(Unique_ptr<Node>(node.Expression.Value.get()));
+
+		for (size_t i = 0; i < node.Extended.Parameters._Nodes.size(); i++)
+		{
+			auto& Item = node.Extended.Parameters._Nodes[i];
+			Pars._Nodes.push_back(Unique_ptr<Node>(Item.get()));
+		}
+
+		auto FuncInfo = GetFunc(Name, node.Extended.Generics, Pars, Get_LookingForType());
+
+
+		Vector<EvaluatedEx> ValuePars;
+		ValuePars.resize(FuncInfo.Func->Pars.size());
+
+		for (size_t i = 0; i < Pars._Nodes.size(); i++)
+		{
+			const TypeSymbol& Par = FuncInfo.Func->Pars[i];
+			auto& Item = Pars._Nodes[i];
+
+			auto Info = Evaluate(Par, *Item.get());
+
+			if (!Info.has_value())
+			{
+				return false;
+			}
+
+			ValuePars.push_back(std::move(Info.value()));
+		}
+
+
+		for (auto& Item : Pars._Nodes)
+		{
+			auto Node = Item.release();//is ok it was borrwed.
+		}
+
+		return EvalutateFunc(Out, FuncInfo,node.Extended.FuncName, ValuePars);
+
+	}
+	GetExpressionMode.pop();
 	return false;
 }
-bool SystematicAnalysis::EvalutateScopedName(EvaluatedEx& Out, size_t Start, size_t End, const ScopedNameNode& node)
+bool SystematicAnalysis::EvalutateScopedName(EvaluatedEx& Out, size_t Start, size_t End, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& OtherOut)
 {
 	GetExpressionMode.push(GetValueMode::Read);
 	GetMemberTypeSymbolFromVar_t V;
