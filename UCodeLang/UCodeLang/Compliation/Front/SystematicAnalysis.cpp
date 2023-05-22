@@ -7,6 +7,44 @@
 #include "UCodeLang/Compliation/Helpers/NameDecoratior.hpp"
 UCodeLangFrontStart
 
+
+constexpr size_t BuiltInCount = (size_t)Systematic_BuiltInFunctions::ID::Max - 1;
+
+static const Array<Systematic_BuiltInFunctions::FunctionData, BuiltInCount> BuiltFuncList =
+{
+	 FunctionData("Name",Systematic_BuiltInFunctions::ID::TypeInfo_GetName),
+	 FunctionData("FullName",Systematic_BuiltInFunctions::ID::TypeInfo_GetFullName),
+};
+const Systematic_BuiltInFunctions::FunctionData* Systematic_BuiltInFunctions::GetFunction(const String_view Name, const Vector<FunctionPar>& Pars)
+{
+
+	for (auto& Item : BuiltFuncList)
+	{
+		if (Item.FuncName == Name
+			&& Item.Pars.size() == Pars.size())
+		{
+			for (size_t i = 0; i < Pars.size(); i++)
+			{
+				auto& FuncPar = Item.Pars[i];
+				auto& Par = Pars[i];
+
+				if (FuncPar.IsOutPar != Par.IsOutPar
+					|| FuncPar.Type._Type != Par.Type._Type
+					|| FuncPar.Type._TypeInfo != Par.Type._TypeInfo)
+
+				{
+					break;
+					
+				}
+			}
+			
+			return &Item;
+		}
+	}
+	
+	return nullptr;
+}
+
 void SystematicAnalysis::Reset()
 {
 	auto ErrorsOutput = _ErrorsOutput;
@@ -8376,7 +8414,7 @@ void SystematicAnalysis::OnExpressionNode(const ExtendedFuncExpression& node)
 
 			TypeSymbol TypeToStart = ExtendedFuncExpressionGetTypeToStart(ExpressionType, node);
 
-		
+			//Boring boiler plate for Tep ScopedNameNode should be the same in  Evaluate(EvaluatedEx& Out, const ExtendedFuncExpression& node)
 			const Token& ToGetLinesFrom = *node.Extended.FuncName.ScopedName.begin()->token;
 
 			ScopedNameNode Name;
@@ -8418,6 +8456,7 @@ void SystematicAnalysis::OnExpressionNode(const ExtendedFuncExpression& node)
 					Name.ScopedName.push_back(std::move(Copy));
 				}
 			}
+			//
 
 			ValueParametersNode Pars;
 			Pars._Nodes.push_back(Unique_ptr<Node>(node.Expression.Value.get()));
@@ -11371,7 +11410,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 		
 	}
 
-	//
+	//Out-Par
 	{
 		if (HasOutPar)
 		{
@@ -11397,6 +11436,23 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 	}
 	//
 
+	//TypeInfo
+	{
+		bool IsTypeInfo = ValueTypes.front().IsTypeInfo();
+
+		if (IsTypeInfo) 
+		{
+			if (ThisParType == Get_FuncInfo::ThisPar_t::PushFromScopedName)
+			{
+
+			}
+		}
+		else
+		{
+
+		}
+	}
+	//
 
 	auto Symbols = _Table.GetSymbolsWithName(ScopedName, SymbolType::Any);
 	StartSymbolsLoop:
@@ -12938,7 +12994,7 @@ bool SystematicAnalysis::EvaluateImplicitConversion(EvaluatedEx& In, const TypeS
 }
 bool SystematicAnalysis::EvalutateStepScopedName(EvaluatedEx& Out, const ScopedNameNode& node, size_t Index, ScopedName::Operator_t OpType, GetMemberTypeSymbolFromVar_t& OtherOut)
 {
-
+	return false;
 }
 bool SystematicAnalysis::CanEvalutateFuncCheck(const Get_FuncInfo& Func)
 {
@@ -13060,10 +13116,6 @@ bool SystematicAnalysis::EvalutateFunc(EvaluatedEx& Out, const FuncCallNode& nod
 	return false;
 }
 
-bool SystematicAnalysis::EvalutateFunc(EvaluatedEx& Out, const TypeSymbol& Type, const Get_FuncInfo& Func, const Vector<EvaluatedEx>& ValuePars)
-{
-	return false;
-}
 bool SystematicAnalysis::EvalutateFunc(EvaluatedEx& Out, const Get_FuncInfo& Func, const ScopedNameNode& Name, const Vector<EvaluatedEx>& ValuePars)
 {
 	return false;
@@ -13134,6 +13186,9 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ExtendedFuncExpression
 
 		TypeSymbol TypeToStart = ExtendedFuncExpressionGetTypeToStart(ExpressionType, node);
 
+
+
+		//Boring boiler plate for Tep ScopedNameNode
 		const Token& ToGetLinesFrom = *node.Extended.FuncName.ScopedName.begin()->token;
 
 		ScopedNameNode Name;
@@ -13172,6 +13227,7 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ExtendedFuncExpression
 				Name.ScopedName.push_back(std::move(Copy));
 			}
 		}
+		//
 
 		ValueParametersNode Pars;
 		Pars._Nodes.push_back(Unique_ptr<Node>(node.Expression.Value.get()));
@@ -13184,29 +13240,39 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ExtendedFuncExpression
 
 		auto FuncInfo = GetFunc(Name, node.Extended.Generics, Pars, Get_LookingForType());
 
-
+		
 		Vector<EvaluatedEx> ValuePars;
-		ValuePars.resize(FuncInfo.Func->Pars.size());
-
-		for (size_t i = 0; i < Pars._Nodes.size(); i++)
+		bool BadPars = false;
+		
+		if (CanEvalutateFuncCheck(FuncInfo)) 
 		{
-			const TypeSymbol& Par = FuncInfo.Func->Pars[i];
-			auto& Item = Pars._Nodes[i];
+			ValuePars.resize(FuncInfo.Func->Pars.size());
 
-			auto Info = Evaluate(Par, *Item.get());
-
-			if (!Info.has_value())
+			
+			for (size_t i = 0; i < Pars._Nodes.size(); i++)
 			{
-				return false;
+				const TypeSymbol& Par = FuncInfo.Func->Pars[i];
+				auto& Item = Pars._Nodes[i];
+
+				auto Info = Evaluate(Par, *Item.get());
+
+				if (!Info.has_value())
+				{
+					BadPars = true;
+				}
+
+				ValuePars.push_back(std::move(Info.value()));
 			}
-
-			ValuePars.push_back(std::move(Info.value()));
 		}
-
 
 		for (auto& Item : Pars._Nodes)
 		{
 			auto Node = Item.release();//is ok it was borrwed.
+		}
+
+		if (BadPars)
+		{
+			return false;
 		}
 
 		return EvalutateFunc(Out, FuncInfo,node.Extended.FuncName, ValuePars);

@@ -199,7 +199,41 @@ public:
 		}
 	}
 };
+struct Systematic_BuiltInFunctions
+{
+public:
 
+	enum class ID 
+	{
+		Null,
+		TypeInfo_GetName,
+		TypeInfo_GetFullName,
+
+		Max,
+	};
+	
+	struct FunctionPar
+	{
+		bool IsOutPar =false;
+		TypeSymbol Type;
+	};
+	struct FunctionData
+	{
+		String FuncName;
+		ID _ID = ID::Null;
+
+		bool IsMemberFuncion = false;
+		Vector<FunctionPar> Pars;
+		TypeSymbol Ret;
+		FunctionData(const String& Str, ID ID)
+		{
+			FuncName = Str;
+			_ID = ID;
+		}
+	};
+
+	const FunctionData* GetFunction(const String_view Name,const Vector<FunctionPar>& Pars);
+};
 
 
 class SystematicAnalysis
