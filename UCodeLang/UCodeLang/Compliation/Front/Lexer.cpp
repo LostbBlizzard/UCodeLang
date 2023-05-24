@@ -225,7 +225,17 @@ void Lexer::Lex(const String_view& Text)
 			}
 			break;
 		case '$':
-			ReadingState = ReadingNameState::Class;
+			NextChar = GetNextChar(1);
+			if (LexerHelper::IsNondigitName(NextChar))
+			{
+				ReadingState = ReadingNameState::Class;
+			}
+			else
+			{
+				_Token.Type = TokenType::DollarSign;
+				_Token.Value = nullptr;
+				_Tokens.push_back(_Token);
+			}
 			break;
 		case '\"':
 			ReadingState = ReadingNameState::String;

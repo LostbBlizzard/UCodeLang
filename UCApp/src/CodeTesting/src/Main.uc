@@ -18,6 +18,8 @@
 
 */
 
+/*
+
 eval char[/1] VarableName = "Y";
 
 $Cool:
@@ -28,5 +30,19 @@ $Cool:
  
  eval Item = type(Cool).Name();
  eval Item2 = type(Cool).FullName();
+
+ //umut char[&] Str = Item;
+
+*/
+
+
+|main[]:
+ 
+ //int^ Buffer = unq int();
+ //int$ Buffer2 = shr int();
+
+ int[^] Buffer5 = unq int[1];
+ //int[$] Buffer6 = shr int[1];
+ 
 
  //umut char[&] Str = Item;

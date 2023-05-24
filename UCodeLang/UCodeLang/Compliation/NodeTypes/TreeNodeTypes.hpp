@@ -461,6 +461,7 @@ struct ValueParametersNode :Node
 
 	}
 	ValueParametersNode(ValueParametersNode&& Source) = default;
+	ValueParametersNode& operator=(ValueParametersNode&& source) = default;
 	AddforNodeAndWithList(ValueParametersNode);
 };
 struct AttributeNode :Node
