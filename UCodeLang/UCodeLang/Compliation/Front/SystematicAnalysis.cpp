@@ -12,8 +12,8 @@ constexpr size_t BuiltInCount = (size_t)Systematic_BuiltInFunctions::ID::Max - 1
 
 static const Array<Systematic_BuiltInFunctions::FunctionData, BuiltInCount> BuiltFuncList =
 {
-	 FunctionData("Name",Systematic_BuiltInFunctions::ID::TypeInfo_GetName),
-	 FunctionData("FullName",Systematic_BuiltInFunctions::ID::TypeInfo_GetFullName),
+	 Systematic_BuiltInFunctions::FunctionData("Name",Systematic_BuiltInFunctions::ID::TypeInfo_GetName),
+	 Systematic_BuiltInFunctions::FunctionData("FullName",Systematic_BuiltInFunctions::ID::TypeInfo_GetFullName),
 };
 const Systematic_BuiltInFunctions::FunctionData* Systematic_BuiltInFunctions::GetFunction(const String_view Name, const Vector<FunctionPar>& Pars)
 {
@@ -11438,7 +11438,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 
 	//TypeInfo
 	{
-		bool IsTypeInfo = ValueTypes.front().IsTypeInfo();
+		bool IsTypeInfo = ValueTypes.size() && ValueTypes.front().IsTypeInfo();
 
 		if (IsTypeInfo) 
 		{

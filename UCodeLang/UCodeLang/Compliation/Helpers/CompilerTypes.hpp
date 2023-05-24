@@ -114,7 +114,11 @@ enum class TokenType : TokenType_t
 	KeyWord_umut,//umut
 
 	ellipses,//...
+	DollarSign,//$
 
+	KeyWord_unq,//unq
+	KeyWord_shr,//shr
+	KeyWord_null,//null
 	//Types
 	KeyWord_UInt8,
 	KeyWord_UInt16,

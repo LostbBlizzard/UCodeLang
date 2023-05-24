@@ -1,22 +1,14 @@
 %ULang:
   //has built in alias in compiler.Ex: int^ and unq int();
-  $Unique_ptr<T>:
-   private:
-    T& _Data;
-   public:
+  $Unique_ptr<T>;
 
-    |new[this&]:
-     _Data &= bitcast<T[&]>(0);
-
-    |new[this&, moved this& Item];
-
-    
-
-  //has built in alias in compiler.Ex: int[\]^ and unq int[\](); 
+  //has built in alias in compiler.Ex: int[^] and unq int[?]; 
   $Unique_Array<T>;
 
-  //has built in alias in compiler.Ex: shr int();
+  //has built in alias in compiler.Ex: int$ and shr int();
   $Shared_ptr<T>;
 
-
+  //has built in alias in compiler.Ex: int[$] and shr int[?];
   $Shared_Array<T>;
+
+   

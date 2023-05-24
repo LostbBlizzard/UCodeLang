@@ -85,6 +85,13 @@ inline const char* S_KeyWord_import = "import";
 
 inline const char* S_KeyWord_typeinfo = "typeinfo";
 
+
+inline const char* S_KeyWord_unq = "unq";
+inline const char* S_KeyWord_shr = "shr";
+
+inline const char* S_KeyWord_null = "null";
+inline const char* S_KeyWord_nullptr= "nullptr";
+
 struct KeyWord
 {
 	const char* keyWord;
@@ -176,6 +183,12 @@ inline KeyWord KeyWords[] =
 	KeyWord(S_KeyWord_import,TokenType::KeyWord_Import),
 
 	KeyWord(S_KeyWord_typeinfo,TokenType::KeyWord_TypeInfo),
+
+	KeyWord(S_KeyWord_unq,TokenType::KeyWord_unq),
+	KeyWord(S_KeyWord_shr,TokenType::KeyWord_shr),
+
+	KeyWord(S_KeyWord_null,TokenType::Null),
+	KeyWord(S_KeyWord_nullptr,TokenType::Null),
 };
 constexpr size_t KeyWords_Size = sizeof(KeyWords) / sizeof(KeyWords[0]);
 class KeyWordHelper

@@ -561,6 +561,31 @@ private:
 		return { r,V };
 	}
 	GotNodeType GetMatchExpression(MatchExpression& out);
+
+	TryGetNode GetUnqExpresionNode()
+	{
+		Node* V = nullptr;
+		auto r = GetUnqExpresionNode(V);
+		TrippedCheck(r);
+		return { r,V};
+	}
+
+	GotNodeType GetUnqExpresionNode(Node*& out);
+
+	void SmartPointerNewArray(TypeNode& TypeNode, const Token* Token, FuncCallNode* OutNode, Node* ArrayCountexpression, String_view SmartPointerName, String_view SmartPoinerMakeFunc);
+
+	void SmartPointerNewToFuncName(TypeNode& TypeNode,ValueParametersNode& Pars, const Token* Token, FuncCallNode* OutNode, String_view SmartPointerName, String_view SmartPoinerMakeFunc);
+
+	TryGetNode GetShrExpresionNode()
+	{
+		Node* V = nullptr;
+		auto r = GetShrExpresionNode(V);
+		TrippedCheck(r);
+		return { r,V };
+	}
+
+	GotNodeType GetShrExpresionNode(Node*& out);
+
 };
 UCodeLangFrontEnd
 

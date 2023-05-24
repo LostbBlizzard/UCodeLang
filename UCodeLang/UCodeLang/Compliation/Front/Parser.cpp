@@ -626,7 +626,7 @@ GotNodeType Parser::GetStatement(Node*& out)
 
 					if (!NameWasBefor) 
 					{
-						if (Token.Type == TokenType::Name && i == Start)
+						if ( Token.Type == TokenType::Name && i == Start)
 						{
 							NameWasBefor = true;
 						}
@@ -643,7 +643,9 @@ GotNodeType Parser::GetStatement(Node*& out)
 							|| Token.Type == TokenType::greaterthan
 							|| TypeNode::IsType(Token.Type)
 							|| Token.Type == TokenType::Right_Bracket
-							|| Token.Type == TokenType::bitwise_and)
+							|| Token.Type == TokenType::bitwise_and
+							|| Token.Type == TokenType::bitwise_XOr
+							|| Token.Type == TokenType::DollarSign)
 						{
 							StatemeType = MyEnum::DeclareVar;
 						}
@@ -1104,6 +1106,20 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 	case TokenType::KeyWord_match:
 	{
 		auto V = GetMatchExpression();
+		out = V.Node;
+		return V.GotNode;
+	}
+	break;
+	case TokenType::KeyWord_unq:
+	{
+		auto V = GetUnqExpresionNode();
+		out = V.Node;
+		return V.GotNode;
+	}
+	break;
+	case TokenType::KeyWord_shr:
+	{
+		auto V = GetShrExpresionNode();
 		out = V.Node;
 		return V.GotNode;
 	}
@@ -1711,7 +1727,7 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 				NameToken->OnLine = Token2->OnLine;
 				NameToken->OnPos = Token2->OnPos;
 				NameToken->Type = TokenType::Name;
-				NameToken->Value._String = UCode_ViewType;
+				NameToken->Value._String = UCode_SpanType;
 
 				_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
 
@@ -1720,6 +1736,7 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 			}
 			else if (Token2->Type == TokenType::Right_Bracket)//int[] => Vector<int>
 			{
+				NextToken();
 				TypeNode* New = new TypeNode();
 
 				New->Isimmutable = out->Isimmutable;
@@ -1731,6 +1748,46 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 				NameToken->OnPos = Token2->OnPos;
 				NameToken->Type = TokenType::Name;
 				NameToken->Value._String = UCode_VectorType;
+
+				_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
+
+				New->Name.Token = NameToken;
+				out = New;
+			}
+			else if (Token2->Type == TokenType::bitwise_XOr)//int[^] => Unique_Array<int>
+			{
+				NextToken();
+				TypeNode* New = new TypeNode();
+
+				New->Isimmutable = out->Isimmutable;
+				out->Isimmutable = false;
+				New->Generic.Values.push_back(std::move(*out));
+
+				auto NameToken = new UCodeLang::Token();
+				NameToken->OnLine = Token2->OnLine;
+				NameToken->OnPos = Token2->OnPos;
+				NameToken->Type = TokenType::Name;
+				NameToken->Value._String = UCode_Unique_Array;
+
+				_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
+
+				New->Name.Token = NameToken;
+				out = New;
+			}
+			else if (Token2->Type == TokenType::DollarSign)//int[^] => Unique_Array<int>
+			{
+				NextToken();
+				TypeNode* New = new TypeNode();
+
+				New->Isimmutable = out->Isimmutable;
+				out->Isimmutable = false;
+				New->Generic.Values.push_back(std::move(*out));
+
+				auto NameToken = new UCodeLang::Token();
+				NameToken->OnLine = Token2->OnLine;
+				NameToken->OnPos = Token2->OnPos;
+				NameToken->Type = TokenType::Name;
+				NameToken->Value._String = UCode_Shared_Array;
 
 				_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
 
@@ -1800,6 +1857,50 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 			NameToken->OnPos = Token2->OnPos;
 			NameToken->Type = TokenType::Name;
 			NameToken->Value._String = UCode_OptionalType;
+
+			_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
+
+			New->Name.Token = NameToken;
+			out = New;
+
+			Token2 = TryGetToken();
+		}
+		else if (Token2->Type == TokenType::bitwise_XOr)//int^ => Unique_ptr<int>
+		{
+			NextToken();
+			TypeNode* New = new TypeNode();
+
+			New->Isimmutable = out->Isimmutable;
+			out->Isimmutable = false;
+			New->Generic.Values.push_back(std::move(*out));
+
+			auto NameToken = new UCodeLang::Token();
+			NameToken->OnLine = Token2->OnLine;
+			NameToken->OnPos = Token2->OnPos;
+			NameToken->Type = TokenType::Name;
+			NameToken->Value._String = UCode_Unique_ptr;
+
+			_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
+
+			New->Name.Token = NameToken;
+			out = New;
+
+			Token2 = TryGetToken();
+		}
+		else if (Token2->Type == TokenType::DollarSign)//int$ => Shared_ptr<int>
+		{
+			NextToken();
+			TypeNode* New = new TypeNode();
+
+			New->Isimmutable = out->Isimmutable;
+			out->Isimmutable = false;
+			New->Generic.Values.push_back(std::move(*out));
+
+			auto NameToken = new UCodeLang::Token();
+			NameToken->OnLine = Token2->OnLine;
+			NameToken->OnPos = Token2->OnPos;
+			NameToken->Type = TokenType::Name;
+			NameToken->Value._String = UCode_Shared_ptr;
 
 			_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
 
@@ -3641,6 +3742,185 @@ GotNodeType Parser::GetMatchExpression(MatchExpression& out)
 	TokenTypeCheck(TryGetToken(), TokenType::EndTab);
 	NextToken();
 
+	return GotNodeType::Success;
+}
+GotNodeType Parser::GetUnqExpresionNode(Node*& out)
+{
+	auto Token = TryGetToken(); TokenTypeCheck(Token, TokenType::KeyWord_unq);
+	NextToken();
+
+	TypeNode TypeNode;
+	GetType(TypeNode, true);
+
+	auto ParToken = TryGetToken();
+	if (ParToken->Type == FuncCallStart) {
+
+		NextToken();
+
+		ValueParametersNode Pars;
+
+		GetValueParametersNode(Pars);
+
+		auto Par2Token = TryGetToken();
+		TokenTypeCheck(Par2Token, FuncCallEnd);
+		NextToken();
+
+
+		FuncCallNode* OutNode = new FuncCallNode();
+		out = OutNode;
+
+		SmartPointerNewToFuncName(TypeNode,Pars, Token, OutNode, UCode_Unique_ptr, UCode_Unique_Ptr_MakeFuncion);
+		
+	}
+	else if (ParToken->Type == TokenType::Left_Bracket)
+	{
+		NextToken();
+
+		Node* ArrayCountexpression = {};
+
+		GetExpressionTypeNode(ArrayCountexpression);
+
+		auto Par2Token = TryGetToken();
+		TokenTypeCheck(Par2Token, TokenType::Right_Bracket);
+		NextToken();
+
+		//
+		FuncCallNode* OutNode = new FuncCallNode();
+		out = OutNode;
+		SmartPointerNewArray(TypeNode, Token, OutNode, ArrayCountexpression, UCode_Unique_Array, UCode_Unique_Array_MakeFuncion);
+
+		//
+	}
+	else
+	{
+		TokenTypeCheck(ParToken, FuncCallStart);
+	}
+	return GotNodeType::Success;
+}
+void Parser::SmartPointerNewArray(TypeNode& TypeNode, const Token* Token, FuncCallNode* OutNode, Node* ArrayCountexpression, String_view SmartPointerName, String_view SmartPoinerMakeFunc)
+{
+
+	ScopedName ClassName;
+	UseGenericsNode Generics;
+	Generics.Values.push_back(std::move(TypeNode));
+
+	auto NameToken = new UCodeLang::Token();
+	NameToken->OnLine = Token->OnLine;
+	NameToken->OnPos = Token->OnPos;
+	NameToken->Type = TokenType::Name;
+	NameToken->Value._String = SmartPointerName;
+	_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
+
+	ClassName.token = NameToken;
+	ClassName.Operator = ScopedName::Operator_t::ScopeResolution;
+
+	ClassName.Generic = Shared_ptr<UseGenericsNode>(new UseGenericsNode(std::move(Generics)));
+	OutNode->FuncName.ScopedName.push_back(std::move(ClassName));
+
+
+
+	auto FuncNameToken = new UCodeLang::Token();
+	FuncNameToken->OnLine = Token->OnLine;
+	FuncNameToken->OnPos = Token->OnPos;
+	FuncNameToken->Type = TokenType::Name;
+	FuncNameToken->Value._String = SmartPoinerMakeFunc;
+	_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(FuncNameToken));
+
+	ScopedName FuncName;
+	FuncName.token = FuncNameToken;
+
+	OutNode->FuncName.ScopedName.push_back(std::move(FuncName));
+
+
+	OutNode->Parameters._Nodes.push_back(Unique_ptr<Node>(ArrayCountexpression));
+}
+void Parser::SmartPointerNewToFuncName(TypeNode& TypeNode, ValueParametersNode& Pars, const Token* Token,FuncCallNode* OutNode,String_view SmartPointerName, String_view SmartPoinerMakeFunc)
+{
+	ScopedName ClassName;
+	UseGenericsNode Generics;
+	Generics.Values.push_back(std::move(TypeNode));
+
+	auto NameToken = new UCodeLang::Token();
+	NameToken->OnLine = Token->OnLine;
+	NameToken->OnPos = Token->OnPos;
+	NameToken->Type = TokenType::Name;
+	NameToken->Value._String = SmartPointerName;
+	_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
+
+	ClassName.token = NameToken;
+	ClassName.Operator = ScopedName::Operator_t::ScopeResolution;
+
+	ClassName.Generic = Shared_ptr<UseGenericsNode>(new UseGenericsNode(std::move(Generics)));
+	OutNode->FuncName.ScopedName.push_back(std::move(ClassName));
+
+
+
+	auto FuncNameToken = new UCodeLang::Token();
+	FuncNameToken->OnLine = Token->OnLine;
+	FuncNameToken->OnPos = Token->OnPos;
+	FuncNameToken->Type = TokenType::Name;
+	FuncNameToken->Value._String = SmartPoinerMakeFunc;
+	_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(FuncNameToken));
+
+	ScopedName FuncName;
+	FuncName.token = FuncNameToken;
+
+	OutNode->FuncName.ScopedName.push_back(std::move(FuncName));
+
+	OutNode->Parameters = std::move(Pars);
+}
+GotNodeType Parser::GetShrExpresionNode(Node*& out)
+{
+	auto Token = TryGetToken(); TokenTypeCheck(Token, TokenType::KeyWord_shr);
+	NextToken();
+
+	TypeNode TypeNode;
+	GetType(TypeNode, true);
+
+	auto ParToken = TryGetToken();
+	if (ParToken->Type == FuncCallStart) {
+
+		NextToken();
+
+		ValueParametersNode Pars;
+
+		GetValueParametersNode(Pars);
+
+		auto Par2Token = TryGetToken();
+		TokenTypeCheck(Par2Token, FuncCallEnd);
+		NextToken();
+
+
+		FuncCallNode* OutNode = new FuncCallNode();
+		out = OutNode;
+
+		SmartPointerNewToFuncName(TypeNode, Pars, Token, OutNode, UCode_Shared_ptr, UCode_Shared_Ptr_MakeFuncion);
+
+	}
+	else if (ParToken->Type == TokenType::Left_Bracket)
+	{
+		NextToken();
+
+		Node* ArrayCountexpression =nullptr;
+
+		GetExpressionTypeNode(ArrayCountexpression);
+
+		auto Par2Token = TryGetToken();
+		TokenTypeCheck(Par2Token, TokenType::Right_Bracket);
+		NextToken();
+
+
+		//
+		FuncCallNode* OutNode = new FuncCallNode();
+		out = OutNode;
+		SmartPointerNewArray(TypeNode, Token, OutNode, ArrayCountexpression, UCode_Shared_Array, UCode_Shared_Array_MakeFuncion);
+
+		//
+	}
+	else
+	{
+		TokenTypeCheck(ParToken, FuncCallStart);
+	}
 	return GotNodeType::Success;
 }
 UCodeLangFrontEnd

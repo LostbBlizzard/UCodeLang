@@ -84,7 +84,21 @@
 #define UCode_OptionalType "Optional"//int?
 #define UCode_ArrayType "Array"//int[10]
 #define UCode_VectorType "Vector"//int[]
-#define UCode_ViewType "View"//int[:]
+#define UCode_SpanType "Span"//int[:]
 
-#define UCode_Shared_ptr "Unique_ptr"//int^ 
-#define Ucode_Unique_ptr "Shared_ptr"//int%
+#define UCode_Unique_ptr "Unique_ptr"//int^ 
+#define UCode_Shared_ptr "Shared_ptr"//int$ 
+
+#define UCode_Unique_Ptr_MakeFuncion "Make"//int[^]::Make(...)
+#define UCode_Shared_Ptr_MakeFuncion "Make"//int[$]::Make(...)
+
+
+#define UCode_Unique_Array "Unique_Array"//int[^] 
+#define UCode_Shared_Array "Shared_Array"//int[$] 
+
+#define UCode_Unique_Array_MakeFuncion "Make"//int[^]::Make(...)
+#define UCode_Shared_Array_MakeFuncion "Make"//int[$]::Make(...)
+
+
+
+
