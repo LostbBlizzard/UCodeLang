@@ -15,3 +15,7 @@
 
   |NullPtrAccess[]:
    panic("Null Ptr Access");
+
+  |CheckBool[bool Value]:
+   if Value == false:
+    panic("bool was false");
