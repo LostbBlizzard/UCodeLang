@@ -53,7 +53,7 @@
 
    |+=[this&,moved this Other]: this += Other.AsView();
 
- $StringView_t<T>:
+ $StringView_t<T> = T[:];
 
  $String = String_t<char>; 
  $StringView = StringView_t<char>;
