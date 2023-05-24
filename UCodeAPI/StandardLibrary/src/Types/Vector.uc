@@ -31,9 +31,6 @@
 
    |RemoveAtIndex[size_t Index] -> void;
    |RemoveIf<T>[T CallAble]:
-    for [var& Item : AsView().AsReverseView()]:
-     if CallAble(Item):
-      Pop();
   
    |Resize[this&,size_t Offset] -> void;
    |Clear[this&] -> void;
