@@ -37,6 +37,8 @@ void Parser::Parse(const Vector<Token>&Tokens)
 		case TokenType::KeyWord_Tag:V = GetTagNode(); break;
 		case TokenType::KeyWord_Enum:V = GetEnumNode(); break;
 		case TokenType::Class:V = GetClassNode(); break;
+
+		case TokenType::KeyWord_extern:
 		case Parser::declareFunc:V = GetFuncNode(); break;
 		case TokenType::KeyWord_use:V = GetUseNode(); break;
 		case TokenType::Left_Bracket:V = GetAttribute(); break;
@@ -131,6 +133,7 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 		case TokenType::KeyWord_Tag:V = GetTagNode(); break;
 		case TokenType::KeyWord_Enum:V = GetEnumNode(); break;
 		case TokenType::Class:V = GetClassNode();break;
+		case TokenType::KeyWord_extern:
 		case Parser::declareFunc:V = GetFuncNode(); break;
 		case TokenType::KeyWord_use:V = GetUseNode(); break;
 		case TokenType::Left_Bracket:V = GetAttribute();break;
@@ -322,6 +325,8 @@ GotNodeType Parser::DoClassType(ClassNode* output, const Token* ClassToken, Gene
 		case TokenType::KeyWord_Tag:V = GetTagNode(); break;
 		case TokenType::KeyWord_Enum:V = GetEnumNode(); break;
 		case TokenType::Class:V = GetClassNode(); break;
+
+		case TokenType::KeyWord_extern:
 		case Parser::declareFunc:V = GetFuncNode(); break;
 		case TokenType::KeyWord_use:V = GetUseNode(); break;
 		case TokenType::Left_Bracket:V = GetAttribute(); break;
@@ -384,6 +389,8 @@ void Parser::ClassTypeAccessModifierInerScope(Vector<Unique_ptr<Node>>& Out)
 		case TokenType::KeyWord_Tag:V = GetTagNode(); break;
 		case TokenType::KeyWord_Enum:V = GetEnumNode(); break;
 		case TokenType::Class:V = GetClassNode(); break;
+
+		case TokenType::KeyWord_extern:
 		case Parser::declareFunc:V = GetFuncNode(); break;
 		case TokenType::KeyWord_use:V = GetUseNode(); break;
 		case TokenType::Left_Bracket:V = GetAttribute(); break;
@@ -791,6 +798,21 @@ GotNodeType Parser::GetFuncNode(FuncNode& out)
 GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 {
 	auto funcToken = TryGetToken();
+
+	if (funcToken->Type == TokenType::KeyWord_extern)
+	{
+		out.HasExternKeyWord = true;
+		NextToken();
+
+		funcToken = TryGetToken();
+		if (funcToken->Type == TokenType::KeyWord_dynamic)
+		{
+			out.HasDynamicKeyWord = true;
+			NextToken();
+			funcToken = TryGetToken();
+		}
+	}
+
 	TokenTypeCheck(funcToken, Parser::declareFunc);
 	NextToken();
 

@@ -269,6 +269,7 @@ public:
 	struct FileNodeData
 	{
 		Vector< const FileNode_t*> _Dependencys;
+		//UClib ObjectFile;
 	};
 	const FileNodeData& GetFileData(const FileNode_t* file) const { return _FilesData.at(file); }
 private:

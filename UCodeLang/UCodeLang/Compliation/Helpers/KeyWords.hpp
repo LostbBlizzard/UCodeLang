@@ -92,6 +92,8 @@ inline const char* S_KeyWord_shr = "shr";
 inline const char* S_KeyWord_null = "null";
 inline const char* S_KeyWord_nullptr= "nullptr";
 
+inline const char* S_KeyWord_extern = "extern";
+
 struct KeyWord
 {
 	const char* keyWord;
@@ -189,6 +191,8 @@ inline KeyWord KeyWords[] =
 
 	KeyWord(S_KeyWord_null,TokenType::Null),
 	KeyWord(S_KeyWord_nullptr,TokenType::Null),
+
+	KeyWord(S_KeyWord_extern,TokenType::KeyWord_extern),
 };
 constexpr size_t KeyWords_Size = sizeof(KeyWords) / sizeof(KeyWords[0]);
 class KeyWordHelper

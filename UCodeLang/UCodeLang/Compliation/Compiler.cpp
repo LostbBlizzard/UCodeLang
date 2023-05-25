@@ -264,7 +264,7 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 	return r;
 }
 
-Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& Data)
+Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& Data, const ExternalFiles& ExternalFiles)
 {
 	enum class MyEnumClass :UInt8
 	{
@@ -279,8 +279,12 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 		Path Repath;
 		BytesPtr OpenedFile;
 		MyEnumClass Type= MyEnumClass::FileNotChanged;
-		DependencyFile::FileInfo* FileInfo = nullptr;
 
+		bool IsExternal = false;
+
+		DependencyFile::FileInfo* FileInfo = nullptr;
+		DependencyFile::ExternalFileInfo* ExternalFileInfo = nullptr;
+		
 		Path InterPath;
 
 		Unique_ptr<FileNode_t> _File;
@@ -325,8 +329,130 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 	Vector<Unique_ptr<DependencyFile::FileInfo>> NewFilesInfo;
 	Vector<MyStruct> FilesInfo;
 
+	Vector<Unique_ptr<DependencyFile::ExternalFileInfo>> NewExternalInfo;
+	//ExternalFiles
+	{
+		for (auto& Item : NewFile.ExternalFiles)
+		{
+			bool IsRemoved = false;
+
+			if (!fs::exists(Item.FullFilePath))
+			{
+				IsRemoved = true;
+			}
+			else
+			{
+				bool HasFile = false;
+				for (auto& Item2 : ExternalFiles.Files)
+				{
+					if (Item2 == Item.FullFilePath)
+					{
+						HasFile = true;
+						break;
+					}
+				}
+
+				IsRemoved = !HasFile;
+			}
+
+
+
+			if (IsRemoved)
+			{
+				MyStruct T;
+				T.Type = MyEnumClass::RemovedFile;
+
+				FilesInfo.push_back(std::move(T));
+				//removed file
+			}
+		}
+
+		for (auto& Item2 : ExternalFiles.Files)
+		{
+			Path path = Item2;
+			
+
+			const LangDefInfo::FileInfo* FInfo = nullptr;
+			for (auto& Item : Lang->FileTypes)
+			{
+				if (path.extension() == Item.FileExtWithDot)
+				{
+					FInfo = &Item;
+					break;
+				}
+			}
+			if (FInfo == nullptr) { continue; }
+
+
+			MyStruct T;
+			T.path = path;
+			DependencyFile::ExternalFileInfo F;
+			F.FullFilePath = path;
+			F.FileLastUpdated = *(UInt64*)&fs::last_write_time(path);
+			F.FileSize = fs::file_size(path);
+			F.FileHash = 0;
+
+			auto FileInfo = File.Get_ExternalFile_Info(path);
+			if (FileInfo)
+			{
+				bool NeedToBeRecomiled = false;
+
+				if (FileInfo->FileLastUpdated != F.FileLastUpdated)
+				{
+					NeedToBeRecomiled = true;
+				}
+				else if (FileInfo->FileSize != F.FileSize)
+				{
+					NeedToBeRecomiled = true;
+				}
+				else
+				{
+					BytesPtr V = OpenFile(FInfo,path);
+					String_view Bits = String_view((const char*)V.Bytes.get(), V.Size);
+
+					auto hasher = std::hash<String_view>();
+					UInt64 BitsHash = hasher(Bits);
+
+
+					if (BitsHash != F.FileHash)
+					{
+						NeedToBeRecomiled = true;
+						F.FileHash = BitsHash;
+					}
+
+					T.OpenedFile = std::move(V);
+				}
+
+				T.ExternalFileInfo= FileInfo;
+				T.IsExternal = true;
+				if (NeedToBeRecomiled)
+				{
+					T.Type = MyEnumClass::UpdatedFile;
+				}
+				else
+				{
+					T.Type = MyEnumClass::FileNotChanged;
+				}
+			}
+			else
+			{
+				auto V = std::make_unique<DependencyFile::ExternalFileInfo>();
+				FileInfo = V.get();
+				NewExternalInfo.push_back(std::move(V));
+
+				*FileInfo = F;
+
+				T.Type = MyEnumClass::NewFile;
+				T.ExternalFileInfo = FileInfo;
+				T.IsExternal = true;
+			}
+			FilesInfo.push_back(std::move(T));
+		}
+
+	}
 	//get file info
 	{
+		
 		//check for removed.
 		for (auto& Item : NewFile.Files)
 		{
@@ -480,7 +606,10 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 
 					for (auto& Item2 : ChangedFiles)
 					{
-						if (Item.FileInfo->HasDependence(Item2->Repath))
+						if (Item.IsExternal ?
+							Item.FileInfo->HasExternDependence(Item2->path)
+							 : 
+							Item.FileInfo->HasDependence(Item2->Repath))
 						{
 							IsDependence = true;
 							break;
@@ -541,12 +670,35 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 	{
 		for (auto& Item : UnChangedFiles)
 		{
-			Item->_IntFile = _FrontEndObject->LoadIntFile(Item->InterPath);
-
-			Files.push_back(Item->_IntFile.get());
+			if (Item->IsExternal)
+			{
+				Item->_IntFile = _FrontEndObject->LoadExternFile(Item->path);
+				Files.push_back(Item->_IntFile.get());
+			}
+			else
+			{
+				Item->_IntFile = _FrontEndObject->LoadIntFile(Item->InterPath);
+				Files.push_back(Item->_IntFile.get());
+			}
 		}
+		
+
 		for (auto& Item : ChangedFiles)
 		{
+			if (Item->IsExternal) 
+			{
+				if (!Item->OpenedFile.Bytes)
+				{
+					Item->_IntFile = _FrontEndObject->LoadExternFile(Item->path);
+				}
+				else
+				{
+					Item->_IntFile = _FrontEndObject->LoadExternFile(Item->path.extension());
+				}
+
+				Files.push_back(Item->_IntFile.get());
+				continue;
+			}
 			if (!Item->OpenedFile.Bytes)
 			{
 				Item->OpenedFile = OpenFile(Item->_FInfo, Item->path);
@@ -575,6 +727,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 				Files.push_back(Item->_File.get());
 			}
 		}
+
 	}
 
 
@@ -639,15 +792,36 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 					//spit file the get inters
 					for (auto& Item : ChangedFiles)
 					{
+						if (Item->IsExternal){continue;}
+
 						_FrontEndObject->ToIntFile(Item->_File.get(),Item->InterPath);
 						auto FileDeps = _FrontEndObject->Get_DependenciesPostIR(Item->_File.get());
 
 						auto Str = String_view((char*)Item->OpenedFile.Bytes.get(), Item->OpenedFile.Size);
 						Item->FileInfo->FileHash = (UInt64)std::hash<String_view>()(Str);
 						Item->FileInfo->Dependencies.clear();
+						Item->FileInfo->ExternDependencies.clear();
 						for (auto& Item2 : FileDeps)
 						{
-							Item->FileInfo->Dependencies.push_back(Item2->FileName);
+
+							bool IsExtern = false;
+							for (auto& Item3 : NewExternalInfo)
+							{
+								if (Item3->FullFilePath == Item2->FileName)
+								{
+									IsExtern = true;
+								}
+							}
+
+							if (IsExtern)
+							{
+								Item->FileInfo->ExternDependencies.push_back(Item2->FileName);
+							}
+							else
+							{
+								Item->FileInfo->Dependencies.push_back(Item2->FileName);
+							}
+
 						}
 					}
 				}
@@ -666,6 +840,10 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 	{
 		NewFile.Files.push_back(std::move(*Item->FileInfo));
 	}
+	for (auto& Item : NewExternalInfo)
+	{
+		NewFile.ExternalFiles.push_back(std::move(*Item));
+	}
 
 	if (r._State == CompilerState::Success) {
 		DependencyFile::ToFile(&NewFile, DependencyPath);
@@ -674,6 +852,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 	return  r;
 
 }
+
 
 BytesPtr Compiler::OpenFile(const LangDefInfo::FileInfo* FInfo, const Path& path)
 {

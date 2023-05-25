@@ -12,6 +12,16 @@ BytesPtr DependencyFile::ToRawBytes(const DependencyFile* Lib)
 		Item.ToBytes(bits);
 	}
 
+
+	bits.WriteType((BitMaker::SizeAsBits)Lib->ExternalFiles.size());
+
+	for (auto& Item : Lib->ExternalFiles)
+	{
+		Item.ToBytes(bits);
+	}
+
+	//
+
 	BytesPtr V;
 	V.Bytes.reset(new Byte[bits.size()]);
 	std::memcpy(V.Bytes.get(), bits.data(), bits.size());
@@ -36,6 +46,18 @@ bool DependencyFile::FromBytes(DependencyFile* Lib, const BytesView& Data)
 	for (size_t i = 0; i < Size; i++)
 	{
 		FileInfo::FromBytes(bits, Lib->Files[i]);
+	}
+
+
+
+	BitSize = 0;
+	bits.ReadType(BitSize, BitSize);
+	Size = BitSize;
+
+	Lib->ExternalFiles.resize(Size);
+	for (size_t i = 0; i < Size; i++)
+	{
+		ExternalFileInfo::FromBytes(bits, Lib->ExternalFiles[i]);
 	}
 
     return true;
@@ -95,6 +117,17 @@ DependencyFile::FileInfo* DependencyFile::Get_Info(const Path& Path)
 	return nullptr;
 }
 
+DependencyFile::ExternalFileInfo* DependencyFile::Get_ExternalFile_Info(const Path& Path)
+{
+	for (auto& Item : ExternalFiles)
+	{
+		if (Item.FullFilePath == Path)
+		{
+			return &Item;
+		}
+	}
+	return nullptr;
+}
 void DependencyFile::FileInfo::ToBytes(BitMaker& Output)const
 {
 
@@ -139,6 +172,27 @@ void DependencyFile::FileInfo::FromBytes(BitReader& Input, FileInfo& Out)
 		Input.ReadType(TepS, TepS);
 		Out.Dependencies.emplace_back(Path(TepS));
 	}
+}
+
+void DependencyFile::ExternalFileInfo::ToBytes(BitMaker& Output) const
+{
+	Output.WriteType(FullFilePath.generic_string());
+	//
+	Output.WriteType(FileLastUpdated);
+	Output.WriteType(FileSize);
+	Output.WriteType(FileHash);
+	//
+}
+
+void DependencyFile::ExternalFileInfo::FromBytes(BitReader& Input, ExternalFileInfo& Out)
+{
+	String TepS;
+	Input.ReadType(TepS, TepS);
+	Out.FullFilePath = TepS;
+
+	Input.ReadType(Out.FileLastUpdated, Out.FileLastUpdated);
+	Input.ReadType(Out.FileSize, Out.FileSize);
+	Input.ReadType(Out.FileHash, Out.FileHash);
 }
 
 UCodeLangEnd

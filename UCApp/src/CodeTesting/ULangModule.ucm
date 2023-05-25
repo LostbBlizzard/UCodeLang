@@ -6,3 +6,5 @@ objs: "int"
 out: "out"
 
 //import LostbBlizzard::StandardLibarary[0:0:0];
+
+import LostbBlizzard::NStandardLibarary[0:0:0];

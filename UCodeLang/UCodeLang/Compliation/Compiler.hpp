@@ -31,6 +31,10 @@ public:
 		String IntDir;
 		String OutFile;
 	};
+	struct ExternalFiles
+	{
+		Vector<String> Files;
+	};
 	
 	
 	CompilerRet CompileText(const String_view& Text);
@@ -43,8 +47,13 @@ public:
 	CompilerRet CompilePathToObj(const Path& path, const Path& OutLib);
 	CompilerRet CompileFiles(const CompilerPathData& Data);
 
-	CompilerRet CompileFiles_UseIntDir(const CompilerPathData& Data);
-	CompilerRet CompileFiles_UseIntDir(const Vector<Path>& files, const Path& intDir);
+	CompilerRet CompileFiles_UseIntDir(const CompilerPathData& Data)
+	{
+		ExternalFiles External;
+		return CompileFiles_UseIntDir(Data, External);
+	}
+	CompilerRet CompileFiles_UseIntDir(const CompilerPathData& Data,const ExternalFiles& ExternalFiles);
+	//CompilerRet CompileFiles_UseIntDir(const Vector<Path>& files, const Path& intDir, const  ExternalFiles& ExternalFiles = {});
 
 	BytesPtr Compiler::OpenFile(const LangDefInfo::FileInfo* FInfo, const Path& path);
 
@@ -76,6 +85,11 @@ public:
 	{
 		Unique_ptr<BackEndObject> obj = Unique_ptr<BackEndObject>(_BackEnd());
 		return obj->GetBackEndName();
+	}
+	String GetOutputExtWithDot()
+	{
+		Unique_ptr<BackEndObject> obj = Unique_ptr<BackEndObject>(_BackEnd());
+		return obj->GetOutputExtWithDot();
 	}
 
 private:

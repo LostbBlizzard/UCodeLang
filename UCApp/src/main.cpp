@@ -167,12 +167,8 @@ int main()
 
 		RunTime.Init(&State);
 
-		auto FuncUpdate = State.Get_Assembly().Find_Class((String)"Player")->_Class.Get_ClassMethod("Update");
 		auto FuncMain  = State.Get_Assembly().Get_GlobalObject_Class()->_Class.Get_ClassMethod("main");
-		char Buffer[] = "hello ";
-
-		int item[3];
-
+		
 		//auto Value = RunTime.RCall<char>("__ReadChar");
 		RunTime.Call(StaticVariablesInitializeFunc);
 		RunTime.Call(ThreadVariablesInitializeFunc);
@@ -180,11 +176,9 @@ int main()
 		auto CallIndex = State.FindAddress(FuncMain->DecorationName);
 		auto AutoPtr = RunTime.RCall<UAddress>(*FuncMain,5,5,5,10,2);
 
-		auto r2 = RunTime.RCall <UAddress>("Player:(&_new&)^Player&", &item);
-		auto r = RunTime.RThisCall<UAddress>(&item,*FuncUpdate,(int)5);
+		
 
-
-		std::cout << " Got Value " << (int)r << std::endl;
+		std::cout << " Got Value " << (int)0 << std::endl;
 	
 		RunTime.Call(StaticVariablesUnLoadFunc);
 		RunTime.Call(ThreadVariablesUnLoadFunc);

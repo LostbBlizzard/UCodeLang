@@ -885,13 +885,24 @@ struct IRBlock
 };
 
 
-
+enum class IRFuncLink
+{
+	StaticLink,
+	StaticExternalLink,
+	DynamicExternalLink,
+	
+	StaticExport,
+	DynamicExport,
+};
 struct IRFunc
 {
 	IRidentifierID identifier;
 	IRCallConvention CallConvention = IRCallConvention::BackEndChoice;
+	IRFuncLink Linkage = IRFuncLink::StaticLink;
+
 	IRType ReturnType;
 	Vector<IRPar> Pars;
+
 	IRFunc() : identifier(0)
 	{
 
@@ -929,9 +940,7 @@ struct IRFunc
 		return Blocks.emplace_back(new IRBlock()).get();
 	}
 	Vector<Unique_ptr<IRBlock>> Blocks;
-	bool IsCPPCall = false;
-
-
+	
 	size_t InstructionCount()const
 	{
 		size_t I = 0;

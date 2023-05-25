@@ -37,8 +37,4 @@ $Cool:
 
 
 |main[]:
- int& Value = bitcast<int&>(0);
- int& Other = bitcast<int&>(0);
-
- Value &= Other;
- 
+ __LogChar('H');

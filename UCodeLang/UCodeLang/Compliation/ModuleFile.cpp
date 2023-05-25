@@ -173,8 +173,22 @@ Compiler::CompilerPathData ModuleFile::GetPaths(Compiler& Compiler) const
 	String OutputName = Compiler.GetBackEndName();
 
 	paths.FileDir = Path((B.native() + Path::preferred_separator + Path(ModuleSourcePath).native())).generic_string();
-	paths.IntDir = Path((B.native() + Path::preferred_separator + Path(OutputName).native() + Path::preferred_separator + Path(ModuleIntPath).native())).generic_string();
-	paths.OutFile = Path((B.native() + Path::preferred_separator + Path(OutputName).native() + Path::preferred_separator + Path(ModuleOutPath).native())).generic_string();
+	paths.IntDir = Path((B.native()  + Path::preferred_separator + Path(ModuleIntPath).native() + Path::preferred_separator + Path(OutputName).native())).generic_string();
+	paths.OutFile = Path((B.native() + Path::preferred_separator + Path(ModuleOutPath).native() + Path::preferred_separator + Path(OutputName).native() + Path::preferred_separator)).generic_string();
+	
+	
+	if (!std::filesystem::exists(paths.IntDir))
+	{
+		std::filesystem::create_directories(paths.IntDir);
+	}
+
+
+	if (!std::filesystem::exists(paths.OutFile))
+	{
+		std::filesystem::create_directories(paths.OutFile);
+	}
+	paths.OutFile += ModuleName.ModuleName + Compiler.GetOutputExtWithDot();
+
 	return paths;
 }
 String ModuleFile::ToName(const ModuleIdentifier& ID)
@@ -188,6 +202,7 @@ String ModuleFile::ToName(const ModuleIdentifier& ID)
 ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIndex& Modules)
 {
 	Compiler::CompilerPathData paths = GetPaths(Compiler);
+	Compiler::ExternalFiles ExternFiles;
 	auto& Errs = Compiler.Get_Errors();
 
 	Errs.FilePath = GetFullPathName();
@@ -214,6 +229,11 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 					Errs.AddError(ErrorCodes::ExpectingSequence, 0, 0, "Cant Build Mudule " + ToName(ModuleName) + " because of an Err in " + ToName(Item));
 					Err = true;
 				}
+				else
+				{
+					ExternFiles.Files.push_back(MFile.GetPaths(Compiler).OutFile);
+				}
+
 			}
 
 		}
@@ -222,8 +242,12 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 	if (Err == false) 
 	{
 		ModuleRet CompilerRet;
+
+		//
+
+		//
 		CompilerRet.OutputItemPath = paths.OutFile;
-		CompilerRet.CompilerRet = Compiler.CompileFiles_UseIntDir(paths);
+		CompilerRet.CompilerRet = Compiler.CompileFiles_UseIntDir(paths, ExternFiles);
 		return CompilerRet;
 	}
 	else

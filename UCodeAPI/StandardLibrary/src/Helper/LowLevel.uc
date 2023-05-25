@@ -5,7 +5,7 @@
    ret bitcast<uintptr>(Ptr -> T&) == 0;
   
   |NullPtr<T>[]:
-   ret bitcast<T>(0);
+   ret bitcast<T>(0 -> uintptr);
  
   |Cast<X,T>[T Ptr] -> X:
    ret bitcast<X>(Ptr);

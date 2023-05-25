@@ -15,7 +15,8 @@ public:
 	void AddBaseTypes();
 
 
-	virtual String GetBackEndName() { return "CLang89"; }
+	String GetBackEndName()override { return "CLang89"; };
+	String GetOutputExtWithDot()override { return ".c"; }
 	static BackEndObject* MakeObject() { return new C89Backend(); }
 private:
 	String OutBuffer;
