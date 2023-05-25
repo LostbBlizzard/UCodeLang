@@ -216,4 +216,21 @@ void RunTimeLangState::LinkLibs()
 	}
 }
 
+bool RunTimeLangState::HotReload(const HotReloadData& Item, const HotReloadLib& Data)
+{
+	return false;
+}
+
+bool RunTimeLangState::HotReload(const HotReloadData& Item, const Vector<HotReloadLib> LibsToUpdate)
+{
+	for (auto& Lib : LibsToUpdate)
+	{
+		if (!HotReload(Item, Lib))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
 UCodeLangEnd
