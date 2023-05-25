@@ -257,7 +257,7 @@ void SystematicAnalysis::OnFileNode(const FileNode* File)
 {
 	LookingAtFile = File;
 	_ErrorsOutput->FilePath = File->FileName;
-	auto V = _FilesData[File];//add 
+	auto& V = _FilesData[File];//add 
 
 
 	
@@ -1206,15 +1206,34 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 			LookingAtIRFunc->ReturnType = ConvertToIR(Info->Ret);
 		}
-		for (auto& Item : _TepAttributes)
+
+
+		if (node.Signature.HasExternKeyWord)
 		{
-			String AttType;
-			Item->ScopedName.GetScopedName(AttType);
-			if (AttType == "CPPCall")
+			bool HasBody = node.Body.has_value();
+			if (HasBody)
 			{
-				LookingAtIRFunc->IsCPPCall = true;
-				break;
+				if (node.Signature.HasDynamicKeyWord)
+				{
+					LookingAtIRFunc->Linkage = IRFuncLink::DynamicExport;
+				}
+				else
+				{
+					LookingAtIRFunc->Linkage = IRFuncLink::StaticExport;
+				}
 			}
+			else
+			{
+				if (node.Signature.HasDynamicKeyWord)
+				{
+					LookingAtIRFunc->Linkage = IRFuncLink::DynamicExternalLink;
+				}
+				else
+				{
+					LookingAtIRFunc->Linkage = IRFuncLink::StaticExternalLink;
+				}
+			}
+			
 		}
 
 

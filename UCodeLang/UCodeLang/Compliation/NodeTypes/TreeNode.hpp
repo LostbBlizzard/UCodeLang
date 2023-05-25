@@ -167,6 +167,12 @@ struct FileNode : FileNode_t,Node
 	}
 };
 
+enum class ImportMode
+{
+	IntermediateFile,
+	ExternalFile,
+};
+
 struct LibImportNode :FileNode_t, Node
 {
 	LibImportNode() : Node(NodeType::LibImportNode)
@@ -180,5 +186,6 @@ struct LibImportNode :FileNode_t, Node
 	AddforNode(LibImportNode);
 
 	UClib LIb;
+	ImportMode Mode = ImportMode::IntermediateFile;
 };
 UCodeLangEnd

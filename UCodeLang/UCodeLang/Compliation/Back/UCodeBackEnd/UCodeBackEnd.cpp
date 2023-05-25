@@ -238,9 +238,9 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 
 	size_t LinkedCallsIndex = FuncsToLink.size();
 
-	if (IR->IsCPPCall)
+	if (IR->Linkage != IRFuncLink::StaticLink)
 	{
-		DoCPPCall(FuncName);
+		BuildLink(FuncName,IR->Linkage);
 	}
 
 
@@ -1993,7 +1993,7 @@ UCodeBackEndObject::FindParsLoc UCodeBackEndObject::GetParsLoc(const Vector<IRPa
 
 	return CompilerRet;
 }
-void UCodeBackEndObject::DoCPPCall(const IRidentifier& FuncName)
+void UCodeBackEndObject::BuildLink(const IRidentifier& FuncName, IRFuncLink LinkType)
 {
 	auto VFuncName = NameDecoratior::GetUnDecoratedName(FuncName);
 	if (VFuncName == "__Log")
@@ -2014,6 +2014,14 @@ void UCodeBackEndObject::DoCPPCall(const IRidentifier& FuncName)
 	else if (VFuncName == "__ReadChar")
 	{
 		InstructionBuilder::ReadChar(_Ins,RegisterID::OuPutRegister); PushIns();
+	}
+	else if (VFuncName == "__Malloc")
+	{
+		InstructionBuilder::Malloc(_Ins, RegisterID::StartParameterRegister, RegisterID::OuPutRegister); PushIns();
+	}
+	else if (VFuncName == "__Free")
+	{
+		InstructionBuilder::Free(_Ins, RegisterID::StartParameterRegister); PushIns();
 	}
 	else
 	{

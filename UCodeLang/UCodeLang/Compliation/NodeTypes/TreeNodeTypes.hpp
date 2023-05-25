@@ -494,6 +494,9 @@ struct FuncSignatureNode :Node
 	NamedParametersNode Parameters;
 	TypeNode ReturnType;
 	AccessModifierType Access = AccessModifierType::Default;
+
+	bool HasExternKeyWord = false;
+	bool HasDynamicKeyWord = false;
 };
 struct FuncBodyNode :Node
 {

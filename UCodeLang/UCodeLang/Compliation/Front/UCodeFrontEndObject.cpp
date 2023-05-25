@@ -17,6 +17,7 @@ LangDefInfo& UCodeLangInfo::GetLangInfo()
 	return Info;
 }
 
+
 void UCodeFrontEndObject::Reset()
 {
 	_Lexer.Reset();
@@ -70,12 +71,25 @@ Unique_ptr<FileNode_t> UCodeFrontEndObject::LoadIntFile(const Path& path)
 	auto Bytes = Compiler::GetBytesFromFile(path);
 
 	LibImportNode tep;
+	tep.Mode = ImportMode::IntermediateFile;
 	if (UClib::FromBytes(&tep.LIb, Bytes.AsView()))
 	{
 		return Unique_ptr<FileNode_t>(new LibImportNode(std::move(tep)));
 	}
 
 	return nullptr; 
+}
+
+Unique_ptr<FileNode_t> UCodeFrontEndObject::LoadExternFile(const BytesView Bytes, const Path& Ext)
+{
+
+	LibImportNode tep;
+	tep.Mode = ImportMode::ExternalFile;
+	if (UClib::FromBytes(&tep.LIb, Bytes))
+	{
+		return Unique_ptr<FileNode_t>(new LibImportNode(std::move(tep)));
+	}
+
 }
 Vector<const FileNode_t*> UCodeFrontEndObject::Get_DependenciesPostIR(FileNode_t* File)
 {

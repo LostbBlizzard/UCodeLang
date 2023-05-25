@@ -23,6 +23,7 @@ public:
 	virtual ~BackEndObject() {}
 
 	virtual String GetBackEndName() = 0;
+	virtual String GetOutputExtWithDot() = 0;
 
 	inline CompliationErrors& Get_ErrorsOutput()
 	{

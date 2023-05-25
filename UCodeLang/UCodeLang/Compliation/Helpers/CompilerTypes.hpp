@@ -153,7 +153,8 @@ enum class TokenType : TokenType_t
 	KeyWord_Import,//import
 	
 	KeyWord_TypeInfo,//typeinfo
-	
+	KeyWord_extern,//extern
+
 	//used internally
 	internal_Constant_expression
 };

@@ -19,6 +19,7 @@ public:
 		UInt64 FileHash = 0;
 		
 		Vector<Path> Dependencies;
+		Vector<Path> ExternDependencies;
 		void ToBytes(BitMaker& Output) const;
 		static void FromBytes(BitReader& Input, FileInfo& Out);
 		bool HasDependence(const Path& path) const
@@ -43,10 +44,48 @@ public:
 			}
 			return false;
 		}
+
+		bool HasExternDependence(const Path& path) const
+		{
+			for (auto& Item : ExternDependencies)
+			{
+				if (Item == path)
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+		bool HasExternDependence(const Vector<Path>& paths) const
+		{
+			for (auto& Item : paths)
+			{
+				if (HasExternDependence(Item))
+				{
+					return true;
+				}
+			}
+			return false;
+		}
 	};
-	
-	Vector< FileInfo> Files;
+	struct  ExternalFileInfo
+	{
+		Path FullFilePath;
+
+
+		UInt64 FileLastUpdated = 0;
+		UInt64 FileSize = 0;
+		UInt64 FileHash = 0;
+
+		void ToBytes(BitMaker& Output) const;
+		static void FromBytes(BitReader& Input, ExternalFileInfo& Out);
+	};
+	Vector<FileInfo> Files;
+	Vector<ExternalFileInfo> ExternalFiles;
+
+
 	FileInfo* Get_Info(const Path& Path);
+	ExternalFileInfo* Get_ExternalFile_Info(const Path& Path);
 
 	
 	static BytesPtr ToRawBytes(const DependencyFile* Lib);

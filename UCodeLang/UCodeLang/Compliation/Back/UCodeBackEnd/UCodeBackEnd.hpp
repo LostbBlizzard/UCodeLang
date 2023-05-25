@@ -16,7 +16,8 @@ public:
 	void Build(const IRBuilder* Input) override;
 
 
-	virtual String GetBackEndName() { return "UCodeVM"; }
+	String GetBackEndName() override { return "UCodeVM"; }
+	String GetOutputExtWithDot() override { return FileExt::LibWithDot; }
 	static BackEndObject* MakeObject() { return new UCodeBackEndObject(); }
 private:
 
@@ -286,7 +287,7 @@ private:
 	void RegToReg(IRTypes Type, RegisterID In, RegisterID Out);
 	void PushOpStack(const IRInstruction& Ins, const IROperator& Op);
 	void LogicalNot(IRTypes Type, RegisterID In, RegisterID Out);
-	void DoCPPCall(const IRidentifier& FuncName);
+	void BuildLink(const IRidentifier& FuncName, IRFuncLink LinkType);
 	
 	void CopyValueToStack(const IRInstruction* IRName, const IRType& ObjectType, RegisterID Item);
 
