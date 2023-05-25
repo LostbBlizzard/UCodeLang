@@ -665,6 +665,7 @@ struct AssignExpressionNode :Node
 	AddforNode(AssignExpressionNode);
 	ExpressionNodeType ToAssign;
 	ExpressionNodeType Expression;
+	bool ReassignAddress = false;
 };
 
 struct DeclareStaticVariableNode :Node

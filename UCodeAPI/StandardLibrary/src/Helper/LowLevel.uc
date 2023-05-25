@@ -2,7 +2,7 @@
  
  $LowLevel:
   |IsNullPtr<T>[T& Ptr] -> bool:
-   ret bitcast<uintptr>(Ptr) == 0;
+   ret bitcast<uintptr>(Ptr -> T&) == 0;
   
   |NullPtr<T>[]:
    ret bitcast<T>(0);
