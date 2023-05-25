@@ -8198,41 +8198,110 @@ void SystematicAnalysis::LoadLibSymbols(const UClib& lib)
 		ImportType = LibType::Dll;
 	}
 
-	for (const auto& Item : lib.Get_NameToPtr())
+
+	LoadLibMode Mode = LoadLibMode::GetTypes;
+
+	while (Mode != LoadLibMode::Done)
 	{
-		const auto& Offset = Item._Value;
-		const auto& FuncStr = Item._Key;
-		
-
-		auto SymbolType = ImportType == LibType::Dll ? SymbolType::ImportedDllFunc : SymbolType::ImportedLibFunc;
-		
-		auto& Syb = AddSybol(SymbolType,FuncStr, ScopeHelper::GetNameFromFullName(FuncStr),AccessModifierType::Public);
-		
-		
-	}
-
-	for (auto& Item : lib.Get_Assembly().Classes)
-	{
-		switch (Item->Type)
+		auto GlobalObject = lib.Get_Assembly().Get_GlobalObject_Class();
+		if (GlobalObject)
 		{
-		case ClassType::Class:
-		{
-
+			String Scope;
+			LoadClassSymbol(GlobalObject->_Class,Scope,Mode);
 		}
-		break;
-		case ClassType::Alias:
-		{
 
-		}
-		break;
-		case ClassType::Enum:
-		{
 
+		for (auto& Item : lib.Get_Assembly().Classes)
+		{
+			if (Item->FullName == ScopeHelper::_globalAssemblyObject)
+			{
+				continue;
+			}
+			String Scope;
+			switch (Item->Type)
+			{
+			case ClassType::Class:
+			{
+				LoadClassSymbol(Item->_Class, Scope, Mode);
+			}
+			break;
+			case ClassType::Alias:
+			{
+
+			}
+			break;
+			case ClassType::Enum:
+			{
+
+			}
+			break;
+			default:
+				break;
+			}
 		}
-		break;
+
+		//
+		switch (Mode)
+		{
+		case LoadLibMode::GetTypes:
+			Mode = LoadLibMode::FixTypes;
+			break;
+		case LoadLibMode::FixTypes:
+			Mode = LoadLibMode::Done;
+			break;
+		case LoadLibMode::Done:
+			break;
 		default:
 			break;
 		}
+
+		//
+	}
+
+	
+}
+void SystematicAnalysis::LoadClassSymbol(const ClassData::Class_Data& Item, const String& Scope, SystematicAnalysis::LoadLibMode Mode)
+{
+	auto TepScope = std::move(_Table._Scope);
+
+	_Table._Scope = {};
+	_Table._Scope.ThisScope = Scope;
+
+	if (Mode == LoadLibMode::GetTypes)
+	{
+
+
+	}
+	else if (Mode == LoadLibMode::FixTypes)
+	{
+
+	}
+
+	for (auto& Item : Item.Methods)
+	{
+		LoadSymbol(Item, Mode);
+	}
+
+	_Table._Scope = std::move(TepScope);
+}
+void SystematicAnalysis::LoadSymbol(const ClassMethod& Item, SystematicAnalysis::LoadLibMode Mode)
+{
+	if (Mode == LoadLibMode::GetTypes)
+	{
+
+		auto Name =ScopeHelper::GetNameFromFullName(Item.FullName);
+		auto& Syb = AddSybol(SymbolType::Func, Name, _Table._Scope.GetApendedString(Name), AccessModifierType::Public);
+		auto Funcinfo =new FuncInfo();
+		Syb.Info.reset(Funcinfo);
+
+		Funcinfo->FullName = Syb.FullName;
+
+
+
+	}
+	else if (Mode == LoadLibMode::FixTypes)
+	{
+
 	}
 }
 Symbol* SystematicAnalysis::GetSymbol(String_view Name, SymbolType Type)

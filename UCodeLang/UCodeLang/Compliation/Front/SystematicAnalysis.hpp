@@ -846,10 +846,19 @@ private:
 
 	void OnMatchExpression(const MatchExpression& node);
 
+	enum class LoadLibMode
+	{
+		GetTypes,
+		FixTypes,
+		Done
+	};
 
 	void PushTepAttributesInTo(Vector<AttributeData>& Input);
 	void LoadLibSymbols();
 	void LoadLibSymbols(const UClib& lib);
+
+	void LoadClassSymbol(const ClassData::Class_Data& Item, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
+	void LoadSymbol(const ClassMethod& Item, SystematicAnalysis::LoadLibMode Mode);
 	auto OutputType()
 	{
 		return  _Settings->_Type;
