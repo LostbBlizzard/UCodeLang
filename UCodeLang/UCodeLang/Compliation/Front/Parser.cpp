@@ -1148,6 +1148,13 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 	Node* r_out =nullptr;
 	if (Token && ExpressionNodeType::IsBinaryOperator(Token))
 	{
+		//
+		if (Token->Type == TokenType::bitwise_and
+			&& TryPeekNextToken(1)->Type == TokenType::equal)
+		{
+			goto ElseCase;
+		}
+		//
 		NextToken();
 		Node* Other = nullptr;
 		auto Ex2 = GetExpressionTypeNode(Other);
@@ -1165,6 +1172,7 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 	}
 	else
 	{
+		ElseCase:
 		auto Ptr = ValueExpressionNode::Gen();
 		Ptr->Value = Unique_ptr<Node>(ExNode);
 		r_out = Ptr->As();
@@ -2123,7 +2131,15 @@ GotNodeType Parser::GetAssignExpression(AssignExpressionNode& out)
 {
 	auto Name = GetExpressionTypeNode(out.ToAssign);
 
-	auto Token = TryGetToken(); TokenTypeCheck(Token, TokenType::equal);
+	auto Token = TryGetToken(); 
+	if (Token->Type == TokenType::bitwise_and)
+	{
+		out.ReassignAddress = true;
+		NextToken();
+		Token = TryGetToken();
+	}
+
+	TokenTypeCheck(Token, TokenType::equal);
 
 	NextToken();
 	auto Ex = GetExpressionTypeNode(out.Expression);

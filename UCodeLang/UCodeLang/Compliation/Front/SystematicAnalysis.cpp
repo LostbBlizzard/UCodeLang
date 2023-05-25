@@ -4611,7 +4611,7 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 
 		auto ExpressionType = LastExpressionType;
 		auto ExIR = _LastExpressionField;
-		
+
 		DoImplicitConversion(ExIR, ExpressionType, AssignType.Op1);
 		ExIR = _LastExpressionField;
 
@@ -4619,10 +4619,17 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 		LookingForTypes.push(AssignType.Op1);
 		OnExpressionTypeNode(node.ToAssign.Value.get(), GetValueMode::Write);
 		LookingForTypes.pop();
-		
+
 		auto AssignIR = _LastExpressionField;
 
-		WriteTo(ExIR, ExpressionType, _LastStoreField);
+		if (node.ReassignAddress)
+		{
+			WriteTo(ExIR,_LastStoreField);
+		}
+		else 
+		{
+			WriteTo(ExIR, ExpressionType, _LastStoreField);
+		}
 	}
 }
 void SystematicAnalysis::OnIfNode(const IfNode& node)

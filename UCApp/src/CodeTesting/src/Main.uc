@@ -37,12 +37,8 @@ $Cool:
 
 
 |main[]:
- 
- //int^ Buffer = unq int();
- //int$ Buffer2 = shr int();
+ int& Value = bitcast<int&>(0);
+ int& Other = bitcast<int&>(0);
 
- int[^] Buffer5 = unq int[1];
- //int[$] Buffer6 = shr int[1];
+ Value &= Other;
  
-
- //umut char[&] Str = Item;
