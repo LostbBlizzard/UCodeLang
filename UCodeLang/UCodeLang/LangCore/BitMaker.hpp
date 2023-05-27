@@ -129,6 +129,8 @@ public:
 		}
 	}
 
+	BytesPtr AsBytePtr();
+	BytesPtr AsBytePtrAndMove();
 private:
 	Vector<Byte> _Bytes;
 };

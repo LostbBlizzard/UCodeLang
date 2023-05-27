@@ -43,43 +43,31 @@ BytesPtr UClib::ToRawBytes(const UClib* Lib)
 		Output.WriteBytes(Lib->_StaticBytes.data(), Lib->_StaticBytes.size());
 	}
 
-	{// Instructions
-		Output.WriteType((Size_tAsBits)Lib->_Instructions.size());
-		Output.WriteBytes((const Byte*)Lib->_Instructions.data(), Lib->_Instructions.size() * sizeof(Instruction));
+	{//ThreadBytes
+		Output.WriteType((Size_tAsBits)Lib->_ThreadBytes.size());
+		Output.WriteBytes(Lib->_ThreadBytes.data(), Lib->_ThreadBytes.size());
 	}
 
-
-	{// Code
-		Output.WriteType((Size_tAsBits)Lib->_Code.size());
-		Output.WriteBytes((const Byte*)Lib->_Code.data(), Lib->_Code.size());
-	}
-
-	{// _NameToPtr
-	
-		Output.WriteType((Size_tAsBits)Lib->_NameToPtr.size());
-		for (auto& Item : Lib->_NameToPtr)
-		{
-			Output.WriteType(Item._Key);
-			Output.WriteType((Size_tAsBits)Item._Value);
-		}
-	}
-
-	{//Debug Bytes
+	{//DebugBytes
 		Output.WriteType((Size_tAsBits)Lib->_DebugBytes.size());
 		Output.WriteBytes(Lib->_DebugBytes.data(), Lib->_DebugBytes.size());
 	}
 	
+	{//Layers
+		Output.WriteType((Size_tAsBits)Lib->_Layers.size());
+		for (auto& Item : Lib->_Layers)
+		{
+			ToBytes(Output, *Item);
+		}
+	}
+
 	//ClassAssembly
 	{
 		auto& Assembly = Lib->_Assembly;
 		ToBytes(Output, Assembly);
 	}
 
-	BytesPtr V;
-	V.Bytes.reset(new Byte[Output.size()]);
-	std::memcpy(V.Bytes.get(), Output.data(), Output.size());
-	V.Size = Output.size();
-	return V;
+	return  Output.AsBytePtrAndMove();
 }
 void UClib::ToBytes(BitMaker& Output, const ClassAssembly& Assembly)
 {
@@ -118,6 +106,32 @@ void UClib::ToBytes(BitMaker& Output, const ClassAssembly& Assembly)
 			break;
 		}
 	}
+}
+void UClib::ToBytes(BitMaker& Output, const CodeLayer& Data)
+{
+	Output.WriteType(Data._Name);
+
+	{// Instructions
+		Output.WriteType((Size_tAsBits)Data._Instructions.size());
+		Output.WriteBytes((const Byte*)Data._Instructions.data(), Data._Instructions.size() * sizeof(Instruction));
+	}
+
+
+	{// Code
+		Output.WriteType((Size_tAsBits)Data._Code.size());
+		Output.WriteBytes((const Byte*)Data._Code.data(), Data._Code.size());
+	}
+
+	{// _NameToPtr
+
+		Output.WriteType((Size_tAsBits)Data._NameToPtr.size());
+		for (auto& Item : Data._NameToPtr)
+		{
+			Output.WriteType(Item._Key);
+			Output.WriteType((Size_tAsBits)Item._Value);
+		}
+	}
+
 }
 void UClib::ToBytes(BitMaker& Output, const ClassData::Enum_Data& EnumData)
 {
@@ -261,7 +275,7 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 		reader.Increment_offset(bits_Size);
 	}
 
-	{// Instructions
+	{//ThreadBytes
 
 		union
 		{
@@ -272,61 +286,12 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 		reader.ReadType(bits, bits);
 		bits_Size = bits;
 
-		Lib->_Instructions.resize(bits_Size);
+		Lib->_ThreadBytes.resize(bits_Size);
 
 
-		memcpy(Lib->_Instructions.data(), &reader.GetByteWith_offset(0), bits_Size * sizeof(Instruction));
-
-		reader.Increment_offset(bits_Size * sizeof(Instruction));
-	}
-
-	{// Code
-
-		union
-		{
-			Size_tAsBits bits = 0;
-			size_t bits_Size;
-		};
-
-		reader.ReadType(bits, bits);
-		bits_Size = bits;
-
-		Lib->_Code.resize(bits_Size);
-
-
-		memcpy(Lib->_Code.data(), &reader.GetByteWith_offset(0), bits_Size);
+		memcpy(Lib->_ThreadBytes.data(), &reader.GetByteWith_offset(0), bits_Size);
 
 		reader.Increment_offset(bits_Size);
-	}
-
-	{// _NameToPtr
-		union
-		{
-			Size_tAsBits bits = 0;
-			size_t bits_Size;
-		};
-
-		reader.ReadType(bits, bits);
-		bits_Size = bits;
-
-		Lib->_NameToPtr.clear();
-		Lib->_NameToPtr.reserve(bits_Size);
-
-		for (size_t i = 0; i < bits_Size; i++)
-		{
-			String V1;
-			union
-			{
-				Size_tAsBits V2 = 0;
-				size_t V2bits_Size;
-			};
-			reader.ReadType(V1, V1);
-
-			reader.ReadType(V2, V2);
-			V2bits_Size = V2;
-
-			Lib->_NameToPtr[V1] = V2;
-		}
 	}
 
 	{//DebugBytes
@@ -348,6 +313,34 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 
 		reader.Increment_offset(bits_Size);
 	}
+
+
+
+
+	{//Layers
+		union
+		{
+			Size_tAsBits bits = 0;
+			size_t bits_Size;
+		};
+
+		reader.ReadType(bits, bits);
+		bits_Size = bits;
+
+
+		Lib->_Layers.resize(bits_Size);
+
+		for (size_t i = 0; i < bits_Size; i++)
+		{
+			CodeLayer* Layer = new CodeLayer();
+
+			FromBytes(reader, *Layer);
+
+			Lib->_Layers.push_back(Unique_ptr<CodeLayer>(Layer));
+		}
+	}
+
+
 	//ClassAssembly
 	{
 		auto& Assembly = Lib->Get_Assembly();
@@ -356,6 +349,76 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 
 	BitConverter::InputOutEndian = Old;
 	return true;
+}
+void UClib::FromBytes(BitReader& Input, CodeLayer& Data)
+{
+	{// Instructions
+
+		union
+		{
+			Size_tAsBits bits = 0;
+			size_t bits_Size;
+		};
+
+		Input.ReadType(bits, bits);
+		bits_Size = bits;
+
+		Data._Instructions.resize(bits_Size);
+
+
+		memcpy(Data._Instructions.data(), &Input.GetByteWith_offset(0), bits_Size * sizeof(Instruction));
+
+		Input.Increment_offset(bits_Size * sizeof(Instruction));
+	}
+
+	{// Code
+
+		union
+		{
+			Size_tAsBits bits = 0;
+			size_t bits_Size;
+		};
+
+		Input.ReadType(bits, bits);
+		bits_Size = bits;
+
+		Data._Code.resize(bits_Size);
+
+
+		memcpy(Data._Code.data(), &Input.GetByteWith_offset(0), bits_Size);
+
+		Input.Increment_offset(bits_Size);
+	}
+
+	{// _NameToPtr
+		union
+		{
+			Size_tAsBits bits = 0;
+			size_t bits_Size;
+		};
+
+		Input.ReadType(bits, bits);
+		bits_Size = bits;
+
+		Data._NameToPtr.clear();
+		Data._NameToPtr.reserve(bits_Size);
+
+		for (size_t i = 0; i < bits_Size; i++)
+		{
+			String V1;
+			union
+			{
+				Size_tAsBits V2 = 0;
+				size_t V2bits_Size;
+			};
+			Input.ReadType(V1, V1);
+
+			Input.ReadType(V2, V2);
+			V2bits_Size = V2;
+
+			Data._NameToPtr[V1] = V2;
+		}
+	}
 }
 void UClib::FromBytes(BitReader& reader, ClassAssembly& Assembly)
 {

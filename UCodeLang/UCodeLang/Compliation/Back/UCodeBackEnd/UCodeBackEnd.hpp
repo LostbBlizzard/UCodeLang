@@ -147,8 +147,11 @@ private:
 	
 	const IRBuilder* _Input = nullptr;
 	UClib* _Output = nullptr;
+	CodeLayer* _OutLayer = nullptr;
+	
 	BinaryVectorMap< const IRBlock*, BlockData> IRToBlockData;
 	
+
 	
 	StaticMemoryManager _StaticMemory;
 	StaticMemoryManager _ThreadMemory;
@@ -162,7 +165,6 @@ private:
 	Vector<Unique_ptr<UCodeFunc>> Funcs;
 	UCodeFunc* BuildingFunc = nullptr;
 	Optimizations _Optimizations;
-
 	//code
 	
 	UCodeFunc* NewBuildFunc()
@@ -193,7 +195,7 @@ private:
 	}
 	UAddress PushIns()
 	{
-		return	_Output->Add_Instruction(_Ins);
+		return	_OutLayer->Add_Instruction(_Ins);
 	}
 
 	bool IsReferenceingTheSame(const IROperator& Test, const IROperator& Other);

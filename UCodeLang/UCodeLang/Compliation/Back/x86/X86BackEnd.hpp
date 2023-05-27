@@ -32,6 +32,7 @@ public:
 	void Reset() override;
 	void Build(const IRBuilder* Input) override;
 	IRToX86 _CodeGen;
+	CodeLayer* _OutLayer = nullptr;
 };
 
 UCodeLangEnd

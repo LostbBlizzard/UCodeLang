@@ -85,6 +85,7 @@ void UCodeBackEndObject::Build(const IRBuilder* Input)
 	_Input = Input;
 	_Output = &Get_Output();
 
+	_OutLayer = _Output->AddLayer(UCode_CodeLayer_UCodeVM_Name);
 
 	UpdateOptimizations();
  
@@ -165,7 +166,7 @@ void UCodeBackEndObject::LinkFuncs()
 {
 	for (auto& Item : FuncsToLink)
 	{
-		Instruction& Ins = Get_Output().Get_Instructions()[Item.Index];
+		Instruction& Ins =_OutLayer->Get_Instructions()[Item.Index];
 
 
 		UAddress funcpos = NullAddress;
@@ -208,7 +209,7 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 {
 
 	//build code
-	UAddress FuncStart = _Output->GetLastInstruction() + 1;
+	UAddress FuncStart = _OutLayer->GetLastInstruction() + 1;
 
 
 	{
@@ -257,7 +258,7 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 		RegisterID V = RegisterID::A;
 
 		auto Ptr = Get_Settings().PtrSize;
-		auto& instr = _Output->Get_Instructions();
+		auto& instr = _OutLayer->Get_Instructions();
 		
 		InstructionBuilder::IncrementStackPointer(_Ins, V);
 		instr.insert(instr.begin() + FuncStart, _Ins);
@@ -283,7 +284,7 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 
 	_Stack.Reset();
 	_Registers.Reset();
-	_Output->Add_NameToInstruction(FuncStart, FuncName);
+	_OutLayer->Add_NameToInstruction(FuncStart, FuncName);
 
 
 	Funcpos V;
@@ -602,7 +603,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			InstructionBuilder::Call(NullAddress, _Ins); PushIns();
 
 			FuncInsID Tep;
-			Tep.Index = _Output->Get_Instructions().size() - 1;
+			Tep.Index = _OutLayer->Get_Instructions().size() - 1;
 			Tep._FuncID = Item.Target().identifer;
 
 			FuncsToLink.push_back(Tep);
@@ -633,11 +634,11 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			break;
 		case IRInstructionType::Jump:
 			InstructionBuilder::Jump(NullAddress, _Ins); PushIns();
-			InsToUpdate.push_back({Getliboutput().Get_Instructions().size(), Item.Target().Value.AsUIntNative });
+			InsToUpdate.push_back({ _OutLayer->Get_Instructions().size(), Item.Target().Value.AsUIntNative });
 			break;
 		case IRInstructionType::ConditionalJump:
 			InstructionBuilder::Jumpif(NullAddress, MakeIntoRegister(Item, Item.Input()), _Ins); PushIns();
-			InsToUpdate.push_back({ Getliboutput().Get_Instructions().size(),Item.Target().Value.AsUIntNative });
+			InsToUpdate.push_back({ _OutLayer->Get_Instructions().size(),Item.Target().Value.AsUIntNative });
 			break;
 		case IRInstructionType::Logical_Not:
 		{	
@@ -828,12 +829,12 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		}
 
 
-		IRToUCodeIns[i] = Getliboutput().Get_Instructions().size() - 1;
+		IRToUCodeIns[i] = _OutLayer->Get_Instructions().size() - 1;
 	}
 
 	for (auto& Item : InsToUpdate)
 	{
-		Instruction& Ins = Getliboutput().Get_Instructions()[Item.InsToUpdate - 1];
+		Instruction& Ins = _OutLayer->Get_Instructions()[Item.InsToUpdate - 1];
 		UAddress JumpPos = IRToUCodeIns[Item.Jumpto];
 
 		if (Ins.OpCode == InstructionSet::Jump) 
@@ -1377,7 +1378,7 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction& Ins, const  IROperato
 		InstructionBuilder::LoadFuncPtr(NullAddress, V, _Ins); PushIns();
 
 		FuncInsID Tep;
-		Tep.Index = _Output->Get_Instructions().size() - 1;
+		Tep.Index = _OutLayer->Get_Instructions().size() - 1;
 		Tep._FuncID = Op.identifer;
 
 		FuncsToLink.push_back(Tep);

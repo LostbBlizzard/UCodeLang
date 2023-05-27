@@ -25,9 +25,14 @@ String UAssembly::ToString(const UClib* Lib)
 	auto& InsMapData = Get_InsToInsMapValue();
     String r;
 	BinaryVectorMap<UAddress, String> AddressToName;
-	for (const auto& Item2 : Lib->Get_NameToPtr())
+
+	auto UCodeLayer = Lib->GetLayer(UCode_CodeLayer_UCodeVM_Name);
+	if (UCodeLayer)
 	{
-		AddressToName[Item2._Value] = Item2._Key;
+		for (const auto& Item2 : UCodeLayer->Get_NameToPtr())
+		{
+			AddressToName[Item2._Value] = Item2._Key;
+		}
 	}
 	r += "[ClassData]-- \n";
 	
@@ -81,45 +86,48 @@ String UAssembly::ToString(const UClib* Lib)
 	}
 
 
-	r += "\n[Instructions]-- \n";
-	auto& Insts = Lib->Get_Instructions();
-	for (size_t i = 0; i < Insts.size(); i++)
+	if (UCodeLayer) 
 	{
-		auto& Item = Insts[i];
-		UAddress address = (UAddress)i;
-		if (AddressToName.count(address))
+		r += "\n[Instructions]-- \n";
+		auto& Insts = UCodeLayer->Get_Instructions();
+		for (size_t i = 0; i < Insts.size(); i++)
 		{
-			String Name = AddressToName[address];
-			r += "---" + Name + ": \n";
-		}
-		
-
-		r += "   " + std::to_string(i) + " :";
-		
-		if (InsMapData.count(Item.OpCode))
-		{
-			auto& MapData = InsMapData[Item.OpCode];
-			r += (String)MapData->InsName;
-			r += " ";
-
-			if (MapData->Op_0 != OpCodeType::NoOpCode)
+			auto& Item = Insts[i];
+			UAddress address = (UAddress)i;
+			if (AddressToName.count(address))
 			{
-				OpValueToString(MapData->Op_0,Item.Value0, AddressToName, r,Lib);
+				String Name = AddressToName[address];
+				r += "---" + Name + ": \n";
 			}
-			if (MapData->Op_1 != OpCodeType::NoOpCode)
+
+
+			r += "   " + std::to_string(i) + " :";
+
+			if (InsMapData.count(Item.OpCode))
 			{
-				r += ",";
-				OpValueToString(MapData->Op_1,Item.Value1, AddressToName, r, Lib);
+				auto& MapData = InsMapData[Item.OpCode];
+				r += (String)MapData->InsName;
+				r += " ";
+
+				if (MapData->Op_0 != OpCodeType::NoOpCode)
+				{
+					OpValueToString(MapData->Op_0, Item.Value0, AddressToName, r, Lib);
+				}
+				if (MapData->Op_1 != OpCodeType::NoOpCode)
+				{
+					r += ",";
+					OpValueToString(MapData->Op_1, Item.Value1, AddressToName, r, Lib);
+				}
+
 			}
-			
+			else
+			{
+				r += "Ins " + std::to_string((uintptr_t)Item.OpCode) + ":" + std::to_string((uintptr_t)Item.Value0.AsPtr) + ","
+					+ std::to_string((uintptr_t)Item.Value1.AsPtr);
+			}
+
+			r += '\n';
 		}
-		else
-		{
-			r += "Ins " + std::to_string((uintptr_t)Item.OpCode) + ":" + std::to_string((uintptr_t)Item.Value0.AsPtr) + ","
-				+ std::to_string((uintptr_t)Item.Value1.AsPtr);
-		}
-		
-		r += '\n';
 	}
 
     return r;

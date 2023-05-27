@@ -23,6 +23,7 @@ private:
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
 	UClib* _Output = nullptr;
+	CodeLayer* _OutLayer = nullptr;
 	const Vector<Token>* _Nodes = nullptr;
 	size_t _TokenIndex = 0;
 	Instruction _TepIns;
