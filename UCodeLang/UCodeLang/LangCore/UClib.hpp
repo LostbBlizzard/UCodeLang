@@ -16,34 +16,26 @@ enum class LibType : LibType_t
 
 	Default =Dll,
 };
-class UClib
+
+
+struct CodeLayer
 {
-	
-public:
-	using NTypeSize_t = UInt8;
-	enum class NTypeSize : NTypeSize_t
+	enum class CodeType 
 	{
-		int32,
-		int64,
-
-		#if UCodeLang_64BitSytem
-		intNative = int64,
-		#elif
-		intNative = int32,
-		#endif // UCodeLang_64BitSytem
-
+		UCodeByteCode,
+		MachineCode,
+		Other,
 	};
 
-	UClib();
-	~UClib();
+	String _Name;
+	CodeType _Type = CodeType::UCodeByteCode;
 
-	UClib(UClib&& source) = default;
+	Vector<Byte> _Code;
+	Vector<Instruction>  _Instructions;
+	
+	VectorMap<String, UAddress> _NameToPtr;
 
-	UClib(const UClib& V) = delete;
-	UClib& operator=(const UClib& V) = delete;
-
-
-
+	//
 	UCodeLangForceinline void Add_NameToLastInstruction(const String& Name)
 	{
 		_NameToPtr[Name] = (UAddress)(_Instructions.size() - 1);
@@ -55,7 +47,7 @@ public:
 	}
 	inline UAddress Get_NameToInstruction(const String& Name) const
 	{
-		if (_NameToPtr.count(Name)) 
+		if (_NameToPtr.count(Name))
 		{
 			return _NameToPtr.at(Name);
 		}
@@ -88,7 +80,7 @@ public:
 	{
 		return (UAddress)(_Instructions.size() - 1);
 	}
-	
+
 
 	UCodeLangForceinline const auto& Get_Instructions()const
 	{
@@ -102,7 +94,6 @@ public:
 	{
 		_Instructions.clear();
 	}
-
 	UCodeLangForceinline const auto& Get_Code()const
 	{
 		return  _Code;
@@ -126,6 +117,36 @@ public:
 		_NameToPtr.clear();
 	}
 
+};
+
+class UClib
+{
+	
+public:
+	using NTypeSize_t = UInt8;
+	enum class NTypeSize : NTypeSize_t
+	{
+		int32,
+		int64,
+
+		#if UCodeLang_64BitSytem
+		intNative = int64,
+		#elif
+		intNative = int32,
+		#endif // UCodeLang_64BitSytem
+
+	};
+
+	UClib();
+	~UClib();
+
+	UClib(UClib&& source) = default;
+
+	UClib(const UClib& V) = delete;
+	UClib& operator=(const UClib& V) = delete;
+
+
+	
 	UCodeLangForceinline auto& Get_StaticBytes() const //Static Variables nad stuff
 	{
 		return _StaticBytes;
@@ -160,8 +181,6 @@ public:
 	inline void ClearState()
 	{
 		clear_StaticBytes();
-		clear_Instructions();
-		clear_NameToPtr();
 		clear_DebugBytes();
 		_Assembly.Clear();
 	}
@@ -235,17 +254,63 @@ public:
 		_DebugBytes.push_back(Byte);
 		return A;
 	}
+	CodeLayer* GetLayer(String_view Name)
+	{
+		for (auto& Item : _Layers)
+		{
+			if (Item->_Name == Name)
+			{
+				return Item.get();
+			}
+		}
+		return nullptr;
+	}
+	const CodeLayer* GetLayer(String_view Name) const
+	{
+		for (auto& Item : _Layers)
+		{
+			if (Item->_Name == Name)
+			{
+				return Item.get();
+			}
+		}
+		return nullptr;
+	}
+	CodeLayer* AddLayer(String_view Name)
+	{
+		CodeLayer* R = new CodeLayer();
+		R->_Name = Name;
+		_Layers.push_back(Unique_ptr<CodeLayer>(R));
+		return R;
+	}
+	CodeLayer* GetLayerOrAddLayer(String_view Name)
+	{
+		auto V = GetLayer(Name);
 
-	//
+		if (V)
+		{
+			return V;
+		}
+		else
+		{
+			return AddLayer(Name);
+		}
+	}
 
-	UCodeLangForceinline  Endian Get_LibEndianess() const { return LibEndianess; }
-	
-	
+	inline ClassAssembly& Get_Assembly()
+	{
+		return _Assembly;
+	}
+	inline const ClassAssembly& Get_Assembly() const
+	{
+		return _Assembly;
+	}
+
 	static BytesPtr ToRawBytes(const UClib* Lib);
 
-	;
-	
-	//
+
+	static void ToBytes(BitMaker& Output, const CodeLayer& Data);
+
 	static void ToBytes(BitMaker& Output, const ClassData::Enum_Data& EnumData);
 	static void ToBytes(BitMaker& Output, const ClassAssembly& Assembly);
 	static void ToBytes(BitMaker& Output, const ClassData::Alias_Data& Alias);
@@ -257,6 +322,9 @@ public:
 	static void ToBytes(BitMaker& Output, const ReflectionTypeInfo& Data);
 	//
 	static bool FromBytes(UClib* Lib,const BytesView& Data);
+
+	static void FromBytes(BitReader& Input, CodeLayer& Data);
+
 	static void FromBytes(BitReader& reader, ClassAssembly& Assembly);
 	static void FromBytes(BitReader& reader, ClassData::Enum_Data& Enum);
 	static void FromBytes(BitReader& reader, ClassData::Class_Data& Class);
@@ -273,26 +341,14 @@ public:
 
 	NTypeSize BitSize = NTypeSize::intNative;
 	LibType _LibType = LibType::Default;
-	inline ClassAssembly& Get_Assembly()
-	{
-		return _Assembly;
-	}
-	inline const ClassAssembly& Get_Assembly() const
-	{
-		return _Assembly;
-	}
-private:
+	
 	Endian LibEndianess;
 	Vector<Byte> _StaticBytes;
-
-	Vector<Instruction> _Instructions;
-
-	Vector<Byte> _Code;
-
-	VectorMap<String, UAddress> _NameToPtr;
-	//Debug
+	Vector<Byte> _ThreadBytes;
 	Vector<Byte> _DebugBytes;
-	//
+
+	Vector<Unique_ptr<CodeLayer>> _Layers;
+
 	ClassAssembly _Assembly;
 };
 UCodeLangEnd

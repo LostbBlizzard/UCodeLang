@@ -27,7 +27,8 @@ void X86BackEnd_UCodeLib::Build(const IRBuilder* Input)
 
 	UClib& Lib = Getliboutput();
 
-	Lib.Get_Code() = Output;
+	
+	_OutLayer->Get_Code() = Output;
 
 	Instruction Ins;
 	for (const auto& Item : _CodeGen._Funcs)
@@ -35,9 +36,7 @@ void X86BackEnd_UCodeLib::Build(const IRBuilder* Input)
 		const String FuncName =Input->FromID(Item.Func->identifier);
 
 		InstructionBuilder::CallCode(Item.location, Ins);
-		Lib.Add_NameToInstruction(Lib.Add_Instruction(Ins), FuncName);
-
-
+		_OutLayer->Add_NameToInstruction(_OutLayer->Add_Instruction(Ins), FuncName);
 	}
 
 }

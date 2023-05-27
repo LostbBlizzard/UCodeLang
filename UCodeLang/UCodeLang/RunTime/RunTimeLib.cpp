@@ -12,7 +12,12 @@ void RunTimeLib::Init(UClib* Lib)
 {
 	_Lib = Lib;
 	_Instruction.clear();
-	_Instruction = _Lib->Get_Instructions();
+
+	auto UCodeLayer = Lib->GetLayer(UCode_CodeLayer_UCodeVM_Name);
+	if (UCodeLayer)
+	{
+		_Instruction = UCodeLayer->Get_Instructions();
+	}
 }
 void RunTimeLib::UnLoad()
 {

@@ -49,22 +49,26 @@ void UCLibManger::LinkLib(UCodeLang::RunTimeLib* Item)
 
 	if (Item->Get_Lib())
 	{
-		for (const auto& Item2 : Item->Get_Lib()->Get_NameToPtr())
+		auto Layer = Item->Get_Lib()->GetLayer(UCode_CodeLayer_UCodeVM_Name);
+		if (Layer) 
 		{
-			_NameToAddress[Item2._Key] = Item2._Value;
-		}
-		for (const auto& Item : Item->Get_Lib()->Get_StaticBytes())
-		{
-			StaticBytes.push_back(Item);
-		}
+			for (const auto& Item2 : Layer->Get_NameToPtr())
+			{
+				_NameToAddress[Item2._Key] = Item2._Value;
+			}
+			for (const auto& Item : Item->Get_Lib()->Get_StaticBytes())
+			{
+				StaticBytes.push_back(Item);
+			}
 
-		for (const auto& Item : Item->Get_Lib()->Get_Code())
-		{
-			_Code.push_back(Item);
-		}
+			for (const auto& Item : Layer->Get_Code())
+			{
+				_Code.push_back(Item);
+			}
 
-		auto& _Assembly = Item->Get_Lib()->Get_Assembly();
-		ClassAssembly::PushCopyClasses(_Assembly, Assembly);
+			auto& _Assembly = Item->Get_Lib()->Get_Assembly();
+			ClassAssembly::PushCopyClasses(_Assembly, Assembly);
+		}
 	}
 	for (const auto& Item2 : Item->Get_CPPCalls())
 	{

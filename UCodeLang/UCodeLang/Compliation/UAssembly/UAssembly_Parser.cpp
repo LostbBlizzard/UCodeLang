@@ -51,7 +51,7 @@ void Parser::ParseIns()
 			ParseOp(_TepIns.Value1, Item.Op_1);
 		}
 	
-		_Output->Add_Instruction(_TepIns);
+		_OutLayer->Add_Instruction(_TepIns);
 		_TepIns = Instruction();
 	}
 	else
@@ -66,15 +66,15 @@ void Parser::ParseOp(AnyInt64& Out, OpCodeType Type)
 
 	switch (Type)
 	{
-	case UCodeLang::UAssembly::OpCodeType::NoOpCode:
+	case OpCodeType::NoOpCode:
 		break;
-	case UCodeLang::UAssembly::OpCodeType::AnyInt8:ParseAny8(Out);break;
-	case UCodeLang::UAssembly::OpCodeType::AnyInt16:
+	case OpCodeType::AnyInt8:ParseAny8(Out);break;
+	case OpCodeType::AnyInt16:
 		break;
-	case UCodeLang::UAssembly::OpCodeType::AnyInt32:
+	case OpCodeType::AnyInt32:
 		break;
-	case UCodeLang::UAssembly::OpCodeType::UIntPtr :
-	case UCodeLang::UAssembly::OpCodeType::AnyInt64:
+	case OpCodeType::UIntPtr:
+	case OpCodeType::AnyInt64:
 		ParseAny8(Out);
 		break;
 	case UCodeLang::UAssembly::OpCodeType::Register:ParseOpRegister(Out); break;

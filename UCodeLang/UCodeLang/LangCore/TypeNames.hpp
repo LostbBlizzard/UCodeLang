@@ -99,6 +99,11 @@
 #define UCode_Unique_Array_MakeFuncion "Make"//int[^]::Make(...)
 #define UCode_Shared_Array_MakeFuncion "Make"//int[$]::Make(...)
 
-
-
+//
+#define UCode_CodeLayer_UCodeVM_Name "UCodeVm"
+#define UCode_CodeLayer_IR_Name "IR"
+#define UCode_CodeLayer_X86__Name "x86"
+#define UCode_CodeLayer_X86_64_Name "x86_64"
+#define UCode_CodeLayer_AMD_Name "AMD"
+#define UCode_CodeLayer_AMD_64_Name "AMD64"
 
