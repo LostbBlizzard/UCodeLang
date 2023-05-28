@@ -34,6 +34,11 @@ public:
 		return *_Settings;
 	}
 
+
+	UCodeLangForceinline bool HasLibOutput()
+	{
+		return _OutputLib;
+	}
 	UCodeLangForceinline UClib& Getliboutput()
 	{
 		return *_OutputLib;

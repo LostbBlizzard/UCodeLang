@@ -93,12 +93,11 @@ Unique_ptr<FileNode_t> UCodeFrontEndObject::LoadExternFile(const BytesView Bytes
 }
 Vector<const FileNode_t*> UCodeFrontEndObject::Get_DependenciesPostIR(FileNode_t* File)
 {
-	return  _Analyzer.GetFileData(File)._Dependencys;
+	return  _Analyzer.GetFileDataPub(File)._Dependencys;
 }
 void UCodeFrontEndObject::ToIntFile(FileNode_t* File, const Path& path) 
 {
-
-
+	_Analyzer.ToIntFile(File, path);
 }
 
 void UCodeFrontEndObject::BuildIR(const Vector<FileNode_t*>& fileNode)
