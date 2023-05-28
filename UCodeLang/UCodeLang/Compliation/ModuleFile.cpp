@@ -28,11 +28,7 @@ BytesPtr ModuleIndex::ToBytes(const ModuleIndex* Lib)
 		}
 	}
 
-	BytesPtr CompilerRet;
-	CompilerRet.Bytes = std::make_unique<Byte[]>(bit.size());
-	memcpy(CompilerRet.Bytes.get(), bit.data(), bit.size());
-	CompilerRet.Size = bit.size();
-	return CompilerRet;
+	return bit.AsBytePtrAndMove();
 }
 
 bool ModuleIndex::FromBytes(ModuleIndex* Lib, const BytesView Bytes)
@@ -165,16 +161,23 @@ void ModuleIndex::FromType(BitReader& bit, Path& Value)
 	bit.ReadType(Out, Out);
 	Value = Out;;
 }
-Compiler::CompilerPathData ModuleFile::GetPaths(Compiler& Compiler) const
+Compiler::CompilerPathData ModuleFile::GetPaths(Compiler& Compiler, bool IsSubModule) const
 {
 	Compiler::CompilerPathData paths;
 	auto B = Path(ThisModuleDir);
 
 	String OutputName = Compiler.GetBackEndName();
 
+	Path ValueToAddIfSubModule;
+	if (IsSubModule)
+	{
+		ValueToAddIfSubModule += Path::preferred_separator;
+		ValueToAddIfSubModule += "SubModule";
+	}
+
 	paths.FileDir = Path((B.native() + Path::preferred_separator + Path(ModuleSourcePath).native())).generic_string();
-	paths.IntDir = Path((B.native()  + Path::preferred_separator + Path(ModuleIntPath).native() + Path::preferred_separator + Path(OutputName).native())).generic_string();
-	paths.OutFile = Path((B.native() + Path::preferred_separator + Path(ModuleOutPath).native() + Path::preferred_separator + Path(OutputName).native() + Path::preferred_separator)).generic_string();
+	paths.IntDir = Path((B.native()  + Path::preferred_separator + Path(ModuleIntPath).native() + ValueToAddIfSubModule.native() + Path::preferred_separator + Path(OutputName).native())).generic_string();
+	paths.OutFile = Path((B.native() + Path::preferred_separator + Path(ModuleOutPath).native() + ValueToAddIfSubModule.native() + Path::preferred_separator + Path(OutputName).native() + Path::preferred_separator)).generic_string();
 	
 	
 	if (!std::filesystem::exists(paths.IntDir))
@@ -199,9 +202,9 @@ String ModuleFile::ToName(const ModuleIdentifier& ID)
 	R += ID.AuthorName;
 	return R;
 }
-ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIndex& Modules)
+ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIndex& Modules, bool IsSubModule)
 {
-	Compiler::CompilerPathData paths = GetPaths(Compiler);
+	Compiler::CompilerPathData paths = GetPaths(Compiler,IsSubModule);
 	Compiler::ExternalFiles ExternFiles;
 	auto& Errs = Compiler.Get_Errors();
 
@@ -221,7 +224,7 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 			ModuleFile MFile;
 			if (ModuleFile::FromFile(&MFile, Index._ModuleFullPath))
 			{
-				auto BuildData = MFile.BuildModule(Compiler, Modules);
+				auto BuildData = MFile.BuildModule(Compiler, Modules,true);
 				if (BuildData.CompilerRet._State == Compiler::CompilerState::Fail)
 				{
 					Errs.FilePath = GetFullPathName();
@@ -239,15 +242,20 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 		}
 	}
 	
-	if (Err == false) 
+	if (Err == false)
 	{
+		auto OldSettings = Compiler.Get_Settings();
+
 		ModuleRet CompilerRet;
 
-		//
-
-		//
+		Compiler.Get_Settings()._Type = IsSubModule ? OutPutType::IRAndSymbols : OldSettings._Type;
 		CompilerRet.OutputItemPath = paths.OutFile;
+
+
+
 		CompilerRet.CompilerRet = Compiler.CompileFiles_UseIntDir(paths, ExternFiles);
+
+		 Compiler.Get_Settings() = OldSettings;
 		return CompilerRet;
 	}
 	else

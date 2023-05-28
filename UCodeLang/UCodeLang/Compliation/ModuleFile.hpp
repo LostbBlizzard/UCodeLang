@@ -83,7 +83,7 @@ public:
 	{
 
 	}
-	Compiler::CompilerPathData GetPaths(Compiler& Compiler) const;
+	Compiler::CompilerPathData GetPaths(Compiler& Compiler, bool IsSubModule = false) const;
 
 	static String ToName(const ModuleIdentifier& ID);
 	Path GetFullPathName()
@@ -91,7 +91,7 @@ public:
 		return Path(ThisModuleDir) / (String(FileName) + FileExtWithDot);;
 	}
 
-	ModuleRet BuildModule(Compiler& Compiler,const ModuleIndex& Modules);
+	ModuleRet BuildModule(Compiler& Compiler,const ModuleIndex& Modules,bool IsSubModule = false);
 	static bool ToFile(const ModuleFile* Lib, const Path& path);
 	static bool FromFile(ModuleFile* Lib, const Path& path);
 

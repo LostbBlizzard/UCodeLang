@@ -19,13 +19,31 @@ void C89Backend::Build(const IRBuilder* Input)
 {
 	_Input = Input; 
 	
-	AddTextSignature();
-	
-	
-	//types
-	AddBaseTypes();
-	
-	OutBuffer += ToString();
+	if (Get_Settings()._Type == OutPutType::IRAndSymbols)
+	{
+		if (HasLibOutput())
+		{
+			auto _OutLayer = Getliboutput().AddLayer(UCode_CodeLayer_IR_Name);
+			_OutLayer->Get_Code() = Input->ToBytes().MoveInToVectorOfBytes();
+		}
+		else
+		{
+			OutBuffer += "//Made using UCodeLang C89 Backend.Next Part is an IR Binary this will be used when linking.";
+			
+			auto Data = Input->ToBytes();
+			OutBuffer += String_view((char*)Data.AsView().Bytes, Data.AsView().Size);
+		}
+	}
+	else
+	{
+		AddTextSignature();
+
+
+		//types
+		AddBaseTypes();
+
+		OutBuffer += ToString();
+	}
 }
 
 void C89Backend::AddTextSignature()

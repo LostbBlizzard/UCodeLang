@@ -269,10 +269,38 @@ public:
 	struct FileNodeData
 	{
 		Vector< const FileNode_t*> _Dependencys;
-		//UClib ObjectFile;
+		struct SpanData
+		{
+			size_t Index = 0;
+			size_t Count = 0;
+			
+
+			static SpanData NewWithNewIndex(size_t Index, size_t EndIndex)
+			{
+				SpanData R;
+				R.Index = Index;
+				R.Count = EndIndex - Index;
+				return R;
+			}
+		};
+		SpanData AssemblyInfoSpan;
+		SpanData GlobalObjectMethodInfoSpan;
+		
+		SpanData IRInitStaticSpan;
+		SpanData IRInitThreadSpan;
+		SpanData IRDeInitStaticSpan;
+		SpanData IRDeInitThreadSpan;
+
+		SpanData IRFuncsSpan;
+		SpanData IRSymbolSpan;
+		SpanData IRConstStringSpan;
 	};
-	const FileNodeData& GetFileData(const FileNode_t* file) const { return _FilesData.at(file); }
+	const FileNodeData& GetFileDataPub(const FileNode_t* file) const { return *_FilesData.at(file); }
+
+	void ToIntFile(FileNode_t* File, const Path& path);
 private:
+	FileNodeData& GetFileData(const FileNode_t* file) { return *_FilesData.at(file); }
+
 	//Types
 	struct BinaryExpressionNode_Data
 	{
@@ -505,7 +533,7 @@ private:
 
 
 	const FileNode* LookingAtFile = nullptr;
-	BinaryVectorMap<const FileNode_t*, FileNodeData> _FilesData;
+	BinaryVectorMap<const FileNode_t*,Shared_ptr<FileNodeData>> _FilesData;
 	BinaryVectorMap<const void*, BinaryExpressionNode_Data> BinaryExpressionNode_Datas;
 	BinaryVectorMap<const void*, IndexedExpresion_Data> IndexedExpresion_Datas;
 	BinaryVectorMap<const void*, PostFixExpressionNode_Data> PostFix_Datas;

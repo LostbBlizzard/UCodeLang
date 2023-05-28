@@ -40,6 +40,7 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 	UpdateOptimizationList();
 	
 	
+
 	do
 	{
 		_TypeFixer.FixTypes(Input);

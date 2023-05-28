@@ -85,17 +85,26 @@ void UCodeBackEndObject::Build(const IRBuilder* Input)
 	_Input = Input;
 	_Output = &Get_Output();
 
-	_OutLayer = _Output->AddLayer(UCode_CodeLayer_UCodeVM_Name);
+	if (Get_Settings()._Type == OutPutType::IRAndSymbols)
+	{
+		_OutLayer = _Output->AddLayer(UCode_CodeLayer_IR_Name);
+		_OutLayer->Get_Code() = Input->ToBytes().MoveInToVectorOfBytes();
+	}
+	else
+	{
 
-	UpdateOptimizations();
- 
-	BuildSymbols();
+		_OutLayer = _Output->AddLayer(UCode_CodeLayer_UCodeVM_Name);
 
-	BuildFuncs();
-	
-	DoOptimizations();
+		UpdateOptimizations();
 
-	LinkFuncs();
+		BuildSymbols();
+
+		BuildFuncs();
+
+		DoOptimizations();
+
+		LinkFuncs();
+	}
 }
 void UCodeBackEndObject::UpdateOptimizations()
 {

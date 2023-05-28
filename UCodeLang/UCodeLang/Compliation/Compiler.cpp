@@ -793,6 +793,15 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 					for (auto& Item : ChangedFiles)
 					{
 						if (Item->IsExternal){continue;}
+						
+						
+						{
+							Path InterDirPath = Item->InterPath.parent_path();
+							if (!fs::exists(InterDirPath))
+							{
+								std::filesystem::create_directories(InterDirPath);
+							}
+						}
 
 						_FrontEndObject->ToIntFile(Item->_File.get(),Item->InterPath);
 						auto FileDeps = _FrontEndObject->Get_DependenciesPostIR(Item->_File.get());

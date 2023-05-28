@@ -22,11 +22,7 @@ BytesPtr DependencyFile::ToRawBytes(const DependencyFile* Lib)
 
 	//
 
-	BytesPtr V;
-	V.Bytes.reset(new Byte[bits.size()]);
-	std::memcpy(V.Bytes.get(), bits.data(), bits.size());
-	V.Size = bits.size();
-    return V;
+	return bits.AsBytePtrAndMove();
 }
 
 bool DependencyFile::FromBytes(DependencyFile* Lib, const BytesView& Data)

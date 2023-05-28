@@ -102,6 +102,7 @@
 //
 #define UCode_CodeLayer_UCodeVM_Name "UCodeVm"
 #define UCode_CodeLayer_IR_Name "IR"
+#define UCode_CodeLayer_Text_Name "Text"
 #define UCode_CodeLayer_X86__Name "x86"
 #define UCode_CodeLayer_X86_64_Name "x86_64"
 #define UCode_CodeLayer_AMD_Name "AMD"

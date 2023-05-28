@@ -243,6 +243,14 @@ struct BytesPtr
 		Size = Value.Size;
 		return *this;
 	}
+
+	Vector<Byte> MoveInToVectorOfBytes()
+	{
+		Vector<Byte> R;
+		R.resize(Size);
+		std::memcpy(R.data(), Bytes.release(), R.size());
+		return R;
+	}
 };
 
 enum class IntSizes : UInt8

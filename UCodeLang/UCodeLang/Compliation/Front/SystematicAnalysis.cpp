@@ -89,6 +89,14 @@ bool SystematicAnalysis::Analyze(const Vector<const FileNode*>& Files, const Vec
 	_Files = &Files;
 	_Libs = &Libs;
 
+	{
+		for (const auto& File : *_Files)
+		{
+			_FilesData.AddValue(File,Unique_ptr<FileNodeData>(new FileNodeData()));
+		}
+
+	}
+
 	passtype = PassType::GetTypes;
 	Pass();
 
@@ -147,8 +155,127 @@ void SystematicAnalysis::BuildCode()
 		}
 	}
 
+	auto globalAssemblyObjectName = (String_view)ScopeHelper::_globalAssemblyObject;
+	_Lib.Get_Assembly().AddClass(String(globalAssemblyObjectName), String(globalAssemblyObjectName));
+	
+
 	passtype = PassType::BuidCode;
 	Pass();
+}
+void SystematicAnalysis::ToIntFile(FileNode_t* File, const Path& path)
+{
+	auto& FileData = GetFileData(File);
+
+
+
+	UClib Tep;
+	auto& globalAssemblyObject = Tep.Get_Assembly().AddClass(ScopeHelper::_globalAssemblyObject, ScopeHelper::_globalAssemblyObject);
+
+	for (size_t i = 0; i < FileData.AssemblyInfoSpan.Count; i++)
+	{
+		auto& Item = _Lib.Get_Assembly().Classes[FileData.AssemblyInfoSpan.Index + i];
+		Tep.Get_Assembly().Classes.push_back(Unique_ptr<ClassData>(Item.get()));
+	}
+
+	for (size_t i = 0; i < FileData.GlobalObjectMethodInfoSpan.Count; i++)
+	{
+		auto& Item = _Lib.Get_Assembly().Get_GlobalObject_Class()->_Class.Methods[FileData.GlobalObjectMethodInfoSpan.Index + i];
+		globalAssemblyObject._Class.Methods.push_back(Item);
+	}
+
+	IRBuilder TepIR;
+	TepIR._StaticInit.NewBlock(".");
+	TepIR._threadInit.NewBlock(".");
+	TepIR._StaticdeInit.NewBlock(".");
+	TepIR._threaddeInit.NewBlock(".");
+
+
+	for (size_t i = 0; i < FileData.IRInitStaticSpan.Count; i++)
+	{
+		size_t Index = FileData.IRInitStaticSpan.Index + i;
+		auto& Item = TepIR._StaticInit.Blocks.front()->Instructions[Index];
+		
+		TepIR._StaticInit.Blocks.front()->Instructions.push_back(Unique_ptr<IRInstruction>(Item.get()));
+	}
+	for (size_t i = 0; i < FileData.IRInitThreadSpan.Count; i++)
+	{
+		size_t Index = FileData.IRInitThreadSpan.Index + i;
+		auto& Item = TepIR._threadInit.Blocks.front()->Instructions[Index];
+		
+		TepIR._threadInit.Blocks.front()->Instructions.push_back(Unique_ptr<IRInstruction>(Item.get()));
+	}
+	for (size_t i = 0; i < FileData.IRDeInitStaticSpan.Count; i++)
+	{
+		size_t Index = FileData.IRDeInitStaticSpan.Index + i;
+		auto& Item = TepIR._StaticdeInit.Blocks.front()->Instructions[Index];
+
+		TepIR._StaticdeInit.Blocks.front()->Instructions.push_back(Unique_ptr<IRInstruction>(Item.get()));
+	}
+	for (size_t i = 0; i < FileData.IRDeInitThreadSpan.Count; i++)
+	{
+		size_t Index = FileData.IRDeInitThreadSpan.Index + i;
+		auto& Item = TepIR._threaddeInit.Blocks.front()->Instructions[Index];
+
+		TepIR._threaddeInit.Blocks.front()->Instructions.push_back(Unique_ptr<IRInstruction>(Item.get()));
+	}
+
+	for (size_t i = 0; i < FileData.IRFuncsSpan.Count; i++)
+	{
+		size_t Index = FileData.IRFuncsSpan.Index + i;
+		auto& Item = _Builder.Funcs[Index];
+
+		TepIR.Funcs.push_back(Unique_ptr<IRFunc>(Item.get()));
+	}
+
+	for (size_t i = 0; i < FileData.IRSymbolSpan.Count; i++)
+	{
+		size_t Index = FileData.IRSymbolSpan.Index + i;
+		auto& Item = _Builder._Symbols[Index];
+
+		TepIR._Symbols.push_back(Unique_ptr<IRSymbolData>(Item.get()));
+	}
+
+
+	TepIR.ConstStaticStrings = _Builder.ConstStaticStrings;
+
+
+	auto IRLayer = Tep.AddLayer(UCode_CodeLayer_IR_Name);
+	IRLayer->Get_Code() = TepIR.ToBytes().MoveInToVectorOfBytes();
+
+	Tep.ToFile(&Tep, path);
+
+	{//was borrowed.
+		for (size_t i = 0; i < Tep.Get_Assembly().Classes.size(); i++)
+		{
+			auto& Item = Tep.Get_Assembly().Classes[i];
+			Item.release();
+		}
+		for (auto& Item : TepIR._StaticInit.Blocks.front()->Instructions)
+		{
+			Item.release();
+		}
+		for (auto& Item : TepIR._threadInit.Blocks.front()->Instructions)
+		{
+			Item.release();
+		}
+		for (auto& Item : TepIR._StaticdeInit.Blocks.front()->Instructions)
+		{
+			Item.release();
+		}
+		for (auto& Item : TepIR._threaddeInit.Blocks.front()->Instructions)
+		{
+			Item.release();
+		}
+		for (auto& Item : TepIR.Funcs)
+		{
+			Item.release();
+		}
+		for (auto& Item : TepIR._Symbols)
+		{
+			Item.release();
+		}
+	}
+
 }
 const FileNode* SystematicAnalysis::Get_FileUseingSybol(const Symbol* Syb)
 {
@@ -166,7 +293,7 @@ void SystematicAnalysis::AddDependencyToCurrentFile(const FileNode* file)
 	const FileNode_t* file_t = (const FileNode_t*)file;
 	if (CurrentFile != file)
 	{
-		FileNodeData& Data = _FilesData[CurrentFile_t];
+		FileNodeData& Data = *_FilesData[CurrentFile_t];
 		
 		for (auto& Item : Data._Dependencys)
 		{
@@ -257,10 +384,17 @@ void SystematicAnalysis::OnFileNode(const FileNode* File)
 {
 	LookingAtFile = File;
 	_ErrorsOutput->FilePath = File->FileName;
-	auto& V = _FilesData[File];//add 
-
-
 	
+	size_t ClassesStart = PassType::BuidCode == passtype ? _Lib._Assembly.Classes.size() : 0;
+	size_t GlobalMethodStart = PassType::BuidCode == passtype ? _Lib._Assembly.Get_GlobalObject_Class()->_Class.Methods.size() : 0;
+	size_t StaticInitStart = PassType::BuidCode == passtype && _Builder._StaticInit.Blocks.size() ? _Builder._StaticInit.Blocks.front()->Instructions.size(): 0;
+	size_t ThreadInitStart = PassType::BuidCode == passtype && _Builder._threadInit.Blocks.size() ? _Builder._threadInit.Blocks.front()->Instructions.size() : 0;
+	size_t StaticDeInitStart = PassType::BuidCode == passtype && _Builder._StaticdeInit.Blocks.size() ? _Builder._StaticdeInit.Blocks.front()->Instructions.size() : 0;
+	size_t ThreadDeInitStart = PassType::BuidCode == passtype && _Builder._threaddeInit.Blocks.size() ? _Builder._threaddeInit.Blocks.front()->Instructions.size() : 0;
+	size_t IRFunsStart = PassType::BuidCode == passtype ? _Builder.Funcs.size() : 0;
+	size_t IRSybolsStart = PassType::BuidCode == passtype ? _Builder._Symbols.size() : 0;
+	size_t IRConstStaticStart = PassType::BuidCode == passtype ? _Builder.ConstStaticStrings.size() : 0;
+
 	for (auto& node : File->_Nodes)
 	{
 		PushToNodeScope(*node.get());
@@ -281,6 +415,22 @@ void SystematicAnalysis::OnFileNode(const FileNode* File)
 		default:break;
 		}
 		PopNodeScope();
+	}
+
+	if (passtype == PassType::BuidCode)
+	{
+		auto& FileData = GetFileData(File);
+
+
+		FileData.AssemblyInfoSpan = FileNodeData::SpanData::NewWithNewIndex(ClassesStart, _Lib._Assembly.Classes.size());
+		FileData.GlobalObjectMethodInfoSpan = FileNodeData::SpanData::NewWithNewIndex(GlobalMethodStart, _Lib._Assembly.Get_GlobalObject_Class()->_Class.Methods.size());
+		FileData.IRInitStaticSpan = FileNodeData::SpanData::NewWithNewIndex(StaticInitStart, _Builder._StaticInit.Blocks.size() ? _Builder._StaticInit.Blocks.front()->Instructions.size() : 0);
+		FileData.IRInitThreadSpan = FileNodeData::SpanData::NewWithNewIndex(ThreadInitStart, _Builder._threadInit.Blocks.size() ? _Builder._threadInit.Blocks.front()->Instructions.size() : 0);
+		FileData.IRDeInitStaticSpan= FileNodeData::SpanData::NewWithNewIndex(StaticDeInitStart, _Builder._StaticdeInit.Blocks.size() ? _Builder._StaticdeInit.Blocks.front()->Instructions.size() : 0);
+		FileData.IRDeInitThreadSpan = FileNodeData::SpanData::NewWithNewIndex(ThreadDeInitStart, _Builder._threaddeInit.Blocks.size() ? _Builder._threaddeInit.Blocks.front()->Instructions.size() : 0);
+		FileData.IRFuncsSpan = FileNodeData::SpanData::NewWithNewIndex(IRFunsStart, _Builder.Funcs.size());
+		FileData.IRSymbolSpan = FileNodeData::SpanData::NewWithNewIndex(IRSybolsStart, _Builder._Symbols.size());
+		FileData.IRConstStringSpan = FileNodeData::SpanData::NewWithNewIndex(IRConstStaticStart, _Builder.ConstStaticStrings.size());
 	}
 
 	_Table.ClearUseings();
@@ -1477,7 +1627,7 @@ ClassData* SystematicAnalysis::GetAssemblyClass(const String& FullName)
 		auto Ptr =  Assembly.Find_Class(globalAssemblyObjectName);
 		if (Ptr == nullptr)
 		{
-			return &_Lib.Get_Assembly().AddClass(String(globalAssemblyObjectName), String(globalAssemblyObjectName));
+			throw std::exception("bad path");
 		}
 		return Ptr;
 	}
@@ -8288,7 +8438,7 @@ void SystematicAnalysis::LoadSymbol(const ClassMethod& Item, SystematicAnalysis:
 {
 	if (Mode == LoadLibMode::GetTypes)
 	{
-
+		/*
 		auto Name =ScopeHelper::GetNameFromFullName(Item.FullName);
 		auto& Syb = AddSybol(SymbolType::Func, Name, _Table._Scope.GetApendedString(Name), AccessModifierType::Public);
 		auto Funcinfo =new FuncInfo();
@@ -8296,7 +8446,7 @@ void SystematicAnalysis::LoadSymbol(const ClassMethod& Item, SystematicAnalysis:
 
 		Funcinfo->FullName = Syb.FullName;
 
-
+		*/
 
 	}
 	else if (Mode == LoadLibMode::FixTypes)
@@ -9077,7 +9227,7 @@ bool SystematicAnalysis::AreTheSameWithOutimmutable(const TypeSymbol& TypeA, con
 			}
 			return true;
 		}
-		if (TypeOne.Type == SymbolType::Type_StaticArray && TypeOne.Type == SymbolType::Type_StaticArray)
+		if (TypeOne.Type == SymbolType::Type_StaticArray && TypeTwo.Type == SymbolType::Type_StaticArray)
 		{
 			StaticArrayInfo* F1 = TypeOne.Get_Info<StaticArrayInfo>();
 			StaticArrayInfo* F2 = TypeTwo.Get_Info<StaticArrayInfo>();

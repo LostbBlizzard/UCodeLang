@@ -6,6 +6,7 @@ enum class OutPutType : UInt8
 {
 	Lib,
 	DLL,
+	IRAndSymbols,
 };
 typedef UInt8 OptimizationFlags_t;
 enum class OptimizationFlags : OptimizationFlags_t

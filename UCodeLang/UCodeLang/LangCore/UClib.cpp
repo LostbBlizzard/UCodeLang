@@ -352,6 +352,7 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 }
 void UClib::FromBytes(BitReader& Input, CodeLayer& Data)
 {
+	Input.ReadType(Data._Name);
 	{// Instructions
 
 		union

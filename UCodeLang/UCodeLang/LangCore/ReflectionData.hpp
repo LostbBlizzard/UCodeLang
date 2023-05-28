@@ -242,6 +242,7 @@ public:
 		Clear();
 	}
 	ClassAssembly(ClassAssembly&& source) = default;
+	ClassAssembly& operator=(ClassAssembly&& source) = default;
 	static void PushCopyClasses(const ClassAssembly& source, ClassAssembly& Out)
 	{
 		for (auto& Item : source.Classes)
