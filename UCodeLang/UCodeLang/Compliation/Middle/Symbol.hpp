@@ -760,6 +760,8 @@ public:
 	SymbolType Type = SymbolType::Null;
 	String FullName;
 	SymbolID ID = 0;
+
+	bool OutputIR = true;
 	//var
 	TypeSymbol VarType;
 	//

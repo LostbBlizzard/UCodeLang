@@ -108,6 +108,7 @@ bool SystematicAnalysis::Analyze(const Vector<const FileNode*>& Files, const Vec
 
 
 		if (!_ErrorsOutput->Has_Errors()) {
+			BuildLibs();
 			BuildCode();
 		}
 	};
@@ -123,6 +124,8 @@ void SystematicAnalysis::BuildCode()
 {
 	for (auto& Item : _Table.Symbols)
 	{
+		if (!Item->OutputIR){continue;}
+
 		switch (Item->Type)
 		{
 		case SymbolType::Type_class:
@@ -162,6 +165,39 @@ void SystematicAnalysis::BuildCode()
 	passtype = PassType::BuidCode;
 	Pass();
 }
+void SystematicAnalysis::BuildLibs()
+{
+	if (_Settings->_Type != OutPutType::IRAndSymbols) 
+	{
+		for (size_t i = 0; i < _Libs->size(); i++)
+		{
+			auto Item = (*_Libs)[i];
+
+			BuildLib(*Item,(*_LibsNames)[i]);
+		}
+	}
+}
+void SystematicAnalysis::BuildLib(const UClib& lib,const Path& LibName)
+{
+	auto IRLayer = lib.GetLayer(UCode_CodeLayer_IR_Name);
+
+	bool GotIRCode = false;
+	if (IRLayer)
+	{
+		IRBuilder IRToImport;
+		if (IRBuilder::FromBytes(IRToImport,BytesView((Byte*)IRLayer->_Code.data(), IRLayer->_Code.size())))
+		{
+			GotIRCode = true;
+		
+		}
+	}
+
+	if (GotIRCode == false)
+	{
+		_ErrorsOutput->AddError(ErrorCodes::InternalCompilerError, 0, 0, "Cant get IR from '" + LibName.generic_string() + "' Object file.Try deleting it");
+	}
+}
+
 void SystematicAnalysis::ToIntFile(FileNode_t* File, const Path& path)
 {
 	auto& FileData = GetFileData(File);
@@ -3502,8 +3538,6 @@ bool SystematicAnalysis::ISStructPassByRef(Symbol* syb)
 	}
 	return r;
 }
-
-//Funcs
 
 void SystematicAnalysis::WriteTo(IRInstruction* IR, const IROperator& Value)
 {
@@ -8328,66 +8362,12 @@ void SystematicAnalysis::PushTepAttributesInTo(Vector<AttributeData>& Input)
 }
 void SystematicAnalysis::LoadLibSymbols()
 {
-	for (auto Item : *_Libs)
-	{
-		LoadLibSymbols(*Item);
-	}
-}
-void SystematicAnalysis::LoadLibSymbols(const UClib& lib)
-{
-	auto OutputType = OutputTypeAsLibType();
-	auto libType = lib._LibType;
-	
-	LibType ImportType;
-	if (OutputType == LibType::Lib)
-	{
-		ImportType = libType;
-	}
-	else
-	{
-		ImportType = LibType::Dll;
-	}
-
-
 	LoadLibMode Mode = LoadLibMode::GetTypes;
-
 	while (Mode != LoadLibMode::Done)
 	{
-		auto GlobalObject = lib.Get_Assembly().Get_GlobalObject_Class();
-		if (GlobalObject)
+		for (auto Item : *_Libs)
 		{
-			String Scope;
-			LoadClassSymbol(GlobalObject->_Class,Scope,Mode);
-		}
-
-
-		for (auto& Item : lib.Get_Assembly().Classes)
-		{
-			if (Item->FullName == ScopeHelper::_globalAssemblyObject)
-			{
-				continue;
-			}
-			String Scope;
-			switch (Item->Type)
-			{
-			case ClassType::Class:
-			{
-				LoadClassSymbol(Item->_Class, Scope, Mode);
-			}
-			break;
-			case ClassType::Alias:
-			{
-
-			}
-			break;
-			case ClassType::Enum:
-			{
-
-			}
-			break;
-			default:
-				break;
-			}
+			LoadLibSymbols(*Item,Mode);
 		}
 
 		//
@@ -8402,13 +8382,57 @@ void SystematicAnalysis::LoadLibSymbols(const UClib& lib)
 		case LoadLibMode::Done:
 			break;
 		default:
+			throw std::exception("Bad Path");
 			break;
 		}
 
 		//
 	}
+}
+void SystematicAnalysis::LoadLibSymbols(const UClib& lib, LoadLibMode Mode)
+{
+	auto OutputType = OutputTypeAsLibType();
+	auto libType = lib._LibType;
 
 	
+
+	auto GlobalObject = lib.Get_Assembly().Get_GlobalObject_Class();
+	if (GlobalObject)
+	{
+		String Scope;
+		LoadClassSymbol(GlobalObject->_Class, Scope, Mode);
+	}
+
+
+	for (auto& Item : lib.Get_Assembly().Classes)
+	{
+		if (Item->FullName == ScopeHelper::_globalAssemblyObject)
+		{
+			continue;
+		}
+		String Scope;
+		switch (Item->Type)
+		{
+		case ClassType::Class:
+		{
+			LoadClassSymbol(Item->_Class, Scope, Mode);
+		}
+		break;
+		case ClassType::Alias:
+		{
+
+		}
+		break;
+		case ClassType::Enum:
+		{
+
+		}
+		break;
+		default:
+			break;
+		}
+	}
+
 }
 void SystematicAnalysis::LoadClassSymbol(const ClassData::Class_Data& Item, const String& Scope, SystematicAnalysis::LoadLibMode Mode)
 {
@@ -8437,20 +8461,24 @@ void SystematicAnalysis::LoadClassSymbol(const ClassData::Class_Data& Item, cons
 void SystematicAnalysis::LoadSymbol(const ClassMethod& Item, SystematicAnalysis::LoadLibMode Mode)
 {
 	if (Mode == LoadLibMode::GetTypes)
-	{
-		/*
+	{	
 		auto Name =ScopeHelper::GetNameFromFullName(Item.FullName);
 		auto& Syb = AddSybol(SymbolType::Func, Name, _Table._Scope.GetApendedString(Name), AccessModifierType::Public);
+		_Table.AddSymbolID(Syb, (SymbolID)&Item);
+		Syb.OutputIR = false;
 		auto Funcinfo =new FuncInfo();
 		Syb.Info.reset(Funcinfo);
 
 		Funcinfo->FullName = Syb.FullName;
 
-		*/
-
+		
+		Funcinfo->Pars.resize(Item.ParsType.size());
 	}
 	else if (Mode == LoadLibMode::FixTypes)
 	{
+		auto& Syb = _Table.GetSymbol((SymbolID)&Item);
+		auto Funcinfo = Syb.Get_Info<FuncInfo>();
+
 
 	}
 }

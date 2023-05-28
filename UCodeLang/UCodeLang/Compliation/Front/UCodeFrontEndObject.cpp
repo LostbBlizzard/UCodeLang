@@ -111,6 +111,7 @@ void UCodeFrontEndObject::BuildIR(const Vector<FileNode_t*>& fileNode)
 
 	Vector<const FileNode*> V;
 	Vector<const UClib*> L;
+	Vector<Path> P;
 	for (size_t i = 0; i < fileNode.size(); i++)
 	{
 		auto Item = (const FileNode*)fileNode[i];
@@ -119,6 +120,7 @@ void UCodeFrontEndObject::BuildIR(const Vector<FileNode_t*>& fileNode)
 		{
 			auto N = (const LibImportNode*)Item;
 			L.push_back(&N->LIb);
+			P.push_back(N->FileName);
 		}
 		else
 		{
@@ -126,5 +128,6 @@ void UCodeFrontEndObject::BuildIR(const Vector<FileNode_t*>& fileNode)
 		}
 	}
 	_Analyzer.Analyze(V, L);
+	_Analyzer.SetLibNames(&P);
 }
 UCodeLangFrontEnd

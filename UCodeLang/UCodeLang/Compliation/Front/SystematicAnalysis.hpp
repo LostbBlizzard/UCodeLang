@@ -236,10 +236,16 @@ public:
 };
 
 
+
+
 class SystematicAnalysis
 {
 
 public:
+	struct ImportLib
+	{
+		const Path* Name;
+	};
 	SystematicAnalysis() {}
 	~SystematicAnalysis() {}
 	void Reset();
@@ -296,7 +302,10 @@ public:
 		SpanData IRConstStringSpan;
 	};
 	const FileNodeData& GetFileDataPub(const FileNode_t* file) const { return *_FilesData.at(file); }
-
+	void SetLibNames(const Vector <Path>* LibsNames)
+	{
+		_LibsNames = LibsNames;
+	}
 	void ToIntFile(FileNode_t* File, const Path& path);
 private:
 	FileNodeData& GetFileData(const FileNode_t* file) { return *_FilesData.at(file); }
@@ -526,6 +535,7 @@ private:
 
 	const Vector<const FileNode*>* _Files = nullptr;
 	const Vector<const UClib*>* _Libs = nullptr;
+	const Vector<Path>* _LibsNames = nullptr;
 	SymbolTable _Table;
 
 
@@ -604,7 +614,8 @@ private:
 	Stack<VarableUseData> _Varable;
 
 	//Funcs
-
+	void BuildLibs();
+	void BuildLib(const UClib& lib, const Path& LibName);
 	static bool IsWrite(GetValueMode Value)
 	{
 		return Value == GetValueMode::Write || Value == GetValueMode::ReadAndWrite;
@@ -883,7 +894,7 @@ private:
 
 	void PushTepAttributesInTo(Vector<AttributeData>& Input);
 	void LoadLibSymbols();
-	void LoadLibSymbols(const UClib& lib);
+	void LoadLibSymbols(const UClib& lib, LoadLibMode Mode);
 
 	void LoadClassSymbol(const ClassData::Class_Data& Item, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 	void LoadSymbol(const ClassMethod& Item, SystematicAnalysis::LoadLibMode Mode);
