@@ -773,7 +773,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 					_BackEndObject->Build(output);
 
 					auto Output = _BackEndObject->GetOutput();
-					if (Output.Size)
+					if (!_BackEndObject->HasLibOutput())
 					{
 						std::ofstream File(Data.OutFile, std::ios::binary);
 						if (File.is_open())

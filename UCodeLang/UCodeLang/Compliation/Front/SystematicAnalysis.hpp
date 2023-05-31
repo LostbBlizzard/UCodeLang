@@ -913,7 +913,8 @@ private:
 	static String GetFuncAnonymousObjectFullName(const String& FullFuncName);
 	void AddClass_tToAssemblyInfo(const ClassInfo* data);
 	ReflectionTypeInfo ConvertToTypeInfo(const TypeSymbol& Type);
-	TypeSymbol Convert(const ReflectionTypeInfo& Type);
+
+	TypeSymbolID GetTypeID(TypesEnum Type, SymbolID SymbolId);
 
 	bool AreTheSame(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
 	bool AreTheSameWithOutimmutable(const TypeSymbol& TypeA, const TypeSymbol& TypeB);

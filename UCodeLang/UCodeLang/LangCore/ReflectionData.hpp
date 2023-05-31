@@ -6,7 +6,7 @@ UCodeLangStart
 
 
 using ReflectionTypes_t = UInt8;
-enum ReflectionTypes : ReflectionTypes_t
+enum class ReflectionTypes : ReflectionTypes_t
 {
 	Null,
 	Void,
@@ -37,12 +37,6 @@ enum ReflectionTypes : ReflectionTypes_t
 
 	CustomType,
 };
-using ReflectionTypeValueInfo_t = UInt8;
-enum class ReflectionTypeValueInfo :ReflectionTypeValueInfo_t
-{
-	IsValue,
-	IsLocation,
-};
 using ReflectionMoveData_t = UInt8;
 enum class ReflectionMoveData : ReflectionMoveData_t
 {
@@ -50,17 +44,46 @@ enum class ReflectionMoveData : ReflectionMoveData_t
 	Moved,
 };
 
+using ReflectionCustomTypeID = UInt64;
+constexpr ReflectionCustomTypeID MaxReserved_ReflectionCustomTypeID = 32;
+
 class ReflectionTypeInfo
 {
 public:
-	String FullNameType;
+	ReflectionCustomTypeID _CustomTypeID;
+	ReflectionTypes  _Type = ReflectionTypes::Null;
 
 	bool _IsAddress = false;
 	bool _IsAddressArray = false;
 	bool _Isimmutable = false;
 	bool _IsDynamic = false;
-	ReflectionTypeValueInfo _ValueInfo = ReflectionTypeValueInfo::IsValue;
 	ReflectionMoveData _MoveData = ReflectionMoveData::None;
+
+	bool IsAddress()const
+	{
+		return _IsAddress;
+	}
+	bool IsAddressArray()const
+	{
+		return _IsAddressArray;
+	}
+	bool Isimmutable() const
+	{
+		return _Isimmutable;
+	}
+	bool Ismutable() const
+	{
+		return !Isimmutable();
+	}
+	bool IsDynamicTrait() const
+	{
+		return _IsDynamic;
+	}
+
+	bool IsMovedType() const
+	{
+		return _MoveData == ReflectionMoveData::Moved;
+	}
 };
 
 class ClassField

@@ -24,8 +24,16 @@ enum class PassType : PassType_t
 };
 
 using TypesEnum = ReflectionTypes;
-using TypeValueInfo = ReflectionTypeValueInfo;
+
+using TypeValueInfo_t = UInt8;
+enum class TypeValueInfo : TypeValueInfo_t
+{
+	IsValue,
+	IsLocation,
+};
 using MoveData = ReflectionMoveData;
+
+using TypeSymbolID = ReflectionCustomTypeID;
 
 enum class TypeInfoPrimitive : UInt8
 {
@@ -136,6 +144,15 @@ struct TypeSymbol
 	bool Ismutable() const
 	{
 		return !Isimmutable();
+	}
+	bool IsDynamicTrait() const
+	{
+		return _IsDynamic;
+	}
+
+	bool IsMovedType() const
+	{
+		return _MoveData == ReflectionMoveData::Moved;
 	}
 	bool IsLocationValue()const
 	{

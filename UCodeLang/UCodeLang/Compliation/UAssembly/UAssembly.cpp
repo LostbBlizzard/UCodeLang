@@ -1,7 +1,7 @@
 #include "UAssembly.hpp"
 #include "CompilerTypes.hpp"
 #include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
-
+#include "UCodeLang/Compliation/Helpers/NameDecoratior.hpp"
 #define StackName "Stack"
 #define StackName_ "[" + StackName + "]"
 
@@ -56,7 +56,7 @@ String UAssembly::ToString(const UClib* Lib)
 			
 			for (auto Item2 : Class.Fields)
 			{
-				r += " " + Item2.Type.FullNameType + " " + Item2.Name + ";//Offset " + std::to_string(Item2.offset) + "\n";
+				r += " " + ToString(Item2.Type) + " " + Item2.Name + ";//Offset " + std::to_string(Item2.offset) + "\n";
 			}
 			r += "\n";
 
@@ -136,7 +136,7 @@ String UAssembly::ToString(const ReflectionTypeInfo& Value)
 {
 	String r;
 
-	r += Value.FullNameType;
+	r += NameDecoratior::DecoratedNameType(Value);
 	return r;
 }
 void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In,const BinaryVectorMap<UAddress, String>& AddressToName, String& out, const UClib* Lib)
