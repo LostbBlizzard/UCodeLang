@@ -898,6 +898,9 @@ private:
 
 	void LoadClassSymbol(const ClassData::Class_Data& Item, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 	void LoadSymbol(const ClassMethod& Item, SystematicAnalysis::LoadLibMode Mode);
+	void LoadType(const ReflectionTypeInfo& Item, TypeSymbol& Out);
+	TypeSymbol LoadType(const ReflectionTypeInfo& Item);
+
 	auto OutputType()
 	{
 		return  _Settings->_Type;

@@ -8479,7 +8479,12 @@ void SystematicAnalysis::LoadSymbol(const ClassMethod& Item, SystematicAnalysis:
 		auto& Syb = _Table.GetSymbol((SymbolID)&Item);
 		auto Funcinfo = Syb.Get_Info<FuncInfo>();
 
-
+		LoadType(Item.RetType);
+		for (size_t i = 0; i < Funcinfo->Pars.size(); i++)
+		{
+			LoadType(Item.ParsType[i], Funcinfo->Pars[i]);
+		}
+		
 	}
 }
 Symbol* SystematicAnalysis::GetSymbol(String_view Name, SymbolType Type)
@@ -9276,6 +9281,16 @@ bool SystematicAnalysis::AreTheSameWithOutimmutable(const TypeSymbol& TypeA, con
 
 
 	return false;
+}
+void SystematicAnalysis::LoadType(const ReflectionTypeInfo& Item, TypeSymbol& Out)
+{
+
+}
+TypeSymbol SystematicAnalysis::LoadType(const ReflectionTypeInfo& Item)
+{
+	TypeSymbol R;
+	LoadType(Item, R);
+	return R;
 }
 SystematicAnalysis::BinaryOverLoadWith_t SystematicAnalysis::HasBinaryOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB)
 {
