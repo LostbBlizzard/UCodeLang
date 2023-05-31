@@ -28,27 +28,85 @@ String NameDecoratior::GetDecoratedName(const String_view funcName, const Vector
 }
 String NameDecoratior::DecoratedNameType(const ReflectionTypeInfo& Type)
 {
-	/*
-	if (Type.FullNameType == CharTypeName){return "c";}
-	if (Type.FullNameType == boolTypeName) { return "b"; }
+	String R;
+	switch (Type._Type)
+	{
+	case ReflectionTypes::Void:
+		R += "v";
+		break;
+	case ReflectionTypes::Bool:
+		R += "b";
+		break;
+	case ReflectionTypes::Char:
+		R += "c";
+		break;
 
-	if (Type.FullNameType == Uint8TypeName) { return "1"; }
-	if (Type.FullNameType == Sint8TypeName) { return "s1"; }
+	case ReflectionTypes::uInt8:
+		R += "u8";
+		break;
+	case ReflectionTypes::uInt16:
+		R += "u16";
+		break;
+	case ReflectionTypes::uInt32:
+		R += "u32";
+		break;
+	case ReflectionTypes::uInt64:
+		R += "u64";
+		break;
 
-	if (Type.FullNameType == Uint16TypeName) { return "2"; }
-	if (Type.FullNameType == Sint16TypeName) { return "s2"; }
+	case ReflectionTypes::sInt8:
+		R += "i8";
+		break;
+	case ReflectionTypes::sInt16:
+		R += "i16";
+		break;
+	case ReflectionTypes::sInt32:
+		R += "i32";
+		break;
+	case ReflectionTypes::sInt64:
+		R += "i64";
+		break;
 
-	if (Type.FullNameType == Uint32TypeName) { return "4"; }
-	if (Type.FullNameType == Sint32TypeName) { return "s4"; }
+	case ReflectionTypes::sIntPtr:
+		R += "iptr";
+		break;
+	case ReflectionTypes::uIntPtr:
+		R += "uptr";
+		break;
+	case ReflectionTypes::float32:
+		R += "f32";
+		break;
+	case ReflectionTypes::float64:
+		R += "f64";
+		break;
+	default:
+		R += "[]";
+		break;
+	}
+	if (Type._IsAddress)
+	{
+		R += "&";
+	}
+	if (Type._IsAddressArray)
+	{
+		R += "[&]";
+	}
+	if (Type._Isimmutable)
+	{
+		R += "umut";
+	}
+	if (Type._IsDynamic)
+	{
+		R += "dyn";
+	}
+	if (Type._MoveData == ReflectionMoveData::Moved)
+	{
+		R += "mov";
+	}
 
-	if (Type.FullNameType == Uint64TypeName) { return "8"; }
-	if (Type.FullNameType == Sint64TypeName) { return "s8"; }
+	
 
-	if (Type.FullNameType == float32TypeName) { return "f4"; }
-	if (Type.FullNameType == float64TypeName) { return "f8"; }
-	*/
-
-	return Type.FullNameType;
+	return R;
 }
 String NameDecoratior::GetUnDecoratedName(const String& DecoratedName)
 {

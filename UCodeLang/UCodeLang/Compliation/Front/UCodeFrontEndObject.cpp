@@ -127,7 +127,7 @@ void UCodeFrontEndObject::BuildIR(const Vector<FileNode_t*>& fileNode)
 			V.push_back(Item);
 		}
 	}
-	_Analyzer.Analyze(V, L);
 	_Analyzer.SetLibNames(&P);
+	_Analyzer.Analyze(V, L);
 }
 UCodeLangFrontEnd

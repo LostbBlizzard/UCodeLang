@@ -1432,7 +1432,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 		for (auto& Item : Info->Pars)
 		{
-			auto F = V.ParsType.emplace_back();
+			auto& F = V.ParsType.emplace_back();
 			F = ConvertToTypeInfo(Item);
 		}
 
@@ -8466,6 +8466,7 @@ void SystematicAnalysis::LoadSymbol(const ClassMethod& Item, SystematicAnalysis:
 		auto& Syb = AddSybol(SymbolType::Func, Name, _Table._Scope.GetApendedString(Name), AccessModifierType::Public);
 		_Table.AddSymbolID(Syb, (SymbolID)&Item);
 		Syb.OutputIR = false;
+		Syb.PassState = PassType::BuidCode;
 		auto Funcinfo =new FuncInfo();
 		Syb.Info.reset(Funcinfo);
 
@@ -8479,12 +8480,13 @@ void SystematicAnalysis::LoadSymbol(const ClassMethod& Item, SystematicAnalysis:
 		auto& Syb = _Table.GetSymbol((SymbolID)&Item);
 		auto Funcinfo = Syb.Get_Info<FuncInfo>();
 
-		LoadType(Item.RetType);
+		LoadType(Item.RetType, Funcinfo->Ret);
+		Syb.VarType = Funcinfo->Ret;
+
 		for (size_t i = 0; i < Funcinfo->Pars.size(); i++)
 		{
 			LoadType(Item.ParsType[i], Funcinfo->Pars[i]);
 		}
-		
 	}
 }
 Symbol* SystematicAnalysis::GetSymbol(String_view Name, SymbolType Type)
@@ -9193,14 +9195,18 @@ void SystematicAnalysis::AddClass_tToAssemblyInfo(const ClassInfo* Class)
 ReflectionTypeInfo SystematicAnalysis::ConvertToTypeInfo(const TypeSymbol& Type)
 {
 	ReflectionTypeInfo r;
-	r.FullNameType = ToString(Type);
+	r._Type = Type._Type;
+	r._CustomTypeID =GetTypeID(Type._Type,r._CustomTypeID);
+	
+
+	r._IsAddress= Type.IsAddress();
+	r._IsAddressArray= Type.IsAddressArray();
+	r._Isimmutable = Type.Isimmutable();
+	r._IsDynamic = Type.IsDynamicTrait();
+	r._MoveData = Type._MoveData;
 	return r;
 }
 
-TypeSymbol SystematicAnalysis::Convert(const ReflectionTypeInfo& Type)
-{
-	return TypeSymbol();
-}
 bool AreSameimmutable(const TypeSymbol& TypeA, const TypeSymbol& TypeB)
 {
 	return 	TypeA.IsAddress() == TypeB.IsAddress() &&
@@ -9284,7 +9290,16 @@ bool SystematicAnalysis::AreTheSameWithOutimmutable(const TypeSymbol& TypeA, con
 }
 void SystematicAnalysis::LoadType(const ReflectionTypeInfo& Item, TypeSymbol& Out)
 {
-
+	if (Item._Type == ReflectionTypes::CustomType)
+	{
+		throw std::exception("not added");
+	}
+	Out.SetType(Item._Type);
+	Out._IsAddress = Item._IsAddress;
+	Out._IsAddressArray = Item._IsAddressArray;
+	Out._Isimmutable = Item._Isimmutable;
+	Out._IsDynamic = Item._IsDynamic;
+	Out._MoveData = Item._MoveData;
 }
 TypeSymbol SystematicAnalysis::LoadType(const ReflectionTypeInfo& Item)
 {
@@ -9735,6 +9750,64 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type)
 	}
 
 	return r;
+}
+TypeSymbolID SystematicAnalysis::GetTypeID(TypesEnum Type, SymbolID SymbolId)
+{
+	TypeSymbolID R = 0;
+	switch (Type)
+	{
+	case TypesEnum::Void:
+		R = 1;
+		break;
+	case TypesEnum::Bool:
+		R = 2;
+		break;
+	case TypesEnum::Char:
+		R = 3;
+		break;
+	case TypesEnum::uInt8:
+		R = 4;
+		break;
+	case TypesEnum::uInt16:
+		R = 5;
+		break;
+	case TypesEnum::uInt32:
+		R = 6;
+		break;
+	case TypesEnum::uInt64:
+		R = 7;
+		break;
+	case TypesEnum::sInt8:
+		R = 8;
+		break;
+	case TypesEnum::sInt16:
+		R = 9;
+		break;
+	case TypesEnum::sInt32:
+		R = 10;
+		break;
+	case TypesEnum::uIntPtr:
+		R = 11;
+		break;
+	case TypesEnum::sIntPtr:
+		R = 12;
+		break;
+	case TypesEnum::float32:
+		R = 13;
+		break;
+	case TypesEnum::float64:
+		R = 14;
+		break;
+	case TypesEnum::CustomType:
+	{
+		R = (ReflectionCustomTypeID)std::hash<String>()(GetSymbol(SymbolId)->FullName);
+	}
+	break;
+	default:
+		R = 0;
+		break;
+	}
+	return R;
 }
 void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 {
@@ -11751,7 +11824,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 
 		if (Item->Type == SymbolType::Func)
 		{
-
+			
 			FuncInfo* Info = Item->Get_Info<FuncInfo>();
 
 			IsCompatiblePar CMPPar;

@@ -234,7 +234,7 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 				}
 				else
 				{
-					ExternFiles.Files.push_back(MFile.GetPaths(Compiler).OutFile);
+					ExternFiles.Files.push_back(MFile.GetPaths(Compiler,true).OutFile);
 				}
 
 			}

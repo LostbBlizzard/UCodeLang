@@ -89,6 +89,7 @@ void UCodeBackEndObject::Build(const IRBuilder* Input)
 	{
 		_OutLayer = _Output->AddLayer(UCode_CodeLayer_IR_Name);
 		_OutLayer->Get_Code() = Input->ToBytes().MoveInToVectorOfBytes();
+
 	}
 	else
 	{

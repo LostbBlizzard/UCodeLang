@@ -202,14 +202,19 @@ void UClib::ToBytes(BitMaker& Output, const ClassMethod& Data)
 }
 void UClib::ToBytes(BitMaker& Output, const ReflectionTypeInfo& Data)
 {
-	Output.WriteType(Data.FullNameType);
+	Output.WriteType(Data._CustomTypeID);
+	Output.WriteType((ReflectionTypes_t)Data._Type);
+	Output.WriteType(Data._IsAddress);
+	Output.WriteType(Data._IsAddressArray);
+	Output.WriteType(Data._Isimmutable);
+	Output.WriteType(Data._IsDynamic);
+	Output.WriteType((ReflectionMoveData_t)Data._MoveData);
 }
 bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 {
 	BitReader reader(Data.Bytes,Data.Size);
 	
 
-	
 	//Signature
 	{
 		union 
@@ -336,7 +341,7 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 
 			FromBytes(reader, *Layer);
 
-			Lib->_Layers.push_back(Unique_ptr<CodeLayer>(Layer));
+			Lib->_Layers[i] = Unique_ptr<CodeLayer>(Layer);
 		}
 	}
 
@@ -599,7 +604,13 @@ void UClib::FromBytes(BitReader& Input, ClassMethod& Data)
 }
 void UClib::FromBytes(BitReader& Input, ReflectionTypeInfo& Data)
 {
-	Input.ReadType(Data.FullNameType, Data.FullNameType);
+	Input.ReadType(Data._CustomTypeID, Data._CustomTypeID);
+	Input.ReadType(*(ReflectionTypes_t*)&Data._Type, *(ReflectionTypes_t*)Data._Type);
+	Input.ReadType(Data._IsAddress, Data._IsAddress);
+	Input.ReadType(Data._IsAddressArray, Data._IsAddressArray);
+	Input.ReadType(Data._Isimmutable, Data._Isimmutable);
+	Input.ReadType(Data._IsDynamic, Data._IsDynamic);
+	Input.ReadType(*(ReflectionMoveData_t*)&Data._MoveData,*(ReflectionMoveData_t*)&Data._MoveData);
 }
 bool UClib::ToFile(const UClib* Lib, const Path& path)
 {
