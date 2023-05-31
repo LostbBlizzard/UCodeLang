@@ -1,4 +1,5 @@
 #include "IR.hpp"
+#include <fstream>
 UCodeLangStart
 
 
@@ -129,6 +130,63 @@ IRBuilder::IRBuilder()
 
 	_threaddeInit.identifier = ToID("_thread_deInit");
 	_threaddeInit.ReturnType = IRTypes::Void;
+}
+
+BytesPtr IRBuilder::ToBytes() const
+{
+	BitMaker V;
+
+
+	return {};
+}
+
+bool IRBuilder::FromBytes(IRBuilder& Out, const BytesView Bytes)
+{
+	return false;
+}
+
+bool IRBuilder::ToFile(const Path& path, const IRBuilder& Value)
+{
+	std::ofstream File(path, std::ios::binary);
+	if (File.is_open())
+	{
+
+		BytesPtr Bits = Value.ToBytes();
+
+		File.write((const char*)Bits.Bytes.get(), Bits.Size);
+
+
+		File.close();
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool IRBuilder::FromFile(IRBuilder& Out, const Path& path)
+{
+	std::ifstream File(path, std::ios::binary);
+	if (File.is_open())
+	{
+		BytesPtr Bits;
+		File.seekg(0, File.end);
+		Bits.Size = File.tellg();
+		File.seekg(0, File.beg);
+		Bits.Bytes = std::make_unique<Byte[]>(Bits.Size);
+
+		File.read((char*)Bits.Bytes.get(), Bits.Size);
+		File.close();
+		auto V = FromBytes(Out, { Bits.Bytes.get(),Bits.Size });
+
+		return V;
+	}
+	else
+	{
+		return false;
+	}
+
 }
 
 bool IRBuilder::IsTheSame(const IRFuncPtr* Func, const IRFuncPtr* Func2)const
