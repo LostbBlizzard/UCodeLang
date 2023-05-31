@@ -1250,17 +1250,11 @@ public:
 	IRBuilder();
 
 
-	BytesPtr ToBytes() const
-	{
-		BitMaker V;
+	BytesPtr ToBytes() const;
+	static bool FromBytes(IRBuilder& Out, const BytesView Bytes);
 
-
-		return { };
-	}
-	static bool FromBytes(IRBuilder& Out, const BytesView Bytes)
-	{
-		return false;
-	}
+	static bool ToFile(const Path& path, const IRBuilder& Value);
+	static bool FromFile(IRBuilder& Out, const Path& path);
 };
 
 
