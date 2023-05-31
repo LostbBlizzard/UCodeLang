@@ -3,6 +3,7 @@
 #include "SymbolID.hpp"
 #include "../Front/UCodeFrontEndNameSpace.hpp"
 #include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
+#include "UCodeLang/LangCore/ReflectionData.hpp"
 UCodeLangStart
 struct IRInstruction;
 struct IRPar;
