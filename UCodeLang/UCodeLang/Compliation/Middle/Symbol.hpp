@@ -22,48 +22,9 @@ enum class PassType : PassType_t
 	Done,
 };
 
-enum class TypesEnum :UInt8
-{
-	Null,
-	Void,
-	Var,
-	Any,
-	Int_t,
-	uInt_t,
-	sInt_t,
-
-	Bool,
-	Char,
-
-	uInt8,
-	uInt16,
-	uInt32,
-	uInt64,
-
-	sInt8,
-	sInt16,
-	sInt32,
-	sInt64,
-
-	uIntPtr,
-	sIntPtr,
-
-	float32,
-	float64,
-
-	CustomType,
-};
-
-enum class TypeValueInfo : UInt8
-{
-	IsValue,
-	IsLocation,
-};
-enum class MoveData :UInt8
-{
-	None,
-	Moved,
-};
+using TypesEnum = ReflectionTypes;
+using TypeValueInfo = ReflectionTypeValueInfo;
+using MoveData = ReflectionMoveData;
 
 enum class TypeInfoPrimitive : UInt8
 {

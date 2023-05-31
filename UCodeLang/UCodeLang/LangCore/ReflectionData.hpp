@@ -5,10 +5,62 @@
 UCodeLangStart
 
 
+using ReflectionTypes_t = UInt8;
+enum ReflectionTypes : ReflectionTypes_t
+{
+	Null,
+	Void,
+	Var,
+	Any,
+	Int_t,
+	uInt_t,
+	sInt_t,
+
+	Bool,
+	Char,
+
+	uInt8,
+	uInt16,
+	uInt32,
+	uInt64,
+
+	sInt8,
+	sInt16,
+	sInt32,
+	sInt64,
+
+	uIntPtr,
+	sIntPtr,
+
+	float32,
+	float64,
+
+	CustomType,
+};
+using ReflectionTypeValueInfo_t = UInt8;
+enum class ReflectionTypeValueInfo :ReflectionTypeValueInfo_t
+{
+	IsValue,
+	IsLocation,
+};
+using ReflectionMoveData_t = UInt8;
+enum class ReflectionMoveData : ReflectionMoveData_t
+{
+	None,
+	Moved,
+};
+
 class ReflectionTypeInfo
 {
 public:
 	String FullNameType;
+
+	bool _IsAddress = false;
+	bool _IsAddressArray = false;
+	bool _Isimmutable = false;
+	bool _IsDynamic = false;
+	ReflectionTypeValueInfo _ValueInfo = ReflectionTypeValueInfo::IsValue;
+	ReflectionMoveData _MoveData = ReflectionMoveData::None;
 };
 
 class ClassField
