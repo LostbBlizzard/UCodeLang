@@ -42,5 +42,6 @@ import {Func = __LogChar};
 
 |main[]:
  Func('H');
+ OtherFuncion();
 
 
