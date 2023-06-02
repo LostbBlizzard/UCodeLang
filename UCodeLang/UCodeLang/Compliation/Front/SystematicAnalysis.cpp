@@ -374,7 +374,7 @@ void SystematicAnalysis::AddDependencyToCurrentFile(const Symbol* Syb)
 		}
 	}
 
-	if (CurrentFile != Syb->_File && !IsAnImport && FileData._Imports.size())
+	if (CurrentFile != Syb->_File && !IsAnImport && (FileData._Imports.size() || _ForceImportArgWasPassed))
 	{
 		auto Token = LastLookedAtToken;
 		_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Trying to use the Symbol '" + Syb->FullName + "[" + ToString(Syb->Type) + "]' but it's not Imported in the file.");
