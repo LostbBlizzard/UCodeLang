@@ -35,11 +35,12 @@ $Cool:
 
 */
 
-import {DynArr = ULang::Vector,ULang::Span};
-import {ULang::Vector};
+//import {DynArr = ULang::Vector,ULang::Span};
+//import {ULang::Vector};
+
+import {Func = __LogChar};
 
 |main[]:
- __LogChar('H');
+ Func('H');
 
 
-import {ULang::Vector};//Bad not first

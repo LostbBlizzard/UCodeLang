@@ -773,8 +773,12 @@ private:
 
 	void OnCompileTimeforNode(const CompileTimeForNode& node);
 
+	void OnImportNode(const ImportStatement& node);
+
 	void OnCMPTypesNode(const CMPTypesNode& node);
 	bool CMPGetValue(const TypeSymbol& Type0, const TypeSymbol& Type1, const Token* Value);
+
+	
 
 	String GetClassWithTraitVTableName(const String& ClassFullName, const String& TraitFullName);
 	String GetTraitVTableName(const String& TraitName);

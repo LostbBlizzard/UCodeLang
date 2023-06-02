@@ -448,10 +448,22 @@ void SystematicAnalysis::OnFileNode(const FileNode* File)
 		case NodeType::DeclareEvalVariableNode:OnDeclareEvalVariableNode(*DeclareEvalVariableNode::As(node.get())); break;
 		case NodeType::TraitNode:OnTrait(*TraitNode::As(node.get())); break;
 		case NodeType::TagTypeNode:OnTag(*TagTypeNode::As(node.get())); break;
+		case NodeType::ImportStatement:
+		{
+			OnImportNode(*ImportStatement::As(node.get()));
+			if (_ErrorsOutput->Has_Errors())
+			{
+				PopNodeScope();
+				goto OutofLoop;
+			}
+			break;
+		}
 		default:break;
 		}
+
 		PopNodeScope();
 	}
+	OutofLoop:
 
 	if (passtype == PassType::BuidCode)
 	{
@@ -3520,6 +3532,164 @@ void SystematicAnalysis::OnStatementsWithSetableRet(const StatementsNode& node, 
 			YouMustReturnSomethingError(Token);
 		}
 
+	}
+}
+
+
+
+ImportBindType SybolTypeToImportBindType(SymbolType Type)
+{
+	if (Type == SymbolType::Type_class ||
+		Type == SymbolType::Type_alias ||
+		Type == SymbolType::Hard_Type_alias ||
+		Type == SymbolType::Type_Pack ||
+		Type == SymbolType::Type_StaticArray ||
+		Type == SymbolType::Generic_class ||
+		Type == SymbolType::Trait_class)
+	{
+		return ImportBindType::Type;
+	}
+	else if (Type == SymbolType::Func)
+	{
+		return ImportBindType::Func;
+	}
+	else if (Type == SymbolType::GenericFunc)
+	{
+		return ImportBindType::GenericFunc;
+	}
+
+}
+
+void SystematicAnalysis::OnImportNode(const ImportStatement& node)
+{
+	SymbolID ImportSymbolID = (SymbolID)&node;
+	if (passtype == PassType::GetTypes)
+	{
+		auto& Syb = AddSybol(SymbolType::Null, CompilerGenerated("importData") + std::to_string(node._Token->OnLine),"",AccessModifierType::Public);
+		
+		Imports_Info* NewImports = new  Imports_Info();
+		Syb.Info.reset(NewImports);
+		_Table.AddSymbolID(Syb,ImportSymbolID);
+
+
+		NewImports->NewAliases.resize(node._Imports.size());
+
+		for (auto& Item : node._Imports)
+		{
+			
+
+			for (auto& Item2 : Item._ImportedSybol.ScopedName)
+			{
+				if (Item2.Operator != ScopedName::Operator_t::ScopeResolution
+					&& Item2.Operator != ScopedName::Operator_t::Null)
+				{
+					_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, Item2.token->OnLine, Item2.token->OnPos,
+						"Must use a '::' as Opetator Here");
+				}
+			}
+
+		}
+	}
+	else if (passtype == PassType::FixedTypes)
+	{
+		Imports_Info* NewImports = _Table.GetSymbol(ImportSymbolID).Get_Info<Imports_Info>();
+
+		for (size_t i = 0; i < node._Imports.size(); i++)
+		{
+			auto& Item = node._Imports[i];
+			auto& ImportInfo = NewImports->NewAliases[i];
+
+			
+			if (Item._AliasName.has_value())
+			{
+				auto& AliasName = Item._AliasName.value();
+				auto Name = GetScopedNameAsString(Item._ImportedSybol);
+
+				auto List = _Table.GetSymbolsWithName(Name);
+
+				if (List.empty())
+				{
+					auto Token = Item._ImportedSybol.ScopedName.front().token;
+					_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos,
+						"Cant find any Symbol for '" + Name + "'");
+					continue;
+				}
+
+				ImportInfo.NewSymbols.resize(List.size());
+				bool IsOkToBind = false;
+
+				for (size_t i = 0; i < List.size(); i++)
+				{
+					auto& SybToBind = List[i];
+					auto& NewSybInfo = ImportInfo.NewSymbols[i];
+					ImportBindType SybType = SybolTypeToImportBindType(SybToBind->Type);
+
+					if (SybType == ImportBindType::Type)
+					{
+					
+						IsOkToBind = true;
+					}	
+					NewSybInfo.Type = SybType;
+				}
+
+				if (!IsOkToBind)
+				{
+					auto Token = Item._ImportedSybol.ScopedName.front().token;
+					auto Sybol = List.front();
+					_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos,
+						"Cant Map Symbol '" + Sybol->FullName + "[" + ToString(Sybol->Type) + "]' to Alias");
+				}
+				else
+				{
+					for (size_t i = 0; i < List.size(); i++)
+					{
+						auto& SybToBind = List[i];
+						auto& NewSybInfo = ImportInfo.NewSymbols[i];
+
+						if (NewSybInfo.Type == ImportBindType::Type)
+						{
+							auto& NewSyb = AddSybol(SymbolType::Type_alias, (String)AliasName->Value._String, (String)AliasName->Value._String, AccessModifierType::Public);
+							_Table.AddSymbolID(NewSyb, (SymbolID)&NewSybInfo);
+							
+							NewSyb.VarType = SybToBind->VarType;
+
+							NewSybInfo.Sym = &NewSyb;
+						}
+
+
+					}
+				}
+			}
+			else
+			{
+
+			}
+		}
+	}
+	else if (passtype == PassType::BuidCode)
+	{
+		Imports_Info* NewImports = _Table.GetSymbol(ImportSymbolID).Get_Info<Imports_Info>();
+		for (size_t i = 0; i < node._Imports.size(); i++)
+		{
+			auto& Item = node._Imports[i];
+			auto& ImportInfo = NewImports->NewAliases[i];
+
+			for (auto& ItemSybol : ImportInfo.NewSymbols)
+			{
+				if (ItemSybol.Type == ImportBindType::Func)//build func?
+				{
+
+				}
+			}
+
+			if (!ImportInfo.IsUsed)
+			{
+				auto Token = Item._ImportedSybol.ScopedName.front().token;
+				auto Name = GetScopedNameAsString(Item._ImportedSybol);
+
+				_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "'" + Name + "' Import Symbol was not Used");
+			}
+		}
 	}
 }
 void SystematicAnalysis::TypeDoesNotHaveForOverload(const UCodeLang::Token* Token, UCodeLang::FrontEnd::TypeSymbol& ExType)
