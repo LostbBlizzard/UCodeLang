@@ -506,6 +506,11 @@ void SystematicAnalysis::OnFileNode(const FileNode* File)
 		}
 	}
 
+	if (StartingNameSpace.has_value())
+	{
+		_Table.AddScope(StartingNameSpace.value());
+	}
+
 	for (auto& node : File->_Nodes)
 	{
 		PushToNodeScope(*node.get());
@@ -552,6 +557,12 @@ void SystematicAnalysis::OnFileNode(const FileNode* File)
 		}
 
 	}
+
+	if (StartingNameSpace.has_value())
+	{
+		_Table.RemoveScope();
+	}
+
 	OutofLoop:
 
 	if (passtype == PassType::BuidCode)
@@ -3036,8 +3047,15 @@ void SystematicAnalysis::OnTag(const TagTypeNode& node)
 }
 void SystematicAnalysis::OnBitCast(const BitCastExpression& node)
 {
-	
-	if (passtype == PassType::FixedTypes)
+	if (passtype == PassType::GetTypes)
+	{
+		if (_RemoveUnSafeArgWasPassed)
+		{
+			auto Token = LastLookedAtToken;
+			_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "Cant do bitcast in safe mode.");
+		}
+	}
+	else if (passtype == PassType::FixedTypes)
 	{
 		TypeSymbol ToType = ConvertAndValidateType(node._Type,NodeSyb_t::Any);
 		OnExpressionTypeNode(node._Expression.Value.get(), GetValueMode::Read);
@@ -7408,6 +7426,16 @@ void SystematicAnalysis::OnSizeofNode(const SizeofExpresionNode* nod)
 
 void SystematicAnalysis::OnNewNode(const NewExpresionNode* nod)
 {
+	if (passtype == PassType::GetTypes)
+	{
+		if (_RemoveUnSafeArgWasPassed)
+		{
+			auto Token = LastLookedAtToken;
+			_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "Cant use 'new' keyword in safe mode.");
+			return;
+		}
+	}
+
 	TypeSymbol Type;
 	Convert(nod->Type, Type);
 	bool IsArray = nod->Arrayexpression.Value.get();
@@ -8539,6 +8567,15 @@ void SystematicAnalysis::SetFuncRetAsLastEx(Get_FuncInfo& Info)
 
 void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 {
+	if (passtype == PassType::GetTypes)
+	{
+		if (_RemoveUnSafeArgWasPassed)
+		{
+			auto Token = LastLookedAtToken;
+			_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "Cant use 'drop' keyword in safe mode.");
+		}
+	}
+
 	if (passtype == PassType::BuidCode)
 	{
 
