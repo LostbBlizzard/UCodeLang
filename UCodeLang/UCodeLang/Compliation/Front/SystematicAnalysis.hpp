@@ -549,6 +549,10 @@ private:
 	const Vector<Path>* _LibsNames = nullptr;
 	SymbolTable _Table;
 
+	//Args
+	bool _ForceImportArgWasPassed = false;
+	bool _RemoveUnSafeArgWasPassed = false;
+	Optional<String> StartingNameSpace;
 
 	Stack<ClassStackInfo> _ClassStack;
 

@@ -97,6 +97,12 @@ bool SystematicAnalysis::Analyze(const Vector<const FileNode*>& Files, const Vec
 		}
 
 	}
+	{
+		_ForceImportArgWasPassed = _Settings->HasFlagArg("ForceImport");
+		_RemoveUnSafeArgWasPassed = _Settings->HasFlagArg("RemoveUnSafe");
+
+		StartingNameSpace = _Settings->GetArgValueFlag("StartingNameSpac");
+	}
 
 	passtype = PassType::GetTypes;
 	Pass();

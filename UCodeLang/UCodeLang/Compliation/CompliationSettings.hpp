@@ -33,5 +33,49 @@ struct CompliationSettings
 	OutPutType _Type = OutPutType::Lib;
 	OptimizationFlags _Flags = OptimizationFlags::ForDebuging;
 	IntSizes PtrSize = IntSizes::Native;
+	Vector<String> _Args;
+
+
+	void AddArgFlag(const String& FlagName)
+	{
+		_Args.push_back("--" + FlagName);
+	}
+	void AddArgValue(const String& ValueName,const String& ValueAsString)
+	{
+		_Args.push_back("--" + ValueName + ":" + ValueAsString);
+	}
+	bool HasArg(const String& Arg) const
+	{
+		for (auto& Item : _Args)
+		{
+			if (Item == Arg)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+	bool HasFlagArg(const String& Arg) const
+	{
+		return HasArg("--" + Arg);
+	}
+	Optional<String> GetArgValue(const String& ValueName)const
+	{
+		Optional<String> R;
+		for (auto& Item : _Args)
+		{
+			if (Item._Starts_with(ValueName))
+			{
+				R = Item.substr(ValueName.size() + 1);//pass the :
+			}
+		}
+
+		return R;
+	}
+	Optional<String> GetArgValueFlag(const String& ValueName)const
+	{
+		return GetArgValue("--" + ValueName);
+	}
 };
 UCodeLangEnd
