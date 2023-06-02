@@ -432,10 +432,41 @@ void SystematicAnalysis::OnFileNode(const FileNode* File)
 	size_t IRSybolsStart = PassType::BuidCode == passtype ? _Builder._Symbols.size() : 0;
 	size_t IRConstStaticStart = PassType::BuidCode == passtype ? _Builder.ConstStaticStrings.size() : 0;
 
+	bool DoneWithImports = false;
+
+	if (passtype == PassType::BuidCode)
+	{
+		auto& FileData = GetFileData(File);
+
+		for (auto& Import : FileData._Imports)
+		{
+			for (size_t i = 0; i < Import._AliasSymbols.size(); i++)
+			{
+				auto& Item = Import._AliasSymbols[i];
+				Item->FullName = std::move(Import._TepSymbolFullNames[i]);//allow import alias to be seen.
+			}
+		}
+	}
+
 	for (auto& node : File->_Nodes)
 	{
 		PushToNodeScope(*node.get());
 		Defer _{ [this](){PopNodeScope(); } };
+
+
+		if (DoneWithImports == false && node->Get_Type() != NodeType::ImportStatement && passtype == PassType::FixedTypes)
+		{
+			DoneWithImports = true;
+
+
+			auto& FileData = GetFileData(LookingAtFile);
+
+			for (auto& Import : FileData._Imports)
+			{
+				Import._TepSymbolFullNames.resize(Import._AliasSymbols.size());
+			}
+		}
+
 		switch (node->Get_Type())
 		{
 		case NodeType::NamespaceNode:OnNamespace(*NamespaceNode::As(node.get())); break;
@@ -479,6 +510,20 @@ void SystematicAnalysis::OnFileNode(const FileNode* File)
 		FileData.IRFuncsSpan = FileNodeData::SpanData::NewWithNewIndex(IRFunsStart, _Builder.Funcs.size());
 		FileData.IRSymbolSpan = FileNodeData::SpanData::NewWithNewIndex(IRSybolsStart, _Builder._Symbols.size());
 		FileData.IRConstStringSpan = FileNodeData::SpanData::NewWithNewIndex(IRConstStaticStart, _Builder.ConstStaticStrings.size());
+	}
+
+	if (passtype == PassType::FixedTypes || passtype == PassType::BuidCode)
+	{
+		auto& FileData = GetFileData(File);
+
+		for (auto& Import : FileData._Imports)
+		{
+			for (size_t i = 0; i < Import._AliasSymbols.size(); i++)
+			{
+				auto& Item = Import._AliasSymbols[i];
+				Import._TepSymbolFullNames[i] = std::move(Item->FullName);//removeing name to remove exposure from other files.
+			}
+		}
 	}
 
 	_Table.ClearUseings();
@@ -3571,7 +3616,7 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 		Syb.Info.reset(NewImports);
 		_Table.AddSymbolID(Syb,ImportSymbolID);
 
-
+		
 		NewImports->NewAliases.resize(node._Imports.size());
 
 		for (auto& Item : node._Imports)
@@ -3633,7 +3678,8 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 					auto& NewSybInfo = ImportInfo.NewSymbols[i];
 					ImportBindType SybType = SybolTypeToImportBindType(SybToBind->Type);
 
-					if (SybType == ImportBindType::Type)
+					if (SybType == ImportBindType::Type
+						|| SybType == ImportBindType::Func)
 					{
 					
 						IsOkToBind = true;
@@ -3658,12 +3704,14 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 					auto Sybol = List.front();
 					
 					String V = "importing '" + Sybol->FullName + "' but it's Declared in this file.";
-					V += "Try '$" + (String)AliasName->Value._String + " = " + Sybol->FullName + ";' instead.";
 					_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos,V);
 					
 				}
 				else
 				{
+					FileNodeData::ImportData _ImportData;
+					_ImportData.ImportSymbolFullName = Name;
+
 					for (size_t i = 0; i < List.size(); i++)
 					{
 						auto& SybToBind = List[i];
@@ -3677,11 +3725,33 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 							NewSyb.VarType = SybToBind->VarType;
 
 							NewSybInfo.Sym = &NewSyb;
-						}
 
+							NewSyb.PassState = SybToBind->PassState;
+							NewSyb.VarType = SybToBind->VarType;
+						}
+						else if (NewSybInfo.Type == ImportBindType::Func)
+						{
+							auto& NewSyb = AddSybol(SymbolType::Func, (String)AliasName->Value._String, (String)AliasName->Value._String, AccessModifierType::Public);
+							_Table.AddSymbolID(NewSyb, (SymbolID)&NewSybInfo);
+							NewSybInfo.Sym = &NewSyb;
+							
+							FuncInfo* NewFunc = new FuncInfo();
+							NewSyb.Info.reset(NewFunc);
+
+							NewSyb.PassState = SybToBind->PassState;
+							*NewFunc = *SybToBind->Get_Info<FuncInfo>();
+							
+							NewSyb.VarType = SybToBind->VarType;
+
+
+						}
+						_ImportData._AliasSymbols.push_back(NewSybInfo.Sym);
 
 					}
+				
+					GetFileData(LookingAtFile)._Imports.push_back(std::move(_ImportData));
 				}
+
 			}
 			else
 			{
@@ -3701,11 +3771,15 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 					auto Sybol = List.front();
 
 					String V = "importing '" + Sybol->FullName + "' but it's Declared in this file.";
-					V += "Try removeing it.";
 					_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, V);
 
 				}
+
 			}
+
+			FileNodeData::ImportData _ImportData;
+			_ImportData.ImportSymbolFullName= Name;
+			GetFileData(LookingAtFile)._Imports.push_back(std::move(_ImportData));
 		}
 	}
 	else if (passtype == PassType::BuidCode)
@@ -8603,6 +8677,7 @@ void SystematicAnalysis::LoadLibSymbols()
 }
 void SystematicAnalysis::LoadLibSymbols(const UClib& lib, LoadLibMode Mode)
 {
+	LookingAtFile = nullptr;
 	auto OutputType = OutputTypeAsLibType();
 	auto libType = lib._LibType;
 
