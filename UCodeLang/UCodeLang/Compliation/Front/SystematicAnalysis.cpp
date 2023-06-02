@@ -99,7 +99,8 @@ bool SystematicAnalysis::Analyze(const Vector<const FileNode*>& Files, const Vec
 	}
 	{
 		_ForceImportArgWasPassed = _Settings->HasFlagArg("ForceImport");
-		_RemoveUnSafeArgWasPassed = _Settings->HasFlagArg("RemoveUnSafe");
+		_RemoveUnSafeArgWasPassed = _Settings->HasFlagArg("RemoveUnsafe");
+		_ImmutabilityIsForced = _Settings->HasFlagArg("ForcedImmutability");
 
 		StartingNameSpace = _Settings->GetArgValueFlag("StartingNameSpac");
 	}
@@ -3047,11 +3048,11 @@ void SystematicAnalysis::OnTag(const TagTypeNode& node)
 }
 void SystematicAnalysis::OnBitCast(const BitCastExpression& node)
 {
-	if (passtype == PassType::GetTypes)
+	if (passtype == PassType::FixedTypes)
 	{
 		if (_RemoveUnSafeArgWasPassed)
 		{
-			auto Token = LastLookedAtToken;
+			auto Token = node.KeywordToken;
 			_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "Cant do bitcast in safe mode.");
 		}
 	}
@@ -7426,11 +7427,11 @@ void SystematicAnalysis::OnSizeofNode(const SizeofExpresionNode* nod)
 
 void SystematicAnalysis::OnNewNode(const NewExpresionNode* nod)
 {
-	if (passtype == PassType::GetTypes)
+	if (passtype == PassType::FixedTypes)
 	{
 		if (_RemoveUnSafeArgWasPassed)
 		{
-			auto Token = LastLookedAtToken;
+			auto Token = nod->KeywordToken;
 			_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "Cant use 'new' keyword in safe mode.");
 			return;
 		}
@@ -8571,7 +8572,7 @@ void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 	{
 		if (_RemoveUnSafeArgWasPassed)
 		{
-			auto Token = LastLookedAtToken;
+			auto Token = node.KeywordToken;
 			_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "Cant use 'drop' keyword in safe mode.");
 		}
 	}

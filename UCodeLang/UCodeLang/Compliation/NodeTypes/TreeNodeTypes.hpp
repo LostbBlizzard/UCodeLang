@@ -906,6 +906,8 @@ struct NewExpresionNode :Node
 	}
 	AddforNode(NewExpresionNode);
 
+
+	const Token* KeywordToken = nullptr;
 	TypeNode Type;
 	ValueParametersNode Parameters;
 
@@ -920,6 +922,7 @@ struct DropStatementNode :Node
 	}
 	AddforNode(DropStatementNode);
 
+	const Token* KeywordToken =nullptr;
 	ExpressionNodeType expression;
 };
 
@@ -1061,6 +1064,8 @@ struct BitCastExpression :Node
 	{
 
 	}
+
+	const Token* KeywordToken = nullptr;
 	TypeNode _Type;
 	ExpressionNodeType _Expression;
 	AddforNode(BitCastExpression);
