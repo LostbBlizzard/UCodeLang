@@ -3975,11 +3975,32 @@ GotNodeType Parser::GetImportStatement(ImportStatement& out)
 	TokenTypeCheck(Par2Token, TokenType::Left_Brace);
 	NextToken();
 
-
+	
 	while (TryGetToken()->Type != TokenType::EndofFile)
 	{
 		size_t ValueIndex = _TokenIndex;
 		auto ValueName = TryGetToken(); NextToken();
+
+
+		if (TryGetToken()->Type == TokenType::Colon)
+		{
+			if (out._Imports.size())
+			{
+				TokenTypeCheck(TryGetToken(), TokenType::equal);
+			}
+			else
+			{
+				_TokenIndex = ValueIndex;
+				ScopedNameNode scopednode;
+				GetName(scopednode);
+
+				out._StartingNameSpace = std::move(scopednode);
+
+				NextToken();//pass :
+
+				continue;
+			}
+		}
 
 		if (TryGetToken()->Type == TokenType::equal)
 		{

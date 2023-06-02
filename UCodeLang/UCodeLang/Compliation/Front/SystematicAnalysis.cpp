@@ -5,6 +5,7 @@
 #include "UCodeLang/Compliation/Back/UCodeBackEnd/UCodeBackEnd.hpp"
 #include "UCodeLang/Compliation/Helpers/ParseHelper.hpp"
 #include "UCodeLang/Compliation/Helpers/NameDecoratior.hpp"
+#include "UCodeLang/LangCore/DataType/Defer.hpp"
 UCodeLangFrontStart
 
 
@@ -434,6 +435,7 @@ void SystematicAnalysis::OnFileNode(const FileNode* File)
 	for (auto& node : File->_Nodes)
 	{
 		PushToNodeScope(*node.get());
+		Defer _{ [this](){PopNodeScope(); } };
 		switch (node->Get_Type())
 		{
 		case NodeType::NamespaceNode:OnNamespace(*NamespaceNode::As(node.get())); break;
@@ -453,7 +455,6 @@ void SystematicAnalysis::OnFileNode(const FileNode* File)
 			OnImportNode(*ImportStatement::As(node.get()));
 			if (_ErrorsOutput->Has_Errors())
 			{
-				PopNodeScope();
 				goto OutofLoop;
 			}
 			break;
@@ -461,7 +462,6 @@ void SystematicAnalysis::OnFileNode(const FileNode* File)
 		default:break;
 		}
 
-		PopNodeScope();
 	}
 	OutofLoop:
 
@@ -3592,31 +3592,40 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 	}
 	else if (passtype == PassType::FixedTypes)
 	{
-		Imports_Info* NewImports = _Table.GetSymbol(ImportSymbolID).Get_Info<Imports_Info>();
+		auto& ImportSyb = _Table.GetSymbol(ImportSymbolID);
+		Imports_Info* NewImports = ImportSyb.Get_Info<Imports_Info>();
 
 		for (size_t i = 0; i < node._Imports.size(); i++)
 		{
 			auto& Item = node._Imports[i];
 			auto& ImportInfo = NewImports->NewAliases[i];
 
+			String Name;
+			if (node._StartingNameSpace.has_value())
+			{
+				Name += GetScopedNameAsString(node._StartingNameSpace.value());
+				Name += "::";
+			}
+					
+			Name += GetScopedNameAsString(Item._ImportedSybol);
 			
+			
+			auto List = _Table.GetSymbolsWithName(Name);
+
+			if (List.empty())
+			{
+				auto Token = Item._ImportedSybol.ScopedName.front().token;
+				_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos,
+					"Cant find any Symbol for '" + Name + "'");
+				continue;
+			}
 			if (Item._AliasName.has_value())
 			{
 				auto& AliasName = Item._AliasName.value();
-				auto Name = GetScopedNameAsString(Item._ImportedSybol);
-
-				auto List = _Table.GetSymbolsWithName(Name);
-
-				if (List.empty())
-				{
-					auto Token = Item._ImportedSybol.ScopedName.front().token;
-					_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos,
-						"Cant find any Symbol for '" + Name + "'");
-					continue;
-				}
-
+				
 				ImportInfo.NewSymbols.resize(List.size());
 				bool IsOkToBind = false;
+				bool IsOuterfile = false;
 
 				for (size_t i = 0; i < List.size(); i++)
 				{
@@ -3629,6 +3638,10 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 					
 						IsOkToBind = true;
 					}	
+					if (ImportSyb._File != SybToBind->_File)
+					{
+						IsOuterfile = true;
+					}
 					NewSybInfo.Type = SybType;
 				}
 
@@ -3638,6 +3651,16 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 					auto Sybol = List.front();
 					_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos,
 						"Cant Map Symbol '" + Sybol->FullName + "[" + ToString(Sybol->Type) + "]' to Alias");
+				}
+				else if (!IsOuterfile)
+				{
+					auto Token = Item._ImportedSybol.ScopedName.front().token;
+					auto Sybol = List.front();
+					
+					String V = "importing '" + Sybol->FullName + "' but it's Declared in this file.";
+					V += "Try '$" + (String)AliasName->Value._String + " = " + Sybol->FullName + ";' instead.";
+					_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos,V);
+					
 				}
 				else
 				{
@@ -3662,7 +3685,26 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 			}
 			else
 			{
+				bool IsOuterfile = false;
+				for (size_t i = 0; i < List.size(); i++)
+				{
+					auto& SybToBind = List[i];
+					if (ImportSyb._File != SybToBind->_File)
+					{
+						IsOuterfile = true;
+					}
+				}
 
+				if (!IsOuterfile)
+				{
+					auto Token = Item._ImportedSybol.ScopedName.front().token;
+					auto Sybol = List.front();
+
+					String V = "importing '" + Sybol->FullName + "' but it's Declared in this file.";
+					V += "Try removeing it.";
+					_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, V);
+
+				}
 			}
 		}
 	}

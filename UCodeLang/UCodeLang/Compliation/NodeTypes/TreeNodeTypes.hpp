@@ -1283,8 +1283,8 @@ struct ImportStatement : Node
 {
 	const Token* _Token = nullptr;
 	Vector<ImportValue> _Imports;
+	Optional<ScopedNameNode> _StartingNameSpace;
 	AddforNode(ImportStatement);
-
 	ImportStatement() : Node(NodeType::ImportStatement)
 	{
 
