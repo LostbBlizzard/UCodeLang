@@ -271,11 +271,20 @@ public:
 	}
 
 
-
+	
 	struct FileNodeData
 	{
 		Vector< const FileNode_t*> _Dependencys;
-		Optional<Vector<String>> _Imports;//FullName of the Symbol
+	
+		struct ImportData
+		{
+			String ImportSymbolFullName;
+			Vector<Symbol*> _AliasSymbols;
+
+
+			Vector<String> _TepSymbolFullNames;
+		};
+		Vector<ImportData> _Imports;
 		struct SpanData
 		{
 			size_t Index = 0;

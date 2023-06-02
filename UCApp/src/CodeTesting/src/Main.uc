@@ -38,11 +38,7 @@ $Cool:
 //import {DynArr = ULang::Vector,ULang::Span};
 //import {ULang::Vector};
 
-import {ULang: Arr = Vector,Span};
 import {Func = __LogChar};
-import {__LogChar};
-
-$Hello = int;
 
 |main[]:
  Func('H');
