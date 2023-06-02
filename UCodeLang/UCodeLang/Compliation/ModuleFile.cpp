@@ -257,7 +257,7 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 			}
 
 			if (RemoveUnSafe) {
-				Compiler.Get_Settings().AddArgFlag("RemoveUnSafe");
+				Compiler.Get_Settings().AddArgFlag("RemoveUnsafe");
 			}
 
 			if (ModuleNameSpace.size()) 
@@ -433,11 +433,11 @@ bool ModuleFile::FromString(ModuleFile* Lib, const String_view& Data)
 					}
 					else if (Item.Value._String == "ForceImport")
 					{
-						Lib->ForceImport = false;
+						Lib->ForceImport = V[i].Type == TokenType::KeyWorld_True;
 					}
 					else if (Item.Value._String == "RemoveUnSafe")
 					{
-						Lib->RemoveUnSafe= false;
+						Lib->RemoveUnSafe = V[i].Type == TokenType::KeyWorld_True;
 					}
 					else if (Item.Value._String == "ModuleNameSpace")
 					{

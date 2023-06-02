@@ -552,6 +552,7 @@ private:
 	//Args
 	bool _ForceImportArgWasPassed = false;
 	bool _RemoveUnSafeArgWasPassed = false;
+	bool _ImmutabilityIsForced = false;
 	Optional<String> StartingNameSpace;
 
 	Stack<ClassStackInfo> _ClassStack;

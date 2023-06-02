@@ -38,10 +38,10 @@ $Cool:
 //import {DynArr = ULang::Vector,ULang::Span};
 //import {ULang::Vector};
 
-import {Func = __LogChar};
+//import {Func = __LogChar};
 
 |main[]:
- Func('H');
- OtherFuncion();
+ eval Item = type(Cool).Name();
+ eval Item2 = type(Cool).FullName();
 
 

@@ -2548,6 +2548,7 @@ GotNodeType Parser::GetDropStatementNode(DropStatementNode& out)
 {
 	auto DropToken = TryGetToken(); TokenTypeCheck(DropToken, TokenType::KeyWord_Drop);
 	NextToken();
+	out.KeywordToken = DropToken;
 
 	auto ParToken = TryGetToken();
 	TokenTypeCheck(ParToken, FuncCallStart);
@@ -2569,7 +2570,12 @@ GotNodeType Parser::GetNewExpresionNode(NewExpresionNode& out)
 {
 	auto NewToken = TryGetToken(); TokenTypeCheck(NewToken, TokenType::KeyWord_new);
 	NextToken();
+
+	out.KeywordToken = NewToken;
+
 	GetType(out.Type,true);
+
+
 
 	auto ParToken = TryGetToken();
 	if (ParToken->Type == FuncCallStart) {
@@ -3164,7 +3170,7 @@ GotNodeType Parser::GetBitCastExpression(BitCastExpression& out)
 	auto Token = TryGetToken();
 	TokenTypeCheck(Token, TokenType::KeyWord_bitcast);
 	NextToken();
-
+	out.KeywordToken = Token;
 
 	TokenTypeCheck(TryGetToken(), TokenType::lessthan); NextToken();
 
