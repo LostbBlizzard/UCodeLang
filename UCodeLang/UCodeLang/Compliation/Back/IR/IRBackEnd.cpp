@@ -7,7 +7,7 @@ void IRBackEnd::Reset()
 }
 void IRBackEnd::Build(const IRBuilder* Input)
 {
-	auto Data = Input->ToBytes();UClib
+	auto Data = Input->ToBytes();
 	Set_Output(Data.AsView());
 }
 UCodeLangEnd

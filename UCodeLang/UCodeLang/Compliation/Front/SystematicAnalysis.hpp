@@ -275,11 +275,12 @@ public:
 	struct FileNodeData
 	{
 		Vector< const FileNode_t*> _Dependencys;
+		Optional<Vector<String>> _Imports;//FullName of the Symbol
 		struct SpanData
 		{
 			size_t Index = 0;
 			size_t Count = 0;
-			
+	
 
 			static SpanData NewWithNewIndex(size_t Index, size_t EndIndex)
 			{

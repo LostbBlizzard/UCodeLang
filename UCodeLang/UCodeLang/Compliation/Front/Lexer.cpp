@@ -155,6 +155,16 @@ void Lexer::Lex(const String_view& Text)
 			_Token.Value = nullptr;
 			_Tokens.push_back(_Token);
 			break;
+		case '{':
+			_Token.Type = TokenType::Left_Brace;
+			_Token.Value = nullptr;
+			_Tokens.push_back(_Token);
+			break;
+		case '}':
+			_Token.Type = TokenType::Right_Brace;
+			_Token.Value = nullptr;
+			_Tokens.push_back(_Token);
+			break;
 		case ':':
 			NextChar = GetNextChar(1);
 			if (NextChar == ':')

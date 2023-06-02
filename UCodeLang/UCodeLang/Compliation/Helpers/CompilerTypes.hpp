@@ -155,6 +155,9 @@ enum class TokenType : TokenType_t
 	KeyWord_TypeInfo,//typeinfo
 	KeyWord_extern,//extern
 
+	Left_Brace,//{
+	Right_Brace,//}
+
 	//used internally
 	internal_Constant_expression
 };

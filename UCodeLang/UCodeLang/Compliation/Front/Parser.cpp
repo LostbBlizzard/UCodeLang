@@ -30,6 +30,10 @@ void Parser::Parse(const Vector<Token>&Tokens)
 		auto T = TryGetToken();
 		TryGetNode V;
 
+		if (T->Type != TokenType::KeyWord_Import)
+		{
+			_PassedImportFileSection = true;
+		}
 
 		switch (T->Type)
 		{
@@ -47,6 +51,7 @@ void Parser::Parse(const Vector<Token>&Tokens)
 		case TokenType::KeyWord_umut:V = GetumutVariableDeclare(); break;
 		case TokenType::KeyWord_trait:V = GetTraitNode(); break;
 		case TokenType::KeyWord_eval:V = GetEvalDeclare(); break;
+		case TokenType::KeyWord_Import:V = GetImportStatement(); break;
 		default: GetDeclareVariableNoObject(V); break;
 		}
 		if (V.Node)
@@ -3958,6 +3963,68 @@ GotNodeType Parser::GetShrExpresionNode(Node*& out)
 	else
 	{
 		TokenTypeCheck(ParToken, FuncCallStart);
+	}
+	return GotNodeType::Success;
+}
+GotNodeType Parser::GetImportStatement(ImportStatement& out)
+{
+	out._Token = TryGetToken(); TokenTypeCheck(out._Token, TokenType::KeyWord_Import);
+	NextToken();
+
+	auto Par2Token = TryGetToken();
+	TokenTypeCheck(Par2Token, TokenType::Left_Brace);
+	NextToken();
+
+
+	while (TryGetToken()->Type != TokenType::EndofFile)
+	{
+		size_t ValueIndex = _TokenIndex;
+		auto ValueName = TryGetToken(); NextToken();
+
+		if (TryGetToken()->Type == TokenType::equal)
+		{
+			NextToken();
+
+
+			ImportValue importvalue;
+			importvalue._AliasName = ValueName;
+			GetName(importvalue._ImportedSybol);
+
+			out._Imports.push_back(std::move(importvalue));
+		}
+		else
+		{
+			_TokenIndex = ValueIndex;
+
+			ImportValue importvalue;
+			GetName(importvalue._ImportedSybol);
+
+			out._Imports.push_back(std::move(importvalue));
+		}
+
+
+		if (TryGetToken()->Type == TokenType::Comma)
+		{
+			NextToken();
+		}
+		else
+		{
+			break;
+		}
+
+	}
+
+	TokenTypeCheck(TryGetToken(), TokenType::Right_Brace);
+	NextToken();
+
+	TokenTypeCheck(TryGetToken(), TokenType::Semicolon);
+	NextToken();
+
+	if (_PassedImportFileSection)
+	{
+		_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence,out._Token->OnLine, out._Token->OnPos,
+			"This Import Statement is not at the top of the file.");
+	
 	}
 	return GotNodeType::Success;
 }

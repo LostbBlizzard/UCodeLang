@@ -35,6 +35,11 @@ $Cool:
 
 */
 
+import {DynArr = ULang::Vector,ULang::Span};
+import {ULang::Vector};
 
 |main[]:
  __LogChar('H');
+
+
+import {ULang::Vector};//Bad not first

@@ -76,6 +76,7 @@ enum class NodeType :UInt8
 	ExtendedFuncExpression,
 	MatchStatement,
 	MatchExpression,
+	ImportStatement,
 };
 
 
