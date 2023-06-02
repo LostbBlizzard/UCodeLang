@@ -1272,4 +1272,22 @@ struct MatchExpression : Node
 
 	}
 };
+
+struct ImportValue
+{
+	Optional<const Token*> _AliasName;
+	ScopedNameNode _ImportedSybol;
+};
+
+struct ImportStatement : Node
+{
+	const Token* _Token = nullptr;
+	Vector<ImportValue> _Imports;
+	AddforNode(ImportStatement);
+
+	ImportStatement() : Node(NodeType::ImportStatement)
+	{
+
+	}
+};
 UCodeLangFrontEnd

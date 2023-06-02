@@ -48,6 +48,7 @@ private:
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
 	Stack<AccessModifierType> _AccessModifier;
+	bool _PassedImportFileSection = false;
 
 	void AccessStart()
 	{
@@ -585,6 +586,16 @@ private:
 	}
 
 	GotNodeType GetShrExpresionNode(Node*& out);
+
+
+	TryGetNode GetImportStatement()
+	{
+		ImportStatement* V = ImportStatement::Gen();
+		auto r = GetImportStatement(*V);
+		TrippedCheck(r);
+		return { r,V };
+	}
+	GotNodeType GetImportStatement(ImportStatement& out);
 
 };
 UCodeLangFrontEnd
