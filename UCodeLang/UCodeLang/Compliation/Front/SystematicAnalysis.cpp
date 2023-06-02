@@ -321,6 +321,48 @@ const FileNode* SystematicAnalysis::Get_FileUseingSybol(const Symbol* Syb)
 void SystematicAnalysis::AddDependencyToCurrentFile(const Symbol* Syb)
 {
 	AddDependencyToCurrentFile(Get_FileUseingSybol(Syb));
+	
+	
+	auto CurrentFile = LookingAtFile;
+	auto LookingAtSyb = Syb;
+	while (LookingAtSyb)
+	{
+	
+		auto& FileData = GetFileData(CurrentFile);
+
+		const String* StringToLookAt = nullptr;
+		if (LookingAtSyb->Type == SymbolType::Func)
+		{
+			StringToLookAt = &LookingAtSyb->Get_Info<FuncInfo>()->FullName;//because of how Import alias works with Funcs
+		}
+		else
+		{
+			StringToLookAt = &LookingAtSyb->FullName;
+
+		}
+
+		for (auto& Item : FileData._Imports)
+		{
+			if (*Item.IsImportUsed == false) 
+			{
+				if (Item.ImportSymbolFullName == *StringToLookAt)
+				{
+					*Item.IsImportUsed = true;
+					break;
+				}
+			}
+		}
+
+		if (LookingAtSyb->Type == SymbolType::Type_alias
+			|| LookingAtSyb->Type == SymbolType::Hard_Type_alias)
+		{
+			LookingAtSyb = GetSymbol(LookingAtSyb->VarType);
+		}
+		else
+		{
+			LookingAtSyb = nullptr;
+		}
+	}
 }
 void SystematicAnalysis::AddDependencyToCurrentFile(const FileNode* file)
 {
@@ -3632,7 +3674,7 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 						"Must use a '::' as Opetator Here");
 				}
 			}
-
+			
 		}
 	}
 	else if (passtype == PassType::FixedTypes)
@@ -3711,6 +3753,7 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 				{
 					FileNodeData::ImportData _ImportData;
 					_ImportData.ImportSymbolFullName = Name;
+					_ImportData.IsImportUsed = &ImportInfo.IsUsed;
 
 					for (size_t i = 0; i < List.size(); i++)
 					{
@@ -3775,11 +3818,12 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 
 				}
 
+				FileNodeData::ImportData _ImportData;
+				_ImportData.ImportSymbolFullName = Name;
+				_ImportData.IsImportUsed = &ImportInfo.IsUsed;
+				GetFileData(LookingAtFile)._Imports.push_back(std::move(_ImportData));
 			}
 
-			FileNodeData::ImportData _ImportData;
-			_ImportData.ImportSymbolFullName= Name;
-			GetFileData(LookingAtFile)._Imports.push_back(std::move(_ImportData));
 		}
 	}
 	else if (passtype == PassType::BuidCode)
@@ -8437,6 +8481,11 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 
 
 		auto Info = GetFunc(node.FuncName, node.Generics, node.Parameters, Get_LookingForType());
+
+		if (Info.SymFunc)
+		{
+			AddDependencyToCurrentFile(Info.SymFunc);
+		}
 
 		DoFuncCall(Info, node.FuncName, node.Parameters);
 		FuncToSyboID[&node] = Info;
