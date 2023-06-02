@@ -110,7 +110,9 @@ bool SystematicAnalysis::Analyze(const Vector<const FileNode*>& Files, const Vec
 
 		if (!_ErrorsOutput->Has_Errors()) {
 			BuildLibs();
-			BuildCode();
+			if (!_ErrorsOutput->Has_Errors()) {
+				BuildCode();
+			}
 		}
 	};
 
@@ -195,7 +197,7 @@ void SystematicAnalysis::BuildLib(const UClib& lib,const Path& LibName)
 
 	if (GotIRCode == false)
 	{
-		_ErrorsOutput->AddError(ErrorCodes::InternalCompilerError, 0, 0, "Cant get IR from '" + LibName.generic_string() + "' Object file.Try deleting it");
+		_ErrorsOutput->AddError(ErrorCodes::CouldNotFindFunc, 0, 0, "Cant get IR from '" + LibName.generic_string() + "' Object file.Try deleting it");
 	}
 }
 
@@ -324,11 +326,13 @@ void SystematicAnalysis::AddDependencyToCurrentFile(const Symbol* Syb)
 	
 	
 	auto CurrentFile = LookingAtFile;
+	auto& FileData = GetFileData(CurrentFile);
 	auto LookingAtSyb = Syb;
+	bool IsAnImport = false;
 	while (LookingAtSyb)
 	{
 	
-		auto& FileData = GetFileData(CurrentFile);
+		
 
 		const String* StringToLookAt = nullptr;
 		if (LookingAtSyb->Type == SymbolType::Func)
@@ -343,14 +347,14 @@ void SystematicAnalysis::AddDependencyToCurrentFile(const Symbol* Syb)
 
 		for (auto& Item : FileData._Imports)
 		{
-			if (*Item.IsImportUsed == false) 
+
+			if (Item.ImportSymbolFullName == *StringToLookAt)
 			{
-				if (Item.ImportSymbolFullName == *StringToLookAt)
-				{
-					*Item.IsImportUsed = true;
-					break;
-				}
+				*Item.IsImportUsed = true;
+				IsAnImport = true;
+				break;
 			}
+
 		}
 
 		if (LookingAtSyb->Type == SymbolType::Type_alias
@@ -362,6 +366,12 @@ void SystematicAnalysis::AddDependencyToCurrentFile(const Symbol* Syb)
 		{
 			LookingAtSyb = nullptr;
 		}
+	}
+
+	if (CurrentFile != Syb->_File && !IsAnImport && FileData._Imports.size())
+	{
+		auto Token = LastLookedAtToken;
+		_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Trying to use the Symbol '" + Syb->FullName + "[" + ToString(Syb->Type) + "]' but it's not Imported in the file.");
 	}
 }
 void SystematicAnalysis::AddDependencyToCurrentFile(const FileNode* file)
