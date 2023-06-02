@@ -733,6 +733,33 @@ public:
 	Symbol* TraitClassInfo = nullptr;
 };
 
+
+enum class ImportBindType
+{
+	Null,
+	Type,
+	Func,
+	GenericFunc,
+};
+class Imports_Info :public Symbol_Info
+{
+public:
+	struct ImportSymbolInfo
+	{
+		ImportBindType Type= ImportBindType::Null;
+		Symbol* Sym;
+
+	};
+	struct ImportAliases
+	{
+		bool IsUsed = false;
+		Vector<ImportSymbolInfo> NewSymbols;
+	};
+	Vector<ImportAliases> NewAliases;
+
+};
+
+
 class Symbol
 {
 public:
