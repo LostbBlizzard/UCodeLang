@@ -283,6 +283,7 @@ public:
 
 
 			Vector<String> _TepSymbolFullNames;
+			bool* IsImportUsed =nullptr;
 		};
 		Vector<ImportData> _Imports;
 		struct SpanData
