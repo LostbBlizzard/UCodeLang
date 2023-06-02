@@ -247,15 +247,28 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 		auto OldSettings = Compiler.Get_Settings();
 
 		ModuleRet CompilerRet;
+		{
+			Compiler.Get_Settings()._Type = IsSubModule ? OutPutType::IRAndSymbols : OldSettings._Type;
+			CompilerRet.OutputItemPath = paths.OutFile;
 
-		Compiler.Get_Settings()._Type = IsSubModule ? OutPutType::IRAndSymbols : OldSettings._Type;
-		CompilerRet.OutputItemPath = paths.OutFile;
 
+			if (ForceImport) {
+				Compiler.Get_Settings().AddArgFlag("ForceImport");
+			}
 
+			if (RemoveUnSafe) {
+				Compiler.Get_Settings().AddArgFlag("RemoveUnSafe");
+			}
 
-		CompilerRet.CompilerRet = Compiler.CompileFiles_UseIntDir(paths, ExternFiles);
+			if (ModuleNameSpace.size()) 
+			{
+				Compiler.Get_Settings().AddArgValue("StartingNameSpac",ModuleNameSpace);
+			}
 
-		 Compiler.Get_Settings() = OldSettings;
+			CompilerRet.CompilerRet = Compiler.CompileFiles_UseIntDir(paths, ExternFiles);
+		}
+		
+		Compiler.Get_Settings() = OldSettings;
 		return CompilerRet;
 	}
 	else
@@ -340,6 +353,10 @@ String ModuleFile::ToStringBytes(const ModuleFile* Lib)
 	out += "Obj:" + ToStringBytes(&Lib->ModuleIntPath);
 	out += "Out:" + ToStringBytes(&Lib->ModuleOutPath);
 
+	out += (String)"ForceImport:" + (Lib->ForceImport ? "true" : "false");
+	out += (String)"RemoveUnSafe:" + (Lib->RemoveUnSafe ? "true" : "false");
+	out += "ModuleNameSpace:" + Lib->ModuleNameSpace;
+
 	out += "\n";
 
 	for (auto& Item : Lib->ModuleDependencies)
@@ -413,6 +430,18 @@ bool ModuleFile::FromString(ModuleFile* Lib, const String_view& Data)
 					else if (Item.Value._String == "Version")
 					{
 						Lib->ModuleName = std::move(Tep);
+					}
+					else if (Item.Value._String == "ForceImport")
+					{
+						Lib->ForceImport = false;
+					}
+					else if (Item.Value._String == "RemoveUnSafe")
+					{
+						Lib->RemoveUnSafe= false;
+					}
+					else if (Item.Value._String == "ModuleNameSpace")
+					{
+						Lib->ModuleNameSpace = V[i].Value._String;
 					}
 				}
 

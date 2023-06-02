@@ -67,6 +67,10 @@ public:
 	Path ModuleIntPath = "int";
 	Path ModuleOutPath = "out";
 	
+	bool ForceImport = false;
+	bool RemoveUnSafe = false;
+	String ModuleNameSpace = "";
+
 	struct ModuleRet
 	{
 		Compiler::CompilerRet CompilerRet;
