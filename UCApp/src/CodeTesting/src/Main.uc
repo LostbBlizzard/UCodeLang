@@ -26,5 +26,5 @@ $CString = umut char[&];
 
 |main[]:
  
- CString Item = type(Cool).Name();
- ret 0;
+ CString Item = type(Cool).FullName();
+ ret type(char).TypeID();

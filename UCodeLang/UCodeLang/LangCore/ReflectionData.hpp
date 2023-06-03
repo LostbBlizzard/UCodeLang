@@ -50,7 +50,7 @@ constexpr ReflectionCustomTypeID MaxReserved_ReflectionCustomTypeID = 32;
 class ReflectionTypeInfo
 {
 public:
-	ReflectionCustomTypeID _CustomTypeID;
+	ReflectionCustomTypeID _CustomTypeID =0;
 	ReflectionTypes  _Type = ReflectionTypes::Null;
 
 	bool _IsAddress = false;
