@@ -27,4 +27,4 @@ $CString = umut char[&];
 |main[]:
  
  CString Item = type(Cool).FullName();
- ret type(char).TypeID();
+ ret type(char&).IsAddress();
