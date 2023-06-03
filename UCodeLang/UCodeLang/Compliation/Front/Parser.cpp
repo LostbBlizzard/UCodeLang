@@ -62,8 +62,6 @@ void Parser::Parse(const Vector<Token>&Tokens)
 
 		switch (T->Type)
 		{
-		case TokenType::KeyWord_Tag:V = GetTagNode(); break;
-		case TokenType::KeyWord_Enum:V = GetEnumNode(); break;
 		case TokenType::Class:V = GetClassNode(); break;
 		case TokenType::KeyWord_extern:
 		case Parser::declareFunc:V = GetFuncNode(); break;
@@ -72,7 +70,6 @@ void Parser::Parse(const Vector<Token>&Tokens)
 		case TokenType::KeyWord_static:V = GetDeclareStaticVariable(); break;
 		case TokenType::KeyWord_Thread:V = GetDeclareThreadVariable(); break;
 		case TokenType::KeyWord_umut:V = GetumutVariableDeclare(); break;
-		case TokenType::KeyWord_trait:V = GetTraitNode(); break;
 		case TokenType::KeyWord_eval:V = GetEvalDeclare(); break;
 		case TokenType::KeyWord_Import:V = GetImportStatement(); break;
 		default: GetDeclareVariableNoObject(V); break;
@@ -182,8 +179,6 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 		switch (T->Type)
 		{
 		case TokenType::EndTab:goto EndLoop;
-		case TokenType::KeyWord_Tag:V = GetTagNode(); break;
-		case TokenType::KeyWord_Enum:V = GetEnumNode(); break;
 		case TokenType::Class:V = GetClassNode();break;
 		case TokenType::KeyWord_extern:
 		case Parser::declareFunc:V = GetFuncNode(); break;
@@ -192,7 +187,6 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 		case TokenType::KeyWord_static:V = GetDeclareStaticVariable(); break;
 		case TokenType::KeyWord_Thread:V = GetDeclareThreadVariable(); break;
 		case TokenType::KeyWord_umut:V = GetumutVariableDeclare(); break;
-		case TokenType::KeyWord_trait:V = GetTraitNode(); break;
 		case TokenType::KeyWord_eval:V = GetEvalDeclare(); break;
 		default: GetDeclareVariableNoObject(V); break;
 		}
@@ -374,8 +368,6 @@ GotNodeType Parser::DoClassType(ClassNode* output, const Token* ClassToken, Gene
 		switch (T->Type)
 		{
 		case TokenType::EndTab:goto EndLoop;
-		case TokenType::KeyWord_Tag:V = GetTagNode(); break;
-		case TokenType::KeyWord_Enum:V = GetEnumNode(); break;
 		case TokenType::Class:V = GetClassNode(); break;
 
 		case TokenType::KeyWord_extern:
@@ -385,7 +377,6 @@ GotNodeType Parser::DoClassType(ClassNode* output, const Token* ClassToken, Gene
 		case TokenType::KeyWord_static:V = GetDeclareStaticVariable(); break;
 		case TokenType::KeyWord_Thread:V = GetDeclareThreadVariable(); break;
 		case TokenType::KeyWord_umut:V = GetumutVariableDeclare(); break;
-		case TokenType::KeyWord_trait:V = GetTraitNode(); break;
 		case TokenType::KeyWord_eval:V = GetEvalDeclare(); break;
 		case TokenType::KeyWorld_public:
 		{
@@ -438,8 +429,6 @@ void Parser::ClassTypeAccessModifierInerScope(Vector<Unique_ptr<Node>>& Out)
 		switch (T->Type)
 		{
 		case TokenType::EndTab:goto EndLoop;
-		case TokenType::KeyWord_Tag:V = GetTagNode(); break;
-		case TokenType::KeyWord_Enum:V = GetEnumNode(); break;
 		case TokenType::Class:V = GetClassNode(); break;
 
 		case TokenType::KeyWord_extern:
@@ -450,7 +439,6 @@ void Parser::ClassTypeAccessModifierInerScope(Vector<Unique_ptr<Node>>& Out)
 		case TokenType::KeyWord_Thread:V = GetDeclareThreadVariable(); break;
 		case TokenType::KeyWord_umut:V = GetumutVariableDeclare(); break;
 		case TokenType::KeyWord_eval:V = GetEvalDeclare(); break;
-		case TokenType::KeyWord_trait:V = GetTraitNode(); break;
 		default:V = GetDeclareVariable();
 		}
 
@@ -498,18 +486,6 @@ GotNodeType Parser::GetStatement(Node*& out)
 		TokenTypeCheck(TryGetToken(), Parser::declareFuncParsStart);
 		NextToken();
 
-		out = r.Node;
-		return r.GotNode;
-	};
-	case TokenType::KeyWord_Tag:
-	{
-		auto r = GetTagNode();
-		out = r.Node;
-		return r.GotNode;
-	};
-	case TokenType::KeyWord_Enum:
-	{
-		auto r = GetEnumNode();
 		out = r.Node;
 		return r.GotNode;
 	};
@@ -599,13 +575,6 @@ GotNodeType Parser::GetStatement(Node*& out)
 		out = r.Node;
 		return r.GotNode;
 	}
-	break;
-	case TokenType::KeyWord_trait:
-	{
-		auto r = GetTraitNode();
-		out = r.Node;
-		return r.GotNode;
-	};
 	break;
 	case TokenType::KeyWord_panic:
 	{
@@ -2387,62 +2356,7 @@ GotNodeType Parser::DoEnumType(EnumNode* output, const Token* ClassToken, Generi
 
 	return GotNodeType::Success;
 }
-GotNodeType Parser::GetEnumNode(EnumNode& out)
-{
-	auto Token = TryGetToken();
-	TokenTypeCheck(Token, TokenType::KeyWord_Enum);
-	NextToken();
-	GetName(out.EnumName);
 
-
-	auto LeftBracket = TryGetToken();
-	if (LeftBracket && LeftBracket->Type == TokenType::Left_Bracket)
-	{
-		NextToken();
-		GetType(out.BaseType);
-
-		auto RightToken = TryGetToken(); TokenTypeCheck(RightToken, TokenType::Right_Bracket);
-		NextToken();
-	}
-	else
-	{
-		if (LeftBracket) {
-			TypeNode::Gen_Byte(out.BaseType, *LeftBracket);
-		}
-	}
-
-
-
-	auto ColonToken = TryGetToken();
-	if (ColonToken->Type == TokenType::Semicolon) { NextToken(); return GotNodeType::Success; }
-
-	TokenTypeCheck(ColonToken, TokenType::Colon); NextToken();
-
-	auto StartToken = TryGetToken(); TokenTypeCheck(StartToken, TokenType::StartTab);
-	NextToken();
-
-
-	while (TryGetToken()->Type != TokenType::EndofFile)
-	{
-		auto T = TryGetToken();
-	
-		if (T == nullptr || T->Type == TokenType::EndTab) { break; }
-		
-		out.Values.push_back({});
-		EnumValueNode& EnumValue =out.Values.back();
-		GetEnumValueNode(EnumValue);
-
-
-		auto ColonToken = TryGetToken();
-		if (ColonToken == nullptr || ColonToken->Type != TokenType::Comma){ break;}
-		NextToken();
-	}
-
-	auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::EndTab);
-	NextToken();
-
-	return GotNodeType::Success;
-}
 GotNodeType Parser::GetEnumValueNode(EnumValueNode& out)
 {
 	GetName(out.Name);
@@ -2569,46 +2483,6 @@ EndLoop:
 
 	return GotNodeType::Success;
 }
-GotNodeType Parser::GetTagNode(TagTypeNode& out)
-{
-	auto Token = TryGetToken();
-	TokenTypeCheck(Token, TokenType::KeyWord_Tag);
-	NextToken();
-	GetName(out.AttributeName);
-
-	auto ColonToken = TryGetToken();
-	if (ColonToken->Type == TokenType::Semicolon) { NextToken(); return GotNodeType::Success;}
-
-	TokenTypeCheck(ColonToken, TokenType::Colon); NextToken();
-	auto StartToken = TryGetToken(); TokenTypeCheck(StartToken, TokenType::StartTab);NextToken();
-
-
-	while (TryGetToken()->Type != TokenType::EndofFile)
-	{
-		auto T = TryGetToken();
-	
-		TryGetNode V;
-
-		switch (T->Type)
-		{
-		case TokenType::EndTab:goto EndLoop;
-		case Parser::declareFunc:V = GetFuncNode(); break;
-		default:V = GetDeclareVariable();
-		}
-
-		if (V.Node)
-		{
-			out._Nodes.push_back(Unique_ptr<Node>(V.Node));
-		}
-	}
-
-EndLoop:
-	auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::EndTab);
-	NextToken();
-
-	return GotNodeType::Success;
-}
-
 GotNodeType Parser::GetFuncCallStatementNode(FuncCallStatementNode& out)
 {
 	GetFuncCallNode(out.Base);
@@ -3270,69 +3144,6 @@ GotNodeType Parser::DoTraitType(TraitNode* output, const Token* ClassToken, Gene
 		}
 	}
 
-
-EndLoop:
-	AccessEnd();
-	auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::EndTab);
-	NextToken();
-
-	return GotNodeType::Success;
-}
-GotNodeType Parser::GetTraitNode(TraitNode& out)
-{
-	auto Token = TryGetToken();
-	TokenTypeCheck(Token, TokenType::KeyWord_trait);
-	NextToken();
-	GetName(out._Name);
-
-	auto ColonToken = TryGetToken();
-	if (ColonToken->Type == TokenType::Semicolon) { NextToken(); return GotNodeType::Success; }
-
-	TokenTypeCheck(ColonToken, TokenType::Colon); NextToken();
-	auto StartToken = TryGetToken(); TokenTypeCheck(StartToken, TokenType::StartTab); NextToken();
-
-	AccessStart();
-	while (TryGetToken()->Type != TokenType::EndofFile)
-	{
-		auto T = TryGetToken();
-
-		TryGetNode V;
-
-		switch (T->Type)
-		{
-		case TokenType::EndTab:goto EndLoop;
-		case Parser::declareFunc:V = GetFuncNode(); break;
-		case TokenType::KeyWorld_public:
-		{
-			NextToken(); TokenTypeCheck(TryGetToken(),TokenType::Colon); NextToken();
-			_AccessModifier.top() = AccessModifierType::Public;
-			TokenTypeCheck(TryGetToken(), TokenType::StartTab); NextToken();
-
-			TraitAccessModifierInerScope(out._Nodes);
-			
-			TokenTypeCheck(TryGetToken(), TokenType::EndTab); NextToken();
-		};
-		break;
-		case TokenType::KeyWorld_private:
-		{
-			NextToken(); TokenTypeCheck(TryGetToken(), TokenType::Colon); NextToken();
-			_AccessModifier.top() = AccessModifierType::Private;
-			TokenTypeCheck(TryGetToken(), TokenType::StartTab); NextToken();
-
-			TraitAccessModifierInerScope(out._Nodes);
-
-			TokenTypeCheck(TryGetToken(), TokenType::EndTab); NextToken();
-		};
-		break;
-		default:V = GetDeclareVariable();
-		}
-
-		if (V.Node)
-		{
-			out._Nodes.push_back(Unique_ptr<Node>(V.Node));
-		}
-	}
-	
 
 EndLoop:
 	AccessEnd();
