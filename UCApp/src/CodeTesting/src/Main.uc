@@ -18,7 +18,7 @@
 
 */
 
-import Hello::Hello2::{Func = OtherFuncion};
+import Hello::{Func = OtherFuncion};
 
 $Cool:
  int X;

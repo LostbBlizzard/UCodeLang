@@ -3726,7 +3726,7 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 			if (node._StartingNameSpace.has_value())
 			{
 				Name += GetScopedNameAsString(node._StartingNameSpace.value());
-				Name += "::";
+				Name += ScopeHelper::_ScopeSep;
 			}
 					
 			Name += GetScopedNameAsString(Item._ImportedSybol);
