@@ -404,6 +404,14 @@ void Interpreter::Extecute(Instruction& Inst)
 		Get_Register((RegisterID)Inst.Value1.AsRegister).Value = Inst.Value0.AsAddress; \
 	}
 	break;
+	case InstructionSet::DebugBreakPointHit:
+	{
+		using OnHitFuncion = void(*)(void* Inter, void* ObjectPointer);
+		OnHitFuncion _Func = (OnHitFuncion)Get_Register((RegisterID)Inst.Value0.AsRegister).Value.AsPtr;
+		void* ObjectToPass = Get_Register((RegisterID)Inst.Value1.AsRegister).Value.AsPtr;
+		_Func(this, ObjectToPass);
+	}
+	break;
 	#pragma endregion
 	break;
 	default:

@@ -72,6 +72,9 @@ enum class InstructionSet : InstructionSet_t
 	SysCall,
 	Call_Code,
 
+	//Debuging
+	DebugBreakPointHit,
+
 	MAXVALUE,
 };
 enum class Intermediate_Set : InstructionSet_t

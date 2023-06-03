@@ -501,6 +501,15 @@ public:
 		SysCall(Out, InstructionSysCall::Cout_ReadChar, Char);
 	}
 
+
+	//Used at RunTime
+	using OnHitFuncion = void(*)(void* Inter,void* ObjectPointer);
+	UCodeLangForceinline static void DebugBreakPoint(Instruction& Out,OnHitFuncion OnhitFuncion,void* ObjectPointer)
+	{
+		Out.OpCode = InstructionSet::Call_Code;
+		Out.Value0.AsPtr = (void*)OnhitFuncion;
+		Out.Value1.AsPtr = ObjectPointer;
+	}
 	
 
 
