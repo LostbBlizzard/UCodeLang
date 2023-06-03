@@ -18,26 +18,16 @@
 
 */
 
-import Hello::{Func = OtherFuncion};
+//import Hello::{Func = OtherFuncion};
 
-
-$Cool1 enum:
-   Red,
-   B2,
-   B3,
-
-$Cool2 trait:
- |Func[] -> void;
-
-$Cool3 tag:
- |Func[] -> void;
-
-$Cool:
- int X;
- int Y;
 
 |main[]:
+ int a = 10;
+
+ 
  //umut char[&] Item = type(Cool).Name();
  //eval Item2 = type(Cool).FullName();
  //eval BoolValue = compiler::HasFlag("Hello World");
  //ret BoolValue;
+
+ ret 0;

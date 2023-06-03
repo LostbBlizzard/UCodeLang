@@ -10,7 +10,7 @@
 #include "UCodeLang/Compliation/Back/C98/C89Backend.hpp"
 #include "UCodeLang/Compliation/Back/x86/X86BackEnd.hpp"
 #include "UCodeLang/Compliation/ModuleFile.hpp"
-
+#include "UCodeLang/RunTime/Debuger.hpp"
 #include "Tests/TestGenerator.hpp"
 
 using namespace UCodeLang;
@@ -164,6 +164,8 @@ int main()
 		State.AddLib(&DLLib);
 		State.LinkLibs();
 
+		UCodeLang::Debuger debuger;
+		debuger.Attach(&RunTime);
 
 		RunTime.Init(&State);
 
