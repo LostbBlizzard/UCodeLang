@@ -20,14 +20,11 @@
 
 //import Hello::{Func = OtherFuncion};
 
+$Cool;
+
+$CString = umut char[&];
 
 |main[]:
- int a = 10;
-
  
- //umut char[&] Item = type(Cool).Name();
- //eval Item2 = type(Cool).FullName();
- //eval BoolValue = compiler::HasFlag("Hello World");
- //ret BoolValue;
-
+ CString Item = type(Cool).Name();
  ret 0;

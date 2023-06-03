@@ -199,6 +199,8 @@ public:
 		}
 	}
 };
+
+class SystematicAnalysis;
 struct Systematic_BuiltInFunctions
 {
 public:
@@ -232,7 +234,14 @@ public:
 		}
 	};
 
-	static const FunctionData* GetFunction(const String_view Name,const Vector<FunctionPar>& Pars);
+	struct Func
+	{
+		TypeSymbol RetType;
+		Optional<RawEvaluatedObject> EvalObject;
+		bool EvalAsCString = false;
+	};
+
+	static Optional<Func> GetFunction(const String_view Name,const Vector<FunctionPar>& Pars, SystematicAnalysis& This);
 };
 
 
@@ -454,6 +463,11 @@ private:
 
 		const FuncInfo* Func = nullptr;
 		Symbol* SymFunc = nullptr;
+		Optional<Systematic_BuiltInFunctions::Func> _BuiltFunc;
+		bool HasFunc()
+		{
+			return Func || _BuiltFunc.has_value();
+		}
 	};
 	struct ReadVarErrorCheck_t
 	{
@@ -938,6 +952,7 @@ private:
 	ReflectionTypeInfo ConvertToTypeInfo(const TypeSymbol& Type);
 
 	TypeSymbolID GetTypeID(TypesEnum Type, SymbolID SymbolId);
+	TypeSymbol GetStaticArrayType(const TypeSymbol& BaseType, size_t Size);
 
 	bool AreTheSame(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
 	bool AreTheSameWithOutimmutable(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
@@ -1206,6 +1221,7 @@ private:
 	bool EvaluateToAnyType(EvaluatedEx& Out, const ExpressionNodeType& node);
 	Optional<EvaluatedEx> EvaluateToAnyType(const ExpressionNodeType& node);
 	String ToString(const TypeSymbol& Type, const RawEvaluatedObject& Data);
+	IRInstruction* RawObjectDataToCString(const RawEvaluatedObject& EvalObject);
 	//IR
 	void DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Name, const ValueParametersNode& Pars);
 	void DoFuncCall(const TypeSymbol& Type, const Get_FuncInfo& Func, const ValueParametersNode& ValuePars);

@@ -16,34 +16,44 @@ static const Array<Systematic_BuiltInFunctions::FunctionData, BuiltInCount> Buil
 	 Systematic_BuiltInFunctions::FunctionData("Name",Systematic_BuiltInFunctions::ID::TypeInfo_GetName),
 	 Systematic_BuiltInFunctions::FunctionData("FullName",Systematic_BuiltInFunctions::ID::TypeInfo_GetFullName),
 };
-const Systematic_BuiltInFunctions::FunctionData* Systematic_BuiltInFunctions::GetFunction(const String_view Name, const Vector<FunctionPar>& Pars)
+Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunction(const String_view Name, const Vector<FunctionPar>& Pars, SystematicAnalysis& This)
 {
 	auto FuncName = ScopeHelper::GetNameFromFullName(Name);
-	for (auto& Item : BuiltFuncList)
+
+	if (FuncName == "Name" && Pars.size())
 	{
-		if (Item.FuncName == FuncName
-			&& Item.Pars.size() == Pars.size())
+		auto& Type = Pars.front();
+		if (Type.IsOutPar == false)
 		{
-			for (size_t i = 0; i < Pars.size(); i++)
+			if (Type.Type.IsTypeInfo())
 			{
-				auto& FuncPar = Item.Pars[i];
-				auto& Par = Pars[i];
+				TypeSymbol NewType;
+				NewType._CustomTypeSymbol = Type.Type._CustomTypeSymbol;
+				NewType._Type = Type.Type._Type;
 
-				if (FuncPar.IsOutPar != Par.IsOutPar
-					|| FuncPar.Type._Type != Par.Type._Type
-					|| FuncPar.Type._TypeInfo != Par.Type._TypeInfo)
-
+				bool WantsUmutCString =false;
+				if (This.LookingForTypes.size())
 				{
-					break;
-					
+					auto Type = This.LookingForTypes.top();
+					WantsUmutCString = Type._Type == TypesEnum::Char && Type._IsAddressArray && Type._Isimmutable;
 				}
+
+				String Value = ScopeHelper::GetNameFromFullName(This.ToString(NewType));
+
+				Func _Func;
+				_Func.RetType = This.GetStaticArrayType(TypesEnum::Char, Value.size());
+				auto Ex = This.MakeEx(_Func.RetType);
+				memcpy(Ex.EvaluatedObject.Object_AsPointer.get(), Value.data(), Value.size());
+
+				_Func.EvalObject = Ex.EvaluatedObject;
+				_Func.EvalAsCString = WantsUmutCString;
+				return _Func;
 			}
-			
-			return &Item;
 		}
 	}
+
 	
-	return nullptr;
+	return {};
 }
 
 void SystematicAnalysis::Reset()
@@ -8564,6 +8574,20 @@ void SystematicAnalysis::SetFuncRetAsLastEx(Get_FuncInfo& Info)
 			}
 		}
 	}
+	if (Info._BuiltFunc.has_value())
+	{
+		auto& Item = Info._BuiltFunc.value();
+		if (Item.EvalAsCString)
+		{
+			LastExpressionType = TypesEnum::Char;
+			LastExpressionType.SetAsAddressArray();
+			LastExpressionType.SetAsimmutable();
+		}
+		else
+		{
+			LastExpressionType = Info._BuiltFunc.value().RetType;
+		}
+	}
 }
 
 void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
@@ -10569,6 +10593,37 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 	}
 }
 
+TypeSymbol SystematicAnalysis::GetStaticArrayType(const TypeSymbol& BaseType,size_t Size)
+{
+	auto BaseTypeName = ToString(BaseType);
+	auto FullName = CompilerGenerated("StaticArray_") + BaseTypeName + std::to_string(Size);
+	auto Syb = GetSymbol(FullName,SymbolType::Type);
+	if (Syb == nullptr)
+	{
+		Syb = &AddSybol(SymbolType::Type_StaticArray, FullName, FullName, AccessModifierType::Public);
+		SymbolID id = (SymbolID)Syb;
+		_Table.AddSymbolID(*Syb, id);
+
+		StaticArrayInfo* info = new StaticArrayInfo();
+
+
+		info->Type = BaseType;
+		info->Count = Size;
+
+		Syb->Info.reset(info);
+	}
+	return TypeSymbol(Syb->ID);
+}
+
+inline IRInstruction* SystematicAnalysis::RawObjectDataToCString(const RawEvaluatedObject& EvalObject)
+{
+	String Str = String(String_view((const char*)EvalObject.Object_AsPointer.get(), EvalObject.ObjectSize));
+	String_view Buffer{ Str.data(),Str.size() + 1 };//for null char
+
+	auto BufferIR = _Builder.FindOrAddConstStrings(Buffer);
+	return LookingAtIRBlock->NewLoadPtr(BufferIR);
+}
+
 void SystematicAnalysis::LogCantBindTypeItNotTypeInfo(const UCodeLang::Token* Token, UCodeLang::FrontEnd::TypeSymbol& Type)
 {
 
@@ -11586,7 +11641,38 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 				}
 			}
 		}
+		else if (Func._BuiltFunc.has_value())
+		{
+			auto& Value = Func._BuiltFunc.value();
 
+			if (Value.EvalObject.has_value())
+			{
+				auto& EvalObject = Value.EvalObject.value();
+				if (Value.EvalAsCString)
+				{
+					_LastExpressionField = RawObjectDataToCString(EvalObject);
+
+					LastExpressionType = TypesEnum::Char;
+					LastExpressionType.SetAsAddressArray();
+					LastExpressionType.SetAsimmutable();
+				}
+				else
+				{
+					_LastExpressionField = LoadEvaluatedEx(EvalObject, Value.RetType);
+				}
+			}
+			else
+			{
+
+				throw std::exception("bad path");
+			}
+
+			LastExpressionType = Value.RetType;
+		}
+		else
+		{
+			throw std::exception("bad path");
+		}
 		return;
 	}
 
@@ -12209,8 +12295,15 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 				}
 			}
 
-			auto FuncData = Systematic_BuiltInFunctions::GetFunction(ScopedName, Pars);
+			auto FuncData = Systematic_BuiltInFunctions::GetFunction(ScopedName, Pars,*this);
 
+			if (FuncData.has_value())
+			{
+				Get_FuncInfo R;
+				R.ThisPar = ThisParType;
+				R._BuiltFunc = FuncData.value();
+				return R;
+			}
 		}
 		else
 		{
@@ -14283,6 +14376,46 @@ IRInstruction* SystematicAnalysis::LoadEvaluatedEx(const RawEvaluatedObject& Val
 		{
 			return LookingAtIRBlock->NewLoad(*(UInt32*)ObjectData);
 		}
+	case TypesEnum::CustomType:
+	{
+		auto Syb = GetSymbol(ValueType._CustomTypeSymbol);
+		if (Syb)
+		{
+			if (Syb->Type == SymbolType::Type_StaticArray)
+			{
+				StaticArrayInfo* Info = Syb->Get_Info<StaticArrayInfo>();
+				auto R = LookingAtIRBlock->NewLoad(ConvertToIR(ValueType));
+				auto Base = Info->Type;
+				auto BaseSize = GetSize(Base).value();
+
+				auto Ptr = LookingAtIRBlock->NewLoadPtr(R);
+
+				RawEvaluatedObject _DataAsIndex;
+				_DataAsIndex.ObjectSize = BaseSize;
+				_DataAsIndex.Object_AsPointer.reset(new Byte[BaseSize]);
+				auto BaseAsIR = LookingAtIRBlock->NewLoad(BaseSize);
+				for (size_t i = 0; i < Info->Count; i++)
+				{
+					void* ItemOffset = Value.Object_AsPointer.get() + (BaseSize * i);
+					memcpy(_DataAsIndex.Object_AsPointer.get(), ItemOffset, BaseSize);
+
+					auto ItemIR = LoadEvaluatedEx(_DataAsIndex, Base);
+					
+					LookingAtIRBlock->New_Index_Vetor(Ptr, LookingAtIRBlock->NewLoad(i), BaseAsIR);
+				}
+
+				return R;
+			}
+			else
+			{
+				throw std::exception("bad path");
+			}
+		}
+		else
+		{
+			throw std::exception("bad path");
+		}
+	}
 	default:
 		throw std::exception("not added");
 		break;
