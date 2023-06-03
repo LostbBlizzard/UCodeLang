@@ -327,25 +327,10 @@ private:
 
 
 	GotNodeType DoEnumType(EnumNode* output, const Token* ClassToken, GenericValuesNode& TepGenerics,InheritedTypeData& Inherited);
-	TryGetNode GetEnumNode()
-	{
-		EnumNode* V = EnumNode::Gen();
-		auto r = GetEnumNode(*V);
-		TrippedCheck(r);
-		return { r,V->As() };
-	}
-	GotNodeType GetEnumNode(EnumNode& out);
 	GotNodeType GetEnumValueNode(EnumValueNode& out);
 
 	GotNodeType DoTagType(TagTypeNode* output, const Token* ClassToken, GenericValuesNode& TepGenerics, InheritedTypeData& Inherited);
-	TryGetNode GetTagNode()
-	{
-		TagTypeNode* V = TagTypeNode::Gen();
-		auto r = GetTagNode(*V);
-		TrippedCheck(r);
-		return { r,V->As() };
-	}
-	GotNodeType GetTagNode(TagTypeNode& out);
+	
 
 	TryGetNode GetFuncCallStatementNode()
 	{
@@ -444,14 +429,7 @@ private:
 	TryGetNode GetShortLambdaNode();
 
 	GotNodeType DoTraitType(TraitNode* output, const Token* ClassToken, GenericValuesNode& TepGenerics, InheritedTypeData& Inherited);
-	TryGetNode GetTraitNode()
-	{ 
-		auto V = TraitNode::Gen();
-		auto r = GetTraitNode(*V);
-		TrippedCheck(r);
-		return { r,V };
-	}
-	GotNodeType GetTraitNode(TraitNode& out);
+	
 
 	void TraitAccessModifierInerScope(Vector< Unique_ptr<Node>>& Out);
 
