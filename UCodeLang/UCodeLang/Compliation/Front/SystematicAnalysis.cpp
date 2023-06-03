@@ -18,10 +18,10 @@ static const Array<Systematic_BuiltInFunctions::FunctionData, BuiltInCount> Buil
 };
 const Systematic_BuiltInFunctions::FunctionData* Systematic_BuiltInFunctions::GetFunction(const String_view Name, const Vector<FunctionPar>& Pars)
 {
-
+	auto FuncName = ScopeHelper::GetNameFromFullName(Name);
 	for (auto& Item : BuiltFuncList)
 	{
-		if (Item.FuncName == Name
+		if (Item.FuncName == FuncName
 			&& Item.Pars.size() == Pars.size())
 		{
 			for (size_t i = 0; i < Pars.size(); i++)
@@ -9192,12 +9192,10 @@ TypeSymbol SystematicAnalysis::ExtendedFuncExpressionGetTypeToStart(const TypeSy
 }
 void SystematicAnalysis::OnTypeToValueNode(const TypeToValueNode& node)
 {
-	if (passtype == PassType::GetTypes)
-	{
 
-	}
 	if (passtype == PassType::FixedTypes)
 	{
+	
 		auto Type = ConvertAndValidateType(node.TypeOp, NodeSyb_t::Any);
 		Type.SetAsTypeInfo();
 
@@ -9206,6 +9204,7 @@ void SystematicAnalysis::OnTypeToValueNode(const TypeToValueNode& node)
 	}
 	if (passtype == PassType::BuidCode)
 	{
+		
 		const Token* Token = node.TypeOp.Name.Token; 
 		LogCantOutputTypeinfo(Token);
 	}
@@ -12191,12 +12190,26 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 	{
 		bool IsTypeInfo = ValueTypes.size() && ValueTypes.front().IsTypeInfo();
 
-		if (IsTypeInfo) 
+		if (IsTypeInfo)
 		{
-			if (ThisParType == Get_FuncInfo::ThisPar_t::PushFromScopedName)
-			{
 
+			Vector< Systematic_BuiltInFunctions::FunctionPar> Pars;
+			Pars.resize(ValueTypes.size());
+
+			for (size_t i = 0; i < Pars.size(); i++)
+			{
+				auto& ItemFuncPar = Pars[i];
+				auto& ValuePar = ValueTypes[i];
+
+				ItemFuncPar.Type = ValuePar;
+				if (i == 0)
+				{
+
+				}
 			}
+
+			auto FuncData = Systematic_BuiltInFunctions::GetFunction(ScopedName, Pars);
+
 		}
 		else
 		{
@@ -12564,6 +12577,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 		}
 		else 
 		{
+			LastExpressionType = TypeSymbol(TypesEnum::Null);
 			LogCantFindFuncError(Name.ScopedName.back().token, ScopedName, {}, ValueTypes, RetType);
 			return { };
 		}

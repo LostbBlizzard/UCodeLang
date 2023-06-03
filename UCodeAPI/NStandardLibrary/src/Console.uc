@@ -1,4 +1,4 @@
-%ULang::Native:
+ULang::Native:
  |ConsoleOutChar[char Value] -> void;
  |ConsoleOutSpan[umut char[&] Buffer,uintptr Size] -> void;
  |ConsoleOutClear[] -> void;

@@ -1,2 +1,3 @@
 
-|OtherFuncion[] -> void;
+Hello:
+ |OtherFuncion[] -> void;
