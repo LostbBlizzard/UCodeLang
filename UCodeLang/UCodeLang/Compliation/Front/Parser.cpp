@@ -276,22 +276,16 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 
 	TryGetGeneric(TepGenerics);
 
-
+	InheritedTypeData InheritedTypes;
 
 	auto LeftBracket = TryGetToken();
 	if (LeftBracket && LeftBracket->Type == TokenType::Left_Bracket)
 	{
-
-		auto output = ClassNode::Gen(); out = output->As();
-		output->ClassName.Token = ClassToken;
-		output->Generic = std::move(TepGenerics);
-		NextToken();
-
 		do
 		{
 			NameNode V;
 			GetName(V);
-			output->Inherited.Values.push_back(std::move(V));
+			InheritedTypes.Values.push_back(std::move(V));
 
 
 			auto CToken = TryGetToken();
@@ -309,18 +303,6 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 
 		auto RightToken = TryGetToken(); TokenTypeCheck(RightToken, TokenType::Right_Bracket);
 		NextToken();
-
-		auto ColonToken = TryGetToken();
-
-		if (ColonToken->Type == TokenType::Semicolon)
-		{
-			NextToken();
-			return GotNodeType::Success;
-		}
-		else 
-		{
-			return DoClassType(output, ClassToken, TepGenerics, ColonToken);
-		}
 	}
 	
 	
@@ -341,11 +323,29 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 		auto output = ClassNode::Gen(); out = output->As();
 		output->ClassName.Token = ClassToken;
 		output->Generic = std::move(TepGenerics);
+		output->Inherited = std::move(InheritedTypes);
+		output->Access = GetModifier();
 		return GotNodeType::Success;
+	}
+	else if (ColonToken->Type == TokenType::KeyWord_Enum)
+	{
+		auto output = EnumNode::Gen(); out = output->As();
+		return DoEnumType(output, ClassToken, TepGenerics,InheritedTypes);
+	}
+	else if (ColonToken->Type == TokenType::KeyWord_trait)
+	{
+		auto output = TraitNode::Gen(); out = output->As();
+		return DoTraitType(output, ClassToken, TepGenerics, InheritedTypes);
+	}
+	else if (ColonToken->Type == TokenType::KeyWord_Tag)
+	{
+		auto output = TagTypeNode::Gen(); out = output->As();
+		return DoTagType(output, ClassToken, TepGenerics, InheritedTypes);
 	}
 	else
 	{
 		auto output = ClassNode::Gen();out = output->As();
+		output->Inherited = std::move(InheritedTypes);
 		return DoClassType(output, ClassToken, TepGenerics, ColonToken);
 	}
 
@@ -2335,6 +2335,58 @@ GotNodeType Parser::GetDoNode(DoNode& out)
 	NextToken();
 	return GotNodeType::Success;
 }
+GotNodeType Parser::DoEnumType(EnumNode* output, const Token* ClassToken, GenericValuesNode& TepGenerics, InheritedTypeData& Inherited)
+{
+	auto Token = TryGetToken();
+	TokenTypeCheck(Token, TokenType::KeyWord_Enum);
+	NextToken();
+
+	output->EnumName.Token = ClassToken;
+	output->Access = GetModifier();
+	if (Inherited.Values.size() > 1)
+	{
+		_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "Cant Inherit more then one type for enum's.");
+	}
+	if (Inherited.Values.size())
+	{
+		output->BaseType.Name.Token = std::move(Inherited.Values.front().Token);
+	}
+	else
+	{
+		TypeNode::Gen_Byte(output->BaseType, *ClassToken);
+	}
+
+
+	auto ColonToken = TryGetToken();
+	if (ColonToken->Type == TokenType::Semicolon) { NextToken(); return GotNodeType::Success; }
+
+	TokenTypeCheck(ColonToken, TokenType::Colon); NextToken();
+
+	auto StartToken = TryGetToken(); TokenTypeCheck(StartToken, TokenType::StartTab);
+	NextToken();
+
+
+	while (TryGetToken()->Type != TokenType::EndofFile)
+	{
+		auto T = TryGetToken();
+
+		if (T == nullptr || T->Type == TokenType::EndTab) { break; }
+
+		output->Values.push_back({});
+		EnumValueNode& EnumValue = output->Values.back();
+		GetEnumValueNode(EnumValue);
+
+
+		auto ColonToken = TryGetToken();
+		if (ColonToken == nullptr || ColonToken->Type != TokenType::Comma) { break; }
+		NextToken();
+	}
+
+	auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::EndTab);
+	NextToken();
+
+	return GotNodeType::Success;
+}
 GotNodeType Parser::GetEnumNode(EnumNode& out)
 {
 	auto Token = TryGetToken();
@@ -2478,6 +2530,43 @@ GotNodeType Parser::GetEnumValueNode(EnumValueNode& out)
 		NextToken();
 		return GetExpressionTypeNode(out.Expression);
 	}
+	return GotNodeType::Success;
+}
+GotNodeType Parser::DoTagType(TagTypeNode* output, const Token* ClassToken, GenericValuesNode& TepGenerics, InheritedTypeData& Inherited)
+{
+	output->AttributeName.Token = ClassToken;
+
+
+	auto ColonToken = TryGetToken();
+	if (ColonToken->Type == TokenType::Semicolon) { NextToken(); return GotNodeType::Success; }
+
+	TokenTypeCheck(ColonToken, TokenType::Colon); NextToken();
+	auto StartToken = TryGetToken(); TokenTypeCheck(StartToken, TokenType::StartTab); NextToken();
+
+
+	while (TryGetToken()->Type != TokenType::EndofFile)
+	{
+		auto T = TryGetToken();
+
+		TryGetNode V;
+
+		switch (T->Type)
+		{
+		case TokenType::EndTab:goto EndLoop;
+		case Parser::declareFunc:V = GetFuncNode(); break;
+		default:V = GetDeclareVariable();
+		}
+
+		if (V.Node)
+		{
+			output->_Nodes.push_back(Unique_ptr<Node>(V.Node));
+		}
+	}
+
+EndLoop:
+	auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::EndTab);
+	NextToken();
+
 	return GotNodeType::Success;
 }
 GotNodeType Parser::GetTagNode(TagTypeNode& out)
@@ -3126,6 +3215,68 @@ TryGetNode Parser::GetShortLambdaNode()
 		TokenTypeCheck(AssmentToken, TokenType::Colon);
 	}
 	return {GotNodeType::Success, r };
+}
+GotNodeType Parser::DoTraitType(TraitNode* output, const Token* ClassToken, GenericValuesNode& TepGenerics, InheritedTypeData& Inherited)
+{
+	TokenTypeCheck(TryGetToken(), TokenType::KeyWord_trait);
+	NextToken();
+	output->_Name.Token = ClassToken;
+
+	auto ColonToken = TryGetToken();
+	if (ColonToken->Type == TokenType::Semicolon) { NextToken(); return GotNodeType::Success; }
+
+	TokenTypeCheck(ColonToken, TokenType::Colon); NextToken();
+	auto StartToken = TryGetToken(); TokenTypeCheck(StartToken, TokenType::StartTab); NextToken();
+
+	AccessStart();
+	while (TryGetToken()->Type != TokenType::EndofFile)
+	{
+		auto T = TryGetToken();
+
+		TryGetNode V;
+
+		switch (T->Type)
+		{
+		case TokenType::EndTab:goto EndLoop;
+		case Parser::declareFunc:V = GetFuncNode(); break;
+		case TokenType::KeyWorld_public:
+		{
+			NextToken(); TokenTypeCheck(TryGetToken(), TokenType::Colon); NextToken();
+			_AccessModifier.top() = AccessModifierType::Public;
+			TokenTypeCheck(TryGetToken(), TokenType::StartTab); NextToken();
+
+			TraitAccessModifierInerScope(output->_Nodes);
+
+			TokenTypeCheck(TryGetToken(), TokenType::EndTab); NextToken();
+		};
+		break;
+		case TokenType::KeyWorld_private:
+		{
+			NextToken(); TokenTypeCheck(TryGetToken(), TokenType::Colon); NextToken();
+			_AccessModifier.top() = AccessModifierType::Private;
+			TokenTypeCheck(TryGetToken(), TokenType::StartTab); NextToken();
+
+			TraitAccessModifierInerScope(output->_Nodes);
+
+			TokenTypeCheck(TryGetToken(), TokenType::EndTab); NextToken();
+		};
+		break;
+		default:V = GetDeclareVariable();
+		}
+
+		if (V.Node)
+		{
+			output->_Nodes.push_back(Unique_ptr<Node>(V.Node));
+		}
+	}
+
+
+EndLoop:
+	AccessEnd();
+	auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::EndTab);
+	NextToken();
+
+	return GotNodeType::Success;
 }
 GotNodeType Parser::GetTraitNode(TraitNode& out)
 {
