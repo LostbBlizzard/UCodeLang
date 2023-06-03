@@ -20,7 +20,7 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 {
 	auto FuncName = ScopeHelper::GetNameFromFullName(Name);
 
-	if (FuncName == "Name" && Pars.size())
+	if ( (FuncName == "Name" || FuncName == "FullName") && Pars.size() == 1)
 	{
 		auto& Type = Pars.front();
 		if (Type.IsOutPar == false)
@@ -38,7 +38,12 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 					WantsUmutCString = Type._Type == TypesEnum::Char && Type._IsAddressArray && Type._Isimmutable;
 				}
 
-				String Value = ScopeHelper::GetNameFromFullName(This.ToString(NewType));
+				
+				String Value = This.ToString(NewType);
+				if (FuncName == "Name")
+				{
+					Value = ScopeHelper::GetNameFromFullName(FuncName);
+				}
 
 				Func _Func;
 				_Func.RetType = This.GetStaticArrayType(TypesEnum::Char, Value.size());
@@ -52,6 +57,38 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 		}
 	}
 
+	if (FuncName == "TypeID" && Pars.size() == 1)
+	{
+		auto& Type = Pars.front();
+		if (Type.IsOutPar == false)
+		{
+			if (Type.Type.IsTypeInfo())
+			{
+				TypeSymbol NewType = Type.Type;
+				NewType.BindType();
+
+				auto Value = This.GetTypeID(NewType._Type, NewType._CustomTypeSymbol);
+
+				if (This._Settings->PtrSize == IntSizes::Int32)
+				{
+					Value = (UInt32)Value;
+				}
+				else
+				{
+					Value = (UInt64)Value;
+				}
+
+				Func _Func;
+				_Func.RetType = TypesEnum::uIntPtr;
+				auto Ex = This.MakeEx(_Func.RetType);
+				memcpy(Ex.EvaluatedObject.Object_AsPointer.get(),&Value, Ex.EvaluatedObject.ObjectSize);
+
+				_Func.EvalObject = Ex.EvaluatedObject;
+				return _Func;
+			}
+		}
+
+	}
 	
 	return {};
 }
@@ -9609,7 +9646,7 @@ ReflectionTypeInfo SystematicAnalysis::ConvertToTypeInfo(const TypeSymbol& Type)
 {
 	ReflectionTypeInfo r;
 	r._Type = Type._Type;
-	r._CustomTypeID =GetTypeID(Type._Type,r._CustomTypeID);
+	r._CustomTypeID =GetTypeID(Type._Type, Type._CustomTypeSymbol);
 	
 
 	r._IsAddress= Type.IsAddress();
