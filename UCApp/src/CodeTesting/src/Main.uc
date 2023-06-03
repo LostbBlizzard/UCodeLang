@@ -18,30 +18,14 @@
 
 */
 
-/*
-
-eval char[/1] VarableName = "Y";
+import Hello::Hello2::{Func = OtherFuncion};
 
 $Cool:
  int X;
  int Y;
 
 |main[]:
- 
- eval Item = type(Cool).Name();
- eval Item2 = type(Cool).FullName();
-
- //umut char[&] Str = Item;
-
-*/
-
-//import {DynArr = ULang::Vector,ULang::Span};
-//import {ULang::Vector};
-
-//import {Func = __LogChar};
-
-|main[]:
- eval Item = type(Cool).Name();
- eval Item2 = type(Cool).FullName();
-
-
+ //umut char[&] Item = type(Cool).Name();
+ //eval Item2 = type(Cool).FullName();
+ //eval BoolValue = compiler::HasFlag("Hello World");
+ //ret BoolValue;

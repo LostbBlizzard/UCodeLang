@@ -232,7 +232,7 @@ public:
 		}
 	};
 
-	const FunctionData* GetFunction(const String_view Name,const Vector<FunctionPar>& Pars);
+	static const FunctionData* GetFunction(const String_view Name,const Vector<FunctionPar>& Pars);
 };
 
 
@@ -242,6 +242,7 @@ class SystematicAnalysis
 {
 
 public:
+	friend Systematic_BuiltInFunctions;
 	struct ImportLib
 	{
 		const Path* Name;
@@ -537,6 +538,24 @@ private:
 		Symbol* SybToLoopOver=nullptr;
 		Vector<Symbol*> SybItems;
 	};
+	struct VarableMemberData
+	{
+		String MemberString;
+	};
+	enum class DeclareStaticVariableNode_t
+	{
+		Stack,
+		Static,
+		Thread,
+		ClassField,
+		Eval,
+	};
+	struct VarableUseData
+	{
+		String Scope;
+		Vector<Symbol*> _UsedSymbols;
+		Vector<Symbol*> _SymbolsToPassBecauseInerLamdba;
+	};
 	//Members
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
@@ -574,30 +593,14 @@ private:
 
 	BinaryVectorMap<const void*, MatchExpressionData> MatchExpressionDatas;
 
-	struct VarableMemberData
-	{
-		String MemberString;
-	};
+	
 
 	BinaryVectorMap< const void*, VarableMemberData> VarableMemberDatas;//Var.$Item
 
 	Vector<FuncStackInfo> _FuncStack;
 
 	const Token* LastLookedAtToken = nullptr;
-	enum class DeclareStaticVariableNode_t
-	{
-		Stack,
-		Static,
-		Thread,
-		ClassField,
-		Eval,
-	};
-	struct VarableUseData
-	{
-		String Scope;
-		Vector<Symbol*> _UsedSymbols;
-		Vector<Symbol*> _SymbolsToPassBecauseInerLamdba;
-	};
+
 	Vector<NodeType> NodeTypeStack;
 
 	//

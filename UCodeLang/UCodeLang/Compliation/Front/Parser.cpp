@@ -35,13 +35,36 @@ void Parser::Parse(const Vector<Token>&Tokens)
 			_PassedImportFileSection = true;
 		}
 
+		if (T->Type == TokenType::Name)
+		{
+			size_t Index = _TokenIndex;
+
+			ScopedNameNode Name;
+			GetName(Name);
+
+			auto NextToken = TryGetToken();
+			if (NextToken->Type == TokenType::Colon)
+			{
+				_TokenIndex = Index;
+				V = GetNamespaceNode(); 
+
+				if (V.Node)
+				{
+					_Tree._Nodes.push_back(Unique_ptr<Node>(V.Node));
+				}
+				else { break; }
+				if (V.GotNode != GotNodeType::Success) { break; }
+				continue;
+			}
+
+				
+		}
+
 		switch (T->Type)
 		{
-		case TokenType::Namespace:V = GetNamespaceNode(); break;
 		case TokenType::KeyWord_Tag:V = GetTagNode(); break;
 		case TokenType::KeyWord_Enum:V = GetEnumNode(); break;
 		case TokenType::Class:V = GetClassNode(); break;
-
 		case TokenType::KeyWord_extern:
 		case Parser::declareFunc:V = GetFuncNode(); break;
 		case TokenType::KeyWord_use:V = GetUseNode(); break;
@@ -90,7 +113,7 @@ void Parser::TokenTypeCheck(const Token* Value, TokenType Type)
 
 GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 {
-	auto NamespaceToken = TryGetToken(); TokenTypeCheck(NamespaceToken, TokenType::Namespace);
+	auto NamespaceToken = TryGetToken(); TokenTypeCheck(NamespaceToken, TokenType::Name);
 	NextToken();
 
 	auto ScopeResolutionToken = TryGetToken(); 
@@ -131,10 +154,34 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 		auto T = TryGetToken();
 		TryGetNode V;
 
+
+		if (T->Type == TokenType::Name)
+		{
+			size_t Index = _TokenIndex;
+
+			ScopedNameNode Name;
+			GetName(Name);
+
+			auto NextToken = TryGetToken();
+			if (NextToken->Type == TokenType::Colon)
+			{
+				_TokenIndex = Index;
+				V = GetNamespaceNode();
+
+				if (V.Node)
+				{
+					_Tree._Nodes.push_back(Unique_ptr<Node>(V.Node));
+				}
+				else { break; }
+				if (V.GotNode != GotNodeType::Success) { break; }
+				continue;
+			}
+
+
+		}
 		switch (T->Type)
 		{
 		case TokenType::EndTab:goto EndLoop;
-		case TokenType::Namespace:V = GetNamespaceNode(); break;
 		case TokenType::KeyWord_Tag:V = GetTagNode(); break;
 		case TokenType::KeyWord_Enum:V = GetEnumNode(); break;
 		case TokenType::Class:V = GetClassNode();break;
@@ -3977,6 +4024,46 @@ GotNodeType Parser::GetImportStatement(ImportStatement& out)
 	out._Token = TryGetToken(); TokenTypeCheck(out._Token, TokenType::KeyWord_Import);
 	NextToken();
 
+
+	auto StartParToken = TryGetToken();
+	if (StartParToken->Type == TokenType::Name)
+	{
+		ScopedNameNode StartNameSpace;
+		{
+			ScopedName ScopedName;
+			ScopedName.token = StartParToken;
+			StartNameSpace.ScopedName.push_back(std::move(ScopedName));
+
+			
+		}
+		NextToken();
+
+		while (TryGetToken()->Type == TokenType::ScopeResolution)
+		{
+
+			auto Name = TryPeekNextToken(1);
+			if (Name->Type != TokenType::Name)
+			{
+				break;
+			}
+			StartNameSpace.ScopedName.back().Operator = ScopedName::Operator_t::ScopeResolution;
+			ScopedName ScopedName;
+			ScopedName.token = Name;
+			StartNameSpace.ScopedName.push_back(std::move(ScopedName));
+
+			NextToken();
+			NextToken();
+
+		}
+
+		auto ScopeToken = TryGetToken();
+		TokenTypeCheck(ScopeToken, TokenType::ScopeResolution);
+		NextToken();
+
+		out._StartingNameSpace = std::move(StartNameSpace);
+	}
+
+
 	auto Par2Token = TryGetToken();
 	TokenTypeCheck(Par2Token, TokenType::Left_Brace);
 	NextToken();
@@ -3987,26 +4074,6 @@ GotNodeType Parser::GetImportStatement(ImportStatement& out)
 		size_t ValueIndex = _TokenIndex;
 		auto ValueName = TryGetToken(); NextToken();
 
-
-		if (TryGetToken()->Type == TokenType::Colon)
-		{
-			if (out._Imports.size())
-			{
-				TokenTypeCheck(TryGetToken(), TokenType::equal);
-			}
-			else
-			{
-				_TokenIndex = ValueIndex;
-				ScopedNameNode scopednode;
-				GetName(scopednode);
-
-				out._StartingNameSpace = std::move(scopednode);
-
-				NextToken();//pass :
-
-				continue;
-			}
-		}
 
 		if (TryGetToken()->Type == TokenType::equal)
 		{
