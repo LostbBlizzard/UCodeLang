@@ -2448,6 +2448,8 @@ GotNodeType Parser::GetEnumValueNode(EnumValueNode& out)
 }
 GotNodeType Parser::DoTagType(TagTypeNode* output, const Token* ClassToken, GenericValuesNode& TepGenerics, InheritedTypeData& Inherited)
 {
+	TokenTypeCheck(TryGetToken(), TokenType::KeyWord_Tag);
+	NextToken();
 	output->AttributeName.Token = ClassToken;
 
 
