@@ -20,6 +20,18 @@
 
 import Hello::{Func = OtherFuncion};
 
+
+$Cool1 enum:
+   Red,
+   B2,
+   B3,
+
+$Cool2 trait:
+ |Func[] -> void;
+
+$Cool3 tag:
+ |Func[] -> void;
+
 $Cool:
  int X;
  int Y;
