@@ -89,6 +89,49 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 		}
 
 	}
+
+	if (Pars.size() == 1)
+	{
+		auto& Type = Pars.front();
+		if (Type.IsOutPar == false)
+		{
+			Optional<bool> Value;
+
+			TypeSymbol NewType = Type.Type;
+			if (FuncName == "IsAddress")
+			{
+				Value = NewType.IsAddress();
+			}
+			else if (FuncName == "IsAddressArray")
+			{
+				Value = NewType.IsAddressArray();
+			}
+			else if (FuncName == "IsImmutable")
+			{
+				Value = NewType.Isimmutable();
+			}
+			else if (FuncName == "IsDynamic")
+			{
+				Value = NewType.IsDynamicTrait();
+			}
+			else if (FuncName == "IsMoved")
+			{
+				Value = NewType.IsMovedType();
+			}
+
+
+			if (Value.has_value())
+			{
+				Func _Func;
+				_Func.RetType = TypesEnum::Bool;
+				auto Ex = This.MakeEx(_Func.RetType);
+				memcpy(Ex.EvaluatedObject.Object_AsPointer.get(), &Value, Ex.EvaluatedObject.ObjectSize);
+
+				_Func.EvalObject = Ex.EvaluatedObject;
+				return _Func;
+			}
+		}
+	}
 	
 	return {};
 }
