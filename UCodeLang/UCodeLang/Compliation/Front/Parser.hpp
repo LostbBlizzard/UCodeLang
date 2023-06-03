@@ -325,6 +325,8 @@ private:
 	}
 	GotNodeType GetDoNode(DoNode& out);
 
+
+	GotNodeType DoEnumType(EnumNode* output, const Token* ClassToken, GenericValuesNode& TepGenerics,InheritedTypeData& Inherited);
 	TryGetNode GetEnumNode()
 	{
 		EnumNode* V = EnumNode::Gen();
@@ -335,6 +337,7 @@ private:
 	GotNodeType GetEnumNode(EnumNode& out);
 	GotNodeType GetEnumValueNode(EnumValueNode& out);
 
+	GotNodeType DoTagType(TagTypeNode* output, const Token* ClassToken, GenericValuesNode& TepGenerics, InheritedTypeData& Inherited);
 	TryGetNode GetTagNode()
 	{
 		TagTypeNode* V = TagTypeNode::Gen();
@@ -440,6 +443,7 @@ private:
 	GotNodeType GetLambdaNode(LambdaNode& out);
 	TryGetNode GetShortLambdaNode();
 
+	GotNodeType DoTraitType(TraitNode* output, const Token* ClassToken, GenericValuesNode& TepGenerics, InheritedTypeData& Inherited);
 	TryGetNode GetTraitNode()
 	{ 
 		auto V = TraitNode::Gen();
