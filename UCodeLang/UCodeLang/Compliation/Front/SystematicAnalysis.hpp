@@ -218,6 +218,7 @@ public:
 	{
 		bool IsOutPar =false;
 		TypeSymbol Type;
+		const Node* ExpressionNode = nullptr;
 	};
 	struct FunctionData
 	{
@@ -1184,6 +1185,41 @@ private:
 	template<typename T> T* Get_ObjectAs(const EvaluatedEx& Input)
 	{
 		return Get_ObjectAs<T>(Input.Type, Input.EvaluatedObject);
+	}
+
+	template<typename T> void Set_ObjectAs(const TypeSymbol& Input,RawEvaluatedObject& Input2, const T& Value)
+	{
+		if (Input2.ObjectSize == sizeof(T))
+		{
+			auto Ptr = (T*)Get_Object(Input, Input2);
+			*Ptr = Value;
+		}
+		else
+		{
+			String TepStr = "type miss-mach when Cpp type To EvaluatedObject'" + (String)typeid(T).name() + "' ";
+			throw std::exception(TepStr.c_str());
+		}
+	}
+	template<typename T> void Set_ObjectAs(EvaluatedEx& Input,const T& Value)
+	{
+		return Get_ObjectAs<T>(Input.Type, Input.EvaluatedObject,Value);
+	}
+	void Set_ObjectAs(EvaluatedEx& Input,const void* Object, size_t ObjectSize)
+	{
+		return Set_ObjectAs(Input.Type, Input.EvaluatedObject, Object, ObjectSize);
+	}
+	void Set_ObjectAs(const TypeSymbol& Input, RawEvaluatedObject& Input2,const void* Object,size_t ObjectSize)
+	{
+		if (Input2.ObjectSize == ObjectSize)
+		{
+			auto Ptr = (Byte*)Get_Object(Input, Input2);
+			memcpy(Ptr, Object, ObjectSize);
+		}
+		else
+		{
+			String TepStr = "type miss-mach when Cpp type To EvaluatedObject'";
+			throw std::exception(TepStr.c_str());
+		}
 	}
 
 

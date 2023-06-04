@@ -25,18 +25,21 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 		auto& Type = Pars.front();
 		if (Type.IsOutPar == false)
 		{
+			
+			bool WantsUmutCString =false;
+			if (This.LookingForTypes.size())
+			{
+				auto Type = This.LookingForTypes.top();
+				WantsUmutCString = Type._Type == TypesEnum::Char && Type._IsAddressArray && Type._Isimmutable;
+			}
+
 			if (Type.Type._TypeInfo == TypeInfoPrimitive::TypeInfo)
 			{
 				TypeSymbol NewType;
 				NewType._CustomTypeSymbol = Type.Type._CustomTypeSymbol;
 				NewType._Type = Type.Type._Type;
 
-				bool WantsUmutCString =false;
-				if (This.LookingForTypes.size())
-				{
-					auto Type = This.LookingForTypes.top();
-					WantsUmutCString = Type._Type == TypesEnum::Char && Type._IsAddressArray && Type._Isimmutable;
-				}
+				
 
 				
 				String Value = This.ToString(NewType);
@@ -48,12 +51,41 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 				Func _Func;
 				_Func.RetType = This.GetStaticArrayType(TypesEnum::Char, Value.size());
 				auto Ex = This.MakeEx(_Func.RetType);
-				memcpy(Ex.EvaluatedObject.Object_AsPointer.get(), Value.data(), Value.size());
+				This.Set_ObjectAs(Ex, Value.data(), Value.size());
+
 
 				_Func.EvalObject = std::move(Ex.EvaluatedObject);
 				_Func.EvalAsCString = WantsUmutCString;
 				return _Func;
 			}
+			else if (Type.Type._TypeInfo == TypeInfoPrimitive::ClassFieldInfo && Type.ExpressionNode)
+			{
+				auto EvalObject = This.EvaluateToAnyType(*ExpressionNodeType::As(Type.ExpressionNode));
+				if (EvalObject.has_value())
+				{
+					auto& EvalObjectAsValue = EvalObject.value();
+					const FieldInfo* Field = *This.Get_ObjectAs<const FieldInfo*>(EvalObjectAsValue);
+
+					const String& Value = Field->Name;
+
+					Func _Func;
+					_Func.RetType = This.GetStaticArrayType(TypesEnum::Char, Value.size());
+					auto Ex = This.MakeEx(_Func.RetType);
+					This.Set_ObjectAs(Ex,Value.data(), Value.size());
+
+					_Func.EvalObject = std::move(Ex.EvaluatedObject);
+					_Func.EvalAsCString = WantsUmutCString;
+					return _Func;
+				}
+				else
+				{
+					Func _Func;
+					_Func.RetType = TypesEnum::Null;
+					return _Func;
+				}
+
+			}
+
 		}
 	}
 
@@ -126,7 +158,7 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 				Func _Func;
 				_Func.RetType = TypesEnum::Bool;
 				auto Ex = This.MakeEx(_Func.RetType);
-				memcpy(Ex.EvaluatedObject.Object_AsPointer.get(), &Value, Ex.EvaluatedObject.ObjectSize);
+				This.Set_ObjectAs(Ex, Value.value());
 
 				_Func.EvalObject = std::move(Ex.EvaluatedObject);
 				return _Func;
@@ -151,7 +183,7 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 			Func _Func;
 			_Func.RetType = TypesEnum::Bool;
 			auto Ex = This.MakeEx(_Func.RetType);
-			memcpy(Ex.EvaluatedObject.Object_AsPointer.get(), &IsClass, Ex.EvaluatedObject.ObjectSize);
+			This.Set_ObjectAs(Ex,IsClass);
 
 			_Func.EvalObject = std::move(Ex.EvaluatedObject);
 
@@ -161,7 +193,7 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 				Par.Type = Type.Type;
 				Par.Type._TypeInfo =TypeInfoPrimitive::ClassInfo;
 				auto Ex = This.MakeEx(Par.Type);
-				memcpy(Ex.EvaluatedObject.Object_AsPointer.get(), &Par.Type, Ex.EvaluatedObject.ObjectSize);
+				This.Set_ObjectAs(Ex, Par.Type);
 
 				Par.EvalObject = std::move(Ex.EvaluatedObject);
 				_Func._OutPars.push_back(std::move(Par));
@@ -199,8 +231,7 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 			_Func.RetType = This.GetStaticArrayType(ArrItemType, FieldsAs.size());
 
 			auto Ex = This.MakeEx(_Func.RetType);
-			memcpy(Ex.EvaluatedObject.Object_AsPointer.get(),FieldsAs.data(), FieldsAs.size() * sizeof(const FieldInfo*));
-
+			This.Set_ObjectAs(Ex, FieldsAs.data(), FieldsAs.size() * sizeof(const FieldInfo*));
 			_Func.EvalObject = std::move(Ex.EvaluatedObject);
 
 			return _Func;
@@ -3694,7 +3725,7 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 						for (size_t i = 0; i < StaticInfo->Count; i++)
 						{
 							void* ItemOffset = ListArrayValue.EvaluatedObject.Object_AsPointer.get() + (i * ItemSize);
-							memcpy(_DataAsIndex.Object_AsPointer.get(), ItemOffset, ItemSize);
+							Set_ObjectAs(StaticInfo->Type,_DataAsIndex,ItemOffset, ItemSize);
 
 							_Table.AddScope(ScopeName + std::to_string(i));
 
@@ -12529,9 +12560,22 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 
 		if (IsTypeInfo)
 		{
-
+			bool AutoPassThis = Get_FuncInfo::AddOneToGetParNode(ThisParType);
 			Vector< Systematic_BuiltInFunctions::FunctionPar> BuiltInPars;
 			BuiltInPars.resize(ValueTypes.size());
+
+			ExpressionNodeType _TepThisPar;
+			ValueExpressionNode _TepThisValue;
+			ReadVariableNode _TepThisReadNode;
+			if (AutoPassThis)
+			{
+				_TepThisPar.Value.reset(&_TepThisValue);
+				_TepThisValue.Value.reset(&_TepThisReadNode);
+				_TepThisReadNode.VariableName = Name;
+				_TepThisReadNode.VariableName.ScopedName.pop_back();
+				_TepThisReadNode.VariableName.ScopedName.back().Operator = ScopedName::Operator_t::Null;
+			}
+
 
 			for (size_t i = 0; i < BuiltInPars.size(); i++)
 			{
@@ -12544,9 +12588,27 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 				{
 					ItemFuncPar.IsOutPar = true;
 				}
+				const Node* ItemNode = nullptr;
+
+				if (AutoPassThis && i == 0)
+				{
+					ItemNode = _TepThisPar.As();
+				}
+				else
+				{
+					ItemNode = Pars._Nodes[AutoPassThis ? i - 1 : i].get();
+				}
+
+				ItemFuncPar.ExpressionNode = ItemNode;
 			}
 
 			auto FuncData = Systematic_BuiltInFunctions::GetFunction(ScopedName, BuiltInPars,*this);
+
+			if (AutoPassThis)
+			{
+				auto _ = _TepThisPar.Value.release();//On Stack.
+				auto _1 = _TepThisValue.Value.release();//On Stack.
+			}
 
 			if (FuncData.has_value())
 			{
@@ -12554,7 +12616,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 				{//OutPars
 
 					size_t OutParIndex = 0;
-					bool AutoPassThis = Get_FuncInfo::AddOneToGetParNode(ThisParType);
+					
 					for (size_t i = 0; i < BuiltInPars.size(); i++)
 					{
 						bool IsOutPar = BuiltInPars[i].IsOutPar;
@@ -13594,13 +13656,12 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ValueExpressionNode& n
 #define Set_NumberliteralNodeU2(x) \
 			UInt##x V; \
 			ParseHelper::ParseStringToUInt##x(Str, V); \
-			*(UInt##x*)Get_Object(Out) = V;\
+			Set_ObjectAs(Out,V);\
 
 #define Set_NumberliteralNodeS2(x) \
 			Int##x V; \
 			ParseHelper::ParseStringToInt##x(Str, V); \
-			*(Int##x*)Get_Object(Out) = V;\
-
+			Set_ObjectAs(Out,V);\
 
 		auto& lookT = Get_LookingForType();
 		TypesEnum NewEx;
@@ -13672,14 +13733,14 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ValueExpressionNode& n
 			{
 				Int32 V;
 				ParseHelper::ParseStringToInt32(Str, V);
-				*(float32*)Get_Object(Out) = (float32)V;
+				Set_ObjectAs(Out, (float32)V);
 				break;
 			};
 			case TypesEnum::float64:
 			{
 				Int64 V;
 				ParseHelper::ParseStringToInt64(Str, V);
-				*(float64*)Get_Object(Out) = (float64)V;
+				Set_ObjectAs(Out, (float64)V);
 				break;
 			};
 			default:
@@ -13700,7 +13761,7 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ValueExpressionNode& n
 
 		//if (passtype == PassType::BuidCode)
 		{
-			*(bool*)Get_Object(Out) = num->Get_Value();
+			Set_ObjectAs(Out, num->Get_Value());
 		}
 		LastExpressionType.SetType(TypesEnum::Bool);
 		LastLookedAtToken = num->Token;
@@ -13715,8 +13776,7 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ValueExpressionNode& n
 			String V;
 			bool ItWorked = !ParseHelper::ParseCharliteralToChar(num->Token->Value._String, V);
 
-
-			*(char*)Get_Object(Out) = (UInt8)V.front();
+			Set_ObjectAs(Out, (UInt8)V.front());
 		}
 		LastExpressionType.SetType(TypesEnum::Char);
 		LastLookedAtToken = num->Token;
@@ -13747,14 +13807,14 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ValueExpressionNode& n
 			{
 				float32 V;
 				ParseHelper::ParseStringTofloat32(Str, V);
-				*(float32*)Get_Object(Out) = V;
+				Set_ObjectAs(Out, V);
 				break;
 			}
 			case TypesEnum::float64:
 			{
 				float64 V;
 				ParseHelper::ParseStringTofloat64(Str, V);
-				*(float64*)Get_Object(Out) = V;
+				Set_ObjectAs(Out, V);
 				break;
 			}
 			default:
@@ -13805,10 +13865,7 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ValueExpressionNode& n
 
 
 			Out = MakeEx(lookT);
-			char* OutExPointer = (char*)Get_Object(Out);
-
-			memcpy(OutExPointer, V.data(),V.size());
-
+			Set_ObjectAs(Out, V.data(), V.size());
 			LastExpressionType = lookT;
 		}
 		else
@@ -13864,25 +13921,36 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ValueExpressionNode& n
 
 			switch (lookT._Type)
 			{
-			Int8Case:
 			case TypesEnum::sInt8:
+				Set_ObjectAs(Out, (Int8)TypeSize);
+				break;
+			Int8Case:
 			case TypesEnum::uInt8:
-				*(UInt8*)Get_Object(Out) = (UInt8)TypeSize;
+				Set_ObjectAs(Out, (UInt8)TypeSize);
+				break;
+			case TypesEnum::sInt16:
+				Set_ObjectAs(Out, (Int16)TypeSize);
 				break;
 			Int16Case:
-			case TypesEnum::sInt16:
+			
 			case TypesEnum::uInt16:
-				*(UInt16*)Get_Object(Out) = (UInt16)TypeSize;
+				Set_ObjectAs(Out, (UInt16)TypeSize);
+				break;
+			
+			case TypesEnum::sInt32:
+				Set_ObjectAs(Out, (Int32)TypeSize);
 				break;
 			Int32Case:
-			case TypesEnum::sInt32:
 			case TypesEnum::uInt32:
-				*(UInt32*)Get_Object(Out) = (UInt32)TypeSize;
+				Set_ObjectAs(Out, (UInt32)TypeSize);
+				break;
+			
+			case TypesEnum::sInt64:
+				Set_ObjectAs(Out, (Int64)TypeSize);
 				break;
 			Int64Case:
-			case TypesEnum::sInt64:
 			case TypesEnum::uInt64:
-				*(UInt64*)Get_Object(Out) = (UInt64)TypeSize;
+				Set_ObjectAs(Out, (UInt64)TypeSize);
 				break;
 			default:
 			{
@@ -13930,16 +13998,14 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ValueExpressionNode& n
 	case NodeType::TypeToValueNode:
 	{
 		OnTypeToValueNode(*TypeToValueNode::As(node.Value.get()));
-		memcpy(Out.EvaluatedObject.Object_AsPointer.get(),&LastExpressionType, sizeof(LastExpressionType));
-
+		Set_ObjectAs(Out, LastExpressionType);
 		return true;
 	}
 	break;
 	case NodeType::ExpressionToTypeValueNode:
 	{
 		OnExpressionToTypeValueNode(*ExpressionToTypeValueNode::As(node.Value.get()));
-		memcpy(Out.EvaluatedObject.Object_AsPointer.get(), &LastExpressionType, sizeof(LastExpressionType));
-		
+		Set_ObjectAs(Out, LastExpressionType);
 		return true;
 	}
 	break;
@@ -14231,8 +14297,7 @@ bool SystematicAnalysis::EvalutateCMPTypesNode(EvaluatedEx& Out, const CMPTypesN
 	TypeSymbol Op0 = ConvertAndValidateType(node.TypeOp0, NodeSyb_t::Any);
 	TypeSymbol Op1 = ConvertAndValidateType(node.TypeOp1, NodeSyb_t::Any);
 
-	*((bool*)Get_Object(Out)) = CMPGetValue(Op0, Op1, node.Op);
-
+	Set_ObjectAs(Out, CMPGetValue(Op0, Op1, node.Op));
 	return true;
 }
 bool SystematicAnalysis::EvalutateValidNode(EvaluatedEx& Out, const ValidNode& node)
@@ -14263,7 +14328,7 @@ bool SystematicAnalysis::EvalutateValidNode(EvaluatedEx& Out, const ValidNode& n
 		IsValid = false;
 	}
 
-	*((bool*)Get_Object(Out)) = IsValid;
+	Set_ObjectAs(Out, IsValid);
 
 	LastExpressionType = TypesEnum::Bool;
 	return true;
@@ -14741,7 +14806,7 @@ IRInstruction* SystematicAnalysis::LoadEvaluatedEx(const RawEvaluatedObject& Val
 				for (size_t i = 0; i < Info->Count; i++)
 				{
 					void* ItemOffset = Value.Object_AsPointer.get() + (BaseSize * i);
-					memcpy(_DataAsIndex.Object_AsPointer.get(), ItemOffset, BaseSize);
+					Set_ObjectAs(Base,_DataAsIndex, ItemOffset, BaseSize);
 
 					auto ItemIR = LoadEvaluatedEx(_DataAsIndex, Base);
 					
