@@ -997,7 +997,7 @@ public:
 	Vector<Unique_ptr<IRFunc>> Funcs;
 	Vector<Unique_ptr<IRSymbolData>> _Symbols;
 	BinaryVectorMap<IRidentifierID, IRidentifier> _Map;
-	VectorMap<String_view, IRidentifierID> ConstStaticStrings;
+	VectorMap<String, IRidentifierID> ConstStaticStrings;
 
 
 
@@ -1038,9 +1038,10 @@ public:
 	//note will not add a null char at the end.
 	IRidentifierID FindOrAddConstStrings(String_view Buffer)
 	{
-		if (ConstStaticStrings.HasValue(Buffer))
+		String VKey = (String)Buffer;
+		if (ConstStaticStrings.HasValue(VKey))
 		{
-			return ConstStaticStrings.at(Buffer);
+			return ConstStaticStrings.at(VKey);
 		}
 		IRidentifierID identifier = ToID(".Const.String:" + (String)Buffer);
 		auto V = NewStaticVarable(identifier,IRType(IRTypes::i8));
@@ -1049,7 +1050,7 @@ public:
 		V.Pointer->Bytes.resize(Buffer.size());
 		memcpy(V.Pointer->Bytes.data(), Buffer.data(), Buffer.size());
 
-		ConstStaticStrings[Buffer] = identifier;
+		ConstStaticStrings.AddValue(VKey,identifier);
 
 		return identifier;
 	}

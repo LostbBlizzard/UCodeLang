@@ -89,6 +89,76 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 		}
 	}
 
+	if (FuncName == "Offset" && Pars.size() == 1)
+	{
+		auto& Type = Pars.front();
+		if (Type.IsOutPar == false)
+		{
+			if (Type.Type._TypeInfo == TypeInfoPrimitive::ClassFieldInfo && Type.ExpressionNode)
+			{
+				auto EvalObject = This.EvaluateToAnyType(*ExpressionNodeType::As(Type.ExpressionNode));
+				if (EvalObject.has_value())
+				{
+					auto& EvalObjectAsValue = EvalObject.value();
+					const FieldInfo* Field = *This.Get_ObjectAs<const FieldInfo*>(EvalObjectAsValue);
+
+					const uintptr_t& Value = 0;
+
+					Func _Func;
+					_Func.RetType = TypesEnum::uIntPtr;
+					auto Ex = This.MakeEx(_Func.RetType);
+					This.Set_ObjectAs(Ex, Value);
+
+					_Func.EvalObject = std::move(Ex.EvaluatedObject);
+					return _Func;
+				}
+				else
+				{
+					Func _Func;
+					_Func.RetType = TypesEnum::Null;
+					return _Func;
+				}
+
+			}
+
+		}
+	}
+
+	if (FuncName == "Type" && Pars.size() == 1)
+	{
+		auto& Type = Pars.front();
+		if (Type.IsOutPar == false)
+		{
+			if (Type.Type._TypeInfo == TypeInfoPrimitive::ClassFieldInfo && Type.ExpressionNode)
+			{
+				auto EvalObject = This.EvaluateToAnyType(*ExpressionNodeType::As(Type.ExpressionNode));
+				if (EvalObject.has_value())
+				{
+					auto& EvalObjectAsValue = EvalObject.value();
+					const FieldInfo* Field = *This.Get_ObjectAs<const FieldInfo*>(EvalObjectAsValue);
+
+					const TypeSymbol& Value = Field->Type;
+
+					Func _Func;
+					_Func.RetType = Value;
+					_Func.RetType.SetAsTypeInfo();
+					auto Ex = This.MakeEx(_Func.RetType);
+					This.Set_ObjectAs(Ex, Value);
+
+					_Func.EvalObject = std::move(Ex.EvaluatedObject);
+					return _Func;
+				}
+				else
+				{
+					Func _Func;
+					_Func.RetType = TypesEnum::Null;
+					return _Func;
+				}
+
+			}
+
+		}
+	}
 	if (FuncName == "TypeID" && Pars.size() == 1)
 	{
 		auto& Type = Pars.front();
@@ -191,7 +261,9 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 				Func::OutParData Par;
 
 				Par.Type = Type.Type;
+				Par.Type._IsAddress = false;//If Pass as Ref
 				Par.Type._TypeInfo =TypeInfoPrimitive::ClassInfo;
+
 				auto Ex = This.MakeEx(Par.Type);
 				This.Set_ObjectAs(Ex, Par.Type);
 
@@ -3653,7 +3725,7 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 								{
 									const TypePackInfo* PackInfo = ListTypeSyb->Get_Info<TypePackInfo>();
 
-									const String ScopeName = std::to_string((size_t)&node);
+									const String ScopeName = std::to_string((size_t)GetSymbolID(node));
 									const String VarableName = (String)node.Name->Value._String;
 
 									CompileTimeforNode TepData;
@@ -3706,7 +3778,7 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 					const StaticArrayInfo* StaticInfo = ListTypeSyb->Get_Info<StaticArrayInfo>();
 
 
-					const String ScopeName = std::to_string((size_t)&node);
+					const String ScopeName = std::to_string((size_t)GetSymbolID(node));
 					const String VarableName = (String)node.Name->Value._String;
 
 					auto ListArray = Evaluate(ListType,node.Modern_List);
@@ -3779,7 +3851,7 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 		CompileTimeforNode& Nodes = ForNodes.at((void*)GetSymbolID(node));
 		if (Nodes.SybToLoopOver->Type == SymbolType::ParameterVarable)
 		{
-			const String ScopeName = std::to_string((size_t)&node);
+			const String ScopeName = std::to_string((size_t)GetSymbolID(node));
 			
 			for (size_t i = 0; i < Nodes.SybItems.size(); i++)
 			{
@@ -3787,6 +3859,24 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 
 				size_t IRParIndex = LookingAtIRFunc->Pars.size() - Nodes.SybItems.size() + i;
 				Item->IR_Par =&LookingAtIRFunc->Pars[IRParIndex];
+
+				_Table.AddScope(ScopeName + std::to_string(i));
+
+				for (const auto& node2 : node.Body._Nodes)
+				{
+					OnStatement(*node2);
+				}
+
+				_Table.RemoveScope();
+			}
+		}
+		else if (Nodes.SybToLoopOver->Type == SymbolType::Type_StaticArray)
+		{
+			const String ScopeName = std::to_string((size_t)GetSymbolID(node));
+
+			for (size_t i = 0; i < Nodes.SybItems.size(); i++)
+			{
+				auto& Item = Nodes.SybItems[i];
 
 				_Table.AddScope(ScopeName + std::to_string(i));
 
@@ -4487,6 +4577,8 @@ SymbolID SystematicAnalysis::GetSymbolID(const Node& node)
 		{
 			sybId += (SymbolID)GenericFuncName.top().GenericInput;
 		}
+
+		sybId += std::hash<String>()(_Table._Scope.ThisScope);
 
 		return sybId;
 	}
@@ -8804,14 +8896,13 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 			AddDependencyToCurrentFile(Info.SymFunc);
 		}
 
-		DoFuncCall(Info, node.FuncName, node.Parameters);
-		FuncToSyboID[&node] = Info;
+		FuncToSyboID.AddValue((void*)GetSymbolID(node),Info);
 		
 		SetFuncRetAsLastEx(Info);
 	}
 	else if (passtype == PassType::BuidCode)
 	{
-		auto& SybID = FuncToSyboID.at(&node);
+		auto& SybID = FuncToSyboID.at((void*)GetSymbolID(node));
 		DoFuncCall(SybID, node.FuncName, node.Parameters);
 	}
 }

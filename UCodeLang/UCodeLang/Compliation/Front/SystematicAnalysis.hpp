@@ -1202,7 +1202,7 @@ private:
 	}
 	template<typename T> void Set_ObjectAs(EvaluatedEx& Input,const T& Value)
 	{
-		return Get_ObjectAs<T>(Input.Type, Input.EvaluatedObject,Value);
+		return Set_ObjectAs<T>(Input.Type, Input.EvaluatedObject,Value);
 	}
 	void Set_ObjectAs(EvaluatedEx& Input,const void* Object, size_t ObjectSize)
 	{
