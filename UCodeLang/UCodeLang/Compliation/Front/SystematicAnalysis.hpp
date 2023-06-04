@@ -475,6 +475,10 @@ private:
 		{
 			return Func || _BuiltFunc.has_value();
 		}
+		static bool AddOneToGetParNode(ThisPar_t ThisPar)
+		{
+			return ThisPar != Get_FuncInfo::ThisPar_t::NoThisPar;
+		}
 	};
 	struct ReadVarErrorCheck_t
 	{
@@ -1116,8 +1120,7 @@ private:
 
 
 	Get_FuncInfo GetEnumVariantFunc(Symbol* EnumSyb, size_t FeildIndex,Symbol* EnumFieldSyb, const ValueParametersNode& Pars,const Token* Token,const Vector<TypeSymbol>& ValueTypes);
-
-
+	void SetOutExpression(const OutExpression* Ex, const TypeSymbol& TypeToSet);
 
 	void SetFuncRetAsLastEx(Get_FuncInfo& Info);
 	
@@ -1224,6 +1227,8 @@ private:
 	{
 		return  Evaluate(MustBeType, *ExpressionNodeType::As(&node));
 	}
+
+	void SetOutExpressionEval(const OutExpression* Ex, const EvaluatedEx& ObjectToSet);
 
 	bool EvaluateToAnyType(EvaluatedEx& Out, const ExpressionNodeType& node);
 	Optional<EvaluatedEx> EvaluateToAnyType(const ExpressionNodeType& node);

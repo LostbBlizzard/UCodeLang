@@ -25,7 +25,7 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 		auto& Type = Pars.front();
 		if (Type.IsOutPar == false)
 		{
-			if (Type.Type.IsTypeInfo())
+			if (Type.Type._TypeInfo == TypeInfoPrimitive::TypeInfo)
 			{
 				TypeSymbol NewType;
 				NewType._CustomTypeSymbol = Type.Type._CustomTypeSymbol;
@@ -62,7 +62,7 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 		auto& Type = Pars.front();
 		if (Type.IsOutPar == false)
 		{
-			if (Type.Type.IsTypeInfo())
+			if (Type.Type._TypeInfo == TypeInfoPrimitive::TypeInfo)
 			{
 				TypeSymbol NewType = Type.Type;
 				NewType.BindType();
@@ -93,7 +93,8 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 	if (Pars.size() == 1)
 	{
 		auto& Type = Pars.front();
-		if (Type.IsOutPar == false)
+		if (Type.IsOutPar == false
+			&& Type.Type._TypeInfo == TypeInfoPrimitive::TypeInfo)
 		{
 			Optional<bool> Value;
 
@@ -136,9 +137,13 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 	if (Pars.size() == 2)
 	{
 		auto& Type = Pars.front();
-		if (FuncName == "GetClassInfo" && Pars[1].IsOutPar == true)
+
+		bool IsTypeInfo = Type.Type._TypeInfo == TypeInfoPrimitive::TypeInfo;
+
+		if (FuncName == "GetClassInfo" && Pars[1].IsOutPar == true
+			&& IsTypeInfo)
 		{
-			auto Sym = This.GetSymbol(Type.Type);
+			const auto Sym = This.GetSymbol(Type.Type);
 			bool IsClass = Sym ? Sym->Type == SymbolType::Type_class : nullptr;
 
 			Func _Func;
@@ -160,6 +165,33 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 				_Func._OutPars.push_back(std::move(Par));
 			}
 			return _Func;
+		}
+	}
+
+	if (FuncName == "GetFields" && Pars.size() == 1)
+	{
+		auto& Type = Pars.front();
+		bool IsTypeInfo = Type.Type._TypeInfo == TypeInfoPrimitive::TypeInfo;
+		switch (Type.Type._TypeInfo)
+		{
+		case TypeInfoPrimitive::ClassInfo:
+		{
+			const auto Sym = This.GetSymbol(Type.Type);
+			const auto classInfo = Sym->Get_Info<ClassInfo>();
+		
+			const auto& Fields = classInfo->Fields;
+			Vector<const FieldInfo*> FieldsAs;
+			FieldsAs.resize(Fields.size());
+			for (size_t i = 0; i < Fields.size(); i++)
+			{
+				FieldsAs[i] = &Fields[i];
+			}
+
+			classInfo->Fields;
+		}
+		break;
+		default:
+			break;
 		}
 	}
 
@@ -11787,7 +11819,7 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 	}
 
 	IRInstruction* PushIRStackRet = false;
-	bool AutoPushThis = Func.ThisPar != Get_FuncInfo::ThisPar_t::NoThisPar;
+	bool AutoPushThis = Get_FuncInfo::AddOneToGetParNode(Func.ThisPar);
 
 	Vector< IRInstruction*> IRParsList;
 
@@ -12391,12 +12423,12 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 		if (IsTypeInfo)
 		{
 
-			Vector< Systematic_BuiltInFunctions::FunctionPar> Pars;
-			Pars.resize(ValueTypes.size());
+			Vector< Systematic_BuiltInFunctions::FunctionPar> BuiltInPars;
+			BuiltInPars.resize(ValueTypes.size());
 
-			for (size_t i = 0; i < Pars.size(); i++)
+			for (size_t i = 0; i < BuiltInPars.size(); i++)
 			{
-				auto& ItemFuncPar = Pars[i];
+				auto& ItemFuncPar = BuiltInPars[i];
 				auto& ValuePar = ValueTypes[i];
 
 				ItemFuncPar.Type = ValuePar;
@@ -12407,13 +12439,50 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 				}
 			}
 
-			auto FuncData = Systematic_BuiltInFunctions::GetFunction(ScopedName, Pars,*this);
+			auto FuncData = Systematic_BuiltInFunctions::GetFunction(ScopedName, BuiltInPars,*this);
 
 			if (FuncData.has_value())
 			{
+				auto& FuncDataValue = FuncData.value();
+				{//OutPars
+
+					size_t OutParIndex = 0;
+					bool AutoPassThis = Get_FuncInfo::AddOneToGetParNode(ThisParType);
+					for (size_t i = 0; i < BuiltInPars.size(); i++)
+					{
+						bool IsOutPar = BuiltInPars[i].IsOutPar;
+
+						if (IsOutPar)
+						{
+							const auto& ItemNode = Pars._Nodes[AutoPassThis ? i + 1 : i];
+							auto& FuncDataOutPar = FuncDataValue._OutPars[OutParIndex];
+
+							OutExpression* Ex = OutExpression::As(ItemNode.get());
+							if (FuncDataOutPar.EvalObject.has_value())
+							{
+								EvaluatedEx EvaluatedValue;
+								EvaluatedValue.Type = FuncDataOutPar.Type;
+								EvaluatedValue.EvaluatedObject =std::move(FuncDataOutPar.EvalObject.value());
+								SetOutExpressionEval(Ex, EvaluatedValue);
+							}
+							else
+							{
+								SetOutExpression(Ex, FuncDataOutPar.Type);
+							}
+
+							OutParIndex++;
+						}
+					}
+					FuncDataValue._OutPars.clear();//Free it's unused. 
+				}
+
+
 				Get_FuncInfo R;
 				R.ThisPar = ThisParType;
-				R._BuiltFunc = FuncData.value();
+				R._BuiltFunc = std::move(FuncDataValue);
+
+
+
 				return R;
 			}
 		}
@@ -12913,19 +12982,11 @@ SystematicAnalysis::Get_FuncInfo SystematicAnalysis::GetEnumVariantFunc(Symbol* 
 				else
 				{
 					OutExpression* Ex = OutExpression::As(Item.get());
-					auto Str = Ex->_Name.Token->Value._String;
 
-					String FullName = this->_Table._Scope.ThisScope;
-					ScopeHelper::GetApendedString(FullName, Str);
 
-					auto Syb = &AddSybol(SymbolType::StackVarable, (String)Str, FullName,AccessModifierType::Public);
+					auto& TypeToSet = ItemVariant;
 
-					this->LookingForTypes.push(ItemVariant);
-					Syb->VarType = ConvertAndValidateType(Ex->_Type, NodeSyb_t::Varable);
-					this->LookingForTypes.pop();
-
-					ExDeclareVariableTypeCheck(Syb->VarType, ItemVariant, Ex->_Name.Token);
-					_Table.AddSymbolID(*Syb, (SymbolID)Item.get());
+					SetOutExpression(Ex, TypeToSet);
 				}
 
 			}
@@ -13003,6 +13064,44 @@ SystematicAnalysis::Get_FuncInfo SystematicAnalysis::GetEnumVariantFunc(Symbol* 
 	}
 }
 
+void SystematicAnalysis::SetOutExpression(const OutExpression* Ex, const TypeSymbol& TypeToSet)
+{
+	auto Str = Ex->_Name.Token->Value._String;
+
+	String FullName = _Table._Scope.ThisScope;
+	ScopeHelper::GetApendedString(FullName, Str);
+
+	auto Syb = &AddSybol(SymbolType::StackVarable, (String)Str, FullName, AccessModifierType::Public);
+
+	LookingForTypes.push(TypeToSet);
+	Syb->VarType = ConvertAndValidateType(Ex->_Type, NodeSyb_t::Varable);
+	LookingForTypes.pop();
+
+	ExDeclareVariableTypeCheck(Syb->VarType, TypeToSet, Ex->_Name.Token);
+	_Table.AddSymbolID(*Syb, GetSymbolID(*Ex));
+}
+void SystematicAnalysis::SetOutExpressionEval(const OutExpression* Ex, const EvaluatedEx& ObjectToSet)
+{
+	
+	auto Str = Ex->_Name.Token->Value._String;
+
+	String FullName = _Table._Scope.ThisScope;
+	ScopeHelper::GetApendedString(FullName, Str);
+
+	auto Syb = &AddSybol(SymbolType::ConstantExpression, (String)Str, FullName, AccessModifierType::Public);
+
+	LookingForTypes.push(ObjectToSet.Type);
+	Syb->VarType = ConvertAndValidateType(Ex->_Type, NodeSyb_t::Varable);
+	LookingForTypes.pop();
+
+	ExDeclareVariableTypeCheck(Syb->VarType, ObjectToSet.Type, Ex->_Name.Token);
+	_Table.AddSymbolID(*Syb, GetSymbolID(*Ex));
+
+	ConstantExpressionInfo* Info = new ConstantExpressionInfo();
+	Syb->Info.reset(Info);
+
+	Info->Ex = ObjectToSet.EvaluatedObject;
+}
 
 
 String SystematicAnalysis::GetGenericFuncName(const Symbol* Func, const Vector<TypeSymbol>& Type)

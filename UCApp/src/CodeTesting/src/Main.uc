@@ -20,9 +20,17 @@
 
 //import Hello::{Func = OtherFuncion};
 
-$Cool;
+$Cool:
+ int A;
 
 $CString = umut char[&];
 
 |main[]:
- ret type(Cool).GetClassInfo(out ClassTypeValue);
+
+ if type(Cool).GetClassInfo(out ClassTypeValue):
+  $for [var Item : ClassTypeValue.GetFields()]:
+   
+    //CString Str = Item.Name();
+   
+
+ ret 0; 
