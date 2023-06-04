@@ -192,7 +192,7 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 				FieldsAs[i] = &Fields[i];
 			}
 
-			TypeSymbol ArrItemType = TypesEnum::Null;
+			TypeSymbol ArrItemType = TypesEnum::InternalType;
 			ArrItemType._TypeInfo = TypeInfoPrimitive::ClassFieldInfo;
 
 			Func _Func;
@@ -3583,6 +3583,11 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 					{
 						CanBeLooped = true;
 					}
+					else
+					if (ListTypeSyb->Type == SymbolType::Type_StaticArray)
+					{
+						CanBeLooped = true;
+					}
 				}
 			}
 
@@ -3665,6 +3670,72 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 					}
 				
 				}
+				else if (ListTypeSyb->Type == SymbolType::Type_StaticArray)
+				{
+					const StaticArrayInfo* StaticInfo = ListTypeSyb->Get_Info<StaticArrayInfo>();
+
+
+					const String ScopeName = std::to_string((size_t)&node);
+					const String VarableName = (String)node.Name->Value._String;
+
+					auto ListArray = Evaluate(ListType,node.Modern_List);
+					if (ListArray.has_value())
+					{
+						size_t ItemSize = GetSize(StaticInfo->Type).value();
+
+						RawEvaluatedObject _DataAsIndex;
+						_DataAsIndex.ObjectSize = ItemSize;
+						_DataAsIndex.Object_AsPointer.reset(new Byte[ItemSize]);
+						
+						CompileTimeforNode TepData;
+						TepData.SybToLoopOver = ListTypeSyb;
+
+						auto& ListArrayValue = ListArray.value();
+						for (size_t i = 0; i < StaticInfo->Count; i++)
+						{
+							void* ItemOffset = ListArrayValue.EvaluatedObject.Object_AsPointer.get() + (i * ItemSize);
+							memcpy(_DataAsIndex.Object_AsPointer.get(), ItemOffset, ItemSize);
+
+							_Table.AddScope(ScopeName + std::to_string(i));
+
+
+							auto& ParSyb = AddSybol(SymbolType::ConstantExpression, VarableName, _Table._Scope.GetApendedString(VarableName), AccessModifierType::Public);
+							_Table.AddSymbolID(ParSyb, (SymbolID)&ParSyb);
+
+							ConstantExpressionInfo* ContInfo = new ConstantExpressionInfo();
+							ParSyb.Info.reset(ContInfo);
+
+							ContInfo->Ex = _DataAsIndex;
+							ParSyb.VarType = StaticInfo->Type;
+
+							{
+								auto TepPass = passtype;
+
+								passtype = PassType::GetTypes;
+								for (const auto& node2 : node.Body._Nodes)
+								{
+									OnStatement(*node2);
+								}
+
+								passtype = PassType::FixedTypes;
+								for (const auto& node2 : node.Body._Nodes)
+								{
+									OnStatement(*node2);
+								}
+
+								passtype = TepPass;
+							}
+							TepData.SybItems.push_back(&ParSyb);
+
+
+							_Table.RemoveScope();
+						}
+
+						
+						ForNodes.AddValue((void*)GetSymbolID(node), std::move(TepData));
+					}
+				}
+
 				else
 				{
 					throw std::exception("bad path");
@@ -10192,11 +10263,21 @@ SystematicAnalysis::UrinaryOverLoadWith_t SystematicAnalysis::HasUrinaryOverLoad
 String SystematicAnalysis::ToString(const TypeSymbol& Type)
 {
 	String r;
+
+	if (Type._Type == TypesEnum::InternalType)
+	{
+		r += CompilerGenerated("InternalType");
+		if (Type._TypeInfo == TypeInfoPrimitive::ClassFieldInfo)
+		{
+			r += "::ClassFieldInfo";
+		}
+		return r;
+	}
+
 	if (Type.Isimmutable())
 	{
 		r = "umut ";
 	}
-
 
 	if (Type._MoveData == MoveData::Moved)
 	{

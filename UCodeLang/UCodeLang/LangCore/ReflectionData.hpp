@@ -36,6 +36,7 @@ enum class ReflectionTypes : ReflectionTypes_t
 	float64,
 
 	CustomType,
+	InternalType,
 };
 using ReflectionMoveData_t = UInt8;
 enum class ReflectionMoveData : ReflectionMoveData_t
