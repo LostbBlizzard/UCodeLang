@@ -27,7 +27,8 @@ $CString = umut char[&];
 
 |main[]:
 
- if type(Cool).GetClassInfo(out ClassTypeValue):
+ eval typeinfo TypeCool = type(Cool);
+ if TypeCool.GetClassInfo(out typeinfo ClassTypeValue):
   $for [var Item : ClassTypeValue.GetFields()]:
    
     //CString Str = Item.Name();

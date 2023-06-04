@@ -134,6 +134,8 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 		}
 	}
 	
+	
+
 	if (Pars.size() == 2)
 	{
 		auto& Type = Pars.front();
@@ -168,6 +170,7 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 		}
 	}
 
+	
 	if (FuncName == "GetFields" && Pars.size() == 1)
 	{
 		auto& Type = Pars.front();
@@ -180,6 +183,8 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 			const auto classInfo = Sym->Get_Info<ClassInfo>();
 		
 			const auto& Fields = classInfo->Fields;
+
+
 			Vector<const FieldInfo*> FieldsAs;
 			FieldsAs.resize(Fields.size());
 			for (size_t i = 0; i < Fields.size(); i++)
@@ -187,7 +192,18 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 				FieldsAs[i] = &Fields[i];
 			}
 
-			classInfo->Fields;
+			TypeSymbol ArrItemType = TypesEnum::Null;
+			ArrItemType._TypeInfo = TypeInfoPrimitive::ClassFieldInfo;
+
+			Func _Func;
+			_Func.RetType = This.GetStaticArrayType(ArrItemType, FieldsAs.size());
+
+			auto Ex = This.MakeEx(_Func.RetType);
+			memcpy(Ex.EvaluatedObject.Object_AsPointer.get(),FieldsAs.data(), FieldsAs.size() * sizeof(const FieldInfo*));
+
+			_Func.EvalObject = std::move(Ex.EvaluatedObject);
+
+			return _Func;
 		}
 		break;
 		default:
@@ -5249,8 +5265,10 @@ void SystematicAnalysis::ExDeclareVariableTypeCheck(TypeSymbol& VarType, const T
 			if (WasIsAddress) { VarType.SetAsAddress(); }
 			if (WasIsAddressArry) { VarType.SetAsAddressArray(); }
 
-			VarType._TypeInfo = OldTypeInfo;
-
+			if (OldTypeInfo == TypeInfoPrimitive::Null)
+			{
+				VarType._TypeInfo = OldTypeInfo;
+			}
 			VarType.SetAsLocation();
 		}
 	}
@@ -11374,7 +11392,15 @@ bool SystematicAnalysis::GetSize(const TypeSymbol& Type, UAddress& OutSize)
 	
 	if (Type.IsTypeInfo())
 	{
-		OutSize = sizeof(TypeSymbol);
+
+		if (Type._TypeInfo == TypeInfoPrimitive::ClassFieldInfo)
+		{
+			OutSize = sizeof(void*);
+		}
+		else
+		{
+			OutSize = sizeof(TypeSymbol);
+		}
 		return true;
 	}
 
@@ -12400,7 +12426,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 				Index--;
 				auto& Last = NodeTypeStack[Index];
 				if (Last == NodeType::IfNode || Last == NodeType::WhileNode || Last == NodeType::DoNode
-					|| Last == NodeType::RetStatementNode)
+					|| Last == NodeType::RetStatementNode || Last == NodeType::CompileTimeIfNode)
 				{
 					IsControlFlow = true;
 				}
@@ -12454,7 +12480,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 
 						if (IsOutPar)
 						{
-							const auto& ItemNode = Pars._Nodes[AutoPassThis ? i + 1 : i];
+							const auto& ItemNode = Pars._Nodes[AutoPassThis ? i - 1 : i];
 							auto& FuncDataOutPar = FuncDataValue._OutPars[OutParIndex];
 
 							OutExpression* Ex = OutExpression::As(ItemNode.get());
