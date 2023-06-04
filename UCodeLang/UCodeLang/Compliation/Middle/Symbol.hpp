@@ -46,6 +46,8 @@ enum class TypeInfoPrimitive : UInt8
 	FuncPtrInfo,
 	TraitInfo,
 	TagInfo,
+
+	ClassFieldInfo,
 };
 
 class Symbol;
