@@ -8784,7 +8784,7 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 		DoFuncCall(SybID, node.FuncName, node.Parameters);
 	}
 }
-void SystematicAnalysis::SetFuncRetAsLastEx(Get_FuncInfo& Info)
+void SystematicAnalysis::SetFuncRetAsLastEx(const Get_FuncInfo& Info)
 {
 	if (Info.Func)
 	{
@@ -13943,7 +13943,11 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ValueExpressionNode& n
 		return true;
 	}
 	break;
-
+	case NodeType::FuncCallNode:
+	{
+		return EvalutateFunc(Out, *FuncCallNode::As(node.Value.get()));
+	}
+	break;
 	default:
 		throw std::exception("not added");
 		break;
@@ -14175,7 +14179,7 @@ bool SystematicAnalysis::EvalutateStepScopedName(EvaluatedEx& Out, const ScopedN
 }
 bool SystematicAnalysis::CanEvalutateFuncCheck(const Get_FuncInfo& Func)
 {
-	return false;
+	return  Func._BuiltFunc.has_value();
 }
 bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const TypeSymbol& MustBeType, const ExpressionNodeType& node)
 {
@@ -14271,23 +14275,25 @@ bool SystematicAnalysis::EvalutateFunc(EvaluatedEx& Out, const FuncCallNode& nod
 	if (CanEvalutateFuncCheck(FuncInfo))
 	{
 		Vector<EvaluatedEx> ValuePars;
-		ValuePars.resize(FuncInfo.Func->Pars.size());
-
-		for (size_t i = 0; i < node.Parameters._Nodes.size(); i++)
+		if (FuncInfo.Func) 
 		{
-			const TypeSymbol& Par = FuncInfo.Func->Pars[i];
-			auto& Item = node.Parameters._Nodes[i];
+			ValuePars.resize(FuncInfo.Func->Pars.size());
 
-			auto Info = Evaluate(Par, *Item.get());
-
-			if (!Info.has_value())
+			for (size_t i = 0; i < node.Parameters._Nodes.size(); i++)
 			{
-				return false;
+				const TypeSymbol& Par = FuncInfo.Func->Pars[i];
+				auto& Item = node.Parameters._Nodes[i];
+
+				auto Info = Evaluate(Par, *Item.get());
+
+				if (!Info.has_value())
+				{
+					return false;
+				}
+
+				ValuePars.push_back(std::move(Info.value()));
 			}
-
-			ValuePars.push_back(std::move(Info.value()));
 		}
-
 		return EvalutateFunc(Out, FuncInfo, node.FuncName, ValuePars);
 	}
 	return false;
@@ -14295,6 +14301,26 @@ bool SystematicAnalysis::EvalutateFunc(EvaluatedEx& Out, const FuncCallNode& nod
 
 bool SystematicAnalysis::EvalutateFunc(EvaluatedEx& Out, const Get_FuncInfo& Func, const ScopedNameNode& Name, const Vector<EvaluatedEx>& ValuePars)
 {
+	
+	if (Func.SymFunc)
+	{
+		AddDependencyToCurrentFile(Func.SymFunc);
+	}
+	SetFuncRetAsLastEx(Func);
+
+
+	if (Func._BuiltFunc.has_value())
+	{
+		auto& BuiltFunc = Func._BuiltFunc.value();
+		if (BuiltFunc.EvalObject.has_value())
+		{
+			auto& EvalObject = BuiltFunc.EvalObject.value();
+			Out.Type = LastExpressionType;
+			Out.EvaluatedObject = std::move(EvalObject);
+			return true;
+		}
+	}
+
 	return false;
 }
 bool SystematicAnalysis::EvalutateFunc(EvaluatedEx& Out, const TypeSymbol& Type, const Get_FuncInfo& Func, const Vector<EvaluatedEx>& ValuePars)

@@ -1122,7 +1122,7 @@ private:
 	Get_FuncInfo GetEnumVariantFunc(Symbol* EnumSyb, size_t FeildIndex,Symbol* EnumFieldSyb, const ValueParametersNode& Pars,const Token* Token,const Vector<TypeSymbol>& ValueTypes);
 	void SetOutExpression(const OutExpression* Ex, const TypeSymbol& TypeToSet);
 
-	void SetFuncRetAsLastEx(Get_FuncInfo& Info);
+	void SetFuncRetAsLastEx(const Get_FuncInfo& Info);
 	
 	struct  IsCompatiblePar
 	{
@@ -1207,6 +1207,7 @@ private:
 	bool EvalutateFunc(EvaluatedEx& Out, const TypeSymbol& Type, const Get_FuncInfo& Func, const Vector<EvaluatedEx>& ValuePars);
 	bool Evaluate(EvaluatedEx& Out, const ExtendedScopeExpression& node);
 	bool Evaluate(EvaluatedEx& Out, const ExtendedFuncExpression& node);
+	
 
 	bool EvalutateScopedName(EvaluatedEx& Out, size_t Start, size_t End, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& OtherOut);
 	bool EvalutateScopedName(EvaluatedEx& Out, size_t Start, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& OtherOut)
