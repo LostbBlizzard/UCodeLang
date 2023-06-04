@@ -236,9 +236,16 @@ public:
 
 	struct Func
 	{
+		struct OutParData
+		{
+			TypeSymbol Type;
+			Optional<RawEvaluatedObject> EvalObject;
+		};
+
 		TypeSymbol RetType;
 		Optional<RawEvaluatedObject> EvalObject;
 		bool EvalAsCString = false;
+		Vector<OutParData> _OutPars;
 	};
 
 	static Optional<Func> GetFunction(const String_view Name,const Vector<FunctionPar>& Pars, SystematicAnalysis& This);
