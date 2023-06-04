@@ -25,6 +25,4 @@ $Cool;
 $CString = umut char[&];
 
 |main[]:
- 
- CString Item = type(Cool).FullName();
- ret type(char&).IsAddress();
+ ret type(Cool).GetClassInfo(out ClassTypeValue);

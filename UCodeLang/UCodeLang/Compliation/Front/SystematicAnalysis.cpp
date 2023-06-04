@@ -50,7 +50,7 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 				auto Ex = This.MakeEx(_Func.RetType);
 				memcpy(Ex.EvaluatedObject.Object_AsPointer.get(), Value.data(), Value.size());
 
-				_Func.EvalObject = Ex.EvaluatedObject;
+				_Func.EvalObject = std::move(Ex.EvaluatedObject);
 				_Func.EvalAsCString = WantsUmutCString;
 				return _Func;
 			}
@@ -83,7 +83,7 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 				auto Ex = This.MakeEx(_Func.RetType);
 				memcpy(Ex.EvaluatedObject.Object_AsPointer.get(),&Value, Ex.EvaluatedObject.ObjectSize);
 
-				_Func.EvalObject = Ex.EvaluatedObject;
+				_Func.EvalObject = std::move(Ex.EvaluatedObject);
 				return _Func;
 			}
 		}
@@ -127,12 +127,42 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 				auto Ex = This.MakeEx(_Func.RetType);
 				memcpy(Ex.EvaluatedObject.Object_AsPointer.get(), &Value, Ex.EvaluatedObject.ObjectSize);
 
-				_Func.EvalObject = Ex.EvaluatedObject;
+				_Func.EvalObject = std::move(Ex.EvaluatedObject);
 				return _Func;
 			}
 		}
 	}
 	
+	if (Pars.size() == 2)
+	{
+		auto& Type = Pars.front();
+		if (FuncName == "GetClassInfo" && Pars[1].IsOutPar == true)
+		{
+			auto Sym = This.GetSymbol(Type.Type);
+			bool IsClass = Sym ? Sym->Type == SymbolType::Type_class : nullptr;
+
+			Func _Func;
+			_Func.RetType = TypesEnum::Bool;
+			auto Ex = This.MakeEx(_Func.RetType);
+			memcpy(Ex.EvaluatedObject.Object_AsPointer.get(), &IsClass, Ex.EvaluatedObject.ObjectSize);
+
+			_Func.EvalObject = std::move(Ex.EvaluatedObject);
+
+			{
+				Func::OutParData Par;
+
+				Par.Type = Type.Type;
+				Par.Type._TypeInfo =TypeInfoPrimitive::ClassInfo;
+				auto Ex = This.MakeEx(Par.Type);
+				memcpy(Ex.EvaluatedObject.Object_AsPointer.get(), &Par.Type, Ex.EvaluatedObject.ObjectSize);
+
+				Par.EvalObject = std::move(Ex.EvaluatedObject);
+				_Func._OutPars.push_back(std::move(Par));
+			}
+			return _Func;
+		}
+	}
+
 	return {};
 }
 
@@ -12337,7 +12367,8 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 				size_t Index = NodeTypeStack.size() - 1;
 				Index--;
 				auto& Last = NodeTypeStack[Index];
-				if (Last == NodeType::IfNode || Last == NodeType::WhileNode || Last == NodeType::DoNode)
+				if (Last == NodeType::IfNode || Last == NodeType::WhileNode || Last == NodeType::DoNode
+					|| Last == NodeType::RetStatementNode)
 				{
 					IsControlFlow = true;
 				}
@@ -12369,9 +12400,10 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 				auto& ValuePar = ValueTypes[i];
 
 				ItemFuncPar.Type = ValuePar;
-				if (i == 0)
+				
+				if (ItemFuncPar.Type._Type == TypesEnum::Null)
 				{
-
+					ItemFuncPar.IsOutPar = true;
 				}
 			}
 
