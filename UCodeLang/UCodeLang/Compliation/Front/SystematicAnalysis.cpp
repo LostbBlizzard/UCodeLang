@@ -478,7 +478,7 @@ void SystematicAnalysis::BuildLib(const UClib& lib,const Path& LibName)
 
 	if (GotIRCode == false)
 	{
-		_ErrorsOutput->AddError(ErrorCodes::CouldNotFindFunc, 0, 0, "Cant get IR from '" + LibName.generic_string() + "' Object file.Try deleting it");
+		LogError(ErrorCodes::CouldNotFindFunc, 0, 0, "Cant get IR from '" + LibName.generic_string() + "' Object file.Try deleting it");
 	}
 }
 
@@ -652,7 +652,7 @@ void SystematicAnalysis::AddDependencyToCurrentFile(const Symbol* Syb)
 	if (CurrentFile != Syb->_File && !IsAnImport && (FileData._Imports.size() || _ForceImportArgWasPassed))
 	{
 		auto Token = LastLookedAtToken;
-		_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Trying to use the Symbol '" + Syb->FullName + "[" + ToString(Syb->Type) + "]' but it's not Imported in the file.");
+		LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Trying to use the Symbol '" + Syb->FullName + "[" + ToString(Syb->Type) + "]' but it's not Imported in the file.");
 	}
 }
 void SystematicAnalysis::AddDependencyToCurrentFile(const FileNode* file)
@@ -746,7 +746,7 @@ void SystematicAnalysis::OnNonAttributeable(size_t Line, size_t Pos)
 	{
 		if (_TepAttributes.size())
 		{
-			_ErrorsOutput->AddError(ErrorCodes::TreeAnalyerError, Line, Pos, "You cant put a Tag on this");
+			LogError(ErrorCodes::TreeAnalyerError, Line, Pos, "You cant put a Tag on this");
 		}
 	}
 }
@@ -961,7 +961,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 	}
 	
 	
-	if (!Isgeneric_t)
+	if (!Isgeneric_t || (Isgeneric_t && (passtype == PassType::GetTypes || passtype == PassType::FixedTypes)))
 	{
 		
 		_ClassStack.push({ ClassInf });
@@ -1116,7 +1116,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			{
 				if (Syb == Item2)
 				{
-					_ErrorsOutput->AddError(ErrorCodes::InValidType, Item.Token->OnLine, Item.Token->OnPos,
+					LogError(ErrorCodes::InValidType, Item.Token->OnLine, Item.Token->OnPos,
 						"duplicate Inherit Trait");
 				}
 			}
@@ -2342,12 +2342,12 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 						const Token* token = node.TypeNode.Name.Token;
 
 						if (syb->VarType.IsAn(TypesEnum::Var)) {
-							_ErrorsOutput->AddError(ErrorCodes::InValidType, token->OnLine, token->OnPos,
+							LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos,
 								"The Type '" + ToString(TypeForType) + "' has no cast(->) overload.it is needed to access the object for the 'for' loop.");
 						}
 						else
 						{
-							_ErrorsOutput->AddError(ErrorCodes::InValidType, token->OnLine, token->OnPos,
+							LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos,
 								"The Type '" + ToString(TypeForType) + "' has no explicit cast(->) overload for the type '" + ToString(syb->VarType) + "'.it is needed to access the object for  the 'for' loop.");
 						}
 
@@ -2357,7 +2357,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 					{
 						const Token* token = node.TypeNode.Name.Token;
 
-						_ErrorsOutput->AddError(ErrorCodes::InValidType, token->OnLine, token->OnPos,
+						LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos,
 							"The Type '" + ToString(TypeForType) + "' has no exist(?) overload.it is needed to check when to end the loop.");
 
 						syb->VarType.SetType(TypesEnum::Null);
@@ -2850,7 +2850,7 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 				{
 					const Token* Token =node.LambdaStart;
 
-					_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "cant indirect pass the varable  '" + 
+					LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "cant indirect pass the varable  '" + 
 						Item.Name + "' between lambdas.be explicit and make a new varable and assign useing '"+ Item.Name + "' in this lambda.");
 
 					Info->_CapturedVarables.push_back(Item);
@@ -3327,7 +3327,7 @@ void SystematicAnalysis::OnBitCast(const BitCastExpression& node)
 		if (_RemoveUnSafeArgWasPassed)
 		{
 			auto Token = node.KeywordToken;
-			_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "Cant do bitcast in safe mode.");
+			LogError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "Cant do bitcast in safe mode.");
 		}
 	}
 	else if (passtype == PassType::FixedTypes)
@@ -3664,6 +3664,17 @@ void SystematicAnalysis::OnCompileTimeIfNode(const CompileTimeIfNode& node)
 		}
 	}
 }
+TypeSymbol SystematicAnalysis::GetUnMapType()
+{
+	if (!UnMapTypeSybol.has_value())
+	{
+		auto& TypeSyb = AddSybol(SymbolType::Unmaped_Generic_Type, CompilerGenerated("UnMapedType"), CompilerGenerated("UnMapedType"), AccessModifierType::Public);
+		_Table.AddSymbolID(TypeSyb, (SymbolID)&TypeSyb);
+		UnMapTypeSybol = TypeSyb.ID;
+	}	
+	return TypeSymbol(UnMapTypeSybol.value());
+
+}
 void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 {
 	if (passtype == PassType::GetTypes)
@@ -3671,7 +3682,7 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 		if (node.Type == CompileTimeForNode::ForType::Traditional)
 		{
 			auto Token = node.Name;
-			_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "Traditional for loops are not yet added to CompileTimeforNode");
+			LogError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "Traditional for loops are not yet added to CompileTimeforNode");
 		}
 		else
 		{
@@ -3712,10 +3723,36 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 			if (!CanBeLooped)
 			{
 				auto Token = node.Name;
-				_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "Cant Loop over type of '" + ToString(ListType) + "'");
+				LogError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "Cant Loop over type of '" + ToString(ListType) + "'");
 			}
 			else
 			{
+
+				{//test loop for Errs
+					size_t OldErrCount = _ErrorsOutput->Get_Errors().size();
+					_Table.AddScope("___forTest");
+					const String VarableName = (String)node.Name->Value._String;
+
+					auto& ParSyb = AddSybol(SymbolType::Unmaped_Varable, VarableName, _Table._Scope.GetApendedString(VarableName), AccessModifierType::Public);
+					ParSyb.VarType = GetUnMapType();
+					_Table.AddSymbolID(ParSyb, (SymbolID)&ParSyb);
+					{
+						auto Token = node.Name;
+						AddExtendedErr("Were '" + VarableName + "' is unmaped for Errors.Before for loop expansion", Token);
+					}
+					CompileTimeforNodeEvaluateStatements(node);
+					{
+						PopExtendedErr();
+					}
+					_Table.RemoveScope();
+
+
+					bool GotErrs = OldErrCount != _ErrorsOutput->Get_Errors().size();
+					if (GotErrs) { return; }
+				}
+
+
+				//
 				if (ListTypeSyb->Type == SymbolType::Type_Pack)
 				{
 					const Node* NodePtr = node.Modern_List.Value.get();
@@ -3757,27 +3794,12 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 										_Table.AddSymbolID(ParSyb, (SymbolID)&ParSyb);
 										ParSyb.VarType = Item;
 
+										size_t OldErrCount = _ErrorsOutput->Get_Errors().size();
 										{
 											auto Token = node.Name;
 											AddExtendedErr("Were '" + VarableName + "' is type of " + ToString(ParSyb.VarType), Token);
 										}
-										{
-											auto TepPass = passtype;
-
-											passtype = PassType::GetTypes;
-											for (const auto& node2 : node.Body._Nodes)
-											{
-												OnStatement(*node2);
-											}
-
-											passtype = PassType::FixedTypes;
-											for (const auto& node2 : node.Body._Nodes)
-											{
-												OnStatement(*node2);
-											}
-
-											passtype = TepPass;
-										}
+										CompileTimeforNodeEvaluateStatements(node);
 										{
 											PopExtendedErr();
 										}
@@ -3786,6 +3808,9 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 
 										
 										_Table.RemoveScope();
+
+										bool GotErrs = OldErrCount != _ErrorsOutput->Get_Errors().size();
+										if (GotErrs) { continue; }
 									}
 
 									ForNodes.AddValue((void*)GetSymbolID(node),std::move(TepData));
@@ -3835,34 +3860,24 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 							ContInfo->Ex = _DataAsIndex;
 							ParSyb.VarType = StaticInfo->Type;
 
+							size_t OldErrCount = _ErrorsOutput->Get_Errors().size();
 							{
 								auto Token = node.Name;
 								AddExtendedErr("Were '" + VarableName + "' = " + ToString(ParSyb.VarType, ContInfo->Ex), Token);
 							}
-							{
-								auto TepPass = passtype;
-
-								passtype = PassType::GetTypes;
-								for (const auto& node2 : node.Body._Nodes)
-								{
-									OnStatement(*node2);
-								}
-
-								passtype = PassType::FixedTypes;
-								for (const auto& node2 : node.Body._Nodes)
-								{
-									OnStatement(*node2);
-								}
-
-								passtype = TepPass;
-							}
+							CompileTimeforNodeEvaluateStatements(node);
 							{
 								PopExtendedErr();
 							}
 							TepData.SybItems.push_back(&ParSyb);
 
+							
+
 
 							_Table.RemoveScope();
+
+							bool GotErrs = OldErrCount != _ErrorsOutput->Get_Errors().size();
+							if (GotErrs){continue;}
 						}
 
 						
@@ -3891,6 +3906,10 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 				size_t IRParIndex = LookingAtIRFunc->Pars.size() - Nodes.SybItems.size() + i;
 				Item->IR_Par =&LookingAtIRFunc->Pars[IRParIndex];
 
+				{
+					auto Token = node.Name;
+					AddExtendedErr("Were '" + (String)node.Name->Value._String + "' is type of " + ToString(Item->VarType), Token);
+				}
 				_Table.AddScope(ScopeName + std::to_string(i));
 
 				for (const auto& node2 : node.Body._Nodes)
@@ -3899,6 +3918,9 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 				}
 
 				_Table.RemoveScope();
+				{
+					PopExtendedErr();
+				}
 			}
 		}
 		else if (Nodes.SybToLoopOver->Type == SymbolType::Type_StaticArray)
@@ -3928,6 +3950,29 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 		}
 	}
 }
+void SystematicAnalysis::CompileTimeforNodeEvaluateStatements(const CompileTimeForNode& node)
+{
+	auto TepPass = passtype;
+	size_t OldErrCount = _ErrorsOutput->Get_Errors().size();
+
+	passtype = PassType::GetTypes;
+	for (const auto& node2 : node.Body._Nodes)
+	{
+		OnStatement(*node2);
+	}
+
+	bool GotErrs = OldErrCount != _ErrorsOutput->Get_Errors().size();
+	if (!GotErrs)
+	{
+		passtype = PassType::FixedTypes;
+		for (const auto& node2 : node.Body._Nodes)
+		{
+			OnStatement(*node2);
+		}
+
+	}
+	passtype = TepPass;
+}
 
 void SystematicAnalysis::LogMissingFuncionforTrait(const String_view& FuncName, const FuncInfo* Info, const Symbol* Trait, const Token* ClassNameToken)
 {
@@ -3945,7 +3990,7 @@ void SystematicAnalysis::LogMissingFuncionforTrait(const String_view& FuncName, 
 
 	Msg += "] and returns '" + ToString(Info->Ret) + "' for the trait '" + Trait->FullName + '\'';
 
-	_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, ClassNameToken->OnLine, ClassNameToken->OnPos, Msg);
+	LogError(ErrorCodes::ExpectingSequence, ClassNameToken->OnLine, ClassNameToken->OnPos, Msg);
 }
 Symbol* SystematicAnalysis::NewDropFuncSymbol(ClassInfo* ClassInfo, TypeSymbol& ClassAsType)
 {
@@ -4103,7 +4148,7 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 				if (Item2.Operator != ScopedName::Operator_t::ScopeResolution
 					&& Item2.Operator != ScopedName::Operator_t::Null)
 				{
-					_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, Item2.token->OnLine, Item2.token->OnPos,
+					LogError(ErrorCodes::ExpectingSequence, Item2.token->OnLine, Item2.token->OnPos,
 						"Must use a '::' as Opetator Here");
 				}
 			}
@@ -4135,7 +4180,7 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 			if (List.empty())
 			{
 				auto Token = Item._ImportedSybol.ScopedName.front().token;
-				_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos,
+				LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos,
 					"Cant find any Symbol for '" + Name + "'");
 				continue;
 			}
@@ -4170,7 +4215,7 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 				{
 					auto Token = Item._ImportedSybol.ScopedName.front().token;
 					auto Sybol = List.front();
-					_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos,
+					LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos,
 						"Cant Map Symbol '" + Sybol->FullName + "[" + ToString(Sybol->Type) + "]' to Alias");
 				}
 				else if (!IsOuterfile)
@@ -4179,7 +4224,7 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 					auto Sybol = List.front();
 					
 					String V = "importing '" + Sybol->FullName + "' but it's Declared in this file.";
-					_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos,V);
+					LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos,V);
 					
 				}
 				else
@@ -4247,7 +4292,7 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 					auto Sybol = List.front();
 
 					String V = "importing '" + Sybol->FullName + "' but it's Declared in this file.";
-					_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, V);
+					LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, V);
 
 				}
 
@@ -4280,7 +4325,7 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 				auto Token = Item._ImportedSybol.ScopedName.front().token;
 				auto Name = GetScopedNameAsString(Item._ImportedSybol);
 
-				_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "'" + Name + "' Import Symbol was not Used");
+				LogError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "'" + Name + "' Import Symbol was not Used");
 			}
 		}
 	}
@@ -4288,7 +4333,7 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 void SystematicAnalysis::TypeDoesNotHaveForOverload(const UCodeLang::Token* Token, UCodeLang::FrontEnd::TypeSymbol& ExType)
 {
 	if (ExType.IsBadType()) { return; }
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "The Type '" + ToString(ExType) + "\' does not have the for overload.");
 }
 bool SystematicAnalysis::ISStructPassByRef(Symbol* syb)
@@ -4628,6 +4673,7 @@ void SystematicAnalysis::OnStatement(const Node& node2)
 	{
 	case NodeType::AttributeNode:OnAttributeNode(*AttributeNode::As(&node2)); break;
 	case NodeType::ClassNode: OnClassNode(*ClassNode::As(&node2)); break;
+	//case NodeType::AliasNode:OnAliasNode(*AliasNode::As(&node2)); break;
 	case NodeType::EnumNode:OnEnum(*EnumNode::As(&node2)); break;
 	case NodeType::UsingNode: OnUseingNode(*UsingNode::As(&node2)); break;
 	case NodeType::DeclareVariableNode:OnDeclareVariablenode(*DeclareVariableNode::As(&node2),DeclareStaticVariableNode_t::Stack); break;
@@ -5076,7 +5122,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 					break;
 				}
 
-				_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, VarType + " Varable must be assigned.missing '='.");
+				LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, VarType + " Varable must be assigned.missing '='.");
 			}
 		}
 
@@ -6014,7 +6060,7 @@ bool SystematicAnalysis::StepGetMemberTypeSymbolFromVar(const ScopedNameNode& no
 				}
 
 				auto Token = Item.token;
-				_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "Type must be a char[/] and not a '" + ToString(IsCharArr) + "' to be used as a identfier.");
+				LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "Type must be a char[/] and not a '" + ToString(IsCharArr) + "' to be used as a identfier.");
 				return false;
 			}
 		}
@@ -6827,14 +6873,14 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 		|| Out.Symbol->Type == SymbolType::ConstantExpression
 		|| IsVarableType(Out.Symbol->Type)))
 	{
-		Out.Type.SetType(TypesEnum::Null);
-		Out.Symbol = nullptr;
 		
 		if (passtype == PassType::FixedTypes)
 		{
 			auto& Item = node.ScopedName.back().token;
 			LogWantedAVariable(Item, Out.Symbol);
 		}
+		Out.Type.SetType(TypesEnum::Null);
+		Out.Symbol = nullptr;
 		
 		return false;
 	}
@@ -6842,7 +6888,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 	if (IsWrite(Mod) && !(Out.Symbol->Type == SymbolType::Class_Field || IsVarableType(Out.Symbol->Type)) )
 	{
 		auto& Item = node.ScopedName.back().token;
-		_ErrorsOutput->AddError(ErrorCodes::InValidType, Item->OnLine, Item->OnPos, "You Cant Write to a " + ToString(Out.Symbol->Type));
+		LogError(ErrorCodes::InValidType, Item->OnLine, Item->OnPos, "You Cant Write to a " + ToString(Out.Symbol->Type));
 	}
 
 
@@ -7834,7 +7880,7 @@ void SystematicAnalysis::OnNewNode(const NewExpresionNode* nod)
 		if (_RemoveUnSafeArgWasPassed)
 		{
 			auto Token = nod->KeywordToken;
-			_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "Cant use 'new' keyword in safe mode.");
+			LogError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "Cant use 'new' keyword in safe mode.");
 			return;
 		}
 	}
@@ -8669,36 +8715,39 @@ void SystematicAnalysis::OnExpressionNode(const CastNode& node)
 
 	if (passtype == PassType::FixedTypes) 
 	{
-		CastExpressionNode_Data data;
-		
-
-		TypeSymbol ToTypeAs;
-		ConvertAndValidateType(node.ToType, ToTypeAs, NodeSyb_t::Any);
-
-		auto Ex0Type = LastExpressionType;
-		auto HasInfo = CanBeExplicitlyConverted(Ex0Type, ToTypeAs);
-		if (!HasInfo.HasValue)
+		if (!ToTypeAs.IsNull()) 
 		{
-			auto  Token = node.ToType.Name.Token;
+			CastExpressionNode_Data data;
 
-			LogCantCastExplicityTypes(Token, Ex0Type, ToTypeAs);
-		}
-		else
-		{
-			if (HasInfo.Value.has_value()) 
+
+			TypeSymbol ToTypeAs;
+			ConvertAndValidateType(node.ToType, ToTypeAs, NodeSyb_t::Any);
+
+			auto Ex0Type = LastExpressionType;
+			auto HasInfo = CanBeExplicitlyConverted(Ex0Type, ToTypeAs);
+			if (!HasInfo.HasValue)
 			{
-				data.FuncToCall = HasInfo.Value.value();
-				LastExpressionType = HasInfo.Value.value()->Get_Info<FuncInfo>()->Ret;
+				auto  Token = node.ToType.Name.Token;
+
+				LogCantCastExplicityTypes(Token, Ex0Type, ToTypeAs);
 			}
 			else
 			{
-				LastExpressionType = ToTypeAs;
+				if (HasInfo.Value.has_value())
+				{
+					data.FuncToCall = HasInfo.Value.value();
+					LastExpressionType = HasInfo.Value.value()->Get_Info<FuncInfo>()->Ret;
+				}
+				else
+				{
+					LastExpressionType = ToTypeAs;
+				}
+
 			}
 
-		}
 
-		
-		CastDatas.AddValue(&node, data);
+			CastDatas.AddValue(&node, data);
+		}
 	}
 
 	if (passtype == PassType::BuidCode)
@@ -8952,7 +9001,7 @@ void SystematicAnalysis::SetFuncRetAsLastEx(const Get_FuncInfo& Info)
 		{
 			LastExpressionType = ((FuncPtrInfo*)Info.Func)->Ret;
 		}
-		else 
+		else
 		{
 			if (Info.Func->_FuncType == FuncInfo::FuncType::New)
 			{
@@ -8979,8 +9028,11 @@ void SystematicAnalysis::SetFuncRetAsLastEx(const Get_FuncInfo& Info)
 			LastExpressionType = Info._BuiltFunc.value().RetType;
 		}
 	}
+	if (Info.CantCheckBecauseIsUnMaped)
+	{
+		LastExpressionType = GetUnMapType();
+	}
 }
-
 void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 {
 	if (passtype == PassType::GetTypes)
@@ -8988,7 +9040,7 @@ void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 		if (_RemoveUnSafeArgWasPassed)
 		{
 			auto Token = node.KeywordToken;
-			_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "Cant use 'drop' keyword in safe mode.");
+			LogError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "Cant use 'drop' keyword in safe mode.");
 		}
 	}
 
@@ -9795,14 +9847,14 @@ void SystematicAnalysis::CanMatch(const TypeSymbol& MatchItem, const ExpressionN
 		else
 		{
 			const Token* token = LastLookedAtToken;
-			_ErrorsOutput->AddError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "The Expression cant be Matched use only ValueExpression");
+			LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "The Expression cant be Matched use only ValueExpression");
 		}
 		
 	}
 	else
 	{
 		const Token* token = LastLookedAtToken;
-		_ErrorsOutput->AddError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "The type cant be Matched");
+		LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "The type cant be Matched");
 	}
 }
 void SystematicAnalysis::CheckAllValuesAreMatched(const TypeSymbol& MatchItem, const MatchArmData& Data)
@@ -11028,7 +11080,7 @@ inline IRInstruction* SystematicAnalysis::RawObjectDataToCString(const RawEvalua
 void SystematicAnalysis::LogCantBindTypeItNotTypeInfo(const UCodeLang::Token* Token, UCodeLang::FrontEnd::TypeSymbol& Type)
 {
 
-	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Cant Bind type.Expression is not a typeinfo it is an '" + ToString(Type) + "'");
+	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Cant Bind type.Expression is not a typeinfo it is an '" + ToString(Type) + "'");
 }
 
 
@@ -11476,7 +11528,7 @@ bool SystematicAnalysis::IsSIntType(const TypeSymbol& TypeToCheck)
 		TypeToCheck._Type == TypesEnum::sInt64 ||
 		TypeToCheck._Type == TypesEnum::sIntPtr;
 }
-inline bool SystematicAnalysis::IsVarableType(SymbolType type)
+bool SystematicAnalysis::IsVarableType(SymbolType type)
 {
 	switch (type)
 	{
@@ -11484,6 +11536,7 @@ inline bool SystematicAnalysis::IsVarableType(SymbolType type)
 	case SymbolType::StackVarable:
 	case SymbolType::StaticVarable:
 	case SymbolType::ThreadVarable:
+	case SymbolType::Unmaped_Varable:
 		return true;
 	default:
 		return false;
@@ -12534,11 +12587,12 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 
 		auto SymbolsV = GetSymbol(ScopedName, SymbolType::Any);
 
+		
 		if (SymbolsV && SymbolsV->Type == SymbolType::Type_alias)
 		{
 			ScopedName = ToString(SymbolsV->VarType);
 		}
-	
+		
 		
 		if (ScopedName == Uint8TypeName ||
 			ScopedName == Uint16TypeName ||
@@ -12629,7 +12683,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 	TypeSymbol NullSymbol;
 	NullSymbol.SetType(TypesEnum::Any);
 
-
+	
 	bool HasOutPar = false;
 	for (size_t i = 0; i < Pars._Nodes.size(); i++)
 	{
@@ -12654,6 +12708,23 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 		
 		
 		
+	}
+
+	{//unmaped
+		for (auto& Item : ValueTypes)
+		{
+			auto SymbolsV = GetSymbol(Item);
+			if (SymbolsV)
+			{
+				if (SymbolsV->Type == SymbolType::Unmaped_Generic_Type)
+				{
+					Get_FuncInfo V;
+					V.CantCheckBecauseIsUnMaped = true;
+
+					return {};//cant check because we are just testing.
+				}
+			}
+		}
 	}
 
 	//Out-Par
@@ -13790,7 +13861,7 @@ bool SystematicAnalysis::AccessCheck(const Symbol* Syb,const Token* Token, const
 {
 	if (Syb->Access == AccessModifierType::Private)
 	{
-		_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "Cant use the Symbol '" + Syb->FullName + "' its Private");
+		LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "Cant use the Symbol '" + Syb->FullName + "' its Private");
 		return true;
 	}
 	return false;
@@ -14083,7 +14154,7 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ValueExpressionNode& n
 		else
 		{
 			auto Token = nod->Token;
-			_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "Cant use char[&] in Compile Time.");
+			LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "Cant use char[&] in Compile Time.");
 			LastExpressionType.SetType(TypesEnum::Null);
 			return false;
 		}
@@ -14799,6 +14870,9 @@ Optional<SystematicAnalysis::EvaluatedEx> SystematicAnalysis::EvaluateToAnyType(
 String SystematicAnalysis::ToString(const TypeSymbol& Type, const RawEvaluatedObject& Data)
 {
 	auto DataPtr = Get_Object(Type, Data);
+
+	
+
 	switch (Type._Type)
 	{
 	case TypesEnum::sInt8:return std::to_string(*(const Int8*)DataPtr);
@@ -14820,6 +14894,16 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type, const RawEvaluatedOb
 	case TypesEnum::Char:return String(*(const char*)DataPtr, 1);
 	case TypesEnum::Bool:return *(bool*)DataPtr ? "true" : "false";
 	
+	case TypesEnum::InternalType:
+	{
+		if (Type._TypeInfo == TypeInfoPrimitive::ClassFieldInfo)
+		{
+			auto Value = (const Systematic_BuiltInFunctions::ClassField*)DataPtr;
+			return Value->_ClassInfo->FullName + ":" + Value->Field->Name;
+		}
+
+		return "???";
+	}
 	case TypesEnum::uIntPtr:
 		if (_Settings->PtrSize == IntSizes::Int64)
 		{
@@ -15094,11 +15178,11 @@ GenericData::Type SystematicAnalysis::GenericTypeToGenericDataType(GenericValueN
 
 void SystematicAnalysis::LogInvalidNodeError(const Token* Token, String_view ErrStr)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Invaild:" + (String)ErrStr);
+	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Invaild:" + (String)ErrStr);
 }
 void SystematicAnalysis::LogEmptyInvalidError(const Token* Token)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Reached Invaild Statemet");
+	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Reached Invaild Statemet");
 }
 
 void SystematicAnalysis::LogCantCastImplicitTypes(const Token* Token, const TypeSymbol& Ex1Type, const TypeSymbol& UintptrType, bool ReassignMode)
@@ -15108,30 +15192,30 @@ void SystematicAnalysis::LogCantCastImplicitTypes(const Token* Token, const Type
 	bool V1 = IsAddessAndLValuesRulesfollowed(Ex1Type, UintptrType, ReassignMode);
 	if (!V1 || CanDoTypeToTrait(Ex1Type, UintptrType))
 	{
-		_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+		LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 			, "The expression is not an Location in memory'");
 	}
 	else
 	{
-		_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+		LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 			, "Cant Implicitly cast Type '" + ToString(Ex1Type) + "' to '" + ToString(UintptrType) + "'");
 	}
 }
 void SystematicAnalysis::LogReadingFromInvaidVariable(const Token* Token, String_view Str)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "the variable named '" + (String)Str + "'" + " cant be read from you.can not read an invaid variable");
 }
 void SystematicAnalysis::LogCantFindVarError(const Token* Token, String_view Str)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Cant find Variable Named '" + (String)Str + "'");
 }
 void SystematicAnalysis::LogCantFindVarMemberError(const Token* Token, String_view Str, const TypeSymbol& OnType)
 {
 	if (OnType.IsBadType()) { return; }
 
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Cant find Member Named '" + (String)Str + "' on type '" + ToString(OnType) +"'");
 }
 
@@ -15139,7 +15223,7 @@ void SystematicAnalysis::LogCantFindCompoundOpForTypes(const Token* BinaryOp, Ty
 {
 	if (Ex1Type.IsBadType() || Ex0Type.IsBadType()) { return; }
 
-	_ErrorsOutput->AddError(ErrorCodes::InValidType, BinaryOp->OnLine, BinaryOp->OnPos,
+	LogError(ErrorCodes::InValidType, BinaryOp->OnLine, BinaryOp->OnPos,
 		"The type '" + ToString(Ex0Type) + "'" + " cant be '"
 		+ ToString(BinaryOp->Type) + "' with '" + ToString(Ex0Type) + "'");
 }
@@ -15148,7 +15232,7 @@ void SystematicAnalysis::LogCantFindPostfixOpForTypes(const Token* BinaryOp, Typ
 {
 	if (Ex0Type.IsBadType()) { return; }
 
-		_ErrorsOutput->AddError(ErrorCodes::InValidType, BinaryOp->OnLine, BinaryOp->OnPos,
+		LogError(ErrorCodes::InValidType, BinaryOp->OnLine, BinaryOp->OnPos,
 			"The type '" + ToString(Ex0Type) + "'" + " cant be '"
 			+ ToString(BinaryOp->Type) + "'");
 }
@@ -15156,40 +15240,40 @@ void SystematicAnalysis::LogCantFindBinaryOpForTypes(const Token* BinaryOp, Type
 {
 	if (Ex1Type.IsBadType() || Ex0Type.IsBadType()) { return; }
 
-	_ErrorsOutput->AddError(ErrorCodes::InValidType, BinaryOp->OnLine, BinaryOp->OnPos,
+	LogError(ErrorCodes::InValidType, BinaryOp->OnLine, BinaryOp->OnPos,
 		"The type '" + ToString(Ex0Type) + "'" + " cant be '"
 		+ ToString(BinaryOp->Type) + "' with '" + ToString(Ex1Type) + "'");
 }
 void SystematicAnalysis::ExpressionMustbeAnLocationValueError(const Token* Token, TypeSymbol& Ex0Type)
 {
 	if (Ex0Type.IsBadType() ) { return; }
-	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos,
+	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos,
 		"expression must be an Location not an Value'" + ToString(Ex0Type) + "'");
 }
 void SystematicAnalysis::YouMustReturnSomethingError(const Token* Token)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
 		, "you must return something");
 }
 void SystematicAnalysis::CantguessVarTypeError(const Token* Token)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
 		, "cant guess 'var' type");
 }
 void SystematicAnalysis::CantUseThisKeyWordHereError(const Token* NameToken)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidType, NameToken->OnLine, NameToken->OnPos, "cant use this here");
+	LogError(ErrorCodes::InValidType, NameToken->OnLine, NameToken->OnPos, "cant use this here");
 }
 void SystematicAnalysis::CantgussTypesTheresnoassignment(const Token* Token)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
 		, "cant guess type theres no '=' [expression]");
 }
 void SystematicAnalysis::LogCantCastExplicityTypes(const Token* Token, TypeSymbol& Ex0Type, TypeSymbol& ToTypeAs)
 {
 	if (Ex0Type.IsBadType() || ToTypeAs.IsBadType()){return;}
 
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Cant Explicity cast Type '" + ToString(Ex0Type) + "' to '" + ToString(ToTypeAs) + "'");
 }
 
@@ -15261,7 +15345,7 @@ void SystematicAnalysis::LogCantFindFuncError(const Token* Token, String_view Fu
 	}
 	Text += "'";
 
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, Text);
 }
 void SystematicAnalysis::LogCantFindPostfixOpForTypes_Constant(const Token* BinaryOp, TypeSymbol& Ex0Type)
@@ -15270,32 +15354,32 @@ void SystematicAnalysis::LogCantFindPostfixOpForTypes_Constant(const Token* Bina
 }
 void SystematicAnalysis::LogCantDoPostfixOpForTypes_Constant(const Token* BinaryOp, TypeSymbol& Ex0Type)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, BinaryOp->OnLine, BinaryOp->OnPos
+	LogError(ErrorCodes::InValidName, BinaryOp->OnLine, BinaryOp->OnPos
 		, "The Type operation '" + ToString(Ex0Type) + "' must be an compile time constant.");
 }
 void SystematicAnalysis::LogCantCastImplicitTypes_Constant(const Token* Token,const TypeSymbol& Ex1Type, const TypeSymbol& UintptrType)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Casting Type '" + ToString(Ex1Type) + " to '" + ToString(UintptrType) + "' cant be done at compile time.");
 }
 void SystematicAnalysis::LogCantFindNamespace(const Token* Token, const String_view Namespace)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
 		, "the cant find the Namespace '" + (String)Namespace + "'.");
 }
 void SystematicAnalysis::LogTypeMustBeAnConstantExpressionAble(const Token* Token, const TypeSymbol& Type)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
 		, "the type " + ToString(Type) + " must be an Constant Expression able type'");
 }
 void SystematicAnalysis::LogCantModifyiMutableError(const Token* Token, String_view Name)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Cant modify '" + (String)Name + "' it's immutable");
 }
 void SystematicAnalysis::LogCantFindTypeError(const Token* Token, String_view Name)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Cant Find Type '" + (String)Name + "'");
 }
 void SystematicAnalysis::LogTypeDependencyCycle(const Token* Token, const ClassInfo* Value)
@@ -15313,14 +15397,14 @@ void SystematicAnalysis::LogTypeDependencyCycle(const Token* Token, const ClassI
 		}
 	}
 	Msg += ".";
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, Msg);
 
 	
 }
 void SystematicAnalysis::LogCantUseThisHere(const Token* Token)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		,"Cant Find Type for '" + (String)StringHelper::ToString(TokenType::KeyWord_This) + "'");
 }
 void SystematicAnalysis::LogCanIncorrectParCount(const Token* Token, String_view FuncName, size_t Count, size_t FuncCount)
@@ -15338,7 +15422,7 @@ void SystematicAnalysis::LogCanIncorrectParCount(const Token* Token, String_view
 
 	Msg += "Wanted " + std::to_string(FuncCount) + " parameters Found " + std::to_string(Count);
 
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, Msg);
 }
 void SystematicAnalysis::LogCanIncorrectGenericCount(const Token* Token, String_view FuncName, size_t Count, size_t FuncCount)
@@ -15356,41 +15440,41 @@ void SystematicAnalysis::LogCanIncorrectGenericCount(const Token* Token, String_
 
 	Msg += "Wanted " + std::to_string(FuncCount) + " Generic types Found " + std::to_string(Count);
 
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, Msg);
 }
 void SystematicAnalysis::LogFuncMustBe(const Token* Token, const String_view FuncName, TypeSymbol& TypeSybToBe)
 {
 
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		,"The function named " + (String)FuncName + " must return to the type of '" + ToString(TypeSybToBe) + '\'');
 }
 void SystematicAnalysis::LogSymbolRedefinition(const Token* Token, const Symbol* Symbol)
 {
 
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "the symbol '"+  Symbol->FullName + "\' is already define. try useing a different name");
 }
 void SystematicAnalysis::LogUseingVarableBeforDeclared(const Token* Token)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "trying to use the varable '" + (String)Token->Value._String + "\' before its defined.");
 }
 void SystematicAnalysis::LogBeMoreSpecifiicForRetType(const String_view FuncName, const Token* Token)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "be more Specifiic For return Type. like |" + (String)FuncName + "[...] -> [Type]; or give the funcion a body.");
 }
 void SystematicAnalysis::LogCantBeIndexWithType(const Token* Token, const  TypeSymbol& Ex0Type, const  TypeSymbol& IndexType)
 {
 	if (Ex0Type.IsBadType() || IndexType.IsBadType()) { return; }
 
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "The Type '" + ToString(Ex0Type) + "\' Cant be Index with '" + ToString(IndexType) + "'.");
 }
 void SystematicAnalysis::LogCantUseThisInStaticFunction(const Token* Token)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "The 'this' parameter can't be accessed in a static function.A 'this' function must look like |[this&,...] -> [Type];");
 }
 void SystematicAnalysis::LogFuncDependencyCycle(const Token* Token, const FuncInfo* Value)
@@ -15413,25 +15497,25 @@ void SystematicAnalysis::LogFuncDependencyCycle(const Token* Token, const FuncIn
 		}
 	}
 	Msg += ".";
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, Msg);
 
 }
 void SystematicAnalysis::LogGenericInputWantsaExpressionNotType(const Token* Token, const String_view NameOfPar)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Generic The generic parameter '" + (String)NameOfPar + "' Wants a Expression not a Type.");
 }
 void SystematicAnalysis::LogGenericInputWantsaTypeNotExpression(const Token* Token, const String_view NameOfPar)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Generic The generic parameter '" + (String)NameOfPar + "'Type Wants a  not a Expression.");
 
 }
 
 void SystematicAnalysis::LogExpectedSymbolToBea(const Token* Token, const Symbol& Syb, SymbolType Value)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Did not expect Symbol the Symbol '" + Syb.FullName + "' to be '" + ToString(Syb.Type) + 
 		"' .Expected '" + ToString(Value) + '\'');
 
@@ -15440,28 +15524,29 @@ String SystematicAnalysis::ToString(SymbolType Value)
 {
 	switch (Value)
 	{
-	case UCodeLang::FrontEnd::SymbolType::Null:return "null";
-	case UCodeLang::FrontEnd::SymbolType::Any:return "Any";
-	case UCodeLang::FrontEnd::SymbolType::Varable_t:return "Varable_t";
-	case UCodeLang::FrontEnd::SymbolType::StackVarable:return "StackVarable";
-	case UCodeLang::FrontEnd::SymbolType::ParameterVarable:return "ParameterVarable";
-	case UCodeLang::FrontEnd::SymbolType::Type:return "Type";
-	case UCodeLang::FrontEnd::SymbolType::Type_alias:return "Type_alias";
-	case UCodeLang::FrontEnd::SymbolType::Hard_Type_alias:return "Hard_Type_alias";
-	case UCodeLang::FrontEnd::SymbolType::Type_class:return "Type_class";
-	case UCodeLang::FrontEnd::SymbolType::Class_Field:return "Class_Field";
-	case UCodeLang::FrontEnd::SymbolType::Enum:return "Enum";
-	case UCodeLang::FrontEnd::SymbolType::Func:return "Func";
-	case UCodeLang::FrontEnd::SymbolType::ImportedDllFunc:return "ImportedDllFunc";
-	case UCodeLang::FrontEnd::SymbolType::ImportedLibFunc:return "ImportedLibFunc";
-	case UCodeLang::FrontEnd::SymbolType::FuncCall:return "FuncCall";
-	case UCodeLang::FrontEnd::SymbolType::GenericFunc:return "GenericFunc";
-	case UCodeLang::FrontEnd::SymbolType::Generic_class:return"Generic_class";
-	case UCodeLang::FrontEnd::SymbolType::Unmaped_Generic_Type:return "Unmaped_Generic_Type";
-	case UCodeLang::FrontEnd::SymbolType::Namespace:return "Namespace";
-	case UCodeLang::FrontEnd::SymbolType::Hard_Func_ptr:return "Hard_Func_ptr";
-	case UCodeLang::FrontEnd::SymbolType::Func_ptr:return "Func_ptr";
-	case UCodeLang::FrontEnd::SymbolType::ConstantExpression:return "ConstantExpression";
+	case SymbolType::Null:return "null";
+	case SymbolType::Any:return "Any";
+	case SymbolType::Varable_t:return "Varable_t";
+	case SymbolType::StackVarable:return "StackVarable";
+	case SymbolType::ParameterVarable:return "ParameterVarable";
+	case SymbolType::Type:return "Type";
+	case SymbolType::Type_alias:return "Type_alias";
+	case SymbolType::Hard_Type_alias:return "Hard_Type_alias";
+	case SymbolType::Type_class:return "Type_class";
+	case SymbolType::Class_Field:return "Class_Field";
+	case SymbolType::Enum:return "Enum";
+	case SymbolType::Func:return "Func";
+	case SymbolType::ImportedDllFunc:return "ImportedDllFunc";
+	case SymbolType::ImportedLibFunc:return "ImportedLibFunc";
+	case SymbolType::FuncCall:return "FuncCall";
+	case SymbolType::GenericFunc:return "GenericFunc";
+	case SymbolType::Generic_class:return"Generic_class";
+	case SymbolType::Unmaped_Generic_Type:return "Unmaped_Generic_Type";
+	case SymbolType::Unmaped_Varable:return "Unmaped_Varable";
+	case SymbolType::Namespace:return "Namespace";
+	case SymbolType::Hard_Func_ptr:return "Hard_Func_ptr";
+	case SymbolType::Func_ptr:return "Func_ptr";
+	case SymbolType::ConstantExpression:return "ConstantExpression";
 	default:return "[n/a]";
 	}
 }
@@ -15480,44 +15565,44 @@ void SystematicAnalysis::LogCanIncorrectStaticArrCount(const Token* Token, const
 
 	Msg += "Wanted " + std::to_string(FuncCount) + " Values Found " + std::to_string(Count);
 
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, Msg);
 }
 void SystematicAnalysis::LogBeMoreSpecifiicWithStaticArrSize(const Token* Token, const TypeSymbol& Type)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Be More Specifiic with Static Array Size.Ex: " + ToString(Type) + "[/1]");
 }
 void SystematicAnalysis::LogWantedAVariable(const Token* const& Item,Symbol* TepSyb)
 {
-	_ErrorsOutput->AddError(ErrorCodes::BackEndError, Item->OnLine, Item->OnPos,
+	LogError(ErrorCodes::BackEndError, Item->OnLine, Item->OnPos,
 		"found a " + ToString(TepSyb->Type) + "(" + TepSyb->FullName + ")" + ".but wanted a Variable or a class field");
 }
 
 void SystematicAnalysis::LogBinaryOverloadPars(const Token& Name, const FuncInfo* Func)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidType, Name.OnLine, Name.OnPos
+	LogError(ErrorCodes::InValidType, Name.OnLine, Name.OnPos
 		, "The Binary Overload '" + ToString(Name.Type) + "'" + " must have 2 paameters it has " + std::to_string(Func->Pars.size()) + " Pameters");
 }
 void SystematicAnalysis::LogIndexOverloadPars(const Token& Name, const FuncInfo* Func)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidType, Name.OnLine, Name.OnPos
+	LogError(ErrorCodes::InValidType, Name.OnLine, Name.OnPos
 		, "The Index Overload '" + ToString(Name.Type) + "'" + " must have 2 paameters it has " + std::to_string(Func->Pars.size()) + " Pameters");
 }
 void SystematicAnalysis::LogPostfixOverloadPars(const Token& Name, const FuncInfo* Func)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidType, Name.OnLine, Name.OnPos
+	LogError(ErrorCodes::InValidType, Name.OnLine, Name.OnPos
 		, "The Index Overload '" + ToString(Name.Type) + "'" + " must have 1 paameters it has " + std::to_string(Func->Pars.size()) + " Pameters");
 }
 
 void SystematicAnalysis::LogCantOverLoadOverload(const UCodeLang::Token* NameToken)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, NameToken->OnLine, NameToken->OnPos, "You may not Overload '" + ToString(NameToken->Type) + "'.");
+	LogError(ErrorCodes::InValidName, NameToken->OnLine, NameToken->OnPos, "You may not Overload '" + ToString(NameToken->Type) + "'.");
 }
 
 void SystematicAnalysis::LogCantFindMemberOverloadForType(const Token* Item, TokenType Op, const TypeSymbol& Out)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, Item->OnLine, Item->OnPos
+	LogError(ErrorCodes::InValidName, Item->OnLine, Item->OnPos
 		, "Cant find operator overload for '" + ToString(Op) + "' For Type " + ToString(Out));
 
 }
@@ -15538,60 +15623,83 @@ void SystematicAnalysis::LogMustMakeEnumLikeafuncion(EnumInfo* Einfo, size_t Ind
 	}
 
 	Msg += ")";
-	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos,
+	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos,
 		Msg);
 }
 void SystematicAnalysis::LogCantUseMoveTypeHere(const UCodeLang::Token* Token)
 {
 
-	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Cant use moved Type Here.it can only be used in Parameters");
+	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Cant use moved Type Here.it can only be used in Parameters");
 }
 void SystematicAnalysis::LogDynamicMustBeRrait(const TypeNode& V,const TypeSymbol& Out)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidType, V.Name.Token->OnLine, V.Name.Token->OnPos, "useing a Dynamic type on a none trait the type found '" + ToString(Out) + "'");
+	LogError(ErrorCodes::InValidType, V.Name.Token->OnLine, V.Name.Token->OnPos, "useing a Dynamic type on a none trait the type found '" + ToString(Out) + "'");
 }
 void SystematicAnalysis::TraitCantBeAlone(const UCodeLang::Token* Token)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "the Type uses a Trait.but Traits cant be use alone.");
+	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "the Type uses a Trait.but Traits cant be use alone.");
 }
 
 void SystematicAnalysis::LogWantedAType(const UCodeLang::FrontEnd::TypeNode& V, UCodeLang::FrontEnd::Symbol* SybV)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidType, V.Name.Token->OnLine, V.Name.Token->OnPos,
+	LogError(ErrorCodes::InValidType, V.Name.Token->OnLine, V.Name.Token->OnPos,
 		"found a '" + ToString(SybV->Type) + "' for the Symbol " + SybV->FullName + " but wanted a type");
 }
 void SystematicAnalysis::LogOutCanOnlyBeInControlFlow(const UCodeLang::Token* Token)
 {
 
-	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "The 'out' can only be used in Control flow like if");
+	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "The 'out' can only be used in Control flow like if");
 }
 void SystematicAnalysis::LogParamterMustBeAnOutExpression(const UCodeLang::Token* Token, const size_t& i)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "parameter '" + std::to_string(i) + "' does not use the out keyword");
+	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "parameter '" + std::to_string(i) + "' does not use the out keyword");
 }
 void SystematicAnalysis::LogParPackIsNotLast(const UCodeLang::Token* Token)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Parameter  named '" + (String)Token->Value._String + "' is useing a Parameter pact.But Parameter pact must be last Paramter");
+	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Parameter  named '" + (String)Token->Value._String + "' is useing a Parameter pact.But Parameter pact must be last Paramter");
 }
 void SystematicAnalysis::LogParPackTypeIsNotLast(const UCodeLang::Token* Token)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Type Pack named '" + (String)Token->Value._String + "' is not declarded last.");
+	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Type Pack named '" + (String)Token->Value._String + "' is not declarded last.");
 }
 void SystematicAnalysis::LogUseingTypeinfoInNonEvalVarable(const UCodeLang::Token* Token)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "Trying to use typeinfo in a Non-eval Varable");
+	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "Trying to use typeinfo in a Non-eval Varable");
 }
 void SystematicAnalysis::LogUseingTypeinfoInEvalFuncPar(const UCodeLang::Token* Token)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "Trying to use typeinfo in a Non-eval Func");
+	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "Trying to use typeinfo in a Non-eval Func");
 }
 void SystematicAnalysis::LogCantOutputTypeinfo(const UCodeLang::Token* Token)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Cant Output IR of an typeinfo. place this in an eval funcion or an eval varable");
+	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Cant Output IR of an typeinfo. place this in an eval funcion or an eval varable");
 }
 void SystematicAnalysis::LogCantUseTypeVoidHere(const UCodeLang::Token* Token)
 {
-	_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Cant use type void here");
+	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Cant use type void here");
+}
+void SystematicAnalysis::LogError(ErrorCodes Err,const String& MSG, const Token* Token)
+{
+	LogError(Err, Token->OnLine, Token->OnPos, MSG);
+}
+void SystematicAnalysis::LogError(ErrorCodes Err, size_t Line, size_t Pos, const String& MSG)
+{
+	String Str;
+	size_t Added = 0;
+	for (auto& Item : _ExtendedErr)
+	{
+		Str += Item + ": \n";
+
+		Added++;
+
+		for (size_t i = 0; i < Added; i++)
+		{
+			Str += "-";
+		}
+	}
+	Str += MSG;
+
+	_ErrorsOutput->AddError(Err, Line, Pos,Str);
 }
 UCodeLangFrontEnd
 
