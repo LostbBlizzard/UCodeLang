@@ -4673,7 +4673,7 @@ void SystematicAnalysis::OnStatement(const Node& node2)
 	{
 	case NodeType::AttributeNode:OnAttributeNode(*AttributeNode::As(&node2)); break;
 	case NodeType::ClassNode: OnClassNode(*ClassNode::As(&node2)); break;
-	//case NodeType::AliasNode:OnAliasNode(*AliasNode::As(&node2)); break;
+	case NodeType::AliasNode:OnAliasNode(*AliasNode::As(&node2)); break;
 	case NodeType::EnumNode:OnEnum(*EnumNode::As(&node2)); break;
 	case NodeType::UsingNode: OnUseingNode(*UsingNode::As(&node2)); break;
 	case NodeType::DeclareVariableNode:OnDeclareVariablenode(*DeclareVariableNode::As(&node2),DeclareStaticVariableNode_t::Stack); break;
