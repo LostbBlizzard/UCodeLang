@@ -961,12 +961,17 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 	}
 	
 	
-	if (!Isgeneric_t || (Isgeneric_t && (passtype == PassType::GetTypes || passtype == PassType::FixedTypes)))
+	bool CheckgenericForErr = (Isgeneric_t && (passtype == PassType::GetTypes || passtype == PassType::FixedTypes));
+	if (!Isgeneric_t || CheckgenericForErr)
 	{
-		
+		if (CheckgenericForErr)
+		{
+			_Table.AddScope(CompilerGenerated("___GenericTest"));
+		}
 		_ClassStack.push({ ClassInf });
 		PushClassDependencie(ClassInf);
 
+		
 		//if (passtype == PassType::GetTypes)
 		{
 			//PushTepAttributesInTo(Class._Class.Attributes);
@@ -1014,6 +1019,10 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 
 		_ClassStack.pop();
 
+		if (CheckgenericForErr)
+		{
+			_Table.RemoveScope();
+		}
 	}
 	else
 	{
@@ -1669,13 +1678,13 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 	bool buidCode = passtype == PassType::BuidCode;
 	bool ignoreBody = !IsgenericInstantiation && IsGenericS;
-
-
+	
+	
 	if (buidCode && !ignoreBody)
 	{
 		bool IsBuildingIR = true;
 		auto DecName = MangleName(Info);
-		
+
 		if (IsBuildingIR)
 		{
 
@@ -1820,7 +1829,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 					LookingAtIRFunc->Linkage = IRFuncLink::StaticExternalLink;
 				}
 			}
-			
+
 		}
 
 
@@ -1855,7 +1864,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		}
 		//
 
-		if (IsBuildingIR) 
+		if (IsBuildingIR)
 		{
 			if (FuncType == FuncInfo::FuncType::New)
 			{
@@ -1874,6 +1883,15 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		//
 	}
 
+
+	bool CheckGeneric = IsGenericS && (passtype == PassType::GetTypes || passtype == PassType::FixedTypes);
+
+	if (CheckGeneric)
+	{
+		ignoreBody = false;
+		_Table.AddScope(CompilerGenerated("___GenericTest"));
+	}
+
 	if (node.Body.has_value() && !ignoreBody)
 	{
 		auto& Body = node.Body.value();
@@ -1881,6 +1899,10 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		syb->VarType = Info->Ret;
 	}
 
+	if (CheckGeneric)
+	{
+		_Table.RemoveScope();
+	}
 
 	if (buidCode && !ignoreBody)
 	{

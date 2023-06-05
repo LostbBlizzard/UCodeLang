@@ -28,6 +28,14 @@ $Cool:
 
 $CString = umut char[&];
 
+$Vec<T>:
+ int A;
+ int A;
+
+|Func<T>[]:
+ int A;
+ int A;
+
 |main[]:
 
  eval typeinfo TypeCool = type(Cool);
