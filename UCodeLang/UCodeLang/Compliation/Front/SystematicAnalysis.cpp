@@ -3675,6 +3675,15 @@ TypeSymbol SystematicAnalysis::GetUnMapType()
 	return TypeSymbol(UnMapTypeSybol.value());
 
 }
+bool SystematicAnalysis::IsUnMapType(const TypeSymbol& Type)
+{
+	auto Syb = GetSymbol(Type);
+	if (Syb)
+	{
+		return Syb->Type == SymbolType::Unmaped_Generic_Type;
+	}
+	return {};
+}
 void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 {
 	if (passtype == PassType::GetTypes)
@@ -15187,7 +15196,8 @@ void SystematicAnalysis::LogEmptyInvalidError(const Token* Token)
 
 void SystematicAnalysis::LogCantCastImplicitTypes(const Token* Token, const TypeSymbol& Ex1Type, const TypeSymbol& UintptrType, bool ReassignMode)
 {
-	if (Ex1Type.IsBadType() || UintptrType.IsBadType()) { return; }
+	if (Ex1Type.IsBadType() || UintptrType.IsBadType()
+		|| IsUnMapType(UintptrType) || IsUnMapType(Ex1Type)) { return; }
 
 	bool V1 = IsAddessAndLValuesRulesfollowed(Ex1Type, UintptrType, ReassignMode);
 	if (!V1 || CanDoTypeToTrait(Ex1Type, UintptrType))
@@ -15213,7 +15223,7 @@ void SystematicAnalysis::LogCantFindVarError(const Token* Token, String_view Str
 }
 void SystematicAnalysis::LogCantFindVarMemberError(const Token* Token, String_view Str, const TypeSymbol& OnType)
 {
-	if (OnType.IsBadType()) { return; }
+	if (OnType.IsBadType() || IsUnMapType(OnType)) { return; }
 
 	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Cant find Member Named '" + (String)Str + "' on type '" + ToString(OnType) +"'");
@@ -15221,7 +15231,8 @@ void SystematicAnalysis::LogCantFindVarMemberError(const Token* Token, String_vi
 
 void SystematicAnalysis::LogCantFindCompoundOpForTypes(const Token* BinaryOp, TypeSymbol& Ex0Type, TypeSymbol& Ex1Type)
 {
-	if (Ex1Type.IsBadType() || Ex0Type.IsBadType()) { return; }
+	if (Ex1Type.IsBadType() || Ex0Type.IsBadType() 
+		|| IsUnMapType(Ex0Type) || IsUnMapType(Ex1Type)) { return; }
 
 	LogError(ErrorCodes::InValidType, BinaryOp->OnLine, BinaryOp->OnPos,
 		"The type '" + ToString(Ex0Type) + "'" + " cant be '"
@@ -15230,7 +15241,7 @@ void SystematicAnalysis::LogCantFindCompoundOpForTypes(const Token* BinaryOp, Ty
 
 void SystematicAnalysis::LogCantFindPostfixOpForTypes(const Token* BinaryOp, TypeSymbol& Ex0Type)
 {
-	if (Ex0Type.IsBadType()) { return; }
+	if (Ex0Type.IsBadType() || IsUnMapType(Ex0Type)) { return; }
 
 		LogError(ErrorCodes::InValidType, BinaryOp->OnLine, BinaryOp->OnPos,
 			"The type '" + ToString(Ex0Type) + "'" + " cant be '"
@@ -15238,7 +15249,8 @@ void SystematicAnalysis::LogCantFindPostfixOpForTypes(const Token* BinaryOp, Typ
 }
 void SystematicAnalysis::LogCantFindBinaryOpForTypes(const Token* BinaryOp, TypeSymbol& Ex0Type, TypeSymbol& Ex1Type)
 {
-	if (Ex1Type.IsBadType() || Ex0Type.IsBadType()) { return; }
+	if (Ex1Type.IsBadType() || Ex0Type.IsBadType()
+		|| IsUnMapType(Ex1Type) || IsUnMapType(Ex0Type)) { return; }
 
 	LogError(ErrorCodes::InValidType, BinaryOp->OnLine, BinaryOp->OnPos,
 		"The type '" + ToString(Ex0Type) + "'" + " cant be '"
@@ -15246,7 +15258,7 @@ void SystematicAnalysis::LogCantFindBinaryOpForTypes(const Token* BinaryOp, Type
 }
 void SystematicAnalysis::ExpressionMustbeAnLocationValueError(const Token* Token, TypeSymbol& Ex0Type)
 {
-	if (Ex0Type.IsBadType() ) { return; }
+	if (Ex0Type.IsBadType() || IsUnMapType(Ex0Type)) { return; }
 	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos,
 		"expression must be an Location not an Value'" + ToString(Ex0Type) + "'");
 }
@@ -15271,7 +15283,8 @@ void SystematicAnalysis::CantgussTypesTheresnoassignment(const Token* Token)
 }
 void SystematicAnalysis::LogCantCastExplicityTypes(const Token* Token, TypeSymbol& Ex0Type, TypeSymbol& ToTypeAs)
 {
-	if (Ex0Type.IsBadType() || ToTypeAs.IsBadType()){return;}
+	if (Ex0Type.IsBadType() || ToTypeAs.IsBadType()
+		|| IsUnMapType(Ex0Type) || IsUnMapType(ToTypeAs)){return;}
 
 	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Cant Explicity cast Type '" + ToString(Ex0Type) + "' to '" + ToString(ToTypeAs) + "'");
@@ -15694,11 +15707,14 @@ void SystematicAnalysis::LogError(ErrorCodes Err, size_t Line, size_t Pos, const
 
 		for (size_t i = 0; i < Added; i++)
 		{
-			Str += "-";
+			Str += "  ";
 		}
 	}
+	
+
 	Str += MSG;
 
+	
 	_ErrorsOutput->AddError(Err, Line, Pos,Str);
 }
 UCodeLangFrontEnd

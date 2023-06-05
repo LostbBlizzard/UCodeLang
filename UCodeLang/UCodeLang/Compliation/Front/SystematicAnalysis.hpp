@@ -835,6 +835,7 @@ private:
 
 	Optional<SymbolID> UnMapTypeSybol;
 	TypeSymbol GetUnMapType();
+	bool IsUnMapType(const TypeSymbol& Type);
 
 	void OnImportNode(const ImportStatement& node);
 
