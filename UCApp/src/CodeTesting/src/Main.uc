@@ -22,7 +22,8 @@
 
 $Cool:
  int A;
- char B;
+ int8 B;
+ int16 C;
 
 $CString = umut char[&];
 
@@ -31,6 +32,7 @@ $CString = umut char[&];
  eval typeinfo TypeCool = type(Cool);
  if TypeCool.GetClassInfo(out typeinfo ClassTypeValue):
   $for [var Item : ClassTypeValue.GetFields()]:
-    bind(Item.Type()) V = [];
+    $FieldType = bind(Item.Type());
+    FieldType V = Item.Offset() -> FieldType;
 
  ret 0; 
