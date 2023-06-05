@@ -6124,7 +6124,8 @@ bool SystematicAnalysis::StepGetMemberTypeSymbolFromVar(const ScopedNameNode& no
 		|| OpType == ScopedName::Operator_t::Dot)
 	{
 
-		if (Out.Symbol->Type == SymbolType::Type_class)
+		if (Out.Symbol->Type == SymbolType::Type_class
+			 || Out.Symbol->Type == SymbolType::Generic_class)
 		{
 			ClassInfo* CInfo = Out.Symbol->Get_Info<ClassInfo>();
 
@@ -6136,6 +6137,8 @@ bool SystematicAnalysis::StepGetMemberTypeSymbolFromVar(const ScopedNameNode& no
 				{
 					LogCantFindVarMemberError(ItemToken, ItemTokenString, Out.Type);
 				}
+				Out.Symbol = nullptr;
+				Out.Type = TypesEnum::Null;
 				return false;
 			}
 
@@ -6167,6 +6170,9 @@ bool SystematicAnalysis::StepGetMemberTypeSymbolFromVar(const ScopedNameNode& no
 					{
 						LogCantFindVarMemberError(Token2, Str2, Out.Type);
 					}
+
+					Out.Symbol = nullptr;
+					Out.Type = TypesEnum::Null;
 					return false;
 				}
 			}
@@ -6192,6 +6198,9 @@ bool SystematicAnalysis::StepGetMemberTypeSymbolFromVar(const ScopedNameNode& no
 				{
 					LogCantFindVarMemberError(ItemToken, ItemTokenString, Out.Type);
 				}
+
+				Out.Symbol = nullptr;
+				Out.Type = TypesEnum::Null;
 				return false;
 			}
 			else if (Einfo->VariantData)
@@ -6204,6 +6213,10 @@ bool SystematicAnalysis::StepGetMemberTypeSymbolFromVar(const ScopedNameNode& no
 				{
 
 					LogMustMakeEnumLikeafuncion(Einfo, FeldInfo.value(), ItemToken);
+
+
+					Out.Symbol = nullptr;
+					Out.Type = TypesEnum::Null;
 					return false;
 				}
 			}
@@ -6218,6 +6231,9 @@ bool SystematicAnalysis::StepGetMemberTypeSymbolFromVar(const ScopedNameNode& no
 				{
 					LogCantFindVarMemberError(Token2, Str2, Out.Type);
 				}
+
+				Out.Symbol = nullptr;
+				Out.Type = TypesEnum::Null;
 				return false;
 			}
 
@@ -6252,6 +6268,9 @@ bool SystematicAnalysis::StepGetMemberTypeSymbolFromVar(const ScopedNameNode& no
 				{
 					LogCantFindVarMemberError(Token2, Str2, Out.Type);
 				}
+
+				Out.Symbol = nullptr;
+				Out.Type = TypesEnum::Null;
 				return false;
 			}
 
@@ -6288,6 +6307,9 @@ bool SystematicAnalysis::StepGetMemberTypeSymbolFromVar(const ScopedNameNode& no
 				if (TypeAsSybol->Type != SymbolType::Type_class)
 				{
 					LogCantFindVarMemberError(ItemToken, ItemTokenString, Out.Type);
+
+					Out.Symbol = nullptr;
+					Out.Type = TypesEnum::Null;
 					return false;
 				}
 				ClassInfo* CInfo = TypeAsSybol->Get_Info<ClassInfo>();
@@ -6300,6 +6322,9 @@ bool SystematicAnalysis::StepGetMemberTypeSymbolFromVar(const ScopedNameNode& no
 					{
 						LogCantFindVarMemberError(ItemToken, ItemTokenString, Out.Type);
 					}
+
+					Out.Symbol = nullptr;
+					Out.Type = TypesEnum::Null;
 					return false;
 				}
 
@@ -6332,6 +6357,9 @@ bool SystematicAnalysis::StepGetMemberTypeSymbolFromVar(const ScopedNameNode& no
 						{
 							LogCantFindVarMemberError(Token2, Str2, Out.Type);
 						}
+
+						Out.Symbol = nullptr;
+						Out.Type = TypesEnum::Null;
 						return false;
 					}
 				}
@@ -6353,10 +6381,13 @@ bool SystematicAnalysis::StepGetMemberTypeSymbolFromVar(const ScopedNameNode& no
 					{
 						LogCantFindVarMemberError(Token2, Str2, VarableType);
 					}
+
+					Out.Symbol = nullptr;
+					Out.Type = TypesEnum::Null;
 					return false;
 				}
 			}
-
+			 
 		}
 		else
 		{
@@ -6809,7 +6840,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 			}
 
 
-			
+
 			if (IsWrite(Mod))
 			{
 				CheckVarWritingErrors(SymbolVar, Token, String_view(Str));
@@ -6839,6 +6870,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 			if (!IsInThisFuncCall())
 			{
 				LogCantUseThisInStaticFunction(node.ScopedName[Start].token);
+				return false;
 			}
 
 
@@ -6859,77 +6891,87 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 	}
 
 
+	bool BadValue = false;
 	for (size_t i = Start; i < node.ScopedName.size(); i++)
 	{
 		if (i > End) { break; }
 		ScopedCount++;
 
 		ScopedName::Operator_t OpType = i == 0 ? ScopedName::Operator_t::Null : node.ScopedName[i - 1].Operator;
-		StepGetMemberTypeSymbolFromVar(node, i, OpType, Out);
-	}
-
-	Out.Start = &node.ScopedName[Start - 1];
-	Out.End = ScopedCount;
-	if (End == -1)
-	{
-		Out.End++;//i dont know why this needed its most likely its us useing two diff funcs for the same thing to get the start off syb.
-	}
-
-	{
-		auto OldTepSyb = Out.Symbol;
-		auto ConstExCheck = Out.Symbol;
-		while (ConstExCheck &&
-			(ConstExCheck->Type == SymbolType::Type_alias || ConstExCheck->Type == SymbolType::Hard_Type_alias))
+		if (StepGetMemberTypeSymbolFromVar(node, i, OpType, Out) == false)
 		{
-			ConstExCheck = GetSymbol(ConstExCheck->VarType);
-		}
-		if (ConstExCheck == nullptr)
-		{
-			Out.Symbol = OldTepSyb;
-
-		}
-		else
-		if (ConstExCheck->Type == SymbolType::ConstantExpression)
-		{
-			ConstantExpressionInfo* ConstInfo = ConstExCheck->Get_Info<ConstantExpressionInfo>();
-
-			Out.Type = ConstExCheck->VarType;
-			Out.Symbol = ConstExCheck;
+			BadValue = true;
+			continue;
 		}
 	}
-
-	if (!(Out.Symbol->Type ==SymbolType::Class_Field
-		|| Out.Symbol->Type == SymbolType::Enum_Field
-		|| Out.Symbol->Type == SymbolType::Func
-		|| Out.Symbol->Type == SymbolType::ConstantExpression
-		|| IsVarableType(Out.Symbol->Type)))
+	if (BadValue == false)
 	{
-		
-		if (passtype == PassType::FixedTypes)
+		Out.Start = &node.ScopedName[Start - 1];
+		Out.End = ScopedCount;
+		if (End == -1)
+		{
+			Out.End++;//i dont know why this needed its most likely its us useing two diff funcs for the same thing to get the start off syb.
+		}
+
+		{
+			auto OldTepSyb = Out.Symbol;
+			auto ConstExCheck = Out.Symbol;
+			while (ConstExCheck &&
+				(ConstExCheck->Type == SymbolType::Type_alias || ConstExCheck->Type == SymbolType::Hard_Type_alias))
+			{
+				ConstExCheck = GetSymbol(ConstExCheck->VarType);
+			}
+			if (ConstExCheck == nullptr)
+			{
+				Out.Symbol = OldTepSyb;
+
+			}
+			else if (ConstExCheck->Type == SymbolType::ConstantExpression)
+			{
+				ConstantExpressionInfo* ConstInfo = ConstExCheck->Get_Info<ConstantExpressionInfo>();
+
+				Out.Type = ConstExCheck->VarType;
+				Out.Symbol = ConstExCheck;
+			}
+		}
+
+		if (!(Out.Symbol->Type == SymbolType::Class_Field
+			|| Out.Symbol->Type == SymbolType::Enum_Field
+			|| Out.Symbol->Type == SymbolType::Func
+			|| Out.Symbol->Type == SymbolType::ConstantExpression
+			|| IsVarableType(Out.Symbol->Type)))
+		{
+
+			if (passtype == PassType::FixedTypes)
+			{
+				auto& Item = node.ScopedName.back().token;
+				LogWantedAVariable(Item, Out.Symbol);
+			}
+			Out.Type.SetType(TypesEnum::Null);
+			Out.Symbol = nullptr;
+
+			return false;
+		}
+
+		if (IsWrite(Mod) && !(Out.Symbol->Type == SymbolType::Class_Field || IsVarableType(Out.Symbol->Type)))
 		{
 			auto& Item = node.ScopedName.back().token;
-			LogWantedAVariable(Item, Out.Symbol);
+			LogError(ErrorCodes::InValidType, Item->OnLine, Item->OnPos, "You Cant Write to a " + ToString(Out.Symbol->Type));
 		}
-		Out.Type.SetType(TypesEnum::Null);
-		Out.Symbol = nullptr;
-		
+
+
+
+		if (_Varable.size())
+		{
+			auto& Data = _Varable.top();
+			Data._UsedSymbols.push_back(Out.Symbol);
+		}
+		return true;
+	}
+	else
+	{
 		return false;
 	}
-
-	if (IsWrite(Mod) && !(Out.Symbol->Type == SymbolType::Class_Field || IsVarableType(Out.Symbol->Type)) )
-	{
-		auto& Item = node.ScopedName.back().token;
-		LogError(ErrorCodes::InValidType, Item->OnLine, Item->OnPos, "You Cant Write to a " + ToString(Out.Symbol->Type));
-	}
-
-
-
-	if (_Varable.size())
-	{
-		auto& Data = _Varable.top();
-		Data._UsedSymbols.push_back(Out.Symbol);
-	}
-	return true;
 }
 void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 {
