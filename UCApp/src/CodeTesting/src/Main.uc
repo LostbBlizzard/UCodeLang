@@ -24,6 +24,7 @@ $Cool:
  int A;
  int8 B;
  int16 C;
+ int64 D;
 
 $CString = umut char[&];
 

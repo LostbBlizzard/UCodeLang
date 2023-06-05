@@ -225,6 +225,7 @@ enum class SymbolType: UInt8
 	GenericFunc,
 	Generic_class,
 	Unmaped_Generic_Type,
+	Unmaped_Varable,
 	Namespace,
 
 	Hard_Func_ptr,//no one will use this

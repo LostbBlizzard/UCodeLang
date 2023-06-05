@@ -477,6 +477,7 @@ private:
 		const FuncInfo* Func = nullptr;
 		Symbol* SymFunc = nullptr;
 		Optional<Systematic_BuiltInFunctions::Func> _BuiltFunc;
+		bool CantCheckBecauseIsUnMaped = false;
 		bool HasFunc()
 		{
 			return Func || _BuiltFunc.has_value();
@@ -666,11 +667,11 @@ private:
 	//Funcs
 	void AddExtendedErr(String Err,const Token* token)
 	{
-
+		_ExtendedErr.push_back(Err + ". On line " + std::to_string(token->OnLine));
 	}
 	void PopExtendedErr()
 	{
-
+		_ExtendedErr.pop_back();
 	}
 
 	void BuildLibs();
@@ -830,6 +831,10 @@ private:
 	void OnCompileTimeIfNode(const CompileTimeIfNode& node);
 
 	void OnCompileTimeforNode(const CompileTimeForNode& node);
+	void CompileTimeforNodeEvaluateStatements(const CompileTimeForNode& node);
+
+	Optional<SymbolID> UnMapTypeSybol;
+	TypeSymbol GetUnMapType();
 
 	void OnImportNode(const ImportStatement& node);
 
@@ -1372,6 +1377,8 @@ private:
 	void LogEmptyInvalidError(const Token* Token);
 	void LogParPackIsNotLast(const Token* Token);
 	void LogParPackTypeIsNotLast(const Token* Token);
+	void LogError(ErrorCodes Err, const String& MSG, const Token* Token);
+	void LogError(ErrorCodes Err,size_t Line,size_t Pos, const String& MSG);
 
 	String ToString(SymbolType Value);
 	ReadVarErrorCheck_t LogTryReadVar(String_view VarName, const Token* Token, const Symbol* Syb);
