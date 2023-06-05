@@ -3360,7 +3360,7 @@ String SystematicAnalysis::GetTraitVStructTableName(const String& TraitName)
 {
 	return TraitName + "vtable_type";
 }
-void SystematicAnalysis::InheritTrait(const Symbol* Syb, ClassInfo* ClassInfo, Symbol* Trait, const Token* ClassNameToken)
+void SystematicAnalysis::InheritTrait(const Symbol* Syb, ClassInfo* ClassInfo,const Symbol* Trait, const Token* ClassNameToken)
 {
 	const TraitInfo* Traitinfo = Trait->Get_Info<TraitInfo>();
 
@@ -3468,6 +3468,9 @@ void SystematicAnalysis::InheritTrait(const Symbol* Syb, ClassInfo* ClassInfo, S
 		auto oldpass = passtype;
 		passtype = PassType::GetTypes;
 
+		{
+			AddExtendedErr("Were this = " + Syb->FullName + ".When instantiateing trait " + Trait->FullName, ClassNameToken);
+		}
 
 		for (auto& Item : IDSyb.AddedFuncs)
 		{
@@ -3495,9 +3498,12 @@ void SystematicAnalysis::InheritTrait(const Symbol* Syb, ClassInfo* ClassInfo, S
 			passtype = oldpass;
 			_ClassStack.pop();
 		}
+		{
+			PopExtendedErr();
+		}
 	}
 }
-void SystematicAnalysis::BuildTrait(const Symbol* Syb, ClassInfo* ClassInfo, Symbol* Trait, const Token* ClassNameToken)
+void SystematicAnalysis::BuildTrait(const Symbol* Syb, ClassInfo* ClassInfo,const Symbol* Trait, const Token* ClassNameToken)
 {
 
 	auto ID = ClassInfo->Get_InheritedTypesIndex(Trait);
@@ -3510,11 +3516,16 @@ void SystematicAnalysis::BuildTrait(const Symbol* Syb, ClassInfo* ClassInfo, Sym
 		_ClassStack.push(_ClStack);
 	}
 
-
+	{
+		AddExtendedErr("Were this = " + Syb->FullName + ".When instantiateing trait " + Trait->FullName, ClassNameToken);
+	}
 	for (auto& Item : IDSyb.AddedFuncs)
 	{
 		const FuncNode& func = *(FuncNode*)Item.FuncNode;
 		OnFuncNode(func);
+	}
+	{
+		PopExtendedErr();
 	}
 
 	{
@@ -3918,7 +3929,7 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 	}
 }
 
-void SystematicAnalysis::LogMissingFuncionforTrait(UCodeLang::String_view& FuncName, UCodeLang::FrontEnd::FuncInfo* Info, UCodeLang::FrontEnd::Symbol* Trait, const UCodeLang::Token* ClassNameToken)
+void SystematicAnalysis::LogMissingFuncionforTrait(const String_view& FuncName, const FuncInfo* Info, const Symbol* Trait, const Token* ClassNameToken)
 {
 	String Msg = "Missing Funcion '" + (String)FuncName + "' with the parameters [";
 
@@ -13405,19 +13416,73 @@ String SystematicAnalysis::GetGenericFuncName(const Symbol* Func, const Vector<T
 	NewName += ">";
 	return NewName;
 }
-void SystematicAnalysis::GenericFuncInstantiate(const Symbol* Func, const Vector<TypeSymbol>& GenericInput)
+String SystematicAnalysis::GetGenericExtendedErrValue(const Generic& Generic, const GenericValuesNode GenericAsNode, const Vector<TypeSymbol>& GenericInput)
 {
-	String NewName = GetGenericFuncName(Func, GenericInput);
+	String V = "Were ";
 
-	GenericFuncInfo Info;
-	Info.GenericFuncName = NewName;
-	Info.GenericInput = &GenericInput;
-	Info.NodeTarget = Func->NodePtr;
 
-	const FuncInfo* FInfo = Func->Get_Info<FuncInfo>();
-	if (FInfo->_GenericData.IsPack())
+	bool IsPack = Generic.IsPack();
+	size_t LoopSize = IsPack ? GenericInput.size() - 1 : GenericInput.size();
+	for (size_t i = 0; i < LoopSize; i++)
 	{
-		size_t Index = FInfo->_GenericData._Generic.size() - 1;
+		const auto& Item = GenericInput[i];
+		bool IsExpression = Generic._Generic[i].IsConstantExpression();
+
+		const auto& GenericName = GenericAsNode.Values[i].Token->Value._String;
+		if (IsExpression)
+		{
+			Symbol* Syb = GetSymbol(Item);
+			ConstantExpressionInfo* Info = Syb->Get_Info<ConstantExpressionInfo>();
+			V += "(" + (String)GenericName + ") = " + ToString(Syb->VarType, Info->Ex);
+		}
+		else
+		{
+			V += (String)GenericName + " = " + ToString(Item);
+		}
+
+		if (i + 1 < LoopSize || IsPack)
+		{
+			V += ",";
+		}
+	}
+	if (IsPack)
+	{
+		//auto Item = GenericInput.
+		const auto& PackName = GenericAsNode.Values.back().Token->Value._String;
+		V += "[" + (String)PackName + "] = [";
+
+		size_t Index = Generic._Generic.size() - 1;
+		for (size_t i = Index; i < GenericInput.size(); i++)
+		{
+			auto& Item = GenericInput[i];
+
+			auto Syb = GetSymbol(Item);
+
+			if (Syb && Syb->Type == SymbolType::ConstantExpression)
+			{
+				ConstantExpressionInfo* Info = Syb->Get_Info<ConstantExpressionInfo>();
+				V += "(" + ToString(Syb->VarType, Info->Ex) + ")";
+			}
+			else
+			{
+				V += ToString(Item);
+			}
+
+			if (i + 1 < GenericInput.size())
+			{
+				V += ",";
+			}
+		}
+
+		V += "]";
+	}
+	return V;
+}
+Optional<SymbolID>  SystematicAnalysis::MakeTypePackSymbolIfNeeded(const String& NewName, const Vector<TypeSymbol>& GenericInput, const Generic& Generic)
+{
+	if (Generic.IsPack())
+	{
+		size_t Index = Generic._Generic.size() - 1;
 		Vector<TypeSymbol> _PackList;
 
 		_PackList.resize(GenericInput.size() - Index);
@@ -13439,8 +13504,21 @@ void SystematicAnalysis::GenericFuncInstantiate(const Symbol* Func, const Vector
 
 		PackSyb.Info.reset(PackInfo);
 
-		Info.Pack = PackSyb.ID;
+		return PackSyb.ID;
 	}
+	return {};
+}
+void SystematicAnalysis::GenericFuncInstantiate(const Symbol* Func, const Vector<TypeSymbol>& GenericInput)
+{
+	String NewName = GetGenericFuncName(Func, GenericInput);
+
+	GenericFuncInfo Info;
+	Info.GenericFuncName = NewName;
+	Info.GenericInput = &GenericInput;
+	Info.NodeTarget = Func->NodePtr;
+
+	const FuncInfo* FInfo = Func->Get_Info<FuncInfo>();
+	Info.Pack = MakeTypePackSymbolIfNeeded(NewName,GenericInput, FInfo->_GenericData);
 
 	const FuncNode& FuncBase = *(FuncNode*)Func->NodePtr;
 
@@ -13455,40 +13533,7 @@ void SystematicAnalysis::GenericFuncInstantiate(const Symbol* Func, const Vector
 
 
 	{
-		const Token* TokenThatInstantiate = nullptr;
-		const Token* FuncToken = nullptr;
-		String V = "Were ";
-
-		bool IsPack = FInfo->_GenericData.IsPack();
-		size_t LoopSize = IsPack ? GenericInput.size() - 1 : GenericInput.size();
-		for (size_t i = 0; i < LoopSize; i++)
-		{
-			const auto& Item = GenericInput[i];
-			bool IsExpression = FInfo->_GenericData._Generic[i].IsConstantExpression();
-
-			String GenericName = "";
-			if (IsExpression)
-			{
-				Symbol* Syb = GetSymbol(Item);
-				ConstantExpressionInfo* Info = Syb->Get_Info<ConstantExpressionInfo>();
-				V += "(" + GenericName + ") = " + ToString(Syb->VarType, Info->Ex);
-			}
-			else
-			{
-				V += GenericName + " = " + ToString(Item);
-			}
-
-			if (i + 1 < LoopSize)
-			{
-				V += ",";
-			}
-		}
-		if (IsPack)
-		{
-
-		}
-
-		AddExtendedErr(V, FuncToken);
+		AddExtendedErr(GetGenericExtendedErrValue(FInfo->_GenericData,FuncBase.Signature.Generic,GenericInput),FuncBase.Signature.Name.Token);
 	}
 	{
 		passtype = PassType::GetTypes;
@@ -13522,39 +13567,49 @@ void SystematicAnalysis::GenericTypeInstantiate(const Symbol* Class, const Vecto
 	String NewName = GetGenericFuncName(Class, Type);
 	const ClassNode* node = (const ClassNode*)Class->NodePtr;
 
+	const ClassInfo* classInfo = Class->Get_Info<ClassInfo>();
+
 	GenericFuncInfo Info;
 	Info.GenericFuncName = NewName;
 	Info.GenericInput = &Type;
 	Info.NodeTarget = Class->NodePtr;
 	GenericFuncName.push(Info);
 
-
-	auto OldScope = _Table._Scope.ThisScope;
-	auto Oldpasstype = passtype;
-	_Table._Scope.ThisScope.clear();
-
-	_Table._Scope.ThisScope  = ScopeHelper::GetReMoveScope(NewName);
-
-
-	passtype = PassType::GetTypes;
-	OnClassNode(*node);
-
-	if (!_ErrorsOutput->Has_Errors()) {
-		passtype = PassType::FixedTypes;
-		OnClassNode(*node);
+	Info.Pack = MakeTypePackSymbolIfNeeded(NewName,Type, classInfo->_GenericData);
+	{
+		AddExtendedErr(GetGenericExtendedErrValue(classInfo->_GenericData, node->Generic,Type), node->ClassName.Token);
 	}
+	{
+		auto OldScope = _Table._Scope.ThisScope;
+		auto Oldpasstype = passtype;
+		_Table._Scope.ThisScope.clear();
 
-	if (!_ErrorsOutput->Has_Errors()) {
-		passtype = PassType::BuidCode;
+		_Table._Scope.ThisScope = ScopeHelper::GetReMoveScope(NewName);
+
+
+		passtype = PassType::GetTypes;
 		OnClassNode(*node);
+
+		if (!_ErrorsOutput->Has_Errors()) {
+			passtype = PassType::FixedTypes;
+			OnClassNode(*node);
+		}
+
+		if (!_ErrorsOutput->Has_Errors()) {
+			passtype = PassType::BuidCode;
+			OnClassNode(*node);
+		}
+
+		GenericFuncName.pop();
+		//
+		_Table._Scope.ThisScope = OldScope;
+		passtype = Oldpasstype;
+
+		//
 	}
-
-	GenericFuncName.pop();
-	//
-	_Table._Scope.ThisScope = OldScope;
-	passtype = Oldpasstype;
-
-	//
+	{
+		PopExtendedErr();
+	}
 
 	AddDependencyToCurrentFile(Class);
 }

@@ -842,11 +842,11 @@ private:
 	String GetTraitVTableName(const String& TraitName);
 	String GetTraitVStructTableName(const String& TraitName);
 
-	void InheritTrait(const Symbol* Syb, ClassInfo* ClassInfo, Symbol* Trait, const Token* ClassNameToken);
+	void InheritTrait(const Symbol* Syb, ClassInfo* ClassInfo,const Symbol* Trait, const Token* ClassNameToken);
 
-	void BuildTrait(const Symbol* Syb,ClassInfo* ClassInfo, Symbol* Trait, const Token* ClassNameToken);
+	void BuildTrait(const Symbol* Syb,ClassInfo* ClassInfo, const Symbol* Trait, const Token* ClassNameToken);
 
-	void LogMissingFuncionforTrait(String_view& FuncName, FuncInfo* Info, Symbol* Trait, const Token* ClassNameToken);
+	void LogMissingFuncionforTrait(const String_view& FuncName, const FuncInfo* Info, const Symbol* Trait, const Token* ClassNameToken);
 
 
 	Symbol* NewDropFuncSymbol(ClassInfo* ClassInfo, TypeSymbol& ClassAsType);
@@ -1174,6 +1174,9 @@ private:
 	//Generics
 
 	void GenericFuncInstantiate(const Symbol* Func, const Vector<TypeSymbol>& GenericInput);
+
+	String GetGenericExtendedErrValue(const Generic& Generic, const GenericValuesNode GenericAsNode, const Vector<TypeSymbol>& GenericInput);
+	Optional<SymbolID> MakeTypePackSymbolIfNeeded(const String& NewName, const Vector<TypeSymbol>& GenericInput, const Generic& Generic);
 
 	String GetGenericFuncName(const Symbol* Func, const Vector<TypeSymbol>& Type);
 	
