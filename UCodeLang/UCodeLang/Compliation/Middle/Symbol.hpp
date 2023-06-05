@@ -487,7 +487,7 @@ public:
 		Fields.emplace_back((String)Name, Type);
 	}
 	Vector<ClassInfo_InheritTypeInfo> _InheritedTypes;
-	Optional<size_t> Get_InheritedTypesIndex(Symbol* ID) const
+	Optional<size_t> Get_InheritedTypesIndex(const Symbol* ID) const
 	{
 		for (size_t i = 0; i < _InheritedTypes.size(); i++)
 		{
