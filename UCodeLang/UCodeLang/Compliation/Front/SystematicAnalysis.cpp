@@ -64,9 +64,9 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 				if (EvalObject.has_value())
 				{
 					auto& EvalObjectAsValue = EvalObject.value();
-					const FieldInfo* Field = *This.Get_ObjectAs<const FieldInfo*>(EvalObjectAsValue);
+					const ClassField& Field = *This.Get_ObjectAs<const ClassField>(EvalObjectAsValue);
 
-					const String& Value = Field->Name;
+					const String& Value = Field.Field->Name;
 
 					Func _Func;
 					_Func.RetType = This.GetStaticArrayType(TypesEnum::Char, Value.size());
@@ -100,9 +100,11 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 				if (EvalObject.has_value())
 				{
 					auto& EvalObjectAsValue = EvalObject.value();
-					const FieldInfo* Field = *This.Get_ObjectAs<const FieldInfo*>(EvalObjectAsValue);
+					const ClassField& Field = *This.Get_ObjectAs<const ClassField>(EvalObjectAsValue);
 
-					const uintptr_t& Value = 0;
+					auto OffsetInfo = This.GetOffset(*Field._ClassInfo, Field.Field);
+
+					const size_t& Value = OffsetInfo.value();
 
 					Func _Func;
 					_Func.RetType = TypesEnum::uIntPtr;
@@ -135,9 +137,9 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 				if (EvalObject.has_value())
 				{
 					auto& EvalObjectAsValue = EvalObject.value();
-					const FieldInfo* Field = *This.Get_ObjectAs<const FieldInfo*>(EvalObjectAsValue);
+					const ClassField& Field = *This.Get_ObjectAs<ClassField>(EvalObjectAsValue);
 
-					const TypeSymbol& Value = Field->Type;
+					const TypeSymbol& Value = Field.Field->Type;
 
 					Func _Func;
 					_Func.RetType = Value;
@@ -289,11 +291,12 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 			const auto& Fields = classInfo->Fields;
 
 
-			Vector<const FieldInfo*> FieldsAs;
+			Vector<ClassField> FieldsAs;
 			FieldsAs.resize(Fields.size());
 			for (size_t i = 0; i < Fields.size(); i++)
 			{
-				FieldsAs[i] = &Fields[i];
+				FieldsAs[i].Field = &Fields[i];
+				FieldsAs[i]._ClassInfo = classInfo;
 			}
 
 			TypeSymbol ArrItemType = TypesEnum::InternalType;
@@ -303,7 +306,7 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 			_Func.RetType = This.GetStaticArrayType(ArrItemType, FieldsAs.size());
 
 			auto Ex = This.MakeEx(_Func.RetType);
-			This.Set_ObjectAs(Ex, FieldsAs.data(), FieldsAs.size() * sizeof(const FieldInfo*));
+			This.Set_ObjectAs(Ex, FieldsAs.data(), FieldsAs.size() * sizeof(ClassField));
 			_Func.EvalObject = std::move(Ex.EvaluatedObject);
 
 			return _Func;
@@ -3744,6 +3747,10 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 										ParSyb.VarType = Item;
 
 										{
+											auto Token = node.Name;
+											AddExtendedErr("Were '" + VarableName + "' is type of " + ToString(ParSyb.VarType), Token);
+										}
+										{
 											auto TepPass = passtype;
 
 											passtype = PassType::GetTypes;
@@ -3760,6 +3767,10 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 
 											passtype = TepPass;
 										}
+										{
+											PopExtendedErr();
+										}
+
 										TepData.SybItems.push_back(&ParSyb);
 
 										
@@ -3794,23 +3805,29 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 						TepData.SybToLoopOver = ListTypeSyb;
 
 						auto& ListArrayValue = ListArray.value();
+
 						for (size_t i = 0; i < StaticInfo->Count; i++)
 						{
 							void* ItemOffset = ListArrayValue.EvaluatedObject.Object_AsPointer.get() + (i * ItemSize);
 							Set_ObjectAs(StaticInfo->Type,_DataAsIndex,ItemOffset, ItemSize);
 
 							_Table.AddScope(ScopeName + std::to_string(i));
-
+							
 
 							auto& ParSyb = AddSybol(SymbolType::ConstantExpression, VarableName, _Table._Scope.GetApendedString(VarableName), AccessModifierType::Public);
 							_Table.AddSymbolID(ParSyb, (SymbolID)&ParSyb);
 
+							
 							ConstantExpressionInfo* ContInfo = new ConstantExpressionInfo();
 							ParSyb.Info.reset(ContInfo);
 
 							ContInfo->Ex = _DataAsIndex;
 							ParSyb.VarType = StaticInfo->Type;
 
+							{
+								auto Token = node.Name;
+								AddExtendedErr("Were '" + VarableName + "' = " + ToString(ParSyb.VarType, ContInfo->Ex), Token);
+							}
 							{
 								auto TepPass = passtype;
 
@@ -3827,6 +3844,9 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 								}
 
 								passtype = TepPass;
+							}
+							{
+								PopExtendedErr();
 							}
 							TepData.SybItems.push_back(&ParSyb);
 
@@ -3873,18 +3893,25 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 		else if (Nodes.SybToLoopOver->Type == SymbolType::Type_StaticArray)
 		{
 			const String ScopeName = std::to_string((size_t)GetSymbolID(node));
+			
 
 			for (size_t i = 0; i < Nodes.SybItems.size(); i++)
 			{
 				auto& Item = Nodes.SybItems[i];
 
 				_Table.AddScope(ScopeName + std::to_string(i));
-
+				{
+					ConstantExpressionInfo* ConstExpressionInfo = Item->Get_Info< ConstantExpressionInfo>();
+					auto Token = node.Name;
+					AddExtendedErr("Were '" + ScopeHelper::GetNameFromFullName(Item->FullName) + "' = " + ToString(Item->VarType, ConstExpressionInfo->Ex), Token);
+				}
 				for (const auto& node2 : node.Body._Nodes)
 				{
 					OnStatement(*node2);
 				}
-
+				{
+					PopExtendedErr();
+				}
 				_Table.RemoveScope();
 			}
 		}
@@ -11598,7 +11625,7 @@ bool SystematicAnalysis::GetSize(const TypeSymbol& Type, UAddress& OutSize)
 
 		if (Type._TypeInfo == TypeInfoPrimitive::ClassFieldInfo)
 		{
-			OutSize = sizeof(void*);
+			OutSize = sizeof(Systematic_BuiltInFunctions::ClassField);
 		}
 		else
 		{
@@ -13427,24 +13454,63 @@ void SystematicAnalysis::GenericFuncInstantiate(const Symbol* Func, const Vector
 	_Table._Scope.ThisScope.clear();
 
 
-
-	passtype = PassType::GetTypes;
-	OnFuncNode(FuncBase);
-
-	if (!_ErrorsOutput->Has_Errors())
 	{
-		passtype = PassType::FixedTypes;
-		OnFuncNode(FuncBase);
-	}
-	if (!_ErrorsOutput->Has_Errors())
-	{
-		passtype = PassType::BuidCode;
-		OnFuncNode(FuncBase);
-	}
+		const Token* TokenThatInstantiate = nullptr;
+		const Token* FuncToken = nullptr;
+		String V = "Were ";
 
+		bool IsPack = FInfo->_GenericData.IsPack();
+		size_t LoopSize = IsPack ? GenericInput.size() - 1 : GenericInput.size();
+		for (size_t i = 0; i < LoopSize; i++)
+		{
+			const auto& Item = GenericInput[i];
+			bool IsExpression = FInfo->_GenericData._Generic[i].IsConstantExpression();
+
+			String GenericName = "";
+			if (IsExpression)
+			{
+				Symbol* Syb = GetSymbol(Item);
+				ConstantExpressionInfo* Info = Syb->Get_Info<ConstantExpressionInfo>();
+				V += "(" + GenericName + ") = " + ToString(Syb->VarType, Info->Ex);
+			}
+			else
+			{
+				V += GenericName + " = " + ToString(Item);
+			}
+
+			if (i + 1 < LoopSize)
+			{
+				V += ",";
+			}
+		}
+		if (IsPack)
+		{
+
+		}
+
+		AddExtendedErr(V, FuncToken);
+	}
+	{
+		passtype = PassType::GetTypes;
+		OnFuncNode(FuncBase);
+
+		if (!_ErrorsOutput->Has_Errors())
+		{
+			passtype = PassType::FixedTypes;
+			OnFuncNode(FuncBase);
+		}
+		if (!_ErrorsOutput->Has_Errors())
+		{
+			passtype = PassType::BuidCode;
+			OnFuncNode(FuncBase);
+		}
+	}
+	{
+		PopExtendedErr();
+	}
 
 	GenericFuncName.pop();
-	//
+	
 	_Table._Scope.ThisScope = OldScope;
 	passtype = OldPass;
 

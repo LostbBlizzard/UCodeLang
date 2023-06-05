@@ -249,9 +249,14 @@ public:
 		Vector<OutParData> _OutPars;
 	};
 
+	struct ClassField
+	{
+		const ClassInfo* _ClassInfo =nullptr;
+		const FieldInfo* Field = nullptr;
+	};
+
 	static Optional<Func> GetFunction(const String_view Name,const Vector<FunctionPar>& Pars, SystematicAnalysis& This);
 };
-
 
 
 
@@ -628,7 +633,7 @@ private:
 	const Token* LastLookedAtToken = nullptr;
 
 	Vector<NodeType> NodeTypeStack;
-
+	Vector<String> _ExtendedErr;
 	//
 	Stack<TypeSymbol> LookingForTypes;
 	TypeSymbol LastExpressionType;
@@ -659,6 +664,15 @@ private:
 	Stack<VarableUseData> _Varable;
 
 	//Funcs
+	void AddExtendedErr(String Err,const Token* token)
+	{
+
+	}
+	void PopExtendedErr()
+	{
+
+	}
+
 	void BuildLibs();
 	void BuildLib(const UClib& lib, const Path& LibName);
 	static bool IsWrite(GetValueMode Value)
