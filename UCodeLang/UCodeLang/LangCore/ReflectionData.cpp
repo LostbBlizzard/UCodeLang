@@ -14,40 +14,40 @@ AssemblyNode::AssemblyNode(ClassType type) : Type(type)
 	case ClassType::Null:
 		break;
 	case ClassType::Class:
-		_Class = Class_Data();
+		 new (&_Class) Class_Data();
 		break;
 	case ClassType::Enum:
-		_Enum = Enum_Data();
+		new (&_Enum) Enum_Data();
 		break;
 	case ClassType::Alias:
-		_Alias = Alias_Data();
+		new (&_Alias) Alias_Data();
 		break;
 	case ClassType::Eval:
-		_Eval = Eval_Data();
+		new (&_Eval) Eval_Data();
 		break;
 	case ClassType::Trait:
-		_Trait = Trait_Data();
+		new (&_Trait) Trait_Data();
 		break;
 	case ClassType::Tag:
-		_Tag = Tag_Data();
+		new (&_Tag) Tag_Data();
 		break;
 	case ClassType::StaticVarable:
-		_StaticVar = StaticVar_Data();
+		new (&_StaticVar) StaticVar_Data();
 		break;
 	case ClassType::ThreadVarable:
-		_ThreadVar = ThreadVar_Data();
+		new (&_ThreadVar) ThreadVar_Data();
 		break;
 	case ClassType::StaticArray:
-		_StaticArr = StaticArray_Data();
+		new (&_StaticArr) StaticArray_Data();
 		break;
 	case ClassType::FuncPtr:
-		_FuncPtr = FuncPtr_Data();
+		new (&_FuncPtr) FuncPtr_Data();
 		break;
 	case ClassType::GenericClass:
-		_GenericClass = GenericClass_Data();
+		new (&_GenericClass) GenericClass_Data();
 		break;
 	case ClassType::GenericFuncion:
-		_GenericFunc = GenericFuncion_Data();
+		new (&_GenericFunc) GenericFuncion_Data();
 		break;
 	default:
 		throw std::exception("bad path");
@@ -64,40 +64,40 @@ AssemblyNode& AssemblyNode::operator=(AssemblyNode&& node)
 	case ClassType::Null:
 		break;
 	case ClassType::Class:
-		_Class = std::move(node.Get_ClassData());
+		new (&_Class) Class_Data(std::move(node.Get_ClassData()));
 		break;
 	case ClassType::Enum:
-		_Enum = std::move(node.Get_EnumData());
+		new (&_Enum) Enum_Data(node.Get_EnumData());
 		break;
 	case ClassType::Alias:
-		_Alias = std::move(node.Get_AliasData());
+		new (&_Alias) Alias_Data(node.Get_AliasData());
 		break;
 	case ClassType::Eval:
-		_Eval = std::move(node.Get_EvalData());
+		new (&_Eval) Eval_Data(node.Get_EvalData());
 		break;
 	case ClassType::Trait:
-		_Trait = std::move(node.Get_TraitData());
+		new (&_Trait) Trait_Data(node.Get_TraitData());
 		break;
 	case ClassType::Tag:
-		_Tag = std::move(node.Get_TagData());
+		new (&_Tag) Tag_Data(node.Get_TagData());
 		break;
 	case ClassType::StaticVarable:
-		_StaticVar = std::move(node.Get_StaticVar());
+		new (&_StaticVar) StaticVar_Data(node.Get_StaticVar());
 		break;
 	case ClassType::ThreadVarable:
-		_ThreadVar = std::move(node.Get_ThreadVar());
+		new (&_ThreadVar) ThreadVar_Data(node.Get_ThreadVar());
 		break;
 	case ClassType::StaticArray:
-		_StaticArr = std::move(node.Get_StaticArray());
+		new (&_StaticArr) StaticArray_Data(node.Get_StaticArray());
 		break;
 	case ClassType::FuncPtr:
-		_FuncPtr = std::move(node.Get_FuncPtr());
+		new (&_FuncPtr) FuncPtr_Data(node.Get_FuncPtr());
 		break;
 	case ClassType::GenericClass:
-		_GenericClass = std::move(node.Get_GenericClass());
+		new (&_GenericClass) GenericClass_Data(node.Get_GenericClass());
 		break;
 	case ClassType::GenericFuncion:
-		_GenericFunc = std::move(node.Get_GenericFuncionData());
+		new (&_GenericFunc) GenericFuncion_Data(node.Get_GenericFuncionData());
 		break;
 	default:
 		throw std::exception("bad path");
@@ -114,40 +114,40 @@ AssemblyNode& AssemblyNode::operator=(const AssemblyNode& node)
 	switch (node.Type)
 	{
 	case ClassType::Class:
-		_Class = node.Get_ClassData();
+		new (&_Class) Class_Data(node.Get_ClassData());
 		break;
 	case ClassType::Enum:
-		_Enum = node.Get_EnumData();
+		new (&_Enum) Enum_Data(node.Get_EnumData());
 		break;
 	case ClassType::Alias:
-		_Alias =node.Get_AliasData();
+		new (&_Alias) Alias_Data(node.Get_AliasData());
 		break;
 	case ClassType::Eval:
-		_Eval = node.Get_EvalData();
+		new (&_Eval) Eval_Data(node.Get_EvalData());
 		break;
 	case ClassType::Trait:
-		_Trait = node.Get_TraitData();
+		new (&_Trait) Trait_Data(node.Get_TraitData());
 		break;
 	case ClassType::Tag:
-		_Tag = node.Get_TagData();
+		new (&_Tag) Tag_Data(node.Get_TagData());
 		break;
 	case ClassType::StaticVarable:
-		_StaticVar = node.Get_StaticVar();
+		new (&_StaticVar) StaticVar_Data(node.Get_StaticVar());
 		break;
 	case ClassType::ThreadVarable:
-		_ThreadVar = node.Get_ThreadVar();
+		new (&_ThreadVar) ThreadVar_Data(node.Get_ThreadVar());
 		break;
 	case ClassType::StaticArray:
-		_StaticArr = node.Get_StaticArray();
+		new (&_StaticArr) StaticArray_Data(node.Get_StaticArray());
 		break;
 	case ClassType::FuncPtr:
-		_FuncPtr = node.Get_FuncPtr();
+		new (&_FuncPtr) FuncPtr_Data(node.Get_FuncPtr());
 		break;
 	case ClassType::GenericClass:
-		_GenericClass = node.Get_GenericClass();
+		new (&_GenericClass) GenericClass_Data(node.Get_GenericClass());
 		break;
 	case ClassType::GenericFuncion:
-		_GenericFunc =node.Get_GenericFuncionData();
+		new (&_GenericFunc) GenericFuncion_Data(node.Get_GenericFuncionData());
 		break;
 	default:
 		throw std::exception("bad path");
