@@ -186,7 +186,7 @@ enum class ClassType :ClassType_t
 };
 struct Class_Data
 {
-	ReflectionCustomTypeID TypeID;
+	ReflectionCustomTypeID TypeID = {};
 	size_t Size = 0;
 	Vector<UsedTagValueData> Attributes;
 	Vector<ClassField> Fields;
