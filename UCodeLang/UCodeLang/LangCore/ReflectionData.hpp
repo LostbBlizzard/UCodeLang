@@ -135,6 +135,13 @@ public:
 	{
 		return Bytes.get();
 	}
+	ReflectionRawData() {};
+	ReflectionRawData(const  ReflectionRawData& ToCopy)
+	{
+		Resize(ToCopy.Size);
+		memcpy(Get_Data(), ToCopy.Get_Data(), Size);
+	}
+
 };
 
 class TypedRawReflectionData
@@ -309,53 +316,17 @@ public:
 	String Name;
 	String FullName;
 	
-	AssemblyNode(ClassType type) : Type(type)
+	AssemblyNode(ClassType type);
+	AssemblyNode(AssemblyNode&& node)
 	{
-		switch (type)
-		{
-		case ClassType::Null:
-			break;
-		case ClassType::Class:
-			_Class = Class_Data();
-			break;
-		case ClassType::Enum:
-			_Enum = Enum_Data();
-			break;
-		case ClassType::Alias:
-			_Alias = Alias_Data();
-			break;
-		case ClassType::Eval:
-			_Eval = Eval_Data();
-			break;
-		case ClassType::Trait:
-			_Trait = Trait_Data();
-			break;
-		case ClassType::Tag:
-			_Tag = Tag_Data();
-			break;
-		case ClassType::StaticVarable:
-			_StaticVar = StaticVar_Data();
-			break;
-		case ClassType::ThreadVarable:
-			_ThreadVar = ThreadVar_Data();
-			break;
-		case ClassType::StaticArray:
-			_StaticArr = StaticArray_Data();
-			break;
-		case ClassType::FuncPtr:
-			_FuncPtr = FuncPtr_Data();
-			break;
-		case ClassType::GenericClass:
-			_GenericClass = GenericClass_Data();
-			break;
-		case ClassType::GenericFuncion:
-			_GenericFunc = GenericFuncion_Data();
-			break;
-		default:
-			throw std::exception("bad path");
-			break;
-		}
+		this->operator=(std::move(node));
 	}
+	AssemblyNode& operator=(AssemblyNode&& node);
+	AssemblyNode(const AssemblyNode& node)
+	{
+		this->operator=(node);
+	}
+	AssemblyNode& operator=(const AssemblyNode& node);
 	~AssemblyNode()
 	{
 		switch (Type)
@@ -584,13 +555,7 @@ public:
 		r.FullName = FullName;
 		return r.Get_AliasData();
 	}
-	static void PushCopyClasses(const ClassAssembly& source, ClassAssembly& Out)
-	{
-		for (auto& Item : source.Classes)
-		{
-			Out.Classes.push_back(std::make_unique<AssemblyNode>(*Item));
-		}
-	}
+	static void PushCopyClasses(const ClassAssembly& source, ClassAssembly& Out);
 	AssemblyNode* Find_Node(const String& Name, const String& Scope ="")
 	{
 		return Find_Node((String_view)Name, (String_view)Scope);
@@ -670,7 +635,7 @@ public:
 	{
 		return  Find_Class((String)ScopeHelper::_globalAssemblyObject);
 	}
-
+	//
 	const Class_Data* Find_Class(const String& Name, const String& Scope = "") const
 	{
 		return Find_Class((String_view)Name, (String_view)Scope);
