@@ -494,13 +494,13 @@ void SystematicAnalysis::ToIntFile(FileNode_t* File, const Path& path)
 	for (size_t i = 0; i < FileData.AssemblyInfoSpan.Count; i++)
 	{
 		auto& Item = _Lib.Get_Assembly().Classes[FileData.AssemblyInfoSpan.Index + i];
-		Tep.Get_Assembly().Classes.push_back(Unique_ptr<ClassData>(Item.get()));
+		Tep.Get_Assembly().Classes.push_back(Unique_ptr<AssemblyNode>(Item.get()));
 	}
 
 	for (size_t i = 0; i < FileData.GlobalObjectMethodInfoSpan.Count; i++)
 	{
-		auto& Item = _Lib.Get_Assembly().Get_GlobalObject_Class()->_Class.Methods[FileData.GlobalObjectMethodInfoSpan.Index + i];
-		globalAssemblyObject._Class.Methods.push_back(Item);
+		auto& Item = _Lib.Get_Assembly().Get_GlobalObject_Class()->Methods[FileData.GlobalObjectMethodInfoSpan.Index + i];
+		globalAssemblyObject.Methods.push_back(Item);
 	}
 
 	IRBuilder TepIR;
@@ -756,7 +756,7 @@ void SystematicAnalysis::OnFileNode(const FileNode* File)
 	_ErrorsOutput->FilePath = File->FileName;
 	
 	size_t ClassesStart = PassType::BuidCode == passtype ? _Lib._Assembly.Classes.size() : 0;
-	size_t GlobalMethodStart = PassType::BuidCode == passtype ? _Lib._Assembly.Get_GlobalObject_Class()->_Class.Methods.size() : 0;
+	size_t GlobalMethodStart = PassType::BuidCode == passtype ? _Lib._Assembly.Get_GlobalObject_Class()->Methods.size() : 0;
 	size_t StaticInitStart = PassType::BuidCode == passtype && _Builder._StaticInit.Blocks.size() ? _Builder._StaticInit.Blocks.front()->Instructions.size(): 0;
 	size_t ThreadInitStart = PassType::BuidCode == passtype && _Builder._threadInit.Blocks.size() ? _Builder._threadInit.Blocks.front()->Instructions.size() : 0;
 	size_t StaticDeInitStart = PassType::BuidCode == passtype && _Builder._StaticdeInit.Blocks.size() ? _Builder._StaticdeInit.Blocks.front()->Instructions.size() : 0;
@@ -846,7 +846,7 @@ void SystematicAnalysis::OnFileNode(const FileNode* File)
 
 
 		FileData.AssemblyInfoSpan = FileNodeData::SpanData::NewWithNewIndex(ClassesStart, _Lib._Assembly.Classes.size());
-		FileData.GlobalObjectMethodInfoSpan = FileNodeData::SpanData::NewWithNewIndex(GlobalMethodStart, _Lib._Assembly.Get_GlobalObject_Class()->_Class.Methods.size());
+		FileData.GlobalObjectMethodInfoSpan = FileNodeData::SpanData::NewWithNewIndex(GlobalMethodStart, _Lib._Assembly.Get_GlobalObject_Class()->Methods.size());
 		FileData.IRInitStaticSpan = FileNodeData::SpanData::NewWithNewIndex(StaticInitStart, _Builder._StaticInit.Blocks.size() ? _Builder._StaticInit.Blocks.front()->Instructions.size() : 0);
 		FileData.IRInitThreadSpan = FileNodeData::SpanData::NewWithNewIndex(ThreadInitStart, _Builder._threadInit.Blocks.size() ? _Builder._threadInit.Blocks.front()->Instructions.size() : 0);
 		FileData.IRDeInitStaticSpan= FileNodeData::SpanData::NewWithNewIndex(StaticDeInitStart, _Builder._StaticdeInit.Blocks.size() ? _Builder._StaticdeInit.Blocks.front()->Instructions.size() : 0);
@@ -1369,7 +1369,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 
 	if (passtype == PassType::BuidCode)
 	{
-		auto& V = _Lib.Get_Assembly().Add_Alias((String)ClassName, _Table._Scope.ThisScope);
+		auto& V = _Lib.Get_Assembly().AddAlias((String)ClassName, _Table._Scope.ThisScope);
 		V.Type =ConvertToTypeInfo(Syb.VarType);
 
 
@@ -1833,7 +1833,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		}
 
 
-		ClassData* Ptr = GetAssemblyClass(FullName);
+		Class_Data* Ptr = GetAssemblyClass(FullName);
 
 		ClassMethod V;
 		V.FullName = FullName;
@@ -1849,7 +1849,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		PushTepAttributesInTo(V.Attributes);
 
 
-		Ptr->_Class.Methods.push_back(std::move(V));
+		Ptr->Methods.push_back(std::move(V));
 
 		auto& RetType = node.Signature.ReturnType.node;
 		if (RetType && RetType->Get_Type() == NodeType::AnonymousTypeNode)
@@ -2075,7 +2075,7 @@ void SystematicAnalysis::FuncGetName(const UCodeLang::Token* NameToken, std::str
 		}
 	}
 }
-ClassData* SystematicAnalysis::GetAssemblyClass(const String& FullName)
+Class_Data* SystematicAnalysis::GetAssemblyClass(const String& FullName)
 {
 	if (_ClassStack.empty())
 	{
@@ -2098,7 +2098,7 @@ ClassData* SystematicAnalysis::GetAssemblyClass(const String& FullName)
 		{
 			if (Item->FullName == ClassName)
 			{
-				return Item.get();
+				return &Item->Get_ClassData();
 			}
 
 		}
@@ -4995,7 +4995,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 		AddDependencyToCurrentFile(ClassInf->Basetype);
 		if (ClassInf->VariantData) 
 		{
-			ClassData& EnumUnion = _Lib.Get_Assembly().AddClass(GetEnumVariantUnionName(
+			Class_Data& EnumUnion = _Lib.Get_Assembly().AddClass(GetEnumVariantUnionName(
 				GetUnrefencedableName((String)ClassInf->Get_Name())), GetUnrefencedableName(GetEnumVariantUnionName(ClassInf->FullName)));
 			
 
@@ -5015,7 +5015,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 					V.offset = 0;
 					V.Name = ClassInf->Fields[i].Name;
 					V.Type = ConvertToTypeInfo(TypeSymbol(Sym->ID));
-					EnumUnion._Class.Fields.push_back(std::move(V));
+					EnumUnion.Fields.push_back(std::move(V));
 				}
 				else
 				{
@@ -5025,7 +5025,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 						V.offset = 0;
 						V.Name = ClassInf->Fields[i].Name;
 						V.Type = ConvertToTypeInfo(Item.Types.front());
-						EnumUnion._Class.Fields.push_back(std::move(V));
+						EnumUnion.Fields.push_back(std::move(V));
 					}
 				}
 
@@ -9279,11 +9279,11 @@ void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 		}
 	}
 }
-void SystematicAnalysis::PushTepAttributesInTo(Vector<AttributeData>& Input)
+void SystematicAnalysis::PushTepAttributesInTo(Vector<UsedTagValueData>& Input)
 {
 	for (auto& Item : _TepAttributes)
 	{
-		AttributeData Data;
+		UsedTagValueData Data;
 		Item->ScopedName.GetScopedName(Data.Name);
 		Input.push_back(Data);
 	}
@@ -9330,7 +9330,7 @@ void SystematicAnalysis::LoadLibSymbols(const UClib& lib, LoadLibMode Mode)
 	if (GlobalObject)
 	{
 		String Scope;
-		LoadClassSymbol(GlobalObject->_Class, Scope, Mode);
+		LoadClassSymbol(*GlobalObject, Scope, Mode);
 	}
 
 
@@ -9341,11 +9341,11 @@ void SystematicAnalysis::LoadLibSymbols(const UClib& lib, LoadLibMode Mode)
 			continue;
 		}
 		String Scope;
-		switch (Item->Type)
+		switch (Item->Get_Type())
 		{
 		case ClassType::Class:
 		{
-			LoadClassSymbol(Item->_Class, Scope, Mode);
+			LoadClassSymbol(Item->Get_ClassData(), Scope, Mode);
 		}
 		break;
 		case ClassType::Alias:
@@ -9364,7 +9364,7 @@ void SystematicAnalysis::LoadLibSymbols(const UClib& lib, LoadLibMode Mode)
 	}
 
 }
-void SystematicAnalysis::LoadClassSymbol(const ClassData::Class_Data& Item, const String& Scope, SystematicAnalysis::LoadLibMode Mode)
+void SystematicAnalysis::LoadClassSymbol(const Class_Data& Item, const String& Scope, SystematicAnalysis::LoadLibMode Mode)
 {
 	auto TepScope = std::move(_Table._Scope);
 
@@ -10100,9 +10100,8 @@ String SystematicAnalysis::GetFuncAnonymousObjectFullName(const String& FullFunc
 }
 void SystematicAnalysis::AddClass_tToAssemblyInfo(const ClassInfo* Class)
 {
-	ClassData& V = _Lib.Get_Assembly().AddClass((String)Class->Get_Name(), Class->FullName);
-	auto& VClass = V._Class;
-
+	Class_Data& VClass = _Lib.Get_Assembly().AddClass((String)Class->Get_Name(), Class->FullName);
+	
 	VClass.Size = 0;
 
 	

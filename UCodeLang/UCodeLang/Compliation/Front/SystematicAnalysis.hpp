@@ -961,11 +961,11 @@ private:
 		Done
 	};
 
-	void PushTepAttributesInTo(Vector<AttributeData>& Input);
+	void PushTepAttributesInTo(Vector<UsedTagValueData>& Input);
 	void LoadLibSymbols();
 	void LoadLibSymbols(const UClib& lib, LoadLibMode Mode);
 
-	void LoadClassSymbol(const ClassData::Class_Data& Item, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
+	void LoadClassSymbol(const Class_Data& Item, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 	void LoadSymbol(const ClassMethod& Item, SystematicAnalysis::LoadLibMode Mode);
 	void LoadType(const ReflectionTypeInfo& Item, TypeSymbol& Out);
 	TypeSymbol LoadType(const ReflectionTypeInfo& Item);
@@ -1385,7 +1385,7 @@ private:
 	ReadVarErrorCheck_t LogTryReadVar(String_view VarName, const Token* Token, const Symbol* Syb);
 	void CheckVarWritingErrors(Symbol* Symbol, const Token* Token, String_view& Name);
 	void LogWantedAVariable(const Token* const& Item, Symbol* TepSyb);
-	ClassData* SystematicAnalysis::GetAssemblyClass(const String& FullName);
+	Class_Data* SystematicAnalysis::GetAssemblyClass(const String& FullName);
 
 	String MangleName(const FuncInfo* Func);
 	IRidentifierID GetIRID(const FuncInfo* Func);
