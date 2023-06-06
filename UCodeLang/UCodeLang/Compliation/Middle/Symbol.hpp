@@ -48,6 +48,8 @@ enum class TypeInfoPrimitive : UInt8
 	TagInfo,
 
 	ClassFieldInfo,
+	EnumFieldInfo,
+	EnumVariantInfo,
 };
 
 class Symbol;

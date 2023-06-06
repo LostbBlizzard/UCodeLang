@@ -254,6 +254,11 @@ public:
 		const ClassInfo* _ClassInfo =nullptr;
 		const FieldInfo* Field = nullptr;
 	};
+	struct EnumField
+	{
+		const EnumInfo* _EnumInfo = nullptr;
+		const EnumFieldInfo* Field = nullptr;
+	};
 
 	static Optional<Func> GetFunction(const String_view Name,const Vector<FunctionPar>& Pars, SystematicAnalysis& This);
 };
