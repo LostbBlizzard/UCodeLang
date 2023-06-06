@@ -39,11 +39,11 @@ String UAssembly::ToString(const UClib* Lib)
 	auto& Assembly = Lib->Get_Assembly();
 	for (auto& Item : Assembly.Classes)
 	{
-		switch (Item->Type)
+		switch (Item->Get_Type())
 		{
 		case ClassType::Class:
 		{
-			auto& Class = Item->_Class;
+			auto& Class = Item->Get_ClassData();
 
 			for (auto Item2 : Class.Attributes)
 			{
@@ -76,7 +76,7 @@ String UAssembly::ToString(const UClib* Lib)
 		break; 
 		case ClassType::Alias:
 		{
-			auto& Class = Item->_Alias;
+			auto& Class = Item->Get_AliasData();
 			r += "$" + Item->FullName + " = " + ToString(Class.Type) + ";\n";
 		}
 		break;

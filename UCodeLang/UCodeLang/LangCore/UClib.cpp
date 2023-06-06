@@ -135,13 +135,13 @@ void UClib::ToBytes(BitMaker& Output, const CodeLayer& Data)
 }
 void UClib::ToBytes(BitMaker& Output, const ReflectionRawData& Data)
 {
-	Output.WriteType(Data.Size);
+	Output.WriteType((BitMaker::SizeAsBits)Data.Size);
 	Output.WriteBytes((const Byte*)Data.Get_Data(), Data.Size);
 }
 void UClib::ToBytes(BitMaker& Output, const TypedRawReflectionData& Data)
 {
-	Output.WriteType(Data._Type);
-	Output.WriteType(Data._Data);
+	ToBytes(Output,Data._Type);
+	ToBytes(Output,Data._Data);
 }
 void UClib::ToBytes(BitMaker& Output, const Optional<ReflectionCustomTypeID>& Data)
 {
@@ -156,7 +156,7 @@ void UClib::ToBytes(BitMaker& Output, const Optional<ReflectionTypeInfo>& Data)
 	Output.WriteType(Data.has_value());
 	if (Data.has_value())
 	{
-		Output.WriteType(Data.value());
+		ToBytes(Output, Data.value());
 	}
 }
 void UClib::ToBytes(BitMaker& Output, const Enum_Data& EnumData)

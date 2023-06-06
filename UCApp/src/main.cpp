@@ -169,7 +169,7 @@ int main()
 
 		RunTime.Init(&State);
 
-		auto FuncMain  = State.Get_Assembly().Get_GlobalObject_Class()->_Class.Get_ClassMethod("main");
+		auto FuncMain  = State.Get_Assembly().Get_GlobalObject_Class()->Get_ClassMethod("main");
 		
 		//auto Value = RunTime.RCall<char>("__ReadChar");
 		RunTime.Call(StaticVariablesInitializeFunc);

@@ -74,7 +74,7 @@ UCodeTestStart
 		}
 	};
 
-	static const Array<TestInfo, 58> Tests
+	static const Array<TestInfo, 59> Tests
 	{
 
 		TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation),

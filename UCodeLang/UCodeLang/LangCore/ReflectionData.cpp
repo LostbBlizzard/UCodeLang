@@ -1,6 +1,6 @@
 #include "ReflectionData.hpp"
 UCodeLangStart
-static void PushCopyClasses(const ClassAssembly& source, ClassAssembly& Out)
+void ClassAssembly::PushCopyClasses(const ClassAssembly& source, ClassAssembly& Out)
 {
 	for (auto& Item : source.Classes)
 	{
