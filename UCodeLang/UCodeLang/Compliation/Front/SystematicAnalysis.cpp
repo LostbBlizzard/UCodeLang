@@ -58,7 +58,7 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 				_Func.EvalAsCString = WantsUmutCString;
 				return _Func;
 			}
-			else if (Type.Type._TypeInfo == TypeInfoPrimitive::ClassFieldInfo && Type.ExpressionNode)
+			else if (FuncName == "Name" && Type.Type._TypeInfo == TypeInfoPrimitive::ClassFieldInfo && Type.ExpressionNode)
 			{
 				auto EvalObject = This.EvaluateToAnyType(*ExpressionNodeType::As(Type.ExpressionNode));
 				if (EvalObject.has_value())
@@ -85,10 +85,69 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 				}
 
 			}
+			else if (FuncName == "Name" && Type.Type._TypeInfo == TypeInfoPrimitive::EnumFieldInfo && Type.ExpressionNode)
+			{
+				auto EvalObject = This.EvaluateToAnyType(*ExpressionNodeType::As(Type.ExpressionNode));
+				if (EvalObject.has_value())
+				{
+					auto& EvalObjectAsValue = EvalObject.value();
+					const EnumField& Field = *This.Get_ObjectAs<const EnumField>(EvalObjectAsValue);
+
+					const String& Value = Field.Field->Name;
+
+					Func _Func;
+					_Func.RetType = This.GetStaticArrayType(TypesEnum::Char, Value.size());
+					auto Ex = This.MakeEx(_Func.RetType);
+					This.Set_ObjectAs(Ex, Value.data(), Value.size());
+
+					_Func.EvalObject = std::move(Ex.EvaluatedObject);
+					_Func.EvalAsCString = WantsUmutCString;
+					return _Func;
+				}
+				else
+				{
+					Func _Func;
+					_Func.RetType = TypesEnum::Null;
+					return _Func;
+				}
+
+			}
 
 		}
 	}
+	if (FuncName == "Value" && Pars.size() == 1)
+	{
+		auto& Type = Pars.front();
+		if (Type.IsOutPar == false)
+		{
+			if (Type.Type._TypeInfo == TypeInfoPrimitive::EnumFieldInfo && Type.ExpressionNode)
+			{
+				auto EvalObject = This.EvaluateToAnyType(*ExpressionNodeType::As(Type.ExpressionNode));
+				if (EvalObject.has_value())
+				{
+					auto& EvalObjectAsValue = EvalObject.value();
+					const EnumField& Field = *This.Get_ObjectAs<const EnumField>(EvalObjectAsValue);
 
+					const auto& Value = Field.Field->Ex;
+
+					Func _Func;
+					_Func.RetType = Field._EnumInfo->Basetype;
+					auto Ex = This.MakeEx(_Func.RetType);
+					This.Set_ObjectAs(Ex, Value.Object_AsPointer.get(),Value.ObjectSize);
+
+					_Func.EvalObject = std::move(Ex.EvaluatedObject);
+					return _Func;
+				}
+				else
+				{
+					Func _Func;
+					_Func.RetType = TypesEnum::Null;
+					return _Func;
+				}
+
+			}
+		}
+	}
 	if (FuncName == "Offset" && Pars.size() == 1)
 	{
 		auto& Type = Pars.front();
@@ -239,7 +298,7 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 	}
 	
 
-	if (FuncName == "GetBaseType")
+	if (FuncName == "BaseType")
 	{
 		if (Pars.size() == 1 )
 		{
@@ -266,6 +325,51 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 		}
 	}
 	
+	if (FuncName == "TryGetVariantUnion")
+	{
+		if (Pars.size() == 1)
+		{
+			auto& Par = Pars.front();
+			if (Par.IsOutPar == false)
+			{
+				if (Par.Type._TypeInfo == TypeInfoPrimitive::EnumInfo)
+				{
+					const auto Sym = This.GetSymbol(Par.Type);
+					const auto classInfo = Sym->Get_Info<EnumInfo>();
+					bool IsVariant = classInfo->VariantData.has_value();
+
+
+					Func _Func;
+					_Func.RetType = TypesEnum::Bool;
+					_Func.RetType.SetAsTypeInfo();
+					auto Ex = This.MakeEx(_Func.RetType);
+					This.Set_ObjectAs(Ex, IsVariant);
+
+					_Func.EvalObject = std::move(Ex.EvaluatedObject);
+
+					{	
+						Func::OutParData Par;
+						if (IsVariant)
+						{
+							const auto& Variant = classInfo->VariantData.value();
+							
+
+							Par.Type = TypesEnum::InternalType;
+							Par.Type._TypeInfo = TypeInfoPrimitive::EnumVariantInfo;
+
+							auto Ex = This.MakeEx(Par.Type);
+							This.Set_ObjectAs(Ex,&Variant);
+
+							Par.EvalObject = std::move(Ex.EvaluatedObject);
+						}
+						_Func._OutPars.push_back(std::move(Par));
+					}
+					return _Func;
+				}
+			}
+		}
+	}
+
 
 	if (Pars.size() == 2)
 	{
@@ -290,15 +394,17 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 
 				{
 					Func::OutParData Par;
+					if (IsClass)
+					{
+						Par.Type = Type.Type;
+						Par.Type._IsAddress = false;//If Pass as Ref
+						Par.Type._TypeInfo = TypeInfoPrimitive::ClassInfo;
 
-					Par.Type = Type.Type;
-					Par.Type._IsAddress = false;//If Pass as Ref
-					Par.Type._TypeInfo = TypeInfoPrimitive::ClassInfo;
+						auto Ex = This.MakeEx(Par.Type);
+						This.Set_ObjectAs(Ex, Par.Type);
 
-					auto Ex = This.MakeEx(Par.Type);
-					This.Set_ObjectAs(Ex, Par.Type);
-
-					Par.EvalObject = std::move(Ex.EvaluatedObject);
+						Par.EvalObject = std::move(Ex.EvaluatedObject);
+					}
 					_Func._OutPars.push_back(std::move(Par));
 				}
 				return _Func;
@@ -317,15 +423,17 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 
 				{
 					Func::OutParData Par;
+					if (IsEnum) 
+					{
+						Par.Type = Type.Type;
+						Par.Type._IsAddress = false;//If Pass as Ref
+						Par.Type._TypeInfo = TypeInfoPrimitive::EnumInfo;
 
-					Par.Type = Type.Type;
-					Par.Type._IsAddress = false;//If Pass as Ref
-					Par.Type._TypeInfo = TypeInfoPrimitive::EnumInfo;
+						auto Ex = This.MakeEx(Par.Type);
+						This.Set_ObjectAs(Ex, Par.Type);
 
-					auto Ex = This.MakeEx(Par.Type);
-					This.Set_ObjectAs(Ex, Par.Type);
-
-					Par.EvalObject = std::move(Ex.EvaluatedObject);
+						Par.EvalObject = std::move(Ex.EvaluatedObject);
+					}
 					_Func._OutPars.push_back(std::move(Par));
 				}
 				return _Func;
@@ -335,7 +443,7 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 	}
 
 	
-	if (FuncName == "GetFields" && Pars.size() == 1)
+	if (FuncName == "Fields" && Pars.size() == 1)
 	{
 		auto& Type = Pars.front();
 		bool IsTypeInfo = Type.Type._TypeInfo == TypeInfoPrimitive::TypeInfo;
@@ -365,6 +473,35 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 
 			auto Ex = This.MakeEx(_Func.RetType);
 			This.Set_ObjectAs(Ex, FieldsAs.data(), FieldsAs.size() * sizeof(ClassField));
+			_Func.EvalObject = std::move(Ex.EvaluatedObject);
+
+			return _Func;
+		}
+		break;
+		case TypeInfoPrimitive::EnumInfo:
+		{
+			const auto Sym = This.GetSymbol(Type.Type);
+			const auto enumInfo = Sym->Get_Info<EnumInfo>();
+
+			const auto& Fields = enumInfo->Fields;
+
+
+			Vector<EnumField> FieldsAs;
+			FieldsAs.resize(Fields.size());
+			for (size_t i = 0; i < Fields.size(); i++)
+			{
+				FieldsAs[i].Field = &Fields[i];
+				FieldsAs[i]._EnumInfo = enumInfo;
+			}
+
+			TypeSymbol ArrItemType = TypesEnum::InternalType;
+			ArrItemType._TypeInfo = TypeInfoPrimitive::EnumFieldInfo;
+
+			Func _Func;
+			_Func.RetType = This.GetStaticArrayType(ArrItemType, FieldsAs.size());
+
+			auto Ex = This.MakeEx(_Func.RetType);
+			This.Set_ObjectAs(Ex, FieldsAs.data(), FieldsAs.size() * sizeof(EnumField));
 			_Func.EvalObject = std::move(Ex.EvaluatedObject);
 
 			return _Func;
@@ -9141,7 +9278,7 @@ void SystematicAnalysis::SetFuncRetAsLastEx(const Get_FuncInfo& Info)
 			}
 		}
 	}
-	if (Info._BuiltFunc.has_value())
+	else if (Info._BuiltFunc.has_value())
 	{
 		auto& Item = Info._BuiltFunc.value();
 		if (Item.EvalAsCString)
@@ -9155,7 +9292,7 @@ void SystematicAnalysis::SetFuncRetAsLastEx(const Get_FuncInfo& Info)
 			LastExpressionType = Info._BuiltFunc.value().RetType;
 		}
 	}
-	if (Info.CantCheckBecauseIsUnMaped)
+	else if (Info.CantCheckBecauseIsUnMaped)
 	{
 		LastExpressionType = GetUnMapType();
 	}
@@ -10611,6 +10748,11 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type)
 		{
 			r += "::ClassFieldInfo";
 		}
+		else
+		if (Type._TypeInfo == TypeInfoPrimitive::EnumFieldInfo)
+		{
+			r += "::EnumFieldInfo";
+		}
 		return r;
 	}
 
@@ -11819,6 +11961,14 @@ bool SystematicAnalysis::GetSize(const TypeSymbol& Type, UAddress& OutSize)
 		{
 			OutSize = sizeof(Systematic_BuiltInFunctions::ClassField);
 		}
+		else if (Type._TypeInfo == TypeInfoPrimitive::EnumFieldInfo)
+		{
+			OutSize = sizeof(Systematic_BuiltInFunctions::EnumField);
+		}
+		else if (Type._TypeInfo == TypeInfoPrimitive::EnumVariantInfo)
+		{
+			OutSize = sizeof(EnumVariantData);
+		}
 		else
 		{
 			OutSize = sizeof(TypeSymbol);
@@ -12849,7 +12999,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 					Get_FuncInfo V;
 					V.CantCheckBecauseIsUnMaped = true;
 
-					return {};//cant check because we are just testing.
+					return V;//cant check because we are just testing.
 				}
 			}
 		}

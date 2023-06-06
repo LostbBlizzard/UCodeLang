@@ -21,9 +21,9 @@
 //import Hello::{Func = OtherFuncion};
 
 $CoolEnum enum: 
- I,
- Lov,
- You,
+ Red,
+ Blue,
+ Green,
 
 
 $CString = umut char[&];
@@ -35,7 +35,8 @@ $CString = umut char[&];
  uintptr R = 0;
  eval typeinfo TypeCool = type(CoolEnum);
  $if TypeCool.GetEnumInfo(out typeinfo EnumTypeValue):
-  $Base = bind(EnumTypeValue.GetBaseType());
-  R = sizeof(Base);
+  $for [var Item : EnumTypeValue.Fields()]:
+   CString V = Item.Name();
+   var ValueOfEnum = Item.Value();
 
  ret 0; 
