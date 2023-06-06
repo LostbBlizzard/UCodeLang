@@ -175,7 +175,7 @@ struct Class_Data
 {
 	ReflectionCustomTypeID TypeID;
 	size_t Size = 0;
-	Vector<AttributeData> Attributes;
+	Vector<UsedTagValueData> Attributes;
 	Vector<ClassField> Fields;
 	Vector<ClassMethod> Methods;
 	inline bool HasAttribute(const String& Name)
@@ -189,7 +189,7 @@ struct Class_Data
 		}
 		return true;
 	}
-	inline const AttributeData* GetAttribute(const String& Name)
+	inline const UsedTagValueData* GetAttribute(const String& Name)
 	{
 		for (const auto& Item : Attributes)
 		{
@@ -339,6 +339,18 @@ public:
 		case ClassType::ThreadVarable:
 			_ThreadVar = ThreadVar_Data();
 			break;
+		case ClassType::StaticArray:
+			_StaticArr = StaticArray_Data();
+			break;
+		case ClassType::FuncPtr:
+			_FuncPtr = FuncPtr_Data();
+			break;
+		case ClassType::GenericClass:
+			_GenericClass = GenericClass_Data();
+			break;
+		case ClassType::GenericFuncion:
+			_GenericFunc = GenericFuncion_Data();
+			break;
 		default:
 			throw std::exception("bad path");
 			break;
@@ -373,6 +385,18 @@ public:
 			break;
 		case ClassType::ThreadVarable:
 			_ThreadVar.~ThreadVar_Data();
+			break;
+		case ClassType::StaticArray:
+			_StaticArr.~StaticArray_Data();
+			break;
+		case ClassType::FuncPtr:
+			_FuncPtr.~FuncPtr_Data();
+			break;
+		case ClassType::GenericClass:
+			_GenericClass.~GenericClass_Data();
+			break;
+		case ClassType::GenericFuncion:
+			_GenericFunc.~GenericFuncion_Data();
 			break;
 		default:
 			throw std::exception("bad path");
@@ -420,7 +444,27 @@ public:
 		if (Type != ClassType::ThreadVarable) { throw std::exception("bad access"); }
 		return _ThreadVar;
 	}
-
+	StaticArray_Data& Get_StaticArray() 
+	{
+		if (Type != ClassType::StaticArray) { throw std::exception("bad access"); }
+		return _StaticArr;
+	}
+	FuncPtr_Data& Get_FuncPtr() 
+	{
+		if (Type != ClassType::FuncPtr) { throw std::exception("bad access"); }
+		return _FuncPtr;
+	}
+	GenericClass_Data& Get_GenericClass() 
+	{
+		if (Type != ClassType::GenericClass) { throw std::exception("bad access"); }
+		return _GenericClass;
+	}
+	GenericFuncion_Data& Get_GenericFuncionData() 
+	{
+		if (Type != ClassType::GenericFuncion) { throw std::exception("bad access"); }
+		return _GenericFunc;
+	}
+	
 	const Class_Data& Get_ClassData() const
 	{
 		if (Type != ClassType::Class) { throw std::exception("bad access"); }
@@ -461,7 +505,26 @@ public:
 		if (Type != ClassType::ThreadVarable) { throw std::exception("bad access"); }
 		return _ThreadVar;
 	}
-	
+	const StaticArray_Data& Get_StaticArray() const
+	{
+		if (Type != ClassType::StaticArray) { throw std::exception("bad access"); }
+		return _StaticArr;
+	}
+	const FuncPtr_Data& Get_FuncPtr() const
+	{
+		if (Type != ClassType::FuncPtr) { throw std::exception("bad access"); }
+		return _FuncPtr;
+	}
+	const GenericClass_Data& Get_GenericClass() const
+	{
+		if (Type != ClassType::GenericClass) { throw std::exception("bad access"); }
+		return _GenericClass;
+	}
+	const GenericFuncion_Data& Get_GenericFuncionData() const
+	{
+		if (Type != ClassType::GenericFuncion) { throw std::exception("bad access"); }
+		return _GenericFunc;
+	}
 	inline ClassType Get_Type() const
 	{
 		return Type;
@@ -478,79 +541,61 @@ private:
 		Tag_Data _Tag;
 		StaticVar_Data _StaticVar;
 		ThreadVar_Data _ThreadVar;
+		StaticArray_Data _StaticArr;
+		FuncPtr_Data _FuncPtr;
+		GenericClass_Data _GenericClass;
+		GenericFuncion_Data _GenericFunc;
 	};
 };
 class ClassAssembly
 {
 public:
-	Vector<Unique_ptr<ClassData>> Classes;
-	inline ClassData& AddClass(const String& Name, const String& FullName = "")
-	{
-		auto V = std::make_unique<ClassData>(ClassType::Class);
-		Classes.push_back(std::move(V));
-		auto& r = *Classes.back();
-		r.Name = Name;
-		r.FullName = FullName;
-		return r;
-	}
-	inline ClassData& AddEnum(const String& Name, const String& FullName = "")
-	{
-		auto V = std::make_unique<ClassData>(ClassType::Enum);
-		Classes.push_back(std::move(V));
-		auto& r = *Classes.back();
-		r.Name = Name;
-		r.FullName = FullName;
-		return r;
-	}
-	inline ClassData& AddAlias(const String& Name, const String& FullName = "")
-	{
-		auto V = std::make_unique<ClassData>(ClassType::Alias);
-		Classes.push_back(std::move(V));
-		auto& r = *Classes.back();
-		r.Name = Name;
-		r.FullName = FullName;
-		return r;
-	}
+	Vector<Unique_ptr<AssemblyNode>> Classes;
 	
-
-	inline ClassData::Class_Data& Add_Class(const String& Name, const String& FullName = "")
-	{
-		auto& r = AddAlias(Name, FullName);
-		return r._Class;
-	}
-	inline ClassData::Enum_Data& Add_Enum(const String& Name, const String& FullName = "")
-	{
-		auto& r = AddAlias(Name, FullName);
-		return r._Enum;
-	}
-	inline ClassData::Alias_Data& Add_Alias(const String& Name, const String& FullName = "")
-	{
-		auto& r = AddAlias(Name,FullName);
-		return r._Alias;
-	}
-	inline void Clear()
-	{
-		Classes.clear();
-	}
 	ClassAssembly() {}
-	~ClassAssembly() 
-	{
-		Clear();
-	}
+	~ClassAssembly() {}
 	ClassAssembly(ClassAssembly&& source) = default;
 	ClassAssembly& operator=(ClassAssembly&& source) = default;
+	
+	inline Class_Data& AddClass(const String& Name, const String& FullName = "")
+	{
+		auto V = std::make_unique<AssemblyNode>(ClassType::Class);
+		Classes.push_back(std::move(V));
+		auto& r = *Classes.back();
+		r.Name = Name;
+		r.FullName = FullName;
+		return r.Get_ClassData();
+	}
+	inline Enum_Data& AddEnum(const String& Name, const String& FullName = "")
+	{
+		auto V = std::make_unique<AssemblyNode>(ClassType::Enum);
+		Classes.push_back(std::move(V));
+		auto& r = *Classes.back();
+		r.Name = Name;
+		r.FullName = FullName;
+		return r.Get_EnumData();
+	}
+	inline Alias_Data& AddAlias(const String& Name, const String& FullName = "")
+	{
+		auto V = std::make_unique<AssemblyNode>(ClassType::Alias);
+		Classes.push_back(std::move(V));
+		auto& r = *Classes.back();
+		r.Name = Name;
+		r.FullName = FullName;
+		return r.Get_AliasData();
+	}
 	static void PushCopyClasses(const ClassAssembly& source, ClassAssembly& Out)
 	{
 		for (auto& Item : source.Classes)
 		{
-			Out.Classes.push_back(std::make_unique<ClassData>(*Item));
+			Out.Classes.push_back(std::make_unique<AssemblyNode>(*Item));
 		}
 	}
-	ClassData* Find_Class(const String& Name, const String& Scope ="")
+	AssemblyNode* Find_Node(const String& Name, const String& Scope ="")
 	{
-		return Find_Class((String_view)Name, (String_view)Scope);
+		return Find_Node((String_view)Name, (String_view)Scope);
 	}
-	ClassData* Find_Class(const String_view& Name, const String_view& Scope="")
+	AssemblyNode* Find_Node(const String_view& Name, const String_view& Scope="")
 	{
 		for (auto& Item : Classes)
 		{
@@ -562,31 +607,111 @@ public:
 		}
 		return nullptr;
 	}
-	ClassData* Get_GlobalObject_Class()
+	AssemblyNode* Find_Node(ClassType Type,const String& Name, const String& Scope = "")
+	{
+		return Find_Node(Type,(String_view)Name, (String_view)Scope);
+	}
+	AssemblyNode* Find_Node(ClassType Type,const String_view& Name = "", const String_view& Scope = "")
+	{
+		for (auto& Item : Classes)
+		{
+			if (ScopeHelper::GetNameFromFullName(Item->Name) == Name
+				|| Item->FullName == Name)
+			{
+				return Item.get();
+			}
+		}
+		return nullptr;
+	}
+	
+	const AssemblyNode* Find_Node(const String& Name, const String& Scope = "") const
+	{
+		return Find_Node((String_view)Name, (String_view)Scope);
+	}
+	const AssemblyNode* Find_Node(const String_view& Name, const String_view& Scope = "") const
+	{
+		for (auto& Item : Classes)
+		{
+			if (ScopeHelper::GetNameFromFullName(Item->Name) == Name
+				|| Item->FullName == Name)
+			{
+				return Item.get();
+			}
+		}
+		return nullptr;
+	}
+	const AssemblyNode* Find_Node(ClassType Type, const String& Name, const String& Scope = "") const
+	{
+		return Find_Node(Type, (String_view)Name, (String_view)Scope);
+	}
+	const AssemblyNode* Find_Node(ClassType Type, const String_view& Name = "", const String_view& Scope = "") const
+	{
+		for (auto& Item : Classes)
+		{
+			if (Item->Get_Type() == Type) 
+			{
+				if (ScopeHelper::GetNameFromFullName(Item->Name) == Name
+					|| Item->FullName == Name)
+				{
+					return Item.get();
+				}
+			}
+		}
+		return nullptr;
+	}
+
+	
+	Class_Data* Get_GlobalObject_Class()
 	{
 		return  Find_Class((String)ScopeHelper::_globalAssemblyObject);
 	}
 
-	const ClassData* Get_GlobalObject_Class()const
+	const Class_Data* Get_GlobalObject_Class() const
 	{
 		return  Find_Class((String)ScopeHelper::_globalAssemblyObject);
 	}
-	const ClassData* Find_Class(const String& Name, const String& Scope = "") const
+
+	const Class_Data* Find_Class(const String& Name, const String& Scope = "") const
 	{
 		return Find_Class((String_view)Name, (String_view)Scope);
 	}
-	const ClassData* Find_Class(const String_view& Name, const String_view& Scope = "") const
+	const Class_Data* Find_Class(const String_view& Name, const String_view& Scope = "") const
 	{
 		String Tep = String(Name);
 		Tep += Scope;
 		for (auto& Item : Classes)
 		{
-			if (ScopeHelper::GetNameFromFullName(Item->Name) == Name
-		     || Item->FullName == Name
-			 || Item->Name == Tep
-			 || Item->FullName ==  Tep)
+			if (Item->Get_Type() == ClassType::Class) 
 			{
-				return Item.get();
+				if (ScopeHelper::GetNameFromFullName(Item->Name) == Name
+					|| Item->FullName == Name
+					|| Item->Name == Tep)
+				{
+					return &Item->Get_ClassData();
+				}
+			}
+		}
+		return nullptr;
+	}
+
+	Class_Data* Find_Class(const String& Name, const String& Scope = "")
+	{
+		return Find_Class((String_view)Name, (String_view)Scope);
+	}
+	Class_Data* Find_Class(const String_view& Name, const String_view& Scope = "") 
+	{
+		String Tep = String(Name);
+		Tep += Scope;
+		for (auto& Item : Classes)
+		{
+			if (Item->Get_Type() == ClassType::Class)
+			{
+				if (ScopeHelper::GetNameFromFullName(Item->Name) == Name
+					|| Item->FullName == Name
+					|| Item->Name == Tep)
+				{
+					return &Item->Get_ClassData();
+				}
 			}
 		}
 		return nullptr;

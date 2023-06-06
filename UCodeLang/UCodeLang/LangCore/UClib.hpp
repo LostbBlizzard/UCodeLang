@@ -182,7 +182,7 @@ public:
 	{
 		clear_StaticBytes();
 		clear_DebugBytes();
-		_Assembly.Clear();
+		_Assembly.Classes.clear();
 	}
 	//
 
@@ -311,13 +311,13 @@ public:
 
 	static void ToBytes(BitMaker& Output, const CodeLayer& Data);
 
-	static void ToBytes(BitMaker& Output, const ClassData::Enum_Data& EnumData);
+	static void ToBytes(BitMaker& Output, const Enum_Data& EnumData);
 	static void ToBytes(BitMaker& Output, const ClassAssembly& Assembly);
-	static void ToBytes(BitMaker& Output, const ClassData::Alias_Data& Alias);
-	static void ToBytes(BitMaker& Output, const ClassData::Class_Data& ClassData);
-	static void ToBytes(BitMaker& Output, const Vector<AttributeData>& Attributes);
+	static void ToBytes(BitMaker& Output, const Alias_Data& Alias);
+	static void ToBytes(BitMaker& Output, const Class_Data& ClassData);
+	static void ToBytes(BitMaker& Output, const Vector<UsedTagValueData>& Attributes);
 	static void ToBytes(BitMaker& Output, const ClassField& Item2);
-	static void ToBytes(BitMaker& Output, const AttributeData& Data);
+	static void ToBytes(BitMaker& Output, const Tag_Data& Data);
 	static void ToBytes(BitMaker& Output, const ClassMethod& Data);
 	static void ToBytes(BitMaker& Output, const ReflectionTypeInfo& Data);
 	//
@@ -326,12 +326,12 @@ public:
 	static void FromBytes(BitReader& Input, CodeLayer& Data);
 
 	static void FromBytes(BitReader& reader, ClassAssembly& Assembly);
-	static void FromBytes(BitReader& reader, ClassData::Enum_Data& Enum);
-	static void FromBytes(BitReader& reader, ClassData::Class_Data& Class);
-	static void FromBytes(BitReader& reader, Vector<AttributeData>& Attributes);
+	static void FromBytes(BitReader& reader, Enum_Data& Enum);
+	static void FromBytes(BitReader& reader, Class_Data& Class);
+	static void FromBytes(BitReader& reader, Vector<UsedTagValueData>& Attributes);
 	static void FromBytes(BitReader& reader, ClassField& Item2);
-	static void FromBytes(BitReader& reader, ClassData::Alias_Data& Alias);
-	static void FromBytes(BitReader& Input, AttributeData& Data);
+	static void FromBytes(BitReader& reader, Alias_Data& Alias);
+	static void FromBytes(BitReader& Input, Tag_Data& Data);
 	static void FromBytes(BitReader& Input, ClassMethod& Data);
 	static void FromBytes(BitReader& Input, ReflectionTypeInfo& Data);
 	//
