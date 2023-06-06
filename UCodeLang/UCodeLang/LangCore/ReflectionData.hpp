@@ -141,7 +141,13 @@ public:
 		Resize(ToCopy.Size);
 		memcpy(Get_Data(), ToCopy.Get_Data(), Size);
 	}
+	ReflectionRawData& operator=(const ReflectionRawData& ToCopy)
+	{
+		Resize(ToCopy.Size);
+		memcpy(Get_Data(), ToCopy.Get_Data(), Size);
 
+		return *this;
+	}
 };
 
 class TypedRawReflectionData
@@ -252,6 +258,7 @@ struct Alias_Data
 struct Eval_Data
 {
 	TypedRawReflectionData Value;
+
 };
 struct Tag_Data
 {
@@ -327,53 +334,7 @@ public:
 		this->operator=(node);
 	}
 	AssemblyNode& operator=(const AssemblyNode& node);
-	~AssemblyNode()
-	{
-		switch (Type)
-		{
-		case ClassType::Null:
-			break;
-		case ClassType::Class:
-			_Class.~Class_Data();
-			break;
-		case ClassType::Enum:
-			_Enum.~Enum_Data();
-			break;
-		case ClassType::Alias:
-			_Alias.~Alias_Data();
-			break;
-		case ClassType::Eval:
-			_Eval.~Eval_Data();
-			break;
-		case ClassType::Trait:
-			_Trait.~Trait_Data();
-			break;
-		case ClassType::Tag:
-			_Tag.~Tag_Data();
-			break;
-		case ClassType::StaticVarable:
-			_StaticVar.~StaticVar_Data();
-			break;
-		case ClassType::ThreadVarable:
-			_ThreadVar.~ThreadVar_Data();
-			break;
-		case ClassType::StaticArray:
-			_StaticArr.~StaticArray_Data();
-			break;
-		case ClassType::FuncPtr:
-			_FuncPtr.~FuncPtr_Data();
-			break;
-		case ClassType::GenericClass:
-			_GenericClass.~GenericClass_Data();
-			break;
-		case ClassType::GenericFuncion:
-			_GenericFunc.~GenericFuncion_Data();
-			break;
-		default:
-			throw std::exception("bad path");
-			break;
-		}
-	}
+	~AssemblyNode();
 
 	Class_Data& Get_ClassData()
 	{

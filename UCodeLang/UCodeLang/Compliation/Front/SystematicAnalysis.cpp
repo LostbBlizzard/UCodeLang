@@ -5038,11 +5038,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 			}
 			
 
-			int a = 0;
-		}
-		else
-		{
-			//enum
+			
 		}
 	}
 
@@ -10102,8 +10098,10 @@ void SystematicAnalysis::AddClass_tToAssemblyInfo(const ClassInfo* Class)
 {
 	Class_Data& VClass = _Lib.Get_Assembly().AddClass((String)Class->Get_Name(), Class->FullName);
 	
-	VClass.Size = 0;
+	TypeSymbol AsType = TypeSymbol(GetSymbol(Class)->ID);
 
+	VClass.Size = 0;
+	VClass.TypeID = GetTypeID(AsType._Type, AsType._CustomTypeSymbol);
 	
 	for (const auto& node : Class->Fields)
 	{
