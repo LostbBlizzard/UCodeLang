@@ -238,6 +238,33 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 		}
 	}
 	
+
+	if (FuncName == "GetBaseType")
+	{
+		if (Pars.size() == 1 )
+		{
+			auto& Par = Pars.front();
+			if (Par.IsOutPar == false) 
+			{	
+				if (Par.Type._TypeInfo == TypeInfoPrimitive::EnumInfo)
+				{
+					const auto Sym = This.GetSymbol(Par.Type);
+					const auto classInfo = Sym->Get_Info<EnumInfo>();
+					auto BaseType = classInfo->Basetype;
+
+					Func _Func;
+					_Func.RetType = BaseType;
+					_Func.RetType.SetAsTypeInfo();
+					auto Ex = This.MakeEx(_Func.RetType);
+					This.Set_ObjectAs(Ex, BaseType);
+
+					_Func.EvalObject = std::move(Ex.EvaluatedObject);
+
+					return _Func;
+				}
+			}
+		}
+	}
 	
 
 	if (Pars.size() == 2)
@@ -245,35 +272,66 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 		auto& Type = Pars.front();
 
 		bool IsTypeInfo = Type.Type._TypeInfo == TypeInfoPrimitive::TypeInfo;
+		bool OtherIsOutVal = Pars[1].IsOutPar == true && IsTypeInfo;
 
-		if (FuncName == "GetClassInfo" && Pars[1].IsOutPar == true
-			&& IsTypeInfo)
+		if (OtherIsOutVal)
 		{
-			const auto Sym = This.GetSymbol(Type.Type);
-			bool IsClass = Sym ? Sym->Type == SymbolType::Type_class : nullptr;
-
-			Func _Func;
-			_Func.RetType = TypesEnum::Bool;
-			auto Ex = This.MakeEx(_Func.RetType);
-			This.Set_ObjectAs(Ex,IsClass);
-
-			_Func.EvalObject = std::move(Ex.EvaluatedObject);
-
+			if (FuncName == "GetClassInfo")
 			{
-				Func::OutParData Par;
+				const auto Sym = This.GetSymbol(Type.Type);
+				bool IsClass = Sym ? Sym->Type == SymbolType::Type_class : nullptr;
 
-				Par.Type = Type.Type;
-				Par.Type._IsAddress = false;//If Pass as Ref
-				Par.Type._TypeInfo =TypeInfoPrimitive::ClassInfo;
+				Func _Func;
+				_Func.RetType = TypesEnum::Bool;
+				auto Ex = This.MakeEx(_Func.RetType);
+				This.Set_ObjectAs(Ex, IsClass);
 
-				auto Ex = This.MakeEx(Par.Type);
-				This.Set_ObjectAs(Ex, Par.Type);
+				_Func.EvalObject = std::move(Ex.EvaluatedObject);
 
-				Par.EvalObject = std::move(Ex.EvaluatedObject);
-				_Func._OutPars.push_back(std::move(Par));
+				{
+					Func::OutParData Par;
+
+					Par.Type = Type.Type;
+					Par.Type._IsAddress = false;//If Pass as Ref
+					Par.Type._TypeInfo = TypeInfoPrimitive::ClassInfo;
+
+					auto Ex = This.MakeEx(Par.Type);
+					This.Set_ObjectAs(Ex, Par.Type);
+
+					Par.EvalObject = std::move(Ex.EvaluatedObject);
+					_Func._OutPars.push_back(std::move(Par));
+				}
+				return _Func;
 			}
-			return _Func;
+			else if (FuncName == "GetEnumInfo")
+			{
+				const auto Sym = This.GetSymbol(Type.Type);
+				bool IsEnum = Sym ? Sym->Type == SymbolType::Enum: nullptr;
+
+				Func _Func;
+				_Func.RetType = TypesEnum::Bool;
+				auto Ex = This.MakeEx(_Func.RetType);
+				This.Set_ObjectAs(Ex, IsEnum);
+
+				_Func.EvalObject = std::move(Ex.EvaluatedObject);
+
+				{
+					Func::OutParData Par;
+
+					Par.Type = Type.Type;
+					Par.Type._IsAddress = false;//If Pass as Ref
+					Par.Type._TypeInfo = TypeInfoPrimitive::EnumInfo;
+
+					auto Ex = This.MakeEx(Par.Type);
+					This.Set_ObjectAs(Ex, Par.Type);
+
+					Par.EvalObject = std::move(Ex.EvaluatedObject);
+					_Func._OutPars.push_back(std::move(Par));
+				}
+				return _Func;
+			}
 		}
+	
 	}
 
 	
@@ -12802,13 +12860,18 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 		if (HasOutPar)
 		{
 			bool IsControlFlow = false;
-			if (NodeTypeStack.size() > 2) 
+			if (NodeTypeStack.size() > 1) 
 			{
 				size_t Index = NodeTypeStack.size() - 1;
 				Index--;
 				auto& Last = NodeTypeStack[Index];
 				if (Last == NodeType::IfNode || Last == NodeType::WhileNode || Last == NodeType::DoNode
-					|| Last == NodeType::RetStatementNode || Last == NodeType::CompileTimeIfNode)
+					|| Last == NodeType::RetStatementNode
+					|| Last == NodeType::CompileTimeIfNode)
+				{
+					IsControlFlow = true;
+				}
+				else if (NodeTypeStack.back() == NodeType::CompileTimeIfNode)
 				{
 					IsControlFlow = true;
 				}

@@ -20,11 +20,11 @@
 
 //import Hello::{Func = OtherFuncion};
 
-$Cool:
- int32 A;//4
- int8 B;//1
- int16 C;//2
- int64 D;//8
+$CoolEnum enum: 
+ I,
+ Lov,
+ You,
+
 
 $CString = umut char[&];
 
@@ -33,10 +33,9 @@ $CString = umut char[&];
 
 
  uintptr R = 0;
- eval typeinfo TypeCool = type(Cool);
- if TypeCool.GetClassInfo(out typeinfo ClassTypeValue):
-  $for [var Item : ClassTypeValue.GetFields()]:
-    $FieldType = bind(Item.Type());
-    R += sizeof(FieldType);
+ eval typeinfo TypeCool = type(CoolEnum);
+ $if TypeCool.GetEnumInfo(out typeinfo EnumTypeValue):
+  $Base = bind(EnumTypeValue.GetBaseType());
+  R = sizeof(Base);
 
  ret 0; 
