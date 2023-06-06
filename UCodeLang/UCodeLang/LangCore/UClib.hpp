@@ -316,10 +316,15 @@ public:
 	static void ToBytes(BitMaker& Output, const Alias_Data& Alias);
 	static void ToBytes(BitMaker& Output, const Class_Data& ClassData);
 	static void ToBytes(BitMaker& Output, const Vector<UsedTagValueData>& Attributes);
+	static void ToBytes(BitMaker& Output, const UsedTagValueData& Attributes);
 	static void ToBytes(BitMaker& Output, const ClassField& Item2);
 	static void ToBytes(BitMaker& Output, const Tag_Data& Data);
 	static void ToBytes(BitMaker& Output, const ClassMethod& Data);
 	static void ToBytes(BitMaker& Output, const ReflectionTypeInfo& Data);
+	static void ToBytes(BitMaker& Output, const ReflectionRawData& Data);
+	static void ToBytes(BitMaker& Output, const TypedRawReflectionData& Data);
+	static void ToBytes(BitMaker& Output, const Optional<ReflectionCustomTypeID>& Data);
+	static void ToBytes(BitMaker& Output, const Optional<ReflectionTypeInfo>& Data);
 	//
 	static bool FromBytes(UClib* Lib,const BytesView& Data);
 
@@ -334,6 +339,10 @@ public:
 	static void FromBytes(BitReader& Input, Tag_Data& Data);
 	static void FromBytes(BitReader& Input, ClassMethod& Data);
 	static void FromBytes(BitReader& Input, ReflectionTypeInfo& Data);
+	static void FromBytes(BitReader& Input, UsedTagValueData& Data);
+	static void FromBytes(BitReader& Input, Optional<ReflectionCustomTypeID>& Data);
+	static void FromBytes(BitReader& Input, Optional<ReflectionTypeInfo>& Data);
+	static void FromBytes(BitReader& Input, ReflectionRawData& Data);
 	//
 
 	static bool ToFile(const UClib* Lib,const Path& path);
