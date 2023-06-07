@@ -1,11 +1,17 @@
 #pragma once
 #include "Typedef.hpp"
-#include <mutex>
-
-#include "LanguageSeverTypes/PacketTypes.hpp"
 UCodeAnalyzerStart
 
 
+class LanguageAnalyzer
+{
+public:
+	LanguageAnalyzer() {};
+	~LanguageAnalyzer() {};
+
+
+private:
+};
 
 class Language_Server
 {
@@ -17,9 +23,6 @@ public:
 	{
 
 	}
-
-
-	
 private:
 	
 public:
