@@ -74,7 +74,7 @@ UCodeTestStart
 		}
 	};
 
-	static const Array<TestInfo, 59> Tests
+	static const Array<TestInfo, 62> Tests
 	{
 
 		TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation),
@@ -159,6 +159,9 @@ UCodeTestStart
 		TestInfo("GetFields","Eval/GetFields.uc","main",SuccessCondition::RunTimeValue,(int)15),
 		TestInfo("GetFields2","Eval/GetFields2.uc","main",SuccessCondition::RunTimeValue,(int)7),
 		TestInfo("GetFields3","Eval/GetFields3.uc","main",SuccessCondition::RunTimeValue,(int)16),
+		TestInfo("GetFields enum","Eval/GetEnumFields.uc","main",SuccessCondition::RunTimeValue,(int)3),
+		TestInfo("GetFields enum 2","Eval/GetEnumFields2.uc","main",SuccessCondition::RunTimeValue,(int)12),
+		TestInfo("GetEnum Base","Eval/GetEnumBase.uc","main",SuccessCondition::RunTimeValue,(bool)true),
 	};
 
 
