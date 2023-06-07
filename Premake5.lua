@@ -90,16 +90,13 @@ project "UC"
    includedirs{
     "%{prj.name}/src",
     "UCodeLang",
-    "UCodeCross"
    }
 
    links {
       "UCodeLang.lib",
-      "UCodeCross.lib",
    }
    libdirs { 
       "Output/UCodeLang/" .. OutDirPath,
-      "Output/UCodeCross/" .. OutDirPath,
    }
 project "UCodeLang"
    location "UCodeLang"
@@ -120,6 +117,40 @@ project "UCodeLang"
    includedirs{
     "UCodeLang",
    }
+project "UCodeLanguageSever"
+   location "UCodeLanguageSever"
+   kind "ConsoleApp"
+   language "C++"
+
+   
+   
+   targetdir ("Output/%{prj.name}/" .. OutDirPath)
+   objdir ("Output/int/%{prj.name}/" .. OutDirPath)
+   
+   files { 
+     "%{prj.name}/src/**.c",
+     "%{prj.name}/src/**.h",
+     "%{prj.name}/src/**.cpp",
+     "%{prj.name}/src/**.hpp", 
+
+     "%{prj.name}/json-develop/include/**.hpp",
+     "%{prj.name}/json-rpc-cxx-master/include/**.hpp",
+   }
+   includedirs{
+    "UCodeLang",
+   
+    "%{prj.name}/json-rpc-cxx-master/include",
+
+    "%{prj.name}/json-develop/include",
+   }
+
+   links {
+      "UCodeLang.lib",
+   }
+   libdirs { 
+      "Output/UCodeLang/" .. OutDirPath,
+   }
+
 group "UCodeAPIs"
  project "StandardLibrary"
   location "UCodeAPI/StandardLibrary"
