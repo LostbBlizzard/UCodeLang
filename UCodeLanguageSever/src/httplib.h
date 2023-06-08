@@ -2565,7 +2565,8 @@ namespace httplib {
 
             auto service = std::to_string(port);
 
-            if (getaddrinfo(node, service.c_str(), &hints, &result)) {
+            auto V = getaddrinfo(node, service.c_str(), &hints, &result);
+            if (V) {
 #if defined __linux__ && !defined __ANDROID__
                 res_init();
 #endif
