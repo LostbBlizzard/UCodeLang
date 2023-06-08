@@ -131,7 +131,7 @@ public:
 
 		#if UCodeLang_64BitSytem
 		intNative = int64,
-		#elif
+		#else
 		intNative = int32,
 		#endif // UCodeLang_64BitSytem
 
