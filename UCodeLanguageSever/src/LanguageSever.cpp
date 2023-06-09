@@ -1,5 +1,6 @@
 #include "LanguageSever.hpp"
 #include <unordered_map>
+#include <functional>
 LanguageSeverStart
 
 
@@ -14,7 +15,6 @@ struct LanguageSeverFuncMap
 		{"textDocument/hover",&LanguageSever::textDocument_hover},
 		{"textDocument/rename",&LanguageSever::textDocument_rename},
 	};
-
 };
 
 
@@ -79,12 +79,29 @@ void LanguageSever::textDocument_hover(integer  requestid, const json& params)
 void LanguageSever::textDocument_rename(integer  requestid, const json& params)
 {
 }
+
+//
+
+void LanguageSever::window_logMessage(MessageType Type, String MSg)
+{
+	LogMessageParams V;
+	V.type = Type;
+	V.message = MSg;
+
+	SendMethodToClient("window/logMessage", V);
+}
 void LanguageSever::Sever_initialize(integer requestid, const json& Params)
 {
 	InitializeResult V;
 	V.capabilities.positionEncoding = PositionEncodingkind::PositionEncodingKind8;
+	V.capabilities.hoverProvider = true;
 
 
 	SendResponseMessageToClient(requestid, V);
+	for (size_t i = 0; i < 3; i++)
+	{
+
+		window_logMessage(MessageType::Info, "Runing UCodeLang");
+	}
 }
 LanguageSeverEnd

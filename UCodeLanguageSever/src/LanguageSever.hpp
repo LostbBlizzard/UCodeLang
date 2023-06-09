@@ -81,7 +81,7 @@ private:
         {
             Json["jsonrpc"] = "2.0";
             Json["id"] = requestid;
-            Json["result"] = Object;
+            ns::to_json(Json["result"],Object);
         }
 
 
@@ -97,7 +97,24 @@ private:
         {
             Json["jsonrpc"] = "2.0";
             Json["id"] = requestid;
-            Json["error"] = Error;
+            ns::to_json(Json["error"],Error);
+        }
+
+
+        SeverPacket packet;
+        packet._Data = Json.dump();
+        SendPacketToClient(std::move(packet));
+    }
+
+    template<typename T>
+    void SendMethodToClient(const String& method, const T& params)
+    {
+        json Json;
+        {
+            Json["jsonrpc"] = "2.0";
+            Json["id"] = Test++;
+            Json["method"] = method;
+            ns::to_json(Json["params"], params);
         }
 
 
@@ -113,6 +130,10 @@ private:
     void textDocument_hover(integer requestid, const json& params);
 
     void textDocument_rename(integer requestid, const json& params);
+
+    //
+    void window_logMessage(MessageType Type, String MSg);
+    size_t Test = 1;
 };
 
 LanguageSeverEnd
