@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <thread>
+#include <fstream>
 
 const char NumberCharList[] = "1234567890";
 bool IsInNumCharList(char Value)
@@ -73,6 +74,17 @@ int ReadNumber(std::string_view View, std::string_view& ToUpdate)
 	return Value;
 }
 
+std::string FilePath = "C:/CoolStuff/CoolCodeingStuff/C++/Projects/UCodeLang/UCodeLanguageSever/Msg.txt";
+std::ofstream File = std::ofstream(FilePath);
+std::mutex Lock = {};
+void LogMSG(const std::string& Str)
+{
+	Lock.lock();
+	//std::cerr << Str << std::endl;
+	File << Str << std::endl;
+	Lock.unlock();
+}
+
 //Args
 //--Start [SeverIp] [Port] 
 void RunArg(std::string_view View)
@@ -92,7 +104,9 @@ void RunArg(std::string_view View)
 				static UCodeLanguageSever::LanguageSever* SeverPtr = nullptr;
 				SeverPtr = nullptr;
 
-				while (true);
+
+				LogMSG("Starting ULang Sever");
+				//while (true);
 
 				std::thread SeverThread([]()
 					{
@@ -100,19 +114,14 @@ void RunArg(std::string_view View)
 						SeverPtr = &Sever;
 
 						
-
-						while (Sever.Step())
-						{
-
-						}
+						while (Sever.Step());
 						SeverPtr = nullptr;
 					}
 				);
 
-				std::this_thread::sleep_for(std::chrono::seconds(3));//so thread can start up
 
 				std::thread OutThread([](std::thread* SeverThread)
-				{
+					{
 						while (SeverThread->joinable())
 						{
 							if (SeverPtr)
@@ -120,12 +129,20 @@ void RunArg(std::string_view View)
 								auto List = SeverPtr->GetPackets();
 								for (auto& Item : List)
 								{
+									std::string pack;
+									pack += "Content-Length:";
+									pack += std::to_string(Item._Data.size());
+									pack += "\r\n";
+									pack += "\r\n";
+									pack += Item._Data;
+									LogMSG("Sent Packet:" + pack);
 
-									std::cout << Item._Data;
+									std::cout << pack;
+									std::cerr << pack;
 								}
 							}
 						}
-				},&SeverThread);
+					}, &SeverThread);
 
 
 				bool ReadingPacketSize = false;
@@ -139,7 +156,7 @@ void RunArg(std::string_view View)
 					Buffer += V;
 
 
-					if (PacketSize == 0) 
+					if (PacketSize == 0)
 					{
 						if (ReadingPacketSize == false)
 						{
@@ -184,9 +201,11 @@ void RunArg(std::string_view View)
 
 						if (PacketSize == 0)
 						{
+							
 							UCodeLanguageSever::ClientPacket p;
 							p._Data = std::move(Buffer);
 							p._Data = p._Data.substr(1);
+							LogMSG("Got Packet:" + p._Data);
 
 							SeverPtr->AddPacket(std::move(p));
 
@@ -196,28 +215,19 @@ void RunArg(std::string_view View)
 								PacketSize = 0;
 								ReadingPacketSize = false;
 							}
+
 						}
 					}
 				}
+
+
+				LogMSG("Sever End");
 			}
 
-			/*
-			else
-			{
-				int Port = ReadNumber(View, View);
-
-				{
-					UCodeLanguageSever::Sever sever = {};
-					sever.RunOnSever(SeverIp, Port);
-
-					while (sever.Step());
-				}
-			}
-			*/
 		}
 		else
 		{
-			std::cout << "Bad Arg\n";
+			LogMSG("Bad Arg");
 		}
 	}
 }
