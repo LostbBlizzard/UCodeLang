@@ -1,3 +1,4 @@
+#pragma once
 
 #include "LanguageSeverNameSpace.h"
 #include "UCodeAnalyzer/Typedef.hpp"
@@ -9,9 +10,19 @@ using namespace UCodeAnalyzer;
 using json = nlohmann::json;
 
 //from https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#responseMessage
-//ts types
+//TypeScript definitions 
 using integer = int;
 using uinteger = int;
+
+/**
+ * Defines a decimal number. Since decimal numbers are very
+ * rare in the language server specification we denote the
+ * exact range with every decimal using the mathematics
+ * interval notation (e.g. [0, 1] denotes all decimals d with
+ * 0 <= d <= 1.
+ */
+using decimal = float;
+
 
 //ts string
 using string = String;
@@ -41,6 +52,10 @@ using TsArray = std::vector<T>;
 
 using unknown =bool;
 using LSPAny = int;
+
+
+
+
 enum class ErrorCodes : integer
 {
     // Defined by JSON-RPC
@@ -123,6 +138,12 @@ struct VersionedTextDocumentIdentifier : TextDocumentIdentifier
 	integer version;
 };
 
+struct  Location
+{
+	DocumentUri uri;
+	Range range;
+};
+
 struct OptionalVersionedTextDocumentIdentifier : TextDocumentIdentifier {
 	/**
 	 * The version number of this document. If an optional versioned text document
@@ -150,6 +171,78 @@ struct TextDocumentPositionParams {
 	Position position;
 };
 
+enum class DiagnosticSeverity : integer
+{/**
+	 * Reports an error.
+	 */
+	Error = 1,
+	/**
+	 * Reports a warning.
+	 */
+	 Warning = 2,
+	 /**
+	  * Reports an information.
+	  */
+	  Information = 3,
+	  /**
+	   * Reports a hint.
+	   */
+	   Hint = 4,
+};
+
+enum class DiagnosticTag
+{
+	/**
+	 * Unused or unnecessary code.
+	 *
+	 * Clients are allowed to render diagnostics with this tag faded out
+	 * instead of having an error squiggle.
+	 */
+	Unnecessary = 1,
+	/**
+	 * Deprecated or obsolete code.
+	 *
+	 * Clients are allowed to rendered diagnostics with this tag strike through.
+	 */
+	 Deprecated = 2,
+
+};
+
+struct DiagnosticRelatedInformation {
+	/**
+	 * The location of this related diagnostic information.
+	 */
+	Location location;
+
+	/**
+	 * The message of this related diagnostic information.
+	 */
+	string message;
+};
+
+struct CodeDescription {
+	/**
+	 * An URI to open with more information about the diagnostic error.
+	 */
+	URI href;
+};
+
+struct Command
+{
+	/**
+	 * Title of the command, like `save`.
+	 */
+	string title;
+	/**
+	 * The identifier of the actual command handler.
+	 */
+	string command;
+	/**
+	 * Arguments that the command handler should be
+	 * invoked with.
+	 */
+	TsOptional<TsArray<LSPAny>> arguments;
+};
 struct TextEdit
 {
 	/**
@@ -218,11 +311,7 @@ struct  TextDocumentEdit
 	TsArray<TypePredicates<TextEdit, AnnotatedTextEdit>> edits;
 };
 
-struct  Location
-{
-	DocumentUri uri;
-	Range range;
-};
+
 
 struct LocationLink
 {
@@ -313,78 +402,96 @@ struct  Diagnostic {
 	 */
 	TsOptional<unknown> data;
 };
-enum class DiagnosticSeverity : integer
-{/**
-	 * Reports an error.
-	 */
-	Error = 1,
-	/**
-	 * Reports a warning.
-	 */
-	 Warning = 2,
-	 /**
-	  * Reports an information.
-	  */
-	  Information = 3,
-	  /**
-	   * Reports a hint.
-	   */
-	   Hint = 4,
-};
 
-enum class DiagnosticTag
-{
-	/**
-	 * Unused or unnecessary code.
-	 *
-	 * Clients are allowed to render diagnostics with this tag faded out
-	 * instead of having an error squiggle.
-	 */
-	 Unnecessary = 1,
+
+
+using PositionEncodingKind = string;
+
 /**
- * Deprecated or obsolete code.
+ * A set of predefined position encoding kinds.
  *
- * Clients are allowed to rendered diagnostics with this tag strike through.
+ * @since 3.17.0
  */
-Deprecated = 2,
+namespace PositionEncodingkind {
 
+	/**
+	 * Character offsets count UTF-8 code units (e.g bytes).
+	 */
+	PositionEncodingKind PositionEncodingKind8 = "utf-8";
+
+	/**
+	 * Character offsets count UTF-16 code units.
+	 *
+	 * This is the default and must always be supported
+	 * by servers
+	 */
+	PositionEncodingKind PositionEncodingKind16 = "utf-16";
+
+	/**
+	 * Character offsets count UTF-32 code units.
+	 *
+	 * Implementation note: these are the same as Unicode code points,
+	 * so this `PositionEncodingKind` may also be used for an
+	 * encoding-agnostic representation of character offsets.
+	 */
+	PositionEncodingKind PositionEncodingKind32 = "utf-32";
 };
 
-struct DiagnosticRelatedInformation {
-	/**
-	 * The location of this related diagnostic information.
-	 */
-	Location location;
+//https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#serverCapabilities
+struct ServerCapabilities {
 
 	/**
-	 * The message of this related diagnostic information.
+	 * The position encoding the server picked from the encodings offered
+	 * by the client via the client capability `general.positionEncodings`.
+	 *
+	 * If the client didn't provide any position encodings the only valid
+	 * value that a server can return is 'utf-16'.
+	 *
+	 * If omitted it defaults to 'utf-16'.
+	 *
+	 * @since 3.17.0
+	 */
+	TsOptional<PositionEncodingKind> positionEncoding;
+};
+
+struct ResponseError {
+	/**
+	 * A number indicating the error type that occurred.
+	 */
+	integer code;
+
+	/**
+	 * A string providing a short description of the error.
 	 */
 	string message;
-};
 
-struct CodeDescription {
 	/**
-	 * An URI to open with more information about the diagnostic error.
+	 * A primitive or structured value that contains additional
+	 * information about the error. Can be omitted.
 	 */
-	URI href;
+	TsOptional<json> data;
 };
 
-struct Command
+struct InitializeResult
 {
 	/**
-	 * Title of the command, like `save`.
+	 * The capabilities the language server provides.
 	 */
-	string title;
+	ServerCapabilities capabilities;
+
 	/**
-	 * The identifier of the actual command handler.
+	 * Information about the server.
+	 *
+	 * @since 3.15.0
 	 */
-	string command;
-	/**
-	 * Arguments that the command handler should be
-	 * invoked with.
-	 */
-	TsOptional<TsArray<LSPAny>> arguments;
+	struct Struct
+	{
+		string name;
+		TsOptional<string> version;
+	};
+
+	TsOptional< Struct> serverInfo;
 };
 
-
 LanguageSeverEnd
+

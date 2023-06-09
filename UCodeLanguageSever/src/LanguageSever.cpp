@@ -6,7 +6,7 @@ LanguageSeverStart
 struct LanguageSeverFuncMap
 {
 
-	using Func = void(LanguageSever::*)(integer  PacketID, const json& Params);
+	using Func = void(LanguageSever::*)(integer  requestid, const json& Params);
 	inline static const std::unordered_map<String, Func> LanguageFuncs
 	{
 		{"initialize",&LanguageSever::Sever_initialize},
@@ -69,28 +69,22 @@ void LanguageSever::OnReceivedPacket(const ClientPacket& Item)
 	}
 
 }
-void LanguageSever::textDocument_definition(integer  PacketID,const json& Params)
+void LanguageSever::textDocument_definition(integer  requestid,const json& Params)
 {
 
 }
-void LanguageSever::textDocument_hover(integer  PacketID, const json& params)
+void LanguageSever::textDocument_hover(integer  requestid, const json& params)
 {
 }
-void LanguageSever::textDocument_rename(integer  PacketID, const json& params)
+void LanguageSever::textDocument_rename(integer  requestid, const json& params)
 {
 }
-void LanguageSever::Sever_initialize(integer PacketID, const json& Params)
+void LanguageSever::Sever_initialize(integer requestid, const json& Params)
 {
-
-	json Json;
-	{
-		Json["id"] = 0;
-
-	}
+	InitializeResult V;
+	V.capabilities.positionEncoding = PositionEncodingkind::PositionEncodingKind8;
 
 
-	SeverPacket packet;
-	packet._Data = Json.dump();
-	SendPacketToClient(std::move(packet));
+	SendResponseMessageToClient(requestid, V);
 }
 LanguageSeverEnd

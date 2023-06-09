@@ -1,8 +1,9 @@
 #pragma once
+
+#include <mutex>
 #include "LanguageSeverNameSpace.h"
 #include "JSONstructures.hpp"
-
-
+#include "JSONstructureSerialization.hpp"
 LanguageSeverStart
 struct SeverPacket
 {
@@ -71,12 +72,32 @@ private:
     Vector<ClientPacket> _ClientPacketsToRun;
     void OnReceivedPacket(const ClientPacket& params);
 
-    void SendErrorResponse(integer requestid,ErrorCodes ErrorCode,String message)
+
+    // ResponseMessage
+    template<typename T>
+    void SendResponseMessageToClient(integer requestid,const T& Object)
     {
         json Json;
         {
+            Json["jsonrpc"] = "2.0";
             Json["id"] = requestid;
+            Json["result"] = Object;
+        }
 
+
+        SeverPacket packet;
+        packet._Data = Json.dump();
+        SendPacketToClient(std::move(packet));
+    }
+
+    // ResponseMessage
+    void SendResponseErrorToClient(integer requestid,const ResponseError& Error)
+    {
+        json Json;
+        {
+            Json["jsonrpc"] = "2.0";
+            Json["id"] = requestid;
+            Json["error"] = Error;
         }
 
 
@@ -85,13 +106,13 @@ private:
         SendPacketToClient(std::move(packet));
     }
     //
-    void Sever_initialize(integer  PacketID, const json& params);
+    void Sever_initialize(integer  requestid, const json& params);
 
-    void textDocument_definition(integer PacketID, const json& params);
+    void textDocument_definition(integer requestid, const json& params);
    
-    void textDocument_hover(integer PacketID, const json& params);
+    void textDocument_hover(integer requestid, const json& params);
 
-    void textDocument_rename(integer PacketID, const json& params);
+    void textDocument_rename(integer requestid, const json& params);
 };
 
 LanguageSeverEnd
