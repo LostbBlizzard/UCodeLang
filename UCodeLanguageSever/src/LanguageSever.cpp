@@ -93,15 +93,33 @@ void LanguageSever::window_logMessage(MessageType Type, String MSg)
 void LanguageSever::Sever_initialize(integer requestid, const json& Params)
 {
 	InitializeResult V;
-	V.capabilities.positionEncoding = PositionEncodingkind::PositionEncodingKind8;
+	//V.capabilities.positionEncoding = PositionEncodingkind::PositionEncodingKind8;
 	V.capabilities.hoverProvider = true;
 
 
-	SendResponseMessageToClient(requestid, V);
-	for (size_t i = 0; i < 3; i++)
-	{
+	ResponseError Err;
+	Err.code = (integer)ErrorCodes::InternalError;
+	Err.message = "Testing";
+	SendResponseErrorToClient(requestid, Err);
+	//SendResponseMessageToClient(V);
 
-		window_logMessage(MessageType::Info, "Runing UCodeLang");
+	/*
+	{
+		json Json;
+		{
+			Json["jsonrpc"] = "2.0";
+			Json["method"] = "initialized";
+			Json["params"] = json::object();
+		}
+
+
+		SeverPacket packet;
+		packet._Data = Json.dump();
+		SendPacketToClient(std::move(packet));
+
 	}
+	*/
+
+	//window_logMessage(MessageType::Log, "Hello World Sever Side");
 }
 LanguageSeverEnd

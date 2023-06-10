@@ -30,7 +30,15 @@ namespace ns
 	}
 	inline void to_json(json& Json, const UCL::ResponseError& Object)
 	{
-	
+		Json["code"] = Object.code;
+
+		Json["message"] = Object.message;
+
+
+		if (Object.data.has_value()) 
+		{
+			Json["data"] = Object.data.value();
+		}
 	}
 	inline void from_json(const json& Json, UCL::InitializeResult::Struct& Object)
 	{

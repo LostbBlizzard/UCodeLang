@@ -106,7 +106,7 @@ void RunArg(std::string_view View)
 
 
 				LogMSG("Starting ULang Sever");
-				//while (true);
+				while (true);
 
 				std::thread SeverThread([]()
 					{
@@ -130,15 +130,14 @@ void RunArg(std::string_view View)
 								for (auto& Item : List)
 								{
 									std::string pack;
-									pack += "Content-Length:";
+									pack += "Content-Length: ";
 									pack += std::to_string(Item._Data.size());
-									pack += "\r\n";
-									pack += "\r\n";
+									pack += "\r\n\r\n";
 									pack += Item._Data;
 									LogMSG("Sent Packet:" + pack);
 
 									std::cout << pack;
-									std::cerr << pack;
+									std::cout.flush();
 								}
 							}
 						}
@@ -152,7 +151,7 @@ void RunArg(std::string_view View)
 				while (SeverThread.joinable())
 				{
 					char V;
-					std::cin.read(&V, 1);
+					std::cin >> V;
 					Buffer += V;
 
 
@@ -173,10 +172,11 @@ void RunArg(std::string_view View)
 							{
 								if (!IsNum)
 								{
-									PacketSize = std::stoi(NumberBuffer);
-									PacketSize += 1;
-									Buffer.clear();
+									PacketSize = std::stoi(NumberBuffer) - 3;//the \n,\r,\n,\r. and this char
+									Buffer.clear(); 
 									NumberBuffer.clear();
+
+									Buffer += V;
 								}
 								else
 								{
@@ -197,14 +197,11 @@ void RunArg(std::string_view View)
 					else
 					{
 						PacketSize--;
-
-
 						if (PacketSize == 0)
 						{
 							
 							UCodeLanguageSever::ClientPacket p;
 							p._Data = std::move(Buffer);
-							p._Data = p._Data.substr(1);
 							LogMSG("Got Packet:" + p._Data);
 
 							SeverPtr->AddPacket(std::move(p));
@@ -217,6 +214,7 @@ void RunArg(std::string_view View)
 							}
 
 						}
+						
 					}
 				}
 
@@ -240,12 +238,6 @@ int main(int argc, char* argv[])
 		char* Arg = argv[i];
 		RunArg(std::string_view(Arg));
 	}
-	RunArg("--Start stdio");
-	std::cout << "Done\n";
-
-
-	char V;
-	std::cin >> V;
 
 	return 0;
 }
