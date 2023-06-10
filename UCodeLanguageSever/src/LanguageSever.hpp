@@ -75,12 +75,11 @@ private:
 
     // ResponseMessage
     template<typename T>
-    void SendResponseMessageToClient(integer requestid,const T& Object)
+    void SendResponseMessageToClient(const T& Object)
     {
         json Json;
         {
             Json["jsonrpc"] = "2.0";
-            Json["id"] = requestid;
             ns::to_json(Json["result"],Object);
         }
 
