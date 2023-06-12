@@ -5,7 +5,7 @@
 #include "Tests/Test.hpp"
 #include <future>
 #include <optional>
-#include "UCodeAnalyzer/CodeBuilds/StandardLibrary.hpp"
+#include "UCodeAnalyzer/Formater.hpp"
 #include <sstream>
 #include "UCodeLang/Compliation/Back/C89/C89Backend.hpp"
 #include "UCodeLang/Compliation/Back/x86/X86BackEnd.hpp"
@@ -72,6 +72,18 @@ std::string int_to_hex(T i)
 		<< std::hex << i;
 	return stream.str();
 }
+void TestFormater()
+{
+	String Str = "$Hello :\n  private:\n   int a = 10;\n   int b = 20;\n  public:\n    int a = 10;\n    int b = 20;\n";
+
+	UCodeAnalyzer::Formater _F;
+	auto V = _F.Format(UCodeAnalyzer::Formater::StrScope::FileScope, Str);
+
+	auto Output = _F.Get_Output();
+
+	int a = 0;
+}
+
 int main()
 {
 
@@ -91,6 +103,8 @@ int main()
 		}
 	}
 	*/
+
+	TestFormater();
 
 	ULangTest::TestGenerator V;
 	V.SetSeed(1);
