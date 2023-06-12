@@ -68,6 +68,7 @@ Optional<String> Formater::Format(StrScope scope, StringView Text)
 		return {};
 	}
 
+	_InputString = Tep;
 	ReFormat(_Parser.Get_Tree());
 
 	return _Output;
@@ -235,7 +236,14 @@ void Formater::ReFormat(const UF::TypeNode& Node)
 	}
 	else
 	{
-		AddToOutput(ToName(Node.Name.Token->Type));
+		if (_InputString[Node.Name.Token->OnPos - 3] == 'i')
+		{
+			AddToOutput("int");
+		}
+		else
+		{
+			AddToOutput(ToName(Node.Name.Token->Type));
+		}
 	}
 	ReFormat(Node.Generic);
 }

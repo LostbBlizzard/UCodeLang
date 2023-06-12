@@ -56,6 +56,7 @@ public:
 private:
 	
 	String _Output;
+	StringView _InputString;
 	void CantReFormat()
 	{
 		ReFormatFail = true;
