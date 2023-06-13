@@ -378,6 +378,9 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 	{
 		auto& Assembly = Lib->Get_Assembly();
 		FromBytes(reader, Assembly);
+
+		FixAssemblyRawValues(Lib->LibEndianess, Lib->BitSize, Assembly);
+		Lib->LibEndianess = BitConverter::_CPUEndian;
 	}
 
 	BitConverter::InputOutEndian = Old;
@@ -507,6 +510,7 @@ void UClib::FromBytes(BitReader& reader, ClassAssembly& Assembly)
 		}
 		Assembly.Classes.push_back(std::make_unique<AssemblyNode>(std::move(_Node)));
 	}
+
 }
 void UClib::FromBytes(BitReader& Input, Optional<ReflectionCustomTypeID>& Data)
 {
@@ -674,6 +678,82 @@ void UClib::FromBytes(BitReader& Input, ReflectionTypeInfo& Data)
 	Input.ReadType(Data._Isimmutable, Data._Isimmutable);
 	Input.ReadType(Data._IsDynamic, Data._IsDynamic);
 	Input.ReadType(*(ReflectionMoveData_t*)&Data._MoveData,*(ReflectionMoveData_t*)&Data._MoveData);
+}
+void UClib::FixRawValue(Endian AssemblyEndian, NTypeSize BitSize,const ClassAssembly& Types, ReflectionRawData& RawValue, const ReflectionTypeInfo& Type)
+{
+	auto CPUEndian = BitConverter::_CPUEndian;
+	
+	if (CPUEndian != AssemblyEndian)
+	{
+		switch (Type._Type)
+		{
+
+		Bit16Type:
+		case ReflectionTypes::sInt16:
+		case ReflectionTypes::uInt16:
+		{
+			BitConverter::Byte16* Ptr = (BitConverter::Byte16*)RawValue.Get_Data();
+			Ptr->FlpBytes();
+		}
+			break;
+		Bit32Type:
+		case ReflectionTypes::sInt32:
+		case ReflectionTypes::uInt32:
+		case ReflectionTypes::float32:
+		{
+			BitConverter::Byte32* Ptr = (BitConverter::Byte32*)RawValue.Get_Data();
+			Ptr->FlpBytes();
+		}
+			break;
+			Bit64Type:
+		case ReflectionTypes::sInt64:
+		case ReflectionTypes::uInt64:
+		case ReflectionTypes::float64:
+		{
+			BitConverter::Byte64* Ptr = (BitConverter::Byte64*)RawValue.Get_Data();
+			Ptr->FlpBytes();
+		}
+			break;
+		case ReflectionTypes::uIntPtr:
+		case ReflectionTypes::sIntPtr:
+		{
+			switch (BitSize)
+			{
+			case NTypeSize::int32:goto Bit32Type;
+			case NTypeSize::int64:goto Bit64Type;
+			default:
+				break;
+			}
+		}
+		case ReflectionTypes::CustomType:
+		{
+			throw std::exception("not addded yet");
+		}
+		default:
+			break;
+		}
+	}
+}
+void UClib::FixAssemblyRawValues(Endian AssemblyEndian, NTypeSize BitSize, const ClassAssembly& Assembly)
+{
+	for (auto& Item : Assembly.Classes)
+	{
+		switch (Item.get()->Get_Type())
+		{
+		case ClassType::Enum:
+		{
+			Enum_Data& Data = Item->Get_EnumData();
+
+			for (auto& Item : Data.Values)
+			{
+				FixRawValue(AssemblyEndian, BitSize,Assembly, Item._Data, Data.BaseType);
+			}
+		}
+		break;
+		default:
+			break;
+		}
+	}
 }
 bool UClib::ToFile(const UClib* Lib, const Path& path)
 {
