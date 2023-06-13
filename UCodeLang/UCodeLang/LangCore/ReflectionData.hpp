@@ -642,5 +642,15 @@ public:
 		}
 		return nullptr;
 	}
+
+
+	const AssemblyNode* Find_Node(ReflectionCustomTypeID TypeID) const;
+	AssemblyNode* Find_Node(ReflectionCustomTypeID TypeID);
+
+
+	const AssemblyNode* Find_Node(const ReflectionTypes& Type) const;
+	AssemblyNode* Find_Node(const ReflectionTypes& Type);
+
+	size_t GetSize(const ReflectionTypes& Type) const;
 };
 UCodeLangEnd

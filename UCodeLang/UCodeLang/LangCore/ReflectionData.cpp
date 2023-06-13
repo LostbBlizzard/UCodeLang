@@ -7,6 +7,27 @@ void ClassAssembly::PushCopyClasses(const ClassAssembly& source, ClassAssembly& 
 		Out.Classes.push_back(std::make_unique<AssemblyNode>(*Item));
 	}
 }
+const AssemblyNode* ClassAssembly::Find_Node(ReflectionCustomTypeID TypeID) const
+{
+	return {};
+}
+AssemblyNode* ClassAssembly::Find_Node(ReflectionCustomTypeID TypeID)
+{
+
+	return {};
+}
+const AssemblyNode* ClassAssembly::Find_Node(const ReflectionTypes& Type) const
+{
+	return nullptr;
+}
+AssemblyNode* ClassAssembly::Find_Node(const ReflectionTypes& Type)
+{
+	return nullptr;
+}
+size_t ClassAssembly::GetSize(const ReflectionTypes& Type) const
+{
+	return {};
+}
 AssemblyNode::AssemblyNode(ClassType type) : Type(type)
 {
 	switch (type)
