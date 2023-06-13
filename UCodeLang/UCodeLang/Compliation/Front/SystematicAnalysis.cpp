@@ -5213,6 +5213,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 			_Table.AddSymbolID(UnionSyb,GetSymbolID((Node&)UnionSyb));
 
 			EnumUnion.TypeID = GetTypeID(TypesEnum::CustomType, UnionSyb.ID);
+			EnumData.EnumVariantUnion = EnumUnion.TypeID;
 
 			auto& List = ClassInf->VariantData.value().Variants;
 

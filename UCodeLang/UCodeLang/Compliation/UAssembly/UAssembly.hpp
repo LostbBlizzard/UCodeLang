@@ -19,7 +19,13 @@ public:
 
 
 	static String ToString(const UCodeLang::UClib* Lib);
-	static String ToString(const ReflectionTypeInfo& Value);
+	static String ToString(const ReflectionTypeInfo& Value,const ClassAssembly& Assembly);
+	static String ToString(const ReflectionTypeInfo& Value, const ReflectionRawData& Data, const ClassAssembly& Assembly,UClib::NTypeSize PtrSize);
+	static String ToString(const TypedRawReflectionData& Value, const ClassAssembly& Assembly, UClib::NTypeSize PtrSize)
+	{
+		return ToString(Value._Type, Value._Data, Assembly,PtrSize);
+	}
+
 	static String GetRegisterToString(RegisterID reg)
 	{
 		switch (reg)
