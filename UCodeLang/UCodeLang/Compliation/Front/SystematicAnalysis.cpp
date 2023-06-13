@@ -5188,39 +5188,89 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 	if (passtype == PassType::BuidCode)
 	{
 		AddDependencyToCurrentFile(ClassInf->Basetype);
+
+		Enum_Data& EnumData = _Lib.Get_Assembly().AddEnum(ScopeHelper::GetNameFromFullName(Syb.FullName), Syb.FullName);
+		EnumData.BaseType = ConvertToTypeInfo(ClassInf->Basetype);
+		EnumData.TypeID = GetTypeID(TypesEnum::CustomType,Syb.ID);
+
+		EnumData.Values.resize(ClassInf->Fields.size());
+		for (size_t i = 0; i < ClassInf->Fields.size(); i++)
+		{
+			auto& ClassDataItem = ClassInf->Fields[i];
+			auto& EnumDataItem = EnumData.Values[i];
+			EnumDataItem.Name = ClassDataItem.Name;
+			EnumDataItem._Data.Resize(ClassDataItem.Ex.ObjectSize);
+			memcpy(EnumDataItem._Data.Get_Data(), ClassDataItem.Ex.Object_AsPointer.get(),ClassDataItem.Ex.ObjectSize);
+		}
 		if (ClassInf->VariantData) 
 		{
-			Class_Data& EnumUnion = _Lib.Get_Assembly().AddClass(GetEnumVariantUnionName(
-				GetUnrefencedableName((String)ClassInf->Get_Name())), GetUnrefencedableName(GetEnumVariantUnionName(ClassInf->FullName)));
+			auto UnionFullName = GetUnrefencedableName(GetEnumVariantUnionName(ClassInf->FullName));
+			auto UnionName = GetEnumVariantUnionName(GetUnrefencedableName((String)ClassInf->Get_Name()));
+
+			Class_Data& EnumUnion = _Lib.Get_Assembly().AddClass(UnionName, UnionFullName);
 			
+			auto& UnionSyb = AddSybol(SymbolType::Type_class, UnionName, UnionFullName, AccessModifierType::Default);
+			_Table.AddSymbolID(UnionSyb,GetSymbolID((Node&)UnionSyb));
+
+			EnumUnion.TypeID = GetTypeID(TypesEnum::CustomType, UnionSyb.ID);
 
 			auto& List = ClassInf->VariantData.value().Variants;
+
+			size_t MaxSize = 0;
 			for (size_t i = 0; i < List.size(); i++)
 			{
 				auto& Item = List[i];
-			
+
 				if (Item.ClassSymbol.has_value())
 				{
 					Symbol* Sym = GetSymbol(Item.ClassSymbol.value());
 
 					AddClass_tToAssemblyInfo(Sym->Get_Info<ClassInfo>());//has '!' post fix so its Unrefencedable
 
+					auto Type = TypeSymbol(Sym->ID);
 
 					ClassField V;
 					V.offset = 0;
 					V.Name = ClassInf->Fields[i].Name;
-					V.Type = ConvertToTypeInfo(TypeSymbol(Sym->ID));
+					V.Type = ConvertToTypeInfo(Type);
 					EnumUnion.Fields.push_back(std::move(V));
+
+					auto& EnumDataItem = EnumData.Values[i];
+					EnumDataItem.EnumVariantType = ConvertToTypeInfo(Type);
+
+
+
+
+					size_t TypeSize = 0;
+					for (auto& Field : Sym->Get_Info<ClassInfo>()->Fields)
+					{
+						TypeSize += GetSize(Field.Type).value();
+					}
+					if (TypeSize > MaxSize)
+					{
+						MaxSize = TypeSize;
+					}
 				}
 				else
 				{
 					if (Item.Types.size()) 
 					{
+
+						auto Type = Item.Types.front();
 						ClassField V;
 						V.offset = 0;
 						V.Name = ClassInf->Fields[i].Name;
-						V.Type = ConvertToTypeInfo(Item.Types.front());
+						V.Type = ConvertToTypeInfo(Type);
 						EnumUnion.Fields.push_back(std::move(V));
+
+						auto& EnumDataItem = EnumData.Values[i];
+						EnumDataItem.EnumVariantType = V.Type;
+
+						size_t TypeSize = GetSize(Type).value();
+						if (TypeSize > MaxSize)
+						{
+							MaxSize = TypeSize;
+						}
 					}
 				}
 
@@ -5231,9 +5281,8 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 				}
 				
 			}
-			
-
-			
+		
+			EnumUnion.Size = MaxSize;
 		}
 	}
 
