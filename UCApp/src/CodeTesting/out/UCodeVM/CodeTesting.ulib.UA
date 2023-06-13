@@ -1,35 +1,41 @@
 [ClassData]-- 
-$ = [];
-$:
+$[_global]:
 .size:0
 
- |Testing:main[] -> i32;//Testing:main
- |Testing:Hello:OtherFuncion[] -> v;//Testing:Hello:OtherFuncion
+ |Testing:main[] -> Testing:CoolEnum;//Testing:main
+ |Testing:Hello:OtherFuncion[] -> void;//Testing:Hello:OtherFuncion
 
 
-$ = [];
-$ = [];
-$ = [];
-$:
-.size:0
- i32 Red;//Offset 0
- [] Blue;//Offset 0
+$Testing:CoolEnum enum[uint8]:
+ Red = 0,
+ Blue = 1,
+ Green = 2
+
+$Testing:CoolEnum2 enum[uint8]:
+ Red[sint32] = 0,
+ Blue[Testing:CoolEnum2:Blue!] = 1,
+ Green = 2
+//Union = #Testing:CoolEnum2u
+
+$#Testing:CoolEnum2u:
+.size:4
+ sint32 Red;//Offset 0
+ Testing:CoolEnum2:Blue! Blue;//Offset 0
 
 
 
-$ = [];
-$:
+$Testing:CoolEnum2:Blue!:
 .size:2
- b x;//Offset 0
- b y;//Offset 1
+ bool x;//Offset 0
+ bool y;//Offset 1
 
 
 
 
 [Instructions]-- 
 ---Testing:main: 
-   0 :Store32 [A],0
-   1 :StoreRegToReg32 [A],[F]
+   0 :Store8 [A],0
+   1 :StoreRegToReg64 [A],[F]
    2 :Ret 
 ---Testing:Hello:OtherFuncion: 
    3 :Ret 

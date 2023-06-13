@@ -148,6 +148,28 @@ public:
 
 		return *this;
 	}
+
+	template<typename T>
+	inline T* Get_DataAs()
+	{
+		if (sizeof(T) != Size)
+		{
+			throw std::exception("bad type cast");
+		}
+
+		return (T*)Bytes.get();
+	}
+
+	template<typename T>
+	inline const T* Get_DataAs() const
+	{
+		if (sizeof(T) != Size)
+		{
+			throw std::exception("bad type cast");
+		}
+
+		return (T*)Bytes.get();
+	}
 };
 
 class TypedRawReflectionData
@@ -648,9 +670,11 @@ public:
 	AssemblyNode* Find_Node(ReflectionCustomTypeID TypeID);
 
 
-	const AssemblyNode* Find_Node(const ReflectionTypes& Type) const;
-	AssemblyNode* Find_Node(const ReflectionTypes& Type);
+	const AssemblyNode* Find_Node(const ReflectionTypeInfo& Type) const;
+	AssemblyNode* Find_Node(const ReflectionTypeInfo& Type);
 
-	size_t GetSize(const ReflectionTypes& Type) const;
+
+	//may fail
+	Optional<size_t> GetSize(const ReflectionTypeInfo& Type,bool Is32Bit) const;
 };
 UCodeLangEnd

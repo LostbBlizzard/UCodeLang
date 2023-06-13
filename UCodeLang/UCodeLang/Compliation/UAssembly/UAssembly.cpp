@@ -56,7 +56,7 @@ String UAssembly::ToString(const UClib* Lib)
 			
 			for (auto Item2 : Class.Fields)
 			{
-				r += " " + ToString(Item2.Type) + " " + Item2.Name + ";//Offset " + std::to_string(Item2.offset) + "\n";
+				r += " " + ToString(Item2.Type, Assembly) + " " + Item2.Name + ";//Offset " + std::to_string(Item2.offset) + "\n";
 			}
 			r += "\n";
 
@@ -65,9 +65,9 @@ String UAssembly::ToString(const UClib* Lib)
 				r += " |" + Item2.FullName + "[";
 				for (auto& Item3 : Item2.ParsType)
 				{
-					r += ToString(Item3);
+					r += ToString(Item3,Assembly);
 				}
-				r += "] -> " + ToString(Item2.RetType) + ";" ;
+				r += "] -> " + ToString(Item2.RetType, Assembly) + ";" ;
 				r += "//" + Item2.DecorationName + '\n';
 					
 			}
@@ -77,7 +77,41 @@ String UAssembly::ToString(const UClib* Lib)
 		case ClassType::Alias:
 		{
 			auto& Class = Item->Get_AliasData();
-			r += "$" + Item->FullName + " = " + ToString(Class.Type) + ";\n";
+			r += "$" + Item->FullName + " = " + ToString(Class.Type, Assembly) + ";\n\n";
+		}
+		break;
+		case ClassType::Enum:
+		{
+			auto& Enum = Item->Get_EnumData();
+			r += "$" + Item->FullName + " enum[" + ToString(Enum.BaseType,Assembly) + "]:\n";
+			for (auto& Item : Enum.Values)
+			{
+				r += " " + Item.Name;
+				if (Item.EnumVariantType.has_value())
+				{
+					auto& Value = Item.EnumVariantType.value();
+					r += "[";
+					r += ToString(Value, Assembly);
+					r += "]";
+				}
+
+				r += " = " + ToString(Enum.BaseType, Item._Data, Assembly,Lib->BitSize);
+
+				if (&Item != &Enum.Values.back())
+				{
+					r += ",\n";
+				}
+			}
+			if (Enum.EnumVariantUnion)
+			{
+				auto Ptr = Assembly.Find_Node(Enum.EnumVariantUnion.value());
+				if (Ptr)
+				{
+					r += "\n//Union = " + Ptr->FullName;
+				}
+			}
+
+			r += "\n\n";
 		}
 		break;
 		default:
@@ -132,11 +166,143 @@ String UAssembly::ToString(const UClib* Lib)
 
     return r;
 }
-String UAssembly::ToString(const ReflectionTypeInfo& Value)
+String UAssembly::ToString(const ReflectionTypeInfo& Value, const ClassAssembly& Assembly)
 {
 	String r;
+	if (Value.Isimmutable())
+	{
+		r = "umut ";
+	}
 
-	r += NameDecoratior::DecoratedNameType(Value);
+	if (Value._MoveData ==ReflectionMoveData::Moved)
+	{
+		r += "moved ";
+	}
+
+	if (Value._IsDynamic)
+	{
+		r += "dynamic<";
+	}
+
+	switch (Value._Type)
+	{
+	case ReflectionTypes::Bool:r += "bool";break;
+	case ReflectionTypes::Char:r += "char"; break;
+
+	case ReflectionTypes::sInt8:r += "sint8"; break;
+	case ReflectionTypes::uInt8:r += "uint8"; break;
+
+	case ReflectionTypes::sInt16:r += "sint16"; break;
+	case ReflectionTypes::uInt16:r += "uint16"; break;
+
+	case ReflectionTypes::sInt32:r += "sint32"; break;
+	case ReflectionTypes::uInt32:r += "uint32"; break;
+
+	case ReflectionTypes::sInt64:r += "sint64"; break;
+	case ReflectionTypes::uInt64:r += "uint64"; break;
+
+	case ReflectionTypes::uIntPtr:r += "uIntPtr"; break;
+	case ReflectionTypes::sIntPtr:r += "sIntPtr"; break;
+
+
+	case ReflectionTypes::float32:r += "float32"; break;
+	case ReflectionTypes::float64:r += "float64"; break;
+
+	
+	case ReflectionTypes::Void:
+		r += "void";	break;
+	case  ReflectionTypes::Any:
+		r += "[any]";
+		break;
+	case ReflectionTypes::Null:
+	default:	
+		r += "[badtype]";
+		break;
+	case ReflectionTypes::CustomType:
+	{
+		auto Ptr =Assembly.Find_Node(Value._CustomTypeID);
+		if (Ptr)
+		{
+			r += Ptr->FullName;
+		}
+		else
+		{
+			r += "[?]";
+		}
+	}
+		break;
+	}
+
+	if (Value._IsDynamic)
+	{
+		r += ">";
+	}
+
+	if (Value.IsAddress())
+	{
+		r += "&";
+	}
+	if (Value.IsAddressArray())
+	{
+		r += "[&]";
+	}
+
+	return r;
+}
+String UAssembly::ToString(const ReflectionTypeInfo& Value, const ReflectionRawData& Data, const ClassAssembly& Assembly, UClib::NTypeSize PtrSize)
+{
+	String r;
+	switch (Value._Type)
+	{
+	case ReflectionTypes::Bool:
+		r += *Data.Get_DataAs<bool>() ? "true" : "false"; 
+		break;
+	case ReflectionTypes::Char:
+		r += *Data.Get_DataAs<char>();
+		break;
+	case ReflectionTypes::sInt8:
+		r += std::to_string(*Data.Get_DataAs<Int8>());
+		break;
+	case ReflectionTypes::uInt8:
+		r += std::to_string(*Data.Get_DataAs<UInt8>());
+		break;
+	case ReflectionTypes::sInt16:
+		r += std::to_string(*Data.Get_DataAs<Int16>());
+		break;
+	case ReflectionTypes::uInt16:
+		r += std::to_string(*Data.Get_DataAs<UInt16>());
+		break;
+	case ReflectionTypes::sInt32:
+		r += std::to_string(*Data.Get_DataAs<Int32>());
+		break;
+	case ReflectionTypes::uInt32:
+		r += std::to_string(*Data.Get_DataAs<UInt32>());
+		break;
+	case ReflectionTypes::sInt64:
+		r += std::to_string(*Data.Get_DataAs<Int64>());
+		break;
+	case ReflectionTypes::uInt64:
+		r += std::to_string(*Data.Get_DataAs<UInt64>());
+		break;
+		r += "uint64"; break;
+
+	case ReflectionTypes::uIntPtr:
+		r += PtrSize == UClib::NTypeSize::int32 ? std::to_string(*Data.Get_DataAs<UInt32>()) : std::to_string(*Data.Get_DataAs<UInt64>());
+		break;
+	case ReflectionTypes::sIntPtr:
+		r += PtrSize == UClib::NTypeSize::int32 ? std::to_string(*Data.Get_DataAs<Int32>()) : std::to_string(*Data.Get_DataAs<Int64>());
+		break;
+
+
+	case ReflectionTypes::float32:
+		r += std::to_string(*Data.Get_DataAs<float32>());
+		break;
+	case ReflectionTypes::float64:
+		r += std::to_string(*Data.Get_DataAs<float64>());
+		break;
+	default:
+		break;
+	}
 	return r;
 }
 void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In,const BinaryVectorMap<UAddress, String>& AddressToName, String& out, const UClib* Lib)

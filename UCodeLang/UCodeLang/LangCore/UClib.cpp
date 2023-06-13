@@ -176,10 +176,16 @@ void UClib::ToBytes(BitMaker& Output, const Enum_Data& EnumData)
 }
 void UClib::ToBytes(BitMaker& Output, const Alias_Data& Alias)
 {
+	Output.WriteType(Alias.HardAliasTypeID.has_value());
+	if (Alias.HardAliasTypeID.has_value())
+	{
+		Output.WriteType(Alias.HardAliasTypeID.value());
+	}
 	ToBytes(Output, Alias.Type);
 }
 void UClib::ToBytes(BitMaker& Output, const Class_Data& ClassData)
 {
+	Output.WriteType(ClassData.TypeID);
 	Output.WriteType((Size_tAsBits)ClassData.Size);
 
 	ToBytes(Output, ClassData.Attributes);
@@ -469,9 +475,6 @@ void UClib::FromBytes(BitReader& reader, ClassAssembly& Assembly)
 
 	for (size_t i = 0; i < bits_Size; i++)
 	{
-		auto& Item = Assembly.AddAlias("", "");
-
-
 		String TepName;
 		String TepFullName;
 		ClassType TepType;
@@ -560,6 +563,7 @@ void UClib::FromBytes(BitReader& Input, Optional<ReflectionTypeInfo>& Data)
 }
 void UClib::FromBytes(BitReader& reader, Class_Data& Class)
 {
+	reader.ReadType(Class.TypeID, Class.TypeID);
 
 	Size_tAsBits _Classbits = 0;
 	reader.ReadType(_Classbits, _Classbits);
@@ -635,6 +639,16 @@ void UClib::FromBytes(BitReader& reader, ClassField& Item2)
 }
 void UClib::FromBytes(BitReader& reader, Alias_Data& Alias)
 {
+	{
+		bool HasV = false;
+		reader.ReadType(HasV, HasV);
+		if (HasV)
+		{
+			ReflectionCustomTypeID V = {};
+			reader.ReadType(V, V);
+			Alias.HardAliasTypeID = V;
+		}
+	}
 	FromBytes(reader, Alias.Type);
 }
 void UClib::FromBytes(BitReader& Input, UsedTagValueData& Data)

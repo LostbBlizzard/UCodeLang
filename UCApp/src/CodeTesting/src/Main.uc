@@ -10,4 +10,4 @@ $CoolEnum2 enum:
  Blue[bool x,bool y],
  Green,
 
-|main[] => 0;
+|main[] => CoolEnum::Red;

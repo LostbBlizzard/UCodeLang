@@ -178,8 +178,8 @@ int main()
 		State.AddLib(&DLLib);
 		State.LinkLibs();
 
-		UCodeLang::Debuger debuger;
-		debuger.Attach(&RunTime);
+		//UCodeLang::Debuger debuger;
+		//debuger.Attach(&RunTime);
 
 		RunTime.Init(&State);
 
