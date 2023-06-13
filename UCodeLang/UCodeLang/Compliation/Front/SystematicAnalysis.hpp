@@ -599,10 +599,11 @@ private:
 	UClib _Lib;
 
 	PassType passtype = PassType::Null;
-
+	
 	const Vector<const FileNode*>* _Files = nullptr;
 	const Vector<const UClib*>* _Libs = nullptr;
 	const Vector<Path>* _LibsNames = nullptr;
+	Vector<FileNode> _LibsFiles;
 	SymbolTable _Table;
 
 	//Args

@@ -6498,7 +6498,10 @@ bool SystematicAnalysis::StepGetMemberTypeSymbolFromVar(const ScopedNameNode& no
 
 			}
 
-			AddDependencyToCurrentFile(Out.Symbol);
+			if (passtype == PassType::BuidCode)
+			{
+				AddDependencyToCurrentFile(Out.Symbol);
+			}
 		}
 		else if (Out.Symbol->Type == SymbolType::Func)
 		{
@@ -9536,10 +9539,31 @@ void SystematicAnalysis::PushTepAttributesInTo(Vector<UsedTagValueData>& Input)
 void SystematicAnalysis::LoadLibSymbols()
 {
 	LoadLibMode Mode = LoadLibMode::GetTypes;
+
+	_LibsFiles.resize(_Libs->size());
+	for (size_t i = 0; i < _Libs->size(); i++)
+	{
+		FileNode& V = _LibsFiles[i];
+		V.FileName = (*_LibsNames)[i];
+		
+	}
+
 	while (Mode != LoadLibMode::Done)
 	{
-		for (auto Item : *_Libs)
+		for (size_t i = 0; i < _Libs->size(); i++)
 		{
+			auto& Item = (*_Libs)[i];
+			FileNode& FileNode = _LibsFiles[i];
+			this->LookingAtFile = &FileNode;
+
+			if (LoadLibMode::GetTypes == Mode)
+			{
+				for (auto& LibNode : Item->_Assembly.Classes)
+				{
+					_Lib._Assembly.Classes.push_back(Unique_ptr<AssemblyNode>(LibNode.get()));//make ref
+				}
+			}
+
 			LoadLibSymbols(*Item,Mode);
 		}
 
@@ -9562,6 +9586,12 @@ void SystematicAnalysis::LoadLibSymbols()
 		//
 	}
 
+	for (auto& Item : _Lib._Assembly.Classes)
+	{
+		auto Ptr = Item.release();//are just refs
+	}
+	_Lib._Assembly.Classes.clear();//remove nullptr Nodes
+
 	//The CPU is going to hate this.
 	for (auto& Item : _TypesToFix)
 	{
@@ -9571,11 +9601,9 @@ void SystematicAnalysis::LoadLibSymbols()
 }
 void SystematicAnalysis::LoadLibSymbols(const UClib& lib, LoadLibMode Mode)
 {
-	LookingAtFile = nullptr;
+	
 	auto OutputType = OutputTypeAsLibType();
 	auto libType = lib._LibType;
-
-	
 
 	auto GlobalObject = lib.Get_Assembly().Get_GlobalObject_Class();
 	if (GlobalObject)
@@ -9625,12 +9653,45 @@ void SystematicAnalysis::LoadClassSymbol(const Class_Data& Item, const String& F
 
 	if (Mode == LoadLibMode::GetTypes)
 	{
+		auto Name = ScopeHelper::GetNameFromFullName(FullName);
+		auto& Syb = AddSybol(SymbolType::Type_class, Name, FullName, AccessModifierType::Public);
+		_Table.AddSymbolID(Syb, (SymbolID)&Item);
 
+		ClassInfo* Info = new ClassInfo();
+		Syb.Info.reset(Info);
 
+		Syb.VarType = TypeSymbol(Syb.ID);
+
+		Syb.PassState = PassType::BuidCode;
+		Syb.OutputIR = false;
+
+		Info->FullName = FullName;
+
+		Info->Size = Item.Size;
+		Info->SizeInitialized = true;
+
+		Info->Fields.resize(Item.Fields.size());
+
+		for (size_t i = 0; i < Item.Fields.size(); i++)
+		{
+			const auto& FieldItem = Item.Fields[i];
+			auto& InfoItem = Info->Fields[i];
+
+			InfoItem.Name =FieldItem.Name;
+			//InfoItem.offset = FieldItem.offset;
+		}
 	}
 	else if (Mode == LoadLibMode::FixTypes)
 	{
+	 	auto& Syb = _Table.GetSymbol((SymbolID)&Item);
+		ClassInfo* Info = Syb.Get_Info<ClassInfo>();
 
+		for (size_t i = 0; i < Item.Fields.size(); i++)
+		{
+			const auto& FieldItem = Item.Fields[i];
+			auto& InfoItem = Info->Fields[i];
+			LoadType(FieldItem.Type, InfoItem.Type);
+		}
 	}
 
 	for (auto& Item : Item.Methods)
@@ -9654,6 +9715,9 @@ void SystematicAnalysis::LoadEnumSymbol(const Enum_Data& Item, const String& Ful
 		_Table.AddSymbolID(Syb, (SymbolID)&Item);
 
 		Syb.PassState = PassType::BuidCode;
+		Syb.OutputIR = false;
+
+		Syb.VarType = TypeSymbol(Syb.ID);
 		
 		auto enumInfo = new EnumInfo();
 		Syb.Info.reset(enumInfo);
@@ -9668,6 +9732,12 @@ void SystematicAnalysis::LoadEnumSymbol(const Enum_Data& Item, const String& Ful
 			enumInfoItem.Name = ValueItem.Name;
 			enumInfoItem.Ex.Object_AsPointer.reset(new Byte[ValueItem._Data.Size]);
 			memcpy(enumInfoItem.Ex.Object_AsPointer.get(), ValueItem._Data.Get_Data(), ValueItem._Data.Size);
+
+			
+			{
+				auto& FieldSyb = AddSybol(SymbolType::Enum_Field, ValueItem.Name,ScopeHelper::ApendedStrings(FullName,ValueItem.Name), AccessModifierType::Public);
+				FieldSyb.PassState = PassType::BuidCode;
+			}
 		}
 
 		if (Item.EnumVariantUnion.has_value()) 
@@ -10580,9 +10650,44 @@ void SystematicAnalysis::LoadType(const ReflectionTypeInfo& Item, TypeSymbol& Ou
 {
 	if (Item._Type == ReflectionTypes::CustomType)
 	{
-		throw std::exception("not added");
+		const auto& LibsAssembby = _Lib._Assembly;
+		
+		auto Node = LibsAssembby.Find_Node(Item._CustomTypeID);
+		if (Node)
+		{
+			switch (Node->Get_Type())
+			{
+			case ClassType::Class:
+			{
+				auto& Syb = _Table.GetSymbolsWithName(Node->FullName).front();
+				Out.SetType(Syb->ID);
+			}
+				break;
+			case ClassType::Alias:
+			{
+				auto& Syb = _Table.GetSymbolsWithName(Node->FullName).front();
+				Out.SetType(Syb->ID);
+			}
+			break;
+			case ClassType::Enum:
+			{
+				auto& Syb = _Table.GetSymbolsWithName(Node->FullName).front();
+				Out.SetType(Syb->ID);
+			}
+				break;
+			default:
+				break;
+			}
+		}
+		else
+		{
+			Out.SetType(TypesEnum::Null);
+		}
 	}
-	Out.SetType(Item._Type);
+	else 
+	{
+		Out.SetType(Item._Type);
+	}
 	Out._IsAddress = Item._IsAddress;
 	Out._IsAddressArray = Item._IsAddressArray;
 	Out._Isimmutable = Item._Isimmutable;

@@ -6,9 +6,10 @@ ULang::Native:
  |ConsoleInReadChar[] -> void;
  |ConsoleInReadLine[uintptr& Size] -> byte[&];
 
- $Type;
+$Type;
 
- $Test enum:
-  Red,
-  Green[Type V],
-  Blue[int a,int b],
+
+$Test enum:
+ Red,
+ Green[Type V],
+ Blue[int a,int b],
