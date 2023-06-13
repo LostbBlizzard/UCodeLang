@@ -132,8 +132,8 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 		
 		tepout = Ptr;
 		
-		out.NamespaceName.ScopedName.back().Operator =ScopedName::Operator_t::ScopeResolution;
-		GetName(out.NamespaceName);
+		//out.NamespaceName.ScopedName.back().Operator =ScopedName::Operator_t::ScopeResolution;
+		GetName(tepout->NamespaceName);
 		ScopeResolutionToken = TryGetToken();
 	}
 
