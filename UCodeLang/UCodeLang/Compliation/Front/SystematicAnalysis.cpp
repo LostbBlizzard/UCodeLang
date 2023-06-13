@@ -1567,7 +1567,10 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 		auto& V = _Lib.Get_Assembly().AddAlias((String)ClassName, _Table._Scope.ThisScope);
 		V.Type =ConvertToTypeInfo(Syb.VarType);
 
-
+		if (node.IsHardAlias)
+		{
+			V.HardAliasTypeID = GetTypeID(TypesEnum::CustomType, Syb.ID);
+		}
 		AddDependencyToCurrentFile(Syb.VarType);
 	}
 
