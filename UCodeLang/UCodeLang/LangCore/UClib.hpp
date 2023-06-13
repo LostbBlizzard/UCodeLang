@@ -345,6 +345,14 @@ public:
 	static void FromBytes(BitReader& Input, ReflectionRawData& Data);
 	//
 
+	static void FixRawValue(Endian AssemblyEndian, NTypeSize BitSize, const ClassAssembly& Types, TypedRawReflectionData& RawValue)
+	{
+		FixRawValue(AssemblyEndian,BitSize, Types, RawValue._Data, RawValue._Type);
+	}
+	static void FixRawValue(Endian AssemblyEndian, NTypeSize BitSize,const ClassAssembly& Types, ReflectionRawData& RawValue, const ReflectionTypeInfo& Type);
+	static void FixAssemblyRawValues(Endian AssemblyEndian, NTypeSize BitSize, const ClassAssembly& Assembly);
+
+
 	static bool ToFile(const UClib* Lib,const Path& path);
 	static bool FromFile(UClib* Lib, const Path& path);
 
