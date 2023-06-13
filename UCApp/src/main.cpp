@@ -104,7 +104,7 @@ int main()
 	}
 	*/
 
-	TestFormater();
+	//TestFormater();
 
 	ULangTest::TestGenerator V;
 	V.SetSeed(1);

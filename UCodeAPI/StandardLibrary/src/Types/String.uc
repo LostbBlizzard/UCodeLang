@@ -1,6 +1,6 @@
 %ULang:
  
- $String_t<T>[Buffer<char>]:
+ $String_t<T>[Buffer<T>]:
   private:
    Vector<T> Data;
   public:
