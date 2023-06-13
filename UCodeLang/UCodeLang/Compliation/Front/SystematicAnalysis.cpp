@@ -9561,6 +9561,13 @@ void SystematicAnalysis::LoadLibSymbols()
 
 		//
 	}
+
+	//The CPU is going to hate this.
+	for (auto& Item : _TypesToFix)
+	{
+		*Item.TypeToFix = *Item.ToGetTypeFrom;
+	}
+	_TypesToFix.clear();//free Mem.
 }
 void SystematicAnalysis::LoadLibSymbols(const UClib& lib, LoadLibMode Mode)
 {
@@ -9574,7 +9581,7 @@ void SystematicAnalysis::LoadLibSymbols(const UClib& lib, LoadLibMode Mode)
 	if (GlobalObject)
 	{
 		String Scope;
-		LoadClassSymbol(*GlobalObject, Scope, Mode);
+		LoadClassSymbol(*GlobalObject,Scope, Scope, Mode);
 	}
 
 
@@ -9585,11 +9592,12 @@ void SystematicAnalysis::LoadLibSymbols(const UClib& lib, LoadLibMode Mode)
 			continue;
 		}
 		String Scope;
+		String FullName = Item->FullName;
 		switch (Item->Get_Type())
 		{
 		case ClassType::Class:
 		{
-			LoadClassSymbol(Item->Get_ClassData(), Scope, Mode);
+			LoadClassSymbol(Item->Get_ClassData(),FullName, Scope, Mode);
 		}
 		break;
 		case ClassType::Alias:
@@ -9599,7 +9607,7 @@ void SystematicAnalysis::LoadLibSymbols(const UClib& lib, LoadLibMode Mode)
 		break;
 		case ClassType::Enum:
 		{
-
+			LoadEnumSymbol(Item->Get_EnumData(), FullName, Scope, Mode);
 		}
 		break;
 		default:
@@ -9608,7 +9616,7 @@ void SystematicAnalysis::LoadLibSymbols(const UClib& lib, LoadLibMode Mode)
 	}
 
 }
-void SystematicAnalysis::LoadClassSymbol(const Class_Data& Item, const String& Scope, SystematicAnalysis::LoadLibMode Mode)
+void SystematicAnalysis::LoadClassSymbol(const Class_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode)
 {
 	auto TepScope = std::move(_Table._Scope);
 
@@ -9629,6 +9637,112 @@ void SystematicAnalysis::LoadClassSymbol(const Class_Data& Item, const String& S
 	{
 		LoadSymbol(Item, Mode);
 	}
+
+	_Table._Scope = std::move(TepScope);
+}
+void SystematicAnalysis::LoadEnumSymbol(const Enum_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode)
+{
+	auto TepScope = std::move(_Table._Scope);
+
+	_Table._Scope = {};
+	_Table._Scope.ThisScope = Scope;
+
+	if (Mode == LoadLibMode::GetTypes)
+	{
+		auto Name = ScopeHelper::GetNameFromFullName(FullName);
+		auto& Syb = AddSybol(SymbolType::Enum, Name, FullName, AccessModifierType::Public);
+		_Table.AddSymbolID(Syb, (SymbolID)&Item);
+
+		Syb.PassState = PassType::BuidCode;
+		
+		auto enumInfo = new EnumInfo();
+		Syb.Info.reset(enumInfo);
+
+		enumInfo->FullName = FullName;
+		enumInfo->Fields.resize(Item.Values.size());
+
+		for (size_t i = 0; i < Item.Values.size(); i++)
+		{
+			auto& enumInfoItem = enumInfo->Fields[i];
+			const auto& ValueItem = Item.Values[i];
+			enumInfoItem.Name = ValueItem.Name;
+			enumInfoItem.Ex.Object_AsPointer.reset(new Byte[ValueItem._Data.Size]);
+			memcpy(enumInfoItem.Ex.Object_AsPointer.get(), ValueItem._Data.Get_Data(), ValueItem._Data.Size);
+		}
+
+		if (Item.EnumVariantUnion.has_value()) 
+		{
+			EnumVariantData Data;
+			Data.Variants.resize(Item.Values.size());
+			enumInfo->VariantData = std::move(Data);
+		}
+	}
+	else if (Mode == LoadLibMode::FixTypes)
+	{
+		auto& Syb = _Table.GetSymbol((SymbolID)&Item);
+		auto  enumInfo = Syb.Get_Info<EnumInfo>();
+
+		LoadType(Item.BaseType,enumInfo->Basetype);
+		
+		
+		
+		if (Item.EnumVariantUnion.has_value())
+		{
+			EnumVariantData& Data = enumInfo->VariantData.value();
+			for (size_t i = 0; i < Item.Values.size(); i++)
+			{
+				auto& VariantItem = Data.Variants[i];
+				const auto& ValueItem = Item.Values[i];
+
+				if (ValueItem.EnumVariantType.has_value())
+				{
+					auto Type = LoadType(ValueItem.EnumVariantType.value());
+					Symbol* Sym = GetSymbol(Type);
+					if (Sym)
+					{
+						if (Syb.Type == SymbolType::Type_class)
+						{
+							bool IsUnNamed = false;
+							if (Syb.FullName.back() == '!')//the unnamed Enum Sybol post fix
+							{
+								IsUnNamed = true;
+							}
+
+							if (IsUnNamed)
+							{ 
+								ClassInfo* CInfo = Syb.Get_Info<ClassInfo>();
+								
+								VariantItem.Types.resize(CInfo->Fields.size());//Field type may not be loaded. 
+								
+								for (size_t ix = 0; ix < CInfo->Fields.size(); ix++)
+								{
+									auto& Item = CInfo->Fields[ix];
+									
+									LibLoadTypeSeter Seter;
+									Seter.ToGetTypeFrom = &Item.Type;
+									Seter.TypeToFix = &VariantItem.Types[ix];
+									_TypesToFix.push_back(Seter);
+								}
+							}
+							else
+							{
+								VariantItem.Types.push_back(Type);
+							}
+						}
+						else
+						{
+							VariantItem.Types.push_back(Type);
+						}
+					}
+					else
+					{
+						VariantItem.Types.push_back(Type);
+					}
+				}
+			}
+		}
+	}
+
 
 	_Table._Scope = std::move(TepScope);
 }

@@ -669,6 +669,16 @@ private:
 
 	Stack<VarableUseData> _Varable;
 
+	
+	//Bad Name
+	struct LibLoadTypeSeter
+	{
+		const TypeSymbol* ToGetTypeFrom = nullptr;
+		TypeSymbol* TypeToFix = nullptr;
+	};
+	//To Fix Types being Loaded out of order.
+	Vector< LibLoadTypeSeter> _TypesToFix;
+
 	//Funcs
 	void AddExtendedErr(String Err,const Token* token)
 	{
@@ -970,7 +980,9 @@ private:
 	void LoadLibSymbols();
 	void LoadLibSymbols(const UClib& lib, LoadLibMode Mode);
 
-	void LoadClassSymbol(const Class_Data& Item, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
+	void LoadClassSymbol(const Class_Data& Item,const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
+	void LoadEnumSymbol(const Enum_Data& Item,const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
+
 	void LoadSymbol(const ClassMethod& Item, SystematicAnalysis::LoadLibMode Mode);
 	void LoadType(const ReflectionTypeInfo& Item, TypeSymbol& Out);
 	TypeSymbol LoadType(const ReflectionTypeInfo& Item);
