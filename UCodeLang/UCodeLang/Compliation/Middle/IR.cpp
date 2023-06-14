@@ -178,7 +178,79 @@ BytesPtr IRBuilder::ToBytes() const
 
 bool IRBuilder::FromBytes(IRBuilder& Out, const BytesView Bytes)
 {
-	return false;
+	BitReader Bits;
+	Bits.SetBytes(Bytes.Bytes,Bytes.Size);
+
+	FromBytes(Bits,Out._StaticInit);
+	FromBytes(Bits, Out._StaticdeInit);
+	FromBytes(Bits, Out._threadInit);
+	FromBytes(Bits, Out._threaddeInit);
+
+	{
+		BitMaker::SizeAsBits V = 0;
+		Bits.ReadType(V, V);
+		size_t FuncSize = V;
+
+		Out.Funcs.resize(FuncSize);
+		for (size_t i = 0; i < FuncSize; i++)
+		{
+			auto& Item = Out.Funcs[i];
+			Item =Unique_ptr<IRFunc>(new IRFunc());
+			FromBytes(Bits,*Item);
+		}
+	}
+
+	{
+		BitMaker::SizeAsBits V = 0;
+		Bits.ReadType(V, V);
+		size_t Size = V;
+
+		Out._Symbols.resize(Size);
+		for (size_t i = 0; i < Size; i++)
+		{
+			auto& Item = Out._Symbols[i];
+			Item = Unique_ptr<IRSymbolData>(new IRSymbolData());
+			FromBytes(Bits, *Item);
+		}
+	}
+
+	{
+		BitMaker::SizeAsBits V = 0;
+		Bits.ReadType(V, V);
+		size_t Size = V;
+
+		Out._Map.reserve(Size);
+		for (size_t i = 0; i < Size; i++)
+		{
+			IRidentifierID Key = 0;
+			Bits.ReadType(Key, Key);
+
+			IRidentifier Value = {};
+			Bits.ReadType(Value, Value);
+
+			Out._Map[std::move(Key)] = std::move(Value);
+		}
+
+	}
+
+	{
+		BitMaker::SizeAsBits V = 0;
+		Bits.ReadType(V, V);
+		size_t Size = V;
+
+		Out.ConstStaticStrings.reserve(Size);
+		for (size_t i = 0; i < Size; i++)
+		{
+			String Key;
+			Bits.ReadType(Key, Key);
+			IRidentifierID Value;
+			Bits.ReadType(Value, Value);
+
+			Out.ConstStaticStrings[std::move(Key)] = std::move(Value);
+		}
+	}
+
+	return true;
 }
 
 bool IRBuilder::ToFile(const Path& path, const IRBuilder& Value)
@@ -244,7 +316,7 @@ void IRBuilder::ToBytes(BitMaker& Out, const IRFunc& Value)
 		Out.WriteType((BitMaker::SizeAsBits)Value.Blocks.size());
 		for (auto& Item : Value.Blocks)
 		{
-			ToBytes(Out, *Item);
+			ToBytes(Out, *Item,Value.Pars);
 		}
 	}
 }
@@ -277,7 +349,7 @@ void IRBuilder::FromBytes(BitReader& Out, IRFunc& Value)
 		for (size_t i = 0; i < Size; i++)
 		{
 			Value.Blocks[i] =Unique_ptr<IRBlock>(new IRBlock());
-			FromBytes(Out, *Value.Blocks[i]);
+			FromBytes(Out, *Value.Blocks[i],Value.Pars);
 		}
 	}
 }
@@ -287,7 +359,7 @@ void IRBuilder::ToBytes(BitMaker& Out, const IRSymbolData& Value)
 {
 	Out.WriteType(Value.identifier);
 	Out.WriteType((IRSymbolType_t)Value.SymType);
-	Out.WriteType(Value.Type);
+	ToBytes(Out,Value.Type);
 
 	switch (Value.SymType)
 	{
@@ -318,14 +390,23 @@ void IRBuilder::FromBytes(BitReader& Out, IRSymbolData& Value)
 	switch (Value.SymType)
 	{
 	case IRSymbolType::Struct:
+	{	
+		Value.Ex.reset(new IRStruct());
 		FromBytes(Out, *Value.Get_ExAs<IRStruct>());
-		break;
+	}	
+	break;
 	case IRSymbolType::StaticArray:
+	{
+		Value.Ex.reset(new IRStaticArray());
 		FromBytes(Out, *Value.Get_ExAs<IRStaticArray>());
-		break;
+	}	
+	break;
 	case IRSymbolType::FuncPtr:
+	{
+		Value.Ex.reset(new IRFuncPtr());
 		FromBytes(Out, *Value.Get_ExAs<IRFuncPtr>());
-		break;
+	}	
+	break;
 	case IRSymbolType::StaticVarable:
 		break;
 	case IRSymbolType::ThreadLocalVarable:
@@ -467,16 +548,16 @@ void IRBuilder::FromBytes(BitReader& Out, IRPar& Value)
 	FromBytes(Out, Value.type);
 }
 
-void IRBuilder::ToBytes(BitMaker& Out, const IRBlock& Value)
+void IRBuilder::ToBytes(BitMaker& Out, const IRBlock& Value,const Vector<IRPar>& Pars)
 {
 	Out.WriteType((BitMaker::SizeAsBits)Value.Instructions.size());
 	for (auto& Item : Value.Instructions)
 	{
-		ToBytes(Out, *Item,Value);
+		ToBytes(Out, *Item,Value,Pars);
 	}
 }
 
-void IRBuilder::FromBytes(BitReader& Out, IRBlock& Value)
+void IRBuilder::FromBytes(BitReader& Out, IRBlock& Value, Vector<IRPar>& Pars)
 {
 	BitMaker::SizeAsBits V = 0;
 	Out.ReadType(V, V);
@@ -487,11 +568,11 @@ void IRBuilder::FromBytes(BitReader& Out, IRBlock& Value)
 	}
 	for (auto& Item : Value.Instructions)
 	{
-		FromBytes(Out, *Item, Value);
+		FromBytes(Out, *Item, Value,Pars);
 	}
 }
 
-void IRBuilder::ToBytes(BitMaker& Out, const IRInstruction& Value, const IRBlock& MyBlock)
+void IRBuilder::ToBytes(BitMaker& Out, const IRInstruction& Value, const IRBlock& MyBlock, const Vector<IRPar>& Pars)
 {
 	Out.WriteType(*(IRInstructionType_t*)&Value.Type);
 
@@ -499,30 +580,30 @@ void IRBuilder::ToBytes(BitMaker& Out, const IRInstruction& Value, const IRBlock
 
 	if (IsOperatorValueInTarget(Value.Type))
 	{
-		ToBytes(Out, Value.Target(), Value.ObjectType, MyBlock);
+		ToBytes(Out, Value.Target(), Value.ObjectType, MyBlock, Pars);
 	}
 	if (IsOperatorValueInInput(Value.Type))
 	{
-		ToBytes(Out, Value.Input(), Value.ObjectType, MyBlock);
+		ToBytes(Out, Value.Input(), Value.ObjectType, MyBlock, Pars);
 	}
 }
 
-void IRBuilder::FromBytes(BitReader& Out, IRInstruction& Value, const IRBlock& MyBlock)
+void IRBuilder::FromBytes(BitReader& Out, IRInstruction& Value, const IRBlock& MyBlock, Vector<IRPar>& Pars)
 {
 	Out.ReadType(*(IRInstructionType_t*)&Value.Type, *(IRInstructionType_t*)&Value.Type);
 	FromBytes(Out, Value.ObjectType);
 
 	if (IsOperatorValueInTarget(Value.Type))
 	{
-		FromBytes(Out, Value.Target(), Value.ObjectType, MyBlock);
+		FromBytes(Out, Value.Target(), Value.ObjectType, MyBlock, Pars);
 	}
 	if (IsOperatorValueInInput(Value.Type))
 	{
-		FromBytes(Out, Value.Input(), Value.ObjectType, MyBlock);
+		FromBytes(Out, Value.Input(), Value.ObjectType, MyBlock, Pars);
 	}
 }
 
-void IRBuilder::ToBytes(BitMaker& Out, const IROperator& Value, const IRType& Type, const IRBlock& MyBlock)
+void IRBuilder::ToBytes(BitMaker& Out, const IROperator& Value, const IRType& Type, const IRBlock& MyBlock, const Vector<IRPar>& Pars)
 {
 	Out.WriteType(*(IROperator_t*)&Value.Type);
 	if (Value.Type == IROperatorType::Value)
@@ -551,9 +632,38 @@ void IRBuilder::ToBytes(BitMaker& Out, const IROperator& Value, const IRType& Ty
 			break;
 		}
 	}
+	else if (Value.Type == IROperatorType::IRInstruction
+		|| Value.Type == IROperatorType::DereferenceOf_IRInstruction
+		|| Value.Type == IROperatorType::Get_PointerOf_IRInstruction)
+	{
+
+		size_t Index = 0;
+		for (size_t i = 0; i < MyBlock.Instructions.size(); i++)
+		{
+			if (MyBlock.Instructions[i].get() == Value.Pointer)
+			{
+				Index = i;
+			}
+		}
+		Out.WriteType((BitMaker::SizeAsBits)Index);
+	}
+	else if (Value.Type == IROperatorType::IRParameter
+		|| Value.Type == IROperatorType::DereferenceOf_IRParameter
+		|| Value.Type == IROperatorType::Get_PointerOf_IRParameter)
+	{
+
+		size_t Index = Value.Parameter - Pars.data();
+		Out.WriteType((BitMaker::SizeAsBits)Index);
+	}
+	else if (Value.Type == IROperatorType::Get_Func_Pointer
+		|| Value.Type == IROperatorType::Get_PointerOf_IRidentifier
+		|| Value.Type == IROperatorType::IRidentifier)
+	{
+		Out.WriteType(Value.identifer);
+	}
 }
 
-void IRBuilder::FromBytes(BitReader& Out, IROperator& Value, const IRType& Type, const IRBlock& MyBlock)
+void IRBuilder::FromBytes(BitReader& Out, IROperator& Value, const IRType& Type, const IRBlock& MyBlock,Vector<IRPar>& Pars)
 {
 	Out.ReadType(*(IROperator_t*)&Value.Type, *(IROperator_t*)&Value.Type);
 	if (Value.Type == IROperatorType::Value)
@@ -573,29 +683,55 @@ void IRBuilder::FromBytes(BitReader& Out, IROperator& Value, const IRType& Type,
 			Out.ReadType(Value.Value.AsInt64, Value.Value.AsInt64);
 			break;
 		case IRTypes::f32:
-			Out.ReadType(Value.Value.AsInt32, Value.Value.AsInt32);
+			Out.ReadType(Value.Value.Asfloat32, Value.Value.Asfloat32);
 			break;
 		case IRTypes::f64:
-			Out.ReadType(Value.Value.AsInt64, Value.Value.AsInt64);
+			Out.ReadType(Value.Value.Asfloat64, Value.Value.Asfloat64);
 			break;
 		default:
 			break;
 		}
 	}
+	else if (Value.Type == IROperatorType::IRInstruction
+		|| Value.Type == IROperatorType::DereferenceOf_IRInstruction
+		|| Value.Type == IROperatorType::Get_PointerOf_IRInstruction)
+	{
+
+		size_t Index = 0;
+		BitMaker::SizeAsBits V = 0;
+		Out.ReadType(V, V);
+		Index = V;
+
+		Value.Pointer = MyBlock.Instructions[Index].get();
+	}
+	else if (Value.Type == IROperatorType::IRParameter
+		|| Value.Type == IROperatorType::DereferenceOf_IRParameter
+		|| Value.Type == IROperatorType::Get_PointerOf_IRParameter)
+	{
+
+		size_t Index = 0;
+		BitMaker::SizeAsBits V = 0;
+		Out.ReadType(V, V);
+		Index = V;
+
+		Value.Parameter = &Pars[Index];
+	}
+	else if (Value.Type == IROperatorType::Get_Func_Pointer
+		|| Value.Type == IROperatorType::Get_PointerOf_IRidentifier
+		|| Value.Type == IROperatorType::IRidentifier)
+	{
+		Out.ReadType(Value.identifer, Value.identifer);
+	}
 }
 
-//very slow
-
-
-//very slow
 
 size_t IRBuilder::GetImplementationHash(const IRFunc* Func)
 {
 	BitMaker V;
-	return GetImplementationHash(V, Func);
+	return GetImplementationHash(V, Func,Func->Pars);
 }
 
-size_t IRBuilder::GetImplementationHash(BitMaker BitsOutput, const IRFunc* Func)
+size_t IRBuilder::GetImplementationHash(BitMaker BitsOutput, const IRFunc* Func, const Vector<IRPar>& Pars)
 {
 	BitsOutput.clear();
 	ToBytes(BitsOutput, *Func);
@@ -607,18 +743,18 @@ size_t IRBuilder::GetImplementationHash(BitMaker BitsOutput, const IRFunc* Func)
 
 //very slow
 
-size_t IRBuilder::GetImplementationHash(const IRBlock* Func)
+size_t IRBuilder::GetImplementationHash(const IRBlock* Func, const Vector<IRPar>& Pars)
 {
 	BitMaker V;
-	return GetImplementationHash(V, Func);
+	return GetImplementationHash(V, Func,Pars);
 }
 
 //very slow
 
-size_t IRBuilder::GetImplementationHash(BitMaker BitsOutput, const IRBlock* Func)
+size_t IRBuilder::GetImplementationHash(BitMaker BitsOutput, const IRBlock* Func, const Vector<IRPar>& Pars)
 {
 	BitsOutput.clear();
-	ToBytes(BitsOutput, *Func);
+	ToBytes(BitsOutput, *Func,Pars);
 
 	String_view Str = String_view((char*)BitsOutput.data(), BitsOutput.size());
 
@@ -630,7 +766,92 @@ size_t IRBuilder::GetImplementationHash(BitMaker BitsOutput, const IRBlock* Func
 
 void IRBuilder::CombineWith(const IRBuilder& Other)
 {
+	CopyBodyInTo(_StaticInit, Other._StaticInit);
+	CopyBodyInTo(_StaticdeInit, Other._StaticdeInit);
+	CopyBodyInTo(_threadInit, Other._threadInit);
+	CopyBodyInTo(_threaddeInit, Other._threaddeInit);
 
+	{
+		for (auto& Item : Other.ConstStaticStrings)
+		{
+			ConstStaticStrings[Item._Key] = Item._Value;
+		}
+	}
+
+	{
+		for (auto& Item : Other._Map)
+		{
+			_Map[Item._Key] = Item._Value;
+		}
+	}
+
+	{
+		
+		for (size_t i = 0; i < Other.Funcs.size(); i++)
+		{
+			const auto Item = Other.Funcs[i].get();
+
+			bool HasThis = GetFunc(Item->identifier);
+			if (!HasThis)
+			{
+				auto& CopyTo = Funcs.emplace_back(new IRFunc());
+
+				CopyTo->identifier = Item->identifier;
+				CopyTo->CallConvention = Item->CallConvention;
+				CopyTo->Linkage = Item->Linkage;
+				CopyTo->ReturnType = Item->ReturnType;
+				CopyTo->Pars = Item->Pars;
+				CopyBodyInTo(*CopyTo, *Item);
+			}
+		}
+	}
+
+	{
+		for (auto& Item : Other._Symbols)
+		{
+			bool HasThis = GetSymbol(Item->identifier);
+			if (!HasThis)
+			{
+				auto& Syb = _Symbols.emplace_back(new IRSymbol());
+				auto SybPtr = Syb.get();
+
+
+				SybPtr->identifier = Item->identifier;
+				SybPtr->SymType = Item->SymType;
+				SybPtr->Type = Item->Type;
+
+				switch (SybPtr->SymType)
+				{
+				case IRSymbolType::FuncPtr:
+				{
+					auto Ptr = new IRFuncPtr();
+					SybPtr->Ex.reset(Ptr);
+
+					*Ptr = *Item->Get_ExAs<IRFuncPtr>();
+				}
+				break;
+				case IRSymbolType::StaticArray:
+				{
+					auto Ptr = new IRStaticArray();
+					SybPtr->Ex.reset(Ptr);
+
+					*Ptr = *Item->Get_ExAs<IRStaticArray>();
+				}
+				break;
+				case IRSymbolType::Struct:
+				{
+					auto Ptr = new IRStruct();
+					SybPtr->Ex.reset(Ptr);
+
+					*Ptr = *Item->Get_ExAs<IRStruct>();
+				}
+				break;
+				default:
+					break;
+				}
+			}
+		}
+	}
 }
 
 void IRBuilder::CombineWith(IRBuilder&& Other)
