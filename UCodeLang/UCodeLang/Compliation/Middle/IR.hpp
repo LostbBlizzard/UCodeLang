@@ -1292,16 +1292,20 @@ public:
 
 
 	//very slow
-	static size_t GetImplementationHash(const IRFunc* Func);;
+	static size_t GetImplementationHash(const IRFunc* Func);
 
 	//very slow
-	static size_t GetImplementationHash(BitMaker BitsOutput, const IRFunc* Func);;
+	static size_t GetImplementationHash(BitMaker BitsOutput, const IRFunc* Func);
 
 	//very slow
-	static size_t GetImplementationHash(const IRBlock* Func);;
+	static size_t GetImplementationHash(const IRBlock* Func);
 
 	//very slow
-	static size_t GetImplementationHash(BitMaker BitsOutput, const IRBlock* Func);;
+	static size_t GetImplementationHash(BitMaker BitsOutput, const IRBlock* Func);
+
+	//
+	void CombineWith(const IRBuilder& Other);
+	void CombineWith(IRBuilder&& Other);
 };
 
 
