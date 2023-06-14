@@ -1,4 +1,6 @@
 
 
 
-|main[] => Test::Red;
+|main[] => TestEnum::Red;
+
+//|main[] => 0;

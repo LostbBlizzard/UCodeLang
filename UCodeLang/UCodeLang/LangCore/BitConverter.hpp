@@ -219,7 +219,7 @@ public:
 	}
 	inline static void BytesToInt64(const void* DataBytes, size_t Index, UInt64* OutPut)
 	{
-		OutPut[0] = BytesToInt64(DataBytes, Index);
+		OutPut[0] = BytesToUInt64(DataBytes, Index);
 	}
 
 	inline static void BytesTofloat64(const void* DataBytes, size_t Index, float64* OutPut)
