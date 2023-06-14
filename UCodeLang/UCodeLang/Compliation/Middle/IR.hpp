@@ -241,6 +241,11 @@ inline bool IsOperatorValueInInput(IRInstructionType Value)
 	return IsBinary(Value)
 		|| IsLoadValueOnInput(Value);
 }
+inline bool BothOperatorValueAreUnUsed(IRInstructionType Value)
+{
+	return Value == IRInstructionType::Return
+		|| Value == IRInstructionType::LoadNone;
+}
 
 
 

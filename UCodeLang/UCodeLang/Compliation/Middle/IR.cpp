@@ -578,14 +578,8 @@ void IRBuilder::ToBytes(BitMaker& Out, const IRInstruction& Value, const IRBlock
 
 	ToBytes(Out, Value.ObjectType);
 
-	if (IsOperatorValueInTarget(Value.Type))
-	{
-		ToBytes(Out, Value.Target(), Value.ObjectType, MyBlock, Pars);
-	}
-	if (IsOperatorValueInInput(Value.Type))
-	{
-		ToBytes(Out, Value.Input(), Value.ObjectType, MyBlock, Pars);
-	}
+	ToBytes(Out, Value.Target(), Value.ObjectType, MyBlock, Pars);
+	ToBytes(Out, Value.Input(), Value.ObjectType, MyBlock, Pars);
 }
 
 void IRBuilder::FromBytes(BitReader& Out, IRInstruction& Value, const IRBlock& MyBlock, Vector<IRPar>& Pars)
@@ -593,14 +587,8 @@ void IRBuilder::FromBytes(BitReader& Out, IRInstruction& Value, const IRBlock& M
 	Out.ReadType(*(IRInstructionType_t*)&Value.Type, *(IRInstructionType_t*)&Value.Type);
 	FromBytes(Out, Value.ObjectType);
 
-	if (IsOperatorValueInTarget(Value.Type))
-	{
-		FromBytes(Out, Value.Target(), Value.ObjectType, MyBlock, Pars);
-	}
-	if (IsOperatorValueInInput(Value.Type))
-	{
-		FromBytes(Out, Value.Input(), Value.ObjectType, MyBlock, Pars);
-	}
+	FromBytes(Out, Value.Target(), Value.ObjectType, MyBlock, Pars);
+	FromBytes(Out, Value.Input(), Value.ObjectType, MyBlock, Pars);
 }
 
 void IRBuilder::ToBytes(BitMaker& Out, const IROperator& Value, const IRType& Type, const IRBlock& MyBlock, const Vector<IRPar>& Pars)
