@@ -5,7 +5,7 @@
 UCodeLangStart
 
 using IRidentifier = String;
-using IRidentifierID = size_t;
+using IRidentifierID = UInt64;
 using IRTypes_t = int;
 enum class IRTypes :IRTypes_t
 {
@@ -885,7 +885,8 @@ struct IRBlock
 };
 
 
-enum class IRFuncLink
+using IRFuncLink_t = int;
+enum class IRFuncLink :IRFuncLink_t
 {
 	StaticLink,
 	StaticExternalLink,
@@ -902,7 +903,7 @@ struct IRFunc
 
 	IRType ReturnType;
 	Vector<IRPar> Pars;
-
+	Vector<Unique_ptr<IRBlock>> Blocks;
 	IRFunc() : identifier(0)
 	{
 
@@ -939,8 +940,7 @@ struct IRFunc
 	{
 		return Blocks.emplace_back(new IRBlock()).get();
 	}
-	Vector<Unique_ptr<IRBlock>> Blocks;
-	
+
 	size_t InstructionCount()const
 	{
 		size_t I = 0;
@@ -1253,10 +1253,45 @@ public:
 
 	BytesPtr ToBytes() const;
 	static bool FromBytes(IRBuilder& Out, const BytesView Bytes);
-
 	static bool ToFile(const Path& path, const IRBuilder& Value);
 	static bool FromFile(IRBuilder& Out, const Path& path);
+
+	
+	static void ToBytes(BitMaker& Out, const IRFunc& Value);
+	static void FromBytes(BitReader& Out, IRFunc& Value);
+
+	static void ToBytes(BitMaker& Out, const IRSymbolData& Value);
+	static void FromBytes(BitReader& Out, IRSymbolData& Value);
+
+	static void ToBytes(BitMaker& Out, const IRStruct& Value);
+	static void FromBytes(BitReader& Out, IRStruct& Value);
+
+	static void ToBytes(BitMaker& Out, const IRStaticArray& Value);
+	static void FromBytes(BitReader& Out, IRStaticArray& Value);
+
+	static void ToBytes(BitMaker& Out, const IRFuncPtr& Value);
+	static void FromBytes(BitReader& Out, IRFuncPtr& Value);
+
+	static void ToBytes(BitMaker& Out, const IRSymbol& Value);
+	static void FromBytes(BitReader& Out, IRSymbol& Value);
+
+	static void ToBytes(BitMaker& Out, const IRType& Value);
+	static void FromBytes(BitReader& Out, IRType& Value);
+
+	static void ToBytes(BitMaker& Out, const IRPar& Value);
+	static void FromBytes(BitReader& Out, IRPar& Value);
+
+	static void ToBytes(BitMaker& Out, const IRBlock& Value);
+	static void FromBytes(BitReader& Out, IRBlock& Value);
+
+	static void ToBytes(BitMaker& Out, const IRInstruction& Value, const IRBlock& MyBlock);
+	static void FromBytes(BitReader& Out, IRInstruction& Value, const IRBlock& MyBlock);
+
+	static void ToBytes(BitMaker& Out, const IROperator& Value, const IRType& Type, const IRBlock& MyBlock);
+	static void FromBytes(BitReader& Out, IROperator& Value, const IRType& Type, const IRBlock& MyBlock);
 };
+
+
 
 
 UCodeLangEnd
