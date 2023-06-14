@@ -606,13 +606,17 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 
 					for (auto& Item2 : ChangedFiles)
 					{
-						if (Item.IsExternal ?
-							Item.FileInfo->HasExternDependence(Item2->path)
-							 : 
-							Item.FileInfo->HasDependence(Item2->Repath))
+						
+						if (Item.FileInfo) //Is not External File
 						{
-							IsDependence = true;
-							break;
+							if (Item.IsExternal ?
+								Item.FileInfo->HasExternDependence(Item2->path)
+								:
+								Item.FileInfo->HasDependence(Item2->Repath))
+							{
+								IsDependence = true;
+								break;
+							}
 						}
 					}
 
