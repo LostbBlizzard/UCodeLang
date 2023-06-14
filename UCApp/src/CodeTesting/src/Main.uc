@@ -1,6 +1,9 @@
 
+$SomeTrait trait;
+
+$SomeClass[SomeTrait];
 
 
-|main[] => TestEnum::Red;
+|main[] => 0;
 
 //|main[] => 0;

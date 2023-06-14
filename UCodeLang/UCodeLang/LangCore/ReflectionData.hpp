@@ -189,6 +189,12 @@ public:
 	Optional<ReflectionTypeInfo> EnumVariantType;
 };
 
+class InheritedTrait_Data
+{
+public:
+	ReflectionCustomTypeID TraitID = {};
+};
+
 using ClassType_t = UInt8;
 enum class ClassType :ClassType_t
 {
@@ -213,6 +219,7 @@ struct Class_Data
 	Vector<UsedTagValueData> Attributes;
 	Vector<ClassField> Fields;
 	Vector<ClassMethod> Methods;
+	Vector<InheritedTrait_Data> InheritedTypes;
 	inline bool HasAttribute(const String& Name)
 	{
 		for (const auto& Item : Attributes)
@@ -291,6 +298,7 @@ struct Tag_Data
 };
 struct Trait_Data
 {
+	ReflectionCustomTypeID TraitID = {};
 	~Trait_Data()
 	{
 
@@ -537,6 +545,15 @@ public:
 		r.Name = Name;
 		r.FullName = FullName;
 		return r.Get_AliasData();
+	}
+	inline Trait_Data& AddTrait(const String& Name, const String& FullName = "")
+	{
+		auto V = std::make_unique<AssemblyNode>(ClassType::Trait);
+		Classes.push_back(std::move(V));
+		auto& r = *Classes.back();
+		r.Name = Name;
+		r.FullName = FullName;
+		return r.Get_TraitData();
 	}
 	static void PushCopyClasses(const ClassAssembly& source, ClassAssembly& Out);
 	AssemblyNode* Find_Node(const String& Name, const String& Scope ="")
