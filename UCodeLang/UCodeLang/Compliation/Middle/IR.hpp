@@ -1020,7 +1020,7 @@ public:
 		_Symbols.emplace_back(r);
 		return { V, identifier };
 	}
-	ExternalVarable NewStaticVarable(IRidentifierID identifier,IRType Type)
+	ExternalVarable NewStaticVarable(IRidentifierID identifier, IRType Type)
 	{
 		IRBufferData* V = new IRBufferData();
 
@@ -1044,13 +1044,13 @@ public:
 			return ConstStaticStrings.at(VKey);
 		}
 		IRidentifierID identifier = ToID(".Const.String:" + (String)Buffer);
-		auto V = NewStaticVarable(identifier,IRType(IRTypes::i8));
+		auto V = NewStaticVarable(identifier, IRType(IRTypes::i8));
 
 		V.Pointer->IsInitialized = true;
 		V.Pointer->Bytes.resize(Buffer.size());
 		memcpy(V.Pointer->Bytes.data(), Buffer.data(), Buffer.size());
 
-		ConstStaticStrings.AddValue(VKey,identifier);
+		ConstStaticStrings.AddValue(VKey, identifier);
 
 		return identifier;
 	}
@@ -1059,7 +1059,7 @@ public:
 
 	IRStruct* NewStruct(IRidentifierID identifier)
 	{
-		IRStruct* V =new IRStruct();
+		IRStruct* V = new IRStruct();
 		IRSymbolData* r = new IRSymbolData();
 
 		r->identifier = identifier;
@@ -1092,7 +1092,7 @@ public:
 		return V;
 	}
 
-	IRStaticArray* NewStaticArray(IRidentifierID identifier,IRType Type,size_t Count)
+	IRStaticArray* NewStaticArray(IRidentifierID identifier, IRType Type, size_t Count)
 	{
 		IRStaticArray* V = new IRStaticArray();
 		V->Count = Count;
@@ -1124,7 +1124,7 @@ public:
 	IRidentifier FromID(IRidentifierID Value) const
 	{
 		return _Map.at(Value);
-	}	
+	}
 
 	IRSymbolData* GetSymbol(IRidentifierID Value)
 	{
@@ -1168,7 +1168,7 @@ public:
 		}
 		return nullptr;
 	}
-	IRFunc* GetFunc(IRidentifierID Value) 
+	IRFunc* GetFunc(IRidentifierID Value)
 	{
 		for (auto& Item : Funcs)
 		{
@@ -1186,9 +1186,9 @@ public:
 	{
 		BinaryVectorMap<IRInstruction*, String> PointerToName;
 		Vector<IRInstruction*> TepPushedParameters;
-		
-		size_t StrValue=0;
-		IRFunc* _Func =nullptr;
+
+		size_t StrValue = 0;
+		IRFunc* _Func = nullptr;
 
 		String GetName(IRInstruction* Ptr)
 		{
@@ -1199,8 +1199,8 @@ public:
 			return V;
 		}
 	};
-	
-	
+
+
 	//Helpers
 
 	void AddField(IRStruct* V, IRType Type)
@@ -1211,7 +1211,7 @@ public:
 	String ToString();
 	void ToString(ToStringState& State, IRFunc* Item, String& r);
 	String ToString(const IRType& Type);
-	String ToString(ToStringState& State,IRInstruction& Ins, IROperator& Value);
+	String ToString(ToStringState& State, IRInstruction& Ins, IROperator& Value);
 	String ToStringBinary(ToStringState& State, IRInstruction* Ins, const char* V);
 	//pre backends
 	void Fix_Size(IRStruct* Struct);
@@ -1256,7 +1256,7 @@ public:
 	static bool ToFile(const Path& path, const IRBuilder& Value);
 	static bool FromFile(IRBuilder& Out, const Path& path);
 
-	
+
 	static void ToBytes(BitMaker& Out, const IRFunc& Value);
 	static void FromBytes(BitReader& Out, IRFunc& Value);
 
@@ -1289,6 +1289,19 @@ public:
 
 	static void ToBytes(BitMaker& Out, const IROperator& Value, const IRType& Type, const IRBlock& MyBlock);
 	static void FromBytes(BitReader& Out, IROperator& Value, const IRType& Type, const IRBlock& MyBlock);
+
+
+	//very slow
+	static size_t GetImplementationHash(const IRFunc* Func);;
+
+	//very slow
+	static size_t GetImplementationHash(BitMaker BitsOutput, const IRFunc* Func);;
+
+	//very slow
+	static size_t GetImplementationHash(const IRBlock* Func);;
+
+	//very slow
+	static size_t GetImplementationHash(BitMaker BitsOutput, const IRBlock* Func);;
 };
 
 

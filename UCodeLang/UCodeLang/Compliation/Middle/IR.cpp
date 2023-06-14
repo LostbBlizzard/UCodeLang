@@ -584,6 +584,47 @@ void IRBuilder::FromBytes(BitReader& Out, IROperator& Value, const IRType& Type,
 	}
 }
 
+//very slow
+
+
+//very slow
+
+size_t IRBuilder::GetImplementationHash(const IRFunc* Func)
+{
+	BitMaker V;
+	return GetImplementationHash(V, Func);
+}
+
+size_t IRBuilder::GetImplementationHash(BitMaker BitsOutput, const IRFunc* Func)
+{
+	BitsOutput.clear();
+	ToBytes(BitsOutput, *Func);
+
+	String_view Str = String_view((char*)BitsOutput.data(), BitsOutput.size());
+
+	return std::hash<String_view>()(Str);
+}
+
+//very slow
+
+size_t IRBuilder::GetImplementationHash(const IRBlock* Func)
+{
+	BitMaker V;
+	return GetImplementationHash(V, Func);
+}
+
+//very slow
+
+size_t IRBuilder::GetImplementationHash(BitMaker BitsOutput, const IRBlock* Func)
+{
+	BitsOutput.clear();
+	ToBytes(BitsOutput, *Func);
+
+	String_view Str = String_view((char*)BitsOutput.data(), BitsOutput.size());
+
+	return std::hash<String_view>()(Str);
+}
+
 bool IRBuilder::IsTheSame(const IRFuncPtr* Func, const IRFuncPtr* Func2)const
 {
 	bool Ok = Func->CallConvention == Func2->CallConvention
