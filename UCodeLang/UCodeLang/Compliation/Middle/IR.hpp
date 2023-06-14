@@ -1308,10 +1308,7 @@ public:
 	void CombineWith(const IRBuilder& Other);
 	void CombineWith(IRBuilder&& Other);
 
-	static void CopyBodyInTo(IRFunc& ToUpdate, const IRFunc& Func)
-	{
-
-	}
+	static void CopyBodyInTo(IRFunc& ToUpdate, const IRFunc& Func);
 };
 
 

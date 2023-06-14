@@ -812,7 +812,7 @@ void IRBuilder::CombineWith(const IRBuilder& Other)
 			bool HasThis = GetSymbol(Item->identifier);
 			if (!HasThis)
 			{
-				auto& Syb = _Symbols.emplace_back(new IRSymbol());
+				auto& Syb = _Symbols.emplace_back(new IRSymbolData());
 				auto SybPtr = Syb.get();
 
 
@@ -879,6 +879,27 @@ bool IRBuilder::IsTheSame(const IRFuncPtr* Func, const IRFuncPtr* Func2)const
 	}
 
 	return Ok;
+}
+void IRBuilder::CopyBodyInTo(IRFunc& ToUpdate, const IRFunc& Func)
+{
+	for (size_t i = 0; i < Func.Blocks.size(); i++)
+	{
+		ToUpdate.Blocks.push_back({});
+		const auto& Item = Func.Blocks[i];
+		auto& ToUpdateItem = ToUpdate.Blocks[i];
+		
+		auto Ptr = new IRBlock();
+		ToUpdateItem.reset(Ptr);
+	
+
+		BitMaker Bits;
+		ToBytes(Bits, *Item, Func.Pars);
+		
+
+		BitReader BitReader;
+		BitReader.SetBytes(Bits.data(), Bits.size());
+		FromBytes(BitReader,*ToUpdateItem,ToUpdate.Pars);
+	}
 }
 bool IRBuilder::IsTheSame(const IRFuncPtr* Func, const IRFunc* Func2)const
 {
