@@ -84,6 +84,8 @@ enum class OpCodeType :OpCodeType_t
 	UIntPtr,
 	InsAddress,
 	StaticCString,
+
+	RegPtrAndRegOut,
 };
 
 struct InsMapValue
@@ -171,6 +173,16 @@ static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 
 	AddMapValueValue(CppCallNamed,InstructionSet::CppCallNamed,OpCodeType::StaticCString,OpCodeType::NoOpCode),
 	AddMapValueValue(SysCall,InstructionSet::SysCall,OpCodeType::AnyInt64,OpCodeType::Register),
+
+	AddMapValueValue(Load8,InstructionSet::PointerMemberLoad8,OpCodeType::RegPtrAndRegOut,OpCodeType::UIntPtr),
+	AddMapValueValue(Load16,InstructionSet::PointerMemberLoad16,OpCodeType::RegPtrAndRegOut,OpCodeType::UIntPtr),
+	AddMapValueValue(Load32,InstructionSet::PointerMemberLoad32,OpCodeType::RegPtrAndRegOut,OpCodeType::UIntPtr),
+	AddMapValueValue(Load64,InstructionSet::PointerMemberLoad64,OpCodeType::RegPtrAndRegOut,OpCodeType::UIntPtr),
+
+	AddMapValueValue(Read8,InstructionSet::PointerMemberRead8,OpCodeType::RegPtrAndRegOut,OpCodeType::UIntPtr),
+	AddMapValueValue(Read16,InstructionSet::PointerMemberRead16,OpCodeType::RegPtrAndRegOut,OpCodeType::UIntPtr),
+	AddMapValueValue(Read32,InstructionSet::PointerMemberRead32,OpCodeType::RegPtrAndRegOut,OpCodeType::UIntPtr),
+	AddMapValueValue(Read64,InstructionSet::PointerMemberRead64,OpCodeType::RegPtrAndRegOut,OpCodeType::UIntPtr),
 };
 
 static inline Unordered_map<InstructionSet, const InsMapValue*> InsToInsMapValue;

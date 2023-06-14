@@ -370,7 +370,17 @@ void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In,const Binar
 		{
 			out += "{" + std::to_string(In.AsUInt64) + "}";
 		}
-	}	break;
+	}	
+	break;
+	case OpCodeType::RegPtrAndRegOut:
+	{
+		const RegisterID* ReV = &In.AsRegister;
+		RegisterID Ptr = ReV[0];
+		RegisterID RegOut = ReV[1];
+		out += "[Ptr:" + GetRegisterToString(Ptr) + "]," + "[Target:" + GetRegisterToString(RegOut) + "]";
+	}
+		
+		break;
 	default:
 		break;
 	}

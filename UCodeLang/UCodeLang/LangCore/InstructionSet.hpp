@@ -63,6 +63,18 @@ enum class InstructionSet : InstructionSet_t
 
 	Int32Tofloat32,
 	Int64Tofloat64,
+	//
+	PointerMemberLoad8,
+	PointerMemberRead8,
+
+	PointerMemberLoad16,
+	PointerMemberRead16,
+
+	PointerMemberLoad32,
+	PointerMemberRead32,
+
+	PointerMemberLoad64,
+	PointerMemberRead64,
 
 	//Cpp func Set
 	GetPointerOfStack, GetPointerOfStackSub, GetPointerOfStaticMem,IncrementStackPointer, DecrementStackPointer,
