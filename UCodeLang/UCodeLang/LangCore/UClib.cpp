@@ -102,6 +102,13 @@ void UClib::ToBytes(BitMaker& Output, const ClassAssembly& Assembly)
 			ToBytes(Output, EnumData);
 		}
 		break;
+		case ClassType::Trait:
+		{
+			auto& TraitData = Item->Get_TraitData();
+
+			ToBytes(Output, TraitData);
+		}
+		break;
 		default:
 			break;
 		}
@@ -159,6 +166,14 @@ void UClib::ToBytes(BitMaker& Output, const Optional<ReflectionTypeInfo>& Data)
 		ToBytes(Output, Data.value());
 	}
 }
+void UClib::ToBytes(BitMaker& Output, const Trait_Data& TraitData)
+{
+	Output.WriteType(TraitData.TypeID);
+}
+void UClib::ToBytes(BitMaker& Output, const InheritedTrait_Data& TraitData)
+{
+	Output.WriteType(TraitData.TraitID);
+}
 void UClib::ToBytes(BitMaker& Output, const Enum_Data& EnumData)
 {
 	Output.WriteType(EnumData.TypeID);
@@ -198,6 +213,12 @@ void UClib::ToBytes(BitMaker& Output, const Class_Data& ClassData)
 
 	Output.WriteType((Size_tAsBits)ClassData.Methods.size());
 	for (auto& Item2 : ClassData.Methods)
+	{
+		ToBytes(Output, Item2);
+	}
+
+	Output.WriteType((Size_tAsBits)ClassData.InheritedTypes.size());
+	for (auto& Item2 : ClassData.InheritedTypes)
 	{
 		ToBytes(Output, Item2);
 	}
@@ -508,6 +529,12 @@ void UClib::FromBytes(BitReader& reader, ClassAssembly& Assembly)
 			FromBytes(reader, Enum);
 		}
 		break;
+		case ClassType::Trait:
+		{
+			auto& Trait = _Node.Get_TraitData();
+			FromBytes(reader, Trait);
+		}
+		break;
 		default:
 			break;
 		}
@@ -571,35 +598,54 @@ void UClib::FromBytes(BitReader& reader, Class_Data& Class)
 
 	FromBytes(reader, Class.Attributes);
 
-
-	union
 	{
-		Size_tAsBits  Feld_Sizebits = 0;
-		size_t Feld_Size;
-	};
-	reader.ReadType(Feld_Sizebits, Feld_Sizebits);
-	Feld_Size = Feld_Sizebits;
+		union
+		{
+			Size_tAsBits  Feld_Sizebits = 0;
+			size_t Feld_Size;
+		};
+		reader.ReadType(Feld_Sizebits, Feld_Sizebits);
+		Feld_Size = Feld_Sizebits;
 
-	Class.Fields.resize(Feld_Size);
-	for (size_t i2 = 0; i2 < Feld_Size; i2++)
-	{
-		auto& Item2 = Class.Fields[i2];
-		FromBytes(reader, Item2);
+		Class.Fields.resize(Feld_Size);
+		for (size_t i2 = 0; i2 < Feld_Size; i2++)
+		{
+			auto& Item2 = Class.Fields[i2];
+			FromBytes(reader, Item2);
+		}
 	}
 
-	union
 	{
-		Size_tAsBits  Methods_Sizebits = 0;
-		size_t Methods_Size;
-	};
-	reader.ReadType(Methods_Sizebits, Methods_Sizebits);
-	Methods_Size = Methods_Sizebits;
+		union
+		{
+			Size_tAsBits  Methods_Sizebits = 0;
+			size_t Methods_Size;
+		};
+		reader.ReadType(Methods_Sizebits, Methods_Sizebits);
+		Methods_Size = Methods_Sizebits;
 
-	Class.Methods.resize(Methods_Size);
-	for (size_t i2 = 0; i2 < Methods_Size; i2++)
+		Class.Methods.resize(Methods_Size);
+		for (size_t i2 = 0; i2 < Methods_Size; i2++)
+		{
+			auto& Item2 = Class.Methods[i2];
+			FromBytes(reader, Item2);
+		}
+	}
+
 	{
-		auto& Item2 = Class.Methods[i2];
-		FromBytes(reader, Item2);
+
+		Size_tAsBits Sizebits = 0;
+		size_t Size;
+
+		reader.ReadType(Sizebits, Sizebits);
+		Size = Sizebits;
+
+		Class.InheritedTypes.resize(Size);
+		for (size_t i2 = 0; i2 < Size; i2++)
+		{
+			auto& Item2 = Class.InheritedTypes[i2];
+			FromBytes(reader, Item2);
+		}
 	}
 }
 void UClib::FromBytes(BitReader& Input, ReflectionRawData& Data)
@@ -610,6 +656,14 @@ void UClib::FromBytes(BitReader& Input, ReflectionRawData& Data)
 	Data.Resize(BufferSize);
 	memcpy(Data.Get_Data(), &Input.GetByteWith_offset(0), BufferSize);
 	Input.Increment_offset(BufferSize);
+}
+void UClib::FromBytes(BitReader& Input, Trait_Data& Data)
+{
+	Input.ReadType(Data.TypeID, Data.TypeID);
+}
+void UClib::FromBytes(BitReader& Input, InheritedTrait_Data& Data)
+{
+	Input.ReadType(Data.TraitID, Data.TraitID);
 }
 void UClib::FromBytes(BitReader& reader,Vector<UsedTagValueData>& Attributes)
 {
