@@ -3511,7 +3511,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 	
 
 		Trait_Data& TraitData = _Lib.Get_Assembly().AddTrait(ScopeHelper::GetNameFromFullName(Syb.FullName), Syb.FullName);
-		TraitData.TraitID = GetTypeID(TypesEnum::CustomType, Syb.ID);
+		TraitData.TypeID = GetTypeID(TypesEnum::CustomType, Syb.ID);
 }
 
 

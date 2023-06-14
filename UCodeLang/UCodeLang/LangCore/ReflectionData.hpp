@@ -298,7 +298,7 @@ struct Tag_Data
 };
 struct Trait_Data
 {
-	ReflectionCustomTypeID TraitID = {};
+	ReflectionCustomTypeID TypeID = {};
 	~Trait_Data()
 	{
 
