@@ -211,8 +211,17 @@ public:
 		const RunTimeLib* NewLib = nullptr;
 		RunTimeLib* LibToUpdate = nullptr;
 	};
-	bool HotReload(const HotReloadData& Item, const HotReloadLib& Data);
-	bool HotReload(const HotReloadData& Item, const Vector<HotReloadLib> LibsToUpdate);
+
+	//the types that have been updated
+	struct Diffs
+	{
+
+	};
+	Optional<RunTimeLangState::Diffs> HotReload(const HotReloadData& Item, const HotReloadLib& Data);
+	Optional<RunTimeLangState::Diffs> HotReload(const HotReloadData& Item, const Vector<HotReloadLib> LibsToUpdate);
+
+	RunTimeLangState::Diffs HotReloadOrReset(const HotReloadData& Item, const HotReloadLib& LibsToUpdate);
+	RunTimeLangState::Diffs HotReloadOrReset(const HotReloadData& Item, const Vector<HotReloadLib> LibsToUpdate);
 private:
 	Allocator _Allocator;
 	UCLibManger _Data;

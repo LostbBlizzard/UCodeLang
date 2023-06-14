@@ -216,21 +216,37 @@ void RunTimeLangState::LinkLibs()
 	}
 }
 
-bool RunTimeLangState::HotReload(const HotReloadData& Item, const HotReloadLib& Data)
+Optional<RunTimeLangState::Diffs> RunTimeLangState::HotReload(const HotReloadData& Item, const HotReloadLib& Data)
 {
-	return false;
+
+	return {};
 }
 
-bool RunTimeLangState::HotReload(const HotReloadData& Item, const Vector<HotReloadLib> LibsToUpdate)
+Optional<RunTimeLangState::Diffs> RunTimeLangState::HotReload(const HotReloadData& Item, const Vector<HotReloadLib> LibsToUpdate)
 {
 	for (auto& Lib : LibsToUpdate)
 	{
 		if (!HotReload(Item, Lib))
 		{
-			return false;
+			return {};
 		}
 	}
-	return true;
+	return {};
+}
+
+RunTimeLangState::Diffs RunTimeLangState::HotReloadOrReset(const HotReloadData& Item, const HotReloadLib& LibsToUpdate)
+{
+	Vector<HotReloadLib> V;
+	V.push_back(LibsToUpdate);
+
+	return HotReloadOrReset(Item, V);
+}
+
+RunTimeLangState::Diffs RunTimeLangState::HotReloadOrReset(const HotReloadData& Item, const Vector<HotReloadLib> LibsToUpdate)
+{
+	bool OK = HotReload(Item, LibsToUpdate);
+
+
 }
 
 UCodeLangEnd
