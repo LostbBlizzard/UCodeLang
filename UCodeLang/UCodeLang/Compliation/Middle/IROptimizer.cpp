@@ -52,21 +52,7 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 			std::cout << S;
 		}
 		_UpdatedCode = false;
-		
-		auto InputNum = (UInt64)0x123456789;
-		BitMaker Test;
-		Test.WriteType(InputNum);
 
-		BitReader V;
-		V.SetBytes(Test.data(), Test.size());
-
-		UInt64 Num=0;
-		V.ReadType(Num);
-
-		if (Num != InputNum)
-		{
-			throw std::exception("?");
-		}
 
 		return;
 		UpdateCodePass();
