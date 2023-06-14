@@ -275,6 +275,7 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 	auto LeftBracket = TryGetToken();
 	if (LeftBracket && LeftBracket->Type == TokenType::Left_Bracket)
 	{
+		NextToken();
 		do
 		{
 			NameNode V;
