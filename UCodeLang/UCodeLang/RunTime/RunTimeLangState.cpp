@@ -244,9 +244,9 @@ RunTimeLangState::Diffs RunTimeLangState::HotReloadOrReset(const HotReloadData& 
 
 RunTimeLangState::Diffs RunTimeLangState::HotReloadOrReset(const HotReloadData& Item, const Vector<HotReloadLib> LibsToUpdate)
 {
-	bool OK = HotReload(Item, LibsToUpdate);
+	Optional<RunTimeLangState::Diffs> OK = HotReload(Item, LibsToUpdate);
 
-
+	return OK.value();
 }
 
 UCodeLangEnd

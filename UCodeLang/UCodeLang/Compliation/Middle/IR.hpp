@@ -1281,31 +1281,37 @@ public:
 	static void ToBytes(BitMaker& Out, const IRPar& Value);
 	static void FromBytes(BitReader& Out, IRPar& Value);
 
-	static void ToBytes(BitMaker& Out, const IRBlock& Value);
-	static void FromBytes(BitReader& Out, IRBlock& Value);
+	static void ToBytes(BitMaker& Out, const IRBlock& Value,const Vector<IRPar>& Pars);
+	static void FromBytes(BitReader& Out, IRBlock& Value, Vector<IRPar>& Pars);
 
-	static void ToBytes(BitMaker& Out, const IRInstruction& Value, const IRBlock& MyBlock);
-	static void FromBytes(BitReader& Out, IRInstruction& Value, const IRBlock& MyBlock);
-
-	static void ToBytes(BitMaker& Out, const IROperator& Value, const IRType& Type, const IRBlock& MyBlock);
-	static void FromBytes(BitReader& Out, IROperator& Value, const IRType& Type, const IRBlock& MyBlock);
+	static void ToBytes(BitMaker& Out, const IRInstruction& Value, const IRBlock& MyBlock,const Vector<IRPar>& Pars);
+	static void FromBytes(BitReader& Out, IRInstruction& Value, const IRBlock& MyBlock, Vector<IRPar>& Pars);
+	
+	
+	static void ToBytes(BitMaker& Out, const IROperator& Value, const IRType& Type, const IRBlock& MyBlock,const Vector<IRPar>& Pars);
+	static void FromBytes(BitReader& Out, IROperator& Value, const IRType& Type, const IRBlock& MyBlock, Vector<IRPar>& Pars);
 
 
 	//very slow
 	static size_t GetImplementationHash(const IRFunc* Func);
 
 	//very slow
-	static size_t GetImplementationHash(BitMaker BitsOutput, const IRFunc* Func);
+	static size_t GetImplementationHash(BitMaker BitsOutput, const IRFunc* Func, const Vector<IRPar>& Pars);
 
 	//very slow
-	static size_t GetImplementationHash(const IRBlock* Func);
+	static size_t GetImplementationHash(const IRBlock* Func, const Vector<IRPar>& Pars);
 
 	//very slow
-	static size_t GetImplementationHash(BitMaker BitsOutput, const IRBlock* Func);
+	static size_t GetImplementationHash(BitMaker BitsOutput, const IRBlock* Func, const Vector<IRPar>& Pars);
 
 	//
 	void CombineWith(const IRBuilder& Other);
 	void CombineWith(IRBuilder&& Other);
+
+	static void CopyBodyInTo(IRFunc& ToUpdate, const IRFunc& Func)
+	{
+
+	}
 };
 
 

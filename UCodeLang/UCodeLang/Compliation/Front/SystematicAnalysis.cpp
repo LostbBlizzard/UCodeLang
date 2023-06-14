@@ -667,7 +667,7 @@ void SystematicAnalysis::BuildLib(const UClib& lib,const Path& LibName)
 		if (IRBuilder::FromBytes(IRToImport,BytesView((Byte*)IRLayer->_Code.data(), IRLayer->_Code.size())))
 		{
 			GotIRCode = true;
-		
+			_Builder.CombineWith(std::move(IRToImport));
 		}
 	}
 
