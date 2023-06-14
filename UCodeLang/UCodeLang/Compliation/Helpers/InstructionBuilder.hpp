@@ -424,6 +424,89 @@ public:
 		Out.Value1.AsUInt64 = NullUInt64;
 	}
 
+
+	UCodeLangForceinline static void PointerMemberLoad8(Instruction& Out,RegisterID Ptr,RegisterID RegOut,size_t Offset)
+	{
+		Out.OpCode = InstructionSet::PointerMemberLoad8;
+
+		RegisterID* ReV = &Out.Value0.AsRegister;
+		ReV[0] = Ptr;
+		ReV[1] = RegOut;
+
+		Out.Value1.AsAddress= Offset;
+	}
+	UCodeLangForceinline static void PointerMemberLoad16(Instruction& Out, RegisterID Ptr, RegisterID RegOut, size_t Offset)
+	{
+		Out.OpCode = InstructionSet::PointerMemberLoad16;
+
+		RegisterID* ReV = &Out.Value0.AsRegister;
+		ReV[0] = Ptr;
+		ReV[1] = RegOut;
+
+		Out.Value1.AsAddress = Offset;
+	}
+	UCodeLangForceinline static void PointerMemberLoad32(Instruction& Out, RegisterID Ptr, RegisterID RegOut, size_t Offset)
+	{
+		Out.OpCode = InstructionSet::PointerMemberLoad32;
+
+		RegisterID* ReV = &Out.Value0.AsRegister;
+		ReV[0] = Ptr;
+		ReV[1] = RegOut;
+
+		Out.Value1.AsAddress = Offset;
+	}
+	UCodeLangForceinline static void PointerMemberLoad64(Instruction& Out, RegisterID Ptr, RegisterID RegOut, size_t Offset)
+	{
+		Out.OpCode = InstructionSet::PointerMemberLoad64;
+
+		RegisterID* ReV = &Out.Value0.AsRegister;
+		ReV[0] = Ptr;
+		ReV[1] = RegOut;
+
+		Out.Value1.AsAddress = Offset;
+	}
+
+	UCodeLangForceinline static void PointerMemberRead8(Instruction& Out, RegisterID Ptr, RegisterID RegOut, size_t Offset)
+	{
+		Out.OpCode = InstructionSet::PointerMemberRead8;
+
+		RegisterID* ReV = &Out.Value0.AsRegister;
+		ReV[0] = Ptr;
+		ReV[1] = RegOut;
+
+		Out.Value1.AsAddress = Offset;
+	}
+	UCodeLangForceinline static void PointerMemberRead16(Instruction& Out, RegisterID Ptr, RegisterID RegOut, size_t Offset)
+	{
+		Out.OpCode = InstructionSet::PointerMemberRead16;
+
+		RegisterID* ReV = &Out.Value0.AsRegister;
+		ReV[0] = Ptr;
+		ReV[1] = RegOut;
+
+		Out.Value1.AsAddress = Offset;
+	}
+	UCodeLangForceinline static void PointerMemberRead32(Instruction& Out, RegisterID Ptr, RegisterID RegOut, size_t Offset)
+	{
+		Out.OpCode = InstructionSet::PointerMemberRead32;
+
+		RegisterID* ReV = &Out.Value0.AsRegister;
+		ReV[0] = Ptr;
+		ReV[1] = RegOut;
+
+		Out.Value1.AsAddress = Offset;
+	}
+	UCodeLangForceinline static void PointerMemberRead64(Instruction& Out, RegisterID Ptr, RegisterID RegOut, size_t Offset)
+	{
+		Out.OpCode = InstructionSet::PointerMemberRead64;
+
+		RegisterID* ReV = &Out.Value0.AsRegister;
+		ReV[0] = Ptr;
+		ReV[1] = RegOut;
+
+		Out.Value1.AsAddress = Offset;
+	}
+
 	//Size should be in InputRegister
 	UCodeLangForceinline static void MemCopy(Instruction& Out, RegisterID dest, RegisterID source)
 	{

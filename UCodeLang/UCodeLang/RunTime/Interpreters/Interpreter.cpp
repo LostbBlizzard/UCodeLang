@@ -359,6 +359,89 @@ void Interpreter::Extecute(Instruction& Inst)
 			Realloc(Get_Register(Inst.Value0.AsRegister).Value.AsPtr
 				   ,Get_Register(Inst.Value1.AsRegister).Value.AsUIntNative);
 		break;
+	case InstructionSet::PointerMemberRead8:
+	{
+		size_t Offset = Get_Register(Inst.Value1.AsRegister).Value.AsAddress;
+		RegisterID* ReV = &Inst.Value0.AsRegister;
+		RegisterID Ptr = ReV[0];
+		RegisterID RegOut = ReV[1];
+
+		Get_Register(RegOut).Value = *(Int8*)(Offset + Get_Register(Ptr).Value.AsAddress);
+	}	
+	break;
+	case InstructionSet::PointerMemberRead16:
+	{
+		size_t Offset = Get_Register(Inst.Value1.AsRegister).Value.AsAddress;
+		RegisterID* ReV = &Inst.Value0.AsRegister;
+		RegisterID Ptr = ReV[0];
+		RegisterID RegOut = ReV[1];
+
+		Get_Register(RegOut).Value = *(Int16*)(Offset + Get_Register(Ptr).Value.AsAddress);
+	}
+	break;
+	case InstructionSet::PointerMemberRead32:
+	{
+		size_t Offset = Get_Register(Inst.Value1.AsRegister).Value.AsAddress;
+		RegisterID* ReV = &Inst.Value0.AsRegister;
+		RegisterID Ptr = ReV[0];
+		RegisterID RegOut = ReV[1];
+
+		Get_Register(RegOut).Value = *(Int32*)(Offset + Get_Register(Ptr).Value.AsAddress);
+	}
+	break;
+	case InstructionSet::PointerMemberRead64:
+	{
+		size_t Offset = Get_Register(Inst.Value1.AsRegister).Value.AsAddress;
+		RegisterID* ReV = &Inst.Value0.AsRegister;
+		RegisterID Ptr = ReV[0];
+		RegisterID RegOut = ReV[1];
+
+		Get_Register(RegOut).Value = *(Int64*)(Offset + Get_Register(Ptr).Value.AsAddress);
+	}
+	break;
+
+	case InstructionSet::PointerMemberLoad64:
+	{
+		size_t Offset = Get_Register(Inst.Value1.AsRegister).Value.AsAddress;
+		RegisterID* ReV = &Inst.Value0.AsRegister;
+		RegisterID Ptr = ReV[0];
+		RegisterID RegOut = ReV[1];
+
+		*(Int64*)(Offset + Get_Register(Ptr).Value.AsAddress) = Get_Register(RegOut).Value.AsInt64;
+	}
+	break;
+	case InstructionSet::PointerMemberLoad32:
+	{
+		size_t Offset = Get_Register(Inst.Value1.AsRegister).Value.AsAddress;
+		RegisterID* ReV = &Inst.Value0.AsRegister;
+		RegisterID Ptr = ReV[0];
+		RegisterID RegOut = ReV[1];
+
+		*(Int32*)(Offset + Get_Register(Ptr).Value.AsAddress) = Get_Register(RegOut).Value.AsInt32;
+	}
+	break;
+	case InstructionSet::PointerMemberLoad16:
+	{
+		size_t Offset = Get_Register(Inst.Value1.AsRegister).Value.AsAddress;
+		RegisterID* ReV = &Inst.Value0.AsRegister;
+		RegisterID Ptr = ReV[0];
+		RegisterID RegOut = ReV[1];
+
+		*(Int16*)(Offset + Get_Register(Ptr).Value.AsAddress) = Get_Register(RegOut).Value.AsInt16;
+	}
+	break;
+	case InstructionSet::PointerMemberLoad8:
+	{
+		size_t Offset = Get_Register(Inst.Value1.AsRegister).Value.AsAddress;
+		RegisterID* ReV = &Inst.Value0.AsRegister;
+		RegisterID Ptr = ReV[0];
+		RegisterID RegOut = ReV[1];
+
+		*(Int8*)(Offset + Get_Register(Ptr).Value.AsAddress) = Get_Register(RegOut).Value.AsInt8;
+	}
+	break;
+
+
 	case InstructionSet::SysCall: 
 	{
 		InterpreterSysCall(*(InstructionSysCall*)&Inst.Value0, Inst.Value1.AsRegister);
