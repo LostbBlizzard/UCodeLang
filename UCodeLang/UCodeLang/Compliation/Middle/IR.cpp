@@ -625,6 +625,21 @@ size_t IRBuilder::GetImplementationHash(BitMaker BitsOutput, const IRBlock* Func
 	return std::hash<String_view>()(Str);
 }
 
+
+//
+
+void IRBuilder::CombineWith(const IRBuilder& Other)
+{
+
+}
+
+void IRBuilder::CombineWith(IRBuilder&& Other)
+{
+	//temporary body
+	CombineWith(Other);
+	Other.Reset();
+}
+
 bool IRBuilder::IsTheSame(const IRFuncPtr* Func, const IRFuncPtr* Func2)const
 {
 	bool Ok = Func->CallConvention == Func2->CallConvention
