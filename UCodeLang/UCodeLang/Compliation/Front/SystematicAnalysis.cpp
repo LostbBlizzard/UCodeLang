@@ -3509,7 +3509,10 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 			StructVtablueClass->Fields.push_back(V);
 		}
 	
-	}
+
+		Trait_Data& TraitData = _Lib.Get_Assembly().AddTrait(ScopeHelper::GetNameFromFullName(Syb.FullName), Syb.FullName);
+		TraitData.TraitID = GetTypeID(TypesEnum::CustomType, Syb.ID);
+}
 
 
 	_Table.RemoveScope();
@@ -10550,6 +10553,14 @@ void SystematicAnalysis::AddClass_tToAssemblyInfo(const ClassInfo* Class)
 		VClass.Size += Size;
 	}
 	
+	for (const auto& Trait : Class->_InheritedTypes)
+	{
+		auto Typeid = GetTypeID(TypesEnum::CustomType, Trait.Syb->ID);
+		
+		InheritedTrait_Data Item;
+		Item.TraitID = Typeid;
+		VClass.InheritedTypes.push_back(std::move(Item));
+	}
 }
 
 ReflectionTypeInfo SystematicAnalysis::ConvertToTypeInfo(const TypeSymbol& Type)
