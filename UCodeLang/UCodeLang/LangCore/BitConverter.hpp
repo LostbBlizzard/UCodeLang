@@ -64,7 +64,7 @@ public:
 	};
 	struct Byte64
 	{
-		UInt8 A, C, B, D,
+		UInt8 A, B, C, D,
 			 E, F, G, H;
 		inline void MoveValues(UInt8* P, size_t Indexofset)
 		{
