@@ -18,6 +18,7 @@ const AssemblyNode* ClassAssembly::Find_Node(ReflectionCustomTypeID TypeID) cons
 		case ClassType::Class:Valu = Item->Get_ClassData().TypeID; break;
 		case ClassType::Enum:Valu = Item->Get_EnumData().TypeID; break;
 		case ClassType::Alias:Valu = Item->Get_AliasData().HardAliasTypeID; break;
+		case ClassType::Trait:Valu = Item->Get_TraitData().TypeID; break;
 		default:
 			break;
 		}
