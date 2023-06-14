@@ -708,28 +708,28 @@ void SystematicAnalysis::ToIntFile(FileNode_t* File, const Path& path)
 	for (size_t i = 0; i < FileData.IRInitStaticSpan.Count; i++)
 	{
 		size_t Index = FileData.IRInitStaticSpan.Index + i;
-		auto& Item = TepIR._StaticInit.Blocks.front()->Instructions[Index];
+		auto& Item =_Builder._StaticInit.Blocks.front()->Instructions[Index];
 		
 		TepIR._StaticInit.Blocks.front()->Instructions.push_back(Unique_ptr<IRInstruction>(Item.get()));
 	}
 	for (size_t i = 0; i < FileData.IRInitThreadSpan.Count; i++)
 	{
 		size_t Index = FileData.IRInitThreadSpan.Index + i;
-		auto& Item = TepIR._threadInit.Blocks.front()->Instructions[Index];
+		auto& Item = _Builder._threadInit.Blocks.front()->Instructions[Index];
 		
 		TepIR._threadInit.Blocks.front()->Instructions.push_back(Unique_ptr<IRInstruction>(Item.get()));
 	}
 	for (size_t i = 0; i < FileData.IRDeInitStaticSpan.Count; i++)
 	{
 		size_t Index = FileData.IRDeInitStaticSpan.Index + i;
-		auto& Item = TepIR._StaticdeInit.Blocks.front()->Instructions[Index];
+		auto& Item = _Builder._StaticdeInit.Blocks.front()->Instructions[Index];
 
 		TepIR._StaticdeInit.Blocks.front()->Instructions.push_back(Unique_ptr<IRInstruction>(Item.get()));
 	}
 	for (size_t i = 0; i < FileData.IRDeInitThreadSpan.Count; i++)
 	{
 		size_t Index = FileData.IRDeInitThreadSpan.Index + i;
-		auto& Item = TepIR._threaddeInit.Blocks.front()->Instructions[Index];
+		auto& Item = _Builder._threaddeInit.Blocks.front()->Instructions[Index];
 
 		TepIR._threaddeInit.Blocks.front()->Instructions.push_back(Unique_ptr<IRInstruction>(Item.get()));
 	}

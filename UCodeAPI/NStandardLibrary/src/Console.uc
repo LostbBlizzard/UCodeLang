@@ -7,12 +7,3 @@ ULang::Native:
  |ConsoleInReadLine[uintptr& Size] -> byte[&];
 
 
-$TypeClass;
-
-$TestEnum enum:
- Red,
- Green[TypeClass V],
- Blue[int a,int b],
-
-
-|test[] => TestEnum::Red;
