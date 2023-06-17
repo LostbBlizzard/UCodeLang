@@ -2362,6 +2362,7 @@ GotNodeType Parser::DoEnumType(EnumNode* output, const Token* ClassToken, Generi
 	NextToken();
 
 	output->EnumName.Token = ClassToken;
+	output->Generic = std::move(TepGenerics);
 	output->Access = GetModifier();
 	if (Inherited.Values.size() > 1)
 	{

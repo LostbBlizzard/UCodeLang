@@ -741,6 +741,7 @@ struct EnumNode :Node
 	AddforNode(EnumNode);
 
 	NameNode EnumName;
+	GenericValuesNode Generic;
 	Vector<EnumValueNode> Values;
 	TypeNode BaseType;
 	AccessModifierType Access = AccessModifierType::Default;

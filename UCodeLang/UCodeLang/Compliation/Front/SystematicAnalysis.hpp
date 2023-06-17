@@ -1210,6 +1210,7 @@ private:
 	void GenericTypeInstantiate(const Symbol* Class, const Vector<TypeSymbol>& Type);
 	void GenericTypeInstantiate_Trait(const Symbol* Trait, const Vector<TypeSymbol>& Type);
 	void GenericTypeInstantiate_Alias(const Symbol* Alias, const Vector<TypeSymbol>& Type);
+	void GenericTypeInstantiate_Enum(const Symbol* Enum, const Vector<TypeSymbol>& Type);
 
 	EvaluatedEx MakeEx(const TypeSymbol& Type);
 	RawEvaluatedObject MakeExr(const TypeSymbol& Type);
@@ -1341,6 +1342,11 @@ private:
 	Symbol* InstantiateOrFindGeneric_Alias(const Token* Name, const Symbol* Symbol, const GenericValuesNode& SymbolGenericValues, const Generic& GenericData, const UseGenericsNode& UseNode)
 	{
 		TypeInstantiateFunc Func = &SystematicAnalysis::GenericTypeInstantiate_Alias;
+		return InstantiateOrFindGenericType(Name, Symbol, SymbolGenericValues, GenericData, UseNode, Func);
+	}
+	Symbol* InstantiateOrFindGeneric_Enum(const Token* Name, const Symbol* Symbol, const GenericValuesNode& SymbolGenericValues, const Generic& GenericData, const UseGenericsNode& UseNode)
+	{
+		TypeInstantiateFunc Func = &SystematicAnalysis::GenericTypeInstantiate_Enum;
 		return InstantiateOrFindGenericType(Name, Symbol, SymbolGenericValues, GenericData, UseNode, Func);
 	}
 

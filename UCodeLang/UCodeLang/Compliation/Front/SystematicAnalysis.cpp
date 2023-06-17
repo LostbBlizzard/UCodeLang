@@ -5109,9 +5109,14 @@ void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 }
 void SystematicAnalysis::OnEnum(const EnumNode& node)
 {
+	const bool IsgenericInstantiation = GenericFuncName.size() && GenericFuncName.top().NodeTarget == &node;
+	const bool Isgeneric = node.Generic.Values.size();
+	const bool Isgeneric_t = Isgeneric && IsgenericInstantiation == false;
+
+
 	SymbolID SybID = GetSymbolID(node);
 
-	const auto& ClassName = node.EnumName.Token->Value._String;
+	const String ClassName = IsgenericInstantiation ? (String)ScopeHelper::GetNameFromFullName(GenericFuncName.top().GenericFuncName) : (String)node.EnumName.Token->Value._String;
 	_Table.AddScope(ClassName);
 
 	if (passtype == PassType::GetTypes)
@@ -5120,7 +5125,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 	}
 
 	auto& Syb = passtype == PassType::GetTypes ?
-		AddSybol(SymbolType::Enum
+		AddSybol(Isgeneric_t ? SymbolType::Generic_Enum : SymbolType::Enum
 			, (String)ClassName, _Table._Scope.ThisScope,node.Access) :
 		*GetSymbol(SybID);
 
@@ -5135,6 +5140,9 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 		ClassInf->FullName = Syb.FullName;
 		Syb.Info.reset(ClassInf);
 		Syb.VarType.SetType(Syb.ID);
+
+		InitGenericalias(node.Generic,IsgenericInstantiation, ClassInf->_GenericData);
+
 	}
 	else
 	{
@@ -5145,11 +5153,10 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 	if (passtype == PassType::FixedTypes)
 	{
 		ConvertAndValidateType(node.BaseType, ClassInf->Basetype, NodeSyb_t::Any);
-		if (ClassInf->Basetype.IsBadType()) { return; }
+		if (ClassInf->Basetype.IsBadType() || IsUnMapType(ClassInf->Basetype)) { _Table.RemoveScope(); return; }
 		if (!ConstantExpressionAbleType(ClassInf->Basetype))
 		{
 			LogTypeMustBeAnConstantExpressionAble(node.BaseType.Name.Token, ClassInf->Basetype);
-			return;
 		}
 		ex = std::move(MakeEx(ClassInf->Basetype));
 	}
@@ -5281,6 +5288,8 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 							temp.Type = TokenType::increment;
 
 							LogCantFindPostfixOpForTypes(&temp, Type);
+
+							_Table.RemoveScope();
 							return;
 						}
 						if (!HasConstantPostfixOperator(Type, TokenType::increment))
@@ -5292,6 +5301,8 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 
 
 							LogCantDoPostfixOpForTypes_Constant(&temp, Type);
+
+							_Table.RemoveScope();
 							return;
 						}
 						HasCheckedForincrementOp = true;
@@ -11427,6 +11438,7 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 		if (passtype == PassType::GetTypes) { return; }
 		auto Name = V.Name.AsStringView();
 		Symbol* SybV;
+		LastLookedAtToken = V.Name.Token;
 		if (V.Generic.Values.size())
 		{
 			SybV = GetSymbol(Name, SymbolType::Generic_class);
@@ -11438,7 +11450,8 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 				return;
 			}
 			if (SybV->Type != SymbolType::Generic_class
-				&& SybV->Type != SymbolType::Generic_Alias)
+				&& SybV->Type != SymbolType::Generic_Alias
+				&& SybV->Type != SymbolType::Generic_Enum)
 			{
 				LogExpectedSymbolToBea(V.Name.Token, *SybV, SymbolType::Generic_class);
 				return;
@@ -11456,6 +11469,12 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 				auto CInfo = SybV->Get_Info<Generic_AliasInfo>();
 				auto classnode = AliasNode::As((const Node*)SybV->NodePtr);
 				SybV = InstantiateOrFindGeneric_Alias(V.Name.Token, SybV, classnode->Generic, CInfo->_GenericData, V.Generic);
+			}
+			else if (SybV->Type == SymbolType::Generic_Enum)
+			{
+				auto CInfo = SybV->Get_Info<EnumInfo>();
+				auto classnode = EnumNode::As((const Node*)SybV->NodePtr);
+				SybV = InstantiateOrFindGeneric_Enum(V.Name.Token, SybV, classnode->Generic, CInfo->_GenericData, V.Generic);
 			}
 		}
 		else
@@ -12213,6 +12232,15 @@ bool SystematicAnalysis::IsPrimitiveNotIncludingPointers(const TypeSymbol& TypeT
 		|| TypeToCheck._Type == TypesEnum::Void
 		|| IsfloatType(TypeToCheck);
 
+	if (r == false && TypeToCheck._Type == TypesEnum::CustomType)
+	{
+		auto V = GetSymbol(TypeToCheck._CustomTypeSymbol);
+		if (V && (V->Type == SymbolType::Hard_Type_alias
+			|| V->Type == SymbolType::Type_alias))
+		{
+			return IsPrimitiveNotIncludingPointers(V->VarType);
+		}
+	}
 
 	return r;
 }
@@ -12478,12 +12506,17 @@ bool SystematicAnalysis::GetSize(const TypeSymbol& Type, UAddress& OutSize)
 			pointer.SetAsAddress();
 			return GetSize(pointer).value() * 2;
 		}
+		else if (V.Type == SymbolType::Unmaped_Generic_Type)
+		{
+			OutSize = 0;
+			return true;
+		}
 		else
 		{
-			throw std::exception("not added");
+			OutSize = 0;
+			return false;
 		}
 	}
-		
 	default:
 		OutSize = 0;
 		return false;
@@ -14281,7 +14314,7 @@ void SystematicAnalysis::GenericFuncInstantiate(const Symbol* Func, const Vector
 void SystematicAnalysis::GenericTypeInstantiate(const Symbol* Class, const Vector<TypeSymbol>& Type)
 {
 	String NewName = GetGenericFuncName(Class, Type);
-	const ClassNode* node = (const ClassNode*)Class->NodePtr;
+	const ClassNode* node = ClassNode::As((const Node*)Class->NodePtr);
 
 	const ClassInfo* classInfo = Class->Get_Info<ClassInfo>();
 
@@ -14333,7 +14366,7 @@ void SystematicAnalysis::GenericTypeInstantiate(const Symbol* Class, const Vecto
 void SystematicAnalysis::GenericTypeInstantiate_Trait(const Symbol* Trait, const Vector<TypeSymbol>& Type)
 {
 	const String NewName = GetGenericFuncName(Trait, Type);
-	const TraitNode* node = (const TraitNode*)Trait->NodePtr;
+	const TraitNode* node = TraitNode::As((const Node*)Trait->NodePtr);
 
 	const TraitInfo* classInfo = Trait->Get_Info<TraitInfo>();
 
@@ -14385,7 +14418,7 @@ void SystematicAnalysis::GenericTypeInstantiate_Trait(const Symbol* Trait, const
 void SystematicAnalysis::GenericTypeInstantiate_Alias(const Symbol* Alias, const Vector<TypeSymbol>& Type)
 {
 	const String NewName = GetGenericFuncName(Alias, Type);
-	const AliasNode* node = (const AliasNode*)Alias->NodePtr;
+	const AliasNode* node = AliasNode::As((const Node*)Alias->NodePtr);
 
 	const Generic_AliasInfo* classInfo =Alias->Get_Info<Generic_AliasInfo>();
 
@@ -14418,6 +14451,58 @@ void SystematicAnalysis::GenericTypeInstantiate_Alias(const Symbol* Alias, const
 		if (!_ErrorsOutput->Has_Errors()) {
 			passtype = PassType::BuidCode;
 			OnAliasNode(*node);
+		}
+
+		GenericFuncName.pop();
+		//
+		_Table._Scope.ThisScope = OldScope;
+		passtype = Oldpasstype;
+
+		//
+	}
+	{
+		PopExtendedErr();
+	}
+
+	AddDependencyToCurrentFile(Alias);
+}
+
+void SystematicAnalysis::GenericTypeInstantiate_Enum(const Symbol* Alias, const Vector<TypeSymbol>& Type)
+{
+	const String NewName = GetGenericFuncName(Alias, Type);
+	const EnumNode* node = EnumNode::As((const Node*)Alias->NodePtr);
+
+	const EnumInfo* classInfo = Alias->Get_Info<EnumInfo>();
+
+	GenericFuncInfo Info;
+	Info.GenericFuncName = NewName;
+	Info.GenericInput = &Type;
+	Info.NodeTarget = node;
+	GenericFuncName.push(Info);
+
+	Info.Pack = MakeTypePackSymbolIfNeeded(NewName, Type, classInfo->_GenericData);
+	{
+		AddExtendedErr(GetGenericExtendedErrValue(classInfo->_GenericData, node->Generic, Type), node->EnumName.Token);
+	}
+	{
+		auto OldScope = _Table._Scope.ThisScope;
+		auto Oldpasstype = passtype;
+		_Table._Scope.ThisScope.clear();
+
+		_Table._Scope.ThisScope = ScopeHelper::GetReMoveScope(NewName);
+
+
+		passtype = PassType::GetTypes;
+		OnEnum(*node);
+
+		if (!_ErrorsOutput->Has_Errors()) {
+			passtype = PassType::FixedTypes;
+			OnEnum(*node);
+		}
+
+		if (!_ErrorsOutput->Has_Errors()) {
+			passtype = PassType::BuidCode;
+			OnEnum(*node);
 		}
 
 		GenericFuncName.pop();

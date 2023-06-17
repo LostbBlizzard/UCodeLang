@@ -1,16 +1,20 @@
 [ClassData]-- 
-$Testing:Cool<sint32> = sint32;
+$Testing:Cool<uint32> enum[uint32]:
+ BaseSize = 4
 
 $[_global]:
 .size:0
 
- |Testing:main[] -> sint32;//Testing:main
+ |Testing:main[] -> uIntPtr;//Testing:main
  |Testing:Hello:OtherFuncion[] -> void;//Testing:Hello:OtherFuncion
 
 
+$Testing:Cool enum[[?]]:
+ BaseSize = 
+
 $Testing:SomeClass:
 .size:4
- sint32 CoolV;//Offset 0
+ Testing:Cool<uint32> CoolV;//Offset 0
 
 
 
@@ -59,8 +63,8 @@ $Testing:SomeClass:
 ---Testing:SomeClass:(&_new&)^[]&: 
    25 :Ret 
 ---Testing:main: 
-   26 :Store32 [A],0
-   27 :StoreRegToReg32 [A],[F]
+   26 :Store64 [A],4
+   27 :StoreRegToReg64 [A],[F]
    28 :Ret 
 ---Testing:Hello:OtherFuncion: 
    29 :Ret 

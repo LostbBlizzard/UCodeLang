@@ -1,8 +1,9 @@
 
 
-$Cool<T> = T;
+$Cool<T>[T] enum:
+ BaseSize = sizeof(T),
 
 $SomeClass:
- Cool<int> CoolV;
+ Cool<uint32> CoolV;
  
-|main[] => 0;
+|main[] => sizeof(Cool<uint32>);
