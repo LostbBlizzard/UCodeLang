@@ -249,11 +249,30 @@ struct GenericValuesNode :Node
 	}
 };
 
+struct TypeNode;
 
+struct UseGenericsNode :Node
+{
+	UseGenericsNode() : Node(NodeType::Null)
+	{
 
+	}
+	Vector<TypeNode> Values;
+
+	UCodeLangForceinline bool HasGeneric()
+	{
+		return Values.size();
+	}
+};
+
+struct InheritedTypeValue
+{
+	NameNode Name;
+	UseGenericsNode Generic;
+};
 struct InheritedTypeData
 {
-	Vector<NameNode> Values;
+	Vector<InheritedTypeValue> Values;
 };
 
 struct ClassNode :Node
@@ -284,21 +303,7 @@ struct UsingNode :Node
 	ScopedNameNode ScopedName;
 };
 
-struct TypeNode;
 
-struct UseGenericsNode :Node
-{
-	UseGenericsNode() : Node(NodeType::Null)
-	{
-
-	}
-	Vector<TypeNode> Values;
-
-	UCodeLangForceinline bool HasGeneric()
-	{
-		return Values.size();
-	}
-};
 struct TypeNode :Node
 {
 	TypeNode() : Node(NodeType::TagTypeNode)
@@ -1046,6 +1051,7 @@ struct TraitNode :Node
 	}
 	NameNode _Name;
 	AccessModifierType Access = AccessModifierType::Default;
+	GenericValuesNode Generic;
 	AddforNodeAndWithList(TraitNode);
 
 };
