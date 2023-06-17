@@ -77,6 +77,8 @@ enum class NodeType :UInt8
 	MatchStatement,
 	MatchExpression,
 	ImportStatement,
+	AwaitExpression,
+	AwaitStatement,
 };
 
 
