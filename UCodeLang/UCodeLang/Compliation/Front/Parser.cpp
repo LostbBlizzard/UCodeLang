@@ -2996,7 +2996,7 @@ GotNodeType Parser::GetLambdaNode(LambdaNode& out)
 	//
 	{  
 		const Token* LoopToken = TryGetToken();
-		while (LoopToken->Type != TokenType::Right_Bracket || LoopToken->Type != TokenType::EndofFile)
+		while (LoopToken->Type != TokenType::Right_Bracket && LoopToken->Type != TokenType::EndofFile)
 		{
 			bool HasType = true;
 			if (LoopToken->Type == TokenType::Name)

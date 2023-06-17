@@ -1,10 +1,8 @@
 
 
-$SomeTrait<T> trait:
- uintptr Object;
- int Other;
+$Cool<T> = T;
 
-
-$SomeClass[SomeTrait<int>];
+$SomeClass:
+ Cool<int> CoolV;
  
 |main[] => 0;
