@@ -241,6 +241,11 @@ enum class SymbolType: UInt8
 	Trait_class,
 	Tag_class,
 	Type_Pack,
+
+	Generic_Alias,
+	Generic_Tag,
+	Generic_Trait,
+	Generic_Enum,
 };
 enum class SymbolValidState : UInt8
 {
@@ -628,6 +633,7 @@ public:
 	}
 
 	Optional<EnumVariantData> VariantData;
+	Generic _GenericData;
 };
 
 class FuncPtrInfo :public Symbol_Info
@@ -748,6 +754,7 @@ public:
 	Vector<TraitFunc> _Funcs;
 	Vector<TraitVar> _Vars;
 	Symbol* TraitClassInfo = nullptr;
+	Generic _GenericData;
 };
 
 

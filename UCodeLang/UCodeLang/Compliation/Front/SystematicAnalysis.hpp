@@ -800,6 +800,8 @@ private:
 	void OnClassNode(const ClassNode& node);
 	void OnAliasNode(const AliasNode& node);
 	void OnUseingNode(const UsingNode& node);
+
+	void InitGenericalias(const GenericValuesNode& GenericList, bool IsgenericInstantiation, Generic& Out);
 	void OnFuncNode(const FuncNode& node);
 	void SetInStatetements(bool Value);
 	void FuncGetName(const Token* NameToken, std::string_view& FuncName, FuncInfo::FuncType& FuncType);
@@ -1206,6 +1208,7 @@ private:
 	
 
 	void GenericTypeInstantiate(const Symbol* Class, const Vector<TypeSymbol>& Type);
+	void GenericTypeInstantiate_Trait(const Symbol* Trait, const Vector<TypeSymbol>& Type);
 
 	EvaluatedEx MakeEx(const TypeSymbol& Type);
 	RawEvaluatedObject MakeExr(const TypeSymbol& Type);
@@ -1263,6 +1266,76 @@ private:
 		}
 	}
 
+	using TypeInstantiateFunc = void(SystematicAnalysis::*)(const Symbol* Symbol,const Vector<TypeSymbol>& GenericInput);
+	Symbol* InstantiateOrFindGenericType(const Token* Name,const Symbol* Symbol,const GenericValuesNode& SymbolGenericValues,const Generic& GenericData,const UseGenericsNode& UseNode,TypeInstantiateFunc Instantiate)
+	{
+		if (GenericData._Generic.size() != UseNode.Values.size())
+		{
+			LogCanIncorrectGenericCount(Name, Name->Value._String, UseNode.Values.size(), GenericData._Generic.size());
+			return nullptr;
+		}
+
+
+		auto GenericInput = std::make_unique<Vector<TypeSymbol>>();//pointer must be unique so it cant be on the stack
+		for (size_t i = 0; i < UseNode.Values.size(); i++)
+		{
+			const auto& Tnode = UseNode.Values[i];
+			const auto& GenericInfo = GenericData._Generic[i];
+			TypeSymbol Type;
+			ConvertAndValidateType(Tnode, Type, NodeSyb_t::Any);
+
+			{
+				bool InputTypeIsConstantExpression = false;
+
+				auto TypeSyb = GetSymbol(Type);
+				if (TypeSyb)
+				{
+					InputTypeIsConstantExpression = TypeSyb->Type == SymbolType::ConstantExpression;
+				}
+
+				if (InputTypeIsConstantExpression != GenericInfo.IsConstantExpression())
+				{
+					const Token* nodeToken = Tnode.Name.Token;
+					auto& GenericNo = SymbolGenericValues.Values[i];
+					if (InputTypeIsConstantExpression)
+					{
+						LogGenericInputWantsaExpressionNotType(nodeToken, GenericNo.Token->Value._String);
+					}
+					else
+					{
+						LogGenericInputWantsaExpressionNotType(nodeToken, GenericNo.Token->Value._String);
+					}
+
+					return nullptr;
+				}
+			}
+
+
+			GenericInput->push_back(Type);
+		}
+
+		String NewName = GetGenericFuncName(Symbol, *GenericInput);
+		auto FuncIsMade = GetSymbol(NewName, SymbolType::Type_class);
+		if (!FuncIsMade)
+		{
+			(*this.*Instantiate)(Symbol, *GenericInput);
+			
+			TepFuncs.push_back({ std::move(GenericInput) });
+		}
+
+		return GetSymbol(NewName, SymbolType::Type);
+	}
+	Symbol* InstantiateOrFindGeneric_Class(const Token* Name, const Symbol* Symbol, const GenericValuesNode& SymbolGenericValues, const Generic& GenericData, const UseGenericsNode& UseNode)
+	{
+		TypeInstantiateFunc Func = &SystematicAnalysis::GenericTypeInstantiate;
+		return InstantiateOrFindGenericType(Name, Symbol, SymbolGenericValues, GenericData, UseNode,Func);
+	}
+
+	Symbol* InstantiateOrFindGeneric_Trait(const Token* Name, const Symbol* Symbol, const GenericValuesNode& SymbolGenericValues, const Generic& GenericData, const UseGenericsNode& UseNode)
+	{
+		TypeInstantiateFunc Func = &SystematicAnalysis::GenericTypeInstantiate_Trait;
+		return InstantiateOrFindGenericType(Name, Symbol, SymbolGenericValues, GenericData, UseNode, Func);
+	}
 
 	StrExELav GetStrEVal(const Node* node);
 	bool ConstantExpressionAbleType(const TypeSymbol& Type);

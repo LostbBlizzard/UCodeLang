@@ -278,9 +278,10 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 		NextToken();
 		do
 		{
-			NameNode V;
-			GetName(V);
-			InheritedTypes.Values.push_back(std::move(V));
+			InheritedTypeValue Inher;
+			GetName(Inher.Name);
+			TryGetGeneric(Inher.Generic);
+			InheritedTypes.Values.push_back(std::move(Inher));
 
 
 			auto CToken = TryGetToken();
@@ -2368,7 +2369,7 @@ GotNodeType Parser::DoEnumType(EnumNode* output, const Token* ClassToken, Generi
 	}
 	if (Inherited.Values.size())
 	{
-		output->BaseType.Name.Token = std::move(Inherited.Values.front().Token);
+		output->BaseType.Name.Token = std::move(Inherited.Values.front().Name.Token);
 	}
 	else
 	{
@@ -3145,6 +3146,7 @@ GotNodeType Parser::DoTraitType(TraitNode* output, const Token* ClassToken, Gene
 	TokenTypeCheck(TryGetToken(), TokenType::KeyWord_trait);
 	NextToken();
 	output->_Name.Token = ClassToken;
+	output->Generic = std::move(TepGenerics);
 
 	auto ColonToken = TryGetToken();
 	if (ColonToken->Type == TokenType::Semicolon) { NextToken(); return GotNodeType::Success; }

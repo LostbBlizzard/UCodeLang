@@ -7,10 +7,9 @@ $[_global]:
 
 
 $Testing:SomeClass:
-.size:16
- sint32 Other;//Offset 0
- uIntPtr Object;//Offset 4
- sint32 Other;//Offset 12
+.size:12
+ uIntPtr Object;//Offset 0
+ sint32 Other;//Offset 8
 
 
 
