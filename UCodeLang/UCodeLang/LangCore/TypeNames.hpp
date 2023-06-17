@@ -92,9 +92,10 @@
 #define UCode_Unique_Ptr_MakeFuncion "Make"//int[^]::Make(...)
 #define UCode_Shared_Ptr_MakeFuncion "Make"//int[$]::Make(...)
 
-
 #define UCode_Unique_Array "Unique_Array"//int[^] 
 #define UCode_Shared_Array "Shared_Array"//int[$] 
+
+#define UCode_FutureType "Future"//async<int> 
 
 #define UCode_Unique_Array_MakeFuncion "Make"//int[^]::Make(...)
 #define UCode_Shared_Array_MakeFuncion "Make"//int[$]::Make(...)
