@@ -421,6 +421,12 @@ struct ClassInfo_InheritTypeInfo
 		Symbol* Func=nullptr;
 	};
 
+	struct AddedVarInfo
+	{
+		const void* FuncNode = nullptr;
+		Symbol* Func = nullptr;
+	};
+
 	enum class FuncType
 	{
 		Added,
@@ -436,6 +442,7 @@ struct ClassInfo_InheritTypeInfo
 	Vector<AddedFuncInfo> AddedFuncs;
 	Vector<AddedFuncInfo> OverLoadedFuncs;
 	Vector<FuncIndex> Funcs;
+	Vector<AddedVarInfo> AddedVar;
 };
 
 class ClassInfo:public Symbol_Info
@@ -712,6 +719,10 @@ struct TraitFunc
 	Symbol* Syb = nullptr;
 	bool HasBody = false;
 };
+struct TraitVar
+{
+	Symbol* Syb = nullptr;
+};
 
 class TraitInfo :public Symbol_Info
 {
@@ -735,6 +746,7 @@ public:
 	}
 
 	Vector<TraitFunc> _Funcs;
+	Vector<TraitVar> _Vars;
 	Symbol* TraitClassInfo = nullptr;
 };
 
