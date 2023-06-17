@@ -6508,7 +6508,6 @@ bool SystematicAnalysis::StepGetMemberTypeSymbolFromVar(const ScopedNameNode& no
 		{
 			ClassInfo* CInfo = Out.Symbol->Get_Info<ClassInfo>();
 
-
 			auto FeldInfo = CInfo->GetField(ItemTokenString);
 			if (!FeldInfo.has_value())
 			{
@@ -7213,7 +7212,8 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 
 		if (node.ScopedName[Start].token->Type != TokenType::KeyWord_This)
 		{
-			auto Token = node.ScopedName[Start].token;
+			auto ScopeName = node.ScopedName[Start];
+			auto Token = ScopeName.token;
 			auto& Str = Token->Value._String;
 			auto SymbolVar = GetSymbol(Str, SymbolType::Varable_t);
 			LastLookedAtToken = Token;
@@ -7237,6 +7237,32 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 
 			Out.Type = SymbolVar->VarType;
 			Out.Symbol = SymbolVar;
+
+			if (ScopeName.Generic.get() && ScopeName.Generic->Values.size())
+			{
+				TypeNode Tep;
+				Tep.Name.Token = ScopeName.token;
+				auto& Other = *ScopeName.Generic;
+
+
+				{//cant copy TypeNode but we need anyway.
+					Tep.Generic.Values.resize(Other.Values.size());
+					memcpy(Tep.Generic.Values.data(), Other.Values.data(), sizeof(TypeNode) * Other.Values.size());
+
+				}
+
+				TypeSymbol Type;
+				Convert(Tep, Type);
+				if (Type._Type != TypesEnum::Null)
+				{
+					Out.Type = Type;
+					Out.Symbol = GetSymbol(Type);
+				}
+				
+				{// TypeNode has Unique_ptr we do this to not free it.
+					new (Tep.Generic.Values.data()) TypeNode[Other.Values.size()];
+				}
+			}
 			//
 			Start++;
 			End--;

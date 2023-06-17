@@ -6,4 +6,4 @@ $Cool<T>[T] enum:
 $SomeClass:
  Cool<uint32> CoolV;
  
-|main[] => sizeof(Cool<uint32>);
+|main[] => Cool<uint32>::BaseSize;
