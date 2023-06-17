@@ -3401,6 +3401,8 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 		_ClassStack.push({ TepClass });
 
 
+		SybClass.OutputIR = false;
+
 		bool HasDrop = false;
 
 		for (const auto& node : node._Nodes)
@@ -3427,6 +3429,21 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 				{
 					HasDrop = true;
 				}
+			}break;
+			case NodeType::DeclareVariableNode:
+			{
+				size_t Index = _Table.Symbols.size();
+
+				DeclareVariableNode& funcnode = *DeclareVariableNode::As(node.get());
+
+				OnDeclareVariablenode(funcnode,DeclareStaticVariableNode_t::ClassField);
+
+				Symbol* funcSyb = _Table.Symbols[Index].get();
+
+				TraitVar _Func;
+				_Func.Syb = funcSyb;
+
+				info->_Vars.push_back(_Func);
 			}break;
 			default:break;
 			}
@@ -3480,6 +3497,12 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 
 				OnFuncNode(funcnode);
 
+			}
+			break;
+			case NodeType::DeclareVariableNode:
+			{
+				DeclareVariableNode& funcnode = *DeclareVariableNode::As(node.get());
+				OnDeclareVariablenode(funcnode, DeclareStaticVariableNode_t::ClassField);
 			}
 			break;
 			default:break;
@@ -3676,6 +3699,25 @@ void SystematicAnalysis::InheritTrait(const Symbol* Syb, ClassInfo* ClassInfo,co
 		}
 	}
 
+	for (auto& Item : Traitinfo->_Vars)
+	{
+		auto VarName = ScopeHelper::GetNameFromFullName((String_view)Item.Syb->FullName);
+		
+
+		for (auto& Field : ClassInfo->Fields)
+		{
+			if (Field.Name == VarName)
+			{
+				HasErr = true;
+				LogError(ErrorCodes::Redefinition,"cant inherit '" + Trait->FullName + "' because " + ClassInfo->FullName + " already has a field named '" + (String)VarName + "'", ClassNameToken);
+				continue;
+			}
+		}
+		
+		ClassInfo->AddField(VarName, Item.Syb->VarType);
+
+		
+	}
 
 	if (!HasErr)
 	{

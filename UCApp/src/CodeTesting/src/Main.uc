@@ -1,8 +1,9 @@
 
-$SomeTrait trait;
+$SomeTrait trait:
+ uintptr Object;
+ int Other;
 
-$SomeClass[SomeTrait];
-
-async<int> V = [];
-
+$SomeClass[SomeTrait]:
+ int Other;
+ 
 |main[] => 0;
