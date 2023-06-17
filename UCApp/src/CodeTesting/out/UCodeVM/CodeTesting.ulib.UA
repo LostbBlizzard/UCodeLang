@@ -5,7 +5,7 @@ $Testing:Cool<uint32> enum[uint32]:
 $[_global]:
 .size:0
 
- |Testing:main[] -> uIntPtr;//Testing:main
+ |Testing:main[] -> Testing:Cool<uint32>;//Testing:main
  |Testing:Hello:OtherFuncion[] -> void;//Testing:Hello:OtherFuncion
 
 
@@ -63,8 +63,8 @@ $Testing:SomeClass:
 ---Testing:SomeClass:(&_new&)^[]&: 
    25 :Ret 
 ---Testing:main: 
-   26 :Store64 [A],4
-   27 :StoreRegToReg64 [A],[F]
+   26 :Store32 [A],4
+   27 :StoreRegToReg32 [A],[F]
    28 :Ret 
 ---Testing:Hello:OtherFuncion: 
    29 :Ret 

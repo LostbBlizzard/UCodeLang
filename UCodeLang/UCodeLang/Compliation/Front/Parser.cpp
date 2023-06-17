@@ -1558,10 +1558,14 @@ GotNodeType Parser::GetName(ScopedNameNode& out, bool CanHaveVarableName)
 			}
 		}
 
+		
+
 		V.token = NameToken;
 
 		
 		NextToken();
+		V.Generic.reset(new UseGenericsNode());
+		TryGetGeneric(*V.Generic);
 
 
 		auto Token = TryGetToken();
