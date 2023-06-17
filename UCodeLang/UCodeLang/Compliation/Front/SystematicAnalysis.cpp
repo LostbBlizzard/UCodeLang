@@ -14610,8 +14610,12 @@ bool SystematicAnalysis::AccessCheck(const Symbol* Syb,const Token* Token, const
 {
 	if (Syb->Access == AccessModifierType::Private)
 	{
-		LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "Cant use the Symbol '" + Syb->FullName + "' its Private");
-		return true;
+		bool IsOk =_Table._Scope.ThisScope == ScopeHelper::GetReMoveScope(Syb->FullName);
+		if (!IsOk)
+		{
+			LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "Cant use the Symbol '" + Syb->FullName + "' its Private");
+		}
+		return !IsOk;
 	}
 	return false;
 }
