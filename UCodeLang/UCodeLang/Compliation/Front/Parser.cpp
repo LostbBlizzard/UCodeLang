@@ -1679,6 +1679,7 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 {
 	GotNodeType r = GotNodeType::Success;
 	auto Token = TryGetToken();
+	bool Isasync = false;
 	if (!ignoreleftHandType)
 	{
 		if (Token->Type == TokenType::KeyWord_umut)
@@ -1692,6 +1693,17 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 			out->SetMovedType();
 			NextToken();
 			Token = TryGetToken();
+		}
+		else if (Token->Type == TokenType::KeyWord_async)//async<int> => Future<int>
+		{
+			NextToken();
+			Token = TryGetToken();
+
+			TokenTypeCheck(Token, TokenType::lessthan);
+			NextToken();
+
+			Token = TryGetToken();
+			Isasync = true;
 		}
 		
 		
@@ -1982,6 +1994,29 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 
 	}
 	
+	if (Isasync)
+	{
+		TokenTypeCheck(TryGetToken(), TokenType::greaterthan);
+		NextToken();
+
+		auto NameToken = new UCodeLang::Token();
+		NameToken->OnLine = Token->OnLine;
+		NameToken->OnPos = Token->OnPos;
+		NameToken->Type = TokenType::Name;
+		NameToken->Value._String = UCode_FutureType;
+		_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
+
+		TypeNode* New = new TypeNode();
+
+		out->Isimmutable = false;
+		New->Generic.Values.push_back(std::move(*out));
+		New->Name.Token = NameToken;
+
+		out = New;
+
+	}
+
+
 	if (out->IsDynamic)
 	{
 		TokenTypeCheck(TryGetToken(), TokenType::greaterthan);
