@@ -426,7 +426,15 @@ private:
 		return { r,V->As() };
 	}
 	GotNodeType GetLambdaNode(LambdaNode& out);
-	TryGetNode GetShortLambdaNode();
+
+	TryGetNode GetShortLambdaNode()
+	{
+		LambdaNode* V = LambdaNode::Gen();
+		auto r = GetShortLambdaNode(*V);
+		TrippedCheck(r);
+		return { r,V->As() };
+	}
+	GotNodeType GetShortLambdaNode(LambdaNode& out);
 
 	GotNodeType DoTraitType(TraitNode* output, const Token* ClassToken, GenericValuesNode& TepGenerics, InheritedTypeData& Inherited);
 	
@@ -578,6 +586,26 @@ private:
 		return { r,V };
 	}
 	GotNodeType GetImportStatement(ImportStatement& out);
+
+	TryGetNode GetAwaitExpresionNode()
+	{
+		AwaitExpression* V = AwaitExpression::Gen();
+		auto r = GetAwaitExpresionNode(*V);
+		TrippedCheck(r);
+		return { r,V };
+	}
+
+	GotNodeType GetAwaitExpresionNode(AwaitExpression& out);
+
+	TryGetNode GetAwaitStatementNode()
+	{
+		AwaitStatement* V = AwaitStatement::Gen();
+		auto r = GetAwaitStatementNode(*V);
+		TrippedCheck(r);
+		return { r,V };
+	}
+
+	GotNodeType GetAwaitStatementNode(AwaitStatement& out);
 
 };
 UCodeLangFrontEnd

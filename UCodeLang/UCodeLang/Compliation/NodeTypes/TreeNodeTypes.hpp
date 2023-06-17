@@ -486,6 +486,8 @@ struct StatementsNode :Node
 	AddforNodeAndWithList(StatementsNode);
 	StatementsNode(StatementsNode&& source) = default;
 	StatementsNode& operator=(StatementsNode&& source) = default;
+	StatementsNode(StatementsNode& source) = default;
+	StatementsNode& operator=(StatementsNode& source) = default;
 };
 struct FuncSignatureNode :Node
 {
@@ -1291,6 +1293,31 @@ struct ImportStatement : Node
 	Optional<ScopedNameNode> _StartingNameSpace;
 	AddforNode(ImportStatement);
 	ImportStatement() : Node(NodeType::ImportStatement)
+	{
+
+	}
+};
+
+struct AwaitExpression : Node
+{
+	const Token* _Token = nullptr;
+	
+	bool IsFunc = false;
+	FuncCallNode _Func;
+	LambdaNode _Lambda;
+
+	AddforNode(AwaitExpression);
+	AwaitExpression() : Node(NodeType::AwaitExpression)
+	{
+
+	}
+};
+struct AwaitStatement : Node
+{
+	AwaitExpression _Base;
+
+	AddforNode(AwaitStatement);
+	AwaitStatement() : Node(NodeType::AwaitStatement)
 	{
 
 	}

@@ -619,6 +619,13 @@ GotNodeType Parser::GetStatement(Node*& out)
 		return r.GotNode;
 	}
 	break;
+	case TokenType::KeyWord_await:
+	{
+		auto r = GetAwaitStatementNode();
+		out = r.Node;
+		return r.GotNode;
+	}
+	break;
 	default:
 	{
 		size_t OldIndex = _TokenIndex;
@@ -1164,6 +1171,13 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 	case TokenType::KeyWord_shr:
 	{
 		auto V = GetShrExpresionNode();
+		out = V.Node;
+		return V.GotNode;
+	}
+	break;
+	case TokenType::KeyWord_await:
+	{
+		auto V = GetAwaitExpresionNode();
 		out = V.Node;
 		return V.GotNode;
 	}
@@ -3033,10 +3047,8 @@ GotNodeType Parser::GetLambdaNode(LambdaNode& out)
 
 	return GotNodeType::Success;
 }
-TryGetNode Parser::GetShortLambdaNode()
+GotNodeType Parser::GetShortLambdaNode(LambdaNode& out)
 {
-	LambdaNode* r = LambdaNode::Gen();
-
 	while (TryGetToken()->Type == TokenType::Name)
 	{
 		NextToken();
@@ -3053,7 +3065,7 @@ TryGetNode Parser::GetShortLambdaNode()
 		NamedParameterNode par;
 		par.Name.Token = TryGetToken();
 		TypeNode::Gen_Var(par.Type, *par.Name.Token);
-		r->Pars.Parameters.push_back(std::move(par));
+		out.Pars.Parameters.push_back(std::move(par));
 	}
 
 
@@ -3068,7 +3080,7 @@ TryGetNode Parser::GetShortLambdaNode()
 		StatementsNode Statements;
 		GetStatementsorStatementNode(Statements);
 
-		r->_Statements = std::move(Statements);
+		out._Statements = std::move(Statements);
 	}
 	else if (AssmentToken->Type == TokenType::RightAssignArrow)
 	{
@@ -3080,18 +3092,18 @@ TryGetNode Parser::GetShortLambdaNode()
 		Statements._Nodes.push_back(Unique_ptr<Node>(r1));
 
 
-		r->_Statements = std::move(Statements);
+		out._Statements = std::move(Statements);
 
 	}
 	else if (AssmentToken->Type == TokenType::Semicolon)
 	{
-	NextToken();
+		NextToken();
 	}
 	else
 	{
 		TokenTypeCheck(AssmentToken, TokenType::Colon);
 	}
-	return {GotNodeType::Success, r };
+	return GotNodeType::Success;
 }
 GotNodeType Parser::DoTraitType(TraitNode* output, const Token* ClassToken, GenericValuesNode& TepGenerics, InheritedTypeData& Inherited)
 {
@@ -4086,5 +4098,32 @@ GotNodeType Parser::GetImportStatement(ImportStatement& out)
 	
 	}
 	return GotNodeType::Success;
+}
+GotNodeType Parser::GetAwaitExpresionNode(AwaitExpression& out)
+{
+	out._Token = TryGetToken(); TokenTypeCheck(out._Token, TokenType::KeyWord_await);
+	NextToken();
+
+	auto Token = TryGetToken();
+	if (Token->Type == Parser::declareFunc)
+	{
+		GetLambdaNode(out._Lambda);
+	}
+	else if (Token->Type == TokenType::Left_Bracket)
+	{
+		GetShortLambdaNode(out._Lambda);
+	}
+	else
+	{
+		out.IsFunc = true;
+		GetFuncCallNode(out._Func);
+	}
+
+
+	return GotNodeType::Success;
+}
+GotNodeType Parser::GetAwaitStatementNode(AwaitStatement& out)
+{
+	return GetAwaitExpresionNode(out._Base);
 }
 UCodeLangFrontEnd

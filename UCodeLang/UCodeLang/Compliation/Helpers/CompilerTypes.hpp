@@ -158,6 +158,10 @@ enum class TokenType : TokenType_t
 	Left_Brace,//{
 	Right_Brace,//}
 
+	KeyWord_await,//await
+	KeyWord_async,//async
+
+
 	//used internally
 	internal_Constant_expression
 };
