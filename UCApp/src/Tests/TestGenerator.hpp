@@ -12,7 +12,7 @@ constexpr RNGValue MaxRNGValue = UINT64_MAX;
 	struct RNG
 	{
 	public:
-		RNGValue SeedValue;
+		RNGValue SeedValue=1;
 
 		void SetSeed(RNGValue Seed)
 		{

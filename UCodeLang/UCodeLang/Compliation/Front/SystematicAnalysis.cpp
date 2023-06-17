@@ -1075,7 +1075,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 	bool Isgeneric_t = Isgeneric && IsgenericInstantiation == false;
 
 
-	const auto& ClassName = IsgenericInstantiation ? ScopeHelper::GetNameFromFullName(GenericFuncName.top().GenericFuncName) : Node.ClassName.Token->Value._String;
+	const String ClassName = IsgenericInstantiation ? (String)ScopeHelper::GetNameFromFullName(GenericFuncName.top().GenericFuncName) : (String)Node.ClassName.Token->Value._String;
 	_Table.AddScope(ClassName);
 
 	auto SybID = GetSymbolID(Node);
@@ -1468,7 +1468,12 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 
 void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 {
-	const auto& ClassName = node.AliasName.Token->Value._String;
+	const bool IsgenericInstantiation = GenericFuncName.size() && GenericFuncName.top().NodeTarget == &node;
+	const bool Isgeneric = node.Generic.Values.size();
+	const bool Isgeneric_t = Isgeneric && IsgenericInstantiation == false;
+
+
+	const String ClassName = IsgenericInstantiation ? (String)ScopeHelper::GetNameFromFullName(GenericFuncName.top().GenericFuncName) : (String)node.AliasName.Token->Value._String;
 	auto SybID = GetSymbolID(node);
 
 	_Table.AddScope(ClassName);
@@ -1478,73 +1483,107 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 		DoSymbolRedefinitionCheck((String_view)_Table._Scope.ThisScope, node.IsHardAlias ? SymbolType::Hard_Type_alias : SymbolType::Type_alias, node.AliasName.Token);
 	}
 
+	SymbolType _Type;
+	if (Isgeneric_t) 
+	{
+		_Type = SymbolType::Generic_Alias;
+	}
+	else
+	{
+		_Type =node.IsHardAlias ? SymbolType::Hard_Type_alias : SymbolType::Type_alias;
+	}
 	auto& Syb = passtype == PassType::GetTypes ?
-		AddSybol(node.IsHardAlias ? SymbolType::Hard_Type_alias : SymbolType::Type_alias, (String)ClassName, _Table._Scope.ThisScope,node.Access) :
+		AddSybol(_Type, (String)ClassName, _Table._Scope.ThisScope,node.Access) :
 		*GetSymbol(SybID);
 
 	if (passtype == PassType::GetTypes)
 	{
 		_Table.AddSymbolID(Syb, SybID);
 
-		if (node._Type == AliasType::Type) 
+
+		Syb.NodePtr = &node;
+
+		if (!Isgeneric_t)
 		{
-			ConvertAndValidateType(node.Type, Syb.VarType,NodeSyb_t::Any);
+			if (IsgenericInstantiation)
+			{
+				auto Ptr = new Generic_AliasInfo();
+				Syb.Info.reset(Ptr);
+				InitGenericalias(node.Generic, true, Ptr->_GenericData);
+			}
+			if (node._Type == AliasType::Type)
+			{
+				ConvertAndValidateType(node.Type, Syb.VarType, NodeSyb_t::Any);
+			}
+			else
+			{
+
+				AliasNode_Func* node_ = (AliasNode_Func*)node._Node.get();
+				auto V = new FuncPtrInfo();
+				Syb.Info.reset(V);
+
+				V->Pars.resize(node_->Parameters.Parameters.size());
+
+				for (size_t i = 0; i < V->Pars.size(); i++)
+				{
+					auto& NodePar = node_->Parameters.Parameters[i];
+					auto& Par = V->Pars[i];
+					ConvertAndValidateType(NodePar.Type, Par, NodeSyb_t::Parameter);
+				}
+
+				ConvertAndValidateType(node_->ReturnType, V->Ret, NodeSyb_t::Ret);
+
+				Syb.VarType.SetType(SybID);
+
+				Syb.Type = SymbolType::Func_ptr;
+			}
+
+			
 		}
 		else
 		{
-			
-			AliasNode_Func* node_ = (AliasNode_Func*)node._Node.get();
-			auto V = new FuncPtrInfo();
-			Syb.Info.reset(V);
-
-			V->Pars.resize(node_->Parameters.Parameters.size());
-
-			for (size_t i = 0; i < V->Pars.size(); i++)
-			{
-				auto& NodePar = node_->Parameters.Parameters[i];
-				auto& Par = V->Pars[i];
-				ConvertAndValidateType(NodePar.Type, Par,NodeSyb_t::Parameter);
-			}
-
-			ConvertAndValidateType(node_->ReturnType, V->Ret,NodeSyb_t::Ret);
-
-			Syb.VarType.SetType(SybID);
-
-			Syb.Type = SymbolType::Func_ptr;
+			auto Ptr =new Generic_AliasInfo();
+			Syb.Info.reset(Ptr);
+			InitGenericalias(node.Generic,false, Ptr->_GenericData);
 		}
 	}
 	if (passtype == PassType::FixedTypes)
 	{
-		if (node._Type == AliasType::Type) 
+		if (!Isgeneric_t) 
 		{
-			ConvertAndValidateType(node.Type, Syb.VarType,NodeSyb_t::Any);
-		}
-		else
-		{
-			AliasNode_Func* node_ = (AliasNode_Func*)node._Node.get();
-			FuncPtrInfo* nodeinfo_ = (FuncPtrInfo*)Syb.Info.get();
-
-			for (size_t i = 0; i < nodeinfo_->Pars.size(); i++)
+			if (node._Type == AliasType::Type)
 			{
-				auto& NodePar = node_->Parameters.Parameters[i];
-				auto& Par = nodeinfo_->Pars[i];
-				ConvertAndValidateType(NodePar.Type, Par, NodeSyb_t::Parameter);
+				ConvertAndValidateType(node.Type, Syb.VarType, NodeSyb_t::Any);
 			}
+			else
+			{
+				AliasNode_Func* node_ = (AliasNode_Func*)node._Node.get();
+				FuncPtrInfo* nodeinfo_ = (FuncPtrInfo*)Syb.Info.get();
 
-			ConvertAndValidateType(node_->ReturnType, nodeinfo_->Ret,NodeSyb_t::Ret);
+				for (size_t i = 0; i < nodeinfo_->Pars.size(); i++)
+				{
+					auto& NodePar = node_->Parameters.Parameters[i];
+					auto& Par = nodeinfo_->Pars[i];
+					ConvertAndValidateType(NodePar.Type, Par, NodeSyb_t::Parameter);
+				}
+
+				ConvertAndValidateType(node_->ReturnType, nodeinfo_->Ret, NodeSyb_t::Ret);
+			}
 		}
 	}
 
 	if (passtype == PassType::BuidCode)
 	{
-		auto& V = _Lib.Get_Assembly().AddAlias((String)ClassName, _Table._Scope.ThisScope);
-		V.Type =ConvertToTypeInfo(Syb.VarType);
+		if (!Isgeneric_t) {
+			auto& V = _Lib.Get_Assembly().AddAlias((String)ClassName, _Table._Scope.ThisScope);
+			V.Type = ConvertToTypeInfo(Syb.VarType);
 
-		if (node.IsHardAlias)
-		{
-			V.HardAliasTypeID = GetTypeID(TypesEnum::CustomType, Syb.ID);
+			if (node.IsHardAlias)
+			{
+				V.HardAliasTypeID = GetTypeID(TypesEnum::CustomType, Syb.ID);
+			}
+			AddDependencyToCurrentFile(Syb.VarType);
 		}
-		AddDependencyToCurrentFile(Syb.VarType);
 	}
 
 	_Table.RemoveScope();
@@ -3387,7 +3426,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 	const bool Isgeneric_t = Isgeneric && IsgenericInstantiation == false;
 	const bool CheckgenericForErr = (Isgeneric_t && (passtype == PassType::GetTypes || passtype == PassType::FixedTypes));
 
-	const auto ClassName = IsgenericInstantiation ? ScopeHelper::GetNameFromFullName(GenericFuncName.top().GenericFuncName) : node._Name.AsString();
+	const String ClassName = IsgenericInstantiation ? ScopeHelper::GetNameFromFullName(GenericFuncName.top().GenericFuncName) : node._Name.AsString();
 	SymbolID sybId = GetSymbolID(node);
 	_Table.AddScope(ClassName);
 
@@ -4435,7 +4474,7 @@ ImportBindType SybolTypeToImportBindType(SymbolType Type)
 	{
 		return ImportBindType::GenericFunc;
 	}
-
+	return ImportBindType::Null;
 }
 
 void SystematicAnalysis::OnImportNode(const ImportStatement& node)
@@ -5212,7 +5251,8 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 
 			}
 
-			auto& Field = *ClassInf->GetField(ItemName).value();
+			auto FieldOpt = ClassInf->GetField(ItemName);
+			auto& Field = *FieldOpt.value();
 			if (Item.Expression.Value)
 			{
 				auto& Type = ClassInf->Basetype;
@@ -5697,7 +5737,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 				auto& Item = (*Field);
 				Item->Type = syb->VarType;
 
-				Class.Size += GetSize(Item->Type).value();
+				Class.Size += GetSize(Item->Type).value_or(0);
 				
 				if (node.Expression.Value) 
 				{
@@ -11397,15 +11437,26 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 				LogCantFindTypeError(Token, Name);
 				return;
 			}
-			if (SybV->Type != SymbolType::Generic_class)
+			if (SybV->Type != SymbolType::Generic_class
+				&& SybV->Type != SymbolType::Generic_Alias)
 			{
 				LogExpectedSymbolToBea(V.Name.Token, *SybV, SymbolType::Generic_class);
 				return;
 			}
 
-			auto CInfo = SybV->Get_Info<ClassInfo>();
-			auto classnode = ClassNode::As((const Node*)SybV->NodePtr);
-			SybV = InstantiateOrFindGeneric_Class(V.Name.Token, SybV,classnode->Generic,CInfo->_GenericData, V.Generic);
+
+			if (SybV->Type == SymbolType::Generic_class) 
+			{
+				auto CInfo = SybV->Get_Info<ClassInfo>();
+				auto classnode = ClassNode::As((const Node*)SybV->NodePtr);
+				SybV = InstantiateOrFindGeneric_Class(V.Name.Token, SybV, classnode->Generic, CInfo->_GenericData, V.Generic);
+			}
+			else if (SybV->Type == SymbolType::Generic_Alias)
+			{
+				auto CInfo = SybV->Get_Info<Generic_AliasInfo>();
+				auto classnode = AliasNode::As((const Node*)SybV->NodePtr);
+				SybV = InstantiateOrFindGeneric_Alias(V.Name.Token, SybV, classnode->Generic, CInfo->_GenericData, V.Generic);
+			}
 		}
 		else
 		{
@@ -14329,6 +14380,58 @@ void SystematicAnalysis::GenericTypeInstantiate_Trait(const Symbol* Trait, const
 	}
 
 	AddDependencyToCurrentFile(Trait);
+}
+
+void SystematicAnalysis::GenericTypeInstantiate_Alias(const Symbol* Alias, const Vector<TypeSymbol>& Type)
+{
+	const String NewName = GetGenericFuncName(Alias, Type);
+	const AliasNode* node = (const AliasNode*)Alias->NodePtr;
+
+	const Generic_AliasInfo* classInfo =Alias->Get_Info<Generic_AliasInfo>();
+
+	GenericFuncInfo Info;
+	Info.GenericFuncName = NewName;
+	Info.GenericInput = &Type;
+	Info.NodeTarget = node;
+	GenericFuncName.push(Info);
+
+	Info.Pack = MakeTypePackSymbolIfNeeded(NewName, Type, classInfo->_GenericData);
+	{
+		AddExtendedErr(GetGenericExtendedErrValue(classInfo->_GenericData, node->Generic, Type), node->AliasName.Token);
+	}
+	{
+		auto OldScope = _Table._Scope.ThisScope;
+		auto Oldpasstype = passtype;
+		_Table._Scope.ThisScope.clear();
+
+		_Table._Scope.ThisScope = ScopeHelper::GetReMoveScope(NewName);
+
+
+		passtype = PassType::GetTypes;
+		OnAliasNode(*node);
+
+		if (!_ErrorsOutput->Has_Errors()) {
+			passtype = PassType::FixedTypes;
+			OnAliasNode(*node);
+		}
+
+		if (!_ErrorsOutput->Has_Errors()) {
+			passtype = PassType::BuidCode;
+			OnAliasNode(*node);
+		}
+
+		GenericFuncName.pop();
+		//
+		_Table._Scope.ThisScope = OldScope;
+		passtype = Oldpasstype;
+
+		//
+	}
+	{
+		PopExtendedErr();
+	}
+
+	AddDependencyToCurrentFile(Alias);
 }
 
 

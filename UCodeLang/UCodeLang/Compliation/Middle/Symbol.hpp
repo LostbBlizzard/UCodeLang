@@ -756,7 +756,11 @@ public:
 	Symbol* TraitClassInfo = nullptr;
 	Generic _GenericData;
 };
-
+class Generic_AliasInfo :public Symbol_Info
+{
+public:
+	Generic _GenericData;
+};
 
 enum class ImportBindType
 {
