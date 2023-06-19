@@ -2,56 +2,35 @@
 $[_global]:
 .size:0
 
- |Testing:Hello[] -> void;//Testing:Hello
- |Testing:Hello2[] -> void;//Testing:Hello2
+ |Testing:main[Testing:Vec2&] -> sint32;//Testing:main^[]&
+ |Testing:main[Testing:Vec2&Testing:Vec2&] -> sint32;//Testing:main^[]&,[]&
  |Testing:Hello:OtherFuncion[] -> void;//Testing:Hello:OtherFuncion
+
+
+$Testing:Vec2:
+.size:12
+ sint32 x;//Offset 0
+ sint32 y;//Offset 4
+ sint32 z;//Offset 8
+
 
 
 
 [Instructions]-- 
----ULang:Native:ConsoleOutChar^c: 
+---Testing:Vec2:(&_new&)^[]&: 
    0 :Ret 
----ULang:Native:ConsoleOutSpan^c[&]umut,uptr: 
-   1 :Ret 
----ULang:Native:ConsoleOutClear: 
-   2 :Ret 
----ULang:Native:ConsoleInReadChar: 
-   3 :Ret 
----ULang:Native:ConsoleInReadLine^uptr&: 
-   4 :Ret 
----__Debug^i32: 
-   5 :CppCallNamed "__Debug^i32"
+---Testing:main^[]&: 
+   1 :Store32 [A],0
+   2 :StoreRegToPtr32 [A],[D]
+   3 :Load32 [Ptr:[D]],[Target:[A]],4
+   4 :Load32 [Ptr:[D]],[Target:[A]],8
+   5 :StoreRegToReg32 [A],[F]
    6 :Ret 
----__Log^c[&]umut: 
-   7 :SysCall 0,[D]
-   8 :Ret 
----__LogChar^c: 
-   9 :SysCall 1,[D]
-   10 :Ret 
----__LogBuffer^c[&],uptr: 
-   11 :SysCall 2,[D]
-   12 :Ret 
----__ReadChar: 
-   13 :SysCall 3,[F]
-   14 :Ret 
----__Malloc^uptr: 
-   15 :Malloc [D],[F]
-   16 :Ret 
----__Free^u8[&]: 
-   17 :Free [D]
-   18 :Ret 
----__OpenFile^c[&],uptr: 
-   19 :CppCallNamed "__OpenFile^c[&],uptr"
-   20 :Ret 
----__CloseFile^uptr: 
-   21 :CppCallNamed "__CloseFile^uptr"
-   22 :Ret 
----__IsFileOpen^uptr: 
-   23 :CppCallNamed "__IsFileOpen^uptr"
-   24 :Ret 
----Testing:Hello: 
-   25 :Ret 
----Testing:Hello2: 
-   26 :Ret 
+---Testing:main^[]&,[]&: 
+   7 :StoreFromPtrToReg32 [E],[A]
+   8 :StoreRegToPtr32 [A],[E]
+   9 :Store32 [B],0
+   10 :StoreRegToReg32 [B],[F]
+   11 :Ret 
 ---Testing:Hello:OtherFuncion: 
-   27 :Ret 
+   12 :Ret 

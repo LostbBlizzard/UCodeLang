@@ -4,12 +4,7 @@
 #include "Front/FrontEndObject.hpp"
 #include "Middle/IROptimizer.hpp"
 #include "UCodeLang/LangCore/UClib.hpp"
-
-
-
-#include "Front/UCodeFrontEndObject.hpp"
-#include "Back/UCodeBackEnd/UCodeBackEnd.hpp"
-
+#include "Back/BackEndInterface.hpp"
 #include "DependencyFile.hpp"
 UCodeLangStart
 class Compiler
@@ -91,7 +86,7 @@ public:
 		Unique_ptr<BackEndObject> obj = Unique_ptr<BackEndObject>(_BackEnd());
 		return obj->GetOutputExtWithDot();
 	}
-
+	Compiler();
 private:
 	CompliationSettings _Settings;
 	CompliationErrors _Errors;
@@ -103,8 +98,8 @@ private:
 	Unique_ptr<BackEndObject> _BackEndObject;
 
 
-	FrontEndObject_Ptr _FrontEnd = &FrontEnd::UCodeFrontEndObject::MakeObject;
-	BackEndObject_Ptr _BackEnd = &UCodeBackEndObject::MakeObject;
+	FrontEndObject_Ptr _FrontEnd = nullptr;
+	BackEndObject_Ptr _BackEnd = nullptr;
 	void Optimize(IRBuilder& IR);
 };
 UCodeLangEnd

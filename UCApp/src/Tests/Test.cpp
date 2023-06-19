@@ -3,7 +3,7 @@
 #include <memory>
 #include <sstream>
 #include <fstream>
-
+#include <UCodeLang/Compliation/UAssembly/UAssembly.hpp>
 namespace ULangTest
 {
 	using namespace UCodeLang;
