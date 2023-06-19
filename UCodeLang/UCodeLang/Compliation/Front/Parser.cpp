@@ -18,13 +18,13 @@ void Parser::Reset()
 
 
 
-void Parser::Parse(const Vector<Token>&Tokens)
+void Parser::Parse(const Vector<Token>& Tokens)
 {
 	Reset();
 	_Nodes = &Tokens;
-	
-	
 
+
+	AttributeStart();
 	while (TryGetToken()->Type != TokenType::EndofFile)
 	{
 		auto T = TryGetToken();
@@ -46,7 +46,7 @@ void Parser::Parse(const Vector<Token>&Tokens)
 			if (NextToken->Type == TokenType::Colon)
 			{
 				_TokenIndex = Index;
-				V = GetNamespaceNode(); 
+				V = GetNamespaceNode();
 
 				if (V.Node)
 				{
@@ -57,7 +57,7 @@ void Parser::Parse(const Vector<Token>&Tokens)
 				continue;
 			}
 
-				
+
 		}
 
 		switch (T->Type)
@@ -74,14 +74,26 @@ void Parser::Parse(const Vector<Token>&Tokens)
 		case TokenType::KeyWord_Import:V = GetImportStatement(); break;
 		default: GetDeclareVariableNoObject(V); break;
 		}
+
+		if (T->Type != TokenType::Left_Bracket)
+		{
+			AttributeCheck();
+		}
+		else
+		{
+			continue;
+		}
 		if (V.Node)
 		{
 			_Tree._Nodes.push_back(Unique_ptr<Node>(V.Node));
 		}
 		else { break; }
+
+
 		if (V.GotNode != GotNodeType::Success) { break; }
 	}
-	_ParseSuccess= !_ErrorsOutput->Has_Errors();
+	AttributeEnd();
+	_ParseSuccess = !_ErrorsOutput->Has_Errors();
 }
 
 
@@ -145,7 +157,7 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 	auto StartToken = TryGetToken(); TokenTypeCheck(StartToken, TokenType::StartTab);
 	NextToken();
 
-
+	AttributeStart();
 	while (TryGetToken()->Type != TokenType::EndofFile)
 	{
 		auto T = TryGetToken();
@@ -191,6 +203,14 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 		default: GetDeclareVariableNoObject(V); break;
 		}
 
+		if (T->Type != TokenType::Left_Bracket)
+		{
+			AttributeCheck();
+		}
+		else
+		{
+			continue;
+		}
 		if (V.Node)
 		{
 			tepout->_Nodes.push_back(Unique_ptr<Node>(V.Node));
@@ -199,6 +219,7 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 		if (V.GotNode != GotNodeType::Success) { break; }
 	}
 	EndLoop:
+	AttributeEnd();
 	auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::EndTab);
 	NextToken();
 
@@ -321,6 +342,7 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 		output->Generic = std::move(TepGenerics);
 		output->Inherited = std::move(InheritedTypes);
 		output->Access = GetModifier();
+		output->Attributes = Get_TepAttributes();
 		return GotNodeType::Success;
 	}
 	else if (ColonToken->Type == TokenType::KeyWord_Enum)
@@ -354,6 +376,7 @@ GotNodeType Parser::DoClassType(ClassNode* output, const Token* ClassToken, Gene
 	output->ClassName.Token = ClassToken;
 	output->Generic = std::move(TepGenerics);
 	output->Access = GetModifier();
+	output->Attributes = Get_TepAttributes();
 
 	TokenTypeCheck(ColonToken, TokenType::Colon);
 	NextToken();
@@ -362,6 +385,7 @@ GotNodeType Parser::DoClassType(ClassNode* output, const Token* ClassToken, Gene
 	NextToken();
 
 	AccessStart();
+	AttributeStart();
 	while (TryGetToken()->Type != TokenType::EndofFile)
 	{
 		auto T = TryGetToken();
@@ -404,7 +428,14 @@ GotNodeType Parser::DoClassType(ClassNode* output, const Token* ClassToken, Gene
 		break;
 		default:V = GetDeclareVariable();
 		}
-
+		if (T->Type != TokenType::Left_Bracket)
+		{
+			AttributeCheck();
+		}
+		else
+		{
+			continue;
+		}
 		if (V.Node)
 		{
 			output->_Nodes.push_back(Unique_ptr<Node>(V.Node));
@@ -415,6 +446,7 @@ GotNodeType Parser::DoClassType(ClassNode* output, const Token* ClassToken, Gene
 	
 
 EndLoop:
+	AttributeEnd();
 	AccessEnd();
 	auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::EndTab);
 	NextToken();
@@ -423,6 +455,7 @@ EndLoop:
 }
 void Parser::ClassTypeAccessModifierInerScope(Vector<Unique_ptr<Node>>& Out)
 {
+	AttributeStart();
 	while (TryGetToken()->Type != TokenType::EndofFile)
 	{
 		auto T = TryGetToken();
@@ -443,13 +476,21 @@ void Parser::ClassTypeAccessModifierInerScope(Vector<Unique_ptr<Node>>& Out)
 		case TokenType::KeyWord_eval:V = GetEvalDeclare(); break;
 		default:V = GetDeclareVariable();
 		}
-
+		if (T->Type != TokenType::Left_Bracket)
+		{
+			AttributeCheck();
+		}
+		else
+		{
+			continue;
+		}
 		if (V.Node)
 		{
 			Out.push_back(Unique_ptr<Node>(V.Node));
 		}
 	}
 EndLoop:
+	AttributeEnd();
 	return;
 }
 GotNodeType Parser::GetStatementsorStatementNode(StatementsNode& out)
@@ -785,7 +826,7 @@ GotNodeType Parser::GetStatements(StatementsNode& out)
 GotNodeType Parser::GetFuncNode(FuncNode& out)
 {
 	auto V = GetFuncSignatureNode(out.Signature);
-
+	out._Attributes = Get_TepAttributes();
 	auto ColonToken = TryGetToken(); 
 
 	switch (ColonToken->Type)
@@ -2515,7 +2556,7 @@ GotNodeType Parser::DoTagType(TagTypeNode* output, const Token* ClassToken, Gene
 	TokenTypeCheck(ColonToken, TokenType::Colon); NextToken();
 	auto StartToken = TryGetToken(); TokenTypeCheck(StartToken, TokenType::StartTab); NextToken();
 
-
+	AttributeStart();
 	while (TryGetToken()->Type != TokenType::EndofFile)
 	{
 		auto T = TryGetToken();
@@ -2528,7 +2569,14 @@ GotNodeType Parser::DoTagType(TagTypeNode* output, const Token* ClassToken, Gene
 		case Parser::declareFunc:V = GetFuncNode(); break;
 		default:V = GetDeclareVariable();
 		}
-
+		if (T->Type != TokenType::Left_Bracket)
+		{
+			AttributeCheck();
+		}
+		else
+		{
+			continue;
+		}
 		if (V.Node)
 		{
 			output->_Nodes.push_back(Unique_ptr<Node>(V.Node));
@@ -2536,6 +2584,7 @@ GotNodeType Parser::DoTagType(TagTypeNode* output, const Token* ClassToken, Gene
 	}
 
 EndLoop:
+	AttributeEnd();
 	auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::EndTab);
 	NextToken();
 
@@ -3194,7 +3243,14 @@ GotNodeType Parser::DoTraitType(TraitNode* output, const Token* ClassToken, Gene
 		break;
 		default:V = GetDeclareVariable();
 		}
-
+		if (T->Type != TokenType::Left_Bracket)
+		{
+			AttributeCheck();
+		}
+		else
+		{
+			continue;
+		}
 		if (V.Node)
 		{
 			output->_Nodes.push_back(Unique_ptr<Node>(V.Node));
@@ -3211,6 +3267,7 @@ EndLoop:
 }
 void  Parser::TraitAccessModifierInerScope(Vector< Unique_ptr<Node>>& Out)
 {
+	AttributeStart();
 	while (TryGetToken()->Type != TokenType::EndofFile)
 	{
 		TryGetNode V;
@@ -3222,13 +3279,21 @@ void  Parser::TraitAccessModifierInerScope(Vector< Unique_ptr<Node>>& Out)
 
 		default:V = GetDeclareVariable();
 		}
-
+		if (T->Type != TokenType::Left_Bracket)
+		{
+			AttributeCheck();
+		}
+		else
+		{
+			continue;
+		}
 		if (V.Node)
 		{
 			Out.push_back(Unique_ptr<Node>(V.Node));
 		}
 	}
 EndLoop:
+	AttributeEnd();
 	return;
 }
 GotNodeType Parser::GetBitCastExpression(BitCastExpression& out)

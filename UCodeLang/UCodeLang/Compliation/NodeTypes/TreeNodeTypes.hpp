@@ -274,6 +274,7 @@ struct InheritedTypeData
 {
 	Vector<InheritedTypeValue> Values;
 };
+struct AttributeNode;
 
 struct ClassNode :Node
 {
@@ -288,6 +289,7 @@ struct ClassNode :Node
 	GenericValuesNode Generic;
 	InheritedTypeData Inherited;
 	AccessModifierType Access = AccessModifierType::Default;
+	Vector<Unique_ptr<AttributeNode>> Attributes;
 };
 
 
@@ -524,6 +526,7 @@ struct FuncNode :Node
 	AddforNode(FuncNode);
 	FuncSignatureNode Signature;
 	Optional<FuncBodyNode> Body;
+	Vector<Unique_ptr<AttributeNode>> _Attributes;
 };
 
 struct AsmBlockNode :Node

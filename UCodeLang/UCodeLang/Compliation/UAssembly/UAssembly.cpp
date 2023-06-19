@@ -45,9 +45,9 @@ String UAssembly::ToString(const UClib* Lib)
 		{
 			auto& Class = Item->Get_ClassData();
 
-			for (auto Item2 : Class.Attributes)
+			for (auto Item2 : Class.Attributes.Attributes)
 			{
-				r += Item2.Name;
+				ToString(Item2,Assembly);
 			}
 			r += "$" + Item->FullName + ":\n";
 			
@@ -62,6 +62,11 @@ String UAssembly::ToString(const UClib* Lib)
 
 			for (auto Item2 : Class.Methods)
 			{
+				for (auto Item3 : Item2.Attributes.Attributes)
+				{
+					ToString(Item3, Assembly);
+				}
+
 				r += " |" + Item2.FullName + "[";
 				for (auto& Item3 : Item2.ParsType)
 				{
@@ -304,6 +309,26 @@ String UAssembly::ToString(const ReflectionTypeInfo& Value, const ReflectionRawD
 		break;
 	}
 	return r;
+}
+String UAssembly::ToString(const UsedTagValueData& Value, const ClassAssembly& Assembly)
+{
+	String R;
+
+	R += "[";
+
+	auto node = Assembly.Find_Node(Value.TypeID);
+	if (node)
+	{
+		R += node->FullName;
+	}
+	else
+	{
+		R += "?";
+	}
+
+	R += "]";
+
+	return R;
 }
 void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In,const BinaryVectorMap<UAddress, String>& AddressToName, String& out, const UClib* Lib)
 {

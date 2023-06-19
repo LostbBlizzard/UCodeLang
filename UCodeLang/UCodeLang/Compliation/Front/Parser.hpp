@@ -49,7 +49,41 @@ private:
 	CompliationSettings* _Settings = nullptr;
 	Stack<AccessModifierType> _AccessModifier;
 	bool _PassedImportFileSection = false;
+	size_t TopScope = 0;
+	Stack<Vector<Unique_ptr<AttributeNode>>> _TepAttributes;
 
+	void AttributeStart()
+	{
+		_TepAttributes.push({});
+	}
+	void AttributeEnd()
+	{
+		AttributeCheck();
+		_TepAttributes.pop();
+	}
+	Vector<Unique_ptr<AttributeNode>> Get_TepAttributes()
+	{
+		if (_TepAttributes.size())
+		{
+			auto R = std::move(_TepAttributes.top());
+			return R;
+		}
+		else
+		{
+			return {};
+		}
+	}
+	void AttributeCheck()
+	{
+		auto& Item = _TepAttributes.top();
+		if (Item.size())
+		{
+			auto& F = Item.front();
+			auto Token = F->ScopedName.ScopedName.front().token;
+			_ErrorsOutput->AddError(ErrorCodes::TreeAnalyerError, Token->OnLine, Token->OnPos, "You cant put the Tag '" + (String)F->ScopedName.ScopedName.front().token->Value._String + "' here.");
+		}
+	}
+	
 	void AccessStart()
 	{
 		_AccessModifier.push(AccessModifierType::Default);
@@ -60,7 +94,7 @@ private:
 		_AccessModifier.pop();
 	}
 
-	size_t TopScope = 0;
+	
 	void SetNotTopScope()
 	{
 		TopScope++;
@@ -215,7 +249,8 @@ private:
 		AttributeNode* V = AttributeNode::Gen();
 		auto r = GetAttribute(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		_TepAttributes.top().push_back(Unique_ptr<AttributeNode>(V));
+		return { r,nullptr };
 	}
 	GotNodeType GetAttribute(AttributeNode& out);
 
