@@ -246,6 +246,8 @@ enum class SymbolType: UInt8
 	Generic_Tag,
 	Generic_Trait,
 	Generic_Enum,
+
+	UsedTag,
 };
 enum class SymbolValidState : UInt8
 {

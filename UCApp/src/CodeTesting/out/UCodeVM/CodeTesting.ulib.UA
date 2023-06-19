@@ -1,21 +1,9 @@
 [ClassData]-- 
-$Testing:Cool<uint32> enum[uint32]:
- BaseSize = 4
-
 $[_global]:
 .size:0
 
- |Testing:main[] -> Testing:Cool<uint32>;//Testing:main
+ |Testing:main[] -> sint32;//Testing:main
  |Testing:Hello:OtherFuncion[] -> void;//Testing:Hello:OtherFuncion
-
-
-$Testing:Cool enum[[?]]:
- BaseSize = 
-
-$Testing:SomeClass:
-.size:4
- Testing:Cool<uint32> CoolV;//Offset 0
-
 
 
 
@@ -60,11 +48,9 @@ $Testing:SomeClass:
 ---__IsFileOpen^uptr: 
    23 :CppCallNamed "__IsFileOpen^uptr"
    24 :Ret 
----Testing:SomeClass:(&_new&)^[]&: 
-   25 :Ret 
 ---Testing:main: 
-   26 :Store32 [A],4
-   27 :StoreRegToReg32 [A],[F]
-   28 :Ret 
+   25 :Store32 [A],0
+   26 :StoreRegToReg32 [A],[F]
+   27 :Ret 
 ---Testing:Hello:OtherFuncion: 
-   29 :Ret 
+   28 :Ret 

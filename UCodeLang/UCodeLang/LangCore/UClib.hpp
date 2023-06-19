@@ -327,6 +327,10 @@ public:
 	static void ToBytes(BitMaker& Output, const Optional<ReflectionTypeInfo>& Data);
 	static void ToBytes(BitMaker& Output, const Trait_Data& TraitData);
 	static void ToBytes(BitMaker& Output, const InheritedTrait_Data& TraitData);
+	static void ToBytes(BitMaker& Output, const UsedTags& Tags)
+	{
+		ToBytes(Output, Tags.Attributes);
+	}
 	//
 	static bool FromBytes(UClib* Lib,const BytesView& Data);
 
@@ -347,6 +351,10 @@ public:
 	static void FromBytes(BitReader& Input, ReflectionRawData& Data);
 	static void FromBytes(BitReader& Input, Trait_Data& Data);
 	static void FromBytes(BitReader& Input, InheritedTrait_Data& Data);
+	static void FromBytes(BitReader& reader, UsedTags& Attributes)
+	{
+		FromBytes(reader, Attributes.Attributes);
+	}
 	//
 
 	static void FixRawValue(Endian AssemblyEndian, NTypeSize BitSize, const ClassAssembly& Types, TypedRawReflectionData& RawValue)

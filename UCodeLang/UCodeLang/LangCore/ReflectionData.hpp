@@ -87,35 +87,6 @@ public:
 	}
 };
 
-class ClassField
-{
-public:
-	String Name;
-	ReflectionTypeInfo Type;
-	size_t offset=NullAddress;
-};
-class UsedTagValueData
-{
-public:
-	String Name;
-	~UsedTagValueData()
-	{
-
-	}
-};
-class ClassMethod
-{
-public:
-	String FullName;
-	String DecorationName;
-	
-	
-	ReflectionTypeInfo RetType;
-	Vector<ReflectionTypeInfo> ParsType;
-
-	Vector<UsedTagValueData> Attributes;
-};
-
 class ReflectionRawData
 {
 public:
@@ -172,6 +143,42 @@ public:
 	}
 };
 
+
+class ClassField
+{
+public:
+	String Name;
+	ReflectionTypeInfo Type;
+	size_t offset=NullAddress;
+};
+class UsedTagValueData
+{
+public:
+	ReflectionCustomTypeID  TypeID;
+	~UsedTagValueData()
+	{
+
+	}
+	ReflectionRawData _Data;
+};
+class UsedTags
+{
+public:
+	Vector<UsedTagValueData> Attributes;
+};
+class ClassMethod
+{
+public:
+	String FullName;
+	String DecorationName;
+	
+	
+	ReflectionTypeInfo RetType;
+	Vector<ReflectionTypeInfo> ParsType;
+
+	UsedTags Attributes;
+};
+
 class TypedRawReflectionData
 {
 public:
@@ -216,33 +223,11 @@ struct Class_Data
 {
 	ReflectionCustomTypeID TypeID = {};
 	size_t Size = 0;
-	Vector<UsedTagValueData> Attributes;
+	UsedTags Attributes;
 	Vector<ClassField> Fields;
 	Vector<ClassMethod> Methods;
 	Vector<InheritedTrait_Data> InheritedTypes;
-	inline bool HasAttribute(const String& Name)
-	{
-		for (const auto& Item : Attributes)
-		{
-			if (Item.Name == Name)
-			{
-				return true;
-			}
-		}
-		return true;
-	}
-	inline const UsedTagValueData* GetAttribute(const String& Name)
-	{
-		for (const auto& Item : Attributes)
-		{
-			if (Item.Name == Name)
-			{
-				return &Item;
-			}
-		}
-		return nullptr;
-	}
-
+	
 	const ClassMethod* Get_ClassInit() const
 	{
 		return Get_ClassMethod(ClassInitializefuncName);

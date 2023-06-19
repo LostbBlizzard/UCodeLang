@@ -648,7 +648,6 @@ private:
 	Vector< NewFuncData> TepFuncs;
 	Vector<const ClassInfo*> ClassDependencies;
 	Vector< FuncInfo*>_RetLoopStack;
-	Vector<const AttributeNode*> _TepAttributes;
 	//IR Building
 	IRBuilder _Builder;
 	IRInstruction* _LastExpressionField = 0;
@@ -814,7 +813,7 @@ private:
 	void OnEnum(const EnumNode& node);
 	void OnNamespace(const NamespaceNode& node);
 	void OnAttributeNode(const AttributeNode& node);
-	void OnNonAttributeable(size_t Line, size_t Pos);
+	void OnAttributesNode(const Vector<Unique_ptr<AttributeNode>>& nodes);
 	String GetScopedNameAsString(const ScopedNameNode& node);
 	void OnDeclareVariablenode(const DeclareVariableNode& node, DeclareStaticVariableNode_t type);
 	void LogCantUseTypeVoidHere(const Token* Token);
@@ -979,7 +978,8 @@ private:
 		Done
 	};
 
-	void PushTepAttributesInTo(Vector<UsedTagValueData>& Input);
+	void ConvertAttributes(const Vector<Unique_ptr<AttributeNode>>& nodes,Vector<UsedTagValueData>& Out);
+	void ConvertAttribute(const AttributeNode& nodes, UsedTagValueData Out);
 	void LoadLibSymbols();
 	void LoadLibSymbols(const UClib& lib, LoadLibMode Mode);
 
@@ -1000,7 +1000,7 @@ private:
 	}
 	Symbol* GetSymbol(String_view Name, SymbolType Type);
 	static String GetFuncAnonymousObjectFullName(const String& FullFuncName);
-	void AddClass_tToAssemblyInfo(const ClassInfo* data);
+	void AddClass_tToAssemblyInfo(const Vector<Unique_ptr<AttributeNode>>& attributes, const ClassInfo* data);
 	ReflectionTypeInfo ConvertToTypeInfo(const TypeSymbol& Type);
 
 	TypeSymbolID GetTypeID(TypesEnum Type, SymbolID SymbolId);

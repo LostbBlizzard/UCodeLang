@@ -913,7 +913,6 @@ void SystematicAnalysis::OnNamespace(const NamespaceNode& node)
 		switch (node->Get_Type())
 		{
 		case NodeType::NamespaceNode:OnNamespace(*NamespaceNode::As(node.get())); break;
-		case NodeType::AttributeNode:OnAttributeNode(*AttributeNode::As(node.get())); break;
 		case NodeType::ClassNode: OnClassNode(*ClassNode::As(node.get())); break;
 		case NodeType::AliasNode:OnAliasNode(*AliasNode::As(node.get())); break;
 		case NodeType::EnumNode:OnEnum(*EnumNode::As(node.get())); break;
@@ -931,18 +930,48 @@ void SystematicAnalysis::OnNamespace(const NamespaceNode& node)
 }
 void SystematicAnalysis::OnAttributeNode(const AttributeNode& node)
 {
-	//if (passtype == PassType::GetTypes) {
-		_TepAttributes.push_back(&node);
-	//}
-}
-void SystematicAnalysis::OnNonAttributeable(size_t Line, size_t Pos)
-{
+
+
 	if (passtype == PassType::GetTypes)
 	{
-		if (_TepAttributes.size())
+
+	}
+	else if (passtype == PassType::FixedTypes)
+	{	
+		auto SybID = GetSymbolID(node);
+		auto& Syb = AddSybol(SymbolType::UsedTag,"_","_",AccessModifierType::Private);
+		_Table.AddSymbolID(Syb, SybID);
+		
+
+		String V;
+		node.ScopedName.GetScopedName(V);
+		auto Att = GetSymbol(V,SymbolType::Tag_class);
+		if (Att)
 		{
-			LogError(ErrorCodes::TreeAnalyerError, Line, Pos, "You cant put a Tag on this");
+			if (Att->Type != SymbolType::Tag_class)
+			{
+				LogExpectedSymbolToBea(node.ScopedName.ScopedName.back().token,*Att, SymbolType::Tag_class);
+			}
+			else
+			{
+				Syb.VarType = TypeSymbol(Att->ID);
+			}
 		}
+		else
+		{
+			LogCantFindTypeError(node.ScopedName.ScopedName.back().token, V);
+		}
+	}
+	else if (passtype == PassType::BuidCode)
+	{
+
+	}
+}
+void SystematicAnalysis::OnAttributesNode(const Vector<Unique_ptr<AttributeNode>>& nodes)
+{
+	for (auto& Item : nodes)
+	{
+		OnAttributeNode(*Item);
 	}
 }
 void SystematicAnalysis::OnFileNode(const FileNode* File)
@@ -1003,7 +1032,6 @@ void SystematicAnalysis::OnFileNode(const FileNode* File)
 		switch (node->Get_Type())
 		{
 		case NodeType::NamespaceNode:OnNamespace(*NamespaceNode::As(node.get())); break;
-		case NodeType::AttributeNode:OnAttributeNode(*AttributeNode::As(node.get())); break;
 		case NodeType::AliasNode:OnAliasNode(*AliasNode::As(node.get())); break;
 		case NodeType::ClassNode: OnClassNode(*ClassNode::As(node.get())); break;
 		case NodeType::EnumNode:OnEnum(*EnumNode::As(node.get())); break;
@@ -1091,7 +1119,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			, (String)ClassName, _Table._Scope.ThisScope,Node.Access) :
 		*GetSymbol(SybID);
 
-
+	OnAttributesNode(Node.Attributes);
 
 	ClassInfo* ClassInf = nullptr;
 	if (passtype == PassType::GetTypes)
@@ -1133,7 +1161,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 		
 		if (passtype == PassType::BuidCode)
 		{
-			AddClass_tToAssemblyInfo(ClassInf);
+			AddClass_tToAssemblyInfo(Node.Attributes,ClassInf);
 		}
 
 		auto UseingIndex = _Table.GetUseingIndex();
@@ -1145,7 +1173,6 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			PushToNodeScope(*node.get());
 			switch (node->Get_Type())
 			{
-			case NodeType::AttributeNode:OnAttributeNode(*AttributeNode::As(node.get())); break;
 			case NodeType::ClassNode: OnClassNode(*ClassNode::As(node.get())); break;
 			case NodeType::AliasNode:OnAliasNode(*AliasNode::As(node.get())); break;
 			case NodeType::EnumNode:OnEnum(*EnumNode::As(node.get())); break;
@@ -1440,7 +1467,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 		{
 			ClassInf->_ClassFieldInit->Blocks[0]->NewRet();
 		}
-
+		
 		for (auto& Item : ClassInf->_InheritedTypes)
 		{
 			BuildTrait(&Syb, ClassInf, Item.Syb, Node.ClassName.Token);
@@ -1593,7 +1620,6 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 void SystematicAnalysis::OnUseingNode(const UsingNode& node)
 {
 	auto& T =node.ScopedName.ScopedName.back().token;
-	OnNonAttributeable(T->OnLine, T->OnPos);
 	const auto UseingString =GetScopedNameAsString(node.ScopedName);
 	_Table.AddUseing(UseingString);
 
@@ -1676,7 +1702,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 
 	auto UseingIndex = _Table.GetUseingIndex();
-
+	OnAttributesNode(node._Attributes);
 	if (passtype == PassType::GetTypes)
 	{
 		SymbolType Type = IsGenericS && IsgenericInstantiation == false ?
@@ -2099,7 +2125,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			F = ConvertToTypeInfo(Item);
 		}
 
-		PushTepAttributesInTo(V.Attributes);
+		ConvertAttributes(node._Attributes,V.Attributes.Attributes);
 
 
 		Ptr->Methods.push_back(std::move(V));
@@ -2112,7 +2138,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 			auto ClassInf = V.Get_Info<ClassInfo>();
 
-			AddClass_tToAssemblyInfo(ClassInf);
+			AddClass_tToAssemblyInfo({}, ClassInf);
 
 		}
 		//
@@ -5023,7 +5049,6 @@ void SystematicAnalysis::OnStatement(const Node& node2)
 	PushToNodeScope(node2);
 	switch (node2.Get_Type())
 	{
-	case NodeType::AttributeNode:OnAttributeNode(*AttributeNode::As(&node2)); break;
 	case NodeType::ClassNode: OnClassNode(*ClassNode::As(&node2)); break;
 	case NodeType::AliasNode:OnAliasNode(*AliasNode::As(&node2)); break;
 	case NodeType::EnumNode:OnEnum(*EnumNode::As(&node2)); break;
@@ -5364,7 +5389,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 				{
 					Symbol* Sym = GetSymbol(Item.ClassSymbol.value());
 
-					AddClass_tToAssemblyInfo(Sym->Get_Info<ClassInfo>());//has '!' post fix so its Unrefencedable
+					AddClass_tToAssemblyInfo({}, Sym->Get_Info<ClassInfo>());//has '!' post fix so its Unrefencedable
 
 					auto Type = TypeSymbol(Sym->ID);
 
@@ -9689,15 +9714,18 @@ void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 		}
 	}
 }
-void SystematicAnalysis::PushTepAttributesInTo(Vector<UsedTagValueData>& Input)
+void SystematicAnalysis::ConvertAttributes(const Vector<Unique_ptr<AttributeNode>>& nodes, Vector<UsedTagValueData>& Out)
 {
-	for (auto& Item : _TepAttributes)
+	Out.resize(nodes.size());
+	for (size_t i = 0; i < nodes.size(); i++)
 	{
-		UsedTagValueData Data;
-		Item->ScopedName.GetScopedName(Data.Name);
-		Input.push_back(Data);
+		ConvertAttribute(*nodes[i], Out[i]);
 	}
-	_TepAttributes.clear();
+}
+void SystematicAnalysis::ConvertAttribute(const AttributeNode& nodes, UsedTagValueData Out)
+{
+	auto Syb = GetSymbol(GetSymbolID(nodes));
+	Out.TypeID = GetTypeID(TypesEnum::CustomType,Syb->VarType._CustomTypeSymbol);
 }
 void SystematicAnalysis::LoadLibSymbols()
 {
@@ -10689,7 +10717,7 @@ String SystematicAnalysis::GetFuncAnonymousObjectFullName(const String& FullFunc
 {
 	return FullFuncName + "!";
 }
-void SystematicAnalysis::AddClass_tToAssemblyInfo(const ClassInfo* Class)
+void SystematicAnalysis::AddClass_tToAssemblyInfo(const Vector<Unique_ptr<AttributeNode>>& attributes,const ClassInfo* Class)
 {
 	Class_Data& VClass = _Lib.Get_Assembly().AddClass((String)Class->Get_Name(), Class->FullName);
 	
@@ -10719,6 +10747,7 @@ void SystematicAnalysis::AddClass_tToAssemblyInfo(const ClassInfo* Class)
 		Item.TraitID = Typeid;
 		VClass.InheritedTypes.push_back(std::move(Item));
 	}
+	ConvertAttributes(attributes,VClass.Attributes.Attributes);
 }
 
 ReflectionTypeInfo SystematicAnalysis::ConvertToTypeInfo(const TypeSymbol& Type)
