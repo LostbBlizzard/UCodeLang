@@ -276,6 +276,7 @@ struct Eval_Data
 };
 struct Tag_Data
 {
+	ReflectionCustomTypeID TypeID = {};
 	~Tag_Data()
 	{
 
@@ -327,6 +328,14 @@ struct GenericClass_Data
 struct GenericFuncion_Data
 {
 	~GenericFuncion_Data()
+	{
+
+	}
+};
+struct  GenericTag_Data
+{
+	String Implementation;
+	~GenericTag_Data()
 	{
 
 	}
@@ -539,6 +548,15 @@ public:
 		r.Name = Name;
 		r.FullName = FullName;
 		return r.Get_TraitData();
+	}
+	inline Tag_Data& AddTag(const String& Name, const String& FullName = "")
+	{
+		auto V = std::make_unique<AssemblyNode>(ClassType::Tag);
+		Classes.push_back(std::move(V));
+		auto& r = *Classes.back();
+		r.Name = Name;
+		r.FullName = FullName;
+		return r.Get_TagData();
 	}
 	static void PushCopyClasses(const ClassAssembly& source, ClassAssembly& Out);
 	AssemblyNode* Find_Node(const String& Name, const String& Scope ="")

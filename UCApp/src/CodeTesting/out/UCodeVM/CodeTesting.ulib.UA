@@ -2,7 +2,8 @@
 $[_global]:
 .size:0
 
- |Testing:main[] -> sint32;//Testing:main
+ |Testing:Hello[] -> void;//Testing:Hello
+ |Testing:Hello2[] -> void;//Testing:Hello2
  |Testing:Hello:OtherFuncion[] -> void;//Testing:Hello:OtherFuncion
 
 
@@ -48,9 +49,9 @@ $[_global]:
 ---__IsFileOpen^uptr: 
    23 :CppCallNamed "__IsFileOpen^uptr"
    24 :Ret 
----Testing:main: 
-   25 :Store32 [A],0
-   26 :StoreRegToReg32 [A],[F]
-   27 :Ret 
+---Testing:Hello: 
+   25 :Ret 
+---Testing:Hello2: 
+   26 :Ret 
 ---Testing:Hello:OtherFuncion: 
-   28 :Ret 
+   27 :Ret 

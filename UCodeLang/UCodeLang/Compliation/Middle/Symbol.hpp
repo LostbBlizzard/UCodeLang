@@ -789,6 +789,12 @@ public:
 
 };
 
+class TagInfo :public Symbol_Info
+{
+public:
+	Generic _GenericData;
+
+};
 
 class Symbol
 {
