@@ -948,14 +948,36 @@ void SystematicAnalysis::OnAttributeNode(const AttributeNode& node)
 		auto Att = GetSymbol(V,SymbolType::Tag_class);
 		if (Att)
 		{
-			if (Att->Type != SymbolType::Tag_class)
+			auto Token = node.ScopedName.ScopedName.back().token;
+			if (Att->Type == SymbolType::Tag_class)
 			{
-				LogExpectedSymbolToBea(node.ScopedName.ScopedName.back().token,*Att, SymbolType::Tag_class);
+				auto& Generic = *node.ScopedName.ScopedName.back().Generic;
+				if (Generic.Values.size())
+				{
+					LogExpectedSymbolToBea(Token, *Att, SymbolType::Generic_Tag);
+				}
+				
+			}
+			else if (Att->Type == SymbolType::Generic_Tag)
+			{
+				auto& Generic = *node.ScopedName.ScopedName.back().Generic;
+				if (Generic.Values.size())
+				{
+					auto Info = Att->Get_Info<TagInfo>();
+					auto TagNode =TagTypeNode::As((const Node*)Att->NodePtr);
+
+					Att = InstantiateOrFindGeneric_Tag(Token, Att,TagNode->Generic,Info->_GenericData,Generic);
+				}
+				else
+				{
+					LogExpectedSymbolToBea(Token, *Att, SymbolType::Tag_class);
+				}
 			}
 			else
 			{
-				Syb.VarType = TypeSymbol(Att->ID);
+				LogExpectedSymbolToBea(Token, *Att, SymbolType::Tag_class);
 			}
+			Syb.VarType = TypeSymbol(Att->ID);
 		}
 		else
 		{
@@ -3646,18 +3668,29 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 }
 void SystematicAnalysis::OnTag(const TagTypeNode& node)
 {
+	bool IsgenericInstantiation = GenericFuncName.size() && GenericFuncName.top().NodeTarget == &node;
+	bool Isgeneric = node.Generic.Values.size();
+	bool Isgeneric_t = Isgeneric && IsgenericInstantiation == false;
+
+
 	SymbolID sybId = GetSymbolID(node);
-	const auto& ClassName = node.AttributeName.Token->Value._String;
+	const String ClassName = IsgenericInstantiation ? ScopeHelper::GetNameFromFullName(GenericFuncName.top().GenericFuncName) : (String)node.AttributeName.Token->Value._String;
 	_Table.AddScope(ClassName);
 
 	auto& Syb = passtype == PassType::GetTypes ?
-		AddSybol(SymbolType::Tag_class
+		AddSybol(Isgeneric_t ? SymbolType::Generic_Tag : SymbolType::Tag_class
 			, (String)ClassName, _Table._Scope.ThisScope,node.Access) :
 		*GetSymbol(sybId);
 
 	if (passtype == PassType::GetTypes)
 	{
 		_Table.AddSymbolID(Syb, sybId);
+		Syb.NodePtr = &node;
+
+	
+		TagInfo* info = new TagInfo();
+		Syb.Info.reset(info);
+		InitGenericalias(node.Generic, IsgenericInstantiation, info->_GenericData);
 	}
 	else if (passtype == PassType::FixedTypes)
 	{
@@ -3665,8 +3698,17 @@ void SystematicAnalysis::OnTag(const TagTypeNode& node)
 	}
 	else if (passtype == PassType::BuidCode)
 	{
-
+		if (Syb.Type == SymbolType::Tag_class) 
+		{
+			Tag_Data& TagData = _Lib.Get_Assembly().AddTag(ScopeHelper::GetNameFromFullName(Syb.FullName), Syb.FullName);
+			TagData.TypeID = GetTypeID(TypesEnum::CustomType, Syb.ID);
+		}
+		else
+		{
+			
+		}
 	}
+
 
 	_Table.RemoveScope();
 }
@@ -14574,6 +14616,58 @@ void SystematicAnalysis::GenericTypeInstantiate_Enum(const Symbol* Alias, const 
 	AddDependencyToCurrentFile(Alias);
 }
 
+void SystematicAnalysis::GenericTypeInstantiate_Tag(const Symbol* Tag, const Vector<TypeSymbol>& Type)
+{
+	const String NewName = GetGenericFuncName(Tag, Type);
+	const TagTypeNode* node = TagTypeNode::As((const Node*)Tag->NodePtr);
+
+	const TagInfo* classInfo = Tag->Get_Info<TagInfo>();
+
+	GenericFuncInfo Info;
+	Info.GenericFuncName = NewName;
+	Info.GenericInput = &Type;
+	Info.NodeTarget = node;
+	GenericFuncName.push(Info);
+
+	Info.Pack = MakeTypePackSymbolIfNeeded(NewName, Type, classInfo->_GenericData);
+	{
+		AddExtendedErr(GetGenericExtendedErrValue(classInfo->_GenericData, node->Generic, Type), node->AttributeName.Token);
+	}
+	{
+		auto OldScope = _Table._Scope.ThisScope;
+		auto Oldpasstype = passtype;
+		_Table._Scope.ThisScope.clear();
+
+		_Table._Scope.ThisScope = ScopeHelper::GetReMoveScope(NewName);
+
+
+		passtype = PassType::GetTypes;
+		OnTag(*node);
+
+		if (!_ErrorsOutput->Has_Errors()) {
+			passtype = PassType::FixedTypes;
+			OnTag(*node);
+		}
+
+		if (!_ErrorsOutput->Has_Errors()) {
+			passtype = PassType::BuidCode;
+			OnTag(*node);
+		}
+
+		GenericFuncName.pop();
+		//
+		_Table._Scope.ThisScope = OldScope;
+		passtype = Oldpasstype;
+
+		//
+	}
+	{
+		PopExtendedErr();
+	}
+
+	AddDependencyToCurrentFile(Tag);
+}
+
 
 //
 
@@ -16444,6 +16538,9 @@ String SystematicAnalysis::ToString(SymbolType Value)
 	case SymbolType::Hard_Func_ptr:return "Hard_Func_ptr";
 	case SymbolType::Func_ptr:return "Func_ptr";
 	case SymbolType::ConstantExpression:return "ConstantExpression";
+	case SymbolType::Generic_Alias:return "Generic_Alias";
+	case SymbolType::Generic_Tag:return "Generic_Tag";
+	case SymbolType::Generic_Enum:return "Generic_Enum";
 	default:return "[n/a]";
 	}
 }

@@ -759,6 +759,7 @@ struct TagTypeNode :Node
 	AddforNodeAndWithList(TagTypeNode);
 
 	NameNode AttributeName;
+	GenericValuesNode Generic;
 	AccessModifierType Access = AccessModifierType::Default;
 
 	TagTypeNode(TagTypeNode&& source) = default;

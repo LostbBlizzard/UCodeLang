@@ -2548,7 +2548,7 @@ GotNodeType Parser::DoTagType(TagTypeNode* output, const Token* ClassToken, Gene
 	TokenTypeCheck(TryGetToken(), TokenType::KeyWord_Tag);
 	NextToken();
 	output->AttributeName.Token = ClassToken;
-
+	output->Generic = std::move(TepGenerics);
 
 	auto ColonToken = TryGetToken();
 	if (ColonToken->Type == TokenType::Semicolon) { NextToken(); return GotNodeType::Success; }
