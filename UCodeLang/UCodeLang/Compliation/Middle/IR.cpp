@@ -115,6 +115,44 @@ size_t IRBuilder::GetOffset(const IRStruct* Struct, size_t Index) const
 	return  Struct->Fields[Index].Offset.value();
 }
 
+IRType IRBuilder::GetType(const IRInstruction* IR, const IROperator& Op) const
+{
+	return GetType(IR);
+}
+
+IRType IRBuilder::GetType(const IRInstruction* IR) const
+{
+	if (IR->Type == IRInstructionType::PushParameter)
+	{
+		return GetType(IR->Target());
+	}
+
+	if (IR->Type == IRInstructionType::Member_Access)
+	{
+		auto Struct = GetSymbol(IR->ObjectType._symbol)->Get_ExAs<IRStruct>();
+		return {};
+	}
+	if (IR->Type == IRInstructionType::Member_Access)
+	{
+		throw std::exception("bad path");
+	}
+
+	return IR->ObjectType;
+}
+
+IRType IRBuilder::GetType(const IROperator& IR) const
+{
+	switch (IR.Type)
+	{
+	case IROperatorType::IRParameter:return IR.Parameter->type;
+	case IROperatorType::IRInstruction:return GetType(IR.Pointer);
+	default:
+		throw std::exception("bad path");
+		return {};
+		break;
+	}
+}
+
 //
 
 IRBuilder::IRBuilder()

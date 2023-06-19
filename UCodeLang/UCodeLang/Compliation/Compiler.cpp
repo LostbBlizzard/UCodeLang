@@ -2,6 +2,10 @@
 #include <fstream>
 #include <filesystem>
 #include "../LangCore/FileHelper.hpp"
+
+
+#include "Front/UCodeFrontEndObject.hpp"
+#include "Back/UCodeBackEnd/UCodeBackEnd.hpp"
 UCodeLangStart
 Compiler::CompilerRet Compiler::CompileText(const String_view& Text)
 {
@@ -882,6 +886,12 @@ BytesPtr Compiler::OpenFile(const LangDefInfo::FileInfo* FInfo, const Path& path
 		memcpy(V.Bytes.get(), tep.data(), V.Size);
 		return V;
 	}
+}
+
+Compiler::Compiler()
+{
+	_FrontEnd = &FrontEnd::UCodeFrontEndObject::MakeObject;
+	_BackEnd = &UCodeBackEndObject::MakeObject;
 }
 
 void Compiler::Optimize(IRBuilder& IR)

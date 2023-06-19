@@ -9,6 +9,7 @@
 #include <optional>
 #include <array>
 #include <memory>
+#include <variant>
 UCodeLangStart
 
 
@@ -67,6 +68,101 @@ template<typename T> using Stack = std::stack<T>;
 template<typename T, typename T2> using Unordered_map = std::unordered_map<T, T2>;
 
 template<typename T,size_t Size> using Array = std::array<T, Size>;
+
+template<typename... Types>
+struct Variant
+{
+public:
+	using ThisType = Variant<Types...>;
+	template<typename T>
+	Variant(const T& Value) :_Base(Value){}
+
+	template<typename T>
+	Variant(T&& Value) : _Base(Value) {}
+
+	Variant()
+	{
+
+	}
+
+	template<typename T> ThisType& operator=(const T& Value)
+	{
+		_Base = Value;
+		return *this;
+	}
+	template<typename T> ThisType& operator=(const T&& Value)
+	{
+		_Base = Value;
+		return *this;
+	}
+
+	template<typename T> T& Get()
+	{
+		return std::get<T>(_Base);
+	}
+	template<typename T> const T& Get() const
+	{
+		return std::get<T>(_Base);
+	}
+
+	template<typename T> bool Is() const
+	{
+		return std::holds_alternative<T>(_Base);
+	}
+
+	template<typename T> T* Get_If()
+	{
+		if (Is<T>()) 
+		{
+			return &Get<T>();
+		}
+		else
+		{
+			return nullptr;
+		}
+	}
+	template<typename T> const T* Get_If() const
+	{
+		if (Is<T>())
+		{
+			return &Get<T>();
+		}
+		else
+		{
+			return nullptr;
+		}
+	}
+
+
+	template<typename T> T& GetOr(const T& Or) 
+	{
+		if (Is<T>())
+		{
+			return Get<T>();
+		}
+		return Or;
+	}
+
+	template<typename T> const T& GetOr(const T& Or) const
+	{
+		if (Is<T>())
+		{
+			return Get<T>();
+		}
+		return Or;
+	}
+
+	template<typename T> Optional<T> GetAsOptional() const
+	{
+		if (Is<T>())
+		{
+			return Get<T>();
+		}
+		return {};
+	}
+private:
+	std::variant<Types...> _Base;
+};
 
 using RegisterID_t = UInt8;
 enum class RegisterID : RegisterID_t

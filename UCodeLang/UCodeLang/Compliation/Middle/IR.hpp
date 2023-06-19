@@ -1226,21 +1226,10 @@ public:
 	size_t GetSize(const IRStruct* Struct) const;
 	size_t GetOffset(const IRStruct* Struct, size_t Index) const;
 
-	IRType GetType(const IRInstruction* IR) const
-	{
-		return IR->ObjectType;
-	}
-	IRType GetType(const IROperator& IR) const
-	{
-		switch (IR.Type)
-		{
-		case IROperatorType::IRInstruction:
-			return GetType(IR.Pointer);
-		default:
-			return {};
-			break;
-		}
-	}
+
+	IRType GetType(const IRInstruction* IR, const IROperator& Op) const;
+	IRType GetType(const IRInstruction* IR) const;
+	IRType GetType(const IROperator& IR) const;
 
 	bool IsTheSame(const IRType& Type0, const IRType& Type1)const
 	{

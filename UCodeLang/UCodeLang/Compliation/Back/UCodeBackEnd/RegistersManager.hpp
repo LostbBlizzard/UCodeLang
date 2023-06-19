@@ -6,18 +6,10 @@ UCodeLangStart
 class RegistersManager
 {
 public:
-	enum class RegisterInUse :UInt8
-	{
-		NotInUse,
-		InUseSybol,
-		HasBitValue,
-		Locked,
-	};
+	
 	struct RegisterInfo 
 	{
-		RegisterInUse Inuse = RegisterInUse::NotInUse;
-		const IRInstruction* IRField =nullptr;
-		AnyInt64 BitValue;
+		Optional<Variant< AnyInt64,const IRInstruction*, IROperator>> Types;
 	};
 	
 	RegistersManager();
@@ -32,20 +24,9 @@ public:
 	{
 		return Registers[(size_t)id];
 	}
-	void LockRegister(RegisterID id)
+	bool IsUsed(RegisterID id)
 	{
-		GetInfo(id).Inuse = RegisterInUse::Locked;
-	}
-	void UnLockRegister(RegisterID id)
-	{
-		auto& Info = GetInfo(id);
-		Info.Inuse = RegisterInUse::NotInUse;
-		Info.BitValue = AnyInt64();
-		Info.IRField = nullptr;
-	}
-	bool IsLocked(RegisterID id)
-	{
-		return GetInfo(id).Inuse != RegisterInUse::NotInUse;
+		return GetInfo(id).Types.has_value();
 	}
 
 	Optional<RegisterID> GetInfo(const IRInstruction* IRField)
@@ -53,9 +34,16 @@ public:
 		for (size_t i = 0; i < RegisterSize; i++)
 		{
 			auto& Info = Registers[i];
-			if (Info.Inuse == RegisterInUse::InUseSybol && Info.IRField == IRField)
+			if (Info.Types.has_value())
 			{
-				return (RegisterID)i;
+				auto& Value = Info.Types.value();
+				if (auto IR = Value.Get_If<const IRInstruction*>()) 
+				{
+					if (*IR == IRField) 
+					{
+						return (RegisterID)i;
+					}
+				}
 			}
 		}
 		return {};
@@ -65,9 +53,16 @@ public:
 		for (size_t i = 0; i < RegisterSize; i++)
 		{
 			auto& Info = Registers[i];
-			if (Info.Inuse == RegisterInUse::HasBitValue && Info.BitValue.Value==Value.Value)
+			if (Info.Types.has_value())
 			{
-				return (RegisterID)i;
+				auto& TypesValue = Info.Types.value();
+				if (auto Any = TypesValue.Get_If<AnyInt64>())
+				{
+					if (Any->AsInt64 == Value.AsInt64)
+					{
+						return (RegisterID)i;
+					}
+				}
 			}
 		}
 		return {};
@@ -78,49 +73,36 @@ public:
 		for (size_t i = 0; i < RegisterSize; i++)
 		{
 			auto& Info = Registers[i];
-			if (!IsLocked((RegisterID)i))
+			if (!Info.Types.has_value())
 			{
 				return (RegisterID)i;
 			}
 		}
-		
-		//Reset();
 		return {};
 	}
 
-	Optional< RegisterID> GetFreeRegisterAndWeakLock()
+	
+	void SetRegister(RegisterID id,AnyInt64 Value)
 	{
-		auto r = GetFreeRegister();
-		if (r.has_value()) 
-		{
-			WeakLockRegister(r.value());
-		}
-		return r;
+		auto& Info = Registers[(size_t)id];
+		Info.Types = Value;
 	}
 
-	void WeakLockRegisterValue(RegisterID id,AnyInt64 Value)
+	void SetRegister(RegisterID id,const IRInstruction* Value)
 	{
 		auto& Info = Registers[(size_t)id];
-		Info.Inuse = RegisterInUse::HasBitValue;
-		Info.BitValue = Value;
+		Info.Types = Value;
 	}
 
-	void WeakLockRegisterValue(RegisterID id,const IRInstruction* Value)
+	void SetRegister(RegisterID id, const IROperator& Value)
 	{
 		auto& Info = Registers[(size_t)id];
-		Info.Inuse = RegisterInUse::InUseSybol;
-		Info.IRField = Value;
+		Info.Types = Value;
 	}
-
-	void WeakLockRegister(RegisterID id)
+	void FreeRegister(RegisterID id)
 	{
 		auto& Info = Registers[(size_t)id];
-		Info.Inuse = RegisterInUse::InUseSybol;
-	}
-	void UnLockWeakRegister(RegisterID id)
-	{
-		auto& Info = Registers[(size_t)id];
-		Info.Inuse = RegisterInUse::NotInUse;
+		Info.Types = {};
 	}
 };
 
@@ -137,6 +119,12 @@ struct StackItem
 {
 	size_t Offset = 0;
 	const IRInstruction* IR = nullptr;
+	StackItem(
+		size_t offset, const IRInstruction* ir)
+		:Offset(offset),IR(ir)
+	{
+
+	}
 };
 struct StackInfo
 {
@@ -150,19 +138,33 @@ struct StackInfo
 		PushedOffset = 0;
 		Items.clear();
 	}
-	Vector<StackItem> Items;
+	Vector<Unique_ptr<StackItem>> Items;
 
-	StackItem* Has(IRInstruction* Value)
+	StackItem* Has(const IRInstruction* Value)
 	{
 		for (auto& Item : Items)
 		{
-			if (Item.IR == Value)
+			if (Item->IR == Value)
 			{
-				return &Item;
+				return Item.get();
 			}
 		}
 
 		return nullptr;
+	}
+	StackItem* Add(const IRInstruction* IR, size_t Offset)
+	{
+		return Items.emplace_back(std::make_unique<StackItem>(Offset,IR)).get();
+	}
+	StackItem* Add(const StackItem& Item)
+	{
+		return Add(Item.IR, Item.Offset);
+	}
+	StackItem* AddWithSize(const IRInstruction* IR, size_t ObjectSize)
+	{
+		auto R = Add(IR, Size);
+		Size += ObjectSize;
+		return R;
 	}
 };
 UCodeLangEnd

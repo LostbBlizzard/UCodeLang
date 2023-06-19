@@ -33,38 +33,31 @@ private:
 		UAddress Index;
 		IRidentifierID _FuncID;
 	};
-	enum class Parloc
+	
+
+	struct StackPreCall
 	{
-		Register,
-		StackPreCall,
-		StackPostCall,
+		size_t Offset = 0;
+		StackPreCall(size_t Offset) :Offset(Offset)
+		{
+
+		}
 	};
+	struct StackPostCall
+	{
+		size_t Offset = 0;
+		StackPostCall(size_t Offset) :Offset(Offset)
+		{
+
+		}
+	};
+
+
 	struct ParlocData
 	{
-		Parloc Type;
-		union 
-		{
-			size_t StackOffset = 0;
-			RegisterID _Reg;
-			const IRPar* Par;
-		};
-		
-		void SetAsStackPreCall(size_t Offset)
-		{
-			StackOffset = Offset;
-			Type = Parloc::StackPreCall;
-		}
-		void SetAsStackPostCall(size_t Offset)
-		{
-			StackOffset = Offset;
-			Type = Parloc::StackPostCall;
-		}
-		void SetAsRegister(RegisterID V)
-		{
-			_Reg = V;
-			Type = Parloc::Register;
-		}
-	};	
+		const IRPar* Par = nullptr;
+		Variant<RegisterID, StackPreCall, StackPostCall> Location;
+	};
 	struct Funcpos
 	{
 		UAddress Index;
@@ -93,39 +86,44 @@ private:
 		IRidentifierID _FuncID;
 	};
 
-	enum class IRloc
+
+	struct IRlocData_Register
 	{
-		Register,
-		StackPreCall,
-		StackPostCall,
+		RegisterID _Reg;
+	};
+	struct IRlocData_IRPar
+	{
+		const IRPar* Par =nullptr;
+	};
+	struct IRlocData_StackPre
+	{
+		size_t offset = 0;
+		IRlocData_StackPre()
+		{
+
+		}
+		IRlocData_StackPre(size_t offset) :offset(offset)
+		{
+
+		}
+	};
+	struct IRlocData_StackPost
+	{
+		size_t offset = 0;
+		IRlocData_StackPost()
+		{
+
+		}
+		IRlocData_StackPost(size_t offset) :offset(offset)
+		{
+
+		}
 	};
 
 	struct IRlocData
 	{
-		IRloc Type;
 		IRType ObjectType;
-		union
-		{
-			size_t StackOffset = 0;
-			const IRPar* Par;
-			RegisterID _Reg;
-		};
-		
-		void SetAsStackPreCall(size_t Offset)
-		{
-			StackOffset = Offset;
-			Type = IRloc::StackPreCall;
-		}
-		void SetAsStackPostCall(size_t Offset)
-		{
-			StackOffset = Offset;
-			Type = IRloc::StackPostCall;
-		}
-		void SetAsRegister(RegisterID V)
-		{
-			_Reg = V;
-			Type = IRloc::Register;
-		}
+		Variant<RegisterID, IRlocData_IRPar, IRlocData_StackPre, IRlocData_StackPost> Info;
 	};
 	
 	struct  FuncCallEndData
@@ -151,7 +149,6 @@ private:
 	
 	BinaryVectorMap< const IRBlock*, BlockData> IRToBlockData;
 	
-
 	
 	StaticMemoryManager _StaticMemory;
 	StaticMemoryManager _ThreadMemory;
@@ -166,6 +163,24 @@ private:
 	UCodeFunc* BuildingFunc = nullptr;
 	Optimizations _Optimizations;
 	//code
+	bool IsPrimitive(IRType& type)
+	{
+		return _Input->IsPrimitive(type);
+	}
+	IRType GetType(const IROperator& Op)
+	{
+		return _Input->GetType(Op);
+	}
+	IRType GetType(const IRInstruction* IR)
+	{
+		return _Input->GetType(IR);
+	}
+	IRType GetType(const IRInstruction* IR, const IROperator& Op)
+	{
+		return _Input->GetType(IR, Op);
+	}
+
+
 	
 	UCodeFunc* NewBuildFunc()
 	{
@@ -185,6 +200,15 @@ private:
 	void OnBlockBuildCode(const IRBlock* IR);
 
 	
+	size_t GetSize(const IRInstruction* Ins)
+	{
+		return _Input->GetSize(Ins->ObjectType);
+	}
+	size_t GetSize(const IRStruct* Value)
+	{
+		return _Input->GetSize(Value);
+	}
+
 	BlockData& GetBlockData(const IRBlock* V)
 	{
 		return IRToBlockData.at(V);
@@ -240,27 +264,26 @@ private:
 		return IR->Target().Parameter == Par;
 	}
 	void SynchronizePar(ParlocData* Par);
-	void LockRegister(RegisterID ID);
+	
 
 
 	void RegWillBeUsed(RegisterID Value);
-	IRType GetType(const IRInstruction* IR)
-	{
-		return _Input->GetType(IR);
-	}
-	IRType GetType(const IROperator& IR)
-	{
-		return _Input->GetType(IR);
-	}
-
-
+	
 	void GiveNameToReg(RegisterID Value, const AnyInt64 Name)
 	{
-		_Registers.WeakLockRegisterValue(Value, Name);
+		_Registers.SetRegister(Value, Name);
 	}
 	void GiveNameToReg(RegisterID Value, const IRInstruction* Name)
 	{
-		_Registers.WeakLockRegisterValue(Value,Name);
+		_Registers.SetRegister(Value,Name);
+	}
+	void GiveNameToReg(RegisterID Value, const IROperator& Name)
+	{
+		_Registers.SetRegister(Value, Name);
+	}
+	void GiveNameToReg(RegisterID Value, const IRPar* Name)
+	{
+		GiveNameToReg(Value,IROperator((IRPar*)Name));
 	}
 	RegisterID GetRegisterForTep();
 	Optional<RegisterID> FindIRInRegister(const IRInstruction* Value);
@@ -268,9 +291,10 @@ private:
 
 	void UnLockRegister(RegisterID ID)
 	{
-		_Registers.UnLockRegister(ID);
+		_Registers.FreeRegister(ID);
 	}
 
+	IRlocData GetIRLocData(const IRInstruction& Ins);
 	IRlocData GetIRLocData(const IRInstruction& Ins, const IROperator& Op);
 	void CopyValues(const IRlocData& Src, const IRlocData& Out);
 	void StoreValueInPointer(const IRType& ObjectType, RegisterID Pointer, const IRlocData& Value);
@@ -323,13 +347,13 @@ private:
 
 	size_t GetStatckOffset(const ParlocData& ItemStackOffset)
 	{
-		if (ItemStackOffset.Type == Parloc::StackPostCall)
+		if (ItemStackOffset.Location.Is<StackPostCall>())
 		{
-			return GetPostCallStackOffset(ItemStackOffset.StackOffset);
+			return GetPostCallStackOffset(ItemStackOffset.Location.Get<StackPostCall>().Offset);
 		}
 		else
 		{
-			return GetPreCallStackOffset(ItemStackOffset.StackOffset);
+			return GetPreCallStackOffset(ItemStackOffset.Location.Get<StackPreCall>().Offset);
 		}
 	}
 	size_t GetPostCallStackOffset(size_t ItemStackOffset)
