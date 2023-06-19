@@ -325,16 +325,47 @@ struct GenericClass_Data
 
 	}
 };
+
+struct GenericBase_Data
+{
+	String Implementation;
+};
+
 struct GenericFuncion_Data
 {
+	GenericBase_Data Base;
 	~GenericFuncion_Data()
 	{
 
 	}
 };
-struct  GenericTag_Data
+struct GenericEnum_Data
 {
-	String Implementation;
+	GenericBase_Data Base;
+	~GenericEnum_Data()
+	{
+
+	}
+};
+struct GenericAlias_Data
+{
+	GenericBase_Data Base;
+	~GenericAlias_Data()
+	{
+
+	}
+};
+struct GenericTrait_Data
+{
+	GenericBase_Data Base;
+	~GenericTrait_Data()
+	{
+
+	}
+};
+struct GenericTag_Data
+{
+	GenericBase_Data Base;
 	~GenericTag_Data()
 	{
 

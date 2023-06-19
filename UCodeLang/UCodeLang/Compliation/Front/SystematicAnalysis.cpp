@@ -3705,7 +3705,7 @@ void SystematicAnalysis::OnTag(const TagTypeNode& node)
 		}
 		else
 		{
-			
+
 		}
 	}
 
