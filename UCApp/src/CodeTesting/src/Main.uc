@@ -13,10 +13,10 @@ $Vec2:
  V.z = 0;
  ret 0;
 
-|main[Vec2& V,Vec2& Other]:
+|main2[Vec2& V,Vec2& Other]:
  V.x = Other.x;
- //V.y = Other.y;
- //V.z = Other.z;
+ V.y = Other.y;
+ V.z = Other.z;
  ret 0;
 
 
