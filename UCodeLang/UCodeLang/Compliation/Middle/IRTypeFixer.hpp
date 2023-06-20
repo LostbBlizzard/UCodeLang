@@ -18,9 +18,25 @@ public:
 	void Reset();
 	void FixTypes(IRBuilder* Input);
 	void GetMemberAccessTypeForIns(UCodeLang::IRType& ClassType, UCodeLang::IRBuilder* Input, UCodeLang::Unique_ptr<UCodeLang::IRInstruction>& Ins);
+
+	UCodeLangForceinline void Set_ErrorsOutput(CompliationErrors* V) { _Errs = V; }
 private:
 	IRBuilder* _Input=nullptr;
 	CompliationErrors* _Errs=nullptr;
+	IRFunc* _Func = nullptr;
+	bool InList(const IRPar* Par,const Vector<IRPar>& Pars)
+	{
+		for (auto& Item : _Func->Pars)
+		{
+			if (Par == &Item)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
 	void OnOp(IRInstruction& Ins, IROperator& Op);
+	void LogErrorCantFindPar(UCodeLang::IROperator& Op);
 };
 UCodeLangEnd

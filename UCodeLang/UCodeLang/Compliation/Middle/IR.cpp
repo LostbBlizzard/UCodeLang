@@ -1467,7 +1467,6 @@ String IRBuilder::ToString(ToStringState& State, IRInstruction& Ins, IROperator&
 	case IROperatorType::IRParameter:
 	{
 		const IRPar* Par = Value.Parameter;
-
 		return FromID(Par->identifier);
 	}
 	case IROperatorType::Get_PointerOf_IRInstruction:

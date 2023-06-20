@@ -57,6 +57,8 @@ Compiler::CompilerRet Compiler::CompileText(const String_view& Text)
 	auto& IRCode = *_FrontEndObject->Get_Builder();
 	Optimize(IRCode);
 	
+	if (_Errors.Has_Errors()) { return CompilerRet; }
+
 	_BackEndObject->Build(&IRCode);
 
 	if (_Errors.Has_Errors()) { return CompilerRet; }
@@ -241,23 +243,26 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 
 				Optimize(*output);
 
-				_BackEndObject->Set_OutputLib(_FrontEndObject->Get_Lib());
-				_BackEndObject->Build(output);
+				if (!_Errors.Has_Errors()) {
 
-				auto Output = _BackEndObject->GetOutput();
-				if (Output.Size)
-				{
-					std::ofstream File(Data.OutFile, std::ios::binary);
-					if (File.is_open())
+					_BackEndObject->Set_OutputLib(_FrontEndObject->Get_Lib());
+					_BackEndObject->Build(output);
+
+					auto Output = _BackEndObject->GetOutput();
+					if (Output.Size)
 					{
-						File.write((const char*)Output.Bytes, Output.Size);
-						File.close();
+						std::ofstream File(Data.OutFile, std::ios::binary);
+						if (File.is_open())
+						{
+							File.write((const char*)Output.Bytes, Output.Size);
+							File.close();
+						}
 					}
-				}
-				else
-				{
-					r.OutPut = &_BackEndObject->Getliboutput();
-					UClib::ToFile(r.OutPut, Data.OutFile);
+					else
+					{
+						r.OutPut = &_BackEndObject->Getliboutput();
+						UClib::ToFile(r.OutPut, Data.OutFile);
+					}
 				}
 			}
 		}
@@ -776,69 +781,70 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 				{
 
 					Optimize(*output);
+					if (!_Errors.Has_Errors()) {
+						_BackEndObject->Set_OutputLib(_FrontEndObject->Get_Lib());
+						_BackEndObject->Build(output);
 
-					_BackEndObject->Set_OutputLib(_FrontEndObject->Get_Lib());
-					_BackEndObject->Build(output);
-
-					auto Output = _BackEndObject->GetOutput();
-					if (!_BackEndObject->HasLibOutput())
-					{
-						std::ofstream File(Data.OutFile, std::ios::binary);
-						if (File.is_open())
+						auto Output = _BackEndObject->GetOutput();
+						if (!_BackEndObject->HasLibOutput())
 						{
-							File.write((const char*)Output.Bytes, Output.Size);
-							File.close();
-						}
-					}
-					else
-					{
-						r.OutPut = &_BackEndObject->Getliboutput();
-						UClib::ToFile(r.OutPut, Data.OutFile);
-					}
-
-
-					//spit file the get inters
-					for (auto& Item : ChangedFiles)
-					{
-						if (Item->IsExternal){continue;}
-						
-						
-						{
-							Path InterDirPath = Item->InterPath.parent_path();
-							if (!fs::exists(InterDirPath))
+							std::ofstream File(Data.OutFile, std::ios::binary);
+							if (File.is_open())
 							{
-								std::filesystem::create_directories(InterDirPath);
+								File.write((const char*)Output.Bytes, Output.Size);
+								File.close();
 							}
 						}
-
-						_FrontEndObject->ToIntFile(Item->_File.get(),Item->InterPath);
-						auto FileDeps = _FrontEndObject->Get_DependenciesPostIR(Item->_File.get());
-
-						auto Str = String_view((char*)Item->OpenedFile.Bytes.get(), Item->OpenedFile.Size);
-						Item->FileInfo->FileHash = (UInt64)std::hash<String_view>()(Str);
-						Item->FileInfo->Dependencies.clear();
-						Item->FileInfo->ExternDependencies.clear();
-						for (auto& Item2 : FileDeps)
+						else
 						{
+							r.OutPut = &_BackEndObject->Getliboutput();
+							UClib::ToFile(r.OutPut, Data.OutFile);
+						}
 
-							bool IsExtern = false;
-							for (auto& Item3 : NewExternalInfo)
+
+						//spit file the get inters
+						for (auto& Item : ChangedFiles)
+						{
+							if (Item->IsExternal) { continue; }
+
+
 							{
-								if (Item3->FullFilePath == Item2->FileName)
+								Path InterDirPath = Item->InterPath.parent_path();
+								if (!fs::exists(InterDirPath))
 								{
-									IsExtern = true;
+									std::filesystem::create_directories(InterDirPath);
 								}
 							}
 
-							if (IsExtern)
-							{
-								Item->FileInfo->ExternDependencies.push_back(Item2->FileName);
-							}
-							else
-							{
-								Item->FileInfo->Dependencies.push_back(Item2->FileName);
-							}
+							_FrontEndObject->ToIntFile(Item->_File.get(), Item->InterPath);
+							auto FileDeps = _FrontEndObject->Get_DependenciesPostIR(Item->_File.get());
 
+							auto Str = String_view((char*)Item->OpenedFile.Bytes.get(), Item->OpenedFile.Size);
+							Item->FileInfo->FileHash = (UInt64)std::hash<String_view>()(Str);
+							Item->FileInfo->Dependencies.clear();
+							Item->FileInfo->ExternDependencies.clear();
+							for (auto& Item2 : FileDeps)
+							{
+
+								bool IsExtern = false;
+								for (auto& Item3 : NewExternalInfo)
+								{
+									if (Item3->FullFilePath == Item2->FileName)
+									{
+										IsExtern = true;
+									}
+								}
+
+								if (IsExtern)
+								{
+									Item->FileInfo->ExternDependencies.push_back(Item2->FileName);
+								}
+								else
+								{
+									Item->FileInfo->Dependencies.push_back(Item2->FileName);
+								}
+
+							}
 						}
 					}
 				}

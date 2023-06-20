@@ -43,7 +43,12 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 
 	do
 	{
+		_TypeFixer.Set_ErrorsOutput(_ErrorsOutput);
 		_TypeFixer.FixTypes(Input);
+		if (_ErrorsOutput->Has_Errors())
+		{
+			return;
+		}
 
 		{//for debuging
 			auto S = Input->ToString();
