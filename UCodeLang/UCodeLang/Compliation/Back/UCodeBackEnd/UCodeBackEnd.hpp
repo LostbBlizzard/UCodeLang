@@ -125,6 +125,7 @@ private:
 		IRType ObjectType;
 		Variant<RegisterID, IRlocData_IRPar, IRlocData_StackPre, IRlocData_StackPost> Info;
 	};
+	IRlocData To(const ParlocData& Value);
 	
 	struct  FuncCallEndData
 	{
@@ -208,6 +209,11 @@ private:
 	{
 		return _Input->GetSize(Value);
 	}
+	size_t GetSize(const IRType& Value)
+	{
+		return _Input->GetSize(Value);
+	}
+
 
 	BlockData& GetBlockData(const IRBlock* V)
 	{
@@ -296,8 +302,8 @@ private:
 
 	IRlocData GetIRLocData(const IRInstruction& Ins);
 	IRlocData GetIRLocData(const IRInstruction& Ins, const IROperator& Op);
-	void CopyValues(const IRlocData& Src, const IRlocData& Out);
-	void StoreValueInPointer(const IRType& ObjectType, RegisterID Pointer, const IRlocData& Value);
+	void CopyValues(const IRlocData& Src, const IRlocData& Out,bool DerefSrc = false,bool DerefOut = false);
+	
 	RegisterID MakeIntoRegister(const IRlocData& Value, Optional<RegisterID> RegisterToPut = {});
 	RegisterID MakeIntoRegister(const IRInstruction& Ins, const IROperator& Op, Optional<RegisterID> RegisterToPut = {})
 	{
@@ -323,10 +329,18 @@ private:
 
 	void StoreValueInPointer(const IRType& ObjectType, RegisterID Pointer, const  IROperator& Value, IRInstruction& Ins);
 	void StoreValueInPointer(const IRType& ObjectType, RegisterID Pointer, RegisterID Value);
+	void StoreValueInPointer(RegisterID Pointer, size_t Pointerofset, const IRlocData& Value);
+	void StoreValueInPointer(RegisterID Pointer, const IRlocData& Value)
+	{
+		StoreValueInPointer(Pointer, 0, Value);
+	}
+
+	void MoveRegInValue(RegisterID Value,const IRlocData& To, size_t Offset);
+	void MoveValueInReg(const IRlocData& Value, size_t Offset, size_t MemberSize, RegisterID To);
 	
-
-
 	RegisterID ReadValueFromPointer(const IRType& ObjectType, RegisterID Pointer);
+
+	void ReadValueFromPointer(RegisterID Pointer, size_t Pointerofset, const IRlocData& Out);
 
 	void BuildSIntToIntCast(const IRInstruction& Item, const IROperator& Op, size_t IntSize);
 	void BuildUIntToIntCast(const IRInstruction& Item, const IROperator& Op, size_t IntSize);

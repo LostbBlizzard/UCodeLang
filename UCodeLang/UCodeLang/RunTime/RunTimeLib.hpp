@@ -5,43 +5,6 @@
 UCodeLangStart
 
 #define UCodeLangAPI __cdecl 
-
-#define CPPCallPars(Pars) InterpreterCPPinterface& Input
-#define CPPCallParsNone InterpreterCPPinterface& Input
-
-#define SetCPPRet(Value)  Input.Set_Return(Value); 
-#define SetCPPRetNone 
-
-
-#define GetCPPCallName(x) CPP_Invoke##x
-#define MakeNewCPPCall(FuncName,Ret_t,...) CPPCallRet UCodeLangAPI GetCPPCallName(FuncName)(CPPCallPars(Pars)) \
-	{\
-		##__VA_ARGS__ V;\
-		Input.GetParameter<##__VA_ARGS__>(&V);\
-		auto r = FuncName(V); \
-		SetCPPRet(r);\
-	};\
-
-#define MakeNewCPPCall_void(FuncName,...) CPPCallRet UCodeLangAPI GetCPPCallName(FuncName)(CPPCallPars(Pars)) \
-	{\
-		##__VA_ARGS__ V;\
-		Input.GetParameter<##__VA_ARGS__>(&V);\
-		FuncName(V); \
-		SetCPPRetNone \
-	};\
-
-#define MakeNewCPPCall_voidNoPar(FuncName) CPPCallRet UCodeLangAPI GetCPPCallName(FuncName)(CPPCallPars(Pars)) \
-	{\
-		FuncName(); \
-		SetCPPRetNone \
-	};\
-
-#define MakeNewCPPCall_NoPar(FuncName) CPPCallRet UCodeLangAPI GetCPPCallName(FuncName)(CPPCallPars(Pars)) \
-	{\
-		auto r = FuncName(); \
-		SetCPPRet(r);\
-	};\
-
 class InterpreterCPPinterface;
 
 using CPPCallRet = void;
@@ -49,8 +12,9 @@ using CPPCallRet = void;
 class RunTimeLib
 {
 public:
-
-	typedef CPPCallRet(UCodeLangAPI*CPPCallBack)(InterpreterCPPinterface& Input);
+	using CPPCallBack = CPPCallRet(*)(InterpreterCPPinterface& Input);
+	template<typename T, typename... Pars>
+	using NativeCall = T(UCodeLangAPI*)(Pars...);
 
 	RunTimeLib(): _Lib(nullptr)
 	{
@@ -69,14 +33,28 @@ public:
 
 	UCodeLangForceinline void Add_CPPCall(const String& Name, CPPCallBack CPP)
 	{
-		_NameToCppCall[Name] = CPP;
+		_NameToCppCall[Name] = { CPP,nullptr };
 	}
 	
 
+
+	
+	template<typename T,typename... Pars>
+	UCodeLangForceinline void Add_CPPCall(const String& Name,CPPCallBack CPP, NativeCall<T,Pars...> Native)
+	{
+		_NameToCppCall[Name] = { CPP,(void*)Native };
+	}
+	struct CPPCall
+	{
+		CPPCallBack InterpreterCall = nullptr;
+		void* NativeCall = nullptr;
+	};
 private:
 	UClib* _Lib;
 	Vector<Instruction> _Instruction;
-	VectorMap<String, CPPCallBack> _NameToCppCall;
+	
+	
+	VectorMap<String, CPPCall> _NameToCppCall;
 };
 
 UCodeLangEnd

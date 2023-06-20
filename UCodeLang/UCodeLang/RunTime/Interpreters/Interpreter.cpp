@@ -361,7 +361,7 @@ void Interpreter::Extecute(Instruction& Inst)
 		break;
 	case InstructionSet::PointerMemberRead8:
 	{
-		size_t Offset = Get_Register(Inst.Value1.AsRegister).Value.AsAddress;
+		size_t Offset = Inst.Value1.AsAddress;
 		RegisterID* ReV = &Inst.Value0.AsRegister;
 		RegisterID Ptr = ReV[0];
 		RegisterID RegOut = ReV[1];
@@ -371,7 +371,7 @@ void Interpreter::Extecute(Instruction& Inst)
 	break;
 	case InstructionSet::PointerMemberRead16:
 	{
-		size_t Offset = Get_Register(Inst.Value1.AsRegister).Value.AsAddress;
+		size_t Offset = Inst.Value1.AsAddress;
 		RegisterID* ReV = &Inst.Value0.AsRegister;
 		RegisterID Ptr = ReV[0];
 		RegisterID RegOut = ReV[1];
@@ -381,7 +381,7 @@ void Interpreter::Extecute(Instruction& Inst)
 	break;
 	case InstructionSet::PointerMemberRead32:
 	{
-		size_t Offset = Get_Register(Inst.Value1.AsRegister).Value.AsAddress;
+		size_t Offset = Inst.Value1.AsAddress;
 		RegisterID* ReV = &Inst.Value0.AsRegister;
 		RegisterID Ptr = ReV[0];
 		RegisterID RegOut = ReV[1];
@@ -391,7 +391,7 @@ void Interpreter::Extecute(Instruction& Inst)
 	break;
 	case InstructionSet::PointerMemberRead64:
 	{
-		size_t Offset = Get_Register(Inst.Value1.AsRegister).Value.AsAddress;
+		size_t Offset = Inst.Value1.AsAddress;
 		RegisterID* ReV = &Inst.Value0.AsRegister;
 		RegisterID Ptr = ReV[0];
 		RegisterID RegOut = ReV[1];
@@ -402,7 +402,7 @@ void Interpreter::Extecute(Instruction& Inst)
 
 	case InstructionSet::PointerMemberLoad64:
 	{
-		size_t Offset = Get_Register(Inst.Value1.AsRegister).Value.AsAddress;
+		size_t Offset = Inst.Value1.AsAddress;
 		RegisterID* ReV = &Inst.Value0.AsRegister;
 		RegisterID Ptr = ReV[0];
 		RegisterID RegOut = ReV[1];
@@ -412,7 +412,7 @@ void Interpreter::Extecute(Instruction& Inst)
 	break;
 	case InstructionSet::PointerMemberLoad32:
 	{
-		size_t Offset = Get_Register(Inst.Value1.AsRegister).Value.AsAddress;
+		size_t Offset = Inst.Value1.AsAddress;
 		RegisterID* ReV = &Inst.Value0.AsRegister;
 		RegisterID Ptr = ReV[0];
 		RegisterID RegOut = ReV[1];
@@ -422,7 +422,7 @@ void Interpreter::Extecute(Instruction& Inst)
 	break;
 	case InstructionSet::PointerMemberLoad16:
 	{
-		size_t Offset = Get_Register(Inst.Value1.AsRegister).Value.AsAddress;
+		size_t Offset = Inst.Value1.AsAddress;
 		RegisterID* ReV = &Inst.Value0.AsRegister;
 		RegisterID Ptr = ReV[0];
 		RegisterID RegOut = ReV[1];
@@ -432,7 +432,7 @@ void Interpreter::Extecute(Instruction& Inst)
 	break;
 	case InstructionSet::PointerMemberLoad8:
 	{
-		size_t Offset = Get_Register(Inst.Value1.AsRegister).Value.AsAddress;
+		size_t Offset = Inst.Value1.AsAddress;
 		RegisterID* ReV = &Inst.Value0.AsRegister;
 		RegisterID Ptr = ReV[0];
 		RegisterID RegOut = ReV[1];
@@ -460,7 +460,7 @@ void Interpreter::Extecute(Instruction& Inst)
 			auto CppV = *Cpp;
 			auto& inter = *(InterpreterCPPinterface*)&_CPPHelper;
 			inter = InterpreterCPPinterface(this);
-			(*CppV)(inter);
+			(*CppV->InterpreterCall)(inter);
 		}
 		else
 		{

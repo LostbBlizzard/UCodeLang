@@ -197,7 +197,7 @@ UInt64 Jit_Interpreter::OnUAddressCall()
 	//Call(V);
 
 	throw std::exception("not added");
-	SetCPPRetNone
+	return 0;
 }
 CPPCallRet Jit_Interpreter::Call_CPPFunc(JitFunc ToCall)
 {
@@ -212,7 +212,7 @@ CPPCallRet Jit_Interpreter::Call_CPPFunc(JitFunc ToCall)
 	ToCall(InterpreterCPPinterface(&_Interpreter));
 	//_Interpreter.Get_OutRegister().Value = r;
 	
-	SetCPPRetNone
+	
 	
 #else
 	throw std::exception("not added");

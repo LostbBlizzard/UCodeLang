@@ -19,7 +19,7 @@ public:
 	void LinkLib(RunTimeLib* Item);
 
 	Optional < UAddress> FindAddress(const String& FunctionName);
-	Optional<RunTimeLib::CPPCallBack*> FindCPPCall(const String& FunctionName);
+	Optional<RunTimeLib::CPPCall*> FindCPPCall(const String& FunctionName);
 	inline Instruction& GetInst(UAddress address)
 	{
 		return _Instructions[(NSize_t)address];
@@ -67,7 +67,7 @@ public:
 	void InitExCode();
 private:
 	VectorMap<String, UAddress> _NameToAddress;
-	VectorMap<String, RunTimeLib::CPPCallBack> _NameToCPP;
+	VectorMap<String, RunTimeLib::CPPCall> _NameToCPP;
 	Vector<Instruction> _Instructions;
 
 	Vector<Byte> _Code;

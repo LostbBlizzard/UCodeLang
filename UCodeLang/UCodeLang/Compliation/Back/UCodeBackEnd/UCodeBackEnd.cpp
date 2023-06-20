@@ -107,6 +107,21 @@ void UCodeBackEndObject::Build(const IRBuilder* Input)
 		LinkFuncs();
 	}
 }
+UCodeBackEndObject::IRlocData UCodeBackEndObject::To(const ParlocData& Value)
+{
+	IRlocData r;
+	r.ObjectType = Value.Par->type;
+
+	if (auto V = Value.Location.Get_If<RegisterID>())
+	{
+		r.Info = *V;
+	}
+	else 
+	{
+		throw std::exception("bad path");
+	}
+	return r;
+}
 void UCodeBackEndObject::UpdateOptimizations()
 {
 	auto& Setings = Get_Settings();
@@ -675,7 +690,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		case IRInstructionType::Reassign_dereference:
 		{
 			RegisterID Pointer = MakeIntoRegister(Item, Item.Target());
-			StoreValueInPointer(GetType(&Item), Pointer, GetIRLocData(Item, Item.Target()));
+			StoreValueInPointer(Pointer, GetIRLocData(Item, Item.Input()));
 		}
 		break; 
 		case IRInstructionType::EqualTo:
@@ -929,8 +944,9 @@ UCodeBackEndObject::FuncCallEndData  UCodeBackEndObject::FuncCallStart(const Vec
 		if (Item.Types.has_value())
 		{
 			auto& ItemTypes = Item.Types.value();
-			if (auto& IR = *ItemTypes.Get_If<const IRInstruction*>())
+			if (auto IRV = ItemTypes.Get_If<const IRInstruction*>())
 			{
+				auto& IR = *IRV;
 				if (IsReferencedAfterThisIndex(IR))
 				{
 					auto VType = GetType(IR);
@@ -1042,8 +1058,9 @@ void UCodeBackEndObject::FuncCallEnd(UCodeBackEndObject::FuncCallEndData& Data)
 		if (Item.Types.has_value())
 		{
 			auto& ItemTypes = Item.Types.value();
-			if (auto& IR = *ItemTypes.Get_If<const IRInstruction*>())
+			if (auto IRV = ItemTypes.Get_If<const IRInstruction*>())
 			{
+				auto IR = *IRV;
 				if (IsReferencedAfterThisIndex(IR))
 				{
 					auto VType = GetType(IR);
@@ -1221,9 +1238,70 @@ void UCodeBackEndObject::BuildSIntToIntCast(const IRInstruction& Ins, const IROp
 {
 	BuildUIntToIntCast(Ins, Op, IntSize);
 }
-void UCodeBackEndObject::StoreValueInPointer(const IRType& ObjectType, RegisterID Pointer, const IRlocData& Value)
+void UCodeBackEndObject::StoreValueInPointer(RegisterID Pointer,size_t Pointerofset, const IRlocData& Value)
 {
+	size_t ObjectSize = GetSize(Value.ObjectType);
+	size_t Offset = Pointerofset;
+	
 
+	while (ObjectSize != 0)
+	{
+		RegisterID Reg = RegisterID::D;
+		if (ObjectSize >= 8)
+		{
+			if (Offset == 0)
+			{
+				InstructionBuilder::StoreRegToPtr64(_Ins, Reg, Pointer); PushIns();
+			}
+			else
+			{
+				InstructionBuilder::PointerMemberLoad64(_Ins, Reg, Pointer, Offset); PushIns();
+			}
+			ObjectSize -= 8;
+			Offset += 8;
+		}
+		else if (ObjectSize >= 4)
+		{
+			if (Offset == 0)
+			{
+				InstructionBuilder::StoreRegToPtr32(_Ins, Reg, Pointer); PushIns();
+			}
+			else
+			{
+				InstructionBuilder::PointerMemberLoad32(_Ins, Reg, Pointer, Offset); PushIns();
+			}
+			ObjectSize -= 4;
+			Offset += 4;
+		}
+		else if (ObjectSize >= 2)
+		{
+			if (Offset == 0)
+			{
+				InstructionBuilder::StoreRegToPtr16(_Ins, Reg, Pointer); PushIns();
+			}
+			else
+			{
+				InstructionBuilder::PointerMemberLoad16(_Ins, Reg, Pointer, Offset); PushIns();
+			}
+			ObjectSize -= 2;
+			Offset += 2;
+		}
+		else if (ObjectSize >= 1)
+		{
+			if (Offset == 0)
+			{
+				InstructionBuilder::StoreRegToPtr8(_Ins, Reg, Pointer); PushIns();
+			}
+			else
+			{
+				InstructionBuilder::PointerMemberLoad8(_Ins, Reg, Pointer, Offset); PushIns();
+			}
+			ObjectSize -= 1;
+			Offset += 1;
+		}
+	}
+
+	
 }
 RegisterID UCodeBackEndObject::MakeIntoRegister(const IRlocData& Value, Optional<RegisterID> RegisterToPut)
 {
@@ -1237,7 +1315,34 @@ RegisterID UCodeBackEndObject::MakeIntoRegister(const IRlocData& Value, Optional
 		}
 		return V;
 	}
+	else if (auto Val = Value.Info.Get_If<IRlocData_StackPost>())
+	{
+		auto Tep = GetRegisterForTep();
 
+		auto Size = GetSize(Value.ObjectType);
+
+	
+		switch (Size)
+		{
+		case 1:
+			InstructionBuilder::GetFromStackSub8(_Ins, Val->offset, Tep);
+			break;
+		case 2:
+			InstructionBuilder::GetFromStackSub16(_Ins, Val->offset, Tep);
+			break;
+		case 4:
+			InstructionBuilder::GetFromStackSub32(_Ins, Val->offset, Tep);
+			break;
+		case 8:
+			InstructionBuilder::GetFromStackSub64(_Ins, Val->offset, Tep);
+			break;
+		default:
+			throw std::exception("not added");
+			break;
+		}PushIns();
+
+		return Tep;
+	}
 
 	throw std::exception("not added");
 }
@@ -1247,6 +1352,10 @@ void  UCodeBackEndObject::GiveNameTo(const IRlocData& Value, const IRInstruction
 	{
 		GiveNameToReg(Value.Info.Get<RegisterID>(), &Name);
 	}
+	else if (auto Val = Value.Info.Get_If<IRlocData_StackPost>())
+	{
+		
+	}
 	else
 	{
 		throw std::exception("not added");
@@ -1254,6 +1363,24 @@ void  UCodeBackEndObject::GiveNameTo(const IRlocData& Value, const IRInstruction
 }
 UCodeBackEndObject::IRlocData UCodeBackEndObject::GetPointerOf(const IRlocData& Value)
 {
+	if (auto Val = Value.Info.Get_If<RegisterID>())
+	{//move bad boy on the stack
+		throw std::exception("not added");
+	}
+	else if (auto Val = Value.Info.Get_If<IRlocData_StackPost>())
+	{
+		auto R = GetRegisterForTep();
+		InstructionBuilder::GetPointerOfStack(_Ins, R, Val->offset);
+
+		IRlocData V;
+		V.Info = R;
+		V.ObjectType = IRTypes::pointer;
+		return V;
+	}
+	else
+	{
+		throw std::exception("not added");
+	}
 	throw std::exception("not added");
 }
 RegisterID UCodeBackEndObject::LoadOp(const IRInstruction& Ins, const  IROperator& Op)
@@ -1452,20 +1579,7 @@ void UCodeBackEndObject::StoreValue(const IRInstruction& Ins, const  IROperator&
 		auto Reg = LoadOp(*Item,Item->Target());
 		size_t FieldOffset = _Input->GetOffset(VStruct, Item->Input().Value.AsUIntNative);
 
-		size_t ObjectSize = 4;
-
-		auto RegOut = LoadOp(Ins,Input);
-
-		if (FieldOffset == 0)
-		{
-			InstructionBuilder::StoreRegToPtr32(_Ins, RegOut, Reg); PushIns();
-		}
-		else
-		{
-			InstructionBuilder::PointerMemberLoad32(_Ins, Reg, RegOut, FieldOffset); PushIns();
-		}
-
-		//StoreValueInPointer(IRTypes::i32, RegisterID::A, RegisterID::D);
+		StoreValueInPointer(Reg,FieldOffset,GetIRLocData(Ins, Input));
 	}
 	else
 	{
@@ -1673,9 +1787,9 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 			{
 				if (Item->Type == IRInstructionType::Member_Access)
 				{
-					auto Pos = GetIRLocData(*Item,Item->Target());
+					auto Pos = GetIRLocData(*Item, Item->Target());
 					const IRStruct* VStruct = _Input->GetSymbol(Pos.ObjectType._symbol)->Get_ExAs<IRStruct>();
-					
+
 					size_t& StackOffset = Pos.Info.Get<IRlocData_StackPost>().offset;
 					StackOffset += _Input->GetOffset(VStruct, Item->Input().Value.AsUIntNative);
 
@@ -1683,7 +1797,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 				}
 				else if (Item->Type == IRInstructionType::Member_Access_Dereference)
 				{
-					const IRStruct* VStruct = _Input->GetSymbol(GetType(Item,Item->Target())._symbol)->Get_ExAs<IRStruct>();
+					const IRStruct* VStruct = _Input->GetSymbol(GetType(Item, Item->Target())._symbol)->Get_ExAs<IRStruct>();
 
 					auto Reg = LoadOp(*Item, Item->Target());
 					size_t FieldOffset = _Input->GetOffset(VStruct, Item->Input().Value.AsUIntNative);
@@ -1692,7 +1806,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 
 					auto RegOut = GetRegisterForTep();
 
-					if (FieldOffset == 0) 
+					if (FieldOffset == 0)
 					{
 						InstructionBuilder::StoreFromPtrToReg32(_Ins, Reg, RegOut); PushIns();
 					}
@@ -1702,6 +1816,10 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 					}
 
 					CompilerRet.Info = RegOut;
+				}
+				else if (Item->Type == IRInstructionType::Call)
+				{
+					CompilerRet.Info = RegisterID::OuPutRegister;
 				}
 				else
 				{
@@ -1715,7 +1833,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 
 			if (V) 
 			{
-				throw std::exception("bad path");
+				return To(*V);
 			}
 			else
 			{
@@ -1738,9 +1856,49 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 	}
 	else
 	{
-		if (Op.Type == IROperatorType::IRInstruction)
+		IRlocData CompilerRet;
+		CompilerRet.ObjectType = GetType(&Ins, Op);
+		if (Op.Type == IROperatorType::DereferenceOf_IRParameter)
 		{
-			throw std::exception("bad path");
+			auto V = GetParData(Op.Parameter);
+
+			if (V)
+			{
+				auto Stackpos = _Stack.AddWithSize(&Ins,GetSize(Ins.ObjectType));
+				
+				CompilerRet.Info = IRlocData_StackPost(Stackpos->Offset);	
+				CopyValues(To(*V),CompilerRet,true,false);
+				return CompilerRet;
+			}
+			else
+			{
+				throw std::exception("bad path");
+			}
+		}
+		else if (Op.Type == IROperatorType::IRInstruction)
+		{
+			auto Item = Op.Pointer;
+
+			auto InReg = FindIRInRegister(Item);
+			if (InReg.has_value())
+			{
+				CompilerRet.Info = InReg.value();
+			}
+			else
+			{
+				auto Val = _Stack.Has(Item);
+
+				if (Val)
+				{
+					CompilerRet.Info = IRlocData_StackPost(Val->Offset);
+				}
+				else 
+				{
+					throw std::exception("not added");
+				}
+			}
+
+			return CompilerRet;
 		}
 		else
 		{
@@ -1749,9 +1907,255 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 	}
 	throw std::exception("not added");
 }
-void UCodeBackEndObject::CopyValues(const IRlocData& Src, const IRlocData& Out)
+void UCodeBackEndObject::MoveRegInValue(RegisterID Value, const IRlocData& To, size_t Offset)
 {
+	auto Size = GetSize(To.ObjectType);
+	if (auto Val = To.Info.Get_If<RegisterID>())
+	{
+		RegToReg(To.ObjectType._Type, Value, *Val);
+	}
+	else if (auto Val = To.Info.Get_If<IRlocData_StackPost>())
+	{
+		switch (Size)
+		{
+		case 1:
+			InstructionBuilder::StoreRegOnStackSub8(_Ins, Value, Val->offset); PushIns();
+			break;
+		case 2:
+			InstructionBuilder::StoreRegOnStackSub16(_Ins, Value, Val->offset); PushIns();
+			break;
+		case 4:
+			InstructionBuilder::StoreRegOnStackSub32(_Ins, Value, Val->offset); PushIns();
+			break;
+		case 8:
+			InstructionBuilder::StoreRegOnStackSub64(_Ins, Value, Val->offset); PushIns();
+			break;
+		default:
+			throw std::exception("bad path");
+			break;
+		}
+	}
+	else
+	{
+		throw std::exception("bad path");
+	}
+}
+void UCodeBackEndObject::MoveValueInReg(const IRlocData& Value, size_t Offset, size_t MemberSize, RegisterID To)
+{
+	auto Size = GetSize(Value.ObjectType);
+	if (auto Val = Value.Info.Get_If<RegisterID>())
+	{
 
+	}
+	else
+	{
+		throw std::exception("bad path");
+	}
+}
+void UCodeBackEndObject::ReadValueFromPointer(RegisterID Pointer, size_t Pointerofset, const IRlocData& Out)
+{
+	auto Size = GetSize(Out.ObjectType);
+	if (auto Val = Out.Info.Get_If<RegisterID>())
+	{
+		if (Pointerofset == 0)
+		{
+			switch (Size)
+			{
+			case 1:
+				InstructionBuilder::StoreFromPtrToReg8(_Ins, Pointer, *Val); PushIns();
+				break;
+			case 2:
+				InstructionBuilder::StoreFromPtrToReg16(_Ins, Pointer, *Val); PushIns();
+				break;
+			case 4:
+				InstructionBuilder::StoreFromPtrToReg32(_Ins, Pointer, *Val); PushIns();
+				break;
+			case 8:
+				InstructionBuilder::StoreFromPtrToReg64(_Ins, Pointer, *Val); PushIns();
+				break;
+			default:
+				throw std::exception("bad path");
+				break;
+			}
+		}
+		else
+		{
+			switch (Size)
+			{
+			case 1:
+				InstructionBuilder::PointerMemberRead8(_Ins, Pointer, *Val, Pointerofset); PushIns();
+				break;
+			case 2:
+				InstructionBuilder::PointerMemberRead16(_Ins, Pointer, *Val, Pointerofset); PushIns();
+				break;
+			case 4:
+				InstructionBuilder::PointerMemberRead32(_Ins, Pointer, *Val, Pointerofset); PushIns();
+				break;
+			case 8:
+				InstructionBuilder::PointerMemberRead64(_Ins, Pointer, *Val, Pointerofset); PushIns();
+				break;
+			default:
+				throw std::exception("bad path");
+				break;
+			}
+		}
+	}
+	else
+	{
+		throw std::exception("bad path");
+	}
+}
+void UCodeBackEndObject::CopyValues(const IRlocData& Src, const IRlocData& Out, bool DerefSrc, bool DerefOut)
+{
+	auto Size = GetSize(Out.ObjectType);
+	size_t Offset = 0;
+	//auto Tep = GetRegisterForTep();
+	auto Tep = RegisterID::F;
+
+	RegisterID SrcPointer = RegisterID::A;
+	RegisterID OutPointer = RegisterID::A;
+	if (DerefSrc)
+	{
+		SrcPointer = MakeIntoRegister(Src);
+		
+	}
+	if (DerefOut)
+	{
+		OutPointer = MakeIntoRegister(Out);
+	}
+	while (Size != 0)
+	{
+		
+		if (Size >= 8)
+		{
+			if (DerefSrc)
+			{
+				IRlocData V;
+				V.Info = Tep;
+				V.ObjectType = IRTypes::i64;
+				ReadValueFromPointer(SrcPointer,Offset,V);
+			}
+			else 
+			{
+				MoveValueInReg(Src, Offset, 8, Tep);
+			}
+
+			if (DerefOut) 
+			{
+				IRlocData V;
+				V.Info = Tep;
+				V.ObjectType = IRTypes::i64;
+				StoreValueInPointer(OutPointer, Offset, V);
+			}
+			else
+			{
+				IRlocData V;
+				V.Info = Out.Info;
+				V.ObjectType = IRTypes::i64;
+				MoveRegInValue(Tep, V, Offset);
+			}
+
+			Offset += 8;
+			Size -= 8;
+		}
+		else if (Size >= 4)
+		{
+			if (DerefSrc)
+			{
+				IRlocData V;
+				V.Info = Tep;
+				V.ObjectType = IRTypes::i32;
+				ReadValueFromPointer(SrcPointer, Offset, V);
+			}
+			else
+			{
+				MoveValueInReg(Src, Offset, 4, Tep);
+			}
+
+			if (DerefOut)
+			{
+				IRlocData V;
+				V.Info = Tep;
+				V.ObjectType = IRTypes::i32;
+				ReadValueFromPointer(SrcPointer, Offset, V);
+			}
+			else 
+			{
+				IRlocData V;
+				V.Info =Out.Info;
+				V.ObjectType = IRTypes::i32;
+				MoveRegInValue(Tep, V, Offset);
+			}
+
+			Offset += 4;
+			Size -= 4;
+		}
+		else if (Size >= 2)
+		{
+			if (DerefSrc)
+			{
+				IRlocData V;
+				V.Info = Tep;
+				V.ObjectType = IRTypes::i16;
+				ReadValueFromPointer(SrcPointer, Offset,V);
+			}
+			else
+			{
+				MoveValueInReg(Src, Offset, 2, Tep);
+			}
+
+			if (DerefOut)
+			{
+				IRlocData V;
+				V.Info = Tep;
+				V.ObjectType = IRTypes::i16;
+				ReadValueFromPointer(SrcPointer, Offset, V);
+			}
+			else
+			{
+				IRlocData V;
+				V.Info = Out.Info;
+				V.ObjectType = IRTypes::i32;
+				MoveRegInValue(Tep, V, Offset);
+			}
+
+			Offset += 2;
+			Size -= 2;
+		}
+		else if (Size >= 1)
+		{
+
+			if (DerefSrc)
+			{
+				IRlocData V;
+				V.Info = Tep;
+				V.ObjectType = IRTypes::i8;
+				ReadValueFromPointer(SrcPointer, Offset, V);
+			}
+			else
+			{
+				MoveValueInReg(Src, Offset, 1, Tep);
+			}
+
+			if (DerefOut)
+			{
+				IRlocData V;
+				V.Info = Tep;
+				V.ObjectType = IRTypes::i8;
+				ReadValueFromPointer(SrcPointer, Offset, V);
+			}
+			else
+			{
+				IRlocData V;
+				V.Info = Out.Info;
+				V.ObjectType = IRTypes::i8;
+				MoveRegInValue(Tep, V, Offset);
+			}
+
+			Offset += 1;
+			Size -= 1;
+		}
+	}
 }
 
 void UCodeBackEndObject::LogicalNot(IRTypes Type, RegisterID In, RegisterID Out)
