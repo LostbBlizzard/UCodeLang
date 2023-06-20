@@ -140,6 +140,19 @@ struct StackInfo
 	}
 	Vector<Unique_ptr<StackItem>> Items;
 
+	StackItem* Get(size_t Offset)
+	{
+		for (auto& Item : Items)
+		{
+			if (Item->Offset == Offset)
+			{
+				return Item.get();
+			}
+		}
+
+		return nullptr;
+	}
+
 	StackItem* Has(const IRInstruction* Value)
 	{
 		for (auto& Item : Items)

@@ -94,7 +94,7 @@ Optional<UAddress> UCLibManger::FindAddress(const String& FunctionName)
 	}
 }
 
-Optional<RunTimeLib::CPPCallBack*> UCLibManger::FindCPPCall(const String& FunctionName)
+Optional<RunTimeLib::CPPCall*> UCLibManger::FindCPPCall(const String& FunctionName)
 {
 	if (_NameToCPP.count(FunctionName))
 	{

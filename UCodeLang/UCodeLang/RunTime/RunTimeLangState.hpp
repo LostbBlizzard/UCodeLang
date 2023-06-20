@@ -162,7 +162,7 @@ public:
 	{
 		return _Data.FindAddress(FunctionName);
 	}
-	UCodeLangForceinline Optional<RunTimeLib::CPPCallBack*> FindCPPCall(const String& FunctionName)
+	UCodeLangForceinline Optional<RunTimeLib::CPPCall*> FindCPPCall(const String& FunctionName)
 	{
 		return _Data.FindCPPCall(FunctionName);
 	}

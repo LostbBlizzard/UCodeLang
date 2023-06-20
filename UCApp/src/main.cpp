@@ -47,20 +47,17 @@ const UCodeLang::String UCodeLangVSAPIPath = UCodeLangVSProjectPath + "\\UCodeAP
 #define StandardLibrarynamespace "ULang"
 
 
-int Test(int A)
+int UCodeLangAPI Test(int A)
 {
 	std::cout << "DLLCall Got Value " << A << std::endl;
 	return A;
 } 
 
-void Test2()
+void ULang_Test(InterpreterCPPinterface& Input)
 {
-	std::cout << "Hello World" << std::endl;
+	Input.Set_Return(Test(Input.GetParameter<int>()));
 }
 
-MakeNewCPPCall(Test,int,int);
-
-MakeNewCPPCall_voidNoPar(Test2);
 
 static Interpreter RunTime;
 template< typename T >
@@ -170,8 +167,7 @@ int main()
 
 		UCodeLang::RunTimeLib DLLib;
 
-		Lib.Add_CPPCall("Test", GetCPPCallName(Test));
-		Lib.Add_CPPCall("Test2", GetCPPCallName(Test2));
+		Lib.Add_CPPCall("Test",ULang_Test,Test);
 
 		UCodeLang::RunTimeLangState State;
 		State.AddLib(&Lib);
@@ -190,7 +186,17 @@ int main()
 		RunTime.Call(ThreadVariablesInitializeFunc);
 
 		auto CallIndex = State.FindAddress(FuncMain->DecorationName);
-		auto AutoPtr = RunTime.RCall<UAddress>(*FuncMain,5,5,5,10,2);
+		
+
+		int BufferToCopy[3]{1,2,3};
+		int Buffer[3];
+		struct Vec2
+		{
+			int X;
+			int Y;
+		};
+
+		auto AutoPtr = RunTime.RCall<Vec2>(*FuncMain,&Buffer);
 
 		
 
