@@ -29,8 +29,11 @@ $Testing:Vec2:
 ---Testing:main2^[]&,[]&: 
    7 :StoreFromPtrToReg32 [E],[A]
    8 :StoreRegToPtr32 [A],[D]
-   9 :Store32 [B],0
-   10 :StoreRegToReg32 [B],[F]
-   11 :Ret 
+   9 :Read32 [Ptr:[E]],[Target:[B]],4
+   10 :Load32 [Ptr:[D]],[Target:[B]],4
+   11 :Read32 [Ptr:[E]],[Target:[C]],8
+   12 :Load32 [Ptr:[D]],[Target:[C]],8
+   13 :Store32 [F],0
+   14 :Ret 
 ---Testing:Hello:OtherFuncion: 
-   12 :Ret 
+   15 :Ret 
