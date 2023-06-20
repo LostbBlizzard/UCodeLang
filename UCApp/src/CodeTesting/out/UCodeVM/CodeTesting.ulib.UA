@@ -3,7 +3,7 @@ $[_global]:
 .size:0
 
  |Testing:main[Testing:Vec2&] -> sint32;//Testing:main^[]&
- |Testing:main[Testing:Vec2&Testing:Vec2&] -> sint32;//Testing:main^[]&,[]&
+ |Testing:main2[Testing:Vec2&Testing:Vec2&] -> sint32;//Testing:main2^[]&,[]&
  |Testing:Hello:OtherFuncion[] -> void;//Testing:Hello:OtherFuncion
 
 
@@ -26,9 +26,9 @@ $Testing:Vec2:
    4 :Load32 [Ptr:[D]],[Target:[A]],8
    5 :StoreRegToReg32 [A],[F]
    6 :Ret 
----Testing:main^[]&,[]&: 
+---Testing:main2^[]&,[]&: 
    7 :StoreFromPtrToReg32 [E],[A]
-   8 :StoreRegToPtr32 [A],[E]
+   8 :StoreRegToPtr32 [A],[D]
    9 :Store32 [B],0
    10 :StoreRegToReg32 [B],[F]
    11 :Ret 

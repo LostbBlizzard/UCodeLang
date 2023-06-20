@@ -39,9 +39,9 @@ enum class ErrorCodes : ErrorCodes_t
 	//
 	BackEndError,
 
-	LinkEnd,
-
 	InternalCompilerError,
+	
+	LinkEnd,
 };
 class CompliationErrors
 {

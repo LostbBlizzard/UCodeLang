@@ -7305,6 +7305,13 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 			Out.Type = SymbolVar->VarType;
 			Out.Symbol = SymbolVar;
 
+			if (SymbolVar->Type == SymbolType::ParameterVarable)
+			{
+				//because overloaded funcions have the same Symbol FullNames we need to pick the this one and not the first one/  
+				FuncInfo* Func = _FuncStack.back().Pointer;
+				//throw std::exception("bad");
+			}
+
 			if (ScopeName.Generic.get() && ScopeName.Generic->Values.size())
 			{
 				TypeNode Tep;
