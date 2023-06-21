@@ -275,27 +275,60 @@ private:
 
 	void RegWillBeUsed(RegisterID Value);
 	
-	void GiveNameToReg(RegisterID Value, const AnyInt64 Name)
+	void SetRegister(RegisterID Value, const AnyInt64 Name)
 	{
 		_Registers.SetRegister(Value, Name);
 	}
-	void GiveNameToReg(RegisterID Value, const IRInstruction* Name)
+	void SetRegister(RegisterID Value, const IRInstruction* Name)
 	{
 		_Registers.SetRegister(Value,Name);
 	}
-	void GiveNameToReg(RegisterID Value, const IROperator& Name)
+	void SetRegister(RegisterID Value, const IROperator& Name)
 	{
 		_Registers.SetRegister(Value, Name);
 	}
-	void GiveNameToReg(RegisterID Value, const IRPar* Name)
+	void SetRegister(RegisterID Value, const IRPar* Name)
 	{
-		GiveNameToReg(Value,IROperator((IRPar*)Name));
+		SetRegister(Value,IROperator((IRPar*)Name));
 	}
+	void SetRegister(RegisterID Value,const IRlocData& Name)
+	{
+		SetRegister(Value, IROperator());
+	}
+
+
 	RegisterID GetRegisterForTep();
+
+
+	RegisterID GetRegisterForTep(const AnyInt64 Value)
+	{
+		auto R = GetRegisterForTep();
+		SetRegister(R, Value);
+		return R;
+	}
+	RegisterID GetRegisterForTep(const IRInstruction* Value)
+	{
+		auto R = GetRegisterForTep();
+		SetRegister(R, Value);
+		return R;
+	}
+	RegisterID GetRegisterForTep(const IROperator& Value)
+	{
+		auto R = GetRegisterForTep();
+		SetRegister(R, Value);
+		return R;
+	}
+	RegisterID GetRegisterForTep(const IRlocData& Value)
+	{
+		auto R = GetRegisterForTep();
+		SetRegister(R, Value);
+		return R;
+	}
+
 	Optional<RegisterID> FindIRInRegister(const IRInstruction* Value);
 	Optional<RegisterID> FindValueInRegister(AnyInt64 Value);
 
-	void UnLockRegister(RegisterID ID)
+	void FreeRegister(RegisterID ID)
 	{
 		_Registers.FreeRegister(ID);
 	}

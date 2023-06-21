@@ -5,7 +5,7 @@
 $Vec2:
  int x;
  int y;
- //int z;
+ int z;
 
 extern dynamic |Test[int a] -> Vec2;
 
@@ -13,10 +13,9 @@ extern dynamic |Test[int a] -> Vec2;
 |main[Vec2& Other] -> Vec2:
  ret Other;
 
- 
+|main2[] => Test(0);
 /*
-|main[]:
- var V = Test(0);
+
  ret V.x;
 */
 
