@@ -14,8 +14,13 @@ extern dynamic |Test[int a] -> Vec2;
  ret Other;
 
 |main2[] => Test(0);
-/*
 
+
+static Vec2 StaticVec = [];
+
+|main3[] -> void;
+
+/*
  ret V.x;
 */
 
