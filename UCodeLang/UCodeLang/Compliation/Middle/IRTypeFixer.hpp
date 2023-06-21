@@ -17,6 +17,7 @@ public:
 	}
 	void Reset();
 	void FixTypes(IRBuilder* Input);
+	void OnFunc(IRFunc* Func);
 	void GetMemberAccessTypeForIns(UCodeLang::IRType& ClassType, UCodeLang::IRBuilder* Input, UCodeLang::Unique_ptr<UCodeLang::IRInstruction>& Ins);
 
 	UCodeLangForceinline void Set_ErrorsOutput(CompliationErrors* V) { _Errs = V; }
