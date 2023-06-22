@@ -31,11 +31,15 @@ public:
 		#else
 		this->State = State;
 		#endif
+		#if HasSupportforJit
 		this->jitState = JitState;
+		#endif
 	}
 	void UnLoad()
 	{
+		#if HasSupportforJit
 		UFuncToCPPFunc.clear();
+		#endif
 		#if UCodeLang_KeepJitInterpreterFallback
 		_Interpreter.UnLoad();
 		#endif
@@ -157,19 +161,7 @@ public:
 	void Get_Return(void* Output, size_t OutputSize);
 
 
-	using WakeUpCallBack= void(*)(Jit_Interpreter& This);
-	void SetWakeUpCall(WakeUpCallBack Call)
-	{
-		WakeUp = Call;
-	}
-	void WakeUpThis()
-	{
-		if (WakeUp)
-		{
-			WakeUp(*this);
-		}
-	}
-
+	
 private:
 	
 	enum class JitFuncType :UInt8
@@ -193,17 +185,24 @@ private:
 	#else
 	RunTimeLangState* State = nullptr;
 	#endif
+
+
+	#if HasSupportforJit
 	Jit_State* jitState = nullptr;
 
+	
 	NativeJitAssembler _Assembler;
+	
+
 	AsmBuffer ExBuffer = AsmBuffer(Get_EnvironmentData().PageSize);
 	size_t Insoffset = 0;
 
 	
 	BinaryVectorMap<UAddress, JitFuncData> UFuncToCPPFunc;
 	Vector<Byte> TepOutBuffer;
-	WakeUpCallBack WakeUp = nullptr;
-	
+	#endif
+
+
 	static UInt64 OnUAddressCall();
 	CPPCallRet Call_CPPFunc(JitFunc ToCall);
 

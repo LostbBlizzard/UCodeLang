@@ -66,9 +66,10 @@ thread_local JitRuningState _ThisState = {};
 
 Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 {
+	#if HasNoSupportforJit
+	return _Interpreter.Call(address);
+	#else
 	if (!UFuncToCPPFunc.count(address)){UFuncToCPPFunc[address] = {};}
-	
-	
 	auto& Item = UFuncToCPPFunc[address];
 	
 	BuildCheck(Item, address);
@@ -95,12 +96,15 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 	#else
 	throw std::exception("not added");
 	#endif
+
+	#endif
 }
 
 
 
 void Jit_Interpreter::BuildCheck(UCodeLang::Jit_Interpreter::JitFuncData& Item, const UCodeLang::UAddress& address)
 {
+#if HasSupportforJit 
 	if (Item.Type == JitFuncType::Null)
 	{
 		auto& LibManger = Get_State()->Get_Libs();
@@ -166,12 +170,14 @@ void Jit_Interpreter::BuildCheck(UCodeLang::Jit_Interpreter::JitFuncData& Item, 
 			Item.UCodeFunc = address;
 		}
 	}
+#endif
 }
 void Jit_Interpreter::LogASM()
 {
+#if HasSupportforJit
 	void* InsData = ExBuffer.Data;
 	size_t InsSize = Insoffset;
-
+#if UCodeLang_CPUIs_x86_64 || UCodeLang_CPUIs_x86
 	ZyanU64 runtime_address = (ZyanU64)InsData;
 
 	// Loop over the instructions in our buffer.
@@ -191,9 +197,14 @@ void Jit_Interpreter::LogASM()
 		offset += instruction.info.length;
 		runtime_address += instruction.info.length;
 	}
+#endif
+
+
+#endif
 }
 UInt64 Jit_Interpreter::OnUAddressCall()
 {
+#if HasSupportforJit
 	//save all pars on stack and build code
 
 	UAddress TryingToCall = _ThisState._This->_Assembler.OnUAddressPar;
@@ -228,6 +239,8 @@ UInt64 Jit_Interpreter::OnUAddressCall()
 	//Call(V);
 
 	throw std::exception("not added");
+
+#endif
 	return 0;
 }
 CPPCallRet Jit_Interpreter::Call_CPPFunc(JitFunc ToCall)

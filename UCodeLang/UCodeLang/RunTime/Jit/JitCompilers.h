@@ -9,11 +9,21 @@ using NativeJitAssembler = X86_64JitCompiler;
 #elif UCodeLang_CPUIs_x86
 using NativeJitAssembler = X86JitCompiler;
 #else
-using NativeJitAssembler = X86_64JitCompiler;
-#warning "there's no support for jitCompiler for compilation Target"
+using NativeJitAssembler = void*;
+#define HasNoSupportforJit 1
 #endif // CPUTypes
-
 #define UCodeLang_KeepJitInterpreterFallback 1
+
+#ifdef HasNoSupportforJit
+#if HasNoSupportforJit
+#define HasSupportforJit 0
+#else
+#define HasSupportforJit 1
+#endif // HasNoSupportforJit
+#else
+#define HasSupportforJit 1
+#endif // HasNoSupportforJit
+
 
 UCodeLangEnd
 
