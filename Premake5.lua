@@ -57,6 +57,11 @@ project "UCApp"
      "%{prj.name}/src/**.h",
      "%{prj.name}/src/**.cpp",
      "%{prj.name}/src/**.hpp", 
+
+     "%{prj.name}/tests/**.c",
+     "%{prj.name}/tests/**.h",
+     "%{prj.name}/tests/**.cpp",
+     "%{prj.name}/tests/**.hpp", 
    }
    includedirs{
     "%{prj.name}/src",
@@ -116,7 +121,32 @@ project "UCodeLang"
    }
    includedirs{
     "UCodeLang",
+    "UCodeLang/Dependencies/Zydis/include",
+    "UCodeLang/Dependencies/zycore/include",
+    "UCodeLang/Dependencies/Zydis/src"
    }
+   removefiles{
+     "UCodeLang/Dependencies/Zydis/**.c",
+     "UCodeLang/Dependencies/zycore/**.c",
+
+      "UCodeLang/Dependencies/Zydis/**.cpp",
+     "UCodeLang/Dependencies/zycore/**.cpp",
+
+     "UCodeLang/Dependencies/Zydis/**.h",
+     "UCodeLang/Dependencies/zycore/**.h",
+   }
+   files { 
+    "UCodeLang/Dependencies/Zydis/src/**.c",
+    "UCodeLang/Dependencies/zycore/src/**.c",
+
+    "UCodeLang/Dependencies/Zydis/src/**.inc",
+    "UCodeLang/Dependencies/zycore/src/**.inc",
+
+    "UCodeLang/Dependencies/Zydis/include/**.h",
+    "UCodeLang/Dependencies/zycore/include/**.h",
+   }
+
+
 project "UCodeLanguageSever"
    location "UCodeLanguageSever"
    kind "ConsoleApp"

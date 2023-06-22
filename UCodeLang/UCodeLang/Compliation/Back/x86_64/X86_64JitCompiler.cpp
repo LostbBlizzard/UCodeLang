@@ -112,14 +112,7 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 
 
 
-	{
-		String V;
-		for (auto& Item : X64Output)
-		{
-			V += char_to_hex(Item);
-		};
-		int a = 0;
-	}
+	
 	return true;
 }
 

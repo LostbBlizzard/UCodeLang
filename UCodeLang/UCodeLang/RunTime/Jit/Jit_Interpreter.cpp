@@ -1,4 +1,7 @@
 #include "Jit_Interpreter.hpp"
+#include "Zydis/Zydis.h"
+#include <inttypes.h>
+#include <stdio.h>
 UCodeLangStart
 
 
@@ -80,6 +83,7 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 		_ThisState._This = this;
 		_ThisState.StackFrames.push(Item.UCodeFunc);
 		{
+			Item.Func(InterpreterCPPinterface(&_Interpreter));
 			using Func = UInt64(*)();
 			auto V = (*(Func*)&Item.Func)();
 			_Interpreter.Get_OutRegister().Value = V;
@@ -142,6 +146,8 @@ void Jit_Interpreter::BuildCheck(UCodeLang::Jit_Interpreter::JitFuncData& Item, 
 
 			memcpy((void*)Ptr, TepOutBuffer.data(), InsSize);
 
+			LogASM();
+
 			ExBuffer.SetToExecuteMode();
 
 			for (auto& Item : Insts)
@@ -159,6 +165,31 @@ void Jit_Interpreter::BuildCheck(UCodeLang::Jit_Interpreter::JitFuncData& Item, 
 			Item.Type = JitFuncType::UCodeCall;
 			Item.UCodeFunc = address;
 		}
+	}
+}
+void Jit_Interpreter::LogASM()
+{
+	void* InsData = ExBuffer.Data;
+	size_t InsSize = Insoffset;
+
+	ZyanU64 runtime_address = (ZyanU64)InsData;
+
+	// Loop over the instructions in our buffer.
+	ZyanUSize offset = 0;
+	ZydisDisassembledInstruction instruction;
+	auto V = (ZydisDisassembleIntel(
+		/* machine_mode:    */ ZYDIS_MACHINE_MODE_LONG_64,
+		/* runtime_address: */ runtime_address,
+		/* buffer:          */ (void*)((uintptr_t)InsData + offset),
+		/* length:          */ Insoffset - offset,
+		/* instruction:     */ &instruction
+	));
+
+	while (ZYAN_SUCCESS(V)) 
+	{
+		printf("%016" PRIX64 "  %s\n", runtime_address, instruction.text);
+		offset += instruction.info.length;
+		runtime_address += instruction.info.length;
 	}
 }
 UInt64 Jit_Interpreter::OnUAddressCall()

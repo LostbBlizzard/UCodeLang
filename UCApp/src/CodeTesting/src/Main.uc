@@ -6,7 +6,7 @@ $Vec2:
  byte x = 1;
  byte y = 2;
  byte z = 3;
- byte w = 4;
+ //byte w = 4;
 static Vec2 StaticVec = [];
 thread Vec2 ThreadVec = [];
 
