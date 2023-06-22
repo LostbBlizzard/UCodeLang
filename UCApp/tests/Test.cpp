@@ -336,7 +336,7 @@ namespace ULangTest
 	}
 
 
-	void RunTests()
+	int RunTests()
 	{
 		size_t TestPassed = 0;
 		std::cout << "---runing Test" << std::endl;
@@ -382,7 +382,7 @@ namespace ULangTest
 
 
 
-		
+		return TestPassed == Tests.size();
 	}
 
 	bool LogErrors(std::ostream& out, Compiler& _Compiler)
