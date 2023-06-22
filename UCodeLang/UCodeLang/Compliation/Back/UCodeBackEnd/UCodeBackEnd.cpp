@@ -37,23 +37,34 @@ void UCodeBackEndObject::BuildSymbols()
 
 			StaticMemoryManager::StaticMemInfo newinfo;
 			newinfo.Offset = Offset;
-			if (ItemBuf->IsInitialized)
-			{
-				_Output->AddStaticBytes(ItemBuf->Bytes.data(), ItemSize);
-			}
-			else
-			{
-				_Output->AddStaticBytes(ItemBuf->Bytes.data(), ItemSize);
-			}
-
+			
 
 			if (Item->SymType == IRSymbolType::StaticVarable)
 			{
 				_StaticMemory._List.AddValue(Item->identifier, newinfo);
+
+				if (ItemBuf->IsInitialized)
+				{
+					_Output->AddStaticBytes(ItemBuf->Bytes.data(), ItemSize);
+				}
+				else
+				{
+					_Output->AddStaticBytes(ItemBuf->Bytes.data(), ItemSize);
+				}
+
 			}
 			else
 			{
 				_ThreadMemory._List.AddValue(Item->identifier, newinfo);
+
+				if (ItemBuf->IsInitialized)
+				{
+					_Output->AddThreadBytes(ItemBuf->Bytes.data(), ItemSize);
+				}
+				else
+				{
+					_Output->AddThreadBytes(ItemBuf->Bytes.data(), ItemSize);
+				}
 			}
 		}
 	}

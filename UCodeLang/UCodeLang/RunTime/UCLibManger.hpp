@@ -28,6 +28,10 @@ public:
 	{
 		return StaticBytes;
 	}
+	inline const Vector<UInt8>& GetThreadBytes()
+	{
+		return ThreadBytes;
+	}
 	inline const ClassAssembly& Get_Assembly()
 	{
 		return  Assembly;
@@ -45,6 +49,7 @@ public:
 		_Instructions.clear();
 		Libs.clear();
 		StaticBytes.clear();
+		ThreadBytes.clear();
 	}
 
 	inline const auto& Get_Code()
@@ -73,7 +78,8 @@ private:
 	Vector<Byte> _Code;
 	AsmBuffer _ExCode;
 	
-	Vector <UInt8> StaticBytes;
+	Vector<Byte> StaticBytes;
+	Vector<Byte> ThreadBytes;
 	Vector<RunTimeLib*> Libs;
 	ClassAssembly Assembly;
 };

@@ -336,6 +336,9 @@ void Interpreter::Extecute(Instruction& Inst)
 	case InstructionSet::GetPointerOfStaticMem:
 		Get_Register(Inst.Value0.AsRegister).Value = Get_StaticMemPtr();
 		break;
+	case InstructionSet::GetPointerOfThreadMem:
+		Get_Register(Inst.Value0.AsRegister).Value = GetThreadRegisterPtr();
+		break;
 	case InstructionSet::Malloc:
 		Get_Register(Inst.Value1.AsRegister).Value = 
 			         Malloc(Get_Register(Inst.Value0.AsRegister).Value.AsUIntNative);
