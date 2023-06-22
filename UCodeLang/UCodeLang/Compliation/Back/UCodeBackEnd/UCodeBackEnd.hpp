@@ -119,11 +119,36 @@ private:
 
 		}
 	};
+	struct IRlocData_StaticPos
+	{
+		size_t offset = 0;
+		IRlocData_StaticPos()
+		{
+
+		}
+		IRlocData_StaticPos(size_t offset) :offset(offset)
+		{
+
+		}
+	};
+	struct IRlocData_ThreadPos
+	{
+		size_t offset = 0;
+		IRlocData_ThreadPos()
+		{
+
+		}
+		IRlocData_ThreadPos(size_t offset) :offset(offset)
+		{
+
+		}
+	};
 
 	struct IRlocData
 	{
 		IRType ObjectType;
-		Variant<RegisterID, IRlocData_IRPar, IRlocData_StackPre, IRlocData_StackPost> Info;
+		Variant<RegisterID, IRlocData_IRPar, IRlocData_StackPre, IRlocData_StackPost
+		, IRlocData_ThreadPos, IRlocData_StaticPos> Info;
 	};
 	IRlocData To(const ParlocData& Value);
 	
@@ -369,7 +394,7 @@ private:
 	}
 
 	void MoveRegInValue(RegisterID Value,const IRlocData& To, size_t Offset);
-	void MoveValueInReg(const IRlocData& Value, size_t Offset, size_t MemberSize, RegisterID To);
+	void MoveValueInReg(const IRlocData& Value, size_t Offset, RegisterID To);
 	
 	RegisterID ReadValueFromPointer(const IRType& ObjectType, RegisterID Pointer);
 
@@ -392,7 +417,7 @@ private:
 
 	AnyInt64 ToAnyInt(const IRType& ObjectType, const  IROperator& Op);
 
-	size_t GetStatckOffset(const ParlocData& ItemStackOffset)
+	size_t GetStackOffset(const ParlocData& ItemStackOffset)
 	{
 		if (ItemStackOffset.Location.Is<StackPostCall>())
 		{

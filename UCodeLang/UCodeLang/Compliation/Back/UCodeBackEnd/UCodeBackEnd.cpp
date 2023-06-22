@@ -349,6 +349,13 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		switch (Item.Type)
 		{
 		case IRInstructionType::LoadNone:
+		{
+			if (!_Stack.Has(&Item))
+			{
+				UCodeBackEndObject::IRlocData R;
+				_Stack.AddWithSize(&Item, GetSize(&Item));
+			}
+		}
 			break;
 		case IRInstructionType::Load:
 		{
@@ -667,9 +674,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			InstructionBuilder::Free(_Ins, MakeIntoRegister(Item, Item.Target())); PushIns();
 		}break;
 		case IRInstructionType::Return:
-			DropStack();
-			DropPars();
-			InstructionBuilder::Return(ExitState::Success, _Ins); PushIns();
+			goto DoneLoop;
 			break;
 		case IRInstructionType::Jump:
 			InstructionBuilder::Jump(NullAddress, _Ins); PushIns();
@@ -870,6 +875,11 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 
 		IRToUCodeIns[i] = _OutLayer->Get_Instructions().size() - 1;
 	}
+DoneLoop:
+	DropStack();
+	DropPars();
+	InstructionBuilder::Return(ExitState::Success, _Ins); PushIns();
+	IRToUCodeIns[Index] = _OutLayer->Get_Instructions().size() - 1;
 
 	for (auto& Item : InsToUpdate)
 	{
@@ -1119,6 +1129,52 @@ void UCodeBackEndObject::DropStack()
 		}
 		InstructionBuilder::DecrementStackPointer(_Ins, V); PushIns();
 	}
+
+	for (auto& Item: _Stack.Reupdates)
+	{
+		Instruction& Ins = _OutLayer->Get_Instructions()[Item.InsIndex];
+		if (Item.PostFunc)
+		{
+			size_t NewOffset = _Stack.Size - Item.StackOffset;
+
+
+			switch (Ins.OpCode)
+			{
+			case InstructionSet::GetPointerOfStackSub:
+			{
+				InstructionBuilder::GetPointerOfStackSub(Ins,Ins.Value0.AsRegister, NewOffset);
+			}
+			break;
+			case InstructionSet::GetFromStackSub64:
+			{
+				InstructionBuilder::GetFromStackSub64(Ins,NewOffset, Ins.Value1.AsRegister);
+			}
+			break;
+			case InstructionSet::GetFromStackSub32:
+			{
+				InstructionBuilder::GetFromStackSub32(Ins, NewOffset, Ins.Value1.AsRegister);
+			}
+			break;
+			case InstructionSet::GetFromStackSub16:
+			{
+				InstructionBuilder::GetFromStackSub16(Ins, NewOffset, Ins.Value1.AsRegister);
+			}
+			break;
+			case InstructionSet::GetFromStackSub8:
+			{
+				InstructionBuilder::GetFromStackSub8(Ins, NewOffset, Ins.Value1.AsRegister);
+			}
+			break;
+			default:
+				throw std::exception("bad ins");
+				break;
+			}
+		}
+		else
+		{
+
+		}
+	}
 }
 void UCodeBackEndObject::DropPars()
 {
@@ -1243,19 +1299,22 @@ void UCodeBackEndObject::StoreValueInPointer(RegisterID Pointer,size_t Pointerof
 	size_t ObjectSize = GetSize(Value.ObjectType);
 	size_t Offset = Pointerofset;
 	
-
+	RegisterID Reg = Value.Info.Get<RegisterID>();
+	
 	while (ObjectSize != 0)
 	{
-		RegisterID Reg = RegisterID::D;
+		
 		if (ObjectSize >= 8)
 		{
+			
+
 			if (Offset == 0)
 			{
 				InstructionBuilder::StoreRegToPtr64(_Ins, Reg, Pointer); PushIns();
 			}
 			else
 			{
-				InstructionBuilder::PointerMemberLoad64(_Ins, Reg, Pointer, Offset); PushIns();
+				InstructionBuilder::PointerMemberLoad64(_Ins, Pointer,Reg, Offset); PushIns();
 			}
 			ObjectSize -= 8;
 			Offset += 8;
@@ -1268,7 +1327,7 @@ void UCodeBackEndObject::StoreValueInPointer(RegisterID Pointer,size_t Pointerof
 			}
 			else
 			{
-				InstructionBuilder::PointerMemberLoad32(_Ins, Reg, Pointer, Offset); PushIns();
+				InstructionBuilder::PointerMemberLoad32(_Ins, Pointer,Reg, Offset); PushIns();
 			}
 			ObjectSize -= 4;
 			Offset += 4;
@@ -1281,7 +1340,7 @@ void UCodeBackEndObject::StoreValueInPointer(RegisterID Pointer,size_t Pointerof
 			}
 			else
 			{
-				InstructionBuilder::PointerMemberLoad16(_Ins, Reg, Pointer, Offset); PushIns();
+				InstructionBuilder::PointerMemberLoad16(_Ins, Pointer,Reg, Offset); PushIns();
 			}
 			ObjectSize -= 2;
 			Offset += 2;
@@ -1294,7 +1353,7 @@ void UCodeBackEndObject::StoreValueInPointer(RegisterID Pointer,size_t Pointerof
 			}
 			else
 			{
-				InstructionBuilder::PointerMemberLoad8(_Ins, Reg, Pointer, Offset); PushIns();
+				InstructionBuilder::PointerMemberLoad8(_Ins, Pointer,Reg, Offset); PushIns();
 			}
 			ObjectSize -= 1;
 			Offset += 1;
@@ -1325,21 +1384,22 @@ RegisterID UCodeBackEndObject::MakeIntoRegister(const IRlocData& Value, Optional
 		switch (Size)
 		{
 		case 1:
-			InstructionBuilder::GetFromStackSub8(_Ins, Val->offset, Tep);
+			InstructionBuilder::GetFromStackSub8(_Ins, 0, Tep);
 			break;
 		case 2:
-			InstructionBuilder::GetFromStackSub16(_Ins, Val->offset, Tep);
+			InstructionBuilder::GetFromStackSub16(_Ins, 0, Tep);
 			break;
 		case 4:
-			InstructionBuilder::GetFromStackSub32(_Ins, Val->offset, Tep);
+			InstructionBuilder::GetFromStackSub32(_Ins, 0, Tep);
 			break;
 		case 8:
-			InstructionBuilder::GetFromStackSub64(_Ins, Val->offset, Tep);
+			InstructionBuilder::GetFromStackSub64(_Ins, 0, Tep);
 			break;
 		default:
 			throw std::exception("not added");
 			break;
-		}PushIns();
+		}
+		_Stack.AddReUpdatePostFunc(PushIns(),Val->offset);
 
 		return Tep;
 	}
@@ -1368,17 +1428,21 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetPointerOf(const IRlocData& 
 		auto stack = _Stack.AddWithSize({ nullptr }, GetSize(Value.ObjectType));
 		auto R = GetRegisterForTep();
 
-		InstructionBuilder::GetPointerOfStack(_Ins, R, stack->Offset); PushIns();
+		InstructionBuilder::GetPointerOfStackSub(_Ins, R, 0); PushIns();
+		//mov value on stack
 
 		IRlocData V;
 		V.Info = R;
 		V.ObjectType = IRTypes::pointer;
+		
 		return V;
 	}
 	else if (auto Val = Value.Info.Get_If<IRlocData_StackPost>())
 	{
 		auto R = GetRegisterForTep();
-		InstructionBuilder::GetPointerOfStack(_Ins, R, Val->offset); PushIns();
+		InstructionBuilder::GetPointerOfStackSub(_Ins, R,0);
+
+		_Stack.AddReUpdatePostFunc(PushIns(),Val->offset);
 
 		IRlocData V;
 		V.Info = R;
@@ -1458,25 +1522,25 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction& Ins, const  IROperato
 			auto Type = Op.Parameter->type;
 
 			RegisterID CompilerRet = GetRegisterForTep();
-			size_t Offset = GetStatckOffset(*V);
+			size_t Offset = GetStackOffset(*V);
 
 			switch (Type._Type)
 			{
 			case IRTypes::i8:
-				InstructionBuilder::GetFromStackSub8(_Ins, Offset, CompilerRet); PushIns();
+				InstructionBuilder::GetFromStackSub8(_Ins, 0, CompilerRet);
 				break;
 			case IRTypes::i16:
-				InstructionBuilder::GetFromStackSub16(_Ins, Offset, CompilerRet); PushIns();
+				InstructionBuilder::GetFromStackSub16(_Ins,0, CompilerRet);
 				break;
 			Case32Bit2:
 			case IRTypes::f32:
 			case IRTypes::i32:
-				InstructionBuilder::GetFromStackSub32(_Ins, Offset, CompilerRet); PushIns();
+				InstructionBuilder::GetFromStackSub32(_Ins,0, CompilerRet);
 				break;
 			Case64Bit2:
 			case IRTypes::f64:
 			case IRTypes::i64:
-				InstructionBuilder::GetFromStackSub64(_Ins, Offset, CompilerRet); PushIns();
+				InstructionBuilder::GetFromStackSub64(_Ins,0, CompilerRet);
 				break;
 			case IRTypes::pointer:
 				if (Get_Settings().PtrSize == IntSizes::Int64)
@@ -1493,6 +1557,8 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction& Ins, const  IROperato
 				break;
 
 			}
+			_Stack.AddReUpdatePostFunc(PushIns(), Offset);
+
 			SetRegister(CompilerRet, &Ins);
 
 			V->Location = CompilerRet;
@@ -1591,7 +1657,11 @@ void UCodeBackEndObject::StoreValue(const IRInstruction& Ins, const  IROperator&
 	}
 	else
 	{
-		throw std::exception("not added");
+		IRInstruction V;
+		V.ObjectType = GetType(OutputLocationIR);
+		V.Type = IRInstructionType::Load;
+		V.Target() = OutputLocationIR;
+		CopyValues(GetIRLocData(Ins, Input),GetIRLocData(V, OutputLocationIR));
 	}
 	
 }
@@ -1602,23 +1672,23 @@ void  UCodeBackEndObject::CopyValueToStack(const IRInstruction* IRName, const IR
 	{
 	case IRTypes::i8://move value to stack
 		_Stack.Size += 1;
-		InstructionBuilder::StoreRegOnStackSub8(_Ins, Item, _Stack.Size); PushIns();
+		InstructionBuilder::StoreRegOnStackSub8(_Ins, Item, _Stack.Size);
 		break;
 	case IRTypes::i16:
 		_Stack.Size += 2;
-		InstructionBuilder::StoreRegOnStackSub16(_Ins, Item, _Stack.Size); PushIns();
+		InstructionBuilder::StoreRegOnStackSub16(_Ins, Item, _Stack.Size); 
 		break;
 	Int32L:
 	case IRTypes::f32:
 	case IRTypes::i32:
 		_Stack.Size += 4;
-		InstructionBuilder::StoreRegOnStackSub32(_Ins, Item, _Stack.Size); PushIns();
+		InstructionBuilder::StoreRegOnStackSub32(_Ins, Item, _Stack.Size);
 		break;
 	Int64L:
 	case IRTypes::f64:
 	case IRTypes::i64:
 		_Stack.Size += 8;
-		InstructionBuilder::StoreRegOnStackSub64(_Ins, Item, _Stack.Size); PushIns();
+		InstructionBuilder::StoreRegOnStackSub64(_Ins, Item, _Stack.Size);
 		break;
 	case IRTypes::pointer:
 		switch (Get_Settings().PtrSize)
@@ -1653,6 +1723,7 @@ void  UCodeBackEndObject::CopyValueToStack(const IRInstruction* IRName, const IR
 		break;
 	}
 	_Stack.Add(IRName,StackPos);
+	_Stack.AddReUpdatePostFunc(PushIns(), StackPos);
 }
 void UCodeBackEndObject::MoveValueToStack(const IRInstruction* IRName, const IRType& ObjectType, RegisterID Item)
 {
@@ -1850,7 +1921,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 		}
 		else if (Op.Type == IROperatorType::Get_PointerOf_IRInstruction)
 		{
-			CompilerRet.Info = GetRegisterForTep(Op);
+			CompilerRet = GetPointerOf(GetIRLocData(*Op.Pointer));
 		}
 		else if (Op.Type == IROperatorType::Value)
 		{
@@ -1922,12 +1993,42 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 							CompilerRet.Info = RegisterID::OuPutRegister;
 						}
 					}
-					else {
+					else if (Item->Type == IRInstructionType::LoadNone)
+					{
+
+						auto Stackpos = _Stack.AddWithSize(&Ins, GetSize(Ins.ObjectType));
+
+						CompilerRet.Info = IRlocData_StackPost(Stackpos->Offset);
+						return CompilerRet;
+					}
+					else 
+					{
 						throw std::exception("not added");
 					}
 				}
 			}
 
+			return CompilerRet;
+		}
+		else if (Op.Type == IROperatorType::IRidentifier)
+		{
+			if (auto Syb = _Input->GetSymbol(Op.identifer))
+			{
+				if (Syb->SymType == IRSymbolType::StaticVarable)
+				{
+					const auto& Mem = _StaticMemory._List.at(Op.identifer);
+					CompilerRet.Info = IRlocData_StaticPos(Mem.Offset);
+				}
+				else if (Syb->SymType == IRSymbolType::ThreadLocalVarable)
+				{
+					const auto& Mem =_ThreadMemory._List.at(Op.identifer);
+					CompilerRet.Info = IRlocData_ThreadPos(Mem.Offset);
+				}
+				else
+				{
+					throw std::exception("not added");
+				}
+			}
 			return CompilerRet;
 		}
 		else
@@ -1942,23 +2043,78 @@ void UCodeBackEndObject::MoveRegInValue(RegisterID Value, const IRlocData& To, s
 	auto Size = GetSize(To.ObjectType);
 	if (auto Val = To.Info.Get_If<RegisterID>())
 	{
-		RegToReg(To.ObjectType._Type, Value, *Val);
+		if (Offset == 0) {
+			RegToReg(To.ObjectType._Type, Value, *Val);
+		}
+		else
+		{
+			throw std::exception("not added");
+		}
 	}
 	else if (auto Val = To.Info.Get_If<IRlocData_StackPost>())
 	{
 		switch (Size)
 		{
 		case 1:
-			InstructionBuilder::StoreRegOnStackSub8(_Ins, Value, Val->offset + Offset); PushIns();
+			InstructionBuilder::StoreRegOnStackSub8(_Ins, Value, 0); 
 			break;
 		case 2:
-			InstructionBuilder::StoreRegOnStackSub16(_Ins, Value, Val->offset + Offset); PushIns();
+			InstructionBuilder::StoreRegOnStackSub16(_Ins, Value, 0);
 			break;
 		case 4:
-			InstructionBuilder::StoreRegOnStackSub32(_Ins, Value, Val->offset + Offset); PushIns();
+			InstructionBuilder::StoreRegOnStackSub32(_Ins, Value, 0);
 			break;
 		case 8:
-			InstructionBuilder::StoreRegOnStackSub64(_Ins, Value, Val->offset + Offset); PushIns();
+			InstructionBuilder::StoreRegOnStackSub64(_Ins, Value,0);
+			break;
+		default:
+			throw std::exception("bad path");
+			break;
+		}
+		_Stack.AddReUpdatePostFunc(PushIns(), Val->offset + Offset);
+	}
+	else if (auto Val = To.Info.Get_If<IRlocData_StaticPos>())
+	{
+		auto TepReg = GetRegisterForTep();
+		InstructionBuilder::GetPointerOfStaticMem(_Ins, TepReg, Val->offset + Offset); PushIns();
+
+		switch (Size)
+		{
+		case 1:
+			InstructionBuilder::StoreRegToPtr8(_Ins, Value, TepReg); PushIns();
+			break;
+		case 2:
+			InstructionBuilder::StoreRegToPtr16(_Ins, Value, TepReg); PushIns();
+			break;
+		case 4:
+			InstructionBuilder::StoreRegToPtr32(_Ins, Value, TepReg); PushIns();
+			break;
+		case 8:
+			InstructionBuilder::StoreRegToPtr64(_Ins, Value, TepReg); PushIns();
+			break;
+		default:
+			throw std::exception("bad path");
+			break;
+		}
+	}
+	else if (auto Val = To.Info.Get_If<IRlocData_ThreadPos>())
+	{
+		auto TepReg = GetRegisterForTep();
+		InstructionBuilder::GetPointerOfThreadMem(_Ins, TepReg, Val->offset + Offset); PushIns();
+
+		switch (Size)
+		{
+		case 1:
+			InstructionBuilder::StoreRegToPtr8(_Ins, Value, TepReg); PushIns();
+			break;
+		case 2:
+			InstructionBuilder::StoreRegToPtr16(_Ins, Value, TepReg); PushIns();
+			break;
+		case 4:
+			InstructionBuilder::StoreRegToPtr32(_Ins, Value, TepReg); PushIns();
+			break;
+		case 8:
+			InstructionBuilder::StoreRegToPtr64(_Ins, Value, TepReg); PushIns();
 			break;
 		default:
 			throw std::exception("bad path");
@@ -1970,12 +2126,87 @@ void UCodeBackEndObject::MoveRegInValue(RegisterID Value, const IRlocData& To, s
 		throw std::exception("bad path");
 	}
 }
-void UCodeBackEndObject::MoveValueInReg(const IRlocData& Value, size_t Offset, size_t MemberSize, RegisterID To)
+void UCodeBackEndObject::MoveValueInReg(const IRlocData& Value, size_t Offset, RegisterID To)
 {
 	auto Size = GetSize(Value.ObjectType);
 	if (auto Val = Value.Info.Get_If<RegisterID>())
 	{
+		if (Offset == 0) {
+			RegToReg(Value.ObjectType._Type, *Val, To);
+		}
+		else
+		{
+			throw std::exception("not added");
+		}
+	}
+	else if (auto Val = Value.Info.Get_If<IRlocData_StackPost>())
+	{
+		
+		switch (Size)
+		{
+		case 1:
+			InstructionBuilder::GetFromStackSub8(_Ins,0, To); 
+			break;
+		case 2:
+			InstructionBuilder::GetFromStackSub16(_Ins, 0, To); 
+			break;
+		case 4:
+			InstructionBuilder::GetFromStackSub32(_Ins, 0, To);
+			break;
+		case 8:
+			InstructionBuilder::GetFromStackSub64(_Ins, 0, To);
+			break;
+		default:
+			throw std::exception("bad path");
+			break;
+		}
+		_Stack.AddReUpdatePostFunc(PushIns(), Val->offset + Offset);
+	}
+	else if (auto Val = Value.Info.Get_If<IRlocData_StaticPos>())
+	{
+		InstructionBuilder::GetPointerOfStaticMem(_Ins, To, Val->offset + Offset); PushIns();
 
+		switch (Size)
+		{
+		case 1:
+			InstructionBuilder::StoreFromPtrToReg8(_Ins, To, To); PushIns();
+			break;
+		case 2:
+			InstructionBuilder::StoreFromPtrToReg16(_Ins, To, To); PushIns();
+			break;
+		case 4:
+			InstructionBuilder::StoreFromPtrToReg32(_Ins, To, To); PushIns();
+			break;
+		case 8:
+			InstructionBuilder::StoreFromPtrToReg64(_Ins, To, To); PushIns();
+			break;
+		default:
+			throw std::exception("bad path");
+			break;
+		}
+	}
+	else if (auto Val = Value.Info.Get_If<IRlocData_ThreadPos>())
+	{
+		InstructionBuilder::GetPointerOfThreadMem(_Ins, To, Val->offset + Offset); PushIns();
+
+		switch (Size)
+		{
+		case 1:
+			InstructionBuilder::StoreFromPtrToReg8(_Ins, To, To); PushIns();
+			break;
+		case 2:
+			InstructionBuilder::StoreFromPtrToReg16(_Ins, To, To); PushIns();
+			break;
+		case 4:
+			InstructionBuilder::StoreFromPtrToReg32(_Ins, To, To); PushIns();
+			break;
+		case 8:
+			InstructionBuilder::StoreFromPtrToReg64(_Ins, To, To); PushIns();
+			break;
+		default:
+			throw std::exception("bad path");
+			break;
+		}
 	}
 	else
 	{
@@ -2066,7 +2297,10 @@ void UCodeBackEndObject::CopyValues(const IRlocData& Src, const IRlocData& Out, 
 			}
 			else 
 			{
-				MoveValueInReg(Src, Offset, 8, Tep);
+				IRlocData V;
+				V.Info = Src.Info;
+				V.ObjectType = IRTypes::i64;
+				MoveValueInReg(V, Offset, Tep);
 			}
 
 			if (DerefOut) 
@@ -2098,7 +2332,11 @@ void UCodeBackEndObject::CopyValues(const IRlocData& Src, const IRlocData& Out, 
 			}
 			else
 			{
-				MoveValueInReg(Src, Offset, 4, Tep);
+
+				IRlocData V;
+				V.Info = Src.Info;
+				V.ObjectType = IRTypes::i32;
+				MoveValueInReg(V, Offset, Tep);
 			}
 
 			if (DerefOut)
@@ -2130,7 +2368,11 @@ void UCodeBackEndObject::CopyValues(const IRlocData& Src, const IRlocData& Out, 
 			}
 			else
 			{
-				MoveValueInReg(Src, Offset, 2, Tep);
+
+				IRlocData V;
+				V.Info = Src.Info;
+				V.ObjectType = IRTypes::i16;
+				MoveValueInReg(V, Offset,Tep);
 			}
 
 			if (DerefOut)
@@ -2163,7 +2405,10 @@ void UCodeBackEndObject::CopyValues(const IRlocData& Src, const IRlocData& Out, 
 			}
 			else
 			{
-				MoveValueInReg(Src, Offset, 1, Tep);
+				IRlocData V;
+				V.Info = Src.Info;
+				V.ObjectType = IRTypes::i8;
+				MoveValueInReg(V, Offset,Tep);
 			}
 
 			if (DerefOut)

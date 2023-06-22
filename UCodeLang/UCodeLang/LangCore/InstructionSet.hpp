@@ -77,7 +77,7 @@ enum class InstructionSet : InstructionSet_t
 	PointerMemberRead64,
 
 	//Cpp func Set
-	GetPointerOfStack, GetPointerOfStackSub, GetPointerOfStaticMem,IncrementStackPointer, DecrementStackPointer,
+	GetPointerOfStack, GetPointerOfStackSub, GetPointerOfStaticMem, GetPointerOfThreadMem,IncrementStackPointer, DecrementStackPointer,
 	
 	Malloc,Free,MemCopy, Calloc,ReAlloc,LoadFuncPtr,
 	CPPCall,CppCallNamed,Link_Bytes,Link_Path,

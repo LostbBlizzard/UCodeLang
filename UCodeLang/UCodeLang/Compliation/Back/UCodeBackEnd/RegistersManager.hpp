@@ -137,8 +137,25 @@ struct StackInfo
 		Size = 0;
 		PushedOffset = 0;
 		Items.clear();
+		Reupdates.clear();
 	}
 	Vector<Unique_ptr<StackItem>> Items;
+	struct StackOffsetReUpdate 
+	{
+		size_t InsIndex = 0;
+		
+		bool PostFunc = true;
+		size_t StackOffset = 0;
+	};
+	Vector<StackOffsetReUpdate> Reupdates;
+	void AddReUpdatePreFunc(size_t InsIndex,size_t StackOffset)
+	{
+		Reupdates.push_back({ InsIndex,false,StackOffset });
+	}
+	void AddReUpdatePostFunc(size_t InsIndex, size_t StackOffset)
+	{
+		Reupdates.push_back({ InsIndex,true,StackOffset });
+	}
 
 	StackItem* Get(size_t Offset)
 	{

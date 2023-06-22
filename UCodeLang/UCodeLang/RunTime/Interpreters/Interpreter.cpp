@@ -70,8 +70,6 @@ Interpreter::Return_t Interpreter::Call(UAddress address)
 	_CPU.Stack.PushStack(_CPU.ProgramCounter);
 	_CPU.ProgramCounter = address;
 	
-	
-	
 	while (_CPU.Stack.StackOffSet != OldStackoffset)
 	{
 		Instruction& Inst = _State->GetInst(_CPU.ProgramCounter);

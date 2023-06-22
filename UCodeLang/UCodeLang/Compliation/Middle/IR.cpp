@@ -146,6 +146,20 @@ IRType IRBuilder::GetType(const IROperator& IR) const
 	{
 	case IROperatorType::IRParameter:return IR.Parameter->type;
 	case IROperatorType::IRInstruction:return GetType(IR.Pointer);
+	
+	case IROperatorType::IRidentifier:
+	{
+		auto Id = IR.identifer;
+		if (auto Syb = GetSymbol(Id))
+		{
+			return Syb->Type;
+		}
+		else
+		{
+			return IRTypes::i8;
+		}
+		
+	}
 	default:
 		throw std::exception("bad path");
 		return {};
