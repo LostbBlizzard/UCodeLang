@@ -35,7 +35,7 @@ jobs:
 
     - name: Run Premake
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: Dependencies/bin/premake/premake5.exe
+      run: VS 2019.bat
 
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
