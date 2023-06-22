@@ -38,5 +38,5 @@ jobs:
 
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: msbuild ./UCodeLang.sln /t:UCApp:rebuild; /p:Configuration="Release" /p:Platform="x86" /p:BuildProjectReferences=true
+      run: msbuild ./UCodeLang.sln
     
