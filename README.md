@@ -6,7 +6,7 @@
 </p>
 <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT">
     
-"[![MSBuild](https://github.com/LostbBlizzard/UCodeLang/actions/workflows/msbuild.yml/badge.svg?branch=master&event=push)](https://github.com/LostbBlizzard/UCodeLang/actions/workflows/msbuild.yml)"
+[![CI](https://github.com/LostbBlizzard/UCodeLang/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/LostbBlizzard/UCodeLang/actions/workflows/main.yml)
 <a href="[https:https://github.com/LostbBlizzard/UCodeLang/actions](https://github.com/LostbBlizzard/UCodeLang/actions)">
 
 <h1>The UCode Programming Language</h1>
