@@ -11,7 +11,6 @@ using NativeJitAssembler = X86JitCompiler;
 #else
 using NativeJitAssembler = X86_64JitCompiler;
 #warning "there's no support for jitCompiler for compilation Target"
-#define UCodeLang_KeepJitInterpreterFallback 1
 #endif // CPUTypes
 
 #define UCodeLang_KeepJitInterpreterFallback 1

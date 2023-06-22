@@ -2,7 +2,7 @@
 #include "UCodeLang/Compliation/UAssembly/UAssembly.hpp"
 #include <fstream>
 #include <iostream>
-#include "Tests/Test.hpp"
+
 #include <future>
 #include <optional>
 #include "UCodeAnalyzer/Formater.hpp"
@@ -11,7 +11,9 @@
 #include "UCodeLang/Compliation/Back/x86/X86BackEnd.hpp"
 #include "UCodeLang/Compliation/ModuleFile.hpp"
 #include "UCodeLang/RunTime/Debuger.hpp"
-#include "Tests/TestGenerator.hpp"
+
+#include "../tests/TestGenerator.hpp"
+#include "../tests/Test.hpp"
 
 using namespace UCodeLang;
 const UCodeLang::String ScrDir = "C:/CoolStuff/CoolCodeingStuff/C++/Projects/UCodeLang/UCApp/src/";

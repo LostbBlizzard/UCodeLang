@@ -161,7 +161,7 @@ public:
 	{
 		return _ThreadBytes;
 	};
-	UCodeLangForceinline void clear_StaticBytes()
+	UCodeLangForceinline void clear_ThreadBytes()
 	{
 		_ThreadBytes.clear();
 	}
@@ -281,16 +281,6 @@ public:
 		for (size_t i = 0; i < Size; i++)
 		{
 			_ThreadBytes.push_back(Bits[i]);
-		}
-		return A;
-	}
-
-	inline UAddress AddDebugBytes(const Byte* Bits, size_t Size)
-	{
-		UAddress A = (UAddress)_DebugBytes.size();
-		for (size_t i = 0; i < Size; i++)
-		{
-			_DebugBytes.push_back(Bits[i]);
 		}
 		return A;
 	}

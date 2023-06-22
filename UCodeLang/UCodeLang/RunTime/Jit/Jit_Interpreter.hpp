@@ -8,8 +8,10 @@
 UCodeLangStart
 
 
-
-//UCodeLang_KeepJitInterpreterFallback
+/*
+Trys to convert UCodeInstruction to CPP call's and fall's back on the Interpreter if it cant.
+if you need more speed use the NativeInterpreter and NativeULangCompilerBackEnd.
+*/
 class Jit_Interpreter
 {
 public:
@@ -207,6 +209,7 @@ private:
 
 
 	void BuildCheck(Jit_Interpreter::JitFuncData& Item, const UCodeLang::UAddress& address);
+	void LogASM();
 };
 
 UCodeLangEnd

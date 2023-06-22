@@ -280,5 +280,5 @@ void ParseLine(String_view Line)
 
 void TokenCheck(const UCodeLang::String_view& Word1)
 {
-	*_This.output << "bad word '" << Word1 << "'" << std::endl;
+	*_This.output << "bad Token '" << Word1 << "'" << std::endl;
 }
