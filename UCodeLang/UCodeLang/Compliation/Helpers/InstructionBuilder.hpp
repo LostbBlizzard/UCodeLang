@@ -399,6 +399,13 @@ public:
 		Out.Value0.AsRegister = out;
 		Out.Value1.AsUInt64 = offset;
 	}
+	UCodeLangForceinline static void GetPointerOfThreadMem(Instruction& Out, RegisterID out, UAddress offset)
+	{
+		Out.OpCode = InstructionSet::GetPointerOfThreadMem;
+		Out.Value0.AsRegister = out;
+		Out.Value1.AsUInt64 = offset;
+	}
+
 	UCodeLangForceinline static void IncrementStackPointer(Instruction& Out, RegisterID Value)
 	{
 		Out.OpCode = InstructionSet::IncrementStackPointer;
