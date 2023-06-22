@@ -69,12 +69,20 @@ public:
 		auto P = Calloc(CPUData::MaxStackSize + bufferForHeap);
 
 		_CPU.InitStack(P);
+
+		const auto& ThreadBytes = State->Get_Libs().GetThreadBytes();
+		_CPU.ThreadRegister = Malloc(ThreadBytes.size());
+		MemCopy(_CPU.ThreadRegister,(PtrType)ThreadBytes.data(), ThreadBytes.size());
 	}
 	void UnLoad()
 	{
 		if (_CPU.Stack._Data) {
 			Free(_CPU.Stack._Data);
 			_CPU.Stack._Data = nullptr;
+		}
+		if (_CPU.ThreadRegister)
+		{
+			Free(_CPU.ThreadRegister);
 		}
 	}
 
@@ -221,6 +229,11 @@ public:
 		return r;
 	}
 	void Get_Return(void* Output, size_t OutputSize);
+
+	inline void* GetThreadRegisterPtr()
+	{
+		return _CPU.ThreadRegister;
+	}
 private:
 	
 	struct CPUReturn_t
@@ -369,7 +382,7 @@ private:
 			}
 		};
 		Stack Stack;
-		
+		void* ThreadRegister = nullptr;
 		//
 		
 		
@@ -380,6 +393,10 @@ private:
 		inline void InitStack(void* StackValue)
 		{
 			Stack._Data = StackValue;
+		}
+		inline void InitThread(void* ThreadValue)
+		{
+			ThreadRegister = ThreadValue;
 		}
 		void ThrowException(const char* Err)
 		{
@@ -394,6 +411,7 @@ private:
 	void FlushParametersIntoCPU();
 
 	UCodeLangForceinline PtrType Get_StaticMemPtr(){return _State->Get_StaticMemPtr();}
+	UCodeLangForceinline PtrType Get_ThreadMemPtr() { return _CPU.ThreadRegister; }
 	UCodeLangConstexprForceinline Register& Get_ThisRegister() { return Get_Register(RegisterID::ThisRegister); }
 	UCodeLangConstexprForceinline Register& Get_OutRegister() { return Get_Register(RegisterID::OuPutRegister); }
 	UCodeLangConstexprForceinline Register& Get_InRegister() { return Get_Register(RegisterID::InPutRegister); }

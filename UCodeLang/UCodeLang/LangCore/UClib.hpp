@@ -155,6 +155,16 @@ public:
 	{
 		_StaticBytes.clear();
 	}
+
+
+	UCodeLangForceinline auto& Get_ThreadBytes() const //Static Variables nad stuff
+	{
+		return _ThreadBytes;
+	};
+	UCodeLangForceinline void clear_StaticBytes()
+	{
+		_ThreadBytes.clear();
+	}
 	
 	UCodeLangForceinline const auto& Get_DebugByte()const
 	{
@@ -234,6 +244,58 @@ public:
 		}
 		return A;
 	}
+
+
+	UCodeLangForceinline  UAddress AddThreadBytes(const String& Str)
+	{
+		return AddThreadBytes(String_view(Str));
+	}
+	inline UAddress AddThreadBytes(const String_view& Str)
+	{
+		UAddress A = _ThreadBytes.size();
+		for (size_t i = 0; i < Str.size(); i++)
+		{
+			_ThreadBytes.push_back(Str[i]);
+		}
+		_ThreadBytes.push_back('\0');
+		return A;
+	}
+	UCodeLangForceinline UAddress AddThreadBytes(Byte Byte)
+	{
+		UAddress A = _ThreadBytes.size();
+		_ThreadBytes.push_back(Byte);
+		return A;
+	}
+	inline UAddress AddThreadBytes(Byte Byte, size_t Size)
+	{
+		UAddress A = _ThreadBytes.size();
+		for (size_t i = 0; i < Size; i++)
+		{
+			_ThreadBytes.push_back(Byte);
+		}
+		return A;
+	}
+	inline UAddress AddThreadBytes(const Byte* Bits, size_t Size)
+	{
+		UAddress A = (UAddress)_ThreadBytes.size();
+		for (size_t i = 0; i < Size; i++)
+		{
+			_ThreadBytes.push_back(Bits[i]);
+		}
+		return A;
+	}
+
+	inline UAddress AddDebugBytes(const Byte* Bits, size_t Size)
+	{
+		UAddress A = (UAddress)_DebugBytes.size();
+		for (size_t i = 0; i < Size; i++)
+		{
+			_DebugBytes.push_back(Bits[i]);
+		}
+		return A;
+	}
+
+
 	UCodeLangForceinline UAddress AddDebugBytes(const String& Str)
 	{
 		return AddDebugBytes(String_view(Str));

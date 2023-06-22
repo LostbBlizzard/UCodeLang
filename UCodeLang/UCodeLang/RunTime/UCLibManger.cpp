@@ -60,6 +60,10 @@ void UCLibManger::LinkLib(UCodeLang::RunTimeLib* Item)
 			{
 				StaticBytes.push_back(Item);
 			}
+			for (const auto& Item : Item->Get_Lib()->Get_ThreadBytes())
+			{
+				ThreadBytes.push_back(Item);
+			}
 
 			for (const auto& Item : Layer->Get_Code())
 			{
