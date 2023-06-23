@@ -101,7 +101,7 @@ void TestFormater()
 /// </summary>
 void TestingGround()
 {
-	Interpreter RunTime;
+	Jit_Interpreter RunTime;
 	
 	ULangTest::TestGenerator V;
 	V.SetSeed(1);
@@ -179,18 +179,18 @@ void TestingGround()
 
 		RunTime.Init(&State);
 
-		auto FuncMain = State.Get_Assembly().Get_GlobalObject_Class()->Get_ClassMethod("main2");
+		auto FuncMain = State.Get_Assembly().Get_GlobalObject_Class()->Get_ClassMethod("main");
 
 		//auto Value = RunTime.RCall<char>("__ReadChar");
-		RunTime.Call(StaticVariablesInitializeFunc);
-		RunTime.Call(ThreadVariablesInitializeFunc);
+		//RunTime.Call(StaticVariablesInitializeFunc);
+		//RunTime.Call(ThreadVariablesInitializeFunc);
 
 		auto CallIndex = State.FindAddress(FuncMain->DecorationName);
 
 
-		int BufferToCopy[3]{ 1,2,3 };
+		Vec3 BufferToCopy[3]{ 1,2,3 };
 
-		auto AutoPtr = RunTime.RCall<Vec3>(*FuncMain, &BufferToCopy);
+		auto AutoPtr = RunTime.RCall<int>(*FuncMain, &BufferToCopy);
 
 
 

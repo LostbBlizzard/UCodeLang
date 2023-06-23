@@ -66,6 +66,7 @@ public:
 	//x86 instructions
 	
 	inline size_t GetIndex() { return _Output.GetIndex(); }
+	inline Byte* GetData(size_t offset) { return _Output.ByteOutput.data() + offset; }
 	//move
 	inline void Push_Ins_MovImm8(GReg Reg, Value8 Value)
 	{

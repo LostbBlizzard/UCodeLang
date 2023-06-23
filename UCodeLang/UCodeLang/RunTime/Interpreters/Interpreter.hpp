@@ -76,13 +76,15 @@ public:
 	}
 	void UnLoad()
 	{
-		if (_CPU.Stack._Data) {
+		if (_CPU.Stack._Data) 
+		{
 			Free(_CPU.Stack._Data);
 			_CPU.Stack._Data = nullptr;
 		}
 		if (_CPU.ThreadRegister)
 		{
 			Free(_CPU.ThreadRegister);
+			_CPU.ThreadRegister = nullptr;
 		}
 	}
 
@@ -506,14 +508,18 @@ public:
 		constexpr bool IsBigerRegister = sizeof(T) > sizeof(Interpreter::Register);
 		if (IsBigerRegister) 
 		{
-			_Ptr->_CPU.Stack.SetValue(Value,sizeof(T));
+			_Ptr->_CPU.Stack.SetValue(Value,0);
 			Get_OutPutRegister().Value = _Ptr->_CPU.Stack.GetTopOfStack();
 		}
 		else
 		{
-			Get_OutPutRegister().Value = *(UInt64*)&Value;
+			memcmp(&Get_OutPutRegister(), &Value, sizeof(T));
 		}
 	}
+
+
+	
+
 	void Set_Return(void){}
 
 	template<typename T> UCodeLangForceinline T* Get_This()
@@ -543,6 +549,22 @@ public:
 	InterpreterCPPinterface(Interpreter* Ptr) : _Ptr(Ptr)
 	{
 
+	}
+	
+	//used by jit
+	void Set_Return(const void* Pointer,size_t Buffer)
+	{
+
+		bool IsBigerRegister = Buffer > sizeof(Interpreter::Register);
+		if (IsBigerRegister)
+		{
+			memcmp(_Ptr->_CPU.Stack.GetTopOfStack(), Pointer, Buffer);
+			Get_OutPutRegister().Value = _Ptr->_CPU.Stack.GetTopOfStack();
+		}
+		else
+		{
+			memcmp(&Get_OutPutRegister(), Pointer, Buffer);
+		}
 	}
 private:
 	

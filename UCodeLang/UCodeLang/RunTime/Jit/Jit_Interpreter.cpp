@@ -2,9 +2,20 @@
 #include "Zydis/Zydis.h"
 #include <inttypes.h>
 #include <stdio.h>
+#include <sstream>
 UCodeLangStart
 
+int Func()
+{
+	return 0;
+}
 
+//template
+CPPCallRet TempFunc(InterpreterCPPinterface& Input)
+{
+	auto R = Func();
+	Input.Set_Return(&R,sizeof(R));
+}
 
 Interpreter::Return_t Jit_Interpreter::ThisCall(UAddress This, const String& FunctionName)
 {
@@ -72,6 +83,8 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 	if (!UFuncToCPPFunc.count(address)){UFuncToCPPFunc[address] = {};}
 	auto& Item = UFuncToCPPFunc[address];
 	
+	TempFunc(InterpreterCPPinterface(&_Interpreter));
+
 	BuildCheck(Item, address);
 
 	#if UCodeLang_KeepJitInterpreterFallback
@@ -85,9 +98,6 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 		_ThisState.StackFrames.push(Item.UCodeFunc);
 		{
 			Item.Func(InterpreterCPPinterface(&_Interpreter));
-			using Func = UInt64(*)();
-			auto V = (*(Func*)&Item.Func)();
-			_Interpreter.Get_OutRegister().Value = V;
 		}
 		_ThisState.StackFrames.pop();
 
@@ -100,7 +110,45 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 	#endif
 }
 
+ClassMethod* GetMethod(const UCodeLang::UAddress& address,UCodeLang::ClassAssembly* Assembly,UCodeLang::RunTimeLangState* State)
+{
+	for (auto& node : Assembly->Classes)
+	{
+		if (node->Get_Type() == ClassType::Class)
+		{
+			auto& Class = node->Get_ClassData();
+			for (auto& Item : Class.Methods)
+			{
+				auto FuncAddress = State->FindAddress(Item.DecorationName);
+				if (FuncAddress == address)
+				{
+					return &Item;
+				}
+			}
+		}
+	}
+	return nullptr;
+}
 
+const ClassMethod* GetMethod(const UCodeLang::UAddress& address,const UCodeLang::ClassAssembly* Assembly,UCodeLang::RunTimeLangState* State)
+{
+	for (auto& node : Assembly->Classes)
+	{
+		if (node->Get_Type() == ClassType::Class)
+		{
+			auto& Class = node->Get_ClassData();
+			for (auto& Item : Class.Methods)
+			{
+				auto FuncAddress = State->FindAddress(Item.DecorationName);
+				if (FuncAddress == address)
+				{
+					return &Item;
+				}
+			}
+		}
+	}
+	return nullptr;
+}
 
 void Jit_Interpreter::BuildCheck(UCodeLang::Jit_Interpreter::JitFuncData& Item, const UCodeLang::UAddress& address)
 {
@@ -117,61 +165,85 @@ void Jit_Interpreter::BuildCheck(UCodeLang::Jit_Interpreter::JitFuncData& Item, 
 			Item.Type = JitFuncType::CPPCall;
 			Item.Func = Get_State()->Get_Libs().Get_ExFunc(NextIns.Value0.AsAddress);
 		}
-		else if (_Assembler.BuildFunc(Insts, address, TepOutBuffer))
-		{
-			size_t InsSize = TepOutBuffer.size();
-			ExBuffer.SetToReadWriteMode();
-
-			intptr_t Ptr = (intptr_t)ExBuffer.Data + (intptr_t)Insoffset;
-
-			Insoffset += TepOutBuffer.size();
-			Item.Type = JitFuncType::CPPCall;
-			Item.Func = (JitFunc)Ptr;
-
-
-			for (auto Item : _Assembler.NullCalls)
-			{
-				Instruction& Ins = Insts[Item.UCodeAddress];
-				UAddress CodeFuncAddress = Ins.Value0.AsAddress + 1;
-				if (UFuncToCPPFunc.count(CodeFuncAddress))
-				{
-					auto& SomeV = UFuncToCPPFunc.at(CodeFuncAddress);
-
-					_Assembler.SubCall(SomeV.Func, Item.CPPoffset, TepOutBuffer);
-				}
-				else
-				{
-					_Assembler.SubCall((JitInfo::FuncType)OnUAddressCall, Item.CPPoffset, TepOutBuffer);
-				}
-			}
-
-
-
-
-			memcpy((void*)Ptr, TepOutBuffer.data(), InsSize);
-
-			LogASM();
-
-			ExBuffer.SetToExecuteMode();
-
-			for (auto& Item : Insts)
-			{
-				if (Item.OpCode == InstructionSet::Call && Item.Value0.AsAddress == address)
-				{
-					Item.OpCode = InstructionSet::CPPCall;
-					Item.Value0.AsPtr = (void*)Ptr;
-				}
-			}
-
-		}
 		else
 		{
-			Item.Type = JitFuncType::UCodeCall;
-			Item.UCodeFunc = address;
+			_Assembler.Assembly = &Get_State()->Get_Assembly();
+			_Assembler.Func = GetMethod(address, _Assembler.Assembly,Get_State());
+		
+
+			if (_Assembler.Func && _Assembler.BuildFunc(Insts, address, TepOutBuffer))
+			{
+				size_t InsSize = TepOutBuffer.size();
+				ExBuffer.SetToReadWriteMode();
+
+				intptr_t Ptr = (intptr_t)ExBuffer.Data + (intptr_t)Insoffset;
+
+				Insoffset += TepOutBuffer.size();
+				Item.Type = JitFuncType::CPPCall;
+				Item.Func = (JitFunc)Ptr;
+				Item.NativeFunc = (void*)(Ptr + _Assembler.Out_NativeCallOffset);
+
+				for (auto& Item : _Assembler.NullCalls)
+				{
+					Instruction& Ins = Insts[Item.UCodeAddress];
+					UAddress CodeFuncAddress = Ins.Value0.AsAddress + 1;
+					if (UFuncToCPPFunc.count(CodeFuncAddress))
+					{
+						auto& SomeV = UFuncToCPPFunc.at(CodeFuncAddress);
+
+						_Assembler.SubCall(SomeV.Func, Item.CPPoffset, TepOutBuffer);
+					}
+					else
+					{
+						_Assembler.SubCall((JitInfo::FuncType)OnUAddressCall, Item.CPPoffset, TepOutBuffer);
+					}
+				}
+
+
+
+
+				memcpy((void*)Ptr, TepOutBuffer.data(), InsSize);
+
+				LogASM();
+
+				ExBuffer.SetToExecuteMode();
+
+				for (auto& Item : Insts)
+				{
+					if (Item.OpCode == InstructionSet::Call && Item.Value0.AsAddress == address)
+					{
+						Item.OpCode = InstructionSet::CPPCall;
+						Item.Value0.AsPtr = (void*)Ptr;
+					}
+				}
+
+			}
+
+			else
+			{
+				Item.Type = JitFuncType::UCodeCall;
+				Item.UCodeFunc = address;
+			}
 		}
 	}
 #endif
 }
+
+
+String byte_to_hex(Byte i)
+{
+	static const char characrers[] = "0123456789ABCDEF";
+
+	String R(2,0);
+	
+	auto Buff = R.data();
+
+	*Buff++ = characrers[i >> 4];
+	*Buff++ = characrers[i & 0x0f];
+
+	return R;
+}
+
 void Jit_Interpreter::LogASM()
 {
 #if HasSupportforJit
@@ -183,17 +255,63 @@ void Jit_Interpreter::LogASM()
 	// Loop over the instructions in our buffer.
 	ZyanUSize offset = 0;
 	ZydisDisassembledInstruction instruction;
-	auto V = (ZydisDisassembleIntel(
+
+
+	const size_t MaxInsSize = 8;
+	while (ZYAN_SUCCESS(ZydisDisassembleIntel(
 		/* machine_mode:    */ ZYDIS_MACHINE_MODE_LONG_64,
 		/* runtime_address: */ runtime_address,
 		/* buffer:          */ (void*)((uintptr_t)InsData + offset),
 		/* length:          */ Insoffset - offset,
 		/* instruction:     */ &instruction
-	));
-
-	while (ZYAN_SUCCESS(V)) 
+	)))
 	{
-		printf("%016" PRIX64 "  %s\n", runtime_address, instruction.text);
+		printf("%016" PRIX64 " ", runtime_address);
+		
+		std::cout << ":";
+
+		for (size_t i = 0; i < MaxInsSize; i++)
+		{
+			if (i > instruction.info.length)
+			{
+				std::cout << "   ";
+			}
+			else 
+			{
+				Byte* byte = &((Byte*)((uintptr_t)InsData + offset))[i];
+				std::cout << byte_to_hex(*byte) << " ";
+			}
+		}
+		String InsStr = instruction.text;
+
+		std::cout << std::dec << InsStr;
+		
+		for (auto& Item : UFuncToCPPFunc)
+		{
+			if (Item._Value.UCodeFunc == runtime_address)
+			{
+				std::cout << "//CPPCall:" << Item._Key;
+
+				auto V = GetMethod(Item._Key, &Get_State()->Get_Assembly(), Get_State());
+				if (V) {
+					std::cout << "/" << V->DecorationName;
+				}
+			}
+			else if ((ZyanU64)Item._Value.NativeFunc == runtime_address)
+			{
+				std::cout << "//Native:" << Item._Key;
+
+				auto V = GetMethod(Item._Key, &Get_State()->Get_Assembly(), Get_State());
+				if (V) {
+					std::cout << "/" << V->DecorationName;
+				}
+			}
+		}
+		
+		std::cout << '\n';
+
+		
+
 		offset += instruction.info.length;
 		runtime_address += instruction.info.length;
 	}

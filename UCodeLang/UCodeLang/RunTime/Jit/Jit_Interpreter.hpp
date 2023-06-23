@@ -116,6 +116,12 @@ public:
 		}
 		return {};
 	}
+
+	template<typename T, typename... Args>
+	T RCall(const ClassMethod& Function, Args&&... parameters)
+	{
+		return RCall<T, Args...>(Function.DecorationName,std::move(parameters...));
+	}
 	template<typename T, typename... Args>
 	T RThisCall(PtrType This, const ClassMethod& Function, Args&&... parameters)
 	{
@@ -178,6 +184,7 @@ private:
 			UAddress UCodeFunc;
 			JitFunc Func = nullptr;
 		};
+		void* NativeFunc = nullptr;
 	};
 //	
 	#if UCodeLang_KeepJitInterpreterFallback

@@ -2,26 +2,35 @@
 
 |Func[int a] => a;
 
+$Object;
+
+$Vec3:
+ int x = 1;
+ int y = 2;
+ int z = 3;
+
 $Vec2:
- byte x = 1;
- byte y = 2;
- byte z = 3;
+ int x = 1;
+ int y = 2;
  //byte w = 4;
 static Vec2 StaticVec = [];
 thread Vec2 ThreadVec = [];
 
-extern dynamic |Test[int a] -> Vec2;
+extern dynamic |Test[int a] -> Vec3;
 
-/*
-|main[Vec2& Other] -> Vec2:
+//|main2[] => Test(0);
+
+|main2[Vec3& Other] -> Vec3:
  ret Other;
 
-|main2[] => Test(0);
+
+|main[] => 1;
 
 
 
-|main3[] -> void;
-*/
+
+//|main3[] -> void;
+
 
 /*
  ret V.x;
