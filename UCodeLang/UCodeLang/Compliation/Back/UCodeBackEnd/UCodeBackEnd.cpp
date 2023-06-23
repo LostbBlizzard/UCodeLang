@@ -1176,6 +1176,46 @@ void UCodeBackEndObject::DropStack()
 				InstructionBuilder::GetFromStackSub8(Ins, NewOffset, Ins.Value1.AsRegister);
 			}
 			break;
+			case InstructionSet::StoreRegOnStack8:
+			{
+				InstructionBuilder::StoreRegOnStack8(Ins, Ins.Value0.AsRegister, NewOffset);
+			}
+			break;
+			case InstructionSet::StoreRegOnStack16:
+			{
+				InstructionBuilder::StoreRegOnStack16(Ins, Ins.Value0.AsRegister, NewOffset);
+			}
+			break;
+			case InstructionSet::StoreRegOnStack32:
+			{
+				InstructionBuilder::StoreRegOnStack32(Ins, Ins.Value0.AsRegister, NewOffset);
+			}
+			break;
+			case InstructionSet::StoreRegOnStack64:
+			{
+				InstructionBuilder::StoreRegOnStack64(Ins, Ins.Value0.AsRegister, NewOffset);
+			}
+			break;
+			case InstructionSet::StoreRegOnStackSub8:
+			{
+				InstructionBuilder::StoreRegOnStackSub8(Ins, Ins.Value0.AsRegister, NewOffset);
+			}
+			break;
+			case InstructionSet::StoreRegOnStackSub16:
+			{
+				InstructionBuilder::StoreRegOnStackSub16(Ins, Ins.Value0.AsRegister, NewOffset);
+			}
+			break;
+			case InstructionSet::StoreRegOnStackSub32:
+			{
+				InstructionBuilder::StoreRegOnStackSub32(Ins, Ins.Value0.AsRegister, NewOffset);
+			}
+			break;
+			case InstructionSet::StoreRegOnStackSub64:
+			{
+				InstructionBuilder::StoreRegOnStackSub64(Ins, Ins.Value0.AsRegister, NewOffset);
+			}
+			break;
 			default:
 				throw std::exception("bad ins");
 				break;

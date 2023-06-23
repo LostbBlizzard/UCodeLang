@@ -70,6 +70,7 @@ struct NullJitCalls
 {
 	UAddress UCodeAddress=NullAddress;
 	uintptr_t CPPoffset=0;
+	uintptr_t Nativeoffset = 0;
 };
 
 UCodeLangEnd

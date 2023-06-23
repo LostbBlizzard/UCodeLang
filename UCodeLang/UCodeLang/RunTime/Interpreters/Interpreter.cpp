@@ -453,7 +453,7 @@ void Interpreter::Extecute(Instruction& Inst)
 	{
 		auto Ptr = (UIntNative)Get_StaticMemPtr();
 		auto NewPtr = Ptr + Inst.Value0.AsUIntNative;
-		_CPU.Stack.PushStack(Inst.Value1.AsUIntNative);
+
 		String Str((const char*)NewPtr);
 		auto Cpp = _State->FindCPPCall(Str);
 		if (Cpp)

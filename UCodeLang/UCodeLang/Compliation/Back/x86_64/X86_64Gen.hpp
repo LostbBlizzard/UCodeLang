@@ -34,12 +34,9 @@ public:
 	}
 	template<typename T>void PushValue_t_little_endian(const T& Value)
 	{
-		_Base._Output.PushValue_t_little_endian((const Byte*)&Value, sizeof(Value));
+		_Base._Output.PushByte_little_endian((const Byte*)&Value, sizeof(Value));
 	}
-	template<typename T>void PushValue_t_Big_endian(const T& Value)
-	{
-		_Output.PushValue_t_Big_endian((const Byte*)&Value, sizeof(Value));
-	}
+	
 
 	//x86_64 instructions
 
@@ -48,6 +45,7 @@ public:
 	inline void Push_Ins_syscall(){_Base.Push_Ins_syscall();}
 	inline void Push_Ins_ret(){_Base.Push_Ins_ret();}
 	inline size_t GetIndex() {return _Base.GetIndex(); }
+	inline Byte* GetData(size_t offset) { return _Base.GetData(offset); }
 
 	inline void Push_Ins_CallAbsolute(uint32_t CallValue)
 	{
@@ -60,18 +58,8 @@ public:
 		CodeGen::SubByte_t_little_endian(&Output[1],CallValue);
 	}
 
-	inline void Push_Ins_CallNear(uint32_t  CallValue)
-	{
-		_Base.PushByte(0xFF);
-		_Base.PushByte(0x15);
-		_Base.PushValue_t_little_endian(CallValue);
-	}
-	static inline void Sub_Ins_CallNear(Byte* Output, uint32_t  CallValue)
-	{
-		Output[0] = 0xFF;
-		Output[1] = 0x15;
-		CodeGen::SubByte_t_little_endian(&Output[2], CallValue);
-	}
+	void Push_Ins_CallNear(uint32_t  CallValue);
+	static void Sub_Ins_CallNear(Byte* Output, uint32_t  CallValue);
 
 
 
@@ -93,77 +81,29 @@ public:
 	}
 	//
 	
-	inline void Push_Ins_MovImm8(GReg Reg, Value8 Value)
-	{
-		_Base.Push_Ins_MovImm8(x86_64::To_x86(Reg), Value);
-	}
-	inline void Push_Ins_MovImm16(GReg Reg, Value16 Value)
-	{
-		_Base.Push_Ins_MovImm16(x86_64::To_x86(Reg), Value);
-	}
-	inline void Push_Ins_MovImm32(GReg Reg, Value32 Value)
-	{
-		_Base.Push_Ins_MovImm32(x86_64::To_x86(Reg), Value);
-	}
-	inline void Push_Ins_MovImm64(GReg Reg, Value64 Value)
-	{
-		PushByte(0x48);
-		PushByte(0xb8 +x86::RegisterOffset(x86_64::To_x86(Reg)));
-		_Base.PushValue_t_little_endian(Value);
-
-	}
+	void Push_Ins_MovImm8(GReg Reg, Value8 Value);
+	void Push_Ins_MovImm16(GReg Reg, Value16 Value);
+	void Push_Ins_MovImm32(GReg Reg, Value32 Value);
+	void Push_Ins_MovImm64(GReg Reg, Value64 Value);
 
 
 
 	//mov    [reg],reg2
-	inline void Push_Ins_MovReg64ToPtrdereference(GReg Ptr, GReg reg2)
-	{
-		PushByte(0x48);
-		PushByte(0x89);
-		PushByte(x86_64::modrm2(reg2, Ptr));
+	void Push_Ins_MovReg64ToPtrdereference(GReg Ptr, GReg reg2);
 
-	}
-
-	inline void Push_Ins_RegToReg8(GReg Reg, GReg OutReg)
-	{
-		_Base.Push_Ins_RegToReg8(x86_64::To_x86(Reg), x86_64::To_x86(OutReg));
-	}
-	inline void Push_Ins_RegToReg16(GReg Reg, GReg OutReg)
-	{
-
-		_Base.Push_Ins_RegToReg16(x86_64::To_x86(Reg), x86_64::To_x86(OutReg));
-	}
-	inline void Push_Ins_RegToReg32(GReg Reg, GReg OutReg)
-	{
-		_Base.Push_Ins_RegToReg32(x86_64::To_x86(Reg), x86_64::To_x86(OutReg));
-	}
-	inline void Push_Ins_RegToReg64(GReg Reg, GReg OutReg)
-	{
-		X86Gen_NotAdded
-		//_Base.Push_Ins_RegToReg32(x86_64::To_x86(Reg), x86_64::To_x86(Reg));
-	}
+	void Push_Ins_RegToReg8(GReg Reg, GReg OutReg);
+	void Push_Ins_RegToReg16(GReg Reg, GReg OutReg);
+	void Push_Ins_RegToReg32(GReg Reg, GReg OutReg);
+	void Push_Ins_RegToReg64(GReg Reg, GReg OutReg);
 
 
 
 
 
-	inline void Push_Ins_Add8(GReg Reg, GReg Reg2, GReg out)
-	{
-		_Base.Push_Ins_Add8(x86_64::To_x86(Reg), x86_64::To_x86(Reg2), x86_64::To_x86(out));
-	}
-	inline void Push_Ins_Add16(GReg Reg, GReg Reg2, GReg out)
-	{
-		_Base.Push_Ins_Add16(x86_64::To_x86(Reg), x86_64::To_x86(Reg2), x86_64::To_x86(out));
-	}
-	inline void Push_Ins_Add32(GReg Reg, GReg Reg2, GReg out)
-	{
-		_Base.Push_Ins_Add32(x86_64::To_x86(Reg), x86_64::To_x86(Reg2), x86_64::To_x86(out));
-	}
-	inline void Push_Ins_Add64(GReg Reg, GReg Reg2, GReg out)
-	{
-		X86Gen_NotAdded
-			//_Base.Push_Ins_MovImm64(x86_64::To_x86(Reg), Value);
-	}
+	void Push_Ins_Add8(GReg Reg, GReg Reg2, GReg out);
+	void Push_Ins_Add16(GReg Reg, GReg Reg2, GReg out);
+	void Push_Ins_Add32(GReg Reg, GReg Reg2, GReg out);
+	void Push_Ins_Add64(GReg Reg, GReg Reg2, GReg out);
 
 	X86Gen _Base;//because 86x64 is an extension of x86
 };
