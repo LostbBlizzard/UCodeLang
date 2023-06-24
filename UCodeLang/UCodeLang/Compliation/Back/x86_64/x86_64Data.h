@@ -96,6 +96,12 @@ namespace x86_64
 	inline Byte modrm(GeneralRegisters src, GeneralRegisters dst) {
 		return ((Byte)ModRM::Direct) | ((GetIndex(src)) << 3) | GetIndex(dst);
 	}
-
+	inline Array<Byte,2> modrm(GeneralRegisters src, GeneralRegisters dst,UInt8 offset) 
+	{
+		Array<Byte, 2> R;
+		R[0] = (3 << 6) | ((Byte)src << 3) | (Byte)dst;
+		R[1] = offset;
+		return R;
+	}
 }
 UCodeLangEnd

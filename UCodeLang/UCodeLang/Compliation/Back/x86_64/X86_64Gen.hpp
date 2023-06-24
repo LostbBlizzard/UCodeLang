@@ -106,6 +106,109 @@ public:
 	using Absoluteu32 = Absolute<Valueu32>;
 
 	using Absoluteu64 = Absolute<Valueu64>;
+
+	template<typename T>
+	struct Add
+	{
+		T Value = 0;
+		explicit Add(T Offset)
+		{
+			Value = Offset;
+		}
+	};
+
+	using Add8 = Add<Value8>;
+
+	using Add16 = Add<Value16>;
+
+	using Add32 = Add<Value32>;
+
+	using Add64 = Add<Value64>;
+
+	using Addu8 = Add<Valueu8>;
+
+	using Addu16 = Add<Valueu16>;
+
+	using Addu32 = Add<Valueu32>;
+
+	using Addu64 = Add<Valueu64>;
+
+	template<typename T>
+	struct Sub
+	{
+		T Value = 0;
+		explicit Sub(T Offset)
+		{
+			Value = Offset;
+		}
+	};
+	using Sub8 = Sub<Value8>;
+
+	using Sub16 =Sub<Value16>;
+
+	using Sub32 =Sub<Value32>;
+
+	using Sub64 =Sub<Value64>;
+
+	using Subu8 =Sub<Valueu8>;
+
+	using Subu16 =Sub<Valueu16>;
+
+	using Subu32 =Sub<Valueu32>;
+
+	using Subu64 =Sub<Valueu64>;
+
+	#define ImportUseing86x64Gen \
+	using GReg = X86_64Gen::GReg; \
+	using ModRM = X86_64Gen::ModRM; \
+	using Rm = X86_64Gen::Rm; \
+	using IndrReg = X86_64Gen::IndrReg; \
+    \
+	using Near8 = X86_64Gen::Near8; \
+	using Near16 = X86_64Gen::Near16; \
+	using Near32 = X86_64Gen::Near32; \
+	using Near64 = X86_64Gen::Near64; \
+	using Nearu8 = X86_64Gen::Nearu8; \
+	using Nearu16 = X86_64Gen::Nearu16; \
+	using Nearu32 = X86_64Gen::Nearu32; \
+	using Nearu64 = X86_64Gen::Nearu64; \
+	\
+	using Absolute8 = X86_64Gen::Absolute8; \
+	using Absolute16 = X86_64Gen::Absolute16; \
+	using Absolute32 = X86_64Gen::Absolute32; \
+	using Absolute64 = X86_64Gen::Absolute64; \
+	using Absoluteu8 = X86_64Gen::Absoluteu8;  \
+	using Absoluteu16 = X86_64Gen::Absoluteu16; \
+	using Absoluteu32 = X86_64Gen::Absoluteu32; \
+	using Absoluteu64 = X86_64Gen::Absoluteu64; \
+	\
+	using Near8 = X86_64Gen::Near8; \
+	using Near16 = X86_64Gen::Near16; \
+	using Near32 = X86_64Gen::Near32; \
+	using Near64 = X86_64Gen::Near64; \
+	using Nearu8 = X86_64Gen::Nearu8; \
+	using Nearu16 = X86_64Gen::Nearu16; \
+	using Nearu32 = X86_64Gen::Nearu32; \
+	using Nearu64 = X86_64Gen::Nearu64; \
+	\
+	using Add8 = X86_64Gen::Add8; \
+	using Add16 = X86_64Gen::Add16; \
+	using Add32 = X86_64Gen::Add32; \
+	using Add64 = X86_64Gen::Add64; \
+	using Addu8 = X86_64Gen::Addu8; \
+	using Addu16 = X86_64Gen::Addu16; \
+	using Addu32 = X86_64Gen::Addu32; \
+	using Addu64 = X86_64Gen::Addu64; \
+	\
+	using Sub8 = X86_64Gen::Sub8; \
+	using Sub16 = X86_64Gen::Sub16; \
+	using Sub32 = X86_64Gen::Sub32; \
+	using Sub64 = X86_64Gen::Sub64; \
+	using Subu8 = X86_64Gen::Subu8; \
+	using Subu16 = X86_64Gen::Subu16; \
+	using Subu32 = X86_64Gen::Subu32; \
+	using Subu64 = X86_64Gen::Subu64; 
+	
 	//x86_64 instructions
 
 
@@ -133,30 +236,74 @@ public:
 	void mov(GReg Reg, Value32 Value);
 	void mov(GReg Reg, Value64 Value);
 
-	
-	
-
-	/// loads the address of a variable into register
-	void lea(ModRM Mod, GReg Reg, Rm rm, Value8 scale, GReg index, UInt64 disp);
-
 	void mov8(GReg dest, GReg src);
 	void mov16(GReg dest, GReg src);
 	void mov32(GReg dest, GReg src);
-	void move64(GReg dest,GReg src);
+	void mov64(GReg dest,GReg src);
 	
-	void move64(IndrReg dest, GReg src);
-	void move64(GReg dest,IndrReg src);
+	void mov64(IndrReg dest, GReg src);
+	void mov64(GReg dest,IndrReg src);
 
-	void push8(GReg Reg);
-	void push16(GReg Reg);
-	void push32(GReg Reg);
-	void push64(GReg Reg);
+	void mov64(GReg dest, IndrReg src,Add8 src_offset)
+	{
+		PushByte(0x48);
+		PushByte(0x8b);
+		auto V = x86_64::modrm(src._Reg,dest, src_offset.Value);
+		PushByte(V.data(),V.size());
+	}
+	/// loads the address of a variable into register
+	void lea(ModRM Mod, GReg Reg, Rm rm, Value8 scale, GReg index, UInt64 disp);
+	/* 
+	inline  void push8(GReg Reg);
+	{
+		throw std::exception("not added");
+	}
+	*/
+	inline void push16(GReg Reg)
+	{
+		throw std::exception("not added");
+	}
+	inline void push32(GReg Reg)
+	{
+		throw std::exception("not added");
+	}
+	inline void push64(GReg Reg)
+	{
+		PushByte(0x50 + (Byte)Reg);
+	}
 
+	inline void push8(Value8 Value)
+	{
+		PushByte(0x6A);
+		PushValue_t_little_endian(Value);
+	}
+	inline void push16(Value16 Value)
+	{
+		PushByte(0x68);
+		PushValue_t_little_endian(Value);
+	}
+	inline void push32(Value32 Value)
+	{
+		PushByte(0x68);
+		PushValue_t_little_endian(Value);
+	}
 
-	void pop8(GReg Reg);
-	void pop16(GReg Reg);
-	void pop32(GReg Reg);
-	void pop64(GReg Reg);
+	inline void pop8(GReg Reg)
+	{
+		throw std::exception("not added");
+	}
+	inline void pop16(GReg Reg)
+	{
+		throw std::exception("not added");
+	}
+	inline void pop32(GReg Reg)
+	{
+		throw std::exception("not added");
+	}
+	inline void pop64(GReg Reg)
+	{
+		PushByte(0x58 + (Byte)Reg);
+	}
 
 	//dest := src + dest;
 	void add8(GReg dest, GReg src);
@@ -166,6 +313,12 @@ public:
 	void add32(GReg dest, GReg src);
 	//dest := src + dest;
 	void add64(GReg dest, GReg src);
+
+	//dest := src + dest;
+	inline void add64(GReg dest, Value64  src)
+	{
+
+	}
 
 	//dest := src - Value;
 	void sub64(GReg dest, Value64 Value);
