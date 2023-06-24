@@ -5,9 +5,13 @@
 #include <sstream>
 UCodeLangStart
 
-int Func()
+int Other()
 {
 	return 0;
+}
+int Func()
+{
+	return Other();
 }
 
 //template
@@ -110,45 +114,7 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 	#endif
 }
 
-ClassMethod* GetMethod(const UCodeLang::UAddress& address,UCodeLang::ClassAssembly* Assembly,UCodeLang::RunTimeLangState* State)
-{
-	for (auto& node : Assembly->Classes)
-	{
-		if (node->Get_Type() == ClassType::Class)
-		{
-			auto& Class = node->Get_ClassData();
-			for (auto& Item : Class.Methods)
-			{
-				auto FuncAddress = State->FindAddress(Item.DecorationName);
-				if (FuncAddress == address)
-				{
-					return &Item;
-				}
-			}
-		}
-	}
-	return nullptr;
-}
 
-const ClassMethod* GetMethod(const UCodeLang::UAddress& address,const UCodeLang::ClassAssembly* Assembly,UCodeLang::RunTimeLangState* State)
-{
-	for (auto& node : Assembly->Classes)
-	{
-		if (node->Get_Type() == ClassType::Class)
-		{
-			auto& Class = node->Get_ClassData();
-			for (auto& Item : Class.Methods)
-			{
-				auto FuncAddress = State->FindAddress(Item.DecorationName);
-				if (FuncAddress == address)
-				{
-					return &Item;
-				}
-			}
-		}
-	}
-	return nullptr;
-}
 
 void Jit_Interpreter::BuildCheck(UCodeLang::Jit_Interpreter::JitFuncData& Item, const UCodeLang::UAddress& address)
 {
@@ -167,8 +133,8 @@ void Jit_Interpreter::BuildCheck(UCodeLang::Jit_Interpreter::JitFuncData& Item, 
 		}
 		else
 		{
-			_Assembler.Assembly = &Get_State()->Get_Assembly();
-			_Assembler.Func = GetMethod(address, _Assembler.Assembly,Get_State());
+			_Assembler.State = Get_State();
+			_Assembler.Func = Get_State()->GetMethod(address);
 		
 
 			if (_Assembler.Func && _Assembler.BuildFunc(Insts, address, TepOutBuffer))
@@ -292,7 +258,7 @@ void Jit_Interpreter::LogASM()
 			{
 				std::cout << "//CPPCall:" << Item._Key;
 
-				auto V = GetMethod(Item._Key, &Get_State()->Get_Assembly(), Get_State());
+				auto V = Get_State()->GetMethod(Item._Key);
 				if (V) {
 					std::cout << "/" << V->DecorationName;
 				}
@@ -301,7 +267,7 @@ void Jit_Interpreter::LogASM()
 			{
 				std::cout << "//Native:" << Item._Key;
 
-				auto V = GetMethod(Item._Key, &Get_State()->Get_Assembly(), Get_State());
+				auto V = Get_State()->GetMethod(Item._Key);
 				if (V) {
 					std::cout << "/" << V->DecorationName;
 				}

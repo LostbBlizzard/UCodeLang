@@ -249,4 +249,24 @@ RunTimeLangState::Diffs RunTimeLangState::HotReloadOrReset(const HotReloadData& 
 	return OK.value();
 }
 
+const ClassMethod* RunTimeLangState::GetMethod(const UAddress& address) 
+{
+	for (auto& node : Get_Assembly().Classes)
+	{
+		if (node->Get_Type() == ClassType::Class)
+		{
+			auto& Class = node->Get_ClassData();
+			for (auto& Item : Class.Methods)
+			{
+				auto FuncAddress = FindAddress(Item.DecorationName);
+				if (FuncAddress == address)
+				{
+					return &Item;
+				}
+			}
+		}
+	}
+	return nullptr;
+}
+
 UCodeLangEnd

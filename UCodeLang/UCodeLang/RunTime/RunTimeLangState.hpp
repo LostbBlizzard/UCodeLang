@@ -158,11 +158,11 @@ public:
 	}
 
 	void LinkLibs();
-	UCodeLangForceinline Optional<UAddress> FindAddress(const String& FunctionName)
+	UCodeLangForceinline Optional<UAddress> FindAddress(const String& FunctionName) const
 	{
 		return _Data.FindAddress(FunctionName);
 	}
-	UCodeLangForceinline Optional<RunTimeLib::CPPCall*> FindCPPCall(const String& FunctionName)
+	UCodeLangForceinline Optional<const RunTimeLib::CPPCall*> FindCPPCall(const String& FunctionName) const
 	{
 		return _Data.FindCPPCall(FunctionName);
 	}
@@ -222,6 +222,9 @@ public:
 
 	RunTimeLangState::Diffs HotReloadOrReset(const HotReloadData& Item, const HotReloadLib& LibsToUpdate);
 	RunTimeLangState::Diffs HotReloadOrReset(const HotReloadData& Item, const Vector<HotReloadLib> LibsToUpdate);
+
+	const ClassMethod* GetMethod(const UAddress& address);
+
 private:
 	Allocator _Allocator;
 	UCLibManger _Data;

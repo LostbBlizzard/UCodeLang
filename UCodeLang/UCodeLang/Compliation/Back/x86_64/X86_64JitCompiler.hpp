@@ -1,7 +1,7 @@
 #pragma once
 #include "../Jit/Jit.hpp"
 #include "X86_64Gen.hpp"
-#include "UCodeLang/LangCore/ReflectionData.hpp"
+#include "UCodeLang/RunTime/RunTimeLangState.hpp"
 UCodeLangStart
 
 
@@ -23,7 +23,7 @@ public:
 	//UCodeLang::InterpreterCPPinterface::Set_Return
 	void* InterpreterCPPinterface_Set_ReturnPtr = nullptr;
 	const ClassMethod* Func =nullptr;
-	const ClassAssembly* Assembly = nullptr;
+	RunTimeLangState* State = nullptr;
 
 	size_t Out_NativeCallOffset =0;
 private:
@@ -40,11 +40,14 @@ private:
 	};
 	Array<RegData, (size_t)RegisterID::EndParameterRegister> Regs;
 
-	RegData GetRegData(RegisterID ID)
+	RegData& GetRegData(RegisterID ID)
 	{
 		return Regs[(size_t)ID];
 	}
 
-	void BuildSysCallIns(InstructionSysCall Ins, RegisterID Reg);
+	void Push_Ins_MovImm8(X86_64Gen::GReg R, X86_64Gen::Value8 Value);
+	void Push_Ins_MovImm16(X86_64Gen::GReg R, X86_64Gen::Value16 Value);
+	void Push_Ins_MovImm32(X86_64Gen::GReg R, X86_64Gen::Value32 Value);
+	void Push_Ins_MovImm64(X86_64Gen::GReg R, X86_64Gen::Value64 Value);
 };
 UCodeLangEnd
