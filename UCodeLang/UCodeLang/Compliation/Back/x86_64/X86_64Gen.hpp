@@ -16,6 +16,8 @@ public:
 	using Value64 = CodeGen::Value64;
 
 	using GReg = x86_64::GeneralRegisters;
+	using ModRM = x86_64::ModRM;
+	using Rm = x86_64::Rm;
 	X86_64Gen(){}
 	~X86_64Gen(){}
 
@@ -24,6 +26,8 @@ public:
 	{
 		_Base._Output.PushByte(Value);
 	}
+	
+
 	void PushByte(const Byte* Value, size_t Size)
 	{
 		_Base._Output.PushByte(Value, Size);
@@ -64,7 +68,7 @@ public:
 
 
 
-	inline void Push_Ins_Callptr(uint64_t  CallValue, GReg freeReg = GReg::A)
+	inline void Push_Ins_Callptr(uint64_t  CallValue, GReg freeReg = GReg::RAX)
 	{
 		Push_Ins_MovImm64(freeReg,CallValue);
 		Push_Ins_CallFuncPtr(freeReg);
@@ -77,7 +81,7 @@ public:
 	inline void Push_Ins_CallFuncPtr(GReg Value)
 	{
 		_Base.PushByte(0xFF);
-		_Base.PushByte(0xd0 + x86::RegisterOffset(x86_64::To_x86(Value)));
+		_Base.PushByte(0xd0 + x86_64::GetIndex(Value));
 	}
 	//
 	
@@ -86,7 +90,36 @@ public:
 	void Push_Ins_MovImm32(GReg Reg, Value32 Value);
 	void Push_Ins_MovImm64(GReg Reg, Value64 Value);
 
+	void Push_Ins_SubRspImm32(Value32 Value)
+	{
+		PushByte(0x48);
+		PushByte(0x81);
+		PushByte(0xEC);
+		PushValue_t_little_endian(Value);
+	}
+	
 
+	/// loads the address of a variable into register
+	///
+	/// 
+	void Push_Ins_LEA(ModRM Mod,GReg Reg,Rm rm,Value8 scale, GReg index,UInt64 disp)
+	{
+		PushByte(0x48);
+		PushByte(0x8D);
+		
+		PushByte((Mod << 6) | ((Byte)Reg << 3) | (Byte)rm);
+
+		if (rm == Rm::RSP && index != GReg::RSP)
+		{
+			PushByte((scale << 6) | ((Byte)index << 3) | (Byte)Rm::RSP);
+			PushValue_t_little_endian(disp);
+		}
+		else
+		{
+			PushValue_t_little_endian(disp);
+
+		}
+	}
 
 	//mov    [reg],reg2
 	void Push_Ins_MovReg64ToPtrdereference(GReg Ptr, GReg reg2);
@@ -97,8 +130,39 @@ public:
 	void Push_Ins_RegToReg64(GReg Reg, GReg OutReg);
 
 
+	void Push_Ins_Push8(GReg Reg)
+	{
+
+	}
+	void Push_Ins_Push16(GReg Reg)
+	{
+		
+	}
+	void Push_Ins_Push32(GReg Reg)
+	{
+		
+	}
+	void Push_Ins_Push64(GReg Reg)
+	{
+		PushByte(0x50 + (Byte)Reg);
+	}
 
 
+	void Push_Ins_Pop8(GReg Reg)
+	{
+		
+	}
+	void Push_Ins_Pop16(GReg Reg)
+	{
+	}
+	void Push_Ins_Pop32(GReg Reg)
+	{
+		
+	}
+	void Push_Ins_Pop64(GReg Reg)
+	{
+		PushByte(0x58 + (Byte)Reg);
+	}
 
 	void Push_Ins_Add8(GReg Reg, GReg Reg2, GReg out);
 	void Push_Ins_Add16(GReg Reg, GReg Reg2, GReg out);

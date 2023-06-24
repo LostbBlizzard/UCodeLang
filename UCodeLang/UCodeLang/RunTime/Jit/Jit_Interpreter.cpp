@@ -18,7 +18,7 @@ int Func()
 CPPCallRet TempFunc(InterpreterCPPinterface& Input)
 {
 	auto R = Func();
-	Input.Set_Return(&R,sizeof(R));
+	Input.Set_Return_jit(&R,sizeof(R));
 }
 
 Interpreter::Return_t Jit_Interpreter::ThisCall(UAddress This, const String& FunctionName)
@@ -87,9 +87,12 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 	if (!UFuncToCPPFunc.count(address)){UFuncToCPPFunc[address] = {};}
 	auto& Item = UFuncToCPPFunc[address];
 	
-	TempFunc(InterpreterCPPinterface(&_Interpreter));
+	//TempFunc(InterpreterCPPinterface(&_Interpreter));
 
 	BuildCheck(Item, address);
+
+	int a = 0;
+	int* V = &a;
 
 	#if UCodeLang_KeepJitInterpreterFallback
 	if (Item.Type == JitFuncType::UCodeCall)
@@ -101,6 +104,9 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 		_ThisState._This = this;
 		_ThisState.StackFrames.push(Item.UCodeFunc);
 		{
+			char a1[] = "HelloWorld";
+			char* V = a1;
+
 			Item.Func(InterpreterCPPinterface(&_Interpreter));
 		}
 		_ThisState.StackFrames.pop();
@@ -135,7 +141,9 @@ void Jit_Interpreter::BuildCheck(UCodeLang::Jit_Interpreter::JitFuncData& Item, 
 		{
 			_Assembler.State = Get_State();
 			_Assembler.Func = Get_State()->GetMethod(address);
-		
+
+			auto V = &InterpreterCPPinterface::Set_Return_jit;
+			_Assembler.InterpreterCPPinterface_Set_ReturnPtr = *(NativeJitAssembler::InterpreterCPPinterface_SetRet*)&V;
 
 			if (_Assembler.Func && _Assembler.BuildFunc(Insts, address, TepOutBuffer))
 			{

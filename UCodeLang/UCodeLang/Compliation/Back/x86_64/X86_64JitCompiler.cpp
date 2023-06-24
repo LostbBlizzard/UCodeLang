@@ -5,20 +5,6 @@
 UCodeLangStart
 
 
-x86_64::GeneralRegisters GetGeneralRegister(RegisterID Value)
-{
-	switch (Value)
-	{
-	case RegisterID::A:return x86_64::GeneralRegisters::D;
-	case RegisterID::B:return x86_64::GeneralRegisters::C;
-	case RegisterID::C:return x86_64::GeneralRegisters::r8;
-	case RegisterID::D:return x86_64::GeneralRegisters::r9;
-	case RegisterID::E:return x86_64::GeneralRegisters::A;
-	case RegisterID::F:return x86_64::GeneralRegisters::B;
-
-	default:return x86_64::GeneralRegisters::Null;
-	}
-}
 
 
 X86_64JitCompiler::X86_64JitCompiler()
@@ -35,6 +21,8 @@ void X86_64JitCompiler::Reset()
 
 
 using GReg = X86_64Gen::GReg;
+using ModRM = X86_64Gen::ModRM;
+using Rm = X86_64Gen::Rm;
 struct JitType
 {
 	size_t Size = 0;
@@ -118,16 +106,28 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 	Output = &X64Output;
 	_Ins = &Ins;
 	
-	size_t CallOffset = _Gen.GetIndex();
-	
+	size_t CallOffset = 0;
+	size_t CallInsSize = 0;
 	
 
 	JitType Ret_Type;
 	{//CPPCall-body
+		{
+			_Gen.PushByte(0x55);//push rbp
+		}
+		{
+			_Gen.PushByte(0x48);//mov rbp,rsp
+			_Gen.PushByte(0x89);
+			_Gen.PushByte(0xe5);
+		}
+
 		
-	
+		//RDI is were the Input arugument is move on stack
+		_Gen.Push_Ins_Push64(GReg::RCX);
+
+		CallOffset = _Gen.GetIndex();
 		_Gen.Push_Ins_CallNear(0);
-		
+		CallInsSize = _Gen.GetIndex() - CallOffset;
 		
 		{
 			if (Func->RetType._Type == ReflectionTypes::Void)
@@ -155,8 +155,27 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 			{
 				Is32BitInt:
 				Ret_Type.Size = 4;
+
+				_Gen.Push_Ins_Pop64(GReg::RCX);//Pass Input
+
+				_Gen.Push_Ins_RegToReg64(GReg::RSP, GReg::RDX);
+				_Gen.Push_Ins_Push64(GReg::RAX);//pass &FuncRet
+				_Gen.Push_Ins_Push64(GReg::RAX);//pass &FuncRet
+				_Gen.Push_Ins_Push64(GReg::RAX);//pass &FuncRet
+				
+
 				//Input.Set_Return(&FuncRet,sizeof(int));
-				//_Gen.Push_Ins_MovImm32(GReg::r8, 4);//pass sizeof(int)
+
+
+
+				_Gen.Push_Ins_MovImm32(GReg::r8, 4);//pass sizeof(int)
+				
+				_Gen.Push_Ins_MovImm64(GReg::RAX,*(X86Gen::Value64*)&InterpreterCPPinterface_Set_ReturnPtr);
+				_Gen.Push_Ins_CallFuncPtr(GReg::RAX);
+
+				_Gen.Push_Ins_Pop64(GReg::RAX);
+				_Gen.Push_Ins_Pop64(GReg::RAX);
+				_Gen.Push_Ins_Pop64(GReg::RAX);
 			}
 			else if (Func->RetType._Type == ReflectionTypes::uInt64 || Func->RetType._Type == ReflectionTypes::sInt64)
 			{
@@ -180,14 +199,28 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 				return false;
 			}
 		}
+
+		{
+			_Gen.PushByte(0x5d);//pop rbp
+		}
 		_Gen.Push_Ins_ret();
 	}
 
 	{
-		size_t Offset = _Gen.GetIndex() - CallOffset - 6;
+		size_t Offset = _Gen.GetIndex() - CallOffset - CallInsSize;
 		_Gen.Sub_Ins_CallNear(_Gen.GetData(CallOffset), Offset);
 
 		Out_NativeCallOffset = _Gen.GetIndex();
+
+		{
+			_Gen.PushByte(0x55);//push rbp
+		}
+		{
+			_Gen.PushByte(0x48);//mov rbp,rsp
+			_Gen.PushByte(0x89);
+			_Gen.PushByte(0xe5);
+		}
+
 	}
 	{//c-code body
 		const bool RetTypeIsVoid = Ret_Type.IsVoid();
@@ -322,16 +355,16 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 					{
 						switch (Ret_Type.Size)
 						{
-						case 1:Push_Ins_MovImm8(GReg::A, V->AsInt8); break;
-						case 2:Push_Ins_MovImm16(GReg::A, V->AsInt16); break;
-						case 4:Push_Ins_MovImm32(GReg::A,V->AsInt32); break;
-						case 8:Push_Ins_MovImm64(GReg::A, V->AsInt64); break;
+						case 1:Push_Ins_MovImm8(GReg::RAX, V->AsInt8); break;
+						case 2:Push_Ins_MovImm16(GReg::RAX, V->AsInt16); break;
+						case 4:Push_Ins_MovImm32(GReg::RAX,V->AsInt32); break;
+						case 8:Push_Ins_MovImm64(GReg::RAX, V->AsInt64); break;
 						default:return false;
 						}
 					}
 						
 				}
-				_Gen.Push_Ins_ret();
+				
 			}
 			break;
 			#pragma region MathOp
@@ -512,6 +545,10 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 
 			if (Item.OpCode == InstructionSet::Return)
 			{
+				{
+					_Gen.PushByte(0x5d);//pop rbp
+				}
+				_Gen.Push_Ins_ret();
 				break;
 			}
 		}

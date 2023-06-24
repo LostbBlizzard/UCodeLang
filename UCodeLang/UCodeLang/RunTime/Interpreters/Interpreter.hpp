@@ -513,7 +513,7 @@ public:
 		}
 		else
 		{
-			memcmp(&Get_OutPutRegister(), &Value, sizeof(T));
+			memcpy(&Get_OutPutRegister(), &Value, sizeof(T));
 		}
 	}
 
@@ -552,18 +552,18 @@ public:
 	}
 	
 	//used by jit
-	void Set_Return(const void* Pointer,size_t Buffer)
+	void Set_Return_jit(const void* Pointer,size_t Buffer)
 	{
 
 		bool IsBigerRegister = Buffer > sizeof(Interpreter::Register);
 		if (IsBigerRegister)
 		{
-			memcmp(_Ptr->_CPU.Stack.GetTopOfStack(), Pointer, Buffer);
+			memcpy(_Ptr->_CPU.Stack.GetTopOfStack(), Pointer, Buffer);
 			Get_OutPutRegister().Value = _Ptr->_CPU.Stack.GetTopOfStack();
 		}
 		else
 		{
-			memcmp(&Get_OutPutRegister(), Pointer, Buffer);
+			memcpy(&Get_OutPutRegister(), Pointer, Buffer);
 		}
 	}
 private:
