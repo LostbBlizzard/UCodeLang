@@ -7,15 +7,21 @@ namespace x86_64
 	
 	enum class GeneralRegisters : Byte
 	{
-		A,//Accumulator register.  
-		B,//Base registe
-		C,//Counter register
-		D,//Data register
+		RAX = 0,//Accumulator register.  
+		RBX = 2,//Base registe
+		RCX = 1,//Counter register
+		RDX = 3,//Data register
 	
-		rdi,
+		RSP = 4,
+		RBP = 5,
+		RSI = 6,
+		RDI = 7,
+
 		r8,
 		r9,
 		r10,
+
+		Count,
 		Null,
 	};
 	enum class FloatingPointRegisters : Byte
@@ -37,35 +43,59 @@ namespace x86_64
 		xmm14,
 		xmm15,
 	};
+	inline Byte GetIndex(GeneralRegisters Reg)
+	{
+		return (Byte)Reg;
+	}
 
 	inline x86::GeneralRegisters To_x86(GeneralRegisters Value)
 	{
 		switch (Value)
 		{
-		case GeneralRegisters::A:return x86::GeneralRegisters::A;
-		case GeneralRegisters::B:return x86::GeneralRegisters::B;
-		case GeneralRegisters::C:return x86::GeneralRegisters::C;
-		case GeneralRegisters::D:return x86::GeneralRegisters::D;
-		case GeneralRegisters::rdi:return x86::GeneralRegisters::ESI;
+		case GeneralRegisters::RAX:return x86::GeneralRegisters::EAX;
+		case GeneralRegisters::RBX:return x86::GeneralRegisters::EBX;
+		case GeneralRegisters::RCX:return x86::GeneralRegisters::ECX;
+		case GeneralRegisters::RDX:return x86::GeneralRegisters::EDX;
+		case GeneralRegisters::RSP:return x86::GeneralRegisters::ESP;
+		case GeneralRegisters::RBP:return x86::GeneralRegisters::EBP;
+		case GeneralRegisters::RSI:return x86::GeneralRegisters::ESI;
+		case GeneralRegisters::RDI:return x86::GeneralRegisters::EDI;
 		default:return x86::GeneralRegisters::Null;
 		}
 	}
 	
-	
-	enum ModRM {
-		mod = 0xC0,
-		spare_register = 0x38,
-		rm = 0x07
-	};
-	
-	inline Byte modrm(GeneralRegisters src, GeneralRegisters dst) {
-		return (mod) | (x86::RegisterOffset(To_x86(src)) << 3) | x86::RegisterOffset(To_x86(dst));
-	}
+	enum class Rm : Byte
+	{
+		RAX = 0,//Accumulator register.  
+		RBX = 2,//Base registe
+		RCX = 1,//Counter register
+		RDX = 3,//Data register
 
-	inline Byte modrm2(GeneralRegisters src, GeneralRegisters dst) {
-		return (rm) | (x86::RegisterOffset(To_x86(src)) << 3) | x86::RegisterOffset(To_x86(dst));
+		RSP = 4,
+		RBP = 5,
+		RSI = 6,
+		RDI = 7,
+
+		r8,
+		r9,
+		r10,
+		Null,
+	};
+
+	enum ModRM 
+	{
+		Indirect = 0x00,
+		Direct = 0xC0,
+		Disp8 = 0x40,
+		Disp32 = 0x80
+	};
+	struct ModRMByte
+	{
+		Byte _Base;
+	};
+	inline Byte modrm(GeneralRegisters src, GeneralRegisters dst) {
+		return (Direct) | ((GetIndex(src)) << 3) | GetIndex(dst);
 	}
-	
 
 }
 UCodeLangEnd

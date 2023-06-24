@@ -9,6 +9,7 @@ UCodeLangStart
 class X86_64JitCompiler
 {
 public:
+	using InterpreterCPPinterface_SetRet = void(*)(void* Input);
 	X86_64JitCompiler();
 	~X86_64JitCompiler();
 	void Reset();
@@ -21,7 +22,7 @@ public:
 	UAddress OnUAddressPar=0;
 
 	//UCodeLang::InterpreterCPPinterface::Set_Return
-	void* InterpreterCPPinterface_Set_ReturnPtr = nullptr;
+	InterpreterCPPinterface_SetRet  InterpreterCPPinterface_Set_ReturnPtr = nullptr;
 	const ClassMethod* Func =nullptr;
 	RunTimeLangState* State = nullptr;
 

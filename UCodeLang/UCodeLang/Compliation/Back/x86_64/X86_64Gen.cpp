@@ -2,15 +2,13 @@
 UCodeLangStart
 void X86_64Gen::Push_Ins_CallNear(uint32_t CallValue)
 {
-	_Base.PushByte(0xFF);
-	_Base.PushByte(0x15);
+	_Base.PushByte(0xE8);
 	_Base.PushValue_t_little_endian(CallValue);
 }
 void X86_64Gen::Sub_Ins_CallNear(Byte* Output, uint32_t CallValue)
 {
-	Output[0] = 0xFF;
-	Output[1] = 0x15;
-	CodeGen::SubByte_t_little_endian(&Output[2], CallValue);
+	Output[0] = 0xE8;
+	CodeGen::SubByte_t_little_endian(&Output[1], CallValue);
 }
 void X86_64Gen::Push_Ins_MovImm8(GReg Reg, Value8 Value)
 {
@@ -24,7 +22,7 @@ void X86_64Gen::Push_Ins_MovImm32(GReg Reg, Value32 Value)
 {
 	if (Reg == GReg::r8)
 	{
-		PushByte(0x48);
+		PushByte(0x41);
 		PushByte(0xB8);
 		PushValue_t_little_endian(Value);
 	}
@@ -47,7 +45,7 @@ void X86_64Gen::Push_Ins_MovReg64ToPtrdereference(GReg Ptr, GReg reg2)
 {
 	PushByte(0x48);
 	PushByte(0x89);
-	PushByte(x86_64::modrm2(reg2, Ptr));
+	PushByte(x86_64::modrm(reg2, Ptr));
 
 }
 void X86_64Gen::Push_Ins_RegToReg8(GReg Reg, GReg OutReg)
@@ -65,8 +63,22 @@ void X86_64Gen::Push_Ins_RegToReg32(GReg Reg, GReg OutReg)
 }
 void X86_64Gen::Push_Ins_RegToReg64(GReg Reg, GReg OutReg)
 {
-	X86Gen_NotAdded
-		//_Base.Push_Ins_RegToReg32(x86_64::To_x86(Reg), x86_64::To_x86(Reg));
+	if (Reg == GReg::RSP && OutReg == GReg::RBX)
+	{
+		PushByte(0x48);
+		PushByte(0x89);
+		PushByte(0xE3);
+	}
+	else if (Reg == GReg::RSP && OutReg == GReg::RDX)
+	{
+		PushByte(0x48);
+		PushByte(0x89);
+		PushByte(0xE2);
+	}
+	else 
+	{
+		PushByte(0x48 | ((Byte)Reg << 3) | (Byte)OutReg);
+	}
 }
 inline void X86_64Gen::Push_Ins_Add8(GReg Reg, GReg Reg2, GReg out)
 {

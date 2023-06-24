@@ -62,7 +62,7 @@ void IRToX86::OnBlock(const IRBlock* IR)
 		break;
 		case IRInstructionType::LoadReturn:
 		{
-			LoadOpToReg(Item, Item.Target(), GReg::A);
+			LoadOpToReg(Item, Item.Target(), GReg::EAX);
 		}
 		break;
 		case IRInstructionType::Return:
