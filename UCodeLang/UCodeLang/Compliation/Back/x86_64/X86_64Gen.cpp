@@ -141,7 +141,7 @@ void X86_64Gen::add64(GReg dest, GReg src)
 {
 	throw std::exception("not added");
 }
-void X86_64Gen::sub64(GReg dest, Value64 Value)
+void X86_64Gen::sub32(GReg dest, Value32 Value)
 {
 	if (dest == GReg::RSP)
 	{

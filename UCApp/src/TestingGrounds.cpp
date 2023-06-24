@@ -14,6 +14,7 @@
 
 #include "../tests/TestGenerator.hpp"
 #include "../tests/Test.hpp"
+#include <chrono>
 using namespace UCodeLang;
 const UCodeLang::String ScrDir = "C:/CoolStuff/CoolCodeingStuff/C++/Projects/UCodeLang/UCApp/src/";
 const UCodeLang::String TopTestDir = ScrDir + "Tests/";
@@ -102,6 +103,8 @@ void TestFormater()
 void TestingGround()
 {
 	Jit_Interpreter RunTime;
+	Jit_Interpreter AllwaysJit;
+	Interpreter OtherInterpreter;
 	
 	ULangTest::TestGenerator V;
 	V.SetSeed(1);
@@ -178,6 +181,10 @@ void TestingGround()
 		//debuger.Attach(&RunTime);
 
 		RunTime.Init(&State);
+		OtherInterpreter.Init(&State);
+		AllwaysJit.Init(&State);
+
+		AllwaysJit.AlwaysJit = true;
 
 		auto FuncMain = State.Get_Assembly().Get_GlobalObject_Class()->Get_ClassMethod("main");
 
@@ -187,18 +194,66 @@ void TestingGround()
 
 		auto CallIndex = State.FindAddress(FuncMain->DecorationName);
 
+		
 
 		Vec3 BufferToCopy[3]{ 1,2,3 };
+		const size_t MaxTimes = 10000;	
+		using Clock = std::chrono::steady_clock;
+		{
+		
+			auto OldTime = Clock::now();
+			for (size_t i = 0; i < MaxTimes; i++)
+			{
+				auto AutoPtr = RunTime.RCall<int>(*FuncMain, &BufferToCopy);
+			}
 
-		auto AutoPtr = RunTime.RCall<int>(*FuncMain, &BufferToCopy);
+			auto newTime = Clock::now();
+
+			auto MsCount = std::chrono::duration_cast<std::chrono::milliseconds>(newTime - OldTime).count();
+			std::cout << "Time:" << 
+				MsCount
+				<< " ms" << " for Jit Interpreter" << std::endl;
+		}
+		
+		{
+
+			auto OldTime = Clock::now();
+			for (size_t i = 0; i < MaxTimes; i++)
+			{
+				auto AutoPtr = AllwaysJit.RCall<int>(*FuncMain, &BufferToCopy);
+			}
+
+			auto newTime = Clock::now();
+
+			auto MsCount = std::chrono::duration_cast<std::chrono::milliseconds>(newTime - OldTime).count();
+			std::cout << "Time:" <<
+				MsCount
+				<< " ms" << " for allways Jit-Interpreter" << std::endl;
+		}
+
+		{
+			auto OldTime = Clock::now();
+
+			for (size_t i = 0; i < MaxTimes; i++)
+			{
+				auto AutoPtr = OtherInterpreter.RCall<int>(*FuncMain, &BufferToCopy);
+			}
 
 
+			auto newTime = Clock::now();
+			auto MsCount = std::chrono::duration_cast<std::chrono::milliseconds>(newTime - OldTime).count();
+			std::cout << "Time:" <<
+				MsCount
+				<< " ms" << " for Base Interpreter" << std::endl;
+		}
 
-		std::cout << " Got Value " << (int)0 << std::endl;
+
+		//std::cout << " Got Value " << (int)AutoPtr << std::endl;
 
 		RunTime.Call(StaticVariablesUnLoadFunc);
 		RunTime.Call(ThreadVariablesUnLoadFunc);
 
 		RunTime.UnLoad();
+		OtherInterpreter.UnLoad();
 	}
 }

@@ -145,7 +145,37 @@ void Jit_Interpreter::BuildCheck(UCodeLang::Jit_Interpreter::JitFuncData& Item, 
 			auto V = &InterpreterCPPinterface::Set_Return_jit;
 			_Assembler.InterpreterCPPinterface_Set_ReturnPtr = *(NativeJitAssembler::InterpreterCPPinterface_SetRet*)&V;
 
-			if (_Assembler.Func && _Assembler.BuildFunc(Insts, address, TepOutBuffer))
+			bool ShouldJit = false;
+			if (AlwaysJit == true)
+			{
+				ShouldJit = true;
+			}
+			else
+			{
+				size_t FuncSize = 0;
+				for (size_t i = address; i < Insts.size(); i++)
+				{
+					Instruction& NextIns = Insts[i];
+					if (NextIns.OpCode == InstructionSet::Return)
+					{
+						FuncSize = i;
+					}
+				}
+
+
+				if (FuncSize < 12)
+				{
+					//Func too small to jit compile
+
+				}
+				else
+				{
+					ShouldJit = true;
+				}
+				
+			}
+
+			if (ShouldJit && _Assembler.Func && _Assembler.BuildFunc(Insts, address, TepOutBuffer))
 			{
 				size_t InsSize = TepOutBuffer.size();
 				ExBuffer.SetToReadWriteMode();
@@ -220,12 +250,15 @@ String byte_to_hex(Byte i)
 
 void Jit_Interpreter::LogASM()
 {
+	if (!IsDebug) {
+		return;
+	}
 #if HasSupportforJit
 	void* InsData = ExBuffer.Data;
 	size_t InsSize = Insoffset;
 #if UCodeLang_CPUIs_x86_64 || UCodeLang_CPUIs_x86
 	ZyanU64 runtime_address = (ZyanU64)InsData;
-
+	runtime_address = 0;
 	// Loop over the instructions in our buffer.
 	ZyanUSize offset = 0;
 	ZydisDisassembledInstruction instruction;
@@ -291,6 +324,7 @@ void Jit_Interpreter::LogASM()
 	}
 #endif
 
+	int DebugYourBreakPointHere = 0;
 
 #endif
 }
