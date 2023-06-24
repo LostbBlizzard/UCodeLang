@@ -1,24 +1,36 @@
 #include "X86_64Gen.hpp"
 UCodeLangStart
-void X86_64Gen::Push_Ins_CallNear(uint32_t CallValue)
+void X86_64Gen::call(Absoluteu32 CallValue)
 {
-	_Base.PushByte(0xE8);
+	_Base.PushByte(0x9A);
 	_Base.PushValue_t_little_endian(CallValue);
 }
-void X86_64Gen::Sub_Ins_CallNear(Byte* Output, uint32_t CallValue)
+void X86_64Gen::r_call(Byte* Output, Absoluteu32 CallValue)
 {
-	Output[0] = 0xE8;
+	Output[0] = 0x9A;
 	CodeGen::SubByte_t_little_endian(&Output[1], CallValue);
 }
-void X86_64Gen::Push_Ins_MovImm8(GReg Reg, Value8 Value)
+void X86_64Gen::call(Near32 displacement)
 {
-	_Base.Push_Ins_MovImm8(x86_64::To_x86(Reg), Value);
+	PushByte(0xE8);
+	PushValue_t_little_endian(displacement);
 }
-void X86_64Gen::Push_Ins_MovImm16(GReg Reg, Value16 Value)
+void X86_64Gen::r_call(Byte* Output, Near32 displacement)
 {
-	_Base.Push_Ins_MovImm16(x86_64::To_x86(Reg), Value);
+	Output[0] = 0xE8;
+	CodeGen::SubByte_t_little_endian(&Output[1],displacement);
 }
-void X86_64Gen::Push_Ins_MovImm32(GReg Reg, Value32 Value)
+void X86_64Gen::mov(GReg Reg, Value8 Value)
+{
+	if (x86_64::To_x86(Reg) ==x86::GeneralRegisters::Null){ throw std::exception("not added"); }
+	_Base.mov(x86_64::To_x86(Reg), Value);
+}
+void X86_64Gen::mov(GReg Reg, Value16 Value)
+{
+	if (x86_64::To_x86(Reg) == x86::GeneralRegisters::Null) { throw std::exception("not added"); }
+	_Base.mov(x86_64::To_x86(Reg), Value);
+}
+void X86_64Gen::mov(GReg Reg, Value32 Value)
 {
 	if (Reg == GReg::r8)
 	{
@@ -28,10 +40,11 @@ void X86_64Gen::Push_Ins_MovImm32(GReg Reg, Value32 Value)
 	}
 	else
 	{
-		_Base.Push_Ins_MovImm32(x86_64::To_x86(Reg), Value);
+		if (x86_64::To_x86(Reg) == x86::GeneralRegisters::Null) { throw std::exception("not added"); }
+		_Base.mov(x86_64::To_x86(Reg), Value);
 	}
 }
-void X86_64Gen::Push_Ins_MovImm64(GReg Reg, Value64 Value)
+void X86_64Gen::mov(GReg Reg, Value64 Value)
 {
 	PushByte(0x48);
 	PushByte(0xb8 + x86::RegisterOffset(x86_64::To_x86(Reg)));
@@ -39,37 +52,55 @@ void X86_64Gen::Push_Ins_MovImm64(GReg Reg, Value64 Value)
 
 }
 
-//mov    [reg],reg2
-
-void X86_64Gen::Push_Ins_MovReg64ToPtrdereference(GReg Ptr, GReg reg2)
+void X86_64Gen::lea(ModRM Mod, GReg Reg, Rm rm, Value8 scale, GReg index, UInt64 disp)
 {
 	PushByte(0x48);
-	PushByte(0x89);
-	PushByte(x86_64::modrm(reg2, Ptr));
+	PushByte(0x8D);
 
-}
-void X86_64Gen::Push_Ins_RegToReg8(GReg Reg, GReg OutReg)
-{
-	_Base.Push_Ins_RegToReg8(x86_64::To_x86(Reg), x86_64::To_x86(OutReg));
-}
-void X86_64Gen::Push_Ins_RegToReg16(GReg Reg, GReg OutReg)
-{
+	PushByte(((Byte)Mod << 6) | ((Byte)Reg << 3) | (Byte)rm);
 
-	_Base.Push_Ins_RegToReg16(x86_64::To_x86(Reg), x86_64::To_x86(OutReg));
+	if (rm == Rm::RSP && index != GReg::RSP)
+	{
+		PushByte((scale << 6) | ((Byte)index << 3) | (Byte)Rm::RSP);
+		PushValue_t_little_endian(disp);
+	}
+	else
+	{
+		PushValue_t_little_endian(disp);
+
+	}
 }
-void X86_64Gen::Push_Ins_RegToReg32(GReg Reg, GReg OutReg)
+
+void X86_64Gen::mov8(GReg dest, GReg src)
 {
-	_Base.Push_Ins_RegToReg32(x86_64::To_x86(Reg), x86_64::To_x86(OutReg));
+	if (x86_64::To_x86(src) == x86::GeneralRegisters::Null) { throw std::exception("not added"); }
+	if (x86_64::To_x86(dest) == x86::GeneralRegisters::Null) { throw std::exception("not added"); }
+
+	_Base.mov8(x86_64::To_x86(dest), x86_64::To_x86(src));
 }
-void X86_64Gen::Push_Ins_RegToReg64(GReg Reg, GReg OutReg)
+void X86_64Gen::mov16(GReg dest, GReg src)
 {
-	if (Reg == GReg::RSP && OutReg == GReg::RBX)
+	if (x86_64::To_x86(src) == x86::GeneralRegisters::Null) { throw std::exception("not added"); }
+	if (x86_64::To_x86(dest) == x86::GeneralRegisters::Null) { throw std::exception("not added"); }
+
+	_Base.mov16(x86_64::To_x86(dest),x86_64::To_x86(src));
+}
+void X86_64Gen::mov32(GReg dest, GReg src)
+{
+	if (x86_64::To_x86(src) == x86::GeneralRegisters::Null) { throw std::exception("not added"); }
+	if (x86_64::To_x86(dest) == x86::GeneralRegisters::Null) { throw std::exception("not added"); }
+
+	_Base.mov32(x86_64::To_x86(dest),x86_64::To_x86(src));
+}
+void X86_64Gen::move64(GReg dest, GReg src)
+{
+	if (dest == GReg::RSP && src == GReg::RBX)
 	{
 		PushByte(0x48);
 		PushByte(0x89);
 		PushByte(0xE3);
 	}
-	else if (Reg == GReg::RSP && OutReg == GReg::RDX)
+	else if (dest == GReg::RSP && src == GReg::RDX)
 	{
 		PushByte(0x48);
 		PushByte(0x89);
@@ -77,24 +108,83 @@ void X86_64Gen::Push_Ins_RegToReg64(GReg Reg, GReg OutReg)
 	}
 	else 
 	{
-		PushByte(0x48 | ((Byte)Reg << 3) | (Byte)OutReg);
+		PushByte(0x48);
+		PushByte(0x89);
+		PushByte(x86_64::modrm(src, dest));
 	}
 }
-inline void X86_64Gen::Push_Ins_Add8(GReg Reg, GReg Reg2, GReg out)
+void X86_64Gen::move64(IndrReg Reg, GReg src)
 {
-	_Base.Push_Ins_Add8(x86_64::To_x86(Reg), x86_64::To_x86(Reg2), x86_64::To_x86(out));
+	PushByte(0x48);
+	PushByte(0x89);
+	PushByte(x86_64::modrm(src, Reg._Reg));
 }
-inline void X86_64Gen::Push_Ins_Add16(GReg Reg, GReg Reg2, GReg out)
+void X86_64Gen::move64(GReg dest, IndrReg src)
 {
-	_Base.Push_Ins_Add16(x86_64::To_x86(Reg), x86_64::To_x86(Reg2), x86_64::To_x86(out));
+	PushByte(0x48);
+	PushByte(0x89);
+	PushByte(x86_64::modrm(src._Reg, dest));
 }
-inline void X86_64Gen::Push_Ins_Add32(GReg Reg, GReg Reg2, GReg out)
+ void X86_64Gen::push8(GReg Reg)
 {
-	_Base.Push_Ins_Add32(x86_64::To_x86(Reg), x86_64::To_x86(Reg2), x86_64::To_x86(out));
+	throw std::exception("not added");
 }
-inline void X86_64Gen::Push_Ins_Add64(GReg Reg, GReg Reg2, GReg out)
+ void X86_64Gen::push16(GReg Reg)
 {
-	X86Gen_NotAdded
-		//_Base.Push_Ins_MovImm64(x86_64::To_x86(Reg), Value);
+	throw std::exception("not added");
+}
+ void X86_64Gen::push32(GReg Reg)
+{
+	throw std::exception("not added");
+}
+ void X86_64Gen::push64(GReg Reg)
+ {
+	 PushByte(0x50 + (Byte)Reg);
+ }
+ void X86_64Gen::pop8(GReg Reg)
+ {
+	 throw std::exception("not added");
+ }
+ void X86_64Gen::pop16(GReg Reg)
+ {
+	 throw std::exception("not added");
+ }
+ void X86_64Gen::pop32(GReg Reg)
+ {
+	 throw std::exception("not added");
+ }
+ void X86_64Gen::pop64(GReg Reg)
+ {
+	 PushByte(0x58 + (Byte)Reg);
+ }
+void X86_64Gen::add8(GReg dest, GReg src)
+{
+	throw std::exception("not added");
+}
+void X86_64Gen::add16(GReg dest, GReg src)
+{
+	throw std::exception("not added");
+}
+void X86_64Gen::add32(GReg dest, GReg src)
+{
+	throw std::exception("not added");
+}
+void X86_64Gen::add64(GReg dest, GReg src)
+{
+	throw std::exception("not added");
+}
+void X86_64Gen::sub64(GReg dest, Value64 Value)
+{
+	if (dest == GReg::RSP)
+	{
+		PushByte(0x48);
+		PushByte(0x81);
+		PushByte(0xEC);
+		PushValue_t_little_endian(Value);
+	}
+	else
+	{
+		throw std::exception("not added");
+	}
 }
 UCodeLangEnd

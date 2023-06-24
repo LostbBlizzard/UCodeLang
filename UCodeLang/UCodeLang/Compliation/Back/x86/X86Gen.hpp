@@ -68,111 +68,85 @@ public:
 	inline size_t GetIndex() { return _Output.GetIndex(); }
 	inline Byte* GetData(size_t offset) { return _Output.ByteOutput.data() + offset; }
 	//move
-	inline void Push_Ins_MovImm8(GReg Reg, Value8 Value)
+	inline void mov(GReg Reg, Value8 Value)
 	{
 		Use86
 		PushByte(0xb0 + RegisterOffset(Reg));
 		PushByte(Value);
 	}
-	inline void Push_Ins_MovImm16(GReg Reg, Value16 Value)
+	inline void mov(GReg Reg, Value16 Value)
 	{
 		Use86
 		PushByte(0x66);
 		PushByte(0xb9 + RegisterOffset(Reg));
 		PushValue_t_little_endian(Value);
 	}
-	inline void Push_Ins_MovImm32(GReg Reg, Value32 Value)
+	inline void mov(GReg Reg, Value32 Value)
 	{
 		Use86
 			PushByte(0xb8 + RegisterOffset(Reg));
 		PushValue_t_little_endian(Value);
 	}
 
-	inline void Push_Ins_RegToReg8(GReg Reg, GReg OutReg)
+	inline void mov8(GReg dest, GReg src)
 	{
 		Use86
 		PushByte(0x88);
-		PushByte(modrm(Reg, OutReg));
+		PushByte(modrm(src,dest));
 	}
-	inline void Push_Ins_RegToReg16(GReg Reg, GReg OutReg)
+	inline void mov16(GReg dest, GReg src)
 	{
 		Use86
 		PushByte(0x66);
 		PushByte(0x89);
-		PushByte(modrm(Reg, OutReg));
+		PushByte(modrm(src, dest));
 	}
-	inline void Push_Ins_RegToReg32(GReg Reg, GReg OutReg)
+	inline void mov32(GReg dest, GReg src)
 	{
 		Use86
 		PushByte(0x89);
-		PushByte(modrm(Reg, OutReg));
+		PushByte(modrm(src, dest));
 	}
 
 	//add
 
-	//OutReg := OutReg + Reg;
-	inline void Push_Ins_Add8(GReg Reg, GReg OutReg)
+	//dest := src + dest;
+	inline void add8(GReg dest, GReg src)
 	{
 		Use86
 		PushByte(0x00);
-		PushByte(modrm(Reg, OutReg));
+		PushByte(modrm(src, dest));
 	}
-	inline void Push_Ins_Add16(GReg Reg, GReg OutReg)
+
+	//dest := src + dest;
+	inline void add16(GReg dest, GReg src)
 	{
 		Use86
 		PushByte(0x66);
 		PushByte(0x01);
-		PushByte(modrm(Reg, OutReg));
+		PushByte(modrm(src, dest));
 	}
-	inline void Push_Ins_Add32(GReg Reg,GReg OutReg)
+
+	//dest := src + dest;
+	inline void add32(GReg dest, GReg src)
 	{
 		Use86
 		PushByte(0x01);
-		PushByte(modrm(Reg, OutReg));
+		PushByte(modrm(src, dest));
 	}
 	
-	//add alias
-	inline void Push_Ins_Add8(GReg Reg, GReg Reg2, GReg OutReg)
-	{
-	
-		if (Reg != Reg2) 
-		{
-			Push_Ins_RegToReg8(Reg2, OutReg);	
-		}
-		Push_Ins_Add8(Reg, OutReg);
-	}
-	inline void Push_Ins_Add16(GReg Reg, GReg Reg2, GReg OutReg)
-	{
 
-		if (Reg != Reg2)
-		{
-			Push_Ins_RegToReg16(Reg2, OutReg);
-		}
-		Push_Ins_Add16(Reg, OutReg);
-	}
-	inline void Push_Ins_Add32(GReg Reg, GReg Reg2, GReg OutReg)
-	{
-		if (Reg != Reg2)
-		{
-			Push_Ins_RegToReg32(Reg2, OutReg);
-		}
-		Push_Ins_Add32(Reg, OutReg); 
-	}
 	//control flow
-	inline void Push_Ins_syscall()
+	inline void syscall()
 	{
 		Use86
 		PushByte(0xf);
 		PushByte(0x05);
 	}
-	inline void Push_Ins_ret()
+	inline void ret()
 	{
 		Use86
 		PushByte(0xc3);
-	}
-	inline void Push_Ins_shortJump()
-	{
-
 	}
 };
 
