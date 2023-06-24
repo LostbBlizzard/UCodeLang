@@ -141,41 +141,14 @@ void Jit_Interpreter::BuildCheck(UCodeLang::Jit_Interpreter::JitFuncData& Item, 
 		{
 			_Assembler.State = Get_State();
 			_Assembler.Func = Get_State()->GetMethod(address);
+			_Assembler.BuildAddressPtr = &Jit_Interpreter::OnUAddressCall;
 
 			auto V = &InterpreterCPPinterface::Set_Return_jit;
 			_Assembler.InterpreterCPPinterface_Set_ReturnPtr = *(NativeJitAssembler::InterpreterCPPinterface_SetRet*)&V;
 
-			bool ShouldJit = false;
-			if (AlwaysJit == true)
-			{
-				ShouldJit = true;
-			}
-			else
-			{
-				size_t FuncSize = 0;
-				for (size_t i = address; i < Insts.size(); i++)
-				{
-					Instruction& NextIns = Insts[i];
-					if (NextIns.OpCode == InstructionSet::Return)
-					{
-						FuncSize = i;
-					}
-				}
+			bool shouldJit = ShouldJit(address, Insts);
 
-
-				if (FuncSize < 12)
-				{
-					//Func too small to jit compile
-
-				}
-				else
-				{
-					ShouldJit = true;
-				}
-				
-			}
-
-			if (ShouldJit && _Assembler.Func && _Assembler.BuildFunc(Insts, address, TepOutBuffer))
+			if (shouldJit && _Assembler.Func && _Assembler.BuildFunc(Insts, address, TepOutBuffer))
 			{
 				size_t InsSize = TepOutBuffer.size();
 				ExBuffer.SetToReadWriteMode();
@@ -187,26 +160,27 @@ void Jit_Interpreter::BuildCheck(UCodeLang::Jit_Interpreter::JitFuncData& Item, 
 				Item.Func = (JitFunc)Ptr;
 				Item.NativeFunc = (void*)(Ptr + _Assembler.Out_NativeCallOffset);
 
-				for (auto& Item : _Assembler.NullCalls)
+				size_t OldSize = TepOutBuffer.size();
+				memcpy((void*)Ptr, TepOutBuffer.data(), InsSize);
+				
 				{
-					Instruction& Ins = Insts[Item.UCodeAddress];
-					UAddress CodeFuncAddress = Ins.Value0.AsAddress + 1;
-					if (UFuncToCPPFunc.count(CodeFuncAddress))
+					for (auto& Item : _Assembler.LinkingData)
 					{
-						auto& SomeV = UFuncToCPPFunc.at(CodeFuncAddress);
+						Instruction& Ins = Insts[Item.OnUAddress];
+						UAddress CodeFuncAddress = Ins.Value0.AsAddress;
+						if (UFuncToCPPFunc.count(CodeFuncAddress))
+						{
+							auto& SomeV = UFuncToCPPFunc.at(CodeFuncAddress);
 
-						_Assembler.SubCall(SomeV.Func, Item.CPPoffset, TepOutBuffer);
-					}
-					else
-					{
-						_Assembler.SubCall((JitInfo::FuncType)OnUAddressCall, Item.CPPoffset, TepOutBuffer);
+							_Assembler.SubCall((JitInfo::FuncType)SomeV.NativeFunc, OldSize + Item.CPPOffset, ExBuffer.Data);
+						}
+						else
+						{
+							_Assembler.SubCall((JitInfo::FuncType)OnUAddressCall, OldSize + Item.CPPOffset, ExBuffer.Data);
+						}
 					}
 				}
 
-
-
-
-				memcpy((void*)Ptr, TepOutBuffer.data(), InsSize);
 
 				LogASM();
 
@@ -248,6 +222,107 @@ String byte_to_hex(Byte i)
 	return R;
 }
 
+template<typename T>
+String ToHex(T Value)
+{
+	String R;
+	for (size_t i = 0; i < sizeof(T); i++)
+	{
+		R += byte_to_hex(((Byte*)&Value)[i]);
+	}
+	return R;
+}
+
+template<typename T>
+String ToHexR(T Value,bool keep0Byte =false)
+{
+	String R;
+	for (int i = sizeof(T) - 1; i >= 0; i--)
+	{
+		if (keep0Byte) {
+			if (((Byte*)&Value)[i] == 0) { continue; }
+		}
+
+		R += byte_to_hex(((Byte*)&Value)[i]);
+	}
+	return R;
+}
+
+bool IsNumber(char Value)
+{
+	const char Num[] = "1234567890";
+	for (size_t i = 0; i < sizeof(Num); i++)
+	{
+		if (Num[i] == Value)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+bool IsHex(char Value)
+{
+	const char Num[] = "1234567890ABCDEF";
+	for (size_t i = 0; i < sizeof(Num); i++)
+	{
+		if (Num[i] == Value)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+template<typename T>
+bool CMP(T Value, const String& Hex)
+{
+	return (("0x" + ToHexR(Value, true)) == Hex) || (("0x" + ToHexR(Value, false)) == Hex);
+}
+Optional<String> Jit_Interpreter::GetNameForHex(const String& Hex)
+{
+	Optional<String> R;
+	
+	if (CMP(_Assembler.InterpreterCPPinterface_Set_ReturnPtr, Hex))
+	{
+		R = String("InterpreterCPPinterface::Set_ReturnPtr");
+	}
+	else 
+	{
+		if (CMP(_Assembler.BuildAddressPtr, Hex))
+		{
+			R = String("Jit_Interpreter::OnUAddressCall");
+		}
+		else
+		{
+			for (auto& Item : UFuncToCPPFunc)
+			{
+				if (CMP(Item._Value.UCodeFunc,Hex))
+				{
+					String Str;
+					Str = "cpp-call:" + std::to_string(Item._Key);
+
+					Str += '-' + Get_State()->GetName(Item._Key);
+					return Str;
+				}
+				else
+				{
+					if (CMP(Item._Value.NativeFunc, Hex))
+					{
+						String Str;
+						Str = "native:" + std::to_string(Item._Key);
+
+						Str += '-' + Get_State()->GetName(Item._Key);
+						return Str;
+					}
+				}
+			}
+		}
+	}
+	return R;
+}
+
 void Jit_Interpreter::LogASM()
 {
 	if (!IsDebug) {
@@ -258,7 +333,7 @@ void Jit_Interpreter::LogASM()
 	size_t InsSize = Insoffset;
 #if UCodeLang_CPUIs_x86_64 || UCodeLang_CPUIs_x86
 	ZyanU64 runtime_address = (ZyanU64)InsData;
-	runtime_address = 0;
+	//runtime_address = 0;
 	// Loop over the instructions in our buffer.
 	ZyanUSize offset = 0;
 	ZydisDisassembledInstruction instruction;
@@ -273,8 +348,92 @@ void Jit_Interpreter::LogASM()
 		/* instruction:     */ &instruction
 	)))
 	{
-		printf("%016" PRIX64 " ", runtime_address);
 		
+		String InsStr = instruction.text;
+
+
+		{
+			int State = 0;
+			size_t StrIndex = 0;
+			String_view V;
+
+			String NewIns = "";
+
+			for (size_t i = 0; i < InsStr.size(); i++)
+			{
+				auto Char = InsStr[i];
+				if (Char == '0')
+				{
+					State = 1;
+				}
+				else
+				if (Char == 'x')
+				{
+					if (State == 1)
+					{
+						String B = "0x";
+
+						for (size_t i2 = i+1; i2 < InsStr.size(); i2++)
+						{
+							if (IsHex(InsStr[i2]))
+							{
+								B += InsStr[i2];
+								i = i2;
+							}
+							else
+							{
+								i = i2;
+								break;
+							}
+						}
+
+						int a = 0;
+						auto NewName = GetNameForHex(B);
+
+						NewIns += NewName.value_or(B);
+						State = 0;
+					}
+					else
+					{
+						State = 0;
+						NewIns += Char;
+					}
+				}
+				else
+				{
+					NewIns += Char;
+				}
+			}
+			InsStr = NewIns;
+		}
+		void* Pointer = (void*)((uintptr_t)InsData + offset);
+		for (auto& Item : UFuncToCPPFunc)
+		{
+			if (Item._Value.Type != JitFuncType::CPPCall) { continue; }
+			if ((ZyanU64)Item._Value.Func == (ZyanU64)Pointer)
+			{
+				std::cout << "\n";
+				std::cout << "CPPCall-" << Item._Key << "-";
+
+				std::cout << Get_State()->GetName(Item._Key);
+				
+				std::cout << ":";
+				std::cout << std::endl;
+			}
+			else if ((ZyanU64)Item._Value.NativeFunc == (ZyanU64)Pointer)
+			{
+				std::cout << "\n";
+				std::cout << "Native-" << Item._Key << '-';
+
+				std::cout << Get_State()->GetName(Item._Key);
+
+				std::cout << ":";
+				std::cout << std::endl;
+			}
+		}
+		
+		std::cout << " ";
+		std::cout << ToHexR(runtime_address);
 		std::cout << ":";
 
 		for (size_t i = 0; i < MaxInsSize; i++)
@@ -289,31 +448,9 @@ void Jit_Interpreter::LogASM()
 				std::cout << byte_to_hex(*byte) << " ";
 			}
 		}
-		String InsStr = instruction.text;
-
-		std::cout << std::dec << InsStr;
+		std::cout << " " << InsStr;
 		
-		for (auto& Item : UFuncToCPPFunc)
-		{
-			if (Item._Value.UCodeFunc == runtime_address)
-			{
-				std::cout << "//CPPCall:" << Item._Key;
-
-				auto V = Get_State()->GetMethod(Item._Key);
-				if (V) {
-					std::cout << "/" << V->DecorationName;
-				}
-			}
-			else if ((ZyanU64)Item._Value.NativeFunc == runtime_address)
-			{
-				std::cout << "//Native:" << Item._Key;
-
-				auto V = Get_State()->GetMethod(Item._Key);
-				if (V) {
-					std::cout << "/" << V->DecorationName;
-				}
-			}
-		}
+		
 		
 		std::cout << '\n';
 
@@ -323,70 +460,69 @@ void Jit_Interpreter::LogASM()
 		runtime_address += instruction.info.length;
 	}
 #endif
-
+	std::cout << "/end" << std::endl;
 	int DebugYourBreakPointHere = 0;
 
 #endif
 }
-UInt64 Jit_Interpreter::OnUAddressCall()
+bool Jit_Interpreter::ShouldJit(UAddress address, const Vector<Instruction>& Insts)
 {
-#if HasSupportforJit
-	//save all pars on stack and build code
-
-	UAddress TryingToCall = _ThisState._This->_Assembler.OnUAddressPar;
-	UAddress address = _ThisState.StackFrames.top();
-	auto& Item = _ThisState._This->UFuncToCPPFunc[TryingToCall];
-	_ThisState._This->BuildCheck(Item, address);
-
-
-
-	#if UCodeLang_KeepJitInterpreterFallback
-	if (Item.Type == JitFuncType::UCodeCall)
+	bool ShouldJit = false;
+	if (AlwaysJit == true)
 	{
-		_ThisState._This->_Interpreter.Call(Item.UCodeFunc);
-		return _ThisState._This->_Interpreter.Get_OutRegister().Value.AsUInt64;
+		ShouldJit = true;
 	}
 	else
 	{
-		_ThisState.StackFrames.push(Item.UCodeFunc);
+		size_t FuncSize = 0;
+		for (size_t i = address; i < Insts.size(); i++)
 		{
-			using Func = UInt64(*)();
-			auto V = (*(Func*)&Item.Func)();
-			
-			_ThisState.StackFrames.pop();
-			return V;
+			const Instruction& NextIns = Insts[i];
+			if (NextIns.OpCode == InstructionSet::Return)
+			{
+				FuncSize = i;
+			}
 		}
+
+
+		if (FuncSize < 12)
+		{
+			//Func too small to jit compile
+
+		}
+		else
+		{
+			ShouldJit = true;
+		}
+
 	}
-	#else
-	throw std::exception("not added");
-	#endif
-	
-	//UAddress V = Cpp.GetParameters<UAddress>();
-	//Call(V);
-
-	throw std::exception("not added");
-
-#endif
-	return 0;
+	return ShouldJit;
 }
-CPPCallRet Jit_Interpreter::Call_CPPFunc(JitFunc ToCall)
+void Jit_Interpreter::OnUAddressCall(UAddress addresstojit)
 {
-	#if UCodeLang_KeepJitInterpreterFallback
+	auto State = _ThisState._This->Get_State();
+	auto& LibManger = State->Get_Libs();
 
+	if (!_ThisState._This->UFuncToCPPFunc.count(addresstojit)) { _ThisState._This->UFuncToCPPFunc[addresstojit] = {}; }
+	auto& Item = _ThisState._This->UFuncToCPPFunc[addresstojit];
+
+	bool shouldJit = _ThisState._This->ShouldJit(addresstojit,LibManger.GetInstructions());
+
+	if (shouldJit)
 	{
-		//push pars
-
+		if (_ThisState._This->IsDebug) 
+		{
+			std::cout << " building because a funcion needed it " << std::to_string(addresstojit) << std::endl;
+		}
+		_ThisState._This->BuildCheck(Item, addresstojit);
+		return;
 	}
-
-
-	ToCall(InterpreterCPPinterface(&_Interpreter));
-	//_Interpreter.Get_OutRegister().Value = r;
-	
-	
-	
-#else
-	throw std::exception("not added");
-	#endif
+	else
+	{
+		//fall back on Interpreter.
+		throw std::exception("path not added");
+	}
+		
 }
 
 UCodeLangEnd

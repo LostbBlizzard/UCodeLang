@@ -120,7 +120,7 @@ public:
 	template<typename T, typename... Args>
 	T RCall(const ClassMethod& Function, Args&&... parameters)
 	{
-		return RCall<T, Args...>(Function.DecorationName,std::move(parameters...));
+		return RCall<T, Args...>(Function.DecorationName,parameters...);
 	}
 	template<typename T, typename... Args>
 	T RThisCall(PtrType This, const ClassMethod& Function, Args&&... parameters)
@@ -211,12 +211,15 @@ private:
 	#endif
 
 
-	static UInt64 OnUAddressCall();
+	static void OnUAddressCall(UAddress addresstojit);
 	CPPCallRet Call_CPPFunc(JitFunc ToCall);
 
 
 	void BuildCheck(Jit_Interpreter::JitFuncData& Item, const UCodeLang::UAddress& address);
 	void LogASM();
+	Optional<String> GetNameForHex(const String& Hex);
+
+	bool ShouldJit(UAddress address, const Vector<Instruction>& Insts);
 };
 
 UCodeLangEnd
