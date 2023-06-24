@@ -92,7 +92,7 @@ void X86_64Gen::mov32(GReg dest, GReg src)
 
 	_Base.mov32(x86_64::To_x86(dest),x86_64::To_x86(src));
 }
-void X86_64Gen::move64(GReg dest, GReg src)
+void X86_64Gen::mov64(GReg dest, GReg src)
 {
 	if (dest == GReg::RSP && src == GReg::RBX)
 	{
@@ -113,50 +113,18 @@ void X86_64Gen::move64(GReg dest, GReg src)
 		PushByte(x86_64::modrm(src, dest));
 	}
 }
-void X86_64Gen::move64(IndrReg Reg, GReg src)
+void X86_64Gen::mov64(IndrReg Reg, GReg src)
 {
 	PushByte(0x48);
 	PushByte(0x89);
 	PushByte(x86_64::modrm(src, Reg._Reg));
 }
-void X86_64Gen::move64(GReg dest, IndrReg src)
+void X86_64Gen::mov64(GReg dest, IndrReg src)
 {
 	PushByte(0x48);
 	PushByte(0x89);
 	PushByte(x86_64::modrm(src._Reg, dest));
 }
- void X86_64Gen::push8(GReg Reg)
-{
-	throw std::exception("not added");
-}
- void X86_64Gen::push16(GReg Reg)
-{
-	throw std::exception("not added");
-}
- void X86_64Gen::push32(GReg Reg)
-{
-	throw std::exception("not added");
-}
- void X86_64Gen::push64(GReg Reg)
- {
-	 PushByte(0x50 + (Byte)Reg);
- }
- void X86_64Gen::pop8(GReg Reg)
- {
-	 throw std::exception("not added");
- }
- void X86_64Gen::pop16(GReg Reg)
- {
-	 throw std::exception("not added");
- }
- void X86_64Gen::pop32(GReg Reg)
- {
-	 throw std::exception("not added");
- }
- void X86_64Gen::pop64(GReg Reg)
- {
-	 PushByte(0x58 + (Byte)Reg);
- }
 void X86_64Gen::add8(GReg dest, GReg src)
 {
 	throw std::exception("not added");

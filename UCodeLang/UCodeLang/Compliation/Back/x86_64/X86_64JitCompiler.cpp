@@ -20,29 +20,7 @@ void X86_64JitCompiler::Reset()
 }
 
 
-using GReg = X86_64Gen::GReg;
-using ModRM = X86_64Gen::ModRM;
-using Rm = X86_64Gen::Rm;
-using IndrReg = X86_64Gen::IndrReg;
-using Near8 = X86_64Gen::Near8;
-using Near16 = X86_64Gen::Near16;
-using Near32 = X86_64Gen::Near32;
-using Near64 = X86_64Gen::Near64;
-
-using Nearu8 = X86_64Gen::Nearu8;
-using Nearu16 = X86_64Gen::Nearu16;
-using Nearu32 = X86_64Gen::Nearu32;
-using Nearu64 = X86_64Gen::Nearu64;
-
-using Absolute8 = X86_64Gen::Absolute8;
-using Absolute16 = X86_64Gen::Absolute16;
-using Absolute32 = X86_64Gen::Absolute32;
-using Absolute64 = X86_64Gen::Absolute64;
-
-using Absoluteu8 = X86_64Gen::Absoluteu8;
-using Absoluteu16 = X86_64Gen::Absoluteu16;
-using Absoluteu32 = X86_64Gen::Absoluteu32;
-using Absoluteu64 = X86_64Gen::Absoluteu64;
+ImportUseing86x64Gen
 
 struct JitType
 {
@@ -137,7 +115,7 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 			_Gen.push64(GReg::RBP);//push rbp
 		}
 		{
-			_Gen.move64(GReg::RBP, GReg::RSP);//mov rbp,rsp
+			_Gen.mov64(GReg::RBP, GReg::RSP);//mov rbp,rsp
 		}
 
 		
@@ -147,6 +125,7 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 		CallOffset = _Gen.GetIndex();
 		_Gen.call(Near32(0));
 		CallInsSize = _Gen.GetIndex() - CallOffset;
+		
 		
 		{
 			if (Func->RetType._Type == ReflectionTypes::Void)
@@ -177,10 +156,13 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 
 				_Gen.pop64(GReg::RCX);//Pass Input
 				
-				_Gen.sub64(GReg::RSP,8);
+				_Gen.sub64(GReg::RSP, Ret_Type.Size);//stack alloc
 
 				_Gen.push64(GReg::RAX);//pass &FuncRet
-				_Gen.move64(GReg::RSP, GReg::RDX);
+
+				_Gen.mov64(GReg::RDX, IndrReg(GReg::RSP),Add8(8));
+
+				_Gen.mov64(GReg::RSP, GReg::RDX);//pass 
 				
 
 				//Input.Set_Return(&FuncRet,sizeof(int));
@@ -193,6 +175,8 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 				_Gen.call(GReg::RAX);
 
 				_Gen.pop64(GReg::RAX);
+
+				_Gen.add64(GReg::RSP, 8);
 			}
 			else if (Func->RetType._Type == ReflectionTypes::uInt64 || Func->RetType._Type == ReflectionTypes::sInt64)
 			{
@@ -233,7 +217,7 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 			_Gen.push64(GReg::RBP);//push rbp
 		}
 		{
-			_Gen.move64(GReg::RBP, GReg::RSP);//mov rbp,rsp
+			_Gen.mov64(GReg::RBP, GReg::RSP);//mov rbp,rsp
 		}
 
 	}
