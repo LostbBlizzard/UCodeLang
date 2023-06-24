@@ -318,6 +318,19 @@ Optional<String> Jit_Interpreter::GetNameForHex(const String& Hex)
 					}
 				}
 			}
+
+			for (auto& Item : _Assembler.FuncsPlaceHolder)
+			{
+				void* Pointer = (void*)((uintptr_t)this->ExBuffer.Data + Item._Value.Offset);
+				if (CMP(Pointer, Hex))
+				{
+					String Str;
+					Str = "PlaceHolder-" + std::to_string(Item._Key);
+
+					Str += '-' + Get_State()->GetName(Item._Key);
+					return Str;
+				}
+			}
 		}
 	}
 	return R;
@@ -427,6 +440,20 @@ void Jit_Interpreter::LogASM()
 
 				std::cout << Get_State()->GetName(Item._Key);
 
+				std::cout << ":";
+				std::cout << std::endl;
+			}
+		}
+
+		for (auto& Item : _Assembler.FuncsPlaceHolder)
+		{
+			void* Pointer2 = (void*)((uintptr_t)this->ExBuffer.Data + Item._Value.Offset);
+			if (Pointer == Pointer2)
+			{
+				std::cout << "\n";
+				std::cout << "PlaceHolder-" + std::to_string(Item._Key);
+
+				std::cout << '-' + Get_State()->GetName(Item._Key);
 				std::cout << ":";
 				std::cout << std::endl;
 			}
