@@ -66,7 +66,7 @@ void IRToX86::OnBlock(const IRBlock* IR)
 		}
 		break;
 		case IRInstructionType::Return:
-			_Output.Push_Ins_ret();
+			_Output.ret();
 			break;
 		default:
 			throw std::exception("not added");
@@ -88,15 +88,15 @@ X86Gen::GReg IRToX86::LoadOpINGeneralRegister(IRInstruction& Ins, const IROperat
 		switch (Ins.ObjectType._Type)
 		{
 		case IRTypes::i8:
-			_Output.Push_Ins_MovImm8(V, Op.Value.AsInt8);
+			_Output.mov(V, Op.Value.AsInt8);
 			break;
 		case IRTypes::i16:
-			_Output.Push_Ins_MovImm16(V, Op.Value.AsInt16);
+			_Output.mov(V, Op.Value.AsInt16);
 			break;
 
 		bit32label:
 		case IRTypes::i32:
-			_Output.Push_Ins_MovImm32(V, Op.Value.AsInt32);
+			_Output.mov(V, Op.Value.AsInt32);
 			break;
 		case IRTypes::f32:
 			//InstructionBuilder::Storef32(_Ins, V, Op.Value.Asfloat32); PushIns();
@@ -180,15 +180,15 @@ void IRToX86::RegToReg(IRTypes Type, GReg In, GReg Out)
 		switch (Type)
 		{
 		case IRTypes::i8:
-			_Output.Push_Ins_RegToReg8(In, Out);
+			_Output.mov8(In, Out);
 			break;
 		case IRTypes::i16:
-			_Output.Push_Ins_RegToReg16(In, Out);
+			_Output.mov16(In, Out);
 			break;
 		Int32L:
 		case IRTypes::f32:
 		case IRTypes::i32:
-			_Output.Push_Ins_RegToReg32(In, Out);
+			_Output.mov32(In, Out);
 			break;
 
 		Int64L:

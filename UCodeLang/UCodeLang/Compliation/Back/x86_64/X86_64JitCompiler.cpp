@@ -23,6 +23,27 @@ void X86_64JitCompiler::Reset()
 using GReg = X86_64Gen::GReg;
 using ModRM = X86_64Gen::ModRM;
 using Rm = X86_64Gen::Rm;
+using IndrReg = X86_64Gen::IndrReg;
+using Near8 = X86_64Gen::Near8;
+using Near16 = X86_64Gen::Near16;
+using Near32 = X86_64Gen::Near32;
+using Near64 = X86_64Gen::Near64;
+
+using Nearu8 = X86_64Gen::Nearu8;
+using Nearu16 = X86_64Gen::Nearu16;
+using Nearu32 = X86_64Gen::Nearu32;
+using Nearu64 = X86_64Gen::Nearu64;
+
+using Absolute8 = X86_64Gen::Absolute8;
+using Absolute16 = X86_64Gen::Absolute16;
+using Absolute32 = X86_64Gen::Absolute32;
+using Absolute64 = X86_64Gen::Absolute64;
+
+using Absoluteu8 = X86_64Gen::Absoluteu8;
+using Absoluteu16 = X86_64Gen::Absoluteu16;
+using Absoluteu32 = X86_64Gen::Absoluteu32;
+using Absoluteu64 = X86_64Gen::Absoluteu64;
+
 struct JitType
 {
 	size_t Size = 0;
@@ -113,20 +134,18 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 	JitType Ret_Type;
 	{//CPPCall-body
 		{
-			_Gen.PushByte(0x55);//push rbp
+			_Gen.push64(GReg::RBP);//push rbp
 		}
 		{
-			_Gen.PushByte(0x48);//mov rbp,rsp
-			_Gen.PushByte(0x89);
-			_Gen.PushByte(0xe5);
+			_Gen.move64(GReg::RBP, GReg::RSP);//mov rbp,rsp
 		}
 
 		
 		//RDI is were the Input arugument is move on stack
-		_Gen.Push_Ins_Push64(GReg::RCX);
+		_Gen.push64(GReg::RCX);
 
 		CallOffset = _Gen.GetIndex();
-		_Gen.Push_Ins_CallNear(0);
+		_Gen.call(Near32(0));
 		CallInsSize = _Gen.GetIndex() - CallOffset;
 		
 		{
@@ -156,26 +175,24 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 				Is32BitInt:
 				Ret_Type.Size = 4;
 
-				_Gen.Push_Ins_Pop64(GReg::RCX);//Pass Input
+				_Gen.pop64(GReg::RCX);//Pass Input
+				
+				_Gen.sub64(GReg::RSP,8);
 
-				_Gen.Push_Ins_RegToReg64(GReg::RSP, GReg::RDX);
-				_Gen.Push_Ins_Push64(GReg::RAX);//pass &FuncRet
-				_Gen.Push_Ins_Push64(GReg::RAX);//pass &FuncRet
-				_Gen.Push_Ins_Push64(GReg::RAX);//pass &FuncRet
+				_Gen.push64(GReg::RAX);//pass &FuncRet
+				_Gen.move64(GReg::RSP, GReg::RDX);
 				
 
 				//Input.Set_Return(&FuncRet,sizeof(int));
 
 
 
-				_Gen.Push_Ins_MovImm32(GReg::r8, 4);//pass sizeof(int)
+				_Gen.mov(GReg::r8, 4);//pass sizeof(int)
 				
-				_Gen.Push_Ins_MovImm64(GReg::RAX,*(X86Gen::Value64*)&InterpreterCPPinterface_Set_ReturnPtr);
-				_Gen.Push_Ins_CallFuncPtr(GReg::RAX);
+				_Gen.mov(GReg::RAX,*(X86Gen::Value64*)&InterpreterCPPinterface_Set_ReturnPtr);
+				_Gen.call(GReg::RAX);
 
-				_Gen.Push_Ins_Pop64(GReg::RAX);
-				_Gen.Push_Ins_Pop64(GReg::RAX);
-				_Gen.Push_Ins_Pop64(GReg::RAX);
+				_Gen.pop64(GReg::RAX);
 			}
 			else if (Func->RetType._Type == ReflectionTypes::uInt64 || Func->RetType._Type == ReflectionTypes::sInt64)
 			{
@@ -201,24 +218,22 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 		}
 
 		{
-			_Gen.PushByte(0x5d);//pop rbp
+			_Gen.pop64(GReg::RBP);
 		}
-		_Gen.Push_Ins_ret();
+		_Gen.ret();
 	}
 
 	{
 		size_t Offset = _Gen.GetIndex() - CallOffset - CallInsSize;
-		_Gen.Sub_Ins_CallNear(_Gen.GetData(CallOffset), Offset);
+		_Gen.r_call(_Gen.GetData(CallOffset),Near32(Offset));
 
 		Out_NativeCallOffset = _Gen.GetIndex();
 
 		{
-			_Gen.PushByte(0x55);//push rbp
+			_Gen.push64(GReg::RBP);//push rbp
 		}
 		{
-			_Gen.PushByte(0x48);//mov rbp,rsp
-			_Gen.PushByte(0x89);
-			_Gen.PushByte(0xe5);
+			_Gen.move64(GReg::RBP, GReg::RSP);//mov rbp,rsp
 		}
 
 	}
@@ -298,7 +313,7 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 
 					}
 
-					_Gen.Push_Ins_CallNear(0);
+					_Gen.call(Near32(0));
 				}
 
 				
@@ -355,10 +370,10 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 					{
 						switch (Ret_Type.Size)
 						{
-						case 1:Push_Ins_MovImm8(GReg::RAX, V->AsInt8); break;
-						case 2:Push_Ins_MovImm16(GReg::RAX, V->AsInt16); break;
-						case 4:Push_Ins_MovImm32(GReg::RAX,V->AsInt32); break;
-						case 8:Push_Ins_MovImm64(GReg::RAX, V->AsInt64); break;
+						case 1:mov(GReg::RAX, V->AsInt8); break;
+						case 2:mov(GReg::RAX, V->AsInt16); break;
+						case 4:mov(GReg::RAX,V->AsInt32); break;
+						case 8:mov(GReg::RAX, V->AsInt64); break;
 						default:return false;
 						}
 					}
@@ -546,9 +561,9 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 			if (Item.OpCode == InstructionSet::Return)
 			{
 				{
-					_Gen.PushByte(0x5d);//pop rbp
+					_Gen.pop64(GReg::RBP);//pop rbp
 				}
-				_Gen.Push_Ins_ret();
+				_Gen.ret();
 				break;
 			}
 		}
@@ -595,18 +610,19 @@ void BuildSysCallIns(InstructionSysCall Ins, RegisterID Reg)
 }
 void X86_64JitCompiler::SubCall(JitInfo::FuncType Value, uintptr_t CPPOffset, Vector<UInt8>& X64Output)
 {
-	_Gen.Sub_Ins_Callptr(&X64Output[CPPOffset], *(uint64_t*)&Value);
+	throw std::exception("not added");
+	//_Gen.r_call(&X64Output[CPPOffset], *(uint64_t*)&Value);
 }
 
-void X86_64JitCompiler::Push_Ins_MovImm8(X86_64Gen::GReg R, X86_64Gen::Value8 Value)
+void X86_64JitCompiler::mov(GReg R, X86_64Gen::Value8 Value)
 {
-	_Gen.Push_Ins_MovImm8(R, Value);
+	_Gen.mov(R, Value);
 }
-void X86_64JitCompiler::Push_Ins_MovImm16(X86_64Gen::GReg R, X86_64Gen::Value16 Value)
+void X86_64JitCompiler::mov(GReg R, X86_64Gen::Value16 Value)
 {
-	_Gen.Push_Ins_MovImm16(R, Value);
+	_Gen.mov(R, Value);
 }
-void X86_64JitCompiler::Push_Ins_MovImm32(X86_64Gen::GReg R, X86_64Gen::Value32 Value)
+void X86_64JitCompiler::mov(GReg R, X86_64Gen::Value32 Value)
 {
 	/*
 	if (Value == 0)
@@ -616,12 +632,12 @@ void X86_64JitCompiler::Push_Ins_MovImm32(X86_64Gen::GReg R, X86_64Gen::Value32 
 	else 
 	{
 	*/
-		_Gen.Push_Ins_MovImm32(R, Value);
+		_Gen.mov(R, Value);
 	//}
 }
-void X86_64JitCompiler::Push_Ins_MovImm64(X86_64Gen::GReg R, X86_64Gen::Value64 Value)
+void X86_64JitCompiler::mov(GReg R, X86_64Gen::Value64 Value)
 {
-	_Gen.Push_Ins_MovImm64(R, Value);
+	_Gen.mov(R, Value);
 }
 
 UCodeLangEnd

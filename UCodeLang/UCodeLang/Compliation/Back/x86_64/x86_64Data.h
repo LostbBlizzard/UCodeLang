@@ -82,7 +82,7 @@ namespace x86_64
 		Null,
 	};
 
-	enum ModRM 
+	enum class ModRM :Byte
 	{
 		Indirect = 0x00,
 		Direct = 0xC0,
@@ -94,7 +94,7 @@ namespace x86_64
 		Byte _Base;
 	};
 	inline Byte modrm(GeneralRegisters src, GeneralRegisters dst) {
-		return (Direct) | ((GetIndex(src)) << 3) | GetIndex(dst);
+		return ((Byte)ModRM::Direct) | ((GetIndex(src)) << 3) | GetIndex(dst);
 	}
 
 }

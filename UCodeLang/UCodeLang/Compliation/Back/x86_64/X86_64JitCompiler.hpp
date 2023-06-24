@@ -46,9 +46,9 @@ private:
 		return Regs[(size_t)ID];
 	}
 
-	void Push_Ins_MovImm8(X86_64Gen::GReg R, X86_64Gen::Value8 Value);
-	void Push_Ins_MovImm16(X86_64Gen::GReg R, X86_64Gen::Value16 Value);
-	void Push_Ins_MovImm32(X86_64Gen::GReg R, X86_64Gen::Value32 Value);
-	void Push_Ins_MovImm64(X86_64Gen::GReg R, X86_64Gen::Value64 Value);
+	void mov(X86_64Gen::GReg R, X86_64Gen::Value8 Value);
+	void mov(X86_64Gen::GReg R, X86_64Gen::Value16 Value);
+	void mov(X86_64Gen::GReg R, X86_64Gen::Value32 Value);
+	void mov(X86_64Gen::GReg R, X86_64Gen::Value64 Value);
 };
 UCodeLangEnd

@@ -8,6 +8,11 @@ struct CodeGen
 	using Value32 = Int32;
 	using Value64 = Int64;
 
+	using Valueu8 = UInt8;
+	using Valueu16 = UInt16;
+	using Valueu32 = UInt32;
+	using Valueu64 = UInt64;
+
 	inline void PushByte(Byte Value)
 	{
 		ByteOutput.push_back(Value);
