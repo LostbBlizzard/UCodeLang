@@ -123,5 +123,17 @@ void UCLibManger::InitExCode()
 	_ExCode.SetToExecuteMode();
 }
 
+String UCLibManger::GetName(UAddress address) const
+{
+	for (auto& item : _NameToAddress)
+	{
+		if (item._Value == address)
+		{
+			return item._Key;
+		}
+	}
+	return "";
+}
+
 UCodeLangEnd
 

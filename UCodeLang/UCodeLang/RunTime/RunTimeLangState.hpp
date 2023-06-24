@@ -224,7 +224,10 @@ public:
 	RunTimeLangState::Diffs HotReloadOrReset(const HotReloadData& Item, const Vector<HotReloadLib> LibsToUpdate);
 
 	const ClassMethod* GetMethod(const UAddress& address);
-
+	String GetName(UAddress address)  const
+	{
+		return _Data.GetName(address);
+	}
 private:
 	Allocator _Allocator;
 	UCLibManger _Data;

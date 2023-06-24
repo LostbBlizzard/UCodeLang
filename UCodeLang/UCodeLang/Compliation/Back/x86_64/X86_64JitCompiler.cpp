@@ -108,6 +108,7 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 	size_t CallOffset = 0;
 	size_t CallInsSize = 0;
 	
+	
 
 	JitType Ret_Type;
 	{//CPPCall-body
@@ -276,7 +277,8 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 			case InstructionSet::Call:
 			{
 				bool BuildFallBack = true;
-				auto Func = State->GetMethod(Item.Value0.AsAddress);
+				UAddress Ins = Item.Value0.AsAddress + 1;
+				auto Func = State->GetMethod(Ins);
 				if (Func)
 				{
 					JitType Call_Ret = AsJitType(Func->RetType,State->Get_Assembly(),PointerSizeIs32Bit);
@@ -298,7 +300,19 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 
 					}
 
+					BuildFallBack = false;
+
+					NullJitCalls Call;
+					Call.CPPoffset = _Gen.GetIndex();
+					Call.UCodeAddress = Ins;
+					NullCalls.push_back(Call);
 					_Gen.call(Near32(0));
+
+
+					FuncToLink Link;
+					Link.CPPOffset = _Gen.GetIndex();
+					Link.OnUAddress = Call.UCodeAddress;
+					LinkingData.push_back(Link);
 				}
 
 				
@@ -536,8 +550,8 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 				}
 			}
 			break;
-			
-			#pragma endregion
+
+#pragma endregion
 			default:
 				return false;
 				break;
@@ -553,6 +567,64 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 			}
 		}
 	}
+
+
+	{
+		for (auto& Item : NullCalls)
+		{
+
+			size_t PlaceHolderoffset = 0;
+			if (!FuncsPlaceHolder.HasValue(Item.UCodeAddress))
+			{
+
+
+				UnLoadedFuncPlaceHolder tep;
+				tep.Offset = _Gen.GetIndex();
+
+
+				{//PlaceHolder Func
+				
+					//save values on stack
+					{
+
+					}
+					
+					_Gen.mov(GReg::RCX, X86_64Gen::Value64(Item.UCodeAddress));//pass the UCodeAddress
+
+					_Gen.mov(GReg::RAX,X86_64Gen::Value64(BuildAddressPtr));
+					_Gen.call(GReg::RAX);
+
+					{//get function argument off the stack
+
+					}
+					
+					
+					FuncToLink Link;
+					Link.CPPOffset = _Gen.GetIndex();
+					Link.OnUAddress = Item.UCodeAddress;
+					LinkingData.push_back(Link);
+
+					_Gen.call(Near32(0));//will be relinked when BuildAddressPtr builds the funcion we are trying to call 
+
+
+					
+
+					_Gen.ret();
+				}
+				PlaceHolderoffset = tep.Offset;
+				FuncsPlaceHolder.AddValue(Item.UCodeAddress,std::move(tep));
+			}
+			else
+			{
+				auto& V = FuncsPlaceHolder.at(Item.UCodeAddress);
+				PlaceHolderoffset = V.Offset;
+			}
+			auto Ptr = _Gen.GetData(Item.CPPoffset);
+			UInt32 displace = (UInt32)(PlaceHolderoffset-Item.CPPoffset) -5;
+			_Gen.r_call(Ptr,Near32(displace));
+		}
+	}
+	NullCalls.clear();
 	_Ins = nullptr;
 	Output = nullptr;
 
@@ -593,10 +665,14 @@ void BuildSysCallIns(InstructionSysCall Ins, RegisterID Reg)
 		break;
 	}
 }
-void X86_64JitCompiler::SubCall(JitInfo::FuncType Value, uintptr_t CPPOffset, Vector<UInt8>& X64Output)
+void X86_64JitCompiler::SubCall(JitInfo::FuncType Value, uintptr_t CPPOffset, void* X64Output)
 {
-	throw std::exception("not added");
-	//_Gen.r_call(&X64Output[CPPOffset], *(uint64_t*)&Value);
+	Byte* bytes = &((Byte*)X64Output)[CPPOffset];
+	UInt32 ValueFunc = *(UInt32*)&Value;
+	UInt32 CallPos = (UInt32)& bytes;
+	UInt32 Offset = CallPos - ValueFunc;
+
+	_Gen.r_call(bytes,Near32(Offset));
 }
 
 void X86_64JitCompiler::mov(GReg R, X86_64Gen::Value8 Value)

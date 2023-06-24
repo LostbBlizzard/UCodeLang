@@ -15,6 +15,7 @@
 #include "../tests/TestGenerator.hpp"
 #include "../tests/Test.hpp"
 #include <chrono>
+#include "JitPerformance.hpp"
 using namespace UCodeLang;
 const UCodeLang::String ScrDir = "C:/CoolStuff/CoolCodeingStuff/C++/Projects/UCodeLang/UCApp/src/";
 const UCodeLang::String TopTestDir = ScrDir + "Tests/";
@@ -102,9 +103,14 @@ void TestFormater()
 /// </summary>
 void TestingGround()
 {
+
+	//V
+	{
+		//JitPerformance::main(JitPerformance::Task::Main);
+	}
+
+
 	Jit_Interpreter RunTime;
-	Jit_Interpreter AllwaysJit;
-	Interpreter OtherInterpreter;
 	
 	ULangTest::TestGenerator V;
 	V.SetSeed(1);
@@ -147,9 +153,7 @@ void TestingGround()
 
 	auto OutData = Mfile.BuildModule(_Compiler, LangIndex);
 
-
-
-
+	
 
 
 	if (!ULangTest::LogErrors(std::cout, _Compiler))
@@ -181,71 +185,23 @@ void TestingGround()
 		//debuger.Attach(&RunTime);
 
 		RunTime.Init(&State);
-		OtherInterpreter.Init(&State);
-		AllwaysJit.Init(&State);
-
-		AllwaysJit.AlwaysJit = true;
+		RunTime.IsDebug = true;
+		RunTime.AlwaysJit = true;
 
 		auto FuncMain = State.Get_Assembly().Get_GlobalObject_Class()->Get_ClassMethod("main");
 
 		//auto Value = RunTime.RCall<char>("__ReadChar");
-		//RunTime.Call(StaticVariablesInitializeFunc);
-		//RunTime.Call(ThreadVariablesInitializeFunc);
+		RunTime.Call(StaticVariablesInitializeFunc);
+		RunTime.Call(ThreadVariablesInitializeFunc);
 
 		auto CallIndex = State.FindAddress(FuncMain->DecorationName);
 
-		
+
 
 		Vec3 BufferToCopy[3]{ 1,2,3 };
-		const size_t MaxTimes = 10000;	
-		using Clock = std::chrono::steady_clock;
-		{
-		
-			auto OldTime = Clock::now();
-			for (size_t i = 0; i < MaxTimes; i++)
-			{
-				auto AutoPtr = RunTime.RCall<int>(*FuncMain, &BufferToCopy);
-			}
-
-			auto newTime = Clock::now();
-
-			auto MsCount = std::chrono::duration_cast<std::chrono::milliseconds>(newTime - OldTime).count();
-			std::cout << "Time:" << 
-				MsCount
-				<< " ms" << " for Jit Interpreter" << std::endl;
-		}
-		
-		{
-
-			auto OldTime = Clock::now();
-			for (size_t i = 0; i < MaxTimes; i++)
-			{
-				auto AutoPtr = AllwaysJit.RCall<int>(*FuncMain, &BufferToCopy);
-			}
-
-			auto newTime = Clock::now();
-
-			auto MsCount = std::chrono::duration_cast<std::chrono::milliseconds>(newTime - OldTime).count();
-			std::cout << "Time:" <<
-				MsCount
-				<< " ms" << " for allways Jit-Interpreter" << std::endl;
-		}
-
-		{
-			auto OldTime = Clock::now();
-
-			for (size_t i = 0; i < MaxTimes; i++)
-			{
-				auto AutoPtr = OtherInterpreter.RCall<int>(*FuncMain, &BufferToCopy);
-			}
 
 
-			auto newTime = Clock::now();
-			auto MsCount = std::chrono::duration_cast<std::chrono::milliseconds>(newTime - OldTime).count();
-			std::cout << "Time:" <<
-				MsCount
-				<< " ms" << " for Base Interpreter" << std::endl;
-		}
+		auto AutoPtr = RunTime.RCall<int>(*FuncMain);
 
 
 		//std::cout << " Got Value " << (int)AutoPtr << std::endl;
@@ -254,6 +210,5 @@ void TestingGround()
 		RunTime.Call(ThreadVariablesUnLoadFunc);
 
 		RunTime.UnLoad();
-		OtherInterpreter.UnLoad();
 	}
 }

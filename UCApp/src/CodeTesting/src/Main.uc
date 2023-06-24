@@ -24,8 +24,8 @@ extern dynamic |Test[int a] -> Vec3;
  ret Other;
 
 
-//|Other[] => 1;
-|main[] => 8;
+|Other[] => 1;
+|main[] => Other();
  
 
 
