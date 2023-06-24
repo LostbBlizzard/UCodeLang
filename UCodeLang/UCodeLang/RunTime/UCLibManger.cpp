@@ -80,36 +80,36 @@ void UCLibManger::LinkLib(UCodeLang::RunTimeLib* Item)
 	}
 }
 
-Optional<UAddress> UCLibManger::FindAddress(const String& FunctionName)
+Optional<UAddress> UCLibManger::FindAddress(const String& FunctionName) const
 {
 	if (_NameToAddress.count(FunctionName))
 	{
-		return _NameToAddress[FunctionName];
+		return _NameToAddress.at(FunctionName);
 	}
 	else
 	{
 		auto tep = NameDecoratior::GetUnDecoratedName(FunctionName);
 		if (_NameToAddress.count(tep))
 		{
-			return _NameToAddress[tep];
+			return _NameToAddress.at(tep);
 		}
 
 		return {};
 	}
 }
 
-Optional<RunTimeLib::CPPCall*> UCLibManger::FindCPPCall(const String& FunctionName)
+Optional<const RunTimeLib::CPPCall*> UCLibManger::FindCPPCall(const String& FunctionName) const
 {
 	if (_NameToCPP.count(FunctionName))
 	{
-		return &_NameToCPP[FunctionName];
+		return &_NameToCPP.at(FunctionName);
 	}
 	else
 	{
 		auto tep = NameDecoratior::GetUnDecoratedName(FunctionName);
 		if (_NameToCPP.count(tep))
 		{
-			return &_NameToCPP[tep];
+			return &_NameToCPP.at(tep);
 		}
 
 

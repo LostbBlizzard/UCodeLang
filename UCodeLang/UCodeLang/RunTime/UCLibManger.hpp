@@ -18,8 +18,8 @@ public:
 
 	void LinkLib(RunTimeLib* Item);
 
-	Optional < UAddress> FindAddress(const String& FunctionName);
-	Optional<RunTimeLib::CPPCall*> FindCPPCall(const String& FunctionName);
+	Optional < UAddress> FindAddress(const String& FunctionName) const;
+	Optional<const RunTimeLib::CPPCall*> FindCPPCall(const String& FunctionName) const;
 	inline Instruction& GetInst(UAddress address)
 	{
 		return _Instructions[(NSize_t)address];

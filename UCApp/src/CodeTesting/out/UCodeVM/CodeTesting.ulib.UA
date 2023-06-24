@@ -96,7 +96,7 @@ $Testing:Vec2:
    52 :DecrementStackPointer [B]
    53 :Ret 
 ---Testing:main: 
-   54 :Store32 [A],1
+   54 :Store32 [A],8
    55 :StoreRegToReg32 [A],[F]
    56 :Ret 
 ---Testing:Hello:OtherFuncion: 

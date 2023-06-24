@@ -33,29 +33,83 @@ void X86_64JitCompiler::Reset()
 {
 }
 
-const char HEX_MAP[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
-
-char replace(unsigned char c)
-{
-	return HEX_MAP[c & 0x0f];
-}
-
-std::string char_to_hex(unsigned char c)
-{
-	std::string hex;
-
-	// First four bytes
-	char left = (c >> 4);
-	// Second four bytes
-	char right = (c & 0x0f);
-
-	hex += replace(left);
-	hex += replace(right);
-
-	return hex;
-}
 
 using GReg = X86_64Gen::GReg;
+struct JitType
+{
+	size_t Size = 0;
+	bool IsStruct = false;
+
+	bool IsVoid()
+	{
+		return Size == 0;
+	}
+	bool IsBadType()
+	{
+		return  Size == SIZE_MAX;
+	}
+	void SetAsBadType()
+	{
+		Size = SIZE_MAX;
+	}
+};
+JitType AsJitType(const ReflectionTypeInfo& V, const ClassAssembly& assembly,bool PointerSizeIs32Bit)
+{
+	JitType R;
+
+	if (V._Type == ReflectionTypes::Void)
+	{
+		R.Size = 0;
+		R.IsStruct = false;
+	}
+	else if (V._Type == ReflectionTypes::uIntPtr
+		|| V._Type == ReflectionTypes::sIntPtr
+		|| V.IsAddress()
+		|| V.IsAddressArray())
+	{
+		if (PointerSizeIs32Bit)
+		{
+			goto Is32BitInt;
+		}
+		else
+		{
+			goto Is64BitInt;
+		}
+		R.Size = 2;
+	}
+	else
+		if (V._Type == ReflectionTypes::uInt32 || V._Type == ReflectionTypes::sInt32)
+		{
+		Is32BitInt:
+			R.Size = 4;
+			//Input.Set_Return(&FuncRet,sizeof(int));
+			//_Gen.Push_Ins_MovImm32(GReg::r8, 4);//pass sizeof(int)
+		}
+		else if (V._Type == ReflectionTypes::uInt64 || V._Type == ReflectionTypes::sInt64)
+		{
+		Is64BitInt:
+			R.Size = 8;
+			//Input.Set_Return(&FuncRet,sizeof(int));
+			//_Gen.Push_Ins_MovImm32(GReg::r8, 4);//pass sizeof(int)
+		}
+		else if (V._Type == ReflectionTypes::uInt16 || V._Type == ReflectionTypes::sInt16)
+		{
+			R.Size = 2;
+		}
+		else if (V._Type == ReflectionTypes::uInt8 || V._Type == ReflectionTypes::sInt8
+			|| V._Type == ReflectionTypes::Char
+			|| V._Type == ReflectionTypes::Bool)
+		{
+			R.Size = 1;
+		}
+		else
+		{
+			R.SetAsBadType();
+		}
+
+	return R;
+}
+
 bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress, Vector<UInt8>& X64Output)
 {
 	//should be set by the UCode.
@@ -66,9 +120,9 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 	
 	size_t CallOffset = _Gen.GetIndex();
 	
-	size_t Ret_Size = 0;
-	bool IsStruct = false;
+	
 
+	JitType Ret_Type;
 	{//CPPCall-body
 		
 	
@@ -78,10 +132,11 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 		{
 			if (Func->RetType._Type == ReflectionTypes::Void)
 			{
-				Ret_Size = 0;
-				IsStruct = false;
+				Ret_Type.Size = 0;
+				Ret_Type.IsStruct = false;
 			}
-			else if (Func->RetType._Type == ReflectionTypes::uIntPtr || Func->RetType._Type == ReflectionTypes::uIntPtr
+			else if (Func->RetType._Type == ReflectionTypes::uIntPtr 
+				|| Func->RetType._Type == ReflectionTypes::sIntPtr
 				|| Func->RetType.IsAddress()
 				|| Func->RetType.IsAddressArray())
 			{
@@ -93,32 +148,32 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 				{
 					goto Is64BitInt;
 				}
-				Ret_Size = 2;
+				Ret_Type.Size = 2;
 			}
 			else
 			if (Func->RetType._Type == ReflectionTypes::uInt32 || Func->RetType._Type == ReflectionTypes::sInt32)
 			{
 				Is32BitInt:
-				Ret_Size = 4;
+				Ret_Type.Size = 4;
 				//Input.Set_Return(&FuncRet,sizeof(int));
 				//_Gen.Push_Ins_MovImm32(GReg::r8, 4);//pass sizeof(int)
 			}
 			else if (Func->RetType._Type == ReflectionTypes::uInt64 || Func->RetType._Type == ReflectionTypes::sInt64)
 			{
 			Is64BitInt:
-				Ret_Size = 8;
+				Ret_Type.Size = 8;
 				//Input.Set_Return(&FuncRet,sizeof(int));
 				//_Gen.Push_Ins_MovImm32(GReg::r8, 4);//pass sizeof(int)
 			}
 			else if (Func->RetType._Type == ReflectionTypes::uInt16 || Func->RetType._Type == ReflectionTypes::sInt16)
 			{
-				Ret_Size = 2;
+				Ret_Type.Size = 2;
 			}
 			else if (Func->RetType._Type == ReflectionTypes::uInt8 || Func->RetType._Type == ReflectionTypes::sInt8
 				|| Func->RetType._Type == ReflectionTypes::Char
 				|| Func->RetType._Type == ReflectionTypes::Bool)
 			{
-				Ret_Size = 1;
+				Ret_Type.Size = 1;
 			}
 			else
 			{
@@ -135,7 +190,7 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 		Out_NativeCallOffset = _Gen.GetIndex();
 	}
 	{//c-code body
-		const bool RetTypeIsVoid = Ret_Size == 0;
+		const bool RetTypeIsVoid = Ret_Type.IsVoid();
 		
 		for (size_t i = funcAddress; i < Ins.size(); i++)
 		{
@@ -167,7 +222,7 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 			case InstructionSet::Store64:
 			{
 				auto& Reg = GetRegData(Item.Value0.AsRegister);
-				auto Value = Item.Value1.AsInt32;
+				auto Value = Item.Value1.AsInt64;
 				Reg.Contains = AnyInt64(Value);
 			}
 			break;
@@ -183,6 +238,81 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 				OutReg.Contains = InReg.Contains;
 			}
 			break;
+
+			
+			case InstructionSet::Call:
+			{
+				bool BuildFallBack = true;
+				auto Func = State->GetMethod(Item.Value0.AsAddress);
+				if (Func)
+				{
+					JitType Call_Ret = AsJitType(Func->RetType,State->Get_Assembly(),PointerSizeIs32Bit);
+					if (Call_Ret.IsBadType())
+					{
+						break;
+					}
+					Vector<JitType> Pars; Pars.resize(Func->ParsType.size());
+					for (size_t i = 0; i < Pars.size(); i++)
+					{
+						Pars[i] = AsJitType(Func->ParsType[i], State->Get_Assembly(), PointerSizeIs32Bit);
+						if (Pars[i].IsBadType())
+						{
+							break;
+						}
+					}
+
+					{//push pars
+
+					}
+
+					_Gen.Push_Ins_CallNear(0);
+				}
+
+				
+
+				if (BuildFallBack)
+				{
+					//build code to move back to the interpreter and call the func
+					return false;
+				}
+			}
+			break;
+			case InstructionSet::CPPCall:
+			{
+				return false;
+			}
+			break;
+			case InstructionSet::CppCallNamed:
+			{
+				auto Ptr = (UIntNative)State->Get_StaticMemPtr();
+				auto NewPtr = Ptr + Item.Value0.AsUIntNative;
+
+				String Str((const char*)NewPtr);
+				auto Cpp = State->FindCPPCall(Str);
+				if (Cpp.has_value())
+				{
+					auto& CppV = Cpp.value();
+					if (CppV->NativeCall)
+					{
+						//use the native call
+						return false;
+					}
+					else
+					{
+						//build code to move back to the interpreter and call the func
+						return false;
+					}
+
+				}
+				else
+				{
+					String CantFindMsg = "Cant find cpp Call named " + Str;
+					State->Log(CantFindMsg.c_str());
+
+					throw std::exception("bad cpp call.");//Cant find CPPCall.
+				}
+			}
+			break;
 			case InstructionSet::Return:
 			{ 
 				if (!RetTypeIsVoid)
@@ -190,12 +320,12 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 					auto& OutReg = GetRegData(RegisterID::OuPutRegister);
 					if (auto V = OutReg.Contains.Get_If<AnyInt64>())
 					{
-						switch (Ret_Size)
+						switch (Ret_Type.Size)
 						{
-						case 1:_Gen.Push_Ins_MovImm8(GReg::A, V->AsInt8); break;
-						case 2:_Gen.Push_Ins_MovImm16(GReg::A, V->AsInt16); break;
-						case 4:_Gen.Push_Ins_MovImm32(GReg::A,V->AsInt32); break;
-						case 8:_Gen.Push_Ins_MovImm64(GReg::A, V->AsInt64); break;
+						case 1:Push_Ins_MovImm8(GReg::A, V->AsInt8); break;
+						case 2:Push_Ins_MovImm16(GReg::A, V->AsInt16); break;
+						case 4:Push_Ins_MovImm32(GReg::A,V->AsInt32); break;
+						case 8:Push_Ins_MovImm64(GReg::A, V->AsInt64); break;
 						default:return false;
 						}
 					}
@@ -204,6 +334,177 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 				_Gen.Push_Ins_ret();
 			}
 			break;
+			#pragma region MathOp
+			case InstructionSet::Add8:
+			{
+				auto& In1Reg = GetRegData(Item.Value0.AsRegister);
+				auto& In2Reg = GetRegData(Item.Value1.AsRegister);
+
+				bool BuiltCode = false;
+				if (auto Val1 = In1Reg.Contains.Get_If<AnyInt64>())
+				{
+					if (auto Val2 = In2Reg.Contains.Get_If<AnyInt64>())
+					{
+						GetRegData(RegisterID::OuPutRegister).Contains = AnyInt64(Val1->AsInt8 + Val2->AsInt8);
+						BuiltCode = true;
+					}
+				}
+
+				if (BuiltCode == false)
+				{
+					return false;
+				}
+			}
+			break;
+			case InstructionSet::Add16:
+			{
+				auto& In1Reg = GetRegData(Item.Value0.AsRegister);
+				auto& In2Reg = GetRegData(Item.Value1.AsRegister);
+
+				bool BuiltCode = false;
+				if (auto Val1 = In1Reg.Contains.Get_If<AnyInt64>())
+				{
+					if (auto Val2 = In2Reg.Contains.Get_If<AnyInt64>())
+					{
+						GetRegData(RegisterID::OuPutRegister).Contains = AnyInt64(Val1->AsInt16 + Val2->AsInt16);
+						BuiltCode = true;
+					}
+				}
+
+				if (BuiltCode == false)
+				{
+					return false;
+				}
+			}
+			break;
+			case InstructionSet::Add32:
+			{
+				auto& In1Reg = GetRegData(Item.Value0.AsRegister);
+				auto& In2Reg = GetRegData(Item.Value1.AsRegister);
+
+				bool BuiltCode = false;
+				if (auto Val1 = In1Reg.Contains.Get_If<AnyInt64>())
+				{
+					if (auto Val2 = In2Reg.Contains.Get_If<AnyInt64>())
+					{
+						GetRegData(RegisterID::OuPutRegister).Contains = AnyInt64(Val1->AsInt32 + Val2->AsInt32);
+						BuiltCode = true;
+					}
+				}
+
+				if (BuiltCode == false)
+				{
+					return false;
+				}
+			}
+			break;
+			case InstructionSet::Add64:
+			{
+				auto& In1Reg = GetRegData(Item.Value0.AsRegister);
+				auto& In2Reg = GetRegData(Item.Value1.AsRegister);
+
+				bool BuiltCode = false;
+				if (auto Val1 = In1Reg.Contains.Get_If<AnyInt64>())
+				{
+					if (auto Val2 = In2Reg.Contains.Get_If<AnyInt64>())
+					{
+						GetRegData(RegisterID::OuPutRegister).Contains = AnyInt64(Val1->AsInt64 + Val2->AsInt64);
+						BuiltCode = true;
+					}
+				}
+
+				if (BuiltCode == false)
+				{
+					return false;
+				}
+			}
+			break;
+			case InstructionSet::Sub8:
+			{
+				auto& In1Reg = GetRegData(Item.Value0.AsRegister);
+				auto& In2Reg = GetRegData(Item.Value1.AsRegister);
+
+				bool BuiltCode = false;
+				if (auto Val1 = In1Reg.Contains.Get_If<AnyInt64>())
+				{
+					if (auto Val2 = In2Reg.Contains.Get_If<AnyInt64>())
+					{
+						GetRegData(RegisterID::OuPutRegister).Contains = AnyInt64(Val1->AsInt8 - Val2->AsInt8);
+						BuiltCode = true;
+					}
+				}
+
+				if (BuiltCode == false)
+				{
+					return false;
+				}
+			}
+			break;
+			case InstructionSet::Sub16:
+			{
+				auto& In1Reg = GetRegData(Item.Value0.AsRegister);
+				auto& In2Reg = GetRegData(Item.Value1.AsRegister);
+
+				bool BuiltCode = false;
+				if (auto Val1 = In1Reg.Contains.Get_If<AnyInt64>())
+				{
+					if (auto Val2 = In2Reg.Contains.Get_If<AnyInt64>())
+					{
+						GetRegData(RegisterID::OuPutRegister).Contains = AnyInt64(Val1->AsInt16 - Val2->AsInt16);
+						BuiltCode = true;
+					}
+				}
+
+				if (BuiltCode == false)
+				{
+					return false;
+				}
+			}
+			break;
+			case InstructionSet::Sub32:
+			{
+				auto& In1Reg = GetRegData(Item.Value0.AsRegister);
+				auto& In2Reg = GetRegData(Item.Value1.AsRegister);
+
+				bool BuiltCode = false;
+				if (auto Val1 = In1Reg.Contains.Get_If<AnyInt64>())
+				{
+					if (auto Val2 = In2Reg.Contains.Get_If<AnyInt64>())
+					{
+						GetRegData(RegisterID::OuPutRegister).Contains = AnyInt64(Val1->AsInt32 - Val2->AsInt32);
+						BuiltCode = true;
+					}
+				}
+
+				if (BuiltCode == false)
+				{
+					return false;
+				}
+			}
+			break;
+			case InstructionSet::Sub64:
+			{
+				auto& In1Reg = GetRegData(Item.Value0.AsRegister);
+				auto& In2Reg = GetRegData(Item.Value1.AsRegister);
+
+				bool BuiltCode = false;
+				if (auto Val1 = In1Reg.Contains.Get_If<AnyInt64>())
+				{
+					if (auto Val2 = In2Reg.Contains.Get_If<AnyInt64>())
+					{
+						GetRegData(RegisterID::OuPutRegister).Contains = AnyInt64(Val1->AsInt64 - Val2->AsInt64);
+						BuiltCode = true;
+					}
+				}
+
+				if (BuiltCode == false)
+				{
+					return false;
+				}
+			}
+			break;
+			
+			#pragma endregion
 			default:
 				return false;
 				break;
@@ -258,6 +559,32 @@ void BuildSysCallIns(InstructionSysCall Ins, RegisterID Reg)
 void X86_64JitCompiler::SubCall(JitInfo::FuncType Value, uintptr_t CPPOffset, Vector<UInt8>& X64Output)
 {
 	_Gen.Sub_Ins_Callptr(&X64Output[CPPOffset], *(uint64_t*)&Value);
+}
+
+void X86_64JitCompiler::Push_Ins_MovImm8(X86_64Gen::GReg R, X86_64Gen::Value8 Value)
+{
+	_Gen.Push_Ins_MovImm8(R, Value);
+}
+void X86_64JitCompiler::Push_Ins_MovImm16(X86_64Gen::GReg R, X86_64Gen::Value16 Value)
+{
+	_Gen.Push_Ins_MovImm16(R, Value);
+}
+void X86_64JitCompiler::Push_Ins_MovImm32(X86_64Gen::GReg R, X86_64Gen::Value32 Value)
+{
+	/*
+	if (Value == 0)
+	{
+
+	}
+	else 
+	{
+	*/
+		_Gen.Push_Ins_MovImm32(R, Value);
+	//}
+}
+void X86_64JitCompiler::Push_Ins_MovImm64(X86_64Gen::GReg R, X86_64Gen::Value64 Value)
+{
+	_Gen.Push_Ins_MovImm64(R, Value);
 }
 
 UCodeLangEnd
