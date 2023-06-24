@@ -153,17 +153,18 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 			{
 				Is32BitInt:
 				Ret_Type.Size = 4;
+				const size_t StatckSize =32;
 
 				_Gen.pop64(GReg::RCX);//Pass Input
 				
-				_Gen.sub64(GReg::RSP, Ret_Type.Size);//stack alloc
+				//_Gen.sub32(GReg::RSP, Ret_Type.Size);//stack alloc
 
-				_Gen.push64(GReg::RAX);//pass &FuncRet
+				_Gen.push64(GReg::RAX);//move ret on stack
 
-				_Gen.mov64(GReg::RDX, IndrReg(GReg::RSP),Add8(8));
-
-				_Gen.mov64(GReg::RSP, GReg::RDX);//pass 
+				_Gen.mov64(GReg::RSP, GReg::RDX);//pass pointer
 				
+				_Gen.sub32(GReg::RSP, StatckSize);//so CPPinterface_Set_ReturnPtr does not break the ret value
+
 
 				//Input.Set_Return(&FuncRet,sizeof(int));
 
@@ -174,9 +175,9 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 				_Gen.mov(GReg::RAX,*(X86Gen::Value64*)&InterpreterCPPinterface_Set_ReturnPtr);
 				_Gen.call(GReg::RAX);
 
-				_Gen.pop64(GReg::RAX);
-
-				_Gen.add64(GReg::RSP, 8);
+				_Gen.add32(GReg::RSP, StatckSize);//move stack back
+				_Gen.pop64(GReg::RAX);//remove ret on stack
+				
 			}
 			else if (Func->RetType._Type == ReflectionTypes::uInt64 || Func->RetType._Type == ReflectionTypes::sInt64)
 			{

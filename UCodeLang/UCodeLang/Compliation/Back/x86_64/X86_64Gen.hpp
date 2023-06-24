@@ -244,12 +244,23 @@ public:
 	void mov64(IndrReg dest, GReg src);
 	void mov64(GReg dest,IndrReg src);
 
-	void mov64(GReg dest, IndrReg src,Add8 src_offset)
+	void mov64(GReg dest, IndrReg src,Value8 src_offset)
 	{
 		PushByte(0x48);
 		PushByte(0x8b);
-		auto V = x86_64::modrm(src._Reg,dest, src_offset.Value);
-		PushByte(V.data(),V.size());
+		if (dest == GReg::RBX) {
+			PushByte(0x5C);
+		}
+		else if (dest == GReg::RDX)
+		{
+			PushByte(0x54);
+		}
+		else
+		{
+			throw std::exception();
+		}
+		PushByte(0x24);
+		PushByte(src_offset);
 	}
 	/// loads the address of a variable into register
 	void lea(ModRM Mod, GReg Reg, Rm rm, Value8 scale, GReg index, UInt64 disp);
@@ -315,13 +326,23 @@ public:
 	void add64(GReg dest, GReg src);
 
 	//dest := src + dest;
-	inline void add64(GReg dest, Value64  src)
+	inline void add32(GReg dest,Value32 src)
 	{
-
+		if (dest == GReg::RSP)
+		{
+			PushByte(0x48);
+			PushByte(0x83);
+			PushByte(0xC4);
+			PushValue_t_little_endian((Byte)src);
+		}
+		else
+		{
+			throw std::exception("not added");
+		}
 	}
 
 	//dest := src - Value;
-	void sub64(GReg dest, Value64 Value);
+	void sub32(GReg dest, Value32 Value);
 
 	X86Gen _Base;//because 86x64 is an extension of x86
 };
