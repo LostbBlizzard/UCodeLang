@@ -3,11 +3,10 @@ $[_global]:
 .size:0
 
  |Testing:Func[sint32] -> sint32;//Testing:Func^i32
- |Testing:Test[sint32] -> Testing:Vec3;//Testing:Test^i32
  |Testing:main2[Testing:Vec3&] -> Testing:Vec3;//Testing:main2^[]&
+ |Testing:Test[sint32] -> sint32;//Testing:Test^i32
  |Testing:Other[] -> sint32;//Testing:Other
  |Testing:main[] -> sint32;//Testing:main
- |Testing:Hello:OtherFuncion[] -> void;//Testing:Hello:OtherFuncion
 
 
 $Testing:Object:
@@ -81,27 +80,27 @@ $Testing:Vec2:
 ---Testing:Vec2:(&_new&)^[]&: 
    39 :Call {Testing:Vec2:(&_init&)}
    40 :Ret 
----Testing:Test^i32: 
-   41 :CppCallNamed "Testing:Test"
-   42 :Ret 
 ---Testing:main2^[]&: 
-   43 :Store64 [A],12
-   44 :IncrementStackPointer [A]
-   45 :StoreFromPtrToReg64 [D],[A]
-   46 :StoreRegOnStackSub64 [A],12
-   47 :Read32 [Ptr:[D]],[Target:[A]],8
-   48 :StoreRegOnStackSub32 [A],4
-   49 :GetPointerOfStackSub [B],12
-   50 :StoreRegToReg64 [B],[F]
-   51 :Store64 [B],12
-   52 :DecrementStackPointer [B]
+   41 :Store64 [A],12
+   42 :IncrementStackPointer [A]
+   43 :StoreFromPtrToReg64 [D],[A]
+   44 :StoreRegOnStackSub64 [A],12
+   45 :Read32 [Ptr:[D]],[Target:[A]],8
+   46 :StoreRegOnStackSub32 [A],4
+   47 :GetPointerOfStackSub [B],12
+   48 :StoreRegToReg64 [B],[F]
+   49 :Store64 [B],12
+   50 :DecrementStackPointer [B]
+   51 :Ret 
+---Testing:Test^i32: 
+   52 :CppCallNamed "Testing:Test"
    53 :Ret 
 ---Testing:Other: 
    54 :Store32 [A],1
    55 :StoreRegToReg32 [A],[F]
    56 :Ret 
 ---Testing:main: 
-   57 :Call {Testing:Other}
-   58 :Ret 
----Testing:Hello:OtherFuncion: 
-   59 :Ret 
+   57 :Store32 [A],0
+   58 :StoreRegToReg32 [A],[D]
+   59 :Call {Testing:Test^i32}
+   60 :Ret 
