@@ -116,12 +116,7 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 
 	JitType Ret_Type;
 	{//CPPCall-body
-		{
-			_Gen.push64(GReg::RBP);//push rbp
-		}
-		{
-			_Gen.mov64(GReg::RBP, GReg::RSP);//mov rbp,rsp
-		}
+		PushFuncStart();
 
 		
 		//RDI is were the Input arugument is move on stack
@@ -207,9 +202,7 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 			}
 		}
 
-		{
-			_Gen.pop64(GReg::RBP);
-		}
+		PushFuncEnd();
 		_Gen.ret();
 	}
 
@@ -218,14 +211,8 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 		_Gen.r_call(_Gen.GetData(CallOffset),Near32(Offset));
 
 		Out_NativeCallOffset = _Gen.GetIndex();
-
-		{
-			_Gen.push64(GReg::RBP);//push rbp
-		}
-		{
-			_Gen.mov64(GReg::RBP, GReg::RSP);//mov rbp,rsp
-		}
-
+		
+		PushFuncStart();
 	}
 	{//c-code body
 		const bool RetTypeIsVoid = Ret_Type.IsVoid();
@@ -567,7 +554,7 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 			if (Item.OpCode == InstructionSet::Return)
 			{
 				{
-					_Gen.pop64(GReg::RBP);//pop rbp
+					PushFuncEnd();
 				}
 				_Gen.ret();
 				break;
@@ -591,6 +578,7 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 
 				{//PlaceHolder Func
 				
+					PushFuncStart();
 					//save values on stack
 					{
 
@@ -615,7 +603,7 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 
 
 					
-
+					PushFuncEnd();
 					_Gen.ret();
 				}
 				PlaceHolderoffset = tep.Offset;
@@ -645,6 +633,23 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 
 	
 	return true;
+}
+
+void X86_64JitCompiler::PushFuncEnd()
+{
+	{
+		_Gen.pop64(GReg::RBP);
+	}
+}
+
+void X86_64JitCompiler::PushFuncStart()
+{
+	{
+		_Gen.push64(GReg::RBP);//push rbp
+	}
+	{
+		_Gen.mov64(GReg::RBP, GReg::RSP);//mov rbp,rsp
+	}
 }
 
 
