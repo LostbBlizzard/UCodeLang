@@ -148,6 +148,7 @@ void Jit_Interpreter::BuildCheck(UCodeLang::Jit_Interpreter::JitFuncData& Item, 
 
 			bool shouldJit = ShouldJit(address, Insts);
 
+			
 			if (shouldJit && _Assembler.Func && _Assembler.BuildFunc(Insts, address, TepOutBuffer))
 			{
 				size_t InsSize = TepOutBuffer.size();
@@ -160,27 +161,27 @@ void Jit_Interpreter::BuildCheck(UCodeLang::Jit_Interpreter::JitFuncData& Item, 
 				Item.Func = (JitFunc)Ptr;
 				Item.NativeFunc = (void*)(Ptr + _Assembler.Out_NativeCallOffset);
 
-				size_t OldSize = TepOutBuffer.size();
 				memcpy((void*)Ptr, TepOutBuffer.data(), InsSize);
 				
 				{
 					for (auto& Item : _Assembler.LinkingData)
 					{
-						Instruction& Ins = Insts[Item.OnUAddress];
-						UAddress CodeFuncAddress = Ins.Value0.AsAddress;
-						if (UFuncToCPPFunc.count(CodeFuncAddress))
+						if (UFuncToCPPFunc.count(Item.OnUAddress))
 						{
-							auto& SomeV = UFuncToCPPFunc.at(CodeFuncAddress);
+							auto& SomeV = UFuncToCPPFunc.at(Item.OnUAddress);
 
-							_Assembler.SubCall((JitInfo::FuncType)SomeV.NativeFunc, OldSize + Item.CPPOffset, ExBuffer.Data);
+							if (SomeV.Type == JitFuncType::CPPCall) 
+							{
+								intptr_t val = (intptr_t)SomeV.NativeFunc;
+								_Assembler.SubCall((JitInfo::FuncType)(val - 5), Item.CPPOffset, ExBuffer.Data);
+							}
 						}
 						else
 						{
-							_Assembler.SubCall((JitInfo::FuncType)OnUAddressCall, OldSize + Item.CPPOffset, ExBuffer.Data);
+							//_Assembler.SubCall((JitInfo::FuncType)OnUAddressCall,Item.CPPOffset, ExBuffer.Data);
 						}
 					}
 				}
-
 
 				LogASM();
 
@@ -461,6 +462,8 @@ void Jit_Interpreter::LogASM()
 		
 		std::cout << " ";
 		std::cout << ToHexR(runtime_address);
+		std::cout << "/";
+		std::cout << std::to_string(offset);
 		std::cout << ":";
 
 		for (size_t i = 0; i < MaxInsSize; i++)

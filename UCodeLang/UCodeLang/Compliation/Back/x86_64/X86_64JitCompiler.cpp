@@ -97,6 +97,10 @@ JitType AsJitType(const ReflectionTypeInfo& V, const ClassAssembly& assembly,boo
 	return R;
 }
 
+constexpr GReg FirstIntLikeParam = GReg::RBX;
+constexpr GReg SencdIntLikeParam = GReg::RBX;
+constexpr GReg ThreeIntLikeParam = GReg::RBX;
+
 bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress, Vector<UInt8>& X64Output)
 {
 	//should be set by the UCode.
@@ -123,9 +127,9 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 		//RDI is were the Input arugument is move on stack
 		_Gen.push64(GReg::RCX);
 
-		CallOffset = _Gen.GetIndex();
+		CallOffset = GetIndex();
 		_Gen.call(Near32(0));
-		CallInsSize = _Gen.GetIndex() - CallOffset;
+		CallInsSize = GetIndex() - CallOffset;
 		
 		
 		{
@@ -210,7 +214,7 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 	}
 
 	{
-		size_t Offset = _Gen.GetIndex() - CallOffset - CallInsSize;
+		size_t Offset = GetIndex() - CallOffset - CallInsSize;
 		_Gen.r_call(_Gen.GetData(CallOffset),Near32(Offset));
 
 		Out_NativeCallOffset = _Gen.GetIndex();
@@ -303,16 +307,19 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 					BuildFallBack = false;
 
 					NullJitCalls Call;
-					Call.CPPoffset = _Gen.GetIndex();
+					Call.CPPoffset = GetIndex();
 					Call.UCodeAddress = Ins;
 					NullCalls.push_back(Call);
-					_Gen.call(Near32(0));
-
-
+					
 					FuncToLink Link;
-					Link.CPPOffset = _Gen.GetIndex();
+					Link.CPPOffset = GetIndex();
 					Link.OnUAddress = Call.UCodeAddress;
 					LinkingData.push_back(Link);
+					
+					_Gen.call(Near32(9999));
+
+
+					
 				}
 
 				
@@ -579,7 +586,7 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 
 
 				UnLoadedFuncPlaceHolder tep;
-				tep.Offset = _Gen.GetIndex();
+				tep.Offset = GetIndex();
 
 
 				{//PlaceHolder Func
@@ -600,7 +607,7 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 					
 					
 					FuncToLink Link;
-					Link.CPPOffset = _Gen.GetIndex();
+					Link.CPPOffset = GetIndex();
 					Link.OnUAddress = Item.UCodeAddress;
 					LinkingData.push_back(Link);
 
@@ -624,6 +631,9 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 			_Gen.r_call(Ptr,Near32(displace));
 		}
 	}
+
+	BufferOffset += _Gen._Base._Output.ByteOutput.size();
+
 	NullCalls.clear();
 	_Ins = nullptr;
 	Output = nullptr;
@@ -668,9 +678,12 @@ void BuildSysCallIns(InstructionSysCall Ins, RegisterID Reg)
 void X86_64JitCompiler::SubCall(JitInfo::FuncType Value, uintptr_t CPPOffset, void* X64Output)
 {
 	Byte* bytes = &((Byte*)X64Output)[CPPOffset];
-	UInt32 ValueFunc = *(UInt32*)&Value;
-	UInt32 CallPos = (UInt32)& bytes;
-	UInt32 Offset = CallPos - ValueFunc;
+	UInt64 ValueFunc = (UInt64)Value;
+	UInt64 CallPos = (UInt64)bytes;
+
+	
+	Int32 Offset = ValueFunc > CallPos ? 
+		ValueFunc - CallPos : CallPos - ValueFunc;
 
 	_Gen.r_call(bytes,Near32(Offset));
 }

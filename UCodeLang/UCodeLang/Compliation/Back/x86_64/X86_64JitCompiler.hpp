@@ -42,23 +42,30 @@ public:
 
 	BinaryVectorMap<UAddress,UnLoadedFuncPlaceHolder> FuncsPlaceHolder;
 	size_t Out_NativeCallOffset =0;
+	size_t BufferOffset = 0;
 private:
 	Vector<UInt8>* Output = nullptr;
 	Vector<Instruction>* _Ins =nullptr;
 	
 	X86_64Gen _Gen;
 	Vector<NullJitCalls> NullCalls;
+
+	struct Nothing{};
 	struct RegData
 	{
 
 
-		Variant<AnyInt64> Contains;
+		Variant<Nothing,AnyInt64> Contains= Nothing();
 	};
 	Array<RegData, (size_t)RegisterID::EndParameterRegister> Regs;
 
 	RegData& GetRegData(RegisterID ID)
 	{
 		return Regs[(size_t)ID];
+	}
+	inline size_t GetIndex() 
+	{
+		return _Gen.GetIndex() + BufferOffset;
 	}
 
 	void mov(X86_64Gen::GReg R, X86_64Gen::Value8 Value);
