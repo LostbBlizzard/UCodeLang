@@ -17,6 +17,8 @@ public:
 
 
 	bool BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress, Vector<UInt8>& X64Output);
+	void PushFuncEnd();
+	void PushFuncStart();
 	void SubCall(JitInfo::FuncType Value, uintptr_t CPPOffset, void* X64Output);
 	
 	UAddress OnUAddressPar=0;
