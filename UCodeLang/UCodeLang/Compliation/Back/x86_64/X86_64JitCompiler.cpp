@@ -303,10 +303,7 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 					Link.OnUAddress = Call.UCodeAddress;
 					LinkingData.push_back(Link);
 					
-					_Gen.call(Near32(9999));
-
-
-					
+					_Gen.call(Near32(0));
 				}
 
 				
@@ -336,7 +333,17 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 					if (CppV->NativeCall)
 					{
 						//use the native call
-						return false;
+
+
+
+
+						{//push pars
+
+						}
+
+						_Gen.mov(GReg::RAX, X86_64Gen::Value64(CppV->NativeCall));
+						_Gen.call(GReg::RAX);
+
 					}
 					else
 					{

@@ -72,6 +72,15 @@ public:
 	void InitExCode();
 
 	String GetName(UAddress address) const;
+
+	inline VectorMap<String, RunTimeLib::CPPCall>& Get_CPPCalls()
+	{
+		return _NameToCPP;
+	}
+	inline const VectorMap<String, RunTimeLib::CPPCall>& Get_CPPCalls() const
+	{
+		return _NameToCPP;
+	}
 private:
 	VectorMap<String, UAddress> _NameToAddress;
 	VectorMap<String, RunTimeLib::CPPCall> _NameToCPP;

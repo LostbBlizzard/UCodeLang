@@ -16,16 +16,14 @@ $Vec2:
 static Vec2 StaticVec = [];
 thread Vec2 ThreadVec = [];
 
-extern dynamic |Test[int a] -> Vec3;
-
-//|main2[] => Test(0);
 
 |main2[Vec3& Other] -> Vec3:
  ret Other;
 
+extern dynamic |Test[int a] -> int;
 
 |Other[] => 1;
-|main[] => Other();
+|main[] => Test(0);
  
 
 

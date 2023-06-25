@@ -332,6 +332,28 @@ Optional<String> Jit_Interpreter::GetNameForHex(const String& Hex)
 					return Str;
 				}
 			}
+
+			for (auto& Item : Get_State()->Get_Libs().Get_CPPCalls())
+			{
+				void* Pointer = Item._Value.NativeCall;
+				if (CMP(Pointer, Hex))
+				{
+					String Str;
+					Str = "CPP-Native-" + Item._Key;
+					return Str;
+				}
+				else
+				{
+					void* Pointer = Item._Value.InterpreterCall;
+					if (CMP(Pointer, Hex))
+					{
+						String Str;
+						Str = "CPP-Interpreter-" + Item._Key;
+						return Str;
+					}
+				}
+
+			}
 		}
 	}
 	return R;
