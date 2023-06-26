@@ -2,32 +2,7 @@
 #include <iostream>
 UCodeLangStart
 
-using OptimizationFunc = void(IROptimizer::*)();
 
-struct OptimizationInfo
-{
-	OptimizationFlags AcitveIf= OptimizationFlags::O_None;
-	bool InverseAcitveIf=false;
-
-	
-	union 
-	{
-		OptimizationFunc FuncCall=nullptr;
-	};
-	OptimizationInfo()
-	{
-
-	};
-	OptimizationInfo(OptimizationFlags f, bool Inverse, OptimizationFunc Call)
-		:AcitveIf(f), InverseAcitveIf(Inverse), FuncCall(Call)
-	{
-
-	};
-};
-static const Array<OptimizationInfo, IROptimizer::OptimizationCount> OptimizationList =
-{
-
-};
 
 void IROptimizer::Reset() 
 {
@@ -134,26 +109,28 @@ void IROptimizer::UpdateOptimizationList()
 	bool ForSize =  (OptimizationFlags_t)Stettings._Flags & (OptimizationFlags_t)OptimizationFlags::ForSize;
 	bool ForSpeed = (OptimizationFlags_t)Stettings._Flags & (OptimizationFlags_t)OptimizationFlags::ForSpeed;
 
-	for (size_t i = 0; i < OptimizationCount; i++)
+	if (ForSize)
 	{
-		auto& OptimizationInfo = OptimizationList[i];
-		auto& OptimizationState = OptimizationListState[i];
-	
+		if (ForDebuging == false) 
+		{
+			Optimization_RemoveUnseddVarables = true;
+		}	
+		Optimization_ConstantFoldVarables = true;
+	}
+	if (ForSpeed)
+	{
 
-		bool IsAcitve = (OptimizationFlags_t)Stettings._Flags & (OptimizationFlags_t)OptimizationInfo.AcitveIf;
-		if (OptimizationInfo.InverseAcitveIf){IsAcitve = !IsAcitve;}
-
-		OptimizationState.IsActive = IsAcitve;
+		Optimization_ShortFuncInline = true;
 	}
 }
 void IROptimizer::UpdateCodePass()
 {
-	/*
+	
 	for (auto& Func : Input->Funcs)
 	{
 		UpdateCodePassFunc(Func.get());
 	}
-	*/
+	
 
 	for (auto& Func : Input->Funcs)
 	{
@@ -164,6 +141,7 @@ void IROptimizer::UpdateCodePassFunc(const IRFunc* Func)
 {
 	SSAState _State;
 	ToSSA(Func, _State);
+	
 	for (auto& Block : Func->Blocks)
 	{
 		for (auto& Ins : Block->Instructions)
@@ -262,8 +240,7 @@ void IROptimizer::UpdateCodePassFunc(const IRFunc* Func)
 
 
 		}
-		bool RemoveUnused = true;
-		if (RemoveUnused) 
+		if (Optimization_RemoveUnseddVarables)
 		{
 			for (auto& Ins : Block->Instructions)
 			{
@@ -296,7 +273,10 @@ void IROptimizer::UpdateCodePassFunc(const IRFunc* Func)
 			}
 		}
 	}
-	UndoSSA(Func, _State);
+	
+	if ((OptimizationFlags_t)_Settings->_Flags & (OptimizationFlags_t)OptimizationFlags::Debug) {
+		UndoSSA(Func, _State);
+	}
 }
 void IROptimizer::DoInlines(IRFunc* Func)
 {
@@ -324,7 +304,10 @@ void IROptimizer::DoInlines(IRFunc* Func,IRBlock* Block)
 					Data.Block = Block;
 					Data.CallIndex = i;
 					Data.Func = Func;
-					InLineFunc(Data);
+
+					if (Optimization_ShortFuncInline) {
+						InLineFunc(Data);
+					}
 				}
 			}
 		}
@@ -332,19 +315,21 @@ void IROptimizer::DoInlines(IRFunc* Func,IRBlock* Block)
 }
 void IROptimizer::ConstantFoldOperator(IRInstruction& I, IROperator& Value)
 {
-	if (Value.Type == IROperatorType::IRInstruction)
-	{
-		auto Ptr = Value.Pointer;
-		if (Ptr->Type == IRInstructionType::Load)
+	if (Optimization_ShortFuncInline) {
+		if (Value.Type == IROperatorType::IRInstruction)
 		{
-			if (Ptr->Target().Type == IROperatorType::Value)
+			auto Ptr = Value.Pointer;
+			if (Ptr->Type == IRInstructionType::Load)
 			{
-				Value = Ptr->Target();
-				I.ObjectType = Ptr->ObjectType;
-				UpdatedCode();
+				if (Ptr->Target().Type == IROperatorType::Value)
+				{
+					Value = Ptr->Target();
+					I.ObjectType = Ptr->ObjectType;
+					UpdatedCode();
+				}
 			}
+			Get_IRData(Ptr).IsReferenced = true;
 		}
-		Get_IRData(Ptr).IsReferenced = true;
 	}
 }
 void IROptimizer::ToSSA(const IRFunc* Func, SSAState& state)
@@ -474,7 +459,7 @@ void IROptimizer::InLineFunc(InLineData& Data)
 						NewIns->Target() = IROperator(CalledRetVar);
 					}
 					AddedLoadRets.push_back(NewIns.get());
-					Data.Block->Instructions.insert(Data.Block->Instructions.begin() + Data.CallIndex + Offset, std::move(NewIns));
+					Data.Block->Instructions.insert(Data.Block->Instructions.begin() + Data.CallIndex +  Offset, std::move(NewIns));
 					Offset++;
 
 				}
@@ -516,15 +501,16 @@ void IROptimizer::InLineFunc(InLineData& Data)
 	UpdatedCode();
 	//
 	
+	//auto S = Input->ToString();
+
+	//std::cout << "-----" << std::endl;
+	//std::cout << S;
+
 	{
 		SSAState S;
 		ToSSA(Data.Func, S);
 	}
 
-	auto S = Input->ToString();
-
-	std::cout << "-----" << std::endl;
-	std::cout << S;
 }
 void IROptimizer::InLineSubOperator(InLineData& Data, IROperator& Op,size_t Offset)
 {
@@ -564,18 +550,27 @@ void IROptimizer::InLineSubOperator(InLineData& Data, IROperator& Op,size_t Offs
 		|| Op.Type == IROperatorType::Get_PointerOf_IRInstruction
 		|| Op.Type == IROperatorType::DereferenceOf_IRInstruction)
 	{
+		bool Set = false;
 		size_t Index = 0;
 		for (size_t i = 0; i < CallFunc->Blocks.size(); i++)
 		{
 			auto& Block = CallFunc->Blocks[i];
 			for (auto& BlockIns : Block->Instructions)
 			{
-				if (BlockIns.get() == Op.Pointer) {
-					Index++;
+				if (BlockIns.get() == Op.Pointer) 
+				{
+					Set = true;
+					break;
 				}
+				Index++;
 			}
+			if (Set) { break; }
 		}
 
+		if (Set == false)
+		{
+			throw std::exception("not set");
+		}
 		Op = IROperator(Op.Type,(*Data.AddIns)[Index]);
 	}
 	
