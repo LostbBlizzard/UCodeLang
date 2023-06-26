@@ -39,7 +39,7 @@ constexpr GReg IntLikeParam_2 = GReg::RDX;
 constexpr GReg IntLikeParam_3 = GReg::r8;
 constexpr GReg IntLikeParam_4 = GReg::r9;
 #endif
-const size_t SaveStackSize = 24;
+const size_t SaveStackSize = 32;//an offset to stop c++ touching the stack am not sure why it does that or were it specified in c++ 86_64 i you know tell me. or im must be doing sumthing worng
 bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress, Vector<UInt8>& X64Output)
 {
 	//should be set by the UCode.
@@ -64,48 +64,51 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 
 		size_t StackSize = SaveStackSize + ThisFuncData.Ret.GetSize();
 
+		for (auto& Item : ThisFuncData.Pars)
+		{
+			StackSize += Item.GetSize();
+		}
+
 		_Gen.sub32(GReg::RSP, StackSize);//so CPPinterface_Set_ReturnPtr does not break the FuncRet value
+
+		_Gen.push64(IntLikeParam_1);//move Input arugument on stack
 
 		
 		{//Get Pars
 			size_t IntparTypeCount = 0;
+			size_t ParsSize = 0;
 			for (auto& Item : ThisFuncData.Pars)
 			{
 				if (Item.Type == JitType_t::Int32)
 				{
-
-					GReg PReg;
-					switch (IntparTypeCount)
-					{
-					case 0:PReg = IntLikeParam_1; break;
-					//case 1:PReg = IntLikeParam_2; break;
-					//case 2:PReg = IntLikeParam_3; break;
-					//case 3:PReg = IntLikeParam_4; break;
-					default:
-						//push on stack
-						throw std::exception("not added");
-						break;
-					}
 					IntparTypeCount++;
-					
+
 					//What it should do 
 					//CPPinterface::Get_Paramter(Input,Pointer,sizeof(Item));
-					
-					//Input is good.
 
-					//Pass sizeof(Item)
-					_Gen.mov(IntLikeParam_3, X86_64Gen::Value32(Item.GetSize()));
 
-					_Gen.mov64(GReg::RSP, IntLikeParam_2);//pass pointer of stack
+					_Gen.pop64(IntLikeParam_1);//pass Input
+					_Gen.push64(IntLikeParam_1);//push copy.
 
-					
-					_Gen.mov(GReg::RAX, *(X86Gen::Value64*)&InterpreterCPPinterface_Get_Par);//CPPinterface::Get_Paramter
-					_Gen.call(GReg::RAX);
+					_Gen.mov(IntLikeParam_3, X86_64Gen::Value32(Item.GetSize()));//Pass sizeof(Item)
 
-					//mov value into call
 
-					_Gen.mov64(GReg::RAX, IndrReg(GReg::RSP));
-					_Gen.push64(GReg::RAX);
+					{
+						_Gen.sub32(GReg::RSP, 8);//move stack for pointer
+						{
+							_Gen.mov64(GReg::RSP, IntLikeParam_2);//pass pointer of stack
+
+							_Gen.sub32(GReg::RSP, SaveStackSize);
+							_Gen.mov(GReg::RAX, *(X86Gen::Value64*)&InterpreterCPPinterface_Get_Par);//CPPinterface::Get_Paramter
+							_Gen.call(GReg::RAX);
+							_Gen.add32(GReg::RSP, SaveStackSize);
+						}
+						_Gen.pop64(GReg::RAX);//Get Param
+					}
+
+					size_t StackPos = -(StackSize - ParsSize - 8);
+					_Gen.mov64(IndrReg(GReg::RSP), StackPos, GReg::RAX);//move parm on stack
+					ParsSize += Item.GetSize();
 				}
 				else
 				{
@@ -115,10 +118,10 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 			
 		}
 		
-		_Gen.push64(IntLikeParam_1);//move Input arugument on stack
-
+		
 		{//move into native call
 			size_t IntparTypeCount = 0;
+			size_t ParsSize = 0;
 			for (auto& Item : ThisFuncData.Pars)
 			{
 				if (Item.Type == JitType_t::Int32)
@@ -128,22 +131,25 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 					switch (IntparTypeCount)
 					{
 					case 0:PReg = IntLikeParam_1; break;
-						//case 1:PReg = IntLikeParam_2; break;
-						//case 2:PReg = IntLikeParam_3; break;
-						//case 3:PReg = IntLikeParam_4; break;
+						case 1:PReg = IntLikeParam_2; break;
+						case 2:PReg = IntLikeParam_3; break;
+						case 3:PReg = IntLikeParam_4; break;
 					default:
 						//push on stack
 						throw std::exception("not added");
 						break;
 					}
 					IntparTypeCount++;
-					_Gen.pop64(PReg);
+					ParsSize += Item.GetSize();
+
+					size_t StackPos = -(StackSize - ParsSize - 8);
+					_Gen.mov64(PReg,IndrReg(GReg::RSP), StackPos);//move to Preg
 				}
 			}
 		}
 
 		CallOffset = GetIndex();
-		_Gen.call(Near32(0));
+		Gen_InvaildNear32Call();
 		CallInsSize = GetIndex() - CallOffset;
 
 		{//pop pars
@@ -157,16 +163,16 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 					switch (IntparTypeCount)
 					{
 					case 0:PReg = IntLikeParam_1; break;
-						//case 1:PReg = IntLikeParam_2; break;
-						//case 2:PReg = IntLikeParam_3; break;
-						//case 3:PReg = IntLikeParam_4; break;
+					case 1:PReg = IntLikeParam_2; break;
+					case 2:PReg = IntLikeParam_3; break;
+					case 3:PReg = IntLikeParam_4; break;
 					default:
 						//push on stack
 						throw std::exception("not added");
 						break;
 					}
 					IntparTypeCount++;
-					_Gen.pop64(GReg::RCX);//unsed
+					_Gen.pop64(GReg::RCX);//pop
 				}
 			}
 		}
@@ -186,7 +192,8 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 
 				//CPPinterface::Set_Return(Input,&FuncRet,sizeof(int));
 
-				_Gen.mov(IntLikeParam_3,X86_64Gen::Value64(ThisFuncData.Ret.GetSize()));//pass sizeof(ThisFuncData.Ret)
+				_Gen.mov(IntLikeParam_3,X86_64Gen::Value32(ThisFuncData.Ret.GetSize()));//pass sizeof(ThisFuncData.Ret)
+				
 
 				_Gen.mov(GReg::RAX, *(X86Gen::Value64*)&InterpreterCPPinterface_Set_ReturnPtr);
 				_Gen.call(GReg::RAX);
@@ -299,7 +306,7 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 					Link.OnUAddress = Call.UCodeAddress;
 					LinkingData.push_back(Link);
 					
-					_Gen.call(Near32(0));
+					Gen_InvaildNear32Call();
 					
 					PopPassNativePars(JitFuncDat_Value.Pars);
 				}
@@ -597,7 +604,7 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 					Link.OnUAddress = Item.UCodeAddress;
 					LinkingData.push_back(Link);
 
-					_Gen.call(Near32(0));//will be relinked when BuildAddressPtr builds the funcion we are trying to call 
+					Gen_InvaildNear32Call();//will be relinked when BuildAddressPtr builds the funcion we are trying to call 
 
 					
 					
@@ -745,6 +752,15 @@ void X86_64JitCompiler::PopAllParsOnStack(const Vector<JitType>& Pars)
 			throw std::exception("not added");
 		}
 	}
+}
+
+void X86_64JitCompiler::Gen_InvaildNear32Call()
+{
+	size_t V = _Gen.GetIndex();
+	_Gen.call(Near32(0));
+	size_t CallInsSize = _Gen.GetIndex() - V;
+
+	memset(_Gen.GetData(V), 0x33, CallInsSize);//debug break if not set
 }
 
 void X86_64JitCompiler::PushFuncEnd()

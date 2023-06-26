@@ -76,6 +76,13 @@ void AsmBuffer::Alloc(const size_t Size)
 
 	DWORD type = MEM_RESERVE | MEM_COMMIT;
 	Data = VirtualAlloc(NULL, Size, type, PAGE_READWRITE);
+
+	
+	#if UCodeLang_CPUIs_x86_64 || UCodeLang_CPUIs_x86
+	memset(Data, 0xcc, Size);
+	#endif // 
+
+
 }
 
 AsmBuffer::~AsmBuffer()

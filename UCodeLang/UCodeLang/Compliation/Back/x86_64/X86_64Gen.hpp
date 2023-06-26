@@ -255,12 +255,25 @@ public:
 		{
 			PushByte(0x54);
 		}
+		else if (dest == GReg::RCX)
+		{
+			PushByte(0x4C);
+		}
 		else
 		{
 			throw std::exception();
 		}
 		PushByte(0x24);
 		PushByte(src_offset);
+	}
+	void mov64(IndrReg dest, Value8 dest_offset, GReg src)
+	{
+		PushByte(0x48);
+		PushByte(0x89);
+		auto T =x86_64::modrm(src, dest._Reg, dest_offset);
+		PushByte(T.data(), T.size());
+		PushByte(0x04);
+		PushByte(0x24);
 	}
 	/// loads the address of a variable into register
 	void lea(ModRM Mod, GReg Reg, Rm rm, Value8 scale, GReg index, UInt64 disp);
