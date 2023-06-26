@@ -20,87 +20,26 @@ void X86_64JitCompiler::Reset()
 }
 
 
+#define CallConventionFastCall 0
+#define NullCallConvention 9999
+
+
+#ifdef UCodeLang_Platform_Windows
+#define DefaultCallConvention CallConventionFastCall
+#else
+#define DefaultCallConvention NullCallConvention
+#endif // DEBUG
+
 ImportUseing86x64Gen
 
-struct JitType
-{
-	size_t Size = 0;
-	bool IsStruct = false;
 
-	bool IsVoid()
-	{
-		return Size == 0;
-	}
-	bool IsBadType()
-	{
-		return  Size == SIZE_MAX;
-	}
-	void SetAsBadType()
-	{
-		Size = SIZE_MAX;
-	}
-};
-JitType AsJitType(const ReflectionTypeInfo& V, const ClassAssembly& assembly,bool PointerSizeIs32Bit)
-{
-	JitType R;
-
-	if (V._Type == ReflectionTypes::Void)
-	{
-		R.Size = 0;
-		R.IsStruct = false;
-	}
-	else if (V._Type == ReflectionTypes::uIntPtr
-		|| V._Type == ReflectionTypes::sIntPtr
-		|| V.IsAddress()
-		|| V.IsAddressArray())
-	{
-		if (PointerSizeIs32Bit)
-		{
-			goto Is32BitInt;
-		}
-		else
-		{
-			goto Is64BitInt;
-		}
-		R.Size = 2;
-	}
-	else
-		if (V._Type == ReflectionTypes::uInt32 || V._Type == ReflectionTypes::sInt32)
-		{
-		Is32BitInt:
-			R.Size = 4;
-			//Input.Set_Return(&FuncRet,sizeof(int));
-			//_Gen.Push_Ins_MovImm32(GReg::r8, 4);//pass sizeof(int)
-		}
-		else if (V._Type == ReflectionTypes::uInt64 || V._Type == ReflectionTypes::sInt64)
-		{
-		Is64BitInt:
-			R.Size = 8;
-			//Input.Set_Return(&FuncRet,sizeof(int));
-			//_Gen.Push_Ins_MovImm32(GReg::r8, 4);//pass sizeof(int)
-		}
-		else if (V._Type == ReflectionTypes::uInt16 || V._Type == ReflectionTypes::sInt16)
-		{
-			R.Size = 2;
-		}
-		else if (V._Type == ReflectionTypes::uInt8 || V._Type == ReflectionTypes::sInt8
-			|| V._Type == ReflectionTypes::Char
-			|| V._Type == ReflectionTypes::Bool)
-		{
-			R.Size = 1;
-		}
-		else
-		{
-			R.SetAsBadType();
-		}
-
-	return R;
-}
-
-constexpr GReg FirstIntLikeParam = GReg::RBX;
-constexpr GReg SencdIntLikeParam = GReg::RBX;
-constexpr GReg ThreeIntLikeParam = GReg::RBX;
-
+#if DefaultCallConvention == CallConventionFastCall
+constexpr GReg IntLikeParam_1 = GReg::RCX;
+constexpr GReg IntLikeParam_2 = GReg::RDX;
+constexpr GReg IntLikeParam_3 = GReg::r8;
+constexpr GReg IntLikeParam_4 = GReg::r9;
+#endif
+const size_t SaveStackSize = 32;
 bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress, Vector<UInt8>& X64Output)
 {
 	//should be set by the UCode.
@@ -118,90 +57,47 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 	{//CPPCall-body
 		PushFuncStart();
 
+
 		
-		//RDI is were the Input arugument is move on stack
-		_Gen.push64(GReg::RCX);
+
+		_Gen.push64(IntLikeParam_1);//move Input arugument on stack
 
 		CallOffset = GetIndex();
 		_Gen.call(Near32(0));
 		CallInsSize = GetIndex() - CallOffset;
 		
-		
+		Ret_Type = AsJitType(Func->RetType,this->State->Get_Assembly(), PointerSizeIs32Bit);
 		{
-			if (Func->RetType._Type == ReflectionTypes::Void)
+			
+			if (Ret_Type.Type == JitType_t::Int32)
 			{
-				Ret_Type.Size = 0;
-				Ret_Type.IsStruct = false;
-			}
-			else if (Func->RetType._Type == ReflectionTypes::uIntPtr 
-				|| Func->RetType._Type == ReflectionTypes::sIntPtr
-				|| Func->RetType.IsAddress()
-				|| Func->RetType.IsAddressArray())
-			{
-				if (PointerSizeIs32Bit)
-				{
-					goto Is32BitInt;
-				}
-				else
-				{
-					goto Is64BitInt;
-				}
-				Ret_Type.Size = 2;
-			}
-			else
-			if (Func->RetType._Type == ReflectionTypes::uInt32 || Func->RetType._Type == ReflectionTypes::sInt32)
-			{
-				Is32BitInt:
-				Ret_Type.Size = 4;
-				const size_t StatckSize =32;
+				_Gen.pop64(IntLikeParam_1);//Pass Input
 
-				_Gen.pop64(GReg::RCX);//Pass Input
-				
 				//_Gen.sub32(GReg::RSP, Ret_Type.Size);//stack alloc
 
-				_Gen.push64(GReg::RAX);//move ret on stack
+				_Gen.push64(GReg::RAX);//move FuncRet on stack
 
-				_Gen.mov64(GReg::RSP, GReg::RDX);//pass pointer
-				
-				_Gen.sub32(GReg::RSP, StatckSize);//so CPPinterface_Set_ReturnPtr does not break the ret value
+				_Gen.mov64(GReg::RSP, IntLikeParam_2);//pass pointer of FuncRet
 
-
-				//Input.Set_Return(&FuncRet,sizeof(int));
+				_Gen.sub32(GReg::RSP, SaveStackSize);//so CPPinterface_Set_ReturnPtr does not break the FuncRet value
 
 
+				//CPPinterface::Set_Return(Input,&FuncRet,sizeof(int));
 
-				_Gen.mov(GReg::r8, 4);//pass sizeof(int)
-				
-				_Gen.mov(GReg::RAX,*(X86Gen::Value64*)&InterpreterCPPinterface_Set_ReturnPtr);
+				_Gen.mov(IntLikeParam_3, 4);//pass sizeof(int)
+
+				_Gen.mov(GReg::RAX, *(X86Gen::Value64*)&InterpreterCPPinterface_Set_ReturnPtr);
 				_Gen.call(GReg::RAX);
 
-				_Gen.add32(GReg::RSP, StatckSize);//move stack back
-				_Gen.pop64(GReg::RAX);//remove ret on stack
+				_Gen.add32(GReg::RSP, SaveStackSize);//move stack back
+				_Gen.pop64(GReg::RAX);//remove FuncRet on stack
+				
 				
 			}
-			else if (Func->RetType._Type == ReflectionTypes::uInt64 || Func->RetType._Type == ReflectionTypes::sInt64)
-			{
-			Is64BitInt:
-				Ret_Type.Size = 8;
-				//Input.Set_Return(&FuncRet,sizeof(int));
-				//_Gen.Push_Ins_MovImm32(GReg::r8, 4);//pass sizeof(int)
-			}
-			else if (Func->RetType._Type == ReflectionTypes::uInt16 || Func->RetType._Type == ReflectionTypes::sInt16)
-			{
-				Ret_Type.Size = 2;
-			}
-			else if (Func->RetType._Type == ReflectionTypes::uInt8 || Func->RetType._Type == ReflectionTypes::sInt8
-				|| Func->RetType._Type == ReflectionTypes::Char
-				|| Func->RetType._Type == ReflectionTypes::Bool)
-			{
-				Ret_Type.Size = 1;
-			}
-			else
-			{
-				return false;
-			}
 		}
-
+		
+		
+		
 		PushFuncEnd();
 		_Gen.ret();
 	}
@@ -272,24 +168,14 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 				auto Func = State->GetMethod(Ins);
 				if (Func)
 				{
-					JitType Call_Ret = AsJitType(Func->RetType,State->Get_Assembly(),PointerSizeIs32Bit);
-					if (Call_Ret.IsBadType())
+					auto JitFuncDat = As(Func, PointerSizeIs32Bit);
+					if (!JitFuncDat.has_value())
 					{
-						break;
+						return false;
 					}
-					Vector<JitType> Pars; Pars.resize(Func->ParsType.size());
-					for (size_t i = 0; i < Pars.size(); i++)
-					{
-						Pars[i] = AsJitType(Func->ParsType[i], State->Get_Assembly(), PointerSizeIs32Bit);
-						if (Pars[i].IsBadType())
-						{
-							break;
-						}
-					}
+					auto& JitFuncDat_Value = JitFuncDat.value();
 
-					{//push pars
-
-					}
+					PassNativePars(JitFuncDat_Value.Pars);
 
 					BuildFallBack = false;
 
@@ -304,6 +190,8 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 					LinkingData.push_back(Link);
 					
 					_Gen.call(Near32(0));
+					
+					PopPassNativePars(JitFuncDat_Value.Pars);
 				}
 
 				
@@ -336,14 +224,15 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 
 
 
+						_Gen.sub32(GReg::RSP, SaveStackSize);//add stack frame because NativeCall kills the stack
 
-						{//push pars
-
-						}
+						//pars have been passed becuase all Cpp Calls are in there own funcions
+						//Rax is never used as a par
 
 						_Gen.mov(GReg::RAX, X86_64Gen::Value64(CppV->NativeCall));
 						_Gen.call(GReg::RAX);
-
+						
+						_Gen.add32(GReg::RSP, SaveStackSize);//move back stack
 					}
 					else
 					{
@@ -366,18 +255,7 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 				if (!RetTypeIsVoid)
 				{
 					auto& OutReg = GetRegData(RegisterID::OuPutRegister);
-					if (auto V = OutReg.Contains.Get_If<AnyInt64>())
-					{
-						switch (Ret_Type.Size)
-						{
-						case 1:mov(GReg::RAX, V->AsInt8); break;
-						case 2:mov(GReg::RAX, V->AsInt16); break;
-						case 4:mov(GReg::RAX,V->AsInt32); break;
-						case 8:mov(GReg::RAX, V->AsInt64); break;
-						default:return false;
-						}
-					}
-						
+					MoveRegToNative(OutReg, Ret_Type, GReg::RAX);
 				}
 				
 			}
@@ -586,19 +464,22 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 				{//PlaceHolder Func
 				
 					PushFuncStart();
-					//save values on stack
-					{
 
-					}
+					auto Func = As(State->GetMethod(Item.UCodeAddress),PointerSizeIs32Bit).value();
+					//save values on stack because who knows what BuildAddress does to the regs.
 					
-					_Gen.mov(GReg::RCX, X86_64Gen::Value64(Item.UCodeAddress));//pass the UCodeAddress
+					
+					
+
+					PushAllParsOnStack(Func.Pars);
+					
+					
+					_Gen.mov(IntLikeParam_1, X86_64Gen::Value64(Item.UCodeAddress));//pass the UCodeAddress
 
 					_Gen.mov(GReg::RAX,X86_64Gen::Value64(BuildAddressPtr));
 					_Gen.call(GReg::RAX);
 
-					{//get function argument off the stack
-
-					}
+					PopAllParsOnStack(Func.Pars);
 					
 					
 					FuncToLink Link;
@@ -608,7 +489,7 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 
 					_Gen.call(Near32(0));//will be relinked when BuildAddressPtr builds the funcion we are trying to call 
 
-
+					
 					
 					PushFuncEnd();
 					_Gen.ret();
@@ -642,6 +523,120 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 	return true;
 }
 
+void X86_64JitCompiler::PassNativePars(const Vector<JitType>& Pars)
+{
+	{//push pars
+
+		size_t IntparTypeCount = 0;
+		RegisterID ParReg = RegisterID::StartParameterRegister;
+
+		for (auto& Item : Pars)
+		{
+			if (Item.Type == JitType_t::Int32)
+			{
+
+				if ((RegisterID_t)ParReg == (RegisterID_t)RegisterID::EndParameterRegister + 1)
+				{
+					throw std::exception("not added");
+					//move to stack
+				}
+				else
+				{
+					auto& ItemReg = GetRegData(ParReg);
+
+					GReg PReg;
+					switch (IntparTypeCount)
+					{
+					case 0:PReg = IntLikeParam_1; break;
+					case 1:PReg = IntLikeParam_2; break;
+					case 2:PReg = IntLikeParam_3; break;
+					case 3:PReg = IntLikeParam_4; break;
+					default:
+						//push on stack
+						throw std::exception("not added");
+						break;
+					}
+					MoveRegToNative(ItemReg,Item, PReg);
+					IntparTypeCount++;
+				}
+			}
+			else
+			{
+				throw std::exception("not added");
+			}
+		}
+
+
+	}
+}
+
+void X86_64JitCompiler::PopPassNativePars(const Vector<JitType>& Pars)
+{
+
+}
+void X86_64JitCompiler::PushAllParsOnStack(const Vector<JitType>& Pars)
+{
+	size_t IntparTypeCount = 0;
+	for (auto& Item : Pars)
+	{
+		if (Item.Type == JitType_t::Int32)
+		{
+
+			GReg PReg;
+			switch (IntparTypeCount)
+			{
+			case 0:PReg = IntLikeParam_1; break;
+			case 1:PReg = IntLikeParam_2; break;
+			case 2:PReg = IntLikeParam_3; break;
+			case 3:PReg = IntLikeParam_4; break;
+			default:
+				//push on stack
+				throw std::exception("not added");
+				break;
+			}
+			IntparTypeCount++;
+			_Gen.push64(PReg);
+		}
+		else
+		{
+			throw std::exception("not added");
+		}
+	}
+	_Gen.sub32(GReg::RSP, SaveStackSize);//so CPPinterface_Set_ReturnPtr does not break the FuncRet value
+
+}
+
+void X86_64JitCompiler::PopAllParsOnStack(const Vector<JitType>& Pars)
+{
+	_Gen.add32(GReg::RSP, SaveStackSize);
+	size_t IntparTypeCount = 0;
+	for (auto& Item : Pars)
+	{
+		if (Item.Type == JitType_t::Int32)
+		{
+
+			GReg PReg;
+			switch (IntparTypeCount)
+			{
+			case 0:PReg = IntLikeParam_1; break;
+			case 1:PReg = IntLikeParam_2; break;
+			case 2:PReg = IntLikeParam_3; break;
+			case 3:PReg = IntLikeParam_4; break;
+			default:
+				//push on stack
+				throw std::exception("not added");
+				break;
+			}
+			IntparTypeCount++;
+			_Gen.pop64(PReg);
+		}
+		else
+		{
+			throw std::exception("not added");
+		}
+	}
+}
+
 void X86_64JitCompiler::PushFuncEnd()
 {
 	{
@@ -657,6 +652,59 @@ void X86_64JitCompiler::PushFuncStart()
 	{
 		_Gen.mov64(GReg::RBP, GReg::RSP);//mov rbp,rsp
 	}
+}
+
+
+
+X86_64JitCompiler::JitType X86_64JitCompiler::AsJitType(const ReflectionTypeInfo& V, const ClassAssembly& assembly, bool PointerSizeIs32Bit)
+{
+	JitType R;
+
+	if (V._Type == ReflectionTypes::Void)
+	{
+		R.Set(JitType_t::Void);
+	}
+	else if (V._Type == ReflectionTypes::uIntPtr
+		|| V._Type == ReflectionTypes::sIntPtr
+		|| V.IsAddress()
+		|| V.IsAddressArray())
+	{
+		if (PointerSizeIs32Bit)
+		{
+			goto Is32BitInt;
+		}
+		else
+		{
+			goto Is64BitInt;
+		}
+	}
+	else
+		if (V._Type == ReflectionTypes::uInt32 || V._Type == ReflectionTypes::sInt32)
+		{
+		Is32BitInt:
+			R.Set(JitType_t::Int32);
+		}
+		else if (V._Type == ReflectionTypes::uInt64 || V._Type == ReflectionTypes::sInt64)
+		{
+		Is64BitInt:
+			R.Set(JitType_t::Int64);
+		}
+		else if (V._Type == ReflectionTypes::uInt16 || V._Type == ReflectionTypes::sInt16)
+		{
+			R.Set(JitType_t::Int16);
+		}
+		else if (V._Type == ReflectionTypes::uInt8 || V._Type == ReflectionTypes::sInt8
+			|| V._Type == ReflectionTypes::Char
+			|| V._Type == ReflectionTypes::Bool)
+		{
+			R.Set(JitType_t::Int8);
+		}
+		else
+		{
+			R.SetAsBadType();
+		}
+
+	return R;
 }
 
 
@@ -699,6 +747,29 @@ void X86_64JitCompiler::SubCall(JitInfo::FuncType Value, uintptr_t CPPOffset, vo
 
 	_Gen.r_call(bytes,Near32(Offset));
 }
+Optional<X86_64JitCompiler::JitFuncData> X86_64JitCompiler::As(const ClassMethod* Method, bool PointerSizeIs32Bit)
+{
+	JitType Call_Ret = AsJitType(Method->RetType, State->Get_Assembly(), PointerSizeIs32Bit);
+	if (Call_Ret.IsBadType())
+	{
+		return {};
+	}
+	Vector<JitType> Pars; Pars.resize(Method->ParsType.size());
+	for (size_t i = 0; i < Method->ParsType.size(); i++)
+	{
+		Pars[i] = AsJitType(Method->ParsType[i], State->Get_Assembly(), PointerSizeIs32Bit);
+		if (Pars[i].IsBadType())
+		{
+			return {};
+		}
+	}
+
+	JitFuncData R;
+	R.Ret = std::move(Call_Ret);
+	R.Pars = std::move(Pars);
+
+	return R;
+}
 
 void X86_64JitCompiler::mov(GReg R, X86_64Gen::Value8 Value)
 {
@@ -724,6 +795,28 @@ void X86_64JitCompiler::mov(GReg R, X86_64Gen::Value32 Value)
 void X86_64JitCompiler::mov(GReg R, X86_64Gen::Value64 Value)
 {
 	_Gen.mov(R, Value);
+}
+
+void X86_64JitCompiler::MoveRegToNative(const RegData& Reg, const JitType& TypeInReg, X86_64Gen::GReg NativeReg)
+{
+	if (auto V = Reg.Contains.Get_If<AnyInt64>())
+	{
+		switch (TypeInReg.GetSize())
+		{
+		case 1:mov(NativeReg, V->AsInt8); break;
+		case 2:mov(NativeReg, V->AsInt16); break;
+		case 4:mov(NativeReg, V->AsInt32); break;
+		case 8:mov(NativeReg, V->AsInt64); break;
+		}
+	}
+	else if (Reg.Contains.Is<Nothing>())
+	{
+		return;
+	}
+	else
+	{
+		throw std::exception("not added");
+	}
 }
 
 UCodeLangEnd

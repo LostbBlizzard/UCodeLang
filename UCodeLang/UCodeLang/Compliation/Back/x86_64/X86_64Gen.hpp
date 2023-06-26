@@ -274,10 +274,14 @@ public:
 	{
 		throw std::exception("not added");
 	}
+
+	/* 86_64 does not support.use push64
 	inline void push32(GReg Reg)
 	{
 		throw std::exception("not added");
 	}
+	*/
+
 	inline void push64(GReg Reg)
 	{
 		PushByte(0x50 + (Byte)Reg);
@@ -307,10 +311,14 @@ public:
 	{
 		throw std::exception("not added");
 	}
+
+	/* 86_64 does not support.use push64
 	inline void pop32(GReg Reg)
 	{
 		throw std::exception("not added");
 	}
+	*/
+
 	inline void pop64(GReg Reg)
 	{
 		PushByte(0x58 + (Byte)Reg);

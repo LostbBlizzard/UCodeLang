@@ -58,21 +58,12 @@ public:
 	Return_t Call(const String& FunctionName);
 	Return_t Call(UAddress address);
 	
-	Return_t ThisCall(UAddress This,const String& FunctionName);
-	Return_t ThisCall(UAddress This, UAddress address);
-	UCodeLangForceinline Return_t ThisCall(UAddress This, const ClassMethod& Function)
-	{
-		return ThisCall(This, Function.DecorationName);
-	}
-
-
 	//
 	template<typename... Args> Return_t Call(const String& FunctionName, Args&&... parameters)
 	{
 		if (CheckIfFunctionExist(FunctionName)) 
 		{
-			PushParameters(parameters...);
-			return Call(FunctionName);
+			return Call(Get_State()->FindAddress(FunctionName).value(),parameters...);
 		}
 		return Return_t(RetState::Error_Function_doesnt_exist);
 	}
@@ -81,38 +72,38 @@ public:
 		PushParameters(parameters...);
 		return Call(address);
 	}
-	template<typename... Args> Return_t ThisCall(UAddress This, const String& FunctionName, Args&&... parameters)
-	{
-		if (CheckIfFunctionExist(FunctionName))
-		{
-			PushParameter(This);
-			PushParameters(parameters...);
-			return Call(FunctionName);
-		}
-		return Return_t(RetState::Error_Function_doesnt_exist);
-	}
-	template<typename... Args>	Return_t ThisCall(UAddress This, UAddress address, Args&&... parameters)
-	{
-		PushParameter(This);
-		PushParameters(parameters...);
-		return Call(address);
-	}
-	template<typename... Args> UCodeLangForceinline Return_t ThisCall(UAddress This, const ClassMethod& Function, Args&&... parameters)
-	{
-		return ThisCall(This, Function.DecorationName, parameters...);
-	}
+	
 
+
+	template<typename T, typename... Args>
+	T RCall(UAddress address, Args&&... parameters)
+	{
+		///if (CheckIfFunctionExist(FunctionName))
+		{
+			{//fast call
+				if (UFuncToCPPFunc.count(address))
+				{
+					using Func = T(*)(Args...);
+					Func Ptr = (Func)UFuncToCPPFunc[address].NativeFunc;
+					return Ptr(parameters...);
+				}
+			}
+
+			auto V = Call(address, parameters...);
+			if (V._Succeed == RetState::Success)
+			{
+				return Get_Return<T>();
+			}
+		}
+		return {};
+	}
 
 	template<typename T, typename... Args>
 	T RCall(const String& FunctionName, Args&&... parameters)
 	{
 		if (CheckIfFunctionExist(FunctionName))
 		{
-			auto V = Call(FunctionName,parameters...);
-			if (V._Succeed == RetState::Success)
-			{
-				return Get_Return<T>();
-			}
+			return RCall<T>(Get_State()->FindAddress(FunctionName).value(), parameters...);
 		}
 		return {};
 	}
@@ -120,26 +111,32 @@ public:
 	template<typename T, typename... Args>
 	T RCall(const ClassMethod& Function, Args&&... parameters)
 	{
-		return RCall<T, Args...>(Function.DecorationName,parameters...);
+		return RCall<T>(Function.DecorationName,parameters...);
 	}
-	template<typename T, typename... Args>
-	T RThisCall(PtrType This, const ClassMethod& Function, Args&&... parameters)
-	{
-		return RThisCall(This, Function.DecorationName, Args&&... parameters)
-	}
-	template<typename T, typename... Args> T RThisCall(PtrType This, const String& Function, Args&&... parameters)
-	{
-		if (CheckIfFunctionExist(FunctionName))
-		{
-			auto V = ThisCall(This, Function, parameters);
-			if (V._Succeed == RetState::Success)
-			{
-				return Get_Return<T>();
-			}
-		}
-		return {};
-	}
+	
 
+	template<typename... Args> Return_t ThisCall(const String& FunctionName, PtrType This, Args&&... parameters)
+	{
+		return Call(FunctionName,This,parameters...);
+	}
+	template<typename... Args>	Return_t ThisCall(UAddress address,PtrType This, Args&&... parameters)
+	{
+		return Call(address, This, parameters...);
+	}
+	template<typename... Args> Return_t ThisCall(const ClassMethod& Function,PtrType This, Args&&... parameters)
+	{
+		return ThisCall(Function.DecorationName, This, parameters...);
+	}
+	
+	template<typename T, typename... Args>
+	T RThisCall(const ClassMethod& Function,PtrType This, Args&&... parameters)
+	{
+		return RCall<T>(Function.DecorationName, This, Args&&... parameters);
+	}
+	template<typename T, typename... Args> T RThisCall(const String& Function,PtrType This, Args&&... parameters)
+	{
+		return RCall<T>(Function,This, parameters...);
+	}
 	//
 
 	template<typename... Args> void PushParameters(Args&&... parameters)

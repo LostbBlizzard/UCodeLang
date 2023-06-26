@@ -46,11 +46,17 @@ public:
 	Return_t Call(const String& FunctionName);
 	Return_t Call(UAddress address);
 	
-	Return_t ThisCall(UAddress This, const String& FunctionName);
-	Return_t ThisCall(UAddress This, UAddress address);
-	UCodeLangForceinline Return_t ThisCall(UAddress This, const ClassMethod& Function)
+	Return_t ThisCall(const String& FunctionName, PtrType This)
 	{
-		return ThisCall(This, Function.DecorationName);
+		return Get_MyInterpreter().ThisCall(FunctionName, This);
+	}
+	Return_t ThisCall(UAddress address, PtrType This)
+	{
+		return Get_MyInterpreter().ThisCall(address, This);
+	}
+	UCodeLangForceinline Return_t ThisCall(const ClassMethod& Function, PtrType This)
+	{
+		return ThisCall(Function.DecorationName, This);
 	}
 	//
 	
@@ -64,18 +70,18 @@ public:
 		return Get_MyInterpreter().Call(address, parameters...);
 	}
 	
-	template<typename... Args> Return_t ThisCall(UAddress This, const String& FunctionName, Args&&... parameters)
+	template<typename... Args> Return_t ThisCall(const String& FunctionName,PtrType This, Args&&... parameters)
 	{
-		return Get_MyInterpreter().ThisCall(This, FunctionName, parameters...);
+		return Get_MyInterpreter().ThisCall(FunctionName, This, parameters...);
 	}
-	template<typename... Args> Return_t ThisCall(UAddress This, UAddress address, Args&&... parameters)
+	template<typename... Args> Return_t ThisCall(UAddress address, PtrType This, Args&&... parameters)
 	{
-		return Get_MyInterpreter().ThisCall(This, address, parameters...);
+		return Get_MyInterpreter().ThisCall(address, This, parameters...);
 	}
 
-	template<typename... Args> UCodeLangForceinline Return_t ThisCall(UAddress This, const ClassMethod& Function, Args&&... parameters)
+	template<typename... Args> Return_t ThisCall(const ClassMethod& Function,PtrType This, Args&&... parameters)
 	{
-		return ThisCall(This, Function.DecorationName);
+		return ThisCall(Function.DecorationName, This);
 	}
 
 
@@ -83,32 +89,16 @@ public:
 	template<typename T, typename... Args>
 	T RCall(const String& FunctionName, Args&&... parameters)
 	{
-		if (CheckIfFunctionExist(FunctionName))
-		{
-			auto V = Call(FunctionName,parameters...);
-			if (V._Succeed == RetState::Success)
-			{
-				return Get_Return<T>();
-			}
-		}
-		return {};
+		return  Get_MyInterpreter().RCall<T>(FunctionName, parameters);
 	}
 	template<typename T, typename... Args>
-	T RThisCall(PtrType This, const ClassMethod& Function, Args&&... parameters)
+	T RThisCall(const ClassMethod& Function, PtrType This, Args&&... parameters)
 	{
-		return RThisCall(This, Function.DecorationName, Args&&... parameters)
+		return RThisCall<T>(Function.DecorationName, This, parameters);
 	}
-	template<typename T, typename... Args> T RThisCall(PtrType This, const String& Function, Args&&... parameters)
+	template<typename T, typename... Args> T RThisCall(const String& Function, PtrType This, Args&&... parameters)
 	{
-		if (CheckIfFunctionExist(FunctionName))
-		{
-			auto V = ThisCall(This, Function, parameters);
-			if (V._Succeed == RetState::Success)
-			{
-				return Get_Return<T>();
-			}
-		}
-		return {};
+		return Get_MyInterpreter().RThisCall(Function, This, parameters);
 	}
 
 	//

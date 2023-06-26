@@ -47,14 +47,7 @@ void UCodeRunTime::UnLoad()
 		Item->UnLoad();
 	}
 }
-UCodeRunTime::Return_t UCodeRunTime::ThisCall(UAddress This, const String& FunctionName)
-{
-	return Get_MyInterpreter().ThisCall(This, FunctionName);
-}
-UCodeRunTime::Return_t UCodeRunTime::ThisCall(UAddress This, UAddress address)
-{
-	return Get_MyInterpreter().ThisCall(This,address);
-}
+
 void UCodeRunTime::Get_Return(void* Output, size_t OutputSize)
 {
 	return Get_MyInterpreter().Get_Return(Output, OutputSize);

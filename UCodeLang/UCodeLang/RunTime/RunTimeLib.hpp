@@ -12,7 +12,7 @@ using CPPCallRet = void;
 class RunTimeLib
 {
 public:
-	using CPPCallBack = CPPCallRet(*)(InterpreterCPPinterface& Input);
+	using CPPCallBack = CPPCallRet(UCodeLangAPI*)(InterpreterCPPinterface& Input);
 	template<typename T, typename... Pars>
 	using NativeCall = T(UCodeLangAPI*)(Pars...);
 

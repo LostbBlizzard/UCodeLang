@@ -93,62 +93,25 @@ public:
 
 	void Extecute(Instruction& Inst);
 
-	Return_t ThisCall(UAddress This, const String& FunctionName)
-	{
-		if (CheckIfFunctionExist(FunctionName))
-		{
-			PushParameter(This);
-			return Call(FunctionName);
-		}
-		return  Return_t(RetState::Error_Function_doesnt_exist);
-	}
-	Return_t ThisCall(UAddress This, UAddress address)
-	{
-		PushParameter(This);
-		return Call(address);
-	}
-	UCodeLangForceinline Return_t ThisCall(PtrType This, UAddress address)
-	{
-		return ThisCall((UAddress)This, address);
-	}
-	UCodeLangForceinline Return_t ThisCall(PtrType This, const String& FunctionName)
-	{
-		return ThisCall((UAddress)This, FunctionName);
-	}
-	UCodeLangForceinline Return_t ThisCall(PtrType This, const ClassMethod& Function)
-	{
-		return ThisCall((UAddress)This, Function.DecorationName);
-	}
+	
 
-
-
-	template<typename... Args> Return_t ThisCall(UAddress This, const String& FunctionName, Args&&... parameters)
-	{
-		if (CheckIfFunctionExist(FunctionName))
-		{
-			PushParameter(This);
-			PushParameters(parameters...);
-			return Call(FunctionName);
-		}
-		return Return_t(RetState::Error_Function_doesnt_exist);
-	}
-	template<typename... Args> Return_t ThisCall(UAddress This, UAddress address, Args&&... parameters)
+	template<typename... Args> Return_t ThisCall(UAddress address, PtrType This, Args&&... parameters)
 	{
 		PushParameter(This);
 		PushParameters(parameters...);
 		return Call(address);
 	}
-	template<typename... Args> UCodeLangForceinline Return_t ThisCall(PtrType This, UAddress address, Args&&... parameters)
+	template<typename... Args> Return_t ThisCall(const String& FunctionName, PtrType This, Args&&... parameters)
 	{
-		return ThisCall((UAddress)This, address, parameters...);
+		if (CheckIfFunctionExist(FunctionName))
+		{
+			return ThisCall(Get_State()->FindAddress(FunctionName).value(),parameters...);
+		}
+		return Return_t(RetState::Error_Function_doesnt_exist);
 	}
-	template<typename... Args>UCodeLangForceinline Return_t ThisCall(PtrType This, const String& FunctionName, Args&&... parameters)
+	template<typename... Args> Return_t ThisCall(const ClassMethod& Function, PtrType This, Args&&... parameters)
 	{
-		return ThisCall((UAddress)This, FunctionName, parameters...);
-	}
-	template<typename... Args> UCodeLangForceinline Return_t ThisCall(PtrType This, const ClassMethod& Function, Args&&... parameters)
-	{
-		return ThisCall((UAddress)This, Function.DecorationName, parameters...);
+		return ThisCall(Function.DecorationName, This, parameters...);
 	}
 
 
@@ -174,15 +137,15 @@ public:
 		return RCall<T>(Function.DecorationName, parameters...);
 	}
 	template<typename T,typename... Args>
-	T RThisCall(PtrType This, const ClassMethod& Function, Args&&... parameters)
+	T RThisCall(const ClassMethod& Function, PtrType This, Args&&... parameters)
 	{
-		return RThisCall<T>(This,Function.DecorationName,parameters...);
+		return RThisCall<T>(Function.DecorationName,This,parameters...);
 	}
-	template<typename T, typename... Args> T RThisCall(PtrType This, const String& Function, Args&&... parameters)
+	template<typename T, typename... Args> T RThisCall(const String& Function, PtrType This, Args&&... parameters)
 	{
 		if (CheckIfFunctionExist(Function))
 		{
-			auto V = ThisCall(This, Function, parameters...);
+			auto V = ThisCall(Function, This, parameters...);
 			if (V._Succeed == RetState::Success)
 			{
 				return Get_Return<T>();
@@ -552,18 +515,18 @@ public:
 	}
 	
 	//used by jit
-	void Set_Return_jit(const void* Pointer,size_t Buffer)
+	static void  UCodeLangAPI  Set_Return_jit(InterpreterCPPinterface This,const void* Pointer,size_t Buffer)
 	{
 
 		bool IsBigerRegister = Buffer > sizeof(Interpreter::Register);
 		if (IsBigerRegister)
 		{
-			memcpy(_Ptr->_CPU.Stack.GetTopOfStack(), Pointer, Buffer);
-			Get_OutPutRegister().Value = _Ptr->_CPU.Stack.GetTopOfStack();
+			memcpy(This._Ptr->_CPU.Stack.GetTopOfStack(), Pointer, Buffer);
+			This.Get_OutPutRegister().Value = This._Ptr->_CPU.Stack.GetTopOfStack();
 		}
 		else
 		{
-			memcpy(&Get_OutPutRegister(), Pointer, Buffer);
+			memcpy(&This.Get_OutPutRegister(), Pointer, Buffer);
 		}
 	}
 private:
