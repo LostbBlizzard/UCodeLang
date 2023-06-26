@@ -62,13 +62,13 @@ struct Vec2
 	int Y;
 };
 
-Vec3 UCodeLangAPI Test(int A)
+int UCodeLangAPI Test(int A)
 {
 	std::cout << "DLLCall Got Value " << A << std::endl;
-	return { 1,2,3 };
+	return 0x1;
 }
 
-void ULang_Test(InterpreterCPPinterface& Input)
+void UCodeLangAPI ULang_Test(InterpreterCPPinterface& Input)
 {
 	Input.Set_Return(Test(Input.GetParameter<int>()));
 }
@@ -188,7 +188,7 @@ void TestingGround()
 		RunTime.IsDebug = true;
 		RunTime.AlwaysJit = true;
 
-		auto FuncMain = State.Get_Assembly().Get_GlobalObject_Class()->Get_ClassMethod("main");
+		auto FuncMain = State.Get_Assembly().Get_GlobalObject_Class()->Get_ClassMethod("Test");
 
 		//auto Value = RunTime.RCall<char>("__ReadChar");
 		RunTime.Call(StaticVariablesInitializeFunc);
@@ -201,7 +201,7 @@ void TestingGround()
 		Vec3 BufferToCopy[3]{ 1,2,3 };
 
 
-		auto AutoPtr = RunTime.RCall<int>(*FuncMain);
+		auto AutoPtr = RunTime.RCall<int>(*FuncMain,10);
 
 
 		//std::cout << " Got Value " << (int)AutoPtr << std::endl;

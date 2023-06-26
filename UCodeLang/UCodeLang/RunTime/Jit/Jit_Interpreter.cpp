@@ -18,19 +18,7 @@ int Func()
 CPPCallRet TempFunc(InterpreterCPPinterface& Input)
 {
 	auto R = Func();
-	Input.Set_Return_jit(&R,sizeof(R));
-}
-
-Interpreter::Return_t Jit_Interpreter::ThisCall(UAddress This, const String& FunctionName)
-{
-	PushParameter(This);
-	return Call(FunctionName);
-}
-
-Interpreter::Return_t Jit_Interpreter::ThisCall(UAddress This, UAddress address)
-{
-	PushParameter(This);
-	return Call(address);
+	InterpreterCPPinterface::Set_Return_jit(Input ,&R,sizeof(R));
 }
 
 void Jit_Interpreter::PushParameter(const void* Value, size_t ValueSize)
@@ -91,9 +79,7 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 
 	BuildCheck(Item, address);
 
-	int a = 0;
-	int* V = &a;
-
+	
 	#if UCodeLang_KeepJitInterpreterFallback
 	if (Item.Type == JitFuncType::UCodeCall)
 	{
@@ -103,15 +89,18 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 	{
 		_ThisState._This = this;
 		_ThisState.StackFrames.push(Item.UCodeFunc);
-		{
-			char a1[] = "HelloWorld";
-			char* V = a1;
 
-			Item.Func(InterpreterCPPinterface(&_Interpreter));
+		
+		{//here the magic happens and were your going to spend debug for hours.
+			//Item.Func(InterpreterCPPinterface(&_Interpreter));
+
+			using Func = int(*)(int V);
+			int V = 0;
+			V = ((Func)Item.NativeFunc)(5);
 		}
 		_ThisState.StackFrames.pop();
 
-		return { Interpreter::RetState::Success ,_Interpreter.Get_OutRegister() };
+		return { Interpreter::RetState::Success, _Interpreter.Get_OutRegister()};
 	}
 	#else
 	throw std::exception("not added");
