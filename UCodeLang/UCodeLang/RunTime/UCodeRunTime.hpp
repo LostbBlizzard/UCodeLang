@@ -61,25 +61,25 @@ public:
 	//
 	
 
-	template<typename... Args> Return_t Call(const String& FunctionName, Args&&... parameters)
+	template<typename... Args> Return_t Call(const String& FunctionName, Args... parameters)
 	{
 		return Get_MyInterpreter().Call(FunctionName, parameters...);
 	}
-	template<typename... Args> Return_t Call(UAddress address, Args&&... parameters)
+	template<typename... Args> Return_t Call(UAddress address, Args... parameters)
 	{
 		return Get_MyInterpreter().Call(address, parameters...);
 	}
 	
-	template<typename... Args> Return_t ThisCall(const String& FunctionName,PtrType This, Args&&... parameters)
+	template<typename... Args> Return_t ThisCall(const String& FunctionName,PtrType This, Args... parameters)
 	{
 		return Get_MyInterpreter().ThisCall(FunctionName, This, parameters...);
 	}
-	template<typename... Args> Return_t ThisCall(UAddress address, PtrType This, Args&&... parameters)
+	template<typename... Args> Return_t ThisCall(UAddress address, PtrType This, Args... parameters)
 	{
 		return Get_MyInterpreter().ThisCall(address, This, parameters...);
 	}
 
-	template<typename... Args> Return_t ThisCall(const ClassMethod& Function,PtrType This, Args&&... parameters)
+	template<typename... Args> Return_t ThisCall(const ClassMethod& Function,PtrType This, Args... parameters)
 	{
 		return ThisCall(Function.DecorationName, This);
 	}
@@ -87,16 +87,16 @@ public:
 
 	//
 	template<typename T, typename... Args>
-	T RCall(const String& FunctionName, Args&&... parameters)
+	T RCall(const String& FunctionName, Args... parameters)
 	{
 		return  Get_MyInterpreter().RCall<T>(FunctionName, parameters);
 	}
 	template<typename T, typename... Args>
-	T RThisCall(const ClassMethod& Function, PtrType This, Args&&... parameters)
+	T RThisCall(const ClassMethod& Function, PtrType This, Args... parameters)
 	{
 		return RThisCall<T>(Function.DecorationName, This, parameters);
 	}
-	template<typename T, typename... Args> T RThisCall(const String& Function, PtrType This, Args&&... parameters)
+	template<typename T, typename... Args> T RThisCall(const String& Function, PtrType This, Args... parameters)
 	{
 		return Get_MyInterpreter().RThisCall(Function, This, parameters);
 	}
