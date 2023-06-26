@@ -61,13 +61,38 @@ struct IRType
 		return _Type == Value._Type && _symbol.ID == Value._symbol.ID;
 	}
 };
-
+using PureState_t = int;
+enum class PureState :PureState_t
+{
+	Null,
+	Pure,
+	ImPure,
+};
+struct PureReadWrite
+{
+	PureState Read = PureState::Null;
+	PureState Write = PureState::Null;
+};
 struct IRPar
 {
 	IRidentifierID identifier=0;
 	IRType type;
+
+
+	//used by Optimizer
+	bool _IsUsed = true;
+	bool _WasRemoved = false;
+	//for pointers
+	PureState _PtrRead = PureState::Null;
+	//for pointers
+	PureState _PtrWrite = PureState::Null;
 };
 
+enum class ReadOrWrite
+{
+	Read,
+	Write,
+};
 
 using IRInstructionType_t = UInt8;
 enum class IRInstructionType : IRInstructionType_t
@@ -915,18 +940,7 @@ enum class IRFuncLink :IRFuncLink_t
 	DynamicExport,
 };
 
-using PureState_t = int;
-enum class PureState :PureState_t
-{
-	Null,
-	Pure,
-	ImPure,
-};
-struct PureReadWrite
-{
-	PureState Read = PureState::Null;
-	PureState Write = PureState::Null;
-};
+
 struct IRFunc
 {
 	IRidentifierID identifier;
@@ -939,6 +953,8 @@ struct IRFunc
 
 	PureReadWrite StaticPure;
 	PureReadWrite ThreadPure;
+	bool MustBePrerived = true;
+
 	IRFunc() : identifier(0)
 	{
 
