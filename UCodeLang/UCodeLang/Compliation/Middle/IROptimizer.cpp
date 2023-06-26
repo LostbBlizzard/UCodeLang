@@ -302,10 +302,10 @@ void IROptimizer::DoInlines(IRFunc* Func)
 {
 	for (auto& Item : Func->Blocks)
 	{
-		DoInlines(Item.get());
+		DoInlines(Func,Item.get());
 	}
 }
-void IROptimizer::DoInlines(IRBlock* Block)
+void IROptimizer::DoInlines(IRFunc* Func,IRBlock* Block)
 {
 	for (size_t i = 0; i < Block->Instructions.size(); i++)
 	{
@@ -323,7 +323,7 @@ void IROptimizer::DoInlines(IRBlock* Block)
 					InLineData Data;
 					Data.Block = Block;
 					Data.CallIndex = i;
-					Data.Func = FuncToCall;
+					Data.Func = Func;
 					InLineFunc(Data);
 				}
 			}
