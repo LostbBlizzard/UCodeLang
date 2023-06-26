@@ -62,15 +62,15 @@ struct Vec2
 	int Y;
 };
 
-int UCodeLangAPI Test(int A)
+int UCodeLangAPI Test(int A,int B)
 {
 	std::cout << "DLLCall Got Value " << A << std::endl;
-	return 0x1;
+	return 0xbbc;
 }
 
 void UCodeLangAPI ULang_Test(InterpreterCPPinterface& Input)
 {
-	Input.Set_Return(Test(Input.GetParameter<int>()));
+	Input.Set_Return(Test(Input.GetParameter<int>(), Input.GetParameter<int>()));
 }
 
 
@@ -201,7 +201,7 @@ void TestingGround()
 		Vec3 BufferToCopy[3]{ 1,2,3 };
 
 
-		auto AutoPtr = RunTime.RCall<int>(*FuncMain,10);
+		auto AutoPtr = RunTime.RCall<int>(*FuncMain,0xbbc1, 0xbbc2);
 
 
 		//std::cout << " Got Value " << (int)AutoPtr << std::endl;

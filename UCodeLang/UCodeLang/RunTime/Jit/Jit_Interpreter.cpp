@@ -9,7 +9,7 @@ int Other()
 {
 	return 0;
 }
-int Func()
+int Func(int A,int B)
 {
 	return Other();
 }
@@ -17,8 +17,9 @@ int Func()
 //template
 CPPCallRet TempFunc(InterpreterCPPinterface& Input)
 {
-	auto R = Func();
-	Input.Set_Return(0);
+	auto A = Input.GetParameter<int>();
+	auto B = Input.GetParameter<int>();
+	Input.Set_Return(Func(A,B));
 }
 
 void Jit_Interpreter::PushParameter(const void* Value, size_t ValueSize)
@@ -75,7 +76,7 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 	if (!UFuncToCPPFunc.count(address)){UFuncToCPPFunc[address] = {};}
 	auto& Item = UFuncToCPPFunc[address];
 	
-	//TempFunc(InterpreterCPPinterface(&_Interpreter));
+	TempFunc(InterpreterCPPinterface(&_Interpreter));
 
 	BuildCheck(Item, address);
 

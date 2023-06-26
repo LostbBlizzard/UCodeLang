@@ -20,10 +20,10 @@ thread Vec2 ThreadVec = [];
 |main2[Vec3& Other] -> Vec3:
  ret Other;
 
-extern dynamic |Test[int a] -> int;
+extern dynamic |Test[int a,int b] -> int;
 
 |Other[] => 1;
-|main[] => Test(0);
+|main[] => Test(0,10);
  
 
 

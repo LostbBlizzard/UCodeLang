@@ -4,7 +4,7 @@ $[_global]:
 
  |Testing:Func[sint32] -> sint32;//Testing:Func^i32
  |Testing:main2[Testing:Vec3&] -> Testing:Vec3;//Testing:main2^[]&
- |Testing:Test[sint32] -> sint32;//Testing:Test^i32
+ |Testing:Test[sint32sint32] -> sint32;//Testing:Test^i32,i32
  |Testing:Other[] -> sint32;//Testing:Other
  |Testing:main[] -> sint32;//Testing:main
 
@@ -92,7 +92,7 @@ $Testing:Vec2:
    49 :Store64 [B],12
    50 :DecrementStackPointer [B]
    51 :Ret 
----Testing:Test^i32: 
+---Testing:Test^i32,i32: 
    52 :CppCallNamed "Testing:Test"
    53 :Ret 
 ---Testing:Other: 
@@ -101,6 +101,8 @@ $Testing:Vec2:
    56 :Ret 
 ---Testing:main: 
    57 :Store32 [A],0
-   58 :StoreRegToReg32 [A],[D]
-   59 :Call {Testing:Test^i32}
-   60 :Ret 
+   58 :Store32 [B],10
+   59 :StoreRegToReg32 [A],[D]
+   60 :StoreRegToReg32 [B],[E]
+   61 :Call {Testing:Test^i32,i32}
+   62 :Ret 

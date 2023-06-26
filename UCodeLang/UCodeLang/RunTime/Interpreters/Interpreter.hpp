@@ -444,6 +444,12 @@ public:
 		*Out = GetParameter<T>();
 	}
 
+	///please dont use Input.Set_Return(Func(Input.GetParameter<T>(),Input.GetParameter<T>())) 
+	///c++ will evaluate and pass Parameter in right to left order but Ucode want parameters passed in left to right order.
+	///do 
+	/// auto A = Input.GetParameter<T>();
+	/// auto B = Input.GetParameter<T>();
+	/// Input.Set_Return(Func(A, B));
 	template<typename T> T GetParameter()
 	{
 		Byte Value[sizeof(T)];
@@ -472,7 +478,7 @@ public:
 
 	
 
-	void Set_Return(void){}
+	void Set_Return(){}
 
 	template<typename T> UCodeLangForceinline T* Get_This()
 	{
@@ -500,7 +506,7 @@ public:
 	
 	InterpreterCPPinterface(Interpreter* Ptr) : _Ptr(Ptr)
 	{
-
+		ParInfoReset();
 	}
 	
 	//used by jit
@@ -521,7 +527,7 @@ public:
 	static void  UCodeLangAPI GetParameter_jit(InterpreterCPPinterface& This,void* Pointer, size_t BufferSize)
 	{
 		bool IsBigerRegister = BufferSize > sizeof(Interpreter::Register);
-		if (IsBigerRegister)
+		if (IsBigerRegister || ParValue == RegisterID::EndParameterRegister)
 		{
 			ParStackOffset += BufferSize;
 			auto r = This._Ptr->_CPU.Stack.GetTopOfStackWithoffset(ParStackOffset);

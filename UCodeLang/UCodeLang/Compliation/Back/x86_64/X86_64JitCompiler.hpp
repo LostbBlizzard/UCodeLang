@@ -174,6 +174,8 @@ private:
 	void PushAllParsOnStack(const Vector<JitType>& Pars);
 	void PopAllParsOnStack(const Vector<JitType>& Pars);
 
+	void Gen_InvaildNear32Call();
+
 	JitType AsJitType(const ReflectionTypeInfo& V, const ClassAssembly& assembly, bool PointerSizeIs32Bit);
 };
 UCodeLangEnd
