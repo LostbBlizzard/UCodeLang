@@ -44,7 +44,6 @@ public:
 	void Optimized(IRBuilder& IRcode);
 	
 	
-	static constexpr size_t OptimizationCount = 0;
 private:
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
@@ -53,11 +52,14 @@ private:
 	bool _UpdatedCode = false;
 	void UpdatedCode() { _UpdatedCode = true; }
 
-	struct OptimizationState
-	{
-		bool IsActive = false;
-	};
-	Array<OptimizationState, OptimizationCount> OptimizationListState;
+	//
+	bool Optimization_ShortFuncInline = false;
+	bool Optimization_RemoveUnseddVarables = false;
+	bool Optimization_ConstantFoldVarables = false;
+	//
+	
+
+	
 
 	void UpdateOptimizationList();
 	void UpdateCodePass();
