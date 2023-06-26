@@ -95,13 +95,13 @@ public:
 
 	
 
-	template<typename... Args> Return_t ThisCall(UAddress address, PtrType This, Args&&... parameters)
+	template<typename... Args> Return_t ThisCall(UAddress address, PtrType This, Args... parameters)
 	{
 		PushParameter(This);
 		PushParameters(parameters...);
 		return Call(address);
 	}
-	template<typename... Args> Return_t ThisCall(const String& FunctionName, PtrType This, Args&&... parameters)
+	template<typename... Args> Return_t ThisCall(const String& FunctionName, PtrType This, Args... parameters)
 	{
 		if (CheckIfFunctionExist(FunctionName))
 		{
@@ -109,7 +109,7 @@ public:
 		}
 		return Return_t(RetState::Error_Function_doesnt_exist);
 	}
-	template<typename... Args> Return_t ThisCall(const ClassMethod& Function, PtrType This, Args&&... parameters)
+	template<typename... Args> Return_t ThisCall(const ClassMethod& Function, PtrType This, Args... parameters)
 	{
 		return ThisCall(Function.DecorationName, This, parameters...);
 	}
@@ -117,7 +117,7 @@ public:
 
 
 	template<typename T, typename... Args>
-	T RCall(const String& FunctionName, Args&&... parameters)
+	T RCall(const String& FunctionName, Args... parameters)
 	{
 		if (CheckIfFunctionExist(FunctionName))
 		{
@@ -132,16 +132,16 @@ public:
 		return {};
 	}
 	template<typename T, typename... Args>
-	T RCall(const ClassMethod& Function, Args&&... parameters)
+	T RCall(const ClassMethod& Function, Args... parameters)
 	{
 		return RCall<T>(Function.DecorationName, parameters...);
 	}
 	template<typename T,typename... Args>
-	T RThisCall(const ClassMethod& Function, PtrType This, Args&&... parameters)
+	T RThisCall(const ClassMethod& Function, PtrType This, Args... parameters)
 	{
 		return RThisCall<T>(Function.DecorationName,This,parameters...);
 	}
-	template<typename T, typename... Args> T RThisCall(const String& Function, PtrType This, Args&&... parameters)
+	template<typename T, typename... Args> T RThisCall(const String& Function, PtrType This, Args... parameters)
 	{
 		if (CheckIfFunctionExist(Function))
 		{

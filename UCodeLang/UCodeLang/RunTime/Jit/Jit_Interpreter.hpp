@@ -59,7 +59,7 @@ public:
 	Return_t Call(UAddress address);
 	
 	//
-	template<typename... Args> Return_t Call(const String& FunctionName, Args&&... parameters)
+	template<typename... Args> Return_t Call(const String& FunctionName, Args... parameters)
 	{
 		if (CheckIfFunctionExist(FunctionName)) 
 		{
@@ -67,7 +67,7 @@ public:
 		}
 		return Return_t(RetState::Error_Function_doesnt_exist);
 	}
-	template<typename... Args> Return_t Call(UAddress address, Args&&... parameters)
+	template<typename... Args> Return_t Call(UAddress address, Args... parameters)
 	{
 		PushParameters(parameters...);
 		return Call(address);
@@ -76,7 +76,7 @@ public:
 
 
 	template<typename T, typename... Args>
-	T RCall(UAddress address, Args&&... parameters)
+	T RCall(UAddress address, Args... parameters)
 	{
 		///if (CheckIfFunctionExist(FunctionName))
 		{
@@ -99,7 +99,7 @@ public:
 	}
 
 	template<typename T, typename... Args>
-	T RCall(const String& FunctionName, Args&&... parameters)
+	T RCall(const String& FunctionName, Args... parameters)
 	{
 		if (CheckIfFunctionExist(FunctionName))
 		{
@@ -109,21 +109,21 @@ public:
 	}
 
 	template<typename T, typename... Args>
-	T RCall(const ClassMethod& Function, Args&&... parameters)
+	T RCall(const ClassMethod& Function, Args... parameters)
 	{
 		return RCall<T>(Function.DecorationName,parameters...);
 	}
 	
 
-	template<typename... Args> Return_t ThisCall(const String& FunctionName, PtrType This, Args&&... parameters)
+	template<typename... Args> Return_t ThisCall(const String& FunctionName, PtrType This, Args... parameters)
 	{
 		return Call(FunctionName,This,parameters...);
 	}
-	template<typename... Args>	Return_t ThisCall(UAddress address,PtrType This, Args&&... parameters)
+	template<typename... Args>	Return_t ThisCall(UAddress address,PtrType This, Args... parameters)
 	{
 		return Call(address, This, parameters...);
 	}
-	template<typename... Args> Return_t ThisCall(const ClassMethod& Function,PtrType This, Args&&... parameters)
+	template<typename... Args> Return_t ThisCall(const ClassMethod& Function,PtrType This, Args... parameters)
 	{
 		return ThisCall(Function.DecorationName, This, parameters...);
 	}
@@ -133,7 +133,7 @@ public:
 	{
 		return RCall<T>(Function.DecorationName, This, Args&&... parameters);
 	}
-	template<typename T, typename... Args> T RThisCall(const String& Function,PtrType This, Args&&... parameters)
+	template<typename T, typename... Args> T RThisCall(const String& Function,PtrType This, Args... parameters)
 	{
 		return RCall<T>(Function,This, parameters...);
 	}
