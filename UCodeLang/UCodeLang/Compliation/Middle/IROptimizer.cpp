@@ -6,7 +6,7 @@ using OptimizationFunc = void(IROptimizer::*)();
 
 struct OptimizationInfo
 {
-	OptimizationFlags AcitveIf;
+	OptimizationFlags AcitveIf= OptimizationFlags::O_None;
 	bool InverseAcitveIf=false;
 
 	
@@ -50,6 +50,10 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 			return;
 		}
 
+
+
+
+
 		{//for debuging
 			auto S = Input->ToString();
 
@@ -58,14 +62,36 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 		}
 		_UpdatedCode = false;
 
-
-		return;
-		UpdateCodePass();
-
-		//
-
 		for (auto& Func : Input->Funcs)
 		{
+			if (Func->Linkage == IRFuncLink::StaticExternalLink
+				|| Func->Linkage == IRFuncLink::DynamicExternalLink)
+			{
+				if (Func->StaticPure.Read == PureState::Null)
+				{
+					Func->StaticPure.Read = PureState::ImPure;
+				}
+				if (Func->StaticPure.Write == PureState::Null)
+				{
+					Func->StaticPure.Write = PureState::ImPure;
+				}
+				if (Func->ThreadPure.Read == PureState::Null)
+				{
+					Func->ThreadPure.Read = PureState::ImPure;
+				}
+				if (Func->ThreadPure.Write == PureState::Null)
+				{
+					Func->ThreadPure.Write = PureState::ImPure;
+				}
+			}
+		}
+		for (auto& Func : Input->Funcs)
+		{
+			if (Func->Linkage == IRFuncLink::StaticExternalLink
+				|| Func->Linkage == IRFuncLink::DynamicExternalLink)
+			{
+				continue;
+			}
 			IROptimizationFuncData& FuncData = Funcs[Func.get()];
 			size_t InsCount = 0;
 
@@ -88,9 +114,17 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 			}
 
 		}
+		//return;
+		UpdateCodePass();
+
+		//
+		
+
+		
 
 	} while (_UpdatedCode);
 	
+
 }
 void IROptimizer::UpdateOptimizationList()
 {
@@ -114,48 +148,32 @@ void IROptimizer::UpdateOptimizationList()
 }
 void IROptimizer::UpdateCodePass()
 {
-
+	/*
 	for (auto& Func : Input->Funcs)
 	{
 		UpdateCodePassFunc(Func.get());
 	}
+	*/
 
+	for (auto& Func : Input->Funcs)
+	{
+		DoInlines(Func.get());
+	}
 }
 void IROptimizer::UpdateCodePassFunc(const IRFunc* Func)
 {
+	SSAState _State;
+	ToSSA(Func, _State);
 	for (auto& Block : Func->Blocks)
 	{
-
-		for (size_t i = 0; i < Block->Instructions.size(); i++)
-		{
-			auto& Ins = Block->Instructions[i];
-
-			if (Ins->Type == IRInstructionType::Call)
-			{
-				auto* FuncToCall = Input->GetFunc(Ins->Target().identifer);
-				if (FuncToCall)
-				{
-					IROptimizationFuncData& FuncData = Funcs[FuncToCall];
-
-					if (FuncData.Inlinestate == InlineState::AutoInline)
-					{
-						InLineData Data;
-						Data.Block = Block.get();
-						Data.CallIns = i;
-						Data.Func = FuncToCall;
-						InLineFunc(Data);
-					}
-				}
-			}
-		}
-
 		for (auto& Ins : Block->Instructions)
 		{
 			Get_IRData(Ins.get()).IsReferenced = false;
 		}
 
-		for (auto& Ins : Block->Instructions)
+		for (size_t i = 0; i < Block->Instructions.size(); i++)
 		{
+			auto& Ins = Block->Instructions[i];
 			if (Ins->Type == IRInstructionType::PushParameter)
 			{
 
@@ -176,23 +194,6 @@ void IROptimizer::UpdateCodePassFunc(const IRFunc* Func)
 			if (Ins->Type == IRInstructionType::Reassign)
 			{
 				ConstantFoldOperator(*Ins, Ins->Input());
-
-
-				/*
-				if (Ins->Target().Type == IROperatorType::IRInstruction)
-				{
-				auto Target = Ins->Target().Pointer;
-				if (Target->Type == IRInstructionType::LoadNone)
-				{
-				Target->Target(Ins->Input());
-				Target->Type = IRInstructionType::Load;
-
-				Ins->SetAsNone();
-				UpdatedCode();
-				}
-				}
-				*/
-
 			}
 			else if (Ins->Type == IRInstructionType::Load
 				|| Ins->Type == IRInstructionType::LoadReturn)
@@ -261,37 +262,72 @@ void IROptimizer::UpdateCodePassFunc(const IRFunc* Func)
 
 
 		}
-
-		for (auto& Ins : Block->Instructions)
+		bool RemoveUnused = true;
+		if (RemoveUnused) 
 		{
-			if (Ins->Type == IRInstructionType::Load) //removeing dead Instructions
+			for (auto& Ins : Block->Instructions)
 			{
-				auto& Data = Get_IRData(Ins.get());
-				if (!Data.IsReferenced)
+				if (Ins->Type == IRInstructionType::Load) //removeing dead Instructions
 				{
-					Ins->SetAsNone(); UpdatedCode();
+					auto& Data = Get_IRData(Ins.get());
+					if (!Data.IsReferenced)
+					{
+						Ins->SetAsNone(); UpdatedCode();
+					}
 				}
-			}
 
-			if (Ins->Type == IRInstructionType::LoadNone)//removeing dead Instructions
-			{
-				auto& Data = Get_IRData(Ins.get());
-				if (!Data.IsReferenced)
+				if (Ins->Type == IRInstructionType::LoadNone)//removeing dead Instructions
 				{
-					Ins->SetAsNone(); UpdatedCode();
+					auto& Data = Get_IRData(Ins.get());
+					if (!Data.IsReferenced)
+					{
+						Ins->SetAsNone(); UpdatedCode();
+					}
 				}
-			}
 
-			if (Ins->Type == IRInstructionType::Reassign)//removeing dead Instructions
-			{
-				if (Ins->Target().Pointer->Type == IRInstructionType::None)
+				if (Ins->Type == IRInstructionType::Reassign)//removeing dead Instructions
 				{
-					Ins->SetAsNone();
-					UpdatedCode();
+					if (Ins->Target().Pointer->Type == IRInstructionType::None)
+					{
+						Ins->SetAsNone();
+						UpdatedCode();
+					}
 				}
 			}
 		}
+	}
+	UndoSSA(Func, _State);
+}
+void IROptimizer::DoInlines(IRFunc* Func)
+{
+	for (auto& Item : Func->Blocks)
+	{
+		DoInlines(Item.get());
+	}
+}
+void IROptimizer::DoInlines(IRBlock* Block)
+{
+	for (size_t i = 0; i < Block->Instructions.size(); i++)
+	{
+		auto& Ins = Block->Instructions[i];
 
+		if (Ins->Type == IRInstructionType::Call)
+		{
+			auto* FuncToCall = Input->GetFunc(Ins->Target().identifer);
+			if (FuncToCall)
+			{
+				IROptimizationFuncData& FuncData = Funcs[FuncToCall];
+
+				if (FuncData.Inlinestate == InlineState::AutoInline)
+				{
+					InLineData Data;
+					Data.Block = Block;
+					Data.CallIndex = i;
+					Data.Func = FuncToCall;
+					InLineFunc(Data);
+				}
+			}
+		}
 	}
 }
 void IROptimizer::ConstantFoldOperator(IRInstruction& I, IROperator& Value)
@@ -311,18 +347,66 @@ void IROptimizer::ConstantFoldOperator(IRInstruction& I, IROperator& Value)
 		Get_IRData(Ptr).IsReferenced = true;
 	}
 }
+void IROptimizer::ToSSA(const IRFunc* Func, SSAState& state)
+{
+	for (auto& Block : Func->Blocks)
+	{
+		for (size_t i = 0; i < Block->Instructions.size(); i++)
+		{
+			auto& Ins = Block->Instructions[i];
+
+			if (Ins->Type == IRInstructionType::Reassign)
+			{
+				IROperator ToUpdate = Ins->Target();
+
+				Ins->Type = IRInstructionType::Load;
+				Ins->Target() =Ins->Input();
+				Ins->Input() = IROperator();
+
+				state.Map[ToUpdate] = Ins.get();
+			}
+			else
+			{
+				if (IsOperatorValueInTarget(Ins->Type))
+				{
+					if (state.Map.HasValue(Ins->Target()))
+					{
+						state.Updated.AddValue(&Ins->Target(), Ins->Target());
+						Ins->Target() = IROperator(state.Map.at(Ins->Target()));
+					}
+				}	
+				
+				if (IsOperatorValueInInput(Ins->Type))
+				{
+					if (state.Map.HasValue(Ins->Input()))
+					{
+						state.Updated.AddValue(&Ins->Input(), Ins->Input());
+						Ins->Target() = IROperator(state.Map.at(Ins->Input()));
+					}
+				}
+			}
+		}
+	}
+}
+void  IROptimizer::UndoSSA(const IRFunc* Func, const SSAState& state)
+{
+	for (auto& Item : state.Updated)
+	{
+		*Item._Key = Item._Value;
+	}
+}
 void IROptimizer::InLineFunc(InLineData& Data)
 {
-	IRInstruction* Call = Data.Block->Instructions[Data.CallIns].get();
-	
+	IRInstruction* Call = Data.Block->Instructions[Data.CallIndex].get();
+
 	//IRFunc* CalleFunc = Data.Func;
-	IRFunc* FuncToCall = Input->GetFunc(Call->Target().identifer);
+	const IRFunc* FuncToCall = Input->GetFunc(Call->Target().identifer);
 
 
 	auto FuncParsCount = FuncToCall->Pars.size();
 	Vector<IRInstruction*> PushIns;//its Parameters are backwards
 
-	for (int i = Data.CallIns - 1; i >= 0; i--)
+	for (int i = Data.CallIndex - 1; i >= 0; i--)
 	{
 		IRInstruction* Ins = Data.Block->Instructions[i].get();
 		if (Ins->Type != IRInstructionType::PushParameter)
@@ -337,23 +421,42 @@ void IROptimizer::InLineFunc(InLineData& Data)
 	for (size_t i = 0; i < PushIns.size() / 2; i++)
 	{
 		auto& Item = PushIns[i];
-		auto& Item2 = PushIns[PushIns.size()-i];
+		auto& Item2 = PushIns[PushIns.size() - i];
 		std::swap(Item, Item2);
 	}
 
-	IRInstruction* CopyedRetValue = nullptr;
+
+	Vector< IRInstruction*> AddedLoadRets;
+	IRInstruction* CalledRetVar = nullptr;
+	Vector<IRInstruction*> _MovedIns;
+	Data.AddIns = &_MovedIns;
+
+
+
 	{//move func at call site
-
-		for (auto& Item : PushIns) 
+		size_t Offset = 0;
+		for (auto& Item : PushIns)
 		{
-			auto NewIns = Unique_ptr<IRInstruction>(new IRInstruction(*Item));
-
-			Data.Block->Instructions.insert(Data.Block->Instructions.begin() + Data.CallIns, std::move(NewIns));
-
+			Item->Type = IRInstructionType::Load;
+			Data.InlinedPushedPars.push_back(Item);
 		}
-		for (auto& Block : FuncToCall->Blocks)
+
+		if (FuncToCall->ReturnType._Type != IRTypes::Void)
 		{
-			for (auto& Item : Block->Instructions)
+
+			auto NewIns = Unique_ptr<IRInstruction>(new IRInstruction());
+			NewIns->Type = IRInstructionType::LoadNone;
+			NewIns->ObjectType = FuncToCall->ReturnType;
+			CalledRetVar = NewIns.get();
+			Data.Block->Instructions.insert(Data.Block->Instructions.begin() + Data.CallIndex + Offset, std::move(NewIns));
+
+
+			Data.CallIndex++;
+		}
+
+		for (const auto& Block : FuncToCall->Blocks)
+		{
+			for (const auto& Item : Block->Instructions)
 			{
 				if (Item->Type == IRInstructionType::Return)
 				{
@@ -361,71 +464,120 @@ void IROptimizer::InLineFunc(InLineData& Data)
 				}
 				if (Item->Type == IRInstructionType::LoadReturn)
 				{
+
 					auto NewIns = Unique_ptr<IRInstruction>(new IRInstruction(*Item));
-					CopyedRetValue = NewIns.get();
-					Data.Block->Instructions.insert(Data.Block->Instructions.begin() + Data.CallIns, std::move(NewIns));
+
+					{
+						NewIns->Type = IRInstructionType::Reassign;
+						NewIns->Input() = NewIns->Target();
+						InLineSubOperator(Data, NewIns->Input(), Offset);
+						NewIns->Target() = IROperator(CalledRetVar);
+					}
+					AddedLoadRets.push_back(NewIns.get());
+					Data.Block->Instructions.insert(Data.Block->Instructions.begin() + Data.CallIndex + Offset, std::move(NewIns));
+					Offset++;
+
 				}
 				else
 				{
 					auto NewIns = Unique_ptr<IRInstruction>(new IRInstruction(*Item));
 
+					_MovedIns.push_back(NewIns.get());
+
 					if (IsOperatorValueInTarget(NewIns->Type))
 					{
-						InLineSubOperator(Data, NewIns->Target());
+						InLineSubOperator(Data, NewIns->Target(), Offset);
 					}
 
 					if (IsOperatorValueInInput(NewIns->Type))
 					{
-						InLineSubOperator(Data, NewIns->Input());
+						InLineSubOperator(Data, NewIns->Input(), Offset);
 					}
 
-					//
-					Data.Block->Instructions.insert(Data.Block->Instructions.begin() + Data.CallIns, std::move(NewIns));
+					Data.Block->Instructions.insert(Data.Block->Instructions.begin() + Data.CallIndex + Offset, std::move(NewIns));
+					Offset++;
 				}
 			}
 		}
+
 	}
 
 
-	for (auto& Item : PushIns)
+	if (FuncToCall->ReturnType._Type == IRTypes::Void)
 	{
-		Item->SetAsNone();
-	}
-	if (CopyedRetValue)
-	{
-		CopyedRetValue->Type = IRInstructionType::Load;
-		Call->Type = IRInstructionType::Load;
-		Call->Target() = IROperator(CopyedRetValue);
+		Call->Type = IRInstructionType::LoadNone;
 	}
 	else
 	{
-		Data.Block->Instructions.erase(Data.Block->Instructions.begin() + Data.CallIns);
+		Call->Type = IRInstructionType::Load;
+		Call->Target() = IROperator(CalledRetVar);
 	}
 
 	UpdatedCode();
 	//
+	
+	{
+		SSAState S;
+		ToSSA(Data.Func, S);
+	}
+
 	auto S = Input->ToString();
 
 	std::cout << "-----" << std::endl;
 	std::cout << S;
 }
-void IROptimizer::InLineSubOperator(InLineData& Data, IROperator& Op)
+void IROptimizer::InLineSubOperator(InLineData& Data, IROperator& Op,size_t Offset)
 {
-	IRInstruction* Call = Data.Block->Instructions[Data.CallIns].get();
-	IRFunc* CallFunc = Input->GetFunc(Call->Target().identifer);
+	IRInstruction* Call = Data.Block->Instructions[Data.CallIndex+Offset].get();
+	const IRFunc* CallFunc = Input->GetFunc(Call->Target().identifer);
+	
+	#ifdef DEBUG
+	if (CallFunc == nullptr)
+	{
+		throw std::exception("bad ptr");
+	}
+	#endif // DEBUG
+
+	
 	if (Op.Type == IROperatorType::IRParameter)
 	{
 		size_t IndexPar = Op.Parameter - CallFunc->Pars.data();
 
-		int a = 0;
+		Op = IROperator(IROperatorType::IRInstruction,Data.InlinedPushedPars[IndexPar]);
 	}
-	else if (Op.Type == IROperatorType::DereferenceOf_IRParameter)
+	else if (
+		Op.Type == IROperatorType::DereferenceOf_IRParameter)
 	{
+		size_t IndexPar = Op.Parameter - CallFunc->Pars.data();
 
+		Op = IROperator(IROperatorType::DereferenceOf_IRInstruction, Data.InlinedPushedPars[IndexPar]);
 	}
-	else if (Op.Type == IROperatorType::Get_PointerOf_IRParameter)
+	else if (
+		Op.Type == IROperatorType::Get_PointerOf_IRParameter)
 	{
+		size_t IndexPar = Op.Parameter - CallFunc->Pars.data();
 
+		Op = IROperator(IROperatorType::Get_PointerOf_IRInstruction, Data.InlinedPushedPars[IndexPar]);
 	}
+	
+	else if (Op.Type == IROperatorType::IRInstruction
+		|| Op.Type == IROperatorType::Get_PointerOf_IRInstruction
+		|| Op.Type == IROperatorType::DereferenceOf_IRInstruction)
+	{
+		size_t Index = 0;
+		for (size_t i = 0; i < CallFunc->Blocks.size(); i++)
+		{
+			auto& Block = CallFunc->Blocks[i];
+			for (auto& BlockIns : Block->Instructions)
+			{
+				if (BlockIns.get() == Op.Pointer) {
+					Index++;
+				}
+			}
+		}
+
+		Op = IROperator(Op.Type,(*Data.AddIns)[Index]);
+	}
+	
 }
 UCodeLangEnd

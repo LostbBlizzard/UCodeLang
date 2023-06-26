@@ -358,24 +358,24 @@ private:
 		_Registers.FreeRegister(ID);
 	}
 
-	IRlocData GetIRLocData(const IRInstruction& Ins);
-	IRlocData GetIRLocData(const IRInstruction& Ins, const IROperator& Op);
+	IRlocData GetIRLocData(const IRInstruction* Ins);
+	IRlocData GetIRLocData(const IRInstruction* Ins, const IROperator& Op);
 	void CopyValues(const IRlocData& Src, const IRlocData& Out,bool DerefSrc = false,bool DerefOut = false);
 	
 	RegisterID MakeIntoRegister(const IRlocData& Value, Optional<RegisterID> RegisterToPut = {});
-	RegisterID MakeIntoRegister(const IRInstruction& Ins, const IROperator& Op, Optional<RegisterID> RegisterToPut = {})
+	RegisterID MakeIntoRegister(const IRInstruction* Ins, const IROperator& Op, Optional<RegisterID> RegisterToPut = {})
 	{
 		auto Value = GetIRLocData(Ins,Op);
 		return MakeIntoRegister(Value,RegisterToPut);
 	}
-	void GiveNameTo(const IRlocData& Value, const IRInstruction& Name);
+	void GiveNameTo(const IRlocData& Value, const IRInstruction* Name);
 
 	IRlocData GetPointerOf(const IRlocData& Value);
 
-	RegisterID LoadOp(const IRInstruction& Ins, const IROperator& Op);
-	void LoadOpToReg(const IRInstruction& Ins, const IROperator& Op, RegisterID Out);
+	RegisterID LoadOp(const IRInstruction* Ins, const IROperator& Op);
+	void LoadOpToReg(const IRInstruction* Ins, const IROperator& Op, RegisterID Out);
 	void RegToReg(IRTypes Type, RegisterID In, RegisterID Out);
-	void PushOpStack(const IRInstruction& Ins, const IROperator& Op);
+	void PushOpStack(const IRInstruction* Ins, const IROperator& Op);
 	void LogicalNot(IRTypes Type, RegisterID In, RegisterID Out);
 	void BuildLink(const IRidentifier& FuncName, IRFuncLink LinkType);
 	
@@ -383,9 +383,9 @@ private:
 
 	void MoveValueToStack(const IRInstruction* IRName, const IRType& ObjectType, RegisterID Item);
 
-	void StoreValue(const IRInstruction& Ins, const  IROperator& OutputLocationIR,const IROperator& Input);
+	void StoreValue(const IRInstruction* Ins, const  IROperator& OutputLocationIR,const IROperator& Input);
 
-	void StoreValueInPointer(const IRType& ObjectType, RegisterID Pointer, const  IROperator& Value, IRInstruction& Ins);
+	void StoreValueInPointer(const IRType& ObjectType, RegisterID Pointer, const  IROperator& Value, IRInstruction* Ins);
 	void StoreValueInPointer(const IRType& ObjectType, RegisterID Pointer, RegisterID Value);
 	void StoreValueInPointer(RegisterID Pointer, size_t Pointerofset, const IRlocData& Value);
 	void StoreValueInPointer(RegisterID Pointer, const IRlocData& Value)
@@ -400,8 +400,8 @@ private:
 
 	void ReadValueFromPointer(RegisterID Pointer, size_t Pointerofset, const IRlocData& Out);
 
-	void BuildSIntToIntCast(const IRInstruction& Item, const IROperator& Op, size_t IntSize);
-	void BuildUIntToIntCast(const IRInstruction& Item, const IROperator& Op, size_t IntSize);
+	void BuildSIntToIntCast(const IRInstruction* Item, const IROperator& Op, size_t IntSize);
+	void BuildUIntToIntCast(const IRInstruction* Item, const IROperator& Op, size_t IntSize);
 
 
 

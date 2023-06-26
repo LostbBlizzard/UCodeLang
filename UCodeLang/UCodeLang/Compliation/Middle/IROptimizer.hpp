@@ -62,19 +62,30 @@ private:
 	void UpdateOptimizationList();
 	void UpdateCodePass();
 	void UpdateCodePassFunc(const IRFunc* Func);
+	void DoInlines(IRFunc* Func);
+	void DoInlines(IRBlock* Block);
 	void ConstantFoldOperator(IRInstruction& I,IROperator& Value);
 
+	struct SSAState
+	{
+		VectorMap<IROperator*, IROperator> Updated;
+		VectorMap<IROperator, IRInstruction*> Map;
+	};
+
+	void ToSSA(const IRFunc* Func, SSAState& state);
+	void UndoSSA(const IRFunc* Func, const SSAState& state);
 
 	struct InLineData
 	{
 		IRFunc* Func =nullptr;
 		IRBlock* Block = nullptr;
-		size_t CallIns = 0;
+		size_t CallIndex = 0;
 		Vector<IRInstruction*> InlinedPushedPars;
+		Vector<IRInstruction*>* AddIns = nullptr;
 	};
 
 	void InLineFunc(InLineData& Data);
-	void InLineSubOperator(InLineData& Data, IROperator& Op);
+	void InLineSubOperator(InLineData& Data, IROperator& Op,size_t Offset);
 
 	struct MyStruct
 	{

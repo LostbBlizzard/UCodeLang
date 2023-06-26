@@ -314,6 +314,20 @@ struct IROperator
 	IROperator(IROperatorType type,IRInstruction* pointer) :Type(type), Pointer(pointer) {}
 	IROperator(IROperatorType type, IRidentifierID Value) :Type(type), identifer(Value) {}
 	IROperator(IROperatorType type, IRPar* Value) :Type(type), Parameter(Value) {}
+
+
+	bool operator==(const IROperator& Other) const
+	{
+		if (Type == Other.Type)
+		{
+			return Pointer == Other.Pointer;
+		}
+		return false;
+	}
+	bool operator!=(const IROperator& Other) const
+	{
+		return !this->operator==(Other);
+	}
 };
 struct IRInstruction
 {
@@ -900,6 +914,19 @@ enum class IRFuncLink :IRFuncLink_t
 	StaticExport,
 	DynamicExport,
 };
+
+using PureState_t = int;
+enum class PureState :PureState_t
+{
+	Null,
+	Pure,
+	ImPure,
+};
+struct PureReadWrite
+{
+	PureState Read = PureState::Null;
+	PureState Write = PureState::Null;
+};
 struct IRFunc
 {
 	IRidentifierID identifier;
@@ -909,6 +936,9 @@ struct IRFunc
 	IRType ReturnType;
 	Vector<IRPar> Pars;
 	Vector<Unique_ptr<IRBlock>> Blocks;
+
+	PureReadWrite StaticPure;
+	PureReadWrite ThreadPure;
 	IRFunc() : identifier(0)
 	{
 

@@ -238,12 +238,12 @@ void UCodeBackEndObject::RegWillBeUsed(RegisterID Value)
 	if (Info.Types.has_value())
 	{
 		auto& TypesValue = Info.Types.value();
-		if (auto Item = *TypesValue.Get_If<const IRInstruction*>())
+		if (auto Item = TypesValue.Get_If<const IRInstruction*>())
 		{
-			if (IsReferencedAfterThisIndex(Item)) 
+			if (IsReferencedAfterThisIndex(*Item)) 
 			{
 				_Registers.FreeRegister(Value);
-				CopyValueToStack(Item, GetType(Item), Value);
+				CopyValueToStack(*Item, GetType(*Item), Value);
 			}
 		}
 	}
@@ -354,30 +354,42 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 	for (size_t i = 0; i < IR->Instructions.size(); i++)
 	{
 		auto& Item_ = IR->Instructions[i];
-		auto& Item = *Item_;
+		auto Item = Item_.get();
 		Index = i;
 
-		switch (Item.Type)
+		switch (Item->Type)
 		{
+		case IRInstructionType::None:
+			break;
 		case IRInstructionType::LoadNone:
 		{
-			if (!_Stack.Has(&Item))
+			if (IsPrimitive(Item->ObjectType))
 			{
-				UCodeBackEndObject::IRlocData R;
-				_Stack.AddWithSize(&Item, GetSize(&Item));
+				auto R = GetRegisterForTep();
+				RegWillBeUsed(R);
+				SetRegister(R,Item);
+			}
+			else 
+			{
+				if (!_Stack.Has(Item))
+				{
+
+					UCodeBackEndObject::IRlocData R;
+					_Stack.AddWithSize(Item, GetSize(Item));
+				}
 			}
 		}
 			break;
 		case IRInstructionType::Load:
 		{
-			auto V = GetIRLocData(Item, Item.Target());
+			auto V = GetIRLocData(Item, Item->Target());
 			GiveNameTo(V,Item);
 		}
 		break;
 		case IRInstructionType::LoadReturn:
 		{
-			auto V = GetIRLocData(Item, Item.Target());
-			auto ObjectSize = _Input->GetSize(GetType(&Item));
+			auto V = GetIRLocData(Item, Item->Target());
+			auto ObjectSize = _Input->GetSize(GetType(Item));
 			if (ObjectSize <= sizeof(AnyInt64))
 			{
 				MakeIntoRegister(V, {RegisterID::OuPutRegister});
@@ -390,19 +402,19 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		break;
 		case IRInstructionType::Reassign:
 		{
-			StoreValue(Item, Item.Target(), Item.Input());
+			StoreValue(Item, Item->Target(), Item->Input());
 		}
 		break;
 
 		case IRInstructionType::SMult:
 		{
 			RegisterID V = RegisterID::MathOuPutRegister;
-			RegisterID A = MakeIntoRegister(Item, Item.A);
-			SetRegister(A,&Item);
-			RegisterID B = MakeIntoRegister(Item, Item.B);
+			RegisterID A = MakeIntoRegister(Item, Item->A);
+			SetRegister(A,Item);
+			RegisterID B = MakeIntoRegister(Item, Item->B);
 
 			RegWillBeUsed(V);
-			switch (Item.ObjectType._Type)
+			switch (Item->ObjectType._Type)
 			{
 			case IRTypes::i8:InstructionBuilder::MultS8(_Ins, A, B); PushIns(); break;
 			case IRTypes::i16:InstructionBuilder::MultS16(_Ins, A, B); PushIns(); break;
@@ -429,19 +441,19 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			}
 
 			FreeRegister(A);
-			SetRegister(V, &Item);
+			SetRegister(V,Item);
 		}
 		break;
 		case IRInstructionType::UMult:
 		{
 			RegisterID V = RegisterID::MathOuPutRegister;
-			RegisterID A = MakeIntoRegister(Item, Item.A);
-			SetRegister(A,&Item);
-			RegisterID B = MakeIntoRegister(Item, Item.B);
+			RegisterID A = MakeIntoRegister(Item, Item->A);
+			SetRegister(A,Item);
+			RegisterID B = MakeIntoRegister(Item, Item->B);
 
 
 			RegWillBeUsed(V);
-			auto& Object_t = Item.ObjectType;
+			auto& Object_t = Item->ObjectType;
 			switch (Object_t._Type)
 			{
 			case IRTypes::i8:InstructionBuilder::MultU8(_Ins, A, B); PushIns(); break;
@@ -468,20 +480,20 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			}
 
 			FreeRegister(A);
-			SetRegister(V, &Item);
+			SetRegister(V, Item);
 		}
 		break;
 
 		case IRInstructionType::SDiv:
 		{
 			RegisterID V = RegisterID::MathOuPutRegister;
-			RegisterID A = MakeIntoRegister(Item, Item.A);
-			SetRegister(A,&Item);
-			RegisterID B = MakeIntoRegister(Item, Item.B);
+			RegisterID A = MakeIntoRegister(Item, Item->A);
+			SetRegister(A,Item);
+			RegisterID B = MakeIntoRegister(Item, Item->B);
 
 
 			RegWillBeUsed(V);
-			switch (Item.ObjectType._Type)
+			switch (Item->ObjectType._Type)
 			{
 			case IRTypes::i8:InstructionBuilder::DivS8(_Ins, A, B); PushIns(); break;
 			case IRTypes::i16:InstructionBuilder::DivS16(_Ins, A, B); PushIns(); break;
@@ -508,19 +520,19 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			}
 
 			FreeRegister(A);
-			SetRegister(V, &Item);
+			SetRegister(V, Item);
 		}
 		break;
 		case IRInstructionType::UDiv:
 		{
 			RegisterID V = RegisterID::MathOuPutRegister;
-			RegisterID A = MakeIntoRegister(Item, Item.A);
-			SetRegister(A,&Item);
-			RegisterID B = MakeIntoRegister(Item, Item.B);
+			RegisterID A = MakeIntoRegister(Item, Item->A);
+			SetRegister(A,Item);
+			RegisterID B = MakeIntoRegister(Item, Item->B);
 
 
 			RegWillBeUsed(V);
-			switch (Item.ObjectType._Type)
+			switch (Item->ObjectType._Type)
 			{
 			case IRTypes::i8:InstructionBuilder::DivU8(_Ins, A, B); PushIns(); break;
 			case IRTypes::i16:InstructionBuilder::DivU16(_Ins, A, B); PushIns(); break;
@@ -547,20 +559,20 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			}
 
 			FreeRegister(A);
-			SetRegister(V, &Item);
+			SetRegister(V,Item);
 		}
 		break;
 
 		case IRInstructionType::Add:
 		{
 			RegisterID V = RegisterID::MathOuPutRegister;
-			RegisterID A = MakeIntoRegister(Item, Item.A);
-			SetRegister(A,&Item);
-			RegisterID B = MakeIntoRegister(Item, Item.B);
+			RegisterID A = MakeIntoRegister(Item, Item->A);
+			SetRegister(A,Item);
+			RegisterID B = MakeIntoRegister(Item, Item->B);
 
 
 			RegWillBeUsed(V);
-			switch (Item.ObjectType._Type)
+			switch (Item->ObjectType._Type)
 			{
 			case IRTypes::i8:InstructionBuilder::Add8(_Ins, A, B); PushIns(); break;
 			case IRTypes::i16:InstructionBuilder::Add16(_Ins, A, B); PushIns(); break;
@@ -587,19 +599,19 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			}
 
 			FreeRegister(A);
-			SetRegister(V, &Item);
+			SetRegister(V,Item);
 		}
 		break;
 		case IRInstructionType::Sub:
 		{
 			RegisterID V = RegisterID::MathOuPutRegister;
-			RegisterID A = MakeIntoRegister(Item, Item.A);
-			SetRegister(A,&Item);
-			RegisterID B = MakeIntoRegister(Item, Item.B);
+			RegisterID A = MakeIntoRegister(Item, Item->A);
+			SetRegister(A,Item);
+			RegisterID B = MakeIntoRegister(Item, Item->B);
 
 
 			RegWillBeUsed(V);
-			switch (Item.ObjectType._Type)
+			switch (Item->ObjectType._Type)
 			{
 			case IRTypes::i8:InstructionBuilder::Sub8(_Ins, A, B); PushIns(); break;
 			case IRTypes::i16:InstructionBuilder::Sub16(_Ins, A, B); PushIns(); break;
@@ -625,7 +637,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			}
 
 			FreeRegister(A);
-			SetRegister(V, &Item);
+			SetRegister(V,Item);
 		}
 		break;
 		case IRInstructionType::PushParameter:
@@ -635,33 +647,33 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			
 			if (Reg < (RegisterID_t)RegisterID::EndParameterRegister)
 			{
-				if (IsPrimitive(GetType(&Item)))
+				if (IsPrimitive(GetType(Item)))
 				{
-					LoadOpToReg(Item, Item.Target(), _InputPar);
-					SetRegister(_InputPar, Item.Target());
+					LoadOpToReg(Item, Item->Target(), _InputPar);
+					SetRegister(_InputPar, Item->Target());
 					Reg++;
 				}
 				else
 				{
-					PushOpStack(Item, Item.Target());
+					PushOpStack(Item, Item->Target());
 				}
 			}
 			else
 			{
-				PushOpStack(Item, Item.Target());
+				PushOpStack(Item, Item->Target());
 			}
 		}
 		break;
 		case IRInstructionType::Call:
 		{
-			auto FuncInfo = _Input->GetFunc(Item.Target().identifer);
+			auto FuncInfo = _Input->GetFunc(Item->Target().identifer);
 			auto FData = FuncCallStart(FuncInfo->Pars, FuncInfo->ReturnType);
 			
 			InstructionBuilder::Call(NullAddress, _Ins); PushIns();
 
 			FuncInsID Tep;
 			Tep.Index = _OutLayer->Get_Instructions().size() - 1;
-			Tep._FuncID = Item.Target().identifer;
+			Tep._FuncID = Item->Target().identifer;
 
 			FuncsToLink.push_back(Tep);
 
@@ -673,51 +685,51 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		case IRInstructionType::MallocCall:
 		{
 			RegisterID ID = GetRegisterForTep();
-			SetRegister(ID,&Item);
-			auto SizeReg = MakeIntoRegister(Item, Item.Target());
+			SetRegister(ID,Item);
+			auto SizeReg = MakeIntoRegister(Item, Item->Target());
 			InstructionBuilder::Malloc(_Ins, SizeReg, ID); PushIns();
 
-			SetRegister(ID, &Item);
+			SetRegister(ID,Item);
 		}
 		break;
 		case IRInstructionType::FreeCall:
 		{
-			InstructionBuilder::Free(_Ins, MakeIntoRegister(Item, Item.Target())); PushIns();
+			InstructionBuilder::Free(_Ins, MakeIntoRegister(Item, Item->Target())); PushIns();
 		}break;
 		case IRInstructionType::Return:
 			goto DoneLoop;
 			break;
 		case IRInstructionType::Jump:
 			InstructionBuilder::Jump(NullAddress, _Ins); PushIns();
-			InsToUpdate.push_back({ _OutLayer->Get_Instructions().size(), Item.Target().Value.AsUIntNative });
+			InsToUpdate.push_back({ _OutLayer->Get_Instructions().size(), Item->Target().Value.AsUIntNative });
 			break;
 		case IRInstructionType::ConditionalJump:
-			InstructionBuilder::Jumpif(NullAddress, MakeIntoRegister(Item, Item.Input()), _Ins); PushIns();
-			InsToUpdate.push_back({ _OutLayer->Get_Instructions().size(),Item.Target().Value.AsUIntNative });
+			InstructionBuilder::Jumpif(NullAddress, MakeIntoRegister(Item, Item->Input()), _Ins); PushIns();
+			InsToUpdate.push_back({ _OutLayer->Get_Instructions().size(),Item->Target().Value.AsUIntNative });
 			break;
 		case IRInstructionType::Logical_Not:
 		{	
 			RegisterID Out = GetRegisterForTep();
-			LogicalNot(Item.ObjectType._Type, MakeIntoRegister(Item, Item.Target()),Out);
-			SetRegister(Out, &Item);
+			LogicalNot(Item->ObjectType._Type, MakeIntoRegister(Item, Item->Target()),Out);
+			SetRegister(Out,Item);
 
 		}
 		break;
 		case IRInstructionType::Reassign_dereference:
 		{
-			RegisterID Pointer = MakeIntoRegister(Item, Item.Target());
-			StoreValueInPointer(Pointer, GetIRLocData(Item, Item.Input()));
+			RegisterID Pointer = MakeIntoRegister(Item, Item->Target());
+			StoreValueInPointer(Pointer, GetIRLocData(Item, Item->Input()));
 		}
 		break; 
 		case IRInstructionType::EqualTo:
 		{
 			RegisterID V = RegisterID::BoolRegister;
-			RegisterID A = MakeIntoRegister(Item, Item.A);
-			SetRegister(A,&Item);
-			RegisterID B = MakeIntoRegister(Item, Item.B);
+			RegisterID A = MakeIntoRegister(Item, Item->A);
+			SetRegister(A,Item);
+			RegisterID B = MakeIntoRegister(Item, Item->B);
 
 			RegWillBeUsed(V);
-			switch (Item.ObjectType._Type)
+			switch (Item->ObjectType._Type)
 			{
 			case IRTypes::i8:InstructionBuilder::equalto8(_Ins, A, B); PushIns(); break;
 			case IRTypes::i16:InstructionBuilder::equalto16(_Ins, A, B); PushIns(); break;
@@ -743,15 +755,15 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			}
 
 			FreeRegister(A);
-			SetRegister(V, &Item);
+			SetRegister(V,Item);
 		}
 		break;
 		case IRInstructionType::CallFuncPtr:
 		{
-			auto FuncInfo = _Input->GetSymbol(Item.Target().identifer)->Get_ExAs<IRFuncPtr>();
+			auto FuncInfo = _Input->GetSymbol(Item->Target().identifer)->Get_ExAs<IRFuncPtr>();
 			auto& FData = FuncCallStart(FuncInfo->Pars, FuncInfo->Ret);
  
-			InstructionBuilder::CallReg(MakeIntoRegister(Item,Item.Target()), _Ins); PushIns();
+			InstructionBuilder::CallReg(MakeIntoRegister(Item,Item->Target()), _Ins); PushIns();
 
 
 			FuncCallEnd(FData);
@@ -771,10 +783,10 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		case IRInstructionType::SIntToUInt:
 		{
 			RegisterID V = GetRegisterForTep();
-			RegisterID A = MakeIntoRegister(Item, Item.Target());
-			SetRegister(A,&Item);
+			RegisterID A = MakeIntoRegister(Item, Item->Target());
+			SetRegister(A,Item);
 
-			switch (GetType(Item.Target())._Type)
+			switch (GetType(Item->Target())._Type)
 			{
 			case IRTypes::i8:InstructionBuilder::SInt8ToUInt8(_Ins, A, V); PushIns(); break;
 			case IRTypes::i16:InstructionBuilder::SInt16ToUInt16(_Ins, A, V); PushIns(); break;
@@ -800,16 +812,16 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			}
 
 			FreeRegister(A);
-			SetRegister(V, &Item);
+			SetRegister(V,Item);
 		}
 		break;
 		case IRInstructionType::UIntToSInt:
 		{
 			RegisterID V = GetRegisterForTep();
-			RegisterID A = MakeIntoRegister(Item, Item.Target());
-			SetRegister(A,&Item);
+			RegisterID A = MakeIntoRegister(Item, Item->Target());
+			SetRegister(A,Item);
 
-			switch (GetType(Item.Target())._Type)
+			switch (GetType(Item->Target())._Type)
 			{
 			case IRTypes::i8:InstructionBuilder::UInt8ToSInt8(_Ins, A, V); PushIns(); break;
 			case IRTypes::i16:InstructionBuilder::UInt16ToSInt16(_Ins, A, V); PushIns(); break;
@@ -835,47 +847,47 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			}
 
 			FreeRegister(A);
-			SetRegister(V, &Item);
+			SetRegister(V,Item);
 		}
 		break;
 		case IRInstructionType::SIntToSInt8:
 		{
-			BuildSIntToIntCast(Item, Item.Target(), 1);
+			BuildSIntToIntCast(Item, Item->Target(), 1);
 		}
 		break;
 		case IRInstructionType::SIntToSInt16:
 		{
-			BuildSIntToIntCast(Item, Item.Target(), 2);
+			BuildSIntToIntCast(Item, Item->Target(), 2);
 		}
 		break;
 		case IRInstructionType::SIntToSInt32:
 		{
-			BuildSIntToIntCast(Item, Item.Target(), 4);
+			BuildSIntToIntCast(Item, Item->Target(), 4);
 		}
 		break;
 		case IRInstructionType::SIntToSInt64:
 		{
-			BuildSIntToIntCast(Item, Item.Target(), 8);
+			BuildSIntToIntCast(Item, Item->Target(), 8);
 		}
 		break;
 		case IRInstructionType::UIntToUInt8:
 		{
-			BuildSIntToIntCast(Item, Item.Target(), 1);
+			BuildSIntToIntCast(Item, Item->Target(), 1);
 		}
 		break;
 		case IRInstructionType::UIntToUInt16:
 		{
-			BuildSIntToIntCast(Item, Item.Target(), 2);
+			BuildSIntToIntCast(Item, Item->Target(), 2);
 		}
 		break;
 		case IRInstructionType::UIntToUInt32:
 		{
-			BuildSIntToIntCast(Item, Item.Target(), 4);
+			BuildSIntToIntCast(Item, Item->Target(), 4);
 		}
 		break;
 		case IRInstructionType::UIntToUInt64:
 		{
-			BuildSIntToIntCast(Item, Item.Target(), 8);
+			BuildSIntToIntCast(Item, Item->Target(), 8);
 		}
 		break;
 		default:
@@ -1231,7 +1243,7 @@ void UCodeBackEndObject::DropPars()
 {
 
 }
-void UCodeBackEndObject::StoreValueInPointer(const IRType& ObjectType, RegisterID Pointer, const  IROperator& Value,IRInstruction& Ins)
+void UCodeBackEndObject::StoreValueInPointer(const IRType& ObjectType, RegisterID Pointer, const  IROperator& Value,IRInstruction* Ins)
 {
 	StoreValueInPointer(ObjectType, Pointer, LoadOp(Ins, Value));
 }
@@ -1301,11 +1313,11 @@ RegisterID  UCodeBackEndObject::ReadValueFromPointer(const IRType& ObjectType, R
 	}
 	return Out;
 }
-void UCodeBackEndObject::BuildUIntToIntCast(const IRInstruction& Ins, const IROperator& Op, size_t IntSize)
+void UCodeBackEndObject::BuildUIntToIntCast(const IRInstruction* Ins, const IROperator& Op, size_t IntSize)
 {
 	RegisterID V = GetRegisterForTep();
 	RegisterID A = MakeIntoRegister(Ins, Op);
-	SetRegister(A,&Ins);
+	SetRegister(A,Ins);
 
 	size_t ItemSize = _Input->GetSize(GetType(Op));
 
@@ -1339,9 +1351,9 @@ void UCodeBackEndObject::BuildUIntToIntCast(const IRInstruction& Ins, const IROp
 	}
 
 	FreeRegister(A);
-	SetRegister(V, &Ins);
+	SetRegister(V,Ins);
 }
-void UCodeBackEndObject::BuildSIntToIntCast(const IRInstruction& Ins, const IROperator& Op, size_t IntSize)
+void UCodeBackEndObject::BuildSIntToIntCast(const IRInstruction* Ins, const IROperator& Op, size_t IntSize)
 {
 	BuildUIntToIntCast(Ins, Op, IntSize);
 }
@@ -1457,11 +1469,11 @@ RegisterID UCodeBackEndObject::MakeIntoRegister(const IRlocData& Value, Optional
 
 	throw std::exception("not added");
 }
-void  UCodeBackEndObject::GiveNameTo(const IRlocData& Value, const IRInstruction& Name)
+void  UCodeBackEndObject::GiveNameTo(const IRlocData& Value, const IRInstruction* Name)
 {
 	if (Value.Info.Is<RegisterID>())
 	{
-		SetRegister(Value.Info.Get<RegisterID>(), &Name);
+		SetRegister(Value.Info.Get<RegisterID>(), Name);
 	}
 	else if (auto Val = Value.Info.Get_If<IRlocData_StackPost>())
 	{
@@ -1506,12 +1518,12 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetPointerOf(const IRlocData& 
 	}
 	throw std::exception("not added");
 }
-RegisterID UCodeBackEndObject::LoadOp(const IRInstruction& Ins, const  IROperator& Op)
+RegisterID UCodeBackEndObject::LoadOp(const IRInstruction* Ins, const  IROperator& Op)
 {
 	if (Op.Type == IROperatorType::Value)
 	{
 
-		AnyInt64 Value = ToAnyInt(Ins.ObjectType, Op);
+		AnyInt64 Value = ToAnyInt(Ins->ObjectType, Op);
 		auto CompilerRet = FindValueInRegister(Value);
 		if (CompilerRet.has_value())
 		{
@@ -1519,7 +1531,7 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction& Ins, const  IROperato
 		}
 
 		auto V = GetRegisterForTep();
-		switch (Ins.ObjectType._Type)
+		switch (Ins->ObjectType._Type)
 		{
 		case IRTypes::i8:
 			InstructionBuilder::Store8(_Ins, V, Op.Value.AsInt8); PushIns();
@@ -1610,7 +1622,7 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction& Ins, const  IROperato
 			}
 			_Stack.AddReUpdatePostFunc(PushIns(), Offset);
 
-			SetRegister(CompilerRet, &Ins);
+			SetRegister(CompilerRet, Ins);
 
 			V->Location = CompilerRet;
 			return CompilerRet;
@@ -1629,7 +1641,9 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction& Ins, const  IROperato
 		}
 		else
 		{
-			throw std::exception("");
+			auto V = GetIRLocData(Op.Pointer);
+
+			return MakeIntoRegister(V);
 		}
 	}
 	else if (Op.Type == IROperatorType::Get_Func_Pointer)
@@ -1675,14 +1689,14 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction& Ins, const  IROperato
 	else if (Op.Type == IROperatorType::Get_PointerOf_IRInstruction)
 	{
 		auto Ins = Op.Pointer;
-		auto V = GetIRLocData(*Ins);
+		auto V = GetIRLocData(Ins);
 		auto Item = GetPointerOf(V);
 
 	}
 	throw std::exception("not added");
 }
 
-void UCodeBackEndObject::StoreValue(const IRInstruction& Ins, const  IROperator& OutputLocationIR, const  IROperator& Input)
+void UCodeBackEndObject::StoreValue(const IRInstruction* Ins, const  IROperator& OutputLocationIR, const  IROperator& Input)
 {
 	bool IRusedereference = false;
 	if (OutputLocationIR.Type ==IROperatorType::IRInstruction)
@@ -1701,7 +1715,7 @@ void UCodeBackEndObject::StoreValue(const IRInstruction& Ins, const  IROperator&
 
 		const IRStruct* VStruct = _Input->GetSymbol(GetType(Item, Item->Target())._symbol)->Get_ExAs<IRStruct>();
 
-		auto Reg = LoadOp(*Item,Item->Target());
+		auto Reg = LoadOp(Item,Item->Target());
 		size_t FieldOffset = _Input->GetOffset(VStruct, Item->Input().Value.AsUIntNative);
 
 		StoreValueInPointer(Reg,FieldOffset,GetIRLocData(Ins, Input));
@@ -1712,7 +1726,13 @@ void UCodeBackEndObject::StoreValue(const IRInstruction& Ins, const  IROperator&
 		V.ObjectType = GetType(OutputLocationIR);
 		V.Type = IRInstructionType::Load;
 		V.Target() = OutputLocationIR;
-		CopyValues(GetIRLocData(Ins, Input),GetIRLocData(V, OutputLocationIR));
+
+		auto Src = GetIRLocData(Ins, Input);
+		auto Out = GetIRLocData(&V, OutputLocationIR);
+
+
+		CopyValues(Src, Out);
+
 	}
 	
 }
@@ -1781,9 +1801,9 @@ void UCodeBackEndObject::MoveValueToStack(const IRInstruction* IRName, const IRT
 	CopyValueToStack(IRName, ObjectType, Item);
 	_Registers.FreeRegister(Item);
 }
-void UCodeBackEndObject::LoadOpToReg(const IRInstruction& Ins, const  IROperator& Op, RegisterID Out)
+void UCodeBackEndObject::LoadOpToReg(const IRInstruction* Ins, const  IROperator& Op, RegisterID Out)
 {
-	RegToReg(GetType(&Ins)._Type, LoadOp(Ins, Op), Out);
+	RegToReg(GetType(Ins)._Type, LoadOp(Ins, Op), Out);
 }
 void UCodeBackEndObject::RegToReg(IRTypes Type, RegisterID In, RegisterID Out)
 {
@@ -1830,10 +1850,10 @@ void UCodeBackEndObject::RegToReg(IRTypes Type, RegisterID In, RegisterID Out)
 		}
 	}
 }
-void UCodeBackEndObject::PushOpStack(const IRInstruction& Ins, const  IROperator& Op)
+void UCodeBackEndObject::PushOpStack(const IRInstruction* Ins, const  IROperator& Op)
 {
 	auto CompilerRet =LoadOp(Ins,Op);
-	switch (Ins.ObjectType._Type)
+	switch (Ins->ObjectType._Type)
 	{
 	case IRTypes::i8:
 		InstructionBuilder::Push8(_Ins, CompilerRet); PushIns();
@@ -1873,36 +1893,52 @@ void UCodeBackEndObject::PushOpStack(const IRInstruction& Ins, const  IROperator
 		break;
 	}
 }
-UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstruction& Ins)
+UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstruction* Ins)
 {
-	if (Ins.Type == IRInstructionType::LoadNone)
+	auto RegInfo = FindIRInRegister(Ins);
+	if (RegInfo.has_value())
 	{
-		auto V = _Stack.Has(&Ins);
-		if (V)
-		{
-			UCodeBackEndObject::IRlocData R;
-			R.Info = IRlocData_StackPost(V->Offset);
-			return R;
-		}
-		else
-		{
-			UCodeBackEndObject::IRlocData R;
-			_Stack.AddWithSize(&Ins, GetSize(&Ins));
-			return R;
-		}
+		UCodeBackEndObject::IRlocData R;
+		R.Info = RegInfo.value();
+		R.ObjectType = GetType(Ins);
+		return R;
 	}
 	else
 	{
-		throw std::exception("not added");
+		if (Ins->Type == IRInstructionType::LoadNone)
+		{
+
+			auto V = _Stack.Has(Ins);
+			if (V)
+			{
+				UCodeBackEndObject::IRlocData R;
+				R.Info = IRlocData_StackPost(V->Offset);
+				return R;
+			}
+			else
+			{
+				UCodeBackEndObject::IRlocData R;
+				_Stack.AddWithSize(Ins, GetSize(Ins));
+				return R;
+			}
+		}
+		else if (Ins->Type == IRInstructionType::Load)
+		{
+			return GetIRLocData(Ins->Target().Pointer);
+		}
+		else
+		{
+			throw std::exception("not added");
+		}
 	}
 }
-UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstruction& Ins, const IROperator& Op)
+UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstruction* Ins, const IROperator& Op)
 {
-	bool IsPrimitive = _Input->IsPrimitive(GetType(&Ins,Op));
+	bool IsPrimitive = _Input->IsPrimitive(GetType(Ins,Op));
 	if (IsPrimitive)
 	{
 		IRlocData CompilerRet;
-		CompilerRet.ObjectType = GetType(&Ins,Op);
+		CompilerRet.ObjectType = GetType(Ins,Op);
 
 		if (Op.Type == IROperatorType::IRInstruction)
 		{
@@ -1915,9 +1951,14 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 			}
 			else
 			{
-				if (Item->Type == IRInstructionType::Member_Access)
+				auto Stack = _Stack.Has(Item);
+				if (Stack)
 				{
-					auto Pos = GetIRLocData(*Item, Item->Target());
+					CompilerRet.Info = IRlocData_StackPost(Stack->Offset);
+				}
+				else if (Item->Type == IRInstructionType::Member_Access)
+				{
+					auto Pos = GetIRLocData(Item, Item->Target());
 					const IRStruct* VStruct = _Input->GetSymbol(Pos.ObjectType._symbol)->Get_ExAs<IRStruct>();
 
 					size_t& StackOffset = Pos.Info.Get<IRlocData_StackPost>().offset;
@@ -1929,7 +1970,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 				{
 					const IRStruct* VStruct = _Input->GetSymbol(GetType(Item, Item->Target())._symbol)->Get_ExAs<IRStruct>();
 
-					auto Reg = LoadOp(*Item, Item->Target());
+					auto Reg = LoadOp(Item, Item->Target());
 					size_t FieldOffset = _Input->GetOffset(VStruct, Item->Input().Value.AsUIntNative);
 
 					size_t ObjectSize = 4;
@@ -1972,7 +2013,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 		}
 		else if (Op.Type == IROperatorType::Get_PointerOf_IRInstruction)
 		{
-			CompilerRet = GetPointerOf(GetIRLocData(*Op.Pointer));
+			CompilerRet = GetPointerOf(GetIRLocData(Op.Pointer));
 		}
 		else if (Op.Type == IROperatorType::Value)
 		{
@@ -1987,14 +2028,14 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 	else
 	{
 		IRlocData CompilerRet;
-		CompilerRet.ObjectType = GetType(&Ins, Op);
+		CompilerRet.ObjectType = GetType(Ins, Op);
 		if (Op.Type == IROperatorType::DereferenceOf_IRParameter)
 		{
 			auto V = GetParData(Op.Parameter);
 
 			if (V)
 			{
-				auto Stackpos = _Stack.AddWithSize(&Ins,GetSize(Ins.ObjectType));
+				auto Stackpos = _Stack.AddWithSize(Ins,GetSize(Ins->ObjectType));
 				
 				CompilerRet.Info = IRlocData_StackPost(Stackpos->Offset);	
 				CopyValues(To(*V),CompilerRet,true,false);
@@ -2043,14 +2084,6 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 						{
 							CompilerRet.Info = RegisterID::OuPutRegister;
 						}
-					}
-					else if (Item->Type == IRInstructionType::LoadNone)
-					{
-
-						auto Stackpos = _Stack.AddWithSize(&Ins, GetSize(Ins.ObjectType));
-
-						CompilerRet.Info = IRlocData_StackPost(Stackpos->Offset);
-						return CompilerRet;
 					}
 					else 
 					{
