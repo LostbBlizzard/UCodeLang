@@ -17,8 +17,6 @@ $[_global]:
    3 :Add32 [D],[A]
    4 :Ret 
 ---Testing:HH^i32: 
-   5 :Store32 [A],1
-   6 :StoreRegToReg32 [A],[B]
-   7 :StoreRegToReg32 [B],[D]
-   8 :Call {Testing:InLineMe^i32}
-   9 :Ret 
+   5 :Store32 [A],10
+   6 :StoreRegToReg32 [A],[F]
+   7 :Ret 

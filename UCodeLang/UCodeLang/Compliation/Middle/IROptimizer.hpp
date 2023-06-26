@@ -49,6 +49,7 @@ private:
 	CompliationSettings* _Settings = nullptr;
 	IRTypeFixer _TypeFixer;
 	IRBuilder* Input = nullptr;
+	IRFunc* LookAtfunc = nullptr;
 	bool _UpdatedCode = false;
 	void UpdatedCode() { _UpdatedCode = true; }
 
@@ -56,6 +57,14 @@ private:
 	bool Optimization_ShortFuncInline = false;
 	bool Optimization_RemoveUnseddVarables = false;
 	bool Optimization_ConstantFoldVarables = false;
+	bool Optimization_RemoveUnusePars = false;
+	void ResetOptimizations()
+	{
+		Optimization_ShortFuncInline = false;
+		Optimization_RemoveUnseddVarables = false;
+		Optimization_ConstantFoldVarables = false;
+		Optimization_RemoveUnusePars = false;
+	}
 	//
 	
 
@@ -63,10 +72,12 @@ private:
 
 	void UpdateOptimizationList();
 	void UpdateCodePass();
-	void UpdateCodePassFunc(const IRFunc* Func);
+	void UpdateCodePassFunc(IRFunc* Func);
+	void CopyFuncionWithoutUnusedParAndUpdateOtherCalls(UCodeLang::IRPar& Par, UCodeLang::IRFunc* Func, const size_t& i);
+	void UpdateCallWhenParWasRemoved(IRFunc* Item, const IRFunc* Func, const IRFunc& NewFunc, size_t i);
 	void DoInlines(IRFunc* Func);
 	void DoInlines(IRFunc* Func, IRBlock* Block);
-	void ConstantFoldOperator(IRInstruction& I,IROperator& Value);
+	void ConstantFoldOperator(IRInstruction& I,IROperator& Value,ReadOrWrite OpType);
 
 	struct SSAState
 	{

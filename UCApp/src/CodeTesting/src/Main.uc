@@ -42,6 +42,9 @@ extern dynamic |Test[int a,int b] -> int;
  A = 1;
  ret InLineMe(A);
 
+|Hm[]:
+ HH(5);
+
 //|main3[] -> void;
 
 
