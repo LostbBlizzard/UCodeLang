@@ -10,6 +10,7 @@ class X86_64JitCompiler
 {
 public:
 	using InterpreterCPPinterface_SetRet = void(*)(void* Input);
+	using InterpreterCPPinterface_GetParm = void(*)(void* Input,void* Pointer,size_t ParSize);
 	using JitBuildAddress = void(*)(UAddress Input);
 
 
@@ -46,6 +47,7 @@ public:
 
 	//UCodeLang::InterpreterCPPinterface::Set_Return
 	InterpreterCPPinterface_SetRet  InterpreterCPPinterface_Set_ReturnPtr = nullptr;
+	InterpreterCPPinterface_GetParm InterpreterCPPinterface_Get_Par = nullptr;
 	JitBuildAddress BuildAddressPtr = nullptr;
 	const ClassMethod* Func =nullptr;
 	RunTimeLangState* State = nullptr;

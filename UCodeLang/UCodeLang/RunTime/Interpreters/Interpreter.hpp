@@ -446,21 +446,10 @@ public:
 
 	template<typename T> T GetParameter()
 	{
-		constexpr bool IsBigerRegister = sizeof(T) > sizeof(Interpreter::Register);
-		if (IsBigerRegister)
-		{
-			ParStackOffset += sizeof(T);
-			auto r = *(T*)_Ptr->_CPU.Stack.GetTopOfStackWithoffset(ParStackOffset);
+		Byte Value[sizeof(T)];
+		GetParameter_jit(*this, &Value, sizeof(T));
 
-			return r;
-		}
-		else
-		{
-			auto r = *(T*)(&_Ptr->Get_Register(ParValue).Value);
-
-			(*(RegisterID_t*)&ParValue)++;
-			return r;
-		}
+		return *(T*)&Value;
 	}
 
 	
@@ -515,7 +504,7 @@ public:
 	}
 	
 	//used by jit
-	static void  UCodeLangAPI  Set_Return_jit(InterpreterCPPinterface This,const void* Pointer,size_t Buffer)
+	static void  UCodeLangAPI  Set_Return_jit(InterpreterCPPinterface& This,const void* Pointer,size_t Buffer)
 	{
 
 		bool IsBigerRegister = Buffer > sizeof(Interpreter::Register);
@@ -527,6 +516,24 @@ public:
 		else
 		{
 			memcpy(&This.Get_OutPutRegister(), Pointer, Buffer);
+		}
+	}
+	static void  UCodeLangAPI GetParameter_jit(InterpreterCPPinterface& This,void* Pointer, size_t BufferSize)
+	{
+		bool IsBigerRegister = BufferSize > sizeof(Interpreter::Register);
+		if (IsBigerRegister)
+		{
+			ParStackOffset += BufferSize;
+			auto r = This._Ptr->_CPU.Stack.GetTopOfStackWithoffset(ParStackOffset);
+			memcpy(Pointer,r,BufferSize);
+		}
+		else
+		{
+			auto r = &This._Ptr->Get_Register(ParValue).Value;
+
+			memcpy(Pointer, r, BufferSize);
+
+			(*(RegisterID_t*)&ParValue)++;
 		}
 	}
 private:
