@@ -129,9 +129,9 @@ public:
 	}
 	
 	template<typename T, typename... Args>
-	T RThisCall(const ClassMethod& Function,PtrType This, Args&&... parameters)
+	T RThisCall(const ClassMethod& Function,PtrType This, Args... parameters)
 	{
-		return RCall<T>(Function.DecorationName, This, Args&&... parameters);
+		return RCall<T>(Function.DecorationName, This,parameters);
 	}
 	template<typename T, typename... Args> T RThisCall(const String& Function,PtrType This, Args... parameters)
 	{
@@ -139,7 +139,7 @@ public:
 	}
 	//
 
-	template<typename... Args> void PushParameters(Args&&... parameters)
+	template<typename... Args> void PushParameters(Args... parameters)
 	{
 		([&]
 		{
@@ -148,7 +148,7 @@ public:
 	}
 	template<typename T> UCodeLangForceinline void PushParameter(const T& Value)
 	{
-		PushParameter((const void*)&Value, sizeof(Value));
+		PushParameter((const void*)&Value, sizeof(T));
 	}
 	void PushParameter(const void* Value, size_t ValueSize);
 	

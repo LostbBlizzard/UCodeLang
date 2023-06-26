@@ -18,7 +18,7 @@ int Func()
 CPPCallRet TempFunc(InterpreterCPPinterface& Input)
 {
 	auto R = Func();
-	InterpreterCPPinterface::Set_Return_jit(Input ,&R,sizeof(R));
+	Input.Set_Return(0);
 }
 
 void Jit_Interpreter::PushParameter(const void* Value, size_t ValueSize)
@@ -90,13 +90,14 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 		_ThisState._This = this;
 		_ThisState.StackFrames.push(Item.UCodeFunc);
 
+		_Interpreter.FlushParametersIntoCPU();
 		
 		{//here the magic happens and were your going to spend debug for hours.
-			//Item.Func(InterpreterCPPinterface(&_Interpreter));
+			Item.Func(InterpreterCPPinterface(&_Interpreter));
 
-			using Func = int(*)(int V);
-			int V = 0;
-			V = ((Func)Item.NativeFunc)(5);
+			//using Func = int(*)(int V);
+			//int V = 0;
+			//V = ((Func)Item.NativeFunc)(5);
 		}
 		_ThisState.StackFrames.pop();
 
@@ -132,8 +133,8 @@ void Jit_Interpreter::BuildCheck(UCodeLang::Jit_Interpreter::JitFuncData& Item, 
 			_Assembler.Func = Get_State()->GetMethod(address);
 			_Assembler.BuildAddressPtr = &Jit_Interpreter::OnUAddressCall;
 
-			auto V = &InterpreterCPPinterface::Set_Return_jit;
-			_Assembler.InterpreterCPPinterface_Set_ReturnPtr = *(NativeJitAssembler::InterpreterCPPinterface_SetRet*)&V;
+			_Assembler.InterpreterCPPinterface_Set_ReturnPtr = (NativeJitAssembler::InterpreterCPPinterface_SetRet)&InterpreterCPPinterface::Set_Return_jit;
+			_Assembler.InterpreterCPPinterface_Get_Par = (NativeJitAssembler::InterpreterCPPinterface_GetParm)&InterpreterCPPinterface::GetParameter_jit;
 
 			bool shouldJit = ShouldJit(address, Insts);
 
@@ -283,6 +284,10 @@ Optional<String> Jit_Interpreter::GetNameForHex(const String& Hex)
 		if (CMP(_Assembler.BuildAddressPtr, Hex))
 		{
 			R = String("Jit_Interpreter::OnUAddressCall");
+		}
+		else if (CMP(_Assembler.InterpreterCPPinterface_Get_Par, Hex))
+		{
+			R = String("InterpreterCPPinterface::GetParameter_jit");
 		}
 		else
 		{
