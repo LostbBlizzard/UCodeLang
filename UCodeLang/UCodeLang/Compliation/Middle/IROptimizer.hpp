@@ -63,7 +63,7 @@ private:
 	void UpdateCodePass();
 	void UpdateCodePassFunc(const IRFunc* Func);
 	void DoInlines(IRFunc* Func);
-	void DoInlines(IRBlock* Block);
+	void DoInlines(IRFunc* Func, IRBlock* Block);
 	void ConstantFoldOperator(IRInstruction& I,IROperator& Value);
 
 	struct SSAState
