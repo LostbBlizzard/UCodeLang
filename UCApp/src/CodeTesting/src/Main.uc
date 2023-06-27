@@ -1,7 +1,17 @@
 
 
 $Unique_ptr<T>:
- |Make[] -> void;
+ T& Ptr;
+
+ |new[this&] -> void;
+
+ |Make[] -> this:
+  var P =new T();
+  this R = [];
+  R.Ptr =: P;
+
+  ret R;
+
 
 |main[] -> int:
  var Object = unq int(); 

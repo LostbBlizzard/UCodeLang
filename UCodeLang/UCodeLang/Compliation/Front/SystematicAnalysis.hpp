@@ -548,6 +548,7 @@ private:
 
 	struct ClassStackInfo
 	{
+		Symbol* Syb = nullptr;
 		ClassInfo* Info = nullptr;
 		bool _InStatements = false;
 	};
@@ -865,7 +866,7 @@ private:
 	String GetTraitVTableName(const String& TraitName);
 	String GetTraitVStructTableName(const String& TraitName);
 
-	void InheritTrait(const Symbol* Syb, ClassInfo* ClassInfo,const Symbol* Trait, const Token* ClassNameToken);
+	void InheritTrait(Symbol* Syb, ClassInfo* ClassInfo,const Symbol* Trait, const Token* ClassNameToken);
 
 	void BuildTrait(const Symbol* Syb,ClassInfo* ClassInfo, const Symbol* Trait, const Token* ClassNameToken);
 
@@ -1000,7 +1001,7 @@ private:
 	}
 	Symbol* GetSymbol(String_view Name, SymbolType Type);
 	static String GetFuncAnonymousObjectFullName(const String& FullFuncName);
-	void AddClass_tToAssemblyInfo(const Vector<Unique_ptr<AttributeNode>>& attributes, const ClassInfo* data);
+	void AddClass_tToAssemblyInfo(const Vector<Unique_ptr<AttributeNode>>& attributes,const Symbol* ClassSyb);
 	ReflectionTypeInfo ConvertToTypeInfo(const TypeSymbol& Type);
 
 	TypeSymbolID GetTypeID(TypesEnum Type, SymbolID SymbolId);
@@ -1047,10 +1048,7 @@ private:
 
 	
 
-	Symbol* GetSymbol(const ClassInfo* Info)
-	{
-		return GetSymbol(Info->FullName, SymbolType::Type_class);
-	}
+	
 	Symbol* GetSymbol(const FuncInfo* Info)
 	{
 		return GetSymbol(Info->FullName, SymbolType::Func);
