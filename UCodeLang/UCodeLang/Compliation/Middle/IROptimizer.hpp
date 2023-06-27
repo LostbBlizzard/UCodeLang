@@ -52,18 +52,20 @@ private:
 	IRFunc* LookAtfunc = nullptr;
 	bool _UpdatedCode = false;
 	void UpdatedCode() { _UpdatedCode = true; }
-
+	void UpdatedCodeFor(IRFunc* Func) { _UpdatedCode = true; }
 	//
 	bool Optimization_ShortFuncInline = false;
 	bool Optimization_RemoveUnseddVarables = false;
 	bool Optimization_ConstantFoldVarables = false;
 	bool Optimization_RemoveUnusePars = false;
+	bool Optimization_RemoveFuncsWithSameBody = false;
 	void ResetOptimizations()
 	{
 		Optimization_ShortFuncInline = false;
 		Optimization_RemoveUnseddVarables = false;
 		Optimization_ConstantFoldVarables = false;
 		Optimization_RemoveUnusePars = false;
+		Optimization_RemoveFuncsWithSameBody = false;
 	}
 	//
 	

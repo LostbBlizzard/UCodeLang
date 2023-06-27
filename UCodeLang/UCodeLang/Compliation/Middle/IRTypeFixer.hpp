@@ -25,6 +25,7 @@ private:
 	IRBuilder* _Input=nullptr;
 	CompliationErrors* _Errs=nullptr;
 	IRFunc* _Func = nullptr;
+	IRBlock* _Block = nullptr;
 	bool InList(const IRPar* Par,const Vector<IRPar>& Pars)
 	{
 		for (auto& Item : _Func->Pars)
@@ -36,8 +37,21 @@ private:
 		}
 		return false;
 	}
+	bool InBlock(const IRInstruction* IR)
+	{
+		bool Has = false;
+		for (auto& Item : _Block->Instructions)
+		{
+			if (Item.get() == IR)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
 
 	void OnOp(IRInstruction& Ins, IROperator& Op);
+	void LogCantFindInsInBlock();
 	void LogErrorCantFindPar(UCodeLang::IROperator& Op);
 };
 UCodeLangEnd

@@ -73,10 +73,12 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 	_Func = Func;
 	for (auto& Block : Func->Blocks)
 	{
+		_Block = Block.get();
 		for (auto& Ins : Block->Instructions)
 		{
 			if (Ins->Type == IRInstructionType::Member_Access)
 			{
+				OnOp(*Ins, Ins->Target());
 				if (Ins->Target().Type == IROperatorType::IRInstruction)
 				{
 					auto ClassType = Ins->Target().Pointer->ObjectType;
@@ -101,6 +103,7 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 			}
 			else if (Ins->Type == IRInstructionType::Member_Access_Dereference)
 			{
+				OnOp(*Ins, Ins->Target());
 				if (Ins->Target().Type == IROperatorType::IRInstruction)
 				{
 					auto ClassType = Ins->Target().Pointer->ObjectType;
@@ -208,15 +211,14 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op)
 
 	if (Op.Type == IROperatorType::IRInstruction)
 	{
-		if (Op.Pointer->Type == IRInstructionType::Member_Access_Dereference)
+
+		Ins.ObjectType = _Input->GetType(Op.Pointer);
+
+
+
+		if (!InBlock(Op.Pointer))
 		{
-			auto& StructType = Op.Pointer->ObjectType;
-			auto Type = _Input->GetSymbol(StructType._symbol)->Get_ExAs<IRStruct>();
-			auto feildType = Type->Fields[Op.Pointer->Input().Value.AsUIntNative].Type;
-			Ins.ObjectType= feildType;
-		}
-		else {
-			Ins.ObjectType = Op.Pointer->ObjectType;
+			LogCantFindInsInBlock();
 		}
 	}
 	else if (Op.Type == IROperatorType::Get_PointerOf_IRInstruction
@@ -230,6 +232,14 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op)
 			if (!InList(Op.Parameter, _Func->Pars))
 			{
 				LogErrorCantFindPar(Op);
+			}
+		}
+
+		if (Op.Type == IROperatorType::Get_PointerOf_IRInstruction)
+		{
+			if (!InBlock(Op.Pointer))
+			{
+				LogCantFindInsInBlock();
 			}
 		}
 	}
@@ -279,6 +289,10 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op)
 	{
 		throw std::exception("bad");
 	}
+}
+void IRTypeFixer::LogCantFindInsInBlock()
+{
+	_Errs->AddError(ErrorCodes::ExpectingSequence, 0, 0, "CantFind IR in Block");
 }
 void IRTypeFixer::LogErrorCantFindPar(UCodeLang::IROperator& Op)
 {

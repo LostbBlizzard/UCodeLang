@@ -15,87 +15,144 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 	UpdateOptimizationList();
 	
 	
-
-	do
+	do 
 	{
-		_TypeFixer.Set_ErrorsOutput(_ErrorsOutput);
-		_TypeFixer.FixTypes(Input);
-		if (_ErrorsOutput->Has_Errors())
+		do
 		{
-			return;
-		}
+			_TypeFixer.Set_ErrorsOutput(_ErrorsOutput);
+			_TypeFixer.FixTypes(Input);
 
 
 
 
 
-		{//for debuging
-			auto S = Input->ToString();
 
-			std::cout << "-----" << std::endl;
-			std::cout << S;
-		}
-		_UpdatedCode = false;
+			{//for debuging
+				auto S = Input->ToString();
 
-		for (auto& Func : Input->Funcs)
+				std::cout << "-----" << std::endl;
+				std::cout << S;
+			}
+
+			if (_ErrorsOutput->Has_Errors())
+			{
+				return;
+			}
+			_UpdatedCode = false;
+
+			for (auto& Func : Input->Funcs)
+			{
+				if (Func->Linkage == IRFuncLink::StaticExternalLink
+					|| Func->Linkage == IRFuncLink::DynamicExternalLink)
+				{
+					if (Func->StaticPure.Read == PureState::Null)
+					{
+						Func->StaticPure.Read = PureState::ImPure;
+					}
+					if (Func->StaticPure.Write == PureState::Null)
+					{
+						Func->StaticPure.Write = PureState::ImPure;
+					}
+					if (Func->ThreadPure.Read == PureState::Null)
+					{
+						Func->ThreadPure.Read = PureState::ImPure;
+					}
+					if (Func->ThreadPure.Write == PureState::Null)
+					{
+						Func->ThreadPure.Write = PureState::ImPure;
+					}
+				}
+			}
+			for (auto& Func : Input->Funcs)
+			{
+				if (Func->Linkage == IRFuncLink::StaticExternalLink
+					|| Func->Linkage == IRFuncLink::DynamicExternalLink)
+				{
+					continue;
+				}
+				IROptimizationFuncData& FuncData = Funcs[Func.get()];
+				size_t InsCount = 0;
+
+				for (auto& Block : Func->Blocks)
+				{
+					InsCount += Block->Instructions.size();
+				}
+
+				if (InsCount < 10)
+				{
+					FuncData.Inlinestate = InlineState::AutoInline;
+				}
+				else if (InsCount < 30)
+				{
+					FuncData.Inlinestate = InlineState::MayBeInlined;
+				}
+				else
+				{
+					FuncData.Inlinestate = InlineState::FuncionCantBeInline;
+				}
+
+			}
+
+			UpdateCodePass();
+
+
+			//
+
+
+
+
+		} while (_UpdatedCode);
+
+
+		if (Optimization_RemoveFuncsWithSameBody)
 		{
-			if (Func->Linkage == IRFuncLink::StaticExternalLink
-				|| Func->Linkage == IRFuncLink::DynamicExternalLink)
+			BinaryVectorMap<size_t,const IRFunc*> Hashs;
+			for (auto& Func : Input->Funcs)
 			{
-				if (Func->StaticPure.Read == PureState::Null)
+				for (auto& Block : Func->Blocks)
 				{
-					Func->StaticPure.Read = PureState::ImPure;
+					for (size_t i = 0; i < Func->Blocks.size(); i++)
+					{
+						auto& Ins = Block->Instructions[i];
+						if (Ins->Type == IRInstructionType::None)
+						{
+							Block->Instructions.erase(Block->Instructions.begin() + i);
+						}
+					}
 				}
-				if (Func->StaticPure.Write == PureState::Null)
+				auto Hash = Input->GetImplementationHash(Func.get());
+				
+				if (Hashs.HasValue(Hash))
 				{
-					Func->StaticPure.Write = PureState::ImPure;
+					auto& SameFunc = Hashs.at(Hash);
+					
+					Func->Blocks.clear();
+
+					auto Block = new IRBlock();
+					Func->Blocks.push_back(Unique_ptr<IRBlock>(Block));
+
+					for (size_t i = 0; i < Func->Pars.size(); i++)
+					{
+						Block->NewPushParameter(Block->NewLoad(&Func->Pars[i]));
+					}
+					
+					auto V = Block->NewCall(SameFunc->identifier);
+
+					if (Func->ReturnType._Type != IRTypes::Void)
+					{
+						Block->NewRetValue(V);	
+					}
+					Block->NewRet();
+
+					UpdatedCode();
 				}
-				if (Func->ThreadPure.Read == PureState::Null)
+				else
 				{
-					Func->ThreadPure.Read = PureState::ImPure;
-				}
-				if (Func->ThreadPure.Write == PureState::Null)
-				{
-					Func->ThreadPure.Write = PureState::ImPure;
+					Hashs.AddValue(Hash, Func.get());
 				}
 			}
 		}
-		for (auto& Func : Input->Funcs)
-		{
-			if (Func->Linkage == IRFuncLink::StaticExternalLink
-				|| Func->Linkage == IRFuncLink::DynamicExternalLink)
-			{
-				continue;
-			}
-			IROptimizationFuncData& FuncData = Funcs[Func.get()];
-			size_t InsCount = 0;
 
-			for (auto& Block : Func->Blocks)
-			{
-				InsCount += Block->Instructions.size();
-			}
-
-			if (InsCount < 10)
-			{
-				FuncData.Inlinestate = InlineState::AutoInline;
-			}
-			else if (InsCount < 30)
-			{
-				FuncData.Inlinestate = InlineState::MayBeInlined;
-			}
-			else
-			{
-				FuncData.Inlinestate = InlineState::FuncionCantBeInline;
-			}
-
-		}
-		//return;
-		UpdateCodePass();
-
-		//
-		
-
-		
 
 	} while (_UpdatedCode);
 	
@@ -115,6 +172,7 @@ void IROptimizer::UpdateOptimizationList()
 		{
 			Optimization_RemoveUnseddVarables = true;
 			Optimization_RemoveUnusePars = true;
+			Optimization_RemoveFuncsWithSameBody = true;
 		}	
 		Optimization_ConstantFoldVarables = true;
 	}
@@ -132,7 +190,7 @@ void IROptimizer::UpdateCodePass()
 
 		UpdateCodePassFunc(&Input->_threadInit);
 
-		UpdateCodePassFunc(&Input->_threadInit);
+		UpdateCodePassFunc(&Input->_threaddeInit);
 
 
 		for (size_t i = 0; i < Input->Funcs.size(); i++)
@@ -148,7 +206,7 @@ void IROptimizer::UpdateCodePass()
 
 		DoInlines(&Input->_threadInit);
 
-		DoInlines(&Input->_threadInit);
+		DoInlines(&Input->_threaddeInit);
 
 
 		for (size_t i = 0; i < Input->Funcs.size(); i++)
@@ -191,7 +249,7 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 			if (Ins->Type == IRInstructionType::PushParameter)
 			{
 
-				ConstantFoldOperator(*Ins, Ins->Input(), ReadOrWrite::Read);
+				ConstantFoldOperator(*Ins, Ins->Target(), ReadOrWrite::Read);
 				if (Ins->Target().Type == IROperatorType::IRInstruction)
 				{
 					Get_IRData(Ins->Target().Pointer).IsReferenced = true;
@@ -205,7 +263,7 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 					Get_IRData(Ins->Input().Pointer).IsReferenced = true;
 				}
 			}
-			if (Ins->Type == IRInstructionType::Reassign)
+			else if (Ins->Type == IRInstructionType::Reassign)
 			{
 				ConstantFoldOperator(*Ins, Ins->Input(), ReadOrWrite::Read);
 			}
@@ -214,11 +272,11 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 			{
 				ConstantFoldOperator(*Ins, Ins->Target(), ReadOrWrite::Read);
 			}
-			if (IsBinary(Ins->Type))
+			else if (IsBinary(Ins->Type))
 			{
 				ConstantFoldOperator(*Ins, Ins->A,ReadOrWrite::Read);
 				ConstantFoldOperator(*Ins, Ins->B, ReadOrWrite::Read);
-#define	ConstantBinaryFold(bits) \
+					#define	ConstantBinaryFold(bits) \
 					switch (Ins->Type) \
 					{\
 					case IRInstructionType::Add:Ins->Target().Value.AsInt##bits = Ins->A.Value.AsInt##bits  + Ins->B.Value.AsInt##bits ;break;\
@@ -272,7 +330,30 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 					}
 				}
 			}
+			else if (Ins->Type == IRInstructionType::Member_Access_Dereference)
+			{
+				ConstantFoldOperator(*Ins, Ins->Target(), ReadOrWrite::Read);
+			}
+			else if (Ins->Type == IRInstructionType::Return)
+			{
+				
+			}
+			else if (Ins->Type == IRInstructionType::Call)
+			{
 
+			}
+			else if (Ins->Type == IRInstructionType::LoadNone)
+			{
+
+			}
+			else if (Ins->Type == IRInstructionType::None)
+			{
+
+			}
+			else
+			{
+				throw std::exception("not added");
+			}
 
 
 		}
@@ -321,8 +402,7 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 			if (!Par._IsUsed && Par._WasRemoved == false)
 			{
 				CopyFuncionWithoutUnusedParAndUpdateOtherCalls(Par, Func, i);
-
-				int a = 0;
+				UpdatedCode();
 				break;
 			}
 		}
@@ -425,6 +505,7 @@ void IROptimizer::CopyFuncionWithoutUnusedParAndUpdateOtherCalls(UCodeLang::IRPa
 		{
 			Block->NewRetValue(R);
 		}
+		Block->NewRet();
 	}
 }
 void IROptimizer::UpdateCallWhenParWasRemoved(IRFunc* Item, const IRFunc* Func, const IRFunc& NewFunc,size_t i)
@@ -450,6 +531,7 @@ void IROptimizer::UpdateCallWhenParWasRemoved(IRFunc* Item, const IRFunc* Func, 
 							if (ParIndex == i)
 							{
 								ParIns->Type = IRInstructionType::Load;
+								UpdatedCodeFor(Item);
 							}
 
 							if (ParIndex == 0)
@@ -522,20 +604,21 @@ void IROptimizer::ConstantFoldOperator(IRInstruction& I, IROperator& Value,ReadO
 				I.ObjectType = Ptr->ObjectType;
 				UpdatedCode();
 			}
+			else if (Ptr->Target().Type == IROperatorType::IRParameter)
+			{
+				Value = Ptr->Target();
+				UpdatedCode();
+			}
 		}
+		else
 		if (Ptr->Type == IRInstructionType::Member_Access_Dereference)
 		{
-			if (Ptr->Target().Type == IROperatorType::IRParameter)
-			{
-				if (OpType == ReadOrWrite::Read)
-				{
-					Ptr->Target().Parameter->_PtrRead = PureState::ImPure;
-				}
-				else
-				{
-					Ptr->Target().Parameter->_PtrRead = PureState::ImPure;
-				}
-			}
+			ConstantFoldOperator(*Ptr,Ptr->Target(), OpType);
+		}
+		else
+		if (Ptr->Type == IRInstructionType::Member_Access)
+		{
+			ConstantFoldOperator(*Ptr, Ptr->Target(), OpType);
 		}
 
 		Get_IRData(Ptr).IsReferenced = true;
@@ -575,6 +658,12 @@ void IROptimizer::ToSSA(const IRFunc* Func, SSAState& state)
 			{
 				IROperator ToUpdate = Ins->Target();
 
+				if (Ins->Target().Type == IROperatorType::IRInstruction)
+				{
+					if (Ins->Target().Pointer->Type == IRInstructionType::Member_Access_Dereference) {
+						continue;
+					}
+				}
 				Ins->Type = IRInstructionType::Load;
 				Ins->Target() =Ins->Input();
 				Ins->Input() = IROperator();
@@ -732,15 +821,20 @@ void IROptimizer::InLineFunc(InLineData& Data)
 	UpdatedCode();
 	//
 	
-	//auto S = Input->ToString();
+	auto S = Input->ToString();
 
-	//std::cout << "-----" << std::endl;
-	//std::cout << S;
+	std::cout << "-----" << std::endl;
+	std::cout << S;
 
 	{
 		SSAState S;
 		ToSSA(Data.Func, S);
 	}
+
+	auto S2 = Input->ToString();
+
+	std::cout << "-----" << std::endl;
+	std::cout << S2;
 
 }
 void IROptimizer::InLineSubOperator(InLineData& Data, IROperator& Op,size_t Offset)
