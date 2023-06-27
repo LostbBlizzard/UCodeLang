@@ -1289,7 +1289,7 @@ void IRBuilder::ToString(ToStringState& State, IRFunc* Item, String& r)
 					r += FromID(I->Target().identifer) + "(";
 					for (auto& Item : State.TepPushedParameters)
 					{
-						r += State.PointerToName.at(Item->Target().Pointer);
+						r += ToString(State,*Item, Item->Target());
 						if (&Item != &State.TepPushedParameters.back())
 						{
 							r += ",";
@@ -1309,7 +1309,7 @@ void IRBuilder::ToString(ToStringState& State, IRFunc* Item, String& r)
 					r += ToString(State, *I, I->Target()) + "(";
 					for (auto& Item : State.TepPushedParameters)
 					{
-						r += State.PointerToName.at(Item->Target().Pointer);
+						r += ToString(State, *Item, Item->Target());
 						if (&Item != &State.TepPushedParameters.back())
 						{
 							r += ",";

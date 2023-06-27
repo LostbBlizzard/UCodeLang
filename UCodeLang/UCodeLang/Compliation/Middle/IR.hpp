@@ -259,7 +259,10 @@ inline bool IsOperatorValueInTarget(IRInstructionType Value)
 {
 	return IsBinary(Value)
 		|| IsUnary(Value)
-		|| IsLoadValue(Value);
+		|| IsLoadValue(Value)
+		|| Value == IRInstructionType::Member_Access_Dereference
+		|| Value == IRInstructionType::Member_Access
+		|| Value == IRInstructionType::Reassign;
 }
 inline bool IsOperatorValueInInput(IRInstructionType Value)
 {
