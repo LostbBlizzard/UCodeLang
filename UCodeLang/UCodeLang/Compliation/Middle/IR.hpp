@@ -1339,7 +1339,7 @@ public:
 	static size_t GetImplementationHash(const IRFunc* Func);
 
 	//very slow
-	static size_t GetImplementationHash(BitMaker BitsOutput, const IRFunc* Func, const Vector<IRPar>& Pars);
+	static size_t GetImplementationHash(BitMaker& BitsOutput, const IRFunc* Func);
 
 	//very slow
 	static size_t GetImplementationHash(const IRBlock* Func, const Vector<IRPar>& Pars);
