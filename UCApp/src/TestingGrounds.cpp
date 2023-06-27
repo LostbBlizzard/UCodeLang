@@ -147,7 +147,7 @@ void TestingGround()
 
 
 	Settings._Type = OutPutType::Lib;
-	Settings._Flags = OptimizationFlags::ForMaxSpeed;
+	Settings._Flags = OptimizationFlags::O_None;
 	//_Compiler.Set_BackEnd(ULangTest::C89Backend::MakeObject);
 
 	ModuleFile Mfile;

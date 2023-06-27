@@ -34,6 +34,8 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 				std::cout << S;
 			}
 
+			if (_Settings->_Flags == OptimizationFlags::NoOptimization) { return; }
+
 			if (_ErrorsOutput->Has_Errors())
 			{
 				return;
