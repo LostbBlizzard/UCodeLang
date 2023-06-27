@@ -5,7 +5,7 @@ Files: "src"
 objs: "int"
 out: "out"
 ForceImport:false
-RemoveUnSafe:true
+RemoveUnSafe:false
 ModuleNameSpace:"Testing"
 
 //import LostbBlizzard::StandardLibarary[0:0:0];
