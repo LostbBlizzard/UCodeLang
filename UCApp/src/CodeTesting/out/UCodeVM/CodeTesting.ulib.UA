@@ -2,21 +2,15 @@
 $[_global]:
 .size:0
 
- |Testing:Test[sint32sint32] -> sint32;//Testing:Test^i32,i32
- |Testing:InLineMe[sint32] -> sint32;//Testing:InLineMe^i32
- |Testing:HH[sint32] -> sint32;//Testing:HH^i32
+ |Testing:main[sint32&] -> sint32&;//Testing:main^i32&
 
 
 
 [Instructions]-- 
----Testing:Test^i32,i32: 
-   0 :CppCallNamed "Testing:Test"
-   1 :Ret 
----Testing:InLineMe^i32: 
-   2 :Store32 [A],9
-   3 :Add32 [D],[A]
-   4 :Ret 
----Testing:HH^i32: 
-   5 :Store32 [A],10
-   6 :StoreRegToReg32 [A],[F]
-   7 :Ret 
+---Testing:main^i32&: 
+   0 :StoreRegToReg64 [D],[B]
+   1 :StoreRegToReg64 [B],[A]
+   2 :StoreRegToReg64 [D],[C]
+   3 :StoreRegToReg64 [C],[A]
+   4 :StoreRegToReg64 [A],[F]
+   5 :Ret 

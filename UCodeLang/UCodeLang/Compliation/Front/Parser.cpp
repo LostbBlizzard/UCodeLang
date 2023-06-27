@@ -2270,17 +2270,19 @@ GotNodeType Parser::GetAssignExpression(AssignExpressionNode& out)
 {
 	auto Name = GetExpressionTypeNode(out.ToAssign);
 
-	auto Token = TryGetToken(); 
-	if (Token->Type == TokenType::bitwise_and)
+
+	auto Token = TryGetToken();
+	TokenTypeCheck(Token, TokenType::equal);
+	NextToken();
+
+	Token = TryGetToken();
+	if (Token->Type == TokenType::Colon)
 	{
 		out.ReassignAddress = true;
 		NextToken();
 		Token = TryGetToken();
 	}
 
-	TokenTypeCheck(Token, TokenType::equal);
-
-	NextToken();
 	auto Ex = GetExpressionTypeNode(out.Expression);
 
 

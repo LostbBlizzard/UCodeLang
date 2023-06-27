@@ -1037,6 +1037,8 @@ private:
 
 	void Convert(const TypeNode& V, TypeSymbol& Out);
 
+	Optional<Symbol*> InstantiateOrFindGenericSymbol(const Token* Token, const UseGenericsNode& GenericsVals, const String_view& Name);
+
 	void LogCantBindTypeItNotTypeInfo(const UCodeLang::Token* Token, UCodeLang::FrontEnd::TypeSymbol& Type);
 	
 	void ConvertAndValidateType(const TypeNode& V, TypeSymbol& Out,NodeSyb_t Syb);
@@ -1270,7 +1272,7 @@ private:
 	}
 
 	using TypeInstantiateFunc = void(SystematicAnalysis::*)(const Symbol* Symbol,const Vector<TypeSymbol>& GenericInput);
-	Symbol* InstantiateOrFindGenericType(const Token* Name,const Symbol* Symbol,const GenericValuesNode& SymbolGenericValues,const Generic& GenericData,const UseGenericsNode& UseNode,TypeInstantiateFunc Instantiate)
+	Symbol* InstantiateOrFindGenericSymbol(const Token* Name,const Symbol* Symbol,const GenericValuesNode& SymbolGenericValues,const Generic& GenericData,const UseGenericsNode& UseNode,TypeInstantiateFunc Instantiate)
 	{
 		if (GenericData._Generic.size() != UseNode.Values.size())
 		{
@@ -1331,29 +1333,29 @@ private:
 	Symbol* InstantiateOrFindGeneric_Class(const Token* Name, const Symbol* Symbol, const GenericValuesNode& SymbolGenericValues, const Generic& GenericData, const UseGenericsNode& UseNode)
 	{
 		TypeInstantiateFunc Func = &SystematicAnalysis::GenericTypeInstantiate;
-		return InstantiateOrFindGenericType(Name, Symbol, SymbolGenericValues, GenericData, UseNode,Func);
+		return InstantiateOrFindGenericSymbol(Name, Symbol, SymbolGenericValues, GenericData, UseNode,Func);
 	}
 
 	Symbol* InstantiateOrFindGeneric_Trait(const Token* Name, const Symbol* Symbol, const GenericValuesNode& SymbolGenericValues, const Generic& GenericData, const UseGenericsNode& UseNode)
 	{
 		TypeInstantiateFunc Func = &SystematicAnalysis::GenericTypeInstantiate_Trait;
-		return InstantiateOrFindGenericType(Name, Symbol, SymbolGenericValues, GenericData, UseNode, Func);
+		return InstantiateOrFindGenericSymbol(Name, Symbol, SymbolGenericValues, GenericData, UseNode, Func);
 	}
 
 	Symbol* InstantiateOrFindGeneric_Alias(const Token* Name, const Symbol* Symbol, const GenericValuesNode& SymbolGenericValues, const Generic& GenericData, const UseGenericsNode& UseNode)
 	{
 		TypeInstantiateFunc Func = &SystematicAnalysis::GenericTypeInstantiate_Alias;
-		return InstantiateOrFindGenericType(Name, Symbol, SymbolGenericValues, GenericData, UseNode, Func);
+		return InstantiateOrFindGenericSymbol(Name, Symbol, SymbolGenericValues, GenericData, UseNode, Func);
 	}
 	Symbol* InstantiateOrFindGeneric_Enum(const Token* Name, const Symbol* Symbol, const GenericValuesNode& SymbolGenericValues, const Generic& GenericData, const UseGenericsNode& UseNode)
 	{
 		TypeInstantiateFunc Func = &SystematicAnalysis::GenericTypeInstantiate_Enum;
-		return InstantiateOrFindGenericType(Name, Symbol, SymbolGenericValues, GenericData, UseNode, Func);
+		return InstantiateOrFindGenericSymbol(Name, Symbol, SymbolGenericValues, GenericData, UseNode, Func);
 	}
 	Symbol* InstantiateOrFindGeneric_Tag(const Token* Name, const Symbol* Symbol, const GenericValuesNode& SymbolGenericValues, const Generic& GenericData, const UseGenericsNode& UseNode)
 	{
 		TypeInstantiateFunc Func = &SystematicAnalysis::GenericTypeInstantiate_Tag;
-		return InstantiateOrFindGenericType(Name, Symbol, SymbolGenericValues, GenericData, UseNode, Func);
+		return InstantiateOrFindGenericSymbol(Name, Symbol, SymbolGenericValues, GenericData, UseNode, Func);
 	}
 
 	StrExELav GetStrEVal(const Node* node);
