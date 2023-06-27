@@ -768,10 +768,10 @@ void IRBuilder::FromBytes(BitReader& Out, IROperator& Value, const IRType& Type,
 size_t IRBuilder::GetImplementationHash(const IRFunc* Func)
 {
 	BitMaker V;
-	return GetImplementationHash(V, Func,Func->Pars);
+	return GetImplementationHash(V, Func);
 }
 
-size_t IRBuilder::GetImplementationHash(BitMaker BitsOutput, const IRFunc* Func, const Vector<IRPar>& Pars)
+size_t IRBuilder::GetImplementationHash(BitMaker& BitsOutput, const IRFunc* Func)
 {
 	BitsOutput.clear();
 	ToBytes(BitsOutput, *Func);

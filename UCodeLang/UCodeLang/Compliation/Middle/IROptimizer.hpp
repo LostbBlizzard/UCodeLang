@@ -25,8 +25,10 @@ enum class FuncionType
 struct IROptimizationFuncData
 {
 public:
-	size_t FuncBodyHash = 0;
+	Optional<size_t> FuncBodyHash;
 	InlineState Inlinestate= InlineState::Null;
+	bool BodyWasRemoved = false;
+	bool FuncBodyWasUpdated = false;
 };
 
 
@@ -52,7 +54,11 @@ private:
 	IRFunc* LookAtfunc = nullptr;
 	bool _UpdatedCode = false;
 	void UpdatedCode() { _UpdatedCode = true; }
-	void UpdatedCodeFor(IRFunc* Func) { _UpdatedCode = true; }
+	void UpdatedCodeFor(IRFunc* Func) {
+		_UpdatedCode = true;
+		auto& FuncData = Funcs[Func];
+		FuncData.FuncBodyWasUpdated = true;
+	}
 	//
 	bool Optimization_ShortFuncInline = false;
 	bool Optimization_RemoveUnseddVarables = false;

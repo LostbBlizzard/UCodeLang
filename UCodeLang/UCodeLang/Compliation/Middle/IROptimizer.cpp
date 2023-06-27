@@ -106,25 +106,55 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 
 		if (Optimization_RemoveFuncsWithSameBody)
 		{
+			BitMaker bits;
 			BinaryVectorMap<size_t,const IRFunc*> Hashs;
 			for (auto& Func : Input->Funcs)
 			{
-				for (auto& Block : Func->Blocks)
+				auto& FuncData = Funcs[Func.get()];
+				if (FuncData.BodyWasRemoved) { continue; }
+
+				size_t Hash = 0;
+				if (FuncData.FuncBodyWasUpdated || !FuncData.FuncBodyHash.has_value()) 
 				{
-					for (size_t i = 0; i < Func->Blocks.size(); i++)
+					for (auto& Block : Func->Blocks)
 					{
-						auto& Ins = Block->Instructions[i];
-						if (Ins->Type == IRInstructionType::None)
+						for (size_t i = 0; i < Block->Instructions.size(); i++)
 						{
-							Block->Instructions.erase(Block->Instructions.begin() + i);
+							auto& Ins = Block->Instructions[i];
+							if (Ins->Type == IRInstructionType::None)
+							{
+								Block->Instructions.erase(Block->Instructions.begin() + i);
+								i--;
+							}
 						}
 					}
+
+
+					auto Tep = Func->Pars;
+					auto TepID = Func->identifier;
+					for (auto& Item : Func->Pars)
+					{
+						Item.identifier = 0;
+					}
+					Func->identifier = 0;
+
+					Hash = Input->GetImplementationHash(bits, Func.get());
+
+					Func->Pars = Tep;
+					Func->identifier = TepID;
+
+					FuncData.FuncBodyWasUpdated = false;
+					FuncData.FuncBodyHash = Hash;
 				}
-				auto Hash = Input->GetImplementationHash(Func.get());
-				
+				else
+				{
+					Hash = FuncData.FuncBodyHash.value();
+				}
+
+
 				if (Hashs.HasValue(Hash))
 				{
-					auto& SameFunc = Hashs.at(Hash);
+					const auto& SameFunc = Hashs.at(Hash);
 					
 					Func->Blocks.clear();
 
@@ -144,7 +174,48 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 					}
 					Block->NewRet();
 
+
+					//Update Other Calls
+					{
+						for (auto& Func : Input->Funcs)
+						{
+							for (auto& Block : Func->Blocks)
+							{
+								for (size_t i = 0; i < Block->Instructions.size(); i++)
+								{
+									auto& Ins = Block->Instructions[i];
+									if (Ins->Type == IRInstructionType::Call)
+									{
+										Ins->Target().identifer = SameFunc->identifier;
+										UpdatedCodeFor(Func.get());
+									}
+
+									if (IsOperatorValueInTarget(Ins->Type))
+									{
+										auto Op = Ins->Target();
+										if (Op.Type == IROperatorType::Get_Func_Pointer)
+										{
+											Op.identifer = SameFunc->identifier;
+											UpdatedCodeFor(Func.get());
+										}
+									}
+
+									if (IsOperatorValueInInput(Ins->Type))
+									{
+										auto Op = Ins->Input();
+										if (Op.Type == IROperatorType::Get_Func_Pointer)
+										{
+											Op.identifer = SameFunc->identifier;
+											UpdatedCodeFor(Func.get());
+										}
+									}
+								}
+							}
+						}
+					}
+
 					UpdatedCode();
+					FuncData.BodyWasRemoved = true;
 				}
 				else
 				{
@@ -555,6 +626,9 @@ void IROptimizer::UpdateCallWhenParWasRemoved(IRFunc* Item, const IRFunc* Func, 
 
 void IROptimizer::DoInlines(IRFunc* Func)
 {
+	auto& FuncData = Funcs[Func];
+	if (FuncData.BodyWasRemoved) { return; }
+
 	for (auto& Item : Func->Blocks)
 	{
 		DoInlines(Func,Item.get());
@@ -837,40 +911,38 @@ void IROptimizer::InLineFunc(InLineData& Data)
 	std::cout << S2;
 
 }
-void IROptimizer::InLineSubOperator(InLineData& Data, IROperator& Op,size_t Offset)
+void IROptimizer::InLineSubOperator(InLineData& Data, IROperator& Op, size_t Offset)
 {
-	IRInstruction* Call = Data.Block->Instructions[Data.CallIndex+Offset].get();
+	IRInstruction* Call = Data.Block->Instructions[Data.CallIndex + Offset].get();
 	const IRFunc* CallFunc = Input->GetFunc(Call->Target().identifer);
-	
-	#ifdef DEBUG
+
+#ifdef DEBUG
 	if (CallFunc == nullptr)
 	{
 		throw std::exception("bad ptr");
 	}
-	#endif // DEBUG
+#endif // DEBUG
 
-	
+
 	if (Op.Type == IROperatorType::IRParameter)
 	{
 		size_t IndexPar = Op.Parameter - CallFunc->Pars.data();
 
-		Op = IROperator(IROperatorType::IRInstruction,Data.InlinedPushedPars[IndexPar]);
+		Op = IROperator(IROperatorType::IRInstruction, Data.InlinedPushedPars[IndexPar]);
 	}
-	else if (
-		Op.Type == IROperatorType::DereferenceOf_IRParameter)
+	else if (Op.Type == IROperatorType::DereferenceOf_IRParameter)
 	{
 		size_t IndexPar = Op.Parameter - CallFunc->Pars.data();
 
 		Op = IROperator(IROperatorType::DereferenceOf_IRInstruction, Data.InlinedPushedPars[IndexPar]);
 	}
-	else if (
-		Op.Type == IROperatorType::Get_PointerOf_IRParameter)
+	else if (Op.Type == IROperatorType::Get_PointerOf_IRParameter)
 	{
 		size_t IndexPar = Op.Parameter - CallFunc->Pars.data();
 
 		Op = IROperator(IROperatorType::Get_PointerOf_IRInstruction, Data.InlinedPushedPars[IndexPar]);
 	}
-	
+
 	else if (Op.Type == IROperatorType::IRInstruction
 		|| Op.Type == IROperatorType::Get_PointerOf_IRInstruction
 		|| Op.Type == IROperatorType::DereferenceOf_IRInstruction)
@@ -882,7 +954,7 @@ void IROptimizer::InLineSubOperator(InLineData& Data, IROperator& Op,size_t Offs
 			auto& Block = CallFunc->Blocks[i];
 			for (auto& BlockIns : Block->Instructions)
 			{
-				if (BlockIns.get() == Op.Pointer) 
+				if (BlockIns.get() == Op.Pointer)
 				{
 					Set = true;
 					break;
@@ -896,8 +968,9 @@ void IROptimizer::InLineSubOperator(InLineData& Data, IROperator& Op,size_t Offs
 		{
 			throw std::exception("not set");
 		}
-		Op = IROperator(Op.Type,(*Data.AddIns)[Index]);
+		Op = IROperator(Op.Type, (*Data.AddIns)[Index]);
 	}
-	
+
 }
+
 UCodeLangEnd
