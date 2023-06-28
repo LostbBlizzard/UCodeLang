@@ -129,7 +129,7 @@ IRType IRBuilder::GetType(const IRInstruction* IR) const
 
 	if (IR->Type == IRInstructionType::Member_Access)
 	{
-		auto Struct = GetSymbol(IR->ObjectType._symbol)->Get_ExAs<IRStruct>();
+		//auto Struct = GetSymbol(IR->ObjectType._symbol)->Get_ExAs<IRStruct>();
 		return {};
 	}
 	if (IR->Type == IRInstructionType::Member_Access)

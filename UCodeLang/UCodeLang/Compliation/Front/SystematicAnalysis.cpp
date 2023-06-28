@@ -3741,13 +3741,37 @@ void SystematicAnalysis::OnBitCast(const BitCastExpression& node)
 		{
 			auto Token = node.KeywordToken;
 			LogError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "Cant do bitcast in safe mode.");
+			return;
 		}
-	}
-	else if (passtype == PassType::FixedTypes)
-	{
+
+		auto Token = node.KeywordToken;
 		TypeSymbol ToType = ConvertAndValidateType(node._Type,NodeSyb_t::Any);
+		
+		if (!ToType.IsBadType()) 
+		{
+			if (!ToType.IsAddress() && (ToType._Type != TypesEnum::uIntPtr))
+			{
+				LogError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "bitcast<T>. T must be an address or an uintptr and not '" + ToString(ToType) + "'");
+			}
+		}
+		bool IsIntPtr = !ToType.IsAddress();
+
+		if (IsIntPtr) {
+			LookingForTypes.push(TypesEnum::uIntPtr);
+		}
+		else
+		{
+			TypeSymbol V = TypesEnum::Any;
+			V.SetAsAddress();
+			LookingForTypes.push(V);
+		}
+		
 		OnExpressionTypeNode(node._Expression.Value.get(), GetValueMode::Read);
+		
+		LookingForTypes.pop();
+
 		auto ExType = LastExpressionType;
+		
 
 		LastExpressionType = ToType;
 	}
@@ -3755,7 +3779,23 @@ void SystematicAnalysis::OnBitCast(const BitCastExpression& node)
 	{
 		TypeSymbol ToType = ConvertAndValidateType(node._Type, NodeSyb_t::Any);
 
+		bool IsIntPtr = !ToType.IsAddress();
+
+		//!to stop *(_Expression) and do (_Expression)
+		if (!IsIntPtr) {
+			LookingForTypes.push(TypesEnum::uIntPtr);
+		}
+		else
+		{
+			TypeSymbol V = TypesEnum::Any;
+			V.SetAsAddress();
+			LookingForTypes.push(V);
+		}
+
 		OnExpressionTypeNode(node._Expression.Value.get(), GetValueMode::Read);
+
+		LookingForTypes.pop();
+
 		auto ExType = LastExpressionType;
 
 		LastExpressionType = ToType;
@@ -6182,6 +6222,7 @@ void SystematicAnalysis::OnIfNode(const IfNode& node)
 		DoImplicitConversion(_LastExpressionField, LastExpressionType, BoolType);
 		BoolCode = _LastExpressionField;
 		IfIndex = LookingAtIRBlock->NewConditionalFalseJump(BoolCode);
+		BoolCode = IfIndex.logicalNot;
 	}
 	
 	
@@ -6421,17 +6462,27 @@ IROperator  SystematicAnalysis::BuildMember_Store(const GetMemberTypeSymbolFromV
 }
 IROperator  SystematicAnalysis::BuildMember_DereferencStore(const GetMemberTypeSymbolFromVar_t& In)
 {
+	IRInstruction* Output = nullptr;
+
+	BuildMember_Access(In, Output);
+	if (Output == nullptr)
+	{
+		Output = In.Symbol->IR_Ins;
+	}
+	bool UseOutput = In.Symbol->IR_Ins != Output;
+
 	switch (In.Symbol->Type)
 	{
+	case  SymbolType::Type_class://this
+	case  SymbolType::Class_Field:
 	case  SymbolType::StackVarable:
-		return IROperator(In.Symbol->IR_Ins);
-		break;
+		return Output;
 	case  SymbolType::ParameterVarable:
-		return IROperator(In.Symbol->IR_Par);
+		return UseOutput ? IROperator(Output) : IROperator(In.Symbol->IR_Par);
 		break;
 	case  SymbolType::StaticVarable:
 	case  SymbolType::ThreadVarable:
-		return IROperator(_Builder.ToID(In.Symbol->FullName));
+		return UseOutput ? IROperator(_Builder.ToID(In.Symbol->FullName)) : IROperator(In.Symbol->IR_Par);
 		break;
 	default:
 		throw std::exception("not added");
@@ -7026,19 +7077,27 @@ IRInstruction* SystematicAnalysis::BuildMember_DereferenceValue(const GetMemberT
 	T._IsAddress = false;
 	IRType IRT = ConvertToIR(T);
 
+	IRInstruction* Output = nullptr;
+
+	BuildMember_Access(In, Output);
+	if (Output == nullptr)
+	{
+		Output = In.Symbol->IR_Ins;
+	}
+	bool UseOutput = In.Symbol->IR_Ins != Output;
+
 	switch (In.Symbol->Type)
 	{
 	case  SymbolType::Class_Field:
 	case  SymbolType::StackVarable:
-		return LookingAtIRBlock->NewLoad_Dereferenc(In.Symbol->IR_Ins, IRT);
+		return UseOutput ? LookingAtIRBlock->NewLoad_Dereferenc(Output,IRT) : LookingAtIRBlock->NewLoad_Dereferenc(In.Symbol->IR_Ins, IRT);
 		break;
 	case  SymbolType::ParameterVarable:
-		return  LookingAtIRBlock->NewLoad_Dereferenc(In.Symbol->IR_Par, IRT);
-		break;
+		return UseOutput ? LookingAtIRBlock->NewLoad_Dereferenc(Output,IRT) : LookingAtIRBlock->NewLoad_Dereferenc(In.Symbol->IR_Par, IRT);
 	default:
+		throw std::exception("not added");
 		break;
 	}
-	throw std::exception("bad path");
 }
 IRInstruction* SystematicAnalysis::BuildMember_AsValue(const GetMemberTypeSymbolFromVar_t& In)
 {
@@ -9061,7 +9120,6 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 		LookingForTypes.top() = Data->Op0;
 	}
 	
-
 	OnExpressionTypeNode(Ex0node, GetValueMode::Read);
 	auto Ex1 = _LastExpressionField;
 	auto Ex1Type = LastExpressionType;
@@ -9201,6 +9259,8 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 			case TypesEnum::float32:BindaryBuildS(32); break;
 			case TypesEnum::float64:BindaryBuildS(64); break;
 
+			case TypesEnum::uIntPtr:BindaryBuildU(64); break;
+			case TypesEnum::sIntPtr:BindaryBuildS(64); break;
 
 			case TypesEnum::Bool:
 				switch (Op)
@@ -9225,6 +9285,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 				}
 				break;
 			default:
+				throw std::exception("not added");
 				break;
 			}
 		}
@@ -12776,6 +12837,10 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 		else PrimitiveTypeCall(float32TypeName, TypesEnum::float32, _LastExpressionField = LookingAtIRBlock->NewLoad((float32)0))
 		else PrimitiveTypeCall(float64TypeName, TypesEnum::float64, _LastExpressionField = LookingAtIRBlock->NewLoad((float64)0))
 
+		else PrimitiveTypeCall(UintPtrTypeName, TypesEnum::uIntPtr, _LastExpressionField = LookingAtIRBlock->NewLoad((UInt64)0))
+		else PrimitiveTypeCall(SintPtrTypeName, TypesEnum::sIntPtr, _LastExpressionField = LookingAtIRBlock->NewLoad(((UInt64)0)))
+
+
 	}
 	if (Func.Func == nullptr)
 	{
@@ -13448,8 +13513,9 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 				}
 				else
 				{
-					
-					ScopedName += Item.token->Value._String;
+					String Str;
+					Item.GetScopedName(Str);
+					ScopedName += Str;
 					if (Item.Operator != ScopedName::Operator_t::Null)
 					{
 						ScopedName += ScopeHelper::_ScopeSep;
@@ -13530,6 +13596,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 				{
 					LogCantCastImplicitTypes(LastLookedAtToken, LastExpressionType, FuncType,true);
 				}
+				LastExpressionType = FuncType;
 			}
 
 			return { Get_FuncInfo::ThisPar_t::NoThisPar, nullptr };
@@ -14544,13 +14611,13 @@ void SystematicAnalysis::GenericTypeInstantiate(const Symbol* Class, const Vecto
 		passtype = PassType::GetTypes;
 		OnClassNode(*node);
 
-		//if (!_ErrorsOutput->Has_Errors())
+		if (!_ErrorsOutput->Has_Errors())
 		{
 			passtype = PassType::FixedTypes;
 			OnClassNode(*node);
 		}
 
-		//if (!_ErrorsOutput->Has_Errors()) 
+		if (!_ErrorsOutput->Has_Errors()) 
 		{
 			passtype = PassType::BuidCode;
 			OnClassNode(*node);
@@ -14598,13 +14665,13 @@ void SystematicAnalysis::GenericTypeInstantiate_Trait(const Symbol* Trait, const
 		passtype = PassType::GetTypes;
 		OnTrait(*node);
 
-		//if (!_ErrorsOutput->Has_Errors()) 
+		if (!_ErrorsOutput->Has_Errors()) 
 		{
 			passtype = PassType::FixedTypes;
 			OnTrait(*node);
 		}
 
-		//if (!_ErrorsOutput->Has_Errors())
+		if (!_ErrorsOutput->Has_Errors())
 		{
 			passtype = PassType::BuidCode;
 			OnTrait(*node);
@@ -14652,13 +14719,13 @@ void SystematicAnalysis::GenericTypeInstantiate_Alias(const Symbol* Alias, const
 		passtype = PassType::GetTypes;
 		OnAliasNode(*node);
 
-		//if (!_ErrorsOutput->Has_Errors())
+		if (!_ErrorsOutput->Has_Errors())
 		{
 			passtype = PassType::FixedTypes;
 			OnAliasNode(*node);
 		}
 
-		//if (!_ErrorsOutput->Has_Errors()) 
+		if (!_ErrorsOutput->Has_Errors()) 
 		{
 			passtype = PassType::BuidCode;
 			OnAliasNode(*node);
@@ -14706,13 +14773,13 @@ void SystematicAnalysis::GenericTypeInstantiate_Enum(const Symbol* Alias, const 
 		passtype = PassType::GetTypes;
 		OnEnum(*node);
 
-		//if (!_ErrorsOutput->Has_Errors()) 
+		if (!_ErrorsOutput->Has_Errors()) 
 		{
 			passtype = PassType::FixedTypes;
 			OnEnum(*node);
 		}
 
-		//if (!_ErrorsOutput->Has_Errors())
+		if (!_ErrorsOutput->Has_Errors())
 		{
 			passtype = PassType::BuidCode;
 			OnEnum(*node);
@@ -14760,13 +14827,13 @@ void SystematicAnalysis::GenericTypeInstantiate_Tag(const Symbol* Tag, const Vec
 		passtype = PassType::GetTypes;
 		OnTag(*node);
 
-		//if (!_ErrorsOutput->Has_Errors()) 
+		if (!_ErrorsOutput->Has_Errors()) 
 		{
 			passtype = PassType::FixedTypes;
 			OnTag(*node);
 		}
 
-		//if (!_ErrorsOutput->Has_Errors()) 
+		if (!_ErrorsOutput->Has_Errors()) 
 		{
 			passtype = PassType::BuidCode;
 			OnTag(*node);
@@ -14962,18 +15029,15 @@ bool SystematicAnalysis::AccessCheck(const Symbol* Syb,const Token* Token, const
 {
 	if (Syb->Access == AccessModifierType::Private)
 	{
-		bool IsOk = false;
-		if (Syb->FullName.size() >= _Table._Scope.ThisScope.size())
-		{
-			auto CmpStr = Syb->FullName.substr(0, _Table._Scope.ThisScope.size());
-			IsOk = _Table._Scope.ThisScope == CmpStr;
-		}
-		else 
-		{
-			auto Str1 = ScopeHelper::GetReMoveScope(Syb->FullName);
-			auto Str2 = ScopeHelper::GetReMoveScope(_Table._Scope.ThisScope);
-			IsOk = Str1 == Str2;
-		}
+
+		auto Str1 = ScopeHelper::GetReMoveScope(Syb->FullName);
+		auto Str2 = ScopeHelper::GetReMoveScope(Scope);
+
+
+		auto CmpStr = Str1.substr(0, Str2.size());
+		bool IsOk = (Str1 == Scope) || Str1 == CmpStr;
+
+
 		if (!IsOk)
 		{
 			LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "Cant use the Symbol '" + Syb->FullName + "' its Private");
