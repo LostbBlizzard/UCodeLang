@@ -78,7 +78,7 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 		{
 			if (Ins->Type == IRInstructionType::Member_Access)
 			{
-				OnOp(*Ins, Ins->Target());
+				OnOp(*Ins, Ins->Target(),false);
 				if (Ins->Target().Type == IROperatorType::IRInstruction)
 				{
 					auto ClassType = Ins->Target().Pointer->ObjectType;
@@ -93,6 +93,12 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 					{
 						LogErrorCantFindPar(Ins->Target());
 					}
+				}
+				else if (Ins->Target().Type == IROperatorType::IRidentifier)
+				{
+					auto ClassType =_Input->GetSymbol(Ins->Target().identifer)->Type;
+					GetMemberAccessTypeForIns(ClassType, _Input, Ins);
+
 				}
 				else
 				{
@@ -103,7 +109,7 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 			}
 			else if (Ins->Type == IRInstructionType::Member_Access_Dereference)
 			{
-				OnOp(*Ins, Ins->Target());
+				OnOp(*Ins, Ins->Target(),false);
 				if (Ins->Target().Type == IROperatorType::IRInstruction)
 				{
 					auto ClassType = Ins->Target().Pointer->ObjectType;
@@ -118,6 +124,11 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 					{
 						LogErrorCantFindPar(Ins->Target());
 					}
+				}
+				else if (Ins->Target().Type == IROperatorType::IRidentifier)
+				{
+					auto ClassType = _Input->GetSymbol(Ins->Target().identifer)->Type;
+					GetMemberAccessTypeForIns(ClassType, _Input, Ins);
 				}
 				else
 				{
@@ -205,15 +216,15 @@ void IRTypeFixer::GetMemberAccessTypeForIns(UCodeLang::IRType& ClassType, UCodeL
 		Ins->ObjectType = StructType->Fields[Ins->Input().Value.AsUIntNative].Type;
 	}
 }
-void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op)
+void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op, bool UpdateInsType)
 {
 	//Ins->Type =
 
 	if (Op.Type == IROperatorType::IRInstruction)
 	{
-
-		Ins.ObjectType = _Input->GetType(Op.Pointer);
-
+		if (UpdateInsType) {
+			Ins.ObjectType = _Input->GetType(Op.Pointer);
+		}
 
 
 		if (!InBlock(Op.Pointer))
@@ -225,7 +236,9 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op)
 		|| Op.Type == IROperatorType::Get_PointerOf_IRParameter
 		|| Op.Type == IROperatorType::Get_PointerOf_IRidentifier)
 	{
-		Ins.ObjectType = IRType(IRTypes::pointer);
+		if (UpdateInsType) {
+			Ins.ObjectType = IRType(IRTypes::pointer);
+		}
 
 		if (Op.Type == IROperatorType::Get_PointerOf_IRParameter)
 		{
@@ -245,8 +258,9 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op)
 	}
 	else if (Op.Type == IROperatorType::IRParameter)
 	{
-		Ins.ObjectType =Op.Parameter->type;
-
+		if (UpdateInsType) {
+			Ins.ObjectType = Op.Parameter->type;
+		}
 
 		if (!InList(Op.Parameter,_Func->Pars))
 		{
@@ -267,8 +281,9 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op)
 					bool Same = _Input->IsTheSame(V, FunSym);
 					if (Same)
 					{
-						Ins.ObjectType.SetType(FuncSyb->identifier);
-						return;
+						if (UpdateInsType) {
+							Ins.ObjectType.SetType(FuncSyb->identifier);
+						}return;
 					}
 
 				}
@@ -276,14 +291,16 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op)
 
 		}
 
-
-		Ins.ObjectType.SetType(IRTypes::pointer);
+		if (UpdateInsType) {
+			Ins.ObjectType.SetType(IRTypes::pointer);
+		}
 	}
 	else if (Op.Type == IROperatorType::IRidentifier)
 	{
 		auto V = _Input->GetSymbol(Op.identifer);
-		Ins.ObjectType =V->Type;
-
+		if (UpdateInsType) {
+			Ins.ObjectType = V->Type;
+		}
 	}
 	else
 	{

@@ -1136,6 +1136,25 @@ void UCodeBackEndObject::FuncCallEnd(UCodeBackEndObject::FuncCallEndData& Data)
 		}
 	}
 }
+void UCodeBackEndObject::AddOffset(IRlocData& Pos, size_t Offset)
+{
+	if (auto Val = Pos.Info.Get_If<IRlocData_StackPost>())
+	{
+		Val->offset += Offset;
+	}
+	else if (auto Val = Pos.Info.Get_If<IRlocData_StackPre>())
+	{
+		Val->offset += Offset;
+	}
+	else if (auto Val = Pos.Info.Get_If<IRlocData_StaticPos>())
+	{
+		Val->offset += Offset;
+	}
+	else if (auto Val = Pos.Info.Get_If<IRlocData_ThreadPos>())
+	{
+		Val->offset += Offset;
+	}
+}
 void UCodeBackEndObject::DropStack()
 {
 	if (_Stack.Size)
@@ -1439,7 +1458,15 @@ RegisterID UCodeBackEndObject::MakeIntoRegister(const IRlocData& Value, Optional
 	}
 	else if (auto Val = Value.Info.Get_If<IRlocData_StackPost>())
 	{
-		auto Tep = GetRegisterForTep();
+		RegisterID Tep;
+		if (RegisterToPut.has_value())
+		{
+			Tep = RegisterToPut.value();
+		}
+		else
+		{
+			Tep = GetRegisterForTep();
+		}
 
 		auto Size = GetSize(Value.ObjectType);
 
@@ -1477,7 +1504,15 @@ void  UCodeBackEndObject::GiveNameTo(const IRlocData& Value, const IRInstruction
 	}
 	else if (auto Val = Value.Info.Get_If<IRlocData_StackPost>())
 	{
-		
+		_Stack.Add(Name, Val->offset);
+	}
+	else if (auto Val = Value.Info.Get_If<IRlocData_StaticPos>())
+	{
+
+	}
+	else if (auto Val = Value.Info.Get_If<IRlocData_ThreadPos>())
+	{
+
 	}
 	else
 	{
@@ -1943,7 +1978,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 		if (Op.Type == IROperatorType::IRInstruction)
 		{
 			auto Item = Op.Pointer;
-
+			CompilerRet.ObjectType = GetType(Item);
 			auto InReg = FindIRInRegister(Item);
 			if (InReg.has_value())
 			{
@@ -1961,9 +1996,9 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 					auto Pos = GetIRLocData(Item, Item->Target());
 					const IRStruct* VStruct = _Input->GetSymbol(Pos.ObjectType._symbol)->Get_ExAs<IRStruct>();
 
-					size_t& StackOffset = Pos.Info.Get<IRlocData_StackPost>().offset;
-					StackOffset += _Input->GetOffset(VStruct, Item->Input().Value.AsUIntNative);
-
+					size_t Offset = _Input->GetOffset(VStruct, Item->Input().Value.AsUIntNative);
+					AddOffset(Pos, Offset);
+					
 					CompilerRet = Pos;
 				}
 				else if (Item->Type == IRInstructionType::Member_Access_Dereference)
@@ -2019,6 +2054,28 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 		{
 			CompilerRet.Info = LoadOp(Ins,Op);
 		}
+		else if (Op.Type == IROperatorType::IRidentifier)
+		{
+			if (auto Syb = _Input->GetSymbol(Op.identifer))
+			{
+				if (Syb->SymType == IRSymbolType::StaticVarable)
+				{
+					const auto& Mem = _StaticMemory._List.at(Op.identifer);
+					CompilerRet.Info = IRlocData_StaticPos(Mem.Offset);
+					CompilerRet.ObjectType = Syb->Type;
+				}
+				else if (Syb->SymType == IRSymbolType::ThreadLocalVarable)
+				{
+					const auto& Mem = _ThreadMemory._List.at(Op.identifer);
+					CompilerRet.Info = IRlocData_ThreadPos(Mem.Offset);
+					CompilerRet.ObjectType = Syb->Type;
+				}
+				else
+				{
+					throw std::exception("not added");
+				}
+			}
+		}
 		else
 		{
 			throw std::exception("bad path");
@@ -2051,8 +2108,11 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 			auto Item = Op.Pointer;
 
 			auto InReg = FindIRInRegister(Item);
+			
+			CompilerRet.ObjectType = GetType(Item);
 			if (InReg.has_value())
 			{
+				
 				CompilerRet.Info = InReg.value();
 			}
 			else

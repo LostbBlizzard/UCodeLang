@@ -907,6 +907,15 @@ struct IRBlock
 		return V.get();
 	}
 
+	IRInstruction* New_Member_Access(IRidentifierID identifier, const IRStruct* ObjectTypeofSrc, size_t MemberIndex)
+	{
+		auto& V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Member_Access, IROperator(identifier)));
+		V->Input(MemberIndex);
+
+		V->ObjectType = ObjectTypeofSrc->Fields[MemberIndex].Type;
+		return V.get();
+	}
+
 	IRInstruction* New_Member_Dereference(IRInstruction* ObjectSrc, const IRType Type, size_t MemberIndex)
 	{
 		auto& V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Member_Access_Dereference, IROperator(ObjectSrc)));
@@ -918,6 +927,14 @@ struct IRBlock
 	IRInstruction* New_Member_Dereference(IRPar* ObjectSrc, const IRType Type, size_t MemberIndex)
 	{
 		auto& V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Member_Access_Dereference, IROperator(ObjectSrc)));
+		V->Input(MemberIndex);
+
+		V->ObjectType = Type;
+		return V.get();
+	}
+	IRInstruction* New_Member_Dereference(IRidentifierID identifier, const IRType Type, size_t MemberIndex)
+	{
+		auto& V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Member_Access_Dereference, IROperator(identifier)));
 		V->Input(MemberIndex);
 
 		V->ObjectType = Type;

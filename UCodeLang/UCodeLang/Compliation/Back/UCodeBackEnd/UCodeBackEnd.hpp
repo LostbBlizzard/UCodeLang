@@ -410,7 +410,7 @@ private:
 	void FuncCallRet(const IRType& RetType);
 	void FuncCallEnd(FuncCallEndData& Data);
 
-
+	void AddOffset(IRlocData& Pos, size_t Offset);
 
 	FindParsLoc GetParsLoc(const Vector<IRType>& Pars);
 	FindParsLoc GetParsLoc(const Vector<IRPar>& Pars);
