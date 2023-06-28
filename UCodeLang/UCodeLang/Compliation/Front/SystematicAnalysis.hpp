@@ -1081,9 +1081,13 @@ private:
 		if (auto ObjectType = Func->GetObjectForCall())
 		{
 			auto objecttypesyb = GetSymbol(*ObjectType);
-			ClassInfo* V = objecttypesyb->Get_Info<ClassInfo>();
+			if (IsUnMapType(*ObjectType))//Generic Test
+			{
+				return true;
+			}
 
-			return _ClassStack.top().Info== V;
+
+			return _ClassStack.top().Syb == objecttypesyb;
 		}
 
 		return false;

@@ -112,7 +112,7 @@ void TestingGround()
 	}
 
 
-	Interpreter RunTime;
+ 	Interpreter RunTime;
 	
 	ULangTest::TestGenerator V;
 	V.SetSeed(1);
@@ -203,7 +203,7 @@ void TestingGround()
 		Vec3 BufferToCopy[3]{ 1,2,3 };
 
 
-		auto AutoPtr = RunTime.RCall<int>(*FuncMain);
+		auto AutoPtr = RunTime.RCall<Vec2>(*FuncMain);
 
 
 		//std::cout << " Got Value " << (int)AutoPtr << std::endl;

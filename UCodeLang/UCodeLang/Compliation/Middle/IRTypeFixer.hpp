@@ -50,7 +50,7 @@ private:
 		return false;
 	}
 
-	void OnOp(IRInstruction& Ins, IROperator& Op);
+	void OnOp(IRInstruction& Ins, IROperator& Op,bool UpdateInsType =true);
 	void LogCantFindInsInBlock();
 	void LogErrorCantFindPar(UCodeLang::IROperator& Op);
 };

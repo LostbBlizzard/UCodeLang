@@ -223,7 +223,7 @@ private:
 	
 	struct CPUData
 	{
-		UAddress ProgramCounter;
+		UAddress ProgramCounter=NullAddress;
 		CPUReturn_t RetValue;
 		Register A,B,C,D,E,F;
 		//

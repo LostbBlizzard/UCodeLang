@@ -1184,17 +1184,17 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 	bool CheckgenericForErr = (Isgeneric_t && (passtype == PassType::GetTypes || passtype == PassType::FixedTypes));
 	if (!Isgeneric_t || CheckgenericForErr)
 	{
-		if (CheckgenericForErr)
-		{
-			_Table.AddScope(GenericTestStr);
-			Syb.FullName += GenericTestStr;
-		}
+		
 		ClassStackInfo classStackInfo;
 		classStackInfo.Syb = &Syb;
 		classStackInfo.Info = ClassInf;
 		_ClassStack.push(classStackInfo);
 		PushClassDependencie(ClassInf);
-
+		if (CheckgenericForErr)
+		{
+			_Table.AddScope(GenericTestStr);
+			Syb.FullName += GenericTestStr;
+		}
 
 		//if (passtype == PassType::GetTypes)
 		{
@@ -2209,7 +2209,15 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	if (node.Body.has_value() && !ignoreBody)
 	{
 		auto& Body = node.Body.value();
+		size_t ErrorCount = _ErrorsOutput->Get_Errors().size();
+
 		OnStatementsWithSetableRet(Body.Statements, Info->Ret, node.Signature.Name.Token);
+
+		bool GotErr =ErrorCount < _ErrorsOutput->Get_Errors().size();
+		if (GotErr)
+		{
+			syb->SetToInvalid();
+		}
 		syb->VarType = Info->Ret;
 	}
 
@@ -6453,7 +6461,7 @@ IROperator  SystematicAnalysis::BuildMember_Store(const GetMemberTypeSymbolFromV
 		break;
 	case SymbolType::StaticVarable:
 	case SymbolType::ThreadVarable:
-		return IROperator(_Builder.ToID(In.Symbol->FullName));
+		return UseOutput ? IROperator(Output) : IROperator(_Builder.ToID(In.Symbol->FullName));
 		break;
 	default:
 		throw std::exception("not added");
@@ -6818,11 +6826,13 @@ bool SystematicAnalysis::StepGetMemberTypeSymbolFromVar(const ScopedNameNode& no
 			Symbol* TypeAsSybol = GetSymbol(VarableType);
 			if (TypeAsSybol)
 			{
-
+				
 				if (Out.Symbol->Type == SymbolType::Class_Field)
 				{
-					const UCodeLang::Token* Token = node.ScopedName.begin()->token;
-					AccessCheck(Out.Symbol, Token);
+					const UCodeLang::Token* token = node.ScopedName.begin()->token;
+					
+
+					AccessCheck(Out.Symbol, token);
 				}
 
 				if (TypeAsSybol->Type != SymbolType::Type_class)
@@ -7274,8 +7284,6 @@ void SystematicAnalysis::StepBuildMember_Access(const ScopedName& ITem, TypeSymb
 					Output = LookingAtIRBlock->New_Member_Access(In.Symbol->IR_Ins, IRstruct, MemberIndex);
 				}
 			}
-
-
 			break;
 			case  SymbolType::ParameterVarable:
 			{
@@ -7291,6 +7299,25 @@ void SystematicAnalysis::StepBuildMember_Access(const ScopedName& ITem, TypeSymb
 
 			}
 			break;
+			case SymbolType::ThreadVarable:
+			case SymbolType::StaticVarable:
+			{
+				TypeSymbol& TypeSys = Last_Type;
+				auto id = _Builder.ToID(In.Symbol->FullName);
+				if (TypeSys.IsAddress())
+				{
+					Output = LookingAtIRBlock->New_Member_Dereference(id,ConvertToIR(Sym->VarType), MemberIndex);
+				}
+				else
+				{
+					Output = LookingAtIRBlock->New_Member_Access(id, IRstruct, MemberIndex);
+				}
+
+			}
+			break;
+			default:
+				throw std::exception("not added");
+				break;
 			}
 		}
 		else
@@ -7391,6 +7418,17 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 				//because overloaded funcions have the same Symbol FullNames we need to pick the this one and not the first one/  
 				FuncInfo* Func = _FuncStack.back().Pointer;
 				//throw std::exception("bad");
+			}
+
+			if (SymbolVar->Type == SymbolType::Class_Field)
+			{
+				if (!IsInThisFuncCall())
+				{
+					LogCantUseThisInStaticFunction(Token);
+					Out.Symbol = nullptr;
+					Out.Type = TypeSymbol();
+					return false;
+				}
 			}
 
 			if (ScopeName.Generic.get() && ScopeName.Generic->Values.size())
@@ -13821,7 +13859,10 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 
 		if (Item->Type == SymbolType::Func)
 		{
-			
+			if (Item->IsInvalid())
+			{
+				return {};
+			}
 			FuncInfo* Info = Item->Get_Info<FuncInfo>();
 
 			IsCompatiblePar CMPPar;

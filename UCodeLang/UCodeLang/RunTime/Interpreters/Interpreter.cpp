@@ -75,6 +75,11 @@ Interpreter::Return_t Interpreter::Call(UAddress address)
 		Instruction& Inst = _State->GetInst(_CPU.ProgramCounter);
 		Extecute(Inst);	
 		_CPU.ProgramCounter++;
+
+		if (_CPU.ProgramCounter == 6)
+		{
+			int a = 0;
+		}
 	}
 
 	RetState State;

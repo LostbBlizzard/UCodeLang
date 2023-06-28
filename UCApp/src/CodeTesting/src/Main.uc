@@ -1,10 +1,16 @@
 
 
+/*
+
 $Unique_ptr<T>:
  T& Ptr;
 
  |new[this&] -> void:
   Ptr =: bitcast<T&>(0);
+ 
+ |~>[this&] -> T&:ret Ptr;
+ |AsPtr[this&] -> T&:ret Ptr;
+
  |drop[this&]:
   uintptr PtrAsInt = bitcast<uintptr>(Ptr);
   if PtrAsInt != uintptr(0):
@@ -20,4 +26,19 @@ $Unique_ptr<T>:
 
 |main[] -> int:
  var Object = unq int(); 
- ret 0;
+ ret Object.AsPtr();
+
+*/
+
+$Vec2:
+ int X = 1;
+ int Y = 2;
+
+static Vec2 OnS = [];
+
+|main[]:
+ 
+ OnS.X = 12;
+ OnS.Y = 13;
+
+ ret OnS;
