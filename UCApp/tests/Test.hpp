@@ -172,7 +172,7 @@ UCodeTestStart
 
 	bool RunTest(const TestInfo& Test);
 
-	int RunTests();
+	int RunTests(bool MultThread =true);
 
 	bool LogErrors(std::ostream& out, UCodeLang::Compiler& _Compiler);
 	

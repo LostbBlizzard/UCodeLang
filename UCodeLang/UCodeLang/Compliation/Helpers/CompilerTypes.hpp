@@ -161,6 +161,9 @@ enum class TokenType : TokenType_t
 	KeyWord_await,//await
 	KeyWord_async,//async
 
+	KeyWord_uft8,
+	KeyWord_uft16,
+	KeyWord_uft32,
 
 	//used internally
 	internal_Constant_expression
