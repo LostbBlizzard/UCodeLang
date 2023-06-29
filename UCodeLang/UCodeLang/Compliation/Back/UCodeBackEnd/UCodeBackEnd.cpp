@@ -1616,6 +1616,26 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetPointerOf(const IRlocData& 
 		V.ObjectType = IRTypes::pointer;
 		return V;
 	}
+	else if (auto Val = Value.Info.Get_If<IRlocData_StaticPos>())
+	{
+		auto R = GetRegisterForTep();
+		InstructionBuilder::GetPointerOfStaticMem(_Ins, R, Val->offset);
+
+		IRlocData V;
+		V.Info = R;
+		V.ObjectType = IRTypes::pointer;
+		return V;
+	}
+	else if (auto Val = Value.Info.Get_If<IRlocData_ThreadPos>())
+	{
+		auto R = GetRegisterForTep();
+		InstructionBuilder::GetPointerOfThreadMem(_Ins, R, Val->offset);
+
+		IRlocData V;
+		V.Info = R;
+		V.ObjectType = IRTypes::pointer;
+		return V;
+	}
 	else
 	{
 		throw std::exception("not added");
@@ -2067,9 +2087,12 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 				{
 					auto Pos = GetIRLocData(Item, Item->Target());
 					const IRStruct* VStruct = _Input->GetSymbol(Pos.ObjectType._symbol)->Get_ExAs<IRStruct>();
+					size_t FieldIndex = Item->Input().Value.AsUIntNative;
 
-					size_t Offset = _Input->GetOffset(VStruct, Item->Input().Value.AsUIntNative);
+					size_t Offset = _Input->GetOffset(VStruct,FieldIndex);
 					AddOffset(Pos, Offset);
+
+					Pos.ObjectType = VStruct->Fields[FieldIndex].Type;
 					
 					CompilerRet = Pos;
 				}

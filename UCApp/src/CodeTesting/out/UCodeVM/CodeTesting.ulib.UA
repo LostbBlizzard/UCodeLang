@@ -6,48 +6,58 @@ $[_global]:
 
 
 $Testing:Vec2:
-.size:8
+.size:12
  sint32 X;//Offset 0
  sint32 Y;//Offset 4
+ sint32 Z;//Offset 8
 
 
 
 
 [Instructions]-- 
 ---(&StaticInit&): 
-   0 :Store64 [A],8
+   0 :Store64 [A],12
    1 :IncrementStackPointer [A]
-   2 :GetPointerOfStackSub [A],8
+   2 :GetPointerOfStackSub [A],12
    3 :StoreRegToReg64 [A],[D]
    4 :Call {Testing:Vec2:(&_new&)^[]&}
-   5 :GetFromStackSub64 8,[A]
+   5 :GetFromStackSub64 12,[A]
    6 :GetPointerOfStaticMem [B],0
    7 :StoreRegToPtr64 [A],[B]
-   8 :Store64 [B],8
-   9 :DecrementStackPointer [B]
-   10 :Ret 
+   8 :GetFromStackSub32 4,[A]
+   9 :GetPointerOfStaticMem [B],8
+   10 :StoreRegToPtr32 [A],[B]
+   11 :Store64 [B],12
+   12 :DecrementStackPointer [B]
+   13 :Ret 
 ---Testing:Vec2:(&_init&): 
-   11 :Store32 [A],0
-   12 :StoreRegToPtr32 [A],[D]
-   13 :Load32 [Ptr:[D]],[Target:[A]],4
-   14 :Ret 
+   14 :Store32 [A],0
+   15 :StoreRegToPtr32 [A],[D]
+   16 :Load32 [Ptr:[D]],[Target:[A]],4
+   17 :Load32 [Ptr:[D]],[Target:[A]],8
+   18 :Ret 
 ---Testing:Vec2:(&_new&)^[]&: 
-   15 :Call {Testing:Vec2:(&_init&)}
-   16 :Ret 
+   19 :Call {Testing:Vec2:(&_init&)}
+   20 :Ret 
 ---Testing:main: 
-   17 :Store32 [A],1
-   18 :GetPointerOfStaticMem [B],0
-   19 :StoreFromPtrToReg64 [B],[B]
-   20 :Add32 [B],[A]
-   21 :StoreRegToReg32 [F],[B]
-   22 :GetPointerOfStaticMem [C],0
-   23 :StoreRegToPtr32 [B],[C]
-   24 :GetPointerOfStaticMem [C],4
-   25 :StoreFromPtrToReg64 [C],[C]
-   26 :Add32 [C],[A]
-   27 :StoreRegToReg32 [F],[C]
-   28 :GetPointerOfStaticMem [D],4
-   29 :StoreRegToPtr32 [C],[D]
-   30 :GetPointerOfStaticMem [F],0
-   31 :StoreFromPtrToReg64 [F],[F]
-   32 :Ret 
+   21 :Store32 [A],1
+   22 :GetPointerOfStaticMem [B],0
+   23 :StoreFromPtrToReg32 [B],[B]
+   24 :Add32 [B],[A]
+   25 :StoreRegToReg32 [F],[B]
+   26 :GetPointerOfStaticMem [C],0
+   27 :StoreRegToPtr32 [B],[C]
+   28 :GetPointerOfStaticMem [C],4
+   29 :StoreFromPtrToReg32 [C],[C]
+   30 :Add32 [C],[A]
+   31 :StoreRegToReg32 [F],[C]
+   32 :GetPointerOfStaticMem [D],4
+   33 :StoreRegToPtr32 [C],[D]
+   34 :GetPointerOfStaticMem [D],8
+   35 :StoreFromPtrToReg32 [D],[D]
+   36 :Add32 [D],[A]
+   37 :StoreRegToReg32 [F],[D]
+   38 :GetPointerOfStaticMem [E],8
+   39 :StoreRegToPtr32 [D],[E]
+   40 :StoreRegToReg64 [E],[F]
+   41 :Ret 

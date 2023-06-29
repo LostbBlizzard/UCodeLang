@@ -203,7 +203,7 @@ void TestingGround()
 		Vec3 BufferToCopy[3]{ 1,2,3 };
 
 
-		auto AutoPtr = RunTime.RCall<Vec2>(*FuncMain);
+		auto AutoPtr = RunTime.RCall<Vec3>(*FuncMain);
 
 
 		//std::cout << " Got Value " << (int)AutoPtr << std::endl;
