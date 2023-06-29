@@ -76,10 +76,12 @@ Interpreter::Return_t Interpreter::Call(UAddress address)
 		Extecute(Inst);	
 		_CPU.ProgramCounter++;
 
-		if (_CPU.ProgramCounter == 6)
+		#ifdef DEBUG
+		if (_CPU.ProgramCounter == 7)
 		{
 			int a = 0;
 		}
+		#endif // DEBUG
 	}
 
 	RetState State;

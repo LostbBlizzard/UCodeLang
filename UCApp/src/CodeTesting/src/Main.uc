@@ -31,14 +31,14 @@ $Unique_ptr<T>:
 */
 
 $Vec2:
- int X;
- int Y;
+ int X = 0;
+ int Y = 0;
 
 static Vec2 OnS = [];
 
 |main[]:
  
- OnS.X = 12;
- OnS.Y = 13;
+ OnS.X++;
+ OnS.Y++;
 
  ret OnS;

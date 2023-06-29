@@ -1000,6 +1000,8 @@ UCodeBackEndObject::FuncCallEndData  UCodeBackEndObject::FuncCallStart(const Vec
 	{
 		RegisterID CompilerRet = (RegisterID)i;
 		auto& Item = _Registers.Registers[i];
+
+		bool WasSet = false;
 		if (Item.Types.has_value())
 		{
 			auto& ItemTypes = Item.Types.value();
@@ -1008,6 +1010,7 @@ UCodeBackEndObject::FuncCallEndData  UCodeBackEndObject::FuncCallStart(const Vec
 				auto& IR = *IRV;
 				if (IsReferencedAfterThisIndex(IR))
 				{
+					WasSet = true;
 					auto VType = GetType(IR);
 					switch (VType._Type)
 					{
@@ -1043,12 +1046,15 @@ UCodeBackEndObject::FuncCallEndData  UCodeBackEndObject::FuncCallStart(const Vec
 						break;
 					}
 				}
+				
 			}
-			else
-			{
-				Item.Types = {};
-			}
+			
 
+		}
+		
+		if (WasSet == false)
+		{
+			Item.Types = {};
 		}
 	}
 
@@ -2092,6 +2098,10 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 				else if (Item->Type == IRInstructionType::Call)
 				{
 					CompilerRet.Info = RegisterID::OuPutRegister;
+				}
+				else if (Item->Type == IRInstructionType::Load)
+				{
+					return GetIRLocData(Item, Item->Target());
 				}
 				else
 				{
