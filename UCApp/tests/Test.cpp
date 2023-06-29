@@ -4,8 +4,8 @@
 #include <sstream>
 #include <fstream>
 #include <UCodeLang/Compliation/UAssembly/UAssembly.hpp>
-namespace ULangTest
-{
+UCodeTestStart
+
 	using namespace UCodeLang;
 	String ModeType(OptimizationFlags Flags)
 	{
@@ -336,7 +336,7 @@ namespace ULangTest
 	}
 
 
-	int RunTests()
+	int RunTests(bool MultThread)
 	{
 		size_t TestPassed = 0;
 		std::cout << "---runing Test" << std::endl;
@@ -396,4 +396,5 @@ namespace ULangTest
 		out << "]\n";
 		return _Compiler.Get_Errors().Has_Errors();
 	}
-}
+
+UCodeTestEnd

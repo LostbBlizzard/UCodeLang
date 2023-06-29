@@ -98,6 +98,11 @@ inline const char* S_KeyWord_extern = "extern";
 inline const char* S_KeyWord_await = "await";
 inline const char* S_KeyWord_async = "async";
 
+inline const char* S_KeyWord_utf8 = "utf8";
+inline const char* S_KeyWord_utf16 = "utf16";
+inline const char* S_KeyWord_utf32 = "utf32";
+inline const char* S_KeyWord_utf64 = "utf64";
+
 struct KeyWord
 {
 	const char* keyWord;
@@ -202,6 +207,11 @@ inline KeyWord KeyWords[] =
 
 	KeyWord(S_KeyWord_await,TokenType::KeyWord_await),
 	KeyWord(S_KeyWord_async,TokenType::KeyWord_async),
+
+	KeyWord(S_KeyWord_utf8,TokenType::KeyWord_uft8),
+	KeyWord(S_KeyWord_utf16,TokenType::KeyWord_uft16),
+	KeyWord(S_KeyWord_utf32,TokenType::KeyWord_uft32),
+	KeyWord(S_KeyWord_utf64,TokenType::Null),
 };
 constexpr size_t KeyWords_Size = sizeof(KeyWords) / sizeof(KeyWords[0]);
 class KeyWordHelper

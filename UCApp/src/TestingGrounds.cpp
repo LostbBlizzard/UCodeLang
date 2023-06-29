@@ -110,9 +110,11 @@ void TestingGround()
 	{
 		//JitPerformance::main(JitPerformance::Task::Main);
 	}
-
+	//ULangTest::RunTests();
 
  	Interpreter RunTime;
+
+	
 	
 	ULangTest::TestGenerator V;
 	V.SetSeed(1);
