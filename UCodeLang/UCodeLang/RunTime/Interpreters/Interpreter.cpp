@@ -339,10 +339,10 @@ void Interpreter::Extecute(Instruction& Inst)
 		_CPU.Stack.DecrementStack(Get_Register(Inst.Value0.AsRegister).Value.AsUIntNative);
 		break;
 	case InstructionSet::GetPointerOfStaticMem:
-		Get_Register(Inst.Value0.AsRegister).Value = Get_StaticMemPtr();
+		Get_Register(Inst.Value0.AsRegister).Value = (uintptr_t)Get_StaticMemPtr() + Inst.Value1.AsAddress;
 		break;
 	case InstructionSet::GetPointerOfThreadMem:
-		Get_Register(Inst.Value0.AsRegister).Value = GetThreadRegisterPtr();
+		Get_Register(Inst.Value0.AsRegister).Value = (uintptr_t)GetThreadRegisterPtr() + Inst.Value1.AsAddress;
 		break;
 	case InstructionSet::Malloc:
 		Get_Register(Inst.Value1.AsRegister).Value = 

@@ -144,10 +144,15 @@ private:
 		}
 	};
 
+
+	struct Nothing
+	{
+		Nothing() {}
+	};
 	struct IRlocData
 	{
 		IRType ObjectType;
-		Variant<RegisterID, IRlocData_IRPar, IRlocData_StackPre, IRlocData_StackPost
+		Variant<Nothing,RegisterID, IRlocData_IRPar, IRlocData_StackPre, IRlocData_StackPost
 		, IRlocData_ThreadPos, IRlocData_StaticPos> Info;
 	};
 	IRlocData To(const ParlocData& Value);

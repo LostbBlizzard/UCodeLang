@@ -31,8 +31,8 @@ $Unique_ptr<T>:
 */
 
 $Vec2:
- int X = 1;
- int Y = 2;
+ int X;
+ int Y;
 
 static Vec2 OnS = [];
 

@@ -18,31 +18,25 @@ $Testing:Vec2:
    0 :Store64 [A],8
    1 :IncrementStackPointer [A]
    2 :GetPointerOfStackSub [A],8
-   3 : StoreRegToReg64 [A],[D]
+   3 :StoreRegToReg64 [A],[D]
    4 :Call {Testing:Vec2:(&_new&)^[]&}
-   5 :GetFromStackSub64 8,[B]
+   5 :StoreRegToReg64 [A],[B]
    6 :GetPointerOfStaticMem [C],0
    7 :StoreRegToPtr64 [B],[C]
    8 :Store64 [C],8
    9 :DecrementStackPointer [C]
    10 :Ret 
----Testing:Vec2:(&_init&): 
-   11 :Store32 [A],1
-   12 :StoreRegToPtr32 [A],[D]
-   13 :Store32 [B],2
-   14 :Load32 [Ptr:[D]],[Target:[B]],4
-   15 :Ret 
 ---Testing:Vec2:(&_new&)^[]&: 
-   16 :Call {Testing:Vec2:(&_init&)}
-   17 :Ret 
+   11 :Ret 
 ---Testing:main: 
-   18 :Store32 [A],12
-   19 :StoreRegToReg64 [A],[B]
-   20 :GetPointerOfStaticMem [C],0
-   21 :StoreRegToPtr64 [B],[C]
-   22 :Store32 [C],13
-   23 :StoreRegToReg64 [C],[D]
-   24 :GetPointerOfStaticMem [E],4
-   25 :StoreRegToPtr64 [D],[E]
-   26 :StoreRegToReg64 [A],[F]
-   27 :Ret 
+   12 :Store32 [A],12
+   13 :StoreRegToReg32 [A],[B]
+   14 :GetPointerOfStaticMem [C],0
+   15 :StoreRegToPtr32 [B],[C]
+   16 :Store32 [C],13
+   17 :StoreRegToReg32 [C],[D]
+   18 :GetPointerOfStaticMem [E],4
+   19 :StoreRegToPtr32 [D],[E]
+   20 :GetPointerOfStaticMem [F],0
+   21 :StoreFromPtrToReg64 [F],[F]
+   22 :Ret 

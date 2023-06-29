@@ -209,11 +209,7 @@ void RunTimeLangState::LinkLibs()
 	auto& Bits = _Data.GetStaticBytes();
 	_StaticMemPtr = Malloc(Bits.size());
 
-	UInt8* _StaticMemPtrBits = (UInt8*)_StaticMemPtr;
-	for (size_t i = 0; i < Bits.size(); i++)
-	{
-		_StaticMemPtrBits[i] = Bits[i];
-	}
+	memcpy(_StaticMemPtr, Bits.data(), Bits.size());
 }
 
 Optional<RunTimeLangState::Diffs> RunTimeLangState::HotReload(const HotReloadData& Item, const HotReloadLib& Data)

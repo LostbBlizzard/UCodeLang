@@ -933,7 +933,33 @@ UCodeBackEndObject::FuncCallEndData UCodeBackEndObject::FuncCallStart(const Vect
 }
 Optional< RegisterID> UCodeBackEndObject::FindIRInRegister(const IRInstruction* Value)
 {
-	return _Registers.GetInfo(Value);
+	auto R = _Registers.GetInfo(Value);
+	if (R.has_value())
+	{
+		return R.value();
+	}
+
+	for (size_t i = 0; i < _Registers.Registers.size(); i++)
+	{
+		auto& Item = _Registers.Registers[i];
+
+		if (Item.Types.has_value())
+		{
+			auto& ItemValue = Item.Types.value();
+			if (auto IR = ItemValue.Get_If<const IRInstruction*>())
+			{
+				auto IRV = *IR;
+				if (IRV->Type == IRInstructionType::Load)
+				{
+					if (IRV->Target().Pointer == Value)
+					{
+						return (RegisterID)i;
+					}
+				}
+			}
+		}
+	}
+	return {};
 }
 Optional<RegisterID>  UCodeBackEndObject::FindValueInRegister(AnyInt64 Value)
 {
@@ -1493,7 +1519,44 @@ RegisterID UCodeBackEndObject::MakeIntoRegister(const IRlocData& Value, Optional
 
 		return Tep;
 	}
+	else if (auto Val = Value.Info.Get_If<IRlocData_StaticPos>())
+	{
+		RegisterID Tep;
+		if (RegisterToPut.has_value())
+		{
+			Tep = RegisterToPut.value();
+		}
+		else
+		{
+			Tep = GetRegisterForTep();
+		}
 
+		auto Size = GetSize(Value.ObjectType);
+
+		InstructionBuilder::GetPointerOfStaticMem(_Ins, Tep, Val->offset); PushIns();
+		
+		switch (Size)
+		{
+		case 1:
+			InstructionBuilder::StoreFromPtrToReg8(_Ins, Tep, Tep);
+			break;
+		case 2:
+			InstructionBuilder::StoreFromPtrToReg16(_Ins, Tep, Tep);
+			break;
+		case 4:
+			InstructionBuilder::StoreFromPtrToReg32(_Ins, Tep, Tep);
+			break;
+		case 8:
+			InstructionBuilder::StoreFromPtrToReg64(_Ins,Tep, Tep);
+			break;
+		default:
+			throw std::exception("not added");
+			break;
+		}
+		PushIns();
+
+		return Tep;
+	}
 	throw std::exception("not added");
 }
 void  UCodeBackEndObject::GiveNameTo(const IRlocData& Value, const IRInstruction* Name)
@@ -1748,7 +1811,9 @@ void UCodeBackEndObject::StoreValue(const IRInstruction* Ins, const  IROperator&
 	{
 		auto& Item = OutputLocationIR.Pointer;
 
-		const IRStruct* VStruct = _Input->GetSymbol(GetType(Item, Item->Target())._symbol)->Get_ExAs<IRStruct>();
+		auto Type = Item->ObjectType;//GetType(Item, Item->Target());
+
+		const IRStruct* VStruct = _Input->GetSymbol(Type._symbol)->Get_ExAs<IRStruct>();
 
 		auto Reg = LoadOp(Item,Item->Target());
 		size_t FieldOffset = _Input->GetOffset(VStruct, Item->Input().Value.AsUIntNative);
@@ -1838,7 +1903,8 @@ void UCodeBackEndObject::MoveValueToStack(const IRInstruction* IRName, const IRT
 }
 void UCodeBackEndObject::LoadOpToReg(const IRInstruction* Ins, const  IROperator& Op, RegisterID Out)
 {
-	RegToReg(GetType(Ins)._Type, LoadOp(Ins, Op), Out);
+	auto Pos = GetIRLocData(Ins, Op);
+	MakeIntoRegister(Pos, Out);
 }
 void UCodeBackEndObject::RegToReg(IRTypes Type, RegisterID In, RegisterID Out)
 {
@@ -2145,6 +2211,10 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 							CompilerRet.Info = RegisterID::OuPutRegister;
 						}
 					}
+					else if (Item->Type == IRInstructionType::Load)
+					{
+						return GetIRLocData(Item,Item->Target());
+					}
 					else 
 					{
 						throw std::exception("not added");
@@ -2412,7 +2482,7 @@ void UCodeBackEndObject::ReadValueFromPointer(RegisterID Pointer, size_t Pointer
 }
 void UCodeBackEndObject::CopyValues(const IRlocData& Src, const IRlocData& Out, bool DerefSrc, bool DerefOut)
 {
-	auto Size = GetSize(Out.ObjectType);
+	auto Size = GetSize(Src.ObjectType);
 	size_t Offset = 0;
 	auto Tep = GetRegisterForTep(Src);
 
