@@ -117,7 +117,25 @@ size_t IRBuilder::GetOffset(const IRStruct* Struct, size_t Index) const
 
 IRType IRBuilder::GetType(const IRInstruction* IR, const IROperator& Op) const
 {
-	return GetType(IR);
+	if (IR->Type == IRInstructionType::Member_Access)
+	{
+		return GetType(IR);
+	}
+	else if (IR->Type == IRInstructionType::Member_Access_Dereference)
+	{
+		return GetType(IR);
+	}
+
+
+	if (IR->Type == IRInstructionType::Load)
+	{
+		if (Op.Type == IROperatorType::Value) 
+		{
+			return IR->ObjectType;
+		}
+	}
+
+	return GetType(Op);
 }
 
 IRType IRBuilder::GetType(const IRInstruction* IR) const
@@ -129,12 +147,13 @@ IRType IRBuilder::GetType(const IRInstruction* IR) const
 
 	if (IR->Type == IRInstructionType::Member_Access)
 	{
-		//auto Struct = GetSymbol(IR->ObjectType._symbol)->Get_ExAs<IRStruct>();
-		return {};
+		return IR->ObjectType;
 	}
-	if (IR->Type == IRInstructionType::Member_Access)
+	if (IR->Type == IRInstructionType::Member_Access_Dereference)
 	{
-		throw std::exception("bad path");
+		auto Struct = GetSymbol(IR->ObjectType._symbol)->Get_ExAs<IRStruct>();
+
+		return Struct->Fields[IR->Input().Value.AsUInt64].Type;
 	}
 
 	return IR->ObjectType;
@@ -156,9 +175,15 @@ IRType IRBuilder::GetType(const IROperator& IR) const
 		}
 		else
 		{
-			return IRTypes::i8;
+			return IRTypes::Null;
 		}
 		
+	}
+	case IROperatorType::Get_PointerOf_IRInstruction:
+	case IROperatorType::Get_PointerOf_IRParameter:
+	case IROperatorType::Get_PointerOf_IRidentifier:
+	{
+		return IRType(IRTypes::pointer);
 	}
 	default:
 		throw std::exception("bad path");
