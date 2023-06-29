@@ -33,6 +33,7 @@ $Unique_ptr<T>:
 $Vec2:
  int X = 0;
  int Y = 0;
+ int Z = 0;
 
 static Vec2 OnS = [];
 
@@ -40,5 +41,6 @@ static Vec2 OnS = [];
  
  OnS.X++;
  OnS.Y++;
+ OnS.Z++;
 
  ret OnS;
