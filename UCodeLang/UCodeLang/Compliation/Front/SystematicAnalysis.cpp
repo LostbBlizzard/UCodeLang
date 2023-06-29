@@ -7005,7 +7005,7 @@ IRInstruction* SystematicAnalysis::BuildMember_GetValue(const GetMemberTypeSymbo
 		}
 		else if (In.Symbol->Type == SymbolType::StaticVarable || In.Symbol->Type == SymbolType::ThreadVarable)
 		{
-			return LookingAtIRBlock->NewLoad_IRID(_Builder.ToID(In.Symbol->FullName));
+			return UseOutput ? LookingAtIRBlock->NewLoad(Output) : LookingAtIRBlock->NewLoad_IRID(_Builder.ToID(In.Symbol->FullName));
 		}
 		else
 		{
