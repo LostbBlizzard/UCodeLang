@@ -5,6 +5,7 @@
 #include <UCodeLang/LangCore/LangTypes.hpp>
 #include <filesystem>
 #include "TestNameSpace.h"
+#include "../src/UCodeLangProjectPaths.hpp"
 UCodeTestStart
 
 //Are for Unit testing and Regression Testing 
@@ -165,10 +166,7 @@ UCodeTestStart
 	};
 
 
-
-	const String _ScrDir = "C:/CoolStuff/CoolCodeingStuff/C++/Projects/UCodeLang/UCApp/src/";
-	const String Test_UCodeFiles = _ScrDir + "Tests/UCodeFiles/Files/";
-	const String Test_OutputFiles = _ScrDir + "Tests/UCodeFiles/Output/";
+	
 
 	bool RunTest(const TestInfo& Test);
 

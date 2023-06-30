@@ -75,12 +75,16 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 	#else
 	if (!UFuncToCPPFunc.count(address)){UFuncToCPPFunc[address] = {};}
 	auto& Item = UFuncToCPPFunc[address];
-	
+
+	return _Interpreter.Call(address);//remove this when jit-Interpreter works
+
+
 	TempFunc(InterpreterCPPinterface(&_Interpreter));
 
 	BuildCheck(Item, address);
 
-	
+
+
 	#if UCodeLang_KeepJitInterpreterFallback
 	if (Item.Type == JitFuncType::UCodeCall)
 	{

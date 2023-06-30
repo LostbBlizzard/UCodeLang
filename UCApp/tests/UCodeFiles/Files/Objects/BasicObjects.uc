@@ -1,13 +1,13 @@
 use Tep;
 
-%Tep:
+Tep:
  $Vec2:
   int a;
 
-tag LoadDLL:
+$LoadDLL tag:
  int a;
 
-enum Color:
+$Color enum:
  Red,Green,Blue
 
 $Vec2:
@@ -24,16 +24,16 @@ $Player:
  uint32 g;
  uint64 h;
 
- sint8 i;
- sint16 g;
- sint32 k;
- sint64 l;
- bool G;
+ int8 i;
+ int16 j;
+ int32 k;
+ int64 l;
+ bool m;
  char Hello;
  Color color;
 
- |this[]:ret;
- |copy[]:ret; 
- |move[]:ret;
- |swap[]:ret;
- |drop[]:ret;
+ |new[]:ret;
+ |copy1[]:ret; 
+ |move1[]:ret;
+ |swap1[]:ret;
+ |drop[this&]:ret;
