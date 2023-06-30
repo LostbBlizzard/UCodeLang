@@ -228,11 +228,13 @@ inline bool IsUnary(IRInstructionType Value)
 		|| Value == IRInstructionType::SIntToUInt
 		|| Value == IRInstructionType::UIntToSInt;
 }
-inline bool IsLoadValue(IRInstructionType Value)
+inline bool IsLoadValueOnlyInTarget(IRInstructionType Value)
 {
 	return Value == IRInstructionType::Load
 		|| Value == IRInstructionType::LoadReturn
-		|| Value == IRInstructionType::PushParameter;
+		|| Value == IRInstructionType::PushParameter
+		|| Value == IRInstructionType::MallocCall
+		|| Value == IRInstructionType::FreeCall;
 }
 inline bool IsLoadValueOnInput(IRInstructionType Value)
 {
@@ -259,7 +261,7 @@ inline bool IsOperatorValueInTarget(IRInstructionType Value)
 {
 	return IsBinary(Value)
 		|| IsUnary(Value)
-		|| IsLoadValue(Value)
+		|| IsLoadValueOnlyInTarget(Value)
 		|| Value == IRInstructionType::Member_Access_Dereference
 		|| Value == IRInstructionType::Member_Access
 		|| Value == IRInstructionType::Reassign;
@@ -426,15 +428,7 @@ struct IRStruct : IRSymbol_Ex
 	Vector<IRStructField> Fields;
 	size_t ObjectSize = 0;
 	bool IsUnion = false;
-
-	void AddField(IRType Type, size_t ObjectSize)
-	{
-		IRStructField V;
-		V.Type = Type;
-		V.Offset = ObjectSize;
-		Fields.emplace_back(V);
-		this->ObjectSize += ObjectSize;
-	};
+	bool IsSizeSet = false;
 };
 
 
@@ -1274,10 +1268,6 @@ public:
 
 	//Helpers
 
-	void AddField(IRStruct* V, IRType Type)
-	{
-		V->AddField(Type, GetSize(Type));
-	}
 	//uses UCodeLang syntax
 	String ToString();
 	void ToString(ToStringState& State, IRFunc* Item, String& r);

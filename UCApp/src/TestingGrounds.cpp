@@ -16,36 +16,13 @@
 #include "../tests/Test.hpp"
 #include <chrono>
 #include "JitPerformance.hpp"
+#include "UCodeLangProjectPaths.hpp"
 using namespace UCodeLang;
-const UCodeLang::String ScrDir = "C:/CoolStuff/CoolCodeingStuff/C++/Projects/UCodeLang/UCApp/src/";
-const UCodeLang::String TopTestDir = ScrDir + "Tests/";
-const UCodeLang::String TopTestUnitDir = TopTestDir + "Unit/";
 
-const UCodeLang::String TopDir = ScrDir + "CodeTesting/";
+const UCodeLang::String TopDir = UCodeLang_UCAppDir_ScrDir + "CodeTesting/";
 const UCodeLang::String CodeTestingModluePath = TopDir + "ULangModule.ucm";
-const UCodeLang::String FileDir = TopDir + "Files/";
-const UCodeLang::String DLLDir = TopDir + "Dlls/";
 
-const UCodeLang::String OutPath = TopDir + "Output/";
-const UCodeLang::String IntPath = OutPath + "int/";
-
-
-#define ULibName(x) OutPath + x + FileExt::LibWithDot;
-#define ULibNamedll(x) OutPath +  x + FileExt::DllWithDot;
-
-const UCodeLang::String OutLibPath = ULibName("LibTest");
-const UCodeLang::String OutDLLPath = ULibNamedll("DLLTest");
-const UCodeLang::String OutFilePath = ULibName("OutFile");
-
-
-const UCodeLang::String StandardLibraryPath = ScrDir + "StandardLibrary/";
-
-const UCodeLang::String StandardLibraryOut = ScrDir + "StandardLibrary_Out/";
-const UCodeLang::String StandardLibraryinit = StandardLibraryOut + "init/";
-
-const UCodeLang::String UCodeLangVSProjectPath = "C:\\CoolStuff\\CoolCodeingStuff\\C++\\Projects\\UCodeLang";
-
-const UCodeLang::String UCodeLangVSAPIPath = UCodeLangVSProjectPath + "\\UCodeAPI";
+const UCodeLang::String UCodeLangVSAPIPath = UCodeLang_SoultionDir + "UCodeAPI/";
 
 #define StandardLibrarynamespace "ULang"
 
@@ -110,7 +87,7 @@ void TestingGround()
 	{
 		//JitPerformance::main(JitPerformance::Task::Main);
 	}
-	//ULangTest::RunTests();
+	ULangTest::RunTests(false);
 
  	Interpreter RunTime;
 

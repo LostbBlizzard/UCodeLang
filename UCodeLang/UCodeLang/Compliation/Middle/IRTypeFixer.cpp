@@ -155,7 +155,7 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 			{
 				OnOp(*Ins, Ins->Input());
 			}
-			else if (IsLoadValue(Ins->Type))
+			else if (IsLoadValueOnlyInTarget(Ins->Type))
 			{
 				OnOp(*Ins, Ins->Target());
 			}

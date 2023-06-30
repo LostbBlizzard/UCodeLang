@@ -321,23 +321,15 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 			auto& Ins = Block->Instructions[i];
 			if (Ins->Type == IRInstructionType::PushParameter)
 			{
-
 				ConstantFoldOperator(*Ins, Ins->Target(), ReadOrWrite::Read);
-				if (Ins->Target().Type == IROperatorType::IRInstruction)
-				{
-					Get_IRData(Ins->Target().Pointer).IsReferenced = true;
-				}
 			}
 			else if (Ins->Type == IRInstructionType::Logical_Not)
 			{
 				ConstantFoldOperator(*Ins, Ins->Target(), ReadOrWrite::Read);
-				if (Ins->Target().Type == IROperatorType::IRInstruction)
-				{
-					Get_IRData(Ins->Input().Pointer).IsReferenced = true;
-				}
 			}
 			else if (Ins->Type == IRInstructionType::Reassign)
 			{
+				ConstantFoldOperator(*Ins, Ins->Target(), ReadOrWrite::Write);
 				ConstantFoldOperator(*Ins, Ins->Input(), ReadOrWrite::Read);
 			}
 			else if (Ins->Type == IRInstructionType::Load
@@ -407,6 +399,10 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 			{
 				ConstantFoldOperator(*Ins, Ins->Target(), ReadOrWrite::Read);
 			}
+			else if (Ins->Type == IRInstructionType::Member_Access)
+			{
+				ConstantFoldOperator(*Ins, Ins->Target(), ReadOrWrite::Read);
+			}
 			else if (Ins->Type == IRInstructionType::Return)
 			{
 				
@@ -423,6 +419,19 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 			{
 
 			}
+			else if (Ins->Type == IRInstructionType::MallocCall)
+			{
+				ConstantFoldOperator(*Ins, Ins->Target(), ReadOrWrite::Read);
+			}
+			else if (Ins->Type == IRInstructionType::FreeCall)
+			{
+				ConstantFoldOperator(*Ins, Ins->Target(), ReadOrWrite::Read);
+			}
+			else if (Ins->Type == IRInstructionType::Reassign_dereference)
+			{
+				ConstantFoldOperator(*Ins, Ins->Target(), ReadOrWrite::Write);
+				ConstantFoldOperator(*Ins, Ins->Input(), ReadOrWrite::Read);
+}
 			else
 			{
 				throw std::exception("not added");

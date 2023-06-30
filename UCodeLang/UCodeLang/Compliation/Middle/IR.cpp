@@ -23,42 +23,47 @@ void IRBuilder::Reset()
 
 void IRBuilder::Fix_Size(IRStruct* Struct)
 {
-	if (Struct->IsUnion) 
+	if (Struct->IsSizeSet == false) 
 	{
-		size_t CompilerRet = 0;
-
-		for (size_t i = 0; i < Struct->Fields.size(); i++)
+		if (Struct->IsUnion)
 		{
-			auto& Item = Struct->Fields[i];
-			if (!Item.Offset.has_value())
+			size_t CompilerRet = 0;
+
+			for (size_t i = 0; i < Struct->Fields.size(); i++)
 			{
-				size_t fieldsize = GetSize(Struct->Fields[i].Type);
-				
-				if (fieldsize > CompilerRet) 
+				auto& Item = Struct->Fields[i];
+				if (!Item.Offset.has_value())
 				{
-					CompilerRet = fieldsize;
+					size_t fieldsize = GetSize(Struct->Fields[i].Type);
+
+					if (fieldsize > CompilerRet)
+					{
+						CompilerRet = fieldsize;
+					}
+
+					Item.Offset = 0;
 				}
-
-				Item.Offset = 0;
 			}
+			Struct->ObjectSize = CompilerRet;
+			Struct->IsSizeSet = true;
 		}
-		Struct->ObjectSize = CompilerRet;
-	}
-	else
-	{
-		size_t CompilerRet = 0;
-
-		for (size_t i = 0; i < Struct->Fields.size(); i++)
+		else
 		{
-			auto& Item = Struct->Fields[i];
-			if (!Item.Offset.has_value())
+			size_t CompilerRet = 0;
+
+			for (size_t i = 0; i < Struct->Fields.size(); i++)
 			{
-				size_t fieldsize = GetSize(Struct->Fields[i].Type);
-				Item.Offset = CompilerRet;
-				CompilerRet += fieldsize;
+				auto& Item = Struct->Fields[i];
+				if (!Item.Offset.has_value())
+				{
+					size_t fieldsize = GetSize(Item.Type);
+					Item.Offset = CompilerRet;
+					CompilerRet += fieldsize;
+				}
 			}
+			Struct->ObjectSize = CompilerRet;
+			Struct->IsSizeSet = true;
 		}
-		Struct->ObjectSize = CompilerRet;
 	}
 }
 
@@ -94,7 +99,10 @@ size_t IRBuilder::GetSize(const IRType& Type) const
 			return V->Count * GetSize(V->Type);
 		}
 		case IRSymbolType::FuncPtr:goto Pointer;
-		default:break;
+		default:
+
+			throw std::exception("not added");
+			break;
 		}
 	}
 	break;
@@ -102,7 +110,6 @@ size_t IRBuilder::GetSize(const IRType& Type) const
 		throw std::exception("not added");
 		break;
 	}
-	return 0;
 }
 
 size_t IRBuilder::GetSize(const IRStruct* Struct) const
@@ -127,7 +134,9 @@ IRType IRBuilder::GetType(const IRInstruction* IR, const IROperator& Op) const
 	}
 
 
-	if (IR->Type == IRInstructionType::Load)
+	if (IsLoadValueOnlyInTarget(IR->Type)
+		|| IR->Type == IRInstructionType::Reassign
+		|| IR->Type == IRInstructionType::Reassign_dereference)
 	{
 		if (Op.Type == IROperatorType::Value) 
 		{

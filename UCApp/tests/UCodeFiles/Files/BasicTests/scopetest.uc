@@ -3,7 +3,7 @@
 |GetValue[] -> byte:
   ret 1;
 
-%Test:
+Test:
  |GetValue[] -> byte:
   ret 0;
 

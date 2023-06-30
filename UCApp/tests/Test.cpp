@@ -120,8 +120,8 @@ UCodeTestStart
 		Com.Get_Settings().PtrSize = IntSizes::Native;
 		
 		Compiler::CompilerRet Com_r;
-		std::string InputFilesPath = Test_UCodeFiles + Test.InputFilesOrDir;
-		std::string OutFileDir = Test_OutputFiles + Test.TestName;
+		std::string InputFilesPath = UCodeLang_UCAppDir_Test_UCodeFiles + Test.InputFilesOrDir;
+		std::string OutFileDir = UCodeLang_UCAppDir_Test_OutputFiles + Test.TestName;
 		std::filesystem::path p = OutFileDir;
 		OutFileDir = p.parent_path().generic_string() + "/" + +Test.TestName + "/";
 
@@ -149,7 +149,7 @@ UCodeTestStart
 		}
 		catch (const std::exception& ex)
 		{
-			ErrStream << "fail from Compile [exception] " << ex.what() << ": " << "'" << Test.TestName << "'" << std::endl;
+			ErrStream << "fail from Compile [exception] '" << ex.what() << "' : " << "'" << Test.TestName << "'" << std::endl;
 			return false;
 		}
 
@@ -195,7 +195,7 @@ UCodeTestStart
 			return false;
 		}
 
-		{
+		//{
 			auto Text = UAssembly::UAssembly::ToString(&lib);
 			String Path = OutFilePath + ".UA";
 			std::ofstream out(Path);
@@ -203,7 +203,7 @@ UCodeTestStart
 				out << Text;
 				out.close();
 			}
-		}
+		//}
 		RunTimeLib rLib;
 		rLib.Init(&lib);
 		state.AddLib(&rLib);
@@ -220,7 +220,7 @@ UCodeTestStart
 			}
 			catch (const std::exception& ex)
 			{
-				ErrStream << "fail from test [exception] " << ex.what() << ": " << "'" << Test.TestName << "'" << std::endl;
+				ErrStream << "fail from test [exception] '" << ex.what() << "' : " << "'" << Test.TestName << "'" << std::endl;
 				return false;
 			}
 
@@ -229,7 +229,10 @@ UCodeTestStart
 				std::unique_ptr<Byte[]> RetState = std::make_unique<Byte[]>(Test.RunTimeSuccessSize);
 				RunTime.Get_Return(RetState.get(), Test.RunTimeSuccessSize);
 
-				RunTimeOutput(LogStream, ErrStream, Test, flag, RetState, "Interpreter");
+				if (!RunTimeOutput(LogStream, ErrStream, Test, flag, RetState, "Interpreter"))
+				{
+					return false;
+				}
 			}
 			RunTime.UnLoad();
 		}
@@ -246,7 +249,7 @@ UCodeTestStart
 			catch (const std::exception& ex)
 			{
 				RunTime.UnLoad();
-				ErrStream << "fail from jit test [exception] " << ex.what() << ": " << "'" << Test.TestName << ModeType(flag) << "'" << std::endl;
+				ErrStream << "fail from jit test [exception] '" << ex.what() << "' : " << "'" << Test.TestName << ModeType(flag) << "'" << std::endl;
 				return false;
 			}
 			RunTime.UnLoad();
@@ -256,7 +259,10 @@ UCodeTestStart
 				std::unique_ptr<Byte[]> RetState = std::make_unique<Byte[]>(Test.RunTimeSuccessSize);
 				RunTime.Get_Return(RetState.get(), Test.RunTimeSuccessSize);
 
-				RunTimeOutput(LogStream, ErrStream, Test, flag, RetState, "Jit_Interpreter");
+				if (!RunTimeOutput(LogStream, ErrStream, Test, flag, RetState, "Jit_Interpreter"))
+				{
+					return false;
+				}
 			}
 		}
 
@@ -272,7 +278,7 @@ UCodeTestStart
 			catch (const std::exception& ex)
 			{
 				RunTime.UnLoad();
-				ErrStream << "fail from UCodeRunTime test [exception] " << ex.what() << ": " << "'" << Test.TestName << ModeType(flag) << "'" << std::endl;
+				ErrStream << "fail from UCodeRunTime test [exception] '" << ex.what() << "' : " << "'" << Test.TestName << ModeType(flag) << "'" << std::endl;
 				return false;
 			}
 			RunTime.UnLoad();
@@ -286,7 +292,10 @@ UCodeTestStart
 				std::unique_ptr<Byte[]> RetState = std::make_unique<Byte[]>(Test.RunTimeSuccessSize);
 				RunTime.Get_Return(RetState.get(), Test.RunTimeSuccessSize);
 
-				RunTimeOutput(LogStream, ErrStream, Test, flag, RetState, "UCodeRunTime");
+				if (!RunTimeOutput(LogStream, ErrStream, Test, flag, RetState, "UCodeRunTime"))
+				{
+					return false;
+				}
 			}
 		}
 
@@ -315,6 +324,7 @@ UCodeTestStart
 				if (!RunTestForFlag(Test, Flag, Log, Err))
 				{
 					V = false;
+					break;
 				}
 			}
 		}
@@ -348,19 +358,36 @@ UCodeTestStart
 		{
 			//if (RunTest(Test)) { TestPassed++; }
 
-			auto F = std::async(std::launch::async, [&]
+			if (MultThread == false)
+			{
+				if (Test.TestName == "BasicObjects ret 1")
 				{
-					try
-					{
-						return RunTest(Test);
-					}
-					catch (const std::exception& why)
-					{
-						std::cout << why.what();
-					}
+					int BreakPointHere = 0;
 				}
-			);
-			List.push_back(std::move(F));
+
+				auto TestR = RunTest(Test);
+
+				if (TestR == false)
+				{
+					int BreakPointHere = 0;
+				}
+			}
+			else
+			{
+				auto F = std::async(std::launch::async, [&]
+					{
+						try
+						{
+							return RunTest(Test);
+						}
+						catch (const std::exception& why)
+						{
+							std::cout << why.what();
+						}
+					}
+				);
+				List.push_back(std::move(F));
+			}
 		}
 
 		for (auto& Item : List)

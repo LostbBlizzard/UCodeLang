@@ -6133,17 +6133,19 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 	else if (passtype == PassType::FixedTypes)
 	{
 		LookingForTypes.push(TypesEnum::Var);
+		OnExpressionTypeNode(node.ToAssign.Value.get(), GetValueMode::Write);
+		LookingForTypes.pop();
+
+		auto AssignType = LastExpressionType;
+
+		LookingForTypes.push(AssignType);
 		OnExpressionTypeNode(node.Expression.Value.get(), GetValueMode::Read);
 		LookingForTypes.pop();
 
 
 		auto ExpressionType = LastExpressionType;
 
-		LookingForTypes.push(TypesEnum::Var);
-		OnExpressionTypeNode(node.ToAssign.Value.get(), GetValueMode::Write);
-		LookingForTypes.pop();
-
-		auto AssignType = LastExpressionType;
+		
 
 		
 		if (!CanBeImplicitConverted(AssignType, ExpressionType,false))
