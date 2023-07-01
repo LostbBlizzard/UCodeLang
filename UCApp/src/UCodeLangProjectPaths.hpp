@@ -10,4 +10,6 @@ inline const UCodeLang::String UCodeLang_UCAppDir_TestDir = UCodeLang_UCAppDir +
 inline const UCodeLang::String UCodeLang_UCAppDir_Test_UCodeFiles = UCodeLang_UCAppDir_TestDir + "UCodeFiles/Files/";
 inline const UCodeLang::String UCodeLang_UCAppDir_Test_OutputFiles = UCodeLang_UCAppDir_ScrDir + "UCodeFiles/Output/";
 
+inline const UCodeLang::String UCodeLang_UCAppDir_Test_LanguageSeverFilesFiles = UCodeLang_UCAppDir_TestDir + "LanguageSeverFiles/Files/";
+inline const UCodeLang::String UCodeLang_UCAppDir_Test_LanguageSeverFilesOut = UCodeLang_UCAppDir_ScrDir + "LanguageSeverFiles/Output/";
 #endif // DEBUG
