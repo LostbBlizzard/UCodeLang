@@ -75,7 +75,7 @@ UCodeTestStart
 		}
 	};
 
-	static const Array<TestInfo, 62> Tests
+	static const Array<TestInfo, 65> Tests
 	{
 
 		TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation),
@@ -141,6 +141,7 @@ UCodeTestStart
 		TestInfo("Lamdba 6","Objects/Lamdba3.uc","main2",SuccessCondition::RunTimeValue,(int)1),
 
 		TestInfo("enumvariant","Objects/enumvariant.uc","main",SuccessCondition::RunTimeValue,(int)1),
+		TestInfo("enumvariant2","Objects/enumvariant2.uc","main",SuccessCondition::RunTimeValue,(int)10),
 
 		TestInfo("enumvariantdrop","NewAndDrop/enumvariantdrop.uc","main",SuccessCondition::RunTimeValue,(int)1),
 		TestInfo("StaticArrDrop","NewAndDrop/StaticArrDrop.uc","main",SuccessCondition::RunTimeValue,true),
@@ -163,6 +164,9 @@ UCodeTestStart
 		TestInfo("GetFields enum","Eval/GetEnumFields.uc","main",SuccessCondition::RunTimeValue,(int)3),
 		TestInfo("GetFields enum 2","Eval/GetEnumFields2.uc","main",SuccessCondition::RunTimeValue,(int)12),
 		TestInfo("GetEnum Base","Eval/GetEnumBase.uc","main",SuccessCondition::RunTimeValue,(bool)true),
+	
+		TestInfo("MatchAllSet","BasicTests/MatchAllSet.uc","main",SuccessCondition::CompilationFail),
+		TestInfo("MatchAllSet2","BasicTests/MatchAllSet2.uc","main",SuccessCondition::CompilationFail),
 	};
 
 
