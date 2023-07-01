@@ -87,7 +87,7 @@ void TestingGround()
 	{
 		//JitPerformance::main(JitPerformance::Task::Main);
 	}
-	ULangTest::RunTests(false);
+	//ULangTest::RunTests(false);
 
  	Interpreter RunTime;
 

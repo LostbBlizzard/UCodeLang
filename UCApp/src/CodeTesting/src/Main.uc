@@ -30,17 +30,22 @@ $Unique_ptr<T>:
 
 */
 
-$Vec2:
- int X = 0;
- int Y = 0;
- int Z = 0;
+|Func1[] ->int;
+|Func2[] ->int;
+|Func3[] ->int;
 
-static Vec2 OnS = [];
+
+|ifcode[]:
+ //int Value = 0;
+ if true: Func1();
+ else if false: Func2();
+ else: Func3();
 
 |main[]:
  
- OnS.X++;
- OnS.Y++;
- OnS.Z++;
-
- ret OnS;
+ //int Value = 0;
+ int V = match true:
+  false => Func1();
+  true  => Func2();
+  invalid => Func3();
+ ;

@@ -528,7 +528,7 @@ private:
 
 	struct MatchArm
 	{
-
+		
 	};
 	struct MatchArmData
 	{
@@ -962,13 +962,18 @@ private:
 	
 	struct BuildMatch_ret
 	{
-		IRInstruction* JumpToUpdateIFMatchTrue = nullptr;
-		IRInstruction* JumpToUpdateIFMatchFalse = nullptr;
+		IRBlock::NewConditionalFalseJump_t JumpToUpdateIFMatchTrue;
+		IRInstruction* JumpToUpdateEndIndex = 0;
+	};
+	struct BuildMatch_State
+	{
+		Vector<BuildMatch_ret> MatchList;
 	};
 
-	BuildMatch_ret BuildMatch(const TypeSymbol& MatchItem, const IRInstruction* Item, const MatchArm& Arm, const ExpressionNodeType& ArmEx);
-	void EndMatch(BuildMatch_ret& Value);
-
+	BuildMatch_ret BuildMatch(const TypeSymbol& MatchItem,IRInstruction* Item, BuildMatch_State& State, const MatchArm& Arm, const ExpressionNodeType& ArmEx);
+	BuildMatch_ret BuildInvaildMatch(const TypeSymbol& MatchItem, IRInstruction* Item, BuildMatch_State& State);
+	void EndMatch(BuildMatch_ret& Value, BuildMatch_State& State);
+	void EndMatchState(BuildMatch_State& State);
 
 	void OnMatchExpression(const MatchExpression& node);
 
@@ -1115,6 +1120,7 @@ private:
 		return  IsSIntType(TypeToCheck) || IsUIntType(TypeToCheck);
 	}
 	bool IsfloatType(const TypeSymbol& TypeToCheck);
+	bool IsCharType(const TypeSymbol& TypeToCheck);
 	bool IsPrimitive(const TypeSymbol& TypeToCheck);
 	bool IsPrimitiveNotIncludingPointers(const TypeSymbol& TypeToCheck);
 	bool IsStaticArray(const TypeSymbol& TypeToCheck);

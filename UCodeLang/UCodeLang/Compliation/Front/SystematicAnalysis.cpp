@@ -10586,6 +10586,7 @@ void SystematicAnalysis::OnMatchStatement(const MatchStatement& node)
 			{
 				OnStatement(*Statement);
 			}
+			_Table.RemoveScope();
 		}
 
 
@@ -10660,7 +10661,8 @@ void SystematicAnalysis::OnMatchStatement(const MatchStatement& node)
 
 		MatchStatementData& V = MatchStatementDatas.at((void*)GetSymbolID(node));
 	
-		Vector<BuildMatch_ret> MatchList;
+		
+		BuildMatch_State State;
 
 		for (size_t i = 0; i < node.Arms.size(); i++)
 		{
@@ -10670,68 +10672,177 @@ void SystematicAnalysis::OnMatchStatement(const MatchStatement& node)
 
 			_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
 
-			auto V = BuildMatch(ToMatchType,Ex,VItem,Item.Expression);
+			auto V = BuildMatch(ToMatchType,Ex, State,VItem,Item.Expression);
 
 			for (auto& Statement : Item.Statements._Nodes)
 			{
 				OnStatement(*Statement);
 			}
 
-			EndMatch(V);
+			EndMatch(V, State);
 
-			MatchList.push_back(std::move(V));
+			State.MatchList.push_back(std::move(V));
 
 			_Table.RemoveScope();
 
 			ScopeCounter++;
 		}
+
+		if (node.InvaidCase.has_value())
+		{
+			auto& Item = node.InvaidCase.value();
+
+			_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
+
+			auto V = BuildInvaildMatch(ToMatchType, Ex, State);
+
+			for (auto& Statement : Item._Nodes)
+			{
+				OnStatement(*Statement);
+			}
+
+			EndMatch(V, State);
+
+			State.MatchList.push_back(std::move(V));
+
+			_Table.RemoveScope();
+		}
+
+		EndMatchState(State);
 	}
 }
 void SystematicAnalysis::CanMatch(const TypeSymbol& MatchItem, const ExpressionNodeType& node, MatchArmData& Data)
 {
+	bool IsJust =
+		 MatchItem._IsAddressArray == false
+		&& MatchItem._IsDynamic == false
+		&& MatchItem._TypeInfo == TypeInfoPrimitive::Null;
 
-	if (IsIntType(MatchItem))
+	bool IsOk = false;
+	if (IsJust)
 	{
-
-		if (node.Value.get()->Get_Type() == NodeType::ValueExpressionNode)
+		if (IsIntType(MatchItem) ||
+			IsfloatType(MatchItem._Type) ||
+			IsCharType(MatchItem._Type) ||
+			MatchItem._Type == TypesEnum::Bool)
 		{
-			LookingForTypes.push(MatchItem);
-			OnExpressionTypeNode(node, GetValueMode::Read);
-			LookingForTypes.pop();
 
-			auto Type = LastExpressionType;
-			if (!CanBeImplicitConverted(MatchItem, Type, false))
+			if (node.Value.get()->Get_Type() == NodeType::ValueExpressionNode)
+			{
+				LookingForTypes.push(MatchItem);
+				OnExpressionTypeNode(node, GetValueMode::Read);
+				LookingForTypes.pop();
+
+				auto Type = LastExpressionType;
+				if (!CanBeImplicitConverted(MatchItem, Type, false))
+				{
+					const Token* token = LastLookedAtToken;
+					LogCantCastImplicitTypes(token, MatchItem, Type, false);
+				}
+
+				Data.Arms.push_back({});
+
+				IsOk = true;
+			}
+			else
 			{
 				const Token* token = LastLookedAtToken;
-				LogCantCastImplicitTypes(token, MatchItem, Type, false);
+				LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "The Expression cant be Matched use only ValueExpression");
 			}
 
-			Data.Arms.push_back({});
 		}
-		else
-		{
-			const Token* token = LastLookedAtToken;
-			LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "The Expression cant be Matched use only ValueExpression");
-		}
-		
 	}
-	else
+	
+	if (IsOk == false)
 	{
 		const Token* token = LastLookedAtToken;
-		LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "The type cant be Matched");
+		LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "The type '" + ToString(MatchItem) + "' cant be Matched");
 	}
 }
 void SystematicAnalysis::CheckAllValuesAreMatched(const TypeSymbol& MatchItem, const MatchArmData& Data)
 {
+	if (MatchItem.IsAn(TypesEnum::Bool))
+	{
+		bool ValuesSet[2] = { false,false };
+		for (auto& Item : Data.Arms)
+		{
+			
+		}
+	}
+}
+SystematicAnalysis::BuildMatch_ret SystematicAnalysis::BuildMatch(const TypeSymbol& MatchItem,IRInstruction* Item, BuildMatch_State& State, const MatchArm& Arm, const ExpressionNodeType& ArmEx)
+{
+	bool IsJust =
+		MatchItem._IsAddressArray == false
+		&& MatchItem._IsDynamic == false
+		&& MatchItem._TypeInfo == TypeInfoPrimitive::Null;
 
+
+	size_t EndMatchIndex = LookingAtIRBlock->GetIndex();
+	if (State.MatchList.size())
+	{
+		auto& Last = State.MatchList.back();
+
+		LookingAtIRBlock->UpdateConditionaJump(Last.JumpToUpdateIFMatchTrue.ConditionalJump, Last.JumpToUpdateIFMatchTrue.logicalNot, EndMatchIndex);
+	}
+
+	if (IsJust)
+	{
+		if (IsIntType(MatchItem) ||
+			IsfloatType(MatchItem._Type) ||
+			IsCharType(MatchItem._Type) ||
+			MatchItem._Type == TypesEnum::Bool)
+		{
+
+
+			if (ArmEx.Value.get()->Get_Type() == NodeType::ValueExpressionNode)
+			{
+				LookingForTypes.push(MatchItem);
+				OnExpressionTypeNode(ArmEx, GetValueMode::Read);
+				LookingForTypes.pop();
+
+				auto Type = LastExpressionType;
+				auto ArmExIR = _LastExpressionField;
+				auto IRToTest = LookingAtIRBlock->NewC_Equalto(Item,ArmExIR);
+
+
+				SystematicAnalysis::BuildMatch_ret R;
+				R.JumpToUpdateIFMatchTrue = LookingAtIRBlock->NewConditionalFalseJump(IRToTest,0);
+				return R;
+			}
+			else
+			{
+				throw std::exception("bad path");
+			}
+		}
+
+	}
 }
-SystematicAnalysis::BuildMatch_ret SystematicAnalysis::BuildMatch(const TypeSymbol& MatchItem, const IRInstruction* Item, const MatchArm& Arm, const ExpressionNodeType& ArmEx)
+SystematicAnalysis::BuildMatch_ret SystematicAnalysis::BuildInvaildMatch(const TypeSymbol& MatchItem, IRInstruction* Item, BuildMatch_State& State)
 {
-	return {};
+	size_t EndMatchIndex = LookingAtIRBlock->GetIndex();
+	if (State.MatchList.size())
+	{
+		auto& Last = State.MatchList.back();
+
+		LookingAtIRBlock->UpdateConditionaJump(Last.JumpToUpdateIFMatchTrue.ConditionalJump, Last.JumpToUpdateIFMatchTrue.logicalNot, EndMatchIndex);
+	}
+	return BuildMatch_ret();
 }
-void SystematicAnalysis::EndMatch(BuildMatch_ret& Value)
+void SystematicAnalysis::EndMatch(BuildMatch_ret& Value, BuildMatch_State& State)
 {
-	
+	size_t EndMatchIndex = LookingAtIRBlock->GetIndex();
+
+	Value.JumpToUpdateEndIndex = LookingAtIRBlock->NewJump();
+}
+void SystematicAnalysis::EndMatchState(BuildMatch_State& State)
+{
+	size_t EndIndex = LookingAtIRBlock->GetIndex();
+	for (auto& Item : State.MatchList)
+	{
+		LookingAtIRBlock->UpdateJump(Item.JumpToUpdateEndIndex, EndIndex);
+
+	}
 }
 void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 {
@@ -10835,10 +10946,11 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 
 		MatchExpressionData& V = MatchExpressionDatas.at((void*)GetSymbolID(node));
 
-		Vector<BuildMatch_ret> MatchList;
+		
 
 		IRInstruction* OutEx = LookingAtIRBlock->NewLoad(ConvertToIR(V.MatchAssignmentType));
 
+		BuildMatch_State State;
 		
 		LookingForTypes.push(V.MatchAssignmentType);
 		for (size_t i = 0; i < node.Arms.size(); i++)
@@ -10849,7 +10961,7 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 
 			_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
 
-			auto V2 = BuildMatch(ToMatchType, Ex, VItem, Item.Expression);
+			auto V2 = BuildMatch(ToMatchType, Ex, State, VItem, Item.Expression);
 
 			OnExpressionTypeNode(Item.AssignmentExpression, GetValueMode::Read);
 
@@ -10857,9 +10969,9 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 
 			LookingAtIRBlock->NewStore(OutEx, _LastExpressionField);
 
-			EndMatch(V2);
+			EndMatch(V2,State);
 
-			MatchList.push_back(std::move(V2));
+			State.MatchList.push_back(std::move(V2));
 
 			_Table.RemoveScope();
 
@@ -10870,15 +10982,22 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 		{
 			_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
 
+			auto V2 =BuildInvaildMatch(ToMatchType, Ex, State);
+
 			OnExpressionTypeNode(node.InvaidCase.value(), GetValueMode::Read);
 
 			DoImplicitConversion(_LastExpressionField, LastExpressionType, V.MatchAssignmentType);
 
 			LookingAtIRBlock->NewStore(OutEx, _LastExpressionField);
 
+			EndMatch(V2, State);
+
+			State.MatchList.push_back(std::move(V2));
+
 			_Table.RemoveScope();
 		}
 
+		EndMatchState(State);
 
 		LookingForTypes.pop();
 
@@ -12455,6 +12574,14 @@ bool SystematicAnalysis::IsfloatType(const TypeSymbol& TypeToCheck)
 	return
 		TypeToCheck._Type == TypesEnum::float32 ||
 		TypeToCheck._Type == TypesEnum::float64;
+}
+bool SystematicAnalysis::IsCharType(const TypeSymbol& TypeToCheck)
+{
+	return
+		TypeToCheck._Type == TypesEnum::Char ||
+		TypeToCheck._Type == TypesEnum::Uft8 || 
+		TypeToCheck._Type == TypesEnum::Uft16 ||
+		TypeToCheck._Type == TypesEnum::Uft32;
 }
 bool SystematicAnalysis::IsPrimitive(const TypeSymbol& TypeToCheck)
 {

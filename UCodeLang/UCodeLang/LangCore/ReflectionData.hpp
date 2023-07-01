@@ -35,6 +35,10 @@ enum class ReflectionTypes : ReflectionTypes_t
 	float32,
 	float64,
 
+	Uft8,
+	Uft16,
+	Uft32,
+
 	CustomType,
 	InternalType,
 };
