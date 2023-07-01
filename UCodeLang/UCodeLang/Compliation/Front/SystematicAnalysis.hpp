@@ -747,7 +747,7 @@ private:
 	template<typename T>
 	SymbolID GetSymbolID(const T& Item)
 	{
-		return GetSymbolID(&Item);
+		return GetSymbolID((const void*)&Item);
 	}
 	//File dependency analysis stuff
 
