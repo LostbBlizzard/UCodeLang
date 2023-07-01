@@ -9244,9 +9244,22 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 		else 
 		{
 
-			auto& Type = Ex0Type;
+			auto Type = Ex0Type;
 			auto Op = node.BinaryOp->Type;
 			LastExpressionType = BinaryExpressionShouldRurn(Op, Ex0Type);
+
+			auto TypeSyb = GetSymbol(Type);
+			if (TypeSyb)
+			{
+				if (TypeSyb->Type == SymbolType::Enum)
+				{
+					Type = TypeSyb->Get_Info<EnumInfo>()->Basetype;
+				}
+				else
+				{
+					throw std::exception("bad path");
+				}
+			}
 
 #define BindaryBuildU(x) switch (Op) \
 		{\
@@ -11228,13 +11241,22 @@ SystematicAnalysis::BinaryOverLoadWith_t SystematicAnalysis::HasBinaryOverLoadWi
 			return { IsMathOp || IsSameValueComparisonOp || IsMathValueComparisonOp,{} };
 		}
 
-		if (TypeA._Type == TypesEnum::Char)
+		if (IsCharType(TypeA))
 		{
 			return { IsSameValueComparisonOp, {} };
 		}
 		if (TypeA._Type == TypesEnum::Bool)
 		{
 			return { IsSameValueComparisonOp || IslogicalOperator , {} };
+		}
+
+		if (TypeA._Type == TypesEnum::CustomType)
+		{
+			auto Syb = GetSymbol(TypeA);
+			if (Syb->Type == SymbolType::Enum) 
+			{
+				return { IsSameValueComparisonOp, {} };
+			}
 		}
 
 	}

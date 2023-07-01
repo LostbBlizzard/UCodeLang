@@ -41,11 +41,19 @@ $Unique_ptr<T>:
  else if false: Func2();
  else: Func3();
 
+$Item enum:
+ Red,
+ Green,
+ Blue,
+
 |main[]:
+
+ bool V = Item::Red == Item::Green;
  
- //int Value = 0;
- int V = match true:
-  false => Func1();
-  true  => Func2();
-  invalid => Func3();
+ /*
+ match Item::Red:
+  Item::Red: Func1();
+  Item::Green: Func2();
+  Item::Blue: Func3();
  ;
+ */
