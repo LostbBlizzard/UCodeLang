@@ -628,6 +628,8 @@ private:
 	Vector<FileNode> _LibsFiles;
 	SymbolTable _Table;
 
+	VectorMap<String,BinaryVectorMap<const void*, SymbolID>> _SybIdMap;
+	uintptr_t IDIndex = 0;
 	//Args
 	bool _ForceImportArgWasPassed = false;
 	bool _RemoveUnSafeArgWasPassed = false;
@@ -682,13 +684,8 @@ private:
 
 	BinaryVectorMap<void*, SymbolID> _ConstantExpressionMap;
 	Stack<GetValueMode> GetExpressionMode;
-
-
 	Stack<GenericFuncInfo> GenericFuncName;
-
 	Vector< JumpsData> _Jumps;
-
-
 	Stack<VarableUseData> _Varable;
 
 	
@@ -743,14 +740,14 @@ private:
 	}
 	SymbolID GetSymbolID(const Node& node)
 	{
-		return  GetSymbolID(&node);
+		return  GetSymbolID((const void*)&node);
 	}
 	SymbolID GetSymbolID(const void* Item);
 
 	template<typename T>
 	SymbolID GetSymbolID(const T& Item)
 	{
-		return GetSymbolID(Item);
+		return GetSymbolID(&Item);
 	}
 	//File dependency analysis stuff
 

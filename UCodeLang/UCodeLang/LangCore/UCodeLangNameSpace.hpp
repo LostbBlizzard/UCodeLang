@@ -1,3 +1,7 @@
 #pragma once
-#define UCodeLangStart namespace UCodeLang{
+#define UCodeLangStart namespace UCodeLang{ \
+struct\
+{\
+};\
+
 #define UCodeLangEnd }

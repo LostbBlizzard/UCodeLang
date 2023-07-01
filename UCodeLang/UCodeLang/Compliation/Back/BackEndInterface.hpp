@@ -4,9 +4,7 @@
 
 #include "UCodeLang/LangCore/UClib.hpp"
 UCodeLangStart
-class SystematicAnalysis;
 class IRBuilder;
-class SymbolTable;
 
 enum class BackEndObjectOutputType
 {
@@ -81,5 +79,7 @@ private:
 };
 
 using BackEndObject_Ptr = BackEndObject* (*)();
+
+
 UCodeLangEnd
 
