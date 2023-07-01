@@ -48,12 +48,10 @@ $Item enum:
 
 |main[]:
 
- bool V = Item::Red == Item::Green;
- 
- /*
+
  match Item::Red:
   Item::Red: Func1();
   Item::Green: Func2();
   Item::Blue: Func3();
- ;
- */
+ 
+ 

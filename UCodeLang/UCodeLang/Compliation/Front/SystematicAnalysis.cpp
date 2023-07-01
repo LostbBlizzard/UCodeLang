@@ -10764,6 +10764,35 @@ void SystematicAnalysis::CanMatch(const TypeSymbol& MatchItem, const ExpressionN
 			}
 
 		}
+		else
+		{
+			auto Syb = GetSymbol(MatchItem);
+			if (Syb->Type == SymbolType::Enum)
+			{
+				if (node.Value.get()->Get_Type() == NodeType::ValueExpressionNode)
+				{
+					LookingForTypes.push(MatchItem);
+					OnExpressionTypeNode(node, GetValueMode::Read);
+					LookingForTypes.pop();
+
+					auto Type = LastExpressionType;
+					if (!CanBeImplicitConverted(MatchItem, Type, false))
+					{
+						const Token* token = LastLookedAtToken;
+						LogCantCastImplicitTypes(token, MatchItem, Type, false);
+					}
+
+					Data.Arms.push_back({});
+
+					IsOk = true;
+				}
+				else
+				{
+					const Token* token = LastLookedAtToken;
+					LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "The Expression cant be Matched use only ValueExpression");
+				}
+			}
+		}
 	}
 	
 	if (IsOk == false)
@@ -10816,11 +10845,11 @@ SystematicAnalysis::BuildMatch_ret SystematicAnalysis::BuildMatch(const TypeSymb
 
 				auto Type = LastExpressionType;
 				auto ArmExIR = _LastExpressionField;
-				auto IRToTest = LookingAtIRBlock->NewC_Equalto(Item,ArmExIR);
+				auto IRToTest = LookingAtIRBlock->NewC_Equalto(Item, ArmExIR);
 
 
 				SystematicAnalysis::BuildMatch_ret R;
-				R.JumpToUpdateIFMatchTrue = LookingAtIRBlock->NewConditionalFalseJump(IRToTest,0);
+				R.JumpToUpdateIFMatchTrue = LookingAtIRBlock->NewConditionalFalseJump(IRToTest, 0);
 				return R;
 			}
 			else
@@ -10828,7 +10857,29 @@ SystematicAnalysis::BuildMatch_ret SystematicAnalysis::BuildMatch(const TypeSymb
 				throw std::exception("bad path");
 			}
 		}
+		else 
+		{
+			auto Syb = GetSymbol(MatchItem);
+			if (Syb->Type == SymbolType::Enum)
+			{
+				LookingForTypes.push(MatchItem);
+				OnExpressionTypeNode(ArmEx, GetValueMode::Read);
+				LookingForTypes.pop();
 
+				auto Type = LastExpressionType;
+				auto ArmExIR = _LastExpressionField;
+				auto IRToTest = LookingAtIRBlock->NewC_Equalto(Item, ArmExIR);
+
+
+				SystematicAnalysis::BuildMatch_ret R;
+				R.JumpToUpdateIFMatchTrue = LookingAtIRBlock->NewConditionalFalseJump(IRToTest, 0);
+				return R;
+			}
+			else
+			{
+				throw std::exception("bad path");
+			}
+		}
 	}
 }
 SystematicAnalysis::BuildMatch_ret SystematicAnalysis::BuildInvaildMatch(const TypeSymbol& MatchItem, IRInstruction* Item, BuildMatch_State& State)
