@@ -46,7 +46,7 @@ $Item enum:
  var V = Item::Red(10);
 
  match V:
-  Item::Red(out Num):int a =1;
+  Item::Red(out Num):int a =Num;
   Item::Green: int a =2;
   Item::Blue: int a =3;
  
