@@ -743,12 +743,6 @@ private:
 		return  GetSymbolID((const void*)&node);
 	}
 	SymbolID GetSymbolID(const void* Item);
-
-	template<typename T>
-	SymbolID GetSymbolID(const T& Item)
-	{
-		return GetSymbolID((const void*)&Item);
-	}
 	//File dependency analysis stuff
 
 	inline bool IsDependencies(const ClassInfo* Value)
