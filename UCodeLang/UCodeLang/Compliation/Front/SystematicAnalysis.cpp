@@ -1692,7 +1692,7 @@ void SystematicAnalysis::InitGenericalias(const GenericValuesNode& GenericList, 
 			GenericType->Type = SymbolType::Unmaped_Generic_Type;
 
 			GenericType->NodePtr = (void*)&Item;
-			SymbolID ID = (SymbolID)GenericType->NodePtr;
+			SymbolID ID = GetSymbolID(GenericType->NodePtr);
 			_Table.AddSymbolID(*GenericType, ID);
 
 			GenericData Info;
@@ -1793,7 +1793,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 				GenericType->Type = SymbolType::Unmaped_Generic_Type;
 
 				GenericType->NodePtr = (void*)&Item;
-				SymbolID ID = (SymbolID)GenericType->NodePtr;
+				SymbolID ID = GetSymbolID(GenericType->NodePtr);
 				_Table.AddSymbolID(*GenericType, ID);
 
 				GenericData Info;
@@ -1822,7 +1822,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 				auto NewName = GetFuncAnonymousObjectFullName(FullName);
 
 
-				SymbolID AnonymousSybID = (SymbolID)RetType.get();
+				SymbolID AnonymousSybID = GetSymbolID(RetType.get());
 				auto& AnonymousSyb = AddSybol(SymbolType::Type_class, (String)NewName, NewName,node.Signature.Access);
 
 				_Table.AddSymbolID(AnonymousSyb, AnonymousSybID);
@@ -1866,7 +1866,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			auto GenericType = &AddSybol(SymbolType::ParameterVarable, (String)GenericTypeName,
 				_Table._Scope.GetApendedString(GenericTypeName)
 			,node.Signature.Access);
-			auto ParSybID = (SymbolID)&Item;
+			auto ParSybID = GetSymbolID(Item);
 			_Table.AddSymbolID(*GenericType, ParSybID);
 
 			if (Item.Name.Token == nullptr)
@@ -1901,7 +1901,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		auto& RetType = node.Signature.ReturnType.node;
 		if (RetType && RetType->Get_Type() == NodeType::AnonymousTypeNode)
 		{
-			SymbolID AnonymousSybID = (SymbolID)RetType.get();
+			SymbolID AnonymousSybID = GetSymbolID(RetType.get());
 			auto& V = *GetSymbol(AnonymousSybID);
 
 			auto ClassInf = (ClassInfo*)V.Get_Info<ClassInfo>();
@@ -1949,7 +1949,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			auto& Item2 = Info->Pars[i];
 
 
-			auto ParSybID = (SymbolID)&Item;
+			auto ParSybID = GetSymbolID(Item);
 			auto& Sybol = *GetSymbol(ParSybID);
 			ConvertAndValidateType(Item.Type, Sybol.VarType,NodeSyb_t::Parameter);
 			Item2 = Sybol.VarType;
@@ -1957,7 +1957,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 
 			{//Par Pack Err
-				if (Item2._CustomTypeSymbol && (&Item2 != &Info->Pars.back()))
+				if (Item2._CustomTypeSymbol.HasValue() && (&Item2 != &Info->Pars.back()))
 				{
 					for (auto& GenericItem : Info->_GenericData._Generic)
 					{
@@ -2041,7 +2041,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			{
 				auto& Item = ParNodes[i];
 
-				auto ParSybID = (SymbolID)&Item;
+				auto ParSybID = GetSymbolID(Item);
 				auto& V = *GetSymbol(ParSybID);
 
 
@@ -2075,7 +2075,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 				size_t V = ParNodeSize;
 
 
-				auto PackParSybol = GetSymbol((SymbolID)&ParNodes.back());
+				auto PackParSybol = GetSymbol(GetSymbolID(ParNodes.back()));
 				auto PackParSybolName = ScopeHelper::GetNameFromFullName(PackParSybol->FullName);
 
 				for (size_t i = 0; i < PackPar->List.size(); i++)
@@ -2088,7 +2088,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 
 					auto& TepPar = AddSybol(SymbolType::ParameterVarable, ParName, PackParSybol->FullName + std::to_string(i), AccessModifierType::Public);
-					auto ParSybID = (SymbolID)&TepPar;
+					auto ParSybID = GetSymbolID(TepPar);
 					TepPar.IR_Par = &d;
 
 					_Table.AddSymbolID(TepPar, ParSybID);
@@ -2170,7 +2170,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		auto& RetType = node.Signature.ReturnType.node;
 		if (RetType && RetType->Get_Type() == NodeType::AnonymousTypeNode)
 		{
-			SymbolID AnonymousSybID = (SymbolID)RetType.get();
+			SymbolID AnonymousSybID = GetSymbolID(RetType.get());
 			auto V = GetSymbol(AnonymousSybID);
 
 			AddClass_tToAssemblyInfo({}, V);
@@ -2712,7 +2712,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 						g.FuncGetLoopAble = HasInfo.Value.value();
 						g.FuncToGet = GetFunc.value();
 						g.FuncToCheck = CheckFunc.value();
-						For_Datas.AddValue(&node, g);
+						For_Datas.AddValue(GetSymbolID(node), g);
 
 
 						
@@ -2811,7 +2811,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 		else
 		{
 
-			const ForExpresion_Data& Data = For_Datas.at(&node);
+			const ForExpresion_Data& Data = For_Datas.at(GetSymbolID(node));
 			{
 				AddDependencyToCurrentFile(Data.FuncGetLoopAble);
 				AddDependencyToCurrentFile(Data.FuncToCheck);
@@ -2980,7 +2980,7 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 		_Table.AddScope(LambdaName);
 
 		auto& LambdaSym = AddSybol(SymbolType::LambdaObject, LambdaName, _Table._Scope.ThisScope, AccessModifierType::Public);
-		_Table.AddSymbolID(LambdaSym, (SymbolID)&node);
+		_Table.AddSymbolID(LambdaSym, GetSymbolID(node));
 		LambdaSym.Info =Unique_ptr<LambdaInfo>(new LambdaInfo());
 
 
@@ -2989,7 +2989,7 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 			auto& Sym = AddSybol(SymbolType::ParameterVarable, Item.Name.AsString()
 				, _Table._Scope.ScopeHelper::GetApendedString(Item.Name.AsStringView()),AccessModifierType::Public);
 
-			_Table.AddSymbolID(Sym, (SymbolID)&Item);
+			_Table.AddSymbolID(Sym, GetSymbolID(Item));
 		}
 
 		if (node._Statements.has_value())
@@ -3008,14 +3008,14 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 		
 		_Table.AddScope(LambdaName);
 
-		auto& LambdaSym = _Table.GetSymbol((SymbolID)&node);
+		auto& LambdaSym = *GetSymbol(GetSymbolID(node));
 		LambdaInfo* Info = LambdaSym.Get_Info<LambdaInfo>();
 		Info->Ret = TypeSymbol(TypesEnum::Var);
 
 		for (size_t i = 0; i < node.Pars.Parameters.size(); i++)
 		{
 			auto& Item = node.Pars.Parameters[i];
-			Symbol& Sym = _Table.GetSymbol((SymbolID)&Item);
+			Symbol& Sym = _Table.GetSymbol(GetSymbolID(Item));
 
 			ConvertAndValidateType(Item.Type,Sym.VarType, NodeSyb_t::Parameter);
 			Info->Pars.push_back(Sym.VarType);
@@ -3118,7 +3118,7 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 					for (size_t i = 0; i < node.Pars.Parameters.size(); i++)
 					{
 						auto& ParItem = node.Pars.Parameters[i];
-						SymbolID ParID = (SymbolID)&ParItem;
+						SymbolID ParID = GetSymbolID(ParItem);
 						if (Item.Sym->ID == ParID)
 						{
 							goto OutLoop;
@@ -3171,7 +3171,7 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 					for (size_t i = 0; i < node.Pars.Parameters.size(); i++)
 					{
 						auto& ParItem = node.Pars.Parameters[i];
-						SymbolID ParID = (SymbolID)&ParItem;
+						SymbolID ParID = GetSymbolID(ParItem);
 						if (Item.Sym->ID == ParID)
 						{
 							goto OutLoop2;
@@ -3212,7 +3212,7 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 			ScopeHelper::GetApendedString(FullName, LambdaClassName);
 			auto& SymClass = AddSybol(SymbolType::Type_class, LambdaClassName, FullName,AccessModifierType::Public);
 		
-			const SymbolID ClassSymID = (SymbolID)&node._Capture;
+			const SymbolID ClassSymID = GetSymbolID(node._Capture);
 
 			_Table.AddSymbolID(SymClass, ClassSymID);
 
@@ -3290,12 +3290,12 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 	{
 		_Table.AddScope(LambdaName);
 
-		auto& LambdaSym = _Table.GetSymbol((SymbolID)&node);
+		auto& LambdaSym = _Table.GetSymbol(GetSymbolID(node));
 		LambdaInfo* Info = LambdaSym.Get_Info<LambdaInfo>();
 
 		if (Info->UsesOuterScope())
 		{
-			const SymbolID ClassSymID = (SymbolID)&node._Capture;
+			const SymbolID ClassSymID = GetSymbolID(node._Capture);
 			auto& SymClass = _Table.GetSymbol(ClassSymID);
 
 			ClassInfo* ClassSymInfo = SymClass.Get_Info<ClassInfo>();
@@ -3392,7 +3392,7 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 				for (size_t i = 0; i < node.Pars.Parameters.size(); i++)
 				{
 					auto& Item = node.Pars.Parameters[i];
-					Symbol& Sym = _Table.GetSymbol((SymbolID)&Item);
+					Symbol& Sym = _Table.GetSymbol(GetSymbolID(Item));
 
 					IRPar V;
 					V.type = ConvertToIR(Info->Pars[i]);
@@ -3448,7 +3448,7 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 			for (size_t i = 0; i < node.Pars.Parameters.size(); i++)
 			{
 				auto& Item = node.Pars.Parameters[i];
-				Symbol& Sym = _Table.GetSymbol((SymbolID)&Item);
+				Symbol& Sym = _Table.GetSymbol(GetSymbolID(Item));
 
 				IRPar V;
 				V.type = ConvertToIR(Info->Pars[i]);
@@ -3516,7 +3516,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 
 		auto& SybClass = AddSybol(SymbolType::Type_class
 			, (String)ClassName + "%Class", _Table._Scope.ThisScope + "%Class",node.Access);
-		_Table.AddSymbolID(SybClass, (SymbolID)&node._Name);
+		_Table.AddSymbolID(SybClass, GetSymbolID(node._Name));
 
 		Syb.NodePtr = &node;
 
@@ -3635,7 +3635,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 		}
 
 		ClassStackInfo classStackInfo;
-		classStackInfo.Syb =GetSymbol((SymbolID)&node._Name);
+		classStackInfo.Syb =GetSymbol(GetSymbolID(node._Name));
 		classStackInfo.Info = TepClass;
 		_ClassStack.push(classStackInfo);
 
@@ -4116,7 +4116,7 @@ void SystematicAnalysis::OnCompileTimeIfNode(const CompileTimeIfNode& node)
 				}
 			}
 
-			ValidNodes.AddValue((void*)GetSymbolID(node), EvalValue);
+			ValidNodes.AddValue(GetSymbolID(node), EvalValue);
 
 		}
 
@@ -4125,7 +4125,7 @@ void SystematicAnalysis::OnCompileTimeIfNode(const CompileTimeIfNode& node)
 
 	if (passtype == PassType::BuidCode)
 	{
-		const bool EvalValue = ValidNodes.at((void*)GetSymbolID(node));
+		const bool EvalValue = ValidNodes.at(GetSymbolID(node));
 
 		if (EvalValue)
 		{
@@ -4150,7 +4150,7 @@ TypeSymbol SystematicAnalysis::GetUnMapType()
 	if (!UnMapTypeSybol.has_value())
 	{
 		auto& TypeSyb = AddSybol(SymbolType::Unmaped_Generic_Type, CompilerGenerated("UnMapedType"), CompilerGenerated("UnMapedType"), AccessModifierType::Public);
-		_Table.AddSymbolID(TypeSyb, (SymbolID)&TypeSyb);
+		_Table.AddSymbolID(TypeSyb, GetSymbolID(TypeSyb));
 		UnMapTypeSybol = TypeSyb.ID;
 	}	
 	return TypeSymbol(UnMapTypeSybol.value());
@@ -4192,7 +4192,7 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 
 			bool CanBeLooped = false;
 			Symbol* ListTypeSyb;
-			if (ListType._CustomTypeSymbol)
+			if (ListType._CustomTypeSymbol.HasValue())
 			{
 				ListTypeSyb = GetSymbol(ListType);
 				if (ListTypeSyb)
@@ -4225,7 +4225,7 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 
 					auto& ParSyb = AddSybol(SymbolType::Unmaped_Varable, VarableName, _Table._Scope.GetApendedString(VarableName), AccessModifierType::Public);
 					ParSyb.VarType = GetUnMapType();
-					_Table.AddSymbolID(ParSyb, (SymbolID)&ParSyb);
+					_Table.AddSymbolID(ParSyb, GetSymbolID(ParSyb));
 					{
 						auto Token = node.Name;
 						AddExtendedErr("Were '" + VarableName + "' is unmaped for Errors.Before for loop expansion", Token);
@@ -4266,7 +4266,7 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 								{
 									const TypePackInfo* PackInfo = ListTypeSyb->Get_Info<TypePackInfo>();
 
-									const String ScopeName = std::to_string((size_t)GetSymbolID(node));
+									const String ScopeName = std::to_string(GetSymbolID(node).AsInt());
 									const String VarableName = (String)node.Name->Value._String;
 
 									CompileTimeforNode TepData;
@@ -4281,7 +4281,7 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 
 										
 										auto& ParSyb = AddSybol(SymbolType::ParameterVarable, VarableName, _Table._Scope.GetApendedString(VarableName), AccessModifierType::Public);
-										_Table.AddSymbolID(ParSyb, (SymbolID)&ParSyb);
+										_Table.AddSymbolID(ParSyb, GetSymbolID(ParSyb));
 										ParSyb.VarType = Item;
 
 										size_t OldErrCount = _ErrorsOutput->Get_Errors().size();
@@ -4303,7 +4303,7 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 										if (GotErrs) { continue; }
 									}
 
-									ForNodes.AddValue((void*)GetSymbolID(node),std::move(TepData));
+									ForNodes.AddValue(GetSymbolID(node),std::move(TepData));
 								}
 							}
 						}
@@ -4315,7 +4315,7 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 					const StaticArrayInfo* StaticInfo = ListTypeSyb->Get_Info<StaticArrayInfo>();
 
 
-					const String ScopeName = std::to_string((size_t)GetSymbolID(node));
+					const String ScopeName = std::to_string(GetSymbolID(node).AsInt());
 					const String VarableName = (String)node.Name->Value._String;
 
 					auto ListArray = Evaluate(ListType,node.Modern_List);
@@ -4341,7 +4341,7 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 							
 
 							auto& ParSyb = AddSybol(SymbolType::ConstantExpression, VarableName, _Table._Scope.GetApendedString(VarableName), AccessModifierType::Public);
-							_Table.AddSymbolID(ParSyb, (SymbolID)&ParSyb);
+							_Table.AddSymbolID(ParSyb, GetSymbolID(ParSyb));
 
 							
 							ConstantExpressionInfo* ContInfo = new ConstantExpressionInfo();
@@ -4371,7 +4371,7 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 						}
 
 						
-						ForNodes.AddValue((void*)GetSymbolID(node), std::move(TepData));
+						ForNodes.AddValue(GetSymbolID(node), std::move(TepData));
 					}
 				}
 
@@ -4384,10 +4384,10 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 	}
 	if (passtype == PassType::BuidCode)
 	{
-		CompileTimeforNode& Nodes = ForNodes.at((void*)GetSymbolID(node));
+		CompileTimeforNode& Nodes = ForNodes.at(GetSymbolID(node));
 		if (Nodes.SybToLoopOver->Type == SymbolType::ParameterVarable)
 		{
-			const String ScopeName = std::to_string((size_t)GetSymbolID(node));
+			const String ScopeName = std::to_string(GetSymbolID(node).AsInt());
 			
 			for (size_t i = 0; i < Nodes.SybItems.size(); i++)
 			{
@@ -4415,7 +4415,7 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 		}
 		else if (Nodes.SybToLoopOver->Type == SymbolType::Type_StaticArray)
 		{
-			const String ScopeName = std::to_string((size_t)GetSymbolID(node));
+			const String ScopeName = std::to_string(GetSymbolID(node).AsInt());
 			
 
 			for (size_t i = 0; i < Nodes.SybItems.size(); i++)
@@ -4617,7 +4617,7 @@ ImportBindType SybolTypeToImportBindType(SymbolType Type)
 
 void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 {
-	SymbolID ImportSymbolID = (SymbolID)&node;
+	SymbolID ImportSymbolID = GetSymbolID(node);
 	if (passtype == PassType::GetTypes)
 	{
 		auto& Syb = AddSybol(SymbolType::Null, CompilerGenerated("importData") + std::to_string(node._Token->OnLine),"",AccessModifierType::Public);
@@ -4731,7 +4731,7 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 						if (NewSybInfo.Type == ImportBindType::Type)
 						{
 							auto& NewSyb = AddSybol(SymbolType::Type_alias, (String)AliasName->Value._String, (String)AliasName->Value._String, AccessModifierType::Public);
-							_Table.AddSymbolID(NewSyb, (SymbolID)&NewSybInfo);
+							_Table.AddSymbolID(NewSyb, GetSymbolID(NewSybInfo));
 							
 							NewSyb.VarType = SybToBind->VarType;
 
@@ -4743,7 +4743,7 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 						else if (NewSybInfo.Type == ImportBindType::Func)
 						{
 							auto& NewSyb = AddSybol(SymbolType::Func, (String)AliasName->Value._String, (String)AliasName->Value._String, AccessModifierType::Public);
-							_Table.AddSymbolID(NewSyb, (SymbolID)&NewSybInfo);
+							_Table.AddSymbolID(NewSyb, GetSymbolID(NewSybInfo));
 							NewSybInfo.Sym = &NewSyb;
 							
 							FuncInfo* NewFunc = new FuncInfo();
@@ -5136,8 +5136,11 @@ void SystematicAnalysis::PopStackFrame()
 
 	StackFrames.pop_back();
 }
-SymbolID SystematicAnalysis::GetSymbolID(const Node& node)
+SymbolID SystematicAnalysis::GetSymbolID(const void* Item)
 {
+	throw std::exception("not added");
+	return {};
+	/*
 	bool IsgenericInstantiation = GenericFuncName.size() && GenericFuncName.top().NodeTarget == &node;
 	if (IsgenericInstantiation)
 	{
@@ -5145,7 +5148,7 @@ SymbolID SystematicAnalysis::GetSymbolID(const Node& node)
 	}
 	else
 	{
-		auto sybId = (SymbolID)&node;
+		auto sybId = SymbolID((uintptr_t)&node);
 		if (GenericFuncName.size())
 		{
 			sybId += (SymbolID)GenericFuncName.top().GenericInput;
@@ -5155,6 +5158,7 @@ SymbolID SystematicAnalysis::GetSymbolID(const Node& node)
 
 		return sybId;
 	}
+	*/
 }
 void SystematicAnalysis::OnStatement(const Node& node2)
 {
@@ -5356,7 +5360,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 								_Table._Scope.ReMoveScope();
 							//
 
-							SymbolID AnonymousSybID = (SymbolID)VariantType_.node.get();
+							SymbolID AnonymousSybID = GetSymbolID(VariantType_.node.get());
 							auto& AnonymousSyb = AddSybol(SymbolType::Type_class, (String)NewName, NewName,AccessModifierType::Public);
 
 							_Table.AddSymbolID(AnonymousSyb, AnonymousSybID);
@@ -6160,13 +6164,13 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 		Data.Op0 = ExpressionType;
 		Data.Op1 = AssignType;
 
-		AssignExpressionDatas.AddValue((void*)ID, Data);
+		AssignExpressionDatas.AddValue(ID, Data);
 	}
 	else if (passtype == PassType::BuidCode)
 	{
 
 		auto ID = GetSymbolID(node);
-		auto& AssignType = AssignExpressionDatas.at((void*)ID);
+		auto& AssignType = AssignExpressionDatas.at(ID);
 
 
 
@@ -6602,9 +6606,8 @@ bool SystematicAnalysis::StepGetMemberTypeSymbolFromVar(const ScopedNameNode& no
 					memcpy(Data.MemberString.data(), BuffData.EvaluatedObject.Object_AsPointer.get(), BuffData.EvaluatedObject.ObjectSize);
 
 					
-					auto NodeSybPtr = (void*)GetSymbolID((Node&)Item);
-					VarableMemberDatas.AddValue(NodeSybPtr, std::move(Data));
-					ItemTokenString = VarableMemberDatas.at(NodeSybPtr).MemberString;
+					VarableMemberDatas.AddValue(GetSymbolID(Item), std::move(Data));
+					ItemTokenString = VarableMemberDatas.at(GetSymbolID(Item)).MemberString;
 				}
 				else
 				{
@@ -6620,13 +6623,13 @@ bool SystematicAnalysis::StepGetMemberTypeSymbolFromVar(const ScopedNameNode& no
 				}
 
 				auto Token = Item.token;
-				LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "Type must be a char[/] and not a '" + ToString(IsCharArr) + "' to be used as a identfier.");
+				LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "Type must be a char[/] and not a '" + ToString(Type) + "' to be used as a identfier.");
 				return false;
 			}
 		}
 		else if (passtype == PassType::BuidCode)
 		{
-			auto Data = VarableMemberDatas.at((void*)GetSymbolID((Node&)Item));
+			auto Data = VarableMemberDatas.at(GetSymbolID(Item));
 			ItemTokenString = Data.MemberString;
 		}
 
@@ -7253,8 +7256,7 @@ void SystematicAnalysis::StepBuildMember_Access(const ScopedName& ITem, TypeSymb
 	String MemberName;
 	if (ITem.token->Type == TokenType::Class)
 	{
-		void* NodePtr = (void*)GetSymbolID((const Node&)ITem);
-		MemberName = VarableMemberDatas.at(NodePtr).MemberString;
+		MemberName = VarableMemberDatas.at(GetSymbolID(ITem)).MemberString;
 	}
 	else
 	{
@@ -7353,7 +7355,7 @@ Symbol* SystematicAnalysis::GetTepFuncPtrSyb(const String& TepFuncPtr, const Fun
 		FuncPtrInfo* V2 = new FuncPtrInfo();
 		V->Info.reset(V2);
 
-		SymbolID VID = (SymbolID)V;
+		SymbolID VID = GetSymbolID(V);
 
 		V2->FullName = Finfo->FullName;
 
@@ -7613,12 +7615,12 @@ void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 			t.Op0 = LastExpressionType;
 		}
 
-		PostFix_Datas.AddValue(&node,t);
+		PostFix_Datas.AddValue(GetSymbolID(node),t);
 	}
 	else
 	if (passtype == PassType::BuidCode)
 	{
-		const PostFixExpressionNode_Data& Data = PostFix_Datas.at(&node);
+		const PostFixExpressionNode_Data& Data = PostFix_Datas.at(GetSymbolID(node));
 
 		if (Data.FuncToCall)
 		{
@@ -7782,11 +7784,11 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 			r.Op1._IsAddress = false;
 		}
 
-		Compound_Datas.AddValue(&node, r);
+		Compound_Datas.AddValue(GetSymbolID(node), r);
 	}
 	else if (passtype == PassType::BuidCode)
 	{
-		const auto& Data = Compound_Datas.at(&node);
+		const auto& Data = Compound_Datas.at(GetSymbolID(node));
 
 		if (Data.FuncToCall)
 		{
@@ -8157,11 +8159,11 @@ void SystematicAnalysis::OnCMPTypesNode(const CMPTypesNode& node)
 		bool CMPValue =CMPGetValue(Type0,Type1,node.Op);
 
 
-		ValidNodes.AddValue((void*)GetSymbolID(node), CMPValue);
+		ValidNodes.AddValue(GetSymbolID(node), CMPValue);
 	}
 	if (passtype == PassType::BuidCode)
 	{
-		_LastExpressionField = LookingAtIRBlock->NewLoad(ValidNodes[(void*)GetSymbolID(node)]);
+		_LastExpressionField = LookingAtIRBlock->NewLoad(ValidNodes[GetSymbolID(node)]);
 	}
 
 	LastExpressionType.SetType(TypesEnum::Bool);
@@ -8587,7 +8589,7 @@ void SystematicAnalysis::OnNewNode(const NewExpresionNode* nod)
 		}
 	
 		auto Func = GetFunc(Type, nod->Parameters);
-		FuncToSyboID[nod] = Func;
+		FuncToSyboID[GetSymbolID(nod)] = Func;
 
 
 
@@ -8606,7 +8608,7 @@ void SystematicAnalysis::OnNewNode(const NewExpresionNode* nod)
 	{
 	
 
-		auto Func = FuncToSyboID.at(nod);
+		auto Func = FuncToSyboID.at(GetSymbolID(nod));
 		auto& ValuePars = nod->Parameters;
 		
 
@@ -8816,14 +8818,14 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(const AnonymousObjectConst
 		if (passtype == PassType::FixedTypes)
 		{
 			auto Func = GetFunc(Type, nod->Fields);
-			FuncToSyboID[nod] = Func;
+			FuncToSyboID[GetSymbolID(nod)] = Func;
 
 			SetFuncRetAsLastEx(Func);
 			return;
 		}
 		else if (passtype == PassType::BuidCode)
 		{
-			const auto& Func = FuncToSyboID.at(nod);
+			const auto& Func = FuncToSyboID.at(GetSymbolID(nod));
 			auto& ValuePars = nod->Fields;
 
 
@@ -8858,8 +8860,8 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(const AnonymousObjectConst
 			TypeSymbol NewType;
 			StaticArrayInfo* info = nullptr;
 			{
-				SymbolID id = (SymbolID)nod;
-				auto FullName = CompilerGenerated("StaticArray_") + ToString(ArrItemType) + std::to_string(id);
+				SymbolID id = GetSymbolID(nod);
+				auto FullName = CompilerGenerated("StaticArray_") + ToString(ArrItemType) + std::to_string(id.AsInt());
 
 
 				auto Syb = &AddSybol(SymbolType::Type_StaticArray, FullName, FullName,AccessModifierType::Public);
@@ -9141,7 +9143,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 	bool BuildCode = passtype == PassType::BuidCode;
 	if (BuildCode)
 	{
-		Data = &BinaryExpressionNode_Datas.at(&node);
+		Data = &BinaryExpressionNode_Datas.at(GetSymbolID(node));
 		LookingForTypes.top() = Data->Op1;
 
 		if (Data->FuncToCall)
@@ -9202,7 +9204,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 			LastExpressionType = BinaryExpressionShouldRurn(Op, Ex0Type);
 		}
 
-		BinaryExpressionNode_Datas[&node] = V;
+		BinaryExpressionNode_Datas.AddValue(GetSymbolID(node),V);
 
 		
 	}
@@ -9211,7 +9213,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 	BuildCodePart:
 	if (passtype == PassType::BuidCode)
 	{
-		auto& Data = BinaryExpressionNode_Datas[&node];
+		auto& Data = BinaryExpressionNode_Datas.at(GetSymbolID(node));
 
 		if (Data.FuncToCall)
 		{
@@ -9380,7 +9382,7 @@ void SystematicAnalysis::OnExpressionNode(const CastNode& node)
 
 	if (passtype == PassType::BuidCode)
 	{
-		auto& Item =CastDatas.at(&node);
+		auto& Item =CastDatas.at(GetSymbolID(node));
 		if (Item.FuncToCall) 
 		{
 			LookingForTypes.push(Item.FuncToCall->Get_Info<FuncInfo>()->Pars[0]);
@@ -9439,13 +9441,13 @@ void SystematicAnalysis::OnExpressionNode(const CastNode& node)
 			}
 
 
-			CastDatas.AddValue(&node, data);
+			CastDatas.AddValue(GetSymbolID(node), data);
 		}
 	}
 
 	if (passtype == PassType::BuidCode)
 	{
-		DoExplicitlConversion(_LastExpressionField, LastExpressionType, ToTypeAs,CastDatas.at(&node));
+		DoExplicitlConversion(_LastExpressionField, LastExpressionType, ToTypeAs,CastDatas.at(GetSymbolID(node)));
 
 		LastExpressionType = ToTypeAs;
 	}
@@ -9559,14 +9561,14 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 
 			
 
-		IndexedExpresion_Datas[&node] = V;
+		IndexedExpresion_Datas.AddValue(GetSymbolID(node),V);
 
 	}
 
 
 	if (passtype == PassType::BuidCode)
 	{
-		auto& Data = IndexedExpresion_Datas[&node];
+		auto& Data = IndexedExpresion_Datas.at(GetSymbolID(node));
 
 		if (Data.FuncToCall)
 		{
@@ -9676,13 +9678,13 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 			AddDependencyToCurrentFile(Info.SymFunc);
 		}
 
-		FuncToSyboID.AddValue((void*)GetSymbolID(node),Info);
+		FuncToSyboID.AddValue(GetSymbolID(node),Info);
 		
 		SetFuncRetAsLastEx(Info);
 	}
 	else if (passtype == PassType::BuidCode)
 	{
-		auto& SybID = FuncToSyboID.at((void*)GetSymbolID(node));
+		auto& SybID = FuncToSyboID.at(GetSymbolID(node));
 		DoFuncCall(SybID, node.FuncName, node.Parameters);
 	}
 }
@@ -10031,7 +10033,7 @@ void SystematicAnalysis::LoadClassSymbol(const Class_Data& Item, const String& F
 	{
 		auto Name = ScopeHelper::GetNameFromFullName(FullName);
 		auto& Syb = AddSybol(SymbolType::Type_class, Name, FullName, AccessModifierType::Public);
-		_Table.AddSymbolID(Syb, (SymbolID)&Item);
+		_Table.AddSymbolID(Syb, GetSymbolID(Item));
 
 		ClassInfo* Info = new ClassInfo();
 		Syb.Info.reset(Info);
@@ -10059,7 +10061,7 @@ void SystematicAnalysis::LoadClassSymbol(const Class_Data& Item, const String& F
 	}
 	else if (Mode == LoadLibMode::FixTypes)
 	{
-	 	auto& Syb = _Table.GetSymbol((SymbolID)&Item);
+	 	auto& Syb = _Table.GetSymbol(GetSymbolID(Item));
 		ClassInfo* Info = Syb.Get_Info<ClassInfo>();
 
 		for (size_t i = 0; i < Item.Fields.size(); i++)
@@ -10088,7 +10090,7 @@ void SystematicAnalysis::LoadEnumSymbol(const Enum_Data& Item, const String& Ful
 	{
 		auto Name = ScopeHelper::GetNameFromFullName(FullName);
 		auto& Syb = AddSybol(SymbolType::Enum, Name, FullName, AccessModifierType::Public);
-		_Table.AddSymbolID(Syb, (SymbolID)&Item);
+		_Table.AddSymbolID(Syb, GetSymbolID(Item));
 
 		Syb.PassState = PassType::BuidCode;
 		Syb.OutputIR = false;
@@ -10125,7 +10127,7 @@ void SystematicAnalysis::LoadEnumSymbol(const Enum_Data& Item, const String& Ful
 	}
 	else if (Mode == LoadLibMode::FixTypes)
 	{
-		auto& Syb = _Table.GetSymbol((SymbolID)&Item);
+		auto& Syb = _Table.GetSymbol(GetSymbolID(Item));
 		auto  enumInfo = Syb.Get_Info<EnumInfo>();
 
 		LoadType(Item.BaseType,enumInfo->Basetype);
@@ -10198,7 +10200,7 @@ void SystematicAnalysis::LoadSymbol(const ClassMethod& Item, SystematicAnalysis:
 	{	
 		auto Name =ScopeHelper::GetNameFromFullName(Item.FullName);
 		auto& Syb = AddSybol(SymbolType::Func, Name, _Table._Scope.GetApendedString(Name), AccessModifierType::Public);
-		_Table.AddSymbolID(Syb, (SymbolID)&Item);
+		_Table.AddSymbolID(Syb, GetSymbolID(Item));
 		Syb.OutputIR = false;
 		Syb.PassState = PassType::BuidCode;
 		auto Funcinfo =new FuncInfo();
@@ -10211,7 +10213,7 @@ void SystematicAnalysis::LoadSymbol(const ClassMethod& Item, SystematicAnalysis:
 	}
 	else if (Mode == LoadLibMode::FixTypes)
 	{
-		auto& Syb = _Table.GetSymbol((SymbolID)&Item);
+		auto& Syb = _Table.GetSymbol(GetSymbolID(Item));
 		auto Funcinfo = Syb.Get_Info<FuncInfo>();
 
 		LoadType(Item.RetType, Funcinfo->Ret);
@@ -10305,11 +10307,11 @@ void SystematicAnalysis::OnvalidNode(const ValidNode& node)
 	
 		LastExpressionType = TypesEnum::Bool;
 
-		ValidNodes.AddValue((void*)GetSymbolID(node), IsValid);
+		ValidNodes.AddValue(GetSymbolID(node), IsValid);
 	}
 	if (passtype == PassType::BuidCode)
 	{
-		bool IsValid = ValidNodes.at((void*)GetSymbolID(node));
+		bool IsValid = ValidNodes.at(GetSymbolID(node));
 
 
 		_LastExpressionField = LookingAtIRBlock->NewLoad(IsValid);
@@ -10490,7 +10492,7 @@ void SystematicAnalysis::OnExpressionNode(const ExtendedFuncExpression& node)
 			}
 		
 
-			FuncToSyboID.AddValue((void*)GetSymbolID(node), FuncInfo);
+			FuncToSyboID.AddValue(GetSymbolID(node), FuncInfo);
 
 
 			SetFuncRetAsLastEx(FuncInfo);
@@ -10500,7 +10502,7 @@ void SystematicAnalysis::OnExpressionNode(const ExtendedFuncExpression& node)
 	}
 	if (passtype == PassType::BuidCode)
 	{
-		auto& FuncInfo = FuncToSyboID.at((void*)GetSymbolID(node));
+		auto& FuncInfo = FuncToSyboID.at(GetSymbolID(node));
 
 
 
@@ -10600,6 +10602,8 @@ void SystematicAnalysis::OnMatchStatement(const MatchStatement& node)
 				OnStatement(*Statement);
 			}
 			_Table.RemoveScope();
+
+			ScopeCounter++;
 		}
 
 
@@ -10632,7 +10636,7 @@ void SystematicAnalysis::OnMatchStatement(const MatchStatement& node)
 		{
 			_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
 			
-			CanMatch(ToMatchType, Item.Expression,V.ArmData);
+			CanMatch(ToMatchType,node.Expression, Item.Expression,V.ArmData);
 
 			for (auto& Statement : Item.Statements._Nodes)
 			{
@@ -10660,7 +10664,7 @@ void SystematicAnalysis::OnMatchStatement(const MatchStatement& node)
 			CheckAllValuesAreMatched(ToMatchType, V.ArmData);
 		}
 
-		MatchStatementDatas.AddValue((void*)GetSymbolID(node), std::move(V));
+		MatchStatementDatas.AddValue(GetSymbolID(node), std::move(V));
 	}
 	if (passtype == PassType::BuidCode)
 	{
@@ -10672,7 +10676,7 @@ void SystematicAnalysis::OnMatchStatement(const MatchStatement& node)
 		auto Ex = _LastExpressionField;
 		auto ToMatchType = LastExpressionType;
 
-		MatchStatementData& V = MatchStatementDatas.at((void*)GetSymbolID(node));
+		MatchStatementData& V = MatchStatementDatas.at(GetSymbolID(node));
 	
 		
 		BuildMatch_State State;
@@ -10685,7 +10689,7 @@ void SystematicAnalysis::OnMatchStatement(const MatchStatement& node)
 
 			_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
 
-			auto V = BuildMatch(ToMatchType,Ex, State,VItem,Item.Expression);
+			auto V = BuildMatch(ToMatchType,node.Expression,Ex, State,VItem,Item.Expression);
 
 			for (auto& Statement : Item.Statements._Nodes)
 			{
@@ -10724,7 +10728,53 @@ void SystematicAnalysis::OnMatchStatement(const MatchStatement& node)
 		EndMatchState(State);
 	}
 }
-void SystematicAnalysis::CanMatch(const TypeSymbol& MatchItem, const ExpressionNodeType& node, MatchArmData& Data)
+bool SystematicAnalysis::MatchShouldOutPassEnumValue(const ExpressionNodeType& node)
+{
+	ValueExpressionNode* Val = ValueExpressionNode::As(node.Value.get());
+	if (Val->Value->Get_Type() == NodeType::FuncCallNode)
+	{
+		const FuncCallNode* Call = FuncCallNode::As(Val->Value.get());
+
+		for (auto& Item : Call->Parameters._Nodes)
+		{
+			if (Item->Get_Type() == NodeType::OutExpression)
+			{
+				return true;
+			}
+
+		}
+
+	}
+	return false;
+}
+void SystematicAnalysis::MatchAutoPassEnumValueStart(MatchAutoPassEnum& V, const ExpressionNodeType& node, const ValueExpressionNode* Val, const FuncCallNode* Call)
+{
+	V.Func.FuncName.ScopedName = Call->FuncName.ScopedName;
+	V.Func.Generics.Values.resize(Call->Generics.Values.size());
+	memcpy(V.Func.Generics.Values.data(), Call->Generics.Values.data(), Call->Generics.Values.size() * sizeof(TypeNode));
+
+	V.Func.Parameters._Nodes.resize(Call->Parameters._Nodes.size() + 1);
+	V.Func.Parameters._Nodes[0].reset(node.Value.get());
+	memcpy(V.Func.Parameters._Nodes.data() + 1, Call->Parameters._Nodes.data(), Call->Parameters._Nodes.size() * sizeof(Unique_ptr<Node>));
+
+	
+	V.NewNode.Value.reset(&V.NewValNode);
+	V.NewValNode.Value.reset(&V.Func);
+}
+void SystematicAnalysis::MatchAutoPassEnd(MatchAutoPassEnum& V)
+{
+	V.NewNode.Value.release();
+	V.NewValNode.Value.release();
+	for (auto& Item : V.Func.Parameters._Nodes)
+	{
+		Item.release();
+	}
+	for (auto& Item : V.Func.Generics.Values)
+	{
+		Item.node.release();
+	}
+}
+void SystematicAnalysis::CanMatch(const TypeSymbol& MatchItem,const ExpressionNodeType& MatchValueNode, const ExpressionNodeType& node, MatchArmData& Data)
 {
 	bool IsJust =
 		 MatchItem._IsAddressArray == false
@@ -10767,29 +10817,60 @@ void SystematicAnalysis::CanMatch(const TypeSymbol& MatchItem, const ExpressionN
 		else
 		{
 			auto Syb = GetSymbol(MatchItem);
-			if (Syb->Type == SymbolType::Enum)
+			if (Syb) 
 			{
-				if (node.Value.get()->Get_Type() == NodeType::ValueExpressionNode)
+				if (Syb->Type == SymbolType::Enum)
 				{
-					LookingForTypes.push(MatchItem);
-					OnExpressionTypeNode(node, GetValueMode::Read);
-					LookingForTypes.pop();
+					if (node.Value.get()->Get_Type() == NodeType::ValueExpressionNode)
+					{
+						
+						auto Arm = MatchArm();
+						Arm._AutoPassEnum = std::make_shared<MatchAutoPassEnum>();
+						if (MatchShouldOutPassEnumValue(node))
+						{ 
+							
+							const ValueExpressionNode* Val = ValueExpressionNode::As(node.Value.get());
+							const FuncCallNode* Call = FuncCallNode::As(Val->Value.get());
+							
+							
+							auto& Ptr = Arm.Get_AutoPassEnum();
 
-					auto Type = LastExpressionType;
-					if (!CanBeImplicitConverted(MatchItem, Type, false))
+							MatchAutoPassEnumValueStart(Ptr, MatchValueNode, Val, Call);
+
+							NodeTypeStack.push_back(NodeType::MatchArm);
+							LookingForTypes.push(MatchItem);
+							OnExpressionTypeNode(Ptr.NewNode, GetValueMode::Read);
+							LookingForTypes.pop();
+							NodeTypeStack.pop_back();
+
+							//MatchAutoPassEnd(Ptr);
+
+							LastExpressionType = MatchItem;
+						}
+						else 
+						{
+							NodeTypeStack.push_back(NodeType::MatchArm);
+							LookingForTypes.push(MatchItem);
+							OnExpressionTypeNode(node, GetValueMode::Read);
+							LookingForTypes.pop();
+							NodeTypeStack.pop_back();
+						}
+						auto Type = LastExpressionType;
+						if (!CanBeImplicitConverted(MatchItem, Type, false))
+						{
+							const Token* token = LastLookedAtToken;
+							LogCantCastImplicitTypes(token, MatchItem, Type, false);
+						}
+
+						Data.Arms.push_back(std::move(Arm));
+
+						IsOk = true;
+					}
+					else
 					{
 						const Token* token = LastLookedAtToken;
-						LogCantCastImplicitTypes(token, MatchItem, Type, false);
+						LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "The Expression cant be Matched use only ValueExpression");
 					}
-
-					Data.Arms.push_back({});
-
-					IsOk = true;
-				}
-				else
-				{
-					const Token* token = LastLookedAtToken;
-					LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "The Expression cant be Matched use only ValueExpression");
 				}
 			}
 		}
@@ -10812,7 +10893,7 @@ void SystematicAnalysis::CheckAllValuesAreMatched(const TypeSymbol& MatchItem, c
 		}
 	}
 }
-SystematicAnalysis::BuildMatch_ret SystematicAnalysis::BuildMatch(const TypeSymbol& MatchItem,IRInstruction* Item, BuildMatch_State& State, const MatchArm& Arm, const ExpressionNodeType& ArmEx)
+SystematicAnalysis::BuildMatch_ret SystematicAnalysis::BuildMatch(const TypeSymbol& MatchItem, const ExpressionNodeType& MatchValueNode,IRInstruction* Item, BuildMatch_State& State, MatchArm& Arm, const ExpressionNodeType& ArmEx)
 {
 	bool IsJust =
 		MatchItem._IsAddressArray == false
@@ -10862,18 +10943,45 @@ SystematicAnalysis::BuildMatch_ret SystematicAnalysis::BuildMatch(const TypeSymb
 			auto Syb = GetSymbol(MatchItem);
 			if (Syb->Type == SymbolType::Enum)
 			{
-				LookingForTypes.push(MatchItem);
-				OnExpressionTypeNode(ArmEx, GetValueMode::Read);
-				LookingForTypes.pop();
+				if (MatchShouldOutPassEnumValue(ArmEx))
+				{
+					const ValueExpressionNode* Val = ValueExpressionNode::As(ArmEx.Value.get());
+					const FuncCallNode* Call = FuncCallNode::As(Val->Value.get());
 
-				auto Type = LastExpressionType;
-				auto ArmExIR = _LastExpressionField;
-				auto IRToTest = LookingAtIRBlock->NewC_Equalto(Item, ArmExIR);
+					auto& Ptr = Arm.Get_AutoPassEnum();
+
+					//MatchAutoPassEnumValueStart(Ptr, MatchValueNode, Val, Call);
 
 
-				SystematicAnalysis::BuildMatch_ret R;
-				R.JumpToUpdateIFMatchTrue = LookingAtIRBlock->NewConditionalFalseJump(IRToTest, 0);
-				return R;
+					LookingForTypes.push(MatchItem);
+					OnExpressionTypeNode(Ptr.NewNode, GetValueMode::Read);
+					LookingForTypes.pop();
+
+					MatchAutoPassEnd(Ptr);
+
+					auto Type = LastExpressionType;
+					auto ArmExIR = _LastExpressionField;
+
+
+					SystematicAnalysis::BuildMatch_ret R;
+					R.JumpToUpdateIFMatchTrue = LookingAtIRBlock->NewConditionalFalseJump(ArmExIR, 0);
+					return R;
+				}
+				else
+				{
+					LookingForTypes.push(MatchItem);
+					OnExpressionTypeNode(ArmEx, GetValueMode::Read);
+					LookingForTypes.pop();
+
+					auto Type = LastExpressionType;
+					auto ArmExIR = _LastExpressionField;
+					auto IRToTest = LookingAtIRBlock->NewC_Equalto(Item, ArmExIR);
+
+
+					SystematicAnalysis::BuildMatch_ret R;
+					R.JumpToUpdateIFMatchTrue = LookingAtIRBlock->NewConditionalFalseJump(IRToTest, 0);
+					return R;
+				}
 			}
 			else
 			{
@@ -10957,7 +11065,7 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 		{
 			_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
 
-			CanMatch(ToMatchType, Item.Expression, V.ArmData);
+			CanMatch(ToMatchType, node.Expression, Item.Expression, V.ArmData);
 
 			OnExpressionTypeNode(Item.AssignmentExpression, GetValueMode::Read);
 			auto AssignmentType = LastExpressionType;
@@ -10996,7 +11104,7 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 		}
 
 		V.MatchAssignmentType = MatchAssignmentType;
-		MatchExpressionDatas.AddValue((void*)GetSymbolID(node), std::move(V));
+		MatchExpressionDatas.AddValue(GetSymbolID(node), std::move(V));
 	}
 	if (passtype == PassType::BuidCode)
 	{
@@ -11008,7 +11116,7 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 		auto Ex = _LastExpressionField;
 		auto ToMatchType = LastExpressionType;
 
-		MatchExpressionData& V = MatchExpressionDatas.at((void*)GetSymbolID(node));
+		MatchExpressionData& V = MatchExpressionDatas.at(GetSymbolID(node));
 
 		
 
@@ -11025,7 +11133,7 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 
 			_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
 
-			auto V2 = BuildMatch(ToMatchType, Ex, State, VItem, Item.Expression);
+			auto V2 = BuildMatch(ToMatchType, node.Expression, Ex, State, VItem, Item.Expression);
 
 			OnExpressionTypeNode(Item.AssignmentExpression, GetValueMode::Read);
 
@@ -11937,7 +12045,7 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 		}
 		else
 		{
-			SymbolID id = (SymbolID)node;
+			SymbolID id = GetSymbolID(node);
 			auto& Syb = AddSybol(SymbolType::ConstantExpression, "?", "?",AccessModifierType::Private);
 			_Table.AddSymbolID(Syb, id);
 
@@ -12038,9 +12146,9 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 	if (V.IsStackArray)
 	{
 		ExpressionNodeType* node = (ExpressionNodeType*)V.node.get();
-		SymbolID id = (SymbolID)node;
+		SymbolID id = GetSymbolID(node);
 		auto BaseTypeName = ToString(Out);
-		auto FullName = CompilerGenerated("StaticArray_") + BaseTypeName + std::to_string(id);
+		auto FullName = CompilerGenerated("StaticArray_") + BaseTypeName + std::to_string(id.AsInt());
 
 		if (passtype == PassType::GetTypes)
 		{
@@ -12050,7 +12158,7 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 		Symbol* Syb = GetSymbol(FullName,SymbolType::Null);
 		if (Syb == nullptr)
 		{
-			SymbolID id = (SymbolID)node;
+			SymbolID id = GetSymbolID(node);
 			Syb = &AddSybol(SymbolType::Type_StaticArray, FullName, FullName,AccessModifierType::Public);
 			_Table.AddSymbolID(*Syb, id);
 
@@ -12144,7 +12252,7 @@ TypeSymbol SystematicAnalysis::GetStaticArrayType(const TypeSymbol& BaseType,siz
 	if (Syb == nullptr)
 	{
 		Syb = &AddSybol(SymbolType::Type_StaticArray, FullName, FullName, AccessModifierType::Public);
-		SymbolID id = (SymbolID)Syb;
+		SymbolID id = GetSymbolID(Syb);
 		_Table.AddSymbolID(*Syb, id);
 
 		StaticArrayInfo* info = new StaticArrayInfo();
@@ -13163,7 +13271,7 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 						{
 							auto& Item = Pars._Nodes[i];
 							OutExpression* outEx = OutExpression::As(Item.get());
-							SymbolID ID = (SymbolID)outEx;
+							SymbolID ID = GetSymbolID(outEx);
 						
 
 							auto& Syb = _Table.GetSymbol(ID);
@@ -13415,7 +13523,7 @@ void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Nam
 		auto* FuncParInfoPtr = Index < Pars.size() ? &Pars[Index]
 			: &Pars.back();
 
-		if (FuncParInfoPtr->_CustomTypeSymbol)
+		if (FuncParInfoPtr->_CustomTypeSymbol.HasValue())
 		{
 			const auto Syb = GetSymbol(*FuncParInfoPtr);
 			if (Syb->Type == SymbolType::Type_Pack)
@@ -13924,11 +14032,23 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 				auto& Last = NodeTypeStack[Index];
 				if (Last == NodeType::IfNode || Last == NodeType::WhileNode || Last == NodeType::DoNode
 					|| Last == NodeType::RetStatementNode
-					|| Last == NodeType::CompileTimeIfNode)
+					|| Last == NodeType::CompileTimeIfNode
+					|| Last == NodeType::MatchArm
+					)
 				{
 					IsControlFlow = true;
 				}
 				else if (NodeTypeStack.back() == NodeType::CompileTimeIfNode)
+				{
+					IsControlFlow = true;
+				}
+			}
+			if (NodeTypeStack.size() > 2)
+			{
+				size_t Index = NodeTypeStack.size() - 1;
+				Index-=2;
+				auto& Last = NodeTypeStack[Index];
+				if (Last == NodeType::MatchArm)
 				{
 					IsControlFlow = true;
 				}
@@ -14512,7 +14632,7 @@ SystematicAnalysis::Get_FuncInfo SystematicAnalysis::GetEnumVariantFunc(Symbol* 
 		{
 			String FullName = Enuminfo->FullName;
 			ScopeHelper::GetApendedString(FullName, Feild.Name);
-			LogCanIncorrectParCount(Token, FullName, Pars._Nodes.size(), Feild_Variant.Types.size());
+			LogCanIncorrectParCount(Token, FullName, Pars._Nodes.size(), Feild_Variant.Types.size()+1);
 
 			LastExpressionType = TypeSymbol(EnumSyb->ID);
 			return {};
@@ -14762,7 +14882,7 @@ Optional<SymbolID>  SystematicAnalysis::MakeTypePackSymbolIfNeeded(const String&
 
 
 		auto& PackSyb = AddSybol(SymbolType::Type_Pack, "!Pack", ScopeHelper::ApendedStrings(NewName, "!Pack"), AccessModifierType::Public);
-		_Table.AddSymbolID(PackSyb, (SymbolID)&PackSyb);
+		_Table.AddSymbolID(PackSyb, GetSymbolID(PackSyb));
 		TypePackInfo* PackInfo = new TypePackInfo();
 		PackInfo->List = std::move(_PackList);
 

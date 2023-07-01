@@ -84,7 +84,7 @@ void SymbolTable::GetSymbolsInNameSpace(const String_view& NameSpace, const Stri
  void SymbolTable::AddSymbolID(Symbol& Syb, SymbolID ID)
  {
 	 Syb.ID = ID;
-	 IDToSymbols[ID] = &Syb;
+	 IDToSymbols.AddValue(ID,&Syb);
  }
 
  void SymbolTable::Reset()

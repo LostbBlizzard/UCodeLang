@@ -42,10 +42,22 @@ public:
 	
 	void AddValue(ConstKey key,const Value& Item)
 	{
+		#ifdef DEBUG
+		if (HasValue(key))
+		{
+			throw std::exception("has same key");
+		}
+		#endif // DEBUG
 		AddVectorBase(VectorBase(Hash(key), Item));
 	}
 	void AddValue(ConstKey key, Value&& Item)
 	{
+		#ifdef DEBUG
+		if (HasValue(key))
+		{
+			throw std::exception("has same key");
+		}
+		#endif // DEBUG
 		AddVectorBase(VectorBase(Hash(key), Item));
 	}
 

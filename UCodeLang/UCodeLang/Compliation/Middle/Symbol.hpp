@@ -55,7 +55,7 @@ enum class TypeInfoPrimitive : UInt8
 class Symbol;
 struct TypeSymbol
 {
-	SymbolID  _CustomTypeSymbol = 0;
+	SymbolID  _CustomTypeSymbol;
 	
 	TypesEnum _Type = TypesEnum::Null;
 	bool _IsAddress=false;
@@ -81,7 +81,7 @@ struct TypeSymbol
 	
 	void SetType(TypesEnum type)
 	{
-		_CustomTypeSymbol = 0;
+		_CustomTypeSymbol = {};
 
 		_Type = type;
 		_IsAddress = false;
@@ -293,7 +293,7 @@ struct GenericData
 		ConstantExpression,
 		Pack,
 	};
-	SymbolID SybID =0;
+	SymbolID SybID;
 	Type type = Type::Name;
 	bool IsConstantExpression() const
 	{
@@ -801,7 +801,7 @@ class Symbol
 public:
 	SymbolType Type = SymbolType::Null;
 	String FullName;
-	SymbolID ID = 0;
+	SymbolID ID;
 
 	bool OutputIR = true;
 	//var
