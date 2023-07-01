@@ -563,6 +563,10 @@ bool SystematicAnalysis::Analyze(const Vector<const FileNode*>& Files, const Vec
 	_Files = &Files;
 	_Libs = &Libs;
 
+	int V = 0;
+	int* Ptr = &V;
+	GetSymbolID(Ptr);
+
 	{
 		for (const auto& File : *_Files)
 		{
@@ -5138,27 +5142,47 @@ void SystematicAnalysis::PopStackFrame()
 }
 SymbolID SystematicAnalysis::GetSymbolID(const void* Item)
 {
-	throw std::exception("not added");
-	return {};
-	/*
-	bool IsgenericInstantiation = GenericFuncName.size() && GenericFuncName.top().NodeTarget == &node;
-	if (IsgenericInstantiation)
+	#ifdef DEBUG
+	bool OnStack = false;
+
+	
+
+	constexpr size_t KbMul =  1024;
+	constexpr size_t MbMul = KbMul * 1024;
+	constexpr size_t StackSize = MbMul * 4;
+
+	uintptr_t StackPointer = (uintptr_t)&OnStack;
+	uintptr_t ItemInt = (uintptr_t)Item;
+	if (StackPointer + StackSize < ItemInt 
+	 && StackPointer - StackSize > ItemInt)
 	{
-		return (SymbolID)GenericFuncName.top().GenericInput;
+		OnStack = true;
+	}
+
+
+	if (OnStack)
+	{
+		throw std::exception("Item Is on Stack not on heep");
+	}
+	#endif // DEBUG
+	auto Scope = _Table._Scope.ThisScope;
+
+	if (!_SybIdMap.HasValue(Scope))
+	{
+		_SybIdMap.AddValue(Scope, {});
+	}
+	BinaryVectorMap<const void*, SymbolID>& ID = _SybIdMap.at(Scope);
+
+	if (!ID.HasValue(Item))
+	{
+		auto R = SymbolID(IDIndex++);
+		ID.AddValue(Item,R);
+		return R;
 	}
 	else
 	{
-		auto sybId = SymbolID((uintptr_t)&node);
-		if (GenericFuncName.size())
-		{
-			sybId += (SymbolID)GenericFuncName.top().GenericInput;
-		}
-
-		sybId += std::hash<String>()(_Table._Scope.ThisScope);
-
-		return sybId;
+		return ID.at(Item);
 	}
-	*/
 }
 void SystematicAnalysis::OnStatement(const Node& node2)
 {
