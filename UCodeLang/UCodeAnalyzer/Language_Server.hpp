@@ -12,6 +12,16 @@ public:
 
 private:
 };
+struct UCFile
+{
+	Path FullFilePath;
+	Path RelativePath;
+};
+
+struct GoToItem
+{
+	Path OnRelativeFilePath;
+};
 
 class Language_Server
 {
@@ -20,6 +30,11 @@ public:
 	~Language_Server(){}
 
 	void Step()
+	{
+
+	}
+
+	void Goto(StringView Name)
 	{
 
 	}

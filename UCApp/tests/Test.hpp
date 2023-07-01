@@ -4,7 +4,7 @@
 #include <UCodeLang/UCodeLang.hpp>
 #include <UCodeLang/LangCore/LangTypes.hpp>
 #include <filesystem>
-#include "TestNameSpace.h"
+#include "TestNameSpace.hpp"
 #include "../src/UCodeLangProjectPaths.hpp"
 UCodeTestStart
 
