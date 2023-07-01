@@ -35,23 +35,19 @@ $Unique_ptr<T>:
 |Func3[] ->int;
 
 
-|ifcode[]:
- //int Value = 0;
- if true: Func1();
- else if false: Func2();
- else: Func3();
 
 $Item enum:
- Red,
+ Red[int V],
  Green,
  Blue,
 
 |main[]:
 
+ var V = Item::Red(10);
 
- match Item::Red:
-  Item::Red: Func1();
-  Item::Green: Func2();
-  Item::Blue: Func3();
+ match V:
+  Item::Red(out Num):int a =1;
+  Item::Green: int a =2;
+  Item::Blue: int a =3;
  
  

@@ -393,7 +393,7 @@ private:
 	struct ObjectToDrop
 	{
 		ObjectToDropType DropType = ObjectToDropType::IRInstruction;
-		SymbolID ID = 0;
+		SymbolID ID ;
 
 
 		IROperator _Operator;
@@ -526,8 +526,29 @@ private:
 	using UrinaryOverLoadWith_t = BinaryOverLoadWith_t;
 
 
+	struct MatchAutoPassEnum
+	{
+		FuncCallNode Func;
+		ExpressionNodeType NewNode;
+		ValueExpressionNode NewValNode;
+		MatchAutoPassEnum()
+		{
+
+		}
+		~MatchAutoPassEnum()
+		{
+
+		}
+	};
 	struct MatchArm
 	{
+		Shared_ptr<MatchAutoPassEnum> _AutoPassEnum;
+		//c++ does not like this not copying but it need to work for Vectors should be Unique_ptr or just it self.
+	
+		MatchAutoPassEnum& Get_AutoPassEnum()
+		{
+			return *_AutoPassEnum.get();
+		}
 		
 	};
 	struct MatchArmData
@@ -618,23 +639,23 @@ private:
 
 	const FileNode* LookingAtFile = nullptr;
 	BinaryVectorMap<const FileNode_t*,Shared_ptr<FileNodeData>> _FilesData;
-	BinaryVectorMap<const void*, BinaryExpressionNode_Data> BinaryExpressionNode_Datas;
-	BinaryVectorMap<const void*, IndexedExpresion_Data> IndexedExpresion_Datas;
-	BinaryVectorMap<const void*, PostFixExpressionNode_Data> PostFix_Datas;
-	BinaryVectorMap<const void*, CompoundExpresion_Data> Compound_Datas;
-	BinaryVectorMap<const void*, ForExpresion_Data> For_Datas;
-	BinaryVectorMap<const void*, CastExpressionNode_Data> CastDatas;
-	BinaryVectorMap<const void*, AssignExpression_Data > AssignExpressionDatas;
-	BinaryVectorMap<const void*, bool> ValidNodes;
-	BinaryVectorMap<const void*, CompileTimeforNode> ForNodes;
+	BinaryVectorMap<SymbolID, BinaryExpressionNode_Data> BinaryExpressionNode_Datas;
+	BinaryVectorMap<SymbolID, IndexedExpresion_Data> IndexedExpresion_Datas;
+	BinaryVectorMap<SymbolID, PostFixExpressionNode_Data> PostFix_Datas;
+	BinaryVectorMap<SymbolID, CompoundExpresion_Data> Compound_Datas;
+	BinaryVectorMap<SymbolID, ForExpresion_Data> For_Datas;
+	BinaryVectorMap<SymbolID, CastExpressionNode_Data> CastDatas;
+	BinaryVectorMap<SymbolID, AssignExpression_Data > AssignExpressionDatas;
+	BinaryVectorMap<SymbolID, bool> ValidNodes;
+	BinaryVectorMap<SymbolID, CompileTimeforNode> ForNodes;
 
-	BinaryVectorMap<const void*, MatchStatementData> MatchStatementDatas;
+	BinaryVectorMap<SymbolID, MatchStatementData> MatchStatementDatas;
 
-	BinaryVectorMap<const void*, MatchExpressionData> MatchExpressionDatas;
+	BinaryVectorMap<SymbolID, MatchExpressionData> MatchExpressionDatas;
 
 	
 
-	BinaryVectorMap< const void*, VarableMemberData> VarableMemberDatas;//Var.$Item
+	BinaryVectorMap<SymbolID, VarableMemberData> VarableMemberDatas;//Var.$Item
 
 	Vector<FuncStackInfo> _FuncStack;
 
@@ -645,7 +666,7 @@ private:
 	//
 	Stack<TypeSymbol> LookingForTypes;
 	TypeSymbol LastExpressionType;
-	BinaryVectorMap<const void*, Get_FuncInfo> FuncToSyboID;
+	BinaryVectorMap<SymbolID, Get_FuncInfo> FuncToSyboID;
 	Vector< NewFuncData> TepFuncs;
 	Vector<const ClassInfo*> ClassDependencies;
 	Vector< FuncInfo*>_RetLoopStack;
@@ -720,8 +741,17 @@ private:
 	{
 		return LookingForTypes.top();
 	}
-	SymbolID GetSymbolID(const Node& node);
+	SymbolID GetSymbolID(const Node& node)
+	{
+		return  GetSymbolID(&node);
+	}
+	SymbolID GetSymbolID(const void* Item);
 
+	template<typename T>
+	SymbolID GetSymbolID(const T& Item)
+	{
+		return GetSymbolID(Item);
+	}
 	//File dependency analysis stuff
 
 	inline bool IsDependencies(const ClassInfo* Value)
@@ -957,7 +987,12 @@ private:
 	void OnExpressionToTypeValueNode(const ExpressionToTypeValueNode& node);
 
 	void OnMatchStatement(const MatchStatement& node);
-	void CanMatch(const TypeSymbol& MatchItem, const ExpressionNodeType& node, MatchArmData& Data);
+	void CanMatch(const TypeSymbol& MatchItem, const ExpressionNodeType& MatchValueNode, const ExpressionNodeType& node, MatchArmData& Data);
+	
+
+	bool MatchShouldOutPassEnumValue(const ExpressionNodeType& node);
+	void MatchAutoPassEnumValueStart(MatchAutoPassEnum& V, const ExpressionNodeType& node, const ValueExpressionNode* Val, const FuncCallNode* Call);
+	void MatchAutoPassEnd(MatchAutoPassEnum& V);
 	void CheckAllValuesAreMatched(const TypeSymbol& MatchItem, const MatchArmData& Data);
 	
 	struct BuildMatch_ret
@@ -970,7 +1005,7 @@ private:
 		Vector<BuildMatch_ret> MatchList;
 	};
 
-	BuildMatch_ret BuildMatch(const TypeSymbol& MatchItem,IRInstruction* Item, BuildMatch_State& State, const MatchArm& Arm, const ExpressionNodeType& ArmEx);
+	BuildMatch_ret BuildMatch(const TypeSymbol& MatchItem, const ExpressionNodeType& MatchValueNode,IRInstruction* Item, BuildMatch_State& State, MatchArm& Arm, const ExpressionNodeType& ArmEx);
 	BuildMatch_ret BuildInvaildMatch(const TypeSymbol& MatchItem, IRInstruction* Item, BuildMatch_State& State);
 	void EndMatch(BuildMatch_ret& Value, BuildMatch_State& State);
 	void EndMatchState(BuildMatch_State& State);
