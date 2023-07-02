@@ -1,7 +1,29 @@
 #include "LanguageSeverTest.hpp"
 #include <fstream>
 #include <filesystem>
+#include "UCodeAnalyzer/CppHelper.hpp"
 UCodeTestStart
+
+/// <summary>
+/// Testing
+/// </summary>
+UCodeLangExportSymbol("UCodeLang") enum class Color : short
+{
+	SomeValue,
+	OtherValue,
+	YepValue,
+};
+
+UCodeLangExportSymbol("UCodeLang") enum Color2 : int
+{
+	SomeValue = 0,
+	OtherValue = 1,
+	YepValue = 2,
+};
+
+UCodeLangExportSymbol("UCodeLang") constexpr static size_t SomeValue = 0;
+
+
 Vector<String_view> LanguageSeverTest::IntoLines(String_view String)
 {
 	size_t StartLine = 0;
@@ -45,6 +67,8 @@ void LanguageSeverTest::RunTest(const Path& AsPath)
 }
 void LanguageSeverTest::RunTest(String_view FileAsString)
 {
+	UCodeAnalyzer::CppHelper::ParseCppfileAndOutULang(UCodeLang_UCAppDir_TestDir + "LanguageSeverTest.cpp", "test.uc");
+
 	Vector<String_view> Lines = IntoLines(FileAsString);
 	struct Info
 	{
@@ -76,11 +100,24 @@ void LanguageSeverTest::RunTest(String_view FileAsString)
 		}
 
 	}
+	String FileText;
+	for (auto& Item : FileLines)
+	{
+		FileText += Item;
+		FileText += '\n';
+	}
+
+
+
+	
 }
+
 
 int RunLanguageSeverTests()
 {
 	Path path = UCodeLang_UCAppDir_Test_LanguageSeverFilesFiles + "Goto/BasicFind.uc";
+
+	
 
 	LanguageSeverTest Test;
 	Test.RunTest(path);
