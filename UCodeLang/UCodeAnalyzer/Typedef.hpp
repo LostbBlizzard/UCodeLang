@@ -38,6 +38,8 @@ template<typename T, typename T2> using Unordered_map = UCodeLang::Unordered_map
 
 template<typename T, size_t Size> using Array = UCodeLang::Array<T, Size>;
 
+template<typename... T> using Variant = UCodeLang::Variant<T...>;
+
 using BytesView = UCodeLang::BytesView;
 
 template<typename Key,typename Value> using BinaryVectorMap = UCodeLang::BinaryVectorMap<Key, Value>;
