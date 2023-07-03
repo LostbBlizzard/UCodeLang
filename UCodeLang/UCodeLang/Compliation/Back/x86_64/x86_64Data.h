@@ -8,9 +8,10 @@ namespace x86_64
 	enum class GeneralRegisters : Byte
 	{
 		RAX = 0,//Accumulator register.  
-		RBX = 2,//Base registe
 		RCX = 1,//Counter register
-		RDX = 3,//Data register
+		RDX = 2,//Data register
+		RBX = 3,//Base registe
+		
 	
 		RSP = 4,
 		RBP = 5,
@@ -24,6 +25,16 @@ namespace x86_64
 		Count,
 		Null,
 	};
+
+	struct IndrGeneralRegister
+	{
+		GeneralRegisters _Reg = GeneralRegisters::Null;
+		explicit IndrGeneralRegister(GeneralRegisters V)
+		{
+			_Reg = V;
+		}
+	};
+
 	enum class FloatingPointRegisters : Byte
 	{
 		xmm0,
@@ -67,9 +78,9 @@ namespace x86_64
 	enum class Rm : Byte
 	{
 		RAX = 0,//Accumulator register.  
-		RBX = 2,//Base registe
+		RBX = 3,//Base registe
 		RCX = 1,//Counter register
-		RDX = 3,//Data register
+		RDX = 2,//Data register
 
 		RSP = 4,
 		RBP = 5,
@@ -92,6 +103,12 @@ namespace x86_64
 	
 	inline Byte modrm(GeneralRegisters src, GeneralRegisters dst) {
 		return ((Byte)ModRM::Direct) | ((GetIndex(src)) << 3) | GetIndex(dst);
+	}
+	inline Byte modrm(IndrGeneralRegister src, GeneralRegisters dst) {
+		return ((Byte)ModRM::Indirect) | ((GetIndex(src._Reg)) << 3) | GetIndex(dst);
+	}
+	inline Byte modrm(GeneralRegisters src, IndrGeneralRegister dst) {
+		return ((Byte)ModRM::Indirect) | ((GetIndex(src)) << 3) | GetIndex(dst._Reg);
 	}
 	inline Array<Byte,2> modrm(GeneralRegisters src, GeneralRegisters dst,UInt8 offset) 
 	{

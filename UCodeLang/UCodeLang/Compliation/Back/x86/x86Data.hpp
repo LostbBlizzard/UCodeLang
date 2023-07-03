@@ -7,9 +7,9 @@ namespace x86
 	enum class GeneralRegisters : Byte
 	{
 		EAX = 0,//Accumulator register.  
-		EBX = 2,//Base registe
+		EBX = 3,//Base registe
 		ECX = 1,//Counter register
-		EDX = 3,//Data register
+		EDX = 2,//Data register
 
 		ESP,
 		EBP,
