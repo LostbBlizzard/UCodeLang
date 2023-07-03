@@ -205,7 +205,7 @@ private:
 	GotNodeType GetFuncNode(FuncNode& out);
 	GotNodeType GetFuncSignatureNode(FuncSignatureNode& out);
 	GotNodeType GetFuncBodyNode(FuncBodyNode& out);
-	GotNodeType GetNamedParametersNode(NamedParametersNode& out);
+	GotNodeType GetNamedParametersNode(NamedParametersNode& out,bool CanHaveOutPar =false);
 
 	GotNodeType GetValueParameterNode(Node*& out);
 	GotNodeType GetValueParametersNode(ValueParametersNode& out);

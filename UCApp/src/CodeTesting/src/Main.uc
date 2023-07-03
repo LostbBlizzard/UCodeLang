@@ -34,3 +34,8 @@ eval |Func[int a] => a;
 
 |main[]:
  ret Func(10);
+
+
+|OutFunc[int V,out int Item] -> bool:
+ Item = 10;
+ ret true;

@@ -451,6 +451,7 @@ struct NamedParameterNode :Node
 	}
 	TypeNode Type;
 	NameNode Name;
+	bool IsOutVarable = false;
 };
 struct NamedParametersNode :Node
 {

@@ -887,6 +887,7 @@ GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 	{
 		out.HasEvalKeyWord = true;
 		NextToken();
+		funcToken = TryGetToken();
 	}
 
 	TokenTypeCheck(funcToken, Parser::declareFunc);
@@ -934,7 +935,7 @@ GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 	TokenTypeCheck(LPToken, declareFuncParsStart);
 	NextToken();
 
-	auto Parameters = GetNamedParametersNode(out.Parameters);
+	auto Parameters = GetNamedParametersNode(out.Parameters,true);
 
 	auto RPToken = TryGetToken();
 	TokenTypeCheck(RPToken, declareFuncParsEnd);
@@ -1432,7 +1433,7 @@ GotNodeType Parser::GetValueParametersNode(ValueParametersNode& out)
 	}
 	return GotNodeType::Success;
 }
-GotNodeType Parser::GetNamedParametersNode(NamedParametersNode& out)
+GotNodeType Parser::GetNamedParametersNode(NamedParametersNode& out, bool CanHaveOutPar)
 {
 
 	while (TryGetToken()->Type != TokenType::EndofFile)
@@ -1441,6 +1442,11 @@ GotNodeType Parser::GetNamedParametersNode(NamedParametersNode& out)
 		auto Token = TryGetToken();
 		if (!Token || Token->Type == TokenType::Right_Bracket) { break; }
 
+		if (CanHaveOutPar && Token->Type == TokenType::KeyWord_out)
+		{
+			Tep.IsOutVarable = true;
+			NextToken();
+		}
 
 		GetType(Tep.Type,false,false);
 		

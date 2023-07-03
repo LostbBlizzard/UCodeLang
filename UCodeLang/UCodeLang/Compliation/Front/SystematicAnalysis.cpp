@@ -4566,9 +4566,11 @@ void SystematicAnalysis::OnStatementsWithSetableRet(const StatementsNode& node, 
 					CantguessVarTypeError(Token);
 				}
 
+				/*
 				if (ErrCount == _ErrorsOutput->Get_Errors().size()) {
 					OnStatement(*node2);//re do
 				}
+				*/
 			}
 
 			break;
@@ -9702,7 +9704,7 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 			AddDependencyToCurrentFile(Info.SymFunc);
 		}
 
-		FuncToSyboID.AddValue(GetSymbolID(node),Info);
+		FuncToSyboID.AddValue(GetSymbolID(node),std::move(Info));
 		
 		SetFuncRetAsLastEx(Info);
 	}
