@@ -94,36 +94,21 @@ void X86_64Gen::mov32(GReg dest, GReg src)
 }
 void X86_64Gen::mov64(GReg dest, GReg src)
 {
-	if (dest == GReg::RSP && src == GReg::RBX)
-	{
-		PushByte(0x48);
-		PushByte(0x89);
-		PushByte(0xE3);
-	}
-	else if (dest == GReg::RSP && src == GReg::RDX)
-	{
-		PushByte(0x48);
-		PushByte(0x89);
-		PushByte(0xE2);
-	}
-	else 
-	{
-		PushByte(0x48);
-		PushByte(0x89);
-		PushByte(x86_64::modrm(src, dest));
-	}
+	PushByte(0x48);
+	PushByte(0x89);
+	PushByte(x86_64::modrm(src, dest));
 }
-void X86_64Gen::mov64(IndrReg Reg, GReg src)
+void X86_64Gen::mov64(IndrReg dest, GReg src)
 {
 	PushByte(0x48);
 	PushByte(0x89);
-	PushByte(x86_64::modrm(src, Reg._Reg));
+	PushByte(x86_64::modrm(src, dest));
 }
 void X86_64Gen::mov64(GReg dest, IndrReg src)
 {
 	PushByte(0x48);
 	PushByte(0x89);
-	PushByte(x86_64::modrm(src._Reg, dest));
+	PushByte(x86_64::modrm(src, dest));
 }
 void X86_64Gen::add8(GReg dest, GReg src)
 {

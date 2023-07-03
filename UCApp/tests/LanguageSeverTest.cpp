@@ -3,8 +3,7 @@
 #include <filesystem>
 #include "UCodeAnalyzer/CppHelper.hpp"
 #include "UCodeLang/Compliation/Back/x86_64/X86_64Gen.hpp"
-#include "Dependencies/Zydis/include/Zydis/Zydis.h"
-#include "Dependencies/zycore/include/Zycore/Zycore.h"
+#include "Zydis/Zydis.h"
 #include <inttypes.h>
 #include <stdio.h>
 UCodeTestStart
@@ -90,34 +89,43 @@ void LanguageSeverTest::RunTest(String_view FileAsString)
 	{
 		ImportUseing86x64Gen
 		X86_64Gen gen;
-		gen.mov64(GReg::RAX, GReg::RAX);
-
+		gen.mov64(GReg::RAX, IndrReg(GReg::RAX));
+		
 
 		void* InsData = gen.GetData();
 		size_t InsSize = gen._Base.Size();
 		
-
-		/*
+		
 		ZyanU64 runtime_address = (ZyanU64)InsData;
 		//runtime_address = 0;
 		// Loop over the instructions in our buffer.
 		ZyanUSize offset = 0;
 		ZydisDisassembledInstruction instruction;
 
+		String Str;
 
 		const size_t MaxInsSize = 8;
 		while (ZYAN_SUCCESS(ZydisDisassembleIntel(
-		ZYDIS_MACHINE_MODE_LONG_64,
+			ZYDIS_MACHINE_MODE_LONG_64,
 			runtime_address,
-			 (void*)((uintptr_t)InsData + offset),
-			Insoffset - offset,
+			(void*)((uintptr_t)InsData + offset),
+			InsSize - offset,
 			&instruction
 		)))
 		{
 
-		String InsStr = instruction.text;
+			String InsStr = instruction.text;
+			Str += InsStr + "\n";
+
+
+			offset += instruction.info.length;
+			runtime_address += instruction.info.length;
 		}
-		*/
+		if (Str != "mov [rax], rax\n")
+		{
+			int a = 0;
+		}
+		int a = 0;
 	}
 
 

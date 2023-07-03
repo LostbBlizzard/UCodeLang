@@ -66,6 +66,10 @@ project "UCApp"
    includedirs{
     "%{prj.name}/src",
     "UCodeLang",
+    
+    "UCodeLang/Dependencies/Zydis/include",
+    "UCodeLang/Dependencies/zycore/include",
+    "UCodeLang/Dependencies/Zydis/src"
    }
 
    links {

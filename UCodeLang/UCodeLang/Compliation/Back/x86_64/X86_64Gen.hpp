@@ -24,6 +24,7 @@ public:
 	using GReg = x86_64::GeneralRegisters;
 	using ModRM = x86_64::ModRM;
 	using Rm = x86_64::Rm;
+	using IndrReg = x86_64::IndrGeneralRegister;
 	X86_64Gen(){}
 	~X86_64Gen(){}
 
@@ -47,14 +48,6 @@ public:
 		_Base._Output.PushByte_little_endian((const Byte*)&Value, sizeof(Value));
 	}
 	
-	struct IndrReg
-	{
-		GReg _Reg = GReg::Null;
-		explicit IndrReg(GReg V)
-		{
-			_Reg = V;
-		}
-	};
 
 	template<typename T>
 	struct Near
