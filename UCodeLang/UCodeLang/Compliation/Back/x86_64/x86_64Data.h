@@ -98,10 +98,15 @@ namespace x86_64
 		Indirect = 0x00,
 		Direct = 0xC0,
 		Disp8 = 0x40,
-		Disp32 = 0x80
+		Disp32 = 0x80,
+	
 	};
 	
-	inline Byte modrm(GeneralRegisters src, GeneralRegisters dst) {
+	inline Byte modrm(GeneralRegisters src, GeneralRegisters dst) 
+	{
+		BitByte Value = BitByte(0);
+		Value.SetValue(0, false);
+
 		return ((Byte)ModRM::Direct) | ((GetIndex(src)) << 3) | GetIndex(dst);
 	}
 	inline Byte modrm(IndrGeneralRegister src, GeneralRegisters dst) {
