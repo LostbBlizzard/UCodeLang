@@ -72,6 +72,9 @@ UCodeLangStart
 #define UCodeLang_CPUIs_littleEndian !UCodeLang_CPUBIs_BigEndian 
 #define UCodeLangExportSymbol(Namespace)
 
+//Use only in Classes
+#define UCodeLangExport
+
 #define UCodeLangImportSymbol(SymbolToImoport)
 
 

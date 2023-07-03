@@ -18,6 +18,7 @@ public:
 		String Value;
 	};
 	
+	struct SymbolData;
 	struct ClassType
 	{
 		struct Field
@@ -26,8 +27,11 @@ public:
 			String Name;
 			Type Type;
 			Optional<CPPExpression> Value;
+
+			bool Exported = false;
 		};
 		Vector<Field> Fields;
+		Vector<SymbolData> Symbols;
 	};
 	
 	struct EnumType
@@ -69,6 +73,10 @@ public:
 	/// <param name="ULangOut"></param>
 	/// <returns>if true it worked</returns>
 	static bool ParseCppfileAndOutULang(const Path& SrcCpp, const Path& ULangOut);
+	static void DoConstexprType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols);
+	static void DoEnumType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols);
+	static void DoClassOrStruct(const char& Keywordlet, size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols);
+	static bool OnDo(char& Keywordlet, size_t& i, UCodeAnalyzer::String& Scope, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols);
 	static bool ParseULangfileAndUpdateCpp(const Path& SrcLang, const Path& CppOut);
 
 
@@ -109,6 +117,7 @@ public:
 	static String ToString(CppToULangState& State, const EnumType& Value, const SymbolData& Syb);
 
 	static String ToString(CppToULangState& State, const ConstexprType& Value, const SymbolData& Syb);
+	static String ToString(CppToULangState& State, const ClassType& Value, const SymbolData& Syb);
 
 	static String ToString(CppToULangState& State, const Type& Value);
 	static String ToString(CppToULangState& State, const CPPExpression& Value);
