@@ -456,9 +456,35 @@ struct IRBufferData : IRSymbol_Ex
 
 //
 
+struct IRDebugSetFile
+{
+	String FileName;
+	size_t InsInBlock =0;
+};
+struct IRDebugSetLineNumber
+{
+	size_t LineNumber;
+	size_t InsInBlock = 0;
+};
+struct IRDebugSetVarableName
+{
+	String VarableName;
+	IRInstruction* Ins= nullptr;
+};
+struct IRDebugIns
+{
+	Variant<IRDebugSetFile, IRDebugSetLineNumber, IRDebugSetVarableName> Debug;
+};
+struct IRBlockDebugInfo
+{
+	Vector<IRDebugIns> DebugInfo;
+};
+
+
 struct IRBlock
 {
-
+	Vector<Unique_ptr<IRInstruction>> Instructions;
+	Optional< IRBlockDebugInfo> DebugInfo;
 	//Loading Values
 	IRInstruction* NewLoad(IRType Type)
 	{
@@ -934,8 +960,6 @@ struct IRBlock
 		V->ObjectType = Type;
 		return V.get();
 	}
-
-	Vector<Unique_ptr<IRInstruction>> Instructions;
 	size_t GetIndex()
 	{
 		return Instructions.size()-1;
@@ -1050,7 +1074,6 @@ struct IRSymbolData
 		return (T*)Ex.get();
 	}
 };
-
 
 class IRBuilder
 {
