@@ -21,7 +21,22 @@ UCodeLangExportSymbol("UCodeLang") enum Color2 : int
 	YepValue = 2,
 };
 
-UCodeLangExportSymbol("UCodeLang") constexpr static size_t SomeValue = 0;
+UCodeLangExportSymbol("UCodeLang") constexpr static size_t SomeValue3 = 0;
+UCodeLangExportSymbol("UCodeLang") constexpr size_t SomeValue4 = 0;
+
+UCodeLangExportSymbol("UCodeLang") struct SomeClass
+{
+
+	UCodeLangExport int SomeValue = 0;
+	int NonExportedInt = 0;
+
+	UCodeLangExport constexpr static size_t SomeValue2 = 0;
+};
+
+UCodeLangExportSymbol("UCodeLang") void SomeFunc(){}
+
+UCodeLangExportSymbol("UCodeLang") using CoolInt = int;
+UCodeLangExportSymbol("UCodeLang") typedef int CoolInt2;
 
 
 Vector<String_view> LanguageSeverTest::IntoLines(String_view String)
