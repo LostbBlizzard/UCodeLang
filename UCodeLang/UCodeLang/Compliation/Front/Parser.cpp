@@ -883,6 +883,11 @@ GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 			funcToken = TryGetToken();
 		}
 	}
+	else if (funcToken->Type == TokenType::KeyWord_eval)
+	{
+		out.HasEvalKeyWord = true;
+		NextToken();
+	}
 
 	TokenTypeCheck(funcToken, Parser::declareFunc);
 	NextToken();
@@ -3496,56 +3501,66 @@ GotNodeType Parser::GetExpressionToTypeValue(ExpressionToTypeValueNode& out)
 }
 GotNodeType Parser::GetEvalDeclare(Node*& out)
 {
+	size_t EvalIndex = _TokenIndex;
 
 	auto NewToken = TryGetToken(); TokenTypeCheck(NewToken, TokenType::KeyWord_eval);
 	NextToken();
 
 	auto Token2 = TryGetToken();
-
-	size_t OldIndex = _TokenIndex;
-
-	NameNode NameValue;
-	GetNameCheck(NameValue);
-
-
-	TypeNode* Tnode = nullptr;
-	auto Token3 = TryGetToken();
-
-	GotNodeType r;
-
-	if (Token3->Type == TokenType::equal)
+	if (Token2->Type == Parser::declareFunc) 
 	{
-		NextToken();
-		DeclareEvalVariableNode* V = DeclareEvalVariableNode::Gen();
-
-		out = V;
-		TypeNode::Gen_Var(V->Variable.Type, *NameValue.Token);
-		V->Variable.Name = std::move(NameValue);
-		GetExpressionTypeNode(V->Variable.Expression);
-
-		auto SemicolonToken2 = TryGetToken(); TokenTypeCheck(SemicolonToken2, TokenType::Semicolon);
-		NextToken();
-
-		Tnode = &V->Variable.Type;
-		r = GotNodeType::Success;
+		_TokenIndex = EvalIndex;
+		auto V = GetFuncNode();
+		out = V.Node;
+		return V.GotNode;
 	}
-	else if (Token3->Type == TokenType::Semicolon)
+	else 
 	{
+		size_t OldIndex = _TokenIndex;
 
-		auto Token = NameValue.Token;
-		_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
-			, "cant guess type theres no '=' [expression]");
-		NextToken();
-		return GotNodeType::Success;
+		NameNode NameValue;
+		GetNameCheck(NameValue);
+
+
+		TypeNode* Tnode = nullptr;
+		auto Token3 = TryGetToken();
+
+		GotNodeType r;
+
+		if (Token3->Type == TokenType::equal)
+		{
+			NextToken();
+			DeclareEvalVariableNode* V = DeclareEvalVariableNode::Gen();
+
+			out = V;
+			TypeNode::Gen_Var(V->Variable.Type, *NameValue.Token);
+			V->Variable.Name = std::move(NameValue);
+			GetExpressionTypeNode(V->Variable.Expression);
+
+			auto SemicolonToken2 = TryGetToken(); TokenTypeCheck(SemicolonToken2, TokenType::Semicolon);
+			NextToken();
+
+			Tnode = &V->Variable.Type;
+			r = GotNodeType::Success;
+		}
+		else if (Token3->Type == TokenType::Semicolon)
+		{
+
+			auto Token = NameValue.Token;
+			_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
+				, "cant guess type theres no '=' [expression]");
+			NextToken();
+			return GotNodeType::Success;
+		}
+		else
+		{
+			_TokenIndex = OldIndex;
+			DeclareEvalVariableNode* V = DeclareEvalVariableNode::Gen();
+			r = GetDeclareVariable(V->Variable, true);
+			out = V;
+		}
+		return r;
 	}
-	else
-	{
-		_TokenIndex = OldIndex;
-		DeclareEvalVariableNode* V = DeclareEvalVariableNode::Gen();
-		r = GetDeclareVariable(V->Variable, true);
-		out = V;
-	}
-	return r;
 }
 GotNodeType Parser::GetCompileTimeIf(CompileTimeIfNode*& out)
 {
