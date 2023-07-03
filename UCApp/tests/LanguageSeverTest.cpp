@@ -2,6 +2,11 @@
 #include <fstream>
 #include <filesystem>
 #include "UCodeAnalyzer/CppHelper.hpp"
+#include "UCodeLang/Compliation/Back/x86_64/X86_64Gen.hpp"
+#include "Dependencies/Zydis/include/Zydis/Zydis.h"
+#include "Dependencies/zycore/include/Zycore/Zycore.h"
+#include <inttypes.h>
+#include <stdio.h>
 UCodeTestStart
 
 /// <summary>
@@ -82,6 +87,40 @@ void LanguageSeverTest::RunTest(const Path& AsPath)
 }
 void LanguageSeverTest::RunTest(String_view FileAsString)
 {
+	{
+		ImportUseing86x64Gen
+		X86_64Gen gen;
+		gen.mov64(GReg::RAX, GReg::RAX);
+
+
+		void* InsData = gen.GetData();
+		size_t InsSize = gen._Base.Size();
+		
+
+		/*
+		ZyanU64 runtime_address = (ZyanU64)InsData;
+		//runtime_address = 0;
+		// Loop over the instructions in our buffer.
+		ZyanUSize offset = 0;
+		ZydisDisassembledInstruction instruction;
+
+
+		const size_t MaxInsSize = 8;
+		while (ZYAN_SUCCESS(ZydisDisassembleIntel(
+		ZYDIS_MACHINE_MODE_LONG_64,
+			runtime_address,
+			 (void*)((uintptr_t)InsData + offset),
+			Insoffset - offset,
+			&instruction
+		)))
+		{
+
+		String InsStr = instruction.text;
+		}
+		*/
+	}
+
+
 	UCodeAnalyzer::CppHelper::ParseCppfileAndOutULang(UCodeLang_UCAppDir_TestDir + "LanguageSeverTest.cpp", "test.uc");
 
 	Vector<String_view> Lines = IntoLines(FileAsString);

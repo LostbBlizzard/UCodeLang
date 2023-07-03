@@ -67,6 +67,8 @@ public:
 	
 	inline size_t GetIndex() { return _Output.GetIndex(); }
 	inline Byte* GetData(size_t offset) { return _Output.ByteOutput.data() + offset; }
+	inline Byte* GetData() { return GetData(0); }
+	inline size_t Size() const { return _Output.ByteOutput.size(); }
 	//move
 	inline void mov(GReg Reg, Value8 Value)
 	{

@@ -1,5 +1,6 @@
 #pragma once
 #include "UCodeLang/LangCore/LangTypes.hpp"
+#include "UCodeLang/LangCore/DataType/BitValue.hpp"
 UCodeLangStart
 namespace x86
 {

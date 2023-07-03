@@ -217,6 +217,8 @@ public:
 	inline void ret(){_Base.ret();}
 	inline size_t GetIndex() {return _Base.GetIndex(); }
 	inline Byte* GetData(size_t offset) { return _Base.GetData(offset); }
+	inline Byte* GetData() { return GetData(0); }
+	inline size_t Size() const { return _Base.Size(); }
 
 	void call(Absoluteu32 CallValue);
 	static void r_call(Byte* Output, Absoluteu32 CallValue);

@@ -89,10 +89,7 @@ namespace x86_64
 		Disp8 = 0x40,
 		Disp32 = 0x80
 	};
-	struct ModRMByte
-	{
-		Byte _Base;
-	};
+	
 	inline Byte modrm(GeneralRegisters src, GeneralRegisters dst) {
 		return ((Byte)ModRM::Direct) | ((GetIndex(src)) << 3) | GetIndex(dst);
 	}
@@ -103,5 +100,23 @@ namespace x86_64
 		R[1] = offset;
 		return R;
 	}
+
+	enum class ModRMbyteFields
+	{
+		MOD_bit_7 = 7,
+		MOD_bit_6 = 6,
+
+		Reg_bit_5 = 5,
+		Reg_bit_4 = 4,
+		Reg_bit_3 = 3,
+
+		RM_bit_2= 2,
+		RM_bit_1 = 1,
+		RM_bit_0 = 0,
+	};
+	struct ModRMByte
+	{
+		BitByte _Base;
+	};
 }
 UCodeLangEnd
