@@ -30,24 +30,7 @@ $Unique_ptr<T>:
 
 */
 
-|Func1[] ->int;
-|Func2[] ->int;
-|Func3[] ->int;
-
-
-
-$Item enum:
- Red[int V],
- Green,
- Blue,
+eval |Func[int a] => a;
 
 |main[]:
-
- var V = Item::Red(10);
-
- match V:
-  Item::Red(out Num):int a =Num;
-  Item::Green: int a =2;
-  Item::Blue: int a =3;
- 
- 
+ ret Func(10);

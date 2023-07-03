@@ -1,11 +1,7 @@
 #pragma once
-#include "../LangCore.hpp"
-#include "TypeNames.hpp"
-#include "ScopeHelper.hpp"
 #include "../LangCore/DataType/BinaryVectorMap.hpp"
 #include "ReflectionData.hpp"
 #include "BitMaker.hpp"
-#include "UCodeLang/LangCore/UClib.hpp"
 UCodeLangStart
 
 struct UDebugSetFile
@@ -56,7 +52,7 @@ struct UDebugSetVarableLoc
 		{
 			return TypeV::StackSub;
 		}
-		else if (Type.Is<UDebugSetVarableLoc>())
+		else if (Type.Is<StackAdd>())
 		{
 			return TypeV::StackAdd;
 		}

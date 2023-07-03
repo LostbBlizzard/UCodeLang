@@ -1,4 +1,5 @@
 #include "ULangDebugInfo.hpp"
+#include "UClib.hpp"
 UCodeLangStart
 
 void ULangDebugInfo::ToBytes(BitMaker& bit, const ULangDebugInfo& Value)
@@ -61,7 +62,7 @@ void ULangDebugInfo::ToBytes(BitMaker& bit, const UDebugIns& Value)
 	{
 		bit.WriteType(V->VarableFullName);
 		bit.WriteType((BitMaker::SizeAsBits)V->ForIns);
-		bit.WriteType(V->Get_Type());
+		bit.WriteType((UDebugSetVarableLoc::TypeV_t)V->Get_Type());
 
 		if (auto V1 = V->Type.Get_If<UDebugSetVarableLoc::UMaped>())
 		{
@@ -134,7 +135,7 @@ bool ULangDebugInfo::FromBytes(BitReader& bit, VarableInfo& Value)
 
 	UClib::FromBytes(bit, Value.ReflectionType);
 
-	bit.ReadType(*(VarableInfoType*)&Value.VarableType, *(VarableInfoType*)&Value.VarableType);
+	bit.ReadType(*(VarableInfoType_t*)&Value.VarableType, *(VarableInfoType_t*)&Value.VarableType);
 
 	VarableInfo::Typeloc Type= VarableInfo::Typeloc::None;
 	bit.ReadType(*(VarableInfo::Typeloc_t*)&Type, *(VarableInfo::Typeloc_t*)&Type);

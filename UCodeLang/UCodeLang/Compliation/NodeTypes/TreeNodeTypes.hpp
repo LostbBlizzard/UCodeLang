@@ -506,6 +506,7 @@ struct FuncSignatureNode :Node
 
 	bool HasExternKeyWord = false;
 	bool HasDynamicKeyWord = false;
+	bool HasEvalKeyWord = false;
 };
 struct FuncBodyNode :Node
 {

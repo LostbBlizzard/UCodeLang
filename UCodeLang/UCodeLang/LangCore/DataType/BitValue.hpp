@@ -19,7 +19,7 @@ public:
 		}
 		#endif // DEBUG
 
-		return (_Base >> n) & 1U;
+		return (_Base >> Index) & ((T)1);
 	}
 	UCodeLangForceinline void SetValue(size_t Index, bool Value)
 	{
@@ -31,11 +31,11 @@ public:
 		#endif // DEBUG
 
 		if (Value) {
-			_Base |= ((T)1) << n;
+			_Base |= ((T)1) << Index;
 		}
 		else
 		{
-			_Base &= ~(((T)1) << n);
+			_Base &= ~(((T)1) << Index);
 		}
 	}
 	UCodeLangForceinline void FilpBit(size_t Index)
@@ -46,7 +46,7 @@ public:
 			throw std::exception("Index out of range");
 		}
 		#endif // DEBUG
-		_Base ^= ((T)1) << n;
+		_Base ^= ((T)1) << Index;
 	}
 	
 	T Get_Base() const
