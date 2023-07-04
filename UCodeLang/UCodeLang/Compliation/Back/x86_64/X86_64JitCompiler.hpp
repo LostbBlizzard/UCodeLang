@@ -79,6 +79,15 @@ private:
 		JitType_t Type = JitType_t::Null;
 		size_t StructSize = 0;
 
+		JitType()
+		{
+
+		}
+		JitType(JitType_t Type)
+		{
+			Set(Type);
+		}
+
 		bool IsVoid()
 		{
 			return Type == JitType_t::Void;

@@ -26,6 +26,8 @@ public:
 		return ToString(Value._Type, Value._Data, Assembly,PtrSize);
 	}
 	static String ToString(const UsedTagValueData& Value, const ClassAssembly& Assembly);
+	static String ToString(const ClassMethod::Par& Value, const ClassAssembly& Assembly);
+
 
 	static String GetRegisterToString(RegisterID reg)
 	{

@@ -730,6 +730,16 @@ private:
 	IRidentifierID ConveToStaticArray(const Symbol& Class);
 	IRidentifierID ConveToIRVariantEnum(const Symbol& Class);
 
+
+
+	IRType ConvertToIR(const ParInfo& Value)
+	{
+		if (Value.IsOutPar)
+		{
+			return IRType(IRTypes::pointer);
+		}
+		return ConvertToIR(Value.Type);
+	}
 	IRType ConvertToIR(const TypeSymbol& Value);
 	BinaryVectorMap<SymbolID, IRidentifierID> SybToIRMap;
 	void PushNewStackFrame();
@@ -863,6 +873,7 @@ private:
 
 	void OnDeclareEvalVariableNode(const DeclareEvalVariableNode& node);
 	void FuncRetCheck(const Token& Name, const Symbol* FuncSyb, const FuncInfo* Func);
+	void LogCantUseOutInOverloadFunc(const UCodeLang::Token& Name);
 	void OnForNode(const ForNode& node);
 
 	void DoJumpsBreakAndContiunes(size_t JumpIndex, size_t BoolCode, size_t BreakCode);
@@ -1046,6 +1057,7 @@ private:
 	TypeSymbol GetStaticArrayType(const TypeSymbol& BaseType, size_t Size);
 
 	bool AreTheSame(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
+	bool AreTheSame(const ParInfo& TypeA, const ParInfo& TypeB);
 	bool AreTheSameWithOutimmutable(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
 
 	struct StrExELav
@@ -1065,6 +1077,19 @@ private:
 	UrinaryOverLoadWith_t HasUrinaryOverLoadWith(const TypeSymbol& TypeA, TokenType Op);
 
 	TypeSymbol BinaryExpressionShouldRurn(TokenType Op, const TypeSymbol& Ex0Type);
+
+
+	String ToString(const ParInfo& Type)
+	{
+		String R;
+
+		if (Type.IsOutPar) 
+		{
+			R += "out ";
+		}
+		R += ToString(Type.Type);
+		return R;
+	}
 
 	String ToString(const TypeSymbol& Type);
 	String ToString(const TokenType& Type)
@@ -1203,14 +1228,16 @@ private:
 	void RemoveTypeattributes(UCodeLang::FrontEnd::TypeSymbol& tep_);
 
 
-	Get_FuncInfo GetEnumVariantFunc(Symbol* EnumSyb, size_t FeildIndex,Symbol* EnumFieldSyb, const ValueParametersNode& Pars,const Token* Token,const Vector<TypeSymbol>& ValueTypes);
+	Get_FuncInfo GetEnumVariantFunc(Symbol* EnumSyb, size_t FeildIndex,Symbol* EnumFieldSyb, const ValueParametersNode& Pars,const Token* Token,const Vector<ParInfo>& ValueTypes);
 	void SetOutExpression(const OutExpression* Ex, const TypeSymbol& TypeToSet);
+
+	Symbol* GetSymbolFromExpression(const OutExpression* Ex);
 
 	void SetFuncRetAsLastEx(const Get_FuncInfo& Info);
 	
 	struct  IsCompatiblePar
 	{
-		const Vector<TypeSymbol>* Pars;
+		const Vector<ParInfo>* Pars;
 		const TypeSymbol* Ret;
 		Symbol* Item;
 		void SetAsFuncInfo(Symbol* Item)
@@ -1229,10 +1256,10 @@ private:
 		}
 	};
 
-	bool IsCompatible(const IsCompatiblePar& FuncPar, const Vector<TypeSymbol>& ValueTypes, bool _ThisTypeIsNotNull, const Token* Token);
+	bool IsCompatible(const IsCompatiblePar& FuncPar, const Vector<ParInfo>& ValueTypes, bool _ThisTypeIsNotNull, const Token* Token);
 
-	int GetCompatibleScore(const TypeSymbol& ParFunc, const TypeSymbol& Value);
-	int GetCompatibleScore(const IsCompatiblePar& Func, const Vector<TypeSymbol>& ValueTypes);
+	int GetCompatibleScore(const ParInfo& ParFunc, const ParInfo& Value);
+	int GetCompatibleScore(const IsCompatiblePar& Func, const Vector<ParInfo>& ValueTypes);
 
 	bool AccessCheck(const Symbol* Syb, const  Token* Token, const String_view Scope);
 	bool AccessCheck(const Symbol* Syb, const  Token* Token)
@@ -1493,6 +1520,10 @@ private:
 	void LogCantFindFuncError(const Token* Token, String_view FuncName,
 		const Vector<TypeSymbol>& Generics,
 		const Vector<TypeSymbol>& WithTypes,
+		const TypeSymbol& RetType);
+	void LogCantFindFuncError(const Token* Token, String_view FuncName,
+		const Vector<TypeSymbol>& Generics,
+		const Vector<ParInfo>& WithTypes,
 		const TypeSymbol& RetType);
 
 	void LogTypeMustBeAnConstantExpressionAble(const Token* Token, const TypeSymbol& Type);

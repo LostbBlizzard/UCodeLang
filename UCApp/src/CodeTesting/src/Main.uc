@@ -33,9 +33,13 @@ $Unique_ptr<T>:
 eval |Func[int a] => a;
 
 |main[]:
+ 
+ if OutFunc(10,out NewValue):
+  ret NewValue;
+
  ret Func(10);
 
 
 |OutFunc[int V,out int Item] -> bool:
- Item = 10;
+ Item = V;
  ret true;

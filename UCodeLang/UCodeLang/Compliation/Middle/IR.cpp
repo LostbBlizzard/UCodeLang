@@ -1576,7 +1576,7 @@ String IRBuilder::ToStringBinary(ToStringState& State, IRInstruction* Ins, const
 }
 
 
-inline void IRBlockDebugInfo::Add_SetFile(const String& file, size_t InsInBlock)
+void IRBlockDebugInfo::Add_SetFile(const String& file, size_t InsInBlock)
 {
 	IRDebugIns V;
 	IRDebugSetFile F;

@@ -253,7 +253,7 @@ void UClib::ToBytes(BitMaker& Output, const ClassMethod& Data)
 	{
 		ToBytes(Output,Item);
 	}
-
+	Output.WriteType(Data.IsThisFuncion);
 	ToBytes(Output, Data.Attributes);
 }
 void UClib::ToBytes(BitMaker& Output, const ReflectionTypeInfo& Data)
@@ -265,6 +265,11 @@ void UClib::ToBytes(BitMaker& Output, const ReflectionTypeInfo& Data)
 	Output.WriteType(Data._Isimmutable);
 	Output.WriteType(Data._IsDynamic);
 	Output.WriteType((ReflectionMoveData_t)Data._MoveData);
+}
+void UClib::ToBytes(BitMaker& Output, const ClassMethod::Par& Par)
+{
+	Output.WriteType(Par.IsOutPar);
+	ToBytes(Output, Par.Type);
 }
 bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 {
@@ -666,6 +671,11 @@ void UClib::FromBytes(BitReader& Input, InheritedTrait_Data& Data)
 {
 	Input.ReadType(Data.TraitID, Data.TraitID);
 }
+void UClib::FromBytes(BitReader& Input, ClassMethod::Par& Data)
+{
+	Input.ReadType(Data.IsOutPar);
+	FromBytes(Input, Data.Type);
+}
 void UClib::FromBytes(BitReader& reader,Vector<UsedTagValueData>& Attributes)
 {
 	union
@@ -737,6 +747,7 @@ void UClib::FromBytes(BitReader& Input, ClassMethod& Data)
 			FromBytes(Input,Data.ParsType[i]);
 		}
 	}
+	Input.ReadType(Data.IsThisFuncion);
 	FromBytes(Input, Data.Attributes);
 }
 void UClib::FromBytes(BitReader& Input, ReflectionTypeInfo& Data)

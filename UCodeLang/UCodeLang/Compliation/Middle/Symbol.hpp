@@ -332,7 +332,11 @@ struct Generic
 	}
 };
 
-
+struct ParInfo
+{
+	bool IsOutPar = false;
+	TypeSymbol Type;
+};
 class FuncInfo :public Symbol_Info
 {
 public:
@@ -375,9 +379,9 @@ public:
 
 
 	FuncType _FuncType = FuncType::NameFunc;
+	
 
-
-	Vector<TypeSymbol> Pars;
+	Vector<ParInfo> Pars;
 	TypeSymbol Ret;
 	
 	Generic _GenericData;
@@ -385,13 +389,13 @@ public:
 	bool FrontParIsUnNamed = false;
 	bool IsObjectCall() const
 	{
-		return Pars.size() && Pars.front().IsAddress() && FrontParIsUnNamed;
+		return Pars.size() && (Pars.front().Type.IsAddress() && Pars.front().IsOutPar == false && FrontParIsUnNamed);
 	}
 	TypeSymbol* GetObjectForCall()
 	{
 		if (IsObjectCall())
 		{
-			return &Pars.front();
+			return &Pars.front().Type;
 		}
 		return nullptr;
 	}
@@ -399,7 +403,7 @@ public:
 	{
 		if (IsObjectCall())
 		{
-			return &Pars.front();
+			return &Pars.front().Type;
 		}
 		return nullptr;
 	}
@@ -647,7 +651,7 @@ public:
 		return ScopeHelper::GetNameFromFullName((String_view)FullName);
 	}
 
-	Vector<TypeSymbol> Pars;
+	Vector<ParInfo> Pars;
 	TypeSymbol Ret;
 };
 
@@ -705,7 +709,7 @@ public:
 		return  _CapturedVarables.size()!=0;
 	}
 
-	Vector<TypeSymbol> Pars;
+	Vector<ParInfo> Pars;
 	TypeSymbol Ret;
 
 	Vector<LambdaFieldInfo> _CapturedVarables;
@@ -839,11 +843,62 @@ public:
 	{
 		return (T*)Info.get();
 	}
+
+	template<> FuncInfo* Get_Info()
+	{
+		#ifdef DEBUG
+		if (Type != SymbolType::Func && Type != SymbolType::GenericFunc)
+		{
+			throw std::exception("bad cast");
+		}
+		#endif // DEBUG
+
+		return (FuncInfo*)Info.get();
+	}
+	template<> FuncPtrInfo* Get_Info()
+	{
+		#ifdef DEBUG
+		if (Type != SymbolType::Func_ptr)
+		{
+			throw std::exception("bad cast");
+		}
+		#endif // DEBUG
+
+		return (FuncPtrInfo*)Info.get();
+	}
+
 	template<typename T> const T* Get_Info() const
 	{
 		return (T*)Info.get();
 	}
-	
+	template<> const FuncInfo* Get_Info() const
+	{
+		#ifdef DEBUG
+		if (Type != SymbolType::Func && Type != SymbolType::GenericFunc)
+		{
+			throw std::exception("bad cast");
+		}
+		#endif // DEBUG
+
+		return (FuncInfo*)Info.get();
+	}
+	template<> const FuncPtrInfo* Get_Info() const
+	{
+		#ifdef DEBUG
+		if (Type != SymbolType::Func_ptr)
+		{
+			throw std::exception("bad cast");
+		}
+		#endif // DEBUG
+
+		return (FuncPtrInfo*)Info.get();
+	}
+};
+
+class ParameterInfo :public Symbol_Info
+{
+public:
+	bool IsOutValue = false;
 };
 
 

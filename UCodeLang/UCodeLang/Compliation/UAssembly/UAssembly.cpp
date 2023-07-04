@@ -64,7 +64,7 @@ String UAssembly::ToString(const UClib* Lib)
 			{
 				for (auto Item3 : Item2.Attributes.Attributes)
 				{
-					ToString(Item3, Assembly);
+					r += ToString(Item3, Assembly);
 				}
 
 				r += " |" + Item2.FullName + "[";
@@ -328,6 +328,16 @@ String UAssembly::ToString(const UsedTagValueData& Value, const ClassAssembly& A
 
 	R += "]";
 
+	return R;
+}
+String UAssembly::ToString(const ClassMethod::Par& Value, const ClassAssembly& Assembly)
+{
+	String R;
+	if (Value.IsOutPar)
+	{
+		R += "out ";
+	}
+	R += ToString(Value, Assembly);
 	return R;
 }
 void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In,const BinaryVectorMap<UAddress, String>& AddressToName, String& out, const UClib* Lib)
