@@ -800,6 +800,60 @@ void SystematicAnalysis::ToIntFile(FileNode_t* File, const Path& path)
 	}
 
 }
+void SystematicAnalysis::Add_SetLineNumber(const Token* token, size_t InsInBlock)
+{
+	auto ThisFileName = LookingAtFile->FileName.generic_string();
+	auto LineNumber = token->OnLine;
+	if (LastLineNumber != LineNumber || (ThisFileName != _LastIRFileName) || (LastLookAtDebugBlock != &LookingAtIRBlock->DebugInfo))
+	{
+		if (LastLookAtDebugBlock != &LookingAtIRBlock->DebugInfo)
+		{
+			_LastIRFileName = "";
+			LastLineNumber = -1;
+
+			LastLookAtDebugBlock = &LookingAtIRBlock->DebugInfo;
+		}
+
+		if (ThisFileName != _LastIRFileName)
+		{
+			_LastIRFileName = ThisFileName;
+			LookingAtIRBlock->DebugInfo.Add_SetFile(ThisFileName, InsInBlock);
+		}
+		LastLineNumber = LineNumber;
+
+		LookingAtIRBlock->DebugInfo.Add_SetLineNumber(token->OnLine, InsInBlock);
+	}
+}
+void SystematicAnalysis::Add_SetVarableInfo(const Symbol& Syb, IRInstruction* Ins)
+{
+	auto ID = _Builder.ToID(Syb.FullName);
+	IRDebugSetVarableName V;
+	
+	V.Ins = Ins;
+	V.Set_TypeInfo(".uc", &Syb.VarType);
+	LookingAtIRBlock->DebugInfo.Add_SetVarableName(std::move(V));
+
+	IRDebugSybol Info;
+	Info.VarableName = Syb.FullName;
+	Info.Set_TypeInfo(".uc", &Syb.VarType);
+
+	switch (Syb.Type)
+	{	
+	case SymbolType::StackVarable:
+		Info._Type = IRDebugSybol::Type::Stack;
+		break;
+	case SymbolType::StaticVarable:
+		Info._Type = IRDebugSybol::Type::Static;
+		break;
+	case SymbolType::ThreadVarable:
+		Info._Type = IRDebugSybol::Type::Thread;
+		break;
+	default:
+		throw std::exception("bad path");
+		break;
+	}
+	_Builder._Debug.Symbols.AddValue(ID, Info);
+}
 const FileNode* SystematicAnalysis::Get_FileUseingSybol(const Symbol* Syb)
 {
 	return Syb->_File;
@@ -2741,7 +2795,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 
 	if (passtype == PassType::BuidCode)
 	{
-
+		Add_SetLineNumber(node.Name, LookingAtIRBlock->GetIndex());
 		if (node.Type == ForNode::ForType::Traditional)
 		{
 			IRInstruction* OnVarable{};
@@ -5746,7 +5800,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 	
 	if (passtype == PassType::BuidCode) 
 	{
-
+		Add_SetLineNumber(node.Name.Token, LookingAtIRBlock->GetIndex());
 		if (node.Expression.Value)
 		{
 			if (syb->Type != SymbolType::ConstantExpression)
@@ -5757,6 +5811,8 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 				if (syb->Type == SymbolType::StackVarable)
 				{
 					OnVarable = LookingAtIRBlock->NewLoad(ConvertToIR(syb->VarType));
+
+					Add_SetVarableInfo(*syb, OnVarable);
 					syb->IR_Ins = OnVarable;
 
 
@@ -5766,7 +5822,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 					oldIRFunc = LookingAtIRFunc;
 					oldblock = LookingAtIRBlock;
 
-
+					
 
 					if (_Builder._StaticInit.Blocks.size() == 0)
 					{
@@ -5776,7 +5832,10 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 					LookingAtIRFunc = &_Builder._StaticInit;
 					LookingAtIRBlock = LookingAtIRFunc->Blocks.front().get();
 
+					Add_SetLineNumber(node.Name.Token, LookingAtIRBlock->GetIndex());
 
+
+					Add_SetVarableInfo(*syb,nullptr);
 					if (ISStructPassByRef(syb)) {
 						OnVarable = LookingAtIRBlock->NewLoad(ConvertToIR(syb->VarType));
 					}
@@ -5791,9 +5850,12 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 						_Builder._threadInit.NewBlock(".");
 					}
 
+
 					LookingAtIRFunc = &_Builder._threadInit;
 					LookingAtIRBlock = LookingAtIRFunc->Blocks.front().get();
 
+					Add_SetLineNumber(node.Name.Token, LookingAtIRBlock->GetIndex());
+					Add_SetVarableInfo(*syb, nullptr);
 
 					if (ISStructPassByRef(syb)) {
 						OnVarable = LookingAtIRBlock->NewLoad(ConvertToIR(syb->VarType));
@@ -5826,6 +5888,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 					LookingAtIRFunc = Classinfo->_ClassFieldInit;
 					LookingAtIRBlock = LookingAtIRFunc->Blocks.front().get();
 
+					Add_SetLineNumber(node.Name.Token, LookingAtIRBlock->GetIndex());
 
 					if (ISStructPassByRef(syb)) {
 						OnVarable = LookingAtIRBlock->NewLoad(ConvertToIR(syb->VarType));
@@ -5851,6 +5914,8 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 		{
 			if (syb->Type == SymbolType::StackVarable)
 			{
+				Add_SetLineNumber(node.Name.Token, LookingAtIRBlock->GetIndex());
+
 				OnVarable = LookingAtIRBlock->NewLoad(ConvertToIR(syb->VarType));
 				syb->IR_Ins = OnVarable;
 			}
@@ -5935,7 +6000,11 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 
 	if (passtype == PassType::BuidCode && node.Expression.Value)
 	{
-		if (syb->Type != SymbolType::ConstantExpression) {
+		if (syb->Type != SymbolType::ConstantExpression) 
+		{
+			Add_SetLineNumber(node.Name.Token, LookingAtIRBlock->GetIndex());
+
+
 			DoImplicitConversion(_LastExpressionField, LastExpressionType, syb->VarType);
 
 
@@ -6198,7 +6267,7 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 		auto ID = GetSymbolID(node);
 		auto& AssignType = AssignExpressionDatas.at(ID);
 
-
+		Add_SetLineNumber(node.Token, LookingAtIRBlock->Instructions.size());
 
 		LookingForTypes.push(AssignType.Op0);
 		OnExpressionTypeNode(node.Expression.Value.get(), GetValueMode::Read);
@@ -6552,6 +6621,7 @@ IRInstruction* SystematicAnalysis::BuildMember_GetPointer(const GetMemberTypeSym
 	}
 	bool UseOutput = In.Symbol->IR_Ins != Output;
 
+	Add_SetLineNumber(In.Start->token, LookingAtIRBlock->Instructions.size());
 	switch (In.Symbol->Type)
 	{
 	case  SymbolType::Type_class://this
@@ -7025,6 +7095,8 @@ IRInstruction* SystematicAnalysis::BuildMember_GetValue(const GetMemberTypeSymbo
 		}
 		bool UseOutput = In.Symbol->IR_Ins != Output;
 
+		Add_SetLineNumber(In.Start->token, LookingAtIRBlock->Instructions.size());
+
 		if (In.Symbol->Type == SymbolType::StackVarable
 			|| In.Symbol->Type == SymbolType::Class_Field)
 		{
@@ -7127,6 +7199,8 @@ IRInstruction* SystematicAnalysis::BuildMember_DereferenceValue(const GetMemberT
 	}
 	bool UseOutput = In.Symbol->IR_Ins != Output;
 
+	Add_SetLineNumber(In.Start->token, LookingAtIRBlock->Instructions.size());
+
 	switch (In.Symbol->Type)
 	{
 	case  SymbolType::Class_Field:
@@ -7220,6 +7294,8 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 void SystematicAnalysis::StepBuildMember_Access(const ScopedName& ITem, TypeSymbol& Last_Type, ScopedName::Operator_t OpType, const GetMemberTypeSymbolFromVar_t& In, IRInstruction*& Output)
 {
 	Symbol* Sym = GetSymbol(Last_Type);
+
+	Add_SetLineNumber(ITem.token, LookingAtIRBlock->Instructions.size());
 
 	if (!(OpType == ScopedName::Operator_t::Null
 		|| OpType == ScopedName::Operator_t::Dot
@@ -7427,7 +7503,6 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 				LogCantFindVarError(Token, Str);
 				return false;
 			}
-
 
 
 			if (IsWrite(Mod))
@@ -7689,6 +7764,9 @@ void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 
 
 #define buildPortFixS(x) buildPortFixU(x)
+
+
+			Add_SetLineNumber(node.PostfixOp, LookingAtIRBlock->Instructions.size());
 
 			switch (Type._Type)
 			{
@@ -8231,7 +8309,7 @@ void SystematicAnalysis::OnNumberliteralNode(const NumberliteralNode* num)
 	{
 		auto& Str = num->Token->Value._String;
 
-
+		Add_SetLineNumber(num->Token, LookingAtIRBlock->Instructions.size());
 
 		switch (NewEx)
 		{
@@ -8321,6 +8399,7 @@ void SystematicAnalysis::OnBoolliteralNode(const BoolliteralNode* num)
 {
 	if (passtype == PassType::BuidCode)
 	{
+		Add_SetLineNumber(num->Token, LookingAtIRBlock->Instructions.size());
 		_LastExpressionField = LookingAtIRBlock->NewLoad(num->Get_Value());
 	}
 	LastExpressionType.SetType(TypesEnum::Bool);
@@ -8333,6 +8412,8 @@ void SystematicAnalysis::OnCharliteralNode(const CharliteralNode* num)
 	{
 		String V;
 		bool ItWorked = !ParseHelper::ParseCharliteralToChar(num->Token->Value._String, V);
+
+		Add_SetLineNumber(num->Token, LookingAtIRBlock->Instructions.size());
 
 
 		_LastExpressionField = LookingAtIRBlock->NewLoad((char)V.front());
@@ -8354,6 +8435,7 @@ void SystematicAnalysis::OnFloatLiteralNode(const FloatliteralNode* num)
 			float32 V;
 			bool ItWorked = ParseHelper::ParseStringTofloat32(num->Token->Value._String, V);
 
+			Add_SetLineNumber(num->Token, LookingAtIRBlock->Instructions.size());
 			_LastExpressionField = LookingAtIRBlock->NewLoad(V);
 			break;
 		}
@@ -8361,6 +8443,8 @@ void SystematicAnalysis::OnFloatLiteralNode(const FloatliteralNode* num)
 		{
 			float64 V;
 			bool ItWorked = ParseHelper::ParseStringTofloat64(num->Token->Value._String, V);
+
+			Add_SetLineNumber(num->Token, LookingAtIRBlock->Instructions.size());
 			_LastExpressionField = LookingAtIRBlock->NewLoad(V);
 			break;
 		}
@@ -8438,6 +8522,7 @@ void SystematicAnalysis::OnStringLiteral(const StringliteralNode* nod, bool& ret
 			bool ItWorked = !ParseHelper::ParseStringliteralToString(nod->Token->Value._String, V);
 
 
+			Add_SetLineNumber(nod->Token, LookingAtIRBlock->Instructions.size());
 
 			auto& BufferIR = IRlocations.top();
 			BufferIR.UsedlocationIR = true;
@@ -13166,6 +13251,8 @@ SystematicAnalysis::Get_FuncInfo SystematicAnalysis::GetFunc(const TypeSymbol& N
 void SystematicAnalysis::DoFuncCall(Get_FuncInfo Func, const ScopedNameNode& Name, const ValueParametersNode& Pars)
 {
 	if (passtype != PassType::BuidCode) { return; }
+	
+	Add_SetLineNumber(Name.ScopedName.begin()->token, LookingAtIRBlock->Instructions.size());
 	{
 
 #define PrimitiveTypeCall(FullName,TypeEnum,DefaultValue) if (ScopedName == FullName) \

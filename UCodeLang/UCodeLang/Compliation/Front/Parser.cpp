@@ -2285,6 +2285,7 @@ GotNodeType Parser::GetAssignExpression(AssignExpressionNode& out)
 	auto Token = TryGetToken();
 	TokenTypeCheck(Token, TokenType::equal);
 	NextToken();
+	out.Token = Token;
 
 	Token = TryGetToken();
 	if (Token->Type == TokenType::Colon)

@@ -681,6 +681,7 @@ struct AssignExpressionNode :Node
 	ExpressionNodeType ToAssign;
 	ExpressionNodeType Expression;
 	bool ReassignAddress = false;
+	const Token* Token = nullptr;
 };
 
 struct DeclareStaticVariableNode :Node

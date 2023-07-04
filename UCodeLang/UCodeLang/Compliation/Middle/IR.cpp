@@ -1207,6 +1207,26 @@ void IRBuilder::ToString(ToStringState& State, IRFunc* Item, String& r)
 			for (size_t i = 0; i < Block->Instructions.size(); i++)
 			{
 				auto& I = Block->Instructions[i];
+	
+				auto DebugInfo = Block->DebugInfo.Get_debugfor(i);
+
+				for (auto& Item : DebugInfo)
+				{
+					if (auto Val = Item->Debug.Get_If<IRDebugSetFile>())
+					{
+						r += '\n';
+						r += "//File:" + Val->FileName;
+					}
+					else if (auto Val = Item->Debug.Get_If<IRDebugSetLineNumber>())
+					{
+						r += '\n';
+						r += "//Line:" + std::to_string(Val->LineNumber);
+					
+						r += '\n';
+						r += '\n';
+					}
+				}
+
 				if (I->Type == IRInstructionType::None) { continue; }
 
 				if (I->Type != IRInstructionType::PushParameter
@@ -1215,8 +1235,6 @@ void IRBuilder::ToString(ToStringState& State, IRFunc* Item, String& r)
 				{
 					r += Tabs;
 				}
-
-
 
 				switch (I->Type)
 				{
@@ -1555,6 +1573,65 @@ String IRBuilder::ToStringBinary(ToStringState& State, IRInstruction* Ins, const
 	r += " " + State.GetName(Ins);
 	r += " = " + ToString(State, *Ins, Ins->A) + String(V) + ToString(State, *Ins, Ins->B);
 	return r;
+}
+
+
+inline void IRBlockDebugInfo::Add_SetFile(const String& file, size_t InsInBlock)
+{
+	IRDebugIns V;
+	IRDebugSetFile F;
+	F.FileName = file;
+	F.InsInBlock = InsInBlock;
+
+	V.Debug = F;
+	DebugInfo.push_back(std::move(V));
+}
+
+void IRBlockDebugInfo::Add_SetLineNumber(size_t LineNumber, size_t InsInBlock)
+{
+	IRDebugIns V;
+	IRDebugSetLineNumber F;
+	F.LineNumber = LineNumber;
+	F.InsInBlock = InsInBlock;
+
+	V.Debug = F;
+	DebugInfo.push_back(std::move(V));
+}
+
+void IRBlockDebugInfo::Add_SetVarableName(IRDebugSetVarableName&& Info)
+{
+	IRDebugIns V;
+	V.Debug = Info;
+	DebugInfo.push_back(std::move(V));
+}
+
+IRDebugIns IRBlockDebugInfo::Get_debugfor(IRInstruction* Ins) const
+{
+	return {};
+}
+
+Vector<const IRDebugIns*> IRBlockDebugInfo::Get_debugfor(size_t Index) const
+{
+	Vector<const IRDebugIns*> R;
+	for (auto& Item : DebugInfo)
+	{
+		if (auto Val = Item.Debug.Get_If< IRDebugSetFile>())
+		{
+			if (Val->InsInBlock == Index)
+			{
+				R.push_back(&Item);
+			}
+		}
+		else if (auto Val = Item.Debug.Get_If<IRDebugSetLineNumber>())
+		{
+			if (Val->InsInBlock == Index)
+			{
+				R.push_back(&Item);
+			}
+		}
+	}
+
+	return R;
 }
 
 UCodeLangEnd

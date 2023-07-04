@@ -470,21 +470,67 @@ struct IRDebugSetVarableName
 {
 	String VarableName;
 	IRInstruction* Ins= nullptr;
+
+	String LangType;
+	Vector<Byte> TypeInfo;
+
+	template<typename T>
+	void Set_TypeInfo(const String& Lang, const T* Object)
+	{
+		LangType = Lang;
+		TypeInfo.resize(sizeof(T));
+		memcpy(TypeInfo.data(), Object, sizeof(T));
+	}
+
 };
 struct IRDebugIns
 {
 	Variant<IRDebugSetFile, IRDebugSetLineNumber, IRDebugSetVarableName> Debug;
 };
+struct IRDebugSybol
+{
+	String VarableName;
+	String LangType;
+	Vector<Byte> TypeInfo;
+	IRInstruction SymbolID;
+
+	enum class Type
+	{
+		Static,
+		Thread,
+		Stack,
+	};
+	Type _Type;
+
+	template<typename T>
+	void Set_TypeInfo(const String& Lang, const T* Object)
+	{
+		LangType = Lang;
+		TypeInfo.resize(sizeof(T));
+		memcpy(TypeInfo.data(), Object, sizeof(T));
+	}
+};
+struct IRDebugSybInfo
+{
+	BinaryVectorMap< IRidentifierID, IRDebugSybol> Symbols;
+};
 struct IRBlockDebugInfo
 {
 	Vector<IRDebugIns> DebugInfo;
+
+	void Add_SetFile(const String& file, size_t InsInBlock);
+	void Add_SetLineNumber(size_t LineNumber, size_t InsInBlock);
+	void Add_SetVarableName(IRDebugSetVarableName&& Info);
+	IRDebugIns Get_debugfor(IRInstruction* Ins) const;
+	Vector<const IRDebugIns*> Get_debugfor(size_t Index) const;
+
 };
 
 
 struct IRBlock
 {
 	Vector<Unique_ptr<IRInstruction>> Instructions;
-	Optional< IRBlockDebugInfo> DebugInfo;
+	IRBlockDebugInfo DebugInfo;
 	//Loading Values
 	IRInstruction* NewLoad(IRType Type)
 	{
@@ -1087,7 +1133,7 @@ public:
 	BinaryVectorMap<IRidentifierID, IRidentifier> _Map;
 	VectorMap<String, IRidentifierID> ConstStaticStrings;
 
-
+	IRDebugSybInfo _Debug;
 
 	struct ExternalVarable
 	{

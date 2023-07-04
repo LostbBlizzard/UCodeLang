@@ -273,7 +273,8 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 				auto& InReg = GetRegData(Item.Value0.AsRegister);
 				auto& OutReg = GetRegData(Item.Value1.AsRegister);
 				
-				OutReg.Contains = InReg.Contains;
+				//OutReg.Contains = InReg.Contains;
+				throw std::exception("");
 			}
 			break;
 
