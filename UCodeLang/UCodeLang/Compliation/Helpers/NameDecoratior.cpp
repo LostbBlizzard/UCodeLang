@@ -6,6 +6,27 @@
 //#include "CompilerTypes.hpp"
 
 UCodeLangStart
+
+String NameDecoratior::GetDecoratedName(const String_view funcName, const Vector<ClassMethod::Par>& Pars)
+{
+	String r = (String)funcName;
+
+	if (Pars.size())
+	{
+		r += "^";
+		for (auto& Item : Pars)
+		{
+			r += DecoratedNameType(Item);
+
+			if (&Item != &Pars.back())
+			{
+				r += ",";
+			}
+		}
+	}
+
+	return r;
+}
 String NameDecoratior::GetDecoratedName(const String_view funcName, const Vector<ReflectionTypeInfo>& Pars)
 {
 	String r = (String)funcName;
@@ -106,6 +127,16 @@ String NameDecoratior::DecoratedNameType(const ReflectionTypeInfo& Type)
 
 	
 
+	return R;
+}
+String NameDecoratior::DecoratedNameType(const ClassMethod::Par& Type)
+{
+	String R;
+	if (Type.IsOutPar)
+	{
+		R += "out ";
+	}
+	R += DecoratedNameType(Type.Type);
 	return R;
 }
 String NameDecoratior::GetUnDecoratedName(const String& DecoratedName)

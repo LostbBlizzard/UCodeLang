@@ -170,15 +170,22 @@ class UsedTags
 public:
 	Vector<UsedTagValueData> Attributes;
 };
+
 class ClassMethod
 {
 public:
+	struct Par
+	{
+		bool IsOutPar = false;
+		ReflectionTypeInfo Type;
+	};
 	String FullName;
 	String DecorationName;
 	
 	
 	ReflectionTypeInfo RetType;
-	Vector<ReflectionTypeInfo> ParsType;
+	Vector<Par> ParsType;
+	bool IsThisFuncion = false;
 
 	UsedTags Attributes;
 };

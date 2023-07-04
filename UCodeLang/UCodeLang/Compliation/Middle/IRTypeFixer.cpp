@@ -256,7 +256,8 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op, bool UpdateInsType)
 			}
 		}
 	}
-	else if (Op.Type == IROperatorType::IRParameter)
+	else if (Op.Type == IROperatorType::IRParameter
+		|| Op.Type == IROperatorType::DereferenceOf_IRParameter)
 	{
 		if (UpdateInsType) {
 			Ins.ObjectType = Op.Parameter->type;

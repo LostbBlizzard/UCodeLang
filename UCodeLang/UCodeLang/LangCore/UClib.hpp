@@ -383,6 +383,7 @@ public:
 	{
 		ToBytes(Output, Tags.Attributes);
 	}
+	static void ToBytes(BitMaker& Output, const ClassMethod::Par& Par);
 	//
 	static bool FromBytes(UClib* Lib,const BytesView& Data);
 
@@ -407,6 +408,8 @@ public:
 	{
 		FromBytes(reader, Attributes.Attributes);
 	}
+
+	static void FromBytes(BitReader& Input, ClassMethod::Par& Data);
 	//
 
 	static void FixRawValue(Endian AssemblyEndian, NTypeSize BitSize, const ClassAssembly& Types, TypedRawReflectionData& RawValue)

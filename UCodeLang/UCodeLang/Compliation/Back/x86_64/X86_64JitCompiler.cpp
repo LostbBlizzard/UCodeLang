@@ -886,7 +886,9 @@ Optional<X86_64JitCompiler::JitFuncData> X86_64JitCompiler::As(const ClassMethod
 	Vector<JitType> Pars; Pars.resize(Method->ParsType.size());
 	for (size_t i = 0; i < Method->ParsType.size(); i++)
 	{
-		Pars[i] = AsJitType(Method->ParsType[i], State->Get_Assembly(), PointerSizeIs32Bit);
+		auto& Par = Method->ParsType[i];
+		
+		Pars[i] = Par.IsOutPar ? JitType(JitType_t::Pointer) : AsJitType(Par.Type, State->Get_Assembly(), PointerSizeIs32Bit);
 		if (Pars[i].IsBadType())
 		{
 			return {};
