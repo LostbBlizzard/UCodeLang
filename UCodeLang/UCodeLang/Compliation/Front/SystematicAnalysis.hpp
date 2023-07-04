@@ -810,6 +810,13 @@ private:
 		}
 		return false;
 	}
+
+	String _LastIRFileName;
+	size_t LastLineNumber = -1;
+	IRBlockDebugInfo* LastLookAtDebugBlock = nullptr;
+	void Add_SetLineNumber(const Token* token, size_t InsInBlock);
+	void Add_SetVarableInfo(const Symbol& Syb, IRInstruction* Ins);
+
 	const FileNode* Get_FileUseingSybol(const Symbol* Syb);
 	void AddDependencyToCurrentFile(const Symbol* Syb);
 	void AddDependencyToCurrentFile(const FileNode* file);
