@@ -75,22 +75,22 @@ UCodeTestStart
 		}
 	};
 
-	static const Array<TestInfo, 65> Tests
+	static const Array<TestInfo, 66> Tests
 	{
 
 		TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation),
-		
+
 		TestInfo("Byte_Test ret 1(byte)","BasicTests/main.uc","Byte_Test",SuccessCondition::RunTimeValue,(UCodeLang::Byte)1),
 		TestInfo("Char_Test ret 1(char)","BasicTests/main.uc","Char_Test",SuccessCondition::RunTimeValue,(UCodeLang::Byte)'1'),
 		TestInfo("Float_Test ret 1(Float)","BasicTests/main.uc","Float_Test",SuccessCondition::RunTimeValue,(UCodeLang::float32)1.5),
-		
+
 		TestInfo("BasicObjects_0","Objects/BasicObjects.uc","Main2",SuccessCondition::Compilation),
 		TestInfo("NewAndDrop","NewAndDrop/main.uc","Main",SuccessCondition::RunTimeValue,(UCodeLang::Byte)0),
 		TestInfo("genericWithMemberAccess","Syntax/genericWithMemberAccess.uc","Main",SuccessCondition::CompilationFail),
-		
-	    TestInfo("scopetest","BasicTests/scopetest.uc","Main",SuccessCondition::RunTimeValue,(UCodeLang::Byte)0),
+
+		TestInfo("scopetest","BasicTests/scopetest.uc","Main",SuccessCondition::RunTimeValue,(UCodeLang::Byte)0),
 		TestInfo("BasicObjects ret 1","Objects/BasicObjects2.uc","Main",SuccessCondition::RunTimeValue,(UCodeLang::Byte)1),
-	
+
 		TestInfo("GenericSize_t ret 4","Objects/GenericSize_t.uc","Main",SuccessCondition::RunTimeValue,sizeof(int)),
 		TestInfo("DependencyCycle","Objects/DependencyCycle.uc","n/a",SuccessCondition::CompilationFail),
 
@@ -132,7 +132,7 @@ UCodeTestStart
 		TestInfo("GenericsExpression","Generics/GenericsExpression.uc","main",SuccessCondition::RunTimeValue,(int)1),
 		TestInfo("GenericsExpression2","Generics/GenericsExpression2.uc","main",SuccessCondition::CompilationFail),
 		TestInfo("GenericsExpression3","Generics/GenericsExpression3.uc","main",SuccessCondition::CompilationFail),
-	
+
 		TestInfo("Lamdba 1","Objects/Lamdba.uc","main",SuccessCondition::RunTimeValue,(int)1),
 		TestInfo("Lamdba 2","Objects/Lamdba.uc","main2",SuccessCondition::RunTimeValue,(int)1),
 		TestInfo("Lamdba 3","Objects/Lamdba2.uc","main",SuccessCondition::RunTimeValue,(int)1),
@@ -164,9 +164,11 @@ UCodeTestStart
 		TestInfo("GetFields enum","Eval/GetEnumFields.uc","main",SuccessCondition::RunTimeValue,(int)3),
 		TestInfo("GetFields enum 2","Eval/GetEnumFields2.uc","main",SuccessCondition::RunTimeValue,(int)12),
 		TestInfo("GetEnum Base","Eval/GetEnumBase.uc","main",SuccessCondition::RunTimeValue,(bool)true),
-	
+
 		TestInfo("MatchAllSet","BasicTests/MatchAllSet.uc","main",SuccessCondition::CompilationFail),
 		TestInfo("MatchAllSet2","BasicTests/MatchAllSet2.uc","main",SuccessCondition::CompilationFail),
+
+		TestInfo("outfunc 1","BasicTests/outfunc.uc","main",SuccessCondition::RunTimeValue,(int)10),
 	};
 
 
