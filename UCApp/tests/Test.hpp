@@ -75,7 +75,7 @@ UCodeTestStart
 		}
 	};
 
-	static const Array<TestInfo, 66> Tests
+	static const Array<TestInfo, 67> Tests
 	{
 
 		TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation),
@@ -169,6 +169,7 @@ UCodeTestStart
 		TestInfo("MatchAllSet2","BasicTests/MatchAllSet2.uc","main",SuccessCondition::CompilationFail),
 
 		TestInfo("outfunc 1","BasicTests/outfunc.uc","main",SuccessCondition::RunTimeValue,(int)10),
+		TestInfo("outfunc 2","BasicTests/outfunc2.uc","main",SuccessCondition::RunTimeValue,(int)10),
 	};
 
 

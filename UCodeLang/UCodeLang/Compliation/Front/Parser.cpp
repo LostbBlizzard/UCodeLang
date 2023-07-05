@@ -265,7 +265,7 @@ GotNodeType Parser::GetAlias(const Token* AliasName,GenericValuesNode&& AliasGen
 		TokenTypeCheck(Arrow, TokenType::RightArrow);
 		NextToken();
 
-		r = GetTypeWithVoid(Func->ReturnType);
+		r = GetType(Func->ReturnType);
 	}
 	else 
 	{
@@ -961,7 +961,7 @@ GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 		}
 		else
 		{
-			GetTypeWithVoid(out.ReturnType);
+			GetType(out.ReturnType);
 		}
 	}
 	else  if (Arrow->Type == TokenType::RightAssignArrow)
@@ -1807,6 +1807,12 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 		out->Name.Token = Token;
 		r = GotNodeType::Success;
 	}
+	else if (Token->Type == TokenType::Void)
+	{
+		NextToken();
+		out->Name.Token = Token;
+		r = GotNodeType::Success;
+	}
 	else
 	{
 		TokenTypeCheck(Token, TokenType::Name);
@@ -2093,21 +2099,7 @@ GotNodeType Parser::GetType(TypeNode& out, bool ignoreRighthandOFtype, bool igno
 
 	return r;
 }
-GotNodeType Parser::GetTypeWithVoid(TypeNode& out)
-{
-	auto token = TryGetToken();
-	
-	if (token->Type == TokenType::Void)
-	{
-		NextToken();
-		out.Name.Token = token;
-		return GotNodeType::Success;
-	}
-	else
-	{
-		return GetType(out);
-	}
-}
+
 
 GotNodeType Parser::GetNumericType(TypeNode& out)
 {
