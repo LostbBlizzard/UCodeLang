@@ -11061,6 +11061,59 @@ void SystematicAnalysis::CanMatch(const TypeSymbol& MatchItem,const ExpressionNo
 						LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "The Expression cant be Matched use only ValueExpression");
 					}
 				}
+				else
+				{
+					if (node.Value.get()->Get_Type() == NodeType::ValueExpressionNode)
+					{
+
+						auto Arm = MatchArm();
+						Arm._AutoPassEnum = std::make_shared<MatchAutoPassEnum>();
+						if (MatchShouldOutPassEnumValue(node))
+						{
+
+							const ValueExpressionNode* Val = ValueExpressionNode::As(node.Value.get());
+							const FuncCallNode* Call = FuncCallNode::As(Val->Value.get());
+
+
+							auto& Ptr = Arm.Get_AutoPassEnum();
+
+							MatchAutoPassEnumValueStart(Ptr, MatchValueNode, Val, Call);
+
+							NodeTypeStack.push_back(NodeType::MatchArm);
+							LookingForTypes.push(MatchItem);
+							OnExpressionTypeNode(Ptr.NewNode, GetValueMode::Read);
+							LookingForTypes.pop();
+							NodeTypeStack.pop_back();
+
+							//MatchAutoPassEnd(Ptr);
+
+							LastExpressionType = MatchItem;
+						}
+						else
+						{
+							NodeTypeStack.push_back(NodeType::MatchArm);
+							LookingForTypes.push(MatchItem);
+							OnExpressionTypeNode(node, GetValueMode::Read);
+							LookingForTypes.pop();
+							NodeTypeStack.pop_back();
+						}
+						auto Type = LastExpressionType;
+						if (!CanBeImplicitConverted(MatchItem, Type, false))
+						{
+							const Token* token = LastLookedAtToken;
+							LogCantCastImplicitTypes(token, MatchItem, Type, false);
+						}
+
+						Data.Arms.push_back(std::move(Arm));
+
+						IsOk = true;
+					}
+					else
+					{
+						const Token* token = LastLookedAtToken;
+						LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "The Expression cant be Matched use only ValueExpression");
+					}
+				}
 			}
 		}
 	}
