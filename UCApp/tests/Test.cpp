@@ -71,11 +71,13 @@ UCodeTestStart
 	}
 
 
-	const UCodeLang::Array<OptimizationFlags, 3> OptimizationFlagsToCheck
+	const UCodeLang::Array<OptimizationFlags, 1> OptimizationFlagsToCheck
 	{
-		OptimizationFlags::ForDebuging,
-		OptimizationFlags::O_2,
-		OptimizationFlags::O_3,
+		OptimizationFlags::NoOptimization,
+		//OptimizationFlags::ForDebuging,
+		//OptimizationFlags::ForSize,
+		//OptimizationFlags::ForSpeed,
+		//OptimizationFlags::ForMaxSpeed,
 	};
 	bool RunTimeOutput(
 		std::ostream& LogStream,
@@ -97,7 +99,7 @@ UCodeTestStart
 
 		if (IsSame)
 		{
-			LogStream << "Success from test '" << Test.TestName << "'" << std::endl;
+			LogStream << "Success from test '" << Test.TestName  << "'" << ModeType(flag) << " " << Type << std::endl;
 		}
 		else
 		{
@@ -106,7 +108,7 @@ UCodeTestStart
 
 			ErrStream << "' but expecting '";
 			ErrStream << OutputBytesToString(Test.RunTimeSuccess.get(), Test.RunTimeSuccessSize);
-			ErrStream << ": '" << Type << "," << ModeType(flag) << "'" << std::endl;
+			ErrStream << ": '" << Type << "," << ModeType(flag) << "'" << Type << std::endl;
 			return false;
 		}
 		return true;
@@ -162,7 +164,7 @@ UCodeTestStart
 				(Com_r._State == Compiler::CompilerState::Fail && Test.Condition == SuccessCondition::CompilationFail)
 				)
 			{
-				LogStream << "Success from test '" << Test.TestName << "'" << std::endl;
+				LogStream << "Success from test '" << Test.TestName << ModeType(flag) << "'" << std::endl;
 				return true;
 			}
 			else
@@ -177,7 +179,7 @@ UCodeTestStart
 
 		if (Com_r._State != Compiler::CompilerState::Success)
 		{
-			ErrStream << "fail from test [Cant Compile File/Files] '" << Test.TestName << "'" << std::endl;
+			ErrStream << "fail from test [Cant Compile File/Files] '" << Test.TestName << ModeType(flag) << "'" << std::endl;
 
 
 			LogErrors(ErrStream, Com);
@@ -191,7 +193,7 @@ UCodeTestStart
 		{
 
 
-			ErrStream << "fail from test [Cant Open ULib File] '" << Test.TestName << "'" << std::endl;
+			ErrStream << "fail from test [Cant Open ULib File] '" << Test.TestName << ModeType(flag) << "'" << std::endl;
 			return false;
 		}
 
@@ -220,7 +222,7 @@ UCodeTestStart
 			}
 			catch (const std::exception& ex)
 			{
-				ErrStream << "fail from test [exception] '" << ex.what() << "' : " << "'" << Test.TestName << "'" << std::endl;
+				ErrStream << "fail from test [exception] '" << ex.what() << "' : " << "'" << Test.TestName << "'" << ModeType(flag) << std::endl;
 				return false;
 			}
 

@@ -1010,6 +1010,10 @@ struct IRBlock
 	{
 		return Instructions.size()-1;
 	}
+	size_t InsCount()
+	{
+		return Instructions.size();
+	}
 };
 
 
