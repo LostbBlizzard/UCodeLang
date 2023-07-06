@@ -5825,7 +5825,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 		syb = &AddSybol(SysType, StrVarName, FullName,node.Access);
 		_Table.AddSymbolID(*syb, sybId);
 
-
+		syb->Set_NodeInfo(node.As());
 		if (syb->Type == SymbolType::ConstantExpression)
 		{
 			ConstantExpressionInfo* info = new ConstantExpressionInfo();
@@ -6152,6 +6152,8 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 
 		}
 	}
+
+	syb->PassState = passtype;
 }
 
 
@@ -6866,7 +6868,10 @@ bool SystematicAnalysis::StepGetMemberTypeSymbolFromVar(const ScopedNameNode& no
 		return false;
 	}
 
-
+	if (Out.Symbol->PassState == PassType::GetTypes)
+	{
+		Update_Sym_ToFixedTypes(Out.Symbol);
+	}
 
 	if (OpType == ScopedName::Operator_t::Null
 		|| OpType == ScopedName::Operator_t::ScopeResolution
@@ -7619,6 +7624,13 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 			auto& Str = Token->Value._String;
 			auto SymbolVar = GetSymbol(Str, SymbolType::Varable_t);
 			LastLookedAtToken = Token;
+
+
+			if (SymbolVar->PassState == PassType::GetTypes)
+			{
+				Update_Sym_ToFixedTypes(SymbolVar);
+			}
+
 			if (SymbolVar == nullptr)
 			{
 				LogCantFindVarError(Token, Str);
@@ -12362,6 +12374,7 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 
 			ConstantExpressionInfo* info = new ConstantExpressionInfo();
 			info->Exnode = ExpressionNodeType::As(node);
+			info->Conext = Get_SymbolConext();
 
 			LookingForTypes.push(TypesEnum::Any);
 
@@ -13284,6 +13297,20 @@ void SystematicAnalysis::Update_AliasSym_ToFixedTypes(Symbol* Sym)
 		Set_SymbolConext(std::move(OldConext));
 	}
 }
+void SystematicAnalysis::Update_EvalSym_ToFixedTypes(Symbol* Sym)
+{
+	if (Sym->PassState == PassType::GetTypes)
+	{
+		ConstantExpressionInfo* info = Sym->Get_Info<ConstantExpressionInfo>();
+
+		auto OldConext = Move_SymbolConext();
+		Set_SymbolConext(info->Conext.value());
+
+		OnDeclareVariablenode(*Sym->Get_NodeInfo<DeclareVariableNode>(),DeclareStaticVariableNode_t::Eval);
+
+		Set_SymbolConext(std::move(OldConext));
+	}
+}
 void SystematicAnalysis::Update_Sym_ToFixedTypes(Symbol* Sym)
 {
 	switch (Sym->Type)
@@ -13301,6 +13328,10 @@ void SystematicAnalysis::Update_Sym_ToFixedTypes(Symbol* Sym)
 	case SymbolType::Tag_class:
 	case SymbolType::Generic_Tag:
 		Update_TagSym_ToFixedTypes(Sym);
+		break;
+
+	case SymbolType::ConstantExpression:
+		Update_EvalSym_ToFixedTypes(Sym);
 		break;
 
 	case SymbolType::Generic_Trait:
