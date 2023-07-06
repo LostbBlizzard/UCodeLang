@@ -75,7 +75,7 @@ UCodeTestStart
 		}
 	};
 
-	static const Array<TestInfo, 67> Tests
+	static const Array<TestInfo, 68> Tests
 	{
 
 		TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation),
@@ -170,6 +170,8 @@ UCodeTestStart
 
 		TestInfo("outfunc 1","BasicTests/outfunc.uc","main",SuccessCondition::RunTimeValue,(int)10),
 		TestInfo("outfunc 2","BasicTests/outfunc2.uc","main",SuccessCondition::RunTimeValue,(int)10),
+
+		TestInfo("outoforder 1","OutofOrder/eval.uc","main",SuccessCondition::RunTimeValue,(int)1),
 	};
 
 

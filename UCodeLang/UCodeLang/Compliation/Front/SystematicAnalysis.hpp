@@ -1238,6 +1238,7 @@ private:
 	void Update_TraitSym_ToFixedTypes(Symbol* Sym);
 	void Update_TagSym_ToFixedTypes(Symbol* Sym);
 	void Update_AliasSym_ToFixedTypes(Symbol* Sym);
+	void Update_EvalSym_ToFixedTypes(Symbol* Sym);
 
 	void Update_Sym_ToFixedTypes(Symbol* Sym);
 
