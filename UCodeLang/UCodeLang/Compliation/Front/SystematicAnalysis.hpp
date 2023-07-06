@@ -1234,6 +1234,12 @@ private:
 
 	void Update_ClassSym_ToFixedTypes(Symbol* Sym);
 	void Update_FuncSym_ToFixedTypes(Symbol* Sym);
+	void Update_EnumSym_ToFixedTypes(Symbol* Sym);
+	void Update_TraitSym_ToFixedTypes(Symbol* Sym);
+	void Update_TagSym_ToFixedTypes(Symbol* Sym);
+	void Update_AliasSym_ToFixedTypes(Symbol* Sym);
+
+	void Update_Sym_ToFixedTypes(Symbol* Sym);
 
 	Optional<size_t> GetSize(const TypeSymbol& Type)
 	{

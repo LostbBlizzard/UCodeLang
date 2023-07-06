@@ -1203,6 +1203,13 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			, (String)ClassName, _Table._Scope.ThisScope, Node.Access) :
 		*GetSymbol(SybID);
 
+	//we may jump to this node non linearly
+	if (Syb.PassState == passtype)
+	{
+		_Table.RemoveScope();
+		return;
+	}
+
 	OnAttributesNode(Node.Attributes);
 
 	ClassInfo* ClassInf = nullptr;
@@ -1624,6 +1631,13 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 		AddSybol(_Type, (String)ClassName, _Table._Scope.ThisScope,node.Access) :
 		*GetSymbol(SybID);
 
+	//we may jump to this node non linearly
+	if (Syb.PassState == passtype)
+	{
+		_Table.RemoveScope();
+		return;
+	}
+
 	if (passtype == PassType::GetTypes)
 	{
 		_Table.AddSymbolID(Syb, SybID);
@@ -1643,7 +1657,12 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 			else
 				if (node._Type == AliasType::Type)
 				{
+					auto V = new AliasInfo();
+					Syb.Info.reset(V);
+
 					ConvertAndValidateType(node.Type, Syb.VarType, NodeSyb_t::Any);
+
+					V->Conext = Get_SymbolConextRemoveOneScopeName();
 				}
 				else
 				{
@@ -3628,6 +3647,13 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 			, (String)ClassName, _Table._Scope.ThisScope,node.Access) :
 		*GetSymbol(sybId);
 
+	//we may jump to this node non linearly
+	if (Syb.PassState == passtype)
+	{
+		_Table.RemoveScope();
+		return;
+	}
+
 	if (passtype == PassType::GetTypes)
 	{
 		_Table.AddSymbolID(Syb, sybId);
@@ -3833,6 +3859,13 @@ void SystematicAnalysis::OnTag(const TagTypeNode& node)
 		AddSybol(Isgeneric_t ? SymbolType::Generic_Tag : SymbolType::Tag_class
 			, (String)ClassName, _Table._Scope.ThisScope,node.Access) :
 		*GetSymbol(sybId);
+
+	//we may jump to this node non linearly
+	if (Syb.PassState == passtype)
+	{
+		_Table.RemoveScope();
+		return;
+	}
 
 	if (passtype == PassType::GetTypes)
 	{
@@ -5416,6 +5449,13 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 			, (String)ClassName, _Table._Scope.ThisScope,node.Access) :
 		*GetSymbol(SybID);
 
+	//we may jump to this node non linearly
+	if (Syb.PassState == passtype)
+	{
+		_Table.RemoveScope();
+		return;
+	}
+
 	EnumInfo* ClassInf;
 	if (passtype == PassType::GetTypes)
 	{
@@ -5786,12 +5826,18 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 		_Table.AddSymbolID(*syb, sybId);
 
 
-		syb->NodePtr = (void*)node.Name.Token->OnPos;//a tep solution. 
-
 		if (syb->Type == SymbolType::ConstantExpression)
 		{
 			ConstantExpressionInfo* info = new ConstantExpressionInfo();
 			info->Exnode = &node.Expression;
+			info->Conext = Get_SymbolConext();
+			syb->Info.reset(info);
+		}
+		else
+		{
+			DeclareVariableInfo* info = new DeclareVariableInfo();
+			info->LineNumber = node.Name.Token->OnPos;
+			info->Conext = Get_SymbolConext();
 			syb->Info.reset(info);
 		}
 
@@ -5833,6 +5879,13 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 	else
 	{
 		syb = GetSymbol(sybId);
+	}
+
+	//we may jump to this node non linearly
+	if (syb->PassState == passtype)
+	{
+		_Table.RemoveScope();
+		return;
 	}
 
 	if (passtype == PassType::FixedTypes)
@@ -9170,8 +9223,9 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 	}
 	if (Symbol->Type == SymbolType::StackVarable)
 	{
-		size_t declaredpos = (size_t)Symbol->NodePtr;//just tep solution
-		if (declaredpos > FToken->OnPos)
+		auto Info = Symbol->Get_Info<DeclareVariableInfo>();
+		
+		if (Info->LineNumber > FToken->OnPos)
 		{
 			LogUseingVarableBeforDeclared(FToken);
 		}
@@ -13143,14 +13197,116 @@ void  SystematicAnalysis::Update_ClassSym_ToFixedTypes(Symbol* Sym)
 {
 	if (Sym->PassState == PassType::GetTypes)
 	{
+		ClassInfo* info = Sym->Get_Info<ClassInfo>();
+		auto OldConext = Move_SymbolConext();
+		Set_SymbolConext(info->Conext.value());
+
 		OnClassNode(*Sym->Get_NodeInfo<ClassNode>());
+
+		Set_SymbolConext(std::move(OldConext));
 	}
 }
 void  SystematicAnalysis::Update_FuncSym_ToFixedTypes(Symbol* Sym)
 {
 	if (Sym->PassState == PassType::GetTypes)
 	{
+		FuncInfo* info = Sym->Get_Info<FuncInfo>();
+
+		auto OldConext = Move_SymbolConext();
+		Set_SymbolConext(info->Conext.value());
+
 		OnFuncNode(*Sym->Get_NodeInfo<FuncNode>());
+
+		Set_SymbolConext(std::move(OldConext));
+	}
+}
+void SystematicAnalysis::Update_EnumSym_ToFixedTypes(Symbol* Sym)
+{
+	if (Sym->PassState == PassType::GetTypes)
+	{
+		EnumInfo* info = Sym->Get_Info<EnumInfo>();
+
+		auto OldConext = Move_SymbolConext();
+		Set_SymbolConext(info->Conext.value());
+
+		OnEnum(*Sym->Get_NodeInfo<EnumNode>());
+
+		Set_SymbolConext(std::move(OldConext));
+	}
+}
+void SystematicAnalysis::Update_TraitSym_ToFixedTypes(Symbol* Sym)
+{
+	if (Sym->PassState == PassType::GetTypes)
+	{
+		TraitInfo* info = Sym->Get_Info<TraitInfo>();
+
+		auto OldConext = Move_SymbolConext();
+		Set_SymbolConext(info->Conext.value());
+
+		OnTrait(*Sym->Get_NodeInfo<TraitNode>());
+
+		Set_SymbolConext(std::move(OldConext));
+	}
+}
+void SystematicAnalysis::Update_TagSym_ToFixedTypes(Symbol* Sym)
+{
+	if (Sym->PassState == PassType::GetTypes)
+	{
+		TagInfo* info = Sym->Get_Info<TagInfo>();
+
+		auto OldConext = Move_SymbolConext();
+		Set_SymbolConext(info->Conext.value());
+
+		OnTag(*Sym->Get_NodeInfo<TagTypeNode>());
+
+		Set_SymbolConext(std::move(OldConext));
+	}
+}
+void SystematicAnalysis::Update_AliasSym_ToFixedTypes(Symbol* Sym)
+{
+	if (Sym->PassState == PassType::GetTypes)
+	{
+		AliasInfo* info = Sym->Get_Info<AliasInfo>();
+
+		auto OldConext = Move_SymbolConext();
+		Set_SymbolConext(info->Conext.value());
+
+		OnAliasNode(*Sym->Get_NodeInfo<AliasNode>());
+
+		Set_SymbolConext(std::move(OldConext));
+	}
+}
+void SystematicAnalysis::Update_Sym_ToFixedTypes(Symbol* Sym)
+{
+	switch (Sym->Type)
+	{
+	case SymbolType::Generic_class:
+	case SymbolType::Type_class:
+		Update_ClassSym_ToFixedTypes(Sym);
+		break;
+
+	case SymbolType::Generic_Enum:
+	case SymbolType::Enum:
+		Update_EnumSym_ToFixedTypes(Sym);
+		break;
+
+	case SymbolType::Tag_class:
+	case SymbolType::Generic_Tag:
+		Update_TagSym_ToFixedTypes(Sym);
+		break;
+
+	case SymbolType::Generic_Trait:
+	case SymbolType::Trait_class:
+		Update_TraitSym_ToFixedTypes(Sym);
+		break;
+
+	case SymbolType::GenericFunc:
+	case SymbolType::Func:
+		Update_FuncSym_ToFixedTypes(Sym);
+		break;
+	default:
+		throw std::exception("bad path");
+		break;
 	}
 }
 bool SystematicAnalysis::GetSize(const TypeSymbol& Type, UAddress& OutSize)
