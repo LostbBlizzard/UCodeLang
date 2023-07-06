@@ -1,3 +1,5 @@
+|Test<T>[]:
+  ret sizeof(T);
 
-
-|main[] => 0;
+|Main[] -> uintptr:
+ ret Test<int>();

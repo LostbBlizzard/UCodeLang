@@ -88,7 +88,7 @@ void TestingGround()
 	{
 		//JitPerformance::main(JitPerformance::Task::Main);
 	}
-	//ULangTest::RunTests(false);
+	ULangTest::RunTests(false);
  	//ULangTest::RunLanguageSeverTests();
  	Interpreter RunTime;
 
@@ -127,7 +127,7 @@ void TestingGround()
 
 
 	Settings._Type = OutPutType::Lib;
-	Settings._Flags = OptimizationFlags::O_None;
+	Settings._Flags = OptimizationFlags::ForDebuging;
 	//_Compiler.Set_BackEnd(ULangTest::C89Backend::MakeObject);
 
 	ModuleFile Mfile;

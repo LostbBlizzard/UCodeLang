@@ -1330,8 +1330,6 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 				ExtendedNode->Operator = ScopedName::Get_Scoped(Token2->Type);
 				ExtendedNode->Extended.FuncName = std::move(Name);
 
-				TryGetGeneric(ExtendedNode->Extended.Generics);
-
 				TokenTypeCheck(TryGetToken(), TokenType::Left_Parentheses);
 				
 				{
@@ -2609,12 +2607,6 @@ GotNodeType Parser::GetFuncCallNode(FuncCallNode& out)
 	GetName(out.FuncName, true);
 
 	auto ParToken = TryGetToken();
-	if (ParToken->Type == TokenType::lessthan)
-	{
-		TryGetGeneric(out.Generics);
-		ParToken = TryGetToken();
-	}
-
 
 	TokenTypeCheck(ParToken, FuncCallStart);
 	NextToken();

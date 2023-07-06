@@ -695,13 +695,11 @@ void IROptimizer::ConstantFoldOperator(IRInstruction& I, IROperator& Value,ReadO
 				UpdatedCode();
 			}
 		}
-		else
-		if (Ptr->Type == IRInstructionType::Member_Access_Dereference)
+		else if (Ptr->Type == IRInstructionType::Member_Access_Dereference)
 		{
 			ConstantFoldOperator(*Ptr,Ptr->Target(), OpType);
 		}
-		else
-		if (Ptr->Type == IRInstructionType::Member_Access)
+		else if (Ptr->Type == IRInstructionType::Member_Access)
 		{
 			ConstantFoldOperator(*Ptr, Ptr->Target(), OpType);
 		}

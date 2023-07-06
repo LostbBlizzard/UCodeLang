@@ -1218,12 +1218,7 @@ private:
 
 
 	Get_FuncInfo GetFunc(const TypeSymbol& Name,const ValueParametersNode& Pars);
-	Get_FuncInfo GetFunc(const ScopedNameNode& Name,const ValueParametersNode& Pars,TypeSymbol Ret)
-	{
-		UseGenericsNode generics;
-		return GetFunc(Name, generics, Pars, Ret);
-	};
-	Get_FuncInfo GetFunc(const ScopedNameNode& Name,const UseGenericsNode&,const ValueParametersNode& Pars,TypeSymbol Ret);
+	Get_FuncInfo GetFunc(const ScopedNameNode& Name,const ValueParametersNode& Pars,TypeSymbol Ret);
 
 	void RemoveTypeattributes(UCodeLang::FrontEnd::TypeSymbol& tep_);
 
@@ -1274,8 +1269,8 @@ private:
 	String GetGenericExtendedErrValue(const Generic& Generic, const GenericValuesNode GenericAsNode, const Vector<TypeSymbol>& GenericInput);
 	Optional<SymbolID> MakeTypePackSymbolIfNeeded(const String& NewName, const Vector<TypeSymbol>& GenericInput, const Generic& Generic);
 
+	String GetGenericFuncFullName(const Symbol* Func, const Vector<TypeSymbol>& Type);
 	String GetGenericFuncName(const Symbol* Func, const Vector<TypeSymbol>& Type);
-	
 
 	void GenericTypeInstantiate(const Symbol* Class, const Vector<TypeSymbol>& Type);
 	void GenericTypeInstantiate_Trait(const Symbol* Trait, const Vector<TypeSymbol>& Type);
@@ -1387,7 +1382,7 @@ private:
 			GenericInput->push_back(Type);
 		}
 
-		String NewName = GetGenericFuncName(Symbol, *GenericInput);
+		String NewName = GetGenericFuncFullName(Symbol, *GenericInput);
 		auto FuncIsMade = GetSymbol(NewName, SymbolType::Type_class);
 		if (!FuncIsMade)
 		{

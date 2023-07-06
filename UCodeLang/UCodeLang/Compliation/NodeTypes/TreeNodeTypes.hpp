@@ -849,7 +849,6 @@ struct FuncCallNode :Node
 	}
 	AddforNode(FuncCallNode);
 	ScopedNameNode FuncName;
-	UseGenericsNode Generics;
 	ValueParametersNode Parameters;
 };
 struct FuncCallStatementNode :Node
