@@ -120,6 +120,7 @@ using TryGetNode = TryGetNode_<Node>;
 #define AddforNode(Type) \
 static constexpr NodeType Node_t = NodeType::##Type;\
 Node* As(){return (Node*)this;}\
+const Node* As() const {return (const Node*)this;}\
 static Type* Gen(){return new Type();} \
 static UCodeLangForceinline Node* As(Type* Value) {return (Node*)Value;} \
 static UCodeLangForceinline const Node* As(const Type* Value) {return (const Node*)Value; } \

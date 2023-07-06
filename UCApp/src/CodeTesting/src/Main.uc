@@ -1,5 +1,9 @@
-|Test<T>[]:
-  ret sizeof(T);
 
-|Main[] -> uintptr:
- ret Test<int>();
+$Cool:
+  VLL V;
+
+ $Item:
+  Cool V;
+
+ $VLL:
+  Item V;

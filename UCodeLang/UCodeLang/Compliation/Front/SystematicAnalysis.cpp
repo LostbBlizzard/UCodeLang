@@ -1026,7 +1026,7 @@ void SystematicAnalysis::OnAttributeNode(const AttributeNode& node)
 				if (Generic.Values.size())
 				{
 					auto Info = Att->Get_Info<TagInfo>();
-					auto TagNode =TagTypeNode::As((const Node*)Att->NodePtr);
+					auto TagNode =TagTypeNode::As(Att->Get_NodeInfo<Node>());
 
 					Att = InstantiateOrFindGeneric_Tag(Token, Att,TagNode->Generic,Info->_GenericData,Generic);
 				}
@@ -1209,11 +1209,13 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 	if (passtype == PassType::GetTypes)
 	{
 		_Table.AddSymbolID(Syb, SybID);
-		Syb.NodePtr = (void*)&Node;
+		Syb.NodePtr = Node.As();
 
 
 
 		ClassInf = new ClassInfo();
+		
+		ClassInf->Conext = Get_SymbolConextRemoveOneScopeName();
 		ClassInf->FullName = Syb.FullName;
 		Syb.Info.reset(ClassInf);
 		Syb.VarType.SetType(Syb.ID);
@@ -1310,7 +1312,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 	}
 	else
 	{
-		Syb.NodePtr = (void*)&Node;
+		Syb.NodePtr = Node.As();
 
 	}
 
@@ -1418,7 +1420,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 				}
 
 				auto CInfo = Syb->Get_Info<TraitInfo>();
-				auto classnode = TraitNode::As((const UCodeLang::Node*)Syb->NodePtr);
+				auto classnode = TraitNode::As(Syb->Get_NodeInfo<UCodeLang::Node>());
 				Syb = InstantiateOrFindGeneric_Trait(Item.Name.Token, Syb, classnode->Generic, CInfo->_GenericData, Item.Generic);
 			}
 
@@ -1627,7 +1629,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 		_Table.AddSymbolID(Syb, SybID);
 
 
-		Syb.NodePtr = &node;
+		Syb.NodePtr = node.As();
 
 		if (!Isgeneric_t)
 		{
@@ -1636,36 +1638,38 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 				auto Ptr = new Generic_AliasInfo();
 				Syb.Info.reset(Ptr);
 				InitGenericalias(node.Generic, true, Ptr->_GenericData);
-			}
-			if (node._Type == AliasType::Type)
-			{
-				ConvertAndValidateType(node.Type, Syb.VarType, NodeSyb_t::Any);
+				Ptr->Conext = Get_SymbolConextRemoveOneScopeName();
 			}
 			else
-			{
-
-				AliasNode_Func* node_ = (AliasNode_Func*)node._Node.get();
-				auto V = new FuncPtrInfo();
-				Syb.Info.reset(V);
-
-				V->Pars.resize(node_->Parameters.Parameters.size());
-
-				for (size_t i = 0; i < V->Pars.size(); i++)
+				if (node._Type == AliasType::Type)
 				{
-					auto& NodePar = node_->Parameters.Parameters[i];
-					auto& Par = V->Pars[i];
-					Par.IsOutPar = NodePar.IsOutVarable;
-					ConvertAndValidateType(NodePar.Type, Par.Type, NodeSyb_t::Parameter);
+					ConvertAndValidateType(node.Type, Syb.VarType, NodeSyb_t::Any);
 				}
+				else
+				{
 
-				ConvertAndValidateType(node_->ReturnType, V->Ret, NodeSyb_t::Ret);
+					AliasNode_Func* node_ = (AliasNode_Func*)node._Node.get();
+					auto V = new FuncPtrInfo();
+					Syb.Info.reset(V);
 
-				Syb.VarType.SetType(SybID);
+					V->Pars.resize(node_->Parameters.Parameters.size());
 
-				Syb.Type = SymbolType::Func_ptr;
-			}
+					for (size_t i = 0; i < V->Pars.size(); i++)
+					{
+						auto& NodePar = node_->Parameters.Parameters[i];
+						auto& Par = V->Pars[i];
+						Par.IsOutPar = NodePar.IsOutVarable;
+						ConvertAndValidateType(NodePar.Type, Par.Type, NodeSyb_t::Parameter);
+					}
 
-			
+					ConvertAndValidateType(node_->ReturnType, V->Ret, NodeSyb_t::Ret);
+
+					Syb.VarType.SetType(SybID);
+
+					Syb.Type = SymbolType::Func_ptr;
+
+					V->Conext = Get_SymbolConextRemoveOneScopeName();
+				}
 		}
 		else
 		{
@@ -1755,7 +1759,6 @@ void SystematicAnalysis::InitGenericalias(const GenericValuesNode& GenericList, 
 		{
 			GenericType->Type = SymbolType::Unmaped_Generic_Type;
 
-			GenericType->NodePtr = (void*)&Item;
 			SymbolID ID = GetSymbolID(GenericType->NodePtr);
 			_Table.AddSymbolID(*GenericType, ID);
 
@@ -1812,10 +1815,11 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 
 		syb = &AddSybol(Type, (String)FuncName, FullName,node.Signature.Access);
-		syb->NodePtr = (void*)&node;//the node will not get update anyway.
+		syb->NodePtr = node.As();
 		_Table.AddSymbolID(*syb, sybId);
 
 		FuncInfo* newInfo = new FuncInfo();
+		newInfo->Conext = Get_SymbolConextRemoveOneScopeName();
 		newInfo->FullName = FullName;
 		newInfo->_FuncType = FuncType;
 
@@ -1856,8 +1860,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			{
 				GenericType->Type = SymbolType::Unmaped_Generic_Type;
 
-				GenericType->NodePtr = (void*)&Item;
-				SymbolID ID = GetSymbolID(GenericType->NodePtr);
+				
+				SymbolID ID = GetSymbolID(&Item);
 				_Table.AddSymbolID(*GenericType, ID);
 
 				GenericData Info;
@@ -3637,7 +3641,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 			, (String)ClassName + "%Class", _Table._Scope.ThisScope + "%Class",node.Access);
 		_Table.AddSymbolID(SybClass, GetSymbolID(node._Name));
 
-		Syb.NodePtr = &node;
+		Syb.NodePtr = node.As();
 
 		auto TepClass = new ClassInfo();
 		TepClass->FullName = SybClass.FullName;
@@ -3647,7 +3651,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 
 
 		SybClass.VarType.SetType(SybClass.ID);
-
+		info->Conext = Get_SymbolConextRemoveOneScopeName();
 		InitGenericalias(node.Generic,IsgenericInstantiation, info->_GenericData);
 
 		
@@ -3833,11 +3837,12 @@ void SystematicAnalysis::OnTag(const TagTypeNode& node)
 	if (passtype == PassType::GetTypes)
 	{
 		_Table.AddSymbolID(Syb, sybId);
-		Syb.NodePtr = &node;
+		Syb.NodePtr = node.As();
 
 	
 		TagInfo* info = new TagInfo();
 		Syb.Info.reset(info);
+		info->Conext = Get_SymbolConextRemoveOneScopeName();
 		InitGenericalias(node.Generic, IsgenericInstantiation, info->_GenericData);
 	}
 	else if (passtype == PassType::FixedTypes)
@@ -5415,10 +5420,11 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 	if (passtype == PassType::GetTypes)
 	{
 		_Table.AddSymbolID(Syb, SybID);
-		Syb.NodePtr = (void*)&node;
+		Syb.NodePtr = node.As();
 
 
 		ClassInf = new EnumInfo();
+		ClassInf->Conext = Get_SymbolConextRemoveOneScopeName();
 		ClassInf->FullName = Syb.FullName;
 		Syb.Info.reset(ClassInf);
 		Syb.VarType.SetType(Syb.ID);
@@ -12471,19 +12477,19 @@ Optional<Symbol*> SystematicAnalysis::InstantiateOrFindGenericSymbol(const Token
 	if (SybV->Type == SymbolType::Generic_class)
 	{
 		auto CInfo = SybV->Get_Info<ClassInfo>();
-		auto classnode = ClassNode::As((const Node*)SybV->NodePtr);
+		auto classnode = ClassNode::As(SybV->Get_NodeInfo<Node>());
 		R = InstantiateOrFindGeneric_Class(Token, SybV, classnode->Generic, CInfo->_GenericData, GenericsVals);
 	}
 	else if (SybV->Type == SymbolType::Generic_Alias)
 	{
 		auto CInfo = SybV->Get_Info<Generic_AliasInfo>();
-		auto classnode = AliasNode::As((const Node*)SybV->NodePtr);
+		auto classnode = AliasNode::As(SybV->Get_NodeInfo<Node>());
 		R = InstantiateOrFindGeneric_Alias(Token, SybV, classnode->Generic, CInfo->_GenericData, GenericsVals);
 	}
 	else if (SybV->Type == SymbolType::Generic_Enum)
 	{
 		auto CInfo = SybV->Get_Info<EnumInfo>();
-		auto classnode = EnumNode::As((const Node*)SybV->NodePtr);
+		auto classnode = EnumNode::As(SybV->Get_NodeInfo<Node>());
 		R = InstantiateOrFindGeneric_Enum(Token, SybV, classnode->Generic, CInfo->_GenericData, GenericsVals);
 	}
 
@@ -13137,14 +13143,14 @@ void  SystematicAnalysis::Update_ClassSym_ToFixedTypes(Symbol* Sym)
 {
 	if (Sym->PassState == PassType::GetTypes)
 	{
-		OnClassNode(*(ClassNode*)Sym->NodePtr);
+		OnClassNode(*Sym->Get_NodeInfo<ClassNode>());
 	}
 }
 void  SystematicAnalysis::Update_FuncSym_ToFixedTypes(Symbol* Sym)
 {
 	if (Sym->PassState == PassType::GetTypes)
 	{
-		OnFuncNode(*(FuncNode*)Sym->NodePtr);
+		OnFuncNode(*Sym->Get_NodeInfo<FuncNode>());
 	}
 }
 bool SystematicAnalysis::GetSize(const TypeSymbol& Type, UAddress& OutSize)
@@ -13234,10 +13240,16 @@ bool SystematicAnalysis::GetSize(const TypeSymbol& Type, UAddress& OutSize)
 			if (!Vp->SizeInitialized)
 			{
 				Vp->Size = 0;
-				auto& classNode = *(ClassNode*)V.NodePtr;
+				auto& classNode = *V.Get_NodeInfo<ClassNode>();
 				if (!IsDependencies(Vp))
 				{
+					auto Old = Move_SymbolConext();
+					Set_SymbolConext(Vp->Conext.value());
+
 					OnClassNode(classNode);//update class fields
+				
+				
+					Set_SymbolConext(std::move(Old));
 				}
 				else
 				{
@@ -15221,18 +15233,15 @@ void SystematicAnalysis::GenericFuncInstantiate(const Symbol* Func, const Vector
 	const FuncInfo* FInfo = Func->Get_Info<FuncInfo>();
 	Info.Pack = MakeTypePackSymbolIfNeeded(NewName,GenericInput, FInfo->_GenericData);
 
-	const FuncNode& FuncBase = *(FuncNode*)Func->NodePtr;
+	const FuncNode& FuncBase = *Func->Get_NodeInfo<FuncNode>();
 
 	
 	GenericFuncName.push(std::move(Info));
 
-	
+	auto OldConext = Move_SymbolConext();
+	auto Oldpasstype = passtype;
 
-	auto OldPass = passtype;
-	auto OldScope = _Table._Scope.ThisScope;
-	_Table._Scope.ThisScope.clear();
-	_Table._Scope.ThisScope = ScopeHelper::GetReMoveScope(FullName);
-
+	Set_SymbolConext(FInfo->Conext.value());
 	{
 		AddExtendedErr(GetGenericExtendedErrValue(FInfo->_GenericData,FuncBase.Signature.Generic,GenericInput),FuncBase.Signature.Name.Token);
 	}
@@ -15258,8 +15267,8 @@ void SystematicAnalysis::GenericFuncInstantiate(const Symbol* Func, const Vector
 
 	GenericFuncName.pop();
 	
-	_Table._Scope.ThisScope = OldScope;
-	passtype = OldPass;
+	Set_SymbolConext(std::move(OldConext));
+	passtype = Oldpasstype;
 
 
 	AddDependencyToCurrentFile(Func);
@@ -15268,7 +15277,7 @@ void SystematicAnalysis::GenericTypeInstantiate(const Symbol* Class, const Vecto
 {
 	const String NewName = GetGenericFuncName(Class, Type);
 	const String FullName = GetGenericFuncFullName(Class, Type);
-	const ClassNode* node = ClassNode::As((const Node*)Class->NodePtr);
+	const ClassNode* node = ClassNode::As(Class->Get_NodeInfo<Node>());
 
 	const ClassInfo* classInfo = Class->Get_Info<ClassInfo>();
 
@@ -15283,11 +15292,10 @@ void SystematicAnalysis::GenericTypeInstantiate(const Symbol* Class, const Vecto
 		AddExtendedErr(GetGenericExtendedErrValue(classInfo->_GenericData, node->Generic,Type), node->ClassName.Token);
 	}
 	{
-		auto OldScope = _Table._Scope.ThisScope;
+		auto OldConext = Move_SymbolConext();
 		auto Oldpasstype = passtype;
-		_Table._Scope.ThisScope.clear();
 
-		_Table._Scope.ThisScope = ScopeHelper::GetReMoveScope(FullName);
+		Set_SymbolConext(classInfo->Conext.value());
 
 
 		passtype = PassType::GetTypes;
@@ -15307,9 +15315,8 @@ void SystematicAnalysis::GenericTypeInstantiate(const Symbol* Class, const Vecto
 
 		GenericFuncName.pop();
 		//
-		_Table._Scope.ThisScope = OldScope;
+		Set_SymbolConext(std::move(OldConext));
 		passtype = Oldpasstype;
-
 		//
 	}
 	{
@@ -15323,7 +15330,7 @@ void SystematicAnalysis::GenericTypeInstantiate_Trait(const Symbol* Trait, const
 {
 	const String NewName = GetGenericFuncName(Trait, Type);
 	const String FullName = GetGenericFuncFullName(Trait, Type);
-	const TraitNode* node = TraitNode::As((const Node*)Trait->NodePtr);
+	const TraitNode* node = TraitNode::As(Trait->Get_NodeInfo<Node>());
 
 	const TraitInfo* classInfo = Trait->Get_Info<TraitInfo>();
 
@@ -15338,13 +15345,10 @@ void SystematicAnalysis::GenericTypeInstantiate_Trait(const Symbol* Trait, const
 		AddExtendedErr(GetGenericExtendedErrValue(classInfo->_GenericData, node->Generic, Type), node->_Name.Token);
 	}
 	{
-		auto OldScope = _Table._Scope.ThisScope;
+		auto OldConext = Move_SymbolConext();
 		auto Oldpasstype = passtype;
-		_Table._Scope.ThisScope.clear();
 
-		_Table._Scope.ThisScope = ScopeHelper::GetReMoveScope(FullName);
-
-
+		Set_SymbolConext(classInfo->Conext.value());
 		passtype = PassType::GetTypes;
 		OnTrait(*node);
 
@@ -15362,9 +15366,8 @@ void SystematicAnalysis::GenericTypeInstantiate_Trait(const Symbol* Trait, const
 
 		GenericFuncName.pop();
 		//
-		_Table._Scope.ThisScope = OldScope;
+		Set_SymbolConext(std::move(OldConext));
 		passtype = Oldpasstype;
-
 		//
 	}
 	{
@@ -15378,7 +15381,7 @@ void SystematicAnalysis::GenericTypeInstantiate_Alias(const Symbol* Alias, const
 {
 	const String NewName = GetGenericFuncName(Alias, Type);
 	const String FullName = GetGenericFuncFullName(Alias, Type);
-	const AliasNode* node = AliasNode::As((const Node*)Alias->NodePtr);
+	const AliasNode* node = AliasNode::As(Alias->Get_NodeInfo<Node>());
 
 	const Generic_AliasInfo* classInfo =Alias->Get_Info<Generic_AliasInfo>();
 
@@ -15393,12 +15396,10 @@ void SystematicAnalysis::GenericTypeInstantiate_Alias(const Symbol* Alias, const
 		AddExtendedErr(GetGenericExtendedErrValue(classInfo->_GenericData, node->Generic, Type), node->AliasName.Token);
 	}
 	{
-		auto OldScope = _Table._Scope.ThisScope;
+		auto OldConext = Move_SymbolConext();
 		auto Oldpasstype = passtype;
-		_Table._Scope.ThisScope.clear();
 
-		_Table._Scope.ThisScope = ScopeHelper::GetReMoveScope(FullName);
-
+		Set_SymbolConext(classInfo->Conext.value());
 
 		passtype = PassType::GetTypes;
 		OnAliasNode(*node);
@@ -15417,9 +15418,8 @@ void SystematicAnalysis::GenericTypeInstantiate_Alias(const Symbol* Alias, const
 
 		GenericFuncName.pop();
 		//
-		_Table._Scope.ThisScope = OldScope;
+		Set_SymbolConext(std::move(OldConext));
 		passtype = Oldpasstype;
-
 		//
 	}
 	{
@@ -15433,7 +15433,7 @@ void SystematicAnalysis::GenericTypeInstantiate_Enum(const Symbol* Alias, const 
 {
 	const String NewName = GetGenericFuncName(Alias, Type);
 	const String FullName = GetGenericFuncFullName(Alias, Type);
-	const EnumNode* node = EnumNode::As((const Node*)Alias->NodePtr);
+	const EnumNode* node = EnumNode::As(Alias->Get_NodeInfo<Node>());
 
 	const EnumInfo* classInfo = Alias->Get_Info<EnumInfo>();
 
@@ -15448,11 +15448,10 @@ void SystematicAnalysis::GenericTypeInstantiate_Enum(const Symbol* Alias, const 
 		AddExtendedErr(GetGenericExtendedErrValue(classInfo->_GenericData, node->Generic, Type), node->EnumName.Token);
 	}
 	{
-		auto OldScope = _Table._Scope.ThisScope;
+		auto OldConext = Move_SymbolConext();
 		auto Oldpasstype = passtype;
-		_Table._Scope.ThisScope.clear();
 
-		_Table._Scope.ThisScope = ScopeHelper::GetReMoveScope(FullName);
+		Set_SymbolConext(classInfo->Conext.value());
 
 
 		passtype = PassType::GetTypes;
@@ -15472,9 +15471,8 @@ void SystematicAnalysis::GenericTypeInstantiate_Enum(const Symbol* Alias, const 
 
 		GenericFuncName.pop();
 		//
-		_Table._Scope.ThisScope = OldScope;
+		Set_SymbolConext(std::move(OldConext));
 		passtype = Oldpasstype;
-
 		//
 	}
 	{
@@ -15488,7 +15486,7 @@ void SystematicAnalysis::GenericTypeInstantiate_Tag(const Symbol* Tag, const Vec
 {
 	const String NewName = GetGenericFuncName(Tag, Type);
 	const String FullName = GetGenericFuncFullName(Tag, Type);
-	const TagTypeNode* node = TagTypeNode::As((const Node*)Tag->NodePtr);
+	const TagTypeNode* node = TagTypeNode::As(Tag->Get_NodeInfo<Node>());
 
 	const TagInfo* classInfo = Tag->Get_Info<TagInfo>();
 
@@ -15503,9 +15501,10 @@ void SystematicAnalysis::GenericTypeInstantiate_Tag(const Symbol* Tag, const Vec
 		AddExtendedErr(GetGenericExtendedErrValue(classInfo->_GenericData, node->Generic, Type), node->AttributeName.Token);
 	}
 	{
-		auto OldScope = _Table._Scope.ThisScope;
+		auto OldConext = Move_SymbolConext();
 		auto Oldpasstype = passtype;
-		_Table._Scope.ThisScope.clear();
+
+		Set_SymbolConext(classInfo->Conext.value());
 
 		_Table._Scope.ThisScope = ScopeHelper::GetReMoveScope(FullName);
 
@@ -15527,9 +15526,8 @@ void SystematicAnalysis::GenericTypeInstantiate_Tag(const Symbol* Tag, const Vec
 
 		GenericFuncName.pop();
 		//
-		_Table._Scope.ThisScope = OldScope;
+		Set_SymbolConext(std::move(OldConext));
 		passtype = Oldpasstype;
-
 		//
 	}
 	{
@@ -15616,17 +15614,17 @@ bool SystematicAnalysis::IsCompatible(const IsCompatiblePar& FuncPar,const Vecto
 		if (!IsDependencies(Info))
 		{
 			auto OldPass = passtype;
-			auto OldScope = _Table._Scope.ThisScope;
-			_Table._Scope.ThisScope = Info->FullName;
-			ScopeHelper::ReMoveScope(_Table._Scope.ThisScope);
+			auto oldconext = Move_SymbolConext();
+			
+			Set_SymbolConext(Info->Conext.value());
 
 			_RetLoopStack.push_back(Info);
 
-			OnFuncNode(*(FuncNode*)FuncPar.Item->NodePtr);
+			OnFuncNode(*FuncPar.Item->Get_NodeInfo<FuncNode>());
 
 			_RetLoopStack.pop_back();
 
-			_Table._Scope.ThisScope = OldScope;
+			Set_SymbolConext(std::move(oldconext));
 		}
 		else
 		{
