@@ -680,6 +680,7 @@ public:
 	const ExpressionNodeType* Exnode = nullptr;
 	RawEvaluatedObject Ex;
 
+	Optional<SymbolConext> Conext;
 	ConstantExpressionInfo()
 	{
 
@@ -779,6 +780,14 @@ public:
 	Generic _GenericData;
 	Optional<SymbolConext> Conext;
 };
+
+
+class AliasInfo :public Symbol_Info
+{
+public:
+	Optional<SymbolConext> Conext;
+};
+
 class Generic_AliasInfo :public Symbol_Info
 {
 public:
@@ -817,6 +826,14 @@ public:
 	Generic _GenericData;
 	Optional<SymbolConext> Conext;
 
+};
+class DeclareVariableInfo :public Symbol_Info
+{
+public:
+	//for stack varables.
+	size_t LineNumber = 0;
+
+	Optional<SymbolConext> Conext;
 };
 
 class Symbol
@@ -930,6 +947,7 @@ class ParameterInfo :public Symbol_Info
 {
 public:
 	bool IsOutValue = false;
+
 };
 
 
