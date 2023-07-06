@@ -699,6 +699,48 @@ private:
 	Vector< LibLoadTypeSeter> _TypesToFix;
 
 	//Funcs
+	SymbolConext Get_SymbolConext() const
+	{
+		SymbolConext R;
+		R.File = LookingAtFile;
+		R.Scope = _Table._Scope;
+		R.Useings = _Table.Useings;
+
+		return R;
+	}
+	SymbolConext Get_SymbolConextRemoveOneScopeName() const
+	{
+		SymbolConext R;
+		R.File = LookingAtFile;
+		R.Scope = _Table._Scope;
+		R.Useings = _Table.Useings;
+
+		return R;
+	}
+	SymbolConext Move_SymbolConext()
+	{
+		SymbolConext R;
+		R.File = std::move(LookingAtFile);
+		R.Scope = std::move(_Table._Scope);
+		R.Useings = std::move(_Table.Useings);
+
+		return R;
+	}
+
+	void Set_SymbolConext(const SymbolConext& Contex)
+	{
+		LookingAtFile = Contex.File;
+		_Table._Scope = Contex.Scope;
+		_Table.Useings = Contex.Useings;
+	}
+	void Set_SymbolConext(SymbolConext&& Contex)
+	{
+		LookingAtFile = std::move(Contex.File);
+		_Table._Scope = std::move(Contex.Scope);
+		_Table.Useings = std::move(Contex.Useings);
+	}
+
+
 	void AddExtendedErr(String Err,const Token* token)
 	{
 		_ExtendedErr.push_back(Err + ". On line " + std::to_string(token->OnLine));
