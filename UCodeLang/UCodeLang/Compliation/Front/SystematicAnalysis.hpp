@@ -712,7 +712,7 @@ private:
 	{
 		SymbolConext R;
 		R.File = LookingAtFile;
-		R.Scope = _Table._Scope;
+		R.Scope.ThisScope =ScopeHelper::GetReMoveScope(_Table._Scope.ThisScope);
 		R.Useings = _Table.Useings;
 
 		return R;

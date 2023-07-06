@@ -13186,7 +13186,15 @@ bool SystematicAnalysis::HasDestructor(const TypeSymbol& TypeToCheck)
 		if (Sym && Sym->Type == SymbolType::Type_class)
 		{
 			auto Classinfo = Sym->Get_Info<ClassInfo>();
-			Update_ClassSym_ToFixedTypes(Sym);
+
+			if (!IsDependencies(Classinfo))
+			{
+				Update_ClassSym_ToFixedTypes(Sym);
+			}
+			else
+			{
+				//do nothing so GetSize will make the error.				
+			}
 
 			return Classinfo->_WillHaveFielddeInit;
 		}
