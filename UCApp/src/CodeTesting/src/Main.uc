@@ -3,7 +3,7 @@
 |main[] => Item;
 
 
-eval |func[]:
-      ret 1;
+eval |func[] -> int:
+      ret func();
 
 eval Item = func();
