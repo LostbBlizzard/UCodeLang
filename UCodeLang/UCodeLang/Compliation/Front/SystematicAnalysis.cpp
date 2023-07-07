@@ -15826,12 +15826,17 @@ bool SystematicAnalysis::IsCompatible(const IsCompatiblePar& FuncPar,const Vecto
 		else
 		{
 			auto V = GetDependencies(Info);
-			if (V->IsOnRetStatemnt)
+			if (V->IsOnRetStatemnt && Info->Ret.IsNull())
 			{
 				LogFuncDependencyCycle(Token, Info);
 				Info->Ret.SetType(TypesEnum::Null);//to stop err spam
+				return false;
 			}
-			return false;
+			else
+			{
+				return true;//ret got fixed
+			}
+			
 		}
 	}
 	//
@@ -16607,7 +16612,7 @@ bool SystematicAnalysis::CanEvalutateFuncCheck(const Get_FuncInfo& Func)
 		return true;
 	}
 
-	if (Func.SymFunc->NodePtr)
+	if (Func.SymFunc && Func.SymFunc->NodePtr)
 	{
 		const FuncNode* node = FuncNode::As(Func.SymFunc->Get_NodeInfo<Node>());
 
@@ -16767,12 +16772,21 @@ bool SystematicAnalysis::EvalutateFunc(EvaluatedEx& Out, const Get_FuncInfo& Fun
 		EvalFuncData* State =new EvalFuncData();
 		EvalFuncStackFrames.push_back(Unique_ptr<EvalFuncData>(State));
 		constexpr size_t StackSize = 100;
-
+		State->CallFrom = Name.ScopedName.back().token;
+		State->FuncSyb = Func.SymFunc;
 		bool Ok = false;
 		if (EvalFuncStackFrames.size() >= StackSize)
 		{
-			const Token* token = nullptr;
-			_ErrorsOutput->AddError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "Eval func Stack overflow.");
+			const Token* token = State->CallFrom;
+			String Str;
+			Str += "Eval func Stack overflow.";
+			Str += "--Call Stack \n";
+			for (auto& Item : EvalFuncStackFrames)
+			{
+				Str += "On line " + std::to_string(Item->CallFrom->OnLine) + (String)" Called '" + Item->FuncSyb->FullName + "'. \n";
+			}
+
+			_ErrorsOutput->AddError(ErrorCodes::InValidType, token->OnLine, token->OnPos,Str);
 			Ok = false;
 		}
 		else 

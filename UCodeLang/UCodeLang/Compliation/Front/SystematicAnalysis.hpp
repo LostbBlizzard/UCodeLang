@@ -530,6 +530,7 @@ private:
 		{
 			return FuncSyb->Get_Info<FuncInfo>();
 		}
+		const Token* CallFrom = nullptr;
 	};
 	using IndexOverLoadWith_t = BinaryOverLoadWith_t;
 	using PostFixOverLoadWith_t = BinaryOverLoadWith_t;
