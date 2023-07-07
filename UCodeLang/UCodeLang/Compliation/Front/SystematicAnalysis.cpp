@@ -9928,18 +9928,20 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 	
 	if (passtype == PassType::FixedTypes)
 	{
-
-
-		auto Info = GetFunc(node.FuncName, node.Parameters, Get_LookingForType());
-
-		if (Info.SymFunc)
+		if (!FuncToSyboID.HasValue(GetSymbolID(node))) 
 		{
-			AddDependencyToCurrentFile(Info.SymFunc);
-		}
 
-		FuncToSyboID.AddValue(GetSymbolID(node),std::move(Info));
-		
-		SetFuncRetAsLastEx(Info);
+			auto Info = GetFunc(node.FuncName, node.Parameters, Get_LookingForType());
+
+			if (Info.SymFunc)
+			{
+				AddDependencyToCurrentFile(Info.SymFunc);
+			}
+
+			FuncToSyboID.AddValue(GetSymbolID(node), std::move(Info));
+
+			SetFuncRetAsLastEx(Info);
+		}
 	}
 	else if (passtype == PassType::BuidCode)
 	{
@@ -16600,7 +16602,24 @@ bool SystematicAnalysis::EvalutateStepScopedName(EvaluatedEx& Out, const ScopedN
 }
 bool SystematicAnalysis::CanEvalutateFuncCheck(const Get_FuncInfo& Func)
 {
-	return  Func._BuiltFunc.has_value();
+	if (Func._BuiltFunc.has_value())
+	{
+		return true;
+	}
+
+	if (Func.SymFunc->NodePtr)
+	{
+		const FuncNode* node = FuncNode::As(Func.SymFunc->Get_NodeInfo<Node>());
+
+		if (node->Signature.HasEvalKeyWord)
+		{
+			return true;
+		}
+
+	}
+
+
+	return false;
 }
 bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const TypeSymbol& MustBeType, const ExpressionNodeType& node)
 {
@@ -16736,9 +16755,37 @@ bool SystematicAnalysis::EvalutateFunc(EvaluatedEx& Out, const Get_FuncInfo& Fun
 		{
 			auto& EvalObject = BuiltFunc.EvalObject.value();
 			Out.Type = LastExpressionType;
-			Out.EvaluatedObject = std::move(EvalObject);
+			Out.EvaluatedObject = EvalObject;
 			return true;
+		}	
+	}
+	else if (Func.SymFunc)
+	{
+		const FuncNode* Funcnode = FuncNode::As(Func.SymFunc->Get_NodeInfo<Node>());
+
+	
+		EvalFuncData* State =new EvalFuncData();
+		EvalFuncStackFrames.push_back(Unique_ptr<EvalFuncData>(State));
+		constexpr size_t StackSize = 100;
+
+		bool Ok = false;
+		if (EvalFuncStackFrames.size() >= StackSize)
+		{
+			const Token* token = nullptr;
+			_ErrorsOutput->AddError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "Eval func Stack overflow.");
+			Ok = false;
 		}
+		else 
+		{
+			Ok = EvalutateFunc(*State, Func.SymFunc, ValuePars);
+		}
+		if (Ok)
+		{
+			Out.Type = Func.SymFunc->Get_Info<FuncInfo>()->Ret;
+			Out.EvaluatedObject = State->Ret;
+		}
+		EvalFuncStackFrames.pop_back();
+		return Ok;
 	}
 
 	return false;
@@ -16903,6 +16950,71 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ExtendedFuncExpression
 	}
 	GetExpressionMode.pop();
 	return false;
+}
+bool SystematicAnalysis::EvalutateFunc(EvalFuncData& State, const Symbol* Func, const Vector<EvaluatedEx>& Pars)
+{
+
+
+
+	bool Fail = false;
+	auto Conxet = Move_SymbolConext();
+
+	const FuncInfo* funcInfo = Func->Get_Info<FuncInfo>();
+	Set_SymbolConext(funcInfo->Conext.value());
+	{
+		_Table.AddScope("__EvalFunc");
+		
+		const FuncNode& Body = *Func->Get_NodeInfo<FuncNode>();
+		
+		State.Pars.reserve(Pars.size());
+		for (size_t i = 0; i < State.Pars.size(); i++)
+		{
+			auto ID = GetSymbolID(Body.Signature.Parameters.Parameters[i]);
+			State.Pars.AddValue(ID, Pars[i].EvaluatedObject);
+		}
+		State.Ret.ObjectSize = GetSize(funcInfo->Ret).value();
+		State.Ret.Object_AsPointer.reset(new Byte[State.Ret.ObjectSize]);
+		State.FuncSyb = Func;
+		//
+
+		
+		for (auto& Item : Body.Body.value().Statements._Nodes)
+		{
+			auto Statement = Item.get();
+
+			if (!EvalutateStatement(State, Statement))
+			{
+				Fail = true;
+				break;
+			}
+
+		}
+
+		_Table.RemoveScope();
+	}
+
+	Set_SymbolConext(std::move(Conxet));
+	return !Fail;
+}
+bool SystematicAnalysis::EvalutateStatement(EvalFuncData& State, const Node* node)
+{
+	switch (node->Get_Type())
+	{
+	case NodeType::RetStatementNode:
+	{
+		const RetStatementNode* Node = RetStatementNode::As(node);
+		auto Val = Evaluate(State.Get_funcInfo()->Ret, Node->Expression);
+		if (Val.has_value()) {
+			State.Ret = std::move(Val.value().EvaluatedObject);
+		}
+		return Val.has_value();
+	}
+	default:
+		return false;
+		throw std::exception("bad path");
+		break;
+	}
+	
 }
 bool SystematicAnalysis::EvalutateScopedName(EvaluatedEx& Out, size_t Start, size_t End, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& OtherOut)
 {

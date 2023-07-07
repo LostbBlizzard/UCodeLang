@@ -518,6 +518,19 @@ private:
 		bool HasValue = false;
 		Optional<Symbol*> Value;
 	};
+	struct EvalFuncData
+	{
+		VectorMap<SymbolID, RawEvaluatedObject> Pars;
+		RawEvaluatedObject Ret;
+
+		VectorMap<SymbolID,RawEvaluatedObject> Vars;
+
+		const Symbol* FuncSyb = nullptr;
+		const FuncInfo* Get_funcInfo()
+		{
+			return FuncSyb->Get_Info<FuncInfo>();
+		}
+	};
 	using IndexOverLoadWith_t = BinaryOverLoadWith_t;
 	using PostFixOverLoadWith_t = BinaryOverLoadWith_t;
 	using CompoundOverLoadWith_t = BinaryOverLoadWith_t;
@@ -687,7 +700,7 @@ private:
 	Stack<GenericFuncInfo> GenericFuncName;
 	Vector< JumpsData> _Jumps;
 	Stack<VarableUseData> _Varable;
-
+	Vector<Unique_ptr<EvalFuncData>> EvalFuncStackFrames;
 	
 	//Bad Name
 	struct LibLoadTypeSeter
@@ -1491,6 +1504,10 @@ private:
 	bool Evaluate(EvaluatedEx& Out, const ExtendedScopeExpression& node);
 	bool Evaluate(EvaluatedEx& Out, const ExtendedFuncExpression& node);
 	
+	bool EvalutateFunc(EvalFuncData& State, const Symbol* Func, const Vector<EvaluatedEx>& Pars);
+	bool EvalutateStatement(EvalFuncData& State, const Node* node);
+
+		
 
 	bool EvalutateScopedName(EvaluatedEx& Out, size_t Start, size_t End, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& OtherOut);
 	bool EvalutateScopedName(EvaluatedEx& Out, size_t Start, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& OtherOut)
