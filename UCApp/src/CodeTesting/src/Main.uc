@@ -3,4 +3,7 @@
 |main[] => Item;
 
 
-eval Item = 1;
+eval |func[]:
+      ret 1;
+
+eval Item = func();
