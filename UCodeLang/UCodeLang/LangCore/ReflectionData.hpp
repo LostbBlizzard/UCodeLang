@@ -727,6 +727,44 @@ public:
 		return nullptr;
 	}
 
+	ClassMethod* Find_Func(const String_view& FullName)
+	{
+		for (auto& Item : Classes)
+		{
+			if (Item->Get_Type() == ClassType::Class)
+			{
+				for (auto& Item2 : Item->Get_ClassData().Methods)
+				{
+					if (Item2.DecorationName == FullName
+						|| Item2.FullName == FullName)
+					{
+						return &Item2;
+					}
+				}
+
+			}
+		}
+	}
+
+	const ClassMethod* Find_Func(const String_view& FullName) const
+	{
+		for (auto& Item : Classes)
+		{
+			if (Item->Get_Type() == ClassType::Class)
+			{
+				for (auto& Item2 : Item->Get_ClassData().Methods)
+				{
+					if (Item2.DecorationName == FullName
+						|| Item2.FullName == FullName)
+					{
+						return &Item2;
+					}
+				}
+
+			}
+		}
+	}
+
 
 	const AssemblyNode* Find_Node(ReflectionCustomTypeID TypeID) const;
 	AssemblyNode* Find_Node(ReflectionCustomTypeID TypeID);

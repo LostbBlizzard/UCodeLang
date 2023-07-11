@@ -39,9 +39,13 @@ Compiler::CompilerRet Compiler::CompileText(const String_view& Text)
 	Files.push_back(Item.get());
 	_FrontEndObject->BuildIR(Files);
 
-	if (_BackEndObject == nullptr) 
+	if (_BackEndObject == nullptr 
+		|| (_oldFrontEnd != _FrontEnd)
+		|| (_oldBackEnd != _BackEnd))
 	{
 		_BackEndObject.reset(_BackEnd());
+		_oldFrontEnd = _FrontEnd;
+		_oldBackEnd = _BackEnd;
 	}
 	else
 	{
@@ -137,9 +141,13 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 	Vector<Unique_ptr<FileNode_t>> Files;
 	//Refs
 
-	if (_FrontEndObject == nullptr)
+	if (_FrontEndObject == nullptr
+		|| (_oldFrontEnd != _FrontEnd)
+		|| (_oldBackEnd != _BackEnd))
 	{
 		_FrontEndObject.reset(_FrontEnd());
+		_oldFrontEnd = _FrontEnd;
+		_oldBackEnd = _BackEnd;
 	}
 	else
 	{
@@ -323,9 +331,14 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 	}
 	DependencyFile NewFile;
 
-	if (_FrontEndObject == nullptr)
+	if (_FrontEndObject == nullptr
+		|| (_oldFrontEnd != _FrontEnd)
+		|| (_oldBackEnd != _BackEnd))
 	{
 		_FrontEndObject.reset(_FrontEnd());
+		_oldFrontEnd = _FrontEnd;
+		_oldBackEnd = _BackEnd;
+
 	}
 	else
 	{
