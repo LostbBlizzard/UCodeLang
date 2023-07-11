@@ -8,6 +8,7 @@ UCodeLangStart
 using NativeJitAssembler = X86_64JitCompiler;
 #elif UCodeLang_CPUIs_x86
 using NativeJitAssembler = X86JitCompiler;
+#define HasNoSupportforJit 1
 #else
 using NativeJitAssembler = void*;
 #define HasNoSupportforJit 1

@@ -279,7 +279,7 @@ bool CMP(T Value, const String& Hex)
 Optional<String> Jit_Interpreter::GetNameForHex(const String& Hex)
 {
 	Optional<String> R;
-	
+#if HasSupportforJit 
 	if (CMP(_Assembler.InterpreterCPPinterface_Set_ReturnPtr, Hex))
 	{
 		R = String("InterpreterCPPinterface::Set_ReturnPtr");
@@ -356,6 +356,8 @@ Optional<String> Jit_Interpreter::GetNameForHex(const String& Hex)
 		}
 	}
 	return R;
+#endif
+	return {};
 }
 
 void Jit_Interpreter::LogASM()
@@ -551,6 +553,7 @@ bool Jit_Interpreter::ShouldJit(UAddress address, const Vector<Instruction>& Ins
 }
 void Jit_Interpreter::OnUAddressCall(UAddress addresstojit)
 {
+#if HasSupportforJit 
 	auto State = _ThisState._This->Get_State();
 	auto& LibManger = State->Get_Libs();
 
@@ -573,7 +576,7 @@ void Jit_Interpreter::OnUAddressCall(UAddress addresstojit)
 		//fall back on Interpreter.
 		throw std::exception("path not added");
 	}
-		
+#endif	
 }
 
 UCodeLangEnd
