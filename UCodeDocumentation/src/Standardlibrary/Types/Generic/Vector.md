@@ -1,0 +1,1 @@
+# Vector\<T>(Standardlibrary/Type/Generic)

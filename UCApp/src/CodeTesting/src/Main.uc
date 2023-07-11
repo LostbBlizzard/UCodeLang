@@ -1,9 +1,10 @@
 
+$Item tag:
+ int a = 10;
 
-|main[] => Item;
+ |new[this&]:
+  a = 10;
+  this.a = 10;
 
-
-eval |func[] -> int:
-      ret func();
-
-eval Item = func();
+ 
+[Item] |main[] => 0;

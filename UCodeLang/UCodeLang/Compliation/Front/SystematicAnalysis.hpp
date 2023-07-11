@@ -1505,6 +1505,11 @@ private:
 	bool Evaluate(EvaluatedEx& Out, const ExtendedScopeExpression& node);
 	bool Evaluate(EvaluatedEx& Out, const ExtendedFuncExpression& node);
 	
+	EvaluatedEx& Evaluate_GetPointer()
+	{
+
+	}
+
 	bool EvalutateFunc(EvalFuncData& State, const Symbol* Func, const Vector<EvaluatedEx>& Pars);
 	bool EvalutateStatement(EvalFuncData& State, const Node* node);
 

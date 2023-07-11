@@ -1,0 +1,1 @@
+# Span<T>(Standardlibrary/Type/Generic)

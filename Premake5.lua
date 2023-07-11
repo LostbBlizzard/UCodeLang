@@ -48,7 +48,7 @@ project "UCApp"
    language "C++"
 
    
-   
+   dependson {"UCodeLang"}
    targetdir ("Output/%{prj.name}/" .. OutDirPath)
    objdir ("Output/int/%{prj.name}/" .. OutDirPath)
    
@@ -87,6 +87,7 @@ project "UC"
 
    
    
+   dependson {"UCodeLang"}
    targetdir ("Output/%{prj.name}/" .. OutDirPath)
    objdir ("Output/int/%{prj.name}/" .. OutDirPath)
    
@@ -158,6 +159,7 @@ project "UCodeLanguageSever"
 
    
    
+   dependson {"UCodeLang"}
    targetdir ("Output/%{prj.name}/" .. OutDirPath)
    objdir ("Output/int/%{prj.name}/" .. OutDirPath)
    
@@ -185,12 +187,21 @@ project "UCodeLanguageSever"
       "Output/UCodeLang/" .. OutDirPath,
    }
 
+project "UCodeDocumentation"
+   location "UCodeDocumentation"
+   kind "StaticLib"
+   language "C++"
+
+
+
 group "UCodeAPIs"
  project "StandardLibrary"
   location "UCodeAPI/StandardLibrary"
   kind "StaticLib"
   language "C"
 
+  
+  dependson {"UC"}
   targetdir ("Output/%{prj.name}/" .. OutDirPath)
   objdir ("Output/int/%{prj.name}/" .. OutDirPath)
 
@@ -202,15 +213,17 @@ group "UCodeAPIs"
   "%{prj.name}/src/**.h",
   "%{prj.name}/src/**.cpp",
   "%{prj.name}/src/**.hpp", 
+  "%{prj.name}/src/**.uc",
+  "%{prj.name}/test/**.uc",
+  
   }
 
 
  
 
-  postbuildcommands {
-
-   "start " .. UCPathExeDir .. UCPathExeName .. " \"Build " .. "%{wks.location}UCodeAPI/%{prj.name}/%{prj.name}.ucm" .. "\""
-
+  postbuildcommands 
+  {
+   "ucodelang --build %{prj.location}ULangModule.ucm"
   }
   project "NStandardLibrary"
   location "UCodeAPI/NStandardLibrary"
@@ -219,6 +232,8 @@ group "UCodeAPIs"
 
   targetdir ("Output/%{prj.name}/" .. OutDirPath)
   objdir ("Output/int/%{prj.name}/" .. OutDirPath)
+  
+  dependson {"UC"}
 
   files { 
   "%{prj.name}/src/**.uc",
@@ -227,16 +242,19 @@ group "UCodeAPIs"
   "%{prj.name}/src/**.c",
   "%{prj.name}/src/**.h",
   "%{prj.name}/src/**.cpp",
-  "%{prj.name}/src/**.hpp", 
+  "%{prj.name}/src/**.hpp",
+
+  "%{prj.name}/src/**.uc",
+  "%{prj.name}/test/**.uc",
+  "%{prj.name}**.ucm",
   }
 
 
  
 
-  postbuildcommands {
-
-   "start " .. UCPathExeDir .. UCPathExeName .. " \"Build " .. "%{wks.location}UCodeAPI/%{prj.name}/%{prj.name}.ucm" .. "\""
-
+  postbuildcommands 
+  {
+   "ucodelang --build %{prj.location}ULangModule.ucm"
   }
  project "Win32"
   location "UCodeAPI/Win32"
@@ -246,6 +264,8 @@ group "UCodeAPIs"
   targetdir ("Output/%{prj.name}/" .. OutDirPath)
   objdir ("Output/int/%{prj.name}/" .. OutDirPath)
 
+  
+  dependson {"UC"}
   files { 
   "%{prj.name}/src/**.uc",
   "%{prj.name}/%{prj.name}.ucm",
@@ -253,13 +273,16 @@ group "UCodeAPIs"
   "%{prj.name}/src/**.c",
   "%{prj.name}/src/**.h",
   "%{prj.name}/src/**.cpp",
-  "%{prj.name}/src/**.hpp", 
+  "%{prj.name}/src/**.hpp",
+  
+  "%{prj.name}/src/**.uc",
+  "%{prj.name}/test/**.uc",
+  
   }
 
-  postbuildcommands {
-
-   "start " .. UCPathExeDir .. UCPathExeName .. " \"Build " .. "%{wks.location}UCodeAPI/%{prj.name}/%{prj.name}.ucm" .. "\""
-
+  postbuildcommands 
+  {
+   "ucodelang --build %{prj.location}ULangModule.ucm" 
   }
  project "NWin32"
    location "UCodeAPI/NWin32"
@@ -269,6 +292,8 @@ group "UCodeAPIs"
    targetdir ("Output/%{prj.name}/" .. OutDirPath)
    objdir ("Output/int/%{prj.name}/" .. OutDirPath)
 
+   
+   dependson {"UC"}
    files { 
    "%{prj.name}/src/**.uc",
    "%{prj.name}/%{prj.name}.ucm",
@@ -277,10 +302,12 @@ group "UCodeAPIs"
    "%{prj.name}/src/**.h",
    "%{prj.name}/src/**.cpp",
    "%{prj.name}/src/**.hpp", 
+   
+   "%{prj.name}/src/**.uc",
+   "%{prj.name}/test/**.uc",
    }
 
-   postbuildcommands {
-
-    "start " .. UCPathExeDir .. UCPathExeName .. " \"Build " .. "%{wks.location}UCodeAPI/%{prj.name}/%{prj.name}.ucm" .. "\""
-
+   postbuildcommands 
+   {
+   "ucodelang --build %{prj.location}ULangModule.ucm"
    }
