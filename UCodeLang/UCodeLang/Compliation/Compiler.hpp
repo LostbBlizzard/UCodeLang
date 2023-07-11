@@ -100,6 +100,9 @@ private:
 
 	FrontEndObject_Ptr _FrontEnd = nullptr;
 	BackEndObject_Ptr _BackEnd = nullptr;
+
+	FrontEndObject_Ptr _oldFrontEnd = nullptr;
+	BackEndObject_Ptr _oldBackEnd = nullptr;
 	void Optimize(IRBuilder& IR);
 };
 UCodeLangEnd
