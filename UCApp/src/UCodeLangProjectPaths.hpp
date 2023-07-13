@@ -2,7 +2,7 @@
 #include <UCodeLang/LangCore/LangTypes.hpp>
 
 #ifdef DEBUG
-inline const UCodeLang::String UCodeLang_SoultionDir = "C:/CoolStuff/CoolCodeingStuff/C++/Projects/UCodeLang/";
+inline const UCodeLang::String UCodeLang_SoultionDir = "../";
 
 inline const UCodeLang::String UCodeLang_UCAppDir = UCodeLang_SoultionDir + "UCApp/";
 inline const UCodeLang::String UCodeLang_UCAppDir_ScrDir = UCodeLang_UCAppDir + "src/";

@@ -191,7 +191,8 @@ project "UCodeDocumentation"
    location "UCodeDocumentation"
    kind "StaticLib"
    language "C++"
-
+   targetdir ("Output/%{prj.name}/" .. OutDirPath)
+   objdir ("Output/int/%{prj.name}/" .. OutDirPath)
 
 
 group "UCodeAPIs"
