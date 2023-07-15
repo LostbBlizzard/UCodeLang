@@ -362,7 +362,7 @@ UCodeTestStart
 
 			if (MultThread == false)
 			{
-				if (Test.TestName == "BasicObjects ret 1")
+				if (Test.TestName == "Constructor")
 				{
 					int BreakPointHere = 0;
 				}

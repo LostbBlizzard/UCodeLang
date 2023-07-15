@@ -7626,15 +7626,15 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 			LastLookedAtToken = Token;
 
 
-			if (SymbolVar->PassState == PassType::GetTypes)
-			{
-				Update_Sym_ToFixedTypes(SymbolVar);
-			}
-
 			if (SymbolVar == nullptr)
 			{
 				LogCantFindVarError(Token, Str);
 				return false;
+			}
+
+			if (SymbolVar->PassState == PassType::GetTypes)
+			{
+				Update_Sym_ToFixedTypes(SymbolVar);
 			}
 
 
@@ -15918,7 +15918,8 @@ int SystematicAnalysis::GetCompatibleScore(const IsCompatiblePar& Func, const Ve
 	int r = 0;
 	for (size_t i = StartIndex; i < (*Func.Pars).size(); i++)
 	{
-		r += GetCompatibleScore((*Func.Pars)[i], ValueTypes[i]);
+		size_t ValueTypesIndex = StartIndex == 1 ? i - 1 : i;
+		r += GetCompatibleScore((*Func.Pars)[i], ValueTypes[ValueTypesIndex]);
 	}
 
 

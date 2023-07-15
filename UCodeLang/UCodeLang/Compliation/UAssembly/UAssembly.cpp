@@ -337,7 +337,7 @@ String UAssembly::ToString(const ClassMethod::Par& Value, const ClassAssembly& A
 	{
 		R += "out ";
 	}
-	R += ToString(Value, Assembly);
+	R += ToString(Value.Type, Assembly);
 	return R;
 }
 void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In,const BinaryVectorMap<UAddress, String>& AddressToName, String& out, const UClib* Lib)

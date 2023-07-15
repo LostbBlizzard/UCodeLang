@@ -88,7 +88,7 @@ void TestingGround()
 	{
 		//JitPerformance::main(JitPerformance::Task::Main);
 	}
-	//ULangTest::RunTests(false);
+	ULangTest::RunTests(false);
  	//ULangTest::RunLanguageSeverTests();
  	Interpreter RunTime;
 
@@ -127,7 +127,7 @@ void TestingGround()
 
 
 	Settings._Type = OutPutType::Lib;
-	Settings._Flags = OptimizationFlags::ForDebuging;
+	Settings._Flags = OptimizationFlags::NoOptimization;
 	//_Compiler.Set_BackEnd(ULangTest::C89Backend::MakeObject);
 
 	ModuleFile Mfile;
@@ -183,7 +183,7 @@ void TestingGround()
 		Vec3 BufferToCopy[3]{ 1,2,3 };
 
 
-		auto AutoPtr = RunTime.RCall<Vec3>(*FuncMain);
+		auto AutoPtr = RunTime.RCall<int>(*FuncMain);
 
 
 		//std::cout << " Got Value " << (int)AutoPtr << std::endl;

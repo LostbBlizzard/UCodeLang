@@ -105,7 +105,7 @@ public:
 	{
 		if (CheckIfFunctionExist(FunctionName))
 		{
-			return ThisCall(Get_State()->FindAddress(FunctionName).value(),parameters...);
+			return ThisCall(Get_State()->FindAddress(FunctionName).value(),This,parameters...);
 		}
 		return Return_t(RetState::Error_Function_doesnt_exist);
 	}

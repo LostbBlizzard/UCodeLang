@@ -1,7 +1,7 @@
 workspace "UCodeLang"
    configurations { "Debug", "Release","Published" }
    platforms { "Win32", "Win64"}
-   defines {}
+   defines {"UCodeLangDebug"}
    
    
 

@@ -366,9 +366,16 @@ void Jit_Interpreter::LogASM()
 		return;
 	}
 #if HasSupportforJit
+#ifdef UCodeLangDebug
 	void* InsData = ExBuffer.Data;
 	size_t InsSize = Insoffset;
 #if UCodeLang_CPUIs_x86_64 || UCodeLang_CPUIs_x86
+
+#if UCodeLang_CPUIs_x86
+	auto MachineMode = ZYDIS_MACHINE_MODE_LONG_COMPAT_32;
+#else
+	auto MachineMode = ZYDIS_MACHINE_MODE_LONG_64;
+#endif
 	ZyanU64 runtime_address = (ZyanU64)InsData;
 	//runtime_address = 0;
 	// Loop over the instructions in our buffer.
@@ -378,7 +385,7 @@ void Jit_Interpreter::LogASM()
 
 	const size_t MaxInsSize = 8;
 	while (ZYAN_SUCCESS(ZydisDisassembleIntel(
-		/* machine_mode:    */ ZYDIS_MACHINE_MODE_LONG_64,
+		/* machine_mode:    */ MachineMode,
 		/* runtime_address: */ runtime_address,
 		/* buffer:          */ (void*)((uintptr_t)InsData + offset),
 		/* length:          */ Insoffset - offset,
@@ -516,6 +523,7 @@ void Jit_Interpreter::LogASM()
 	std::cout << "/end" << std::endl;
 	int DebugYourBreakPointHere = 0;
 
+#endif
 #endif
 }
 bool Jit_Interpreter::ShouldJit(UAddress address, const Vector<Instruction>& Insts)

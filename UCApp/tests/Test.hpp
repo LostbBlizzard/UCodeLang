@@ -75,7 +75,7 @@ UCodeTestStart
 		}
 	};
 
-	static const Array<TestInfo, 68> Tests
+	static const Array<TestInfo, 69> Tests
 	{
 
 		TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation),
@@ -105,7 +105,7 @@ UCodeTestStart
 
 		TestInfo("Func 1","BasicTests/Func.uc","main",SuccessCondition::RunTimeValue,(int)0),
 		TestInfo("MemberInit","Objects/MemberInit.uc","main",SuccessCondition::RunTimeValue,(int)0),
-		TestInfo("Constructor","Objects/Constructor.uc","main",SuccessCondition::RunTimeValue,(int)0),
+		TestInfo("Constructor","Objects/Constructor.uc","main",SuccessCondition::RunTimeValue,(float)0),
 		TestInfo("MemberCall","Objects/MemberCall.uc","main",SuccessCondition::RunTimeValue,(int)0),
 		TestInfo("pointer3","Objects/pointer3.uc","main",SuccessCondition::RunTimeValue,(char)'\0'),
 		TestInfo("FuncOverloading","Objects/FuncOverloading.uc","main",SuccessCondition::RunTimeValue,(int)0),
@@ -172,6 +172,7 @@ UCodeTestStart
 		TestInfo("outfunc_2","BasicTests/outfunc2.uc","main",SuccessCondition::RunTimeValue,(int)10),
 
 		TestInfo("outoforder 1","OutofOrder/eval.uc","main",SuccessCondition::RunTimeValue,(int)1),
+		TestInfo("tag 1","Eval/tag1.uc","main",SuccessCondition::Compilation),
 	};
 
 
