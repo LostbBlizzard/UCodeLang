@@ -76,7 +76,7 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 	if (!UFuncToCPPFunc.count(address)){UFuncToCPPFunc[address] = {};}
 	auto& Item = UFuncToCPPFunc[address];
 
-	return _Interpreter.Call(address);//remove this when jit-Interpreter works
+	//return _Interpreter.Call(address);//remove this when jit-Interpreter works
 
 
 	TempFunc(InterpreterCPPinterface(&_Interpreter));
@@ -362,9 +362,6 @@ Optional<String> Jit_Interpreter::GetNameForHex(const String& Hex)
 
 void Jit_Interpreter::LogASM()
 {
-	if (!IsDebug) {
-		return;
-	}
 #if HasSupportforJit
 #ifdef UCodeLangDebug
 	void* InsData = ExBuffer.Data;
@@ -572,10 +569,11 @@ void Jit_Interpreter::OnUAddressCall(UAddress addresstojit)
 
 	if (shouldJit)
 	{
-		if (_ThisState._This->IsDebug) 
+		#ifdef UCodeLangDebug
 		{
 			std::cout << " building because a funcion needed it " << std::to_string(addresstojit) << std::endl;
 		}
+		#endif
 		_ThisState._This->BuildCheck(Item, addresstojit);
 		return;
 	}

@@ -1,11 +1,8 @@
-$Vec2:
- float X;
- float Y;
 
- |new[this&,float x,float y]:
-  X = x;
-  Y = y;
+$Vec2i:
+ int X = 0;
+ int Y = 0;
 
-|main[] -> float:
- Vec2 V = [0.0,0.0];
- ret V.X;
+|main[] -> int:
+ Vec2i V = [];
+ ret 0;

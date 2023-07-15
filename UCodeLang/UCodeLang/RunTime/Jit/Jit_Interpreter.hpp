@@ -164,7 +164,7 @@ public:
 	void Get_Return(void* Output, size_t OutputSize);
 
 
-	bool IsDebug = false;
+	
 	bool AlwaysJit = false;
 private:
 	
