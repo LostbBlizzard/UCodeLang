@@ -1,10 +1,11 @@
+$Vec2:
+ float X;
+ float Y;
 
-$Item tag:
- int a = 10;
+ |new[this&,float x,float y]:
+  X = x;
+  Y = y;
 
- |new[this&]:
-  a = 10;
-  this.a = 10;
-
- 
-[Item] |main[] => 0;
+|main[] -> float:
+ Vec2 V = [0.0,0.0];
+ ret V.X;

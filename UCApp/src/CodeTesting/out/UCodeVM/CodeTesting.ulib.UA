@@ -2,62 +2,35 @@
 $[_global]:
 .size:0
 
- |Testing:main[] -> Testing:Vec2;//Testing:main
+ |Testing:main[] -> float32;//Testing:main
 
 
 $Testing:Vec2:
-.size:12
- sint32 X;//Offset 0
- sint32 Y;//Offset 4
- sint32 Z;//Offset 8
+.size:8
+ float32 X;//Offset 0
+ float32 Y;//Offset 4
 
+ |Testing:Vec2:(&_new&)[Testing:Vec2&float32float32] -> void;//Testing:Vec2:(&_new&)^[]&,f32,f32
 
 
 
 [Instructions]-- 
----(&StaticInit&): 
-   0 :Store64 [A],12
-   1 :IncrementStackPointer [A]
-   2 :GetPointerOfStackSub [A],12
-   3 :StoreRegToReg64 [A],[D]
-   4 :Call {Testing:Vec2:(&_new&)^[]&}
-   5 :GetFromStackSub64 12,[A]
-   6 :GetPointerOfStaticMem [B],0
-   7 :StoreRegToPtr64 [A],[B]
-   8 :GetFromStackSub32 4,[A]
-   9 :GetPointerOfStaticMem [B],8
-   10 :StoreRegToPtr32 [A],[B]
-   11 :Store64 [B],12
-   12 :DecrementStackPointer [B]
-   13 :Ret 
----Testing:Vec2:(&_init&): 
-   14 :Store32 [A],0
-   15 :StoreRegToPtr32 [A],[D]
-   16 :Load32 [Ptr:[D]],[Target:[A]],4
-   17 :Load32 [Ptr:[D]],[Target:[A]],8
-   18 :Ret 
+---Testing:Vec2:(&_new&)^[]&,f32,f32: 
+   0 :StoreRegToPtr32 [E],[D]
+   1 :Load32 [Ptr:[D]],[Target:[F]],4
+   2 :Ret 
 ---Testing:Vec2:(&_new&)^[]&: 
-   19 :Call {Testing:Vec2:(&_init&)}
-   20 :Ret 
+   3 :Ret 
 ---Testing:main: 
-   21 :Store32 [A],1
-   22 :GetPointerOfStaticMem [B],0
-   23 :StoreFromPtrToReg32 [B],[B]
-   24 :Add32 [B],[A]
-   25 :StoreRegToReg32 [F],[B]
-   26 :GetPointerOfStaticMem [C],0
-   27 :StoreRegToPtr32 [B],[C]
-   28 :GetPointerOfStaticMem [C],4
-   29 :StoreFromPtrToReg32 [C],[C]
-   30 :Add32 [C],[A]
-   31 :StoreRegToReg32 [F],[C]
-   32 :GetPointerOfStaticMem [D],4
-   33 :StoreRegToPtr32 [C],[D]
-   34 :GetPointerOfStaticMem [D],8
-   35 :StoreFromPtrToReg32 [D],[D]
-   36 :Add32 [D],[A]
-   37 :StoreRegToReg32 [F],[D]
-   38 :GetPointerOfStaticMem [E],8
-   39 :StoreRegToPtr32 [D],[E]
-   40 :StoreRegToReg64 [E],[F]
-   41 :Ret 
+   4 :Store64 [A],8
+   5 :IncrementStackPointer [A]
+   6 :GetPointerOfStackSub [A],8
+   7 :Store32f [B],0.000000
+   8 :StoreRegToReg64 [A],[D]
+   9 :StoreRegToReg32 [B],[E]
+   10 :StoreRegToReg32 [B],[F]
+   11 :Call {Testing:Vec2:(&_new&)^[]&,f32,f32}
+   12 :GetFromStackSub32 8,[F]
+   13 :Store64 [A],8
+   14 :DecrementStackPointer [A]
+   15 :Ret 

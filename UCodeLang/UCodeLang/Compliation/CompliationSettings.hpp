@@ -27,6 +27,11 @@ enum class OptimizationFlags : OptimizationFlags_t
 	ForSpeed = O_2,
 	ForMaxSpeed = O_3,
 	ForDebuging = O_1 | Debug,
+	//use these til the top are stable
+	Stable_ForSize = O_None,
+	Stable_ForSpeed = O_None,
+	Stable_MaxSpeed = O_None,
+	Stable_ForDebuging = O_None | Debug,
 };
 struct CompliationSettings
 {
