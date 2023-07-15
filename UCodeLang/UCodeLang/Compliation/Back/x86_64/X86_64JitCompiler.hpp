@@ -40,7 +40,7 @@ public:
 
 
 	bool BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress, Vector<UInt8>& X64Output);
-	
+
 	void SubCall(JitInfo::FuncType Value, uintptr_t CPPOffset, void* X64Output);
 	
 	UAddress OnUAddressPar=0;
@@ -74,6 +74,8 @@ private:
 	
 	X86_64Gen _Gen;
 	Vector<NullJitCalls> NullCalls;
+
+	using GReg = X86_64Gen::GReg;
 	struct JitType
 	{
 		JitType_t Type = JitType_t::Null;
@@ -153,11 +155,20 @@ private:
 	struct Nothing{};
 	struct RegData
 	{
+		Variant<Nothing,AnyInt64, X86_64Gen::GReg> Contains= Nothing();
+	};
+	struct NativeRegData
+	{
 
-
-		Variant<Nothing,AnyInt64> Contains= Nothing();
 	};
 	Array<RegData, (size_t)RegisterID::EndParameterRegister> Regs;
+	Array<NativeRegData,(size_t)GReg::Count> NativeReg;
+	void SynchronizeNativeRegs();
+	NativeRegData& GetNativeReg(GReg Value)
+	{
+		SynchronizeNativeRegs();
+		return NativeReg[(size_t)Value] ;
+	}
 
 	RegData& GetRegData(RegisterID ID)
 	{
@@ -185,6 +196,12 @@ private:
 
 	void Gen_InvaildNear32Call();
 
+	Optional<GReg> GetFreeReg();
+	GReg GetRegFor(RegisterID ID);
+	GReg GetFreeRegOrMovToGetFree();
 	JitType AsJitType(const ReflectionTypeInfo& V, const ClassAssembly& assembly, bool PointerSizeIs32Bit);
+
+	void NewFunction2(GReg* Val1, AnyInt64* Val2);
+	GReg GetAsNative(RegisterID ID, IntSizes Size);
 };
 UCodeLangEnd

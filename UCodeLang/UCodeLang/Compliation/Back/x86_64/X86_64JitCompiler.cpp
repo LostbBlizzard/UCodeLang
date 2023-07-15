@@ -20,20 +20,22 @@ void X86_64JitCompiler::Reset()
 }
 
 
-#define CallConventionFastCall 0
-#define NullCallConvention 9999
-
-
-#ifdef UCodeLang_Platform_Windows
-#define DefaultCallConvention CallConventionFastCall
-#else
-#define DefaultCallConvention NullCallConvention
-#endif // DEBUG
 
 ImportUseing86x64Gen
 
+GReg VarablesReg[] =
+{
+	GReg::RAX,
+	GReg::RCX,
+	GReg::RDX,
+	GReg::r8,
+	GReg::r9,
+	GReg::r10,
+	GReg::r11,
+};
+constexpr size_t VarablesRegSize = sizeof(VarablesReg) / sizeof(VarablesReg[0]);
 
-#if DefaultCallConvention == CallConventionFastCall
+#if UCodeLang_Platform_Windows
 constexpr GReg IntLikeParam_1 = GReg::RCX;
 constexpr GReg IntLikeParam_2 = GReg::RDX;
 constexpr GReg IntLikeParam_3 = GReg::r8;
@@ -226,6 +228,33 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 		Out_NativeCallOffset = _Gen.GetIndex();
 		
 		PushFuncStart();
+	}
+
+	{//Set Pars
+		size_t IntparTypeCount = 0;
+		RegisterID UparReg = RegisterID::StartParameterRegister;
+		for (auto& Item : ThisFuncData.Pars)
+		{
+			if (Item.Type == JitType_t::Int32)
+			{
+
+				GReg PReg;
+				switch (IntparTypeCount)
+				{
+				case 0:PReg = IntLikeParam_1; break;
+				case 1:PReg = IntLikeParam_2; break;
+				case 2:PReg = IntLikeParam_3; break;
+				case 3:PReg = IntLikeParam_4; break;
+				default:
+					//push on stack
+					throw std::exception("not added");
+					break;
+				}
+				IntparTypeCount++;
+				GetRegData(UparReg).Contains = PReg;
+				(*(RegisterID_t*)&UparReg)++;
+			}
+		}
 	}
 	{//c-code body
 		const bool RetTypeIsVoid = ThisFuncData.Ret.IsVoid();
@@ -423,22 +452,52 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 			break;
 			case InstructionSet::Add32:
 			{
-				auto& In1Reg = GetRegData(Item.Value0.AsRegister);
-				auto& In2Reg = GetRegData(Item.Value1.AsRegister);
+				RegisterID A = Item.Value0.AsRegister;
+				RegisterID B = Item.Value1.AsRegister;
+				auto& In1Reg = GetRegData(A);
+				auto& In2Reg = GetRegData(B);
 
 				bool BuiltCode = false;
+
+				
 				if (auto Val1 = In1Reg.Contains.Get_If<AnyInt64>())
 				{
 					if (auto Val2 = In2Reg.Contains.Get_If<AnyInt64>())
 					{
-						GetRegData(RegisterID::OuPutRegister).Contains = AnyInt64(Val1->AsInt32 + Val2->AsInt32);
+						GetRegData(RegisterID::MathOuPutRegister).Contains = AnyInt64(Val1->AsInt32 + Val2->AsInt32);
+						BuiltCode = true;
+					}
+					else if (auto Val2 = In2Reg.Contains.Get_If<GReg>())
+					{
+						NewFunction2(Val2,Val1);
+						BuiltCode = true;
+					}
+				}
+				else if (auto Val1 = In1Reg.Contains.Get_If<GReg>())
+				{
+					if (auto Val2 = In2Reg.Contains.Get_If<AnyInt64>())
+					{
+						NewFunction2(Val1, Val2);
 						BuiltCode = true;
 					}
 				}
 
 				if (BuiltCode == false)
 				{
-					return false;
+					Optional<GReg> NewOutReg = GetRegFor(RegisterID::MathOuPutRegister);
+
+					if (NewOutReg.has_value())
+					{
+						_Gen.mov32(*NewOutReg, GetAsNative(A,IntSizes::Int32));
+						_Gen.add32(*NewOutReg, GetAsNative(B, IntSizes::Int32));
+						GetRegData(RegisterID::MathOuPutRegister).Contains = *NewOutReg;
+					}
+					else
+					{
+						auto V = GetAsNative(A, IntSizes::Int32);
+						_Gen.add32(V, GetAsNative(B, IntSizes::Int32));
+						GetRegData(RegisterID::MathOuPutRegister).Contains = V;
+					}
 				}
 			}
 			break;
@@ -549,6 +608,25 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 			break;
 
 #pragma endregion
+			case InstructionSet::IncrementStackPointer:
+			{
+				auto Value = Item.Value0.AsAddress;
+				_Gen.sub64(GReg::RSP, Value);
+			}
+			break;
+			case InstructionSet::DecrementStackPointer:
+			{
+				auto Value = Item.Value0.AsAddress;
+				_Gen.add64(GReg::RSP, Value);
+			}
+			break;
+			case InstructionSet::GetPointerOfStackSub:
+			{
+				auto Value = Item.Value1.Value;
+				RegisterID OutReg= Item.Value0.AsRegister;
+				_Gen.lea(GetRegFor(OutReg),IndrReg(GReg::RSP),0, GReg::RDI,0);
+			}
+			break;
 			default:
 				return false;
 				break;
@@ -639,6 +717,62 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 
 	
 	return true;
+}
+
+void X86_64JitCompiler::NewFunction2(UCodeLang::X86_64JitCompiler::GReg* Val1, UCodeLang::AnyInt64* Val2)
+{
+	Optional<GReg> NewOutReg = GetRegFor(RegisterID::MathOuPutRegister);
+
+	if (NewOutReg.has_value())
+	{
+		_Gen.mov32(*NewOutReg, *Val1);
+		_Gen.add32(*NewOutReg, Val2->AsInt32);
+		GetRegData(RegisterID::MathOuPutRegister).Contains = *NewOutReg;
+	}
+	else
+	{
+		_Gen.add32(*Val1, Val2->AsInt32);
+		GetRegData(RegisterID::MathOuPutRegister).Contains = *Val1;
+	}
+}
+
+GReg X86_64JitCompiler::GetAsNative(RegisterID ID,IntSizes Size)
+{
+	auto V = GetRegData(ID);
+
+	if (auto Val = V.Contains.Get_If<AnyInt64>())
+	{
+		GReg R = GetFreeRegOrMovToGetFree();
+
+		switch (Size)
+		{
+		case UCodeLang::IntSizes::Int8:
+			_Gen.mov(R, Val->AsInt8);
+			break;
+		case UCodeLang::IntSizes::Int16:
+			_Gen.mov(R, Val->AsInt16);
+			break;
+		case UCodeLang::IntSizes::Int32:
+			_Gen.mov(R, Val->AsInt32);
+			break;
+		case UCodeLang::IntSizes::Int64:
+			_Gen.mov(R, Val->AsInt64);
+			break;
+		default:
+			throw std::exception("bad");
+			break;
+		}
+		return R;
+	}
+	else if (auto Val = V.Contains.Get_If<GReg>())
+	{
+		return *Val;
+	}
+	else
+	{
+		throw std::exception("bad");
+	}
+	
 }
 
 void X86_64JitCompiler::PassNativePars(const Vector<JitType>& Pars)
@@ -902,6 +1036,7 @@ Optional<X86_64JitCompiler::JitFuncData> X86_64JitCompiler::As(const ClassMethod
 	return R;
 }
 
+
 void X86_64JitCompiler::mov(GReg R, X86_64Gen::Value8 Value)
 {
 	_Gen.mov(R, Value);
@@ -938,10 +1073,30 @@ void X86_64JitCompiler::MoveRegToNative(const RegData& Reg, const JitType& TypeI
 		case 2:mov(NativeReg, V->AsInt16); break;
 		case 4:mov(NativeReg, V->AsInt32); break;
 		case 8:mov(NativeReg, V->AsInt64); break;
+		default:
+			throw std::exception("not added");
+			break;
 		}
 	}
 	else if (Reg.Contains.Is<Nothing>())
 	{
+		return;
+	}
+	else if (auto Val = Reg.Contains.Get_If<GReg>())
+	{
+		if (*Val != NativeReg) 
+		{
+			switch (TypeInReg.GetSize())
+			{
+			case 1:_Gen.mov8(*Val, NativeReg); break;
+			case 2:_Gen.mov16(*Val, NativeReg); break;
+			case 4:_Gen.mov32(*Val, NativeReg); break;
+			case 8:_Gen.mov64(*Val, NativeReg); break;
+			default:
+				throw std::exception("not added");
+				break;
+			}
+		}
 		return;
 	}
 	else
@@ -949,6 +1104,59 @@ void X86_64JitCompiler::MoveRegToNative(const RegData& Reg, const JitType& TypeI
 		throw std::exception("not added");
 	}
 }
+void X86_64JitCompiler::SynchronizeNativeRegs()
+{
 
+}
+
+Optional<GReg> X86_64JitCompiler::GetFreeReg()
+{
+	Vector<GReg> Vals;
+	for (auto& Item : Regs)
+	{
+		if (auto Val = Item.Contains.Get_If<GReg>())
+		{
+			Vals.push_back(*Val);
+		}
+	}
+
+
+	for (auto& ItemVar : VarablesReg)
+	{
+		bool IsUseReg = false;
+		
+		for (auto& Item : Vals)
+		{
+			if (Item == ItemVar)
+			{
+				IsUseReg = true;
+				break;
+			}
+		}
+
+		if (IsUseReg == false)
+		{
+			return ItemVar;
+		}
+	}
+	
+
+
+	return {};
+}
+GReg X86_64JitCompiler::GetRegFor(RegisterID ID)
+{
+
+	return GReg::RAX;
+}
+GReg X86_64JitCompiler::GetFreeRegOrMovToGetFree()
+{
+	auto V = GetFreeReg();
+	if (V.has_value())
+	{
+		return V.value();
+	}
+	return GReg::RAX;
+}
 UCodeLangEnd
 

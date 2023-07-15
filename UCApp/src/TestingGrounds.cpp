@@ -88,7 +88,7 @@ void TestingGround()
 	{
 		//JitPerformance::main(JitPerformance::Task::Main);
 	}
-	ULangTest::RunTests(false);
+	//ULangTest::RunTests(false);
  	//ULangTest::RunLanguageSeverTests();
  	Interpreter RunTime;
 
@@ -183,7 +183,7 @@ void TestingGround()
 		Vec3 BufferToCopy[3]{ 1,2,3 };
 
 
-		auto AutoPtr = RunTime.RCall<int>(*FuncMain);
+		auto AutoPtr = RunTime.RCall<int>(*FuncMain,(int)8);
 
 
 		//std::cout << " Got Value " << (int)AutoPtr << std::endl;
