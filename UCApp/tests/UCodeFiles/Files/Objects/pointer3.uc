@@ -1,7 +1,7 @@
 $Item:
  char& V;
  |new[this&]:
-  V = new char('A');
+  V =: new char('A');
 
 |main[]:
  Item item = [];

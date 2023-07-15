@@ -133,14 +133,49 @@ IRType IRBuilder::GetType(const IRInstruction* IR, const IROperator& Op) const
 		return GetType(IR);
 	}
 
-
-	if (IsLoadValueOnlyInTarget(IR->Type)
-		|| IR->Type == IRInstructionType::Reassign
-		|| IR->Type == IRInstructionType::Reassign_dereference)
+	if (IsLoadValueOnInput(IR->Type))
 	{
-		if (Op.Type == IROperatorType::Value) 
+		switch (Op.Type)
+		{
+		case IROperatorType::DereferenceOf_IRInstruction:
 		{
 			return IR->ObjectType;
+		}
+		case IROperatorType::DereferenceOf_IRParameter:
+		{
+			return IR->ObjectType;
+		}
+		case IROperatorType::Value:
+			return  IR->ObjectType;
+		default:
+			break;
+		}
+	}
+
+	if (IsLoadValueOnlyInTarget(IR->Type))
+	{
+		if (IR->Type == IRInstructionType::Reassign || IR->Type == IRInstructionType::Reassign_dereference)
+		{
+			if (Op.Type == IROperatorType::Value)
+			{
+				return IR->ObjectType;
+			}
+		}
+
+		switch (Op.Type)
+		{
+		case IROperatorType::DereferenceOf_IRInstruction:
+		{
+			return IR->ObjectType;
+		}
+		case IROperatorType::DereferenceOf_IRParameter:
+		{
+			return IR->ObjectType;
+		}
+		case IROperatorType::Value:
+			return  IR->ObjectType;
+		default:
+			break;
 		}
 	}
 

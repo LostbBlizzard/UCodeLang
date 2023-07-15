@@ -239,49 +239,17 @@ public:
 	void mov64(IndrReg dest, GReg src);
 	void mov64(GReg dest,IndrReg src);
 
-	void mov64(GReg dest, IndrReg src,Value8 src_offset)
-	{
-		PushByte(0x48);
-		PushByte(0x8b);
-		if (dest == GReg::RBX) {
-			PushByte(0x5C);
-		}
-		else if (dest == GReg::RDX)
-		{
-			PushByte(0x54);
-		}
-		else if (dest == GReg::RCX)
-		{
-			PushByte(0x4C);
-		}
-		else
-		{
-			throw std::exception();
-		}
-		PushByte(0x24);
-		PushByte(src_offset);
-	}
-	void mov64(IndrReg dest, Value8 dest_offset, GReg src)
-	{
-		PushByte(0x48);
-		PushByte(0x89);
-		auto T =x86_64::modrm(src, dest._Reg, dest_offset);
-		PushByte(T.data(), T.size());
-		PushByte(0x04);
-		PushByte(0x24);
-	}
+	void mov64(GReg dest, IndrReg src, Value8 src_offset);
+	void mov64(IndrReg dest, Value8 dest_offset, GReg src);
 	/// loads the address of a variable into register
-	void lea(ModRM Mod, GReg Reg, Rm rm, Value8 scale, GReg index, UInt64 disp);
+	void lea(GReg dest,IndrReg src,Value8 scale, GReg index, UInt64 disp);
 	/* 
 	inline  void push8(GReg Reg);
 	{
 		throw std::exception("not added");
 	}
 	*/
-	inline void push16(GReg Reg)
-	{
-		throw std::exception("not added");
-	}
+	void push16(GReg Reg);
 
 	/* 86_64 does not support.use push64
 	inline void push32(GReg Reg)
@@ -290,35 +258,14 @@ public:
 	}
 	*/
 
-	inline void push64(GReg Reg)
-	{
-		PushByte(0x50 + (Byte)Reg);
-	}
+	void push64(GReg Reg);
 
-	inline void push8(Value8 Value)
-	{
-		PushByte(0x6A);
-		PushValue_t_little_endian(Value);
-	}
-	inline void push16(Value16 Value)
-	{
-		PushByte(0x68);
-		PushValue_t_little_endian(Value);
-	}
-	inline void push32(Value32 Value)
-	{
-		PushByte(0x68);
-		PushValue_t_little_endian(Value);
-	}
+	void push8(Value8 Value);
+	void push16(Value16 Value);
+	void push32(Value32 Value);
 
-	inline void pop8(GReg Reg)
-	{
-		throw std::exception("not added");
-	}
-	inline void pop16(GReg Reg)
-	{
-		throw std::exception("not added");
-	}
+	void pop8(GReg Reg);
+	void pop16(GReg Reg);
 
 	/* 86_64 does not support.use push64
 	inline void pop32(GReg Reg)
@@ -327,10 +274,7 @@ public:
 	}
 	*/
 
-	inline void pop64(GReg Reg)
-	{
-		PushByte(0x58 + (Byte)Reg);
-	}
+	void pop64(GReg Reg);
 
 	//dest := src + dest;
 	void add8(GReg dest, GReg src);
@@ -342,23 +286,23 @@ public:
 	void add64(GReg dest, GReg src);
 
 	//dest := src + dest;
-	inline void add32(GReg dest,Value32 src)
-	{
-		if (dest == GReg::RSP)
-		{
-			PushByte(0x48);
-			PushByte(0x83);
-			PushByte(0xC4);
-			PushValue_t_little_endian((Byte)src);
-		}
-		else
-		{
-			throw std::exception("not added");
-		}
-	}
+	void add32(GReg dest, Value32 src);
+	void add64(GReg dest, Value64 src);
 
 	//dest := src - Value;
 	void sub32(GReg dest, Value32 Value);
+	
+	//dest := src - Value;
+	void sub64(GReg dest, Value64 Value);
+	//dest := src - dest;
+	void sub8(GReg dest, GReg src);
+	//dest := src - dest;
+	void sub16(GReg dest, GReg src);
+	//dest := src - dest;
+	void sub32(GReg dest, GReg src);
+	//dest := src - dest;
+	void sub64(GReg dest, GReg src);
+
 
 	X86Gen _Base;//because 86x64 is an extension of x86
 };
