@@ -138,7 +138,7 @@ UCodeTestStart
 
 
 
-		try
+		//try
 		{
 			if (std::filesystem::is_directory(paths.FileDir))
 			{
@@ -149,10 +149,10 @@ UCodeTestStart
 				Com_r = Com.CompilePathToObj(paths.FileDir, paths.OutFile);
 			}
 		}
-		catch (const std::exception& ex)
+		//catch (const std::exception& ex)
 		{
-			ErrStream << "fail from Compile [exception] '" << ex.what() << "' : " << "'" << Test.TestName << "'" << std::endl;
-			return false;
+			//ErrStream << "fail from Compile [exception] '" << ex.what() << "' : " << "'" << Test.TestName << "'" << std::endl;
+			//return false;
 		}
 
 		if (Test.Condition == SuccessCondition::Compilation
