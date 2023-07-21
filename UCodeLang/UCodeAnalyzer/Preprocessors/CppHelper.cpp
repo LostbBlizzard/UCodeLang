@@ -32,7 +32,7 @@ UCodeLangExclude
 const char UCodeLangExportString[] = "UCodeLangExportSymbol";
 const char UCodeLangExportV[] = "UCodeLangExport";
 const char UCodeLangImportString[] = "UCodeLangImportSymbol";
-const char UCodeLangOutPartypeString[] = "UCodeLangImportSymbol";
+const char UCodeLangOutPartypeString[] = "UCodeLangOutPartype";
 const char UCodeLangExcludeString[] = "UCodeLangExclude";
 const char UCodeLangAutoLinkString[] = "UCodeLangAutoLink";
 
@@ -109,8 +109,10 @@ bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFi
 						MovePassSpace(i, FileText);
 					}
 
-					auto Keywordlet = FileText[i];
-					OnDo(Keywordlet, i, FileText, Tep, Symbols);
+					size_t StartIndex = i;
+					String Indentifer;
+					GetIndentifier(i, FileText, Indentifer);
+					OnDo(StartIndex ,Indentifer, i, FileText, Tep, Symbols);
 				}
 			}
 			else
@@ -126,8 +128,9 @@ bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFi
 		R += ToString(state,Item);
 	}
 
+	WriteStringToFile(ULangOut, R);
 
-	{
+	{//Link for Cpp
 		auto CppLinkText = GetString(CppLinkFile);
 		
 		{
@@ -396,7 +399,6 @@ bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFi
 	
 
 
-
 	return false;
 }
 
@@ -527,9 +529,9 @@ void CppHelper::DoEnumType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnal
 	Symbols.push_back(std::move(Tep));
 }
 
-void CppHelper::DoClassOrStruct(const char& Keywordlet, size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols)
+void CppHelper::DoClassOrStruct(const String& Keywordlet, size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols)
 {
-	if (Keywordlet == 'c')
+	if (Keywordlet == "class")
 	{
 		i += 5;
 	}
@@ -604,10 +606,11 @@ void CppHelper::DoClassOrStruct(const char& Keywordlet, size_t& i, UCodeAnalyzer
 					}
 
 					
+					size_t StartIndex = i;
+					String Indentifer;
+					GetIndentifier(i,FileText,Indentifer);
 
-					auto Keywordlet = Scope[i];
-
-					if (!OnDo(Keywordlet, i, Scope, Tep, _type.Symbols))
+					if (!OnDo(StartIndex ,Indentifer, i, Scope, Tep, _type.Symbols))
 					{
 						ClassType::Field V;
 						V.Exported = true;
@@ -617,19 +620,20 @@ void CppHelper::DoClassOrStruct(const char& Keywordlet, size_t& i, UCodeAnalyzer
 						{//pass the spaces
 							MovePassSpace(i, Scope);
 						}
-						
-						GetType(i, Scope,V.Type);
+
+						GetType(i, Scope, V.Type);
 						{//pass the spaces
 							MovePassSpace(i, Scope);
 						}
-					    GetIndentifier(i, Scope, V.Name);
+						GetIndentifier(i, Scope, V.Name);
 
 						if (Scope[i] == '(')
 						{
 
 						}
-
-						_type.Fields.push_back(std::move(V));
+						else {
+							_type.Fields.push_back(std::move(V));
+						}
 					}
 				}
 			}
@@ -648,28 +652,104 @@ void CppHelper::DoClassOrStruct(const char& Keywordlet, size_t& i, UCodeAnalyzer
 
 }
 
-bool CppHelper::OnDo(char& Keywordlet, size_t& i, UCodeAnalyzer::String& Scope, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols)
+void CppHelper::DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size_t& i, String& FileText, Vector<SymbolData>& Symbols)
 {
-	if (Keywordlet == 'e')//enum
+	Optional<SummaryTag> Sum;
+	GetSummaryTag(i,FileText,Sum);
+	i = StartIndex;
+	Type V;
+	GetType(i, FileText, V);
+
+	String Indentifier;
+	
+	MovePassSpace(i, FileText);
+	
+	GetIndentifier(i, FileText, Indentifier);
+
+
+	
+	MovePassSpace(i, FileText);
+	
+	char nextchar = FileText[i];
+
+	if (nextchar == '(')
+	{
+		i++;
+		FuncData func;
+		func.Ret = std::move(V);
+		func.IsStatic = false;
+		
+
+		while (FileText[i] != ')')
+		{
+			FuncData::Par tep;
+
+			size_t OldNext = i;
+			
+			String AsStr;
+			GetIndentifier(i, FileText, AsStr);
+			if (AsStr == UCodeLangOutPartypeString)
+			{
+				tep.IsOut = true;
+
+				MovePassSpace(i, FileText);
+				i++;//pass (
+				GetType(i, FileText, tep.Type);
+
+				MovePassSpace(i, FileText);
+				i++;//pass )
+			}
+			else
+			{
+				i = OldNext;
+				GetType(i, FileText, tep.Type);
+			}
+
+			
+
+			MovePassSpace(i, FileText);
+
+			GetIndentifier(i, FileText, tep.Name);
+
+			func.Pars.push_back(std::move(tep));
+
+			MovePassSpace(i, FileText);
+			if (FileText[i] != ',') { break;}
+		}
+
+		SymbolData V;
+		V._Name = std::move(Indentifier);
+		V.Summary = std::move(Sum);
+		V._Type = std::move(func);
+		Symbols.push_back(V);
+	}
+	else
+	{
+
+	}
+
+}
+
+bool CppHelper::OnDo(size_t StartIndex,const String& Keywordlet, size_t& i, UCodeAnalyzer::String& Scope, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols)
+{
+	if (Keywordlet == "enum")
 	{
 		DoEnumType(i, Scope, Tep, Symbols);
 		return true;
 	}
-	else if (Keywordlet == 'c')
+	else if (Keywordlet == "constexpr")
 	{
-		if (Scope[i + 1] == 'o')//constexpr
-		{
-			DoConstexprType(i, Scope, Tep, Symbols);
-		}
-		else
-		{
-			DoClassOrStruct(Keywordlet, i, Scope, Tep, Symbols);
-		}
+		DoConstexprType(i, Scope, Tep, Symbols);
 		return true;
 	}
-	else if (Keywordlet == 's')//struct/class
+	else if (Keywordlet == "struct" || Keywordlet == "class")
 	{
 		DoClassOrStruct(Keywordlet, i, Scope, Tep, Symbols);
+		return true;
+	}
+	else
+	{
+		DoVarableOrFunc(StartIndex,Keywordlet, i, Scope, Symbols);
 		return true;
 	}
 	return false;
@@ -713,13 +793,44 @@ void CppHelper::GetStringScope(size_t& i, UCodeAnalyzer::String& FileText, UCode
 	}
 }
 
+const char Letters[] = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM";
+const char Numers[] = "1234567890";
+
+bool IsLetter(char Value)
+{
+	for (size_t i = 0; i < sizeof(Letters); i++)
+	{
+		if (Value == Letters[i])
+		{
+			return true;
+		}
+	}
+	return false;
+}
+bool Isdigit(char Value)
+{
+	for (size_t i = 0; i < sizeof(Numers); i++)
+	{
+		if (Value == Numers[i])
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool IsIndextifierChar(char Value)
+{
+	return IsLetter(Value) || Isdigit(Value) || Value == '_';
+}
+
 void CppHelper::GetIndentifier(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::String& Out)
 {
 	for (size_t iq = i; iq < FileText.size(); iq++)
 	{
 		auto Item = FileText[iq];
 
-		if (Item == ' ' || Item == '\n' || Item == ',' || Item == ':' || Item == ';')
+		if (!IsIndextifierChar(Item))
 		{
 			Out = FileText.substr(i, iq - i);
 			i = iq;

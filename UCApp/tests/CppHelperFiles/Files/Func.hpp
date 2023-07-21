@@ -2,6 +2,12 @@
 #include "UCodeAnalyzer/Preprocessors/CppHelper.hpp"
 
 
+//This func should have two copys
+UCodeLangExportSymbol("UCodeLang") void SomeFuncDefault(int V = 5) {}
+
+//should be an outfunc
+UCodeLangExportSymbol("UCodeLang") void SomeFuncPtr(UCodeLangOutPartype(int) V) {}
+
 /// <summary>
 /// Testing
 /// </summary>
@@ -31,6 +37,12 @@ UCodeLangExportSymbol("UCodeLang") struct SomeClass
 	int NonExportedInt = 0;
 
 	UCodeLangExport constexpr static size_t SomeValue2 = 0;
+
+	//this should be a member funcion
+	UCodeLangExportSymbol("UCodeLang") void SomeMemberFunc(char V) {}
+
+	//this should be a static funcion
+	UCodeLangExportSymbol("UCodeLang") void SomeMemberStatic(char& V) {}
 };
 
 UCodeLangExportSymbol("UCodeLang") void SomeFunc() {}
