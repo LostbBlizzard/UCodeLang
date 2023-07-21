@@ -72,13 +72,15 @@ public:
 	/// <param name="SrcCpp"></param>
 	/// <param name="ULangOut"></param>
 	/// <returns>if true it worked</returns>
-	static bool ParseCppfileAndOutULang(const Path& SrcCpp, const Path& ULangOut);
+	static bool ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFile, const Path& ULangOut);
+	static bool ParseULangfileAndUpdateCpp(const Path& SrcLang, const Path& CppOut);
+
+	//
 	static void DoConstexprType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols);
 	static void DoEnumType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols);
 	static void DoClassOrStruct(const char& Keywordlet, size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols);
 	static bool OnDo(char& Keywordlet, size_t& i, UCodeAnalyzer::String& Scope, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols);
-	static bool ParseULangfileAndUpdateCpp(const Path& SrcLang, const Path& CppOut);
-
+	
 
 
 	static void GetStringliteral(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::String& Out);
