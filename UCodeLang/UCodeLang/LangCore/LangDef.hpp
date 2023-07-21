@@ -77,5 +77,13 @@ UCodeLangStart
 
 #define UCodeLangImportSymbol(SymbolToImoport)
 
+//use like this bool func(UCodeLangOutPartype(int) OutValue);
+//it will become |func[out int OutValue] -> bool;
+//make sure you update it
+#define UCodeLangOutPartype(Type) Type*
+
+
+//Excludes enum fields
+#define UCodeLangExclude
 
 UCodeLangEnd

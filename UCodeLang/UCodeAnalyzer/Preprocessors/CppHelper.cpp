@@ -27,13 +27,16 @@ String GetString(const Path& AsPath)
 
 //UCodeLangExportSymbol
 //UCodeLangImportSymbol
+//UCodeLangOutPartype(Type)
 
 const char UCodeLangExportString[] = "UCodeLangExportSymbol";
 const char UCodeLangExportV[] = "UCodeLangExport";
 const char UCodeLangImportString[] = "UCodeLangImportSymbol";
+const char UCodeLangOutPartype[] = "UCodeLangImportSymbol";
 
 constexpr size_t UCodeLangExportSymbolSize = sizeof(UCodeLangExportString);
-constexpr size_t UCodeLangExportVSize = sizeof(UCodeLangExportV);
+constexpr size_t UCodeLangExportVSymbolSize = sizeof(UCodeLangExportV);
+constexpr size_t UCodeLangOutPartype = sizeof(UCodeLangExportV);
 
 
 bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp, const Path& ULangOut)
