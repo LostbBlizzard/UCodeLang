@@ -86,4 +86,6 @@ UCodeLangStart
 //Excludes enum fields
 #define UCodeLangExclude
 
+#define UCodeLangAutoLink(Lib,CppFuncsNameSpace)
+
 UCodeLangEnd

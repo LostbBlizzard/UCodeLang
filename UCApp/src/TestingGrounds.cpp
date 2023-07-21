@@ -15,6 +15,7 @@
 #include "../tests/TestGenerator.hpp"
 #include "../tests/Test.hpp"
 #include "../tests/LanguageSeverTest.hpp"
+#include "../tests/CppHelperTests.hpp"
 #include <chrono>
 #include "JitPerformance.hpp"
 #include "UCodeLangProjectPaths.hpp"
@@ -88,6 +89,7 @@ void TestingGround()
 	{
 		//JitPerformance::main(JitPerformance::Task::Main);
 	}
+	ULangTest::CppHelperTests::RunTests();
 	//ULangTest::RunTests(false);
  	//ULangTest::RunLanguageSeverTests();
  	Interpreter RunTime;
