@@ -18,6 +18,7 @@ public:
 		String Value;
 	};
 	
+	
 	struct SymbolData;
 	struct ClassType
 	{
@@ -55,6 +56,19 @@ public:
 		Type _Type;
 		CPPExpression _Value;
 	};
+	struct FuncData 
+	{
+		struct Par
+		{
+			bool IsOut = false;
+			Type Type;
+			String Name;
+			Optional<CPPExpression> Default;
+		};
+		bool IsStatic = true;
+		Vector<Par> Pars;
+		Type Ret;
+	};
 	struct SymbolData
 	{
 		String _NameSpace;
@@ -62,8 +76,10 @@ public:
 
 		Optional<SummaryTag> Summary;
 		String _Name;
-		Variant<ClassType, EnumType, ConstexprType> _Type;
+		Variant<ClassType, EnumType, ConstexprType, FuncData> _Type;
 	};
+
+	
 	
 	/// <summary>
 	/// Converts Enum,Classes,using,typedefs and funcions with the UCodeLangExportSymbol macro into Cpp calls and ULang types 
@@ -76,23 +92,24 @@ public:
 	static bool ParseULangfileAndUpdateCpp(const Path& SrcLang, const Path& CppOut);
 
 	//
-	static void DoConstexprType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols);
-	static void DoEnumType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols);
-	static void DoClassOrStruct(const char& Keywordlet, size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols);
-	static bool OnDo(char& Keywordlet, size_t& i, UCodeAnalyzer::String& Scope, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols);
+	static void DoConstexprType(size_t& i, String& FileText, SymbolData& Tep, Vector<SymbolData>& Symbols);
+	static void DoEnumType(size_t& i, String& FileText, SymbolData& Tep, Vector<SymbolData>& Symbols);
+	static void DoClassOrStruct(const String& Keywordlet, size_t& i, String& FileText, SymbolData& Tep, Vector<SymbolData>& Symbols);
+	static void DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size_t& i, String& FileText, Vector<SymbolData>& Symbols);
+	static bool OnDo(size_t StartIndex, const String& Keywordlet, size_t& i, String& Scope, SymbolData& Tep, Vector<SymbolData>& Symbols);
 	
 
 
-	static void GetStringliteral(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::String& Out);
-	static void GetStringScope(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::String& Out);
-	static void GetIndentifier(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::String& Out);
-	static void GetType(size_t& i, UCodeAnalyzer::String& FileText, Type& Out);
-	static void MovePass(size_t& i, UCodeAnalyzer::String& FileText, const char& passChar);
-	static void MovePassSpace(size_t& i, UCodeAnalyzer::String& FileText);
+	static void GetStringliteral(size_t& i, String& FileText, String& Out);
+	static void GetStringScope(size_t& i, String& FileText, String& Out);
+	static void GetIndentifier(size_t& i, String& FileText, String& Out);
+	static void GetType(size_t& i, String& FileText, Type& Out);
+	static void MovePass(size_t& i, String& FileText, const char& passChar);
+	static void MovePassSpace(size_t& i, String& FileText);
 
-	static void GetCPPExpression(size_t& i, UCodeAnalyzer::String& FileText, CPPExpression& Out);
-	static void GetSummaryTag(size_t& i, UCodeAnalyzer::String& FileText, SummaryTag& Out);
-	static void GetSummaryTag(size_t& i, UCodeAnalyzer::String& FileText,Optional<SummaryTag>& Out);
+	static void GetCPPExpression(size_t& i, String& FileText, CPPExpression& Out);
+	static void GetSummaryTag(size_t& i, String& FileText, SummaryTag& Out);
+	static void GetSummaryTag(size_t& i, String& FileText,Optional<SummaryTag>& Out);
 
 	struct CppToULangState
 	{
@@ -124,7 +141,7 @@ public:
 	static String ToString(CppToULangState& State, const Type& Value);
 	static String ToString(CppToULangState& State, const CPPExpression& Value);
 
-	static void DoNameSpace(UCodeAnalyzer::CppHelper::CppToULangState& State, const UCodeAnalyzer::CppHelper::SymbolData& Syb, UCodeAnalyzer::String& R);
+	static void DoNameSpace(CppToULangState& State, const SymbolData& Syb, String& R);
 
 	static String ToString(const  CppToULangState& State, const Optional<SummaryTag>& Value);
 	static String ToString(const  CppToULangState& State, const SummaryTag& Value);
