@@ -59,6 +59,16 @@ void AddTabCount(size_t Tabs, String& Str)
 	}
 }
 
+String ToCType(const CppHelper::Type& Value)
+{
+	return Value.Value;
+}
+
+String ToCType(const CppHelper::FuncData::Par& Value)
+{
+	return ToCType(Value.Type);
+}
+
 bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFile, const Path& ULangOut)
 {
 
@@ -289,8 +299,21 @@ bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFi
 								String Ret;
 							};
 							Vector< FuncInfo> V;
-							V.push_back({ String("Func"), { "int","bool" }, "bool" });
-							V.push_back({ String("Func2"), { "bool","int" }, "void" });
+							for (auto& Item : Symbols)
+							{
+								if (auto Val = Item._Type.Get_If<FuncData>())
+								{
+									FuncInfo Vinfo;
+									Vinfo.Ret = ToCType(Val->Ret);
+									Vinfo.FuncName = Item._Name;
+									Vinfo.Pars.resize(Val->Pars.size());
+									for (size_t i = 0; i < Val->Pars.size(); i++)
+									{
+										Vinfo.Pars[i] = ToCType(Val->Pars[i]);
+									}
+									V.push_back(std::move(Vinfo));
+								}
+							}
 							for (auto& Item : V)
 							{
 								String FuncName = CppNameSpace + "::" + Item.FuncName;
@@ -882,7 +905,7 @@ void CppHelper::GetSummaryTag(size_t& i, UCodeAnalyzer::String& FileText, Option
 {
 }
 
-inline String CppHelper::ToString(CppToULangState& State, const SymbolData& Syb)
+String CppHelper::ToString(CppToULangState& State, const SymbolData& Syb)
 {
 	if (auto Item = Syb._Type.Get_If<EnumType>())
 	{
@@ -898,7 +921,7 @@ inline String CppHelper::ToString(CppToULangState& State, const SymbolData& Syb)
 	}
 	else
 	{
-		throw std::exception("bad path");
+		//throw std::exception("bad path");
 	}
 	return "";
 }
