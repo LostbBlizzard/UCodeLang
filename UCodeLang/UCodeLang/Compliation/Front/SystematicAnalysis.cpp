@@ -3160,6 +3160,7 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 			Symbol& Sym = _Table.GetSymbol(GetSymbolID(Item));
 
 			ConvertAndValidateType(Item.Type,Sym.VarType, NodeSyb_t::Parameter);
+
 			Info->Pars.push_back({ Item.IsOutVarable,Sym.VarType });
 		}
 		
@@ -12615,6 +12616,10 @@ void SystematicAnalysis::ConvertAndValidateType(const TypeNode& V, TypeSymbol& O
 	if (ValidateType(Out,V.Name.Token,Syb) == false)
 	{
 		Out.SetType(TypesEnum::Null);
+	}
+	if (Syb == NodeSyb_t::Parameter)
+	{
+		Out.SetAsLocation();
 	}
 }
 bool SystematicAnalysis::ValidateType(const TypeSymbol& V, const Token* Token,NodeSyb_t Syb)

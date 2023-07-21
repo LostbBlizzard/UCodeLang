@@ -620,12 +620,14 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 				_Gen.add64(GReg::RSP, Value);
 			}
 			break;
+			/*
 			case InstructionSet::GetPointerOfStackSub:
 			{
 				auto Value = Item.Value1.Value;
 				RegisterID OutReg= Item.Value0.AsRegister;
 				_Gen.lea(GetRegFor(OutReg),IndrReg(GReg::RSP),0, GReg::RDI,0);
 			}
+			*/
 			break;
 			default:
 				return false;

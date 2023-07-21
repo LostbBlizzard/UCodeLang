@@ -442,6 +442,8 @@ private:
 		size_t FuncPointerSize = Get_Settings().PtrSize == IntSizes::Int64 ? 8 : 4;
 		return  ItemStackOffset + FuncPointerSize + 4;
 	}
+	IRlocData_StackPost GetFreeStackPos(IRType V);
+	IRlocData GetFreeStackLoc(IRType V);
 };
 UCodeLangEnd
 

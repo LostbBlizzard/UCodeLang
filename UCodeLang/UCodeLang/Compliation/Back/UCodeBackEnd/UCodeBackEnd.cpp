@@ -1592,17 +1592,34 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetPointerOf(const IRlocData& 
 {
 	if (auto Val = Value.Info.Get_If<RegisterID>())
 	{
-		auto stack = _Stack.AddWithSize({ nullptr }, GetSize(Value.ObjectType));
+		auto stack = GetFreeStackPos(Value.ObjectType);
 		auto R = GetRegisterForTep();
 
-		InstructionBuilder::GetPointerOfStackSub(_Ins, R, 0); PushIns();
-		//mov value on stack
-
-		IRlocData V;
-		V.Info = R;
-		V.ObjectType = IRTypes::pointer;
 		
-		return V;
+		//move value to stack
+		IRlocData Src;
+		Src.ObjectType = Value.ObjectType;
+		Src.Info = stack;
+		IRlocData V;
+		V.Info = *Val;
+		V.ObjectType = Value.ObjectType;
+
+		CopyValues(V,Src);
+
+		InstructionBuilder::GetPointerOfStackSub(_Ins, R, 0);
+		_Stack.AddReUpdatePostFunc(PushIns(), stack.offset);
+		
+		//make all read/writes point to stack.
+		auto T = _Registers.GetInfo(*Val);
+		_Stack.Get(stack.offset)->IR = T.Types.value().Get<const IRInstruction*>();
+
+		FreeRegister(*Val);
+		FreeRegister(R);
+
+		IRlocData Rl;
+		Rl.Info = R;
+		Rl.ObjectType = IRTypes::pointer;
+		return Rl;
 	}
 	else if (auto Val = Value.Info.Get_If<IRlocData_StackPost>())
 	{
@@ -1717,17 +1734,17 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction* Ins, const  IROperato
 				InstructionBuilder::GetFromStackSub8(_Ins, 0, CompilerRet);
 				break;
 			case IRTypes::i16:
-				InstructionBuilder::GetFromStackSub16(_Ins,0, CompilerRet);
+				InstructionBuilder::GetFromStackSub16(_Ins, 0, CompilerRet);
 				break;
 			Case32Bit2:
 			case IRTypes::f32:
 			case IRTypes::i32:
-				InstructionBuilder::GetFromStackSub32(_Ins,0, CompilerRet);
+				InstructionBuilder::GetFromStackSub32(_Ins, 0, CompilerRet);
 				break;
 			Case64Bit2:
 			case IRTypes::f64:
 			case IRTypes::i64:
-				InstructionBuilder::GetFromStackSub64(_Ins,0, CompilerRet);
+				InstructionBuilder::GetFromStackSub64(_Ins, 0, CompilerRet);
 				break;
 			case IRTypes::pointer:
 				if (Get_Settings().PtrSize == IntSizes::Int64)
@@ -1758,10 +1775,10 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction* Ins, const  IROperato
 
 		auto InReg = FindIRInRegister(Item);
 
-		if (InReg) 
+		if (InReg)
 		{
 			return InReg.value();
-		
+
 		}
 		else
 		{
@@ -1801,7 +1818,7 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction* Ins, const  IROperato
 			else if (Syb->SymType == IRSymbolType::ThreadLocalVarable)
 			{
 				StaticMemoryManager::StaticMemInfo& Value = _ThreadMemory._List[Op.identifer];
-			
+
 				auto V = GetRegisterForTep();
 				InstructionBuilder::GetPointerOfStaticMem(_Ins, V, Value.Offset); PushIns();
 
@@ -1815,8 +1832,22 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction* Ins, const  IROperato
 		auto Ins = Op.Pointer;
 		auto V = GetIRLocData(Ins);
 		auto Item = GetPointerOf(V);
-
+		return MakeIntoRegister(Item);
 	}
+	else if (Op.Type == IROperatorType::DereferenceOf_IRInstruction)
+	{
+		auto Ins = Op.Pointer;
+		auto InsData = GetIRLocData(Ins);
+
+		return ReadValueFromPointer(InsData.ObjectType, MakeIntoRegister(InsData));
+	}
+	else if (Op.Type == IROperatorType::DereferenceOf_IRParameter)
+	{
+		const auto Ins = Op.Parameter;
+		auto InsData = To(*GetParData(Ins));
+		return ReadValueFromPointer(InsData.ObjectType, MakeIntoRegister(InsData));
+	}
+
 	throw std::exception("not added");
 }
 
@@ -1853,9 +1884,11 @@ void UCodeBackEndObject::StoreValue(const IRInstruction* Ins, const  IROperator&
 		V.Type = IRInstructionType::Load;
 		V.Target() = OutputLocationIR;
 
-		auto Src = GetIRLocData(Ins, Input);
-		auto Out = GetIRLocData(&V, OutputLocationIR);
+		auto Out = GetIRLocData(Ins, OutputLocationIR);
+		auto TepInfo = std::move(_Registers.GetInfo(Ins));
 
+		auto Src = GetIRLocData(Ins, Input);
+		auto Tep2Info = std::move(_Registers.GetInfo(Ins));
 
 		CopyValues(Src, Out);
 
@@ -2149,9 +2182,18 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 		{
 			CompilerRet = GetPointerOf(GetIRLocData(Op.Pointer));
 		}
+		else if (Op.Type == IROperatorType::Get_PointerOf_IRParameter)
+		{
+			CompilerRet = GetPointerOf(To(*GetParData(Op.Parameter)));
+		}
 		else if (Op.Type == IROperatorType::Value)
 		{
 			CompilerRet.Info = LoadOp(Ins,Op);
+		}
+		else if (Op.Type == IROperatorType::DereferenceOf_IRInstruction
+			|| Op.Type == IROperatorType::DereferenceOf_IRParameter)
+		{
+			CompilerRet.Info = LoadOp(Ins, Op);
 		}
 		else if (Op.Type == IROperatorType::IRidentifier)
 		{
@@ -2185,24 +2227,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 	{
 		IRlocData CompilerRet;
 		CompilerRet.ObjectType = GetType(Ins, Op);
-		if (Op.Type == IROperatorType::DereferenceOf_IRParameter)
-		{
-			auto V = GetParData(Op.Parameter);
-
-			if (V)
-			{
-				auto Stackpos = _Stack.AddWithSize(Ins,GetSize(Ins->ObjectType));
-				
-				CompilerRet.Info = IRlocData_StackPost(Stackpos->Offset);	
-				CopyValues(To(*V),CompilerRet,true,false);
-				return CompilerRet;
-			}
-			else
-			{
-				throw std::exception("bad path");
-			}
-		}
-		else if (Op.Type == IROperatorType::IRInstruction)
+		if (Op.Type == IROperatorType::IRInstruction)
 		{
 			auto Item = Op.Pointer;
 
@@ -2229,12 +2254,9 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 						size_t ObjectSize = GetSize(Item);
 						if (ObjectSize > sizeof(AnyInt64))
 						{
-							auto V = GetRegisterForTep(Item);
 							CompilerRet.Info = RegisterID::OuPutRegister;
 
-							IRlocData tep;
-							tep.ObjectType = GetType(Item);
-							tep.Info =IRlocData_StackPost(_Stack.AddWithSize(nullptr,ObjectSize)->Offset);
+							IRlocData tep = GetFreeStackLoc(GetType(Item));
 
 							CopyValues(CompilerRet, tep, true, false);
 							CompilerRet = tep;
@@ -2277,6 +2299,26 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 				}
 			}
 			return CompilerRet;
+		}
+		else if (Op.Type == IROperatorType::DereferenceOf_IRInstruction)
+		{
+			auto Ins = Op.Pointer;
+			auto V = GetIRLocData(Ins);
+	
+			IRlocData tep = GetFreeStackLoc(Ins->ObjectType);
+
+			CopyValues(V, tep, true, false);
+			return tep;
+		}
+		else if (Op.Type == IROperatorType::DereferenceOf_IRParameter)
+		{
+			const auto Ins = Op.Parameter;
+			auto V = To(*GetParData(Ins));
+
+			IRlocData tep = GetFreeStackLoc(Ins->type);
+
+			CopyValues(V, tep, true, false);
+			return tep;
 		}
 		else
 		{
@@ -2827,6 +2869,17 @@ AnyInt64 UCodeBackEndObject::ToAnyInt(const IRType& ObjectType,const IROperator&
 		break;
 	}
 	return Value;
+}
+UCodeBackEndObject::IRlocData_StackPost UCodeBackEndObject::GetFreeStackPos(IRType V)
+{
+	return  IRlocData_StackPost(_Stack.AddWithSize(nullptr, GetSize(V))->Offset);
+}
+UCodeBackEndObject::IRlocData UCodeBackEndObject::GetFreeStackLoc(IRType V)
+{
+	IRlocData tep;
+	tep.ObjectType = V;
+	tep.Info = IRlocData_StackPost(GetFreeStackPos(V));
+	return  tep;
 }
 UCodeBackEndObject::WeightType UCodeBackEndObject::IsReferencedAfterThisIndexWeighted(const IROperator& Op)
 {
