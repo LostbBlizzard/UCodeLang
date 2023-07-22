@@ -66,7 +66,12 @@ String ToCType(const CppHelper::Type& Value)
 
 String ToCType(const CppHelper::FuncData::Par& Value)
 {
-	return ToCType(Value.Type);
+	String r= ToCType(Value.Type);
+	if (Value.IsOut)
+	{
+		r += "*";
+	}
+	return r;
 }
 
 bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFile, const Path& ULangOut)
@@ -162,7 +167,8 @@ bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFi
 					IndexBuffer++;
 					if (UCodeLangAutoLinkStringSize - 1 == IndexBuffer)
 					{
-
+						i++;//pass the last char.
+						
 						{//pass the (
 							MovePass(i, CppLinkText, ' ');
 							i++;
@@ -173,7 +179,6 @@ bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFi
 						String Var = "";
 						{
 							GetIndentifier(i, CppLinkText, Var);
-							Var = Var.substr(1);
 						}
 
 						{//pass the ,
@@ -186,7 +191,6 @@ bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFi
 						String CppNameSpace;
 						{
 							GetIndentifier(i, CppLinkText, CppNameSpace);
-							CppNameSpace = CppNameSpace.substr(0, CppNameSpace.size() - 1);
 						}
 
 						{//pass the )
@@ -273,11 +277,16 @@ bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFi
 								}
 							}
 							i++;//to pass that char
-							String EndText = CppLinkText.substr(i+1);//use i+2 to pass the both \n.
+							String EndText = CppLinkText.substr(i);
 
 
 							//removeing the {...}
-							CppLinkText = StartText + EndText;
+							String newfile = StartText;
+							//newfile += '\n';
+							newfile += EndText;
+
+
+							CppLinkText = newfile;
 							i = RemoveOffset;
 
 							int a = 0;
@@ -286,7 +295,7 @@ bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFi
 
 						{
 							String Linkstr;
-							
+							Linkstr += "\n";
 
 							AddTabCount(TabCount + 1,Linkstr);
 							Linkstr += '{' + (String)WasSetHeader + " \n";
@@ -401,7 +410,7 @@ bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFi
 							}
 
 							AddTabCount(TabCount + 1, Linkstr);
-							Linkstr += "}//"  + (String)EndHeader + '\n';
+							Linkstr += "}//"  + (String)EndHeader;
 							CppLinkText.insert(i, Linkstr);
 						}
 
