@@ -60,7 +60,7 @@ bool PE_File::ToFile(const PE_File* Lib, const Path& path)
 
 		BytesPtr Bits = ToRawBytes(Lib);
 
-		File.write((const char*)Bits.Bytes.get(), Bits.Size);
+		File.write((const char*)Bits.Data(), Bits.Size());
 
 
 		File.close();
@@ -79,13 +79,12 @@ bool PE_File::FromFile(PE_File* Lib, const Path& path)
 	{
 		BytesPtr Bits;
 		File.seekg(0, File.end);
-		Bits.Size = File.tellg();
+		Bits.Resize(File.tellg());
 		File.seekg(0, File.beg);
-		Bits.Bytes = std::make_unique<Byte[]>(Bits.Size);
-
-		File.read((char*)Bits.Bytes.get(), Bits.Size);
+		
+		File.read((char*)Bits.Data(), Bits.Size());
 		File.close();
-		auto V = FromBytes({ Bits.Bytes.get(),Bits.Size }, Lib);
+		auto V = FromBytes(Bits.AsSpan(), Lib);
 
 		return V;
 	}

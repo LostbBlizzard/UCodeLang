@@ -72,7 +72,7 @@ Unique_ptr<FileNode_t> UCodeFrontEndObject::LoadIntFile(const Path& path)
 
 	LibImportNode tep;
 	tep.Mode = ImportMode::IntermediateFile;
-	if (UClib::FromBytes(&tep.LIb, Bytes.AsView()))
+	if (UClib::FromBytes(&tep.LIb, Bytes.AsSpan()))
 	{
 		return Unique_ptr<FileNode_t>(new LibImportNode(std::move(tep)));
 	}

@@ -306,16 +306,16 @@ public:
 template<typename T>
 struct Span
 {
-	Span() :Bytes(nullptr), Size(0)
+	Span() :_Data(nullptr), _Size(0)
 	{
 
 	}
-	Span(T* ptr, size_t size) :Bytes(ptr), Size(size)
+	Span(T* ptr, size_t size) :_Data(ptr), _Size(size)
 	{
 
 	}
 
-	static Span Make(const T* ptr, size_t size)
+	static Span Make(T* ptr, size_t size)
 	{
 		return Span(ptr, size);
 	}
@@ -324,7 +324,7 @@ struct Span
 		return Span((T*)ptr, size);
 	}
 
-	constexpr UCODE_ENGINE_FORCE_INLINE T& operator[](size_t Index)
+	constexpr T& operator[](size_t Index)
 	{
 		#ifdef DEBUG
 		if (Index > _Size)
@@ -336,7 +336,7 @@ struct Span
 		return _Data[Index];
 	}
 
-	constexpr UCODE_ENGINE_FORCE_INLINE const T& operator[](size_t Index) const
+	constexpr const T& operator[](size_t Index) const
 	{
 		#ifdef DEBUG
 		if (Index > _Size)
@@ -357,7 +357,7 @@ struct Span
 		return _Data;
 	}
 
-	constexpr size_t  Size() const
+	constexpr size_t Size() const
 	{
 		return  _Size;
 	}
@@ -370,20 +370,20 @@ template<typename T>
 struct SpanPtr
 {
 	using MySpan = Span<T>;
-	SpanPtr() :Bytes(nullptr), Size(0)
+	SpanPtr() :_Data(nullptr), _Size(0)
 	{
 
 	}
-	SpanPtr(SpanPtr&& Value) :Bytes(nullptr), Size(0)
+	SpanPtr(SpanPtr&& Value) :_Data(nullptr), _Size(0)
 	{
 		this->operator=(std::move(Value));
 	}
 	
-	inline MySpan AsView()
+	inline MySpan AsSpan()
 	{
 		return MySpan::Make(Data(),Size());
 	}
-	inline const MySpan AsView() const
+	inline const MySpan AsSpan() const
 	{
 		return MySpan::Make(Data(), Size());
 	}
@@ -391,6 +391,8 @@ struct SpanPtr
 	{
 		_Data = std::move(Value._Data);
 		_Size = Value.Size();
+
+		Value._Size = 0;
 		return *this;
 	}
 	void Resize(size_t Count)
@@ -398,7 +400,7 @@ struct SpanPtr
 		_Data.reset(new T[Count]);
 		_Size = Count;
 	}
-	void Copyfrom(const Span_t& Values)
+	void Copyfrom(const MySpan& Values)
 	{
 		Resize(Values.Size());
 		for (size_t i = 0; i < Values.Size(); i++)
@@ -406,7 +408,7 @@ struct SpanPtr
 			_Data[i] = Values[i];
 		}
 	}
-	void Copyfrom(Span_t&& Values)
+	void Copyfrom(MySpan&& Values)
 	{
 		Resize(Values.Size());
 		for (size_t i = 0; i < Values.Size(); i++)
@@ -462,7 +464,7 @@ struct SpanPtr
 		return R;
 	}
 	
-	constexpr UCODE_ENGINE_FORCE_INLINE T& operator[](size_t Index)
+	constexpr T& operator[](size_t Index)
 	{
 		#ifdef DEBUG
 		if (Index >= _Size)
@@ -474,7 +476,7 @@ struct SpanPtr
 		return _Data[Index];
 	}
 
-	constexpr UCODE_ENGINE_FORCE_INLINE const T& operator[](size_t Index) const
+	constexpr const T& operator[](size_t Index) const
 	{
 		#ifdef DEBUG
 		if (Index >= _Size)
@@ -505,7 +507,7 @@ private:
 };
 
 
-using  BytesView = Span<Byte>;
+using BytesView = Span<Byte>;
 using BytesPtr = SpanPtr<Byte>;
 
 

@@ -40,7 +40,7 @@ public:
 	void Set_FileIDType(LangDefInfo::FileID ID)  override { _FileType = (UCodeLangInfo::FileTypes)ID; }
 
 	Unique_ptr<FileNode_t> BuildFile(String_view Text)  override;
-	Unique_ptr<FileNode_t> BuildFile(const BytesView Bytes)  override{ return BuildFile(String_view((const char*)Bytes.Bytes, Bytes.Size) ); }
+	Unique_ptr<FileNode_t> BuildFile(const BytesView Bytes)  override{ return BuildFile(String_view((const char*)Bytes.Data(), Bytes.Size()) ); }
 
 
 	Unique_ptr<FileNode_t> LoadIntFile(const Path& path) override;

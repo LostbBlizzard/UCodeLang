@@ -24,14 +24,14 @@ void C89Backend::Build(const IRBuilder* Input)
 		if (HasLibOutput())
 		{
 			auto _OutLayer = Getliboutput().AddLayer(UCode_CodeLayer_IR_Name);
-			_OutLayer->Get_Code() = Input->ToBytes().MoveInToVectorOfBytes();
+			_OutLayer->Get_Code() = Input->ToBytes().MoveToVector();
 		}
 		else
 		{
 			OutBuffer += "//Made using UCodeLang C89 Backend.Next Part is an IR Binary this will be used when linking.";
 			
 			auto Data = Input->ToBytes();
-			OutBuffer += String_view((char*)Data.AsView().Bytes, Data.AsView().Size);
+			OutBuffer += String_view((char*)Data.Data(), Data.Size());
 		}
 	}
 	else

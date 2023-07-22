@@ -43,7 +43,7 @@ public:
 	}
 	UCodeLangForceinline const BytesView GetOutput()
 	{
-		return _Output.AsView();
+		return _Output.AsSpan();
 	}
 
 	inline void Set_ErrorsOutput(CompliationErrors* Errors)
@@ -67,9 +67,8 @@ protected:
 	}
 	inline void Set_Output(const BytesView output)
 	{
-		_Output.Bytes.reset(new Byte[output.Size]);
-		_Output.Size = output.Size;
-		memcpy(_Output.Bytes.get(), output.Bytes, output.Size);
+		_Output.Resize(output.Size());
+		memcpy(_Output.Data(), output.Data(), output.Size());
 	}
 private:
 	CompliationErrors* _ErrorsOutput = nullptr;

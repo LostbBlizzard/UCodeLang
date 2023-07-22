@@ -97,12 +97,10 @@ BytesPtr Compiler::GetBytesFromFile(const Path& path)
 	if (File.is_open())
 	{
 		File.seekg(0, std::ios::end);
-		r.Size = File.tellg();
+		r.Resize(File.tellg());
 		File.seekg(0, std::ios::beg);
 		
-		Byte* Ptr = new Byte[r.Size];
-		File.read((char*)Ptr, r.Size);
-		r.Bytes.reset(Ptr);
+		File.read((char*)r.Data(), r.Size());
 
 		File.close();
 	}
@@ -211,7 +209,7 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 		else
 		{
 			auto V = GetBytesFromFile(dirEntry.path());
-			auto Filenode = _FrontEndObject->BuildFile(BytesView(V.Bytes.get(),V.Size));
+			auto Filenode = _FrontEndObject->BuildFile(V.AsSpan());
 
 			FilesBytes.push_back(std::move(V));
 			if (Filenode) 
@@ -257,12 +255,12 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 					_BackEndObject->Build(output);
 
 					auto Output = _BackEndObject->GetOutput();
-					if (Output.Size)
+					if (Output.Size())
 					{
 						std::ofstream File(Data.OutFile, std::ios::binary);
 						if (File.is_open())
 						{
-							File.write((const char*)Output.Bytes, Output.Size);
+							File.write((const char*)Output.Data(), Output.Size());
 							File.close();
 						}
 					}
@@ -430,7 +428,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 				else
 				{
 					BytesPtr V = OpenFile(FInfo,path);
-					String_view Bits = String_view((const char*)V.Bytes.get(), V.Size);
+					String_view Bits = String_view((const char*)V.Data(), V.Size());
 
 					auto hasher = std::hash<String_view>();
 					UInt64 BitsHash = hasher(Bits);
@@ -554,7 +552,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 				else
 				{
 					BytesPtr V = OpenFile(FInfo, FilePath_t);
-					String_view Bits = String_view((const char*)V.Bytes.get(), V.Size);
+					String_view Bits = String_view((const char*)V.Data(), V.Size());
 
 					auto hasher = std::hash<String_view>();
 					UInt64 BitsHash = hasher(Bits);
@@ -713,7 +711,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 		{
 			if (Item->IsExternal) 
 			{
-				if (!Item->OpenedFile.Bytes)
+				if (!Item->OpenedFile.Data())
 				{
 					Item->_IntFile = _FrontEndObject->LoadExternFile(Item->path);
 				}
@@ -725,7 +723,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 				Files.push_back(Item->_IntFile.get());
 				continue;
 			}
-			if (!Item->OpenedFile.Bytes)
+			if (!Item->OpenedFile.Data())
 			{
 				Item->OpenedFile = OpenFile(Item->_FInfo, Item->path);
 			}
@@ -733,7 +731,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 			_Errors.FilePath = Item->Repath;
 			_FrontEndObject->SetSourcePath(Item->path);
 
-			Item->_File = _FrontEndObject->BuildFile(Item->OpenedFile.AsView());
+			Item->_File = _FrontEndObject->BuildFile(Item->OpenedFile.AsSpan());
 			if (Item->_File) 
 			{
 				Item->_File->FileName = Item->Repath;
@@ -804,7 +802,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 							std::ofstream File(Data.OutFile, std::ios::binary);
 							if (File.is_open())
 							{
-								File.write((const char*)Output.Bytes, Output.Size);
+								File.write((const char*)Output.Data(), Output.Size());
 								File.close();
 							}
 						}
@@ -832,7 +830,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 							_FrontEndObject->ToIntFile(Item->_File.get(), Item->InterPath);
 							auto FileDeps = _FrontEndObject->Get_DependenciesPostIR(Item->_File.get());
 
-							auto Str = String_view((char*)Item->OpenedFile.Bytes.get(), Item->OpenedFile.Size);
+							auto Str = String_view((char*)Item->OpenedFile.Data(), Item->OpenedFile.Size());
 							Item->FileInfo->FileHash = (UInt64)std::hash<String_view>()(Str);
 							Item->FileInfo->Dependencies.clear();
 							Item->FileInfo->ExternDependencies.clear();
@@ -900,9 +898,8 @@ BytesPtr Compiler::OpenFile(const LangDefInfo::FileInfo* FInfo, const Path& path
 	{
 		String tep = GetTextFromFile(path);
 		BytesPtr V;
-		V.Bytes.reset(new Byte[tep.size()]);
-		V.Size = tep.size();
-		memcpy(V.Bytes.get(), tep.data(), V.Size);
+		V.Resize(tep.size());
+		memcpy(V.Data(), tep.data(), V.Size());
 		return V;
 	}
 }
