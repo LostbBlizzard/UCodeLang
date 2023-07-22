@@ -36,7 +36,7 @@ bool ModuleIndex::FromBytes(ModuleIndex* Lib, const BytesView Bytes)
 	Lib->_IndexedFiles.clear();
 
 	BitReader bits;
-	bits.SetBytes(Bytes.Bytes, Bytes.Size);
+	bits.SetBytes(Bytes.Data(), Bytes.Size());
 
 
 	BitReader::SizeAsBits Size=0;
@@ -69,7 +69,7 @@ bool ModuleIndex::ToFile(const ModuleIndex* Lib, const Path& path)
 	if (File.is_open()) 
 	{
 		BytesPtr bits = ToBytes(Lib);
-		File.write((const char*)bits.Bytes.get(),bits.Size);
+		File.write((const char*)bits.Data(),bits.Size());
 		File.close();
 		return true;
 	}
@@ -86,13 +86,12 @@ bool ModuleIndex::FromFile(ModuleIndex* Lib, const Path& path)
 	{
 		BytesPtr Bits;
 		File.seekg(0, File.end);
-		Bits.Size = File.tellg();
+		Bits.Resize(File.tellg());
 		File.seekg(0, File.beg);
-		Bits.Bytes = std::make_unique<Byte[]>(Bits.Size);
 
-		File.read((char*)Bits.Bytes.get(), Bits.Size);
+		File.read((char*)Bits.Data(), Bits.Size());
 		File.close();
-		auto V = FromBytes(Lib, { Bits.Bytes.get(),Bits.Size });
+		auto V = FromBytes(Lib, Bits.AsSpan());
 
 		return V;
 	}

@@ -30,6 +30,8 @@ template<typename T> using Unique_Array = UCodeLang::Unique_ptr<T[]>;
 template<typename T> using Shared_ptr = UCodeLang::Shared_ptr<T>;
 template<typename T> using Weak_ptr = UCodeLang::Weak_ptr<T>;
 
+template<typename T> using Span = UCodeLang::Span<T>;
+template<typename T> using SpanPtr = UCodeLang::SpanPtr<T>;
 
 template<typename T> using Optional = UCodeLang::Optional<T>;
 template<typename T> using Vector = UCodeLang::Vector<T>;
@@ -41,6 +43,8 @@ template<typename T, size_t Size> using Array = UCodeLang::Array<T, Size>;
 template<typename... T> using Variant = UCodeLang::Variant<T...>;
 
 using BytesView = UCodeLang::BytesView;
+using BytesPtr = UCodeLang::BytesPtr;
+
 
 template<typename Key,typename Value> using BinaryVectorMap = UCodeLang::BinaryVectorMap<Key, Value>;
 

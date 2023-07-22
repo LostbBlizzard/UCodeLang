@@ -8,6 +8,6 @@ void IRBackEnd::Reset()
 void IRBackEnd::Build(const IRBuilder* Input)
 {
 	auto Data = Input->ToBytes();
-	Set_Output(Data.AsView());
+	Set_Output(Data.AsSpan());
 }
 UCodeLangEnd

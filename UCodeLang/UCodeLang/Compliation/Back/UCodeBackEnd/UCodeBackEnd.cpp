@@ -99,7 +99,7 @@ void UCodeBackEndObject::Build(const IRBuilder* Input)
 	if (Get_Settings()._Type == OutPutType::IRAndSymbols)
 	{
 		_OutLayer = _Output->AddLayer(UCode_CodeLayer_IR_Name);
-		_OutLayer->Get_Code() = Input->ToBytes().MoveInToVectorOfBytes();
+		_OutLayer->Get_Code() = Input->ToBytes().MoveToVector();
 
 	}
 	else

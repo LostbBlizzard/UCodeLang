@@ -273,7 +273,7 @@ void UClib::ToBytes(BitMaker& Output, const ClassMethod::Par& Par)
 }
 bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 {
-	BitReader reader(Data.Bytes,Data.Size);
+	BitReader reader(Data.Data(),Data.Size());
 	
 
 	//Signature
@@ -844,7 +844,7 @@ bool UClib::ToFile(const UClib* Lib, const Path& path)
 
 		BytesPtr Bits = ToRawBytes(Lib);
 
-		File.write((const char*)Bits.Bytes.get(), Bits.Size);
+		File.write((const char*)Bits.Data(), Bits.Size());
 
 
 		File.close();
@@ -862,13 +862,12 @@ bool UClib::FromFile(UClib* Lib, const Path& path)
 	{
 		BytesPtr Bits;
 		File.seekg(0, File.end);
-		Bits.Size = File.tellg();
+		Bits.Resize(File.tellg());
 		File.seekg(0, File.beg);
-		Bits.Bytes =std::make_unique<Byte[]>(Bits.Size);
 
-		File.read((char*)Bits.Bytes.get(), Bits.Size);
+		File.read((char*)Bits.Data(), Bits.Size());
 		File.close();
-		auto V = FromBytes(Lib, { Bits.Bytes.get(),Bits.Size });
+		auto V = FromBytes(Lib, Bits.AsSpan());
 		
 		return V;
 	}

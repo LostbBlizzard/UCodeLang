@@ -28,7 +28,7 @@ BytesPtr DependencyFile::ToRawBytes(const DependencyFile* Lib)
 bool DependencyFile::FromBytes(DependencyFile* Lib, const BytesView& Data)
 {
 	BitReader bits;
-	bits.SetBytes(Data.Bytes, Data.Size);
+	bits.SetBytes(Data.Data(), Data.Size());
 
 	union
 	{
@@ -67,7 +67,7 @@ bool DependencyFile::ToFile(const DependencyFile* Lib, const Path& path)
 
 		BytesPtr Bits = ToRawBytes(Lib);
 
-		File.write((const char*)Bits.Bytes.get(), Bits.Size);
+		File.write((const char*)Bits.Data(), Bits.Size());
 
 
 		File.close();
@@ -86,13 +86,12 @@ bool DependencyFile::FromFile(DependencyFile* Lib, const Path& path)
 	{
 		BytesPtr Bits;
 		File.seekg(0, File.end);
-		Bits.Size = File.tellg();
+		Bits.Resize(File.tellg());
 		File.seekg(0, File.beg);
-		Bits.Bytes = std::make_unique<Byte[]>(Bits.Size);
-
-		File.read((char*)Bits.Bytes.get(), Bits.Size);
+		
+		File.read((char*)Bits.Data(), Bits.Size());
 		File.close();
-		auto V = FromBytes(Lib, { Bits.Bytes.get(),Bits.Size });
+		auto V = FromBytes(Lib, Bits.AsSpan());
 
 		return V;
 	}

@@ -300,7 +300,7 @@ BytesPtr IRBuilder::ToBytes() const
 bool IRBuilder::FromBytes(IRBuilder& Out, const BytesView Bytes)
 {
 	BitReader Bits;
-	Bits.SetBytes(Bytes.Bytes,Bytes.Size);
+	Bits.SetBytes(Bytes.Data(),Bytes.Size());
 
 	FromBytes(Bits,Out._StaticInit);
 	FromBytes(Bits, Out._StaticdeInit);
@@ -382,7 +382,7 @@ bool IRBuilder::ToFile(const Path& path, const IRBuilder& Value)
 
 		BytesPtr Bits = Value.ToBytes();
 
-		File.write((const char*)Bits.Bytes.get(), Bits.Size);
+		File.write((const char*)Bits.Data(), Bits.Size());
 
 
 		File.close();
@@ -401,13 +401,11 @@ bool IRBuilder::FromFile(IRBuilder& Out, const Path& path)
 	{
 		BytesPtr Bits;
 		File.seekg(0, File.end);
-		Bits.Size = File.tellg();
+		Bits.Resize(File.tellg());
 		File.seekg(0, File.beg);
-		Bits.Bytes = std::make_unique<Byte[]>(Bits.Size);
-
-		File.read((char*)Bits.Bytes.get(), Bits.Size);
+		File.read((char*)Bits.Data(), Bits.Size());
 		File.close();
-		auto V = FromBytes(Out, { Bits.Bytes.get(),Bits.Size });
+		auto V = FromBytes(Out, Bits.AsSpan());
 
 		return V;
 	}
