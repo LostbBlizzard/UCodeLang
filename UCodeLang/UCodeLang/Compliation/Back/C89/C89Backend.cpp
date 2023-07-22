@@ -174,14 +174,14 @@ void C89Backend::AddSybToString(UCodeLang::String& r)
 		{
 			IRBufferData* V = Item->Get_ExAs<IRBufferData>();
 			r += "static " + ToString(Item->Type) + " " + SybName;
-			NewFunction(r, V);
+			UpdateCppLinks(r, V);
 		}
 		break;
 		case IRSymbolType::ThreadLocalVarable:
 		{
 			IRBufferData* V = Item->Get_ExAs<IRBufferData>();
 			r += "thread_local " + ToString(Item->Type) + " " + SybName;
-			NewFunction(r, V);
+			UpdateCppLinks(r, V);
 		}
 		break;
 		default:
@@ -195,7 +195,7 @@ void C89Backend::AddSybToString(UCodeLang::String& r)
 
 
 
-void C89Backend::NewFunction(UCodeLang::String& r, UCodeLang::IRBufferData* V)
+void C89Backend::UpdateCppLinks(UCodeLang::String& r, UCodeLang::IRBufferData* V)
 {
 	//String_view text = String_view((char*)V->Bytes.data(), V->Bytes.size() - 1);
 	bool IsCString = false;// V->Bytes.size() && _Input->ConstStaticStrings.HasValue(text);

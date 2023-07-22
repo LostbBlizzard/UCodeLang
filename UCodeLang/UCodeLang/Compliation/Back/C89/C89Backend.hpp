@@ -42,7 +42,7 @@ private:
 
 	void AddSybToString(UCodeLang::String& r);
 
-	void NewFunction(UCodeLang::String& r, UCodeLang::IRBufferData* V);
+	void UpdateCppLinks(UCodeLang::String& r, UCodeLang::IRBufferData* V);
 
 	void ToString(String& r, const IRFunc* Item, C89Backend::ToStringState& State);
 
