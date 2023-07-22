@@ -303,51 +303,213 @@ public:
 	inline static const char* ObjectWithDot = ".uo";
 };
 
-
-struct BytesView
+template<typename T>
+struct Span
 {
-	BytesView() :Bytes(nullptr), Size(0)
+	Span() :Bytes(nullptr), Size(0)
 	{
 
 	}
-	BytesView(Byte* ptr,size_t size) :Bytes(ptr), Size(size)
+	Span(T* ptr, size_t size) :Bytes(ptr), Size(size)
 	{
 
 	}
-	Byte* Bytes;
-	size_t Size;
+
+	static Span Make(const T* ptr, size_t size)
+	{
+		return Span(ptr, size);
+	}
+	static const Span Make(const T* ptr, size_t size)
+	{
+		return Span((T*)ptr, size);
+	}
+
+	constexpr UCODE_ENGINE_FORCE_INLINE T& operator[](size_t Index)
+	{
+		#ifdef DEBUG
+		if (Index > _Size)
+		{
+			throw std::exception("Index out of range");
+		}
+		#endif // DEBUG
+
+		return _Data[Index];
+	}
+
+	constexpr UCODE_ENGINE_FORCE_INLINE const T& operator[](size_t Index) const
+	{
+		#ifdef DEBUG
+		if (Index > _Size)
+		{
+			throw std::exception("Index out of range");
+		}
+		#endif // DEBUG
+
+		return _Data[Index];
+	}
+
+	constexpr const T* Data() const
+	{
+		return _Data;
+	}
+	constexpr T* Data()
+	{
+		return _Data;
+	}
+
+	constexpr size_t  Size() const
+	{
+		return  _Size;
+	}
+private:
+	T* _Data;
+	size_t _Size;
 };
-struct BytesPtr
+
+template<typename T>
+struct SpanPtr
 {
-	BytesPtr() :Bytes(nullptr), Size(0)
+	using MySpan = Span<T>;
+	SpanPtr() :Bytes(nullptr), Size(0)
 	{
 
 	}
-	BytesPtr(BytesPtr&& Value) :Bytes(nullptr), Size(0)
+	SpanPtr(SpanPtr&& Value) :Bytes(nullptr), Size(0)
 	{
 		this->operator=(std::move(Value));
 	}
-	Unique_Array<Byte> Bytes;
-	size_t Size;
-	inline BytesView AsView()
+	
+	inline MySpan AsView()
 	{
-		return { Bytes.get(),Size };
+		return MySpan::Make(Data(),Size());
 	}
-	BytesPtr& operator=(BytesPtr&& Value)
+	inline const MySpan AsView() const
 	{
-		Bytes.reset(Value.Bytes.release());
-		Size = Value.Size;
+		return MySpan::Make(Data(), Size());
+	}
+	SpanPtr& operator=(SpanPtr&& Value)
+	{
+		_Data = std::move(Value._Data);
+		_Size = Value.Size();
 		return *this;
 	}
-
-	Vector<Byte> MoveInToVectorOfBytes()
+	void Resize(size_t Count)
 	{
-		Vector<Byte> R;
-		R.resize(Size);
-		std::memcpy(R.data(), Bytes.release(), R.size());
+		_Data.reset(new T[Count]);
+		_Size = Count;
+	}
+	void Copyfrom(const Span_t& Values)
+	{
+		Resize(Values.Size());
+		for (size_t i = 0; i < Values.Size(); i++)
+		{
+			_Data[i] = Values[i];
+		}
+	}
+	void Copyfrom(Span_t&& Values)
+	{
+		Resize(Values.Size());
+		for (size_t i = 0; i < Values.Size(); i++)
+		{
+			_Data[i] = std::move(Values[i]);
+		}
+
+		Values._Size = 0;
+	}
+
+	void Copyfrom(const Vector<T>& Values)
+	{
+		Resize(Values.size());
+		for (size_t i = 0; i < Values.size(); i++)
+		{
+			_Data[i] = Values[i];
+		}
+	}
+	void Copyfrom(Vector<T>&& Values)
+	{
+		Resize(Values.size());
+		for (size_t i = 0; i < Values.size(); i++)
+		{
+			_Data[i] = std::move(Values[i]);
+		}
+
+		Values.resize(0);
+	}
+	Vector<T> ToVector() const
+	{
+		Vector<T> R;
+		R.resize(_Size);
+
+		for (size_t i = 0; i < _Size; i++)
+		{
+			R[i] = this->operator[](i);
+		}
+
 		return R;
 	}
+	Vector<T> MoveToVector()
+	{
+		Vector<T> R;
+		R.resize(_Size);
+
+		for (size_t i = 0; i < _Size; i++)
+		{
+			R[i] = std::move(this->operator[](i));
+		}
+
+		_Size = 0;
+
+		return R;
+	}
+	
+	constexpr UCODE_ENGINE_FORCE_INLINE T& operator[](size_t Index)
+	{
+		#ifdef DEBUG
+		if (Index >= _Size)
+		{
+			throw std::exception("Index out of range");
+		}
+		#endif // DEBUG
+
+		return _Data[Index];
+	}
+
+	constexpr UCODE_ENGINE_FORCE_INLINE const T& operator[](size_t Index) const
+	{
+		#ifdef DEBUG
+		if (Index >= _Size)
+		{
+			throw std::exception("Index out of range");
+		}
+		#endif // DEBUG
+
+		return _Data[Index];
+	}
+
+	const T* Data() const
+	{
+		return _Data.get();
+	}
+	T* Data()
+	{
+		return _Data.get();
+	}
+
+	size_t  Size() const
+	{
+		return  _Size;
+	}
+private:
+	Unique_Array<T> _Data;
+	size_t _Size=0;
 };
+
+
+using  BytesView = Span<Byte>;
+using BytesPtr = SpanPtr<Byte>;
+
+
+
 
 enum class IntSizes : UInt8
 {

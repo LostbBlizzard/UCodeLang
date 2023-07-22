@@ -95,7 +95,7 @@ public:
 	static void DoConstexprType(size_t& i, String& FileText, SymbolData& Tep, Vector<SymbolData>& Symbols);
 	static void DoEnumType(size_t& i, String& FileText, SymbolData& Tep, Vector<SymbolData>& Symbols);
 	static void DoClassOrStruct(const String& Keywordlet, size_t& i, String& FileText, SymbolData& Tep, Vector<SymbolData>& Symbols);
-	static void DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size_t& i, String& FileText, Vector<SymbolData>& Symbols);
+	static void DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size_t& i, String& FileText, SymbolData& Tep, Vector<SymbolData>& Symbols);
 	static bool OnDo(size_t StartIndex, const String& Keywordlet, size_t& i, String& Scope, SymbolData& Tep, Vector<SymbolData>& Symbols);
 	
 
@@ -137,6 +137,7 @@ public:
 
 	static String ToString(CppToULangState& State, const ConstexprType& Value, const SymbolData& Syb);
 	static String ToString(CppToULangState& State, const ClassType& Value, const SymbolData& Syb);
+	static String ToString(CppToULangState& State, const FuncData& Value, const SymbolData& Syb,bool IsInClass = false);
 
 	static String ToString(CppToULangState& State, const Type& Value);
 	static String ToString(CppToULangState& State, const CPPExpression& Value);

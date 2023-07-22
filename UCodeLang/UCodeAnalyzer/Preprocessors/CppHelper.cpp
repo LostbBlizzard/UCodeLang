@@ -3,7 +3,6 @@
 #include <filesystem>
 #include <fstream>
 
-
 UCodeAnalyzerStart
 
 String GetString(const Path& AsPath)
@@ -436,11 +435,10 @@ bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFi
 
 void CppHelper::DoConstexprType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols)
 {
-	i += 9;
-
 	{//pass the spaces
 		MovePassSpace(i, FileText);
 	}
+
 	{
 		size_t OldIndex = i;
 		String StrV;
@@ -455,6 +453,7 @@ void CppHelper::DoConstexprType(size_t& i, UCodeAnalyzer::String& FileText, UCod
 			i = OldIndex;
 		}
 	}
+
 	ConstexprType _type;
 	GetType(i, FileText, _type._Type);
 	{//pass the spaces
@@ -477,16 +476,21 @@ void CppHelper::DoConstexprType(size_t& i, UCodeAnalyzer::String& FileText, UCod
 
 void CppHelper::DoEnumType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols)
 {
-	i += 4;
-
 	EnumType _type;
 	{//pass the spaces
 		MovePass(i, FileText, ' ');
 	}
 
-	if (FileText[i] == 'c')//class
 	{
-		i += 5;
+		String V;
+		size_t oldindex = i;
+		GetIndentifier(i, FileText,V);
+
+		if (V != "class")
+		{
+			i = oldindex;
+		}
+
 	}
 
 	{//pass the spaces
@@ -533,6 +537,16 @@ void CppHelper::DoEnumType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnal
 			{
 				EnumType::Field field;
 				GetIndentifier(i, Scope, field.Name);
+
+				bool Exclude = false;
+				if (field.Name == UCodeLangExcludeString)
+				{
+					Exclude = true;
+
+					MovePassSpace(i, Scope);
+					GetIndentifier(i, Scope, field.Name);
+				}
+
 				MovePassSpace(i, Scope);
 				if (Scope[i] == '=')
 				{
@@ -545,11 +559,20 @@ void CppHelper::DoEnumType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnal
 					MovePassSpace(i, Scope);
 				}
 
-				if (Scope[i] == ',')
+				
+				if (Exclude==false) {
+					_type.Fields.push_back(std::move(field));
+				}
+				
+				if (Scope[i] != ',')
+				{
+					break;
+				}
+				else 
 				{
 					i++;
 				}
-				_type.Fields.push_back(std::move(field));
+
 			}
 		}
 	}
@@ -563,14 +586,6 @@ void CppHelper::DoEnumType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnal
 
 void CppHelper::DoClassOrStruct(const String& Keywordlet, size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols)
 {
-	if (Keywordlet == "class")
-	{
-		i += 5;
-	}
-	else
-	{
-		i += 6;
-	}
 	ClassType _type;
 
 	{//pass the spaces
@@ -603,68 +618,56 @@ void CppHelper::DoClassOrStruct(const String& Keywordlet, size_t& i, UCodeAnalyz
 			{
 				IndexBuffer++;
 
-				if (UCodeLangExportSymbolSize - 1 == IndexBuffer)
+				if (UCodeLangExportVSymbolSize - 1 == IndexBuffer)
 				{
-					{//pass the ("
-						for (size_t iq = i; iq < Scope.size(); iq++)
-						{
-							auto Item = Scope[iq];
-
-							if (Item == '\"')
-							{
-								i = iq + 1;
-								break;
-							}
-						}
-					}
+					
 					size_t StrStart = i;
 					int a = 0;
 
 					SymbolData Tep;
 
+					String TepStr;
 					{
-						String& Out = Tep._NameSpace;
-						GetStringliteral(i, Scope, Out);
+						GetIndentifier(i, Scope, TepStr);
 					}
 
-
-					{//pass the )
-						MovePass(i, Scope, ' ');
-						i++;
+					if (TepStr == "constexpr")
+					{
+						i = StrStart;
+						DoConstexprType(i, Scope, Tep, _type.Symbols);
 					}
-
-					{//pass the spaces
+					else 
+					{
 						MovePassSpace(i, Scope);
-					}
 
-					
-					size_t StartIndex = i;
-					String Indentifer;
-					GetIndentifier(i,FileText,Indentifer);
+						size_t StartIndex = i;
+						String Indentifer;
+						GetIndentifier(i, FileText, Indentifer);
 
-					if (!OnDo(StartIndex ,Indentifer, i, Scope, Tep, _type.Symbols))
-					{
-						ClassType::Field V;
-						V.Exported = true;
-
-						GetSummaryTag(i, Scope, V.Summary);
-
-						{//pass the spaces
-							MovePassSpace(i, Scope);
-						}
-
-						GetType(i, Scope, V.Type);
-						{//pass the spaces
-							MovePassSpace(i, Scope);
-						}
-						GetIndentifier(i, Scope, V.Name);
-
-						if (Scope[i] == '(')
+						if (!OnDo(StartIndex, Indentifer, i, Scope, Tep, _type.Symbols))
 						{
+							ClassType::Field V;
+							V.Exported = true;
 
-						}
-						else {
-							_type.Fields.push_back(std::move(V));
+							GetSummaryTag(i, Scope, V.Summary);
+
+							{//pass the spaces
+								MovePassSpace(i, Scope);
+							}
+
+							GetType(i, Scope, V.Type);
+							{//pass the spaces
+								MovePassSpace(i, Scope);
+							}
+							GetIndentifier(i, Scope, V.Name);
+
+							if (Scope[i] == '(')
+							{
+
+							}
+							else {
+								_type.Fields.push_back(std::move(V));
+							}
 						}
 					}
 				}
@@ -684,7 +687,7 @@ void CppHelper::DoClassOrStruct(const String& Keywordlet, size_t& i, UCodeAnalyz
 
 }
 
-void CppHelper::DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size_t& i, String& FileText, Vector<SymbolData>& Symbols)
+void CppHelper::DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size_t& i, String& FileText, SymbolData& Tep, Vector<SymbolData>& Symbols)
 {
 	Optional<SummaryTag> Sum;
 	GetSummaryTag(i,FileText,Sum);
@@ -749,11 +752,10 @@ void CppHelper::DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size
 			if (FileText[i] != ',') { break;}
 		}
 
-		SymbolData V;
-		V._Name = std::move(Indentifier);
-		V.Summary = std::move(Sum);
-		V._Type = std::move(func);
-		Symbols.push_back(V);
+		Tep._Name = std::move(Indentifier);
+		Tep.Summary = std::move(Sum);
+		Tep._Type = std::move(func);
+		Symbols.push_back(Tep);
 	}
 	else
 	{
@@ -781,7 +783,7 @@ bool CppHelper::OnDo(size_t StartIndex,const String& Keywordlet, size_t& i, UCod
 	}
 	else
 	{
-		DoVarableOrFunc(StartIndex,Keywordlet, i, Scope, Symbols);
+		DoVarableOrFunc(StartIndex,Keywordlet, i, Scope, Tep, Symbols);
 		return true;
 	}
 	return false;
@@ -928,9 +930,13 @@ String CppHelper::ToString(CppToULangState& State, const SymbolData& Syb)
 	{
 		return ToString(State, *Item, Syb);
 	}
+	else if (auto Item = Syb._Type.Get_If<FuncData>())
+	{
+		return ToString(State, *Item, Syb);
+	}
 	else
 	{
-		//throw std::exception("bad path");
+		throw std::exception("bad path");
 	}
 	return "";
 }
@@ -1042,6 +1048,37 @@ String CppHelper::ToString(CppToULangState& State, const ClassType& Value, const
 	
 	return R;
 }
+String CppHelper::ToString(CppToULangState& State, const FuncData& Value, const SymbolData& Syb, bool IsInClass)
+{
+	String R;
+	DoNameSpace(State, Syb, R);
+
+	State.AddScopesUseingScopeCount(R);
+	ToString(State, Syb.Summary);
+	R += "extern dynamic |" + Syb._Name + "[";
+	for (auto& Item : Value.Pars)
+	{
+		if (Item.IsOut)
+		{
+			R += "out ";
+		}
+		R += Item.Name + " ";
+		R += ToString(State, Item.Type);
+
+		if (&Item != &Value.Pars.back())
+		{
+			R += ",";
+		}
+	}
+
+	R += "] -> ";
+
+	R += ToString(State, Value.Ret);
+
+	R += ";\n";
+
+	return R;
+}
 String CppHelper::ToString(CppToULangState& State, const Type& Value)
 {
 	String R;
@@ -1109,6 +1146,26 @@ String CppHelper::ToString(CppToULangState& State, const Type& Value)
 	else if (CMPStr == "char32_t")
 	{
 		R += "uft32";
+	}
+	else if (CMPStr == "size_t"
+		 || CMPStr == "uintptr_t"
+		 || CMPStr == "uintptr")
+	{
+		R += "uintptr";
+	}
+	else if (CMPStr == "intptr_t"
+		|| CMPStr == "intptr")
+	{
+		
+		R += "sintptr";
+	}
+	else if (CMPStr == "void")
+	{
+		R += "void";
+	}
+	else
+	{
+		R += CMPStr;
 	}
 
 
