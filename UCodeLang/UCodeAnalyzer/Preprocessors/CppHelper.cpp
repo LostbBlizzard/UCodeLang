@@ -80,144 +80,152 @@ bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFi
 	Vector<SymbolData> Symbols;
 	{
 		auto FileText = GetString(SrcCpp);
-		size_t IndexBuffer = 0;
-		for (size_t i = 0; i < FileText.size(); i++)
-		{
-			auto Item = FileText[i];
-
-			if (Item == UCodeLangExportString[IndexBuffer])
-			{
-				IndexBuffer++;
-
-				if (UCodeLangExportSymbolSize - 1 == IndexBuffer)
-				{
-					{//pass the ("
-						for (size_t iq = i; iq < FileText.size(); iq++)
-						{
-							auto Item = FileText[iq];
-
-							if (Item == '\"')
-							{
-								i = iq + 1;
-								break;
-							}
-						}
-					}
-					size_t StrStart = i;
-					int a = 0;
-
-					SymbolData Tep;
-
-					{
-						String& Out = Tep._NameSpace;
-						GetStringliteral(i, FileText, Out);
-					}
-
-
-					{//pass the )
-						MovePass(i, FileText, ' ');
-						i++;
-					}
-
-					{//pass the spaces
-						MovePassSpace(i, FileText);
-					}
-
-					size_t StartIndex = i;
-					String Indentifer;
-					GetIndentifier(i, FileText, Indentifer);
-					OnDo(StartIndex ,Indentifer, i, FileText, Tep, Symbols);
-				}
-			}
-			else
-			{
-				IndexBuffer = 0;
-			}
-		}
+		ParseCppToSybs(FileText, Symbols);
 	}
-	String R;
-	CppToULangState state;
-	for (auto& Item : Symbols)
+	
 	{
-		R += ToString(state,Item);
-	}
+		String R;
+		CppToULangState state;
+		for (auto& Item : Symbols)
+		{
+			R += ToString(state, Item);
+		}
 
-	WriteStringToFile(ULangOut, R);
+		WriteStringToFile(ULangOut, R);
+	}
 
 	{//Link for Cpp
 		auto CppLinkText = GetString(CppLinkFile);
 		
+		UpdateCppLinks(CppLinkText, Symbols);
+		WriteStringToFile(CppLinkFile, CppLinkText);
+	}
+	
+
+
+	return false;
+}
+
+void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols)
+{
+	{
+		size_t TabCount = 0;
+		size_t IndexBuffer = 0;
+		for (size_t i = 0; i < CppLinkText.size(); i++)
 		{
-			size_t TabCount = 0;
-			size_t IndexBuffer = 0;
-			for (size_t i = 0; i < CppLinkText.size(); i++)
+			auto Item = CppLinkText[i];
+			if (Item == ' ')
 			{
-				auto Item = CppLinkText[i];
-				if (Item == ' ')
+				TabCount++;
+			}
+			if (Item == '\t')
+			{
+				TabCount = 0;
+			}
+			if (Item == UCodeLangAutoLinkString[IndexBuffer])
+			{
+				IndexBuffer++;
+				if (UCodeLangAutoLinkStringSize - 1 == IndexBuffer)
 				{
-					TabCount++;
-				}
-				if (Item == '\t')
-				{
-					TabCount = 0;
-				}
-				if (Item == UCodeLangAutoLinkString[IndexBuffer])
-				{
-					IndexBuffer++;
-					if (UCodeLangAutoLinkStringSize - 1 == IndexBuffer)
+					i++;//pass the last char.
+
+					{//pass the (
+						MovePass(i, CppLinkText, ' ');
+						i++;
+					}
+
+					MovePass(i, CppLinkText, ' ');
+
+					String Var = "";
 					{
-						i++;//pass the last char.
-						
-						{//pass the (
-							MovePass(i, CppLinkText, ' ');
-							i++;
-						}
+						GetIndentifier(i, CppLinkText, Var);
+					}
 
+					{//pass the ,
 						MovePass(i, CppLinkText, ' ');
+						i++;
+					}
 
-						String Var = "";
-						{
-							GetIndentifier(i, CppLinkText, Var);
-						}
+					MovePass(i, CppLinkText, ' ');
 
-						{//pass the ,
-							MovePass(i, CppLinkText, ' ');
-							i++;
-						}
+					String CppNameSpace;
+					{
+						GetIndentifier(i, CppLinkText, CppNameSpace);
+					}
 
+					{//pass the )
 						MovePass(i, CppLinkText, ' ');
+						i++;
+					}
 
-						String CppNameSpace;
+					{//pass the ;
+						MovePass(i, CppLinkText, ' ');
+						i++;
+					}
+					const char* WasSetHeader = "//Made by UCodeAutoLink";
+					size_t WasSetHeaderSize = strlen(WasSetHeader);
+					const char* EndHeader = "Made by UCodeAutoLink End";
+					size_t EndHeaderSize = strlen(EndHeader);
+					const char* FuncPtrEnder = "_ptr";
+
+					bool WasSet = false;
+					size_t RemoveOffset = i;
+					{
+						size_t IndexBuffer = 0;
+						for (size_t i2 = i; i2 < CppLinkText.size(); i2++)
 						{
-							GetIndentifier(i, CppLinkText, CppNameSpace);
+							auto Item = CppLinkText[i2];
+							if (Item == WasSetHeader[IndexBuffer])
+							{
+								if (WasSetHeaderSize - 1 == IndexBuffer)
+								{
+									WasSet = true;
+									i = i2;
+									break;
+								}
+								IndexBuffer++;
+							}
+							else
+							{
+								IndexBuffer = 0;
+							}
+						}
+					}
+
+					if (WasSet)
+					{
+						size_t Bracks = 1;//we passed the { //all ready
+						for (size_t i2 = i; i2 < CppLinkText.size(); i2++)
+						{
+							auto Item = CppLinkText[i2];
+							if (Item == '{')
+							{
+								Bracks++;
+							}
+							if (Item == '}')
+							{
+								Bracks--;
+								if (Bracks == 0)
+								{
+									i = i2;
+									break;
+								}
+							}
 						}
 
-						{//pass the )
-							MovePass(i, CppLinkText, ' ');
-							i++;
-						}
 
-						{//pass the ;
-							MovePass(i, CppLinkText, ' ');
-							i++;
-						}
-						const char* WasSetHeader = "//Made by UCodeAutoLink";
-						size_t WasSetHeaderSize = strlen(WasSetHeader);
-						const char* EndHeader = "Made by UCodeAutoLink End";
-						size_t EndHeaderSize = strlen(EndHeader);
+						//remove the { ... }
+						String StartText = CppLinkText.substr(0, RemoveOffset);
 
-						bool WasSet = false;
-						size_t RemoveOffset = i;
-						{	
+						{
 							size_t IndexBuffer = 0;
 							for (size_t i2 = i; i2 < CppLinkText.size(); i2++)
 							{
 								auto Item = CppLinkText[i2];
-								if (Item == WasSetHeader[IndexBuffer])
+								if (Item == EndHeader[IndexBuffer])
 								{
-									if (WasSetHeaderSize - 1 == IndexBuffer)
+									if (EndHeaderSize - 1 == IndexBuffer)
 									{
-										WasSet = true;
 										i = i2;
 										break;
 									}
@@ -229,208 +237,284 @@ bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFi
 								}
 							}
 						}
+						i++;//to pass that char
+						String EndText = CppLinkText.substr(i);
 
-						if (WasSet)
+
+						//removeing the {...}
+						String newfile = StartText;
+						//newfile += '\n';
+						newfile += EndText;
+
+
+						CppLinkText = newfile;
+						i = RemoveOffset;
+
+						int a = 0;
+						//CppLinkText = CppLinkText.substr
+					}
+
+					{
+						String Linkstr;
+						Linkstr += "\n";
+
+						AddTabCount(TabCount + 1, Linkstr);
+						Linkstr += '{' + (String)WasSetHeader + " \n";
+
+
+						struct FuncInfo
 						{
-							size_t Bracks = 1;//we passed the { //all ready
-							for (size_t i2 = i; i2 < CppLinkText.size(); i2++)
+							String Ulangnamespace;
+							String FuncName;
+							Vector<String> Pars;
+							String Ret;
+							Optional<size_t> OverloadValue;
+						};
+						Vector< FuncInfo> V;
+						for (auto& Item : Symbols)
+						{
+							if (auto Val = Item._Type.Get_If<FuncData>())
 							{
-								auto Item = CppLinkText[i2];
-								if (Item == '{')
+								FuncInfo Vinfo;
+								Vinfo.Ret = ToCType(Val->Ret);
+								Vinfo.FuncName = Item._Name;
+								Vinfo.OverloadValue = Val->OverloadNumber;
+								
+
+								Vinfo.Ulangnamespace = Item._NameSpace;
+								Vinfo.Pars.resize(Val->Pars.size());
+								for (size_t i = 0; i < Val->Pars.size(); i++)
 								{
-									Bracks++;
+									Vinfo.Pars[i] = ToCType(Val->Pars[i]);
 								}
-								if (Item == '}')
+								V.push_back(std::move(Vinfo));
+							}
+						}
+						for (auto& Item : V)
+						{
+							AddTabCount(TabCount + 2, Linkstr);
+							Linkstr += "using " + Item.FuncName;
+							if (Item.OverloadValue.has_value())
+							{
+								Linkstr += std::to_string(Item.OverloadValue.value());
+							}
+							Linkstr += FuncPtrEnder;
+
+							Linkstr += " = " + Item.Ret + "(*UCodeLangAPI)(";
+
+							for (auto& Par : Item.Pars)
+							{
+								Linkstr += Par;
+								if (&Par != &Item.Pars.back())
 								{
-									Bracks--;
-									if (Bracks == 0)
-									{
-										i = i2;
-										break;
-									}
+									Linkstr += ",";
 								}
 							}
 
-
-							//remove the { ... }
-							String StartText = CppLinkText.substr(0, RemoveOffset);
-
-							{
-								size_t IndexBuffer = 0;
-								for (size_t i2 = i; i2 < CppLinkText.size(); i2++)
-								{
-									auto Item = CppLinkText[i2];
-									if (Item == EndHeader[IndexBuffer])
-									{
-										if (EndHeaderSize - 1 == IndexBuffer)
-										{
-											i = i2;
-											break;
-										}
-										IndexBuffer++;
-									}
-									else
-									{
-										IndexBuffer = 0;
-									}
-								}
-							}
-							i++;//to pass that char
-							String EndText = CppLinkText.substr(i);
-
-
-							//removeing the {...}
-							String newfile = StartText;
-							//newfile += '\n';
-							newfile += EndText;
-
-
-							CppLinkText = newfile;
-							i = RemoveOffset;
-
-							int a = 0;
-							//CppLinkText = CppLinkText.substr
+							Linkstr += ");" + (String)" \n";
 						}
 
+
+						for (auto& Item : V)
 						{
-							String Linkstr;
+							String FuncName = CppNameSpace + "::" + Item.FuncName;
+
+							AddTabCount(TabCount + 2, Linkstr);
+
+
+							Linkstr += Var;
+							Linkstr += ".Add_CPPCall(\"";
+							Linkstr += Item.Ulangnamespace + "::" + Item.FuncName;
+							if (Item.OverloadValue.has_value())
+							{
+								Linkstr += std::to_string(Item.OverloadValue.value());
+							}
+
+							Linkstr += "\",[](UCodeLang::InterpreterCPPinterface& Input) \n";
+							AddTabCount(TabCount + 3, Linkstr);
+
+							Linkstr += "{\n";
+							AddTabCount(TabCount + 3, Linkstr);
+
+
+
+							{
+								size_t ParCount = 0;
+								for (auto& Par : Item.Pars)
+								{
+									Linkstr += "\n";
+									AddTabCount(TabCount + 4, Linkstr);
+
+									Linkstr += Par + " Par" + std::to_string(ParCount) + " = ";
+									Linkstr += "Input.GetParameter<" + Par + ">();";
+
+									Linkstr += "\n";
+									AddTabCount(TabCount + 4, Linkstr);
+
+									ParCount++;
+								}
+							}
+
+
 							Linkstr += "\n";
-
-							AddTabCount(TabCount + 1,Linkstr);
-							Linkstr += '{' + (String)WasSetHeader + " \n";
-
-
-							struct FuncInfo
+							AddTabCount(TabCount + 4, Linkstr);
+							if (Item.Ret != "void")
 							{
-								String FuncName;
-								Vector<String> Pars;
-								String Ret;
-							};
-							Vector< FuncInfo> V;
-							for (auto& Item : Symbols)
+								Linkstr += Item.Ret + " Ret =";
+							}
+							Linkstr += FuncName + "(";
+
 							{
-								if (auto Val = Item._Type.Get_If<FuncData>())
+								size_t ParCount = 0;
+								for (auto& Par : Item.Pars)
 								{
-									FuncInfo Vinfo;
-									Vinfo.Ret = ToCType(Val->Ret);
-									Vinfo.FuncName = Item._Name;
-									Vinfo.Pars.resize(Val->Pars.size());
-									for (size_t i = 0; i < Val->Pars.size(); i++)
+									Linkstr += "Par" + std::to_string(ParCount);
+									if (&Par != &Item.Pars.back())
 									{
-										Vinfo.Pars[i] = ToCType(Val->Pars[i]);
+										Linkstr += ",";
 									}
-									V.push_back(std::move(Vinfo));
+									ParCount++;
 								}
 							}
-							for (auto& Item : V)
+
+							Linkstr += ");";
+
+							Linkstr += "\n";
+							AddTabCount(TabCount + 4, Linkstr);
+							Linkstr += "\n";
+							AddTabCount(TabCount + 4, Linkstr);
+
+
+							if (Item.Ret != "void")
 							{
-								String FuncName = CppNameSpace + "::" + Item.FuncName;
-
-								AddTabCount(TabCount + 2, Linkstr);
-
-
-								Linkstr += Var;
-								Linkstr += ".Add_CPPCall(\"";
-								Linkstr += FuncName;
-								Linkstr += "\",[](UCodeLang::InterpreterCPPinterface& Input) \n";
-								AddTabCount(TabCount + 3, Linkstr);
-
-								Linkstr += "{\n";
-								AddTabCount(TabCount + 3, Linkstr);
-
-								
-
-								{
-									size_t ParCount = 0;
-									for (auto& Par : Item.Pars)
-									{
-										Linkstr += "\n";
-										AddTabCount(TabCount + 4, Linkstr);
-
-										Linkstr += Par + " Par" + std::to_string(ParCount) + " = ";
-										Linkstr += "Input.GetParameter<" + Par + ">();";
-
-										Linkstr += "\n";
-										AddTabCount(TabCount + 4, Linkstr);
-
-										ParCount++;
-									}
-								}
-
-
-								Linkstr += "\n";
-								AddTabCount(TabCount + 4, Linkstr);
-								if (Item.Ret != "void")
-								{
-									Linkstr += Item.Ret + " Ret =";
-								}
-								Linkstr += FuncName + "(";
-
-								{
-									size_t ParCount = 0;
-									for (auto& Par : Item.Pars)
-									{
-										Linkstr += "Par" + std::to_string(ParCount);
-										if (&Par != &Item.Pars.back())
-										{
-											Linkstr += ",";
-										}
-										ParCount++;
-									}
-								}
-								
-								Linkstr += ");";
-
-								Linkstr += "\n";
-								AddTabCount(TabCount + 4, Linkstr);
-								Linkstr += "\n";
-								AddTabCount(TabCount + 4, Linkstr);
-
-
-								if (Item.Ret != "void")
-								{
-									Linkstr += "Input.Set_Return<" + Item.Ret + ">(Ret);";
-								}
-								else
-								{
-									Linkstr += "Input.Set_Return();";
-								}
-
-								Linkstr += "\n";
-								AddTabCount(TabCount + 3, Linkstr);
-								Linkstr += "\n";
-								AddTabCount(TabCount + 3, Linkstr);
-
-
-
-								Linkstr += "},";
-								Linkstr += FuncName;
-								Linkstr += "); \n";
+								Linkstr += "Input.Set_Return<" + Item.Ret + ">(Ret);";
+							}
+							else
+							{
+								Linkstr += "Input.Set_Return();";
 							}
 
-							AddTabCount(TabCount + 1, Linkstr);
-							Linkstr += "}//"  + (String)EndHeader;
-							CppLinkText.insert(i, Linkstr);
+							Linkstr += "\n";
+							AddTabCount(TabCount + 3, Linkstr);
+							Linkstr += "\n";
+							AddTabCount(TabCount + 3, Linkstr);
+
+
+
+							Linkstr += "},";
+
+
+							Linkstr += "(";
+							Linkstr += Item.FuncName;
+							if (Item.OverloadValue.has_value())
+							{
+								Linkstr += std::to_string(Item.OverloadValue.value());
+							}
+							Linkstr += FuncPtrEnder + (String)")";
+
+
+							Linkstr += FuncName;
+							Linkstr += "); \n";
 						}
 
-						break;
+						AddTabCount(TabCount + 1, Linkstr);
+						Linkstr += "}//" + (String)EndHeader;
+						CppLinkText.insert(i, Linkstr);
+					}
+
+					break;
+				}
+			}
+			else
+			{
+				IndexBuffer = 0;
+			}
+
+		}
+
+
+	}
+}
+
+void CppHelper::ParseCppToSybs(UCodeAnalyzer::String& FileText, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols)
+{
+	size_t IndexBuffer = 0;
+	UCodeLang::VectorMap<String, size_t> Overloads;
+	for (size_t i = 0; i < FileText.size(); i++)
+	{
+		auto Item = FileText[i];
+
+		if (Item == UCodeLangExportString[IndexBuffer])
+		{
+			IndexBuffer++;
+
+			if (UCodeLangExportSymbolSize - 1 == IndexBuffer)
+			{
+				{//pass the ("
+					for (size_t iq = i; iq < FileText.size(); iq++)
+					{
+						auto Item = FileText[iq];
+
+						if (Item == '\"')
+						{
+							i = iq + 1;
+							break;
+						}
 					}
 				}
-				else
+				size_t StrStart = i;
+				int a = 0;
+
+				SymbolData Tep;
+
 				{
-					IndexBuffer = 0;
+					String& Out = Tep._NameSpace;
+					GetStringliteral(i, FileText, Out);
 				}
 
+
+				{//pass the )
+					MovePass(i, FileText, ' ');
+					i++;
+				}
+
+				{//pass the spaces
+					MovePassSpace(i, FileText);
+				}
+
+				size_t StartIndex = i;
+				String Indentifer;
+				GetIndentifier(i, FileText, Indentifer);
+				if (OnDo(StartIndex, Indentifer, i, FileText, Tep, Symbols))
+				{
+					auto& Last = Symbols.back();
+					if (auto Val = Last._Type.Get_If<FuncData>())
+					{
+						if (Overloads.HasValue(Last._Name))
+						{
+							auto& Item = Overloads.at(Last._Name);
+
+
+							Val->OverloadNumber = Item;
+
+							Item++;
+						}
+						else
+						{
+							Overloads.AddValue(Last._Name,0);
+						}
+
+					}
+				}
+
+
 			}
-		
-		
 		}
-		WriteStringToFile(CppLinkFile, CppLinkText);
+		else
+		{
+			IndexBuffer = 0;
+		}
 	}
-	
-
-
-	return false;
 }
 
 void CppHelper::DoConstexprType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols)
@@ -715,7 +799,7 @@ void CppHelper::DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size
 		func.IsStatic = false;
 		
 
-		while (FileText[i] != ')')
+		while (FileText[i] != ')' && i < FileText.size())
 		{
 			FuncData::Par tep;
 
@@ -749,7 +833,13 @@ void CppHelper::DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size
 			func.Pars.push_back(std::move(tep));
 
 			MovePassSpace(i, FileText);
-			if (FileText[i] != ',') { break;}
+
+			char B = FileText[i];
+			if (B != ',') { break;}
+			else
+			{
+				i++;
+			}
 		}
 
 		Tep._Name = std::move(Indentifier);
@@ -779,6 +869,11 @@ bool CppHelper::OnDo(size_t StartIndex,const String& Keywordlet, size_t& i, UCod
 	else if (Keywordlet == "struct" || Keywordlet == "class")
 	{
 		DoClassOrStruct(Keywordlet, i, Scope, Tep, Symbols);
+		return true;
+	}
+	else if (Keywordlet == "inline")
+	{
+		DoVarableOrFunc(StartIndex, Keywordlet, i, Scope, Tep, Symbols);
 		return true;
 	}
 	else

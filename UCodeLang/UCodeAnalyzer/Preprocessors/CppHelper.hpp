@@ -68,6 +68,8 @@ public:
 		bool IsStatic = true;
 		Vector<Par> Pars;
 		Type Ret;
+
+		Optional<size_t> OverloadNumber;
 	};
 	struct SymbolData
 	{
@@ -89,6 +91,8 @@ public:
 	/// <param name="ULangOut"></param>
 	/// <returns>if true it worked</returns>
 	static bool ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFile, const Path& ULangOut);
+	static void UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols);
+	static void ParseCppToSybs(UCodeAnalyzer::String& FileText, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols);
 	static bool ParseULangfileAndUpdateCpp(const Path& SrcLang, const Path& CppOut);
 
 	//
