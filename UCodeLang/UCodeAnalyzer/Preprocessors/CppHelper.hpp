@@ -135,6 +135,7 @@ public:
 			}
 		}
 		String LastNameSpace;
+		UCodeLang::VectorMap<String, String> InternalNameSpaces;
 	};
 	static String ToString(CppToULangState& State, const SymbolData& Syb);
 	static String ToString(CppToULangState& State, const EnumType& Value, const SymbolData& Syb);

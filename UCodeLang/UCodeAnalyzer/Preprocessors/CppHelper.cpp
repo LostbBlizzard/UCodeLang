@@ -91,6 +91,13 @@ bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFi
 			R += ToString(state, Item);
 		}
 
+		for (auto& Item : state.InternalNameSpaces)
+		{
+			R += Item._Key + "::" + "Internal:\n";
+			R += Item._Value;
+
+		}
+
 		WriteStringToFile(ULangOut, R);
 	}
 
@@ -1150,7 +1157,13 @@ String CppHelper::ToString(CppToULangState& State, const FuncData& Value, const 
 
 	State.AddScopesUseingScopeCount(R);
 	ToString(State, Syb.Summary);
-	R += "extern dynamic |" + Syb._Name + "[";
+
+
+	if (!Value.OverloadNumber.has_value())
+	{
+		R += "extern dynamic ";
+	}
+	R += "|" + Syb._Name + "[";
 	for (auto& Item : Value.Pars)
 	{
 		if (Item.IsOut)
@@ -1166,12 +1179,56 @@ String CppHelper::ToString(CppToULangState& State, const FuncData& Value, const 
 		}
 	}
 
-	R += "] -> ";
+	R += "] ";
 
-	R += ToString(State, Value.Ret);
+	if (Value.OverloadNumber.has_value())
+	{
+		String CppFuncName = Syb._Name;
+		CppFuncName += std::to_string(Value.OverloadNumber.value());
 
-	R += ";\n";
+		R += "=> " + (String)"Internal::" + CppFuncName;
+			
+		R += "(";
+		for (auto& Item : Value.Pars)
+		{
+			R += Item.Name;
+			if (&Item != &Value.Pars.back())
+			{
+				R += ",";
+			}
+		}
 
+		R += ");\n";
+
+		String AddStr;
+		State.AddScopesUseingScopeCount(AddStr);
+		AddStr += "extern dynamic |" + CppFuncName;
+		AddStr += "[";
+		for (auto& Item : Value.Pars)
+		{
+			if (Item.IsOut)
+			{
+				AddStr += "out ";
+			}
+			AddStr += Item.Name + " ";
+			AddStr += ToString(State, Item.Type);
+
+			if (&Item != &Value.Pars.back())
+			{
+				AddStr += ",";
+			}
+		}
+
+		AddStr += "] -> " + ToString(State, Value.Ret) + ";\n";
+
+		State.InternalNameSpaces[Syb._NameSpace] += AddStr;
+	}
+	else 
+	{
+		R += "-> " + ToString(State, Value.Ret);
+
+		R += ";\n";
+	}
 	return R;
 }
 String CppHelper::ToString(CppToULangState& State, const Type& Value)
@@ -1279,6 +1336,11 @@ void CppHelper::DoNameSpace(UCodeAnalyzer::CppHelper::CppToULangState& State, co
 		State.LastNameSpace = Syb._NameSpace;
 		R += State.LastNameSpace;
 		R += ":\n";
+	}
+
+	if (State.InternalNameSpaces.HasValue(Syb._NameSpace))
+	{
+		State.InternalNameSpaces.AddValue(Syb._NameSpace, String());
 	}
 }
 
