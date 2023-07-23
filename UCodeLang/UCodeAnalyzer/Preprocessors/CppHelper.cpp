@@ -4,7 +4,22 @@
 #include <fstream>
 
 UCodeAnalyzerStart
-
+void Replace(String& string, char ToUpdate, char ToChar)
+{
+	for (auto& Item : string)
+	{
+		if (Item == ToUpdate)
+		{
+			Item = ToChar;
+		}
+	}
+}
+String  Replace2(const String& string, char ToUpdate, char ToChar)
+{
+	String R = string;
+	Replace(R, ToUpdate, ToChar);
+	return R;
+}
 String GetString(const Path& AsPath)
 {
 	std::ifstream File(AsPath);
@@ -113,6 +128,7 @@ bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFi
 	return false;
 }
 
+
 void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols)
 {
 	{
@@ -143,9 +159,9 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 
 					MovePass(i, CppLinkText, ' ');
 
-					String Var = "";
+					String CppLibVar = "";
 					{
-						GetIndentifier(i, CppLinkText, Var);
+						GetIndentifier(i, CppLinkText, CppLibVar);
 					}
 
 					{//pass the ,
@@ -269,38 +285,16 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 						Linkstr += '{' + (String)WasSetHeader + " \n";
 
 
-						struct FuncInfo
-						{
-							String Ulangnamespace;
-							String FuncName;
-							Vector<String> Pars;
-							String Ret;
-							Optional<size_t> OverloadValue;
-						};
+						
 						Vector< FuncInfo> V;
 						for (auto& Item : Symbols)
 						{
-							if (auto Val = Item._Type.Get_If<FuncData>())
-							{
-								FuncInfo Vinfo;
-								Vinfo.Ret = ToCType(Val->Ret);
-								Vinfo.FuncName = Item._Name;
-								Vinfo.OverloadValue = Val->OverloadNumber;
-								
-
-								Vinfo.Ulangnamespace = Item._NameSpace;
-								Vinfo.Pars.resize(Val->Pars.size());
-								for (size_t i = 0; i < Val->Pars.size(); i++)
-								{
-									Vinfo.Pars[i] = ToCType(Val->Pars[i]);
-								}
-								V.push_back(std::move(Vinfo));
-							}
+							NewFunction(Item, V);
 						}
 						for (auto& Item : V)
 						{
 							AddTabCount(TabCount + 2, Linkstr);
-							Linkstr += "using " + Item.FuncName;
+							Linkstr += "using " + Replace2(Item.FuncFullName,':','_');
 							if (Item.OverloadValue.has_value())
 							{
 								Linkstr += std::to_string(Item.OverloadValue.value());
@@ -308,6 +302,17 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 							Linkstr += FuncPtrEnder;
 
 							Linkstr += " = " + Item.Ret + "(*UCodeLangAPI)(";
+
+							bool IsMemberFuncion = Item.MemberFuncClass.has_value();
+							if (IsMemberFuncion)
+							{
+								String ClassName = CppNameSpace + "::" + Item.MemberFuncClass.value();
+								Linkstr += ClassName + "*";
+								if (Item.Pars.size())
+								{
+									Linkstr += ",";
+								}
+							}
 
 							for (auto& Par : Item.Pars)
 							{
@@ -328,13 +333,24 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 
 							AddTabCount(TabCount + 2, Linkstr);
 
-
-							Linkstr += Var;
+							Linkstr += CppLibVar;
 							Linkstr += ".Add_CPPCall(\"";
-							Linkstr += Item.Ulangnamespace + "::" + Item.FuncName;
+							Linkstr += Item.Ulangnamespace + "::";
+
+
 							if (Item.OverloadValue.has_value())
 							{
+								Linkstr += "Internal::";
+
+								String V = Item.FuncFullName.substr(0, Item.FuncFullName.size() - Item.FuncName.size());
+								Linkstr += Replace2(V, ':', '_');
+
 								Linkstr += std::to_string(Item.OverloadValue.value());
+							}
+							else
+							{
+								
+								Linkstr += Item.FuncFullName;
 							}
 
 							Linkstr += "\",[](UCodeLang::InterpreterCPPinterface& Input) \n";
@@ -343,7 +359,21 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 							Linkstr += "{\n";
 							AddTabCount(TabCount + 3, Linkstr);
 
+							bool IsMemberFuncion = Item.MemberFuncClass.has_value();
+							String ClassName;
+							if (IsMemberFuncion)
+							{
+								Linkstr += "\n";
+								AddTabCount(TabCount + 4, Linkstr);
 
+								ClassName = CppNameSpace + "::" + Item.MemberFuncClass.value();
+
+								Linkstr += ClassName + "*" + (String)" thisPar" + " = ";
+								Linkstr += "Input.GetParameter<" + ClassName + "*" + ">();";
+
+								Linkstr += "\n";
+								AddTabCount(TabCount + 4, Linkstr);
+							}
 
 							{
 								size_t ParCount = 0;
@@ -369,8 +399,15 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 							{
 								Linkstr += Item.Ret + " Ret =";
 							}
-							Linkstr += FuncName + "(";
 
+							if (IsMemberFuncion)
+							{
+								Linkstr += "thisPar->" + Item.FuncName + "(";
+							}
+							else 
+							{
+								Linkstr += FuncName + "(";
+							}
 							{
 								size_t ParCount = 0;
 								for (auto& Par : Item.Pars)
@@ -410,17 +447,89 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 
 							Linkstr += "},";
 
-
-							Linkstr += "(";
-							Linkstr += Item.FuncName;
-							if (Item.OverloadValue.has_value())
+							if (IsMemberFuncion)
 							{
-								Linkstr += std::to_string(Item.OverloadValue.value());
+								//c++  member funcion can be casted into funcion pointer.
+								//but this is less unsafe.
+
+								Linkstr += "(";
+								Linkstr += Replace2(Item.FuncFullName, ':', '_');
+								if (Item.OverloadValue.has_value())
+								{
+									Linkstr += std::to_string(Item.OverloadValue.value());
+								}
+								Linkstr += FuncPtrEnder + (String)")";
+
+								Linkstr += "[](";
+								Linkstr += ClassName + "*" + (String)" thisPar";
+
+								if (Item.Pars.size())
+								{
+									Linkstr += ',';
+								}
+
+								{
+									size_t ParCount = 0;
+									for (auto& Par : Item.Pars)
+									{
+										Linkstr += Par;
+
+										Linkstr += " Par";
+										Linkstr += std::to_string(ParCount);
+
+										if (&Par != &Item.Pars.back())
+										{
+											Linkstr += ",";
+										}
+
+										ParCount++;
+									}
+								}
+								Linkstr += ")\n";
+
+								AddTabCount(TabCount + 3, Linkstr);
+
+								Linkstr += "{\n";
+
+								if (Item.Ret != "void")
+								{
+									Linkstr += "return ";
+								}
+
+								AddTabCount(TabCount + 4, Linkstr);
+								Linkstr += "thisPar->" + Item.FuncName + "(";
+								{
+									size_t ParCount = 0;
+									for (auto& Par : Item.Pars)
+									{
+										Linkstr += "Par" + std::to_string(ParCount);
+										if (&Par != &Item.Pars.back())
+										{
+											Linkstr += ",";
+										}
+										ParCount++;
+									}
+								}
+								Linkstr += ");\n";
+
+								AddTabCount(TabCount + 3, Linkstr);
+								Linkstr += "}";
 							}
-							Linkstr += FuncPtrEnder + (String)")";
+							else
+							{
+								Linkstr += "(";
+								Linkstr += Replace2(Item.FuncFullName, ':', '_');
+								if (Item.OverloadValue.has_value())
+								{
+									Linkstr += std::to_string(Item.OverloadValue.value());
+								}
+								Linkstr += FuncPtrEnder + (String)")";
 
 
-							Linkstr += FuncName;
+								Linkstr += FuncName;
+
+							}
+
 							Linkstr += "); \n";
 						}
 
@@ -443,10 +552,40 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 	}
 }
 
+void CppHelper::NewFunction(UCodeAnalyzer::CppHelper::SymbolData& Item, UCodeAnalyzer::Vector<FuncInfo>& V)
+{
+	if (auto Val = Item._Type.Get_If<FuncData>())
+	{
+		FuncInfo Vinfo;
+		Vinfo.Ret = ToCType(Val->Ret);
+		Vinfo.FuncName = Item._Name;
+		Vinfo.OverloadValue = Val->OverloadNumber;
+		Vinfo.FuncFullName = Item._FullName;
+
+		Vinfo.MemberFuncClass = Val->MemberClassName;
+
+		Vinfo.Ulangnamespace = Item._NameSpace;
+		Vinfo.Pars.resize(Val->Pars.size());
+		for (size_t i = 0; i < Val->Pars.size(); i++)
+		{
+			Vinfo.Pars[i] = ToCType(Val->Pars[i]);
+		}
+		V.push_back(std::move(Vinfo));
+	}
+	else if (auto Val = Item._Type.Get_If<ClassType>())
+	{
+		for (auto& Item : Val->Symbols)
+		{
+			NewFunction(Item, V);
+		}
+	}
+}
+
 void CppHelper::ParseCppToSybs(UCodeAnalyzer::String& FileText, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols)
 {
 	size_t IndexBuffer = 0;
 	UCodeLang::VectorMap<String, size_t> Overloads;
+	ParseCppState State;
 	for (size_t i = 0; i < FileText.size(); i++)
 	{
 		auto Item = FileText[i];
@@ -492,24 +631,12 @@ void CppHelper::ParseCppToSybs(UCodeAnalyzer::String& FileText, UCodeAnalyzer::V
 				size_t StartIndex = i;
 				String Indentifer;
 				GetIndentifier(i, FileText, Indentifer);
-				if (OnDo(StartIndex, Indentifer, i, FileText, Tep, Symbols))
+				if (OnDo(StartIndex, Indentifer, i, FileText, Tep, Symbols, State))
 				{
 					auto& Last = Symbols.back();
 					if (auto Val = Last._Type.Get_If<FuncData>())
 					{
-						if (Overloads.HasValue(Last._Name))
-						{
-							auto& Item = Overloads.at(Last._Name);
-
-
-							Val->OverloadNumber = Item;
-
-							Item++;
-						}
-						else
-						{
-							Overloads.AddValue(Last._Name,0);
-						}
+						DoOverLoadOnFunc(Overloads, Last, Val);
 
 					}
 				}
@@ -524,7 +651,24 @@ void CppHelper::ParseCppToSybs(UCodeAnalyzer::String& FileText, UCodeAnalyzer::V
 	}
 }
 
-void CppHelper::DoConstexprType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols)
+void CppHelper::DoOverLoadOnFunc(UCodeLang::VectorMap<UCodeAnalyzer::String, size_t>& Overloads, UCodeAnalyzer::CppHelper::SymbolData& Last, UCodeAnalyzer::CppHelper::FuncData* Val)
+{
+	if (Overloads.HasValue(Last._Name))
+	{
+		auto& Item = Overloads.at(Last._Name);
+
+
+		Val->OverloadNumber = Item;
+
+		Item++;
+	}
+	else
+	{
+		Overloads.AddValue(Last._Name, 0);
+	}
+}
+
+void CppHelper::DoConstexprType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols, ParseCppState& State)
 {
 	{//pass the spaces
 		MovePassSpace(i, FileText);
@@ -551,6 +695,7 @@ void CppHelper::DoConstexprType(size_t& i, UCodeAnalyzer::String& FileText, UCod
 		MovePassSpace(i, FileText);
 	}
 	GetIndentifier(i, FileText, Tep._Name);
+	Tep._FullName = State.ScopesAsString() + Tep._Name;
 	{//pass the spaces
 		MovePassSpace(i, FileText);
 	}
@@ -565,7 +710,7 @@ void CppHelper::DoConstexprType(size_t& i, UCodeAnalyzer::String& FileText, UCod
 	Symbols.push_back(std::move(Tep));
 }
 
-void CppHelper::DoEnumType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols)
+void CppHelper::DoEnumType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols, ParseCppState& State)
 {
 	EnumType _type;
 	{//pass the spaces
@@ -590,6 +735,7 @@ void CppHelper::DoEnumType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnal
 
 	{
 		GetIndentifier(i, FileText, Tep._Name);
+		Tep._FullName = State.ScopesAsString() + Tep._Name;
 	}
 
 	{//pass the spaces
@@ -675,26 +821,30 @@ void CppHelper::DoEnumType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnal
 	Symbols.push_back(std::move(Tep));
 }
 
-void CppHelper::DoClassOrStruct(const String& Keywordlet, size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols)
+void CppHelper::DoClassOrStruct(const String& Keywordlet, size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols, ParseCppState& State)
 {
 	ClassType _type;
-
+	UCodeLang::VectorMap<String, size_t> Overloads;
 	{//pass the spaces
 		MovePassSpace(i, FileText);
 	}
 
 	{
 		GetIndentifier(i, FileText, Tep._Name);
+		Tep._FullName = State.ScopesAsString() + Tep._Name;
 	}
+
 
 	{//pass the spaces
 		MovePassSpace(i, FileText);
 	}
+	
 	//pass '{'
 	{
 		i++;
 	}
 
+	State.Scopes.push_back(Tep._Name);
 	{
 		//i--;
 
@@ -711,11 +861,12 @@ void CppHelper::DoClassOrStruct(const String& Keywordlet, size_t& i, UCodeAnalyz
 
 				if (UCodeLangExportVSymbolSize - 1 == IndexBuffer)
 				{
-					
+					i++;
+					MovePassSpace(i, Scope);
 					size_t StrStart = i;
 					int a = 0;
 
-					SymbolData Tep;
+					SymbolData ItemTep;
 
 					String TepStr;
 					{
@@ -725,40 +876,27 @@ void CppHelper::DoClassOrStruct(const String& Keywordlet, size_t& i, UCodeAnalyz
 					if (TepStr == "constexpr")
 					{
 						i = StrStart;
-						DoConstexprType(i, Scope, Tep, _type.Symbols);
+						DoConstexprType(i, Scope, ItemTep, _type.Symbols,State);
 					}
 					else 
 					{
-						MovePassSpace(i, Scope);
-
-						size_t StartIndex = i;
-						String Indentifer;
-						GetIndentifier(i, FileText, Indentifer);
-
-						if (!OnDo(StartIndex, Indentifer, i, Scope, Tep, _type.Symbols))
+						i = StrStart;
+						bool v = OnDo(StrStart, TepStr, i, Scope, ItemTep, _type.Symbols, State);
+						if (v)
 						{
-							ClassType::Field V;
-							V.Exported = true;
-
-							GetSummaryTag(i, Scope, V.Summary);
-
-							{//pass the spaces
-								MovePassSpace(i, Scope);
-							}
-
-							GetType(i, Scope, V.Type);
-							{//pass the spaces
-								MovePassSpace(i, Scope);
-							}
-							GetIndentifier(i, Scope, V.Name);
-
-							if (Scope[i] == '(')
+							auto& LastSybol = _type.Symbols.back();
+							if (auto Val = LastSybol._Type.Get_If<FuncData>())
 							{
+								LastSybol._NameSpace = Tep._NameSpace;
+								DoOverLoadOnFunc(Overloads, LastSybol, Val);
 
+								auto ScopeStr = State.ScopesAsString();
+								Val->MemberClassName = ScopeStr.substr(0, ScopeStr.size() -2 );//removeing the  :: at the end.
 							}
-							else {
-								_type.Fields.push_back(std::move(V));
-							}
+						}
+						else
+						{
+
 						}
 					}
 				}
@@ -769,7 +907,7 @@ void CppHelper::DoClassOrStruct(const String& Keywordlet, size_t& i, UCodeAnalyz
 			}
 		}
 	}
-
+	State.Scopes.pop_back();
 
 	Tep._Type = std::move(_type);
 
@@ -778,7 +916,7 @@ void CppHelper::DoClassOrStruct(const String& Keywordlet, size_t& i, UCodeAnalyz
 
 }
 
-void CppHelper::DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size_t& i, String& FileText, SymbolData& Tep, Vector<SymbolData>& Symbols)
+void CppHelper::DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size_t& i, String& FileText, SymbolData& Tep, Vector<SymbolData>& Symbols, ParseCppState& State)
 {
 	Optional<SummaryTag> Sum;
 	GetSummaryTag(i,FileText,Sum);
@@ -803,7 +941,6 @@ void CppHelper::DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size
 		i++;
 		FuncData func;
 		func.Ret = std::move(V);
-		func.IsStatic = false;
 		
 
 		while (FileText[i] != ')' && i < FileText.size())
@@ -850,6 +987,7 @@ void CppHelper::DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size
 		}
 
 		Tep._Name = std::move(Indentifier);
+		Tep._FullName = State.ScopesAsString() + Tep._Name;
 		Tep.Summary = std::move(Sum);
 		Tep._Type = std::move(func);
 		Symbols.push_back(Tep);
@@ -861,31 +999,31 @@ void CppHelper::DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size
 
 }
 
-bool CppHelper::OnDo(size_t StartIndex,const String& Keywordlet, size_t& i, UCodeAnalyzer::String& Scope, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols)
+bool CppHelper::OnDo(size_t StartIndex,const String& Keywordlet, size_t& i, UCodeAnalyzer::String& Scope, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols, ParseCppState& State)
 {
 	if (Keywordlet == "enum")
 	{
-		DoEnumType(i, Scope, Tep, Symbols);
+		DoEnumType(i, Scope, Tep, Symbols, State);
 		return true;
 	}
 	else if (Keywordlet == "constexpr")
 	{
-		DoConstexprType(i, Scope, Tep, Symbols);
+		DoConstexprType(i, Scope, Tep, Symbols, State);
 		return true;
 	}
 	else if (Keywordlet == "struct" || Keywordlet == "class")
 	{
-		DoClassOrStruct(Keywordlet, i, Scope, Tep, Symbols);
+		DoClassOrStruct(Keywordlet, i, Scope, Tep, Symbols, State);
 		return true;
 	}
 	else if (Keywordlet == "inline")
 	{
-		DoVarableOrFunc(StartIndex, Keywordlet, i, Scope, Tep, Symbols);
+		DoVarableOrFunc(StartIndex, Keywordlet, i, Scope, Tep, Symbols, State);
 		return true;
 	}
 	else
 	{
-		DoVarableOrFunc(StartIndex,Keywordlet, i, Scope, Tep, Symbols);
+		DoVarableOrFunc(StartIndex,Keywordlet, i, Scope, Tep, Symbols, State);
 		return true;
 	}
 	return false;
@@ -1121,7 +1259,7 @@ String CppHelper::ToString(CppToULangState& State, const ClassType& Value, const
 
 	State.AddScopesUseingScopeCount(R);
 	ToString(State, Syb.Summary);
-	R += "$" + Syb._Name + ":";
+	R += "$" + Syb._Name + ":\n";
 
 	State.ScopeCount++;
 	for (auto& Item : Value.Fields)
@@ -1143,6 +1281,10 @@ String CppHelper::ToString(CppToULangState& State, const ClassType& Value, const
 		R += ";";
 
 	}
+	for (auto& Item : Value.Symbols)
+	{
+		R += ToString(State, Item);
+	}
 
 	State.ScopeCount--;
 	R += '\n';
@@ -1150,6 +1292,8 @@ String CppHelper::ToString(CppToULangState& State, const ClassType& Value, const
 	
 	return R;
 }
+
+
 String CppHelper::ToString(CppToULangState& State, const FuncData& Value, const SymbolData& Syb, bool IsInClass)
 {
 	String R;
@@ -1164,15 +1308,25 @@ String CppHelper::ToString(CppToULangState& State, const FuncData& Value, const 
 		R += "extern dynamic ";
 	}
 	R += "|" + Syb._Name + "[";
+	
+	if (Value.MemberClassName.has_value())
+	{
+		R += "this&";
+		if (Value.Pars.size())
+		{
+			R += ',';
+		}
+	}
+
 	for (auto& Item : Value.Pars)
 	{
 		if (Item.IsOut)
 		{
 			R += "out ";
 		}
-		R += Item.Name + " ";
-		R += ToString(State, Item.Type);
 
+		R += ToString(State, Item.Type) + " ";
+		R += Item.Name;
 		if (&Item != &Value.Pars.back())
 		{
 			R += ",";
@@ -1183,11 +1337,11 @@ String CppHelper::ToString(CppToULangState& State, const FuncData& Value, const 
 
 	if (Value.OverloadNumber.has_value())
 	{
-		String CppFuncName = Syb._Name;
+		String CppFuncName = Replace2(Syb._FullName, ':', '_');
 		CppFuncName += std::to_string(Value.OverloadNumber.value());
 
 		R += "=> " + (String)"Internal::" + CppFuncName;
-			
+
 		R += "(";
 		for (auto& Item : Value.Pars)
 		{
@@ -1201,17 +1355,27 @@ String CppHelper::ToString(CppToULangState& State, const FuncData& Value, const 
 		R += ");\n";
 
 		String AddStr;
-		State.AddScopesUseingScopeCount(AddStr);
+		State.AddScope(AddStr);
+		State.AddScope(AddStr);
 		AddStr += "extern dynamic |" + CppFuncName;
 		AddStr += "[";
+		if (Value.MemberClassName.has_value())
+		{
+			AddStr += "this&";
+			if (Value.Pars.size())
+			{
+				AddStr += ',';
+			}
+		}
 		for (auto& Item : Value.Pars)
 		{
 			if (Item.IsOut)
 			{
 				AddStr += "out ";
 			}
-			AddStr += Item.Name + " ";
-			AddStr += ToString(State, Item.Type);
+
+			AddStr += ToString(State, Item.Type) + " ";
+			AddStr += Item.Name;
 
 			if (&Item != &Value.Pars.back())
 			{
@@ -1221,7 +1385,18 @@ String CppHelper::ToString(CppToULangState& State, const FuncData& Value, const 
 
 		AddStr += "] -> " + ToString(State, Value.Ret) + ";\n";
 
-		State.InternalNameSpaces[Syb._NameSpace] += AddStr;
+		String NameSpace;
+		if (Syb._NameSpace.size()==0)
+		{
+			NameSpace = State.LastNameSpace;
+		}
+		else
+		{
+			NameSpace = Syb._NameSpace;
+		}
+
+		State.InternalNameSpaces[NameSpace] += AddStr;
+
 	}
 	else 
 	{
@@ -1331,16 +1506,13 @@ String CppHelper::ToString(CppToULangState& State, const CPPExpression& Value)
 
 void CppHelper::DoNameSpace(UCodeAnalyzer::CppHelper::CppToULangState& State, const UCodeAnalyzer::CppHelper::SymbolData& Syb, UCodeAnalyzer::String& R)
 {
-	if (State.LastNameSpace != Syb._NameSpace)
-	{
-		State.LastNameSpace = Syb._NameSpace;
-		R += State.LastNameSpace;
-		R += ":\n";
-	}
-
-	if (State.InternalNameSpaces.HasValue(Syb._NameSpace))
-	{
-		State.InternalNameSpaces.AddValue(Syb._NameSpace, String());
+	if (Syb._FullName == Syb._Name) {
+		if (State.LastNameSpace != Syb._NameSpace)
+		{
+			State.LastNameSpace = Syb._NameSpace;
+			R += State.LastNameSpace;
+			R += ":\n";
+		}
 	}
 }
 
