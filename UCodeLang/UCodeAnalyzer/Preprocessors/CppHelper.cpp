@@ -2,7 +2,7 @@
 #include <iostream>
 #include <filesystem>
 #include <fstream>
-
+#include <UCodeLang/LangCore/ScopeHelper.hpp>
 UCodeAnalyzerStart
 void Replace(String& string, char ToUpdate, char ToChar)
 {
@@ -335,22 +335,40 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 
 							Linkstr += CppLibVar;
 							Linkstr += ".Add_CPPCall(\"";
-							Linkstr += Item.Ulangnamespace + "::";
+							Linkstr += Item.Ulangnamespace + UCodeLang::ScopeHelper::_ScopeSep;
 
 
 							if (Item.OverloadValue.has_value())
 							{
-								Linkstr += "Internal::";
+								Linkstr += "Internal:";
 
 								String V = Item.FuncFullName.substr(0, Item.FuncFullName.size() - Item.FuncName.size());
 								Linkstr += Replace2(V, ':', '_');
+								Linkstr += Item.FuncName;
 
 								Linkstr += std::to_string(Item.OverloadValue.value());
 							}
 							else
 							{
-								
-								Linkstr += Item.FuncFullName;
+
+								String NewStr;
+
+								{//remove :: and make into :
+									char LastChar = 0;
+									for (size_t i = 0; i < Item.FuncFullName.size(); i++)
+									{
+										char Cha = Item.FuncFullName[i];
+
+										if (Cha == ':' && LastChar == ':')
+										{
+											continue;
+										}
+										NewStr += Cha;
+
+										LastChar = Cha;
+									}
+								}
+								Linkstr += NewStr;
 							}
 
 							Linkstr += "\",[](UCodeLang::InterpreterCPPinterface& Input) \n";
@@ -491,12 +509,11 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 
 								Linkstr += "{\n";
 
+								AddTabCount(TabCount + 4, Linkstr);
 								if (Item.Ret != "void")
 								{
 									Linkstr += "return ";
 								}
-
-								AddTabCount(TabCount + 4, Linkstr);
 								Linkstr += "thisPar->" + Item.FuncName + "(";
 								{
 									size_t ParCount = 0;
