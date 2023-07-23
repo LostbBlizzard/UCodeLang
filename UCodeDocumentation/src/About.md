@@ -37,10 +37,6 @@ The was Language was designed  and developed by LostBlizzard On [GitHub](https:/
 
 Who currently maintains the 
 
--[UCodeDocumentation](https://github.com/LostbBlizzard/UCodeDocumentation)
-
--The [UCodeLang](https://github.com/LostbBlizzard/UCodeLang) cplusplus implementation of the language.
-
--The Vs Code [Language Server](https://github.com/LostbBlizzard/ucode-lang)
+- The [UCodeLang](https://github.com/LostbBlizzard/UCodeLang) cplusplus implementation of the language.
 
 The UCodeGameEngine(being worked on) the primary reason The Language was made.
