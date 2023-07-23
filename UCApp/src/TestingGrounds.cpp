@@ -190,8 +190,8 @@ void TestingGround()
 
 		//std::cout << " Got Value " << (int)AutoPtr << std::endl;
 
-		RunTime.Call(StaticVariablesUnLoadFunc);
 		RunTime.Call(ThreadVariablesUnLoadFunc);
+		RunTime.Call(StaticVariablesUnLoadFunc);
 
 		RunTime.UnLoad();
 	}
