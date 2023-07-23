@@ -65,7 +65,7 @@ public:
 			String Name;
 			Optional<CPPExpression> Default;
 		};
-		bool IsStatic = true;
+		Optional<String> MemberClassName;
 		Vector<Par> Pars;
 		Type Ret;
 
@@ -77,11 +77,22 @@ public:
 
 
 		Optional<SummaryTag> Summary;
+		String _FullName;
 		String _Name;
 		Variant<ClassType, EnumType, ConstexprType, FuncData> _Type;
 	};
 
-	
+
+	struct FuncInfo
+	{
+		String Ulangnamespace;
+		String FuncFullName;
+		String FuncName;
+		Vector<String> Pars;
+		String Ret;
+		Optional<size_t> OverloadValue;
+		Optional<String> MemberFuncClass;
+	};
 	
 	/// <summary>
 	/// Converts Enum,Classes,using,typedefs and funcions with the UCodeLangExportSymbol macro into Cpp calls and ULang types 
@@ -92,15 +103,39 @@ public:
 	/// <returns>if true it worked</returns>
 	static bool ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFile, const Path& ULangOut);
 	static void UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols);
+	static void NewFunction(UCodeAnalyzer::CppHelper::SymbolData& Item, UCodeAnalyzer::Vector<FuncInfo>& V);
 	static void ParseCppToSybs(UCodeAnalyzer::String& FileText, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols);
+	static void DoOverLoadOnFunc(UCodeLang::VectorMap<UCodeAnalyzer::String, size_t>& Overloads, UCodeAnalyzer::CppHelper::SymbolData& Last, UCodeAnalyzer::CppHelper::FuncData* Val);
 	static bool ParseULangfileAndUpdateCpp(const Path& SrcLang, const Path& CppOut);
 
 	//
-	static void DoConstexprType(size_t& i, String& FileText, SymbolData& Tep, Vector<SymbolData>& Symbols);
-	static void DoEnumType(size_t& i, String& FileText, SymbolData& Tep, Vector<SymbolData>& Symbols);
-	static void DoClassOrStruct(const String& Keywordlet, size_t& i, String& FileText, SymbolData& Tep, Vector<SymbolData>& Symbols);
-	static void DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size_t& i, String& FileText, SymbolData& Tep, Vector<SymbolData>& Symbols);
-	static bool OnDo(size_t StartIndex, const String& Keywordlet, size_t& i, String& Scope, SymbolData& Tep, Vector<SymbolData>& Symbols);
+	struct ParseCppState
+	{
+		Vector<String> Scopes;
+		String ScopesAsString() const
+		{
+			String R;
+			for (size_t i = 0; i < Scopes.size(); i++)
+			{
+				R += Scopes[i];
+				if (i + 1 < Scopes.size())
+				{
+					R += "::";
+				}
+			}
+			if (Scopes.size())
+			{
+				R += "::";
+			}
+
+			return R;
+		}
+	};
+	static void DoConstexprType(size_t& i, String& FileText, SymbolData& Tep, Vector<SymbolData>& Symbols, ParseCppState& State);
+	static void DoEnumType(size_t& i, String& FileText, SymbolData& Tep, Vector<SymbolData>& Symbols, ParseCppState& State);
+	static void DoClassOrStruct(const String& Keywordlet, size_t& i, String& FileText, SymbolData& Tep, Vector<SymbolData>& Symbols, ParseCppState& State);
+	static void DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size_t& i, String& FileText, SymbolData& Tep, Vector<SymbolData>& Symbols, ParseCppState& State);
+	static bool OnDo(size_t StartIndex, const String& Keywordlet, size_t& i, String& Scope, SymbolData& Tep, Vector<SymbolData>& Symbols, ParseCppState& State);
 	
 
 

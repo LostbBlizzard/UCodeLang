@@ -6,7 +6,20 @@
 namespace CppLinkTest
 {
 	//This func should have two copys
-	UCodeLangExportSymbol("UCodeLang") void SpanTest(UCodeLang::BytesView Item) {}
+	UCodeLangExportSymbol("UCodeLang") void SomeFuncDefault(int V = 5) {}
+
+	//should be an outfunc
+	UCodeLangExportSymbol("UCodeLang") void SomeFuncPtr(UCodeLangOutPartype(int) V) {}
+
+	//Overload
+	UCodeLangExportSymbol("UCodeLang") void Overload(int V) {}
+	//Overload
+	UCodeLangExportSymbol("UCodeLang") void Overload(bool V) {}
+	//Overload
+	UCodeLangExportSymbol("UCodeLang") void Overload(bool V, int V2) {}
+
+	//This func should have two copys
+	UCodeLangExportSymbol("UCodeLang") void SpanTest(UCodeLang::Span<int> Item) {}
 
 	//should be an outfunc
 	UCodeLangExportSymbol("UCodeLang") void SomeFuncPtrWithInline(UCodeLangOutPartype(int) V) {}
