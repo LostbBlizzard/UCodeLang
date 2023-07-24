@@ -129,6 +129,16 @@ public:
 		}
 	}
 
+	template<typename T>
+	UCodeLangForceinline  void WriteType(const Optional<T>& Value)
+	{
+		WriteType(Value.has_value());
+		if (Value.has_value())
+		{
+			WriteType(Value.value());
+		}
+	}
+
 	BytesPtr AsBytePtr();
 	BytesPtr AsBytePtrAndMove();
 private:
@@ -332,6 +342,19 @@ public:
 		for (size_t i = 0; i < Size; i++)
 		{
 			ReadType(Out[i]);
+		}
+	}
+	template<typename T> void ReadType(Optional<T>& Value)
+	{
+		bool V = false;
+		ReadType(V, false);
+
+		if (V)
+		{
+			T OpValue;
+			ReadType(OpValue);
+
+			Value = std::move(OpValue);
 		}
 	}
 private:

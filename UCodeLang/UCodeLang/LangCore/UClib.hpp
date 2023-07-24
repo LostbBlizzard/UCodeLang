@@ -4,6 +4,7 @@
 #include "../LangCore/ReflectionData.hpp"
 #include "UCodeLang/LangCore/BitMaker.hpp"
 #include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
+#include "UCodeLang/LangCore/ULangDebugInfo.hpp"
 UCodeLangStart
 
 
@@ -20,103 +21,143 @@ enum class LibType : LibType_t
 
 struct CodeLayer
 {
-	enum class CodeType 
+	struct JustData
 	{
-		UCodeByteCode,
-		MachineCode,
-		Other,
+		//Will not be loaded
+		Vector<Byte> _Data;
+	};
+	struct UCodeByteCode
+	{
+		//Loaded By UCodeVM
+		Vector<Instruction>  _Instructions;
+
+		//Funcion Names to Call displacement
+		VectorMap<String, UAddress> _NameToPtr;
+
+		//DebugInfo
+		Optional<ULangDebugInfo> DebugInfo;
+
+		UCodeLangForceinline void Add_NameToLastInstruction(const String& Name)
+		{
+			_NameToPtr[Name] = (UAddress)(_Instructions.size() - 1);
+		}
+
+		UCodeLangForceinline void Add_NameToInstruction(UAddress Index, const String& Name)
+		{
+			_NameToPtr[Name] = (UAddress)(Index);
+		}
+		inline UAddress Get_NameToInstruction(const String& Name) const
+		{
+			if (_NameToPtr.count(Name))
+			{
+				return _NameToPtr.at(Name);
+			}
+			else
+			{
+				return NullAddress;
+			}
+		}
+
+		UCodeLangForceinline bool Get_HasNameToPtr(const String& Name) const
+		{
+			return _NameToPtr.count(Name);
+		}
+
+		UCodeLangForceinline UAddress NothingThing_Instruction()
+		{
+			Instruction Data;
+			Data.OpCode = InstructionSet::DoNothing;
+			Data.Value0.AsUInt64 = (UInt64)nullptr;
+			Data.Value1.AsUInt64 = (UInt64)nullptr;
+			return Add_Instruction(Data);
+		}
+		UCodeLangForceinline UAddress Add_Instruction(const Instruction& V)
+		{
+			auto CompilerRet = (UAddress)_Instructions.size();
+			_Instructions.push_back(V);
+			return CompilerRet;
+		}
+		UCodeLangForceinline UAddress GetLastInstruction()
+		{
+			return (UAddress)(_Instructions.size() - 1);
+		}
+
+
+		UCodeLangForceinline const auto& Get_Instructions()const
+		{
+			return  _Instructions;
+		}
+		UCodeLangForceinline auto& Get_Instructions()
+		{
+			return  _Instructions;
+		}
+		UCodeLangForceinline void clear_Instructions()
+		{
+			_Instructions.clear();
+		}
+
+		UCodeLangForceinline auto& Get_NameToPtr() const
+		{
+			return _NameToPtr;
+		}
+		UCodeLangForceinline void clear_NameToPtr()
+		{
+			_NameToPtr.clear();
+		}
+	};
+	struct MachineCode
+	{
+		//Will loaded in executable memory
+		Vector<Byte> _Code;
+
+		//Funcion Names to Call displacement
+		VectorMap<String, UAddress> _NameToPtr;
+
+		//CPU specufic Debug Info
+		Optional<Vector<Byte>> DebugInfo;
+
+		UCodeLangForceinline const auto& Get_Code()const
+		{
+			return  _Code;
+		}
+		UCodeLangForceinline auto& Get_Code()
+		{
+			return  _Code;
+		}
+		UCodeLangForceinline void clear_Code()
+		{
+			_Code.clear();
+		}
 	};
 
 	String _Name;
-	CodeType _Type = CodeType::UCodeByteCode;
+	Variant<JustData,UCodeByteCode, MachineCode> _Data;
 
-	Vector<Byte> _Code;
-	Vector<Instruction>  _Instructions;
-	
-	VectorMap<String, UAddress> _NameToPtr;
 
-	//
-	UCodeLangForceinline void Add_NameToLastInstruction(const String& Name)
+	using DataTypes_t = Byte;
+	enum class DataTypes : DataTypes_t
 	{
-		_NameToPtr[Name] = (UAddress)(_Instructions.size() - 1);
-	}
-
-	UCodeLangForceinline void Add_NameToInstruction(UAddress Index, const String& Name)
+		JustData,
+		UCodeByteCode,
+		MachineCode,
+	};
+	DataTypes GetDataType() const
 	{
-		_NameToPtr[Name] = (UAddress)(Index);
-	}
-	inline UAddress Get_NameToInstruction(const String& Name) const
-	{
-		if (_NameToPtr.count(Name))
+		if (_Data.Is<JustData>())
 		{
-			return _NameToPtr.at(Name);
+			return DataTypes::JustData;
 		}
-		else
+		else if (_Data.Is<UCodeByteCode>())
 		{
-			return NullAddress;
+			return DataTypes::UCodeByteCode;
 		}
-	}
+		else if (_Data.Is<MachineCode>())
+		{
+			return DataTypes::MachineCode;
+		}
 
-	UCodeLangForceinline bool Get_HasNameToPtr(const String& Name) const
-	{
-		return _NameToPtr.count(Name);
+		throw std::exception("bad path");
 	}
-
-	UCodeLangForceinline UAddress NothingThing_Instruction()
-	{
-		Instruction Data;
-		Data.OpCode = InstructionSet::DoNothing;
-		Data.Value0.AsUInt64 = (UInt64)nullptr;
-		Data.Value1.AsUInt64 = (UInt64)nullptr;
-		return Add_Instruction(Data);
-	}
-	UCodeLangForceinline UAddress Add_Instruction(const Instruction& V)
-	{
-		auto CompilerRet = (UAddress)_Instructions.size();
-		_Instructions.push_back(V);
-		return CompilerRet;
-	}
-	UCodeLangForceinline UAddress GetLastInstruction()
-	{
-		return (UAddress)(_Instructions.size() - 1);
-	}
-
-
-	UCodeLangForceinline const auto& Get_Instructions()const
-	{
-		return  _Instructions;
-	}
-	UCodeLangForceinline auto& Get_Instructions()
-	{
-		return  _Instructions;
-	}
-	UCodeLangForceinline void clear_Instructions()
-	{
-		_Instructions.clear();
-	}
-	UCodeLangForceinline const auto& Get_Code()const
-	{
-		return  _Code;
-	}
-	UCodeLangForceinline auto& Get_Code()
-	{
-		return  _Code;
-	}
-	UCodeLangForceinline void clear_Code()
-	{
-		_Code.clear();
-	}
-
-
-	UCodeLangForceinline auto& Get_NameToPtr() const
-	{
-		return _NameToPtr;
-	}
-	UCodeLangForceinline void clear_NameToPtr()
-	{
-		_NameToPtr.clear();
-	}
-
 };
 
 class UClib
