@@ -4,12 +4,34 @@
 #include "UCodeLang/Compliation/Helpers/NameDecoratior.hpp"
 
 #include <fstream>
-
+#include "UCodeLang/Compliation/Middle/IR.hpp"
 #define StackName "Stack"
 #define StackName_ "[" + StackName + "]"
 
 UAssemblyStart
+void OutputIRLineInfo(UCodeLang::IRFunc* Func, const UCodeLang::UDebugSetLineNumber* Val, UCodeLang::String& r)
+{
+	for (auto& Block : Func->Blocks)
+	{
+		for (auto& Ins : Block->DebugInfo.DebugInfo)
+		{
+			if (auto DebugIns = Ins.Debug.Get_If<IRDebugSetLineNumber>())
+			{
+				if (DebugIns->LineNumber == Val->LineNumber)
+				{
+					r += "   //IR-Data{";
+					//for (size_t i = Val->ForIns; i < Block->Instructions.size(); i++)
+					{
+						r += "   ";
+					}
+					r += "   //}";
 
+
+				}
+			}
+		}
+	}
+}
 void UAssembly::Assemble(const String_view& Text, UClib* Out)
 {
 	Lexer Lex; 
@@ -23,7 +45,7 @@ void UAssembly::Assemble(const String_view& Text, UClib* Out)
 	Lex.Lex(Text);
 	Parse.Parse(Lex.Get_Output(), Out);
 }
-String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles)
+String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool ShowIR)
 {
 	auto& InsMapData = Get_InsToInsMapValue();
     String r;
@@ -33,12 +55,26 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles)
 	String OnFile;
 
 	auto UCodeLayer = Lib->GetLayer(UCode_CodeLayer_UCodeVM_Name);
+	
 	if (UCodeLayer && UCodeLayer->_Data.Is<CodeLayer::UCodeByteCode>())
 	{
 		const CodeLayer::UCodeByteCode& Info = UCodeLayer->_Data.Get<CodeLayer::UCodeByteCode>();
 		for (const auto& Item2 : Info._NameToPtr)
 		{
 			AddressToName[Item2._Value] = Item2._Key;
+		}
+	}
+	Optional<IRBuilder> IRInfo;
+	{
+		auto IRLayer = Lib->GetLayer(UCode_CodeLayer_IR_Name);
+		if (IRLayer && IRLayer->_Data.Is<CodeLayer::JustData>()) 
+		{
+			auto& Data = IRLayer->_Data.Get<CodeLayer::JustData>();
+			IRBuilder tep;
+			if (IRBuilder::FromBytes(tep, BytesView::Make( Data._Data.data(), Data._Data.size() )))
+			{
+				IRInfo = std::move(tep);
+			}
 		}
 	}
 	r += "[ClassData]-- \n";
@@ -138,6 +174,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles)
 		r += "\n[Instructions:"  + UCodeLayer->_Name + "]-- \n";
 
 		auto& Insts = Info.Get_Instructions();
+		String OnFunc;
 		for (size_t i = 0; i < Insts.size(); i++)
 		{
 			auto& Item = Insts[i];
@@ -146,6 +183,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles)
 			{
 				String Name = AddressToName[address];
 				r += "---" + Name + ": \n";
+				OnFunc = Name;
 			}
 
 			if (Info.DebugInfo.has_value())
@@ -227,6 +265,39 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles)
 							r += LineStr;
 							r += '\n';
 						}
+						if (IRInfo.has_value())
+						{
+							auto& IRInfoVal = IRInfo.value();
+
+
+							if (StaticVariablesInitializeFunc == OnFunc)
+							{
+								OutputIRLineInfo(&IRInfoVal._StaticInit, Val, r);
+							}
+							else if (ThreadVariablesInitializeFunc == OnFunc)
+							{
+								OutputIRLineInfo(&IRInfoVal._threadInit, Val, r);
+							}
+							else if (StaticVariablesUnLoadFunc == OnFunc)
+							{
+								OutputIRLineInfo(&IRInfoVal._StaticdeInit, Val, r);
+							}
+							else if (ThreadVariablesUnLoadFunc == OnFunc)
+							{
+								OutputIRLineInfo(&IRInfoVal._threaddeInit, Val, r);
+							}
+							else 
+							{
+								for (auto& Func : IRInfoVal.Funcs)
+								{
+									if (IRInfoVal.FromID(Func->identifier) == OnFunc)
+									{
+										OutputIRLineInfo(Func.get(), Val, r);
+										break;
+									}
+								}
+							}
+						}
 					}
 
 
@@ -272,6 +343,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles)
 
     return r;
 }
+
 String UAssembly::ToString(const ReflectionTypeInfo& Value, const ClassAssembly& Assembly)
 {
 	String r;

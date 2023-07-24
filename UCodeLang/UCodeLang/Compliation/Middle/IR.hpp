@@ -469,46 +469,56 @@ struct IRDebugSetLineNumber
 struct IRDebugSetVarableName
 {
 	String VarableName;
-	IRInstruction* Ins= nullptr;
-
-	String LangType;
-	Vector<Byte> TypeInfo;
-
-	template<typename T>
-	void Set_TypeInfo(const String& Lang, const T* Object)
-	{
-		LangType = Lang;
-		TypeInfo.resize(sizeof(T));
-		memcpy(TypeInfo.data(), Object, sizeof(T));
-	}
-
 };
 struct IRDebugIns
 {
 	Variant<IRDebugSetFile, IRDebugSetLineNumber, IRDebugSetVarableName> Debug;
+
+	using Variant_t = Byte;
+	enum class Variant : Variant_t
+	{
+		IRDebugSetFile,
+		IRDebugSetLineNumber,
+		IRDebugSetVarableName,
+	};
+
+	Variant GetVariantType() const
+	{
+		if (Debug.Is<IRDebugSetFile>())
+		{
+			return Variant::IRDebugSetFile;
+		}
+		else if (Debug.Is<IRDebugSetLineNumber>())
+		{
+			return Variant::IRDebugSetLineNumber;
+		}
+		else if (Debug.Is<IRDebugSetVarableName>())
+		{
+			return Variant::IRDebugSetVarableName;
+		}
+		else
+		{
+			throw std::exception("bad path");
+		}
+
+	}
 };
 struct IRDebugSybol
 {
 	String VarableName;
-	String LangType;
-	Vector<Byte> TypeInfo;
-	IRInstruction SymbolID;
 
-	enum class Type
+	String LangType;//Put Your Lang Name Here
+	Vector<Byte> TypeInfo;//Save your Type Here
+
+	
+	using Type_t = Byte;
+	enum class Type : Type_t
 	{
 		Static,
 		Thread,
 		Stack,
 	};
 	Type _Type;
-
-	template<typename T>
-	void Set_TypeInfo(const String& Lang, const T* Object)
-	{
-		LangType = Lang;
-		TypeInfo.resize(sizeof(T));
-		memcpy(TypeInfo.data(), Object, sizeof(T));
-	}
 };
 struct IRDebugSybInfo
 {
@@ -1414,6 +1424,18 @@ public:
 	static void ToBytes(BitMaker& Out, const IROperator& Value, const IRType& Type, const IRBlock& MyBlock,const Vector<IRPar>& Pars);
 	static void FromBytes(BitReader& Out, IROperator& Value, const IRType& Type, const IRBlock& MyBlock, Vector<IRPar>& Pars);
 
+	static void ToBytes(BitMaker& Out, const IRDebugSybInfo& Value);
+	
+	static void FromBytes(BitReader& Out, IRDebugSybInfo& Value);
+
+	static void ToBytes(BitMaker& Out, const IRDebugSybol& Value);
+	static void FromBytes(BitReader& Out,IRDebugSybol& Value);
+
+	static void ToBytes(BitMaker& Out, const IRBlockDebugInfo& Value);
+	static void FromBytes(BitReader& Out, IRBlockDebugInfo& Value);
+
+	static void ToBytes(BitMaker& Out, const IRDebugIns& Item);
+	static void FromBytes(BitReader& Out, IRDebugIns& Value);
 
 	//very slow
 	static size_t GetImplementationHash(const IRFunc* Func);

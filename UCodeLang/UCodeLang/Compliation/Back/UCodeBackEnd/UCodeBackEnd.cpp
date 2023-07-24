@@ -122,7 +122,7 @@ void UCodeBackEndObject::Build(const IRBuilder* Input)
 
 		AddDebugInfo();
 
-			
+		
 	}
 }
 void UCodeBackEndObject::AddDebugInfo()
@@ -130,6 +130,12 @@ void UCodeBackEndObject::AddDebugInfo()
 	if (IsDebugMode())
 	{
 		_OutLayer->DebugInfo = ULangDebugInfo(std::move(_DebugInfo));
+
+		//For Showing IR When using UAssembly::ToString
+		auto V2 = CodeLayer::JustData();
+		V2._Data = _Input->ToBytes().MoveToVector();
+		auto V = _Output->AddLayer(UCode_CodeLayer_IR_Name);
+		V->_Data = std::move(V2);
 	}
 }
 UCodeBackEndObject::IRlocData UCodeBackEndObject::To(const ParlocData& Value)

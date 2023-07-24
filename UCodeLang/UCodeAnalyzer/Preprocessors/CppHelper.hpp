@@ -103,7 +103,7 @@ public:
 	/// <returns>if true it worked</returns>
 	static bool ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFile, const Path& ULangOut);
 	static void UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols);
-	static void NewFunction(UCodeAnalyzer::CppHelper::SymbolData& Item, UCodeAnalyzer::Vector<FuncInfo>& V);
+	static void OutputIRLineInfo(UCodeAnalyzer::CppHelper::SymbolData& Item, UCodeAnalyzer::Vector<FuncInfo>& V);
 	static void ParseCppToSybs(UCodeAnalyzer::String& FileText, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols);
 	static void DoOverLoadOnFunc(UCodeLang::VectorMap<UCodeAnalyzer::String, size_t>& Overloads, UCodeAnalyzer::CppHelper::SymbolData& Last, UCodeAnalyzer::CppHelper::FuncData* Val);
 	static bool ParseULangfileAndUpdateCpp(const Path& SrcLang, const Path& CppOut);

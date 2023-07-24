@@ -294,6 +294,9 @@ BytesPtr IRBuilder::ToBytes() const
 			V.WriteType(Item._Value);
 		}
 	}
+	{
+		ToBytes(V,_Debug);
+	}
 	return V.AsBytePtr();
 }
 
@@ -369,6 +372,9 @@ bool IRBuilder::FromBytes(IRBuilder& Out, const BytesView Bytes)
 
 			Out.ConstStaticStrings[std::move(Key)] = std::move(Value);
 		}
+	}
+	{
+		FromBytes(Bits, Out._Debug);
 	}
 
 	return true;
@@ -674,6 +680,7 @@ void IRBuilder::ToBytes(BitMaker& Out, const IRBlock& Value,const Vector<IRPar>&
 	{
 		ToBytes(Out, *Item,Value,Pars);
 	}
+	ToBytes(Out,Value.DebugInfo);
 }
 
 void IRBuilder::FromBytes(BitReader& Out, IRBlock& Value, Vector<IRPar>& Pars)
@@ -689,6 +696,7 @@ void IRBuilder::FromBytes(BitReader& Out, IRBlock& Value, Vector<IRPar>& Pars)
 	{
 		FromBytes(Out, *Item, Value,Pars);
 	}
+	FromBytes(Out, Value.DebugInfo);
 }
 
 void IRBuilder::ToBytes(BitMaker& Out, const IRInstruction& Value, const IRBlock& MyBlock, const Vector<IRPar>& Pars)
@@ -828,6 +836,156 @@ void IRBuilder::FromBytes(BitReader& Out, IROperator& Value, const IRType& Type,
 		|| Value.Type == IROperatorType::IRidentifier)
 	{
 		Out.ReadType(Value.identifer, Value.identifer);
+	}
+}
+
+void IRBuilder::ToBytes(BitMaker& Out, const IRDebugSybInfo& Value)
+{
+	Out.WriteType((BitMaker::SizeAsBits)Value.Symbols.size());
+	for (auto& Item : Value.Symbols)
+	{
+		Out.WriteType(Item._Key);
+		
+		const auto& Value = Item._Value;
+		ToBytes(Out, Value);
+	}
+}
+
+void IRBuilder::ToBytes(UCodeLang::BitMaker& Out, const UCodeLang::IRDebugSybol& Value)
+{
+	Out.WriteType(Value.VarableName);
+
+	Out.WriteType(Value.LangType);
+
+	Out.WriteType(Value.TypeInfo);
+
+	Out.WriteType((IRDebugSybol::Type)Value._Type);
+}
+void IRBuilder::FromBytes(BitReader& Out, IRDebugSybol& OtherValue)
+{
+	Out.ReadType(OtherValue.VarableName);
+
+	Out.ReadType(OtherValue.LangType);
+
+	Out.ReadType(OtherValue.TypeInfo);
+
+	Out.ReadType(*(IRDebugSybol::Type_t*)&OtherValue._Type);
+}
+
+void IRBuilder::FromBytes(BitReader& Out, IRDebugSybInfo& Value)
+{
+	BitMaker::SizeAsBits Size =0;
+	Out.ReadType(Size, Size);
+
+	Value.Symbols.reserve(Size);
+	for (size_t i = 0; i < (size_t)Size; i++)
+	{
+		IRidentifierID Key=0;
+		Out.ReadType(Key);
+
+		IRDebugSybol OtherValue;
+
+		FromBytes(Out, OtherValue);
+
+		Value.Symbols.AddValue(std::move(Key), std::move(OtherValue));
+	}
+
+}
+
+
+void IRBuilder::ToBytes(BitMaker& Out, const IRBlockDebugInfo& Value)
+{
+	Out.WriteType((BitMaker::SizeAsBits)Value.DebugInfo.size());
+	for (auto& Item : Value.DebugInfo)
+	{
+		ToBytes(Out, Item);
+	}
+}
+
+void IRBuilder::ToBytes(UCodeLang::BitMaker& Out, const UCodeLang::IRDebugIns& Item)
+{
+	Out.WriteType((IRDebugIns::Variant_t)Item.GetVariantType());
+
+	if (auto Val = Item.Debug.Get_If<IRDebugSetFile>())
+	{
+		Out.WriteType(Val->FileName);
+		Out.WriteType((BitMaker::SizeAsBits)Val->InsInBlock);
+	}
+	else if (auto Val = Item.Debug.Get_If<IRDebugSetLineNumber>())
+	{
+		Out.WriteType((BitMaker::SizeAsBits)Val->LineNumber);
+		Out.WriteType((BitMaker::SizeAsBits)Val->InsInBlock);
+	}
+	else if (auto Val = Item.Debug.Get_If<IRDebugSetVarableName>())
+	{
+		Out.WriteType(Val->VarableName);
+	}
+	else
+	{
+		throw std::exception("bad path");
+	}
+}
+
+void IRBuilder::FromBytes(BitReader& Out, IRDebugIns& Value)
+{
+	IRDebugIns::Variant Type;
+	Out.ReadType(*(IRDebugIns::Variant_t*)&Type);
+
+	switch (Type)
+	{
+	case IRDebugIns::Variant::IRDebugSetFile:
+	{
+		IRDebugSetFile R = IRDebugSetFile();
+		Out.ReadType(R.FileName);
+
+		BitMaker::SizeAsBits Tep;
+		Out.ReadType(Tep);
+		R.InsInBlock = Tep;
+
+		Value.Debug = std::move(R);
+	}
+	break;
+	case IRDebugIns::Variant::IRDebugSetLineNumber:
+	{
+		IRDebugSetLineNumber R = IRDebugSetLineNumber();
+		{
+			BitMaker::SizeAsBits Tep;
+			Out.ReadType(Tep);
+			R.LineNumber = Tep;
+		}
+
+		{
+			BitMaker::SizeAsBits Tep;
+			Out.ReadType(Tep);
+			R.InsInBlock = Tep;
+		}
+		Value.Debug = std::move(R);
+	}
+	break;
+	case IRDebugIns::Variant::IRDebugSetVarableName:
+	{
+		IRDebugSetVarableName R = IRDebugSetVarableName();
+		Out.ReadType(R.VarableName);
+
+		Value.Debug = std::move(R);
+	}
+	break;
+	default:
+		throw std::exception("bad path");
+		break;
+	}
+}
+
+void IRBuilder::FromBytes(BitReader& Out, IRBlockDebugInfo& Value)
+{
+	BitMaker::SizeAsBits SizeValue=0;
+	Out.ReadType(SizeValue);
+
+	Value.DebugInfo.resize(SizeValue);
+	
+	for (size_t i = 0; i < Value.DebugInfo.size(); i++)
+	{
+		FromBytes(Out, Value.DebugInfo[i]);
 	}
 }
 
