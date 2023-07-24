@@ -1332,13 +1332,13 @@ public:
 
 	struct ToStringState
 	{
-		BinaryVectorMap<IRInstruction*, String> PointerToName;
-		Vector<IRInstruction*> TepPushedParameters;
+		BinaryVectorMap<const IRInstruction*, String> PointerToName;
+		Vector<const IRInstruction*> TepPushedParameters;
 
 		size_t StrValue = 0;
 		IRFunc* _Func = nullptr;
 
-		String GetName(IRInstruction* Ptr)
+		String GetName(const IRInstruction* Ptr)
 		{
 			char r = 'A' + (char)StrValue;
 			StrValue++;
@@ -1354,9 +1354,16 @@ public:
 	//uses UCodeLang syntax
 	String ToString();
 	void ToString(ToStringState& State, IRFunc* Item, String& r);
+	bool ToString(const IRInstruction* I
+		, String& r
+		, IRBuilder::ToStringState& State
+		,BinaryVectorMap<IRidentifierID, IRidentifier>& Names
+		, const size_t& i
+		, const IRBlock* Block);
+		
 	String ToString(const IRType& Type);
-	String ToString(ToStringState& State, IRInstruction& Ins, IROperator& Value);
-	String ToStringBinary(ToStringState& State, IRInstruction* Ins, const char* V);
+	String ToString(ToStringState& State,const IRInstruction& Ins, const IROperator& Value);
+	String ToStringBinary(ToStringState& State, const IRInstruction* Ins, const char* Op);
 	//pre backends
 	void Fix_Size(IRStruct* Struct);
 	//for backends

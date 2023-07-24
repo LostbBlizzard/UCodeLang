@@ -35,7 +35,8 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 			}
 			#endif // UCodeLangDebug
 
-			if (_Settings->_Flags == OptimizationFlags::NoOptimization) { return; }
+			if (_Settings->_Flags == OptimizationFlags::NoOptimization
+				|| _Settings->_Flags == OptimizationFlags::Debug) { return; }
 
 			if (_ErrorsOutput->Has_Errors())
 			{

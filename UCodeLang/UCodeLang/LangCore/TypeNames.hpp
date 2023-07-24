@@ -114,3 +114,5 @@
 #define UCode_CodeLayer_AMD_UCodeVM_Name "UCodeVm-AMD"
 #define UCode_CodeLayer_AMD_64_UCodeVM_Name "UCodeVm-AMD64"
 
+
+#define UCode_LangType_UCodeLang ".uc"
