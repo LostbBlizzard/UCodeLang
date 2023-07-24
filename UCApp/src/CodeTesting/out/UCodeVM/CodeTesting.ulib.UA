@@ -11,6 +11,7 @@ $[_global]:
 
    //File:/Main.uc
    //Line:30
+   //Source Line:|main[] => 0;
 
    0 :Store32 [A],0
    1 :StoreRegToReg32 [A],[F]
