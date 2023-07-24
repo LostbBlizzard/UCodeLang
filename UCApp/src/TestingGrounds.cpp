@@ -89,7 +89,7 @@ void TestingGround()
 	{
 		//JitPerformance::main(JitPerformance::Task::Main);
 	}
-	ULangTest::CppHelperTests::RunTests();
+	//ULangTest::CppHelperTests::RunTests();
 	//ULangTest::RunTests(false);
  	//ULangTest::RunLanguageSeverTests();
  	Interpreter RunTime;

@@ -117,26 +117,50 @@ void UClib::ToBytes(BitMaker& Output, const ClassAssembly& Assembly)
 void UClib::ToBytes(BitMaker& Output, const CodeLayer& Data)
 {
 	Output.WriteType(Data._Name);
+	
+	Output.WriteType((CodeLayer::DataTypes_t)Data.GetDataType());
 
-	{// Instructions
-		Output.WriteType((Size_tAsBits)Data._Instructions.size());
-		Output.WriteBytes((const Byte*)Data._Instructions.data(), Data._Instructions.size() * sizeof(Instruction));
+	if (auto Val = Data._Data.Get_If<CodeLayer::JustData>())
+	{
+		Output.WriteType(Val->_Data);
 	}
+	else if (auto Val = Data._Data.Get_If<CodeLayer::UCodeByteCode>())
+	{
+		Output.WriteType((Size_tAsBits)Val->_Instructions.size());
+		Output.WriteBytes((const Byte*)Val->_Instructions.data(), Val->_Instructions.size() * sizeof(Instruction));
 
+		{// _NameToPtr
 
-	{// Code
-		Output.WriteType((Size_tAsBits)Data._Code.size());
-		Output.WriteBytes((const Byte*)Data._Code.data(), Data._Code.size());
-	}
-
-	{// _NameToPtr
-
-		Output.WriteType((Size_tAsBits)Data._NameToPtr.size());
-		for (auto& Item : Data._NameToPtr)
-		{
-			Output.WriteType(Item._Key);
-			Output.WriteType((Size_tAsBits)Item._Value);
+			Output.WriteType((Size_tAsBits)Val->_NameToPtr.size());
+			for (auto& Item : Val->_NameToPtr)
+			{
+				Output.WriteType(Item._Key);
+				Output.WriteType((Size_tAsBits)Item._Value);
+			}
 		}
+
+		Output.WriteType(Val->DebugInfo.has_value());
+		
+		if (Val->DebugInfo.has_value()) 
+		{
+			ULangDebugInfo::ToBytes(Output, Val->DebugInfo.value());
+		}
+	}
+	else if (auto Val = Data._Data.Get_If<CodeLayer::MachineCode>())
+	{
+		Output.WriteType(Val->_Code);
+
+		{// _NameToPtr
+
+			Output.WriteType((Size_tAsBits)Val->_NameToPtr.size());
+			for (auto& Item : Val->_NameToPtr)
+			{
+				Output.WriteType(Item._Key);
+				Output.WriteType((Size_tAsBits)Item._Value);
+			}
+		}
+
+		Output.WriteType(Val->DebugInfo);
 	}
 
 }
@@ -422,72 +446,146 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 void UClib::FromBytes(BitReader& Input, CodeLayer& Data)
 {
 	Input.ReadType(Data._Name);
-	{// Instructions
 
-		union
-		{
-			Size_tAsBits bits = 0;
-			size_t bits_Size;
-		};
+	CodeLayer::DataTypes _type = CodeLayer::DataTypes::JustData;
+	Input.ReadType(*(CodeLayer::DataTypes_t*)&_type, *(CodeLayer::DataTypes_t*)&_type);
 
-		Input.ReadType(bits, bits);
-		bits_Size = bits;
-
-		Data._Instructions.resize(bits_Size);
-
-
-		memcpy(Data._Instructions.data(), &Input.GetByteWith_offset(0), bits_Size * sizeof(Instruction));
-
-		Input.Increment_offset(bits_Size * sizeof(Instruction));
+	switch (_type)
+	{
+	case CodeLayer::DataTypes::JustData:
+	{
+		CodeLayer::JustData V;
+		Input.ReadType(V._Data, V._Data);
+		Data._Data = std::move(V);
 	}
+	break;
+	case CodeLayer::DataTypes::UCodeByteCode:
+	{
+		CodeLayer::UCodeByteCode V;
+		{// Instructions
 
-	{// Code
-
-		union
-		{
-			Size_tAsBits bits = 0;
-			size_t bits_Size;
-		};
-
-		Input.ReadType(bits, bits);
-		bits_Size = bits;
-
-		Data._Code.resize(bits_Size);
-
-
-		memcpy(Data._Code.data(), &Input.GetByteWith_offset(0), bits_Size);
-
-		Input.Increment_offset(bits_Size);
-	}
-
-	{// _NameToPtr
-		union
-		{
-			Size_tAsBits bits = 0;
-			size_t bits_Size;
-		};
-
-		Input.ReadType(bits, bits);
-		bits_Size = bits;
-
-		Data._NameToPtr.clear();
-		Data._NameToPtr.reserve(bits_Size);
-
-		for (size_t i = 0; i < bits_Size; i++)
-		{
-			String V1;
 			union
 			{
-				Size_tAsBits V2 = 0;
-				size_t V2bits_Size;
+				Size_tAsBits bits = 0;
+				size_t bits_Size;
 			};
-			Input.ReadType(V1, V1);
 
-			Input.ReadType(V2, V2);
-			V2bits_Size = V2;
+			Input.ReadType(bits, bits);
+			bits_Size = bits;
 
-			Data._NameToPtr[V1] = V2;
+			V._Instructions.resize(bits_Size);
+
+
+			memcpy(V._Instructions.data(), &Input.GetByteWith_offset(0), bits_Size * sizeof(Instruction));
+
+			Input.Increment_offset(bits_Size * sizeof(Instruction));
 		}
+		{// _NameToPtr
+			union
+			{
+				Size_tAsBits bits = 0;
+				size_t bits_Size;
+			};
+
+			Input.ReadType(bits, bits);
+			bits_Size = bits;
+
+			V._NameToPtr.clear();
+			V._NameToPtr.reserve(bits_Size);
+
+			for (size_t i = 0; i < bits_Size; i++)
+			{
+				String V1;
+				union
+				{
+					Size_tAsBits V2 = 0;
+					size_t V2bits_Size;
+				};
+				Input.ReadType(V1, V1);
+
+				Input.ReadType(V2, V2);
+				V2bits_Size = V2;
+
+				V._NameToPtr[V1] = V2;
+			}
+
+			bool HasDebugInfo = false;
+			Input.ReadType(HasDebugInfo, HasDebugInfo);
+
+			if (HasDebugInfo)
+			{
+				ULangDebugInfo V2;
+				ULangDebugInfo::FromBytes(Input, V2);
+
+				V.DebugInfo = std::move(V2);
+			}
+			Data._Data = std::move(V);
+		}
+
+		
+	}
+	break;
+	case CodeLayer::DataTypes::MachineCode:
+	{
+		CodeLayer::MachineCode V;
+		Input.ReadType(V._Code, V._Code);
+		{// Code
+
+			union
+			{
+				Size_tAsBits bits = 0;
+				size_t bits_Size;
+			};
+
+			Input.ReadType(bits, bits);
+			bits_Size = bits;
+
+			V._Code.resize(bits_Size);
+
+
+			memcpy(V._Code.data(), &Input.GetByteWith_offset(0), bits_Size);
+
+			Input.Increment_offset(bits_Size);
+		}
+
+		{// _NameToPtr
+			union
+			{
+				Size_tAsBits bits = 0;
+				size_t bits_Size;
+			};
+
+			Input.ReadType(bits, bits);
+			bits_Size = bits;
+
+			V._NameToPtr.clear();
+			V._NameToPtr.reserve(bits_Size);
+
+			for (size_t i = 0; i < bits_Size; i++)
+			{
+				String V1;
+				union
+				{
+					Size_tAsBits V2 = 0;
+					size_t V2bits_Size;
+				};
+				Input.ReadType(V1, V1);
+
+				Input.ReadType(V2, V2);
+				V2bits_Size = V2;
+
+				V._NameToPtr[V1] = V2;
+			}
+
+			Input.ReadType(V.DebugInfo, V.DebugInfo);
+		}
+
+		Data._Data = std::move(V);
+	}
+	break;
+	default:
+		throw std::exception("bad path");
+		break;
 	}
 }
 void UClib::FromBytes(BitReader& reader, ClassAssembly& Assembly)

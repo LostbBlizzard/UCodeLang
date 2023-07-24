@@ -4,6 +4,7 @@ UCodeLangStart
 
 void ULangDebugInfo::ToBytes(BitMaker& bit, const ULangDebugInfo& Value)
 {
+	return;
 	bit.WriteType((BitMaker::SizeAsBits)Value.DebugInfo.size());
 	for (auto& Item : Value.DebugInfo)
 	{
@@ -20,6 +21,7 @@ void ULangDebugInfo::ToBytes(BitMaker& bit, const ULangDebugInfo& Value)
 
 bool ULangDebugInfo::FromBytes(BitReader& bit, ULangDebugInfo& Value)
 {
+	return false;
 	BitMaker::SizeAsBits V;
 	bit.ReadType(V, V);
 	Value.DebugInfo.resize(V);

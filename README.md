@@ -128,7 +128,7 @@ The final vision of the Project has Backends for
  
  - C89
 
- - x86_64(Windows),
+ - x86_32(Windows),
 
  - x86_64(Windows,Linux),
 
