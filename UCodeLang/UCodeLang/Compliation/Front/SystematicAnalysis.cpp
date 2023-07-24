@@ -672,7 +672,9 @@ void SystematicAnalysis::BuildLib(const UClib& lib,const Path& LibName)
 	if (IRLayer)
 	{
 		IRBuilder IRToImport;
-		if (IRBuilder::FromBytes(IRToImport,BytesView((Byte*)IRLayer->_Code.data(), IRLayer->_Code.size())))
+		auto& LayerInfo = IRLayer->_Data.Get<CodeLayer::JustData>();
+
+		if (IRBuilder::FromBytes(IRToImport,BytesView((Byte*)LayerInfo._Data.data(), LayerInfo._Data.size())))
 		{
 			GotIRCode = true;
 			_Builder.CombineWith(std::move(IRToImport));
@@ -763,7 +765,9 @@ void SystematicAnalysis::ToIntFile(FileNode_t* File, const Path& path)
 
 
 	auto IRLayer = Tep.AddLayer(UCode_CodeLayer_IR_Name);
-	IRLayer->Get_Code() = TepIR.ToBytes().MoveToVector();
+	CodeLayer::JustData V;
+	V._Data == TepIR.ToBytes().MoveToVector();
+	IRLayer->_Data = V._Data;
 
 	Tep.ToFile(&Tep, path);
 

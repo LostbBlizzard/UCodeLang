@@ -27,17 +27,10 @@ void X86BackEnd_UCodeLib::Build(const IRBuilder* Input)
 
 	UClib& Lib = Getliboutput();
 
-	
-	_OutLayer->Get_Code() = Output;
-
-	Instruction Ins;
-	for (const auto& Item : _CodeGen._Funcs)
-	{
-		const String FuncName =Input->FromID(Item.Func->identifier);
-
-		InstructionBuilder::CallCode(Item.location, Ins);
-		_OutLayer->Add_NameToInstruction(_OutLayer->Add_Instruction(Ins), FuncName);
-	}
+	auto _OutLayer = Getliboutput().AddLayer(UCode_CodeLayer_X86_UCodeVM_Name);
+	CodeLayer::MachineCode V;
+	V._Code = Output;
+	_OutLayer->_Data = std::move(V);
 
 }
 UCodeLangEnd

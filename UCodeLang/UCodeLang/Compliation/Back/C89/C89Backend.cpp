@@ -24,7 +24,9 @@ void C89Backend::Build(const IRBuilder* Input)
 		if (HasLibOutput())
 		{
 			auto _OutLayer = Getliboutput().AddLayer(UCode_CodeLayer_IR_Name);
-			_OutLayer->Get_Code() = Input->ToBytes().MoveToVector();
+			CodeLayer::JustData V; 
+			V._Data = Input->ToBytes().MoveToVector();
+			_OutLayer->_Data = std::move(V);
 		}
 		else
 		{

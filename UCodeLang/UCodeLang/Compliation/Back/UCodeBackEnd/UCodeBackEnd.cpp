@@ -98,14 +98,17 @@ void UCodeBackEndObject::Build(const IRBuilder* Input)
 
 	if (Get_Settings()._Type == OutPutType::IRAndSymbols)
 	{
-		_OutLayer = _Output->AddLayer(UCode_CodeLayer_IR_Name);
-		_OutLayer->Get_Code() = Input->ToBytes().MoveToVector();
+		auto V = _Output->AddLayer(UCode_CodeLayer_IR_Name);
+		auto V2 = CodeLayer::JustData();
+		V2._Data = Input->ToBytes().MoveToVector();
 
+		V->_Data = std::move(V2);
 	}
 	else
 	{
-		UClib
-		_OutLayer = _Output->AddLayer(UCode_CodeLayer_UCodeVM_Name);
+		auto V = _Output->AddLayer(UCode_CodeLayer_UCodeVM_Name);
+		V->_Data = CodeLayer::UCodeByteCode();
+		_OutLayer = V->_Data.Get_If<CodeLayer::UCodeByteCode>();
 
 		UpdateOptimizations();
 

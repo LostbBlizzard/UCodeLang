@@ -52,10 +52,7 @@ void UCLibManger::LinkLib(UCodeLang::RunTimeLib* Item)
 		auto Layer = Item->Get_Lib()->GetLayer(UCode_CodeLayer_UCodeVM_Name);
 		if (Layer) 
 		{
-			for (const auto& Item2 : Layer->Get_NameToPtr())
-			{
-				_NameToAddress[Item2._Key] = Item2._Value;
-			}
+			auto& InsLayer = Layer->_Data.Get<CodeLayer::UCodeByteCode>();
 			for (const auto& Item : Item->Get_Lib()->Get_StaticBytes())
 			{
 				StaticBytes.push_back(Item);
@@ -65,11 +62,12 @@ void UCLibManger::LinkLib(UCodeLang::RunTimeLib* Item)
 				ThreadBytes.push_back(Item);
 			}
 
-			for (const auto& Item : Layer->Get_Code())
-			{
-				_Code.push_back(Item);
-			}
+			
 
+			for (const auto& Item2 : InsLayer.Get_NameToPtr())
+			{
+				_NameToAddress[Item2._Key] = Item2._Value;
+			}
 			auto& _Assembly = Item->Get_Lib()->Get_Assembly();
 			ClassAssembly::PushCopyClasses(_Assembly, Assembly);
 		}
