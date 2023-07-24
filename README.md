@@ -42,11 +42,13 @@ mainly
 
 # Downloads & Documentation
 
-[WebSite]()
+[WebSite and PlayGround]()
 
 [Download]()
 
 [Documentation]("UCodeDocumentation/src/SUMMARY.md")
+
+[VSCode Extension]()
 
 [How To Add To Your C++ Project]("UCodeDocumentation/src/ForImplementers.md")
 
