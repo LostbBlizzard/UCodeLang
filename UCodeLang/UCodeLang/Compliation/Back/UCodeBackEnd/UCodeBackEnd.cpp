@@ -119,6 +119,17 @@ void UCodeBackEndObject::Build(const IRBuilder* Input)
 		DoOptimizations();
 
 		LinkFuncs();
+
+		AddDebugInfo();
+
+			
+	}
+}
+void UCodeBackEndObject::AddDebugInfo()
+{
+	if (IsDebugMode())
+	{
+		_OutLayer->DebugInfo = ULangDebugInfo(std::move(_DebugInfo));
 	}
 }
 UCodeBackEndObject::IRlocData UCodeBackEndObject::To(const ParlocData& Value)
@@ -359,6 +370,23 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		auto& Item_ = IR->Instructions[i];
 		auto Item = Item_.get();
 		Index = i;
+
+
+
+		if (IsDebugMode()) {
+			auto DebugInfo = IR->DebugInfo.Get_debugfor(i);
+			for (auto& Item : DebugInfo)
+			{
+				if (auto Val = Item->Debug.Get_If<IRDebugSetFile>())
+				{
+					Add_SetFile(Val->FileName, i);
+				}
+				else if (auto Val = Item->Debug.Get_If<IRDebugSetLineNumber>())
+				{
+					Add_SetLineNumber(Val->LineNumber, Val->InsInBlock);
+				}
+			}
+		}
 
 		switch (Item->Type)
 		{

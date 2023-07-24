@@ -766,8 +766,8 @@ void SystematicAnalysis::ToIntFile(FileNode_t* File, const Path& path)
 
 	auto IRLayer = Tep.AddLayer(UCode_CodeLayer_IR_Name);
 	CodeLayer::JustData V;
-	V._Data == TepIR.ToBytes().MoveToVector();
-	IRLayer->_Data = V._Data;
+	V._Data = TepIR.ToBytes().MoveToVector();
+	IRLayer->_Data =std::move(V);
 
 	Tep.ToFile(&Tep, path);
 

@@ -108,6 +108,55 @@ struct UDebugIns
 			throw std::exception("bad path");
 		}
 	}
+
+	Optional<size_t> Get_Ins() const
+	{
+		if (Debug.Is<None>())
+		{
+			return {};
+		}
+		else if (Debug.Is<UDebugSetFile>())
+		{
+			return Debug.Get<UDebugSetFile>().ForIns;
+		}
+		else if (Debug.Is<UDebugSetLineNumber>())
+		{
+			return Debug.Get<UDebugSetLineNumber>().ForIns;
+		}
+		else if (Debug.Is<UDebugSetVarableLoc>())
+		{
+			return Debug.Get<UDebugSetVarableLoc>().ForIns;
+		}
+		else
+		{
+			throw std::exception("bad path");
+		}
+
+	}
+	void Set_Ins(size_t Value) 
+	{
+		if (Debug.Is<None>())
+		{
+			
+		}
+		else if (Debug.Is<UDebugSetFile>())
+		{
+			Debug.Get<UDebugSetFile>().ForIns = Value;
+		}
+		else if (Debug.Is<UDebugSetLineNumber>())
+		{
+			Debug.Get<UDebugSetLineNumber>().ForIns = Value;
+		}
+		else if (Debug.Is<UDebugSetVarableLoc>())
+		{
+			Debug.Get<UDebugSetVarableLoc>().ForIns = Value;
+		}
+		else
+		{
+			throw std::exception("bad path");
+		}
+
+	}
 };
 
 using VarableInfoType_t = int;
@@ -165,16 +214,87 @@ struct VarableInfo
 struct ULangDebugInfo
 {
 	Vector<UDebugIns> DebugInfo;
-	BinaryVectorMap<String,VarableInfo> VarablesInfo;
+	BinaryVectorMap<String, VarableInfo> VarablesInfo;
 
 	static void ToBytes(BitMaker& bit, const ULangDebugInfo& Value);
 	static bool FromBytes(BitReader& bit, ULangDebugInfo& Value);
+
 	static void ToBytes(BitMaker& bit, const UDebugIns& Value);
-	
 	static bool FromBytes(BitReader& bit, UDebugIns& Value);
-	
+
 	static void ToBytes(BitMaker& bit, const VarableInfo& Value);
 	static bool FromBytes(BitReader& bit, VarableInfo& Value);
+
+
+	void Add_SetFile(const String& file, size_t Ins)
+	{
+		UDebugSetFile V2;
+		V2.FileName = file;
+		V2.ForIns = Ins;
+		UDebugIns V;
+		V.Debug = std::move(V2);
+		DebugInfo.push_back(std::move(V));
+	}
+	void Add_SetLineNumber(size_t LineNumber, size_t Ins)
+	{
+		UDebugSetLineNumber V2;
+		V2.LineNumber= LineNumber;
+		V2.ForIns = Ins;
+		UDebugIns V;
+		V.Debug = std::move(V2);
+		DebugInfo.push_back(std::move(V));
+	}
+	void Add_SetVarableLoc(UDebugSetVarableLoc&& Info)
+	{
+		UDebugIns V;
+		V.Debug = std::move(Info);
+		DebugInfo.push_back(std::move(V));
+	}
+	void Add_SetVarableName(const String& name,VarableInfo&& Info)
+	{
+		VarablesInfo.AddValue(name, Info);
+	}
+	Vector<UDebugIns*> GetForIns(size_t Ins)
+	{
+		return GetForIns(DebugInfo, Ins);
+	}
+	Vector<const UDebugIns*> GetForIns(size_t Ins) const
+	{
+		return GetForIns(DebugInfo, Ins);
+	}
+	
+	static Vector<const UDebugIns*> GetForIns(const Vector<UDebugIns>& DebugInfo, size_t Ins)
+	{
+		Vector<const UDebugIns*> R;
+
+		for (auto& Item : DebugInfo)
+		{
+			auto V = Item.Get_Ins();
+
+			if (V.has_value() && V.value() == Ins)
+			{
+				R.push_back(&Item);
+			}
+		}
+
+		return R;
+	}
+	static Vector<UDebugIns*> GetForIns(Vector<UDebugIns>& DebugInfo,size_t Ins)
+	{
+		Vector<UDebugIns*> R;
+
+		for (auto& Item : DebugInfo)
+		{
+			auto V = Item.Get_Ins();
+
+			if (V.has_value() && V.value() == Ins)
+			{
+				R.push_back(&Item);
+			}
+		}
+
+		return R;
+	}
 };
 
 UCodeLangEnd

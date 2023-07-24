@@ -17,10 +17,14 @@
  int H = A;
  ret H;
 
-*/
+
 
 |main3[int A] -> int&:
  int& R = A;
  //A = 0;
  A = 15;
  ret R;
+ 
+*/
+
+|main[] => 0;

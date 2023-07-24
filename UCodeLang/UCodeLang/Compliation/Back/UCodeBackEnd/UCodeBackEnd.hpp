@@ -15,6 +15,8 @@ public:
 	void Reset() override;
 	void Build(const IRBuilder* Input) override;
 
+	void AddDebugInfo();
+
 
 	String GetBackEndName() override { return "UCodeVM"; }
 	String GetOutputExtWithDot() override { return FileExt::LibWithDot; }
@@ -27,13 +29,13 @@ private:
 	{
 
 	};
-	
+
 	struct FuncInsID
 	{
 		UAddress Index;
 		IRidentifierID _FuncID;
 	};
-	
+
 
 	struct StackPreCall
 	{
@@ -93,7 +95,7 @@ private:
 	};
 	struct IRlocData_IRPar
 	{
-		const IRPar* Par =nullptr;
+		const IRPar* Par = nullptr;
 	};
 	struct IRlocData_StackPre
 	{
@@ -152,11 +154,11 @@ private:
 	struct IRlocData
 	{
 		IRType ObjectType;
-		Variant<Nothing,RegisterID, IRlocData_IRPar, IRlocData_StackPre, IRlocData_StackPost
-		, IRlocData_ThreadPos, IRlocData_StaticPos> Info;
+		Variant<Nothing, RegisterID, IRlocData_IRPar, IRlocData_StackPre, IRlocData_StackPost
+			, IRlocData_ThreadPos, IRlocData_StaticPos> Info;
 	};
 	IRlocData To(const ParlocData& Value);
-	
+
 	struct  FuncCallEndData
 	{
 		Vector<IRPar> Pars;
@@ -173,20 +175,20 @@ private:
 	Vector<FuncInsID> FuncsToLink;
 	Vector<Funcpos> _Funcpos;
 	Vector<ParlocData> CurrentFuncParPos;
-	
+
 	const IRBuilder* _Input = nullptr;
 	UClib* _Output = nullptr;
 	CodeLayer::UCodeByteCode* _OutLayer = nullptr;
-	
+
 	BinaryVectorMap< const IRBlock*, BlockData> IRToBlockData;
-	
-	
+
+
 	StaticMemoryManager _StaticMemory;
 	StaticMemoryManager _ThreadMemory;
 
 	size_t Index = 0;
 	const IRBlock* LookingBlock = nullptr;
-	
+
 	RegisterID _InputPar = RegisterID::StartParameterRegister;
 	size_t _CurrentParIndex = 0;
 
@@ -212,7 +214,7 @@ private:
 	}
 
 
-	
+
 	UCodeFunc* NewBuildFunc()
 	{
 		auto Item = new UCodeFunc();
@@ -230,7 +232,7 @@ private:
 
 	void OnBlockBuildCode(const IRBlock* IR);
 
-	
+
 	size_t GetSize(const IRInstruction* Ins)
 	{
 		return _Input->GetSize(Ins->ObjectType);
@@ -264,7 +266,7 @@ private:
 	{
 		return  IsReferencedAfterThisIndex(IROperator((IRInstruction*)Op));
 	}
-	
+
 	using WeightType = int;
 	WeightType IsReferencedAfterThisIndexWeighted(const IRInstruction* Op)
 	{
@@ -295,23 +297,23 @@ private:
 		return nullptr;
 	}
 
-	bool IsLookingAtPar(const IRInstruction* IR,const IRPar* Par)
+	bool IsLookingAtPar(const IRInstruction* IR, const IRPar* Par)
 	{
 		return IR->Target().Parameter == Par;
 	}
 	void SynchronizePar(ParlocData* Par);
-	
+
 
 
 	void RegWillBeUsed(RegisterID Value);
-	
+
 	void SetRegister(RegisterID Value, const AnyInt64 Name)
 	{
 		_Registers.SetRegister(Value, Name);
 	}
 	void SetRegister(RegisterID Value, const IRInstruction* Name)
 	{
-		_Registers.SetRegister(Value,Name);
+		_Registers.SetRegister(Value, Name);
 	}
 	void SetRegister(RegisterID Value, const IROperator& Name)
 	{
@@ -319,9 +321,9 @@ private:
 	}
 	void SetRegister(RegisterID Value, const IRPar* Name)
 	{
-		SetRegister(Value,IROperator((IRPar*)Name));
+		SetRegister(Value, IROperator((IRPar*)Name));
 	}
-	void SetRegister(RegisterID Value,const IRlocData& Name)
+	void SetRegister(RegisterID Value, const IRlocData& Name)
 	{
 		SetRegister(Value, IROperator());
 	}
@@ -365,13 +367,13 @@ private:
 
 	IRlocData GetIRLocData(const IRInstruction* Ins);
 	IRlocData GetIRLocData(const IRInstruction* Ins, const IROperator& Op);
-	void CopyValues(const IRlocData& Src, const IRlocData& Out,bool DerefSrc = false,bool DerefOut = false);
-	
+	void CopyValues(const IRlocData& Src, const IRlocData& Out, bool DerefSrc = false, bool DerefOut = false);
+
 	RegisterID MakeIntoRegister(const IRlocData& Value, Optional<RegisterID> RegisterToPut = {});
 	RegisterID MakeIntoRegister(const IRInstruction* Ins, const IROperator& Op, Optional<RegisterID> RegisterToPut = {})
 	{
-		auto Value = GetIRLocData(Ins,Op);
-		return MakeIntoRegister(Value,RegisterToPut);
+		auto Value = GetIRLocData(Ins, Op);
+		return MakeIntoRegister(Value, RegisterToPut);
 	}
 	void GiveNameTo(const IRlocData& Value, const IRInstruction* Name);
 
@@ -383,12 +385,12 @@ private:
 	void PushOpStack(const IRInstruction* Ins, const IROperator& Op);
 	void LogicalNot(IRTypes Type, RegisterID In, RegisterID Out);
 	void BuildLink(const IRidentifier& FuncName, IRFuncLink LinkType);
-	
+
 	void CopyValueToStack(const IRInstruction* IRName, const IRType& ObjectType, RegisterID Item);
 
 	void MoveValueToStack(const IRInstruction* IRName, const IRType& ObjectType, RegisterID Item);
 
-	void StoreValue(const IRInstruction* Ins, const  IROperator& OutputLocationIR,const IROperator& Input);
+	void StoreValue(const IRInstruction* Ins, const  IROperator& OutputLocationIR, const IROperator& Input);
 
 	void StoreValueInPointer(const IRType& ObjectType, RegisterID Pointer, const  IROperator& Value, IRInstruction* Ins);
 	void StoreValueInPointer(const IRType& ObjectType, RegisterID Pointer, RegisterID Value);
@@ -398,9 +400,9 @@ private:
 		StoreValueInPointer(Pointer, 0, Value);
 	}
 
-	void MoveRegInValue(RegisterID Value,const IRlocData& To, size_t Offset);
+	void MoveRegInValue(RegisterID Value, const IRlocData& To, size_t Offset);
 	void MoveValueInReg(const IRlocData& Value, size_t Offset, RegisterID To);
-	
+
 	RegisterID ReadValueFromPointer(const IRType& ObjectType, RegisterID Pointer);
 
 	void ReadValueFromPointer(RegisterID Pointer, size_t Pointerofset, const IRlocData& Out);
@@ -444,6 +446,37 @@ private:
 	}
 	IRlocData_StackPost GetFreeStackPos(IRType V);
 	IRlocData GetFreeStackLoc(IRType V);
+
+
+	//AddDebuginfo
+	UCodeLang::ULangDebugInfo _DebugInfo;
+	bool IsDebugMode()
+	{
+		return (OptimizationFlags_t)Get_Settings()._Flags & (OptimizationFlags_t)OptimizationFlags::Debug;
+	}
+
+	void Add_SetFile(const String& file, size_t InsInBlock)
+	{
+		if (IsDebugMode())
+		{
+			_DebugInfo.Add_SetFile(file, InsInBlock);
+		}
+	}
+	void Add_SetLineNumber(size_t LineNumber, size_t InsInBlock)
+	{
+		if (IsDebugMode())
+		{
+			_DebugInfo.Add_SetLineNumber(LineNumber, InsInBlock);
+		}
+	}
+	void Add_SetVarableName(const String& Name,VarableInfo& Info)
+	{
+		if (IsDebugMode())
+		{
+			_DebugInfo.Add_SetVarableName(Name,std::move(Info));
+		}
+	}
+
 };
 UCodeLangEnd
 
