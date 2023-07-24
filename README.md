@@ -123,11 +123,14 @@ use the github discussions to talk about the language and new features and langu
 also keep it civil.
 
 
-The final vision of the Project is Backends for 
+The final vision of the Project has Backends for 
+ - UCodeVM(Interpreter,JitInterpreter,NativeInterpreter)
  
  - C89
 
- - x86(Windows,Linux),
+ - x86_64(Windows),
+
+ - x86_64(Windows,Linux),
 
  - arm64(Linux),
 
@@ -135,7 +138,8 @@ The final vision of the Project is Backends for
 
 
 - Here's' a List of Community Made Backends.
-The WebassemblyBackend is an of a external UCodeLang Backend.
+
+  - The [WebassemblyBackend](https://github.com/LostbBlizzard/UCodeLangWasm) is an of a example external UCodeLang Backend.
 
 
 # Credits
