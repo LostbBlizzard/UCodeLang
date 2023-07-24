@@ -833,13 +833,20 @@ void SystematicAnalysis::Add_SetVarableInfo(const Symbol& Syb, IRInstruction* In
 	auto ID = _Builder.ToID(Syb.FullName);
 	IRDebugSetVarableName V;
 	
-	V.Ins = Ins;
-	V.Set_TypeInfo(".uc", &Syb.VarType);
+	V.VarableName = Syb.FullName;
+	
 	LookingAtIRBlock->DebugInfo.Add_SetVarableName(std::move(V));
 
 	IRDebugSybol Info;
 	Info.VarableName = Syb.FullName;
-	Info.Set_TypeInfo(".uc", &Syb.VarType);
+	
+	UCodeLang::ReflectionTypeInfo Type =ConvertToTypeInfo(Syb.VarType);
+
+	Info.LangType = UCode_LangType_UCodeLang;
+
+	BitMaker bitm; 
+	UClib::ToBytes(bitm, Type);
+	Info.TypeInfo = std::move(bitm.Get_Bytes());
 
 	switch (Syb.Type)
 	{	

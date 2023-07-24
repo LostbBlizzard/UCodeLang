@@ -12,6 +12,11 @@ $[_global]:
    //File:/Main.uc
    //Line:30
    //Source Line:|main[] => 0;
+   //IR-Data:{
+      int32 B = 0;
+      ret B;
+      ;
+   //}
 
    0 :Store32 [A],0
    1 :StoreRegToReg32 [A],[F]

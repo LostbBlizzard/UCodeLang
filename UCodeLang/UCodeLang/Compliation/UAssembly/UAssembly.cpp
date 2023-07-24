@@ -9,7 +9,12 @@
 #define StackName_ "[" + StackName + "]"
 
 UAssemblyStart
-void OutputIRLineInfo(UCodeLang::IRFunc* Func, const UCodeLang::UDebugSetLineNumber* Val, UCodeLang::String& r)
+struct OutputIRLineState
+{
+	IRBuilder::ToStringState State;
+	UCodeLang::BinaryVectorMap<UAddress, String> Names;
+};
+void OutputIRLineInfo(IRBuilder* Builder,IRFunc* Func, const UDebugSetLineNumber* Val, OutputIRLineState& State, String& r)
 {
 	for (auto& Block : Func->Blocks)
 	{
@@ -19,12 +24,18 @@ void OutputIRLineInfo(UCodeLang::IRFunc* Func, const UCodeLang::UDebugSetLineNum
 			{
 				if (DebugIns->LineNumber == Val->LineNumber)
 				{
-					r += "   //IR-Data{";
-					//for (size_t i = Val->ForIns; i < Block->Instructions.size(); i++)
+					r += "   //IR-Data:{\n";
+					
+					for (size_t i = Val->ForIns; i < Block->Instructions.size(); i++)
 					{
+						auto& Item = Block->Instructions[i];
 						r += "   ";
+						r += "   ";
+						Builder->ToString(Item.get(),r,State.State,State.Names,i,Block.get());
+						r += ";\n";
 					}
-					r += "   //}";
+					
+					r += "   //}\n";
 
 
 				}
@@ -174,7 +185,8 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 		r += "\n[Instructions:"  + UCodeLayer->_Name + "]-- \n";
 
 		auto& Insts = Info.Get_Instructions();
-		String OnFunc;
+		String OnFunc; 
+		BinaryVectorMap<IRidentifierID, OutputIRLineState> IRStringStates;
 		for (size_t i = 0; i < Insts.size(); i++)
 		{
 			auto& Item = Insts[i];
@@ -269,30 +281,75 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 						{
 							auto& IRInfoVal = IRInfo.value();
 
+							
 
 							if (StaticVariablesInitializeFunc == OnFunc)
 							{
-								OutputIRLineInfo(&IRInfoVal._StaticInit, Val, r);
+								auto Id = IRInfoVal._StaticInit.identifier;
+								if (!IRStringStates.HasValue(Id))
+								{
+									OutputIRLineState LineState;
+									String Unused;
+									IRInfoVal.ToString(LineState.State, &IRInfoVal._StaticInit, Unused);
+									IRStringStates.AddValue(Id, std::move(LineState));
+								}
+								OutputIRLineInfo(&IRInfoVal,&IRInfoVal._StaticInit, Val, IRStringStates.at(Id), r);
 							}
 							else if (ThreadVariablesInitializeFunc == OnFunc)
 							{
-								OutputIRLineInfo(&IRInfoVal._threadInit, Val, r);
+								auto Id = IRInfoVal._threadInit.identifier;
+								if (!IRStringStates.HasValue(Id))
+								{
+									OutputIRLineState LineState;
+									String Unused;
+									IRInfoVal.ToString(LineState.State, &IRInfoVal._threadInit, Unused);
+									IRStringStates.AddValue(Id, std::move(LineState));
+								}
+								OutputIRLineInfo(&IRInfoVal, &IRInfoVal._threadInit, Val, IRStringStates.at(Id), r);
 							}
 							else if (StaticVariablesUnLoadFunc == OnFunc)
 							{
-								OutputIRLineInfo(&IRInfoVal._StaticdeInit, Val, r);
+								auto Id = IRInfoVal._StaticdeInit.identifier;
+								if (!IRStringStates.HasValue(Id))
+								{
+									OutputIRLineState LineState;
+									IRBuilder::ToStringState State;
+									String Unused;
+									IRInfoVal.ToString(LineState.State, &IRInfoVal._StaticdeInit, Unused);
+									IRStringStates.AddValue(Id, std::move(LineState));
+								}
+								OutputIRLineInfo(&IRInfoVal, &IRInfoVal._StaticdeInit, Val, IRStringStates.at(Id), r);
 							}
 							else if (ThreadVariablesUnLoadFunc == OnFunc)
 							{
-								OutputIRLineInfo(&IRInfoVal._threaddeInit, Val, r);
+								auto Id = IRInfoVal._threaddeInit.identifier;
+								if (!IRStringStates.HasValue(Id))
+								{
+									OutputIRLineState LineState;
+									IRBuilder::ToStringState State;
+									String Unused;
+									IRInfoVal.ToString(LineState.State, &IRInfoVal._threaddeInit, Unused);
+									IRStringStates.AddValue(Id, std::move(LineState));
+								}
+								OutputIRLineInfo(&IRInfoVal, &IRInfoVal._threaddeInit, Val, IRStringStates.at(Id), r);
 							}
 							else 
 							{
 								for (auto& Func : IRInfoVal.Funcs)
 								{
+									
 									if (IRInfoVal.FromID(Func->identifier) == OnFunc)
 									{
-										OutputIRLineInfo(Func.get(), Val, r);
+										auto Id = Func->identifier;
+										if (!IRStringStates.HasValue(Id))
+										{
+											OutputIRLineState LineState;
+											IRBuilder::ToStringState State;
+											String Unused;
+											IRInfoVal.ToString(LineState.State, Func.get(), Unused);
+											IRStringStates.AddValue(Id, std::move(LineState));
+										}
+										OutputIRLineInfo(&IRInfoVal, Func.get(), Val, IRStringStates.at(Id), r);
 										break;
 									}
 								}

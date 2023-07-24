@@ -129,7 +129,7 @@ void TestingGround()
 
 
 	Settings._Type = OutPutType::Lib;
-	Settings._Flags = OptimizationFlags::Debug;
+	Settings._Flags = OptimizationFlags::Stable_ForDebuging;
 	//_Compiler.Set_BackEnd(ULangTest::C89Backend::MakeObject);
 
 	ModuleFile Mfile;
