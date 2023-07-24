@@ -4,7 +4,7 @@ UCodeLangStart
 
 void ULangDebugInfo::ToBytes(BitMaker& bit, const ULangDebugInfo& Value)
 {
-	return;
+	//return;
 	bit.WriteType((BitMaker::SizeAsBits)Value.DebugInfo.size());
 	for (auto& Item : Value.DebugInfo)
 	{
@@ -21,14 +21,17 @@ void ULangDebugInfo::ToBytes(BitMaker& bit, const ULangDebugInfo& Value)
 
 bool ULangDebugInfo::FromBytes(BitReader& bit, ULangDebugInfo& Value)
 {
-	return false;
+	//return false;
+	
 	BitMaker::SizeAsBits V;
+
 	bit.ReadType(V, V);
 	Value.DebugInfo.resize(V);
 	for (size_t i = 0; i < (size_t)V; i++)
 	{
 		FromBytes(bit, Value.DebugInfo[i]);
 	}
+	
 	bit.ReadType(V, V);
 	Value.VarablesInfo.reserve(V);
 	for (size_t i = 0; i < (size_t)V; i++)
@@ -57,7 +60,7 @@ void ULangDebugInfo::ToBytes(BitMaker& bit, const UDebugIns& Value)
 	}
 	else if (auto V = Value.Debug.Get_If<UDebugSetLineNumber>())
 	{
-		bit.WriteType(V->LineNumber);
+		bit.WriteType((BitMaker::SizeAsBits)V->LineNumber);
 		bit.WriteType((BitMaker::SizeAsBits)V->ForIns);
 	}
 	else if (auto V = Value.Debug.Get_If<UDebugSetVarableLoc>())
@@ -76,19 +79,19 @@ void ULangDebugInfo::ToBytes(BitMaker& bit, const UDebugIns& Value)
 		}
 		else if (auto V1 = V->Type.Get_If<UDebugSetVarableLoc::StackSub>())
 		{
-			bit.WriteType(V1->offset);
+			bit.WriteType((BitMaker::SizeAsBits)V1->offset);
 		}
 		else if (auto V1 = V->Type.Get_If<UDebugSetVarableLoc::StackAdd>())
 		{
-			bit.WriteType(V1->offset);
+			bit.WriteType((BitMaker::SizeAsBits)V1->offset);
 		}
 		else if (auto V1 = V->Type.Get_If<UDebugSetVarableLoc::Static>())
 		{
-			bit.WriteType(V1->offset);
+			bit.WriteType((BitMaker::SizeAsBits)V1->offset);
 		}
 		else if (auto V1 = V->Type.Get_If<UDebugSetVarableLoc::Thread>())
 		{
-			bit.WriteType(V1->offset);
+			bit.WriteType((BitMaker::SizeAsBits)V1->offset);
 		}
 
 	}
@@ -96,6 +99,146 @@ void ULangDebugInfo::ToBytes(BitMaker& bit, const UDebugIns& Value)
 	{
 		throw std::exception("bad path");
 	}
+}
+
+bool ULangDebugInfo::FromBytes(BitReader& bit, UDebugIns& Value)
+{
+	UDebugIns::Type V = UDebugIns::Type::None;
+	bit.ReadType(*(UDebugIns::Type_t*)&V, *(UDebugIns::Type_t*)&V);
+	switch (V)
+	{
+	case UDebugIns::Type::None:
+	{
+		UDebugIns::None V2 = UDebugIns::None();
+
+	
+
+		Value.Debug = std::move(V2);
+	}
+	break;
+	case UDebugIns::Type::UDebugSetFile:
+	{
+		UDebugSetFile V2 = UDebugSetFile();
+
+		bit.ReadType(V2.FileName);
+
+		BitMaker::SizeAsBits Item;
+		bit.ReadType(Item);
+		V2.ForIns = Item;
+
+		Value.Debug = std::move(V2);
+	}
+	break;
+	case UDebugIns::Type::UDebugSetLineNumber:
+	{
+		UDebugSetLineNumber V2 = UDebugSetLineNumber();
+
+		{
+			BitMaker::SizeAsBits Item;
+			bit.ReadType(Item);
+			V2.LineNumber = Item;
+		}
+
+		{
+			BitMaker::SizeAsBits Item;
+			bit.ReadType(Item);
+			V2.ForIns = Item;
+		}
+
+		Value.Debug = std::move(V2);
+	}
+	break;
+	case UDebugIns::Type::UDebugSetVarableLoc:
+	{
+		UDebugSetVarableLoc V2 = UDebugSetVarableLoc();
+
+		bit.ReadType(V2.VarableFullName);
+
+
+		BitMaker::SizeAsBits Tep;
+		bit.ReadType(Tep);
+		V2.ForIns = Tep;
+
+		UDebugSetVarableLoc::TypeV Type;
+		bit.ReadType(*(UDebugSetVarableLoc::TypeV_t*)&Type);
+
+		switch (Type)
+		{
+		case UCodeLang::UDebugSetVarableLoc::TypeV::UMaped:
+		{
+
+		}
+		break;
+		case UCodeLang::UDebugSetVarableLoc::TypeV::RegisterID:
+		{
+			RegisterID V3;
+			bit.ReadType(*(RegisterID_t*)&V3);
+
+			V2.Type = std::move(V3);
+		}
+		break;
+		case UCodeLang::UDebugSetVarableLoc::TypeV::StackSub:
+		{
+			UDebugSetVarableLoc::StackSub V3;
+
+			BitMaker::SizeAsBits Tep;
+			bit.ReadType(Tep);
+
+			V3.offset = Tep;
+
+			V2.Type = std::move(V3);
+		}
+		break;
+		case UCodeLang::UDebugSetVarableLoc::TypeV::StackAdd:
+		{
+			UDebugSetVarableLoc::StackAdd V3;
+
+			BitMaker::SizeAsBits Tep;
+			bit.ReadType(Tep);
+
+			V3.offset = Tep;
+
+			V2.Type = std::move(V3);
+		}
+		break;
+		case UCodeLang::UDebugSetVarableLoc::TypeV::Static:
+		{
+			UDebugSetVarableLoc::Static V3;
+
+			BitMaker::SizeAsBits Tep;
+			bit.ReadType(Tep);
+
+			V3.offset = Tep;
+
+			V2.Type = std::move(V3);
+		}
+		break;
+		case UCodeLang::UDebugSetVarableLoc::TypeV::Thread:
+		{
+			UDebugSetVarableLoc::Thread V3;
+
+			BitMaker::SizeAsBits Tep;
+			bit.ReadType(Tep);
+
+			V3.offset = Tep;
+
+			V2.Type = std::move(V3);
+		}
+		break;
+		default:
+			throw std::exception("bad path");
+			break;
+		}
+
+		Value.Debug = std::move(V2);
+	}
+	break;
+	default:
+		throw std::exception("bad path");
+		break;
+	}
+
+	return true;
 }
 
 void ULangDebugInfo::ToBytes(BitMaker& bit, const VarableInfo& Value)

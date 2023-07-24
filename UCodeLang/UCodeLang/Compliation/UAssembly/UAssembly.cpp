@@ -129,7 +129,7 @@ String UAssembly::ToString(const UClib* Lib)
 	if (UCodeLayer && UCodeLayer->_Data.Is<CodeLayer::UCodeByteCode>())
 	{
 		const CodeLayer::UCodeByteCode& Info = UCodeLayer->_Data.Get<CodeLayer::UCodeByteCode>();
-		r += "\n[Instructions"  + UCodeLayer->_Name + "]-- \n";
+		r += "\n[Instructions:"  + UCodeLayer->_Name + "]-- \n";
 
 		auto& Insts = Info.Get_Instructions();
 		for (size_t i = 0; i < Insts.size(); i++)
@@ -142,6 +142,36 @@ String UAssembly::ToString(const UClib* Lib)
 				r += "---" + Name + ": \n";
 			}
 
+			if (Info.DebugInfo.has_value())
+			{
+				auto& Value = Info.DebugInfo.value();
+				auto List = Value.GetForIns(i);
+
+				if (List.size())
+				{
+					r += '\n';
+				}
+				for (auto& Item : List)
+				{
+					if (auto Val = Item->Debug.Get_If<UDebugSetFile>())
+					{
+						r += "   //File:";
+						r += Val->FileName;
+						r += '\n';
+					}
+					else if (auto Val = Item->Debug.Get_If<UDebugSetLineNumber>())
+					{
+						r += "   //Line:";
+						r += std::to_string(Val->LineNumber);
+						r += '\n';
+					}
+				}
+
+				if (List.size())
+				{
+					r += '\n';
+				}
+			}
 
 			r += "   " + std::to_string(i) + " :";
 

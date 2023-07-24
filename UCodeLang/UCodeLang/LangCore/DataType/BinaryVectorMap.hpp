@@ -265,6 +265,13 @@ public:
 	VectorMap() {}
 	~VectorMap() {}
 
+	VectorMap(VectorMap&& Other) = default;
+	VectorMap(const VectorMap& Other) = default;
+
+	
+	VectorMap& operator=(VectorMap&& Other) = default;
+	VectorMap& operator=(const VectorMap & Other) = default;
+
 
 	void AddValue(ConstKey key, const Value& Item)
 	{
