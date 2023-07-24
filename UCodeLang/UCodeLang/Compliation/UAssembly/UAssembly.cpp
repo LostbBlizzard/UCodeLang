@@ -27,9 +27,10 @@ String UAssembly::ToString(const UClib* Lib)
 	BinaryVectorMap<UAddress, String> AddressToName;
 
 	auto UCodeLayer = Lib->GetLayer(UCode_CodeLayer_UCodeVM_Name);
-	if (UCodeLayer)
+	if (UCodeLayer && UCodeLayer->_Data.Is<CodeLayer::UCodeByteCode>())
 	{
-		for (const auto& Item2 : UCodeLayer->Get_NameToPtr())
+		const CodeLayer::UCodeByteCode& Info = UCodeLayer->_Data.Get<CodeLayer::UCodeByteCode>();
+		for (const auto& Item2 : Info._NameToPtr)
 		{
 			AddressToName[Item2._Value] = Item2._Key;
 		}
@@ -125,10 +126,12 @@ String UAssembly::ToString(const UClib* Lib)
 	}
 
 
-	if (UCodeLayer) 
+	if (UCodeLayer && UCodeLayer->_Data.Is<CodeLayer::UCodeByteCode>())
 	{
-		r += "\n[Instructions]-- \n";
-		auto& Insts = UCodeLayer->Get_Instructions();
+		const CodeLayer::UCodeByteCode& Info = UCodeLayer->_Data.Get<CodeLayer::UCodeByteCode>();
+		r += "\n[Instructions"  + UCodeLayer->_Name + "]-- \n";
+
+		auto& Insts = Info.Get_Instructions();
 		for (size_t i = 0; i < Insts.size(); i++)
 		{
 			auto& Item = Insts[i];

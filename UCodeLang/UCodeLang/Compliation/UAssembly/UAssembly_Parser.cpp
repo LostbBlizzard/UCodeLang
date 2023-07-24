@@ -32,6 +32,12 @@ void Parser::ParseIns()
 		_ErrorsOutput->AddError(ErrorCodes::CantParseTree,-1,-1, "bad Token");
 		return;
 	}
+
+	
+	auto Layer = _Output->AddLayer(UCode_CodeLayer_UCodeVM_Name);
+	Layer->_Data = CodeLayer::UCodeByteCode();
+	_OutLayer = Layer->_Data.Get_If<CodeLayer::UCodeByteCode>();
+
 	const String_view& InsName = T->Value._String;
 	if (StringToInsMap.count(InsName))
 	{

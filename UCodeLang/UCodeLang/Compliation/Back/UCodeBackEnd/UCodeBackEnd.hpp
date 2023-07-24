@@ -176,7 +176,7 @@ private:
 	
 	const IRBuilder* _Input = nullptr;
 	UClib* _Output = nullptr;
-	CodeLayer* _OutLayer = nullptr;
+	CodeLayer::UCodeByteCode* _OutLayer = nullptr;
 	
 	BinaryVectorMap< const IRBlock*, BlockData> IRToBlockData;
 	
