@@ -289,7 +289,7 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 						Vector< FuncInfo> V;
 						for (auto& Item : Symbols)
 						{
-							NewFunction(Item, V);
+							OutputIRLineInfo(Item, V);
 						}
 						for (auto& Item : V)
 						{
@@ -569,7 +569,7 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 	}
 }
 
-void CppHelper::NewFunction(UCodeAnalyzer::CppHelper::SymbolData& Item, UCodeAnalyzer::Vector<FuncInfo>& V)
+void CppHelper::OutputIRLineInfo(UCodeAnalyzer::CppHelper::SymbolData& Item, UCodeAnalyzer::Vector<FuncInfo>& V)
 {
 	if (auto Val = Item._Type.Get_If<FuncData>())
 	{
@@ -593,7 +593,7 @@ void CppHelper::NewFunction(UCodeAnalyzer::CppHelper::SymbolData& Item, UCodeAna
 	{
 		for (auto& Item : Val->Symbols)
 		{
-			NewFunction(Item, V);
+			OutputIRLineInfo(Item, V);
 		}
 	}
 }
