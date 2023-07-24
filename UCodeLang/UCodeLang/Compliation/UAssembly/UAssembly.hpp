@@ -18,7 +18,7 @@ public:
 	UCodeLangForceinline void Set_Settings(CompliationSettings* V) {_Settings = V;}
 
 
-	static String ToString(const UCodeLang::UClib* Lib);
+	static String ToString(const UCodeLang::UClib* Lib, Optional<Path> SourceFiles = {});
 	static String ToString(const ReflectionTypeInfo& Value,const ClassAssembly& Assembly);
 	static String ToString(const ReflectionTypeInfo& Value, const ReflectionRawData& Data, const ClassAssembly& Assembly,UClib::NTypeSize PtrSize);
 	static String ToString(const TypedRawReflectionData& Value, const ClassAssembly& Assembly, UClib::NTypeSize PtrSize)

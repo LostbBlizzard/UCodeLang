@@ -2,6 +2,9 @@
 #include "CompilerTypes.hpp"
 #include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
 #include "UCodeLang/Compliation/Helpers/NameDecoratior.hpp"
+
+#include <fstream>
+
 #define StackName "Stack"
 #define StackName_ "[" + StackName + "]"
 
@@ -20,11 +23,14 @@ void UAssembly::Assemble(const String_view& Text, UClib* Out)
 	Lex.Lex(Text);
 	Parse.Parse(Lex.Get_Output(), Out);
 }
-String UAssembly::ToString(const UClib* Lib)
+String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles)
 {
 	auto& InsMapData = Get_InsToInsMapValue();
     String r;
 	BinaryVectorMap<UAddress, String> AddressToName;
+
+	VectorMap<String, Vector<String>> OpenedSourceFilesLines;
+	String OnFile;
 
 	auto UCodeLayer = Lib->GetLayer(UCode_CodeLayer_UCodeVM_Name);
 	if (UCodeLayer && UCodeLayer->_Data.Is<CodeLayer::UCodeByteCode>())
@@ -158,14 +164,76 @@ String UAssembly::ToString(const UClib* Lib)
 						r += "   //File:";
 						r += Val->FileName;
 						r += '\n';
+
+						OnFile = Val->FileName;
 					}
 					else if (auto Val = Item->Debug.Get_If<UDebugSetLineNumber>())
 					{
 						r += "   //Line:";
 						r += std::to_string(Val->LineNumber);
 						r += '\n';
+
+
+						if (SourceFiles.has_value())
+						{
+							r += "   //Source Line:";
+							String LineStr;
+
+							String* ItemValue=nullptr;
+							if (OpenedSourceFilesLines.HasValue(OnFile))
+							{
+								auto& Item = OpenedSourceFilesLines.at(OnFile);
+
+								if (Val->LineNumber-1 < Item.size()) {
+									ItemValue = &Item[Val->LineNumber - 1];
+								}
+							}
+							else
+							{
+								std::ifstream file(SourceFiles.value().native() + Path(OnFile).native());
+								if (file.is_open())
+								{
+									std::string str;
+									Vector<String> Lines;
+									while (std::getline(file, str))
+									{
+										Lines.push_back(std::move(str));
+									}
+									OpenedSourceFilesLines.AddValue(OnFile,std::move(Lines));
+								
+									auto& Item = OpenedSourceFilesLines.at(OnFile);
+
+									if (Val->LineNumber-1 < Item.size()) {
+										ItemValue = &Item[Val->LineNumber - 1];
+									}
+								}
+								else
+								{
+									OpenedSourceFilesLines.AddValue(OnFile, {});
+								}
+								
+							}
+
+
+							if (ItemValue)
+							{
+								LineStr += *ItemValue;
+							}
+							else
+							{
+								LineStr += "[Cant Find Line]";
+							}
+
+							r += LineStr;
+							r += '\n';
+						}
 					}
+
+
+					
 				}
+				
+				
 
 				if (List.size())
 				{

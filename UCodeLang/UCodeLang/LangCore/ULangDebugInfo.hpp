@@ -11,6 +11,7 @@ struct UDebugSetFile
 }; 
 struct UDebugSetLineNumber
 {
+	//This LineNumber and not LineIndex do LineNumber -1 for Index
 	size_t LineNumber;
 	UAddress ForIns = 0;
 };
@@ -267,15 +268,8 @@ struct ULangDebugInfo
 	{
 		Vector<const UDebugIns*> R;
 
-		for (auto& Item : DebugInfo)
-		{
-			auto V = Item.Get_Ins();
 
-			if (V.has_value() && V.value() == Ins)
-			{
-				R.push_back(&Item);
-			}
-		}
+		GetForIns(DebugInfo, Ins, R);
 
 		return R;
 	}
@@ -283,17 +277,40 @@ struct ULangDebugInfo
 	{
 		Vector<UDebugIns*> R;
 
+		GetForIns(DebugInfo, Ins, R);
+
+		return R;
+	}
+
+	static void GetForIns(const Vector<UDebugIns>& DebugInfo, size_t Ins,Vector<const UDebugIns*>& Out)
+	{
+		Out.clear();
+
 		for (auto& Item : DebugInfo)
 		{
 			auto V = Item.Get_Ins();
 
 			if (V.has_value() && V.value() == Ins)
 			{
-				R.push_back(&Item);
+				Out.push_back(&Item);
 			}
 		}
 
-		return R;
+	}
+	static void GetForIns(Vector<UDebugIns>& DebugInfo, size_t Ins, Vector<UDebugIns*>& Out)
+	{
+		Out.clear();
+
+		for (auto& Item : DebugInfo)
+		{
+			auto V = Item.Get_Ins();
+
+			if (V.has_value() && V.value() == Ins)
+			{
+				Out.push_back(&Item);
+			}
+		}
+
 	}
 };
 

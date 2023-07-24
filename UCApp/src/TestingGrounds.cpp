@@ -145,7 +145,7 @@ void TestingGround()
 		UCodeLang::UClib MLib;
 		if (UClib::FromFile(&MLib, OutData.OutputItemPath))
 		{
-			auto Text = UAssembly::UAssembly::ToString(&MLib);
+			auto Text = UAssembly::UAssembly::ToString(&MLib, Mfile.ThisModuleDir / Mfile.ModuleSourcePath);
 			String Path = OutData.OutputItemPath.generic_string() + ".UA";
 			std::ofstream out(Path);
 			out << Text;
