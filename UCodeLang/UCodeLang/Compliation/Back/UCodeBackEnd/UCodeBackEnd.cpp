@@ -1922,10 +1922,14 @@ void UCodeBackEndObject::StoreValue(const IRInstruction* Ins, const  IROperator&
 		V.Target() = OutputLocationIR;
 
 		auto Out = GetIRLocData(Ins, OutputLocationIR);
-		auto TepInfo = std::move(_Registers.GetInfo(Ins));
+		if (Out.ObjectType.IsType(IRTypes::Null))
+		{
+			int a = 0;
+		}
+		//auto TepInfo = std::move(_Registers.GetInfo(Ins));
 
 		auto Src = GetIRLocData(Ins, Input);
-		auto Tep2Info = std::move(_Registers.GetInfo(Ins));
+		//auto Tep2Info = std::move(_Registers.GetInfo(Ins));
 
 		CopyValues(Src, Out);
 
@@ -2110,12 +2114,14 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 			{
 				UCodeBackEndObject::IRlocData R;
 				R.Info = IRlocData_StackPost(V->Offset);
+				R.ObjectType = GetType(Ins);
 				return R;
 			}
 			else
 			{
 				UCodeBackEndObject::IRlocData R;
-				_Stack.AddWithSize(Ins, GetSize(Ins));
+				R.Info  = IRlocData_StackPost(_Stack.AddWithSize(Ins, GetSize(Ins))->Offset);
+				R.ObjectType = GetType(Ins);
 				return R;
 			}
 		}
@@ -2195,6 +2201,10 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 				else if (Item->Type == IRInstructionType::Load)
 				{
 					return GetIRLocData(Item, Item->Target());
+				}
+				else if (IsLocation(Item->Type))
+				{
+					return GetIRLocData(Item);
 				}
 				else
 				{
