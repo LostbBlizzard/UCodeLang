@@ -26,17 +26,40 @@ void OutputIRLineInfo(IRBuilder* Builder,IRFunc* Func, const UDebugSetLineNumber
 				{
 					r += "   //IR-Data:{\n";
 					
-					for (size_t i = Val->ForIns; i < Block->Instructions.size(); i++)
-					{
-						auto& Item = Block->Instructions[i];
-						r += "   ";
-						r += "   ";
-						Builder->ToString(Item.get(),r,State.State,State.Names,i,Block.get());
-						r += ";\n";
-					}
 					
+					{
+						for (size_t i = Val->ForIns; i < Block->Instructions.size(); i++)
+						{
+							{//Stop Adding If not on same Line
+								for (auto& Ins2 : Block->DebugInfo.DebugInfo)
+								{
+									if (&Ins2 != &Ins)
+									{
+										if (auto DebugIns2 = Ins2.Debug.Get_If<IRDebugSetLineNumber>())
+										{
+											if (DebugIns2->InsInBlock == i &&
+												DebugIns2->LineNumber > Val->LineNumber)
+											{
+												goto DoneLoop;
+											}
+										}
+									}
+								}
+							}
+
+
+							auto& Item = Block->Instructions[i];
+							r += "   ";
+							r += "   ";
+							Builder->ToString(Item.get(), r, State.State, State.Names, i, Block.get());
+							r += ";\n";
+						}
+						
+					}
+					DoneLoop:
 					r += "   //}\n";
 
+					return;
 
 				}
 			}
