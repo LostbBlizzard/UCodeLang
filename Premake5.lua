@@ -75,7 +75,6 @@ project "UCApp"
    }
    libdirs { 
       "Output/UCodeLang/" .. OutDirPath,
-      "Output/UCodeCross/" .. OutDirPath,
    }
 
 project "UCodelangCL"
@@ -192,6 +191,34 @@ project "UCodeDocumentation"
    targetdir ("Output/%{prj.name}/" .. OutDirPath)
    objdir ("Output/int/%{prj.name}/" .. OutDirPath)
 
+project "UCodeIDE"
+   location "UCodeIDE" 
+   language "C++"
+   targetdir ("Output/%{prj.name}/" .. OutDirPath)
+   objdir ("Output/int/%{prj.name}/" .. OutDirPath)
+   filter { "system:Windows" }
+    kind "ConsoleApp"  
+    filter { "configurations:Published" }
+      kind "WindowedApp"
+
+  
+
+   files { 
+     "%{prj.name}/src/**.cpp",
+     "%{prj.name}/src/**.hpp", 
+   }
+
+   includedirs{
+    "%{prj.name}/src",
+    "UCodeLang",
+   }
+
+   links {
+      "UCodeLang.lib",
+   }
+   libdirs { 
+      "Output/UCodeLang/" .. OutDirPath,
+   }
 
 group "UCodeAPIs"
  project "StandardLibrary"
