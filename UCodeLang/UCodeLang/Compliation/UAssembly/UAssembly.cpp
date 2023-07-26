@@ -12,7 +12,7 @@ UAssemblyStart
 struct OutputIRLineState
 {
 	IRBuilder::ToStringState State;
-	UCodeLang::BinaryVectorMap<UAddress, String> Names;
+	UCodeLang::BinaryVectorMap<UCodeLang::IRidentifierID, String> Names;
 };
 void OutputIRLineInfo(IRBuilder* Builder,IRFunc* Func, const UDebugSetLineNumber* Val, OutputIRLineState& State, String& r)
 {

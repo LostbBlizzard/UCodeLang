@@ -3,7 +3,6 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
-#include <Windows.h>
 #include "UCodeLang/Compliation/ModuleFile.hpp"
 using namespace UCodeLang;
 
@@ -18,6 +17,9 @@ struct AppInfo
 	std::ofstream OutputFile;
 	std::ifstream InputFile;
 
+
+	int ExeRet = EXIT_SUCCESS;
+
 	//compiler
 	ModuleIndex _ModuleIndex;
 	Compiler::CompilerPathData _CompilerPaths;
@@ -28,9 +30,27 @@ struct AppInfo
 	UCodeRunTime _RunTime;
 };
 static AppInfo _This;
-
+#if UCodeLang_Platform_Windows
 #include <windows.h>
+bool SetPermanentEnvironmentVariable(LPCTSTR value, LPCTSTR data)
+{
+	HKEY hKey;
+	LPCTSTR keyPath = TEXT("System\\CurrentControlSet\\Control\\Session Manager\\Environment");
+	LSTATUS lOpenStatus = RegOpenKeyEx(HKEY_LOCAL_MACHINE, keyPath, 0, KEY_ALL_ACCESS, &hKey);
+	if (lOpenStatus == ERROR_SUCCESS)
+	{
+		LSTATUS lSetStatus = RegSetValueEx(hKey, value, 0, REG_SZ, (LPBYTE)data, wcslen(data) + 1);
+		RegCloseKey(hKey);
 
+		if (lSetStatus == ERROR_SUCCESS)
+		{
+			SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0, (LPARAM)"Environment", SMTO_BLOCK, 100, NULL);
+			return true;
+		}
+	}
+
+	return false;
+}
 VOID startup(LPCTSTR lpApplicationName)
 {
 	// additional information
@@ -62,8 +82,48 @@ VOID startup(LPCTSTR lpApplicationName)
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
 }
+#endif
 int App::main(int argc, char* argv[])
 {
+	namespace fs = std::filesystem;
+	
+
+	
+
+	#if UCodeLang_Platform_Windows
+	
+	#ifdef DEBUG
+	auto ucodebinpath = UCodeLang::LangInfo::GetUCodeGlobalBin();
+	auto Ulangexepath = ucodebinpath / Path("ucodelang.exe");
+	Path ThisRuningExePath = argv[0];
+	bool ShouldCopy = true;
+	if (fs::exists(Ulangexepath))
+	{
+		ShouldCopy = fs::file_size(Ulangexepath) != fs::file_size(ThisRuningExePath);
+		if (ShouldCopy)
+		{
+			fs::remove(Ulangexepath);
+		}
+	}
+
+	if (ShouldCopy && (ThisRuningExePath != Ulangexepath))
+	{
+
+
+		fs::copy_file(ThisRuningExePath, Ulangexepath);
+	}
+	#endif // DEBUG
+	#endif
+
+	//while (true)
+	{
+
+	}//break point here
+
+	//SetPermanentEnvironmentVariable(R"PATH");
+	//SetPermanentEnvironmentVariable(,)
+	
+		
 	_This.output = &std::cout;
 	_This.Input = &std::cin;
 
@@ -84,7 +144,7 @@ int App::main(int argc, char* argv[])
 
 	
 
-	return EXIT_SUCCESS;
+	return _This.ExeRet;
 }
 
 
@@ -157,24 +217,25 @@ void ParseLine(String_view Line)
 	namespace fs = std::filesystem;
 	String_view Word1 = GetWord(Line);
 
-	if (Word1 == "Build") 
-	{ 
+	if (Word1 == "build")
+	{
 		auto _Path = GetPath(Line);
 		auto _PathAsPath = Path(_Path);
 
 		auto _PathVar2 = GetPath(Line);
 		//
 		_This._CompilerPaths.FileDir = _Path;
-		
+
 		Path Backpath = _PathAsPath;
 		_This._CompilerPaths.OutFile = Path(Backpath.native() + Path("out").native()).generic_string();
-		_This._CompilerPaths.IntDir  = Path(Backpath.native() + Path("int").native()).generic_string();
+		_This._CompilerPaths.IntDir = Path(Backpath.native() + Path("int").native()).generic_string();
 		//
 		_This._Compiler.Get_Errors().Remove_Errors();
 
+		bool ItWorked = false;
 		if (fs::is_directory(_PathAsPath))
 		{
-			_This._Compiler.CompileFiles(_This._CompilerPaths);
+			ItWorked = _This._Compiler.CompileFiles(_This._CompilerPaths)._State == Compiler::CompilerState::Success;
 		}
 		else
 		{
@@ -187,16 +248,7 @@ void ParseLine(String_view Line)
 					*_This.output << "Cant Open module file\n";
 					return;
 				}
-				if (module.BuildModule(_This._Compiler,_This._ModuleIndex).CompilerRet._State ==Compiler::CompilerState::Fail)
-				{
-					*_This.output << "Compiler Fail:\n";
-					*_This.output << _This._Compiler.Get_Errors().ToString();
-				}
-				else
-				{
-					*_This.output << "Compiler Success:\n";
-					*_This.output << "output is in " + _This._CompilerPaths.OutFile;
-				}
+				ItWorked = module.BuildModule(_This._Compiler, _This._ModuleIndex).CompilerRet._State == Compiler::CompilerState::Fail;
 			}
 			else
 			{
@@ -205,11 +257,28 @@ void ParseLine(String_view Line)
 					_This._CompilerPaths.OutFile = Path(Backpath.native() + Path(_PathVar2).native()).generic_string();
 				}
 
-				_This._Compiler.CompilePathToObj(_This._CompilerPaths.FileDir, _This._CompilerPaths.OutFile);
+				ItWorked = _This._Compiler.CompilePathToObj(_This._CompilerPaths.FileDir, _This._CompilerPaths.OutFile)._State == Compiler::CompilerState::Success;
 			}
 		}
+
+		if (!ItWorked)
+		{
+			*_This.output << "Compiler Fail:\n";
+			*_This.output << _This._Compiler.Get_Errors().ToString();
+			_This.ExeRet = EXIT_FAILURE;
+		}
+		else
+		{
+			*_This.output << "Compiler Success:\n";
+			*_This.output << "output is in " + _This._CompilerPaths.OutFile;
+			_This.ExeRet = EXIT_SUCCESS;
+		}
 	}
-	else if (Word1 == "make")
+	else if (Word1 == "--build")
+	{
+		*_This.output << "use \"build\" and not \"--build\"\n";
+	}
+	else if (Word1 == "new" )
 	{
 		
 		std::string TepNameBuffer;
@@ -246,11 +315,19 @@ void ParseLine(String_view Line)
 		module.NewInit((String)Name, (String)OwnerName);
 		UCodeLang::ModuleFile::ToFile(&module, modePath);
 	}
-	else if (Word1 == "uc_vm")
+	else if (Word1 == "--new")
+	{
+		*_This.output << "use \"new\" and not \"--new\"\n";
+	}
+	else if (Word1 == "run")
 	{
 
 	}
-	else if (Word1 == "parsefile")
+	else if (Word1 == "--run")
+	{
+		*_This.output << "use \"run\" and not \"--run\"\n";
+	}
+	else if (Word1 == "runlines")
 	{
 		std::ifstream file(GetPath(Line));
 		if (file.is_open())
@@ -264,9 +341,17 @@ void ParseLine(String_view Line)
 			file.close();
 		}
 	}
-	else if (Word1 == "set_input_io")
+	else if (Word1 == "out")
 	{
 		
+	}
+	else if (Word1 == "--help")
+	{
+		*_This.output << "use \"help\" and not \"--help\"\n";
+	}
+	else if (Word1 == "help")
+	{
+		*_This.output << "put help info here.\n";
 	}
 	else if (Word1 == "close")
 	{
@@ -274,6 +359,7 @@ void ParseLine(String_view Line)
 	}
 	else
 	{
+		*_This.output << "bad command use the \"help\" command for help\n";
 		TokenCheck(Word1);
 	}
 }

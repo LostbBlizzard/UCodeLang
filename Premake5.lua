@@ -7,12 +7,10 @@ workspace "UCodeLang"
 
    startproject "UCApp"
    
-   dependson {"UCApp","UCodeLang","UC","UCodeAPI/StandardLibrary","UCodeAPI/NWin32","UCodeAPI/Win32"}
-
    OutDirPath ="%{cfg.platform}/%{cfg.buildcfg}"
 
-   UCPathExeDir = "%{wks.location}Output/UC/" .. OutDirPath .. "/"
-   UCPathExeName ="uc.exe"
+   UCPathExeDir = "%{wks.location}Output/UCodelangCL/" .. OutDirPath .. "/"
+   UCPathExeName ="ucodelang.exe"
    UCPathExe = UCPathExeDir ..  UCPathExeName
 
    filter { "platforms:Win32" }
@@ -80,11 +78,11 @@ project "UCApp"
       "Output/UCodeCross/" .. OutDirPath,
    }
 
-project "UC"
-   location "UC"
+project "UCodelangCL"
+   location "UCodelangCL"
    kind "ConsoleApp"
    language "C++"
-
+   targetname ("ucodelang")
    
    
    dependson {"UCodeLang"}
@@ -202,7 +200,7 @@ group "UCodeAPIs"
   language "C"
 
   
-  dependson {"UC"}
+  dependson {"UCodelangCL"}
   targetdir ("Output/%{prj.name}/" .. OutDirPath)
   objdir ("Output/int/%{prj.name}/" .. OutDirPath)
 
@@ -224,7 +222,7 @@ group "UCodeAPIs"
 
   postbuildcommands 
   {
-   "ucodelang --build %{prj.location}ULangModule.ucm"
+   -- UCPathExe.." build %{prj.location}ULangModule.ucm"
   }
   project "NStandardLibrary"
   location "UCodeAPI/NStandardLibrary"
@@ -234,7 +232,7 @@ group "UCodeAPIs"
   targetdir ("Output/%{prj.name}/" .. OutDirPath)
   objdir ("Output/int/%{prj.name}/" .. OutDirPath)
   
-  dependson {"UC"}
+  dependson {"UCodelangCL"}
 
   files { 
   "%{prj.name}/src/**.uc",
@@ -255,7 +253,7 @@ group "UCodeAPIs"
 
   postbuildcommands 
   {
-   "ucodelang --build %{prj.location}ULangModule.ucm"
+  -- UCPathExe.." \"build %{prj.location}ULangModule.ucm\" "
   }
  project "Win32"
   location "UCodeAPI/Win32"
@@ -266,7 +264,7 @@ group "UCodeAPIs"
   objdir ("Output/int/%{prj.name}/" .. OutDirPath)
 
   
-  dependson {"UC"}
+  dependson {"UCodelangCL"}
   files { 
   "%{prj.name}/src/**.uc",
   "%{prj.name}/%{prj.name}.ucm",
@@ -283,7 +281,7 @@ group "UCodeAPIs"
 
   postbuildcommands 
   {
-   "ucodelang --build %{prj.location}ULangModule.ucm" 
+   -- UCPathExe.. " build %{prj.location}ULangModule.ucm" 
   }
  project "NWin32"
    location "UCodeAPI/NWin32"
@@ -294,7 +292,7 @@ group "UCodeAPIs"
    objdir ("Output/int/%{prj.name}/" .. OutDirPath)
 
    
-   dependson {"UC"}
+   dependson {"UCodelangCL"}
    files { 
    "%{prj.name}/src/**.uc",
    "%{prj.name}/%{prj.name}.ucm",
@@ -310,5 +308,5 @@ group "UCodeAPIs"
 
    postbuildcommands 
    {
-   "ucodelang --build %{prj.location}ULangModule.ucm"
+   -- UCPathExe.. " build %{prj.location}ULangModule.ucm "
    }

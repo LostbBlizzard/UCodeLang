@@ -80,6 +80,7 @@ public:
 	{
 		///if (CheckIfFunctionExist(FunctionName))
 		{
+			#if HasSupportforJit
 			{//fast call
 				if (UFuncToCPPFunc.count(address))
 				{
@@ -88,6 +89,7 @@ public:
 					return Ptr(parameters...);
 				}
 			}
+			#endif
 
 			auto V = Call(address, parameters...);
 			if (V._Succeed == RetState::Success)
