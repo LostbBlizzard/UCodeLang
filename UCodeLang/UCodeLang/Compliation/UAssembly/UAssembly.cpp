@@ -16,6 +16,7 @@ struct OutputIRLineState
 };
 void OutputIRLineInfo(IRBuilder* Builder,IRFunc* Func, const UDebugSetLineNumber* Val, OutputIRLineState& State, String& r)
 {
+
 	for (auto& Block : Func->Blocks)
 	{
 		for (auto& Ins : Block->DebugInfo.DebugInfo)
@@ -52,7 +53,19 @@ void OutputIRLineInfo(IRBuilder* Builder,IRFunc* Func, const UDebugSetLineNumber
 							r += "   ";
 							r += "   ";
 							Builder->ToString(Item.get(), r, State.State, State.Names, i, Block.get());
-							r += ";\n";
+							r += ';';
+							{
+								auto DebugInfo = Block->DebugInfo.Get_debugfor(i);
+								
+								for (auto& Item : DebugInfo)
+								{
+									if (auto Val = Item->Debug.Get_If<IRDebugSetVarableName>())
+									{
+										r += "//Varable:" + Val->VarableName;
+									}
+								}
+							}
+							r += '\n';
 						}
 						
 					}
@@ -202,6 +215,8 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 	}
 
 
+	size_t OnFuncFrameStackSize = 0;
+
 	if (UCodeLayer && UCodeLayer->_Data.Is<CodeLayer::UCodeByteCode>())
 	{
 		const CodeLayer::UCodeByteCode& Info = UCodeLayer->_Data.Get<CodeLayer::UCodeByteCode>();
@@ -300,12 +315,12 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 							r += LineStr;
 							r += '\n';
 						}
-						if (IRInfo.has_value())
+						if (IRInfo.has_value() && ShowIR)
 						{
 							auto& IRInfoVal = IRInfo.value();
 
 							
-
+							bool HasStackFrame = OnFuncFrameStackSize != 0;
 							if (StaticVariablesInitializeFunc == OnFunc)
 							{
 								auto Id = IRInfoVal._StaticInit.identifier;
@@ -336,7 +351,6 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 								if (!IRStringStates.HasValue(Id))
 								{
 									OutputIRLineState LineState;
-									IRBuilder::ToStringState State;
 									String Unused;
 									IRInfoVal.ToString(LineState.State, &IRInfoVal._StaticdeInit, Unused);
 									IRStringStates.AddValue(Id, std::move(LineState));
@@ -349,7 +363,6 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 								if (!IRStringStates.HasValue(Id))
 								{
 									OutputIRLineState LineState;
-									IRBuilder::ToStringState State;
 									String Unused;
 									IRInfoVal.ToString(LineState.State, &IRInfoVal._threaddeInit, Unused);
 									IRStringStates.AddValue(Id, std::move(LineState));
@@ -367,7 +380,6 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 										if (!IRStringStates.HasValue(Id))
 										{
 											OutputIRLineState LineState;
-											IRBuilder::ToStringState State;
 											String Unused;
 											IRInfoVal.ToString(LineState.State, Func.get(), Unused);
 											IRStringStates.AddValue(Id, std::move(LineState));
@@ -379,8 +391,36 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 							}
 						}
 					}
+					else if (auto Val = Item->Debug.Get_If<UDebugSetFuncStackFrameSize>())
+					{
+						r += "   //StackFrameSize:" + std::to_string(Val->StackFrameSize);
+						r += '\n';
+						OnFuncFrameStackSize = Val->StackFrameSize;
+					}
+					else if (Info.DebugInfo.has_value())
+					{
+						auto& Value = Info.DebugInfo.value();
+						auto List = Value.GetForIns(i);
+						for (auto& Item : List)
+						{
+							if (auto Val = Item->Debug.Get_If<UDebugSetVarableLoc>())
+							{
+								r += "   //";
 
-
+								if (auto Value = Val->Type.Get_If<RegisterID>())
+								{
+									r += GetRegisterToString(*Value);
+								}
+								else
+								{
+									throw std::exception("not added");
+								}
+								r += " = ";
+								r += Val->VarableFullName;
+								r += '\n';
+							}
+						}
+					}
 					
 				}
 				
@@ -416,6 +456,8 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 				r += "Ins " + std::to_string((uintptr_t)Item.OpCode) + ":" + std::to_string((uintptr_t)Item.Value0.AsPtr) + ","
 					+ std::to_string((uintptr_t)Item.Value1.AsPtr);
 			}
+
+
 
 			r += '\n';
 		}

@@ -71,11 +71,16 @@ struct UDebugSetVarableLoc
 		}
 	}
 };
+struct UDebugSetFuncStackFrameSize
+{
+	UAddress StackFrameSize = 0;
+	UAddress ForIns = 0;
+};
 
 struct UDebugIns
 {
 	struct None{};
-	Variant<None,UDebugSetFile, UDebugSetLineNumber, UDebugSetVarableLoc> Debug;
+	Variant<None,UDebugSetFile, UDebugSetLineNumber, UDebugSetVarableLoc, UDebugSetFuncStackFrameSize> Debug;
 
 	using Type_t = Byte;
 	enum class Type :Type_t
@@ -84,6 +89,7 @@ struct UDebugIns
 		UDebugSetFile,
 		UDebugSetLineNumber,
 		UDebugSetVarableLoc,
+		UDebugSetFuncStackFrameSize,
 	};
 
 	inline Type Get_Type() const
@@ -103,6 +109,10 @@ struct UDebugIns
 		else if (Debug.Is<UDebugSetVarableLoc>())
 		{
 			return Type::UDebugSetVarableLoc;
+		}
+		else if (Debug.Is<UDebugSetFuncStackFrameSize>())
+		{
+			return Type::UDebugSetFuncStackFrameSize;
 		}
 		else 
 		{
@@ -128,6 +138,10 @@ struct UDebugIns
 		{
 			return Debug.Get<UDebugSetVarableLoc>().ForIns;
 		}
+		else if (Debug.Is<UDebugSetFuncStackFrameSize>())
+		{
+			return Debug.Get<UDebugSetFuncStackFrameSize>().ForIns;
+		}
 		else
 		{
 			throw std::exception("bad path");
@@ -151,6 +165,10 @@ struct UDebugIns
 		else if (Debug.Is<UDebugSetVarableLoc>())
 		{
 			Debug.Get<UDebugSetVarableLoc>().ForIns = Value;
+		}
+		else if (Debug.Is<UDebugSetFuncStackFrameSize>())
+		{
+			Debug.Get<UDebugSetFuncStackFrameSize>().ForIns = Value;
 		}
 		else
 		{
@@ -240,6 +258,15 @@ struct ULangDebugInfo
 	{
 		UDebugSetLineNumber V2;
 		V2.LineNumber= LineNumber;
+		V2.ForIns = Ins;
+		UDebugIns V;
+		V.Debug = std::move(V2);
+		DebugInfo.push_back(std::move(V));
+	}
+	void Add_UDebugSetFuncStackFrameSize(size_t StackFrameSize, size_t Ins)
+	{
+		UDebugSetFuncStackFrameSize V2;
+		V2.StackFrameSize = StackFrameSize;
 		V2.ForIns = Ins;
 		UDebugIns V;
 		V.Debug = std::move(V2);

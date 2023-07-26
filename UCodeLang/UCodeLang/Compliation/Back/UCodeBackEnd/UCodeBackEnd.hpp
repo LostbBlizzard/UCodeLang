@@ -381,7 +381,7 @@ private:
 
 	RegisterID LoadOp(const IRInstruction* Ins, const IROperator& Op);
 	void LoadOpToReg(const IRInstruction* Ins, const IROperator& Op, RegisterID Out);
-	void RegToReg(IRTypes Type, RegisterID In, RegisterID Out);
+	void RegToReg(IRTypes Type, RegisterID In, RegisterID Out,bool IsCopy);
 	void PushOpStack(const IRInstruction* Ins, const IROperator& Op);
 	void LogicalNot(IRTypes Type, RegisterID In, RegisterID Out);
 	void BuildLink(const IRidentifier& FuncName, IRFuncLink LinkType);
@@ -477,6 +477,10 @@ private:
 		}
 	}
 
+
+	RegistersManager _OldVarableLocRegisters;
+	void ClearVarableLocs();
+	void UpdateVarableLocs();
 };
 UCodeLangEnd
 
