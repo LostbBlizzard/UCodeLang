@@ -19,7 +19,14 @@ jobs:
     - name: Run Premake
       run: ./VS_2019.bat
 
-    - name: Build
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: msbuild ./UCodeLang.sln
+    - name: Build 32 bit
+      run: ./BuildTools/BuildWin32Debug.bat
+
+    - name: Build 64 bit
+      run: ./BuildTools/BuildWin64Debug.bat
     
+    - name: RunTests for 32 bit
+      run: ./BuildTools/RunTestsWin32Debug.bat
+
+    - name: RunTests for 64 bit
+      run: ./BuildTools/RunTestsWin64Debug.bat
