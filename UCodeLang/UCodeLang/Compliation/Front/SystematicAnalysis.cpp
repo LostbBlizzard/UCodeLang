@@ -828,12 +828,13 @@ void SystematicAnalysis::Add_SetLineNumber(const Token* token, size_t InsInBlock
 		LookingAtIRBlock->DebugInfo.Add_SetLineNumber(token->OnLine, InsInBlock);
 	}
 }
-void SystematicAnalysis::Add_SetVarableInfo(const Symbol& Syb, IRInstruction* Ins)
+void SystematicAnalysis::Add_SetVarableInfo(const Symbol& Syb, size_t InsInBlock)
 {
 	auto ID = _Builder.ToID(Syb.FullName);
 	IRDebugSetVarableName V;
 	
 	V.VarableName = Syb.FullName;
+	V.InsInBlock = InsInBlock;
 	
 	LookingAtIRBlock->DebugInfo.Add_SetVarableName(std::move(V));
 
@@ -5944,7 +5945,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 					OnVarable = LookingAtIRBlock->NewLoad(ConvertToIR(syb->VarType));
 
 					Add_SetLineNumber(node.Name.Token, LookingAtIRBlock->GetIndex());
-					Add_SetVarableInfo(*syb, OnVarable);
+					Add_SetVarableInfo(*syb, LookingAtIRBlock->GetIndex());
 					syb->IR_Ins = OnVarable;
 
 
@@ -5967,7 +5968,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 					Add_SetLineNumber(node.Name.Token, LookingAtIRBlock->GetIndex());
 
 
-					Add_SetVarableInfo(*syb,nullptr);
+					Add_SetVarableInfo(*syb, LookingAtIRBlock->GetIndex());
 					if (ISStructPassByRef(syb)) {
 						OnVarable = LookingAtIRBlock->NewLoad(ConvertToIR(syb->VarType));
 					}
@@ -5987,7 +5988,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 					LookingAtIRBlock = LookingAtIRFunc->Blocks.front().get();
 
 					Add_SetLineNumber(node.Name.Token, LookingAtIRBlock->GetIndex());
-					Add_SetVarableInfo(*syb, nullptr);
+					Add_SetVarableInfo(*syb, LookingAtIRBlock->GetIndex());
 
 					if (ISStructPassByRef(syb)) {
 						OnVarable = LookingAtIRBlock->NewLoad(ConvertToIR(syb->VarType));

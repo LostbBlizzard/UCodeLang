@@ -919,6 +919,7 @@ void IRBuilder::ToBytes(UCodeLang::BitMaker& Out, const UCodeLang::IRDebugIns& I
 	else if (auto Val = Item.Debug.Get_If<IRDebugSetVarableName>())
 	{
 		Out.WriteType(Val->VarableName);
+		Out.WriteType((BitMaker::SizeAsBits)Val->InsInBlock);
 	}
 	else
 	{
@@ -966,6 +967,10 @@ void IRBuilder::FromBytes(BitReader& Out, IRDebugIns& Value)
 	{
 		IRDebugSetVarableName R = IRDebugSetVarableName();
 		Out.ReadType(R.VarableName);
+		
+		BitReader::SizeAsBits tep=0;
+		Out.ReadType(tep);
+		R.InsInBlock = tep;
 
 		Value.Debug = std::move(R);
 	}
@@ -1356,6 +1361,8 @@ String IRBuilder::ToString()
 void IRBuilder::ToString(ToStringState& State, IRFunc* Item, String& r)
 {
 	State._Func = Item;
+	State.PointerToName.clear();
+
 	r += "|" + FromID(Item->identifier);
 	r += "[";
 	for (auto& Par : Item->Pars)
@@ -1412,10 +1419,12 @@ void IRBuilder::ToString(ToStringState& State, IRFunc* Item, String& r)
 					{
 						r += '\n';
 						r += "//Line:" + std::to_string(Val->LineNumber);
-					
-						r += '\n';
-						r += '\n';
 					}
+				}
+				if (DebugInfo.size())
+				{
+					r += '\n';
+					r += '\n';
 				}
 
 				if (I->Type == IRInstructionType::None) { continue; }
@@ -1434,7 +1443,15 @@ void IRBuilder::ToString(ToStringState& State, IRFunc* Item, String& r)
 						continue;
 					}
 				}
-				r += ";\n";
+				r += ";";
+				for (auto& Item : DebugInfo)
+				{
+					if (auto Val = Item->Debug.Get_If<IRDebugSetVarableName>())
+					{
+						r += "//Varable:" + Val->VarableName;
+					}
+				}
+				r += "\n";
 
 				for (auto& Item : Names)
 				{
@@ -1447,7 +1464,7 @@ void IRBuilder::ToString(ToStringState& State, IRFunc* Item, String& r)
 					}
 				}
 			}
-			State.PointerToName.clear();
+			
 		}
 	}
 	else
@@ -1813,11 +1830,6 @@ void IRBlockDebugInfo::Add_SetVarableName(IRDebugSetVarableName&& Info)
 	DebugInfo.push_back(std::move(V));
 }
 
-IRDebugIns IRBlockDebugInfo::Get_debugfor(IRInstruction* Ins) const
-{
-	return {};
-}
-
 Vector<const IRDebugIns*> IRBlockDebugInfo::Get_debugfor(size_t Index) const
 {
 	Vector<const IRDebugIns*> R;
@@ -1837,9 +1849,30 @@ Vector<const IRDebugIns*> IRBlockDebugInfo::Get_debugfor(size_t Index) const
 				R.push_back(&Item);
 			}
 		}
+		else if (auto Val = Item.Debug.Get_If<IRDebugSetVarableName>())
+		{
+			if (Val->InsInBlock == Index)
+			{
+				R.push_back(&Item);
+			}
+		}
 	}
 
 	return R;
 }
 
+Vector<const IRDebugIns*> IRBlock::Get_debugfor(const IRInstruction* Value) const
+{
+	for (size_t i = 0; i < Instructions.size(); i++)
+	{
+		auto& Item = Instructions[i];
+		if (Item.get() == Value)
+		{
+			return DebugInfo.Get_debugfor(i);
+		}
+	}
+	return {};
+}
+
 UCodeLangEnd
+

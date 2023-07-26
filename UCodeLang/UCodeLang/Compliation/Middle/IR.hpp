@@ -469,6 +469,7 @@ struct IRDebugSetLineNumber
 struct IRDebugSetVarableName
 {
 	String VarableName;
+	size_t InsInBlock = 0;
 };
 struct IRDebugIns
 {
@@ -531,7 +532,6 @@ struct IRBlockDebugInfo
 	void Add_SetFile(const String& file, size_t InsInBlock);
 	void Add_SetLineNumber(size_t LineNumber, size_t InsInBlock);
 	void Add_SetVarableName(IRDebugSetVarableName&& Info);
-	IRDebugIns Get_debugfor(IRInstruction* Ins) const;
 	Vector<const IRDebugIns*> Get_debugfor(size_t Index) const;
 
 };
@@ -541,6 +541,8 @@ struct IRBlock
 {
 	Vector<Unique_ptr<IRInstruction>> Instructions;
 	IRBlockDebugInfo DebugInfo;
+
+	Vector<const IRDebugIns*> Get_debugfor(const IRInstruction* Value) const;
 	//Loading Values
 	IRInstruction* NewLoad(IRType Type)
 	{

@@ -27,8 +27,19 @@
  
 */
 
+
 |main[]:
 
   int A = 0 + 7;
   A+=5;
   ret A;
+
+
+
+/*
+|main2[]:
+  int a = 4;
+  int b = 8;
+  int c = 12;
+  ret a + b + c;
+*/

@@ -95,6 +95,11 @@ void ULangDebugInfo::ToBytes(BitMaker& bit, const UDebugIns& Value)
 		}
 
 	}
+	else if (auto V = Value.Debug.Get_If<UDebugSetFuncStackFrameSize>())
+	{
+		bit.WriteType((BitMaker::SizeAsBits)V->StackFrameSize);
+		bit.WriteType((BitMaker::SizeAsBits)V->ForIns);
+	}
 	else
 	{
 		throw std::exception("bad path");
@@ -228,6 +233,25 @@ bool ULangDebugInfo::FromBytes(BitReader& bit, UDebugIns& Value)
 		default:
 			throw std::exception("bad path");
 			break;
+		}
+
+		Value.Debug = std::move(V2);
+	}
+	break;
+	case UDebugIns::Type::UDebugSetFuncStackFrameSize:
+	{
+		UDebugSetFuncStackFrameSize V2 = UDebugSetFuncStackFrameSize();
+
+		{
+			BitMaker::SizeAsBits Item;
+			bit.ReadType(Item);
+			V2.StackFrameSize = Item;
+		}
+
+		{
+			BitMaker::SizeAsBits Item;
+			bit.ReadType(Item);
+			V2.ForIns = Item;
 		}
 
 		Value.Debug = std::move(V2);
