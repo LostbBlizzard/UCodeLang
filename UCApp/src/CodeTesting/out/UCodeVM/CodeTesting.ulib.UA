@@ -3,6 +3,7 @@ $[_global]:
 .size:0
 
  |Testing:main[] -> sint32;//Testing:main
+ |Testing:main2[sint32sint32sint32sint32] -> sint32;//Testing:main2^i32,i32,i32,i32
 
 
 
@@ -31,3 +32,27 @@ $[_global]:
    //Source Line:  ret A;
 
    6 :Ret 
+---Testing:main2^i32,i32,i32,i32: 
+
+   //File:/Main.uc
+   //Line:41
+   //Source Line:  ret Par1;
+   //[D] = Testing:main2:Par1
+   //[D] = Testing:main2:Par2
+   //[D] = Testing:main2:Par3
+   //[D] = Testing:main2:Par4
+   //[D] = Testing:main2:Par1
+   //[D] = Testing:main2:Par2
+   //[D] = Testing:main2:Par3
+   //[D] = Testing:main2:Par4
+   //[D] = Testing:main2:Par1
+   //[D] = Testing:main2:Par2
+   //[D] = Testing:main2:Par3
+   //[D] = Testing:main2:Par4
+   //[D] = Testing:main2:Par1
+   //[D] = Testing:main2:Par2
+   //[D] = Testing:main2:Par3
+   //[D] = Testing:main2:Par4
+
+   7 :StoreRegToReg32 [D],[F]
+   8 :Ret 

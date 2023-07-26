@@ -515,9 +515,10 @@ struct IRDebugSybol
 	using Type_t = Byte;
 	enum class Type : Type_t
 	{
+		Stack,
+		Par,
 		Static,
 		Thread,
-		Stack,
 	};
 	Type _Type;
 };

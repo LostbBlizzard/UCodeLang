@@ -401,12 +401,12 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 				if (auto Val = Item->Debug.Get_If<IRDebugSetFile>())
 				{
 					Add_SetFile(Val->FileName,
-						_OutLayer->_Instructions.size() == 0 ? 0 : _OutLayer->_Instructions.size() -1);
+						i == 0 ? _OutLayer->_Instructions.size() : _OutLayer->_Instructions.size() -1);
 				}
 				else if (auto Val = Item->Debug.Get_If<IRDebugSetLineNumber>())
 				{
 					Add_SetLineNumber(Val->LineNumber,
-						_OutLayer->_Instructions.size() == 0 ? 0 : _OutLayer->_Instructions.size() - 1);
+						i == 0 ? _OutLayer->_Instructions.size() : _OutLayer->_Instructions.size() - 1);
 				}
 			}
 		}
