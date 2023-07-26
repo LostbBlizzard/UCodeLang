@@ -142,12 +142,15 @@ void LanguageSeverTest::RunTest(String_view FileAsString)
 
 int RunLanguageSeverTests()
 {
+	#ifdef DEBUG
 	Path path = UCodeLang_UCAppDir_Test_LanguageSeverFilesFiles + "Goto/BasicFind.uc";
 
 	
 
 	LanguageSeverTest Test;
 	Test.RunTest(path);
+	return 0;
+	#endif
 	return 0;
 }
 

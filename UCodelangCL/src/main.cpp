@@ -2,8 +2,9 @@
 
 #include "App.hpp"
 
+/*
 #ifdef PUBLISHED
-#ifdef UCode_Build_Windows_OS
+#ifdef  UCodeLang_Platform_Windows
 
 #include <Windows.h>
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow)
@@ -15,8 +16,11 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine, int i
 }
 #endif 
 #else
+
+*/
 int main(int argc, char* argv[])
 {
 	return App::main(argc, argv);
 }
-#endif 
+
+//#endif 

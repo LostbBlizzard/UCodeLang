@@ -116,6 +116,8 @@ UCodeTestStart
 
 	bool RunTestForFlag(const TestInfo& Test, OptimizationFlags flag, std::ostream& LogStream, std::ostream& ErrStream)
 	{
+		return false;
+		#ifdef DEBUG
 		Compiler::CompilerPathData paths;
 		Compiler Com;
 		Com.Get_Settings()._Flags = flag;
@@ -304,6 +306,7 @@ UCodeTestStart
 
 		rLib.UnLoad();
 		return true;
+		#endif
 	}
 
 

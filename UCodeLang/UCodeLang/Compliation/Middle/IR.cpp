@@ -1386,7 +1386,7 @@ void IRBuilder::ToString(ToStringState& State, IRFunc* Item, String& r)
 
 			r += Tabs + "//Block \n";
 
-			BinaryVectorMap<size_t, String> Names;
+			BinaryVectorMap<IRidentifierID, String> Names;
 			for (size_t i = 0; i < Block->Instructions.size(); i++)
 			{
 				auto& I = Block->Instructions[i];
