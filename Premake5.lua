@@ -224,6 +224,7 @@ project "UCodeWebsite"
    language "C++"
    targetdir ("Output/%{prj.name}/" .. OutDirPath)
    objdir ("Output/int/%{prj.name}/" .. OutDirPath)
+   kind "ConsoleApp" 
 
    files { 
    }
