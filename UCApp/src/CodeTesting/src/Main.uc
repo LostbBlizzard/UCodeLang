@@ -36,10 +36,6 @@
 
 
 
-/*
-|main2[]:
-  int a = 4;
-  int b = 8;
-  int c = 12;
-  ret a + b + c;
-*/
+
+|main2[int Par1,int Par2,int Par3,int Par4]:
+  ret Par1;

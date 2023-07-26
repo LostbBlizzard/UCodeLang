@@ -851,6 +851,9 @@ void SystematicAnalysis::Add_SetVarableInfo(const Symbol& Syb, size_t InsInBlock
 
 	switch (Syb.Type)
 	{	
+	case SymbolType::ParameterVarable:
+		Info._Type = IRDebugSybol::Type::Par;
+		break;
 	case SymbolType::StackVarable:
 		Info._Type = IRDebugSybol::Type::Stack;
 		break;
@@ -2163,6 +2166,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 				}
 
 
+				Add_SetVarableInfo(V, LookingAtIRBlock->Instructions.size() == 0 ? 0 : LookingAtIRBlock->GetIndex());
 
 				if (HasDestructor(VarType.Type))
 				{
@@ -2206,6 +2210,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 					d.identifier = _Builder.ToID(ParName);
 					d.type = ConvertToIR(PackType);
+
+					Add_SetVarableInfo(TepPar, LookingAtIRBlock->Instructions.size() == 0 ? 0 : LookingAtIRBlock->GetIndex());
 
 					if (HasDestructor(PackType))
 					{
