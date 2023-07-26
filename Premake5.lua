@@ -219,6 +219,17 @@ project "UCodeIDE"
    libdirs { 
       "Output/UCodeLang/" .. OutDirPath,
    }
+project "UCodeWebsite"
+   location "UCodeWebsite" 
+   language "C++"
+   targetdir ("Output/%{prj.name}/" .. OutDirPath)
+   objdir ("Output/int/%{prj.name}/" .. OutDirPath)
+
+   files { 
+   }
+
+   includedirs{
+   }
 
 group "UCodeAPIs"
  project "StandardLibrary"
