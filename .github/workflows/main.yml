@@ -17,11 +17,12 @@ jobs:
       uses: microsoft/setup-msbuild@v1.0.2
 
     - name: Run Premake
-      run: ./VS_2019.bat
+      working-directory: ./ 
+      run: VS_2019.bat
 
     - name: Build 32 bit
       working-directory: ./
-      run: BuildTools/BuildWin32Debug.bat
+      run: ./BuildTools/BuildWin32Debug.bat
 
     - name: Build 64 bit
       run: ./BuildTools/BuildWin64Debug.bat
