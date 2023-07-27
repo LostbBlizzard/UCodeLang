@@ -25,7 +25,7 @@ jobs:
     - name: Build 32 bit
       run: |
            cd ./BuildTools
-           BuildWin32Debug.bat
+           ./BuildWin32Debug.bat
 
     - name: Build 64 bit
       run: ./BuildTools/BuildWin64Debug.bat
