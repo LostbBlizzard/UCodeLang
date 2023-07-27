@@ -21,7 +21,7 @@ jobs:
       run: ./VS_2019.bat
 
     - name: Build 32 bit
-      working-directory: ./
+      working-directory: ./BuildTools
       run: ./BuildTools/BuildWin32Debug.bat
 
     - name: Build 64 bit
