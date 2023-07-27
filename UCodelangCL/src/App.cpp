@@ -329,7 +329,7 @@ void ParseLine(String_view Line)
 	}
 	else if (Word1 == "runlines")
 	{
-		std::ifstream file(GetPath(Line));
+		std::ifstream file(Path(GetPath(Line)));
 		if (file.is_open())
 		{
 
