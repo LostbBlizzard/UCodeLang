@@ -20,18 +20,15 @@ jobs:
       run: ./VS_2019.bat
 
     - name: Build 32 bit
-      working-directory: ./BuildTool
-      run: ./BuildTools/BuildWin32Debug.bat
+      working-directory: ./
+      run: BuildTools/BuildWin32Debug.bat
 
     - name: Build 64 bit
-      working-directory: ./BuildTool
       run: ./BuildTools/BuildWin64Debug.bat
       
     
     - name: RunTests for 32 bit
-      working-directory: ./BuildTool
       run: ./BuildTools/RunTestsWin32Debug.bat
 
     - name: RunTests for 64 bit
-      working-directory: ./BuildTool
       run: ./BuildTools/RunTestsWin64Debug.bat
