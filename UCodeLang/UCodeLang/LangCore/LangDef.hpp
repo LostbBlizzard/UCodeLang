@@ -1,7 +1,5 @@
 #pragma once
 #include "UCodeLangNameSpace.hpp"
-UCodeLangStart
-
 
 #if _WIN64
 #define UCodeLang_64BitSytem 1
@@ -68,9 +66,37 @@ UCodeLangStart
 
 #endif
 
-
 #define UCodeLang_CPUIs_littleEndian !UCodeLang_CPUBIs_BigEndian 
+
+#if defined(_MSC_VER)
+#define UCodeLangMSVC 1
+#endif
+
+#if defined(UCodeLangMSVC)
+#define UCodeLangDEPRECATED __declspec(deprecated)
+#else
+#define UCodeLangDEPRECATED
+#endif
+
+#if UCodeLangMSVC
+#define UCodeLangAPIExportDLLEXPORT __declspec(dllexport)
+#define UCodeLangAPIExportDLLIMPORT __declspec(dllexport)
+#endif
+
+
+#if UCodeLangAPIDLLBuild
+#if defined(UCodeLangAPIDLLBuildEXPORT)
+# define UCodeLangAPIExport ZYAN_DLLEXPORT
+#else
+#define UCodeLangAPIExport ZYAN_DLLIMPORT
+#endif
+#else
+#define UCodeLangAPIExport
+#endif
+
+
 #define UCodeLangExportSymbol(Namespace)
+
 
 //Use only in Classes
 #define UCodeLangExport
@@ -88,4 +114,3 @@ UCodeLangStart
 
 #define UCodeLangAutoLink(Lib,CppFuncsNameSpace)
 
-UCodeLangEnd

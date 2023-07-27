@@ -1,0 +1,10 @@
+﻿  imgui.cpp
+  imgui_demo.cpp
+  imgui_draw.cpp
+  imgui_tables.cpp
+  imgui_widgets.cpp
+  imgui_impl_glfw.cpp
+  imgui_impl_opengl3.cpp
+  main.cpp
+  Generating Code...
+  example_glfw_opengl3.vcxproj -> C:\CoolStuff\CoolCodeingStuff\Librarys\C++\Rendering\Others\imgui-docking\examples\example_glfw_opengl3\Debug\example_glfw_opengl3.exe
