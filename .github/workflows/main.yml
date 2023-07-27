@@ -18,11 +18,14 @@ jobs:
 
     - name: Run Premake
       run: ./VS_2019.bat
-    
-    - name: RunTests for 64 bit
-      run: |
-           cd ./BuildTools
-           ./RunTestsWin64Debug.bat
+
+
+    - name: Restore cached Objs
+      id: cache-Objs-restore
+      uses: actions/cache/restore@v3
+      with:
+        path: ./Output
+        key: ${{ runner.os }}-1
 
     - name: Build 64 bit
       run: |
@@ -33,7 +36,19 @@ jobs:
       run: |
            cd ./BuildTools
            ./BuildWin32Debug.bat
-    
+
+    - name: Save cached Objs
+      id: cache-Objs-save
+      uses: actions/cache/save@v3
+      with:
+        path: ./Output
+        key: ${{ steps.cache-primes-restore.outputs.cache-primary-key }}
+
+    - name: RunTests for 64 bit
+      run: |
+           cd ./BuildTools
+           ./RunTestsWin64Debug.bat
+
     - name: RunTests for 32 bit
       run: |
            cd ./BuildTools
