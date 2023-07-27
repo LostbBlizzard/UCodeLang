@@ -1125,13 +1125,13 @@ struct ValidNode :Node
 
 struct CMPTypesNode :Node
 {
-	CMPTypesNode() : Node(NodeType::CMPTypesNode)
+	CMPTypesNode() noexcept : Node(NodeType::CMPTypesNode)
 	{
 
 	}
 	
 	TypeNode TypeOp0;
-	const Token* Op;
+	const Token* Op=nullptr;
 	TypeNode TypeOp1;
 
 	static bool IsOp(TokenType Type)

@@ -72,7 +72,7 @@ private:
 	};
 	struct UCodeFunc
 	{
-		IRidentifierID IRName;
+		IRidentifierID IRName=0;
 		Vector<Instruction> _Ins;
 
 		Optional<size_t> _Hash;

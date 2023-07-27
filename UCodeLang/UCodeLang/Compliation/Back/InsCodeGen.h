@@ -26,7 +26,7 @@ struct CodeGen
 	}
 	inline void PushByteR(const Byte* Value, size_t Size)
 	{
-		for (int i = Size - 1; i >= 0; i--)
+		for (size_t i = Size - 1; i != (size_t)-1; i--)
 		{
 			ByteOutput.push_back(Value[i]);
 		}
@@ -82,7 +82,7 @@ struct CodeGen
 	}
 	static inline void SubByteR(Byte* BufferToUpdate,const Byte* Value, size_t Size)
 	{
-		for (int i = Size - 1; i >= 0; i--)
+		for (size_t i = Size - 1; i != (size_t)-1; i--)
 		{
 			BufferToUpdate[i] = Value[i];
 		}

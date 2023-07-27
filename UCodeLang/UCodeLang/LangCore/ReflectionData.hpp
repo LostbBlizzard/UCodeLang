@@ -390,7 +390,7 @@ public:
 	String FullName;
 	
 	AssemblyNode(ClassType type);
-	AssemblyNode(AssemblyNode&& node)
+	AssemblyNode(AssemblyNode&& node) noexcept
 	{
 		this->operator=(std::move(node));
 	}
