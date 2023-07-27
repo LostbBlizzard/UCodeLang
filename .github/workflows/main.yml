@@ -21,18 +21,24 @@ jobs:
 
     - name: Cd
       run: cd ./BuildTools
+    
+    - name: RunTests for 64 bit
+      run: |
+           cd ./BuildTools
+           ./BuildTools/RunTestsWin64Debug.bat
+
+    - name: Build 64 bit
+      run: |
+           cd ./BuildTools
+           ./BuildTools/BuildWin64Debug.bat
+    
+    - name: RunTests for 32 bit
+      run: |
+           cd ./BuildTools
+           ./BuildTools/RunTestsWin32Debug.bat
 
     - name: Build 32 bit
       run: |
            cd ./BuildTools
            ./BuildWin32Debug.bat
-
-    - name: Build 64 bit
-      run: ./BuildTools/BuildWin64Debug.bat
-      
     
-    - name: RunTests for 32 bit
-      run: ./BuildTools/RunTestsWin32Debug.bat
-
-    - name: RunTests for 64 bit
-      run: ./BuildTools/RunTestsWin64Debug.bat
