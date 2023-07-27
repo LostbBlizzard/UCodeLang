@@ -13,17 +13,17 @@
 UCodeLangStart
 
 
-using Int8  = signed char;
-using Int16 = signed short;
-using Int32 = signed int;
-using Int64 = signed long long;
+using Int8  = int8_t;
+using Int16 = int16_t;
+using Int32 = int32_t;
+using Int64 = int64_t;
 
 
 
-using UInt8 = unsigned char;
-using UInt16 = unsigned short;
-using UInt32 = unsigned int;
-using UInt64 = unsigned long long;
+using UInt8 = uint8_t;
+using UInt16 = uint16_t;
+using UInt32 = uint32_t;
+using UInt64 = uint64_t;
 
 using float32 = float;
 using float64 = double;
