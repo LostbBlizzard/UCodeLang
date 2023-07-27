@@ -19,8 +19,12 @@ jobs:
     - name: Run Premake
       run: ./VS_2019.bat
 
-    - name: Build 32 bit
+    - name: Cd
       run: cd ./BuildTools
+
+    - name: Build 32 bit
+      run: |
+           cd ./BuildTools
            BuildWin32Debug.bat
 
     - name: Build 64 bit
