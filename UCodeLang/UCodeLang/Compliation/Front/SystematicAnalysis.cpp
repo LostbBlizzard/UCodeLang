@@ -4685,7 +4685,7 @@ Symbol* SystematicAnalysis::NewDropFuncSymbol(ClassInfo* ClassInfo, TypeSymbol& 
 
 void SystematicAnalysis::BuildFuncDropUsesingFields(const ClassInfo* ClassInfo, const IRType& ThisPar)
 {
-	for (int i = ClassInfo->Fields.size() - 1; i >= 0; i--)
+	for (size_t i = ClassInfo->Fields.size() - 1; i != (Vector<FieldInfo>::size_type)-1; i--)
 	{
 		auto& Item = ClassInfo->Fields[i];
 		if (HasDestructor(Item.Type))
@@ -11227,7 +11227,7 @@ void SystematicAnalysis::CheckAllValuesAreMatched(const TypeSymbol& MatchItem, c
 		}
 	}
 }
-SystematicAnalysis::BuildMatch_ret SystematicAnalysis::BuildMatch(const TypeSymbol& MatchItem, const ExpressionNodeType& MatchValueNode,IRInstruction* Item, BuildMatch_State& State, MatchArm& Arm, const ExpressionNodeType& ArmEx)
+SystematicAnalysis::BuildMatch_ret SystematicAnalysis::BuildMatch(const TypeSymbol& MatchItem, const ExpressionNodeType& MatchValueNode, IRInstruction* Item, BuildMatch_State& State, MatchArm& Arm, const ExpressionNodeType& ArmEx)
 {
 	bool IsJust =
 		MatchItem._IsAddressArray == false
@@ -11272,7 +11272,7 @@ SystematicAnalysis::BuildMatch_ret SystematicAnalysis::BuildMatch(const TypeSymb
 				throw std::exception("bad path");
 			}
 		}
-		else 
+		else
 		{
 			auto Syb = GetSymbol(MatchItem);
 			if (Syb->Type == SymbolType::Enum)
@@ -11323,6 +11323,9 @@ SystematicAnalysis::BuildMatch_ret SystematicAnalysis::BuildMatch(const TypeSymb
 			}
 		}
 	}
+
+	SystematicAnalysis::BuildMatch_ret R;
+	return R;
 }
 SystematicAnalysis::BuildMatch_ret SystematicAnalysis::BuildInvaildMatch(const TypeSymbol& MatchItem, IRInstruction* Item, BuildMatch_State& State)
 {
@@ -13504,7 +13507,7 @@ bool SystematicAnalysis::GetSize(const TypeSymbol& Type, UAddress& OutSize)
 					
 					for (auto& Item2 : Item.Variants)
 					{
-						auto ItemSize = 0;
+						size_t ItemSize = 0;
 						for (auto& Item3 : Item2.Types)
 						{
 							UAddress tep = 0;
@@ -15946,7 +15949,7 @@ int SystematicAnalysis::GetCompatibleScore(const IsCompatiblePar& Func, const Ve
 	}
 
 
-	return (*Func.Pars).size() ? r / (*Func.Pars).size() : r;
+	return (*Func.Pars).size() ? (r / (*Func.Pars).size()) : r;
 }
 bool SystematicAnalysis::AccessCheck(const Symbol* Syb,const Token* Token, const String_view Scope)
 {
@@ -17667,7 +17670,7 @@ void SystematicAnalysis::LogTypeDependencyCycle(const Token* Token, const ClassI
 {
 	String Msg = "Class Dependency Cycle On Type '" + (String)Value->FullName + "' <- ";
 
-	for (int i = ClassDependencies.size() - 1; i >= 0; i--)
+	for (size_t i = ClassDependencies.size() - 1; i != (Vector<const ClassInfo*>::size_type) - 1;i--)
 	{
 		auto& Item = ClassDependencies[i];
 	
@@ -17762,7 +17765,7 @@ void SystematicAnalysis::LogFuncDependencyCycle(const Token* Token, const FuncIn
 {
 	String Msg = "function return type Dependency Cycle On function '" + (String)Value->FullName + "' <- ";
 
-	for (int i = _FuncStack.size() - 1; i >= 0; i--)
+	for (size_t i = _FuncStack.size() - 1; i != (Vector<FuncStackInfo>::size_type) - 1; i--)
 	{
 		auto& Item = _FuncStack[i];
 

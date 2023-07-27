@@ -12,7 +12,7 @@ struct UDebugSetFile
 struct UDebugSetLineNumber
 {
 	//This LineNumber and not LineIndex do LineNumber -1 for Index
-	size_t LineNumber;
+	size_t LineNumber=0;
 	UAddress ForIns = 0;
 };
 struct UDebugSetVarableLoc

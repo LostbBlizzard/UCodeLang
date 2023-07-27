@@ -520,7 +520,7 @@ struct IRDebugSybol
 		Static,
 		Thread,
 	};
-	Type _Type;
+	Type _Type= Type::Stack;
 };
 struct IRDebugSybInfo
 {
@@ -778,8 +778,8 @@ struct IRBlock
 
 	struct NewConditionalFalseJump_t
 	{
-		IRInstruction* logicalNot;
-		IRInstruction* ConditionalJump;
+		IRInstruction* logicalNot=nullptr;
+		IRInstruction* ConditionalJump = nullptr;
 	};
 
 	NewConditionalFalseJump_t NewConditionalFalseJump(IRInstruction* Conditional, size_t JumpTo=0)
