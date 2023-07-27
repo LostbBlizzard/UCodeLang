@@ -233,6 +233,7 @@ AssemblyNode& AssemblyNode::operator=(AssemblyNode&& node)
 	}
 
 	node.Type = ClassType::Null;
+	return *this;
 }
 AssemblyNode& AssemblyNode::operator=(const AssemblyNode& node)
 {
@@ -283,6 +284,7 @@ AssemblyNode& AssemblyNode::operator=(const AssemblyNode& node)
 		throw std::exception("bad path");
 		break;
 	}
+	return *this;
 }
 AssemblyNode::~AssemblyNode()
 {
@@ -327,7 +329,7 @@ AssemblyNode::~AssemblyNode()
 		_GenericFunc.~GenericFuncion_Data();
 		break;
 	default:
-		throw std::exception("bad path");
+		//throw std::exception("bad path");
 		break;
 	}
 }

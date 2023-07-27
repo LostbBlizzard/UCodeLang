@@ -71,7 +71,7 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 			StackSize += Item.GetSize();
 		}
 
-		_Gen.sub32(GReg::RSP, StackSize);//so CPPinterface_Set_ReturnPtr does not break the FuncRet value
+		_Gen.sub32(GReg::RSP, (Int32)StackSize);//so CPPinterface_Set_ReturnPtr does not break the FuncRet value
 
 		_Gen.push64(IntLikeParam_1);//move Input arugument on stack
 
@@ -108,8 +108,8 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 						_Gen.pop64(GReg::RAX);//Get Param
 					}
 
-					size_t StackPos = -(StackSize - ParsSize - 8);
-					_Gen.mov64(IndrReg(GReg::RSP), StackPos, GReg::RAX);//move parm on stack
+					size_t StackPos = (StackSize - ParsSize - 8);
+					_Gen.mov64(IndrReg(GReg::RSP), (Int32)StackPos, GReg::RAX);//move parm on stack
 					ParsSize += Item.GetSize();
 				}
 				else
@@ -144,8 +144,8 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 					IntparTypeCount++;
 					ParsSize += Item.GetSize();
 
-					size_t StackPos = -(StackSize - ParsSize - 8);
-					_Gen.mov64(PReg,IndrReg(GReg::RSP), StackPos);//move to Preg
+					size_t StackPos = (StackSize - ParsSize - 8);
+					_Gen.mov64(PReg,IndrReg(GReg::RSP), (Int32)StackPos);//move to Preg
 				}
 			}
 		}
@@ -216,14 +216,14 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 		}
 		
 		
-		_Gen.add32(GReg::RSP, StackSize);//move stack back
+		_Gen.add32(GReg::RSP, (Int32)StackSize);//move stack back
 		PushFuncEnd();
 		_Gen.ret();
 	}
 
 	{
 		size_t Offset = GetIndex() - CallOffset - CallInsSize;
-		_Gen.r_call(_Gen.GetData(CallOffset),Near32(Offset));
+		_Gen.r_call(_Gen.GetData(CallOffset),Near32((Int32)Offset));
 
 		Out_NativeCallOffset = _Gen.GetIndex();
 		
@@ -1007,8 +1007,8 @@ void X86_64JitCompiler::SubCall(JitInfo::FuncType Value, uintptr_t CPPOffset, vo
 	UInt64 CallPos = (UInt64)bytes;
 
 	
-	Int32 Offset = ValueFunc > CallPos ? 
-		ValueFunc - CallPos : CallPos - ValueFunc;
+	Int32 Offset = (Int32)(ValueFunc > CallPos ?
+		ValueFunc - CallPos : CallPos - ValueFunc);
 
 	_Gen.r_call(bytes,Near32(Offset));
 }

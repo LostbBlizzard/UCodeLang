@@ -796,7 +796,7 @@ void IROptimizer::InLineFunc(InLineData& Data)
 	auto FuncParsCount = FuncToCall->Pars.size();
 	Vector<IRInstruction*> PushIns;//its Parameters are backwards
 
-	for (int i = Data.CallIndex - 1; i >= 0; i--)
+	for (size_t i = Data.CallIndex - 1; i != (size_t)-1; i--)
 	{
 		IRInstruction* Ins = Data.Block->Instructions[i].get();
 		if (Ins->Type != IRInstructionType::PushParameter)

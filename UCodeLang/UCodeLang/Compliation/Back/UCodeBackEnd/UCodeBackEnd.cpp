@@ -2231,7 +2231,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 			}
 			else
 			{
-				if (IsPrimitive(GetType(Ins)) > sizeof(AnyInt64))
+				if (!IsPrimitive(GetType(Ins)))
 				{
 					UCodeBackEndObject::IRlocData R;
 					R.Info = IRlocData_StackPost(_Stack.AddWithSize(Ins, GetSize(Ins))->Offset);
@@ -2986,7 +2986,7 @@ RegisterID UCodeBackEndObject::GetRegisterForTep()
 
 
 		size_t BestToOverLoad = 0;
-		WeightType LestToBeat = SIZE_MAX;
+		WeightType LestToBeat = INT32_MAX;
 
 		for (size_t i = 0; i < RegisterWeights.size(); i++)
 		{
