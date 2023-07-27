@@ -21,10 +21,10 @@ public:
 	};
 	inline static Vesion CurrrentVersion = Vesion(0,0,1);
 	static constexpr const char* VersionName = "0.0.1";
-	static Path GetUCodeGlobalDirectory();
-	static Path GetUCodeGlobalModulesDownloads();
-	static Path GetUCodeGlobalBin();
-	static Path GetUCodeGlobalCacheDirectory();
+	UCodeLangAPIExport static Path GetUCodeGlobalDirectory();
+	UCodeLangAPIExport static Path GetUCodeGlobalModulesDownloads();
+	UCodeLangAPIExport static Path GetUCodeGlobalBin();
+	UCodeLangAPIExport static Path GetUCodeGlobalCacheDirectory();
 };
 
 UCodeLangEnd

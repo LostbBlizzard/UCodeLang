@@ -46,13 +46,13 @@ class Debuger
 {
 public:
 	using OnBreakPointCallBack = int;
-	Debuger(){}
-	~Debuger(){}
+	UCodeLangAPIExport Debuger(){}
+	UCodeLangAPIExport ~Debuger(){}
 
-	void Attach(Interpreter* interpreter);
-	void AddRunTimeBreakPoint(UAddress Item, OnBreakPointCallBack OnHit);
-	void RemoveRunTimeBreakPoint(UAddress Item);
-	void UpdateDebugData(DebugData& Out);
+	UCodeLangAPIExport void Attach(Interpreter* interpreter);
+	UCodeLangAPIExport void AddRunTimeBreakPoint(UAddress Item, OnBreakPointCallBack OnHit);
+	UCodeLangAPIExport void RemoveRunTimeBreakPoint(UAddress Item);
+	UCodeLangAPIExport void UpdateDebugData(DebugData& Out);
 
 private:
 	Interpreter* _Interpreter = nullptr;

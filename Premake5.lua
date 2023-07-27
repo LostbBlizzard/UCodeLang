@@ -1,7 +1,7 @@
 workspace "UCodeLang"
    configurations { "Debug", "Release","Published" }
    platforms { "Win32", "Win64"}
-   defines {"UCodeLangDebug"}
+   defines {"UCodeLangDebug","ZYCORE_STATIC_BUILD"}
    
    
 
@@ -196,25 +196,53 @@ project "UCodeIDE"
    language "C++"
    targetdir ("Output/%{prj.name}/" .. OutDirPath)
    objdir ("Output/int/%{prj.name}/" .. OutDirPath)
+
+   dependson {"UCodeLang","UCodeLanguageSever"}
+
+   defines {"GLEW_STATIC"}
+
    filter { "system:Windows" }
-    kind "ConsoleApp"  
+    kind "ConsoleApp"   
+    files { 
+     "%{prj.name}/Dependencies/imgui/backends/imgui_impl_opengl3.h",
+     "%{prj.name}/Dependencies/imgui/backends/imgui_impl_opengl3_loader.h", 
+    }
+    filter { "platforms:Win32" }
+      links { "glew32s.lib"}
+    
+    filter { "platforms:Win64" }
+      links { "glew64s.lib"}
+
     filter { "configurations:Published" }
       kind "WindowedApp"
+    
 
-  
+   
 
    files { 
      "%{prj.name}/src/**.cpp",
      "%{prj.name}/src/**.hpp", 
+
+     "%{prj.name}/Dependencies/GLEW/**.h",
+     "%{prj.name}/Dependencies/GLFW/**.c",
+     "%{prj.name}/Dependencies/GLFW/**.h", 
+     "%{prj.name}/Dependencies/imgui/*.cpp",
+     "%{prj.name}/Dependencies/imgui/*.h", 
    }
 
    includedirs{
     "%{prj.name}/src",
-    "UCodeLang",
+    "UCodeLang/UCodeLang",
+
+    "Dependencies/Imgui",
+    "Dependencies/GLFW/include",
+    "Dependencies/GLFW/deps",
+    "Dependencies/GLEW",
    }
 
    links {
-      "UCodeLang.lib",
+     "UCodeLang.lib",
+     "Opengl32.lib",
    }
    libdirs { 
       "Output/UCodeLang/" .. OutDirPath,
