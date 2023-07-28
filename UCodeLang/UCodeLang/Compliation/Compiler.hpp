@@ -34,7 +34,7 @@ public:
 	
 	UCodeLangAPIExport CompilerRet CompileText(const String_view& Text);
 	UCodeLangAPIExport static String GetTextFromFile(const Path& path);
-	UCodeLangAPIExport  BytesPtr GetBytesFromFile(const Path& path);
+	UCodeLangAPIExport static BytesPtr GetBytesFromFile(const Path& path);
 	UCodeLangForceinline CompilerRet CompileFileToLib(const Path& path)
 	{
 		return  CompileText(GetTextFromFile(path));

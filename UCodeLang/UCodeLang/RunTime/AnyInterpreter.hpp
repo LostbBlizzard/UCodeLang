@@ -151,23 +151,23 @@ public:
 	AnyInterpreter& operator=(AnyInterpreter&& Value) = default;
 	
 	AnyInterpreter(Interpreter&& Value)
-		:Base(std::move(Value)){}
+		:Base(std::make_shared<Interpreter>(std::move(Value))){}
 	AnyInterpreter(Jit_Interpreter&& Value)
-		:Base(std::move(Value)){}
+		:Base(std::make_shared<Jit_Interpreter>(std::move(Value))){}
 	AnyInterpreter(NativeInterpreter&& Value)
-		:Base(std::move(Value)){}
+		:Base(std::make_shared<NativeInterpreter>(std::move(Value))){}
 	
 	AnyInterpreter& operator=(Interpreter&& Value)
 	{
-		Base = std::move(Value);
+		Base = std::make_shared<Interpreter>(std::move(Value));
 	}
 	AnyInterpreter& operator=(Jit_Interpreter&& Value)
 	{
-		Base = std::move(Value);
+		Base = std::make_shared<Jit_Interpreter>(std::move(Value));
 	}
 	AnyInterpreter& operator=(NativeInterpreter&& Value)
 	{
-		Base = std::move(Value);
+		Base = std::make_shared<NativeInterpreter>(std::move(Value));
 	}
 	~AnyInterpreter()
 	{
@@ -201,28 +201,28 @@ public:
 
 	Interpreter& GetAs_Interpreter()
 	{
-		return Base.Get<Interpreter>();
+		return *Base.Get<Shared_ptr<Interpreter>>();
 	}
 	Jit_Interpreter& GetAs_JitInterpreter()
 	{
-		return Base.Get<Jit_Interpreter>();
+		return *Base.Get<Shared_ptr<Jit_Interpreter>>();
 	}
 	NativeInterpreter& GetAs_NativeInterpreter()
 	{
-		return Base.Get<NativeInterpreter>();
+		return *Base.Get<Shared_ptr<NativeInterpreter>>();
 	}
 
 	const Interpreter& GetAs_Interpreter()const
 	{
-		return Base.Get<Interpreter>();
+		return *Base.Get< Shared_ptr<Interpreter>>();
 	}
 	const Jit_Interpreter& GetAs_JitInterpreter()const
 	{
-		return Base.Get<Jit_Interpreter>();
+		return *Base.Get< Shared_ptr<Jit_Interpreter>>();
 	}
-	const NativeInterpreter GetAs_NativeInterpreter()const
+	const NativeInterpreter& GetAs_NativeInterpreter()const
 	{
-		return Base.Get<NativeInterpreter>();
+		return *Base.Get<Shared_ptr<NativeInterpreter>>();
 	}
 	AnyInterpreterPtr GetPtr()
 	{
@@ -230,21 +230,22 @@ public:
 	}
 private:
 	struct Null {};
-	Variant<Null, Interpreter, Jit_Interpreter, NativeInterpreter> Base;
+	//useing Shared_ptr because std::Variant need it to be copyable
+	Variant<Null,Shared_ptr<Interpreter>,Shared_ptr<Jit_Interpreter>, Shared_ptr<NativeInterpreter>> Base;
 
 	UCodeLangForceinline AnyInterpreterPtr Get_Ptr()
 	{
-		if (auto Val = Base.Get_If<Interpreter>())
+		if (auto Val = Base.Get_If< Shared_ptr<Interpreter>>())
 		{
-			return AnyInterpreterPtr(Val);
+			return AnyInterpreterPtr(Val->get());
 		}
-		else if (auto Val = Base.Get_If<Jit_Interpreter>())
+		else if (auto Val = Base.Get_If< Shared_ptr<Jit_Interpreter>>())
 		{
-			return AnyInterpreterPtr(Val);
+			return AnyInterpreterPtr(Val->get());
 		}
-		else if (auto Val = Base.Get_If<NativeInterpreter>())
+		else if (auto Val = Base.Get_If< Shared_ptr<NativeInterpreter>>())
 		{
-			return AnyInterpreterPtr(Val);
+			return AnyInterpreterPtr(Val->get());
 		}
 		else
 		{
@@ -254,17 +255,17 @@ private:
 
 	 UCodeLangForceinline const AnyInterpreterPtr Get_Ptr() const
 	{
-		if (auto Val = Base.Get_If<Interpreter>())
+		if (auto Val = Base.Get_If< Shared_ptr<Interpreter>>())
 		{
-			return AnyInterpreterPtr::Make(Val);
+			return AnyInterpreterPtr::Make(Val->get());
 		}
-		else if (auto Val = Base.Get_If<Jit_Interpreter>())
+		else if (auto Val = Base.Get_If< Shared_ptr<Jit_Interpreter>>())
 		{
-			return AnyInterpreterPtr::Make(Val);
+			return AnyInterpreterPtr::Make(Val->get());
 		}
-		else if (auto Val = Base.Get_If<NativeInterpreter>())
+		else if (auto Val = Base.Get_If< Shared_ptr<NativeInterpreter>>())
 		{
-			return AnyInterpreterPtr::Make(Val);
+			return AnyInterpreterPtr::Make(Val->get());
 		}
 		else
 		{

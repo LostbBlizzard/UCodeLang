@@ -21,8 +21,10 @@ public:
 	using RetState = Interpreter::RetState;
 	Jit_Interpreter(){}
 	~Jit_Interpreter() { UnLoad(); }
+	Jit_Interpreter(Jit_Interpreter&& Other) = default;
+	Jit_Interpreter& operator=(Jit_Interpreter&& Other) = default;
 	Jit_Interpreter(const Jit_Interpreter& Other) = delete;
-	Jit_Interpreter& operator=(const Jit_Interpreter& Other) = default;
+	Jit_Interpreter& operator=(const Jit_Interpreter& Other) = delete;
 
 	void Init(RunTimeLangState* State,Jit_State* JitState = nullptr)
 	{
