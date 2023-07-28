@@ -592,16 +592,25 @@ public:
 	}
 
 
-	//Used at RunTime
-	using OnHitFuncion = void(*)(void* Inter,void* ObjectPointer);
-	UCodeLangForceinline static void DebugBreakPoint(Instruction& Out,OnHitFuncion OnhitFuncion,void* ObjectPointer)
+	//Debug
+	UCodeLangForceinline static void Debug_FuncStart(Instruction& Out)
 	{
-		Out.OpCode = InstructionSet::Call_Code;
-		Out.Value0.AsPtr = (void*)OnhitFuncion;
-		Out.Value1.AsPtr = ObjectPointer;
+		Out.OpCode = InstructionSet::Debug_FuncStart;
+		Out.Value0 = NullUInt64;
+		Out.Value1 = NullUInt64;
 	}
-	
-
+	UCodeLangForceinline static void Debug_FuncEnd(Instruction& Out)
+	{
+		Out.OpCode = InstructionSet::Debug_FuncEnd;
+		Out.Value0 = NullUInt64;
+		Out.Value1 = NullUInt64;
+	}
+	UCodeLangForceinline static void Debug_LineEnter(Instruction& Out)
+	{
+		Out.OpCode = InstructionSet::Debug_LineEnter;
+		Out.Value0 = NullUInt64;
+		Out.Value1 = NullUInt64;
+	}
 
 	//Others
 	UCodeLangForceinline static void GenInst(Intermediate_Set Inst, const UInt64 Value0, const UInt64 Value1, Instruction& Out)

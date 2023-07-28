@@ -186,6 +186,10 @@ static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 
 	AddMapValueValue(GetPointerOfStaticMem,InstructionSet::GetPointerOfStaticMem,OpCodeType::Register,OpCodeType::UIntPtr),
 	AddMapValueValue(GetPointerOfThreadMem,InstructionSet::GetPointerOfThreadMem,OpCodeType::Register,OpCodeType::UIntPtr),
+
+	AddMapValueValue(Debug_FuncStart,InstructionSet::Debug_FuncStart,OpCodeType::NoOpCode,OpCodeType::NoOpCode),
+	AddMapValueValue(Debug_FuncEnd,InstructionSet::Debug_FuncEnd,OpCodeType::NoOpCode,OpCodeType::NoOpCode),
+		AddMapValueValue(Debug_LineEnter,InstructionSet::Debug_LineEnter,OpCodeType::NoOpCode,OpCodeType::NoOpCode),
 };
 
 static inline Unordered_map<InstructionSet, const InsMapValue*> InsToInsMapValue;

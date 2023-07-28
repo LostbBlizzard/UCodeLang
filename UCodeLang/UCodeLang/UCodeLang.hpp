@@ -8,3 +8,4 @@
 #include "LangCore/UClib.hpp"
 #include "Compliation/Compiler.hpp"
 #include "RunTime/RunTimeHelpers.hpp"
+#include "RunTime/ProfilerDebuger.hpp"

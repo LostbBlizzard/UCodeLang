@@ -59,7 +59,56 @@ struct UserMadeContext
 	{
 
 	}
-	void* _Ptr;
+	void* _Ptr = nullptr;
+};
+
+
+
+
+struct DebugContext
+{
+	enum class Type
+	{
+		Interpreter,
+		Jit_Interpreter,
+		Native_Interpreter,
+	};
+	struct InterpreterInfo
+	{
+		void* ThisInterpreter = nullptr;
+		Type Type;
+	};
+	using FuncStart = void(*)(RunTimeLangState& This, void* _Ptr, InterpreterInfo Info);
+	using FuncEnd = void(*)(RunTimeLangState& This,void* _Ptr, InterpreterInfo Info);
+	using FuncOnLine = void(*)(RunTimeLangState& This, void* _Ptr, InterpreterInfo Info);
+
+	void* _Ptr =nullptr;
+	FuncStart _FuncStart = nullptr;
+	FuncEnd _FuncEnd = nullptr;
+	FuncOnLine _FuncOnLine = nullptr;
+
+	void TryFuncStart(RunTimeLangState& This, InterpreterInfo Info) const
+	{
+		if (_FuncStart)
+		{
+			_FuncStart(This, _Ptr, Info);
+		}
+	}
+	void TryFuncEnd(RunTimeLangState& This, InterpreterInfo Info) const
+	{
+		if (_FuncStart)
+		{
+			_FuncEnd(This, _Ptr, Info);
+		}
+	}
+	void TryFuncOnLine(RunTimeLangState& This, InterpreterInfo Info) const
+	{
+		if (_FuncStart)
+		{
+			_FuncOnLine(This, _Ptr,Info);
+		}
+	}
+
 };
 
 class RunTimeLangState
@@ -228,6 +277,15 @@ public:
 	{
 		return _Data.GetName(address);
 	}
+
+	const DebugContext& Get_DebugContext() const
+	{
+		return _Debug;
+	}
+	DebugContext& Get_DebugContext()
+	{
+		return _Debug;
+	}
 private:
 	Allocator _Allocator;
 	UCLibManger _Data;
@@ -236,5 +294,6 @@ private:
 	ReadCharCallBack _Read;
 
 	UserMadeContext _UserMadeContext;
+	DebugContext _Debug;
 };
 UCodeLangEnd

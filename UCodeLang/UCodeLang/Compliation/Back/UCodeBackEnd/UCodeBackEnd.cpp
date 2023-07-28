@@ -302,6 +302,11 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 
 	size_t LinkedCallsIndex = FuncsToLink.size();
 
+	if (IsDebugMode())
+	{
+		InstructionBuilder::Debug_FuncStart(_Ins); PushIns();
+	}
+
 	if (IR->Linkage != IRFuncLink::StaticLink)
 	{
 		BuildLink(FuncName,IR->Linkage);
@@ -407,6 +412,8 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 				{
 					Add_SetLineNumber(Val->LineNumber,
 						i == 0 ? _OutLayer->_Instructions.size() : _OutLayer->_Instructions.size() - 1);
+
+					
 				}
 			}
 		}
@@ -960,16 +967,32 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			break;
 		}
 
+		if (IsDebugMode()) {
+			auto DebugInfo = IR->DebugInfo.Get_debugfor(i);
+			for (auto& Item : DebugInfo)
+			{
 
+				if (auto Val = Item->Debug.Get_If<IRDebugSetLineNumber>())
+				{
+
+					InstructionBuilder::Debug_LineEnter(_Ins); PushIns();
+				}
+			}
+		}
 		UpdateVarableLocs();
 
 		
-
+		
 		IRToUCodeIns[i] = _OutLayer->Get_Instructions().size() - 1;
 	}
 DoneLoop:
 	DropStack();
 	DropPars();
+
+	if (IsDebugMode())
+	{
+		InstructionBuilder::Debug_FuncEnd(_Ins); PushIns();
+	}
 	InstructionBuilder::Return(ExitState::Success, _Ins); PushIns();
 	IRToUCodeIns[Index] = _OutLayer->Get_Instructions().size() - 1;
 

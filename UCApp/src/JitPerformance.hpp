@@ -11,7 +11,7 @@
 #include "UCodeLang/Compliation/Back/C89/C89Backend.hpp"
 #include "UCodeLang/Compliation/Back/x86/X86BackEnd.hpp"
 #include "UCodeLang/Compliation/ModuleFile.hpp"
-#include "UCodeLang/RunTime/Debuger.hpp"
+#include "UCodeLang/RunTime/ProfilerDebuger.hpp"
 
 #include "../tests/TestGenerator.hpp"
 #include "../tests/Test.hpp"
