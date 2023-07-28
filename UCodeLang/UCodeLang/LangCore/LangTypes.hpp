@@ -77,8 +77,7 @@ public:
 	template<typename T>
 	Variant(const T& Value) :_Base(Value){}
 
-	template<typename T>
-	Variant(T&& Value) : _Base(Value) {}
+	template<typename T>Variant(T&& Value) : _Base(std::move(Value)) {}
 
 	Variant()
 	{
@@ -90,9 +89,9 @@ public:
 		_Base = Value;
 		return *this;
 	}
-	template<typename T> ThisType& operator=(const T&& Value)
+	template<typename T> ThisType& operator=(T&& Value)
 	{
-		_Base = Value;
+		_Base = std::move(Value);
 		return *this;
 	}
 
