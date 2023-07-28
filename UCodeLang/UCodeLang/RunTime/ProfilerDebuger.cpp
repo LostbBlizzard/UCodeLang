@@ -79,15 +79,8 @@ void ProfilerDebuger::OnFuncOnline(AnyInterpreterPtr Ptr)
 	if (Ptr.Get_InterpreterType() == InterpreterTypes::Interpreter)
 	{
 		auto Interpreter = Ptr.GetAs_Interpreter();
-		std::cout << "OnFuncion On Line" << std::endl;
+		
 
-		auto diff = now - LastOnLineTime;
-		InFunc.push_back(diff);
-
-
-		std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds> (diff).count() << "[ms]" << std::endl;
-		std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(diff).count() << "[microsecond]" << std::endl;
-		std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::nanoseconds> (diff).count() << "[ns]" << std::endl;
 
 		LastOnLineTime = ProfilerClock::now();
 

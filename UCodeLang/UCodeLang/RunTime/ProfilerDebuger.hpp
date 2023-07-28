@@ -9,14 +9,13 @@ UCodeLangStart
 using ProfilerClock = std::chrono::high_resolution_clock;
 using ProfilerTime_point = ProfilerClock::time_point;
 using ProfilerDuration_point = ProfilerClock::duration;
-using ProfilerTimePoint = std::chrono::milliseconds;
 struct ProfilerFuncStats
 {
-	ProfilerTimePoint AverageTime = ProfilerTimePoint();
+	ProfilerDuration_point AverageTime = {};
 	size_t AverageMemoryAlloc = 0;
 	size_t AverageMemoryFree = 0;
 
-	Vector<ProfilerTimePoint> _LastTime;
+	Vector<ProfilerDuration_point> _LastTime;
 	Vector<size_t> _LastMemoryAlloc;
 	Vector<size_t> _LastMemoryFree;
 
@@ -67,7 +66,7 @@ struct DebugStackFrame
 	UAddress _Funcion =NullAddress;
 	const ClassMethod* _Method=nullptr;
 
-	Optional<ProfilerTimePoint> FuncStart;
+	Optional<ProfilerTime_point> FuncStart;
 
 	Vector<DebugVarable> _Varables;
 };
