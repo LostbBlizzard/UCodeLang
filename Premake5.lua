@@ -200,53 +200,63 @@ project "UCodeIDE"
    dependson {"UCodeLang","UCodeLanguageSever"}
 
    defines {"GLEW_STATIC"}
-
-   filter { "system:Windows" }
-    kind "ConsoleApp"   
-    files { 
-     "%{prj.name}/Dependencies/imgui/backends/imgui_impl_opengl3.h",
-     "%{prj.name}/Dependencies/imgui/backends/imgui_impl_opengl3_loader.h", 
-    }
-    filter { "platforms:Win32" }
-      links { "glew32s.lib"}
-    
-    filter { "platforms:Win64" }
-      links { "glew64s.lib"}
-
-    filter { "configurations:Published" }
-      kind "WindowedApp"
-    
-
    
-
+   
+   
    files { 
      "%{prj.name}/src/**.cpp",
      "%{prj.name}/src/**.hpp", 
 
      "%{prj.name}/Dependencies/GLEW/**.h",
-     "%{prj.name}/Dependencies/GLFW/**.c",
-     "%{prj.name}/Dependencies/GLFW/**.h", 
-     "%{prj.name}/Dependencies/imgui/*.cpp",
-     "%{prj.name}/Dependencies/imgui/*.h", 
+     "%{prj.name}/Dependencies/GLFW/include/**.c",
+     "%{prj.name}/Dependencies/GLFW/include/**.h", 
+     "%{prj.name}/Dependencies/GLFW/src/**.c",
+     "%{prj.name}/Dependencies/GLFW/src/**.h", 
+
+     "%{prj.name}/Dependencies/Imgui/*.cpp",
+     "%{prj.name}/Dependencies/Imgui/*.h", 
+     
+     "%{prj.name}/Dependencies/Imgui/backends/imgui_impl_opengl3.h",
+     "%{prj.name}/Dependencies/Imgui/backends/imgui_impl_opengl3_loader.h",
+     "%{prj.name}/Dependencies/Imgui/backends/imgui_impl_opengl3.cpp",
+
+     "%{prj.name}/Dependencies/Imgui/backends/imgui_impl_glfw.cpp",
+     "%{prj.name}/Dependencies/Imgui/backends/imgui_impl_glfw.h",
    }
 
    includedirs{
     "%{prj.name}/src",
+    "UCodeLang",
     "UCodeLang/UCodeLang",
 
-    "Dependencies/Imgui",
-    "Dependencies/GLFW/include",
-    "Dependencies/GLFW/deps",
-    "Dependencies/GLEW",
+    "%{prj.name}/Dependencies",
+    "%{prj.name}/Dependencies/Imgui",
+    "%{prj.name}/Dependencies/GLFW/include",
+    "%{prj.name}/Dependencies/GLFW/deps",
+    "%{prj.name}/Dependencies/GLEW",
    }
 
    links {
      "UCodeLang.lib",
-     "Opengl32.lib",
    }
    libdirs { 
       "Output/UCodeLang/" .. OutDirPath,
+      "%{prj.name}/Dependencies/GLEW/Lib",
    }
+
+   filter { "system:Windows" }
+    kind "ConsoleApp"   
+    defines {"_GLFW_WIN32"}
+
+   filter { "system:Windows","configurations:Published" }
+    kind ("WindowedApp")
+
+   filter { "architecture:x86"}
+      links {"glew32s.lib","Opengl32.lib"}
+   filter { "architecture:x86_64"}
+      links {"glew64s.lib","Opengl32.lib"}
+
+   
 project "UCodeWebsite"
    location "UCodeWebsite" 
    language "C++"
