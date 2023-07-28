@@ -47,11 +47,12 @@ mainly
 [Download]()
 
 [Documentation]("UCodeDocumentation/src/SUMMARY.md")
+//Goto "UCodeDocumentation/src/SUMMARY.md" if link does not work
 
 [VSCode Extension]()
 
 [How To Add To Your C++ Project]("UCodeDocumentation/src/ForImplementers.md")
-
+//Goto "UCodeDocumentation/src/ForImplementers.md" if link does not work
 
 # Project File Structure / github contributions
 
@@ -112,8 +113,13 @@ The file Project Structure is lad out like this
    - "Were UCodeDocumentation is"
    - /Standardlibrary
      - "Generated from /UCodeAPI/UCodeDocumentation"
-   
 
+- /UCodeIDE
+   - "Its use is for testing things that would be hard to test useing a debuger"
+
+- /UCodeWebsite
+   - "Were the UCodeWebsite is im not a web dev so it's probably just the bare minimum"
+ 
 
 
 The project is meant too have as few dependencies as possable because it is meant to be easy to added to any c++ pojects.
