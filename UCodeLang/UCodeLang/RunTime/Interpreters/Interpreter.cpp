@@ -495,12 +495,20 @@ void Interpreter::Extecute(Instruction& Inst)
 		Get_Register((RegisterID)Inst.Value1.AsRegister).Value = Inst.Value0.AsAddress; \
 	}
 	break;
-	case InstructionSet::DebugBreakPointHit:
+
+	case InstructionSet::Debug_FuncStart:
 	{
-		using OnHitFuncion = void(*)(void* Inter, void* ObjectPointer);
-		OnHitFuncion _Func = (OnHitFuncion)Get_Register((RegisterID)Inst.Value0.AsRegister).Value.AsPtr;
-		void* ObjectToPass = Get_Register((RegisterID)Inst.Value1.AsRegister).Value.AsPtr;
-		_Func(this, ObjectToPass);
+		Get_State()->Get_DebugContext().TryFuncStart(*Get_State(), { this,DebugContext::Type::Interpreter });
+	}
+	break;
+	case InstructionSet::Debug_FuncEnd:
+	{
+		Get_State()->Get_DebugContext().TryFuncEnd(*Get_State(), {this,DebugContext::Type::Interpreter});
+	}
+	break;
+	case InstructionSet::Debug_LineEnter:
+	{
+		Get_State()->Get_DebugContext().TryFuncOnLine(*Get_State(), { this,DebugContext::Type::Interpreter });
 	}
 	break;
 	#pragma endregion

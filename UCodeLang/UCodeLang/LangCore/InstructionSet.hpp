@@ -85,7 +85,9 @@ enum class InstructionSet : InstructionSet_t
 	Call_Code,
 
 	//Debuging
-	DebugBreakPointHit,
+	Debug_FuncStart,
+	Debug_FuncEnd,
+	Debug_LineEnter,
 
 	MAXVALUE,
 };

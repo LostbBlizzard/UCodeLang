@@ -98,8 +98,7 @@ UCodeLangCAPI_Interpreter_RetState As(UCodeLang::Interpreter::RetState Value)
 	case UCodeLang::Interpreter::RetState::Success:return { UCodeLangCAPI_Interpreter_RetState::Success };
 	case UCodeLang::Interpreter::RetState::Error:return {UCodeLangCAPI_Interpreter_RetState::Error};
 	case UCodeLang::Interpreter::RetState::Error_Function_doesnt_exist:return { UCodeLangCAPI_Interpreter_RetState::Null };
-	default:
-		break;
+	default:return { UCodeLangCAPI_Interpreter_RetState::Null };
 	}
 }
 

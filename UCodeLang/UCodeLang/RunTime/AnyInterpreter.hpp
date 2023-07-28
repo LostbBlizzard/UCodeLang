@@ -1,3 +1,4 @@
+#pragma once
 #include "Interpreters/Interpreter.hpp"
 #include "Jit/Jit_Interpreter.hpp"
 #include "Interpreters/NativeInterpreter.hpp"

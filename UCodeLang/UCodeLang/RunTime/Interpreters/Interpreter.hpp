@@ -9,7 +9,7 @@ UCodeLangStart
 class InterpreterCPPinterface;
 class Jit_Interpreter;
 class UPackagedTask_t;
-class Debuger;
+class ProfilerDebuger;
 
 class Interpreter
 {
@@ -17,7 +17,7 @@ public:
 	friend InterpreterCPPinterface;
 	friend Jit_Interpreter;
 	friend UPackagedTask_t;
-	friend Debuger;
+	friend ProfilerDebuger;
 
 	enum class RetState : ExitState_t
 	{
