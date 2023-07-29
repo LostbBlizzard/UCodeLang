@@ -178,6 +178,9 @@ enum class InstructionSysCall : InstructionSet_t
 	File_Open,
 	File_Close,
 	File_Read,
+	File_Write,
+
+	FileP_Open,
 };
 
 using BitSizeType_t = UInt8;
