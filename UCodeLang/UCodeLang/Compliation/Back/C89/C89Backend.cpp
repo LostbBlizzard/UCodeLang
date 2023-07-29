@@ -27,6 +27,7 @@ void C89Backend::Build(const IRBuilder* Input)
 			CodeLayer::JustData V; 
 			V._Data = Input->ToBytes().MoveToVector();
 			_OutLayer->_Data = std::move(V);
+
 		}
 		else
 		{
@@ -34,6 +35,8 @@ void C89Backend::Build(const IRBuilder* Input)
 			
 			auto Data = Input->ToBytes();
 			OutBuffer += String_view((char*)Data.Data(), Data.Size());
+
+			Set_Output(OutBuffer);
 		}
 	}
 	else
@@ -44,7 +47,13 @@ void C89Backend::Build(const IRBuilder* Input)
 		//types
 		AddBaseTypes();
 
+		OutBuffer += "//file.h";
+
 		OutBuffer += ToString();
+
+		OutBuffer += "//file.cpp";
+
+		Set_Output(OutBuffer);
 	}
 }
 
@@ -57,24 +66,22 @@ void C89Backend::AddTextSignature()
 
 void C89Backend::AddBaseTypes()
 {
-	OutBuffer += "typedef unsigned char UInt8 ;\n";
-	OutBuffer += "typedef unsigned short UInt16;\n";
-	OutBuffer += "typedef unsigned int UInt32;\n";
-	OutBuffer += "typedef unsigned long long UInt64;\n";
+	OutBuffer += "typedef unsigned char uInt8;\n";
+	OutBuffer += "typedef unsigned short uInt16;\n";
+	OutBuffer += "typedef unsigned int uInt32;\n";
+	OutBuffer += "typedef unsigned long long uInt64;\n";
 
-	OutBuffer += "typedef signed char SInt8;\n";
-	OutBuffer += "typedef signed short SInt16;\n";
-	OutBuffer += "typedef signed int SInt32;\n";
-	OutBuffer += "typedef signed long long SInt64;\n";
+	OutBuffer += "typedef signed char Int8;\n";
+	OutBuffer += "typedef signed short Int16;\n";
+	OutBuffer += "typedef signed int Int32;\n";
+	OutBuffer += "typedef signed long long Int64;\n";
 
 	OutBuffer += "typedef float float32;\n";
 	OutBuffer += "typedef double float64;\n";
 
 
 	OutBuffer += "//defs\n";
-	//
-	OutBuffer += "#define thread_local static\n";
-	//
+	
 	
 	OutBuffer += '\n';
 	
@@ -85,10 +92,10 @@ String C89Backend::ToString(const IRType& Type)
 {
 	switch (Type._Type)
 	{
-	case IRTypes::i8:return "UInt8";
-	case IRTypes::i16:return "UInt16";
-	case IRTypes::i32:return "UInt32";
-	case IRTypes::i64:return "UInt64";
+	case IRTypes::i8:return "Int8";
+	case IRTypes::i16:return "Int16";
+	case IRTypes::i32:return "Int32";
+	case IRTypes::i64:return "Int64";
 	case IRTypes::f32:return "float32";
 	case IRTypes::f64:return "float64";
 
