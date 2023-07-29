@@ -149,13 +149,11 @@ project "UCodeLang"
    }
 
 
-project "UCodeLanguageSever"
-   location "UCodeLanguageSever"
-   kind "ConsoleApp"
+project "UCodeLanguageSeverlib"
+   location "UCodeLanguageSeverlib"
+   kind "StaticLib"
    language "C++"
 
-   
-   
    dependson {"UCodeLang"}
    targetdir ("Output/%{prj.name}/" .. OutDirPath)
    objdir ("Output/int/%{prj.name}/" .. OutDirPath)
@@ -177,11 +175,37 @@ project "UCodeLanguageSever"
     "%{prj.name}/json-develop/include",
    }
 
+project "UCodeLanguageSever"
+   location "UCodeLanguageSever"
+   kind "ConsoleApp"
+   language "C++"
+
+   
+   
+   dependson {"UCodeLang","UCodeLanguageSeverlib"}
+   targetdir ("Output/%{prj.name}/" .. OutDirPath)
+   objdir ("Output/int/%{prj.name}/" .. OutDirPath)
+   
+   files { 
+     "%{prj.name}/src/**.c",
+     "%{prj.name}/src/**.h",
+     "%{prj.name}/src/**.cpp",
+     "%{prj.name}/src/**.hpp",
+   }
+   includedirs{
+    "UCodeLang",
+   
+    "UCodeLanguageSeverlib/json-develop/include",
+    "UCodeLanguageSeverlib/src",
+   }
+
    links {
       "UCodeLang.lib",
+      "UCodeLanguageSeverlib.lib",
    }
    libdirs { 
       "Output/UCodeLang/" .. OutDirPath,
+      "Output/UCodeLanguageSeverlib/" .. OutDirPath,
    }
 
 project "UCodeDocumentation"
@@ -228,6 +252,8 @@ project "UCodeIDE"
     "%{prj.name}/src",
     "UCodeLang",
     "UCodeLang/UCodeLang",
+    "UCodeLanguageSeverlib/json-develop/include",
+    "UCodeLanguageSeverlib/src",
 
     "%{prj.name}/Dependencies",
     "%{prj.name}/Dependencies/Imgui",
@@ -238,9 +264,11 @@ project "UCodeIDE"
 
    links {
      "UCodeLang.lib",
+     "UCodeLanguageSeverlib.lib",
    }
    libdirs { 
       "Output/UCodeLang/" .. OutDirPath,
+      "Output/UCodeLanguageSeverlib/" .. OutDirPath,
       "%{prj.name}/Dependencies/GLEW/Lib",
    }
 
