@@ -1,11 +1,9 @@
 #include "AppObject.hpp"
 #include "imgui/imgui.h"
-#include "ImGuiHelpers/TextEditor/TextEditor.h"
 #include "LanguageSever.hpp"
 
 UCodeIDEStart
-TextEditor _Editor;
-UCodeLanguageSever::LanguageSever _Sever;
+
 
 void UCodeIDEStyle(ImGuiStyle* dst)
 {
@@ -16,11 +14,20 @@ void UCodeIDEStyle(ImGuiStyle* dst)
 	style->FrameRounding = 0.0f;
 }
 
+
+
 void AppObject::Init()
 {
 	if (!_IsAppRuning) {
 		_IsAppRuning = true;
 
+
+        _LangSeverThread = std::make_unique<std::thread>([this]()
+        {
+                SandBoxLanguageSever SandBox;
+                while (SandBox._Sever.Step());
+                this->SeverPtr = nullptr;
+        });
 
 		UCodeIDEStyle(nullptr);
 	}
@@ -193,5 +200,9 @@ void AppObject::OnDraw()
 
 void AppObject::OnAppEnd()
 {
+    if (_LangSeverThread) 
+    {
+        _LangSeverThread->join();
+    }
 }
 UCodeIDEEnd

@@ -8,12 +8,83 @@ LanguageSeverStart
 struct SeverPacket
 {
     String _Data;
+
+    String ToLanguageServerString() const
+    {
+        String r;
+        r += "Content-Length: ";
+        r += std::to_string(_Data.size());
+        r += "\r\n\r\n";
+        r += _Data;
+
+        return r;
+    }
+    struct StreamState
+    {
+        bool ReadingPacketSize = false;
+        String Buffer;
+        String NumberBuffer;
+        size_t PacketSize = 0;
+    };
+
+    
+
+    static Optional<SeverPacket> Stream(StreamState& State, char Char);
+    static Optional<SeverPacket> Parse(const StringView str)
+    {
+        StreamState state;
+        for (size_t i = 0; i < str.size(); i++)
+        {
+            auto V = Stream(state, str[i]);
+            if (V.has_value())
+            {
+                return V.value();
+            }
+        }
+        return {};
+    }
 };
 
 
 struct ClientPacket
 {
     String _Data;
+
+    String ToLanguageServerString() const
+    {
+        String r;
+        r += "Content-Length: ";
+        r += std::to_string(_Data.size());
+        r += "\r\n\r\n";
+        r += _Data;
+
+        return r;
+    }
+    using StreamState = SeverPacket::StreamState;
+    static Optional<ClientPacket> Stream(StreamState& State,char Char)
+    {
+        auto Val = SeverPacket::Stream(State,Char);
+        if (Val.has_value())
+        {
+            ClientPacket r;
+            r._Data = std::move(Val.value()._Data);
+
+            return r;
+        }
+        return {};
+    }
+    static Optional<ClientPacket> Parse(const StringView str)
+    {
+        auto Val = ClientPacket::Parse(str);
+        if (Val.has_value())
+        {
+            ClientPacket r;
+            r._Data = std::move(Val.value()._Data);
+
+            return r;
+        }
+        return {};
+    }
 };
 
 
