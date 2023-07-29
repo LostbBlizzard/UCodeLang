@@ -6,7 +6,7 @@
 
 int App::main(int argc, char* argv[])
 {
-    UCodeIDE::AppObject app = UCodeIDE::AppObject();
+    UCodeAnalyzer::UCodeIDE::AppObject app = UCodeAnalyzer::UCodeIDE::AppObject();
     Window window = Window();
     Window::Init();
 

@@ -14,7 +14,7 @@ public:
 
 	String GetBackEndName() override { return "ULangIR"; }
 	String GetOutputExtWithDot() override { return FileExt::LibWithDot; }
-	static BackEndObject* MakeObject() { return new IRBackEnd(); }
+	static BackEndObject* MakeObject();
 };
 UCodeLangEnd
 

@@ -182,6 +182,7 @@ public:
 	~UClib();
 
 	UClib(UClib&& source) = default;
+	UClib& operator=(UClib&& V) = default;
 
 	UClib(const UClib& V) = delete;
 	UClib& operator=(const UClib& V) = delete;

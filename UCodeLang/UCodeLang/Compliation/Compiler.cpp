@@ -140,12 +140,10 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 	//Refs
 
 	if (_FrontEndObject == nullptr
-		|| (_oldFrontEnd != _FrontEnd)
-		|| (_oldBackEnd != _BackEnd))
+		|| (_oldFrontEnd != _FrontEnd))
 	{
 		_FrontEndObject.reset(_FrontEnd());
 		_oldFrontEnd = _FrontEnd;
-		_oldBackEnd = _BackEnd;
 	}
 	else
 	{
@@ -232,9 +230,10 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 
 		if (!_Errors.Has_Errors())
 		{
-			if (_BackEndObject == nullptr)
+			if (_BackEndObject == nullptr || _BackEnd != _oldBackEnd)
 			{
 				_BackEndObject.reset(_BackEnd());
+				_oldBackEnd = _BackEnd;
 			}
 			else
 			{

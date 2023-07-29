@@ -246,6 +246,9 @@ project "UCodeIDE"
 
      "%{prj.name}/Dependencies/Imgui/backends/imgui_impl_glfw.cpp",
      "%{prj.name}/Dependencies/Imgui/backends/imgui_impl_glfw.h",
+
+     "%{prj.name}/Dependencies/Imgui/misc/cpp/*.cpp",
+     "%{prj.name}/Dependencies/Imgui/misc/cpp/*.h", 
    }
 
    includedirs{
