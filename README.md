@@ -103,7 +103,12 @@ The file Project Structure is lad out like this
        - "the jit-Interpreter compilers is in UCodeLang/Compliation/Back"
     
 - /UCodeLanguageSever
-  - "the language sever"
+  - "the runable language sever"
+  - /src
+    - "the code"
+
+- /UCodeLanguageSeverLib
+  - "the language sever with json and Language Server Protocol"
   - /json-develop
     - "json library"
   - /src

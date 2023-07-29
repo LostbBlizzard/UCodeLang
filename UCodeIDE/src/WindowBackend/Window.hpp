@@ -19,7 +19,7 @@ public:
 			OnWindowClosed();
 		}
 	}
-	bool  IsWindowOpen() { return _IsWindowOpen; }
+	bool  IsWindowOpen() const { return _IsWindowOpen; }
 	
 	
 private:

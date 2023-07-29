@@ -1,4 +1,7 @@
 #pragma once
+#include <ULanguageNameSpace.hpp>
+
+UCodeIDEStart
 class AppObject
 {
 public:
@@ -24,3 +27,4 @@ private:
 	bool _IsAppRuning = false;
 };
 
+UCodeIDEEnd
