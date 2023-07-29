@@ -1,17 +1,59 @@
 #include "AppObject.hpp"
 #include "imgui/imgui.h"
 #include "LanguageSever.hpp"
+#include "ImGuiHelpers/ImguiHelper.hpp"
+#include "Imgui/misc/cpp/imgui_stdlib.h"
+#include "UCodeLang/Compliation/UAssembly/UAssembly.hpp"
 
+
+#include "UCodeLang/Compliation/Back/UCodeBackEnd/UCodeBackEnd.hpp"
+#include "UCodeLang/Compliation/Back/C89/C89Backend.hpp"
+#include "UCodeLang/Compliation/Back/IR/IRBackEnd.hpp"
+#include <fstream>
+#include <filesystem>
 UCodeIDEStart
 
 
 void UCodeIDEStyle(ImGuiStyle* dst)
 {
 	ImGuiStyle* style = dst ? dst : &ImGui::GetStyle();
-	ImVec4* colors = style->Colors;
-
+	
 	style->FrameBorderSize = 1.0f;
 	style->FrameRounding = 0.0f;
+
+   // ImVec4 BackRoundColor = {};
+   // ImVec4 MainColor = {};
+   // ImVec4 SecondaryColor = {};
+
+    //colors[ImGuiCol_::ImGuiCol_FrameBg] = BackRoundColor;
+    //colors[ImGuiCol_::ImGuiCol_Button] = MainColor;
+
+    ImVec4* colors = style->Colors;
+    colors[ImGuiCol_Border] = ImVec4(0.97f, 1.00f, 0.00f, 0.11f);
+    colors[ImGuiCol_FrameBg] = ImVec4(0.16f, 0.08f, 0.29f, 0.54f);
+    colors[ImGuiCol_FrameBgActive] = ImVec4(0.08f, 0.12f, 0.29f, 0.54f);
+    colors[ImGuiCol_TitleBgActive] = ImVec4(0.06f, 0.06f, 0.06f, 0.94f);
+    colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.06f, 0.06f, 0.06f, 0.94f);
+    colors[ImGuiCol_MenuBarBg] = ImVec4(0.04f, 0.04f, 0.04f, 1.00f);
+    colors[ImGuiCol_CheckMark] = ImVec4(0.08f, 0.49f, 0.29f, 1.00f);
+    colors[ImGuiCol_SliderGrab] = ImVec4(0.08f, 0.49f, 0.29f, 1.00f);
+    colors[ImGuiCol_SliderGrabActive] = ImVec4(0.08f, 0.49f, 0.29f, 1.00f);
+    colors[ImGuiCol_Button] = ImVec4(0.16f, 0.08f, 0.29f, 0.54f);
+    colors[ImGuiCol_ButtonHovered] = ImVec4(0.08f, 0.12f, 0.29f, 0.54f);
+    colors[ImGuiCol_ButtonActive] = ImVec4(0.08f, 0.29f, 0.22f, 0.54f);
+    colors[ImGuiCol_Header] = ImVec4(0.08f, 0.49f, 0.29f, 1.00f);
+    colors[ImGuiCol_HeaderHovered] = ImVec4(0.08f, 0.29f, 0.14f, 0.54f);
+    colors[ImGuiCol_HeaderActive] = ImVec4(0.08f, 0.29f, 0.22f, 0.54f);
+    colors[ImGuiCol_SeparatorHovered] = ImVec4(0.08f, 0.29f, 0.22f, 0.54f);
+    colors[ImGuiCol_Tab] = ImVec4(0.08f, 0.49f, 0.29f, 1.00f);
+    colors[ImGuiCol_TabHovered] = ImVec4(0.08f, 0.29f, 0.14f, 0.54f);
+    colors[ImGuiCol_TabActive] = ImVec4(0.16f, 0.94f, 0.67f, 0.54f);
+    colors[ImGuiCol_TabUnfocused] = ImVec4(0.16f, 0.08f, 0.29f, 0.54f);
+    colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.08f, 0.21f, 0.29f, 0.54f);
+    colors[ImGuiCol_DockingPreview] = ImVec4(0.08f, 0.49f, 0.29f, 1.00f);
+    colors[ImGuiCol_NavHighlight] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
+
+
 }
 
 
@@ -30,6 +72,9 @@ void AppObject::Init()
         });
 
 		UCodeIDEStyle(nullptr);
+
+        _Editor.SetText("\n\n|main[] => 0;\n\n");
+        CompileText(GetTextEditorString());
 	}
 }
 void BeginDockSpace(bool* p_open)
@@ -107,18 +152,19 @@ void AppObject::OnDraw()
 {
     bool Doc = true;
     BeginDockSpace(&Doc);
+   
 
     if (ImGui::Begin("ShowStyleEditor")) 
     {
         ImGui::ShowStyleEditor();
-        ImGui::End();
-    }
+      
+    }  ImGui::End();
 
 
     if (ImGui::Begin("Files"))
     {
-        ImGui::End();
-    }
+       
+    } ImGui::End();
     if (ImGui::Begin("File.uc"))
     {
         TextEditor::LanguageDefinition Def;
@@ -134,17 +180,252 @@ void AppObject::OnDraw()
         _Editor.SetShowWhitespaces(false);
         _Editor.SetLanguageDefinition(Def);
         _Editor.Render("File.uc");
-        ImGui::End();
-    }
+       
+    } ImGui::End();
 
     if (ImGui::Begin("Error List"))
     {
-        ImGui::End();
-    }
+        ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.50f);
+        //ImGui::ListBoxHeader("Errors");
+        for (auto& item : Errors)
+        {
+            
+            if (ImGui::Selectable(item._Error._Msg.c_str(), item.IsSelected))
+            {
+                auto text = GetTextEditorString();
+                
+               
+                _Editor.SetCursorPosition(TextEditor::Coordinates(item._Error.Line, GetColumn(text, item._Error.Line, item._Error.Pos)));
+                // handle selection
+            }
+        }
+        //ImGui::EndListBox();
+   
+       
+        ImGui::PopItemWidth();
+    } ImGui::End(); 
+    
+    
+  
+
     if (ImGui::Begin("Output"))
     {
-        ImGui::End();
-    }
+        ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.50f);
+        bool IsCodeUpdated = GetTextEditorString() != _CompilerStr;
+        bool IsCompiledDiff = GetTextEditorString() != _RunTimeStr;
+
+        static const Vector<ImguiHelper::EnumValue<BackEndType>> List =
+        {
+            {"UCodeVM",BackEndType::UCodeVM},
+            {"IR",BackEndType::IR},
+            {"C89",BackEndType::C89},
+        };
+
+        if (ImguiHelper::EnumField("Type", OutputWindow.Type, List))
+        {
+            _CompilerStr = "";
+            _RunTimeStr = "";
+            _LibInfoString = "";
+            UCodeLang::BackEndObject_Ptr _BackEnd;
+            
+            switch (OutputWindow.Type)
+            {
+            case BackEndType::UCodeVM:
+                _BackEnd = UCodeLang::UCodeBackEndObject::MakeObject;
+                break;
+            case BackEndType::C89:
+                _BackEnd = UCodeLang::C89Backend::MakeObject;
+                break;
+            case BackEndType::IR:
+                _BackEnd = UCodeLang::IRBackEnd::MakeObject;
+                break;
+            default:
+                break;
+            }
+            _Compiler.Set_BackEnd(_BackEnd);
+
+            CompileText(GetTextEditorString());
+        }
+
+
+        ImguiHelper::BoolEnumField("Auto Compile", OutputWindow.AutoCompile); 
+        //ImGui::SameLine();
+        ImguiHelper::BoolEnumField("Auto Reload", OutputWindow.AutoReload);
+
+        if (OutputWindow.AutoReload) {
+           // ImGui::SameLine();
+            ImguiHelper::BoolEnumField("Auto Hot Reload", OutputWindow.AutoHotReload);
+        }
+
+
+        if (OutputWindow.AutoCompile == false)
+        {
+            ImGui::BeginDisabled(!IsCodeUpdated);
+            if (ImGui::Button("Compile"))
+            {
+                CompileText(GetTextEditorString());
+            }
+            ImGui::EndDisabled();
+        }
+        if (OutputWindow.AutoReload == false)
+        {
+            ImGui::BeginDisabled(!IsCompiledDiff);
+            if (ImGui::Button("Reload RunTime"))
+            {
+                _RunTimeStr = GetTextEditorString();
+
+                _RuntimeLib.UnLoad();
+                _RuntimeLib.Init(&_CompiledLib);
+
+                _RunTimeState.ClearRunTimeState();
+                _RunTimeState.AddLib(&_RuntimeLib);
+                _RunTimeState.LinkLibs();
+
+            }
+            if (OutputWindow.AutoHotReload == false) 
+            {
+               
+                if (ImGui::Button("Hot Reload"))
+                {
+                    _RunTimeStr = GetTextEditorString();
+
+                }
+            }
+            ImGui::EndDisabled();
+        }
+
+
+        String CompilerState = "idle";
+        ImGui::Text(((String)"CompilerState:" + CompilerState).c_str());
+
+        ImGui::Separator();
+
+        static const Vector <ImguiHelper::EnumValue<UCodeLang::OptimizationFlags>> OpflagList =
+        {
+            {"None",UCodeLang::OptimizationFlags::NoOptimization},
+            {"0_1",UCodeLang::OptimizationFlags::ForSize},
+            {"0_2",UCodeLang::OptimizationFlags::ForSpeed},
+            {"0_3",UCodeLang::OptimizationFlags::ForMaxSpeed},
+        };
+
+        if (ImguiHelper::EnumField("Optimizations", OutputWindow.Flags, OpflagList))
+        {
+            CompileText(GetTextEditorString());
+        }
+        if (ImguiHelper::BoolEnumField("In Debug Mode", OutputWindow.InDebug))
+        {
+            CompileText(GetTextEditorString());
+        }
+
+        ImGui::BeginDisabled();
+
+        ImGui::PushID(&_LibInfoString);
+
+        ImGui::InputTextMultiline("", &_LibInfoString,ImGui::GetContentRegionAvail());
+
+        ImGui::PopID();
+
+        ImGui::EndDisabled();
+
+
+        ImGui::PopItemWidth();
+    }  ImGui::End();
+    if (ImGui::Begin("UCode-VM"))
+    {
+        ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.50f);
+        enum class NativeSet
+        {
+            x86,
+            x86_64,
+
+
+#if UCodeLang_CPUIs_x86
+            Native = x86,
+#else
+            Native = x86_64,
+#endif
+        };
+        enum class UCodeVMType
+        {
+            Interpreter,
+            Jit_Interpreter,
+            Native_Interpreter,
+        };
+        struct UCodeVMWindow
+        {
+            UCodeVMType VMType = UCodeVMType::Interpreter;
+            NativeSet NativeCpuType = NativeSet::Native;
+        };
+        static const Vector<ImguiHelper::EnumValue<UCodeVMType>> List =
+        {
+            {"Interpreter",UCodeVMType::Interpreter},
+            {"Jit_Interpreter",UCodeVMType::Jit_Interpreter},
+            {"Native_Interpreter",UCodeVMType::Native_Interpreter},
+        };
+        static const Vector<ImguiHelper::EnumValue<NativeSet>> NativeSetList =
+        {
+            #if UCodeLang_CPUIs_x86
+            {"Native(x86)",NativeSet::Native},
+            #else
+            {"Native(x86_64)",NativeSet::Native},
+            #endif
+            {"x86",NativeSet::x86},
+            {"x86_64",NativeSet::x86_64},
+        };
+
+        static UCodeVMWindow windowdata;
+
+        if (ImguiHelper::EnumField("Type", windowdata.VMType, List))
+        {
+            switch (windowdata.VMType)
+            {
+            case UCodeVMType::Interpreter:
+            {
+                _AnyInterpreter.SetAsInterpreter();
+            }
+            break;
+            case UCodeVMType::Jit_Interpreter:
+            {
+                _AnyInterpreter.SetAsJitInterpreter();
+            }
+            break;
+            case UCodeVMType::Native_Interpreter:
+            {
+                _AnyInterpreter.SetAsNativeInterpreter();
+            }
+            break;
+            default:
+                break;
+            }
+            
+        }
+
+
+        if (windowdata.VMType == UCodeVMType::Native_Interpreter)
+        {
+            ImGui::SameLine();
+            ImguiHelper::EnumField("CpuType", windowdata.NativeCpuType, NativeSetList);
+        }
+        ImGui::Separator();
+
+        {
+            ImGui::Columns(2, "DebugerOrCode");
+            {
+                {
+                    ImGui::TextUnformatted("Debuger");
+                }
+                ImGui::NextColumn();
+                {
+                    ImGui::TextUnformatted("Code");
+                }
+
+            }
+            ImGui::Columns();
+        }
+
+        ImGui::PopItemWidth();
+       
+    } ImGui::End();
 
 	if (ImGui::BeginMainMenuBar())
 	{
@@ -196,6 +477,96 @@ void AppObject::OnDraw()
 	}
 
     EndDockSpace();
+}
+
+void AppObject::CompileText(const String& String)
+{
+    _Compiler.Get_Errors().Remove_Errors();
+    const Path tepfilesdir = "tepfiles";
+    const Path tepfilepath = tepfilesdir / "src.uc";
+    const Path tepoutpath = "out.data";
+    
+    std::filesystem::create_directory(tepfilesdir);
+
+    UCodeLang::Compiler::CompilerPathData paths;
+    paths.FileDir = tepfilesdir.generic_string();
+    paths.OutFile = tepoutpath.generic_string();
+
+    std::ofstream file(tepfilepath);
+    file << String;
+    file.close();
+
+    auto& Settings = _Compiler.Get_Settings();
+    Settings._Flags = OutputWindow.Flags;
+    if (OutputWindow.InDebug) {
+        Settings._Flags = (UCodeLang::OptimizationFlags)((UCodeLang::OptimizationFlags_t)Settings._Flags | (UCodeLang::OptimizationFlags_t)UCodeLang::OptimizationFlags::Debug);
+    }
+    auto Val = _Compiler.CompileFiles(paths);
+
+    if (Val._State == UCodeLang::Compiler::CompilerState::Success)
+    {
+        Errors.clear();
+
+        _CompilerStr = GetTextEditorString();
+        switch (OutputWindow.Type)
+        {
+        case BackEndType::UCodeVM:
+        {
+            UCodeLang::UClib lib;
+            UCodeLang::UClib::FromFile(&lib, tepoutpath);
+            _CompiledLib = std::move(lib);
+
+            _LibInfoString = UCodeLang::UAssembly::UAssembly::ToString(&_CompiledLib);
+        }
+        break;
+        case BackEndType::IR:    
+        { 
+            UCodeLang::IRBuilder ir;
+            UCodeLang::IRBuilder::FromFile(ir, tepoutpath);
+            _LibInfoString = ir.ToString();
+        }
+        break;
+
+        case BackEndType::C89:
+            _LibInfoString = _Compiler.GetTextFromFile(tepoutpath);
+            break;
+        default:
+            _LibInfoString = "";
+            break;
+        }
+    }
+    else
+    {
+        Errors.clear();
+        for (auto& Item : _Compiler.Get_Errors().Get_Errors())
+        {
+            Errors.push_back({ Item });
+        }
+        OnErrorListUpdated();
+    }
+}
+
+size_t AppObject::GetColumn(const String& text,size_t line,size_t Pos)
+{
+    size_t OnLine = 0;
+    size_t OnColumn = 0;
+    for (size_t i = 0; i < text.size(); i++)
+    {
+        if (text[i] == '/n')
+        {
+            OnLine++;
+        }
+
+        if (OnLine == Pos)
+        {
+            OnColumn++;
+        }
+        if (i == Pos)
+        {
+            break;
+        }
+    }
+    return OnColumn;
 }
 
 void AppObject::OnAppEnd()
