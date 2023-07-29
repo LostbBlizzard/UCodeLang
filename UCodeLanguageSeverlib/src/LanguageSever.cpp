@@ -2,7 +2,77 @@
 #include <unordered_map>
 #include <functional>
 LanguageSeverStart
+const char NameCharList[] = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890,.':/\\";
+bool IsInNameCharList(char Value)
+{
+	for (size_t i = 0; i < sizeof(NameCharList); i++)
+	{
+		if (Value == NameCharList[i])
+		{
+			return true;
+		}
+	}
+	return false;
+}
+Optional<SeverPacket> SeverPacket::Stream(StreamState& State, char Char)
+{
+	State.Buffer += Char;
 
+
+	if (State.PacketSize == 0)
+	{
+		if (State.ReadingPacketSize == false)
+		{
+			if (State.Buffer == "Content-Length:")
+			{
+				State.Buffer.clear();
+				State.ReadingPacketSize = true;
+			}
+		}
+		else
+		{
+			bool IsNum = IsInNameCharList(Char);
+			if (State.NumberBuffer.size())
+			{
+				if (!IsNum)
+				{
+					State.PacketSize = std::stoi(State.NumberBuffer) - 3;//the \n,\r,\n,\r. and this char
+					State.Buffer.clear();
+					State.NumberBuffer.clear();
+
+					State.Buffer += Char;
+				}
+				else
+				{
+					State.NumberBuffer += Char;
+				}
+			}
+			else
+			{
+				if (IsNum)
+				{
+					State.NumberBuffer += Char;
+				}
+			}
+
+		}
+
+	}
+	else
+	{
+		State.PacketSize--;
+		if (State.PacketSize == 0)
+		{
+
+			UCodeLanguageSever::SeverPacket p;
+			p._Data = std::move(State.Buffer);
+
+			State = StreamState();
+			return p;
+		}
+
+	}
+}
 
 struct LanguageSeverFuncMap
 {

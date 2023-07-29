@@ -113,7 +113,7 @@ void RunArg(std::string_view View)
 						UCodeLanguageSever::LanguageSever Sever;
 						SeverPtr = &Sever;
 
-						
+
 						while (Sever.Step());
 						SeverPtr = nullptr;
 					}
@@ -129,14 +129,9 @@ void RunArg(std::string_view View)
 								auto List = SeverPtr->GetPackets();
 								for (auto& Item : List)
 								{
-									std::string pack;
-									pack += "Content-Length: ";
-									pack += std::to_string(Item._Data.size());
-									pack += "\r\n\r\n";
-									pack += Item._Data;
-									LogMSG("Sent Packet:" + pack);
+									LogMSG("Sent Packet:" + Item._Data);
 
-									std::cout << pack;
+									std::cout << Item.ToLanguageServerString();
 									std::cout.flush();
 								}
 							}
@@ -144,79 +139,25 @@ void RunArg(std::string_view View)
 					}, &SeverThread);
 
 
-				bool ReadingPacketSize = false;
-				std::string Buffer;
-				std::string NumberBuffer;
-				size_t PacketSize = 0;
+				UCodeLanguageSever::ClientPacket::StreamState state;
 				while (SeverThread.joinable())
 				{
 					char V;
 					std::cin >> V;
-					Buffer += V;
+					auto packet_op = UCodeLanguageSever::ClientPacket::Stream(state, V);
 
-
-					if (PacketSize == 0)
+					if (packet_op.has_value()) 
 					{
-						if (ReadingPacketSize == false)
-						{
-							if (Buffer == "Content-Length:")
-							{
-								Buffer.clear();
-								ReadingPacketSize = true;
-							}
-						}
-						else
-						{
-							bool IsNum = IsInNumCharList(V);
-							if (NumberBuffer.size())
-							{
-								if (!IsNum)
-								{
-									PacketSize = std::stoi(NumberBuffer) - 3;//the \n,\r,\n,\r. and this char
-									Buffer.clear(); 
-									NumberBuffer.clear();
+						UCodeLanguageSever::ClientPacket& p = packet_op.value();
+						LogMSG("Got Packet:" + p._Data);
 
-									Buffer += V;
-								}
-								else
-								{
-									NumberBuffer += V;
-								}
-							}
-							else
-							{
-								if (IsNum)
-								{
-									NumberBuffer += V;
-								}
-							}
-
-						}
-
+						SeverPtr->AddPacket(std::move(p));
 					}
-					else
-					{
-						PacketSize--;
-						if (PacketSize == 0)
-						{
-							
-							UCodeLanguageSever::ClientPacket p;
-							p._Data = std::move(Buffer);
-							LogMSG("Got Packet:" + p._Data);
 
-							SeverPtr->AddPacket(std::move(p));
-
-
-							{
-								//reset
-								PacketSize = 0;
-								ReadingPacketSize = false;
-							}
-
-						}
-						
-					}
 				}
+
+
+			
 
 
 				LogMSG("Sever End");
