@@ -776,5 +776,26 @@ public:
 
 	//may fail
 	Optional<size_t> GetSize(const ReflectionTypeInfo& Type,bool Is32Bit) const;
+
+	Optional<size_t> GetSize(const ClassMethod::Par& Type, bool Is32Bit) const;
+
+
+	//Get the DefaultConstructor or directly does the operation if a Primitive.
+	//if the first Optional is empty the operation failed
+	Optional<Optional<const ClassMethod*>> CallDefaultConstructor(const ReflectionTypeInfo& Type, void* Object, bool Is32Bit) const;
+	
+	Optional<Optional<const ClassMethod*>> CallDefaultConstructor(const ClassMethod::Par& Type, void* Object, bool Is32Bit) const;
+
+	//Get the CopyConstructor or directly does the operation if a Primitive.
+	//if the first Optional is empty the operation failed
+	Optional<Optional<const ClassMethod*>> CallCopyConstructor(const ReflectionTypeInfo& Type,void* Object, void* Other, bool Is32Bit) const;
+
+	//Get the CopyConstructor or directly does the operation if a Primitive.
+	//if the first Optional is empty the operation failed
+	Optional<Optional<const ClassMethod*>> CallMoveConstructor(const ReflectionTypeInfo& Type,void* Object, void* Other, bool Is32Bit) const;
+
+	//Get the Destructor or directly does the operation if a Primitive.
+	//if the first Optional is empty the operation failed
+	Optional<Optional<const ClassMethod*>> CallDestructor(const ReflectionTypeInfo& Type, void* Object, bool Is32Bit) const;
 };
 UCodeLangEnd

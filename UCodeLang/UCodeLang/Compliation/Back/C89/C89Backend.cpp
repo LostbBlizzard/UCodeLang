@@ -49,6 +49,8 @@ void C89Backend::Build(const IRBuilder* Input)
 
 		OutBuffer += "//file.h";
 
+		//because C89 is a primitive compiler we need to reoder all struct types definitions befor there used
+
 		OutBuffer += ToString();
 
 		OutBuffer += "//file.cpp";
