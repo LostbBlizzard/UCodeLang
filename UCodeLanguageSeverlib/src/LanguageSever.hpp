@@ -132,8 +132,13 @@ public:
         _SeverPackets.push_back(Item);
         _ClientOutputLock.unlock();
     }
+    void StopRuning()
+    {
+        Runing = false;
+    }
   
 private:
+    bool Runing = true;
     std::mutex _ClientInputLock;
     Vector<ClientPacket> _ClientPackets; 
     

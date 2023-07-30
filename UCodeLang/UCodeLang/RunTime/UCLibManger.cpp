@@ -132,6 +132,21 @@ String UCLibManger::GetName(UAddress address) const
 	}
 	return "";
 }
+void UCLibManger::ClearRunTimeState()
+{
+	_NameToAddress.clear();
+	_NameToCPP.clear();
+	_Instructions.clear();
+
+	_Code.clear();
+	_ExCode = AsmBuffer();
+
+	Libs.clear();
+	StaticBytes.clear();
+	ThreadBytes.clear();
+	Assembly.Classes.clear();
+}
+
 
 UCodeLangEnd
 

@@ -74,7 +74,10 @@ public:
 		PushParameters(parameters...);
 		return Call(address);
 	}
-	
+	Return_t Call(const ClassMethod* Function)
+	{
+		return Call(Function->DecorationName);
+	}
 
 
 	template<typename T, typename... Args>
@@ -113,7 +116,7 @@ public:
 	}
 
 	template<typename T, typename... Args>
-	T RCall(const ClassMethod& Function, Args... parameters)
+	T RCall(const ClassMethod* Function, Args... parameters)
 	{
 		return RCall<T>(Function.DecorationName,parameters...);
 	}
@@ -127,13 +130,13 @@ public:
 	{
 		return Call(address, This, parameters...);
 	}
-	template<typename... Args> Return_t ThisCall(const ClassMethod& Function,PtrType This, Args... parameters)
+	template<typename... Args> Return_t ThisCall(const ClassMethod* Function,PtrType This, Args... parameters)
 	{
-		return ThisCall(Function.DecorationName, This, parameters...);
+		return ThisCall(Function->DecorationName, This, parameters...);
 	}
 	
 	template<typename T, typename... Args>
-	T RThisCall(const ClassMethod& Function,PtrType This, Args... parameters)
+	T RThisCall(const ClassMethod* Function,PtrType This, Args... parameters)
 	{
 		return RCall<T>(Function.DecorationName, This,parameters);
 	}

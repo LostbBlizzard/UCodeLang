@@ -89,6 +89,19 @@ public:
 	{
 		return _MoveData == ReflectionMoveData::Moved;
 	}
+	bool operator==(const ReflectionTypeInfo& Other) const
+	{
+		return _CustomTypeID == Other._CustomTypeID &&
+			_Type == Other._Type &&
+			_IsAddress == Other._IsAddress &&
+			_Isimmutable == Other._Isimmutable &&
+			_IsDynamic == Other._IsDynamic &&
+			_MoveData == Other._MoveData;
+	}
+	bool operator!=(const ReflectionTypeInfo& Other) const
+	{
+		return !this->operator==(Other);
+	}
 };
 
 class ReflectionRawData
@@ -178,6 +191,16 @@ public:
 	{
 		bool IsOutPar = false;
 		ReflectionTypeInfo Type;
+
+		bool operator==(const Par& Other) const
+		{
+			return Other.IsOutPar == Other.IsOutPar &&
+				Other.Type == Other.Type;
+		}
+		bool operator!=(const Par& Other) const
+		{
+			return !this->operator==(Other);
+		}
 	};
 	String FullName;
 	String DecorationName;
@@ -782,20 +805,25 @@ public:
 
 	//Get the DefaultConstructor or directly does the operation if a Primitive.
 	//if the first Optional is empty the operation failed
-	Optional<Optional<const ClassMethod*>> CallDefaultConstructor(const ReflectionTypeInfo& Type, void* Object, bool Is32Bit) const;
+	struct OnDoDefaultConstructorCall
+	{
+		const ClassMethod* MethodToCall = nullptr;
+		void* ThisPtr = nullptr;
+	};
+	Optional<Optional<Vector<OnDoDefaultConstructorCall>>> CallDefaultConstructor(const ReflectionTypeInfo& Type, void* Object, bool Is32Bit) const;
 	
-	Optional<Optional<const ClassMethod*>> CallDefaultConstructor(const ClassMethod::Par& Type, void* Object, bool Is32Bit) const;
+	Optional<Optional<Vector<OnDoDefaultConstructorCall>>> CallDefaultConstructor(const ClassMethod::Par& Type, void* Object, bool Is32Bit) const;
 
 	//Get the CopyConstructor or directly does the operation if a Primitive.
 	//if the first Optional is empty the operation failed
-	Optional<Optional<const ClassMethod*>> CallCopyConstructor(const ReflectionTypeInfo& Type,void* Object, void* Other, bool Is32Bit) const;
+	Optional<Optional<Vector<OnDoDefaultConstructorCall>>> CallCopyConstructor(const ReflectionTypeInfo& Type,void* Object, void* Other, bool Is32Bit) const;
 
 	//Get the CopyConstructor or directly does the operation if a Primitive.
 	//if the first Optional is empty the operation failed
-	Optional<Optional<const ClassMethod*>> CallMoveConstructor(const ReflectionTypeInfo& Type,void* Object, void* Other, bool Is32Bit) const;
+	Optional<Optional<Vector<OnDoDefaultConstructorCall>>> CallMoveConstructor(const ReflectionTypeInfo& Type,void* Object, void* Other, bool Is32Bit) const;
 
 	//Get the Destructor or directly does the operation if a Primitive.
 	//if the first Optional is empty the operation failed
-	Optional<Optional<const ClassMethod*>> CallDestructor(const ReflectionTypeInfo& Type, void* Object, bool Is32Bit) const;
+	Optional<Optional<Vector<OnDoDefaultConstructorCall>>> CallDestructor(const ReflectionTypeInfo& Type, void* Object, bool Is32Bit) const;
 };
 UCodeLangEnd

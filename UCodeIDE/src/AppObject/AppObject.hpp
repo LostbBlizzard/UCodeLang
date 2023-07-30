@@ -25,7 +25,7 @@ public:
 
 	void ShowUCodeVMWindow();
 
-	
+
 
 	static size_t GetColumn(const String& text, size_t line, size_t Pos);
 
@@ -63,14 +63,14 @@ private:
 	struct Error
 	{
 		UCodeLang::CompliationErrors::Error _Error;
-		bool IsSelected=false;
+		bool IsSelected = false;
 	};
 	void OnErrorListUpdated()
 	{
 		TextEditor::ErrorMarkers marks;
 		for (auto& Item : Errors)
 		{
-			marks[Item._Error.Line-1] = Item._Error._Msg;
+			marks[Item._Error.Line - 1] = Item._Error._Msg;
 		}
 		_Editor.SetErrorMarkers(marks);
 	}
@@ -154,8 +154,17 @@ private:
 	void UpdateInsData(UCodeVMWindow& windowdata);
 
 	void ShowDebugerMenu(UCodeVMWindow& windowdata);
+	void OnRuntimeUpdated();
 
-	ImguiHelper::UCodeObjectCash _Cash;
+	struct CallFuncContext
+	{
+		const UCodeLang::ClassMethod* current_method = nullptr;
+		Vector<BytesPtr> Args;
+
+		UCodeLang::ReflectionTypeInfo _LastRetType;
+		BytesPtr _LastRet;
+	};
+	CallFuncContext callFuncContext;
 };
 
 UCodeIDEEnd

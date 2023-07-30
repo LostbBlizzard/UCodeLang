@@ -147,7 +147,7 @@ Optional<size_t> ClassAssembly::GetSize(const ClassMethod::Par& Type, bool Is32B
 //Get the DefaultConstructor or directly does the operation if a Primitive.
 //if the first Optional is empty the operation failed
 
-Optional<Optional<const ClassMethod*>> ClassAssembly::CallDefaultConstructor(const ReflectionTypeInfo& Type, void* Object, bool Is32Bit) const
+Optional<Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>> ClassAssembly::CallDefaultConstructor(const ReflectionTypeInfo& Type, void* Object, bool Is32Bit) const
 {
 	if (Type.IsAddress())
 	{
@@ -257,31 +257,118 @@ Optional<Optional<const ClassMethod*>> ClassAssembly::CallDefaultConstructor(con
 
 		return  { {} };
 	}
+	case ReflectionTypes::CustomType:
+	{
+		auto Node = this->Find_Node(Type._CustomTypeID);
+		if (Node) 
+		{
+			switch (Node->Get_Type())
+			{
+			case ClassType::Enum:
+			{
+				auto& EnumClass = Node->Get_EnumData();
+
+				Optional<size_t> EnumSize = GetSize(EnumClass.BaseType,Is32Bit);
+
+				if (EnumSize.has_value() && EnumClass.Values.size())
+				{
+					auto& EValue = EnumClass.Values.front();
+				
+					memcpy(Object, EValue._Data.Get_Data(), EnumSize.value());
+					if (EValue.EnumVariantType.has_value())
+					{
+						void* UPtr = (void*)((uintptr_t)Object + EnumSize.value());
+						return this->CallDefaultConstructor(EValue.EnumVariantType.value(), UPtr, Is32Bit);
+					}
+					else
+					{
+						return { {} };
+					}
+				}
+			}
+			break;
+			case ClassType::Class:
+			{
+				auto& ClassData = Node->Get_ClassData();
+
+				
+				if (auto FuncToCall = ClassData.Get_ClassConstructor())
+				{
+					OnDoDefaultConstructorCall r;
+					r.MethodToCall = FuncToCall;
+					r.ThisPtr = Object;
+
+					Vector<ClassAssembly::OnDoDefaultConstructorCall> V;
+					V.push_back(std::move(r));
+					return V;
+				}
+				else if (auto FuncToCall = ClassData.Get_ClassInit())
+				{
+					OnDoDefaultConstructorCall r;
+					r.MethodToCall = FuncToCall;
+					r.ThisPtr = Object;
+					
+					Vector<ClassAssembly::OnDoDefaultConstructorCall> V;
+					V.push_back(std::move(r));
+					return { V };
+				}
+				else
+				{
+					Vector<ClassAssembly::OnDoDefaultConstructorCall> r;
+					for (auto& Field : ClassData.Fields)
+					{
+						void* FieldObject = (void*)((uintptr_t)Object + (uintptr_t)Field.offset);
+						auto RItem = CallDefaultConstructor(Field.Type, FieldObject, Is32Bit);
+						if (!RItem.has_value())
+						{
+							return {};
+						}
+						if (RItem.value().has_value())
+						{
+							auto& Val = RItem.value().value();
+							for (auto& Item : Val)
+							{
+								r.push_back(std::move(Item));
+							}
+						}
+					}
+					return {r};
+				}
+			}
+			break;
+			default:
+				break;
+			}
+		}
+	}
+	break;
 	default:
 		return {};
 		break;
 	}
 	return {};
 }
-Optional<Optional<const ClassMethod*>> ClassAssembly::CallDefaultConstructor(const ClassMethod::Par& Type, void* Object, bool Is32Bit) const
+Optional<Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>> ClassAssembly::CallDefaultConstructor(const ClassMethod::Par& Type, void* Object, bool Is32Bit) const
 {
 	if (Type.IsOutPar)
 	{
-		return {};
+		return { {} };
 	}
 	return CallDefaultConstructor(Type.Type,Object,Is32Bit);
 }
-Optional<Optional<const ClassMethod*>> ClassAssembly::CallCopyConstructor(const ReflectionTypeInfo& Type, void* Object, void* Other, bool Is32Bit) const
+
+
+Optional<Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>> ClassAssembly::CallCopyConstructor(const ReflectionTypeInfo& Type, void* Object, void* Other, bool Is32Bit) const
 {
-	return Optional<Optional<const ClassMethod*>>();
+	return {};
 }
-Optional<Optional<const ClassMethod*>> ClassAssembly::CallMoveConstructor(const ReflectionTypeInfo& Type, void* Object, void* Other, bool Is32Bit) const
+Optional<Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>>  ClassAssembly::CallMoveConstructor(const ReflectionTypeInfo& Type, void* Object, void* Other, bool Is32Bit) const
 {
-	return Optional<Optional<const ClassMethod*>>();
+	return {};
 }
-Optional<Optional<const ClassMethod*>> ClassAssembly::CallDestructor(const ReflectionTypeInfo& Type, void* Object, bool Is32Bit) const
+Optional<Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>> ClassAssembly::CallDestructor(const ReflectionTypeInfo& Type, void* Object, bool Is32Bit) const
 {
-	return Optional<Optional<const ClassMethod*>>();
+	return {};
 }
 AssemblyNode::AssemblyNode(ClassType type) : Type(type)
 {

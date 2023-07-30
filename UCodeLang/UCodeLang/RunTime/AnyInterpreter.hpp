@@ -100,6 +100,25 @@ struct AnyInterpreterPtr
 			throw std::exception("Ptr Is Null");
 		}
 	}
+	Interpreter::Return_t Call(const ClassMethod* Function)
+	{
+		if (auto Val = Base.Get_If<Interpreter*>())
+		{
+			return (*Val)->Call(Function);
+		}
+		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
+		{
+			return (*Val)->Call(Function);
+		}
+		else if (auto Val = Base.Get_If<NativeInterpreter*>())
+		{
+			return (*Val)->Call(Function);
+		}
+		else
+		{
+			throw std::exception("Ptr Is Null");
+		}
+	}
 	void PushParameter(const void* Value, size_t ValueSize)
 	{
 		if (auto Val = Base.Get_If<Interpreter*>())
@@ -142,15 +161,15 @@ struct AnyInterpreterPtr
 	{
 		if (auto Val = Base.Get_If<Interpreter*>())
 		{
-			return (*Val)->PushParameters(parameters);
+			return (*Val)->PushParameters(parameters...);
 		}
 		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
 		{
-			return (*Val)->PushParameters(parameters);
+			return (*Val)->PushParameters(parameters...);
 		}
 		else if (auto Val = Base.Get_If<NativeInterpreter*>())
 		{
-			return (*Val)->PushParameters(parameters);
+			return (*Val)->PushParameters(parameters...);
 		}
 		else
 		{
@@ -189,6 +208,145 @@ struct AnyInterpreterPtr
 		else if (auto Val = Base.Get_If<NativeInterpreter*>())
 		{
 			return (*Val)->Get_Return(Output, OutputSize);
+		}
+		else
+		{
+			throw std::exception("Ptr Is Null");
+		}
+	}
+	template<typename... Args> 	Interpreter::Return_t ThisCall(UAddress address, PtrType This, Args... parameters)
+	{
+		if (auto Val = Base.Get_If<Interpreter*>())
+		{
+			return (*Val)->ThisCall(address,This,parameters...);
+		}
+		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
+		{
+			return (*Val)->ThisCall(address, This, parameters...);
+		}
+		else if (auto Val = Base.Get_If<NativeInterpreter*>())
+		{
+			return (*Val)->ThisCall(address, This, parameters...);
+		}
+		else
+		{
+			throw std::exception("Ptr Is Null");
+		}
+	}
+	template<typename... Args> Interpreter::Return_t ThisCall(const String& FunctionName, PtrType This, Args... parameters)
+	{
+		if (auto Val = Base.Get_If<Interpreter*>())
+		{
+			return (*Val)->ThisCall(FunctionName, This, parameters...);
+		}
+		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
+		{
+			return (*Val)->ThisCall(FunctionName, This, parameters...);
+		}
+		else if (auto Val = Base.Get_If<NativeInterpreter*>())
+		{
+			return (*Val)->ThisCall(FunctionName, This, parameters...);
+		}
+		else
+		{
+			throw std::exception("Ptr Is Null");
+		}
+	}
+	template<typename... Args> Interpreter::Return_t ThisCall(const ClassMethod* Function, PtrType This, Args... parameters)
+	{
+		if (auto Val = Base.Get_If<Interpreter*>())
+		{
+			return (*Val)->ThisCall(Function, This, parameters...);
+		}
+		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
+		{
+			return (*Val)->ThisCall(Function, This, parameters...);
+		}
+		else if (auto Val = Base.Get_If<NativeInterpreter*>())
+		{
+			return (*Val)->ThisCall(Function, This, parameters...);
+		}
+		else
+		{
+			throw std::exception("Ptr Is Null");
+		}
+	}
+
+
+
+	template<typename T, typename... Args>
+	T RCall(const String& FunctionName, Args... parameters)
+	{
+		if (auto Val = Base.Get_If<Interpreter*>())
+		{
+			return (*Val)->RCall<T>(FunctionName,parameters);
+		}
+		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
+		{
+			return  (*Val)->RCall<T>(FunctionName, parameters);
+		}
+		else if (auto Val = Base.Get_If<NativeInterpreter*>())
+		{
+			return  (*Val)->RCall<T>(FunctionName, parameters);
+		}
+		else
+		{
+			throw std::exception("Ptr Is Null");
+		}
+	}
+	template<typename T, typename... Args>
+	T RCall(const ClassMethod& Function, Args... parameters)
+	{
+		if (auto Val = Base.Get_If<Interpreter*>())
+		{
+			return (*Val)->RCall<T>(Function, parameters);
+		}
+		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
+		{
+			return  (*Val)->RCall<T>(Function, parameters);
+		}
+		else if (auto Val = Base.Get_If<NativeInterpreter*>())
+		{
+			return  (*Val)->RCall<T>(Function, parameters);
+		}
+		else
+		{
+			throw std::exception("Ptr Is Null");
+		}
+	}
+	template<typename T, typename... Args>
+	T RThisCall(const ClassMethod& Function, PtrType This, Args... parameters)
+	{
+		if (auto Val = Base.Get_If<Interpreter*>())
+		{
+			return (*Val)->RThisCall<T>(Function,This, parameters);
+		}
+		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
+		{
+			return  (*Val)->RThisCall<T>(Function,This, parameters);
+		}
+		else if (auto Val = Base.Get_If<NativeInterpreter*>())
+		{
+			return  (*Val)->RThisCall<T>(Function,This, parameters);
+		}
+		else
+		{
+			throw std::exception("Ptr Is Null");
+		}
+	}
+	template<typename T, typename... Args> T RThisCall(const String& Function, PtrType This, Args... parameters)
+	{
+		if (auto Val = Base.Get_If<Interpreter*>())
+		{
+			return (*Val)->RThisCall<T>(Function, This, parameters);
+		}
+		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
+		{
+			return  (*Val)->RThisCall<T>(Function, This, parameters);
+		}
+		else if (auto Val = Base.Get_If<NativeInterpreter*>())
+		{
+			return  (*Val)->RThisCall<T>(Function, This, parameters);
 		}
 		else
 		{
@@ -374,6 +532,10 @@ public:
 	{
 		return Get_Ptr().Call(FunctionName);
 	}
+	Interpreter::Return_t Call(const ClassMethod* Function)
+	{
+		return Get_Ptr().Call(Function);
+	}
 	void PushParameter(const void* Value, size_t ValueSize)
 	{
 		return Get_Ptr().PushParameter(Value, ValueSize);
@@ -384,13 +546,50 @@ public:
 	}
 	template<typename... Args> void PushParameters(Args&&... parameters)
 	{
-		return Get_Ptr().PushParameters(parameters);
+		return Get_Ptr().PushParameters(parameters...);
 	}
 	template<typename T> T Get_Return()
 	{
 		return Get_Ptr().Get_Return<T>();
 	}
-	void Get_Return(void* Output, size_t OutputSize);
+	void Get_Return(void* Output, size_t OutputSize)
+	{
+		return Get_Ptr().Get_Return(Output, OutputSize);
+	}
+	template<typename... Args> 	Interpreter::Return_t ThisCall(UAddress address, PtrType This, Args... parameters)
+	{
+		return Get_Ptr().ThisCall(address, This, parameters...);
+	}
+	template<typename... Args> Interpreter::Return_t ThisCall(const String& FunctionName, PtrType This, Args... parameters)
+	{
+		return Get_Ptr().ThisCall(FunctionName, This, parameters...);
+	}
+	template<typename... Args> Interpreter::Return_t ThisCall(const ClassMethod* Function, PtrType This, Args... parameters)
+	{
+		return Get_Ptr().ThisCall(Function, This, parameters...);
+	}
+
+
+
+	template<typename T, typename... Args>
+	T RCall(const String& FunctionName, Args... parameters)
+	{
+		return Get_Ptr().RCall<T>(FunctionName, parameters...);
+	}
+	template<typename T, typename... Args>
+	T RCall(const ClassMethod& Function, Args... parameters)
+	{
+		return Get_Ptr().RCall<T>(Function, parameters...);
+	}
+	template<typename T, typename... Args>
+	T RThisCall(const ClassMethod& Function, PtrType This, Args... parameters)
+	{
+		return Get_Ptr().RThisCall<T>(Function,This, parameters...);
+	}
+	template<typename T, typename... Args> T RThisCall(const String& Function, PtrType This, Args... parameters)
+	{
+		return Get_Ptr().RThisCall<T>(Function, This, parameters...);
+	}
 private:
 	struct Null {};
 	//useing Shared_ptr because std::Variant need it to be copyable
