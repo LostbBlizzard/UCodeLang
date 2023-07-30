@@ -6,6 +6,8 @@
 #include "ImGuiHelpers/TextEditor/TextEditor.h"
 #include "LanguageSever.hpp"
 #include "UCodeLang/UCodeLang.hpp"
+
+#include "ImGuiHelpers/ImguiHelper.hpp"
 UCodeIDEStart
 
 struct SandBoxLanguageSever
@@ -21,6 +23,9 @@ public:
 	void Init();
 	void OnDraw();
 
+	void ShowUCodeVMWindow();
+
+	
 
 	static size_t GetColumn(const String& text, size_t line, size_t Pos);
 
@@ -100,6 +105,57 @@ private:
 		bool InDebug = true;
 	};
 	OutputWindowData OutputWindow;
+
+	enum class NativeSet
+	{
+		x86,
+		x86_64,
+
+
+#if UCodeLang_CPUIs_x86
+		Native = x86,
+#else
+		Native = x86_64,
+#endif
+	};
+	enum class UCodeVMType
+	{
+		Interpreter,
+		Jit_Interpreter,
+		Native_Interpreter,
+	};
+	struct UCodeVMWindow
+	{
+		UCodeVMType VMType = UCodeVMType::Interpreter;
+		NativeSet NativeCpuType = NativeSet::Native;
+		bool ShowRegisters = false;
+		bool ShowStack = false;
+		bool ShowStaticMemory = false;
+		bool ShowThreadMemory = false;
+		bool ShowHeapMemory = false;
+
+		struct InsData
+		{
+			UCodeLang::UAddress InsAddress = UCodeLang::NullAddress;
+			UCodeLang::Instruction _Ins;
+			String StringValue;
+		};
+		Vector<InsData> InsInfo;
+		InsData& GetIns(UCodeLang::UAddress address)
+		{
+			return InsInfo[address];
+		}
+		const InsData& GetIns(UCodeLang::UAddress address) const
+		{
+			return InsInfo[address];
+		}
+	};
+	UCodeVMWindow windowdata;
+	void UpdateInsData(UCodeVMWindow& windowdata);
+
+	void ShowDebugerMenu(UCodeVMWindow& windowdata);
+
+	ImguiHelper::UCodeObjectCash _Cash;
 };
 
 UCodeIDEEnd

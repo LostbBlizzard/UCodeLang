@@ -35,6 +35,10 @@ using SIntNative = Int32;
 using UIntNative = UInt32;
 #endif
 
+using Utf8 = Int8;
+using Utf16 = Int16;
+using Utf32 = Int32;
+
 
 using PtrType = void*;
 using NSize_t = UIntNative;

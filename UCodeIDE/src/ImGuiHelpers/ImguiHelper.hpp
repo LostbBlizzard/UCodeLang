@@ -3,6 +3,7 @@
 #include <UCodeAnalyzer/Typedef.hpp>
 #include <imgui.h>
 #include <functional>
+#include <UCodeLang/LangCore/ReflectionData.hpp>
 UCodeIDEStart
 
 
@@ -10,6 +11,16 @@ UCodeIDEStart
 class ImguiHelper
 {
 public:
+	struct UCodeObjectCash
+	{
+
+	};
+	static void UpdateChash(UCodeObjectCash& Chash)
+	{
+
+	}
+	static bool UCodeObjectField(const char* FieldName, void* Object, const UCodeLang::ClassMethod::Par& type, const UCodeLang::ClassAssembly& assembly, UCodeObjectCash& Chash);
+	static bool UCodeObjectField(const char* FieldName, void* Object, const UCodeLang::ReflectionTypeInfo& type,const UCodeLang::ClassAssembly& assembly, UCodeObjectCash& Chash);
 
 	static bool uInt64Field(const char* FieldName, UInt64& Value);
 	static bool uInt32Field(const char* FieldName, UInt32& Value);

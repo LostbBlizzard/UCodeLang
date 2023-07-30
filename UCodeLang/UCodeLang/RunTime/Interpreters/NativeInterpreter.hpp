@@ -105,6 +105,13 @@ public:
 		
 	}
 
+	template<typename T> T Get_Return()
+	{
+		T r;
+		Get_Return(&r, sizeof(T));
+		return r;
+	}
+	void Get_Return(void* Output, size_t OutputSize);
 
 	void UnLoad()
 	{

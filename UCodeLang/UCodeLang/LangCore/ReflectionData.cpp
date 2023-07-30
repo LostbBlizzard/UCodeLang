@@ -133,6 +133,156 @@ Optional<size_t> ClassAssembly::GetSize(const ReflectionTypeInfo& Type, bool Is3
 	}
 	return {};
 }
+Optional<size_t> ClassAssembly::GetSize(const ClassMethod::Par& Type, bool Is32Bit) const
+{
+	auto PtrSize = Is32Bit ? sizeof(UInt32) : sizeof(UInt64);
+	if (Type.IsOutPar)
+	{
+		return PtrSize;
+	}
+	return GetSize(Type.Type, Is32Bit);
+
+}
+
+//Get the DefaultConstructor or directly does the operation if a Primitive.
+//if the first Optional is empty the operation failed
+
+Optional<Optional<const ClassMethod*>> ClassAssembly::CallDefaultConstructor(const ReflectionTypeInfo& Type, void* Object, bool Is32Bit) const
+{
+	if (Type.IsAddress())
+	{
+		*(void**)(Object) = nullptr;
+
+		return { {} };
+	}
+
+	switch (Type._Type)
+	{
+	case ReflectionTypes::sInt8:
+	{
+		*(Int8*)(Object) = Int8();
+
+		return  { {} };
+	}
+	break;
+	case ReflectionTypes::sInt16:
+	{
+		*(Int16*)(Object) = Int16();
+
+		return  { {} };
+	}
+	break;
+	case ReflectionTypes::sInt32:
+	{
+		*(Int32*)(Object) = Int32();
+
+		return  { {} };
+	}
+	break;
+	case ReflectionTypes::sInt64:
+	{
+		*(UInt64*)(Object) = UInt64();
+
+		return  { {} };
+	}
+	break;
+	case ReflectionTypes::uInt8:
+	{
+		*(UInt8*)(Object) = UInt8();
+
+		return  { {} };
+	}
+	break;
+	case ReflectionTypes::uInt16:
+	{
+		*(UInt16*)(Object) = UInt16();
+
+		return  { {} };
+	}
+	break;
+	case ReflectionTypes::uInt32:
+	{
+		*(UInt32*)(Object) = UInt32();
+
+		return  { {} };
+	}
+	break;
+	case ReflectionTypes::uInt64:
+	{
+		*(UInt64*)(Object) = UInt64();
+
+		return  { {} };
+	}
+	break;
+	case ReflectionTypes::Char:
+	{
+		*(char*)(Object) = char();
+
+		return  { {} };
+	}
+	case ReflectionTypes::Uft8:
+	{
+		*(Utf8*)(Object) = Utf8();
+
+		return  { {} };
+	}
+	case ReflectionTypes::Uft16:
+	{
+		*(Utf32*)(Object) = Utf32();
+
+		return  { {} };
+	}
+	case ReflectionTypes::Uft32:
+	{
+		*(Utf32*)(Object) = Utf32();
+
+		return  { {} };
+	}
+	case ReflectionTypes::Bool:
+	{
+		*(bool*)(Object) = bool();
+
+		return  { {} };
+	}
+	break;
+	case ReflectionTypes::float32:
+	{
+		*(float32*)(Object) = float32();
+
+		return  { {} };
+	}
+	case ReflectionTypes::float64:
+	{
+		*(float64*)(Object) = float64();
+
+		return  { {} };
+	}
+	default:
+		return {};
+		break;
+	}
+	return {};
+}
+Optional<Optional<const ClassMethod*>> ClassAssembly::CallDefaultConstructor(const ClassMethod::Par& Type, void* Object, bool Is32Bit) const
+{
+	if (Type.IsOutPar)
+	{
+		return {};
+	}
+	return CallDefaultConstructor(Type.Type,Object,Is32Bit);
+}
+Optional<Optional<const ClassMethod*>> ClassAssembly::CallCopyConstructor(const ReflectionTypeInfo& Type, void* Object, void* Other, bool Is32Bit) const
+{
+	return Optional<Optional<const ClassMethod*>>();
+}
+Optional<Optional<const ClassMethod*>> ClassAssembly::CallMoveConstructor(const ReflectionTypeInfo& Type, void* Object, void* Other, bool Is32Bit) const
+{
+	return Optional<Optional<const ClassMethod*>>();
+}
+Optional<Optional<const ClassMethod*>> ClassAssembly::CallDestructor(const ReflectionTypeInfo& Type, void* Object, bool Is32Bit) const
+{
+	return Optional<Optional<const ClassMethod*>>();
+}
 AssemblyNode::AssemblyNode(ClassType type) : Type(type)
 {
 	switch (type)

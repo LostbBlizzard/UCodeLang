@@ -440,14 +440,15 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 				r += (String)MapData->InsName;
 				r += " ";
 
+				auto staticbytesview = BytesView::Make(Lib->Get_StaticBytes().data(), Lib->Get_StaticBytes().size());
 				if (MapData->Op_0 != OpCodeType::NoOpCode)
 				{
-					OpValueToString(MapData->Op_0, Item.Value0, AddressToName, r, Lib);
+					OpValueToString(MapData->Op_0, Item.Value0, AddressToName, staticbytesview, r);
 				}
 				if (MapData->Op_1 != OpCodeType::NoOpCode)
 				{
 					r += ",";
-					OpValueToString(MapData->Op_1, Item.Value1, AddressToName, r, Lib);
+					OpValueToString(MapData->Op_1, Item.Value1, AddressToName, staticbytesview, r);
 				}
 
 			}
@@ -635,7 +636,7 @@ String UAssembly::ToString(const ClassMethod::Par& Value, const ClassAssembly& A
 	R += ToString(Value.Type, Assembly);
 	return R;
 }
-void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In,const BinaryVectorMap<UAddress, String>& AddressToName, String& out, const UClib* Lib)
+void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In,const BinaryVectorMap<UAddress, String>& AddressToName,const BytesView StaticVarablesData, String& out)
 {
 
 	switch (OpType)
@@ -686,7 +687,7 @@ void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In,const Binar
 		break;
 		
 	case OpCodeType::StaticCString:
-		out += "\"" + (String)(const char*)&Lib->Get_StaticBytes()[In.AsUIntNative] + "\"";
+		out += "\"" + (String)(const char*)&StaticVarablesData[In.AsUIntNative] + "\"";
 		break;
 
 	case OpCodeType::InsAddress:

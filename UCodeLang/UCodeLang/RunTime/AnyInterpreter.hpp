@@ -62,6 +62,139 @@ struct AnyInterpreterPtr
 			throw std::exception("Ptr Is Null");
 		}
 	}
+	Interpreter::Return_t Call(UAddress Address)
+	{
+		if (auto Val = Base.Get_If<Interpreter*>())
+		{
+			return (*Val)->Call(Address);
+		}
+		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
+		{
+			return (*Val)->Call(Address);
+		}
+		else if (auto Val = Base.Get_If<NativeInterpreter*>())
+		{
+			return (*Val)->Call(Address);
+		}
+		else
+		{
+			throw std::exception("Ptr Is Null");
+		}
+	}
+	Interpreter::Return_t Call(const String& FunctionName)
+	{
+		if (auto Val = Base.Get_If<Interpreter*>())
+		{
+			return (*Val)->Call(FunctionName);
+		}
+		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
+		{
+			return (*Val)->Call(FunctionName);
+		}
+		else if (auto Val = Base.Get_If<NativeInterpreter*>())
+		{
+			return (*Val)->Call(FunctionName);
+		}
+		else
+		{
+			throw std::exception("Ptr Is Null");
+		}
+	}
+	void PushParameter(const void* Value, size_t ValueSize)
+	{
+		if (auto Val = Base.Get_If<Interpreter*>())
+		{
+			return (*Val)->PushParameter(Value,ValueSize);
+		}
+		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
+		{
+			return (*Val)->PushParameter(Value, ValueSize);
+		}
+		else if (auto Val = Base.Get_If<NativeInterpreter*>())
+		{
+			return (*Val)->PushParameter(Value, ValueSize);
+		}
+		else
+		{
+			throw std::exception("Ptr Is Null");
+		}
+	}
+	template<typename T> void PushParameter(const T& Value)
+	{
+		if (auto Val = Base.Get_If<Interpreter*>())
+		{
+			return (*Val)->PushParameter(Value);
+		}
+		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
+		{
+			return (*Val)->PushParameter(Value);
+		}
+		else if (auto Val = Base.Get_If<NativeInterpreter*>())
+		{
+			return (*Val)->PushParameter(Value);
+		}
+		else
+		{
+			throw std::exception("Ptr Is Null");
+		}
+	}
+	template<typename... Args> void PushParameters(Args&&... parameters)
+	{
+		if (auto Val = Base.Get_If<Interpreter*>())
+		{
+			return (*Val)->PushParameters(parameters);
+		}
+		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
+		{
+			return (*Val)->PushParameters(parameters);
+		}
+		else if (auto Val = Base.Get_If<NativeInterpreter*>())
+		{
+			return (*Val)->PushParameters(parameters);
+		}
+		else
+		{
+			throw std::exception("Ptr Is Null");
+		}
+	}
+	template<typename T> T Get_Return()
+	{
+		if (auto Val = Base.Get_If<Interpreter*>())
+		{
+			return (*Val)->Get_Return<T>();
+		}
+		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
+		{
+			return (*Val)->Get_Return<T>();
+		}
+		else if (auto Val = Base.Get_If<NativeInterpreter*>())
+		{
+			return (*Val)->Get_Return<T>();
+		}
+		else
+		{
+			throw std::exception("Ptr Is Null");
+		}
+	}
+	void Get_Return(void* Output, size_t OutputSize)
+	{
+		if (auto Val = Base.Get_If<Interpreter*>())
+		{
+			return (*Val)->Get_Return(Output,OutputSize);
+		}
+		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
+		{
+			return (*Val)->Get_Return(Output, OutputSize);
+		}
+		else if (auto Val = Base.Get_If<NativeInterpreter*>())
+		{
+			return (*Val)->Get_Return(Output, OutputSize);
+		}
+		else
+		{
+			throw std::exception("Ptr Is Null");
+		}
+	}
 
 	static const AnyInterpreterPtr Make(const Interpreter* ptr)
 	{
@@ -109,6 +242,7 @@ struct AnyInterpreterPtr
 			return InterpreterTypes::Null;
 		}
 	}
+	
 	Interpreter* GetAs_Interpreter() 
 	{
 		return Base.Get<Interpreter*>();
@@ -150,14 +284,14 @@ public:
 	}
 	AnyInterpreter(AnyInterpreter&& Value) = default;
 	AnyInterpreter& operator=(AnyInterpreter&& Value) = default;
-	
+
 	AnyInterpreter(Interpreter&& Value)
-		:Base(std::make_shared<Interpreter>(std::move(Value))){}
+		:Base(std::make_shared<Interpreter>(std::move(Value))) {}
 	AnyInterpreter(Jit_Interpreter&& Value)
-		:Base(std::make_shared<Jit_Interpreter>(std::move(Value))){}
+		:Base(std::make_shared<Jit_Interpreter>(std::move(Value))) {}
 	AnyInterpreter(NativeInterpreter&& Value)
-		:Base(std::make_shared<NativeInterpreter>(std::move(Value))){}
-	
+		:Base(std::make_shared<NativeInterpreter>(std::move(Value))) {}
+
 	AnyInterpreter& operator=(Interpreter&& Value)
 	{
 		Base = std::make_shared<Interpreter>(std::move(Value));
@@ -186,14 +320,7 @@ public:
 	{
 		*this = AnyInterpreter(NativeInterpreter());
 	}
-	void Init(RunTimeLangState* State)
-	{
-		Get_Ptr().Init(State);
-	}
-	void UnLoad()
-	{
-		Get_Ptr().UnLoad();
-	}
+
 
 	InterpreterTypes Get_InterpreterType() const
 	{
@@ -229,6 +356,41 @@ public:
 	{
 		return  Get_Ptr();
 	}
+
+
+	void Init(RunTimeLangState* State)
+	{
+		Get_Ptr().Init(State);
+	}
+	void UnLoad()
+	{
+		Get_Ptr().UnLoad();
+	}
+	Interpreter::Return_t Call(UAddress Address)
+	{
+		return Get_Ptr().Call(Address);
+	}
+	Interpreter::Return_t Call(const String& FunctionName)
+	{
+		return Get_Ptr().Call(FunctionName);
+	}
+	void PushParameter(const void* Value, size_t ValueSize)
+	{
+		return Get_Ptr().PushParameter(Value, ValueSize);
+	}
+	template<typename T> void PushParameter(const T& Value)
+	{
+		return Get_Ptr().PushParameter(Value);
+	}
+	template<typename... Args> void PushParameters(Args&&... parameters)
+	{
+		return Get_Ptr().PushParameters(parameters);
+	}
+	template<typename T> T Get_Return()
+	{
+		return Get_Ptr().Get_Return<T>();
+	}
+	void Get_Return(void* Output, size_t OutputSize);
 private:
 	struct Null {};
 	//useing Shared_ptr because std::Variant need it to be copyable

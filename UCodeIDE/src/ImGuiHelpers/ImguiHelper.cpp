@@ -3,6 +3,84 @@
 UCodeIDEStart
 
 
+bool ImguiHelper::UCodeObjectField(const char* FieldName, void* Object, const UCodeLang::ClassMethod::Par& type, const UCodeLang::ClassAssembly& assembly, UCodeObjectCash& Chash)
+{
+	if (type.IsOutPar)
+	{
+		return false;
+	}
+	return UCodeObjectField(FieldName,Object,type.Type,assembly,Chash);
+}
+
+bool ImguiHelper::UCodeObjectField(const char* FieldName, void* Object, const UCodeLang::ReflectionTypeInfo& type, const UCodeLang::ClassAssembly& assembly, UCodeObjectCash& Chash)
+{
+	switch (type._Type)
+	{
+	case UCodeLang::ReflectionTypes::Bool:
+	{
+		return BoolEnumField(FieldName, *(bool*)Object);
+	}
+	break;
+	case UCodeLang::ReflectionTypes::uInt8:
+	{
+		return uInt8Field(FieldName, *(UInt8*)Object);
+	}
+	break;
+	case UCodeLang::ReflectionTypes::uInt16:
+	{
+		return uInt16Field(FieldName, *(UInt16*)Object);
+	}
+	break;
+	case UCodeLang::ReflectionTypes::uInt32:
+	{
+		return uInt32Field(FieldName, *(UInt32*)Object);
+	}
+	break;
+	case UCodeLang::ReflectionTypes::uInt64:
+	{
+		return uInt64Field(FieldName, *(UInt64*)Object);
+	}
+	break;
+	case UCodeLang::ReflectionTypes::sInt8:
+	{
+		return Int8Field(FieldName, *(Int8*)Object);
+	}
+	break;
+	case UCodeLang::ReflectionTypes::sInt16:
+	{
+		return Int16Field(FieldName, *(Int16*)Object);
+	}
+	break;
+	case UCodeLang::ReflectionTypes::sInt32:
+	{
+		return Int32Field(FieldName, *(Int32*)Object);
+	}
+	break;
+	case UCodeLang::ReflectionTypes::sInt64:
+	{
+		return Int64Field(FieldName, *(Int64*)Object);
+	}
+	break;
+	case UCodeLang::ReflectionTypes::Char:
+	{
+		return CharField(FieldName, *(char*)Object);
+	}
+	break;
+	case UCodeLang::ReflectionTypes::float32:
+	{
+		return float32Field(FieldName, *(float32*)Object);
+	}
+	break;
+	case UCodeLang::ReflectionTypes::float64:
+	{
+		return float64Field(FieldName, *(float64*)Object);
+	}
+	break;
+	default:
+		break;
+	}
+}
+
 bool ImguiHelper::uInt64Field(const char* FieldName, UInt64& Value)
 {
 	ImGui::Text(FieldName);

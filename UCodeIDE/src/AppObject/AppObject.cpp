@@ -153,6 +153,10 @@ void AppObject::OnDraw()
     bool Doc = true;
     BeginDockSpace(&Doc);
    
+    ImguiHelper::UpdateChash(_Cash);
+
+    ImGui::ShowDemoWindow();
+
 
     if (ImGui::Begin("ShowStyleEditor")) 
     {
@@ -281,6 +285,8 @@ void AppObject::OnDraw()
                 _RunTimeState.AddLib(&_RuntimeLib);
                 _RunTimeState.LinkLibs();
 
+                UpdateInsData(windowdata);
+
             }
             if (OutputWindow.AutoHotReload == false) 
             {
@@ -333,95 +339,8 @@ void AppObject::OnDraw()
     if (ImGui::Begin("UCode-VM"))
     {
         ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.50f);
-        enum class NativeSet
-        {
-            x86,
-            x86_64,
-
-
-#if UCodeLang_CPUIs_x86
-            Native = x86,
-#else
-            Native = x86_64,
-#endif
-        };
-        enum class UCodeVMType
-        {
-            Interpreter,
-            Jit_Interpreter,
-            Native_Interpreter,
-        };
-        struct UCodeVMWindow
-        {
-            UCodeVMType VMType = UCodeVMType::Interpreter;
-            NativeSet NativeCpuType = NativeSet::Native;
-        };
-        static const Vector<ImguiHelper::EnumValue<UCodeVMType>> List =
-        {
-            {"Interpreter",UCodeVMType::Interpreter},
-            {"Jit_Interpreter",UCodeVMType::Jit_Interpreter},
-            {"Native_Interpreter",UCodeVMType::Native_Interpreter},
-        };
-        static const Vector<ImguiHelper::EnumValue<NativeSet>> NativeSetList =
-        {
-            #if UCodeLang_CPUIs_x86
-            {"Native(x86)",NativeSet::Native},
-            #else
-            {"Native(x86_64)",NativeSet::Native},
-            #endif
-            {"x86",NativeSet::x86},
-            {"x86_64",NativeSet::x86_64},
-        };
-
-        static UCodeVMWindow windowdata;
-
-        if (ImguiHelper::EnumField("Type", windowdata.VMType, List))
-        {
-            switch (windowdata.VMType)
-            {
-            case UCodeVMType::Interpreter:
-            {
-                _AnyInterpreter.SetAsInterpreter();
-            }
-            break;
-            case UCodeVMType::Jit_Interpreter:
-            {
-                _AnyInterpreter.SetAsJitInterpreter();
-            }
-            break;
-            case UCodeVMType::Native_Interpreter:
-            {
-                _AnyInterpreter.SetAsNativeInterpreter();
-            }
-            break;
-            default:
-                break;
-            }
-            
-        }
-
-
-        if (windowdata.VMType == UCodeVMType::Native_Interpreter)
-        {
-            ImGui::SameLine();
-            ImguiHelper::EnumField("CpuType", windowdata.NativeCpuType, NativeSetList);
-        }
-        ImGui::Separator();
-
-        {
-            ImGui::Columns(2, "DebugerOrCode");
-            {
-                {
-                    ImGui::TextUnformatted("Debuger");
-                }
-                ImGui::NextColumn();
-                {
-                    ImGui::TextUnformatted("Code");
-                }
-
-            }
-            ImGui::Columns();
-        }
+       
+        ShowUCodeVMWindow();
 
         ImGui::PopItemWidth();
        
@@ -477,6 +396,323 @@ void AppObject::OnDraw()
 	}
 
     EndDockSpace();
+}
+
+void AppObject::ShowUCodeVMWindow()
+{
+    static const Vector<ImguiHelper::EnumValue<UCodeVMType>> List =
+    {
+        { "Interpreter",UCodeVMType::Interpreter },
+        { "Jit_Interpreter",UCodeVMType::Jit_Interpreter },
+        { "Native_Interpreter",UCodeVMType::Native_Interpreter },
+    };
+    static const Vector<ImguiHelper::EnumValue<NativeSet>> NativeSetList =
+    {
+#if UCodeLang_CPUIs_x86
+        { "Native(x86)",NativeSet::Native },
+#else
+        { "Native(x86_64)",NativeSet::Native },
+#endif
+        { "x86",NativeSet::x86 },
+        { "x86_64",NativeSet::x86_64 },
+    };
+
+
+    if (ImguiHelper::EnumField("Type", windowdata.VMType, List))
+    {
+        switch (windowdata.VMType)
+        {
+        case UCodeVMType::Interpreter:
+        {
+            _AnyInterpreter.SetAsInterpreter();
+        }
+        break;
+        case UCodeVMType::Jit_Interpreter:
+        {
+            _AnyInterpreter.SetAsJitInterpreter();
+        }
+        break;
+        case UCodeVMType::Native_Interpreter:
+        {
+            _AnyInterpreter.SetAsNativeInterpreter();
+        }
+        break;
+        default:
+            break;
+        }
+
+    }
+
+
+    if (windowdata.VMType == UCodeVMType::Native_Interpreter)
+    {
+        ImGui::SameLine();
+        ImguiHelper::EnumField("CpuType", windowdata.NativeCpuType, NativeSetList);
+    }
+    ImGui::Separator();
+
+    {
+        ImGui::Columns(2, "DebugerOrCode");
+        {
+            {
+                ImGui::TextUnformatted("Debuger");
+
+
+                ShowDebugerMenu(windowdata);
+
+
+            }
+            ImGui::NextColumn();
+            {
+                ImGui::TextUnformatted("Code");
+
+                if (ImGui::BeginTable("split2", 2,ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders))
+                {
+                    for (auto& Item : windowdata.InsInfo)
+                    {
+                       
+                        //ImGui::TableNextColumn(); 
+                        //ImGui::SetColumnWidth(0, 20.0f);
+                        //ImGui::Dummy({20,20});
+
+                        ImGui::TableNextColumn();
+
+                        //mGui::TableNextColumn(0, 20.0f);
+
+                        ImGui::Text(std::to_string(Item.InsAddress).c_str());
+                        
+                        ImGui::TableNextColumn();
+                        
+                        ImGui::Text(Item.StringValue.c_str());
+                        
+                        ImGui::TableNextRow();
+                    }
+                    ImGui::EndTable();
+                }
+            }
+
+        }
+        ImGui::Columns();
+    }
+}
+
+void AppObject::UpdateInsData(UCodeVMWindow& windowdata)
+{
+    using namespace UCodeLang::UAssembly;
+    windowdata.InsInfo.clear();
+    auto& RunTime = _RunTimeState;
+
+    windowdata.InsInfo.reserve(RunTime.Get_Libs().GetInstructions().size());
+
+
+    auto& InsMapData = UCodeLang::UAssembly::Get_InsToInsMapValue();
+    BinaryVectorMap<UCodeLang::UAddress, String> AddressToName;
+
+
+    auto& Inslist = RunTime.Get_Libs().GetInstructions();
+    for (size_t i = 0; i < Inslist.size(); i++)
+    {
+        auto& Item = Inslist[i];
+        UCodeVMWindow::InsData V;
+        V._Ins = Item;
+        V.InsAddress = i;
+        String Vstr;
+
+        if (InsMapData.count(Item.OpCode))
+        {
+            auto& MapData = InsMapData[Item.OpCode];
+            Vstr += (String)MapData->InsName;
+            Vstr += " ";
+
+            auto staticbytesview = BytesView::Make((const Byte*)RunTime.Get_StaticMemPtr(), RunTime.Get_Libs().GetStaticBytes().size());
+            if (MapData->Op_0 != OpCodeType::NoOpCode)
+            {
+                UAssembly::OpValueToString(MapData->Op_0, Item.Value0, AddressToName, staticbytesview, Vstr);
+            }
+            if (MapData->Op_1 != OpCodeType::NoOpCode)
+            {
+                Vstr += ",";
+                UAssembly::OpValueToString(MapData->Op_1, Item.Value1, AddressToName, staticbytesview, Vstr);
+            }
+
+        }
+        else
+        {
+            Vstr += "Ins " + std::to_string((uintptr_t)Item.OpCode) + ":" + std::to_string((uintptr_t)Item.Value0.AsPtr) + ","
+                + std::to_string((uintptr_t)Item.Value1.AsPtr);
+        }
+
+        V.StringValue = std::move(Vstr.c_str());
+
+        windowdata.InsInfo.push_back(std::move(V));
+    }
+}
+
+void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
+{
+
+    ImguiHelper::BoolEnumField("Show Registers", windowdata.ShowRegisters);
+
+    //ImGui::SameLine();
+    ImguiHelper::BoolEnumField("Show Stack", windowdata.ShowStack);
+    //ImGui::SameLine();
+    ImguiHelper::BoolEnumField("Show Static-Memory", windowdata.ShowStaticMemory);
+    //ImGui::SameLine();
+    ImguiHelper::BoolEnumField("Show Thread-Memory", windowdata.ShowThreadMemory);
+    //ImGui::SameLine();
+    ImguiHelper::BoolEnumField("Show Heap-Memory", windowdata.ShowHeapMemory);
+
+    ImGui::Separator();
+
+    bool IsinFileMode = false;
+    ImVec2 Buttonsize = { 80,20 };
+
+    bool InFuncion = false;
+
+    ImGui::Button("Reset", Buttonsize);
+
+
+    ImGui::BeginDisabled(!InFuncion);
+
+    ImGui::Button("Step in", Buttonsize); ImGui::SameLine();
+    ImGui::Button("Step over", Buttonsize); ImGui::SameLine();
+    ImGui::Button("Step out", Buttonsize);
+
+    ImGui::EndDisabled();
+
+    if (!InFuncion) {
+        ImGui::Text("Varables");
+    }
+
+    if (!InFuncion) {
+        ImGui::Text("StackFrames");
+    }
+
+    if (!InFuncion) 
+    {
+        auto& Assembly = _RunTimeState.Get_Assembly();
+        bool Updated = false;
+        struct CallFuncContext
+        {
+            const UCodeLang::ClassMethod* current_method = nullptr;
+            Vector<BytesPtr> Args;
+        };
+        static CallFuncContext callFuncContext;
+
+        auto GlobalObject = Assembly.Get_GlobalObject_Class();
+
+        ImGui::Text("Call Funcion:"); ImGui::SameLine();
+        
+        ImGui::PushID(&callFuncContext.current_method);
+
+        String MethodString = "null";
+
+        if (callFuncContext.current_method)
+        {
+            MethodString = callFuncContext.current_method->FullName;
+        }
+
+        if (ImGui::BeginCombo("", MethodString.c_str(), ImGuiComboFlags_NoArrowButton))
+        {
+            for (auto& Item : Assembly.Classes)
+            {
+                if (Item->Get_Type() == UCodeLang::ClassType::Class)
+                {
+                    auto& ClassItem = Item->Get_ClassData();
+
+                    bool IsGlobalObject = &ClassItem == GlobalObject;
+                    for (auto& Method : ClassItem.Methods)
+                    {
+                        String FuncName= Method.FullName;
+
+
+                        bool is_selected = (callFuncContext.current_method == &Method);
+                        if (ImGui::Selectable(FuncName.c_str(), is_selected))
+                        {
+                            callFuncContext.current_method = &Method;
+                            Updated = true;
+                        }
+                        if (is_selected)
+                        {
+                            ImGui::SetItemDefaultFocus();
+                        }
+
+                        
+                    }
+                }
+            }
+            
+            ImGui::EndCombo();
+        }
+        ImGui::PopID();
+
+        bool Is32bits = sizeof(void*) == sizeof(Int32);
+        if (callFuncContext.current_method)
+        {
+            ImGui::Text("Args");
+
+            if (Updated)
+            {
+                callFuncContext.Args.resize(callFuncContext.current_method->ParsType.size());
+                bool CantMakeArgs = false;
+                for (size_t i = 0; i < callFuncContext.current_method->ParsType.size(); i++)
+                {
+                    const auto& Par = callFuncContext.current_method->ParsType[i];
+                    auto& Arg = callFuncContext.Args[i];
+
+                    auto Op_Size = Assembly.GetSize(Par, Is32bits);
+                    if (Op_Size.has_value())
+                    {
+                        Arg.Resize(Op_Size.value());
+                        auto ItWorked = Assembly.CallDefaultConstructor(Par,Arg.Data(), Is32bits);
+                        if (ItWorked)
+                        {
+                            if (ItWorked.value().has_value())
+                            {
+                                auto ToCall = ItWorked.value().value();
+                                throw std::exception("not added");
+                                //_AnyInterpreter.Call();
+                            }
+                        }
+                        else
+                        {
+                            CantMakeArgs = true;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        CantMakeArgs = true;
+                        break;
+                    }
+
+                }
+                if (CantMakeArgs)
+                {
+                    callFuncContext.current_method = nullptr;
+                }
+            }
+
+            if (callFuncContext.current_method) 
+            {
+                for (size_t i = 0; i < callFuncContext.current_method->ParsType.size(); i++)
+                {
+                    const auto& Par = callFuncContext.current_method->ParsType[i];
+                    auto& Arg = callFuncContext.Args[i];
+
+                    String ParName = "Arg" + std::to_string(i);
+                    ImguiHelper::UCodeObjectField(ParName.c_str(), (void*)Arg.Data(), Par, Assembly, _Cash);
+                }
+
+                if (ImGui::Button(((String)"Call:" + MethodString).c_str()))
+                {
+                   // _AnyInterpreter.Init
+                }
+
+            }
+        }
+
+    }
 }
 
 void AppObject::CompileText(const String& String)
