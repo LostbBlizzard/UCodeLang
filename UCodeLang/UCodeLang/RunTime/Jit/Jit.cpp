@@ -54,6 +54,26 @@ AsmBuffer::AsmBuffer(AsmBuffer&& Other)
 {
 	Other.Data = nullptr;
 }
+AsmBuffer& AsmBuffer::operator=(AsmBuffer&& Other)
+{
+	if (Data)
+	{
+		#ifdef  UCodeLang_Platform_Windows
+		MemFree();
+		#endif
+	}
+	Data = Other.Data;
+
+	Other.Data = nullptr;
+	return *this;
+}
+
+void AsmBuffer::MemFree()
+{
+#ifdef  UCodeLang_Platform_Windows
+	VirtualFree(Data, 0, MEM_RELEASE);
+#endif
+}
 
 void AsmBuffer::SetToExecuteMode()
 {
@@ -80,9 +100,7 @@ void AsmBuffer::Alloc(const size_t Size)
 {
 	if (Data)
 	{
-		#ifdef  UCodeLang_Platform_Windows
-		VirtualFree(Data, 0, MEM_RELEASE);
-		#endif
+		MemFree();
 	}
 
 	#ifdef  UCodeLang_Platform_Windows
@@ -92,7 +110,7 @@ void AsmBuffer::Alloc(const size_t Size)
 	
 	#if UCodeLang_CPUIs_x86_64 || UCodeLang_CPUIs_x86
 	memset(Data, 0xcc, Size);
-	#endif // 
+	#endif // debug on hit ins
 
 
 }
@@ -101,9 +119,7 @@ AsmBuffer::~AsmBuffer()
 {
 	if (Data) 
 	{
-		#ifdef  UCodeLang_Platform_Windows
-		VirtualFree(Data, 0, MEM_RELEASE);
-		#endif
+		MemFree();
 	}
 }
 

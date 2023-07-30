@@ -42,15 +42,7 @@ public:
 	}
 	inline void AddLib(RunTimeLib* lib){ Libs.push_back(lib); }
 	inline void ClearLibs() { Libs.clear(); }
-	void ClearRunTimeState()
-	{
-		_NameToAddress.clear();
-		_NameToCPP.clear();
-		_Instructions.clear();
-		Libs.clear();
-		StaticBytes.clear();
-		ThreadBytes.clear();
-	}
+	void ClearRunTimeState();
 
 	inline const auto& Get_Code()
 	{

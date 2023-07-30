@@ -119,7 +119,7 @@ bool LanguageSever::Step()
 		_ClientPacketsToRun.clear();
 	}
 
-    return true;
+    return Runing;
 }
 void LanguageSever::OnReceivedPacket(const ClientPacket& Item)
 {

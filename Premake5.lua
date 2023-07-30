@@ -5,7 +5,7 @@ workspace "UCodeLang"
    
    
 
-   startproject "UCApp"
+   startproject "UCodeIDE"
    
    OutDirPath ="%{cfg.platform}/%{cfg.buildcfg}"
 

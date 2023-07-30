@@ -89,7 +89,7 @@ Unique_ptr<FileNode_t> UCodeFrontEndObject::LoadExternFile(const BytesView Bytes
 	{
 		return Unique_ptr<FileNode_t>(new LibImportNode(std::move(tep)));
 	}
-
+	return {};
 }
 Vector<const FileNode_t*> UCodeFrontEndObject::Get_DependenciesPostIR(FileNode_t* File)
 {

@@ -67,14 +67,33 @@ void AppObject::Init()
         _LangSeverThread = std::make_unique<std::thread>([this]()
         {
                 SandBoxLanguageSever SandBox;
+                this->SeverPtr = &SandBox;
                 while (SandBox._Sever.Step());
                 this->SeverPtr = nullptr;
         });
+
+        TextEditor::LanguageDefinition Def;
+        Def.mName = "UCodeLang";
+        Def.mTokenize = [](const char* in_begin, const char* in_end, const char*& out_begin, const char*& out_end, TextEditor::PaletteIndex& paletteIndex)
+        {
+
+
+            return false;
+        };
+
+
+        _Editor.SetShowWhitespaces(false);
+        //_Editor.SetLanguageDefinition(Def);
 
 		UCodeIDEStyle(nullptr);
 
         _Editor.SetText("\n\n|main[] => 0;\n\n");
         CompileText(GetTextEditorString());
+
+
+        _AnyInterpreter.SetAsInterpreter();
+        _AnyInterpreter.Init(&_RunTimeState);
+        ImguiHelper::_Ptr = _AnyInterpreter.GetPtr();
 	}
 }
 void BeginDockSpace(bool* p_open)
@@ -153,9 +172,7 @@ void AppObject::OnDraw()
     bool Doc = true;
     BeginDockSpace(&Doc);
    
-    ImguiHelper::UpdateChash(_Cash);
-
-    ImGui::ShowDemoWindow();
+    //ImGui::ShowDemoWindow();
 
 
     if (ImGui::Begin("ShowStyleEditor")) 
@@ -171,18 +188,7 @@ void AppObject::OnDraw()
     } ImGui::End();
     if (ImGui::Begin("File.uc"))
     {
-        TextEditor::LanguageDefinition Def;
-        Def.mName = "UCodeLang";
-        Def.mTokenize = [](const char* in_begin, const char* in_end, const char*& out_begin, const char*& out_end, TextEditor::PaletteIndex& paletteIndex)
-        {
-
-
-            return false;
-        };
-
-
-        _Editor.SetShowWhitespaces(false);
-        _Editor.SetLanguageDefinition(Def);
+       
         _Editor.Render("File.uc");
        
     } ImGui::End();
@@ -278,6 +284,9 @@ void AppObject::OnDraw()
             {
                 _RunTimeStr = GetTextEditorString();
 
+
+                _AnyInterpreter.UnLoad();
+
                 _RuntimeLib.UnLoad();
                 _RuntimeLib.Init(&_CompiledLib);
 
@@ -285,8 +294,8 @@ void AppObject::OnDraw()
                 _RunTimeState.AddLib(&_RuntimeLib);
                 _RunTimeState.LinkLibs();
 
-                UpdateInsData(windowdata);
-
+                _AnyInterpreter.Init(&_RunTimeState);
+                OnRuntimeUpdated();
             }
             if (OutputWindow.AutoHotReload == false) 
             {
@@ -425,22 +434,27 @@ void AppObject::ShowUCodeVMWindow()
         case UCodeVMType::Interpreter:
         {
             _AnyInterpreter.SetAsInterpreter();
+            _AnyInterpreter.Init(&_RunTimeState);
         }
         break;
         case UCodeVMType::Jit_Interpreter:
         {
             _AnyInterpreter.SetAsJitInterpreter();
+
+            _AnyInterpreter.Init(&_RunTimeState);
         }
         break;
         case UCodeVMType::Native_Interpreter:
         {
             _AnyInterpreter.SetAsNativeInterpreter();
+
+            _AnyInterpreter.Init(&_RunTimeState);
         }
         break;
         default:
             break;
         }
-
+        ImguiHelper::_Ptr = _AnyInterpreter.GetPtr();
     }
 
 
@@ -592,12 +606,7 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
     {
         auto& Assembly = _RunTimeState.Get_Assembly();
         bool Updated = false;
-        struct CallFuncContext
-        {
-            const UCodeLang::ClassMethod* current_method = nullptr;
-            Vector<BytesPtr> Args;
-        };
-        static CallFuncContext callFuncContext;
+      
 
         auto GlobalObject = Assembly.Get_GlobalObject_Class();
 
@@ -669,9 +678,11 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                         {
                             if (ItWorked.value().has_value())
                             {
-                                auto ToCall = ItWorked.value().value();
-                                throw std::exception("not added");
-                                //_AnyInterpreter.Call();
+                                auto& ToCall = ItWorked.value().value();
+                                for (auto& Item : ToCall)
+                                {
+                                    _AnyInterpreter.ThisCall(Item.MethodToCall, Item.ThisPtr);
+                                }
                             }
                         }
                         else
@@ -701,18 +712,44 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                     auto& Arg = callFuncContext.Args[i];
 
                     String ParName = "Arg" + std::to_string(i);
-                    ImguiHelper::UCodeObjectField(ParName.c_str(), (void*)Arg.Data(), Par, Assembly, _Cash);
+                    ImguiHelper::UCodeObjectField(ParName.c_str(), (void*)Arg.Data(), Par, Assembly);
                 }
 
                 if (ImGui::Button(((String)"Call:" + MethodString).c_str()))
                 {
-                   // _AnyInterpreter.Init
-                }
+                    callFuncContext._LastRetType = callFuncContext.current_method->RetType;
+                    callFuncContext._LastRet.Resize(Assembly.GetSize(callFuncContext._LastRetType, Is32bits).value_or(0));
 
+                    for (size_t i = 0; i < callFuncContext.current_method->ParsType.size(); i++)
+                    {
+                        auto& Arg = callFuncContext.Args[i];
+                        _AnyInterpreter.PushParameter(Arg.Data(), Arg.Size());
+                    }
+                    _AnyInterpreter.Call(callFuncContext.current_method);
+
+                    if (callFuncContext._LastRet.Size())
+                    {
+                        _AnyInterpreter.Get_Return(callFuncContext._LastRet.Data(), callFuncContext._LastRet.Size());
+                    }
+                }
+                ImGui::BeginDisabled();
+                if (callFuncContext._LastRetType == callFuncContext.current_method->RetType)
+                {
+                    ImguiHelper::UCodeObjectField("Returned", callFuncContext._LastRet.Data(),callFuncContext._LastRetType, Assembly);
+                }
+                ImGui::EndDisabled();
             }
         }
 
     }
+}
+
+void AppObject::OnRuntimeUpdated()
+{
+    UpdateInsData(windowdata);
+
+    callFuncContext.current_method = nullptr;
+    callFuncContext._LastRetType = UCodeLang::ReflectionTypeInfo();
 }
 
 void AppObject::CompileText(const String& String)
@@ -770,6 +807,8 @@ void AppObject::CompileText(const String& String)
             _LibInfoString = "";
             break;
         }
+
+        OnErrorListUpdated();
     }
     else
     {
@@ -809,6 +848,7 @@ void AppObject::OnAppEnd()
 {
     if (_LangSeverThread) 
     {
+        SeverPtr->_Sever.StopRuning();
         _LangSeverThread->join();
     }
 }

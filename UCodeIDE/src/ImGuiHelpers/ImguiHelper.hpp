@@ -4,6 +4,7 @@
 #include <imgui.h>
 #include <functional>
 #include <UCodeLang/LangCore/ReflectionData.hpp>
+#include <UCodeLang/RunTime/AnyInterpreter.hpp>
 UCodeIDEStart
 
 
@@ -11,16 +12,15 @@ UCodeIDEStart
 class ImguiHelper
 {
 public:
-	struct UCodeObjectCash
-	{
+	static UCodeLang::AnyInterpreterPtr _Ptr;
 
-	};
-	static void UpdateChash(UCodeObjectCash& Chash)
-	{
+	static bool UCodeObjectField(const char* FieldName, void* Object, const UCodeLang::ClassMethod::Par& type, const UCodeLang::ClassAssembly& assembly,bool IfClassRemoveFlags=false);
+	static bool UCodeObjectField(void* Pointer, const UCodeLang::ReflectionTypeInfo& Type, const UCodeLang::ClassAssembly& Assembly, bool IfClassRemoveFlags = false);
 
-	}
-	static bool UCodeObjectField(const char* FieldName, void* Object, const UCodeLang::ClassMethod::Par& type, const UCodeLang::ClassAssembly& assembly, UCodeObjectCash& Chash);
-	static bool UCodeObjectField(const char* FieldName, void* Object, const UCodeLang::ReflectionTypeInfo& type,const UCodeLang::ClassAssembly& assembly, UCodeObjectCash& Chash);
+	
+	static bool UCodeObjectField(const char* FieldName, void* Object, const UCodeLang::ReflectionTypeInfo& type,const UCodeLang::ClassAssembly& assembly, bool IfClassRemoveFlags = false);
+
+	static bool DrawEnum(void* Pointer, const UCodeLang::Enum_Data& Class, const UCodeLang::ClassAssembly& Assembly);
 
 	static bool uInt64Field(const char* FieldName, UInt64& Value);
 	static bool uInt32Field(const char* FieldName, UInt32& Value);
@@ -39,6 +39,9 @@ public:
 	
 	static bool InputText(const char* label, String& buffer, ImGuiInputTextFlags flags = 0);
 	static bool MultLineText(const char* label, String& buffer, ImVec2 Size, ImGuiInputTextFlags flags = 0);
+	
+
+
 
 	template<typename T>
 	struct EnumValue
@@ -117,7 +120,26 @@ public:
 		bool EnumUpdated = false;
 		bool VariantUpdated = false;
 	};
-	
+	struct VariantInfo
+	{
+		void* Tag = nullptr;
+		void* Union = nullptr;
+	};
+	static EnumVariantFieldUpdate EnumVariantField(const char* label, VariantInfo Variant, std::function<bool(void* Tag, void* Union, bool UpdatedEnum, bool Draw)> DrawVariant, const EnumValue2* Values, size_t ValuesSize, size_t EnumBaseSize)
+	{
+		EnumVariantFieldUpdate V;
+
+		bool IsOpen = ImGui::TreeNode((Byte*)Variant.Tag + 1, "");
+		ImGui::SameLine();
+		V.EnumUpdated = EnumField(label, Variant.Tag, Values, ValuesSize, EnumBaseSize);
+		V.VariantUpdated = DrawVariant(Variant.Tag, Variant.Union, V.EnumUpdated, IsOpen);
+
+		if (IsOpen)
+		{
+			ImGui::TreePop();
+		}
+		return V;
+	}
 	
 	struct DrawVectorInfo
 	{

@@ -3,16 +3,28 @@
 UCodeIDEStart
 
 
-bool ImguiHelper::UCodeObjectField(const char* FieldName, void* Object, const UCodeLang::ClassMethod::Par& type, const UCodeLang::ClassAssembly& assembly, UCodeObjectCash& Chash)
+UCodeLang::AnyInterpreterPtr ImguiHelper::_Ptr;
+
+
+bool ImguiHelper::UCodeObjectField(const char* FieldName, void* Object, const UCodeLang::ClassMethod::Par& type, const UCodeLang::ClassAssembly& assembly, bool IfClassRemoveFlags )
 {
 	if (type.IsOutPar)
 	{
 		return false;
 	}
-	return UCodeObjectField(FieldName,Object,type.Type,assembly,Chash);
+	return UCodeObjectField(FieldName,Object,type.Type,assembly, IfClassRemoveFlags);
 }
 
-bool ImguiHelper::UCodeObjectField(const char* FieldName, void* Object, const UCodeLang::ReflectionTypeInfo& type, const UCodeLang::ClassAssembly& assembly, UCodeObjectCash& Chash)
+bool ImguiHelper::UCodeObjectField(void* Pointer, const UCodeLang::ReflectionTypeInfo& Type, const UCodeLang::ClassAssembly& Assembly, bool IfClassRemoveFlags)
+{
+	ImGui::PushID(Pointer);
+	auto r = UCodeObjectField("",Pointer,Type,Assembly, IfClassRemoveFlags);
+	ImGui::PopID();
+
+	return r;
+}
+
+bool ImguiHelper::UCodeObjectField(const char* FieldName, void* Object, const UCodeLang::ReflectionTypeInfo& type, const UCodeLang::ClassAssembly& assembly, bool IfClassRemoveFlags)
 {
 	switch (type._Type)
 	{
@@ -76,9 +88,224 @@ bool ImguiHelper::UCodeObjectField(const char* FieldName, void* Object, const UC
 		return float64Field(FieldName, *(float64*)Object);
 	}
 	break;
+	case UCodeLang::ReflectionTypes::CustomType:
+	{
+		auto Syb = assembly.Find_Node(type);
+		if (Syb)
+		{
+			if (Syb->Get_Type() == UCodeLang::ClassType::Enum)
+			{
+				auto& EnumInfo = Syb->Get_EnumData();
+				ImGui::Text(FieldName);
+				ImGui::SameLine();
+				return DrawEnum(Object, EnumInfo, assembly);
+			}
+			else if (Syb->Get_Type() == UCodeLang::ClassType::Class)
+			{
+				auto& ClassInfo = Syb->Get_ClassData();
+
+				bool IsOpen = true;
+
+				if (!IfClassRemoveFlags) {
+				IsOpen = ImGui::TreeNode((Byte*)Object + 1, FieldName);
+				}
+
+				bool WasUpdated = false;
+
+				if (IsOpen) 
+				{
+					for (auto& Field : ClassInfo.Fields)
+					{
+						void* FieldObject = (void*)((uintptr_t)Object + (uintptr_t)Field.offset);
+						if (UCodeObjectField(Field.Name.c_str(), FieldObject, Field.Type, assembly))
+						{
+							WasUpdated = true;
+						}
+					}
+				}
+
+				if (IsOpen)
+				{
+					if (!IfClassRemoveFlags) 
+					{
+						ImGui::TreePop();
+					}
+				}
+				return WasUpdated;
+			}
+		}
+		return false;
+	}
+		break;
 	default:
 		break;
 	}
+}
+
+bool ImguiHelper::DrawEnum(void* Pointer, const UCodeLang::Enum_Data& Class, const UCodeLang::ClassAssembly& Assembly)
+{
+	const bool Is32Mode = sizeof(void*) == 4;
+
+	bool R = false;
+	if (!Class.EnumVariantUnion.has_value())
+	{
+		ImGui::PushID(Pointer);
+
+		auto Size = Assembly.GetSize(Class.BaseType, Is32Mode);
+		if (Size.has_value())
+		{
+			Vector<EnumValue2> _Eunm;
+			_Eunm.resize(Class.Values.size());
+			for (size_t i = 0; i < Class.Values.size(); i++)
+			{
+				auto& ImguiEnum = _Eunm[i];
+				const auto& ClassItem = Class.Values[i];
+
+				ImguiEnum.label = ClassItem.Name.c_str();
+				ImguiEnum.Value = ClassItem._Data.Get_Data();
+			}
+
+			R = EnumField("", Pointer, _Eunm, *Size);
+		}
+		ImGui::PopID();
+	}
+	else
+	{
+		ImGui::PushID(Pointer);
+
+		auto Size = Assembly.GetSize(Class.BaseType, Is32Mode);
+		if (Size.has_value())
+		{
+			size_t TagSize = *Size;
+
+			VariantInfo _Info;
+			_Info.Tag = Pointer;
+			_Info.Union = (void*)(TagSize + (uintptr_t)Pointer);
+
+			Vector<EnumValue2> _Eunm;
+			_Eunm.resize(Class.Values.size());
+			for (size_t i = 0; i < Class.Values.size(); i++)
+			{
+				auto& ImguiEnum = _Eunm[i];
+				const auto& ClassItem = Class.Values[i];
+
+				ImguiEnum.label = ClassItem.Name.c_str();
+				ImguiEnum.Value = ClassItem._Data.Get_Data();
+			}
+			size_t UnionTypeID = Class.EnumVariantUnion.value();
+
+			std::shared_ptr<Byte> LastTag = std::shared_ptr<Byte>(new Byte[TagSize]);
+			memcpy(LastTag.get(), _Info.Tag, TagSize);
+
+			std::function<bool(void* Tag, void* Union, bool UpdatedEnum, bool Draw)> OnDraw = [Is32Mode,UnionTypeID, &Assembly, Class, TagSize, LastTag](void* Tag, void* Union, bool UpdatedEnum, bool Draw)
+			{
+				bool Updated = false;
+
+				if (UpdatedEnum)
+				{
+
+					{//drop old object.
+						const UCodeLang::EnumValues* _UseingValue = nullptr;
+						for (size_t i = 0; i < Class.Values.size(); i++)
+						{
+							auto& Item = Class.Values[i];
+							if (!memcmp(LastTag.get(), Item._Data.Get_Data(), TagSize))
+							{
+								_UseingValue = &Item;
+							}
+						}
+						if (_UseingValue)
+						{
+							if (_UseingValue->EnumVariantType.has_value())
+							{
+								auto TypeToInit = _UseingValue->EnumVariantType.value();
+								auto Ptr = Union;
+								//To-DO drop object
+								auto ItWorked = Assembly.CallDestructor(TypeToInit, Ptr, Is32Mode);
+								if (ItWorked.has_value())
+								{
+									if (ItWorked.value().has_value())
+									{
+										auto& ToCall = ItWorked.value().value();
+										for (auto& Item : ToCall) 
+										{
+											_Ptr.ThisCall(Item.MethodToCall, Item.ThisPtr);
+										}
+									}
+
+								}
+							}
+						}
+					}
+
+					{//init object
+						const UCodeLang::EnumValues* _UseingValue = nullptr;
+						for (size_t i = 0; i < Class.Values.size(); i++)
+						{
+							auto& Item = Class.Values[i];
+							if (!memcmp(Tag, Item._Data.Get_Data(), TagSize))
+							{
+								_UseingValue = &Item;
+							}
+						}
+						if (_UseingValue)
+						{
+							if (_UseingValue->EnumVariantType.has_value())
+							{
+								auto& TypeToInit = _UseingValue->EnumVariantType.value();
+								auto Ptr = Union;
+
+								//init new object
+								auto ItWorked = Assembly.CallDefaultConstructor(TypeToInit, Ptr, Is32Mode);
+								if (ItWorked.has_value())
+								{
+									if (ItWorked.value().has_value())
+									{
+										auto& Value = ItWorked.value().value();
+										for (auto& Item : Value)
+										{
+											_Ptr.ThisCall(Item.MethodToCall, Item.ThisPtr);
+										}
+									}
+
+								}
+								
+							}
+						}
+					}
+
+				}
+
+				if (Draw)
+				{
+					const UCodeLang::EnumValues* _UseingValue = nullptr;
+					for (size_t i = 0; i < Class.Values.size(); i++)
+					{
+						auto& Item = Class.Values[i];
+						if (!memcmp(Tag, Item._Data.Get_Data(), TagSize))
+						{
+							_UseingValue = &Item;
+						}
+					}
+
+					if (_UseingValue)
+					{
+						if (_UseingValue->EnumVariantType.has_value())
+						{
+							Updated = UCodeObjectField(Union, _UseingValue->EnumVariantType.value(), Assembly, true);
+						}
+					}
+				}
+
+				return Updated;
+			};
+
+			auto Ret = EnumVariantField("", _Info, OnDraw, _Eunm.data(), _Eunm.size(), TagSize);
+			R = Ret.EnumUpdated || Ret.VariantUpdated;
+		}
+		ImGui::PopID();
+	}
+	return R;
 }
 
 bool ImguiHelper::uInt64Field(const char* FieldName, UInt64& Value)

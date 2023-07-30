@@ -50,6 +50,8 @@ struct AsmBuffer
 	AsmBuffer(const size_t PageSize);
 	AsmBuffer(const Byte* Asm,const size_t Size);
 	AsmBuffer(AsmBuffer&& Other);
+	AsmBuffer& operator=(AsmBuffer&& Other);
+	void MemFree();
 	void SetToExecuteMode();
 	void SetToReadWriteMode();
 

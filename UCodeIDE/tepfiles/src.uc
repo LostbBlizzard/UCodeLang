@@ -1,5 +1,8 @@
 
+$V enum:
+ R[int a],
+ B[int x,int y],
 
-|main[] => 0;
+|main[V B] => 0;
 
-|add[int a] => a;
+
