@@ -744,9 +744,34 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
 
     }
 
-    if (windowdata.ShowStaticMemory)
     {
+        if (ImGui::Begin("Static-Memory"))
+        {
+            auto& Assembly = _RunTimeState.Get_Assembly();
+            void* Memptr = _RunTimeState.Get_StaticMemPtr();
+            ImGui::Columns(2, "Debug/Raw Static Memory");
+            {
+                auto& DebugInfo = _RunTimeState.Get_Libs().Get_DebugInfo();
+                for (auto& Item : DebugInfo.VarablesInfo)
+                {
+                    if (auto Val = Item._Value.TypeLoc.Get_If<UCodeLang::VarableInfo::Static>())
+                    {
+                        void* Object = (void*)((uintptr_t)Memptr + (uintptr_t)Val->offset);
 
+                        ImGui::Text(("offset:" + std::to_string(Val->offset)).c_str());
+                        ImGui::SameLine();
+                        ImguiHelper::UCodeObjectField(Item._Key.c_str(), Object, Item._Value.ReflectionType, Assembly);
+                    }
+                }
+
+            }
+            ImGui::NextColumn();
+            {
+                static MemoryEditor V;
+                V.DrawContents(Memptr, _RunTimeState.Get_Libs().GetStaticBytes().size());
+            }
+        }
+        ImGui::End();
     }
     //if (windowdata.ShowThreadMemory)
     {
