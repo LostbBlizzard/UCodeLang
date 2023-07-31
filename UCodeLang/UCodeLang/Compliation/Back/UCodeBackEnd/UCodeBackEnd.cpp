@@ -31,12 +31,28 @@ void UCodeBackEndObject::BuildSymbols()
 			|| Item->SymType == IRSymbolType::ThreadLocalVarable)
 		{
 			const IRBufferData* ItemBuf = Item->Get_ExAs<IRBufferData>();
-			size_t Offset = _Output->Get_StaticBytes().size();
+
+
+			size_t Offset = Item->SymType == IRSymbolType::StaticVarable ? _Output->Get_StaticBytes().size() : _Output->Get_ThreadBytes().size();
 			size_t ItemSize = ItemBuf->Bytes.size();
 
 
 			StaticMemoryManager::StaticMemInfo newinfo;
 			newinfo.Offset = Offset;
+			
+
+			const IRDebugSybol* Sybol = nullptr;
+			if (IsDebugMode()) {
+				for (auto& Item2 : _Input->_Debug.Symbols)
+				{
+					if (Item2._Key == Item->identifier)
+					{
+						Sybol = &Item2._Value;
+						break;
+					}
+				}
+			}
+
 			
 
 			if (Item->SymType == IRSymbolType::StaticVarable)
@@ -52,6 +68,28 @@ void UCodeBackEndObject::BuildSymbols()
 					_Output->AddStaticBytes(ItemBuf->Bytes.data(), ItemSize);
 				}
 
+
+				if (Sybol)
+				{
+					VarableInfo U;
+					U.DeclaredLine = 0;
+					U.DeclaredPos = 0;
+					U.FileDeclaredIn = "n/a.uc";
+					
+					
+					if (Sybol->LangType == UCode_LangType_UCodeLang) 
+					{
+						BytesView bits = BytesView::Make(Sybol->TypeInfo.data(), Sybol->TypeInfo.size());
+						BitReader r;
+						r.SetBytes(bits.Data(), bits.Size());
+						UClib::FromBytes(r, U.ReflectionType);
+					}
+					auto pos = VarableInfo::Static();
+					pos.offset = Offset;
+					U.TypeLoc = std::move(pos);
+					U.VarableType = VarableInfoType::Static;
+					this->_DebugInfo.Add_SetVarableName(Sybol->VarableName, std::move(U));
+				}
 			}
 			else
 			{
@@ -64,6 +102,28 @@ void UCodeBackEndObject::BuildSymbols()
 				else
 				{
 					_Output->AddThreadBytes(ItemBuf->Bytes.data(), ItemSize);
+				}
+
+				if (Sybol)
+				{
+					VarableInfo U;
+					U.DeclaredLine = 0;
+					U.DeclaredPos = 0;
+					U.FileDeclaredIn = "n/a.uc";
+
+
+					if (Sybol->LangType == UCode_LangType_UCodeLang)
+					{
+						BytesView bits = BytesView::Make(Sybol->TypeInfo.data(), Sybol->TypeInfo.size());
+						BitReader r;
+						r.SetBytes(bits.Data(), bits.Size());
+						UClib::FromBytes(r, U.ReflectionType);
+					}
+					auto pos = VarableInfo::Thread();
+					pos.offset = Offset;
+					U.TypeLoc = std::move(pos);
+					U.VarableType = VarableInfoType::Thread;
+					this->_DebugInfo.Add_SetVarableName(Sybol->VarableName, std::move(U));
 				}
 			}
 		}

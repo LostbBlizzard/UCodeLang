@@ -70,6 +70,22 @@ void UCLibManger::LinkLib(UCodeLang::RunTimeLib* Item)
 			}
 			auto& _Assembly = Item->Get_Lib()->Get_Assembly();
 			ClassAssembly::PushCopyClasses(_Assembly, Assembly);
+
+			if (InsLayer.DebugInfo.has_value())
+			{
+				auto& Debug = InsLayer.DebugInfo.value();
+
+				for (auto& Item : Debug.VarablesInfo)
+				{
+					//TODO Add offset based on this lib StaticBytes and ThreadBytes
+					_DebugInfo.VarablesInfo.AddValue(Item._Key, Item._Value);
+				}
+				for (auto& Item : Debug.DebugInfo)
+				{
+					//TODO Add offset based on this lib StaticBytes and ThreadBytes
+					_DebugInfo.DebugInfo.push_back(Item);
+				}
+			}
 		}
 	}
 	for (const auto& Item2 : Item->Get_CPPCalls())
@@ -145,6 +161,9 @@ void UCLibManger::ClearRunTimeState()
 	StaticBytes.clear();
 	ThreadBytes.clear();
 	Assembly.Classes.clear();
+
+	_DebugInfo.DebugInfo.clear();
+	_DebugInfo.VarablesInfo.clear();
 }
 
 

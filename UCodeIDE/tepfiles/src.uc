@@ -1,8 +1,8 @@
 
-$V enum:
- R[int a],
- B[int x,int y],
 
-|main[V B] => 0;
+int a =0;
+int b = 0;
+
+|main[] => 0;
 
 

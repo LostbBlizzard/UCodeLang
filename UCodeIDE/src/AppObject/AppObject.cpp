@@ -11,6 +11,7 @@
 #include "UCodeLang/Compliation/Back/IR/IRBackEnd.hpp"
 #include <fstream>
 #include <filesystem>
+#include "ImGuiHelpers/imgui_memory_editor/imgui_memory_editor.h"
 UCodeIDEStart
 
 
@@ -565,16 +566,16 @@ void AppObject::UpdateInsData(UCodeVMWindow& windowdata)
 void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
 {
 
-    ImguiHelper::BoolEnumField("Show Registers", windowdata.ShowRegisters);
+   // ImguiHelper::BoolEnumField("Show Registers", windowdata.ShowRegisters);
 
     //ImGui::SameLine();
-    ImguiHelper::BoolEnumField("Show Stack", windowdata.ShowStack);
+   // ImguiHelper::BoolEnumField("Show Stack", windowdata.ShowStack);
     //ImGui::SameLine();
-    ImguiHelper::BoolEnumField("Show Static-Memory", windowdata.ShowStaticMemory);
+   // ImguiHelper::BoolEnumField("Show Static-Memory", windowdata.ShowStaticMemory);
     //ImGui::SameLine();
-    ImguiHelper::BoolEnumField("Show Thread-Memory", windowdata.ShowThreadMemory);
+   // ImguiHelper::BoolEnumField("Show Thread-Memory", windowdata.ShowThreadMemory);
     //ImGui::SameLine();
-    ImguiHelper::BoolEnumField("Show Heap-Memory", windowdata.ShowHeapMemory);
+   // ImguiHelper::BoolEnumField("Show Heap-Memory", windowdata.ShowHeapMemory);
 
     ImGui::Separator();
 
@@ -740,6 +741,42 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                 ImGui::EndDisabled();
             }
         }
+
+    }
+
+    if (windowdata.ShowStaticMemory)
+    {
+
+    }
+    //if (windowdata.ShowThreadMemory)
+    {
+        if (ImGui::Begin("ThreadMemory"))
+        {
+            auto& Assembly = _RunTimeState.Get_Assembly();
+            void* Memptr = _AnyInterpreter.GetThreadPtr();
+            ImGui::Columns(2, "Debug/Raw Thread Memory");
+            {
+                auto& DebugInfo = _RunTimeState.Get_Libs().Get_DebugInfo();
+                for (auto& Item : DebugInfo.VarablesInfo)
+                {
+                    if (auto Val = Item._Value.TypeLoc.Get_If<UCodeLang::VarableInfo::Thread>())
+                    {
+                        void* Object = (void*)((uintptr_t)Memptr + (uintptr_t)Val->offset);
+
+                        ImGui::Text(("offset:" + std::to_string(Val->offset)).c_str());
+                        ImGui::SameLine();
+                        ImguiHelper::UCodeObjectField(Item._Key.c_str(),Object, Item._Value.ReflectionType, Assembly);
+                    }
+                }
+
+            }
+            ImGui::NextColumn();
+            {
+                static MemoryEditor V;
+                V.DrawContents(Memptr, _RunTimeState.Get_Libs().GetThreadBytes().size());
+            }
+        }
+        ImGui::End();
 
     }
 }

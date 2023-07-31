@@ -123,6 +123,14 @@ public:
 	{
 
 	}
+	inline void* GetThreadPtr()
+	{
+		return nullptr;
+	}
+	inline const void* GetThreadPtr() const
+	{
+		return nullptr;
+	}
 private:
 	RunTimeLangState* _State = nullptr;
 	ParameterPassingHelper _Parameters;
