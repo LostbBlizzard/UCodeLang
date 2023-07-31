@@ -1412,6 +1412,9 @@ public:
 	static void ToBytes(BitMaker& Out, const IRStaticArray& Value);
 	static void FromBytes(BitReader& Out, IRStaticArray& Value);
 
+	static void ToBytes(BitMaker& Out, const IRBufferData& Value);
+	static void FromBytes(BitReader& Out, IRBufferData& Value);
+
 	static void ToBytes(BitMaker& Out, const IRFuncPtr& Value);
 	static void FromBytes(BitReader& Out, IRFuncPtr& Value);
 

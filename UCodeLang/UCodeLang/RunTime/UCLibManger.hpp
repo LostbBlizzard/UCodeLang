@@ -72,7 +72,13 @@ public:
 	inline const VectorMap<String, RunTimeLib::CPPCall>& Get_CPPCalls() const
 	{
 		return _NameToCPP;
+	}	
+	
+	inline const ULangDebugInfo& Get_DebugInfo() const
+	{
+		return _DebugInfo;
 	}
+
 private:
 	VectorMap<String, UAddress> _NameToAddress;
 	VectorMap<String, RunTimeLib::CPPCall> _NameToCPP;
@@ -85,5 +91,6 @@ private:
 	Vector<Byte> ThreadBytes;
 	Vector<RunTimeLib*> Libs;
 	ClassAssembly Assembly;
+	ULangDebugInfo _DebugInfo;
 };
 UCodeLangEnd

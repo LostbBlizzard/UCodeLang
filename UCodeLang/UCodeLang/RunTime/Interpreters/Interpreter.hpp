@@ -199,7 +199,11 @@ public:
 	}
 	void Get_Return(void* Output, size_t OutputSize);
 
-	inline void* GetThreadRegisterPtr()
+	inline void* GetThreadPtr()
+	{
+		return _CPU.ThreadRegister;
+	}
+	inline const void* GetThreadPtr() const
 	{
 		return _CPU.ThreadRegister;
 	}

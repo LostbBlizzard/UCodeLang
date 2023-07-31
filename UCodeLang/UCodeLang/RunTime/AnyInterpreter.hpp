@@ -426,6 +426,45 @@ struct AnyInterpreterPtr
 	{
 		return Base.Get<NativeInterpreter*>();
 	}
+
+	inline void* GetThreadPtr()
+	{
+		if (auto Val = Base.Get_If<Interpreter*>())
+		{
+			return (*Val)->GetThreadPtr();
+		}
+		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
+		{
+			return  (*Val)->GetThreadPtr();
+		}
+		else if (auto Val = Base.Get_If<NativeInterpreter*>())
+		{
+			return  (*Val)->GetThreadPtr();
+		}
+		else
+		{
+			throw std::exception("Ptr Is Null");
+		}
+	}
+	inline const void* GetThreadPtr() const
+	{
+		if (auto Val = Base.Get_If<Interpreter*>())
+		{
+			return (*Val)->GetThreadPtr();
+		}
+		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
+		{
+			return  (*Val)->GetThreadPtr();
+		}
+		else if (auto Val = Base.Get_If<NativeInterpreter*>())
+		{
+			return  (*Val)->GetThreadPtr();
+		}
+		else
+		{
+			throw std::exception("Ptr Is Null");
+		}
+	}
 private:
 	struct Null{};
 	Variant<Null,Interpreter*, Jit_Interpreter*, NativeInterpreter*> Base;
@@ -515,6 +554,14 @@ public:
 		return  Get_Ptr();
 	}
 
+	inline void* GetThreadPtr()
+	{
+		return Get_Ptr().GetThreadPtr();
+	}
+	inline const void* GetThreadPtr() const
+	{
+		return  Get_Ptr().GetThreadPtr();
+	}
 
 	void Init(RunTimeLangState* State)
 	{

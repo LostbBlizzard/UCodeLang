@@ -344,7 +344,7 @@ void Interpreter::Extecute(Instruction& Inst)
 		Get_Register(Inst.Value0.AsRegister).Value = (uintptr_t)Get_StaticMemPtr() + Inst.Value1.AsAddress;
 		break;
 	case InstructionSet::GetPointerOfThreadMem:
-		Get_Register(Inst.Value0.AsRegister).Value = (uintptr_t)GetThreadRegisterPtr() + Inst.Value1.AsAddress;
+		Get_Register(Inst.Value0.AsRegister).Value = (uintptr_t)GetThreadPtr() + Inst.Value1.AsAddress;
 		break;
 	case InstructionSet::Malloc:
 		Get_Register(Inst.Value1.AsRegister).Value = 

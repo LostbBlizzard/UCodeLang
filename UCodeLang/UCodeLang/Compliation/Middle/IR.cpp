@@ -498,8 +498,10 @@ void IRBuilder::ToBytes(BitMaker& Out, const IRSymbolData& Value)
 		ToBytes(Out, *Value.Get_ExAs<IRFuncPtr>());
 		break;
 	case IRSymbolType::StaticVarable:
+		ToBytes(Out, *Value.Get_ExAs<IRBufferData>());
 		break;
 	case IRSymbolType::ThreadLocalVarable:
+		ToBytes(Out, *Value.Get_ExAs<IRBufferData>());
 		break;
 	default:
 		break;
@@ -533,8 +535,12 @@ void IRBuilder::FromBytes(BitReader& Out, IRSymbolData& Value)
 	}	
 	break;
 	case IRSymbolType::StaticVarable:
+		Value.Ex.reset(new IRBufferData());
+		FromBytes(Out, *Value.Get_ExAs<IRBufferData>());
 		break;
 	case IRSymbolType::ThreadLocalVarable:
+		Value.Ex.reset(new IRBufferData());
+		FromBytes(Out, *Value.Get_ExAs<IRBufferData>());
 		break;
 	default:
 		break;
@@ -607,6 +613,18 @@ void IRBuilder::FromBytes(BitReader& Out, IRStaticArray& Value)
 	Out.ReadType(V, V);
 	Value.Count = V;
 	FromBytes(Out, Value.Type);
+}
+
+void IRBuilder::ToBytes(BitMaker& Out, const IRBufferData& Value)
+{
+	Out.WriteType(Value.Bytes);
+	Out.WriteType(Value.IsInitialized);
+}
+
+void IRBuilder::FromBytes(BitReader& Out, IRBufferData& Value)
+{
+	Out.ReadType(Value.Bytes);
+	Out.ReadType(Value.IsInitialized);
 }
 
 void IRBuilder::ToBytes(BitMaker& Out, const IRFuncPtr& Value)

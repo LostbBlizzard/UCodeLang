@@ -171,7 +171,14 @@ public:
 	void Get_Return(void* Output, size_t OutputSize);
 
 
-	
+	inline void* GetThreadPtr()
+	{
+		return _Interpreter.GetThreadPtr();
+	}
+	inline const void* GetThreadPtr() const
+	{
+		return _Interpreter.GetThreadPtr();
+	}
 	bool AlwaysJit = false;
 private:
 	
