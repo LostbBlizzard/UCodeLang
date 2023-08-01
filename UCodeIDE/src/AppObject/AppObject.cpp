@@ -715,6 +715,8 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                     String ParName = "Arg" + std::to_string(i);
                     ImguiHelper::UCodeObjectField(ParName.c_str(), (void*)Arg.Data(), Par, Assembly);
                 }
+                ImguiHelper::BoolEnumField("Call Stack/Thread init", callFuncContext.CallStaticAndThreadInit);
+                ImguiHelper::BoolEnumField("Call Stack/Thread de-init", callFuncContext.CallStaticAndThreadDeInit);
 
                 if (ImGui::Button(((String)"Call:" + MethodString).c_str()))
                 {
@@ -726,7 +728,19 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                         auto& Arg = callFuncContext.Args[i];
                         _AnyInterpreter.PushParameter(Arg.Data(), Arg.Size());
                     }
+                    if (callFuncContext.CallStaticAndThreadInit)
+                    {
+                        _AnyInterpreter.Call(StaticVariablesInitializeFunc);
+                        _AnyInterpreter.Call(ThreadVariablesInitializeFunc);
+                    }
+
                     _AnyInterpreter.Call(callFuncContext.current_method);
+
+                    if (callFuncContext.CallStaticAndThreadDeInit)
+                    {
+                        _AnyInterpreter.Call(StaticVariablesUnLoadFunc);
+                        _AnyInterpreter.Call(ThreadVariablesUnLoadFunc);
+                    }
 
                     if (callFuncContext._LastRet.Size())
                     {
