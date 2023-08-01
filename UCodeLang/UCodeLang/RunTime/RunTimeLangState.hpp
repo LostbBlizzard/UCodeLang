@@ -32,16 +32,27 @@ public:
 	UCodeLangForceinline void Set_Free(Free_t  V){_Free = V;}
 	UCodeLangForceinline void Set_CanReserveData(bool V){_CanReserveData = true;}
 	UCodeLangForceinline void Set_MallocOnlyInPages(bool V){_MallocOnlyInPages = true;}
-private:
-	Malloc_t _Malloc;
-	Free_t _Free;
-	bool _CanReserveData;
-	bool _MallocOnlyInPages;
+
+	auto& Get_AlocsBeingUsed()
+	{
+		return _Data;
+	}
+	auto& Get_ReservedAlocs()
+	{
+		return _ReservedData;
+	}
+	
 	struct MemData
 	{
 		bool IsfakePtr;
 		NSize_t Size;
 	};
+private:
+	Malloc_t _Malloc;
+	Free_t _Free;
+	bool _CanReserveData;
+	bool _MallocOnlyInPages;
+	
 	VectorMap<PtrType, MemData> _Data;
 	VectorMap<PtrType, MemData> _ReservedData;
 	Vector<void*> Tep_Values;

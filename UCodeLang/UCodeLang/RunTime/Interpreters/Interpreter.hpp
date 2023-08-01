@@ -207,6 +207,34 @@ public:
 	{
 		return _CPU.ThreadRegister;
 	}
+
+	inline BytesView GetStackSpan()
+	{
+		if (_CPU.Stack._Data)
+		{
+			return BytesView::Make((Byte*)_CPU.Stack._Data,_CPU.MaxStackSize);
+		}
+		else
+		{
+			return BytesView();
+		}
+	}
+	inline const BytesView GetStackSpan() const
+	{
+		if (_CPU.Stack._Data)
+		{
+			return BytesView::Make((Byte*)_CPU.Stack._Data, _CPU.MaxStackSize);
+		}
+		else
+		{
+			return BytesView();
+		}
+	}
+	inline size_t GetStackOffset()
+	{
+		return _CPU.Stack.StackOffSet;
+	}
+
 private:
 	
 	struct CPUReturn_t
