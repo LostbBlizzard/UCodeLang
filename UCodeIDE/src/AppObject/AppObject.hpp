@@ -163,6 +163,9 @@ private:
 
 		UCodeLang::ReflectionTypeInfo _LastRetType;
 		BytesPtr _LastRet;
+
+		bool CallStaticAndThreadInit = true;
+		bool CallStaticAndThreadDeInit = true;
 	};
 	CallFuncContext callFuncContext;
 };
