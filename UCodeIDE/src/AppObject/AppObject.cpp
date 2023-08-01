@@ -744,6 +744,161 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
 
     }
 
+
+    {
+        if (ImGui::Begin("Stack-Memory"))
+        {
+            
+            if (_AnyInterpreter.Get_InterpreterType() == UCodeLang::InterpreterTypes::Interpreter)
+            {
+                auto& Inter = _AnyInterpreter.GetAs_Interpreter();
+                auto stack = Inter.GetStackSpan();
+
+
+                ImGui::Columns(2, "Debug/Raw Stack Memory");
+                {
+
+                }
+                ImGui::NextColumn();
+                {
+                    static MemoryEditor V;
+                    V.DrawContents(stack.Data(), stack.Size());
+                }
+            }
+            
+
+        }ImGui::End();
+
+    }
+
+    {
+        if (ImGui::Begin("Heap-Memory"))
+        {
+            auto& Assembly = _RunTimeState.Get_Assembly();
+
+            void* Staticptr = _RunTimeState.Get_StaticMemPtr();
+            void* Threadptr = _AnyInterpreter.GetThreadPtr();
+
+            struct MemData
+            {
+                bool IsReseved = true;
+                UCodeLang::PtrType _Ptr;
+                UCodeLang::Allocator::MemData _Mem;
+            };
+            Vector<MemData> Mems;
+            Vector<bool> Isshowing;
+            auto& Allocator = _RunTimeState.Get_Allocator();
+            auto& AlocsInfo = _RunTimeState.Get_Allocator().Get_AlocsBeingUsed();
+            auto& ReservedAlocsInfo = _RunTimeState.Get_Allocator().Get_ReservedAlocs();
+
+
+            for (auto& Item : AlocsInfo)
+            {
+                Mems.push_back({ false,Item._Key,Item._Value });
+            }
+            for (auto& Item : ReservedAlocsInfo)
+            {
+                Mems.push_back({ true,Item._Key,Item._Value });
+            }
+
+            std::sort(Mems.begin(), Mems.end(),
+                [](const MemData& A, const MemData& B) {return A._Ptr < B._Ptr; });
+
+
+            Isshowing.resize(Mems.size());
+
+            ImGui::Columns(2, "Debug/Raw Heap Memory");
+            {
+
+
+                String InfoStr;
+                for (size_t i = 0; i < Mems.size(); i++)
+                {
+                    auto& Item = Mems[i];
+
+                    InfoStr.clear();
+                   // InfoStr = (String)"Ptr:" + std::to_string((uintptr_t)Item._Ptr);
+                    InfoStr += "Size:" + std::to_string(Item._Mem.Size);
+                    InfoStr += (String)",IsReseved:" + (Item.IsReseved ? "true" : "false");
+                    if (Staticptr == Item._Ptr)
+                    {
+                        InfoStr += ",--StaticMem";
+                    }
+                    if (Threadptr == Item._Ptr)
+                    {
+                        InfoStr += ",--ThreadMem";
+                    }
+                    if (_AnyInterpreter.Get_InterpreterType() == UCodeLang::InterpreterTypes::Interpreter)
+                    {
+                        auto& Inter = _AnyInterpreter.GetAs_Interpreter();
+                        if (Inter.GetStackSpan().Data() == Item._Ptr) {
+                            InfoStr += ",--StackMem";
+                        }
+                    }
+                    if (ImGui::TreeNode(InfoStr.c_str()))
+                    {
+                        Isshowing[i] = true;
+                        if (Staticptr == Item._Ptr)
+                        {
+                            auto& DebugInfo = _RunTimeState.Get_Libs().Get_DebugInfo();
+                            for (auto& Item : DebugInfo.VarablesInfo)
+                            {
+                                if (auto Val = Item._Value.TypeLoc.Get_If<UCodeLang::VarableInfo::Static>())
+                                {
+                                    void* Object = (void*)((uintptr_t)Staticptr + (uintptr_t)Val->offset);
+
+                                    ImGui::Text(("offset:" + std::to_string(Val->offset)).c_str());
+                                    ImGui::SameLine();
+                                    ImguiHelper::UCodeObjectField(Item._Key.c_str(), Object, Item._Value.ReflectionType, Assembly);
+                                }
+                            }
+                        }
+                        else if (Threadptr == Item._Ptr)
+                        {
+                            auto& DebugInfo = _RunTimeState.Get_Libs().Get_DebugInfo();
+                            for (auto& Item : DebugInfo.VarablesInfo)
+                            {
+                                if (auto Val = Item._Value.TypeLoc.Get_If<UCodeLang::VarableInfo::Thread>())
+                                {
+                                    void* Object = (void*)((uintptr_t)Threadptr + (uintptr_t)Val->offset);
+
+                                    ImGui::Text(("offset:" + std::to_string(Val->offset)).c_str());
+                                    ImGui::SameLine();
+                                    ImguiHelper::UCodeObjectField(Item._Key.c_str(), Object, Item._Value.ReflectionType, Assembly);
+                                }
+                            }
+                        }
+                        else if (_AnyInterpreter.Get_InterpreterType() == UCodeLang::InterpreterTypes::Interpreter)
+                        {
+                            auto& Inter = _AnyInterpreter.GetAs_Interpreter();
+                            if (Inter.GetStackSpan().Data() == Item._Ptr) {
+                                InfoStr += ",--StackMem";
+                            }
+                        }
+                        else
+                        {
+
+                        }
+                        ImGui::TreePop();
+                    }
+                       
+                }
+                int a = 0;
+            }
+            ImGui::NextColumn();
+            {
+                for (size_t i = 0; i < Mems.size(); i++)
+                {
+                    auto& Item = Mems[i];
+                    if (Isshowing[i]) {
+                        static MemoryEditor V;
+                        V.DrawContents(Item._Ptr, Item._Mem.Size);
+                    }
+                }
+            }
+        }
+        ImGui::End();
+    }
     {
         if (ImGui::Begin("Static-Memory"))
         {
@@ -775,7 +930,7 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
     }
     //if (windowdata.ShowThreadMemory)
     {
-        if (ImGui::Begin("ThreadMemory"))
+        if (ImGui::Begin("Thread-Memory"))
         {
             auto& Assembly = _RunTimeState.Get_Assembly();
             void* Memptr = _AnyInterpreter.GetThreadPtr();
