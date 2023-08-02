@@ -12,6 +12,13 @@
 #include <fstream>
 #include <filesystem>
 #include "ImGuiHelpers/imgui_memory_editor/imgui_memory_editor.h"
+#include <tests/Test.hpp>
+#include <future>
+#include <sstream>
+#ifdef UCodeLang_Platform_Windows
+#include <Windows.h>
+#endif // DEBUG
+
 UCodeIDEStart
 
 
@@ -163,6 +170,18 @@ void BeginDockSpace(bool* p_open)
         ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
     }
 }
+
+#ifdef DEBUG
+inline const UCodeLang::String UCodeLang_SoultionDir = "../";
+
+inline const UCodeLang::String UCodeLang_UCAppDir = UCodeLang_SoultionDir + "UCApp/";
+inline const UCodeLang::String UCodeLang_UCAppDir_ScrDir = UCodeLang_UCAppDir + "src/";
+inline const UCodeLang::String UCodeLang_UCAppDir_TestDir = UCodeLang_UCAppDir + "tests/";
+inline const UCodeLang::String UCodeLang_UCAppDir_Test_UCodeFiles = UCodeLang_UCAppDir_TestDir + "UCodeFiles/Files/";
+inline const UCodeLang::String UCodeLang_UCAppDir_Test_OutputFiles = UCodeLang_UCAppDir_TestDir + "UCodeFiles/Output/";
+#endif // DEBUG
+
+
 void EndDockSpace()
 {
     ImGui::End();//EndDockSpace
@@ -172,26 +191,26 @@ void AppObject::OnDraw()
 {
     bool Doc = true;
     BeginDockSpace(&Doc);
-   
+
     //ImGui::ShowDemoWindow();
 
 
-    if (ImGui::Begin("ShowStyleEditor")) 
+    if (ImGui::Begin("ShowStyleEditor"))
     {
         ImGui::ShowStyleEditor();
-      
+
     }  ImGui::End();
 
 
     if (ImGui::Begin("Files"))
     {
-       
+
     } ImGui::End();
     if (ImGui::Begin("File.uc"))
     {
-       
+
         _Editor.Render("File.uc");
-       
+
     } ImGui::End();
 
     if (ImGui::Begin("Error List"))
@@ -200,24 +219,444 @@ void AppObject::OnDraw()
         //ImGui::ListBoxHeader("Errors");
         for (auto& item : Errors)
         {
-            
+
             if (ImGui::Selectable(item._Error._Msg.c_str(), item.IsSelected))
             {
                 auto text = GetTextEditorString();
-                
-               
+
+
                 _Editor.SetCursorPosition(TextEditor::Coordinates(item._Error.Line, GetColumn(text, item._Error.Line, item._Error.Pos)));
                 // handle selection
             }
         }
         //ImGui::EndListBox();
-   
-       
+
+
         ImGui::PopItemWidth();
-    } ImGui::End(); 
-    
-    
-  
+    } ImGui::End();
+
+#ifdef DEBUG   
+
+    static constexpr size_t TestCount = ULangTest::Tests.size();
+    struct TestInfo
+    {
+        bool TestAsRan = false;
+        enum class TestState
+        {
+            Null,
+            Passed,
+            Fail,
+            Exception
+        };
+        
+
+        struct TestData
+        {
+            TestState State = TestState::Null;
+
+            String Logs;
+
+            std::unique_ptr<Byte[]> RetValue;
+            String OutputBytesToString(Byte* Bytes, size_t Size)
+            {
+                std::stringstream stream;
+                for (size_t i = 0; i < Size; i++)
+                {
+                    if (i == 0)
+                    {
+                        //stream << "0x";
+                    }
+                    stream << std::to_string(Bytes[i]);
+                    if (i + 1 != Size)
+                    {
+                        stream << ",";
+                    }
+                }
+                stream << '\0';
+                return stream.str();
+            }
+            bool LogErrors(std::ostream& out,UCodeLang::Compiler& _Compiler)
+            {
+                out << "[\n";
+                auto& Errors = _Compiler.Get_Errors().Get_Errors();
+                for (auto& Item : Errors)
+                {
+                    out << Item.ToString() << std::endl;
+                }
+                out << "]\n";
+                return _Compiler.Get_Errors().Has_Errors();
+            }
+            bool RunTestForFlag(const ULangTest::TestInfo& Test,UCodeLang::OptimizationFlags flag)
+            {
+               
+                Logs.clear();
+
+                using namespace UCodeLang;
+                using namespace ULangTest;
+
+                Compiler::CompilerPathData paths;
+                Compiler Com;
+                Com.Get_Settings()._Flags = flag;
+                Com.Get_Settings().PtrSize = IntSizes::Native;
+
+                Compiler::CompilerRet Com_r;
+                std::string InputFilesPath = UCodeLang_UCAppDir_Test_UCodeFiles + Test.InputFilesOrDir;
+                std::string OutFileDir = UCodeLang_UCAppDir_Test_OutputFiles + Test.TestName;
+                std::filesystem::path p = OutFileDir;
+                OutFileDir = p.parent_path().generic_string() + "/" + +Test.TestName + "/";
+
+                std::filesystem::create_directories(OutFileDir);
+                std::string OutFilePath = OutFileDir + Test.TestName + ULangTest::ModeType(flag) + ".ulibtest";
+
+
+
+
+                paths.FileDir = InputFilesPath;
+                paths.OutFile = OutFilePath;
+
+
+
+                try
+                {
+                    if (std::filesystem::is_directory(paths.FileDir))
+                    {
+                        Com_r = Com.CompileFiles(paths);
+                    }
+                    else
+                    {
+                        Com_r = Com.CompilePathToObj(paths.FileDir, paths.OutFile);
+                    }
+
+                }
+                catch (const std::exception& ex)
+                {
+                    State = TestState::Exception;
+                    Logs += "fail from Compile [exception] '" + (String)ex.what() + "' : " + "'"  + Test.TestName + "'" + '\n';
+                    //ErrStream << "fail from Compile [exception] '" << ex.what() << "' : " << "'" << Test.TestName << "'" << std::endl;
+                    return false;
+                }
+
+
+                if (Test.Condition == SuccessCondition::Compilation
+                    || Test.Condition == SuccessCondition::CompilationFail)
+                {
+                    if (
+                        (Com_r._State == Compiler::CompilerState::Success && Test.Condition == SuccessCondition::Compilation)
+                        ||
+                        (Com_r._State == Compiler::CompilerState::Fail && Test.Condition == SuccessCondition::CompilationFail)
+                        )
+                    {
+                        Logs += "Success from test '" +  (String)Test.TestName + ModeType(flag) + "'" + '\n';
+                        State = TestState::Passed;
+                        return true;
+                    }
+                    else
+                    {
+                        Logs += "fail from test '" + (String)Test.TestName + "'" + '\n';
+
+                        State = TestState::Fail;
+
+                        std::stringstream errs;
+                        LogErrors(errs, Com);
+                        Logs += errs.str();
+                        return false;
+                    }
+
+                }
+
+                if (Com_r._State != Compiler::CompilerState::Success)
+                {
+                    Logs += (String)"fail from test [Cant Compile File/Files] '" + String(Test.TestName) + ModeType(flag) + "'" + '\n';
+
+                    std::stringstream errs;
+                    LogErrors(errs, Com);
+                    Logs += errs.str();
+                    State = TestState::Fail;
+                    return false;
+                }
+
+                
+                UClib lib;
+                if (!UClib::FromFile(&lib, OutFilePath))
+                {
+                    State = TestState::Fail;
+
+                    Logs += (String)"fail from test [Cant Open ULib File] '" + Test.TestName + ModeType(flag) + "'" +  '\n';
+                    return false;
+                }
+
+                RunTimeLangState state;
+                RunTimeLib rLib;
+                rLib.Init(&lib);
+                state.AddLib(&rLib);
+                state.LinkLibs();
+                {
+                    Interpreter RunTime;
+                    RunTime.Init(&state);
+
+                    Interpreter::Return_t r;
+                    try
+                    {
+                       // r = RunTime.Call(Test.FuncToCall);
+
+                    }
+                    catch (const std::exception& ex)
+                    {
+                        State = TestState::Exception;
+
+                        Logs += (String)"fail from test [exception] '" + ex.what() + "' : " + "'" + Test.TestName + "'" + ModeType(flag) + '\n';
+                        return false;
+                    }
+
+                    if (Test.Condition == SuccessCondition::RunTimeValue)
+                    {
+                        std::unique_ptr<Byte[]> RetState = std::make_unique<Byte[]>(Test.RunTimeSuccessSize);
+                        RunTime.Get_Return(RetState.get(), Test.RunTimeSuccessSize);
+
+                        String Type = "Interpreter";
+
+                        bool IsSame = true;
+                        for (size_t i = 0; i < Test.RunTimeSuccessSize; i++)
+                        {
+                            if (RetState[i] != Test.RunTimeSuccess[i])
+                            {
+                                IsSame = false;
+                                break;
+                            }
+                        }
+                        if (IsSame)
+                        {
+                            Logs += "Success from test '" + (String)Test.TestName + "'" + ModeType(flag) + " " + Type + '\n';
+                        }
+                        else
+                        {
+                            Logs += "fail from got value '";
+                            Logs += OutputBytesToString(RetState.get(), Test.RunTimeSuccessSize);
+
+                            Logs += "' but expecting '";
+                            Logs += OutputBytesToString(Test.RunTimeSuccess.get(), Test.RunTimeSuccessSize);
+                            Logs += ": '" + Type + "," + ModeType(flag) + "'" + Type + '\n';
+                            return false;
+                        }
+                    }
+                    RunTime.UnLoad();
+                }
+
+                return true;
+            }
+        };
+
+        UCodeLang::Array<TestData, TestCount> Testinfo;
+        UCodeLang::Array<UCodeLang::Unique_ptr<std::future<bool>>, TestCount> Threads;
+        
+        TestState SortBy = TestState::Null;
+        String SortByName;
+        bool IncludeOptimization = false;
+
+        bool IncludeJitInterpreter = false;
+
+        bool IncludeNativeInterpreter = false;
+
+        static String GetToString(TestState Value)
+        {
+            switch (Value)
+            {
+            case TestInfo::TestState::Null:return "null";
+            case TestInfo::TestState::Passed:return "passed";
+            case TestInfo::TestState::Fail:return "fail";
+            case TestInfo::TestState::Exception:return "exception";
+            default:
+                return "";
+                break;
+            }
+        }
+    };
+    static TestInfo TestWindowData;
+
+    if (ImGui::Begin("Tests"))
+    {
+
+        if (ImGui::Button("Run Tests"))
+        {
+            
+            TestWindowData.TestAsRan = true;
+            const auto& Tests = ULangTest::Tests;
+            for (size_t i = 0; i < ULangTest::Tests.size(); i++)
+            {
+                auto& ItemTest = ULangTest::Tests[i];
+                auto& ItemTestOut = TestWindowData.Testinfo[i];
+                auto& Thread = TestWindowData.Threads[i];
+                if (i == 45) {
+                    break;
+                }
+
+                Thread = std::make_unique< std::future<bool>>(std::async(std::launch::async, [i]
+                    {
+                        auto& ItemTest = ULangTest::Tests[i];
+                        auto& ItemTestOut = TestWindowData.Testinfo[i];
+
+                        ItemTestOut.State == TestInfo::TestState::Exception;
+                        ItemTestOut.RunTestForFlag(ItemTest, UCodeLang::OptimizationFlags::NoOptimization);
+                        return false;
+                    }));
+            }
+        }
+        ImguiHelper::BoolEnumField("Include O1,02,03 Optimizations", TestWindowData.IncludeOptimization);
+        ImguiHelper::BoolEnumField("Include JitInterpreter", TestWindowData.IncludeJitInterpreter);
+        ImguiHelper::BoolEnumField("Include NativeInterpreter", TestWindowData.IncludeNativeInterpreter);
+
+        size_t TestPassedCount = 0;
+        size_t TestRuningCount = 0;
+        for (size_t i = 0; i < ULangTest::Tests.size(); i++)
+        {
+            auto& ItemTest = ULangTest::Tests[i];
+            auto& ItemTestOut = TestWindowData.Testinfo[i];
+            auto& Thread = TestWindowData.Threads[i];
+
+            if (ItemTestOut.State == TestInfo::TestState::Passed)
+            {
+                TestPassedCount++;
+            }
+            if (Thread.get() && Thread->_Is_ready())
+            {
+                TestRuningCount++;
+            }
+        }
+
+
+        {   
+            String info;
+        info += "TestPassed:";
+        info += std::to_string(TestPassedCount);
+        info += "/";
+        info += std::to_string(TestWindowData.Testinfo.size());
+        info += " " + std::to_string((int)(((float)TestPassedCount / (float)TestWindowData.Testinfo.size()) * 100));
+        info += "%";
+        ImGui::Text(info.c_str());
+        }
+        {
+            String info;
+            info += "TestRuning:";
+            info += std::to_string(TestRuningCount);
+            info += "/";
+            info += std::to_string(TestWindowData.Testinfo.size());
+            info += " " + std::to_string((int)(((float)TestRuningCount / (float)TestWindowData.Testinfo.size())*100));
+            info += "%";
+            ImGui::Text(info.c_str());
+        }
+        static const Vector<ImguiHelper::EnumValue<TestInfo::TestState>> List =
+        {
+            { "Null ",TestInfo::TestState::Null},
+            { "Passed",TestInfo::TestState::Passed},
+            { "Fail",TestInfo::TestState::Fail},
+            { "Exception",TestInfo::TestState::Exception},
+        };
+
+        ImguiHelper::InputText("Sort:", TestWindowData.SortByName);
+        ImGui::SameLine();
+        ImguiHelper::EnumField("Type:", TestWindowData.SortBy, List);
+
+        ImGui::Separator();
+
+        for (size_t i = 0; i < ULangTest::Tests.size(); i++)
+        {
+            auto& ItemTest = ULangTest::Tests[i];
+            auto& ItemTestOut = TestWindowData.Testinfo[i];
+            auto& Thread = TestWindowData.Threads[i];
+
+            bool CanBeShowed = false;
+            if (TestWindowData.SortBy == TestInfo::TestState::Null)
+            {
+                CanBeShowed = true;
+            }
+            else
+            {
+                CanBeShowed = TestWindowData.SortBy == ItemTestOut.State;
+            }
+
+            if (CanBeShowed) 
+            {
+                String TestV = "Test:";
+                TestV += ItemTest.TestName;
+                TestV += ",State:" + TestInfo::GetToString(ItemTestOut.State);
+                if (Thread.get())
+                {
+                    if (!Thread->_Is_ready())
+                    {
+                        TestV += ",Working...";
+                    }
+                }
+
+                if (ImGui::TreeNode(TestV.c_str()))
+                {
+                    bool IsWorking = false;
+
+                    if (Thread.get())
+                    {
+                        if (!Thread->_Is_ready())
+                        {
+                            IsWorking = true;
+                        }
+                    }
+
+                    ImGui::BeginDisabled();
+                    ImguiHelper::InputText("TestName", String(ItemTest.TestName));
+                    ImguiHelper::InputText("TestPath", String(ItemTest.InputFilesOrDir));
+
+                    ImGui::SameLine();
+                    ImGui::EndDisabled();
+
+
+                    if (ImGui::Button("Show in files"))
+                    {
+                        ShowInFiles(UCodeLang_UCAppDir_TestDir + ItemTest.InputFilesOrDir);
+                    }
+
+                    ImGui::BeginDisabled();
+
+                    ImGui::PushID(&ItemTest.TestName);
+                    {
+                        String filetxt = "file...";
+                        ImGui::InputTextMultiline("src", &filetxt);
+                    }
+                    ImGui::PopID();
+
+                    ImGui::PushID(&ItemTest.RunTimeSuccess);
+                    {
+                        String filetxt = "file...";
+                        ImGui::InputTextMultiline("ir", &filetxt);
+                    }
+                    ImGui::PopID();
+                    
+                    ImGui::PushID(&ItemTest.FuncToCall);
+                    {
+                        String filetxt = "out...";
+                        ImGui::InputTextMultiline("out", &filetxt);
+                    }
+                    ImGui::PopID();
+
+                    if (IsWorking)
+                    {
+                        ImGui::Text("Working");
+                    }
+                    else
+                    {
+
+                    }
+                    ImGui::EndDisabled();
+
+                    if (!IsWorking)
+                    {
+
+                    }
+
+                    ImGui::TreePop();
+                }
+            }
+
+        }ImGui::End();
+#endif // DEBUG
+    }
 
     if (ImGui::Begin("Output"))
     {
@@ -238,7 +677,7 @@ void AppObject::OnDraw()
             _RunTimeStr = "";
             _LibInfoString = "";
             UCodeLang::BackEndObject_Ptr _BackEnd;
-            
+
             switch (OutputWindow.Type)
             {
             case BackEndType::UCodeVM:
@@ -259,12 +698,12 @@ void AppObject::OnDraw()
         }
 
 
-        ImguiHelper::BoolEnumField("Auto Compile", OutputWindow.AutoCompile); 
+        ImguiHelper::BoolEnumField("Auto Compile", OutputWindow.AutoCompile);
         //ImGui::SameLine();
         ImguiHelper::BoolEnumField("Auto Reload", OutputWindow.AutoReload);
 
         if (OutputWindow.AutoReload) {
-           // ImGui::SameLine();
+            // ImGui::SameLine();
             ImguiHelper::BoolEnumField("Auto Hot Reload", OutputWindow.AutoHotReload);
         }
 
@@ -298,9 +737,9 @@ void AppObject::OnDraw()
                 _AnyInterpreter.Init(&_RunTimeState);
                 OnRuntimeUpdated();
             }
-            if (OutputWindow.AutoHotReload == false) 
+            if (OutputWindow.AutoHotReload == false)
             {
-               
+
                 if (ImGui::Button("Hot Reload"))
                 {
                     _RunTimeStr = GetTextEditorString();
@@ -337,7 +776,7 @@ void AppObject::OnDraw()
 
         ImGui::PushID(&_LibInfoString);
 
-        ImGui::InputTextMultiline("", &_LibInfoString,ImGui::GetContentRegionAvail());
+        ImGui::InputTextMultiline("", &_LibInfoString, ImGui::GetContentRegionAvail());
 
         ImGui::PopID();
 
@@ -349,63 +788,69 @@ void AppObject::OnDraw()
     if (ImGui::Begin("UCode-VM"))
     {
         ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.50f);
-       
+
         ShowUCodeVMWindow();
 
         ImGui::PopItemWidth();
-       
+
     } ImGui::End();
 
-	if (ImGui::BeginMainMenuBar())
-	{
+    if (ImGui::BeginMainMenuBar())
+    {
 
-		if (ImGui::BeginMenu("File"))
-		{
-
-
-			ImGui::EndMenu();
-		}
-
-		if (ImGui::BeginMenu("Edit"))
-		{
+        if (ImGui::BeginMenu("File"))
+        {
 
 
-			ImGui::EndMenu();
-		}
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Edit"))
+        {
 
 
-		if (ImGui::BeginMenu("Git"))
-		{
+            ImGui::EndMenu();
+        }
 
 
-			ImGui::EndMenu();
-		}
-
-		if (ImGui::BeginMenu("Build"))
-		{
+        if (ImGui::BeginMenu("Git"))
+        {
 
 
-			ImGui::EndMenu();
-		}
+            ImGui::EndMenu();
+        }
 
-		if (ImGui::BeginMenu("Settings"))
-		{
-
-
-			ImGui::EndMenu();
-		}
-
-		if (ImGui::BeginMenu("Help"))
-		{
+        if (ImGui::BeginMenu("Build"))
+        {
 
 
-			ImGui::EndMenu();
-		}
+            ImGui::EndMenu();
+        }
 
-		ImGui::EndMainMenuBar();
-	}
+        if (ImGui::BeginMenu("Settings"))
+        {
+
+
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Help"))
+        {
+
+
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMainMenuBar();
+    }
 
     EndDockSpace();
+}
+
+void AppObject::ShowInFiles(const Path& path)
+{
+   
+    ShellExecute(NULL, L"open", path.c_str(), NULL, NULL, SW_SHOWDEFAULT);
 }
 
 void AppObject::ShowUCodeVMWindow()

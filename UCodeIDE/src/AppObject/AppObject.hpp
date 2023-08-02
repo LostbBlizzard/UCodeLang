@@ -23,6 +23,8 @@ public:
 	void Init();
 	void OnDraw();
 
+	static void ShowInFiles(const Path& path);
+
 	void ShowUCodeVMWindow();
 
 

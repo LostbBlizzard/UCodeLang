@@ -74,7 +74,28 @@ UCodeTestStart
 			Y = y;
 		}
 	};
-
+	inline String ModeType(OptimizationFlags Flags)
+	{
+		if (Flags == OptimizationFlags::O_None)
+		{
+			return "flagsnone";
+		}
+		String r;
+		auto flags = (OptimizationFlags_t)Flags;
+		if (flags & (OptimizationFlags_t)OptimizationFlags::ForSize)
+		{
+			r += "Size";
+		}
+		if (flags & (OptimizationFlags_t)OptimizationFlags::ForSpeed)
+		{
+			r += "Speed";
+		}
+		if (flags & (OptimizationFlags_t)OptimizationFlags::Debug)
+		{
+			r += "Debug";
+		}
+		return r;
+	}
 	static const Array<TestInfo, 69> Tests
 	{
 
