@@ -17,6 +17,8 @@ X86_64JitCompiler::~X86_64JitCompiler()
 
 void X86_64JitCompiler::Reset()
 {
+	this->~X86_64JitCompiler();
+	new (this)  X86_64JitCompiler;
 }
 
 
