@@ -263,6 +263,8 @@ project "UCodeIDE"
     "%{prj.name}/Dependencies/GLFW/include",
     "%{prj.name}/Dependencies/GLFW/deps",
     "%{prj.name}/Dependencies/GLEW",
+
+    "UCApp",
    }
 
    links {

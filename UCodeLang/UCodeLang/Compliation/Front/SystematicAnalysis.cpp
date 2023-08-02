@@ -9255,7 +9255,8 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 	if (Symbol->Type == SymbolType::StackVarable)
 	{
 		auto Info = Symbol->Get_Info<DeclareVariableInfo>();
-		
+
+
 		if (Info->LineNumber > FToken->OnPos)
 		{
 			LogUseingVarableBeforDeclared(FToken);
