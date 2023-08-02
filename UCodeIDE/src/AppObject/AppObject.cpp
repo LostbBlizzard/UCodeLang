@@ -9,6 +9,10 @@
 #include "UCodeLang/Compliation/Back/UCodeBackEnd/UCodeBackEnd.hpp"
 #include "UCodeLang/Compliation/Back/C89/C89Backend.hpp"
 #include "UCodeLang/Compliation/Back/IR/IRBackEnd.hpp"
+
+#include "UCodeLang/Compliation/Back/x86_64/X86_64UNativeBackEnd.hpp"
+#include "UCodeLang/Compliation/Back/x86_64/X86_64JitCompiler.hpp"
+
 #include <fstream>
 #include <filesystem>
 #include "ImGuiHelpers/imgui_memory_editor/imgui_memory_editor.h"
@@ -671,8 +675,15 @@ void AppObject::OnDraw()
             {"C89",BackEndType::C89},
         };
 
-        if (ImguiHelper::EnumField("Type", OutputWindow.Type, List))
+        bool UpdateLib = false;
+        if (windowdata.VMType == UCodeVMType::Native_Interpreter)
         {
+            UpdateLib = OutputWindow.OldNativeCpuType != windowdata.NativeCpuType;
+        }
+
+        if (ImguiHelper::EnumField("Type", OutputWindow.Type, List) || UpdateLib)
+        {
+            OutputWindow.OldNativeCpuType = windowdata.NativeCpuType;
             _CompilerStr = "";
             _RunTimeStr = "";
             _LibInfoString = "";
@@ -682,6 +693,26 @@ void AppObject::OnDraw()
             {
             case BackEndType::UCodeVM:
                 _BackEnd = UCodeLang::UCodeBackEndObject::MakeObject;
+
+                if (windowdata.VMType == UCodeVMType::Native_Interpreter) 
+                {
+                    switch (OutputWindow.OldNativeCpuType)
+                    {
+                    case NativeSet::x86:
+                    {
+
+                    }
+                    break;
+                    case NativeSet::x86_64:
+                    {
+                        _BackEnd = UCodeLang::X86_64UNativeBackEnd::MakeObject;
+                    }
+                    break;
+                    default:
+                        throw std::exception("bad path");
+                        break;
+                    }
+                }
                 break;
             case BackEndType::C89:
                 _BackEnd = UCodeLang::C89Backend::MakeObject;
@@ -915,42 +946,70 @@ void AppObject::ShowUCodeVMWindow()
         ImGui::Columns(2, "DebugerOrCode");
         {
             {
-                ImGui::TextUnformatted("Debuger");
+                bool CanBeRan = true;
+                if (windowdata.VMType == UCodeVMType::Native_Interpreter)
+                {
+                    if (windowdata.NativeCpuType != NativeSet::Native) {
+                        CanBeRan = false;
+                    }
+                }
 
+                if (CanBeRan)
+                {
+                    ImGui::TextUnformatted("Debuger");
+                }
+                else
+                {
+                    ImGui::TextUnformatted("Debuger(Cant run this Code)");
+                }
 
+                ImGui::BeginDisabled(!CanBeRan);
                 ShowDebugerMenu(windowdata);
-
+                ImGui::EndDisabled();
 
             }
             ImGui::NextColumn();
             {
                 ImGui::TextUnformatted("Code");
 
-                if (ImGui::BeginTable("split2", 2,ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders))
+
+                if (windowdata.VMType == UCodeVMType::Native_Interpreter)
                 {
-                    for (auto& Item : windowdata.InsInfo)
+
+
+                }
+                else if (windowdata.VMType == UCodeVMType::Jit_Interpreter)
+                {
+
+                }
+                else if (windowdata.VMType == UCodeVMType::Interpreter)
+                {
+                    if (ImGui::BeginTable("split2", 2, ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders))
                     {
-                       
-                        //ImGui::TableNextColumn(); 
-                        //ImGui::SetColumnWidth(0, 20.0f);
-                        //ImGui::Dummy({20,20});
+                        for (auto& Item : windowdata.InsInfo)
+                        {
 
-                        ImGui::TableNextColumn();
+                            //ImGui::TableNextColumn(); 
+                            //ImGui::SetColumnWidth(0, 20.0f);
+                            //ImGui::Dummy({20,20});
 
-                        //mGui::TableNextColumn(0, 20.0f);
+                            ImGui::TableNextColumn();
 
-                        ImGui::Text(std::to_string(Item.InsAddress).c_str());
-                        
-                        ImGui::TableNextColumn();
-                        
-                        ImGui::Text(Item.StringValue.c_str());
-                        
-                        ImGui::TableNextRow();
+                            //mGui::TableNextColumn(0, 20.0f);
+
+                            ImGui::Text(std::to_string(Item.InsAddress).c_str());
+
+                            ImGui::TableNextColumn();
+
+                            ImGui::Text(Item.StringValue.c_str());
+
+                            ImGui::TableNextRow();
+                        }
+
+                        ImGui::EndTable();
                     }
-                    ImGui::EndTable();
                 }
             }
-
         }
         ImGui::Columns();
     }

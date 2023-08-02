@@ -94,20 +94,6 @@ private:
 		IR,
 	};
 
-
-	struct OutputWindowData
-	{
-		BackEndType Type = BackEndType::UCodeVM;
-
-		bool AutoCompile = false;
-		bool AutoReload = false;
-		bool AutoHotReload = false;
-
-		UCodeLang::OptimizationFlags Flags = UCodeLang::OptimizationFlags::NoOptimization;
-		bool InDebug = true;
-	};
-	OutputWindowData OutputWindow;
-
 	enum class NativeSet
 	{
 		x86,
@@ -120,6 +106,22 @@ private:
 		Native = x86_64,
 #endif
 	};
+	struct OutputWindowData
+	{
+		BackEndType Type = BackEndType::UCodeVM;
+
+		bool AutoCompile = false;
+		bool AutoReload = false;
+		bool AutoHotReload = false;
+
+		UCodeLang::OptimizationFlags Flags = UCodeLang::OptimizationFlags::NoOptimization;
+		bool InDebug = true;
+
+		NativeSet OldNativeCpuType= NativeSet::x86;
+	};
+	OutputWindowData OutputWindow;
+
+	
 	enum class UCodeVMType
 	{
 		Interpreter,

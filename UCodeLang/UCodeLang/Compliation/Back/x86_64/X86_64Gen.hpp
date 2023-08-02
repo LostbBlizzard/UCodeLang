@@ -22,6 +22,7 @@ public:
 
 
 	using GReg = x86_64::GeneralRegisters;
+	using FReg = x86_64::FloatingPointRegisters;
 	using ModRM = x86_64::ModRM;
 	using Rm = x86_64::Rm;
 	using IndrReg = x86_64::IndrGeneralRegister;
@@ -153,6 +154,7 @@ public:
 
 	#define ImportUseing86x64Gen \
 	using GReg = X86_64Gen::GReg; \
+    using FReg = X86_64Gen::FReg; \
 	using ModRM = X86_64Gen::ModRM; \
 	using Rm = X86_64Gen::Rm; \
 	using IndrReg = X86_64Gen::IndrReg; \
