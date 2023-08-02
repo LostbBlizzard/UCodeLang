@@ -9,6 +9,7 @@ UCodeLangStart
 //windows PortableExecutable
 class PE_File
 {
+public:
 	PE_File();
 	~PE_File();
 
