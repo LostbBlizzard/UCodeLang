@@ -1,4 +1,5 @@
 #include "X86_64UNativeBackEnd.hpp"
+#include "IRToX86_64IR.hpp"
 UCodeLangStart
 void X86_64UNativeBackEnd::Reset()
 {
@@ -26,7 +27,28 @@ void X86_64UNativeBackEnd::Build(const IRBuilder* Input)
 		V->_Data = CodeLayer::MachineCode();
 		_OutLayer = V->_Data.Get_If<CodeLayer::MachineCode>();
 
-		
+		auto x8664_ir = IRToX86_64IR::Into(*Input);
+
+		auto& Info = x8664_ir.Build();
+
+		size_t MaxBuffersize = 0;
+		for (auto& Item : Info.Funcs)
+		{
+			MaxBuffersize += Item.Bytes.size();
+
+		}
+		_OutLayer->_Code.reserve(MaxBuffersize);
+
+		BinaryVectorMap<IRidentifierID,size_t> Funcoffsets;
+		for (auto& Item : Info.Funcs)
+		{
+			Funcoffsets.AddValue(Item.Func, _OutLayer->_Code.size());
+
+			for (auto& Byte : Item.Bytes)
+			{
+				_OutLayer->_Code.push_back(Byte);
+			}
+		}
 	}
 }
 UCodeLangEnd
