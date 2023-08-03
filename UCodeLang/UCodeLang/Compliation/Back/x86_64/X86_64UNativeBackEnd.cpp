@@ -49,6 +49,11 @@ void X86_64UNativeBackEnd::Build(const IRBuilder* Input)
 				_OutLayer->_Code.push_back(Byte);
 			}
 		}
+
+		for (auto& Item : Funcoffsets)
+		{
+			_OutLayer->_NameToPtr.AddValue(_Input->FromID(Item._Key), Item._Value);
+		}
 	}
 }
 UCodeLangEnd

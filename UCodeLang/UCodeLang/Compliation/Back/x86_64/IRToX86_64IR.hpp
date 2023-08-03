@@ -26,10 +26,6 @@ public:
 	void Build(const IRBuilder* builder, X86_64IR::CleanUpMode mode = X86_64IR::CleanUpMode::None);
 	X86_64IR& Get_Output()
 	{
-		#ifdef DEBUG
-		std::cout << _Out.ToString() << std::endl;
-		#endif // DEBUG
-
 		return _Out;
 	}
 private:

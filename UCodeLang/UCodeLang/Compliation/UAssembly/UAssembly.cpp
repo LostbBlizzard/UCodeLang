@@ -8,6 +8,7 @@
 #define StackName "Stack"
 #define StackName_ "[" + StackName + "]"
 
+#include "Zydis/Zydis.h"
 UAssemblyStart
 struct OutputIRLineState
 {
@@ -364,67 +365,67 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 								{
 									OutputIRLineState LineState;
 									String Unused;
-									IRInfoVal.ToString(LineState.State, &IRInfoVal._threaddeInit, Unused);
-									IRStringStates.AddValue(Id, std::move(LineState));
+IRInfoVal.ToString(LineState.State, &IRInfoVal._threaddeInit, Unused);
+IRStringStates.AddValue(Id, std::move(LineState));
 								}
 								OutputIRLineInfo(&IRInfoVal, &IRInfoVal._threaddeInit, Val, IRStringStates.at(Id), r);
 							}
-							else 
+							else
 							{
-								for (auto& Func : IRInfoVal.Funcs)
+							for (auto& Func : IRInfoVal.Funcs)
+							{
+
+								if (IRInfoVal.FromID(Func->identifier) == OnFunc)
 								{
-									
-									if (IRInfoVal.FromID(Func->identifier) == OnFunc)
+									auto Id = Func->identifier;
+									if (!IRStringStates.HasValue(Id))
 									{
-										auto Id = Func->identifier;
-										if (!IRStringStates.HasValue(Id))
-										{
-											OutputIRLineState LineState;
-											String Unused;
-											IRInfoVal.ToString(LineState.State, Func.get(), Unused);
-											IRStringStates.AddValue(Id, std::move(LineState));
-										}
-										OutputIRLineInfo(&IRInfoVal, Func.get(), Val, IRStringStates.at(Id), r);
-										break;
+										OutputIRLineState LineState;
+										String Unused;
+										IRInfoVal.ToString(LineState.State, Func.get(), Unused);
+										IRStringStates.AddValue(Id, std::move(LineState));
 									}
+									OutputIRLineInfo(&IRInfoVal, Func.get(), Val, IRStringStates.at(Id), r);
+									break;
 								}
+							}
 							}
 						}
 					}
 					else if (auto Val = Item->Debug.Get_If<UDebugSetFuncStackFrameSize>())
 					{
-						r += "   //StackFrameSize:" + std::to_string(Val->StackFrameSize);
-						r += '\n';
-						OnFuncFrameStackSize = Val->StackFrameSize;
+					r += "   //StackFrameSize:" + std::to_string(Val->StackFrameSize);
+					r += '\n';
+					OnFuncFrameStackSize = Val->StackFrameSize;
 					}
 					else if (Info.DebugInfo.has_value())
 					{
-						auto& Value = Info.DebugInfo.value();
-						auto List = Value.GetForIns(i);
-						for (auto& Item : List)
+					auto& Value = Info.DebugInfo.value();
+					auto List = Value.GetForIns(i);
+					for (auto& Item : List)
+					{
+						if (auto Val = Item->Debug.Get_If<UDebugSetVarableLoc>())
 						{
-							if (auto Val = Item->Debug.Get_If<UDebugSetVarableLoc>())
-							{
-								r += "   //";
+							r += "   //";
 
-								if (auto Value = Val->Type.Get_If<RegisterID>())
-								{
-									r += GetRegisterToString(*Value);
-								}
-								else
-								{
-									throw std::exception("not added");
-								}
-								r += " = ";
-								r += Val->VarableFullName;
-								r += '\n';
+							if (auto Value = Val->Type.Get_If<RegisterID>())
+							{
+								r += GetRegisterToString(*Value);
 							}
+							else
+							{
+								throw std::exception("not added");
+							}
+							r += " = ";
+							r += Val->VarableFullName;
+							r += '\n';
 						}
 					}
-					
+					}
+
 				}
-				
-				
+
+
 
 				if (List.size())
 				{
@@ -464,6 +465,54 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 		}
 	}
 
+	for (auto& Item : Lib->_Layers) 
+	{
+		if (Item->_Name == UCode_CodeLayer_X86_UCodeVM_Name) 
+		{
+			
+			if (auto Val = Item->_Data.Get_If<CodeLayer::MachineCode>())
+			{
+				r += "\n[Native-Instructions:" + Item->_Name + "]-- \n";
+				
+				BinaryVectorMap<UAddress, String> AddressToName;
+				for (const auto& Item2 : Val->_NameToPtr)
+				{
+					AddressToName[Item2._Value] = Item2._Key;
+				}
+				
+				auto MachineMode = ZYDIS_MACHINE_MODE_LONG_64;
+				ZyanU64 runtime_address = (ZyanU64)Val->_Code.data();
+				size_t InsSize = Val->_Code.size();
+				//runtime_address = 0;
+				// Loop over the instructions in our buffer.
+				ZyanUSize offset = 0;
+				ZydisDisassembledInstruction instruction;
+
+				while (ZYAN_SUCCESS(ZydisDisassembleIntel(
+					/* machine_mode:    */ MachineMode,
+					/* runtime_address: */ runtime_address,
+					/* buffer:          */ (void*)((uintptr_t)Val->_Code.data() + offset),
+					/* length:          */ InsSize - offset,
+					/* instruction:     */ &instruction
+				)))
+				{
+					if (AddressToName.count(offset))
+					{
+						String Name = AddressToName[offset];
+						r += "---" + Name + ": \n";
+						
+					}
+
+
+					r += "   " + std::to_string(instruction.runtime_address) + " :";
+					r += instruction.text;
+					r += '\n';
+					offset += instruction.info.length;
+					runtime_address += instruction.info.length;
+				}
+			}
+		}
+	}
     return r;
 }
 

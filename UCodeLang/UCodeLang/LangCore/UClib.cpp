@@ -529,24 +529,6 @@ void UClib::FromBytes(BitReader& Input, CodeLayer& Data)
 	{
 		CodeLayer::MachineCode V;
 		Input.ReadType(V._Code, V._Code);
-		{// Code
-
-			union
-			{
-				Size_tAsBits bits = 0;
-				size_t bits_Size;
-			};
-
-			Input.ReadType(bits, bits);
-			bits_Size = bits;
-
-			V._Code.resize(bits_Size);
-
-
-			memcpy(V._Code.data(), &Input.GetByteWith_offset(0), bits_Size);
-
-			Input.Increment_offset(bits_Size);
-		}
 
 		{// _NameToPtr
 			union
