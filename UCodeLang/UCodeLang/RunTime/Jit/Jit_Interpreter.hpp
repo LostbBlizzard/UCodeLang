@@ -180,6 +180,9 @@ public:
 		return _Interpreter.GetThreadPtr();
 	}
 	bool AlwaysJit = false;
+	String GetJitState();
+
+	void TryBuildAllFuncs();
 private:
 	
 	enum class JitFuncType :UInt8

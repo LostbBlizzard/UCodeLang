@@ -918,6 +918,7 @@ void AppObject::ShowUCodeVMWindow()
         {
             _AnyInterpreter.SetAsJitInterpreter();
 
+            _AnyInterpreter.GetAs_JitInterpreter().AlwaysJit = true;
             _AnyInterpreter.Init(&_RunTimeState);
         }
         break;
@@ -963,6 +964,8 @@ void AppObject::ShowUCodeVMWindow()
                     ImGui::TextUnformatted("Debuger(Cant run this Code)");
                 }
 
+
+
                 ImGui::BeginDisabled(!CanBeRan);
                 ShowDebugerMenu(windowdata);
                 ImGui::EndDisabled();
@@ -980,7 +983,18 @@ void AppObject::ShowUCodeVMWindow()
                 }
                 else if (windowdata.VMType == UCodeVMType::Jit_Interpreter)
                 {
+                    auto& jit = _AnyInterpreter.GetAs_JitInterpreter();
+                    String txt = jit.GetJitState();
 
+                    ImGui::BeginDisabled();
+
+                    ImGui::PushID(&txt);
+
+                    ImGui::InputTextMultiline("", &txt, ImGui::GetContentRegionAvail());
+
+                    ImGui::PopID();
+
+                    ImGui::EndDisabled();
                 }
                 else if (windowdata.VMType == UCodeVMType::Interpreter)
                 {
@@ -1098,6 +1112,14 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
     ImGui::Button("Step out", Buttonsize);
 
     ImGui::EndDisabled();
+
+    if (windowdata.VMType == UCodeVMType::Jit_Interpreter)
+    {
+        if (ImGui::Button("Jit-Precompile All", Buttonsize))
+        {
+            _AnyInterpreter.GetAs_JitInterpreter().TryBuildAllFuncs();
+        }
+    }
 
     if (!InFuncion) {
         ImGui::Text("Varables");

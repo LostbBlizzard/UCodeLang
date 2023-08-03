@@ -53,7 +53,7 @@ public:
 	template<typename T>
 	struct Near
 	{
-		T Value = 0;
+		T Value;
 		explicit Near(T Offset)
 		{
 			Value = Offset;
@@ -79,7 +79,7 @@ public:
 	template<typename T>
 	struct Absolute
 	{
-		T Value = 0;
+		T Value;
 		explicit Absolute(T Offset)
 		{
 			Value = Offset;

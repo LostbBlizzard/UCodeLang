@@ -2,6 +2,7 @@
 #include "../Jit/Jit.hpp"
 #include "X86_64Gen.hpp"
 #include "UCodeLang/RunTime/RunTimeLangState.hpp"
+#include "X86_64IR.hpp"
 UCodeLangStart
 
 
@@ -39,7 +40,7 @@ public:
 	void Reset();
 
 
-	bool BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress, Vector<UInt8>& X64Output);
+	bool BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress, Vector<Byte>& X64Output);
 
 	void SubCall(JitInfo::FuncType Value, uintptr_t CPPOffset, void* X64Output);
 	
@@ -66,13 +67,18 @@ public:
 	Vector<FuncToLink> LinkingData;
 
 	BinaryVectorMap<UAddress,UnLoadedFuncPlaceHolder> FuncsPlaceHolder;
+	size_t Out_CppCallOffset = 0;
 	size_t Out_NativeCallOffset =0;
 	size_t BufferOffset = 0;
 private:
-	Vector<UInt8>* Output = nullptr;
+	Vector<Byte>* Output = nullptr;
 	Vector<Instruction>* _Ins =nullptr;
 	
-	X86_64Gen _Gen;
+
+	X86_64IR _IR;
+	X86_64IR::CallConventionID _CallConvention;
+	X86_64IR::CallConventionID _IntrCallConvention;
+
 	Vector<NullJitCalls> NullCalls;
 
 	using GReg = X86_64Gen::GReg;
@@ -150,58 +156,6 @@ private:
 		JitType Ret;
 		Vector<JitType> Pars;
 	};
-	Optional<JitFuncData> As(const ClassMethod* Method, bool PointerSizeIs32Bit);
-
-	struct Nothing{};
-	struct RegData
-	{
-		Variant<Nothing,AnyInt64, X86_64Gen::GReg> Contains= Nothing();
-	};
-	struct NativeRegData
-	{
-
-	};
-	Array<RegData, (size_t)RegisterID::EndParameterRegister> Regs;
-	Array<NativeRegData,(size_t)GReg::Count> NativeReg;
-	void SynchronizeNativeRegs();
-	NativeRegData& GetNativeReg(GReg Value)
-	{
-		SynchronizeNativeRegs();
-		return NativeReg[(size_t)Value] ;
-	}
-
-	RegData& GetRegData(RegisterID ID)
-	{
-		return Regs[(size_t)ID];
-	}
-	inline size_t GetIndex() 
-	{
-		return _Gen.GetIndex() + BufferOffset;
-	}
-
-	void mov(X86_64Gen::GReg R, X86_64Gen::Value8 Value);
-	void mov(X86_64Gen::GReg R, X86_64Gen::Value16 Value);
-	void mov(X86_64Gen::GReg R, X86_64Gen::Value32 Value);
-	void mov(X86_64Gen::GReg R, X86_64Gen::Value64 Value);
-	
-	void MoveRegToNative(const RegData& Reg, const JitType& TypeInReg, X86_64Gen::GReg NativeReg);
-
-	void PassNativePars(const Vector<JitType>& Pars);
-	void PopPassNativePars(const Vector<JitType>& Pars);
-	void PushFuncEnd();
-	void PushFuncStart();
-
-	void PushAllParsOnStack(const Vector<JitType>& Pars);
-	void PopAllParsOnStack(const Vector<JitType>& Pars);
-
-	void Gen_InvaildNear32Call();
-
-	Optional<GReg> GetFreeReg();
-	GReg GetRegFor(RegisterID ID);
-	GReg GetFreeRegOrMovToGetFree();
-	JitType AsJitType(const ReflectionTypeInfo& V, const ClassAssembly& assembly, bool PointerSizeIs32Bit);
-
-	void NewFunction2(GReg* Val1, AnyInt64* Val2);
-	GReg GetAsNative(RegisterID ID, IntSizes Size);
+	X86_64Gen::GReg X86_64JitCompiler::To(RegisterID id);
 };
 UCodeLangEnd
