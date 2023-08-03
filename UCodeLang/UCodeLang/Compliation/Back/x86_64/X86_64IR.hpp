@@ -16,32 +16,8 @@ struct X86_64IR
 	}
 	ImportUseing86x64Gen;
 	
-
-	static String ToString(GReg V)
-	{
-		switch (V)
-		{
-		case GReg::RAX:return "RAX";
-		case GReg::RBX:return "RBX";
-		case GReg::RCX:return "RCX";
-		case GReg::RDX:return "RDX";
-		case GReg::RSP:return "RSP";
-		case GReg::RBP:return "RBP";
-		case GReg::RSI:return "RSI";
-		case GReg::RDI:return "RDI";
-		case GReg::r8:return "r8";
-		case GReg::r9:return "r9";
-		case GReg::r10:return "r10";
-		case GReg::r11:return "r11";
-		case GReg::r12:return "r12";
-		case GReg::r13:return "r13";
-		case GReg::r14:return "r14";
-		case GReg::r15:return "r15";
-		default:return "n/a";break;
-		}
-	}
-
 	using IDType = UInt64;
+	using RelocationID = IDType;
 	using FuncID = IDType;
 	using CallConventionID = IDType;
 	using RelocationID = IDType;
@@ -84,7 +60,7 @@ struct X86_64IR
 			}
 
 			IntegerFuncionArguments = { GReg::RCX,GReg::RDX,GReg::r8,GReg::r9 };
-			FloatingPointFuncionArguments = {FReg::xmm0,FReg::xmm1,FReg::xmm2,FReg::xmm3 };
+			FloatingPointFuncionArguments = { FReg::xmm0,FReg::xmm1,FReg::xmm2,FReg::xmm3 };
 
 			IntegerReturnValue = GReg::RAX;
 			FloatReturnValue = FReg::xmm0;
@@ -93,14 +69,14 @@ struct X86_64IR
 				0x55,               // push rbp
 				0x48, 0x89, 0xe5,   // mov	rbp, rsp
 			};
-			FuncionProlog = {
+			FuncionEpilogue = {
 				0x5d,   // pop	rbp
 				0xc3    // ret
 			};
 
 			//https://learn.microsoft.com/en-us/cpp/build/x64-software-conventions?view=msvc-170&source=recommendations
-			CallClobberedGRegisters = {GReg::RAX,GReg::RCX,GReg::RDX,GReg::r8,GReg::r9};
-			CallClobberedFRegisters = {FReg::xmm0,FReg::xmm1,FReg::xmm2,FReg::xmm3,FReg::xmm4 };
+			CallClobberedGRegisters = { GReg::RAX,GReg::RCX,GReg::RDX,GReg::r8,GReg::r9 };
+			CallClobberedFRegisters = { FReg::xmm0,FReg::xmm1,FReg::xmm2,FReg::xmm3,FReg::xmm4 };
 
 			CallPreservedGRegisters = { GReg::r12,GReg::r15,GReg::RDI,GReg::RSI,GReg::RBX,GReg::RBP,GReg::RSP };
 			CallPreservedFRegisters = {};
@@ -110,7 +86,7 @@ struct X86_64IR
 		{
 			//For testing
 			SetWindows();
-			
+
 			IntegerFuncionArguments = { GReg::RDI,GReg::RSI,GReg::RDX,GReg::r8,GReg::r9 };
 		}
 		//https://github.com/apple/swift/blob/main/docs/ABI/CallConvSummary.rst
@@ -186,13 +162,116 @@ struct X86_64IR
 			return r;
 		}
 	};
+	enum class RelocationType :Byte
+	{
+		Size8,
+		Size16,
+		Size32,
+		Size64,
+	};
 	struct Relocation
 	{
 		RelocationID RelocationID =0;
 		size_t ByteToUpdateOffset=0;
+		RelocationType Type = RelocationType::Size32;
 	};
+
+	struct Relocation8
+	{
+		RelocationID ID = 0;
+		explicit Relocation8(RelocationID Relocation = 0)
+			:ID(Relocation)
+		{
+
+		}
+	};
+	struct Relocation16
+	{
+		RelocationID ID = 0;
+		explicit Relocation16(RelocationID Relocation = 0)
+			:ID(Relocation)
+		{
+
+		}
+	};
+	struct Relocation32
+	{
+		
+		RelocationID ID = 0;
+		explicit Relocation32(RelocationID Relocation = 0)
+			:ID(Relocation)
+		{
+
+		}
+	};
+	struct Relocation64
+	{
+		RelocationID ID = 0;
+		explicit Relocation64(RelocationID Relocation = 0)
+			:ID(Relocation)
+		{
+
+		}
+	};
+	using NearRelocation32 = X86_64Gen::Near<Relocation32>;
+	using NearRelocation64 = X86_64Gen::Near<Relocation64>;
+	static String ToString(GReg V)
+	{
+		switch (V)
+		{
+		case GReg::RAX:return "RAX";
+		case GReg::RBX:return "RBX";
+		case GReg::RCX:return "RCX";
+		case GReg::RDX:return "RDX";
+		case GReg::RSP:return "RSP";
+		case GReg::RBP:return "RBP";
+		case GReg::RSI:return "RSI";
+		case GReg::RDI:return "RDI";
+		case GReg::r8:return "r8";
+		case GReg::r9:return "r9";
+		case GReg::r10:return "r10";
+		case GReg::r11:return "r11";
+		case GReg::r12:return "r12";
+		case GReg::r13:return "r13";
+		case GReg::r14:return "r14";
+		case GReg::r15:return "r15";
+		default:return "n/a";break;
+		}
+	}
+	static String ToString(Near32 V)
+	{
+		return "Near32" + (String)"(" + std::to_string(V.Value) + ")";
+	}
+	static String ToString(Near64 V)
+	{
+		return "Near64" + (String)"(" + std::to_string(V.Value) + ")";
+	}
+
+	static String ToString(NearRelocation32 V)
+	{
+		return "NearRelocation32" + (String)"(" + std::to_string(V.Value.ID) + ")";
+	}
+	static String ToString(NearRelocation64 V)
+	{
+		return "NearRelocation64" + (String)"(" + std::to_string(V.Value.ID) + ")";
+	}
+	static String ToStringFuncID(FuncID V)
+	{
+		return "FuncID" + (String)"(" + std::to_string(V) + ")";
+	}
+	
+	
+	
+	
 	struct Ins
 	{
+		//ToString helper
+		// Copy $Src => $Out 
+		// Swap $Src <> $Out 
+		//Varable Names
+		// Return value: $Return-Result$ 
+		// Par# value: $Par#$ ect 
+		// Called Funcion Value: $Result$
 		enum class InsRegSize :Int8
 		{
 			bits8,
@@ -231,12 +310,34 @@ struct X86_64IR
 		};
 		struct Call
 		{
-			Variant<FuncID, GReg> callvariants;
-			explicit Call(FuncID Value) :callvariants(Value) {};
+			Variant<GReg,Near32,NearRelocation32> callvariants;
+			//explicit Call(FuncID Value) :callvariants(Value) {};
 			explicit Call(GReg Value) :callvariants(Value) {};
+			explicit Call(Near32 Value) :callvariants(Value) {};
+			explicit Call(NearRelocation32 Value) :callvariants(Value) {};
 			String ToString() const
 			{
 				String r;
+
+				r += "call ";
+				//if (auto val = callvariants.Get_If<FuncID>())
+				//{
+					//r += X86_64IR::ToStringFuncID(*val);
+				//}
+				if (auto val = callvariants.Get_If<GReg>())
+				{
+					r += X86_64IR::ToString(*val);
+				}
+				else if (auto val = callvariants.Get_If<Near32>())
+				{
+					r += X86_64IR::ToString(*val);
+				}
+				else if (auto val = callvariants.Get_If<NearRelocation32>())
+				{
+					r += X86_64IR::ToString(*val);
+				}
+
+
 				return r;
 			}
 		};
@@ -249,24 +350,38 @@ struct X86_64IR
 		};
 		struct Jump 
 		{ 
-			Variant<FuncID, GReg, IndrReg, CurrintFuncOffset> jumpvariants; 
+			Variant<FuncID, GReg, Near32, NearRelocation32> jumpvariants;
 			explicit Jump(FuncID Value) :jumpvariants(Value) {};
 			explicit Jump(GReg Value) :jumpvariants(Value) {};
-			explicit Jump(IndrReg Value) :jumpvariants(Value) {};
-			explicit Jump(CurrintFuncOffset Value) :jumpvariants(Value) {};
+			explicit Jump(Near32 Value) :jumpvariants(Value) {};
+			explicit Jump(NearRelocation32 Value) :jumpvariants(Value) {};
 			String ToString() const
 			{
 				String r;
+
+				r += "jump ";
+				if (auto val = jumpvariants.Get_If<FuncID>())
+				{
+					r += X86_64IR::ToStringFuncID(*val);
+				}
+				else if (auto val = jumpvariants.Get_If<GReg>())
+				{
+					r += X86_64IR::ToString(*val);
+				}
+				else if (auto val = jumpvariants.Get_If<Near32>())
+				{
+					r += X86_64IR::ToString(*val);
+				}
+				else if (auto val = jumpvariants.Get_If<NearRelocation32>())
+				{
+					r += X86_64IR::ToString(*val);
+				}
+
+
 				return r;
 			}
 		};
-		//ToString helper
-		// Copy $Src => $Out 
-		// Swap $Src <> $Out 
-		//Varable Names
-		// Return value: $Return-Result$ 
-		// Par# value: $Par#$ ect 
-		// Called Funcion Value: $Result$
+		
 		struct Move
 		{
 			struct RegToReg
@@ -348,9 +463,24 @@ struct X86_64IR
 					return r;
 				}
 			};
+			struct FuncIDToReg
+			{
+				FuncID func;
+				GReg Out = GReg::Null;
+
+				explicit FuncIDToReg(FuncID Value, GReg Out):func(Value), Out(Out) {};
+				String ToString() const
+				{
+					String r;
+					r += "mov ";
+					r += X86_64IR::ToStringFuncID(func);
+					r += " => " + X86_64IR::ToString(Out);
+					return r;
+				}
+			};
 			//In
 			Variant<RegToReg, ConstToReg, IndRegToReg, RegToRegInd
-				,RegToFuncReturn> MoveTypes;
+				,RegToFuncReturn, FuncIDToReg> MoveTypes;
 			explicit Move(const RegToReg& Value) :MoveTypes(Value){}
 			explicit Move(const ConstToReg& Value) :MoveTypes(Value) {}
 			explicit Move(const IndRegToReg& Value) :MoveTypes(Value) {}
@@ -371,21 +501,120 @@ struct X86_64IR
 				{
 					return val->ToString();
 				}
+				else if (auto val = MoveTypes.Get_If<FuncIDToReg>())
+				{
+					return val->ToString();
+				}
 				else
 				{
 					throw std::exception("not added");
 				}
 				return r;
 			}
+			inline bool Writes_Reg(Optional<GReg> Reg = {}) const
+			{
+				if (auto Val2 = MoveTypes.Get_If<Ins::Move::ConstToReg>())
+				{
+					return !Reg.has_value() || Val2->Out == Reg.value();
+				}
+				else if (auto Val2 = MoveTypes.Get_If<Ins::Move::RegToReg>())
+				{
+					return !Reg.has_value() || Val2->Out == Reg.value();
+				}
+				else if (auto Val2 = MoveTypes.Get_If<Ins::Move::FuncIDToReg>())
+				{
+					return !Reg.has_value() || Val2->Out == Reg.value();
+				}
+				else if (auto Val2 = MoveTypes.Get_If<Ins::Move::IndRegToReg>())
+				{
+					return !Reg.has_value() || Val2->Out == Reg.value();
+				}
+			}
+			inline bool Reads_Reg(Optional<GReg> Reg = {}) const
+			{
+				return false;
+			}
+			inline bool Writes_Reg(Optional<IndrReg> Reg = {}) const
+			{
+				return false;
+			}
+			inline bool Reads_Reg(Optional<IndrReg> Reg = {}) const
+			{
+				return false;
+			}
 		};
 
-		Variant<NoOp, Removed, Call, Ret, Jump,Move> variant;
+		struct XOR
+		{
+			//DEST := DEST XOR SRC;
+			struct RegToReg
+			{
+				GReg Src = GReg::Null;
+				GReg Out = GReg::Null;
+				InsRegSize RegSize = InsRegSize::bits64;
+
+				explicit RegToReg() {};
+				explicit RegToReg(GReg Src, GReg Out) :Src(Src), Out(Out) {};
+				explicit RegToReg(InsRegSize RegSize, GReg Src, GReg Out) :Src(Src), Out(Out), RegSize(RegSize) {};
+				String ToString() const
+				{
+					String r;
+					r += "XOR" + Ins::ToString(RegSize) + " " + X86_64IR::ToString(Src) + " => " + X86_64IR::ToString(Out);
+					return r;
+				}
+			};
+			Variant<RegToReg> Xortypes;
+
+			explicit XOR(const RegToReg& Value) :Xortypes(Value) {}
+			String ToString() const
+			{
+				String r;
+				if (auto val = Xortypes.Get_If<RegToReg>())
+				{
+					return val->ToString();
+				}
+				else
+				{
+					throw std::exception("not added");
+				}
+				return r;
+			}
+			inline bool Writes_Reg(Optional<GReg> Reg = {}) const
+			{
+				if (auto Val2 = Xortypes.Get_If<RegToReg>())
+				{
+					return !Reg.has_value() || Val2->Out == Reg.value();
+				}
+				else
+				{
+					return false;
+				}
+			}
+			inline bool Reads_Reg(Optional<GReg> Reg = {}) const
+			{
+				return false;
+			}
+			inline bool Writes_Reg(Optional<IndrReg> Reg = {}) const
+			{
+				return false;
+			}
+			inline bool Reads_Reg(Optional<IndrReg> Reg = {}) const
+			{
+				return false;
+			}
+		};
+
+		Variant<NoOp, Removed, Call, Ret, Jump,Move, XOR> variant;
 		String ToString() const
 		{
 
 			if (auto val = variant.Get_If<NoOp>())
 			{
 				return val->ToString();
+			}
+			else if (auto val = variant.Get_If<Removed>())
+			{
+				return "[Remove Ins]";
 			}
 			else if (auto val = variant.Get_If<Call>())
 			{
@@ -403,9 +632,9 @@ struct X86_64IR
 			{
 				return val->ToString();
 			}
-			else if (auto val = variant.Get_If<Removed>())
+			else if (auto val = variant.Get_If<XOR>())
 			{
-				return "[Remove Ins]";
+				return val->ToString();
 			}
 			else
 			{
@@ -423,7 +652,10 @@ struct X86_64IR
 		}
 		inline bool Writes_Stack() const
 		{
-			
+			if (auto val = variant.Get_If<Call>())
+			{
+				return true;
+			}
 			return false;
 		}
 		inline bool Reads_StackPtr() const
@@ -437,18 +669,50 @@ struct X86_64IR
 
 		inline bool Writes_Reg(Optional<GReg> Reg = {}) const
 		{
+			if (auto val = variant.Get_If<Move>())
+			{
+				return val->Writes_Reg(Reg);
+			}
+			else if (auto val = variant.Get_If<XOR>())
+			{
+				return val->Writes_Reg(Reg);
+			}
 			return false;
 		}
 		inline bool Reads_Reg(Optional<GReg> Reg = {}) const
 		{
+			if (auto val = variant.Get_If<Move>())
+			{
+				return val->Reads_Reg(Reg);
+			}
+			else if (auto val = variant.Get_If<XOR>())
+			{
+				return val->Reads_Reg(Reg);
+			}
 			return false;
 		}
 		inline bool Writes_Reg(Optional<IndrReg> Reg = {}) const
 		{
+			if (auto val = variant.Get_If<Move>())
+			{
+				return val->Writes_Reg(Reg);
+			}
+			else if (auto val = variant.Get_If<XOR>())
+			{
+				return val->Writes_Reg(Reg);
+			}
 			return false;
 		}
 		inline bool Reads_Reg(Optional<IndrReg> Reg = {}) const
 		{
+			if (auto val = variant.Get_If<Move>())
+			{
+				return val->Reads_Reg(Reg);
+			}
+			else if (auto val = variant.Get_If<XOR>())
+			{
+				return val->Reads_Reg(Reg);
+			}
 			return false;
 		}
 		//
@@ -458,6 +722,7 @@ struct X86_64IR
 		explicit Ins(const Ret& Value) :variant(Value) {}
 		explicit Ins(const Jump& Value) :variant(Value) {}
 		explicit Ins(const Removed& Value) :variant(Value) {}
+		explicit Ins(const XOR& Value) :variant(Value) {}
 	};
 	struct Func
 	{
@@ -466,10 +731,12 @@ struct X86_64IR
 		CallConventionID CallConvention = CallConventionID();
 		Func()
 		{
-
+			static constexpr size_t InsSize = sizeof(Ins);
+			static constexpr size_t MaxInsSize =32;
+			static_assert(sizeof(Ins) == MaxInsSize, "Ins Type Is too big,this will cause jit performance problems.");
 		}
 
-		static constexpr int v = sizeof(Ins);
+		
 
 		void Add_Ins(const Ins::Move& Item)
 		{
@@ -584,6 +851,11 @@ struct X86_64IR
 
 	void Build(BuildInfo::BuildFunc& Out,BuildState& State,const Func& Value) const;
 	void Build(BuildInfo::BuildFunc& Out,BuildState& State,const Ins& Value) const;
+
+	RelocationID Get_RelocationID()
+	{
+		return  Next_RelocationID();
+	}
 private:
 	CallConventionID _NextCallID = CallConventionID();
 	CallConventionID Next_NextCallID()
@@ -592,6 +864,13 @@ private:
 		_NextCallID++;
 		return r;
 	}
+	RelocationID Next_RelocationID()
+	{
+		auto r = _NextRelocationID;
+		_NextRelocationID++;
+		return r;
+	}
+	RelocationID _NextRelocationID = RelocationID();
 };
 
 UCodeLangEnd

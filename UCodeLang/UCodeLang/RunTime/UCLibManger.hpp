@@ -78,7 +78,10 @@ public:
 	{
 		return _DebugInfo;
 	}
-
+	inline const auto& Get_NameToAddress() const
+	{
+		return _NameToAddress;
+	}
 private:
 	VectorMap<String, UAddress> _NameToAddress;
 	VectorMap<String, RunTimeLib::CPPCall> _NameToCPP;
