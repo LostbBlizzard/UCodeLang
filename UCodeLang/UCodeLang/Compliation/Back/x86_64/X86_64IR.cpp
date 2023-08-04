@@ -49,6 +49,14 @@ void X86_64IR::CleanUp(CleanUpMode Mode)
 							Insi = Ins(Ins::XOR(NewIns));
 						}
 					}
+					else if (auto Val2 = Val->MoveTypes.Get_If<Ins::Move::RegToReg>())
+					{
+						if (Val2->Out == Val2->Src)
+						{
+							//Removed unneeded Ins. 
+							Insi = Ins(Ins::Removed());
+						}
+					}
 				}
 
 			}
@@ -218,6 +226,38 @@ void X86_64IR::Build(BuildInfo::BuildFunc& Out, BuildState& State, const Ins& Va
 
 		}
 
+	}
+	else if (auto Val = Value.variant.Get_If<Ins::XOR>())
+	{
+		if (auto Val2 = Val->Xortypes.Get_If<Ins::XOR::RegToReg>())
+		{
+			switch (Val2->RegSize)
+			{
+			case Ins::InsRegSize::bits8:
+			{
+				State.Gen.XOr8(Val2->Out, Val2->Src);
+			}
+			break;
+			case Ins::InsRegSize::bits16:
+			{
+				State.Gen.XOr16(Val2->Out, Val2->Src);
+			}
+			break;
+			case Ins::InsRegSize::bits32:
+			{
+				State.Gen.XOr32(Val2->Out, Val2->Src);
+			}
+			break;
+			case Ins::InsRegSize::bits64:
+			{
+				State.Gen.XOr64(Val2->Out, Val2->Src);
+			}
+			break;
+			default:
+				throw std::exception("bad path");
+				break;
+			}
+		}
 	}
 	else if (auto Val = Value.variant.Get_If<Ins::Ret>())
 	{
