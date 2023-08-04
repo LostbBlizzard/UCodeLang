@@ -27,6 +27,8 @@ Compiler::CompilerRet Compiler::CompileText(const String_view& Text)
 	_FrontEndObject->Set_FileIDType(LangDefInfo::DefaultTextFileID);
 	_FrontEndObject->Set_Settings(&_Settings);
 	_FrontEndObject->Set_ErrorsOutput(&_Errors);
+	_Errors.Remove_Errors();
+
 
 	auto Item = _FrontEndObject->BuildFile(Text);
 
@@ -153,7 +155,7 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 	const LangDefInfo* Lang = _FrontEndObject->GetInfo();
 	_FrontEndObject->Set_Settings(&_Settings);
 	_FrontEndObject->Set_ErrorsOutput(&_Errors);
-
+	_Errors.Remove_Errors();
 
 
 	for (const auto& dirEntry : fs::recursive_directory_iterator(Data.FileDir))
@@ -344,6 +346,8 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 	const LangDefInfo* Lang = _FrontEndObject->GetInfo();
 	_FrontEndObject->Set_Settings(&_Settings);
 	_FrontEndObject->Set_ErrorsOutput(&_Errors);
+	_Errors.Remove_Errors();
+
 
 	Vector<Unique_ptr<DependencyFile::FileInfo>> NewFilesInfo;
 	Vector<MyStruct> FilesInfo;
