@@ -67,15 +67,7 @@ private:
 		UCodeLang::CompliationErrors::Error _Error;
 		bool IsSelected = false;
 	};
-	void OnErrorListUpdated()
-	{
-		TextEditor::ErrorMarkers marks;
-		for (auto& Item : Errors)
-		{
-			marks[Item._Error.Line - 1] = Item._Error._Msg;
-		}
-		_Editor.SetErrorMarkers(marks);
-	}
+	void OnErrorListUpdated();
 
 	void CompileText(const UCodeAnalyzer::String& String);
 

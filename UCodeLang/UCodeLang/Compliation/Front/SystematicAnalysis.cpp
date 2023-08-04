@@ -8,6 +8,13 @@
 #include "UCodeLang/LangCore/DataType/Defer.hpp"
 UCodeLangFrontStart
 
+
+//Dev Note:So this may be the bigest file in the project.
+//Some parts may be pulled out for the Language_Server.
+//It's a lot if theres any Questions just ask Lost blizzard.
+//I don't plan on separating into different files because of c++ compiles time
+//and how everything is weirdly dependent on everything else and just may increase complexity.
+//Its an self-contained mess of a file.
 #define GenericTestStr CompilerGenerated("___GenericTest")
 
 constexpr size_t GenericTestStrSize = sizeof(GenericTestStr);
@@ -1624,9 +1631,10 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 
 
 	const String ClassName = IsgenericInstantiation ? (String)ScopeHelper::GetNameFromFullName(GenericFuncName.top().GenericFuncName) : (String)node.AliasName.Token->Value._String;
-	auto SybID = GetSymbolID(node);
+	
 
 	_Table.AddScope(ClassName);
+	auto SybID = GetSymbolID(node);//Must be pass AddScope thats how GetSymbolID works.
 
 	if (passtype == PassType::GetTypes)
 	{
@@ -1780,6 +1788,7 @@ void SystematicAnalysis::InitGenericalias(const GenericValuesNode& GenericList, 
 		auto GenericType = &AddSybol(SymbolType::Type_alias, GenericTypeName,
 			_Table._Scope.GetApendedString(GenericTypeName), AccessModifierType::Private);
 
+		GenericType->NodePtr = &Item;
 
 
 		if (IsgenericInstantiation)
@@ -1792,6 +1801,7 @@ void SystematicAnalysis::InitGenericalias(const GenericValuesNode& GenericList, 
 		else
 		{
 			GenericType->Type = SymbolType::Unmaped_Generic_Type;
+			GenericType->OutputIR = false;
 
 			SymbolID ID = GetSymbolID(GenericType->NodePtr);
 			_Table.AddSymbolID(*GenericType, ID);
@@ -1836,7 +1846,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 
 	Symbol* syb;
-	SymbolID sybId = GetSymbolID(node);
+	SymbolID sybId = GetSymbolID(node);//Must be pass AddScope thats how GetSymbolID works.
 
 
 	auto UseingIndex = _Table.GetUseingIndex();
@@ -2676,13 +2686,14 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 	auto& StrVarName = node.Name->Value._String;
 	auto FullName = _Table._Scope.GetApendedString(StrVarName);
 
-	SymbolID sybId = GetSymbolID(node);
+	
 	Symbol* syb;
 
 	String ScopeName = std::to_string((size_t)&node);
 
 	PushNewStackFrame();
 	_Table.AddScope(ScopeName);
+	SymbolID sybId = GetSymbolID(node);
 
 	if (passtype == PassType::GetTypes)
 	{
@@ -3658,8 +3669,9 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 	const bool CheckgenericForErr = (Isgeneric_t && (passtype == PassType::GetTypes || passtype == PassType::FixedTypes));
 
 	const String ClassName = IsgenericInstantiation ? ScopeHelper::GetNameFromFullName(GenericFuncName.top().GenericFuncName) : node._Name.AsString();
-	SymbolID sybId = GetSymbolID(node);
+	
 	_Table.AddScope(ClassName);
+	SymbolID sybId = GetSymbolID(node);//Must be pass AddScope thats how GetSymbolID works for Generics.
 
 	auto& Syb = passtype == PassType::GetTypes ?
 		AddSybol(Isgeneric_t ? SymbolType::Generic_Trait : SymbolType::Trait_class
@@ -3870,9 +3882,9 @@ void SystematicAnalysis::OnTag(const TagTypeNode& node)
 	bool Isgeneric_t = Isgeneric && IsgenericInstantiation == false;
 
 
-	SymbolID sybId = GetSymbolID(node);
 	const String ClassName = IsgenericInstantiation ? ScopeHelper::GetNameFromFullName(GenericFuncName.top().GenericFuncName) : (String)node.AttributeName.Token->Value._String;
 	_Table.AddScope(ClassName);
+	SymbolID sybId = GetSymbolID(node);//Must be pass AddScope thats how GetSymbolID works for Generics.
 
 	auto& Syb = passtype == PassType::GetTypes ?
 		AddSybol(Isgeneric_t ? SymbolType::Generic_Tag : SymbolType::Tag_class
@@ -5453,10 +5465,10 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 	const bool Isgeneric_t = Isgeneric && IsgenericInstantiation == false;
 
 
-	SymbolID SybID = GetSymbolID(node);
-
+	
 	const String ClassName = IsgenericInstantiation ? (String)ScopeHelper::GetNameFromFullName(GenericFuncName.top().GenericFuncName) : (String)node.EnumName.Token->Value._String;
 	_Table.AddScope(ClassName);
+	SymbolID SybID = GetSymbolID(node);//Must be pass AddScope thats how GetSymbolID works.
 
 	if (passtype == PassType::GetTypes)
 	{
@@ -5568,7 +5580,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 
 							SymbolID AnonymousSybID = GetSymbolID(VariantType_.node.get());
 							auto& AnonymousSyb = AddSybol(SymbolType::Type_class, (String)NewName, NewName,AccessModifierType::Public);
-
+							AnonymousSyb.OutputIR = Syb.Type == SymbolType::Enum;//Dont Output IR type if Generic
 							_Table.AddSymbolID(AnonymousSyb, AnonymousSybID);
 
 
@@ -5673,76 +5685,50 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 	if (passtype == PassType::BuidCode)
 	{
 		AddDependencyToCurrentFile(ClassInf->Basetype);
-
-		Enum_Data& EnumData = _Lib.Get_Assembly().AddEnum(ScopeHelper::GetNameFromFullName(Syb.FullName), Syb.FullName);
-		EnumData.BaseType = ConvertToTypeInfo(ClassInf->Basetype);
-		EnumData.TypeID = GetTypeID(TypesEnum::CustomType,Syb.ID);
-
-		EnumData.Values.resize(ClassInf->Fields.size());
-		for (size_t i = 0; i < ClassInf->Fields.size(); i++)
+		if (Syb.Type == SymbolType::Enum) //Dont output type if Generic
 		{
-			auto& ClassDataItem = ClassInf->Fields[i];
-			auto& EnumDataItem = EnumData.Values[i];
-			EnumDataItem.Name = ClassDataItem.Name;
-			EnumDataItem._Data.Resize(ClassDataItem.Ex.ObjectSize);
-			memcpy(EnumDataItem._Data.Get_Data(), ClassDataItem.Ex.Object_AsPointer.get(),ClassDataItem.Ex.ObjectSize);
-		}
-		if (ClassInf->VariantData) 
-		{
-			auto UnionFullName = GetUnrefencedableName(GetEnumVariantUnionName(ClassInf->FullName));
-			auto UnionName = GetEnumVariantUnionName(GetUnrefencedableName((String)ClassInf->Get_Name()));
+			Enum_Data& EnumData = _Lib.Get_Assembly().AddEnum(ScopeHelper::GetNameFromFullName(Syb.FullName), Syb.FullName);
+			EnumData.BaseType = ConvertToTypeInfo(ClassInf->Basetype);
+			EnumData.TypeID = GetTypeID(TypesEnum::CustomType, Syb.ID);
 
-			Class_Data& EnumUnion = _Lib.Get_Assembly().AddClass(UnionName, UnionFullName);
-			
-			auto& UnionSyb = AddSybol(SymbolType::Type_class, UnionName, UnionFullName, AccessModifierType::Default);
-			_Table.AddSymbolID(UnionSyb,GetSymbolID((Node&)UnionSyb));
-
-			EnumUnion.TypeID = GetTypeID(TypesEnum::CustomType, UnionSyb.ID);
-			EnumData.EnumVariantUnion = EnumUnion.TypeID;
-
-			auto& List = ClassInf->VariantData.value().Variants;
-
-			size_t MaxSize = 0;
-			for (size_t i = 0; i < List.size(); i++)
+			EnumData.Values.resize(ClassInf->Fields.size());
+			for (size_t i = 0; i < ClassInf->Fields.size(); i++)
 			{
-				auto& Item = List[i];
+				auto& ClassDataItem = ClassInf->Fields[i];
+				auto& EnumDataItem = EnumData.Values[i];
+				EnumDataItem.Name = ClassDataItem.Name;
+				EnumDataItem._Data.Resize(ClassDataItem.Ex.ObjectSize);
+				memcpy(EnumDataItem._Data.Get_Data(), ClassDataItem.Ex.Object_AsPointer.get(), ClassDataItem.Ex.ObjectSize);
+			}
+			if (ClassInf->VariantData)
+			{
+				auto UnionFullName = GetUnrefencedableName(GetEnumVariantUnionName(ClassInf->FullName));
+				auto UnionName = GetEnumVariantUnionName(GetUnrefencedableName((String)ClassInf->Get_Name()));
 
-				if (Item.ClassSymbol.has_value())
+				Class_Data& EnumUnion = _Lib.Get_Assembly().AddClass(UnionName, UnionFullName);
+
+				auto& UnionSyb = AddSybol(SymbolType::Type_class, UnionName, UnionFullName, AccessModifierType::Default);
+				UnionSyb.OutputIR = false;//used only to have the union have a type.
+				_Table.AddSymbolID(UnionSyb, GetSymbolID((Node&)UnionSyb));
+
+				EnumUnion.TypeID = GetTypeID(TypesEnum::CustomType, UnionSyb.ID);
+				EnumData.EnumVariantUnion = EnumUnion.TypeID;
+
+				auto& List = ClassInf->VariantData.value().Variants;
+
+				size_t MaxSize = 0;
+				for (size_t i = 0; i < List.size(); i++)
 				{
-					Symbol* Sym = GetSymbol(Item.ClassSymbol.value());
+					auto& Item = List[i];
 
-					AddClass_tToAssemblyInfo({}, Sym);//has '!' post fix so its Unrefencedable
-
-					auto Type = TypeSymbol(Sym->ID);
-
-					ClassField V;
-					V.offset = 0;
-					V.Name = ClassInf->Fields[i].Name;
-					V.Type = ConvertToTypeInfo(Type);
-					EnumUnion.Fields.push_back(std::move(V));
-
-					auto& EnumDataItem = EnumData.Values[i];
-					EnumDataItem.EnumVariantType = ConvertToTypeInfo(Type);
-
-
-
-
-					size_t TypeSize = 0;
-					for (auto& Field : Sym->Get_Info<ClassInfo>()->Fields)
+					if (Item.ClassSymbol.has_value())
 					{
-						TypeSize += GetSize(Field.Type).value();
-					}
-					if (TypeSize > MaxSize)
-					{
-						MaxSize = TypeSize;
-					}
-				}
-				else
-				{
-					if (Item.Types.size()) 
-					{
+						Symbol* Sym = GetSymbol(Item.ClassSymbol.value());
 
-						auto Type = Item.Types.front();
+						AddClass_tToAssemblyInfo({}, Sym);//has '!' post fix so its Unrefencedable
+
+						auto Type = TypeSymbol(Sym->ID);
+
 						ClassField V;
 						V.offset = 0;
 						V.Name = ClassInf->Fields[i].Name;
@@ -5750,25 +5736,54 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 						EnumUnion.Fields.push_back(std::move(V));
 
 						auto& EnumDataItem = EnumData.Values[i];
-						EnumDataItem.EnumVariantType = V.Type;
+						EnumDataItem.EnumVariantType = ConvertToTypeInfo(Type);
 
-						size_t TypeSize = GetSize(Type).value();
+
+
+
+						size_t TypeSize = 0;
+						for (auto& Field : Sym->Get_Info<ClassInfo>()->Fields)
+						{
+							TypeSize += GetSize(Field.Type).value();
+						}
 						if (TypeSize > MaxSize)
 						{
 							MaxSize = TypeSize;
 						}
 					}
-				}
+					else
+					{
+						if (Item.Types.size())
+						{
+
+							auto Type = Item.Types.front();
+							ClassField V;
+							V.offset = 0;
+							V.Name = ClassInf->Fields[i].Name;
+							V.Type = ConvertToTypeInfo(Type);
+							EnumUnion.Fields.push_back(std::move(V));
+
+							auto& EnumDataItem = EnumData.Values[i];
+							EnumDataItem.EnumVariantType = V.Type;
+
+							size_t TypeSize = GetSize(Type).value();
+							if (TypeSize > MaxSize)
+							{
+								MaxSize = TypeSize;
+							}
+						}
+					}
 
 
-				for (auto& Item2 : Item.Types)
-				{
-					AddDependencyToCurrentFile(Item2);
+					for (auto& Item2 : Item.Types)
+					{
+						AddDependencyToCurrentFile(Item2);
+					}
+
 				}
-				
+
+				EnumUnion.Size = MaxSize;
 			}
-		
-			EnumUnion.Size = MaxSize;
 		}
 	}
 
@@ -5903,7 +5918,6 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 	//we may jump to this node non linearly
 	if (syb->PassState == passtype)
 	{
-		_Table.RemoveScope();
 		return;
 	}
 

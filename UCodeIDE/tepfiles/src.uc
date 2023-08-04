@@ -16,15 +16,19 @@ $Vec3:
 
 //Syntactic alias: T? = Optional<T>
 $Optional<T> enum:
- Value(val T),
+ Value[T val],
  None,
 
 //Syntactic alias: T!E = Result<T,E>
 $Result<T,E> enum:
- Value(val T),
- Error(err E),
+ Value[T val],
+ Error[E err],
+
+$OpInt = int?;//make type.
+$Opbool = bool?;//make type.
 
 //inlined enum variant: X || Y || Z
+/*
 $InlinedEnum = int || bool || char;
 
 //Syntactic alias: T^ = Unique_ptr<T> and unq T();
@@ -71,5 +75,5 @@ $Span<T>:
 
  |SubSpan[uintptr offset] => Make(Data[offset],Size);
 
-
+*/
             

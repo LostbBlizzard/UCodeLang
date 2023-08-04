@@ -117,15 +117,18 @@ $Vec3:
 
 //Syntactic alias: T? = Optional<T>
 $Optional<T> enum:
- Value(val T),
+ Value[T val],
  None,
 
 //Syntactic alias: T!E = Result<T,E>
 $Result<T,E> enum:
- Value(val T),
- Error(err E),
+ Value[T val],
+ Error[E err],
+
+$OpInt = int?;//make type.
 
 //inlined enum variant: X || Y || Z
+/*
 $InlinedEnum = int || bool || char;
 
 //Syntactic alias: T^ = Unique_ptr<T> and unq T();
@@ -172,7 +175,7 @@ $Span<T>:
 
  |SubSpan[uintptr offset] => Make(Data[offset],Size);
 
-
+*/
             )");
         CompileText(GetTextEditorString());
         
@@ -1581,6 +1584,16 @@ void AppObject::OnRuntimeUpdated()
 
     callFuncContext.current_method = nullptr;
     callFuncContext._LastRetType = UCodeLang::ReflectionTypeInfo();
+}
+
+void AppObject::OnErrorListUpdated()
+{
+    TextEditor::ErrorMarkers marks;
+    for (auto& Item : Errors)
+    {
+        marks[Item._Error.Line] = Item._Error._Msg;
+    }
+    _Editor.SetErrorMarkers(marks);
 }
 
 void AppObject::CompileText(const String& String)
