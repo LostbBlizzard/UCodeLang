@@ -305,6 +305,16 @@ public:
 	//dest := src - dest;
 	void sub64(GReg dest, GReg src);
 
+	//dest := src XOR dest;
+	void XOr8(GReg dest, GReg src);
+
+	void XOr16(GReg dest, GReg src);
+
+	void XOr32(GReg dest, GReg src);
+
+	void XOr64(GReg dest, GReg src);
+
+
 
 	X86Gen _Base;//because 86x64 is an extension of x86
 };

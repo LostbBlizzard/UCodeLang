@@ -776,4 +776,94 @@ void X86_64Gen::sub64(GReg dest, GReg src)
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
 }
+void X86_64Gen::XOr8(GReg dest, GReg src)
+{
+	ZydisEncoderRequest req;
+	memset(&req, 0, sizeof(req));
+
+	req.mnemonic = ZYDIS_MNEMONIC_XOR;
+	req.machine_mode = ZYDIS_MACHINE_MODE_LONG_64;
+	req.operand_count = 2;
+	req.operand_size_hint = ZydisOperandSizeHint_::ZYDIS_OPERAND_SIZE_HINT_8;
+	As(req.operands[0], dest);
+	As(req.operands[1], src);
+
+	ZyanU8 encoded_instruction[ZYDIS_MAX_INSTRUCTION_LENGTH];
+	ZyanUSize encoded_length = sizeof(encoded_instruction);
+
+	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
+	{
+		throw std::exception("Failed to encode instruction");
+	}
+
+	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
+}
+
+void X86_64Gen::XOr16(GReg dest, GReg src)
+{
+	ZydisEncoderRequest req;
+	memset(&req, 0, sizeof(req));
+
+	req.mnemonic = ZYDIS_MNEMONIC_XOR;
+	req.machine_mode = ZYDIS_MACHINE_MODE_LONG_64;
+	req.operand_count = 2;
+	req.operand_size_hint = ZydisOperandSizeHint_::ZYDIS_OPERAND_SIZE_HINT_16;
+	As(req.operands[0], dest);
+	As(req.operands[1], src);
+
+	ZyanU8 encoded_instruction[ZYDIS_MAX_INSTRUCTION_LENGTH];
+	ZyanUSize encoded_length = sizeof(encoded_instruction);
+
+	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
+	{
+		throw std::exception("Failed to encode instruction");
+	}
+
+	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
+}
+
+void X86_64Gen::XOr32(GReg dest, GReg src)
+{
+	ZydisEncoderRequest req;
+	memset(&req, 0, sizeof(req));
+
+	req.mnemonic = ZYDIS_MNEMONIC_XOR;
+	req.machine_mode = ZYDIS_MACHINE_MODE_LONG_64;
+	req.operand_count = 2;
+	req.operand_size_hint = ZydisOperandSizeHint_::ZYDIS_OPERAND_SIZE_HINT_32;
+	As(req.operands[0], dest);
+	As(req.operands[1], src);
+
+	ZyanU8 encoded_instruction[ZYDIS_MAX_INSTRUCTION_LENGTH];
+	ZyanUSize encoded_length = sizeof(encoded_instruction);
+
+	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
+	{
+		throw std::exception("Failed to encode instruction");
+	}
+
+	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
+}
+void X86_64Gen::XOr64(GReg dest, GReg src)
+{
+	ZydisEncoderRequest req;
+	memset(&req, 0, sizeof(req));
+
+	req.mnemonic = ZYDIS_MNEMONIC_XOR;
+	req.machine_mode = ZYDIS_MACHINE_MODE_LONG_64;
+	req.operand_count = 2;
+	req.operand_size_hint = ZydisOperandSizeHint_::ZYDIS_OPERAND_SIZE_HINT_64;
+	As(req.operands[0], dest);
+	As(req.operands[1], src);
+
+	ZyanU8 encoded_instruction[ZYDIS_MAX_INSTRUCTION_LENGTH];
+	ZyanUSize encoded_length = sizeof(encoded_instruction);
+
+	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
+	{
+		throw std::exception("Failed to encode instruction");
+	}
+
+	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
+}
 UCodeLangEnd
