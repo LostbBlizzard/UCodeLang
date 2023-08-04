@@ -7,20 +7,66 @@ namespace ns
 	#define UCL UCodeLanguageSever
 
 
+	template<typename T>
+	inline void to_jsonOp(const UCL::TsOptional<T>& value,const char* FieldName, json& Json)
+	{
+		if (value.has_value())
+		{
+			to_json(Json[FieldName], value.value());
+		}
+	}
+	
+	template<typename... T>
+	inline void to_jsonPredi(const UCL::TypePredicates<T...>& value, const char* FieldName, json& Jsontoadd)
+	{
+		
+	}
+
+	template<typename T>
+	inline void from_json(const json& Json, UCL::TsOptional<T>& Object)
+	{
+
+	}
+	template<typename T>
+	inline void to_json(json& Json, const UCL::TsOptional<T>& Object)
+	{
+		if (Object.has_value())
+		{
+			Json = Object.value();
+		}
+	}
+	template<typename... T>
+	inline void from_json(const json& Json, UCL::TypePredicates<T...>& Object)
+	{
+
+	}
+	template<typename... T>
+	inline void to_json(json& Json, const UCL::TypePredicates<T...>& Object)
+	{
+		if (Object.has_value())
+		{
+			Json = Object.value();
+		}
+	}
+
+
+	inline void from_json(const json& Json, UCL::TsNull& Object)
+	{
+
+	}
+	inline void to_json(json& Json, const UCL::TsNull& Object)
+	{
+		Json = "null";
+	}
+
 	inline void from_json(const json& Json,UCL::ServerCapabilities& Object)
 	{
 		
 	}
 	inline void to_json(json& Json, const UCL::ServerCapabilities& Object)
 	{
-		if (Object.positionEncoding.has_value())
-		{
-			Json["positionEncoding"] = Object.positionEncoding.value();
-		}
-		if (Object.hoverProvider.has_value())
-		{
-			Json["hoverProvider"] = Object.hoverProvider.value();
-		}
+		to_jsonOp(Object.positionEncoding, "positionEncoding", Json);
+		to_jsonOp(Object.hoverProvider, "hoverProvider", Json);
 	}
 
 
@@ -35,10 +81,7 @@ namespace ns
 		Json["message"] = Object.message;
 
 
-		if (Object.data.has_value()) 
-		{
-			Json["data"] = Object.data.value();
-		}
+		to_jsonOp(Object.data, "data", Json);
 	}
 	inline void from_json(const json& Json, UCL::InitializeResult::Struct& Object)
 	{
@@ -48,11 +91,7 @@ namespace ns
 	{
 		to_json(Json["name"], Object.name);
 
-
-		if (Object.version.has_value())
-		{
-			to_json(Json["version"], Object.version.value());
-		}
+		to_jsonOp(Object.version, "version", Json);
 	}
 
 	inline void from_json(const json& Json, UCL::InitializeResult& Object)
@@ -65,10 +104,7 @@ namespace ns
 		to_json(Json["capabilities"], Object.capabilities);
 
 
-		if (Object.serverInfo)
-		{
-			to_json(Json["serverInfo"], Object.serverInfo.value());
-		}
+		to_jsonOp(Object.serverInfo, "serverInfo", Json);
 	}
 
 	inline void from_json(const json& Json, UCL::LogMessageParams& Object)
@@ -88,5 +124,14 @@ namespace ns
 	inline void to_json(json& Json, const UCL::MessageType& Object)
 	{
 		Json = (UCL::integer)Object;
+	}
+
+	inline void from_json(const json& Json, UCL::InitializeParams& Object)
+	{
+
+	}
+	inline void to_json(json& Json, const UCL::InitializeParams& Object)
+	{
+		to_jsonPredi(Object.processId, "processId",Json);
 	}
 }

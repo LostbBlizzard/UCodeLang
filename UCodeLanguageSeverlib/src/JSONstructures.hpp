@@ -54,7 +54,7 @@ using unknown =bool;
 using LSPAny = int;
 
 
-
+struct TsNull{};
 
 enum class ErrorCodes : integer
 {
@@ -803,6 +803,18 @@ struct  LogMessageParams {
 	 * The actual message
 	 */
 	string message;
+};
+
+struct InitializeParams
+{
+	/**
+	 * The process Id of the parent process that started the server. Is null if
+	 * the process has not been started by another process. If the parent
+	 * process is not alive then the server should exit (see exit notification)
+	 * its process.
+	 */
+
+	TypePredicates<integer, TsNull> processId;
 };
 
 LanguageSeverEnd

@@ -43,6 +43,185 @@ struct SeverPacket
         }
         return {};
     }
+
+
+    template<typename T>
+    static String RequestMessageStr(integer id, const String& method, const T& params)
+    {
+        json v;
+        v["jsonrpc"] = "2.0";
+        v["id"] = id;
+        v["method"] = method;
+        ns::to_json(v["params"], params);
+        return v.dump();
+    }
+    template<typename T>
+    static String NotificationMessageStr(const String& method, const T& params)
+    {
+        json v;
+        v["jsonrpc"] = "2.0";
+        v["method"] = method;
+        ns::to_json(v["params"], params);
+        return v.dump();
+    }
+    template<typename T>
+    static String ResponseMessageStr(integer requestid, const T& Object)
+    {
+        json Json;
+        {
+            Json["jsonrpc"] = "2.0";
+            Json["id"] = requestid;
+            ns::to_json(Json["result"], Object);
+        }
+        return Json.dump();
+    }
+    static String ResponseErrorStr(integer requestid, const ResponseError& Error)
+    {
+        json Json;
+        {
+            Json["jsonrpc"] = "2.0";
+            Json["id"] = requestid;
+            ns::to_json(Json["error"], Error);
+        }
+        return Json.dump();
+    }
+    //
+    template<typename T>
+    static SeverPacket RequestMessage(integer id, const String& method, const T& params)
+    {
+        SeverPacket r;
+        r._Data = RequestMessageStr(id, method, params);
+        return r;
+    }
+
+    template<typename T>
+    static SeverPacket ResponseMessage(integer requestid, const T& Object)
+    {
+        SeverPacket r;
+        r._Data = ResponseMessageStr(requestid, Object);
+        return r;
+    }
+
+    template<typename T>
+    static SeverPacket NotificationMessage(integer requestid, const T& Object)
+    {
+        SeverPacket r;
+        r._Data = NotificationMessageStr(requestid, Object);
+        return r;
+    }
+  
+    
+    static SeverPacket ResponseError(integer requestid, const ResponseError& Error)
+    {
+        SeverPacket r;
+        r._Data = ResponseErrorStr(requestid,Error);
+        return r;
+    }
+
+    struct NotificationMessage_t
+    {
+        /**
+      * The method to be invoked.
+      */
+        String method;
+
+        /**
+     * The method's params.
+     */
+        json params;
+    };
+    struct RequestMessage_t
+    {
+        /**
+     * The request id.
+     */
+        integer id;
+        /**
+      * The method to be invoked.
+      */
+        String method;
+
+        /**
+     * The method's params.
+     */
+        json params;
+    };
+    struct ResponseMessage_t
+    {/**
+	 * The request id.
+	 */
+        integer id;
+
+        /**
+     * The result of a request. This member is REQUIRED on success.
+     * This member MUST NOT exist if there was an error invoking the method.
+     */
+        Optional<json> result;
+
+        /**
+     * The error object in case a request fails.
+     */
+        Optional<UCodeLanguageSever::ResponseError> error;
+    };
+
+    struct ParsedPacket
+    {
+        String jsonrpc;
+        Variant<NotificationMessage_t, RequestMessage_t, ResponseMessage_t> Type;
+    };
+    Optional<ParsedPacket> Parse() const
+    {
+        ParsedPacket r;
+        json Values = json::parse(_Data);
+
+        if (!Values.contains("jsonrpc")) { return {}; }
+        r.jsonrpc = Values["jsonrpc"].get<String>();
+        if (r.jsonrpc != "2.0") { return{}; }
+        if (Values.contains("id") &&  (Values.contains("result") || Values.contains("error")))
+        {
+            ResponseMessage_t v;
+            v.id = Values.at("id").get<integer>();
+
+            if (Values.contains("result"))
+            {
+                v.result = Values["result"];
+            }
+            else
+            {
+                ns::from_json(Values["error"], v.result);
+            }
+
+            r.Type = std::move(v);
+            return r;
+        }
+        else if (Values.contains("id") && Values.contains("method"))
+        {
+            RequestMessage_t v;
+            v.id = Values.at("id").get<integer>();
+
+            v.method = Values.at("method").get<String>();
+
+
+            v.params = Values["params"];
+
+
+            r.Type = std::move(v);
+            return r;
+        }
+        else if (Values.contains("method"))
+        {
+            NotificationMessage_t v;
+            v.method = Values.at("method").get<String>();
+
+
+            v.params = Values["params"];
+
+
+            r.Type = std::move(v);
+            return r;
+        }
+        return {};
+    }
 };
 
 
@@ -84,6 +263,44 @@ struct ClientPacket
             return r;
         }
         return {};
+    }
+
+    template<typename T>
+    static String RequestMessageStr(integer id, const String& method, const T& params)
+    {
+        return SeverPacket::RequestMessageStr(id, method, params);
+    }
+    template<typename T>
+    static String NotificationMessageStr(const String& method, const T& params)
+    {
+        return SeverPacket::NotificationMessageStr(method, params);
+    }
+
+    template<typename T>
+    static ClientPacket RequestMessage(integer id,const String& method,const T& params)
+    {
+     
+        ClientPacket r;
+        r._Data = RequestMessageStr(id, method, params);
+        return r;
+    }
+
+    template<typename T>
+    static ClientPacket NotificationMessage(const String& method, const T& params)
+    {
+        ClientPacket r;
+        r._Data = NotificationMessageStr(method, params);
+        return r;
+    }
+    using NotificationMessage_t = SeverPacket::NotificationMessage_t;
+    using RequestMessage_t = SeverPacket::RequestMessage_t;
+    using ResponseMessage_t = SeverPacket::ResponseMessage_t;
+    using ParsedPacket = SeverPacket::ParsedPacket;
+    Optional<ParsedPacket> Parse() const
+    {
+        SeverPacket p;
+        p._Data = _Data;
+        return p.Parse();
     }
 };
 
@@ -136,9 +353,11 @@ public:
     {
         Runing = false;
     }
-  
+    int ProcessExitCode = 2;
 private:
     bool Runing = true;
+    bool IsInitialized = false;
+    bool IsShutdown = false;
     std::mutex _ClientInputLock;
     Vector<ClientPacket> _ClientPackets; 
     
@@ -151,54 +370,31 @@ private:
 
     // ResponseMessage
     template<typename T>
-    void SendResponseMessageToClient(const T& Object)
+    void SendResponseMessageToClient(integer requestid, const T& Object)
     {
-        json Json;
-        {
-            Json["jsonrpc"] = "2.0";
-            ns::to_json(Json["result"],Object);
-        }
-
-
-        SeverPacket packet;
-        packet._Data = Json.dump();
-        SendPacketToClient(std::move(packet));
+        SendPacketToClient(SeverPacket::ResponseMessage(requestid,Object));
     }
 
     // ResponseMessage
     void SendResponseErrorToClient(integer requestid,const ResponseError& Error)
     {
-        json Json;
-        {
-            Json["jsonrpc"] = "2.0";
-            Json["id"] = requestid;
-            ns::to_json(Json["error"],Error);
-        }
-
-
-        SeverPacket packet;
-        packet._Data = Json.dump();
-        SendPacketToClient(std::move(packet));
+        SendPacketToClient(SeverPacket::ResponseError(requestid, Error));
     }
 
     template<typename T>
     void SendMethodToClient(const String& method, const T& params)
     {
-        json Json;
-        {
-            Json["jsonrpc"] = "2.0";
-            Json["id"] = Test++;
-            Json["method"] = method;
-            ns::to_json(Json["params"], params);
-        }
-
-
-        SeverPacket packet;
-        packet._Data = Json.dump();
-        SendPacketToClient(std::move(packet));
+        SendPacketToClient(SeverPacket::RequestMessage(Test++,method,params));
     }
-    //
+
+    //https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#initialize
     void Sever_initialize(integer  requestid, const json& params);
+
+    //https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#shutdown
+    void Sever_Shutdown(integer  requestid, const json& params);
+
+    //https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#exit
+    void Sever_Exit(const json& params);
 
     void textDocument_definition(integer requestid, const json& params);
    
