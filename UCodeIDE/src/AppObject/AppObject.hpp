@@ -23,6 +23,8 @@ public:
 	void Init();
 	void OnDraw();
 
+	void ProcessSeverPackets();
+
 	static void ShowInFiles(const Path& path);
 
 	void ShowUCodeVMWindow();
@@ -46,13 +48,82 @@ private:
 	void OnAppEnd();
 	bool _IsAppRuning = false;
 
+	using CPacket = UCodeLanguageSever::ClientPacket;
+	using SPacket = UCodeLanguageSever::SeverPacket;
+	using RequestCallBack = std::function<void(SPacket::ResponseMessage_t)>;
 
+	UCodeLanguageSever::integer _RequestID = 1;
+	UCodeLanguageSever::integer Get_NewRequestID()
+	{
+		return _RequestID++;
+	}
+	void SendPacket(CPacket&& packet)
+	{
+		if (this->SeverPtr)
+		{
+			this->SeverPtr->_Sever.AddPacket(std::move(packet));
+		}
+	}
+	void OnSeverPacket(SPacket&& packet);
+
+	struct RequestInfo
+	{
+		UCodeLanguageSever::integer RequestID;
+		AppObject* This = nullptr;
+
+		void SetCallBack(RequestCallBack CallBack)
+		{
+			This->SetRequestCallBack(RequestID, CallBack);
+		}
+	};
+
+	template<typename T>
+	RequestInfo SendNewRequestMessage(const String& method, const T& params)
+	{
+		RequestInfo r;
+		r.RequestID = Get_NewRequestID();
+		r.This = this;
+		SendPacket(CPacket::RequestMessage(r.RequestID, method, params));
+		return r;
+	}
+
+	template<typename T>
+	void SendNotificationMessage(const String& method, const T& params)
+	{
+		SendPacket(CPacket::NotificationMessage(method, params));
+	}
+
+	RequestInfo SendInitializeRequest(const UCodeLanguageSever::InitializeParams& Pars)
+	{
+		return SendNewRequestMessage("initialize", Pars);
+	}
+
+	///The shutdown request is sent from the client to the server. 
+	//It asks the server to shut down, but to not exit 
+	//(otherwise the response might not be delivered correctly to the client).
+	RequestInfo SendShutdoneRequest()
+	{
+		return SendNewRequestMessage("shutdown", UCodeLanguageSever::TsNull());
+	}
+
+	//A notification to ask the server to exit its process.
+	void SendExitNotification()
+	{
+		SendNotificationMessage("exit", UCodeLanguageSever::TsNull());
+	}
 
 	TextEditor _Editor;
 	String GetTextEditorString()
 	{
 		return _Editor.GetText();
 	}
+	struct OnGoingRequest
+	{
+		UCodeLanguageSever::integer RequestID;
+		RequestCallBack CallBack;
+	};
+	UCodeLang::BinaryVectorMap<UCodeLanguageSever::integer, OnGoingRequest> RequestCallBacks;
+	void SetRequestCallBack(UCodeLanguageSever::integer RequestID, RequestCallBack CallBack);
 
 	//SandBox
 	SandBoxLanguageSever* SeverPtr = nullptr;

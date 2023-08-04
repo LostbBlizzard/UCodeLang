@@ -68,21 +68,22 @@ void UCodeIDEStyle(ImGuiStyle* dst)
 
 }
 
-
+namespace LS = UCodeLanguageSever;
 
 void AppObject::Init()
 {
-	if (!_IsAppRuning) {
-		_IsAppRuning = true;
+    if (!_IsAppRuning) {
+        _IsAppRuning = true;
 
 
         _LangSeverThread = std::make_unique<std::thread>([this]()
-        {
+            {
                 SandBoxLanguageSever SandBox;
                 this->SeverPtr = &SandBox;
                 while (SandBox._Sever.Step());
                 this->SeverPtr = nullptr;
-        });
+            });
+
 
         TextEditor::LanguageDefinition Def;
         Def.mName = "UCodeLang";
@@ -97,7 +98,7 @@ void AppObject::Init()
         _Editor.SetShowWhitespaces(false);
         //_Editor.SetLanguageDefinition(Def);
 
-		UCodeIDEStyle(nullptr);
+        UCodeIDEStyle(nullptr);
         _Editor.SetText(
             R"(
 
@@ -126,6 +127,8 @@ $Result<T,E> enum:
  Error[E err],
 
 $OpInt = int?;//make type.
+$Opbool = bool?;//make type.
+$Opchar = char?;//make type.
 
 //inlined enum variant: X || Y || Z
 /*
@@ -177,13 +180,28 @@ $Span<T>:
 
 */
             )");
+
+
+
+
         CompileText(GetTextEditorString());
-        
+
 
         _AnyInterpreter.SetAsInterpreter();
         _AnyInterpreter.Init(&_RunTimeState);
         ImguiHelper::_Ptr = _AnyInterpreter.GetPtr();
-	}
+
+
+        {
+            LS::InitializeParams p;
+            p.processId = LS::TsNull();
+            SendInitializeRequest(p)
+                .SetCallBack([](SPacket::ResponseMessage_t info)
+                    {
+
+                    });
+        }
+    }
 }
 void BeginDockSpace(bool* p_open)
 {
@@ -270,6 +288,8 @@ void EndDockSpace()
 
 void AppObject::OnDraw()
 {
+    ProcessSeverPackets();
+
     bool Doc = true;
     BeginDockSpace(&Doc);
 
@@ -955,6 +975,18 @@ void AppObject::OnDraw()
     EndDockSpace();
 }
 
+void AppObject::ProcessSeverPackets()
+{
+    if (this->SeverPtr)
+    {
+        auto Packets = this->SeverPtr->_Sever.GetPackets();
+        for (auto& Item : Packets)
+        {
+            OnSeverPacket(std::move(Item));
+        }
+    }
+}
+
 void AppObject::ShowInFiles(const Path& path)
 {
    
@@ -1586,6 +1618,13 @@ void AppObject::OnRuntimeUpdated()
     callFuncContext._LastRetType = UCodeLang::ReflectionTypeInfo();
 }
 
+void AppObject::SetRequestCallBack(UCodeLanguageSever::integer RequestID, RequestCallBack CallBack)
+{
+    auto& Item = RequestCallBacks[RequestID];
+    Item.RequestID = RequestID;
+    Item.CallBack = CallBack;
+}
+
 void AppObject::OnErrorListUpdated()
 {
     TextEditor::ErrorMarkers marks;
@@ -1692,8 +1731,49 @@ void AppObject::OnAppEnd()
 {
     if (_LangSeverThread) 
     {
-        SeverPtr->_Sever.StopRuning();
+        bool IsShutingDown = false;
+        SendShutdoneRequest().SetCallBack([&IsShutingDown,this](auto Unused)
+            { 
+                IsShutingDown = true;
+                SendExitNotification();
+            });
+
+        while (IsShutingDown == false)
+        {
+            ProcessSeverPackets();
+        }
+        
         _LangSeverThread->join();
+    }
+}
+void AppObject::OnSeverPacket(SPacket&& packet)
+{
+    auto DataOp = packet.Parse();
+    if (DataOp.has_value())
+    {
+        auto& Data = DataOp.value();
+        if (auto Val = Data.Type.Get_If<SPacket::RequestMessage_t>())
+        {
+
+        }
+        else  if (auto Val = Data.Type.Get_If<SPacket::NotificationMessage_t>())
+        {
+
+        }
+        else if (auto Val = Data.Type.Get_If<SPacket::ResponseMessage_t>())
+        {
+            if (RequestCallBacks.HasValue(Val->id))
+            {
+                auto& Item = RequestCallBacks.at(Val->id);
+                if (Item.CallBack)
+                {
+                    Item.CallBack(*Val);
+                }
+
+                RequestCallBacks.erase(Val->id);
+            }
+
+        }
     }
 }
 UCodeIDEEnd

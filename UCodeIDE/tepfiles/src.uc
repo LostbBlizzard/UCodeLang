@@ -26,6 +26,7 @@ $Result<T,E> enum:
 
 $OpInt = int?;//make type.
 $Opbool = bool?;//make type.
+$Opchar = char?;//make type.
 
 //inlined enum variant: X || Y || Z
 /*

@@ -2,6 +2,16 @@
 #include <unordered_map>
 #include <functional>
 LanguageSeverStart
+
+#define InitializeCheck() if (IsInitialized== false){ResponseError e;\
+	e.code = (integer)ErrorCodes::ServerNotInitialized;\
+	SendResponseErrorToClient(requestid, e); return;}\
+
+#define ShutdownCheck() if (IsShutdown == true) { \
+	ResponseError e; \
+	e.code = (integer)ErrorCodes::InvalidRequest; \
+	SendResponseErrorToClient(requestid, e); return;}\
+
 const char NameCharList[] = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890,.':/\\";
 bool IsInNameCharList(char Value)
 {
@@ -77,13 +87,19 @@ Optional<SeverPacket> SeverPacket::Stream(StreamState& State, char Char)
 struct LanguageSeverFuncMap
 {
 
-	using Func = void(LanguageSever::*)(integer  requestid, const json& Params);
-	inline static const std::unordered_map<String, Func> LanguageFuncs
+	using RequestFunc = void(LanguageSever::*)(integer  requestid, const json& Params);
+	using NotificationFunc = void(LanguageSever::*)(const json& Params);
+	inline static const std::unordered_map<String, RequestFunc> RequestFuncs
 	{
 		{"initialize",&LanguageSever::Sever_initialize},
+		{"shutdown",&LanguageSever::Sever_Shutdown},
 		{"textDocument/definition",&LanguageSever::textDocument_definition},
 		{"textDocument/hover",&LanguageSever::textDocument_hover},
 		{"textDocument/rename",&LanguageSever::textDocument_rename},
+	};
+	inline static const std::unordered_map<String, NotificationFunc> NotificationFuncs
+	{
+		{"exit",&LanguageSever::Sever_Exit},
 	};
 };
 
@@ -123,31 +139,72 @@ bool LanguageSever::Step()
 }
 void LanguageSever::OnReceivedPacket(const ClientPacket& Item)
 {
-	json Values = json::parse(Item._Data);
-	auto jsonrpcV = Values["jsonrpc"].get<String>();
+	auto dataOp = Item.Parse();
 
-	auto IDV = Values["id"].get<integer>();
-
-	auto Method = Values["method"].get<String>();
-
-	json params = Values["params"];
-
-	if (LanguageSeverFuncMap::LanguageFuncs.count(Method))
+	if (dataOp.has_value())
 	{
-		auto FuncPtr = LanguageSeverFuncMap::LanguageFuncs.at(Method);
-		(*this.*FuncPtr)(IDV,params);
+		auto& data = dataOp.value();
+
+		if (auto Val = data.Type.Get_If<ClientPacket::RequestMessage_t>())
+		{
+			if (LanguageSeverFuncMap::RequestFuncs.count(Val->method))
+			{
+				auto FuncPtr = LanguageSeverFuncMap::RequestFuncs.at(Val->method);
+				(*this.*FuncPtr)(Val->id, Val->params);
+			}
+			else
+			{
+				ResponseError err;
+				err.code = (integer)ErrorCodes::MethodNotFound;
+				SendResponseErrorToClient(Val->id,err);
+			}
+		}
+		else  if (auto Val = data.Type.Get_If<ClientPacket::NotificationMessage_t>())
+		{
+			if (LanguageSeverFuncMap::NotificationFuncs.count(Val->method))
+			{
+				auto FuncPtr = LanguageSeverFuncMap::NotificationFuncs.at(Val->method);
+				(*this.*FuncPtr)(Val->params);
+			}
+		}
+		else if (auto Val = data.Type.Get_If<ClientPacket::ResponseMessage_t>())
+		{
+
+		}
+
+
+		
 	}
+
+}
+
+void LanguageSever::Sever_Shutdown(integer requestid, const json& params)
+{
+	IsShutdown = true;
+	 
+
+	SendResponseMessageToClient(requestid, TsNull());
+}
+void LanguageSever::Sever_Exit(const json& params)
+{
+	StopRuning();
+	ProcessExitCode = 0;
 
 }
 void LanguageSever::textDocument_definition(integer  requestid,const json& Params)
 {
-
+	InitializeCheck(); ShutdownCheck();
 }
 void LanguageSever::textDocument_hover(integer  requestid, const json& params)
 {
+
+	InitializeCheck(); ShutdownCheck();
 }
 void LanguageSever::textDocument_rename(integer  requestid, const json& params)
 {
+
+	InitializeCheck(); ShutdownCheck();
+	
 }
 
 //
@@ -162,34 +219,18 @@ void LanguageSever::window_logMessage(MessageType Type, String MSg)
 }
 void LanguageSever::Sever_initialize(integer requestid, const json& Params)
 {
+	InitializeParams params;
+	ns::from_json(Params, params);
+	
 	InitializeResult V;
-	//V.capabilities.positionEncoding = PositionEncodingkind::PositionEncodingKind8;
+	V.capabilities.positionEncoding = PositionEncodingkind::PositionEncodingKind8;
 	V.capabilities.hoverProvider = true;
 
 
-	ResponseError Err;
-	Err.code = (integer)ErrorCodes::InternalError;
-	Err.message = "Testing";
-	SendResponseErrorToClient(requestid, Err);
-	//SendResponseMessageToClient(V);
+	
+	SendResponseMessageToClient(requestid,V);
 
-	/*
-	{
-		json Json;
-		{
-			Json["jsonrpc"] = "2.0";
-			Json["method"] = "initialized";
-			Json["params"] = json::object();
-		}
-
-
-		SeverPacket packet;
-		packet._Data = Json.dump();
-		SendPacketToClient(std::move(packet));
-
-	}
-	*/
-
+	IsInitialized = false;
 	//window_logMessage(MessageType::Log, "Hello World Sever Side");
 }
 LanguageSeverEnd
