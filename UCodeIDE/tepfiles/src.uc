@@ -2,9 +2,8 @@
 
 |main[] => 0;
 
-
-int f = 5;
-int a = 8;
+int v = 0;
+int a =0;
 //A simplified standard Library below.
 
 $Vec2:

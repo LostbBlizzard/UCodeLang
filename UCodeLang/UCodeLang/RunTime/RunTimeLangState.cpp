@@ -286,6 +286,14 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 		{
 			return _Size;
 		}
+		Vector<Byte> CopyAsVector()
+		{
+			Vector<Byte> r;
+			r.resize(_Size);
+			memcpy(r.data(), _Ptr, _Size);
+
+			return r;
+		}
 
 		~UBytePtr()
 		{
@@ -317,6 +325,8 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 	struct GlobalInfo
 	{
 		UBytePtr NewStaticMem;
+		Vector<Byte> ReadOnlyStaticMem;
+
 		VectorMap<String,StaticObjectInfo> StaticObjectsInfo;
 		VectorMap<String,ThreadObjectInfo> ThreadObjectsInfo;
 
@@ -326,6 +336,8 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 	{
 		BytesView RunTimeThreadValues;
 		UBytePtr NewThreadMem;
+
+		Vector<Byte> ReadOnlyThreadMem;
 
 		AnyInterpreterPtr _Ptr;
 	};
@@ -409,6 +421,7 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 		GlobalInfo.NewStaticMem.SetState(this);
 		GlobalInfo.NewStaticMem.Resize(RunTimeStaticBytes.size());
 		
+
 		for (auto& Item : RunTimeDebugInfo.VarablesInfo)
 		{
 			if (auto Val =Item._Value.TypeLoc.Get_If<VarableInfo::Static>())
@@ -470,9 +483,13 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 			
 			for (auto& InterpreterV : Item.Interpreters)
 			{
+				const auto& NewThreadBytes = Lib.LibToUpdate->Get_Lib()->Get_ThreadBytes();
 				InterpreterLocal Val;
 				Val.NewThreadMem.SetState(this);
+				
+				//this is wrong
 				Val.NewThreadMem.Resize(LibInfo.NewThreadOffset);
+				memcpy((Byte*)Val.NewThreadMem.Data(), NewThreadBytes.data(), NewThreadBytes.size());
 				
 				switch (InterpreterV.Type)
 				{
@@ -498,9 +515,15 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 
 				Val.RunTimeThreadValues = BytesView::Make((Byte*)Val._Ptr.GetThreadPtr(),Get_Libs().GetThreadBytes().size());
 
+
+				Val.ReadOnlyThreadMem = Val.NewThreadMem.CopyAsVector();
+
 				LibInfo.InterpreterLocals.push_back(std::move(Val));
+
 			}
 		}
+
+		GlobalInfo.ReadOnlyStaticMem = GlobalInfo.NewStaticMem.CopyAsVector();
 		
 	}
 
@@ -522,7 +545,7 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 				bool IsTypeTheSame = true;
 
 				void* NewObject =(void*)((uintptr_t)NewBasePtr + NewState.Offset);
-				void* OldObject =(void*)((uintptr_t)OldBasePtr + NewState.Offset);
+				void* OldObject =(void*)((uintptr_t)OldBasePtr + OldState.Offset);
 
 				if (IsTypeTheSame)
 				{
@@ -647,11 +670,23 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 			}
 		}
 		this->_Data.Get_DebugInfo() =std::move(GlobalInfo.NewDebugInfo);
+
+		_Data.StaticBytes = GlobalInfo.ReadOnlyStaticMem;
+		_Data.ThreadBytes = LibsInfo[0].InterpreterLocals[0].ReadOnlyThreadMem;
 	}
-	for (auto& Lib : Item.LibsToUpdate)
+
+	for (auto& runtimelib : _Data.Libs)
 	{
-		
+		for (auto& Lib : Item.LibsToUpdate)
+		{
+			if (Lib.LibToUpdate == runtimelib)
+			{
+				runtimelib = Lib.LibToUpdate; break;
+			}
+		}
 	}
+
+	
 	return true;
 }
 

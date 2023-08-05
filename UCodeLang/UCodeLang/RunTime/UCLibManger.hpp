@@ -5,9 +5,11 @@
 #include "Jit/Jit.hpp"
 UCodeLangStart
 
+class RunTimeLangState;
 class UCLibManger
 {
 public:
+	friend RunTimeLangState;//for hot reloading
 	UCLibManger();
 	~UCLibManger();
 
