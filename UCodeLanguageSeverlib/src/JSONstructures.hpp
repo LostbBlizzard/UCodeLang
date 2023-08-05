@@ -303,12 +303,6 @@ struct DiagnosticRelatedInformation {
 	string message;
 };
 
-struct CodeDescription {
-	/**
-	 * An URI to open with more information about the diagnostic error.
-	 */
-	URI href;
-};
 
 struct Command
 {
@@ -427,7 +421,12 @@ struct LocationLink
 	 */
 	Range targetSelectionRange;
 };
-
+struct CodeDescription {
+	/**
+	 * An URI to open with more information about the diagnostic error.
+	 */
+	URI href;
+};
 struct  Diagnostic {
 	/**
 	 * The range at which the message applies.
@@ -934,7 +933,27 @@ struct InitializeParams
 	 */
 
 	TypePredicates<integer, TsNull> processId;
+}; 
+struct PublishDiagnosticsParams {
+	/**
+	 * The URI for which diagnostic information is reported.
+	 */
+	DocumentUri uri;
+
+	/**
+	 * Optional the version number of the document the diagnostics are published
+	 * for.
+	 *
+	 * @since 3.15.0
+	 */
+	Optional<integer> version;
+
+	/**
+	 * An array of diagnostic information items.
+	 */
+	Vector<Diagnostic> diagnostics;
 };
+
 
 LanguageSeverEnd
 

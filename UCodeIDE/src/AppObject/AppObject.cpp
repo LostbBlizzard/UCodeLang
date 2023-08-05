@@ -289,6 +289,20 @@ inline const UCodeLang::String UCodeLang_UCAppDir_Test_UCodeFiles = UCodeLang_UC
 inline const UCodeLang::String UCodeLang_UCAppDir_Test_OutputFiles = UCodeLang_UCAppDir_TestDir + "UCodeFiles/Output/";
 #endif // DEBUG
 
+struct AppClientFuncMap
+{
+
+    using RequestFunc = void(AppObject::*)(LS::integer  requestid, const LS::json& Params);
+    using NotificationFunc = void(AppObject::*)(const LS::json& Params);
+    inline static const std::unordered_map<String, RequestFunc> RequestFuncs
+    {
+        
+    };
+    inline static const std::unordered_map<String, NotificationFunc> NotificationFuncs
+    {
+        {"textDocument/publishDiagnostics",&AppObject::OnPublishDiagnostics},
+    };
+};
 
 void EndDockSpace()
 {
@@ -326,11 +340,24 @@ void AppObject::OnDraw()
     if (ImGui::Begin("Error List"))
     {
         ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.50f);
-        //ImGui::ListBoxHeader("Errors");
+        //ImGui::ListBoxHeader("Errors");  
+        
+        for (auto& item : PublishedDiagnostics.diagnostics)
+        {
+            String label = "LSP:" + item.message;
+            if (ImGui::Selectable(label.c_str(), false))
+            {
+                auto text = GetTextEditorString();
+
+
+                _Editor.SetCursorPosition(TextEditor::Coordinates(item.range.start.line, item.range.start.character));
+                // handle selection
+            }
+        }
         for (auto& item : Errors)
         {
-
-            if (ImGui::Selectable(item._Error._Msg.c_str(), item.IsSelected))
+            String label = "Compier:" + item._Error._Msg;
+            if (ImGui::Selectable(label.c_str(), item.IsSelected))
             {
                 auto text = GetTextEditorString();
 
@@ -339,6 +366,7 @@ void AppObject::OnDraw()
                 // handle selection
             }
         }
+      
         //ImGui::EndListBox();
 
 
@@ -1653,6 +1681,15 @@ void AppObject::OnRuntimeUpdated()
     callFuncContext._LastRetType = UCodeLang::ReflectionTypeInfo();
 }
 
+void AppObject::OnPublishDiagnostics(const UCodeLanguageSever::json& Params)
+{
+    LS::PublishDiagnosticsParams params;
+    ns::from_json(Params, params);
+
+    PublishedDiagnostics = std::move(params);
+    OnErrorListUpdated();
+}
+
 void AppObject::SetRequestCallBack(UCodeLanguageSever::integer RequestID, RequestCallBack CallBack)
 {
     auto& Item = RequestCallBacks[RequestID];
@@ -1666,6 +1703,10 @@ void AppObject::OnErrorListUpdated()
     for (auto& Item : Errors)
     {
         marks[Item._Error.Line] = Item._Error._Msg;
+    }
+    for (auto& Item : PublishedDiagnostics.diagnostics)
+    {
+        marks[Item.range.start.line] = Item.message;
     }
     _Editor.SetErrorMarkers(marks);
 }
@@ -1795,11 +1836,19 @@ void AppObject::OnSeverPacket(SPacket&& packet)
         auto& Data = DataOp.value();
         if (auto Val = Data.Type.Get_If<SPacket::RequestMessage_t>())
         {
-
+            if (AppClientFuncMap::RequestFuncs.count(Val->method))
+            {
+                auto func = AppClientFuncMap::RequestFuncs.at(Val->method);
+                (*this.*func)(Val->id,Val->params);
+            }
         }
         else  if (auto Val = Data.Type.Get_If<SPacket::NotificationMessage_t>())
         {
-
+            if (AppClientFuncMap::NotificationFuncs.count(Val->method))
+            {
+                auto func = AppClientFuncMap::NotificationFuncs.at(Val->method);
+                (*this.*func)(Val->params);
+            }
         }
         else if (auto Val = Data.Type.Get_If<SPacket::ResponseMessage_t>())
         {

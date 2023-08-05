@@ -104,10 +104,10 @@ struct SeverPacket
     }
 
     template<typename T>
-    static SeverPacket NotificationMessage(integer requestid, const T& Object)
+    static SeverPacket NotificationMessage(const String& method, const T& Object)
     {
         SeverPacket r;
-        r._Data = NotificationMessageStr(requestid, Object);
+        r._Data = NotificationMessageStr(method,Object);
         return r;
     }
   
@@ -388,6 +388,12 @@ private:
         SendPacketToClient(SeverPacket::RequestMessage(Test++,method,params));
     }
 
+    template<typename T>
+    void SendNotificationMessageToClient(const String& method, const T& params)
+    {
+        SendPacketToClient(SeverPacket::NotificationMessage(method, params));
+    }
+
     //https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#initialize
     void Sever_initialize(integer  requestid, const json& params);
 
@@ -407,13 +413,24 @@ private:
 
     void textDocument_rename(integer requestid, const json& params);
 
-    //
+    
+    //Send
+    void Send_PublishDiagnostics_ToClient(const PublishDiagnosticsParams& params)
+    {
+        SendNotificationMessageToClient("textDocument/publishDiagnostics", params);
+    }
     void window_logMessage(MessageType Type, String MSg);
+
+    static Position GetPosition(StringView text, size_t CharIndex, size_t Line);
     size_t Test = 1;
 
     UCodeAnalyzer::Language_Server BaseSever;
     UCodeAnalyzer::Fileidentifier Cast(const  UCodeLanguageSever::DocumentUri& Item);
     UCodeLanguageSever::DocumentUri Cast(const  UCodeAnalyzer::Fileidentifier& Item);
+
+    UCodeLang::Vector<UCodeLang::CompliationErrors::Error> _ClientSideErrorsList;
+
+    void UpdateClientErrorList();
 };
 
 LanguageSeverEnd

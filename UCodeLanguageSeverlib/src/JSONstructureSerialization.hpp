@@ -306,4 +306,104 @@ namespace ns
 
 		to_json(Json["contentChanges"], Object.contentChanges);
 	}
+
+	inline void from_json(const json& Json, UCL::DiagnosticSeverity& Object)
+	{
+		
+		auto V = Json.get<UCL::String>();
+		if (V == "Error")
+		{
+			Object = UCL::DiagnosticSeverity::Error;
+		}
+		else if (V == "Warning")
+		{
+			Object = UCL::DiagnosticSeverity::Warning;
+		}
+		else if (V == "Information")
+		{
+			Object = UCL::DiagnosticSeverity::Information;
+		}
+		else if (V == "Hint")
+		{
+			Object = UCL::DiagnosticSeverity::Hint;
+		}
+	}
+	inline void to_json(json& Json, const UCL::DiagnosticSeverity& Object)
+	{
+		switch (Object)
+		{
+		case UCL::DiagnosticSeverity::Error:
+			Json = "Error";
+			break;
+		case UCL::DiagnosticSeverity::Warning:
+			Json = "Warning";
+			break;
+		case UCL::DiagnosticSeverity::Information:
+			Json = "Information";
+			break;
+		case UCL::DiagnosticSeverity::Hint:
+			Json = "Hint";
+			break;
+		default:
+			break;
+		}
+	}
+
+	inline void from_json(const json& Json, UCL::Diagnostic& Object)
+	{
+		from_json(Json["range"], Object.range);
+
+		//from_json(Json, "severity", Object.severity);
+
+		from_json(Json,"code", Object.code);
+
+		//from_json(Json, "codeDescription", Object.codeDescription);
+
+		//from_json(Json, "source", Object.source);
+		
+		from_json(Json["message"], Object.message);
+
+		//from_json(Json,"tags", Object.tags);
+
+		//from_json(Json, "relatedInformation", Object.relatedInformation);
+
+		//from_json(Json,"data", Object.data);
+	}
+	inline void to_json(json& Json, const UCL::Diagnostic& Object)
+	{
+		to_json(Json["range"], Object.range);
+
+		//to_jsonOp(Object.severity,"severity", Json);
+
+		to_jsonOp(Object.code, "code", Json);
+
+		//to_jsonOp(Object.codeDescription, "codeDescription", Json);
+
+		//to_jsonOp(Object.source, "source", Json);
+
+		to_json(Json["message"],Object.message);
+
+		//to_jsonOp(Object.tags, "tags", Json);
+
+		//to_jsonOp(Object.relatedInformation, "relatedInformation", Json);
+
+		//to_jsonOp(Object.data, "data", Json);
+	}
+
+	inline void from_json(const json& Json, UCL::PublishDiagnosticsParams &Object)
+	{
+		from_json(Json["uri"], Object.uri);
+
+		from_json(Json, "version", Object.version);
+
+		from_json(Json["diagnostics"], Object.diagnostics);
+	}
+	inline void to_json(json& Json, const UCL::PublishDiagnosticsParams& Object)
+	{
+		to_json(Json["uri"], Object.uri);
+
+		to_jsonOp(Object.version, "version", Json);
+
+		to_json(Json["diagnostics"], Object.diagnostics);
+	}
 }

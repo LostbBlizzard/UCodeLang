@@ -148,6 +148,10 @@ bool LanguageSever::Step()
 			BaseSever.Step();
 		}
 	}
+
+	{
+		UpdateClientErrorList();
+	}
     return Runing;
 }
 void LanguageSever::OnReceivedPacket(const ClientPacket& Item)
@@ -237,7 +241,7 @@ void LanguageSever::textDocument_didChange(const json& Params)
 
 	auto& Ufile = BaseSever.GetFile(Cast(params.textDocument.uri));
 	
-	Ufile.IsUpdateingFile();
+
 	for (auto& Item : params.contentChanges)
 	{
 		if (auto val = Item.Get_If< TextDocumentContentChangeEventFilePart>())
@@ -248,7 +252,8 @@ void LanguageSever::textDocument_didChange(const json& Params)
 		{
 			Ufile.filetext = val->text;
 		}
-	}
+	}	
+	Ufile.UpdatedFileText();
 }
 void LanguageSever::textDocument_definition(integer  requestid,const json& Params)
 {
@@ -276,9 +281,133 @@ void LanguageSever::window_logMessage(MessageType Type, String MSg)
 
 	SendMethodToClient("window/logMessage", V);
 }
+Position LanguageSever::GetPosition(StringView text, size_t CharIndex, size_t Line)
+{
+	Position r;
+
+
+	size_t lineoffset = 0;
+	size_t linecount = 0;
+	for (size_t i = 0; i < text.size(); i++)
+	{
+		if (text[i] == '\n')
+		{
+			linecount++;
+		}
+
+		if (Line == linecount)
+		{
+			lineoffset++;
+		}
+
+		if (i == CharIndex)
+		{
+			break;
+		}
+	}
+	r.character = lineoffset;
+	r.line = linecount;
+
+	return r;
+}
 UCodeLanguageSever::DocumentUri LanguageSever::Cast(const UCodeAnalyzer::Fileidentifier& Item)
 {
 	return Item.generic_string();
+}
+void LanguageSever::UpdateClientErrorList()
+{
+	bool IsSame = _ClientSideErrorsList.size() == BaseSever.ErrorList.size();
+
+	if (IsSame)
+	{
+		for (size_t i = 0; i < BaseSever.ErrorList.size(); i++)
+		{
+			const auto& ErrorItem = BaseSever.ErrorList[i];
+			const auto& ClientErrorItem = _ClientSideErrorsList[i];
+
+			if (ErrorItem != ClientErrorItem)
+			{
+				IsSame = false;
+				break;
+			}
+		}
+	}
+
+	if (!IsSame)
+	{
+		_ClientSideErrorsList = BaseSever.ErrorList;
+
+		std::sort(_ClientSideErrorsList.begin(), _ClientSideErrorsList.end(), [](const UCodeLang::CompliationErrors::Error& A
+			, const UCodeLang::CompliationErrors::Error& B)
+			{
+				return A.File.native().size() > B.File.native().size();
+			});
+
+		Optional<URI> LastSet;
+		PublishDiagnosticsParams p;
+
+		if (_ClientSideErrorsList.size() == 0)
+		{
+			auto& files = BaseSever.GetFiles();
+			for (auto& file : files)
+			{
+				p.uri = Cast(file._Key);
+				Send_PublishDiagnostics_ToClient(std::move(p));
+			}
+		}
+
+
+		for (size_t i = 0; i < _ClientSideErrorsList.size(); i++)
+		{
+			auto& Item = _ClientSideErrorsList[i];
+
+			URI ItemUrl = Cast(Item.File);
+
+			UCodeAnalyzer::UCFile& f = BaseSever.GetFile(Item.File);
+
+			LastSet = ItemUrl;
+			Diagnostic V;
+			V.source = "UCodeLang";
+			V.range.start = GetPosition(f.filetext, Item.Pos, Item.Line);
+			V.range.end = V.range.start;
+			V.message = Item._Msg;
+
+			if (UCodeLang::CompliationErrors::IsError(Item._Code)) {
+				V.severity = DiagnosticSeverity::Error;
+			}
+			else if (UCodeLang::CompliationErrors::IsWarning(Item._Code)) {
+				V.severity = DiagnosticSeverity::Warning;
+			}
+			else if (UCodeLang::CompliationErrors::IsInfo(Item._Code)) {
+				V.severity = DiagnosticSeverity::Information;
+			}
+			else if (UCodeLang::CompliationErrors::IsHint(Item._Code)) {
+				V.severity = DiagnosticSeverity::Hint;
+			}
+
+			p.diagnostics.push_back(std::move(V));
+
+			UCodeLang::CompliationErrors::Error* NextErr = nullptr;
+			bool IsLast = &Item == &_ClientSideErrorsList.back();
+
+			if (!IsLast)
+			{
+				NextErr = &_ClientSideErrorsList[i + 1];
+			}
+
+			if (IsLast ||
+				(NextErr && ItemUrl != Cast(NextErr->File)))
+			{
+
+				p.uri = LastSet.value();
+				Send_PublishDiagnostics_ToClient(std::move(p));
+
+				p = PublishDiagnosticsParams();
+
+			}
+		}
+
+	}
 }
 UCodeAnalyzer::Fileidentifier LanguageSever::Cast(const UCodeLanguageSever::DocumentUri& Item)
 {
@@ -297,7 +426,7 @@ void LanguageSever::Sever_initialize(integer requestid, const json& Params)
 	
 	SendResponseMessageToClient(requestid,V);
 
-	IsInitialized = false;
+	IsInitialized = true;
 
 	BaseSever.init();
 	//window_logMessage(MessageType::Log, "Hello World Sever Side");
