@@ -228,7 +228,7 @@ Optional<Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>> ClassAssem
 	}
 	case ReflectionTypes::Uft16:
 	{
-		*(Utf32*)(Object) = Utf32();
+		*(Utf16*)(Object) = Utf16();
 
 		return  { {} };
 	}
@@ -358,17 +358,256 @@ Optional<Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>> ClassAssem
 }
 
 
-Optional<Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>> ClassAssembly::CallCopyConstructor(const ReflectionTypeInfo& Type, void* Object, void* Other, bool Is32Bit) const
+Optional<Optional<Vector<ClassAssembly::OnMoveConstructorCall>>> ClassAssembly::CallCopyConstructor(const ReflectionTypeInfo& Type,void* Source, void* Output, bool Is32Bit) const
 {
+	if (Type.IsAddress())
+	{
+		*(void**)(Output) = *(void**)Source;
+		return { {} };
+	}
+
+	switch (Type._Type)
+	{
+	case ReflectionTypes::sInt8:
+	{
+		*(Int8*)(Output) = *(Int8*)Source;
+
+		return  { {} };
+	}
+	break;
+	case ReflectionTypes::sInt16:
+	{
+		*(Int16*)(Output) = *(Int16*)Source;
+
+		return  { {} };
+	}
+	break;
+	case ReflectionTypes::sInt32:
+	{
+		*(Int32*)(Output) = *(Int32*)Source;
+
+		return  { {} };
+	}
+	break;
+	case ReflectionTypes::sInt64:
+	{
+		*(Int64*)(Output) = *(Int64*)Source;
+
+		return  { {} };
+	}
+	break;
+	case ReflectionTypes::uInt8:
+	{
+		*(UInt8*)(Output) = *(UInt8*)Source;
+
+		return  { {} };
+	}
+	break;
+	case ReflectionTypes::uInt16:
+	{
+		*(UInt16*)(Output) = *(UInt16*)Source;
+
+
+		return  { {} };
+	}
+	break;
+	case ReflectionTypes::uInt32:
+	{
+		*(UInt32*)(Output) = *(UInt32*)Source;
+
+
+		return  { {} };
+	}
+	break;
+	case ReflectionTypes::uInt64:
+	{
+		*(UInt64*)(Output) = *(UInt64*)Source;
+
+
+		return  { {} };
+	}
+	break;
+	case ReflectionTypes::Char:
+	{
+		*(char*)(Output) = *(char*)Source;
+
+
+		return  { {} };
+	}
+	case ReflectionTypes::Uft8:
+	{
+		*(Utf8*)(Output) = *(Utf8*)Source;
+
+
+		return  { {} };
+	}
+	case ReflectionTypes::Uft16:
+	{
+		*(Utf16*)(Output) = *(Utf16*)Source;
+
+		return  { {} };
+	}
+	case ReflectionTypes::Uft32:
+	{
+		*(Utf32*)(Output) = *(Utf32*)Source;
+
+		return  { {} };
+	}
+	case ReflectionTypes::Bool:
+	{
+		*(bool*)(Output) = *(bool*)Source;
+
+		return  { {} };
+	}
+	break;
+	case ReflectionTypes::float32:
+	{
+		*(float32*)(Output) = *(float32*)Source;
+
+		return  { {} };
+	}
+	case ReflectionTypes::float64:
+	{
+		*(float64*)(Output) = *(float64*)Source;
+
+		return  { {} };
+	}
+	case ReflectionTypes::CustomType:
+	{
+
+
+	}
+
+	}
 	return {};
 }
-Optional<Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>>  ClassAssembly::CallMoveConstructor(const ReflectionTypeInfo& Type, void* Object, void* Other, bool Is32Bit) const
+Optional<Optional<Vector<ClassAssembly::OnMoveConstructorCall>>>  ClassAssembly::CallMoveConstructor(const ReflectionTypeInfo& Type, void* Source, void* Output, bool Is32Bit) const
 {
+	//std::move for intent
+	if (Type.IsAddress())
+	{
+		*(void**)(Output) = std::move(*(void**)Source);
+		return { {} };
+	}
+
+	switch (Type._Type)
+	{
+	case ReflectionTypes::sInt8:
+	{
+		*(Int8*)(Output) =std::move(*(Int8*)Source);
+
+		return  { {} };
+	}
+	break;
+	case ReflectionTypes::sInt16:
+	{
+		*(Int16*)(Output) = std::move(*(Int16*)Source);
+
+		return  { {} };
+	}
+	break;
+	case ReflectionTypes::sInt32:
+	{
+		*(Int32*)(Output) = std::move(*(Int32*)Source);
+
+		return  { {} };
+	}
+	break;
+	case ReflectionTypes::sInt64:
+	{
+		*(Int64*)(Output) = std::move(*(Int64*)Source);
+
+		return  { {} };
+	}
+	break;
+	case ReflectionTypes::uInt8:
+	{
+		*(UInt8*)(Output) = std::move(*(UInt8*)Source);
+
+		return  { {} };
+	}
+	break;
+	case ReflectionTypes::uInt16:
+	{
+		*(UInt16*)(Output) = std::move(*(UInt16*)Source);
+
+
+		return  { {} };
+	}
+	break;
+	case ReflectionTypes::uInt32:
+	{
+		*(UInt32*)(Output) = std::move(*(UInt32*)Source);
+
+
+		return  { {} };
+	}
+	break;
+	case ReflectionTypes::uInt64:
+	{
+		*(UInt64*)(Output) = std::move(*(UInt64*)Source);
+
+
+		return  { {} };
+	}
+	break;
+	case ReflectionTypes::Char:
+	{
+		*(char*)(Output) = std::move(*(char*)Source);
+
+
+		return  { {} };
+	}
+	case ReflectionTypes::Uft8:
+	{
+		*(Utf8*)(Output) = std::move(*(Utf8*)Source);
+		
+
+		return  { {} };
+	}
+	case ReflectionTypes::Uft16:
+	{
+		*(Utf16*)(Output) = std::move(*(Utf16*)Source);
+
+		return  { {} };
+	}
+	case ReflectionTypes::Uft32:
+	{
+		*(Utf32*)(Output) = std::move(*(Utf32*)Source);
+
+		return  { {} };
+	}
+	case ReflectionTypes::Bool:
+	{
+		*(bool*)(Output) = std::move(*(bool*)Source);
+
+		return  { {} };
+	}
+	break;
+	case ReflectionTypes::float32:
+	{
+		*(float32*)(Output) = std::move(*(float32*)Source);
+		
+		return  { {} };
+	}
+	case ReflectionTypes::float64:
+	{
+		*(float64*)(Output) = std::move(*(float64*)Source);
+
+		return  { {} };
+	}
+	case ReflectionTypes::CustomType:
+	{
+
+
+	}
+
+	}
 	return {};
 }
 Optional<Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>> ClassAssembly::CallDestructor(const ReflectionTypeInfo& Type, void* Object, bool Is32Bit) const
 {
-	return {};
+	return { {} };
 }
 AssemblyNode::AssemblyNode(ClassType type) : Type(type)
 {

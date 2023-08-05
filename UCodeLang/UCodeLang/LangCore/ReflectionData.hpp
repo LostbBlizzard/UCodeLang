@@ -810,17 +810,24 @@ public:
 		const ClassMethod* MethodToCall = nullptr;
 		void* ThisPtr = nullptr;
 	};
+
+	struct OnMoveConstructorCall
+	{
+		const ClassMethod* MethodToCall = nullptr;
+		void* ThisPtr = nullptr;
+		void* OtherPtr = nullptr;
+	};
 	Optional<Optional<Vector<OnDoDefaultConstructorCall>>> CallDefaultConstructor(const ReflectionTypeInfo& Type, void* Object, bool Is32Bit) const;
 	
 	Optional<Optional<Vector<OnDoDefaultConstructorCall>>> CallDefaultConstructor(const ClassMethod::Par& Type, void* Object, bool Is32Bit) const;
 
 	//Get the CopyConstructor or directly does the operation if a Primitive.
 	//if the first Optional is empty the operation failed
-	Optional<Optional<Vector<OnDoDefaultConstructorCall>>> CallCopyConstructor(const ReflectionTypeInfo& Type,void* Object, void* Other, bool Is32Bit) const;
+	Optional<Optional<Vector<OnMoveConstructorCall>>> CallCopyConstructor(const ReflectionTypeInfo& Type, void* Source, void* Output, bool Is32Bit) const;
 
-	//Get the CopyConstructor or directly does the operation if a Primitive.
+	//Get the MoveConstructor or directly does the operation if a Primitive.
 	//if the first Optional is empty the operation failed
-	Optional<Optional<Vector<OnDoDefaultConstructorCall>>> CallMoveConstructor(const ReflectionTypeInfo& Type,void* Object, void* Other, bool Is32Bit) const;
+	Optional<Optional<Vector<OnMoveConstructorCall>>> CallMoveConstructor(const ReflectionTypeInfo& Type,void* Source, void* Output, bool Is32Bit) const;
 
 	//Get the Destructor or directly does the operation if a Primitive.
 	//if the first Optional is empty the operation failed

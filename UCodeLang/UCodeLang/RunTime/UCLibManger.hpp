@@ -82,6 +82,10 @@ public:
 	{
 		return _NameToAddress;
 	}
+	inline ULangDebugInfo& Get_DebugInfo()
+	{
+		return _DebugInfo;
+	}
 private:
 	VectorMap<String, UAddress> _NameToAddress;
 	VectorMap<String, RunTimeLib::CPPCall> _NameToCPP;

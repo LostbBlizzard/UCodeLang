@@ -258,30 +258,30 @@ public:
 		ReflectionTypeInfo Type;
 		void* Pointer =nullptr;
 	};
+	struct HotReloadLib
+	{
+		RunTimeLib* NewLib = nullptr;
+		RunTimeLib* LibToUpdate = nullptr;
+	};
 	struct HotReloadData
 	{
+		Vector<HotReloadLib> LibsToUpdate;
+
 		//pass in all UCode Objects.
 		Vector<HotReloadObject> Objects;
 
 		//
-
+		Vector<DebugContext::InterpreterInfo> Interpreters;
+		size_t IndexOfInterpreterToCallForRelocations = 0;
 	};
-	struct HotReloadLib
-	{
-		const RunTimeLib* NewLib = nullptr;
-		RunTimeLib* LibToUpdate = nullptr;
-	};
+	
 
 	//the types that have been updated
 	struct Diffs
 	{
 
 	};
-	Optional<RunTimeLangState::Diffs> HotReload(const HotReloadData& Item, const HotReloadLib& Data);
-	Optional<RunTimeLangState::Diffs> HotReload(const HotReloadData& Item, const Vector<HotReloadLib> LibsToUpdate);
-
-	RunTimeLangState::Diffs HotReloadOrReset(const HotReloadData& Item, const HotReloadLib& LibsToUpdate);
-	RunTimeLangState::Diffs HotReloadOrReset(const HotReloadData& Item, const Vector<HotReloadLib> LibsToUpdate);
+	bool HotReload(const HotReloadData& Item);
 
 	const ClassMethod* GetMethod(const UAddress& address);
 	String GetName(UAddress address)  const

@@ -208,7 +208,7 @@ private:
 
 		bool AutoCompile = true;
 		bool AutoReload = true;
-		bool AutoHotReload = false;
+		bool AutoHotReload = true;
 
 		UCodeLang::OptimizationFlags Flags = UCodeLang::OptimizationFlags::NoOptimization;
 		bool InDebug = true;
