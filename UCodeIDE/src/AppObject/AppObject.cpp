@@ -913,9 +913,25 @@ void AppObject::OnDraw()
                 && LastFileUpdated >= MaxWaitTimeForAutoCompile)
             {
                 CompileText(GetTextEditorString());
-                if (_Compiler.Get_Errors().Has_Errors())
+
+                bool HasFailed = _Compiler.Get_Errors().Has_Errors() || GetTextEditorString() != _CompilerStr;
+                if (HasFailed)
                 {
                     AutoCompileTimeOut = 5;
+                }
+                else
+                {
+                    if (OutputWindow.AutoReload)
+                    {
+                        if (OutputWindow.AutoHotReload)
+                        {
+                            HotReloadRunTime();
+                        }
+                        else
+                        {
+                            FullReloadRunTime();
+                        }
+                    }
                 }
                    
 
@@ -929,17 +945,7 @@ void AppObject::OnDraw()
                 _RunTimeStr = GetTextEditorString();
 
 
-                _AnyInterpreter.UnLoad();
-
-                _RuntimeLib.UnLoad();
-                _RuntimeLib.Init(&_CompiledLib);
-
-                _RunTimeState.ClearRunTimeState();
-                _RunTimeState.AddLib(&_RuntimeLib);
-                _RunTimeState.LinkLibs();
-
-                _AnyInterpreter.Init(&_RunTimeState);
-                OnRuntimeUpdated();
+                FullReloadRunTime();
             }
             if (OutputWindow.AutoHotReload == false)
             {
@@ -947,11 +953,12 @@ void AppObject::OnDraw()
                 if (ImGui::Button("Hot Reload"))
                 {
                     _RunTimeStr = GetTextEditorString();
-
+                    HotReloadRunTime();
                 }
             }
             ImGui::EndDisabled();
         }
+       
 
 
       
@@ -1743,6 +1750,25 @@ void AppObject::OnRuntimeUpdated()
 
     callFuncContext.current_method = nullptr;
     callFuncContext._LastRetType = UCodeLang::ReflectionTypeInfo();
+}
+
+void AppObject::FullReloadRunTime()
+{
+    _AnyInterpreter.UnLoad();
+
+    _RuntimeLib.UnLoad();
+    _RuntimeLib.Init(&_CompiledLib);
+
+    _RunTimeState.ClearRunTimeState();
+    _RunTimeState.AddLib(&_RuntimeLib);
+    _RunTimeState.LinkLibs();
+
+    _AnyInterpreter.Init(&_RunTimeState);
+    OnRuntimeUpdated();
+}
+void AppObject::HotReloadRunTime()
+{
+
 }
 
 void AppObject::OnPublishDiagnostics(const UCodeLanguageSever::json& Params)
