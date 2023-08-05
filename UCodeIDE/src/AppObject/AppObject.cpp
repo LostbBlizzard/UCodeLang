@@ -925,7 +925,14 @@ void AppObject::OnDraw()
                     {
                         if (OutputWindow.AutoHotReload)
                         {
-                            HotReloadRunTime();
+                            if (_RuntimeLib.Get_Lib()) 
+                            {
+                                HotReloadRunTime();
+                            }
+                            else
+                            {
+                                FullReloadRunTime();
+                            }
                         }
                         else
                         {
@@ -949,12 +956,13 @@ void AppObject::OnDraw()
             }
             if (OutputWindow.AutoHotReload == false)
             {
-
+                ImGui::BeginDisabled(!_RuntimeLib.Get_Lib());
                 if (ImGui::Button("Hot Reload"))
                 {
                     _RunTimeStr = GetTextEditorString();
                     HotReloadRunTime();
                 }
+                ImGui::EndDisabled();
             }
             ImGui::EndDisabled();
         }
@@ -1768,7 +1776,52 @@ void AppObject::FullReloadRunTime()
 }
 void AppObject::HotReloadRunTime()
 {
+    UCodeLang::DebugContext::InterpreterInfo n;
 
+    switch (_AnyInterpreter.Get_InterpreterType())
+    {
+    case  UCodeLang::InterpreterTypes::Interpreter:
+    {
+        n.ThisInterpreter = &_AnyInterpreter.GetAs_Interpreter();
+        n.Type = UCodeLang::DebugContext::Type::Interpreter;
+    }
+    break;
+    case  UCodeLang::InterpreterTypes::Jit_Interpreter:
+    {
+        n.ThisInterpreter = &_AnyInterpreter.GetAs_JitInterpreter();
+        n.Type = UCodeLang::DebugContext::Type::Jit_Interpreter;
+    }
+    break;
+    case  UCodeLang::InterpreterTypes::NativeInterpreter:
+    {
+        n.ThisInterpreter = &_AnyInterpreter.GetAs_NativeInterpreter();
+        n.Type = UCodeLang::DebugContext::Type::Native_Interpreter;
+    }
+    break;
+    default:
+        throw std::exception("bad path");
+        break;
+    }
+    UCodeLang::RunTimeLib teplib;
+    teplib.Init(&_CompiledLib);
+
+    UCodeLang::RunTimeLangState::HotReloadLib reloadlib;
+    reloadlib.LibToUpdate = &_RuntimeLib;
+    reloadlib.NewLib = &teplib;
+
+
+    UCodeLang::RunTimeLangState::HotReloadData hotreload;
+    hotreload.Interpreters.push_back(n);
+    hotreload.LibsToUpdate.push_back(reloadlib);
+
+    if (!_RunTimeState.HotReload(hotreload))
+    {
+        FullReloadRunTime();
+    }
+    else 
+    {
+        OnRuntimeUpdated();
+    }
 }
 
 void AppObject::OnPublishDiagnostics(const UCodeLanguageSever::json& Params)

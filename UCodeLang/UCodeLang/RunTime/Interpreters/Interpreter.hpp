@@ -10,7 +10,6 @@ class InterpreterCPPinterface;
 class Jit_Interpreter;
 class UPackagedTask_t;
 class ProfilerDebuger;
-
 class Interpreter
 {
 public:
@@ -18,6 +17,7 @@ public:
 	friend Jit_Interpreter;
 	friend UPackagedTask_t;
 	friend ProfilerDebuger;
+	friend RunTimeLangState;
 
 	enum class RetState : ExitState_t
 	{
@@ -436,6 +436,12 @@ private:
 		}
 	}
 	void InterpreterSysCall(InstructionSysCall SysCall,RegisterID ParReg);
+
+	//Just in Hot reloading
+	void ResetThreadPointer(PtrType NewThreadBase)
+	{
+		_CPU.ThreadRegister = NewThreadBase;
+	}
 };
 
 class InterpreterCPPinterface
