@@ -14,10 +14,11 @@ struct SandBoxLanguageSever
 {
 	UCodeLanguageSever::LanguageSever _Sever;
 };
-
+class  AppClientFuncMap;
 class AppObject
 {
 public:
+	friend AppClientFuncMap;
 	AppObject() {};
 	~AppObject() { EndApp(); };
 
@@ -128,10 +129,11 @@ private:
 	{
 		SendNotificationMessage("textDocument/didChange", Pars);
 	}
+	void OnPublishDiagnostics(const UCodeLanguageSever::json& Params);
 
 	String SeverSideFile;
 	size_t FileVersion = 0;
-
+	UCodeLanguageSever::PublishDiagnosticsParams PublishedDiagnostics;
 	TextEditor _Editor;
 	String GetTextEditorString()
 	{

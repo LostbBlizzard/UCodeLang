@@ -80,6 +80,19 @@ public:
 			}
 			return (String)Type + " At Line:" + std::to_string(Line) + ":" + _Msg + " In " + File.generic_string();
 		}
+
+		bool operator==(const Error& Other) const
+		{
+			return _Code == Other._Code && 
+				Line == Other.Line && 
+				Pos == Other.Pos && 
+				File == Other.File && 
+				_Msg == Other._Msg;
+		}
+		bool operator!=(const Error& Other) const
+		{
+			return !this->operator==(Other);
+		}
 	}; 
 	inline static bool IsWarning(ErrorCodes Code)
 		{
@@ -90,6 +103,14 @@ public:
 	{
 		return (ErrorCodes_t)Code > (ErrorCodes_t)ErrorCodes::SyntaxStart &&
 			(ErrorCodes_t)Code < (ErrorCodes_t)ErrorCodes::LinkEnd;
+	}
+	inline static bool IsInfo(ErrorCodes Code)
+	{
+		return false;
+	}
+	inline static bool IsHint(ErrorCodes Code)
+	{
+		return false;
 	}
 	inline void AddError(const ErrorCodes _Error, size_t Line,size_t Pos,const String& Msg)
 	{

@@ -161,6 +161,7 @@ struct FileNode : FileNode_t,Node
 	
 	}
 	FileNode(FileNode&& Source) = default;
+	FileNode& operator=(FileNode&& Source) = default;
 	AddforNodeAndWithList(FileNode);
 
 
