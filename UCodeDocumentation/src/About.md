@@ -18,6 +18,7 @@ mainly
 - is easier to use than C++.
 - Uses Compile time power to reduce boilerplate.
 
+
 # Design Principles/Pillars
 
 - Simple is better than complex.
@@ -32,6 +33,49 @@ mainly
   - multi-paradigm
   - Compile time power
 
+
+# QA
+
+-  Q: UCodeLang is very similar to c++ and rust why not use Rust or C++?
+
+   A: C++ is too compilcaicated of a language and is unanalyzable after compiling(without hacking the compiler).rust memory features is not that usefull for my use cases and c++ Smart Pointer's is all i need.
+
+- Q: Why is it written in c++.
+
+  A: Most Game Engines and specificaly my game engine is written in c++.c++ is stil the best tool for makeing game engines.
+
+- Q:Why not use LLVM for your backend.LLVM is too big of a dependency and writeing backends my self gives me a good excuse to learn about Computers(The Reason im makeing a game engine).
+
+-  Q:Why significant white space?
+
+   A:Just Seemed Interesting also just looks nicer. 
+
+
+-  Q:UCodeLang just seems takes ideas from other languages does not do anything new. 
+
+   A:UCodeLang is not the next big thing it's just a tool made for my specific use case.It takes the best Parts from languages i like and attempts to remove excess. 
+
+- Q:What does UCode mean? 
+  
+   The word UCode means nothing and has no history it just just a name I made up for a progaming language idea.if you realy want a meaning a meaning it when the idea was made it stand for Unsigned Code based on c/c++ unsigned keyword.
+
+
+- Q:Do you like c++?
+
+  A:I like it enough to spend a year makeing a new language useing it but not enough to make my users for my Game Engine Use it(Sorry unreal).
+
+
+- Q:who are you and what's the UCodeGameEngine?
+
+
+  A:The language was made as a result of being unable to find a progaming Language for my gameengine a gameengine made to output the smallest game files and binay with a silmilar feature set to unity being and nice transition point between unity to unreal(I have not used this) and giveing me an excuse to learn about more computers and other OS and CPU architectures.and for me Im just your standard progamer.
+
+
+- Q:what next and when will be Language be done.
+
+
+- A:When the repository Opens (preferably on 1/2/2023 The one year anniversary of makeing the jit project) most features would be done and dont really plan on adding more unless it Just too Good. I'll be around for an extra year to finsh up the other architectures and backends and stabitly.at that point the project will be done and i can go on working on that game engine and go to work on biger and better things.
+
 # Credits
 The was Language was designed  and developed by LostBlizzard On [GitHub](https://github.com/LostbBlizzard).
 
@@ -40,3 +84,4 @@ Who currently maintains the
 - The [UCodeLang](https://github.com/LostbBlizzard/UCodeLang) cplusplus implementation of the language.
 
 The UCodeGameEngine(being worked on) the primary reason The Language was made.
+
