@@ -12,6 +12,9 @@ LanguageSeverStart
 	e.code = (integer)ErrorCodes::InvalidRequest; \
 	SendResponseErrorToClient(requestid, e); return;}\
 
+
+namespace UA = UCodeAnalyzer;
+
 const char NameCharList[] = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890,.':/\\";
 bool IsInNameCharList(char Value)
 {
@@ -93,6 +96,7 @@ struct LanguageSeverFuncMap
 	{
 		{"initialize",&LanguageSever::Sever_initialize},
 		{"shutdown",&LanguageSever::Sever_Shutdown},
+
 		{"textDocument/definition",&LanguageSever::textDocument_definition},
 		{"textDocument/hover",&LanguageSever::textDocument_hover},
 		{"textDocument/rename",&LanguageSever::textDocument_rename},
@@ -100,6 +104,9 @@ struct LanguageSeverFuncMap
 	inline static const std::unordered_map<String, NotificationFunc> NotificationFuncs
 	{
 		{"exit",&LanguageSever::Sever_Exit},
+		{"textDocument/didOpen",&LanguageSever::textDocument_didOpen},
+		{"textDocument/didClose",&LanguageSever::textDocument_didClose},
+		{"textDocument/didChange",&LanguageSever::textDocument_didChange}
 	};
 };
 
@@ -135,6 +142,12 @@ bool LanguageSever::Step()
 		_ClientPacketsToRun.clear();
 	}
 
+	{
+		if (IsInitialized && IsShutdown ==false)
+		{
+			BaseSever.Step();
+		}
+	}
     return Runing;
 }
 void LanguageSever::OnReceivedPacket(const ClientPacket& Item)
@@ -184,12 +197,58 @@ void LanguageSever::Sever_Shutdown(integer requestid, const json& params)
 	 
 
 	SendResponseMessageToClient(requestid, TsNull());
+
+
+	BaseSever.deinit();
 }
 void LanguageSever::Sever_Exit(const json& params)
 {
 	StopRuning();
 	ProcessExitCode = 0;
 
+}
+void LanguageSever::textDocument_didOpen(const json& Params)
+{
+	DidOpenTextDocumentParams params;
+	ns::from_json(Params,params);
+
+
+	if (params.textDocument.languageId == UCodeLangLanguageId) {
+		UA::UCFile newfile;
+		newfile.Fileidentifier = Cast(params.textDocument.uri);
+		newfile.FileName = params.textDocument.uri;
+		newfile.filetext = params.textDocument.text;
+		newfile.oldfile = newfile.filetext;
+
+		BaseSever.AddFile(std::move(newfile));
+	}
+}
+void LanguageSever::textDocument_didClose(const json& Params)
+{
+	DidCloseTextDocumentParams params;
+	ns::from_json(Params, params);
+
+	BaseSever.RemoveFile(Cast(params.textDocument.uri));
+}
+void LanguageSever::textDocument_didChange(const json& Params)
+{
+	DidChangeTextDocumentParams params;
+	ns::from_json(Params, params);
+
+	auto& Ufile = BaseSever.GetFile(Cast(params.textDocument.uri));
+	
+	Ufile.IsUpdateingFile();
+	for (auto& Item : params.contentChanges)
+	{
+		if (auto val = Item.Get_If< TextDocumentContentChangeEventFilePart>())
+		{
+
+		}
+		else if (auto val = Item.Get_If< TextDocumentContentChangeEventFullFile>())
+		{
+			Ufile.filetext = val->text;
+		}
+	}
 }
 void LanguageSever::textDocument_definition(integer  requestid,const json& Params)
 {
@@ -217,6 +276,14 @@ void LanguageSever::window_logMessage(MessageType Type, String MSg)
 
 	SendMethodToClient("window/logMessage", V);
 }
+UCodeLanguageSever::DocumentUri LanguageSever::Cast(const UCodeAnalyzer::Fileidentifier& Item)
+{
+	return Item.generic_string();
+}
+UCodeAnalyzer::Fileidentifier LanguageSever::Cast(const UCodeLanguageSever::DocumentUri& Item)
+{
+	return Item;
+}
 void LanguageSever::Sever_initialize(integer requestid, const json& Params)
 {
 	InitializeParams params;
@@ -225,12 +292,14 @@ void LanguageSever::Sever_initialize(integer requestid, const json& Params)
 	InitializeResult V;
 	V.capabilities.positionEncoding = PositionEncodingkind::PositionEncodingKind8;
 	V.capabilities.hoverProvider = true;
-
+	V.capabilities.textDocumentSync = TextDocumentSyncKind::Incremental;
 
 	
 	SendResponseMessageToClient(requestid,V);
 
 	IsInitialized = false;
+
+	BaseSever.init();
 	//window_logMessage(MessageType::Log, "Hello World Sever Side");
 }
 LanguageSeverEnd

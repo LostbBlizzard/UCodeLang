@@ -6,7 +6,22 @@
 #include <variant>
 LanguageSeverStart
 
-using namespace UCodeAnalyzer;
+namespace UA = UCodeAnalyzer;
+
+
+//typedef
+using String = UA::String;
+using StringView = UA::StringView;
+
+template<typename T>
+using Vector = UA::Vector<T>;
+
+template<typename T>
+using Optional = UA::Optional<T>;
+
+template<typename... T>
+using Variant = UA::Variant<T...>;
+
 using json = nlohmann::json;
 
 //from https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#responseMessage
@@ -25,14 +40,14 @@ using decimal = float;
 
 
 //ts string
-using string = String;
+using string = UA::String;
 
 using UTF8 = char;
-using UTF16 = Int32;
+using UTF16 = UA::Int16;
 using UTF32 = int;
 
 
-using DocumentUri = string;
+using DocumentUri = UA::String;
 using URI = string;
 using boolean = bool;
 
@@ -41,14 +56,14 @@ using boolean = bool;
 //member?:T
 
 template<typename T>
-using TsOptional = std::optional<T>;
+using TsOptional = UA::Optional<T>;
 
 
 template<typename... T>
-using TypePredicates = std::variant<T...>;
+using TypePredicates = UA::Variant<T...>;
 
 template<typename T>
-using TsArray = std::vector<T>;
+using TsArray = UA::Vector<T>;
 
 using unknown =bool;
 using LSPAny = int;
@@ -121,6 +136,13 @@ struct TextDocumentItem
 	string text;
 };
 
+struct DidOpenTextDocumentParams {
+	/**
+	 * The document that was opened.
+	 */
+	TextDocumentItem textDocument;
+};
+
 struct TextDocumentIdentifier {
 	/**
 	 * The text document's URI.
@@ -156,7 +178,7 @@ struct OptionalVersionedTextDocumentIdentifier : TextDocumentIdentifier {
 	 * The version number of a document will increase after each change,
 	 * including undo/redo. The number doesn't need to be consecutive.
 	 */
-	Optional<integer> version;
+	TsOptional<integer> version;
 };
 
 struct TextDocumentPositionParams {
@@ -169,6 +191,67 @@ struct TextDocumentPositionParams {
 	 * The position inside the text document.
 	 */
 	Position position;
+};
+
+
+struct  DidCloseTextDocumentParams 
+{
+	/**
+	 * The document that was closed.
+	 */
+	TextDocumentIdentifier textDocument;
+};
+
+struct TextDocumentContentChangeEventFilePart
+{
+	/**
+	 * The range of the document that changed.
+	 */
+	Range range;
+
+	/**
+	 * The optional length of the range that got replaced.
+	 *
+	 * @deprecated use range instead.
+	 */
+	TsOptional<uinteger> rangeLength;
+
+	/**
+	 * The new text for the provided range.
+	 */
+	string text;
+};
+struct TextDocumentContentChangeEventFullFile
+{
+	string text;
+};
+
+using TextDocumentContentChangeEvent = Variant<TextDocumentContentChangeEventFilePart, TextDocumentContentChangeEventFullFile>;
+
+struct DidChangeTextDocumentParams {
+	/**
+	 * The document that did change. The version number points
+	 * to the version after all provided content changes have
+	 * been applied.
+	 */
+	VersionedTextDocumentIdentifier textDocument;
+
+	/**
+	 * The actual content changes. The content changes describe single state
+	 * changes to the document. So if there are two content changes c1 (at
+	 * array index 0) and c2 (at array index 1) for a document in state S then
+	 * c1 moves the document from S to S' and c2 from S' to S''. So c1 is
+	 * computed on the state S and c2 is computed on the state S'.
+	 *
+	 * To mirror the content of a document using change events use the following
+	 * approach:
+	 * - start with the same initial content
+	 * - apply the 'textDocument/didChange' notifications in the order you
+	 *   receive them.
+	 * - apply the `TextDocumentContentChangeEvent`s in a single notification
+	 *   in the order you receive them.
+	 */
+	TsArray<TextDocumentContentChangeEvent> contentChanges;
 };
 
 enum class DiagnosticSeverity : integer
@@ -437,6 +520,42 @@ namespace PositionEncodingkind {
 	static inline const PositionEncodingKind PositionEncodingKind32 = "utf-32";
 };
 
+enum class TextDocumentSyncKind :integer
+{
+	/**
+	 * Documents should not be synced at all.
+	 */
+	None = 0,
+
+	/**
+	 * Documents are synced by always sending the full content
+	 * of the document.
+	 */
+	 Full = 1,
+
+	 /**
+	  * Documents are synced by sending the full content on open.
+	  * After that only incremental updates to the document are
+	  * sent.
+	  */
+	  Incremental = 2,
+};
+struct TextDocumentSyncOptions {
+	/**
+	 * Open and close notifications are sent to the server. If omitted open
+	 * close notifications should not be sent.
+	 */
+	TsOptional<boolean> openClose;
+
+	/**
+	 * Change notifications are sent to the server. See
+	 * TextDocumentSyncKind.None, TextDocumentSyncKind.Full and
+	 * TextDocumentSyncKind.Incremental. If omitted it defaults to
+	 * TextDocumentSyncKind.None.
+	 */
+	TsOptional<TextDocumentSyncKind> change;
+};
+
 //https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#serverCapabilities
 struct ServerCapabilities {
 
@@ -460,7 +579,7 @@ struct ServerCapabilities {
 	 * TextDocumentSyncKind number. If omitted it defaults to
 	 * `TextDocumentSyncKind.None`.
 	 */
-	//textDocumentSync ? : TextDocumentSyncOptions | TextDocumentSyncKind;
+	TypePredicates<TextDocumentSyncOptions, TextDocumentSyncKind> textDocumentSync;
 
 	/**
 	 * Defines how notebook documents are synced.

@@ -4,6 +4,7 @@
 #include "LanguageSeverNameSpace.h"
 #include "JSONstructures.hpp"
 #include "JSONstructureSerialization.hpp"
+#include "UCodeAnalyzer/Language_Server.hpp"
 LanguageSeverStart
 struct SeverPacket
 {
@@ -306,7 +307,7 @@ struct ClientPacket
 
 
 
-class LanguageSeverFuncMap;
+struct LanguageSeverFuncMap;
 class LanguageSever 
 {
 public:
@@ -396,6 +397,10 @@ private:
     //https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#exit
     void Sever_Exit(const json& params);
 
+    void textDocument_didOpen(const json& params);
+    void textDocument_didClose(const json& params);
+    void textDocument_didChange(const json& params);
+
     void textDocument_definition(integer requestid, const json& params);
    
     void textDocument_hover(integer requestid, const json& params);
@@ -405,6 +410,10 @@ private:
     //
     void window_logMessage(MessageType Type, String MSg);
     size_t Test = 1;
+
+    UCodeAnalyzer::Language_Server BaseSever;
+    UCodeAnalyzer::Fileidentifier Cast(const  UCodeLanguageSever::DocumentUri& Item);
+    UCodeLanguageSever::DocumentUri Cast(const  UCodeAnalyzer::Fileidentifier& Item);
 };
 
 LanguageSeverEnd
