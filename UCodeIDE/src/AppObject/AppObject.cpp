@@ -311,6 +311,17 @@ void EndDockSpace()
 
 void AppObject::OnDraw()
 {
+    {
+        auto now = SteadyClock::now();
+
+        auto TimePassed =  now - LastFrame;
+
+        DetaTime = std::chrono::duration_cast<std::chrono::duration<float>>(TimePassed).count();
+
+
+        LastFrame = now;
+    }
+    
     ProcessSeverPackets();
 
     bool Doc = true;
@@ -793,8 +804,9 @@ void AppObject::OnDraw()
             }
 
         }
-#endif // DEBUG
+
     }ImGui::End();
+#endif // DEBUG
 
     if (ImGui::Begin("Output"))
     {
@@ -872,7 +884,7 @@ void AppObject::OnDraw()
             ImguiHelper::BoolEnumField("Auto Hot Reload", OutputWindow.AutoHotReload);
         }
 
-
+        const float MaxWaitTimeForAutoCompile = 1;
         if (OutputWindow.AutoCompile == false)
         {
             ImGui::BeginDisabled(!IsCodeUpdated);
@@ -881,6 +893,33 @@ void AppObject::OnDraw()
                 CompileText(GetTextEditorString());
             }
             ImGui::EndDisabled();
+        }
+        else
+        {
+            if (AutoCompileTimeOut >= 0)
+            {
+                AutoCompileTimeOut -= DetaTime;
+            }
+            if (IsCodeUpdated)
+            {
+                LastFileUpdated += DetaTime;
+            }
+            else
+            {
+                LastFileUpdated = 0;
+            }
+
+            if (IsCodeUpdated && LSPHasNoErrors() && AutoCompileTimeOut <= 0
+                && LastFileUpdated >= MaxWaitTimeForAutoCompile)
+            {
+                CompileText(GetTextEditorString());
+                if (_Compiler.Get_Errors().Has_Errors())
+                {
+                    AutoCompileTimeOut = 5;
+                }
+                   
+
+            }
         }
         if (OutputWindow.AutoReload == false)
         {
@@ -915,9 +954,7 @@ void AppObject::OnDraw()
         }
 
 
-        String CompilerState = "idle";
-        ImGui::Text(((String)"CompilerState:" + CompilerState).c_str());
-
+      
         ImGui::Separator();
 
         static const Vector <ImguiHelper::EnumValue<UCodeLang::OptimizationFlags>> OpflagList =
@@ -939,12 +976,37 @@ void AppObject::OnDraw()
 
         ImGui::BeginDisabled();
 
-        ImGui::PushID(&_LibInfoString);
+        bool ShowLibInfo=true;
 
-        ImGui::InputTextMultiline("", &_LibInfoString, ImGui::GetContentRegionAvail());
+        if (OutputWindow.AutoCompile)
+        {
+            bool CanAutoCompile = IsCodeUpdated && LSPHasNoErrors();
+            
+            if (CanAutoCompile && LastFileUpdated < MaxWaitTimeForAutoCompile)
+            {
+                ShowLibInfo = false;
 
-        ImGui::PopID();
+                String tepstr = "[Waiting for no more Input]";
+                ImGui::PushID(&_LibInfoString);
 
+                ImGui::InputTextMultiline("", &tepstr, ImGui::GetContentRegionAvail());
+
+                ImGui::PopID();
+            }
+        }
+        else
+        {
+            ShowLibInfo =true;
+        }
+
+        if (ShowLibInfo)
+        {
+            ImGui::PushID(&_LibInfoString);
+
+            ImGui::InputTextMultiline("", &_LibInfoString, ImGui::GetContentRegionAvail());
+
+            ImGui::PopID();
+        }
         ImGui::EndDisabled();
 
 
@@ -1010,6 +1072,8 @@ void AppObject::OnDraw()
     }
 
     EndDockSpace();
+
+   
 }
 
 void AppObject::ProcessSeverPackets()
@@ -1688,6 +1752,21 @@ void AppObject::OnPublishDiagnostics(const UCodeLanguageSever::json& Params)
 
     PublishedDiagnostics = std::move(params);
     OnErrorListUpdated();
+}
+
+bool AppObject::LSPHasNoErrors()
+{
+    for (auto& Item : PublishedDiagnostics.diagnostics)
+    {
+        if (Item.severity.has_value())
+        {
+            if (Item.severity.value() == UCodeLanguageSever::DiagnosticSeverity::Error)
+            {
+                return false;
+            }
+        }
+    }
+    return  true;
 }
 
 void AppObject::SetRequestCallBack(UCodeLanguageSever::integer RequestID, RequestCallBack CallBack)

@@ -8,7 +8,10 @@
 #include "UCodeLang/UCodeLang.hpp"
 
 #include "ImGuiHelpers/ImguiHelper.hpp"
+#include <chrono>
 UCodeIDEStart
+
+using SteadyClock = std::chrono::steady_clock;
 
 struct SandBoxLanguageSever
 {
@@ -50,6 +53,8 @@ private:
 	void OnAppEnd();
 	bool _IsAppRuning = false;
 	bool _IsLSPRuning = false;
+	float DetaTime = 0;
+	SteadyClock::time_point LastFrame;
 
 	using CPacket = UCodeLanguageSever::ClientPacket;
 	using SPacket = UCodeLanguageSever::SeverPacket;
@@ -133,7 +138,13 @@ private:
 
 	String SeverSideFile;
 	size_t FileVersion = 0;
+
+	float LastFileUpdated = 0;
+	float AutoCompileTimeOut = 0;
 	UCodeLanguageSever::PublishDiagnosticsParams PublishedDiagnostics;
+
+	bool LSPHasNoErrors();
+
 	TextEditor _Editor;
 	String GetTextEditorString()
 	{
@@ -195,7 +206,7 @@ private:
 	{
 		BackEndType Type = BackEndType::UCodeVM;
 
-		bool AutoCompile = false;
+		bool AutoCompile = true;
 		bool AutoReload = false;
 		bool AutoHotReload = false;
 

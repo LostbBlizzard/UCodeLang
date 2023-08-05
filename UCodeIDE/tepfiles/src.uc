@@ -7,7 +7,8 @@
 
 $Vec2:
  int X = 0;
- int Y = 0;
+ int Y = 9;
+ int o = 0;
 
 $Vec3:
  int X = 0;
