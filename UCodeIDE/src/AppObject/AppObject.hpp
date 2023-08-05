@@ -207,7 +207,7 @@ private:
 		BackEndType Type = BackEndType::UCodeVM;
 
 		bool AutoCompile = true;
-		bool AutoReload = false;
+		bool AutoReload = true;
 		bool AutoHotReload = false;
 
 		UCodeLang::OptimizationFlags Flags = UCodeLang::OptimizationFlags::NoOptimization;
@@ -268,6 +268,8 @@ private:
 		bool CallStaticAndThreadDeInit = true;
 	};
 	CallFuncContext callFuncContext;
+	void FullReloadRunTime();
+	void HotReloadRunTime();
 };
 
 UCodeIDEEnd

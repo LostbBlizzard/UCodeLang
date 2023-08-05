@@ -5,10 +5,12 @@
 
 //A simplified standard Library below.
 
+int a = 0;
+int b = 3;
+
 $Vec2:
- int X = 0;
- int Y = 9;
- int o = 0;
+ int X = 5;
+ int Y = 0;
 
 $Vec3:
  int X = 0;
