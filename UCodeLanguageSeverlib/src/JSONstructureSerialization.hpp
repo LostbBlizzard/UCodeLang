@@ -28,6 +28,14 @@ namespace ns
 
 	}
 	template<typename T>
+	inline void from_json(const json& Json,const char* field, UCL::TsOptional<T>& Object)
+	{
+		if (Json.contains(field))
+		{
+			from_json(Json[field], Object);
+		}
+	}
+	template<typename T>
 	inline void to_json(json& Json, const UCL::TsOptional<T>& Object)
 	{
 		if (Object.has_value())
@@ -43,9 +51,29 @@ namespace ns
 	template<typename... T>
 	inline void to_json(json& Json, const UCL::TypePredicates<T...>& Object)
 	{
-		if (Object.has_value())
+		
+	}
+
+	template<typename T>
+	inline void from_json(const json& Json, UCL::TsArray<T>& Object)
+	{
+		size_t size = Json.end() - Json.begin();
+		Object.resize(size);
+		for (size_t i = 0; i < size; i++)
 		{
-			Json = Object.value();
+			from_json(Json.at(i), Object[i]);
+		}
+	}
+	template<typename T>
+	inline void to_json(json& Json, const UCL::TsArray<T>& Object)
+	{
+		Json = json::array();
+
+		for (auto& Item : Object) 
+		{
+			json tep;
+			to_json(tep,Item);
+			Json.push_back(std::move(tep));
 		}
 	}
 
@@ -133,5 +161,149 @@ namespace ns
 	inline void to_json(json& Json, const UCL::InitializeParams& Object)
 	{
 		to_jsonPredi(Object.processId, "processId",Json);
+	}
+
+	inline void from_json(const json& Json, UCL::TextDocumentItem& Object)
+	{
+		Object.uri = Json["uri"].get<UCL::DocumentUri>();
+
+		Object.languageId =Json["languageId"].get<UCL::string>();
+
+		Object.version = Json["version"].get<UCL::integer>();
+
+		Object.text= Json["text"].get<UCL::string>();
+	}
+	inline void to_json(json& Json, const UCL::TextDocumentItem& Object)
+	{
+		Json["uri"] = Object.uri;
+		
+		Json["languageId"] = Object.languageId;
+
+		Json["version"] = Object.version;
+
+		Json["text"] = Object.text;
+	}
+
+	inline void from_json(const json& Json, UCL::DidOpenTextDocumentParams& Object)
+	{
+		from_json(Json["textDocument"], Object.textDocument);
+	}
+	inline void to_json(json& Json, const UCL::DidOpenTextDocumentParams& Object)
+	{
+		to_json(Json["textDocument"],Object.textDocument);
+	}
+
+	inline void from_json(const json& Json, UCL::TextDocumentIdentifier& Object)
+	{
+		from_json(Json["uri"], Object.uri);
+	}
+	inline void to_json(json& Json, const UCL::TextDocumentIdentifier& Object)
+	{
+		to_json(Json["uri"], Object.uri);
+	}
+
+	inline void from_json(const json& Json, UCL::DidCloseTextDocumentParams& Object)
+	{
+		from_json(Json["textDocument"], Object.textDocument);
+	}
+	inline void to_json(json& Json, const UCL::DidCloseTextDocumentParams& Object)
+	{
+		to_json(Json["textDocument"], Object.textDocument);
+	}
+
+	inline void from_json(const json& Json, UCL::Position& Object)
+	{
+		from_json(Json["line"], Object.line);
+		from_json(Json["character"], Object.character);
+	}
+	inline void to_json(json& Json, const UCL::Position& Object)
+	{
+		to_json(Json["line"], Object.line);
+		to_json(Json["character"], Object.character);
+	}
+
+	inline void from_json(const json& Json, UCL::Range& Object)
+	{
+		from_json(Json["start"], Object.start);
+		from_json(Json["end"], Object.end);
+	}
+	inline void to_json(json& Json, const UCL::Range& Object)
+	{
+		to_json(Json["start"], Object.start);
+		to_json(Json["end"], Object.end);
+	}
+
+
+	inline void from_json(const json& Json, UCL::TextDocumentContentChangeEventFullFile& Object)
+	{
+		from_json(Json["text"], Object.text);
+	}
+	inline void to_json(json& Json, const UCL::TextDocumentContentChangeEventFullFile& Object)
+	{
+		to_json(Json["text"], Object.text);
+	}
+
+	inline void from_json(const json& Json, UCL::TextDocumentContentChangeEventFilePart& Object)
+	{
+		from_json(Json["range"],Object.range);
+		from_json(Json,"rangeLength",Object.rangeLength);
+		from_json(Json["text"], Object.text);
+	}
+	inline void to_json(json& Json, const UCL::TextDocumentContentChangeEventFilePart& Object)
+	{
+		to_json(Json["range"], Object.range);
+		to_jsonOp(Object.rangeLength,"rangeLength", Json);
+		to_json(Json["text"], Object.text);
+	}
+
+	inline void from_json(const json& Json, UCL::TextDocumentContentChangeEvent& Object)
+	{
+		if (Json.contains("range") || Json.contains("rangeLength"))
+		{
+			UCL::TextDocumentContentChangeEventFilePart v;
+			from_json(Json, v);
+			Object = std::move(v);
+		}
+		else if (Json.contains("text"))
+		{
+			UCL::TextDocumentContentChangeEventFullFile v;
+			from_json(Json, v);
+			Object = std::move(v);
+		}
+	}
+	inline void to_json(json& Json, const UCL::TextDocumentContentChangeEvent& Object)
+	{
+		if (auto val = Object.Get_If<UCL::TextDocumentContentChangeEventFilePart>())
+		{
+			to_json(Json, *val);
+		}
+		else if (auto val = Object.Get_If<UCL::TextDocumentContentChangeEventFullFile>())
+		{
+			to_json(Json, *val);
+		}
+	}
+
+	inline void from_json(const json& Json, UCL::VersionedTextDocumentIdentifier& Object)
+	{
+		from_json(Json["uri"], Object.uri);
+		from_json(Json["version"], Object.version);
+	}
+	inline void to_json(json& Json, const UCL::VersionedTextDocumentIdentifier& Object)
+	{
+		to_json(Json["uri"], Object.uri);
+		to_json(Json["version"], Object.version);
+	}
+
+	inline void from_json(const json& Json, UCL::DidChangeTextDocumentParams& Object)
+	{
+		from_json(Json["textDocument"], Object.textDocument);
+
+		from_json(Json["contentChanges"],Object.contentChanges);
+	}
+	inline void to_json(json& Json, const UCL::DidChangeTextDocumentParams& Object)
+	{
+		to_json(Json["textDocument"], Object.textDocument);
+
+		to_json(Json["contentChanges"], Object.contentChanges);
 	}
 }

@@ -69,7 +69,7 @@ void UCodeIDEStyle(ImGuiStyle* dst)
 }
 
 namespace LS = UCodeLanguageSever;
-
+const char* EditorTextURL = "src.uc";
 void AppObject::Init()
 {
     if (!_IsAppRuning) {
@@ -196,9 +196,18 @@ $Span<T>:
             LS::InitializeParams p;
             p.processId = LS::TsNull();
             SendInitializeRequest(p)
-                .SetCallBack([](SPacket::ResponseMessage_t info)
+                .SetCallBack([this](SPacket::ResponseMessage_t info)
                     {
+                        _IsLSPRuning = true;
 
+                        LS::DidOpenTextDocumentParams p;
+                        p.textDocument.text = GetTextEditorString();
+                        p.textDocument.uri = EditorTextURL;
+                        p.textDocument.version = FileVersion;
+                        p.textDocument.languageId = UCodeLangLanguageId;
+
+                        SeverSideFile = p.textDocument.text;
+                        SendDidOpenTextDocument(p);
                     });
         }
     }
@@ -984,6 +993,32 @@ void AppObject::ProcessSeverPackets()
         {
             OnSeverPacket(std::move(Item));
         }
+
+        if (_IsLSPRuning) 
+        {
+            String mystr = GetTextEditorString();
+            if (mystr != SeverSideFile)
+            {
+                FileVersion++;
+
+                LS::DidChangeTextDocumentParams p;
+                p.textDocument.uri = EditorTextURL;
+                p.textDocument.version = FileVersion;
+
+
+                {//Update this to use parts and not full file.
+                    LS::TextDocumentContentChangeEventFullFile p2;
+                    p2.text = mystr;
+                    p.contentChanges.push_back(std::move(p2));
+                }
+
+                SeverSideFile = mystr;
+
+                SendDidChangeTextDocument(p);
+
+            }
+
+        }
     }
 }
 
@@ -1729,9 +1764,15 @@ size_t AppObject::GetColumn(const String& text,size_t line,size_t Pos)
 
 void AppObject::OnAppEnd()
 {
-    if (_LangSeverThread) 
+    if (_LangSeverThread)
     {
         bool IsShutingDown = false;
+
+        {
+            LS::DidCloseTextDocumentParams p;
+            p.textDocument.uri = EditorTextURL;
+            SendDidCloseTextDocument(p);
+        }
         SendShutdoneRequest().SetCallBack([&IsShutingDown,this](auto Unused)
             { 
                 IsShutingDown = true;

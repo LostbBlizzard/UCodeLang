@@ -3,6 +3,10 @@
 UCodeAnalyzerStart
 
 
+#define UCodeLangLanguageId ""
+
+using Fileidentifier = Path;
+
 class LanguageAnalyzer
 {
 public:
@@ -14,8 +18,19 @@ private:
 };
 struct UCFile
 {
-	Path FullFilePath;
-	Path RelativePath;
+	//not an Real file path just for errors
+	Path FileName; 
+	Fileidentifier Fileidentifier;
+	String filetext;
+
+	//Call this befor updateing filetext
+	void IsUpdateingFile()
+	{
+		oldfile = filetext;
+	}
+
+	
+	String oldfile;
 };
 
 struct GoToItem
@@ -29,18 +44,31 @@ public:
 	Language_Server(){}
 	~Language_Server(){}
 
-	void Step()
-	{
+	void init();
 
-	}
+	void Step();
+
+	void deinit();
 
 	void Goto(StringView Name)
 	{
 
 	}
+
+	void AddFile(UCFile&& file)
+	{
+		_Files.AddValue(file.Fileidentifier, file);
+	}
+	void RemoveFile(const Fileidentifier& file)
+	{
+		_Files.erase(file);
+	}
+	UCFile& GetFile(const Fileidentifier& file)
+	{
+		return _Files.at(file);
+	}
 private:
-	
-public:
+	BinaryVectorMap<Fileidentifier, UCFile> _Files;
 };
 
 

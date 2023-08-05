@@ -14,6 +14,7 @@ struct SandBoxLanguageSever
 {
 	UCodeLanguageSever::LanguageSever _Sever;
 };
+
 class AppObject
 {
 public:
@@ -47,6 +48,7 @@ public:
 private:
 	void OnAppEnd();
 	bool _IsAppRuning = false;
+	bool _IsLSPRuning = false;
 
 	using CPacket = UCodeLanguageSever::ClientPacket;
 	using SPacket = UCodeLanguageSever::SeverPacket;
@@ -111,6 +113,24 @@ private:
 	{
 		SendNotificationMessage("exit", UCodeLanguageSever::TsNull());
 	}
+	//The document open notification is sent from the client to the server to signal newly opened text documents. 
+	void SendDidOpenTextDocument(const UCodeLanguageSever::DidOpenTextDocumentParams& Pars)
+	{
+		SendNotificationMessage("textDocument/didOpen", Pars);
+	}
+	//The document close notification is sent from the client to the server when the document got closed in the client.
+	void SendDidCloseTextDocument(const UCodeLanguageSever::DidCloseTextDocumentParams& Pars)
+	{
+		SendNotificationMessage("textDocument/didClose", Pars);
+	}
+	//The document change notification is sent from the client to the server to signal changes to a text document.
+	void SendDidChangeTextDocument(const UCodeLanguageSever::DidChangeTextDocumentParams& Pars)
+	{
+		SendNotificationMessage("textDocument/didChange", Pars);
+	}
+
+	String SeverSideFile;
+	size_t FileVersion = 0;
 
 	TextEditor _Editor;
 	String GetTextEditorString()
