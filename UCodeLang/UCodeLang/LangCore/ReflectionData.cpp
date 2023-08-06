@@ -902,7 +902,7 @@ Optional<ClassAssembly::InfoVector_t> ClassAssembly::IsVector_t(const Reflection
 				{
 					InfoVector_t r;
 					r.ElementType = DataMethod->RetType;
-					r.ElementType._IsAddress = false;
+					r.ElementType._IsAddressArray = false;
 
 					r.Data_Method = DataMethod;
 					r.Size_Method = SizeMethod;

@@ -291,7 +291,7 @@ public:
 
 	UCodeLangForceinline IRBuilder& Get_Output()
 	{
-		return _Builder;
+		return _IR_Builder;
 	}
 	UCodeLangForceinline UClib& Get_Lib()
 	{
@@ -508,7 +508,7 @@ private:
 	};
 	struct GenericFuncInfo
 	{
-		String GenericFuncName;
+		String _IR_GenericFuncName;
 		const Vector<TypeSymbol>* GenericInput = nullptr;
 		const void* NodeTarget = nullptr;
 		Optional<SymbolID> Pack;
@@ -581,13 +581,7 @@ private:
 		MatchArmData ArmData;
 	};
 
-	struct ClassStackInfo
-	{
-		Symbol* Syb = nullptr;
-		ClassInfo* Info = nullptr;
-		bool _InStatements = false;
-	};
-
+	
 	enum class Jumps_t
 	{
 		Continue,
@@ -629,12 +623,18 @@ private:
 		Vector<Symbol*> _UsedSymbols;
 		Vector<Symbol*> _SymbolsToPassBecauseInerLamdba;
 	};
+	//Bad Name
+	struct LibLoadTypeSeter
+	{
+		const TypeSymbol* ToGetTypeFrom = nullptr;
+		TypeSymbol* TypeToFix = nullptr;
+	};
 	//Members
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
 	UClib _Lib;
 
-	PassType passtype = PassType::Null;
+	PassType _PassType = PassType::Null;
 	
 	const Vector<const FileNode*>* _Files = nullptr;
 	const Vector<const UClib*>* _Libs = nullptr;
@@ -643,129 +643,127 @@ private:
 	SymbolTable _Table;
 
 	VectorMap<String,BinaryVectorMap<const void*, SymbolID>> _SybIdMap;
-	uintptr_t IDIndex = 0;
+	uintptr_t _IDIndex = 0;
 	//Args
 	bool _ForceImportArgWasPassed = false;
 	bool _RemoveUnSafeArgWasPassed = false;
 	bool _ImmutabilityIsForced = false;
-	Optional<String> StartingNameSpace;
+	Optional<String> _StartingNameSpace;
 
 	Stack<ClassStackInfo> _ClassStack;
 
 
-	const FileNode* LookingAtFile = nullptr;
+	const FileNode* _LookingAtFile = nullptr;
 	BinaryVectorMap<const FileNode_t*,Shared_ptr<FileNodeData>> _FilesData;
-	BinaryVectorMap<SymbolID, BinaryExpressionNode_Data> BinaryExpressionNode_Datas;
-	BinaryVectorMap<SymbolID, IndexedExpresion_Data> IndexedExpresion_Datas;
-	BinaryVectorMap<SymbolID, PostFixExpressionNode_Data> PostFix_Datas;
-	BinaryVectorMap<SymbolID, CompoundExpresion_Data> Compound_Datas;
-	BinaryVectorMap<SymbolID, ForExpresion_Data> For_Datas;
-	BinaryVectorMap<SymbolID, CastExpressionNode_Data> CastDatas;
-	BinaryVectorMap<SymbolID, AssignExpression_Data > AssignExpressionDatas;
-	BinaryVectorMap<SymbolID, bool> ValidNodes;
-	BinaryVectorMap<SymbolID, CompileTimeforNode> ForNodes;
-
-	BinaryVectorMap<SymbolID, MatchStatementData> MatchStatementDatas;
-
-	BinaryVectorMap<SymbolID, MatchExpressionData> MatchExpressionDatas;
+	BinaryVectorMap<SymbolID, BinaryExpressionNode_Data> _BinaryExpressionNode_Datas;
+	BinaryVectorMap<SymbolID, IndexedExpresion_Data> _IndexedExpresion_Datas;
+	BinaryVectorMap<SymbolID, PostFixExpressionNode_Data> _PostFix_Datas;
+	BinaryVectorMap<SymbolID, CompoundExpresion_Data> _Compound_Datas;
+	BinaryVectorMap<SymbolID, ForExpresion_Data> _For_Datas;
+	BinaryVectorMap<SymbolID, CastExpressionNode_Data> _CastDatas;
+	BinaryVectorMap<SymbolID, AssignExpression_Data > _AssignExpressionDatas;
+	BinaryVectorMap<SymbolID, bool> _ValidNodes;
+	BinaryVectorMap<SymbolID, CompileTimeforNode> _ForNodes;
+	BinaryVectorMap<SymbolID, MatchStatementData> _MatchStatementDatas;
+	BinaryVectorMap<SymbolID, MatchExpressionData> _MatchExpressionDatas;
 
 	
 
-	BinaryVectorMap<SymbolID, VarableMemberData> VarableMemberDatas;//Var.$Item
+	BinaryVectorMap<SymbolID, VarableMemberData> _VarableMemberDatas;//Var.$Item
 
 	Vector<FuncStackInfo> _FuncStack;
 
-	const Token* LastLookedAtToken = nullptr;
+	const Token* _LastLookedAtToken = nullptr;
 
-	Vector<NodeType> NodeTypeStack;
+	Vector<NodeType> _NodeTypeStack;
 	Vector<String> _ExtendedErr;
 	//
-	Stack<TypeSymbol> LookingForTypes;
-	TypeSymbol LastExpressionType;
-	BinaryVectorMap<SymbolID, Get_FuncInfo> FuncToSyboID;
-	Vector< NewFuncData> TepFuncs;
-	Vector<const ClassInfo*> ClassDependencies;
+	Stack<TypeSymbol> _LookingForTypes;
+	TypeSymbol _LastExpressionType;
+	BinaryVectorMap<SymbolID, Get_FuncInfo> _FuncToSyboID;
+	Vector< NewFuncData> _TepFuncs;
+	Vector<const ClassInfo*> _ClassDependencies;
 	Vector< FuncInfo*>_RetLoopStack;
 	//IR Building
-	IRBuilder _Builder;
-	IRInstruction* _LastExpressionField = 0;
-	IRFunc* LookingAtIRFunc = nullptr;
-	IRBlock* LookingAtIRBlock = nullptr;
-	IROperator _LastStoreField;
-	Stack<IRLocation_Cotr> IRlocations;//for Constructors
-	Vector<IRCodeStackFrames> StackFrames;
-
+	IRBuilder _IR_Builder;
+	IRInstruction* _IR_LastExpressionField = 0;
+	IRFunc* _IR_LookingAtIRFunc = nullptr;
+	IRBlock* _IR_LookingAtIRBlock = nullptr;
+	IROperator _IR_LastStoreField;
+	Stack<IRLocation_Cotr> _IR_IRlocations;//for Constructors
+	Vector<IRCodeStackFrames> _IR_StackFrames;
+	Stack<GenericFuncInfo> _IR_GenericFuncName;
+	Vector< JumpsData> _IR_Jumps;
 
 	BinaryVectorMap<void*, SymbolID> _ConstantExpressionMap;
-	Stack<GetValueMode> GetExpressionMode;
-	Stack<GenericFuncInfo> GenericFuncName;
-	Vector< JumpsData> _Jumps;
+	Stack<GetValueMode> _GetExpressionMode;
 	Stack<VarableUseData> _Varable;
-	Vector<Unique_ptr<EvalFuncData>> EvalFuncStackFrames;
+	Vector<Unique_ptr<EvalFuncData>> _Eval_FuncStackFrames;
 	
-	//Bad Name
-	struct LibLoadTypeSeter
-	{
-		const TypeSymbol* ToGetTypeFrom = nullptr;
-		TypeSymbol* TypeToFix = nullptr;
-	};
+	
 	//To Fix Types being Loaded out of order.
-	Vector< LibLoadTypeSeter> _TypesToFix;
+	Vector<LibLoadTypeSeter> _Lib_TypesToFix;
 
+	BinaryVectorMap<SymbolID, IRidentifierID> SybToIRMap;
 	//Funcs
-	SymbolConext Get_SymbolConext() const
+	SymbolContext Save_SymbolContext() const
 	{
-		SymbolConext R;
-		R.File = LookingAtFile;
+		SymbolContext R;
+		R.File = _LookingAtFile;
 		R.Scope = _Table._Scope;
 		R.Useings = _Table.Useings;
+		R._ClassStack = _ClassStack;
 
 		return R;
 	}
-	SymbolConext Get_SymbolConextRemoveOneScopeName() const
+	SymbolContext Save_SymbolContextRemoveOneScopeName() const
 	{
-		SymbolConext R;
-		R.File = LookingAtFile;
+		SymbolContext R;
+		R.File = _LookingAtFile;
 		R.Scope.ThisScope =ScopeHelper::GetReMoveScope(_Table._Scope.ThisScope);
 		R.Useings = _Table.Useings;
+		R._ClassStack = _ClassStack;
 
 		return R;
 	}
-	SymbolConext Move_SymbolConext()
+	SymbolContext SaveAndMove_SymbolContext()
 	{
-		SymbolConext R;
-		R.File = std::move(LookingAtFile);
+		SymbolContext R;
+		R.File = std::move(_LookingAtFile);
 		R.Scope = std::move(_Table._Scope);
 		R.Useings = std::move(_Table.Useings);
+		R._ClassStack = std::move(_ClassStack);
 
 		return R;
 	}
 
-	void Set_SymbolConext(const SymbolConext& Contex)
+	void Set_SymbolConext(const SymbolContext& Contex)
 	{
-		LookingAtFile = Contex.File;
+		_LookingAtFile = Contex.File;
 		_Table._Scope = Contex.Scope;
 		_Table.Useings = Contex.Useings;
+		_ClassStack = Contex._ClassStack;
 	}
-	void Set_SymbolConext(SymbolConext&& Contex)
+	void Set_SymbolConext(SymbolContext&& Contex)
 	{
-		LookingAtFile = std::move(Contex.File);
+		_LookingAtFile = std::move(Contex.File);
 		_Table._Scope = std::move(Contex.Scope);
 		_Table.Useings = std::move(Contex.Useings);
+		_ClassStack = std::move(Contex._ClassStack);
 	}
 
 
-	void AddExtendedErr(String Err,const Token* token)
+	void Push_ExtendedErr(String Err,const Token* token)
 	{
 		_ExtendedErr.push_back(Err + ". On line " + std::to_string(token->OnLine));
 	}
-	void PopExtendedErr()
+	void Pop_ExtendedErr()
 	{
 		_ExtendedErr.pop_back();
 	}
 
-	void BuildLibs();
-	void BuildLib(const UClib& lib, const Path& LibName);
+	void Lib_BuildLibs();
+	void Lib_BuildLib(const UClib& lib, const Path& LibName);
 	static bool IsWrite(GetValueMode Value)
 	{
 		return Value == GetValueMode::Write || Value == GetValueMode::ReadAndWrite;
@@ -774,46 +772,49 @@ private:
 	{
 		return Value == GetValueMode::Read || Value == GetValueMode::ReadAndWrite;
 	}
-	void WriteTo(IRInstruction* IR, const IROperator& Value);
-	void WriteToDef(IRInstruction* IR, const IROperator& Value);
+	void IR_WriteTo(IRInstruction* IR, const IROperator& Value);
+	void IR_WriteToDef(IRInstruction* IR, const IROperator& Value);
 
-	void WriteTo(IRInstruction* IR, const TypeSymbol& Type, const IROperator& Value);
+	void IR_WriteTo(IRInstruction* IR, const TypeSymbol& Type, const IROperator& Value);
 
-	size_t GetJumpsIndex();
-	void RemoveJumps(size_t Index);
+	size_t IR_GetJumpsIndex();
+	void IR_RemoveJumps(size_t Index);
 
-	IRidentifierID ConveToIRClassIR(const Symbol& Class);
-	IRidentifierID ConveToStaticArray(const Symbol& Class);
-	IRidentifierID ConveToIRVariantEnum(const Symbol& Class);
+	IRidentifierID IRType_ConvertToIRClassIR(const Symbol& Class);
+	IRidentifierID IRType_ConvertToStaticArray(const Symbol& Class);
+	IRidentifierID IRType_ConveToIRVariantEnum(const Symbol& Class);
 
 
 
-	IRType ConvertToIR(const ParInfo& Value)
+	IRType IRType_ConvertToIRType(const ParInfo& Value)
 	{
 		if (Value.IsOutPar)
 		{
 			return IRType(IRTypes::pointer);
 		}
-		return ConvertToIR(Value.Type);
+		return IRType_ConvertToIRType(Value.Type);
 	}
-	IRType ConvertToIR(const TypeSymbol& Value);
-	BinaryVectorMap<SymbolID, IRidentifierID> SybToIRMap;
-	void PushNewStackFrame();
-	void PopStackFrame();
-	TypeSymbol& Get_LookingForType()
+	IRType IRType_ConvertToIRType(const TypeSymbol& Value);
+	void Push_NewStackFrame();
+	void Pop_StackFrame();
+	TypeSymbol& Type_Get_LookingForType() 
 	{
-		return LookingForTypes.top();
+		return _LookingForTypes.top();
 	}
-	SymbolID GetSymbolID(const Node& node)
+	const TypeSymbol& Type_Get_LookingForType() const
 	{
-		return  GetSymbolID((const void*)&node);
+		return _LookingForTypes.top();
 	}
-	SymbolID GetSymbolID(const void* Item);
+	SymbolID Symbol_GetSymbolID(const Node& node)
+	{
+		return  Symbol_GetSymbolID((const void*)&node);
+	}
+	SymbolID Symbol_GetSymbolID(const void* Item);
 	//File dependency analysis stuff
 
-	inline bool IsDependencies(const ClassInfo* Value)
+	inline bool IsDependencies(const ClassInfo* Value) const
 	{
-		for (auto Item : ClassDependencies)
+		for (auto Item : _ClassDependencies)
 		{
 			if (Item == Value)
 			{
@@ -824,11 +825,11 @@ private:
 	}
 	inline void PushClassDependencie(const ClassInfo* Value)
 	{
-		ClassDependencies.push_back(Value);
+		_ClassDependencies.push_back(Value);
 	}
 	inline void PopClassDependencie()
 	{
-		ClassDependencies.pop_back();
+		_ClassDependencies.pop_back();
 	}
 	inline bool IsDependencies(const FuncInfo* Value)
 	{
@@ -846,11 +847,11 @@ private:
 
 	inline void PushToNodeScope(const Node& node)
 	{
-		NodeTypeStack.push_back(node.Get_Type());
+		_NodeTypeStack.push_back(node.Get_Type());
 	}
 	inline void PopNodeScope()
 	{
-		NodeTypeStack.pop_back();
+		_NodeTypeStack.pop_back();
 	}
 
 
@@ -1402,7 +1403,7 @@ private:
 	{
 		if (GenericData._Generic.size() != UseNode.Values.size())
 		{
-			LogCanIncorrectGenericCount(Name, Name->Value._String, UseNode.Values.size(), GenericData._Generic.size());
+			LogError_CanIncorrectGenericCount(Name, Name->Value._String, UseNode.Values.size(), GenericData._Generic.size());
 			return nullptr;
 		}
 
@@ -1451,7 +1452,7 @@ private:
 		{
 			(*this.*Instantiate)(Symbol, *GenericInput);
 			
-			TepFuncs.push_back({ std::move(GenericInput) });
+			_TepFuncs.push_back({ std::move(GenericInput) });
 		}
 
 		return GetSymbol(NewName, SymbolType::Type);
@@ -1563,41 +1564,41 @@ private:
 	IRInstruction* LoadEvaluatedEx(const RawEvaluatedObject& Value, const TypeSymbol& ValueType);
 	//Errors
 
-	void LogCantFindCompoundOpForTypes(const Token* BinaryOp, TypeSymbol& Ex0Type, TypeSymbol& Ex1Type);
-	void LogCantFindPostfixOpForTypes(const Token* BinaryOp, TypeSymbol& Ex0Type);
-	void LogCantFindBinaryOpForTypes(const Token* BinaryOp, TypeSymbol& Ex0Type, TypeSymbol& Ex1Type);
+	void LogError_CantFindCompoundOpForTypes(const Token* BinaryOp, TypeSymbol& Ex0Type, TypeSymbol& Ex1Type);
+	void LogError_CantFindPostfixOpForTypes(const Token* BinaryOp, TypeSymbol& Ex0Type);
+	void LogError_CantFindBinaryOpForTypes(const Token* BinaryOp, TypeSymbol& Ex0Type, TypeSymbol& Ex1Type);
 
-	void ExpressionMustbeAnLocationValueError(const Token* Token, TypeSymbol& Ex0Type);
-	void YouMustReturnSomethingError(const Token* Token);
-	void CantguessVarTypeError(const Token* Token);
-	void CantUseThisKeyWordHereError(const Token* NameToken);
-	void LogCantCastImplicitTypes(const Token* Token, const TypeSymbol& Ex1Type, const TypeSymbol& UintptrType, bool ReassignMode);
-	void LogReadingFromInvaidVariable(const Token* Token, String_view Str);
-	void LogCantFindVarError(const Token* Token, String_view Str);
-	void LogCantFindVarMemberError(const Token* Token, String_view Str, const TypeSymbol& OnType);
-	void LogCantModifyiMutableError(const Token* Token, String_view Name);
-	void LogCantCastExplicityTypes(const Token* Token, TypeSymbol& Ex0Type, TypeSymbol& ToTypeAs);
-	void LogCantFindTypeError(const Token* Token, String_view Name);
-	void LogTypeDependencyCycle(const Token* Token, const ClassInfo* Value);
-	void LogCantUseThisHere(const Token* Token);
+	void LogError_ExpressionMustbeAnLocationValueError(const Token* Token, TypeSymbol& Ex0Type);
+	void LogError_YouMustReturnSomethingError(const Token* Token);
+	void LogError_CantguessVarTypeError(const Token* Token);
+	void LogError_CantUseThisKeyWordHereError(const Token* NameToken);
+	void LogError_CantCastImplicitTypes(const Token* Token, const TypeSymbol& Ex1Type, const TypeSymbol& UintptrType, bool ReassignMode);
+	void LogError_ReadingFromInvaidVariable(const Token* Token, String_view Str);
+	void LogError_CantFindVarError(const Token* Token, String_view Str);
+	void LogError_CantFindVarMemberError(const Token* Token, String_view Str, const TypeSymbol& OnType);
+	void LogError_CantModifyiMutableError(const Token* Token, String_view Name);
+	void LogError_CantCastExplicityTypes(const Token* Token, TypeSymbol& Ex0Type, TypeSymbol& ToTypeAs);
+	void LogError_CantFindTypeError(const Token* Token, String_view Name);
+	void LogError_TypeDependencyCycle(const Token* Token, const ClassInfo* Value);
+	void LogError_CantUseThisHere(const Token* Token);
 
-	void LogCanIncorrectParCount(const Token* Token, String_view FuncName, size_t Count, size_t FuncCount);
-	void LogCanIncorrectGenericCount(const Token* Token, String_view FuncName, size_t Count, size_t FuncCount);
+	void LogError_CanIncorrectParCount(const Token* Token, String_view FuncName, size_t Count, size_t FuncCount);
+	void LogError_CanIncorrectGenericCount(const Token* Token, String_view FuncName, size_t Count, size_t FuncCount);
 
-	void LogCantFindFuncError(const Token* Token, String_view FuncName,
+	void LogError_CantFindFuncError(const Token* Token, String_view FuncName,
 		const Vector<TypeSymbol>& Generics,
 		const Vector<TypeSymbol>& WithTypes,
 		const TypeSymbol& RetType);
-	void LogCantFindFuncError(const Token* Token, String_view FuncName,
+	void LogError_CantFindFuncError(const Token* Token, String_view FuncName,
 		const Vector<TypeSymbol>& Generics,
 		const Vector<ParInfo>& WithTypes,
 		const TypeSymbol& RetType);
 
-	void LogTypeMustBeAnConstantExpressionAble(const Token* Token, const TypeSymbol& Type);
-	void LogCantFindPostfixOpForTypes_Constant(const Token* BinaryOp, TypeSymbol& Ex0Type);
-	void LogCantDoPostfixOpForTypes_Constant(const Token* BinaryOp, TypeSymbol& Ex0Type);
-	void LogCantCastImplicitTypes_Constant(const Token* Token, const TypeSymbol& Ex1Type, const TypeSymbol& UintptrType);
-	void LogCantFindNamespace(const Token* Token, const String_view Namespace);
+	void LogError_TypeMustBeAnConstantExpressionAble(const Token* Token, const TypeSymbol& Type);
+	void LogError_CantFindPostfixOpForTypes_Constant(const Token* BinaryOp, TypeSymbol& Ex0Type);
+	void LogError_Eval_CantDoPostfixOpForTypes(const Token* BinaryOp, TypeSymbol& Ex0Type);
+	void LogError_Eval_CantCastImplicitTypes(const Token* Token, const TypeSymbol& Ex1Type, const TypeSymbol& UintptrType);
+	void LogError_CantFindNamespace(const Token* Token, const String_view Namespace);
 	void LogFuncMustBe(const Token* Token, const String_view FuncName, TypeSymbol& TypeSybToBe);
 	void LogSymbolRedefinition(const Token* Token, const Symbol* Symbol);
 	void LogUseingVarableBeforDeclared(const Token* Token);

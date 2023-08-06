@@ -5,6 +5,8 @@
 #include <functional>
 #include <UCodeLang/LangCore/ReflectionData.hpp>
 #include <UCodeLang/RunTime/AnyInterpreter.hpp>
+
+#include <UCodeLang/RunTime/ReflectionStl.hpp>
 UCodeIDEStart
 
 
@@ -170,6 +172,9 @@ public:
 		Optional<std::function<void(void* Object, size_t NewSize)>> _ResizeVector;
 	};
 	static bool InputSize_t(const char* label, size_t* v, int step, int step_fast, ImGuiInputTextFlags flags);
+	
+	static bool DrawVector(const char* label, UCodeLang::ReflectionVector& vector, const UCodeLang::ClassAssembly& assembly);
+
 	static bool DrawVector(const char* label, void* Object, void* Buffer, size_t Size, const DrawVectorInfo& Item);
 
 	template<typename T>
@@ -180,7 +185,7 @@ public:
 
 		Info._OnDrawItem = [](void* Object, size_t Index)
 		{
-			UCodeEditor::Vector<T>& Objectbuf = *(UCodeEditor::Vector<T>*)Object;
+			Vector<T>& Objectbuf = *(Vector<T>*)Object;
 			auto& Item = Objectbuf[Index];
 
 			DrawValue<T>(&Item);
@@ -188,19 +193,19 @@ public:
 
 		Info._AddNewValue = [](void* Object, size_t Index)
 		{
-			UCodeEditor::Vector<T>& Objectbuf = *(UCodeEditor::Vector<T>*)Object;
+			Vector<T>& Objectbuf = *(Vector<T>*)Object;
 			Objectbuf.insert(Objectbuf.begin() + Index, T());
 		};
 
 		Info._AddNewRemove = [](void* Object, size_t Index)
 		{
-			UCodeEditor::Vector<T>& Objectbuf = *(UCodeEditor::Vector<T>*)Object;
+			Vector<T>& Objectbuf = *(Vector<T>*)Object;
 			Objectbuf.erase(Objectbuf.begin() + Index);
 		};
 
 		Info._ResizeVector = [](void* Object, size_t NewIndex)
 		{
-			UCodeEditor::Vector<T>& Objectbuf = *(UCodeEditor::Vector<T>*)Object;
+			Vector<T>& Objectbuf = *(Vector<T>*)Object;
 			Objectbuf.resize(NewIndex);
 		};
 
