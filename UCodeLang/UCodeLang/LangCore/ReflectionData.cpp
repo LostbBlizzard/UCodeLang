@@ -609,6 +609,187 @@ Optional<Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>> ClassAssem
 {
 	return { {} };
 }
+ClassAssembly::CompareType_t ClassAssembly::CompareType(const ReflectionTypeInfo& TypeA, const ClassAssembly& TypeAAssembly, const ReflectionTypeInfo& TypeB, const ClassAssembly& TypeBAssembly)
+{
+	if (TypeA == TypeB)
+	{
+		return  CompareType_t::Identical;
+	}
+
+	if (TypeA._Type == TypeB._Type)
+	{
+		if (TypeA._CustomTypeID == TypeB._CustomTypeID)
+		{
+			auto nodeA = TypeAAssembly.Find_Node(TypeA);
+			auto nodeB = TypeAAssembly.Find_Node(TypeB);
+			if (nodeA && nodeB
+				&& nodeA->Get_Type() == nodeB->Get_Type())
+			{
+				return CompareType_t::Similar;
+			}
+		}
+
+	}
+	return CompareType_t::TooDifferent;
+}
+
+Optional<Optional<Vector<ClassAssembly::OnMoveConstructorCall>>> ClassAssembly::DoTypeCoercion(
+	const ReflectionTypeInfo& TypeSource, void* Source, const ClassAssembly& SourceAssembly,
+	const ReflectionTypeInfo& TypeOutput, void* Output, const ClassAssembly& OutputAssembly, bool Is32Bit)
+{
+	if (TypeOutput.IsAddress() || TypeOutput.IsAddressArray() || TypeOutput.IsDynamicTrait() || TypeOutput.IsMovedType()
+		|| TypeSource.IsAddress() || TypeSource.IsAddressArray() || TypeSource.IsDynamicTrait() || TypeSource.IsMovedType())
+	{
+		return {};
+	}
+	bool IsSrcUIntType =
+		TypeSource._Type == ReflectionTypes::Bool ||
+		TypeSource._Type == ReflectionTypes::Char ||
+		TypeSource._Type == ReflectionTypes::Uft8 ||
+		TypeSource._Type == ReflectionTypes::Uft16 ||
+		TypeSource._Type == ReflectionTypes::Uft32 ||
+		TypeSource._Type == ReflectionTypes::uInt8 ||
+		TypeSource._Type == ReflectionTypes::uInt16 ||
+		TypeSource._Type == ReflectionTypes::uInt32 ||
+		TypeSource._Type == ReflectionTypes::uInt64 ||
+		TypeSource._Type == ReflectionTypes::uIntPtr;
+
+	bool IsSrcSIntType =
+		TypeSource._Type == ReflectionTypes::sInt8 ||
+		TypeSource._Type == ReflectionTypes::sInt16 ||
+		TypeSource._Type == ReflectionTypes::sInt32 ||
+		TypeSource._Type == ReflectionTypes::sInt64 ||
+		TypeSource._Type == ReflectionTypes::sIntPtr;
+
+	bool IsOutUIntType =
+		TypeOutput._Type == ReflectionTypes::Bool ||
+		TypeOutput._Type == ReflectionTypes::Char ||
+		TypeOutput._Type == ReflectionTypes::Uft8 ||
+		TypeOutput._Type == ReflectionTypes::Uft16 ||
+		TypeOutput._Type == ReflectionTypes::Uft32 ||
+		TypeOutput._Type == ReflectionTypes::uInt8 ||
+		TypeOutput._Type == ReflectionTypes::uInt16 ||
+		TypeOutput._Type == ReflectionTypes::uInt32 ||
+		TypeOutput._Type == ReflectionTypes::uInt64 ||
+		TypeOutput._Type == ReflectionTypes::uIntPtr;
+
+	bool IsOutSIntType =
+		TypeOutput._Type == ReflectionTypes::sInt8 ||
+		TypeOutput._Type == ReflectionTypes::sInt16 ||
+		TypeOutput._Type == ReflectionTypes::sInt32 ||
+		TypeOutput._Type == ReflectionTypes::sInt64 ||
+		TypeOutput._Type == ReflectionTypes::sIntPtr;
+
+	AnyInt64 SrcAsInt;
+	if (IsSrcUIntType)
+	{
+		switch (SourceAssembly.GetSize(TypeSource,Is32Bit).value_or(0))
+		{
+		case 1:
+			SrcAsInt = *(UInt8*)Source;
+			break;
+
+		case 2:
+			SrcAsInt = *(UInt16*)Source;
+			break;
+
+		case 4:
+			SrcAsInt = *(UInt32*)Source;
+			break;
+		case 8:
+			SrcAsInt = *(UInt64*)Source;
+			break;
+		default:
+			return {};
+			break;
+		}
+
+	}
+	else if (IsSrcSIntType)
+	{
+		switch (SourceAssembly.GetSize(TypeSource, Is32Bit).value_or(0))
+		{
+		case 1:
+			SrcAsInt = *(Int8*)Source;
+			break;
+
+		case 2:
+			SrcAsInt = *(Int16*)Source;
+			break;
+
+		case 4:
+			SrcAsInt = *(Int32*)Source;
+			break;
+		case 8:
+			SrcAsInt = *(Int64*)Source;
+			break;
+		default:
+			return {};
+			break;
+		}
+
+	}
+
+	if (IsOutUIntType)
+	{
+		size_t Size = OutputAssembly.GetSize(TypeOutput, Is32Bit).value_or(0);
+		if (IsSrcUIntType) 
+		{
+			switch (Size)
+			{
+			case 1:
+				*(UInt8*)Output = SrcAsInt.AsUInt8;
+				return { {} };
+				break;
+			case 2:
+				*(UInt8*)Output = SrcAsInt.AsUInt16;
+				return { {} };
+				break;
+			case 4:
+				*(UInt8*)Output = SrcAsInt.AsUInt32;
+				return { {} };
+				break;
+			case 8:
+				*(UInt8*)Output = SrcAsInt.AsUInt64;
+				return { {} };
+				break;
+			default:
+				return {};
+				break;
+			}
+		}
+		else if (IsSrcSIntType)
+		{
+			switch (Size)
+			{
+			case 1:
+				*(Int8*)Output = SrcAsInt.AsInt8;
+				return { {} };
+				break;
+			case 2:
+				*(Int8*)Output = SrcAsInt.AsInt16;
+				return { {} };
+				break;
+			case 4:
+				*(Int8*)Output = SrcAsInt.AsInt32;
+				return { {} };
+				break;
+			case 8:
+				*(Int8*)Output = SrcAsInt.AsInt64;
+				return { {} };
+				break;
+			default:
+				return {};
+				break;
+			}
+		}
+	}
+
+	return {};
+}
+
+
+
 AssemblyNode::AssemblyNode(ClassType type) : Type(type)
 {
 	switch (type)
