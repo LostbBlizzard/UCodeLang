@@ -1875,7 +1875,7 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 			}
 			else if (Token2->Type == TokenType::Right_Bracket)//int[] => Vector<int>
 			{
-				NextToken();
+				//NextToken();
 				TypeNode* New = new TypeNode();
 
 				New->Isimmutable = out->Isimmutable;
