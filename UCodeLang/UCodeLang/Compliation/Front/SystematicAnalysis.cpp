@@ -1282,7 +1282,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 		if (CheckgenericForErr)
 		{
 			_Table.AddScope(GenericTestStr);
-			Syb.FullName += GenericTestStr;
+			Syb.FullName = _Table._Scope.ThisScope;
 		}
 
 		//if (passtype == PassType::GetTypes)
@@ -1336,7 +1336,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 		if (CheckgenericForErr)
 		{
 			_Table.RemoveScope();
-			Syb.FullName = Syb.FullName.substr(0,sizeof(GenericTestStr)-1);
+			Syb.FullName = _Table._Scope.ThisScope;
 		}
 	}
 	else
