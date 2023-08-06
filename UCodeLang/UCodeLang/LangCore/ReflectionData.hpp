@@ -832,5 +832,28 @@ public:
 	//Get the Destructor or directly does the operation if a Primitive.
 	//if the first Optional is empty the operation failed
 	Optional<Optional<Vector<OnDoDefaultConstructorCall>>> CallDestructor(const ReflectionTypeInfo& Type, void* Object, bool Is32Bit) const;
+
+
+	enum class CompareType_t
+	{
+		Identical,
+		Similar,
+		CanTypeCoercion,
+		TooDifferent,
+	};
+	static CompareType_t CompareType(
+		const ReflectionTypeInfo& TypeA, const ClassAssembly& TypeAAssembly, 
+		const ReflectionTypeInfo& TypeB, const ClassAssembly& TypeBAssembly);
+	
+	//Convert one type to Another even if not the same type int to char,int to int32,enum to int ect
+	//if the first Optional is empty the operation failed
+	//used in hot reloading
+	static Optional<Optional<Vector<OnMoveConstructorCall>>> DoTypeCoercion(
+		const ReflectionTypeInfo& TypeSource,
+		void* Source,
+		const ClassAssembly& SourceAssembly,
+		const ReflectionTypeInfo& TypeOutput,
+		void* Output,
+		const ClassAssembly& OutputAssembly, bool Is32Bit);
 };
 UCodeLangEnd

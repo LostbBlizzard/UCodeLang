@@ -222,6 +222,9 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 		{
 			size_t Offset = 0;
 			ReflectionTypeInfo Type;
+
+			size_t LineDeclared;
+			String FileDeclared;
 		};
 		Optional<State> OldRunTimeState;
 		Optional<State> NewRunTimeState;
@@ -330,6 +333,7 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 		VectorMap<String,StaticObjectInfo> StaticObjectsInfo;
 		VectorMap<String,ThreadObjectInfo> ThreadObjectsInfo;
 
+		Vector<Instruction> NewIns;
 		ULangDebugInfo NewDebugInfo;
 	};
 	struct InterpreterLocal
@@ -367,8 +371,10 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 		size_t NewStaticBufferSize = 0;
 		size_t NewThreadBufferSize = 0;
 		size_t NewInsSize = 0;
+
 		size_t OldStaticBufferSize = 0;
 		size_t OldThreadBufferSize = 0;
+		size_t OldInsSize = 0;
 		for (auto& Lib : Item.LibsToUpdate)
 		{
 			const auto& NewStaticBytes = Lib.NewLib->Get_Lib()->Get_StaticBytes();
@@ -377,18 +383,25 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 			
 			const auto& OldStaticBytes = Lib.LibToUpdate->Get_Lib()->Get_StaticBytes();
 			const auto& OldThreadBytes = Lib.LibToUpdate->Get_Lib()->Get_ThreadBytes();
-			//const auto& OldIns =
+			const auto& OldIns = Lib.LibToUpdate->Get_Instructions();
 
 			NewStaticBufferSize += NewStaticBytes.size();
 			NewThreadBufferSize += NewThreadBytes.size();
+			NewInsSize += NewIns.size();
+
 			OldStaticBufferSize += OldStaticBytes.size();
 			OldThreadBufferSize += OldThreadBytes.size();
-
+			OldInsSize += OldIns.size();
+			
 			LibInfo V;
 			V.NewStaticOffset = NewStaticBufferSize;
 			V.NewThreadOffset = NewThreadBufferSize;
+			V.NewInsOffset = NewInsSize;
+
 			V.OldStaticOffset = OldStaticBufferSize;
 			V.OldThreadOffset = OldThreadBufferSize;
+			V.OldInsOffset = OldInsSize;
+
 
 			{
 				if (auto Val = Lib.NewLib->Get_Lib()->GetLayer(UCode_CodeLayer_UCodeVM_Name))
@@ -398,8 +411,7 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 						if (bytecode->DebugInfo.has_value())
 						{
 							auto& DebugInfo = bytecode->DebugInfo.value();
-							//
-							//GlobalInfo.NewDebugInfo
+							
 							for (auto& Item : DebugInfo.VarablesInfo)
 							{
 								GlobalInfo.NewDebugInfo.VarablesInfo.AddValue(Item._Key, Item._Value);
@@ -454,6 +466,8 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 				StaticObjectInfo::State oldstate;
 				oldstate.Offset = Val->offset;
 				oldstate.Type = Item._Value.ReflectionType;
+				oldstate.FileDeclared = Item._Value.FileDeclaredIn;
+				oldstate.LineDeclared = Item._Value.DeclaredLine;
 
 				StaticObjectInfo b =std::move(GlobalInfo.StaticObjectsInfo[Item._Key]);
 				b.NewRunTimeState = std::move(oldstate);
@@ -465,6 +479,8 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 				ThreadObjectInfo::State oldstate;
 				oldstate.Offset = Val->offset;
 				oldstate.Type = Item._Value.ReflectionType;
+				oldstate.FileDeclared = Item._Value.FileDeclaredIn;
+				oldstate.LineDeclared = Item._Value.DeclaredLine;
 
 				ThreadObjectInfo b = std::move(GlobalInfo.ThreadObjectsInfo[Item._Key]);
 				b.NewRunTimeState = std::move(oldstate);
@@ -526,11 +542,11 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 		GlobalInfo.ReadOnlyStaticMem = GlobalInfo.NewStaticMem.CopyAsVector();
 		
 	}
-
-	bool Is32Bit = sizeof(void*) == 4;
-	auto Interpreter = LibsInfo[0].InterpreterLocals[Item.IndexOfInterpreterToCallForRelocations]._Ptr;
 	{//Move Values  Constructors and destructors
 
+		bool Is32Bit = sizeof(void*) == 4;
+		auto Interpreter = LibsInfo[0].InterpreterLocals[Item.IndexOfInterpreterToCallForRelocations]._Ptr;
+	
 		auto Func = [this,Interpreter, Is32Bit](Optional<StaticObjectInfo::State>& OldRunTimeState,
 		Optional<StaticObjectInfo::State>& NewRunTimeState, void* OldBasePtr,void* NewBasePtr) mutable
 		{
@@ -575,7 +591,7 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 				auto& NewState = NewRunTimeState.value();
 				void* NewObject = (void*)((uintptr_t)NewBasePtr + NewState.Offset);
 
-
+				
 				bool FoundItsExpression = false;
 				if (FoundItsExpression)
 				{
