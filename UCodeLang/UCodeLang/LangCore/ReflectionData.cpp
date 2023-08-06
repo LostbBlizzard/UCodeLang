@@ -789,43 +789,92 @@ Optional<Optional<Vector<ClassAssembly::OnMoveConstructorCall>>> ClassAssembly::
 }
 
 
-Optional<ClassAssembly::InfoVec2_t> ClassAssembly::IsVec2_t(const ReflectionTypeInfo& Type)
+Optional<ClassAssembly::InfoVec2_t> ClassAssembly::IsVec2_t(const ReflectionTypeInfo& Type) const
 {
+	auto node = Find_Node(Type);
+	if (node)
+	{
+		if (node->Get_Type() == ClassType::Class)
+		{
+			auto& classnode = node->Get_ClassData();
+
+			if (classnode.Fields.size() == 2)
+			{
+				if (classnode.Fields[0].Name == "x" ||
+					classnode.Fields[0].Name == "X")
+				{
+					if (classnode.Fields[1].Name == "y" ||
+						classnode.Fields[1].Name == "Y")
+					{
+						InfoVec2_t r;
+						r.XAndYType = classnode.Fields[0].Type;
+						return r;
+					}
+				}
+			}
+		}
+	}
 	return {};
 }
 
 
-Optional<ClassAssembly::InfoVec3_t> ClassAssembly::IsVec3_t(const ReflectionTypeInfo& Type)
+Optional<ClassAssembly::InfoVec3_t> ClassAssembly::IsVec3_t(const ReflectionTypeInfo& Type) const
 {
-	return {};
+	auto node = Find_Node(Type);
+	if (node)
+	{
+		if (node->Get_Type() == ClassType::Class)
+		{
+			auto& classnode = node->Get_ClassData();
 
+			if (classnode.Fields.size() == 3)
+			{
+				if (classnode.Fields[0].Name == "x" ||
+					classnode.Fields[0].Name == "X")
+				{
+					if (classnode.Fields[1].Name == "y" ||
+						classnode.Fields[1].Name == "Y")
+					{
+						if (classnode.Fields[2].Name == "Z" ||
+							classnode.Fields[2].Name == "Z")
+						{
+							InfoVec3_t r;
+							r.XAndYType = classnode.Fields[0].Type;
+							return r;
+						}
+					}
+				}
+			}
+		}
+	}
+	return {};
 }
 
-Optional<ClassAssembly::InfoVector_t> ClassAssembly::IsVector_t(const ReflectionTypeInfo& Type)
+Optional<ClassAssembly::InfoVector_t> ClassAssembly::IsVector_t(const ReflectionTypeInfo& Type) const
 {
 	return {};
 }
 
-Optional<ClassAssembly::InfoOptional_t> ClassAssembly::IsOptional_t(const ReflectionTypeInfo& Type)
+Optional<ClassAssembly::InfoOptional_t> ClassAssembly::IsOptional_t(const ReflectionTypeInfo& Type) const
 {
 	return {};
 }
-Optional<ClassAssembly::InfoResult_t> ClassAssembly::IsResult_t(const ReflectionTypeInfo& Type)
+Optional<ClassAssembly::InfoResult_t> ClassAssembly::IsResult_t(const ReflectionTypeInfo& Type) const
 {
 	return {};
 }
 
-Optional<ClassAssembly::InfoString_t> ClassAssembly::IsString_t(const ReflectionTypeInfo& Type)
+Optional<ClassAssembly::InfoString_t> ClassAssembly::IsString_t(const ReflectionTypeInfo& Type) const
 {
 	return Optional<InfoString_t>();
 }
 
-Optional<ClassAssembly::InfoStringView_t> ClassAssembly::IsStringView_t(const ReflectionTypeInfo& Type)
+Optional<ClassAssembly::InfoStringView_t> ClassAssembly::IsStringView_t(const ReflectionTypeInfo& Type) const
 {
 	return Optional<InfoStringView_t>();
 }
 
-Optional<ClassAssembly::InfoSpan_t> ClassAssembly::IsSpan_t(const ReflectionTypeInfo& Type)
+Optional<ClassAssembly::InfoSpan_t> ClassAssembly::IsSpan_t(const ReflectionTypeInfo& Type) const
 {
 	return Optional<InfoSpan_t>();
 }

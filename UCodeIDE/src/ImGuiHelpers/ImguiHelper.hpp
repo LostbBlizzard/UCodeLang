@@ -40,8 +40,27 @@ public:
 	static bool InputText(const char* label, String& buffer, ImGuiInputTextFlags flags = 0);
 	static bool MultLineText(const char* label, String& buffer, ImVec2 Size, ImGuiInputTextFlags flags = 0);
 	
+	static bool Vec2float32Field(const char* label, float vec2[2]);
+	static bool Vec2float64Field(const char* label, double vec2[2]);
+	static bool Vec2IntField(const char* label, UInt64 vec2[2]);
+	static bool Vec2IntField(const char* label, Int64 vec2[2]);
+	static bool Vec2IntField(const char* label, UInt32 vec2[2]);
+	static bool Vec2IntField(const char* label, Int32 vec2[2]);
+	static bool Vec2IntField(const char* label, UInt16 vec2[2]);
+	static bool Vec2IntField(const char* label, Int16 vec2[2]);
+	static bool Vec2IntField(const char* label, UInt8 vec2[2]);
+	static bool Vec2IntField(const char* label, Int8 vec2[2]);
 
-
+	static bool Vec3float32Field(const char* label, float vec3[3]);
+	static bool Vec3float64Field(const char* label, double vec3[3]);
+	static bool Vec3IntField(const char* label, UInt64 vec3[3]);
+	static bool Vec3IntField(const char* label, Int64 vec3[3]);
+	static bool Vec3IntField(const char* label, UInt32 vec3[3]);
+	static bool Vec3IntField(const char* label, Int32 vec3[3]);
+	static bool Vec3IntField(const char* label, UInt16 vec3[3]);
+	static bool Vec3IntField(const char* label, Int16 vec3[3]);
+	static bool Vec3IntField(const char* label, UInt8 vec3[3]);
+	static bool Vec3IntField(const char* label, Int8 vec3[3]);
 
 	template<typename T>
 	struct EnumValue

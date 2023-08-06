@@ -857,7 +857,7 @@ public:
 		void* Output,
 		const ClassAssembly& OutputAssembly, bool Is32Bit);
 
-	inline static bool IsJust(const ReflectionTypeInfo& Type)
+	inline static bool IsJust(const ReflectionTypeInfo& Type) 
 	{
 		if (Type.IsAddress() 
 			&& Type.IsAddressArray()
@@ -868,14 +868,14 @@ public:
 		}
 		return true;
 	}
-	inline ReflectionTypeInfo CollapseAliases(const ReflectionTypeInfo& Type)
+	inline ReflectionTypeInfo CollapseAliases(const ReflectionTypeInfo& Type) const
 	{
 		return Type;
 	}
 
 	//Is Char or Uf8,Uf16,Uf32 etc also includes type aliases
 	// use IsJust to exclude pointer and move's ect.
-	inline bool IsChar_t(const ReflectionTypeInfo& TypeA)
+	inline bool IsChar_t(const ReflectionTypeInfo& TypeA) const
 	{
 		switch (TypeA._Type)
 		{
@@ -893,7 +893,7 @@ public:
 
 	//Is uint8 or uint16,utint32 etc also includes type aliases
 	// use IsJust to exclude pointer and move's etc.
-	inline bool IsUint_t(const ReflectionTypeInfo& TypeA)
+	inline bool IsUint_t(const ReflectionTypeInfo& TypeA) const
 	{
 		switch (TypeA._Type)
 		{
@@ -911,7 +911,7 @@ public:
 
 	//Is uint8 or uint16,utint32 etc also includes type aliases
 	// use IsJust to exclude pointer and move's etc.
-	inline bool IsSint_t(const ReflectionTypeInfo& TypeA)
+	inline bool IsSint_t(const ReflectionTypeInfo& TypeA) const
 	{
 		switch (TypeA._Type)
 		{
@@ -929,7 +929,7 @@ public:
 
 	//Is float32 or float64 etc also includes type aliases
 	// use IsJust to exclude pointer and move's etc.
-	inline bool Isfloat_t(const ReflectionTypeInfo& Type)
+	inline bool Isfloat_t(const ReflectionTypeInfo& Type) const
 	{
 		switch (Type._Type)
 		{
@@ -944,7 +944,7 @@ public:
 
 	//Is uint or sint etc also includes type aliases
 	// use IsJust to exclude pointer and move's etc.
-	inline bool IsAnyint_t(const ReflectionTypeInfo& Type)
+	inline bool IsAnyint_t(const ReflectionTypeInfo& Type) const
 	{
 		return IsSint_t(Type) || IsUint_t(Type);
 	}
@@ -952,7 +952,7 @@ public:
 
 	// includes type aliases
 	// use IsJust to exclude pointer and move's etc.
-	inline bool IsPrimitve(const ReflectionTypeInfo& Type)
+	inline bool IsPrimitve(const ReflectionTypeInfo& Type) const
 	{
 		if (Type._Type == ReflectionTypes::Bool)
 		{
@@ -968,13 +968,15 @@ public:
 	using InfoVec3_t = InfoVec2_t;
 
 	// includes type aliases
-	Optional<InfoVec2_t> IsVec2_t(const ReflectionTypeInfo& Type);
+	// if it's looks like an Vec2 then it is an Vec2
+	Optional<InfoVec2_t> IsVec2_t(const ReflectionTypeInfo& Type) const;
 
 	// includes type aliases
-	Optional<InfoVec3_t> IsVec3_t(const ReflectionTypeInfo& Type);
+	// if it's looks like an Vec3 then it is an Vec3
+	Optional<InfoVec3_t> IsVec3_t(const ReflectionTypeInfo& Type) const;
 
 	// includes type aliases
-	inline Optional<InfoVec2_t> IsVec2f_t(const ReflectionTypeInfo& Type)
+	inline Optional<InfoVec2_t> IsVec2f_t(const ReflectionTypeInfo& Type) const
 	{
 		auto V = IsVec2_t(Type);
 		if (V.has_value())
@@ -988,7 +990,7 @@ public:
 	}
 
 	// includes type aliases
-	inline Optional<InfoVec2_t> IsVec2i_t(const ReflectionTypeInfo& Type)
+	inline Optional<InfoVec2_t> IsVec2i_t(const ReflectionTypeInfo& Type) const
 	{
 		auto V = IsVec2_t(Type);
 		if (V.has_value())
@@ -1002,7 +1004,7 @@ public:
 	}
 
 	// includes type aliases
-	inline Optional<InfoVec2_t> IsVec3f_t(const ReflectionTypeInfo& Type)
+	inline Optional<InfoVec2_t> IsVec3f_t(const ReflectionTypeInfo& Type) const
 	{
 		auto V = IsVec3_t(Type);
 		if (V.has_value())
@@ -1016,7 +1018,7 @@ public:
 	}
 
 	// includes type aliases
-	inline Optional<InfoVec2_t> IsVec3i_t(const ReflectionTypeInfo& Type)
+	inline Optional<InfoVec2_t> IsVec3i_t(const ReflectionTypeInfo& Type) const
 	{
 		auto V = IsVec3_t(Type);
 		if (V.has_value())
@@ -1034,14 +1036,14 @@ public:
 		ReflectionTypeInfo ElementType;
 	};
 	// includes type aliases
-	Optional<InfoVector_t> IsVector_t(const ReflectionTypeInfo& Type);
+	Optional<InfoVector_t> IsVector_t(const ReflectionTypeInfo& Type) const;
 
 	struct InfoOptional_t
 	{
 		ReflectionTypeInfo OptType;
 	};
 	// includes type aliases
-	Optional<InfoOptional_t> IsOptional_t(const ReflectionTypeInfo& Type);
+	Optional<InfoOptional_t> IsOptional_t(const ReflectionTypeInfo& Type) const;
 
 	struct InfoResult_t
 	{
@@ -1049,27 +1051,27 @@ public:
 		ReflectionTypeInfo ErrType;
 	};
 	// includes type aliases
-	Optional<InfoResult_t> IsResult_t(const ReflectionTypeInfo& Type);
+	Optional<InfoResult_t> IsResult_t(const ReflectionTypeInfo& Type) const;
 
 	struct InfoString_t
 	{
 		ReflectionTypeInfo ElementType;//is any of the char_t types
 	};
 	// includes type aliases
-	Optional<InfoString_t> IsString_t(const ReflectionTypeInfo& Type);
+	Optional<InfoString_t> IsString_t(const ReflectionTypeInfo& Type) const;
 
 	struct InfoStringView_t
 	{
 		ReflectionTypeInfo ElementType;//is any of the char_t types
 	};
 	// includes type aliases
-	Optional<InfoStringView_t> IsStringView_t(const ReflectionTypeInfo& Type);
+	Optional<InfoStringView_t> IsStringView_t(const ReflectionTypeInfo& Type) const;
 
 	struct InfoSpan_t
 	{
 		ReflectionTypeInfo ElementType;
 	};
 	// includes type aliases
-	Optional<InfoSpan_t> IsSpan_t(const ReflectionTypeInfo& Type);
+	Optional<InfoSpan_t> IsSpan_t(const ReflectionTypeInfo& Type) const;
 };
 UCodeLangEnd

@@ -3,7 +3,6 @@
 |main[] => 0;
 
 
-bool a = false;
 //A simplified standard Library below.
 
 $Vec2:
@@ -14,6 +13,9 @@ $Vec3:
  int X = 0;
  int Y = 0;
  int Z = 0;
+
+thread Vec3 B = [];
+thread Vec3 B2 = [];
 
 //Syntactic alias: T? = Optional<T>
 $Optional<T> enum:

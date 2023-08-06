@@ -26,6 +26,8 @@ bool ImguiHelper::UCodeObjectField(void* Pointer, const UCodeLang::ReflectionTyp
 
 bool ImguiHelper::UCodeObjectField(const char* FieldName, void* Object, const UCodeLang::ReflectionTypeInfo& type, const UCodeLang::ClassAssembly& assembly, bool IfClassRemoveFlags)
 {
+	bool Is32Bit = sizeof(void*) == 4;
+
 	switch (type._Type)
 	{
 	case UCodeLang::ReflectionTypes::Bool:
@@ -91,6 +93,77 @@ bool ImguiHelper::UCodeObjectField(const char* FieldName, void* Object, const UC
 	case UCodeLang::ReflectionTypes::CustomType:
 	{
 		auto Syb = assembly.Find_Node(type);
+
+		{
+			auto vec2info = assembly.IsVec2_t(type);
+			if (vec2info.has_value())
+			{
+				auto& vec2infoVal = vec2info.value();
+				if (assembly.IsJust(type))
+				{
+					switch (vec2infoVal.XAndYType._Type)
+					{
+					case UCodeLang::ReflectionTypes::sInt8:return Vec2IntField(FieldName, (Int8*)Object);
+					case UCodeLang::ReflectionTypes::sInt16:return Vec2IntField(FieldName, (Int16*)Object);
+					case UCodeLang::ReflectionTypes::sInt32:return Vec2IntField(FieldName, (Int32*)Object);
+					case UCodeLang::ReflectionTypes::sInt64:return Vec2IntField(FieldName, (Int64*)Object);
+
+					case UCodeLang::ReflectionTypes::uInt8:return Vec2IntField(FieldName, (UInt8*)Object);
+					case UCodeLang::ReflectionTypes::uInt16:return Vec2IntField(FieldName, (UInt16*)Object);
+					case UCodeLang::ReflectionTypes::uInt32:return Vec2IntField(FieldName, (UInt32*)Object);
+					case UCodeLang::ReflectionTypes::uInt64:return Vec2IntField(FieldName, (UInt64*)Object);
+
+					case UCodeLang::ReflectionTypes::float32:return Vec2float32Field(FieldName, (float32*)Object);
+					case UCodeLang::ReflectionTypes::float64:return Vec2float64Field(FieldName, (float64*)Object);
+
+					case UCodeLang::ReflectionTypes::uIntPtr:
+						return Is32Bit ? Vec2IntField(FieldName, (UInt32*)Object) : Vec2IntField(FieldName, (UInt64*)Object);
+						break;
+					case UCodeLang::ReflectionTypes::sIntPtr:
+						return Is32Bit ? Vec2IntField(FieldName, (Int32*)Object) : Vec2IntField(FieldName, (Int64*)Object);
+						break;
+					default:
+						break;
+					}
+				}
+			}
+		}
+		
+		{
+			auto vec3info = assembly.IsVec3_t(type);
+			if (vec3info.has_value())
+			{
+				auto& vec3infoVal = vec3info.value();
+				if (assembly.IsJust(type))
+				{
+					switch (vec3infoVal.XAndYType._Type)
+					{
+					case UCodeLang::ReflectionTypes::sInt8:return Vec3IntField(FieldName, (Int8*)Object);
+					case UCodeLang::ReflectionTypes::sInt16:return Vec3IntField(FieldName, (Int16*)Object);
+					case UCodeLang::ReflectionTypes::sInt32:return Vec3IntField(FieldName, (Int32*)Object);
+					case UCodeLang::ReflectionTypes::sInt64:return Vec3IntField(FieldName, (Int64*)Object);
+
+					case UCodeLang::ReflectionTypes::uInt8:return Vec3IntField(FieldName, (UInt8*)Object);
+					case UCodeLang::ReflectionTypes::uInt16:return Vec3IntField(FieldName, (UInt16*)Object);
+					case UCodeLang::ReflectionTypes::uInt32:return Vec3IntField(FieldName, (UInt32*)Object);
+					case UCodeLang::ReflectionTypes::uInt64:return Vec3IntField(FieldName, (UInt64*)Object);
+
+					case UCodeLang::ReflectionTypes::float32:return Vec3float32Field(FieldName, (float32*)Object);
+					case UCodeLang::ReflectionTypes::float64:return Vec3float64Field(FieldName, (float64*)Object);
+
+					case UCodeLang::ReflectionTypes::uIntPtr:
+						return Is32Bit ? Vec3IntField(FieldName, (UInt32*)Object) : Vec3IntField(FieldName, (UInt64*)Object);
+						break;
+					case UCodeLang::ReflectionTypes::sIntPtr:
+						return Is32Bit ? Vec3IntField(FieldName, (Int32*)Object) : Vec3IntField(FieldName, (Int64*)Object);
+						break;
+					default:
+						break;
+					}
+				}
+			}
+		}
+
 		if (Syb)
 		{
 			if (Syb->Get_Type() == UCodeLang::ClassType::Enum)
@@ -367,8 +440,229 @@ bool ImguiHelper::InputText(const char* label, String& buffer, ImGuiInputTextFla
 	return V;
 }
 bool ImguiHelper::MultLineText(const char* label, String& buffer, ImVec2 Size, ImGuiInputTextFlags flags)
-{
+{	
 	return  ImGui::InputTextMultiline(label, &buffer, Size, flags);
+}
+bool ImguiHelper::Vec2float32Field(const char* label, float vec2[2])
+{
+	ImGui::Text(label);
+	ImGui::SameLine();
+
+	ImGui::PushID(&vec2);
+	auto V = ImGui::DragScalarN("", ImGuiDataType_Float, vec2, 2);
+	ImGui::PopID();
+
+	return V;
+}
+bool ImguiHelper::Vec2float64Field(const char* label, double vec2[2])
+{
+	ImGui::Text(label);
+	ImGui::SameLine();
+
+	ImGui::PushID(&vec2);
+	auto V = ImGui::DragScalarN("", ImGuiDataType_Double, vec2, 2);
+	ImGui::PopID();
+
+	return V;
+}
+bool ImguiHelper::Vec2IntField(const char* label, UInt64 vec2[2])
+{
+	ImGui::Text(label);
+	ImGui::SameLine();
+
+	ImGui::PushID(&vec2);
+	auto V = ImGui::DragScalarN("", ImGuiDataType_U64, vec2, 2);
+	ImGui::PopID();
+
+	return V;
+}
+bool ImguiHelper::Vec2IntField(const char* label, Int64 vec2[2])
+{
+	ImGui::Text(label);
+	ImGui::SameLine();
+
+	ImGui::PushID(&vec2);
+	auto V = ImGui::DragScalarN("", ImGuiDataType_S64, vec2, 2);
+	ImGui::PopID();
+
+	return V;
+}
+bool ImguiHelper::Vec2IntField(const char* label, UInt32 vec2[2])
+{
+	ImGui::Text(label);
+	ImGui::SameLine();
+
+	ImGui::PushID(&vec2);
+	auto V = ImGui::DragScalarN("", ImGuiDataType_U32, vec2, 2);
+	ImGui::PopID();
+
+	return V;
+}
+bool ImguiHelper::Vec2IntField(const char* label, Int32 vec2[2])
+{
+	ImGui::Text(label);
+	ImGui::SameLine();
+
+	ImGui::PushID(&vec2);
+	auto V = ImGui::DragScalarN("", ImGuiDataType_S32, vec2, 2);
+	ImGui::PopID();
+
+	return V;
+}
+bool ImguiHelper::Vec2IntField(const char* label, UInt16 vec2[2])
+{
+	ImGui::Text(label);
+	ImGui::SameLine();
+
+	ImGui::PushID(&vec2);
+	auto V = ImGui::DragScalarN("", ImGuiDataType_U16, vec2, 2);
+	ImGui::PopID();
+
+	return V;
+}
+bool ImguiHelper::Vec2IntField(const char* label, Int16 vec2[2])
+{
+	ImGui::Text(label);
+	ImGui::SameLine();
+
+	ImGui::PushID(&vec2);
+	auto V = ImGui::DragScalarN("", ImGuiDataType_S16, vec2, 2);
+	ImGui::PopID();
+
+	return V;
+}
+bool ImguiHelper::Vec2IntField(const char* label, UInt8 vec2[2])
+{
+	ImGui::Text(label);
+	ImGui::SameLine();
+
+	ImGui::PushID(&vec2);
+	auto V = ImGui::DragScalarN("", ImGuiDataType_U8, vec2, 2);
+	ImGui::PopID();
+
+	return V;
+}
+bool ImguiHelper::Vec2IntField(const char* label, Int8 vec2[2])
+{
+	ImGui::Text(label);
+	ImGui::SameLine();
+
+	ImGui::PushID(&vec2);
+	auto V = ImGui::DragScalarN("", ImGuiDataType_S8, vec2, 2);
+	ImGui::PopID();
+
+	return V;
+}
+
+bool ImguiHelper::Vec3float32Field(const char* label, float vec2[3])
+{
+	ImGui::Text(label);
+	ImGui::SameLine();
+
+	ImGui::PushID(&vec2);
+	auto V = ImGui::DragScalarN("", ImGuiDataType_Float, vec2, 3);
+	ImGui::PopID();
+
+	return V;
+}
+bool ImguiHelper::Vec3float64Field(const char* label, double vec2[3])
+{
+	ImGui::Text(label);
+	ImGui::SameLine();
+
+	ImGui::PushID(&vec2);
+	auto V = ImGui::DragScalarN("", ImGuiDataType_Double, vec2, 3);
+	ImGui::PopID();
+
+	return V;
+}
+bool ImguiHelper::Vec3IntField(const char* label, UInt64 vec2[3])
+{
+	ImGui::Text(label);
+	ImGui::SameLine();
+
+	ImGui::PushID(&vec2);
+	auto V = ImGui::DragScalarN("", ImGuiDataType_U64, vec2, 3);
+	ImGui::PopID();
+
+	return V;
+}
+bool ImguiHelper::Vec3IntField(const char* label, Int64 vec2[3])
+{
+	ImGui::Text(label);
+	ImGui::SameLine();
+
+	ImGui::PushID(&vec2);
+	auto V = ImGui::DragScalarN("", ImGuiDataType_S64, vec2, 3);
+	ImGui::PopID();
+
+	return V;
+}
+bool ImguiHelper::Vec3IntField(const char* label, UInt32 vec2[3])
+{
+	ImGui::Text(label);
+	ImGui::SameLine();
+
+	ImGui::PushID(&vec2);
+	auto V = ImGui::DragScalarN("", ImGuiDataType_U32, vec2, 3);
+	ImGui::PopID();
+
+	return V;
+}
+bool ImguiHelper::Vec3IntField(const char* label, Int32 vec2[3])
+{
+	ImGui::Text(label);
+	ImGui::SameLine();
+
+	ImGui::PushID(&vec2);
+	auto V = ImGui::DragScalarN("", ImGuiDataType_S32, vec2, 3);
+	ImGui::PopID();
+
+	return V;
+}
+bool ImguiHelper::Vec3IntField(const char* label, UInt16 vec2[3])
+{
+	ImGui::Text(label);
+	ImGui::SameLine();
+
+	ImGui::PushID(&vec2);
+	auto V = ImGui::DragScalarN("", ImGuiDataType_U16, vec2, 3);
+	ImGui::PopID();
+
+	return V;
+}
+bool ImguiHelper::Vec3IntField(const char* label, Int16 vec2[3])
+{
+	ImGui::Text(label);
+	ImGui::SameLine();
+
+	ImGui::PushID(&vec2);
+	auto V = ImGui::DragScalarN("", ImGuiDataType_S16, vec2, 3);
+	ImGui::PopID();
+
+	return V;
+}
+bool ImguiHelper::Vec3IntField(const char* label, UInt8 vec2[3])
+{
+	ImGui::Text(label);
+	ImGui::SameLine();
+
+	ImGui::PushID(&vec2);
+	auto V = ImGui::DragScalarN("", ImGuiDataType_U8, vec2, 3);
+	ImGui::PopID();
+
+	return V;
+}
+bool ImguiHelper::Vec3IntField(const char* label, Int8 vec2[3])
+{
+	ImGui::Text(label);
+	ImGui::SameLine();
+
+	ImGui::PushID(&vec2);
+	auto V = ImGui::DragScalarN("", ImGuiDataType_S8, vec2, 3);
+	ImGui::PopID();
+
+	return V;
 }
 bool ImguiHelper::CharField(const char* FieldName, char& Value)
 {
