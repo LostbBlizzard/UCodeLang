@@ -1,5 +1,6 @@
 #include "ImguiHelper.hpp"
 #include "Imgui/misc/cpp/imgui_stdlib.h"
+#include <UCodeLang/RunTime/ReflectionStl.hpp>
 UCodeIDEStart
 
 
@@ -160,6 +161,24 @@ bool ImguiHelper::UCodeObjectField(const char* FieldName, void* Object, const UC
 					default:
 						break;
 					}
+				}
+			}
+		}
+
+		{
+			auto vectorinfo = assembly.IsVector_t(type);
+			if (vectorinfo.has_value())
+			{
+				auto& vectorInfoVal = vectorinfo.value();
+
+				UCodeLang::ReflectionVector vector;
+				vector.Set(Object, &vectorInfoVal, _Ptr,assembly,Is32Bit);
+
+				
+
+				for (auto Item : vector)
+				{
+
 				}
 			}
 		}

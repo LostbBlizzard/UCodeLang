@@ -295,19 +295,19 @@ struct AnyInterpreterPtr
 		}
 	}
 	template<typename T, typename... Args>
-	T RCall(const ClassMethod& Function, Args... parameters)
+	T RCall(const ClassMethod* Function, Args... parameters)
 	{
 		if (auto Val = Base.Get_If<Interpreter*>())
 		{
-			return (*Val)->RCall<T>(Function, parameters);
+			return (*Val)->RCall<T>(Function, parameters...);
 		}
 		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
 		{
-			return  (*Val)->RCall<T>(Function, parameters);
+			return  (*Val)->RCall<T>(Function, parameters...);
 		}
 		else if (auto Val = Base.Get_If<NativeInterpreter*>())
 		{
-			return  (*Val)->RCall<T>(Function, parameters);
+			return  (*Val)->RCall<T>(Function, parameters...);
 		}
 		else
 		{
@@ -315,19 +315,19 @@ struct AnyInterpreterPtr
 		}
 	}
 	template<typename T, typename... Args>
-	T RThisCall(const ClassMethod& Function, PtrType This, Args... parameters)
+	T RThisCall(const ClassMethod* Function, PtrType This, Args... parameters)
 	{
 		if (auto Val = Base.Get_If<Interpreter*>())
 		{
-			return (*Val)->RThisCall<T>(Function,This, parameters);
+			return (*Val)->RThisCall<T>(Function,This, parameters...);
 		}
 		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
 		{
-			return  (*Val)->RThisCall<T>(Function,This, parameters);
+			return  (*Val)->RThisCall<T>(Function,This, parameters...);
 		}
 		else if (auto Val = Base.Get_If<NativeInterpreter*>())
 		{
-			return  (*Val)->RThisCall<T>(Function,This, parameters);
+			return  (*Val)->RThisCall<T>(Function,This, parameters...);
 		}
 		else
 		{
@@ -338,15 +338,15 @@ struct AnyInterpreterPtr
 	{
 		if (auto Val = Base.Get_If<Interpreter*>())
 		{
-			return (*Val)->RThisCall<T>(Function, This, parameters);
+			return (*Val)->RThisCall<T>(Function, This, parameters...);
 		}
 		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
 		{
-			return  (*Val)->RThisCall<T>(Function, This, parameters);
+			return  (*Val)->RThisCall<T>(Function, This, parameters...);
 		}
 		else if (auto Val = Base.Get_If<NativeInterpreter*>())
 		{
-			return  (*Val)->RThisCall<T>(Function, This, parameters);
+			return  (*Val)->RThisCall<T>(Function, This, parameters...);
 		}
 		else
 		{

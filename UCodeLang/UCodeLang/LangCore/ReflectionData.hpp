@@ -1031,9 +1031,30 @@ public:
 		return {};
 	}
 
+
+	//should be chached
 	struct InfoVector_t
 	{
 		ReflectionTypeInfo ElementType;
+
+		const ClassMethod* Data_Method = nullptr;//|Data[umut this&] -> ElementType[&];
+		const ClassMethod* Size_Method = nullptr;//|Size[umut this&] -> uintptr;
+		const ClassMethod* Capacity_Method = nullptr;//|Capacity[umut this&] -> uintptr;
+
+		const ClassMethod* Resize_Method = nullptr;//|Resize[this&,uintptr Size] -> void;
+		const ClassMethod* Reserve_Method = nullptr;//|Reserve[this&,uintptr Size] -> void;
+		const ClassMethod* Clear_Method = nullptr;//|Clear[this&] -> void;
+
+		//if Element is copyable
+		const ClassMethod* Push_copy_Method = nullptr;//|Push[this&,umut ElementType& Item] -> void;
+		const ClassMethod* Push_moved_Method = nullptr;//|Push[this&,moved ElementType Item] -> void;
+		const ClassMethod* Pop_Method = nullptr;//|Pop[this&] -> ElementType;
+
+		const ClassMethod* Remove_Method = nullptr;//|Remove[this&,uintptr Index] -> ElementType;
+
+		//if Element is copyable
+		const ClassMethod* Insert_Copy_Method = nullptr;//|Insert[this&,uintptr Index,umut ElementType& Item] -> void;
+		const ClassMethod* Insert_Moved_Method = nullptr;//|Insert[this&,uintptr Index,moved ElementType Item] -> void;
 	};
 	// includes type aliases
 	Optional<InfoVector_t> IsVector_t(const ReflectionTypeInfo& Type) const;
