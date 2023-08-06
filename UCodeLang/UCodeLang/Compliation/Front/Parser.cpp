@@ -105,7 +105,7 @@ void Parser::TokenTypeCheck(const Token* Value, TokenType Type)
 		{
 			auto& Error = _ErrorsOutput->AddError(ErrorCodes::ExpectingToken, Value->OnLine, Value->OnPos);
 
-			if (Value->Type == TokenType::Name) {
+ 			if (Value->Type == TokenType::Name) {
 
 				Error._Msg = "Expecting " + (String)StringHelper::ToString(Type) +
 					" Got " + (String)Value->Value._String;

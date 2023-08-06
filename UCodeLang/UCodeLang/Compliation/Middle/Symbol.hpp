@@ -333,11 +333,20 @@ struct Generic
 	}
 };
 
-struct SymbolConext
+class Symbol;
+class ClassInfo;
+struct ClassStackInfo
+{
+	Symbol* Syb = nullptr;
+	ClassInfo* Info = nullptr;
+	bool _InStatements = false;
+};
+struct SymbolContext
 {
 	ScopeHelper Scope;
 	Vector<String> Useings;
 	const FileNode* File = nullptr;
+	Stack<ClassStackInfo> _ClassStack;
 };
 
 struct ParInfo
@@ -393,7 +402,7 @@ public:
 	TypeSymbol Ret;
 	
 	Generic _GenericData;
-	Optional<SymbolConext> Conext;
+	Optional<SymbolContext> Conext;
 
 	bool FrontParIsUnNamed = false;
 	bool IsObjectCall() const
@@ -542,7 +551,7 @@ public:
 	bool _ClassAutoGenerateMoveConstructor = false;
 
 
-	Optional<SymbolConext> Conext;
+	Optional<SymbolContext> Conext;
 };
 
 struct RawEvaluatedObject
@@ -652,7 +661,7 @@ public:
 
 	Optional<EnumVariantData> VariantData;
 	Generic _GenericData;
-	Optional<SymbolConext> Conext;
+	Optional<SymbolContext> Conext;
 };
 
 class FuncPtrInfo :public Symbol_Info
@@ -668,7 +677,7 @@ public:
 	TypeSymbol Ret;
 
 	Generic _GenericData;
-	Optional<SymbolConext> Conext;
+	Optional<SymbolContext> Conext;
 };
 
 
@@ -680,7 +689,7 @@ public:
 	const ExpressionNodeType* Exnode = nullptr;
 	RawEvaluatedObject Ex;
 
-	Optional<SymbolConext> Conext;
+	Optional<SymbolContext> Conext;
 	ConstantExpressionInfo()
 	{
 
@@ -778,21 +787,21 @@ public:
 	Vector<TraitVar> _Vars;
 	Symbol* TraitClassInfo = nullptr;
 	Generic _GenericData;
-	Optional<SymbolConext> Conext;
+	Optional<SymbolContext> Conext;
 };
 
 
 class AliasInfo :public Symbol_Info
 {
 public:
-	Optional<SymbolConext> Conext;
+	Optional<SymbolContext> Conext;
 };
 
 class Generic_AliasInfo :public Symbol_Info
 {
 public:
 	Generic _GenericData;
-	Optional<SymbolConext> Conext;
+	Optional<SymbolContext> Conext;
 };
 
 enum class ImportBindType
@@ -824,7 +833,7 @@ class TagInfo :public Symbol_Info
 {
 public:
 	Generic _GenericData;
-	Optional<SymbolConext> Conext;
+	Optional<SymbolContext> Conext;
 
 };
 class DeclareVariableInfo :public Symbol_Info
@@ -833,7 +842,7 @@ public:
 	//for stack varables.
 	size_t LineNumber = 0;
 
-	Optional<SymbolConext> Conext;
+	Optional<SymbolContext> Conext;
 };
 
 class Symbol

@@ -75,7 +75,7 @@ Interpreter::Return_t Jit_Interpreter::Call(const String& FunctionName)
 struct JitRuningState
 {
 	Jit_Interpreter* _This = nullptr;
-	Stack<UAddress> StackFrames;
+	Stack<UAddress> _IR_StackFrames;
 };
 
 thread_local JitRuningState _ThisState = {};
@@ -105,7 +105,7 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 	else
 	{
 		_ThisState._This = this;
-		_ThisState.StackFrames.push(Item.UCodeFunc);
+		_ThisState._IR_StackFrames.push(Item.UCodeFunc);
 
 		_Interpreter.FlushParametersIntoCPU();
 		
@@ -116,7 +116,7 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 			//int V = 0;
 			//V = ((Func)Item.NativeFunc)(5);
 		}
-		_ThisState.StackFrames.pop();
+		_ThisState._IR_StackFrames.pop();
 
 		return { Interpreter::RetState::Success, _Interpreter.Get_OutRegister()};
 	}

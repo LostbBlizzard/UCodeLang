@@ -260,6 +260,10 @@ public:
 	{
 		return _Info->ElementType;
 	}
+	inline size_t GetElementTypeSize()
+	{
+		return elemsize;
+	}
 private:
 	inline size_t GetElemSize()
 	{

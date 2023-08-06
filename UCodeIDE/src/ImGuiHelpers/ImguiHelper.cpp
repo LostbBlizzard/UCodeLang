@@ -1,6 +1,5 @@
 #include "ImguiHelper.hpp"
 #include "Imgui/misc/cpp/imgui_stdlib.h"
-#include <UCodeLang/RunTime/ReflectionStl.hpp>
 UCodeIDEStart
 
 
@@ -174,12 +173,8 @@ bool ImguiHelper::UCodeObjectField(const char* FieldName, void* Object, const UC
 				UCodeLang::ReflectionVector vector;
 				vector.Set(Object, &vectorInfoVal, _Ptr,assembly,Is32Bit);
 
-				
-
-				for (auto Item : vector)
-				{
-
-				}
+				size_t V = vector.size();
+				return DrawVector(FieldName, vector, assembly);
 			}
 		}
 
@@ -846,6 +841,41 @@ bool ImguiHelper::InputSize_t(const char* label, size_t* v, int step, int step_f
 		return ImGui::InputScalar(label, ImGuiDataType_::ImGuiDataType_U32, v, nullptr, nullptr, nullptr, flags);
 	}
 }
+bool ImguiHelper::DrawVector(const char* label, UCodeLang::ReflectionVector& vector, const UCodeLang::ClassAssembly& assembly)
+{
+	DrawVectorInfo Info;
+	Info.ItemSize = vector.GetElementTypeSize();
+
+	Info._OnDrawItem = [vector, &assembly](void* Object, size_t Index) mutable
+	{
+		UCodeLang::ReflectionVector& Objectbuf = *(UCodeLang::ReflectionVector*)Object;
+		auto Item = Objectbuf[Index];
+
+		//UCodeObjectField(Item, vector.GetElementType(), assembly);
+	};
+
+	Info._AddNewValue = [](void* Object, size_t Index)
+	{
+		UCodeLang::ReflectionVector& Objectbuf = *(UCodeLang::ReflectionVector*)Object;
+
+		BytesPtr newobj;
+		Objectbuf.insert(Index,std::move((void*)newobj.Data()));
+	};
+
+	Info._AddNewRemove = [](void* Object, size_t Index)
+	{
+		UCodeLang::ReflectionVector& Objectbuf = *(UCodeLang::ReflectionVector*)Object;
+		Objectbuf.remove(Index);
+	};
+
+	Info._ResizeVector = [](void* Object, size_t NewIndex)
+	{
+		UCodeLang::ReflectionVector& Objectbuf = *(UCodeLang::ReflectionVector*)Object;
+		Objectbuf.resize(NewIndex);
+	};
+
+	return DrawVector(label,&vector, vector.data(), vector.size(), Info);
+}
 bool ImguiHelper::DrawVector(const char* label, void* Object, void* Buffer, size_t Size, const DrawVectorInfo& Item)
 {
 	bool WasUpdated = false;
@@ -855,12 +885,14 @@ bool ImguiHelper::DrawVector(const char* label, void* Object, void* Buffer, size
 
 	ImGui::SameLine();
 
+	ImVec2 ButtionSize = { 20,20 };
 	ImGui::BeginDisabled(!Item._ResizeVector.has_value());
 	{
+		ImGui::PushItemWidth(ImGui::CalcItemWidth() - (ButtionSize.x * 2) - 30);
 		ImGui::PushID(&Item);
 		bool ResizeWasUpdated = InputSize_t("", &NewSize, 1, 100, ImGuiInputTextFlags_EnterReturnsTrue);
 		ImGui::PopID();
-
+		ImGui::PopItemWidth();
 		if (ResizeWasUpdated && Item._ResizeVector.has_value())
 		{
 			WasUpdated = true;
@@ -869,75 +901,71 @@ bool ImguiHelper::DrawVector(const char* label, void* Object, void* Buffer, size
 
 	}
 	ImGui::EndDisabled();
+	{
+		ImGui::SameLine();
 
+		ImVec2 ButtionSize = { 20,20 };
+
+		ImGui::BeginDisabled(!Item._AddNewValue.has_value());
+		if (ImGui::Button("+", ButtionSize))
+		{
+			WasUpdated = true;
+			Item._AddNewValue.value()(Object, Size);
+			Size += 1;
+		}
+		ImGui::EndDisabled();
+
+		ImGui::SameLine();
+
+		ImGui::BeginDisabled(!Item._AddNewRemove.has_value() || Size == 0);
+		if (ImGui::Button("-", ButtionSize))
+		{
+			WasUpdated = true;
+			Item._AddNewRemove.value()(Object, Size - 1);
+			Size -= 1;
+		}
+		ImGui::EndDisabled();
+	}
 	if (Value)
 	{
 
-
+		for (size_t i = 0; i < Size; i++)
 		{
-			ImGui::SameLine();
+			String Lable = "Item:" + std::to_string(i);
+			ImGui::Text(Lable.c_str());
 
-			ImVec2 ButtionSize = { 20,20 };
 
-			ImGui::BeginDisabled(!Item._AddNewValue.has_value());
-			if (ImGui::Button("+", ButtionSize))
+			bool RemoveItem = false;
 			{
-				WasUpdated = true;
-				Item._AddNewValue.value()(Object, Size);
-			}
-			ImGui::EndDisabled();
-
-			ImGui::SameLine();
-
-			ImGui::BeginDisabled(!Item._AddNewRemove.has_value());
-			if (ImGui::Button("-", ButtionSize))
-			{
-				WasUpdated = true;
-				Item._AddNewRemove.value()(Object, Size - 1);
-			}
-			ImGui::EndDisabled();
-		}
-
-		//ImGui::Separator();
-		if (!WasUpdated) {
-
-			for (size_t i = 0; i < Size; i++)
-			{
-				String Lable = "Item:" + std::to_string(i);
-				ImGui::Text(Lable.c_str());
-
-
-				bool RemoveItem = false;
+				void* ItemPtr = (Byte*)Buffer + (i * Item.ItemSize);
+				ImGui::PushID(Lable.c_str());
+				if (ImGui::BeginPopupContextItem("????"))
 				{
-					void* ItemPtr = (Byte*)Buffer + (i * Item.ItemSize);
-					ImGui::PushID(Lable.c_str());
-					if (ImGui::BeginPopupContextItem("????"))
+					if (ImGui::MenuItem("Remove Item"))
 					{
-						if (ImGui::MenuItem("Remove Item"))
-						{
-							RemoveItem = true;
-						}
-						ImGui::EndPopup();
+						RemoveItem = true;
 					}
-					ImGui::PopID();
+					ImGui::EndPopup();
 				}
-				ImGui::SameLine();
+				ImGui::PopID();
+			}
+			ImGui::SameLine();
 
 
-				Item._OnDrawItem(Object, i);
+			Item._OnDrawItem(Object, i);
 
 
 
 
 
-				if (RemoveItem)
-				{
-					WasUpdated = true;
-					Item._AddNewRemove.value()(Object, i);
-					break;
-				}
+			if (RemoveItem)
+			{
+				WasUpdated = true;
+				Item._AddNewRemove.value()(Object, i);
+				break;
 			}
 		}
+
 
 		ImGui::TreePop();
 	}
