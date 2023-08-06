@@ -789,6 +789,48 @@ Optional<Optional<Vector<ClassAssembly::OnMoveConstructorCall>>> ClassAssembly::
 }
 
 
+Optional<ClassAssembly::InfoVec2_t> ClassAssembly::IsVec2_t(const ReflectionTypeInfo& Type)
+{
+	return {};
+}
+
+
+Optional<ClassAssembly::InfoVec3_t> ClassAssembly::IsVec3_t(const ReflectionTypeInfo& Type)
+{
+	return {};
+
+}
+
+Optional<ClassAssembly::InfoVector_t> ClassAssembly::IsVector_t(const ReflectionTypeInfo& Type)
+{
+	return {};
+}
+
+Optional<ClassAssembly::InfoOptional_t> ClassAssembly::IsOptional_t(const ReflectionTypeInfo& Type)
+{
+	return {};
+}
+Optional<ClassAssembly::InfoResult_t> ClassAssembly::IsResult_t(const ReflectionTypeInfo& Type)
+{
+	return {};
+}
+
+Optional<ClassAssembly::InfoString_t> ClassAssembly::IsString_t(const ReflectionTypeInfo& Type)
+{
+	return Optional<InfoString_t>();
+}
+
+Optional<ClassAssembly::InfoStringView_t> ClassAssembly::IsStringView_t(const ReflectionTypeInfo& Type)
+{
+	return Optional<InfoStringView_t>();
+}
+
+Optional<ClassAssembly::InfoSpan_t> ClassAssembly::IsSpan_t(const ReflectionTypeInfo& Type)
+{
+	return Optional<InfoSpan_t>();
+}
+
+
 
 AssemblyNode::AssemblyNode(ClassType type) : Type(type)
 {

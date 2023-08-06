@@ -545,13 +545,19 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 	{//Move Values  Constructors and destructors
 
 		bool Is32Bit = sizeof(void*) == 4;
-		auto Interpreter = LibsInfo[0].InterpreterLocals[Item.IndexOfInterpreterToCallForRelocations]._Ptr;
-	
-		auto Func = [this,Interpreter, Is32Bit](Optional<StaticObjectInfo::State>& OldRunTimeState,
+		
+		auto InterpreterWithNewState = LibsInfo[0].InterpreterLocals[Item.IndexOfInterpreterToCallForRelocations]._Ptr;
+		auto InterpreterWithOldState = InterpreterWithNewState;
+
+		auto Func = [this, InterpreterWithNewState, InterpreterWithOldState, Is32Bit](Optional<StaticObjectInfo::State>& OldRunTimeState,
 		Optional<StaticObjectInfo::State>& NewRunTimeState, void* OldBasePtr,void* NewBasePtr) mutable
 		{
 			bool HasNew = NewRunTimeState.has_value();
 			bool HasOld = OldRunTimeState.has_value();
+
+			auto& NewAssembly = Get_Assembly();
+			auto& OldAssembly = Get_Assembly();
+
 
 			if (HasNew && HasOld)//StillExist:Move Value
 			{
@@ -563,7 +569,9 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 				void* NewObject =(void*)((uintptr_t)NewBasePtr + NewState.Offset);
 				void* OldObject =(void*)((uintptr_t)OldBasePtr + OldState.Offset);
 
-				if (IsTypeTheSame)
+				auto op = ClassAssembly::CompareType(OldState.Type, Get_Assembly(), NewState.Type, Get_Assembly());
+
+				if (op == ClassAssembly::CompareType_t::Identical)
 				{
 					auto ItWorked = Get_Assembly().CallMoveConstructor(NewState.Type, OldObject, NewObject, Is32Bit);
 					if (!ItWorked.has_value())
@@ -574,15 +582,64 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 					{
 						for (auto& call : ItWorked.value().value())
 						{
-							Interpreter.PushParameter(call.ThisPtr);
-							Interpreter.PushParameter(call.OtherPtr);
-							Interpreter.Call(call.MethodToCall);
+							InterpreterWithNewState.PushParameter(call.ThisPtr);
+							InterpreterWithNewState.PushParameter(call.OtherPtr);
+							InterpreterWithNewState.Call(call.MethodToCall);
 						}
 					}
 
 				}
+				else if (op == ClassAssembly::CompareType_t::TooDifferent)
+				{
+					{
+						auto ItWorked = Get_Assembly().CallDestructor(OldState.Type, OldObject, Is32Bit);
+						if (!ItWorked.has_value())
+						{
+							return false;
+						}
+						if (ItWorked.value().has_value())
+						{
+							for (auto& call : ItWorked.value().value())
+							{
+								InterpreterWithOldState.PushParameter(call.ThisPtr);
+								InterpreterWithOldState.Call(call.MethodToCall);
+							}
+						}
+					}
+
+					{
+						auto ItWorked = Get_Assembly().CallDefaultConstructor(NewState.Type, NewObject, Is32Bit);
+						if (!ItWorked.has_value())
+						{
+							return false;
+						}
+						if (ItWorked.value().has_value())
+						{
+							for (auto& call : ItWorked.value().value())
+							{
+								InterpreterWithNewState.PushParameter(call.ThisPtr);
+								InterpreterWithNewState.Call(call.MethodToCall);
+							}
+						}
+					}
+				}
 				else//transmute type
 				{
+					auto ItWorked = ClassAssembly::DoTypeCoercion(OldState.Type, OldObject
+						,OldAssembly,NewState.Type, NewObject,NewAssembly, Is32Bit);
+					if (!ItWorked.has_value())
+					{
+						return false;
+					}
+					if (ItWorked.value().has_value())
+					{
+						for (auto& call : ItWorked.value().value())
+						{
+							InterpreterWithNewState.PushParameter(call.ThisPtr);
+							InterpreterWithNewState.PushParameter(call.OtherPtr);
+							InterpreterWithNewState.Call(call.MethodToCall);
+						}
+					}
 
 				}
 			}
@@ -608,8 +665,8 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 					{
 						for (auto& call : ItWorked.value().value())
 						{
-							Interpreter.PushParameter(call.ThisPtr);
-							Interpreter.Call(call.MethodToCall);
+							InterpreterWithNewState.PushParameter(call.ThisPtr);
+							InterpreterWithNewState.Call(call.MethodToCall);
 						}
 					}
 				}
@@ -629,8 +686,8 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 				{
 					for (auto& call : ItWorked.value().value())
 					{
-						Interpreter.PushParameter(call.ThisPtr);
-						Interpreter.Call(call.MethodToCall);
+						InterpreterWithOldState.PushParameter(call.ThisPtr);
+						InterpreterWithOldState.Call(call.MethodToCall);
 					}
 				}
 			}
