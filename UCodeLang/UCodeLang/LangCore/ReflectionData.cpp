@@ -835,7 +835,7 @@ Optional<ClassAssembly::InfoVec3_t> ClassAssembly::IsVec3_t(const ReflectionType
 					if (classnode.Fields[1].Name == "y" ||
 						classnode.Fields[1].Name == "Y")
 					{
-						if (classnode.Fields[2].Name == "Z" ||
+						if (classnode.Fields[2].Name == "z" ||
 							classnode.Fields[2].Name == "Z")
 						{
 							InfoVec3_t r;
@@ -852,6 +852,95 @@ Optional<ClassAssembly::InfoVec3_t> ClassAssembly::IsVec3_t(const ReflectionType
 
 Optional<ClassAssembly::InfoVector_t> ClassAssembly::IsVector_t(const ReflectionTypeInfo& Type) const
 {
+	auto node = Find_Node(Type);
+	if (node)
+	{
+		if (node->Get_Type() == ClassType::Class)
+		{
+			auto& classnode = node->Get_ClassData();
+			const ClassMethod* DataMethod = classnode.Get_ClassMethod("data");
+			if (DataMethod == nullptr)
+			{
+				DataMethod = classnode.Get_ClassMethod("Data");
+			}
+
+			if (DataMethod)
+			{
+				auto SizeMethod = classnode.Get_ClassMethod("Size");
+				if (SizeMethod == nullptr)
+				{
+					SizeMethod = classnode.Get_ClassMethod("size");
+				}
+
+				auto CapacityMethod = classnode.Get_ClassMethod("Capacity");
+				if (CapacityMethod == nullptr)
+				{
+					CapacityMethod = classnode.Get_ClassMethod("capacity");
+				}
+
+				auto ResizeMethod = classnode.Get_ClassMethod("Resize");
+				if (ResizeMethod == nullptr)
+				{
+					ResizeMethod = classnode.Get_ClassMethod("resize");
+				}
+
+				auto ReserveMethod = classnode.Get_ClassMethod("Reserve");
+				if (ReserveMethod == nullptr)
+				{
+					ReserveMethod = classnode.Get_ClassMethod("reserve");
+				}
+
+				auto ClearMethod = classnode.Get_ClassMethod("Clear");
+				if (ClearMethod == nullptr)
+				{
+					ClearMethod = classnode.Get_ClassMethod("clear");
+				}
+
+				if (SizeMethod 
+					&& CapacityMethod
+					)
+				{
+					InfoVector_t r;
+					r.ElementType = DataMethod->RetType;
+					r.ElementType._IsAddress = false;
+
+					r.Data_Method = DataMethod;
+					r.Size_Method = SizeMethod;
+					r.Capacity_Method = CapacityMethod;
+
+					return r;
+				}
+			}
+
+		}
+	}
+	return {};
+}
+Optional<ClassAssembly::InfoString_t> ClassAssembly::IsString_t(const ReflectionTypeInfo& Type) const
+{
+	auto node = Find_Node(Type);
+	if (node)
+	{
+		if (node->Get_Type() == ClassType::Class)
+		{
+			auto& classnode = node->Get_ClassData();
+			const ClassMethod* dataMethod = classnode.Get_ClassMethod("data");
+			if (dataMethod == nullptr)
+			{
+				dataMethod = classnode.Get_ClassMethod("Data");
+			}
+
+			if (dataMethod)
+			{
+				InfoString_t r;
+				r.ElementType = dataMethod->RetType;
+				r.ElementType._IsAddress = false;
+
+				return r;
+			}
+
+		}
+	}
 	return {};
 }
 
@@ -864,10 +953,6 @@ Optional<ClassAssembly::InfoResult_t> ClassAssembly::IsResult_t(const Reflection
 	return {};
 }
 
-Optional<ClassAssembly::InfoString_t> ClassAssembly::IsString_t(const ReflectionTypeInfo& Type) const
-{
-	return Optional<InfoString_t>();
-}
 
 Optional<ClassAssembly::InfoStringView_t> ClassAssembly::IsStringView_t(const ReflectionTypeInfo& Type) const
 {

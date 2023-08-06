@@ -14,9 +14,6 @@ $Vec3:
  int Y = 0;
  int Z = 0;
 
-thread Vec3 B = [];
-thread Vec3 B2 = [];
-
 //Syntactic alias: T? = Optional<T>
 $Optional<T> enum:
  Value[T val],
@@ -27,9 +24,17 @@ $Result<T,E> enum:
  Value[T val],
  Error[E err],
 
+$Vector<T>:
+ 
+ |Data[umut this&] -> T[&];
+ |Size[umut this&] => 0;
+ |Capacity[umut this&] => 0;
+
 $OpInt = int?;//make type.
 $Opbool = bool?;//make type.
 $Opchar = char?;//make type.
+
+$IntVector = int[];
 
 //inlined enum variant: X || Y || Z
 /*
@@ -58,7 +63,12 @@ $Shared_Array<T>:
  |Make[] => 0;//not added
 
 //Syntactic alias: T[] = Vector<T>
-$Vector<T>;
+$Vector<T>:
+ 
+ |Data[umut this&] -> T[&];
+ |Size[umut this&] => 0;
+ |Capacity[umut this&] => 0;
+
 
 $String:
  Vector<char> Base;
