@@ -1431,11 +1431,11 @@ private:
 					auto& GenericNo = SymbolGenericValues.Values[i];
 					if (InputTypeIsConstantExpression)
 					{
-						LogGenericInputWantsaExpressionNotType(nodeToken, GenericNo.Token->Value._String);
+						LogError_GenericInputWantsaExpressionNotType(nodeToken, GenericNo.Token->Value._String);
 					}
 					else
 					{
-						LogGenericInputWantsaExpressionNotType(nodeToken, GenericNo.Token->Value._String);
+						LogError_GenericInputWantsaExpressionNotType(nodeToken, GenericNo.Token->Value._String);
 					}
 
 					return nullptr;
@@ -1599,45 +1599,45 @@ private:
 	void LogError_Eval_CantDoPostfixOpForTypes(const Token* BinaryOp, TypeSymbol& Ex0Type);
 	void LogError_Eval_CantCastImplicitTypes(const Token* Token, const TypeSymbol& Ex1Type, const TypeSymbol& UintptrType);
 	void LogError_CantFindNamespace(const Token* Token, const String_view Namespace);
-	void LogFuncMustBe(const Token* Token, const String_view FuncName, TypeSymbol& TypeSybToBe);
-	void LogSymbolRedefinition(const Token* Token, const Symbol* Symbol);
-	void LogUseingVarableBeforDeclared(const Token* Token);
-	void LogBeMoreSpecifiicForRetType(const String_view FuncName, const Token* Token);
-	void LogCantBeIndexWithType(const Token* Token, const  TypeSymbol& Ex0Type, const  TypeSymbol& IndexType);
-	void LogCantUseThisInStaticFunction(const Token* Token);
-	void LogFuncDependencyCycle(const Token* Token, const FuncInfo* Value);
+	void LogError_LogFuncMustBe(const Token* Token, const String_view FuncName, TypeSymbol& TypeSybToBe);
+	void LogError_SymbolRedefinition(const Token* Token, const Symbol* Symbol);
+	void LogError_UseingVarableBeforDeclared(const Token* Token);
+	void LogError_BeMoreSpecifiicForRetType(const String_view FuncName, const Token* Token);
+	void LogError_CantBeIndexWithType(const Token* Token, const  TypeSymbol& Ex0Type, const  TypeSymbol& IndexType);
+	void LogError_CantUseThisInStaticFunction(const Token* Token);
+	void LogError_FuncDependencyCycle(const Token* Token, const FuncInfo* Value);
 
-	void LogGenericInputWantsaExpressionNotType(const Token* Token,const String_view NameOfPar);
-	void LogGenericInputWantsaTypeNotExpression(const Token* Token, const String_view NameOfPar);
+	void LogError_GenericInputWantsaExpressionNotType(const Token* Token,const String_view NameOfPar);
+	void LogError_GenericInputWantsaTypeNotExpression(const Token* Token, const String_view NameOfPar);
 	
-	void LogExpectedSymbolToBea(const Token* Token, const Symbol& Syb, SymbolType Value);
+	void LogError_ExpectedSymbolToBea(const Token* Token, const Symbol& Syb, SymbolType Value);
 	
-	void LogCanIncorrectStaticArrCount(const Token* Token, const TypeSymbol& Type, size_t Count, size_t FuncCount);
-	void LogBeMoreSpecifiicWithStaticArrSize(const Token* Token, const TypeSymbol& Type);
-	void LogBinaryOverloadPars(const Token& Name, const FuncInfo* Func);
-	void LogIndexOverloadPars(const Token& Name, const FuncInfo* Func);
-	void LogPostfixOverloadPars(const Token& Name, const FuncInfo* Func);
-	void LogCantOverLoadOverload(const Token* NameToken);
-	void LogCantFindMemberOverloadForType(const Token* Item, TokenType Op, const TypeSymbol& Out);
-	void LogCantUseMoveTypeHere(const Token* Token);
-	void LogMustMakeEnumLikeafuncion(EnumInfo* Einfo, size_t Index, const Token* Token);
-	void LogDynamicMustBeRrait(const TypeNode& V, const TypeSymbol& Out);
-	void TraitCantBeAlone(const Token* Token);
-	void LogWantedAType(const TypeNode& V, Symbol* SybV);
-	void LogOutCanOnlyBeInControlFlow(const Token* Token);
-	void LogParamterMustBeAnOutExpression(const Token* Token, const size_t& i);
-	void LogInvalidNodeError(const Token* Token, String_view ErrStr);
-	void LogEmptyInvalidError(const Token* Token);
-	void LogParPackIsNotLast(const Token* Token);
-	void LogParPackTypeIsNotLast(const Token* Token);
+	void LogError_CanIncorrectStaticArrCount(const Token* Token, const TypeSymbol& Type, size_t Count, size_t FuncCount);
+	void LogError_BeMoreSpecifiicWithStaticArrSize(const Token* Token, const TypeSymbol& Type);
+	void LogError_BinaryOverloadPars(const Token& Name, const FuncInfo* Func);
+	void LogError_IndexOverloadPars(const Token& Name, const FuncInfo* Func);
+	void LogError_PostfixOverloadPars(const Token& Name, const FuncInfo* Func);
+	void LogError_CantOverLoadOverload(const Token* NameToken);
+	void LogError_CantFindMemberOverloadForType(const Token* Item, TokenType Op, const TypeSymbol& Out);
+	void LogError_CantUseMoveTypeHere(const Token* Token);
+	void LogError_MustMakeEnumLikeafuncion(EnumInfo* Einfo, size_t Index, const Token* Token);
+	void LogError_DynamicMustBeRrait(const TypeNode& V, const TypeSymbol& Out);
+	void LogError_TraitCantBeAlone(const Token* Token);
+	void LogError_WantedAType(const TypeNode& V, Symbol* SybV);
+	void LogError_OutCanOnlyBeInControlFlow(const Token* Token);
+	void LogError_ParamterMustBeAnOutExpression(const Token* Token, const size_t& i);
+	void LogError_LogInvalidNodeError(const Token* Token, String_view ErrStr);
+	void LogError_EmptyInvalidError(const Token* Token);
+	void LogError_LogParPackIsNotLast(const Token* Token);
+	void LogError_ParPackTypeIsNotLast(const Token* Token);
 	void LogError(ErrorCodes Err, const String& MSG, const Token* Token);
 	void LogError(ErrorCodes Err,size_t Line,size_t Pos, const String& MSG);
 
 	String ToString(SymbolType Value);
 	ReadVarErrorCheck_t LogTryReadVar(String_view VarName, const Token* Token, const Symbol* Syb);
 	void CheckVarWritingErrors(Symbol* Symbol, const Token* Token, String_view& Name);
-	void LogWantedAVariable(const Token* const& Item, Symbol* TepSyb);
-	Class_Data* SystematicAnalysis::GetAssemblyClass(const String& FullName);
+	void LogError_LogWantedAVariable(const Token* const& Item, Symbol* TepSyb);
+	Class_Data* GetAssemblyClass(const String& FullName);
 
 	String MangleName(const FuncInfo* Func);
 	IRidentifierID GetIRID(const FuncInfo* Func);

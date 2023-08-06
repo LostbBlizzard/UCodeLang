@@ -1038,7 +1038,7 @@ void SystematicAnalysis::OnAttributeNode(const AttributeNode& node)
 				auto& Generic = *node.ScopedName.ScopedName.back().Generic;
 				if (Generic.Values.size())
 				{
-					LogExpectedSymbolToBea(Token, *Att, SymbolType::Generic_Tag);
+					LogError_ExpectedSymbolToBea(Token, *Att, SymbolType::Generic_Tag);
 				}
 				
 			}
@@ -1054,12 +1054,12 @@ void SystematicAnalysis::OnAttributeNode(const AttributeNode& node)
 				}
 				else
 				{
-					LogExpectedSymbolToBea(Token, *Att, SymbolType::Tag_class);
+					LogError_ExpectedSymbolToBea(Token, *Att, SymbolType::Tag_class);
 				}
 			}
 			else
 			{
-				LogExpectedSymbolToBea(Token, *Att, SymbolType::Tag_class);
+				LogError_ExpectedSymbolToBea(Token, *Att, SymbolType::Tag_class);
 			}
 			Syb.VarType = TypeSymbol(Att->ID);
 		}
@@ -1436,7 +1436,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			{
 				if (Syb->Type != SymbolType::Trait_class)
 				{
-					LogExpectedSymbolToBea(Item.Name.Token, *Syb, SymbolType::Trait_class);
+					LogError_ExpectedSymbolToBea(Item.Name.Token, *Syb, SymbolType::Trait_class);
 					continue;
 				}
 			}
@@ -1444,7 +1444,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			{
 				if (Syb->Type != SymbolType::Generic_Trait)
 				{
-					LogExpectedSymbolToBea(Item.Name.Token, *Syb, SymbolType::Generic_Trait);
+					LogError_ExpectedSymbolToBea(Item.Name.Token, *Syb, SymbolType::Generic_Trait);
 					continue;
 				}
 
@@ -1816,7 +1816,7 @@ void SystematicAnalysis::InitGenericalias(const GenericValuesNode& GenericList, 
 				bool IsLast = i == GenericList.Values.size() - 1;
 				if (!IsLast)
 				{
-					LogParPackTypeIsNotLast(Item.Token);
+					LogError_ParPackTypeIsNotLast(Item.Token);
 				}
 			}
 		}
@@ -1919,7 +1919,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 					bool IsLast = i == GenericList.Values.size() - 1;
 					if (!IsLast)
 					{
-						LogParPackTypeIsNotLast(Item.Token);
+						LogError_ParPackTypeIsNotLast(Item.Token);
 					}
 				}
 			}
@@ -2082,7 +2082,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 							if (GenericItem.type == GenericData::Type::Pack)
 							{
 								auto Token = Item.Name.Token;
-								LogParPackIsNotLast(Token);
+								LogError_LogParPackIsNotLast(Token);
 							}
 
 							break;
@@ -2388,7 +2388,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		if (!node.Body.has_value() && syb->VarType._Type == TypesEnum::Var)
 		{
 			auto Token = node.Signature.Name.Token;
-			LogBeMoreSpecifiicForRetType(FuncName, Token);
+			LogError_BeMoreSpecifiicForRetType(FuncName, Token);
 		}
 		else {
 			FuncRetCheck(*node.Signature.Name.Token, syb, Info);
@@ -2513,7 +2513,7 @@ void SystematicAnalysis::FuncGetName(const UCodeLang::Token* NameToken, std::str
 			}
 		}
 
-		LogCantOverLoadOverload(NameToken);
+		LogError_CantOverLoadOverload(NameToken);
 
 		break;
 	}
@@ -2566,11 +2566,11 @@ void SystematicAnalysis::FuncRetCheck(const Token& Name, const Symbol* FuncSyb, 
 		TypeSymbol V(TypesEnum::Void);
 		if (!AreTheSame(Func->Ret, V))
 		{
-			LogFuncMustBe(&Name, FuncSyb->FullName, V);
+			LogError_LogFuncMustBe(&Name, FuncSyb->FullName, V);
 		}
 		if (Func->Pars.size() != 1)
 		{
-			LogPostfixOverloadPars(Name, Func);
+			LogError_PostfixOverloadPars(Name, Func);
 		}
 		break;
 	}
@@ -2580,7 +2580,7 @@ void SystematicAnalysis::FuncRetCheck(const Token& Name, const Symbol* FuncSyb, 
 		TypeSymbol V(TypesEnum::Void);
 		if (!AreTheSame(Func->Ret, V)) 
 		{
-			LogFuncMustBe(&Name, FuncSyb->FullName, V);
+			LogError_LogFuncMustBe(&Name, FuncSyb->FullName, V);
 		}
 		
 	}
@@ -2589,7 +2589,7 @@ void SystematicAnalysis::FuncRetCheck(const Token& Name, const Symbol* FuncSyb, 
 	{
 		if (Func->Pars.size() != 2)
 		{
-			LogIndexOverloadPars(Name, Func);
+			LogError_IndexOverloadPars(Name, Func);
 		}
 		else if (Func->Pars.size() == 2 && (Func->Pars[0].IsOutPar|| Func->Pars[1].IsOutPar))
 		{
@@ -2603,7 +2603,7 @@ void SystematicAnalysis::FuncRetCheck(const Token& Name, const Symbol* FuncSyb, 
 		{
 
 
-			LogPostfixOverloadPars(Name, Func);
+			LogError_PostfixOverloadPars(Name, Func);
 
 		}
 		else if (Func->Pars.size() == 1 && Func->Pars[0].IsOutPar)
@@ -2619,7 +2619,7 @@ void SystematicAnalysis::FuncRetCheck(const Token& Name, const Symbol* FuncSyb, 
 		{
 			if (Func->Pars.size() != 2) 
 			{
-				LogBinaryOverloadPars(Name, Func);
+				LogError_BinaryOverloadPars(Name, Func);
 			}
 			else if (Func->Pars.size() == 2 && (Func->Pars[0].IsOutPar
 				|| Func->Pars[1].IsOutPar))
@@ -2631,7 +2631,7 @@ void SystematicAnalysis::FuncRetCheck(const Token& Name, const Symbol* FuncSyb, 
 		{
 			if (Func->Pars.size() != 1)
 			{
-				LogPostfixOverloadPars(Name, Func);
+				LogError_PostfixOverloadPars(Name, Func);
 			}
 			else if (Func->Pars.size() == 1 && Func->Pars[0].IsOutPar)
 			{
@@ -2642,7 +2642,7 @@ void SystematicAnalysis::FuncRetCheck(const Token& Name, const Symbol* FuncSyb, 
 		{
 			if (Func->Pars.size() != 2)
 			{
-				LogBinaryOverloadPars(Name, Func);
+				LogError_BinaryOverloadPars(Name, Func);
 
 			}
 			else if (Func->Pars.size() == 2 && 
@@ -2656,7 +2656,7 @@ void SystematicAnalysis::FuncRetCheck(const Token& Name, const Symbol* FuncSyb, 
 		{
 			if (Func->Pars.size() != 1)
 			{
-				LogPostfixOverloadPars(Name, Func);
+				LogError_PostfixOverloadPars(Name, Func);
 			}
 			else if (Func->Pars.size() == 1 && Func->Pars[0].IsOutPar)
 			{
@@ -2667,7 +2667,7 @@ void SystematicAnalysis::FuncRetCheck(const Token& Name, const Symbol* FuncSyb, 
 		{
 			if (Func->Pars.size() != 1)
 			{
-				LogPostfixOverloadPars(Name, Func);
+				LogError_PostfixOverloadPars(Name, Func);
 			}
 			else if (Func->Pars.size() == 1 && Func->Pars[0].IsOutPar)
 			{
@@ -6372,7 +6372,7 @@ void SystematicAnalysis::ExTypeDeclareVarableCheck(TypeSymbol& VarType, const No
 
 			if (!V->IsCountInitialized)
 			{
-				LogBeMoreSpecifiicWithStaticArrSize(Token, V->Type);
+				LogError_BeMoreSpecifiicWithStaticArrSize(Token, V->Type);
 			}
 		}
 	}
@@ -6998,7 +6998,7 @@ bool SystematicAnalysis::StepGetMemberTypeSymbolFromVar(const ScopedNameNode& no
 				if (!IsOk)
 				{
 
-					LogMustMakeEnumLikeafuncion(Einfo, FeldInfo.value(), ItemToken);
+					LogError_MustMakeEnumLikeafuncion(Einfo, FeldInfo.value(), ItemToken);
 
 
 					Out.Symbol = nullptr;
@@ -7218,7 +7218,7 @@ bool SystematicAnalysis::StepGetMemberTypeSymbolFromVar(const ScopedNameNode& no
 
 				auto& Item = ItemToken;
 
-				LogCantFindMemberOverloadForType(Item, Data.token, Out.Type);
+				LogError_CantFindMemberOverloadForType(Item, Data.token, Out.Type);
 				return false;
 			}
 			else
@@ -7695,7 +7695,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 			{
 				if (!IsInThisFuncCall())
 				{
-					LogCantUseThisInStaticFunction(Token);
+					LogError_CantUseThisInStaticFunction(Token);
 					Out.Symbol = nullptr;
 					Out.Type = TypeSymbol();
 					return false;
@@ -7743,7 +7743,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 
 			if (!IsInThisFuncCall())
 			{
-				LogCantUseThisInStaticFunction(node.ScopedName[Start].token);
+				LogError_CantUseThisInStaticFunction(node.ScopedName[Start].token);
 				return false;
 			}
 
@@ -7819,7 +7819,7 @@ bool SystematicAnalysis::GetMemberTypeSymbolFromVar(size_t Start, size_t End, co
 			if (_PassType == PassType::FixedTypes)
 			{
 				auto& Item = node.ScopedName.back().token;
-				LogWantedAVariable(Item, Out.Symbol);
+				LogError_LogWantedAVariable(Item, Out.Symbol);
 			}
 			Out.Type.SetType(TypesEnum::Null);
 			Out.Symbol = nullptr;
@@ -8675,7 +8675,7 @@ void SystematicAnalysis::OnStringLiteral(const StringliteralNode* nod, bool& ret
 				if (StaticArr->Count != BufferSize)
 				{
 					const Token* Token = _LastLookedAtToken;
-					LogCanIncorrectStaticArrCount(Token, Type, BufferSize, StaticArr->Count);
+					LogError_CanIncorrectStaticArrCount(Token, Type, BufferSize, StaticArr->Count);
 					_LastExpressionType.SetType(TypesEnum::Null);
 					return;
 				}
@@ -9032,7 +9032,7 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(const AnonymousObjectConst
 					if (StaticArr->Count != nod->Fields._Nodes.size())
 					{
 						const Token* Token = _LastLookedAtToken;
-						LogCanIncorrectStaticArrCount(Token, Type, nod->Fields._Nodes.size(), StaticArr->Count);
+						LogError_CanIncorrectStaticArrCount(Token, Type, nod->Fields._Nodes.size(), StaticArr->Count);
 						_LastExpressionType.SetType(TypesEnum::Null);
 						return;
 					}
@@ -9228,7 +9228,7 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 
 		if (!IsInThisFuncCall())
 		{
-			LogCantUseThisInStaticFunction(FToken);
+			LogError_CantUseThisInStaticFunction(FToken);
 		}
 
 		
@@ -9273,7 +9273,7 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 
 		if (Info->LineNumber > FToken->OnPos)
 		{
-			LogUseingVarableBeforDeclared(FToken);
+			LogError_UseingVarableBeforDeclared(FToken);
 		}
 	}
 
@@ -9798,7 +9798,7 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 		if (!HasInfo.HasValue)
 		{
 			auto  Token = _LastLookedAtToken;
-			LogCantBeIndexWithType(Token, SourcType, IndexType);
+			LogError_CantBeIndexWithType(Token, SourcType, IndexType);
 		}
 
 
@@ -10544,7 +10544,7 @@ void SystematicAnalysis::OnInvalidNode(const InvalidNode& node)
 		if (StrData.IsConstantExpression) 
 		{
 			auto Token = node.KeyWord;
-			LogInvalidNodeError(Token, StrData.Msg);
+			LogError_LogInvalidNodeError(Token, StrData.Msg);
 		}
 		else
 		{
@@ -10558,7 +10558,7 @@ void SystematicAnalysis::OnInvalidNode(const InvalidNode& node)
 	else
 	{
 		auto Token = node.KeyWord;
-		LogEmptyInvalidError(Token);
+		LogError_EmptyInvalidError(Token);
 	}
 }
 void SystematicAnalysis::OnvalidNode(const ValidNode& node)
@@ -12377,7 +12377,7 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 				if (!V.IsDynamic)
 				{
 					auto Token = V.Name.Token;
-					TraitCantBeAlone(Token);
+					LogError_TraitCantBeAlone(Token);
 					Out.SetType(TypesEnum::Null);
 				}
 				else
@@ -12391,7 +12391,7 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 			}
 			else
 			{
-				LogWantedAType(V, SybV);
+				LogError_WantedAType(V, SybV);
 				Out.SetType(TypesEnum::Null);
 			}
 		}
@@ -12500,7 +12500,7 @@ void SystematicAnalysis::Convert(const TypeNode& V, TypeSymbol& Out)
 
 		if (!IsTrait)
 		{
-			LogDynamicMustBeRrait(V, Out);
+			LogError_DynamicMustBeRrait(V, Out);
 			Out.SetType(TypesEnum::Null);
 		}
 		Out._IsDynamic = true;
@@ -12575,7 +12575,7 @@ Optional<Symbol*> SystematicAnalysis::InstantiateOrFindGenericSymbol(const Token
 		&& SybV->Type != SymbolType::Generic_Alias
 		&& SybV->Type != SymbolType::Generic_Enum)
 	{
-		LogExpectedSymbolToBea(Token, *SybV, SymbolType::Generic_class);
+		LogError_ExpectedSymbolToBea(Token, *SybV, SymbolType::Generic_class);
 		return {};
 	}
 
@@ -12669,7 +12669,7 @@ bool SystematicAnalysis::ValidateType(const TypeSymbol& V, const Token* Token,No
 
 			if (!V->IsCountInitialized)
 			{
-				LogBeMoreSpecifiicWithStaticArrSize(Token, V->Type);
+				LogError_BeMoreSpecifiicWithStaticArrSize(Token, V->Type);
 				return false;
 			}
 		}
@@ -12683,7 +12683,7 @@ bool SystematicAnalysis::ValidateType(const TypeSymbol& V, const Token* Token,No
 
 	if (V._MoveData == MoveData::Moved && Syb != NodeSyb_t::Parameter)
 	{
-		LogCantUseMoveTypeHere(Token);
+		LogError_CantUseMoveTypeHere(Token);
 	}
 
 	return true;
@@ -12704,7 +12704,7 @@ void SystematicAnalysis::DoSymbolRedefinitionCheck(const Symbol* Syb, const Toke
 	auto other = GetSymbol(Syb->FullName,Syb->Type);
 	if (other)
 	{
-		LogSymbolRedefinition(Value,Syb);
+		LogError_SymbolRedefinition(Value,Syb);
 	}
 }
 void SystematicAnalysis::DoSymbolRedefinitionCheck(const String_view FullName, SymbolType Type, const Token* Value)
@@ -12712,7 +12712,7 @@ void SystematicAnalysis::DoSymbolRedefinitionCheck(const String_view FullName, S
 	auto other = GetSymbol(FullName,Type);
 	if (other)
 	{
-		LogSymbolRedefinition(Value, other);
+		LogError_SymbolRedefinition(Value, other);
 	}
 }
 void SystematicAnalysis::DoSymbolRedefinitionCheck(const Symbol* Syb, const FuncInfo* Fvalue, const Token* Value)
@@ -12759,7 +12759,7 @@ void SystematicAnalysis::DoSymbolRedefinitionCheck(const Symbol* Syb, const Func
 		GoodJump:
 		if (!Good) 
 		{
-			LogSymbolRedefinition(Value, Syb);
+			LogError_SymbolRedefinition(Value, Syb);
 		}
 	}
 }
@@ -14576,7 +14576,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::GetFunc(const ScopedNameNo
 			if (!IsControlFlow)
 			{
 				auto Token = Name.ScopedName.back().token; 
-				LogOutCanOnlyBeInControlFlow(Token); 
+				LogError_OutCanOnlyBeInControlFlow(Token); 
 				return { };
 			}
 		}
@@ -15207,7 +15207,7 @@ SystematicAnalysis::Get_FuncInfo SystematicAnalysis::GetEnumVariantFunc(Symbol* 
 				auto& ItemVariant = Feild_Variant.Types[i - 1];
 				if (Item->Get_Type() != NodeType::OutExpression)
 				{
-					LogParamterMustBeAnOutExpression(Token, i);
+					LogError_ParamterMustBeAnOutExpression(Token, i);
 				}
 				else
 				{
@@ -15869,7 +15869,7 @@ bool SystematicAnalysis::IsCompatible(const IsCompatiblePar& FuncPar,const Vecto
 			auto V = GetDependencies(Info);
 			if (V->IsOnRetStatemnt && Info->Ret.IsNull())
 			{
-				LogFuncDependencyCycle(Token, Info);
+				LogError_FuncDependencyCycle(Token, Info);
 				Info->Ret.SetType(TypesEnum::Null);//to stop err spam
 				return false;
 			}
@@ -16261,7 +16261,7 @@ bool SystematicAnalysis::Evaluate(EvaluatedEx& Out, const ValueExpressionNode& n
 				if (StaticArr->Count != BufferSize)
 				{
 					const Token* Token = _LastLookedAtToken;
-					LogCanIncorrectStaticArrCount(Token, lookT, BufferSize, StaticArr->Count);
+					LogError_CanIncorrectStaticArrCount(Token, lookT, BufferSize, StaticArr->Count);
 					_LastExpressionType.SetType(TypesEnum::Null);
 					return false;
 				}
@@ -17419,11 +17419,11 @@ GenericData::Type SystematicAnalysis::GenericTypeToGenericDataType(GenericValueN
 	}
 }
 
-void SystematicAnalysis::LogInvalidNodeError(const Token* Token, String_view ErrStr)
+void SystematicAnalysis::LogError_LogInvalidNodeError(const Token* Token, String_view ErrStr)
 {
 	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Invaild:" + (String)ErrStr);
 }
-void SystematicAnalysis::LogEmptyInvalidError(const Token* Token)
+void SystematicAnalysis::LogError_EmptyInvalidError(const Token* Token)
 {
 	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Reached Invaild Statemet");
 }
@@ -17742,41 +17742,41 @@ void SystematicAnalysis::LogError_CanIncorrectGenericCount(const Token* Token, S
 	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, Msg);
 }
-void SystematicAnalysis::LogFuncMustBe(const Token* Token, const String_view FuncName, TypeSymbol& TypeSybToBe)
+void SystematicAnalysis::LogError_LogFuncMustBe(const Token* Token, const String_view FuncName, TypeSymbol& TypeSybToBe)
 {
 
 	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		,"The function named " + (String)FuncName + " must return to the type of '" + ToString(TypeSybToBe) + '\'');
 }
-void SystematicAnalysis::LogSymbolRedefinition(const Token* Token, const Symbol* Symbol)
+void SystematicAnalysis::LogError_SymbolRedefinition(const Token* Token, const Symbol* Symbol)
 {
 
 	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "the symbol '"+  Symbol->FullName + "\' is already define. try useing a different name");
 }
-void SystematicAnalysis::LogUseingVarableBeforDeclared(const Token* Token)
+void SystematicAnalysis::LogError_UseingVarableBeforDeclared(const Token* Token)
 {
 	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "trying to use the varable '" + (String)Token->Value._String + "\' before its defined.");
 }
-void SystematicAnalysis::LogBeMoreSpecifiicForRetType(const String_view FuncName, const Token* Token)
+void SystematicAnalysis::LogError_BeMoreSpecifiicForRetType(const String_view FuncName, const Token* Token)
 {
 	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "be more Specifiic For return Type. like |" + (String)FuncName + "[...] -> [Type]; or give the funcion a body.");
 }
-void SystematicAnalysis::LogCantBeIndexWithType(const Token* Token, const  TypeSymbol& Ex0Type, const  TypeSymbol& IndexType)
+void SystematicAnalysis::LogError_CantBeIndexWithType(const Token* Token, const  TypeSymbol& Ex0Type, const  TypeSymbol& IndexType)
 {
 	if (Ex0Type.IsBadType() || IndexType.IsBadType()) { return; }
 
 	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "The Type '" + ToString(Ex0Type) + "\' Cant be Index with '" + ToString(IndexType) + "'.");
 }
-void SystematicAnalysis::LogCantUseThisInStaticFunction(const Token* Token)
+void SystematicAnalysis::LogError_CantUseThisInStaticFunction(const Token* Token)
 {
 	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "The 'this' parameter can't be accessed in a static function.A 'this' function must look like |[this&,...] -> [Type];");
 }
-void SystematicAnalysis::LogFuncDependencyCycle(const Token* Token, const FuncInfo* Value)
+void SystematicAnalysis::LogError_FuncDependencyCycle(const Token* Token, const FuncInfo* Value)
 {
 	String Msg = "function return type Dependency Cycle On function '" + (String)Value->FullName + "' <- ";
 
@@ -17800,19 +17800,19 @@ void SystematicAnalysis::LogFuncDependencyCycle(const Token* Token, const FuncIn
 		, Msg);
 
 }
-void SystematicAnalysis::LogGenericInputWantsaExpressionNotType(const Token* Token, const String_view NameOfPar)
+void SystematicAnalysis::LogError_GenericInputWantsaExpressionNotType(const Token* Token, const String_view NameOfPar)
 {
 	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Generic The generic parameter '" + (String)NameOfPar + "' Wants a Expression not a Type.");
 }
-void SystematicAnalysis::LogGenericInputWantsaTypeNotExpression(const Token* Token, const String_view NameOfPar)
+void SystematicAnalysis::LogError_GenericInputWantsaTypeNotExpression(const Token* Token, const String_view NameOfPar)
 {
 	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Generic The generic parameter '" + (String)NameOfPar + "'Type Wants a  not a Expression.");
 
 }
 
-void SystematicAnalysis::LogExpectedSymbolToBea(const Token* Token, const Symbol& Syb, SymbolType Value)
+void SystematicAnalysis::LogError_ExpectedSymbolToBea(const Token* Token, const Symbol& Syb, SymbolType Value)
 {
 	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Did not expect Symbol the Symbol '" + Syb.FullName + "' to be '" + ToString(Syb.Type) + 
@@ -17852,7 +17852,7 @@ String SystematicAnalysis::ToString(SymbolType Value)
 	default:return "[n/a]";
 	}
 }
-void SystematicAnalysis::LogCanIncorrectStaticArrCount(const Token* Token, const TypeSymbol& Type, size_t Count, size_t FuncCount)
+void SystematicAnalysis::LogError_CanIncorrectStaticArrCount(const Token* Token, const TypeSymbol& Type, size_t Count, size_t FuncCount)
 {
 	String Msg;
 
@@ -17870,45 +17870,45 @@ void SystematicAnalysis::LogCanIncorrectStaticArrCount(const Token* Token, const
 	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, Msg);
 }
-void SystematicAnalysis::LogBeMoreSpecifiicWithStaticArrSize(const Token* Token, const TypeSymbol& Type)
+void SystematicAnalysis::LogError_BeMoreSpecifiicWithStaticArrSize(const Token* Token, const TypeSymbol& Type)
 {
 	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Be More Specifiic with Static Array Size.Ex: " + ToString(Type) + "[/1]");
 }
-void SystematicAnalysis::LogWantedAVariable(const Token* const& Item,Symbol* TepSyb)
+void SystematicAnalysis::LogError_LogWantedAVariable(const Token* const& Item,Symbol* TepSyb)
 {
 	LogError(ErrorCodes::BackEndError, Item->OnLine, Item->OnPos,
 		"found a " + ToString(TepSyb->Type) + "(" + TepSyb->FullName + ")" + ".but wanted a Variable or a class field");
 }
 
-void SystematicAnalysis::LogBinaryOverloadPars(const Token& Name, const FuncInfo* Func)
+void SystematicAnalysis::LogError_BinaryOverloadPars(const Token& Name, const FuncInfo* Func)
 {
 	LogError(ErrorCodes::InValidType, Name.OnLine, Name.OnPos
 		, "The Binary Overload '" + ToString(Name.Type) + "'" + " must have 2 paameters it has " + std::to_string(Func->Pars.size()) + " Pameters");
 }
-void SystematicAnalysis::LogIndexOverloadPars(const Token& Name, const FuncInfo* Func)
+void SystematicAnalysis::LogError_IndexOverloadPars(const Token& Name, const FuncInfo* Func)
 {
 	LogError(ErrorCodes::InValidType, Name.OnLine, Name.OnPos
 		, "The Index Overload '" + ToString(Name.Type) + "'" + " must have 2 paameters it has " + std::to_string(Func->Pars.size()) + " Pameters");
 }
-void SystematicAnalysis::LogPostfixOverloadPars(const Token& Name, const FuncInfo* Func)
+void SystematicAnalysis::LogError_PostfixOverloadPars(const Token& Name, const FuncInfo* Func)
 {
 	LogError(ErrorCodes::InValidType, Name.OnLine, Name.OnPos
 		, "The Index Overload '" + ToString(Name.Type) + "'" + " must have 1 paameters it has " + std::to_string(Func->Pars.size()) + " Pameters");
 }
 
-void SystematicAnalysis::LogCantOverLoadOverload(const UCodeLang::Token* NameToken)
+void SystematicAnalysis::LogError_CantOverLoadOverload(const UCodeLang::Token* NameToken)
 {
 	LogError(ErrorCodes::InValidName, NameToken->OnLine, NameToken->OnPos, "You may not Overload '" + ToString(NameToken->Type) + "'.");
 }
 
-void SystematicAnalysis::LogCantFindMemberOverloadForType(const Token* Item, TokenType Op, const TypeSymbol& Out)
+void SystematicAnalysis::LogError_CantFindMemberOverloadForType(const Token* Item, TokenType Op, const TypeSymbol& Out)
 {
 	LogError(ErrorCodes::InValidName, Item->OnLine, Item->OnPos
 		, "Cant find operator overload for '" + ToString(Op) + "' For Type " + ToString(Out));
 
 }
-void SystematicAnalysis::LogMustMakeEnumLikeafuncion(EnumInfo* Einfo, size_t Index, const Token* Token)
+void SystematicAnalysis::LogError_MustMakeEnumLikeafuncion(EnumInfo* Einfo, size_t Index, const Token* Token)
 {
 	auto& Str = Einfo->Fields[Index].Name;
 	String Msg = "The enum field '" + Str + "' on '" + Einfo->FullName + "' must be created like a function.Ex:";
@@ -17928,39 +17928,39 @@ void SystematicAnalysis::LogMustMakeEnumLikeafuncion(EnumInfo* Einfo, size_t Ind
 	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos,
 		Msg);
 }
-void SystematicAnalysis::LogCantUseMoveTypeHere(const UCodeLang::Token* Token)
+void SystematicAnalysis::LogError_CantUseMoveTypeHere(const UCodeLang::Token* Token)
 {
 
 	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Cant use moved Type Here.it can only be used in Parameters");
 }
-void SystematicAnalysis::LogDynamicMustBeRrait(const TypeNode& V,const TypeSymbol& Out)
+void SystematicAnalysis::LogError_DynamicMustBeRrait(const TypeNode& V,const TypeSymbol& Out)
 {
 	LogError(ErrorCodes::InValidType, V.Name.Token->OnLine, V.Name.Token->OnPos, "useing a Dynamic type on a none trait the type found '" + ToString(Out) + "'");
 }
-void SystematicAnalysis::TraitCantBeAlone(const UCodeLang::Token* Token)
+void SystematicAnalysis::LogError_TraitCantBeAlone(const UCodeLang::Token* Token)
 {
 	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "the Type uses a Trait.but Traits cant be use alone.");
 }
 
-void SystematicAnalysis::LogWantedAType(const UCodeLang::FrontEnd::TypeNode& V, UCodeLang::FrontEnd::Symbol* SybV)
+void SystematicAnalysis::LogError_WantedAType(const UCodeLang::FrontEnd::TypeNode& V, UCodeLang::FrontEnd::Symbol* SybV)
 {
 	LogError(ErrorCodes::InValidType, V.Name.Token->OnLine, V.Name.Token->OnPos,
 		"found a '" + ToString(SybV->Type) + "' for the Symbol " + SybV->FullName + " but wanted a type");
 }
-void SystematicAnalysis::LogOutCanOnlyBeInControlFlow(const UCodeLang::Token* Token)
+void SystematicAnalysis::LogError_OutCanOnlyBeInControlFlow(const UCodeLang::Token* Token)
 {
 
 	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "The 'out' can only be used in Control flow like if");
 }
-void SystematicAnalysis::LogParamterMustBeAnOutExpression(const UCodeLang::Token* Token, const size_t& i)
+void SystematicAnalysis::LogError_ParamterMustBeAnOutExpression(const UCodeLang::Token* Token, const size_t& i)
 {
 	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "parameter '" + std::to_string(i) + "' does not use the out keyword");
 }
-void SystematicAnalysis::LogParPackIsNotLast(const UCodeLang::Token* Token)
+void SystematicAnalysis::LogError_LogParPackIsNotLast(const UCodeLang::Token* Token)
 {
 	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Parameter  named '" + (String)Token->Value._String + "' is useing a Parameter pact.But Parameter pact must be last Paramter");
 }
-void SystematicAnalysis::LogParPackTypeIsNotLast(const UCodeLang::Token* Token)
+void SystematicAnalysis::LogError_ParPackTypeIsNotLast(const UCodeLang::Token* Token)
 {
 	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Type Pack named '" + (String)Token->Value._String + "' is not declarded last.");
 }
