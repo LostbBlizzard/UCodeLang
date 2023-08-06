@@ -817,6 +817,7 @@ public:
 		void* ThisPtr = nullptr;
 		void* OtherPtr = nullptr;
 	};
+
 	Optional<Optional<Vector<OnDoDefaultConstructorCall>>> CallDefaultConstructor(const ReflectionTypeInfo& Type, void* Object, bool Is32Bit) const;
 	
 	Optional<Optional<Vector<OnDoDefaultConstructorCall>>> CallDefaultConstructor(const ClassMethod::Par& Type, void* Object, bool Is32Bit) const;
@@ -855,5 +856,220 @@ public:
 		const ReflectionTypeInfo& TypeOutput,
 		void* Output,
 		const ClassAssembly& OutputAssembly, bool Is32Bit);
+
+	inline static bool IsJust(const ReflectionTypeInfo& Type)
+	{
+		if (Type.IsAddress() 
+			&& Type.IsAddressArray()
+			&& Type.IsDynamicTrait()
+			&& Type.IsMovedType())
+		{
+			return false;
+		}
+		return true;
+	}
+	inline ReflectionTypeInfo CollapseAliases(const ReflectionTypeInfo& Type)
+	{
+		return Type;
+	}
+
+	//Is Char or Uf8,Uf16,Uf32 etc also includes type aliases
+	// use IsJust to exclude pointer and move's ect.
+	inline bool IsChar_t(const ReflectionTypeInfo& TypeA)
+	{
+		switch (TypeA._Type)
+		{
+		case ReflectionTypes::Char:
+		case ReflectionTypes::Uft8:
+		case ReflectionTypes::Uft16:
+		case ReflectionTypes::Uft32:
+			return true;
+		default:
+			break;
+		}
+		return false;
+	}
+
+
+	//Is uint8 or uint16,utint32 etc also includes type aliases
+	// use IsJust to exclude pointer and move's etc.
+	inline bool IsUint_t(const ReflectionTypeInfo& TypeA)
+	{
+		switch (TypeA._Type)
+		{
+		case ReflectionTypes::uInt8:
+		case ReflectionTypes::uInt16:
+		case ReflectionTypes::uInt32:
+		case ReflectionTypes::uInt64:
+		case ReflectionTypes::uIntPtr:
+			return true;
+		default:
+			break;
+		}
+		return false;
+	}
+
+	//Is uint8 or uint16,utint32 etc also includes type aliases
+	// use IsJust to exclude pointer and move's etc.
+	inline bool IsSint_t(const ReflectionTypeInfo& TypeA)
+	{
+		switch (TypeA._Type)
+		{
+		case ReflectionTypes::sInt8:
+		case ReflectionTypes::sInt16:
+		case ReflectionTypes::sInt32:
+		case ReflectionTypes::sInt64:
+		case ReflectionTypes::sIntPtr:
+			return true;
+		default:
+			break;
+		}
+		return false;
+	}
+
+	//Is float32 or float64 etc also includes type aliases
+	// use IsJust to exclude pointer and move's etc.
+	inline bool Isfloat_t(const ReflectionTypeInfo& Type)
+	{
+		switch (Type._Type)
+		{
+		case ReflectionTypes::float32:
+		case ReflectionTypes::float64:
+			return true;
+		default:
+			break;
+		}
+		return false;
+	}
+
+	//Is uint or sint etc also includes type aliases
+	// use IsJust to exclude pointer and move's etc.
+	inline bool IsAnyint_t(const ReflectionTypeInfo& Type)
+	{
+		return IsSint_t(Type) || IsUint_t(Type);
+	}
+
+
+	// includes type aliases
+	// use IsJust to exclude pointer and move's etc.
+	inline bool IsPrimitve(const ReflectionTypeInfo& Type)
+	{
+		if (Type._Type == ReflectionTypes::Bool)
+		{
+			return true;
+		}
+		return IsAnyint_t(Type) || IsChar_t(Type) || Isfloat_t(Type);
+	}
+
+	struct InfoVec2_t
+	{
+		ReflectionTypeInfo XAndYType;
+	};
+	using InfoVec3_t = InfoVec2_t;
+
+	// includes type aliases
+	Optional<InfoVec2_t> IsVec2_t(const ReflectionTypeInfo& Type);
+
+	// includes type aliases
+	Optional<InfoVec3_t> IsVec3_t(const ReflectionTypeInfo& Type);
+
+	// includes type aliases
+	inline Optional<InfoVec2_t> IsVec2f_t(const ReflectionTypeInfo& Type)
+	{
+		auto V = IsVec2_t(Type);
+		if (V.has_value())
+		{
+			if (IsJust(V.value().XAndYType) && Isfloat_t(V.value().XAndYType))
+			{
+				return V.value();
+			}
+		}
+		return {};
+	}
+
+	// includes type aliases
+	inline Optional<InfoVec2_t> IsVec2i_t(const ReflectionTypeInfo& Type)
+	{
+		auto V = IsVec2_t(Type);
+		if (V.has_value())
+		{
+			if (IsJust(V.value().XAndYType) && IsAnyint_t(V.value().XAndYType))
+			{
+				return V.value();
+			}
+		}
+		return {};
+	}
+
+	// includes type aliases
+	inline Optional<InfoVec2_t> IsVec3f_t(const ReflectionTypeInfo& Type)
+	{
+		auto V = IsVec3_t(Type);
+		if (V.has_value())
+		{
+			if (IsJust(V.value().XAndYType) && Isfloat_t(V.value().XAndYType))
+			{
+				return V.value();
+			}
+		}
+		return {};
+	}
+
+	// includes type aliases
+	inline Optional<InfoVec2_t> IsVec3i_t(const ReflectionTypeInfo& Type)
+	{
+		auto V = IsVec3_t(Type);
+		if (V.has_value())
+		{
+			if (IsJust(V.value().XAndYType) && IsAnyint_t(V.value().XAndYType))
+			{
+				return V.value();
+			}
+		}
+		return {};
+	}
+
+	struct InfoVector_t
+	{
+		ReflectionTypeInfo ElementType;
+	};
+	// includes type aliases
+	Optional<InfoVector_t> IsVector_t(const ReflectionTypeInfo& Type);
+
+	struct InfoOptional_t
+	{
+		ReflectionTypeInfo OptType;
+	};
+	// includes type aliases
+	Optional<InfoOptional_t> IsOptional_t(const ReflectionTypeInfo& Type);
+
+	struct InfoResult_t
+	{
+		ReflectionTypeInfo ValType;
+		ReflectionTypeInfo ErrType;
+	};
+	// includes type aliases
+	Optional<InfoResult_t> IsResult_t(const ReflectionTypeInfo& Type);
+
+	struct InfoString_t
+	{
+		ReflectionTypeInfo ElementType;//is any of the char_t types
+	};
+	// includes type aliases
+	Optional<InfoString_t> IsString_t(const ReflectionTypeInfo& Type);
+
+	struct InfoStringView_t
+	{
+		ReflectionTypeInfo ElementType;//is any of the char_t types
+	};
+	// includes type aliases
+	Optional<InfoStringView_t> IsStringView_t(const ReflectionTypeInfo& Type);
+
+	struct InfoSpan_t
+	{
+		ReflectionTypeInfo ElementType;
+	};
+	// includes type aliases
+	Optional<InfoSpan_t> IsSpan_t(const ReflectionTypeInfo& Type);
 };
 UCodeLangEnd

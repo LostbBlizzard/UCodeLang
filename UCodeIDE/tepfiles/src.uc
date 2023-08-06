@@ -2,8 +2,8 @@
 
 |main[] => 0;
 
-int v = 0;
-int a =0;
+
+bool a = false;
 //A simplified standard Library below.
 
 $Vec2:
