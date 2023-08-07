@@ -252,7 +252,10 @@ enum class SymbolType: UInt8
 };
 enum class SymbolValidState : UInt8
 {
+	//Symbol Got Errors so it should not be used
 	Invalid,
+
+	//Symbol Is Ok
 	valid,
 };
 
@@ -886,6 +889,7 @@ public:
 
 	template<typename T> T* Get_Info()
 	{
+		UCodeLangAssert(Info.get());
 		return (T*)Info.get();
 	}
 
@@ -898,6 +902,7 @@ public:
 		}
 		#endif // DEBUG
 
+		UCodeLangAssert(Info.get());
 		return (FuncInfo*)Info.get();
 	}
 	template<> FuncPtrInfo* Get_Info()
@@ -908,12 +913,13 @@ public:
 			UCodeLangThrowException("bad cast");
 		}
 		#endif // DEBUG
-
+		UCodeLangAssert(Info.get());
 		return (FuncPtrInfo*)Info.get();
 	}
 
 	template<typename T> const T* Get_Info() const
 	{
+		UCodeLangAssert(Info.get());
 		return (T*)Info.get();
 	}
 	template<> const FuncInfo* Get_Info() const
@@ -925,6 +931,7 @@ public:
 		}
 		#endif // DEBUG
 
+		UCodeLangAssert(Info.get());
 		return (FuncInfo*)Info.get();
 	}
 	template<> const FuncPtrInfo* Get_Info() const
@@ -936,6 +943,7 @@ public:
 		}
 		#endif // DEBUG
 
+		UCodeLangAssert(Info.get());
 		return (FuncPtrInfo*)Info.get();
 	}
 
@@ -944,10 +952,12 @@ public:
 
 	template<typename T> const T* Get_NodeInfo() const
 	{
+		UCodeLangAssert(NodePtr);
 		return (T*)NodePtr;
 	}
 	void Set_NodeInfo(const void* NodeObject)
 	{
+		UCodeLangAssert(NodePtr == nullptr);//reassigning Node its read-only?
 		NodePtr = NodeObject;
 	}
 };

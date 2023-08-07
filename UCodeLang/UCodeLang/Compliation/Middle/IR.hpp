@@ -1130,10 +1130,12 @@ struct IRSymbolData
 	Unique_ptr<IRSymbol_Ex> Ex;
 	template<typename T> T* Get_ExAs()
 	{
+		UCodeLangAssert(Ex.get());
 		return (T*)Ex.get();
 	}
-	 template<typename T>const T* Get_ExAs() const
+	template<typename T>const T* Get_ExAs() const
 	{
+		UCodeLangAssert(Ex.get());
 		return (T*)Ex.get();
 	}
 };

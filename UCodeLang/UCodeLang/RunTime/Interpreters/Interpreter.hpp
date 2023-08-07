@@ -87,7 +87,10 @@ public:
 	void UnLoad()
 	{
 		#ifdef DEBUG
-		UCodeLangAssert(WasInit == true && InDestruct == false);
+		if (!InDestruct) 
+		{
+			UCodeLangAssert(WasInit == true);
+		}
 		GotRetValue = false;
 		CalledFuncBefor = false;
 		#endif

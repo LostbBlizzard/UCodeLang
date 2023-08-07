@@ -618,34 +618,43 @@ bool SystematicAnalysis::Analyze(const Vector<const FileNode*>& Files, const Vec
 }
 void SystematicAnalysis::BuildCode()
 {
+	UCodeLangAssert(_PassType == PassType::FixedTypes);
 	for (auto& Item : _Table.Symbols)
 	{
 		if (!Item->OutputIR){continue;}
+		UCodeLangAssert(Item->ValidState == SymbolValidState::valid);
+		
+
 
 		switch (Item->Type)
 		{
 		case SymbolType::Type_class:
 		{
+			UCodeLangAssert(Item->PassState == PassType::FixedTypes);
 			IR_Build_ConvertToIRClassIR(*Item);
 		}
 		break;
 		case SymbolType::Enum:
 		{
+			UCodeLangAssert(Item->PassState == PassType::FixedTypes);
 			IR_Build_ConveToIRVariantEnum(*Item);
 		}
 		break;
 		case SymbolType::Type_StaticArray:
 		{
+			UCodeLangAssert(Item->PassState == PassType::FixedTypes);
 			IR_Build_ConvertToStaticArray(*Item);
 		}
 		break;
 		case SymbolType::StaticVarable:
 		{
+			UCodeLangAssert(Item->PassState == PassType::FixedTypes);
 			auto StaticVarIR = _IR_Builder.NewStaticVarable(_IR_Builder.ToID(Item->FullName),IRType_ConvertToIRType(Item->VarType));
 		}
 		break;
 		case SymbolType::ThreadVarable:
 		{
+			UCodeLangAssert(Item->PassState == PassType::FixedTypes);
 			auto ThreadVarIR = _IR_Builder.NewThreadLocalVarable(_IR_Builder.ToID(Item->FullName), IRType_ConvertToIRType(Item->VarType));
 		}
 		break;
@@ -658,6 +667,59 @@ void SystematicAnalysis::BuildCode()
 
 	_PassType = PassType::BuidCode;
 	Pass();
+	
+	{
+		auto oldconext = SaveAndMove_SymbolContext();
+		for (auto& Item : _Generic_GeneratedGenericSybol)
+		{
+			auto Symbol = Symbol_GetSymbol(Item.ID);
+			UCodeLangAssert(Symbol);
+
+			_Generic_GenericSymbolStack.push(std::move(Item.Info));
+			switch (Symbol->Type)
+			{
+			case SymbolType::Func:
+			{
+				auto Info = Symbol->Get_Info<FuncInfo>();
+				auto node = FuncNode::As(Symbol->Get_NodeInfo<Node>());
+				
+				
+				Set_SymbolConext(std::move(Info->Conext.value()));
+				OnFuncNode(*node);
+				Info->Conext = SaveAndMove_SymbolContext();
+			}
+			break;
+			case SymbolType::Type_class:
+			{
+				auto Info = Symbol->Get_Info<ClassInfo>();
+				auto node = ClassNode::As(Symbol->Get_NodeInfo<Node>());
+
+
+				Set_SymbolConext(std::move(Info->Conext.value()));
+				OnClassNode(*node);
+				Info->Conext = SaveAndMove_SymbolContext();
+			}
+			break;
+			case SymbolType::Enum:
+			{
+				auto Info = Symbol->Get_Info<EnumInfo>();
+				auto node = EnumNode::As(Symbol->Get_NodeInfo<Node>());
+
+
+				Set_SymbolConext(std::move(Info->Conext.value()));
+				OnEnum(*node);
+				Info->Conext = SaveAndMove_SymbolContext();
+			}
+			break;
+			default:
+				UCodeLangUnreachable();
+				break;
+			}
+			
+			Item.Info = std::move(_Generic_GenericSymbolStack.top());
+			_Generic_GenericSymbolStack.pop();
+		}
+	}
 }
 void SystematicAnalysis::Lib_BuildLibs()
 {
@@ -815,14 +877,14 @@ void SystematicAnalysis::Debug_Add_SetLineNumber(const Token* token, size_t InsI
 {
 	auto ThisFileName = _LookingAtFile->FileName.generic_string();
 	auto LineNumber = token->OnLine;
-	if (_LastLineNumber != LineNumber || (ThisFileName != _LastIRFileName) || (LastLookAtDebugBlock != &_IR_LookingAtIRBlock->DebugInfo))
+	if (_LastLineNumber != LineNumber || (ThisFileName != _LastIRFileName) || (_Debug_LastLookAtDebugBlock != &_IR_LookingAtIRBlock->DebugInfo))
 	{
-		if (LastLookAtDebugBlock != &_IR_LookingAtIRBlock->DebugInfo)
+		if (_Debug_LastLookAtDebugBlock != &_IR_LookingAtIRBlock->DebugInfo)
 		{
 			_LastIRFileName = "";
 			_LastLineNumber = -1;
 
-			LastLookAtDebugBlock = &_IR_LookingAtIRBlock->DebugInfo;
+			_Debug_LastLookAtDebugBlock = &_IR_LookingAtIRBlock->DebugInfo;
 		}
 
 		if (ThisFileName != _LastIRFileName)
@@ -878,10 +940,12 @@ void SystematicAnalysis::Debug_Add_SetVarableInfo(const Symbol& Syb, size_t InsI
 }
 const FileNode* SystematicAnalysis::FileDependency_Get_FileUseingSybol(const Symbol* Syb)
 {
+	UCodeLangAssert(Syb);
 	return Syb->_File;
 }
 void SystematicAnalysis::FileDependency_AddDependencyToCurrentFile(const Symbol* Syb)
 {
+	UCodeLangAssert(Syb);
 	FileDependency_AddDependencyToCurrentFile(FileDependency_Get_FileUseingSybol(Syb));
 	
 	
@@ -1204,12 +1268,12 @@ void SystematicAnalysis::OnFileNode(const FileNode* File)
 void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 {
 
-	bool IsgenericInstantiation = _IR_GenericFuncName.size() && _IR_GenericFuncName.top().NodeTarget == &Node;
+	bool IsgenericInstantiation = _Generic_GenericSymbolStack.size() && _Generic_GenericSymbolStack.top().NodeTarget == &Node;
 	bool Isgeneric = Node.Generic.Values.size();
 	bool Isgeneric_t = Isgeneric && IsgenericInstantiation == false;
 
 
-	const String ClassName = IsgenericInstantiation ? (String)ScopeHelper::GetNameFromFullName(_IR_GenericFuncName.top()._IR_GenericFuncName) : (String)Node.ClassName.Token->Value._String;
+	const String ClassName = IsgenericInstantiation ? (String)ScopeHelper::GetNameFromFullName(_Generic_GenericSymbolStack.top()._IR_GenericFuncName) : (String)Node.ClassName.Token->Value._String;
 	_Table.AddScope(ClassName);
 
 	auto SybID = Symbol_GetSymbolID(Node);
@@ -1625,12 +1689,12 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 
 void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 {
-	const bool IsgenericInstantiation = _IR_GenericFuncName.size() && _IR_GenericFuncName.top().NodeTarget == &node;
+	const bool IsgenericInstantiation = _Generic_GenericSymbolStack.size() && _Generic_GenericSymbolStack.top().NodeTarget == &node;
 	const bool Isgeneric = node.Generic.Values.size();
 	const bool Isgeneric_t = Isgeneric && IsgenericInstantiation == false;
 
 
-	const String ClassName = IsgenericInstantiation ? (String)ScopeHelper::GetNameFromFullName(_IR_GenericFuncName.top()._IR_GenericFuncName) : (String)node.AliasName.Token->Value._String;
+	const String ClassName = IsgenericInstantiation ? (String)ScopeHelper::GetNameFromFullName(_Generic_GenericSymbolStack.top()._IR_GenericFuncName) : (String)node.AliasName.Token->Value._String;
 	
 
 	_Table.AddScope(ClassName);
@@ -1795,7 +1859,7 @@ void SystematicAnalysis::Generic_InitGenericalias(const GenericValuesNode& Gener
 		{
 			GenericType->Type = SymbolType::Type_alias;
 
-			GenericFuncInfo& V2 = _IR_GenericFuncName.top();
+			GenericFuncInfo& V2 = _Generic_GenericSymbolStack.top();
 			GenericType->VarType = (*V2.GenericInput)[i];
 		}
 		else
@@ -1825,10 +1889,10 @@ void SystematicAnalysis::Generic_InitGenericalias(const GenericValuesNode& Gener
 void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 {
 	
-	bool IsgenericInstantiation = _IR_GenericFuncName.size() && _IR_GenericFuncName.top().NodeTarget == &node;
+	bool IsgenericInstantiation = _Generic_GenericSymbolStack.size() && _Generic_GenericSymbolStack.top().NodeTarget == &node;
 	bool IsGenericS = node.Signature.Generic.Values.size();
 
-	auto FuncName = IsgenericInstantiation ? _IR_GenericFuncName.top()._IR_GenericFuncName
+	auto FuncName = IsgenericInstantiation ? _Generic_GenericSymbolStack.top()._IR_GenericFuncName
 		: node.Signature.Name.AsStringView();
 	auto NameToken = node.Signature.Name.Token;
 
@@ -1885,7 +1949,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			{
 				GenericType->Type = SymbolType::Type_alias;
 
-				GenericFuncInfo& V2 = _IR_GenericFuncName.top();
+				GenericFuncInfo& V2 = _Generic_GenericSymbolStack.top();
 			
 				auto TepVarable = Generic_TypeToGenericDataType(Item.Generictype);
 				
@@ -2131,7 +2195,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			bool IsPackParLast = false;
 			if (IsgenericInstantiation && ParNodes.size())
 			{
-				if (Info->Pars.back().Type._CustomTypeSymbol == _IR_GenericFuncName.top().Pack.value())
+				if (Info->Pars.back().Type._CustomTypeSymbol == _Generic_GenericSymbolStack.top().Pack.value())
 				{
 					IsPackParLast = true;
 				}
@@ -2142,7 +2206,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			{
 				size_t ParsCount = ParNodes.size() - 1;
 
-				const TypePackInfo* PackPar = Symbol_GetSymbol(_IR_GenericFuncName.top().Pack.value())->Get_Info<TypePackInfo>();
+				const TypePackInfo* PackPar = Symbol_GetSymbol(_Generic_GenericSymbolStack.top().Pack.value())->Get_Info<TypePackInfo>();
 				ParsCount += PackPar->List.size();
 				_IR_LookingAtIRFunc->Pars.resize(ParsCount);
 
@@ -2194,7 +2258,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 			if (IsPackParLast)
 			{
-				const TypePackInfo* PackPar = Symbol_GetSymbol(_IR_GenericFuncName.top().Pack.value())->Get_Info<TypePackInfo>();
+				const TypePackInfo* PackPar = Symbol_GetSymbol(_Generic_GenericSymbolStack.top().Pack.value())->Get_Info<TypePackInfo>();
 
 				size_t V = ParNodeSize;
 
@@ -3663,12 +3727,12 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 }
 void SystematicAnalysis::OnTrait(const TraitNode& node)
 {
-	const bool IsgenericInstantiation = _IR_GenericFuncName.size() && _IR_GenericFuncName.top().NodeTarget == &node;
+	const bool IsgenericInstantiation = _Generic_GenericSymbolStack.size() && _Generic_GenericSymbolStack.top().NodeTarget == &node;
 	const bool Isgeneric = node.Generic.Values.size();
 	const bool Isgeneric_t = Isgeneric && IsgenericInstantiation == false;
 	const bool CheckgenericForErr = (Isgeneric_t && (_PassType == PassType::GetTypes || _PassType == PassType::FixedTypes));
 
-	const String ClassName = IsgenericInstantiation ? ScopeHelper::GetNameFromFullName(_IR_GenericFuncName.top()._IR_GenericFuncName) : node._Name.AsString();
+	const String ClassName = IsgenericInstantiation ? ScopeHelper::GetNameFromFullName(_Generic_GenericSymbolStack.top()._IR_GenericFuncName) : node._Name.AsString();
 	
 	_Table.AddScope(ClassName);
 	SymbolID sybId = Symbol_GetSymbolID(node);//Must be pass AddScope thats how GetSymbolID works for Generics.
@@ -3877,12 +3941,12 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 }
 void SystematicAnalysis::OnTag(const TagTypeNode& node)
 {
-	bool IsgenericInstantiation = _IR_GenericFuncName.size() && _IR_GenericFuncName.top().NodeTarget == &node;
+	bool IsgenericInstantiation = _Generic_GenericSymbolStack.size() && _Generic_GenericSymbolStack.top().NodeTarget == &node;
 	bool Isgeneric = node.Generic.Values.size();
 	bool Isgeneric_t = Isgeneric && IsgenericInstantiation == false;
 
 
-	const String ClassName = IsgenericInstantiation ? ScopeHelper::GetNameFromFullName(_IR_GenericFuncName.top()._IR_GenericFuncName) : (String)node.AttributeName.Token->Value._String;
+	const String ClassName = IsgenericInstantiation ? ScopeHelper::GetNameFromFullName(_Generic_GenericSymbolStack.top()._IR_GenericFuncName) : (String)node.AttributeName.Token->Value._String;
 	_Table.AddScope(ClassName);
 	SymbolID sybId = Symbol_GetSymbolID(node);//Must be pass AddScope thats how GetSymbolID works for Generics.
 
@@ -3943,7 +4007,7 @@ void SystematicAnalysis::OnBitCast(const BitCastExpression& node)
 		auto Token = node.KeywordToken;
 		TypeSymbol ToType = Type_ConvertAndValidateType(node._Type,NodeSyb_t::Any);
 		
-		if (!ToType.IsBadType() || !Type_IsUnMapType(ToType)) 
+		if (!ToType.IsBadType() && !Type_IsUnMapType(ToType)) 
 		{
 			if (!ToType.IsAddress() && !ToType.IsAddressArray() && (ToType._Type != TypesEnum::uIntPtr))
 			{
@@ -4335,13 +4399,13 @@ void SystematicAnalysis::OnCompileTimeIfNode(const CompileTimeIfNode& node)
 }
 TypeSymbol SystematicAnalysis::Type_GetUnMapType()
 {
-	if (!UnMapTypeSybol.has_value())
+	if (!_Type_UnMapTypeSymbol.has_value())
 	{
 		auto& TypeSyb = Symbol_AddSymbol(SymbolType::Unmaped_Generic_Type, CompilerGenerated("UnMapedType"), CompilerGenerated("UnMapedType"), AccessModifierType::Public);
 		_Table.AddSymbolID(TypeSyb, Symbol_GetSymbolID(&TypeSyb));
-		UnMapTypeSybol = TypeSyb.ID;
+		_Type_UnMapTypeSymbol = TypeSyb.ID;
 	}	
-	return TypeSymbol(UnMapTypeSybol.value());
+	return TypeSymbol(_Type_UnMapTypeSymbol.value());
 
 }
 bool SystematicAnalysis::Type_IsUnMapType(const TypeSymbol& Type) const
@@ -5057,9 +5121,9 @@ void SystematicAnalysis::IR_RemoveJumps(size_t Index)
 IRidentifierID SystematicAnalysis::IR_Build_ConvertToIRClassIR(const Symbol& Class)
 {
 	auto ClassSybID = Class.ID;
-	if (SybToIRMap.HasValue(ClassSybID))
+	if (_Symbol_SybToIRMap.HasValue(ClassSybID))
 	{
-		return SybToIRMap.at(ClassSybID);
+		return _Symbol_SybToIRMap.at(ClassSybID);
 	}
 	const ClassInfo* clasinfo = Class.Get_Info < ClassInfo>();
 
@@ -5076,16 +5140,16 @@ IRidentifierID SystematicAnalysis::IR_Build_ConvertToIRClassIR(const Symbol& Cla
 		Out.Type = IRType_ConvertToIRType(Item.Type);
 	}
 
-	SybToIRMap[ClassSybID] = V;
+	_Symbol_SybToIRMap[ClassSybID] = V;
 	return V;
 }
 
 IRidentifierID SystematicAnalysis::IR_Build_ConvertToStaticArray(const Symbol& Class)
 {
 	auto ClassSybID = Class.ID;
-	if (SybToIRMap.HasValue(ClassSybID))
+	if (_Symbol_SybToIRMap.HasValue(ClassSybID))
 	{
-		return SybToIRMap.at(ClassSybID);
+		return _Symbol_SybToIRMap.at(ClassSybID);
 	}
 	const StaticArrayInfo* clasinfo = Class.Get_Info <StaticArrayInfo>();
 
@@ -5094,7 +5158,7 @@ IRidentifierID SystematicAnalysis::IR_Build_ConvertToStaticArray(const Symbol& C
 	auto IRStuct = _IR_Builder.NewStaticArray(V,IRType_ConvertToIRType(clasinfo->Type),clasinfo->Count);
 
 
-	SybToIRMap[ClassSybID] = V;
+	_Symbol_SybToIRMap[ClassSybID] = V;
 	return V;
 }
 
@@ -5105,9 +5169,9 @@ IRidentifierID SystematicAnalysis::IR_Build_ConveToIRVariantEnum(const Symbol& E
 	if (Info->VariantData.has_value()) 
 	{
 		auto ClassSybID = Enum.ID;
-		if (SybToIRMap.HasValue(ClassSybID))
+		if (_Symbol_SybToIRMap.HasValue(ClassSybID))
 		{
-			return SybToIRMap.at(ClassSybID);
+			return _Symbol_SybToIRMap.at(ClassSybID);
 		}
 
 
@@ -5161,7 +5225,7 @@ IRidentifierID SystematicAnalysis::IR_Build_ConveToIRVariantEnum(const Symbol& E
 		}
 
 		//
-		SybToIRMap[ClassSybID] = UnionID;
+		_Symbol_SybToIRMap[ClassSybID] = UnionID;
 		return V;
 	}
 	return 0;
@@ -5224,9 +5288,9 @@ IRType SystematicAnalysis::IRType_ConvertToIRType(const TypeSymbol& Value)
 		}
 		else if (syb.Type == SymbolType::Func_ptr || syb.Type == SymbolType::Hard_Func_ptr)
 		{
-			if (SybToIRMap.HasValue(syb.ID))
+			if (_Symbol_SybToIRMap.HasValue(syb.ID))
 			{
-				return IRType(SybToIRMap.at(syb.ID));
+				return IRType(_Symbol_SybToIRMap.at(syb.ID));
 			}
 			else
 			{
@@ -5244,7 +5308,7 @@ IRType SystematicAnalysis::IRType_ConvertToIRType(const TypeSymbol& Value)
 				}
 				tep->Ret = IRType_ConvertToIRType(V->Ret);
 
-				SybToIRMap[syb.ID] = IRid;
+				_Symbol_SybToIRMap[syb.ID] = IRid;
 				return r;
 			}
 		}
@@ -5262,9 +5326,9 @@ IRType SystematicAnalysis::IRType_ConvertToIRType(const TypeSymbol& Value)
 		}
 		else if (syb.Type == SymbolType::Trait_class && Value._IsDynamic)
 		{
-			if (SybToIRMap.HasValue(syb.ID))
+			if (_Symbol_SybToIRMap.HasValue(syb.ID))
 			{
-				return IRType(SybToIRMap.at(syb.ID));
+				return IRType(_Symbol_SybToIRMap.at(syb.ID));
 			}
 			else
 			{
@@ -5285,7 +5349,7 @@ IRType SystematicAnalysis::IRType_ConvertToIRType(const TypeSymbol& Value)
 				}
 
 				IRType r = IRid;
-				SybToIRMap[syb.ID] = IRid;
+				_Symbol_SybToIRMap[syb.ID] = IRid;
 				return r;
 			}
 		}
@@ -5453,13 +5517,13 @@ void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 }
 void SystematicAnalysis::OnEnum(const EnumNode& node)
 {
-	const bool IsgenericInstantiation = _IR_GenericFuncName.size() && _IR_GenericFuncName.top().NodeTarget == &node;
+	const bool IsgenericInstantiation = _Generic_GenericSymbolStack.size() && _Generic_GenericSymbolStack.top().NodeTarget == &node;
 	const bool Isgeneric = node.Generic.Values.size();
 	const bool Isgeneric_t = Isgeneric && IsgenericInstantiation == false;
 
 
 	
-	const String ClassName = IsgenericInstantiation ? (String)ScopeHelper::GetNameFromFullName(_IR_GenericFuncName.top()._IR_GenericFuncName) : (String)node.EnumName.Token->Value._String;
+	const String ClassName = IsgenericInstantiation ? (String)ScopeHelper::GetNameFromFullName(_Generic_GenericSymbolStack.top()._IR_GenericFuncName) : (String)node.EnumName.Token->Value._String;
 	_Table.AddScope(ClassName);
 	SymbolID SybID = Symbol_GetSymbolID(node);//Must be pass AddScope thats how GetSymbolID works.
 
@@ -5574,6 +5638,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 							SymbolID AnonymousSybID = Symbol_GetSymbolID(VariantType_.node.get());
 							auto& AnonymousSyb = Symbol_AddSymbol(SymbolType::Type_class, (String)NewName, NewName,AccessModifierType::Public);
 							AnonymousSyb.OutputIR = Syb.Type == SymbolType::Enum;//Dont Output IR type if Generic
+							AnonymousSyb.PassState = PassType::FixedTypes;
 							_Table.AddSymbolID(AnonymousSyb, AnonymousSybID);
 
 
@@ -5717,6 +5782,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 					if (Item.ClassSymbol.has_value())
 					{
 						Symbol* Sym = Symbol_GetSymbol(Item.ClassSymbol.value());
+						Sym->PassState =PassType::Done;
 
 						Assembly_AddClass({}, Sym);//has '!' post fix so its Unrefencedable
 
@@ -5781,6 +5847,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 	}
 
 	_Table.RemoveScope();
+	Syb.PassState = _PassType;
 }
 
 String SystematicAnalysis::Str_GetScopedNameAsString(const ScopedNameNode& node)
@@ -7525,7 +7592,7 @@ void SystematicAnalysis::StepBuildMember_Access(const ScopedName& ITem, TypeSymb
 		auto* Classinfo = Sym->Get_Info<ClassInfo>();
 		size_t MemberIndex = Classinfo->GetFieldIndex(MemberName).value();
 		FieldInfo* FInfo = &Classinfo->Fields[MemberIndex];
-		IRStruct* IRstruct = _IR_Builder.GetSymbol(SybToIRMap[Sym->ID])->Get_ExAs<IRStruct>();
+		IRStruct* IRstruct = _IR_Builder.GetSymbol(_Symbol_SybToIRMap[Sym->ID])->Get_ExAs<IRStruct>();
 		if (Output == nullptr)
 		{
 			switch (In.Symbol->Type)
@@ -12043,7 +12110,7 @@ SystematicAnalysis::UrinaryOverLoadWith_t SystematicAnalysis::Type_HasUrinaryOve
 
 	return {  };
 }
-String SystematicAnalysis::ToString(const TypeSymbol& Type)
+String SystematicAnalysis::ToString(const TypeSymbol& Type) const
 {
 	String r;
 
@@ -12141,7 +12208,7 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type)
 		}
 		else if (Syb.Type == SymbolType::Type_StaticArray)
 		{
-			StaticArrayInfo* Info = Syb.Get_Info<StaticArrayInfo>();
+			const StaticArrayInfo* Info = Syb.Get_Info<StaticArrayInfo>();
 			r += ToString(Info->Type);
 			r += "[/";
 			r += std::to_string(Info->Count);
@@ -12149,7 +12216,7 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type)
 		}
 		else if (Syb.Type == SymbolType::ConstantExpression)
 		{
-			ConstantExpressionInfo* Info = Syb.Get_Info<ConstantExpressionInfo>();
+			const ConstantExpressionInfo* Info = Syb.Get_Info<ConstantExpressionInfo>();
 			r += "(" + ToString(Syb.VarType);
 			r += ";";
 			r += ToString(Syb.VarType,Info->Ex) + ")";
@@ -14531,6 +14598,9 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 				}
 			}
 		}
+
+		
+
 	}
 
 	//Out-Par
@@ -14752,7 +14822,13 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 			{
 				auto& Item = Generics.Values[i];
 				Type_Convert(Item, GenericInput.emplace_back());
-
+				
+				if (Type_IsUnMapType(GenericInput.back()))
+				{
+					Get_FuncInfo V;
+					V.CantCheckBecauseIsUnMaped = true;
+					return V;//cant check because we are just testing.
+				}
 
 				HasBenAdded[i] = true;
 			}
@@ -14818,7 +14894,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 
 				auto FuncSym = Symbol_GetSymbol(Info);
-				String NewName = Generic_GetGenericFuncFullName(FuncSym, GenericInput);
+				String NewName = Generic_SymbolGenericFullName(FuncSym, GenericInput);
 				auto FuncIsMade = Symbol_GetSymbol(NewName, SymbolType::Func);
 
 
@@ -15102,6 +15178,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 		for (size_t i = 0; i < ValueTypes.size(); i++)
 		{
 			auto& Item = ValueTypes[i];
+			if (AutoPassThis && i == 0) { continue; }
 
 			const auto& ItemNode = Pars._Nodes[AutoPassThis ? i - 1 : i];
 			if (Item.IsOutPar)
@@ -15332,8 +15409,16 @@ void SystematicAnalysis::Eval_SetOutExpressionEval(const OutExpression* Ex, cons
 }
 
 
-String SystematicAnalysis::Generic_GetGenericFuncFullName(const Symbol* Func, const Vector<TypeSymbol>& Type)
+String SystematicAnalysis::Generic_SymbolGenericFullName(const Symbol* Func, const Vector<TypeSymbol>& Type) const
 {
+	#ifdef DEBUG
+	for (auto& Item : Type)
+	{
+		UCodeLangAssert(!Type_IsUnMapType(Item));//trying use UnMaped Type when Generic Instantiate.
+	}
+	#endif // DEBUG
+	UCodeLangAssert(Type.size());//you need input types for Generic Instantiate.
+
 	String NewName = Func->FullName + "<";
 	for (auto& Item : Type)
 	{
@@ -15346,8 +15431,16 @@ String SystematicAnalysis::Generic_GetGenericFuncFullName(const Symbol* Func, co
 	NewName += ">";
 	return NewName;
 }
-String SystematicAnalysis::Generic_GetGenericFuncName(const Symbol* Func, const Vector<TypeSymbol>& Type)
+String SystematicAnalysis::Generic_SymbolGenericName(const Symbol* Func, const Vector<TypeSymbol>& Type) const
 {
+	#ifdef DEBUG
+	for (auto& Item : Type)
+	{
+		UCodeLangAssert(!Type_IsUnMapType(Item));//trying use UnMaped Type when Generic Instantiate.
+	}
+	#endif // DEBUG
+	UCodeLangAssert(Type.size());//you need input types for Generic Instantiate.
+
 	String NewName = ScopeHelper::GetNameFromFullName(Func->FullName) + "<";
 	for (auto& Item : Type)
 	{
@@ -15454,98 +15547,138 @@ Optional<SymbolID>  SystematicAnalysis::Generic_MakeTypePackSymbolIfNeeded(const
 }
 void SystematicAnalysis::Generic_GenericFuncInstantiate(const Symbol* Func, const Vector<TypeSymbol>& GenericInput)
 {
-	const String NewName = Generic_GetGenericFuncName(Func, GenericInput);
-	const String FullName = Generic_GetGenericFuncFullName(Func, GenericInput);
+	UCodeLangAssert(Func->Type == SymbolType::GenericFunc);
+	
 
-	GenericFuncInfo Info;
-	Info._IR_GenericFuncName = NewName;
-	Info.GenericInput = &GenericInput;
-	Info.NodeTarget = Func->NodePtr;
 
+	const String NewName = Generic_SymbolGenericName(Func, GenericInput);
+	const String FullName = Generic_SymbolGenericFullName(Func, GenericInput);
 	const FuncInfo* FInfo = Func->Get_Info<FuncInfo>();
-	Info.Pack = Generic_MakeTypePackSymbolIfNeeded(NewName,GenericInput, FInfo->_GenericData);
 
+	{
+		auto& GenericData = FInfo->_GenericData;
+		Push_GenericInfo(NewName, GenericInput, Func, GenericData);
+	}
+	
+	
 	const FuncNode& FuncBase = *Func->Get_NodeInfo<FuncNode>();
 
 	
-	_IR_GenericFuncName.push(std::move(Info));
 
-	auto OldConext = SaveAndMove_SymbolContext();
-	auto Oldpasstype = _PassType;
 
-	Set_SymbolConext(FInfo->Conext.value());
+
+	
 	{
 		Push_ExtendedErr(Generic_GetGenericExtendedErrValue(FInfo->_GenericData,FuncBase.Signature.Generic,GenericInput),FuncBase.Signature.Name.Token);
 	}
 	{
+		size_t NewSymbolIndex = _Table.Symbols.size();
 
+		auto OldConext = SaveAndMove_SymbolContext();
+		auto Oldpasstype = _PassType;
+		auto Olderrcount = _ErrorsOutput->Get_ErrorCount();
+
+		Set_SymbolConext(FInfo->Conext.value());
 		_PassType = PassType::GetTypes;
 		OnFuncNode(FuncBase);
 
-		if (!_ErrorsOutput->Has_Errors())
+		auto& addedSymbol = *_Table.Symbols[NewSymbolIndex].get();
+		UCodeLangAssert(addedSymbol.FullName == NewName);
+		UCodeLangAssert(addedSymbol.Type == SymbolType::Func);
+		UCodeLangAssert(addedSymbol.PassState == PassType::GetTypes);
+
+
+		if (_ErrorsOutput->Get_ErrorCount() <= Olderrcount)
 		{
 			_PassType = PassType::FixedTypes;
 			OnFuncNode(FuncBase);
+			UCodeLangAssert(addedSymbol.PassState == PassType::FixedTypes);
 		}
-		if (!_ErrorsOutput->Has_Errors())
-		{
-			_PassType = PassType::BuidCode;
-			OnFuncNode(FuncBase);
-		}
+		Set_SymbolConext(std::move(OldConext));
+		_PassType = Oldpasstype;
+
+		Pop_AddToGeneratedGenricSymbol(addedSymbol, GenericInput);
 	}
 	{
 		Pop_ExtendedErr();
 	}
 
-	_IR_GenericFuncName.pop();
 	
-	Set_SymbolConext(std::move(OldConext));
-	_PassType = Oldpasstype;
-
 
 	FileDependency_AddDependencyToCurrentFile(Func);
 }
-void SystematicAnalysis::GenericTypeInstantiate(const Symbol* Class, const Vector<TypeSymbol>& Type)
+void SystematicAnalysis::Push_GenericInfo(const String& NewName, const Vector<TypeSymbol>& GenericInput, const 
+	Symbol* Func, const Generic& GenericData)
 {
-	const String NewName = Generic_GetGenericFuncName(Class, Type);
-	const String FullName = Generic_GetGenericFuncFullName(Class, Type);
+	GenericFuncInfo Info;
+	Info._IR_GenericFuncName = NewName;
+	Info.GenericInput = &GenericInput;
+	Info.NodeTarget = Func->NodePtr;
+	Info.Pack = Generic_MakeTypePackSymbolIfNeeded(NewName, GenericInput, GenericData);
+	_Generic_GenericSymbolStack.push(std::move(Info));
+}
+void SystematicAnalysis::Pop_AddToGeneratedGenricSymbol(Symbol& addedSymbol, const Vector<TypeSymbol>& GenericInput)
+{
+
+	GeneratedGenericSymbolData NewData;
+	NewData.ID = addedSymbol.ID;
+	NewData.Info = std::move(_Generic_GenericSymbolStack.top());
+	_Generic_GenericSymbolStack.pop();
+
+	NewData.Types = GenericInput;
+	NewData.Info.GenericInput = &NewData.Types;
+
+	_Generic_GeneratedGenericSybol.push_back(std::move(NewData));
+
+}
+
+void SystematicAnalysis::Generic_TypeInstantiate(const Symbol* Class, const Vector<TypeSymbol>& GenericInput)
+{
+	UCodeLangAssert(Class->Type == SymbolType::Generic_class);
+
+	const String NewName = Generic_SymbolGenericName(Class, GenericInput);
+	const String FullName = Generic_SymbolGenericFullName(Class, GenericInput);
 	const ClassNode* node = ClassNode::As(Class->Get_NodeInfo<Node>());
 
 	const ClassInfo* classInfo = Class->Get_Info<ClassInfo>();
 
-	GenericFuncInfo Info;
-	Info._IR_GenericFuncName = NewName;
-	Info.GenericInput = &Type;
-	Info.NodeTarget = Class->NodePtr;
-	_IR_GenericFuncName.push(Info);
-
-	Info.Pack = Generic_MakeTypePackSymbolIfNeeded(NewName,Type, classInfo->_GenericData);
 	{
-		Push_ExtendedErr(Generic_GetGenericExtendedErrValue(classInfo->_GenericData, node->Generic,Type), node->ClassName.Token);
+		auto& GenericData = classInfo->_GenericData;
+		Push_GenericInfo(NewName, GenericInput, Class, GenericData);
+	}
+
+	{
+		Push_ExtendedErr(Generic_GetGenericExtendedErrValue(classInfo->_GenericData, node->Generic,GenericInput), node->ClassName.Token);
 	}
 	{
 		auto OldConext = SaveAndMove_SymbolContext();
 		auto Oldpasstype = _PassType;
+		auto Olderrcount = _ErrorsOutput->Get_ErrorCount();
 
 		Set_SymbolConext(classInfo->Conext.value());
 
-
+		size_t NewSymbolIndex = _Table.Symbols.size();
 		_PassType = PassType::GetTypes;
 		OnClassNode(*node);
 
-		if (!_ErrorsOutput->Has_Errors())
+		auto& addedSymbol = *_Table.Symbols[NewSymbolIndex].get();
+		UCodeLangAssert(addedSymbol.FullName == NewName);
+		UCodeLangAssert(addedSymbol.Type == SymbolType::Type_class);
+		UCodeLangAssert(addedSymbol.PassState == PassType::GetTypes);
+
+		if (_ErrorsOutput->Get_ErrorCount() <= Olderrcount)
 		{
 			_PassType = PassType::FixedTypes;
 			OnClassNode(*node);
+
+			UCodeLangAssert(addedSymbol.PassState == PassType::FixedTypes);
 		}
 
-		if (!_ErrorsOutput->Has_Errors()) 
-		{
-			_PassType = PassType::BuidCode;
-			OnClassNode(*node);
-		}
+		Pop_AddToGeneratedGenricSymbol(addedSymbol, GenericInput);
+		
 
-		_IR_GenericFuncName.pop();
+
+	
 		//
 		Set_SymbolConext(std::move(OldConext));
 		_PassType = Oldpasstype;
@@ -15558,45 +15691,56 @@ void SystematicAnalysis::GenericTypeInstantiate(const Symbol* Class, const Vecto
 	FileDependency_AddDependencyToCurrentFile(Class);
 }
 
-void SystematicAnalysis::GenericTypeInstantiate_Trait(const Symbol* Trait, const Vector<TypeSymbol>& Type)
+void SystematicAnalysis::Generic_TypeInstantiate_Trait(const Symbol* Trait, const Vector<TypeSymbol>& GenericInput)
 {
-	const String NewName = Generic_GetGenericFuncName(Trait, Type);
-	const String FullName = Generic_GetGenericFuncFullName(Trait, Type);
+	UCodeLangAssert(Trait->Type == SymbolType::Trait_class);
+
+	const String NewName = Generic_SymbolGenericName(Trait, GenericInput);
+	const String FullName = Generic_SymbolGenericFullName(Trait, GenericInput);
 	const TraitNode* node = TraitNode::As(Trait->Get_NodeInfo<Node>());
 
 	const TraitInfo* classInfo = Trait->Get_Info<TraitInfo>();
 
-	GenericFuncInfo Info;
-	Info._IR_GenericFuncName = NewName;
-	Info.GenericInput = &Type;
-	Info.NodeTarget = node;
-	_IR_GenericFuncName.push(Info);
 
-	Info.Pack = Generic_MakeTypePackSymbolIfNeeded(NewName, Type, classInfo->_GenericData);
 	{
-		Push_ExtendedErr(Generic_GetGenericExtendedErrValue(classInfo->_GenericData, node->Generic, Type), node->_Name.Token);
+		auto& GenericData = classInfo->_GenericData;
+		Push_GenericInfo(NewName, GenericInput, Trait, GenericData);
+	}
+	
+
+	
+	{
+		Push_ExtendedErr(Generic_GetGenericExtendedErrValue(classInfo->_GenericData, node->Generic, GenericInput), node->_Name.Token);
 	}
 	{
 		auto OldConext = SaveAndMove_SymbolContext();
 		auto Oldpasstype = _PassType;
+		auto Olderrcount = _ErrorsOutput->Get_ErrorCount();
 
 		Set_SymbolConext(classInfo->Conext.value());
+
+		size_t NewSymbolIndex = _Table.Symbols.size();
+
 		_PassType = PassType::GetTypes;
 		OnTrait(*node);
 
-		if (!_ErrorsOutput->Has_Errors()) 
+
+		auto& addedSymbol = *_Table.Symbols[NewSymbolIndex].get();
+		UCodeLangAssert(addedSymbol.FullName == NewName);
+		UCodeLangAssert(addedSymbol.Type == SymbolType::Trait_class);
+		UCodeLangAssert(addedSymbol.PassState == PassType::GetTypes);
+
+
+		if (_ErrorsOutput->Get_ErrorCount() <= Olderrcount)
 		{
 			_PassType = PassType::FixedTypes;
 			OnTrait(*node);
+
+			UCodeLangAssert(addedSymbol.PassState == PassType::FixedTypes);
 		}
 
-		if (!_ErrorsOutput->Has_Errors())
-		{
-			_PassType = PassType::BuidCode;
-			OnTrait(*node);
-		}
+		Pop_AddToGeneratedGenricSymbol(addedSymbol, GenericInput);
 
-		_IR_GenericFuncName.pop();
 		//
 		Set_SymbolConext(std::move(OldConext));
 		_PassType = Oldpasstype;
@@ -15609,46 +15753,56 @@ void SystematicAnalysis::GenericTypeInstantiate_Trait(const Symbol* Trait, const
 	FileDependency_AddDependencyToCurrentFile(Trait);
 }
 
-void SystematicAnalysis::GenericTypeInstantiate_Alias(const Symbol* Alias, const Vector<TypeSymbol>& Type)
+void SystematicAnalysis::Generic_TypeInstantiate_Alias(const Symbol* Alias, const Vector<TypeSymbol>& GenericInput)
 {
-	const String NewName = Generic_GetGenericFuncName(Alias, Type);
-	const String FullName = Generic_GetGenericFuncFullName(Alias, Type);
+	UCodeLangAssert(Alias->Type == SymbolType::Generic_Alias);
+
+	const String NewName = Generic_SymbolGenericName(Alias, GenericInput);
+	const String FullName = Generic_SymbolGenericFullName(Alias, GenericInput);
 	const AliasNode* node = AliasNode::As(Alias->Get_NodeInfo<Node>());
 
-	const Generic_AliasInfo* classInfo =Alias->Get_Info<Generic_AliasInfo>();
+	const Generic_AliasInfo* classInfo = Alias->Get_Info<Generic_AliasInfo>();
 
-	GenericFuncInfo Info;
-	Info._IR_GenericFuncName = NewName;
-	Info.GenericInput = &Type;
-	Info.NodeTarget = node;
-	_IR_GenericFuncName.push(Info);
-
-	Info.Pack = Generic_MakeTypePackSymbolIfNeeded(NewName, Type, classInfo->_GenericData);
 	{
-		Push_ExtendedErr(Generic_GetGenericExtendedErrValue(classInfo->_GenericData, node->Generic, Type), node->AliasName.Token);
+		auto& GenericData = classInfo->_GenericData;
+		Push_GenericInfo(NewName, GenericInput, Alias, GenericData);
+	}
+	{
+		Push_ExtendedErr(Generic_GetGenericExtendedErrValue(classInfo->_GenericData, node->Generic, GenericInput), node->AliasName.Token);
 	}
 	{
 		auto OldConext = SaveAndMove_SymbolContext();
 		auto Oldpasstype = _PassType;
+		auto Olderrcount = _ErrorsOutput->Get_ErrorCount();
 
 		Set_SymbolConext(classInfo->Conext.value());
+
+		size_t NewSymbolIndex = _Table.Symbols.size();
 
 		_PassType = PassType::GetTypes;
 		OnAliasNode(*node);
 
-		if (!_ErrorsOutput->Has_Errors())
+
+		auto& addedSymbol = *_Table.Symbols[NewSymbolIndex].get();
+
+		UCodeLangAssert(addedSymbol.FullName == NewName);
+		UCodeLangAssert(addedSymbol.Type == SymbolType::Type_alias 
+			|| addedSymbol.Type == SymbolType::Hard_Type_alias 
+			|| addedSymbol.Type == SymbolType::Func_ptr 
+			|| addedSymbol.Type == SymbolType::Hard_Func_ptr);
+		UCodeLangAssert(addedSymbol.PassState == PassType::GetTypes);
+
+
+
+		if (_ErrorsOutput->Get_ErrorCount() <= Olderrcount)
 		{
 			_PassType = PassType::FixedTypes;
 			OnAliasNode(*node);
+
+			UCodeLangAssert(addedSymbol.PassState == PassType::FixedTypes);
 		}
 
-		if (!_ErrorsOutput->Has_Errors()) 
-		{
-			_PassType = PassType::BuidCode;
-			OnAliasNode(*node);
-		}
-
-		_IR_GenericFuncName.pop();
+		Pop_AddToGeneratedGenricSymbol(addedSymbol, GenericInput);
 		//
 		Set_SymbolConext(std::move(OldConext));
 		_PassType = Oldpasstype;
@@ -15661,47 +15815,54 @@ void SystematicAnalysis::GenericTypeInstantiate_Alias(const Symbol* Alias, const
 	FileDependency_AddDependencyToCurrentFile(Alias);
 }
 
-void SystematicAnalysis::GenericTypeInstantiate_Enum(const Symbol* Alias, const Vector<TypeSymbol>& Type)
+void SystematicAnalysis::Generic_TypeInstantiate_Enum(const Symbol* Enum, const Vector<TypeSymbol>& GenericInput)
 {
-	const String NewName = Generic_GetGenericFuncName(Alias, Type);
-	const String FullName = Generic_GetGenericFuncFullName(Alias, Type);
-	const EnumNode* node = EnumNode::As(Alias->Get_NodeInfo<Node>());
+	UCodeLangAssert(Enum->Type == SymbolType::Generic_Enum);
 
-	const EnumInfo* classInfo = Alias->Get_Info<EnumInfo>();
+	const String NewName = Generic_SymbolGenericName(Enum, GenericInput);
+	const String FullName = Generic_SymbolGenericFullName(Enum, GenericInput);
+	const EnumNode* node = EnumNode::As(Enum->Get_NodeInfo<Node>());
 
-	GenericFuncInfo Info;
-	Info._IR_GenericFuncName = NewName;
-	Info.GenericInput = &Type;
-	Info.NodeTarget = node;
-	_IR_GenericFuncName.push(Info);
+	const EnumInfo* classInfo = Enum->Get_Info<EnumInfo>();
 
-	Info.Pack = Generic_MakeTypePackSymbolIfNeeded(NewName, Type, classInfo->_GenericData);
 	{
-		Push_ExtendedErr(Generic_GetGenericExtendedErrValue(classInfo->_GenericData, node->Generic, Type), node->EnumName.Token);
+		auto& GenericData = classInfo->_GenericData;
+		Push_GenericInfo(NewName, GenericInput, Enum, GenericData);
+	}
+
+	{
+		Push_ExtendedErr(Generic_GetGenericExtendedErrValue(classInfo->_GenericData, node->Generic, GenericInput), node->EnumName.Token);
 	}
 	{
 		auto OldConext = SaveAndMove_SymbolContext();
 		auto Oldpasstype = _PassType;
+		auto Olderrcount = _ErrorsOutput->Get_ErrorCount();
 
 		Set_SymbolConext(classInfo->Conext.value());
 
+		size_t NewSymbolIndex = _Table.Symbols.size();
 
 		_PassType = PassType::GetTypes;
 		OnEnum(*node);
 
-		if (!_ErrorsOutput->Has_Errors()) 
+
+		auto& addedSymbol = *_Table.Symbols[NewSymbolIndex].get();
+
+		UCodeLangAssert(addedSymbol.FullName == NewName);
+		UCodeLangAssert(addedSymbol.Type == SymbolType::Enum);
+		UCodeLangAssert(addedSymbol.PassState == PassType::GetTypes);
+
+
+		if (_ErrorsOutput->Get_ErrorCount() <= Olderrcount)
 		{
 			_PassType = PassType::FixedTypes;
 			OnEnum(*node);
+
+			UCodeLangAssert(addedSymbol.PassState == PassType::FixedTypes);
 		}
 
-		if (!_ErrorsOutput->Has_Errors())
-		{
-			_PassType = PassType::BuidCode;
-			OnEnum(*node);
-		}
 
-		_IR_GenericFuncName.pop();
+		Pop_AddToGeneratedGenricSymbol(addedSymbol, GenericInput);
 		//
 		Set_SymbolConext(std::move(OldConext));
 		_PassType = Oldpasstype;
@@ -15711,52 +15872,58 @@ void SystematicAnalysis::GenericTypeInstantiate_Enum(const Symbol* Alias, const 
 		Pop_ExtendedErr();
 	}
 
-	FileDependency_AddDependencyToCurrentFile(Alias);
+	FileDependency_AddDependencyToCurrentFile(Enum);
 }
 
-void SystematicAnalysis::GenericTypeInstantiate_Tag(const Symbol* Tag, const Vector<TypeSymbol>& Type)
+void SystematicAnalysis::Generic_TypeInstantiate_Tag(const Symbol* Tag, const Vector<TypeSymbol>& GenericInput)
 {
-	const String NewName = Generic_GetGenericFuncName(Tag, Type);
-	const String FullName = Generic_GetGenericFuncFullName(Tag, Type);
+	UCodeLangAssert(Tag->Type == SymbolType::Generic_Tag);
+
+	const String NewName = Generic_SymbolGenericName(Tag, GenericInput);
+	const String FullName = Generic_SymbolGenericFullName(Tag, GenericInput);
 	const TagTypeNode* node = TagTypeNode::As(Tag->Get_NodeInfo<Node>());
 
 	const TagInfo* classInfo = Tag->Get_Info<TagInfo>();
 
-	GenericFuncInfo Info;
-	Info._IR_GenericFuncName = NewName;
-	Info.GenericInput = &Type;
-	Info.NodeTarget = node;
-	_IR_GenericFuncName.push(Info);
-
-	Info.Pack = Generic_MakeTypePackSymbolIfNeeded(NewName, Type, classInfo->_GenericData);
 	{
-		Push_ExtendedErr(Generic_GetGenericExtendedErrValue(classInfo->_GenericData, node->Generic, Type), node->AttributeName.Token);
+		auto& GenericData = classInfo->_GenericData;
+		Push_GenericInfo(NewName, GenericInput, Tag, GenericData);
+	}
+	{
+		Push_ExtendedErr(Generic_GetGenericExtendedErrValue(classInfo->_GenericData, node->Generic, GenericInput), node->AttributeName.Token);
 	}
 	{
 		auto OldConext = SaveAndMove_SymbolContext();
 		auto Oldpasstype = _PassType;
+		auto Olderrcount = _ErrorsOutput->Get_ErrorCount();
 
 		Set_SymbolConext(classInfo->Conext.value());
 
 		_Table._Scope.ThisScope = ScopeHelper::GetReMoveScope(FullName);
 
+		size_t NewSymbolIndex = _Table.Symbols.size();
 
 		_PassType = PassType::GetTypes;
 		OnTag(*node);
 
-		if (!_ErrorsOutput->Has_Errors()) 
+
+		auto& addedSymbol = *_Table.Symbols[NewSymbolIndex].get();
+
+		UCodeLangAssert(addedSymbol.FullName == NewName);
+		UCodeLangAssert(addedSymbol.Type == SymbolType::Tag_class);
+		UCodeLangAssert(addedSymbol.PassState == PassType::GetTypes);
+
+
+		if (_ErrorsOutput->Get_ErrorCount() <= Olderrcount)
 		{
 			_PassType = PassType::FixedTypes;
 			OnTag(*node);
+
+			UCodeLangAssert(addedSymbol.PassState == PassType::FixedTypes);
 		}
 
-		if (!_ErrorsOutput->Has_Errors()) 
-		{
-			_PassType = PassType::BuidCode;
-			OnTag(*node);
-		}
 
-		_IR_GenericFuncName.pop();
+		Pop_AddToGeneratedGenricSymbol(addedSymbol, GenericInput);
 		//
 		Set_SymbolConext(std::move(OldConext));
 		_PassType = Oldpasstype;
@@ -15781,7 +15948,15 @@ void* SystematicAnalysis::Eval_Get_Object(const EvaluatedEx& Input)
 {
 	return Eval_Get_Object(Input.Type, Input.EvaluatedObject);
 }
+const void* SystematicAnalysis::Eval_Get_Object(const TypeSymbol& Input, const RawEvaluatedObject& Input2) const
+{
+	return Input2.Object_AsPointer.get();
+}
 
+const void* SystematicAnalysis::Eval_Get_Object(const EvaluatedEx& Input) const
+{
+	return Eval_Get_Object(Input.Type, Input.EvaluatedObject);
+}
 
 SystematicAnalysis::StrExELav SystematicAnalysis::Eval_GetStrEVal(const Node* node)
 {
@@ -17101,7 +17276,7 @@ Optional<SystematicAnalysis::EvaluatedEx> SystematicAnalysis::Eval_EvaluateToAny
 		return {};
 	}
 }
-String SystematicAnalysis::ToString(const TypeSymbol& Type, const RawEvaluatedObject& Data)
+String SystematicAnalysis::ToString(const TypeSymbol& Type, const RawEvaluatedObject& Data) const
 {
 	auto DataPtr = Eval_Get_Object(Type, Data);
 
@@ -17813,7 +17988,7 @@ void SystematicAnalysis::LogError_ExpectedSymbolToBea(const Token* Token, const 
 		"' .Expected '" + ToString(Value) + '\'');
 
 }
-String SystematicAnalysis::ToString(SymbolType Value)
+String SystematicAnalysis::ToString(SymbolType Value) const
 {
 	switch (Value)
 	{

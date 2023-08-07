@@ -498,7 +498,7 @@ bool ImguiHelper::InputText(const char* label, UCodeLang::ReflectionString& buff
 
 	user_data.Str = &buffer;
 
-	auto V = ImGui::InputText("",(char*)buffer.data(),buffer.size(), flags, TextReflectionCallBack,&user_data);
+	auto V = ImGui::InputText("", (char*)user_data.NewPtr.Data(),buffer.size(), flags, TextReflectionCallBack,&user_data);
 	
 	ImGui::PopID();
 
