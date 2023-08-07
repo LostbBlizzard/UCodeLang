@@ -1077,6 +1077,21 @@ public:
 	struct InfoString_t
 	{
 		ReflectionTypeInfo ElementType;//is any of the char_t types
+
+		const ClassMethod* Data_Method = nullptr;//|Data[umut this&] -> ElementType[&];
+		const ClassMethod* Size_Method = nullptr;//|Size[umut this&] -> uintptr;
+		const ClassMethod* Capacity_Method = nullptr;//|Capacity[umut this&] -> uintptr;
+
+		const ClassMethod* Resize_Method = nullptr;//|Resize[this&,uintptr Size] -> void;
+		const ClassMethod* Reserve_Method = nullptr;//|Reserve[this&,uintptr Size] -> void;
+		const ClassMethod* Clear_Method = nullptr;//|Clear[this&] -> void;
+
+		const ClassMethod* Push_Method = nullptr;//|Push[this&,ElementType Item] -> void;
+		const ClassMethod* Pop_Method = nullptr;//|Pop[this&] -> ElementType;
+
+		const ClassMethod* Remove_Method = nullptr;//|Remove[this&,uintptr Index] -> ElementType;
+
+		const ClassMethod* Insert_Method = nullptr;//|Insert[this&,uintptr Index,ElementType Item] -> void;
 	};
 	// includes type aliases
 	Optional<InfoString_t> IsString_t(const ReflectionTypeInfo& Type) const;

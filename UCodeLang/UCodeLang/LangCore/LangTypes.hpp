@@ -35,9 +35,14 @@ using SIntNative = Int32;
 using UIntNative = UInt32;
 #endif
 
+#ifdef __cpp_lib_char8_t
+using Utf8 = char8_t;
+#else
 using Utf8 = Int8;
-using Utf16 = Int16;
-using Utf32 = Int32;
+#endif // __cpp_lib_char8_t
+
+using Utf16 = char16_t;
+using Utf32 = char32_t;
 
 
 using PtrType = void*;
@@ -54,10 +59,20 @@ constexpr UInt64 NullUInt64 = (UInt64)nullptr;
 
 using String = std::string;
 using String_view = std::string_view;
+
+using String8 = std::basic_string<Utf8>;
+using String_view8 = std::basic_string_view<Utf8>;
+
+using String16 = std::basic_string<Utf16>;
+using String_view16 = std::basic_string_view<Utf16>;
+
+using String32 = std::basic_string<Utf32>;
+using String_view32 = std::basic_string_view<Utf32>;
+
 using Path = std::filesystem::path;
-
-
-
+using PathChar = Path::value_type;
+using PathView = std::basic_string_view<PathChar>;
+using PathStr = Path::string_type;
 
 template<typename T> using Unique_ptr = std::unique_ptr<T>;
 template<typename T> using Unique_Array = std::unique_ptr<T[]>;
