@@ -679,26 +679,7 @@ public:
 		return { (Utf32*)data(),size() };
 	}
 
-	//UCodeLang may not have this funcion
-	inline char* c_str()
-	{
-		return (char*)data();
-	}
-	inline Utf8* c8_str()
-	{
-		return (Utf8*)data();
-	}
-
-	inline Utf16* c16_str()
-	{
-		return (Utf16*)data();
-	}
-
-	inline Utf32* c64_str()
-	{
-		return (Utf32*)data();
-	}
-
+	
 	class iterator {
 	public:
 		iterator(ReflectionString* This) : This(This) {}
