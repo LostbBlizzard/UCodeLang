@@ -871,7 +871,7 @@ void SystematicAnalysis::Debug_Add_SetVarableInfo(const Symbol& Syb, size_t InsI
 		Info._Type = IRDebugSybol::Type::Thread;
 		break;
 	default:
-		throw std::exception("bad path");
+		UCodeLangUnreachable();
 		break;
 	}
 	_IR_Builder._Debug.Symbols.AddValue(ID, Info);
@@ -2538,7 +2538,7 @@ Class_Data* SystematicAnalysis::Assembly_GetAssemblyClass(const String& FullName
 		auto Ptr =  Assembly.Find_Class(globalAssemblyObjectName);
 		if (Ptr == nullptr)
 		{
-			throw std::exception("bad path");
+			UCodeLangUnreachable();
 		}
 		return Ptr;
 	}
@@ -2555,7 +2555,7 @@ Class_Data* SystematicAnalysis::Assembly_GetAssemblyClass(const String& FullName
 
 		}
 	}
-	throw std::exception("bad path");
+	UCodeLangUnreachable();
 }
 void SystematicAnalysis::FuncRetCheck(const Token& Name, const Symbol* FuncSyb, const FuncInfo* Func)
 {
@@ -2893,7 +2893,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 				}
 				else
 				{
-					throw std::exception("bad path");
+					UCodeLangUnreachable();
 				}
 			}
 
@@ -3501,7 +3501,7 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 				}
 				else
 				{
-					throw std::exception("not added");
+					UCodeLangUnreachable();
 				}
 
 
@@ -4562,10 +4562,9 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 						_ForNodes.AddValue(Symbol_GetSymbolID(node), std::move(TepData));
 					}
 				}
-
 				else
 				{
-					throw std::exception("bad path");
+					UCodeLangUnreachable();
 				}
 			}
 		}
@@ -5292,7 +5291,7 @@ IRType SystematicAnalysis::IRType_ConvertToIRType(const TypeSymbol& Value)
 		}
 		else
 		{
-			throw std::exception("not added");
+			UCodeLangUnreachable();
 		}
 	}
 	break;
@@ -5300,8 +5299,7 @@ IRType SystematicAnalysis::IRType_ConvertToIRType(const TypeSymbol& Value)
 	case TypesEnum::uIntPtr:
 		return IRType(IRTypes::pointer);
 	default:
-		
-		throw std::exception("not added");
+		UCodeLangUnreachable();
 		break;
 	}
 }
@@ -5891,7 +5889,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 					VarType = "eval";
 					break;
 				default:
-					throw std::exception("not added");
+					UCodeLangUnreachable();
 					break;
 				}
 
@@ -6044,7 +6042,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 				}
 				else
 				{
-					throw std::exception("not added");
+					UCodeLangUnreachable();
 				}
 
 				IsStructObjectPassRef = Type_IsStructPassByRef(syb);
@@ -6716,7 +6714,7 @@ IROperator  SystematicAnalysis::IR_Build_Member_Store(const GetMemberTypeSymbolF
 		return UseOutput ? IROperator(Output) : IROperator(_IR_Builder.ToID(In.Symbol->FullName));
 		break;
 	default:
-		throw std::exception("not added");
+		UCodeLangUnreachable();
 		break;
 	}
 }
@@ -6745,7 +6743,7 @@ IROperator  SystematicAnalysis::IR_Build_Member_DereferencStore(const GetMemberT
 		return UseOutput ? IROperator(IROperatorType::DereferenceOf_IRInstruction, Output) : IROperator(IROperatorType::DereferenceOf_IRParameter, _IR_Builder.ToID(In.Symbol->FullName));
 		break;
 	default:
-		throw std::exception("not added");
+		UCodeLangUnreachable();
 		break;
 	}
 }
@@ -6787,7 +6785,7 @@ IRInstruction* SystematicAnalysis::IR_Build_Member_GetPointer(const GetMemberTyp
 	case  SymbolType::ThreadVarable:
 		return UseOutput ? _IR_LookingAtIRBlock->NewLoadPtr(Output) : _IR_LookingAtIRBlock->NewLoadPtr(_IR_Builder.ToID(In.Symbol->FullName));
 	default:
-		throw std::exception("not added");
+		UCodeLangUnreachable();
 		break;
 	}
 }
@@ -7177,7 +7175,7 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 		}
 		else
 		{
-			throw std::exception("bad object");
+			UCodeLangUnreachable();//Bad Object
 		}
 
 	}
@@ -7266,7 +7264,7 @@ IRInstruction* SystematicAnalysis::IR_Build_Member_GetValue(const GetMemberTypeS
 		}
 		else
 		{
-			throw std::exception("not added");
+			UCodeLangUnreachable();
 		}
 
 			
@@ -7314,7 +7312,7 @@ IRInstruction* SystematicAnalysis::IR_Build_Member_GetValue(const GetMemberTypeS
 		}
 		else
 		{
-			throw std::exception("not added");
+			UCodeLangUnreachable();
 		}
 	}
 	case  SymbolType::ConstantExpression:
@@ -7323,7 +7321,7 @@ IRInstruction* SystematicAnalysis::IR_Build_Member_GetValue(const GetMemberTypeS
 		return LoadEvaluatedEx(Item->Ex, In.Symbol->VarType);
 	}
 	default:
-		throw std::exception("not added");
+		UCodeLangUnreachable();
 		break;
 	}
 }
@@ -7364,7 +7362,7 @@ IRInstruction* SystematicAnalysis::IR_Build_Member_DereferenceValue(const GetMem
 	case  SymbolType::ParameterVarable:
 		return UseOutput ? _IR_LookingAtIRBlock->NewLoad_Dereferenc(Output,IRT) : _IR_LookingAtIRBlock->NewLoad_Dereferenc(In.Symbol->IR_Par, IRT);
 	default:
-		throw std::exception("not added");
+		UCodeLangUnreachable();
 		break;
 	}
 }
@@ -7481,7 +7479,7 @@ void SystematicAnalysis::StepBuildMember_Access(const ScopedName& ITem, TypeSymb
 			}
 			if (!funcToCallSys)
 			{
-				throw std::exception("bad path");
+				UCodeLangUnreachable();
 			}
 
 			auto Funcf = funcToCallSys->Get_Info< FuncInfo>();
@@ -7576,7 +7574,7 @@ void SystematicAnalysis::StepBuildMember_Access(const ScopedName& ITem, TypeSymb
 			}
 			break;
 			default:
-				throw std::exception("not added");
+				UCodeLangUnreachable();
 				break;
 			}
 		}
@@ -7597,7 +7595,7 @@ void SystematicAnalysis::StepBuildMember_Access(const ScopedName& ITem, TypeSymb
 	break;
 
 	default:
-		throw std::exception("not added");
+		UCodeLangUnreachable();
 		break;
 	}
 }
@@ -8119,7 +8117,7 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 				_IR_LastExpressionField = _IR_LookingAtIRBlock->NewUDiv(LoadV, _IR_LastExpressionField);\
 			    break; \
 			default:\
-				throw std::exception("Bad Op"); \
+				UCodeLangUnreachable(); \
 				break; \
 			}\
 
@@ -8139,7 +8137,7 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 				_IR_LastExpressionField = _IR_LookingAtIRBlock->NewSDiv(LoadV, _IR_LastExpressionField);\
 			    break; \
 			default:\
-				throw std::exception("Bad Op"); \
+				UCodeLangUnreachable(); \
 				break; \
 		}\
 
@@ -8217,7 +8215,7 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 			break;
 
 			default:
-				throw std::exception("Bad Op");
+				UCodeLangUnreachable();
 				break;
 			}
 
@@ -8240,7 +8238,7 @@ void SystematicAnalysis::OnExpressionTypeNode(const Node* node, GetValueMode Mod
 	case NodeType::ExtendedScopeExpression:OnExpressionNode(*ExtendedScopeExpression::As(node)); break;
 	case NodeType::ExtendedFuncExpression:OnExpressionNode(*ExtendedFuncExpression::As(node)); break;
 	default:
-		throw std::exception("not added");
+		UCodeLangUnreachable();
 		break;
 	}
 	
@@ -8383,7 +8381,7 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 		}
 		break;
 		default:
-			throw std::exception("not added");
+			UCodeLangUnreachable();
 			break;
 		}
 	}
@@ -8546,7 +8544,7 @@ void SystematicAnalysis::OnNumberliteralNode(const NumberliteralNode* num)
 			break;
 		};
 		default:
-			throw std::exception("not added");
+			UCodeLangUnreachable();
 			break;
 		}
 	}
@@ -8610,7 +8608,7 @@ void SystematicAnalysis::OnFloatLiteralNode(const FloatliteralNode* num)
 			break;
 		}
 		default:
-			throw std::exception("not added");
+			UCodeLangUnreachable();
 			break;
 		}
 
@@ -9337,7 +9335,7 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 				}
 				else
 				{
-					throw std::exception("bad path");
+					UCodeLangUnreachable();
 				}
 
 			}
@@ -9547,7 +9545,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 				}
 				else
 				{
-					throw std::exception("bad path");
+					UCodeLangUnreachable();
 				}
 			}
 
@@ -9564,7 +9562,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 		case TokenType::greater_than_or_equalto:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewUGreaterThanOrEqual(Ex1, Ex0); break; \
 		case TokenType::less_than_or_equalto:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewULessThanOrEqual(Ex1, Ex0); break; \
 		default:\
-			throw std::exception("not added");\
+			UCodeLangUnreachable();\
 			break;\
 		}\
 
@@ -9582,7 +9580,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 			case TokenType::greater_than_or_equalto:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewSGreaterThanOrEqual(Ex1, Ex0); break; \
 			case TokenType::less_than_or_equalto:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewSLessThanOrEqual(Ex1, Ex0); break; \
 			default:\
-				throw std::exception("not added"); \
+				UCodeLangUnreachable(); \
 				break; \
 			}\
 
@@ -9613,7 +9611,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 				case TokenType::logical_and:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewlogicalAnd(Ex1, Ex0); break;
 				case TokenType::logical_or:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewlogicalOr(Ex1, Ex0); break;
 				default:
-					throw std::exception("not added");
+					UCodeLangUnreachable();
 					break;
 				}
 				break;
@@ -9623,12 +9621,12 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 				case TokenType::equal_Comparison:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewC_Equalto(Ex1, Ex0); break;
 				case TokenType::Notequal_Comparison:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewC_NotEqualto(Ex1, Ex0); break;
 				default:
-					throw std::exception("not added");
+					UCodeLangUnreachable();
 					break;
 				}
 				break;
 			default:
-				throw std::exception("not added");
+				UCodeLangUnreachable();
 				break;
 			}
 		}
@@ -10247,7 +10245,7 @@ void SystematicAnalysis::Assembly_LoadLibSymbols()
 		case LoadLibMode::Done:
 			break;
 		default:
-			throw std::exception("Bad Path");
+			UCodeLangUnreachable();
 			break;
 		}
 
@@ -11285,7 +11283,7 @@ SystematicAnalysis::BuildMatch_ret SystematicAnalysis::IR_Build_Match(const Type
 			}
 			else
 			{
-				throw std::exception("bad path");
+				UCodeLangUnreachable();
 			}
 		}
 		else
@@ -11335,7 +11333,7 @@ SystematicAnalysis::BuildMatch_ret SystematicAnalysis::IR_Build_Match(const Type
 			}
 			else
 			{
-				throw std::exception("bad path");
+				UCodeLangUnreachable();
 			}
 		}
 	}
@@ -12170,7 +12168,7 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type)
 	case TypesEnum::Null:
 		r += "[badtype]";	break;
 	default:
-		throw std::exception("bad Type");
+		UCodeLangUnreachable();
 		break;
 	}
 
@@ -12481,7 +12479,7 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 
 	}break;
 	default:
-		throw std::exception("not added");
+		UCodeLangUnreachable();
 		break;
 	}
 	if (V.IsAddess) {Out._IsAddress = true;}
@@ -13019,7 +13017,7 @@ void SystematicAnalysis::IR_Build_Conversion(IRInstruction* Ex, const TypeSymbol
 						{
 							goto ULableuint64;
 						}
-					default:throw std::exception("bad path"); break;
+					default:UCodeLangUnreachable(); break;
 					}
 				}
 				else if (Type_IsSIntType(ExType))
@@ -13064,17 +13062,17 @@ void SystematicAnalysis::IR_Build_Conversion(IRInstruction* Ex, const TypeSymbol
 							goto SLableuint64;
 						}
 					break;
-					default:throw std::exception("bad path"); break;
+					default:UCodeLangUnreachable(); break;
 					}
 				}
 				else
 				{
-					throw std::exception("bad path");
+					UCodeLangUnreachable();
 				}
 			}
 			else
 			{
-				throw std::exception("bad path");
+				UCodeLangUnreachable();
 			}
 		}
 
@@ -13382,7 +13380,7 @@ void SystematicAnalysis::Symbol_Update_Sym_ToFixedTypes(Symbol* Sym)
 		Symbol_Update_FuncSym_ToFixedTypes(Sym);
 		break;
 	default:
-		throw std::exception("bad path");
+		UCodeLangUnreachable();
 		break;
 	}
 }
@@ -13456,7 +13454,7 @@ bool SystematicAnalysis::Type_GetSize(const TypeSymbol& Type, UAddress& OutSize)
 			OutSize = sizeof(UInt64);
 			break;
 		default:
-			throw std::exception("");
+			UCodeLangUnreachable();
 			break;
 		}
 		return true;
@@ -13748,7 +13746,7 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 						}
 						else
 						{
-							throw std::exception("not added");
+							UCodeLangUnreachable();
 						}
 
 
@@ -13878,14 +13876,14 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 			else
 			{
 
-				throw std::exception("bad path");
+				UCodeLangUnreachable();
 			}
 
 			_LastExpressionType = Value.RetType;
 		}
 		else
 		{
-			throw std::exception("bad path");
+		UCodeLangUnreachable();
 		}
 		return;
 	}
@@ -13987,7 +13985,8 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 			}
 			else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::PushWasCalled)
 			{
-				throw std::exception("not added");//just add IRPar list
+				UCodeLangUnreachable();//just add IRPar list
+				//what does  "just add IRPar list" mean
 			}
 			else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::AutoPushThis)
 			{
@@ -14003,7 +14002,7 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 			}
 			else
 			{
-				throw std::exception("not added");
+				UCodeLangUnreachable();;
 			}
 	}
 
@@ -14117,7 +14116,7 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 	}
 	else
 	{
-		throw std::exception("not added");
+		UCodeLangUnreachable();
 	}
 
 	{
@@ -14263,13 +14262,13 @@ void SystematicAnalysis::IR_Build_DestructorCall(const ObjectToDrop& Object)
 
 					if (Object._Operator.Type != IROperatorType::IRInstruction)
 					{
-						throw std::exception("not added");
+						UCodeLangUnreachable();
 					}
 
 					_IR_IRlocations.push({_IR_LookingAtIRBlock->NewLoad(Object._Operator.Pointer), false });
 					break;
 				default:
-					throw std::exception("not added");
+					UCodeLangUnreachable();
 					break;
 				}
 
@@ -14443,7 +14442,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 				else
 				{
-					throw std::exception("bad path");
+					UCodeLangUnreachable();
 				}
 			}
 
@@ -15075,12 +15074,12 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 				}
 				else
 				{
-					throw std::exception("not added");
+					UCodeLangUnreachable();
 				}	
 			}
 			else
 			{
-				throw std::exception("not added");
+				UCodeLangUnreachable();
 			}
 
 
@@ -15092,7 +15091,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 			}
 		}
 		if (Ret == nullptr) {
-			throw std::exception("bad path");
+			UCodeLangUnreachable();
 		}
 		
 		auto RValue = *Ret;
@@ -15121,7 +15120,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 				}
 				else
 				{
-					throw std::exception("bad path");
+					UCodeLangUnreachable();
 				}
 
 				Symbol_SetOutExpression(Item, TypeSyb);
@@ -15840,7 +15839,7 @@ bool SystematicAnalysis::Type_IsCompatible(const IsCompatiblePar& FuncPar,const 
 	{
 		if (FuncPar.Item->Type != SymbolType::Func)
 		{
-			throw std::exception("not added");
+			UCodeLangUnreachable();
 		}
 
 		FuncInfo* Info = FuncPar.Item->Get_Info<FuncInfo>();
@@ -15985,7 +15984,7 @@ bool SystematicAnalysis::Symbol_AccessCheck(const Symbol* Syb,const Token* Token
 
 RawEvaluatedObject SystematicAnalysis::Eval_MakeExr(const TypeSymbol& Type)
 {
-	throw std::exception("not added");
+	UCodeLangUnreachable();
 	return RawEvaluatedObject();
 }
 
@@ -16027,7 +16026,7 @@ bool SystematicAnalysis::Eval_EvaluateDefaultConstructor(EvaluatedEx& Out)
 		case sizeof(UInt32) : *(UInt32*)Object = 0; break;
 		case sizeof(UInt64) : *(UInt64*)Object = 0; break;
 		default:
-			throw std::exception("not added");
+			UCodeLangUnreachable();
 			break;
 		}
 	}break;
@@ -16039,7 +16038,7 @@ bool SystematicAnalysis::Eval_EvaluateDefaultConstructor(EvaluatedEx& Out)
 		*(float64*)Object = 0;
 		break;
 	default:
-		throw std::exception("?");
+		UCodeLangUnreachable();
 		break;
 	}
 	return false;
@@ -16122,7 +16121,7 @@ bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const ValueExpressionNo
 					case sizeof(UInt32) : goto sint32case;
 					case sizeof(UInt64) : goto sint64case;
 					default:
-				    throw std::exception("not added");
+						UCodeLangUnreachable();
 					break;
 				}
 			};
@@ -16143,7 +16142,7 @@ bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const ValueExpressionNo
 				break;
 			};
 			default:
-				throw std::exception("not added");
+				UCodeLangUnreachable();
 				break;
 			}
 
@@ -16217,7 +16216,7 @@ bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const ValueExpressionNo
 				break;
 			}
 			default:
-				throw std::exception("not added");
+				UCodeLangUnreachable();
 				break;
 			}
 		}
@@ -16365,7 +16364,7 @@ bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const ValueExpressionNo
 					case sizeof(UInt32) : goto Int32Case;
 					case sizeof(UInt64) : goto Int64Case;
 				default:
-					throw std::exception("not added");
+					UCodeLangUnreachable();
 					break;
 				}
 
@@ -16414,7 +16413,7 @@ bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const ValueExpressionNo
 	}
 	break;
 	default:
-		throw std::exception("not added");
+		UCodeLangUnreachable();
 		break;
 	}
 	return true;
@@ -16488,7 +16487,7 @@ bool SystematicAnalysis::Eval_Evaluate_t(EvaluatedEx& Out, const Node* node, Get
 	case NodeType::ExtendedFuncExpression: R = Eval_Evaluate(Out, *ExtendedFuncExpression::As(node)); break;
 	case NodeType::ExtendedScopeExpression: R = Eval_Evaluate(Out, *ExtendedScopeExpression::As(node)); break;
 	default:
-		throw std::exception("not added");
+		UCodeLangUnreachable();
 		break;
 	}
 	_GetExpressionMode.pop();
@@ -16518,11 +16517,11 @@ bool SystematicAnalysis::Eval_EvaluatePostfixOperator(EvaluatedEx& Out, TokenTyp
 		else
 			if (Op == TokenType::decrement)
 			{
-				(*(UInt8*)Object)++;
+				(*(UInt8*)Object)--;
 			}
 			else
 			{
-				throw std::exception("not added");
+				UCodeLangUnreachable();
 			}
 	}
 	break;
@@ -16538,11 +16537,11 @@ uint16case:
 		else
 			if (Op == TokenType::decrement)
 			{
-				(*(UInt16*)Object)++;
+				(*(UInt16*)Object)--;
 			}
 			else
 			{
-				throw std::exception("not added");
+				UCodeLangUnreachable();
 			}
 	}break;
 
@@ -16557,11 +16556,11 @@ uint32case:
 		else
 			if (Op == TokenType::decrement)
 			{
-				(*(UInt32*)Object)++;
+				(*(UInt32*)Object)--;
 			}
 			else
 			{
-				throw std::exception("not added");
+				UCodeLangUnreachable();
 			}
 	}
 	break;
@@ -16576,11 +16575,11 @@ uint64case:
 		else
 			if (Op == TokenType::decrement)
 			{
-				(*(UInt64*)Object)++;
+				(*(UInt64*)Object)--;
 			}
 			else
 			{
-				throw std::exception("not added");
+				UCodeLangUnreachable();
 			}
 	}
 	break;
@@ -16599,12 +16598,12 @@ uint64case:
 			case sizeof(UInt32) : goto uint32case;
 			case sizeof(UInt64) : goto uint64case;
 			default:
-			throw std::exception("not added");
+				UCodeLangUnreachable();
 			break;
 		}
 	}break;
 	default:
-		throw std::exception("not added");
+		UCodeLangUnreachable();
 		break;
 	}
 	return true;
@@ -17062,7 +17061,7 @@ bool SystematicAnalysis::Eval_EvalutateStatement(EvalFuncData& State, const Node
 	}
 	default:
 		return false;
-		throw std::exception("bad path");
+		UCodeLangUnreachable();
 		break;
 	}
 	
@@ -17191,7 +17190,7 @@ IRInstruction* SystematicAnalysis::IR_Load_UIntptr(UAddress Value)
 	case IntSizes::Int64:
 		return _IR_LookingAtIRBlock->NewLoad((UInt64)Value);
 	default:
-		throw std::exception("");
+		UCodeLangUnreachable();
 		break;
 	}
 }
@@ -17251,7 +17250,7 @@ void SystematicAnalysis::IR_Build_Increment_uIntPtr(IRInstruction* field, UAddre
 		_IR_LookingAtIRBlock->New_Increment(field,_IR_LookingAtIRBlock->NewLoad((UInt64)Value));
 		break;
 	default:
-		throw std::exception("");
+		UCodeLangUnreachable();
 		break;
 	}
 }
@@ -17267,7 +17266,7 @@ void SystematicAnalysis::IR_Build_Decrement_uIntPtr(IRInstruction* field, UAddre
 		_IR_LookingAtIRBlock->New_Decrement(field, _IR_LookingAtIRBlock->NewLoad((UInt64)Value));
 		break;
 	default:
-		throw std::exception("");
+		UCodeLangUnreachable();
 		break;
 	}
 }
@@ -17348,16 +17347,16 @@ IRInstruction* SystematicAnalysis::LoadEvaluatedEx(const RawEvaluatedObject& Val
 			}
 			else
 			{
-				throw std::exception("bad path");
+				UCodeLangUnreachable();
 			}
 		}
 		else
 		{
-			throw std::exception("bad path");
+			UCodeLangUnreachable();
 		}
 	}
 	default:
-		throw std::exception("not added");
+		UCodeLangUnreachable();
 		break;
 	}
 }
@@ -17409,7 +17408,7 @@ GenericData::Type SystematicAnalysis::Generic_TypeToGenericDataType(GenericValue
 		return GenericData::Type::Pack;
 		break;
 	default:
-		throw std::exception("bad");
+		UCodeLangUnreachable();
 		break;
 	}
 }

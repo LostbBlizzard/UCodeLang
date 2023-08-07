@@ -365,7 +365,7 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 					case IRInstructionType::Logical_And:Ins->Target().Value.AsInt##bits  = Ins->A.Value.AsInt##bits && Ins->B.Value.AsInt##bits ;break;\
 					case IRInstructionType::Logical_Or:Ins->Target().Value.AsInt##bits  = Ins->A.Value.AsInt##bits || Ins->B.Value.AsInt##bits ;break;\
 					default:\
-						throw std::exception("not added");\
+						UCodeLangUnreachable();\
 						break;\
 					}\
 
@@ -436,7 +436,7 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 }
 			else
 			{
-				throw std::exception("not added");
+			UCodeLangUnreachable();
 			}
 
 
@@ -930,7 +930,7 @@ void IROptimizer::InLineSubOperator(InLineData& Data, IROperator& Op, size_t Off
 #ifdef DEBUG
 	if (CallFunc == nullptr)
 	{
-		throw std::exception("bad ptr");
+		UCodeLangUnreachable();
 	}
 #endif // DEBUG
 
@@ -977,7 +977,7 @@ void IROptimizer::InLineSubOperator(InLineData& Data, IROperator& Op, size_t Off
 
 		if (Set == false)
 		{
-			throw std::exception("not set");
+			UCodeLangUnreachable();
 		}
 		Op = IROperator(Op.Type, (*Data.AddIns)[Index]);
 	}

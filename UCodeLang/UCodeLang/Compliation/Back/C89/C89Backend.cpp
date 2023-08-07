@@ -196,7 +196,7 @@ void C89Backend::AddSybToString(UCodeLang::String& r)
 		}
 		break;
 		default:
-			throw std::exception("not added");
+			UCodeLangUnreachable();//Ptr was not set
 			break;
 		}
 	}

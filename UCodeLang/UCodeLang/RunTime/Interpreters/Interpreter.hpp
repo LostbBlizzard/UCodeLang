@@ -431,8 +431,7 @@ private:
 		case UCodeLang::RegisterID::E:return _CPU.E;
 		case UCodeLang::RegisterID::F:return _CPU.F;
 		default:
-			throw std::exception("bad Register");
-			return _CPU.A;
+			UCodeLangUnreachable();
 		}
 	}
 	void InterpreterSysCall(InstructionSysCall SysCall,RegisterID ParReg);
@@ -464,19 +463,7 @@ public:
 		GetParametersPointer = V;
 	}
 
-	template<typename... Args> void GetParameters(Args*... Out)
-	{
-		throw std::exception("");
-		//The Compiler does not like me.
-		
-		//uncomment this and remove the exception if the Compiler let you Compile it.
-		// else you have use GetParameter manually.
-		// 
-		// 
-		//(//GetParameter(Out)
-			//,...);
-	}
-
+	
 	template<typename T> void GetParameter(T& Out)
 	{
 		Out = GetParameter<T>();

@@ -40,7 +40,7 @@ struct AnyInterpreterPtr
 		}
 		else
 		{
-			throw std::exception("Ptr Is Null");
+			UCodeLangUnreachable();//Ptr was not set
 		}
 	}
 	void UnLoad()
@@ -59,7 +59,7 @@ struct AnyInterpreterPtr
 		}
 		else
 		{
-			throw std::exception("Ptr Is Null");
+			UCodeLangUnreachable();//Ptr was not set
 		}
 	}
 	Interpreter::Return_t Call(UAddress Address)
@@ -78,7 +78,7 @@ struct AnyInterpreterPtr
 		}
 		else
 		{
-			throw std::exception("Ptr Is Null");
+			UCodeLangUnreachable();//Ptr was not set
 		}
 	}
 	Interpreter::Return_t Call(const String& FunctionName)
@@ -97,7 +97,7 @@ struct AnyInterpreterPtr
 		}
 		else
 		{
-			throw std::exception("Ptr Is Null");
+			UCodeLangUnreachable();//Ptr was not set
 		}
 	}
 	Interpreter::Return_t Call(const ClassMethod* Function)
@@ -116,7 +116,7 @@ struct AnyInterpreterPtr
 		}
 		else
 		{
-			throw std::exception("Ptr Is Null");
+			UCodeLangUnreachable();//Ptr was not set
 		}
 	}
 	void PushParameter(const void* Value, size_t ValueSize)
@@ -135,7 +135,7 @@ struct AnyInterpreterPtr
 		}
 		else
 		{
-			throw std::exception("Ptr Is Null");
+			UCodeLangUnreachable();//Ptr was not set
 		}
 	}
 	template<typename T> void PushParameter(const T& Value)
@@ -154,7 +154,7 @@ struct AnyInterpreterPtr
 		}
 		else
 		{
-			throw std::exception("Ptr Is Null");
+			UCodeLangUnreachable();//Ptr was not set
 		}
 	}
 	template<typename... Args> void PushParameters(Args&&... parameters)
@@ -173,7 +173,7 @@ struct AnyInterpreterPtr
 		}
 		else
 		{
-			throw std::exception("Ptr Is Null");
+			UCodeLangUnreachable();//Ptr was not set
 		}
 	}
 	template<typename T> T Get_Return()
@@ -192,7 +192,7 @@ struct AnyInterpreterPtr
 		}
 		else
 		{
-			throw std::exception("Ptr Is Null");
+			UCodeLangUnreachable();//Ptr was not set
 		}
 	}
 	void Get_Return(void* Output, size_t OutputSize)
@@ -211,7 +211,7 @@ struct AnyInterpreterPtr
 		}
 		else
 		{
-			throw std::exception("Ptr Is Null");
+			UCodeLangUnreachable();//Ptr was not set
 		}
 	}
 	template<typename... Args> 	Interpreter::Return_t ThisCall(UAddress address, PtrType This, Args... parameters)
@@ -230,7 +230,7 @@ struct AnyInterpreterPtr
 		}
 		else
 		{
-			throw std::exception("Ptr Is Null");
+			UCodeLangUnreachable();//Ptr was not set
 		}
 	}
 	template<typename... Args> Interpreter::Return_t ThisCall(const String& FunctionName, PtrType This, Args... parameters)
@@ -249,7 +249,7 @@ struct AnyInterpreterPtr
 		}
 		else
 		{
-			throw std::exception("Ptr Is Null");
+			UCodeLangUnreachable();//Ptr was not set
 		}
 	}
 	template<typename... Args> Interpreter::Return_t ThisCall(const ClassMethod* Function, PtrType This, Args... parameters)
@@ -268,7 +268,7 @@ struct AnyInterpreterPtr
 		}
 		else
 		{
-			throw std::exception("Ptr Is Null");
+			UCodeLangUnreachable();//Ptr was not set
 		}
 	}
 
@@ -291,7 +291,7 @@ struct AnyInterpreterPtr
 		}
 		else
 		{
-			throw std::exception("Ptr Is Null");
+			UCodeLangUnreachable();//Ptr was not set
 		}
 	}
 	template<typename T, typename... Args>
@@ -311,7 +311,7 @@ struct AnyInterpreterPtr
 		}
 		else
 		{
-			throw std::exception("Ptr Is Null");
+			UCodeLangUnreachable();//Ptr was not set
 		}
 	}
 	template<typename T, typename... Args>
@@ -331,7 +331,7 @@ struct AnyInterpreterPtr
 		}
 		else
 		{
-			throw std::exception("Ptr Is Null");
+			UCodeLangUnreachable();//Ptr was not set
 		}
 	}
 	template<typename T, typename... Args> T RThisCall(const String& Function, PtrType This, Args... parameters)
@@ -350,7 +350,7 @@ struct AnyInterpreterPtr
 		}
 		else
 		{
-			throw std::exception("Ptr Is Null");
+			UCodeLangUnreachable();//Ptr was not set
 		}
 	}
 
@@ -443,7 +443,7 @@ struct AnyInterpreterPtr
 		}
 		else
 		{
-			throw std::exception("Ptr Is Null");
+			UCodeLangUnreachable();//Ptr was not set
 		}
 	}
 	inline const void* GetThreadPtr() const
@@ -462,7 +462,7 @@ struct AnyInterpreterPtr
 		}
 		else
 		{
-			throw std::exception("Ptr Is Null");
+			UCodeLangUnreachable();//Ptr was not set
 		}
 	}
 private:
@@ -658,7 +658,7 @@ private:
 		}
 		else
 		{
-			throw std::exception("Ptr Is Null");
+			UCodeLangUnreachable();//Ptr was not set
 		}
 	}
 
@@ -678,7 +678,7 @@ private:
 		}
 		else
 		{
-			throw std::exception("Ptr Is Null");
+			UCodeLangUnreachable();//Ptr was not set
 		}
 	}
 };

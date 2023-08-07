@@ -1193,7 +1193,7 @@ String CppHelper::ToString(CppToULangState& State, const SymbolData& Syb)
 	}
 	else
 	{
-		throw std::exception("bad path");
+		UCodeLangUnreachable();//Ptr was not set
 	}
 	return "";
 }

@@ -1360,7 +1360,7 @@ private:
 	void* Eval_Get_Object(const EvaluatedEx& Input);
 	template<typename T> T* Eval_Get_ObjectAs(const TypeSymbol& Input, const RawEvaluatedObject& Input2)
 	{
-		#ifdef DEBUG
+		#if UCodeLangDebug
 		if (Input2.ObjectSize == sizeof(T))
 		{
 			String TepStr = "type miss-mach when EvaluatedObject To Cpp type '" + (String)typeid(T).name() + "' ";
@@ -1376,7 +1376,7 @@ private:
 
 	template<typename T> void Eval_Set_ObjectAs(const TypeSymbol& Input, RawEvaluatedObject& Input2, const T& Value)
 	{
-		#ifdef DEBUG
+		#if UCodeLangDebug
 		if (Input2.ObjectSize != sizeof(T))
 		{
 			String TepStr = "type miss-mach when Cpp type To EvaluatedObject'" + (String)typeid(T).name() + "' ";
@@ -1397,7 +1397,7 @@ private:
 	}
 	void Eval_Set_ObjectAs(const TypeSymbol& Input, RawEvaluatedObject& Input2, const void* Object, size_t ObjectSize)
 	{
-		#ifdef DEBUG
+		#if UCodeLangDebug
 		if (Input2.ObjectSize == ObjectSize)
 		{
 			String TepStr = "type miss-mach when Cpp type To EvaluatedObject'";
@@ -1654,7 +1654,6 @@ private:
 	void LogError_CantOutputTypeinfo(const Token* Token);
 	void LogError_DoesNotHaveForOverload(const Token* Token,TypeSymbol& ExType);
 	void LogError_CantgussTypesTheresnoassignment(const Token* Token);
-	void LogError_DoesNotHaveForOverload(const Token* Token, TypeSymbol& ExType);
 	void LogError_MissingFuncionforTrait(const String_view& FuncName, const FuncInfo* Info, const Symbol* Trait, const Token* ClassNameToken);
 	void LogError_CantUseOutInOverloadFunc(const Token& Name);
 

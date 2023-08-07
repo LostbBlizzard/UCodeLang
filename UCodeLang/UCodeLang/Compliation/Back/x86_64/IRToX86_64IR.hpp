@@ -118,7 +118,7 @@ private:
 		}
 		else
 		{
-			throw std::exception("bad path");
+			UCodeLangUnreachable();
 		}
 		//TemVarRegs.at(Reg).Type = Value;
 	}
@@ -141,7 +141,7 @@ private:
 		case IRTypes::i32:return X86_64IR::Ins::InsRegSize::bits32;
 		case IRTypes::i64:return X86_64IR::Ins::InsRegSize::bits64;
 		default:
-			throw std::exception("bad path");
+			UCodeLangUnreachable();
 			break;
 		}
 	}

@@ -499,7 +499,7 @@ struct IRDebugIns
 		}
 		else
 		{
-			throw std::exception("bad path");
+			UCodeLangUnreachable();
 		}
 
 	}

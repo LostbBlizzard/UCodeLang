@@ -27,7 +27,7 @@ void Jit_Interpreter::PushParameter(const void* Value, size_t ValueSize)
 	#if UCodeLang_KeepJitInterpreterFallback
 	_Interpreter.PushParameter(Value, ValueSize);
 	#else
-	throw std::exception("not added");
+	UCodeLangUnreachable();//Not added yet
 	#endif
 }
 
@@ -36,7 +36,7 @@ bool Jit_Interpreter::CheckIfFunctionExist(const String& FunctionName)
 	#if UCodeLang_KeepJitInterpreterFallback
 	return _Interpreter.CheckIfFunctionExist(FunctionName);
 	#else
-	throw std::exception("not added");
+	UCodeLangToDo();
 	#endif
 }
 
@@ -45,7 +45,7 @@ void Jit_Interpreter::Get_Return(void* Output, size_t OutputSize)
 	#if UCodeLang_KeepJitInterpreterFallback
 	return _Interpreter.Get_Return(Output, OutputSize);
 	#else
-	throw std::exception("not added");
+	UCodeLangToDo();
 	#endif
 }
 
@@ -121,9 +121,8 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 		return { Interpreter::RetState::Success, _Interpreter.Get_OutRegister()};
 	}
 	#else
-	throw std::exception("not added");
+	UCodeLangUnreachable();//not added
 	#endif
-
 	#endif
 }
 
@@ -602,7 +601,8 @@ void Jit_Interpreter::OnUAddressCall(UAddress addresstojit)
 	else
 	{
 		//fall back on Interpreter.
-		throw std::exception("path not added");
+
+		UCodeLangToDo();
 	}
 #endif	
 }

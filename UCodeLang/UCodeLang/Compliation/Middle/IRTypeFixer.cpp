@@ -103,7 +103,7 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 				else
 				{
 
-					throw std::exception("not added");
+					UCodeLangUnreachable();
 				}
 				continue;
 			}
@@ -134,7 +134,7 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 				{
 
 
-					throw std::exception("not added");
+					UCodeLangUnreachable();
 				}
 				continue;
 			}
@@ -199,7 +199,7 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 			}
 			else
 			{
-				throw std::exception("not added");
+				UCodeLangUnreachable();
 			}
 
 		}
@@ -305,7 +305,7 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op, bool UpdateInsType)
 	}
 	else
 	{
-		throw std::exception("bad");
+		UCodeLangUnreachable();
 	}
 }
 void IRTypeFixer::LogCantFindInsInBlock()
