@@ -787,7 +787,7 @@ GotNodeType Parser::GetStatement(Node*& out)
 			r =GetFuncCallStatementNode();
 			break;
 		default:
-			throw std::exception("bad path");
+			UCodeLangUnreachable();
 			break;
 		}
 		out = r.Node;
@@ -1358,7 +1358,7 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 		}
 		else
 		{
-			throw std::exception("not added");
+			UCodeLangUnreachable();
 		}
 	}
 

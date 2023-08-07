@@ -45,7 +45,7 @@ public:
 		#ifdef DEBUG
 		if (HasValue(key))
 		{
-			throw std::exception("has same key");
+			UCodeLangThrowException("has same key");
 		}
 		#endif // DEBUG
 		AddVectorBase(VectorBase(Hash(key), Item));
@@ -55,7 +55,7 @@ public:
 		#ifdef DEBUG
 		if (HasValue(key))
 		{
-			throw std::exception("has same key");
+			UCodeLangThrowException("has same key");
 		}
 		#endif // DEBUG
 		AddVectorBase(VectorBase(Hash(key), Item));
@@ -92,7 +92,7 @@ public:
 		#ifdef DEBUG
 		if (!HasValue(key))
 		{
-			throw std::exception("there no Value for the key");
+			UCodeLangThrowException("there no Value for the key");
 		}
 		#endif // DEBUG
 		return 	GetBase(key)->_Value;
@@ -101,7 +101,7 @@ public:
 	{
 		if (!HasValue(key))
 		{
-			throw std::exception("there no Value for the key");
+			UCodeLangThrowException("there no Value for the key");
 		}
 		return 	GetBase(key)->_Value;
 	}
@@ -158,7 +158,7 @@ public:
 
 		if (!HasBase(_Where))
 		{
-			throw std::exception("there no Value for the key");
+			UCodeLangThrowException("there no Value for the key");
 		}
 
 		#endif // DEBUG
@@ -315,7 +315,7 @@ public:
 		#ifdef DEBUG
 		if (!HasValue(key))
 		{
-			throw std::exception("there no Value for the key");
+			UCodeLangThrowException("there no Value for the key");
 		}
 		#endif // DEBUG
 		
@@ -325,7 +325,7 @@ public:
 	{
 		if (!HasValue(key))
 		{
-			throw std::exception("there no Value for the key");
+			UCodeLangThrowException("there no Value for the key");
 		}
 		return 	GetBase(key)->_Value;
 	}
@@ -384,7 +384,7 @@ public:
 
 		if (!HasBase(_Where))
 		{
-			throw std::exception("there no Value for the key");
+			UCodeLangThrowException("there no Value for the key");
 		}
 		
 		#endif // DEBUG

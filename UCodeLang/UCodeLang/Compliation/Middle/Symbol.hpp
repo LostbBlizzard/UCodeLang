@@ -894,7 +894,7 @@ public:
 		#ifdef DEBUG
 		if (Type != SymbolType::Func && Type != SymbolType::GenericFunc)
 		{
-			throw std::exception("bad cast");
+			UCodeLangThrowException("bad cast");
 		}
 		#endif // DEBUG
 
@@ -905,7 +905,7 @@ public:
 		#ifdef DEBUG
 		if (Type != SymbolType::Func_ptr)
 		{
-			throw std::exception("bad cast");
+			UCodeLangThrowException("bad cast");
 		}
 		#endif // DEBUG
 
@@ -921,7 +921,7 @@ public:
 		#ifdef DEBUG
 		if (Type != SymbolType::Func && Type != SymbolType::GenericFunc)
 		{
-			throw std::exception("bad cast");
+			UCodeLangThrowException("bad cast");
 		}
 		#endif // DEBUG
 
@@ -932,7 +932,7 @@ public:
 		#ifdef DEBUG
 		if (Type != SymbolType::Func_ptr)
 		{
-			throw std::exception("bad cast");
+			UCodeLangThrowException("bad cast");
 		}
 		#endif // DEBUG
 

@@ -1364,7 +1364,7 @@ private:
 		if (Input2.ObjectSize == sizeof(T))
 		{
 			String TepStr = "type miss-mach when EvaluatedObject To Cpp type '" + (String)typeid(T).name() + "' ";
-			throw std::exception(TepStr.c_str());
+			UCodeLangThrowException(TepStr.c_str());
 		}
 		#endif // DEBUG
 		return (T*)Eval_Get_Object(Input, Input2);
@@ -1380,7 +1380,7 @@ private:
 		if (Input2.ObjectSize != sizeof(T))
 		{
 			String TepStr = "type miss-mach when Cpp type To EvaluatedObject'" + (String)typeid(T).name() + "' ";
-			throw std::exception(TepStr.c_str());
+			UCodeLangThrowException(TepStr.c_str());
 		}
 		#endif // DEBUG
 		
@@ -1401,7 +1401,7 @@ private:
 		if (Input2.ObjectSize == ObjectSize)
 		{
 			String TepStr = "type miss-mach when Cpp type To EvaluatedObject'";
-			throw std::exception(TepStr.c_str());
+			UCodeLangThrowException(TepStr.c_str());
 		}
 		#endif // DEBUG
 

@@ -222,7 +222,7 @@ public:
 	{
 		if (_BitOffset + Size > _BytesSize)
 		{
-			throw std::exception("No More Values");
+			UCodeLangThrowException("No More Values");
 		}
 	}
 	//

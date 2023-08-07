@@ -332,7 +332,7 @@ struct Span
 		#ifdef DEBUG
 		if (Index > _Size)
 		{
-			throw std::exception("Index out of range");
+			UCodeLangThrowException("Index out of range");
 		}
 		#endif // DEBUG
 
@@ -344,7 +344,7 @@ struct Span
 		#ifdef DEBUG
 		if (Index > _Size)
 		{
-			throw std::exception("Index out of range");
+			UCodeLangThrowException("Index out of range");
 		}
 		#endif // DEBUG
 
@@ -472,7 +472,7 @@ struct SpanPtr
 		#ifdef DEBUG
 		if (Index >= _Size)
 		{
-			throw std::exception("Index out of range");
+			UCodeLangThrowException("Index out of range");
 		}
 		#endif // DEBUG
 
@@ -484,7 +484,7 @@ struct SpanPtr
 		#ifdef DEBUG
 		if (Index >= _Size)
 		{
-			throw std::exception("Index out of range");
+			UCodeLangThrowException("Index out of range");
 		}
 		#endif // DEBUG
 
