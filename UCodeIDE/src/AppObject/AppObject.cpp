@@ -827,7 +827,7 @@ void AppObject::OnDraw()
                     }
                     break;
                     default:
-                        throw std::exception("bad path");
+                        UCodeLangUnreachable();
                         break;
                     }
                 }
@@ -1775,7 +1775,7 @@ void AppObject::HotReloadRunTime()
     }
     break;
     default:
-        throw std::exception("bad path");
+        UCodeLangUnreachable();
         break;
     }
     UCodeLang::RunTimeLib teplib;

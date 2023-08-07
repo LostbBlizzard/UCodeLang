@@ -379,7 +379,7 @@ private:
 			}
 			void ThrowException(const char* Err)
 			{
-				throw std::exception(Err);
+				UCodeLangThrowException(Err);
 			}
 		};
 		Stack Stack;
@@ -401,7 +401,7 @@ private:
 		}
 		void ThrowException(const char* Err)
 		{
-			throw std::exception(Err);
+			UCodeLangThrowException(Err);
 		}
 	};
 	CPUData _CPU;

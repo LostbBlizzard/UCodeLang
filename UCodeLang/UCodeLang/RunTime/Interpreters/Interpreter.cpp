@@ -472,12 +472,15 @@ void Interpreter::Extecute(Instruction& Inst)
 		}
 		else
 		{
+			#ifdef DEBUG
 			String CantFindMsg = "Cant find cpp Call named " + Str;
 			_State->Log(CantFindMsg.c_str());
 
-			throw std::exception("bad cpp call.");//Cant find CPPCall.
-			_CPU.RetValue._Succeed = ExitState::Failure;
-			_CPU.Stack.StackOffSet = 0;
+			UCodeLangThrowException("bad cpp call.");//Cant find CPPCall.
+			#endif // DEBUG
+
+			
+
 			UCodeLangUnreachable();//not added  instruction?
 		}
 	}break;

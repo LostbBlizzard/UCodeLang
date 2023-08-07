@@ -5341,7 +5341,7 @@ SymbolID SystematicAnalysis::Symbol_GetSymbolID(const void* Item)
 
 	if (OnStack)
 	{
-		throw std::exception("Item Is on Stack not on heep");
+		UCodeLangThrowException("Item Is on Stack not on heep");
 	}
 	#endif // DEBUG
 	auto Scope = _Table._Scope.ThisScope;
@@ -7150,7 +7150,7 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 				if (_PassType == PassType::BuidCode)
 				{
 					FileDependency_AddDependencyToCurrentFile(Out.Symbol);
-					//throw std::exception("not added");
+					//UCodeLangThrowException("not added");
 				}
 			}
 			else
@@ -7681,7 +7681,7 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 			{
 				//because overloaded funcions have the same Symbol FullNames we need to pick the this one and not the first one/  
 				FuncInfo* Func = _FuncStack.back().Pointer;
-				//throw std::exception("bad");
+				//UCodeLangThrowException("bad");
 			}
 
 			if (SymbolVar->Type == SymbolType::Class_Field)

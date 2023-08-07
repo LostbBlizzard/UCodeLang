@@ -15,7 +15,7 @@ public:
 		#ifdef DEBUG
 		if (Index > BitsCount)
 		{
-			throw std::exception("Index out of range");
+			UCodeLangThrowException("Index out of range");
 		}
 		#endif // DEBUG
 
@@ -26,7 +26,7 @@ public:
 		#ifdef DEBUG
 		if (Index > BitsCount)
 		{
-			throw std::exception("Index out of range");
+			UCodeLangThrowException("Index out of range");
 		}
 		#endif // DEBUG
 
@@ -43,7 +43,7 @@ public:
 		#ifdef DEBUG
 		if (Index > BitsCount)
 		{
-			throw std::exception("Index out of range");
+			UCodeLangThrowException("Index out of range");
 		}
 		#endif // DEBUG
 		_Base ^= ((T)1) << Index;

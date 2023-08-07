@@ -86,13 +86,33 @@
 #ifdef DEBUG
 #define UCodeLangUnreachable() throw std::exception("bad path");
 #else
+
+#if defined(_MSC_VER)
+#define UCodeLangUnreachable() __assume(0);
+#elif defined(__GNUC__)
+#define UCodeLangUnreachable()
+#else
 #define UCodeLangUnreachable()
 #endif
 
-#if Published
-#define UCodeLangToDo() static_assert(true,"Add Code Path")
-#elseif
+#endif
+
+#ifdef Published
+#define UCodeLangToDo() static_assert(true,"Add Code Path");
+#else
 #define UCodeLangToDo() throw std::exception("Code Path not vaild Is On ToDolist");
+#endif
+
+#ifdef Published
+#define UCodeLangThrowException() static_assert(true,"UCodeLang should not be throwing exceptions we have a C-API ");
+#else
+#define UCodeLangThrowException(Ex) throw std::exception(Ex);
+#endif
+
+#ifdef DEBUG
+#define UCodeLangAssert(condition) assert(condition)
+#else
+#define UCodeLangAssert(condition)
 #endif
 
 #if UCodeLangAPIDLLBuild
