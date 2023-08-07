@@ -456,6 +456,7 @@ bool ImguiHelper::InputText(const char* label, String& buffer, ImGuiInputTextFla
 
 struct InputTextReflectionCallback_UserData
 {
+	BytesPtr NewPtr;
 	UCodeLang::ReflectionString* Str;
 };
 int TextReflectionCallBack(ImGuiInputTextCallbackData* data)
@@ -466,9 +467,17 @@ int TextReflectionCallBack(ImGuiInputTextCallbackData* data)
 		// Resize string callback
 		// If for some reason we refuse the new length (BufTextLen) and/or capacity (BufSize) we need to set them back to what we want.
 		UCodeLang::ReflectionString* str = user_data->Str;
-		IM_ASSERT(data->Buf == str->c_str());
+		IM_ASSERT(data->Buf == str->data());
+
+		auto v = str->AsCharView();
 		str->resize(data->BufTextLen);
-		data->Buf = (char*)str->c_str();
+
+		
+		user_data->NewPtr.Resize(v.size()+1);
+		memcpy(user_data->NewPtr.Data(),v.data(),v.size());
+		user_data->NewPtr[v.size()] = '\n';//for intent
+
+		data->Buf = (char*)user_data->NewPtr.Data();
 	}
 	return 0;
 }
@@ -483,6 +492,10 @@ bool ImguiHelper::InputText(const char* label, UCodeLang::ReflectionString& buff
 	flags |= ImGuiInputTextFlags_CallbackResize;
 
 	InputTextReflectionCallback_UserData user_data;
+	user_data.NewPtr.Resize(buffer.size() + 1);
+	memcpy(user_data.NewPtr.Data(),buffer.data(), buffer.size());
+	user_data.NewPtr[buffer.size()] = '\n';//for intent
+
 	user_data.Str = &buffer;
 
 	auto V = ImGui::InputText("",(char*)buffer.data(),buffer.size(), flags, TextReflectionCallBack,&user_data);
