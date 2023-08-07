@@ -673,6 +673,12 @@ private:
 	{
 		Vector<BuildMatch_ret> MatchList;
 	};
+	struct GeneratedGenericSymbolData
+	{
+		SymbolID ID = SymbolID();
+		GenericFuncInfo Info;
+		Vector<TypeSymbol> Types;
+	};
 
 	//Members
 	CompliationErrors* _ErrorsOutput = nullptr;
@@ -737,7 +743,7 @@ private:
 	IROperator _IR_LastStoreField;
 	Stack<IRLocation_Cotr> _IR_IRlocations;//for Constructors
 	Vector<IRCodeStackFrames> _IR_StackFrames;
-	Stack<GenericFuncInfo> _IR_GenericFuncName;
+	Stack<GenericFuncInfo> _Generic_GenericSymbolStack;
 	Vector< JumpsData> _IR_Jumps;
 	String _LastIRFileName;
 	size_t _LastLineNumber = -1;
@@ -751,10 +757,11 @@ private:
 	//To Fix Types being Loaded out of order.
 	Vector<LibLoadTypeSeter> _Lib_TypesToFix;
 
-	BinaryVectorMap<SymbolID, IRidentifierID> SybToIRMap;
+	BinaryVectorMap<SymbolID, IRidentifierID> _Symbol_SybToIRMap;
 
-	IRBlockDebugInfo* LastLookAtDebugBlock = nullptr;
-	Optional<SymbolID> UnMapTypeSybol;
+	IRBlockDebugInfo* _Debug_LastLookAtDebugBlock = nullptr;
+	Optional<SymbolID> _Type_UnMapTypeSymbol;
+	Vector<GeneratedGenericSymbolData> _Generic_GeneratedGenericSybol;
 	//Funcs
 	SymbolContext Save_SymbolContext() const
 	{
@@ -1151,7 +1158,7 @@ private:
 	TypeSymbol Type_BinaryExpressionShouldRurn(TokenType Op, const TypeSymbol& Ex0Type);
 
 
-	String ToString(const ParInfo& Type)
+	String ToString(const ParInfo& Type) const
 	{
 		String R;
 
@@ -1163,8 +1170,8 @@ private:
 		return R;
 	}
 
-	String ToString(const TypeSymbol& Type);
-	String ToString(const TokenType& Type)
+	String ToString(const TypeSymbol& Type) const;
+	String ToString(const TokenType& Type) const
 	{
 		return StringHelper::ToString(Type);
 	}
@@ -1342,22 +1349,27 @@ private:
 
 	void Generic_GenericFuncInstantiate(const Symbol* Func, const Vector<TypeSymbol>& GenericInput);
 
+	void Push_GenericInfo(const UCodeLang::String& NewName, const UCodeLang::Vector<UCodeLang::FrontEnd::TypeSymbol>& GenericInput, const UCodeLang::FrontEnd::Symbol* Func, const UCodeLang::FrontEnd::Generic& GenericData);
+
 	String Generic_GetGenericExtendedErrValue(const Generic& Generic, const GenericValuesNode GenericAsNode, const Vector<TypeSymbol>& GenericInput);
 	Optional<SymbolID> Generic_MakeTypePackSymbolIfNeeded(const String& NewName, const Vector<TypeSymbol>& GenericInput, const Generic& Generic);
 
-	String Generic_GetGenericFuncFullName(const Symbol* Func, const Vector<TypeSymbol>& Type);
-	String Generic_GetGenericFuncName(const Symbol* Func, const Vector<TypeSymbol>& Type);
+	String Generic_SymbolGenericFullName(const Symbol* Func, const Vector<TypeSymbol>& Type) const;
+	String Generic_SymbolGenericName(const Symbol* Func, const Vector<TypeSymbol>& Type) const;
 
-	void GenericTypeInstantiate(const Symbol* Class, const Vector<TypeSymbol>& Type);
-	void GenericTypeInstantiate_Trait(const Symbol* Trait, const Vector<TypeSymbol>& Type);
-	void GenericTypeInstantiate_Alias(const Symbol* Alias, const Vector<TypeSymbol>& Type);
-	void GenericTypeInstantiate_Enum(const Symbol* Enum, const Vector<TypeSymbol>& Type);
-	void GenericTypeInstantiate_Tag(const Symbol* Trait, const Vector<TypeSymbol>& Type);
+	void Generic_TypeInstantiate(const Symbol* Class, const Vector<TypeSymbol>& Type);
+	void Generic_TypeInstantiate_Trait(const Symbol* Trait, const Vector<TypeSymbol>& Type);
+	void Pop_AddToGeneratedGenricSymbol(UCodeLang::FrontEnd::Symbol& addedSymbol, const UCodeLang::Vector<UCodeLang::FrontEnd::TypeSymbol>& Type);
+	void Generic_TypeInstantiate_Alias(const Symbol* Alias, const Vector<TypeSymbol>& Type);
+	void Generic_TypeInstantiate_Enum(const Symbol* Enum, const Vector<TypeSymbol>& Type);
+	void Generic_TypeInstantiate_Tag(const Symbol* Trait, const Vector<TypeSymbol>& Type);
 
 	EvaluatedEx Eval_MakeEx(const TypeSymbol& Type);
 	RawEvaluatedObject Eval_MakeExr(const TypeSymbol& Type);
 	void* Eval_Get_Object(const TypeSymbol& Input, const RawEvaluatedObject& Input2);
 	void* Eval_Get_Object(const EvaluatedEx& Input);
+	const void* Eval_Get_Object(const TypeSymbol& Input, const RawEvaluatedObject& Input2) const;
+	const void* Eval_Get_Object(const EvaluatedEx& Input) const;
 	template<typename T> T* Eval_Get_ObjectAs(const TypeSymbol& Input, const RawEvaluatedObject& Input2)
 	{
 		#if UCodeLangDebug
@@ -1370,6 +1382,22 @@ private:
 		return (T*)Eval_Get_Object(Input, Input2);
 	}
 	template<typename T> T* Eval_Get_ObjectAs(const EvaluatedEx& Input)
+	{
+		return Eval_Get_ObjectAs<T>(Input.Type, Input.EvaluatedObject);
+	}
+
+	template<typename T> const T* Eval_Get_ObjectAs(const TypeSymbol& Input, const RawEvaluatedObject& Input2) const
+	{
+		#if UCodeLangDebug
+		if (Input2.ObjectSize == sizeof(T))
+		{
+			String TepStr = "type miss-mach when EvaluatedObject To Cpp type '" + (String)typeid(T).name() + "' ";
+			UCodeLangThrowException(TepStr.c_str());
+		}
+		#endif // DEBUG
+		return (T*)Eval_Get_Object(Input, Input2);
+	}
+	template<typename T> const T* Eval_Get_ObjectAs(const EvaluatedEx& Input) const
 	{
 		return Eval_Get_ObjectAs<T>(Input.Type, Input.EvaluatedObject);
 	}
@@ -1460,7 +1488,7 @@ private:
 			GenericInput->push_back(Type);
 		}
 
-		String NewName = Generic_GetGenericFuncFullName(Symbol, *GenericInput);
+		String NewName = Generic_SymbolGenericFullName(Symbol, *GenericInput);
 		auto FuncIsMade = Symbol_GetSymbol(NewName, SymbolType::Type_class);
 		if (!FuncIsMade)
 		{
@@ -1473,29 +1501,29 @@ private:
 	}
 	Symbol* Generic_InstantiateOrFindGeneric_Class(const Token* Name, const Symbol* Symbol, const GenericValuesNode& SymbolGenericValues, const Generic& GenericData, const UseGenericsNode& UseNode)
 	{
-		TypeInstantiateFunc Func = &SystematicAnalysis::GenericTypeInstantiate;
+		TypeInstantiateFunc Func = &SystematicAnalysis::Generic_TypeInstantiate;
 		return Generic_InstantiateOrFindGenericSymbol(Name, Symbol, SymbolGenericValues, GenericData, UseNode,Func);
 	}
 
 	Symbol* Generic_InstantiateOrFindGeneric_Trait(const Token* Name, const Symbol* Symbol, const GenericValuesNode& SymbolGenericValues, const Generic& GenericData, const UseGenericsNode& UseNode)
 	{
-		TypeInstantiateFunc Func = &SystematicAnalysis::GenericTypeInstantiate_Trait;
+		TypeInstantiateFunc Func = &SystematicAnalysis::Generic_TypeInstantiate_Trait;
 		return Generic_InstantiateOrFindGenericSymbol(Name, Symbol, SymbolGenericValues, GenericData, UseNode, Func);
 	}
 
 	Symbol* Generic_InstantiateOrFindGeneric_Alias(const Token* Name, const Symbol* Symbol, const GenericValuesNode& SymbolGenericValues, const Generic& GenericData, const UseGenericsNode& UseNode)
 	{
-		TypeInstantiateFunc Func = &SystematicAnalysis::GenericTypeInstantiate_Alias;
+		TypeInstantiateFunc Func = &SystematicAnalysis::Generic_TypeInstantiate_Alias;
 		return Generic_InstantiateOrFindGenericSymbol(Name, Symbol, SymbolGenericValues, GenericData, UseNode, Func);
 	}
 	Symbol* Generic_InstantiateOrFindGeneric_Enum(const Token* Name, const Symbol* Symbol, const GenericValuesNode& SymbolGenericValues, const Generic& GenericData, const UseGenericsNode& UseNode)
 	{
-		TypeInstantiateFunc Func = &SystematicAnalysis::GenericTypeInstantiate_Enum;
+		TypeInstantiateFunc Func = &SystematicAnalysis::Generic_TypeInstantiate_Enum;
 		return Generic_InstantiateOrFindGenericSymbol(Name, Symbol, SymbolGenericValues, GenericData, UseNode, Func);
 	}
 	Symbol* Generic_InstantiateOrFindGeneric_Tag(const Token* Name, const Symbol* Symbol, const GenericValuesNode& SymbolGenericValues, const Generic& GenericData, const UseGenericsNode& UseNode)
 	{
-		TypeInstantiateFunc Func = &SystematicAnalysis::GenericTypeInstantiate_Tag;
+		TypeInstantiateFunc Func = &SystematicAnalysis::Generic_TypeInstantiate_Tag;
 		return Generic_InstantiateOrFindGenericSymbol(Name, Symbol, SymbolGenericValues, GenericData, UseNode, Func);
 	}
 
@@ -1554,7 +1582,7 @@ private:
 
 	bool Eval_EvaluateToAnyType(EvaluatedEx& Out, const ExpressionNodeType& node);
 	Optional<EvaluatedEx> Eval_EvaluateToAnyType(const ExpressionNodeType& node);
-	String ToString(const TypeSymbol& Type, const RawEvaluatedObject& Data);
+	String ToString(const TypeSymbol& Type, const RawEvaluatedObject& Data) const;
 	IRInstruction* IR_RawObjectDataToCString(const RawEvaluatedObject& EvalObject);
 	//IR
 	void IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNode& Name, const ValueParametersNode& Pars);
@@ -1660,7 +1688,7 @@ private:
 	ReadVarErrorCheck_t TryLogError_OnReadVar(String_view VarName, const Token* Token, const Symbol* Syb);
 	void TryLogError_OnWritingVar(Symbol* Symbol, const Token* Token, String_view& Name);
 
-	String ToString(SymbolType Value);
+	String ToString(SymbolType Value) const;
 	Class_Data* Assembly_GetAssemblyClass(const String& FullName);
 
 	String IR_MangleName(const FuncInfo* Func);

@@ -44,6 +44,9 @@ $Vector<T>:
 
 $String:
  Vector<char> Base;
+ |Data[umut this&] -> char[&]:ret Base.Data();
+ |Size[umut this&] => Base.Size();
+ |Capacity[umut this&] => Base.Capacity();
 
 //inlined enum variant: X || Y || Z
 //$InlinedEnum = int || bool || char;

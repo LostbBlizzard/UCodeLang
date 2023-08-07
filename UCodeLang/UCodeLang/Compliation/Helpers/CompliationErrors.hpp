@@ -133,6 +133,7 @@ public:
 		return _Errors.back();
 	};
 	inline auto& Get_Errors() { return  _Errors; };
+	
 	bool Has_Errors()
 	{
 		for (const auto& Item : _Errors)
@@ -164,6 +165,16 @@ public:
 				Item.Pos = FilePos;
 			}
 		}
+	}
+	inline size_t Get_ErrorCount()
+	{
+		size_t r = 0;
+		for (const auto& Item : _Errors)
+		{
+			if (IsError(Item._Code)) { r++; }
+		}
+
+		return r;
 	}
 
 	String ToString()const
