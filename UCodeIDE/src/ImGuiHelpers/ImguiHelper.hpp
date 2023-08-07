@@ -40,6 +40,10 @@ public:
 	static bool float64Field(const char* FieldName, float64& Value);
 	
 	static bool InputText(const char* label, String& buffer, ImGuiInputTextFlags flags = 0);
+	
+	static bool InputText(const char* label, UCodeLang::ReflectionString& buffer, ImGuiInputTextFlags flags = 0);
+
+	
 	static bool MultLineText(const char* label, String& buffer, ImVec2 Size, ImGuiInputTextFlags flags = 0);
 	
 	static bool Vec2float32Field(const char* label, float vec2[2]);

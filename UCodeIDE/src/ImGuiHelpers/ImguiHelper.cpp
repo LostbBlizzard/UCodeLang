@@ -453,6 +453,44 @@ bool ImguiHelper::InputText(const char* label, String& buffer, ImGuiInputTextFla
 
 	return V;
 }
+
+struct InputTextReflectionCallback_UserData
+{
+	UCodeLang::ReflectionString* Str;
+};
+int TextReflectionCallBack(ImGuiInputTextCallbackData* data)
+{
+	InputTextReflectionCallback_UserData* user_data = (InputTextReflectionCallback_UserData*)data->UserData;
+	if (data->EventFlag == ImGuiInputTextFlags_CallbackResize)
+	{
+		// Resize string callback
+		// If for some reason we refuse the new length (BufTextLen) and/or capacity (BufSize) we need to set them back to what we want.
+		UCodeLang::ReflectionString* str = user_data->Str;
+		IM_ASSERT(data->Buf == str->c_str());
+		str->resize(data->BufTextLen);
+		data->Buf = (char*)str->c_str();
+	}
+	return 0;
+}
+bool ImguiHelper::InputText(const char* label, UCodeLang::ReflectionString& buffer, ImGuiInputTextFlags flags)
+{
+	ImGui::Text(label);
+	ImGui::SameLine();
+
+	ImGui::PushID(&buffer);
+
+
+	flags |= ImGuiInputTextFlags_CallbackResize;
+
+	InputTextReflectionCallback_UserData user_data;
+	user_data.Str = &buffer;
+
+	auto V = ImGui::InputText("",(char*)buffer.data(),buffer.size(), flags, TextReflectionCallBack,&user_data);
+	
+	ImGui::PopID();
+
+	return V;
+}
 bool ImguiHelper::MultLineText(const char* label, String& buffer, ImVec2 Size, ImGuiInputTextFlags flags)
 {	
 	return  ImGui::InputTextMultiline(label, &buffer, Size, flags);
