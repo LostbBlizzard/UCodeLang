@@ -72,6 +72,68 @@ void SymbolTable::GetSymbolsInNameSpace(const String_view& NameSpace, const Stri
 	return Tep;
 }
 
+ const Vector<const Symbol*>& SymbolTable::GetSymbolsWithName(const String_view& Name, SymbolType Type) const
+ {
+	 auto& r = GetSymbolsWithName(Name);
+
+
+	 return r;
+ }
+
+ void SymbolTable::GetSymbolsInNameSpace(const String_view& NameSpace, const String_view& Name, Vector<const Symbol*>& Output) const
+ {
+	 String TepScope = (String)NameSpace;
+	 String TepNameSpace = (String)NameSpace + ScopeHelper::_ScopeSep + (String)Name;
+
+
+
+	 while (TepNameSpace.size())
+	 {
+
+		 ScopeHelper::ReMoveScope(TepNameSpace);
+		 for (auto& Item : Symbols)
+		 {
+			 String FullName = TepNameSpace.size() ?
+				 TepNameSpace + ScopeHelper::_ScopeSep + (String)Name : (String)Name;
+			 if (Item->FullName == FullName)
+			 {
+
+
+				 bool HasItem = false;
+				 for (auto& Item2 : Output)
+				 {
+					 if (Item.get() == Item2)
+					 {
+						 HasItem = true;
+						 break;
+					 }
+				 }
+
+				 if (!HasItem)
+				 {
+					 Output.push_back(Item.get());
+				 }
+			 }
+		 }
+	 }
+
+ }
+
+ Vector<const Symbol*>& SymbolTable::GetSymbolsWithName(const String_view& Name) const
+ {
+	 thread_local Vector<const Symbol*> Tep;
+	 Tep.clear();
+
+
+	 GetSymbolsInNameSpace(_Scope.ThisScope, Name, Tep);
+	 for (auto& Item : Useings)
+	 {
+		 GetSymbolsInNameSpace(Item, Name, Tep);
+	 }
+
+	 return Tep;
+ }
+
  Symbol& SymbolTable::AddSybol(SymbolType type, const String& Name, const String& FullName, AccessModifierType Access)
  {
 	 Symbols.push_back(std::make_unique<Symbol>(type, FullName));

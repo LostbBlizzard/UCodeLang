@@ -649,7 +649,31 @@ private:
 			Ret = &Info->Ret;
 			this->Item = Item;
 		}
+	};	
+	struct StrExELav
+	{
+
+		String OwnedStr;
+		String_view Msg;
+		bool IsConstantExpression = false;
 	};
+
+	enum class LoadLibMode
+	{
+		GetTypes,
+		FixTypes,
+		Done
+	};
+	struct BuildMatch_ret
+	{
+		IRBlock::NewConditionalFalseJump_t JumpToUpdateIFMatchTrue;
+		IRInstruction* JumpToUpdateEndIndex = 0;
+	};
+	struct BuildMatch_State
+	{
+		Vector<BuildMatch_ret> MatchList;
+	};
+
 	//Members
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
@@ -715,6 +739,8 @@ private:
 	Vector<IRCodeStackFrames> _IR_StackFrames;
 	Stack<GenericFuncInfo> _IR_GenericFuncName;
 	Vector< JumpsData> _IR_Jumps;
+	String _LastIRFileName;
+	size_t _LastLineNumber = -1;
 
 	BinaryVectorMap<void*, SymbolID> _ConstantExpressionMap;
 	Stack<GetValueMode> _GetExpressionMode;
@@ -726,6 +752,9 @@ private:
 	Vector<LibLoadTypeSeter> _Lib_TypesToFix;
 
 	BinaryVectorMap<SymbolID, IRidentifierID> SybToIRMap;
+
+	IRBlockDebugInfo* LastLookAtDebugBlock = nullptr;
+	Optional<SymbolID> UnMapTypeSybol;
 	//Funcs
 	SymbolContext Save_SymbolContext() const
 	{
@@ -801,9 +830,9 @@ private:
 	size_t IR_GetJumpsIndex();
 	void IR_RemoveJumps(size_t Index);
 
-	IRidentifierID IRType_ConvertToIRClassIR(const Symbol& Class);
-	IRidentifierID IRType_ConvertToStaticArray(const Symbol& Class);
-	IRidentifierID IRType_ConveToIRVariantEnum(const Symbol& Class);
+	IRidentifierID IR_Build_ConvertToIRClassIR(const Symbol& Class);
+	IRidentifierID IR_Build_ConvertToStaticArray(const Symbol& Class);
+	IRidentifierID IR_Build_ConveToIRVariantEnum(const Symbol& Class);
 
 
 
@@ -833,7 +862,7 @@ private:
 	SymbolID Symbol_GetSymbolID(const void* Item);
 	//File dependency analysis stuff
 
-	inline bool IsDependencies(const ClassInfo* Value) const
+	inline bool Symbol_IsDependencies(const ClassInfo* Value) const
 	{
 		for (auto Item : _ClassDependencies)
 		{
@@ -844,15 +873,15 @@ private:
 		}
 		return false;
 	}
-	inline void PushClassDependencie(const ClassInfo* Value)
+	inline void Push_ClassDependencie(const ClassInfo* Value)
 	{
 		_ClassDependencies.push_back(Value);
 	}
-	inline void PopClassDependencie()
+	inline void Pop_ClassDependencie()
 	{
 		_ClassDependencies.pop_back();
 	}
-	inline bool IsDependencies(const FuncInfo* Value)
+	inline bool Symbol_IsDependencies(const FuncInfo* Value)
 	{
 		for (auto& Item : _FuncStack)
 		{
@@ -866,17 +895,17 @@ private:
 
 
 
-	inline void PushToNodeScope(const Node& node)
+	inline void Push_ToNodeScope(const Node& node)
 	{
 		_NodeTypeStack.push_back(node.Get_Type());
 	}
-	inline void PopNodeScope()
+	inline void Pop_NodeScope()
 	{
 		_NodeTypeStack.pop_back();
 	}
 
 
-	inline FuncStackInfo* GetDependencies(const FuncInfo* Value)
+	inline FuncStackInfo* Symbol_GetDependencies(const FuncInfo* Value)
 	{
 		for (auto& Item : _FuncStack)
 		{
@@ -887,7 +916,7 @@ private:
 		}
 		return nullptr;
 	}
-	inline bool IsRetDependencies(const FuncInfo* Value)
+	inline bool Symbol_IsRetDependencies(const FuncInfo* Value)
 	{
 		for (auto& Item : _RetLoopStack)
 		{
@@ -898,32 +927,29 @@ private:
 		}
 		return false;
 	}
+	void Debug_Add_SetLineNumber(const Token* token, size_t InsInBlock);
+	void Debug_Add_SetVarableInfo(const Symbol& Syb, size_t InsInBlock);
 
-	String _LastIRFileName;
-	size_t LastLineNumber = -1;
-	IRBlockDebugInfo* LastLookAtDebugBlock = nullptr;
-	void Add_SetLineNumber(const Token* token, size_t InsInBlock);
-	void Add_SetVarableInfo(const Symbol& Syb, size_t InsInBlock);
-
-	const FileNode* Get_FileUseingSybol(const Symbol* Syb);
-	void AddDependencyToCurrentFile(const Symbol* Syb);
-	void AddDependencyToCurrentFile(const FileNode* file);
-	void AddDependencyToCurrentFile(const TypeSymbol& type);
-	Symbol& AddSybol(SymbolType type, const String& Name, const String& FullName, AccessModifierType Access);
-	bool IsVarableType(SymbolType type);
+	const FileNode* FileDependency_Get_FileUseingSybol(const Symbol* Syb);
+	void FileDependency_AddDependencyToCurrentFile(const Symbol* Syb);
+	void FileDependency_AddDependencyToCurrentFile(const FileNode* file);
+	void FileDependency_AddDependencyToCurrentFile(const TypeSymbol& type);
+	Symbol& Symbol_AddSymbol(SymbolType type, const String& Name, const String& FullName, AccessModifierType Access);
+	bool Symbol_IsVarableType(SymbolType type) const;
 	void Pass();
 	void OnFileNode(const FileNode* File);
 	void OnClassNode(const ClassNode& node);
 	void OnAliasNode(const AliasNode& node);
 	void OnUseingNode(const UsingNode& node);
 
-	void InitGenericalias(const GenericValuesNode& GenericList, bool IsgenericInstantiation, Generic& Out);
+	void Generic_InitGenericalias(const GenericValuesNode& GenericList, bool IsgenericInstantiation, Generic& Out);
 	void OnFuncNode(const FuncNode& node);
-	void SetInStatetements(bool Value);
-	void FuncGetName(const Token* NameToken, std::string_view& FuncName, FuncInfo::FuncType& FuncType);
+	void Node_InStatetements(bool Value);
+	void Str_FuncGetName(const Token* NameToken, String_view& FuncName, FuncInfo::FuncType& FuncType);
 
-	String GetEnumVariantUnionName(const String& FullName);
-	String GetUnrefencedableName(const String& FullName);
+	String Str_GetEnumVariantUnionName(const String& FullName);
+	String Str_GetUnrefencedableName(const String& FullName);
+	String Str_GetScopedNameAsString(const ScopedNameNode& node);
 
 	void OnStatement(const Node& node2);
 	void OnRetStatement(const RetStatementNode& node);
@@ -931,17 +957,14 @@ private:
 	void OnNamespace(const NamespaceNode& node);
 	void OnAttributeNode(const AttributeNode& node);
 	void OnAttributesNode(const Vector<Unique_ptr<AttributeNode>>& nodes);
-	String GetScopedNameAsString(const ScopedNameNode& node);
 	void OnDeclareVariablenode(const DeclareVariableNode& node, DeclareStaticVariableNode_t type);
-	void LogCantUseTypeVoidHere(const Token* Token);
-	void LogUseingTypeinfoInNonEvalVarable(const Token* Token);
-	void LogUseingTypeinfoInEvalFuncPar(const Token* Token);
-	void OnStoreVarable(bool IsStructObjectPassRef, IRInstruction* OnVarable, Symbol* syb, const SymbolID& sybId);
-	void AddDestructorToStack(const Symbol* syb, const SymbolID& sybId, IRInstruction* OnVarable);
-	void AddDestructorToStack(const TypeSymbol& Type, IRInstruction* OnVarable);
-	void ExDeclareVariableTypeCheck(TypeSymbol& VarType,const TypeSymbol& Ex, const Token* Token);
-	void ExTypeDeclareVarableCheck(TypeSymbol& VarType, const Node* Ex, const Token* Token);
-	void CantgussTypesTheresnoassignment(const Token* Token);
+	
+	void IR_Build_OnStoreVarable(bool IsStructObjectPassRef, IRInstruction* OnVarable, Symbol* syb, const SymbolID& sybId);
+	void IR_Build_AddDestructorToStack(const Symbol* syb, const SymbolID& sybId, IRInstruction* OnVarable);
+	void IR_Build_AddDestructorToStack(const TypeSymbol& Type, IRInstruction* OnVarable);
+	void Type_DeclareVariableTypeCheck(TypeSymbol& VarType,const TypeSymbol& Ex, const Token* Token);
+	void Type_DeclareVarableCheck(TypeSymbol& VarType, const Node* Ex, const Token* Token);
+	
 	void OnAssignExpressionNode(const AssignExpressionNode& node);
 	void OnIfNode(const IfNode& node);
 	void OnWhileNode(const WhileNode& node);
@@ -951,10 +974,10 @@ private:
 
 	void OnDeclareEvalVariableNode(const DeclareEvalVariableNode& node);
 	void FuncRetCheck(const Token& Name, const Symbol* FuncSyb, const FuncInfo* Func);
-	void LogCantUseOutInOverloadFunc(const UCodeLang::Token& Name);
+	
 	void OnForNode(const ForNode& node);
 
-	void DoJumpsBreakAndContiunes(size_t JumpIndex, size_t BoolCode, size_t BreakCode);
+	void IR_Build_UpdateJumpsBreakContiunes(size_t JumpIndex, size_t BoolCode, size_t BreakCode);
 
 	void OnContinueNode(const ContinueNode& node);
 	void OnBreakNode(const BreakNode& node);
@@ -962,72 +985,67 @@ private:
 	void OnTrait(const TraitNode& node);
 	void OnTag(const TagTypeNode& node);
 	void OnBitCast(const BitCastExpression& node);
+	void OnImportNode(const ImportStatement& node);
 
 	void OnCompileTimeIfNode(const CompileTimeIfNode& node);
 
 	void OnCompileTimeforNode(const CompileTimeForNode& node);
 	void CompileTimeforNodeEvaluateStatements(const CompileTimeForNode& node);
 
-	Optional<SymbolID> UnMapTypeSybol;
-	TypeSymbol GetUnMapType();
-	bool IsUnMapType(const TypeSymbol& Type);
+	
+	TypeSymbol Type_GetUnMapType();
+	bool Type_IsUnMapType(const TypeSymbol& Type) const;
 
-	void OnImportNode(const ImportStatement& node);
-
-	void OnCMPTypesNode(const CMPTypesNode& node);
-	bool CMPGetValue(const TypeSymbol& Type0, const TypeSymbol& Type1, const Token* Value);
+	void OnCompareTypesNode(const CMPTypesNode& node);
+	bool Type_Compare(const TypeSymbol& Type0, const TypeSymbol& Type1, const Token* Value);
 
 	
 
-	String GetClassWithTraitVTableName(const String& ClassFullName, const String& TraitFullName);
-	String GetTraitVTableName(const String& TraitName);
-	String GetTraitVStructTableName(const String& TraitName);
+	String Str_GetClassWithTraitVTableName(const String& ClassFullName, const String& TraitFullName);
+	String Str_GetTraitVTableName(const String& TraitName);
+	String Str_GetTraitVStructTableName(const String& TraitName);
 
-	void InheritTrait(Symbol* Syb, ClassInfo* ClassInfo,const Symbol* Trait, const Token* ClassNameToken);
+	void Symbol_InheritTrait(Symbol* Syb, ClassInfo* ClassInfo,const Symbol* Trait, const Token* ClassNameToken);
 
-	void BuildTrait(const Symbol* Syb,ClassInfo* ClassInfo, const Symbol* Trait, const Token* ClassNameToken);
-
-	void LogMissingFuncionforTrait(const String_view& FuncName, const FuncInfo* Info, const Symbol* Trait, const Token* ClassNameToken);
+	void Symbol_BuildTrait(const Symbol* Syb,ClassInfo* ClassInfo, const Symbol* Trait, const Token* ClassNameToken);
 
 
-	Symbol* NewDropFuncSymbol(ClassInfo* ClassInfo, TypeSymbol& ClassAsType);
-	void BuildFuncDropUsesingFields(const ClassInfo* ClassInfo, const IRType& ThisPar);
+	Symbol* Symbol_MakeNewDropFuncSymbol(ClassInfo* ClassInfo, TypeSymbol& ClassAsType);
+	void IR_Build_FuncDropUsingFields(const ClassInfo* ClassInfo, const IRType& ThisPar);
 
 
 	void OnStatementsWithSetableRet(const StatementsNode& node, TypeSymbol& RetOut, const Token* Token);
 
-	String GetLambdaFuncTepName(const String& LambdaName)
+	String Str_GetLambdaFuncTepName(const String& LambdaName)
 	{
 		return LambdaName + "ptr";
 	}
 
-	void TypeDoesNotHaveForOverload(const Token* Token, TypeSymbol& ExType);
+	bool Type_IsStructPassByRef(const Symbol* syb) const;
 
-	bool ISStructPassByRef(Symbol* syb);
-
-	bool GetMemberTypeSymbolFromVar(size_t Start, size_t End, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out);
-	bool GetMemberTypeSymbolFromVar(size_t Start, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
+	bool Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out);
+	bool Symbol_MemberTypeSymbolFromVar(size_t Start, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
 	{
-		return GetMemberTypeSymbolFromVar(Start, -1, node, Out);
+		return Symbol_MemberTypeSymbolFromVar(Start, -1, node, Out);
 	}
-	bool GetMemberTypeSymbolFromVar(const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
+	bool Symbol_MemberTypeSymbolFromVar(const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& Out)
 	{
-		return GetMemberTypeSymbolFromVar(0, node, Out);
+		return Symbol_MemberTypeSymbolFromVar(0, node, Out);
 	}
-	bool StepGetMemberTypeSymbolFromVar(const ScopedNameNode& node, size_t Index, ScopedName::Operator_t OpType, GetMemberTypeSymbolFromVar_t& Out);
+	bool Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameNode& node, size_t Index, ScopedName::Operator_t OpType, GetMemberTypeSymbolFromVar_t& Out);
 
-	void BuildMemberDereferencStore(const GetMemberTypeSymbolFromVar_t& In, IRInstruction* Value);
-	void BuildMember_Store(const GetMemberTypeSymbolFromVar_t& In, IRInstruction* Value);
+	void IR_Build_MemberDereferencStore(const GetMemberTypeSymbolFromVar_t& In, IRInstruction* Value);
+	void IR_Build_Member_Store(const GetMemberTypeSymbolFromVar_t& In, IRInstruction* Value);
 
-	IROperator BuildMember_Store(const GetMemberTypeSymbolFromVar_t& In);
-	IROperator BuildMember_DereferencStore(const GetMemberTypeSymbolFromVar_t& In);
-	IROperator BuildMember_Store(const GetMemberTypeSymbolFromVar_t& In, const TypeSymbol& Type);
+	IROperator IR_Build_Member_Store(const GetMemberTypeSymbolFromVar_t& In);
+	IROperator IR_Build_Member_DereferencStore(const GetMemberTypeSymbolFromVar_t& In);
+	IROperator IR_Build_Member_Store(const GetMemberTypeSymbolFromVar_t& In, const TypeSymbol& Type);
 
-	IRInstruction* BuildMember_GetPointer(const GetMemberTypeSymbolFromVar_t& In);
-	IRInstruction* BuildMember_GetValue(const GetMemberTypeSymbolFromVar_t& In);
-	IRInstruction* BuildMember_DereferenceValue(const GetMemberTypeSymbolFromVar_t& In);
-	IRInstruction* BuildMember_AsPointer(const GetMemberTypeSymbolFromVar_t& In);
-	IRInstruction* BuildMember_AsValue(const GetMemberTypeSymbolFromVar_t& In);
+	IRInstruction* IR_Build_Member_GetPointer(const GetMemberTypeSymbolFromVar_t& In);
+	IRInstruction* IR_Build_Member_GetValue(const GetMemberTypeSymbolFromVar_t& In);
+	IRInstruction* IR_Build_Member_DereferenceValue(const GetMemberTypeSymbolFromVar_t& In);
+	IRInstruction* IR_Build_Member_AsPointer(const GetMemberTypeSymbolFromVar_t& In);
+	IRInstruction* IR_Build_Member_AsValue(const GetMemberTypeSymbolFromVar_t& In);
 	void BuildMember_Access(const GetMemberTypeSymbolFromVar_t& In, IRInstruction*& Output);
 	void StepBuildMember_Access(const ScopedName& ITem, TypeSymbol& Last_Type, ScopedName::Operator_t OpType, const GetMemberTypeSymbolFromVar_t& In, IRInstruction*& Output);
 	void BuildMember_Reassignment(const GetMemberTypeSymbolFromVar_t& In, const TypeSymbol& Type, IRInstruction* Value);
@@ -1049,14 +1067,10 @@ private:
 	void OnCharliteralNode(const CharliteralNode* num);
 	void OnFloatLiteralNode(const FloatliteralNode* num);
 	void OnStringLiteral(const StringliteralNode* nod, bool& retflag);
-	bool IsStaticCharArr(const TypeSymbol& Type);
 	void OnSizeofNode(const SizeofExpresionNode* nod);
 	void OnNewNode(const NewExpresionNode* nod);
 	void OnAnonymousObjectConstructor(const AnonymousObjectConstructorNode* nod);
 	void OnReadVariable(const ReadVariableNode& nod);
-	Byte OperatorPrecedenceValue(const Node* node);
-	Byte OperatorPrecedence(TokenType V);
-	bool SwapForOperatorPrecedence(const Node* nodeA, const Node* nodeB);
 	void OnExpressionNode(const BinaryExpressionNode& node);
 	void OnExpressionNode(const CastNode& node);
 	void OnExpressionNode(const IndexedExpresionNode& node);
@@ -1066,95 +1080,75 @@ private:
 	void OnvalidNode(const ValidNode& node);
 	void OnExpressionNode(const ExtendedScopeExpression& node);
 	void OnExpressionNode(const ExtendedFuncExpression& node);
+	void OnMatchExpression(const MatchExpression& node);
+	void OnExpressionToTypeValueNode(const ExpressionToTypeValueNode& node);
+
+	Byte OperatorPrecedenceValue(const Node* node);
+	Byte OperatorPrecedence(TokenType V);
+	bool Node_SwapForOperatorPrecedence(const Node* nodeA, const Node* nodeB);
+
+	bool Type_IsStaticCharArr(const TypeSymbol& Type);
 
 	TypeSymbol ExtendedFuncExpressionGetTypeToStart(const TypeSymbol& ExpressionType, const ExtendedFuncExpression& node);
 
 	void OnTypeToValueNode(const TypeToValueNode& node);
-	void LogCantOutputTypeinfo(const Token* Token);
-	void OnExpressionToTypeValueNode(const ExpressionToTypeValueNode& node);
-
 	void OnMatchStatement(const MatchStatement& node);
-	void CanMatch(const TypeSymbol& MatchItem, const ExpressionNodeType& MatchValueNode, const ExpressionNodeType& node, MatchArmData& Data);
+	void Type_CanMatch(const TypeSymbol& MatchItem, const ExpressionNodeType& MatchValueNode, const ExpressionNodeType& node, MatchArmData& Data);
 	
 
 	bool MatchShouldOutPassEnumValue(const ExpressionNodeType& node);
 	void MatchAutoPassEnumValueStart(MatchAutoPassEnum& V, const ExpressionNodeType& node, const ValueExpressionNode* Val, const FuncCallNode* Call);
 	void MatchAutoPassEnd(MatchAutoPassEnum& V);
-	void CheckAllValuesAreMatched(const TypeSymbol& MatchItem, const MatchArmData& Data);
+	void TryError_AllValuesAreMatched(const TypeSymbol& MatchItem, const MatchArmData& Data);
 	
-	struct BuildMatch_ret
-	{
-		IRBlock::NewConditionalFalseJump_t JumpToUpdateIFMatchTrue;
-		IRInstruction* JumpToUpdateEndIndex = 0;
-	};
-	struct BuildMatch_State
-	{
-		Vector<BuildMatch_ret> MatchList;
-	};
+	
+	BuildMatch_ret IR_Build_Match(const TypeSymbol& MatchItem, const ExpressionNodeType& MatchValueNode,IRInstruction* Item, BuildMatch_State& State, MatchArm& Arm, const ExpressionNodeType& ArmEx);
+	BuildMatch_ret IR_Build_InvaildMatch(const TypeSymbol& MatchItem, IRInstruction* Item, BuildMatch_State& State);
+	void IR_Build_Match(BuildMatch_ret& Value, BuildMatch_State& State);
+	void IR_Build_MatchState(BuildMatch_State& State);
 
-	BuildMatch_ret BuildMatch(const TypeSymbol& MatchItem, const ExpressionNodeType& MatchValueNode,IRInstruction* Item, BuildMatch_State& State, MatchArm& Arm, const ExpressionNodeType& ArmEx);
-	BuildMatch_ret BuildInvaildMatch(const TypeSymbol& MatchItem, IRInstruction* Item, BuildMatch_State& State);
-	void EndMatch(BuildMatch_ret& Value, BuildMatch_State& State);
-	void EndMatchState(BuildMatch_State& State);
+	
+	void Assembly_ConvertAttributes(const Vector<Unique_ptr<AttributeNode>>& nodes,Vector<UsedTagValueData>& Out);
+	void Assembly_ConvertAttribute(const AttributeNode& nodes, UsedTagValueData Out);
+	void Assembly_LoadLibSymbols();
+	void Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode Mode);
 
-	void OnMatchExpression(const MatchExpression& node);
+	void Assembly_LoadClassSymbol(const Class_Data& Item,const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
+	void Assembly_LoadEnumSymbol(const Enum_Data& Item,const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 
-	enum class LoadLibMode
-	{
-		GetTypes,
-		FixTypes,
-		Done
-	};
+	void Assembly_LoadSymbol(const ClassMethod& Item, SystematicAnalysis::LoadLibMode Mode);
+	void Assembly_LoadType(const ReflectionTypeInfo& Item, TypeSymbol& Out);
+	TypeSymbol Assembly_LoadType(const ReflectionTypeInfo& Item);
 
-	void ConvertAttributes(const Vector<Unique_ptr<AttributeNode>>& nodes,Vector<UsedTagValueData>& Out);
-	void ConvertAttribute(const AttributeNode& nodes, UsedTagValueData Out);
-	void LoadLibSymbols();
-	void LoadLibSymbols(const UClib& lib, LoadLibMode Mode);
-
-	void LoadClassSymbol(const Class_Data& Item,const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
-	void LoadEnumSymbol(const Enum_Data& Item,const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
-
-	void LoadSymbol(const ClassMethod& Item, SystematicAnalysis::LoadLibMode Mode);
-	void LoadType(const ReflectionTypeInfo& Item, TypeSymbol& Out);
-	TypeSymbol LoadType(const ReflectionTypeInfo& Item);
-
-	auto OutputType()
+	auto Output_Type()
 	{
 		return  _Settings->_Type;
 	}
-	auto OutputTypeAsLibType()
+	auto Output_TypeAsLibType()
 	{
-		return   OutputType() == OutPutType::Lib ? LibType::Lib : LibType::Dll;
+		return   Output_Type() == OutPutType::Lib ? LibType::Lib : LibType::Dll;
 	}
-	Symbol* GetSymbol(String_view Name, SymbolType Type);
-	static String GetFuncAnonymousObjectFullName(const String& FullFuncName);
-	void AddClass_tToAssemblyInfo(const Vector<Unique_ptr<AttributeNode>>& attributes,const Symbol* ClassSyb);
-	ReflectionTypeInfo ConvertToTypeInfo(const TypeSymbol& Type);
+	
+	static String Str_GetFuncAnonymousObjectFullName(const String& FullFuncName);
+	void Assembly_AddClass(const Vector<Unique_ptr<AttributeNode>>& attributes,const Symbol* ClassSyb);
+	ReflectionTypeInfo Assembly_ConvertToType(const TypeSymbol& Type);
 
-	TypeSymbolID GetTypeID(TypesEnum Type, SymbolID SymbolId);
-	TypeSymbol GetStaticArrayType(const TypeSymbol& BaseType, size_t Size);
+	TypeSymbolID Type_GetTypeID(TypesEnum Type, SymbolID SymbolId);
+	TypeSymbol Type_GetStaticArrayType(const TypeSymbol& BaseType, size_t Size);
 
-	bool AreTheSame(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
-	bool AreTheSame(const ParInfo& TypeA, const ParInfo& TypeB);
-	bool AreTheSameWithOutimmutable(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
-
-	struct StrExELav
-	{
-
-		String OwnedStr;
-		String_view Msg;
-		bool IsConstantExpression = false;
-	};
+	bool Type_AreTheSame(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
+	bool Type_AreTheSame(const ParInfo& TypeA, const ParInfo& TypeB);
+	bool Type_AreTheSameWithOutimmutable(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
 
 
-	BinaryOverLoadWith_t HasBinaryOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
-	CompoundOverLoadWith_t HasCompoundOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
-	PostFixOverLoadWith_t HasPostfixOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp);
-	IndexOverLoadWith_t  HasIndexedOverLoadWith(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
-	ForOverLoadWith_t HasForOverLoadWith(const TypeSymbol& TypeA);
-	UrinaryOverLoadWith_t HasUrinaryOverLoadWith(const TypeSymbol& TypeA, TokenType Op);
+	BinaryOverLoadWith_t Type_HasBinaryOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
+	CompoundOverLoadWith_t Type_HasCompoundOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
+	PostFixOverLoadWith_t Type_HasPostfixOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp);
+	IndexOverLoadWith_t  Type_HasIndexedOverLoadWith(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
+	ForOverLoadWith_t Type_HasForOverLoadWith(const TypeSymbol& TypeA);
+	UrinaryOverLoadWith_t Type_HasUrinaryOverLoadWith(const TypeSymbol& TypeA, TokenType Op);
 
-	TypeSymbol BinaryExpressionShouldRurn(TokenType Op, const TypeSymbol& Ex0Type);
+	TypeSymbol Type_BinaryExpressionShouldRurn(TokenType Op, const TypeSymbol& Ex0Type);
 
 
 	String ToString(const ParInfo& Type)
@@ -1177,52 +1171,68 @@ private:
 	
 
 
-	void Convert(const TypeNode& V, TypeSymbol& Out);
+	void Type_Convert(const TypeNode& V, TypeSymbol& Out);
 
 	Optional<Symbol*> Generic_InstantiateOrFindGenericSymbol(const Token* Token, const UseGenericsNode& GenericsVals, const String_view& Name);
 
-	void LogCantBindTypeItNotTypeInfo(const UCodeLang::Token* Token, UCodeLang::FrontEnd::TypeSymbol& Type);
 	
-	void ConvertAndValidateType(const TypeNode& V, TypeSymbol& Out,NodeSyb_t Syb);
-	TypeSymbol ConvertAndValidateType(const TypeNode& V, NodeSyb_t Syb);
-	bool ValidateType(const TypeSymbol& V,const Token* Token,NodeSyb_t Syb);
+	void Type_ConvertAndValidateType(const TypeNode& V, TypeSymbol& Out,NodeSyb_t Syb);
+	TypeSymbol Type_ConvertAndValidateType(const TypeNode& V, NodeSyb_t Syb);
+	bool Type_ValidateType(const TypeSymbol& V,const Token* Token,NodeSyb_t Syb);
 
 	
 
-	
-	Symbol* GetSymbol(const FuncInfo* Info)
+	Symbol* Symbol_GetSymbol(String_view Name, SymbolType Type);
+	Symbol* Symbol_GetSymbol(const FuncInfo* Info)
 	{
-		return GetSymbol(Info->FullName, SymbolType::Func);
+		return Symbol_GetSymbol(Info->FullName, SymbolType::Func);
 	}
-	Symbol* GetSymbol(const TypeSymbol& Info)
+	Symbol* Symbol_GetSymbol(const TypeSymbol& Info)
 	{
 		if (Info._Type == TypesEnum::CustomType) {
-			return GetSymbol(Info._CustomTypeSymbol);
+			return Symbol_GetSymbol(Info._CustomTypeSymbol);
 		}
 		return nullptr;
 	}
-	Symbol* GetSymbol(const SymbolID Info)
+	Symbol* Symbol_GetSymbol(const SymbolID Info)
 	{
 		return &_Table.GetSymbol(Info);
 	}
 
-	bool _InSideClass()
+	const Symbol* Symbol_GetSymbol(String_view Name, SymbolType Type) const;
+	const Symbol* Symbol_GetSymbol(const FuncInfo* Info) const
+	{
+		return Symbol_GetSymbol(Info->FullName, SymbolType::Func);
+	}
+	const Symbol* Symbol_GetSymbol(const TypeSymbol& Info) const
+	{
+		if (Info._Type == TypesEnum::CustomType) {
+			return Symbol_GetSymbol(Info._CustomTypeSymbol);
+		}
+		return nullptr;
+	}
+	const Symbol* Symbol_GetSymbol(const SymbolID Info) const
+	{
+		return &_Table.GetSymbol(Info);
+	}
+
+	bool Context_InSideClass()
 	{
 		return  _ClassStack.size() && _ClassStack.top()._InStatements == false;
 	}
-	bool IsInThisFuncCall()
+	bool Context_IsInThisFuncCall()
 	{
 		if (_FuncStack.size()) {
-			return IsThisFuncCall(_FuncStack.back().Pointer);
+			return Symbol_IsThisFuncCall(_FuncStack.back().Pointer);
 		}
 		return false;
 	}
-	bool IsThisFuncCall(const FuncInfo* Func)
+	bool Symbol_IsThisFuncCall(const FuncInfo* Func) const
 	{
 		if (auto ObjectType = Func->GetObjectForCall())
 		{
-			auto objecttypesyb = GetSymbol(*ObjectType);
-			if (IsUnMapType(*ObjectType))//Generic Test
+			auto objecttypesyb = Symbol_GetSymbol(*ObjectType);
+			if (Type_IsUnMapType(*ObjectType))//Generic Test
 			{
 				return true;
 			}
@@ -1235,35 +1245,35 @@ private:
 	}
 	
 
-	void DoSymbolRedefinitionCheck(const Symbol* Syb, const Token* Value);
-	void DoSymbolRedefinitionCheck(const String_view FullName, SymbolType Type, const Token* Value);
-	void DoSymbolRedefinitionCheck(const Symbol* Syb, const FuncInfo* Fvalue, const Token* Value);
+	void Symbol_RedefinitionCheck(const Symbol* Syb, const Token* Value);
+	void Symbol_RedefinitionCheck(const String_view FullName, SymbolType Type, const Token* Value);
+	void Symbol_RedefinitionCheck(const Symbol* Syb, const FuncInfo* Fvalue, const Token* Value);
 
-	bool CanDoTypeToTrait(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
+	bool Type_CanDoTypeToTrait(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
 
-	bool IsVaidType(TypeSymbol& Out);
-	bool CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode = true);
-	CastOverLoadWith_t  CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
-	Optional<FuncInfo*> GetAnExplicitlyConvertedFunc(const TypeSymbol& TypeToCheck);
+	bool Type_IsValid(TypeSymbol& Out);
+	bool Type_CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode = true);
+	CastOverLoadWith_t  Type_CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
+	Optional<FuncInfo*> Symbol_GetAnExplicitlyConvertedFunc(const TypeSymbol& TypeToCheck);
 
 	bool IR_Build_ImplicitConversion(IRInstruction* Ex, const TypeSymbol ExType, const TypeSymbol& ToType);
 	void IR_Build_Conversion(IRInstruction* Ex, const TypeSymbol ExType, const TypeSymbol& ToType,const CastExpressionNode_Data& Data);
 
-	bool Type_IsSIntType(const TypeSymbol& TypeToCheck);
-	bool Type_IsUIntType(const TypeSymbol& TypeToCheck);
-	bool Type_IsIntType(const TypeSymbol& TypeToCheck)
+	bool Type_IsSIntType(const TypeSymbol& TypeToCheck) const;
+	bool Type_IsUIntType(const TypeSymbol& TypeToCheck) const;
+	bool Type_IsIntType(const TypeSymbol& TypeToCheck) const
 	{
 		return  Type_IsSIntType(TypeToCheck) || Type_IsUIntType(TypeToCheck);
 	}
-	bool Type_IsfloatType(const TypeSymbol& TypeToCheck);
-	bool Type_IsCharType(const TypeSymbol& TypeToCheck);
-	bool Type_IsPrimitive(const TypeSymbol& TypeToCheck);
-	bool Type_IsPrimitiveNotIncludingPointers(const TypeSymbol& TypeToCheck);
-	bool Type_IsStaticArray(const TypeSymbol& TypeToCheck);
+	bool Type_IsfloatType(const TypeSymbol& TypeToCheck)const;
+	bool Type_IsCharType(const TypeSymbol& TypeToCheck) const;
+	bool Type_IsPrimitive(const TypeSymbol& TypeToCheck) const;
+	bool Type_IsPrimitiveNotIncludingPointers(const TypeSymbol& TypeToCheck) const;
+	bool Type_IsStaticArray(const TypeSymbol& TypeToCheck) const;
 
-	bool Type_IsimmutableRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
+	bool Type_IsimmutableRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type)const;
 
-	bool Type_IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode);
+	bool Type_IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode) const;
 
 
 	bool Symbol_HasDestructor(const TypeSymbol& TypeToCheck);
@@ -1418,12 +1428,12 @@ private:
 			const auto& Tnode = UseNode.Values[i];
 			const auto& GenericInfo = GenericData._Generic[i];
 			TypeSymbol Type;
-			ConvertAndValidateType(Tnode, Type, NodeSyb_t::Any);
+			Type_ConvertAndValidateType(Tnode, Type, NodeSyb_t::Any);
 
 			{
 				bool InputTypeIsConstantExpression = false;
 
-				auto TypeSyb = GetSymbol(Type);
+				auto TypeSyb = Symbol_GetSymbol(Type);
 				if (TypeSyb)
 				{
 					InputTypeIsConstantExpression = TypeSyb->Type == SymbolType::ConstantExpression;
@@ -1451,7 +1461,7 @@ private:
 		}
 
 		String NewName = Generic_GetGenericFuncFullName(Symbol, *GenericInput);
-		auto FuncIsMade = GetSymbol(NewName, SymbolType::Type_class);
+		auto FuncIsMade = Symbol_GetSymbol(NewName, SymbolType::Type_class);
 		if (!FuncIsMade)
 		{
 			(*this.*Instantiate)(Symbol, *GenericInput);
@@ -1459,7 +1469,7 @@ private:
 			_TepFuncs.push_back({ std::move(GenericInput) });
 		}
 
-		return GetSymbol(NewName, SymbolType::Type);
+		return Symbol_GetSymbol(NewName, SymbolType::Type);
 	}
 	Symbol* Generic_InstantiateOrFindGeneric_Class(const Token* Name, const Symbol* Symbol, const GenericValuesNode& SymbolGenericValues, const Generic& GenericData, const UseGenericsNode& UseNode)
 	{
@@ -1637,6 +1647,16 @@ private:
 	void LogError(ErrorCodes Err, const String& MSG, const Token* Token);
 	void LogError(ErrorCodes Err,size_t Line,size_t Pos, const String& MSG);
 	void LogError_LogWantedAVariable(const Token* const& Item, Symbol* TepSyb);
+	void LogError_CantBindTypeItNotTypeInfo(const Token* Token,TypeSymbol& Type);
+	void LogError_CantUseTypeVoidHere(const Token* Token);
+	void LogError_UseingTypeinfoInNonEvalVarable(const Token* Token);
+	void LogError_UseingTypeinfoInEvalFuncPar(const Token* Token);
+	void LogError_CantOutputTypeinfo(const Token* Token);
+	void LogError_DoesNotHaveForOverload(const Token* Token,TypeSymbol& ExType);
+	void LogError_CantgussTypesTheresnoassignment(const Token* Token);
+	void LogError_DoesNotHaveForOverload(const Token* Token, TypeSymbol& ExType);
+	void LogError_MissingFuncionforTrait(const String_view& FuncName, const FuncInfo* Info, const Symbol* Trait, const Token* ClassNameToken);
+	void LogError_CantUseOutInOverloadFunc(const Token& Name);
 
 	ReadVarErrorCheck_t TryLogError_OnReadVar(String_view VarName, const Token* Token, const Symbol* Syb);
 	void TryLogError_OnWritingVar(Symbol* Symbol, const Token* Token, String_view& Name);
