@@ -97,7 +97,7 @@ void IRToX86_64IR::Build(const IRBlock* func)
 			}
 			else
 			{
-				throw std::exception("bad path");
+				UCodeLangUnreachable();
 			}
 			int a = 0;
 		}
@@ -105,7 +105,7 @@ void IRToX86_64IR::Build(const IRBlock* func)
 		case IRInstructionType::Return:
 		break;
 		default:
-			throw std::exception("not added");
+			UCodeLangUnreachable();
 			break;
 		}
 	}
@@ -150,7 +150,7 @@ IRToX86_64IR::IRLoc IRToX86_64IR::LoadOp(const IRInstruction* Value, const IROpe
 		}
 		break;
 		default:
-			throw std::exception("bad path");
+			UCodeLangUnreachable();
 			break;
 		}
 		IRLoc r;
@@ -167,7 +167,7 @@ IRToX86_64IR::IRLoc IRToX86_64IR::LoadOp(const IRInstruction* Value, const IROpe
 	}
 	break;
 	default:
-		throw std::exception("bad path");
+		UCodeLangUnreachable();
 		break;
 	}
 }

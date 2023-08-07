@@ -35,7 +35,7 @@ void Interpreter::InterpreterSysCall(InstructionSysCall SysCall, RegisterID ParR
 		UFileHandle::Close(Get_Register(ParReg).Value.AsPtr);
 		break;
 	default:
-		throw std::exception("bad SysCall");
+		UCodeLangUnreachable();
 		break;
 	}
 }

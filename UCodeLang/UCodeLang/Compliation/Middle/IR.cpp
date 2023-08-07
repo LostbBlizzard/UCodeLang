@@ -101,13 +101,13 @@ size_t IRBuilder::GetSize(const IRType& Type) const
 		case IRSymbolType::FuncPtr:goto Pointer;
 		default:
 
-			throw std::exception("not added");
+			UCodeLangUnreachable();
 			break;
 		}
 	}
 	break;
 	default:
-		throw std::exception("not added");
+		UCodeLangUnreachable();
 		break;
 	}
 }
@@ -230,8 +230,7 @@ IRType IRBuilder::GetType(const IROperator& IR) const
 		return IRType(IRTypes::pointer);
 	}
 	default:
-		throw std::exception("bad path");
-		return {};
+		UCodeLangUnreachable();
 		break;
 	}
 }
@@ -941,7 +940,7 @@ void IRBuilder::ToBytes(UCodeLang::BitMaker& Out, const UCodeLang::IRDebugIns& I
 	}
 	else
 	{
-		throw std::exception("bad path");
+		UCodeLangUnreachable();
 	}
 }
 
@@ -994,7 +993,7 @@ void IRBuilder::FromBytes(BitReader& Out, IRDebugIns& Value)
 	}
 	break;
 	default:
-		throw std::exception("bad path");
+		UCodeLangUnreachable();
 		break;
 	}
 }
@@ -1340,7 +1339,7 @@ String IRBuilder::ToString()
 		}
 		break;
 		default:
-			throw std::exception("not added");
+			UCodeLangUnreachable();
 			break;
 		}
 	}
@@ -1712,7 +1711,7 @@ bool IRBuilder::ToString(
 		break;
 
 	default:
-		throw std::exception("not added");
+		UCodeLangUnreachable();
 		break;
 	}
 	return true;

@@ -478,6 +478,7 @@ void Interpreter::Extecute(Instruction& Inst)
 			throw std::exception("bad cpp call.");//Cant find CPPCall.
 			_CPU.RetValue._Succeed = ExitState::Failure;
 			_CPU.Stack.StackOffSet = 0;
+			UCodeLangUnreachable();//not added  instruction?
 		}
 	}break;
 	case InstructionSet::CPPCall:
@@ -486,7 +487,7 @@ void Interpreter::Extecute(Instruction& Inst)
 		auto& inter = *(InterpreterCPPinterface*)&_CPPHelper;
 		inter = InterpreterCPPinterface(this);
 
-		throw std::exception("unknown instruction");
+		UCodeLangUnreachable();//not added  instruction?
 
 		//CppV(inter);
 	}break;
@@ -514,11 +515,7 @@ void Interpreter::Extecute(Instruction& Inst)
 	#pragma endregion
 	break;
 	default:
-		#if CompliationTypeSafety
-		throw std::exception("unknown instruction");
-		#endif // DEBUG
-		_CPU.RetValue._Succeed = ExitState::Failure;
-		_CPU.Stack.StackOffSet = 0;
+		UCodeLangUnreachable();
 		break;
 	}
 }

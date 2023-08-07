@@ -83,12 +83,23 @@
 #define UCodeLangAPIExportDLLIMPORT __declspec(dllexport)
 #endif
 
+#ifdef DEBUG
+#define UCodeLangUnreachable() throw std::exception("bad path");
+#else
+#define UCodeLangUnreachable()
+#endif
+
+#if Published
+#define UCodeLangToDo() static_assert(true,"Add Code Path")
+#elseif
+#define UCodeLangToDo() throw std::exception("Code Path not vaild Is On ToDolist");
+#endif
 
 #if UCodeLangAPIDLLBuild
 #if defined(UCodeLangAPIDLLBuildEXPORT)
-# define UCodeLangAPIExport ZYAN_DLLEXPORT
+# define UCodeLangAPIExport UCodeLangAPIExportDLLEXPORT
 #else
-#define UCodeLangAPIExport ZYAN_DLLIMPORT
+#define UCodeLangAPIExport UCodeLangAPIExportDLLIMPORT
 #endif
 #else
 #define UCodeLangAPIExport

@@ -20,7 +20,7 @@ void GetCPUData(EnvironmentData& Out)
 		Out.Architecture = ProcessorArchitecture::AMD64;
 		break;
 	default:
-		throw std::bad_alloc();
+		UCodeLangUnreachable();
 		break;
 	}
 
