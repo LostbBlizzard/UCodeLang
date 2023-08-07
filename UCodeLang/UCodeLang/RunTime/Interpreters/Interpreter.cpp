@@ -12,6 +12,9 @@ bool Interpreter::CheckIfFunctionExist(const String& FunctionName)
 
 void Interpreter::Get_Return(void* Output, size_t OutputSize)
 {
+#ifdef DEBUG
+	GotRetValue = true;
+#endif
 	if (OutputSize <= sizeof(Register))
 	{
 		MemCopy(Output, &Get_OutRegister().Value, OutputSize);
@@ -63,6 +66,38 @@ Interpreter::Return_t Interpreter::Call(const String& FunctionName)
 }
 Interpreter::Return_t Interpreter::Call(UAddress address)
 {
+	#ifdef DEBUG
+	{
+		if (CalledFuncBefor)
+		{
+			UCodeLangAssert(GotRetValue == true);//you did not call Get_Return() on last call and it last call was not void
+		}
+		CalledFuncBefor = true;
+		GotRetValue = false;
+		auto method = Get_State()->GetMethod(address);
+		UCodeLangAssert(method != nullptr);//Must be Method
+		if (method)
+		{
+			UCodeLangAssert(_Parameters.GetParameterCount() == method->ParsType.size());
+
+			auto State = _Parameters.StartLoop();
+			size_t i = 0;
+			while (_Parameters.Next(State))
+			{
+				auto Data = _Parameters.GetLoopData(State);
+				auto ParSize = Get_State()->Get_Assembly().GetSize(method->ParsType[i], sizeof(void*) == 4).value_or(0);
+				UCodeLangAssert(Data.DataSize == ParSize);
+
+				i++;
+			}
+			GotRetValue = method->RetType._Type == ReflectionTypes::Void;
+		}
+		else
+		{
+			UCodeLangAssert(method)
+		}
+	}
+	#endif
 	auto OldStackPrePars = _CPU.Stack.StackOffSet;
 	FlushParametersIntoCPU();
 

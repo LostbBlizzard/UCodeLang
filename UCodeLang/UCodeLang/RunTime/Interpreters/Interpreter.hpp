@@ -59,11 +59,21 @@ public:
 	};
 
 	Interpreter() {}
-	~Interpreter() { UnLoad(); }
+	~Interpreter() 
+	{ 
+		#ifdef DEBUG
+		InDestruct = true;
+		#endif
+		UnLoad(); 
+	}
 
 
 	void Init(RunTimeLangState* State)
 	{
+		#ifdef DEBUG
+		WasInit = true;
+		#endif
+
 		_State = State;
 		constexpr size_t bufferForHeap = 0xff;
 		auto P = Calloc(CPUData::MaxStackSize + bufferForHeap);
@@ -76,6 +86,11 @@ public:
 	}
 	void UnLoad()
 	{
+		#ifdef DEBUG
+		UCodeLangAssert(WasInit == true && InDestruct == false);
+		GotRetValue = false;
+		CalledFuncBefor = false;
+		#endif
 		if (_CPU.Stack._Data) 
 		{
 			Free(_CPU.Stack._Data);
@@ -409,6 +424,15 @@ private:
 	InterpreterCPPinterface* _CPPHelper = nullptr;
 	UserMadeContext _UserMadeContext;
 	ParameterPassingHelper _Parameters;
+
+	#ifdef DEBUG
+	bool WasInit = false;
+	bool InDestruct = false;
+	bool GotRetValue = false;
+	bool CalledFuncBefor = false;
+	#endif // DEBUG
+
+
 	void FlushParametersIntoCPU();
 
 	UCodeLangForceinline PtrType Get_StaticMemPtr(){return _State->Get_StaticMemPtr();}

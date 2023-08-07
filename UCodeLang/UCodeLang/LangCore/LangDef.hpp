@@ -110,7 +110,7 @@
 #endif
 
 #ifdef DEBUG
-#define UCodeLangAssert(condition) assert(condition)
+#define UCodeLangAssert(condition) if (!(condition)){UCodeLangThrowException("bad");}
 #else
 #define UCodeLangAssert(condition)
 #endif
