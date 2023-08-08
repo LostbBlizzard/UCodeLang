@@ -188,6 +188,7 @@ private:
 		UCodeVM,
 		C89,
 		IR,
+		LLVM,
 	};
 
 	enum class NativeSet
