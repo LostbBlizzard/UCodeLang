@@ -9,6 +9,7 @@
 #include "UCodeLang/Compliation/Back/UCodeBackEnd/UCodeBackEnd.hpp"
 #include "UCodeLang/Compliation/Back/C89/C89Backend.hpp"
 #include "UCodeLang/Compliation/Back/IR/IRBackEnd.hpp"
+#include "UCodeLang/Compliation/Back/LLVM/LLVMBackEnd.hpp"
 
 #include "UCodeLang/Compliation/Back/x86_64/X86_64UNativeBackEnd.hpp"
 #include "UCodeLang/Compliation/Back/x86_64/X86_64JitCompiler.hpp"
@@ -794,6 +795,7 @@ void AppObject::OnDraw()
             {"UCodeVM",BackEndType::UCodeVM},
             {"IR",BackEndType::IR},
             {"C89",BackEndType::C89},
+            {"LLVM",BackEndType::LLVM},
         };
 
         bool UpdateLib = false;
@@ -840,6 +842,9 @@ void AppObject::OnDraw()
                 break;
             case BackEndType::IR:
                 _BackEnd = UCodeLang::IRBackEnd::MakeObject;
+                break;
+            case BackEndType::LLVM:
+                _BackEnd = UCodeLang::LLVMBackEnd::MakeObject;
                 break;
             default:
                 break;
@@ -1897,6 +1902,9 @@ void AppObject::CompileText(const String& String)
         break;
 
         case BackEndType::C89:
+            _LibInfoString = _Compiler.GetTextFromFile(tepoutpath);
+            break;
+        case BackEndType::LLVM:
             _LibInfoString = _Compiler.GetTextFromFile(tepoutpath);
             break;
         default:

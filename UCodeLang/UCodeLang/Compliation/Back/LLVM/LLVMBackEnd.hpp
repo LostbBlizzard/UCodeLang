@@ -19,5 +19,10 @@ public:
 	String GetOutputExtWithDot() override { return ".ll"; }
 	static BackEndObject* MakeObject() { return new LLVMBackEnd(); }
 private:
+	const IRBuilder* _Input =nullptr;
+	String _OutStr;
+	
+	void OnFunc(const IRFunc* Func);
+	String ToString(const IRType& Type);
 };
 UCodeLangEnd
