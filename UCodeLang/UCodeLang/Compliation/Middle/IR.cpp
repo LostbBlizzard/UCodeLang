@@ -124,14 +124,9 @@ size_t IRBuilder::GetOffset(const IRStruct* Struct, size_t Index) const
 
 IRType IRBuilder::GetType(const IRInstruction* IR, const IROperator& Op) const
 {
-	if (IR->Type == IRInstructionType::Member_Access)
-	{
-		return GetType(IR);
-	}
-	else if (IR->Type == IRInstructionType::Member_Access_Dereference)
-	{
-		return GetType(IR);
-	}
+	UCodeLangAssert(IR->Type != IRInstructionType::Member_Access);//use GetType(IR);
+	UCodeLangAssert(IR->Type != IRInstructionType::Member_Access_Dereference);//use GetType(IR);
+	
 
 	if (IsLoadValueOnInput(IR->Type))
 	{
@@ -224,10 +219,24 @@ IRType IRBuilder::GetType(const IROperator& IR) const
 		
 	}
 	case IROperatorType::Get_PointerOf_IRInstruction:
+	{
+		return IRType(IRTypes::pointer, GetType(IR.Pointer)._symbol);
+	}
 	case IROperatorType::Get_PointerOf_IRParameter:
+	{
+		return IRType(IRTypes::pointer, IR.Parameter->type._symbol);
+	}
 	case IROperatorType::Get_PointerOf_IRidentifier:
 	{
-		return IRType(IRTypes::pointer);
+		auto Id = IR.identifer;
+		if (auto Syb = GetSymbol(Id))
+		{
+			return IRType(IRTypes::pointer, Syb->Type._symbol);
+		}
+		else
+		{
+			return IRType(IRTypes::pointer);
+		}
 	}
 	default:
 		UCodeLangUnreachable();
@@ -1729,7 +1738,16 @@ String IRBuilder::ToString(const IRType& Type)
 
 
 	case IRTypes::Void:return "void";
-	case IRTypes::pointer:return "void*";
+	case IRTypes::pointer:
+	{ 
+		auto Syb = GetSymbol(Type._symbol);
+		if (Syb)
+		{
+			return FromID(Syb->identifier) + "*";
+		}
+		return "void*";
+
+	}
 	case IRTypes::IRsymbol:
 	{
 		auto Syb = GetSymbol(Type._symbol);

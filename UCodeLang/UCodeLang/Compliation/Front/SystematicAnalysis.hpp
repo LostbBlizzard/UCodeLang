@@ -843,15 +843,15 @@ private:
 
 
 
-	IRType IRType_ConvertToIRType(const ParInfo& Value)
+	IRType IR_ConvertToIRType(const ParInfo& Value)
 	{
 		if (Value.IsOutPar)
 		{
 			return IRType(IRTypes::pointer);
 		}
-		return IRType_ConvertToIRType(Value.Type);
+		return IR_ConvertToIRType(Value.Type);
 	}
-	IRType IRType_ConvertToIRType(const TypeSymbol& Value);
+	IRType IR_ConvertToIRType(const TypeSymbol& Value);
 	void Push_NewStackFrame();
 	void Pop_StackFrame();
 	TypeSymbol& Type_Get_LookingForType() 
@@ -1264,7 +1264,7 @@ private:
 	Optional<FuncInfo*> Symbol_GetAnExplicitlyConvertedFunc(const TypeSymbol& TypeToCheck);
 
 	bool IR_Build_ImplicitConversion(IRInstruction* Ex, const TypeSymbol ExType, const TypeSymbol& ToType);
-	void IR_Build_Conversion(IRInstruction* Ex, const TypeSymbol ExType, const TypeSymbol& ToType,const CastExpressionNode_Data& Data);
+	void IR_Build_ExplicitConversion(IRInstruction* Ex, const TypeSymbol ExType, const TypeSymbol& ToType,const CastExpressionNode_Data& Data);
 
 	bool Type_IsSIntType(const TypeSymbol& TypeToCheck) const;
 	bool Type_IsUIntType(const TypeSymbol& TypeToCheck) const;
