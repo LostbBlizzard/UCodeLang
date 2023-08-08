@@ -44,7 +44,7 @@ private:
 
 	void UpdateCppLinks(UCodeLang::String& r, UCodeLang::IRBufferData* V);
 
-	void ToString(String& r, const IRFunc* Item, C89Backend::ToStringState& State);
+	void ToString(String& r, const IRFunc* Item, C89Backend::ToStringState& State,bool OutputBody = false);
 
 	String ToString(const IRType& Type);
 

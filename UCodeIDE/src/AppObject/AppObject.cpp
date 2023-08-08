@@ -284,7 +284,10 @@ void EndDockSpace()
 {
     ImGui::End();//EndDockSpace
 }
-
+void AppObject::OpenOnWeb(const String& WebLink)
+{
+    ShellExecuteA(0, 0, WebLink.c_str(), 0, 0, SW_SHOW);
+}
 void AppObject::OnDraw()
 {
     {
@@ -968,7 +971,40 @@ void AppObject::OnDraw()
         {
             CompileText(GetTextEditorString());
         }
+        
+        if (ImGui::Button("Copy To Clip Board"))
+        {
+            ImGui::LogToClipboard();
+            ImGui::LogText(_LibInfoString.c_str());
+            ImGui::LogFinish();
+        }ImGui::SameLine();
 
+
+        {
+            String Txt;
+            if (OutputWindow.Type == BackEndType::LLVM)
+            {
+                Txt += "Open in Compiler Explorer [llvm]";
+            }
+            else
+            {
+                Txt += "Open in Compiler Explorer [C/C++]";
+            }
+            if (ImGui::Button(Txt.c_str()))
+            {
+                if (OutputWindow.Type == BackEndType::LLVM) 
+                {
+                    String path = "https://godbolt.org/noscript/llvm";
+                    OpenOnWeb(path);
+                }
+                else
+                {
+                    String path = "https://godbolt.org/";
+                    OpenOnWeb(path);
+                }
+            }
+
+        }
         ImGui::BeginDisabled();
 
         bool ShowLibInfo=true;
