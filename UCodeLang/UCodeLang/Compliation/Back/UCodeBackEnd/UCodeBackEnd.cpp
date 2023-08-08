@@ -209,7 +209,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::To(const ParlocData& Value)
 	}
 	else 
 	{
-		throw std::exception("bad path");
+		UCodeLangUnreachable();
 	}
 	return r;
 }
@@ -305,7 +305,7 @@ void UCodeBackEndObject::LinkFuncs()
 		}
 		else
 		{
-			throw std::exception("not added");
+			UCodeLangUnreachable();
 		}
 
 
@@ -559,7 +559,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 				}
 				break;
 			default:
-				throw std::exception("not added");
+				UCodeLangUnreachable();
 				break;
 			}
 
@@ -598,7 +598,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 				}
 				break;
 			default:
-				throw std::exception("not added");
+				UCodeLangUnreachable();
 				break;
 			}
 
@@ -640,7 +640,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 				}
 				break;
 			default:
-				throw std::exception("not added");
+				UCodeLangUnreachable();
 				break;
 			}
 
@@ -682,7 +682,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 				}
 				break;
 			default:
-				throw std::exception("not added");
+				UCodeLangUnreachable();
 				break;
 			}
 
@@ -724,7 +724,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 				}
 				break;
 			default:
-				throw std::exception("not added");
+				UCodeLangUnreachable();
 				break;
 			}
 
@@ -764,7 +764,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 				}
 				break;
 			default:
-				throw std::exception("not added");
+				UCodeLangUnreachable();
 				break;
 			}
 
@@ -882,7 +882,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 				}
 				break;
 			default:
-				throw std::exception("not added");
+				UCodeLangUnreachable();
 				break;
 			}
 
@@ -939,7 +939,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 				}
 				break;
 			default:
-				throw std::exception("not added");
+				UCodeLangUnreachable();
 				break;
 			}
 
@@ -974,7 +974,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 				}
 				break;
 			default:
-				throw std::exception("not added");
+				UCodeLangUnreachable();
 				break;
 			}
 
@@ -1023,7 +1023,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		}
 		break;
 		default:
-			throw std::exception("not added");
+			UCodeLangUnreachable();
 			break;
 		}
 
@@ -1196,7 +1196,7 @@ UCodeBackEndObject::FuncCallEndData  UCodeBackEndObject::FuncCallStart(const Vec
 						}
 						break;
 					default:
-						throw std::exception("not added");
+						UCodeLangUnreachable();
 						break;
 					}
 				}
@@ -1313,7 +1313,7 @@ void UCodeBackEndObject::FuncCallEnd(UCodeBackEndObject::FuncCallEndData& Data)
 						}
 						break;
 					default:
-						throw std::exception("not added");
+						UCodeLangUnreachable();
 						break;
 					}
 				}
@@ -1475,7 +1475,7 @@ void UCodeBackEndObject::StoreValueInPointer(const IRType& ObjectType, RegisterI
 		}
 		break;
 	default:
-		throw std::exception("not added");
+		UCodeLangUnreachable();
 		break;
 	}
 	FreeRegister(Value);
@@ -1508,12 +1508,12 @@ RegisterID  UCodeBackEndObject::ReadValueFromPointer(const IRType& ObjectType, R
 		case IntSizes::Int32:goto Int32L5;
 		case IntSizes::Int64:goto Int64L5;
 		default:
-			throw std::exception("not added");
+			UCodeLangUnreachable();
 			break;
 		}
 		break;
 	default:
-		throw std::exception("not added");
+		UCodeLangUnreachable();
 		break;
 	}
 	return Out;
@@ -1672,7 +1672,7 @@ RegisterID UCodeBackEndObject::MakeIntoRegister(const IRlocData& Value, Optional
 			InstructionBuilder::GetFromStackSub64(_Ins, 0, Tep);
 			break;
 		default:
-			throw std::exception("not added");
+			UCodeLangUnreachable();
 			break;
 		}
 		_Stack.AddReUpdatePostFunc(PushIns(),Val->offset);
@@ -1710,14 +1710,14 @@ RegisterID UCodeBackEndObject::MakeIntoRegister(const IRlocData& Value, Optional
 			InstructionBuilder::StoreFromPtrToReg64(_Ins,Tep, Tep);
 			break;
 		default:
-			throw std::exception("not added");
+			UCodeLangUnreachable();
 			break;
 		}
 		PushIns();
 
 		return Tep;
 	}
-	throw std::exception("not added");
+	UCodeLangUnreachable();
 }
 void  UCodeBackEndObject::GiveNameTo(const IRlocData& Value, const IRInstruction* Name)
 {
@@ -1739,7 +1739,7 @@ void  UCodeBackEndObject::GiveNameTo(const IRlocData& Value, const IRInstruction
 	}
 	else
 	{
-		throw std::exception("not added");
+		UCodeLangUnreachable();
 	}
 }
 UCodeBackEndObject::IRlocData UCodeBackEndObject::GetPointerOf(const IRlocData& Value)
@@ -1764,8 +1764,9 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetPointerOf(const IRlocData& 
 		_Stack.AddReUpdatePostFunc(PushIns(), stack.offset);
 		
 		//make all read/writes point to stack.
-		auto T = _Registers.GetInfo(*Val);
-		_Stack.Get(stack.offset)->IR = T.Types.value().Get<const IRInstruction*>();
+		
+		//auto T = _Registers.GetInfo(*Val);
+		//_Stack.Get(stack.offset)->IR = T.Types.value().Get<const IRInstruction*>();
 
 		FreeRegister(*Val);
 		FreeRegister(R);
@@ -1809,9 +1810,9 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetPointerOf(const IRlocData& 
 	}
 	else
 	{
-		throw std::exception("not added");
+		UCodeLangUnreachable();
 	}
-	throw std::exception("not added");
+	UCodeLangUnreachable();
 }
 RegisterID UCodeBackEndObject::LoadOp(const IRInstruction* Ins, const  IROperator& Op)
 {
@@ -1862,7 +1863,7 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction* Ins, const  IROperato
 			}
 			break;
 		default:
-			throw std::exception("not added");
+			UCodeLangUnreachable();
 			break;
 		}
 		_Registers.SetRegister(V, Value);
@@ -1912,7 +1913,7 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction* Ins, const  IROperato
 				}
 				break;
 			default:
-				throw std::exception("not added");
+				UCodeLangUnreachable();
 				break;
 
 			}
@@ -2003,7 +2004,7 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction* Ins, const  IROperato
 		return ReadValueFromPointer(InsData.ObjectType, MakeIntoRegister(InsData));
 	}
 
-	throw std::exception("not added");
+	UCodeLangUnreachable();
 }
 
 void UCodeBackEndObject::StoreValue(const IRInstruction* Ins, const  IROperator& OutputLocationIR, const  IROperator& Input)
@@ -2085,7 +2086,7 @@ void  UCodeBackEndObject::CopyValueToStack(const IRInstruction* IRName, const IR
 		case IntSizes::Int32:goto Int32L;
 		case IntSizes::Int64:goto Int64L;
 		default:
-			throw std::exception("not added");
+			UCodeLangUnreachable();
 			break;
 		}
 		break;
@@ -2101,14 +2102,14 @@ void  UCodeBackEndObject::CopyValueToStack(const IRInstruction* IRName, const IR
 		}
 		break;
 		default:
-			throw std::exception("not added");
+			UCodeLangUnreachable();
 			break;
 		}
 	}
 	break;
 	default:
 
-		throw std::exception("not added");
+		UCodeLangUnreachable();
 		break;
 	}
 	_Stack.Add(IRName,StackPos);
@@ -2231,7 +2232,7 @@ void UCodeBackEndObject::RegToReg(IRTypes Type, RegisterID In, RegisterID Out, b
 			case IntSizes::Int32:goto Int32L;
 			case IntSizes::Int64:goto Int64L;
 			default:
-				throw std::exception("not added");
+				UCodeLangUnreachable();
 				break;
 			}
 			break;
@@ -2241,7 +2242,7 @@ void UCodeBackEndObject::RegToReg(IRTypes Type, RegisterID In, RegisterID Out, b
 		}//FuncPtrs
 			break;
 		default:
-			throw std::exception("not added");
+			UCodeLangUnreachable();
 			break;
 		}
 	}
@@ -2273,7 +2274,8 @@ void UCodeBackEndObject::PushOpStack(const IRInstruction* Ins, const  IROperator
 		InstructionBuilder::Push64(_Ins, CompilerRet); PushIns();
 		_Stack.PushedOffset += 8;
 		break;
-
+	case IRTypes::IRsymbol:
+		break;
 	case IRTypes::pointer:
 		if (Get_Settings().PtrSize == IntSizes::Int32)
 		{
@@ -2285,11 +2287,11 @@ void UCodeBackEndObject::PushOpStack(const IRInstruction* Ins, const  IROperator
 		}
 		break;
 	default:
-		throw std::exception("not added");
+		UCodeLangUnreachable();
 		break;
 	}
 }
-UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstruction* Ins)
+UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstruction* Ins,bool GetAddress)
 {
 	auto RegInfo = FindIRInRegister(Ins);
 	if (RegInfo.has_value())
@@ -2337,13 +2339,60 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 		{
 			return GetIRLocData(Ins->Target().Pointer);
 		}
+		else if (Ins->Type == IRInstructionType::Member_Access_Dereference)
+		{
+			if (GetAddress) 
+			{
+				IRlocData CompilerRet;
+				CompilerRet.ObjectType = GetType(Ins->Target());
+				const IRStruct* VStruct = _Input->GetSymbol(CompilerRet.ObjectType._symbol)->Get_ExAs<IRStruct>();
+
+				size_t Index = Ins->Input().Value.AsUIntNative;
+				auto& Field = VStruct->Fields[Index];
+
+				size_t FieldOffset = Field.Offset.value();
+
+				CompilerRet.ObjectType._Type = IRTypes::pointer;
+				if (FieldOffset == 0)
+				{
+					auto oldtype = CompilerRet.ObjectType;
+					
+					auto objptr = GetIRLocData(Ins->Target());
+					objptr.ObjectType = oldtype;
+					return objptr;
+				}
+				else
+				{
+					UCodeLangToDo();
+				}
+			}
+			else
+			{
+				IRlocData CompilerRet;
+				CompilerRet.ObjectType = GetType(Ins->Target());
+				const IRStruct* VStruct = _Input->GetSymbol(CompilerRet.ObjectType._symbol)->Get_ExAs<IRStruct>();
+
+				size_t Index = Ins->Input().Value.AsUIntNative;
+				auto& Field = VStruct->Fields[Index];
+
+				size_t FieldOffset = Field.Offset.value();
+
+				auto RegOut = GetRegisterForTep();
+				CompilerRet.Info = RegOut;
+				CompilerRet.ObjectType = Field.Type;
+
+				ReadValueFromPointer(RegOut, FieldOffset, CompilerRet);
+
+				return CompilerRet;
+			}
+		}
 		else
 		{
-			throw std::exception("not added");
+			UCodeLangUnreachable();
 		}
 	}
 }
-UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstruction* Ins, const IROperator& Op)
+UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstruction* Ins, const IROperator& Op,bool GetAddress)
 {
 	bool IsPrimitive = _Input->IsPrimitive(GetType(Ins,Op));
 	if (IsPrimitive)
@@ -2382,25 +2431,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 				}
 				else if (Item->Type == IRInstructionType::Member_Access_Dereference)
 				{
-					const IRStruct* VStruct = _Input->GetSymbol(GetType(Item, Item->Target())._symbol)->Get_ExAs<IRStruct>();
-
-					auto Reg = LoadOp(Item, Item->Target());
-					size_t FieldOffset = _Input->GetOffset(VStruct, Item->Input().Value.AsUIntNative);
-
-					size_t ObjectSize = 4;
-
-					auto RegOut = GetRegisterForTep();
-
-					if (FieldOffset == 0)
-					{
-						InstructionBuilder::StoreFromPtrToReg32(_Ins, Reg, RegOut); PushIns();
-					}
-					else
-					{
-						InstructionBuilder::PointerMemberRead32(_Ins, Reg, RegOut, FieldOffset); PushIns();
-					}
-
-					CompilerRet.Info = RegOut;
+					return GetIRLocData(Item,GetAddress);
 				}
 				else if (Item->Type == IRInstructionType::Call)
 				{
@@ -2408,15 +2439,15 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 				}
 				else if (Item->Type == IRInstructionType::Load)
 				{
-					return GetIRLocData(Item, Item->Target());
+					return GetIRLocData(Item, Item->Target(), GetAddress);
 				}
 				else if (IsLocation(Item->Type))
 				{
-					return GetIRLocData(Item);
+					return GetIRLocData(Item, GetAddress);
 				}
 				else
 				{
-					throw std::exception("bad path");
+					UCodeLangUnreachable();
 				}
 			}
 		}
@@ -2430,12 +2461,12 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 			}
 			else
 			{
-				throw std::exception("bad path");
+				UCodeLangUnreachable();
 			}
 		}
 		else if (Op.Type == IROperatorType::Get_PointerOf_IRInstruction)
 		{
-			CompilerRet = GetPointerOf(GetIRLocData(Op.Pointer));
+			CompilerRet = GetPointerOf(GetIRLocData(Op.Pointer, GetAddress));
 		}
 		else if (Op.Type == IROperatorType::Get_PointerOf_IRParameter)
 		{
@@ -2468,13 +2499,13 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 				}
 				else
 				{
-					throw std::exception("not added");
+					UCodeLangUnreachable();
 				}
 			}
 		}
 		else
 		{
-			throw std::exception("bad path");
+			UCodeLangUnreachable();
 		}
 		return CompilerRet;
 	}
@@ -2527,7 +2558,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 					}
 					else 
 					{
-						throw std::exception("not added");
+						UCodeLangUnreachable();
 					}
 				}
 			}
@@ -2550,7 +2581,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 				}
 				else
 				{
-					throw std::exception("not added");
+					UCodeLangUnreachable();
 				}
 			}
 			return CompilerRet;
@@ -2575,12 +2606,37 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 			CopyValues(V, tep, true, false);
 			return tep;
 		}
+		else if (Op.Type == IROperatorType::IRParameter)
+		{
+			const auto Ins = Op.Parameter;
+			return To(*GetParData(Ins));
+		}
+		else if (Op.Type == IROperatorType::Get_PointerOf_IRInstruction)
+		{
+			return GetIRLocData(Op.Pointer, true);
+		}
+		else if (Op.Type == IROperatorType::Get_PointerOf_IRParameter)
+		{
+			return GetPointerOf(To(*GetParData(Op.Parameter)));
+		}
 		else
 		{
-			throw std::exception("not added");
+			UCodeLangUnreachable();
 		}
 	}
-	throw std::exception("not added");
+	UCodeLangUnreachable();
+}
+UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IROperator& Op)
+{
+	if (Op.Type == IROperatorType::IRParameter)
+	{
+		const auto Ins = Op.Parameter;
+		return To(*GetParData(Ins));
+	}
+	else
+	{
+		UCodeLangUnreachable();
+	}
 }
 void UCodeBackEndObject::MoveRegInValue(RegisterID Value, const IRlocData& To, size_t Offset)
 {
@@ -2592,7 +2648,7 @@ void UCodeBackEndObject::MoveRegInValue(RegisterID Value, const IRlocData& To, s
 		}
 		else
 		{
-			throw std::exception("not added");
+			UCodeLangUnreachable();
 		}
 	}
 	else if (auto Val = To.Info.Get_If<IRlocData_StackPost>())
@@ -2612,7 +2668,7 @@ void UCodeBackEndObject::MoveRegInValue(RegisterID Value, const IRlocData& To, s
 			InstructionBuilder::StoreRegOnStackSub64(_Ins, Value,0);
 			break;
 		default:
-			throw std::exception("bad path");
+			UCodeLangUnreachable();
 			break;
 		}
 		_Stack.AddReUpdatePostFunc(PushIns(), Val->offset + Offset);
@@ -2637,7 +2693,7 @@ void UCodeBackEndObject::MoveRegInValue(RegisterID Value, const IRlocData& To, s
 			InstructionBuilder::StoreRegToPtr64(_Ins, Value, TepReg); PushIns();
 			break;
 		default:
-			throw std::exception("bad path");
+			UCodeLangUnreachable();
 			break;
 		}
 	}
@@ -2661,13 +2717,13 @@ void UCodeBackEndObject::MoveRegInValue(RegisterID Value, const IRlocData& To, s
 			InstructionBuilder::StoreRegToPtr64(_Ins, Value, TepReg); PushIns();
 			break;
 		default:
-			throw std::exception("bad path");
+			UCodeLangUnreachable();
 			break;
 		}
 	}
 	else
 	{
-		throw std::exception("bad path");
+		UCodeLangUnreachable();
 	}
 }
 void UCodeBackEndObject::MoveValueInReg(const IRlocData& Value, size_t Offset, RegisterID To)
@@ -2680,7 +2736,7 @@ void UCodeBackEndObject::MoveValueInReg(const IRlocData& Value, size_t Offset, R
 		}
 		else
 		{
-			throw std::exception("not added");
+			UCodeLangUnreachable();
 		}
 	}
 	else if (auto Val = Value.Info.Get_If<IRlocData_StackPost>())
@@ -2701,7 +2757,7 @@ void UCodeBackEndObject::MoveValueInReg(const IRlocData& Value, size_t Offset, R
 			InstructionBuilder::GetFromStackSub64(_Ins, 0, To);
 			break;
 		default:
-			throw std::exception("bad path");
+			UCodeLangUnreachable();
 			break;
 		}
 		_Stack.AddReUpdatePostFunc(PushIns(), Val->offset + Offset);
@@ -2725,7 +2781,7 @@ void UCodeBackEndObject::MoveValueInReg(const IRlocData& Value, size_t Offset, R
 			InstructionBuilder::StoreFromPtrToReg64(_Ins, To, To); PushIns();
 			break;
 		default:
-			throw std::exception("bad path");
+			UCodeLangUnreachable();
 			break;
 		}
 	}
@@ -2748,13 +2804,13 @@ void UCodeBackEndObject::MoveValueInReg(const IRlocData& Value, size_t Offset, R
 			InstructionBuilder::StoreFromPtrToReg64(_Ins, To, To); PushIns();
 			break;
 		default:
-			throw std::exception("bad path");
+			UCodeLangUnreachable();
 			break;
 		}
 	}
 	else
 	{
-		throw std::exception("bad path");
+		UCodeLangUnreachable();
 	}
 }
 void UCodeBackEndObject::ReadValueFromPointer(RegisterID Pointer, size_t Pointerofset, const IRlocData& Out)
@@ -2779,7 +2835,7 @@ void UCodeBackEndObject::ReadValueFromPointer(RegisterID Pointer, size_t Pointer
 				InstructionBuilder::StoreFromPtrToReg64(_Ins, Pointer, *Val); PushIns();
 				break;
 			default:
-				throw std::exception("bad path");
+				UCodeLangUnreachable();
 				break;
 			}
 		}
@@ -2800,14 +2856,14 @@ void UCodeBackEndObject::ReadValueFromPointer(RegisterID Pointer, size_t Pointer
 				InstructionBuilder::PointerMemberRead64(_Ins, Pointer, *Val, Pointerofset); PushIns();
 				break;
 			default:
-				throw std::exception("bad path");
+				UCodeLangUnreachable();
 				break;
 			}
 		}
 	}
 	else
 	{
-		throw std::exception("bad path");
+		UCodeLangUnreachable();
 	}
 }
 void UCodeBackEndObject::CopyValues(const IRlocData& Src, const IRlocData& Out, bool DerefSrc, bool DerefOut)
@@ -3005,12 +3061,12 @@ void UCodeBackEndObject::LogicalNot(IRTypes Type, RegisterID In, RegisterID Out)
 			case IntSizes::Int32:goto Int32L;
 			case IntSizes::Int64:goto Int64L;
 			default:
-				throw std::exception("not added");
+				UCodeLangUnreachable();
 				break;
 			}
 			break;
 		default:
-			throw std::exception("not added");
+			UCodeLangUnreachable();
 			break;
 		}
 	}
@@ -3128,7 +3184,7 @@ AnyInt64 UCodeBackEndObject::ToAnyInt(const IRType& ObjectType,const IROperator&
 		}
 		break;
 	default:
-		throw std::exception("not added");
+		UCodeLangUnreachable();
 		break;
 	}
 	return Value;
@@ -3361,7 +3417,7 @@ UCodeBackEndObject::FindParsLoc UCodeBackEndObject::GetParsLoc(const Vector<IRPa
 		auto& Item0 = CompilerRet.ParsPos[CompilerRet.OverflowedPars[i]];
 		auto& Item1 = CompilerRet.ParsPos[CompilerRet.OverflowedPars[CompilerRet.OverflowedPars.size() - 1 - i]];
 
-		throw std::exception("bad path");
+		UCodeLangUnreachable();
 		//std::swap(Item0.StackOffset, Item1.StackOffset);
 	}
 

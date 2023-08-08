@@ -365,8 +365,9 @@ private:
 		_Registers.FreeRegister(ID);
 	}
 
-	IRlocData GetIRLocData(const IRInstruction* Ins);
-	IRlocData GetIRLocData(const IRInstruction* Ins, const IROperator& Op);
+	IRlocData GetIRLocData(const IRInstruction* Ins,bool GetAddress = false);
+	IRlocData GetIRLocData(const IRInstruction* Ins, const IROperator& Op, bool GetAddress = false);
+	IRlocData GetIRLocData(const IROperator& Op);
 	void CopyValues(const IRlocData& Src, const IRlocData& Out, bool DerefSrc = false, bool DerefOut = false);
 
 	RegisterID MakeIntoRegister(const IRlocData& Value, Optional<RegisterID> RegisterToPut = {});

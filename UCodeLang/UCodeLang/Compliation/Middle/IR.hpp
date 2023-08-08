@@ -42,6 +42,12 @@ struct IRType
 	IRType():_Type(IRTypes::Null), _symbol(){}
 	IRType(IRTypes type) { SetType(type); }
 	IRType(IRSymbol symbol)  { SetType(symbol); }
+	IRType(IRTypes type,IRSymbol symbol) 
+	{
+		UCodeLangAssert(type == IRTypes::pointer);
+		SetType(type);
+		SetType(symbol); 
+	}
 
 	bool IsType(IRTypes Type)
 	{
@@ -1288,6 +1294,7 @@ public:
 				return Item.get();
 			}
 		}
+
 		return nullptr;
 	}
 	IRSymbolData* GetSymbol(IRSymbol Value)
@@ -1304,6 +1311,7 @@ public:
 				return Item.get();
 			}
 		}
+
 		return nullptr;
 	}
 	const IRSymbolData* GetSymbol(IRSymbol Value) const
@@ -1319,6 +1327,7 @@ public:
 				return Item.get();
 			}
 		}
+
 		return nullptr;
 	}
 	IRFunc* GetFunc(IRidentifierID Value)
@@ -1330,6 +1339,7 @@ public:
 				return Item.get();
 			}
 		}
+
 		return nullptr;
 	}
 

@@ -236,8 +236,29 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op, bool UpdateInsType)
 		|| Op.Type == IROperatorType::Get_PointerOf_IRParameter
 		|| Op.Type == IROperatorType::Get_PointerOf_IRidentifier)
 	{
-		if (UpdateInsType) {
-			Ins.ObjectType = IRType(IRTypes::pointer);
+		if (UpdateInsType) 
+		{
+			IRSymbol Symval = 0;
+			if (Op.Type == IROperatorType::Get_PointerOf_IRInstruction)
+			{
+				Symval = Op.Pointer->ObjectType._symbol;
+			}
+			else if (Op.Type == IROperatorType::Get_PointerOf_IRParameter)
+			{
+				Symval = Op.Parameter->type._symbol;
+			}
+			else if (Op.Type == IROperatorType::Get_PointerOf_IRidentifier)
+			{
+				if (auto Syb = _Input->GetSymbol(Op.identifer))
+				{
+					Symval = Syb->Type._symbol;
+				}
+			}
+			else
+			{
+				UCodeLangUnreachable();
+			}
+			Ins.ObjectType = IRType(IRTypes::pointer, Symval);
 		}
 
 		if (Op.Type == IROperatorType::Get_PointerOf_IRParameter)
