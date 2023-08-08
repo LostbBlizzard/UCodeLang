@@ -17,21 +17,23 @@ void LLVMBackEnd::Build(const IRBuilder* Input)
 		{
 			IRStruct* V = Item->Get_ExAs<IRStruct>();
 
-			if (V->IsUnion)
-			{
-				_OutStr += "union " + SybName + "\n";
-			}
-			else
-			{
-				_OutStr += "$" + SybName + "\n";
-			}
+			_OutStr += '%';
+			_OutStr += SybName;
+			_OutStr += " = type {\n";
 
 			for (size_t i = 0; i < V->Fields.size(); i++)
 			{
-				_OutStr += " " + ToString(V->Fields[i].Type) + " __" + std::to_string(i) + "; \n";
+				auto& Field = V->Fields[i];
+		 		 _OutStr += ToString(V->Fields[i].Type);
+			
+				 if (&Field != &V->Fields.back())
+				 {
+					 _OutStr += ",";
+				 }
+				 _OutStr += '\n';
 			}
 
-			_OutStr += "\n";
+			_OutStr += "}\n\n";
 		}
 		break;
 		default:
@@ -73,7 +75,7 @@ void LLVMBackEnd::OnFunc(const IRFunc* Func)
 	_OutStr += " #0";
 	_OutStr += "{\n";
 
-	_OutStr += "}";
+	_OutStr += "}\n";
 }
 String LLVMBackEnd::ToString(const IRType& Type)
 {
@@ -110,9 +112,11 @@ String LLVMBackEnd::ToString(const IRType& Type)
 		{
 			r += _Input->FromID(Syb->identifier) + "*";
 		}
-		r += "void*";
-
+		else {
+			r += "void*";
+		}
 	}
+	break;
 	case IRTypes::IRsymbol:
 	{
 		auto Syb = _Input->GetSymbol(Type._symbol);
@@ -121,8 +125,11 @@ String LLVMBackEnd::ToString(const IRType& Type)
 			r += _Input->FromID(Syb->identifier);
 		}
 	}
+	break;
 	default:
+		UCodeLangUnreachable();
 		break;
 	}
+	return r;
 }
 UCodeLangEnd

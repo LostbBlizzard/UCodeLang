@@ -47,13 +47,12 @@ void C89Backend::Build(const IRBuilder* Input)
 		//types
 		AddBaseTypes();
 
-		OutBuffer += "//file.h";
-
-		//because C89 is a primitive compiler we need to reoder all struct types definitions befor there used
+		
+		//in C89 need to reoder all struct types definitions befor there used
 
 		OutBuffer += ToString();
 
-		OutBuffer += "//file.cpp";
+		
 
 		Set_Output(OutBuffer);
 	}
@@ -101,8 +100,32 @@ String C89Backend::ToString(const IRType& Type)
 	case IRTypes::f32:return "float32";
 	case IRTypes::f64:return "float64";
 
-	case IRTypes::pointer:return "void*";
+	
 	case IRTypes::Void:return "void";
+
+	case IRTypes::pointer:
+	{
+		String r;
+		auto Syb = _Input->GetSymbol(Type._symbol);
+		if (Syb)
+		{
+			r += FromIDToCindentifier(Syb->identifier) + "*";
+		}
+		else {
+			r += "void*";
+		}
+		return r;
+	}
+	break;
+	case IRTypes::IRsymbol:
+	{
+		auto Syb = _Input->GetSymbol(Type._symbol);
+		if (Syb)
+		{
+			return FromIDToCindentifier(Syb->identifier);
+		}
+	}
+	break;
 	default:
 		break;
 	}
@@ -114,20 +137,40 @@ String C89Backend::ToString()
 	String r;
 	ToStringState State;
 
-	
+	r += "\n\n//file.h\n\n";
+
 	AddSybToString(r);
 	r += "\n";
 
-	ToString(r, &_Input->_StaticInit, State);
-	ToString(r, &_Input->_StaticdeInit, State);
-	ToString(r, &_Input->_threadInit, State);
-	ToString(r, &_Input->_threaddeInit, State);
 
-	for (auto& Item : _Input->Funcs)
 	{
+		ToString(r, &_Input->_StaticInit, State);
+		ToString(r, &_Input->_StaticdeInit, State);
+		ToString(r, &_Input->_threadInit, State);
+		ToString(r, &_Input->_threaddeInit, State);
 
-		_Func = Item.get();
-		ToString(r, Item.get(), State);
+		for (auto& Item : _Input->Funcs)
+		{
+
+			_Func = Item.get();
+			ToString(r, Item.get(), State);
+		}
+	}
+	r += "\n\n//file.cpp\n\n";
+	{
+		{
+			ToString(r, &_Input->_StaticInit, State,true);
+			ToString(r, &_Input->_StaticdeInit, State, true);
+			ToString(r, &_Input->_threadInit, State, true);
+			ToString(r, &_Input->_threaddeInit, State, true);
+
+			for (auto& Item : _Input->Funcs)
+			{
+
+				_Func = Item.get();
+				ToString(r, Item.get(), State,true);
+			}
+		}
 	}
 
 	return r;
@@ -165,14 +208,25 @@ void C89Backend::AddSybToString(UCodeLang::String& r)
 		{
 			IRStruct* V = Item->Get_ExAs<IRStruct>();
 
-			r += "typedef struct\n{";
+			r += "typedef ";
+			
+			if (V->IsUnion) 
+			{
+				r += "union";
+			}
+			else
+			{
+				r += "struct";
+			}
+			
+			r += " \n{\n";
 
 			for (size_t i = 0; i < V->Fields.size(); i++)
 			{
 				r += " " + ToString(V->Fields[i].Type) + " __" + std::to_string(i) + "; \n";
 			}
 
-			r += "}" + SybName + ";\n";
+			r += "\n} " + SybName + ";\n\n";
 		}
 		break;
 		case IRSymbolType::StaticArray:
@@ -235,7 +289,7 @@ void C89Backend::UpdateCppLinks(UCodeLang::String& r, UCodeLang::IRBufferData* V
 	}
 }
 
-void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C89Backend::ToStringState& State)
+void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C89Backend::ToStringState& State, bool OutputBody)
 {
 	r += ToString(Item->ReturnType) + " " + FromIDToCindentifier(Item->identifier);
 	r += "(";
@@ -248,12 +302,14 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 		}
 	}
 	r += ")";
-	if (Item->Blocks.size())
+
+	if (OutputBody)
 	{
+
 		r += "\n{";
 		String Tabs = " ";
 
-
+		/*
 		for (auto& Block : Item->Blocks)
 		{
 
@@ -413,12 +469,13 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 			}
 			State.PointerToName.clear();
 		}
+		*/
 
 		r += "\n}";
 	}
 	else
 	{
-		r += ";\n";
+		r += ';';
 	}
 	r += "\n";
 }

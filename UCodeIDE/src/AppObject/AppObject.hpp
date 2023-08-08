@@ -271,6 +271,7 @@ private:
 	CallFuncContext callFuncContext;
 	void FullReloadRunTime();
 	void HotReloadRunTime();
+	void OpenOnWeb(const String& WebLink);
 };
 
 UCodeIDEEnd
