@@ -62,7 +62,7 @@ Optional<size_t> ClassAssembly::GetSize(const ReflectionTypeInfo& Type, bool Is3
 		return PtrSize * 2;
 	}
 
-	if (Type.IsAddress() || Type.IsAddressArray())
+	if (Type.IsAddress() || Type.IsAddressArray() || Type.IsMovedType())
 	{
 		return PtrSize;
 	}
@@ -850,6 +850,24 @@ Optional<ClassAssembly::InfoVec3_t> ClassAssembly::IsVec3_t(const ReflectionType
 	return {};
 }
 
+bool Contains(String_view ItemTolookfor,String_view Str)
+{
+	size_t B = 0;
+	for (size_t i = 0; i < Str.size(); i++)
+	{
+		if (Str[i] == ItemTolookfor[B])
+		{
+			B++;
+		}
+		else
+		{
+			B = 0;
+		}
+		if (B == ItemTolookfor.size()) { return true; }
+	}
+	return false;
+}
+
 Optional<ClassAssembly::InfoVector_t> ClassAssembly::IsVector_t(const ReflectionTypeInfo& Type) const
 {
 	auto node = Find_Node(Type);
@@ -858,6 +876,10 @@ Optional<ClassAssembly::InfoVector_t> ClassAssembly::IsVector_t(const Reflection
 		if (node->Get_Type() == ClassType::Class)
 		{
 			auto& classnode = node->Get_ClassData();
+			if (!Contains(UCode_VectorType, node->FullName))
+			{
+				return {};
+			}
 			const ClassMethod* DataMethod = classnode.Get_ClassMethod("data");
 			if (DataMethod == nullptr)
 			{
@@ -866,6 +888,7 @@ Optional<ClassAssembly::InfoVector_t> ClassAssembly::IsVector_t(const Reflection
 
 			if (DataMethod)
 			{
+				auto ElementType = DataMethod->RetType;
 				auto SizeMethod = classnode.Get_ClassMethod("Size");
 				if (SizeMethod == nullptr)
 				{
@@ -895,10 +918,96 @@ Optional<ClassAssembly::InfoVector_t> ClassAssembly::IsVector_t(const Reflection
 				{
 					ClearMethod = classnode.Get_ClassMethod("clear");
 				}
+				const ClassMethod* PushMovedMethod = nullptr;
+				const ClassMethod* PushCopyMethod = nullptr;
+
+				{
+					auto list = classnode.Get_ClassMethods("Push");
+					for (auto& Item : classnode.Get_ClassMethods("push"))
+					{
+						list.push_back(Item);
+					}
+					for (auto& Item : list)
+					{
+						if (Item->ParsType.size() == 2) 
+						{
+							auto& ElemPar = Item->ParsType[1];
+
+							if (ElemPar.IsOutPar == false
+								&& ElemPar.Type._CustomTypeID == ElementType._CustomTypeID
+								&& ElemPar.Type.IsAddressArray() == false)
+							{
+								
+								if (PushMovedMethod == nullptr && ElemPar.Type.IsMovedType())
+								{
+									PushMovedMethod = Item;
+								}
+								if (PushCopyMethod == nullptr && ElemPar.Type.IsAddress())
+								{
+									PushCopyMethod = Item;
+								}
+							}
+						
+						}
+					}
+				}
+
+				auto PopMethod = classnode.Get_ClassMethod("Pop");
+				if (PopMethod == nullptr)
+				{
+					PopMethod = classnode.Get_ClassMethod("pop");
+				}
+
+				auto RemoveMethodMethod = classnode.Get_ClassMethod("Remove");
+				if (RemoveMethodMethod == nullptr)
+				{
+					RemoveMethodMethod = classnode.Get_ClassMethod("remove");
+				}
+
+
+				const ClassMethod* InsertMovedMethod = nullptr;
+				const ClassMethod* InsertCopyMethod = nullptr;
+
+				{
+					auto list = classnode.Get_ClassMethods("Insert");
+					for (auto& Item : classnode.Get_ClassMethods("insert"))
+					{
+						list.push_back(Item);
+					}
+					for (auto& Item : list)
+					{
+						if (Item->ParsType.size() == 3)
+						{
+							auto& ElemPar = Item->ParsType[1];
+
+							if (ElemPar.IsOutPar == false
+								&& ElemPar.Type._CustomTypeID == ElementType._CustomTypeID
+								&& ElemPar.Type.IsAddressArray() == false)
+							{
+
+								if (InsertMovedMethod == nullptr && ElemPar.Type.IsMovedType())
+								{
+									InsertMovedMethod = Item;
+								}
+								if (InsertCopyMethod == nullptr && ElemPar.Type.IsAddress())
+								{
+									InsertCopyMethod = Item;
+								}
+							}
+
+						}
+					}
+				}
 
 				if (SizeMethod 
 					&& CapacityMethod
-					)
+					&& ResizeMethod
+					&& ReserveMethod
+					&& ClearMethod
+					&& PushMovedMethod
+					&& PopMethod 
+					&& RemoveMethodMethod
+					&& InsertMovedMethod)
 				{
 					InfoVector_t r;
 					r.ElementType = DataMethod->RetType;
@@ -907,6 +1016,19 @@ Optional<ClassAssembly::InfoVector_t> ClassAssembly::IsVector_t(const Reflection
 					r.Data_Method = DataMethod;
 					r.Size_Method = SizeMethod;
 					r.Capacity_Method = CapacityMethod;
+
+					r.Resize_Method = ResizeMethod;
+					r.Reserve_Method = ReserveMethod;
+					r.Clear_Method = ClearMethod;
+
+					r.Push_moved_Method = PushMovedMethod;
+					r.Push_copy_Method = PushCopyMethod;
+					r.Pop_Method = PopMethod;
+
+					r.Remove_Method = RemoveMethodMethod;
+
+					r.Insert_Moved_Method = InsertMovedMethod;
+					r.Insert_Copy_Method = InsertCopyMethod;
 
 					return r;
 				}

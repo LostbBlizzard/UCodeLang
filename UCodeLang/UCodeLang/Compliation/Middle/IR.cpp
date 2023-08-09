@@ -879,6 +879,8 @@ void IRBuilder::ToBytes(BitMaker& Out, const IRDebugSybInfo& Value)
 
 void IRBuilder::ToBytes(UCodeLang::BitMaker& Out, const UCodeLang::IRDebugSybol& Value)
 {
+	Out.WriteType(Value.IRVarableName);
+
 	Out.WriteType(Value.VarableName);
 
 	Out.WriteType(Value.LangType);
@@ -889,6 +891,8 @@ void IRBuilder::ToBytes(UCodeLang::BitMaker& Out, const UCodeLang::IRDebugSybol&
 }
 void IRBuilder::FromBytes(BitReader& Out, IRDebugSybol& OtherValue)
 {
+	Out.ReadType(OtherValue.IRVarableName);
+
 	Out.ReadType(OtherValue.VarableName);
 
 	Out.ReadType(OtherValue.LangType);
@@ -944,6 +948,7 @@ void IRBuilder::ToBytes(UCodeLang::BitMaker& Out, const UCodeLang::IRDebugIns& I
 	}
 	else if (auto Val = Item.Debug.Get_If<IRDebugSetVarableName>())
 	{
+		Out.WriteType(Val->IRVarableName);
 		Out.WriteType(Val->VarableName);
 		Out.WriteType((BitMaker::SizeAsBits)Val->InsInBlock);
 	}
@@ -992,6 +997,7 @@ void IRBuilder::FromBytes(BitReader& Out, IRDebugIns& Value)
 	case IRDebugIns::Variant::IRDebugSetVarableName:
 	{
 		IRDebugSetVarableName R = IRDebugSetVarableName();
+		Out.ReadType(R.IRVarableName);
 		Out.ReadType(R.VarableName);
 		
 		BitReader::SizeAsBits tep=0;

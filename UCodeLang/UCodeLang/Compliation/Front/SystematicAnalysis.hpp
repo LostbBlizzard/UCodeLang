@@ -1501,28 +1501,48 @@ private:
 	}
 	Symbol* Generic_InstantiateOrFindGeneric_Class(const Token* Name, const Symbol* Symbol, const GenericValuesNode& SymbolGenericValues, const Generic& GenericData, const UseGenericsNode& UseNode)
 	{
+		UCodeLangAssert(Symbol);
+		UCodeLangAssert(Symbol->PassState == PassType::FixedTypes);
+		UCodeLangAssert(Symbol->ValidState == SymbolValidState::valid);
+
 		TypeInstantiateFunc Func = &SystematicAnalysis::Generic_TypeInstantiate;
 		return Generic_InstantiateOrFindGenericSymbol(Name, Symbol, SymbolGenericValues, GenericData, UseNode,Func);
 	}
 
 	Symbol* Generic_InstantiateOrFindGeneric_Trait(const Token* Name, const Symbol* Symbol, const GenericValuesNode& SymbolGenericValues, const Generic& GenericData, const UseGenericsNode& UseNode)
 	{
+		UCodeLangAssert(Symbol);
+		UCodeLangAssert(Symbol->PassState == PassType::FixedTypes);
+		UCodeLangAssert(Symbol->ValidState == SymbolValidState::valid);
+
 		TypeInstantiateFunc Func = &SystematicAnalysis::Generic_TypeInstantiate_Trait;
 		return Generic_InstantiateOrFindGenericSymbol(Name, Symbol, SymbolGenericValues, GenericData, UseNode, Func);
 	}
 
 	Symbol* Generic_InstantiateOrFindGeneric_Alias(const Token* Name, const Symbol* Symbol, const GenericValuesNode& SymbolGenericValues, const Generic& GenericData, const UseGenericsNode& UseNode)
 	{
+		UCodeLangAssert(Symbol);
+		UCodeLangAssert(Symbol->PassState == PassType::FixedTypes);
+		UCodeLangAssert(Symbol->ValidState == SymbolValidState::valid);
+
 		TypeInstantiateFunc Func = &SystematicAnalysis::Generic_TypeInstantiate_Alias;
 		return Generic_InstantiateOrFindGenericSymbol(Name, Symbol, SymbolGenericValues, GenericData, UseNode, Func);
 	}
 	Symbol* Generic_InstantiateOrFindGeneric_Enum(const Token* Name, const Symbol* Symbol, const GenericValuesNode& SymbolGenericValues, const Generic& GenericData, const UseGenericsNode& UseNode)
 	{
+		UCodeLangAssert(Symbol);
+		UCodeLangAssert(Symbol->PassState == PassType::FixedTypes);
+		UCodeLangAssert(Symbol->ValidState == SymbolValidState::valid);
+
 		TypeInstantiateFunc Func = &SystematicAnalysis::Generic_TypeInstantiate_Enum;
 		return Generic_InstantiateOrFindGenericSymbol(Name, Symbol, SymbolGenericValues, GenericData, UseNode, Func);
 	}
 	Symbol* Generic_InstantiateOrFindGeneric_Tag(const Token* Name, const Symbol* Symbol, const GenericValuesNode& SymbolGenericValues, const Generic& GenericData, const UseGenericsNode& UseNode)
 	{
+		UCodeLangAssert(Symbol);
+		UCodeLangAssert(Symbol->PassState == PassType::FixedTypes);
+		UCodeLangAssert(Symbol->ValidState == SymbolValidState::valid);
+
 		TypeInstantiateFunc Func = &SystematicAnalysis::Generic_TypeInstantiate_Tag;
 		return Generic_InstantiateOrFindGenericSymbol(Name, Symbol, SymbolGenericValues, GenericData, UseNode, Func);
 	}

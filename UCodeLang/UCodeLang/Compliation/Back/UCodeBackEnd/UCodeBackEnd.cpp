@@ -2381,7 +2381,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 				CompilerRet.Info = RegOut;
 				CompilerRet.ObjectType = Field.Type;
 
-				ReadValueFromPointer(RegOut, FieldOffset, CompilerRet);
+				ReadValueFromPointer(LoadOp(Ins,Ins->Target()), FieldOffset, CompilerRet);
 
 				return CompilerRet;
 			}
@@ -2466,7 +2466,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 		}
 		else if (Op.Type == IROperatorType::Get_PointerOf_IRInstruction)
 		{
-			CompilerRet = GetPointerOf(GetIRLocData(Op.Pointer, GetAddress));
+			CompilerRet = GetIRLocData(Op.Pointer,true);
 		}
 		else if (Op.Type == IROperatorType::Get_PointerOf_IRParameter)
 		{

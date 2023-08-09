@@ -289,6 +289,23 @@ struct Class_Data
 		}
 		return nullptr;
 	}
+	Vector<const ClassMethod*> Get_ClassMethods(const String& Name) const
+	{
+		Vector<const ClassMethod*> r;
+		for (auto& Item : Methods)
+		{
+			if (ScopeHelper::GetNameFromFullName(Item.FullName)
+				== Name)
+			{
+				r.push_back(&Item);
+			}
+		}
+		return r;
+	}
+	Vector<const ClassMethod*> Get_ClassConstructors() const
+	{
+		return Get_ClassMethods(ClassConstructorfunc);
+	}//This May be null.
 };
 struct Enum_Data
 {

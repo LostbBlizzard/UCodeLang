@@ -68,6 +68,7 @@ Interpreter::Return_t Interpreter::Call(UAddress address)
 {
 	#ifdef DEBUG
 	{
+		
 		if (CalledFuncBefor)
 		{
 			UCodeLangAssert(GotRetValue == true);//you did not call Get_Return() on last call and it last call was not void
@@ -75,27 +76,38 @@ Interpreter::Return_t Interpreter::Call(UAddress address)
 		CalledFuncBefor = true;
 		GotRetValue = false;
 		auto method = Get_State()->GetMethod(address);
-		UCodeLangAssert(method != nullptr);//Must be Method
-		if (method)
+		
 		{
-			UCodeLangAssert(_Parameters.GetParameterCount() == method->ParsType.size());
-
-			auto State = _Parameters.StartLoop();
-			size_t i = 0;
-			while (_Parameters.Next(State))
+			auto funcname = Get_State()->GetName(address);
+			if (funcname == StaticVariablesInitializeFunc
+				|| funcname == StaticVariablesUnLoadFunc
+				|| funcname == ThreadVariablesInitializeFunc
+				|| funcname == ThreadVariablesUnLoadFunc)
 			{
-				auto Data = _Parameters.GetLoopData(State);
-				auto ParSize = Get_State()->Get_Assembly().GetSize(method->ParsType[i], sizeof(void*) == 4).value_or(0);
-				UCodeLangAssert(Data.DataSize == ParSize);
-
-				i++;
+				UCodeLangAssert(_Parameters.GetParameterCount() == 0);//incorrect parameter count
 			}
-			GotRetValue = method->RetType._Type == ReflectionTypes::Void;
+			else
+			{
+				UCodeLangAssert(method != nullptr);//Must be Method
+				if (method)
+				{
+					UCodeLangAssert(_Parameters.GetParameterCount() == method->ParsType.size());//incorrect parameter count
+
+					auto State = _Parameters.StartLoop();
+					size_t i = 0;
+					while (_Parameters.Next(State))
+					{
+						auto Data = _Parameters.GetLoopData(State);
+						auto ParSize = Get_State()->Get_Assembly().GetSize(method->ParsType[i], sizeof(void*) == 4).value_or(0);
+						UCodeLangAssert(Data.DataSize == ParSize);//incorrect parameter size
+
+						i++;
+					}
+					GotRetValue = method->RetType._Type == ReflectionTypes::Void;
+				}
+			}
 		}
-		else
-		{
-			UCodeLangAssert(method)
-		}
+		
 	}
 	#endif
 	auto OldStackPrePars = _CPU.Stack.StackOffSet;

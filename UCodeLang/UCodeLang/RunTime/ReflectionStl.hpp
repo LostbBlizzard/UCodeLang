@@ -100,17 +100,18 @@ public:
 
 	void push(const void* Obj)
 	{
+		UCodeLangAssert(_Info->Push_copy_Method);//This Method may not exist if type is not copyable
 		_ptr.PushParameter(_UObject);
 		_ptr.PushParameter(&Obj, sizeof(void*));
-
-		_ptr.Call(_Info->Insert_Copy_Method);
+		
+		_ptr.Call(_Info->Push_copy_Method);
 	}
 	void push(void*&& Obj)
 	{
 		_ptr.PushParameter(_UObject);
 		_ptr.PushParameter(&Obj, sizeof(void*));
-
-		_ptr.Call(_Info->Insert_Copy_Method);
+		
+		_ptr.Call(_Info->Push_moved_Method);
 	}
 	template<typename T> void push_t(const T& Obj)
 	{
@@ -123,8 +124,10 @@ public:
 
 	inline void insert(size_t index,const void* Obj)
 	{
+		UCodeLangAssert(_Info->Insert_Copy_Method);//This Method may not exist if type is not copyable
 		_ptr.PushParameter(_UObject);
 		_ptr.PushParameter(&Obj,sizeof(void*));
+		_ptr.PushParameter(index);
 		
 		_ptr.Call(_Info->Insert_Copy_Method);
 	}
@@ -132,6 +135,7 @@ public:
 	{
 		_ptr.PushParameter(_UObject);
 		_ptr.PushParameter(&Obj, sizeof(void*));
+		_ptr.PushParameter(index);
 
 		_ptr.Call(_Info->Insert_Moved_Method);
 	}
