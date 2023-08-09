@@ -105,7 +105,7 @@ void AppObject::Init()
 
 |main[] => 0;
 
-
+IntVector B = [];
 //A simplified standard Library below.
 
 $Vec2:
@@ -133,6 +133,8 @@ $Opchar = char?;//make type.
 
 $IntVector = int[];
 
+
+
 |NullPtr<T>[] => bitcast<T>(0);
 |NullPtrArr<T>[] => bitcast<T[&]>(0);
 
@@ -144,6 +146,19 @@ $Vector<T>:
  |Data[umut this&] -> T[&]:ret _Data;
  |Size[umut this&] => _Size;
  |Capacity[umut this&] => _Capacity;
+ 
+ |Resize[this&,uintptr size] -> void;
+ |Reserve[this&,uintptr size] -> void;
+ |Clear[this&]:_Size = 0;
+
+ |Push[this&,moved T Item] -> void;
+ |Push[this&,umut T& Item] -> void;
+ |Pop[this&] -> T;
+
+ |Remove[this&,uintptr Index] -> T;
+ 
+ |Insert[this&,moved T Item,uintptr Index] -> void:_Size++;
+ |Insert[this&,umut T& Item,uintptr Index] -> void:_Size++;
 
 $String:
  Vector<char> Base;
@@ -1351,17 +1366,6 @@ void AppObject::UpdateInsData(UCodeVMWindow& windowdata)
 void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
 {
 
-   // ImguiHelper::BoolEnumField("Show Registers", windowdata.ShowRegisters);
-
-    //ImGui::SameLine();
-   // ImguiHelper::BoolEnumField("Show Stack", windowdata.ShowStack);
-    //ImGui::SameLine();
-   // ImguiHelper::BoolEnumField("Show Static-Memory", windowdata.ShowStaticMemory);
-    //ImGui::SameLine();
-   // ImguiHelper::BoolEnumField("Show Thread-Memory", windowdata.ShowThreadMemory);
-    //ImGui::SameLine();
-   // ImguiHelper::BoolEnumField("Show Heap-Memory", windowdata.ShowHeapMemory);
-
     ImGui::Separator();
 
     bool IsinFileMode = false;
@@ -1371,6 +1375,7 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
 
     ImGui::Button("Reset", Buttonsize);
 
+    ImguiHelper::BoolEnumField("Call Static/Thread Init On Reload", windowdata.CallStaticVarOnReload);
 
     ImGui::BeginDisabled(!InFuncion);
 
@@ -1508,9 +1513,12 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                     String ParName = "Arg" + std::to_string(i);
                     ImguiHelper::UCodeObjectField(ParName.c_str(), (void*)Arg.Data(), Par, Assembly);
                 }
-                ImguiHelper::BoolEnumField("Call Stack/Thread init", callFuncContext.CallStaticAndThreadInit);
-                ImguiHelper::BoolEnumField("Call Stack/Thread de-init", callFuncContext.CallStaticAndThreadDeInit);
 
+                if (windowdata.CallStaticVarOnReload == false) {
+                    ImguiHelper::BoolEnumField("Call Stack/Thread init", callFuncContext.CallStaticAndThreadInit);
+                    ImguiHelper::BoolEnumField("Call Stack/Thread de-init", callFuncContext.CallStaticAndThreadDeInit);
+
+                }
                 if (ImGui::Button(((String)"Call:" + MethodString).c_str()))
                 {
                     callFuncContext._LastRetType = callFuncContext.current_method->RetType;
@@ -1521,7 +1529,7 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                         auto& Arg = callFuncContext.Args[i];
                         _AnyInterpreter.PushParameter(Arg.Data(), Arg.Size());
                     }
-                    if (callFuncContext.CallStaticAndThreadInit)
+                    if (windowdata.CallStaticVarOnReload || callFuncContext.CallStaticAndThreadInit)
                     {
                         _AnyInterpreter.Call(StaticVariablesInitializeFunc);
                         _AnyInterpreter.Call(ThreadVariablesInitializeFunc);
@@ -1529,7 +1537,7 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
 
                     _AnyInterpreter.Call(callFuncContext.current_method);
 
-                    if (callFuncContext.CallStaticAndThreadDeInit)
+                    if (windowdata.CallStaticVarOnReload || callFuncContext.CallStaticAndThreadDeInit)
                     {
                         _AnyInterpreter.Call(StaticVariablesUnLoadFunc);
                         _AnyInterpreter.Call(ThreadVariablesUnLoadFunc);
@@ -1739,10 +1747,6 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
     {
         if (ImGui::Begin("Thread-Memory"))
         {
-            {
-                static Vector<int> B;
-                ImguiHelper::DrawVector("B", B);
-            }
             auto& Assembly = _RunTimeState.Get_Assembly();
             void* Memptr = _AnyInterpreter.GetThreadPtr();
             ImGui::Columns(2, "Debug/Raw Thread Memory");

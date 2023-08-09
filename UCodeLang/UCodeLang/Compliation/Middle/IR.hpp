@@ -40,13 +40,12 @@ struct IRType
 	IRSymbol _symbol;
 
 	IRType():_Type(IRTypes::Null), _symbol(){}
-	IRType(IRTypes type) { SetType(type); }
-	IRType(IRSymbol symbol)  { SetType(symbol); }
-	IRType(IRTypes type,IRSymbol symbol) 
+	IRType(IRTypes type) :_Type(IRTypes::Null), _symbol() { SetType(type); }
+	IRType(IRSymbol symbol) :_Type(IRTypes::Null), _symbol() { SetType(symbol); }
+	IRType(IRTypes type,IRSymbol symbol) :_Type(IRTypes::Null), _symbol()
 	{
 		UCodeLangAssert(type == IRTypes::pointer);
-		SetType(type);
-		SetType(symbol); 
+		SetType(type,symbol);
 	}
 
 	bool IsType(IRTypes Type)
@@ -56,10 +55,17 @@ struct IRType
 	void SetType(IRTypes Value)
 	{
 		_Type = Value;
+		_symbol = {};
 	}
 	void SetType(IRSymbol Value)
 	{
 		_Type = IRTypes::IRsymbol;
+		_symbol = Value;
+	}
+	void SetType(IRTypes type, IRSymbol Value)
+	{
+		UCodeLangAssert(type == IRTypes::pointer);
+		_Type = type;
 		_symbol = Value;
 	}
 	bool IsSame(IRType Value) const
@@ -474,6 +480,7 @@ struct IRDebugSetLineNumber
 };
 struct IRDebugSetVarableName
 {
+	String IRVarableName;
 	String VarableName;
 	size_t InsInBlock = 0;
 };
@@ -512,6 +519,7 @@ struct IRDebugIns
 };
 struct IRDebugSybol
 {
+	String IRVarableName;
 	String VarableName;
 
 	String LangType;//Put Your Lang Name Here

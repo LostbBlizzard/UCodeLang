@@ -2,7 +2,7 @@
 
 |main[] => 0;
 
-
+IntVector B = [];
 //A simplified standard Library below.
 
 $Vec2:
@@ -30,6 +30,8 @@ $Opchar = char?;//make type.
 
 $IntVector = int[];
 
+
+
 |NullPtr<T>[] => bitcast<T>(0);
 |NullPtrArr<T>[] => bitcast<T[&]>(0);
 
@@ -41,6 +43,19 @@ $Vector<T>:
  |Data[umut this&] -> T[&]:ret _Data;
  |Size[umut this&] => _Size;
  |Capacity[umut this&] => _Capacity;
+ 
+ |Resize[this&,uintptr size] -> void;
+ |Reserve[this&,uintptr size] -> void;
+ |Clear[this&]:_Size = 0;
+
+ |Push[this&,moved T Item] -> void;
+ |Push[this&,umut T& Item] -> void;
+ |Pop[this&] -> T;
+
+ |Remove[this&,uintptr Index] -> T;
+ 
+ |Insert[this&,moved T Item,uintptr Index] -> void:_Size++;
+ |Insert[this&,umut T& Item,uintptr Index] -> void:_Size++;
 
 $String:
  Vector<char> Base;

@@ -56,7 +56,10 @@ void Parser::Parse(const Vector<Token>& Tokens)
 				if (V.GotNode != GotNodeType::Success) { break; }
 				continue;
 			}
-
+			else 
+			{
+				_TokenIndex = Index;
+			}
 
 		}
 
@@ -2235,7 +2238,7 @@ GotNodeType Parser::GetDeclareThreadVariable(DeclareThreadVariableNode& out, boo
 void Parser::GetDeclareVariableNoObject(TryGetNode& out)
 {
 	DeclareVariableNode node;
-	out.GotNode = GetDeclareVariable(node);
+ 	out.GotNode = GetDeclareVariable(node);
 	if (out.GotNode == GotNodeType::Success)
 	{
 		auto ptr = DeclareThreadVariableNode::Gen();

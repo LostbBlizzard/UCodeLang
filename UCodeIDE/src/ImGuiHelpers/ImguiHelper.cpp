@@ -905,12 +905,37 @@ bool ImguiHelper::DrawVector(const char* label, UCodeLang::ReflectionVector& vec
 		//UCodeObjectField(Item, vector.GetElementType(), assembly);
 	};
 
-	Info._AddNewValue = [](void* Object, size_t Index)
+	Info._AddNewValue = [&assembly](void* Object, size_t Index)
 	{
+		bool Is32Bit = sizeof(void*) == 4;
+
 		UCodeLang::ReflectionVector& Objectbuf = *(UCodeLang::ReflectionVector*)Object;
 
-		BytesPtr newobj;
-		Objectbuf.insert(Index,std::move((void*)newobj.Data()));
+		auto objsize = assembly.GetSize(Objectbuf.GetElementType(), Is32Bit);
+
+		if (objsize.has_value()) 
+		{
+			BytesPtr newobj;
+			newobj.Resize(objsize.value());
+
+			void* object = newobj.Data();
+
+			auto itworked = assembly.CallDefaultConstructor(Objectbuf.GetElementType(), object, Is32Bit);
+			if (itworked.has_value())
+			{
+				auto& obj = itworked.value();
+				if (obj.has_value())
+				{
+					for (auto& Item : obj.value())
+					{
+						_Ptr.ThisCall(Item.MethodToCall, Item.ThisPtr);
+					}
+
+				}
+				Objectbuf.insert(Index, std::move(object));
+			}
+		}
+		
 	};
 
 	Info._AddNewRemove = [](void* Object, size_t Index)

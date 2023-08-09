@@ -162,6 +162,10 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 				for (auto& Item3 : Item2.ParsType)
 				{
 					r += ToString(Item3,Assembly);
+
+					if (&Item3 != &Item2.ParsType.back()) {
+						r += ", ";
+					}
 				}
 				r += "] -> " + ToString(Item2.RetType, Assembly) + ";" ;
 				r += "//" + Item2.DecorationName + '\n';
