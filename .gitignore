@@ -1,5 +1,5 @@
-Output
-.vs
+Output/
+.vs/
 *.sln
 *.filters
 *.vcxproj
