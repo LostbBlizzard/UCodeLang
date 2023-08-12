@@ -1234,6 +1234,15 @@ private:
 		}
 		return false;
 	}
+	
+	const FuncInfo* Context_GetCuruntFunc() const
+	{
+		if (_FuncStack.size()) 
+		{
+			return _FuncStack.back().Pointer;
+		}
+		return nullptr;
+	}
 	bool Symbol_IsThisFuncCall(const FuncInfo* Func) const
 	{
 		if (auto ObjectType = Func->GetObjectForCall())
@@ -1292,7 +1301,7 @@ private:
 	void Symbol_Update_TagSym_ToFixedTypes(Symbol* Sym);
 	void Symbol_Update_AliasSym_ToFixedTypes(Symbol* Sym);
 	void Symbol_Update_EvalSym_ToFixedTypes(Symbol* Sym);
-
+	void Symbol_Update_ThreadAndStatic_ToFixedTypes(Symbol* Sym);
 	void Symbol_Update_Sym_ToFixedTypes(Symbol* Sym);
 
 	Optional<size_t> Type_GetSize(const TypeSymbol& Type)

@@ -966,6 +966,7 @@ class ParameterInfo :public Symbol_Info
 {
 public:
 	bool IsOutValue = false;
+	FuncInfo* MyFunc = nullptr;
 
 };
 

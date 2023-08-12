@@ -1903,8 +1903,10 @@ void SystematicAnalysis::Generic_InitGenericalias(const GenericValuesNode& Gener
 void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 {
 	
-	bool IsgenericInstantiation = _Generic_GenericSymbolStack.size() && _Generic_GenericSymbolStack.top().NodeTarget == &node;
-	bool IsGenericS = node.Signature.Generic.Values.size();
+	const bool IsgenericInstantiation = _Generic_GenericSymbolStack.size() && _Generic_GenericSymbolStack.top().NodeTarget == &node;
+	const bool IsGenericS = node.Signature.Generic.Values.size();
+	const bool Isgeneric_t = IsGenericS && IsgenericInstantiation == false;
+	const bool CheckgenericForErr = (Isgeneric_t && (_PassType == PassType::GetTypes || _PassType == PassType::FixedTypes));
 
 	auto FuncName = IsgenericInstantiation ? _Generic_GenericSymbolStack.top()._IR_GenericFuncName
 		: node.Signature.Name.AsStringView();
@@ -2060,6 +2062,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 			auto ParInfo = new ParameterInfo();
 			ParInfo->IsOutValue = Item.IsOutVarable;
+			ParInfo->MyFunc = newInfo;
+
 			GenericType->Info.reset(ParInfo);
 			_Table.AddSymbolID(*GenericType, ParSybID);
 
@@ -2209,9 +2213,13 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			bool IsPackParLast = false;
 			if (IsgenericInstantiation && ParNodes.size())
 			{
-				if (Info->Pars.back().Type._CustomTypeSymbol == _Generic_GenericSymbolStack.top().Pack.value())
+				auto& TopGenericSymbolStack = _Generic_GenericSymbolStack.top();
+				if (TopGenericSymbolStack.Pack.has_value()) 
 				{
-					IsPackParLast = true;
+					if (Info->Pars.back().Type._CustomTypeSymbol == TopGenericSymbolStack.Pack.value())
+					{
+						IsPackParLast = true;
+					}
 				}
 			}
 
@@ -2406,9 +2414,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	}
 
 
-	bool CheckGeneric = IsGenericS && (_PassType == PassType::GetTypes || _PassType == PassType::FixedTypes);
-
-	if (CheckGeneric)
+	
+	if (CheckgenericForErr)
 	{
 		ignoreBody = false;
 		_Table.AddScope(GenericTestStr);
@@ -2429,7 +2436,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		syb->VarType = Info->Ret;
 	}
 
-	if (CheckGeneric)
+	if (CheckgenericForErr)
 	{
 		_Table.RemoveScope();
 	}
@@ -5499,7 +5506,7 @@ void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 	auto& LookForT = Type_Get_LookingForType();
 	if (node.Expression.Value)
 	{
-	_FuncStack.back().IsOnRetStatemnt = true;
+		_FuncStack.back().IsOnRetStatemnt = true;
 		//LookForT.SetAsRawValue();
 
 		_LookingForTypes.push(LookForT);
@@ -5532,7 +5539,12 @@ void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 		IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType, T);
 		if (node.Expression.Value)
 		{
-			_IR_LookingAtIRBlock->NewRetValue(_IR_LastExpressionField);
+
+			//Cant ret A Void Type In IR.
+			if (!_FuncStack.back().Pointer->Ret.IsAn(TypesEnum::Void))
+			{
+				_IR_LookingAtIRBlock->NewRetValue(_IR_LastExpressionField);
+			}
 		}
 	}
 
@@ -10613,6 +10625,19 @@ Symbol* SystematicAnalysis::Symbol_GetSymbol(String_view Name, SymbolType Type)
 {
 	auto& Symbols = _Table.GetSymbolsWithName(Name,Type);
 	auto Symbol = Symbols.size() ? Symbols[0] : nullptr;
+
+	if (Symbol && Symbol->Type == SymbolType::ParameterVarable)
+	{
+		for (auto& Item : Symbols)
+		{
+			ParameterInfo* p = Item->Get_Info<ParameterInfo>();
+			if (p->MyFunc == Context_GetCuruntFunc())
+			{
+				return Item;
+			}
+		}
+	}
+
 	return Symbol;
 }
 const Symbol* SystematicAnalysis::Symbol_GetSymbol(String_view Name, SymbolType Type) const
@@ -12929,7 +12954,7 @@ SystematicAnalysis::CastOverLoadWith_t  SystematicAnalysis::Type_CanBeExplicitly
 
 	}
 
-	if (Type_IsIntType(TypeToCheck) && Type_IsIntType(TypeToCheck)) { return { true }; }
+	if (Type_IsIntType(TypeToCheck) && Type_IsIntType(Type)) { return { true }; }
 
 	auto Syb = Symbol_GetSymbol(TypeToCheck);
 	if (Syb)
@@ -13443,6 +13468,22 @@ void SystematicAnalysis::Symbol_Update_EvalSym_ToFixedTypes(Symbol* Sym)
 		Set_SymbolConext(std::move(OldConext));
 	}
 }
+void SystematicAnalysis::Symbol_Update_ThreadAndStatic_ToFixedTypes(Symbol* Sym)
+{
+	if (Sym->PassState == PassType::GetTypes)
+	{
+		UCodeLangAssert(Sym->Type == SymbolType::ThreadVarable || Sym->Type == SymbolType::StaticVarable);
+		DeclareVariableInfo* info = Sym->Get_Info<DeclareVariableInfo>();
+
+		auto OldConext = SaveAndMove_SymbolContext();
+		Set_SymbolConext(info->Conext.value());
+
+		OnDeclareVariablenode(*Sym->Get_NodeInfo<DeclareVariableNode>(), 
+			Sym->Type == SymbolType::ThreadVarable ? DeclareStaticVariableNode_t::Thread : DeclareStaticVariableNode_t::Static);
+
+		Set_SymbolConext(std::move(OldConext));
+	}
+}
 void SystematicAnalysis::Symbol_Update_Sym_ToFixedTypes(Symbol* Sym)
 {
 	switch (Sym->Type)
@@ -13484,6 +13525,11 @@ void SystematicAnalysis::Symbol_Update_Sym_ToFixedTypes(Symbol* Sym)
 	case SymbolType::GenericFunc:
 	case SymbolType::Func:
 		Symbol_Update_FuncSym_ToFixedTypes(Sym);
+		break;
+
+	case SymbolType::StaticVarable:
+	case SymbolType::ThreadVarable:
+		Symbol_Update_ThreadAndStatic_ToFixedTypes(Sym);
 		break;
 	default:
 		UCodeLangUnreachable();
@@ -14810,6 +14856,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 				return {};
 			}
 			FuncInfo* Info = Item->Get_Info<FuncInfo>();
+			Symbol_Update_FuncSym_ToFixedTypes(Item);
 
 			IsCompatiblePar CMPPar;
 			CMPPar.SetAsFuncInfo(Item);
@@ -14828,7 +14875,12 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 		}
 		else if (Item->Type == SymbolType::GenericFunc)//TODO try for other befor this
 		{
+			if (Item->IsInvalid())
+			{
+				return {};
+			}
 			FuncInfo* Info = Item->Get_Info<FuncInfo>();
+			Symbol_Update_FuncSym_ToFixedTypes(Item);
 
 			bool IsParPack = Info->_GenericData.IsPack();
 			bool LastParIsPack = IsParPack && Info->Pars.back().Type._CustomTypeSymbol == Info->_GenericData._Generic.back().SybID;

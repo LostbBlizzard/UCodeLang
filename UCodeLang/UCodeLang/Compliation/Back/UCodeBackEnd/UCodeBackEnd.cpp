@@ -1004,22 +1004,172 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		break;
 		case IRInstructionType::UIntToUInt8:
 		{
-			BuildSIntToIntCast(Item, Item->Target(), 1);
+			BuildUIntToIntCast(Item, Item->Target(), 1);
 		}
 		break;
 		case IRInstructionType::UIntToUInt16:
 		{
-			BuildSIntToIntCast(Item, Item->Target(), 2);
+			BuildUIntToIntCast(Item, Item->Target(), 2);
 		}
 		break;
 		case IRInstructionType::UIntToUInt32:
 		{
-			BuildSIntToIntCast(Item, Item->Target(), 4);
+			BuildUIntToIntCast(Item, Item->Target(), 4);
 		}
 		break;
 		case IRInstructionType::UIntToUInt64:
 		{
-			BuildSIntToIntCast(Item, Item->Target(), 8);
+			BuildUIntToIntCast(Item, Item->Target(), 8);
+		}
+		break;
+
+		case IRInstructionType::SGreaterThanOrEqual:
+		case IRInstructionType::UGreaterThanOrEqual:	
+		{
+			RegisterID V = RegisterID::BoolRegister;
+			RegisterID A = MakeIntoRegister(Item, Item->A);
+			SetRegister(A, Item);
+			RegisterID B = MakeIntoRegister(Item, Item->B);
+
+			RegWillBeUsed(V);
+			switch (Item->ObjectType._Type)
+			{
+			case IRTypes::i8:InstructionBuilder::equal_greaterthan8(_Ins, A, B); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::equal_greaterthan16(_Ins, A, B); PushIns(); break;
+
+			bit32label38:
+			case IRTypes::i32:InstructionBuilder::equal_greaterthan32(_Ins, A, B); PushIns(); break;
+			bit64label38:
+			case IRTypes::i64:InstructionBuilder::equal_greaterthan64(_Ins, A, B); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					InstructionBuilder::equal_greaterthan32(_Ins, A, B); PushIns(); 
+				}
+				else
+				{
+					InstructionBuilder::equal_greaterthan64(_Ins, A, B); PushIns();
+				}
+				break;
+			default:
+				UCodeLangUnreachable();
+				break;
+			}
+
+			FreeRegister(A);
+			SetRegister(V, Item);
+		}
+		break;
+		case IRInstructionType::ULessThan:
+		case IRInstructionType::SLessThan:
+		{
+			RegisterID V = RegisterID::BoolRegister;
+			RegisterID A = MakeIntoRegister(Item, Item->A);
+			SetRegister(A, Item);
+			RegisterID B = MakeIntoRegister(Item, Item->B);
+
+			RegWillBeUsed(V);
+			switch (Item->ObjectType._Type)
+			{
+			case IRTypes::i8:InstructionBuilder::lessthan8(_Ins, A, B); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::lessthan16(_Ins, A, B); PushIns(); break;
+
+			case IRTypes::i32:InstructionBuilder::lessthan32(_Ins, A, B); PushIns(); break;
+			
+			case IRTypes::i64:InstructionBuilder::lessthan64(_Ins, A, B); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					InstructionBuilder::lessthan32(_Ins, A, B); PushIns(); break;
+				}
+				else
+				{
+					InstructionBuilder::lessthan64(_Ins, A, B); PushIns(); break;
+				}
+				break;
+			default:
+				UCodeLangUnreachable();
+				break;
+			}
+
+			FreeRegister(A);
+			SetRegister(V, Item);
+		}
+		break;
+		case IRInstructionType::SGreaterThan:
+		case IRInstructionType::UGreaterThan:
+		{
+			RegisterID V = RegisterID::BoolRegister;
+			RegisterID A = MakeIntoRegister(Item, Item->A);
+			SetRegister(A, Item);
+			RegisterID B = MakeIntoRegister(Item, Item->B);
+
+			RegWillBeUsed(V);
+			switch (Item->ObjectType._Type)
+			{
+			case IRTypes::i8:InstructionBuilder::greaterthan8(_Ins, A, B); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::greaterthan16(_Ins, A, B); PushIns(); break;
+
+			case IRTypes::i32:InstructionBuilder::greaterthan32(_Ins, A, B); PushIns(); break;
+
+			case IRTypes::i64:InstructionBuilder::greaterthan64(_Ins, A, B); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					InstructionBuilder::greaterthan32(_Ins, A, B); PushIns(); break;
+				}
+				else
+				{
+					InstructionBuilder::greaterthan64(_Ins, A, B); PushIns(); break;
+				}
+				break;
+			default:
+				UCodeLangUnreachable();
+				break;
+			}
+
+			FreeRegister(A);
+			SetRegister(V, Item);
+		}
+		break;
+		case IRInstructionType::SLessThanOrEqual:
+		case IRInstructionType::ULessThanOrEqual:
+		{
+			RegisterID V = RegisterID::BoolRegister;
+			RegisterID A = MakeIntoRegister(Item, Item->A);
+			SetRegister(A, Item);
+			RegisterID B = MakeIntoRegister(Item, Item->B);
+
+			RegWillBeUsed(V);
+			switch (Item->ObjectType._Type)
+			{
+			case IRTypes::i8:InstructionBuilder::equal_greaterthan8(_Ins, A, B); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::equal_greaterthan16(_Ins, A, B); PushIns(); break;
+
+			case IRTypes::i32:InstructionBuilder::equal_greaterthan32(_Ins, A, B); PushIns(); break;
+
+			case IRTypes::i64:InstructionBuilder::equal_greaterthan64(_Ins, A, B); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					InstructionBuilder::equal_greaterthan32(_Ins, A, B); PushIns(); break;
+				}
+				else
+				{
+					InstructionBuilder::equal_greaterthan64(_Ins, A, B); PushIns(); break;
+				}
+				break;
+			default:
+				UCodeLangUnreachable();
+				break;
+			}
+
+			FreeRegister(A);
+			SetRegister(V, Item);
 		}
 		break;
 		default:

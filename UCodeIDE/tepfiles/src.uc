@@ -1,5 +1,8 @@
 
-
+|main2[]:
+ int c = 0;
+ int d = 5;
+ if c < d:ret 0;
 |main[] => 0;
 
 IntVector B = [];
@@ -34,34 +37,60 @@ $IntVector = int[];
 
 |NullPtr<T>[] => bitcast<T>(0);
 |NullPtrArr<T>[] => bitcast<T[&]>(0);
+|AreSamePtrArr<T>[umut T[&] A,umut T[&] B] => bitcast<uintptr>(A) == bitcast<uintptr>(B);
+|IsNullPtrArr<T>[umut T[&] Ptr] => bitcast<uintptr>(Ptr) == uintptr(0);
 
 //Syntactic alias: T[] = Vector<T>
 $Vector<T>:
- T[&] _Data = NullPtrArr<T>();
- uintptr _Capacity = 0;
- uintptr _Size = 0;
- |Data[umut this&] -> T[&]:ret _Data;
- |Size[umut this&] => _Size;
- |Capacity[umut this&] => _Capacity;
+ private:
+  T[&] _Data = NullPtrArr<T>();
+  uintptr _Capacity = 0;
+  uintptr _Size = 0;
+ public: 
+  |Data[umut this&] -> T[&]:ret _Data;
+  |Size[umut this&] => _Size;
+  |Capacity[umut this&] => _Capacity;
  
- |Resize[this&,uintptr size] -> void;
- |Reserve[this&,uintptr size] -> void;
- |Clear[this&]:_Size = 0;
+  |Resize[this&,uintptr size] -> void:
+   Reserve(size);
+   _Size = size;
+  |Reserve[this&,uintptr size] -> void:
 
- |Push[this&,moved T Item] -> void;
- |Push[this&,umut T& Item] -> void;
- |Pop[this&] -> T;
+    if IsNullPtrArr(_Data):
+      drop(_Data);
 
- |Remove[this&,uintptr Index] -> T;
+    _Data =: new T[size]; 
+    _Capacity = size;
+
+  |Clear[this&]:_Size = 0;
+
+  |Push[this&,moved T Item] => Insert(Item,_Size);
+  |Push[this&,umut T& Item] => Insert(Item,_Size);
+  |Pop[this&] => Remove(_Size - uintptr(1));
+
+  |Remove[this&,uintptr Index] -> T;
  
- |Insert[this&,moved T Item,uintptr Index] -> void:_Size++;
- |Insert[this&,umut T& Item,uintptr Index] -> void:_Size++;
+  |Insert[this&,moved T Item,uintptr Index] -> void:
+   _Size++;
+   if _Capacity < _Size:
+    Resize(_Size);
+
+   _Data[Index] = Item;
+    
+  |Insert[this&,umut T& Item,uintptr Index] -> void:
+   _Size++;
+   if _Capacity < _Size:
+    Resize(_Size);
+
+   _Data[Index] = Item;
 
 $String:
- Vector<char> Base;
- |Data[umut this&] -> char[&]:ret Base.Data();
- |Size[umut this&] => Base.Size();
- |Capacity[umut this&] => Base.Capacity();
+ private:
+  Vector<char> Base;
+ public: 
+  |Data[umut this&] => Base.Data();
+  |Size[umut this&] => Base.Size();
+  |Capacity[umut this&] => Base.Capacity();
 
 //inlined enum variant: X || Y || Z
 //$InlinedEnum = int || bool || char;

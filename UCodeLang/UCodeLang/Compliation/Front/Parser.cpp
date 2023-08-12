@@ -1102,25 +1102,36 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 	{
 		size_t OldIndex = _TokenIndex;
 		ScopedNameNode Tep;
-		auto Name = GetNameCheck(Tep);
+		auto Name = GetNameCheck2(Tep);
 		auto _Token = TryGetToken();
 
 		_TokenIndex = OldIndex;
-		if (_Token->Type == TokenType::lessthan ||
-			_Token->Type == FuncCallStart)
-		{
-			auto r = GetFuncCallNode();
-			out = r.Node;
-			return r.GotNode;
-		}
-		else
+		if (Name.IsExpression)
 		{
 			auto r = ReadVariableNode::Gen();
-			GetName(r->VariableName,true);
+			r->VariableName = std::move(Tep);
 			out = r->As();
+
+			NextToken();
 			return GotNodeType::Success;
 		}
-		
+		else 
+		{
+			if (_Token->Type == TokenType::lessthan ||
+				_Token->Type == FuncCallStart)
+			{
+				auto r = GetFuncCallNode();
+				out = r.Node;
+				return r.GotNode;
+			}
+			else
+			{
+				auto r = ReadVariableNode::Gen();
+				GetName(r->VariableName, true);
+				out = r->As();
+				return GotNodeType::Success;
+			}
+		}
 	}
 	case TokenType::Left_Parentheses:
 	{
@@ -1658,7 +1669,138 @@ GotNodeType Parser::GetNameCheck(NameNode& out)
 	NextToken();
 	return GotNodeType::Success;
 }
+Parser::GetNameCheck_ret2 Parser::GetNameCheck2(ScopedNameNode& out, bool CanHaveVarableName)
+{
+	NameCheck_t LookingAtT = NameCheck_t::Name;
 
+	
+	auto func = [this](UseGenericsNode& out) -> GetNameCheck_ret2
+	{
+		auto token = TryGetToken();
+
+		if (token->Type == TokenType::lessthan)
+		{
+			NextToken();
+
+
+			while (TryGetToken()->Type != TokenType::EndofFile)
+			{
+				if (TryGetToken()->Type == TokenType::Left_Parentheses)
+				{
+					NextToken();
+					TypeNode Item;
+					TypeNode::Gen_Expression(Item, *TryGetToken());
+
+					ExpressionNodeType* node = new ExpressionNodeType();
+					GetExpressionTypeNode(*node);
+
+					Item.node.reset(node);
+
+					auto Rtoken = TryGetToken();
+					TokenTypeCheck(Rtoken, TokenType::Right_Parentheses);
+					NextToken();
+					out.Values.push_back(std::move(Item));
+				}
+				else
+				{
+					TypeNode Item;
+					GetType(Item);
+					out.Values.push_back(std::move(Item));
+				}
+				auto Token = TryGetToken();
+				if (Token == nullptr || Token->Type != TokenType::Comma)
+				{
+					break;
+				}
+				NextToken();
+			}
+
+			auto endtoken = TryGetToken();
+
+			if (out.Values.size() == 1 && endtoken->Type != TokenType::greaterthan)
+			{
+				return { GotNodeType::failed,true };
+			}
+			else {
+				TokenTypeCheck(endtoken, TokenType::greaterthan);
+				NextToken();
+			}
+		}
+		return { GotNodeType::Success,{} };
+	};
+
+	while (TryGetToken()->Type != TokenType::EndofFile)
+	{
+		ScopedName V;
+		UseGenericsNode Generic;
+		auto NameToken = TryGetToken();
+
+		if (NameToken == nullptr
+			||
+			(
+				NameToken->Type != TokenType::Name && !(NameToken->Type == TokenType::KeyWord_This && out.ScopedName.size() == 0)
+				)
+			)
+		{
+			NextToken();
+			return { GotNodeType::failed,{} };
+		}
+
+		V.token = NameToken;
+
+		NextToken();
+		auto r = func(Generic);
+		if (r.IsExpression)
+		{
+			out.ScopedName.push_back(std::move(V));
+			return r;
+		}
+
+
+
+		auto Token = TryGetToken();
+
+
+		if (Token)
+		{
+			V.Operator = ScopedName::Get_Scoped(Token->Type);
+		}
+		V.Generic = std::move(std::make_unique<UseGenericsNode>(std::move(Generic)));
+
+		bool MemAccess = V.Operator == ScopedName::Operator_t::Dot
+			|| V.Operator == ScopedName::Operator_t::IndirectMember
+			|| V.Operator == ScopedName::Operator_t::OptionalChain;
+
+		if (out.ScopedName.size())
+		{
+			auto& Back = out.ScopedName.back();
+
+			if (LookingAtT == NameCheck_t::MemberAccess && V.Generic.get()->Values.size())
+			{
+				auto Token = out.ScopedName[0].token;
+				_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos,
+					"generic cant be with a Memberaccess operator '" + (String)StringHelper::ToString(Token->Type) + "'");
+			}
+		}
+		if (MemAccess)
+		{
+			LookingAtT = NameCheck_t::MemberAccess;
+		}
+
+		out.ScopedName.push_back(std::move(V));
+		if (Token == nullptr || !ScopedName::Get_IsScoped(Token->Type))
+		{
+			break;
+		}
+
+
+
+
+
+		NextToken();
+	}
+	return{ GotNodeType::Success,{} };
+}
 Parser::GetNameCheck_ret Parser::GetNameCheck(ScopedNameNode& out,bool CanHaveVarableName)
 {
 	NameCheck_t LookingAtT = NameCheck_t::Name;
@@ -2276,25 +2418,49 @@ GotNodeType Parser::GetAssignExpression(AssignExpressionNode& out)
 
 
 	auto Token = TryGetToken();
-	TokenTypeCheck(Token, TokenType::equal);
-	NextToken();
-	out.Token = Token;
 
-	Token = TryGetToken();
-	if (Token->Type == TokenType::Colon)
+	if (Token->Type == TokenType::Colon && TryPeekNextToken(1)->Type == TokenType::equal)
 	{
+		_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "Found ':=' did you mean '=:'(address reassignment operator)?");
+
+		NextToken();
+		out.Token = Token;
+
+		Token = TryGetToken();
 		out.ReassignAddress = true;
 		NextToken();
 		Token = TryGetToken();
+
+
+		auto Ex = GetExpressionTypeNode(out.Expression);
+
+
+		auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
+		NextToken();
+		return Merge(Name, Ex);
 	}
+	else 
+	{
+		TokenTypeCheck(Token, TokenType::equal);
+		NextToken();
+		out.Token = Token;
 
-	auto Ex = GetExpressionTypeNode(out.Expression);
+		Token = TryGetToken();
+		if (Token->Type == TokenType::Colon)
+		{
+			out.ReassignAddress = true;
+			NextToken();
+			Token = TryGetToken();
+		}
+
+		auto Ex = GetExpressionTypeNode(out.Expression);
 
 
-	auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
-	NextToken();
-
-	return Merge(Name, Ex);
+		auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
+		NextToken();
+		return Merge(Name, Ex);
+	}
+	
 }
 GotNodeType Parser::GetIfNode(IfNode& out)
 {

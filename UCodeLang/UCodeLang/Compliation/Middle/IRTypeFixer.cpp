@@ -227,6 +227,7 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op, bool UpdateInsType)
 		}
 
 
+		UCodeLangAssert(InBlock(Op.Pointer));
 		if (!InBlock(Op.Pointer))
 		{
 			LogCantFindInsInBlock();
@@ -263,6 +264,7 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op, bool UpdateInsType)
 
 		if (Op.Type == IROperatorType::Get_PointerOf_IRParameter)
 		{
+			UCodeLangAssert(InList(Op.Parameter, _Func->Pars));
 			if (!InList(Op.Parameter, _Func->Pars))
 			{
 				LogErrorCantFindPar(Op);
@@ -271,10 +273,12 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op, bool UpdateInsType)
 
 		if (Op.Type == IROperatorType::Get_PointerOf_IRInstruction)
 		{
+			UCodeLangAssert(InBlock(Op.Pointer));
 			if (!InBlock(Op.Pointer))
 			{
 				LogCantFindInsInBlock();
 			}
+			
 		}
 	}
 	else if (Op.Type == IROperatorType::IRParameter
@@ -284,6 +288,7 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op, bool UpdateInsType)
 			Ins.ObjectType = Op.Parameter->type;
 		}
 
+		UCodeLangAssert(InList(Op.Parameter, _Func->Pars));
 		if (!InList(Op.Parameter,_Func->Pars))
 		{
 			LogErrorCantFindPar(Op);
