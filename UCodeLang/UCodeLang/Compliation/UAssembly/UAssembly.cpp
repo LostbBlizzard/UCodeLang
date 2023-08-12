@@ -158,11 +158,24 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 					r += ToString(Item3, Assembly);
 				}
 
-				r += " |" + Item2.FullName + "[";
+				r += " |" + ScopeHelper::GetNameFromFullName(Item2.FullName) + "[";
+				
 				for (auto& Item3 : Item2.ParsType)
 				{
-					r += ToString(Item3,Assembly);
+					if (&Item3 == &Item2.ParsType.front() && Item2.IsThisFuncion)
+					{
 
+						if (Item3.Type.Isimmutable())
+						{
+							r += "umut ";
+						}
+						
+						r += "this&";
+					}
+					else 
+					{
+						r += ToString(Item3, Assembly);
+					}
 					if (&Item3 != &Item2.ParsType.back()) {
 						r += ", ";
 					}

@@ -231,6 +231,13 @@ private:
 	};
 	GetNameCheck_ret GetNameCheck(ScopedNameNode& out,bool CanHaveVarableName = false);
 
+	struct GetNameCheck_ret2
+	{
+		GotNodeType Type;
+		bool IsExpression = false;
+	};
+	GetNameCheck_ret2 GetNameCheck2(ScopedNameNode& out, bool CanHaveVarableName = false);
+
 	GotNodeType GetType(TypeNode*& out,bool ignoreRighthandOFtype =false,bool ignoreleftHandType = true);
 	GotNodeType GetType(TypeNode& out, bool ignoreRighthandOFtype = false, bool ignoreleftHandType = true);
 	GotNodeType GetNumericType(TypeNode& out);
