@@ -6,6 +6,20 @@ namespace ns
 	using json = nlohmann::json;
 	#define UCL UCodeLanguageSever
 
+	
+
+	template<typename T>
+	inline void to_json(json& Json,const T Object)
+	{
+		Json = Object;
+	}
+	template<typename T>
+	inline void from_json(const json& Json, T& Object)
+	{
+		Object = Json.get<T>();
+	}
+
+
 
 	template<typename T>
 	inline void to_jsonOp(const UCL::TsOptional<T>& value,const char* FieldName, json& Json)
