@@ -76,7 +76,7 @@ public:
 			RunTime.Call(ThreadVariablesInitializeFunc);
 			for (size_t i = 0; i < MaxTimes; i++)
 			{
-				auto AutoPtr = RunTime.RCall<Pinfo::RetType>(*FuncMain,Args...);
+				auto AutoPtr = RunTime.RCall<Pinfo::RetType>(FuncMain,Args...);
 			}
 			RunTime.Call(StaticVariablesUnLoadFunc);
 			RunTime.Call(ThreadVariablesUnLoadFunc);
@@ -97,7 +97,7 @@ public:
 			RunTime.Call(ThreadVariablesInitializeFunc);
 			for (size_t i = 0; i < MaxTimes; i++)
 			{
-				auto AutoPtr = AllwaysJit.RCall<Pinfo::RetType>(*FuncMain, Args...);
+				auto AutoPtr = AllwaysJit.RCall<Pinfo::RetType>(FuncMain, Args...);
 			}
 			RunTime.Call(StaticVariablesUnLoadFunc);
 			RunTime.Call(ThreadVariablesUnLoadFunc);
@@ -117,7 +117,7 @@ public:
 			RunTime.Call(ThreadVariablesInitializeFunc);
 			for (size_t i = 0; i < MaxTimes; i++)
 			{
-				auto AutoPtr = OtherInterpreter.RCall<Pinfo::RetType>(*FuncMain, Args...);
+				auto AutoPtr = OtherInterpreter.RCall<Pinfo::RetType>(FuncMain, Args...);
 			}
 			RunTime.Call(StaticVariablesUnLoadFunc);
 			RunTime.Call(ThreadVariablesUnLoadFunc);
