@@ -123,29 +123,29 @@ project "UCodeLang"
    }
    includedirs{
     "UCodeLang",
-    "UCodeLang/Dependencies/Zydis/include",
-    "UCodeLang/Dependencies/zycore/include",
-    "UCodeLang/Dependencies/Zydis/src"
+    "%{prj.name}/Dependencies/Zydis/include",
+    "%{prj.name}/Dependencies/zycore/include",
+    "%{prj.name}/Dependencies/Zydis/src"
    }
    removefiles{
-     "UCodeLang/Dependencies/Zydis/**.c",
-     "UCodeLang/Dependencies/zycore/**.c",
+     "%{prj.name}/Dependencies/Zydis/**.c",
+     "%{prj.name}/Dependencies/zycore/**.c",
 
-      "UCodeLang/Dependencies/Zydis/**.cpp",
-     "UCodeLang/Dependencies/zycore/**.cpp",
+      "%{prj.name}/Dependencies/Zydis/**.cpp",
+     "%{prj.name}/Dependencies/zycore/**.cpp",
 
-     "UCodeLang/Dependencies/Zydis/**.h",
-     "UCodeLang/Dependencies/zycore/**.h",
+     "%{prj.name}/Dependencies/Zydis/**.h",
+     "%{prj.name}/Dependencies/zycore/**.h",
    }
    files { 
-    "UCodeLang/Dependencies/Zydis/src/**.c",
-    "UCodeLang/Dependencies/zycore/src/**.c",
+    "%{prj.name}/Dependencies/Zydis/src/**.c",
+    "%{prj.name}/Dependencies/zycore/src/**.c",
 
-    "UCodeLang/Dependencies/Zydis/src/**.inc",
-    "UCodeLang/Dependencies/zycore/src/**.inc",
+    "%{prj.name}/Dependencies/Zydis/src/**.inc",
+    "%{prj.name}/Dependencies/zycore/src/**.inc",
 
-    "UCodeLang/Dependencies/Zydis/include/**.h",
-    "UCodeLang/Dependencies/zycore/include/**.h",
+    "%{prj.name}/Dependencies/Zydis/include/**.h",
+    "%{prj.name}/Dependencies/zycore/include/**.h",
    }
 
 
@@ -164,15 +164,11 @@ project "UCodeLanguageSeverlib"
      "%{prj.name}/src/**.cpp",
      "%{prj.name}/src/**.hpp", 
 
-     "%{prj.name}/json-develop/include/**.hpp",
-     "%{prj.name}/json-rpc-cxx-master/include/**.hpp",
+     "%{prj.name}/json/include/**.hpp",
    }
    includedirs{
     "UCodeLang",
-   
-    "%{prj.name}/json-rpc-cxx-master/include",
-
-    "%{prj.name}/json-develop/include",
+    "%{prj.name}/json/include",
    }
 
 project "UCodeLanguageSever"
@@ -195,7 +191,7 @@ project "UCodeLanguageSever"
    includedirs{
     "UCodeLang",
    
-    "UCodeLanguageSeverlib/json-develop/include",
+    "UCodeLanguageSeverlib/json/include",
     "UCodeLanguageSeverlib/src",
    }
 
@@ -255,7 +251,7 @@ project "UCodeIDE"
     "%{prj.name}/src",
     "UCodeLang",
     "UCodeLang/UCodeLang",
-    "UCodeLanguageSeverlib/json-develop/include",
+    "UCodeLanguageSeverlib/json/include",
     "UCodeLanguageSeverlib/src",
 
     "%{prj.name}/Dependencies",
