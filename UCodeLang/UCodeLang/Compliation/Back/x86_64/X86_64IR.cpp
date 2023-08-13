@@ -161,7 +161,7 @@ void X86_64IR::Build(BuildInfo::BuildFunc& Out, BuildState& State, const Ins& Va
 			}
 			break;
 			default:
-				throw std::exception("bad path");
+				UCodeLangThrowException("bad path");
 				break;
 			}
 		}
@@ -190,13 +190,13 @@ void X86_64IR::Build(BuildInfo::BuildFunc& Out, BuildState& State, const Ins& Va
 			}
 			break;
 			default:
-				throw std::exception("bad path");
+				UCodeLangThrowException("bad path");
 				break;
 			}
 		}
 		else
 		{
-			throw std::exception("bad path");
+			UCodeLangThrowException("bad path");
 
 		}
 	}
@@ -222,7 +222,7 @@ void X86_64IR::Build(BuildInfo::BuildFunc& Out, BuildState& State, const Ins& Va
 		}
 		else
 		{
-			throw std::exception("bad path");
+			UCodeLangThrowException("bad path");
 
 		}
 
@@ -254,7 +254,7 @@ void X86_64IR::Build(BuildInfo::BuildFunc& Out, BuildState& State, const Ins& Va
 			}
 			break;
 			default:
-				throw std::exception("bad path");
+				UCodeLangThrowException("bad path");
 				break;
 			}
 		}
@@ -269,7 +269,7 @@ void X86_64IR::Build(BuildInfo::BuildFunc& Out, BuildState& State, const Ins& Va
 	}
 	else
 	{
-		throw std::exception("bad path");
+		UCodeLangThrowException("bad path");
 	}
 }
 UCodeLangEnd

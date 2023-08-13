@@ -14,7 +14,7 @@ void Window::Init()
 	glfwSetErrorCallback(glfw_error_callback);
 	if (!glfwInit()) 
 	{
-		throw std::exception("glfw is bad");
+		UCodeLangThrowException("glfw is bad");
 	}
 }
 

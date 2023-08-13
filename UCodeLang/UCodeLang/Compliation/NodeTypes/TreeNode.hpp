@@ -127,18 +127,21 @@ static UCodeLangForceinline const Node* As(const Type* Value) {return (const Nod
 \
 static UCodeLangForceinline Type* As(Node* Value) \
 { \
+if (UCodeLangDebug){ \
 if (Value->Get_Type() != Node_t) \
 { \
-	throw std::exception("invalid cast"); \
+	UCodeLangThrowException("invalid cast"); \
+} \
 } \
 return (Type*)Value; \
 } \
 static UCodeLangForceinline const Type* As(const Node* Value) \
 { \
- \
+if (UCodeLangDebug) { \
 if (Value->Get_Type() != Node_t) \
 { \
-	throw std::exception("invalid cast"); \
+	UCodeLangThrowException("invalid cast"); \
+} \
 } \
 return (const Type*)Value; \
 } \

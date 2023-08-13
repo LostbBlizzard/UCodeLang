@@ -53,11 +53,11 @@ public:
 		#if UCodeLangDebug
 		if (OutSize != GetElemSize())
 		{
-			throw std::exception("bad cast");
+			UCodeLangThrowException("bad cast");
 		}
 		if (size() == 0)
 		{
-			throw std::exception("out of bounds.");
+			UCodeLangThrowException("out of bounds.");
 		}
 		#endif // DEBUG
 
@@ -77,7 +77,7 @@ public:
 		#if UCodeLangDebug
 		if (!info.has_value())
 		{
-			throw std::exception("Calling Destructor fail");
+			UCodeLangThrowException("Calling Destructor fail");
 		}
 		#endif // DEBUG
 
@@ -159,11 +159,11 @@ public:
 		#if UCodeLangDebug
 		if (OutSize != GetElemSize())
 		{
-			throw std::exception("bad cast");
+			UCodeLangThrowException("bad cast");
 		}
 		if (index >= size())
 		{
-			throw std::exception("out of bounds");
+			UCodeLangThrowException("out of bounds");
 		}
 		#endif // DEBUG
 
@@ -191,7 +191,7 @@ public:
 		#if UCodeLangDebug
 		if (!info.has_value())
 		{
-			throw std::exception("Calling Destructor fail");
+			UCodeLangThrowException("Calling Destructor fail");
 		}
 		#endif // DEBUG
 
@@ -213,7 +213,7 @@ public:
 		#if UCodeLangDebug
 		if (index >= size())
 		{
-			throw std::exception("out of bounds");
+			UCodeLangThrowException("out of bounds");
 		}
 		#endif // DEBUG
 
@@ -449,7 +449,7 @@ public:
 #if UCodeLangDebug
 		if (index >= size())
 		{
-			throw std::exception("out of bounds");
+			UCodeLangThrowException("out of bounds");
 		}
 #endif // DEBUG
 

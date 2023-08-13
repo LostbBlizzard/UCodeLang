@@ -62,7 +62,7 @@ constexpr RNGValue MaxRNGValue = UINT64_MAX;
 				return *(T*)&V3;
 			}
 			default:
-				throw std::exception("bad path");
+				UCodeLangThrowException("bad path");
 				break;
 			}
 		}
