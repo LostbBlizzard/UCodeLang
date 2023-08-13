@@ -320,10 +320,23 @@ void UCodeBackEndObject::RegWillBeUsed(RegisterID Value)
 		auto& TypesValue = Info.Types.value();
 		if (auto Item = TypesValue.Get_If<const IRInstruction*>())
 		{
-			if (IsReferencedAfterThisIndex(*Item)) 
+			if (IsReferencedAfterThisIndex(*Item))
 			{
+
+				auto V = _Registers.GetFreeRegister();
+				auto type = GetType(*Item);
+
 				_Registers.FreeRegister(Value);
-				CopyValueToStack(*Item, GetType(*Item), Value);
+
+				if (V.has_value() && V != Value)
+				{
+					SetRegister(V.value(),*Item);
+					RegToReg(type._Type, Value, V.value(), false);
+				}
+				else 
+				{
+					CopyValueToStack(*Item, type, Value);
+				}
 			}
 		}
 	}
@@ -3502,6 +3515,7 @@ void  UCodeBackEndObject::SynchronizePar(ParlocData* Par)
 	{
 		auto& Item = *_Stack.Items[i];
 
+		if (Item.IR == nullptr) { continue; }
 		if (IsLookingAtPar(Item.IR, Par->Par))
 		{
 			Par->Location = StackPostCall(Item.Offset);

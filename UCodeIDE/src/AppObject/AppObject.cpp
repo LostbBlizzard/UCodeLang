@@ -71,6 +71,10 @@ void UCodeIDEStyle(ImGuiStyle* dst)
 
 namespace LS = UCodeLanguageSever;
 const char* EditorTextURL = "src.uc";
+
+
+
+
 void AppObject::Init()
 {
     if (!_IsAppRuning) {
@@ -102,13 +106,12 @@ void AppObject::Init()
         UCodeIDEStyle(nullptr);
         _Editor.SetText(
             R"(
-|main2[]:
- int c = 0;
- int d = 5;
- if c < d:ret 0;
+
 |main[] => 0;
 
-IntVector B = [];
+IntVector VectorTest = [];
+String StringTest = [];
+
 //A simplified standard Library below.
 
 $Vec2:
@@ -149,8 +152,8 @@ $Vector<T>:
   T[&] _Data = NullPtrArr<T>();
   uintptr _Capacity = 0;
   uintptr _Size = 0;
+  |Data[umut this&] -> T[&]:ret _Data;//So  ClassAssembly::IsString_t will work.
  public: 
-  |Data[umut this&] -> T[&]:ret _Data;
   |Size[umut this&] => _Size;
   |Capacity[umut this&] => _Capacity;
  
@@ -174,26 +177,36 @@ $Vector<T>:
   |Remove[this&,uintptr Index] -> T;
  
   |Insert[this&,moved T Item,uintptr Index] -> void:
-   _Size++;
-   if _Capacity < _Size:
-    Resize(_Size);
+   //_Size++;
+   //if _Capacity < _Size:
+   //Resize(_Size);
 
-   _Data[Index] = Item;
+   //_Data[Index] = Item;
     
   |Insert[this&,umut T& Item,uintptr Index] -> void:
-   _Size++;
-   if _Capacity < _Size:
-    Resize(_Size);
+   //_Size++;
+   //if _Capacity < _Size:
+   //Resize(_Size);
 
-   _Data[Index] = Item;
+   //_Data[Index] = Item;
 
-$String:
+$String = String_t<char>;
+
+$String_t<T>:
  private:
-  Vector<char> Base;
- public: 
+  Vector<T> Base = [];
   |Data[umut this&] => Base.Data();
+ public: 
+  
   |Size[umut this&] => Base.Size();
   |Capacity[umut this&] => Base.Capacity();
+
+  |Resize[this&,uintptr size] => Base.Resize(size);
+  |Clear[this&] => Base.Clear();
+  |Push[this&, T Item] => Base.Push(Item);
+  |Pop[this&] => Base.Pop();
+  |Remove[this&,uintptr Index] => Base.Remove(Index);
+  |Insert[this&,uintptr Index, T Item] => Base.Insert(Item,Index);
 
 //inlined enum variant: X || Y || Z
 //$InlinedEnum = int || bool || char;
@@ -346,6 +359,13 @@ void AppObject::OnDraw()
     }
     
     ProcessSeverPackets();
+
+    {
+        if (IsRuningCompiler == false && _RuningCompiler._Is_ready())
+        {
+            OnDoneCompileing(_RuningCompiler.get(), _RuningPaths.OutFile);
+        }
+    }
 
     bool Doc = true;
     BeginDockSpace(&Doc);
@@ -941,32 +961,7 @@ void AppObject::OnDraw()
             {
                 CompileText(GetTextEditorString());
 
-                bool HasFailed = _Compiler.Get_Errors().Has_Errors() || GetTextEditorString() != _CompilerStr;
-                if (HasFailed)
-                {
-                    AutoCompileTimeOut = 5;
-                }
-                else
-                {
-                    if (OutputWindow.AutoReload)
-                    {
-                        if (OutputWindow.AutoHotReload)
-                        {
-                            if (_RuntimeLib.Get_Lib()) 
-                            {
-                                HotReloadRunTime();
-                            }
-                            else
-                            {
-                                FullReloadRunTime();
-                            }
-                        }
-                        else
-                        {
-                            FullReloadRunTime();
-                        }
-                    }
-                }
+                
                    
 
             }
@@ -1052,35 +1047,46 @@ void AppObject::OnDraw()
         ImGui::BeginDisabled();
 
         bool ShowLibInfo=true;
-
-        if (OutputWindow.AutoCompile)
+        if (IsRuningCompiler)
         {
-            bool CanAutoCompile = IsCodeUpdated && LSPHasNoErrors();
-            
-            if (CanAutoCompile && LastFileUpdated < MaxWaitTimeForAutoCompile)
-            {
-                ShowLibInfo = false;
+            String tepstr = "[Compileing]";
+            ImGui::PushID(&_LibInfoString);
 
-                String tepstr = "[Waiting for no more Input]";
-                ImGui::PushID(&_LibInfoString);
+            ImGui::InputTextMultiline("", &tepstr, ImGui::GetContentRegionAvail());
 
-                ImGui::InputTextMultiline("", &tepstr, ImGui::GetContentRegionAvail());
-
-                ImGui::PopID();
-            }
+            ImGui::PopID();
         }
         else
         {
-            ShowLibInfo =true;
-        }
+            if (OutputWindow.AutoCompile)
+            {
+                bool CanAutoCompile = IsCodeUpdated && LSPHasNoErrors();
 
-        if (ShowLibInfo)
-        {
-            ImGui::PushID(&_LibInfoString);
+                if (CanAutoCompile && LastFileUpdated < MaxWaitTimeForAutoCompile)
+                {
+                    ShowLibInfo = false;
 
-            ImGui::InputTextMultiline("", &_LibInfoString, ImGui::GetContentRegionAvail());
+                    String tepstr = "[Waiting for no more Input]";
+                    ImGui::PushID(&_LibInfoString);
 
-            ImGui::PopID();
+                    ImGui::InputTextMultiline("", &tepstr, ImGui::GetContentRegionAvail());
+
+                    ImGui::PopID();
+                }
+            }
+            else
+            {
+                ShowLibInfo = true;
+            }
+
+            if (ShowLibInfo)
+            {
+                ImGui::PushID(&_LibInfoString);
+
+                ImGui::InputTextMultiline("", &_LibInfoString, ImGui::GetContentRegionAvail());
+
+                ImGui::PopID();
+            }
         }
         ImGui::EndDisabled();
 
@@ -1924,6 +1930,8 @@ void AppObject::OnErrorListUpdated()
 
 void AppObject::CompileText(const String& String)
 {
+    if (IsRuningCompiler) { return;}
+
     _Compiler.Get_Errors().Remove_Errors();
     const Path tepfilesdir = "tepfiles";
     const Path tepfilepath = tepfilesdir / "src.uc";
@@ -1944,8 +1952,24 @@ void AppObject::CompileText(const String& String)
     if (OutputWindow.InDebug) {
         Settings._Flags = (UCodeLang::OptimizationFlags)((UCodeLang::OptimizationFlags_t)Settings._Flags | (UCodeLang::OptimizationFlags_t)UCodeLang::OptimizationFlags::Debug);
     }
-    auto Val = _Compiler.CompileFiles(paths);
+    auto r = _Compiler.CompileFiles(paths);
+    
+    IsRuningCompiler = true;
+    std::function<UCodeLang::Compiler::CompilerRet()> Func = [this, paths]()
+    {
+       auto r = _Compiler.CompileFiles(paths);
+       IsRuningCompiler = false;
+       return r;
+    };
+     
+    _RuningPaths = std::move(paths);
+    _RuningCompiler = SendTaskToWorkerThread<UCodeLang::Compiler::CompilerRet>(Func);
 
+   
+}
+
+void AppObject::OnDoneCompileing(UCodeLang::Compiler::CompilerRet& Val, const UCodeAnalyzer::Path& tepoutpath)
+{
     if (Val._State == UCodeLang::Compiler::CompilerState::Success)
     {
         Errors.clear();
@@ -1962,8 +1986,8 @@ void AppObject::CompileText(const String& String)
             _LibInfoString = UCodeLang::UAssembly::UAssembly::ToString(&_CompiledLib);
         }
         break;
-        case BackEndType::IR:    
-        { 
+        case BackEndType::IR:
+        {
             UCodeLang::IRBuilder ir;
             UCodeLang::IRBuilder::FromFile(ir, tepoutpath);
             _LibInfoString = ir.ToString();
@@ -1982,6 +2006,8 @@ void AppObject::CompileText(const String& String)
         }
 
         OnErrorListUpdated();
+
+       
     }
     else
     {
@@ -1991,6 +2017,33 @@ void AppObject::CompileText(const String& String)
             Errors.push_back({ Item });
         }
         OnErrorListUpdated();
+    }
+
+    bool HasFailed = _Compiler.Get_Errors().Has_Errors() || GetTextEditorString() != _CompilerStr;
+    if (HasFailed)
+    {
+        AutoCompileTimeOut = 5;
+    }
+    else
+    {
+        if (OutputWindow.AutoReload)
+        {
+            if (OutputWindow.AutoHotReload)
+            {
+                if (_RuntimeLib.Get_Lib())
+                {
+                    HotReloadRunTime();
+                }
+                else
+                {
+                    FullReloadRunTime();
+                }
+            }
+            else
+            {
+                FullReloadRunTime();
+            }
+        }
     }
 }
 

@@ -9,6 +9,7 @@
 
 #include "ImGuiHelpers/ImguiHelper.hpp"
 #include <chrono>
+#include <future>
 UCodeIDEStart
 
 using SteadyClock = std::chrono::steady_clock;
@@ -175,6 +176,8 @@ private:
 
 	void CompileText(const UCodeAnalyzer::String& String);
 
+	void OnDoneCompileing(UCodeLang::Compiler::CompilerRet& Val, const UCodeAnalyzer::Path& tepoutpath);
+
 	Vector<Error> Errors;
 	//RunTime
 	String _RunTimeStr;
@@ -273,6 +276,18 @@ private:
 	void FullReloadRunTime();
 	void HotReloadRunTime();
 	void OpenOnWeb(const String& WebLink);
+
+
+	bool IsRuningCompiler = false;
+	std::future<UCodeLang::Compiler::CompilerRet> _RuningCompiler;
+	UCodeLang::Compiler::CompilerPathData _RuningPaths;
+
+
+	template<typename T,typename... Pars> std::future<T> 
+		SendTaskToWorkerThread(std::function<T(Pars...)> Func, Pars... pars)
+	{
+			return std::async(Func, pars...);
+	}
 };
 
 UCodeIDEEnd
