@@ -1,4 +1,5 @@
 #pragma once
+
 #include "UCodeLang/LangCore.hpp"
 #include "UCodeLang/RunTime/RunTimeLib.hpp"
 UCodeLangStart
@@ -9,7 +10,7 @@ enum class CPUBitSize : UInt8
 	Bit32,
 	Bit64,
 
-#ifdef _WIN64
+#if UCodeLang_64BitSytem
 	This_BitSize = Bit64,
 #else
 	This_BitSize = Bit32,
@@ -26,13 +27,24 @@ enum class OsType : UInt8
 	None,
 	Win32,
 	Win64,
+	Linux32,
+	Linux64,
 
-#ifdef _WIN64
+#if UCodeLang_Platform_Windows
+	#if UCodeLang_64BitSytem
 	ThisOs = Win64,
-#elif _WIN32
+	#else
 	ThisOs = Win32,
+	#endif
+#elif UCodeLang_Platform_Linux
+    #if UCodeLang_64BitSytem
+	ThisOs = Linux32,
+	#else
+	ThisOs = Linux64,
+	#endif
 #else
-	ThisOs = None,
+ThisOs = None,
+#error "I Dont Know What OS Im runing on"
 #endif // 
 };
 struct EnvironmentData
