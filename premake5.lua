@@ -5,6 +5,30 @@ workspace "UCodeLang"
    
 
    startproject "UCodeIDE"
+
+   if os.host() == "windows" then
+      if os.is64bit() then
+         defaultplatform "Win32"
+      else
+         defaultplatform "Win64"
+      end
+   end
+
+   if os.host() == "linux" then
+      if os.is64bit() then
+         defaultplatform "linux64"
+      else
+         defaultplatform "linux32"
+      end
+   end
+
+   if os.host() == "macosx" then
+      if os.is64bit() then
+         defaultplatform "MacOS"
+      else
+         defaultplatform "MacOS"
+      end
+   end
    
    OutDirPath ="%{cfg.platform}/%{cfg.buildcfg}"
 
