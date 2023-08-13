@@ -4,3 +4,4 @@ Output/
 *.filters
 *.vcxproj
 *.user
+Makefile

@@ -1,8 +1,7 @@
 workspace "UCodeLang"
    configurations { "Debug", "Release","Published" }
-   platforms { "Win32", "Win64"}
+   platforms { "Win32", "Win64","linux32","linux64", "MacOS" }
    defines {"UCodeLangDebug","ZYCORE_STATIC_BUILD"}
-   
    
 
    startproject "UCodeIDE"
@@ -19,9 +18,25 @@ workspace "UCodeLang"
    filter { "platforms:Win64" }
      system "Windows"
      architecture "x86_64"
+
+   filter { "platforms:linux32" }
+    system "linux"
+    architecture "x86"
+   filter { "platforms:linux64" }
+     system "linux"
+     architecture "x86_64"
+
+   filter { "MacOS" }
+    system "macosx"
+   
    filter { "system:Windows" }
      cppdialect "c++17"
+     
+   filter { "system:linux" }
+     cppdialect "c++17"
    
+   filter { "system:macosx" }
+     cppdialect "c++17"
 
    filter { "configurations:Debug" }
       defines { "DEBUG" }
@@ -277,8 +292,20 @@ project "UCodeIDE"
     kind "ConsoleApp"   
     defines {"_GLFW_WIN32"}
 
+   filter { "system:linux" }
+    kind "ConsoleApp"   
+    defines {"_GLFW_WIN32"}
+
+   filter { "system:MacOS" }
+    kind "ConsoleApp"   
+    defines {"_GLFW_WIN32"}
+
    filter { "system:Windows","configurations:Published" }
     kind ("WindowedApp")
+   filter { "system:Windows","configurations:Published" }
+    kind ("WindowedApp")
+
+   
 
    filter { "architecture:x86"}
       links {"glew32s.lib","Opengl32.lib"}

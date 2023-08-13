@@ -15,7 +15,17 @@
 #define UCodeLang_Platform_Windows 0
 #endif // _WIN64 || _WIN32
 
+#if __gnu_linux__ || __linux__
+#define UCodeLang_Platform_Linux 1
+#else
+#define UCodeLang_Platform_Linux 0
+#endif // linux 
 
+#if __APPLE__ && __MACH__
+#define UCodeLang_Platform_MacOS 1
+#else
+#define UCodeLang_Platform_MacOS 0
+#endif // linux 
 
 #ifdef DEBUG
 #define CompliationTypeSafety 1
