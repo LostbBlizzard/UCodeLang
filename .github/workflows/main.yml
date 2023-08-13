@@ -61,7 +61,8 @@ jobs:
     - uses: actions/checkout@v3
     
     - name: Make a scripts executable
-      run: chmod +x ./GNU_Make.sh
+      run: |
+       chmod +x ./GNU_Make.sh
        chmod +x ./BuildTools/BuildLinux32Debug.sh
        chmod +x ./BuildTools/BuildLinux64Debug.sh
        chmod +x ./BuildTools/RunTestsLinux32Debug.sh
@@ -103,11 +104,12 @@ jobs:
     - uses: actions/checkout@v3
     
     - name: Make a scripts executable
-      run: chmod +x ./XCode.sh
-      chmod +x ./BuildTools/BuildMacOS32Debug.sh
-      chmod +x ./BuildTools/BuildMacOS64Debug.sh
-      chmod +x ./BuildTools/RunTestsMacOS32Debug.sh
-      chmod +x ./BuildTools/RunTestsMacOS64Debug.sh
+      run: |
+       chmod +x ./XCode.sh
+       chmod +x ./BuildTools/BuildMacOS32Debug.sh
+       chmod +x ./BuildTools/BuildMacOS64Debug.sh
+       chmod +x ./BuildTools/RunTestsMacOS32Debug.sh
+       chmod +x ./BuildTools/RunTestsMacOS64Debug.sh
 
     - name: Run Premake
       run: ./XCode.sh
