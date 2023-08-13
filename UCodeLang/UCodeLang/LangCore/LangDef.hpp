@@ -119,9 +119,17 @@
 #define UCodeLangAPIExportDLLIMPORT __declspec(dllexport)
 #endif
 
-#if UCodeLangDebug
-#define UCodeLangUnreachable() throw std::exception("bad path");
+#if UCodeLangMSVC
+#define UCodeLangThrowException(Ex) throw std::exception(Ex);
 #else
+#define UCodeLangThrowException(Ex) throw std::runtime_error(Ex);
+#endif 
+
+#if UCodeLangDebug
+#define UCodeLangUnreachable() UCodeLangThrowException("bad path");
+#else
+
+
 
 #if UCodeLangMSVC
 #define UCodeLangUnreachable() __assume(0);
@@ -139,11 +147,7 @@
 #define UCodeLangThrowException() static_assert(true,"UCodeLang should not be throwing exceptions we have a C-API ");
 #else
 
-#if UCodeLangMSVC
-#define UCodeLangThrowException(Ex) throw std::exception(Ex);
-#else
-#define UCodeLangThrowException(Ex) throw std::runtime_error(Ex);
-#endif 
+
 
 
 #endif
