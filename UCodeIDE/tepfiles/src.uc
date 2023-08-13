@@ -1,11 +1,10 @@
 
-|main2[]:
- int c = 0;
- int d = 5;
- if c < d:ret 0;
+
 |main[] => 0;
 
-IntVector B = [];
+IntVector VectorTest = [];
+String StringTest = [];
+
 //A simplified standard Library below.
 
 $Vec2:
@@ -46,8 +45,8 @@ $Vector<T>:
   T[&] _Data = NullPtrArr<T>();
   uintptr _Capacity = 0;
   uintptr _Size = 0;
+  |Data[umut this&] -> T[&]:ret _Data;//So  ClassAssembly::IsString_t will work.
  public: 
-  |Data[umut this&] -> T[&]:ret _Data;
   |Size[umut this&] => _Size;
   |Capacity[umut this&] => _Capacity;
  
@@ -71,26 +70,36 @@ $Vector<T>:
   |Remove[this&,uintptr Index] -> T;
  
   |Insert[this&,moved T Item,uintptr Index] -> void:
-   _Size++;
-   if _Capacity < _Size:
-    Resize(_Size);
+   //_Size++;
+   //if _Capacity < _Size:
+   //Resize(_Size);
 
-   _Data[Index] = Item;
+   //_Data[Index] = Item;
     
   |Insert[this&,umut T& Item,uintptr Index] -> void:
-   _Size++;
-   if _Capacity < _Size:
-    Resize(_Size);
+   //_Size++;
+   //if _Capacity < _Size:
+   //Resize(_Size);
 
-   _Data[Index] = Item;
+   //_Data[Index] = Item;
 
-$String:
+$String = String_t<char>;
+
+$String_t<T>:
  private:
-  Vector<char> Base;
- public: 
+  Vector<T> Base = [];
   |Data[umut this&] => Base.Data();
+ public: 
+  
   |Size[umut this&] => Base.Size();
   |Capacity[umut this&] => Base.Capacity();
+
+  |Resize[this&,uintptr size] => Base.Resize(size);
+  |Clear[this&] => Base.Clear();
+  |Push[this&, T Item] => Base.Push(Item);
+  |Pop[this&] => Base.Pop();
+  |Remove[this&,uintptr Index] => Base.Remove(Index);
+  |Insert[this&,uintptr Index, T Item] => Base.Insert(Item,Index);
 
 //inlined enum variant: X || Y || Z
 //$InlinedEnum = int || bool || char;

@@ -1467,6 +1467,11 @@ private:
 			TypeSymbol Type;
 			Type_ConvertAndValidateType(Tnode, Type, NodeSyb_t::Any);
 
+			if (Type_IsUnMapType(Type))
+			{
+				return nullptr;
+			}
+
 			{
 				bool InputTypeIsConstantExpression = false;
 

@@ -7778,13 +7778,7 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 			Out.Type = SymbolVar->VarType;
 			Out.Symbol = SymbolVar;
 
-			if (SymbolVar->Type == SymbolType::ParameterVarable)
-			{
-				//because overloaded funcions have the same Symbol FullNames we need to pick the this one and not the first one/  
-				FuncInfo* Func = _FuncStack.back().Pointer;
-				//UCodeLangThrowException("bad");
-			}
-
+			
 			if (SymbolVar->Type == SymbolType::Class_Field)
 			{
 				if (!Context_IsInThisFuncCall())
@@ -10006,15 +10000,23 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 			UAddress V;
 			{
 				auto VSyb = Symbol_GetSymbol(IndexedObjectPointer);
-				if (VSyb->Type == SymbolType::Type_StaticArray)
+				if (VSyb)
 				{
-					StaticArrayInfo* info = VSyb->Get_Info<StaticArrayInfo>();
-					Type_GetSize(info->Type, V);
+					if (VSyb->Type == SymbolType::Type_StaticArray)
+					{
+						StaticArrayInfo* info = VSyb->Get_Info<StaticArrayInfo>();
+						Type_GetSize(info->Type, V);
+					}
+					else
+					{
+						Type_GetSize(IndexedObjectPointer, V);
+					}
 				}
 				else
 				{
 					Type_GetSize(IndexedObjectPointer, V);
 				}
+
 
 			}
 			
@@ -12699,6 +12701,7 @@ Optional<Symbol*> SystematicAnalysis::Generic_InstantiateOrFindGenericSymbol(con
 	Symbol* R = nullptr;
 
 	Symbol_Update_Sym_ToFixedTypes(SybV);
+
 	if (SybV->Type == SymbolType::Generic_class)
 	{
 		auto CInfo = SybV->Get_Info<ClassInfo>();
@@ -14489,6 +14492,13 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 				ScopedName = ToString(tep_) + ScopeHelper::_ScopeSep;
 				ScopedName += Name.ScopedName.back().token->Value._String;
+				if (_ThisType.IsBadType())
+				{
+					Get_FuncInfo V;
+					V.CantCheckBecauseIsUnMaped = true;
+
+					return V;//cant check because we are just testing.
+				}
 			}
 			else
 			{

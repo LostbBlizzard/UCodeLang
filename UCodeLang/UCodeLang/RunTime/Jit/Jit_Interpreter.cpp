@@ -51,6 +51,7 @@ void Jit_Interpreter::Get_Return(void* Output, size_t OutputSize)
 
 void Jit_Interpreter::TryBuildAllFuncs()
 {
+#if HasSupportforJit
 	for (auto& Item : Get_State()->Get_Libs().Get_NameToAddress())
 	{
 		auto address = Item._Value;
@@ -58,7 +59,7 @@ void Jit_Interpreter::TryBuildAllFuncs()
 		auto& Item = UFuncToCPPFunc[address];
 		BuildCheck(Item, address);
 	}
-
+#endif
 }
 
 Interpreter::Return_t Jit_Interpreter::Call(const String& FunctionName)
@@ -378,6 +379,7 @@ void Jit_Interpreter::BuildCheck(UCodeLang::Jit_Interpreter::JitFuncData& Item, 
 String Jit_Interpreter::GetJitState()
 {
 	std::stringstream r;
+	#if HasSupportforJit
 	void* InsData = ExBuffer.Data;
 	size_t InsSize = Insoffset;
 #if UCodeLang_CPUIs_x86_64 || UCodeLang_CPUIs_x86
@@ -533,7 +535,8 @@ String Jit_Interpreter::GetJitState()
 #endif
 	r << "/end" << std::endl;
 	int DebugYourBreakPointHere = 0;
-
+	#endif
+	
 	return r.str();
 }
 

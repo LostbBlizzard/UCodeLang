@@ -1046,19 +1046,101 @@ Optional<ClassAssembly::InfoString_t> ClassAssembly::IsString_t(const Reflection
 		if (node->Get_Type() == ClassType::Class)
 		{
 			auto& classnode = node->Get_ClassData();
-			const ClassMethod* dataMethod = classnode.Get_ClassMethod("data");
-			if (dataMethod == nullptr)
+			const ClassMethod* DataMethod = classnode.Get_ClassMethod("data");
+			if (DataMethod == nullptr)
 			{
-				dataMethod = classnode.Get_ClassMethod("Data");
+				DataMethod = classnode.Get_ClassMethod("Data");
 			}
 
-			if (dataMethod)
+			if (DataMethod)
 			{
-				InfoString_t r;
-				r.ElementType = dataMethod->RetType;
-				r.ElementType._IsAddress = false;
+				auto ElementType = DataMethod->RetType;
+				auto SizeMethod = classnode.Get_ClassMethod("Size");
+				if (SizeMethod == nullptr)
+				{
+					SizeMethod = classnode.Get_ClassMethod("size");
+				}
 
-				return r;
+				auto CapacityMethod = classnode.Get_ClassMethod("Capacity");
+				if (CapacityMethod == nullptr)
+				{
+					CapacityMethod = classnode.Get_ClassMethod("capacity");
+				}
+
+				auto ResizeMethod = classnode.Get_ClassMethod("Resize");
+				if (ResizeMethod == nullptr)
+				{
+					ResizeMethod = classnode.Get_ClassMethod("resize");
+				}
+
+				auto ReserveMethod = classnode.Get_ClassMethod("Reserve");
+				if (ReserveMethod == nullptr)
+				{
+					ReserveMethod = classnode.Get_ClassMethod("reserve");
+				}
+
+				auto ClearMethod = classnode.Get_ClassMethod("Clear");
+				if (ClearMethod == nullptr)
+				{
+					ClearMethod = classnode.Get_ClassMethod("clear");
+				}
+				const ClassMethod* PushMethod = classnode.Get_ClassMethod("Push");
+				if (PushMethod == nullptr)
+				{
+					PushMethod = classnode.Get_ClassMethod("push");
+				}
+
+				auto PopMethod = classnode.Get_ClassMethod("Pop");
+				if (PopMethod == nullptr)
+				{
+					PopMethod = classnode.Get_ClassMethod("pop");
+				}
+
+				auto RemoveMethodMethod = classnode.Get_ClassMethod("Remove");
+				if (RemoveMethodMethod == nullptr)
+				{
+					RemoveMethodMethod = classnode.Get_ClassMethod("remove");
+				}
+
+
+				const ClassMethod* InsertMethod = classnode.Get_ClassMethod("Insert");
+				if (InsertMethod == nullptr)
+				{
+					InsertMethod = classnode.Get_ClassMethod("insert");
+				}
+
+
+				if (SizeMethod
+					&& CapacityMethod
+					&& ResizeMethod
+					&& ReserveMethod
+					&& ClearMethod
+					&& PushMethod
+					&& PopMethod
+					&& RemoveMethodMethod
+					&& InsertMethod)
+				{
+					InfoString_t r;
+					r.ElementType = DataMethod->RetType;
+					r.ElementType._IsAddressArray = false;
+
+					r.Data_Method = DataMethod;
+					r.Size_Method = SizeMethod;
+					r.Capacity_Method = CapacityMethod;
+
+					r.Resize_Method = ResizeMethod;
+					r.Reserve_Method = ReserveMethod;
+					r.Clear_Method = ClearMethod;
+
+					r.Push_Method = PushMethod;
+					r.Pop_Method = PopMethod;
+
+					r.Remove_Method = RemoveMethodMethod;
+
+					r.Insert_Method = InsertMethod;
+
+					return r;
+				}
 			}
 
 		}
