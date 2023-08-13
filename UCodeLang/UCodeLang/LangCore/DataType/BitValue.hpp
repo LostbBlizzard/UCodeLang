@@ -76,7 +76,7 @@ public:
 
 	UCodeLangForceinline bool GetValue(T Index) const
 	{
-		_Base.GetValue((BaseType)Index);
+		return _Base.GetValue((BaseType)Index);
 	}
 	UCodeLangForceinline void SetValue(T Index, bool Value)
 	{
@@ -84,7 +84,7 @@ public:
 	}
 	UCodeLangForceinline void FilpBit(T Index)
 	{
-		_Base.FilpBit((BaseType)Value);
+		_Base.FilpBit((BaseType)Index);
 	}
 
 	T Get_Base() const
