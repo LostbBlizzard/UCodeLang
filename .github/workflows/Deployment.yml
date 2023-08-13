@@ -29,6 +29,6 @@ jobs:
           body: |
             Changes in this Release
             - First Change
-            - Second Change
+            - Second Chang
           draft: false
           prerelease: false
