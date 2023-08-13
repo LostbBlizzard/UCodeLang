@@ -24,7 +24,7 @@ ZydisRegister_ To(X86_64Gen::GReg Value)
 	case X86_64Gen::GReg::r14:return ZydisRegister_::ZYDIS_REGISTER_R14;
 	case X86_64Gen::GReg::r15:return ZydisRegister_::ZYDIS_REGISTER_R15;
 	default:
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 		break;
 	}
 }
@@ -103,7 +103,7 @@ void X86_64Gen::mov(GReg Reg, Value8 Value)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
 }
@@ -124,7 +124,7 @@ void X86_64Gen::mov(GReg Reg, Value16 Value)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
 }
@@ -145,7 +145,7 @@ void X86_64Gen::mov(GReg Reg, Value32 Value)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
 }
@@ -166,7 +166,7 @@ void X86_64Gen::mov(GReg Reg, Value64 Value)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
 
@@ -189,7 +189,7 @@ void X86_64Gen::mov8(GReg dest, GReg src)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
 }
@@ -210,7 +210,7 @@ void X86_64Gen::mov16(GReg dest, GReg src)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
@@ -232,7 +232,7 @@ void X86_64Gen::mov32(GReg dest, GReg src)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
@@ -254,7 +254,7 @@ void X86_64Gen::mov64(GReg dest, GReg src)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
@@ -276,7 +276,7 @@ void X86_64Gen::mov64(IndrReg dest, GReg src)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
@@ -298,7 +298,7 @@ void X86_64Gen::mov64(GReg dest, IndrReg src)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
@@ -331,7 +331,7 @@ void X86_64Gen::lea(GReg dest, IndrReg src, Value8 scale, GReg index, UInt64 dis
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
@@ -340,7 +340,7 @@ void X86_64Gen::lea(GReg dest, IndrReg src, Value8 scale, GReg index, UInt64 dis
 /*
 inline  void push8(GReg Reg);
 {
-throw std::exception("not added");
+UCodeLangThrowException("not added");
 }
 */
 
@@ -360,7 +360,7 @@ void X86_64Gen::push16(GReg Reg)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
@@ -381,7 +381,7 @@ void X86_64Gen::push64(GReg Reg)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
@@ -402,7 +402,7 @@ void X86_64Gen::push8(Value8 Value)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
@@ -423,7 +423,7 @@ void X86_64Gen::push16(Value16 Value)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
@@ -444,7 +444,7 @@ void X86_64Gen::push32(Value32 Value)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
@@ -465,7 +465,7 @@ void X86_64Gen::pop8(GReg Reg)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
@@ -486,7 +486,7 @@ void X86_64Gen::pop16(GReg Reg)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
@@ -507,7 +507,7 @@ void X86_64Gen::pop64(GReg Reg)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
@@ -529,7 +529,7 @@ void X86_64Gen::add8(GReg dest, GReg src)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
@@ -551,7 +551,7 @@ void X86_64Gen::add16(GReg dest, GReg src)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
@@ -573,7 +573,7 @@ void X86_64Gen::add32(GReg dest, GReg src)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
@@ -595,7 +595,7 @@ void X86_64Gen::add64(GReg dest, GReg src)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
@@ -617,7 +617,7 @@ void X86_64Gen::add32(GReg dest, Value32 src)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
@@ -639,7 +639,7 @@ void X86_64Gen::add64(GReg dest, Value64 src)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
@@ -661,7 +661,7 @@ void X86_64Gen::sub32(GReg dest, Value32 Value)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
@@ -683,7 +683,7 @@ void X86_64Gen::sub64(GReg dest, Value64 Value)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
@@ -705,7 +705,7 @@ void X86_64Gen::sub8(GReg dest, GReg src)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
@@ -727,7 +727,7 @@ void X86_64Gen::sub16(GReg dest, GReg src)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
@@ -749,7 +749,7 @@ void X86_64Gen::sub32(GReg dest, GReg src)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
@@ -771,7 +771,7 @@ void X86_64Gen::sub64(GReg dest, GReg src)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
@@ -793,7 +793,7 @@ void X86_64Gen::XOr8(GReg dest, GReg src)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
@@ -816,7 +816,7 @@ void X86_64Gen::XOr16(GReg dest, GReg src)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
@@ -839,7 +839,7 @@ void X86_64Gen::XOr32(GReg dest, GReg src)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);
@@ -861,7 +861,7 @@ void X86_64Gen::XOr64(GReg dest, GReg src)
 
 	if (ZYAN_FAILED(ZydisEncoderEncodeInstruction(&req, encoded_instruction, &encoded_length)))
 	{
-		throw std::exception("Failed to encode instruction");
+		UCodeLangThrowException("Failed to encode instruction");
 	}
 
 	_Base.PushByte((const Byte*)&encoded_instruction, encoded_length);

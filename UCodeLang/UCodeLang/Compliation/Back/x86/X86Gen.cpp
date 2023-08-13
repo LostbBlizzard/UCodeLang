@@ -56,7 +56,7 @@ void IRToX86::OnBlock(const IRBlock* IR)
 			}
 			else
 			{
-				throw std::exception("not added");
+				UCodeLangThrowException("not added");
 			}
 		}
 		break;
@@ -69,7 +69,7 @@ void IRToX86::OnBlock(const IRBlock* IR)
 			_Output.ret();
 			break;
 		default:
-			throw std::exception("not added");
+			UCodeLangThrowException("not added");
 			break;
 		}
 	}
@@ -82,7 +82,7 @@ X86Gen::GReg IRToX86::LoadOpINGeneralRegister(IRInstruction& Ins, const IROperat
 		auto V = GetFreeGeneralRegister();
 		if (V == GReg::Null)
 		{
-			throw std::exception("not added");
+			UCodeLangThrowException("not added");
 			//
 		}
 		switch (Ins.ObjectType._Type)
@@ -100,17 +100,17 @@ X86Gen::GReg IRToX86::LoadOpINGeneralRegister(IRInstruction& Ins, const IROperat
 			break;
 		case IRTypes::f32:
 			//InstructionBuilder::Storef32(_Ins, V, Op.Value.Asfloat32); PushIns();
-			throw std::exception("not added");
+			UCodeLangThrowException("not added");
 			break;
 		case IRTypes::f64:
 			//InstructionBuilder::Storef64(_Ins, V, Op.Value.Asfloat64); PushIns();
-			throw std::exception("not added");
+			UCodeLangThrowException("not added");
 			break;
 
 		bit64label:
 		case IRTypes::i64:
 			//InstructionBuilder::Store64(_Ins, V, Op.Value.AsInt64); PushIns();
-			throw std::exception("not added");
+			UCodeLangThrowException("not added");
 			break;
 
 		case IRTypes::pointer:
@@ -124,7 +124,7 @@ X86Gen::GReg IRToX86::LoadOpINGeneralRegister(IRInstruction& Ins, const IROperat
 			}
 			break;
 		default:
-			throw std::exception("not added");
+			UCodeLangThrowException("not added");
 			break;
 		}
 		return V;
@@ -135,7 +135,7 @@ X86Gen::GReg IRToX86::LoadOpINGeneralRegister(IRInstruction& Ins, const IROperat
 	}
 	else
 	{
-		throw std::exception("not added");
+		UCodeLangThrowException("not added");
 	}
 }
 X86Gen::GReg IRToX86::GetFreeGeneralRegister()
@@ -194,7 +194,7 @@ void IRToX86::RegToReg(IRTypes Type, GReg In, GReg Out)
 		Int64L:
 		case IRTypes::f64:
 		case IRTypes::i64:
-			throw std::exception("not added");
+			UCodeLangThrowException("not added");
 			break;
 		Pointer:
 		case IRTypes::pointer:
@@ -203,7 +203,7 @@ void IRToX86::RegToReg(IRTypes Type, GReg In, GReg Out)
 			case IntSizes::Int32:goto Int32L;
 			case IntSizes::Int64:goto Int64L;
 			default:
-				throw std::exception("not added");
+				UCodeLangThrowException("not added");
 				break;
 			}
 			break;
@@ -213,7 +213,7 @@ void IRToX86::RegToReg(IRTypes Type, GReg In, GReg Out)
 		}//FuncPtrs
 		break;
 		default:
-			throw std::exception("not added");
+			UCodeLangThrowException("not added");
 			break;
 		}
 
@@ -236,12 +236,12 @@ IRToX86::GReg IRToX86::FindOp(IRInstruction& Ins, IROperator Op)
 			}
 			else
 			{
-				throw std::exception("not added");
+				UCodeLangThrowException("not added");
 			}
 		}
 		else
 		{
-			throw std::exception("not added");
+			UCodeLangThrowException("not added");
 		}
 
 	}

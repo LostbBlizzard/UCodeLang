@@ -142,7 +142,7 @@ public:
 	{
 		if (sizeof(T) != Size)
 		{
-			throw std::exception("bad type cast");
+			UCodeLangThrowException("bad type cast");
 		}
 
 		return (T*)Bytes.get();
@@ -153,7 +153,7 @@ public:
 	{
 		if (sizeof(T) != Size)
 		{
-			throw std::exception("bad type cast");
+			UCodeLangThrowException("bad type cast");
 		}
 
 		return (T*)Bytes.get();
@@ -444,123 +444,123 @@ public:
 
 	Class_Data& Get_ClassData()
 	{
-		if (Type != ClassType::Class) {throw std::exception("bad access");}
+		if (Type != ClassType::Class) {UCodeLangThrowException("bad access");}
 		return _Class;
 	}
 	Enum_Data& Get_EnumData()
 	{
-		if (Type != ClassType::Enum) { throw std::exception("bad access"); }
+		if (Type != ClassType::Enum) { UCodeLangThrowException("bad access"); }
 		return _Enum;
 	}
 	Alias_Data& Get_AliasData()
 	{
-		if (Type != ClassType::Alias) { throw std::exception("bad access"); }
+		if (Type != ClassType::Alias) { UCodeLangThrowException("bad access"); }
 		return _Alias;
 	}
 	Eval_Data& Get_EvalData()
 	{
-		if (Type != ClassType::Eval) { throw std::exception("bad access"); }
+		if (Type != ClassType::Eval) { UCodeLangThrowException("bad access"); }
 		return  _Eval;
 	}
 	Trait_Data& Get_TraitData()
 	{
-		if (Type != ClassType::Trait) { throw std::exception("bad access"); }
+		if (Type != ClassType::Trait) { UCodeLangThrowException("bad access"); }
 		return  _Trait;
 	}
 	Tag_Data& Get_TagData()
 	{
-		if (Type != ClassType::Tag) { throw std::exception("bad access"); }
+		if (Type != ClassType::Tag) { UCodeLangThrowException("bad access"); }
 		return  _Tag;
 	}
 	StaticVar_Data& Get_StaticVar()
 	{
-		if (Type != ClassType::StaticVarable) { throw std::exception("bad access"); }
+		if (Type != ClassType::StaticVarable) { UCodeLangThrowException("bad access"); }
 		return  _StaticVar;
 	}
 	ThreadVar_Data& Get_ThreadVar()
 	{
-		if (Type != ClassType::ThreadVarable) { throw std::exception("bad access"); }
+		if (Type != ClassType::ThreadVarable) { UCodeLangThrowException("bad access"); }
 		return _ThreadVar;
 	}
 	StaticArray_Data& Get_StaticArray() 
 	{
-		if (Type != ClassType::StaticArray) { throw std::exception("bad access"); }
+		if (Type != ClassType::StaticArray) { UCodeLangThrowException("bad access"); }
 		return _StaticArr;
 	}
 	FuncPtr_Data& Get_FuncPtr() 
 	{
-		if (Type != ClassType::FuncPtr) { throw std::exception("bad access"); }
+		if (Type != ClassType::FuncPtr) { UCodeLangThrowException("bad access"); }
 		return _FuncPtr;
 	}
 	GenericClass_Data& Get_GenericClass() 
 	{
-		if (Type != ClassType::GenericClass) { throw std::exception("bad access"); }
+		if (Type != ClassType::GenericClass) { UCodeLangThrowException("bad access"); }
 		return _GenericClass;
 	}
 	GenericFuncion_Data& Get_GenericFuncionData() 
 	{
-		if (Type != ClassType::GenericFuncion) { throw std::exception("bad access"); }
+		if (Type != ClassType::GenericFuncion) { UCodeLangThrowException("bad access"); }
 		return _GenericFunc;
 	}
 	
 	const Class_Data& Get_ClassData() const
 	{
-		if (Type != ClassType::Class) { throw std::exception("bad access"); }
+		if (Type != ClassType::Class) { UCodeLangThrowException("bad access"); }
 		return _Class;
 	}
 	const Enum_Data& Get_EnumData()const
 	{
-		if (Type != ClassType::Enum) { throw std::exception("bad access"); }
+		if (Type != ClassType::Enum) { UCodeLangThrowException("bad access"); }
 		return _Enum;
 	}
 	const Alias_Data& Get_AliasData()const
 	{
-		if (Type != ClassType::Alias) { throw std::exception("bad access"); }
+		if (Type != ClassType::Alias) { UCodeLangThrowException("bad access"); }
 		return _Alias;
 	}
 	const Eval_Data& Get_EvalData()const
 	{
-		if (Type != ClassType::Eval) { throw std::exception("bad access"); }
+		if (Type != ClassType::Eval) { UCodeLangThrowException("bad access"); }
 		return  _Eval;
 	}
 	const Trait_Data& Get_TraitData()const
 	{
-		if (Type != ClassType::Trait) { throw std::exception("bad access"); }
+		if (Type != ClassType::Trait) { UCodeLangThrowException("bad access"); }
 		return  _Trait;
 	}
 	const Tag_Data& Get_TagData()const
 	{
-		if (Type != ClassType::Tag) { throw std::exception("bad access"); }
+		if (Type != ClassType::Tag) { UCodeLangThrowException("bad access"); }
 		return  _Tag;
 	}
 	const StaticVar_Data& Get_StaticVar()const
 	{
-		if (Type != ClassType::StaticVarable) { throw std::exception("bad access"); }
+		if (Type != ClassType::StaticVarable) { UCodeLangThrowException("bad access"); }
 		return  _StaticVar;
 	}
 	const ThreadVar_Data& Get_ThreadVar() const
 	{
-		if (Type != ClassType::ThreadVarable) { throw std::exception("bad access"); }
+		if (Type != ClassType::ThreadVarable) { UCodeLangThrowException("bad access"); }
 		return _ThreadVar;
 	}
 	const StaticArray_Data& Get_StaticArray() const
 	{
-		if (Type != ClassType::StaticArray) { throw std::exception("bad access"); }
+		if (Type != ClassType::StaticArray) { UCodeLangThrowException("bad access"); }
 		return _StaticArr;
 	}
 	const FuncPtr_Data& Get_FuncPtr() const
 	{
-		if (Type != ClassType::FuncPtr) { throw std::exception("bad access"); }
+		if (Type != ClassType::FuncPtr) { UCodeLangThrowException("bad access"); }
 		return _FuncPtr;
 	}
 	const GenericClass_Data& Get_GenericClass() const
 	{
-		if (Type != ClassType::GenericClass) { throw std::exception("bad access"); }
+		if (Type != ClassType::GenericClass) { UCodeLangThrowException("bad access"); }
 		return _GenericClass;
 	}
 	const GenericFuncion_Data& Get_GenericFuncionData() const
 	{
-		if (Type != ClassType::GenericFuncion) { throw std::exception("bad access"); }
+		if (Type != ClassType::GenericFuncion) { UCodeLangThrowException("bad access"); }
 		return _GenericFunc;
 	}
 	inline ClassType Get_Type() const

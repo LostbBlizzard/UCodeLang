@@ -40,6 +40,7 @@
 
 #if __gnu_linux__ || __linux__
 #define UCodeLang_Platform_Linux 1
+#include <endian.h> //For UCodeLang_CPUBIs_BigEndian
 #else
 #define UCodeLang_Platform_Linux 0
 #endif // linux 
@@ -93,10 +94,7 @@
 #define UCodeLang_CPUBIs_BigEndian 0
 #else
 
-
-
-
-#if  UCodeLang_Platform_Windows || UCodeLang_Platform_Linux
+#if  UCodeLang_Platform_Windows
 #define UCodeLang_CPUBIs_BigEndian 0
 #else
 #error "I don't know what architecture this is!"
@@ -121,7 +119,7 @@
 #define UCodeLangAPIExportDLLIMPORT __declspec(dllexport)
 #endif
 
-#ifdef UCodeLangDebug
+#if UCodeLangDebug
 #define UCodeLangUnreachable() throw std::exception("bad path");
 #else
 
@@ -135,19 +133,28 @@
 
 #endif
 
-#ifdef Published
-#define UCodeLangToDo() static_assert(true,"Add Code Path");
-#else
-#define UCodeLangToDo() throw std::exception("Code Path not vaild Is On ToDolist");
-#endif
+
 
 #ifdef Published
 #define UCodeLangThrowException() static_assert(true,"UCodeLang should not be throwing exceptions we have a C-API ");
 #else
+
+#if UCodeLangMSVC
 #define UCodeLangThrowException(Ex) throw std::exception(Ex);
+#else
+#define UCodeLangThrowException(Ex) throw std::runtime_error(Ex);
+#endif 
+
+
 #endif
 
-#ifdef UCodeLangDebug
+#if Published
+#define UCodeLangToDo() static_assert(true,"Add Code Path");
+#else
+#define UCodeLangToDo() UCodeLangThrowException("Code Path not vaild Is On ToDolist");
+#endif
+
+#if UCodeLangDebug
 #define UCodeLangAssert(condition) if (!(condition)){UCodeLangThrowException("bad");}
 #else
 #define UCodeLangAssert(condition)

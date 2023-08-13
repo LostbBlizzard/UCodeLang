@@ -175,7 +175,7 @@ struct ScopedNameNode :Node
 					out += "->";
 					break;
 				default:
-					throw std::exception();
+				UCodeLangUnreachable();
 					break;
 				}
 			}

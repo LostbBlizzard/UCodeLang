@@ -1597,7 +1597,7 @@ void UCodeBackEndObject::DropStack()
 			}
 			break;
 			default:
-				throw std::exception("bad ins");
+				UCodeLangThrowException("bad ins");
 				break;
 			}
 		}

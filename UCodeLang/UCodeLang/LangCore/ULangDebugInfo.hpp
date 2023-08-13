@@ -67,7 +67,7 @@ struct UDebugSetVarableLoc
 		}
 		else
 		{
-			throw std::exception("bad path");
+			UCodeLangThrowException("bad path");
 		}
 	}
 };
@@ -116,7 +116,7 @@ struct UDebugIns
 		}
 		else 
 		{
-			throw std::exception("bad path");
+			UCodeLangThrowException("bad path");
 		}
 	}
 
@@ -144,7 +144,7 @@ struct UDebugIns
 		}
 		else
 		{
-			throw std::exception("bad path");
+			UCodeLangThrowException("bad path");
 		}
 
 	}
@@ -172,7 +172,7 @@ struct UDebugIns
 		}
 		else
 		{
-			throw std::exception("bad path");
+			UCodeLangThrowException("bad path");
 		}
 
 	}
@@ -225,7 +225,7 @@ struct VarableInfo
 		}
 		else
 		{
-			throw std::exception("bad path");
+			UCodeLangThrowException("bad path");
 		}
 	}
 };
