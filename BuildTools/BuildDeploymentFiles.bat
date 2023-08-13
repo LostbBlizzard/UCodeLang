@@ -1,4 +1,6 @@
+msbuild ../UCodeLang.sln /t:Build /p:Configuration=Published /p:Platform=Win32 -maxcpucount
 
+msbuild ../UCodeLang.sln /t:Build /p:Configuration=Published /p:Platform=Win64 -maxcpucount
 
 xcopy /y ..\Output\UCodelangCL\Win32\Published\ucodelang.exe ..\Output\Deployment\Runables\Win32\ucodelang.exe*
 xcopy /y ..\Output\UCodeLanguageSever\Win32\Published\UCodeLanguageSever.exe ..\Output\Deployment\Runables\Win32\UCodeLanguageSever.exe*
@@ -19,11 +21,3 @@ cd ..\UCodeDocumentation
 call Build.bat
 xcopy /y /s/e ..\Output\UCodeDocumentation\ ..\Output\Deployment\Documentation\
 cd ..\BuildTools
-
-
-
-pause 
-
-msbuild ../UCodeLang.sln /t:Build /p:Configuration=Published /p:Platform=Win32 -maxcpucount
-
-msbuild ../UCodeLang.sln /t:Build /p:Configuration=Published /p:Platform=Win64 -maxcpucount
