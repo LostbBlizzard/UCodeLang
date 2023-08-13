@@ -116,7 +116,7 @@ void X86_64IR::Build(BuildInfo::BuildFunc& Out, BuildState& State, const Func& V
 	}
 }
 
-//#ifdef DEBUG
+//#if UCodeLangDebug
 //constexpr Int8 RelocVal8 = INT8_MAX;
 //constexpr Int16 RelocVal16 = INT16_MAX;
 //constexpr Int32 RelocVal32 = INT_MAX;

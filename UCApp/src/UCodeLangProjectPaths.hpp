@@ -1,7 +1,7 @@
 #pragma once
 #include <UCodeLang/LangCore/LangTypes.hpp>
 
-#ifdef DEBUG
+#if UCodeLangDebug
 inline const UCodeLang::String UCodeLang_SoultionDir = "../";
 
 inline const UCodeLang::String UCodeLang_UCAppDir = UCodeLang_SoultionDir + "UCApp/";

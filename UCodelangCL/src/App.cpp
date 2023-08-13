@@ -92,7 +92,7 @@ int App::main(int argc, char* argv[])
 
 	#if UCodeLang_Platform_Windows
 	
-	#ifdef DEBUG
+	#if UCodeLangDebug
 	auto ucodebinpath = UCodeLang::LangInfo::GetUCodeGlobalBin();
 	auto Ulangexepath = ucodebinpath / Path("ucodelang.exe");
 	Path ThisRuningExePath = argv[0];

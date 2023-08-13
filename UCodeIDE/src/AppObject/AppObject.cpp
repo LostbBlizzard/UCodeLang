@@ -312,7 +312,7 @@ void BeginDockSpace(bool* p_open)
     }
 }
 
-#ifdef DEBUG
+#if UCodeLangDebug
 inline const UCodeLang::String UCodeLang_SoultionDir = "../";
 
 inline const UCodeLang::String UCodeLang_UCAppDir = UCodeLang_SoultionDir + "UCApp/";
@@ -427,7 +427,7 @@ void AppObject::OnDraw()
         ImGui::PopItemWidth();
     } ImGui::End();
 
-#ifdef DEBUG   
+#if UCodeLangDebug   
 
     static constexpr size_t TestCount = ULangTest::Tests.size();
     struct TestInfo

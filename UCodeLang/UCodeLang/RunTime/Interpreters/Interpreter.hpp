@@ -61,7 +61,7 @@ public:
 	Interpreter() {}
 	~Interpreter() 
 	{ 
-		#ifdef DEBUG
+		#ifdef UCodeLangDebug
 		InDestruct = true;
 		#endif
 		UnLoad(); 
@@ -70,7 +70,7 @@ public:
 
 	void Init(RunTimeLangState* State)
 	{
-		#ifdef DEBUG
+		#if UCodeLangDebug
 		WasInit = true;
 		#endif
 
@@ -86,7 +86,7 @@ public:
 	}
 	void UnLoad()
 	{
-		#ifdef DEBUG
+		#if UCodeLangDebug
 		if (!InDestruct) 
 		{
 			UCodeLangAssert(WasInit == true);
@@ -428,7 +428,7 @@ private:
 	UserMadeContext _UserMadeContext;
 	ParameterPassingHelper _Parameters;
 
-	#ifdef DEBUG
+	#if UCodeLangDebug
 	bool WasInit = false;
 	bool InDestruct = false;
 	bool GotRetValue = false;

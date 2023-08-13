@@ -142,7 +142,7 @@ void LanguageSeverTest::RunTest(String_view FileAsString)
 
 int RunLanguageSeverTests()
 {
-	#ifdef DEBUG
+	#if UCodeLangDebug
 	Path path = UCodeLang_UCAppDir_Test_LanguageSeverFilesFiles + "Goto/BasicFind.uc";
 
 	

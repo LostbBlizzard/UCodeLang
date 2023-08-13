@@ -895,7 +895,7 @@ public:
 
 	template<> FuncInfo* Get_Info()
 	{
-		#ifdef DEBUG
+		#if UCodeLangDebug
 		if (Type != SymbolType::Func && Type != SymbolType::GenericFunc)
 		{
 			UCodeLangThrowException("bad cast");
@@ -907,7 +907,7 @@ public:
 	}
 	template<> FuncPtrInfo* Get_Info()
 	{
-		#ifdef DEBUG
+		#if UCodeLangDebug
 		if (Type != SymbolType::Func_ptr)
 		{
 			UCodeLangThrowException("bad cast");
@@ -924,7 +924,7 @@ public:
 	}
 	template<> const FuncInfo* Get_Info() const
 	{
-		#ifdef DEBUG
+		#if UCodeLangDebug
 		if (Type != SymbolType::Func && Type != SymbolType::GenericFunc)
 		{
 			UCodeLangThrowException("bad cast");
@@ -936,7 +936,7 @@ public:
 	}
 	template<> const FuncPtrInfo* Get_Info() const
 	{
-		#ifdef DEBUG
+		#if UCodeLangDebug
 		if (Type != SymbolType::Func_ptr)
 		{
 			UCodeLangThrowException("bad cast");

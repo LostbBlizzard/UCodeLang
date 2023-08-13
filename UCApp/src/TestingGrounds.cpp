@@ -21,7 +21,7 @@
 #include "UCodeLangProjectPaths.hpp"
 using namespace UCodeLang;
 
-#ifdef DEBUG
+#ifdef UCodeLangDebug
 const UCodeLang::String TopDir = UCodeLang_UCAppDir_ScrDir + "CodeTesting/";
 const UCodeLang::String CodeTestingModluePath = TopDir + "ULangModule.ucm";
 const UCodeLang::String UCodeLangVSAPIPath = UCodeLang_SoultionDir + "UCodeAPI/";
@@ -29,7 +29,7 @@ const UCodeLang::String UCodeLangVSAPIPath = UCodeLang_SoultionDir + "UCodeAPI/"
 const UCodeLang::String TopDir = "n/a";
 const UCodeLang::String CodeTestingModluePath = "n/a";
 const UCodeLang::String UCodeLangVSAPIPath = "n/a";
-#endif // DEBUG
+#endif // UCodeLangDebug
 
 #define StandardLibrarynamespace "ULang"
 

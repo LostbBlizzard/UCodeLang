@@ -927,7 +927,7 @@ void IROptimizer::InLineSubOperator(InLineData& Data, IROperator& Op, size_t Off
 	IRInstruction* Call = Data.Block->Instructions[Data.CallIndex + Offset].get();
 	const IRFunc* CallFunc = Input->GetFunc(Call->Target().identifer);
 
-#ifdef DEBUG
+#if UCodeLangDebug
 	if (CallFunc == nullptr)
 	{
 		UCodeLangUnreachable();
