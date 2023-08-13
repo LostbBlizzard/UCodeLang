@@ -1,6 +1,9 @@
 Output/
 .vs/
+.vscode/
 *.sln
 *.filters
 *.vcxproj
 *.user
+
+Makefile

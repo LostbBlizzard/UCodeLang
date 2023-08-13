@@ -1,12 +1,14 @@
 #include "Jit.hpp"
 
-#ifdef  UCodeLang_Platform_Windows
+#if UCodeLang_Platform_Windows
 #include <Windows.h>
+#elif UCodeLang_Platform_Linux
+#include <sys/mman.h>
 #endif
 UCodeLangStart
 void GetCPUData(EnvironmentData& Out)
 {
-	#ifdef  UCodeLang_Platform_Windows
+	#if UCodeLang_Platform_Windows
 	SYSTEM_INFO sysInfo;
 	GetSystemInfo(&sysInfo);
 
@@ -58,9 +60,7 @@ AsmBuffer& AsmBuffer::operator=(AsmBuffer&& Other)
 {
 	if (Data)
 	{
-		#ifdef  UCodeLang_Platform_Windows
 		MemFree();
-		#endif
 	}
 	Data = Other.Data;
 
@@ -70,25 +70,29 @@ AsmBuffer& AsmBuffer::operator=(AsmBuffer&& Other)
 
 void AsmBuffer::MemFree()
 {
-#ifdef  UCodeLang_Platform_Windows
+#if  UCodeLang_Platform_Windows
 	VirtualFree(Data, 0, MEM_RELEASE);
 #endif
 }
 
 void AsmBuffer::SetToExecuteMode()
 {
-	#ifdef  UCodeLang_Platform_Windows
+	#if  UCodeLang_Platform_Windows
 	DWORD old;
 	VirtualProtect(Data, sizeof(Data), PAGE_EXECUTE_READ, &old);
+	#elif UCodeLang_Platform_Linux
+	mmap(Data, sizeof(Data), PROT_EXEC,MAP_PRIVATE | MAP_ANONYMOUS ,-1, 0);
 	#endif
 }
 
 void AsmBuffer::SetToReadWriteMode()
 {
-#ifdef  UCodeLang_Platform_Windows
+	#if  UCodeLang_Platform_Windows
 	DWORD old;
 	VirtualProtect(Data, sizeof(Data), PAGE_READWRITE, &old);
-#endif
+	#elif UCodeLang_Platform_Linux
+	mmap(Data, sizeof(Data), PROT_READ | PROT_WRITE,MAP_PRIVATE | MAP_ANONYMOUS ,-1, 0);
+	#endif
 }
 
 void AsmBuffer::Alloc(const Byte* Asm, const size_t Size)
@@ -103,9 +107,11 @@ void AsmBuffer::Alloc(const size_t Size)
 		MemFree();
 	}
 
-	#ifdef  UCodeLang_Platform_Windows
+	#if UCodeLang_Platform_Windows
 	DWORD type = MEM_RESERVE | MEM_COMMIT;
 	Data = VirtualAlloc(NULL, Size, type, PAGE_READWRITE);
+	#elif UCodeLang_Platform_Linux
+	Data = mmap(nullptr,Size, PROT_READ | PROT_WRITE,MAP_PRIVATE | MAP_ANONYMOUS ,-1, 0);
 	#endif
 	
 	#if UCodeLang_CPUIs_x86_64 || UCodeLang_CPUIs_x86

@@ -1213,7 +1213,7 @@ AssemblyNode::AssemblyNode(ClassType type) : Type(type)
 		new (&_GenericFunc) GenericFuncion_Data();
 		break;
 	default:
-		throw std::exception("bad path");
+		UCodeLangUnreachable();
 		break;
 	}
 }
@@ -1265,7 +1265,7 @@ AssemblyNode& AssemblyNode::operator=(AssemblyNode&& node)
 		new (&_GenericFunc) GenericFuncion_Data(node.Get_GenericFuncionData());
 		break;
 	default:
-		throw std::exception("bad path");
+		UCodeLangThrowException("bad path");
 		break;
 	}
 
@@ -1318,7 +1318,7 @@ AssemblyNode& AssemblyNode::operator=(const AssemblyNode& node)
 		new (&_GenericFunc) GenericFuncion_Data(node.Get_GenericFuncionData());
 		break;
 	default:
-		throw std::exception("bad path");
+		UCodeLangThrowException("bad path");
 		break;
 	}
 	return *this;
@@ -1366,7 +1366,7 @@ AssemblyNode::~AssemblyNode()
 		_GenericFunc.~GenericFuncion_Data();
 		break;
 	default:
-		//throw std::exception("bad path");
+		//UCodeLangThrowException("bad path");
 		break;
 	}
 }

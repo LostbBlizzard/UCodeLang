@@ -50,14 +50,14 @@ public:
 	//Call Destructor after
 	inline void pop_p(void* Out,size_t OutSize)
 	{
-		#ifdef DEBUG
+		#if UCodeLangDebug
 		if (OutSize != GetElemSize())
 		{
-			throw std::exception("bad cast");
+			UCodeLangThrowException("bad cast");
 		}
 		if (size() == 0)
 		{
-			throw std::exception("out of bounds.");
+			UCodeLangThrowException("out of bounds.");
 		}
 		#endif // DEBUG
 
@@ -74,10 +74,10 @@ public:
 		pop_p(tep.Data(), tep.Size());
 		auto info = assembly->CallDestructor(GetElementType(), tep.Data(), is32bit);
 
-		#ifdef DEBUG
+		#if UCodeLangDebug
 		if (!info.has_value())
 		{
-			throw std::exception("Calling Destructor fail");
+			UCodeLangThrowException("Calling Destructor fail");
 		}
 		#endif // DEBUG
 
@@ -156,14 +156,14 @@ public:
 	//Call Destructor after
 	inline void remove_p(size_t index, void* Out, size_t OutSize)
 	{
-		#ifdef DEBUG
+		#if UCodeLangDebug
 		if (OutSize != GetElemSize())
 		{
-			throw std::exception("bad cast");
+			UCodeLangThrowException("bad cast");
 		}
 		if (index >= size())
 		{
-			throw std::exception("out of bounds");
+			UCodeLangThrowException("out of bounds");
 		}
 		#endif // DEBUG
 
@@ -188,10 +188,10 @@ public:
 		remove_p(index,tep.Data(), tep.Size());
 		auto info = assembly->CallDestructor(GetElementType(), tep.Data(), is32bit);
 
-		#ifdef DEBUG
+		#if UCodeLangDebug
 		if (!info.has_value())
 		{
-			throw std::exception("Calling Destructor fail");
+			UCodeLangThrowException("Calling Destructor fail");
 		}
 		#endif // DEBUG
 
@@ -210,10 +210,10 @@ public:
 
 	inline void* at(size_t index)
 	{
-		#ifdef DEBUG
+		#if UCodeLangDebug
 		if (index >= size())
 		{
-			throw std::exception("out of bounds");
+			UCodeLangThrowException("out of bounds");
 		}
 		#endif // DEBUG
 
@@ -446,10 +446,10 @@ public:
 
 	inline void* at(size_t index)
 	{
-#ifdef DEBUG
+#if UCodeLangDebug
 		if (index >= size())
 		{
-			throw std::exception("out of bounds");
+			UCodeLangThrowException("out of bounds");
 		}
 #endif // DEBUG
 

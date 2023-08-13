@@ -8,7 +8,7 @@ bool CppHelperTests::RunTests()
 	
 	return true;
 	
-	#ifdef DEBUG
+	#if UCodeLangDebug
 	return UCodeAnalyzer::CppHelper::ParseCppfileAndOutULang(
 		UCodeLang_UCAppDir_Test_CppHelperFiles + "Func.hpp",
 		UCodeLang_UCAppDir_Test_CppHelperOut + "FuncLink.cpp",

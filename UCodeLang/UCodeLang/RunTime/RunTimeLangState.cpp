@@ -525,7 +525,7 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 				}
 				break;
 				default:
-					throw std::exception("bad path");
+					UCodeLangThrowException("bad path");
 					break;
 				}
 
@@ -739,7 +739,7 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 			}
 			else
 			{
-				throw std::exception("not added");
+				UCodeLangThrowException("not added");
 			}
 		}
 		this->_Data.Get_DebugInfo() =std::move(GlobalInfo.NewDebugInfo);

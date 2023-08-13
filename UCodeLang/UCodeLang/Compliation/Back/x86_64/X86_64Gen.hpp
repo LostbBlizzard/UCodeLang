@@ -248,7 +248,7 @@ public:
 	/* 
 	inline  void push8(GReg Reg);
 	{
-		throw std::exception("not added");
+		UCodeLangThrowException("not added");
 	}
 	*/
 	void push16(GReg Reg);
@@ -256,7 +256,7 @@ public:
 	/* 86_64 does not support.use push64
 	inline void push32(GReg Reg)
 	{
-		throw std::exception("not added");
+		UCodeLangThrowException("not added");
 	}
 	*/
 
@@ -272,7 +272,7 @@ public:
 	/* 86_64 does not support.use push64
 	inline void pop32(GReg Reg)
 	{
-		throw std::exception("not added");
+		UCodeLangThrowException("not added");
 	}
 	*/
 

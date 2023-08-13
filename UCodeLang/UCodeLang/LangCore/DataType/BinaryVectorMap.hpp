@@ -42,7 +42,7 @@ public:
 	
 	void AddValue(ConstKey key,const Value& Item)
 	{
-		#ifdef DEBUG
+		#if UCodeLangDebug
 		if (HasValue(key))
 		{
 			UCodeLangThrowException("has same key");
@@ -52,7 +52,7 @@ public:
 	}
 	void AddValue(ConstKey key, Value&& Item)
 	{
-		#ifdef DEBUG
+		#if UCodeLangDebug
 		if (HasValue(key))
 		{
 			UCodeLangThrowException("has same key");
@@ -89,7 +89,7 @@ public:
 
 	Value& GetValue(ConstKey key)
 	{
-		#ifdef DEBUG
+		#if UCodeLangDebug
 		if (!HasValue(key))
 		{
 			UCodeLangThrowException("there no Value for the key");
@@ -154,7 +154,7 @@ public:
 	}
 	iterator erase(ConstKey _Where)
 	{
-		#ifdef DEBUG
+		#if UCodeLangDebug
 
 		if (!HasBase(_Where))
 		{
@@ -312,7 +312,7 @@ public:
 
 	Value& GetValue(ConstKey key)
 	{
-		#ifdef DEBUG
+		#if UCodeLangDebug
 		if (!HasValue(key))
 		{
 			UCodeLangThrowException("there no Value for the key");
@@ -380,7 +380,7 @@ public:
 	}
 	iterator erase(ConstKey _Where)
 	{
-		#ifdef DEBUG
+		#if UCodeLangDebug
 
 		if (!HasBase(_Where))
 		{

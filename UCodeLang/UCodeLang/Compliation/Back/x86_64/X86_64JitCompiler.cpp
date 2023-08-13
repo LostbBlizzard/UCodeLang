@@ -13,7 +13,7 @@ X86_64JitCompiler::X86_64JitCompiler()
 #if UCodeLang_Platform_Windows
 	CallConvention.SetWindows();
 #else
-	throw std::exception("Cant find Call Convetion");
+	UCodeLangThrowException("Cant find Call Convetion");
 #endif
 	_CallConvention = _IR.AddCallConvention(std::move(CallConvention));
 

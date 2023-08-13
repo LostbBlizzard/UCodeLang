@@ -9,7 +9,7 @@ AnyInterpreterPtr Cast(DebugContext::InterpreterInfo Info)
 	}
 	else
 	{
-		throw std::exception("not added");
+		UCodeLangThrowException("not added");
 	}
 }
 

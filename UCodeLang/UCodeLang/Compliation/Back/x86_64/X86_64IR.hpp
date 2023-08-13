@@ -56,7 +56,7 @@ struct X86_64IR
 		{
 			if (convention != WindowsCallingConvention::Fast_Call)
 			{
-				throw std::exception("not added");
+				UCodeLangThrowException("not added");
 			}
 
 			IntegerFuncionArguments = { GReg::RCX,GReg::RDX,GReg::r8,GReg::r9 };
@@ -507,7 +507,7 @@ struct X86_64IR
 				}
 				else
 				{
-					throw std::exception("not added");
+					UCodeLangThrowException("not added");
 				}
 				return r;
 			}
@@ -575,7 +575,7 @@ struct X86_64IR
 				}
 				else
 				{
-					throw std::exception("not added");
+					UCodeLangThrowException("not added");
 				}
 				return r;
 			}
@@ -638,7 +638,7 @@ struct X86_64IR
 			}
 			else
 			{
-				throw std::exception("not added");
+				UCodeLangThrowException("not added");
 			}
 		}
 		
