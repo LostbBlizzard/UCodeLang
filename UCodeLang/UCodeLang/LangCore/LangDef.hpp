@@ -1,13 +1,36 @@
 #pragma once
 #include "UCodeLangNameSpace.hpp"
 
-#if _WIN64
+#if defined(_MSC_VER)
+#define UCodeLangMSVC 1
+#else
+#define UCodeLangMSVC 0
+#endif
+
+#if defined(__GNUC__)
+#define UCodeLangGNUC 1
+#else
+#define UCodeLangGNUC 0
+#endif
+
+#if UCodeLangGNUC
+#if __x86_64__ || __ppc64__
 #define UCodeLang_64BitSytem 1
-#define UCodeLang_32BitSytem 0
 #else
 #define UCodeLang_64BitSytem 0
-#define UCodeLang_32BitSytem 1
 #endif
+
+#else
+
+#if _WIN64
+#define UCodeLang_64BitSytem 1
+#else
+#define UCodeLang_64BitSytem 0
+#endif
+
+#endif
+
+#define UCodeLang_32BitSytem !UCodeLang_64BitSytem
 
 #if _WIN64 || _WIN32
 #define UCodeLang_Platform_Windows 1
@@ -68,6 +91,8 @@
 #else
 
 
+
+
 #if  UCodeLang_Platform_Windows || UCodeLang_Platform_Linux
 #define UCodeLang_CPUBIs_BigEndian 0
 #else
@@ -78,12 +103,12 @@
 
 #define UCodeLang_CPUIs_littleEndian !UCodeLang_CPUBIs_BigEndian 
 
-#if defined(_MSC_VER)
-#define UCodeLangMSVC 1
-#endif
 
-#if defined(UCodeLangMSVC)
+
+#if UCodeLangMSVC
 #define UCodeLangDEPRECATED __declspec(deprecated)
+#elif UCodeLangGNUC
+#define UCodeLangDEPRECATED __attribute__((deprecated))
 #else
 #define UCodeLangDEPRECATED
 #endif
@@ -97,9 +122,9 @@
 #define UCodeLangUnreachable() throw std::exception("bad path");
 #else
 
-#if defined(_MSC_VER)
+#if UCodeLangMSVC
 #define UCodeLangUnreachable() __assume(0);
-#elif defined(__GNUC__)
+#elif UCodeLangGNUC
 #define UCodeLangUnreachable() __builtin_unreachable()
 #else
 #define UCodeLangUnreachable()
