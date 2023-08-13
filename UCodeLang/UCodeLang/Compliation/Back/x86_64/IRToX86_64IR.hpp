@@ -2,7 +2,7 @@
 #include "X86_64IR.hpp"
 #include "../../Middle/IR.hpp"
 
-#ifdef DEBUG
+#if UCodeLangDebug
 #include <iostream>
 #endif // DEBUG
 

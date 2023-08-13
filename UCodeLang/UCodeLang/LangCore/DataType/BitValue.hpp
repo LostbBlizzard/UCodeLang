@@ -12,7 +12,7 @@ public:
 
 	UCodeLangForceinline bool GetValue(size_t Index) const
 	{
-		#ifdef DEBUG
+		#if UCodeLangDebug
 		if (Index > BitsCount)
 		{
 			UCodeLangThrowException("Index out of range");
@@ -23,7 +23,7 @@ public:
 	}
 	UCodeLangForceinline void SetValue(size_t Index, bool Value)
 	{
-		#ifdef DEBUG
+		#if UCodeLangDebug
 		if (Index > BitsCount)
 		{
 			UCodeLangThrowException("Index out of range");
@@ -40,7 +40,7 @@ public:
 	}
 	UCodeLangForceinline void FilpBit(size_t Index)
 	{
-		#ifdef DEBUG
+		#if UCodeLangDebug
 		if (Index > BitsCount)
 		{
 			UCodeLangThrowException("Index out of range");

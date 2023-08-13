@@ -95,7 +95,7 @@ using namespace UCodeLang;
 	bool RunTestForFlag(const TestInfo& Test, OptimizationFlags flag, std::ostream& LogStream, std::ostream& ErrStream)
 	{
 		return false;
-		#ifdef DEBUG
+		#if UCodeLangDebug
 		Compiler::CompilerPathData paths;
 		Compiler Com;
 		Com.Get_Settings()._Flags = flag;

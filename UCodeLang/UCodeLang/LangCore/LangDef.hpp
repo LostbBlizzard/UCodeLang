@@ -50,14 +50,17 @@
 #define UCodeLang_Platform_MacOS 0
 #endif // linux 
 
-#ifdef DEBUG
-#define CompliationTypeSafety 1
+#ifndef UCodeLangDebug
+
+#if UCodeLangDebug
+#define UCodeLangDebug 1
 #else 
-#define CompliationTypeSafety 1
+#define UCodeLangDebug 0
 #endif // DEBUG
 
+#endif
 
-#ifdef DEBUG
+#if UCodeLangDebug
 #define UCodeLangForceinline inline
 #else 
 #define UCodeLangForceinline __forceinline 
@@ -69,8 +72,8 @@
 #define UCodeLangHasMultipleThreads __STDCPP_THREADS__
 
 
-#define UCodeLang_CPUIs_x86_64 _M_AMD64
-#define UCodeLang_CPUIs_x86 _M_IX86
+#define UCodeLang_CPUIs_x86_64 defined(__x86_64__) || defined(_M_X64)
+#define UCodeLang_CPUIs_x86 defined(i386) || defined(__i386__) || defined(__i386) || defined(_M_IX86)
 
 #if defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN || \
     defined(__BIG_ENDIAN__) || \
@@ -118,7 +121,7 @@
 #define UCodeLangAPIExportDLLIMPORT __declspec(dllexport)
 #endif
 
-#ifdef DEBUG
+#ifdef UCodeLangDebug
 #define UCodeLangUnreachable() throw std::exception("bad path");
 #else
 
@@ -144,7 +147,7 @@
 #define UCodeLangThrowException(Ex) throw std::exception(Ex);
 #endif
 
-#ifdef DEBUG
+#ifdef UCodeLangDebug
 #define UCodeLangAssert(condition) if (!(condition)){UCodeLangThrowException("bad");}
 #else
 #define UCodeLangAssert(condition)

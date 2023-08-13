@@ -12,7 +12,7 @@ bool Interpreter::CheckIfFunctionExist(const String& FunctionName)
 
 void Interpreter::Get_Return(void* Output, size_t OutputSize)
 {
-#ifdef DEBUG
+#if UCodeLangDebug
 	GotRetValue = true;
 #endif
 	if (OutputSize <= sizeof(Register))
@@ -66,7 +66,7 @@ Interpreter::Return_t Interpreter::Call(const String& FunctionName)
 }
 Interpreter::Return_t Interpreter::Call(UAddress address)
 {
-	#ifdef DEBUG
+	#if UCodeLangDebug
 	{
 		
 		if (CalledFuncBefor)
@@ -123,7 +123,7 @@ Interpreter::Return_t Interpreter::Call(UAddress address)
 		Extecute(Inst);	
 		_CPU.ProgramCounter++;
 
-		#ifdef DEBUG
+		#if UCodeLangDebug
 		if (_CPU.ProgramCounter == 7)
 		{
 			int a = 0;
@@ -519,7 +519,7 @@ void Interpreter::Extecute(Instruction& Inst)
 		}
 		else
 		{
-			#ifdef DEBUG
+			#if UCodeLangDebug
 			String CantFindMsg = "Cant find cpp Call named " + Str;
 			_State->Log(CantFindMsg.c_str());
 
