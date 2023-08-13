@@ -68,7 +68,7 @@
 #else
 
 
-#if  UCodeLang_Platform_Windows
+#if  UCodeLang_Platform_Windows || UCodeLang_Platform_Linux
 #define UCodeLang_CPUBIs_BigEndian 0
 #else
 #error "I don't know what architecture this is!"
@@ -100,7 +100,7 @@
 #if defined(_MSC_VER)
 #define UCodeLangUnreachable() __assume(0);
 #elif defined(__GNUC__)
-#define UCodeLangUnreachable()
+#define UCodeLangUnreachable() __builtin_unreachable()
 #else
 #define UCodeLangUnreachable()
 #endif
