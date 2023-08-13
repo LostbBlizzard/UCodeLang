@@ -3,6 +3,8 @@
 #include "UCodeLang/Compliation/Front/Parser.hpp"
 
 #include "UCodeLang/LangCore/UClib.hpp"
+
+#include <cstring> //memcpy
 UCodeLangStart
 class IRBuilder;
 

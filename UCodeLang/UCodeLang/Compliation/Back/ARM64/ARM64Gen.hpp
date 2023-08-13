@@ -33,17 +33,15 @@ public:
 	}
 	template<typename T>void PushValue_t_little_endian(const T& Value)
 	{
-		_Output.PushValue_t_little_endian((const Byte*)&Value, sizeof(Value));
+		_Output.PushValue_t_little_endian(Value);
 	}
 	template<typename T>void PushValue_t_Big_endian(const T& Value)
 	{
-		_Output.PushValue_t_Big_endian((const Byte*)&Value, sizeof(Value));
+		_Output.PushValue_t_Big_endian(Value);
 	}
 
+	//ARM Ins list Here
 
-	//ARM64Gen
-
-	const IRBuilder* _Input;
 	CodeGen _Output;
 };
 UCodeLangEnd

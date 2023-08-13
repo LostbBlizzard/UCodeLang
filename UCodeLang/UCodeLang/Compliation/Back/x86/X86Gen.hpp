@@ -11,7 +11,7 @@ UCodeLangStart
 class X86Gen
 {
 #define Use86 using namespace x86;
-#define X86Gen_NotAdded throw std::exception("not added");
+#define X86Gen_NotAdded UCodeLangThrowException("not added");
 public:
 	enum class GeneralRegisterDataState
 	{

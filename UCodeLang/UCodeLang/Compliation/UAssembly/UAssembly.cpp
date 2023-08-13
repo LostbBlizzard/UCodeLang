@@ -431,7 +431,7 @@ IRStringStates.AddValue(Id, std::move(LineState));
 							}
 							else
 							{
-								throw std::exception("not added");
+								UCodeLangThrowException("not added");
 							}
 							r += " = ";
 							r += Val->VarableFullName;

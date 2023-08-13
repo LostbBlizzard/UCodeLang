@@ -136,7 +136,7 @@ private:
 			case JitType_t::IsStruct:return StructSize;
 			case JitType_t::Null:
 			default:
-				throw std::exception("bad path");
+				UCodeLangThrowException("bad path");
 			}
 		}
 

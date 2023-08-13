@@ -566,7 +566,7 @@ void UClib::FromBytes(BitReader& Input, CodeLayer& Data)
 	}
 	break;
 	default:
-		throw std::exception("bad path");
+		UCodeLangThrowException("bad path");
 		break;
 	}
 }
@@ -888,7 +888,7 @@ void UClib::FixRawValue(Endian AssemblyEndian, NTypeSize BitSize,const ClassAsse
 		}
 		case ReflectionTypes::CustomType:
 		{
-			throw std::exception("not addded yet");
+			UCodeLangThrowException("not addded yet");
 		}
 		default:
 			break;

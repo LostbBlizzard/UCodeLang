@@ -1,0 +1,1 @@
+Output\UCApp\linux32\Debug\UCApp --RunTests

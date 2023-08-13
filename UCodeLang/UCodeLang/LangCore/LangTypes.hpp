@@ -344,7 +344,7 @@ struct Span
 
 	constexpr T& operator[](size_t Index)
 	{
-		#ifdef DEBUG
+		#if UCodeLangDebug
 		if (Index > _Size)
 		{
 			UCodeLangThrowException("Index out of range");
@@ -356,7 +356,7 @@ struct Span
 
 	constexpr const T& operator[](size_t Index) const
 	{
-		#ifdef DEBUG
+		#if UCodeLangDebug
 		if (Index > _Size)
 		{
 			UCodeLangThrowException("Index out of range");
@@ -484,7 +484,7 @@ struct SpanPtr
 	
 	constexpr T& operator[](size_t Index)
 	{
-		#ifdef DEBUG
+		#if UCodeLangDebug
 		if (Index >= _Size)
 		{
 			UCodeLangThrowException("Index out of range");
@@ -496,7 +496,7 @@ struct SpanPtr
 
 	constexpr const T& operator[](size_t Index) const
 	{
-		#ifdef DEBUG
+		#if UCodeLangDebug
 		if (Index >= _Size)
 		{
 			UCodeLangThrowException("Index out of range");

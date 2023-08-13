@@ -1,0 +1,1 @@
+make confg=debug_linux32

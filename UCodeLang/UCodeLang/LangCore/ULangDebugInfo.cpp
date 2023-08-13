@@ -102,7 +102,7 @@ void ULangDebugInfo::ToBytes(BitMaker& bit, const UDebugIns& Value)
 	}
 	else
 	{
-		throw std::exception("bad path");
+		UCodeLangThrowException("bad path");
 	}
 }
 
@@ -231,7 +231,7 @@ bool ULangDebugInfo::FromBytes(BitReader& bit, UDebugIns& Value)
 		}
 		break;
 		default:
-			throw std::exception("bad path");
+			UCodeLangThrowException("bad path");
 			break;
 		}
 
@@ -258,7 +258,7 @@ bool ULangDebugInfo::FromBytes(BitReader& bit, UDebugIns& Value)
 	}
 	break;
 	default:
-		throw std::exception("bad path");
+		UCodeLangThrowException("bad path");
 		break;
 	}
 
@@ -287,7 +287,7 @@ void ULangDebugInfo::ToBytes(BitMaker& bit, const VarableInfo& Value)
 		bit.WriteType((BitMaker::SizeAsBits)Value.TypeLoc.Get<VarableInfo::Thread>().offset);
 		break;
 	default:
-		throw std::exception("bad path");
+		UCodeLangThrowException("bad path");
 		break;
 	} 
 }

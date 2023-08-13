@@ -186,7 +186,7 @@ namespace ULangTest
 		case TypeDataEnum::Bool:return "bool";
 		case TypeDataEnum::Named:return Value.FullName;
 		default:
-			throw std::exception("not added");
+			UCodeLangUnreachable();
 			break;
 		}
 	}

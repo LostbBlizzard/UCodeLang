@@ -155,8 +155,9 @@ struct CodeLayer
 		{
 			return DataTypes::MachineCode;
 		}
-
-		throw std::exception("bad path");
+	#if	UCodeLangDebug
+		UCodeLangThrowException("bad path");
+	#endif
 	}
 };
 

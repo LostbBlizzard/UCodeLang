@@ -5414,7 +5414,7 @@ void SystematicAnalysis::Pop_StackFrame()
 }
 SymbolID SystematicAnalysis::Symbol_GetSymbolID(const void* Item)
 {
-	#ifdef DEBUG
+	#if UCodeLangDebug
 	bool OnStack = false;
 
 	
@@ -15516,7 +15516,7 @@ void SystematicAnalysis::Eval_SetOutExpressionEval(const OutExpression* Ex, cons
 
 String SystematicAnalysis::Generic_SymbolGenericFullName(const Symbol* Func, const Vector<TypeSymbol>& Type) const
 {
-	#ifdef DEBUG
+	#if UCodeLangDebug
 	for (auto& Item : Type)
 	{
 		UCodeLangAssert(!Type_IsUnMapType(Item));//trying use UnMaped Type when Generic Instantiate.
@@ -15538,7 +15538,7 @@ String SystematicAnalysis::Generic_SymbolGenericFullName(const Symbol* Func, con
 }
 String SystematicAnalysis::Generic_SymbolGenericName(const Symbol* Func, const Vector<TypeSymbol>& Type) const
 {
-	#ifdef DEBUG
+	#if UCodeLangDebug
 	for (auto& Item : Type)
 	{
 		UCodeLangAssert(!Type_IsUnMapType(Item));//trying use UnMaped Type when Generic Instantiate.
