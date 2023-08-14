@@ -38,50 +38,94 @@ jobs:
   build-Windows:
     runs-on: windows-latest
 
-    outputs:
-      myoutput: ${{ steps.step2.outputs.myoutput }}
-
     steps:
-      - name: Build
-        run:  echo "Do Build Here"
+      - uses: actions/checkout@v3
 
-      - name: set output
-        id: step2
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v1.0.2
+
+      - name: Run Premake
+        run: ./VS_2019.bat
+
+      - name: Restore cached objs
+        id: cache-objs-restore
+        uses: actions/cache/restore@v3
+        with:
+          path: ./Output
+          key: ${{ runner.os }}-deployment
+
+      - name: Build 64 bit
         run: |
-          echo "myoutput='hello world Windows'" >> $GITHUB_OUTPUT
+           cd ./BuildTools
+           ./BuildWin32Published.bat
+
+      - name: Build 32 bit
+        run: |
+           cd ./BuildTools
+           ./BuildWin32Published.bat
+
+      - name: Save cached Objs
+        id: cache-Objs-save
+        uses: actions/cache/save@v3
+        with:
+          path: ./Output
+          key: ${{ steps.cache-objs-restore.outputs.cache-primary-key }}
+
+      - name: Archive Output
+        uses: actions/upload-artifact@v3
+        with:
+          name: Output_Windows
+          path: Output/
+          retention-days: 1
 
   build-Linux:
     runs-on: ubuntu-latest
-    outputs:
-      myoutput: ${{ steps.step2.outputs.myoutput }}
     
     steps:
-      
-      - name: Build
-        run:  echo "Do Build Here"
+      - uses: actions/checkout@v3
 
-    
-
-      - name: set output
-        id: step2
+      - name: Make a scripts executable
         run: |
-          echo "myoutput='hello world Linux'" >> $GITHUB_OUTPUT
+          chmod +x ./GNU_Make.sh
+          chmod +x ./BuildTools/BuildLinux32Published.sh
+          chmod +x ./BuildTools/BuildLinux64Published.sh
+
+      - name: Run Premake
+        run: ./GNU_Make.sh
+
+      - name: Restore cached objs
+        id: cache-objs-restore
+        uses: actions/cache/restore@v3
+        with:
+          path: ./Output
+          key: ${{ runner.os }}-deployment
+
+      - name: Build 64 bit
+        run: ./BuildTools/BuildLinux64Published.sh
+
+      - name: Build 32 bit
+        run: ./BuildTools/BuildLinux32Published.sh
+
+      - name: Save cached Objs
+        id: cache-Objs-save
+        uses: actions/cache/save@v3
+        with:
+          path: ./Output
+          key: ${{ steps.cache-objs-restore.outputs.cache-primary-key }}
+
+      - name: Archive Output
+        uses: actions/upload-artifact@v3
+        with:
+          name: Output_Linux
+          path: Output/
+          retention-days: 1
 
   build-MacOS:
-    runs-on: macOS-latest
-    outputs:
-      myoutput: ${{ steps.step2.outputs.myoutput }}
-
+    runs-on: ubuntu-latest
+    
     steps:
-      
-
-      - name: Build
-        run:  echo "Do Build Here"
-
-      - name: set output
-        id: step2
-        run: |
-          echo "myoutput='hello world macOS'" >> $GITHUB_OUTPUT
+      - name: Build MacOS
+        run: echo Build
 
   build-Web:
     runs-on: windows-latest
@@ -90,25 +134,26 @@ jobs:
       myoutput: ${{ steps.step2.outputs.myoutput }}
 
     steps:
+      - uses: actions/checkout@v3
+
       - name: Build
         run:  echo "Do Build Here"
 
-      - name: set output
-        id: step2
-        run: |
-          echo "myoutput='hello world Web'" >> $GITHUB_OUTPUT
+      - name: Archive Output
+        uses: actions/upload-artifact@v3
+        with:
+          name: Output_Web
+          path: Output/
 
-  deployment:
-    needs: [buildWindows,buildLinux,buildMacOS,buildWebSite]
+  deployment-GitHub:
+    needs: [build-Windows,build-Linux,build-MacOS,build-Web]
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - name: retrieve output
-        run: |
-         echo ${{ needs.buildWindows.outputs.myoutput }}
-         echo ${{ needs.buildLinux.outputs.myoutput }}
-         echo ${{ needs.buildMacOS.outputs.myoutput }}
-         echo ${{ needs.buildWebSite.outputs.myoutput }}
+      - uses: actions/checkout@v3
+
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v3
 
       - name: Build
         run:  echo "Do Build Here"
@@ -132,6 +177,7 @@ jobs:
 
           draft: false
           prerelease: ${{ inputs.IsPreRelease }}
+          tag_name: Release
       
       - name: Upload Release Asset
         id: upload-release-asset 
@@ -141,5 +187,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
           asset_path: ./premake5.lua
-          asset_name: tes.txt
+          asset_name: test.txt
           asset_content_type: text/plain #https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
