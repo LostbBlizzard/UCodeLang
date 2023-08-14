@@ -38,50 +38,47 @@ jobs:
   build-Windows:
     runs-on: windows-latest
 
-    outputs:
-      myoutput: ${{ steps.step2.outputs.myoutput }}
-
     steps:
+      - uses: actions/checkout@v3
+
       - name: Build
         run:  echo "Do Build Here"
 
-      - name: set output
-        id: step2
-        run: |
-          echo "myoutput='hello world Windows'" >> $GITHUB_OUTPUT
+      - name: Archive Output
+        uses: actions/upload-artifact@v3
+        with:
+          name: Output_Windows
+          path: Output/
 
   build-Linux:
     runs-on: ubuntu-latest
-    outputs:
-      myoutput: ${{ steps.step2.outputs.myoutput }}
     
     steps:
-      
+      - uses: actions/checkout@v3
+
       - name: Build
         run:  echo "Do Build Here"
 
-    
-
-      - name: set output
-        id: step2
-        run: |
-          echo "myoutput='hello world Linux'" >> $GITHUB_OUTPUT
+      - name: Archive Output
+        uses: actions/upload-artifact@v3
+        with:
+          name: Output_Linux
+          path: Output/
 
   build-MacOS:
     runs-on: macOS-latest
-    outputs:
-      myoutput: ${{ steps.step2.outputs.myoutput }}
-
+   
     steps:
-      
+      - uses: actions/checkout@v3
 
       - name: Build
         run:  echo "Do Build Here"
 
-      - name: set output
-        id: step2
-        run: |
-          echo "myoutput='hello world macOS'" >> $GITHUB_OUTPUT
+      - name: Archive Output
+        uses: actions/upload-artifact@v3
+        with:
+          name: Output_MacOS
+          path: Output/
 
   build-Web:
     runs-on: windows-latest
@@ -90,25 +87,26 @@ jobs:
       myoutput: ${{ steps.step2.outputs.myoutput }}
 
     steps:
+      - uses: actions/checkout@v3
+
       - name: Build
         run:  echo "Do Build Here"
 
-      - name: set output
-        id: step2
-        run: |
-          echo "myoutput='hello world Web'" >> $GITHUB_OUTPUT
+      - name: Archive Output
+        uses: actions/upload-artifact@v3
+        with:
+          name: Output_Web
+          path: Output/
 
-  deployment:
+  deployment-GitHub:
     needs: [build-Windows,build-Linux,build-MacOS,build-Web]
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - name: retrieve output
-        run: |
-         echo ${{ needs.buildWindows.outputs.myoutput }}
-         echo ${{ needs.buildLinux.outputs.myoutput }}
-         echo ${{ needs.buildMacOS.outputs.myoutput }}
-         echo ${{ needs.buildWebSite.outputs.myoutput }}
+      - uses: actions/checkout@v3
+
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v3
 
       - name: Build
         run:  echo "Do Build Here"
@@ -142,5 +140,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
           asset_path: ./premake5.lua
-          asset_name: tes.txt
+          asset_name: test.txt
           asset_content_type: text/plain #https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
