@@ -58,7 +58,7 @@ jobs:
     steps:
       
       - name: Build
-      run:  echo "Do Build Here"
+        run:  echo "Do Build Here"
 
     
 
@@ -67,9 +67,10 @@ jobs:
         run: |
         echo "myoutput='hello world Linux'" >> $GITHUB_OUTPUT
 
-      build-MacOS:
-        runs-on: macOS-latest
-
+  build-MacOS:
+    runs-on: macOS-latest
+    
+    steps:
       - outputs:
         myoutput: ${{ steps.step2.outputs.myoutput }}
 
