@@ -8,6 +8,7 @@ on:
         required: true
         type: string
         default: "0.0.0"
+        
       IsPreRelease:
         description: 'Is Prelease'
         required: true
@@ -15,13 +16,13 @@ on:
         default: true
       
       LanguageChangelog:
-       description: 'The Main Change Log'
+        description: 'The Main Change Log'
         required: false
         type: string
         default: 'added: fixed: removed:'
 
       ImplementerChangelog:
-       description: 'The Change Log for implmenters(People who use this as a Scripting Lang Lib)'
+        description: 'The Change Log for implmenters(People who use this as a Scripting Lang Lib)'
         required: false
         type: string
         default: 'added: fixed: removed:'
