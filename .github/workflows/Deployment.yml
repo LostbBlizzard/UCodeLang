@@ -41,14 +41,42 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Build
-        run:  echo "Do Build Here"
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v1.0.2
+
+      - name: Run Premake
+        run: ./VS_2019.bat
+
+      - name: Restore cached objs
+        id: cache-objs-restore
+        uses: actions/cache/restore@v3
+        with:
+          path: ./Output
+          key: ${{ runner.os }}-deployment
+
+      - name: Build 64 bit
+        run: |
+           cd ./BuildTools
+           ./BuildWin32Published.bat
+
+      - name: Build 32 bit
+        run: |
+           cd ./BuildTools
+           ./BuildWin32Published.bat
+
+      - name: Save cached Objs
+        id: cache-Objs-save
+        uses: actions/cache/save@v3
+        with:
+          path: ./Output
+          key: ${{ steps.cache-objs-restore.outputs.cache-primary-key }}
 
       - name: Archive Output
         uses: actions/upload-artifact@v3
         with:
           name: Output_Windows
           path: Output/
+          retention-days: 1
 
   build-Linux:
     runs-on: ubuntu-latest
@@ -56,29 +84,48 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Build
-        run:  echo "Do Build Here"
+      - name: Make a scripts executable
+        run: |
+          chmod +x ./GNU_Make.sh
+          chmod +x ./BuildTools/BuildLinux32Published.sh
+          chmod +x ./BuildTools/BuildLinux64Published.sh
+
+      - name: Run Premake
+        run: ./GNU_Make.sh
+
+      - name: Restore cached objs
+        id: cache-objs-restore
+        uses: actions/cache/restore@v3
+        with:
+          path: ./Output
+          key: ${{ runner.os }}-deployment
+
+      - name: Build 64 bit
+        run: ./BuildTools/BuildLinux64Published.sh
+
+      - name: Build 32 bit
+        run: ./BuildTools/BuildLinux32Published.sh
+
+      - name: Save cached Objs
+        id: cache-Objs-save
+        uses: actions/cache/save@v3
+        with:
+          path: ./Output
+          key: ${{ steps.cache-objs-restore.outputs.cache-primary-key }}
 
       - name: Archive Output
         uses: actions/upload-artifact@v3
         with:
           name: Output_Linux
           path: Output/
+          retention-days: 1
 
   build-MacOS:
-    runs-on: macOS-latest
-   
+    runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Build
-        run:  echo "Do Build Here"
-
-      - name: Archive Output
-        uses: actions/upload-artifact@v3
-        with:
-          name: Output_MacOS
-          path: Output/
+      name: Build MacOS
+      run: echo Build
 
   build-Web:
     runs-on: windows-latest
