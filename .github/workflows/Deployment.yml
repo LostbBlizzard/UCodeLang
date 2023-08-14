@@ -132,6 +132,7 @@ jobs:
 
           draft: false
           prerelease: ${{ inputs.IsPreRelease }}
+          tag_name: ${{ github.ref }}
       
       - name: Upload Release Asset
         id: upload-release-asset 
