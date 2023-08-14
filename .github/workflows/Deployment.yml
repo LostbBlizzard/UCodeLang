@@ -65,7 +65,7 @@ jobs:
       - name: set output
         id: step2
         run: |
-        echo "myoutput='hello world Linux'" >> $GITHUB_OUTPUT
+          echo "myoutput='hello world Linux'" >> $GITHUB_OUTPUT
 
   build-MacOS:
     runs-on: macOS-latest
