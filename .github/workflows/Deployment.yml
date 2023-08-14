@@ -8,7 +8,7 @@ on:
         required: true
         type: string
         default: "0.0.0"
-        
+
       IsPreRelease:
         description: 'Is Prelease'
         required: true
@@ -53,13 +53,13 @@ jobs:
           release_name: Release ${{ inputs.VersionNumber }}
           body: |
             LanguageChangelog Changelog:
-            ${{ inputs.MainChangelog }}
+            ${{ inputs.LanguageChangelog }}
 
             Implementers Changelog:
-            ${{ inputs.MainChangelog }}
+            ${{ inputs.ImplementerChangelog }}
 
             LSP Changelog:
             ${{ inputs.LSPChangelog }}
 
           draft: false
-          prerelease: false
+          prerelease: ${{ inputs.IsPreRelease }}
