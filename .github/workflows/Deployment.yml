@@ -69,10 +69,11 @@ jobs:
 
   build-MacOS:
     runs-on: macOS-latest
-    
+    outputs:
+      myoutput: ${{ steps.step2.outputs.myoutput }}
+
     steps:
-      - outputs:
-        myoutput: ${{ steps.step2.outputs.myoutput }}
+      
 
       - name: Build
         run:  echo "Do Build Here"
