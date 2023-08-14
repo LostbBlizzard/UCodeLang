@@ -42,7 +42,7 @@ jobs:
         myoutput: ${{ steps.step2.outputs.myoutput }}
 
     - name: Build
-        run:  echo "Do Build Here"
+      run:  echo "Do Build Here"
 
     - name: set output
       id: step2
@@ -56,7 +56,7 @@ jobs:
         myoutput: ${{ steps.step2.outputs.myoutput }}
     
     - name: Build
-        run:  echo "Do Build Here"
+      run:  echo "Do Build Here"
 
     
 
@@ -72,7 +72,7 @@ jobs:
         myoutput: ${{ steps.step2.outputs.myoutput }}
 
     - name: Build
-        run:  echo "Do Build Here"
+      run:  echo "Do Build Here"
 
     - name: set output
       id: step2
@@ -86,7 +86,7 @@ jobs:
         myoutput: ${{ steps.step2.outputs.myoutput }}
 
     - name: Build
-        run:  echo "Do Build Here"
+      run:  echo "Do Build Here"
 
     - name: set output
       id: step2
