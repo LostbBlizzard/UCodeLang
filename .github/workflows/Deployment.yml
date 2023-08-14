@@ -99,7 +99,7 @@ jobs:
           echo "myoutput='hello world Web'" >> $GITHUB_OUTPUT
 
   deployment:
-    needs: [buildWindows,buildLinux,buildMacOS,buildWebSite]
+    needs: [build-Windows,build-Linux,build-MacOS,build-Web]
     runs-on: ubuntu-latest
     environment: production
     steps:
