@@ -8,7 +8,7 @@ on:
         required: true
         type: string
         default: "0.0.0"
-        
+
       IsPreRelease:
         description: 'Is Prelease'
         required: true
@@ -17,25 +17,84 @@ on:
       
       LanguageChangelog:
         description: 'The Main Change Log'
-        required: false
+        required: true
         type: string
         default: 'added: fixed: removed:'
 
       ImplementerChangelog:
         description: 'The Change Log for implmenters(People who use this as a Scripting Lang Lib)'
-        required: false
+        required: true
         type: string
         default: 'added: fixed: removed:'
 
       LSPChangelog:
         description: 'The Change Log for Editor Extenions'
-        required: false
+        required: true
         type: string
         default: 'added: fixed: removed:'
 
 
 jobs:
+  buildWindows:
+    runs-on: windows-latest
+
+    - outputs:
+      myoutput: ${{ steps.step2.outputs.myoutput }}
+
+    - name: Build
+        run:  echo "Do Build Here"
+
+    - name: set output
+      id: step2
+      run: |
+        echo "myoutput='hello world Windows'" >> $GITHUB_OUTPUT
+
+  buildLinux:
+    runs-on: ubuntu-latest
+    
+    - outputs:
+      myoutput: ${{ steps.step2.outputs.myoutput }}
+    
+    - name: Build
+        run:  echo "Do Build Here"
+
+    
+
+    - name: set output
+      id: step2
+      run: |
+        echo "myoutput='hello world Linux'" >> $GITHUB_OUTPUT
+
+  buildMacOS:
+    runs-on: macOS-latest
+
+    - outputs:
+      myoutput: ${{ steps.step2.outputs.myoutput }}
+
+    - name: Build
+        run:  echo "Do Build Here"
+
+    - name: set output
+      id: step2
+      run: |
+        echo "myoutput='hello world macOS'" >> $GITHUB_OUTPUT
+
+  buildWebSite:
+    runs-on: windows-latest
+
+    - outputs:
+      myoutput: ${{ steps.step2.outputs.myoutput }}
+      
+    - name: Build
+        run:  echo "Do Build Here"
+
+    - name: set output
+      id: step2
+      run: |
+        echo "myoutput='hello world Web'" >> $GITHUB_OUTPUT
+
   deployment:
+    needs: [buildWindows,buildLinux,buildMacOS,buildWebSite]
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -53,13 +112,13 @@ jobs:
           release_name: Release ${{ inputs.VersionNumber }}
           body: |
             LanguageChangelog Changelog:
-            ${{ inputs.MainChangelog }}
+            ${{ inputs.LanguageChangelog }}
 
             Implementers Changelog:
-            ${{ inputs.MainChangelog }}
+            ${{ inputs.ImplementerChangelog }}
 
             LSP Changelog:
             ${{ inputs.LSPChangelog }}
 
           draft: false
-          prerelease: false
+          prerelease: ${{ inputs.IsPreRelease }}
