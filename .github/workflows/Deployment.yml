@@ -17,19 +17,19 @@ on:
       
       LanguageChangelog:
         description: 'The Main Change Log'
-        required: false
+        required: true
         type: string
         default: 'added: fixed: removed:'
 
       ImplementerChangelog:
         description: 'The Change Log for implmenters(People who use this as a Scripting Lang Lib)'
-        required: false
+        required: true
         type: string
         default: 'added: fixed: removed:'
 
       LSPChangelog:
         description: 'The Change Log for Editor Extenions'
-        required: false
+        required: true
         type: string
         default: 'added: fixed: removed:'
 
