@@ -1,0 +1,140 @@
+name: Deployment
+
+on: 
+  workflow_dispatch:
+   inputs:
+      VersionNumber:
+        description: 'The New Version Number Ex: "1.2.3"'
+        required: true
+        type: string
+        default: "0.0.0"
+
+      IsPreRelease:
+        description: 'Is Prelease'
+        required: true
+        type: boolean
+        default: true
+      
+      LanguageChangelog:
+        description: 'The Main Change Log'
+        required: true
+        type: string
+        default: 'added: fixed: removed:'
+
+      ImplementerChangelog:
+        description: 'The Change Log for implmenters(People who use this as a Scripting Lang Lib)'
+        required: true
+        type: string
+        default: 'added: fixed: removed:'
+
+      LSPChangelog:
+        description: 'The Change Log for Editor Extenions'
+        required: true
+        type: string
+        default: 'added: fixed: removed:'
+
+
+jobs:
+  buildWindows:
+    runs-on: windows-latest
+
+    - outputs:
+      myoutput: ${{ steps.step2.outputs.myoutput }}
+
+    - name: Build
+        run:  echo "Do Build Here"
+
+    - name: set output
+      id: step2
+      run: |
+        echo "myoutput='hello world Windows'" >> $GITHUB_OUTPUT
+
+  buildLinux:
+    runs-on: ubuntu-latest
+    
+    - outputs:
+      myoutput: ${{ steps.step2.outputs.myoutput }}
+    
+    - name: Build
+        run:  echo "Do Build Here"
+
+    
+
+    - name: set output
+      id: step2
+      run: |
+        echo "myoutput='hello world Linux'" >> $GITHUB_OUTPUT
+
+  buildMacOS:
+    runs-on: macOS-latest
+
+    - outputs:
+      myoutput: ${{ steps.step2.outputs.myoutput }}
+
+    - name: Build
+        run:  echo "Do Build Here"
+
+    - name: set output
+      id: step2
+      run: |
+        echo "myoutput='hello world macOS'" >> $GITHUB_OUTPUT
+
+  buildWebSite:
+    runs-on: windows-latest
+
+    - outputs:
+      myoutput: ${{ steps.step2.outputs.myoutput }}
+
+    - name: Build
+        run:  echo "Do Build Here"
+
+    - name: set output
+      id: step2
+      run: |
+        echo "myoutput='hello world Web'" >> $GITHUB_OUTPUT
+
+  deployment:
+    needs: [buildWindows,buildLinux,buildMacOS,buildWebSite]
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: retrieve output
+        run: |
+         echo ${{ needs.buildWindows.outputs.myoutput }}
+         echo ${{ needs.buildLinux.outputs.myoutput }}
+         echo ${{ needs.buildMacOS.outputs.myoutput }}
+         echo ${{ needs.buildWebSite.outputs.myoutput }}
+
+      - name: Build
+        run:  echo "Do Build Here"
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          release_name: Release ${{ inputs.VersionNumber }}
+          body: |
+            LanguageChangelog Changelog:
+            ${{ inputs.LanguageChangelog }}
+
+            Implementers Changelog:
+            ${{ inputs.ImplementerChangelog }}
+
+            LSP Changelog:
+            ${{ inputs.LSPChangelog }}
+
+          draft: false
+          prerelease: ${{ inputs.IsPreRelease }}
+      
+      - name: Upload Release Asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: ./premake5.lua
+          asset_name: test1.txt
+          asset_content_type: text/plain #https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
