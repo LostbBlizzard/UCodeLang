@@ -35,7 +35,66 @@ on:
 
 
 jobs:
+  buildWindows:
+    runs-on: windows-latest
+
+    - outputs:
+      myoutput: ${{ steps.step2.outputs.myoutput }}
+
+    - name: Build
+        run:  echo "Do Build Here"
+
+    - name: set output
+      id: step2
+      run: |
+        echo "myoutput='hello world Windows'" >> $GITHUB_OUTPUT
+
+  buildLinux:
+    runs-on: ubuntu-latest
+    
+    - outputs:
+      myoutput: ${{ steps.step2.outputs.myoutput }}
+    
+    - name: Build
+        run:  echo "Do Build Here"
+
+    
+
+    - name: set output
+      id: step2
+      run: |
+        echo "myoutput='hello world Linux'" >> $GITHUB_OUTPUT
+
+  buildMacOS:
+    runs-on: macOS-latest
+
+    - outputs:
+      myoutput: ${{ steps.step2.outputs.myoutput }}
+
+    - name: Build
+        run:  echo "Do Build Here"
+
+    - name: set output
+      id: step2
+      run: |
+        echo "myoutput='hello world macOS'" >> $GITHUB_OUTPUT
+
+  buildWebSite:
+    runs-on: windows-latest
+
+    - outputs:
+      myoutput: ${{ steps.step2.outputs.myoutput }}
+      
+    - name: Build
+        run:  echo "Do Build Here"
+
+    - name: set output
+      id: step2
+      run: |
+        echo "myoutput='hello world Web'" >> $GITHUB_OUTPUT
+
   deployment:
+    needs: [buildWindows,buildLinux,buildMacOS,buildWebSite]
     runs-on: ubuntu-latest
     environment: production
     steps:
