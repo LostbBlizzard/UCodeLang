@@ -1,6 +1,7 @@
 name: Deployment
 
-on: workflow_dispatch
+on: 
+  workflow_dispatch:
    inputs:
       VersionNumber:
         description: 'The New Version Number Ex: "1.2.3"'
