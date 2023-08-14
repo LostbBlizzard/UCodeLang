@@ -51,9 +51,9 @@
 #define UCodeLang_Platform_MacOS 0
 #endif // linux 
 
-#ifndef UCodeLangDebug
 
-#if UCodeLangDebug
+#ifndef UCodeLangDebug
+#if Debug
 #define UCodeLangDebug 1
 #else 
 #define UCodeLangDebug 0
@@ -119,11 +119,21 @@
 #define UCodeLangAPIExportDLLIMPORT __declspec(dllexport)
 #endif
 
+
+#ifdef PUBLISHED
+
+#define UCodeLangThrowException(Ex) static_assert(true,"UCodeLang should not be throwing exceptions we have a C-API ");
+
+#else
+
 #if UCodeLangMSVC
 #define UCodeLangThrowException(Ex) throw std::exception(Ex);
 #else
 #define UCodeLangThrowException(Ex) throw std::runtime_error(Ex);
 #endif 
+
+#endif
+
 
 #if UCodeLangDebug
 #define UCodeLangUnreachable() UCodeLangThrowException("bad path");
@@ -142,17 +152,7 @@
 #endif
 
 
-
-#ifdef Published
-#define UCodeLangThrowException() static_assert(true,"UCodeLang should not be throwing exceptions we have a C-API ");
-#else
-
-
-
-
-#endif
-
-#if Published
+#if PUBLISHED
 #define UCodeLangToDo() static_assert(true,"Add Code Path");
 #else
 #define UCodeLangToDo() UCodeLangThrowException("Code Path not vaild Is On ToDolist");
