@@ -52,8 +52,8 @@ jobs:
 
   build-Linux:
     runs-on: ubuntu-latest
-    - outputs:
-        myoutput: ${{ steps.step2.outputs.myoutput }}
+    outputs:
+      myoutput: ${{ steps.step2.outputs.myoutput }}
     
     steps:
       
@@ -84,8 +84,8 @@ jobs:
   build-Web:
     runs-on: windows-latest
 
-    - outputs:
-        myoutput: ${{ steps.step2.outputs.myoutput }}
+    outputs:
+      myoutput: ${{ steps.step2.outputs.myoutput }}
 
     steps:
       - name: Build
