@@ -35,63 +35,68 @@ on:
 
 
 jobs:
-  buildWindows:
+  build-Windows:
     runs-on: windows-latest
 
-    - outputs:
+    outputs:
       myoutput: ${{ steps.step2.outputs.myoutput }}
 
-    - name: Build
+    steps:
+      - name: Build
         run:  echo "Do Build Here"
 
-    - name: set output
-      id: step2
-      run: |
-        echo "myoutput='hello world Windows'" >> $GITHUB_OUTPUT
+      - name: set output
+        id: step2
+        run: |
+          echo "myoutput='hello world Windows'" >> $GITHUB_OUTPUT
 
-  buildLinux:
+  build-Linux:
     runs-on: ubuntu-latest
-    
-    - outputs:
+    outputs:
       myoutput: ${{ steps.step2.outputs.myoutput }}
     
-    - name: Build
+    steps:
+      
+      - name: Build
         run:  echo "Do Build Here"
 
     
 
-    - name: set output
-      id: step2
-      run: |
-        echo "myoutput='hello world Linux'" >> $GITHUB_OUTPUT
+      - name: set output
+        id: step2
+        run: |
+          echo "myoutput='hello world Linux'" >> $GITHUB_OUTPUT
 
-  buildMacOS:
+  build-MacOS:
     runs-on: macOS-latest
-
-    - outputs:
+    outputs:
       myoutput: ${{ steps.step2.outputs.myoutput }}
 
-    - name: Build
+    steps:
+      
+
+      - name: Build
         run:  echo "Do Build Here"
 
-    - name: set output
-      id: step2
-      run: |
-        echo "myoutput='hello world macOS'" >> $GITHUB_OUTPUT
+      - name: set output
+        id: step2
+        run: |
+          echo "myoutput='hello world macOS'" >> $GITHUB_OUTPUT
 
-  buildWebSite:
+  build-Web:
     runs-on: windows-latest
 
-    - outputs:
+    outputs:
       myoutput: ${{ steps.step2.outputs.myoutput }}
 
-    - name: Build
+    steps:
+      - name: Build
         run:  echo "Do Build Here"
 
-    - name: set output
-      id: step2
-      run: |
-        echo "myoutput='hello world Web'" >> $GITHUB_OUTPUT
+      - name: set output
+        id: step2
+        run: |
+          echo "myoutput='hello world Web'" >> $GITHUB_OUTPUT
 
   deployment:
     needs: [buildWindows,buildLinux,buildMacOS,buildWebSite]
@@ -136,5 +141,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
           asset_path: ./premake5.lua
-          asset_name: test1.txt
+          asset_name: tes.txt
           asset_content_type: text/plain #https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
