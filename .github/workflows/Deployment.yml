@@ -124,8 +124,8 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      name: Build MacOS
-      run: echo Build
+      - name: Build MacOS
+        run: echo Build
 
   build-Web:
     runs-on: windows-latest
