@@ -36,7 +36,7 @@ on:
 
 jobs:
   build-Windows:
-    runs-on: windows-latest
+    - runs-on: windows-latest
 
     - outputs:
       myoutput: ${{ steps.step2.outputs.myoutput }}
@@ -50,7 +50,7 @@ jobs:
         echo "myoutput='hello world Windows'" >> $GITHUB_OUTPUT
 
   build-Linux:
-    runs-on: ubuntu-latest
+    - runs-on: ubuntu-latest
     
     - outputs:
       myoutput: ${{ steps.step2.outputs.myoutput }}
@@ -66,7 +66,7 @@ jobs:
         echo "myoutput='hello world Linux'" >> $GITHUB_OUTPUT
 
   build-MacOS:
-    runs-on: macOS-latest
+    - runs-on: macOS-latest
 
     - outputs:
       myoutput: ${{ steps.step2.outputs.myoutput }}
@@ -80,7 +80,7 @@ jobs:
         echo "myoutput='hello world macOS'" >> $GITHUB_OUTPUT
 
   build-Web:
-    runs-on: windows-latest
+    - runs-on: windows-latest
 
     - outputs:
       myoutput: ${{ steps.step2.outputs.myoutput }}
