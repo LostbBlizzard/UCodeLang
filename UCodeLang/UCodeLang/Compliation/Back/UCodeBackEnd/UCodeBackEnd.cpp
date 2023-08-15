@@ -148,7 +148,7 @@ void  UCodeBackEndObject::BuildFuncs()
 	}
 	for (auto& Item : _Input->Funcs)
 	{
-		OnFunc(Item.get());
+		//OnFunc(Item.get());
 	}
 }
 void UCodeBackEndObject::Build(const IRBuilder* Input)

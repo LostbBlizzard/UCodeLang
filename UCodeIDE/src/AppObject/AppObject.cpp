@@ -10,6 +10,7 @@
 #include "UCodeLang/Compliation/Back/C89/C89Backend.hpp"
 #include "UCodeLang/Compliation/Back/IR/IRBackEnd.hpp"
 #include "UCodeLang/Compliation/Back/LLVM/LLVMBackEnd.hpp"
+#include "UCodeLang/Compliation/Back/WebAssembly/WebAssembly.hpp"
 
 #include "UCodeLang/Compliation/Back/x86_64/X86_64UNativeBackEnd.hpp"
 #include "UCodeLang/Compliation/Back/x86_64/X86_64JitCompiler.hpp"
@@ -863,6 +864,7 @@ void AppObject::OnDraw()
             {"IR",BackEndType::IR},
             {"C89",BackEndType::C89},
             {"LLVM",BackEndType::LLVM},
+            {"WebAssembly",BackEndType::WebAssembly},
         };
 
         bool UpdateLib = false;
@@ -912,6 +914,9 @@ void AppObject::OnDraw()
                 break;
             case BackEndType::LLVM:
                 _BackEnd = UCodeLang::LLVMBackEnd::MakeObject;
+                break;
+            case BackEndType::WebAssembly:
+                _BackEnd = UCodeLang::WebAssemblyBackEnd::MakeObject;
                 break;
             default:
                 break;
@@ -1998,6 +2003,9 @@ void AppObject::OnDoneCompileing(UCodeLang::Compiler::CompilerRet& Val, const UC
             _LibInfoString = _Compiler.GetTextFromFile(tepoutpath);
             break;
         case BackEndType::LLVM:
+            _LibInfoString = _Compiler.GetTextFromFile(tepoutpath);
+            break;
+        case BackEndType::WebAssembly:
             _LibInfoString = _Compiler.GetTextFromFile(tepoutpath);
             break;
         default:
