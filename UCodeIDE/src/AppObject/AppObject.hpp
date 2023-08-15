@@ -192,6 +192,7 @@ private:
 		C89,
 		IR,
 		LLVM,
+		WebAssembly,
 	};
 
 	enum class NativeSet

@@ -139,7 +139,9 @@ The final vision of the Project has Backends for
  
  - C89
 
- - LLVM assembly text.
+ - LLVM Assembly text.
+
+ - Web Assembly text
 
  - Windows,
 
