@@ -296,7 +296,8 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 							}
 							else
 							{
-								std::ifstream file(SourceFiles.value().native() + Path(OnFile).native());
+								std::ifstream file;
+								file.open(Path(SourceFiles.value().native() + Path(OnFile).native()));
 								if (file.is_open())
 								{
 									std::string str;

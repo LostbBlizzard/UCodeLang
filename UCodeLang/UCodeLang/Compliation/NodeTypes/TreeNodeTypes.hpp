@@ -393,7 +393,7 @@ struct TypeNode :Node
 		auto T = Name.Token->Type;
 		if (IsPrimitive(T))
 		{
-			return StringHelper::ToString(T);
+			return TokenStringHelper::ToString(T);
 		}
 		return String(Name.Token->Value._String);
 	}

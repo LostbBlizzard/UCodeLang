@@ -559,12 +559,10 @@ public:
 
 struct RawEvaluatedObject
 {
-	//union 
-	struct
-	{
-		Unique_Array<Byte> Object_AsPointer;
-		size_t ObjectSize = 0;
-	};
+
+	Unique_Array<Byte> Object_AsPointer;
+	size_t ObjectSize = 0;
+
 	bool HasValue()
 	{
 		return Object_AsPointer.operator bool();
@@ -891,8 +889,15 @@ public:
 	{
 		UCodeLangAssert(Info.get());
 		return (T*)Info.get();
+	}	
+	template<typename T> const T* Get_Info() const
+	{
+		UCodeLangAssert(Info.get());
+		return (T*)Info.get();
 	}
 
+	
+	#if UCodeLangMSVC //On GCC explicit specialization in non-namespace scope
 	template<> FuncInfo* Get_Info()
 	{
 		#if UCodeLangDebug
@@ -905,23 +910,7 @@ public:
 		UCodeLangAssert(Info.get());
 		return (FuncInfo*)Info.get();
 	}
-	template<> FuncPtrInfo* Get_Info()
-	{
-		#if UCodeLangDebug
-		if (Type != SymbolType::Func_ptr)
-		{
-			UCodeLangThrowException("bad cast");
-		}
-		#endif // DEBUG
-		UCodeLangAssert(Info.get());
-		return (FuncPtrInfo*)Info.get();
-	}
-
-	template<typename T> const T* Get_Info() const
-	{
-		UCodeLangAssert(Info.get());
-		return (T*)Info.get();
-	}
+	
 	template<> const FuncInfo* Get_Info() const
 	{
 		#if UCodeLangDebug
@@ -933,6 +922,19 @@ public:
 
 		UCodeLangAssert(Info.get());
 		return (FuncInfo*)Info.get();
+	}
+	
+
+	template<> FuncPtrInfo* Get_Info()
+	{
+		#if UCodeLangDebug
+		if (Type != SymbolType::Func_ptr)
+		{
+			UCodeLangThrowException("bad cast");
+		}
+		#endif // DEBUG
+		UCodeLangAssert(Info.get());
+		return (FuncPtrInfo*)Info.get();
 	}
 	template<> const FuncPtrInfo* Get_Info() const
 	{
@@ -946,7 +948,7 @@ public:
 		UCodeLangAssert(Info.get());
 		return (FuncPtrInfo*)Info.get();
 	}
-
+	#endif // DEBUG
 
 
 

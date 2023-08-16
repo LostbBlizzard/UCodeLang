@@ -168,7 +168,7 @@ enum class TokenType : TokenType_t
 	//used internally
 	internal_Constant_expression
 };
-class StringHelper
+class TokenStringHelper
 {
 public:
 	static void PushString(String& out,TokenType V)
@@ -346,7 +346,7 @@ struct Token
 			out += +"\"";
 			break;
 		default:
-			StringHelper::PushString(out, T.Type);
+			TokenStringHelper::PushString(out, T.Type);
 			break;
 		}
 		

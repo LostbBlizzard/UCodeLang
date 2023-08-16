@@ -29,7 +29,7 @@ void X86_64UNativeBackEnd::Build(const IRBuilder* Input)
 
 		auto x8664_ir = IRToX86_64IR::Into(*Input);
 
-		auto& Info = x8664_ir.Build();
+		auto Info = x8664_ir.Build();
 
 		size_t MaxBuffersize = 0;
 		for (auto& Item : Info.Funcs)

@@ -149,11 +149,12 @@ Optional<size_t> ClassAssembly::GetSize(const ClassMethod::Par& Type, bool Is32B
 
 Optional<Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>> ClassAssembly::CallDefaultConstructor(const ReflectionTypeInfo& Type, void* Object, bool Is32Bit) const
 {
+	using InerRet = Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>;
 	if (Type.IsAddress())
 	{
 		*(void**)(Object) = nullptr;
 
-		return { {} };
+		return { InerRet() };
 	}
 
 	switch (Type._Type)
@@ -162,100 +163,100 @@ Optional<Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>> ClassAssem
 	{
 		*(Int8*)(Object) = Int8();
 
-		return  { {} };
+		return  { InerRet() };
 	}
 	break;
 	case ReflectionTypes::sInt16:
 	{
 		*(Int16*)(Object) = Int16();
 
-		return  { {} };
+		return  { InerRet() };
 	}
 	break;
 	case ReflectionTypes::sInt32:
 	{
 		*(Int32*)(Object) = Int32();
 
-		return  { {} };
+		return  { InerRet() };
 	}
 	break;
 	case ReflectionTypes::sInt64:
 	{
 		*(UInt64*)(Object) = UInt64();
 
-		return  { {} };
+		return  { InerRet() };
 	}
 	break;
 	case ReflectionTypes::uInt8:
 	{
 		*(UInt8*)(Object) = UInt8();
 
-		return  { {} };
+		return  { InerRet() };
 	}
 	break;
 	case ReflectionTypes::uInt16:
 	{
 		*(UInt16*)(Object) = UInt16();
 
-		return  { {} };
+		return  { InerRet() };
 	}
 	break;
 	case ReflectionTypes::uInt32:
 	{
 		*(UInt32*)(Object) = UInt32();
 
-		return  { {} };
+		return  { InerRet() };
 	}
 	break;
 	case ReflectionTypes::uInt64:
 	{
 		*(UInt64*)(Object) = UInt64();
 
-		return  { {} };
+		return  { InerRet() };
 	}
 	break;
 	case ReflectionTypes::Char:
 	{
 		*(char*)(Object) = char();
 
-		return  { {} };
+		return  { InerRet() };
 	}
 	case ReflectionTypes::Uft8:
 	{
 		*(Utf8*)(Object) = Utf8();
 
-		return  { {} };
+		return  { InerRet() };
 	}
 	case ReflectionTypes::Uft16:
 	{
 		*(Utf16*)(Object) = Utf16();
 
-		return  { {} };
+		return  { InerRet() };
 	}
 	case ReflectionTypes::Uft32:
 	{
 		*(Utf32*)(Object) = Utf32();
 
-		return  { {} };
+		return  { InerRet() };
 	}
 	case ReflectionTypes::Bool:
 	{
 		*(bool*)(Object) = bool();
 
-		return  { {} };
+		return  { InerRet() };
 	}
 	break;
 	case ReflectionTypes::float32:
 	{
 		*(float32*)(Object) = float32();
 
-		return  { {} };
+		return  { InerRet() };
 	}
 	case ReflectionTypes::float64:
 	{
 		*(float64*)(Object) = float64();
 
-		return  { {} };
+		return  { InerRet() };
 	}
 	case ReflectionTypes::CustomType:
 	{
@@ -282,7 +283,7 @@ Optional<Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>> ClassAssem
 					}
 					else
 					{
-						return { {} };
+						return { InerRet() };
 					}
 				}
 			}
@@ -350,9 +351,11 @@ Optional<Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>> ClassAssem
 }
 Optional<Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>> ClassAssembly::CallDefaultConstructor(const ClassMethod::Par& Type, void* Object, bool Is32Bit) const
 {
+	using InerRetType = Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>;
+
 	if (Type.IsOutPar)
 	{
-		return { {} };
+		return { InerRetType() };
 	}
 	return CallDefaultConstructor(Type.Type,Object,Is32Bit);
 }
@@ -360,10 +363,13 @@ Optional<Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>> ClassAssem
 
 Optional<Optional<Vector<ClassAssembly::OnMoveConstructorCall>>> ClassAssembly::CallCopyConstructor(const ReflectionTypeInfo& Type,void* Source, void* Output, bool Is32Bit) const
 {
+
+	using InerRetType = Optional<Vector<ClassAssembly::OnMoveConstructorCall>>;
+
 	if (Type.IsAddress())
 	{
 		*(void**)(Output) = *(void**)Source;
-		return { {} };
+		return { InerRetType() };
 	}
 
 	switch (Type._Type)
@@ -372,35 +378,35 @@ Optional<Optional<Vector<ClassAssembly::OnMoveConstructorCall>>> ClassAssembly::
 	{
 		*(Int8*)(Output) = *(Int8*)Source;
 
-		return  { {} };
+		return   { InerRetType() };
 	}
 	break;
 	case ReflectionTypes::sInt16:
 	{
 		*(Int16*)(Output) = *(Int16*)Source;
 
-		return  { {} };
+		return   { InerRetType() };
 	}
 	break;
 	case ReflectionTypes::sInt32:
 	{
 		*(Int32*)(Output) = *(Int32*)Source;
 
-		return  { {} };
+		return   { InerRetType() };
 	}
 	break;
 	case ReflectionTypes::sInt64:
 	{
 		*(Int64*)(Output) = *(Int64*)Source;
 
-		return  { {} };
+		return   { InerRetType() };
 	}
 	break;
 	case ReflectionTypes::uInt8:
 	{
 		*(UInt8*)(Output) = *(UInt8*)Source;
 
-		return  { {} };
+		return   { InerRetType() };
 	}
 	break;
 	case ReflectionTypes::uInt16:
@@ -408,7 +414,7 @@ Optional<Optional<Vector<ClassAssembly::OnMoveConstructorCall>>> ClassAssembly::
 		*(UInt16*)(Output) = *(UInt16*)Source;
 
 
-		return  { {} };
+		return   { InerRetType() };
 	}
 	break;
 	case ReflectionTypes::uInt32:
@@ -416,7 +422,7 @@ Optional<Optional<Vector<ClassAssembly::OnMoveConstructorCall>>> ClassAssembly::
 		*(UInt32*)(Output) = *(UInt32*)Source;
 
 
-		return  { {} };
+		return   { InerRetType() };
 	}
 	break;
 	case ReflectionTypes::uInt64:
@@ -424,7 +430,7 @@ Optional<Optional<Vector<ClassAssembly::OnMoveConstructorCall>>> ClassAssembly::
 		*(UInt64*)(Output) = *(UInt64*)Source;
 
 
-		return  { {} };
+		return   { InerRetType() };
 	}
 	break;
 	case ReflectionTypes::Char:
@@ -432,45 +438,45 @@ Optional<Optional<Vector<ClassAssembly::OnMoveConstructorCall>>> ClassAssembly::
 		*(char*)(Output) = *(char*)Source;
 
 
-		return  { {} };
+		return   { InerRetType() };
 	}
 	case ReflectionTypes::Uft8:
 	{
 		*(Utf8*)(Output) = *(Utf8*)Source;
 
 
-		return  { {} };
+		return   { InerRetType() };
 	}
 	case ReflectionTypes::Uft16:
 	{
 		*(Utf16*)(Output) = *(Utf16*)Source;
 
-		return  { {} };
+		return   { InerRetType() };
 	}
 	case ReflectionTypes::Uft32:
 	{
 		*(Utf32*)(Output) = *(Utf32*)Source;
 
-		return  { {} };
+		return   { InerRetType() };
 	}
 	case ReflectionTypes::Bool:
 	{
 		*(bool*)(Output) = *(bool*)Source;
 
-		return  { {} };
+		return   { InerRetType() };
 	}
 	break;
 	case ReflectionTypes::float32:
 	{
 		*(float32*)(Output) = *(float32*)Source;
 
-		return  { {} };
+		return   { InerRetType() };
 	}
 	case ReflectionTypes::float64:
 	{
 		*(float64*)(Output) = *(float64*)Source;
 
-		return  { {} };
+		return   { InerRetType() };
 	}
 	case ReflectionTypes::CustomType:
 	{
@@ -483,11 +489,12 @@ Optional<Optional<Vector<ClassAssembly::OnMoveConstructorCall>>> ClassAssembly::
 }
 Optional<Optional<Vector<ClassAssembly::OnMoveConstructorCall>>>  ClassAssembly::CallMoveConstructor(const ReflectionTypeInfo& Type, void* Source, void* Output, bool Is32Bit) const
 {
+	using InerRetType = Optional<Vector<ClassAssembly::OnMoveConstructorCall>>;
 	//std::move for intent
 	if (Type.IsAddress())
 	{
 		*(void**)(Output) = std::move(*(void**)Source);
-		return { {} };
+		return { InerRetType() };
 	}
 
 	switch (Type._Type)
@@ -496,35 +503,35 @@ Optional<Optional<Vector<ClassAssembly::OnMoveConstructorCall>>>  ClassAssembly:
 	{
 		*(Int8*)(Output) =std::move(*(Int8*)Source);
 
-		return  { {} };
+		return   { InerRetType() };
 	}
 	break;
 	case ReflectionTypes::sInt16:
 	{
 		*(Int16*)(Output) = std::move(*(Int16*)Source);
 
-		return  { {} };
+		return   { InerRetType() };
 	}
 	break;
 	case ReflectionTypes::sInt32:
 	{
 		*(Int32*)(Output) = std::move(*(Int32*)Source);
 
-		return  { {} };
+		return   { InerRetType() };
 	}
 	break;
 	case ReflectionTypes::sInt64:
 	{
 		*(Int64*)(Output) = std::move(*(Int64*)Source);
 
-		return  { {} };
+		return   { InerRetType() };
 	}
 	break;
 	case ReflectionTypes::uInt8:
 	{
 		*(UInt8*)(Output) = std::move(*(UInt8*)Source);
 
-		return  { {} };
+		return   { InerRetType() };
 	}
 	break;
 	case ReflectionTypes::uInt16:
@@ -532,7 +539,7 @@ Optional<Optional<Vector<ClassAssembly::OnMoveConstructorCall>>>  ClassAssembly:
 		*(UInt16*)(Output) = std::move(*(UInt16*)Source);
 
 
-		return  { {} };
+		return   { InerRetType() };
 	}
 	break;
 	case ReflectionTypes::uInt32:
@@ -540,7 +547,7 @@ Optional<Optional<Vector<ClassAssembly::OnMoveConstructorCall>>>  ClassAssembly:
 		*(UInt32*)(Output) = std::move(*(UInt32*)Source);
 
 
-		return  { {} };
+		return   { InerRetType() };
 	}
 	break;
 	case ReflectionTypes::uInt64:
@@ -548,7 +555,7 @@ Optional<Optional<Vector<ClassAssembly::OnMoveConstructorCall>>>  ClassAssembly:
 		*(UInt64*)(Output) = std::move(*(UInt64*)Source);
 
 
-		return  { {} };
+		return   { InerRetType() };
 	}
 	break;
 	case ReflectionTypes::Char:
@@ -556,45 +563,45 @@ Optional<Optional<Vector<ClassAssembly::OnMoveConstructorCall>>>  ClassAssembly:
 		*(char*)(Output) = std::move(*(char*)Source);
 
 
-		return  { {} };
+		return   { InerRetType() };
 	}
 	case ReflectionTypes::Uft8:
 	{
 		*(Utf8*)(Output) = std::move(*(Utf8*)Source);
 		
 
-		return  { {} };
+		return   { InerRetType() };
 	}
 	case ReflectionTypes::Uft16:
 	{
 		*(Utf16*)(Output) = std::move(*(Utf16*)Source);
 
-		return  { {} };
+		return   { InerRetType() };
 	}
 	case ReflectionTypes::Uft32:
 	{
 		*(Utf32*)(Output) = std::move(*(Utf32*)Source);
 
-		return  { {} };
+		return   { InerRetType() };
 	}
 	case ReflectionTypes::Bool:
 	{
 		*(bool*)(Output) = std::move(*(bool*)Source);
 
-		return  { {} };
+		return   { InerRetType() };
 	}
 	break;
 	case ReflectionTypes::float32:
 	{
 		*(float32*)(Output) = std::move(*(float32*)Source);
 		
-		return  { {} };
+		return   { InerRetType() };
 	}
 	case ReflectionTypes::float64:
 	{
 		*(float64*)(Output) = std::move(*(float64*)Source);
 
-		return  { {} };
+		return   { InerRetType() };
 	}
 	case ReflectionTypes::CustomType:
 	{
@@ -607,7 +614,9 @@ Optional<Optional<Vector<ClassAssembly::OnMoveConstructorCall>>>  ClassAssembly:
 }
 Optional<Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>> ClassAssembly::CallDestructor(const ReflectionTypeInfo& Type, void* Object, bool Is32Bit) const
 {
-	return { {} };
+	using InerRetType = Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>;
+
+	return {};
 }
 ClassAssembly::CompareType_t ClassAssembly::CompareType(const ReflectionTypeInfo& TypeA, const ClassAssembly& TypeAAssembly, const ReflectionTypeInfo& TypeB, const ClassAssembly& TypeBAssembly)
 {
@@ -637,6 +646,7 @@ Optional<Optional<Vector<ClassAssembly::OnMoveConstructorCall>>> ClassAssembly::
 	const ReflectionTypeInfo& TypeSource, void* Source, const ClassAssembly& SourceAssembly,
 	const ReflectionTypeInfo& TypeOutput, void* Output, const ClassAssembly& OutputAssembly, bool Is32Bit)
 {
+	using InerRet = Optional<Vector<ClassAssembly::OnMoveConstructorCall>>;
 	if (TypeOutput.IsAddress() || TypeOutput.IsAddressArray() || TypeOutput.IsDynamicTrait() || TypeOutput.IsMovedType()
 		|| TypeSource.IsAddress() || TypeSource.IsAddressArray() || TypeSource.IsDynamicTrait() || TypeSource.IsMovedType())
 	{
@@ -739,19 +749,19 @@ Optional<Optional<Vector<ClassAssembly::OnMoveConstructorCall>>> ClassAssembly::
 			{
 			case 1:
 				*(UInt8*)Output = SrcAsInt.AsUInt8;
-				return { {} };
+				return { InerRet() };
 				break;
 			case 2:
 				*(UInt8*)Output = SrcAsInt.AsUInt16;
-				return { {} };
+				return { InerRet() };
 				break;
 			case 4:
 				*(UInt8*)Output = SrcAsInt.AsUInt32;
-				return { {} };
+				return { InerRet() };
 				break;
 			case 8:
 				*(UInt8*)Output = SrcAsInt.AsUInt64;
-				return { {} };
+				return { InerRet() };
 				break;
 			default:
 				return {};
@@ -764,19 +774,19 @@ Optional<Optional<Vector<ClassAssembly::OnMoveConstructorCall>>> ClassAssembly::
 			{
 			case 1:
 				*(Int8*)Output = SrcAsInt.AsInt8;
-				return { {} };
+				return { InerRet() };
 				break;
 			case 2:
 				*(Int8*)Output = SrcAsInt.AsInt16;
-				return { {} };
+				return { InerRet() };
 				break;
 			case 4:
 				*(Int8*)Output = SrcAsInt.AsInt32;
-				return { {} };
+				return { InerRet() };
 				break;
 			case 8:
 				*(Int8*)Output = SrcAsInt.AsInt64;
-				return { {} };
+				return { InerRet() };
 				break;
 			default:
 				return {};

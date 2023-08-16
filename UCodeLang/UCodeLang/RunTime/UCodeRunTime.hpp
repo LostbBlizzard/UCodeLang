@@ -89,16 +89,16 @@ public:
 	template<typename T, typename... Args>
 	T RCall(const String& FunctionName, Args... parameters)
 	{
-		return  Get_MyInterpreter().RCall<T>(FunctionName, parameters);
+		return  Get_MyInterpreter().RCall<T>(FunctionName, parameters...);
 	}
 	template<typename T, typename... Args>
 	T RThisCall(const ClassMethod& Function, PtrType This, Args... parameters)
 	{
-		return RThisCall<T>(Function.DecorationName, This, parameters);
+		return RThisCall<T>(Function.DecorationName, This, parameters...);
 	}
 	template<typename T, typename... Args> T RThisCall(const String& Function, PtrType This, Args... parameters)
 	{
-		return Get_MyInterpreter().RThisCall(Function, This, parameters);
+		return Get_MyInterpreter().RThisCall(Function, This, parameters...);
 	}
 
 	//

@@ -14,7 +14,7 @@ UCodeLangForceinline static void Store##bitsize(Instruction& Out, RegisterID reg
 {\
 	Out.OpCode = InstructionSet::Store##bitsize;\
 	Out.Value0.AsRegister = reg;\
-	Out.Value1.##unsignedAnyIntValue = Value;\
+	Out.Value1.unsignedAnyIntValue = Value;\
 }\
 UCodeLangForceinline static void StoreFromPtrToReg##bitsize(Instruction& Out, RegisterID pointer, RegisterID OutReg)\
 {\
@@ -214,7 +214,7 @@ UCodeLangForceinline static void Storef##bitsize(Instruction& Out, RegisterID re
 { \
 	Out.OpCode = InstructionSet::Store##bitsize##f;\
 	Out.Value0.AsRegister = reg;\
-	Out.Value1.##AnyIntValue = Value;\
+	Out.Value1.AnyIntValue = Value;\
 }\
 
 #pragma endregion

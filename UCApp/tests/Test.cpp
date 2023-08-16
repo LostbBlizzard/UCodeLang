@@ -366,6 +366,7 @@ using namespace UCodeLang;
 						catch (const std::exception& why)
 						{
 							std::cout << why.what();
+							return false;
 						}
 					}
 				);

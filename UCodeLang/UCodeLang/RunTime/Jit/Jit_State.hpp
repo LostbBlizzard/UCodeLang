@@ -34,6 +34,8 @@ public:
 			ConstThis = other.ConstThis;
 
 			other.This = nullptr;
+
+			return *this;
 		}
 
 		APIKey(const APIKey&& other) : ConstThis(other.ConstThis)
@@ -44,6 +46,7 @@ public:
 		{
 			ConstThis = other.ConstThis;
 
+			return *this;
 		}
 
 	

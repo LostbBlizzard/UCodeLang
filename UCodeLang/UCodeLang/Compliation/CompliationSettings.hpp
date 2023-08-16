@@ -1,6 +1,7 @@
 #pragma once
 #include "../LangCore/UCodeLangNameSpace.hpp"
 #include "../LangCore/LangTypes.hpp"
+#include "../LangCore/StringHelper.hpp"
 UCodeLangStart
 enum class OutPutType : UInt8
 {
@@ -70,7 +71,7 @@ struct CompliationSettings
 		Optional<String> R;
 		for (auto& Item : _Args)
 		{
-			if (Item._Starts_with(ValueName))
+			if (StringHelper::StartWith(Item,ValueName))
 			{
 				R = Item.substr(ValueName.size() + 1);//pass the :
 			}

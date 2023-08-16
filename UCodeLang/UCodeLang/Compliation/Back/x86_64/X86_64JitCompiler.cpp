@@ -9,7 +9,7 @@ UCodeLangStart
 
 X86_64JitCompiler::X86_64JitCompiler()
 {
-	auto& CallConvention = X86_64IR::CallConvention();
+	auto CallConvention = X86_64IR::CallConvention();
 #if UCodeLang_Platform_Windows
 	CallConvention.SetWindows();
 #else
@@ -43,6 +43,7 @@ X86_64Gen::GReg X86_64JitCompiler::To(RegisterID id)
 	case UCodeLang::RegisterID::OuPutRegister:return Convention.IntegerReturnValue;
 	default:break;
 	}
+	UCodeLangUnreachable();
 }
 
 bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress, Vector<Byte>& X64Output)

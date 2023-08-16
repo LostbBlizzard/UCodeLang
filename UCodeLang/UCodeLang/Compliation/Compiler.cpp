@@ -411,7 +411,9 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 			T.path = path;
 			DependencyFile::ExternalFileInfo F;
 			F.FullFilePath = path;
-			F.FileLastUpdated = *(UInt64*)&fs::last_write_time(path);
+
+			auto writetime = fs::last_write_time(path);
+			F.FileLastUpdated = *(UInt64*)&writetime;
 			F.FileSize = fs::file_size(path);
 			F.FileHash = 0;
 
@@ -524,7 +526,9 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 			_Errors.FilePath = RePath;
 			DependencyFile::FileInfo F;
 			F.FilePath = RePath;
-			F.FileLastUpdated = *(UInt64*)&fs::last_write_time(FilePath_t);
+
+			auto writetime = fs::last_write_time(FilePath_t);
+			F.FileLastUpdated = *(UInt64*)&writetime;
 			F.FileSize = fs::file_size(FilePath_t);
 			F.FileHash = 0;
 

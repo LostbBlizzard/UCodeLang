@@ -17,7 +17,6 @@ struct X86_64IR
 	ImportUseing86x64Gen;
 	
 	using IDType = UInt64;
-	using RelocationID = IDType;
 	using FuncID = IDType;
 	using CallConventionID = IDType;
 	using RelocationID = IDType;
