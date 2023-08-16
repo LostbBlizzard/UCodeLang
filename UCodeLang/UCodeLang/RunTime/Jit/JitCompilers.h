@@ -15,16 +15,7 @@ using NativeJitAssembler = void*;
 #endif // CPUTypes
 #define UCodeLang_KeepJitInterpreterFallback 1
 
-#ifdef HasNoSupportforJit
-#if HasNoSupportforJit
-#define HasSupportforJit 0
-#else
-#define HasSupportforJit 1
-#endif // HasNoSupportforJit
-#else
-#define HasSupportforJit 1
-#endif // HasNoSupportforJit
-
+#define HasSupportforJit !HasNoSupportforJit 
 
 UCodeLangEnd
 

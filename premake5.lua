@@ -8,9 +8,9 @@ workspace "UCodeLang"
 
    if os.host() == "windows" then
       if os.is64bit() then
-         defaultplatform "Win32"
-      else
          defaultplatform "Win64"
+      else
+         defaultplatform "Win32"
       end
    end
 

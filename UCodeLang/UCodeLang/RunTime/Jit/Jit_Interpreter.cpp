@@ -56,8 +56,8 @@ void Jit_Interpreter::TryBuildAllFuncs()
 	{
 		auto address = Item._Value;
 		if (!UFuncToCPPFunc.count(address)) { UFuncToCPPFunc[address] = {}; }
-		auto& Item = UFuncToCPPFunc[address];
-		BuildCheck(Item, address);
+		auto Itemp = UFuncToCPPFunc[address];
+		BuildCheck(Itemp, address);
 	}
 #endif
 }
@@ -83,17 +83,18 @@ thread_local JitRuningState _ThisState = {};
 
 Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 {
-	#if HasNoSupportforJit
+#if HasNoSupportforJit
 	return _Interpreter.Call(address);
-	#else
-	if (!UFuncToCPPFunc.count(address)){UFuncToCPPFunc[address] = {};}
+#else
+	if (!UFuncToCPPFunc.count(address)) { UFuncToCPPFunc[address] = {}; }
 	auto& Item = UFuncToCPPFunc[address];
 
 	//return _Interpreter.Call(address);//remove this when jit-Interpreter works
 
-
-	TempFunc(InterpreterCPPinterface(&_Interpreter));
-
+	{
+		InterpreterCPPinterface p = InterpreterCPPinterface(&_Interpreter);
+		TempFunc(p);
+	}
 	BuildCheck(Item, address);
 
 
@@ -111,7 +112,8 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 		_Interpreter.FlushParametersIntoCPU();
 		
 		{//here the magic happens and were your going to spend debug for hours.
-			Item.Func(InterpreterCPPinterface(&_Interpreter));
+			InterpreterCPPinterface p = InterpreterCPPinterface(&_Interpreter);
+			Item.Func(p);
 
 			//using Func = int(*)(int V);
 			//int V = 0;
@@ -270,7 +272,7 @@ Optional<String> Jit_Interpreter::GetNameForHex(const String& Hex)
 				}
 				else
 				{
-					void* Pointer = Item._Value.InterpreterCall;
+					void* Pointer = (void*)Item._Value.InterpreterCall;
 					if (CMP(Pointer, Hex))
 					{
 						String Str;

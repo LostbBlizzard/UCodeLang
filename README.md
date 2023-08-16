@@ -150,13 +150,6 @@ The final vision of the Project has Backends for
  - MacOs,
 
 
-- Here's' a List of Community Made Backends.
-
-  - The [WebassemblyBackend](https://github.com/LostbBlizzard/UCodeLangWasm) is an of a example external UCodeLang Backend.
-
-
-
-
 # Credits
 The was Language was designed  and developed by LostBlizzard On [GitHub](https://github.com/LostbBlizzard).
 

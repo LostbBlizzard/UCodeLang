@@ -72,9 +72,17 @@
 
 #define UCodeLangHasMultipleThreads __STDCPP_THREADS__
 
+#if  defined(__x86_64__) || defined(_M_X64)
+#define UCodeLang_CPUIs_x86_64 1
+#else
+#define UCodeLang_CPUIs_x86_64 0
+#endif
 
-#define UCodeLang_CPUIs_x86_64 defined(__x86_64__) || defined(_M_X64)
-#define UCodeLang_CPUIs_x86 defined(i386) || defined(__i386__) || defined(__i386) || defined(_M_IX86)
+#if defined(i386) || defined(__i386__) || defined(__i386) || defined(_M_IX86)
+#define UCodeLang_CPUIs_x86 1
+#else
+#define UCodeLang_CPUIs_x86 0
+#endif
 
 #if defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN || \
     defined(__BIG_ENDIAN__) || \

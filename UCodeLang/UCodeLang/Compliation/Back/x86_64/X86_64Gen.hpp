@@ -177,15 +177,6 @@ public:
 	using Absoluteu32 = X86_64Gen::Absoluteu32; \
 	using Absoluteu64 = X86_64Gen::Absoluteu64; \
 	\
-	using Near8 = X86_64Gen::Near8; \
-	using Near16 = X86_64Gen::Near16; \
-	using Near32 = X86_64Gen::Near32; \
-	using Near64 = X86_64Gen::Near64; \
-	using Nearu8 = X86_64Gen::Nearu8; \
-	using Nearu16 = X86_64Gen::Nearu16; \
-	using Nearu32 = X86_64Gen::Nearu32; \
-	using Nearu64 = X86_64Gen::Nearu64; \
-	\
 	using Add8 = X86_64Gen::Add8; \
 	using Add16 = X86_64Gen::Add16; \
 	using Add32 = X86_64Gen::Add32; \

@@ -118,7 +118,7 @@ using TryGetNode = TryGetNode_<Node>;
 
 //ALL nodes must have this as there first member. 
 #define AddforNode(Type) \
-static constexpr NodeType Node_t = NodeType::##Type;\
+static constexpr NodeType Node_t = NodeType:: Type;\
 Node* As(){return (Node*)this;}\
 const Node* As() const {return (const Node*)this;}\
 static Type* Gen(){return new Type();} \

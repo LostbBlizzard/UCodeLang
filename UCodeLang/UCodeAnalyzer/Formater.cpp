@@ -18,7 +18,7 @@ void Formater::Reset()
 
 constexpr const char* ToName(UCodeLang::TokenType Type)
 {
-	return UCodeLang::StringHelper::ToString(Type);
+	return UCodeLang::TokenStringHelper::ToString(Type);
 }
 
 Optional<String> Formater::Format(StrScope scope, StringView Text)

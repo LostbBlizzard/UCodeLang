@@ -168,10 +168,10 @@ public:
 private:
 	_VectorBase Base;
 	bool IsOrdered = false; 
-	void AddVectorBase(VectorBase&& Value)
+	void AddVectorBase(VectorBase&& value)
 	{
 		IsOrdered = false;
-		Base.push_back(Value);
+		Base.push_back(value);
 	}
 	static HashValue Hash(ConstKey key)
 	{
@@ -393,9 +393,9 @@ public:
 
 private:
 	Vector<VectorBase> Base;
-	void AddVectorBase(VectorBase&& Value)
+	void AddVectorBase(VectorBase&& value)
 	{
-		Base.push_back(Value);
+		Base.push_back(value);
 	}
 	static HashValue Hash(ConstKey key)
 	{

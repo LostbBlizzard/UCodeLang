@@ -156,6 +156,6 @@ private:
 		JitType Ret;
 		Vector<JitType> Pars;
 	};
-	X86_64Gen::GReg X86_64JitCompiler::To(RegisterID id);
+	X86_64Gen::GReg To(RegisterID id);
 };
 UCodeLangEnd

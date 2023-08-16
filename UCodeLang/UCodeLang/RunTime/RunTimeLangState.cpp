@@ -261,6 +261,7 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 			
 			_Size = Other._Size;
 			_Ptr = Other.Release();
+			return *this;
 		}
 
 		void SetState(RunTimeLangState* State)

@@ -279,15 +279,15 @@ struct AnyInterpreterPtr
 	{
 		if (auto Val = Base.Get_If<Interpreter*>())
 		{
-			return (*Val)->RCall<T>(FunctionName,parameters);
+			return (*Val)->RCall<T>(FunctionName,parameters...);
 		}
 		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
 		{
-			return  (*Val)->RCall<T>(FunctionName, parameters);
+			return  (*Val)->RCall<T>(FunctionName, parameters...);
 		}
 		else if (auto Val = Base.Get_If<NativeInterpreter*>())
 		{
-			return  (*Val)->RCall<T>(FunctionName, parameters);
+			return  (*Val)->RCall<T>(FunctionName, parameters...);
 		}
 		else
 		{
@@ -492,14 +492,20 @@ public:
 	AnyInterpreter& operator=(Interpreter&& Value)
 	{
 		Base = std::make_shared<Interpreter>(std::move(Value));
+
+		return *this;
 	}
 	AnyInterpreter& operator=(Jit_Interpreter&& Value)
 	{
 		Base = std::make_shared<Jit_Interpreter>(std::move(Value));
+
+		return *this;
 	}
 	AnyInterpreter& operator=(NativeInterpreter&& Value)
 	{
 		Base = std::make_shared<NativeInterpreter>(std::move(Value));
+
+		return *this;
 	}
 	~AnyInterpreter()
 	{

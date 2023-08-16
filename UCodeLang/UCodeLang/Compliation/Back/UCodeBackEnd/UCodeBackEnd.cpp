@@ -906,7 +906,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		case IRInstructionType::CallFuncPtr:
 		{
 			auto FuncInfo = _Input->GetSymbol(Item->Target().identifer)->Get_ExAs<IRFuncPtr>();
-			auto& FData = FuncCallStart(FuncInfo->Pars, FuncInfo->Ret);
+			auto FData = FuncCallStart(FuncInfo->Pars, FuncInfo->Ret);
  
 			InstructionBuilder::CallReg(MakeIntoRegister(Item,Item->Target()), _Ins); PushIns();
 
@@ -2554,6 +2554,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 			UCodeLangUnreachable();
 		}
 	}
+	UCodeLangUnreachable();
 }
 UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstruction* Ins, const IROperator& Op,bool GetAddress)
 {

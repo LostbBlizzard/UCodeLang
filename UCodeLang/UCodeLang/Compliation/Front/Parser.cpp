@@ -110,13 +110,13 @@ void Parser::TokenTypeCheck(const Token* Value, TokenType Type)
 
  			if (Value->Type == TokenType::Name) {
 
-				Error._Msg = "Expecting " + (String)StringHelper::ToString(Type) +
+				Error._Msg = "Expecting " + (String)TokenStringHelper::ToString(Type) +
 					" Got " + (String)Value->Value._String;
 			}
 			else
 			{
-				Error._Msg = "Expecting " + (String)StringHelper::ToString(Type) +
-					" Got " + (String)StringHelper::ToString(Value->Type);
+				Error._Msg = "Expecting " + (String)TokenStringHelper::ToString(Type) +
+					" Got " + (String)TokenStringHelper::ToString(Value->Type);
 			}
 			Tripped();
 		}
@@ -1779,7 +1779,7 @@ Parser::GetNameCheck_ret2 Parser::GetNameCheck2(ScopedNameNode& out, bool CanHav
 			{
 				auto Token = out.ScopedName[0].token;
 				_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos,
-					"generic cant be with a Memberaccess operator '" + (String)StringHelper::ToString(Token->Type) + "'");
+					"generic cant be with a Memberaccess operator '" + (String)TokenStringHelper::ToString(Token->Type) + "'");
 			}
 		}
 		if (MemAccess)
@@ -1852,7 +1852,7 @@ Parser::GetNameCheck_ret Parser::GetNameCheck(ScopedNameNode& out,bool CanHaveVa
 			{
 				auto Token = out.ScopedName[0].token;
 				_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos,
-					"generic cant be with a Memberaccess operator '" + (String)StringHelper::ToString(Token->Type) + "'");
+					"generic cant be with a Memberaccess operator '" + (String)TokenStringHelper::ToString(Token->Type) + "'");
 			}
 		}
 		if (MemAccess)

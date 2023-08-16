@@ -111,7 +111,7 @@ void LanguageSeverTest::RunTest(String_view FileAsString)
 	{
 		auto& V = Lines[i];
 		
-		if (V._Starts_with("@ulangsevertester::"))
+		if (StringHelper::StartWith(V,"@ulangsevertester::"))
 		{
 			Info info;
 			info.FileLine = i;

@@ -50,7 +50,7 @@ public:
 	UCodeLangAPIExport CompilerRet CompileFiles_UseIntDir(const CompilerPathData& Data,const ExternalFiles& ExternalFiles);
 	//CompilerRet CompileFiles_UseIntDir(const Vector<Path>& files, const Path& intDir, const  ExternalFiles& ExternalFiles = {});
 
-	UCodeLangAPIExport BytesPtr Compiler::OpenFile(const LangDefInfo::FileInfo* FInfo, const Path& path);
+	UCodeLangAPIExport BytesPtr OpenFile(const LangDefInfo::FileInfo* FInfo, const Path& path);
 
 	
 	UCodeLangForceinline UCodeLang::CompliationErrors& Get_Errors()

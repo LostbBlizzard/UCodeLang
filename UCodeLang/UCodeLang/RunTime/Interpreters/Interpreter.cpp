@@ -154,11 +154,11 @@ Interpreter::Return_t Interpreter::Call(UAddress address)
 #pragma region MyRegion
 #define IntSet(Bits,signedCType,unsignedCType,signedAnyIntValue,unsignedAnyIntValue) \
 case InstructionSet::Store##Bits: \
-	Get_Register((RegisterID)Inst.Value0.AsRegister).Value = Inst.Value1.##signedAnyIntValue;\
+	Get_Register((RegisterID)Inst.Value0.AsRegister).Value = Inst.Value1. signedAnyIntValue;\
 	break;\
 case InstructionSet::StoreRegToReg##Bits:\
-	Get_Register(Inst.Value1.AsRegister).Value.##signedAnyIntValue\
-	= Get_Register(Inst.Value0.AsRegister).Value.##signedAnyIntValue;\
+	Get_Register(Inst.Value1.AsRegister).Value. signedAnyIntValue\
+	= Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue;\
 	break;\
 case InstructionSet::StoreFromPtrToReg##Bits:\
 	Get_Register(Inst.Value1.AsRegister).Value =\
@@ -166,117 +166,117 @@ case InstructionSet::StoreFromPtrToReg##Bits:\
 	break;\
 case InstructionSet::StoreRegToPtr##Bits:\
 	*(signedCType*)(Get_Register(Inst.Value1.AsRegister).Value.AsPtr) =\
-		Get_Register(Inst.Value0.AsRegister).Value.##signedAnyIntValue;\
+		Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue;\
 	break;\
 case InstructionSet::Push##Bits:\
-	_CPU.Stack.PushStack(Get_Register(Inst.Value0.AsRegister).Value.##signedAnyIntValue);\
+	_CPU.Stack.PushStack(Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue);\
 	break;\
 case InstructionSet::Pop##Bits:\
-	Get_Register(Inst.Value0.AsRegister).Value = _CPU.Stack.PopStack<##signedCType>();\
+	Get_Register(Inst.Value0.AsRegister).Value = _CPU.Stack.PopStack< signedCType>();\
 	break;\
 case InstructionSet::StoreRegOnStack##Bits:\
-	_CPU.Stack.SetValue<##signedCType>(Get_Register(Inst.Value0.AsRegister).Value.##signedAnyIntValue\
+	_CPU.Stack.SetValue< signedCType>(Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue\
 		, Inst.Value1.AsUIntNative);\
 	break;\
 case InstructionSet::StoreRegOnStackSub##Bits:\
-	_CPU.Stack.SetValueSub<##signedCType>(Get_Register(Inst.Value0.AsRegister).Value.##signedAnyIntValue\
+	_CPU.Stack.SetValueSub< signedCType>(Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue\
 		, Inst.Value1.AsUIntNative);\
 	break;\
 case InstructionSet::GetFromStack##Bits:\
-	Get_Register(Inst.Value1.AsRegister).Value.##signedAnyIntValue = _CPU.Stack.GetValue<##signedCType>(Inst.Value0.AsUIntNative);\
+	Get_Register(Inst.Value1.AsRegister).Value. signedAnyIntValue = _CPU.Stack.GetValue< signedCType>(Inst.Value0.AsUIntNative);\
 	break;\
 case InstructionSet::GetFromStackSub##Bits:\
-	Get_Register(Inst.Value1.AsRegister).Value.##signedAnyIntValue = _CPU.Stack.GetValueSub<##signedCType>(Inst.Value0.AsUIntNative);\
+	Get_Register(Inst.Value1.AsRegister).Value. signedAnyIntValue = _CPU.Stack.GetValueSub< signedCType>(Inst.Value0.AsUIntNative);\
 	break;\
 case InstructionSet::Add##Bits:\
-	Get_MathOutRegister().Value.##signedAnyIntValue = Get_Register(Inst.Value0.AsRegister).Value.##signedAnyIntValue +\
-		Get_Register(Inst.Value1.AsRegister).Value.##signedAnyIntValue;\
+	Get_MathOutRegister().Value. signedAnyIntValue = Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue +\
+		Get_Register(Inst.Value1.AsRegister).Value. signedAnyIntValue;\
 	break;\
 case InstructionSet::Sub##Bits:\
-	Get_MathOutRegister().Value.##signedAnyIntValue = Get_Register(Inst.Value0.AsRegister).Value.##unsignedAnyIntValue -\
-		Get_Register(Inst.Value1.AsRegister).Value.##unsignedAnyIntValue;\
+	Get_MathOutRegister().Value. signedAnyIntValue = Get_Register(Inst.Value0.AsRegister).Value. unsignedAnyIntValue -\
+		Get_Register(Inst.Value1.AsRegister).Value. unsignedAnyIntValue;\
 	break;\
 case InstructionSet::MultS##Bits:\
-	Get_MathOutRegister().Value.##signedAnyIntValue = Get_Register(Inst.Value0.AsRegister).Value.##signedAnyIntValue *\
-		Get_Register(Inst.Value1.AsRegister).Value.##signedAnyIntValue;\
+	Get_MathOutRegister().Value. signedAnyIntValue = Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue *\
+		Get_Register(Inst.Value1.AsRegister).Value. signedAnyIntValue;\
 	break;\
 case InstructionSet::MultU##Bits:\
-	Get_MathOutRegister().Value.##signedAnyIntValue = Get_Register(Inst.Value0.AsRegister).Value.##unsignedAnyIntValue *\
-		Get_Register(Inst.Value1.AsRegister).Value.##unsignedAnyIntValue;\
+	Get_MathOutRegister().Value. signedAnyIntValue = Get_Register(Inst.Value0.AsRegister).Value. unsignedAnyIntValue *\
+		Get_Register(Inst.Value1.AsRegister).Value. unsignedAnyIntValue;\
 	break;\
 case InstructionSet::DivS##Bits:\
-	Get_MathOutRegister().Value.##signedAnyIntValue = Get_Register(Inst.Value0.AsRegister).Value.##signedAnyIntValue / \
-		Get_Register(Inst.Value1.AsRegister).Value.##signedAnyIntValue;\
+	Get_MathOutRegister().Value. signedAnyIntValue = Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue / \
+		Get_Register(Inst.Value1.AsRegister).Value. signedAnyIntValue;\
 	break;\
 case InstructionSet::DivU##Bits:\
-	Get_MathOutRegister().Value.##signedAnyIntValue = Get_Register(Inst.Value0.AsRegister).Value.##unsignedAnyIntValue / \
-		Get_Register(Inst.Value1.AsRegister).Value.##unsignedAnyIntValue;\
+	Get_MathOutRegister().Value. signedAnyIntValue = Get_Register(Inst.Value0.AsRegister).Value. unsignedAnyIntValue / \
+		Get_Register(Inst.Value1.AsRegister).Value. unsignedAnyIntValue;\
 	break;\
 case InstructionSet::LogicalAnd##Bits:\
 	Get_BoolRegister().Value =\
-		Get_Register(Inst.Value0.AsRegister).Value.##unsignedAnyIntValue\
-		&& Get_Register(Inst.Value1.AsRegister).Value.##unsignedAnyIntValue;\
+		Get_Register(Inst.Value0.AsRegister).Value. unsignedAnyIntValue\
+		&& Get_Register(Inst.Value1.AsRegister).Value. unsignedAnyIntValue;\
 break;\
 case InstructionSet::Logicalor##Bits:\
 	Get_BoolRegister().Value =\
-		Get_Register(Inst.Value0.AsRegister).Value.##unsignedAnyIntValue\
-		|| Get_Register(Inst.Value1.AsRegister).Value.##unsignedAnyIntValue;\
+		Get_Register(Inst.Value0.AsRegister).Value. unsignedAnyIntValue\
+		|| Get_Register(Inst.Value1.AsRegister).Value. unsignedAnyIntValue;\
 break;\
 case InstructionSet::LogicalNot##Bits:\
-	Get_Register(Inst.Value1.AsRegister).Value.##unsignedAnyIntValue = !Get_Register(Inst.Value0.AsRegister).Value.##unsignedAnyIntValue;\
+	Get_Register(Inst.Value1.AsRegister).Value. unsignedAnyIntValue = !Get_Register(Inst.Value0.AsRegister).Value. unsignedAnyIntValue;\
 break;\
 case InstructionSet::equalto##Bits:\
-	Get_BoolRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.##signedAnyIntValue ==\
-		Get_Register(Inst.Value1.AsRegister).Value.##signedAnyIntValue;\
+	Get_BoolRegister().Value = Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue ==\
+		Get_Register(Inst.Value1.AsRegister).Value. signedAnyIntValue;\
 	break;\
 case InstructionSet::notequalto##Bits:\
-	Get_BoolRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.##signedAnyIntValue !=\
-		Get_Register(Inst.Value1.AsRegister).Value.##signedAnyIntValue;\
+	Get_BoolRegister().Value = Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue !=\
+		Get_Register(Inst.Value1.AsRegister).Value. signedAnyIntValue;\
 	break;\
 case InstructionSet::lessthan##Bits:\
-	Get_BoolRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.##signedAnyIntValue <\
-		Get_Register(Inst.Value1.AsRegister).Value.##signedAnyIntValue;\
+	Get_BoolRegister().Value = Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue <\
+		Get_Register(Inst.Value1.AsRegister).Value. signedAnyIntValue;\
 	break;\
 case InstructionSet::greaterthan##Bits:\
-	Get_BoolRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.##signedAnyIntValue >\
-		Get_Register(Inst.Value1.AsRegister).Value.##signedAnyIntValue;\
+	Get_BoolRegister().Value = Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue >\
+		Get_Register(Inst.Value1.AsRegister).Value. signedAnyIntValue;\
 	break;\
 case InstructionSet::equal_lessthan##Bits:\
-	Get_BoolRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.##signedAnyIntValue <=\
-		Get_Register(Inst.Value1.AsRegister).Value.##signedAnyIntValue;\
+	Get_BoolRegister().Value = Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue <=\
+		Get_Register(Inst.Value1.AsRegister).Value. signedAnyIntValue;\
 	break;\
 case InstructionSet::equal_greaterthan##Bits:\
-	Get_BoolRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.##signedAnyIntValue >=\
-		Get_Register(Inst.Value1.AsRegister).Value.##signedAnyIntValue;\
+	Get_BoolRegister().Value = Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue >=\
+		Get_Register(Inst.Value1.AsRegister).Value. signedAnyIntValue;\
 	break;\
 case InstructionSet::bitwiseAnd##Bits:\
-	Get_bitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.##signedAnyIntValue &\
-		Get_Register(Inst.Value1.AsRegister).Value.##signedAnyIntValue;\
+	Get_bitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue &\
+		Get_Register(Inst.Value1.AsRegister).Value. signedAnyIntValue;\
 	break;\
 case InstructionSet::bitwiseOr##Bits:\
-	Get_bitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.##signedAnyIntValue |\
-		Get_Register(Inst.Value1.AsRegister).Value.##signedAnyIntValue;\
+	Get_bitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue |\
+		Get_Register(Inst.Value1.AsRegister).Value. signedAnyIntValue;\
 	break;\
 case InstructionSet::bitwiseLeftShift##Bits:\
-	Get_bitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.##signedAnyIntValue <<\
-		Get_Register(Inst.Value1.AsRegister).Value.##signedAnyIntValue;\
+	Get_bitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue <<\
+		Get_Register(Inst.Value1.AsRegister).Value. signedAnyIntValue;\
 	break;\
 case InstructionSet::bitwiseRightShift##Bits:\
-	Get_bitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.##signedAnyIntValue >>\
-		Get_Register(Inst.Value1.AsRegister).Value.##signedAnyIntValue;\
+	Get_bitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue >>\
+		Get_Register(Inst.Value1.AsRegister).Value. signedAnyIntValue;\
 	break;\
 case InstructionSet::bitwiseXor##Bits:\
-	Get_bitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value.##signedAnyIntValue ^\
-		Get_Register(Inst.Value1.AsRegister).Value.##signedAnyIntValue;\
+	Get_bitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue ^\
+		Get_Register(Inst.Value1.AsRegister).Value. signedAnyIntValue;\
 	break;\
 case InstructionSet::bitwise_Not##Bits:\
-	Get_Register(Inst.Value1.AsRegister).Value.##unsignedAnyIntValue = ~Get_Register(Inst.Value0.AsRegister).Value.##unsignedAnyIntValue;\
+	Get_Register(Inst.Value1.AsRegister).Value. unsignedAnyIntValue = ~Get_Register(Inst.Value0.AsRegister).Value. unsignedAnyIntValue;\
 	break;\
 case InstructionSet::UInt##Bits##To##SInt##Bits:\
-	Get_Register(Inst.Value1.AsRegister).Value.##signedAnyIntValue = Get_Register(Inst.Value0.AsRegister).Value.##unsignedAnyIntValue;\
+	Get_Register(Inst.Value1.AsRegister).Value. signedAnyIntValue = Get_Register(Inst.Value0.AsRegister).Value. unsignedAnyIntValue;\
 	break;\
 case InstructionSet::SInt##Bits##ToUInt##Bits:\
-	Get_Register(Inst.Value1.AsRegister).Value.##unsignedAnyIntValue = Get_Register(Inst.Value0.AsRegister).Value.##signedAnyIntValue;\
+	Get_Register(Inst.Value1.AsRegister).Value. unsignedAnyIntValue = Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue;\
 	break;\
 
 
@@ -285,7 +285,7 @@ case InstructionSet::SInt##Bits##ToUInt##Bits:\
 
 #define floatSet(Bits,CType,AnyValue) \
 case InstructionSet::Store##Bits##f: \
-	Get_Register((RegisterID)Inst.Value0.AsRegister).Value = Inst.Value1.##AnyValue; \
+	Get_Register((RegisterID)Inst.Value0.AsRegister).Value = Inst.Value1. AnyValue; \
 	break; \
 
 

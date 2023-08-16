@@ -394,7 +394,7 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 			if (FuncName == "GetClassInfo")
 			{
 				const auto Sym = This.Symbol_GetSymbol(Type.Type);
-				bool IsClass = Sym ? Sym->Type == SymbolType::Type_class : nullptr;
+				bool IsClass = Sym ? Sym->Type == SymbolType::Type_class : false;
 
 				Func _Func;
 				_Func.RetType = TypesEnum::Bool;
@@ -423,7 +423,7 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 			else if (FuncName == "GetEnumInfo")
 			{
 				const auto Sym = This.Symbol_GetSymbol(Type.Type);
-				bool IsEnum = Sym ? Sym->Type == SymbolType::Enum: nullptr;
+				bool IsEnum = Sym ? Sym->Type == SymbolType::Enum : false;
 
 				Func _Func;
 				_Func.RetType = TypesEnum::Bool;
@@ -4754,7 +4754,7 @@ void SystematicAnalysis::LogError_MissingFuncionforTrait(const String_view& Func
 
 	LogError(ErrorCodes::ExpectingSequence, ClassNameToken->OnLine, ClassNameToken->OnPos, Msg);
 }
-Symbol* SystematicAnalysis::Symbol_MakeNewDropFuncSymbol(ClassInfo* ClassInfo, TypeSymbol& ClassAsType)
+Symbol* SystematicAnalysis::Symbol_MakeNewDropFuncSymbol(ClassInfo* ClassInfo,const TypeSymbol& ClassAsType)
 {
 
 	String FullName = ClassInfo->FullName;
@@ -5319,7 +5319,7 @@ IRType SystematicAnalysis::IR_ConvertToIRType(const TypeSymbol& Value)
 			{
 				FuncPtrInfo* V = syb.Get_Info<FuncPtrInfo>();
 				IRidentifierID IRid = _IR_Builder.ToID(syb.FullName);
-				IRType r = IRid;
+				IRType r = IRType(IRid);
 				auto tep = _IR_Builder.NewFuncPtr(_IR_Builder.ToID(syb.FullName), IR_ConvertToIRType(V->Ret));
 
 				tep->Pars.resize(V->Pars.size());
@@ -5907,7 +5907,7 @@ String SystematicAnalysis::Str_GetScopedNameAsString(const ScopedNameNode& node)
 void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, DeclareStaticVariableNode_t type)
 {
 	
-	auto& StrVarName = node.Name.AsString();
+	auto StrVarName = node.Name.AsString();
 	auto FullName = _Table._Scope.GetApendedString(StrVarName);
 
 	SymbolID sybId = Symbol_GetSymbolID(node);
@@ -9305,6 +9305,8 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 	auto Token = nod.VariableName.ScopedName.back().token;
 	auto Str = FToken->Value._String;
 
+
+	bool DoStuff = false;
 	if (FToken->Type == TokenType::KeyWord_This)
 	{
 		if (_ClassStack.size() == 0)
@@ -9329,45 +9331,46 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 		
 		Symbol = Symbol_GetSymbol(*ObjectType);
 			
-		goto DoStuff;
-		
+		DoStuff = true;
 	}
-
-
-	Symbol = Symbol_GetSymbol(Str,SymbolType::Varable_t);
 	
 	ReadVarErrorCheck_t Info;
-
-	
-
-	if (IsRead(_GetExpressionMode.top()))
+	if (DoStuff == false) 
 	{
-		Info = TryLogError_OnReadVar(Str, Token, Symbol);
-	}
-	if (IsWrite(_GetExpressionMode.top()))
-	{
-		Symbol->SetTovalid();
+		Symbol = Symbol_GetSymbol(Str, SymbolType::Varable_t);
 
-	}
-
-	if (Info.CantFindVar)
-	{
-		return;
-	}
-	if (Symbol->Type == SymbolType::StackVarable)
-	{
-		auto Info = Symbol->Get_Info<DeclareVariableInfo>();
+		
 
 
-		if (Info->LineNumber > FToken->OnPos)
+
+		if (IsRead(_GetExpressionMode.top()))
 		{
-			LogError_UseingVarableBeforDeclared(FToken);
+			Info = TryLogError_OnReadVar(Str, Token, Symbol);
+		}
+		if (IsWrite(_GetExpressionMode.top()))
+		{
+			Symbol->SetTovalid();
+
+		}
+
+		if (Info.CantFindVar)
+		{
+			return;
+		}
+		if (Symbol->Type == SymbolType::StackVarable)
+		{
+			auto Info = Symbol->Get_Info<DeclareVariableInfo>();
+
+
+			if (Info->LineNumber > FToken->OnPos)
+			{
+				LogError_UseingVarableBeforDeclared(FToken);
+			}
 		}
 	}
 
 	if (!Info.VarIsInvalid)
 	{
-	DoStuff:
 		SymbolID sybId = Symbol->ID;
 		if (_PassType == PassType::BuidCode)
 		{
@@ -9522,6 +9525,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 
 	BinaryExpressionNode_Data* Data =nullptr;
 	bool BuildCode = _PassType == PassType::BuidCode;
+	bool IsBuildFunc = false;
 	if (BuildCode)
 	{
 		Data = &_BinaryExpressionNode_Datas.at(Symbol_GetSymbolID(node));
@@ -9530,68 +9534,74 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 		if (Data->FuncToCall)
 		{
 			_LookingForTypes.pop();
-			goto BuildCodePart;
+			IsBuildFunc = true;
 		}
 	}
 
-	OnExpressionTypeNode(Ex1node, GetValueMode::Read);
-	auto Ex0 = _IR_LastExpressionField;
-	auto Ex0Type = _LastExpressionType;
-	
-	if (BuildCode)
+
+	IRInstruction* Ex0 =nullptr;
+	TypeSymbol Ex0Type;
+
+	IRInstruction* Ex1 = nullptr;
+	TypeSymbol Ex1Type;
+	if (IsBuildFunc == false) 
 	{
-		_LookingForTypes.top() = Data->Op0;
+		OnExpressionTypeNode(Ex1node, GetValueMode::Read);
+		Ex0 = _IR_LastExpressionField;
+		Ex0Type = _LastExpressionType;
+
+		if (BuildCode)
+		{
+			_LookingForTypes.top() = Data->Op0;
+		}
+
+		OnExpressionTypeNode(Ex0node, GetValueMode::Read);
+		Ex1 = _IR_LastExpressionField;
+		Ex1Type = _LastExpressionType;
+
+
+		_LookingForTypes.pop();
+
+		if (_PassType == PassType::FixedTypes)
+		{
+			auto BinaryOp = node.BinaryOp;
+			auto Info = Type_HasBinaryOverLoadWith(Ex0Type, BinaryOp->Type, Ex1Type);
+
+			if (!Info.HasValue)
+			{
+				LogError_CantFindBinaryOpForTypes(BinaryOp, Ex0Type, Ex1Type);
+			}
+
+			auto Op = node.BinaryOp->Type;
+
+
+			BinaryExpressionNode_Data V;
+			V.Op0 = Ex0Type;
+			V.Op1 = Ex1Type;
+
+
+			//all float bool int types
+			if (Info.Value.has_value())
+			{
+				FuncInfo* f = Info.Value.value()->Get_Info<FuncInfo>();
+				V.Op0 = f->Pars[0].Type;
+				V.Op1 = f->Pars[1].Type;
+				V.FuncToCall = Info.Value.value();
+
+				_LastExpressionType = f->Ret;
+			}
+			else
+			{
+				V.Op0._IsAddress = false;
+				V.Op1._IsAddress = false;
+				_LastExpressionType = Type_BinaryExpressionShouldRurn(Op, Ex0Type);
+			}
+
+			_BinaryExpressionNode_Datas.AddValue(Symbol_GetSymbolID(node), V);
+
+
+		}
 	}
-	
-	OnExpressionTypeNode(Ex0node, GetValueMode::Read);
-	auto Ex1 = _IR_LastExpressionField;
-	auto Ex1Type = _LastExpressionType;
-
-
-	_LookingForTypes.pop();
-
-	if (_PassType == PassType::FixedTypes)
-	{
-		auto BinaryOp = node.BinaryOp;
-		auto Info = Type_HasBinaryOverLoadWith(Ex0Type, BinaryOp->Type, Ex1Type);
-
-		if (!Info.HasValue)
-		{
-			LogError_CantFindBinaryOpForTypes(BinaryOp, Ex0Type, Ex1Type);
-		}
-
-		auto Op = node.BinaryOp->Type;
-		
-
-		BinaryExpressionNode_Data V;
-		V.Op0 = Ex0Type;
-		V.Op1 = Ex1Type;
-	
-		
-		//all float bool int types
-		if (Info.Value.has_value())
-		{
-			FuncInfo* f = Info.Value.value()->Get_Info<FuncInfo>();
-			V.Op0 = f->Pars[0].Type;
-			V.Op1 = f->Pars[1].Type;
-			V.FuncToCall = Info.Value.value();
-		
-			_LastExpressionType = f->Ret;
-		}
-		else
-		{
-			V.Op0._IsAddress = false;
-			V.Op1._IsAddress = false;
-			_LastExpressionType = Type_BinaryExpressionShouldRurn(Op, Ex0Type);
-		}
-
-		_BinaryExpressionNode_Datas.AddValue(Symbol_GetSymbolID(node),V);
-
-		
-	}
-
-
-	BuildCodePart:
 	if (_PassType == PassType::BuidCode)
 	{
 		auto& Data = _BinaryExpressionNode_Datas.at(Symbol_GetSymbolID(node));
@@ -12896,7 +12906,7 @@ bool SystematicAnalysis::Type_CanDoTypeToTrait(const TypeSymbol& TypeToCheck, co
 			{
 				ClassInfo* ClassF = TypeSyb->Get_Info<ClassInfo>();
 
-				auto& Indexo = ClassF->Get_InheritedTypesIndex(SybolB);
+				auto Indexo = ClassF->Get_InheritedTypesIndex(SybolB);
 
 				if (Indexo.has_value())
 				{
@@ -14047,7 +14057,7 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 		return;
 	}
 
-	IRInstruction* PushIRStackRet = false;
+	IRInstruction* PushIRStackRet = nullptr;
 	bool AutoPushThis = Get_FuncInfo::AddOneToGetParNode(Func.ThisPar);
 
 	Vector< IRInstruction*> IRParsList;
@@ -17175,6 +17185,11 @@ bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const ExtendedScopeExpr
 	}
 	return false;
 }
+SystematicAnalysis::EvaluatedEx SystematicAnalysis::Eval_Evaluate_GetPointer()
+{
+	return {};
+}
+
 bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const ExtendedFuncExpression& node)
 {
 	Optional<EvaluatedEx> Ex = Eval_EvaluateToAnyType(node.Expression);
@@ -17646,7 +17661,7 @@ void SystematicAnalysis::IR_Build_Decrement_sIntPtr(IRInstruction* field, SIntNa
 	return IR_Build_Decrement_uIntPtr(field, *(UAddress*)&Value);
 }
 
-void SystematicAnalysis::TryLogError_OnWritingVar(Symbol* Symbol, const Token* Token, String_view& Name)
+void SystematicAnalysis::TryLogError_OnWritingVar(Symbol* Symbol, const Token* Token,const String_view Name)
 {
 	if (Symbol->VarType.Isimmutable())
 	{
@@ -17978,7 +17993,7 @@ void SystematicAnalysis::LogError_TypeDependencyCycle(const Token* Token, const 
 void SystematicAnalysis::LogError_CantUseThisHere(const Token* Token)
 {
 	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
-		,"Cant Find Type for '" + (String)StringHelper::ToString(TokenType::KeyWord_This) + "'");
+		,"Cant Find Type for '" + (String)TokenStringHelper::ToString(TokenType::KeyWord_This) + "'");
 }
 void SystematicAnalysis::LogError_CanIncorrectParCount(const Token* Token, String_view FuncName, size_t Count, size_t FuncCount)
 {

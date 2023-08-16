@@ -1017,7 +1017,7 @@ private:
 	void Symbol_BuildTrait(const Symbol* Syb,ClassInfo* ClassInfo, const Symbol* Trait, const Token* ClassNameToken);
 
 
-	Symbol* Symbol_MakeNewDropFuncSymbol(ClassInfo* ClassInfo, TypeSymbol& ClassAsType);
+	Symbol* Symbol_MakeNewDropFuncSymbol(ClassInfo* ClassInfo,const TypeSymbol& ClassAsType);
 	void IR_Build_FuncDropUsingFields(const ClassInfo* ClassInfo, const IRType& ThisPar);
 
 
@@ -1173,7 +1173,7 @@ private:
 	String ToString(const TypeSymbol& Type) const;
 	String ToString(const TokenType& Type) const
 	{
-		return StringHelper::ToString(Type);
+		return TokenStringHelper::ToString(Type);
 	}
 	
 
@@ -1582,10 +1582,7 @@ private:
 	bool Eval_Evaluate(EvaluatedEx& Out, const ExtendedScopeExpression& node);
 	bool Eval_Evaluate(EvaluatedEx& Out, const ExtendedFuncExpression& node);
 	
-	EvaluatedEx& Eval_Evaluate_GetPointer()
-	{
-
-	}
+	EvaluatedEx Eval_Evaluate_GetPointer();
 
 	bool Eval_EvalutateFunc(EvalFuncData& State, const Symbol* Func, const Vector<EvaluatedEx>& Pars);
 	bool Eval_EvalutateStatement(EvalFuncData& State, const Node* node);
@@ -1720,7 +1717,7 @@ private:
 	void LogError_CantUseOutInOverloadFunc(const Token& Name);
 
 	ReadVarErrorCheck_t TryLogError_OnReadVar(String_view VarName, const Token* Token, const Symbol* Syb);
-	void TryLogError_OnWritingVar(Symbol* Symbol, const Token* Token, String_view& Name);
+	void TryLogError_OnWritingVar(Symbol* Symbol, const Token* Token,const String_view Name);
 
 	String ToString(SymbolType Value) const;
 	Class_Data* Assembly_GetAssemblyClass(const String& FullName);

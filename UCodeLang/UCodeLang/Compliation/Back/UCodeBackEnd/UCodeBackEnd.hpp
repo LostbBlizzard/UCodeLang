@@ -196,7 +196,7 @@ private:
 	UCodeFunc* BuildingFunc = nullptr;
 	Optimizations _Optimizations;
 	//code
-	bool IsPrimitive(IRType& type)
+	bool IsPrimitive(const IRType& type)
 	{
 		return _Input->IsPrimitive(type);
 	}
