@@ -3116,7 +3116,7 @@ GotNodeType Parser::GetForNode(ForNode& out)
 	if (Assemnt->Type == TokenType::equal)
 	{
 
-		out.TypeNode = std::move(V);
+		out.typeNode = std::move(V);
 		out.Name = NameToken;
 		out.Type = ForNode::ForType::Traditional;
 
@@ -3134,7 +3134,7 @@ GotNodeType Parser::GetForNode(ForNode& out)
 	else if (Assemnt->Type == TokenType::Colon)
 	{
 		NextToken();
-		out.TypeNode = std::move(V);
+		out.typeNode = std::move(V);
 		out.Name = NameToken;
 		out.Type = ForNode::ForType::modern;
 

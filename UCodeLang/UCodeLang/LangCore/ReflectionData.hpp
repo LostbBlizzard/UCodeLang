@@ -2,6 +2,8 @@
 #include "../LangCore.hpp"
 #include "TypeNames.hpp"
 #include "ScopeHelper.hpp"
+
+#include <cstring> //memcpy
 UCodeLangStart
 
 

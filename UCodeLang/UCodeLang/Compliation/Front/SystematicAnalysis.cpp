@@ -2820,12 +2820,12 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 		{
 			{
 				auto& VarType = syb->VarType;
-				Type_Convert(node.TypeNode, VarType);
+				Type_Convert(node.typeNode, VarType);
 				VarType.SetAsLocation();
 
 
 				auto Ex = node.Traditional_Assignment_Expression.Value.get();
-				Type_DeclareVarableCheck(VarType, Ex, node.TypeNode.Name.Token);
+				Type_DeclareVarableCheck(VarType, Ex, node.typeNode.Name.Token);
 				
 				if (node.Traditional_Assignment_Expression.Value)
 				{
@@ -2838,7 +2838,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 
 
 					auto& Ex = _LastExpressionType;
-					auto Token = node.TypeNode.Name.Token;
+					auto Token = node.typeNode.Name.Token;
 					Type_DeclareVariableTypeCheck(VarType, Ex, Token);
 				}
 			}
@@ -2873,7 +2873,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 		{
 			{
 				auto& VarType = syb->VarType;
-				Type_Convert(node.TypeNode, VarType);
+				Type_Convert(node.typeNode, VarType);
 				VarType.SetAsLocation();
 			}
 
@@ -2939,7 +2939,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 
 					if (!GetFunc.has_value())
 					{
-						const Token* token = node.TypeNode.Name.Token;
+						const Token* token = node.typeNode.Name.Token;
 
 						if (syb->VarType.IsAn(TypesEnum::Var)) {
 							LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos,
@@ -2955,7 +2955,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 					}
 					else if (!CheckFunc.has_value())
 					{
-						const Token* token = node.TypeNode.Name.Token;
+						const Token* token = node.typeNode.Name.Token;
 
 						LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos,
 							"The Type '" + ToString(TypeForType) + "' has no exist(?) overload.it is needed to check when to end the loop.");
@@ -2972,7 +2972,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 
 
 						
-						auto Token = node.TypeNode.Name.Token;
+						auto Token = node.typeNode.Name.Token;
 						Type_DeclareVariableTypeCheck(syb->VarType, g.FuncToGet->Get_Info<FuncInfo>()->Ret, Token);
 					}
 				}

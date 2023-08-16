@@ -489,26 +489,26 @@ struct IRDebugIns
 	Variant<IRDebugSetFile, IRDebugSetLineNumber, IRDebugSetVarableName> Debug;
 
 	using Variant_t = Byte;
-	enum class Variant : Variant_t
+	enum class IRVariant : Variant_t
 	{
 		IRDebugSetFile,
 		IRDebugSetLineNumber,
 		IRDebugSetVarableName,
 	};
 
-	Variant GetVariantType() const
+	IRVariant GetVariantType() const
 	{
 		if (Debug.Is<IRDebugSetFile>())
 		{
-			return Variant::IRDebugSetFile;
+			return IRVariant::IRDebugSetFile;
 		}
 		else if (Debug.Is<IRDebugSetLineNumber>())
 		{
-			return Variant::IRDebugSetLineNumber;
+			return IRVariant::IRDebugSetLineNumber;
 		}
 		else if (Debug.Is<IRDebugSetVarableName>())
 		{
-			return Variant::IRDebugSetVarableName;
+			return IRVariant::IRDebugSetVarableName;
 		}
 		else
 		{
