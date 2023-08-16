@@ -984,7 +984,7 @@ struct ForNode :Node
 	//Modern
 	ExpressionNodeType Modern_List;
 	//Both
-	TypeNode TypeNode;
+	TypeNode typeNode;
 	const Token* Name = nullptr;
 	StatementsNode Body;
 };
