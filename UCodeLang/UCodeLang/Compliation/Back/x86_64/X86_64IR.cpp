@@ -216,7 +216,7 @@ void X86_64IR::Build(BuildInfo::BuildFunc& Out, BuildState& State, const Ins& Va
 
 			Relocation v;
 			v.ByteToUpdateOffset = State.Gen.Size() - 4;
-			v.RelocationID = Val2->Value.ID;
+			v.RelocationId = Val2->Value.ID;
 			v.Type = RelocationType::Size32;
 			Out.Relocations.push_back(std::move(v));
 		}

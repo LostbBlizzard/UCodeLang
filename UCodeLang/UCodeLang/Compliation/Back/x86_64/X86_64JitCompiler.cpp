@@ -165,7 +165,7 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 
 		for (auto& Item : Relocations)
 		{
-			if (Item.RelocationID == NativeFuncNearCallRelocation.ID)
+			if (Item.RelocationId == NativeFuncNearCallRelocation.ID)
 			{
 				Byte* bitstoupdate = Outputbytes.data() + Item.ByteToUpdateOffset;
 				Byte* callpos = Outputbytes.data() + Out_NativeCallOffset;

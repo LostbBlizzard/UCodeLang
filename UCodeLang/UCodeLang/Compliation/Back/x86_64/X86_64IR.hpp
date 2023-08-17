@@ -170,7 +170,7 @@ struct X86_64IR
 	};
 	struct Relocation
 	{
-		RelocationID RelocationID =0;
+		RelocationID RelocationId =0;
 		size_t ByteToUpdateOffset=0;
 		RelocationType Type = RelocationType::Size32;
 	};
