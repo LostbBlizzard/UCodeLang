@@ -79,8 +79,8 @@ private:
 		if (Item.size())
 		{
 			auto& F = Item.front();
-			auto Token = F->ScopedName.ScopedName.front().token;
-			_ErrorsOutput->AddError(ErrorCodes::TreeAnalyerError, Token->OnLine, Token->OnPos, "You cant put the Tag '" + (String)F->ScopedName.ScopedName.front().token->Value._String + "' here.");
+			auto Token = F->_ScopedName._ScopedName.front()._token;
+			_ErrorsOutput->AddError(ErrorCodes::TreeAnalyerError, Token->OnLine, Token->OnPos, "You cant put the Tag '" + (String)F->_ScopedName._ScopedName.front()._token->Value._String + "' here.");
 		}
 	}
 	
