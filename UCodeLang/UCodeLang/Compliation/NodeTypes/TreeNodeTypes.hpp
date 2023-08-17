@@ -663,9 +663,9 @@ struct DeclareVariableNode :Node
 	}
 	AddforNode(DeclareVariableNode);
 	TypeNode _Type;
-	NameNode Name;
-	ExpressionNodeType Expression;
-	AccessModifierType Access = AccessModifierType::Default;
+	NameNode _Name;
+	ExpressionNodeType _Expression;
+	AccessModifierType _Access = AccessModifierType::Default;
 
 	DeclareVariableNode(DeclareVariableNode&& source) = default;
 	DeclareVariableNode& operator=(DeclareVariableNode&& source) = default;
@@ -678,9 +678,9 @@ struct AssignExpressionNode :Node
 
 	}
 	AddforNode(AssignExpressionNode);
-	ExpressionNodeType ToAssign;
-	ExpressionNodeType Expression;
-	bool ReassignAddress = false;
+	ExpressionNodeType _ToAssign;
+	ExpressionNodeType _Expression;
+	bool _ReassignAddress = false;
 	const Token* _Token = nullptr;
 };
 
@@ -691,7 +691,7 @@ struct DeclareStaticVariableNode :Node
 
 	}
 	AddforNode(DeclareStaticVariableNode);
-	DeclareVariableNode Variable;
+	DeclareVariableNode _Variable;
 };
 struct DeclareThreadVariableNode :Node
 {
@@ -700,7 +700,7 @@ struct DeclareThreadVariableNode :Node
 
 	}
 	AddforNode(DeclareThreadVariableNode);
-	DeclareVariableNode Variable;
+	DeclareVariableNode _Variable;
 };
 
 enum class AliasType
@@ -717,26 +717,26 @@ struct AliasNode :Node
 	}
 	AddforNode(AliasNode);
 
-	NameNode AliasName;
+	NameNode _AliasName;
 	GenericValuesNode Generic;
-	TypeNode Type;
+	TypeNode _Type;
 
 	
 	bool _IsHardAlias = false;
 	
-	AliasType _Type = AliasType::Type;
+	AliasType _AliasType = AliasType::Type;
 	Unique_ptr<Node> _Node;
 
-	AccessModifierType Access = AccessModifierType::Default;
+	AccessModifierType _Access = AccessModifierType::Default;
 };
 
 
 struct EnumValueNode :Node
 {
 	
-	NameNode Name;
-	ExpressionNodeType Expression;
-	Optional<TypeNode> VariantType;
+	NameNode _Name;
+	ExpressionNodeType _Expression;
+	Optional<TypeNode> _VariantType;
 };
 struct EnumNode :Node
 {
@@ -746,11 +746,11 @@ struct EnumNode :Node
 	}
 	AddforNode(EnumNode);
 
-	NameNode EnumName;
-	GenericValuesNode Generic;
-	Vector<EnumValueNode> Values;
-	TypeNode BaseType;
-	AccessModifierType Access = AccessModifierType::Default;
+	NameNode _EnumName;
+	GenericValuesNode _generic;
+	Vector<EnumValueNode> _Values;
+	TypeNode _BaseType;
+	AccessModifierType _Access = AccessModifierType::Default;
 };
 
 struct TagTypeNode :Node
@@ -761,9 +761,9 @@ struct TagTypeNode :Node
 	}
 	AddforNodeAndWithList(TagTypeNode);
 
-	NameNode AttributeName;
-	GenericValuesNode Generic;
-	AccessModifierType Access = AccessModifierType::Default;
+	NameNode _AttributeName;
+	GenericValuesNode _generic;
+	AccessModifierType _Access = AccessModifierType::Default;
 
 	TagTypeNode(TagTypeNode&& source) = default;
 	TagTypeNode& operator=(TagTypeNode&& source) = default;
@@ -778,9 +778,9 @@ struct IfNode :Node
 	}
 	AddforNode(IfNode);
 
-	ExpressionNodeType Expression;
-	StatementsNode Body;
-	Unique_ptr<Node> Else;
+	ExpressionNodeType _Expression;
+	StatementsNode _Body;
+	Unique_ptr<Node> _Else;
 };
 struct ElseNode :Node
 {
@@ -791,7 +791,7 @@ struct ElseNode :Node
 	AddforNode(ElseNode);
 
 	
-	StatementsNode Body;
+	StatementsNode _Body;
 };
 struct WhileNode :Node
 {
@@ -801,8 +801,8 @@ struct WhileNode :Node
 	}
 	AddforNode(WhileNode);
 
-	ExpressionNodeType Expression;
-	StatementsNode Body;
+	ExpressionNodeType _Expression;
+	StatementsNode _Body;
 };
 
 struct DoNode :Node
@@ -814,8 +814,8 @@ struct DoNode :Node
 	AddforNode(DoNode);
 
 	
-	StatementsNode Body;
-	ExpressionNodeType Expression;
+	StatementsNode _Body;
+	ExpressionNodeType _Expression;
 };
 
 struct PostfixVariableNode :Node
@@ -825,8 +825,8 @@ struct PostfixVariableNode :Node
 
 	}
 	AddforNode(PostfixVariableNode);
-	ExpressionNodeType ToAssign;
-	const Token* PostfixOp = nullptr;
+	ExpressionNodeType _ToAssign;
+	const Token* _PostfixOp = nullptr;
 };
 
 struct CompoundStatementNode :Node
@@ -836,9 +836,9 @@ struct CompoundStatementNode :Node
 
 	}
 	AddforNode(CompoundStatementNode);
-	ExpressionNodeType ToAssign;
-	const Token* CompoundOp = nullptr;
-	ExpressionNodeType Expession;
+	ExpressionNodeType _ToAssign;
+	const Token* _CompoundOp = nullptr;
+	ExpressionNodeType _Expession;
 };
 
 struct FuncCallNode :Node
@@ -848,7 +848,7 @@ struct FuncCallNode :Node
 
 	}
 	AddforNode(FuncCallNode);
-	ScopedNameNode FuncName;
+	ScopedNameNode _FuncName;
 	ValueParametersNode Parameters;
 };
 struct FuncCallStatementNode :Node
@@ -858,7 +858,7 @@ struct FuncCallStatementNode :Node
 
 	}
 	AddforNode(FuncCallStatementNode);
-	FuncCallNode Base;
+	FuncCallNode _Base;
 };
 
 struct AnonymousTypeNode :Node
@@ -868,7 +868,7 @@ struct AnonymousTypeNode :Node
 
 	}
 	AddforNode(AnonymousTypeNode);
-	NamedParametersNode Fields;
+	NamedParametersNode _Fields;
 };
 
 struct AnonymousObjectConstructorNode :Node
@@ -878,7 +878,7 @@ struct AnonymousObjectConstructorNode :Node
 
 	}
 	AddforNode(AnonymousObjectConstructorNode);
-	ValueParametersNode Fields;
+	ValueParametersNode _Fields;
 };
 struct CastNode :Node
 {
@@ -888,8 +888,8 @@ struct CastNode :Node
 	}
 	AddforNode(CastNode);
 
-	ExpressionNodeType Expression;
-	TypeNode ToType;
+	ExpressionNodeType _Expression;
+	TypeNode _ToType;
 };
 struct ParenthesesExpresionNode :Node
 {
@@ -899,7 +899,7 @@ struct ParenthesesExpresionNode :Node
 	}
 	AddforNode(ParenthesesExpresionNode);
 
-	ExpressionNodeType Expression;
+	ExpressionNodeType _Expression;
 };
 struct SizeofExpresionNode :Node
 {
@@ -909,7 +909,7 @@ struct SizeofExpresionNode :Node
 	}
 	AddforNode(SizeofExpresionNode);
 
-	TypeNode Type;
+	TypeNode _Type;
 };
 
 struct NewExpresionNode :Node
@@ -921,11 +921,11 @@ struct NewExpresionNode :Node
 	AddforNode(NewExpresionNode);
 
 
-	const Token* KeywordToken = nullptr;
-	TypeNode Type;
-	ValueParametersNode Parameters;
+	const Token* _KeywordToken = nullptr;
+	TypeNode _Type;
+	ValueParametersNode _Parameters;
 
-	ExpressionNodeType Arrayexpression;//can be null
+	ExpressionNodeType _Arrayexpression;//can be null
 };
 
 struct DropStatementNode :Node
@@ -936,15 +936,15 @@ struct DropStatementNode :Node
 	}
 	AddforNode(DropStatementNode);
 
-	const Token* KeywordToken =nullptr;
-	ExpressionNodeType expression;
+	const Token* _KeywordToken =nullptr;
+	ExpressionNodeType _expression;
 };
 
 
 struct AliasNode_Func :Node
 {
-	NamedParametersNode Parameters;
-	TypeNode ReturnType;
+	NamedParametersNode _Parameters;
+	TypeNode _ReturnType;
 };
 
 
@@ -956,8 +956,8 @@ struct IndexedExpresionNode :Node
 	}
 	AddforNode(IndexedExpresionNode);
 
-	ExpressionNodeType SourceExpression;// ex[SomeEx]
-	ExpressionNodeType IndexExpression;// SomeVar[ex]
+	ExpressionNodeType _SourceExpression;// ex[SomeEx]
+	ExpressionNodeType _IndexExpression;// SomeVar[ex]
 };
 
 struct ForNode :Node
@@ -975,18 +975,18 @@ struct ForNode :Node
 	AddforNode(ForNode);
 
 
-	ForType Type = ForType::Traditional;
+	ForType _Type = ForType::Traditional;
 
 	//Traditional
-	ExpressionNodeType Traditional_Assignment_Expression;
-	ExpressionNodeType BoolExpression;
-	PostfixVariableNode OnNextStatement;
+	ExpressionNodeType _Traditional_Assignment_Expression;
+	ExpressionNodeType _BoolExpression;
+	PostfixVariableNode _OnNextStatement;
 	//Modern
-	ExpressionNodeType Modern_List;
+	ExpressionNodeType _Modern_List;
 	//Both
-	TypeNode typeNode;
-	const Token* Name = nullptr;
-	StatementsNode Body;
+	TypeNode _typeNode;
+	const Token* _Name = nullptr;
+	StatementsNode _Body;
 };
 
 
@@ -999,7 +999,7 @@ struct ContinueNode :Node
 	}
 	AddforNode(ContinueNode);
 	
-	const Token* token = nullptr;
+	const Token* _token = nullptr;
 };
 
 struct BreakNode :Node
@@ -1011,7 +1011,7 @@ struct BreakNode :Node
 	}
 	AddforNode(BreakNode);
 
-	const Token* token = nullptr;
+	const Token* _token = nullptr;
 };
 
 struct MoveNode :Node
@@ -1022,7 +1022,7 @@ struct MoveNode :Node
 	}
 	AddforNode(MoveNode);
 
-	ExpressionNodeType expression;
+	ExpressionNodeType _expression;
 };
 
 struct LambdaCapture
@@ -1044,8 +1044,8 @@ struct LambdaNode :Node
 	}
 	AddforNode(LambdaNode);
 
-	const Token* LambdaStart = nullptr;
-	NamedParametersNode Pars;
+	const Token* _LambdaStart = nullptr;
+	NamedParametersNode _Pars;
 	Optional<LambdaCapturesData> _Capture;
 	Optional<StatementsNode> _Statements;
 };
@@ -1057,8 +1057,8 @@ struct TraitNode :Node
 
 	}
 	NameNode _Name;
-	AccessModifierType Access = AccessModifierType::Default;
-	GenericValuesNode Generic;
+	AccessModifierType _Access = AccessModifierType::Default;
+	GenericValuesNode _generic;
 	AddforNodeAndWithList(TraitNode);
 
 };
@@ -1080,7 +1080,7 @@ struct BitCastExpression :Node
 
 	}
 
-	const Token* KeywordToken = nullptr;
+	const Token* _KeywordToken = nullptr;
 	TypeNode _Type;
 	ExpressionNodeType _Expression;
 	AddforNode(BitCastExpression);
@@ -1105,7 +1105,7 @@ struct InvalidNode :Node
 	ExpressionNodeType  _StringExpression;
 
 
-	const Token* KeyWord = nullptr;
+	const Token* _KeyWord = nullptr;
 	AddforNode(InvalidNode);
 };
 
@@ -1115,7 +1115,7 @@ struct ValidNode :Node
 	{
 
 	}
-	bool IsExpression = true;
+	bool _IsExpression = true;
 
 	ExpressionNodeType  _ExpressionToCheck;
 	StatementsNode _StatementToCheck;
@@ -1130,9 +1130,9 @@ struct CMPTypesNode :Node
 
 	}
 	
-	TypeNode TypeOp0;
-	const Token* Op=nullptr;
-	TypeNode TypeOp1;
+	TypeNode _TypeOp0;
+	const Token* _Op=nullptr;
+	TypeNode _TypeOp1;
 
 	static bool IsOp(TokenType Type)
 	{
@@ -1169,7 +1169,7 @@ struct ExpressionToTypeValueNode :Node
 
 	}
 
-	ExpressionNodeType TypeEx;
+	ExpressionNodeType _TypeEx;
 
 	AddforNode(ExpressionToTypeValueNode);
 };
@@ -1181,7 +1181,7 @@ struct DeclareEvalVariableNode :Node
 
 	}
 	AddforNode(DeclareEvalVariableNode);
-	DeclareVariableNode Variable;
+	DeclareVariableNode _Variable;
 };
 struct CompileTimeIfNode :Node
 {
@@ -1191,9 +1191,9 @@ struct CompileTimeIfNode :Node
 	}
 	AddforNode(CompileTimeIfNode);
 
-	ExpressionNodeType Expression;
-	StatementsNode Body;
-	Unique_ptr<Node> Else;
+	ExpressionNodeType _Expression;
+	StatementsNode _Body;
+	Unique_ptr<Node> _Else;
 };
 
 struct CompileTimeForNode :Node
@@ -1211,25 +1211,25 @@ struct CompileTimeForNode :Node
 	AddforNode(CompileTimeForNode);
 
 
-	ForType Type = ForType::Traditional;
+	ForType _Type = ForType::Traditional;
 
 	//Traditional
-	ExpressionNodeType Traditional_Assignment_Expression;
-	ExpressionNodeType BoolExpression;
-	PostfixVariableNode OnNextStatement;
+	ExpressionNodeType _Traditional_Assignment_Expression;
+	ExpressionNodeType _BoolExpression;
+	PostfixVariableNode _OnNextStatement;
 	//Modern
-	ExpressionNodeType Modern_List;
+	ExpressionNodeType _Modern_List;
 	//Both
-	TypeNode TypeNode;
-	const Token* Name = nullptr;
-	StatementsNode Body;
+	TypeNode _TypeNode;
+	const Token* _Name = nullptr;
+	StatementsNode _body;
 };
 
 struct ExtendedScopeExpression : Node
 {
-	ExpressionNodeType Expression;
-	ScopedName::Operator_t Operator = ScopedName::Operator_t::Null;
-	ScopedNameNode Extended;
+	ExpressionNodeType _Expression;
+	ScopedName::Operator_t _Operator = ScopedName::Operator_t::Null;
+	ScopedNameNode _Extended;
 
 	AddforNode(ExtendedScopeExpression);
 
@@ -1241,9 +1241,9 @@ struct ExtendedScopeExpression : Node
 
 struct ExtendedFuncExpression : Node
 {
-	ExpressionNodeType Expression;
-	ScopedName::Operator_t Operator = ScopedName::Operator_t::Null;
-	FuncCallNode Extended;
+	ExpressionNodeType _Expression;
+	ScopedName::Operator_t _Operator = ScopedName::Operator_t::Null;
+	FuncCallNode _Extended;
 
 	AddforNode(ExtendedFuncExpression);
 
@@ -1256,15 +1256,15 @@ struct ExtendedFuncExpression : Node
 
 struct MatchStatementArm
 {
-	ExpressionNodeType Expression;
-	StatementsNode Statements;
+	ExpressionNodeType _Expression;
+	StatementsNode _Statements;
 };
 
 struct MatchStatement : Node
 {
-	ExpressionNodeType Expression;
-	Vector<MatchStatementArm> Arms;
-	Optional<StatementsNode> InvaidCase;
+	ExpressionNodeType _Expression;
+	Vector<MatchStatementArm> _Arms;
+	Optional<StatementsNode> _InvaidCase;
 
 	AddforNode(MatchStatement);
 
@@ -1276,14 +1276,14 @@ struct MatchStatement : Node
 
 struct MatchExpressionArm
 {
-	ExpressionNodeType Expression;
-	ExpressionNodeType AssignmentExpression;
+	ExpressionNodeType _Expression;
+	ExpressionNodeType _AssignmentExpression;
 };
 struct MatchExpression : Node
 {
-	ExpressionNodeType Expression;
-	Vector<MatchExpressionArm> Arms;
-	Optional<ExpressionNodeType> InvaidCase;
+	ExpressionNodeType _Expression;
+	Vector<MatchExpressionArm> _Arms;
+	Optional<ExpressionNodeType> _InvaidCase;
 
 	AddforNode(MatchExpression);
 
@@ -1315,7 +1315,7 @@ struct AwaitExpression : Node
 {
 	const Token* _Token = nullptr;
 	
-	bool IsFunc = false;
+	bool _IsFunc = false;
 	FuncCallNode _Func;
 	LambdaNode _Lambda;
 
