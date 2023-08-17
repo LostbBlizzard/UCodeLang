@@ -24,7 +24,7 @@ public:
 	{
 		String FileExtWithDot;
 		FrontEndType Type;
-		FileID FileID;
+		FileID FileId;
 	};
 	
 	
