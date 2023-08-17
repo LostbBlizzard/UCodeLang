@@ -87,7 +87,7 @@ struct DebugContext
 	struct InterpreterInfo
 	{
 		void* ThisInterpreter = nullptr;
-		Type Type;
+		Type type;
 	};
 	using FuncStart = void(*)(RunTimeLangState& This, void* _Ptr, InterpreterInfo Info);
 	using FuncEnd = void(*)(RunTimeLangState& This,void* _Ptr, InterpreterInfo Info);
