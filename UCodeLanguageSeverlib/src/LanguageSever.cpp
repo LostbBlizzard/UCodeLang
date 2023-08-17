@@ -219,7 +219,7 @@ void LanguageSever::textDocument_didOpen(const json& Params)
 
 	if (params.textDocument.languageId == UCodeLangLanguageId) {
 		UA::UCFile newfile;
-		newfile.Fileidentifier = Cast(params.textDocument.uri);
+		newfile._Fileidentifier = Cast(params.textDocument.uri);
 		newfile.FileName = params.textDocument.uri;
 		newfile.filetext = params.textDocument.text;
 		newfile.oldfile = newfile.filetext;

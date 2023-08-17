@@ -37,7 +37,7 @@ struct UCFile
 
 	//not an Real file path just for errors
 	Path FileName; 
-	Fileidentifier Fileidentifier;
+	Fileidentifier _Fileidentifier;
 	String filetext;
 
 	//Call this ather updateing filetext
@@ -116,7 +116,7 @@ public:
 	void AddFile(UCFile&& file)
 	{
 		file._CompliationSettings = &Settings;
-		_Files.AddValue(file.Fileidentifier, file);
+		_Files.AddValue(file._Fileidentifier, file);
 	}
 	void RemoveFile(const Fileidentifier& file)
 	{
