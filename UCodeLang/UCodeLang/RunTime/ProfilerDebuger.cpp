@@ -3,7 +3,7 @@ UCodeLangStart
 
 AnyInterpreterPtr Cast(DebugContext::InterpreterInfo Info)
 {
-	if (Info.Type == DebugContext::Type::Interpreter)
+	if (Info.type == DebugContext::Type::Interpreter)
 	{
 		return AnyInterpreterPtr((Interpreter*)Info.ThisInterpreter);
 	}

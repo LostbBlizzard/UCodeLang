@@ -1847,19 +1847,19 @@ void AppObject::HotReloadRunTime()
     case  UCodeLang::InterpreterTypes::Interpreter:
     {
         n.ThisInterpreter = &_AnyInterpreter.GetAs_Interpreter();
-        n.Type = UCodeLang::DebugContext::Type::Interpreter;
+        n.type = UCodeLang::DebugContext::Type::Interpreter;
     }
     break;
     case  UCodeLang::InterpreterTypes::Jit_Interpreter:
     {
         n.ThisInterpreter = &_AnyInterpreter.GetAs_JitInterpreter();
-        n.Type = UCodeLang::DebugContext::Type::Jit_Interpreter;
+        n.type = UCodeLang::DebugContext::Type::Jit_Interpreter;
     }
     break;
     case  UCodeLang::InterpreterTypes::NativeInterpreter:
     {
         n.ThisInterpreter = &_AnyInterpreter.GetAs_NativeInterpreter();
-        n.Type = UCodeLang::DebugContext::Type::Native_Interpreter;
+        n.type = UCodeLang::DebugContext::Type::Native_Interpreter;
     }
     break;
     default:

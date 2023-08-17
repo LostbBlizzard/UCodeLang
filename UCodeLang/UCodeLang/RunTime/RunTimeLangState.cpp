@@ -508,7 +508,7 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 				Val.NewThreadMem.Resize(LibInfo.NewThreadOffset);
 				memcpy((Byte*)Val.NewThreadMem.Data(), NewThreadBytes.data(), NewThreadBytes.size());
 				
-				switch (InterpreterV.Type)
+				switch (InterpreterV.type)
 				{
 				case DebugContext::Type::Interpreter:
 				{
