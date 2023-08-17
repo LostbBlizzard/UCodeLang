@@ -4534,7 +4534,7 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 							
 							if (VBool)
 							{
-								auto ParSyb = V.Symbol;
+								auto ParSyb = V._Symbol;
 								if (ParSyb->Type == SymbolType::ParameterVarable)
 								{
 									const TypePackInfo* PackInfo = ListTypeSyb->Get_Info<TypePackInfo>();
@@ -4543,7 +4543,7 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 									const String VarableName = (String)node._Name->Value._String;
 
 									CompileTimeforNode TepData;
-									TepData.SybToLoopOver = V.Symbol;
+									TepData.SybToLoopOver = V._Symbol;
 									
 
 									for (size_t i = 0; i < PackInfo->List.size(); i++)
@@ -6794,25 +6794,25 @@ IROperator  SystematicAnalysis::IR_Build_Member_Store(const GetMemberTypeSymbolF
 	BuildMember_Access(In, Output);
 	if (Output == nullptr)
 	{
-		Output = In.Symbol->IR_Ins;
+		Output = In._Symbol->IR_Ins;
 	}
-	bool UseOutput = In.Symbol->IR_Ins != Output;
+	bool UseOutput = In._Symbol->IR_Ins != Output;
 	
 	//
 
 
-	switch (In.Symbol->Type)
+	switch (In._Symbol->Type)
 	{
 	case  SymbolType::Type_class://this
 	case  SymbolType::Class_Field:
 	case  SymbolType::StackVarable:
 		return Output;
 	case  SymbolType::ParameterVarable:
-		return UseOutput ? IROperator(Output) : IROperator(In.Symbol->IR_Par);
+		return UseOutput ? IROperator(Output) : IROperator(In._Symbol->IR_Par);
 		break;
 	case SymbolType::StaticVarable:
 	case SymbolType::ThreadVarable:
-		return UseOutput ? IROperator(Output) : IROperator(_IR_Builder.ToID(In.Symbol->FullName));
+		return UseOutput ? IROperator(Output) : IROperator(_IR_Builder.ToID(In._Symbol->FullName));
 		break;
 	default:
 		UCodeLangUnreachable();
@@ -6826,22 +6826,22 @@ IROperator  SystematicAnalysis::IR_Build_Member_DereferencStore(const GetMemberT
 	BuildMember_Access(In, Output);
 	if (Output == nullptr)
 	{
-		Output = In.Symbol->IR_Ins;
+		Output = In._Symbol->IR_Ins;
 	}
-	bool UseOutput = In.Symbol->IR_Ins != Output;
+	bool UseOutput = In._Symbol->IR_Ins != Output;
 
-	switch (In.Symbol->Type)
+	switch (In._Symbol->Type)
 	{
 	case  SymbolType::Type_class://this
 	case  SymbolType::Class_Field:
 	case  SymbolType::StackVarable:
 		return Output;
 	case  SymbolType::ParameterVarable:
-		return UseOutput ? IROperator(IROperatorType::DereferenceOf_IRInstruction,Output) : IROperator(IROperatorType::DereferenceOf_IRParameter,In.Symbol->IR_Par);
+		return UseOutput ? IROperator(IROperatorType::DereferenceOf_IRInstruction,Output) : IROperator(IROperatorType::DereferenceOf_IRParameter,In._Symbol->IR_Par);
 		break;
 	case  SymbolType::StaticVarable:
 	case  SymbolType::ThreadVarable:
-		return UseOutput ? IROperator(IROperatorType::DereferenceOf_IRInstruction, Output) : IROperator(IROperatorType::DereferenceOf_IRParameter, _IR_Builder.ToID(In.Symbol->FullName));
+		return UseOutput ? IROperator(IROperatorType::DereferenceOf_IRInstruction, Output) : IROperator(IROperatorType::DereferenceOf_IRParameter, _IR_Builder.ToID(In._Symbol->FullName));
 		break;
 	default:
 		UCodeLangUnreachable();
@@ -6867,12 +6867,12 @@ IRInstruction* SystematicAnalysis::IR_Build_Member_GetPointer(const GetMemberTyp
 	BuildMember_Access(In, Output);
 	if (Output == nullptr)
 	{
-		Output = In.Symbol->IR_Ins;
+		Output = In._Symbol->IR_Ins;
 	}
-	bool UseOutput = In.Symbol->IR_Ins != Output;
+	bool UseOutput = In._Symbol->IR_Ins != Output;
 
 	Debug_Add_SetLineNumber(In.Start->_token, _IR_LookingAtIRBlock->Instructions.size());
-	switch (In.Symbol->Type)
+	switch (In._Symbol->Type)
 	{
 	case  SymbolType::Type_class://this
 	case  SymbolType::Class_Field:
@@ -6880,11 +6880,11 @@ IRInstruction* SystematicAnalysis::IR_Build_Member_GetPointer(const GetMemberTyp
 		return _IR_LookingAtIRBlock->NewLoadPtr(Output);
 		break;
 	case  SymbolType::ParameterVarable:
-		return UseOutput ? _IR_LookingAtIRBlock->NewLoadPtr(Output): _IR_LookingAtIRBlock->NewLoadPtr(In.Symbol->IR_Par);
+		return UseOutput ? _IR_LookingAtIRBlock->NewLoadPtr(Output): _IR_LookingAtIRBlock->NewLoadPtr(In._Symbol->IR_Par);
 		break;
 	case  SymbolType::StaticVarable:
 	case  SymbolType::ThreadVarable:
-		return UseOutput ? _IR_LookingAtIRBlock->NewLoadPtr(Output) : _IR_LookingAtIRBlock->NewLoadPtr(_IR_Builder.ToID(In.Symbol->FullName));
+		return UseOutput ? _IR_LookingAtIRBlock->NewLoadPtr(Output) : _IR_LookingAtIRBlock->NewLoadPtr(_IR_Builder.ToID(In._Symbol->FullName));
 	default:
 		UCodeLangUnreachable();
 		break;
@@ -6986,7 +6986,7 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 	}
 
 	if (Out.Type._Type != TypesEnum::CustomType
-		|| Out.Symbol == nullptr)
+		|| Out._Symbol == nullptr)
 	{
 		if (_PassType == PassType::FixedTypes)
 		{
@@ -6995,9 +6995,9 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 		return false;
 	}
 
-	if (Out.Symbol->PassState == PassType::GetTypes)
+	if (Out._Symbol->PassState == PassType::GetTypes)
 	{
-		Symbol_Update_Sym_ToFixedTypes(Out.Symbol);
+		Symbol_Update_Sym_ToFixedTypes(Out._Symbol);
 	}
 
 	if (OpType == ScopedName::Operator_t::Null
@@ -7005,10 +7005,10 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 		|| OpType == ScopedName::Operator_t::Dot)
 	{
 
-		if (Out.Symbol->Type == SymbolType::Type_class
-			 || Out.Symbol->Type == SymbolType::Generic_class)
+		if (Out._Symbol->Type == SymbolType::Type_class
+			 || Out._Symbol->Type == SymbolType::Generic_class)
 		{
-			ClassInfo* CInfo = Out.Symbol->Get_Info<ClassInfo>();
+			ClassInfo* CInfo = Out._Symbol->Get_Info<ClassInfo>();
 
 			auto FeldInfo = CInfo->GetField(ItemTokenString);
 			if (!FeldInfo.has_value())
@@ -7017,12 +7017,12 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 				{
 					LogError_CantFindVarMemberError(ItemToken, ItemTokenString, Out.Type);
 				}
-				Out.Symbol = nullptr;
+				Out._Symbol = nullptr;
 				Out.Type = TypesEnum::Null;
 				return false;
 			}
 
-			auto FeldFullName = Out.Symbol->FullName;
+			auto FeldFullName = Out._Symbol->FullName;
 			ScopeHelper::GetApendedString(FeldFullName, ItemTokenString);
 			auto FeldSyb = Symbol_GetSymbol(FeldFullName, SymbolType::Class_Field);
 			{
@@ -7033,7 +7033,7 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 			auto& FieldType2 = (*FeldInfo)->Type;
 			if (FieldType2._Type == TypesEnum::CustomType)
 			{
-				Out.Symbol = Symbol_GetSymbol(FieldType2._CustomTypeSymbol);
+				Out._Symbol = Symbol_GetSymbol(FieldType2._CustomTypeSymbol);
 				Out.Type = FieldType2;
 			}
 			else
@@ -7051,24 +7051,24 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 						LogError_CantFindVarMemberError(Token2, Str2, Out.Type);
 					}
 
-					Out.Symbol = nullptr;
+					Out._Symbol = nullptr;
 					Out.Type = TypesEnum::Null;
 					return false;
 				}
 			}
 			if (_PassType == PassType::BuidCode)
 			{
-				FileDependency_AddDependencyToCurrentFile(Out.Symbol);
+				FileDependency_AddDependencyToCurrentFile(Out._Symbol);
 			}
 		}
-		else if (Out.Symbol->Type == SymbolType::Enum)
+		else if (Out._Symbol->Type == SymbolType::Enum)
 		{
 			{
 				const Token* Token = node._ScopedName.begin()->_token;
-				Symbol_AccessCheck(Out.Symbol, Token);
+				Symbol_AccessCheck(Out._Symbol, Token);
 			}
 
-			EnumInfo* Einfo = Out.Symbol->Get_Info<EnumInfo>();
+			EnumInfo* Einfo = Out._Symbol->Get_Info<EnumInfo>();
 			auto& NameString = ItemTokenString;
 
 			auto FeldInfo = Einfo->GetFieldIndex(NameString);
@@ -7079,7 +7079,7 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 					LogError_CantFindVarMemberError(ItemToken, ItemTokenString, Out.Type);
 				}
 
-				Out.Symbol = nullptr;
+				Out._Symbol = nullptr;
 				Out.Type = TypesEnum::Null;
 				return false;
 			}
@@ -7095,7 +7095,7 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 					LogError_MustMakeEnumLikeafuncion(Einfo, FeldInfo.value(), ItemToken);
 
 
-					Out.Symbol = nullptr;
+					Out._Symbol = nullptr;
 					Out.Type = TypesEnum::Null;
 					return false;
 				}
@@ -7112,21 +7112,21 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 					LogError_CantFindVarMemberError(Token2, Str2, Out.Type);
 				}
 
-				Out.Symbol = nullptr;
+				Out._Symbol = nullptr;
 				Out.Type = TypesEnum::Null;
 				return false;
 			}
 
 
-			Out.Type.SetType(Out.Symbol->ID);//set enum type
+			Out.Type.SetType(Out._Symbol->ID);//set enum type
 
 			{
-				String FeildSymFullName = Out.Symbol->FullName;
+				String FeildSymFullName = Out._Symbol->FullName;
 				ScopeHelper::GetApendedString(FeildSymFullName, NameString);
 
 				Symbol* FeildSym = Symbol_GetSymbol(FeildSymFullName, SymbolType::Enum_Field);
 
-				Out.Symbol = FeildSym;//set symbol as enum feild
+				Out._Symbol = FeildSym;//set symbol as enum feild
 
 
 				Out.Set_V1(&Einfo->Fields[*FeldInfo]);
@@ -7136,10 +7136,10 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 
 			if (_PassType == PassType::BuidCode)
 			{
-				FileDependency_AddDependencyToCurrentFile(Out.Symbol);
+				FileDependency_AddDependencyToCurrentFile(Out._Symbol);
 			}
 		}
-		else if (Out.Symbol->Type == SymbolType::Func)
+		else if (Out._Symbol->Type == SymbolType::Func)
 		{
 			if (Index + 1 < node._ScopedName.size())
 			{
@@ -7152,19 +7152,19 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 					LogError_CantFindVarMemberError(Token2, Str2, Out.Type);
 				}
 
-				Out.Symbol = nullptr;
+				Out._Symbol = nullptr;
 				Out.Type = TypesEnum::Null;
 				return false;
 			}
 
 
-			Symbol* Func = Out.Symbol;
+			Symbol* Func = Out._Symbol;
 
-			FuncInfo* Finfo = Out.Symbol->Get_Info<FuncInfo>();
+			FuncInfo* Finfo = Out._Symbol->Get_Info<FuncInfo>();
 			String TepFuncPtr = GetTepFuncPtrName(Finfo);
 
 			Symbol* V = GetTepFuncPtrSyb(TepFuncPtr, Finfo);
-			Out.Symbol = V;
+			Out._Symbol = V;
 			Out.Type.SetType(V->ID);
 
 
@@ -7174,26 +7174,26 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 			}
 
 		}
-		else if (Symbol_IsVarableType(Out.Symbol->Type))
+		else if (Symbol_IsVarableType(Out._Symbol->Type))
 		{
-			TypeSymbol VarableType = Out.Symbol->VarType;
+			TypeSymbol VarableType = Out._Symbol->VarType;
 			Symbol* TypeAsSybol = Symbol_GetSymbol(VarableType);
 			if (TypeAsSybol)
 			{
 				
-				if (Out.Symbol->Type == SymbolType::Class_Field)
+				if (Out._Symbol->Type == SymbolType::Class_Field)
 				{
 					const Token* token = node._ScopedName.begin()->_token;
 					
 
-					Symbol_AccessCheck(Out.Symbol, token);
+					Symbol_AccessCheck(Out._Symbol, token);
 				}
 
 				if (TypeAsSybol->Type != SymbolType::Type_class)
 				{
 					LogError_CantFindVarMemberError(ItemToken, ItemTokenString, Out.Type);
 
-					Out.Symbol = nullptr;
+					Out._Symbol = nullptr;
 					Out.Type = TypesEnum::Null;
 					return false;
 				}
@@ -7208,7 +7208,7 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 						LogError_CantFindVarMemberError(ItemToken, ItemTokenString, Out.Type);
 					}
 
-					Out.Symbol = nullptr;
+					Out._Symbol = nullptr;
 					Out.Type = TypesEnum::Null;
 					return false;
 				}
@@ -7225,7 +7225,7 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 				auto& FieldType2 = (*FeldInfo)->Type;
 				if (FieldType2._Type == TypesEnum::CustomType)
 				{
-					Out.Symbol = Symbol_GetSymbol(FieldType2._CustomTypeSymbol);
+					Out._Symbol = Symbol_GetSymbol(FieldType2._CustomTypeSymbol);
 					Out.Type = FieldType2;
 				}
 				else
@@ -7243,14 +7243,14 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 							LogError_CantFindVarMemberError(Token2, Str2, Out.Type);
 						}
 
-						Out.Symbol = nullptr;
+						Out._Symbol = nullptr;
 						Out.Type = TypesEnum::Null;
 						return false;
 					}
 				}
 				if (_PassType == PassType::BuidCode)
 				{
-					FileDependency_AddDependencyToCurrentFile(Out.Symbol);
+					FileDependency_AddDependencyToCurrentFile(Out._Symbol);
 					//UCodeLangThrowException("not added");
 				}
 			}
@@ -7267,7 +7267,7 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 						LogError_CantFindVarMemberError(Token2, Str2, VarableType);
 					}
 
-					Out.Symbol = nullptr;
+					Out._Symbol = nullptr;
 					Out.Type = TypesEnum::Null;
 					return false;
 				}
@@ -7308,7 +7308,7 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 			if (!funcToCallSys)
 			{
 				Out.Type.SetType(TypesEnum::Null);
-				Out.Symbol = nullptr;
+				Out._Symbol = nullptr;
 
 				auto& Item = ItemToken;
 
@@ -7317,7 +7317,7 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 			}
 			else
 			{
-				Out.Symbol = funcToCallSys;
+				Out._Symbol = funcToCallSys;
 				Out.Type = funcToCallSys->Get_Info< FuncInfo>()->Ret;
 			}
 		}
@@ -7331,7 +7331,7 @@ void SystematicAnalysis::IR_Build_MemberDereferencStore(const GetMemberTypeSymbo
 }
 IRInstruction* SystematicAnalysis::IR_Build_Member_GetValue(const GetMemberTypeSymbolFromVar_t& In)
 {
-	switch (In.Symbol->Type)
+	switch (In._Symbol->Type)
 	{
 	case SymbolType::StaticVarable:
 	case SymbolType::ThreadVarable:
@@ -7344,24 +7344,24 @@ IRInstruction* SystematicAnalysis::IR_Build_Member_GetValue(const GetMemberTypeS
 		BuildMember_Access(In, Output);
 		if (Output == nullptr)
 		{
-			Output = In.Symbol->IR_Ins;
+			Output = In._Symbol->IR_Ins;
 		}
-		bool UseOutput = In.Symbol->IR_Ins != Output;
+		bool UseOutput = In._Symbol->IR_Ins != Output;
 
 		Debug_Add_SetLineNumber(In.Start->_token, _IR_LookingAtIRBlock->Instructions.size());
 
-		if (In.Symbol->Type == SymbolType::StackVarable
-			|| In.Symbol->Type == SymbolType::Class_Field)
+		if (In._Symbol->Type == SymbolType::StackVarable
+			|| In._Symbol->Type == SymbolType::Class_Field)
 		{
 			return _IR_LookingAtIRBlock->NewLoad(Output);
 		}
-		else if (In.Symbol->Type == SymbolType::ParameterVarable)
+		else if (In._Symbol->Type == SymbolType::ParameterVarable)
 		{
-			return UseOutput ? _IR_LookingAtIRBlock->NewLoad(Output) : _IR_LookingAtIRBlock->NewLoad(In.Symbol->IR_Par);
+			return UseOutput ? _IR_LookingAtIRBlock->NewLoad(Output) : _IR_LookingAtIRBlock->NewLoad(In._Symbol->IR_Par);
 		}
-		else if (In.Symbol->Type == SymbolType::StaticVarable || In.Symbol->Type == SymbolType::ThreadVarable)
+		else if (In._Symbol->Type == SymbolType::StaticVarable || In._Symbol->Type == SymbolType::ThreadVarable)
 		{
-			return UseOutput ? _IR_LookingAtIRBlock->NewLoad(Output) : _IR_LookingAtIRBlock->NewLoad_IRID(_IR_Builder.ToID(In.Symbol->FullName));
+			return UseOutput ? _IR_LookingAtIRBlock->NewLoad(Output) : _IR_LookingAtIRBlock->NewLoad_IRID(_IR_Builder.ToID(In._Symbol->FullName));
 		}
 		else
 		{
@@ -7375,7 +7375,7 @@ IRInstruction* SystematicAnalysis::IR_Build_Member_GetValue(const GetMemberTypeS
 	case SymbolType::Func_ptr:
 	case SymbolType::Func:
 	{
-		FuncInfo* Finfo = In.Symbol->Get_Info<FuncInfo>();
+		FuncInfo* Finfo = In._Symbol->Get_Info<FuncInfo>();
 		
 		return _IR_LookingAtIRBlock->NewLoadFuncPtr(IR_GetIRID(Finfo));
 	}
@@ -7418,8 +7418,8 @@ IRInstruction* SystematicAnalysis::IR_Build_Member_GetValue(const GetMemberTypeS
 	}
 	case  SymbolType::ConstantExpression:
 	{
-		auto Item = In.Symbol->Get_Info<ConstantExpressionInfo>();
-		return LoadEvaluatedEx(Item->Ex, In.Symbol->VarType);
+		auto Item = In._Symbol->Get_Info<ConstantExpressionInfo>();
+		return LoadEvaluatedEx(Item->Ex, In._Symbol->VarType);
 	}
 	default:
 		UCodeLangUnreachable();
@@ -7448,20 +7448,20 @@ IRInstruction* SystematicAnalysis::IR_Build_Member_DereferenceValue(const GetMem
 	BuildMember_Access(In, Output);
 	if (Output == nullptr)
 	{
-		Output = In.Symbol->IR_Ins;
+		Output = In._Symbol->IR_Ins;
 	}
-	bool UseOutput = In.Symbol->IR_Ins != Output;
+	bool UseOutput = In._Symbol->IR_Ins != Output;
 
 	Debug_Add_SetLineNumber(In.Start->_token, _IR_LookingAtIRBlock->Instructions.size());
 
-	switch (In.Symbol->Type)
+	switch (In._Symbol->Type)
 	{
 	case  SymbolType::Class_Field:
 	case  SymbolType::StackVarable:
-		return UseOutput ? _IR_LookingAtIRBlock->NewLoad_Dereferenc(Output,IRT) : _IR_LookingAtIRBlock->NewLoad_Dereferenc(In.Symbol->IR_Ins, IRT);
+		return UseOutput ? _IR_LookingAtIRBlock->NewLoad_Dereferenc(Output,IRT) : _IR_LookingAtIRBlock->NewLoad_Dereferenc(In._Symbol->IR_Ins, IRT);
 		break;
 	case  SymbolType::ParameterVarable:
-		return UseOutput ? _IR_LookingAtIRBlock->NewLoad_Dereferenc(Output,IRT) : _IR_LookingAtIRBlock->NewLoad_Dereferenc(In.Symbol->IR_Par, IRT);
+		return UseOutput ? _IR_LookingAtIRBlock->NewLoad_Dereferenc(Output,IRT) : _IR_LookingAtIRBlock->NewLoad_Dereferenc(In._Symbol->IR_Par, IRT);
 	default:
 		UCodeLangUnreachable();
 		break;
@@ -7492,11 +7492,11 @@ void SystematicAnalysis::BuildMember_Reassignment(const GetMemberTypeSymbolFromV
 
 void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t& In, IRInstruction*& Output)
 {
-	TypeSymbol Last_Type = In.Symbol->VarType;
+	TypeSymbol Last_Type = In._Symbol->VarType;
 
 	//
 
-	if (In.Symbol->Type == SymbolType::Class_Field && _FuncStack.size() && _ClassStack.top().Info)
+	if (In._Symbol->Type == SymbolType::Class_Field && _FuncStack.size() && _ClassStack.top().Info)
 	{
 		auto& Func = _FuncStack.back();
 		auto& PointerIr = _IR_LookingAtIRFunc->Pars.front();
@@ -7591,7 +7591,7 @@ void SystematicAnalysis::StepBuildMember_Access(const ScopedName& ITem, TypeSymb
 
 			if (Output == nullptr)
 			{
-				_IR_LastExpressionField = In.Symbol->IR_Ins;
+				_IR_LastExpressionField = In._Symbol->IR_Ins;
 			}
 			else
 			{
@@ -7629,18 +7629,18 @@ void SystematicAnalysis::StepBuildMember_Access(const ScopedName& ITem, TypeSymb
 		IRStruct* IRstruct = _IR_Builder.GetSymbol(_Symbol_SybToIRMap[Sym->ID])->Get_ExAs<IRStruct>();
 		if (Output == nullptr)
 		{
-			switch (In.Symbol->Type)
+			switch (In._Symbol->Type)
 			{
 			case  SymbolType::StackVarable:
 			{
 				TypeSymbol& TypeSys = Last_Type;
 				if (TypeSys.IsAddress())
 				{
-					Output = _IR_LookingAtIRBlock->New_Member_Dereference(In.Symbol->IR_Ins, IR_ConvertToIRType(Sym->VarType), MemberIndex);
+					Output = _IR_LookingAtIRBlock->New_Member_Dereference(In._Symbol->IR_Ins, IR_ConvertToIRType(Sym->VarType), MemberIndex);
 				}
 				else
 				{
-					Output = _IR_LookingAtIRBlock->New_Member_Access(In.Symbol->IR_Ins, IRstruct, MemberIndex);
+					Output = _IR_LookingAtIRBlock->New_Member_Access(In._Symbol->IR_Ins, IRstruct, MemberIndex);
 				}
 			}
 			break;
@@ -7649,11 +7649,11 @@ void SystematicAnalysis::StepBuildMember_Access(const ScopedName& ITem, TypeSymb
 				TypeSymbol& TypeSys = Last_Type;
 				if (TypeSys.IsAddress())
 				{
-					Output = _IR_LookingAtIRBlock->New_Member_Dereference(In.Symbol->IR_Par, IR_ConvertToIRType(Sym->VarType), MemberIndex);
+					Output = _IR_LookingAtIRBlock->New_Member_Dereference(In._Symbol->IR_Par, IR_ConvertToIRType(Sym->VarType), MemberIndex);
 				}
 				else
 				{
-					Output = _IR_LookingAtIRBlock->New_Member_Access(In.Symbol->IR_Par, IRstruct, MemberIndex);
+					Output = _IR_LookingAtIRBlock->New_Member_Access(In._Symbol->IR_Par, IRstruct, MemberIndex);
 				}
 
 			}
@@ -7662,7 +7662,7 @@ void SystematicAnalysis::StepBuildMember_Access(const ScopedName& ITem, TypeSymb
 			case SymbolType::StaticVarable:
 			{
 				TypeSymbol& TypeSys = Last_Type;
-				auto id = _IR_Builder.ToID(In.Symbol->FullName);
+				auto id = _IR_Builder.ToID(In._Symbol->FullName);
 				if (TypeSys.IsAddress())
 				{
 					Output = _IR_LookingAtIRBlock->New_Member_Dereference(id,IR_ConvertToIRType(Sym->VarType), MemberIndex);
@@ -7740,7 +7740,7 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 
 
 	size_t ScopedCount = 0;
-	if (Out.Symbol == nullptr && Out.Type.IsBadType())
+	if (Out._Symbol == nullptr && Out.Type.IsBadType())
 	{
 
 
@@ -7776,7 +7776,7 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 
 
 			Out.Type = SymbolVar->VarType;
-			Out.Symbol = SymbolVar;
+			Out._Symbol = SymbolVar;
 
 			
 			if (SymbolVar->Type == SymbolType::Class_Field)
@@ -7784,7 +7784,7 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 				if (!Context_IsInThisFuncCall())
 				{
 					LogError_CantUseThisInStaticFunction(Token);
-					Out.Symbol = nullptr;
+					Out._Symbol = nullptr;
 					Out.Type = TypeSymbol();
 					return false;
 				}
@@ -7808,7 +7808,7 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 				if (Type._Type != TypesEnum::Null)
 				{
 					Out.Type = Type;
-					Out.Symbol = Symbol_GetSymbol(Type);
+					Out._Symbol = Symbol_GetSymbol(Type);
 				}
 				
 				{// TypeNode has Unique_ptr we do this to not free it.
@@ -7844,7 +7844,7 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 			ClassInfo* V = objecttypesyb->Get_Info<ClassInfo>();
 
 			Out.Type = *Func->GetObjectForCall();
-			Out.Symbol = Symbol_GetSymbol(*ObjectType);
+			Out._Symbol = Symbol_GetSymbol(*ObjectType);
 			//
 			Start++;
 			End--;
@@ -7876,8 +7876,8 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 		}
 
 		{
-			auto OldTepSyb = Out.Symbol;
-			auto ConstExCheck = Out.Symbol;
+			auto OldTepSyb = Out._Symbol;
+			auto ConstExCheck = Out._Symbol;
 			while (ConstExCheck &&
 				(ConstExCheck->Type == SymbolType::Type_alias || ConstExCheck->Type == SymbolType::Hard_Type_alias))
 			{
@@ -7885,7 +7885,7 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 			}
 			if (ConstExCheck == nullptr)
 			{
-				Out.Symbol = OldTepSyb;
+				Out._Symbol = OldTepSyb;
 
 			}
 			else if (ConstExCheck->Type == SymbolType::ConstantExpression)
@@ -7893,32 +7893,32 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 				ConstantExpressionInfo* ConstInfo = ConstExCheck->Get_Info<ConstantExpressionInfo>();
 
 				Out.Type = ConstExCheck->VarType;
-				Out.Symbol = ConstExCheck;
+				Out._Symbol = ConstExCheck;
 			}
 		}
 
-		if (!(Out.Symbol->Type == SymbolType::Class_Field
-			|| Out.Symbol->Type == SymbolType::Enum_Field
-			|| Out.Symbol->Type == SymbolType::Func
-			|| Out.Symbol->Type == SymbolType::ConstantExpression
-			|| Symbol_IsVarableType(Out.Symbol->Type)))
+		if (!(Out._Symbol->Type == SymbolType::Class_Field
+			|| Out._Symbol->Type == SymbolType::Enum_Field
+			|| Out._Symbol->Type == SymbolType::Func
+			|| Out._Symbol->Type == SymbolType::ConstantExpression
+			|| Symbol_IsVarableType(Out._Symbol->Type)))
 		{
 
 			if (_PassType == PassType::FixedTypes)
 			{
 				auto& Item = node._ScopedName.back()._token;
-				LogError_LogWantedAVariable(Item, Out.Symbol);
+				LogError_LogWantedAVariable(Item, Out._Symbol);
 			}
 			Out.Type.SetType(TypesEnum::Null);
-			Out.Symbol = nullptr;
+			Out._Symbol = nullptr;
 
 			return false;
 		}
 
-		if (IsWrite(Mod) && !(Out.Symbol->Type == SymbolType::Class_Field || Symbol_IsVarableType(Out.Symbol->Type)))
+		if (IsWrite(Mod) && !(Out._Symbol->Type == SymbolType::Class_Field || Symbol_IsVarableType(Out._Symbol->Type)))
 		{
 			auto& Item = node._ScopedName.back()._token;
-			LogError(ErrorCodes::InValidType, Item->OnLine, Item->OnPos, "You Cant Write to a " + ToString(Out.Symbol->Type));
+			LogError(ErrorCodes::InValidType, Item->OnLine, Item->OnPos, "You Cant Write to a " + ToString(Out._Symbol->Type));
 		}
 
 
@@ -7926,7 +7926,7 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 		if (_Varable.size())
 		{
 			auto& Data = _Varable.top();
-			Data._UsedSymbols.push_back(Out.Symbol);
+			Data._UsedSymbols.push_back(Out._Symbol);
 		}
 		return true;
 	}
@@ -9397,9 +9397,9 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 			if (IsWrite(_GetExpressionMode.top()))
 			{
 				bool DoStore = true;
-				if (V.Symbol->Type == SymbolType::ParameterVarable)
+				if (V._Symbol->Type == SymbolType::ParameterVarable)
 				{
-					auto ParInfo = V.Symbol->Get_Info<ParameterInfo>();
+					auto ParInfo = V._Symbol->Get_Info<ParameterInfo>();
 					if (ParInfo->IsOutValue)
 					{
 						DoStore = false;
@@ -10767,7 +10767,7 @@ void SystematicAnalysis::OnExpressionNode(const ExtendedScopeExpression& node)
 		_GetExpressionMode.push(_GetExpressionMode.top());
 		{
 			V.Type = ExpressionType;
-			V.Symbol = Symbol_GetSymbol(ExpressionType);
+			V._Symbol = Symbol_GetSymbol(ExpressionType);
 
 		
 			Symbol_StepGetMemberTypeSymbolFromVar(node._Extended, 0, node._Operator, V);
@@ -10798,7 +10798,7 @@ void SystematicAnalysis::OnExpressionNode(const ExtendedScopeExpression& node)
 		_GetExpressionMode.push(_GetExpressionMode.top());
 		{
 			V.Type = ExpressionType;
-			V.Symbol = Symbol_GetSymbol(ExpressionType);
+			V._Symbol = Symbol_GetSymbol(ExpressionType);
 
 
 			Symbol_StepGetMemberTypeSymbolFromVar(node._Extended, 0, node._Operator, V);
@@ -11580,7 +11580,7 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 			TryError_AllValuesAreMatched(ToMatchType,V.ArmData);
 		}
 
-		V.MatchAssignmentType = MatchAssignmentType;
+		V._MatchAssignmentType = MatchAssignmentType;
 		_MatchExpressionDatas.AddValue(Symbol_GetSymbolID(node), std::move(V));
 	}
 	if (_PassType == PassType::BuidCode)
@@ -11597,11 +11597,11 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 
 		
 
-		IRInstruction* OutEx = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(V.MatchAssignmentType));
+		IRInstruction* OutEx = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(V._MatchAssignmentType));
 
 		BuildMatch_State State;
 		
-		_LookingForTypes.push(V.MatchAssignmentType);
+		_LookingForTypes.push(V._MatchAssignmentType);
 		for (size_t i = 0; i < node._Arms.size(); i++)
 		{
 			auto& Item = node._Arms[i];
@@ -11614,7 +11614,7 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 
 			OnExpressionTypeNode(Item._AssignmentExpression, GetValueMode::Read);
 
-			IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType, V.MatchAssignmentType);
+			IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType, V._MatchAssignmentType);
 
 			_IR_LookingAtIRBlock->NewStore(OutEx, _IR_LastExpressionField);
 
@@ -11635,7 +11635,7 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 
 			OnExpressionTypeNode(node._InvaidCase.value(), GetValueMode::Read);
 
-			IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType, V.MatchAssignmentType);
+			IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType, V._MatchAssignmentType);
 
 			_IR_LookingAtIRBlock->NewStore(OutEx, _IR_LastExpressionField);
 
@@ -17161,7 +17161,7 @@ bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const ExtendedScopeExpr
 		_GetExpressionMode.push(_GetExpressionMode.top());
 		{
 			V.Type = ExpressionType;
-			V.Symbol = Symbol_GetSymbol(ExpressionType);
+			V._Symbol = Symbol_GetSymbol(ExpressionType);
 
 
 			if (Eval_EvalutateStepScopedName(ExValue, node._Extended, 0, node._Operator, V))
@@ -17370,11 +17370,11 @@ bool SystematicAnalysis::Eval_EvalutateScopedName(EvaluatedEx& Out, size_t Start
 
 	_LastExpressionType = V.Type;
 
-	if (V.Symbol)
+	if (V._Symbol)
 	{
-		if (V.Symbol->Type == SymbolType::ConstantExpression)
+		if (V._Symbol->Type == SymbolType::ConstantExpression)
 		{
-			ConstantExpressionInfo* Info = V.Symbol->Get_Info<ConstantExpressionInfo>();
+			ConstantExpressionInfo* Info = V._Symbol->Get_Info<ConstantExpressionInfo>();
 			Out.EvaluatedObject = Info->Ex;
 			Out.Type = V.Type;
 			return true;

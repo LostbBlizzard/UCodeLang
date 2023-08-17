@@ -427,7 +427,7 @@ private:
 	};
 	struct GetMemberTypeSymbolFromVar_t
 	{
-		Symbol* Symbol = nullptr;
+		Symbol* _Symbol = nullptr;
 		TypeSymbol Type;
 
 		//state
@@ -577,7 +577,7 @@ private:
 	};
 	struct MatchExpressionData
 	{
-		TypeSymbol  MatchAssignmentType;
+		TypeSymbol  _MatchAssignmentType;
 		MatchArmData ArmData;
 	};
 
