@@ -230,9 +230,9 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 }
 GotNodeType Parser::GetAlias(const Token* AliasName,GenericValuesNode&& AliasGenerics, AliasNode& out)
 {
-	out.AliasName.token = AliasName;
+	out._AliasName.token = AliasName;
 	out.Generic = AliasGenerics;
-	out.Access = GetModifier();
+	out._Access = GetModifier();
 
 
 	auto ClassToken = TryGetToken(); TokenTypeCheck(ClassToken, TokenType::equal);
@@ -250,7 +250,7 @@ GotNodeType Parser::GetAlias(const Token* AliasName,GenericValuesNode&& AliasGen
 	{
 		NextToken();
 
-		out._Type = AliasType::Func;
+		out._AliasType = AliasType::Func;
 		auto Func = new AliasNode_Func();
 		out._Node.reset(Func);
 
@@ -258,7 +258,7 @@ GotNodeType Parser::GetAlias(const Token* AliasName,GenericValuesNode&& AliasGen
 		TokenTypeCheck(LPToken, declareFuncParsStart);
 		NextToken();
 
-		auto Parameters = GetNamedParametersNode(Func->Parameters);
+		auto Parameters = GetNamedParametersNode(Func->_Parameters);
 
 		auto RPToken = TryGetToken();
 		TokenTypeCheck(RPToken, declareFuncParsEnd);
@@ -268,11 +268,11 @@ GotNodeType Parser::GetAlias(const Token* AliasName,GenericValuesNode&& AliasGen
 		TokenTypeCheck(Arrow, TokenType::RightArrow);
 		NextToken();
 
-		r = GetType(Func->ReturnType);
+		r = GetType(Func->_ReturnType);
 	}
 	else 
 	{
-		r = GetType(out.Type,false,false);
+		r = GetType(out._Type,false,false);
 	}
 	auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
 	NextToken();
@@ -955,7 +955,7 @@ GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 			NextToken();
 			auto node = AnonymousTypeNode::Gen();
 			out._ReturnType._node = Unique_ptr<Node>(node);
-			GetNamedParametersNode(node->Fields);
+			GetNamedParametersNode(node->_Fields);
 
 
 			auto AnonymousObjectEndToken = TryGetToken();
@@ -1139,7 +1139,7 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 
 		auto V = ParenthesesExpresionNode::Gen();
 		out = V;
-		auto r = GetExpressionTypeNode(V->Expression);
+		auto r = GetExpressionTypeNode(V->_Expression);
 
 		auto endtoken = TryGetToken();
 		TokenTypeCheck(endtoken, TokenType::Right_Parentheses);
@@ -1157,7 +1157,7 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 		TokenTypeCheck(ParToken, FuncCallStart);
 		NextToken();
 
-		GetType(V->Type);
+		GetType(V->_Type);
 
 		auto Par2Token = TryGetToken();
 		TokenTypeCheck(Par2Token, FuncCallEnd);
@@ -1176,7 +1176,7 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 	{
 		NextToken();
 		auto V = MoveNode::Gen();	out = V;
-		GetExpressionTypeNode(V->expression);
+		GetExpressionTypeNode(V->_expression);
 	
 		return  GotNodeType::Success;
 	}
@@ -1311,8 +1311,8 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 			auto cast = CastNode::Gen();
 
 
-			auto Type = GetType(cast->ToType);
-			cast->Expression._Value = Unique_ptr<Node>(r_out);
+			auto Type = GetType(cast->_ToType);
+			cast->_Expression._Value = Unique_ptr<Node>(r_out);
 			r_t = Merge(Ex, Type);
 			r_out = cast->As();
 			Token2 = TryGetToken();
@@ -1320,8 +1320,8 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 		else if (Token2->Type == TokenType::Left_Bracket)
 		{
 			auto IndexExNode = IndexedExpresionNode::Gen();
-			auto V = GetExpressionTypeNode(IndexExNode->IndexExpression);
-			IndexExNode->SourceExpression._Value = Unique_ptr<Node>(r_out);
+			auto V = GetExpressionTypeNode(IndexExNode->_IndexExpression);
+			IndexExNode->_SourceExpression._Value = Unique_ptr<Node>(r_out);
 
 			r_out = IndexExNode->As();
 
@@ -1340,15 +1340,15 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 				|| TryGetToken()->Type == TokenType::lessthan)
 			{
 				auto ExtendedNode = ExtendedFuncExpression::Gen();
-				ExtendedNode->Expression._Value = Unique_ptr<Node>(r_out);
-				ExtendedNode->Operator = ScopedName::Get_Scoped(Token2->Type);
-				ExtendedNode->Extended.FuncName = std::move(Name);
+				ExtendedNode->_Expression._Value = Unique_ptr<Node>(r_out);
+				ExtendedNode->_Operator = ScopedName::Get_Scoped(Token2->Type);
+				ExtendedNode->_Extended._FuncName = std::move(Name);
 
 				TokenTypeCheck(TryGetToken(), TokenType::Left_Parentheses);
 				
 				{
 					NextToken();
-					auto Pars = GetValueParametersNode(ExtendedNode->Extended.Parameters);
+					auto Pars = GetValueParametersNode(ExtendedNode->_Extended.Parameters);
 
 					auto Par2Token = TryGetToken();
 					TokenTypeCheck(Par2Token, FuncCallEnd);
@@ -1361,9 +1361,9 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 			else
 			{
 				auto ExtendedNode = ExtendedScopeExpression::Gen();
-				ExtendedNode->Expression._Value = Unique_ptr<Node>(r_out);
-				ExtendedNode->Operator = ScopedName::Get_Scoped(Token2->Type);
-				ExtendedNode->Extended = std::move(Name);
+				ExtendedNode->_Expression._Value = Unique_ptr<Node>(r_out);
+				ExtendedNode->_Operator = ScopedName::Get_Scoped(Token2->Type);
+				ExtendedNode->_Extended = std::move(Name);
 
 				r_out = ExtendedNode->As();
 
@@ -2331,9 +2331,9 @@ GotNodeType Parser::GetDeclareStaticVariable(DeclareStaticVariableNode& out, boo
 	{
 		NextToken();
 
-		TypeNode::Gen_Var(out.Variable._Type, *NameValue.token);
-		out.Variable.Name = std::move(NameValue);
-		GetExpressionTypeNode(out.Variable.Expression);
+		TypeNode::Gen_Var(out._Variable._Type, *NameValue.token);
+		out._Variable._Name = std::move(NameValue);
+		GetExpressionTypeNode(out._Variable._Expression);
 
 		auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
 		NextToken();
@@ -2342,7 +2342,7 @@ GotNodeType Parser::GetDeclareStaticVariable(DeclareStaticVariableNode& out, boo
 	else
 	{
 		_TokenIndex = OldIndex;
-		return GetDeclareVariable(out.Variable, ignoreleftHandType);
+		return GetDeclareVariable(out._Variable, ignoreleftHandType);
 	}
 }
 
@@ -2362,9 +2362,9 @@ GotNodeType Parser::GetDeclareThreadVariable(DeclareThreadVariableNode& out, boo
 	{
 		NextToken();
 
-		TypeNode::Gen_Var(out.Variable._Type, *NameValue.token);
-		out.Variable.Name = std::move(NameValue);
-		GetExpressionTypeNode(out.Variable.Expression);
+		TypeNode::Gen_Var(out._Variable._Type, *NameValue.token);
+		out._Variable._Name = std::move(NameValue);
+		GetExpressionTypeNode(out._Variable._Expression);
 
 		auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
 		NextToken();
@@ -2373,7 +2373,7 @@ GotNodeType Parser::GetDeclareThreadVariable(DeclareThreadVariableNode& out, boo
 	else
 	{
 		_TokenIndex = OldIndex;
-		return GetDeclareVariable(out.Variable, ignoreleftHandType);
+		return GetDeclareVariable(out._Variable, ignoreleftHandType);
 	}
 }
 
@@ -2385,9 +2385,9 @@ void Parser::GetDeclareVariableNoObject(TryGetNode& out)
 	{
 		auto ptr = DeclareThreadVariableNode::Gen();
 		//ptr->Variable = std::move(node);
-		ptr->Variable._Type = std::move(node._Type);
-		ptr->Variable.Name = std::move(node.Name);
-		ptr->Variable.Expression._Value = std::move(node.Expression._Value);
+		ptr->_Variable._Type = std::move(node._Type);
+		ptr->_Variable._Name = std::move(node._Name);
+		ptr->_Variable._Expression._Value = std::move(node._Expression._Value);
 		
 		out.Node = ptr->As();
 	}
@@ -2396,14 +2396,14 @@ void Parser::GetDeclareVariableNoObject(TryGetNode& out)
 GotNodeType Parser::GetDeclareVariable(DeclareVariableNode& out, bool ignoreleftHandType)
 {
 	auto Type = GetType(out._Type,false, ignoreleftHandType);
-	auto Name = GetName(out.Name);
-	out.Access = GetModifier();
+	auto Name = GetName(out._Name);
+	out._Access = GetModifier();
 
 	auto Token = TryGetToken();
 	if (Token && Token->Type == TokenType::equal)
 	{
 		NextToken();
-		GetExpressionTypeNode(out.Expression);
+		GetExpressionTypeNode(out._Expression);
 	}
 
 	auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
@@ -2414,7 +2414,7 @@ GotNodeType Parser::GetDeclareVariable(DeclareVariableNode& out, bool ignoreleft
 
 GotNodeType Parser::GetAssignExpression(AssignExpressionNode& out)
 {
-	auto Name = GetExpressionTypeNode(out.ToAssign);
+	auto Name = GetExpressionTypeNode(out._ToAssign);
 
 
 	auto Token = TryGetToken();
@@ -2427,12 +2427,12 @@ GotNodeType Parser::GetAssignExpression(AssignExpressionNode& out)
 		out._Token = Token;
 
 		Token = TryGetToken();
-		out.ReassignAddress = true;
+		out._ReassignAddress = true;
 		NextToken();
 		Token = TryGetToken();
 
 
-		auto Ex = GetExpressionTypeNode(out.Expression);
+		auto Ex = GetExpressionTypeNode(out._Expression);
 
 
 		auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
@@ -2448,12 +2448,12 @@ GotNodeType Parser::GetAssignExpression(AssignExpressionNode& out)
 		Token = TryGetToken();
 		if (Token->Type == TokenType::Colon)
 		{
-			out.ReassignAddress = true;
+			out._ReassignAddress = true;
 			NextToken();
 			Token = TryGetToken();
 		}
 
-		auto Ex = GetExpressionTypeNode(out.Expression);
+		auto Ex = GetExpressionTypeNode(out._Expression);
 
 
 		auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
@@ -2468,13 +2468,13 @@ GotNodeType Parser::GetIfNode(IfNode& out)
 	TokenTypeCheck(RetToken, TokenType::KeyWord_If);
 	NextToken();
 
-	auto GetEx = GetExpressionTypeNode(out.Expression);
+	auto GetEx = GetExpressionTypeNode(out._Expression);
 
 	auto Token3 = TryGetToken();
 	TokenTypeCheck(Token3, TokenType::Colon);
 	NextToken();
 
-	auto Statements = GetStatementsorStatementNode(out.Body);
+	auto Statements = GetStatementsorStatementNode(out._Body);
 
 
 	while (TryGetToken()->Type != TokenType::EndofFile)
@@ -2497,10 +2497,10 @@ GotNodeType Parser::GetIfNode(IfNode& out)
 			auto Statements = GetStatement(V);
 			if (V)
 			{
-				elseNode->Body._Nodes.push_back(Unique_ptr<Node>(V));
+				elseNode->_Body._Nodes.push_back(Unique_ptr<Node>(V));
 			}
 
-			out.Else = std::move(elseNode);
+			out._Else = std::move(elseNode);
 			break;
 		}
 		else
@@ -2511,9 +2511,9 @@ GotNodeType Parser::GetIfNode(IfNode& out)
 			TokenTypeCheck(ColonToken, TokenType::Colon);
 			NextToken();
 
-			auto Statements = GetStatementsorStatementNode(elseNode->Body);
+			auto Statements = GetStatementsorStatementNode(elseNode->_Body);
 
-			out.Else = std::move(elseNode);
+			out._Else = std::move(elseNode);
 
 			break;
 		}
@@ -2528,7 +2528,7 @@ GotNodeType Parser::GetWhileNode(WhileNode& out)
 	TokenTypeCheck(RetToken, TokenType::KeyWord_while);
 	NextToken();
 
-	auto GetEx = GetExpressionTypeNode(out.Expression);
+	auto GetEx = GetExpressionTypeNode(out._Expression);
 
 	auto Token3 = TryGetToken();
 	if (Token3->Type != TokenType::Semicolon)
@@ -2536,7 +2536,7 @@ GotNodeType Parser::GetWhileNode(WhileNode& out)
 		TokenTypeCheck(Token3, TokenType::Colon);
 		NextToken();
 
-		auto Statements = GetStatementsorStatementNode(out.Body);
+		auto Statements = GetStatementsorStatementNode(out._Body);
 	}
 	else
 	{
@@ -2560,14 +2560,14 @@ GotNodeType Parser::GetDoNode(DoNode& out)
 
 	if (TabToken->Type != TokenType::KeyWord_while)
 	{
-		auto Statements = GetStatementsorStatementNode(out.Body);
+		auto Statements = GetStatementsorStatementNode(out._Body);
 	}
 
 	auto Token3 = TryGetToken();
 	TokenTypeCheck(Token3, TokenType::KeyWord_while);
 	NextToken();
 
-	auto GetEx = GetExpressionTypeNode(out.Expression);
+	auto GetEx = GetExpressionTypeNode(out._Expression);
 
 	auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
 	NextToken();
@@ -2579,20 +2579,20 @@ GotNodeType Parser::DoEnumType(EnumNode* output, const Token* ClassToken, Generi
 	TokenTypeCheck(Token, TokenType::KeyWord_Enum);
 	NextToken();
 
-	output->EnumName.token = ClassToken;
-	output->Generic = std::move(TepGenerics);
-	output->Access = GetModifier();
+	output->_EnumName.token = ClassToken;
+	output->_generic = std::move(TepGenerics);
+	output->_Access = GetModifier();
 	if (Inherited._values.size() > 1)
 	{
 		_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "Cant Inherit more then one type for enum's.");
 	}
 	if (Inherited._values.size())
 	{
-		output->BaseType._name.token = std::move(Inherited._values.front()._Name.token);
+		output->_BaseType._name.token = std::move(Inherited._values.front()._Name.token);
 	}
 	else
 	{
-		TypeNode::Gen_Byte(output->BaseType, *ClassToken);
+		TypeNode::Gen_Byte(output->_BaseType, *ClassToken);
 	}
 
 
@@ -2611,8 +2611,8 @@ GotNodeType Parser::DoEnumType(EnumNode* output, const Token* ClassToken, Generi
 
 		if (T == nullptr || T->Type == TokenType::EndTab) { break; }
 
-		output->Values.push_back({});
-		EnumValueNode& EnumValue = output->Values.back();
+		output->_Values.push_back({});
+		EnumValueNode& EnumValue = output->_Values.back();
 		GetEnumValueNode(EnumValue);
 
 
@@ -2629,7 +2629,7 @@ GotNodeType Parser::DoEnumType(EnumNode* output, const Token* ClassToken, Generi
 
 GotNodeType Parser::GetEnumValueNode(EnumValueNode& out)
 {
-	GetName(out.Name);
+	GetName(out._Name);
 
 
 	auto BToken = TryGetToken();
@@ -2656,7 +2656,7 @@ GotNodeType Parser::GetEnumValueNode(EnumValueNode& out)
 				}
 				else
 				{
-					pars._Name.token = out.Name.token;
+					pars._Name.token = out._Name.token;
 				}
 
 				if (ClassType == nullptr) {
@@ -2666,7 +2666,7 @@ GotNodeType Parser::GetEnumValueNode(EnumValueNode& out)
 				
 				
 				pars._Type = std::move(V);
-				ClassType->Fields._Parameters.push_back(std::move(pars));
+				ClassType->_Fields._Parameters.push_back(std::move(pars));
 
 
 				auto ColonToken = TryGetToken();
@@ -2682,14 +2682,14 @@ GotNodeType Parser::GetEnumValueNode(EnumValueNode& out)
 					}
 
 					NamedParameterNode pars;
-					pars._Name.token = out.Name.token;
+					pars._Name.token = out._Name.token;
 					pars._Type = std::move(V);
-					ClassType->Fields._Parameters.push_back(std::move(pars));
+					ClassType->_Fields._Parameters.push_back(std::move(pars));
 					NextToken();
 					continue;
 				}
 
-				out.VariantType = std::move(V);
+				out._VariantType = std::move(V);
 				break;
 			}
 
@@ -2700,7 +2700,7 @@ GotNodeType Parser::GetEnumValueNode(EnumValueNode& out)
 		{
 			TypeNode V;
 			V._node.reset(ClassType);
-			out.VariantType = std::move(V);
+			out._VariantType = std::move(V);
 		}
 
 		auto RToken = TryGetToken();
@@ -2712,7 +2712,7 @@ GotNodeType Parser::GetEnumValueNode(EnumValueNode& out)
 	if (EqualToken && EqualToken->Type == TokenType::equal)
 	{
 		NextToken();
-		return GetExpressionTypeNode(out.Expression);
+		return GetExpressionTypeNode(out._Expression);
 	}
 	return GotNodeType::Success;
 }
@@ -2720,8 +2720,8 @@ GotNodeType Parser::DoTagType(TagTypeNode* output, const Token* ClassToken, Gene
 {
 	TokenTypeCheck(TryGetToken(), TokenType::KeyWord_Tag);
 	NextToken();
-	output->AttributeName.token = ClassToken;
-	output->Generic = std::move(TepGenerics);
+	output->_AttributeName.token = ClassToken;
+	output->_generic = std::move(TepGenerics);
 
 	auto ColonToken = TryGetToken();
 	if (ColonToken->Type == TokenType::Semicolon) { NextToken(); return GotNodeType::Success; }
@@ -2765,7 +2765,7 @@ EndLoop:
 }
 GotNodeType Parser::GetFuncCallStatementNode(FuncCallStatementNode& out)
 {
-	GetFuncCallNode(out.Base);
+	GetFuncCallNode(out._Base);
 
 	auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
 	NextToken();
@@ -2773,7 +2773,7 @@ GotNodeType Parser::GetFuncCallStatementNode(FuncCallStatementNode& out)
 }
 GotNodeType Parser::GetFuncCallNode(FuncCallNode& out)
 {
-	GetName(out.FuncName, true);
+	GetName(out._FuncName, true);
 
 	auto ParToken = TryGetToken();
 
@@ -2791,9 +2791,9 @@ GotNodeType Parser::GetFuncCallNode(FuncCallNode& out)
 
 GotNodeType Parser::GetPostfixStatement(PostfixVariableNode& out,bool DoSemicolon)
 {
-	auto Name = GetExpressionTypeNode(out.ToAssign);
+	auto Name = GetExpressionTypeNode(out._ToAssign);
 	auto Token = TryGetToken(); 
-	out.PostfixOp = Token;
+	out._PostfixOp = Token;
 	NextToken();
 
 	if (DoSemicolon) {
@@ -2804,12 +2804,12 @@ GotNodeType Parser::GetPostfixStatement(PostfixVariableNode& out,bool DoSemicolo
 }
 GotNodeType Parser::GetCompoundStatement(CompoundStatementNode& out)
 {
-	auto Name = GetExpressionTypeNode(out.ToAssign);
+	auto Name = GetExpressionTypeNode(out._ToAssign);
 	auto Token = TryGetToken();
-	out.CompoundOp= Token;
+	out._CompoundOp= Token;
 	NextToken();
 
-	GetExpressionTypeNode(out.Expession);
+	GetExpressionTypeNode(out._Expession);
 
 	auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
 	NextToken();
@@ -2821,7 +2821,7 @@ GotNodeType Parser::GetAnonymousObjectConstructorNode(AnonymousObjectConstructor
 	auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, AnonymousObjectStart);
 	NextToken();
 
-	GetValueParametersNode(out.Fields);
+	GetValueParametersNode(out._Fields);
 
 	auto SemicolonToken2 = TryGetToken(); TokenTypeCheck(SemicolonToken2, AnonymousObjectEnd);
 	NextToken();
@@ -2832,7 +2832,7 @@ GotNodeType Parser::GetDropStatementNode(DropStatementNode& out)
 {
 	auto DropToken = TryGetToken(); TokenTypeCheck(DropToken, TokenType::KeyWord_Drop);
 	NextToken();
-	out.KeywordToken = DropToken;
+	out._KeywordToken = DropToken;
 
 	auto ParToken = TryGetToken();
 	TokenTypeCheck(ParToken, FuncCallStart);
@@ -2840,7 +2840,7 @@ GotNodeType Parser::GetDropStatementNode(DropStatementNode& out)
 
 	Node* Ptr = nullptr;
 	GetExpressionTypeNode(Ptr);
-	out.expression._Value = Unique_ptr<Node>(Ptr);
+	out._expression._Value = Unique_ptr<Node>(Ptr);
 
 	auto Par2Token = TryGetToken();
 	TokenTypeCheck(Par2Token, FuncCallEnd);
@@ -2855,9 +2855,9 @@ GotNodeType Parser::GetNewExpresionNode(NewExpresionNode& out)
 	auto NewToken = TryGetToken(); TokenTypeCheck(NewToken, TokenType::KeyWord_new);
 	NextToken();
 
-	out.KeywordToken = NewToken;
+	out._KeywordToken = NewToken;
 
-	GetType(out.Type,true);
+	GetType(out._Type,true);
 
 
 
@@ -2866,7 +2866,7 @@ GotNodeType Parser::GetNewExpresionNode(NewExpresionNode& out)
 
 		NextToken();
 
-		GetValueParametersNode(out.Parameters);
+		GetValueParametersNode(out._Parameters);
 
 		auto Par2Token = TryGetToken();
 		TokenTypeCheck(Par2Token, FuncCallEnd);
@@ -2876,7 +2876,7 @@ GotNodeType Parser::GetNewExpresionNode(NewExpresionNode& out)
 	{
 		NextToken();
 		
-		GetExpressionTypeNode(out.Arrayexpression);
+		GetExpressionTypeNode(out._Arrayexpression);
 
 		auto Par2Token = TryGetToken();
 		TokenTypeCheck(Par2Token, TokenType::Right_Bracket);
@@ -2922,8 +2922,8 @@ GotNodeType Parser::GetumutVariableDeclare(Node*& out)
 
 			out = V;
 			TypeNode::Gen_Var(V->_Type, *NameValue.token);
-			V->Name = std::move(NameValue);
-			GetExpressionTypeNode(V->Expression);
+			V->_Name = std::move(NameValue);
+			GetExpressionTypeNode(V->_Expression);
 
 			auto SemicolonToken2 = TryGetToken(); TokenTypeCheck(SemicolonToken2, TokenType::Semicolon);
 			NextToken();
@@ -2952,7 +2952,7 @@ GotNodeType Parser::GetumutVariableDeclare(Node*& out)
 			out = V;
 			r = GetDeclareThreadVariable(*V,true);
 
-			Tnode = &V->Variable._Type;
+			Tnode = &V->_Variable._Type;
 		}
 		break;
 		case TokenType::KeyWord_static:
@@ -2961,7 +2961,7 @@ GotNodeType Parser::GetumutVariableDeclare(Node*& out)
 			out = V;
 			r =GetDeclareStaticVariable(*V, true);
 
-			Tnode = &V->Variable._Type;
+			Tnode = &V->_Variable._Type;
 		}break;
 		default:
 		{
@@ -2983,18 +2983,18 @@ void Parser::ForNodeModernIntLoop(ForNode& out, const Token* OtherToken,const To
 	GetExpressionTypeNode(WhenToEnd);
 
 
-	out.Type = ForNode::ForType::Traditional;
+	out._Type = ForNode::ForType::Traditional;
 
-	out.Traditional_Assignment_Expression._Value = std::move(out.Modern_List._Value);
+	out._Traditional_Assignment_Expression._Value = std::move(out._Modern_List._Value);
 
 	if (PostFixOp == TokenType::decrement)
 	{
-		std::swap(out.Traditional_Assignment_Expression._Value, WhenToEnd._Value);
+		std::swap(out._Traditional_Assignment_Expression._Value, WhenToEnd._Value);
 	}
 
 	{
 		BinaryExpressionNode* BinExpression = new BinaryExpressionNode();
-		out.BoolExpression._Value.reset(BinExpression);
+		out._BoolExpression._Value.reset(BinExpression);
 
 		{
 			auto BinToken = Token();
@@ -3075,7 +3075,7 @@ void Parser::ForNodeModernIntLoop(ForNode& out, const Token* OtherToken,const To
 	{
 
 		ValueExpressionNode* ValuNode = new ValueExpressionNode();
-		out.OnNextStatement.ToAssign._Value.reset(ValuNode);
+		out._OnNextStatement._ToAssign._Value.reset(ValuNode);
 
 
 		ReadVariableNode* ReadVarNode = new ReadVariableNode();
@@ -3092,7 +3092,7 @@ void Parser::ForNodeModernIntLoop(ForNode& out, const Token* OtherToken,const To
 		BinToken.Type = PostFixOp;
 
 		auto V = std::make_unique<Token>(std::move(BinToken));
-		out.OnNextStatement.PostfixOp = V.get();
+		out._OnNextStatement._PostfixOp = V.get();
 		_Tree.TemporaryTokens.push_back(std::move(V));
 	}
 }
@@ -3116,29 +3116,29 @@ GotNodeType Parser::GetForNode(ForNode& out)
 	if (Assemnt->Type == TokenType::equal)
 	{
 
-		out.typeNode = std::move(V);
-		out.Name = NameToken;
-		out.Type = ForNode::ForType::Traditional;
+		out._typeNode = std::move(V);
+		out._Name = NameToken;
+		out._Type = ForNode::ForType::Traditional;
 
 		NextToken();
-		GetExpressionTypeNode(out.Traditional_Assignment_Expression);
+		GetExpressionTypeNode(out._Traditional_Assignment_Expression);
 
 		TokenTypeCheck(TryGetToken(), TokenType::Semicolon); NextToken();
 
-		GetExpressionTypeNode(out.BoolExpression);
+		GetExpressionTypeNode(out._BoolExpression);
 
 		TokenTypeCheck(TryGetToken(), TokenType::Semicolon); NextToken();
 
-		GetPostfixStatement(out.OnNextStatement,false);
+		GetPostfixStatement(out._OnNextStatement,false);
 	}
 	else if (Assemnt->Type == TokenType::Colon)
 	{
 		NextToken();
-		out.typeNode = std::move(V);
-		out.Name = NameToken;
-		out.Type = ForNode::ForType::modern;
+		out._typeNode = std::move(V);
+		out._Name = NameToken;
+		out._Type = ForNode::ForType::modern;
 
-		GetExpressionTypeNode(out.Modern_List);
+		GetExpressionTypeNode(out._Modern_List);
 
 
 		
@@ -3173,7 +3173,7 @@ GotNodeType Parser::GetForNode(ForNode& out)
 		TokenTypeCheck(Token3, TokenType::Colon);
 		NextToken();
 
-		auto Statements = GetStatementsorStatementNode(out.Body);
+		auto Statements = GetStatementsorStatementNode(out._Body);
 	}
 	else
 	{
@@ -3190,7 +3190,7 @@ GotNodeType Parser::GetContinueNode(ContinueNode& out)
 	auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::Semicolon);
 	NextToken();
 
-	out.token = KeyToken;
+	out._token = KeyToken;
 	return  GotNodeType::Success;
 }
 GotNodeType Parser::GetBreakNode(BreakNode& out)
@@ -3201,7 +3201,7 @@ GotNodeType Parser::GetBreakNode(BreakNode& out)
 	auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::Semicolon);
 	NextToken();
 
-	out.token = KeyToken;
+	out._token = KeyToken;
 	return  GotNodeType::Success;
 }
 GotNodeType Parser::GetLambdaNode(LambdaNode& out)
@@ -3213,7 +3213,7 @@ GotNodeType Parser::GetLambdaNode(LambdaNode& out)
 	auto LeftBracket = TryGetToken(); TokenTypeCheck(LeftBracket, TokenType::Left_Bracket);
 	NextToken();
 
-	out.LambdaStart = KeyToken;
+	out._LambdaStart = KeyToken;
 	//
 	{  
 		const Token* LoopToken = TryGetToken();
@@ -3234,7 +3234,7 @@ GotNodeType Parser::GetLambdaNode(LambdaNode& out)
 				NamedParameterNode par;
 				GetType(par._Type, false, false);
 				GetName(par._Name);
-				out.Pars._Parameters.push_back(std::move(par));
+				out._Pars._Parameters.push_back(std::move(par));
 			}
 			else
 			{
@@ -3243,7 +3243,7 @@ GotNodeType Parser::GetLambdaNode(LambdaNode& out)
 
 				TypeNode::Gen_Var(par._Type,*par._Name.token);
 
-				out.Pars._Parameters.push_back(std::move(par));
+				out._Pars._Parameters.push_back(std::move(par));
 			}
 
 			auto CommaToken = TryGetToken();
@@ -3322,7 +3322,7 @@ GotNodeType Parser::GetShortLambdaNode(LambdaNode& out)
 		NamedParameterNode par;
 		par._Name.token = TryGetToken();
 		TypeNode::Gen_Var(par._Type, *par._Name.token);
-		out.Pars._Parameters.push_back(std::move(par));
+		out._Pars._Parameters.push_back(std::move(par));
 	}
 
 
@@ -3367,7 +3367,7 @@ GotNodeType Parser::DoTraitType(TraitNode* output, const Token* ClassToken, Gene
 	TokenTypeCheck(TryGetToken(), TokenType::KeyWord_trait);
 	NextToken();
 	output->_Name.token = ClassToken;
-	output->Generic = std::move(TepGenerics);
+	output->_generic = std::move(TepGenerics);
 
 	auto ColonToken = TryGetToken();
 	if (ColonToken->Type == TokenType::Semicolon) { NextToken(); return GotNodeType::Success; }
@@ -3468,7 +3468,7 @@ GotNodeType Parser::GetBitCastExpression(BitCastExpression& out)
 	auto Token = TryGetToken();
 	TokenTypeCheck(Token, TokenType::KeyWord_bitcast);
 	NextToken();
-	out.KeywordToken = Token;
+	out._KeywordToken = Token;
 
 	TokenTypeCheck(TryGetToken(), TokenType::lessthan); NextToken();
 
@@ -3525,7 +3525,7 @@ GotNodeType Parser::GetInvalidNode(InvalidNode& out)
 {
 	auto Token = TryGetToken();
 	TokenTypeCheck(Token, TokenType::KeyWord_invalid);
-	out.KeyWord = Token;
+	out._KeyWord = Token;
 
 	NextToken();
 	auto LToken = TryGetToken();
@@ -3575,7 +3575,7 @@ GotNodeType Parser::GetValidNode(ValidNode& out)
 			GetStatementsorStatementNode(V);
 
 			out._StatementToCheck = std::move(V);
-			out.IsExpression = false;
+			out._IsExpression = false;
 		}
 		else
 		{
@@ -3584,7 +3584,7 @@ GotNodeType Parser::GetValidNode(ValidNode& out)
 
 
 			out._ExpressionToCheck._Value = std::move(V._Value);
-			out.IsExpression = true;
+			out._IsExpression = true;
 		}
 	}
 
@@ -3616,9 +3616,9 @@ GotNodeType Parser::GeTypeExNode(Node*& out)
 		{
 			NextToken();
 			CMPTypesNode* V = CMPTypesNode::Gen();
-			V->TypeOp0 = std::move(Op1);
-			V->Op = CMPToken;
-			GetType(V->TypeOp1, false, false);
+			V->_TypeOp0 = std::move(Op1);
+			V->_Op = CMPToken;
+			GetType(V->_TypeOp1, false, false);
 			out = V;
 		}
 		else
@@ -3650,7 +3650,7 @@ GotNodeType Parser::GetExpressionToTypeValue(ExpressionToTypeValueNode& out)
 	NextToken();
 
 	{
-		GetExpressionTypeNode(out.TypeEx);
+		GetExpressionTypeNode(out._TypeEx);
 	}
 	auto RToken = TryGetToken();
 	TokenTypeCheck(RToken, TokenType::Right_Parentheses);
@@ -3693,14 +3693,14 @@ GotNodeType Parser::GetEvalDeclare(Node*& out)
 			DeclareEvalVariableNode* V = DeclareEvalVariableNode::Gen();
 
 			out = V;
-			TypeNode::Gen_Var(V->Variable._Type, *NameValue.token);
-			V->Variable.Name = std::move(NameValue);
-			GetExpressionTypeNode(V->Variable.Expression);
+			TypeNode::Gen_Var(V->_Variable._Type, *NameValue.token);
+			V->_Variable._Name = std::move(NameValue);
+			GetExpressionTypeNode(V->_Variable._Expression);
 
 			auto SemicolonToken2 = TryGetToken(); TokenTypeCheck(SemicolonToken2, TokenType::Semicolon);
 			NextToken();
 
-			Tnode = &V->Variable._Type;
+			Tnode = &V->_Variable._Type;
 			r = GotNodeType::Success;
 		}
 		else if (Token3->Type == TokenType::Semicolon)
@@ -3716,7 +3716,7 @@ GotNodeType Parser::GetEvalDeclare(Node*& out)
 		{
 			_TokenIndex = OldIndex;
 			DeclareEvalVariableNode* V = DeclareEvalVariableNode::Gen();
-			r = GetDeclareVariable(V->Variable, true);
+			r = GetDeclareVariable(V->_Variable, true);
 			out = V;
 		}
 		return r;
@@ -3729,13 +3729,13 @@ GotNodeType Parser::GetCompileTimeIf(CompileTimeIfNode*& out)
 
 	NextToken();
 
-	GetExpressionTypeNode(out->Expression);	
+	GetExpressionTypeNode(out->_Expression);	
 
 	auto Token3 = TryGetToken();
 	TokenTypeCheck(Token3, TokenType::Colon);
 	NextToken();
 
-	auto Statements = GetStatementsorStatementNode(out->Body);
+	auto Statements = GetStatementsorStatementNode(out->_Body);
 
 	while (TryGetToken()->Type != TokenType::EndofFile)
 	{
@@ -3757,10 +3757,10 @@ GotNodeType Parser::GetCompileTimeIf(CompileTimeIfNode*& out)
 			auto Statements = GetStatement(V);
 			if (V)
 			{
-				elseNode->Body._Nodes.push_back(Unique_ptr<Node>(V));
+				elseNode->_Body._Nodes.push_back(Unique_ptr<Node>(V));
 			}
 
-			out->Else = std::move(elseNode);
+			out->_Else = std::move(elseNode);
 			break;
 		}
 		else
@@ -3771,9 +3771,9 @@ GotNodeType Parser::GetCompileTimeIf(CompileTimeIfNode*& out)
 			TokenTypeCheck(ColonToken, TokenType::Colon);
 			NextToken();
 
-			auto Statements = GetStatementsorStatementNode(elseNode->Body);
+			auto Statements = GetStatementsorStatementNode(elseNode->_Body);
 
-			out->Else = std::move(elseNode);
+			out->_Else = std::move(elseNode);
 
 			break;
 		}
@@ -3800,29 +3800,29 @@ GotNodeType Parser::GetCompileTimeForNode(CompileTimeForNode& out)
 	if (Assemnt->Type == TokenType::equal)
 	{
 
-		out.TypeNode = std::move(V);
-		out.Name = NameToken;
-		out.Type = CompileTimeForNode::ForType::Traditional;
+		out._TypeNode = std::move(V);
+		out._Name = NameToken;
+		out._Type = CompileTimeForNode::ForType::Traditional;
 
 		NextToken();
-		GetExpressionTypeNode(out.Traditional_Assignment_Expression);
+		GetExpressionTypeNode(out._Traditional_Assignment_Expression);
 
 		TokenTypeCheck(TryGetToken(), TokenType::Semicolon); NextToken();
 
-		GetExpressionTypeNode(out.BoolExpression);
+		GetExpressionTypeNode(out._BoolExpression);
 
 		TokenTypeCheck(TryGetToken(), TokenType::Semicolon); NextToken();
 
-		GetPostfixStatement(out.OnNextStatement, false);
+		GetPostfixStatement(out._OnNextStatement, false);
 	}
 	else if (Assemnt->Type == TokenType::Colon)
 	{
 		NextToken();
-		out.TypeNode = std::move(V);
-		out.Name = NameToken;
-		out.Type = CompileTimeForNode::ForType::modern;
+		out._TypeNode = std::move(V);
+		out._Name = NameToken;
+		out._Type = CompileTimeForNode::ForType::modern;
 
-		GetExpressionTypeNode(out.Modern_List);
+		GetExpressionTypeNode(out._Modern_List);
 
 
 
@@ -3857,7 +3857,7 @@ GotNodeType Parser::GetCompileTimeForNode(CompileTimeForNode& out)
 		TokenTypeCheck(Token3, TokenType::Colon);
 		NextToken();
 
-		auto Statements = GetStatementsorStatementNode(out.Body);
+		auto Statements = GetStatementsorStatementNode(out._body);
 	}
 	else
 	{
@@ -3872,18 +3872,18 @@ void Parser::CompileTimeForNodeModernIntLoop(CompileTimeForNode& out, const Toke
 	GetExpressionTypeNode(WhenToEnd);
 
 
-	out.Type = CompileTimeForNode::ForType::Traditional;
+	out._Type = CompileTimeForNode::ForType::Traditional;
 
-	out.Traditional_Assignment_Expression._Value = std::move(out.Modern_List._Value);
+	out._Traditional_Assignment_Expression._Value = std::move(out._Modern_List._Value);
 
 	if (PostFixOp == TokenType::decrement)
 	{
-		std::swap(out.Traditional_Assignment_Expression._Value, WhenToEnd._Value);
+		std::swap(out._Traditional_Assignment_Expression._Value, WhenToEnd._Value);
 	}
 
 	{
 		BinaryExpressionNode* BinExpression = new BinaryExpressionNode();
-		out.BoolExpression._Value.reset(BinExpression);
+		out._BoolExpression._Value.reset(BinExpression);
 
 		{
 			auto BinToken = Token();
@@ -3964,7 +3964,7 @@ void Parser::CompileTimeForNodeModernIntLoop(CompileTimeForNode& out, const Toke
 	{
 
 		ValueExpressionNode* ValuNode = new ValueExpressionNode();
-		out.OnNextStatement.ToAssign._Value.reset(ValuNode);
+		out._OnNextStatement._ToAssign._Value.reset(ValuNode);
 
 
 		ReadVariableNode* ReadVarNode = new ReadVariableNode();
@@ -3981,7 +3981,7 @@ void Parser::CompileTimeForNodeModernIntLoop(CompileTimeForNode& out, const Toke
 		BinToken.Type = PostFixOp;
 
 		auto V = std::make_unique<Token>(std::move(BinToken));
-		out.OnNextStatement.PostfixOp = V.get();
+		out._OnNextStatement._PostfixOp = V.get();
 		_Tree.TemporaryTokens.push_back(std::move(V));
 	}
 }
@@ -3990,7 +3990,7 @@ GotNodeType Parser::GetMatchStatement(MatchStatement& out)
 	auto MatchToken = TryGetToken(); TokenTypeCheck(MatchToken, TokenType::KeyWord_match);
 	NextToken();
 
-	GetExpressionTypeNode(out.Expression);
+	GetExpressionTypeNode(out._Expression);
 
 	TokenTypeCheck(TryGetToken(), TokenType::Colon);
 	NextToken();
@@ -4013,27 +4013,27 @@ GotNodeType Parser::GetMatchStatement(MatchStatement& out)
 			GetStatementsorStatementNode(V);
 
 
-			if (out.InvaidCase.has_value())
+			if (out._InvaidCase.has_value())
 			{
 				_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos,"Cant have more than one invalid cases in match");
 			}
 			else
 			{
-				out.InvaidCase = std::move(V);
+				out._InvaidCase = std::move(V);
 			}
 			
 		}
 		else
 		{
 			MatchStatementArm V;
-			GetExpressionTypeNode(V.Expression);
+			GetExpressionTypeNode(V._Expression);
 
 			TokenTypeCheck(TryGetToken(), TokenType::Colon);
 			NextToken();
 
-			GetStatementsorStatementNode(V.Statements);
+			GetStatementsorStatementNode(V._Statements);
 
-			out.Arms.push_back(std::move(V));
+			out._Arms.push_back(std::move(V));
 		}
 
 	}
@@ -4047,7 +4047,7 @@ GotNodeType Parser::GetMatchExpression(MatchExpression& out)
 	auto MatchToken = TryGetToken(); TokenTypeCheck(MatchToken, TokenType::KeyWord_match);
 	NextToken();
 
-	GetExpressionTypeNode(out.Expression);
+	GetExpressionTypeNode(out._Expression);
 
 	TokenTypeCheck(TryGetToken(), TokenType::Colon);
 	NextToken();
@@ -4070,26 +4070,26 @@ GotNodeType Parser::GetMatchExpression(MatchExpression& out)
 			GetExpressionTypeNode(V);
 
 
-			if (out.InvaidCase.has_value())
+			if (out._InvaidCase.has_value())
 			{
 				_ErrorsOutput->AddError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "Cant have more than one invalid cases in match");
 			}
 			else
 			{
-				out.InvaidCase = std::move(V);
+				out._InvaidCase = std::move(V);
 			}
 		}
 		else
 		{
 			MatchExpressionArm V;
-			GetExpressionTypeNode(V.Expression);
+			GetExpressionTypeNode(V._Expression);
 
 			TokenTypeCheck(TryGetToken(), TokenType::RightAssignArrow);
 			NextToken();
 
-			GetExpressionTypeNode(V.AssignmentExpression);
+			GetExpressionTypeNode(V._AssignmentExpression);
 
-			out.Arms.push_back(std::move(V));
+			out._Arms.push_back(std::move(V));
 		}
 
 		TokenTypeCheck(TryGetToken(), TokenType::Semicolon);
@@ -4172,7 +4172,7 @@ void Parser::SmartPointerNewArray(TypeNode& TypeNode, const Token* Token, FuncCa
 	ClassName._operator = ScopedName::Operator_t::ScopeResolution;
 
 	ClassName._generic = Shared_ptr<UseGenericsNode>(new UseGenericsNode(std::move(Generics)));
-	OutNode->FuncName._ScopedName.push_back(std::move(ClassName));
+	OutNode->_FuncName._ScopedName.push_back(std::move(ClassName));
 
 
 
@@ -4186,7 +4186,7 @@ void Parser::SmartPointerNewArray(TypeNode& TypeNode, const Token* Token, FuncCa
 	ScopedName FuncName;
 	FuncName._token = FuncNameToken;
 
-	OutNode->FuncName._ScopedName.push_back(std::move(FuncName));
+	OutNode->_FuncName._ScopedName.push_back(std::move(FuncName));
 
 
 	OutNode->Parameters._Nodes.push_back(Unique_ptr<Node>(ArrayCountexpression));
@@ -4208,7 +4208,7 @@ void Parser::SmartPointerNewToFuncName(TypeNode& TypeNode, ValueParametersNode& 
 	ClassName._operator = ScopedName::Operator_t::ScopeResolution;
 
 	ClassName._generic = Shared_ptr<UseGenericsNode>(new UseGenericsNode(std::move(Generics)));
-	OutNode->FuncName._ScopedName.push_back(std::move(ClassName));
+	OutNode->_FuncName._ScopedName.push_back(std::move(ClassName));
 
 
 
@@ -4222,7 +4222,7 @@ void Parser::SmartPointerNewToFuncName(TypeNode& TypeNode, ValueParametersNode& 
 	ScopedName FuncName;
 	FuncName._token = FuncNameToken;
 
-	OutNode->FuncName._ScopedName.push_back(std::move(FuncName));
+	OutNode->_FuncName._ScopedName.push_back(std::move(FuncName));
 
 	OutNode->Parameters = std::move(Pars);
 }
@@ -4399,7 +4399,7 @@ GotNodeType Parser::GetAwaitExpresionNode(AwaitExpression& out)
 	}
 	else
 	{
-		out.IsFunc = true;
+		out._IsFunc = true;
 		GetFuncCallNode(out._Func);
 	}
 

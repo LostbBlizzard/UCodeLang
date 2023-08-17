@@ -186,19 +186,19 @@ void Formater::ReFormat(const UF::InheritedTypeData& Node)
 
 void Formater::ReFormat(const UF::DeclareVariableNode& Node)
 {
-	ReFormat(Node.Access);
+	ReFormat(Node._Access);
 	ReFormat(Node._Type);
 
 	AddToOutput(" ");
-	AddToOutput(Node.Name.token->Value._String);
+	AddToOutput(Node._Name.token->Value._String);
 
-	if (Node.Expression._Value.get()) 
+	if (Node._Expression._Value.get()) 
 	{
 		AddToOutput(" ");
 		AddToOutput(ToName(UCodeLang::TokenType::equal));
 		AddToOutput(" ");
 
-		ReFormat(Node.Expression);
+		ReFormat(Node._Expression);
 
 		AddToOutput(ToName(UCodeLang::TokenType::Semicolon));
 	}
@@ -213,19 +213,19 @@ void Formater::ReFormat(const UF::DeclareVariableNode& Node)
 void Formater::ReFormat(const UF::DeclareStaticVariableNode& Node)
 {
 	AddToOutput(ToName(UCodeLang::TokenType::KeyWord_static));
-	ReFormat(Node.Variable);
+	ReFormat(Node._Variable);
 }
 
 void Formater::ReFormat(const UF::DeclareThreadVariableNode& Node)
 {
 	AddToOutput(ToName(UCodeLang::TokenType::KeyWord_Thread));
-	ReFormat(Node.Variable);
+	ReFormat(Node._Variable);
 }
 
 void Formater::ReFormat(const UF::DeclareEvalVariableNode& Node)
 {
 	AddToOutput(ToName(UCodeLang::TokenType::KeyWord_eval));
-	ReFormat(Node.Variable);
+	ReFormat(Node._Variable);
 }
 
 void Formater::ReFormat(const UF::TypeNode& Node)
