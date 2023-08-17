@@ -960,12 +960,12 @@ void IRBuilder::ToBytes(UCodeLang::BitMaker& Out, const UCodeLang::IRDebugIns& I
 
 void IRBuilder::FromBytes(BitReader& Out, IRDebugIns& Value)
 {
-	IRDebugIns::Variant Type;
+	IRDebugIns::IRVariant Type;
 	Out.ReadType(*(IRDebugIns::Variant_t*)&Type);
 
 	switch (Type)
 	{
-	case IRDebugIns::Variant::IRDebugSetFile:
+	case IRDebugIns::IRVariant::IRDebugSetFile:
 	{
 		IRDebugSetFile R = IRDebugSetFile();
 		Out.ReadType(R.FileName);
@@ -977,7 +977,7 @@ void IRBuilder::FromBytes(BitReader& Out, IRDebugIns& Value)
 		Value.Debug = std::move(R);
 	}
 	break;
-	case IRDebugIns::Variant::IRDebugSetLineNumber:
+	case IRDebugIns::IRVariant::IRDebugSetLineNumber:
 	{
 		IRDebugSetLineNumber R = IRDebugSetLineNumber();
 		{
@@ -994,7 +994,7 @@ void IRBuilder::FromBytes(BitReader& Out, IRDebugIns& Value)
 		Value.Debug = std::move(R);
 	}
 	break;
-	case IRDebugIns::Variant::IRDebugSetVarableName:
+	case IRDebugIns::IRVariant::IRDebugSetVarableName:
 	{
 		IRDebugSetVarableName R = IRDebugSetVarableName();
 		Out.ReadType(R.IRVarableName);
