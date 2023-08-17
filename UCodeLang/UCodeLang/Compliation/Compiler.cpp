@@ -177,7 +177,7 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 		if (FInfo == nullptr) { continue; }
 
 		const Path FilePath = dirEntry.path();
-		Path RePath = FileHelper::RelativePath(FilePath, Data.FileDir);
+		Path RePath = FileHelper::RelativePath(FilePath,Path(Data.FileDir));
 
 		_Errors.FilePath = RePath;
 
