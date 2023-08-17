@@ -5,6 +5,7 @@
 #include <string>
 #include <thread>
 #include <fstream>
+#include <UCodeLang/LangCore/StringHelper.hpp>
 
 const char NumberCharList[] = "1234567890";
 bool IsInNumCharList(char Value)
@@ -89,11 +90,15 @@ void LogMSG(const std::string& Str)
 //--Start [SeverIp] [Port] 
 void RunArg(std::string_view View)
 {
-	if (View._Starts_with("--"))
-	{
-		View = View.substr(2);
 
-		if (View._Starts_with("Start"))
+	
+	using StrHelp =	UCodeLang::StringHelper;	 
+
+	if (StrHelp::StartWith(View,"--"))
+	{
+		View = View.substr(2);UCodeLang::
+
+		if (StrHelp::StartWith(View,"Start"))
 		{
 			size_t ArgNameSize = sizeof("Start") - 1;
 			View = View.substr(ArgNameSize);

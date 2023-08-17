@@ -214,7 +214,7 @@ void LanguageSever::Sever_Exit(const json& params)
 void LanguageSever::textDocument_didOpen(const json& Params)
 {
 	DidOpenTextDocumentParams params;
-	ns::from_json(Params,params);
+	UCodeLanguageSever::from_json(Params,params);
 
 
 	if (params.textDocument.languageId == UCodeLangLanguageId) {
@@ -230,14 +230,14 @@ void LanguageSever::textDocument_didOpen(const json& Params)
 void LanguageSever::textDocument_didClose(const json& Params)
 {
 	DidCloseTextDocumentParams params;
-	ns::from_json(Params, params);
+	UCodeLanguageSever::from_json(Params, params);
 
 	BaseSever.RemoveFile(Cast(params.textDocument.uri));
 }
 void LanguageSever::textDocument_didChange(const json& Params)
 {
 	DidChangeTextDocumentParams params;
-	ns::from_json(Params, params);
+	UCodeLanguageSever::from_json(Params, params);
 
 	auto& Ufile = BaseSever.GetFile(Cast(params.textDocument.uri));
 	
@@ -416,7 +416,7 @@ UCodeAnalyzer::Fileidentifier LanguageSever::Cast(const UCodeLanguageSever::Docu
 void LanguageSever::Sever_initialize(integer requestid, const json& Params)
 {
 	InitializeParams params;
-	ns::from_json(Params, params);
+	UCodeLanguageSever::from_json(Params, params);
 	
 	InitializeResult V;
 	V.capabilities.positionEncoding = PositionEncodingkind::PositionEncodingKind8;
