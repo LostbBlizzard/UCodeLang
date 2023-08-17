@@ -36,6 +36,9 @@ workspace "UCodeLang"
    UCPathExeName ="ucodelang.exe"
    UCPathExe = UCPathExeDir ..  UCPathExeName
 
+
+   
+
    filter { "platforms:Win32" }
     system "Windows"
     architecture "x86"
@@ -109,8 +112,10 @@ project "UCApp"
     "UCodeLang/Dependencies/zydis/src"
    }
 
+   
+   
    links {
-      "UCodeLang.lib",
+      "UCodeLang",
    }
    libdirs { 
       "Output/UCodeLang/" .. OutDirPath,
@@ -138,8 +143,9 @@ project "UCodelangCL"
     "UCodeLang",
    }
 
+   
    links {
-      "UCodeLang.lib",
+      "UCodeLang",
    }
    libdirs { 
       "Output/UCodeLang/" .. OutDirPath,
@@ -235,9 +241,10 @@ project "UCodeLanguageSever"
    }
 
    links {
-      "UCodeLang.lib",
-      "UCodeLanguageSeverlib.lib",
+      "UCodeLang",
+      "UCodeLanguageSeverlib",
    }
+
    libdirs { 
       "Output/UCodeLang/" .. OutDirPath,
       "Output/UCodeLanguageSeverlib/" .. OutDirPath,
@@ -302,30 +309,31 @@ project "UCodeIDE"
     "UCApp",
    }
 
-   links {
-     "UCodeLang.lib",
-     "UCodeLanguageSeverlib.lib",
-   }
+
    libdirs { 
       "Output/UCodeLang/" .. OutDirPath,
       "Output/UCodeLanguageSeverlib/" .. OutDirPath,
       "%{prj.name}/Dependencies/GLEW/Lib",
    }
 
+   links {
+      "UCodeLang",
+      "UCodeLanguageSeverlib",
+   }
+
    filter { "system:Windows" }
     kind "ConsoleApp"   
     defines {"_GLFW_WIN32"}
+    
 
    filter { "system:linux" }
     kind "ConsoleApp"   
-    defines {"_GLFW_WIN32"}
+    defines {""}
 
    filter { "system:MacOS" }
     kind "ConsoleApp"   
-    defines {"_GLFW_WIN32"}
+    defines {""}
 
-   filter { "system:Windows","configurations:Published" }
-    kind ("WindowedApp")
    filter { "system:Windows","configurations:Published" }
     kind ("WindowedApp")
 
