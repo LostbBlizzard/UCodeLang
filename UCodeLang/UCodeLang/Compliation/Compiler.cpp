@@ -189,7 +189,7 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 		{
 			_FrontEndObject->Reset();
 		}
-		_FrontEndObject->Set_FileIDType(FInfo->FileID);
+		_FrontEndObject->Set_FileIDType(FInfo->FileId);
 
 		_FrontEndObject->SetSourcePath(FilePath);
 		if (FInfo->Type == FrontEndType::Text) 
