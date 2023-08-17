@@ -1,6 +1,6 @@
 #include "Parser.hpp"
 #include "../Helpers/KeyWords.hpp"
-#include "..\UAssembly\UAssembly_Parser.hpp"
+#include "../UAssembly/UAssembly_Parser.hpp"
 UCodeLangFrontStart
 
 
