@@ -104,9 +104,9 @@ project "UCApp"
     "%{prj.name}/src",
     "UCodeLang",
     
-    "UCodeLang/Dependencies/Zydis/include",
+    "UCodeLang/Dependencies/zydis/include",
     "UCodeLang/Dependencies/zycore/include",
-    "UCodeLang/Dependencies/Zydis/src"
+    "UCodeLang/Dependencies/zydis/src"
    }
 
    links {
