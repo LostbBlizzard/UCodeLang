@@ -1,9 +1,10 @@
 #include "Window.hpp"
-#include "Imgui/backends/imgui_impl_glfw.h"
-#include "Imgui/backends/imgui_impl_opengl3.h"
+#include "imgui/backends/imgui_impl_glfw.h"
+#include "imgui/backends/imgui_impl_opengl3.h"
 #include <stdio.h>
 #include <GLFW/glfw3.h>
 #include <exception>
+#include <stdexcept>
 
 #include <UCodeLang/LangCore/LangDef.hpp>
 static void glfw_error_callback(int error, const char* description)

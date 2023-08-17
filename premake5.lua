@@ -279,32 +279,32 @@ project "UCodeIDE"
      "%{prj.name}/Dependencies/GLFW/src/**.c",
      "%{prj.name}/Dependencies/GLFW/src/**.h", 
 
-     "%{prj.name}/Dependencies/Imgui/*.cpp",
-     "%{prj.name}/Dependencies/Imgui/*.h", 
+     "%{prj.name}/Dependencies/imgui/*.cpp",
+     "%{prj.name}/Dependencies/imgui/*.h", 
      
-     "%{prj.name}/Dependencies/Imgui/backends/imgui_impl_opengl3.h",
-     "%{prj.name}/Dependencies/Imgui/backends/imgui_impl_opengl3_loader.h",
-     "%{prj.name}/Dependencies/Imgui/backends/imgui_impl_opengl3.cpp",
+     "%{prj.name}/Dependencies/imgui/backends/imgui_impl_opengl3.h",
+     "%{prj.name}/Dependencies/imgui/backends/imgui_impl_opengl3_loader.h",
+     "%{prj.name}/Dependencies/imgui/backends/imgui_impl_opengl3.cpp",
 
-     "%{prj.name}/Dependencies/Imgui/backends/imgui_impl_glfw.cpp",
-     "%{prj.name}/Dependencies/Imgui/backends/imgui_impl_glfw.h",
+     "%{prj.name}/Dependencies/imgui/backends/imgui_impl_glfw.cpp",
+     "%{prj.name}/Dependencies/imgui/backends/imgui_impl_glfw.h",
 
-     "%{prj.name}/Dependencies/Imgui/misc/cpp/*.cpp",
-     "%{prj.name}/Dependencies/Imgui/misc/cpp/*.h", 
+     "%{prj.name}/Dependencies/imgui/misc/cpp/*.cpp",
+     "%{prj.name}/Dependencies/imgui/misc/cpp/*.h", 
    }
 
    includedirs{
     "%{prj.name}/src",
+    "%{prj.name}/Dependencies",
+    "%{prj.name}/Dependencies/imgui",
+    "%{prj.name}/Dependencies/GLFW/include",
+    "%{prj.name}/Dependencies/GLFW/deps",
+    "%{prj.name}/Dependencies/GLEW",
+
     "UCodeLang",
     "UCodeLang/UCodeLang",
     "UCodeLanguageSeverlib/json/include",
     "UCodeLanguageSeverlib/src",
-
-    "%{prj.name}/Dependencies",
-    "%{prj.name}/Dependencies/Imgui",
-    "%{prj.name}/Dependencies/GLFW/include",
-    "%{prj.name}/Dependencies/GLFW/deps",
-    "%{prj.name}/Dependencies/GLEW",
 
     "UCApp",
    }
@@ -328,11 +328,11 @@ project "UCodeIDE"
 
    filter { "system:linux" }
     kind "ConsoleApp"   
-    defines {""}
+    defines {}
 
    filter { "system:MacOS" }
     kind "ConsoleApp"   
-    defines {""}
+    defines {}
 
    filter { "system:Windows","configurations:Published" }
     kind ("WindowedApp")

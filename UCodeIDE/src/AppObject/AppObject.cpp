@@ -2,7 +2,7 @@
 #include "imgui/imgui.h"
 #include "LanguageSever.hpp"
 #include "ImGuiHelpers/ImguiHelper.hpp"
-#include "Imgui/misc/cpp/imgui_stdlib.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
 #include "UCodeLang/Compliation/UAssembly/UAssembly.hpp"
 
 
@@ -21,9 +21,13 @@
 #include <tests/Test.hpp>
 #include <future>
 #include <sstream>
-#ifdef UCodeLang_Platform_Windows
+#if UCodeLang_Platform_Windows
 #include <Windows.h>
-#endif // DEBUG
+#elif UCodeLang_Platform_Linux
+
+#else
+
+#endif 
 
 UCodeIDEStart
 
@@ -344,7 +348,14 @@ void EndDockSpace()
 }
 void AppObject::OpenOnWeb(const String& WebLink)
 {
+    #if UCodeLang_Platform_Windows
     ShellExecuteA(0, 0, WebLink.c_str(), 0, 0, SW_SHOW);
+    #elif UCodeLang_Platform_Linux
+    auto cmd =String("open ") + WebLink;
+    system(cmd.c_str());
+    #else //MacOS
+
+    #endif 
 }
 void AppObject::OnDraw()
 {
@@ -362,9 +373,10 @@ void AppObject::OnDraw()
     ProcessSeverPackets();
 
     {
-        if (IsRuningCompiler == false && _RuningCompiler._Is_ready())
+        if (IsRuningCompiler == false && _RuningCompiler.valid())
         {
-            OnDoneCompileing(_RuningCompiler.get(), _RuningPaths.OutFile);
+            auto compilerret =_RuningCompiler.get();
+            OnDoneCompileing(compilerret, _RuningPaths.OutFile);
         }
     }
 
@@ -710,7 +722,7 @@ void AppObject::OnDraw()
             {
                 TestPassedCount++;
             }
-            if (Thread.get() && Thread->_Is_ready())
+            if (Thread.get() && Thread->valid())
             {
                 TestRuningCount++;
             }
@@ -774,7 +786,7 @@ void AppObject::OnDraw()
                 TestV += ",State:" + TestInfo::GetToString(ItemTestOut.State);
                 if (Thread.get())
                 {
-                    if (!Thread->_Is_ready())
+                    if (!Thread->valid())
                     {
                         TestV += ",Working...";
                     }
@@ -786,15 +798,19 @@ void AppObject::OnDraw()
 
                     if (Thread.get())
                     {
-                        if (!Thread->_Is_ready())
+                        if (!Thread->valid())
                         {
                             IsWorking = true;
                         }
                     }
 
                     ImGui::BeginDisabled();
-                    ImguiHelper::InputText("TestName", String(ItemTest.TestName));
-                    ImguiHelper::InputText("TestPath", String(ItemTest.InputFilesOrDir));
+                    
+                    String tepstr1 = ItemTest.TestName;
+                    ImguiHelper::InputText("TestName", tepstr1);
+                    
+                    String tepstr2 = ItemTest.InputFilesOrDir;
+                    ImguiHelper::InputText("TestPath", tepstr2);
 
                     ImGui::SameLine();
                     ImGui::EndDisabled();
@@ -1202,8 +1218,14 @@ void AppObject::ProcessSeverPackets()
 
 void AppObject::ShowInFiles(const Path& path)
 {
-   
+    #if UCodeLang_Platform_Windows
     ShellExecute(NULL, L"open", path.c_str(), NULL, NULL, SW_SHOWDEFAULT);
+    #elif UCodeLang_Platform_Linux
+    auto cmd =(String("open ") + path.generic_string());
+    system(cmd.c_str());
+    #else //MacOS
+
+    #endif 
 }
 
 void AppObject::ShowUCodeVMWindow()
@@ -1891,7 +1913,7 @@ void AppObject::HotReloadRunTime()
 void AppObject::OnPublishDiagnostics(const UCodeLanguageSever::json& Params)
 {
     LS::PublishDiagnosticsParams params;
-    ns::from_json(Params, params);
+    UCodeLanguageSever::from_json(Params, params);
 
     PublishedDiagnostics = std::move(params);
     OnErrorListUpdated();
@@ -2061,7 +2083,7 @@ size_t AppObject::GetColumn(const String& text,size_t line,size_t Pos)
     size_t OnColumn = 0;
     for (size_t i = 0; i < text.size(); i++)
     {
-        if (text[i] == '/n')
+        if (text[i] == '\n')
         {
             OnLine++;
         }
