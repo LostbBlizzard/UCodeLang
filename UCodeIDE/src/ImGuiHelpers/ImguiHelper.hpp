@@ -225,10 +225,10 @@ public:
 
 		Info._OnDrawItem = [](void* Object, size_t Index)
 		{
-			UCodeEditor::Span<T>& Objectbuf = *(UCodeEditor::Span<T>*)Object;
+			UCodeLang::Span<T>& Objectbuf = *(UCodeLang::Span<T>*)Object;
 			auto& Item = Objectbuf[Index];
 
-			DrawValue<T>(&Item);
+			return DrawValue<T>(&Item);
 		};
 
 
@@ -243,7 +243,7 @@ public:
 
 		Info._OnDrawItem = [](void* Object, size_t Index)
 		{
-			UCodeEditor::Array<T, Size>& Objectbuf = *(UCodeEditor::Array<T, Size>*)Object;
+			UCodeLang::Array<T, Size>& Objectbuf = *(UCodeLang::Array<T, Size>*)Object;
 			auto& Item = Objectbuf[Index];
 
 			DrawValue<T>(&Item);
@@ -263,94 +263,95 @@ public:
 	}
 	template<typename T> static bool DrawValue(T* Item)
 	{
-		static_assert("funcion has no body", true);
+		static_assert(true,"funcion has no body");
+		return false;
 	}
 
-	 static bool DrawValue<bool>(bool* Item)
+	 static bool DrawValue(bool* Item)
 	{
 		ImGui::PushID(Item);
 		auto R = BoolEnumField("", *Item);
 		ImGui::PopID();
 		return R;
 	}
-	 static bool DrawValue<char>(char* Item)
+	 static bool DrawValue(char* Item)
 	{
 		ImGui::PushID(Item);
 		auto R = CharField("", *Item);
 		ImGui::PopID();
 		return R;
 	}
-	 static bool DrawValue<Int64>(Int64* Item)
+	 static bool DrawValue(Int64* Item)
 	{
 		ImGui::PushID(Item);
 		auto R = ImGui::InputScalar("", ImGuiDataType_::ImGuiDataType_S64, Item);
 		ImGui::PopID();
 		return R;
 	}
-	 static bool DrawValue<UInt64>(UInt64* Item)
+	 static bool DrawValue(UInt64* Item)
 	{
 		ImGui::PushID(Item);
 		auto R = ImGui::InputScalar("", ImGuiDataType_::ImGuiDataType_U64, Item);
 		ImGui::PopID();
 		return R;
 	}
-	 static bool DrawValue<Int32>(Int32* Item)
+	 static bool DrawValue(Int32* Item)
 	{
 		ImGui::PushID(Item);
 		auto R = ImGui::InputScalar("", ImGuiDataType_::ImGuiDataType_S32, Item);
 		ImGui::PopID();
 		return R;
 	}
-	 static bool DrawValue<UInt32>(UInt32* Item)
+	 static bool DrawValue(UInt32* Item)
 	{
 		ImGui::PushID(Item);
 		auto R = ImGui::InputScalar("", ImGuiDataType_::ImGuiDataType_U32, Item);
 		ImGui::PopID();
 		return R;
 	}
-	 static bool DrawValue<Int16>(Int16* Item)
+	 static bool DrawValue(Int16* Item)
 	{
 		ImGui::PushID(Item);
 		auto R = ImGui::InputScalar("", ImGuiDataType_::ImGuiDataType_S16, Item);
 		ImGui::PopID();
 		return R;
 	}
-	 static bool DrawValue<UInt16>(UInt16* Item)
+	 static bool DrawValue(UInt16* Item)
 	{
 		ImGui::PushID(Item);
 		auto R = ImGui::InputScalar("", ImGuiDataType_::ImGuiDataType_U16, Item);
 		ImGui::PopID();
 		return R;
 	}
-	 static bool DrawValue<Int8>(Int8* Item)
+	 static bool DrawValue(Int8* Item)
 	{
 		ImGui::PushID(Item);
 		auto R = ImGui::InputScalar("", ImGuiDataType_::ImGuiDataType_S8, Item);
 		ImGui::PopID();
 		return R;
 	}
-	 static bool DrawValue<UInt8>(UInt8* Item)
+	 static bool DrawValue(UInt8* Item)
 	{
 		ImGui::PushID(Item);
 		auto R = ImGui::InputScalar("", ImGuiDataType_::ImGuiDataType_U8, Item);
 		ImGui::PopID();
 		return R;
 	}
-	 static bool DrawValue<float>(float* Item)
+	 static bool DrawValue(float* Item)
 	{
 		ImGui::PushID(Item);
 		auto R = ImGui::InputScalar("", ImGuiDataType_::ImGuiDataType_Float, Item);
 		ImGui::PopID();
 		return R;
 	}
-	 static bool DrawValue<double>(double* Item)
+	 static bool DrawValue(double* Item)
 	{
 		ImGui::PushID(Item);
 		auto R = ImGui::InputScalar("", ImGuiDataType_::ImGuiDataType_Float, Item);
 		ImGui::PopID();
 		return R;
 	}
-	 static bool DrawValue<String>(String* Item)
+	 static bool DrawValue(String* Item)
 	{
 		ImGui::PushID(Item);
 		auto R = InputText("", *Item);
