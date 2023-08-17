@@ -4,7 +4,13 @@
 #include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
 UCodeLangStart
 
+
+
+#if UCodeLangMSVC 
 #define UCodeLangAPI __cdecl 
+#else
+#define UCodeLangAPI 
+#endif
 class InterpreterCPPinterface;
 
 using CPPCallRet = void;
@@ -15,6 +21,11 @@ public:
 	using CPPCallBack = CPPCallRet(UCodeLangAPI*)(InterpreterCPPinterface& Input);
 	template<typename T, typename... Pars>
 	using NativeCall = T(UCodeLangAPI*)(Pars...);
+	struct CPPCall
+	{
+		CPPCallBack InterpreterCall = nullptr;
+		void* NativeCall = nullptr;
+	};
 
 	RunTimeLib(): _Lib(nullptr)
 	{
@@ -44,11 +55,7 @@ public:
 	{
 		_NameToCppCall[Name] = { CPP,(void*)Native };
 	}
-	struct CPPCall
-	{
-		CPPCallBack InterpreterCall = nullptr;
-		void* NativeCall = nullptr;
-	};
+	
 private:
 	UClib* _Lib;
 	Vector<Instruction> _Instruction;
