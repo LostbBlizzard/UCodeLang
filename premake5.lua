@@ -162,28 +162,28 @@ project "UCodeLang"
    }
    includedirs{
     "UCodeLang",
-    "%{prj.name}/Dependencies/Zydis/include",
+    "%{prj.name}/Dependencies/zydis/include",
     "%{prj.name}/Dependencies/zycore/include",
-    "%{prj.name}/Dependencies/Zydis/src"
+    "%{prj.name}/Dependencies/zydis/src"
    }
    removefiles{
-     "%{prj.name}/Dependencies/Zydis/**.c",
+     "%{prj.name}/Dependencies/zydis/**.c",
      "%{prj.name}/Dependencies/zycore/**.c",
 
-      "%{prj.name}/Dependencies/Zydis/**.cpp",
+      "%{prj.name}/Dependencies/zydis/**.cpp",
      "%{prj.name}/Dependencies/zycore/**.cpp",
 
-     "%{prj.name}/Dependencies/Zydis/**.h",
+     "%{prj.name}/Dependencies/zydis/**.h",
      "%{prj.name}/Dependencies/zycore/**.h",
    }
    files { 
-    "%{prj.name}/Dependencies/Zydis/src/**.c",
+    "%{prj.name}/Dependencies/zydis/src/**.c",
     "%{prj.name}/Dependencies/zycore/src/**.c",
 
-    "%{prj.name}/Dependencies/Zydis/src/**.inc",
+    "%{prj.name}/Dependencies/zydis/src/**.inc",
     "%{prj.name}/Dependencies/zycore/src/**.inc",
 
-    "%{prj.name}/Dependencies/Zydis/include/**.h",
+    "%{prj.name}/Dependencies/zydis/include/**.h",
     "%{prj.name}/Dependencies/zycore/include/**.h",
    }
 
