@@ -1,5 +1,6 @@
 #include "NativeWappers.hpp"
 #include <fstream>
+#include <cstring> //memcpy
 UCodeLangStart
 
  
