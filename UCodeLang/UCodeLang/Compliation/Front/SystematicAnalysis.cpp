@@ -2820,7 +2820,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 		{
 			{
 				auto& VarType = syb->VarType;
-				Type_Convert(node.TypeNode, VarType);
+				Type_Convert(node.typeNode, VarType);
 				VarType.SetAsLocation();
 
 
@@ -2873,7 +2873,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 		{
 			{
 				auto& VarType = syb->VarType;
-				Type_Convert(node.TypeNode, VarType);
+				Type_Convert(node.typeNode, VarType);
 				VarType.SetAsLocation();
 			}
 
@@ -2972,7 +2972,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 
 
 						
-						auto Token = node.TypeNode._name.token;
+						auto Token = node.TypeNode.Name.Token;
 						Type_DeclareVariableTypeCheck(syb->VarType, g.FuncToGet->Get_Info<FuncInfo>()->Ret, Token);
 					}
 				}
