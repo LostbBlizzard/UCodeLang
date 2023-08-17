@@ -18,7 +18,7 @@ struct StringliteralNode :Node
 
 	AddforNode(StringliteralNode);
 
-	const Token* Token = nullptr;
+	const Token* token = nullptr;
 };
 struct BoolliteralNode :Node
 {
@@ -29,10 +29,10 @@ struct BoolliteralNode :Node
 	AddforNode(BoolliteralNode);
 
 
-	const Token* Token = nullptr;
+	const Token* token = nullptr;
 	inline bool Get_Value() const
 	{
-		return Token->Type == TokenType::KeyWorld_True;
+		return token->Type == TokenType::KeyWorld_True;
 	}
 };
 struct NumberliteralNode :Node
@@ -43,7 +43,7 @@ struct NumberliteralNode :Node
 	}
 	AddforNode(NumberliteralNode);
 
-	const Token* Token = nullptr;
+	const Token* token = nullptr;
 };
 
 struct FloatliteralNode :Node
@@ -54,7 +54,7 @@ struct FloatliteralNode :Node
 	}
 	AddforNode(FloatliteralNode);
 
-	const Token* Token = nullptr;
+	const Token* token = nullptr;
 };
 
 struct CharliteralNode :Node
@@ -65,7 +65,7 @@ struct CharliteralNode :Node
 	}
 	AddforNode(CharliteralNode);
 
-	const Token* Token = nullptr;
+	const Token* token = nullptr;
 };
 
 struct NameNode :Node
@@ -76,14 +76,14 @@ struct NameNode :Node
 	}
 	AddforNode(NameNode);
 
-	const Token* Token = nullptr;
+	const Token* token = nullptr;
 	String AsString()const
 	{
-		return  String(Token->Value._String);
+		return  String(token->Value._String);
 	}
 	String_view AsStringView() const
 	{
-		return Token->Value._String;
+		return token->Value._String;
 	}
 };
 
@@ -104,13 +104,13 @@ struct ScopedName
 
 
 	
-	const Token* token = nullptr;
-	Operator_t Operator = Operator_t::Null;
-	Shared_ptr<UseGenericsNode> Generic;//C++ doesn't like circular dependencies and this need to be copy able
+	const Token* _token = nullptr;
+	Operator_t _operator = Operator_t::Null;
+	Shared_ptr<UseGenericsNode> _generic;//C++ doesn't like circular dependencies and this need to be copy able
 
 	inline void GetScopedName(String& out) const
 	{
-		Token::PushString(out, *token);
+		Token::PushString(out, *_token);
 	}
 	static bool Get_IsScoped(TokenType Type)
 	{
@@ -140,7 +140,7 @@ struct ScopedName
 	
 	UseGenericsNode& Get_Generic()
 	{
-		return *Generic.get();
+		return *_generic.get();
 	}
 };
 
@@ -152,18 +152,18 @@ struct ScopedNameNode :Node
 	}
 	AddforNode(ScopedNameNode);
 
-	Vector<ScopedName> ScopedName;
+	Vector<ScopedName> _ScopedName;
 
 	
 	inline void GetScopedName(String& out,size_t Start =0 ) const
 	{
-		for (size_t i = Start; i < ScopedName.size(); i++)
+		for (size_t i = Start; i < _ScopedName.size(); i++)
 		{
-			auto& item = ScopedName[i];
+			auto& item = _ScopedName[i];
 			item.GetScopedName(out);
-			if (&item != &ScopedName.back())
+			if (&item != &_ScopedName.back())
 			{
-				switch (item.Operator)
+				switch (item._operator)
 				{
 				case ScopedName::Operator_t::ScopeResolution:
 					out += ScopeHelper::_ScopeSep;
@@ -192,7 +192,7 @@ struct ReadVariableNode :Node
 	}
 	AddforNode(ReadVariableNode);
 
-	ScopedNameNode VariableName;
+	ScopedNameNode _VariableName;
 };
 struct NamespaceNode :Node
 {
@@ -203,7 +203,7 @@ struct NamespaceNode :Node
 	NamespaceNode(NamespaceNode&& Source) = default;
 	AddforNodeAndWithList(NamespaceNode);
 
-	ScopedNameNode NamespaceName;
+	ScopedNameNode _NamespaceName;
 };
 
 
@@ -222,13 +222,13 @@ struct GenericValueNode :Node
 	{
 
 	}
-	const Token* Token = nullptr;
-	GenericType Generictype = GenericType::Name;
+	const Token* token = nullptr;
+	GenericType _Generictype = GenericType::Name;
 
 
 	String_view AsStringView() const
 	{
-		return Token->Value._String;
+		return token->Value._String;
 	}
 	String AsString() const
 	{
@@ -241,11 +241,11 @@ struct GenericValuesNode :Node
 	{
 
 	}
-	Vector<GenericValueNode> Values;
+	Vector<GenericValueNode> _Values;
 
 	UCodeLangForceinline bool HasGeneric()
 	{
-		return Values.size();
+		return _Values.size();
 	}
 };
 
@@ -257,22 +257,22 @@ struct UseGenericsNode :Node
 	{
 
 	}
-	Vector<TypeNode> Values;
+	Vector<TypeNode> _Values;
 
 	UCodeLangForceinline bool HasGeneric()
 	{
-		return Values.size();
+		return _Values.size();
 	}
 };
 
 struct InheritedTypeValue
 {
-	NameNode Name;
-	UseGenericsNode Generic;
+	NameNode _Name;
+	UseGenericsNode _generic;
 };
 struct InheritedTypeData
 {
-	Vector<InheritedTypeValue> Values;
+	Vector<InheritedTypeValue> _values;
 };
 struct AttributeNode;
 
@@ -285,11 +285,11 @@ struct ClassNode :Node
 	ClassNode(ClassNode&& Source) = default;
 	AddforNodeAndWithList(ClassNode);
 
-	NameNode ClassName;
-	GenericValuesNode Generic;
-	InheritedTypeData Inherited;
-	AccessModifierType Access = AccessModifierType::Default;
-	Vector<Unique_ptr<AttributeNode>> Attributes;
+	NameNode _className;
+	GenericValuesNode _generic;
+	InheritedTypeData _Inherited;
+	AccessModifierType _Access = AccessModifierType::Default;
+	Vector<Unique_ptr<AttributeNode>> _Attributes;
 };
 
 
@@ -302,7 +302,7 @@ struct UsingNode :Node
 	}
 	AddforNode(UsingNode);
 
-	ScopedNameNode ScopedName;
+	ScopedNameNode _ScopedName;
 };
 
 
@@ -312,9 +312,9 @@ struct TypeNode :Node
 	{
 
 	}
-	NameNode Name;
-	UseGenericsNode Generic;
-	Unique_ptr<Node> node = nullptr;
+	NameNode _name;
+	UseGenericsNode _generic;
+	Unique_ptr<Node> _node = nullptr;
 
 	static constexpr bool IsType(TokenType Type)
 	{
@@ -358,8 +358,8 @@ struct TypeNode :Node
 		T->Type = Type;
 		T->OnLine = ToGetLinesFrom.OnLine;
 		T->OnPos = ToGetLinesFrom.OnPos;
-		Out.GenToken = std::move(T);
-		Out.Name.Token =Out.GenToken.get();
+		Out._GenToken = std::move(T);
+		Out._name.token =Out._GenToken.get();
 	}
 	static void Gen_void(TypeNode& Out, const Token& ToGetLinesFrom)
 	{
@@ -385,17 +385,17 @@ struct TypeNode :Node
 
 	bool IsThisMemberFunc() const
 	{
-		return Name.Token->Type == TokenType::KeyWord_This
-			&& IsAddess;
+		return _name.token->Type == TokenType::KeyWord_This
+			&& _IsAddess;
 	}
 	String AsString() const
 	{
-		auto T = Name.Token->Type;
+		auto T = _name.token->Type;
 		if (IsPrimitive(T))
 		{
 			return TokenStringHelper::ToString(T);
 		}
-		return String(Name.Token->Value._String);
+		return String(_name.token->Value._String);
 	}
 	TypeNode(const TypeNode& ToCopyFrom) = default;
 	TypeNode(TypeNode&& source) = default;
@@ -403,44 +403,44 @@ struct TypeNode :Node
 	~TypeNode() = default;
 	void SetAsAddess()
 	{
-		IsAddess = true;
+		_IsAddess = true;
 	}
 	void SetAsArrayAddess()
 	{
-		IsAddessArray = true;
+		_IsAddessArray = true;
 	}
 	void SetAsimmutable()
 	{
-		Isimmutable = true;
+		_Isimmutable = true;
 	}
 	void SetAsStaticArray()
 	{
-		IsStackArray = true;
+		_IsStackArray = true;
 	}
 	void SetMovedType()
 	{
-		IsTypedMoved = true;
+		_IsTypedMoved = true;
 	}
 
 	void SetDynamic()
 	{
-		IsDynamic = true;
+		_IsDynamic = true;
 	}
 
 	void SetAsBinding()
 	{
-		IsTypeBinding = true;
+		_IsTypeBinding = true;
 	}
 
-	bool IsAddess = false;
-	bool IsAddessArray = false;
-	bool Isimmutable = false;
-	bool IsStackArray = false;
-	bool IsTypedMoved = false;
-	bool IsDynamic = false;
-	bool IsTypeBinding = false;
+	bool _IsAddess = false;
+	bool _IsAddessArray = false;
+	bool _Isimmutable = false;
+	bool _IsStackArray = false;
+	bool _IsTypedMoved = false;
+	bool _IsDynamic = false;
+	bool _IsTypeBinding = false;
 private:
-	Unique_ptr<Token> GenToken;
+	Unique_ptr<Token> _GenToken;
 };
 
 struct NamedParameterNode :Node
@@ -449,9 +449,9 @@ struct NamedParameterNode :Node
 	{
 
 	}
-	TypeNode Type;
-	NameNode Name;
-	bool IsOutVarable = false;
+	TypeNode _Type;
+	NameNode _Name;
+	bool _IsOutVarable = false;
 };
 struct NamedParametersNode :Node
 {
@@ -460,7 +460,7 @@ struct NamedParametersNode :Node
 
 	}
 	AddforNode(NamedParametersNode);
-	Vector<NamedParameterNode> Parameters;
+	Vector<NamedParameterNode> _Parameters;
 };
 struct ValueParametersNode :Node
 {
@@ -480,10 +480,10 @@ struct AttributeNode :Node
 	}
 	AddforNode(AttributeNode);
 
-	ScopedNameNode ScopedName;
-	ValueParametersNode Parameters;
+	ScopedNameNode _ScopedName;
+	ValueParametersNode _Parameters;
 
-	AccessModifierType Access = AccessModifierType::Default;
+	AccessModifierType _Access = AccessModifierType::Default;
 };
 struct StatementsNode :Node
 {
@@ -499,19 +499,19 @@ struct StatementsNode :Node
 };
 struct FuncSignatureNode :Node
 {
-	NameNode Name;
-	GenericValuesNode Generic;
-	NamedParametersNode Parameters;
-	TypeNode ReturnType;
-	AccessModifierType Access = AccessModifierType::Default;
+	NameNode _Name;
+	GenericValuesNode _generic;
+	NamedParametersNode _Parameters;
+	TypeNode _ReturnType;
+	AccessModifierType _Access = AccessModifierType::Default;
 
-	bool HasExternKeyWord = false;
-	bool HasDynamicKeyWord = false;
-	bool HasEvalKeyWord = false;
+	bool _HasExternKeyWord = false;
+	bool _HasDynamicKeyWord = false;
+	bool _HasEvalKeyWord = false;
 };
 struct FuncBodyNode :Node
 {
-	StatementsNode Statements;
+	StatementsNode _Statements;
 };
 struct FuncNode :Node
 {
@@ -526,8 +526,8 @@ struct FuncNode :Node
 
 		
 	AddforNode(FuncNode);
-	FuncSignatureNode Signature;
-	Optional<FuncBodyNode> Body;
+	FuncSignatureNode _Signature;
+	Optional<FuncBodyNode> _Body;
 	Vector<Unique_ptr<AttributeNode>> _Attributes;
 };
 
@@ -538,7 +538,7 @@ struct AsmBlockNode :Node
 
 	}
 	AddforNode(AsmBlockNode);
-	String_view AsmText;
+	String_view _AsmText;
 };
 
 struct ExpressionNodeType :Node
@@ -548,34 +548,34 @@ struct ExpressionNodeType :Node
 
 	}
 	AddforNode(ExpressionNodeType);
-	Unique_ptr<Node> Value = nullptr;
+	Unique_ptr<Node> _Value = nullptr;
 	ExpressionNodeType(const ExpressionNodeType& ToCopyFrom) = default;
 	ExpressionNodeType(ExpressionNodeType&& source) = default;
 	~ExpressionNodeType() = default;
 	ExpressionNodeType& operator=(ExpressionNodeType&& source) = default;
 
-	inline static bool IsPostfixOperator(const Token* Token)
+	inline static bool IsPostfixOperator(const Token* token)
 	{
-		return Token->Type == TokenType::increment
-			|| Token->Type == TokenType::decrement;
+		return token->Type == TokenType::increment
+			|| token->Type == TokenType::decrement;
 	}
-	inline static bool IsCompoundOperator(const Token* Token)
+	inline static bool IsCompoundOperator(const Token* token)
 	{
-		return Token->Type == TokenType::CompoundAdd
-			|| Token->Type == TokenType::CompoundSub
-			|| Token->Type == TokenType::CompoundMult
-			|| Token->Type == TokenType::CompoundDiv;
+		return token->Type == TokenType::CompoundAdd
+			|| token->Type == TokenType::CompoundSub
+			|| token->Type == TokenType::CompoundMult
+			|| token->Type == TokenType::CompoundDiv;
 	}
-	inline static bool IsUnaryOperator(const Token* Token)
+	inline static bool IsUnaryOperator(const Token* token)
 	{
-		return Token->Type == TokenType::plus
-			|| Token->Type == TokenType::minus
-			|| Token->Type == TokenType::KeyWorld_Sizeof
-			|| Token->Type == TokenType::KeyWorld_Nameof
-			|| Token->Type == TokenType::KeyWorld_typeof
-			|| Token->Type == TokenType::Not
-			|| Token->Type == TokenType::bitwise_not
-			|| Token->Type == TokenType::QuestionMark;
+		return token->Type == TokenType::plus
+			|| token->Type == TokenType::minus
+			|| token->Type == TokenType::KeyWorld_Sizeof
+			|| token->Type == TokenType::KeyWorld_Nameof
+			|| token->Type == TokenType::KeyWorld_typeof
+			|| token->Type == TokenType::Not
+			|| token->Type == TokenType::bitwise_not
+			|| token->Type == TokenType::QuestionMark;
 	}
 	inline static bool IsOverLoadableOperator(const Token* Token)
 	{
@@ -590,31 +590,31 @@ struct ExpressionNodeType :Node
 		return ScopedName::Get_Scoped(Token->Type) != ScopedName::Operator_t::Null;
 	}
 
-	inline static bool IsBinaryOperator(const Token* Token)
+	inline static bool IsBinaryOperator(const Token* token)
 	{
-		return Token->Type == TokenType::plus
-			|| Token->Type == TokenType::minus
-			|| Token->Type == TokenType::star
-			|| Token->Type == TokenType::forwardslash
-			|| Token->Type == TokenType::modulo
+		return token->Type == TokenType::plus
+			|| token->Type == TokenType::minus
+			|| token->Type == TokenType::star
+			|| token->Type == TokenType::forwardslash
+			|| token->Type == TokenType::modulo
 
-			|| Token->Type == TokenType::equal_Comparison
-			|| Token->Type == TokenType::Notequal_Comparison
-			|| Token->Type == TokenType::greaterthan
-			|| Token->Type == TokenType::lessthan
-			|| Token->Type == TokenType::greater_than_or_equalto
-			|| Token->Type == TokenType::less_than_or_equalto
+			|| token->Type == TokenType::equal_Comparison
+			|| token->Type == TokenType::Notequal_Comparison
+			|| token->Type == TokenType::greaterthan
+			|| token->Type == TokenType::lessthan
+			|| token->Type == TokenType::greater_than_or_equalto
+			|| token->Type == TokenType::less_than_or_equalto
 
-			|| Token->Type == TokenType::logical_and
-			|| Token->Type == TokenType::logical_or
+			|| token->Type == TokenType::logical_and
+			|| token->Type == TokenType::logical_or
 
-			|| Token->Type == TokenType::bitwise_and
-			|| Token->Type == TokenType::bitwise_or
-			|| Token->Type == TokenType::bitwise_LeftShift
-			|| Token->Type == TokenType::bitwise_RightShift
-			|| Token->Type == TokenType::bitwise_XOr
+			|| token->Type == TokenType::bitwise_and
+			|| token->Type == TokenType::bitwise_or
+			|| token->Type == TokenType::bitwise_LeftShift
+			|| token->Type == TokenType::bitwise_RightShift
+			|| token->Type == TokenType::bitwise_XOr
 
-			|| Token->Type == TokenType::approximate_Comparison;
+			|| token->Type == TokenType::approximate_Comparison;
 
 	}
 };
@@ -626,7 +626,7 @@ struct ValueExpressionNode :Node
 
 	}
 	AddforNode(ValueExpressionNode);
-	Unique_ptr<Node> Value = nullptr;
+	Unique_ptr<Node> _Value = nullptr;
 	ValueExpressionNode(const ValueExpressionNode& ToCopyFrom) = default;
 	ValueExpressionNode(ValueExpressionNode&& source) = default;
 	
@@ -640,9 +640,9 @@ struct BinaryExpressionNode :Node
 	}
 	AddforNode(BinaryExpressionNode);
 
-	ExpressionNodeType Value0;
-	const Token* BinaryOp =nullptr;
-	ExpressionNodeType Value1;
+	ExpressionNodeType _Value0;
+	const Token* _BinaryOp =nullptr;
+	ExpressionNodeType _Value1;
 }; 
 
 struct RetStatementNode :Node
@@ -652,7 +652,7 @@ struct RetStatementNode :Node
 
 	}
 	AddforNode(RetStatementNode);
-	ExpressionNodeType Expression;
+	ExpressionNodeType _Expression;
 };
 
 struct DeclareVariableNode :Node
@@ -662,7 +662,7 @@ struct DeclareVariableNode :Node
 
 	}
 	AddforNode(DeclareVariableNode);
-	TypeNode Type;
+	TypeNode _Type;
 	NameNode Name;
 	ExpressionNodeType Expression;
 	AccessModifierType Access = AccessModifierType::Default;
@@ -681,7 +681,7 @@ struct AssignExpressionNode :Node
 	ExpressionNodeType ToAssign;
 	ExpressionNodeType Expression;
 	bool ReassignAddress = false;
-	const Token* Token = nullptr;
+	const Token* _Token = nullptr;
 };
 
 struct DeclareStaticVariableNode :Node
@@ -722,7 +722,7 @@ struct AliasNode :Node
 	TypeNode Type;
 
 	
-	bool IsHardAlias = false;
+	bool _IsHardAlias = false;
 	
 	AliasType _Type = AliasType::Type;
 	Unique_ptr<Node> _Node;

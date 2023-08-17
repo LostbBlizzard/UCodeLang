@@ -1065,7 +1065,7 @@ private:
 	void OnExpressionTypeNode(const Node* node, GetValueMode Mode);
 	void OnExpressionTypeNode(const ExpressionNodeType& node, GetValueMode Mode)
 	{
-		OnExpressionTypeNode(node.Value.get(), Mode);
+		OnExpressionTypeNode(node._Value.get(), Mode);
 	}
 	void OnExpressionNode(const ValueExpressionNode& node);
 	void OnMovedNode(const MoveNode* nod);
@@ -1452,17 +1452,17 @@ private:
 	using TypeInstantiateFunc = void(SystematicAnalysis::*)(const Symbol* Symbol,const Vector<TypeSymbol>& GenericInput);
 	Symbol* Generic_InstantiateOrFindGenericSymbol(const Token* Name,const Symbol* Symbol,const GenericValuesNode& SymbolGenericValues,const Generic& GenericData,const UseGenericsNode& UseNode,TypeInstantiateFunc Instantiate)
 	{
-		if (GenericData._Generic.size() != UseNode.Values.size())
+		if (GenericData._Generic.size() != UseNode._Values.size())
 		{
-			LogError_CanIncorrectGenericCount(Name, Name->Value._String, UseNode.Values.size(), GenericData._Generic.size());
+			LogError_CanIncorrectGenericCount(Name, Name->Value._String, UseNode._Values.size(), GenericData._Generic.size());
 			return nullptr;
 		}
 
 
 		auto GenericInput = std::make_unique<Vector<TypeSymbol>>();//pointer must be unique so it cant be on the stack
-		for (size_t i = 0; i < UseNode.Values.size(); i++)
+		for (size_t i = 0; i < UseNode._Values.size(); i++)
 		{
-			const auto& Tnode = UseNode.Values[i];
+			const auto& Tnode = UseNode._Values[i];
 			const auto& GenericInfo = GenericData._Generic[i];
 			TypeSymbol Type;
 			Type_ConvertAndValidateType(Tnode, Type, NodeSyb_t::Any);
@@ -1483,15 +1483,15 @@ private:
 
 				if (InputTypeIsConstantExpression != GenericInfo.IsConstantExpression())
 				{
-					const Token* nodeToken = Tnode.Name.Token;
-					auto& GenericNo = SymbolGenericValues.Values[i];
+					const Token* nodeToken = Tnode._name.token;
+					auto& GenericNo = SymbolGenericValues._Values[i];
 					if (InputTypeIsConstantExpression)
 					{
-						LogError_GenericInputWantsaExpressionNotType(nodeToken, GenericNo.Token->Value._String);
+						LogError_GenericInputWantsaExpressionNotType(nodeToken, GenericNo.token->Value._String);
 					}
 					else
 					{
-						LogError_GenericInputWantsaExpressionNotType(nodeToken, GenericNo.Token->Value._String);
+						LogError_GenericInputWantsaExpressionNotType(nodeToken, GenericNo.token->Value._String);
 					}
 
 					return nullptr;
