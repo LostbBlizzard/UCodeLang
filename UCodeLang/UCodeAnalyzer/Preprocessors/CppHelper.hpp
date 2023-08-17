@@ -13,7 +13,7 @@ public:
 	{
 		String Value;
 	};
-	struct Type
+	struct CPPType
 	{
 		String Value;
 	};
@@ -26,7 +26,7 @@ public:
 		{
 			Optional<SummaryTag> Summary;
 			String Name;
-			Type Type;
+			CPPType Type;
 			Optional<CPPExpression> Value;
 
 			bool Exported = false;
@@ -43,7 +43,7 @@ public:
 			Optional<CPPExpression> Value;
 			Optional<SummaryTag> Summary;
 		};
-		Optional<Type> _EnumBaseType;
+		Optional<CPPType> _EnumBaseType;
 		Vector<Field> Fields;
 		
 	};
@@ -53,7 +53,7 @@ public:
 	};
 	struct ConstexprType
 	{
-		Type _Type;
+		CPPType _Type;
 		CPPExpression _Value;
 	};
 	struct FuncData 
@@ -61,13 +61,13 @@ public:
 		struct Par
 		{
 			bool IsOut = false;
-			Type Type;
+			CPPType Type;
 			String Name;
 			Optional<CPPExpression> Default;
 		};
 		Optional<String> MemberClassName;
 		Vector<Par> Pars;
-		Type Ret;
+		CPPType Ret;
 
 		Optional<size_t> OverloadNumber;
 	};
@@ -142,7 +142,7 @@ public:
 	static void GetStringliteral(size_t& i, String& FileText, String& Out);
 	static void GetStringScope(size_t& i, String& FileText, String& Out);
 	static void GetIndentifier(size_t& i, String& FileText, String& Out);
-	static void GetType(size_t& i, String& FileText, Type& Out);
+	static void GetType(size_t& i, String& FileText, CPPType& Out);
 	static void MovePass(size_t& i, String& FileText, const char& passChar);
 	static void MovePassSpace(size_t& i, String& FileText);
 
@@ -179,7 +179,7 @@ public:
 	static String ToString(CppToULangState& State, const ClassType& Value, const SymbolData& Syb);
 	static String ToString(CppToULangState& State, const FuncData& Value, const SymbolData& Syb,bool IsInClass = false);
 
-	static String ToString(CppToULangState& State, const Type& Value);
+	static String ToString(CppToULangState& State, const CPPType& Value);
 	static String ToString(CppToULangState& State, const CPPExpression& Value);
 
 	static void DoNameSpace(CppToULangState& State, const SymbolData& Syb, String& R);
