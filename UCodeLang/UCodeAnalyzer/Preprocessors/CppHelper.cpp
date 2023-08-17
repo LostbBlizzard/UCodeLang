@@ -73,7 +73,7 @@ void AddTabCount(size_t Tabs, String& Str)
 	}
 }
 
-String ToCType(const CppHelper::Type& Value)
+String ToCType(const CppHelper::CPPType& Value)
 {
 	return Value.Value;
 }
@@ -765,7 +765,7 @@ void CppHelper::DoEnumType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnal
 		{//pass the spaces
 			MovePass(i, FileText, ' ');
 		}
-		Type V;
+		CPPType V;
 		GetType(i, FileText, V);
 		_type._EnumBaseType = V;
 	}
@@ -938,7 +938,7 @@ void CppHelper::DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size
 	Optional<SummaryTag> Sum;
 	GetSummaryTag(i,FileText,Sum);
 	i = StartIndex;
-	Type V;
+	CPPType V;
 	GetType(i, FileText, V);
 
 	String Indentifier;
@@ -1129,7 +1129,7 @@ void CppHelper::GetIndentifier(size_t& i, UCodeAnalyzer::String& FileText, UCode
 		}
 	}
 }
-void CppHelper::GetType(size_t& i, UCodeAnalyzer::String& FileText, Type& Out)
+void CppHelper::GetType(size_t& i, UCodeAnalyzer::String& FileText, CPPType& Out)
 {
 	GetIndentifier(i, FileText, Out.Value);
 }
@@ -1423,7 +1423,7 @@ String CppHelper::ToString(CppToULangState& State, const FuncData& Value, const 
 	}
 	return R;
 }
-String CppHelper::ToString(CppToULangState& State, const Type& Value)
+String CppHelper::ToString(CppToULangState& State, const CPPType& Value)
 {
 	String R;
 	String CMPStr = Value.Value;
