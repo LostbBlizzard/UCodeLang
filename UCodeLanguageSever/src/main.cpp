@@ -34,7 +34,7 @@ bool IsInNameCharList(char Value)
 }
 
 
-std::string_view ReadString(std::string_view View, std::string_view& ToUpdate)
+UCodeLang::String_view ReadString(UCodeLang::String_view View, UCodeLang::String_view& ToUpdate)
 {
 	size_t Size =0;
 	size_t Start = 0;
@@ -64,21 +64,21 @@ std::string_view ReadString(std::string_view View, std::string_view& ToUpdate)
 	return { View.data()+ Start,Size };
 }
 
-int ReadNumber(std::string_view View, std::string_view& ToUpdate)
+int ReadNumber(UCodeLang::String_view View, UCodeLang::String_view& ToUpdate)
 {
 	auto Str = ReadString(View, ToUpdate);
 
 
-	std::string TepStr = (std::string)Str;
+	UCodeLang::String TepStr = (UCodeLang::String)Str;
 	auto Value = std::atoi(TepStr.c_str()); 
 
 	return Value;
 }
 
-std::string FilePath = "C:/CoolStuff/CoolCodeingStuff/C++/Projects/UCodeLang/UCodeLanguageSever/Msg.txt";
+UCodeLang::String FilePath = "C:/CoolStuff/CoolCodeingStuff/C++/Projects/UCodeLang/UCodeLanguageSever/Msg.txt";
 std::ofstream File = std::ofstream(FilePath);
 std::mutex Lock = {};
-void LogMSG(const std::string& Str)
+void LogMSG(const UCodeLang::String& Str)
 {
 	Lock.lock();
 	//std::cerr << Str << std::endl;
@@ -88,7 +88,7 @@ void LogMSG(const std::string& Str)
 
 //Args
 //--Start [SeverIp] [Port] 
-void RunArg(std::string_view View)
+void RunArg(UCodeLang::String_view View)
 {
 
 	
@@ -96,15 +96,15 @@ void RunArg(std::string_view View)
 
 	if (StrHelp::StartWith(View,"--"))
 	{
-		View = View.substr(2);UCodeLang::
+		View = View.substr(2);
 
 		if (StrHelp::StartWith(View,"Start"))
 		{
 			size_t ArgNameSize = sizeof("Start") - 1;
 			View = View.substr(ArgNameSize);
 
-			std::string SeverIp = (std::string)ReadString(View,View);
-			//if (SeverIp == (std::string)"stdio")
+			UCodeLang::String SeverIp = (UCodeLang::String)ReadString(View,View);
+			//if (SeverIp == (UCodeLang::String)"stdio")
 			{
 				static UCodeLanguageSever::LanguageSever* SeverPtr = nullptr;
 				SeverPtr = nullptr;
@@ -182,7 +182,7 @@ int main(int argc, char* argv[])
 	for (size_t i = 0; i < argc; i++)
 	{
 		char* Arg = argv[i];
-		RunArg(std::string_view(Arg));
+		RunArg(UCodeLang::String_view(Arg));
 	}
 
 	return 0;
