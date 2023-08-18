@@ -64,7 +64,15 @@
 #if UCodeLangDebug
 #define UCodeLangForceinline inline
 #else 
+
+#if UCodeLangMSVC
 #define UCodeLangForceinline __forceinline 
+#elif UCodeLangGNUC
+#define UCodeLangForceinline __attribute__((always_inline))
+#else
+#define UCodeLangForceinline inline
+#endif
+
 #endif // DEBUG
 
 #define UCodeLangConstexprForceinline constexpr UCodeLangForceinline
