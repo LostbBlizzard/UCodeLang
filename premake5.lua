@@ -334,7 +334,11 @@ project "UCodeIDE"
    filter { "system:linux" }
     kind "ConsoleApp"   
     defines {}
-    links { "GL" }
+    links { 
+    "GL" 
+    "UCodeLang",
+    "UCodeLanguageSeverlib",
+    }
 
    filter { "system:MacOS" }
     kind "ConsoleApp"   
