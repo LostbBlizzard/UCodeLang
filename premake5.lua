@@ -241,8 +241,8 @@ project "UCodeLanguageSever"
    }
 
    links {
+      "UCodeLanguageSeverlib", 
       "UCodeLang",
-      "UCodeLanguageSeverlib",
    }
 
    libdirs { 
@@ -316,16 +316,18 @@ project "UCodeIDE"
    }
 
    links {
-      "UCodeLang",
       "UCodeLanguageSeverlib",
+      "UCodeLang",
    }
 
    filter { "system:Windows" }
     kind "ConsoleApp"   
     defines {"_GLFW_WIN32"}
     libdirs { "%{prj.name}/Dependencies/GLEW/Lib"}
+
    filter {"system:Windows","architecture:x86"}
       links {"glew32s.lib","Opengl32.lib"}
+   
    filter { "system:Windows","architecture:x86_64"}
       links {"glew64s.lib","Opengl32.lib"}
 
@@ -333,7 +335,7 @@ project "UCodeIDE"
 
    filter { "system:linux" }
     kind "ConsoleApp"   
-    defines {}
+    defines {"_GLFW_OSMESA"}
     links {"GL"}
 
    filter { "system:MacOS" }

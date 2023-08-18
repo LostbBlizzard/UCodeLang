@@ -7,3 +7,17 @@ Output/
 *.user
 
 Makefile
+
+UCodeAPI/Win32/int/
+UCodeAPI/Win32/out/
+
+UCodeAPI/NWin32/int/
+UCodeAPI/NWin32/out/
+
+UCodeAPI/StandardLibrary/int/
+UCodeAPI/StandardLibrary/out/
+
+UCodeAPI/NStandardLibrary/int/
+UCodeAPI/NStandardLibrary/out/
+
+
