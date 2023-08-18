@@ -315,10 +315,10 @@ project "UCodeIDE"
       "Output/UCodeLanguageSeverlib/" .. OutDirPath,
    }
 
-   links {
-      "UCodeLang",
-      "UCodeLanguageSeverlib",
-   }
+  -- links {
+    --  "UCodeLang",
+    --  "UCodeLanguageSeverlib",
+  -- }
 
    filter { "system:Windows" }
     kind "ConsoleApp"   
