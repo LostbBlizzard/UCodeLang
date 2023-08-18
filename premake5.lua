@@ -315,10 +315,10 @@ project "UCodeIDE"
       "Output/UCodeLanguageSeverlib/" .. OutDirPath,
    }
 
-  -- links {
-    --  "UCodeLang",
-    --  "UCodeLanguageSeverlib",
-  -- }
+   links {
+      "UCodeLang",
+      "UCodeLanguageSeverlib",
+   }
 
    filter { "system:Windows" }
     kind "ConsoleApp"   
@@ -334,11 +334,7 @@ project "UCodeIDE"
    filter { "system:linux" }
     kind "ConsoleApp"   
     defines {}
-    links { 
-    "GL" 
-    "UCodeLang",
-    "UCodeLanguageSeverlib",
-    }
+    links {"GL"}
 
    filter { "system:MacOS" }
     kind "ConsoleApp"   
