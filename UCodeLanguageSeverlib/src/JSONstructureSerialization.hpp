@@ -1,7 +1,7 @@
 #pragma once
 #include "JSONstructures.hpp"
 
-LanguageSeverStart
+UCodeLanguageSeverStart
 
 using json = nlohmann::json;
 #define UCL UCodeLanguageSever
@@ -420,4 +420,4 @@ using json = nlohmann::json;
 
 		to_json(Json["diagnostics"], Object.diagnostics);
 	}
-LanguageSeverEnd
+UCodeLanguageSeverEnd
