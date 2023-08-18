@@ -1,4 +1,4 @@
-#include "LanguageSever.hpp"
+#include "LSPSever.hpp"
 #include <unordered_map>
 #include <functional>
 UCodeLanguageSeverStart
@@ -90,36 +90,36 @@ Optional<SeverPacket> SeverPacket::Stream(StreamState& State, char Char)
 struct LanguageSeverFuncMap
 {
 
-	using RequestFunc = void(LanguageSever::*)(integer  requestid, const json& Params);
-	using NotificationFunc = void(LanguageSever::*)(const json& Params);
+	using RequestFunc = void(LSPSever::*)(integer  requestid, const json& Params);
+	using NotificationFunc = void(LSPSever::*)(const json& Params);
 	inline static const std::unordered_map<String, RequestFunc> RequestFuncs
 	{
-		{"initialize",&LanguageSever::Sever_initialize},
-		{"shutdown",&LanguageSever::Sever_Shutdown},
+		{"initialize",&LSPSever::Sever_initialize},
+		{"shutdown",&LSPSever::Sever_Shutdown},
 
-		{"textDocument/definition",&LanguageSever::textDocument_definition},
-		{"textDocument/hover",&LanguageSever::textDocument_hover},
-		{"textDocument/rename",&LanguageSever::textDocument_rename},
+		{"textDocument/definition",&LSPSever::textDocument_definition},
+		{"textDocument/hover",&LSPSever::textDocument_hover},
+		{"textDocument/rename",&LSPSever::textDocument_rename},
 	};
 	inline static const std::unordered_map<String, NotificationFunc> NotificationFuncs
 	{
-		{"exit",&LanguageSever::Sever_Exit},
-		{"textDocument/didOpen",&LanguageSever::textDocument_didOpen},
-		{"textDocument/didClose",&LanguageSever::textDocument_didClose},
-		{"textDocument/didChange",&LanguageSever::textDocument_didChange}
+		{"exit",&LSPSever::Sever_Exit},
+		{"textDocument/didOpen",&LSPSever::textDocument_didOpen},
+		{"textDocument/didClose",&LSPSever::textDocument_didClose},
+		{"textDocument/didChange",&LSPSever::textDocument_didChange}
 	};
 };
 
 
-LanguageSever::LanguageSever()
+LSPSever::LSPSever()
 {
 	
 }
-LanguageSever::~LanguageSever()
+LSPSever::~LSPSever()
 {
 
 }
-bool LanguageSever::Step()
+bool LSPSever::Step()
 {
 	//Io
 
@@ -154,7 +154,7 @@ bool LanguageSever::Step()
 	}
     return Runing;
 }
-void LanguageSever::OnReceivedPacket(const ClientPacket& Item)
+void LSPSever::OnReceivedPacket(const ClientPacket& Item)
 {
 	auto dataOp = Item.Parse();
 
@@ -195,7 +195,7 @@ void LanguageSever::OnReceivedPacket(const ClientPacket& Item)
 
 }
 
-void LanguageSever::Sever_Shutdown(integer requestid, const json& params)
+void LSPSever::Sever_Shutdown(integer requestid, const json& params)
 {
 	IsShutdown = true;
 	 
@@ -205,13 +205,13 @@ void LanguageSever::Sever_Shutdown(integer requestid, const json& params)
 
 	BaseSever.deinit();
 }
-void LanguageSever::Sever_Exit(const json& params)
+void LSPSever::Sever_Exit(const json& params)
 {
 	StopRuning();
 	ProcessExitCode = 0;
 
 }
-void LanguageSever::textDocument_didOpen(const json& Params)
+void LSPSever::textDocument_didOpen(const json& Params)
 {
 	DidOpenTextDocumentParams params;
 	UCodeLanguageSever::from_json(Params,params);
@@ -227,14 +227,14 @@ void LanguageSever::textDocument_didOpen(const json& Params)
 		BaseSever.AddFile(std::move(newfile));
 	}
 }
-void LanguageSever::textDocument_didClose(const json& Params)
+void LSPSever::textDocument_didClose(const json& Params)
 {
 	DidCloseTextDocumentParams params;
 	UCodeLanguageSever::from_json(Params, params);
 
 	BaseSever.RemoveFile(Cast(params.textDocument.uri));
 }
-void LanguageSever::textDocument_didChange(const json& Params)
+void LSPSever::textDocument_didChange(const json& Params)
 {
 	DidChangeTextDocumentParams params;
 	UCodeLanguageSever::from_json(Params, params);
@@ -255,16 +255,16 @@ void LanguageSever::textDocument_didChange(const json& Params)
 	}	
 	Ufile.UpdatedFileText();
 }
-void LanguageSever::textDocument_definition(integer  requestid,const json& Params)
+void LSPSever::textDocument_definition(integer  requestid,const json& Params)
 {
 	InitializeCheck(); ShutdownCheck();
 }
-void LanguageSever::textDocument_hover(integer  requestid, const json& params)
+void LSPSever::textDocument_hover(integer  requestid, const json& params)
 {
 
 	InitializeCheck(); ShutdownCheck();
 }
-void LanguageSever::textDocument_rename(integer  requestid, const json& params)
+void LSPSever::textDocument_rename(integer  requestid, const json& params)
 {
 
 	InitializeCheck(); ShutdownCheck();
@@ -273,7 +273,7 @@ void LanguageSever::textDocument_rename(integer  requestid, const json& params)
 
 //
 
-void LanguageSever::window_logMessage(MessageType Type, String MSg)
+void LSPSever::window_logMessage(MessageType Type, String MSg)
 {
 	LogMessageParams V;
 	V.type = Type;
@@ -281,7 +281,7 @@ void LanguageSever::window_logMessage(MessageType Type, String MSg)
 
 	SendMethodToClient("window/logMessage", V);
 }
-Position LanguageSever::GetPosition(StringView text, size_t CharIndex, size_t Line)
+Position LSPSever::GetPosition(StringView text, size_t CharIndex, size_t Line)
 {
 	Position r;
 
@@ -310,11 +310,11 @@ Position LanguageSever::GetPosition(StringView text, size_t CharIndex, size_t Li
 
 	return r;
 }
-UCodeLanguageSever::DocumentUri LanguageSever::Cast(const UCodeAnalyzer::Fileidentifier& Item)
+UCodeLanguageSever::DocumentUri LSPSever::Cast(const UCodeAnalyzer::Fileidentifier& Item)
 {
 	return Item.generic_string();
 }
-void LanguageSever::UpdateClientErrorList()
+void LSPSever::UpdateClientErrorList()
 {
 	bool IsSame = _ClientSideErrorsList.size() == BaseSever.ErrorList.size();
 
@@ -409,11 +409,11 @@ void LanguageSever::UpdateClientErrorList()
 
 	}
 }
-UCodeAnalyzer::Fileidentifier LanguageSever::Cast(const UCodeLanguageSever::DocumentUri& Item)
+UCodeAnalyzer::Fileidentifier LSPSever::Cast(const UCodeLanguageSever::DocumentUri& Item)
 {
 	return Item;
 }
-void LanguageSever::Sever_initialize(integer requestid, const json& Params)
+void LSPSever::Sever_initialize(integer requestid, const json& Params)
 {
 	InitializeParams params;
 	UCodeLanguageSever::from_json(Params, params);

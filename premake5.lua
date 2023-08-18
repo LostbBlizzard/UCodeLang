@@ -260,10 +260,10 @@ project "UCodeDocumentation"
 project "UCodeIDE"
    location "UCodeIDE" 
    language "C++"
+   
+   dependson {"UCodeLang","UCodeLanguageSeverlib"}
    targetdir ("Output/%{prj.name}/" .. OutDirPath)
    objdir ("Output/int/%{prj.name}/" .. OutDirPath)
-
-   dependson {"UCodeLang","UCodeLanguageSever"}
 
    defines {"GLEW_STATIC"}
    

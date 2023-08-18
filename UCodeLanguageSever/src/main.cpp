@@ -1,6 +1,6 @@
 
 #include <iostream>
-#include "LanguageSever.hpp"
+#include "LSPSever.hpp"
 #include <iostream>
 #include <string>
 #include <thread>
@@ -106,7 +106,7 @@ void RunArg(UCodeLang::String_view View)
 			UCodeLang::String SeverIp = (UCodeLang::String)ReadString(View,View);
 			//if (SeverIp == (UCodeLang::String)"stdio")
 			{
-				static UCodeLanguageSever::LanguageSever* SeverPtr = nullptr;
+				static UCodeLanguageSever::LSPSever* SeverPtr = nullptr;
 				SeverPtr = nullptr;
 
 
@@ -115,7 +115,7 @@ void RunArg(UCodeLang::String_view View)
 
 				std::thread SeverThread([]()
 					{
-						UCodeLanguageSever::LanguageSever Sever;
+						UCodeLanguageSever::LSPSever Sever;
 						SeverPtr = &Sever;
 
 

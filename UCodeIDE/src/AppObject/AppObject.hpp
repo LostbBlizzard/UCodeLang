@@ -4,7 +4,7 @@
 #include <thread>
 
 #include "ImGuiHelpers/TextEditor/TextEditor.h"
-#include "LanguageSever.hpp"
+#include "LSPSever.hpp"
 #include "UCodeLang/UCodeLang.hpp"
 
 #include "ImGuiHelpers/ImguiHelper.hpp"
@@ -16,7 +16,7 @@ using SteadyClock = std::chrono::steady_clock;
 
 struct SandBoxLanguageSever
 {
-	UCodeLanguageSever::LanguageSever _Sever;
+	UCodeLanguageSever::LSPSever _Sever;
 };
 class  AppClientFuncMap;
 class AppObject

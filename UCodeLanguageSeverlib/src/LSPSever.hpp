@@ -4,7 +4,7 @@
 #include "LanguageSeverNameSpace.h"
 #include "JSONstructures.hpp"
 #include "JSONstructureSerialization.hpp"
-#include "UCodeAnalyzer/Language_Server.hpp"
+#include "UCodeAnalyzer/LanguageServer.hpp"
 
 UCodeLanguageSeverStart
 struct SeverPacket
@@ -309,12 +309,12 @@ struct ClientPacket
 
 
 struct LanguageSeverFuncMap;
-class LanguageSever 
+class LSPSever 
 {
 public:
     friend LanguageSeverFuncMap;
-    LanguageSever();
-    ~LanguageSever();
+    LSPSever();
+    ~LSPSever();
 
 
     //Is Runing Bool
@@ -425,7 +425,7 @@ private:
     static Position GetPosition(StringView text, size_t CharIndex, size_t Line);
     size_t Test = 1;
 
-    UCodeAnalyzer::Language_Server BaseSever;
+    UCodeAnalyzer::LanguageServer BaseSever;
     UCodeAnalyzer::Fileidentifier Cast(const  UCodeLanguageSever::DocumentUri& Item);
     UCodeLanguageSever::DocumentUri Cast(const  UCodeAnalyzer::Fileidentifier& Item);
 
