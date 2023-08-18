@@ -1,13 +1,13 @@
-#include "Language_Server.hpp"
+#include "LanguageServer.hpp"
 UCodeAnalyzerStart
 
 
-void Language_Server::init()
+void LanguageServer::init()
 {
 
 }
 
-void Language_Server::Step()
+void LanguageServer::Step()
 {
 	UpdateErrorList();
 	for (auto& Item : _Files)
@@ -16,11 +16,11 @@ void Language_Server::Step()
 	}
 }
 
-void Language_Server::deinit()
+void LanguageServer::deinit()
 {
 
 }
-void Language_Server::UpdateErrorList()
+void LanguageServer::UpdateErrorList()
 {
 	ErrorList.clear();
 	for (auto& Item : _Files)//this is a bit slow should be cashed.

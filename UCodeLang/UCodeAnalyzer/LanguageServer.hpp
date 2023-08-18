@@ -96,11 +96,11 @@ struct GoToItem
 	Path OnRelativeFilePath;
 };
 
-class Language_Server
+class LanguageServer
 {
 public:
-	Language_Server(){}
-	~Language_Server(){}
+	LanguageServer(){}
+	~LanguageServer(){}
 
 	void init();
 
