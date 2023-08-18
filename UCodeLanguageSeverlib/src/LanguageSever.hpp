@@ -5,7 +5,8 @@
 #include "JSONstructures.hpp"
 #include "JSONstructureSerialization.hpp"
 #include "UCodeAnalyzer/Language_Server.hpp"
-LanguageSeverStart
+
+UCodeLanguageSeverStart
 struct SeverPacket
 {
     String _Data;
@@ -433,4 +434,4 @@ private:
     void UpdateClientErrorList();
 };
 
-LanguageSeverEnd
+UCodeLanguageSeverEnd

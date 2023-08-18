@@ -1,7 +1,7 @@
 #include "LanguageSever.hpp"
 #include <unordered_map>
 #include <functional>
-LanguageSeverStart
+UCodeLanguageSeverStart
 
 #define InitializeCheck() if (IsInitialized== false){ResponseError e;\
 	e.code = (integer)ErrorCodes::ServerNotInitialized;\
@@ -431,4 +431,4 @@ void LanguageSever::Sever_initialize(integer requestid, const json& Params)
 	BaseSever.init();
 	//window_logMessage(MessageType::Log, "Hello World Sever Side");
 }
-LanguageSeverEnd
+UCodeLanguageSeverEnd
