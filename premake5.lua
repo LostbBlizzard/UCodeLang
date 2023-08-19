@@ -254,8 +254,11 @@ project "UCodeDocumentation"
    location "UCodeDocumentation"
    kind "StaticLib"
    language "C++"
+
    targetdir ("Output/%{prj.name}/" .. OutDirPath)
    objdir ("Output/int/%{prj.name}/" .. OutDirPath)
+   
+   files { "%{prj.name}/ignoreC.c"}
 
 project "UCodeIDE"
    location "UCodeIDE" 
@@ -354,10 +357,9 @@ project "UCodeWebsite"
    language "C++"
    targetdir ("Output/%{prj.name}/" .. OutDirPath)
    objdir ("Output/int/%{prj.name}/" .. OutDirPath)
-   kind "ConsoleApp" 
+   kind "StaticLib" 
 
-   files { 
-   }
+   files { "%{prj.name}/ignoreC.c"}
 
    includedirs{
    }
@@ -366,7 +368,7 @@ group "UCodeAPIs"
  project "StandardLibrary"
   location "UCodeAPI/StandardLibrary"
   kind "StaticLib"
-  language "C"
+  language "C++"
 
   
   dependson {"UCodelangCL"}
@@ -374,15 +376,17 @@ group "UCodeAPIs"
   objdir ("Output/int/%{prj.name}/" .. OutDirPath)
 
   files { 
-  "%{prj.name}/src/**.uc",
-  "%{prj.name}/%{prj.name}.ucm",
+  "UCodeAPI/%{prj.name}/ignoreC.c",
 
-  "%{prj.name}/src/**.c",
-  "%{prj.name}/src/**.h",
-  "%{prj.name}/src/**.cpp",
-  "%{prj.name}/src/**.hpp", 
-  "%{prj.name}/src/**.uc",
-  "%{prj.name}/test/**.uc",
+  "UCodeAPI/%{prj.name}/src/**.uc",
+  "UCodeAPI/%{prj.name}/%{prj.name}.ucm",
+
+  "UCodeAPI/%{prj.name}/src/**.c",
+  "UCodeAPI/%{prj.name}/src/**.h",
+  "UCodeAPI/%{prj.name}/src/**.cpp",
+  "UCodeAPI/%{prj.name}/src/**.hpp", 
+  "UCodeAPI/%{prj.name}/src/**.uc",
+  "UCodeAPI/%{prj.name}/test/**.uc",
   
   }
 
@@ -393,10 +397,10 @@ group "UCodeAPIs"
   {
    -- UCPathExe.." build %{prj.location}ULangModule.ucm"
   }
-  project "NStandardLibrary"
+ project "NStandardLibrary"
   location "UCodeAPI/NStandardLibrary"
   kind "StaticLib"
-  language "C"
+  language "C++"
 
   targetdir ("Output/%{prj.name}/" .. OutDirPath)
   objdir ("Output/int/%{prj.name}/" .. OutDirPath)
@@ -404,17 +408,18 @@ group "UCodeAPIs"
   dependson {"UCodelangCL"}
 
   files { 
-  "%{prj.name}/src/**.uc",
-  "%{prj.name}/%{prj.name}.ucm",
+  "UCodeAPI/%{prj.name}/ignoreC.c",
+  "UCodeAPI/%{prj.name}/src/**.uc",
+  "UCodeAPI/%{prj.name}/%{prj.name}.ucm",
 
-  "%{prj.name}/src/**.c",
-  "%{prj.name}/src/**.h",
-  "%{prj.name}/src/**.cpp",
-  "%{prj.name}/src/**.hpp",
+  "UCodeAPI/%{prj.name}/src/**.c",
+  "UCodeAPI/%{prj.name}/src/**.h",
+  "UCodeAPI/%{prj.name}/src/**.cpp",
+  "UCodeAPI/%{prj.name}/src/**.hpp",
 
-  "%{prj.name}/src/**.uc",
-  "%{prj.name}/test/**.uc",
-  "%{prj.name}**.ucm",
+  "UCodeAPI/%{prj.name}/src/**.uc",
+  "UCodeAPI/%{prj.name}/test/**.uc",
+  "UCodeAPI/%{prj.name}**.ucm",
   }
 
 
@@ -427,7 +432,7 @@ group "UCodeAPIs"
  project "Win32"
   location "UCodeAPI/Win32"
   kind "StaticLib"
-  language "C"
+  language "C++"
 
   targetdir ("Output/%{prj.name}/" .. OutDirPath)
   objdir ("Output/int/%{prj.name}/" .. OutDirPath)
@@ -435,16 +440,17 @@ group "UCodeAPIs"
   
   dependson {"UCodelangCL"}
   files { 
-  "%{prj.name}/src/**.uc",
-  "%{prj.name}/%{prj.name}.ucm",
+  "UCodeAPI/%{prj.name}/ignoreC.c",
+  "UCodeAPI/%{prj.name}/src/**.uc",
+  "UCodeAPI/%{prj.name}/%{prj.name}.ucm",
 
-  "%{prj.name}/src/**.c",
-  "%{prj.name}/src/**.h",
-  "%{prj.name}/src/**.cpp",
-  "%{prj.name}/src/**.hpp",
+  "UCodeAPI/%{prj.name}/src/**.c",
+  "UCodeAPI/%{prj.name}/src/**.h",
+  "UCodeAPI/%{prj.name}/src/**.cpp",
+  "UCodeAPI/%{prj.name}/src/**.hpp",
   
-  "%{prj.name}/src/**.uc",
-  "%{prj.name}/test/**.uc",
+  "UCodeAPI/%{prj.name}/src/**.uc",
+  "UCodeAPI/%{prj.name}/test/**.uc",
   
   }
 
@@ -455,7 +461,7 @@ group "UCodeAPIs"
  project "NWin32"
    location "UCodeAPI/NWin32"
    kind "StaticLib"
-   language "C"
+   language "C++"
 
    targetdir ("Output/%{prj.name}/" .. OutDirPath)
    objdir ("Output/int/%{prj.name}/" .. OutDirPath)
@@ -463,16 +469,17 @@ group "UCodeAPIs"
    
    dependson {"UCodelangCL"}
    files { 
-   "%{prj.name}/src/**.uc",
-   "%{prj.name}/%{prj.name}.ucm",
+   "UCodeAPI/%{prj.name}/ignoreC.c",
+   "UCodeAPI/%{prj.name}/src/**.uc",
+   "UCodeAPI/%{prj.name}/%{prj.name}.ucm",
 
-   "%{prj.name}/src/**.c",
-   "%{prj.name}/src/**.h",
-   "%{prj.name}/src/**.cpp",
-   "%{prj.name}/src/**.hpp", 
+   "UCodeAPI/%{prj.name}/src/**.c",
+   "UCodeAPI/%{prj.name}/src/**.h",
+   "UCodeAPI/%{prj.name}/src/**.cpp",
+   "UCodeAPI/%{prj.name}/src/**.hpp", 
    
-   "%{prj.name}/src/**.uc",
-   "%{prj.name}/test/**.uc",
+   "UCodeAPI/%{prj.name}/src/**.uc",
+   "UCodeAPI/%{prj.name}/test/**.uc",
    }
 
    postbuildcommands 
