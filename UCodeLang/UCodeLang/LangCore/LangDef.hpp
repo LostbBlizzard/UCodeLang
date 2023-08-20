@@ -1,5 +1,8 @@
 #pragma once
+
+#ifdef __cplusplus
 #include "UCodeLangNameSpace.hpp"
+#endif
 
 #if defined(_MSC_VER)
 #define UCodeLangMSVC 1

@@ -8,7 +8,7 @@ class StringHelper
 public:
 	static bool StartWith(const String& string, const String_view MatchString)
 	{
-		return  StartWith(string, MatchString);
+		return  StartWith(String_view(string), String_view(MatchString));
 	}
 	static bool StartWith(const String_view string, const String_view MatchString)
 	{
