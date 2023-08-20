@@ -42,7 +42,7 @@ mainly
 # Supported Progaming Languages
 
 - [C++](https://github.com/LostbBlizzard/UCodeLang) //This Repository
-- [C89]() 
+- [C89](https://github.com/LostbBlizzard/UCodeLang-C89) 
 - [Rust](https://github.com/LostbBlizzard/UCodelang-Rust)
 - [Zig](https://github.com/LostbBlizzard/UCodelang-Zig/tree/main)
 
