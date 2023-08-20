@@ -4,27 +4,121 @@ After Seting Up the Project lets Compile somehting.
 
 add this to your main file.
 
-```cpp
-#include <UCodeLang/UCodeLang.hpp>
 
-int main()
-{
-  const char* MyUCode = "|main[] => 0;";
+<details>
+  <summary>Cpp</summary>
 
-  UCodeLang::Compiler myCompiler;
-  auto comilerRet = myCompiler.CompileText(MyUCode);
+  ```cpp
+  #include <UCodeLang/UCodeLang.hpp>
 
-
-  if (_State == UCodeLang::Compiler::CompilerState::Success)
+  int main()
   {
-    //your ucode was Compiled
+    const char* MyUCode = "|main[] => 0;";
+
+    UCodeLang::Compiler myCompiler;
+    auto comilerRet = myCompiler.CompileText(MyUCode);
+
+
+    if (_State == UCodeLang::Compiler::CompilerState::Success)
+    {
+      //your ucode was Compiled
+    }
+    else 
+    {
+      //your ucode some how failed   
+    }
   }
-  else 
+  ```
+
+</details>
+
+<details>
+
+  <summary>C89</summary>
+    
+  ```c
+  #include <UCodeLang/UCodeLangCAPI.h>
+
+  int main()
+  {//TODO upate is file when 
+    const char* MyUCode = "|main[] => 0;";
+
+    UCodeLang::Compiler myCompiler;
+    auto comilerRet = myCompiler.CompileText(MyUCode);
+
+
+    if (_State == UCodeLang::Compiler::CompilerState::Success)
+    {
+        //your ucode was Compiled
+    }
+    else 
+    {
+        //your ucode some how failed   
+    }
+  }
+
+  ```
+
+</details>
+
+<details>
+
+  <summary>rust</summary>
+    
+  ```rust
+  use UCodeLang;
+
+  i32 main()
   {
-    //your ucode some how failed   
+    let MyUCode = "|main[] => 0;";
+
+    UCodeLang::Compiler myCompiler;
+    auto comilerRet = myCompiler.CompileText(MyUCode);
+
+
+    if (_State == UCodeLang::Compiler::CompilerState::Success)
+    {
+        //your ucode was Compiled
+    }
+    else 
+    {
+        //your ucode some how failed   
+    }
   }
-}
-```
+
+  ```
+
+</details>
+
+<details>
+
+  <summary>zig</summary>
+    
+  ```rust
+  #include <UCodeLang/UCodeLang.hpp>
+
+  i32 main()
+  {
+    const MyUCode = "|main[] => 0;";
+
+    UCodeLang::Compiler myCompiler;
+    auto comilerRet = myCompiler.CompileText(MyUCode);
+
+
+    if (_State == UCodeLang::Compiler::CompilerState::Success)
+    {
+        //your ucode was Compiled
+    }
+    else 
+    {
+        //your ucode some how failed   
+    }
+  }
+
+  ```
+
+</details>
+
 
 The Code Above will compile your UCodeString.
 
