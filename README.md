@@ -39,6 +39,13 @@ mainly
   - multi-paradigm
   - Compile time power
 
+# Supported Progaming Languages
+
+- [C++](https://github.com/LostbBlizzard/UCodeLang) //This Repository
+- [C89]() 
+- [Rust](https://github.com/LostbBlizzard/UCodelang-Rust)
+- [Zig](https://github.com/LostbBlizzard/UCodelang-Zig/tree/main)
+
 
 # Downloads & Documentation
 
