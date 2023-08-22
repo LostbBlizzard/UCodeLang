@@ -194,11 +194,13 @@ enum class RegisterID : RegisterID_t
 
 	ThisRegister = (RegisterID_t)RegisterID::D,
 	InPutRegister = (RegisterID_t)RegisterID::E,
-	OuPutRegister = (RegisterID_t)RegisterID::F,
+	OutPutRegister = (RegisterID_t)RegisterID::F,
 
-	MathOuPutRegister = OuPutRegister,
-	BoolRegister = OuPutRegister,
-	BitwiseRegister = OuPutRegister,
+	MathOutPutRegister = OutPutRegister,
+	BoolRegister = OutPutRegister,
+	BitwiseRegister = OutPutRegister,
+
+	AwaitOutRegister = OutPutRegister,
 
 	StartParameterRegister = (RegisterID_t)RegisterID::D,//the range the runtime will pass funcion Parameters into Registers
 	EndParameterRegister = (RegisterID_t)RegisterID::F + 1,

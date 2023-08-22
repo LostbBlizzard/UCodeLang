@@ -213,6 +213,30 @@ void RunTimeLangState::LinkLibs()
 	memcpy(_StaticMemPtr, Bits.data(), Bits.size());
 }
 
+AnyInterpreterPtr As(DebugContext::InterpreterInfo Info)
+{
+	switch (Info.type)
+	{
+	case DebugContext::Type::Interpreter:
+	{
+		return (Interpreter*)Info.ThisInterpreter;
+	}
+	break;
+	case DebugContext::Type::Jit_Interpreter:
+	{
+		return (Jit_Interpreter*)Info.ThisInterpreter;
+	}
+	break;
+	case DebugContext::Type::Native_Interpreter:
+	{
+		return (NativeInterpreter*)Info.ThisInterpreter;
+	}
+	break;
+	default:
+		UCodeLangUnreachable();
+		break;
+	}
+}
 
 bool RunTimeLangState::HotReload(const HotReloadData& Item)
 {
@@ -508,27 +532,7 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 				Val.NewThreadMem.Resize(LibInfo.NewThreadOffset);
 				memcpy((Byte*)Val.NewThreadMem.Data(), NewThreadBytes.data(), NewThreadBytes.size());
 				
-				switch (InterpreterV.type)
-				{
-				case DebugContext::Type::Interpreter:
-				{
-					Val._Ptr = (Interpreter*)InterpreterV.ThisInterpreter;
-				}
-				break;
-				case DebugContext::Type::Jit_Interpreter:
-				{
-					Val._Ptr = (Jit_Interpreter*)InterpreterV.ThisInterpreter;
-				}
-				break;
-				case DebugContext::Type::Native_Interpreter:
-				{
-					Val._Ptr = (NativeInterpreter*)InterpreterV.ThisInterpreter;
-				}
-				break;
-				default:
-					UCodeLangThrowException("bad path");
-					break;
-				}
+				Val._Ptr = As(InterpreterV);
 
 				Val.RunTimeThreadValues = BytesView::Make((Byte*)Val._Ptr.GetThreadPtr(),Get_Libs().GetThreadBytes().size());
 
@@ -782,6 +786,34 @@ const ClassMethod* RunTimeLangState::GetMethod(const UAddress& address)
 		}
 	}
 	return nullptr;
+}
+
+void PackagedTask::Invoke(InterpreterInfo& This)
+{
+	auto _This = As(This);
+	auto State = _Parameters.StartLoop();
+	while (_Parameters.Next(State))
+	{
+		size_t Size = _Parameters.GetSize(State);
+		const void* Pointer = _Parameters.GetPointer(State);
+		_This.PushParameter(Pointer, Size);
+	}
+	_This.Call(Func);
+}
+
+void PackagedTask::RInvoke(InterpreterInfo& This, void* OutObject, size_t ReturnObjectSize)
+{
+	auto _This = As(This);
+	auto State = _Parameters.StartLoop();
+	while (_Parameters.Next(State))
+	{
+		size_t Size = _Parameters.GetSize(State);
+		const void* Pointer = _Parameters.GetPointer(State);
+		_This.PushParameter(Pointer, Size);
+	}
+	_This.Call(Func);
+
+	_This.Get_Return(OutObject, ReturnObjectSize);
 }
 
 UCodeLangEnd
