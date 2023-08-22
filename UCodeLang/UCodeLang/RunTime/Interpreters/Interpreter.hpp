@@ -441,12 +441,15 @@ private:
 	UCodeLangForceinline PtrType Get_StaticMemPtr(){return _State->Get_StaticMemPtr();}
 	UCodeLangForceinline PtrType Get_ThreadMemPtr() { return _CPU.ThreadRegister; }
 	UCodeLangConstexprForceinline Register& Get_ThisRegister() { return Get_Register(RegisterID::ThisRegister); }
-	UCodeLangConstexprForceinline Register& Get_OutRegister() { return Get_Register(RegisterID::OuPutRegister); }
-	UCodeLangConstexprForceinline Register& Get_InRegister() { return Get_Register(RegisterID::InPutRegister); }
+	UCodeLangConstexprForceinline Register& Get_OutRegister() { return Get_Register(RegisterID::OutPutRegister); }
+	UCodeLangConstexprForceinline Register& Get_InputRegister() { return Get_Register(RegisterID::InPutRegister); }
 	
-	UCodeLangConstexprForceinline Register& Get_MathOutRegister() { return Get_Register(RegisterID::MathOuPutRegister); }
+	UCodeLangConstexprForceinline Register& Get_MathOutRegister() { return Get_Register(RegisterID::MathOutPutRegister); }
 	UCodeLangConstexprForceinline Register& Get_BoolRegister() { return Get_Register(RegisterID::BoolRegister); }
-	UCodeLangConstexprForceinline Register& Get_bitwiseRegister() { return Get_Register(RegisterID::BitwiseRegister); }
+	UCodeLangConstexprForceinline Register& Get_BitwiseRegister() { return Get_Register(RegisterID::BitwiseRegister); }
+	UCodeLangConstexprForceinline Register& Get_AwaitOutRegister() { return Get_Register(RegisterID::AwaitOutRegister); }
+
+
 	UCodeLangConstexprForceinline Register& Get_Register(RegisterID Id)
 	{
 		switch (Id)
@@ -550,7 +553,7 @@ public:
 		return _Ptr->_State;
 	}
 
-	UCodeLangForceinline auto& Get_InPutRegister() { return _Ptr->Get_InRegister(); }
+	UCodeLangForceinline auto& Get_InPutRegister() { return _Ptr->Get_InputRegister(); }
 	UCodeLangForceinline auto& Get_OutPutRegister() { return _Ptr->Get_OutRegister(); }
 	UCodeLangForceinline auto& Get_ThisRegister() { return _Ptr->Get_ThisRegister(); }
 	

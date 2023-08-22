@@ -63,7 +63,7 @@ enum class InstructionSet : InstructionSet_t
 
 	Int32Tofloat32,
 	Int64Tofloat64,
-	//
+	//PointerMember Set
 	PointerMemberLoad8,
 	PointerMemberRead8,
 
@@ -76,6 +76,7 @@ enum class InstructionSet : InstructionSet_t
 	PointerMemberLoad64,
 	PointerMemberRead64,
 
+
 	//Cpp func Set
 	GetPointerOfStack, GetPointerOfStackSub, GetPointerOfStaticMem, GetPointerOfThreadMem,IncrementStackPointer, DecrementStackPointer,
 	
@@ -84,10 +85,19 @@ enum class InstructionSet : InstructionSet_t
 	SysCall,
 	Call_Code,
 
-	//Debuging
+	//Debuging Set
 	Debug_FuncStart,
 	Debug_FuncEnd,
 	Debug_LineEnter,
+
+
+	//Await Set
+	Await_NewTask,
+	Await_PassPar,
+	Await_Run,
+	Await_IsDone,
+	Await_GetValue,
+	Await_FreeTask,
 
 	MAXVALUE,
 };
@@ -174,6 +184,7 @@ enum class InstructionSysCall : InstructionSet_t
 	Cout_Buffer,
 	
 	Cout_ReadChar,
+	Cout_ReadBuffer,
 
 	File_Open,
 	File_Close,

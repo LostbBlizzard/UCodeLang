@@ -124,10 +124,10 @@ void Parser::ParseOpRegister(AnyInt64& Out)
 	else if (Name == "F") { Out = RegisterID::F; }
 	else if (Name == "Input") { Out = RegisterID::InPutRegister; }
 	else if (Name == "In") { Out = RegisterID::InPutRegister; }
-	else if (Name == "Output") { Out = RegisterID::OuPutRegister; }
-	else if (Name == "Out") { Out = RegisterID::OuPutRegister; }
+	else if (Name == "Output") { Out = RegisterID::OutPutRegister; }
+	else if (Name == "Out") { Out = RegisterID::OutPutRegister; }
 	else if (Name == "This") { Out = RegisterID::ThisRegister; }
-	else if (Name == "Mathout") { Out = RegisterID::MathOuPutRegister; }
+	else if (Name == "Mathout") { Out = RegisterID::MathOutPutRegister; }
 	else if (Name == "CPUbool") { Out = RegisterID::BoolRegister; }
 	else if (Name == "Bitwis") { Out = RegisterID::BitwiseRegister; }
 	else

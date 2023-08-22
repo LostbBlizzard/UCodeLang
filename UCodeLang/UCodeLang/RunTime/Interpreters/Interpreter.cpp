@@ -250,23 +250,23 @@ case InstructionSet::equal_greaterthan##Bits:\
 		Get_Register(Inst.Value1.AsRegister).Value. signedAnyIntValue;\
 	break;\
 case InstructionSet::bitwiseAnd##Bits:\
-	Get_bitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue &\
+	Get_BitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue &\
 		Get_Register(Inst.Value1.AsRegister).Value. signedAnyIntValue;\
 	break;\
 case InstructionSet::bitwiseOr##Bits:\
-	Get_bitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue |\
+	Get_BitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue |\
 		Get_Register(Inst.Value1.AsRegister).Value. signedAnyIntValue;\
 	break;\
 case InstructionSet::bitwiseLeftShift##Bits:\
-	Get_bitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue <<\
+	Get_BitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue <<\
 		Get_Register(Inst.Value1.AsRegister).Value. signedAnyIntValue;\
 	break;\
 case InstructionSet::bitwiseRightShift##Bits:\
-	Get_bitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue >>\
+	Get_BitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue >>\
 		Get_Register(Inst.Value1.AsRegister).Value. signedAnyIntValue;\
 	break;\
 case InstructionSet::bitwiseXor##Bits:\
-	Get_bitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue ^\
+	Get_BitwiseRegister().Value = Get_Register(Inst.Value0.AsRegister).Value. signedAnyIntValue ^\
 		Get_Register(Inst.Value1.AsRegister).Value. signedAnyIntValue;\
 	break;\
 case InstructionSet::bitwise_Not##Bits:\
@@ -374,7 +374,6 @@ void Interpreter::Extecute(Instruction& Inst)
 		Get_Register(Inst.Value1.AsRegister).Value = (Int64)Get_Register(Inst.Value0.AsRegister).Value.Asfloat64;
 		break;
 
-	#pragma region Cpp func Set
 	case InstructionSet::GetPointerOfStack:
 		Get_Register(Inst.Value0.AsRegister).Value = _CPU.Stack.GetTopOfStackWithoffset(Inst.Value1.AsUIntNative);
 		break;
@@ -403,7 +402,7 @@ void Interpreter::Extecute(Instruction& Inst)
 	case InstructionSet::MemCopy:
 			MemCopy(Get_Register(Inst.Value1.AsRegister).Value.AsPtr
 				   ,Get_Register(Inst.Value0.AsRegister).Value.AsPtr
-			       ,Get_InRegister().Value.AsUIntNative);
+			       ,Get_InputRegister().Value.AsUIntNative);
 		break;
 	case InstructionSet::Calloc:
 		Get_Register(Inst.Value1.AsRegister).Value =
@@ -546,7 +545,6 @@ void Interpreter::Extecute(Instruction& Inst)
 		Get_Register((RegisterID)Inst.Value1.AsRegister).Value = Inst.Value0.AsAddress; \
 	}
 	break;
-
 	case InstructionSet::Debug_FuncStart:
 	{
 		Get_State()->Get_DebugContext().TryFuncStart(*Get_State(), { this,DebugContext::Type::Interpreter });
@@ -562,7 +560,66 @@ void Interpreter::Extecute(Instruction& Inst)
 		Get_State()->Get_DebugContext().TryFuncOnLine(*Get_State(), { this,DebugContext::Type::Interpreter });
 	}
 	break;
-	#pragma endregion
+	
+	//Await Set
+	case InstructionSet::Await_NewTask:
+	{
+		PackagedTask* task = new (Malloc(sizeof(PackagedTask))) PackagedTask();
+		Get_Register((RegisterID)Inst.Value0.AsRegister).Value = task;
+	}
+	break;
+	case InstructionSet::Await_PassPar:
+	{
+		PackagedTask* task = (PackagedTask*)Get_Register((RegisterID)Inst.Value0.AsRegister).Value.AsPtr;
+		void* Ptr = Get_Register((RegisterID)Inst.Value1.AsRegister).Value.AsPtr;
+		size_t Size = Get_InputRegister().Value.AsUIntNative;
+		task->PushParameter(Ptr,Size);
+	}
+	break;
+	case InstructionSet::Await_Run:
+	{
+		auto& InReg = Get_Register((RegisterID)Inst.Value0.AsRegister);
+
+		PackagedTask* task = (PackagedTask*)InReg.Value.AsPtr;
+
+		auto awaittask = Get_State()->AwaitNewTask(std::move(*task));
+
+		task->~PackagedTask();
+		Free(task);
+
+		InReg.Value.AsPtr = awaittask;
+	}
+	break;
+	case InstructionSet::Await_IsDone:
+	{
+		RunTimeLangState::AwaitedTask task = (RunTimeLangState::AwaitedTask)Get_Register((RegisterID)Inst.Value0.AsRegister).Value.AsPtr;
+		Get_Register((RegisterID)Inst.Value0.AsRegister).Value.Asbool = Get_State()->AwaitIsDone(task);
+	}
+	break;
+	case InstructionSet::Await_GetValue:
+	{
+		RunTimeLangState::AwaitedTask task = (RunTimeLangState::AwaitedTask)Get_Register((RegisterID)Inst.Value0.AsRegister).Value.AsPtr;
+
+		size_t valuesize = Get_InputRegister().Value.AsUIntNative;
+		void* ptr = _CPU.Stack.GetTopOfStack();
+		Get_State()->AwaitGetValue(task,ptr);
+
+		if (valuesize > sizeof(Register))
+		{
+			Get_OutRegister().Value.AsPtr = ptr;
+		}
+		else
+		{
+			void* mem = &Get_OutRegister().Value;
+			memcpy(mem,ptr,valuesize);
+		}
+	}
+	case InstructionSet::Await_FreeTask:
+	{
+		RunTimeLangState::AwaitedTask task = (RunTimeLangState::AwaitedTask)Get_Register((RegisterID)Inst.Value0.AsRegister).Value.AsPtr;
+		Get_State()->AwaitFreeTask(task);
+	}
+	break;
 	break;
 	default:
 		UCodeLangUnreachable();

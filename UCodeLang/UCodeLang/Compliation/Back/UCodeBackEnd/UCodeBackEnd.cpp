@@ -528,11 +528,11 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			auto ObjectSize = _Input->GetSize(GetType(Item));
 			if (ObjectSize <= sizeof(AnyInt64))
 			{
-				MakeIntoRegister(V, {RegisterID::OuPutRegister});
+				MakeIntoRegister(V, {RegisterID::OutPutRegister});
 			}
 			else
 			{
-				MakeIntoRegister(GetPointerOf(V), {RegisterID::OuPutRegister});
+				MakeIntoRegister(GetPointerOf(V), {RegisterID::OutPutRegister});
 			}
 		}
 		break;
@@ -544,7 +544,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 
 		case IRInstructionType::SMult:
 		{
-			RegisterID V = RegisterID::MathOuPutRegister;
+			RegisterID V = RegisterID::MathOutPutRegister;
 			RegisterID A = MakeIntoRegister(Item, Item->A);
 			SetRegister(A,Item);
 			RegisterID B = MakeIntoRegister(Item, Item->B);
@@ -582,7 +582,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		break;
 		case IRInstructionType::UMult:
 		{
-			RegisterID V = RegisterID::MathOuPutRegister;
+			RegisterID V = RegisterID::MathOutPutRegister;
 			RegisterID A = MakeIntoRegister(Item, Item->A);
 			SetRegister(A,Item);
 			RegisterID B = MakeIntoRegister(Item, Item->B);
@@ -622,7 +622,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 
 		case IRInstructionType::SDiv:
 		{
-			RegisterID V = RegisterID::MathOuPutRegister;
+			RegisterID V = RegisterID::MathOutPutRegister;
 			RegisterID A = MakeIntoRegister(Item, Item->A);
 
 			auto OldA = std::move(_Registers.GetInfo(A));
@@ -663,7 +663,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		break;
 		case IRInstructionType::UDiv:
 		{
-			RegisterID V = RegisterID::MathOuPutRegister;
+			RegisterID V = RegisterID::MathOutPutRegister;
 			RegisterID A = MakeIntoRegister(Item, Item->A);
 
 			auto OldA = std::move(_Registers.GetInfo(A));
@@ -706,7 +706,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 
 		case IRInstructionType::Add:
 		{
-			RegisterID V = RegisterID::MathOuPutRegister;
+			RegisterID V = RegisterID::MathOutPutRegister;
 			RegisterID A = MakeIntoRegister(Item, Item->A);
 
 			auto OldA = std::move(_Registers.GetInfo(A));
@@ -747,7 +747,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		break;
 		case IRInstructionType::Sub:
 		{
-			RegisterID V = RegisterID::MathOuPutRegister;
+			RegisterID V = RegisterID::MathOutPutRegister;
 			RegisterID A = MakeIntoRegister(Item, Item->A);
 
 			auto OldA = std::move(_Registers.GetInfo(A));
@@ -1383,7 +1383,7 @@ void UCodeBackEndObject::FuncCallRet(const IRType& RetType)
 {
 	if (RetType._Type != IRTypes::Void)
 	{
-		RegWillBeUsed(RegisterID::OuPutRegister);
+		RegWillBeUsed(RegisterID::OutPutRegister);
 	}
 }
 void UCodeBackEndObject::FuncCallEnd(UCodeBackEndObject::FuncCallEndData& Data)
@@ -2599,7 +2599,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 				}
 				else if (Item->Type == IRInstructionType::Call)
 				{
-					CompilerRet.Info = RegisterID::OuPutRegister;
+					CompilerRet.Info = RegisterID::OutPutRegister;
 				}
 				else if (Item->Type == IRInstructionType::Load)
 				{
@@ -2704,7 +2704,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 						size_t ObjectSize = GetSize(Item);
 						if (ObjectSize > sizeof(AnyInt64))
 						{
-							CompilerRet.Info = RegisterID::OuPutRegister;
+							CompilerRet.Info = RegisterID::OutPutRegister;
 
 							IRlocData tep = GetFreeStackLoc(GetType(Item));
 
@@ -2713,7 +2713,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 						}
 						else
 						{
-							CompilerRet.Info = RegisterID::OuPutRegister;
+							CompilerRet.Info = RegisterID::OutPutRegister;
 						}
 					}
 					else if (Item->Type == IRInstructionType::Load)
@@ -3608,11 +3608,11 @@ void UCodeBackEndObject::BuildLink(const IRidentifier& FuncName, IRFuncLink Link
 	}
 	else if (VFuncName == "__ReadChar")
 	{
-		InstructionBuilder::ReadChar(_Ins,RegisterID::OuPutRegister); PushIns();
+		InstructionBuilder::ReadChar(_Ins,RegisterID::OutPutRegister); PushIns();
 	}
 	else if (VFuncName == "__Malloc")
 	{
-		InstructionBuilder::Malloc(_Ins, RegisterID::StartParameterRegister, RegisterID::OuPutRegister); PushIns();
+		InstructionBuilder::Malloc(_Ins, RegisterID::StartParameterRegister, RegisterID::OutPutRegister); PushIns();
 	}
 	else if (VFuncName == "__Free")
 	{
