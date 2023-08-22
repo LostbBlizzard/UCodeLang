@@ -565,7 +565,8 @@ void Interpreter::Extecute(Instruction& Inst)
 	case InstructionSet::Await_NewTask:
 	{
 		PackagedTask* task = new (Malloc(sizeof(PackagedTask))) PackagedTask();
-		Get_Register((RegisterID)Inst.Value0.AsRegister).Value = task;
+		task->Set_Func(Get_Register((RegisterID)Inst.Value0.AsRegister).Value.AsAddress); .
+		Get_Register((RegisterID)Inst.Value1.AsRegister).Value = task;
 	}
 	break;
 	case InstructionSet::Await_PassPar:

@@ -181,6 +181,15 @@ enum class IRInstructionType : IRInstructionType_t
 
 	UIntToSInt,
 	SIntToUInt,
+
+	//await
+	New_Await_Task,
+	Await_PassPar,
+	Await_RunTask,
+	Await_IsDone,
+	Await_GetValue,
+	Await_Free_Task,
+
 	//internal stuff
 };
 
@@ -246,7 +255,13 @@ inline bool IsLoadValueOnlyInTarget(IRInstructionType Value)
 		|| Value == IRInstructionType::LoadReturn
 		|| Value == IRInstructionType::PushParameter
 		|| Value == IRInstructionType::MallocCall
-		|| Value == IRInstructionType::FreeCall;
+		|| Value == IRInstructionType::FreeCall
+
+		|| Value == IRInstructionType::New_Await_Task
+		|| Value == IRInstructionType::Await_PassPar
+		|| Value == IRInstructionType::Await_IsDone
+		|| Value == IRInstructionType::Await_GetValue
+		|| Value == IRInstructionType::Await_Free_Task;
 }
 inline bool IsLoadValueOnInput(IRInstructionType Value)
 {
@@ -261,12 +276,18 @@ inline bool IsLocation(IRInstructionType Value)
 		|| Value == IRInstructionType::CallFuncPtr
 		|| Value == IRInstructionType::MallocCall
 		|| IsBinary(Value)
-		|| IsUnary(Value);
+		|| IsUnary(Value)
+		|| Value == IRInstructionType::New_Await_Task
+		|| Value == IRInstructionType::Await_IsDone
+		|| Value == IRInstructionType::Await_GetValue;
 }
 inline bool IsAction(IRInstructionType Value)
 {
 	return Value == IRInstructionType::Return
-		|| Value == IRInstructionType::FreeCall;
+		|| Value == IRInstructionType::FreeCall
+		|| Value == IRInstructionType::Await_PassPar
+		|| Value == IRInstructionType::Await_RunTask
+		|| Value == IRInstructionType::Await_Free_Task;
 }
 
 inline bool IsOperatorValueInTarget(IRInstructionType Value)
@@ -1033,6 +1054,53 @@ struct IRBlock
 		V->ObjectType = Type;
 		return V.get();
 	}
+	//await
+	IRInstruction* New_Await_Task(IRInstruction* FuncPtr)
+	{
+		auto& V = Instructions.emplace_back(new IRInstruction(IRInstructionType::New_Await_Task, IROperator(FuncPtr)));
+
+		V->ObjectType = IRTypes::pointer;
+		return V.get();
+	}
+	void Await_PassPar(IRInstruction* AwaitHandle, IRInstruction* Par)
+	{
+		auto& V = Instructions.emplace_back(
+		new IRInstruction(IRInstructionType::Await_PassPar
+			,IROperator(AwaitHandle)
+			,IROperator(Par)));
+	}
+	void Await_RunTask(IRInstruction* AwaitHandle)
+	{
+		auto& V = Instructions.emplace_back(
+			new IRInstruction(IRInstructionType::Await_RunTask
+				, IROperator(AwaitHandle)
+				));
+	}
+	IRInstruction* Await_IsDone(IRInstruction* AwaitHandle)
+	{
+		auto& V = Instructions.emplace_back(
+			new IRInstruction(IRInstructionType::Await_IsDone
+				, IROperator(AwaitHandle)
+			));
+
+		V->ObjectType = IRTypes::i8;
+		return V.get();
+	}
+	IRInstruction* Await_GetValue(IRInstruction* AwaitHandle,IRType ObjectType)
+	{
+		auto& V = Instructions.emplace_back(
+			new IRInstruction(IRInstructionType::Await_GetValue
+				, IROperator(AwaitHandle)
+			));
+
+		V->ObjectType = ObjectType;
+		return V.get();
+	}
+	void Free_Await_Task(IRInstruction* AwaitHandle)
+	{
+		auto& V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Await_Free_Task, IROperator(AwaitHandle)));
+	}
+
 	size_t GetIndex()
 	{
 		return Instructions.size()-1;
