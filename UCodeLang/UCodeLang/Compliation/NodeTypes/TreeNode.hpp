@@ -129,22 +129,12 @@ static UCodeLangForceinline const Node* As(const Type* Value) {return (const Nod
 \
 static UCodeLangForceinline Type* As(Node* Value) \
 { \
-if (UCodeLangDebug){ \
-if (Value->Get_Type() != Node_t) \
-{ \
-	UCodeLangThrowException("invalid cast"); \
-} \
-} \
+UCodeLangAssert(Value->Get_Type() == Node_t);\
 return (Type*)Value; \
 } \
 static UCodeLangForceinline const Type* As(const Node* Value) \
 { \
-if (UCodeLangDebug) { \
-if (Value->Get_Type() != Node_t) \
-{ \
-	UCodeLangThrowException("invalid cast"); \
-} \
-} \
+UCodeLangAssert(Value->Get_Type() == Node_t); \
 return (const Type*)Value; \
 } \
 
