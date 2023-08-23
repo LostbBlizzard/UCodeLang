@@ -1798,7 +1798,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 			Generic_InitGenericalias(node.Generic,false, Ptr->_GenericData);
 		}
 	}
-	if (_PassType == PassType::FixedTypes)
+	else if (_PassType == PassType::FixedTypes)
 	{
 		if (!Isgeneric_t) 
 		{
@@ -1823,8 +1823,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 			}
 		}
 	}
-
-	if (_PassType == PassType::BuidCode)
+	else if (_PassType == PassType::BuidCode)
 	{
 		if (!Isgeneric_t) {
 			auto& V = _Lib.Get_Assembly().AddAlias((String)ClassName, _Table._Scope.ThisScope);
@@ -2990,8 +2989,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 		}
 
 	}
-
-	if (_PassType == PassType::BuidCode)
+	else if (_PassType == PassType::BuidCode)
 	{
 		Debug_Add_SetLineNumber(node._Name, _IR_LookingAtIRBlock->GetIndex());
 		if (node._Type == ForNode::ForType::Traditional)
@@ -4335,8 +4333,7 @@ void SystematicAnalysis::OnCompileTimeIfNode(const CompileTimeIfNode& node)
 		OnExpressionTypeNode(node._Expression._Value.get(),GetValueMode::Read);
 		_LookingForTypes.pop();
 	}
-
-	if (_PassType == PassType::FixedTypes)
+	else if (_PassType == PassType::FixedTypes)
 	{
 		
 		_LookingForTypes.push(TypesEnum::Bool);
@@ -4394,9 +4391,7 @@ void SystematicAnalysis::OnCompileTimeIfNode(const CompileTimeIfNode& node)
 		}
 
 	}
-
-
-	if (_PassType == PassType::BuidCode)
+	else if (_PassType == PassType::BuidCode)
 	{
 		const bool EvalValue = _ValidNodes.at(Symbol_GetSymbolID(node));
 
@@ -4452,7 +4447,7 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 
 		}
 	}
-	if (_PassType == PassType::FixedTypes)
+	else if (_PassType == PassType::FixedTypes)
 	{
 		if (node._Type == CompileTimeForNode::ForType::modern)
 		{
@@ -4654,7 +4649,7 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 			}
 		}
 	}
-	if (_PassType == PassType::BuidCode)
+	else if (_PassType == PassType::BuidCode)
 	{
 		CompileTimeforNode& Nodes = _ForNodes.at(Symbol_GetSymbolID(node));
 		if (Nodes.SybToLoopOver->Type == SymbolType::ParameterVarable)
@@ -5496,7 +5491,9 @@ void SystematicAnalysis::OnStatement(const Node& node2)
 	case NodeType::CompileTimeIfNode:OnCompileTimeIfNode(*CompileTimeIfNode::As(&node2)); break;
 	case NodeType::CompileTimeForNode:OnCompileTimeforNode(*CompileTimeForNode::As(&node2)); break;
 	case NodeType::MatchStatement:OnMatchStatement(*MatchStatement::As(&node2)); break;
-	default:break;
+	case NodeType::AwaitStatement:OnAwaitStatement(*AwaitStatement::As(&node2)); break;
+	case NodeType::YieldStatement:OnYieldStatement(*YieldStatement::As(&node2)); break;
+	default:UCodeLangUnreachable(); break;
 	}
 	Pop_NodeScope();
 }
@@ -5533,7 +5530,7 @@ void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 			}
 		}
 	}
-	if (_PassType == PassType::BuidCode)
+	else if (_PassType == PassType::BuidCode)
 	{
 		auto& T = Type_Get_LookingForType();
 		IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType, T);
@@ -8475,6 +8472,18 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 			OnExpressionToTypeValueNode(*nod);
 		}
 		break;
+		case NodeType::AwaitExpression:
+		{
+			const auto nod = AwaitExpression::As(Value);
+			OnAwaitExpression(*nod);
+		}
+		break;
+		case NodeType::YieldExpression:
+		{
+			const auto nod = YieldExpression::As(Value);
+			OnYieldExpression(*nod);
+		}
+		break;
 		default:
 			UCodeLangUnreachable();
 			break;
@@ -10975,7 +10984,7 @@ void SystematicAnalysis::OnTypeToValueNode(const TypeToValueNode& node)
 
 		_LastExpressionType = Type;
 	}
-	if (_PassType == PassType::BuidCode)
+	else if (_PassType == PassType::BuidCode)
 	{
 		
 		const Token* Token = node.TypeOp._name.token; 
@@ -10991,7 +11000,7 @@ void SystematicAnalysis::OnExpressionToTypeValueNode(const ExpressionToTypeValue
 		OnExpressionTypeNode(node._TypeEx,GetValueMode::Read);
 		_LookingForTypes.pop();
 	}
-	if (_PassType == PassType::FixedTypes)
+	else if (_PassType == PassType::FixedTypes)
 	{
 		_LookingForTypes.push(TypesEnum::Any);
 		OnExpressionTypeNode(node._TypeEx, GetValueMode::Read);
@@ -11002,11 +11011,77 @@ void SystematicAnalysis::OnExpressionToTypeValueNode(const ExpressionToTypeValue
 
 		_LastExpressionType = Type;
 	}
-	if (_PassType == PassType::BuidCode)
+	else if (_PassType == PassType::BuidCode)
 	{
 		const Token* Token = _LastLookedAtToken;
 		LogError_CantOutputTypeinfo(Token);
 	}
+}
+void SystematicAnalysis::OnAwaitExpression(const AwaitExpression& node)
+{
+	if (_PassType == PassType::GetTypes)
+	{
+		if (node._IsFunc)
+		{
+			const FuncCallNode& Funcnode = node._Func;
+			OnFuncCallNode(Funcnode);
+		}
+		else
+		{
+			const LambdaNode& LambdaNode = node._Lambda;
+			OnLambdaNode(LambdaNode);
+		}
+	}
+	else if (_PassType == PassType::FixedTypes)
+	{
+		if (node._IsFunc)
+		{
+			const FuncCallNode& Funcnode = node._Func;
+			
+		}
+		else
+		{
+			const LambdaNode& LambdaNode = node._Lambda;
+			
+		}
+	}
+	else if (_PassType == PassType::BuidCode)
+	{
+		if (node._IsFunc)
+		{
+			const FuncCallNode& Funcnode = node._Func;
+			
+		}
+		else
+		{
+			const LambdaNode& LambdaNode = node._Lambda;
+			
+		}
+	}
+}
+void SystematicAnalysis::OnYieldExpression(const YieldExpression& node)
+{
+	if (_PassType == PassType::GetTypes)
+	{
+		OnExpressionTypeNode(node._Expression,GetValueMode::Read);
+	}
+	else if (_PassType == PassType::FixedTypes)
+	{
+		OnExpressionTypeNode(node._Expression, GetValueMode::Read);
+		auto extype = _LastExpressionType;
+	}
+	else if (_PassType == PassType::BuidCode)
+	{
+
+	}
+}
+void SystematicAnalysis::OnAwaitStatement(const AwaitStatement& node)
+{
+	OnAwaitExpression(node._Base);
+}
+void SystematicAnalysis::OnYieldStatement(const YieldStatement& node)
+{
+	OnYieldExpression(node._Base);
 }
 void SystematicAnalysis::OnMatchStatement(const MatchStatement& node)
 {
@@ -11046,7 +11121,7 @@ void SystematicAnalysis::OnMatchStatement(const MatchStatement& node)
 			_Table.RemoveScope();
 		}
 	}
-	if (_PassType == PassType::FixedTypes)
+	else if (_PassType == PassType::FixedTypes)
 	{
 		OnExpressionTypeNode(node._Expression, GetValueMode::Read);
 		
@@ -11093,7 +11168,7 @@ void SystematicAnalysis::OnMatchStatement(const MatchStatement& node)
 
 		_MatchStatementDatas.AddValue(Symbol_GetSymbolID(node), std::move(V));
 	}
-	if (_PassType == PassType::BuidCode)
+	else if (_PassType == PassType::BuidCode)
 	{
 		size_t ScopeCounter = 0;
 		const String ScopeName = std::to_string((uintptr_t)&node);
@@ -11523,7 +11598,7 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 			_Table.RemoveScope();
 		}
 	}
-	if (_PassType == PassType::FixedTypes)
+	else if (_PassType == PassType::FixedTypes)
 	{
 		OnExpressionTypeNode(node._Expression, GetValueMode::Read);
 
@@ -11583,7 +11658,7 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 		V._MatchAssignmentType = MatchAssignmentType;
 		_MatchExpressionDatas.AddValue(Symbol_GetSymbolID(node), std::move(V));
 	}
-	if (_PassType == PassType::BuidCode)
+	else if (_PassType == PassType::BuidCode)
 	{
 		size_t ScopeCounter = 0;
 		const String ScopeName = std::to_string((uintptr_t)&node);

@@ -1089,6 +1089,12 @@ private:
 	void OnExpressionNode(const ExtendedFuncExpression& node);
 	void OnMatchExpression(const MatchExpression& node);
 	void OnExpressionToTypeValueNode(const ExpressionToTypeValueNode& node);
+	void OnAwaitExpression(const AwaitExpression& node);
+	void OnYieldExpression(const YieldExpression& node);
+	void OnAwaitStatement(const AwaitStatement& node);
+	void OnYieldStatement(const YieldStatement& node);
+
+
 
 	Byte OperatorPrecedenceValue(const Node* node);
 	Byte OperatorPrecedence(TokenType V);
