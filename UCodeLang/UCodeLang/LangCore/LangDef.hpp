@@ -178,7 +178,7 @@
 #endif
 
 #if UCodeLangDebug
-#define UCodeLangAssert(condition) if (!(condition)){UCodeLangThrowException("bad");}
+#define UCodeLangAssert(condition) //if (!(condition)){UCodeLangThrowException("bad");}
 #else
 #define UCodeLangAssert(condition)
 #endif

@@ -97,6 +97,7 @@ inline const char* S_KeyWord_extern = "extern";
 
 inline const char* S_KeyWord_await = "await";
 inline const char* S_KeyWord_async = "async";
+inline const char* S_KeyWord_yield = "yield";
 
 inline const char* S_KeyWord_utf8 = "utf8";
 inline const char* S_KeyWord_utf16 = "utf16";
@@ -207,6 +208,7 @@ inline KeyWord KeyWords[] =
 
 	KeyWord(S_KeyWord_await,TokenType::KeyWord_await),
 	KeyWord(S_KeyWord_async,TokenType::KeyWord_async),
+	KeyWord(S_KeyWord_yield,TokenType::KeyWord_yeild),
 
 	KeyWord(S_KeyWord_utf8,TokenType::KeyWord_uft8),
 	KeyWord(S_KeyWord_utf16,TokenType::KeyWord_uft16),

@@ -648,6 +648,27 @@ private:
 
 	GotNodeType GetAwaitStatementNode(AwaitStatement& out);
 
+
+	TryGetNode GetYieldExpresionNode()
+	{
+		YieldExpression* V = YieldExpression::Gen();
+		auto r = GetYieldExpresionNode(*V);
+		TrippedCheck(r);
+		return { r,V };
+	}
+
+	GotNodeType GetYieldExpresionNode(YieldExpression& out);
+
+	TryGetNode GetYieldStatementNode()
+	{
+		YieldStatement* V = YieldStatement::Gen();
+		auto r = GetYieldStatementNode(*V);
+		TrippedCheck(r);
+		return { r,V };
+	}
+
+	GotNodeType GetYieldStatementNode(YieldStatement& out);
+
 };
 UCodeLangFrontEnd
 
