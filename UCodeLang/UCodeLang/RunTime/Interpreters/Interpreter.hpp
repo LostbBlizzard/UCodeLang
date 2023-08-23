@@ -8,14 +8,12 @@ UCodeLangStart
 
 class InterpreterCPPinterface;
 class Jit_Interpreter;
-class UPackagedTask_t;
 class ProfilerDebuger;
 class Interpreter
 {
 public:
 	friend InterpreterCPPinterface;
 	friend Jit_Interpreter;
-	friend UPackagedTask_t;
 	friend ProfilerDebuger;
 	friend RunTimeLangState;
 

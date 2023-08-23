@@ -671,6 +671,13 @@ GotNodeType Parser::GetStatement(Node*& out)
 		return r.GotNode;
 	}
 	break;
+	case TokenType::KeyWord_yeild:
+	{
+		auto r = GetYieldStatementNode();
+		out = r.Node;
+		return r.GotNode;
+	}
+	break;
 	default:
 	{
 		size_t OldIndex = _TokenIndex;
@@ -1240,6 +1247,13 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 	case TokenType::KeyWord_await:
 	{
 		auto V = GetAwaitExpresionNode();
+		out = V.Node;
+		return V.GotNode;
+	}
+	break;
+	case TokenType::KeyWord_yeild:
+	{
+		auto V = GetYieldExpresionNode();
 		out = V.Node;
 		return V.GotNode;
 	}
@@ -4389,12 +4403,9 @@ GotNodeType Parser::GetAwaitExpresionNode(AwaitExpression& out)
 	NextToken();
 
 	auto Token = TryGetToken();
-	if (Token->Type == Parser::declareFunc)
+	if (Token->Type == TokenType::Left_Bracket)
 	{
-		GetLambdaNode(out._Lambda);
-	}
-	else if (Token->Type == TokenType::Left_Bracket)
-	{
+		NextToken();
 		GetShortLambdaNode(out._Lambda);
 	}
 	else
@@ -4408,6 +4419,29 @@ GotNodeType Parser::GetAwaitExpresionNode(AwaitExpression& out)
 }
 GotNodeType Parser::GetAwaitStatementNode(AwaitStatement& out)
 {
-	return GetAwaitExpresionNode(out._Base);
+	auto o = GetAwaitExpresionNode(out._Base);
+
+	TokenTypeCheck(TryGetToken(), TokenType::Semicolon);
+	NextToken();
+
+	return o;
+}
+GotNodeType Parser::GetYieldExpresionNode(YieldExpression& out)
+{
+	out._Token = TryGetToken(); TokenTypeCheck(out._Token, TokenType::KeyWord_yeild);
+	NextToken();
+
+	GetExpressionTypeNode(out._Expression);
+
+	return GotNodeType::Success;
+}
+GotNodeType Parser::GetYieldStatementNode(YieldStatement& out)
+{
+	auto o = GetYieldExpresionNode(out._Base);
+
+	TokenTypeCheck(TryGetToken(), TokenType::Semicolon);
+	NextToken();
+
+	return o;
 }
 UCodeLangFrontEnd

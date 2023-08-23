@@ -1335,4 +1335,26 @@ struct AwaitStatement : Node
 
 	}
 };
+
+struct YieldExpression : Node
+{
+	const Token* _Token = nullptr;
+	ExpressionNodeType _Expression;
+
+	AddforNode(YieldExpression);
+	YieldExpression() : Node(NodeType::YieldExpression)
+	{
+
+	}
+};
+struct YieldStatement : Node
+{
+	YieldExpression _Base;
+
+	AddforNode(YieldStatement);
+	YieldStatement() : Node(NodeType::YieldStatement)
+	{
+
+	}
+};
 UCodeLangFrontEnd

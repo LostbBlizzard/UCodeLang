@@ -80,6 +80,8 @@ enum class NodeType :UInt8
 	ImportStatement,
 	AwaitExpression,
 	AwaitStatement,
+	YieldExpression,
+	YieldStatement,
 };
 
 

@@ -1,6 +1,11 @@
 
-
-|main[] => 0;
+|func[] => 0;
+|main[]:
+ async<int> a = await func();
+ async<int> b = await [] => func();
+ int av = yield a;
+ int ab = yield b;
+ yield await [] => 0;
 
 IntVector VectorTest = [];
 String StringTest = [];
