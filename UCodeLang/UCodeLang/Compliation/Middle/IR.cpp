@@ -1724,7 +1724,15 @@ bool IRBuilder::ToString(
 		r += " = ";
 		r += ToString(State, *I, I->Target()) + " -> sint64";
 		break;
-
+	case IRInstructionType::New_Await_Task:
+		r += ToString(I->ObjectType);
+		r += " " + State.GetName(I);
+		r += " = ";
+		r += "await::new(" + ToString(State, *I, I->Target()) + ")";
+		break;
+	case IRInstructionType::Await_RunTask:
+		r += "await::run(" + ToString(State, *I, I->Target()) + ")";
+		break;
 	default:
 		UCodeLangUnreachable();
 		break;

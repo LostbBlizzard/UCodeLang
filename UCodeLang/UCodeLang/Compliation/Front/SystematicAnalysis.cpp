@@ -7720,7 +7720,7 @@ Symbol* SystematicAnalysis::GetTepFuncPtrSyb(const String& TepFuncPtr, const Fun
 }
 
 #define TepFuncPtrNameMangleStr "_tepfptr|"
-String SystematicAnalysis::GetTepFuncPtrName(FuncInfo* SymbolVar)
+String SystematicAnalysis::GetTepFuncPtrName(const FuncInfo* SymbolVar)
 {
 	return TepFuncPtrNameMangleStr + SymbolVar->FullName;
 }
@@ -8344,8 +8344,10 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 		|| _PassType == PassType::FixedTypes
 		
 		|| (_PassType == PassType::GetTypes && 
-			(node._Value->Get_Type() == NodeType::LambdaNode)
-		))
+			((node._Value->Get_Type() == NodeType::LambdaNode) ||
+			(node._Value->Get_Type() == NodeType::YieldExpression) ||
+			(node._Value->Get_Type() == NodeType::AwaitExpression)
+		)))
 	{
 		const auto Value = node._Value.get();
 		switch (node._Value->Get_Type())
@@ -11034,29 +11036,87 @@ void SystematicAnalysis::OnAwaitExpression(const AwaitExpression& node)
 	}
 	else if (_PassType == PassType::FixedTypes)
 	{
+		TypeSymbol FuncRetType;
 		if (node._IsFunc)
 		{
 			const FuncCallNode& Funcnode = node._Func;
+			OnFuncCallNode(Funcnode);
+
+			const auto& GetFunc = _FuncToSyboID.at(Symbol_GetSymbolID(Funcnode));
+
+			Type_SetFuncRetAsLastEx(GetFunc);
+			FuncRetType = _LastExpressionType;
 			
 		}
 		else
 		{
 			const LambdaNode& LambdaNode = node._Lambda;
-			
+			OnLambdaNode(LambdaNode);
+
+
+			const String LambdaName = CompilerGenerated("Lambda") + std::to_string((uintptr_t)&LambdaNode);
+			_Table.AddScope(LambdaName);
+
+			auto& LambdaSym = *Symbol_GetSymbol(Symbol_GetSymbolID(LambdaNode));
+			LambdaInfo* Info = LambdaSym.Get_Info<LambdaInfo>();
+			FuncRetType = Info->Ret;
+
+			_Table.RemoveScope();
 		}
+
+		auto AsFuture = Type_MakeFutureFromType(FuncRetType);
+
+		_LastExpressionType = AsFuture;
 	}
 	else if (_PassType == PassType::BuidCode)
 	{
+		TypeSymbol FuncRetType;
+
 		if (node._IsFunc)
 		{
 			const FuncCallNode& Funcnode = node._Func;
 			
+			const auto& GetFunc = _FuncToSyboID.at(Symbol_GetSymbolID(Funcnode));
+
+			Type_SetFuncRetAsLastEx(GetFunc);
+			FuncRetType = _LastExpressionType;
+
+			IRInstruction* funcptr = _IR_LookingAtIRBlock->NewLoadFuncPtr(IR_GetIRID(GetFunc.Func));
+			
+			auto awaittask = _IR_LookingAtIRBlock->New_Await_Task(funcptr);
+
+			_IR_LookingAtIRBlock->New_Await_RunTask(awaittask);
+
+
+			_IR_LastExpressionField = awaittask;
 		}
 		else
 		{
 			const LambdaNode& LambdaNode = node._Lambda;
-			
+
+			const String LambdaName = CompilerGenerated("Lambda") + std::to_string((uintptr_t)&LambdaNode);
+			_Table.AddScope(LambdaName);
+
+			auto& LambdaSym = *Symbol_GetSymbol(Symbol_GetSymbolID(LambdaNode));
+			LambdaInfo* Info = LambdaSym.Get_Info<LambdaInfo>();
+			FuncRetType = Info->Ret;
+
+			_Table.RemoveScope();
+		
+
+			IRInstruction* funcptr = _IR_LookingAtIRBlock->NewLoadFuncPtr(IR_GetIRID(Context_GetCuruntFunc()));
+
+			auto awaittask = _IR_LookingAtIRBlock->New_Await_Task(funcptr);
+
+			_IR_LookingAtIRBlock->New_Await_RunTask(awaittask);
+
+
+			_IR_LastExpressionField = awaittask;
 		}
+
+		auto AsFuture = Type_MakeFutureFromType(FuncRetType);
+
+		_LastExpressionType = AsFuture;
 	}
 }
 void SystematicAnalysis::OnYieldExpression(const YieldExpression& node)
@@ -11069,12 +11129,26 @@ void SystematicAnalysis::OnYieldExpression(const YieldExpression& node)
 	{
 		OnExpressionTypeNode(node._Expression, GetValueMode::Read);
 		auto extype = _LastExpressionType;
+		
+		
+		if (!Type_IsFuture(extype))
+		{
+			auto token = node._Token;
+			LogError_yieldnotAsync(token);
+
+			_LastExpressionType = TypesEnum::Null;
+		}
+		else
+		{
+			_LastExpressionType = Type_GetBaseFromFuture(extype);
+		}
 	}
 	else if (_PassType == PassType::BuidCode)
 	{
-
+		int a = 0;
 	}
 }
+
 void SystematicAnalysis::OnAwaitStatement(const AwaitStatement& node)
 {
 	OnAwaitExpression(node._Base);
@@ -11082,6 +11156,79 @@ void SystematicAnalysis::OnAwaitStatement(const AwaitStatement& node)
 void SystematicAnalysis::OnYieldStatement(const YieldStatement& node)
 {
 	OnYieldExpression(node._Base);
+}
+TypeSymbol SystematicAnalysis::Type_MakeFutureFromType(const TypeSymbol& BaseType)
+{
+	auto symbols = Symbol_GetSymbol(UCode_FutureType,SymbolType::Generic_class);
+	
+	auto token = _LastLookedAtToken;
+	if (symbols)
+	{
+
+		if (symbols->Type != SymbolType::Generic_class
+			//&& symbols->Type != SymbolType::Generic_Alias
+			//&& symbols->Type != SymbolType::Generic_Enum
+			)
+		{
+			LogError_ExpectedSymbolToBea(token, *symbols, SymbolType::Generic_class);
+			return {};
+		}
+
+		if (symbols->Type == SymbolType::Generic_class)
+		{
+			auto CInfo = symbols->Get_Info<ClassInfo>();
+			auto classnode = ClassNode::As(symbols->Get_NodeInfo<Node>());
+
+			if (classnode->_generic._Values.size() == 1)
+			{
+				auto symfullname = Generic_SymbolGenericFullName(symbols, { BaseType });
+
+				if (auto val = Symbol_GetSymbol(symfullname, SymbolType::Type))
+				{
+					return TypeSymbol(val->ID);
+				}
+				else
+				{
+					Generic_TypeInstantiate(symbols, { BaseType });
+					return  TypeSymbol(Symbol_GetSymbol(symfullname, SymbolType::Type)->ID);
+				}
+
+			}
+			else
+			{
+				LogError_CanIncorrectGenericCount(token, UCode_FutureType, 1, classnode->_generic._Values.size());
+			}
+		}
+		else
+		{
+			UCodeLangUnreachable();
+		}
+	}
+	else
+	{
+		LogError_CantFindTypeError(token, UCode_FutureType);
+	}
+
+	return {};
+}
+bool SystematicAnalysis::Type_IsFuture(const TypeSymbol& Future)
+{
+	auto v = ScopeHelper::GetNameFromFullName(Symbol_GetSymbol(Future)->FullName);
+	if (StringHelper::StartWith(v, UCode_FutureType))
+	{
+		return true;
+	}
+
+
+	return false;
+}
+TypeSymbol SystematicAnalysis::Type_GetBaseFromFuture(const TypeSymbol& Future)
+{
+	UCodeLangAssert(Type_IsFuture(Future));
+
+	auto symname = ScopeHelper::ApendedStrings(Symbol_GetSymbol(Future)->FullName,"T");
+	auto sym = Symbol_GetSymbol(symname,SymbolType::Type);
+	return sym->VarType;
 }
 void SystematicAnalysis::OnMatchStatement(const MatchStatement& node)
 {
@@ -18359,7 +18506,10 @@ void SystematicAnalysis::LogError_CantBindTypeItNotTypeInfo(const Token* Token, 
 {
 	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Cant Bind type.Expression is not a typeinfo it is an '" + ToString(Type) + "'");
 }
-
+void SystematicAnalysis::LogError_yieldnotAsync(const UCodeLang::Token* token)
+{
+	LogError(ErrorCodes::InValidType, "yield Expression must be type async<T>.", token);
+}
 void SystematicAnalysis::LogError(ErrorCodes Err, size_t Line, size_t Pos, const String& MSG)
 {
 	String Str;
@@ -18382,6 +18532,7 @@ void SystematicAnalysis::LogError(ErrorCodes Err, size_t Line, size_t Pos, const
 	
 	_ErrorsOutput->AddError(Err, Line, Pos,Str);
 }
+
 UCodeLangFrontEnd
 
 
