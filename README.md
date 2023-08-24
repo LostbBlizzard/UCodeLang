@@ -186,9 +186,10 @@ The UCodeGameEngine(being worked on) the primary reason The Language was made.
   A:Just Seemed Interesting also just looks nicer. 
 
 
-- Q:UCodeLang just seems takes ideas from other languages does not do anything new. 
+- Q:What is UCodeLang killer feature. 
 
-  A:UCodeLang is not the next big thing it's just a tool made for my specific use case.It takes the best Parts from languages i like and attempts to remove excess. 
+  A:UCodeLang is not the next big thing it's just a tool made for my specific use case.It takes the best Parts from languages i like and attempts to remove excess.
+    Its a refined and streamline c++ in some ways.
 
 - Q:What does UCode mean? 
   
@@ -197,11 +198,16 @@ The UCodeGameEngine(being worked on) the primary reason The Language was made.
 
 - Q:Do you like c++?
 
-  A:I like it enough to spend a year makeing a new language useing it but not enough to make my users for my Game Engine Use it(Sorry unreal).
+  A:I like it enough to spend a year makeing a new language useing it but not enough to make my users for my Game Engine Use it(Sorry unreal).though i do realy like c++ but also im aware of its flaws. 
 
 
 - Q:what next and when will be Language be done.
 
 
-- A:When the repository Opens (preferably on 1/2/2023 The one year anniversary of makeing the jit project) most features would be done and dont really plan on adding more unless it Just too Good. I'll be around for an extra year to finsh up the other architectures and backends and stabitly.at that point the project will be done and i can go on working on that game engine and go to work on biger and better things.
+- A:When the repository Opens (preferably on 1/2/2023 The one year anniversary of makeing the jit project) most features would be done and dont really plan on adding more unless it Just too Good. I'll be around for an extra year to finsh up the other architectures and backends and stabitly.at that point the project will be done and i can go on working on that game engine and go to work on biger and better things.Also I belive adding too many features can make a language worse.
+
+- Q:what your opinion on new progaming languages.
+
+- A:The more the merrier especially for systems languages.
+    Every language experiments the more we experiment the beter languages by we learning from there mistakes.
 

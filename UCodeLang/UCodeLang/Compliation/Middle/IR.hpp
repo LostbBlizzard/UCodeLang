@@ -187,6 +187,9 @@ enum class IRInstructionType : IRInstructionType_t
 	Await_PassPar,
 	Await_RunTask,
 	Await_IsDone,
+	Await_OnDone,
+	Await_OnCancelled,
+	Await_CancelTask,
 	Await_GetValue,
 	Await_Free_Task,
 
@@ -1062,21 +1065,21 @@ struct IRBlock
 		V->ObjectType = IRTypes::pointer;
 		return V.get();
 	}
-	void Await_PassPar(IRInstruction* AwaitHandle, IRInstruction* Par)
+	void New_Await_PassPar(IRInstruction* AwaitHandle, IRInstruction* Par)
 	{
 		auto& V = Instructions.emplace_back(
 		new IRInstruction(IRInstructionType::Await_PassPar
 			,IROperator(AwaitHandle)
 			,IROperator(Par)));
 	}
-	void Await_RunTask(IRInstruction* AwaitHandle)
+	void New_Await_RunTask(IRInstruction* AwaitHandle)
 	{
 		auto& V = Instructions.emplace_back(
 			new IRInstruction(IRInstructionType::Await_RunTask
 				, IROperator(AwaitHandle)
 				));
 	}
-	IRInstruction* Await_IsDone(IRInstruction* AwaitHandle)
+	IRInstruction* New_Await_IsDone(IRInstruction* AwaitHandle)
 	{
 		auto& V = Instructions.emplace_back(
 			new IRInstruction(IRInstructionType::Await_IsDone
@@ -1086,7 +1089,27 @@ struct IRBlock
 		V->ObjectType = IRTypes::i8;
 		return V.get();
 	}
-	IRInstruction* Await_GetValue(IRInstruction* AwaitHandle,IRType ObjectType)
+	IRInstruction* New_Await_OnDone(IRInstruction* AwaitHandle, IRInstruction* OnDone)
+	{
+		auto& V = Instructions.emplace_back(
+			new IRInstruction(IRInstructionType::Await_IsDone
+				, IROperator(AwaitHandle)
+			));
+
+		V->ObjectType = IRTypes::i8;
+		return V.get();
+	}
+	IRInstruction* New_Await_OnCancelled(IRInstruction* AwaitHandle, IRInstruction* OnCancelled)
+	{
+		auto& V = Instructions.emplace_back(
+			new IRInstruction(IRInstructionType::Await_IsDone
+				, IROperator(AwaitHandle)
+			));
+
+		V->ObjectType = IRTypes::i8;
+		return V.get();
+	}
+	IRInstruction* New_Await_GetValue(IRInstruction* AwaitHandle,IRType ObjectType)
 	{
 		auto& V = Instructions.emplace_back(
 			new IRInstruction(IRInstructionType::Await_GetValue

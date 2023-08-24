@@ -122,7 +122,7 @@ IntVector VectorTest = [];
 String StringTest = [];
 
 //A simplified standard Library below.
-
+$Future<T>;
 $Vec2:
  int X = 0;
  int Y = 0;

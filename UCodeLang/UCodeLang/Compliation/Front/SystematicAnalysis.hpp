@@ -580,7 +580,14 @@ private:
 		TypeSymbol  _MatchAssignmentType;
 		MatchArmData ArmData;
 	};
-
+	struct AwaitData
+	{
+		
+	};
+	struct YieldData
+	{
+		
+	};
 	
 	enum class Jumps_t
 	{
@@ -717,8 +724,9 @@ private:
 	BinaryVectorMap<SymbolID, CompileTimeforNode> _ForNodes;
 	BinaryVectorMap<SymbolID, MatchStatementData> _MatchStatementDatas;
 	BinaryVectorMap<SymbolID, MatchExpressionData> _MatchExpressionDatas;
+	BinaryVectorMap<SymbolID, AwaitData>  _AwaitDatas;
+	BinaryVectorMap<SymbolID, YieldData>  _YieldDatas;
 
-	
 
 	BinaryVectorMap<SymbolID, VarableMemberData> _VarableMemberDatas;//Var.$Item
 
@@ -1057,7 +1065,7 @@ private:
 	void StepBuildMember_Access(const ScopedName& ITem, TypeSymbol& Last_Type, ScopedName::Operator_t OpType, const GetMemberTypeSymbolFromVar_t& In, IRInstruction*& Output);
 	void BuildMember_Reassignment(const GetMemberTypeSymbolFromVar_t& In, const TypeSymbol& Type, IRInstruction* Value);
 	Symbol* GetTepFuncPtrSyb(const String& TepFuncPtr, const FuncInfo* Finfo);
-	String GetTepFuncPtrName(FuncInfo* SymbolVar);
+	String GetTepFuncPtrName(const FuncInfo* SymbolVar);
 	String_view GetTepFuncPtrNameAsName(const String_view Str);
 
 	void OnPostfixVariableNode(const PostfixVariableNode& node);
@@ -1091,9 +1099,13 @@ private:
 	void OnExpressionToTypeValueNode(const ExpressionToTypeValueNode& node);
 	void OnAwaitExpression(const AwaitExpression& node);
 	void OnYieldExpression(const YieldExpression& node);
+	
 	void OnAwaitStatement(const AwaitStatement& node);
 	void OnYieldStatement(const YieldStatement& node);
 
+	TypeSymbol Type_MakeFutureFromType(const TypeSymbol& BaseType);
+	bool Type_IsFuture(const TypeSymbol& Future);
+	TypeSymbol Type_GetBaseFromFuture(const TypeSymbol& Future);
 
 
 	Byte OperatorPrecedenceValue(const Node* node);
@@ -1721,7 +1733,7 @@ private:
 	void LogError_CantgussTypesTheresnoassignment(const Token* Token);
 	void LogError_MissingFuncionforTrait(const String_view& FuncName, const FuncInfo* Info, const Symbol* Trait, const Token* ClassNameToken);
 	void LogError_CantUseOutInOverloadFunc(const Token& Name);
-
+	void LogError_yieldnotAsync(const Token* token);
 	ReadVarErrorCheck_t TryLogError_OnReadVar(String_view VarName, const Token* Token, const Symbol* Syb);
 	void TryLogError_OnWritingVar(Symbol* Symbol, const Token* Token,const String_view Name);
 
