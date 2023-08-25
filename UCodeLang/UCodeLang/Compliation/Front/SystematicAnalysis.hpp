@@ -411,13 +411,20 @@ private:
 
 
 	};
+	struct BlockConext
+	{
+		String Scope;
+		bool PassedYield = false;
+	};
 	struct FuncStackInfo
 	{
 		FuncInfo* Pointer = nullptr;
 		bool IsOnRetStatemnt = false;
+		Vector<BlockConext> BlockConexts;
 		FuncStackInfo(FuncInfo* V)
 		{
 			Pointer = V;
+			BlockConexts.push_back({});
 		}
 	};
 	struct IRLocation_Cotr
@@ -686,7 +693,7 @@ private:
 		GenericFuncInfo Info;
 		Vector<TypeSymbol> Types;
 	};
-
+	
 	//Members
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
@@ -770,7 +777,24 @@ private:
 	IRBlockDebugInfo* _Debug_LastLookAtDebugBlock = nullptr;
 	Optional<SymbolID> _Type_UnMapTypeSymbol;
 	Vector<GeneratedGenericSymbolData> _Generic_GeneratedGenericSybol;
+
 	//Funcs
+	bool IsAfterYield()
+	{
+		if (_FuncStack.size())
+		{
+			return _FuncStack.front().BlockConexts.front().PassedYield;
+		}
+		return false;
+	}
+	void SetAfterYeld()
+	{
+		if (_FuncStack.size())
+		{
+			_FuncStack.front().BlockConexts.front().PassedYield = true;
+		}
+	}
+
 	SymbolContext Save_SymbolContext() const
 	{
 		SymbolContext R;
@@ -1107,6 +1131,8 @@ private:
 	bool Type_IsFuture(const TypeSymbol& Future);
 	TypeSymbol Type_GetBaseFromFuture(const TypeSymbol& Future);
 
+	IRInstruction* GetFutureHandle(const TypeSymbol& Future, IRInstruction* IR);
+	IRInstruction* MakeFutureFromHandle(const TypeSymbol& Future, IRInstruction* IR);
 
 	Byte OperatorPrecedenceValue(const Node* node);
 	Byte OperatorPrecedence(TokenType V);

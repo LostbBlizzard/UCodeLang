@@ -1951,6 +1951,20 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 			Token = TryGetToken();
 		}
 	}
+	else
+	{
+		if (Token->Type == TokenType::KeyWord_async)//async<int> => Future<int>
+		{
+			NextToken();
+			Token = TryGetToken();
+
+			TokenTypeCheck(Token, TokenType::lessthan);
+			NextToken();
+
+			Token = TryGetToken();
+			Isasync = true;
+		}
+	}
 
 	if (Token->Type == TokenType::Name)
 	{

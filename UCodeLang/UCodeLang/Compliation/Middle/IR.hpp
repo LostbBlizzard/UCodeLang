@@ -187,9 +187,10 @@ enum class IRInstructionType : IRInstructionType_t
 	Await_PassPar,
 	Await_RunTask,
 	Await_IsDone,
-	Await_OnDone,
+	Await_SetComplete,
 	Await_OnCancelled,
 	Await_CancelTask,
+	Await_SetValue,
 	Await_GetValue,
 	Await_Free_Task,
 
@@ -1057,7 +1058,7 @@ struct IRBlock
 		V->ObjectType = Type;
 		return V.get();
 	}
-	//await
+	// |[void* Await] -> void;
 	IRInstruction* New_Await_Task(IRInstruction* FuncPtr)
 	{
 		auto& V = Instructions.emplace_back(new IRInstruction(IRInstructionType::New_Await_Task, IROperator(FuncPtr)));
@@ -1089,25 +1090,37 @@ struct IRBlock
 		V->ObjectType = IRTypes::i8;
 		return V.get();
 	}
-	IRInstruction* New_Await_OnDone(IRInstruction* AwaitHandle, IRInstruction* OnDone)
+
+	//CancelledFuncPtr |[void* Await] -> void;
+	void New_Await_OnComplete(IRInstruction* AwaitHandle, IRInstruction* OnDoneFuncPtr)
 	{
 		auto& V = Instructions.emplace_back(
-			new IRInstruction(IRInstructionType::Await_IsDone
+			new IRInstruction(IRInstructionType::Await_SetComplete
 				, IROperator(AwaitHandle)
+				, IROperator(OnDoneFuncPtr)
 			));
-
-		V->ObjectType = IRTypes::i8;
-		return V.get();
+		V->ObjectType = IRType(IRTypes::Void);
 	}
-	IRInstruction* New_Await_OnCancelled(IRInstruction* AwaitHandle, IRInstruction* OnCancelled)
+	//CancelledFuncPtr |[void* Await] -> void;
+	void New_Await_OnCancelled(IRInstruction* AwaitHandle, IRInstruction* OnCancelledFuncPtr)
 	{
 		auto& V = Instructions.emplace_back(
-			new IRInstruction(IRInstructionType::Await_IsDone
+			new IRInstruction(IRInstructionType::Await_OnCancelled
 				, IROperator(AwaitHandle)
+				, IROperator(OnCancelledFuncPtr)
 			));
 
-		V->ObjectType = IRTypes::i8;
-		return V.get();
+		V->ObjectType = IRType(IRTypes::Void);
+	}
+	void New_Await_SetValue(IRInstruction* AwaitHandle, IRInstruction* Value)
+	{
+		auto& V = Instructions.emplace_back(
+			new IRInstruction(IRInstructionType::Await_SetValue
+				, IROperator(AwaitHandle)
+				, IROperator(Value)
+			));
+
+		V->ObjectType = IRType(IRTypes::Void);
 	}
 	IRInstruction* New_Await_GetValue(IRInstruction* AwaitHandle,IRType ObjectType)
 	{
@@ -1122,6 +1135,8 @@ struct IRBlock
 	void Free_Await_Task(IRInstruction* AwaitHandle)
 	{
 		auto& V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Await_Free_Task, IROperator(AwaitHandle)));
+
+		V->ObjectType = IRType(IRTypes::Void);
 	}
 
 	size_t GetIndex()

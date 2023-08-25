@@ -1733,6 +1733,21 @@ bool IRBuilder::ToString(
 	case IRInstructionType::Await_RunTask:
 		r += "await::run(" + ToString(State, *I, I->Target()) + ")";
 		break;
+	case IRInstructionType::Await_SetComplete:
+		r += "await::SetComplete(" + ToString(State, *I, I->Target()) + "," + ToString(State, *I, I->Input()) + ")";
+		break;
+	case IRInstructionType::Await_SetValue:
+		r += ToString(I->ObjectType);
+		r += " " + State.GetName(I);
+		r += " = ";
+		r += "await::SetValue(" + ToString(State, *I, I->Target()) + "," + ToString(State, *I, I->Input()) + ")";
+		break;
+	case IRInstructionType::Await_GetValue:
+		r += ToString(I->ObjectType);
+		r += " " + State.GetName(I);
+		r += " = ";
+		r += "await::GetValue(" + ToString(State, *I, I->Target()) + ")";
+		break;
 	default:
 		UCodeLangUnreachable();
 		break;

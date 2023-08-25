@@ -106,23 +106,30 @@ void AppObject::Init()
 
         _Editor.SetShowWhitespaces(false);
         //_Editor.SetLanguageDefinition(Def);
-
+        /*
+        r += ToString(I->ObjectType);
+		r += " " + State.GetName(I);
+		r += " = ";
+		r += "await::new(" + ToString(State, *I, I->Target()) + ")";
+        */
         UCodeIDEStyle(nullptr);
         _Editor.SetText(
             R"(
 |func[] => 0;
-|main[]:
+|main[] -> async<bool>:
  async<int> a = await func();
- async<int> b = await [] => func();
- int av = yield a;
- int ab = yield b;
- yield await [] => 0;
+ yield a;
+ 
+ //yield await [] => 0;
+ ret 0;
 
+$Future<T>;
+/*
 IntVector VectorTest = [];
 String StringTest = [];
 
 //A simplified standard Library below.
-$Future<T>;
+
 $Vec2:
  int X = 0;
  int Y = 0;
@@ -220,7 +227,7 @@ $String_t<T>:
 //inlined enum variant: X || Y || Z
 //$InlinedEnum = int || bool || char;
 
-
+*/
             )");
 
 
