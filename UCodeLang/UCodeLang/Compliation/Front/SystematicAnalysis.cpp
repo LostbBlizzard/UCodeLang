@@ -4819,9 +4819,15 @@ void SystematicAnalysis::OnStatementsWithSetableRet(const StatementsNode& node, 
 					NewType.SetAsAddressArray();
 				}
 
+				bool IsPassedYield = IsAfterYield();
 
-
-				Type_Get_LookingForType() = RetOut = NewType;
+				if (IsPassedYield)
+				{
+					NewType = Type_MakeFutureFromType(NewType);
+				}
+				
+				RetOut = NewType;
+				Type_Get_LookingForType() = RetOut;
 
 				if (_LastExpressionType._Type == TypesEnum::Var)
 				{
@@ -5524,6 +5530,13 @@ void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 		auto& T = LookForT;
 		if (T._Type != TypesEnum::Var)
 		{
+			bool IsPassedYield = IsAfterYield();
+
+			if (IsPassedYield)
+			{
+				_LastExpressionType = Type_MakeFutureFromType(_LastExpressionType);
+			}
+
 			if (!Type_CanBeImplicitConverted(_LastExpressionType, T,false))
 			{
 				LogError_CantCastImplicitTypes(_LastLookedAtToken, _LastExpressionType, T, false);
@@ -11075,18 +11088,35 @@ void SystematicAnalysis::OnAwaitExpression(const AwaitExpression& node)
 		if (node._IsFunc)
 		{
 			const FuncCallNode& Funcnode = node._Func;
-			
 			const auto& GetFunc = _FuncToSyboID.at(Symbol_GetSymbolID(Funcnode));
+
+			thread_local int a = 0; a++;
+			auto NewAwaitSetIRName = _FuncStack.begin()->Pointer->FullName + "awaitset_" + std::to_string(a);
+			{
+				auto newawaitsetfunc = _IR_Builder.NewFunc(NewAwaitSetIRName, IRType(IRTypes::Void));
+				auto newawaitsetblock = newawaitsetfunc->NewBlock(".");
+				IRPar awaitpar;
+				awaitpar.identifier = _IR_Builder.ToID("await_handle");
+				awaitpar.type = IRTypes::pointer;
+				newawaitsetfunc->Pars.push_back(std::move(awaitpar));
+
+				IRInstruction* AwaitHandleIR = newawaitsetblock->NewLoad(&newawaitsetfunc->Pars.back());
+
+				IRInstruction* funcv = newawaitsetblock->NewCall(IR_GetIRID(GetFunc.Func));
+
+				newawaitsetblock->New_Await_SetValue(AwaitHandleIR, funcv);
+				newawaitsetblock->NewRet();
+			}
+			
 
 			Type_SetFuncRetAsLastEx(GetFunc);
 			FuncRetType = _LastExpressionType;
 
-			IRInstruction* funcptr = _IR_LookingAtIRBlock->NewLoadFuncPtr(IR_GetIRID(GetFunc.Func));
+			IRInstruction* funcptr = _IR_LookingAtIRBlock->NewLoadFuncPtr(_IR_Builder.ToID(NewAwaitSetIRName));
 			
 			auto awaittask = _IR_LookingAtIRBlock->New_Await_Task(funcptr);
 
-			_IR_LookingAtIRBlock->New_Await_RunTask(awaittask);
-
+			
 
 			_IR_LastExpressionField = awaittask;
 		}
@@ -11102,7 +11132,7 @@ void SystematicAnalysis::OnAwaitExpression(const AwaitExpression& node)
 			FuncRetType = Info->Ret;
 
 			_Table.RemoveScope();
-		
+
 
 			IRInstruction* funcptr = _IR_LookingAtIRBlock->NewLoadFuncPtr(IR_GetIRID(Context_GetCuruntFunc()));
 
@@ -11116,6 +11146,7 @@ void SystematicAnalysis::OnAwaitExpression(const AwaitExpression& node)
 
 		auto AsFuture = Type_MakeFutureFromType(FuncRetType);
 
+		_IR_LastExpressionField = MakeFutureFromHandle(AsFuture, _IR_LastExpressionField);
 		_LastExpressionType = AsFuture;
 	}
 }
@@ -11130,7 +11161,7 @@ void SystematicAnalysis::OnYieldExpression(const YieldExpression& node)
 		OnExpressionTypeNode(node._Expression, GetValueMode::Read);
 		auto extype = _LastExpressionType;
 		
-		
+
 		if (!Type_IsFuture(extype))
 		{
 			auto token = node._Token;
@@ -11142,10 +11173,87 @@ void SystematicAnalysis::OnYieldExpression(const YieldExpression& node)
 		{
 			_LastExpressionType = Type_GetBaseFromFuture(extype);
 		}
+		SetAfterYeld();
 	}
 	else if (_PassType == PassType::BuidCode)
 	{
-		int a = 0;
+		thread_local int a = 0;
+
+		auto NewYieldIRName = _FuncStack.begin()->Pointer->FullName + "yield_" + std::to_string(a);
+		auto NewAwaitCompleteIRName = _FuncStack.begin()->Pointer->FullName + "awaitComplete_" + std::to_string(a);
+
+
+
+		OnExpressionTypeNode(node._Expression, GetValueMode::Read);
+
+		auto extype = _LastExpressionType;
+		auto base = Type_GetBaseFromFuture(extype);
+
+
+		auto FutureIR = _IR_LastExpressionField;
+		auto AwaitHandleIR =GetFutureHandle(extype,FutureIR);
+		_IR_LookingAtIRBlock->New_Await_OnComplete(AwaitHandleIR, _IR_LookingAtIRBlock->NewLoadFuncPtr(_IR_Builder.ToID(NewAwaitCompleteIRName)));
+		_IR_LookingAtIRBlock->New_Await_RunTask(AwaitHandleIR);
+
+		bool isbasevoid = base._Type == TypesEnum::Void;
+		{
+			auto newawaitsetfunc = _IR_Builder.NewFunc(NewAwaitCompleteIRName, IRType(IRTypes::Void));
+			auto newawaitsetblock = newawaitsetfunc->NewBlock(".");
+			IRPar awaitpar;
+			awaitpar.identifier = _IR_Builder.ToID("await_handle");
+			awaitpar.type = IRTypes::pointer;
+			newawaitsetfunc->Pars.push_back(std::move(awaitpar));
+
+
+			if (!isbasevoid)
+			{
+				IRInstruction* AwaitHandleIR = newawaitsetblock->NewLoad(&newawaitsetfunc->Pars.back());
+
+				IRInstruction* awaitretv = newawaitsetblock->New_Await_GetValue(AwaitHandleIR, IR_ConvertToIRType(base));
+
+				newawaitsetblock->NewPushParameter(awaitretv);
+			}
+			IRInstruction* funcv = newawaitsetblock->NewCall(_IR_Builder.ToID(NewYieldIRName));
+
+			newawaitsetblock->NewRet();
+		}
+		_IR_LookingAtIRBlock->NewRetValue(FutureIR);
+		_IR_LookingAtIRBlock->NewRet();
+
+
+		a++;
+		auto newfunc = _IR_Builder.NewFunc(NewYieldIRName, IR_ConvertToIRType(base));
+
+		if (!isbasevoid)
+		{
+			IRPar p;
+			p.identifier = _IR_Builder.ToID("yieldvalue");
+			p.type = IR_ConvertToIRType(base);
+			newfunc->Pars.push_back(std::move(p));
+		}
+
+		auto newblock = newfunc->NewBlock(".");
+
+
+
+
+
+		_IR_LookingAtIRFunc = newfunc;
+		_IR_LookingAtIRBlock = newblock;
+
+		SetAfterYeld();
+		if (base._Type == TypesEnum::Void)
+		{
+			_IR_LastExpressionField = nullptr;
+		}
+		else
+		{
+			_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad(&newfunc->Pars.front());
+		}
+		_LastExpressionType = base;
+
+
+
 	}
 }
 
@@ -11213,12 +11321,15 @@ TypeSymbol SystematicAnalysis::Type_MakeFutureFromType(const TypeSymbol& BaseTyp
 }
 bool SystematicAnalysis::Type_IsFuture(const TypeSymbol& Future)
 {
-	auto v = ScopeHelper::GetNameFromFullName(Symbol_GetSymbol(Future)->FullName);
-	if (StringHelper::StartWith(v, UCode_FutureType))
-	{
-		return true;
-	}
+	auto future = Symbol_GetSymbol(Future);
 
+	if (future) {
+		auto v = ScopeHelper::GetNameFromFullName(future->FullName);
+		if (StringHelper::StartWith(v, UCode_FutureType))
+		{
+			return true;
+		}
+	}
 
 	return false;
 }
@@ -11229,6 +11340,14 @@ TypeSymbol SystematicAnalysis::Type_GetBaseFromFuture(const TypeSymbol& Future)
 	auto symname = ScopeHelper::ApendedStrings(Symbol_GetSymbol(Future)->FullName,"T");
 	auto sym = Symbol_GetSymbol(symname,SymbolType::Type);
 	return sym->VarType;
+}
+IRInstruction* SystematicAnalysis::GetFutureHandle(const TypeSymbol& Future, IRInstruction* IR)
+{
+	return IR;
+}
+IRInstruction* SystematicAnalysis::MakeFutureFromHandle(const TypeSymbol& Future, IRInstruction* IR)
+{
+	return IR;
 }
 void SystematicAnalysis::OnMatchStatement(const MatchStatement& node)
 {
