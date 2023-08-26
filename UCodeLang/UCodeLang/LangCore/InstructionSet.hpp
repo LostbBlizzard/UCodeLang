@@ -119,7 +119,6 @@ enum class InstructionSet : InstructionSet_t
 	Call_Code,
 
 	//SysCall Set
-	Cout_CString,
 	Cout_Char,
 	Cout_Buffer,
 
@@ -130,8 +129,6 @@ enum class InstructionSet : InstructionSet_t
 	File_Close,
 	File_Read,
 	File_Write,
-
-	FileP_Open,
 
 	//Debuging Set
 	Debug_FuncStart,

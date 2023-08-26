@@ -159,11 +159,11 @@ Interpreter::Return_t Interpreter::Call(UAddress address)
 #endif // 
 
 
-#if HasLabelAsValues && !UCodeLangDebug
+#if HasLabelAsValues 
 #define UseJumpTable 1
 #else
 #define UseJumpTable 0
-#endif // HasLabelAsValues && 
+#endif // HasLabelAsValues 
 
 
 
@@ -174,7 +174,7 @@ Interpreter::Return_t Interpreter::Call(UAddress address)
 #endif
 
 #if UseJumpTable
-#define InsBreak()
+#define InsBreak() return;
 #else
 #define InsBreak() break;
 #endif
@@ -315,12 +315,177 @@ InsCase(SInt##Bits##ToUInt##Bits):\
 void Interpreter::Extecute(Instruction& Inst)
 {
 	#if UseJumpTable
-	static const void* InsJumpTable[] = {&& Ins_Exit,&& Ins_Return,&& Ins_Call};
+	#define JumpTableInt(bitsize) \
+	 &&Ins_StoreFromPtrToReg##bitsize, \
+	 &&Ins_StoreRegToPtr##bitsize, \
+	 &&Ins_Push##bitsize, \
+	 &&Ins_Pop##bitsize, \
+	 &&Ins_StoreRegToReg##bitsize, \
+	 &&Ins_StoreRegOnStack##bitsize, \
+	 &&Ins_StoreRegOnStackSub##bitsize, \
+	 &&Ins_GetFromStack##bitsize, \
+	 &&Ins_GetFromStackSub##bitsize, \
+	 &&Ins_Add##bitsize, \
+	 &&Ins_Sub##bitsize, \
+	 &&Ins_MultS##bitsize, \
+	 &&Ins_MultU##bitsize, \
+	 &&Ins_DivS##bitsize, \
+	 &&Ins_DivU##bitsize, \
+	 &&Ins_LogicalAnd##bitsize, \
+	 &&Ins_Logicalor##bitsize, \
+	 &&Ins_LogicalNot##bitsize, \
+	 &&Ins_equalto##bitsize, \
+	 &&Ins_notequalto##bitsize, \
+	 &&Ins_lessthan##bitsize, \
+	 &&Ins_greaterthan##bitsize, \
+	 &&Ins_equal_lessthan##bitsize, \
+	 &&Ins_equal_greaterthan##bitsize, \
+	 &&Ins_bitwiseAnd##bitsize, \
+	 &&Ins_bitwiseOr##bitsize, \
+	 &&Ins_bitwiseLeftShift##bitsize, \
+	 &&Ins_bitwiseRightShift##bitsize, \
+	 &&Ins_bitwiseXor##bitsize, \
+	 &&Ins_bitwise_Not##bitsize, \
+	 &&Ins_UInt##bitsize##ToSInt##bitsize, \
+	 &&Ins_SInt##bitsize##ToUInt##bitsize, \
+
+	#define JumpTablefloat(bitsize)
+	
+	static const void* InsJumpTable[] = {
+		&&Ins_Exit,
+		&&Ins_Return,
+		&&Ins_Call,
+		&&Ins_CallIf,
+		&&Ins_CallReg,
+		&&Ins_Jump,
+		&&Ins_Jumpif,
+		&&Ins_JumpReg,
+		&&Ins_DoNothing,
+
+		&&Ins_Store8,
+		&&Ins_Store16,
+		&&Ins_Store32v1,
+		&&Ins_Store32v2,
+		&&Ins_Store64v1,
+		&&Ins_Store64v2,
+		&&Ins_Store64v3,
+		&&Ins_Store64v4,
+
+		JumpTableInt(8)
+
+		JumpTableInt(16)
+
+		JumpTableInt(32)
+
+		JumpTableInt(64)
+
+		&&Ins_Storef32v1,
+		&&Ins_Storef32v2,
+
+		JumpTablefloat(32)
+
+		&&Ins_Storef64v1,
+		&&Ins_Storef64v2,
+		&&Ins_Storef64v3,
+		&&Ins_Storef64v4,
+		JumpTablefloat(64)
+
+		//casting
+		&&Ins_Int8ToInt16,
+		&&Ins_Int16ToInt32,
+		&&Ins_Int32ToInt64,
+		&&Ins_Int64ToInt32,
+		&&Ins_Int32ToInt16,
+		&&Ins_Int16ToInt8,
+
+		&&Ins_float32ToInt32,
+		&&Ins_float64ToInt64,
+
+		&&Ins_Int32Tofloat32,
+		&&Ins_Int64Tofloat64,
+
+		//PointerMember Set
+
+		&&Ins_PointerMemberLoad8,
+		&&Ins_PointerMemberRead8,
+
+		&&Ins_PointerMemberLoad16,
+		&&Ins_PointerMemberRead16,
+
+		&&Ins_PointerMemberLoad32,
+		&&Ins_PointerMemberRead32,
+
+		&&Ins_PointerMemberLoad64,
+		&&Ins_PointerMemberRead64,
+
+		&&Ins_LoadEffectiveAddressA,
+		&&Ins_LoadEffectiveAddressS,
+		&&Ins_LoadEffectiveAddressX,
+
+		&&Ins_LoadFuncPtr,
+
+		//Stack,Thread,Static
+
+		&&Ins_GetPointerOfStack,
+		&&Ins_GetPointerOfStackSub,
+		&&Ins_GetPointerOfStaticMem,
+		&&Ins_GetPointerOfThreadMem,
+		&&Ins_IncrementStackPointer,
+		&&Ins_DecrementStackPointer,
+
+		//C func
+
+		&&Ins_Malloc,
+		&&Ins_Free,
+		&&Ins_ReAlloc,
+		&&Ins_Calloc,
+		&&Ins_MemCopy,
+		&&Ins_Memset,
+		&&Ins_Memcmp,
+		&&Ins_Strlen,
+
+		//Cpp func Set
+
+		&&Ins_CPPCall,
+		&&Ins_CppCallNamed,
+		&&Ins_Link_Bytes,
+		&&Ins_Link_Path,
+		&&Ins_Call_Code,
+
+
+		//SysCall Set
+		&&Ins_Cout_Char,
+		&&Ins_Cout_Buffer,
+
+		&&Ins_Cout_ReadChar,
+		&&Ins_Cout_ReadBuffer,
+
+		&&Ins_File_Open,
+		&&Ins_File_Close,
+		&&Ins_File_Read,
+		&&Ins_File_Write,
+
+		//Debuging Set
+
+		&&Ins_Debug_FuncStart,
+		&&Ins_Debug_FuncEnd,
+		&&Ins_Debug_LineEnter,
+
+
+		//Await Set
+
+		&&Ins_Await_NewTask,
+		&&Ins_Await_PassPar,
+		&&Ins_Await_Run,
+		&&Ins_Await_IsDone,
+		&&Ins_Await_GetValue,
+		&&Ins_Await_FreeTask,
+	};
 
 	constexpr size_t JumpTableSize = sizeof(InsJumpTable) / sizeof(InsJumpTable[0]);
 	static_assert(JumpTableSize == (InstructionSet_t)InstructionSet::MAXVALUE,"Jump Table does not contain all Instructions");
 	
-	goto (*InsJumpTable[(InstructionSet_t)Inst.OpCode]);
+	goto *InsJumpTable[(InstructionSet_t)Inst.OpCode];
 	#endif
 	
 	#if !UseJumpTable
@@ -412,6 +577,18 @@ void Interpreter::Extecute(Instruction& Inst)
 	}
 	 InsBreak();
 
+	InsCase(Storef32v1):
+	{
+		auto& _Register = Get_Register((RegisterID)Inst.Op_RegUInt16.A);
+		((UInt16*)&_Register)[0] = Inst.Op_RegUInt16.B;
+	}
+	 InsBreak();
+	InsCase(Storef32v2):
+	{
+		auto& _Register = Get_Register((RegisterID)Inst.Op_RegUInt16.A);
+		((UInt16*)&_Register)[1] = Inst.Op_RegUInt16.B;
+	}
+	 InsBreak();
 	floatSet(32,float32,Asfloat32)
 	
 	InsCase(Storef64v1):
@@ -657,22 +834,87 @@ void Interpreter::Extecute(Instruction& Inst)
 
 			UCodeLangUnreachable();//not added  instruction?
 		}
-	} InsBreak();
+	} 
+	InsBreak();
 	InsCase(CPPCall):
 	{
 		UCodeLangUnreachable();//not added  instruction?
 	}
-	 InsBreak();
+	InsBreak();
+	InsCase(Link_Bytes):
+	{
+		UCodeLangUnreachable();//not added  instruction?
+	}
+	InsBreak();
+	InsCase(Link_Path):
+	{
+		UCodeLangUnreachable();//not added  instruction?
+	}
+	InsBreak();
+	InsCase(Call_Code):
+	{
+		UCodeLangUnreachable();//not added  instruction?
+	}
+	InsBreak();
+
 	InsCase(LoadFuncPtr):
 	{
 		Get_Register((RegisterID)Inst.Op_RegUInt16.B).Value = Inst.Op_RegUInt16.A; 
 	}
-	 InsBreak();
+	InsBreak();
+	InsCase(Cout_Char):
+	{
+		UCodeLangUnreachable();//not added  instruction?
+	}
+	InsBreak();
+
+	InsCase(Cout_Buffer):
+	{
+		UCodeLangUnreachable();//not added  instruction?
+	}
+	InsBreak();
+
+	InsCase(Cout_ReadChar):
+	{
+		UCodeLangUnreachable();//not added  instruction?
+	}
+	InsBreak();
+
+	InsCase(Cout_ReadBuffer):
+	{
+		UCodeLangUnreachable();//not added  instruction?
+	}
+	InsBreak();
+
+	InsCase(File_Open):
+	{
+		UCodeLangUnreachable();//not added  instruction?
+	}
+	InsBreak();
+
+	InsCase(File_Close):
+	{
+		UCodeLangUnreachable();//not added  instruction?
+	}
+	InsBreak();
+
+	InsCase(File_Read):
+	{
+		UCodeLangUnreachable();//not added  instruction?
+	}
+	InsBreak();
+
+	InsCase(File_Write):
+	{
+		UCodeLangUnreachable();//not added  instruction?
+	}
+	InsBreak();
+	
 	InsCase(Debug_FuncStart):
 	{
 		Get_State()->Get_DebugContext().TryFuncStart(*Get_State(), { this,DebugContext::Type::Interpreter });
 	}
-	 InsBreak();
+	InsBreak();
 	InsCase(Debug_FuncEnd):
 	{
 		Get_State()->Get_DebugContext().TryFuncEnd(*Get_State(), {this,DebugContext::Type::Interpreter});
