@@ -1,5 +1,5 @@
 #include "Interpreter.hpp"
-
+#include "../NativeWappers.hpp"
 UCodeLangStart
 
 
@@ -461,9 +461,17 @@ void Interpreter::Extecute(Instruction& Inst)
 		&&Ins_Cout_ReadBuffer,
 
 		&&Ins_File_Open,
+		&&Ins_FilePChar_Open,
 		&&Ins_File_Close,
+		&&Ins_File_IsOpen,
 		&&Ins_File_Read,
 		&&Ins_File_Write,
+		&&Ins_File_SetPos,
+		&&Ins_File_GetPos,
+		&&Ins_File_Exist,
+		&&Ins_FilePChar_Exist,
+		&&Ins_File_Remove,
+		&&Ins_FilePChar_Remove,
 
 		//Debuging Set
 
@@ -698,7 +706,7 @@ void Interpreter::Extecute(Instruction& Inst)
 		 InsBreak();
 	InsCase(Strlen):
 			 Get_Register(Inst.Op_TwoReg.B).Value =
-			 Calloc(strlen((char*)Get_Register(Inst.Op_TwoReg.A).Value.AsPtr));
+			 strlen((char*)Get_Register(Inst.Op_TwoReg.A).Value.AsPtr);
 	InsBreak();
 	InsCase(Memset) :
 		memset(Get_Register(Inst.Op_ThreeReg.A).Value.AsPtr, Get_Register(Inst.Op_ThreeReg.B).Value.AsInt8, Get_Register(Inst.Op_ThreeReg.C).Value.AsUIntNative);
@@ -864,52 +872,117 @@ void Interpreter::Extecute(Instruction& Inst)
 	InsBreak();
 	InsCase(Cout_Char):
 	{
-		UCodeLangUnreachable();//not added  instruction?
+		char V = Get_Register(Inst.Op_OneReg.A).Value.AsInt8;
+		Get_State()->Log(&V,1);
 	}
 	InsBreak();
 
 	InsCase(Cout_Buffer):
 	{
-		UCodeLangUnreachable();//not added  instruction?
+		Get_State()->Log((char*)Get_Register(Inst.Op_OneReg.A).Value.AsPtr, Get_Register(Inst.Op_OneReg.A).Value.AsUIntNative);
 	}
 	InsBreak();
 
 	InsCase(Cout_ReadChar):
 	{
-		UCodeLangUnreachable();//not added  instruction?
+		Get_Register(Inst.Op_OneReg.A).Value = Get_State()->ReadChar();
 	}
 	InsBreak();
 
 	InsCase(Cout_ReadBuffer):
 	{
-		UCodeLangUnreachable();//not added  instruction?
+		Get_State()->ReadChar((char*)Get_Register(Inst.Op_OneReg.A).Value.AsPtr, Get_Register(Inst.Op_OneReg.A).Value.AsUIntNative);
 	}
 	InsBreak();
 
 	InsCase(File_Open):
 	{
-		UCodeLangUnreachable();//not added  instruction?
+		Get_Register(Inst.Op_ThreeReg.C).Value = UFileHandle::Open(
+			(const char*)Get_Register(Inst.Op_ThreeReg.A).Value.AsPtr
+			,Get_Register(Inst.Op_ThreeReg.B).Value.AsUIntNative
+			,*(UFileHandle::FileOpenMode*)&Get_Register(Inst.Op_ThreeReg.C).Value);
+	}
+	InsBreak();
+
+	InsCase(FilePChar_Open):
+	{
+		Get_Register(Inst.Op_ThreeReg.C).Value = UFileHandle::Open(
+			(const PathChar*)Get_Register(Inst.Op_ThreeReg.A).Value.AsPtr
+			,Get_Register(Inst.Op_ThreeReg.B).Value.AsUIntNative
+			,*(UFileHandle::FileOpenMode*)&Get_Register(Inst.Op_ThreeReg.C).Value);
 	}
 	InsBreak();
 
 	InsCase(File_Close):
 	{
-		UCodeLangUnreachable();//not added  instruction?
+		UFileHandle::Close(Get_Register(Inst.Op_OneReg.A).Value.AsPtr);
+	}
+	InsBreak();
+
+	InsCase(File_IsOpen):
+	{
+		Get_Register(Inst.Op_TwoReg.B).Value = UFileHandle::Is_open(Get_Register(Inst.Op_TwoReg.A).Value.AsPtr);
 	}
 	InsBreak();
 
 	InsCase(File_Read):
 	{
-		UCodeLangUnreachable();//not added  instruction?
+		UFileHandle::ReadBytes(Get_Register(Inst.Op_ThreeReg.A).Value.AsPtr, (Byte*)Get_Register(Inst.Op_ThreeReg.B).Value.AsPtr,Get_Register(Inst.Op_ThreeReg.C).Value.AsUIntNative);
 	}
 	InsBreak();
 
 	InsCase(File_Write):
 	{
-		UCodeLangUnreachable();//not added  instruction?
+		UFileHandle::WriteBytes(Get_Register(Inst.Op_ThreeReg.A).Value.AsPtr, (const Byte*)Get_Register(Inst.Op_ThreeReg.B).Value.AsPtr, Get_Register(Inst.Op_ThreeReg.C).Value.AsUIntNative);
+	}
+	InsBreak();
+
+	InsCase(File_SetPos):
+	{
+		UFileHandle::SetPos(Get_Register(Inst.Op_ThreeReg.A).Value.AsPtr,
+			Get_Register(Inst.Op_ThreeReg.B).Value.AsUIntNative, 
+			(UFileHandle::PosType)Get_Register(Inst.Op_ThreeReg.C).Value.AsInt8);
+	}
+	InsBreak();
+
+	InsCase(File_GetPos):
+	{
+		Get_Register(Inst.Op_TwoReg.B).Value = UFileHandle::GetPos(Get_Register(Inst.Op_TwoReg.A).Value.AsPtr);
+	}
+	InsBreak();
+
+	InsCase(File_Exist):
+	{
+		Get_Register(Inst.Op_ThreeReg.C).Value = UFileHandle::FileExist(
+			(const char*)Get_Register(Inst.Op_ThreeReg.A).Value.AsPtr
+			, Get_Register(Inst.Op_ThreeReg.B).Value.AsUIntNative);
 	}
 	InsBreak();
 	
+	InsCase(FilePChar_Exist) :
+	{
+		Get_Register(Inst.Op_ThreeReg.C).Value = UFileHandle::FileExist(
+			(const PathChar*)Get_Register(Inst.Op_ThreeReg.A).Value.AsPtr
+			, Get_Register(Inst.Op_ThreeReg.B).Value.AsUIntNative);
+	}
+	InsBreak();
+
+	InsCase(File_Remove) :
+	{
+		Get_Register(Inst.Op_ThreeReg.C).Value = UFileHandle::FileRemove(
+			(const char*)Get_Register(Inst.Op_ThreeReg.A).Value.AsPtr
+			, Get_Register(Inst.Op_ThreeReg.B).Value.AsUIntNative);
+	}
+	InsBreak();
+
+	InsCase(FilePChar_Remove):
+	{
+		Get_Register(Inst.Op_ThreeReg.C).Value = UFileHandle::FileRemove(
+			(const PathChar*)Get_Register(Inst.Op_ThreeReg.A).Value.AsPtr
+			, Get_Register(Inst.Op_ThreeReg.B).Value.AsUIntNative);
+	}
+	InsBreak();
+
 	InsCase(Debug_FuncStart):
 	{
 		Get_State()->Get_DebugContext().TryFuncStart(*Get_State(), { this,DebugContext::Type::Interpreter });

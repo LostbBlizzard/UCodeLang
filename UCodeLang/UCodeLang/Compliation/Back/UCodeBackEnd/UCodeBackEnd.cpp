@@ -3608,11 +3608,7 @@ UCodeBackEndObject::FindParsLoc UCodeBackEndObject::GetParsLoc(const Vector<IRPa
 void UCodeBackEndObject::BuildLink(const IRidentifier& FuncName, IRFuncLink LinkType)
 {
 	auto VFuncName = NameDecoratior::GetUnDecoratedName(FuncName);
-	if (VFuncName == "__Log")
-	{
-		InstructionBuilder::Log(_Ins, RegisterID::StartParameterRegister); PushIns();
-	}
-	else if(VFuncName == "__LogChar")
+	if(VFuncName == "__LogChar")
 	{
 		InstructionBuilder::LogChar(_Ins, RegisterID::StartParameterRegister); PushIns();
 	}
@@ -3624,13 +3620,81 @@ void UCodeBackEndObject::BuildLink(const IRidentifier& FuncName, IRFuncLink Link
 	{
 		InstructionBuilder::ReadChar(_Ins,RegisterID::OutPutRegister); PushIns();
 	}
+	else if (VFuncName == "__ReadBuffer")
+	{
+		InstructionBuilder::ReadBuffer(_Ins, RegisterID::Parameter1_Register,RegisterID::Parameter2_Register); PushIns();
+	}
 	else if (VFuncName == "__Malloc")
 	{
 		InstructionBuilder::Malloc(_Ins, RegisterID::StartParameterRegister, RegisterID::OutPutRegister); PushIns();
 	}
+	else if (VFuncName == "__Calloc")
+	{
+		InstructionBuilder::Calloc(_Ins, RegisterID::StartParameterRegister, RegisterID::OutPutRegister); PushIns();
+	}
+	else if (VFuncName == "__Realloc")
+	{
+		InstructionBuilder::Realloc(_Ins, RegisterID::Parameter1_Register, RegisterID::Parameter2_Register, RegisterID::OutPutRegister); PushIns();
+	}
+	else if (VFuncName == "__Strlen")
+	{
+		InstructionBuilder::Strlen(_Ins, RegisterID::Parameter1_Register,RegisterID::OutPutRegister); PushIns();
+	}
+	else if (VFuncName == "__Memset")
+	{
+		InstructionBuilder::Memset(_Ins, RegisterID::Parameter1_Register, RegisterID::Parameter2_Register, RegisterID::Parameter3_Register); PushIns();
+	}
+	else if (VFuncName == "__Memcmp")
+	{
+		InstructionBuilder::Memcmp(_Ins, RegisterID::Parameter1_Register, RegisterID::Parameter2_Register, RegisterID::Parameter3_Register); PushIns();
+	}
 	else if (VFuncName == "__Free")
 	{
 		InstructionBuilder::Free(_Ins, RegisterID::StartParameterRegister); PushIns();
+	}
+	else if (VFuncName == "__FileOpen")
+	{
+		InstructionBuilder::OpenFile(_Ins, RegisterID::Parameter1_Register, RegisterID::Parameter2_Register, RegisterID::OutPutRegister); PushIns();
+	}
+	else if (VFuncName == "__FilePOpen")
+	{
+		InstructionBuilder::OpenPCharFile(_Ins, RegisterID::Parameter1_Register, RegisterID::Parameter2_Register, RegisterID::OutPutRegister); PushIns();
+	}
+	else if (VFuncName == "__FileRead")
+	{
+		InstructionBuilder::File_Read(_Ins, RegisterID::Parameter1_Register, RegisterID::Parameter2_Register, RegisterID::Parameter3_Register); PushIns();
+	}
+	else if (VFuncName == "__FileWrite")
+	{
+		InstructionBuilder::File_Read(_Ins, RegisterID::Parameter1_Register, RegisterID::Parameter2_Register, RegisterID::Parameter3_Register); PushIns();
+	}
+	else if (VFuncName == "__FileIsOpen")
+	{
+		InstructionBuilder::FileIsOpen(_Ins, RegisterID::Parameter1_Register,RegisterID::OutPutRegister); PushIns();
+	}
+	else if (VFuncName == "__FileSetPos")
+	{
+		InstructionBuilder::File_SetPos(_Ins, RegisterID::Parameter1_Register, RegisterID::Parameter2_Register, RegisterID::Parameter3_Register); PushIns();
+	}
+	else if (VFuncName == "__FileGetPos")
+	{
+		InstructionBuilder::File_GetPos(_Ins, RegisterID::Parameter1_Register, RegisterID::OutPutRegister); PushIns();
+	}
+	else if (VFuncName == "__FileExist")
+	{
+		InstructionBuilder::File_Exist(_Ins, RegisterID::Parameter1_Register, RegisterID::Parameter2_Register, RegisterID::OutPutRegister); PushIns();
+	}
+	else if (VFuncName == "__FilePExist")
+	{
+		InstructionBuilder::FilePChar_Exist(_Ins, RegisterID::Parameter1_Register, RegisterID::Parameter2_Register, RegisterID::OutPutRegister); PushIns();
+	}
+	else if (VFuncName == "__FileRemove")
+	{
+		InstructionBuilder::File_Remove(_Ins, RegisterID::Parameter1_Register, RegisterID::Parameter2_Register, RegisterID::OutPutRegister); PushIns();
+	}
+	else if (VFuncName == "__FilePRemove")
+	{
+		InstructionBuilder::FilePChar_Remove(_Ins, RegisterID::Parameter1_Register, RegisterID::Parameter2_Register, RegisterID::OutPutRegister); PushIns();
 	}
 	else
 	{
