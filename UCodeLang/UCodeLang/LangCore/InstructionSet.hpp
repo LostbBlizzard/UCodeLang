@@ -126,9 +126,17 @@ enum class InstructionSet : InstructionSet_t
 	Cout_ReadBuffer,
 
 	File_Open,
+	FilePChar_Open,
 	File_Close,
+	File_IsOpen,
 	File_Read,
 	File_Write,
+	File_SetPos,
+	File_GetPos,
+	File_Exist,
+	FilePChar_Exist,
+	File_Remove,
+	FilePChar_Remove,
 
 	//Debuging Set
 	Debug_FuncStart,
