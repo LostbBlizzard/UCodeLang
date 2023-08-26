@@ -16,7 +16,20 @@
 #define UCodeLangGNUC 0
 #endif
 
-#if UCodeLangGNUC
+#if defined(__clang__)
+#define UCodeLangClang 1
+#else
+#define UCodeLangClang 0
+#endif
+
+
+#if defined(__EMSCRIPTEN__)
+#define UCodeLangEmscripten 1
+#else
+#define UCodeLangEmscripten 0
+#endif
+
+#if UCodeLangEmscripten
 #if __x86_64__ || __ppc64__
 #define UCodeLang_64BitSytem 1
 #else
@@ -52,7 +65,45 @@
 #define UCodeLang_Platform_MacOS 1
 #else
 #define UCodeLang_Platform_MacOS 0
-#endif // linux 
+#endif // MacOs
+
+
+#if __APPLE__ 
+#include "TargetConditionals.h"
+
+#if TARGET_OS_IPHONE
+#define UCodeLang_Platform_IPHONE 1
+#else 
+#define UCodeLang_Platform_IPHONE 0
+#endif 
+
+#else
+#define UCodeLang_Platform_IPHONE 0
+#endif // MacOs
+
+#if __ANDROID__
+#define UCodeLang_Platform_ANDROID 1
+#else
+#define UCodeLang_Platform_ANDROID 0
+#endif // ANDROID
+
+#if __ANDROID__
+#define UCodeLang_Platform_ANDROID 1
+#else
+#define UCodeLang_Platform_ANDROID 0
+#endif // ANDROID
+
+#if defined(__wasm32__)
+#define UCodeLang_Platform_Wasm32 1
+#else
+#define UCodeLang_Platform_Wasm32 0
+#endif // ANDROID
+
+#if defined(__wasm64__)
+#define UCodeLang_Platform_Wasm64 1
+#else
+#define UCodeLang_Platform_Wasm64 0
+#endif // ANDROID
 
 
 #ifndef UCodeLangDebug
@@ -61,6 +112,7 @@
 #else 
 #define UCodeLangDebug 0
 #endif // DEBUG
+
 
 #endif
 
