@@ -171,10 +171,6 @@ struct Instruction
 		OpCode(OpCode),
 		Op_ThreeUInt8(Op){}
 
-	constexpr Instruction(InstructionSet OpCode, ThreeUInt8 Op) :
-		OpCode(OpCode),
-		Op_ThreeUInt8(Op){}
-
 	constexpr Instruction(InstructionSet OpCode, ValUInt8 Op) :
 		OpCode(OpCode),
 		Op_ValUInt8(Op){}
@@ -182,10 +178,6 @@ struct Instruction
 	constexpr Instruction(InstructionSet OpCode, ValUInt16 Op) :
 		OpCode(OpCode),
 		Op_ValUInt16(Op) {}
-
-	constexpr Instruction(InstructionSet OpCode, OneReg Op) :
-		OpCode(OpCode),
-		Op_OneReg(Op) {}
 
 	constexpr Instruction(InstructionSet OpCode, OneReg Op) :
 		OpCode(OpCode),

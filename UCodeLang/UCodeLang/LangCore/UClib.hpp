@@ -65,10 +65,7 @@ struct CodeLayer
 
 		UCodeLangForceinline UAddress NothingThing_Instruction()
 		{
-			Instruction Data;
-			Data.OpCode = InstructionSet::DoNothing;
-			Data.Value0.AsUInt64 = (UInt64)nullptr;
-			Data.Value1.AsUInt64 = (UInt64)nullptr;
+			Instruction Data = Instruction(InstructionSet::DoNothing, Instruction::NoneOp());
 			return Add_Instruction(Data);
 		}
 		UCodeLangForceinline UAddress Add_Instruction(const Instruction& V)
