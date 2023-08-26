@@ -152,7 +152,7 @@ Interpreter::Return_t Interpreter::Call(UAddress address)
 }
 
 
-#if UCodeLangGNUC
+#if UCodeLangGNUC || UCodeLangClang
 #define HasLabelAsValues 1
 #else
 #define HasLabelAsValues 0
