@@ -65,7 +65,15 @@ mainly
 
 To Download the project just download files and run 
 
-- The VS_2019.bat file(If you use VSCode 2019) to build vscode project files.
+- The VS_2019.bat file(If you use VS 2019) to build vs project files and open the project in visual studio.
+
+- The VS_2022.bat file(If you use VS 2022) to build vs project files and open the project in visual studio.
+
+- The GNU_Make.bat file(If you use GCC on windows) and run "make" to build it.
+
+- The GNU_Make.sh file(If you use GCC on linux or Mac) and run "make" to build it.
+
+- The XCode.sh file(If you use XCode) and and open the project in XCode
 
 - Other build systems im not sure about. make a pull request if you know how to do it. 
 
