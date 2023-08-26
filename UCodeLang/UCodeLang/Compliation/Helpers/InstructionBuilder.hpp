@@ -485,12 +485,6 @@ public:
 		Out = Instruction(InstructionSet::ReAlloc, Instruction::TwoReg(ptr, size));
 	}
 
-	UCodeLangForceinline static void MemCopy(Instruction& Out, RegisterID dest, RegisterID source)
-	{
-		Out = Instruction(InstructionSet::MemCopy, Instruction::TwoReg(dest, source));
-	}
-
-
 	UCodeLangForceinline static void Memset(Instruction& Out, RegisterID Ptr, RegisterID Val, RegisterID size)
 	{
 		Out = Instruction(InstructionSet::Memset, Instruction::ThreeReg(Ptr,Val,size));
