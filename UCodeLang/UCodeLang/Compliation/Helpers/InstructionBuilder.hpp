@@ -502,6 +502,12 @@ public:
 		Out = Instruction(InstructionSet::Memset, Instruction::ThreeReg(Ptr,Val,size));
 	}
 
+	//Value is in Out
+	UCodeLangForceinline static void Memcmp(Instruction& Out, RegisterID Ptr, RegisterID Ptr2, RegisterID size)
+	{
+		Out = Instruction(InstructionSet::Memcmp, Instruction::ThreeReg(Ptr, Ptr2, size));
+	}
+
 	UCodeLangForceinline static void Strlen(Instruction& Out, RegisterID Ptr, RegisterID OutV)
 	{
 		Out = Instruction(InstructionSet::Strlen, Instruction::TwoReg(Ptr, OutV));
@@ -555,6 +561,7 @@ public:
 		Out = Instruction(InstructionSet::Debug_LineEnter, Instruction::NoneOp());
 	}
 
+	
 	//Others
 	/*
 	UCodeLangForceinline static void GenInst(Intermediate_Set Inst, const UInt64 Value0, const UInt64 Value1, Instruction& Out)

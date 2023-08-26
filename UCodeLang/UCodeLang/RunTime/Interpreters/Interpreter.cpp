@@ -526,6 +526,9 @@ void Interpreter::Extecute(Instruction& Inst)
 	InsCase(Memset) :
 		memset(Get_Register(Inst.Op_ThreeReg.A).Value.AsPtr, Get_Register(Inst.Op_ThreeReg.B).Value.AsInt8, Get_Register(Inst.Op_ThreeReg.C).Value.AsUIntNative);
 	InsBreak();
+	InsCase(Memcmp) :
+		Get_OutRegister().Value = memcmp(Get_Register(Inst.Op_ThreeReg.A).Value.AsPtr, Get_Register(Inst.Op_ThreeReg.B).Value.AsPtr, Get_Register(Inst.Op_ThreeReg.C).Value.AsUIntNative);
+	InsBreak();
 	InsCase(PointerMemberRead8):
 	{
 		RegisterID Ptr = Inst.Op_TwoRegInt8.A;
@@ -742,7 +745,8 @@ void Interpreter::Extecute(Instruction& Inst)
 		Get_State()->AwaitFreeTask(task);
 	}
 	InsBreak();
-	
+
+
 #if !UseJumpTable
 	default:
 		UCodeLangUnreachable();

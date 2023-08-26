@@ -62,6 +62,13 @@ void Jit_Interpreter::TryBuildAllFuncs()
 #endif
 }
 
+//Makes UClib with the Generated native code and be used for fast reloading just link it in RunTimeState instead of the compiled byte-code.
+
+UClib Jit_Interpreter::GetStateAsLib()
+{
+	return UClib();
+}
+
 Interpreter::Return_t Jit_Interpreter::Call(const String& FunctionName)
 {
 	auto address = Get_State()->FindAddress(FunctionName);
