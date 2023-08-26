@@ -11,10 +11,10 @@ enum class ExitState : ExitState_t
 	Failure,
 	Null,
 };
-using InstructionSet_t = UInt64;
+using InstructionSet_t = UInt8;
 
 #define AddSetInt(bitsize) \
-Store##bitsize, StoreFromPtrToReg##bitsize, StoreRegToPtr##bitsize, Push##bitsize, Pop##bitsize, StoreRegToReg##bitsize, StoreRegOnStack##bitsize,StoreRegOnStackSub##bitsize, GetFromStack##bitsize, \
+StoreFromPtrToReg##bitsize, StoreRegToPtr##bitsize, Push##bitsize, Pop##bitsize, StoreRegToReg##bitsize, StoreRegOnStack##bitsize,StoreRegOnStackSub##bitsize, GetFromStack##bitsize, \
 GetFromStackSub##bitsize,\
 Add##bitsize, Sub##bitsize, MultS##bitsize, MultU##bitsize, DivS##bitsize, DivU##bitsize,\
 LogicalAnd##bitsize, Logicalor##bitsize, LogicalNot##bitsize,\
@@ -23,7 +23,7 @@ bitwiseAnd##bitsize, bitwiseOr##bitsize, bitwiseLeftShift##bitsize, bitwiseRight
 UInt##bitsize##ToSInt##bitsize,SInt##bitsize##ToUInt##bitsize,\
 
 #define AddSetfloat(bitsize)\
-Store##bitsize##f,
+
 
 enum class InstructionSet : InstructionSet_t
 {
@@ -36,6 +36,15 @@ enum class InstructionSet : InstructionSet_t
 	DoNothing,
 	
 	//Set 8 Bits
+	Store8,
+	Store16,
+	Store32v1,
+	Store32v2,
+	Store64v1,
+	Store64v2,
+	Store64v3,
+	Store64v4,
+
 	AddSetInt(8)
 	//Set 16
 	AddSetInt(16)
@@ -45,8 +54,17 @@ enum class InstructionSet : InstructionSet_t
 	AddSetInt(64)
 
 	//float 32
+	Storef32v1,
+	Storef32v2,
+
 	AddSetfloat(32)
 	//float 64
+
+	Storef64v1,
+	Storef64v2,
+	Storef64v3,
+	Storef64v4,
+
 	AddSetfloat(64)
 
 	//Casting Set
@@ -76,14 +94,36 @@ enum class InstructionSet : InstructionSet_t
 	PointerMemberLoad64,
 	PointerMemberRead64,
 
+	LoadFuncPtr,
+
+	//Stack,Thread,Static
+	GetPointerOfStack, GetPointerOfStackSub, 
+	GetPointerOfStaticMem, GetPointerOfThreadMem,
+	IncrementStackPointer, DecrementStackPointer,
+	
+	//C func
+	Malloc,Free,ReAlloc, Calloc,
+	MemCopy,Memset,Strlen,
 
 	//Cpp func Set
-	GetPointerOfStack, GetPointerOfStackSub, GetPointerOfStaticMem, GetPointerOfThreadMem,IncrementStackPointer, DecrementStackPointer,
-	
-	Malloc,Free,MemCopy, Calloc,ReAlloc,LoadFuncPtr,
-	CPPCall,CppCallNamed,Link_Bytes,Link_Path,
-	SysCall,
+	CPPCall,CppCallNamed,
+	Link_Bytes,Link_Path,
 	Call_Code,
+
+	//SysCall Set
+	Cout_CString,
+	Cout_Char,
+	Cout_Buffer,
+
+	Cout_ReadChar,
+	Cout_ReadBuffer,
+
+	File_Open,
+	File_Close,
+	File_Read,
+	File_Write,
+
+	FileP_Open,
 
 	//Debuging Set
 	Debug_FuncStart,
@@ -101,99 +141,6 @@ enum class InstructionSet : InstructionSet_t
 
 	MAXVALUE,
 };
-enum class Intermediate_Set : InstructionSet_t
-{
-	Null = (InstructionSet_t)InstructionSet::MAXVALUE,
-	TepFuncCall,
-	GetRawStringStaticOffset,
-	
-	
-	DeclareVar,
-	DeclareParameter,
-	DeclareStaticVar,
-	DeclareThreadVar,
-	DeclareThisVar,
-	DeclareThisParameter,
-
-
-	AssignVariable,
-	PushParameter,
-	PopParameter,
-	CallFunc,
-
-	GetVar,
-	StoreVar,
-	Ret,
-	Type,
-
-	DeclareFunc,
-	FuncEnd,
-	
-	Boolliteral,
-	NumberNumberliteral,
-
-	DeclareExpression,
-	DeclareBinaryExpression,
-	
-	Binary_plus,//Is use in DeclareBinaryExpression value 0
-	Binary_minus,
-	Binary_Mult,
-	Binary_Div,
-
-	Binary_logical_and,
-	Binary_logical_or,
-
-	Binary_equal_Comparison,
-	Binary_Notequal_Comparison,
-	Bianry_greaterthan,
-	Bianry_Lessthan,
-	Bianry_less_than_or_equalto,
-	Bianry_greater_than_or_equalto,
-
-	Bianry_bitwise_and,
-	Bianry_bitwise_or, 
-	
-	Bianry_bitwise_LeftShift,
-	Bianry_bitwise_RightShift,
-	Bianry_bitwise_Xor,
-
-	UnaryExpression,
-	bitwise_not,
-
-	AsmBlock,
-
-	Class,
-	ClassEnd,
-
-	EnumClass,
-	EnumValue,
-	EnumEnd,
-
-	FileStart,
-	SetFilePos,
-	FileEnd,
-
-	MAXVALUE
-};
-
-
-enum class InstructionSysCall : InstructionSet_t
-{
-	Cout_CString,
-	Cout_Char,
-	Cout_Buffer,
-	
-	Cout_ReadChar,
-	Cout_ReadBuffer,
-
-	File_Open,
-	File_Close,
-	File_Read,
-	File_Write,
-
-	FileP_Open,
-};
-
 using BitSizeType_t = UInt8;
 enum class BitSizeType : BitSizeType_t
 {
