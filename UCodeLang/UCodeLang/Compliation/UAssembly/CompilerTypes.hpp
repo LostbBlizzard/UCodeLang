@@ -97,7 +97,6 @@ struct InsMapValue
 };
 
 #define MapValueIntSet(bitsize)\
-AddMapValueValue(Store##bitsize, InstructionSet::Store##bitsize, OpCodeType::Register, OpCodeType::AnyInt##bitsize),\
 AddMapValueValue(Add##bitsize, InstructionSet::Add##bitsize, OpCodeType::Register, OpCodeType::Register),\
 AddMapValueValue(Sub##bitsize, InstructionSet::Sub##bitsize, OpCodeType::Register, OpCodeType::Register),\
 AddMapValueValue(MultU##bitsize, InstructionSet::MultU##bitsize, OpCodeType::Register, OpCodeType::Register),\
@@ -120,7 +119,6 @@ AddMapValueValue(SInt##bitsize##ToUInt##bitsize,InstructionSet::SInt##bitsize##T
 
 
 #define MapValuefloatSet(bitsize)\
-AddMapValueValue(Store##bitsize##f, InstructionSet::Store##bitsize##f, OpCodeType::Register, OpCodeType::Anyfloat##bitsize),\
 
 
 static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
@@ -172,8 +170,7 @@ static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 	AddMapValueValue(Call_Code,InstructionSet::Call_Code,OpCodeType::UIntPtr,OpCodeType::NoOpCode),
 
 	AddMapValueValue(CppCallNamed,InstructionSet::CppCallNamed,OpCodeType::StaticCString,OpCodeType::NoOpCode),
-	AddMapValueValue(SysCall,InstructionSet::SysCall,OpCodeType::AnyInt64,OpCodeType::Register),
-
+	
 	AddMapValueValue(Load8,InstructionSet::PointerMemberLoad8,OpCodeType::RegPtrAndRegOut,OpCodeType::UIntPtr),
 	AddMapValueValue(Load16,InstructionSet::PointerMemberLoad16,OpCodeType::RegPtrAndRegOut,OpCodeType::UIntPtr),
 	AddMapValueValue(Load32,InstructionSet::PointerMemberLoad32,OpCodeType::RegPtrAndRegOut,OpCodeType::UIntPtr),
@@ -189,7 +186,7 @@ static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 
 	AddMapValueValue(Debug_FuncStart,InstructionSet::Debug_FuncStart,OpCodeType::NoOpCode,OpCodeType::NoOpCode),
 	AddMapValueValue(Debug_FuncEnd,InstructionSet::Debug_FuncEnd,OpCodeType::NoOpCode,OpCodeType::NoOpCode),
-		AddMapValueValue(Debug_LineEnter,InstructionSet::Debug_LineEnter,OpCodeType::NoOpCode,OpCodeType::NoOpCode),
+	AddMapValueValue(Debug_LineEnter,InstructionSet::Debug_LineEnter,OpCodeType::NoOpCode,OpCodeType::NoOpCode),
 };
 
 static inline Unordered_map<InstructionSet, const InsMapValue*> InsToInsMapValue;

@@ -205,7 +205,9 @@ enum class RegisterID : RegisterID_t
 	StartParameterRegister = (RegisterID_t)RegisterID::D,//the range the runtime will pass funcion Parameters into Registers
 	EndParameterRegister = (RegisterID_t)RegisterID::F + 1,
 
-
+	Parameter1_Register = (RegisterID_t)RegisterID::StartParameterRegister,
+	Parameter2_Register = (RegisterID_t)RegisterID::StartParameterRegister + 1,
+	Parameter3_Register = (RegisterID_t)RegisterID::StartParameterRegister + 2,
 };
 
 struct AnyInt64
