@@ -99,7 +99,7 @@ enum class InstructionSet : InstructionSet_t
 	LoadEffectiveAddressS,
 	LoadEffectiveAddressX,
 
-	//SIMD
+	
 
 	LoadFuncPtr,
 
@@ -145,6 +145,8 @@ enum class InstructionSet : InstructionSet_t
 	Await_IsDone,
 	Await_GetValue,
 	Await_FreeTask,
+		
+	//SIMD
 
 	MAXVALUE,
 };
