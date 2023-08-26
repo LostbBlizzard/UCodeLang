@@ -147,6 +147,19 @@
 #define UCodeLang_CPUIs_x86 0
 #endif
 
+#if defined(__arm__)
+#define UCodeLang_CPUIs_Arm 1
+#else
+#define UCodeLang_CPUIs_Arm 0
+#endif
+
+#if defined(__aarch64__)
+#define UCodeLang_CPUIs_Arm64 1
+#else
+#define UCodeLang_CPUIs_Arm64 0
+#endif
+
+
 #if defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN || \
     defined(__BIG_ENDIAN__) || \
     defined(__ARMEB__) || \

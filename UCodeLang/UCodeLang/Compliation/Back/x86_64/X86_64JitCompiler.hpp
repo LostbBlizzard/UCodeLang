@@ -1,7 +1,8 @@
 #pragma once
 #include "../Jit/Jit.hpp"
-#include "X86_64Gen.hpp"
 #include "UCodeLang/RunTime/RunTimeLangState.hpp"
+
+#include "X86_64Gen.hpp"
 #include "X86_64IR.hpp"
 UCodeLangStart
 

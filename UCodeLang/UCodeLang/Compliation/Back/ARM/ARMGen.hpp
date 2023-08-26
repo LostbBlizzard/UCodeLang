@@ -1,6 +1,6 @@
 #pragma once
 #include "../x86/X86Gen.hpp"
-#include "ARM64Data.hpp"
+#include "ARMData.hpp"
 UCodeLangStart
 
 
