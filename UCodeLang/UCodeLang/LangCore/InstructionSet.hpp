@@ -110,7 +110,8 @@ enum class InstructionSet : InstructionSet_t
 	
 	//C func
 	Malloc,Free,ReAlloc, Calloc,
-	MemCopy,Memset,Strlen,
+	MemCopy,Memset, Memcmp,
+	Strlen,
 
 	//Cpp func Set
 	CPPCall,CppCallNamed,
@@ -146,7 +147,6 @@ enum class InstructionSet : InstructionSet_t
 	Await_GetValue,
 	Await_FreeTask,
 		
-	//SIMD
 
 	MAXVALUE,
 };

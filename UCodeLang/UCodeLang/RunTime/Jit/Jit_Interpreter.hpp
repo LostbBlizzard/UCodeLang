@@ -183,6 +183,9 @@ public:
 	String GetJitState();
 
 	void TryBuildAllFuncs();
+
+	//Makes UClib with the Generated native code and be used for fast reloading just link it in RunTimeState instead of the compiled byte-code.
+	UClib GetStateAsLib();
 private:
 	
 	enum class JitFuncType :UInt8
