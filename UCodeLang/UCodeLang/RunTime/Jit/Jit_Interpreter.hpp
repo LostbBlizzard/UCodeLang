@@ -2,7 +2,7 @@
 
 #include "Jit.hpp"
 #include "UCodeLang/RunTime/Interpreters/Interpreter.hpp"
-#include "JitCompilers.h"
+#include "JitCompilers.hpp"
 #include "Jit_State.hpp"
 #include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
 UCodeLangStart

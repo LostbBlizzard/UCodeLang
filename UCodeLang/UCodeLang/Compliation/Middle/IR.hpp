@@ -1273,6 +1273,10 @@ public:
 	VectorMap<String, IRidentifierID> ConstStaticStrings;
 
 	IRDebugSybInfo _Debug;
+	
+	//The Funcion to call after calling StaticInit,threadInit
+	//Funcion Must be like |Entry[] -> void;
+	Optional<IRidentifierID> EntryPoint;
 
 	struct ExternalVarable
 	{

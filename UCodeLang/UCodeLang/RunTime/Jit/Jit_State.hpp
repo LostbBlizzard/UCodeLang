@@ -1,6 +1,6 @@
 #pragma once
 #include "Jit.hpp"
-#include "JitCompilers.h"
+#include "JitCompilers.hpp"
 #include <atomic>
 UCodeLangStart
 

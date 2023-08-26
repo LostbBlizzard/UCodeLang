@@ -2463,6 +2463,11 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 		_IR_LookingAtIRBlock->NewRet();
 
+		if (FuncName == "main" && _IR_LookingAtIRFunc->Pars.size() == 0)
+		{
+			_IR_Builder.EntryPoint = _IR_LookingAtIRFunc->identifier;
+		}
+
 	}
 
 
