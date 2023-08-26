@@ -462,7 +462,6 @@ private:
 			UCodeLangUnreachable();
 		}
 	}
-	void InterpreterSysCall(InstructionSysCall SysCall,RegisterID ParReg);
 
 	//Just in Hot reloading
 	void ResetThreadPointer(PtrType NewThreadBase)
