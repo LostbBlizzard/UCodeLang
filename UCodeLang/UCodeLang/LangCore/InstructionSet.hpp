@@ -94,6 +94,13 @@ enum class InstructionSet : InstructionSet_t
 	PointerMemberLoad64,
 	PointerMemberRead64,
 
+	//Effective Address 
+	LoadEffectiveAddressA,
+	LoadEffectiveAddressS,
+	LoadEffectiveAddressX,
+
+	//SIMD
+
 	LoadFuncPtr,
 
 	//Stack,Thread,Static

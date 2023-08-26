@@ -506,19 +506,26 @@ void Interpreter::Extecute(Instruction& Inst)
 			Free(Get_Register(Inst.Op_TwoReg.A).Value.AsPtr);
 		 InsBreak();
 	InsCase(MemCopy):
-			MemCopy(Get_Register(Inst.Op_TwoReg.B).Value.AsPtr
-				   ,Get_Register(Inst.Op_TwoReg.A).Value.AsPtr
-			       ,Get_InputRegister().Value.AsUIntNative);
+			MemCopy(Get_Register(Inst.Op_ThreeReg.B).Value.AsPtr
+				   ,Get_Register(Inst.Op_ThreeReg.A).Value.AsPtr
+			       ,Get_Register(Inst.Op_ThreeReg.C).Value.AsUIntNative);
 		 InsBreak();
 	InsCase(Calloc):
 		Get_Register(Inst.Op_TwoReg.B).Value =
 			Calloc(Get_Register(Inst.Op_TwoReg.A).Value.AsUIntNative);
 		 InsBreak();
 	InsCase(ReAlloc):
-		Get_OutRegister().Value =
-			Realloc(Get_Register(Inst.Op_TwoReg.A).Value.AsPtr
-				   ,Get_Register(Inst.Op_TwoReg.B).Value.AsUIntNative);
+		Get_Register(Inst.Op_ThreeReg.C).Value =
+			Realloc(Get_Register(Inst.Op_ThreeReg.A).Value.AsPtr
+				   ,Get_Register(Inst.Op_ThreeReg.B).Value.AsUIntNative);
 		 InsBreak();
+	InsCase(Strlen):
+			 Get_Register(Inst.Op_TwoReg.B).Value =
+			 Calloc(strlen((char*)Get_Register(Inst.Op_TwoReg.A).Value.AsPtr));
+	InsBreak();
+	InsCase(Memset) :
+		memset(Get_Register(Inst.Op_ThreeReg.A).Value.AsPtr, Get_Register(Inst.Op_ThreeReg.B).Value.AsInt8, Get_Register(Inst.Op_ThreeReg.C).Value.AsUIntNative);
+	InsBreak();
 	InsCase(PointerMemberRead8):
 	{
 		RegisterID Ptr = Inst.Op_TwoRegInt8.A;
@@ -591,6 +598,33 @@ void Interpreter::Extecute(Instruction& Inst)
 
 		*(Int8*)(Offset + Get_Register(Ptr).Value.AsAddress) = Get_Register(RegOut).Value.AsInt8;
 	}
+	 InsBreak();
+	 InsCase(LoadEffectiveAddressA) :
+	 {
+		 RegisterID Ptr = Inst.Op_TwoRegInt8.A;
+		 RegisterID RegOut = Inst.Op_TwoRegInt8.B;
+		 size_t Offset = Inst.Op_TwoRegInt8.C;
+
+		Get_Register(RegOut).Value = Get_Register(RegOut).Value.AsUIntNative + Offset;
+	 }
+	 InsBreak();
+	 InsCase(LoadEffectiveAddressS) :
+	 {
+		 RegisterID Ptr = Inst.Op_TwoRegInt8.A;
+		 RegisterID RegOut = Inst.Op_TwoRegInt8.B;
+		 size_t Offset = Inst.Op_TwoRegInt8.C;
+
+		 Get_Register(RegOut).Value = Get_Register(RegOut).Value.AsUIntNative - Offset;
+	 }
+	 InsBreak();
+	 InsCase(LoadEffectiveAddressX) :
+	 {
+		 RegisterID Ptr = Inst.Op_TwoRegInt8.A;
+		 RegisterID RegOut = Inst.Op_TwoRegInt8.B;
+		 size_t Offset = Inst.Op_TwoRegInt8.C;
+
+		 Get_Register(RegOut).Value = Get_Register(RegOut).Value.AsUIntNative * Offset;
+	 }
 	 InsBreak();
 	//Linking
 	InsCase(CppCallNamed):

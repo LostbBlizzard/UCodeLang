@@ -28,8 +28,6 @@ BytesPtr UClib::ToRawBytes(const UClib* Lib)
 		Output.WriteBytes(UClibSignature, UClibSignature_Size);
 
 		Output.WriteType((InstructionSet_t)InstructionSet::MAXVALUE);
-
-		Output.WriteType((InstructionSet_t)Intermediate_Set::MAXVALUE);
 	}
 
 	Output.WriteType((NTypeSize_t)Lib->BitSize);
@@ -329,12 +327,6 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 			return false;
 		}
 
-		auto Value2 = Intermediate_Set::Null;
-		reader.ReadType(*(InstructionSet_t*)&Value2, *(InstructionSet_t*)&Value2);
-		if (Value2 != Intermediate_Set::MAXVALUE)
-		{
-			return false;
-		}
 	}
 
 	reader.ReadType(*(NTypeSize_t*)&Lib->BitSize, *(NTypeSize_t*)&Lib->BitSize);
@@ -480,6 +472,56 @@ void UClib::FromBytes(BitReader& Input, CodeLayer& Data)
 
 			Input.Increment_offset(bits_Size * sizeof(Instruction));
 		}
+
+		bool WillNeedtoSwapBytes = BitConverter::_CPUEndian != BitConverter::InputOutEndian;
+
+		if (WillNeedtoSwapBytes) 
+		{
+			for (auto& Item : V._Instructions)
+			{
+				auto Optype = Instruction::GetOpType(Item.OpCode);
+
+				switch (Optype)
+				{
+				case UCodeLang::Instruction::OpType::NoneOp:
+					break;
+				case UCodeLang::Instruction::OpType::ThreeUInt8:
+					break;
+				case UCodeLang::Instruction::OpType::OneReg:
+					break;
+				case UCodeLang::Instruction::OpType::TwoReg:
+					break;
+				case UCodeLang::Instruction::OpType::ThreeReg:
+					break;
+				case UCodeLang::Instruction::OpType::RegUInt8:
+					break;
+				case UCodeLang::Instruction::OpType::RegUInt16:
+				{
+					auto& Op = Item.Op_RegUInt16;
+					auto Copy = Op.B;
+					((Byte*)&Op.B)[0] = ((Byte*)&Copy)[1];
+					((Byte*)&Op.B)[1] = ((Byte*)&Copy)[0];
+				}
+				break;
+				case UCodeLang::Instruction::OpType::ValUInt8:
+					break;
+				case UCodeLang::Instruction::OpType::ValUInt16:
+				{
+					auto& Op = Item.Op_ValUInt16;
+					auto Copy = Op.A;
+					((Byte*)&Op.A)[0] = ((Byte*)&Copy)[1];
+					((Byte*)&Op.A)[1] = ((Byte*)&Copy)[0];
+				}
+				break;
+				case UCodeLang::Instruction::OpType::TwoRegInt8:
+					break;
+				default:
+					UCodeLangUnreachable();
+					break;
+				}
+			}
+		}
+
 		{// _NameToPtr
 			union
 			{

@@ -186,6 +186,25 @@ struct Instruction
 	constexpr Instruction(InstructionSet OpCode, TwoRegInt8 Op) :
 		OpCode(OpCode),
 		Op_TwoRegInt8(Op) {}
+
+	enum class OpType : UInt8
+	{
+		NoneOp,
+		ThreeUInt8,
+
+		OneReg,
+		TwoReg,
+		ThreeReg,
+
+		RegUInt8,
+		RegUInt16,
+
+		ValUInt8,
+		ValUInt16,
+
+		TwoRegInt8,
+	};
+	static OpType GetOpType(InstructionSet OpCode);
 };
 
 static_assert(sizeof(Instruction) == 4,"Instruction must be 4 bytes");

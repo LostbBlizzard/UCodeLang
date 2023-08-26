@@ -33,15 +33,15 @@ void UCLibManger::LinkLib(UCodeLang::RunTimeLib* Item)
 
 		if (Tep.OpCode == InstructionSet::LoadFuncPtr)
 		{
-			Tep.Value0.AsUIntNative += oldSize;
+			Tep.Op_RegUInt16.B += oldSize;
 		}
 		else if (Tep.OpCode == InstructionSet::Call)
 		{
-			Tep.Value0.AsUIntNative += oldSize;
+			Tep.Op_ValUInt16.A += oldSize;
 		}
 		else if (Tep.OpCode == InstructionSet::Call_Code)
 		{
-			Tep.Value0.AsUIntNative += oldSize;
+			Tep.Op_ValUInt16.A += oldSize;
 		}
 
 		_Instructions.push_back(Tep);
