@@ -102,7 +102,7 @@ void AppObject::Init()
 
             return false;
         };
-
+        UCodeLang::Instruction
 
         _Editor.SetShowWhitespaces(false);
         //_Editor.SetLanguageDefinition(Def);
@@ -116,10 +116,13 @@ void AppObject::Init()
         _Editor.SetText(
             R"(
 |func[] => 0;
+
+/*
 |main[] -> async<bool>:
  async<int> a = await func();
  yield a;
- 
+*/ 
+
  //yield await [] => 0;
  ret 0;
 
@@ -1415,19 +1418,19 @@ void AppObject::UpdateInsData(UCodeVMWindow& windowdata)
             auto staticbytesview = BytesView::Make((const Byte*)RunTime.Get_StaticMemPtr(), RunTime.Get_Libs().GetStaticBytes().size());
             if (MapData->Op_0 != OpCodeType::NoOpCode)
             {
-                UAssembly::OpValueToString(MapData->Op_0, Item.Value0, AddressToName, staticbytesview, Vstr);
+               // UAssembly::OpValueToString(MapData->Op_0, Item.Value0, AddressToName, staticbytesview, Vstr);
             }
             if (MapData->Op_1 != OpCodeType::NoOpCode)
             {
                 Vstr += ",";
-                UAssembly::OpValueToString(MapData->Op_1, Item.Value1, AddressToName, staticbytesview, Vstr);
+               // UAssembly::OpValueToString(MapData->Op_1, Item.Value1, AddressToName, staticbytesview, Vstr);
             }
 
         }
         else
         {
-            Vstr += "Ins " + std::to_string((uintptr_t)Item.OpCode) + ":" + std::to_string((uintptr_t)Item.Value0.AsPtr) + ","
-                + std::to_string((uintptr_t)Item.Value1.AsPtr);
+          //  Vstr += "Ins " + std::to_string((uintptr_t)Item.OpCode) + ":" + std::to_string((uintptr_t)Item.Value0.AsPtr) + ","
+            //    + std::to_string((uintptr_t)Item.Value1.AsPtr);
         }
 
         V.StringValue = std::move(Vstr.c_str());

@@ -462,19 +462,20 @@ IRStringStates.AddValue(Id, std::move(LineState));
 				auto staticbytesview = BytesView::Make(Lib->Get_StaticBytes().data(), Lib->Get_StaticBytes().size());
 				if (MapData->Op_0 != OpCodeType::NoOpCode)
 				{
-					OpValueToString(MapData->Op_0, Item.Value0, AddressToName, staticbytesview, r);
+					//OpValueToString(MapData->Op_0, Item.Value0, AddressToName, staticbytesview, r);
 				}
 				if (MapData->Op_1 != OpCodeType::NoOpCode)
 				{
 					r += ",";
-					OpValueToString(MapData->Op_1, Item.Value1, AddressToName, staticbytesview, r);
+					//OpValueToString(MapData->Op_1, Item.Value1, AddressToName, staticbytesview, r);
 				}
 
 			}
 			else
 			{
-				r += "Ins " + std::to_string((uintptr_t)Item.OpCode) + ":" + std::to_string((uintptr_t)Item.Value0.AsPtr) + ","
-					+ std::to_string((uintptr_t)Item.Value1.AsPtr);
+				r += "Ins " + std::to_string((uintptr_t)Item.OpCode) + ":" + std::to_string((uintptr_t)Item.Op_ThreeUInt8.A) + ","
+					+ std::to_string((uintptr_t)Item.Op_ThreeUInt8.B) + "," +
+					std::to_string((uintptr_t)Item.Op_ThreeUInt8.C);
 			}
 
 

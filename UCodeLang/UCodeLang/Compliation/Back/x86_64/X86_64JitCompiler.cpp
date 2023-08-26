@@ -91,22 +91,29 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 			case InstructionSet::Debug_FuncStart:break;
 			case InstructionSet::Debug_FuncEnd:break;
 			case InstructionSet::Debug_LineEnter:break;
-			case InstructionSet::Store32:
+			case InstructionSet::Storef32v1:
 			{
-				auto& Value = UIns.Value0;
-				const auto& OutReg = UIns.Value1.AsRegister;
+				auto next1 = Ins[i + 1];
+
+				Int32 Value;
+				(&Value)[0] = UIns.Op_RegUInt16.B;
+				(&Value)[1] = next1.Op_RegUInt16.B;
+
+				const auto& OutReg = UIns.Op_RegUInt16.A;
 
 				newfunc.Add_Ins(
 					X86_64IR::Ins::Move(
 						X86_64IR::Ins::Move::ConstToReg(Value, To(OutReg))
 					)
 				);
+
+				i++;
 			}
 			break;
 			case InstructionSet::StoreRegToReg32:
 			{
-				const auto& InReg = UIns.Value0.AsRegister;
-				const auto& OutReg = UIns.Value1.AsRegister;
+				const auto& InReg = UIns.Op_TwoReg.A;
+				const auto& OutReg = UIns.Op_TwoReg.B;
 
 				newfunc.Add_Ins(
 					X86_64IR::Ins::Move(
@@ -195,29 +202,6 @@ void X86_64JitCompiler::SubCall(JitInfo::FuncType Value, uintptr_t CPPOffset, vo
 {
 }
 
-void BuildSysCallIns(InstructionSysCall Ins, RegisterID Reg)
-{
-	switch (Ins)
-	{
 
-	case UCodeLang::InstructionSysCall::Cout_CString:
-		break;
-	case UCodeLang::InstructionSysCall::Cout_Char:
-		break;
-	case UCodeLang::InstructionSysCall::Cout_Buffer:
-		break;
-	case UCodeLang::InstructionSysCall::Cout_ReadChar:
-		
-		break;
-	case UCodeLang::InstructionSysCall::File_Open:
-		break;
-	case UCodeLang::InstructionSysCall::File_Close:
-		break;
-	case UCodeLang::InstructionSysCall::File_Read:
-		break;
-	default:
-		break;
-	}
-}
 UCodeLangEnd
 

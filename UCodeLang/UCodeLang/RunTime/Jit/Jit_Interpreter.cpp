@@ -301,7 +301,7 @@ void Jit_Interpreter::BuildCheck(UCodeLang::Jit_Interpreter::JitFuncData& Item, 
 		if (NextIns.OpCode == InstructionSet::Call_Code)
 		{
 			Item.Type = JitFuncType::CPPCall;
-			Item.Func = Get_State()->Get_Libs().Get_ExFunc(NextIns.Value0.AsAddress);
+			Item.Func = Get_State()->Get_Libs().Get_ExFunc(NextIns.Op_ValUInt16.A);
 		}
 		else
 		{

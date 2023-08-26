@@ -466,11 +466,23 @@ public:
 	{
 		Out = Instruction(InstructionSet::PointerMemberRead64, Instruction::TwoRegInt8(Ptr, RegOut, Offset));
 	}
-
-	//Size should be in InputRegister
-	UCodeLangForceinline static void MemCopy(Instruction& Out, RegisterID dest, RegisterID source)
+	//EffectiveAddress
+	UCodeLangForceinline static void LoadEffectiveAddressA(Instruction& Out, RegisterID Ptr, UInt8 Offset, RegisterID RegOut)
 	{
-		Out = Instruction(InstructionSet::MemCopy, Instruction::TwoReg(dest, source));
+		Out = Instruction(InstructionSet::LoadEffectiveAddressA, Instruction::TwoRegInt8(Ptr, RegOut,Offset));
+	}
+	UCodeLangForceinline static void LoadEffectiveAddressS(Instruction& Out, RegisterID Ptr, UInt8 Offset, RegisterID RegOut)
+	{
+		Out = Instruction(InstructionSet::LoadEffectiveAddressS, Instruction::TwoRegInt8(Ptr, RegOut, Offset));
+	}
+	UCodeLangForceinline static void LoadEffectiveAddressX(Instruction& Out, RegisterID Ptr, UInt8 Mult, RegisterID RegOut)
+	{
+		Out = Instruction(InstructionSet::LoadEffectiveAddressX, Instruction::TwoRegInt8(Ptr, RegOut, Mult));
+	}
+
+	UCodeLangForceinline static void MemCopy(Instruction& Out, RegisterID dest, RegisterID size, RegisterID source)
+	{
+		Out = Instruction(InstructionSet::MemCopy, Instruction::ThreeReg(dest, size, source));
 	}
 
 
@@ -479,10 +491,10 @@ public:
 		Out = Instruction(InstructionSet::Calloc, Instruction::TwoReg(regin, regout));
 	}
 
-	//Output is in OutPutRegister
-	UCodeLangForceinline static void Realloc(Instruction& Out, RegisterID ptr, RegisterID size)
+	
+	UCodeLangForceinline static void Realloc(Instruction& Out, RegisterID ptr, RegisterID size, RegisterID output)
 	{
-		Out = Instruction(InstructionSet::ReAlloc, Instruction::TwoReg(ptr, size));
+		Out = Instruction(InstructionSet::ReAlloc, Instruction::ThreeReg(ptr, size,output));
 	}
 
 	UCodeLangForceinline static void Memset(Instruction& Out, RegisterID Ptr, RegisterID Val, RegisterID size)
