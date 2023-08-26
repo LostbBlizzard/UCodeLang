@@ -1,5 +1,5 @@
 #pragma once
-#include "x86_64Data.h"
+#include "x86_64Data.hpp"
 #include "X86_64Gen.hpp"
 UCodeLangStart
 

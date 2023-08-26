@@ -116,7 +116,7 @@ void AppObject::Init()
         _Editor.SetText(
             R"(
 |func[] => 0;
-
+|main[] => 0;
 /*
 |main[] -> async<bool>:
  async<int> a = await func();

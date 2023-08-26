@@ -305,6 +305,13 @@ BytesPtr IRBuilder::ToBytes() const
 	{
 		ToBytes(V,_Debug);
 	}
+	{
+		V.WriteType(EntryPoint.has_value());
+		if (EntryPoint.has_value())
+		{
+			V.WriteType(EntryPoint.value());
+		}
+	}
 	return V.AsBytePtr();
 }
 
@@ -384,7 +391,16 @@ bool IRBuilder::FromBytes(IRBuilder& Out, const BytesView Bytes)
 	{
 		FromBytes(Bits, Out._Debug);
 	}
-
+	{
+		bool HasV = false;
+		Bits.ReadType(HasV,HasV);
+		if (HasV)
+		{
+			IRidentifierID Value;
+			Bits.ReadType(Value, Value);
+			Out.EntryPoint = Value;
+		}
+	}
 	return true;
 }
 
@@ -1394,6 +1410,11 @@ void IRBuilder::ToString(ToStringState& State, IRFunc* Item, String& r)
 {
 	State._Func = Item;
 	State.PointerToName.clear();
+
+	if (EntryPoint.has_value() && Item->identifier == EntryPoint.value())
+	{
+		r += "//EntryPoint \n";
+	}
 
 	r += "|" + FromID(Item->identifier);
 	r += "[";

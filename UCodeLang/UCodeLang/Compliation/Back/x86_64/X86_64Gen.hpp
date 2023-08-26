@@ -1,6 +1,6 @@
 #pragma once
 #include "../x86/X86Gen.hpp"
-#include "x86_64Data.h"
+#include "x86_64Data.hpp"
 UCodeLangStart
 
 //resources
