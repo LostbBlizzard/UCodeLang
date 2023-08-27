@@ -102,7 +102,6 @@ void AppObject::Init()
 
             return false;
         };
-        UCodeLang::Instruction
 
         _Editor.SetShowWhitespaces(false);
         //_Editor.SetLanguageDefinition(Def);
@@ -116,17 +115,23 @@ void AppObject::Init()
         _Editor.SetText(
             R"(
 |func[] => 0;
-|main[] => 0;
+|main[]:
+  int8 a =1;
+  int16 b =2;
+  int32 c =3;
+  int64 d =4;
+  float32 e =5;
+  float64 f =6;
 /*
 |main[] -> async<bool>:
  async<int> a = await func();
  yield a;
 */ 
 
- //yield await [] => 0;
- ret 0;
+//yield await [] => 0;
+//ret 0;
 
-$Future<T>;
+//$Future<T>;
 /*
 IntVector VectorTest = [];
 String StringTest = [];
@@ -1401,6 +1406,7 @@ void AppObject::UpdateInsData(UCodeVMWindow& windowdata)
 
 
     auto& Inslist = RunTime.Get_Libs().GetInstructions();
+    const BytesView staticbytesview = BytesView::Make((Byte*)RunTime.Get_StaticMemPtr(), RunTime.Get_Libs().GetStaticBytes().size());
     for (size_t i = 0; i < Inslist.size(); i++)
     {
         auto& Item = Inslist[i];
@@ -1409,29 +1415,7 @@ void AppObject::UpdateInsData(UCodeVMWindow& windowdata)
         V.InsAddress = i;
         String Vstr;
 
-        if (InsMapData.count(Item.OpCode))
-        {
-            auto& MapData = InsMapData[Item.OpCode];
-            Vstr += (String)MapData->InsName;
-            Vstr += " ";
-
-            auto staticbytesview = BytesView::Make((const Byte*)RunTime.Get_StaticMemPtr(), RunTime.Get_Libs().GetStaticBytes().size());
-            if (MapData->Op_0 != OpCodeType::NoOpCode)
-            {
-               // UAssembly::OpValueToString(MapData->Op_0, Item.Value0, AddressToName, staticbytesview, Vstr);
-            }
-            if (MapData->Op_1 != OpCodeType::NoOpCode)
-            {
-                Vstr += ",";
-               // UAssembly::OpValueToString(MapData->Op_1, Item.Value1, AddressToName, staticbytesview, Vstr);
-            }
-
-        }
-        else
-        {
-          //  Vstr += "Ins " + std::to_string((uintptr_t)Item.OpCode) + ":" + std::to_string((uintptr_t)Item.Value0.AsPtr) + ","
-            //    + std::to_string((uintptr_t)Item.Value1.AsPtr);
-        }
+        i += UAssembly::ParseInstruction(i, Span<UCodeLang::Instruction>::Make(Inslist.data(), Inslist.size()), Vstr,staticbytesview, AddressToName);
 
         V.StringValue = std::move(Vstr.c_str());
 

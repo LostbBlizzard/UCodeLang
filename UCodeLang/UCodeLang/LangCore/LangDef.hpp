@@ -87,23 +87,23 @@
 #define UCodeLang_Platform_ANDROID 0
 #endif // ANDROID
 
-#if __ANDROID__
-#define UCodeLang_Platform_ANDROID 1
+#if  defined(__wasm32__) || defined(__wasm64__)
+#define UCodeLang_Platform_Wasm 1
 #else
-#define UCodeLang_Platform_ANDROID 0
-#endif // ANDROID
+#define UCodeLang_Platform_Wasm 0
+#endif // Wasm 
 
 #if defined(__wasm32__)
 #define UCodeLang_Platform_Wasm32 1
 #else
 #define UCodeLang_Platform_Wasm32 0
-#endif // ANDROID
+#endif // wasm32
 
 #if defined(__wasm64__)
 #define UCodeLang_Platform_Wasm64 1
 #else
 #define UCodeLang_Platform_Wasm64 0
-#endif // ANDROID
+#endif // wasm64
 
 
 #ifndef UCodeLangDebug

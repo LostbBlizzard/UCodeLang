@@ -93,21 +93,19 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 			case InstructionSet::Debug_LineEnter:break;
 			case InstructionSet::Storef32v1:
 			{
-				auto next1 = Ins[i + 1];
+				auto op = Instruction::IsLoad32(Span<Instruction>::Make(Ins.data(), Ins.size()), i);
+				if (op.has_value())
+				{
+					const auto& OutReg = UIns.Op_RegUInt16.A;
 
-				Int32 Value;
-				(&Value)[0] = UIns.Op_RegUInt16.B;
-				(&Value)[1] = next1.Op_RegUInt16.B;
+					newfunc.Add_Ins(
+						X86_64IR::Ins::Move(
+							X86_64IR::Ins::Move::ConstToReg(op.value(), To(OutReg))
+						)
+					);
 
-				const auto& OutReg = UIns.Op_RegUInt16.A;
-
-				newfunc.Add_Ins(
-					X86_64IR::Ins::Move(
-						X86_64IR::Ins::Move::ConstToReg(Value, To(OutReg))
-					)
-				);
-
-				i++;
+					i++;
+				}
 			}
 			break;
 			case InstructionSet::StoreRegToReg32:

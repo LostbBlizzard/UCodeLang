@@ -235,7 +235,9 @@ public:
 	}
 	UCodeLangForceinline static void Store32_V1(Instruction& Out, RegisterID reg, UInt32 Value)\
 	{
-		Out = Instruction(InstructionSet::Storef32v1, Instruction::RegUInt16(reg, Value));
+		UInt16& Val = ((UInt16*)(&Value))[0];
+
+		Out = Instruction(InstructionSet::Store32v1, Instruction::RegUInt16(reg, Value));
 	}
 
 	UCodeLangForceinline static void Store32_V2(Instruction& Out, RegisterID reg, Int32 Value) \
@@ -244,7 +246,9 @@ public:
 	}
 	UCodeLangForceinline static void Store32_V2(Instruction& Out, RegisterID reg, UInt32 Value)\
 	{
-		Out = Instruction(InstructionSet::Storef32v2, Instruction::RegUInt16(reg, Value));
+		UInt16& Val = ((UInt16*)(&Value))[1];
+
+		Out = Instruction(InstructionSet::Store32v2, Instruction::RegUInt16(reg, Val));
 	}
 	
 	BuilderIntSet(32)

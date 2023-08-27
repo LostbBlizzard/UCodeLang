@@ -1,6 +1,32 @@
 #include "C89Backend.hpp"
 UCodeLangStart
 
+
+
+
+#define IRFuncEntryPointName "_Entry"
+
+
+#define IRPrefix "UCIR_"
+
+#define IRMDefinesName IRPrefix "_C89Defs"
+
+#define IRMSVCDefineName IRPrefix "Compiler_MSVC"
+#define IRCLangDefineName IRPrefix "Compiler_Clang"
+#define IRGNUCDefineName IRPrefix "Compiler_GCC"
+#define IREmscriptenDefineName IRPrefix "Compiler_Emscripten"
+
+#define IRWindowsDefineName IRPrefix "Platform_Windows"
+#define IRLinuxDefineName IRPrefix "Platform_Linux"
+#define IRMacOSDefineName IRPrefix "Platform_MacOS"
+#define IRANDROIDDefineName IRPrefix "Platform_ANDROID"
+#define IRIPHONEDefineName IRPrefix "Platform_IPHONE"
+#define IRWasmDefineName IRPrefix "Platform_Wasm"
+
+#define IRForceinlineDefineName IRPrefix "Forceinline"
+
+#define IRUnreachableDefineName IRPrefix "Unreachable"
+
 C89Backend::C89Backend()
 {
 
@@ -67,22 +93,87 @@ void C89Backend::AddTextSignature()
 
 void C89Backend::AddBaseTypes()
 {
-	OutBuffer += "typedef unsigned char uInt8;\n";
-	OutBuffer += "typedef unsigned short uInt16;\n";
-	OutBuffer += "typedef unsigned int uInt32;\n";
-	OutBuffer += "typedef unsigned long long uInt64;\n";
-
-	OutBuffer += "typedef signed char Int8;\n";
-	OutBuffer += "typedef signed short Int16;\n";
-	OutBuffer += "typedef signed int Int32;\n";
-	OutBuffer += "typedef signed long long Int64;\n";
-
-	OutBuffer += "typedef float float32;\n";
-	OutBuffer += "typedef double float64;\n";
-
-
-	OutBuffer += "//defs\n";
 	
+	OutBuffer += "//defs\n\n";
+	
+	OutBuffer += "#if defined(_MSC_VER)\n";
+	OutBuffer += "#define " + (String)IRMSVCDefineName + " 1 \n";
+	OutBuffer += "#else\n";
+	OutBuffer += "#define " + (String)IRMSVCDefineName + " 0 \n";
+	OutBuffer += "#endif\n\n";
+
+	OutBuffer += "#if defined(__GNUC__)\n";
+	OutBuffer += "#define " + (String)IRGNUCDefineName + " 1 \n";
+	OutBuffer += "#else\n";
+	OutBuffer += "#define " + (String)IRGNUCDefineName + " 0 \n";
+	OutBuffer += "#endif\n\n";
+
+	OutBuffer += "#if defined(__clang__)\n";
+	OutBuffer += "#define " + (String)IRCLangDefineName + " 1 \n";
+	OutBuffer += "#else\n";
+	OutBuffer += "#define " + (String)IRCLangDefineName + " 0 \n";
+	OutBuffer += "#endif\n\n";
+
+	OutBuffer += "#if _WIN64 || _WIN32\n";
+	OutBuffer += "#define " + (String)IRWindowsDefineName + " 1 \n";
+	OutBuffer += "#else\n";
+	OutBuffer += "#define " + (String)IRWindowsDefineName + " 0 \n";
+	OutBuffer += "#endif\n\n";
+
+	
+	OutBuffer += "#if __gnu_linux__ || __linux__\n";
+	OutBuffer += "#define " + (String)IRLinuxDefineName + " 1 \n";
+	OutBuffer += "#else\n";
+	OutBuffer += "#define " + (String)IRLinuxDefineName + " 0 \n";
+	OutBuffer += "#endif\n\n";
+	
+	OutBuffer += "#if __APPLE__ && __MACH__\n";
+	OutBuffer += "#define " + (String)IRMacOSDefineName + " 1 \n";
+	OutBuffer += "#else\n";
+	OutBuffer += "#define " + (String)IRMacOSDefineName + " 0 \n";
+	OutBuffer += "#endif\n\n";
+
+	OutBuffer += "#if __APPLE__\n";
+	OutBuffer += "#include \"TargetConditionals.h\";";
+
+	OutBuffer += "#if TARGET_OS_IPHONE\n";
+	OutBuffer += "#define " + (String)IRIPHONEDefineName + " 1 \n";
+	OutBuffer += "#else\n";
+	OutBuffer += "#define " + (String)IRIPHONEDefineName + " 0 \n";
+	OutBuffer += "#endif\n";
+
+	OutBuffer += "#else\n";
+	OutBuffer += "#define UCodeLang_Platform_IPHONE 0\n";
+	OutBuffer += "#endif\n\n"; 
+
+	OutBuffer += "#if __ANDROID__\n";
+	OutBuffer += "#define " + (String)IRANDROIDDefineName + " 1 \n";
+	OutBuffer += "#else\n";
+	OutBuffer += "#define " + (String)IRANDROIDDefineName + " 0 \n";
+	OutBuffer += "#endif\n\n";
+
+	OutBuffer += "#if defined(__wasm32__) || defined(__wasm64__)\n";
+	OutBuffer += "#define " + (String)IRWasmDefineName + " 1 \n";
+	OutBuffer += "#else\n";
+	OutBuffer += "#define " + (String)IRWasmDefineName + " 0 \n";
+	OutBuffer += "#endif\n\n";
+
+	OutBuffer += "#if " + (String)IRMSVCDefineName + "\n";
+	OutBuffer += "#define" + (String)IRForceinlineDefineName + "__forceinline\n";
+	OutBuffer += "#elif " + (String)IRGNUCDefineName + "\n";
+	OutBuffer += "#define " + (String)IRForceinlineDefineName + " __attribute__((always_inline))\n";
+	OutBuffer += "#else\n";
+	OutBuffer += "#define " + (String)IRForceinlineDefineName + " inline\n";
+	OutBuffer += "#endif\n\n";
+
+	OutBuffer += "//includes\n\n";
+	
+	OutBuffer += "#include <inttypes.h>\n";
+
+	OutBuffer += "//Types\n";
+	OutBuffer += "//typedef float float32_t;\n";
+	OutBuffer += "//typedef double float64_t;\n";
+
 	
 	OutBuffer += '\n';
 	
@@ -93,12 +184,12 @@ String C89Backend::ToString(const IRType& Type)
 {
 	switch (Type._Type)
 	{
-	case IRTypes::i8:return "Int8";
-	case IRTypes::i16:return "Int16";
-	case IRTypes::i32:return "Int32";
-	case IRTypes::i64:return "Int64";
-	case IRTypes::f32:return "float32";
-	case IRTypes::f64:return "float64";
+	case IRTypes::i8:return "int8_t";
+	case IRTypes::i16:return "int16_t";
+	case IRTypes::i32:return "int32_t";
+	case IRTypes::i64:return "int64_t";
+	case IRTypes::f32:return "float32_t";
+	case IRTypes::f64:return "float64_t";
 
 	
 	case IRTypes::Void:return "void";
@@ -155,6 +246,11 @@ String C89Backend::ToString()
 			_Func = Item.get();
 			ToString(r, Item.get(), State);
 		}
+
+		if (_Input->EntryPoint.has_value())
+		{
+			r += "int main(int argc, char** argv);";
+		}
 	}
 	r += "\n\n//file.cpp\n\n";
 	{
@@ -169,6 +265,39 @@ String C89Backend::ToString()
 
 				_Func = Item.get();
 				ToString(r, Item.get(), State,true);
+			}
+
+			if (_Input->EntryPoint.has_value()) 
+			{
+				r += "int main(int argc, char** argv)\n";
+				
+				r += "{\n";
+
+				r += FromIDToCindentifier(_Input->_StaticInit.identifier) + "();\n";
+				r += FromIDToCindentifier(_Input->_threadInit.identifier) + "();\n\n";
+				
+				auto IsVoid = _Input->GetFunc(_Input->EntryPoint.value())->ReturnType._Type == IRTypes::Void;
+				
+				if (!IsVoid)
+				{
+					r += "int exitcode = ";
+				}
+				
+				r += IRFuncEntryPointName;
+				r += "();\n";
+				
+				r += + "\n" + FromIDToCindentifier(_Input->_threaddeInit.identifier) + "();\n";
+				r += FromIDToCindentifier(_Input->_StaticdeInit.identifier) + "();\n";
+
+				if (!IsVoid)
+				{
+					r += "\n return exitcode;\n";
+				}
+				else
+				{
+					r += "\n return 0;";
+				}
+				r += "}";
 			}
 		}
 	}
@@ -291,7 +420,20 @@ void C89Backend::UpdateCppLinks(UCodeLang::String& r, UCodeLang::IRBufferData* V
 
 void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C89Backend::ToStringState& State, bool OutputBody)
 {
-	r += ToString(Item->ReturnType) + " " + FromIDToCindentifier(Item->identifier);
+	if (_Input->EntryPoint.has_value() && Item->identifier == _Input->EntryPoint.value())
+	{
+
+	}
+	r += ToString(Item->ReturnType) + " ";
+
+	if (_Input->EntryPoint.has_value() && Item->identifier == _Input->EntryPoint.value())
+	{
+		r += IRFuncEntryPointName;
+	}
+	else
+	{
+		r += FromIDToCindentifier(Item->identifier);
+	}
 	r += "(";
 	for (auto& Par : Item->Pars)
 	{
@@ -309,7 +451,7 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 		r += "\n{";
 		String Tabs = " ";
 
-		/*
+		
 		for (auto& Block : Item->Blocks)
 		{
 
@@ -452,6 +594,7 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					r += "return";
 					break;
 				default:
+					UCodeLangUnreachable();
 					break;
 				}
 				r += ";\n";
@@ -469,7 +612,7 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 			}
 			State.PointerToName.clear();
 		}
-		*/
+		
 
 		r += "\n}";
 	}

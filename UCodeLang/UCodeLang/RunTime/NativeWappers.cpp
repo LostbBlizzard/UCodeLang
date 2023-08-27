@@ -174,7 +174,7 @@ UCodeLangAPIExport int USocketHandle::Send(Handle Handle, const Byte* byte, size
 
 UCodeLangAPIExport int USocketHandle::Receive(Handle Handle, Span<Byte> output)
 {
-
+	return {};
 }
 
 UCodeLangAPIExport int USocketHandle::Receive(Handle Handle, const Byte* byte, size_t size)

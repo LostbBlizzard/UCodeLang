@@ -625,7 +625,7 @@ struct IRBlock
 		V->ObjectType = IRType(IRTypes::i16);
 		return V;
 	}
-	IRInstruction* NewLoad(Int16 Value) { return NewLoad(*(UInt8*)&Value); }
+	IRInstruction* NewLoad(Int16 Value) { return NewLoad(*(UInt16*)&Value); }
 
 	//32bit
 	IRInstruction* NewLoad(UInt32 Value)
