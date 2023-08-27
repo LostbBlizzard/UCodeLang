@@ -205,6 +205,135 @@ struct Instruction
 		TwoRegInt8,
 	};
 	static OpType GetOpType(InstructionSet OpCode);
+
+	static Optional<Int32> IsLoad32(const Span<Instruction> Data,size_t I)
+	{
+		auto& Ins = Data[I];
+		if (Data[I].OpCode == InstructionSet::Store32v1)
+		{
+			if (Data.Size() > I + 1)
+			{
+				auto& NextIns = Data[I + 1];
+				if (NextIns.OpCode == InstructionSet::Store32v2)
+				{
+					if (Ins.Op_RegUInt16.A == NextIns.Op_RegUInt16.A)
+					{
+						Int32 V = 0;
+						((UInt16*)&V)[0] = Ins.Op_RegUInt16.B;
+						((UInt16*)&V)[1] = NextIns.Op_RegUInt16.B;
+						return V;
+					}
+
+				}
+			}
+		}
+		return {};
+	}
+	static Optional<float32> IsLoadf32(const Span<Instruction> Data, size_t I)
+	{
+		auto& Ins = Data[I];
+		if (Data[I].OpCode == InstructionSet::Storef32v1)
+		{
+			if (Data.Size() > I + 1)
+			{
+				auto& NextIns = Data[I + 1];
+				if (NextIns.OpCode == InstructionSet::Storef32v2)
+				{
+					if (Ins.Op_RegUInt16.A == NextIns.Op_RegUInt16.A)
+					{
+						float32 V = 0;
+						((UInt16*)&V)[0] = Ins.Op_RegUInt16.B;
+						((UInt16*)&V)[1] = NextIns.Op_RegUInt16.B;
+						return V;
+					}
+
+				}
+			}
+		}
+		return {};
+	}
+	static Optional<Int64> IsLoad64(const Span<Instruction> Data, size_t I)
+	{
+		auto& Ins = Data[I];
+		if (Data[I].OpCode == InstructionSet::Store64v1)
+		{
+			if (Data.Size() > I + 1)
+			{
+				auto& NextIns = Data[I + 1];
+				if (NextIns.OpCode == InstructionSet::Store64v2)
+				{
+					if (Data.Size() > I + 2)
+					{
+						auto& NextIns2 = Data[I + 2];
+						if (NextIns2.OpCode == InstructionSet::Store64v3)
+						{
+							if (Data.Size() > I + 3)
+							{
+								auto& NextIns3 = Data[I + 3];
+								if (NextIns3.OpCode == InstructionSet::Store64v4)
+								{
+									if (Ins.Op_RegUInt16.A == NextIns.Op_RegUInt16.A
+										&& NextIns2.Op_RegUInt16.A == NextIns3.Op_RegUInt16.A
+										&& Ins.Op_RegUInt16.A == NextIns3.Op_RegUInt16.A)
+									{
+										Int64 V = 0;
+										((UInt16*)&V)[0] = Ins.Op_RegUInt16.B;
+										((UInt16*)&V)[1] = NextIns.Op_RegUInt16.B;
+										((UInt16*)&V)[2] = NextIns2.Op_RegUInt16.B;
+										((UInt16*)&V)[3] = NextIns3.Op_RegUInt16.B;
+
+										return V;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		return {};
+	}
+	static Optional<float64> IsLoadf64(const Span<Instruction> Data, size_t I)
+	{
+		auto& Ins = Data[I];
+		if (Data[I].OpCode == InstructionSet::Storef64v1)
+		{
+			if (Data.Size() > I + 1)
+			{
+				auto& NextIns = Data[I + 1];
+				if (NextIns.OpCode == InstructionSet::Storef64v2)
+				{
+					if (Data.Size() > I + 2)
+					{
+						auto& NextIns2 = Data[I + 2];
+						if (NextIns2.OpCode == InstructionSet::Storef64v3)
+						{
+							if (Data.Size() > I + 3)
+							{
+								auto& NextIns3 = Data[I + 3];
+								if (NextIns3.OpCode == InstructionSet::Storef64v4)
+								{
+									if (Ins.Op_RegUInt16.A == NextIns.Op_RegUInt16.A
+										&& NextIns2.Op_RegUInt16.A == NextIns3.Op_RegUInt16.A
+										&& Ins.Op_RegUInt16.A == NextIns3.Op_RegUInt16.A)
+									{
+										float64 V = 0;
+										((UInt16*)&V)[0] = Ins.Op_RegUInt16.B;
+										((UInt16*)&V)[1] = NextIns.Op_RegUInt16.B;
+										((UInt16*)&V)[2] = NextIns2.Op_RegUInt16.B;
+										((UInt16*)&V)[3] = NextIns3.Op_RegUInt16.B;
+
+										return V;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		return {};
+	}
 };
 
 static_assert(sizeof(Instruction) == 4,"Instruction must be 4 bytes");

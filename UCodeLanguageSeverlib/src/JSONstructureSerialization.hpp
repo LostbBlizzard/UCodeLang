@@ -11,12 +11,12 @@ using json = nlohmann::json;
 	template<typename T>
 	inline void to_json(json& Json,const T Object)
 	{
-		//Json = json(Object);
+		Json = json(Object);
 	}
 	template<typename T>
 	inline void from_json(const json& Json, T& Object)
 	{
-		//Object = Json.get<T>();
+		Object = Json.get<T>();
 	}
 
 

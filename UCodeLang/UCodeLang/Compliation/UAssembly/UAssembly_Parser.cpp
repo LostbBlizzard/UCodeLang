@@ -45,13 +45,13 @@ void Parser::ParseIns()
 		auto& Item = StringToInsMap.at(InsName);
 		_TepIns.OpCode = Item.OpCode;
 
-		if (Item.Op_0 != OpCodeType::NoOpCode)
+		//if (Item.Op_0 != OpCodeType::NoOpCode)
 		{
 			//ParseOp(_TepIns.Value0, Item.Op_0);
 		}
 
 		auto CommaToken = TryGetToken();
-		if (CommaToken && CommaToken->Type == TokenType::Comma && Item.Op_1 != OpCodeType::NoOpCode)
+		//if (CommaToken && CommaToken->Type == TokenType::Comma && Item.Op_1 != OpCodeType::NoOpCode)
 		{
 			NextToken();	
 			//ParseOp(_TepIns.Value1, Item.Op_1);

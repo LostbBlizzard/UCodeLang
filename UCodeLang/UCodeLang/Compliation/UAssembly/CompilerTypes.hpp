@@ -92,8 +92,9 @@ struct InsMapValue
 {
 	String_view InsName;
 	InstructionSet OpCode;
-	OpCodeType Op_0;
-	OpCodeType Op_1;
+	OpCodeType Op_A;
+	OpCodeType Op_B;
+	OpCodeType Op_C;
 };
 
 #define MapValueIntSet(bitsize)\
@@ -135,6 +136,17 @@ static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 
 	AddMapValueValue(NoOp,InstructionSet::DoNothing,OpCodeType::NoOpCode,OpCodeType::NoOpCode),
 
+	AddMapValueValue(Store8,InstructionSet::Store8,OpCodeType::Register,OpCodeType::AnyInt8),
+	AddMapValueValue(Store16,InstructionSet::Store16,OpCodeType::Register,OpCodeType::AnyInt16),
+
+	AddMapValueValue(Store32V1,InstructionSet::Store32v1,OpCodeType::Register,OpCodeType::AnyInt16),
+	AddMapValueValue(Store32V2,InstructionSet::Store32v2,OpCodeType::Register,OpCodeType::AnyInt16),
+
+	AddMapValueValue(Store64V1,InstructionSet::Store64v1,OpCodeType::Register,OpCodeType::AnyInt16),
+	AddMapValueValue(Store64V2,InstructionSet::Store64v2,OpCodeType::Register,OpCodeType::AnyInt16),
+	AddMapValueValue(Store64V3,InstructionSet::Store64v3,OpCodeType::Register,OpCodeType::AnyInt16),
+	AddMapValueValue(Store64V4,InstructionSet::Store64v4,OpCodeType::Register,OpCodeType::AnyInt16),
+
 	MapValueIntSet(8)
 	MapValueIntSet(16)
 	MapValueIntSet(32)
@@ -143,6 +155,14 @@ static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 	MapValuefloatSet(32)
 
 	MapValuefloatSet(64)
+
+	AddMapValueValue(Storef32V1,InstructionSet::Storef32v1,OpCodeType::Register,OpCodeType::AnyInt16),
+	AddMapValueValue(Storef32V2,InstructionSet::Storef32v2,OpCodeType::Register,OpCodeType::AnyInt16),
+
+	AddMapValueValue(Storef64V1,InstructionSet::Storef64v1,OpCodeType::Register,OpCodeType::AnyInt16),
+	AddMapValueValue(Storef64V2,InstructionSet::Storef64v2,OpCodeType::Register,OpCodeType::AnyInt16),
+	AddMapValueValue(Storef64V3,InstructionSet::Storef64v3,OpCodeType::Register,OpCodeType::AnyInt16),
+	AddMapValueValue(Storef64V4,InstructionSet::Storef64v4,OpCodeType::Register,OpCodeType::AnyInt16),
 
 	AddMapValueValue(Int8ToInt16,InstructionSet::Int8ToInt16,OpCodeType::Register,OpCodeType::Register),
 	AddMapValueValue(Int16ToInt32,InstructionSet::Int16ToInt32,OpCodeType::Register,OpCodeType::Register),

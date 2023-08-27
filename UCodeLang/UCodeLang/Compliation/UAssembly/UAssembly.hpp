@@ -19,6 +19,12 @@ public:
 
 
 	static String ToString(const UClib* Lib, Optional<Path> SourceFiles = {},bool ShowIR =false);
+
+
+
+	//retrun is added 
+	static size_t ParseInstruction(size_t I, const Span<Instruction> Data, String& r, const BytesView staticbytesview, BinaryVectorMap<UAddress, String>& AddressToName,bool CombineIns =true);
+	static void ToStringInstruction(const Instruction& Item, String& r, const BytesView staticbytesview, BinaryVectorMap<UAddress,String>& AddressToName);
 	
 	static String ToString(const ReflectionTypeInfo& Value,const ClassAssembly& Assembly);
 	static String ToString(const ReflectionTypeInfo& Value, const ReflectionRawData& Data, const ClassAssembly& Assembly,UClib::NTypeSize PtrSize);
@@ -48,7 +54,7 @@ public:
 	{
 		return "[&" + std::to_string(Pos) + "]";
 	}
-	static void OpValueToString(OpCodeType OpType,const AnyInt64& In,const BinaryVectorMap<UAddress, String>& AddressToName, const BytesView StaticVarablesData,String& out);
+	static void OpValueToString(OpCodeType OpType,const void* In,const BinaryVectorMap<UAddress, String>& AddressToName, const BytesView StaticVarablesData,String& out);
 
 	static size_t BuildHashForSub(const Instruction* Pointer, size_t BufferSize);
 private:

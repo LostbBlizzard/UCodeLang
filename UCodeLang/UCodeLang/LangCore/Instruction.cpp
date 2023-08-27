@@ -28,6 +28,11 @@ Instruction::OpType Instruction::GetOpType(InstructionSet OpCode)
 {
 	switch (OpCode)
 	{
+
+	case InstructionSet::Debug_FuncEnd:
+	case InstructionSet::Debug_LineEnter:
+	case InstructionSet::Debug_FuncStart:
+		return Instruction::OpType::NoneOp;
 	case InstructionSet::Exit:
 	case InstructionSet::Return:
 		return Instruction::OpType::ValUInt8;

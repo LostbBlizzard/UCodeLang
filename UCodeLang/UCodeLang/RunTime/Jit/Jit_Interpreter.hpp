@@ -20,7 +20,13 @@ public:
 	using Return_t = Interpreter::Return_t;
 	using RetState = Interpreter::RetState;
 	Jit_Interpreter(){}
-	~Jit_Interpreter() { UnLoad(); }
+	~Jit_Interpreter() 
+	{
+		#if UCodeLangDebug
+		InDestruct = true;
+		#endif 
+		UnLoad(); 
+	}
 	Jit_Interpreter(Jit_Interpreter&& Other) = default;
 	Jit_Interpreter& operator=(Jit_Interpreter&& Other) = default;
 	Jit_Interpreter(const Jit_Interpreter& Other) = delete;
@@ -36,13 +42,28 @@ public:
 		#if HasSupportforJit
 		this->jitState = JitState;
 		#endif
+
+		#if UCodeLangDebug
+		WasInit = true;
+		#endif
 	}
 	void UnLoad()
 	{
+		#if UCodeLangDebug
+		if (!InDestruct)
+		{
+			UCodeLangAssert(WasInit == true);
+		}
+	
+		GotRetValue = false;
+		CalledFuncBefor = false;
+		#endif
+
 		#if HasSupportforJit
 		UFuncToCPPFunc.clear();
 		#endif
 		#if UCodeLang_KeepJitInterpreterFallback
+		_Interpreter.InDestruct = InDestruct;
 		_Interpreter.UnLoad();
 		#endif
 	}
@@ -188,6 +209,14 @@ public:
 	UClib GetStateAsLib();
 private:
 	
+	#if UCodeLangDebug
+	bool WasInit = false;
+	bool InDestruct = false;
+	bool GotRetValue = false;
+	bool CalledFuncBefor = false;
+	#endif // DEBUG
+
+
 	enum class JitFuncType :UInt8
 	{
 		Null,
