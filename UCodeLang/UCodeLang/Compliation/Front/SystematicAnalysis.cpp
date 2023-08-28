@@ -13734,6 +13734,24 @@ void  SystematicAnalysis::Symbol_Update_ClassSym_ToFixedTypes(Symbol* Sym)
 {
 	if (Sym->PassState == PassType::GetTypes)
 	{
+		ClassInfo* Vp = Sym->Get_Info<ClassInfo>();
+		auto& classNode = *Sym->Get_NodeInfo<ClassNode>();
+		if (!Symbol_IsDependencies(Vp))
+		{
+			auto Old = SaveAndMove_SymbolContext();
+			Set_SymbolConext(Vp->Conext.value());
+
+			OnClassNode(classNode);//update class fields
+
+
+			Set_SymbolConext(std::move(Old));
+		}
+		else
+		{
+			LogError_TypeDependencyCycle(classNode._className.token, Vp);
+		}
+
+		/*
 		ClassInfo* info = Sym->Get_Info<ClassInfo>();
 		auto OldConext = SaveAndMove_SymbolContext();
 		Set_SymbolConext(info->Conext.value());
@@ -13741,6 +13759,7 @@ void  SystematicAnalysis::Symbol_Update_ClassSym_ToFixedTypes(Symbol* Sym)
 		OnClassNode(*Sym->Get_NodeInfo<ClassNode>());
 
 		Set_SymbolConext(std::move(OldConext));
+		*/
 	}
 }
 void  SystematicAnalysis::Symbol_Update_FuncSym_ToFixedTypes(Symbol* Sym)
