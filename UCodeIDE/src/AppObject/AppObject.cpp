@@ -10,6 +10,12 @@
 #include "UCodeLang/Compliation/Back/IR/IRBackEnd.hpp"
 #include "UCodeLang/Compliation/Back/LLVM/LLVMBackEnd.hpp"
 #include "UCodeLang/Compliation/Back/WebAssembly/WebAssembly.hpp"
+#include "UCodeLang/Compliation/Back/Windows/WindowsBackEnd.hpp"
+#include "UCodeLang/Compliation/Back/Linux/LinuxBackEnd.hpp"
+
+#include "UCodeLang/Compliation/Back/Windows/PE_File.hpp"
+//#include "UCodeLang/Compliation/Back/Linux/ELF_File.hpp"
+#include <elfio/elfio_dump.hpp>
 
 #include "UCodeLang/Compliation/Back/x86_64/X86_64UNativeBackEnd.hpp"
 #include "UCodeLang/Compliation/Back/x86_64/X86_64JitCompiler.hpp"
@@ -115,13 +121,7 @@ void AppObject::Init()
         _Editor.SetText(
             R"(
 |func[] => 0;
-|main[]:
-  int8 a =1;
-  int16 b =2;
-  int32 c =3;
-  int64 d =4;
-  float32 e =5;
-  float64 f =6;
+|main[] => 1;
 /*
 |main[] -> async<bool>:
  async<int> a = await func();
@@ -900,6 +900,9 @@ void AppObject::OnDraw()
             {"C89",BackEndType::C89},
             {"LLVM",BackEndType::LLVM},
             {"WebAssembly",BackEndType::WebAssembly},
+
+            {"WindowsExecutable",BackEndType::WindowsExecutable},
+            {"LinuxExecutable",BackEndType::LinuxExecutable},
         };
 
         bool UpdateLib = false;
@@ -927,7 +930,7 @@ void AppObject::OnDraw()
                     {
                     case NativeSet::x86:
                     {
-
+                        UCodeLangUnreachable();
                     }
                     break;
                     case NativeSet::x86_64:
@@ -953,7 +956,14 @@ void AppObject::OnDraw()
             case BackEndType::WebAssembly:
                 _BackEnd = UCodeLang::WebAssemblyBackEnd::MakeObject;
                 break;
+            case BackEndType::WindowsExecutable:
+                _BackEnd = UCodeLang::WindowsBackEnd::MakeObject;
+                break;
+            case BackEndType::LinuxExecutable:
+                _BackEnd = UCodeLang::LinuxBackEnd::MakeObject;
+                break;
             default:
+                UCodeLangUnreachable();
                 break;
             }
             _Compiler.Set_BackEnd(_BackEnd);
@@ -2028,8 +2038,111 @@ void AppObject::OnDoneCompileing(UCodeLang::Compiler::CompilerRet& Val, const UC
         case BackEndType::WebAssembly:
             _LibInfoString = _Compiler.GetTextFromFile(tepoutpath);
             break;
+        case BackEndType::WindowsExecutable:
+        {
+            enma::pe_image image(tepoutpath);
+
+            _LibInfoString += "Portable Executable:\n";
+
+
+            {
+                _LibInfoString += " Machine:";
+
+                switch (image.get_machine())
+                {
+                case IMAGE_FILE_MACHINE_AMD64:
+                    _LibInfoString += "AMD64";
+                    break;
+                case IMAGE_FILE_MACHINE_UNKNOWN:
+                default:
+                    _LibInfoString += "UNKNOWN";
+                    break;
+                }
+                _LibInfoString += '\n';
+                _LibInfoString += " SectionsNumber:";
+                _LibInfoString += std::to_string(image.get_sections_number());
+             
+                _LibInfoString += '\n';
+                _LibInfoString += " Characteristics";
+                if (image.get_characteristics() & IMAGE_FILE_EXECUTABLE_IMAGE)
+                {
+                    _LibInfoString += ":EXECUTABLE";
+                }
+                _LibInfoString += '\n';
+                _LibInfoString += " DllCharacteristics";
+                if (image.get_characteristics_dll() & IMAGE_DLLCHARACTERISTICS_NX_COMPAT)
+                {
+                    _LibInfoString += ":NX_COMPAT";
+                }
+                if (image.get_characteristics_dll() & IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA)
+                {
+                    _LibInfoString += ":HIGH_ENTROPY_VA";
+                }
+                if (image.get_characteristics_dll() & IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE)
+                {
+                    _LibInfoString += ":DYNAMIC_BASE";
+                }
+                if (image.get_characteristics_dll() & IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE)
+                {
+                    _LibInfoString += ":TERMINAL_SERVER_AWARE";
+                }
+                _LibInfoString += '\n';
+                _LibInfoString += " Subsystem:";
+                switch (image.get_sub_system())
+                {
+                case IMAGE_SUBSYSTEM_WINDOWS_CUI:
+                    _LibInfoString += "CUI";
+                    break;
+                case IMAGE_SUBSYSTEM_WINDOWS_GUI:
+                    _LibInfoString += "GUI";
+                    break;
+                default:
+                    _LibInfoString += "UNKNOWN";
+                    break;
+                }
+                _LibInfoString += " Sections:\n";
+                for (auto& Item : image.get_sections())
+                {
+                    _LibInfoString += "\n  ";
+                    _LibInfoString += Item->get_section_name();
+                    _LibInfoString += ":\n";
+
+                    _LibInfoString += "   Characteristics";
+                    if (Item->get_characteristics() & IMAGE_SCN_MEM_EXECUTE)
+                    {
+                        _LibInfoString += ":EXECUTABLE";
+                    }
+                    if (Item->get_characteristics() & IMAGE_SCN_MEM_WRITE)
+                    {
+                        _LibInfoString += ":WRITE";
+                    }
+                    if (Item->get_characteristics() & IMAGE_SCN_MEM_READ)
+                    {
+                        _LibInfoString += ":READ";
+                    }
+                    _LibInfoString += '\n';
+                    _LibInfoString += "   Data:"; 
+                    auto& datas = Item->get_section_data();
+
+                }
+
+            }
+        }break;
+        case BackEndType::LinuxExecutable:
+        {
+            std::stringstream s;
+            ELFIO::elfio reader;
+            reader.load(tepoutpath.generic_string());
+            ELFIO::dump::header(s, reader);
+            ELFIO::dump::section_headers(s, reader);
+            ELFIO::dump::symbol_tables(std::cout, reader);
+            ELFIO::dump::segment_datas(std::cout, reader);
+
+            _LibInfoString = s.str();
+        }    
+        break;
         default:
-            _LibInfoString = "";
+            UCodeLangUnreachable();
             break;
         }
 

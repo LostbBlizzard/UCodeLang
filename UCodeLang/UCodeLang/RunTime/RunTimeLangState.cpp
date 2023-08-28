@@ -742,6 +742,10 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 
 				Interpreter->ResetThreadPointer(Loc.NewThreadMem.Release());
 			}
+			else if (Loc._Ptr.Get_InterpreterType() == InterpreterTypes::NativeInterpreter)
+			{
+				int a = 0;
+			}
 			else
 			{
 				UCodeLangThrowException("not added");

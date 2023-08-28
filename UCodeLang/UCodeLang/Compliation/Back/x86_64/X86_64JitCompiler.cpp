@@ -30,7 +30,7 @@ void X86_64JitCompiler::Reset()
 	new (this)  X86_64JitCompiler;
 }
 
-X86_64Gen::GReg X86_64JitCompiler::To(RegisterID id)
+X86_64Builder::GReg X86_64JitCompiler::To(RegisterID id)
 {
 	const auto& Convention = _IR.CallingConventions.at(_IntrCallConvention);
 	switch (id)

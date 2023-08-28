@@ -170,17 +170,24 @@ project "UCodeLang"
     "UCodeLang",
     "%{prj.name}/Dependencies/zydis/include",
     "%{prj.name}/Dependencies/zycore/include",
-    "%{prj.name}/Dependencies/zydis/src"
+    "%{prj.name}/Dependencies/zydis/src",
+    "%{prj.name}/Dependencies/enma_pe/include",
+    "%{prj.name}/Dependencies/ELFIO"
    }
    removefiles{
      "%{prj.name}/Dependencies/zydis/**.c",
      "%{prj.name}/Dependencies/zycore/**.c",
 
-      "%{prj.name}/Dependencies/zydis/**.cpp",
+     "%{prj.name}/Dependencies/zydis/**.cpp",
      "%{prj.name}/Dependencies/zycore/**.cpp",
 
      "%{prj.name}/Dependencies/zydis/**.h",
      "%{prj.name}/Dependencies/zycore/**.h",
+
+     "%{prj.name}/Dependencies/ELFIO/tests/**.cpp",
+     "%{prj.name}/Dependencies/ELFIO/examples/**.cpp",
+     "%{prj.name}/Dependencies/ELFIO/examples/**.c",
+     "%{prj.name}/Dependencies/ELFIO/examples/**.h",
    }
    files { 
     "%{prj.name}/Dependencies/zydis/src/**.c",
@@ -306,6 +313,8 @@ project "UCodeIDE"
 
     "UCodeLang",
     "UCodeLang/UCodeLang",
+    "UCodeLang/Dependencies/enma_pe/include",
+    "UCodeLang/Dependencies/ELFIO",
     "UCodeLanguageSeverlib/json/include",
     "UCodeLanguageSeverlib/src",
 

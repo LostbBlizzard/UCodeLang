@@ -1,6 +1,6 @@
 #pragma once
 #include "x86_64Data.hpp"
-#include "X86_64Gen.hpp"
+#include "X86_64Builder.hpp"
 UCodeLangStart
 
 //were register allcations,stack allcations,Instruction Selection Happens ect. 
@@ -212,8 +212,8 @@ struct X86_64IR
 
 		}
 	};
-	using NearRelocation32 = X86_64Gen::Near<Relocation32>;
-	using NearRelocation64 = X86_64Gen::Near<Relocation64>;
+	using NearRelocation32 = X86_64Builder::Near<Relocation32>;
+	using NearRelocation64 = X86_64Builder::Near<Relocation64>;
 	static String ToString(GReg V)
 	{
 		switch (V)
@@ -845,7 +845,7 @@ struct X86_64IR
 
 	struct BuildState
 	{
-		X86_64Gen Gen;
+		X86_64Builder Gen;
 	};
 
 	void Build(BuildInfo::BuildFunc& Out,BuildState& State,const Func& Value) const;
