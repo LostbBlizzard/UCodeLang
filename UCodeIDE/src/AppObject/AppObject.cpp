@@ -378,6 +378,7 @@ void AppObject::OpenOnWeb(const String& WebLink)
 }
 void AppObject::OnDraw()
 {
+    thread_local bool SetTextFocus = false;
     {
         auto now = SteadyClock::now();
 
@@ -418,6 +419,12 @@ void AppObject::OnDraw()
     } ImGui::End();
     if (ImGui::Begin("File.uc"))
     {
+        if (SetTextFocus)
+        {
+            ImGui::SetWindowFocus();
+            SetTextFocus = false;
+        }
+     
 
         _Editor.Render("File.uc");
 
@@ -532,8 +539,7 @@ void AppObject::OnDraw()
                 std::filesystem::create_directories(OutFileDir);
                 std::string OutFilePath = OutFileDir + Test.TestName + ULangTest::ModeType(flag) + ".ulibtest";
 
-
-
+               
 
                 paths.FileDir = InputFilesPath;
                 paths.OutFile = OutFilePath;
@@ -654,6 +660,8 @@ void AppObject::OnDraw()
                         }
                         else
                         {
+                            State = TestState::Fail;
+
                             Logs += "fail from got value '";
                             Logs += OutputBytesToString(RetState.get(), Test.RunTimeSuccessSize);
 
@@ -699,28 +707,36 @@ void AppObject::OnDraw()
 
     if (ImGui::Begin("Tests"))
     {
+        size_t MaxTestCount = 45;//ULangTest::Tests.size()
+        UCodeLang::OptimizationFlags flags = UCodeLang::OptimizationFlags::Debug;
 
+        thread_local UCodeLang::BinaryVectorMap<String, String> Openedfiles;
+        thread_local UCodeLang::BinaryVectorMap<String,UCodeLang::Optional<std::shared_ptr<UCodeLang::UClib>>> Outputfiles;
+        thread_local UCodeLang::BinaryVectorMap<String, String> OutputIRStr;
+        thread_local UCodeLang::BinaryVectorMap<String, String> OutputLibStr;
         if (ImGui::Button("Run Tests"))
         {
-            
+            Openedfiles.clear();
+            Outputfiles.clear();
+            OutputIRStr.clear();
+            OutputLibStr.clear();
+
             TestWindowData.TestAsRan = true;
             const auto& Tests = ULangTest::Tests;
-            for (size_t i = 0; i < ULangTest::Tests.size(); i++)
+            for (size_t i = 0; i < MaxTestCount; i++)
             {
                 auto& ItemTest = ULangTest::Tests[i];
                 auto& ItemTestOut = TestWindowData.Testinfo[i];
                 auto& Thread = TestWindowData.Threads[i];
-                if (i == 45) {
-                    break;
-                }
+               
 
-                Thread = std::make_unique< std::future<bool>>(std::async(std::launch::async, [i]
+                Thread = std::make_unique< std::future<bool>>(std::async(std::launch::async, [i,flags]
                     {
                         auto& ItemTest = ULangTest::Tests[i];
                         auto& ItemTestOut = TestWindowData.Testinfo[i];
 
                         ItemTestOut.State == TestInfo::TestState::Exception;
-                        ItemTestOut.RunTestForFlag(ItemTest, UCodeLang::OptimizationFlags::NoOptimization);
+                        ItemTestOut.RunTestForFlag(ItemTest, flags);
                         return false;
                     }));
             }
@@ -731,7 +747,7 @@ void AppObject::OnDraw()
 
         size_t TestPassedCount = 0;
         size_t TestRuningCount = 0;
-        for (size_t i = 0; i < ULangTest::Tests.size(); i++)
+        for (size_t i = 0; i < MaxTestCount; i++)
         {
             auto& ItemTest = ULangTest::Tests[i];
             auto& ItemTestOut = TestWindowData.Testinfo[i];
@@ -753,9 +769,9 @@ void AppObject::OnDraw()
         info += "TestPassed:";
         info += std::to_string(TestPassedCount);
         info += "/";
-        info += std::to_string(TestWindowData.Testinfo.size());
-        info += " " + std::to_string((int)(((float)TestPassedCount / (float)TestWindowData.Testinfo.size()) * 100));
-        info += "%";
+        info += std::to_string(MaxTestCount);
+        info += " :" + std::to_string((int)(((float)TestPassedCount / (float)MaxTestCount) * 100));
+        info += " percent";
         ImGui::Text(info.c_str());
         }
         {
@@ -763,9 +779,9 @@ void AppObject::OnDraw()
             info += "TestRuning:";
             info += std::to_string(TestRuningCount);
             info += "/";
-            info += std::to_string(TestWindowData.Testinfo.size());
-            info += " " + std::to_string((int)(((float)TestRuningCount / (float)TestWindowData.Testinfo.size())*100));
-            info += "%";
+            info += std::to_string(MaxTestCount);
+            info += " :" + std::to_string((int)(((float)TestRuningCount / (float)MaxTestCount)*100));
+            info += " percent";
             ImGui::Text(info.c_str());
         }
         static const Vector<ImguiHelper::EnumValue<TestInfo::TestState>> List =
@@ -837,21 +853,88 @@ void AppObject::OnDraw()
 
                     if (ImGui::Button("Show in files"))
                     {
-                        ShowInFiles(UCodeLang_UCAppDir_TestDir + ItemTest.InputFilesOrDir);
+                        ShowInFiles(UCodeLang_UCAppDir_Test_UCodeFiles + ItemTest.InputFilesOrDir);
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button("Set file.uc"))
+                    {
+                        if (Openedfiles.HasValue(ItemTest.TestName))
+                        { 
+                            _Editor.SetText(Openedfiles.GetValue(ItemTest.TestName));
+                            SetTextFocus = true;
+                        }
                     }
 
                     ImGui::BeginDisabled();
 
                     ImGui::PushID(&ItemTest.TestName);
                     {
+                      
+                        
                         String filetxt = "file...";
+                        if (Openedfiles.HasValue(ItemTest.TestName))
+                        {
+                            filetxt = Openedfiles.GetValue(ItemTest.TestName);
+                        }
+                        else
+                        {
+                            filetxt = UCodeLang::Compiler::GetTextFromFile(UCodeLang_UCAppDir_Test_UCodeFiles + ItemTest.InputFilesOrDir);
+                            Openedfiles.AddValue(ItemTest.TestName,filetxt);
+                        }
+
+                      
                         ImGui::InputTextMultiline("src", &filetxt);
                     }
                     ImGui::PopID();
 
+                    std::string OutFileDir = UCodeLang_UCAppDir_Test_OutputFiles + ItemTest.TestName;
+                    std::string OutFilePath = OutFileDir + "/" + ItemTest.TestName + ULangTest::ModeType(flags) + ".ulibtest";
+
+
+                    if (!Outputfiles.HasValue(ItemTest.TestName))
+                    {
+                        UCodeLang::UClib lib;
+                        if (UCodeLang::UClib::FromFile(&lib, OutFilePath))
+                        {
+                            Outputfiles.AddValue(ItemTest.TestName,std::make_shared<UCodeLang::UClib>(std::move(lib)));
+                        }
+                        else
+                        {
+                            Outputfiles.AddValue(ItemTest.TestName, {});
+                        }
+
+                    }
+
                     ImGui::PushID(&ItemTest.RunTimeSuccess);
                     {
                         String filetxt = "file...";
+                        if (Outputfiles.HasValue(ItemTest.TestName))
+                        {
+                            auto& v = Outputfiles.GetValue(ItemTest.TestName);
+                            if (!OutputIRStr.HasValue(ItemTest.TestName)) 
+                            {
+                                String str;
+                                if (v.has_value())
+                                {
+                                    auto IRLayer = v.value()->GetLayer(UCode_CodeLayer_IR_Name);
+                                    if (IRLayer && IRLayer->_Data.Is<UCodeLang::CodeLayer::JustData>())
+                                    {
+                                        auto& Data = IRLayer->_Data.Get<UCodeLang::CodeLayer::JustData>();
+                                        UCodeLang::IRBuilder tep;
+                                        if (UCodeLang::IRBuilder::FromBytes(tep, BytesView::Make(Data._Data.data(), Data._Data.size())))
+                                        {
+                                            str = tep.ToString();
+                                        }
+                                    }
+
+                                }
+                                OutputIRStr.AddValue(ItemTest.TestName,str);
+                            }
+                            else
+                            {
+                                filetxt = OutputIRStr.GetValue(ItemTest.TestName);
+                            }
+                        }
                         ImGui::InputTextMultiline("ir", &filetxt);
                     }
                     ImGui::PopID();
@@ -859,6 +942,23 @@ void AppObject::OnDraw()
                     ImGui::PushID(&ItemTest.FuncToCall);
                     {
                         String filetxt = "out...";
+                        if (Outputfiles.HasValue(ItemTest.TestName)) 
+                        {
+                            if (!OutputLibStr.HasValue(ItemTest.TestName))
+                            {
+
+                                auto& v = Outputfiles.GetValue(ItemTest.TestName);
+                                if (v.has_value())
+                                {
+                                    filetxt = UCodeLang::UAssembly::UAssembly::ToString(v.value().get());
+                                }
+                                OutputLibStr.AddValue(ItemTest.TestName,filetxt);
+                            }
+                            else
+                            {
+                                filetxt = OutputLibStr.GetValue(ItemTest.TestName);
+                            }
+                        }
                         ImGui::InputTextMultiline("out", &filetxt);
                     }
                     ImGui::PopID();
