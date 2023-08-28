@@ -627,7 +627,7 @@ void AppObject::OnDraw()
                     Interpreter::Return_t r;
                     try
                     {
-                       // r = RunTime.Call(Test.FuncToCall);
+                       r = RunTime.Call(Test.FuncToCall);
 
                     }
                     catch (const std::exception& ex)
@@ -673,7 +673,7 @@ void AppObject::OnDraw()
                     }
                     RunTime.UnLoad();
                 }
-
+                State = TestState::Passed;
                 return true;
             }
         };
@@ -702,13 +702,21 @@ void AppObject::OnDraw()
                 break;
             }
         }
+        bool DebugMode = true;
+        UCodeLang::OptimizationFlags Flags;
     };
     static TestInfo TestWindowData;
 
     if (ImGui::Begin("Tests"))
     {
-        size_t MaxTestCount = 45;//ULangTest::Tests.size()
-        UCodeLang::OptimizationFlags flags = UCodeLang::OptimizationFlags::Debug;
+        size_t MaxTestCount = 10;//ULangTest::Tests.size()
+        UCodeLang::OptimizationFlags flags = TestWindowData.Flags;
+
+        if (TestWindowData.DebugMode)
+        {
+            *(UCodeLang::OptimizationFlags_t*)&flags |= (UCodeLang::OptimizationFlags_t)UCodeLang::OptimizationFlags::Debug;
+        }
+        
 
         thread_local UCodeLang::BinaryVectorMap<String, String> Openedfiles;
         thread_local UCodeLang::BinaryVectorMap<String,UCodeLang::Optional<std::shared_ptr<UCodeLang::UClib>>> Outputfiles;
@@ -741,7 +749,35 @@ void AppObject::OnDraw()
                     }));
             }
         }
-        ImguiHelper::BoolEnumField("Include O1,02,03 Optimizations", TestWindowData.IncludeOptimization);
+        bool FlagsWasUpdated = false;
+        if (ImguiHelper::BoolEnumField("DebugFlag", TestWindowData.DebugMode))
+        {
+            
+            FlagsWasUpdated = true;
+        }
+       
+        static const Vector<ImguiHelper::EnumValue<UCodeLang::OptimizationFlags>> OptimizationList =
+        {
+            { "NoOptimization",UCodeLang::OptimizationFlags::NoOptimization},
+            { "ForSize",UCodeLang::OptimizationFlags::ForSize},
+            { "ForSpeed",UCodeLang::OptimizationFlags::ForSpeed},
+            { "SizeAndSpeed",UCodeLang::OptimizationFlags::ForMaxSpeed},
+        };
+
+        ImGui::SameLine();
+        if (ImguiHelper::EnumField("Optimization", TestWindowData.Flags, OptimizationList))
+        {
+            FlagsWasUpdated = true;
+        }
+
+
+        if (FlagsWasUpdated) {
+            Openedfiles.clear();
+            Outputfiles.clear();
+            OutputIRStr.clear();
+            OutputLibStr.clear();
+        }
+        //ImguiHelper::BoolEnumField("Include O1,02,03 Optimizations", TestWindowData.IncludeOptimization);
         ImguiHelper::BoolEnumField("Include JitInterpreter", TestWindowData.IncludeJitInterpreter);
         ImguiHelper::BoolEnumField("Include NativeInterpreter", TestWindowData.IncludeNativeInterpreter);
 
@@ -798,7 +834,7 @@ void AppObject::OnDraw()
 
         ImGui::Separator();
 
-        for (size_t i = 0; i < ULangTest::Tests.size(); i++)
+        for (size_t i = 0; i < MaxTestCount; i++)
         {
             auto& ItemTest = ULangTest::Tests[i];
             auto& ItemTestOut = TestWindowData.Testinfo[i];
@@ -847,7 +883,7 @@ void AppObject::OnDraw()
                     String tepstr2 = ItemTest.InputFilesOrDir;
                     ImguiHelper::InputText("TestPath", tepstr2);
 
-                    ImGui::SameLine();
+                    //ImGui::SameLine();
                     ImGui::EndDisabled();
 
 

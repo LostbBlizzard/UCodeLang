@@ -21,6 +21,21 @@ UCodeLangStart
 	case InstructionSet::LogicalAnd##IntSize: return Instruction::OpType::TwoReg;\
 	case InstructionSet::Logicalor##IntSize: return Instruction::OpType::TwoReg;\
 	case InstructionSet::LogicalNot##IntSize: return Instruction::OpType::TwoReg;\
+	case InstructionSet::equalto##IntSize: return Instruction::OpType::TwoReg;\
+	case InstructionSet::notequalto##IntSize: return Instruction::OpType::TwoReg;\
+	case InstructionSet::lessthan##IntSize: return Instruction::OpType::TwoReg; \
+	case InstructionSet::greaterthan##IntSize: return Instruction::OpType::TwoReg; \
+	case InstructionSet::equal_lessthan##IntSize: return Instruction::OpType::TwoReg; \
+	case InstructionSet::equal_greaterthan##IntSize: return Instruction::OpType::TwoReg; \
+	case InstructionSet::bitwiseAnd##IntSize: return Instruction::OpType::TwoReg; \
+	case InstructionSet::bitwiseOr##IntSize: return Instruction::OpType::TwoReg; \
+	case InstructionSet::bitwiseLeftShift##IntSize: return Instruction::OpType::TwoReg; \
+	case InstructionSet::bitwiseRightShift##IntSize: return Instruction::OpType::TwoReg; \
+	case InstructionSet::bitwiseXor##IntSize: return Instruction::OpType::TwoReg; \
+	case InstructionSet::bitwise_Not##IntSize: return Instruction::OpType::TwoReg; \
+	case InstructionSet::UInt##IntSize##ToSInt##IntSize: return Instruction::OpType::TwoReg; \
+	case InstructionSet::SInt##IntSize##ToUInt##IntSize: return Instruction::OpType::TwoReg; \
+
 
 #define Setfloat(IntSize)
 
@@ -82,6 +97,11 @@ Instruction::OpType Instruction::GetOpType(InstructionSet OpCode)
 
 
 		Setfloat(64);
+
+	case InstructionSet::Malloc:
+		return Instruction::OpType::TwoReg;
+	case InstructionSet::Free:
+		return Instruction::OpType::OneReg;
 
 	case InstructionSet::DoNothing:
 		return Instruction::OpType::NoneOp;
