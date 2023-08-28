@@ -193,16 +193,26 @@ private:
 		IR,
 		LLVM,
 		WebAssembly,
+
+		WindowsExecutable,
+		LinuxExecutable,
 	};
 
 	enum class NativeSet
 	{
 		x86,
 		x86_64,
-
+		Amd,
+		Amd64,
 
 #if UCodeLang_CPUIs_x86
 		Native = x86,
+#elif UCodeLang_CPUIs_x86_64
+		Native = x86_64,
+#elif UCodeLang_CPUIs_Arm
+		Native = Amd,
+#elif UCodeLang_CPUIs_Arm64
+		Native = Amd64,
 #else
 		Native = x86_64,
 #endif
@@ -221,7 +231,6 @@ private:
 		NativeSet OldNativeCpuType= NativeSet::x86;
 	};
 	OutputWindowData OutputWindow;
-
 	
 	enum class UCodeVMType
 	{

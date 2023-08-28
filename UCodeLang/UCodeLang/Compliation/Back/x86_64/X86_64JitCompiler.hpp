@@ -2,7 +2,7 @@
 #include "../Jit/Jit.hpp"
 #include "UCodeLang/RunTime/RunTimeLangState.hpp"
 
-#include "X86_64Gen.hpp"
+#include "X86_64Builder.hpp"
 #include "X86_64IR.hpp"
 UCodeLangStart
 
@@ -82,7 +82,7 @@ private:
 
 	Vector<NullJitCalls> NullCalls;
 
-	using GReg = X86_64Gen::GReg;
+	using GReg = X86_64Builder::GReg;
 	struct JitType
 	{
 		JitType_t Type = JitType_t::Null;
@@ -157,6 +157,6 @@ private:
 		JitType Ret;
 		Vector<JitType> Pars;
 	};
-	X86_64Gen::GReg To(RegisterID id);
+	X86_64Builder::GReg To(RegisterID id);
 };
 UCodeLangEnd

@@ -1,12 +1,6 @@
 
 |func[] => 0;
-|main[]:
-  int16 b =2;
-  int32 c =3;
-  int64 d =4;
-  float32 e =5;
-  float64 f =6;
-  int8 a =1;
+|main[] => 1;
 /*
 |main[] -> async<bool>:
  async<int> a = await func();
