@@ -105,6 +105,30 @@ Instruction::OpType Instruction::GetOpType(InstructionSet OpCode)
 
 	case InstructionSet::DoNothing:
 		return Instruction::OpType::NoneOp;
+
+	case InstructionSet::GetPointerOfStack:
+	case InstructionSet::GetPointerOfStackSub:
+		return Instruction::OpType::RegUInt16;
+
+	case InstructionSet::DecrementStackPointer:
+	case InstructionSet::IncrementStackPointer:
+		return Instruction::OpType::OneReg;
+
+	case InstructionSet::LoadEffectiveAddressA:
+	case InstructionSet::LoadEffectiveAddressS:
+	case InstructionSet::LoadEffectiveAddressX:
+		return Instruction::OpType::TwoRegInt8;
+
+	case InstructionSet::PointerMemberLoad8:
+	case InstructionSet::PointerMemberLoad16:
+	case InstructionSet::PointerMemberLoad32:
+	case InstructionSet::PointerMemberLoad64:
+		return Instruction::OpType::TwoRegInt8;
+	case InstructionSet::PointerMemberRead8:
+	case InstructionSet::PointerMemberRead16:
+	case InstructionSet::PointerMemberRead32:
+	case InstructionSet::PointerMemberRead64:
+		return Instruction::OpType::TwoRegInt8;
 	default:
 		UCodeLangUnreachable();
 		break;

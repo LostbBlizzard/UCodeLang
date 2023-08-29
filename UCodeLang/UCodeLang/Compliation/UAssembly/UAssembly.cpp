@@ -641,6 +641,7 @@ void UAssembly::ToStringInstruction(const Instruction& Item, String& r, const By
 			if (MapData->Op_A != OpCodeType::NoOpCode)
 			{
 				r += GetRegisterToString(Item.Op_RegUInt16.A);
+				r += ',';
 				OpValueToString(MapData->Op_B, &Item.Op_RegUInt16.B, AddressToName, staticbytesview, r);
 			}
 		}
@@ -660,7 +661,7 @@ void UAssembly::ToStringInstruction(const Instruction& Item, String& r, const By
 			r += GetRegisterToString(Item.Op_TwoRegInt8.A);
 			r += ',';
 			r += GetRegisterToString(Item.Op_TwoRegInt8.B);
-
+			r += ',';
 			OpValueToString(MapData->Op_C, &Item.Op_TwoRegInt8.C, AddressToName, staticbytesview, r);
 		}
 		break;
