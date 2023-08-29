@@ -79,7 +79,6 @@ void Parser::ParseOp(AnyInt64& Out, OpCodeType Type)
 		break;
 	case OpCodeType::AnyInt32:
 		break;
-	case OpCodeType::UIntPtr:
 	case OpCodeType::AnyInt64:
 		ParseAny8(Out);
 		break;

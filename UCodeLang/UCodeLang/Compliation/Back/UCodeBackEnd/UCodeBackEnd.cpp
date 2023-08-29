@@ -285,7 +285,7 @@ void UCodeBackEndObject::LinkFuncs()
 		Instruction& Ins =_OutLayer->Get_Instructions()[Item.Index];
 
 
-		UAddress funcpos = NullAddress;
+		Optional<UAddress> funcpos;
 		for (auto& Item2 : _Funcpos)
 		{
 			if (Item2._FuncID == Item._FuncID)
@@ -294,14 +294,53 @@ void UCodeBackEndObject::LinkFuncs()
 				break;
 			}
 		}
+		UCodeLangAssert(funcpos.has_value());
+
+
+		auto tocall = funcpos.value();
+		if (funcpos.value() > UInt16_MaxSize)
+		{
+			if (funcpos.value() == UInt64_MaxSize)
+			{
+				RegisterID ptr = RegisterID::A;
+
+				size_t diff = _OutLayer->Get_Instructions().size() - Item.Index;
+				UCodeLangAssert(diff < UInt16_MaxSize);//We needa beter way
+
+				
+				tocall = _OutLayer->Get_Instructions().size()-1;
+				
+				_OutLayer->Add_NameToInstruction(tocall+1, CompilerGenerated("farcall") + (String)"-" + _Input->FromID(Item._FuncID));
+
+
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					InstructionBuilder::Store32_V1(_Ins, ptr, (UInt32)0); PushIns();
+					InstructionBuilder::Store32_V2(_Ins, ptr, (UInt32)0); PushIns();
+				}
+				else
+				{
+					InstructionBuilder::Store64_V1(_Ins, ptr, (UInt64)0); PushIns();
+					InstructionBuilder::Store64_V2(_Ins, ptr, (UInt64)0); PushIns();
+					InstructionBuilder::Store64_V3(_Ins, ptr, (UInt64)0); PushIns();
+					InstructionBuilder::Store64_V4(_Ins, ptr, (UInt64)0); PushIns();
+				}
+				InstructionBuilder::LoadEffectiveAddressS(_Ins, ptr, 1, ptr); PushIns();
+				InstructionBuilder::JumpReg(ptr, _Ins); PushIns();
+			}
+			else
+			{
+				UCodeLangUnreachable();
+			}
+		}
 
 		if (Ins.OpCode == InstructionSet::Call)
 		{
-			InstructionBuilder::Call(funcpos, Ins);
+			InstructionBuilder::Call(tocall, Ins);
 		}
 		else if (Ins.OpCode == InstructionSet::LoadFuncPtr)
 		{
-			InstructionBuilder::LoadFuncPtr(funcpos, Ins.Op_OneReg.A, Ins);
+			InstructionBuilder::LoadFuncPtr(tocall, Ins.Op_OneReg.A, Ins);
 		}
 		else
 		{
@@ -423,7 +462,15 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 		for (size_t i = LinkedCallsIndex; i < FuncsToLink.size(); i++)
 		{
 			auto& Item = FuncsToLink[i];
-			Item.Index += 2;
+
+			if (Ptr == IntSizes::Int32)
+			{
+				Item.Index += 3;
+			}
+			else
+			{
+				Item.Index += 5;
+			}
 		}
 		
 		for (size_t i = 0; i < _DebugInfo.DebugInfo.size(); i++)
@@ -2501,6 +2548,13 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 					UCodeBackEndObject::IRlocData R;
 					R.Info = IRlocData_StackPost(_Stack.AddWithSize(Ins, GetSize(Ins))->Offset);
 					R.ObjectType = GetType(Ins);
+
+
+					if (GetAddress)
+					{
+						auto old = R;
+						R = GetPointerOf(old);
+					}
 					return R;
 				}
 				else
@@ -2599,7 +2653,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 				}
 				else if (Item->Type == IRInstructionType::Member_Access)
 				{
-					auto Pos = GetIRLocData(Item, Item->Target());
+					auto Pos = GetIRLocData(Item->Target());
 					const IRStruct* VStruct = _Input->GetSymbol(Pos.ObjectType._symbol)->Get_ExAs<IRStruct>();
 					size_t FieldIndex = Item->Input().Value.AsUIntNative;
 
@@ -2813,6 +2867,37 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IROperator&
 	{
 		const auto Ins = Op.Parameter;
 		return To(*GetParData(Ins));
+	}
+	else if (Op.Type == IROperatorType::IRInstruction)
+	{
+		const auto Ins = Op.Pointer;
+
+		IRlocData CompilerRet;
+		auto InReg = FindIRInRegister(Ins);
+
+		CompilerRet.ObjectType = GetType(Ins);
+		if (InReg.has_value())
+		{
+
+			CompilerRet.Info = InReg.value();
+		}
+		else
+		{
+			auto Val = _Stack.Has(Ins);
+
+			if (Val)
+			{
+				CompilerRet.Info = IRlocData_StackPost(Val->Offset);
+				
+			}
+			else
+			{
+				UCodeLangUnreachable();
+			}
+
+		
+		}
+		return CompilerRet;
 	}
 	else
 	{

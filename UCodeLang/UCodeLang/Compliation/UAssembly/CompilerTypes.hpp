@@ -3,6 +3,7 @@
 #include "UCodeLang/LangCore/UClib.hpp"
 
 #define AddMapValueValue(InsName,Ins,Op_0,Op_1) {#InsName, {#InsName,Ins,Op_0,Op_1} }
+#define AddMapValueValue2(InsName,Ins,Op_0,Op_1,Op_2) {#InsName, {#InsName,Ins,Op_0,Op_1,Op_2} }
 
 UAssemblyStart
 using TokenType_t = UInt8;
@@ -81,11 +82,8 @@ enum class OpCodeType :OpCodeType_t
 
 	Register,
 
-	UIntPtr,
 	InsAddress,
 	StaticCString,
-
-	RegPtrAndRegOut,
 };
 
 struct InsMapValue
@@ -104,13 +102,13 @@ AddMapValueValue(MultU##bitsize, InstructionSet::MultU##bitsize, OpCodeType::Reg
 AddMapValueValue(MultS##bitsize, InstructionSet::MultS##bitsize, OpCodeType::Register, OpCodeType::Register),\
 AddMapValueValue(DivU##bitsize, InstructionSet::DivU##bitsize, OpCodeType::Register, OpCodeType::Register),\
 AddMapValueValue(DivS##bitsize, InstructionSet::DivS##bitsize, OpCodeType::Register, OpCodeType::Register),\
-AddMapValueValue(StoreRegOnStack##bitsize, InstructionSet::StoreRegOnStack##bitsize, OpCodeType::Register, OpCodeType::UIntPtr),\
-AddMapValueValue(StoreRegOnStackSub##bitsize, InstructionSet::StoreRegOnStackSub##bitsize, OpCodeType::Register, OpCodeType::UIntPtr),\
+AddMapValueValue(StoreRegOnStack##bitsize, InstructionSet::StoreRegOnStack##bitsize, OpCodeType::Register, OpCodeType::AnyInt16),\
+AddMapValueValue(StoreRegOnStackSub##bitsize, InstructionSet::StoreRegOnStackSub##bitsize, OpCodeType::Register, OpCodeType::AnyInt16),\
 AddMapValueValue(Push##bitsize, InstructionSet::Push##bitsize, OpCodeType::Register, OpCodeType::NoOpCode),\
 AddMapValueValue(Pop##bitsize, InstructionSet::Pop##bitsize, OpCodeType::Register, OpCodeType::NoOpCode),\
 AddMapValueValue(StoreRegToReg##bitsize, InstructionSet::StoreRegToReg##bitsize, OpCodeType::Register, OpCodeType::Register),\
-AddMapValueValue(GetFromStack##bitsize, InstructionSet::GetFromStack##bitsize, OpCodeType::UIntPtr,OpCodeType::Register),\
-AddMapValueValue(GetFromStackSub##bitsize, InstructionSet::GetFromStackSub##bitsize, OpCodeType::UIntPtr,OpCodeType::Register),\
+AddMapValueValue(GetFromStack##bitsize, InstructionSet::GetFromStack##bitsize, OpCodeType::Register,OpCodeType::AnyInt16),\
+AddMapValueValue(GetFromStackSub##bitsize, InstructionSet::GetFromStackSub##bitsize,OpCodeType::Register,OpCodeType::AnyInt16),\
 AddMapValueValue(StoreRegToPtr##bitsize, InstructionSet::StoreRegToPtr##bitsize, OpCodeType::Register,OpCodeType::Register),\
 AddMapValueValue(LogicalNot##bitsize, InstructionSet::LogicalNot##bitsize, OpCodeType::Register, OpCodeType::Register), \
 AddMapValueValue(equalto##bitsize,InstructionSet::equalto##bitsize,OpCodeType::Register, OpCodeType::Register),\
@@ -181,28 +179,32 @@ static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 	AddMapValueValue(Malloc,InstructionSet::Malloc,OpCodeType::Register,OpCodeType::Register),
 	AddMapValueValue(Free,InstructionSet::Free,OpCodeType::Register,OpCodeType::NoOpCode),
 	AddMapValueValue(LoadFuncPtr,InstructionSet::LoadFuncPtr,OpCodeType::InsAddress,OpCodeType::Register),
-	AddMapValueValue(GetPointerOfStack,InstructionSet::GetPointerOfStack,OpCodeType::Register,OpCodeType::UIntPtr),
-	AddMapValueValue(GetPointerOfStackSub,InstructionSet::GetPointerOfStackSub,OpCodeType::Register,OpCodeType::UIntPtr),
+	AddMapValueValue(GetPointerOfStack,InstructionSet::GetPointerOfStack,OpCodeType::Register,OpCodeType::AnyInt16),
+	AddMapValueValue(GetPointerOfStackSub,InstructionSet::GetPointerOfStackSub,OpCodeType::Register,OpCodeType::AnyInt16),
 
 	AddMapValueValue(IncrementStackPointer,InstructionSet::IncrementStackPointer,OpCodeType::Register,OpCodeType::NoOpCode),
 	AddMapValueValue(DecrementStackPointer,InstructionSet::DecrementStackPointer,OpCodeType::Register,OpCodeType::NoOpCode),
 
-	AddMapValueValue(Call_Code,InstructionSet::Call_Code,OpCodeType::UIntPtr,OpCodeType::NoOpCode),
+	AddMapValueValue(Call_Code,InstructionSet::Call_Code,OpCodeType::AnyInt16,OpCodeType::NoOpCode),
 
 	AddMapValueValue(CppCallNamed,InstructionSet::CppCallNamed,OpCodeType::StaticCString,OpCodeType::NoOpCode),
-	
-	AddMapValueValue(Load8,InstructionSet::PointerMemberLoad8,OpCodeType::RegPtrAndRegOut,OpCodeType::UIntPtr),
-	AddMapValueValue(Load16,InstructionSet::PointerMemberLoad16,OpCodeType::RegPtrAndRegOut,OpCodeType::UIntPtr),
-	AddMapValueValue(Load32,InstructionSet::PointerMemberLoad32,OpCodeType::RegPtrAndRegOut,OpCodeType::UIntPtr),
-	AddMapValueValue(Load64,InstructionSet::PointerMemberLoad64,OpCodeType::RegPtrAndRegOut,OpCodeType::UIntPtr),
 
-	AddMapValueValue(Read8,InstructionSet::PointerMemberRead8,OpCodeType::RegPtrAndRegOut,OpCodeType::UIntPtr),
-	AddMapValueValue(Read16,InstructionSet::PointerMemberRead16,OpCodeType::RegPtrAndRegOut,OpCodeType::UIntPtr),
-	AddMapValueValue(Read32,InstructionSet::PointerMemberRead32,OpCodeType::RegPtrAndRegOut,OpCodeType::UIntPtr),
-	AddMapValueValue(Read64,InstructionSet::PointerMemberRead64,OpCodeType::RegPtrAndRegOut,OpCodeType::UIntPtr),
+	AddMapValueValue2(LEA_A,InstructionSet::LoadEffectiveAddressA,OpCodeType::Register,OpCodeType::Register,OpCodeType::AnyInt8),
+	AddMapValueValue2(LEA_S,InstructionSet::LoadEffectiveAddressS,OpCodeType::Register,OpCodeType::Register,OpCodeType::AnyInt8),
+	AddMapValueValue2(LEA_X,InstructionSet::LoadEffectiveAddressX,OpCodeType::Register,OpCodeType::Register,OpCodeType::AnyInt8),
 
-	AddMapValueValue(GetPointerOfStaticMem,InstructionSet::GetPointerOfStaticMem,OpCodeType::Register,OpCodeType::UIntPtr),
-	AddMapValueValue(GetPointerOfThreadMem,InstructionSet::GetPointerOfThreadMem,OpCodeType::Register,OpCodeType::UIntPtr),
+	AddMapValueValue2(Load8,InstructionSet::PointerMemberLoad8,OpCodeType::Register,OpCodeType::Register,OpCodeType::AnyInt8),
+	AddMapValueValue2(Load16,InstructionSet::PointerMemberLoad16,OpCodeType::Register,OpCodeType::Register,OpCodeType::AnyInt8),
+	AddMapValueValue2(Load32,InstructionSet::PointerMemberLoad32,OpCodeType::Register,OpCodeType::Register,OpCodeType::AnyInt8),
+	AddMapValueValue2(Load64,InstructionSet::PointerMemberLoad64,OpCodeType::Register,OpCodeType::Register,OpCodeType::AnyInt8),
+
+	AddMapValueValue2(Read8,InstructionSet::PointerMemberRead8,OpCodeType::Register,OpCodeType::Register,OpCodeType::AnyInt8),
+	AddMapValueValue2(Read16,InstructionSet::PointerMemberRead16,OpCodeType::Register,OpCodeType::Register,OpCodeType::AnyInt8),
+	AddMapValueValue2(Read32,InstructionSet::PointerMemberRead32,OpCodeType::Register,OpCodeType::Register,OpCodeType::AnyInt8),
+	AddMapValueValue2(Read64,InstructionSet::PointerMemberRead64,OpCodeType::Register,OpCodeType::Register,OpCodeType::AnyInt8),
+
+	AddMapValueValue(GetPointerOfStaticMem,InstructionSet::GetPointerOfStaticMem,OpCodeType::Register,OpCodeType::AnyInt16),
+	AddMapValueValue(GetPointerOfThreadMem,InstructionSet::GetPointerOfThreadMem,OpCodeType::Register,OpCodeType::AnyInt16),
 
 	AddMapValueValue(Debug_FuncStart,InstructionSet::Debug_FuncStart,OpCodeType::NoOpCode,OpCodeType::NoOpCode),
 	AddMapValueValue(Debug_FuncEnd,InstructionSet::Debug_FuncEnd,OpCodeType::NoOpCode,OpCodeType::NoOpCode),
