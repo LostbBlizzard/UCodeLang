@@ -337,11 +337,12 @@ project "UCodeIDE"
 
    filter { "system:linux" }
     kind "ConsoleApp"   
-    defines {"_GLFW_OSMESA"}
+    defines {"_GLFW_X11"}
     links {"GL"}
 
    filter { "system:MacOS" }
     kind "ConsoleApp"   
+    defines {"_GLFW_COCOA"}
     defines {}
 
    filter { "system:Windows","configurations:Published" }
