@@ -432,7 +432,10 @@ void Interpreter::Extecute(Instruction& Inst)
 		&&Ins_LoadEffectiveAddressS,
 		&&Ins_LoadEffectiveAddressX,
 
-		&&Ins_LoadFuncPtr,
+		&&Ins_LoadFuncPtrV1,
+		&&Ins_LoadFuncPtrV2,
+		&&Ins_LoadFuncPtrV3,
+		&&Ins_LoadFuncPtrV4,
 
 		//Stack,Thread,Static
 
@@ -1026,7 +1029,7 @@ void Interpreter::Extecute(Instruction& Inst)
 
 	InsCase(FilePChar_Open):
 	{
-		Get_Register(Inst.Op_ThreeReg.C).Value = UFileHandle::Open(
+		Get_Register(Inst.Op_ThreeReg.C).Value = UFileHandle::Openn(
 			(const PathChar*)Get_Register(Inst.Op_ThreeReg.A).Value.AsPtr
 			,Get_Register(Inst.Op_ThreeReg.B).Value.AsUIntNative
 			,*(UFileHandle::FileOpenMode*)&Get_Register(Inst.Op_ThreeReg.C).Value);
@@ -1081,7 +1084,7 @@ void Interpreter::Extecute(Instruction& Inst)
 	
 	InsCase(FilePChar_Exist) :
 	{
-		Get_Register(Inst.Op_ThreeReg.C).Value = UFileHandle::FileExist(
+		Get_Register(Inst.Op_ThreeReg.C).Value = UFileHandle::FileExistn(
 			(const PathChar*)Get_Register(Inst.Op_ThreeReg.A).Value.AsPtr
 			, Get_Register(Inst.Op_ThreeReg.B).Value.AsUIntNative);
 	}
@@ -1097,7 +1100,7 @@ void Interpreter::Extecute(Instruction& Inst)
 
 	InsCase(FilePChar_Remove):
 	{
-		Get_Register(Inst.Op_ThreeReg.C).Value = UFileHandle::FileRemove(
+		Get_Register(Inst.Op_ThreeReg.C).Value = UFileHandle::FileRemoven(
 			(const PathChar*)Get_Register(Inst.Op_ThreeReg.A).Value.AsPtr
 			, Get_Register(Inst.Op_ThreeReg.B).Value.AsUIntNative);
 	}

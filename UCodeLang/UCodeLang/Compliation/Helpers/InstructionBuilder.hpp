@@ -136,7 +136,7 @@ UCodeLangForceinline static void SInt##bitsize##To##UInt##bitsize(Instruction& O
 }\
 
 
-#define BuilderfloatSet(bitsize,CType,AnyIntValue) \
+#define BuilderfloatSet(bitsize) \
 
 #pragma endregion
 	
@@ -341,7 +341,7 @@ public:
 
 		Out = Instruction(InstructionSet::Store64v4, Instruction::RegUInt16(reg, Val));
 	}
-	BuilderIntSet(64, Int64, UInt64, AsInt64, AsUInt64)
+	BuilderIntSet(64)
 
 	//float set 32
 

@@ -59,7 +59,7 @@ public:
 	Interpreter() {}
 	~Interpreter() 
 	{ 
-		#ifdef UCodeLangDebug
+		#if UCodeLangDebug
 		InDestruct = true;
 		#endif
 		UnLoad(); 

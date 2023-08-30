@@ -34,24 +34,7 @@
 #define UCodeLangEmscripten 0
 #endif
 
-#if UCodeLangEmscripten
-#if __x86_64__ || __ppc64__
-#define UCodeLang_64BitSytem 1
-#else
-#define UCodeLang_64BitSytem 0
-#endif
 
-#else
-
-#if _WIN64
-#define UCodeLang_64BitSytem 1
-#else
-#define UCodeLang_64BitSytem 0
-#endif
-
-#endif
-
-#define UCodeLang_32BitSytem !UCodeLang_64BitSytem
 
 #if _WIN64 || _WIN32
 #define UCodeLang_Platform_Windows 1
@@ -111,6 +94,13 @@
 #endif // wasm64
 
 
+#if defined(__unix__) || (__APPLE__ && __MACH__)
+#define UCodeLang_Platform_Posix 1
+#else
+#define UCodeLang_Platform_Posix 0
+#endif // MacOs
+
+
 #ifndef UCodeLangDebug
 #if Debug
 #define UCodeLangDebug 1
@@ -121,6 +111,23 @@
 
 #endif
 
+#if UCodeLang_Platform_Windows 
+#define UCodeLang_64BitSytem _WIN64
+#elseif __wasm64__
+#define UCodeLang_64BitSytem 1
+#else 
+
+#if __x86_64__ || __ppc64__
+#define UCodeLang_64BitSytem 1
+#else
+#define UCodeLang_64BitSytem 0
+#endif
+
+#endif
+
+
+
+#define UCodeLang_32BitSytem !UCodeLang_64BitSytem
 
 #ifndef UCodeLangExperimental
 #define UCodeLangExperimental 0

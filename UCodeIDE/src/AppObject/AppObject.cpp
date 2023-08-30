@@ -28,7 +28,7 @@
 #include <sstream>
 #if UCodeLang_Platform_Windows
 #include <Windows.h>
-#elif UCodeLang_Platform_Linux
+#elif UCodeLang_Platform_Posix
 
 #else
 
@@ -369,7 +369,7 @@ void AppObject::OpenOnWeb(const String& WebLink)
 {
     #if UCodeLang_Platform_Windows
     ShellExecuteA(0, 0, WebLink.c_str(), 0, 0, SW_SHOW);
-    #elif UCodeLang_Platform_Linux
+    #elif UCodeLang_Platform_Posix
     auto cmd =String("open ") + WebLink;
     system(cmd.c_str());
     #else //MacOS
@@ -1385,7 +1385,7 @@ void AppObject::ShowInFiles(const Path& path)
 {
     #if UCodeLang_Platform_Windows
     ShellExecute(NULL, L"open", path.c_str(), NULL, NULL, SW_SHOWDEFAULT);
-    #elif UCodeLang_Platform_Linux
+    #elif UCodeLang_Platform_Posix
     auto cmd =(String("open ") + path.generic_string());
     system(cmd.c_str());
     #else //MacOS
