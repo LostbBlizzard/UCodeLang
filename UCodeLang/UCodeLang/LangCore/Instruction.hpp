@@ -334,6 +334,256 @@ struct Instruction
 		}
 		return {};
 	}
+	static Optional<UAddress> IsCall(const Span<Instruction> Data, size_t I)
+	{
+		auto& Ins = Data[I];
+		if (Data[I].OpCode == InstructionSet::Callv1)
+		{
+			if (Data.Size() > I + 1)
+			{
+				auto& NextIns = Data[I + 1];
+				if (NextIns.OpCode == InstructionSet::Callv2)
+				{
+					#if UCodeLang_64BitSytem
+					if (Data.Size() > I + 2)
+					{
+						auto& NextIns2 = Data[I + 2];
+						if (NextIns2.OpCode == InstructionSet::Callv3)
+						{
+							if (Data.Size() > I + 3)
+							{
+								auto& NextIns3 = Data[I + 3];
+								if (NextIns3.OpCode == InstructionSet::Callv4)
+								{
+									
+									{
+										UAddress V = 0;
+										((UInt16*)&V)[0] = Ins.Op_ValUInt16.A;
+										((UInt16*)&V)[1] = NextIns.Op_ValUInt16.A;
+										((UInt16*)&V)[2] = NextIns2.Op_ValUInt16.A;
+										((UInt16*)&V)[3] = NextIns3.Op_ValUInt16.A;
+
+										return V;
+									}
+								}
+							}
+						}
+					}
+					#else
+					UAddress V = 0;
+					((UInt16*)&V)[0] = Ins.Op_ValUInt16.A;
+					((UInt16*)&V)[1] = NextIns.Op_ValUInt16.A;
+					return V;
+					#endif
+				}
+			}
+		}
+		return {};
+	}
+	static Optional<UAddress> IsJump(const Span<Instruction> Data, size_t I)
+	{
+		auto& Ins = Data[I];
+		if (Data[I].OpCode == InstructionSet::Jumpv1)
+		{
+			if (Data.Size() > I + 1)
+			{
+				auto& NextIns = Data[I + 1];
+				if (NextIns.OpCode == InstructionSet::Jumpv2)
+				{
+					#if UCodeLang_64BitSytem
+					if (Data.Size() > I + 2)
+					{
+						auto& NextIns2 = Data[I + 2];
+						if (NextIns2.OpCode == InstructionSet::Jumpv3)
+						{
+							if (Data.Size() > I + 3)
+							{
+								auto& NextIns3 = Data[I + 3];
+								if (NextIns3.OpCode == InstructionSet::Jumpv4)
+								{
+								
+									{
+										UAddress V = 0;
+										((UInt16*)&V)[0] = Ins.Op_ValUInt16.A;
+										((UInt16*)&V)[1] = NextIns.Op_ValUInt16.A;
+										((UInt16*)&V)[2] = NextIns2.Op_ValUInt16.A;
+										((UInt16*)&V)[3] = NextIns3.Op_ValUInt16.A;
+
+										return V;
+									}
+								}
+							}
+						}
+					}
+					#else
+					UAddress V = 0;
+					((UInt16*)&V)[0] = Ins.Op_ValUInt16.A;
+					((UInt16*)&V)[1] = NextIns.Op_ValUInt16.A;
+					return V;
+					#endif
+				}
+			}
+		}
+		return {};
+	}
+	
+	struct IfJumpToInfo
+	{
+		UAddress Func;
+		RegisterID Reg;
+	};
+	static Optional<IfJumpToInfo> IsCallIf(const Span<Instruction> Data, size_t I)
+	{
+		auto& Ins = Data[I];
+		if (Data[I].OpCode == InstructionSet::Callv1)
+		{
+			if (Data.Size() > I + 1)
+			{
+				auto& NextIns = Data[I + 1];
+				#if UCodeLang_64BitSytem
+				if (NextIns.OpCode == InstructionSet::Callv2)
+				#else
+				if (NextIns.OpCode == InstructionSet::CallIf)
+				#endif
+				{
+					#if UCodeLang_64BitSytem
+					if (Data.Size() > I + 2)
+					{
+						auto& NextIns2 = Data[I + 2];
+						if (NextIns2.OpCode == InstructionSet::Callv3)
+						{
+							if (Data.Size() > I + 3)
+							{
+								auto& NextIns3 = Data[I + 3];
+								if (NextIns3.OpCode == InstructionSet::CallIf)
+								{
+									if (Ins.Op_RegUInt16.A == NextIns.Op_RegUInt16.A
+										&& NextIns2.Op_RegUInt16.A == NextIns3.Op_RegUInt16.A
+										&& Ins.Op_RegUInt16.A == NextIns3.Op_RegUInt16.A)
+									{
+										UAddress V = 0;
+										((UInt16*)&V)[0] = Ins.Op_ValUInt16.A;
+										((UInt16*)&V)[1] = NextIns.Op_ValUInt16.A;
+										((UInt16*)&V)[2] = NextIns2.Op_ValUInt16.A;
+										((UInt16*)&V)[3] = NextIns3.Op_ValUInt16.A;
+
+										return IfJumpToInfo{ V,NextIns3.Op_RegUInt16.A };
+									}
+								}
+							}
+						}
+					}
+					#else
+					UAddress V = 0;
+					((UInt16*)&V)[0] = Ins.Op_RegUInt16.B;
+					((UInt16*)&V)[1] = NextIns.Op_RegUInt16.B;
+					return IfJumpToInfo{ V,NextIns.Op_RegUInt16.A };
+					#endif
+				}
+			}
+		}
+		return {};
+	}
+	static Optional<IfJumpToInfo> IsJumpIf(const Span<Instruction> Data, size_t I)
+	{
+		auto& Ins = Data[I];
+		if (Data[I].OpCode == InstructionSet::Jumpv1)
+		{
+			if (Data.Size() > I + 1)
+			{
+				auto& NextIns = Data[I + 1];
+				#if UCodeLang_64BitSytem
+				if (NextIns.OpCode == InstructionSet::Jumpv2)
+				#else
+				if (NextIns.OpCode == InstructionSet::Jumpif)
+				#endif
+				{
+					#if UCodeLang_64BitSytem
+					if (Data.Size() > I + 2)
+					{
+						auto& NextIns2 = Data[I + 2];
+						if (NextIns2.OpCode == InstructionSet::Jumpv3)
+						{
+							if (Data.Size() > I + 3)
+							{
+								auto& NextIns3 = Data[I + 3];
+								if (NextIns3.OpCode == InstructionSet::Jumpif)
+								{
+									if (Ins.Op_RegUInt16.A == NextIns.Op_RegUInt16.A
+										&& NextIns2.Op_RegUInt16.A == NextIns3.Op_RegUInt16.A
+										&& Ins.Op_RegUInt16.A == NextIns3.Op_RegUInt16.A)
+									{
+										UAddress V = 0;
+										((UInt16*)&V)[0] = Ins.Op_ValUInt16.A;
+										((UInt16*)&V)[1] = NextIns.Op_ValUInt16.A;
+										((UInt16*)&V)[2] = NextIns2.Op_ValUInt16.A;
+										((UInt16*)&V)[3] = NextIns3.Op_RegUInt16.B;
+
+										return IfJumpToInfo{ V,NextIns3.Op_RegUInt16.A };
+									}
+								}
+							}
+						}
+					}
+					#else
+					UAddress V = 0;
+					((UInt16*)&V)[0] = Ins.Op_RegUInt16.B;
+					((UInt16*)&V)[1] = NextIns.Op_RegUInt16.B;
+					return IfJumpToInfo{ V,NextIns.Op_RegUInt16.A };
+					#endif
+				}
+			}
+		}
+		return {};
+	}
+	static Optional<UAddress> IsLoadFuncPtr(const Span<Instruction> Data, size_t I)
+	{
+		auto& Ins = Data[I];
+		if (Data[I].OpCode == InstructionSet::LoadFuncPtrV1)
+		{
+			if (Data.Size() > I + 1)
+			{
+				auto& NextIns = Data[I + 1];
+				if (NextIns.OpCode == InstructionSet::LoadFuncPtrV2)
+				{
+					#if UCodeLang_64BitSytem
+					if (Data.Size() > I + 2)
+					{
+						auto& NextIns2 = Data[I + 2];
+						if (NextIns2.OpCode == InstructionSet::LoadFuncPtrV3)
+						{
+							if (Data.Size() > I + 3)
+							{
+								auto& NextIns3 = Data[I + 3];
+								if (NextIns3.OpCode == InstructionSet::LoadFuncPtrV4)
+								{
+									if (Ins.Op_RegUInt16.A == NextIns.Op_RegUInt16.A
+										&& NextIns2.Op_RegUInt16.A == NextIns3.Op_RegUInt16.A
+										&& Ins.Op_RegUInt16.A == NextIns3.Op_RegUInt16.A)
+									{
+										UAddress V = 0;
+										((UInt16*)&V)[0] = Ins.Op_RegUInt16.B;
+										((UInt16*)&V)[1] = NextIns.Op_RegUInt16.B;
+										((UInt16*)&V)[2] = NextIns2.Op_RegUInt16.B;
+										((UInt16*)&V)[3] = NextIns3.Op_RegUInt16.B;
+
+										return V;
+									}
+								}
+							}
+						}
+					}
+					#else
+					UAddress V = 0;
+					((UInt16*)&V)[0] = Ins.Op_RegUInt16.B;
+					((UInt16*)&V)[1] = NextIns.Op_RegUInt16.B;
+					return V;
+					#endif
+				}
+			}
+		}
+		return {};
+	}
 };
 
 static_assert(sizeof(Instruction) == 4,"Instruction must be 4 bytes");

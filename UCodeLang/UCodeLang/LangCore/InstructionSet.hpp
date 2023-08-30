@@ -29,9 +29,23 @@ enum class InstructionSet : InstructionSet_t
 {
 	Exit,Return,
 	
-	Call,CallIf,CallReg,
+	Callv1,
+	Callv2,
+	Callv3,
+	Callv4,
+
+	CallIf,
 	
-	Jump, Jumpif,JumpReg,
+	CallReg,
+	
+	Jumpv1,
+	Jumpv2,
+	Jumpv3,
+	Jumpv4,
+
+	Jumpif, 
+	
+	JumpReg,
 
 	DoNothing,
 	
@@ -99,9 +113,10 @@ enum class InstructionSet : InstructionSet_t
 	LoadEffectiveAddressS,
 	LoadEffectiveAddressX,
 
-	
-
-	LoadFuncPtr,
+	LoadFuncPtrV1,
+	LoadFuncPtrV2,
+	LoadFuncPtrV3,
+	LoadFuncPtrV4,
 
 	//Stack,Thread,Static
 	GetPointerOfStack, GetPointerOfStackSub, 

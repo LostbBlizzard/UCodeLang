@@ -588,6 +588,97 @@ size_t UAssembly::ParseInstruction( size_t I,const Span<Instruction> Data, Strin
 			}
 
 		}
+		if (Data[I].OpCode == InstructionSet::Callv1)
+		{
+
+			{
+				auto Opt = Instruction::IsCall(Data, I);
+				if (Opt)
+				{
+					UAddress V = Opt.value();
+					r += "Call ";
+					OpValueToString(InsMapData.at(Data[I].OpCode)->Op_A, &V, AddressToName, staticbytesview, r);
+
+
+					#if UCodeLang_32BitSytem
+					return 1;
+					#else
+					return 3;
+					#endif 
+				}
+			}
+			{
+				auto Opt = Instruction::IsCallIf(Data, I);
+				if (Opt)
+				{
+					UAddress V = Opt.value().Func;
+					r += "Callif ";
+					OpValueToString(InsMapData.at(Data[I].OpCode)->Op_B, &V, AddressToName, staticbytesview, r);
+					r += "," + GetRegisterToString(Opt.value().Reg);
+					#if UCodeLang_32BitSytem
+					return 1;
+					#else
+					return 3;
+					#endif 
+				}
+
+			}
+		}
+		if (Data[I].OpCode == InstructionSet::Jumpv1)
+		{
+
+			{
+				auto Opt = Instruction::IsJump(Data, I);
+				if (Opt)
+				{
+					UAddress V = Opt.value();
+					r += "Jump ";
+					OpValueToString(InsMapData.at(Data[I].OpCode)->Op_A, &V, AddressToName, staticbytesview, r);
+
+
+					#if UCodeLang_32BitSytem
+					return 1;
+					#else
+					return 3;
+					#endif 
+				}
+			}
+			{
+				auto Opt = Instruction::IsJumpIf(Data, I);
+				if (Opt)
+				{
+					UAddress V = Opt.value().Func;
+					r += "Jumpif ";
+					OpValueToString(InsMapData.at(Data[I].OpCode)->Op_B, &V, AddressToName, staticbytesview, r);
+
+					r += "," + GetRegisterToString(Opt.value().Reg);
+					#if UCodeLang_32BitSytem
+					return 1;
+					#else
+					return 3;
+					#endif 
+				}
+
+			}
+		}
+		if (Data[I].OpCode == InstructionSet::LoadFuncPtrV1)
+		{
+			auto Opt = Instruction::IsLoadFuncPtr(Data, I);
+			if (Opt)
+			{
+				UAddress V = Opt.value();
+				r += "LoadFuncPtr " + GetRegisterToString(Ins.Op_RegUInt16.A);
+				r += ", "; 
+				OpValueToString(InsMapData.at(Data[I].OpCode)->Op_B, &V, AddressToName, staticbytesview, r);
+
+				#if UCodeLang_32BitSytem
+				return 1;
+				#else
+				return 3;
+				#endif 
+			}
+
+		}
 
 		ToStringInstruction(Data[I], r, staticbytesview, AddressToName);
 		return 0;
@@ -894,7 +985,7 @@ void UAssembly::OpValueToString(OpCodeType OpType,const void* In,const BinaryVec
 
 	case OpCodeType::InsAddress:
 	{
-		auto NewAddress = (*(UInt16*)In) + 1;
+		auto NewAddress = (*(UAddress*)In) + 1;
 		if (AddressToName.count(NewAddress))
 		{
 			out += "{" + AddressToName.at(NewAddress) + "}";

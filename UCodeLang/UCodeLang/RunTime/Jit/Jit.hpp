@@ -75,10 +75,6 @@ void GetCPUData(EnvironmentData& Out);
 
 const EnvironmentData& Get_EnvironmentData();
 
-struct JitInfo
-{
-	using FuncType = RunTimeLib::CPPCallBack;
-};
 
 struct NullJitCalls
 {
@@ -87,4 +83,56 @@ struct NullJitCalls
 	uintptr_t Nativeoffset = 0;
 };
 
+#define JitCompilerAPIChecks UCodeLangDebug
+
+#if JitCompilerAPIChecks
+#define JitCompilerOverride override
+#define JitCompilerVirual virtual
+#define JitCompilerPure = 0;
+#else
+#define JitCompilerOverride 
+#define JitCompilerVirual 
+#define JitCompilerPure 
+#endif
+
+class RunTimeLangState;
+class JitCompiler
+{
+public:
+
+	struct UnLoadedFuncPlaceHolder
+	{
+		size_t Offset = 0;
+	};
+	using FuncType = RunTimeLib::CPPCallBack;
+	using InterpreterCPPinterface_SetRet = void(*)(void* Input);
+	using InterpreterCPPinterface_GetParm = void(*)(void* Input, void* Pointer, size_t ParSize);
+	using JitBuildAddress = void(*)(UAddress Input);
+
+	Vector<NullJitCalls> NullCalls;
+	UAddress OnUAddressPar = 0;//Should all be move in
+
+	#if JitCompilerAPIChecks 
+	JitCompilerVirual void Reset() JitCompilerPure
+	JitCompilerVirual bool BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress, Vector<UInt8>& X86Output) JitCompilerPure
+	JitCompilerVirual void SubCall(FuncType Value, uintptr_t CPPOffset, void* X64Output) JitCompilerPure;
+	#endif
+
+	struct FuncToLink
+	{
+		size_t CPPOffset = 0;
+		UAddress OnUAddress = 0;
+	};
+
+	BinaryVectorMap<UAddress, UnLoadedFuncPlaceHolder> FuncsPlaceHolder;
+	Vector<FuncToLink> LinkingData;
+	InterpreterCPPinterface_SetRet  InterpreterCPPinterface_Set_ReturnPtr = nullptr;
+	InterpreterCPPinterface_GetParm InterpreterCPPinterface_Get_Par = nullptr;
+	JitBuildAddress BuildAddressPtr = nullptr;
+	const ClassMethod* Func = nullptr;
+	RunTimeLangState* State = nullptr;
+	size_t Out_CppCallOffset = 0;
+	size_t Out_NativeCallOffset = 0;
+	size_t BufferOffset = 0;
+};
 UCodeLangEnd

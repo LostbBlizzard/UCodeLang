@@ -1,5 +1,6 @@
 #pragma once
-#include "X86Gen.hpp"
+#include "X86Builder.hpp"
+#include "IRToX86IR.hpp"
 UCodeLangStart
 
 //outputs a flat binary of x86 code
@@ -15,7 +16,7 @@ public:
 	static BackEndObject* MakeObject() { return new X86BackEnd(); }
 	void Reset() override;
 	void Build(const IRBuilder* Input) override;
-	IRToX86 _CodeGen;
+
 };
 
 //uses UCodeLib
@@ -31,7 +32,6 @@ public:
 	static BackEndObject* MakeObject() { return new X86BackEnd_UCodeLib(); }
 	void Reset() override;
 	void Build(const IRBuilder* Input) override;
-	IRToX86 _CodeGen;
 	CodeLayer* _OutLayer = nullptr;
 };
 

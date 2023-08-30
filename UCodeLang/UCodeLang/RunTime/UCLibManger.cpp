@@ -1,5 +1,6 @@
 #include "UCLibManger.hpp"
 #include "UCodeLang/Compliation/Helpers/NameDecoratior.hpp"
+#include "UCodeLang/Compliation/Helpers/InstructionBuilder.hpp"
 UCodeLangStart
 UCLibManger::UCLibManger()
 {
@@ -27,23 +28,48 @@ void UCLibManger::LinkLib(UCodeLang::RunTimeLib* Item)
 	size_t oldSize2 = _Code.size();
 	_Code.reserve(oldSize2 + _Code.size());
 
-	for (const auto& Item2 : Ins_s)
+	Span<Instruction> InsSpan = Span<Instruction>::Make(Ins_s.data(), Ins_s.size());
+
+	for (size_t i = 0; i < Ins_s.size(); i++)
 	{
+		const auto& Item2 = Ins_s[i];
+
 		Instruction Tep = Item2;
 
-		if (Tep.OpCode == InstructionSet::LoadFuncPtr)
-		{
-			Tep.Op_RegUInt16.B += oldSize;
-		}
-		else if (Tep.OpCode == InstructionSet::Call)
-		{
-			Tep.Op_ValUInt16.A += oldSize;
-		}
-		else if (Tep.OpCode == InstructionSet::Call_Code)
-		{
-			Tep.Op_ValUInt16.A += oldSize;
-		}
 
+
+		if (Tep.OpCode == InstructionSet::LoadFuncPtrV1)
+		{
+			auto func = Instruction::IsLoadFuncPtr(InsSpan, i);
+			
+			if (func.has_value())
+			{
+				UAddress newaddress = func.value() + oldSize;
+				RegisterID v = Item2.Op_RegUInt16.A;
+
+				InstructionBuilder::LoadFuncPtr_V1(newaddress,v, Tep); _Instructions.push_back(Tep); Tep = Instruction();
+				InstructionBuilder::LoadFuncPtr_V2(newaddress, v, Tep); _Instructions.push_back(Tep); Tep = Instruction();
+				InstructionBuilder::LoadFuncPtr_V3(newaddress, v, Tep); _Instructions.push_back(Tep); Tep = Instruction();
+				InstructionBuilder::LoadFuncPtr_V4(newaddress, v, Tep); _Instructions.push_back(Tep); Tep = Instruction();
+				continue;
+			}
+		}
+		else if (Tep.OpCode == InstructionSet::Callv1)
+		{
+			auto func = Instruction::IsLoadFuncPtr(InsSpan, i);
+
+			if (func.has_value())
+			{
+				UAddress newaddress = func.value() + oldSize;
+				RegisterID v = Item2.Op_RegUInt16.A;
+
+				InstructionBuilder::Callv1(newaddress, Tep); _Instructions.push_back(Tep); Tep = Instruction();
+				InstructionBuilder::Callv2(newaddress, Tep); _Instructions.push_back(Tep); Tep = Instruction();
+				InstructionBuilder::Callv3(newaddress, Tep); _Instructions.push_back(Tep); Tep = Instruction();
+				InstructionBuilder::Callv4(newaddress, Tep); _Instructions.push_back(Tep); Tep = Instruction();
+				continue;
+			}
+		}
 		_Instructions.push_back(Tep);
 	}
 

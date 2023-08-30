@@ -208,6 +208,10 @@ enum class RegisterID : RegisterID_t
 	Parameter1_Register = (RegisterID_t)RegisterID::StartParameterRegister,
 	Parameter2_Register = (RegisterID_t)RegisterID::StartParameterRegister + 1,
 	Parameter3_Register = (RegisterID_t)RegisterID::StartParameterRegister + 2,
+
+
+	//were the Interpreter sets the Address before a jump or call
+	LinkRegister = A,
 };
 
 struct AnyInt64

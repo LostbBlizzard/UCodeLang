@@ -346,7 +346,7 @@ void Jit_Interpreter::BuildCheck(UCodeLang::Jit_Interpreter::JitFuncData& Item, 
 							if (SomeV.Type == JitFuncType::CPPCall)
 							{
 								intptr_t val = (intptr_t)SomeV.NativeFunc;
-								_Assembler.SubCall((JitInfo::FuncType)(val - 5), Item.CPPOffset, ExBuffer.Data);
+								_Assembler.SubCall((JitCompiler::FuncType)(val - 5), Item.CPPOffset, ExBuffer.Data);
 							}
 						}
 						else

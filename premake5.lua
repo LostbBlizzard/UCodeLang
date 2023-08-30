@@ -1,8 +1,7 @@
 workspace "UCodeLang"
    configurations { "Debug", "Release","Published" }
    platforms { "Win32", "Win64","linux32","linux64", "MacOS" }
-   defines {"UCodeLangDebug","ZYCORE_STATIC_BUILD"}
-   
+   defines {"UCodeLangDebug","ZYCORE_STATIC_BUILD","UCodeLangExperimental"}
 
    startproject "UCodeIDE"
 
