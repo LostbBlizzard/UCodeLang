@@ -1,6 +1,5 @@
 #include "LinuxBackEnd.hpp"
 #include "../x86_64/IRToX86_64IR.hpp"
-#include "elfio/elfio.hpp"
 #include <sstream>
 UCodeLangStart
 void LinuxBackEnd::Reset()
@@ -11,6 +10,7 @@ void LinuxBackEnd::Reset()
 
 void LinuxBackEnd::Build(const IRBuilder* Input)
 {
+	/*
 	auto x8664_ir = IRToX86_64IR::Into(*Input);
 	auto code = x8664_ir.Build();
 
@@ -20,5 +20,6 @@ void LinuxBackEnd::Build(const IRBuilder* Input)
 	file.save(s);
 	auto f = s.str();
 	Set_Output(BytesView::Make((const Byte*)f.data(),f.size()));
+	*/
 }
 UCodeLangEnd

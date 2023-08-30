@@ -15,7 +15,7 @@
 
 #include "UCodeLang/Compliation/Back/Windows/PE_File.hpp"
 //#include "UCodeLang/Compliation/Back/Linux/ELF_File.hpp"
-#include <elfio/elfio_dump.hpp>
+//#include <elfio/elfio_dump.hpp>
 
 #include "UCodeLang/Compliation/Back/x86_64/X86_64UNativeBackEnd.hpp"
 #include "UCodeLang/Compliation/Back/x86_64/X86_64JitCompiler.hpp"
@@ -2176,6 +2176,7 @@ void AppObject::OnDoneCompileing(UCodeLang::Compiler::CompilerRet& Val, const UC
             break;
         case BackEndType::WindowsExecutable:
         {
+            /*
             enma::pe_image image(tepoutpath);
 
             _LibInfoString += "Portable Executable:\n";
@@ -2263,9 +2264,12 @@ void AppObject::OnDoneCompileing(UCodeLang::Compiler::CompilerRet& Val, const UC
                 }
 
             }
+            */
+            _LibInfoString = "";
         }break;
         case BackEndType::LinuxExecutable:
         {
+            /*
             std::stringstream s;
             ELFIO::elfio reader;
             reader.load(tepoutpath.generic_string());
@@ -2275,6 +2279,8 @@ void AppObject::OnDoneCompileing(UCodeLang::Compiler::CompilerRet& Val, const UC
             ELFIO::dump::segment_datas(std::cout, reader);
 
             _LibInfoString = s.str();
+            */
+            _LibInfoString = "";
         }    
         break;
         default:

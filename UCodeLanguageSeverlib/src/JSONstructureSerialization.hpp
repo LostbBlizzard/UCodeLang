@@ -9,7 +9,7 @@ using json = nlohmann::json;
 	
 
 	template<typename T>
-	inline void to_json(json& Json,const T Object)
+	inline void to_json(json& Json,const T& Object)
 	{
 		Json = json(Object);
 	}
@@ -68,6 +68,7 @@ using json = nlohmann::json;
 		
 	}
 
+	
 	template<typename T>
 	inline void from_json(const json& Json, UCL::TsArray<T>& Object)
 	{
@@ -389,7 +390,11 @@ using json = nlohmann::json;
 
 		//to_jsonOp(Object.severity,"severity", Json);
 
-		to_jsonOp(Object.code, "code", Json);
+
+		if (Object.code.has_value())
+		{
+			to_json(Json["code"], Object.code.value());
+		}
 
 		//to_jsonOp(Object.codeDescription, "codeDescription", Json);
 
