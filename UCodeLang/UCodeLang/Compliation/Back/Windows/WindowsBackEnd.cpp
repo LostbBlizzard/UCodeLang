@@ -10,6 +10,7 @@ void WindowsBackEnd::Reset()
 
 void WindowsBackEnd::Build(const IRBuilder* Input)
 {
+	/*
 	auto x8664_ir = IRToX86_64IR::Into(*Input);
 	auto code = x8664_ir.Build();
 
@@ -150,5 +151,6 @@ void WindowsBackEnd::Build(const IRBuilder* Input)
 
 
 	Set_Output(BytesView::Make(Out.data(), Out.size()));
+	*/
 }
 UCodeLangEnd
