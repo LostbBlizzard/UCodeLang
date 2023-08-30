@@ -343,7 +343,6 @@ project "UCodeIDE"
    filter { "system:MacOS" }
     kind "ConsoleApp"   
     defines {"_GLFW_COCOA"}
-    defines {}
 
    filter { "system:Windows","configurations:Published" }
     kind ("WindowedApp")
