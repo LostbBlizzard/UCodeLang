@@ -156,10 +156,32 @@ public:
 	{
 		Out = Instruction(InstructionSet::Return, Instruction::ValUInt8((ExitState_t)State));
 	}
-	UCodeLangForceinline static void Call(UInt16 address, Instruction& Out)
+
+	UCodeLangForceinline static void Callv1(UInt64 address, Instruction& Out)
 	{
-		Out = Instruction(InstructionSet::Call, Instruction::ValUInt16(address));
+		UInt16& Val = ((UInt16*)(&address))[0];
+
+		Out = Instruction(InstructionSet::Callv1, Instruction::ValUInt16(Val));
 	}
+	UCodeLangForceinline static void Callv2(UInt64 address, Instruction& Out)
+	{
+		UInt16& Val = ((UInt16*)(&address))[1];
+
+		Out = Instruction(InstructionSet::Callv2, Instruction::ValUInt16(Val));
+	}
+	UCodeLangForceinline static void Callv3(UInt64 address, Instruction& Out)
+	{
+		UInt16& Val = ((UInt16*)(&address))[2];
+
+		Out = Instruction(InstructionSet::Callv3, Instruction::ValUInt16(Val));
+	}
+	UCodeLangForceinline static void Callv4(UInt64 address, Instruction& Out)
+	{
+		UInt16& Val = ((UInt16*)(&address))[3];
+
+		Out = Instruction(InstructionSet::Callv4, Instruction::ValUInt16(Val));
+	}
+
 	UCodeLangForceinline static void CallIf(UAddress address, RegisterID Bool, Instruction& Out)
 	{
 		Out = Instruction(InstructionSet::CallIf, Instruction::RegUInt16(Bool,address));
@@ -173,9 +195,30 @@ public:
 		Out = Instruction(InstructionSet::CppCallNamed, Instruction::ValUInt16(StaticAddress));
 	}
 
-	UCodeLangForceinline static void Jump(UInt16 address, Instruction& Out)
+
+	UCodeLangForceinline static void Jumpv1(UInt64 address, Instruction& Out)
 	{
-		Out = Instruction(InstructionSet::Jump, Instruction::ValUInt16(address));
+		UInt16& Val = ((UInt16*)(&address))[0];
+
+		Out = Instruction(InstructionSet::Jumpv1, Instruction::ValUInt16(Val));
+	}
+	UCodeLangForceinline static void Jumpv2(UInt64 address, Instruction& Out)
+	{
+		UInt16& Val = ((UInt16*)(&address))[1];
+
+		Out = Instruction(InstructionSet::Jumpv2, Instruction::ValUInt16(Val));
+	}
+	UCodeLangForceinline static void Jumpv3(UInt64 address, Instruction& Out)
+	{
+		UInt16& Val = ((UInt16*)(&address))[2];
+
+		Out = Instruction(InstructionSet::Jumpv3, Instruction::ValUInt16(Val));
+	}
+	UCodeLangForceinline static void Jumpv4(UInt64 address, Instruction& Out)
+	{
+		UInt16& Val = ((UInt16*)(&address))[3];
+
+		Out = Instruction(InstructionSet::Jumpv4, Instruction::ValUInt16(Val));
 	}
 	UCodeLangForceinline static void Jumpif(UInt16 address,RegisterID Bool, Instruction& Out)
 	{
@@ -393,9 +436,25 @@ public:
 	}
 
 
-	UCodeLangForceinline static void LoadFuncPtr(UInt16 address, RegisterID ptr, Instruction& Out)
+	UCodeLangForceinline static void LoadFuncPtr_V1(UInt64 address, RegisterID ptr, Instruction& Out)
 	{
-		Out = Instruction(InstructionSet::LoadFuncPtr, Instruction::RegUInt16(ptr, address));
+		UInt16& Val = ((UInt16*)(&address))[0];
+		Out = Instruction(InstructionSet::LoadFuncPtrV1, Instruction::RegUInt16(ptr, Val));
+	}
+	UCodeLangForceinline static void LoadFuncPtr_V2(UInt64 address, RegisterID ptr, Instruction& Out)
+	{
+		UInt16& Val = ((UInt16*)(&address))[1];
+		Out = Instruction(InstructionSet::LoadFuncPtrV2, Instruction::RegUInt16(ptr, Val));
+	}
+	UCodeLangForceinline static void LoadFuncPtr_V3(UInt64 address, RegisterID ptr, Instruction& Out)
+	{
+		UInt16& Val = ((UInt16*)(&address))[2];
+		Out = Instruction(InstructionSet::LoadFuncPtrV3, Instruction::RegUInt16(ptr, Val));
+	}
+	UCodeLangForceinline static void LoadFuncPtr_V4(UInt64 address, RegisterID ptr, Instruction& Out)
+	{
+		UInt16& Val = ((UInt16*)(&address))[3];
+		Out = Instruction(InstructionSet::LoadFuncPtrV4, Instruction::RegUInt16(ptr, Val));
 	}
 
 	//Stack,Thread,Static

@@ -12,8 +12,12 @@ X86_64JitCompiler::X86_64JitCompiler()
 	auto CallConvention = X86_64IR::CallConvention();
 #if UCodeLang_Platform_Windows
 	CallConvention.SetWindows();
+#elif UCodeLang_Platform_Linux
+	CallConvention.SetLinux();
+#elif UCodeLang_Platform_MacOS
+	CallConvention.SetMacOSandIOS;
 #else
-	UCodeLangThrowException("Cant find Call Convetion");
+	static_assert(true, "Cant find Call Convetion");
 #endif
 	_CallConvention = _IR.AddCallConvention(std::move(CallConvention));
 
@@ -196,7 +200,7 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 	return true;
 }
 
-void X86_64JitCompiler::SubCall(JitInfo::FuncType Value, uintptr_t CPPOffset, void* X64Output)
+void X86_64JitCompiler::SubCall(JitCompiler::FuncType Value, uintptr_t CPPOffset, void* X64Output)
 {
 }
 

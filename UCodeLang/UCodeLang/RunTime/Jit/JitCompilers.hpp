@@ -16,12 +16,28 @@ UCodeLangStart
 
 #if UCodeLang_CPUIs_x86_64
 using NativeJitAssembler = X86_64JitCompiler;
+
+#if !UCodeLangExperimental
+#define HasNoSupportforJit 1
+#endif
 #elif UCodeLang_CPUIs_x86
 using NativeJitAssembler = X86JitCompiler;
+
+#if !UCodeLangExperimental
+#define HasNoSupportforJit 1
+#endif
 #elif UCodeLang_CPUIs_Arm
 using NativeJitAssembler = ARMJitCompiler;
+
+#if !UCodeLangExperimental
+#define HasNoSupportforJit 1
+#endif
 #elif UCodeLang_CPUIs_Arm64
 using NativeJitAssembler = ARM64JitCompiler;
+
+#if !UCodeLangExperimental
+#define HasNoSupportforJit 1
+#endif
 #else
 using NativeJitAssembler = void*;
 #define HasNoSupportforJit 1

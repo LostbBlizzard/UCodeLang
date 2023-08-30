@@ -53,8 +53,14 @@ Instruction::OpType Instruction::GetOpType(InstructionSet OpCode)
 		return Instruction::OpType::ValUInt8;
 
 	case InstructionSet::CppCallNamed:
-	case InstructionSet::Call:
-	case InstructionSet::Jump:
+	case InstructionSet::Callv1:
+	case InstructionSet::Callv2:
+	case InstructionSet::Callv3:
+	case InstructionSet::Callv4:
+	case InstructionSet::Jumpv1:
+	case InstructionSet::Jumpv2:
+	case InstructionSet::Jumpv3:
+	case InstructionSet::Jumpv4:
 		return Instruction::OpType::ValUInt16;
 
 	case InstructionSet::CallIf:

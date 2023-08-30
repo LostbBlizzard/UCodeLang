@@ -354,10 +354,20 @@ void Interpreter::Extecute(Instruction& Inst)
 	static const void* InsJumpTable[] = {
 		&&Ins_Exit,
 		&&Ins_Return,
-		&&Ins_Call,
+		
+		&&Ins_Callv1,
+		&&Ins_Callv2,
+		&&Ins_Callv3,
+		&&Ins_Callv4,
+		
 		&&Ins_CallIf,
 		&&Ins_CallReg,
-		&&Ins_Jump,
+		
+		&&Ins_Jumpv1,
+		&&Ins_Jumpv2,
+		&&Ins_Jumpv3,
+		&&Ins_Jumpv4,
+		
 		&&Ins_Jumpif,
 		&&Ins_JumpReg,
 		&&Ins_DoNothing,
@@ -499,37 +509,124 @@ void Interpreter::Extecute(Instruction& Inst)
 	#if !UseJumpTable
 	switch (Inst.OpCode)
 	{
-	#endif
-	InsCase(Exit):
+#endif
+		InsCase(Exit):
+		
 		_CPU.RetValue._Succeed = (ExitState)Inst.Op_ValUInt8.A;
 		_CPU.Stack.StackOffSet = 0;
-		 InsBreak();
-	InsCase(Return):
+		
+		InsBreak();
+		InsCase(Return):
+		
 		_CPU.RetValue._Succeed = (ExitState)Inst.Op_ValUInt8.A;
 		_CPU.ProgramCounter = _CPU.Stack.PopStack<UAddress>();
-		 InsBreak();
-	InsCase(Call):
-		_CPU.Stack.PushStack(_CPU.ProgramCounter);
-		_CPU.ProgramCounter = Inst.Op_ValUInt16.A;
-		 InsBreak();
-	InsCase(CallIf):
-		if (Get_Register(Inst.Op_RegUInt16.A).Value.Asbool) {
+		
+		InsBreak();
+		InsCase(Callv1):
+		{
+			auto& _Register = Get_Register(RegisterID::LinkRegister);
+			((UInt16*)&_Register)[0] = Inst.Op_ValUInt16.A;
 			_CPU.Stack.PushStack(_CPU.ProgramCounter);
-			_CPU.ProgramCounter = Inst.Op_RegUInt16.B;
-		} InsBreak();
-	InsCase(CallReg):
+			_CPU.ProgramCounter = Inst.Op_ValUInt16.A;
+		}
+		InsBreak();
+		InsCase(Callv2) :
+		{
+			auto& _Register = Get_Register(RegisterID::LinkRegister);
+			((UInt16*)&_Register)[1] = Inst.Op_ValUInt16.A;
+
+			#if UCodeLang_32BitSytem
+			_CPU.Stack.PushStack(_CPU.ProgramCounter);
+			_CPU.ProgramCounter = _Register.Value.AsAddress;
+			#endif
+		}
+		InsBreak();
+		InsCase(Callv3) :
+		#if UCodeLang_64BitSytem
+		{
+			auto& _Register = Get_Register(RegisterID::LinkRegister);
+			((UInt16*)&_Register)[2] = Inst.Op_ValUInt16.A;
+		}
+		#endif
+		InsBreak();
+		InsCase(Callv4) :
+		{
+		#if UCodeLang_64BitSytem
+		auto& _Register = Get_Register(RegisterID::LinkRegister);
+		((UInt16*)&_Register)[3] = Inst.Op_ValUInt16.A;
+
 		_CPU.Stack.PushStack(_CPU.ProgramCounter);
-		_CPU.ProgramCounter = Get_Register(Inst.Op_OneReg.A).Value.AsAddress;
-		 InsBreak();
-	InsCase(Jump):
-		_CPU.ProgramCounter = Inst.Op_ValUInt16.A;
-		 InsBreak();
-	InsCase(Jumpif):
-		if (Get_Register(Inst.Op_RegUInt16.A).Value.Asbool) {
-			_CPU.ProgramCounter = Inst.Op_RegUInt16.B;
-		} InsBreak();
+		_CPU.ProgramCounter = _Register.Value.AsAddress;
+		#endif
+		}
+		InsBreak();
+		InsCase(CallIf) :
+		{
+			auto& _Register = Get_Register(RegisterID::LinkRegister);
+			#if UCodeLang_64BitSytem
+			((UInt16*)&_Register)[3] = Inst.Op_ValUInt16.A;
+			#else
+			((UInt16*)&_Register)[1] = Inst.Op_ValUInt16.A;
+			#endif
+			if (Get_Register(Inst.Op_RegUInt16.A).Value.Asbool) {
+
+				_CPU.Stack.PushStack(_CPU.ProgramCounter);
+				_CPU.ProgramCounter = _Register.Value.AsAddress;
+			}
+			
+		}
+		InsBreak();
+		InsCase(CallReg):
+		{
+			_CPU.Stack.PushStack(_CPU.ProgramCounter);
+			_CPU.ProgramCounter = Get_Register(Inst.Op_OneReg.A).Value.AsAddress;
+		}
+		InsBreak();
+		InsCase(Jumpv1) :
+		{
+			auto& _Register = Get_Register(RegisterID::LinkRegister);
+			((UInt16*)&_Register)[0] = Inst.Op_ValUInt16.A;
+		}
+		InsBreak();
+		InsCase(Jumpv2):
+		{ 
+			auto& _Register = Get_Register(RegisterID::LinkRegister);
+			((UInt16*)&_Register)[1] = Inst.Op_ValUInt16.A;
+			#if UCodeLang_32BitSytem
+			_CPU.ProgramCounter = _Register.Value.AsAddress;
+			#endif
+		}
+		InsBreak();
+		InsCase(Jumpv3):
+		{
+			#if UCodeLang_64BitSytem
+			auto& _Register = Get_Register(RegisterID::LinkRegister);
+			((UInt16*)&_Register)[2] = Inst.Op_ValUInt16.A;
+			#endif
+		}
+		InsBreak();
+
+		InsCase(Jumpv4) :
+		{
+			#if UCodeLang_64BitSytem
+			auto& _Register = Get_Register(RegisterID::LinkRegister);
+			((UInt16*)&_Register)[3] = Inst.Op_ValUInt16.A;
+
+			_CPU.ProgramCounter = _Register.Value.AsAddress;
+			#endif
+		}
+		InsBreak();
+		InsCase(Jumpif):
+		{
+			auto& _Register = Get_Register(RegisterID::LinkRegister);
+			if (Get_Register(Inst.Op_RegUInt16.A).Value.Asbool) {
+				_CPU.Stack.PushStack(_CPU.ProgramCounter);
+				_CPU.ProgramCounter = _Register.Value.AsAddress;
+			}
+		}
+		InsBreak();
 	InsCase(JumpReg):
-		_CPU.ProgramCounter = Get_Register(Inst.Op_OneReg.A).Value.AsAddress;
+		 _CPU.ProgramCounter = Get_Register(Inst.Op_OneReg.A).Value.AsAddress;
 		 InsBreak();
 	InsCase(DoNothing): InsBreak();
 	
@@ -865,9 +962,32 @@ void Interpreter::Extecute(Instruction& Inst)
 	}
 	InsBreak();
 
-	InsCase(LoadFuncPtr):
+	InsCase(LoadFuncPtrV1):
 	{
-		Get_Register((RegisterID)Inst.Op_RegUInt16.B).Value = Inst.Op_RegUInt16.A; 
+		auto& _Register = Get_Register((RegisterID)Inst.Op_RegUInt16.B);
+		((UInt16*)&_Register)[0] = Inst.Op_ValUInt16.A;
+	}
+	InsBreak();
+	InsCase(LoadFuncPtrV2) :
+	{
+		auto& _Register = Get_Register((RegisterID)Inst.Op_RegUInt16.B);
+		((UInt16*)&_Register)[1] = Inst.Op_ValUInt16.A;
+	}
+	InsBreak();
+	InsCase(LoadFuncPtrV3):
+	{
+		#if UCodeLang_64BitSytem
+		auto& _Register = Get_Register((RegisterID)Inst.Op_RegUInt16.B);
+		((UInt16*)&_Register)[2] = Inst.Op_ValUInt16.A;
+		#endif
+	}
+	InsBreak();
+	InsCase(LoadFuncPtrV4) :
+	{
+		#if UCodeLang_64BitSytem
+		auto& _Register = Get_Register((RegisterID)Inst.Op_RegUInt16.B);
+		((UInt16*)&_Register)[3] = Inst.Op_ValUInt16.A;
+		#endif
 	}
 	InsBreak();
 	InsCase(Cout_Char):

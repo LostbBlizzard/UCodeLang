@@ -124,11 +124,20 @@ static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 {	
 	AddMapValueValue(Exit,InstructionSet::Exit,OpCodeType::AnyInt8,OpCodeType::NoOpCode),
 	AddMapValueValue(Ret,InstructionSet::Return,OpCodeType::NoOpCode,OpCodeType::NoOpCode),
-	AddMapValueValue(Call,InstructionSet::Call,OpCodeType::InsAddress,OpCodeType::NoOpCode),
+
+	AddMapValueValue(Callv1,InstructionSet::Callv1,OpCodeType::InsAddress,OpCodeType::NoOpCode),
+	AddMapValueValue(Callv2,InstructionSet::Callv2,OpCodeType::InsAddress,OpCodeType::NoOpCode),
+	AddMapValueValue(Callv3,InstructionSet::Callv3,OpCodeType::InsAddress,OpCodeType::NoOpCode),
+	AddMapValueValue(Callv4,InstructionSet::Callv4,OpCodeType::InsAddress,OpCodeType::NoOpCode),
+	
 	AddMapValueValue(Callif,InstructionSet::CallIf,OpCodeType::InsAddress,OpCodeType::Register),
 	AddMapValueValue(CallReg,InstructionSet::CallReg,OpCodeType::Register,OpCodeType::NoOpCode),
 
-	AddMapValueValue(Jump,InstructionSet::Jump,OpCodeType::InsAddress,OpCodeType::NoOpCode),
+	AddMapValueValue(Jumpv1,InstructionSet::Jumpv1,OpCodeType::InsAddress,OpCodeType::NoOpCode),
+	AddMapValueValue(Jumpv2,InstructionSet::Jumpv2,OpCodeType::InsAddress,OpCodeType::NoOpCode),
+	AddMapValueValue(Jumpv3,InstructionSet::Jumpv3,OpCodeType::InsAddress,OpCodeType::NoOpCode),
+	AddMapValueValue(Jumpv4,InstructionSet::Jumpv4,OpCodeType::InsAddress,OpCodeType::NoOpCode),
+
 	AddMapValueValue(Jumpif,InstructionSet::Jumpif,OpCodeType::InsAddress,OpCodeType::Register),
 	AddMapValueValue(JumpReg,InstructionSet::JumpReg,OpCodeType::Register,OpCodeType::NoOpCode),
 
@@ -178,7 +187,12 @@ static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 
 	AddMapValueValue(Malloc,InstructionSet::Malloc,OpCodeType::Register,OpCodeType::Register),
 	AddMapValueValue(Free,InstructionSet::Free,OpCodeType::Register,OpCodeType::NoOpCode),
-	AddMapValueValue(LoadFuncPtr,InstructionSet::LoadFuncPtr,OpCodeType::InsAddress,OpCodeType::Register),
+
+	AddMapValueValue(LoadFuncPtrv1,InstructionSet::LoadFuncPtrV1,OpCodeType::InsAddress,OpCodeType::Register),
+	AddMapValueValue(LoadFuncPtrv2,InstructionSet::LoadFuncPtrV2,OpCodeType::InsAddress,OpCodeType::Register),
+	AddMapValueValue(LoadFuncPtrv3,InstructionSet::LoadFuncPtrV3,OpCodeType::InsAddress,OpCodeType::Register),
+	AddMapValueValue(LoadFuncPtrv4,InstructionSet::LoadFuncPtrV4,OpCodeType::InsAddress,OpCodeType::Register),
+
 	AddMapValueValue(GetPointerOfStack,InstructionSet::GetPointerOfStack,OpCodeType::Register,OpCodeType::AnyInt16),
 	AddMapValueValue(GetPointerOfStackSub,InstructionSet::GetPointerOfStackSub,OpCodeType::Register,OpCodeType::AnyInt16),
 

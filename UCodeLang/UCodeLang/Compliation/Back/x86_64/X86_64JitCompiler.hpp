@@ -8,7 +8,7 @@ UCodeLangStart
 
 
 
-class X86_64JitCompiler
+class X86_64JitCompiler :public JitCompiler
 {
 public:
 	using InterpreterCPPinterface_SetRet = void(*)(void* Input);
@@ -38,39 +38,14 @@ public:
 
 	X86_64JitCompiler();
 	~X86_64JitCompiler();
-	void Reset();
+	void Reset()  JitCompilerOverride;
 
 
-	bool BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress, Vector<Byte>& X64Output);
+	bool BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress, Vector<Byte>& X64Output) JitCompilerOverride;
 
-	void SubCall(JitInfo::FuncType Value, uintptr_t CPPOffset, void* X64Output);
+	void SubCall(FuncType Value, uintptr_t CPPOffset, void* X64Output) JitCompilerOverride;
 	
 	UAddress OnUAddressPar=0;
-
-	//UCodeLang::InterpreterCPPinterface::Set_Return
-	InterpreterCPPinterface_SetRet  InterpreterCPPinterface_Set_ReturnPtr = nullptr;
-	InterpreterCPPinterface_GetParm InterpreterCPPinterface_Get_Par = nullptr;
-	JitBuildAddress BuildAddressPtr = nullptr;
-	const ClassMethod* Func =nullptr;
-	RunTimeLangState* State = nullptr;
-
-
-	struct UnLoadedFuncPlaceHolder
-	{
-		size_t Offset = 0;
-	};
-
-	struct FuncToLink
-	{
-		size_t CPPOffset = 0;
-		UAddress OnUAddress = 0;
-	};
-	Vector<FuncToLink> LinkingData;
-
-	BinaryVectorMap<UAddress,UnLoadedFuncPlaceHolder> FuncsPlaceHolder;
-	size_t Out_CppCallOffset = 0;
-	size_t Out_NativeCallOffset =0;
-	size_t BufferOffset = 0;
 private:
 	Vector<Byte>* Output = nullptr;
 	Vector<Instruction>* _Ins =nullptr;

@@ -258,12 +258,16 @@ void UCodeBackEndObject::DoOptimizations()
 					size_t Hash2 = Item2->_Hash.value();
 					if (Hash == Hash2)
 					{
+						UCodeLangUnreachable();//this may not work
 						Item2->_AutoJumpTo = Item.get();
 
 						Item2->_Ins.clear();
 						Item2->FuncsToLink.clear();
 
-						InstructionBuilder::Jump(NullAddress, _Ins);
+						InstructionBuilder::Jumpv1(NullAddress, _Ins);
+						InstructionBuilder::Jumpv2(NullAddress, _Ins);
+						InstructionBuilder::Jumpv3(NullAddress, _Ins);
+						InstructionBuilder::Jumpv4(NullAddress, _Ins);
 
 						FuncInsID Jump;
 						Jump.Index = 0;
@@ -280,9 +284,10 @@ void UCodeBackEndObject::DoOptimizations()
 }
 void UCodeBackEndObject::LinkFuncs()
 {
+	auto& InsList = _OutLayer->Get_Instructions();
 	for (auto& Item : FuncsToLink)
 	{
-		Instruction& Ins =_OutLayer->Get_Instructions()[Item.Index];
+		Instruction& Ins = InsList[Item.Index];
 
 
 		Optional<UAddress> funcpos;
@@ -296,51 +301,27 @@ void UCodeBackEndObject::LinkFuncs()
 		}
 		UCodeLangAssert(funcpos.has_value());
 
+		UAddress tocall = funcpos.value();
 
-		auto tocall = funcpos.value();
-		if (funcpos.value() > UInt16_MaxSize)
+		if (Ins.OpCode == InstructionSet::Callv1)
 		{
-			if (funcpos.value() == UInt64_MaxSize)
-			{
-				RegisterID ptr = RegisterID::A;
-
-				size_t diff = _OutLayer->Get_Instructions().size() - Item.Index;
-				UCodeLangAssert(diff < UInt16_MaxSize);//We needa beter way
-
-				
-				tocall = _OutLayer->Get_Instructions().size()-1;
-				
-				_OutLayer->Add_NameToInstruction(tocall+1, CompilerGenerated("farcall") + (String)"-" + _Input->FromID(Item._FuncID));
-
-
-				if (Get_Settings().PtrSize == IntSizes::Int32)
-				{
-					InstructionBuilder::Store32_V1(_Ins, ptr, (UInt32)0); PushIns();
-					InstructionBuilder::Store32_V2(_Ins, ptr, (UInt32)0); PushIns();
-				}
-				else
-				{
-					InstructionBuilder::Store64_V1(_Ins, ptr, (UInt64)0); PushIns();
-					InstructionBuilder::Store64_V2(_Ins, ptr, (UInt64)0); PushIns();
-					InstructionBuilder::Store64_V3(_Ins, ptr, (UInt64)0); PushIns();
-					InstructionBuilder::Store64_V4(_Ins, ptr, (UInt64)0); PushIns();
-				}
-				InstructionBuilder::LoadEffectiveAddressS(_Ins, ptr, 1, ptr); PushIns();
-				InstructionBuilder::JumpReg(ptr, _Ins); PushIns();
-			}
-			else
-			{
-				UCodeLangUnreachable();
+			InstructionBuilder::Callv1(tocall, Ins);
+			InstructionBuilder::Callv2(tocall, InsList[Item.Index + 1]);
+			
+			if (Get_Settings().PtrSize == IntSizes::Int64) {
+				InstructionBuilder::Callv3(tocall, InsList[Item.Index + 2]);
+				InstructionBuilder::Callv4(tocall, InsList[Item.Index + 3]);
 			}
 		}
-
-		if (Ins.OpCode == InstructionSet::Call)
+		else if (Ins.OpCode == InstructionSet::LoadFuncPtrV1)
 		{
-			InstructionBuilder::Call(tocall, Ins);
-		}
-		else if (Ins.OpCode == InstructionSet::LoadFuncPtr)
-		{
-			InstructionBuilder::LoadFuncPtr(tocall, Ins.Op_OneReg.A, Ins);
+			InstructionBuilder::LoadFuncPtr_V1(tocall, Ins.Op_OneReg.A, Ins);
+			InstructionBuilder::LoadFuncPtr_V2(tocall, Ins.Op_OneReg.A, InsList[Item.Index + 1]);
+			if (Get_Settings().PtrSize == IntSizes::Int64) 
+			{
+				InstructionBuilder::LoadFuncPtr_V3(tocall, Ins.Op_OneReg.A, InsList[Item.Index + 2]);
+				InstructionBuilder::LoadFuncPtr_V4(tocall, Ins.Op_OneReg.A, InsList[Item.Index + 3]);
+			}
 		}
 		else
 		{
@@ -865,7 +846,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			auto FuncInfo = _Input->GetFunc(Item->Target().identifer);
 			auto FData = FuncCallStart(FuncInfo->Pars, FuncInfo->ReturnType);
 			
-			InstructionBuilder::Call(NullAddress, _Ins); PushIns();
+			InstructionBuilder::Callv1(NullAddress, _Ins); PushIns();
 
 			FuncInsID Tep;
 			Tep.Index = _OutLayer->Get_Instructions().size() - 1;
@@ -873,7 +854,12 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 
 			FuncsToLink.push_back(Tep);
 
-		
+			InstructionBuilder::Callv2(NullAddress, _Ins); PushIns();
+
+			if (Get_Settings().PtrSize == IntSizes::Int64) {
+				InstructionBuilder::Callv3(NullAddress, _Ins); PushIns();
+				InstructionBuilder::Callv4(NullAddress, _Ins); PushIns();
+			}
 
 			FuncCallEnd(FData);
 		}
@@ -896,8 +882,15 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			goto DoneLoop;
 			break;
 		case IRInstructionType::Jump:
-			InstructionBuilder::Jump(NullAddress, _Ins); PushIns();
+			InstructionBuilder::Jumpv1(NullAddress, _Ins); PushIns();
 			InsToUpdate.push_back({ _OutLayer->Get_Instructions().size(), Item->Target().Value.AsUIntNative });
+
+			InstructionBuilder::Jumpv2(NullAddress, _Ins); PushIns();
+
+			if (Get_Settings().PtrSize == IntSizes::Int64) {
+				InstructionBuilder::Jumpv3(NullAddress, _Ins); PushIns();
+				InstructionBuilder::Jumpv4(NullAddress, _Ins); PushIns();
+			}
 			break;
 		case IRInstructionType::ConditionalJump:
 			InstructionBuilder::Jumpif(NullAddress, MakeIntoRegister(Item, Item->Input()), _Ins); PushIns();
@@ -1274,16 +1267,32 @@ DoneLoop:
 
 	for (auto& Item : InsToUpdate)
 	{
-		Instruction& Ins = _OutLayer->Get_Instructions()[Item.InsToUpdate - 1];
+		auto& Inst = _OutLayer->Get_Instructions();
+		size_t Index = Item.InsToUpdate - 1;
+		Instruction& Ins = _OutLayer->Get_Instructions()[Index];
 		UAddress JumpPos = IRToUCodeIns[Item.Jumpto];
 
-		if (Ins.OpCode == InstructionSet::Jump) 
+		if (Ins.OpCode == InstructionSet::Jumpv1) 
 		{
-			InstructionBuilder::Jump(JumpPos, Ins);
+			InstructionBuilder::Jumpv1(JumpPos, Ins);
+			InstructionBuilder::Jumpv2(JumpPos, Inst[Index + 1]);
+
+			if (Get_Settings().PtrSize == IntSizes::Int64) 
+			{
+				InstructionBuilder::Jumpv3(JumpPos, Inst[Index + 2]);
+				InstructionBuilder::Jumpv4(JumpPos, Inst[Index + 3]);
+			}
 		}
 		else
 		{
-			InstructionBuilder::Jumpif(JumpPos,Ins.Op_RegUInt16.A, Ins);
+			InstructionBuilder::Jumpv1(JumpPos, Ins);
+			InstructionBuilder::Jumpv2(JumpPos, Inst[Index + 1]);
+
+			if (Get_Settings().PtrSize == IntSizes::Int64)
+			{
+				InstructionBuilder::Jumpv3(JumpPos, Inst[Index + 2]);
+				InstructionBuilder::Jumpv4(JumpPos, Inst[Index + 3]);
+			}
 		}
 	}
 }
@@ -2174,13 +2183,17 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction* Ins, const  IROperato
 	{
 		auto V = GetRegisterForTep();
 
-		InstructionBuilder::LoadFuncPtr(NullAddress, V, _Ins); PushIns();
+		InstructionBuilder::LoadFuncPtr_V1(NullAddress, V, _Ins); PushIns();
 
 		FuncInsID Tep;
 		Tep.Index = _OutLayer->Get_Instructions().size() - 1;
 		Tep._FuncID = Op.identifer;
 
 		FuncsToLink.push_back(Tep);
+
+		InstructionBuilder::LoadFuncPtr_V2(NullAddress, V, _Ins); PushIns();
+		InstructionBuilder::LoadFuncPtr_V3(NullAddress, V, _Ins); PushIns();
+		InstructionBuilder::LoadFuncPtr_V4(NullAddress, V, _Ins); PushIns();
 
 		return V;
 	}

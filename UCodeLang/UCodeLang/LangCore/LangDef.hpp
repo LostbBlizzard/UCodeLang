@@ -121,6 +121,11 @@
 
 #endif
 
+
+#ifndef UCodeLangExperimental
+#define UCodeLangExperimental 0
+#endif
+
 #if UCodeLangDebug
 #define UCodeLangForceinline inline
 #else 
@@ -134,6 +139,8 @@
 #endif
 
 #endif // DEBUG
+
+
 
 #define UCodeLangConstexprForceinline constexpr UCodeLangForceinline
 
