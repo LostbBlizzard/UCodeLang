@@ -20,4 +20,6 @@ UCodeAPI/StandardLibrary/out/
 UCodeAPI/NStandardLibrary/int/
 UCodeAPI/NStandardLibrary/out/
 
-
+UCodeIDE/src/tepfiles/src.uc
+UCodeIDE/src/imgui.ini
+UCodeIDE/src/out.data
