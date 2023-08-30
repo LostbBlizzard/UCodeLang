@@ -33,10 +33,10 @@ struct UFileHandle
 	};
 
 	static UCodeLangAPIExport Handle Open(const Span<char> path, FileOpenMode Mode);
-	static UCodeLangAPIExport Handle Open(const Span<PathChar> path, FileOpenMode Mode);
+	static UCodeLangAPIExport Handle Openn(const Span<PathChar> path, FileOpenMode Mode);
 
 	static UCodeLangAPIExport Handle Open(const char* path, size_t Size, FileOpenMode Mode);
-	static UCodeLangAPIExport Handle Open(const PathChar* path, size_t Size, FileOpenMode Mode);
+	static UCodeLangAPIExport Handle Openn(const PathChar* path, size_t Size, FileOpenMode Mode);
 
 	static UCodeLangAPIExport bool Is_open(Handle Handle);
 	static UCodeLangAPIExport void Close(Handle Handle);
@@ -51,14 +51,14 @@ struct UFileHandle
 	static UCodeLangAPIExport size_t GetPos(Handle Handle);
 
 	static UCodeLangAPIExport bool FileExist(const Span<char> path);
-	static UCodeLangAPIExport bool FileExist(const Span<PathChar> path);
+	static UCodeLangAPIExport bool FileExistn(const Span<PathChar> path);
 	static UCodeLangAPIExport bool FileExist(const char* path, size_t Size);
-	static UCodeLangAPIExport bool FileExist(const PathChar* path, size_t Size);
+	static UCodeLangAPIExport bool FileExistn(const PathChar* path, size_t Size);
 
 	static UCodeLangAPIExport bool FileRemove(const Span<char> path);
-	static UCodeLangAPIExport bool FileRemove(const Span<PathChar> path);
+	static UCodeLangAPIExport bool FileRemoven(const Span<PathChar> path);
 	static UCodeLangAPIExport bool FileRemove(const char* path, size_t Size);
-	static UCodeLangAPIExport bool FileRemove(const PathChar* path, size_t Size);
+	static UCodeLangAPIExport bool FileRemoven(const PathChar* path, size_t Size);
 };
 
 //Type the Interpreter,Jit-Interpreter,Native Interpreter Uses this to do Networking operations

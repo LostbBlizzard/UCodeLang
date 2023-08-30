@@ -74,6 +74,12 @@ using PathChar = Path::value_type;
 using PathView = std::basic_string_view<PathChar>;
 using PathStr = Path::string_type;
 
+
+using ULangPathChar = char;
+using ULangPathView = std::basic_string_view<ULangPathChar>;
+using ULangPathStr = std::basic_string<ULangPathChar>;
+
+
 template<typename T> using Unique_ptr = std::unique_ptr<T>;
 template<typename T> using Unique_Array = std::unique_ptr<T[]>;
 

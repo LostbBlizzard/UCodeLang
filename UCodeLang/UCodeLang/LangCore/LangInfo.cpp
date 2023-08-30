@@ -7,7 +7,7 @@
 #if UCodeLang_Platform_Windows
 #include <windows.h>
 #include <shlobj.h>
-#elif UCodeLang_Platform_Linux
+#elif UCodeLang_Platform_Posix
 #include <unistd.h>
 #include <sys/types.h>
 #include <pwd.h>
@@ -40,7 +40,7 @@ Path LangInfo::GetUCodeGlobalDirectory()
     {
         return "";
     }
-    #elif UCodeLang_Platform_Linux
+    #elif UCodeLang_Platform_Posix
     struct passwd *pw = getpwuid(getuid());
 
     const char *homedir = pw->pw_dir;

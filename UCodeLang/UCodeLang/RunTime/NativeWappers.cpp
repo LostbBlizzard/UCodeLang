@@ -15,7 +15,7 @@ UCodeLangAPIExport UFileHandle::Handle UFileHandle::Open(const Span<char> path, 
 	}
 	else
 	{
-		mode = 0;
+		mode = {};
 	}
 
 	if (Mode.Io== IoMode::In)
@@ -33,13 +33,13 @@ UCodeLangAPIExport UFileHandle::Handle UFileHandle::Open(const Span<char> path, 
 	}
 
 
-	return (Handle)new std::fstream(String_view(path.Data(), path.Size()));
+	return (Handle)new std::fstream((String)String_view(path.Data(), path.Size()));
 }
 
-UCodeLangAPIExport UFileHandle::Handle UFileHandle::Open(const Span<PathChar> path, FileOpenMode Mode)
+UCodeLangAPIExport UFileHandle::Handle UFileHandle::Openn(const Span<PathChar> path, FileOpenMode Mode)
 {
 	std::ios_base::openmode mode;
-	return (Handle)new std::fstream(PathView(path.Data(), path.Size()), mode);
+	return (Handle)new std::fstream((Path)PathView(path.Data(), path.Size()), mode);
 }
 
 UCodeLangAPIExport UFileHandle::Handle UFileHandle::Open(const char* path, size_t Size, FileOpenMode Mode)
@@ -47,7 +47,7 @@ UCodeLangAPIExport UFileHandle::Handle UFileHandle::Open(const char* path, size_
 	return Open(Span<char>::Make(path, Size), Mode);
 }
 
-UCodeLangAPIExport UFileHandle::Handle UFileHandle::Open(const PathChar* path, size_t Size, FileOpenMode Mode)
+UCodeLangAPIExport UFileHandle::Handle UFileHandle::Openn(const PathChar* path, size_t Size, FileOpenMode Mode)
 {
 	return Open(Span<PathChar>::Make(path, Size), Mode);
 }
@@ -88,7 +88,11 @@ UCodeLangAPIExport void UFileHandle::SetPos(Handle Handle, size_t Size, PosType 
 	switch (Type)
 	{
 	case UCodeLang::UFileHandle::PosType::Set:
-		f.seekp(Size, 0);
+	#if UCodeLangMSVC
+	f.seekp(Size, 0);
+	#else
+	f.seekp(Size);
+	#endif
 		break;
 	case UCodeLang::UFileHandle::PosType::Start:
 		f.seekp(Size, std::ios::beg);
@@ -112,7 +116,7 @@ UCodeLangAPIExport bool UFileHandle::FileExist(const Span<char> path)
 {
 	return std::filesystem::exists(String_view(path.Data(), path.Size()));
 }
-UCodeLangAPIExport bool UFileHandle::FileExist(const Span<PathChar> path)
+UCodeLangAPIExport bool UFileHandle::FileExistn(const Span<PathChar> path)
 {
 	return std::filesystem::exists(PathView(path.Data(), path.Size()));
 }
@@ -122,16 +126,16 @@ UCodeLangAPIExport bool UFileHandle::FileExist(const char* path, size_t Size)
 	return FileExist(Span<char>::Make(path, Size));
 }
 
-UCodeLangAPIExport bool UFileHandle::FileExist(const PathChar* path, size_t Size)
+UCodeLangAPIExport bool UFileHandle::FileExistn(const PathChar* path, size_t Size)
 {
-	return FileExist(Span<PathChar>::Make(path,Size));
+	return FileExistn(Span<PathChar>::Make(path,Size));
 }
 
 UCodeLangAPIExport bool UFileHandle::FileRemove(const Span<char> path)
 {
 	return std::filesystem::remove(String_view(path.Data(), path.Size()));
 }
-UCodeLangAPIExport bool UFileHandle::FileRemove(const Span<PathChar> path)
+UCodeLangAPIExport bool UFileHandle::FileRemoven(const Span<PathChar> path)
 {
 	return std::filesystem::remove(PathView(path.Data(), path.Size()));
 }
@@ -141,9 +145,9 @@ UCodeLangAPIExport bool UFileHandle::FileRemove(const char* path, size_t Size)
 	return FileRemove(Span<char>::Make(path, Size));
 }
 
-UCodeLangAPIExport bool UFileHandle::FileRemove(const PathChar* path, size_t Size)
+UCodeLangAPIExport bool UFileHandle::FileRemoven(const PathChar* path, size_t Size)
 {
-	return FileRemove(Span<PathChar>::Make(path, Size));
+	return FileRemoven(Span<PathChar>::Make(path, Size));
 }
 
 
