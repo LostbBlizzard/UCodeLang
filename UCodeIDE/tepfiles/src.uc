@@ -1,6 +1,10 @@
-
+$func2 = |[] -> int;
 |func[] => 0;
-|main[] => 1;
+|main[]:
+ func2 v = func;
+ v(); 
+ var v2 = |[] => 0;
+ v2();
 /*
 |main[] -> async<bool>:
  async<int> a = await func();

@@ -424,6 +424,7 @@ public:
 		ToBytes(Output, Tags.Attributes);
 	}
 	static void ToBytes(BitMaker& Output, const ClassMethod::Par& Par);
+	static void ToBytes(BitMaker& Output, const FuncPtr_Data& FuncPtrData);
 	//
 	static bool FromBytes(UClib* Lib,const BytesView& Data);
 
@@ -448,7 +449,7 @@ public:
 	{
 		FromBytes(reader, Attributes.Attributes);
 	}
-
+	static void FromBytes(BitReader& reader, FuncPtr_Data& Ptr);
 	static void FromBytes(BitReader& Input, ClassMethod::Par& Data);
 	//
 

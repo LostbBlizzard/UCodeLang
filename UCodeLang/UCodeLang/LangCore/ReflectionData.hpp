@@ -366,6 +366,8 @@ struct StaticArray_Data
 };
 struct FuncPtr_Data
 {
+	ReflectionTypeInfo RetType;
+	Vector<ClassMethod::Par> ParsType;
 	~FuncPtr_Data()
 	{
 
@@ -641,6 +643,15 @@ public:
 		r.Name = Name;
 		r.FullName = FullName;
 		return r.Get_TagData();
+	}
+	inline FuncPtr_Data& AddFuncPtr(const String& Name, const String& FullName = "")
+	{
+		auto V = std::make_unique<AssemblyNode>(ClassType::FuncPtr);
+		Classes.push_back(std::move(V));
+		auto& r = *Classes.back();
+		r.Name = Name;
+		r.FullName = FullName;
+		return r.Get_FuncPtr();
 	}
 	static void PushCopyClasses(const ClassAssembly& source, ClassAssembly& Out);
 	AssemblyNode* Find_Node(const String& Name, const String& Scope ="")

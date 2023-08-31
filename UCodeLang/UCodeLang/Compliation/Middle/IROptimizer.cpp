@@ -250,9 +250,15 @@ void IROptimizer::UpdateOptimizationList()
 			Optimization_RemoveFuncsWithSameBody = true;
 		}	
 		Optimization_ConstantFoldVarables = true;
+		Optimization_IndirectMemeberToDirectMemeber = true;
+		Optimization_ConstantFuncPtrToDirectCall = true;
 	}
 	if (ForSpeed)
 	{
+		if (ForDebuging == false)
+		{
+			Optimization_Destructure = true;
+		}
 		Optimization_ShortFuncInline = true;
 	}
 }
@@ -371,29 +377,61 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 
 				if (Ins->A.Type == IROperatorType::Value && Ins->B.Type == IROperatorType::Value)
 				{
-					if (Ins->ObjectType.IsType(IRTypes::i8))
+					bool ok = true;
+					if (Ins->Type == IRInstructionType::UDiv || Ins->Type == IRInstructionType::SDiv)
 					{
-						ConstantBinaryFold(8);
-						Ins->Type = IRInstructionType::Load;
-						UpdatedCode();
+						if (Ins->ObjectType.IsType(IRTypes::i8))
+						{
+							ok = Ins->B.Value.AsInt8 != 0;
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::i16))
+						{
+							ok = Ins->B.Value.AsInt16 != 0;
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::i32))
+						{
+							ok = Ins->B.Value.AsInt32 != 0;
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::i64))
+						{
+							ok = Ins->B.Value.AsInt64 != 0;
+						}
+						else
+						{
+							UCodeLangUnreachable();
+						}
 					}
-					else if (Ins->ObjectType.IsType(IRTypes::i16))
+
+					if (ok) 
 					{
-						ConstantBinaryFold(16);
-						Ins->Type = IRInstructionType::Load;
-						UpdatedCode();
-					}
-					else if (Ins->ObjectType.IsType(IRTypes::i32))
-					{
-						ConstantBinaryFold(32);
-						Ins->Type = IRInstructionType::Load;
-						UpdatedCode();
-					}
-					else if (Ins->ObjectType.IsType(IRTypes::i64))
-					{
-						ConstantBinaryFold(64);
-						Ins->Type = IRInstructionType::Load;
-						UpdatedCode();
+						if (Ins->ObjectType.IsType(IRTypes::i8))
+						{
+							ConstantBinaryFold(8);
+							Ins->Type = IRInstructionType::Load;
+							UpdatedCode();
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::i16))
+						{
+							ConstantBinaryFold(16);
+							Ins->Type = IRInstructionType::Load;
+							UpdatedCode();
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::i32))
+						{
+							ConstantBinaryFold(32);
+							Ins->Type = IRInstructionType::Load;
+							UpdatedCode();
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::i64))
+						{
+							ConstantBinaryFold(64);
+							Ins->Type = IRInstructionType::Load;
+							UpdatedCode();
+						}
+						else
+						{
+							UCodeLangUnreachable();
+						}
 					}
 				}
 			}
@@ -412,6 +450,20 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 			else if (Ins->Type == IRInstructionType::Call)
 			{
 
+			}
+			else if (Ins->Type == IRInstructionType::CallFuncPtr)
+			{
+				ConstantFoldOperator(*Ins, Ins->Target(), ReadOrWrite::Read);
+				
+				if (Optimization_ConstantFuncPtrToDirectCall) 
+				{
+					if (Ins->Target().Type == IROperatorType::Get_Func_Pointer)
+					{
+						auto func = Ins->Target().identifer;
+						Ins->Type = IRInstructionType::Call;
+						Ins->Target().identifer = func;
+					}
+				}
 			}
 			else if (Ins->Type == IRInstructionType::LoadNone)
 			{

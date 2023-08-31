@@ -107,7 +107,15 @@ void UClib::ToBytes(BitMaker& Output, const ClassAssembly& Assembly)
 			ToBytes(Output, TraitData);
 		}
 		break;
+		case ClassType::FuncPtr:
+		{
+			auto& FuncPtrData = Item->Get_FuncPtr();
+
+			ToBytes(Output, FuncPtrData);
+		}
+		break;
 		default:
+			UCodeLangUnreachable();
 			break;
 		}
 	}
@@ -292,6 +300,15 @@ void UClib::ToBytes(BitMaker& Output, const ClassMethod::Par& Par)
 {
 	Output.WriteType(Par.IsOutPar);
 	ToBytes(Output, Par.Type);
+}
+void UClib::ToBytes(BitMaker& Output, const FuncPtr_Data& FuncPtrData)
+{
+	ToBytes(Output, FuncPtrData.RetType);
+	Output.WriteType((BitMaker::SizeAsBits)FuncPtrData.ParsType.size());
+	for (auto& Item : FuncPtrData.ParsType)
+	{
+		ToBytes(Output, Item);
+	}
 }
 bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 {
@@ -663,7 +680,14 @@ void UClib::FromBytes(BitReader& reader, ClassAssembly& Assembly)
 			FromBytes(reader, Trait);
 		}
 		break;
+		case ClassType::FuncPtr:
+		{
+			auto& FuncPtr = _Node.Get_FuncPtr();
+			FromBytes(reader, FuncPtr);
+		}
+		break;
 		default:
+			UCodeLangUnreachable();
 			break;
 		}
 		Assembly.Classes.push_back(std::make_unique<AssemblyNode>(std::move(_Node)));
@@ -792,6 +816,18 @@ void UClib::FromBytes(BitReader& Input, Trait_Data& Data)
 void UClib::FromBytes(BitReader& Input, InheritedTrait_Data& Data)
 {
 	Input.ReadType(Data.TraitID, Data.TraitID);
+}
+void UClib::FromBytes(BitReader& reader, FuncPtr_Data& Ptr)
+{
+	FromBytes(reader, Ptr.RetType);
+
+	BitMaker::SizeAsBits V = 0;
+	reader.ReadType(V, V);
+	Ptr.ParsType.resize(V);
+	for (size_t i = 0; i < (size_t)V; i++)
+	{
+		FromBytes(reader, Ptr.ParsType[i]);
+	}
 }
 void UClib::FromBytes(BitReader& Input, ClassMethod::Par& Data)
 {

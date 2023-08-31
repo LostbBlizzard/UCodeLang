@@ -65,6 +65,9 @@ private:
 	bool Optimization_ConstantFoldVarables = false;
 	bool Optimization_RemoveUnusePars = false;
 	bool Optimization_RemoveFuncsWithSameBody = false;
+	bool Optimization_IndirectMemeberToDirectMemeber = false;
+	bool Optimization_Destructure = false;
+	bool Optimization_ConstantFuncPtrToDirectCall = false;
 	void ResetOptimizations()
 	{
 		Optimization_ShortFuncInline = false;
@@ -72,6 +75,9 @@ private:
 		Optimization_ConstantFoldVarables = false;
 		Optimization_RemoveUnusePars = false;
 		Optimization_RemoveFuncsWithSameBody = false;
+		Optimization_IndirectMemeberToDirectMemeber = false;
+		Optimization_Destructure = false;
+		Optimization_ConstantFuncPtrToDirectCall = false;
 	}
 	//
 	
