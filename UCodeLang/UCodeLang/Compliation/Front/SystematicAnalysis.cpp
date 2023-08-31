@@ -1825,15 +1825,32 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 	}
 	else if (_PassType == PassType::BuidCode)
 	{
-		if (!Isgeneric_t) {
-			auto& V = _Lib.Get_Assembly().AddAlias((String)ClassName, _Table._Scope.ThisScope);
-			V.Type = Assembly_ConvertToType(Syb.VarType);
-
-			if (node._IsHardAlias)
+		if (!Isgeneric_t) 
+		{
+			if (node._AliasType == AliasType::Type)
 			{
-				V.HardAliasTypeID = Type_GetTypeID(TypesEnum::CustomType, Syb.ID);
+				auto& V = _Lib.Get_Assembly().AddAlias((String)ClassName, _Table._Scope.ThisScope);
+				V.Type = Assembly_ConvertToType(Syb.VarType);
+
+				if (node._IsHardAlias)
+				{
+					V.HardAliasTypeID = Type_GetTypeID(TypesEnum::CustomType, Syb.ID);
+				}
+				FileDependency_AddDependencyToCurrentFile(Syb.VarType);
 			}
-			FileDependency_AddDependencyToCurrentFile(Syb.VarType);
+			else
+			{
+				auto& V = _Lib.Get_Assembly().AddFuncPtr((String)ClassName, _Table._Scope.ThisScope);
+				const FuncPtrInfo* nodeinfo_ = Syb.Get_Info<FuncPtrInfo>();
+				V.ParsType.resize(nodeinfo_->Pars.size());
+				for (size_t i = 0; i < nodeinfo_->Pars.size(); i++)
+				{
+					//TODO should use a funcion like Assembly_ConvertToParType.
+					V.ParsType[i].IsOutPar = nodeinfo_->Pars[i].IsOutPar;
+					V.ParsType[i].Type = Assembly_ConvertToType(nodeinfo_->Pars[i].Type);
+				}
+				V.RetType = Assembly_ConvertToType(nodeinfo_->Ret);
+			}
 		}
 	}
 
@@ -7793,6 +7810,12 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 			Out.Type = SymbolVar->VarType;
 			Out._Symbol = SymbolVar;
 
+			if (SymbolVar->Type == SymbolType::Func)
+			{
+				auto funcinfo = SymbolVar->Get_Info<FuncInfo>();
+				auto StrFunc = GetTepFuncPtrName(funcinfo);
+				Out.Type = TypeSymbol(GetTepFuncPtrSyb(StrFunc, funcinfo)->ID);
+			}
 			
 			if (SymbolVar->Type == SymbolType::Class_Field)
 			{
@@ -12834,14 +12857,15 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 
 
 			
-			if (SybV->Type == SymbolType::Type_alias)
+			if (SybV->Type == SymbolType::Type_alias || SybV->Type == SymbolType::Func_ptr)
 			{
 				Symbol_Update_Sym_ToFixedTypes(SybV);
 				Out = SybV->VarType;
 			}
 			else if (SybV->Type == SymbolType::Hard_Type_alias
 				|| SybV->Type == SymbolType::Enum
-				|| SybV->Type == SymbolType::Type_class)
+				|| SybV->Type == SymbolType::Type_class
+				|| SybV->Type == SymbolType::Hard_Func_ptr)
 			{
 				Symbol_Update_Sym_ToFixedTypes(SybV);
 				Out.SetType(SybV->ID);

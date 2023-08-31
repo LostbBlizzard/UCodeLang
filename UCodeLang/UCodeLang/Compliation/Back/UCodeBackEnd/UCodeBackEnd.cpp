@@ -949,7 +949,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		break;
 		case IRInstructionType::CallFuncPtr:
 		{
-			auto FuncInfo = _Input->GetSymbol(Item->Target().identifer)->Get_ExAs<IRFuncPtr>();
+			auto FuncInfo = _Input->GetSymbol(GetType(Item->Target())._symbol)->Get_ExAs<IRFuncPtr>();
 			auto FData = FuncCallStart(FuncInfo->Pars, FuncInfo->Ret);
  
 			InstructionBuilder::CallReg(MakeIntoRegister(Item,Item->Target()), _Ins); PushIns();
@@ -2750,6 +2750,11 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 					UCodeLangUnreachable();
 				}
 			}
+		}
+		else if (Op.Type == IROperatorType::Get_Func_Pointer)
+		{
+			CompilerRet.Info = LoadOp(Ins, Op);
+			CompilerRet.ObjectType = GetType(Ins);
 		}
 		else
 		{

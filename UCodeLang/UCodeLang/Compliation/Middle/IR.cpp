@@ -147,7 +147,7 @@ IRType IRBuilder::GetType(const IRInstruction* IR, const IROperator& Op) const
 		}
 	}
 
-	if (IsLoadValueOnlyInTarget(IR->Type))
+	if (IsOperatorValueInTarget(IR->Type))
 	{
 		if (IR->Type == IRInstructionType::Reassign || IR->Type == IRInstructionType::Reassign_dereference)
 		{
@@ -237,6 +237,10 @@ IRType IRBuilder::GetType(const IROperator& IR) const
 		{
 			return IRType(IRTypes::pointer);
 		}
+	}
+	case IROperatorType::Get_Func_Pointer:
+	{
+		return  IRType(IRTypes::pointer);
 	}
 	default:
 		UCodeLangUnreachable();

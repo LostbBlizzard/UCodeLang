@@ -190,7 +190,12 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 		case ClassType::Alias:
 		{
 			auto& Class = Item->Get_AliasData();
-			r += "$" + Item->FullName + " = " + ToString(Class.Type, Assembly) + ";\n\n";
+			r += "$" + Item->FullName + " = ";
+
+			if (Class.HardAliasTypeID.has_value()) {
+				r += "!";
+			}
+			r += ToString(Class.Type, Assembly) + ";\n\n";
 		}
 		break;
 		case ClassType::Enum:
@@ -227,7 +232,27 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 			r += "\n\n";
 		}
 		break;
+		case ClassType::FuncPtr:
+		{
+			auto& FuncPtr = Item->Get_FuncPtr();
+
+			r += "$" + Item->FullName + " = |[";
+
+			for (auto& Item : FuncPtr.ParsType)
+			{
+				r += ToString(Item, Assembly);
+				if (&Item != &FuncPtr.ParsType.back())
+				{
+					r += ",";
+				}
+			}
+
+			r += "] -> ";
+			r += ToString(FuncPtr.RetType, Assembly) + ";\n\n";
+		}
+		break;
 		default:
+			UCodeLangUnreachable();
 			break;
 		} 
 	}

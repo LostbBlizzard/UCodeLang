@@ -188,10 +188,10 @@ static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 	AddMapValueValue(Malloc,InstructionSet::Malloc,OpCodeType::Register,OpCodeType::Register),
 	AddMapValueValue(Free,InstructionSet::Free,OpCodeType::Register,OpCodeType::NoOpCode),
 
-	AddMapValueValue(LoadFuncPtrv1,InstructionSet::LoadFuncPtrV1,OpCodeType::InsAddress,OpCodeType::Register),
-	AddMapValueValue(LoadFuncPtrv2,InstructionSet::LoadFuncPtrV2,OpCodeType::InsAddress,OpCodeType::Register),
-	AddMapValueValue(LoadFuncPtrv3,InstructionSet::LoadFuncPtrV3,OpCodeType::InsAddress,OpCodeType::Register),
-	AddMapValueValue(LoadFuncPtrv4,InstructionSet::LoadFuncPtrV4,OpCodeType::InsAddress,OpCodeType::Register),
+	AddMapValueValue(LoadFuncPtrv1,InstructionSet::LoadFuncPtrV1,OpCodeType::Register,OpCodeType::InsAddress),
+	AddMapValueValue(LoadFuncPtrv2,InstructionSet::LoadFuncPtrV2,OpCodeType::Register,OpCodeType::InsAddress),
+	AddMapValueValue(LoadFuncPtrv3,InstructionSet::LoadFuncPtrV3,OpCodeType::Register,OpCodeType::InsAddress),
+	AddMapValueValue(LoadFuncPtrv4,InstructionSet::LoadFuncPtrV4,OpCodeType::Register,OpCodeType::InsAddress),
 
 	AddMapValueValue(GetPointerOfStack,InstructionSet::GetPointerOfStack,OpCodeType::Register,OpCodeType::AnyInt16),
 	AddMapValueValue(GetPointerOfStackSub,InstructionSet::GetPointerOfStackSub,OpCodeType::Register,OpCodeType::AnyInt16),
