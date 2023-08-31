@@ -49,7 +49,7 @@ UCodeLangAPIExport UFileHandle::Handle UFileHandle::Open(const char* path, size_
 
 UCodeLangAPIExport UFileHandle::Handle UFileHandle::Openn(const PathChar* path, size_t Size, FileOpenMode Mode)
 {
-	return Open(Span<PathChar>::Make(path, Size), Mode);
+	return Openn(Span<PathChar>::Make(path, Size), Mode);
 }
 
 UCodeLangAPIExport bool UFileHandle::Is_open(Handle Handle)

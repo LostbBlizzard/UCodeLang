@@ -122,13 +122,6 @@ Interpreter::Return_t Interpreter::Call(UAddress address)
 		Instruction& Inst = _State->GetInst(_CPU.ProgramCounter);
 		Extecute(Inst);	
 		_CPU.ProgramCounter++;
-
-		#if UCodeLangDebug
-		if (_CPU.ProgramCounter == 7)
-		{
-			int a = 0;
-		}
-		#endif // DEBUG
 	}
 
 	RetState State;
@@ -529,8 +522,6 @@ void Interpreter::Extecute(Instruction& Inst)
 		{
 			auto& _Register = Get_Register(RegisterID::LinkRegister);
 			((UInt16*)&_Register)[0] = Inst.Op_ValUInt16.A;
-			_CPU.Stack.PushStack(_CPU.ProgramCounter);
-			_CPU.ProgramCounter = Inst.Op_ValUInt16.A;
 		}
 		InsBreak();
 		InsCase(Callv2) :

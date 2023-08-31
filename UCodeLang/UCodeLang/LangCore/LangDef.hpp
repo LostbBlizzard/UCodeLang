@@ -113,7 +113,7 @@
 
 #if UCodeLang_Platform_Windows 
 #define UCodeLang_64BitSytem _WIN64
-#elseif __wasm64__
+#elif __wasm64__
 #define UCodeLang_64BitSytem 1
 #else 
 
