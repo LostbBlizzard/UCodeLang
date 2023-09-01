@@ -245,12 +245,17 @@ void IROptimizer::UpdateOptimizationList()
 	{
 		if (ForDebuging == false)
 		{
+			
 			Optimization_RemoveUnsedVarables = true;
 			Optimization_RemoveUnusePars = true;
 			Optimization_RemoveFuncsWithSameBody = true;
+			Optimization_LowerToBodysToCFuncions = false;
+			Optimization_InlineConditionalJump = false;
+			Optimization_RemoveUnreachable = true;
+			Optimization_RemoveUnneedMeallocAndFree = false;
 		}
 
-
+		
 		Optimization_ConstantFoldVarables = true;
 		Optimization_IndirectMemeberToDirectMemeber = true;
 		Optimization_ConstantFuncPtrToDirectCall = true;
@@ -260,6 +265,16 @@ void IROptimizer::UpdateOptimizationList()
 		if (ForDebuging == false)
 		{
 			Optimization_DestructureStructMembers = true;
+			Optimization_ReorderFuncionsInToHotSpots = true;
+			Optimization_ReorderInstructionsBaseOnMemoryAndHotSpots = true;
+			Optimization_LoopUnrolling = true;
+			Optimization_LoopFrequencyReduction = true;
+
+
+			if (IsIsolatedandIndependent)
+			{
+				Optimization_StaticAndThreadRemovealAndReadOnlyToValues = true;
+			}
 		}
 		Optimization_ShortFuncInline = true;
 	}
@@ -577,10 +592,14 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 			{
 				ConstantFoldOperator(*Ins, Ins->Target(), ReadOrWrite::Write);
 				ConstantFoldOperator(*Ins, Ins->Input(), ReadOrWrite::Read);
-}
+			}
+			else if (Ins->Type == IRInstructionType::ConditionalJump)
+			{
+
+			}
 			else
 			{
-			UCodeLangUnreachable();
+				UCodeLangUnreachable();
 			}
 
 

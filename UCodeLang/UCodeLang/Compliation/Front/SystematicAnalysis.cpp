@@ -8876,7 +8876,7 @@ void SystematicAnalysis::OnStringLiteral(const StringliteralNode* nod, bool& ret
 
 			String_view Buffer{ V.c_str(),V.size() + 1 };//for null char
 
-			auto BufferIR = _IR_Builder.FindOrAddConstStrings(Buffer);
+			auto BufferIR = _IR_Builder.FindOrAddStaticCString(Buffer);
 			_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoadPtr(BufferIR);
 
 
@@ -13137,7 +13137,7 @@ inline IRInstruction* SystematicAnalysis::IR_RawObjectDataToCString(const RawEva
 	String Str = String(String_view((const char*)EvalObject.Object_AsPointer.get(), EvalObject.ObjectSize));
 	String_view Buffer{ Str.data(),Str.size() + 1 };//for null char
 
-	auto BufferIR = _IR_Builder.FindOrAddConstStrings(Buffer);
+	auto BufferIR = _IR_Builder.FindOrAddStaticCString(Buffer);
 	return _IR_LookingAtIRBlock->NewLoadPtr(BufferIR);
 }
 

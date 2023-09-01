@@ -122,6 +122,7 @@ void AppObject::Init()
             R"(
 |func[] => 0;
 |main[] => 1;
+|CallocTest[] => new int[10];
 /*
 |main[] -> async<bool>:
  async<int> a = await func();

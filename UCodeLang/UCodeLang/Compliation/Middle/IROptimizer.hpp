@@ -45,7 +45,7 @@ public:
 
 	void Optimized(IRBuilder& IRcode);
 	
-	
+	bool IsIsolatedandIndependent = false;
 private:
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
@@ -68,6 +68,16 @@ private:
 	bool Optimization_IndirectMemeberToDirectMemeber = false;
 	bool Optimization_DestructureStructMembers = false;
 	bool Optimization_ConstantFuncPtrToDirectCall = false;
+	bool Optimization_LowerToBodysToCFuncions = false;//Working On
+	bool Optimization_InlineConditionalJump = false;
+	bool Optimization_RemoveUnreachable = false;
+	bool Optimization_ReorderFuncionsInToHotSpots = false;
+	bool Optimization_ReorderInstructionsBaseOnMemoryAndHotSpots = false;
+	bool Optimization_LoopUnrolling = false;
+	bool Optimization_LoopFrequencyReduction = false;
+	bool Optimization_LoopFrequencyReduction = false;
+	bool Optimization_StaticAndThreadRemovealAndReadOnlyToValues = false;
+	bool Optimization_RemoveUnneedMeallocAndFree = false;
 	void ResetOptimizations()
 	{
 		Optimization_ShortFuncInline = false;
@@ -78,6 +88,14 @@ private:
 		Optimization_IndirectMemeberToDirectMemeber = false;
 		Optimization_DestructureStructMembers = false;
 		Optimization_ConstantFuncPtrToDirectCall = false;
+		Optimization_LowerToBodysToCFuncions = false;
+		Optimization_InlineConditionalJump = false;
+		Optimization_RemoveUnreachable = false;
+		Optimization_ReorderFuncionsInToHotSpots = false;
+		Optimization_ReorderInstructionsBaseOnMemoryAndHotSpots = false;
+		Optimization_LoopFrequencyReduction = false;
+		Optimization_StaticAndThreadRemovealAndReadOnlyToValues = false;
+		Optimization_RemoveUnneedMeallocAndFree = false;
 	}
 	//
 	
