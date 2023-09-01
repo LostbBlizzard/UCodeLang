@@ -243,12 +243,14 @@ void IROptimizer::UpdateOptimizationList()
 	ResetOptimizations();
 	if (ForSize)
 	{
-		if (ForDebuging == false) 
+		if (ForDebuging == false)
 		{
-			Optimization_RemoveUnseddVarables = true;
+			Optimization_RemoveUnsedVarables = true;
 			Optimization_RemoveUnusePars = true;
 			Optimization_RemoveFuncsWithSameBody = true;
-		}	
+		}
+
+
 		Optimization_ConstantFoldVarables = true;
 		Optimization_IndirectMemeberToDirectMemeber = true;
 		Optimization_ConstantFuncPtrToDirectCall = true;
@@ -257,7 +259,7 @@ void IROptimizer::UpdateOptimizationList()
 	{
 		if (ForDebuging == false)
 		{
-			Optimization_Destructure = true;
+			Optimization_DestructureStructMembers = true;
 		}
 		Optimization_ShortFuncInline = true;
 	}
@@ -305,7 +307,7 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 		return;
 	}
 	SSAState _State;
-	ToSSA(Func, _State);
+	//ToSSA(Func, _State);
 	
 	LookAtfunc = Func;
 	
@@ -438,6 +440,34 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 			else if (Ins->Type == IRInstructionType::Member_Access_Dereference)
 			{
 				ConstantFoldOperator(*Ins, Ins->Target(), ReadOrWrite::Read);
+				if (Optimization_IndirectMemeberToDirectMemeber)
+				{
+					auto target = Ins->Target();
+					
+					
+					if (target.Type == IROperatorType::Get_PointerOf_IRidentifier)
+					{
+						Ins->Type = IRInstructionType::Member_Access;
+						Ins->Target() = target.identifer;
+
+						UpdatedCode();
+					}
+					else if (target.Type == IROperatorType::Get_PointerOf_IRParameter)
+					{
+						Ins->Type = IRInstructionType::Member_Access;
+						Ins->Target() = target.Parameter;
+
+						UpdatedCode();
+					}
+					else if (target.Type == IROperatorType::Get_PointerOf_IRInstruction)
+					{
+						Ins->Type = IRInstructionType::Member_Access;
+
+						Ins->Target() = target.Pointer;
+						
+						UpdatedCode();
+					}
+				}
 			}
 			else if (Ins->Type == IRInstructionType::Member_Access)
 			{
@@ -462,12 +492,74 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 						auto func = Ins->Target().identifer;
 						Ins->Type = IRInstructionType::Call;
 						Ins->Target().identifer = func;
+
+						UpdatedCode();
 					}
 				}
 			}
 			else if (Ins->Type == IRInstructionType::LoadNone)
 			{
+				if (Optimization_DestructureStructMembers) 
+				{
+					bool IsStruct = false;
+					IRStruct* structtype = nullptr;
+					if (Ins->ObjectType._Type == IRTypes::IRsymbol)
+					{
+						auto syb = Input->GetSymbol(Ins->ObjectType._symbol);
+						IsStruct = syb->SymType == IRSymbolType::Struct;
+						
+						if (IsStruct) 
+						{//Just Check for offsets and not just Union.
+							structtype = syb->Get_ExAs<IRStruct>();
 
+							IsStruct = !structtype->IsUnion;
+						}
+					}
+
+					if (IsStruct)
+					{
+						bool UsesPointerOf = false;
+						for (auto& Block : Func->Blocks)
+						{
+							for (auto& Insv : Block->Instructions)
+							{
+								auto OnOp = [&Ins, &Insv,&UsesPointerOf](IROperator& op)
+								{
+									if (op.Type == IROperatorType::Get_PointerOf_IRInstruction)
+									{
+										if (op.Pointer == Ins.get())
+										{
+											return true;
+										}
+									}
+									return false;
+								};
+								if (IsLoadValueOnlyInTarget(Insv->Type))
+								{
+									if (OnOp(Insv->Target()))
+									{
+										UsesPointerOf = true;
+										goto Done;
+									}
+								}
+								if (IsLoadValueOnInput(Insv->Type))
+								{
+									if (OnOp(Insv->Input()))
+									{
+										UsesPointerOf = true;
+										goto Done;
+									}
+								}
+							}
+						}
+					Done:
+
+						if (!UsesPointerOf)
+						{
+							DoDestructurStructMembers(Ins, structtype, Func, Block, i);
+						}
+					}
+				}
 			}
 			else if (Ins->Type == IRInstructionType::None)
 			{
@@ -493,7 +585,7 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 
 
 		}
-		if (Optimization_RemoveUnseddVarables)
+		if (Optimization_RemoveUnsedVarables)
 		{
 			for (auto& Ins : Block->Instructions)
 			{
@@ -545,8 +637,175 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 	}
 
 	if ((OptimizationFlags_t)_Settings->_Flags & (OptimizationFlags_t)OptimizationFlags::Debug) {
-		UndoSSA(Func, _State);
+		//UndoSSA(Func, _State);
 	}
+}
+void IROptimizer::DoDestructurStructMembers(UCodeLang::Unique_ptr<UCodeLang::IRInstruction>& Ins, UCodeLang::IRStruct* structtype, UCodeLang::IRFunc* Func, UCodeLang::Unique_ptr<UCodeLang::IRBlock>& Block, const size_t& i)
+{
+	//std::cout << Input->ToString() << '\n';
+	Vector<IRInstruction*> LoadFields;
+	Ins->SetAsNone();
+
+	LoadFields.resize(structtype->Fields.size());
+	for (size_t i = 0; i < structtype->Fields.size(); i++)
+	{
+		auto& Item = structtype->Fields[i];
+
+		auto v = new IRInstruction();
+		v->Type = IRInstructionType::LoadNone;
+		v->ObjectType = Item.Type;
+
+		LoadFields[i] = v;
+	}
+
+
+	//update  for stores
+	for (auto& Block : Func->Blocks)
+	{
+		for (auto& Insv : Block->Instructions)
+		{
+
+			//this does not work for stores
+			if (Insv->Type == IRInstructionType::Reassign
+				|| Insv->Type == IRInstructionType::Reassign_dereference)
+			{
+				auto& obj = Insv->Target();
+				if (obj.Type == IROperatorType::IRInstruction)
+				{
+					if (obj.Pointer->Type == IRInstructionType::Load)
+					{
+						auto ptr = obj.Pointer;
+						auto& target = ptr->Target();
+						if (target.Type == IROperatorType::IRInstruction)
+						{
+							if (Ins.get() == target.Pointer)
+							{
+								//Make TargetVec = InputVec2
+								//To
+								//TargetVec.X = InputVec2.X
+								//TargetVec.Y = InputVec2.Y
+								UCodeLangToDo();
+							}
+
+						}
+						
+						
+					}
+					else if (obj.Pointer->Type == IRInstructionType::Member_Access)
+					{
+						auto ptr = obj.Pointer;
+						auto& target = ptr->Target(); 
+						if (target.Type == IROperatorType::IRInstruction)
+						{
+							if (Ins.get() == target.Pointer)
+							{
+
+								size_t MemberIndex = obj.Pointer->Input().Value.AsUIntNative;
+
+								IRInstruction* LoadField = LoadFields[MemberIndex];
+
+								obj = LoadField;
+							}
+						}
+						else if (target.Type == IROperatorType::DereferenceOf_IRInstruction)
+						{
+							if (Ins.get() == target.Pointer)
+							{
+								UCodeLangToDo();
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	//update reads
+	for (auto& Block : Func->Blocks)
+	{
+		for (auto& Insv : Block->Instructions)
+		{
+			auto OnOp = [&LoadFields,&Ins, &Insv](IROperator& op)
+			{
+				if (op.Type == IROperatorType::IRInstruction)
+				{
+					auto target = op.Pointer;
+					if (target->Type == IRInstructionType::Member_Access)
+					{
+						auto& obj = target->Target();
+
+						if (obj.Pointer == Ins.get())
+						{
+							size_t MemberIndex = target->Input().Value.AsUIntNative;
+
+							IRInstruction* LoadField = LoadFields[MemberIndex];
+
+							op = LoadField;
+						}
+					}
+				}
+				else if (op.Type == IROperatorType::IRInstruction)
+				{
+					auto target = op.Pointer;
+					if (target->Type == IRInstructionType::Member_Access)
+					{
+						auto& obj = target->Target();
+
+						if (obj.Pointer == Ins.get())
+						{
+							UCodeLangToDo();
+						}
+					}
+				}
+			};
+
+
+			if (IsLoadValueOnlyInTarget(Insv->Type))
+			{
+				OnOp(Insv->Target());
+			}
+			if (IsLoadValueOnInput(Insv->Type))
+			{
+				OnOp(Insv->Input());
+			}
+		}
+	}
+	//remove memeber
+	for (auto& Block : Func->Blocks)
+	{
+		for (auto& Insv : Block->Instructions)
+		{
+			if (Insv->Type == IRInstructionType::Member_Access)
+			{
+				auto& obj = Insv->Target();
+				if (obj.Type == IROperatorType::IRInstruction
+					|| obj.Type == IROperatorType::DereferenceOf_IRInstruction)
+				{
+					if (obj.Pointer == Ins.get())
+					{
+						Insv->SetAsNone();
+					}
+				}
+
+			}
+		}
+	}
+
+
+	{
+		size_t LoadIndex = 0;
+		for (auto& Item : LoadFields)//the order of Fields does not doesn't matter
+		{
+			Block->Instructions.insert(
+				Block->Instructions.begin() + i + LoadIndex
+				, Unique_ptr<IRInstruction>(Item));
+
+			LoadIndex++;
+		}
+	}
+
+	UpdatedCode();
+
+	//std::cout << Input->ToString() << '\n';
 }
 void IROptimizer::CopyFuncionWithoutUnusedParAndUpdateOtherCalls(UCodeLang::IRPar& Par, UCodeLang::IRFunc* Func, const size_t& i)
 {
@@ -744,6 +1003,11 @@ void IROptimizer::ConstantFoldOperator(IRInstruction& I, IROperator& Value,ReadO
 				UpdatedCode();
 			}
 			else if (Ptr->Target().Type == IROperatorType::IRParameter)
+			{
+				Value = Ptr->Target();
+				UpdatedCode();
+			}
+			else if (Ptr->Target().Type == IROperatorType::Get_PointerOf_IRInstruction)
 			{
 				Value = Ptr->Target();
 				UpdatedCode();

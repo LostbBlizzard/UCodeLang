@@ -61,22 +61,22 @@ private:
 	}
 	//
 	bool Optimization_ShortFuncInline = false;
-	bool Optimization_RemoveUnseddVarables = false;
+	bool Optimization_RemoveUnsedVarables = false;
 	bool Optimization_ConstantFoldVarables = false;
 	bool Optimization_RemoveUnusePars = false;
 	bool Optimization_RemoveFuncsWithSameBody = false;
 	bool Optimization_IndirectMemeberToDirectMemeber = false;
-	bool Optimization_Destructure = false;
+	bool Optimization_DestructureStructMembers = false;
 	bool Optimization_ConstantFuncPtrToDirectCall = false;
 	void ResetOptimizations()
 	{
 		Optimization_ShortFuncInline = false;
-		Optimization_RemoveUnseddVarables = false;
+		Optimization_RemoveUnsedVarables = false;
 		Optimization_ConstantFoldVarables = false;
 		Optimization_RemoveUnusePars = false;
 		Optimization_RemoveFuncsWithSameBody = false;
 		Optimization_IndirectMemeberToDirectMemeber = false;
-		Optimization_Destructure = false;
+		Optimization_DestructureStructMembers = false;
 		Optimization_ConstantFuncPtrToDirectCall = false;
 	}
 	//
@@ -87,6 +87,7 @@ private:
 	void UpdateOptimizationList();
 	void UpdateCodePass();
 	void UpdateCodePassFunc(IRFunc* Func);
+	void DoDestructurStructMembers(UCodeLang::Unique_ptr<UCodeLang::IRInstruction>& Ins, UCodeLang::IRStruct* structtype, UCodeLang::IRFunc* Func, UCodeLang::Unique_ptr<UCodeLang::IRBlock>& Block, const size_t& i);
 	void CopyFuncionWithoutUnusedParAndUpdateOtherCalls(UCodeLang::IRPar& Par, UCodeLang::IRFunc* Func, const size_t& i);
 	void UpdateCallWhenParWasRemoved(IRFunc* Item, const IRFunc* Func, const IRFunc& NewFunc, size_t i);
 	void DoInlines(IRFunc* Func);
