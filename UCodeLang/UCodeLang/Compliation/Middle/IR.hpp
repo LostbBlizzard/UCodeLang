@@ -162,6 +162,13 @@ enum class IRInstructionType : IRInstructionType_t
 	//memory
 	MallocCall,
 	FreeCall,
+	Realloc,
+	Calloc,
+	Memcpy,
+	Memmove,
+	Memcmp,
+	Strlen,
+
 	Reassign_dereference,//Reassign Target
 
 	//structs
@@ -260,6 +267,8 @@ inline bool IsLoadValueOnlyInTarget(IRInstructionType Value)
 		|| Value == IRInstructionType::PushParameter
 		|| Value == IRInstructionType::MallocCall
 		|| Value == IRInstructionType::FreeCall
+		|| Value == IRInstructionType::Calloc
+		|| Value == IRInstructionType::Strlen
 
 		|| Value == IRInstructionType::New_Await_Task
 		|| Value == IRInstructionType::Await_PassPar
@@ -279,6 +288,10 @@ inline bool IsLocation(IRInstructionType Value)
 		|| Value == IRInstructionType::Call
 		|| Value == IRInstructionType::CallFuncPtr
 		|| Value == IRInstructionType::MallocCall
+		|| Value == IRInstructionType::Calloc
+		|| Value == IRInstructionType::Realloc
+		|| Value == IRInstructionType::Strlen
+		|| Value == IRInstructionType::Memcmp
 		|| IsBinary(Value)
 		|| IsUnary(Value)
 		|| Value == IRInstructionType::New_Await_Task
@@ -301,19 +314,32 @@ inline bool IsOperatorValueInTarget(IRInstructionType Value)
 		|| IsLoadValueOnlyInTarget(Value)
 		|| Value == IRInstructionType::Member_Access_Dereference
 		|| Value == IRInstructionType::Member_Access
-		|| Value == IRInstructionType::Reassign;
+		|| Value == IRInstructionType::Reassign
+		|| Value == IRInstructionType::Realloc
+		|| Value == IRInstructionType::Memcpy
+		|| Value == IRInstructionType::Memmove
+		|| Value == IRInstructionType::Memcmp;
 }
 inline bool IsOperatorValueInInput(IRInstructionType Value)
 {
 	return IsBinary(Value)
-		|| IsLoadValueOnInput(Value);
+		|| IsLoadValueOnInput(Value)
+		|| Value == IRInstructionType::Realloc
+		|| Value == IRInstructionType::Memcpy
+		|| Value == IRInstructionType::Memmove
+		|| Value == IRInstructionType::Memcmp;
 }
 inline bool BothOperatorValueAreUnUsed(IRInstructionType Value)
 {
 	return Value == IRInstructionType::Return
 		|| Value == IRInstructionType::LoadNone;
 }
-
+inline bool HasExtraPushAsInput(IRInstructionType Value)
+{
+	return Value == IRInstructionType::Memcpy
+		|| Value == IRInstructionType::Memmove
+		|| Value == IRInstructionType::Memcmp;
+}
 
 
 inline IRInstructionType GetInverse(IRInstructionType Value)
@@ -854,10 +880,49 @@ struct IRBlock
 	{
 		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::MallocCall, IROperator(Size))).get();
 	}
+	IRInstruction* NewCalloc(IRInstruction* Size)
+	{
+		return Instructions.emplace_back(new IRInstruction(IRInstructionType::Calloc, IROperator(Size))).get();
+	}	
+	IRInstruction* NewRealloc(IRInstruction* old, IRInstruction* Size)
+	{
+		return Instructions.emplace_back(new IRInstruction(IRInstructionType::Realloc, IROperator(old), IROperator(Size))).get();
+	}
+
+	void NewMemcpy(IRInstruction* destination,IRInstruction* source,IRInstruction* size)
+	{
+		NewPushParameter(size);
+		Instructions.emplace_back(new IRInstruction(IRInstructionType::Memcpy, 
+			IROperator(destination), 
+			IROperator(source))).get();
+	}
+	void NewMemove(IRInstruction* destination, IRInstruction* source, IRInstruction* size)
+	{
+		NewPushParameter(size);
+		Instructions.emplace_back(new IRInstruction(IRInstructionType::Memmove,
+			IROperator(destination),
+			IROperator(source))).get();
+	}
+	IRInstruction* NewMemcmp(IRInstruction* destination, IRInstruction* source, IRInstruction* size)
+	{
+		NewPushParameter(size);
+		return Instructions.emplace_back(new IRInstruction(IRInstructionType::Memcmp,
+			IROperator(destination),
+			IROperator(source))).get();
+	}
+
+
+	IRInstruction* Strlen(IRInstruction* ptr)
+	{
+		return Instructions.emplace_back(new IRInstruction(IRInstructionType::Strlen, IROperator(ptr))).get();
+	}
+	
 	void NewFreeCall(IRInstruction* Ptr)
 	{
 		Instructions.emplace_back(new IRInstruction(IRInstructionType::FreeCall, IROperator(Ptr)));
 	}
+
+	
 
 	void NewDereferenc_Store(IRInstruction* Ptr,IRInstruction* Value)
 	{

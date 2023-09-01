@@ -307,7 +307,7 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 		return;
 	}
 	SSAState _State;
-	//ToSSA(Func, _State);
+	ToSSA(Func, _State);
 	
 	LookAtfunc = Func;
 	
@@ -637,7 +637,7 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 	}
 
 	if ((OptimizationFlags_t)_Settings->_Flags & (OptimizationFlags_t)OptimizationFlags::Debug) {
-		//UndoSSA(Func, _State);
+		UndoSSA(Func, _State);
 	}
 }
 void IROptimizer::DoDestructurStructMembers(UCodeLang::Unique_ptr<UCodeLang::IRInstruction>& Ins, UCodeLang::IRStruct* structtype, UCodeLang::IRFunc* Func, UCodeLang::Unique_ptr<UCodeLang::IRBlock>& Block, const size_t& i)
