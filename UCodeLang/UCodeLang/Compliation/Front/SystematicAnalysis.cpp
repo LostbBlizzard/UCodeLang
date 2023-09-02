@@ -13013,6 +13013,173 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 		}
 
 	}break;
+	case TokenType::internal_InlineEnumVariant:
+	{
+		const auto& TypeList = V._generic._Values;
+		Vector<TypeSymbol> outtypelist;
+		outtypelist.resize(TypeList.size());
+
+		bool fail = false;
+		for (size_t i = 0; i < TypeList.size(); i++)
+		{
+			auto& typenode = TypeList[i];
+			auto& outype = outtypelist[i];
+			Type_Convert(typenode, outype);
+			if (!Type_ValidateType(outype,V._name.token,NodeSyb_t::Any) || outype.IsBadType())
+			{
+				fail = true;
+				break;
+			}
+		}
+
+		if (fail)
+		{
+			Out.SetType(TypesEnum::Null);
+		}
+		else
+		{
+
+			bool hassametype = false;
+			TypeSymbol* sametype = nullptr;
+			for (auto& Item : outtypelist)
+			{
+				for (auto& Item2 : outtypelist)
+				{
+					if (&Item2 != &Item)
+					{
+						if (Type_AreTheSameWithOutimmutable(Item, Item2))
+						{
+							sametype = &Item;
+							hassametype = true;
+							break;
+						}
+
+					}
+				}
+				if (hassametype)
+				{
+					break;
+				}
+			}
+
+			if (hassametype)
+			{
+				Out.SetType(TypesEnum::Null);
+
+				String MSG;
+				MSG += "has multiple of exact same type of '";
+				MSG += ToString(*sametype);
+				MSG += "'";
+				LogError(ErrorCodes::InValidType, MSG, V._name.token);
+			}
+			else
+			{
+				std::sort(outtypelist.begin(), outtypelist.end(), [this](TypeSymbol& A, TypeSymbol& B)
+					{
+						auto aid = Type_GetTypeID(A._Type, A._CustomTypeSymbol);
+						auto bid = Type_GetTypeID(B._Type, B._CustomTypeSymbol);
+						return aid > bid;
+					});
+				String SymName = CompilerGeneratedStart;
+				SymName += "inlineenum_";
+				for (auto& Item : outtypelist)
+				{
+					SymName += ToString(Item);
+					SymName += "_";
+				}
+				SymName += CompilerGeneratedEnd;
+			
+
+				//This may causes type depemdency problems between
+				if (auto oldsyb = Symbol_GetSymbol(SymName,SymbolType::Enum))
+				{
+					Out.SetType(oldsyb->ID);
+				}
+				else
+				{
+					auto& Syb = Symbol_AddSymbol(SymbolType::Enum, SymName, SymName, AccessModifierType::Public);
+					{
+						_Table.AddSymbolID(Syb, Symbol_GetSymbolID(&Syb));
+
+						EnumInfo* info = new EnumInfo();
+						Syb.Info.reset(info);
+
+						info->FullName = SymName;
+						info->Basetype = TypesEnum::uInt8;
+						if (outtypelist.size() > UInt8_MaxSize)
+						{
+							LogError(ErrorCodes::InValidType, "bad inline enum more then 255 values", V._name.token);
+						}
+
+						Byte EnumValue = 0;
+						for (auto& Item : outtypelist)
+						{
+							EnumFieldInfo F;
+
+							String valuename;
+							switch (Item._Type)
+							{
+							case TypesEnum::Bool:valuename = "Bool"; break;
+							case TypesEnum::Char:valuename = "Char"; break;
+
+							case TypesEnum::Uft8:valuename = "Uft8"; break;
+							case TypesEnum::Uft16:valuename = "Uft16"; break;
+							case TypesEnum::Uft32:valuename = "Uft32"; break;
+							case TypesEnum::sInt8:valuename = "Int8"; break;
+							
+							case TypesEnum::sInt16:valuename = "Int16"; break;
+							case TypesEnum::sInt32:valuename = "Int32"; break;
+							case TypesEnum::sInt64:valuename = "Int64"; break;
+							case TypesEnum::sIntPtr:valuename = "IntPtr"; break;
+
+							case TypesEnum::uInt8:valuename = "UInt8"; break;
+							case TypesEnum::uInt16:valuename = "UInt16"; break;
+							case TypesEnum::uInt32:valuename = "UInt32"; break;
+							case TypesEnum::uInt64:valuename = "UInt64"; break;
+							case TypesEnum::uIntPtr:valuename = "UIntPtr"; break;
+							case TypesEnum::float32:valuename = "Float32"; break;
+							case TypesEnum::float64:valuename = "Float64"; break;
+							case TypesEnum::CustomType:
+							{
+								auto syb = Symbol_GetSymbol(Item);
+								valuename = ScopeHelper::GetNameFromFullName(syb->FullName);
+							}
+							break;
+							
+							default:
+								UCodeLangUnreachable();
+								break;
+							}
+
+							F.Ex.ObjectSize =sizeof(EnumValue);
+							F.Ex.Object_AsPointer.reset(new Byte[sizeof(EnumValue)]);
+							memcpy(F.Ex.Object_AsPointer.get(), &EnumValue, sizeof(EnumValue));
+							
+							F.Name = valuename;
+
+							info->Fields.push_back(std::move(F));
+							EnumValue++;
+						}
+						
+						EnumVariantData Variantdata;
+						Variantdata.Isinlinenum = true;
+						for (auto& Item : outtypelist)
+						{
+							EnumVariantFeild F;
+							F.Types.push_back(Item);
+
+							Variantdata.Variants.push_back(std::move(F));
+						}
+
+						info->VariantData = std::move(Variantdata);
+					}
+						
+					Out.SetType(Syb.ID);
+				}
+			}
+		}
+
+	}break;
 	default:
 		UCodeLangUnreachable();
 		break;
