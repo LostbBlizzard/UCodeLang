@@ -168,6 +168,7 @@ enum class TokenType : TokenType_t
 
 	KeyWord_unsafe,//unsafe
 	KeyWord_block,//block
+	KeyWord_RangeOperator,//..
 	//used internally
 	internal_Constant_expression
 };

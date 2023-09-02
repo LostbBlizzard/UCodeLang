@@ -1300,13 +1300,80 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 {
 	Node* ExNode = nullptr;
 	auto Ex = GetExpressionNode(ExNode);
-	auto Token = TryGetToken();
+	auto token = TryGetToken();
 	GotNodeType r_t= GotNodeType::Null;
 	Node* r_out =nullptr;
-	if (Token && ExpressionNodeType::IsBinaryOperator(Token))
+	if (token->Type == TokenType::KeyWord_RangeOperator)
+	{
+		NextToken();
+
+		auto newtoken = TryGetToken();
+
+		String_view funcname = UCode_RangeType;
+		if (newtoken->Type == TokenType::equal)
+		{
+			funcname = UCode_RangeInclusiveType;
+		}
+
+		Node* Other = nullptr;
+		auto Ex2 = GetExpressionTypeNode(Other);
+
+		auto call = FuncCallNode::Gen();
+
+		{
+			auto Ptr = ValueExpressionNode::Gen();
+			Ptr->_Value.reset(ExNode);
+			call->Parameters._Nodes.push_back(Unique_ptr<Node>(Ptr));
+		}
+		{
+			auto Ptr = ValueExpressionNode::Gen();
+			call->Parameters._Nodes.push_back(Unique_ptr<Node>(Other));
+		}
+		//0..10 = Range<bind(typeof(0))>(0,10)
+		{
+			ScopedName namenode;
+
+
+			auto funcnametoken = std::make_unique<Token>(Token());
+
+			funcnametoken->OnLine = token->OnLine;
+			funcnametoken->OnPos = token->OnPos;
+			funcnametoken->Type = TokenType::Name;
+			funcnametoken->Value._String = funcname;
+
+			namenode._token = funcnametoken.get();
+
+			namenode._generic = std::make_shared<UseGenericsNode>();
+
+			/*
+			TypeNode typenode;
+			typenode._IsTypeBinding = true;
+			typenode.Gen_Type(typenode, TokenType::internal_Constant_expression, *token);
+
+			
+			auto expression = std::make_unique<ExpressionToTypeValueNode>();
+			expression->_TypeEx._Value = Unique_ptr<Node>(ExNode);//dub free
+			ValueExpressionNode valuetypenode;
+			
+			valuetypenode._Value.reset(expression.release());
+
+			typenode._node = std::make_unique<ValueExpressionNode>(std::move(valuetypenode));
+			
+			namenode._generic->_Values.push_back(std::move(typenode));
+			*/
+
+			call->_FuncName._ScopedName.push_back(std::move(namenode));
+			_Tree.TemporaryTokens.push_back(std::move(funcnametoken));
+		}
+		auto Ptr = ValueExpressionNode::Gen();
+		Ptr->_Value = Unique_ptr<Node>(call);
+		r_out = Ptr->As();
+		r_t = Ex;
+	}
+	else if (token && ExpressionNodeType::IsBinaryOperator(token))
 	{
 		//
-		if (Token->Type == TokenType::bitwise_and
+		if (token->Type == TokenType::bitwise_and
 			&& TryPeekNextToken(1)->Type == TokenType::equal)
 		{
 			goto ElseCase;
@@ -1322,7 +1389,7 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 		Ptr->_Value = Unique_ptr<Node>(ExNode);
 		r->_Value0._Value= Unique_ptr<Node>(Ptr->As());
 		
-		r->_BinaryOp = Token;
+		r->_BinaryOp = token;
 		r->_Value1._Value = Unique_ptr<Node>(Other);
 		r_out = r->As();
 		r_t = Merge(Ex, Ex2);

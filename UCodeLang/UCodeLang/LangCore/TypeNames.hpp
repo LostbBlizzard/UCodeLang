@@ -85,6 +85,9 @@
 #define UCode_ArrayType "Array"//int[10]
 #define UCode_VectorType "Vector"//int[]
 #define UCode_SpanType "Span"//int[:]
+#define UCode_ResultType "Result"//int!
+#define UCode_RangeType "Range"//0..10 Range<bind(typeof(0))>(0,10)
+#define UCode_RangeInclusiveType "RangeInclusive"//0..=10 RangeInclusive<bind(typeof(0))>(0,10)
 
 #define UCode_Unique_ptr "Unique_ptr"//int^ 
 #define UCode_Shared_ptr "Shared_ptr"//int$ 
