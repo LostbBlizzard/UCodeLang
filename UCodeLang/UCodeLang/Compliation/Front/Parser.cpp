@@ -1313,6 +1313,7 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 		if (newtoken->Type == TokenType::equal)
 		{
 			funcname = UCode_RangeInclusiveType;
+			NextToken();
 		}
 
 		Node* Other = nullptr;
@@ -1979,7 +1980,7 @@ Parser::GetNameCheck_ret Parser::GetNameCheck(ScopedNameNode& out,bool CanHaveVa
 	return{ LookingAtT,GotNodeType::Success };
 }
 
-GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ignoreleftHandType)
+GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ignoreleftHandType,bool CanUseInlineEnum)
 {
 	GotNodeType r = GotNodeType::Success;
 	auto Token = TryGetToken();
@@ -2311,6 +2312,71 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 
 			Token2 = TryGetToken();
 		}
+		else if (Token2->Type == TokenType::Not)//int!Error => Result<int,Error>
+		{
+			NextToken();
+		
+
+			bool hasother = true;
+
+			TypeNode othertype;
+			if (hasother)
+			{
+				GetType(othertype);
+			}
+			else
+			{
+
+			}
+			TypeNode* New = new TypeNode();
+
+			New->_Isimmutable = out->_Isimmutable;
+			out->_Isimmutable = false;
+			New->_generic._Values.push_back(std::move(*out));
+			New->_generic._Values.push_back(std::move(othertype));
+
+			auto NameToken = new UCodeLang::Token();
+			NameToken->OnLine = Token2->OnLine;
+			NameToken->OnPos = Token2->OnPos;
+			NameToken->Type = TokenType::Name;
+			NameToken->Value._String = UCode_ResultType;
+
+			_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
+
+			New->_name.token = NameToken;
+			out = New;
+
+			Token2 = TryGetToken();
+		}
+		else if (Token2->Type == TokenType::logical_or && CanUseInlineEnum)//int||bool||char => InlineEnum<int,bool,char>
+		{
+			NextToken();
+			Vector<TypeNode> Typelist; 
+			Typelist.resize(2);
+			Typelist[0] = std::move(*out);
+			GetType(Typelist[1], false,true,false);
+
+			while (TryGetToken()->Type == TokenType::logical_or)
+			{
+				NextToken();
+				GetType(Typelist.emplace_back(), false, true, false);
+			}
+
+
+			auto NameToken = new UCodeLang::Token();
+			NameToken->OnLine = Token2->OnLine;
+			NameToken->OnPos = Token2->OnPos;
+			NameToken->Type = TokenType::internal_InlineEnumVariant;
+
+			_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
+
+			TypeNode* New = new TypeNode();
+			New->_name.token = NameToken;
+			New->_generic._Values = std::move(Typelist);
+
+			out = New;
+			Token2 = TryGetToken();
+		}
 		else
 		{
 			break;
@@ -2350,11 +2416,11 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 	return r;
 }
 
-GotNodeType Parser::GetType(TypeNode& out, bool ignoreRighthandOFtype, bool ignoreleftHandType)
+GotNodeType Parser::GetType(TypeNode& out, bool ignoreRighthandOFtype, bool ignoreleftHandType,bool CanUseInlineEnum)
 {
 	TypeNode tep;
 	TypeNode* tepptr = &tep;
-	auto r = GetType(tepptr,ignoreRighthandOFtype, ignoreleftHandType);
+	auto r = GetType(tepptr,ignoreRighthandOFtype, ignoreleftHandType, CanUseInlineEnum);
 
 	out = std::move(*tepptr);
 

@@ -1,13 +1,16 @@
 
 |func[] => 0;
 |main[] => 1;
+|coolerror[] -> int!bool;
+|coolmultypes[] -> int||bool;
+|coolmultypes3[] -> int||bool||char||hello;
 |CallocTest[] =>unsafe new int[10];
 
 |RangeTest[] => 1..10;
 $Range<T>:
  T start;
  T end;
- |new[this&,T Start,T End]:
+ |new[T Start,T End]:
   start = Start;
   end = End;
 /*

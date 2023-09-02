@@ -123,6 +123,9 @@ void AppObject::Init()
             R"(
 |func[] => 0;
 |main[] => 1;
+|coolerror[] -> int!bool;
+|coolmultypes[] -> int||bool;
+|coolmultypes3[] -> int||bool||char||hello;
 |CallocTest[] =>unsafe new int[10];
 
 |RangeTest[] => 1..10;

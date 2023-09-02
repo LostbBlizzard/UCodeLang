@@ -238,8 +238,8 @@ private:
 	};
 	GetNameCheck_ret2 GetNameCheck2(ScopedNameNode& out, bool CanHaveVarableName = false);
 
-	GotNodeType GetType(TypeNode*& out,bool ignoreRighthandOFtype =false,bool ignoreleftHandType = true);
-	GotNodeType GetType(TypeNode& out, bool ignoreRighthandOFtype = false, bool ignoreleftHandType = true);
+	GotNodeType GetType(TypeNode*& out,bool ignoreRighthandOFtype =false,bool ignoreleftHandType = true,bool CanUseInlineEnum = true);
+	GotNodeType GetType(TypeNode& out, bool ignoreRighthandOFtype = false, bool ignoreleftHandType = true,bool CanUseInlineEnum =true);
 	GotNodeType GetNumericType(TypeNode& out);
 
 
