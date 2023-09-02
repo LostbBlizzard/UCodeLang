@@ -679,6 +679,16 @@ private:
 	}
 
 	GotNodeType GetUnsafeStatementNode(UnsafeStatementsNode& out);
+
+	
+	TryGetNode GetUnsafeExpression()
+	{
+		UnsafeExpression* V = UnsafeExpression::Gen();
+		auto r = GetUnsafeExpression(*V);
+		TrippedCheck(r);
+		return { r,V };
+	}
+	GotNodeType GetUnsafeExpression(UnsafeExpression& out);
 };
 UCodeLangFrontEnd
 

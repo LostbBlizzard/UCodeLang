@@ -1358,6 +1358,17 @@ struct YieldStatement : Node
 
 	}
 };
+
+struct UnsafeExpression : Node
+{
+	ExpressionNodeType _Base;
+
+	AddforNode(UnsafeExpression);
+	UnsafeExpression() : Node(NodeType::UnsafeExpression)
+	{
+
+	}
+};
 struct UnsafeStatementsNode : Node
 {
 	StatementsNode _Base;
