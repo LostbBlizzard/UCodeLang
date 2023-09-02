@@ -170,7 +170,8 @@ enum class TokenType : TokenType_t
 	KeyWord_block,//block
 	KeyWord_RangeOperator,//..
 	//used internally
-	internal_Constant_expression
+	internal_Constant_expression,
+	internal_InlineEnumVariant,
 };
 class TokenStringHelper
 {
