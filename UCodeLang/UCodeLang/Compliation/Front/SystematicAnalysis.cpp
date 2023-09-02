@@ -583,7 +583,6 @@ bool SystematicAnalysis::Analyze(const Vector<const FileNode*>& Files, const Vec
 	}
 	{
 		_ForceImportArgWasPassed = _Settings->HasFlagArg("ForceImport");
-		_RemoveUnSafeArgWasPassed = _Settings->HasFlagArg("RemoveUnsafe");
 		_ImmutabilityIsForced = _Settings->HasFlagArg("ForcedImmutability");
 
 		_StartingNameSpace = _Settings->GetArgValueFlag("StartingNameSpac");
@@ -1962,6 +1961,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		newInfo->Conext = Save_SymbolContextRemoveOneScopeName();
 		newInfo->FullName = FullName;
 		newInfo->_FuncType = FuncType;
+		newInfo->IsUnsafe = node._Signature._HasUnsafeKeyWord;
 
 		syb->Info.reset(newInfo);
 
@@ -4038,7 +4038,7 @@ void SystematicAnalysis::OnBitCast(const BitCastExpression& node)
 {
 	if (_PassType == PassType::FixedTypes)
 	{
-		if (_RemoveUnSafeArgWasPassed)
+		if (!IsInUnSafeBlock())
 		{
 			auto Token = node._KeywordToken;
 			LogError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "Cant do bitcast in safe mode.");
@@ -8527,6 +8527,12 @@ void SystematicAnalysis::OnExpressionNode(const ValueExpressionNode& node)
 			OnYieldExpression(*nod);
 		}
 		break;
+		case NodeType::UnsafeExpression:
+		{
+			const auto nod = UnsafeExpression::As(Value);
+			OnUnsafeExpression(*nod);
+		}
+		break;
 		default:
 			UCodeLangUnreachable();
 			break;
@@ -8974,7 +8980,7 @@ void SystematicAnalysis::OnNewNode(const NewExpresionNode* nod)
 {
 	if (_PassType == PassType::FixedTypes)
 	{
-		if (_RemoveUnSafeArgWasPassed)
+		if (!IsInUnSafeBlock())
 		{
 			auto Token = nod->_KeywordToken;
 			LogError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "Cant use 'new' keyword in safe mode.");
@@ -10185,7 +10191,7 @@ void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 {
 	if (_PassType == PassType::GetTypes)
 	{
-		if (_RemoveUnSafeArgWasPassed)
+		if (!IsInUnSafeBlock())
 		{
 			auto Token = node._KeywordToken;
 			LogError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "Cant use 'drop' keyword in safe mode.");
@@ -11292,6 +11298,35 @@ void SystematicAnalysis::OnAwaitStatement(const AwaitStatement& node)
 void SystematicAnalysis::OnYieldStatement(const YieldStatement& node)
 {
 	OnYieldExpression(node._Base);
+}
+void SystematicAnalysis::OnUnsafeStatement(const UnsafeStatementsNode& node)
+{
+	size_t ScopeCounter = 0;
+	const String ScopeName = std::to_string((uintptr_t)&node);
+
+	_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
+
+	auto& block = _FuncStack.front().BlockConexts.front();
+	auto oldblock = block.IsUnSafeBlock;
+
+	block.IsUnSafeBlock = true;
+	for (auto& Item : node._Base._Nodes)
+	{
+		OnStatement(*Item);
+	}
+
+	block.IsUnSafeBlock = oldblock;
+
+	_Table.RemoveScope();
+}
+void SystematicAnalysis::OnUnsafeExpression(const UnsafeExpression& node)
+{
+	auto& block = _FuncStack.front().BlockConexts.front();
+	auto oldblock = block.IsUnSafeBlock;
+	block.IsUnSafeBlock = true;
+	OnExpressionTypeNode(node._Base, _GetExpressionMode.top());
+	block.IsUnSafeBlock = oldblock;
+
 }
 TypeSymbol SystematicAnalysis::Type_MakeFutureFromType(const TypeSymbol& BaseType)
 {
@@ -15705,6 +15740,21 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 				}
 
 				Symbol_SetOutExpression(Item, TypeSyb);
+			}
+		}
+
+		if (!IsInUnSafeBlock())
+		{
+			auto token = Name._ScopedName.back()._token;
+			if (RValue.SymFunc->Type == SymbolType::Func)
+			{
+				auto funcinfo = RValue.SymFunc->Get_Info<FuncInfo>();
+
+				if (funcinfo->IsUnsafe)
+				{
+					LogError(ErrorCodes::InValidType, "trying to call 'unsafe' funcion but in safe mode", token);
+					return { };
+				}
 			}
 		}
 

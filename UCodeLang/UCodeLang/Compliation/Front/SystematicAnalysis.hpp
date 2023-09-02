@@ -415,6 +415,7 @@ private:
 	{
 		String Scope;
 		bool PassedYield = false;
+		bool IsUnSafeBlock = false;
 	};
 	struct FuncStackInfo
 	{
@@ -711,7 +712,6 @@ private:
 	uintptr_t _IDIndex = 0;
 	//Args
 	bool _ForceImportArgWasPassed = false;
-	bool _RemoveUnSafeArgWasPassed = false;
 	bool _ImmutabilityIsForced = false;
 	Optional<String> _StartingNameSpace;
 
@@ -779,6 +779,22 @@ private:
 	Vector<GeneratedGenericSymbolData> _Generic_GeneratedGenericSybol;
 
 	//Funcs
+	bool IsInUnSafeBlock()
+	{
+		if (_FuncStack.size())
+		{
+			auto& func = _FuncStack.front();
+			for (auto& Item : func.BlockConexts)
+			{
+				if (Item.IsUnSafeBlock)
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+		return false;
+	}
 	bool IsAfterYield()
 	{
 		if (_FuncStack.size())
@@ -1126,6 +1142,9 @@ private:
 	
 	void OnAwaitStatement(const AwaitStatement& node);
 	void OnYieldStatement(const YieldStatement& node);
+
+	void OnUnsafeStatement(const UnsafeStatementsNode& node);
+	void OnUnsafeExpression(const UnsafeExpression& node);
 
 	TypeSymbol Type_MakeFutureFromType(const TypeSymbol& BaseType);
 	bool Type_IsFuture(const TypeSymbol& Future);

@@ -1,6 +1,6 @@
 
-|func[] => 0;
-|main[] => 1;
+unsafe |func[] => 0;
+|main[] => func();
 |CallocTest[] => new int[10];
 /*
 |main[] -> async<bool>:

@@ -893,6 +893,7 @@ GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 	{
 		out._HasUnsafeKeyWord = true;
 		NextToken();
+		funcToken = TryGetToken();
 	}
 
 	if (funcToken->Type == TokenType::KeyWord_extern)
@@ -1269,6 +1270,13 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 	case TokenType::KeyWord_yeild:
 	{
 		auto V = GetYieldExpresionNode();
+		out = V.Node;
+		return V.GotNode;
+	}
+	break;
+	case TokenType::KeyWord_unsafe:
+	{
+		auto V = GetUnsafeExpression();
 		out = V.Node;
 		return V.GotNode;
 	}
@@ -4478,9 +4486,25 @@ GotNodeType Parser::GetYieldStatementNode(YieldStatement& out)
 }
 GotNodeType Parser::GetUnsafeStatementNode(UnsafeStatementsNode& out)
 {
+	TokenTypeCheck(TryGetToken(), TokenType::KeyWord_unsafe); 
+	NextToken();
+
+	auto token = TryGetToken();
+	if (token->Type == TokenType::Colon)
+	{
+		return GetStatements(out._Base);
+	}
+
+	Node* nodeptr = nullptr;
+	auto r = GetStatement(nodeptr);
+	out._Base._Nodes.push_back(Unique_ptr<Node>(nodeptr));
+	return r;
+}
+GotNodeType Parser::GetUnsafeExpression(UnsafeExpression& out)
+{
 	TokenTypeCheck(TryGetToken(), TokenType::KeyWord_unsafe);
 	NextToken();
 
-	return GetStatements(out._Base);
+	return GetExpressionTypeNode(out._Base);
 }
 UCodeLangFrontEnd

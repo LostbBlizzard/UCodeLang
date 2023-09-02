@@ -408,6 +408,7 @@ public:
 	Optional<SymbolContext> Conext;
 
 	bool FrontParIsUnNamed = false;
+	bool IsUnsafe = false;
 	bool IsObjectCall() const
 	{
 		return Pars.size() && (Pars.front().Type.IsAddress() && Pars.front().IsOutPar == false && FrontParIsUnNamed);
