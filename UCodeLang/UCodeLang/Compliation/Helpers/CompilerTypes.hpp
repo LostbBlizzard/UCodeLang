@@ -167,6 +167,7 @@ enum class TokenType : TokenType_t
 	KeyWord_uft32,//utf32
 
 	KeyWord_unsafe,//unsafe
+	KeyWord_block,//block
 	//used internally
 	internal_Constant_expression
 };

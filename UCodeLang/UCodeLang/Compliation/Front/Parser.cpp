@@ -526,14 +526,14 @@ GotNodeType Parser::GetStatement(Node*& out)
 	switch (StatementTypeToken->Type)
 	{
 	case TokenType::EndTab:return GotNodeType::EndLoop;
-	case Parser::declareFuncParsStart:
+	case TokenType::KeyWord_block:
 	{
 		NextToken();
-		auto r = GetStatements();
-
-		TokenTypeCheck(TryGetToken(), Parser::declareFuncParsStart);
+		TokenTypeCheck(TryGetToken(), TokenType::Colon);
 		NextToken();
 
+		auto r = GetStatements();
+		
 		out = r.Node;
 		return r.GotNode;
 	};
