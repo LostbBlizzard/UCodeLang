@@ -1,7 +1,15 @@
 
-unsafe |func[] => 0;
-|main[] => func();
-|CallocTest[] => new int[10];
+|func[] => 0;
+|main[] => 1;
+|CallocTest[] =>unsafe new int[10];
+
+|RangeTest[] => 1..10;
+$Range<T>:
+ T start;
+ T end;
+ |new[this&,T Start,T End]:
+  start = Start;
+  end = End;
 /*
 |main[] -> async<bool>:
  async<int> a = await func();

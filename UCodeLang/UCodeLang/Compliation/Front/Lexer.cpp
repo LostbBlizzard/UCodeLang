@@ -196,6 +196,14 @@ void Lexer::Lex(const String_view& Text)
 					_Tokens.push_back(_Token);
 					TextIndex+=2;
 				}
+				else
+				{
+					IsDot = false;
+					_Token.Type = TokenType::KeyWord_RangeOperator;
+					_Token.Value = nullptr;
+					_Tokens.push_back(_Token);
+					TextIndex += 1;
+				}
 			}
 
 			if (IsDot) 

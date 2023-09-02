@@ -117,12 +117,21 @@ void AppObject::Init()
 		r += " = ";
 		r += "await::new(" + ToString(State, *I, I->Target()) + ")";
         */
+      
         UCodeIDEStyle(nullptr);
         _Editor.SetText(
             R"(
 |func[] => 0;
 |main[] => 1;
-|CallocTest[] => new int[10];
+|CallocTest[] =>unsafe new int[10];
+
+|RangeTest[] => 1..10;
+$Range<T>:
+ T start;
+ T end;
+ |new[T Start,T End]:
+  start = Start;
+  end = End;
 /*
 |main[] -> async<bool>:
  async<int> a = await func();
