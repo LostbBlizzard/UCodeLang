@@ -508,6 +508,7 @@ struct FuncSignatureNode :Node
 	bool _HasExternKeyWord = false;
 	bool _HasDynamicKeyWord = false;
 	bool _HasEvalKeyWord = false;
+	bool _HasUnsafeKeyWord = false;
 };
 struct FuncBodyNode :Node
 {
@@ -1353,6 +1354,16 @@ struct YieldStatement : Node
 
 	AddforNode(YieldStatement);
 	YieldStatement() : Node(NodeType::YieldStatement)
+	{
+
+	}
+};
+struct UnsafeStatementsNode : Node
+{
+	StatementsNode _Base;
+
+	AddforNode(UnsafeStatementsNode);
+	UnsafeStatementsNode() : Node(NodeType::UnsafeStatementsNode)
 	{
 
 	}

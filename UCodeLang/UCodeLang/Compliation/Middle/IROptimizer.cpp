@@ -12,6 +12,15 @@ void IROptimizer::Reset()
 void IROptimizer::Optimized(IRBuilder& IRcode)
 {
 	Input = &IRcode;
+
+	_IDChecker.Set_ErrorsOutput(_ErrorsOutput);
+	_IDChecker.CheckForUB(Input);
+	if (_ErrorsOutput->Has_Errors())
+	{
+		return;
+	}
+
+
 	UpdateOptimizationList();
 	
 	

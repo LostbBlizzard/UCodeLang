@@ -1396,6 +1396,40 @@ public:
 
 		return identifier;
 	}
+	//note will not add a null char at the end.
+	IRidentifierID FindOrAddStaticCString8(String_view8 Buffer)
+	{
+		UCodeLangToDo();
+		return IRidentifierID();
+	}
+	//note will not add a null char at the end.
+	IRidentifierID FindOrAddStaticCString16(String_view16 Buffer)
+	{
+		UCodeLangToDo();
+		return IRidentifierID();
+	}
+	//note will not add a null char at the end.
+	IRidentifierID FindOrAddStaticCString32(String_view32 Buffer)
+	{
+		UCodeLangToDo();
+		return IRidentifierID();
+	}
+
+	IRidentifierID FindOrAddStaticSpanString8(String_view32 Buffer)
+	{
+		UCodeLangToDo();
+		return IRidentifierID();
+	}
+	IRidentifierID FindOrAddStaticSpanString16(String_view16 Buffer)
+	{
+		UCodeLangToDo();
+		return IRidentifierID();
+	}
+	IRidentifierID FindOrAddStaticSpanString8(String_view8 Buffer)
+	{
+		UCodeLangToDo();
+		return IRidentifierID();
+	}
 
 	IRidentifierID FindOrAddStaticSpanString(String_view Buffer)
 	{
