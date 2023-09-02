@@ -82,6 +82,7 @@ enum class NodeType :UInt8
 	AwaitStatement,
 	YieldExpression,
 	YieldStatement,
+	UnsafeStatementsNode
 };
 
 

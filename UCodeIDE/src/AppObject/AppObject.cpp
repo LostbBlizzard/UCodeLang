@@ -710,7 +710,7 @@ void AppObject::OnDraw()
 
     if (ImGui::Begin("Tests"))
     {
-        size_t MaxTestCount = 10;//ULangTest::Tests.size()
+        size_t MaxTestCount = 20;//ULangTest::Tests.size()
         UCodeLang::OptimizationFlags flags = TestWindowData.Flags;
 
         if (TestWindowData.DebugMode)

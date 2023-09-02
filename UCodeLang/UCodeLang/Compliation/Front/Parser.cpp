@@ -66,6 +66,7 @@ void Parser::Parse(const Vector<Token>& Tokens)
 		switch (T->Type)
 		{
 		case TokenType::Class:V = GetClassNode(); break;
+		case TokenType::KeyWord_unsafe:
 		case TokenType::KeyWord_extern:
 		case Parser::declareFunc:V = GetFuncNode(); break;
 		case TokenType::KeyWord_use:V = GetUseNode(); break;
@@ -195,6 +196,7 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 		{
 		case TokenType::EndTab:goto EndLoop;
 		case TokenType::Class:V = GetClassNode();break;
+		case TokenType::KeyWord_unsafe:
 		case TokenType::KeyWord_extern:
 		case Parser::declareFunc:V = GetFuncNode(); break;
 		case TokenType::KeyWord_use:V = GetUseNode(); break;
@@ -398,7 +400,7 @@ GotNodeType Parser::DoClassType(ClassNode* output, const Token* ClassToken, Gene
 		{
 		case TokenType::EndTab:goto EndLoop;
 		case TokenType::Class:V = GetClassNode(); break;
-
+		case TokenType::KeyWord_unsafe:
 		case TokenType::KeyWord_extern:
 		case Parser::declareFunc:V = GetFuncNode(); break;
 		case TokenType::KeyWord_use:V = GetUseNode(); break;
@@ -468,7 +470,7 @@ void Parser::ClassTypeAccessModifierInerScope(Vector<Unique_ptr<Node>>& Out)
 		{
 		case TokenType::EndTab:goto EndLoop;
 		case TokenType::Class:V = GetClassNode(); break;
-
+		case TokenType::KeyWord_unsafe:
 		case TokenType::KeyWord_extern:
 		case Parser::declareFunc:V = GetFuncNode(); break;
 		case TokenType::KeyWord_use:V = GetUseNode(); break;
@@ -678,6 +680,13 @@ GotNodeType Parser::GetStatement(Node*& out)
 		return r.GotNode;
 	}
 	break;
+	case TokenType::KeyWord_unsafe:
+	{
+		auto r = GetUnsafeStatementNode();
+		out = r.Node;
+		return r.GotNode;
+	}
+	break;
 	default:
 	{
 		size_t OldIndex = _TokenIndex;
@@ -879,6 +888,12 @@ GotNodeType Parser::GetFuncNode(FuncNode& out)
 GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 {
 	auto funcToken = TryGetToken();
+
+	if (funcToken->Type == TokenType::KeyWord_unsafe)
+	{
+		out._HasUnsafeKeyWord = true;
+		NextToken();
+	}
 
 	if (funcToken->Type == TokenType::KeyWord_extern)
 	{
@@ -2767,6 +2782,7 @@ GotNodeType Parser::DoTagType(TagTypeNode* output, const Token* ClassToken, Gene
 		switch (T->Type)
 		{
 		case TokenType::EndTab:goto EndLoop;
+		case TokenType::KeyWord_unsafe:
 		case Parser::declareFunc:V = GetFuncNode(); break;
 		default:V = GetDeclareVariable();
 		}
@@ -3413,6 +3429,7 @@ GotNodeType Parser::DoTraitType(TraitNode* output, const Token* ClassToken, Gene
 		switch (T->Type)
 		{
 		case TokenType::EndTab:goto EndLoop;
+		case TokenType::KeyWord_unsafe:
 		case Parser::declareFunc:V = GetFuncNode(); break;
 		case TokenType::KeyWorld_public:
 		{
@@ -3470,6 +3487,7 @@ void  Parser::TraitAccessModifierInerScope(Vector< Unique_ptr<Node>>& Out)
 		switch (T->Type)
 		{
 		case TokenType::EndTab:goto EndLoop;
+		case TokenType::KeyWord_unsafe:
 		case Parser::declareFunc:V = GetFuncNode(); break;
 
 		default:V = GetDeclareVariable();
@@ -4457,5 +4475,12 @@ GotNodeType Parser::GetYieldStatementNode(YieldStatement& out)
 	NextToken();
 
 	return o;
+}
+GotNodeType Parser::GetUnsafeStatementNode(UnsafeStatementsNode& out)
+{
+	TokenTypeCheck(TryGetToken(), TokenType::KeyWord_unsafe);
+	NextToken();
+
+	return GetStatements(out._Base);
 }
 UCodeLangFrontEnd

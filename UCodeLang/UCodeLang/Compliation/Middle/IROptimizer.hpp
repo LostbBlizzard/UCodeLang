@@ -3,6 +3,7 @@
 #include "../Helpers/CompliationErrors.hpp"
 #include "../CompliationSettings.hpp"
 #include "IRTypeFixer.hpp"
+#include "IRUBChecker.hpp"
 UCodeLangStart
 
 
@@ -50,6 +51,7 @@ private:
 	CompliationErrors* _ErrorsOutput = nullptr;
 	CompliationSettings* _Settings = nullptr;
 	IRTypeFixer _TypeFixer;
+	IRUBChecker _IDChecker;
 	IRBuilder* Input = nullptr;
 	IRFunc* LookAtfunc = nullptr;
 	bool _UpdatedCode = false;
@@ -74,7 +76,6 @@ private:
 	bool Optimization_ReorderFuncionsInToHotSpots = false;
 	bool Optimization_ReorderInstructionsBaseOnMemoryAndHotSpots = false;
 	bool Optimization_LoopUnrolling = false;
-	bool Optimization_LoopFrequencyReduction = false;
 	bool Optimization_LoopFrequencyReduction = false;
 	bool Optimization_StaticAndThreadRemovealAndReadOnlyToValues = false;
 	bool Optimization_RemoveUnneedMeallocAndFree = false;

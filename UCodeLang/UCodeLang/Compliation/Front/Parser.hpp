@@ -669,6 +669,16 @@ private:
 
 	GotNodeType GetYieldStatementNode(YieldStatement& out);
 
+
+	TryGetNode GetUnsafeStatementNode()
+	{
+		UnsafeStatementsNode* V = UnsafeStatementsNode::Gen();
+		auto r = GetUnsafeStatementNode(*V);
+		TrippedCheck(r);
+		return { r,V };
+	}
+
+	GotNodeType GetUnsafeStatementNode(UnsafeStatementsNode& out);
 };
 UCodeLangFrontEnd
 
