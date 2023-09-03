@@ -149,6 +149,11 @@
 
 
 
+#define UCodeLangNoDiscard [[nodiscard]]
+
+
+
+
 #define UCodeLangConstexprForceinline constexpr UCodeLangForceinline
 
 

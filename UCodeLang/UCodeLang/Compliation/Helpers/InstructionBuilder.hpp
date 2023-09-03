@@ -496,19 +496,19 @@ public:
 	}
 
 
-	UCodeLangForceinline static void PointerMemberLoad8(Instruction& Out,RegisterID Ptr,RegisterID RegOut, UInt16 Offset)
+	UCodeLangForceinline static void PointerMemberLoad8(Instruction& Out,RegisterID Ptr,RegisterID RegOut, UInt8 Offset)
 	{
 		Out = Instruction(InstructionSet::PointerMemberLoad8, Instruction::TwoRegInt8(Ptr,RegOut,Offset));
 	}
-	UCodeLangForceinline static void PointerMemberLoad16(Instruction& Out, RegisterID Ptr, RegisterID RegOut, UInt16 Offset)
+	UCodeLangForceinline static void PointerMemberLoad16(Instruction& Out, RegisterID Ptr, RegisterID RegOut, UInt8 Offset)
 	{
 		Out = Instruction(InstructionSet::PointerMemberLoad16, Instruction::TwoRegInt8(Ptr, RegOut, Offset));
 	}
-	UCodeLangForceinline static void PointerMemberLoad32(Instruction& Out, RegisterID Ptr, RegisterID RegOut, UInt16 Offset)
+	UCodeLangForceinline static void PointerMemberLoad32(Instruction& Out, RegisterID Ptr, RegisterID RegOut, UInt8 Offset)
 	{
 		Out = Instruction(InstructionSet::PointerMemberLoad32, Instruction::TwoRegInt8(Ptr, RegOut, Offset));
 	}
-	UCodeLangForceinline static void PointerMemberLoad64(Instruction& Out, RegisterID Ptr, RegisterID RegOut, UInt16 Offset)
+	UCodeLangForceinline static void PointerMemberLoad64(Instruction& Out, RegisterID Ptr, RegisterID RegOut, UInt8 Offset)
 	{
 		Out = Instruction(InstructionSet::PointerMemberLoad64, Instruction::TwoRegInt8(Ptr, RegOut, Offset));
 	}

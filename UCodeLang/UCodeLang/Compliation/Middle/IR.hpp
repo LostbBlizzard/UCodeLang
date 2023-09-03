@@ -892,16 +892,16 @@ struct IRBlock
 	void NewMemcpy(IRInstruction* destination,IRInstruction* source,IRInstruction* size)
 	{
 		NewPushParameter(size);
-		Instructions.emplace_back(new IRInstruction(IRInstructionType::Memcpy, 
-			IROperator(destination), 
-			IROperator(source))).get();
+		Instructions.emplace_back(new IRInstruction(IRInstructionType::Memcpy,
+			IROperator(destination),
+			IROperator(source)));
 	}
 	void NewMemove(IRInstruction* destination, IRInstruction* source, IRInstruction* size)
 	{
 		NewPushParameter(size);
 		Instructions.emplace_back(new IRInstruction(IRInstructionType::Memmove,
 			IROperator(destination),
-			IROperator(source))).get();
+			IROperator(source)));
 	}
 	IRInstruction* NewMemcmp(IRInstruction* destination, IRInstruction* source, IRInstruction* size)
 	{
