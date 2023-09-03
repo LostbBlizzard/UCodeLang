@@ -15669,7 +15669,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 		else if (Item->Type == SymbolType::Type_class)
 		{
 			ClassInfo* V = Item->Get_Info<ClassInfo>();
-
+			Symbol_Update_ClassSym_ToFixedTypes(Item);
 			String Scope = V->FullName;
 			ScopeHelper::GetApendedString(Scope, ClassConstructorfunc);
 
@@ -15713,6 +15713,68 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 						T = SymbolType::FuncCall;
 						OkFuncions.push_back({ PushThisPar ? Get_FuncInfo::ThisPar_t::OnIRlocationStack : ThisParType,r,FuncSymbol });
 					}
+				}
+			}
+		}
+		else if (Item->Type == SymbolType::Generic_class)
+		{
+			Symbol_Update_ClassSym_ToFixedTypes(Item);
+			ClassInfo* V = Item->Get_Info<ClassInfo>();
+
+			const ClassNode& node = *Item->Get_NodeInfo<ClassNode>();
+		
+			auto classsyb = Generic_InstantiateOrFindGeneric_Class(
+				Name._ScopedName.front()._token,
+				Item,
+				node._generic, V->_GenericData, Generics);
+			if (classsyb) 
+			{
+				String Scope = V->FullName;
+				ScopeHelper::GetApendedString(Scope, ClassConstructorfunc);
+
+				auto ConstructorSymbols = _Table.GetSymbolsWithName(Scope, SymbolType::Any);
+
+
+				for (auto& Item2 : ConstructorSymbols)
+				{
+					if (Item2->Type == SymbolType::Func)
+					{
+						FuncInfo* Info = Item2->Get_Info<FuncInfo>();
+						bool PushThisPar = Info->IsObjectCall();
+
+
+						if (PushThisPar)
+						{
+							TypeSymbol V;
+							V.SetType(Item->ID);
+							V.SetAsAddress();
+							ValueTypes.insert(ValueTypes.begin(), { false,V });
+						}
+
+						IsCompatiblePar CMPPar;
+						CMPPar.SetAsFuncInfo(Item2);
+
+						bool Compatible = Type_IsCompatible(CMPPar, ValueTypes, _ThisTypeIsNotNull, Name._ScopedName.back()._token);
+
+						if (PushThisPar)
+						{
+							ValueTypes.erase(ValueTypes.begin());
+						}
+
+						if (!Compatible)
+						{
+							continue;
+						}
+
+						{
+							r = Info;
+							FuncSymbol = Item2;
+							T = SymbolType::FuncCall;
+							OkFuncions.push_back({ PushThisPar ? Get_FuncInfo::ThisPar_t::OnIRlocationStack : ThisParType,r,FuncSymbol });
+						}
+					}
+
+
 				}
 			}
 		}
