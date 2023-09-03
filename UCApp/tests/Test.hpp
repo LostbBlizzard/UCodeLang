@@ -96,7 +96,7 @@ UCodeTestStart
 		}
 		return r;
 	}
-	static const Array<TestInfo, 72> Tests
+	static const Array<TestInfo, 74> Tests
 	{
 
 		TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation),
@@ -198,6 +198,8 @@ UCodeTestStart
 		TestInfo("typeerror","Syntax/typeerror.uc","main",SuccessCondition::RunTimeValue,(bool)1),
 		TestInfo("Result","Syntax/Result.uc","main",SuccessCondition::RunTimeValue,(int)1),
 		TestInfo("Range", "Syntax/Range.uc", "main", SuccessCondition::RunTimeValue, (int)22),
+		TestInfo("Stringliterals", "BasicTests/Stringliteral.uc", "main", SuccessCondition::RunTimeValue, (uintptr_t)25),
+		TestInfo("Charliterals", "BasicTests/Charliteral.uc", "main", SuccessCondition::RunTimeValue, (uintptr_t)8),
 	};
 
 

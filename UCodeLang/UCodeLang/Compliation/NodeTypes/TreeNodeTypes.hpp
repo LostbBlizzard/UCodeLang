@@ -345,6 +345,9 @@ struct TypeNode :Node
 		case TokenType::KeyWord_float32:
 		case TokenType::KeyWord_float64:
 		case TokenType::KeyWord_TypeInfo:
+		case TokenType::KeyWord_uft8:
+		case TokenType::KeyWord_uft16:
+		case TokenType::KeyWord_uft32:
 		return true;
 		default:return false;
 		}

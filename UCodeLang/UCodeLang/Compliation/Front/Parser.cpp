@@ -1309,10 +1309,10 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 
 		auto newtoken = TryGetToken();
 
-		String_view funcname = UCode_RangeType;
+		String_view funcname = UCode_RangeFuncion;
 		if (newtoken->Type == TokenType::equal)
 		{
-			funcname = UCode_RangeInclusiveType;
+			funcname = UCode_RangeInclusiveFuncion;
 			NextToken();
 		}
 

@@ -823,6 +823,12 @@ String UAssembly::ToString(const ReflectionTypeInfo& Value, const ClassAssembly&
 	case ReflectionTypes::Bool:r += "bool";break;
 	case ReflectionTypes::Char:r += "char"; break;
 
+	case ReflectionTypes::Uft8:r += "uft8"; break;
+	case ReflectionTypes::Uft16:r += "uft16"; break;
+	case ReflectionTypes::Uft32:r += "uft32"; break;
+
+
+	
 	case ReflectionTypes::sInt8:r += "sint8"; break;
 	case ReflectionTypes::uInt8:r += "uint8"; break;
 

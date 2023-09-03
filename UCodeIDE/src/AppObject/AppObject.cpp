@@ -119,9 +119,8 @@ void AppObject::Init()
         */
       
         UCodeIDEStyle(nullptr);
-        _Editor.SetText(
-            R"(
-|func[] => 0;
+        /*
+        |func[] => 0;
 |main[] => 1;
 |coolerror[] -> int!bool;
 |coolmultypes[] -> int||bool;
@@ -148,7 +147,17 @@ $RangeInclusive_t<T>:
 
 $Result<T,E> enum:
  Value[T val],
- Error[E err],
+        */
+        _Editor.SetText(
+            R"(
+|main[]:
+ char V1 = 'A';
+ utf8 V2 = 'A';
+ utf16 V3 = 'A';
+ utf32 V4 = 'A';
+
+ ret sizeof(char) + sizeof(utf8) + sizeof(utf16) + sizeof(utf32);
+
 /*
 |main[] -> async<bool>:
  async<int> a = await func();

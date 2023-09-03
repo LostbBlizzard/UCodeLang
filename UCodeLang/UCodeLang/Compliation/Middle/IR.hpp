@@ -642,6 +642,10 @@ struct IRBlock
 	IRInstruction* NewLoad(bool Value) { return NewLoad(*(UInt8*)&Value); }
 	IRInstruction* NewLoad(char Value) { return NewLoad(*(UInt8*)&Value); }
 
+	#ifdef __cpp_lib_char8_t
+	IRInstruction* NewLoad(Utf8 Value) { return NewLoad(*(UInt8*)&Value); }
+	#endif // __cpp_lib_char8_t
+	
 	//16bit
 	IRInstruction* NewLoad(UInt16 Value)
 	{
@@ -652,7 +656,7 @@ struct IRBlock
 		return V;
 	}
 	IRInstruction* NewLoad(Int16 Value) { return NewLoad(*(UInt16*)&Value); }
-
+	IRInstruction* NewLoad(Utf16 Value) { return NewLoad(*(UInt16*)&Value); }
 	//32bit
 	IRInstruction* NewLoad(UInt32 Value)
 	{
@@ -671,7 +675,7 @@ struct IRBlock
 		V->ObjectType = IRType(IRTypes::f32);
 		return V;
 	}
-	
+	IRInstruction* NewLoad(Utf32 Value) { return NewLoad(*(UInt32*)&Value); }
 	//64bit
 
 	IRInstruction* NewLoad(UInt64 Value)

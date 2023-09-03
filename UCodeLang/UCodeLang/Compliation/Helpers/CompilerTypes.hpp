@@ -285,7 +285,9 @@ public:
 
 		case TokenType::QuestionMark:return "?";
 		case TokenType::modulo:return "%";
-
+		case TokenType::KeyWord_uft8:return "uft8";
+		case TokenType::KeyWord_uft16:return "uft16";
+		case TokenType::KeyWord_uft32:return "uft32";
 		default:return "Unknown token";
 		}
 	}
