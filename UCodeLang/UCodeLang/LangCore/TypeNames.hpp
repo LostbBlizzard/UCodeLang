@@ -23,6 +23,10 @@
 #define float32TypeName UCodeLang::TokenStringHelper::ToString(UCodeLang::TokenType::KeyWord_float32)
 #define float64TypeName UCodeLang::TokenStringHelper::ToString(UCodeLang::TokenType::KeyWord_float64)
 
+#define Uft8typeName UCodeLang::TokenStringHelper::ToString(UCodeLang::TokenType::KeyWord_uft8)
+#define Uft16typeName UCodeLang::TokenStringHelper::ToString(UCodeLang::TokenType::KeyWord_uft16)
+#define Uft32typeName UCodeLang::TokenStringHelper::ToString(UCodeLang::TokenType::KeyWord_uft32)
+
 #define VoidPtrTypeName "VoidPtr"
 #define CStringTypeName "CString"
 
@@ -86,8 +90,22 @@
 #define UCode_VectorType "Vector"//int[]
 #define UCode_SpanType "Span"//int[:]
 #define UCode_ResultType "Result"//int!
-#define UCode_RangeType "Range"//0..10 Range<bind(typeof(0))>(0,10)
-#define UCode_RangeInclusiveType "RangeInclusive"//0..=10 RangeInclusive<bind(typeof(0))>(0,10)
+#define UCode_RangeFuncion "Range"//0..10 Range(0,10)
+#define UCode_RangeInclusiveFuncion "RangeInclusive"//0..=10 RangeInclusive(0,10)
+
+#define UCode_RangeType "Range_t"//0..10 Range_t<int>(0,10)
+#define UCode_RangeType "RangeInclusive_t"//0..=10 RangeInclusive<int>(0,10)
+
+
+#define UCodeLangStringType "String"
+#define UCodeLangString8Type  "String8"
+#define UCodeLangString16Type  "String16"
+#define UCodeLangString32Type  "String32"
+
+#define UCodeLangStringSpanType "StringSpan"
+#define UCodeLangStringSpan8Type  "StringSpan8"
+#define UCodeLangStringSpan16Type  "StringSpan16"
+#define UCodeLangStringSpan32Type  "StringSpan32"
 
 #define UCode_Unique_ptr "Unique_ptr"//int^ 
 #define UCode_Shared_ptr "Shared_ptr"//int$ 

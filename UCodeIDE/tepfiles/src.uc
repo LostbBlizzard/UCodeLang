@@ -1,32 +1,12 @@
+|func[] -> utf8;
+|main[]:
+ char V1 = 'A';
+ utf8 V2 = 'A';
+ utf16 V3 = 'A';
+ utf32 V4 = 'A';
 
-|func[] => 0;
-|main[] => 1;
-|coolerror[] -> int!bool;
-|coolmultypes[] -> int||bool;
-|coolmultypes3[] -> int||bool||char;
-|CallocTest[] =>unsafe new int[10];
+ ret sizeof(char) + sizeof(utf8) + sizeof(utf16) + sizeof(utf32);
 
-|RangeTest[] => 1..10;
-|RangeTest2[] => 1..=10;
-$Range_t<T>:
- T start;
- T end;
- |new[this&,T Start,T End]:
-  start = Start;
-  end = End;
-$RangeInclusive_t<T>:
- T start;
- T end;
- |new[this&,T Start,T End]:
-  start = Start;
-  end = End;
-
-|Range<T>[T start,T end] => Range_t<T>(start,end);
-|RangeInclusive<T>[T start,T end] =>RangeInclusive_t<T>(start,end);
-
-$Result<T,E> enum:
- Value[T val],
- Error[E err],
 /*
 |main[] -> async<bool>:
  async<int> a = await func();

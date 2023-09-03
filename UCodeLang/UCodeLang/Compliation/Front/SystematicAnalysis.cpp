@@ -5305,13 +5305,17 @@ IRType SystematicAnalysis::IR_ConvertToIRType(const TypeSymbol& Value)
 	case TypesEnum::Bool:
 	case TypesEnum::Char:
 	case TypesEnum::sInt8:
+	case TypesEnum::Uft8:
 	case TypesEnum::uInt8:r = IRType(IRTypes::i8);
 	break;
 	
+	case TypesEnum::Uft16:
 	case TypesEnum::sInt16:
 	case TypesEnum::uInt16:r = IRType(IRTypes::i16);
 	break;
 	
+
+	case TypesEnum::Uft32:
 	case TypesEnum::sInt32:
 	case TypesEnum::uInt32:r = IRType(IRTypes::i32);
 	break;
@@ -8644,17 +8648,50 @@ void SystematicAnalysis::OnBoolliteralNode(const BoolliteralNode* num)
 
 void SystematicAnalysis::OnCharliteralNode(const CharliteralNode* num)
 {
+	auto& lookT = Type_Get_LookingForType();
+
 	if (_PassType == PassType::BuidCode)
 	{
 		String V;
-		bool ItWorked = !ParseHelper::ParseCharliteralToChar(num->token->Value._String, V);
-
+		bool ItWorked = false;
 		Debug_Add_SetLineNumber(NeverNullptr(num->token), _IR_LookingAtIRBlock->Instructions.size());
 
+		if (lookT._Type == TypesEnum::Uft8)
+		{
+			String8 V;
+			ItWorked = !ParseHelper::ParseCharliteralToChar(num->token->Value._String, V);
+			_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((Utf8)V.front());
+		}
+		else if (lookT._Type == TypesEnum::Uft16)
+		{
+			String16 V;
+			ItWorked = !ParseHelper::ParseCharliteralToChar(num->token->Value._String, V);
+			_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((Utf16)V.front());
+		}
+		else if (lookT._Type == TypesEnum::Uft32)
+		{
+			String32 V;
+			ItWorked = !ParseHelper::ParseCharliteralToChar(num->token->Value._String, V);
+			_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((Utf32)V.front());
+		}
+		else
+		{
+			String V;
+			ItWorked = !ParseHelper::ParseCharliteralToChar(num->token->Value._String, V);
+			_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((char)V.front());
+		}
+	
 
-		_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((char)V.front());
 	}
-	_LastExpressionType.SetType(TypesEnum::Char);
+	if (lookT._Type == TypesEnum::Uft8 || lookT._Type == TypesEnum::Uft16
+		|| lookT._Type == TypesEnum::Uft32)
+	{
+		_LastExpressionType = TypeSymbol(lookT._Type);
+	}
+	else 
+	{
+		_LastExpressionType = TypeSymbol(TypesEnum::Char);
+	}
 	_LastLookedAtToken = Nullableptr(num->token);
 }
 
@@ -12674,6 +12711,10 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type) const
 
 	case TypesEnum::Bool:r += boolTypeName;	break;
 	case TypesEnum::Char:r += CharTypeName;	break;
+	case TypesEnum::Uft8:r += Uft8typeName;	break;
+	case TypesEnum::Uft16:r += Uft16typeName;	break;
+	case TypesEnum::Uft32:r += Uft32typeName;	break;
+
 
 	case TypesEnum::float32:r += float32TypeName;	break;
 	case TypesEnum::float64:r += float64TypeName;	break;
@@ -12866,6 +12907,15 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 	case TokenType::KeyWord_Char:
 		Out.SetType(TypesEnum::Char);
 		break;
+	case TokenType::KeyWord_uft8:
+		Out.SetType(TypesEnum::Uft8);
+		break;
+	case TokenType::KeyWord_uft16:
+		Out.SetType(TypesEnum::Uft16);
+		break;
+	case TokenType::KeyWord_uft32:
+		Out.SetType(TypesEnum::Uft32);
+		break;
 	case TokenType::KeyWord_float32:
 		Out.SetType(TypesEnum::float32);
 		break;
@@ -12911,7 +12961,7 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 		}
 		else
 		{
-			SybV = Symbol_GetSymbol(Name, SymbolType::Type).value().value();
+			SybV = Symbol_GetSymbol(Name, SymbolType::Type).value_unchecked();
 		}
 
 		if (SybV == nullptr)
@@ -13888,7 +13938,7 @@ bool SystematicAnalysis::Type_IsPrimitiveNotIncludingPointers(const TypeSymbol& 
 {
 	bool r = Type_IsIntType(TypeToCheck)
 		|| TypeToCheck._Type == TypesEnum::Bool
-		|| TypeToCheck._Type == TypesEnum::Char
+		|| Type_IsCharType(TypeToCheck)
 		|| TypeToCheck._Type == TypesEnum::Void
 		|| Type_IsfloatType(TypeToCheck);
 
@@ -14210,13 +14260,16 @@ bool SystematicAnalysis::Type_GetSize(const TypeSymbol& Type, UAddress& OutSize)
 	case TypesEnum::uInt8:
 	case TypesEnum::Bool:
 	case TypesEnum::Char:
+	case TypesEnum::Uft8:
 		OutSize = 1;
 		return true;
+	case TypesEnum::Uft16:
 	case TypesEnum::sInt16:
 	case TypesEnum::uInt16:
 		OutSize = sizeof(UInt16);
 		return true;
 
+	case TypesEnum::Uft32:
 	case TypesEnum::float32:
 	case TypesEnum::sInt32:
 	case TypesEnum::uInt32:

@@ -33,11 +33,23 @@ public:
 		return true;
 	}
 		
-
+	//if ret is 0 then good else bad and the Index-1 of the bad char is  
 	static size_t ParseStringliteralToString(String_view string, String& out);
 	//if ret is 0 then good else bad and the Index-1 of the bad char is  
+	static size_t ParseStringliteralToString(String_view string, String8& out);
+	//if ret is 0 then good else bad and the Index-1 of the bad char is  
+	static size_t ParseStringliteralToString(String_view string, String16& out);
+	//if ret is 0 then good else bad and the Index-1 of the bad char is  
+	static size_t ParseStringliteralToString(String_view string, String32& out);
+
+	//if ret is 0 then bad else good and its how much to move by
 	static size_t ParseCharliteralToChar(String_view string, String& out);
 	//if ret is 0 then bad else good and its how much to move by
+	static size_t ParseCharliteralToChar(String_view string, String8& out);
+	//if ret is 0 then bad else good and its how much to move by
+	static size_t ParseCharliteralToChar(String_view string, String16& out);
+	//if ret is 0 then bad else good and its how much to move by
+	static size_t ParseCharliteralToChar(String_view string, String32& out);
 };
 UCodeLangEnd
 

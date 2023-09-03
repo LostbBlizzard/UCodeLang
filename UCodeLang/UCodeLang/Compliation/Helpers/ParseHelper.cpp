@@ -17,6 +17,51 @@ size_t ParseHelper::ParseStringliteralToString(String_view string, String& out)
 	}
 	return 0;
 }
+size_t ParseHelper::ParseStringliteralToString(String_view string, String8& out)
+{
+	for (size_t i = 0; i < string.size();)
+	{
+		String_view V = String_view(string.data() + i, string.size() - i);
+
+		size_t CompilerRet = ParseCharliteralToChar(V, out);
+		if (CompilerRet == 0)
+		{
+			return i;
+		}
+		i += CompilerRet;
+	}
+	return 0;
+}
+size_t ParseHelper::ParseStringliteralToString(String_view string, String16& out)
+{
+	for (size_t i = 0; i < string.size();)
+	{
+		String_view V = String_view(string.data() + i, string.size() - i);
+
+		size_t CompilerRet = ParseCharliteralToChar(V, out);
+		if (CompilerRet == 0)
+		{
+			return i;
+		}
+		i += CompilerRet;
+	}
+	return 0;
+}
+size_t ParseHelper::ParseStringliteralToString(String_view string, String32& out)
+{
+	for (size_t i = 0; i < string.size();)
+	{
+		String_view V = String_view(string.data() + i, string.size() - i);
+
+		size_t CompilerRet = ParseCharliteralToChar(V, out);
+		if (CompilerRet == 0)
+		{
+			return i;
+		}
+		i += CompilerRet;
+	}
+	return 0;
+}
 size_t ParseHelper::ParseCharliteralToChar(String_view string, String& out)
 {
 	if (string.size() == 0) { return 0; }
@@ -72,6 +117,24 @@ size_t ParseHelper::ParseCharliteralToChar(String_view string, String& out)
 			return 0;
 		}
 	}
+	return 0;
+}
+size_t ParseHelper::ParseCharliteralToChar(String_view string, String8& out)
+{
+	//TODO fully add Utf8 stuport.
+	out += Utf8(0);
+	return 0;
+}
+size_t ParseHelper::ParseCharliteralToChar(String_view string, String16& out)
+{
+	//TODO fully add Utf16 stuport.
+	out += Utf16(0);
+	return 0;
+}
+size_t ParseHelper::ParseCharliteralToChar(String_view string, String32& out)
+{
+	//TODO fully add Utf32 stuport.
+	out += Utf32(0);
 	return 0;
 }
 UCodeLangEnd
