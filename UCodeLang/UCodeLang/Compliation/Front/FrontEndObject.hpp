@@ -62,7 +62,7 @@ public:
 	};
 
 	virtual Gep_DepPreIR Get_DependenciesPreIR(FileNode_t* File) { return {}; }
-	virtual Vector<const FileNode_t*> Get_DependenciesPostIR(FileNode_t* File) { return {}; }
+	virtual Vector<NeverNullPtr<FileNode_t>> Get_DependenciesPostIR(FileNode_t* File) { return {}; }
 	
 	//
 	Unique_ptr<FileNode_t> LoadExternFile(const Path& path);

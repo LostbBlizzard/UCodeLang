@@ -91,7 +91,7 @@ Unique_ptr<FileNode_t> UCodeFrontEndObject::LoadExternFile(const BytesView Bytes
 	}
 	return {};
 }
-Vector<const FileNode_t*> UCodeFrontEndObject::Get_DependenciesPostIR(FileNode_t* File)
+Vector<NeverNullPtr<FileNode_t>> UCodeFrontEndObject::Get_DependenciesPostIR(FileNode_t* File)
 {
 	return  _Analyzer.GetFileDataPub(File)._Dependencys;
 }
@@ -109,8 +109,8 @@ void UCodeFrontEndObject::BuildIR(const Vector<FileNode_t*>& fileNode)
 
 	//
 
-	Vector<const FileNode*> V;
-	Vector<const UClib*> L;
+	Vector<NeverNullPtr<FileNode>> V;
+	Vector<NeverNullPtr<UClib>> L;
 	Vector<Path> P;
 	for (size_t i = 0; i < fileNode.size(); i++)
 	{
@@ -119,12 +119,12 @@ void UCodeFrontEndObject::BuildIR(const Vector<FileNode_t*>& fileNode)
 		if (Item->Get_Type() == NodeType::LibImportNode)
 		{
 			auto N = (const LibImportNode*)Item;
-			L.push_back(&N->LIb);
+			L.push_back(NeverNullptr(&N->LIb));
 			P.push_back(N->FileName);
 		}
 		else
 		{
-			V.push_back(Item);
+			V.push_back(NeverNullptr(Item));
 		}
 	}
 	_Analyzer.SetLibNames(&P);
