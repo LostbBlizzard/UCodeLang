@@ -778,7 +778,7 @@ private:
 	IRBlockDebugInfo* _Debug_LastLookAtDebugBlock = nullptr;
 	Optional<SymbolID> _Type_UnMapTypeSymbol;
 	Vector<GeneratedGenericSymbolData> _Generic_GeneratedGenericSybol;
-
+	Vector<NeverNullPtr<Symbol>> _InlineEnums;
 	//Funcs
 	bool IsInUnSafeBlock()
 	{
@@ -1203,6 +1203,8 @@ private:
 	static String Str_GetFuncAnonymousObjectFullName(const String& FullFuncName);
 	void Assembly_AddClass(const Vector<Unique_ptr<AttributeNode>>& attributes,const NeverNullPtr<Symbol> ClassSyb);
 	ReflectionTypeInfo Assembly_ConvertToType(const TypeSymbol& Type);
+
+	void Assembly_AddEnum(const NeverNullPtr<Symbol> ClassSyb);
 
 	TypeSymbolID Type_GetTypeID(TypesEnum Type, SymbolID SymbolId);
 	TypeSymbol Type_GetStaticArrayType(const TypeSymbol& BaseType, size_t Size);

@@ -63,7 +63,7 @@ public:
 	}
 	UCodeLangForceinline UCodeLangNoDiscard bool operator!=(const NeverNullPtr other) const
 	{
-		return Value == other.Value;
+		return Value != other.Value;
 	}
 
 

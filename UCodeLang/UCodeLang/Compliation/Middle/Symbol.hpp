@@ -611,8 +611,6 @@ struct EnumVariantData
 	Optional<size_t> VariantSize;
 
 	Vector<EnumVariantFeild> Variants;
-
-	bool Isinlinenum = false;
 };
 
 class EnumInfo :public Symbol_Info
