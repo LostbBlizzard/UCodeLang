@@ -577,7 +577,7 @@ bool SystematicAnalysis::Analyze(const Vector<NeverNullPtr<FileNode>>& Files, co
 	{
 		for (const auto& File : *_Files)
 		{
-			_FilesData.AddValue((FileNode_t*)File.value(),Unique_ptr<FileNodeData>(new FileNodeData()));
+			_FilesData.AddValue(NeverNullptr<FileNode_t>(File.value()),Unique_ptr<FileNodeData>(new FileNodeData()));
 		}
 
 	}
@@ -668,6 +668,22 @@ void SystematicAnalysis::BuildCode()
 	Pass();
 	
 	{
+		for (auto& Symbol : _InlineEnums)
+		{
+
+
+			auto Info = Symbol->Get_Info<EnumInfo>();
+
+			if (Info->VariantData.has_value())
+			{
+				auto& variantVal = Info->VariantData.value();
+
+				Assembly_AddEnum(Symbol);
+
+			}
+		}
+	}
+	{
 		auto oldconext = SaveAndMove_SymbolContext();
 		for (auto& Item : _Generic_GeneratedGenericSybol)
 		{
@@ -707,6 +723,8 @@ void SystematicAnalysis::BuildCode()
 				Set_SymbolConext(std::move(Info->Conext.value()));
 				OnEnum(*node);
 				Info->Conext = SaveAndMove_SymbolContext();
+
+				
 			}
 			break;
 			default:
@@ -962,7 +980,7 @@ void SystematicAnalysis::FileDependency_AddDependencyToCurrentFile(const NeverNu
 	
 	
 	auto CurrentFile = _LookingAtFile;
-	auto& FileData = GetFileData(NeverNullptr((FileNode_t*)CurrentFile));
+	auto& FileData = GetFileData(NeverNullptr<FileNode_t>(CurrentFile));
 	NullablePtr<Symbol> LookingAtSyb = Syb.AsNullable();
 	bool IsAnImport = false;
 	while (LookingAtSyb)
@@ -1013,16 +1031,15 @@ void SystematicAnalysis::FileDependency_AddDependencyToCurrentFile(const NeverNu
 void SystematicAnalysis::FileDependency_AddDependencyToCurrentFile(const NeverNullPtr<FileNode> file)
 {
 	auto CurrentFile = NeverNullptr(_LookingAtFile);
-	const NeverNullPtr<FileNode_t> CurrentFile_t = *(const NeverNullPtr<FileNode_t>*)CurrentFile.value();
-
-	const NeverNullPtr<FileNode_t> file_t = *(const NeverNullPtr<FileNode_t>*)file.value();
+	const NeverNullPtr<FileNode_t> CurrentFile_t = NeverNullptr<FileNode_t>(CurrentFile.value());
+	const NeverNullPtr<FileNode_t> file_t = NeverNullptr<FileNode_t>(file.value());
 	if (CurrentFile != file)
 	{
 		FileNodeData& Data = *_FilesData[CurrentFile_t];
 		
 		for (auto& Item : Data._Dependencys)
 		{
-			const NeverNullPtr<FileNode_t> Itemfile_t = NeverNullptr((FileNode_t*)Item.value());
+			const NeverNullPtr<FileNode_t> Itemfile_t = NeverNullptr<FileNode_t>(Item.value());
 			if (Itemfile_t == file_t)
 			{
 				return;
@@ -1204,8 +1221,8 @@ void SystematicAnalysis::OnFileNode(const FileNode& File)
 		{
 			DoneWithImports = true;
 
-
-			auto& FileData = GetFileData(NeverNullptr((FileNode_t*)&_LookingAtFile));
+		
+			auto& FileData = GetFileData(NeverNullptr<FileNode_t>(_LookingAtFile));
 
 			for (auto& Import : FileData._Imports)
 			{
@@ -1249,7 +1266,7 @@ void SystematicAnalysis::OnFileNode(const FileNode& File)
 
 	if (_PassType == PassType::BuidCode)
 	{
-		auto& FileData = GetFileData(NeverNullptr((FileNode_t*)&File));
+		auto& FileData = GetFileData(NeverNullptr<FileNode_t>(&File));
 
 
 		FileData.AssemblyInfoSpan = FileNodeData::SpanData::NewWithNewIndex(ClassesStart, _Lib._Assembly.Classes.size());
@@ -1265,7 +1282,7 @@ void SystematicAnalysis::OnFileNode(const FileNode& File)
 
 	if (_PassType == PassType::FixedTypes || _PassType == PassType::BuidCode)
 	{
-		auto& FileData = GetFileData(NeverNullptr((FileNode_t*)&File));
+		auto& FileData = GetFileData(NeverNullptr<FileNode_t>(&File));
 
 		for (auto& Import : FileData._Imports)
 		{
@@ -5057,7 +5074,7 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 
 					}
 				
-					GetFileData(NeverNullptr((FileNode_t*)_LookingAtFile))._Imports.push_back(std::move(_ImportData));
+					GetFileData(NeverNullptr<FileNode_t>(_LookingAtFile))._Imports.push_back(std::move(_ImportData));
 				}
 
 			}
@@ -5086,7 +5103,7 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 				FileNodeData::ImportData _ImportData;
 				_ImportData.ImportSymbolFullName = Name;
 				_ImportData.IsImportUsed = &ImportInfo.IsUsed;
-				GetFileData(NeverNullptr((FileNode_t*)_LookingAtFile))._Imports.push_back(std::move(_ImportData));
+				GetFileData(NeverNullptr<FileNode_t>(_LookingAtFile))._Imports.push_back(std::move(_ImportData));
 			}
 
 		}
@@ -5811,104 +5828,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 		FileDependency_AddDependencyToCurrentFile(ClassInf->Basetype);
 		if (Syb.Type == SymbolType::Enum) //Dont output type if Generic
 		{
-			Enum_Data& EnumData = _Lib.Get_Assembly().AddEnum(ScopeHelper::GetNameFromFullName(Syb.FullName), Syb.FullName);
-			EnumData.BaseType = Assembly_ConvertToType(ClassInf->Basetype);
-			EnumData.TypeID = Type_GetTypeID(TypesEnum::CustomType, Syb.ID);
-
-			EnumData.Values.resize(ClassInf->Fields.size());
-			for (size_t i = 0; i < ClassInf->Fields.size(); i++)
-			{
-				auto& ClassDataItem = ClassInf->Fields[i];
-				auto& EnumDataItem = EnumData.Values[i];
-				EnumDataItem.Name = ClassDataItem.Name;
-				EnumDataItem._Data.Resize(ClassDataItem.Ex.ObjectSize);
-				memcpy(EnumDataItem._Data.Get_Data(), ClassDataItem.Ex.Object_AsPointer.get(), ClassDataItem.Ex.ObjectSize);
-			}
-			if (ClassInf->VariantData)
-			{
-				auto UnionFullName = Str_GetUnrefencedableName(Str_GetEnumVariantUnionName(ClassInf->FullName));
-				auto UnionName = Str_GetEnumVariantUnionName(Str_GetUnrefencedableName((String)ClassInf->Get_Name()));
-
-				Class_Data& EnumUnion = _Lib.Get_Assembly().AddClass(UnionName, UnionFullName);
-
-				auto& UnionSyb = Symbol_AddSymbol(SymbolType::Type_class, UnionName, UnionFullName, AccessModifierType::Default);
-				UnionSyb.OutputIR = false;//used only to have the union have a type.
-				_Table.AddSymbolID(UnionSyb, Symbol_GetSymbolID((Node&)UnionSyb));
-
-				EnumUnion.TypeID = Type_GetTypeID(TypesEnum::CustomType, UnionSyb.ID);
-				EnumData.EnumVariantUnion = EnumUnion.TypeID;
-
-				auto& List = ClassInf->VariantData.value().Variants;
-
-				size_t MaxSize = 0;
-				for (size_t i = 0; i < List.size(); i++)
-				{
-					auto& Item = List[i];
-
-					if (Item.ClassSymbol.has_value())
-					{
-						Symbol* Sym = Symbol_GetSymbol(Item.ClassSymbol.value()).value();
-						Sym->PassState =PassType::Done;
-
-						Assembly_AddClass({}, Sym);//has '!' post fix so its Unrefencedable
-
-						auto Type = TypeSymbol(Sym->ID);
-
-						ClassField V;
-						V.offset = 0;
-						V.Name = ClassInf->Fields[i].Name;
-						V.Type = Assembly_ConvertToType(Type);
-						EnumUnion.Fields.push_back(std::move(V));
-
-						auto& EnumDataItem = EnumData.Values[i];
-						EnumDataItem.EnumVariantType = Assembly_ConvertToType(Type);
-
-
-
-
-						size_t TypeSize = 0;
-						for (auto& Field : Sym->Get_Info<ClassInfo>()->Fields)
-						{
-							TypeSize += Type_GetSize(Field.Type).value();
-						}
-						if (TypeSize > MaxSize)
-						{
-							MaxSize = TypeSize;
-						}
-					}
-					else
-					{
-						if (Item.Types.size())
-						{
-
-							auto Type = Item.Types.front();
-							ClassField V;
-							V.offset = 0;
-							V.Name = ClassInf->Fields[i].Name;
-							V.Type = Assembly_ConvertToType(Type);
-							EnumUnion.Fields.push_back(std::move(V));
-
-							auto& EnumDataItem = EnumData.Values[i];
-							EnumDataItem.EnumVariantType = V.Type;
-
-							size_t TypeSize = Type_GetSize(Type).value();
-							if (TypeSize > MaxSize)
-							{
-								MaxSize = TypeSize;
-							}
-						}
-					}
-
-
-					for (auto& Item2 : Item.Types)
-					{
-						FileDependency_AddDependencyToCurrentFile(Item2);
-					}
-
-				}
-
-				EnumUnion.Size = MaxSize;
-			}
+			Assembly_AddEnum(NeverNullptr(&Syb));
 		}
 	}
 
@@ -7783,15 +7703,16 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 			auto ScopeName = node._ScopedName[Start];
 			auto Token = NeverNullptr(ScopeName._token);
 			auto& Str = Token->Value._String;
-			auto SymbolVar = Symbol_GetSymbol(Str, SymbolType::Varable_t).value();
+			auto SymbolVarOp = Symbol_GetSymbol(Str, SymbolType::Varable_t);
 			_LastLookedAtToken = Token.AsNullable();
 
-
-			if (SymbolVar == nullptr)
+		
+			if (!SymbolVarOp.has_value())
 			{
 				LogError_CantFindVarError(Token, Str);
 				return false;
-			}
+			}	
+			auto SymbolVar = SymbolVarOp.value();
 
 			if (SymbolVar->PassState == PassType::GetTypes)
 			{
@@ -12115,6 +12036,111 @@ ReflectionTypeInfo SystematicAnalysis::Assembly_ConvertToType(const TypeSymbol& 
 	return r;
 }
 
+void SystematicAnalysis::Assembly_AddEnum(const NeverNullPtr<Symbol> ClassSyb)
+{
+	auto& Syb = *ClassSyb;
+	const EnumInfo* ClassInf = Syb.Get_Info<EnumInfo>();
+
+	Enum_Data& EnumData = _Lib.Get_Assembly().AddEnum(ScopeHelper::GetNameFromFullName(Syb.FullName), Syb.FullName);
+	EnumData.BaseType = Assembly_ConvertToType(ClassInf->Basetype);
+	EnumData.TypeID = Type_GetTypeID(TypesEnum::CustomType, Syb.ID);
+
+	EnumData.Values.resize(ClassInf->Fields.size());
+	for (size_t i = 0; i < ClassInf->Fields.size(); i++)
+	{
+		auto& ClassDataItem = ClassInf->Fields[i];
+		auto& EnumDataItem = EnumData.Values[i];
+		EnumDataItem.Name = ClassDataItem.Name;
+		EnumDataItem._Data.Resize(ClassDataItem.Ex.ObjectSize);
+		memcpy(EnumDataItem._Data.Get_Data(), ClassDataItem.Ex.Object_AsPointer.get(), ClassDataItem.Ex.ObjectSize);
+	}
+	if (ClassInf->VariantData)
+	{
+		auto UnionFullName = Str_GetUnrefencedableName(Str_GetEnumVariantUnionName(ClassInf->FullName));
+		auto UnionName = Str_GetEnumVariantUnionName(Str_GetUnrefencedableName((String)ClassInf->Get_Name()));
+
+		Class_Data& EnumUnion = _Lib.Get_Assembly().AddClass(UnionName, UnionFullName);
+
+		auto& UnionSyb = Symbol_AddSymbol(SymbolType::Type_class, UnionName, UnionFullName, AccessModifierType::Default);
+		UnionSyb.OutputIR = false;//used only to have the union have a type.
+		_Table.AddSymbolID(UnionSyb, Symbol_GetSymbolID((Node&)UnionSyb));
+
+		EnumUnion.TypeID = Type_GetTypeID(TypesEnum::CustomType, UnionSyb.ID);
+		EnumData.EnumVariantUnion = EnumUnion.TypeID;
+
+		auto& List = ClassInf->VariantData.value().Variants;
+
+		size_t MaxSize = 0;
+		for (size_t i = 0; i < List.size(); i++)
+		{
+			auto& Item = List[i];
+
+			if (Item.ClassSymbol.has_value())
+			{
+				Symbol* Sym = Symbol_GetSymbol(Item.ClassSymbol.value()).value();
+				Sym->PassState = PassType::Done;
+
+				Assembly_AddClass({}, Sym);//has '!' post fix so its Unrefencedable
+
+				auto Type = TypeSymbol(Sym->ID);
+
+				ClassField V;
+				V.offset = 0;
+				V.Name = ClassInf->Fields[i].Name;
+				V.Type = Assembly_ConvertToType(Type);
+				EnumUnion.Fields.push_back(std::move(V));
+
+				auto& EnumDataItem = EnumData.Values[i];
+				EnumDataItem.EnumVariantType = Assembly_ConvertToType(Type);
+
+
+
+
+				size_t TypeSize = 0;
+				for (auto& Field : Sym->Get_Info<ClassInfo>()->Fields)
+				{
+					TypeSize += Type_GetSize(Field.Type).value();
+				}
+				if (TypeSize > MaxSize)
+				{
+					MaxSize = TypeSize;
+				}
+			}
+			else
+			{
+				if (Item.Types.size())
+				{
+
+					auto Type = Item.Types.front();
+					ClassField V;
+					V.offset = 0;
+					V.Name = ClassInf->Fields[i].Name;
+					V.Type = Assembly_ConvertToType(Type);
+					EnumUnion.Fields.push_back(std::move(V));
+
+					auto& EnumDataItem = EnumData.Values[i];
+					EnumDataItem.EnumVariantType = V.Type;
+
+					size_t TypeSize = Type_GetSize(Type).value();
+					if (TypeSize > MaxSize)
+					{
+						MaxSize = TypeSize;
+					}
+				}
+			}
+
+
+			for (auto& Item2 : Item.Types)
+			{
+				FileDependency_AddDependencyToCurrentFile(Item2);
+			}
+
+		}
+
+		EnumUnion.Size = MaxSize;
+	}
+}
+
 bool AreSameimmutable(const TypeSymbol& TypeA, const TypeSymbol& TypeB)
 {
 	return 	TypeA.IsAddress() == TypeB.IsAddress() &&
@@ -13110,6 +13136,7 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 				{
 					auto& Syb = Symbol_AddSymbol(SymbolType::Enum, SymName, SymName, AccessModifierType::Public);
 					{
+						Syb.PassState = PassType::FixedTypes;
 						_Table.AddSymbolID(Syb, Symbol_GetSymbolID(&Syb));
 
 						EnumInfo* info = new EnumInfo();
@@ -13173,7 +13200,6 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 						}
 						
 						EnumVariantData Variantdata;
-						Variantdata.Isinlinenum = true;
 						for (auto& Item : outtypelist)
 						{
 							EnumVariantFeild F;
@@ -13183,6 +13209,8 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 						}
 
 						info->VariantData = std::move(Variantdata);
+
+						_InlineEnums.push_back(NeverNullptr(&Syb));
 					}
 						
 					Out.SetType(Syb.ID);
@@ -15733,13 +15761,14 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 			const ClassNode& node = *Item->Get_NodeInfo<ClassNode>();
 		
-			auto classsyb = Generic_InstantiateOrFindGeneric_Class(
+			auto classsybOp = Generic_InstantiateOrFindGeneric_Class(
 				NeverNullptr(Name._ScopedName.front()._token),
 				Item,
 				node._generic, V->_GenericData, Generics);
-			if (classsyb) 
+			if (classsybOp.has_value())
 			{
-				String Scope = V->FullName;
+				auto classsyb = classsybOp.value();
+				String Scope = classsyb->FullName;
 				ScopeHelper::GetApendedString(Scope, ClassConstructorfunc);
 
 				auto ConstructorSymbols = _Table.GetSymbolsWithName(Scope, SymbolType::Any);
@@ -15756,7 +15785,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 						if (PushThisPar)
 						{
 							TypeSymbol V;
-							V.SetType(Item->ID);
+							V.SetType(classsyb->ID);
 							V.SetAsAddress();
 							ValueTypes.insert(ValueTypes.begin(), { false,V });
 						}
