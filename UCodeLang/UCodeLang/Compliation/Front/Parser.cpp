@@ -4625,6 +4625,7 @@ GotNodeType Parser::GetUnsafeStatementNode(UnsafeStatementsNode& out)
 	auto token = TryGetToken();
 	if (token->Type == TokenType::Colon)
 	{
+		NextToken();
 		return GetStatements(out._Base);
 	}
 

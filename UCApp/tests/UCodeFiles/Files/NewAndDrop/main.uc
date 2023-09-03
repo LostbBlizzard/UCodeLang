@@ -2,8 +2,9 @@
 
 |main[]:
  
- int& A = new int(); 
+ unsafe:
+  int& A = new int(); 
  
- drop(A);
+  drop(A);
 
  ret 0;

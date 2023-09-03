@@ -251,6 +251,11 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 			r += ToString(FuncPtr.RetType, Assembly) + ";\n\n";
 		}
 		break;
+		case ClassType::Tag:
+		{
+
+		}
+		break;
 		default:
 			UCodeLangUnreachable();
 			break;
