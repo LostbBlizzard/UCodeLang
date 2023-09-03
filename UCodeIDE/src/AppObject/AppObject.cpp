@@ -736,7 +736,11 @@ void AppObject::OnDraw()
 
     if (ImGui::Begin("Tests"))
     {
-        size_t MaxTestCount = 20;//ULangTest::Tests.size()
+        //Set These to make fixing tests more mangeabe 
+        size_t MinTestIndex = 0;
+        size_t MaxTestCount = 10;//ULangTest::Tests.size()
+
+
         UCodeLang::OptimizationFlags flags = TestWindowData.Flags;
 
         if (TestWindowData.DebugMode)
@@ -810,7 +814,7 @@ void AppObject::OnDraw()
 
         size_t TestPassedCount = 0;
         size_t TestRuningCount = 0;
-        for (size_t i = 0; i < MaxTestCount; i++)
+        for (size_t i = MinTestIndex; i < MaxTestCount; i++)
         {
             auto& ItemTest = ULangTest::Tests[i];
             auto& ItemTestOut = TestWindowData.Testinfo[i];
@@ -832,8 +836,8 @@ void AppObject::OnDraw()
         info += "TestPassed:";
         info += std::to_string(TestPassedCount);
         info += "/";
-        info += std::to_string(MaxTestCount);
-        info += " :" + std::to_string((int)(((float)TestPassedCount / (float)MaxTestCount) * 100));
+        info += std::to_string(MaxTestCount- MinTestIndex);
+        info += " :" + std::to_string((int)(((float)TestPassedCount / (float)(MaxTestCount- MinTestIndex)) * 100));
         info += " percent";
         ImGui::Text(info.c_str());
         }
@@ -842,8 +846,8 @@ void AppObject::OnDraw()
             info += "TestRuning:";
             info += std::to_string(TestRuningCount);
             info += "/";
-            info += std::to_string(MaxTestCount);
-            info += " :" + std::to_string((int)(((float)TestRuningCount / (float)MaxTestCount)*100));
+            info += std::to_string(MaxTestCount- MinTestIndex);
+            info += " :" + std::to_string((int)(((float)TestRuningCount / (float)(MaxTestCount- MinTestIndex)*100)));
             info += " percent";
             ImGui::Text(info.c_str());
         }
@@ -861,7 +865,7 @@ void AppObject::OnDraw()
 
         ImGui::Separator();
 
-        for (size_t i = 0; i < MaxTestCount; i++)
+        for (size_t i = MinTestIndex; i < MaxTestCount; i++)
         {
             auto& ItemTest = ULangTest::Tests[i];
             auto& ItemTestOut = TestWindowData.Testinfo[i];

@@ -5538,6 +5538,7 @@ void SystematicAnalysis::OnStatement(const Node& node2)
 	case NodeType::MatchStatement:OnMatchStatement(*MatchStatement::As(&node2)); break;
 	case NodeType::AwaitStatement:OnAwaitStatement(*AwaitStatement::As(&node2)); break;
 	case NodeType::YieldStatement:OnYieldStatement(*YieldStatement::As(&node2)); break;
+	case NodeType::UnsafeStatementsNode:OnUnsafeStatement(*UnsafeStatementsNode::As(&node2)); break;
 	default:UCodeLangUnreachable(); break;
 	}
 	Pop_NodeScope();

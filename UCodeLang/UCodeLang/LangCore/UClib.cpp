@@ -114,6 +114,13 @@ void UClib::ToBytes(BitMaker& Output, const ClassAssembly& Assembly)
 			ToBytes(Output, FuncPtrData);
 		}
 		break;
+		case ClassType::Tag:
+		{
+			auto& TagData = Item->Get_TagData();
+
+			ToBytes(Output, TagData);
+		}
+		break;
 		default:
 			UCodeLangUnreachable();
 			break;
@@ -266,6 +273,9 @@ void UClib::ToBytes(BitMaker& Output, const ClassField& Item2)
 	Output.WriteType(Item2.Name);
 	ToBytes(Output, Item2.Type);
 	Output.WriteType((Size_tAsBits)Item2.offset);
+}
+void UClib::ToBytes(BitMaker& Output, const Tag_Data& Data)
+{
 }
 void UClib::ToBytes(BitMaker& Output, const UsedTagValueData& Data)
 {
@@ -686,6 +696,12 @@ void UClib::FromBytes(BitReader& reader, ClassAssembly& Assembly)
 			FromBytes(reader, FuncPtr);
 		}
 		break;
+		case ClassType::Tag:
+		{
+			auto& Tag = _Node.Get_TagData();
+			FromBytes(reader, Tag);
+		}
+		break;
 		default:
 			UCodeLangUnreachable();
 			break;
@@ -873,6 +889,9 @@ void UClib::FromBytes(BitReader& reader, Alias_Data& Alias)
 		}
 	}
 	FromBytes(reader, Alias.Type);
+}
+void UClib::FromBytes(BitReader& Input, Tag_Data& Data)
+{
 }
 void UClib::FromBytes(BitReader& Input, UsedTagValueData& Data)
 {
