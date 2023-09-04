@@ -228,10 +228,10 @@ private:
 		UCodeLang::OptimizationFlags Flags = UCodeLang::OptimizationFlags::NoOptimization;
 		bool InDebug = true;
 
-		NativeSet OldNativeCpuType= NativeSet::x86;
+		NativeSet OldNativeCpuType = NativeSet::x86;
 	};
 	OutputWindowData OutputWindow;
-	
+
 	enum class UCodeVMType
 	{
 		Interpreter,
@@ -293,11 +293,15 @@ private:
 	UCodeLang::Compiler::CompilerPathData _RuningPaths;
 
 
-	template<typename T,typename... Pars> std::future<T> 
+	template<typename T, typename... Pars> std::future<T>
 		SendTaskToWorkerThread(std::function<T(Pars...)> Func, Pars... pars)
-	{
+		{
 			return std::async(Func, pars...);
-	}
+		}
+
+	void DrawTestMenu();
+
+	void DrawPerformanceMenu();
 };
 
 UCodeIDEEnd
