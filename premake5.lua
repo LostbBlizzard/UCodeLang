@@ -102,6 +102,9 @@ project "UCApp"
      "%{prj.name}/tests/**.cpp",
      "%{prj.name}/tests/**.hpp", 
    }
+   removefiles{
+     "%{prj.name}/tests/PerformanceTests/**", 
+   }
    includedirs{
     "%{prj.name}/src",
     "UCodeLang",
@@ -110,7 +113,7 @@ project "UCApp"
     "UCodeLang/Dependencies/zycore/include",
     "UCodeLang/Dependencies/zydis/src"
    }
-
+   
    
    
    links {
