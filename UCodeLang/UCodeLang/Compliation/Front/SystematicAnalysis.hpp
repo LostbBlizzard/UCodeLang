@@ -1777,7 +1777,7 @@ private:
 	void LogError_ParPackTypeIsNotLast(const NeverNullPtr<Token> Token);
 	void LogError(ErrorCodes Err, const String& MSG, const NeverNullPtr<Token> Token);
 	void LogError(ErrorCodes Err,size_t Line,size_t Pos, const String& MSG);
-	void LogError_LogWantedAVariable(const NeverNullPtr<Token> const& Item, Symbol* TepSyb);
+	void LogError_LogWantedAVariable(const NeverNullPtr<Token>& Item, Symbol* TepSyb);
 	void LogError_CantBindTypeItNotTypeInfo(const NeverNullPtr<Token> Token,TypeSymbol& Type);
 	void LogError_CantUseTypeVoidHere(const NeverNullPtr<Token> Token);
 	void LogError_UseingTypeinfoInNonEvalVarable(const NeverNullPtr<Token> Token);

@@ -740,8 +740,8 @@ void AppObject::OnDraw()
     if (ImGui::Begin("Tests"))
     {
         //Set These to make fixing tests more mangeabe 
-        size_t MinTestIndex = 0;
-        size_t MaxTestCount = 10;//ULangTest::Tests.size()
+        size_t MinTestIndex = 11;
+        size_t MaxTestCount = 21;//ULangTest::Tests.size()
 
 
         UCodeLang::OptimizationFlags flags = TestWindowData.Flags;

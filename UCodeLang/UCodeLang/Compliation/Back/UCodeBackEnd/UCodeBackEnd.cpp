@@ -1308,8 +1308,9 @@ UCodeBackEndObject::FuncCallEndData UCodeBackEndObject::FuncCallStart(const Vect
 	}
 	return FuncCallStart(Tep,RetType);
 }
-Optional< RegisterID> UCodeBackEndObject::FindIRInRegister(const IRInstruction* Value)
+Optional< RegisterID> UCodeBackEndObject::FindIRInRegister(const IRInstruction* Value, bool GetAddress)
 {
+	if (GetAddress) { return {}; }
 	auto R = _Registers.GetInfo(Value);
 	if (R.has_value())
 	{
@@ -2533,7 +2534,7 @@ void UCodeBackEndObject::PushOpStack(const IRInstruction* Ins, const  IROperator
 }
 UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstruction* Ins,bool GetAddress)
 {
-	auto RegInfo = FindIRInRegister(Ins);
+	auto RegInfo = FindIRInRegister(Ins,GetAddress);
 	if (RegInfo.has_value())
 	{
 		UCodeBackEndObject::IRlocData R;
@@ -2578,13 +2579,25 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 					R.Info = FreeTep;
 					R.ObjectType = GetType(Ins);
 					GiveNameTo(R, Ins);
+
+					if (GetAddress)
+					{
+						auto old = R;
+						R = GetPointerOf(old);
+					}
 					return R;
 				}
 			}
 		}
 		else if (Ins->Type == IRInstructionType::Load)
 		{
-			return GetIRLocData(Ins->Target().Pointer);
+			auto R = GetIRLocData(Ins->Target().Pointer);
+			if (GetAddress)
+			{
+				auto old = R;
+				R = GetPointerOf(old);
+			}
+			return R;
 		}
 		else if (Ins->Type == IRInstructionType::Member_Access_Dereference)
 		{

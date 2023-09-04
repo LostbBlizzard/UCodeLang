@@ -94,7 +94,7 @@
 #define UCode_RangeInclusiveFuncion "RangeInclusive"//0..=10 RangeInclusive(0,10)
 
 #define UCode_RangeType "Range_t"//0..10 Range_t<int>(0,10)
-#define UCode_RangeType "RangeInclusive_t"//0..=10 RangeInclusive<int>(0,10)
+#define UCode_RangeInclusiveType "RangeInclusive_t"//0..=10 RangeInclusive<int>(0,10)
 
 
 #define UCodeLangStringType "String"
