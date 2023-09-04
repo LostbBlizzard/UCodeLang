@@ -6498,7 +6498,7 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 		}
 		else 
 		{
-			IR_WriteTo(ExIR, ExpressionType, _IR_LastStoreField);
+			IR_WriteTo(ExIR, AssignType.Op1, _IR_LastStoreField);
 		}
 	}
 }
@@ -6792,7 +6792,7 @@ IROperator  SystematicAnalysis::IR_Build_Member_DereferencStore(const GetMemberT
 	case  SymbolType::Type_class://this
 	case  SymbolType::Class_Field:
 	case  SymbolType::StackVarable:
-		return Output;
+		return  Output;
 	case  SymbolType::ParameterVarable:
 		return UseOutput ? IROperator(IROperatorType::DereferenceOf_IRInstruction,Output) : IROperator(IROperatorType::DereferenceOf_IRParameter,In._Symbol->IR_Par);
 		break;
@@ -8831,7 +8831,6 @@ void SystematicAnalysis::OnStringLiteral(const StringliteralNode* nod, bool& ret
 							auto& pointerpar = finfo->Pars[1];
 							auto& sizepar = finfo->Pars[2];
 							if (pointerpar.IsOutPar == true
-								|| sizepar.IsOutPar == true
 								|| sizepar.IsOutPar == true)
 							{
 								continue;
@@ -8893,19 +8892,19 @@ void SystematicAnalysis::OnStringLiteral(const StringliteralNode* nod, bool& ret
 		break;
 		case StringType::Utf8:
 		{
-			UCodeLangToDo("add utf8");
+			UCodeLangToDo();//"add utf8"
 		}
 		break;
 		case StringType::Utf16:
 		{
 
-			UCodeLangToDo("add utf16");
+			UCodeLangToDo();//"add utf16"
 		}
 		break;
 		case StringType::Utf32:
 		{
 
-			UCodeLangToDo("add utf32");
+			UCodeLangToDo();//"add utf32"
 		}
 		break;
 		default:
@@ -14631,7 +14630,7 @@ bool SystematicAnalysis::Type_GetSize(const TypeSymbol& Type, UAddress& OutSize)
 				
 				if (!Item.VariantSize.has_value())
 				{
-					auto MaxSize = 0;
+					size_t MaxSize = 0;
 					
 					for (auto& Item2 : Item.Variants)
 					{
@@ -17286,7 +17285,7 @@ int SystematicAnalysis::Type_GetCompatibleScore(const IsCompatiblePar& Func, con
 	}
 
 
-	return (*Func.Pars).size() ? (r / (*Func.Pars).size()) : r;
+	return (*Func.Pars).size() ? (int)(r / (*Func.Pars).size()) : (int)r;
 }
 bool SystematicAnalysis::Symbol_AccessCheck(const NeverNullPtr<Symbol> Syb,const NeverNullPtr<Token> Token, const String_view Scope)
 {
@@ -19341,7 +19340,7 @@ void SystematicAnalysis::LogError_BeMoreSpecifiicWithStaticArrSize(const NeverNu
 	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Be More Specifiic with Static Array Size.Ex: " + ToString(Type) + "[/1]");
 }
-void SystematicAnalysis::LogError_LogWantedAVariable(const NeverNullPtr<Token> const& Item,Symbol* TepSyb)
+void SystematicAnalysis::LogError_LogWantedAVariable(const NeverNullPtr<Token>& Item,Symbol* TepSyb)
 {
 	LogError(ErrorCodes::BackEndError, Item->OnLine, Item->OnPos,
 		"found a " + ToString(TepSyb->Type) + "(" + TepSyb->FullName + ")" + ".but wanted a Variable or a class field");
