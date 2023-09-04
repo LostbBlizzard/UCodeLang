@@ -150,7 +150,13 @@ $Result<T,E> enum:
         */
         _Editor.SetText(
             R"(
-|main[] => 0;
+|main2[] -> int:
+
+ int A = 1;
+
+ int& V = A;
+ int H = V;
+ ret H;
 
 /*
 |main[] -> async<bool>:
@@ -1108,7 +1114,7 @@ void AppObject::DrawPerformanceMenu()
     {
         {
             String Cpuinfo;
-            #if UCodeLang_Platform_Windows 
+#if UCodeLang_Platform_Windows 
             int CPUInfo[4] = { -1 };
             unsigned   nExIds, i = 0;
             char CPUBrandString[0x40];
@@ -1128,22 +1134,22 @@ void AppObject::DrawPerformanceMenu()
             }
             //string includes manufacturer, model and clockspeed
             Cpuinfo = CPUBrandString;
-            #endif // 
+#endif // 
             ImGui::BeginDisabled();
             ImguiHelper::InputText("CPU Info", Cpuinfo);
             String OSInfo;
-            #if UCodeLang_Platform_Windows
+#if UCodeLang_Platform_Windows
             OSInfo += "Windows";
-            #endif
-            #if UCodeLang_Platform_Linux
-            OSInfo += "Linux";  
-            #endif
+#endif
+#if UCodeLang_Platform_Linux
+            OSInfo += "Linux";
+#endif
 
-            #if UCodeLang_32BitSytem
+#if UCodeLang_32BitSytem
             OSInfo += "- 32 bit";
-            #else
+#else
             OSInfo += "- 64 bit";
-            #endif
+#endif
             ImguiHelper::InputText("OS Info", OSInfo);
 
             String UCodeLangInfo;
@@ -1153,51 +1159,77 @@ void AppObject::DrawPerformanceMenu()
 
             UCodeLangInfo += " ";
 
-            #if UCodeLangMSVC
+#if UCodeLangMSVC
             UCodeLangInfo += "MSVC";
-            #endif
-            #if UCodeLangGNUC
+#endif
+#if UCodeLangGNUC
             UCodeLangInfo += "GNUC";
-            #endif
-            #if UCodeLangClang
+#endif
+#if UCodeLangClang
             UCodeLangInfo += "Clang";
-            #endif
+#endif
 
 
-            #if UCodeLangDebug
+#if UCodeLangDebug
             UCodeLangInfo += " Debug";
-            #endif
-            #if Release
+#endif
+#if Release
             UCodeLangInfo += " Release";
-            #endif
-            #if Release
+#endif
+#if Release
             UCodeLangInfo += " Published";
-            #endif
+#endif
 
             ImguiHelper::InputText("UCodeLang Info", UCodeLangInfo);
 
             ImGui::EndDisabled();
         }
 
-        if (ImGui::TreeNode("Compile"))
-        {
 
-
-            ImGui::TreePop();
-        }
         if (ImGui::TreeNode("VM"))
         {
-            auto v = { "C++","C#","Lua" };
+            ImGui::Text("Report");
+            float ULangRelativeSpeedCS = 0;
+            float ULangRelativeSpeedCpp = 0;
+            float ULangRelativeSpeedLua = 0;
+
+
+            ImGui::BeginDisabled();
+
+            ImguiHelper::float32Field("UCode Relative To Lua", ULangRelativeSpeedLua);
+
+            ImguiHelper::float32Field("UCode Relative To C#", ULangRelativeSpeedCS);
+
+            ImguiHelper::float32Field("UCode Relative To C++", ULangRelativeSpeedCpp);
+
+            ImGui::EndDisabled();
 
             ImGui::TreePop();
         }
         if (ImGui::TreeNode("Native"))
         {
+            ImGui::Text("Report");
+            float ULangRelativeSpeedCS = 0;
+            float ULangRelativeSpeedCpp = 0;
+            float ULangRelativeSpeedLua = 0;
 
+
+            ImGui::BeginDisabled();
+
+            ImguiHelper::float32Field("UCode Relative To Lua", ULangRelativeSpeedLua);
+
+            ImguiHelper::float32Field("UCode Relative To C#", ULangRelativeSpeedCS);
+
+            ImguiHelper::float32Field("UCode Relative To C++", ULangRelativeSpeedCpp);
+
+            ImGui::EndDisabled();
+          
             ImGui::TreePop();
         }
-
+        
     }ImGui::End();
+
+ 
 }
 void AppObject::OnDraw()
 {

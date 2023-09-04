@@ -1,5 +1,11 @@
 
-|main[] => 0;
+|main2[] -> int:
+
+ int A = 1;
+
+ int& V = A;
+ int H = V;
+ ret H;
 
 /*
 |main[] -> async<bool>:
