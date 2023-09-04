@@ -1,11 +1,5 @@
-|func[] -> utf8;
-|main[]:
- char V1 = 'A';
- utf8 V2 = 'A';
- utf16 V3 = 'A';
- utf32 V4 = 'A';
 
- ret sizeof(char) + sizeof(utf8) + sizeof(utf16) + sizeof(utf32);
+|main[] => 0;
 
 /*
 |main[] -> async<bool>:

@@ -1382,14 +1382,14 @@ public:
 
 
 	//note will not add a null char at the end.
-	IRidentifierID FindOrAddStaticCString(String_view Buffer)
+	IRidentifierID FindOrAddStaticCString(const String_view Buffer)
 	{
 		String VKey = (String)Buffer;
 		if (ConstStaticStrings.HasValue(VKey))
 		{
 			return ConstStaticStrings.at(VKey);
 		}
-		IRidentifierID identifier = ToID(".Const.String:" + (String)Buffer);
+		IRidentifierID identifier = ToID(".Const.CString:" + (String)Buffer);
 		auto V = NewStaticVarable(identifier, IRType(IRTypes::i8));
 
 		V.Pointer->IsInitialized = true;
@@ -1401,46 +1401,45 @@ public:
 		return identifier;
 	}
 	//note will not add a null char at the end.
-	IRidentifierID FindOrAddStaticCString8(String_view8 Buffer)
+	IRidentifierID FindOrAddStaticCString8(const String_view8 Buffer)
 	{
-		UCodeLangToDo();
-		return IRidentifierID();
+		return FindOrAddStaticCString(String_view((const char*)Buffer.data(), Buffer.size()));
 	}
 	//note will not add a null char at the end.
-	IRidentifierID FindOrAddStaticCString16(String_view16 Buffer)
+	IRidentifierID FindOrAddStaticCString16(const String_view16 Buffer)
 	{
-		UCodeLangToDo();
-		return IRidentifierID();
+		return FindOrAddStaticCString(String_view((const char*)Buffer.data(), Buffer.size()*2));	
 	}
 	//note will not add a null char at the end.
-	IRidentifierID FindOrAddStaticCString32(String_view32 Buffer)
+	IRidentifierID FindOrAddStaticCString32(const String_view32 Buffer)
 	{
-		UCodeLangToDo();
-		return IRidentifierID();
+		return FindOrAddStaticCString(String_view((const char*)Buffer.data(), Buffer.size()*4));
 	}
 
-	IRidentifierID FindOrAddStaticSpanString8(String_view32 Buffer)
+	struct StringSpanInfo
 	{
-		UCodeLangToDo();
-		return IRidentifierID();
+		IRidentifierID StaticVar;
+		size_t Offset;
+	};
+	StringSpanInfo FindOrAddStaticSpanString8(const String_view32 Buffer)
+	{
+		return FindOrAddStaticSpanString(String_view((const char*)Buffer.data(),Buffer.size() *4));
 	}
-	IRidentifierID FindOrAddStaticSpanString16(String_view16 Buffer)
+	StringSpanInfo FindOrAddStaticSpanString16(const String_view16 Buffer)
 	{
-		UCodeLangToDo();
-		return IRidentifierID();
+		return FindOrAddStaticSpanString(String_view((const char*)Buffer.data(),Buffer.size()*2));
 	}
-	IRidentifierID FindOrAddStaticSpanString8(String_view8 Buffer)
+	StringSpanInfo FindOrAddStaticSpanString8(const String_view8 Buffer)
 	{
-		UCodeLangToDo();
-		return IRidentifierID();
+		return FindOrAddStaticSpanString(String_view((const char*)Buffer.data(),Buffer.size()));
 	}
 
-	IRidentifierID FindOrAddStaticSpanString(String_view Buffer)
+	StringSpanInfo FindOrAddStaticSpanString(const String_view Buffer)
 	{
 		String VKey = (String)Buffer;
 		if (ConstStaticStrings.HasValue(VKey))
 		{
-			return ConstStaticStrings.at(VKey);
+			return { ConstStaticStrings.at(VKey),0 };
 		}
 		IRidentifierID identifier = ToID(".Const.SpanString:" + (String)Buffer);
 		auto V = NewStaticVarable(identifier, IRType(IRTypes::i8));
@@ -1451,8 +1450,9 @@ public:
 
 		ConstStaticStrings.AddValue(VKey, identifier);
 
-		return identifier;
+		return { identifier,0 };
 	}
+	
 
 
 	IRStruct* NewStruct(IRidentifierID identifier)
