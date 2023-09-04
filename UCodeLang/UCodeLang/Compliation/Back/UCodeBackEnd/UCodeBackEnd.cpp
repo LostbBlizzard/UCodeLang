@@ -2573,18 +2573,22 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 				}
 				else
 				{
-					auto FreeTep =GetRegisterForTep();
-					RegWillBeUsed(FreeTep);
 					UCodeBackEndObject::IRlocData R;
-					R.Info = FreeTep;
-					R.ObjectType = GetType(Ins);
-					GiveNameTo(R, Ins);
-
 					if (GetAddress)
 					{
-						auto old = R;
+						auto old = GetIRLocData(Ins);
 						R = GetPointerOf(old);
 					}
+					else
+					{
+						auto FreeTep = GetRegisterForTep();
+						RegWillBeUsed(FreeTep);
+						R.Info = FreeTep;
+						R.ObjectType = GetType(Ins);
+					} 
+					GiveNameTo(R, Ins);
+					
+
 					return R;
 				}
 			}
