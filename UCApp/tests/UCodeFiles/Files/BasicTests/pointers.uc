@@ -13,5 +13,5 @@
  int A = 1;
 
  int& V = A;
- int H = A;
+ int H = V;
  ret H;
