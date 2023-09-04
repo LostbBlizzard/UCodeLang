@@ -987,7 +987,7 @@ GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 		}
 		else
 		{
-			GetType(out._ReturnType);
+			GetType(out._ReturnType,false,false);
 		}
 	}
 	else  if (Arrow->Type == TokenType::RightAssignArrow)

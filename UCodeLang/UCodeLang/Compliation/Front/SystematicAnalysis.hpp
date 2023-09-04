@@ -1419,7 +1419,19 @@ private:
 	{
 		return Symbol_AccessCheck(Syb, Token, this->_Table._Scope.ThisScope);
 	}
+	
+	bool Type_IsStringSpan8(const TypeSymbol& type);
+	bool Type_IsStringSpan16(const TypeSymbol& type);
+	bool Type_IsStringSpan32(const TypeSymbol& type);
 
+	bool Type_IsString8(const TypeSymbol& type);
+	bool Type_IsString16(const TypeSymbol& type);
+	bool Type_IsString32(const TypeSymbol& type);
+
+	Optional<TypeSymbol> Type_GetStringSpan(const NeverNullPtr<Token> Token);
+	Optional<TypeSymbol> Type_GetStringSpan8(const NeverNullPtr<Token> Token);
+	Optional<TypeSymbol> Type_GetStringSpan16(const NeverNullPtr<Token> Token);
+	Optional<TypeSymbol> Type_GetStringSpan32(const NeverNullPtr<Token> Token);
 	//Generics
 
 	void Generic_GenericFuncInstantiate(const NeverNullPtr<Symbol> Func, const Vector<TypeSymbol>& GenericInput);

@@ -23,6 +23,21 @@ public:
 		}
 		return true;
 	}
+
+	static bool Contains(const String& string, const String_view MatchString)
+	{
+		return  Contains(String_view(string), String_view(MatchString));
+	}
+	static bool Contains(const String_view string, const String_view MatchString)
+	{
+		if (string.find(MatchString) != std::string::npos) {
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
 };
 
 
