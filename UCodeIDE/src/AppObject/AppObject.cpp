@@ -501,6 +501,8 @@ void AppObject::OnDraw()
     static constexpr size_t TestCount = ULangTest::Tests.size();
     struct TestInfo
     {
+        size_t MinTestIndex = 0;
+        size_t MaxTestCount = 40;//ULangTest::Tests.size();
         bool TestAsRan = false;
         enum class TestState
         {
@@ -509,6 +511,7 @@ void AppObject::OnDraw()
             Fail,
             Exception
         };
+        using SuccessCondition = ULangTest::SuccessCondition;
         
 
         struct TestData
@@ -670,15 +673,15 @@ void AppObject::OnDraw()
 
                     if (Test.Condition == SuccessCondition::RunTimeValue)
                     {
-                        std::unique_ptr<Byte[]> RetState = std::make_unique<Byte[]>(Test.RunTimeSuccessSize);
-                        RunTime.Get_Return(RetState.get(), Test.RunTimeSuccessSize);
+                        RetValue = std::make_unique<Byte[]>(Test.RunTimeSuccessSize);
+                        RunTime.Get_Return(RetValue.get(), Test.RunTimeSuccessSize);
 
                         String Type = "Interpreter";
 
                         bool IsSame = true;
                         for (size_t i = 0; i < Test.RunTimeSuccessSize; i++)
                         {
-                            if (RetState[i] != Test.RunTimeSuccess[i])
+                            if (RetValue[i] != Test.RunTimeSuccess[i])
                             {
                                 IsSame = false;
                                 break;
@@ -693,7 +696,7 @@ void AppObject::OnDraw()
                             State = TestState::Fail;
 
                             Logs += "fail from got value '";
-                            Logs += OutputBytesToString(RetState.get(), Test.RunTimeSuccessSize);
+                            Logs += OutputBytesToString(RetValue.get(), Test.RunTimeSuccessSize);
 
                             Logs += "' but expecting '";
                             Logs += OutputBytesToString(Test.RunTimeSuccess.get(), Test.RunTimeSuccessSize);
@@ -728,7 +731,19 @@ void AppObject::OnDraw()
             case TestInfo::TestState::Fail:return "fail";
             case TestInfo::TestState::Exception:return "exception";
             default:
-                return "";
+                UCodeLangUnreachable();
+                break;
+            }
+        }
+        static String GetToString(SuccessCondition Value)
+        {
+            switch (Value)
+            {
+            case SuccessCondition::Compilation:return "Compilation";
+            case SuccessCondition::CompilationFail:return "CompilationFail";
+            case SuccessCondition::RunTimeValue:return "RunTimeValue";
+            default:
+                UCodeLangUnreachable();
                 break;
             }
         }
@@ -739,11 +754,21 @@ void AppObject::OnDraw()
 
     if (ImGui::Begin("Tests"))
     {
-        //Set These to make fixing tests more mangeabe 
-        size_t MinTestIndex = 11;
-        size_t MaxTestCount = 21;//ULangTest::Tests.size()
-
-
+      
+        {
+            int v = TestWindowData.MinTestIndex;
+            if (ImGui::SliderInt("MinShowTests", &v, 0, TestWindowData.MaxTestCount-1)) 
+            {
+                TestWindowData.MinTestIndex = v;
+            }
+        }
+        {
+            int v = TestWindowData.MaxTestCount;
+            if (ImGui::SliderInt("MaxShowTests", &v, TestWindowData.MinTestIndex+1, ULangTest::Tests.size() - 1))
+            {
+                TestWindowData.MaxTestCount = v;
+            }
+        }
         UCodeLang::OptimizationFlags flags = TestWindowData.Flags;
 
         if (TestWindowData.DebugMode)
@@ -765,7 +790,7 @@ void AppObject::OnDraw()
 
             TestWindowData.TestAsRan = true;
             const auto& Tests = ULangTest::Tests;
-            for (size_t i = 0; i < MaxTestCount; i++)
+            for (size_t i = 0; i < TestWindowData.MaxTestCount; i++)
             {
                 auto& ItemTest = ULangTest::Tests[i];
                 auto& ItemTestOut = TestWindowData.Testinfo[i];
@@ -817,7 +842,7 @@ void AppObject::OnDraw()
 
         size_t TestPassedCount = 0;
         size_t TestRuningCount = 0;
-        for (size_t i = MinTestIndex; i < MaxTestCount; i++)
+        for (size_t i = TestWindowData.MinTestIndex; i < TestWindowData.MaxTestCount; i++)
         {
             auto& ItemTest = ULangTest::Tests[i];
             auto& ItemTestOut = TestWindowData.Testinfo[i];
@@ -834,23 +859,23 @@ void AppObject::OnDraw()
         }
 
 
-        {   
+        {
             String info;
-        info += "TestPassed:";
-        info += std::to_string(TestPassedCount);
-        info += "/";
-        info += std::to_string(MaxTestCount- MinTestIndex);
-        info += " :" + std::to_string((int)(((float)TestPassedCount / (float)(MaxTestCount- MinTestIndex)) * 100));
-        info += " percent";
-        ImGui::Text(info.c_str());
+            info += "TestPassed:";
+            info += std::to_string(TestPassedCount);
+            info += "/";
+            info += std::to_string(TestWindowData.MaxTestCount - TestWindowData.MinTestIndex);
+            info += " :" + std::to_string((int)(((float)TestPassedCount / (float)(TestWindowData.MaxTestCount - TestWindowData.MinTestIndex)) * 100));
+            info += " percent";
+            ImGui::Text(info.c_str());
         }
         {
             String info;
             info += "TestRuning:";
             info += std::to_string(TestRuningCount);
             info += "/";
-            info += std::to_string(MaxTestCount- MinTestIndex);
-            info += " :" + std::to_string((int)(((float)TestRuningCount / (float)(MaxTestCount- MinTestIndex)*100)));
+            info += std::to_string(TestWindowData.MaxTestCount- TestWindowData.MinTestIndex);
+            info += " :" + std::to_string((int)(((float)TestRuningCount / (float)(TestWindowData.MaxTestCount- TestWindowData.MinTestIndex)*100)));
             info += " percent";
             ImGui::Text(info.c_str());
         }
@@ -868,7 +893,7 @@ void AppObject::OnDraw()
 
         ImGui::Separator();
 
-        for (size_t i = MinTestIndex; i < MaxTestCount; i++)
+        for (size_t i = TestWindowData.MinTestIndex; i < TestWindowData.MaxTestCount; i++)
         {
             auto& ItemTest = ULangTest::Tests[i];
             auto& ItemTestOut = TestWindowData.Testinfo[i];
@@ -886,18 +911,54 @@ void AppObject::OnDraw()
 
             if (CanBeShowed) 
             {
-                String TestV = "Test:";
-                TestV += ItemTest.TestName;
-                TestV += ",State:" + TestInfo::GetToString(ItemTestOut.State);
+                ImVec4 buttioncolor;
+                const  ImVec4 ColorRed = { 0.839, 0.129, 0.051,1 };
+                const  ImVec4 ColorGreen = { 0.267, 0.788, 0.2,1 };
+                const  ImVec4 ColorGray = { 0.431, 0.427, 0.365,1 };
+                const  ImVec4 Colorlightgrey = { 0.675, 0.702, 0.675,1 };
+                const  ImVec4 ColorOrange = { 0.929, 0.329, 0.09,1 };
+                const  ImVec4 ColorBlue = { 0.396, 0.722, 0.769,1 };
+
+                bool isworking = false;
                 if (Thread.get())
                 {
                     if (!Thread->valid())
                     {
-                        TestV += ",Working...";
+                        isworking = true;
                     }
                 }
 
-                if (ImGui::TreeNode(TestV.c_str()))
+                if (isworking)
+                {
+                    buttioncolor =  { 0.431, 0.427, 0.365,1};//gray
+                }
+                else
+                {
+                    if (ItemTestOut.State ==TestInfo::TestState::Passed)
+                    {
+                        buttioncolor = ColorGreen;//green
+                    }
+                    else if (ItemTestOut.State == TestInfo::TestState::Null) 
+                    {
+                        buttioncolor = Colorlightgrey;
+                    }
+                    else if (ItemTestOut.State == TestInfo::TestState::Fail)
+                    {
+                        buttioncolor = ColorOrange;
+                    }
+                    else 
+                    {
+                        buttioncolor = ColorRed;//red
+                    }
+                }
+                
+                String TestV = "Test:";
+                TestV += ItemTest.TestName;
+                ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_Text, buttioncolor);
+                bool isopen = ImGui::TreeNode(TestV.c_str());
+                ImGui::PopStyleColor();
+
+                if (isopen)
                 {
                     bool IsWorking = false;
 
@@ -908,7 +969,10 @@ void AppObject::OnDraw()
                             IsWorking = true;
                         }
                     }
-
+                    {
+                        String txt = "State:" + TestInfo::GetToString(ItemTestOut.State);
+                        ImGui::Text(txt.c_str());
+                    }
                     ImGui::BeginDisabled();
                     
                     String tepstr1 = ItemTest.TestName;
@@ -917,8 +981,50 @@ void AppObject::OnDraw()
                     String tepstr2 = ItemTest.InputFilesOrDir;
                     ImguiHelper::InputText("TestPath", tepstr2);
 
-                    //ImGui::SameLine();
+                    String tepstr3 = TestInfo::GetToString(ItemTest.Condition);
+                    ImguiHelper::InputText("Success Condition", tepstr3);
+
+                    if (ItemTest.Condition == ULangTest::SuccessCondition::RunTimeValue)
+                    {
+                        auto valsize = ItemTest.RunTimeSuccessSize;
+                        auto val = ItemTest.RunTimeSuccess.get();
+
+                        if (Outputfiles.HasValue(ItemTest.TestName)) 
+                        {
+                           
+                            if (Outputfiles.at(ItemTest.TestName).has_value()) 
+                            {
+                                const auto& lib = Outputfiles.at(ItemTest.TestName).value();
+                                UCodeLang::ReflectionTypeInfo valtype = lib->Get_Assembly().Find_Func(ItemTest.FuncToCall)->RetType;
+
+                                ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_Text, ColorBlue);
+                                ImguiHelper::UCodeObjectField("Expected",val, valtype, lib->Get_Assembly());
+                                ImGui::PopStyleColor();
+
+                                if (ItemTestOut.RetValue.get())
+                                {
+
+                                    ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_Text, 
+                                        ItemTestOut.State == TestInfo::TestState::Passed ? ColorGreen : ColorRed);
+
+                                    ImguiHelper::UCodeObjectField("Returned", ItemTestOut.RetValue.get(), valtype, lib->Get_Assembly());
+                                    ImGui::PopStyleColor();
+
+
+                                }
+                            }
+                        }
+                    }
                     ImGui::EndDisabled();
+
+                    if (ImGui::TreeNode("Logs")) {
+                        ImGui::BeginDisabled();
+                        ImGui::InputTextMultiline("Logs", &ItemTestOut.Logs);
+                        ImGui::EndDisabled();
+                        ImGui::TreePop();
+                    }
+                    //ImGui::SameLine();
+                    
 
 
                     if (ImGui::Button("Show in files"))
@@ -934,6 +1040,32 @@ void AppObject::OnDraw()
                             SetTextFocus = true;
                         }
                     }
+                    ImGui::SameLine();
+                    
+                    
+                    ImGui::BeginDisabled(IsWorking);
+                    if (ImGui::Button("Run Test"))
+                    {
+                        if (!IsWorking)
+                        {
+
+                            auto& ItemTest = ULangTest::Tests[i];
+                            auto& ItemTestOut = TestWindowData.Testinfo[i];
+                            auto& Thread = TestWindowData.Threads[i];
+
+
+                            Thread = std::make_unique< std::future<bool>>(std::async(std::launch::async, [i, flags]
+                                {
+                                    auto& ItemTest = ULangTest::Tests[i];
+                                    auto& ItemTestOut = TestWindowData.Testinfo[i];
+
+                                    ItemTestOut.State == TestInfo::TestState::Exception;
+                                    ItemTestOut.RunTestForFlag(ItemTest, flags);
+                                    return false;
+                                }));
+                        }
+                    }
+                    ImGui::EndDisabled();
 
                     ImGui::BeginDisabled();
 
