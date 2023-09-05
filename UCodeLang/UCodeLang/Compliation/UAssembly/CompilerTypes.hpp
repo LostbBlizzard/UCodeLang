@@ -115,6 +115,12 @@ AddMapValueValue(equalto##bitsize,InstructionSet::equalto##bitsize,OpCodeType::R
 AddMapValueValue(StoreFromPtrToReg##bitsize,InstructionSet::StoreFromPtrToReg##bitsize,OpCodeType::Register, OpCodeType::Register),\
 AddMapValueValue(UInt##bitsize##ToSInt##bitsize,InstructionSet::UInt##bitsize##ToSInt##bitsize,OpCodeType::Register, OpCodeType::Register),\
 AddMapValueValue(SInt##bitsize##ToUInt##bitsize,InstructionSet::SInt##bitsize##ToUInt##bitsize,OpCodeType::Register, OpCodeType::Register),\
+AddMapValueValue(lessthan##bitsize, InstructionSet::lessthan##bitsize, OpCodeType::Register, OpCodeType::Register), \
+AddMapValueValue(greaterthan##bitsize, InstructionSet::greaterthan##bitsize, OpCodeType::Register, OpCodeType::Register), \
+AddMapValueValue(equal_greaterthan##bitsize, InstructionSet::equal_greaterthan##bitsize, OpCodeType::Register, OpCodeType::Register), \
+AddMapValueValue(equal_lessthan##bitsize, InstructionSet::equal_lessthan##bitsize, OpCodeType::Register, OpCodeType::Register), \
+
+
 
 
 #define MapValuefloatSet(bitsize)\
@@ -130,7 +136,7 @@ static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 	AddMapValueValue(Callv3,InstructionSet::Callv3,OpCodeType::InsAddress,OpCodeType::NoOpCode),
 	AddMapValueValue(Callv4,InstructionSet::Callv4,OpCodeType::InsAddress,OpCodeType::NoOpCode),
 	
-	AddMapValueValue(Callif,InstructionSet::CallIf,OpCodeType::InsAddress,OpCodeType::Register),
+	AddMapValueValue(Callif,InstructionSet::CallIf,OpCodeType::Register,OpCodeType::InsAddress),
 	AddMapValueValue(CallReg,InstructionSet::CallReg,OpCodeType::Register,OpCodeType::NoOpCode),
 
 	AddMapValueValue(Jumpv1,InstructionSet::Jumpv1,OpCodeType::InsAddress,OpCodeType::NoOpCode),
@@ -138,7 +144,7 @@ static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 	AddMapValueValue(Jumpv3,InstructionSet::Jumpv3,OpCodeType::InsAddress,OpCodeType::NoOpCode),
 	AddMapValueValue(Jumpv4,InstructionSet::Jumpv4,OpCodeType::InsAddress,OpCodeType::NoOpCode),
 
-	AddMapValueValue(Jumpif,InstructionSet::Jumpif,OpCodeType::InsAddress,OpCodeType::Register),
+	AddMapValueValue(Jumpif,InstructionSet::Jumpif,OpCodeType::Register,OpCodeType::InsAddress),
 	AddMapValueValue(JumpReg,InstructionSet::JumpReg,OpCodeType::Register,OpCodeType::NoOpCode),
 
 	AddMapValueValue(NoOp,InstructionSet::DoNothing,OpCodeType::NoOpCode,OpCodeType::NoOpCode),

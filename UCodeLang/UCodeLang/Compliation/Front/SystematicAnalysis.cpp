@@ -4898,7 +4898,7 @@ void SystematicAnalysis::OnStatementsWithSetableRet(const StatementsNode& node, 
 		else if (RetOut._Type != TypesEnum::Void
 			&& !RetOut.IsBadType())//Update This when control flow get added.
 		{
-			LogError_YouMustReturnSomethingError(Token);
+			//LogError_YouMustReturnSomethingError(Token);
 		}
 
 	}
@@ -10233,7 +10233,7 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 
 	if (_PassType == PassType::FixedTypes)
 	{
-
+		auto lookingfortype = Type_Get_LookingForType();
 		OnExpressionTypeNode(node._SourceExpression._Value.get(), _GetExpressionMode.top());
 		TypeSymbol SourcType = _LastExpressionType;
 
@@ -10242,7 +10242,7 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 		gesstype.SetType(TypesEnum::Any);
 
 
-		bool IsSrcAddress = SourcType.IsAddress();
+		bool IsSrcAddress = SourcType.IsAddressArray();
 		bool IsSrcStaticArray = Type_IsStaticArray(SourcType);
 
 		if (IsSrcAddress || IsSrcStaticArray)
@@ -10296,7 +10296,7 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 			V.Op0._IsAddress = true;
 			V.Op1._IsAddress = false;
 
-			if (IsSrcAddress)
+			if (lookingfortype.IsAddressArray())
 			{
 				lookingfor = SourcType;
 				_LastExpressionType = lookingfor;

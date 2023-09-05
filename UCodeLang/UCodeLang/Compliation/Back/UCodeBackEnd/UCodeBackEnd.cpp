@@ -893,9 +893,30 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			}
 			break;
 		case IRInstructionType::ConditionalJump:
-			InstructionBuilder::Jumpif(NullAddress, MakeIntoRegister(Item, Item->Input()), _Ins); PushIns();
-			InsToUpdate.push_back({ _OutLayer->Get_Instructions().size(),Item->Target().Value.AsUIntNative });
-			break;
+		{
+			auto reg = MakeIntoRegister(Item, Item->Input());
+			if (reg == RegisterID::LinkRegister)
+			{
+				auto otherreg = RegisterID::B;
+				RegWillBeUsed(otherreg);
+				RegToReg(GetType(Item, Item->Input())._Type, reg, otherreg, false);
+				
+				reg = otherreg;
+			}
+
+			InstructionBuilder::Jumpv1(NullAddress, _Ins); PushIns();
+			InsToUpdate.push_back({ _OutLayer->Get_Instructions().size(), Item->Target().Value.AsUIntNative });
+
+
+			if (Get_Settings().PtrSize == IntSizes::Int64)
+			{
+				InstructionBuilder::Jumpv2(NullAddress, _Ins); PushIns();
+				InstructionBuilder::Jumpv3(NullAddress, _Ins); PushIns();
+			}
+
+
+			InstructionBuilder::Jumpif(NullAddress, reg, _Ins); PushIns();
+		}	break;
 		case IRInstructionType::Logical_Not:
 		{	
 			RegisterID Out = GetRegisterForTep();
@@ -1271,12 +1292,15 @@ DoneLoop:
 	{
 		auto& Inst = _OutLayer->Get_Instructions();
 		size_t Index = Item.InsToUpdate - 1;
-		Instruction& Ins = _OutLayer->Get_Instructions()[Index];
+
+		size_t IndexOfset = Get_Settings().PtrSize == IntSizes::Int64 ? 4 : 1;
+
+		Instruction& Ins = _OutLayer->Get_Instructions()[Index+3];
 		UAddress JumpPos = IRToUCodeIns[Item.Jumpto];
 
-		if (Ins.OpCode == InstructionSet::Jumpv1) 
+		if (Ins.OpCode != InstructionSet::Jumpif) 
 		{
-			InstructionBuilder::Jumpv1(JumpPos, Ins);
+			InstructionBuilder::Jumpv1(JumpPos, Inst[Index]);
 			InstructionBuilder::Jumpv2(JumpPos, Inst[Index + 1]);
 
 			if (Get_Settings().PtrSize == IntSizes::Int64) 
@@ -1287,13 +1311,18 @@ DoneLoop:
 		}
 		else
 		{
-			InstructionBuilder::Jumpv1(JumpPos, Ins);
-			InstructionBuilder::Jumpv2(JumpPos, Inst[Index + 1]);
-
+			InstructionBuilder::Jumpv1(JumpPos, Inst[Index]);
+			
 			if (Get_Settings().PtrSize == IntSizes::Int64)
 			{
+				InstructionBuilder::Jumpv2(JumpPos, Inst[Index + 1]);
 				InstructionBuilder::Jumpv3(JumpPos, Inst[Index + 2]);
-				InstructionBuilder::Jumpv4(JumpPos, Inst[Index + 3]);
+				InstructionBuilder::Jumpif(JumpPos, Ins.Op_RegUInt16.A, Inst[Index + 3]);
+			}
+			else
+			{
+
+				InstructionBuilder::Jumpif(JumpPos, Ins.Op_RegUInt16.A, Inst[Index + 1]);
 			}
 		}
 	}
