@@ -1808,9 +1808,17 @@ Parser::GetNameCheck_ret2 Parser::GetNameCheck2(ScopedNameNode& out, bool CanHav
 				}
 				else
 				{
-					TypeNode Item;
-					GetType(Item);
-					out._Values.push_back(std::move(Item));
+					auto token = TryGetToken();
+					if (TypeNode::IsType(token->Type))
+					{
+						TypeNode Item;
+							GetType(Item);
+							out._Values.push_back(std::move(Item));
+					}
+					else
+					{
+						return { GotNodeType::failed,true };
+					}
 				}
 				auto Token = TryGetToken();
 				if (Token == nullptr || Token->Type != TokenType::Comma)

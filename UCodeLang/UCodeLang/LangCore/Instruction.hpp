@@ -457,9 +457,7 @@ struct Instruction
 								auto& NextIns3 = Data[I + 3];
 								if (NextIns3.OpCode == InstructionSet::CallIf)
 								{
-									if (Ins.Op_RegUInt16.A == NextIns.Op_RegUInt16.A
-										&& NextIns2.Op_RegUInt16.A == NextIns3.Op_RegUInt16.A
-										&& Ins.Op_RegUInt16.A == NextIns3.Op_RegUInt16.A)
+									
 									{
 										UAddress V = 0;
 										((UInt16*)&V)[0] = Ins.Op_ValUInt16.A;
@@ -509,9 +507,6 @@ struct Instruction
 								auto& NextIns3 = Data[I + 3];
 								if (NextIns3.OpCode == InstructionSet::Jumpif)
 								{
-									if (Ins.Op_RegUInt16.A == NextIns.Op_RegUInt16.A
-										&& NextIns2.Op_RegUInt16.A == NextIns3.Op_RegUInt16.A
-										&& Ins.Op_RegUInt16.A == NextIns3.Op_RegUInt16.A)
 									{
 										UAddress V = 0;
 										((UInt16*)&V)[0] = Ins.Op_ValUInt16.A;

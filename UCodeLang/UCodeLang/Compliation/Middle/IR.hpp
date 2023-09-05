@@ -315,6 +315,7 @@ inline bool IsOperatorValueInTarget(IRInstructionType Value)
 		|| Value == IRInstructionType::Member_Access_Dereference
 		|| Value == IRInstructionType::Member_Access
 		|| Value == IRInstructionType::Reassign
+		|| Value == IRInstructionType::MallocCall
 		|| Value == IRInstructionType::Realloc
 		|| Value == IRInstructionType::Memcpy
 		|| Value == IRInstructionType::Memmove

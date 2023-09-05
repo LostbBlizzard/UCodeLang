@@ -220,9 +220,11 @@ public:
 
 		Out = Instruction(InstructionSet::Jumpv4, Instruction::ValUInt16(Val));
 	}
-	UCodeLangForceinline static void Jumpif(UInt16 address,RegisterID Bool, Instruction& Out)
+	UCodeLangForceinline static void Jumpif(UInt64 address,RegisterID Bool, Instruction& Out)
 	{
-		Out = Instruction(InstructionSet::Jumpif, Instruction::RegUInt16(Bool,address));
+		UInt16& Val = ((UInt16*)(&address))[3];
+
+		Out = Instruction(InstructionSet::Jumpif, Instruction::RegUInt16(Bool, Val));
 	}
 	UCodeLangForceinline static void JumpReg(RegisterID Reg, Instruction& Out)
 	{

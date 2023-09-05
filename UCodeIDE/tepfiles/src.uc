@@ -1,24 +1,23 @@
 
-$Item:
- char& V;
- |new[this&]:
-  V =: unsafe new char('A');
 
-|main[]:
- Item item = [];
+|main_while[] -> int:
+ 
+ int A = 0;
+ while A < 10:
+  A++;
 
- item.V = '\0';
- char f = item.V;
-
- unsafe drop(item.V);
+ ret A;
 
 
- ret f;
+|main_do[] -> int:
+ 
+ int A = 0;
 
+ do:
+  A++;
+ while A < 10;
 
-
-
-
+ ret A;
 
 /*
 |main[] -> async<bool>:

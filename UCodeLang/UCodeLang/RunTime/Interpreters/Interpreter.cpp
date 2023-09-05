@@ -613,8 +613,15 @@ void Interpreter::Extecute(Instruction& Inst)
 		InsCase(Jumpif):
 		{
 			auto& _Register = Get_Register(RegisterID::LinkRegister);
+			auto val = Inst.Op_RegUInt16.B;
+
+			#if UCodeLang_64BitSytem
+			((UInt16*)&_Register)[3] = val;
+			#else
+			((UInt16*)&_Register)[1] = val;
+			#endif
+
 			if (Get_Register(Inst.Op_RegUInt16.A).Value.Asbool) {
-				_CPU.Stack.PushStack(_CPU.ProgramCounter);
 				_CPU.ProgramCounter = _Register.Value.AsAddress;
 			}
 		}

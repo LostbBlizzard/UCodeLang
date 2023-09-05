@@ -679,9 +679,10 @@ size_t UAssembly::ParseInstruction( size_t I,const Span<Instruction> Data, Strin
 				{
 					UAddress V = Opt.value().Func;
 					r += "Jumpif ";
-					OpValueToString(InsMapData.at(Data[I].OpCode)->Op_B, &V, AddressToName, staticbytesview, r);
+					r += GetRegisterToString(Opt.value().Reg);
+					r += ",";
+					OpValueToString(InsMapData.at(InstructionSet::Jumpif)->Op_B, &V, AddressToName, staticbytesview, r);
 
-					r += "," + GetRegisterToString(Opt.value().Reg);
 					#if UCodeLang_32BitSytem
 					return 1;
 					#else

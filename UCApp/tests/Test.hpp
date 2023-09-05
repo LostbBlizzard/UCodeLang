@@ -96,7 +96,7 @@ UCodeTestStart
 		}
 		return r;
 	}
-	static const Array<TestInfo, 77> Tests
+	static const Array<TestInfo, 78> Tests
 	{
 
 		TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation),
@@ -120,8 +120,9 @@ UCodeTestStart
 
 
 		TestInfo("loops1","BasicTests/loops.uc","main_if",SuccessCondition::RunTimeValue,(int)10),
-		TestInfo("loops2","BasicTests/loops.uc","main_while",SuccessCondition::RunTimeValue,(int)10),
-		TestInfo("loops3","BasicTests/loops.uc","main_do",SuccessCondition::RunTimeValue,(int)10),
+		TestInfo("loops2","BasicTests/loops.uc","main_else",SuccessCondition::RunTimeValue,(int)0),
+		TestInfo("loops3","BasicTests/loops.uc","main_while",SuccessCondition::RunTimeValue,(int)10),
+		TestInfo("loops4","BasicTests/loops.uc","main_do",SuccessCondition::RunTimeValue,(int)10),
 
 
 		TestInfo("Func 1","BasicTests/Func.uc","main",SuccessCondition::RunTimeValue,(int)0),
