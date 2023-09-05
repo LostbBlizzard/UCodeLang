@@ -2583,6 +2583,11 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 				UCodeBackEndObject::IRlocData R;
 				R.Info = IRlocData_StackPost(V->Offset);
 				R.ObjectType = GetType(Ins);
+				if (GetAddress)
+				{
+					auto old = R;
+					R = GetPointerOf(old);
+				}
 				return R;
 			}
 			else

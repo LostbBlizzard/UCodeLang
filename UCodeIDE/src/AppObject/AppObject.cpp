@@ -150,21 +150,17 @@ $Result<T,E> enum:
         */
         _Editor.SetText(
             R"(
-$FuncPointer = |[int a,int b] -> int;
+$Item:
+ int A = 0;
+ |new[this&] -> void;
 
-|Add[int a,int b] => a + b;
-|Mult[int a,int b] => a * b;
+ |GetValue[this&] => A;
 
-|main[]:
- FuncPointer V = Add;
- int a = 99;
- a = V(5,5);
 
- V = Mult;
+|main[] -> int:
+ Item V = [];
+ ret V.GetValue(); 
 
- a = V(a,0);
-
- ret a;
 
 
 
