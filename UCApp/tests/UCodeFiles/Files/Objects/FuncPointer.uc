@@ -1,18 +1,18 @@
-$FuncPointer = [var&] -> int;
+$FuncPointer = |[var&] -> int;
 
 $Vec3:
  float X =0;
  float Y =0;
  float Z =1;
- |new[this&];
+ |new[this&] -> void;
 
- |Update[] => Z:
+ |Update[this&] => Z;
 
 $Vec2:
  float X;
  float Y = 3;
 
- |Update[] => Y:
+ |Update[this&] => Y;
 
 |main[]:
  Vec3 A = [];

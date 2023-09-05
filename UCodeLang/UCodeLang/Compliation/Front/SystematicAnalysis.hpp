@@ -1090,6 +1090,8 @@ private:
 	}
 	bool Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameNode& node, size_t Index, ScopedName::Operator_t OpType, GetMemberTypeSymbolFromVar_t& Out);
 
+	
+
 	void IR_Build_MemberDereferencStore(const GetMemberTypeSymbolFromVar_t& In, IRInstruction* Value);
 	void IR_Build_Member_Store(const GetMemberTypeSymbolFromVar_t& In, IRInstruction* Value);
 
@@ -1724,6 +1726,7 @@ private:
 	void LogError_CantModifyiMutableError(const NeverNullPtr<Token> Token, String_view Name);
 	void LogError_CantCastExplicityTypes(const NeverNullPtr<Token> Token, TypeSymbol& Ex0Type, TypeSymbol& ToTypeAs);
 	void LogError_CantFindTypeError(const NeverNullPtr<Token> Token, String_view Name);
+	void LogError_CantFindSymbolError(const NeverNullPtr<Token> Token, String_view Name);
 	void LogError_TypeDependencyCycle(const NeverNullPtr<Token> Token, const ClassInfo* Value);
 	void LogError_CantUseThisHere(const NeverNullPtr<Token> Token);
 
@@ -1788,6 +1791,9 @@ private:
 	void LogError_MissingFuncionforTrait(const String_view& FuncName, const FuncInfo* Info, const NeverNullPtr<Symbol> Trait, const NeverNullPtr<Token> ClassNameToken);
 	void LogError_CantUseOutInOverloadFunc(const Token& Name);
 	void LogError_yieldnotAsync(const NeverNullPtr<Token> token);
+	void LogError_UseScopeResolutionAndNotDot(const NeverNullPtr<Symbol>& Sym, const NeverNullPtr<Token>& ItemToken);
+	void LogError_UseDotAndNotScopeResolution(const NeverNullPtr<Symbol>& Sym, const NeverNullPtr<Token>& ItemToken);
+
 	ReadVarErrorCheck_t TryLogError_OnReadVar(String_view VarName, const NeverNullPtr<Token> Token, const NullablePtr<Symbol> Syb);
 	void TryLogError_OnWritingVar(NeverNullPtr<Symbol> Symbol, const NeverNullPtr<Token> Token,const String_view Name);
 

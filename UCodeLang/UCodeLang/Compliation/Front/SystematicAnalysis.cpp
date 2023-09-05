@@ -6967,39 +6967,147 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 		{
 			ClassInfo* CInfo = Out._Symbol->Get_Info<ClassInfo>();
 
-			auto FeldInfo = CInfo->GetField(ItemTokenString);
-			if (!FeldInfo.has_value())
+			if (OpType != ScopedName::Operator_t::ScopeResolution) 
 			{
-				if (_PassType == PassType::FixedTypes)
+				
+				auto FeldInfo = CInfo->GetField(ItemTokenString);
+				if (!FeldInfo.has_value())
 				{
-					LogError_CantFindVarMemberError(ItemToken, ItemTokenString, Out.Type);
+					if (_PassType == PassType::FixedTypes)
+					{
+						auto SymFullName = Out._Symbol->FullName;
+						ScopeHelper::GetApendedString(SymFullName, ItemTokenString);
+						auto SybOp = Symbol_GetSymbol(SymFullName, SymbolType::Type);
+						if (SybOp)
+						{
+							auto Sym = SybOp.value();
+							LogError_UseScopeResolutionAndNotDot(Sym, ItemToken);
+						}
+						else 
+						{
+							LogError_CantFindVarMemberError(ItemToken, ItemTokenString, Out.Type);
+						}
+					}
+					Out._Symbol = nullptr;
+					Out.Type = TypesEnum::Null;
+					return false;
 				}
-				Out._Symbol = nullptr;
-				Out.Type = TypesEnum::Null;
-				return false;
-			}
 
-			auto FeldFullName = Out._Symbol->FullName;
-			ScopeHelper::GetApendedString(FeldFullName, ItemTokenString);
-			auto FeldSyb = Symbol_GetSymbol(FeldFullName, SymbolType::Class_Field).value();
-			{
-				Symbol_AccessCheck(FeldSyb,ItemToken);
-			}
+				auto FeldFullName = Out._Symbol->FullName;
+				ScopeHelper::GetApendedString(FeldFullName, ItemTokenString);
+				auto FeldSyb = Symbol_GetSymbol(FeldFullName, SymbolType::Class_Field).value();
+				{
+					Symbol_AccessCheck(FeldSyb, ItemToken);
+				}
 
 
-			auto& FieldType2 = (*FeldInfo)->Type;
-			if (FieldType2._Type == TypesEnum::CustomType)
-			{
-				Out._Symbol = Symbol_GetSymbol(FieldType2._CustomTypeSymbol).value();
-				Out.Type = FieldType2;
+				auto& FieldType2 = (*FeldInfo)->Type;
+				if (FieldType2._Type == TypesEnum::CustomType)
+				{
+					Out._Symbol = Symbol_GetSymbol(FieldType2._CustomTypeSymbol).value();
+					Out.Type = FieldType2;
+				}
+				else
+				{
+					Out.Type = FieldType2;
+
+					if (Index + 1 < node._ScopedName.size())
+					{
+						const NeverNullPtr<Token> Token = NeverNullptr(node._ScopedName.begin()->_token);
+
+						auto Token2 = NeverNullptr(node._ScopedName[Index + 1]._token);
+						auto& Str2 = Token->Value._String;
+						if (_PassType == PassType::FixedTypes)
+						{
+							LogError_CantFindVarMemberError(Token2, Str2, Out.Type);
+						}
+
+						Out._Symbol = nullptr;
+						Out.Type = TypesEnum::Null;
+						return false;
+					}
+				}
+				if (_PassType == PassType::BuidCode)
+				{
+					FileDependency_AddDependencyToCurrentFile(Out._Symbol);
+				}
 			}
 			else
 			{
-				Out.Type = FieldType2;
+				auto SymFullName = Out._Symbol->FullName;
+				ScopeHelper::GetApendedString(SymFullName, ItemTokenString);
+				auto FeldSybOp = Symbol_GetSymbol(SymFullName, SymbolType::Type);
+				if (FeldSybOp)
+				{
+					auto FeldSyb = FeldSybOp.value();
+					
+					if (FeldSyb->Type == SymbolType::Class_Field)
+					{
+						LogError_UseDotAndNotScopeResolution(FeldSyb, ItemToken);
+						Out._Symbol = nullptr;
+						Out.Type = TypesEnum::Null;
+						return false;
+					}
+					else
+					{
+						Out._Symbol = FeldSyb.value();
+						Out.Type = FeldSyb->VarType;
+					}
+				}
+				else
+				{
+					LogError_CantFindSymbolError(ItemToken, SymFullName);
+					Out._Symbol = nullptr;
+					Out.Type = TypesEnum::Null;
+					return false;
+				}
+			}
+		}
+		else if (Out._Symbol->Type == SymbolType::Enum)
+		{
+			if (OpType == ScopedName::Operator_t::ScopeResolution)
+			{
+				{
+					const NeverNullPtr<Token> Token = NeverNullptr(node._ScopedName.begin()->_token);
+					Symbol_AccessCheck(Out._Symbol, Token);
+				}
+
+				EnumInfo* Einfo = Out._Symbol->Get_Info<EnumInfo>();
+				auto& NameString = ItemTokenString;
+
+				auto FeldInfo = Einfo->GetFieldIndex(NameString);
+				if (!FeldInfo.has_value())
+				{
+					if (_PassType == PassType::FixedTypes)
+					{
+						LogError_CantFindVarMemberError(ItemToken, ItemTokenString, Out.Type);
+					}
+
+					Out._Symbol = nullptr;
+					Out.Type = TypesEnum::Null;
+					return false;
+				}
+				else if (Einfo->VariantData)
+				{
+					auto& Item = Einfo->VariantData.value().Variants[FeldInfo.value()];
+
+					bool IsOk = Item.Types.size() == 0;
+
+					if (!IsOk)
+					{
+
+						LogError_MustMakeEnumLikeafuncion(Einfo, FeldInfo.value(), ItemToken);
+
+
+						Out._Symbol = nullptr;
+						Out.Type = TypesEnum::Null;
+						return false;
+					}
+				}
 
 				if (Index + 1 < node._ScopedName.size())
 				{
-					const NeverNullPtr<Token> Token =NeverNullptr(node._ScopedName.begin()->_token);
+					const NeverNullPtr<Token> Token = NeverNullptr(node._ScopedName.begin()->_token);
 
 					auto Token2 = NeverNullptr(node._ScopedName[Index + 1]._token);
 					auto& Str2 = Token->Value._String;
@@ -7012,88 +7120,49 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 					Out.Type = TypesEnum::Null;
 					return false;
 				}
-			}
-			if (_PassType == PassType::BuidCode)
-			{
-				FileDependency_AddDependencyToCurrentFile(Out._Symbol);
-			}
-		}
-		else if (Out._Symbol->Type == SymbolType::Enum)
-		{
-			{
-				const NeverNullPtr<Token> Token = NeverNullptr(node._ScopedName.begin()->_token);
-				Symbol_AccessCheck(Out._Symbol, Token);
-			}
 
-			EnumInfo* Einfo = Out._Symbol->Get_Info<EnumInfo>();
-			auto& NameString = ItemTokenString;
 
-			auto FeldInfo = Einfo->GetFieldIndex(NameString);
-			if (!FeldInfo.has_value())
+				Out.Type.SetType(Out._Symbol->ID);//set enum type
+
+				{
+					String FeildSymFullName = Out._Symbol->FullName;
+					ScopeHelper::GetApendedString(FeildSymFullName, NameString);
+
+					Symbol* FeildSym = Symbol_GetSymbol(FeildSymFullName, SymbolType::Enum_Field).value().value();
+
+					Out._Symbol = FeildSym;//set symbol as enum feild
+
+
+					Out.Set_V1(&Einfo->Fields[*FeldInfo]);
+					Out.Set_V2(Einfo);
+
+				}
+
+				if (_PassType == PassType::BuidCode)
+				{
+					FileDependency_AddDependencyToCurrentFile(Out._Symbol);
+				}
+			}
+			else
 			{
-				if (_PassType == PassType::FixedTypes)
+				auto SymFullName = Out._Symbol->FullName;
+				ScopeHelper::GetApendedString(SymFullName, ItemTokenString);
+				auto FeldSybOp = Symbol_GetSymbol(SymFullName, SymbolType::Type);
+				if (FeldSybOp)
+				{
+					auto FeldSyb = FeldSybOp.value();
+
+
+					LogError_UseDotAndNotScopeResolution(FeldSyb, ItemToken);
+				}
+				else
 				{
 					LogError_CantFindVarMemberError(ItemToken, ItemTokenString, Out.Type);
-				}
 
+				}
 				Out._Symbol = nullptr;
 				Out.Type = TypesEnum::Null;
 				return false;
-			}
-			else if (Einfo->VariantData)
-			{
-				auto& Item = Einfo->VariantData.value().Variants[FeldInfo.value()];
-
-				bool IsOk = Item.Types.size() == 0;
-
-				if (!IsOk)
-				{
-
-					LogError_MustMakeEnumLikeafuncion(Einfo, FeldInfo.value(), ItemToken);
-
-
-					Out._Symbol = nullptr;
-					Out.Type = TypesEnum::Null;
-					return false;
-				}
-			}
-
-			if (Index + 1 < node._ScopedName.size())
-			{
-				const NeverNullPtr<Token> Token =NeverNullptr(node._ScopedName.begin()->_token);
-
-				auto Token2 = NeverNullptr(node._ScopedName[Index + 1]._token);
-				auto& Str2 =Token->Value._String;
-				if (_PassType == PassType::FixedTypes)
-				{
-					LogError_CantFindVarMemberError(Token2, Str2, Out.Type);
-				}
-
-				Out._Symbol = nullptr;
-				Out.Type = TypesEnum::Null;
-				return false;
-			}
-
-
-			Out.Type.SetType(Out._Symbol->ID);//set enum type
-
-			{
-				String FeildSymFullName = Out._Symbol->FullName;
-				ScopeHelper::GetApendedString(FeildSymFullName, NameString);
-
-				Symbol* FeildSym = Symbol_GetSymbol(FeildSymFullName, SymbolType::Enum_Field).value().value();
-
-				Out._Symbol = FeildSym;//set symbol as enum feild
-
-
-				Out.Set_V1(&Einfo->Fields[*FeldInfo]);
-				Out.Set_V2(Einfo);
-
-			}
-
-			if (_PassType == PassType::BuidCode)
-			{
-				FileDependency_AddDependencyToCurrentFile(Out._Symbol);
 			}
 		}
 		else if (Out._Symbol->Type == SymbolType::Func)
@@ -7281,6 +7350,14 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 	}
 
 	return true;
+}
+void SystematicAnalysis::LogError_UseDotAndNotScopeResolution(const NeverNullPtr<Symbol>& Sym, const NeverNullPtr<Token>& ItemToken)
+{
+	LogError(ErrorCodes::InValidName, "Use '.' and not '::' to use " + ToString(Sym->Type) + "'" + Sym->FullName + "'", ItemToken);
+}
+void SystematicAnalysis::LogError_UseScopeResolutionAndNotDot(const NeverNullPtr<Symbol>& Sym, const NeverNullPtr<Token>& ItemToken)
+{
+	LogError(ErrorCodes::InValidName, "Use '::' and not '.' to use " + ToString(Sym->Type) + "'" + Sym->FullName + "'", ItemToken);
 }
 void SystematicAnalysis::IR_Build_MemberDereferencStore(const GetMemberTypeSymbolFromVar_t& In, IRInstruction* Value)
 {
@@ -19145,6 +19222,11 @@ void SystematicAnalysis::LogError_CantFindTypeError(const NeverNullPtr<Token> To
 {
 	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 		, "Cant Find Type '" + (String)Name + "'");
+}
+void SystematicAnalysis::LogError_CantFindSymbolError(const NeverNullPtr<Token> Token, String_view Name)
+{
+	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
+		, "Cant Find Symbol '" + (String)Name + "'");
 }
 void SystematicAnalysis::LogError_TypeDependencyCycle(const NeverNullPtr<Token> Token, const ClassInfo* Value)
 {
