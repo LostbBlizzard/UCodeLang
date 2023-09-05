@@ -958,29 +958,29 @@ void Interpreter::Extecute(Instruction& Inst)
 
 	InsCase(LoadFuncPtrV1):
 	{
-		auto& _Register = Get_Register((RegisterID)Inst.Op_RegUInt16.B);
-		((UInt16*)&_Register)[0] = Inst.Op_ValUInt16.A;
+		auto& _Register = Get_Register((RegisterID)Inst.Op_RegUInt16.A);
+		((UInt16*)&_Register)[0] = Inst.Op_RegUInt16.B;
 	}
 	InsBreak();
 	InsCase(LoadFuncPtrV2) :
 	{
-		auto& _Register = Get_Register((RegisterID)Inst.Op_RegUInt16.B);
-		((UInt16*)&_Register)[1] = Inst.Op_ValUInt16.A;
+		auto& _Register = Get_Register((RegisterID)Inst.Op_RegUInt16.A);
+		((UInt16*)&_Register)[1] = Inst.Op_RegUInt16.B;
 	}
 	InsBreak();
 	InsCase(LoadFuncPtrV3):
 	{
 		#if UCodeLang_64BitSytem
-		auto& _Register = Get_Register((RegisterID)Inst.Op_RegUInt16.B);
-		((UInt16*)&_Register)[2] = Inst.Op_ValUInt16.A;
+		auto& _Register = Get_Register((RegisterID)Inst.Op_RegUInt16.A);
+		((UInt16*)&_Register)[2] = Inst.Op_RegUInt16.B;
 		#endif
 	}
 	InsBreak();
 	InsCase(LoadFuncPtrV4) :
 	{
 		#if UCodeLang_64BitSytem
-		auto& _Register = Get_Register((RegisterID)Inst.Op_RegUInt16.B);
-		((UInt16*)&_Register)[3] = Inst.Op_ValUInt16.A;
+		auto& _Register = Get_Register((RegisterID)Inst.Op_RegUInt16.A);
+		((UInt16*)&_Register)[3] = Inst.Op_RegUInt16.B;
 		#endif
 	}
 	InsBreak();

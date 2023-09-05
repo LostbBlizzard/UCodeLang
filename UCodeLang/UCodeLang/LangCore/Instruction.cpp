@@ -135,6 +135,11 @@ Instruction::OpType Instruction::GetOpType(InstructionSet OpCode)
 	case InstructionSet::PointerMemberRead32:
 	case InstructionSet::PointerMemberRead64:
 		return Instruction::OpType::TwoRegInt8;
+	case InstructionSet::LoadFuncPtrV1:
+	case InstructionSet::LoadFuncPtrV2:
+	case InstructionSet::LoadFuncPtrV3:
+	case InstructionSet::LoadFuncPtrV4:
+		return Instruction::OpType::RegUInt16;
 	default:
 		UCodeLangUnreachable();
 		break;

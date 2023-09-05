@@ -150,13 +150,24 @@ $Result<T,E> enum:
         */
         _Editor.SetText(
             R"(
-|main2[] -> int:
+$FuncPointer = |[int a,int b] -> int;
 
- int A = 1;
+|Add[int a,int b] => a + b;
+|Mult[int a,int b] => a * b;
 
- int& V = A;
- int H = V;
- ret H;
+|main[]:
+ FuncPointer V = Add;
+ int a = 99;
+ a = V(5,5);
+
+ V = Mult;
+
+ a = V(a,0);
+
+ ret a;
+
+
+
 
 /*
 |main[] -> async<bool>:
