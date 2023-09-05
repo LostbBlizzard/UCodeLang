@@ -949,10 +949,12 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		break;
 		case IRInstructionType::CallFuncPtr:
 		{
+			auto reg = MakeIntoRegister(Item, Item->Target());
+
 			auto FuncInfo = _Input->GetSymbol(GetType(Item->Target())._symbol)->Get_ExAs<IRFuncPtr>();
 			auto FData = FuncCallStart(FuncInfo->Pars, FuncInfo->Ret);
  
-			InstructionBuilder::CallReg(MakeIntoRegister(Item,Item->Target()), _Ins); PushIns();
+			InstructionBuilder::CallReg(reg, _Ins); PushIns();
 
 
 			FuncCallEnd(FData);
@@ -1409,6 +1411,7 @@ UCodeBackEndObject::FuncCallEndData  UCodeBackEndObject::FuncCallStart(const Vec
 						InstructionBuilder::Push64(_Ins, CompilerRet); PushIns();
 						break;
 
+					PointerType:
 					case IRTypes::pointer:
 						if (Get_Settings().PtrSize == IntSizes::Int32)
 						{
@@ -1418,6 +1421,19 @@ UCodeBackEndObject::FuncCallEndData  UCodeBackEndObject::FuncCallStart(const Vec
 						{
 							goto bit64labelGG;
 						}
+						break;
+					case IRTypes::IRsymbol:
+					{
+						auto syb = _Input->GetSymbol(VType._symbol);
+						if (syb->SymType == IRSymbolType::FuncPtr)
+						{
+							goto PointerType;
+						}
+						else
+						{
+							UCodeLangUnreachable();
+						}
+					}
 						break;
 					default:
 						UCodeLangUnreachable();
@@ -1526,6 +1542,7 @@ void UCodeBackEndObject::FuncCallEnd(UCodeBackEndObject::FuncCallEndData& Data)
 						InstructionBuilder::Pop64(_Ins, CompilerRet); PushIns();
 						break;
 
+					PointerType:
 					case IRTypes::pointer:
 						if (Get_Settings().PtrSize == IntSizes::Int32)
 						{
@@ -1536,6 +1553,19 @@ void UCodeBackEndObject::FuncCallEnd(UCodeBackEndObject::FuncCallEndData& Data)
 							goto bit64labelGG2;
 						}
 						break;
+					case IRTypes::IRsymbol:
+					{
+						auto syb = _Input->GetSymbol(VType._symbol);
+						if (syb->SymType == IRSymbolType::FuncPtr)
+						{
+							goto PointerType;
+						}
+						else
+						{
+							UCodeLangUnreachable();
+						}
+					}
+					break;
 					default:
 						UCodeLangUnreachable();
 						break;
@@ -2698,7 +2728,8 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 				{
 					return GetIRLocData(Item,GetAddress);
 				}
-				else if (Item->Type == IRInstructionType::Call)
+				else if (Item->Type == IRInstructionType::Call
+					 || Item->Type == IRInstructionType::CallFuncPtr)
 				{
 					CompilerRet.Info = RegisterID::OutPutRegister;
 				}
@@ -2805,7 +2836,8 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 				}
 				else
 				{
-					if (Item->Type == IRInstructionType::Call)
+					if (Item->Type == IRInstructionType::Call
+						|| Item->Type == IRInstructionType::CallFuncPtr)
 					{
 						size_t ObjectSize = GetSize(Item);
 						if (ObjectSize > sizeof(AnyInt64))

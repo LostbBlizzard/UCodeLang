@@ -318,7 +318,8 @@ inline bool IsOperatorValueInTarget(IRInstructionType Value)
 		|| Value == IRInstructionType::Realloc
 		|| Value == IRInstructionType::Memcpy
 		|| Value == IRInstructionType::Memmove
-		|| Value == IRInstructionType::Memcmp;
+		|| Value == IRInstructionType::Memcmp
+		|| Value == IRInstructionType::CallFuncPtr;
 }
 inline bool IsOperatorValueInInput(IRInstructionType Value)
 {

@@ -341,18 +341,21 @@ private:
 	RegisterID GetRegisterForTep(const IRInstruction* Value)
 	{
 		auto R = GetRegisterForTep();
+		RegWillBeUsed(R);
 		SetRegister(R, Value);
 		return R;
 	}
 	RegisterID GetRegisterForTep(const IROperator& Value)
 	{
 		auto R = GetRegisterForTep();
+		RegWillBeUsed(R);
 		SetRegister(R, Value);
 		return R;
 	}
 	RegisterID GetRegisterForTep(const IRlocData& Value)
 	{
 		auto R = GetRegisterForTep();
+		RegWillBeUsed(R);
 		SetRegister(R, Value);
 		return R;
 	}
