@@ -128,7 +128,7 @@ UCodeTestStart
 		TestInfo("MemberInit","Objects/MemberInit.uc","main",SuccessCondition::RunTimeValue,(int)1),
 		TestInfo("Constructor","Objects/Constructor.uc","main",SuccessCondition::RunTimeValue,(float)0),
 		TestInfo("MemberCall","Objects/MemberCall.uc","main",SuccessCondition::RunTimeValue,(int)0),
-		TestInfo("pointer3","Objects/pointer3.uc","main",SuccessCondition::RunTimeValue,(char)'\0'),
+		TestInfo("pointer3","Objects/pointer3.uc","main",SuccessCondition::RunTimeValue,(char)'0'),
 		TestInfo("FuncOverloading","Objects/FuncOverloading.uc","main",SuccessCondition::RunTimeValue,(int)0),
 
 		TestInfo("OperatorOverloading","Objects/OperatorOverloading.uc","main",SuccessCondition::RunTimeValue,Vec2(0,0)),

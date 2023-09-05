@@ -1601,6 +1601,10 @@ void UCodeBackEndObject::DropStack()
 	{
 		auto Ptr = Get_Settings().PtrSize;
 		auto V = GetRegisterForTep();
+		if (V == RegisterID::OutPutRegister)
+		{
+			V = RegisterID::LinkRegister;//any  Register but OutPutRegister
+		}
 		if (Ptr == IntSizes::Int32)
 		{
 			InstructionBuilder::Store32_V1(_Ins, V, (UInt32)_Stack.Size); PushIns();
@@ -2684,6 +2688,19 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 
 				return CompilerRet;
 			}
+		}
+		else if (Ins->Type == IRInstructionType::Member_Access)
+		{
+			auto Pos = GetIRLocData(Ins->Target());
+			const IRStruct* VStruct = _Input->GetSymbol(Pos.ObjectType._symbol)->Get_ExAs<IRStruct>();
+			size_t FieldIndex = Ins->Input().Value.AsUIntNative;
+
+			size_t Offset = _Input->GetOffset(VStruct, FieldIndex);
+			AddOffset(Pos, Offset);
+
+			Pos.ObjectType = VStruct->Fields[FieldIndex].Type;
+
+			return Pos;
 		}
 		else
 		{

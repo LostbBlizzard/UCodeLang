@@ -15659,7 +15659,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 				auto FuncType = _LastExpressionType;
 				OnExpressionTypeNode(Pars._Nodes[0].get(), GetValueMode::Read);
 
-				if (Type_CanBeImplicitConverted(_LastExpressionType, FuncType, true))
+				if (!Type_CanBeImplicitConverted(_LastExpressionType, FuncType, true))
 				{
 					LogError_CantCastImplicitTypes(_LastLookedAtToken.value(), _LastExpressionType, FuncType,true);
 				}

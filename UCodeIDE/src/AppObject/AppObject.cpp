@@ -151,15 +151,21 @@ $Result<T,E> enum:
         _Editor.SetText(
             R"(
 $Item:
- int A = 0;
- |new[this&] -> void;
+ char& V;
+ |new[this&]:
+  V =: unsafe new char('A');
 
- |GetValue[this&] => A;
+|main[]:
+ Item item = [];
+
+ item.V = '\0';
+ char f = item.V;
+
+ unsafe drop(item.V);
 
 
-|main[] -> int:
- Item V = [];
- ret V.GetValue(); 
+ ret f;
+
 
 
 
