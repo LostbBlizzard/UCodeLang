@@ -485,6 +485,9 @@ private:
 	RegistersManager _OldVarableLocRegisters;
 	void ClearVarableLocs();
 	void UpdateVarableLocs();
+
+	void MoveValuesToState(const RegistersManager& state);
+	RegistersManager SaveState();
 };
 UCodeLangEnd
 

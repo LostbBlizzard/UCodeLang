@@ -89,6 +89,9 @@ public:
 		return _DebugInfo;
 	}
 private:
+	void LinkLib(RunTimeLib* Item,bool HotReloadKeepStatic);
+	void HotReloadClearState();
+
 	VectorMap<String, UAddress> _NameToAddress;
 	VectorMap<String, RunTimeLib::CPPCall> _NameToCPP;
 	Vector<Instruction> _Instructions;

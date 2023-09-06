@@ -21,13 +21,20 @@ void UCLibManger::Link()
 
 void UCLibManger::LinkLib(UCodeLang::RunTimeLib* Item)
 {
-	auto& Ins_s = Item->Get_Instructions();
+	LinkLib(Item, false);
+}
+void UCLibManger::LinkLib(UCodeLang::RunTimeLib* Item, bool HotReloadKeepStatic)
+{
+	
 	size_t oldSize = _Instructions.size();
-	_Instructions.reserve(oldSize + Ins_s.size());
+	
+	if (HotReloadKeepStatic == false) {
+		size_t oldSize2 = _Code.size();
+		_Code.reserve(oldSize2 + _Code.size());
+	}
 
-	size_t oldSize2 = _Code.size();
-	_Code.reserve(oldSize2 + _Code.size());
-
+auto& Ins_s = Item->Get_Instructions();
+_Instructions.reserve(oldSize + Ins_s.size());
 	Span<Instruction> InsSpan = Span<Instruction>::Make(Ins_s.data(), Ins_s.size());
 
 	for (size_t i = 0; i < Ins_s.size(); i++)
@@ -79,13 +86,17 @@ void UCLibManger::LinkLib(UCodeLang::RunTimeLib* Item)
 		if (Layer) 
 		{
 			auto& InsLayer = Layer->_Data.Get<CodeLayer::UCodeByteCode>();
-			for (const auto& Item : Item->Get_Lib()->Get_StaticBytes())
-			{
-				StaticBytes.push_back(Item);
-			}
-			for (const auto& Item : Item->Get_Lib()->Get_ThreadBytes())
-			{
-				ThreadBytes.push_back(Item);
+
+
+			if (HotReloadKeepStatic == false) {
+				for (const auto& Item : Item->Get_Lib()->Get_StaticBytes())
+				{
+					StaticBytes.push_back(Item);
+				}
+				for (const auto& Item : Item->Get_Lib()->Get_ThreadBytes())
+				{
+					ThreadBytes.push_back(Item);
+				}
 			}
 
 			
@@ -118,6 +129,18 @@ void UCLibManger::LinkLib(UCodeLang::RunTimeLib* Item)
 	{
 		_NameToCPP[Item2._Key] = Item2._Value;
 	}
+}
+
+void UCLibManger::HotReloadClearState()
+{
+	_NameToAddress.clear();
+	_NameToCPP.clear();
+	_Instructions.clear();
+
+	_Code.clear();
+	_ExCode = AsmBuffer();
+
+	Assembly.Classes.clear();
 }
 
 Optional<UAddress> UCLibManger::FindAddress(const String& FunctionName) const
