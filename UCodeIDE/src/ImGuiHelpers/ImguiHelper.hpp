@@ -29,6 +29,9 @@ public:
 	static bool uInt16Field(const char* FieldName, UInt16& Value);
 	static bool uInt8Field(const char* FieldName, UInt8& Value);
 
+	static bool uIntptrField(const char* FieldName, uintptr_t& Value);
+	static bool IntptrField(const char* FieldName, intptr_t& Value);
+
 	static bool CharField(const char* FieldName, char& Value);
 
 	static bool Int64Field(const char* FieldName, Int64& Value);
@@ -175,8 +178,10 @@ public:
 		Optional<std::function<void(void* Object, size_t Index)>> _AddNewRemove;
 		Optional<std::function<void(void* Object, size_t NewSize)>> _ResizeVector;
 	};
-	static bool InputSize_t(const char* label, size_t* v, int step, int step_fast, ImGuiInputTextFlags flags);
-	
+	static bool InputSize_t(const char* label, size_t* v,ImGuiInputTextFlags flags = 0);
+	static bool InputSize_t(const char* label, intptr_t* v, ImGuiInputTextFlags flags = 0);
+
+
 	static bool DrawVector(const char* label, UCodeLang::ReflectionVector& vector, const UCodeLang::ClassAssembly& assembly);
 
 	static bool DrawVector(const char* label, void* Object, void* Buffer, size_t Size, const DrawVectorInfo& Item);

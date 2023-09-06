@@ -159,17 +159,6 @@ $Result<T,E> enum:
 
  ret A;
 
-
-|main_do[] -> int:
- 
- int A = 0;
-
- do:
-  A++;
- while A < 10;
-
- ret A;
-
 /*
 |main[] -> async<bool>:
  async<int> a = await func();
@@ -431,8 +420,8 @@ void AppObject::DrawTestMenu()
     static constexpr size_t TestCount = ULangTest::Tests.size();
     struct TestInfo
     {
-        size_t MinTestIndex = 0;
-        size_t MaxTestCount = 40;//ULangTest::Tests.size();
+        size_t MinTestIndex = 13;
+        size_t MaxTestCount = 17;//40;//ULangTest::Tests.size();
         bool TestAsRan = false;
         enum class TestState
         {

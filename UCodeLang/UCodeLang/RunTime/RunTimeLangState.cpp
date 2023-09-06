@@ -410,13 +410,7 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 			const auto& OldThreadBytes = Lib.LibToUpdate->Get_Lib()->Get_ThreadBytes();
 			const auto& OldIns = Lib.LibToUpdate->Get_Instructions();
 
-			NewStaticBufferSize += NewStaticBytes.size();
-			NewThreadBufferSize += NewThreadBytes.size();
-			NewInsSize += NewIns.size();
-
-			OldStaticBufferSize += OldStaticBytes.size();
-			OldThreadBufferSize += OldThreadBytes.size();
-			OldInsSize += OldIns.size();
+			
 			
 			LibInfo V;
 			V.NewStaticOffset = NewStaticBufferSize;
@@ -427,6 +421,13 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 			V.OldThreadOffset = OldThreadBufferSize;
 			V.OldInsOffset = OldInsSize;
 
+			NewStaticBufferSize += NewStaticBytes.size();
+			NewThreadBufferSize += NewThreadBytes.size();
+			NewInsSize += NewIns.size();
+
+			OldStaticBufferSize += OldStaticBytes.size();
+			OldThreadBufferSize += OldThreadBytes.size();
+			OldInsSize += OldIns.size();
 
 			{
 				if (auto Val = Lib.NewLib->Get_Lib()->GetLayer(UCode_CodeLayer_UCodeVM_Name))
@@ -457,7 +458,7 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 
 		GlobalInfo.NewStaticMem.SetState(this);
 		GlobalInfo.NewStaticMem.Resize(RunTimeStaticBytes.size());
-		
+		GlobalInfo.NewIns.resize(NewInsSize);
 
 		for (auto& Item : RunTimeDebugInfo.VarablesInfo)
 		{
@@ -519,9 +520,12 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 			auto& Lib = Item.LibsToUpdate[i];
 			auto& LibInfo = LibsInfo[i];
 			const auto& NewStaticBytes = Lib.LibToUpdate->Get_Lib()->Get_StaticBytes();
+			const auto& NewIns = Lib.NewLib->Get_Instructions();
 
 			memcpy((Byte*)GlobalInfo.NewStaticMem.Data() + LibInfo.NewStaticOffset, NewStaticBytes.data(), NewStaticBytes.size());
 			
+			memcpy(GlobalInfo.NewIns.data() + LibInfo.NewInsOffset, NewIns.data(), NewIns.size()*sizeof(Instruction));
+
 			for (auto& InterpreterV : Item.Interpreters)
 			{
 				const auto& NewThreadBytes = Lib.LibToUpdate->Get_Lib()->Get_ThreadBytes();
@@ -542,6 +546,9 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 				LibInfo.InterpreterLocals.push_back(std::move(Val));
 
 			}
+
+			
+
 		}
 
 		GlobalInfo.ReadOnlyStaticMem = GlobalInfo.NewStaticMem.CopyAsVector();
@@ -727,6 +734,7 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 		Free(_StaticMemPtr);
 		_StaticMemPtr = GlobalInfo.NewStaticMem.Release();
 
+		//_Data._Instructions = std::move(GlobalInfo.NewIns);
 
 
 
@@ -757,15 +765,22 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 		_Data.ThreadBytes = LibsInfo[0].InterpreterLocals[0].ReadOnlyThreadMem;
 	}
 
+	_Data.HotReloadClearState();
+
 	for (auto& runtimelib : _Data.Libs)
 	{
 		for (auto& Lib : Item.LibsToUpdate)
 		{
 			if (Lib.LibToUpdate == runtimelib)
 			{
-				runtimelib = Lib.LibToUpdate; break;
+				runtimelib = Lib.NewLib; 
+				break;
 			}
 		}
+	}
+	for (auto& runtimelib : _Data.Libs)
+	{
+		_Data.LinkLib(runtimelib,true);
 	}
 
 	
