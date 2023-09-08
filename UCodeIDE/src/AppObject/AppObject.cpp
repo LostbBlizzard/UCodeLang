@@ -4,6 +4,7 @@
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "UCodeLang/Compliation/UAssembly/UAssembly.hpp"
 
+#include "UCodeLang/Compliation/ModuleFile.hpp"
 
 #include "UCodeLang/Compliation/Back/UCodeBackEnd/UCodeBackEnd.hpp"
 #include "UCodeLang/Compliation/Back/C89/C89Backend.hpp"
@@ -150,37 +151,37 @@ $Result<T,E> enum:
         */
         _Editor.SetText(
             R"(
-$FuncPointer = |[Vec2&] -> float;
-$FuncPointer2 = |[Vec3&] -> float;
+|main_if[] -> int:
+ if 1 == 1:
+  ret 10;
+ else:
+  ret 0;
 
-$Vec3:
- float X =0;
- float Y =0;
- float Z =1;
- |new[this&] -> void;
+|main_else[] -> int:
+ if 1 == 2:
+  ret 10;
+ else:
+  ret 0;
 
- |Update[this&] => Z;
 
-$Vec2:
- float X;
- float Y = 3;
+|main_while[] -> int:
+ 
+ int A = 0;
+ while A < 10:
+  A++;
 
- |Update[this&] => Y;
+ ret A;
 
-|main[]:
- Vec3 A = [];
- Vec2 B = [];
 
- FuncPointer Func = Vec2::Update;
- float a = 2;
+|main_do[] -> int:
+ 
+ int A = 0;
 
- a -= Func(B);
+ do:
+  A++;
+ while A < 10;
 
- FuncPointer2 Func2 = Vec3::Update;
-
- a += Func2(A);
-
- ret a;
+ ret A;
 
 /*
 |main[] -> async<bool>:
@@ -445,6 +446,9 @@ void AppObject::DrawTestMenu()
     {
         size_t MinTestIndex = 0;
         size_t MaxTestCount = 30;//40;//ULangTest::Tests.size();
+
+        size_t ModuleIndex = 0;
+        size_t ModuleTestCount = 1;//40;//ULangTest::Tests.size();
         bool TestAsRan = false;
         enum class TestState
         {
@@ -691,209 +695,571 @@ void AppObject::DrawTestMenu()
         }
         bool DebugMode = true;
         UCodeLang::OptimizationFlags Flags;
+
+
+        struct ModuleTestData
+        {
+            TestState State = TestState::Null;
+
+            String Logs;
+        };
+
+        UCodeLang::Array<ModuleTestData, ULangTest::ModuleTests.size()> ModuleTestinfo;
+        UCodeLang::Array<UCodeLang::Unique_ptr<std::future<bool>>, ULangTest::ModuleTests.size()> ModuleThreads;
     };
     static TestInfo TestWindowData;
     bool SetTextFocus = false;
 
+   
+
     if (ImGui::Begin("Tests"))
     {
-
+        const  ImVec4 ColorRed = { 0.839, 0.129, 0.051,1 };
+        const  ImVec4 ColorGreen = { 0.267, 0.788, 0.2,1 };
+        const  ImVec4 ColorGray = { 0.431, 0.427, 0.365,1 };
+        const  ImVec4 Colorlightgrey = { 0.675, 0.702, 0.675,1 };
+        const  ImVec4 ColorOrange = { 0.929, 0.329, 0.09,1 };
+        const  ImVec4 ColorBlue = { 0.396, 0.722, 0.769,1 };
         {
-            int v = TestWindowData.MinTestIndex;
-            if (ImGui::SliderInt("MinShowTests", &v, 0, TestWindowData.MaxTestCount - 1))
+
             {
-                TestWindowData.MinTestIndex = v;
+                int v = TestWindowData.MinTestIndex;
+                if (ImGui::SliderInt("MinShowTests", &v, 0, TestWindowData.MaxTestCount - 1))
+                {
+                    TestWindowData.MinTestIndex = v;
+                }
             }
-        }
-        {
-            int v = TestWindowData.MaxTestCount;
-            if (ImGui::SliderInt("MaxShowTests", &v, TestWindowData.MinTestIndex + 1, ULangTest::Tests.size() - 1))
             {
-                TestWindowData.MaxTestCount = v;
+                int v = TestWindowData.MaxTestCount;
+                if (ImGui::SliderInt("MaxShowTests", &v, TestWindowData.MinTestIndex + 1, ULangTest::Tests.size() - 1))
+                {
+                    TestWindowData.MaxTestCount = v;
+                }
             }
-        }
-        UCodeLang::OptimizationFlags flags = TestWindowData.Flags;
+            UCodeLang::OptimizationFlags flags = TestWindowData.Flags;
 
-        if (TestWindowData.DebugMode)
-        {
-            *(UCodeLang::OptimizationFlags_t*)&flags |= (UCodeLang::OptimizationFlags_t)UCodeLang::OptimizationFlags::Debug;
-        }
+            if (TestWindowData.DebugMode)
+            {
+                *(UCodeLang::OptimizationFlags_t*)&flags |= (UCodeLang::OptimizationFlags_t)UCodeLang::OptimizationFlags::Debug;
+            }
 
 
-        thread_local UCodeLang::BinaryVectorMap<String, String> Openedfiles;
-        thread_local UCodeLang::BinaryVectorMap<String, UCodeLang::Optional<std::shared_ptr<UCodeLang::UClib>>> Outputfiles;
-        thread_local UCodeLang::BinaryVectorMap<String, String> OutputIRStr;
-        thread_local UCodeLang::BinaryVectorMap<String, String> OutputLibStr;
-        if (ImGui::Button("Run Tests"))
-        {
-            Openedfiles.clear();
-            Outputfiles.clear();
-            OutputIRStr.clear();
-            OutputLibStr.clear();
+            thread_local UCodeLang::BinaryVectorMap<String, String> Openedfiles;
+            thread_local UCodeLang::BinaryVectorMap<String, UCodeLang::Optional<std::shared_ptr<UCodeLang::UClib>>> Outputfiles;
+            thread_local UCodeLang::BinaryVectorMap<String, String> OutputIRStr;
+            thread_local UCodeLang::BinaryVectorMap<String, String> OutputLibStr;
+            if (ImGui::Button("Run Tests"))
+            {
+                Openedfiles.clear();
+                Outputfiles.clear();
+                OutputIRStr.clear();
+                OutputLibStr.clear();
 
-            TestWindowData.TestAsRan = true;
-            const auto& Tests = ULangTest::Tests;
-            for (size_t i = 0; i < TestWindowData.MaxTestCount; i++)
+                TestWindowData.TestAsRan = true;
+                const auto& Tests = ULangTest::Tests;
+                for (size_t i = 0; i < TestWindowData.MaxTestCount; i++)
+                {
+                    auto& ItemTest = ULangTest::Tests[i];
+                    auto& ItemTestOut = TestWindowData.Testinfo[i];
+                    auto& Thread = TestWindowData.Threads[i];
+
+
+                    Thread = std::make_unique< std::future<bool>>(std::async(std::launch::async, [i, flags]
+                        {
+                            auto& ItemTest = ULangTest::Tests[i];
+                            auto& ItemTestOut = TestWindowData.Testinfo[i];
+
+                            ItemTestOut.State == TestInfo::TestState::Exception;
+                            ItemTestOut.RunTestForFlag(ItemTest, flags);
+                            return false;
+                        }));
+                }
+            }
+            bool FlagsWasUpdated = false;
+            if (ImguiHelper::BoolEnumField("DebugFlag", TestWindowData.DebugMode))
+            {
+
+                FlagsWasUpdated = true;
+            }
+
+            static const Vector<ImguiHelper::EnumValue<UCodeLang::OptimizationFlags>> OptimizationList =
+            {
+                { "NoOptimization",UCodeLang::OptimizationFlags::NoOptimization },
+                { "ForSize",UCodeLang::OptimizationFlags::ForSize },
+                { "ForSpeed",UCodeLang::OptimizationFlags::ForSpeed },
+                { "SizeAndSpeed",UCodeLang::OptimizationFlags::ForMaxSpeed },
+            };
+
+            ImGui::SameLine();
+            if (ImguiHelper::EnumField("Optimization", TestWindowData.Flags, OptimizationList))
+            {
+                FlagsWasUpdated = true;
+            }
+
+
+            if (FlagsWasUpdated) {
+                Openedfiles.clear();
+                Outputfiles.clear();
+                OutputIRStr.clear();
+                OutputLibStr.clear();
+            }
+            //ImguiHelper::BoolEnumField("Include O1,02,03 Optimizations", TestWindowData.IncludeOptimization);
+            ImguiHelper::BoolEnumField("Include JitInterpreter", TestWindowData.IncludeJitInterpreter);
+            ImguiHelper::BoolEnumField("Include NativeInterpreter", TestWindowData.IncludeNativeInterpreter);
+
+            size_t TestPassedCount = 0;
+            size_t TestRuningCount = 0;
+            for (size_t i = TestWindowData.MinTestIndex; i < TestWindowData.MaxTestCount; i++)
             {
                 auto& ItemTest = ULangTest::Tests[i];
                 auto& ItemTestOut = TestWindowData.Testinfo[i];
                 auto& Thread = TestWindowData.Threads[i];
 
-
-                Thread = std::make_unique< std::future<bool>>(std::async(std::launch::async, [i, flags]
-                    {
-                        auto& ItemTest = ULangTest::Tests[i];
-                        auto& ItemTestOut = TestWindowData.Testinfo[i];
-
-                        ItemTestOut.State == TestInfo::TestState::Exception;
-                        ItemTestOut.RunTestForFlag(ItemTest, flags);
-                        return false;
-                    }));
-            }
-        }
-        bool FlagsWasUpdated = false;
-        if (ImguiHelper::BoolEnumField("DebugFlag", TestWindowData.DebugMode))
-        {
-
-            FlagsWasUpdated = true;
-        }
-
-        static const Vector<ImguiHelper::EnumValue<UCodeLang::OptimizationFlags>> OptimizationList =
-        {
-            { "NoOptimization",UCodeLang::OptimizationFlags::NoOptimization },
-            { "ForSize",UCodeLang::OptimizationFlags::ForSize },
-            { "ForSpeed",UCodeLang::OptimizationFlags::ForSpeed },
-            { "SizeAndSpeed",UCodeLang::OptimizationFlags::ForMaxSpeed },
-        };
-
-        ImGui::SameLine();
-        if (ImguiHelper::EnumField("Optimization", TestWindowData.Flags, OptimizationList))
-        {
-            FlagsWasUpdated = true;
-        }
-
-
-        if (FlagsWasUpdated) {
-            Openedfiles.clear();
-            Outputfiles.clear();
-            OutputIRStr.clear();
-            OutputLibStr.clear();
-        }
-        //ImguiHelper::BoolEnumField("Include O1,02,03 Optimizations", TestWindowData.IncludeOptimization);
-        ImguiHelper::BoolEnumField("Include JitInterpreter", TestWindowData.IncludeJitInterpreter);
-        ImguiHelper::BoolEnumField("Include NativeInterpreter", TestWindowData.IncludeNativeInterpreter);
-
-        size_t TestPassedCount = 0;
-        size_t TestRuningCount = 0;
-        for (size_t i = TestWindowData.MinTestIndex; i < TestWindowData.MaxTestCount; i++)
-        {
-            auto& ItemTest = ULangTest::Tests[i];
-            auto& ItemTestOut = TestWindowData.Testinfo[i];
-            auto& Thread = TestWindowData.Threads[i];
-
-            if (ItemTestOut.State == TestInfo::TestState::Passed)
-            {
-                TestPassedCount++;
-            }
-            if (Thread.get() && Thread->valid())
-            {
-                TestRuningCount++;
-            }
-        }
-
-
-        {
-            String info;
-            info += "TestPassed:";
-            info += std::to_string(TestPassedCount);
-            info += "/";
-            info += std::to_string(TestWindowData.MaxTestCount - TestWindowData.MinTestIndex);
-            info += " :" + std::to_string((int)(((float)TestPassedCount / (float)(TestWindowData.MaxTestCount - TestWindowData.MinTestIndex)) * 100));
-            info += " percent";
-            ImGui::Text(info.c_str());
-        }
-        {
-            String info;
-            info += "TestRuning:";
-            info += std::to_string(TestRuningCount);
-            info += "/";
-            info += std::to_string(TestWindowData.MaxTestCount - TestWindowData.MinTestIndex);
-            info += " :" + std::to_string((int)(((float)TestRuningCount / (float)(TestWindowData.MaxTestCount - TestWindowData.MinTestIndex) * 100)));
-            info += " percent";
-            ImGui::Text(info.c_str());
-        }
-        static const Vector<ImguiHelper::EnumValue<TestInfo::TestState>> List =
-        {
-            { "Null ",TestInfo::TestState::Null },
-            { "Passed",TestInfo::TestState::Passed },
-            { "Fail",TestInfo::TestState::Fail },
-            { "Exception",TestInfo::TestState::Exception },
-        };
-
-        ImguiHelper::InputText("Sort:", TestWindowData.SortByName);
-        ImGui::SameLine();
-        ImguiHelper::EnumField("Type:", TestWindowData.SortBy, List);
-
-        ImGui::Separator();
-
-        for (size_t i = TestWindowData.MinTestIndex; i < TestWindowData.MaxTestCount; i++)
-        {
-            auto& ItemTest = ULangTest::Tests[i];
-            auto& ItemTestOut = TestWindowData.Testinfo[i];
-            auto& Thread = TestWindowData.Threads[i];
-
-            bool CanBeShowed = false;
-            if (TestWindowData.SortBy == TestInfo::TestState::Null)
-            {
-                CanBeShowed = true;
-            }
-            else
-            {
-                CanBeShowed = TestWindowData.SortBy == ItemTestOut.State;
-            }
-
-            if (CanBeShowed)
-            {
-                ImVec4 buttioncolor;
-                const  ImVec4 ColorRed = { 0.839, 0.129, 0.051,1 };
-                const  ImVec4 ColorGreen = { 0.267, 0.788, 0.2,1 };
-                const  ImVec4 ColorGray = { 0.431, 0.427, 0.365,1 };
-                const  ImVec4 Colorlightgrey = { 0.675, 0.702, 0.675,1 };
-                const  ImVec4 ColorOrange = { 0.929, 0.329, 0.09,1 };
-                const  ImVec4 ColorBlue = { 0.396, 0.722, 0.769,1 };
-
-                bool isworking = false;
-                if (Thread.get())
+                if (ItemTestOut.State == TestInfo::TestState::Passed)
                 {
-                    if (!Thread->valid())
-                    {
-                        isworking = true;
-                    }
+                    TestPassedCount++;
                 }
-
-                if (isworking)
+                if (Thread.get() && Thread->valid())
                 {
-                    buttioncolor = { 0.431, 0.427, 0.365,1 };//gray
+                    TestRuningCount++;
+                }
+            }
+
+
+            {
+                String info;
+                info += "TestPassed:";
+                info += std::to_string(TestPassedCount);
+                info += "/";
+                info += std::to_string(TestWindowData.MaxTestCount - TestWindowData.MinTestIndex);
+                info += " :" + std::to_string((int)(((float)TestPassedCount / (float)(TestWindowData.MaxTestCount - TestWindowData.MinTestIndex)) * 100));
+                info += " percent";
+                ImGui::Text(info.c_str());
+            }
+            {
+                String info;
+                info += "TestRuning:";
+                info += std::to_string(TestRuningCount);
+                info += "/";
+                info += std::to_string(TestWindowData.MaxTestCount - TestWindowData.MinTestIndex);
+                info += " :" + std::to_string((int)(((float)TestRuningCount / (float)(TestWindowData.MaxTestCount - TestWindowData.MinTestIndex) * 100)));
+                info += " percent";
+                ImGui::Text(info.c_str());
+            }
+            static const Vector<ImguiHelper::EnumValue<TestInfo::TestState>> List =
+            {
+                { "Null ",TestInfo::TestState::Null },
+                { "Passed",TestInfo::TestState::Passed },
+                { "Fail",TestInfo::TestState::Fail },
+                { "Exception",TestInfo::TestState::Exception },
+            };
+
+            ImguiHelper::InputText("Sort:", TestWindowData.SortByName);
+            ImGui::SameLine();
+            ImguiHelper::EnumField("Type:", TestWindowData.SortBy, List);
+
+            ImGui::Separator();
+
+            for (size_t i = TestWindowData.MinTestIndex; i < TestWindowData.MaxTestCount; i++)
+            {
+                auto& ItemTest = ULangTest::Tests[i];
+                auto& ItemTestOut = TestWindowData.Testinfo[i];
+                auto& Thread = TestWindowData.Threads[i];
+
+                bool CanBeShowed = false;
+                if (TestWindowData.SortBy == TestInfo::TestState::Null)
+                {
+                    CanBeShowed = true;
                 }
                 else
                 {
-                    if (ItemTestOut.State == TestInfo::TestState::Passed)
+                    CanBeShowed = TestWindowData.SortBy == ItemTestOut.State;
+                }
+
+                if (CanBeShowed)
+                {
+                    ImVec4 buttioncolor;
+
+
+                    bool isworking = false;
+                    if (Thread.get())
                     {
-                        buttioncolor = ColorGreen;//green
+                        if (!Thread->valid())
+                        {
+                            isworking = true;
+                        }
                     }
-                    else if (ItemTestOut.State == TestInfo::TestState::Null)
+
+                    if (isworking)
                     {
-                        buttioncolor = Colorlightgrey;
-                    }
-                    else if (ItemTestOut.State == TestInfo::TestState::Fail)
-                    {
-                        buttioncolor = ColorOrange;
+                        buttioncolor = { 0.431, 0.427, 0.365,1 };//gray
                     }
                     else
                     {
-                        buttioncolor = ColorRed;//red
+                        if (ItemTestOut.State == TestInfo::TestState::Passed)
+                        {
+                            buttioncolor = ColorGreen;//green
+                        }
+                        else if (ItemTestOut.State == TestInfo::TestState::Null)
+                        {
+                            buttioncolor = Colorlightgrey;
+                        }
+                        else if (ItemTestOut.State == TestInfo::TestState::Fail)
+                        {
+                            buttioncolor = ColorOrange;
+                        }
+                        else
+                        {
+                            buttioncolor = ColorRed;//red
+                        }
+                    }
+
+                    String TestV = "Test:";
+                    TestV += ItemTest.TestName;
+                    ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_Text, buttioncolor);
+                    bool isopen = ImGui::TreeNode(TestV.c_str());
+                    ImGui::PopStyleColor();
+
+                    if (isopen)
+                    {
+                        bool IsWorking = false;
+
+                        if (Thread.get())
+                        {
+                            if (!Thread->valid())
+                            {
+                                IsWorking = true;
+                            }
+                        }
+                        {
+                            String txt = "State:" + TestInfo::GetToString(ItemTestOut.State);
+                            ImGui::Text(txt.c_str());
+                        }
+                        ImGui::BeginDisabled();
+
+                        String tepstr1 = ItemTest.TestName;
+                        ImguiHelper::InputText("TestName", tepstr1);
+
+                        String tepstr2 = ItemTest.InputFilesOrDir;
+                        ImguiHelper::InputText("TestPath", tepstr2);
+
+                        String tepstr3 = TestInfo::GetToString(ItemTest.Condition);
+                        ImguiHelper::InputText("Success Condition", tepstr3);
+
+                        if (ItemTest.Condition == ULangTest::SuccessCondition::RunTimeValue)
+                        {
+                            auto valsize = ItemTest.RunTimeSuccessSize;
+                            auto val = ItemTest.RunTimeSuccess.get();
+
+                            if (Outputfiles.HasValue(ItemTest.TestName))
+                            {
+
+                                if (Outputfiles.at(ItemTest.TestName).has_value())
+                                {
+                                    const auto& lib = Outputfiles.at(ItemTest.TestName).value();
+                                    UCodeLang::ReflectionTypeInfo valtype = lib->Get_Assembly().Find_Func(ItemTest.FuncToCall)->RetType;
+
+                                    ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_Text, ColorBlue);
+                                    ImguiHelper::UCodeObjectField("Expected", val, valtype, lib->Get_Assembly());
+                                    ImGui::PopStyleColor();
+
+                                    if (ItemTestOut.RetValue.get())
+                                    {
+
+                                        ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_Text,
+                                            ItemTestOut.State == TestInfo::TestState::Passed ? ColorGreen : ColorRed);
+
+                                        ImguiHelper::UCodeObjectField("Returned", ItemTestOut.RetValue.get(), valtype, lib->Get_Assembly());
+                                        ImGui::PopStyleColor();
+
+
+                                    }
+                                }
+                            }
+                        }
+                        ImGui::EndDisabled();
+
+                        if (ImGui::TreeNode("Logs")) {
+                            ImGui::BeginDisabled();
+                            ImGui::InputTextMultiline("Logs", &ItemTestOut.Logs);
+                            ImGui::EndDisabled();
+                            ImGui::TreePop();
+                        }
+                        //ImGui::SameLine();
+
+
+
+                        if (ImGui::Button("Show in files"))
+                        {
+                            ShowInFiles(UCodeLang_UCAppDir_Test_UCodeFiles + ItemTest.InputFilesOrDir);
+                        }
+                        ImGui::SameLine();
+                        if (ImGui::Button("Set file.uc"))
+                        {
+                            if (Openedfiles.HasValue(ItemTest.TestName))
+                            {
+                                _Editor.SetText(Openedfiles.GetValue(ItemTest.TestName));
+                                SetTextFocus = true;
+                            }
+                        }
+                        ImGui::SameLine();
+
+
+                        ImGui::BeginDisabled(IsWorking);
+                        if (ImGui::Button("Run Test"))
+                        {
+                            if (!IsWorking)
+                            {
+
+                                auto& ItemTest = ULangTest::Tests[i];
+                                auto& ItemTestOut = TestWindowData.Testinfo[i];
+                                auto& Thread = TestWindowData.Threads[i];
+
+
+                                Thread = std::make_unique< std::future<bool>>(std::async(std::launch::async, [i, flags]
+                                    {
+                                        auto& ItemTest = ULangTest::Tests[i];
+                                        auto& ItemTestOut = TestWindowData.Testinfo[i];
+
+                                        ItemTestOut.State == TestInfo::TestState::Exception;
+                                        ItemTestOut.RunTestForFlag(ItemTest, flags);
+                                        return false;
+                                    }));
+                            }
+                        }
+                        ImGui::EndDisabled();
+
+                        ImGui::BeginDisabled();
+
+                        ImGui::PushID(&ItemTest.TestName);
+                        {
+
+
+                            String filetxt = "file...";
+                            if (Openedfiles.HasValue(ItemTest.TestName))
+                            {
+                                filetxt = Openedfiles.GetValue(ItemTest.TestName);
+                            }
+                            else
+                            {
+                                filetxt = UCodeLang::Compiler::GetTextFromFile(UCodeLang_UCAppDir_Test_UCodeFiles + ItemTest.InputFilesOrDir);
+                                Openedfiles.AddValue(ItemTest.TestName, filetxt);
+                            }
+
+
+                            ImGui::InputTextMultiline("src", &filetxt);
+                        }
+                        ImGui::PopID();
+
+                        std::string OutFileDir = UCodeLang_UCAppDir_Test_OutputFiles + ItemTest.TestName;
+                        std::string OutFilePath = OutFileDir + "/" + ItemTest.TestName + ULangTest::ModeType(flags) + ".ulibtest";
+
+
+                        if (!Outputfiles.HasValue(ItemTest.TestName))
+                        {
+                            UCodeLang::UClib lib;
+                            if (UCodeLang::UClib::FromFile(&lib, OutFilePath))
+                            {
+                                Outputfiles.AddValue(ItemTest.TestName, std::make_shared<UCodeLang::UClib>(std::move(lib)));
+                            }
+                            else
+                            {
+                                Outputfiles.AddValue(ItemTest.TestName, {});
+                            }
+
+                        }
+
+                        ImGui::PushID(&ItemTest.RunTimeSuccess);
+                        {
+                            String filetxt = "file...";
+                            if (Outputfiles.HasValue(ItemTest.TestName))
+                            {
+                                auto& v = Outputfiles.GetValue(ItemTest.TestName);
+                                if (!OutputIRStr.HasValue(ItemTest.TestName))
+                                {
+                                    String str;
+                                    if (v.has_value())
+                                    {
+                                        auto IRLayer = v.value()->GetLayer(UCode_CodeLayer_IR_Name);
+                                        if (IRLayer && IRLayer->_Data.Is<UCodeLang::CodeLayer::JustData>())
+                                        {
+                                            auto& Data = IRLayer->_Data.Get<UCodeLang::CodeLayer::JustData>();
+                                            UCodeLang::IRBuilder tep;
+                                            if (UCodeLang::IRBuilder::FromBytes(tep, BytesView::Make(Data._Data.data(), Data._Data.size())))
+                                            {
+                                                str = tep.ToString();
+                                            }
+                                        }
+
+                                    }
+                                    OutputIRStr.AddValue(ItemTest.TestName, str);
+                                }
+                                else
+                                {
+                                    filetxt = OutputIRStr.GetValue(ItemTest.TestName);
+                                }
+                            }
+                            ImGui::InputTextMultiline("ir", &filetxt);
+                        }
+                        ImGui::PopID();
+
+                        ImGui::PushID(&ItemTest.FuncToCall);
+                        {
+                            String filetxt = "out...";
+                            if (Outputfiles.HasValue(ItemTest.TestName))
+                            {
+                                if (!OutputLibStr.HasValue(ItemTest.TestName))
+                                {
+
+                                    auto& v = Outputfiles.GetValue(ItemTest.TestName);
+                                    if (v.has_value())
+                                    {
+                                        filetxt = UCodeLang::UAssembly::UAssembly::ToString(v.value().get());
+                                    }
+                                    OutputLibStr.AddValue(ItemTest.TestName, filetxt);
+                                }
+                                else
+                                {
+                                    filetxt = OutputLibStr.GetValue(ItemTest.TestName);
+                                }
+                            }
+                            ImGui::InputTextMultiline("out", &filetxt);
+                        }
+                        ImGui::PopID();
+
+                        if (IsWorking)
+                        {
+                            ImGui::Text("Working");
+                        }
+                        else
+                        {
+
+                        }
+                        ImGui::EndDisabled();
+
+                        if (!IsWorking)
+                        {
+                            if (ImGui::Button("Show in files"))
+                            {
+                                ShowInFiles(UCodeLang_UCAppDir_Test_UCodeFiles + ItemTest.InputFilesOrDir);
+                            }
+                            ImGui::SameLine();
+                        }
+
+                        ImGui::TreePop();
                     }
                 }
+
+            }
+
+        }
+
+        {
+            ImGui::Separator();
+            ImGui::Text("ModuleTests");
+            {
+                int v = TestWindowData.ModuleIndex;
+                if (ImGui::SliderInt("MinShowTests", &v, 0, TestWindowData.ModuleTestCount - 1))
+                {
+                    TestWindowData.ModuleIndex = v;
+                }
+            }
+            {
+                int v = TestWindowData.ModuleTestCount;
+                if (ImGui::SliderInt("MaxShowTests", &v, TestWindowData.ModuleIndex + 1, ULangTest::ModuleTests.size() - 1))
+                {
+                    TestWindowData.ModuleTestCount = v;
+                }
+            }
+
+          
+            if (ImGui::Button("Run Module Tests"))
+            {
+                for (size_t i = TestWindowData.ModuleIndex; i < TestWindowData.ModuleTestCount; i++)
+                {
+                    auto& ItemTest = ULangTest::ModuleTests[i];
+                    auto& ItemTestOut = TestWindowData.ModuleTestinfo[i];
+                    auto& Thread = TestWindowData.ModuleThreads[i];
+
+                    bool IsWorking = false;
+
+                    if (Thread.get())
+                    {
+                        if (!Thread->valid())
+                        {
+                            IsWorking = true;
+                        }
+                    }
+                    if (!IsWorking)
+                    {
+
+                        Thread = std::make_unique< std::future<bool>>(std::async(std::launch::async, [i]
+                            {
+                                auto& ItemTest = ULangTest::ModuleTests[i];
+                                auto& ItemOut = TestWindowData.ModuleTestinfo[i];
+                                UCodeLang::ModuleFile file;
+
+                                Path pathdir = UCodeLang_UCAppDir_Test_UCodeFiles + ItemTest.Modulefile;
+                                Path modulefilepath = pathdir / Path(UCodeLang::ModuleFile::FileNameWithExt);
+                                bool r = false;
+                                if (file.FromFile(&file, modulefilepath))
+                                {
+                                    UCodeLang::Compiler compiler;
+                                    UCodeLang::ModuleIndex LangIndex = UCodeLang::ModuleIndex::GetModuleIndex();
+
+                                    try
+                                    {
+                                        auto ret = file.BuildModule(compiler, LangIndex);
+                                        if (ret.CompilerRet._State == UCodeLang::Compiler::CompilerState::Success)
+                                        {
+
+                                            ItemOut.State = TestInfo::TestState::Passed;
+                                            r = true;
+                                        }
+                                        else
+                                        {
+                                            ItemOut.State = TestInfo::TestState::Fail;
+                                        }
+                                    }
+                                    catch (const std::exception&)
+                                    {
+                                        ItemOut.State = TestInfo::TestState::Exception;
+                                    }
+                                   
+
+                                }
+
+                                return r;
+                            }));
+                    }
+                }
+            }
+
+            for (size_t i = TestWindowData.ModuleIndex; i < TestWindowData.ModuleTestCount; i++)
+            {
+                auto& ItemTest = ULangTest::ModuleTests[i];
+                auto& ItemTestOut = TestWindowData.ModuleTestinfo[i];
+                auto& Thread = TestWindowData.ModuleThreads[i];
+
+
+                ImVec4 buttioncolor;
+                if (ItemTestOut.State == TestInfo::TestState::Passed)
+                {
+                    buttioncolor = ColorGreen;//green
+                }
+                else if (ItemTestOut.State == TestInfo::TestState::Null)
+                {
+                    buttioncolor = Colorlightgrey;
+                }
+                else if (ItemTestOut.State == TestInfo::TestState::Fail)
+                {
+                    buttioncolor = ColorOrange;
+                }
+                else
+                {
+                    buttioncolor = ColorRed;//red
+                }
+
 
                 String TestV = "Test:";
                 TestV += ItemTest.TestName;
@@ -912,79 +1278,12 @@ void AppObject::DrawTestMenu()
                             IsWorking = true;
                         }
                     }
-                    {
-                        String txt = "State:" + TestInfo::GetToString(ItemTestOut.State);
-                        ImGui::Text(txt.c_str());
-                    }
-                    ImGui::BeginDisabled();
-
-                    String tepstr1 = ItemTest.TestName;
-                    ImguiHelper::InputText("TestName", tepstr1);
-
-                    String tepstr2 = ItemTest.InputFilesOrDir;
-                    ImguiHelper::InputText("TestPath", tepstr2);
-
-                    String tepstr3 = TestInfo::GetToString(ItemTest.Condition);
-                    ImguiHelper::InputText("Success Condition", tepstr3);
-
-                    if (ItemTest.Condition == ULangTest::SuccessCondition::RunTimeValue)
-                    {
-                        auto valsize = ItemTest.RunTimeSuccessSize;
-                        auto val = ItemTest.RunTimeSuccess.get();
-
-                        if (Outputfiles.HasValue(ItemTest.TestName))
-                        {
-
-                            if (Outputfiles.at(ItemTest.TestName).has_value())
-                            {
-                                const auto& lib = Outputfiles.at(ItemTest.TestName).value();
-                                UCodeLang::ReflectionTypeInfo valtype = lib->Get_Assembly().Find_Func(ItemTest.FuncToCall)->RetType;
-
-                                ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_Text, ColorBlue);
-                                ImguiHelper::UCodeObjectField("Expected", val, valtype, lib->Get_Assembly());
-                                ImGui::PopStyleColor();
-
-                                if (ItemTestOut.RetValue.get())
-                                {
-
-                                    ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_Text,
-                                        ItemTestOut.State == TestInfo::TestState::Passed ? ColorGreen : ColorRed);
-
-                                    ImguiHelper::UCodeObjectField("Returned", ItemTestOut.RetValue.get(), valtype, lib->Get_Assembly());
-                                    ImGui::PopStyleColor();
-
-
-                                }
-                            }
-                        }
-                    }
-                    ImGui::EndDisabled();
-
-                    if (ImGui::TreeNode("Logs")) {
-                        ImGui::BeginDisabled();
-                        ImGui::InputTextMultiline("Logs", &ItemTestOut.Logs);
-                        ImGui::EndDisabled();
-                        ImGui::TreePop();
-                    }
-                    //ImGui::SameLine();
-
-
 
                     if (ImGui::Button("Show in files"))
                     {
-                        ShowInFiles(UCodeLang_UCAppDir_Test_UCodeFiles + ItemTest.InputFilesOrDir);
+                        ShowInFiles(UCodeLang_UCAppDir_Test_UCodeFiles + ItemTest.Modulefile);
                     }
                     ImGui::SameLine();
-                    if (ImGui::Button("Set file.uc"))
-                    {
-                        if (Openedfiles.HasValue(ItemTest.TestName))
-                        {
-                            _Editor.SetText(Openedfiles.GetValue(ItemTest.TestName));
-                            SetTextFocus = true;
-                        }
-                    }
-                    ImGui::SameLine();
-
 
                     ImGui::BeginDisabled(IsWorking);
                     if (ImGui::Button("Run Test"))
@@ -992,143 +1291,53 @@ void AppObject::DrawTestMenu()
                         if (!IsWorking)
                         {
 
-                            auto& ItemTest = ULangTest::Tests[i];
-                            auto& ItemTestOut = TestWindowData.Testinfo[i];
-                            auto& Thread = TestWindowData.Threads[i];
-
-
-                            Thread = std::make_unique< std::future<bool>>(std::async(std::launch::async, [i, flags]
+                            Thread = std::make_unique< std::future<bool>>(std::async(std::launch::async, [i]
                                 {
-                                    auto& ItemTest = ULangTest::Tests[i];
-                                    auto& ItemTestOut = TestWindowData.Testinfo[i];
+                                    auto& ItemTest = ULangTest::ModuleTests[i];
+                                    auto& ItemOut = TestWindowData.ModuleTestinfo[i];
+                                    UCodeLang::ModuleFile file;
 
-                                    ItemTestOut.State == TestInfo::TestState::Exception;
-                                    ItemTestOut.RunTestForFlag(ItemTest, flags);
-                                    return false;
+                                    Path pathdir = UCodeLang_UCAppDir_Test_UCodeFiles + ItemTest.Modulefile;
+                                    Path modulefilepath = pathdir / Path(UCodeLang::ModuleFile::FileNameWithExt);
+                                    bool r = false;
+                                    if (file.FromFile(&file, modulefilepath))
+                                    {
+                                        UCodeLang::Compiler compiler;
+                                        UCodeLang::ModuleIndex LangIndex = UCodeLang::ModuleIndex::GetModuleIndex();
+
+                                        try
+                                        {
+                                            auto ret = file.BuildModule(compiler, LangIndex);
+                                            if (ret.CompilerRet._State == UCodeLang::Compiler::CompilerState::Success)
+                                            {
+
+                                                ItemOut.State = TestInfo::TestState::Passed;
+                                                r = true;
+                                            }
+                                            else
+                                            {
+                                                ItemOut.State = TestInfo::TestState::Fail;
+                                            }
+                                        }
+                                        catch (const std::exception&)
+                                        {
+                                            ItemOut.State = TestInfo::TestState::Exception;
+                                        }
+
+
+                                    }
+
+                                    return r;
                                 }));
                         }
                     }
                     ImGui::EndDisabled();
 
-                    ImGui::BeginDisabled();
-
-                    ImGui::PushID(&ItemTest.TestName);
-                    {
-
-
-                        String filetxt = "file...";
-                        if (Openedfiles.HasValue(ItemTest.TestName))
-                        {
-                            filetxt = Openedfiles.GetValue(ItemTest.TestName);
-                        }
-                        else
-                        {
-                            filetxt = UCodeLang::Compiler::GetTextFromFile(UCodeLang_UCAppDir_Test_UCodeFiles + ItemTest.InputFilesOrDir);
-                            Openedfiles.AddValue(ItemTest.TestName, filetxt);
-                        }
-
-
-                        ImGui::InputTextMultiline("src", &filetxt);
-                    }
-                    ImGui::PopID();
-
-                    std::string OutFileDir = UCodeLang_UCAppDir_Test_OutputFiles + ItemTest.TestName;
-                    std::string OutFilePath = OutFileDir + "/" + ItemTest.TestName + ULangTest::ModeType(flags) + ".ulibtest";
-
-
-                    if (!Outputfiles.HasValue(ItemTest.TestName))
-                    {
-                        UCodeLang::UClib lib;
-                        if (UCodeLang::UClib::FromFile(&lib, OutFilePath))
-                        {
-                            Outputfiles.AddValue(ItemTest.TestName, std::make_shared<UCodeLang::UClib>(std::move(lib)));
-                        }
-                        else
-                        {
-                            Outputfiles.AddValue(ItemTest.TestName, {});
-                        }
-
-                    }
-
-                    ImGui::PushID(&ItemTest.RunTimeSuccess);
-                    {
-                        String filetxt = "file...";
-                        if (Outputfiles.HasValue(ItemTest.TestName))
-                        {
-                            auto& v = Outputfiles.GetValue(ItemTest.TestName);
-                            if (!OutputIRStr.HasValue(ItemTest.TestName))
-                            {
-                                String str;
-                                if (v.has_value())
-                                {
-                                    auto IRLayer = v.value()->GetLayer(UCode_CodeLayer_IR_Name);
-                                    if (IRLayer && IRLayer->_Data.Is<UCodeLang::CodeLayer::JustData>())
-                                    {
-                                        auto& Data = IRLayer->_Data.Get<UCodeLang::CodeLayer::JustData>();
-                                        UCodeLang::IRBuilder tep;
-                                        if (UCodeLang::IRBuilder::FromBytes(tep, BytesView::Make(Data._Data.data(), Data._Data.size())))
-                                        {
-                                            str = tep.ToString();
-                                        }
-                                    }
-
-                                }
-                                OutputIRStr.AddValue(ItemTest.TestName, str);
-                            }
-                            else
-                            {
-                                filetxt = OutputIRStr.GetValue(ItemTest.TestName);
-                            }
-                        }
-                        ImGui::InputTextMultiline("ir", &filetxt);
-                    }
-                    ImGui::PopID();
-
-                    ImGui::PushID(&ItemTest.FuncToCall);
-                    {
-                        String filetxt = "out...";
-                        if (Outputfiles.HasValue(ItemTest.TestName))
-                        {
-                            if (!OutputLibStr.HasValue(ItemTest.TestName))
-                            {
-
-                                auto& v = Outputfiles.GetValue(ItemTest.TestName);
-                                if (v.has_value())
-                                {
-                                    filetxt = UCodeLang::UAssembly::UAssembly::ToString(v.value().get());
-                                }
-                                OutputLibStr.AddValue(ItemTest.TestName, filetxt);
-                            }
-                            else
-                            {
-                                filetxt = OutputLibStr.GetValue(ItemTest.TestName);
-                            }
-                        }
-                        ImGui::InputTextMultiline("out", &filetxt);
-                    }
-                    ImGui::PopID();
-
-                    if (IsWorking)
-                    {
-                        ImGui::Text("Working");
-                    }
-                    else
-                    {
-
-                    }
-                    ImGui::EndDisabled();
-
-                    if (!IsWorking)
-                    {
-
-                    }
-
                     ImGui::TreePop();
                 }
+
             }
-
         }
-
     }ImGui::End();
 #endif // DEBUG
 }
@@ -1708,8 +1917,23 @@ void AppObject::ProcessSeverPackets()
 
 void AppObject::ShowInFiles(const Path& path)
 {
+    Path copy;
+    if (std::filesystem::is_directory(path) && path.native().back() != Path::preferred_separator)
+    {
+        copy = path / "";
+    }
+    else if (std::filesystem::is_regular_file(path))
+    {
+        copy = path.parent_path();
+        copy /= "";
+    }
+    else
+    {
+        copy = path;
+    }
+
     #if UCodeLang_Platform_Windows
-    ShellExecute(NULL, L"open", path.c_str(), NULL, NULL, SW_SHOWDEFAULT);
+    ShellExecute(NULL, L"open", copy.c_str(), NULL, NULL, SW_SHOWDEFAULT);
     #elif UCodeLang_Platform_Posix
     auto cmd =(String("open ") + path.generic_string());
     system(cmd.c_str());

@@ -208,9 +208,29 @@ UCodeTestStart
 	};
 
 
+
+	struct ModuleTest
+	{
+		const char* TestName;
+		String Modulefile;
+
+
+		ModuleTest(const char* TestName, const String& Modulefile)
+		{
+			this->TestName = TestName;
+			this->Modulefile = Modulefile;
+		}
+	};
+	static const Array<ModuleTest, 1> ModuleTests
+	{
+		ModuleTest("BuildSystem","Modules/BuildSystem")
+
+	};
 	
 
 	bool RunTest(const TestInfo& Test);
+
+	bool RunTest(const ModuleTest& Test);
 
 	int RunTests(bool MultThread =true);
 

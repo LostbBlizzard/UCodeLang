@@ -4,6 +4,7 @@
 #include <sstream>
 #include <fstream>
 #include <UCodeLang/Compliation/UAssembly/UAssembly.hpp>
+#include <UCodeLang/Compliation/ModuleFile.hpp>
 UCodeTestStart
 
 using namespace UCodeLang;
@@ -328,72 +329,158 @@ using namespace UCodeLang;
 		return V;
 	}
 
+	bool RunTest(const ModuleTest& Test)
+	{
+		std::stringstream Log;
+		std::stringstream Err;
+		Log << "Runing ModuleTest '" << Test.TestName << "'" << std::endl;
+
+		UCodeLang::ModuleFile file;
+
+		Path pathdir = UCodeLang_UCAppDir_Test_UCodeFiles + Test.Modulefile;
+		Path modulefilepath = pathdir / Path(UCodeLang::ModuleFile::FileNameWithExt);
+		bool r = false;
+		if (file.FromFile(&file, modulefilepath))
+		{
+			Compiler compiler;
+			ModuleIndex LangIndex = UCodeLang::ModuleIndex::GetModuleIndex();
+
+
+
+			auto ret = file.BuildModule(compiler, LangIndex);
+			if (ret.CompilerRet._State == Compiler::CompilerState::Success)
+			{
+				r = true;
+			}
+
+
+		}
+
+
+		Coutlock.lock();
+
+		std::cout << Log.str();
+		std::cout << Err.str();
+
+		Coutlock.unlock();
+
+		return r;
+	}
+
 
 	int RunTests(bool MultThread)
 	{
 		size_t TestPassed = 0;
-		std::cout << "---runing Test" << std::endl;
-
-		Vector<std::future<bool>> List;
-
-		UCodeLang::UAssembly::Get_InsToInsMapValue();
-		for (auto& Test : Tests)
 		{
-			//if (RunTest(Test)) { TestPassed++; }
 
-			if (MultThread == false)
+			std::cout << "---runing Test" << std::endl;
+
+			Vector<std::future<bool>> List;
+
+			UCodeLang::UAssembly::Get_InsToInsMapValue();
+			for (auto& Test : Tests)
 			{
-				if (Test.TestName == "Constructor")
+				//if (RunTest(Test)) { TestPassed++; }
+
+				if (MultThread == false)
 				{
-					int BreakPointHere = 0;
+					auto TestR = RunTest(Test);
+				}
+				else
+				{
+					auto F = std::async(std::launch::async, [&]
+						{
+							try
+							{
+								return RunTest(Test);
+							}
+							catch (const std::exception& why)
+							{
+								std::cout << why.what();
+								return false;
+							}
+						}
+					);
+					List.push_back(std::move(F));
+				}
+			}
+
+			for (auto& Item : List)
+			{
+				try
+				{
+					Item.wait();
+					if (Item.get()) { TestPassed++; };
+				}
+				catch (const std::exception& why)
+				{
+					std::cout << why.what();
 				}
 
-				auto TestR = RunTest(Test);
+			}
 
-				if (TestR == false)
+			std::cout << "---Tests ended" << std::endl;
+			std::cout << "passed " << TestPassed << "/" << Tests.size() << " Tests" << std::endl;
+		}
+
+		size_t TestModulePassed = 0;
+		{
+
+			std::cout << "---runing Module Tests" << std::endl;
+
+			Vector<std::future<bool>> List;
+
+			UCodeLang::UAssembly::Get_InsToInsMapValue();
+			for (auto& Test : ModuleTests)
+			{
+				//if (RunTest(Test)) { TestPassed++; }
+
+				if (MultThread == false)
 				{
-					int BreakPointHere = 0;
+
+					auto TestR = RunTest(Test);
+				}
+				else
+				{
+					auto F = std::async(std::launch::async, [&]
+						{
+							try
+							{
+								return RunTest(Test);
+							}
+							catch (const std::exception& why)
+							{
+								std::cout << why.what();
+								return false;
+							}
+						}
+					);
+					List.push_back(std::move(F));
 				}
 			}
-			else
+
+			for (auto& Item : List)
 			{
-				auto F = std::async(std::launch::async, [&]
-					{
-						try
-						{
-							return RunTest(Test);
-						}
-						catch (const std::exception& why)
-						{
-							std::cout << why.what();
-							return false;
-						}
-					}
-				);
-				List.push_back(std::move(F));
+				try
+				{
+					Item.wait();
+					if (Item.get()) { TestPassed++; };
+				}
+				catch (const std::exception& why)
+				{
+					std::cout << why.what();
+				}
+
 			}
+
+			std::cout << "---Module ended" << std::endl;
+			std::cout << "passed " << TestPassed << "/" << Tests.size() << "Module Tests" << std::endl;
 		}
 
-		for (auto& Item : List)
-		{
-			try
-			{
-				Item.wait();
-				if (Item.get()) { TestPassed++; };
-			}
-			catch (const std::exception& why)
-			{
-				std::cout << why.what();
-			}
-			
-		}
-
-		std::cout << "---Tests ended" << std::endl;
-		std::cout << "passed " << TestPassed << "/" << Tests.size() << " Tests" << std::endl;
 
 
-
-		return TestPassed == Tests.size();
+		return TestPassed == Tests.size()
+			&& TestModulePassed == ModuleTests.size();
 	}
 
 	bool LogErrors(std::ostream& out, Compiler& _Compiler)

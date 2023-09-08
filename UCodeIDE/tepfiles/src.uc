@@ -1,35 +1,35 @@
 
-$FuncPointer = |[Vec2&] -> float;
-$FuncPointer2 = |[Vec3&] -> float;
+|main_if[] -> int:
+ if 1 == 1:
+  ret 10;
+ else:
+  ret 0;
 
-$Vec3:
- float X =0;
- float Y =0;
- float Z =1;
- |new[this&] -> void;
+|main_else[] -> int:
+ if 1 == 2:
+  ret 10;
+ else:
+  ret 0;
 
- |Update[this&] => Z;
 
-$Vec2:
- float X;
- float Y = 3;
+|main_while[] -> int:
+ 
+ int A = 0;
+ while A < 10:
+  A++;
 
- |Update[this&] => Y;
+ ret A;
 
-|main[]:
- Vec3 A = [];
- Vec2 B = [];
 
- FuncPointer Func = Vec2::Update;
- float a = 2;
+|main_do[] -> int:
+ 
+ int A = 0;
 
- a -= Func(B);
+ do:
+  A++;
+ while A < 10;
 
- FuncPointer2 Func2 = Vec3::Update;
-
- a += Func2(A);
-
- ret a;
+ ret A;
 
 /*
 |main[] -> async<bool>:

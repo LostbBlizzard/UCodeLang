@@ -7,6 +7,9 @@
 #include <thread>
 #include <mutex>
 #include <future>
+
+#include <UCodeLang/RunTime/Interpreters/Interpreter.hpp>
+#include <UCodeLang/RunTime/RunTimeLangState.hpp>
 UCodeLangStart
 
 
@@ -153,7 +156,26 @@ void ModuleIndex::WriteType(BitMaker& bit, const Path& Value)
 {
 	bit.WriteType(Value.generic_string());
 }
+ModuleIndex ModuleIndex::GetModuleIndex()
+{
+	ModuleIndex	LangIndex;
+	auto Path = ModuleIndex::GetModuleIndexFilePath();
+	if (!std::filesystem::exists(Path))
+	{
+		ModuleIndex::ToFile(&LangIndex, Path);
 
+		return LangIndex;
+	}
+
+	if (ModuleIndex::FromFile(&LangIndex, Path))
+	{
+		return LangIndex;
+	}
+	else
+	{
+		return LangIndex;
+	}
+}
 void ModuleIndex::FromType(BitReader& bit, Path& Value)
 {
 	String Out;
@@ -208,7 +230,138 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 	auto& Errs = Compiler.Get_Errors();
 
 	Errs.FilePath = GetFullPathName();
-	bool Err = false;
+
+	Path buildfile = ThisModuleDir / ModuleBuildfile.native();
+
+
+	{
+
+		namespace fs = std::filesystem;
+		if (fs::exists(buildfile))
+		{
+			auto OldSettings = Compiler.Get_Settings();
+
+			Compiler.Get_Settings() = CompliationSettings();
+			
+			String filestring = Compiler::GetTextFromFile(buildfile);
+			String fileimports = "";
+			String filetext = "$BuildSystem; \n|build[BuildSystem& system] => 0;";
+			
+			Vector<ModuleIdentifier> buildfileDependencies;
+			Compiler::ExternalFiles buildExternFiles;
+
+			bool Err = false;
+			BuildModuleDependencies(Modules, Errs, Err, Compiler, buildfileDependencies, buildExternFiles);
+
+			Compiler.Get_Settings() = OldSettings;
+			if (Err == false)
+			{
+				auto buildscriptinfo = Compiler.CompileText(filetext);
+				if (buildscriptinfo._State == Compiler::CompilerState::Success)
+				{
+					UClib& buildscriptlib = *buildscriptinfo.OutPut;
+
+					ClassMethod* buildfuncion = buildscriptlib.Get_Assembly().Find_Func("build");
+					
+					if (buildfuncion) 
+					{
+						using BuildRuner = Interpreter;
+						
+						RunTimeLib buildscriptrlib;
+						buildscriptrlib.Init(&buildscriptlib);
+
+						RunTimeLib BuildSystemlib;
+						//BuildSystemlib.Add_CPPCall("BuildSystem::Build",nullptr, nullptr);
+
+						RunTimeLangState state;
+						state.AddLib(&buildscriptrlib);
+
+						state.LinkLibs();
+
+
+						BuildRuner runer;
+						runer.Init(&state);
+
+
+						auto itworked = runer.RCall<int>(buildfuncion, this);
+
+
+						if (itworked == 0)
+						{
+							ModuleRet CompilerRet;
+							CompilerRet.CompilerRet._State = Compiler::CompilerState::Success;
+							return CompilerRet;
+						}
+						else
+						{
+							ModuleRet CompilerRet;
+							CompilerRet.CompilerRet._State = Compiler::CompilerState::Fail;
+							return CompilerRet;
+						}
+					}
+					else
+					{
+						Compiler.Get_Errors().AddError(ErrorCodes::ExpectingToken, 0, 0,"Cant find funcion |build[BuildSystem& system] for build script.");
+					}
+
+				}
+
+			}
+			else
+			{
+				ModuleRet CompilerRet;
+				CompilerRet.CompilerRet._State = Compiler::CompilerState::Fail;
+				return CompilerRet;
+			}
+		}
+		else
+		{
+			bool Err = false;
+
+			BuildModuleDependencies(Modules, Errs, Err, Compiler,this->ModuleDependencies, ExternFiles);
+
+			if (Err == false)
+			{
+				auto OldSettings = Compiler.Get_Settings();
+
+				ModuleRet CompilerRet;
+				{
+					Compiler.Get_Settings()._Type = IsSubModule ? OutPutType::IRAndSymbols : OldSettings._Type;
+					CompilerRet.OutputItemPath = paths.OutFile;
+
+
+					if (ForceImport) {
+						Compiler.Get_Settings().AddArgFlag("ForceImport");
+					}
+
+					if (ModuleNameSpace.size())
+					{
+						Compiler.Get_Settings().AddArgValue("StartingNameSpace", ModuleNameSpace);
+					}
+
+					CompilerRet.CompilerRet = Compiler.CompileFiles_UseIntDir(paths, ExternFiles);
+				}
+
+				Compiler.Get_Settings() = OldSettings;
+				return CompilerRet;
+			}
+			else
+			{
+				ModuleRet CompilerRet;
+				CompilerRet.CompilerRet._State = Compiler::CompilerState::Fail;
+				return CompilerRet;
+			}
+		}
+	}
+}
+
+void ModuleFile::BuildModuleDependencies(
+	const ModuleIndex& Modules, 
+	CompliationErrors& Errs, bool& Err,
+	Compiler& Compiler,
+	const Vector<ModuleIdentifier>& ModuleDependencies,
+	Compiler::ExternalFiles& externfilesoutput)
+{
 	for (auto& Item : ModuleDependencies)
 	{
 		auto V = Modules.FindFile(Item);
@@ -223,7 +376,7 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 			ModuleFile MFile;
 			if (ModuleFile::FromFile(&MFile, Index._ModuleFullPath))
 			{
-				auto BuildData = MFile.BuildModule(Compiler, Modules,true);
+				auto BuildData = MFile.BuildModule(Compiler, Modules, true);
 				if (BuildData.CompilerRet._State == Compiler::CompilerState::Fail)
 				{
 					Errs.FilePath = GetFullPathName();
@@ -233,49 +386,14 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 				}
 				else
 				{
-					ExternFiles.Files.push_back(MFile.GetPaths(Compiler,true).OutFile);
+					externfilesoutput.Files.push_back(MFile.GetPaths(Compiler, true).OutFile);
 				}
 
 			}
 
 		}
 	}
-	
-	if (Err == false)
-	{
-		auto OldSettings = Compiler.Get_Settings();
 
-		ModuleRet CompilerRet;
-		{
-			Compiler.Get_Settings()._Type = IsSubModule ? OutPutType::IRAndSymbols : OldSettings._Type;
-			CompilerRet.OutputItemPath = paths.OutFile;
-
-
-			if (ForceImport) {
-				Compiler.Get_Settings().AddArgFlag("ForceImport");
-			}
-
-			if (RemoveUnSafe) {
-				Compiler.Get_Settings().AddArgFlag("RemoveUnsafe");
-			}
-
-			if (ModuleNameSpace.size()) 
-			{
-				Compiler.Get_Settings().AddArgValue("StartingNameSpac",ModuleNameSpace);
-			}
-
-			CompilerRet.CompilerRet = Compiler.CompileFiles_UseIntDir(paths, ExternFiles);
-		}
-		
-		Compiler.Get_Settings() = OldSettings;
-		return CompilerRet;
-	}
-	else
-	{
-		ModuleRet CompilerRet;
-		CompilerRet.CompilerRet._State = Compiler::CompilerState::Fail;
-		return CompilerRet;
-	}
 }
 
 bool ModuleFile::ToFile(const ModuleFile* Lib, const Path& path)
@@ -320,9 +438,6 @@ void ModuleFile::NewInit(String ModuleName, String AuthorName)
 	this->ModuleName.ModuleName = ModuleName;
 	this->ModuleName.AuthorName = AuthorName;
 
-	ModuleSourcePath = "src";
-	ModuleIntPath = "int";
-	ModuleOutPath = "out";
 }
 String ModuleFile::ToStringBytes(const ModuleIdentifier* Value)
 {
@@ -347,10 +462,6 @@ String ModuleFile::ToStringBytes(const ModuleFile* Lib)
 {
 	String out;
 	out += ToStringBytes(&Lib->ModuleName);
-
-	out += "Src:" + ToStringBytes(&Lib->ModuleSourcePath);
-	out += "Obj:" + ToStringBytes(&Lib->ModuleIntPath);
-	out += "Out:" + ToStringBytes(&Lib->ModuleOutPath);
 
 	out += (String)"ForceImport:" + (Lib->ForceImport ? "true" : "false");
 	out += (String)"RemoveUnSafe:" + (Lib->RemoveUnSafe ? "true" : "false");
@@ -409,22 +520,6 @@ bool ModuleFile::FromString(ModuleFile* Lib, const String_view& Data)
 					else if (Item.Value._String == "ModuleName")
 					{
 						Tep.ModuleName = V[i].Value._String;
-					}
-					else if (Item.Value._String == "ModuleSourcePath")
-					{
-						Lib->ModuleSourcePath = V[i].Value._String;
-					}
-					else if (Item.Value._String == "Files")
-					{
-						Lib->ModuleSourcePath = V[i].Value._String;
-					}
-					else if (Item.Value._String == "obj")
-					{
-						Lib->ModuleIntPath = V[i].Value._String;
-					}
-					else if (Item.Value._String == "out")
-					{
-						Lib->ModuleOutPath = V[i].Value._String;
 					}
 					else if (Item.Value._String == "Version")
 					{

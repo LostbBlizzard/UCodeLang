@@ -552,7 +552,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		
 		for (auto& JumpItem : Jumps)
 		{
-			if (JumpItem._Key == i)
+			if (JumpItem._Key == i-1)
 			{
 				IRToUCodeIns[i-1] = _OutLayer->Get_Instructions().size()-1;
 			}
