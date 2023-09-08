@@ -530,7 +530,6 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		Index = i;
 
 
-
 		if (IsDebugMode()) {
 			auto DebugInfo = IR->DebugInfo.Get_debugfor(i);
 			for (auto& Item : DebugInfo)
@@ -548,6 +547,14 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 
 					
 				}
+			}
+		}
+		
+		for (auto& JumpItem : Jumps)
+		{
+			if (JumpItem._Key == i)
+			{
+				IRToUCodeIns[i-1] = _OutLayer->Get_Instructions().size()-1;
 			}
 		}
 
@@ -621,6 +628,9 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			bit64label:
 			case IRTypes::i64:InstructionBuilder::MultS64(_Ins, A, B); PushIns(); break;
 
+			case IRTypes::f32:InstructionBuilder::Multf32(_Ins, A, B); PushIns(); break;
+			case IRTypes::f64:InstructionBuilder::Multf64(_Ins, A, B); PushIns(); break;
+
 			case IRTypes::pointer:
 				if (Get_Settings().PtrSize == IntSizes::Int32)
 				{
@@ -660,6 +670,11 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 
 			bit64label1:
 			case IRTypes::i64:InstructionBuilder::MultU64(_Ins, A, B); PushIns(); break;
+
+
+			case IRTypes::f32:InstructionBuilder::Multf32(_Ins, A, B); PushIns(); break;
+			case IRTypes::f64:InstructionBuilder::Multf64(_Ins, A, B); PushIns(); break;
+
 			case IRTypes::pointer:
 				if (Get_Settings().PtrSize == IntSizes::Int32)
 				{
@@ -701,6 +716,9 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 
 			bit64label2:
 			case IRTypes::i64:InstructionBuilder::DivS64(_Ins, A, B); PushIns(); break;
+
+			case IRTypes::f32:InstructionBuilder::Divf32(_Ins, A, B); PushIns(); break;
+			case IRTypes::f64:InstructionBuilder::Divf64(_Ins, A, B); PushIns(); break;
 
 			case IRTypes::pointer:
 				if (Get_Settings().PtrSize == IntSizes::Int32)
@@ -744,6 +762,9 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			bit64label5:
 			case IRTypes::i64:InstructionBuilder::DivU64(_Ins, A, B); PushIns(); break;
 
+			case IRTypes::f32:InstructionBuilder::Divf32(_Ins, A, B); PushIns(); break;
+			case IRTypes::f64:InstructionBuilder::Divf64(_Ins, A, B); PushIns(); break;
+
 			case IRTypes::pointer:
 				if (Get_Settings().PtrSize == IntSizes::Int32)
 				{
@@ -786,6 +807,9 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			bit64label6:
 			case IRTypes::i64:InstructionBuilder::Add64(_Ins, A, B); PushIns(); break;
 
+			case IRTypes::f32:InstructionBuilder::Addf32(_Ins, A, B); PushIns(); break;
+			case IRTypes::f64:InstructionBuilder::Addf64(_Ins, A, B); PushIns(); break;
+
 			case IRTypes::pointer:
 				if (Get_Settings().PtrSize == IntSizes::Int32)
 				{
@@ -825,6 +849,9 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 
 			bit64label4:
 			case IRTypes::i64:InstructionBuilder::Sub64(_Ins, A, B); PushIns(); break;
+
+			case IRTypes::f32:InstructionBuilder::Subf32(_Ins, A, B); PushIns(); break;
+			case IRTypes::f64:InstructionBuilder::Subf64(_Ins, A, B); PushIns(); break;
 
 			case IRTypes::pointer:
 				if (Get_Settings().PtrSize == IntSizes::Int32)
@@ -980,7 +1007,9 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		case IRInstructionType::Logical_Not:
 		{	
 			RegisterID Out = GetRegisterForTep();
-			LogicalNot(Item->ObjectType._Type, MakeIntoRegister(Item, Item->Target()),Out);
+			auto optype = GetType(Item, Item->Target());
+
+			LogicalNot(optype._Type, MakeIntoRegister(Item, Item->Target()),Out);
 			SetRegister(Out,Item);
 
 		}
@@ -995,11 +1024,13 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		{
 			RegisterID V = RegisterID::BoolRegister;
 			RegisterID A = MakeIntoRegister(Item, Item->A);
+			auto optype = GetType(Item, Item->A);
+
 			SetRegister(A,Item);
 			RegisterID B = MakeIntoRegister(Item, Item->B);
 
 			RegWillBeUsed(V);
-			switch (Item->ObjectType._Type)
+			switch (optype._Type)
 			{
 			case IRTypes::i8:InstructionBuilder::equalto8(_Ins, A, B); PushIns(); break;
 			case IRTypes::i16:InstructionBuilder::equalto16(_Ins, A, B); PushIns(); break;
@@ -1168,11 +1199,14 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		{
 			RegisterID V = RegisterID::BoolRegister;
 			RegisterID A = MakeIntoRegister(Item, Item->A);
+			auto optype = GetType(Item, Item->A);
+
+
 			SetRegister(A, Item);
 			RegisterID B = MakeIntoRegister(Item, Item->B);
 
 			RegWillBeUsed(V);
-			switch (Item->ObjectType._Type)
+			switch (optype._Type)
 			{
 			case IRTypes::i8:InstructionBuilder::equal_greaterthan8(_Ins, A, B); PushIns(); break;
 			case IRTypes::i16:InstructionBuilder::equal_greaterthan16(_Ins, A, B); PushIns(); break;
@@ -1206,11 +1240,14 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		{
 			RegisterID V = RegisterID::BoolRegister;
 			RegisterID A = MakeIntoRegister(Item, Item->A);
+
+			auto optype = GetType(Item, Item->A);
+
 			SetRegister(A, Item);
 			RegisterID B = MakeIntoRegister(Item, Item->B);
 
 			RegWillBeUsed(V);
-			switch (Item->ObjectType._Type)
+			switch (optype._Type)
 			{
 			case IRTypes::i8:InstructionBuilder::lessthan8(_Ins, A, B); PushIns(); break;
 			case IRTypes::i16:InstructionBuilder::lessthan16(_Ins, A, B); PushIns(); break;
@@ -1243,11 +1280,14 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		{
 			RegisterID V = RegisterID::BoolRegister;
 			RegisterID A = MakeIntoRegister(Item, Item->A);
+			auto optype = GetType(Item, Item->A);
+
+
 			SetRegister(A, Item);
 			RegisterID B = MakeIntoRegister(Item, Item->B);
 
 			RegWillBeUsed(V);
-			switch (Item->ObjectType._Type)
+			switch (optype._Type)
 			{
 			case IRTypes::i8:InstructionBuilder::greaterthan8(_Ins, A, B); PushIns(); break;
 			case IRTypes::i16:InstructionBuilder::greaterthan16(_Ins, A, B); PushIns(); break;
@@ -1280,11 +1320,13 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		{
 			RegisterID V = RegisterID::BoolRegister;
 			RegisterID A = MakeIntoRegister(Item, Item->A);
+			auto optype = GetType(Item, Item->A);
+
 			SetRegister(A, Item);
 			RegisterID B = MakeIntoRegister(Item, Item->B);
 
 			RegWillBeUsed(V);
-			switch (Item->ObjectType._Type)
+			switch (optype._Type)
 			{
 			case IRTypes::i8:InstructionBuilder::equal_greaterthan8(_Ins, A, B); PushIns(); break;
 			case IRTypes::i16:InstructionBuilder::equal_greaterthan16(_Ins, A, B); PushIns(); break;
@@ -1340,6 +1382,13 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		
 		for (auto& JumpItem : Jumps)
 		{
+			if (JumpItem._Key == i - 1)
+			{
+				//IRToUCodeIns[i-1] = _OutLayer->Get_Instructions().size()-1;
+
+
+				IRToUCodeIns[i] = _OutLayer->Get_Instructions().size();
+			}
 			if (JumpItem._Key == i)
 			{
 				if (JumpItem._Value.has_value())
@@ -1349,7 +1398,6 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 				else
 				{
 					JumpItem._Value = SaveState();
-					IRToUCodeIns[i] = _OutLayer->Get_Instructions().size() + 4;//I have no idea why + 3 offset is needed
 				}
 			}
 		}

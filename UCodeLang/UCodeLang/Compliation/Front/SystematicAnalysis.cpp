@@ -6581,7 +6581,7 @@ void SystematicAnalysis::OnIfNode(const IfNode& node)
 
 		if (_PassType == PassType::BuidCode)
 		{
-			auto JumpIndex = _IR_LookingAtIRBlock->GetIndex() ;
+			auto JumpIndex = _IR_LookingAtIRBlock->GetIndex() -1;
 			_IR_LookingAtIRBlock->UpdateJump(ElseIndex, JumpIndex);
 			_IR_LookingAtIRBlock->UpdateConditionaJump(IfIndex.ConditionalJump, IfIndex.logicalNot, ElseI);
 		}
@@ -7052,6 +7052,12 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 					{
 						Out._Symbol = FeldSyb.value();
 						Out.Type = FeldSyb->VarType;
+						if (FeldSyb->Type == SymbolType::Func)
+						{
+							auto funcinfo = FeldSyb->Get_Info<FuncInfo>();
+							auto StrFunc = GetTepFuncPtrName(funcinfo);
+							Out.Type = TypeSymbol(GetTepFuncPtrSyb(StrFunc, funcinfo).value()->ID);
+						}
 					}
 				}
 				else
@@ -8239,122 +8245,35 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 			_LookingForTypes.pop();
 
 
-#define Set_CompoundU(x) \
-			switch (node._CompoundOp->Type) \
-			{ \
-			case TokenType::CompoundAdd: \
-				_IR_LastExpressionField=_IR_LookingAtIRBlock->NewAdd(LoadV,_IR_LastExpressionField);\
-				break; \
-			case TokenType::CompoundSub:\
-				_IR_LastExpressionField=_IR_LookingAtIRBlock->NewSub(LoadV,_IR_LastExpressionField); \
-				break; \
-			case TokenType::CompoundMult:\
-				_IR_LastExpressionField = _IR_LookingAtIRBlock->NewUMul(LoadV, _IR_LastExpressionField);\
-			    break; \
-			case TokenType::CompoundDiv:\
-				_IR_LastExpressionField = _IR_LookingAtIRBlock->NewUDiv(LoadV, _IR_LastExpressionField);\
-			    break; \
-			default:\
-				UCodeLangUnreachable(); \
-				break; \
-			}\
-
-#define Set_CompoundS(x) \
-		switch (node._CompoundOp->Type) \
-		{ \
-		case TokenType::CompoundAdd: \
-				_IR_LastExpressionField=_IR_LookingAtIRBlock->NewAdd(LoadV,_IR_LastExpressionField);\
-				break; \
-			case TokenType::CompoundSub:\
-				_IR_LastExpressionField=_IR_LookingAtIRBlock->NewSub(LoadV,_IR_LastExpressionField); \
-				break; \
-			case TokenType::CompoundMult:\
-				_IR_LastExpressionField = _IR_LookingAtIRBlock->NewSMul(LoadV, _IR_LastExpressionField);\
-			    break; \
-			case TokenType::CompoundDiv:\
-				_IR_LastExpressionField = _IR_LookingAtIRBlock->NewSDiv(LoadV, _IR_LastExpressionField);\
-			    break; \
-			default:\
-				UCodeLangUnreachable(); \
-				break; \
-		}\
-
-
-			switch (Data.Op0._Type)
-			{
-			case TypesEnum::uInt8:
-			{
-				Set_CompoundU(8);
-			};
-			break;
-			case TypesEnum::uInt16:
-			{
-				Set_CompoundU(16);
-			};
-			break;
-			case TypesEnum::uInt32:
-			{
-				Set_CompoundU(32);
-			};
-			break;
-			case TypesEnum::uInt64:
-			{
-				Set_CompoundU(64);
-			};
-			break;
-
-			case TypesEnum::sInt8:
-			{
-				Set_CompoundS(8);
-			};
-			break;
-			case TypesEnum::sInt16:
-			{
-				Set_CompoundS(16);
-			};
-			break;
-			case TypesEnum::sInt32:
-			{
-				Set_CompoundS(32);
-			};
-			break;
-			case TypesEnum::sInt64:
-			{
-				Set_CompoundS(64);
-			};
-			break;
-
-			case TypesEnum::uIntPtr:
-			{
-				if (_Settings->PtrSize == IntSizes::Int64) {
-					Set_CompoundU(64)
+			switch (node._CompoundOp->Type) 
+			{ 
+			case TokenType::CompoundAdd: 
+				_IR_LastExpressionField = _IR_LookingAtIRBlock->NewAdd(LoadV, _IR_LastExpressionField); 
+				break; 
+			case TokenType::CompoundSub:
+				_IR_LastExpressionField = _IR_LookingAtIRBlock->NewSub(LoadV, _IR_LastExpressionField); 
+				break; 
+			case TokenType::CompoundMult:
+				if (Type_IsUIntType(Data.Op0)) {
+					_IR_LastExpressionField = _IR_LookingAtIRBlock->NewUMul(LoadV, _IR_LastExpressionField);
 				}
 				else
 				{
-					Set_CompoundU(32)
+					_IR_LastExpressionField = _IR_LookingAtIRBlock->NewSMul(LoadV, _IR_LastExpressionField);
 				}
-			};
-			break;
-
-			case TypesEnum::sIntPtr:
-			{
-				if (_Settings->PtrSize == IntSizes::Int64) {
-					Set_CompoundS(64)
+				break; 
+			case TokenType::CompoundDiv:
+				if (Type_IsUIntType(Data.Op0)) {
+					_IR_LastExpressionField = _IR_LookingAtIRBlock->NewUDiv(LoadV, _IR_LastExpressionField);
 				}
 				else
 				{
-					Set_CompoundS(32)
+					_IR_LastExpressionField = _IR_LookingAtIRBlock->NewSMul(LoadV, _IR_LastExpressionField);
 				}
-			};
-			break;
-
-
-
-			break;
-
+				break; 
 			default:
-				UCodeLangUnreachable();
-				break;
+				UCodeLangUnreachable(); 
+				break; 
 			}
 
 			IR_WriteTo(_IR_LastExpressionField, AssignType, _IR_LastStoreField);
@@ -12775,7 +12694,7 @@ SystematicAnalysis::CompoundOverLoadWith_t SystematicAnalysis::Type_HasCompoundO
 {
 	if (Type_AreTheSameWithOutimmutable(TypeA, TypeB))
 	{
-		if (Type_IsIntType(TypeA))
+		if (Type_IsIntType(TypeA) || Type_IsfloatType(TypeA))
 		{
 			return { true };
 		}
@@ -13086,7 +13005,7 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type) const
 
 			for (auto& Item : Funptr->Pars)
 			{
-				r += ToString(Funptr->Ret);
+				r += ToString(Item);
 				if (&Item != &Funptr->Pars.back())
 				{
 					r += ",";
@@ -17773,6 +17692,7 @@ bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const ValueExpressionNo
 		_LastExpressionType.SetType(NewEx);
 		_LastLookedAtToken = Nullableptr(num->token);
 	}
+	break;
 	case NodeType::StringliteralNode:
 	{
 		StringliteralNode* nod = StringliteralNode::As(node._Value.get());
@@ -19012,7 +18932,7 @@ void SystematicAnalysis::LogError_CantFindCompoundOpForTypes(const NeverNullPtr<
 
 	LogError(ErrorCodes::InValidType, BinaryOp->OnLine, BinaryOp->OnPos,
 		"The type '" + ToString(Ex0Type) + "'" + " cant be '"
-		+ ToString(BinaryOp->Type) + "' with '" + ToString(Ex0Type) + "'");
+		+ ToString(BinaryOp->Type) + "' with '" + ToString(Ex1Type) + "'");
 }
 
 void SystematicAnalysis::LogError_CantFindPostfixOpForTypes(const NeverNullPtr<Token> BinaryOp, TypeSymbol& Ex0Type)

@@ -1,4 +1,5 @@
-$FuncPointer = |[var&] -> int;
+$FuncPointer = |[Vec2&] -> float;
+$FuncPointer2 = |[Vec3&] -> float;
 
 $Vec3:
  float X =0;
@@ -19,12 +20,12 @@ $Vec2:
  Vec2 B = [];
 
  FuncPointer Func = Vec2::Update;
- int a = 2;
+ float a = 2;
 
  a -= Func(B);
 
- Func = Vec3::Update;
+ FuncPointer2 Func2 = Vec3::Update;
 
- a += Func(A);
+ a += Func2(A);
 
  ret a;

@@ -21,6 +21,9 @@ enum class IRTypes :IRTypes_t
 	pointer,
 
 	IRsymbol,
+
+	i1 = i8,
+	Bool = i1,
 };
 struct IRSymbol
 {
@@ -781,60 +784,86 @@ struct IRBlock
 	//comparison operators
 	IRInstruction* NewC_Equalto(IRInstruction* A, IRInstruction* B)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::EqualTo, IROperator(A), IROperator(B))).get();
+		auto v = Instructions.emplace_back(new IRInstruction(IRInstructionType::EqualTo, IROperator(A), IROperator(B))).get();
+		v->ObjectType = IRTypes::Bool;
+		return v;
 	}
 	IRInstruction* NewC_NotEqualto(IRInstruction* A, IRInstruction* B)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::NotEqualTo, IROperator(A), IROperator(B))).get();
+		auto v = Instructions.emplace_back(new IRInstruction(IRInstructionType::NotEqualTo, IROperator(A), IROperator(B))).get();
+		v->ObjectType = IRTypes::Bool;
+		return v;
 	}
 
 	IRInstruction* NewULessThan(IRInstruction* A, IRInstruction* B)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::ULessThan, IROperator(A), IROperator(B))).get();
+		auto v = Instructions.emplace_back(new IRInstruction(IRInstructionType::ULessThan, IROperator(A), IROperator(B))).get();
+		v->ObjectType = IRTypes::Bool;
+		return v;
 	}
 	IRInstruction* NewUGreaterThan(IRInstruction* A, IRInstruction* B)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::UGreaterThan, IROperator(A), IROperator(B))).get();
+		auto v = Instructions.emplace_back(new IRInstruction(IRInstructionType::UGreaterThan, IROperator(A), IROperator(B))).get();
+		v->ObjectType = IRTypes::Bool;
+		return v;
 	}
 	IRInstruction* NewULessThanOrEqual(IRInstruction* A, IRInstruction* B)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::ULessThanOrEqual, IROperator(A), IROperator(B))).get();
+		auto v = Instructions.emplace_back(new IRInstruction(IRInstructionType::ULessThanOrEqual, IROperator(A), IROperator(B))).get();
+		v->ObjectType = IRTypes::Bool;
+		return v;
 	}
 	IRInstruction* NewUGreaterThanOrEqual(IRInstruction* A, IRInstruction* B)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::UGreaterThanOrEqual, IROperator(A), IROperator(B))).get();
+		auto v = Instructions.emplace_back(new IRInstruction(IRInstructionType::UGreaterThanOrEqual, IROperator(A), IROperator(B))).get();
+		v->ObjectType = IRTypes::Bool;
+		return v;
 	}
 
 
 	IRInstruction* NewSLessThan(IRInstruction* A, IRInstruction* B)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::SLessThan, IROperator(A), IROperator(B))).get();
+		auto v = Instructions.emplace_back(new IRInstruction(IRInstructionType::SLessThan, IROperator(A), IROperator(B))).get();
+		v->ObjectType = IRTypes::Bool;
+		return v;
 	}
 	IRInstruction* NewSGreaterThan(IRInstruction* A, IRInstruction* B)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::SGreaterThan, IROperator(A), IROperator(B))).get();
+		auto v = Instructions.emplace_back(new IRInstruction(IRInstructionType::SGreaterThan, IROperator(A), IROperator(B))).get();
+		v->ObjectType = IRTypes::Bool;
+		return v;
 	}
 	IRInstruction* NewSLessThanOrEqual(IRInstruction* A, IRInstruction* B)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::SLessThanOrEqual, IROperator(A), IROperator(B))).get();
+		auto v = Instructions.emplace_back(new IRInstruction(IRInstructionType::SLessThanOrEqual, IROperator(A), IROperator(B))).get();
+		v->ObjectType = IRTypes::Bool;
+		return v;
 	}
 	IRInstruction* NewSGreaterThanOrEqual(IRInstruction* A, IRInstruction* B)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::SGreaterThanOrEqual, IROperator(A), IROperator(B))).get();
+		auto v = Instructions.emplace_back(new IRInstruction(IRInstructionType::SGreaterThanOrEqual, IROperator(A), IROperator(B))).get();
+		v->ObjectType = IRTypes::Bool;
+		return v;
 	}
 	//logical operators
 
 	IRInstruction* NewlogicalAnd(IRInstruction* A, IRInstruction* B)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::Logical_And, IROperator(A), IROperator(B))).get();
+		auto v = Instructions.emplace_back(new IRInstruction(IRInstructionType::Logical_And, IROperator(A), IROperator(B))).get();
+		v->ObjectType = IRTypes::Bool;
+		return v;
 	}
 	IRInstruction* NewlogicalOr(IRInstruction* A, IRInstruction* B)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::Logical_Or, IROperator(A), IROperator(B))).get();
+		auto v = Instructions.emplace_back(new IRInstruction(IRInstructionType::Logical_Or, IROperator(A), IROperator(B))).get();
+		v->ObjectType = IRTypes::Bool;
+		return v;
 	}
 	IRInstruction* NewlogicalNot(IRInstruction* Value)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::Logical_Not, IROperator(Value))).get();
+		auto v =  Instructions.emplace_back(new IRInstruction(IRInstructionType::Logical_Not, IROperator(Value))).get();
+		v->ObjectType = IRTypes::Bool;
+		return v;
 	}
 	//control flow
 	

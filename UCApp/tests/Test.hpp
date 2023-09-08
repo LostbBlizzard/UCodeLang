@@ -155,12 +155,12 @@ UCodeTestStart
 		TestInfo("GenericsExpression2","Generics/GenericsExpression2.uc","main",SuccessCondition::CompilationFail),
 		TestInfo("GenericsExpression3","Generics/GenericsExpression3.uc","main",SuccessCondition::CompilationFail),
 
-		TestInfo("Lamdba_1","Objects/Lamdba.uc","main",SuccessCondition::RunTimeValue,(int)1),
-		TestInfo("Lamdba_2","Objects/Lamdba.uc","main2",SuccessCondition::RunTimeValue,(int)1),
-		TestInfo("Lamdba_3","Objects/Lamdba2.uc","main",SuccessCondition::RunTimeValue,(int)1),
-		TestInfo("Lamdba_4","Objects/Lamdba2.uc","main2",SuccessCondition::RunTimeValue,(int)1),
-		TestInfo("Lamdba_5","Objects/Lamdba3.uc","main",SuccessCondition::RunTimeValue,(int)1),
-		TestInfo("Lamdba_6","Objects/Lamdba3.uc","main2",SuccessCondition::RunTimeValue,(int)1),
+		TestInfo("Lamdba_1","Objects/Lambda.uc","main",SuccessCondition::RunTimeValue,(int)1),
+		TestInfo("Lamdba_2","Objects/Lambda.uc","main2",SuccessCondition::RunTimeValue,(int)1),
+		TestInfo("Lamdba_3","Objects/Lambda2.uc","main",SuccessCondition::RunTimeValue,(int)1),
+		TestInfo("Lamdba_4","Objects/Lambda2.uc","main2",SuccessCondition::RunTimeValue,(int)1),
+		TestInfo("Lamdba_5","Objects/Lambda3.uc","main",SuccessCondition::RunTimeValue,(int)1),
+		TestInfo("Lamdba_6","Objects/Lambda3.uc","main2",SuccessCondition::RunTimeValue,(int)1),
 
 		TestInfo("enumvariant","Objects/enumvariant.uc","main",SuccessCondition::RunTimeValue,(int)1),
 		TestInfo("enumvariant2","Objects/enumvariant2.uc","main",SuccessCondition::RunTimeValue,(int)10),

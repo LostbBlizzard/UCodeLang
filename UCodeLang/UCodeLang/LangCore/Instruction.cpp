@@ -37,7 +37,12 @@ UCodeLangStart
 	case InstructionSet::SInt##IntSize##ToUInt##IntSize: return Instruction::OpType::TwoReg; \
 
 
-#define Setfloat(IntSize)
+#define Setfloat(IntSize)\
+case InstructionSet::Addf##IntSize: return Instruction::OpType::TwoReg; \
+case InstructionSet::Subf##IntSize: return Instruction::OpType::TwoReg; \
+case InstructionSet::Multf##IntSize: return Instruction::OpType::TwoReg; \
+case InstructionSet::Divf##IntSize: return Instruction::OpType::TwoReg; \
+
 
 Instruction::OpType Instruction::GetOpType(InstructionSet OpCode)
 {

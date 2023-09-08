@@ -23,6 +23,10 @@ bitwiseAnd##bitsize, bitwiseOr##bitsize, bitwiseLeftShift##bitsize, bitwiseRight
 UInt##bitsize##ToSInt##bitsize,SInt##bitsize##ToUInt##bitsize,\
 
 #define AddSetfloat(bitsize)\
+Addf##bitsize,\
+Subf##bitsize,\
+Multf##bitsize,\
+Divf##bitsize,\
 
 
 enum class InstructionSet : InstructionSet_t

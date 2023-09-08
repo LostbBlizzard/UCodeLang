@@ -124,7 +124,10 @@ AddMapValueValue(equal_lessthan##bitsize, InstructionSet::equal_lessthan##bitsiz
 
 
 #define MapValuefloatSet(bitsize)\
-
+AddMapValueValue(Addf##bitsize, InstructionSet::Addf##bitsize, OpCodeType::Register, OpCodeType::Register),\
+AddMapValueValue(Subf##bitsize, InstructionSet::Subf##bitsize, OpCodeType::Register, OpCodeType::Register),\
+AddMapValueValue(Multf##bitsize, InstructionSet::Multf##bitsize, OpCodeType::Register, OpCodeType::Register),\
+AddMapValueValue(Divf##bitsize, InstructionSet::Divf##bitsize, OpCodeType::Register, OpCodeType::Register),\
 
 static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 {	

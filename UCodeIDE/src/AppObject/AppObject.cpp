@@ -150,14 +150,37 @@ $Result<T,E> enum:
         */
         _Editor.SetText(
             R"(
+$FuncPointer = |[Vec2&] -> float;
+$FuncPointer2 = |[Vec3&] -> float;
 
-|main_while[] -> int:
- 
- int A = 0;
- while A < 10:
-  A++;
+$Vec3:
+ float X =0;
+ float Y =0;
+ float Z =1;
+ |new[this&] -> void;
 
- ret A;
+ |Update[this&] => Z;
+
+$Vec2:
+ float X;
+ float Y = 3;
+
+ |Update[this&] => Y;
+
+|main[]:
+ Vec3 A = [];
+ Vec2 B = [];
+
+ FuncPointer Func = Vec2::Update;
+ float a = 2;
+
+ a -= Func(B);
+
+ FuncPointer2 Func2 = Vec3::Update;
+
+ a += Func2(A);
+
+ ret a;
 
 /*
 |main[] -> async<bool>:
@@ -420,8 +443,8 @@ void AppObject::DrawTestMenu()
     static constexpr size_t TestCount = ULangTest::Tests.size();
     struct TestInfo
     {
-        size_t MinTestIndex = 13;
-        size_t MaxTestCount = 17;//40;//ULangTest::Tests.size();
+        size_t MinTestIndex = 0;
+        size_t MaxTestCount = 30;//40;//ULangTest::Tests.size();
         bool TestAsRan = false;
         enum class TestState
         {
