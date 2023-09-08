@@ -305,7 +305,16 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 		do
 		{
 			InheritedTypeValue Inher;
-			GetName(Inher._Name);
+			if (TypeNode::IsType(TryGetToken()->Type))
+			{
+				Inher._Name.token = TryGetToken();
+				NextToken();
+			}
+			else
+			{
+				TokenTypeCheck(TryGetToken(), TokenType::Name);
+			}
+			
 			TryGetGeneric(Inher._generic);
 			InheritedTypes._values.push_back(std::move(Inher));
 

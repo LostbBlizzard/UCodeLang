@@ -1,7 +1,8 @@
 $Vec2:
  float X = 0;
  float Y = 0;
- |new[this&];
+ |new[this&] -> void:
+  ret;
  |new[this&,float x,float y]:
   X = x;
   Y = y;

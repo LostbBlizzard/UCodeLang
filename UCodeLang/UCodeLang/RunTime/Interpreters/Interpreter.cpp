@@ -302,7 +302,22 @@ InsCase(SInt##Bits##ToUInt##Bits):\
 #pragma endregion
 
 #define floatSet(Bits,CType,AnyValue) \
-
+InsCase(Addf##Bits):\
+	Get_MathOutRegister().Value. AnyValue = Get_Register(Inst.Op_TwoReg.A).Value. AnyValue +\
+		Get_Register(Inst.Op_TwoReg.B).Value. AnyValue;\
+	 InsBreak();\
+InsCase(Subf##Bits):\
+	Get_MathOutRegister().Value. AnyValue = Get_Register(Inst.Op_TwoReg.A).Value. AnyValue -\
+		Get_Register(Inst.Op_TwoReg.B).Value. AnyValue;\
+	 InsBreak();\
+InsCase(Multf##Bits):\
+	Get_MathOutRegister().Value. AnyValue = Get_Register(Inst.Op_TwoReg.A).Value. AnyValue *\
+		Get_Register(Inst.Op_TwoReg.B).Value. AnyValue;\
+	 InsBreak();\
+InsCase(Divf##Bits):\
+	Get_MathOutRegister().Value. AnyValue = Get_Register(Inst.Op_TwoReg.A).Value. AnyValue / \
+		Get_Register(Inst.Op_TwoReg.B).Value. AnyValue;\
+	 InsBreak();\
 
 
 void Interpreter::Extecute(Instruction& Inst)
@@ -342,7 +357,11 @@ void Interpreter::Extecute(Instruction& Inst)
 	 &&Ins_UInt##bitsize##ToSInt##bitsize, \
 	 &&Ins_SInt##bitsize##ToUInt##bitsize, \
 
-	#define JumpTablefloat(bitsize)
+	#define JumpTablefloat(bitsize) \
+        &&Ins_Addf##bitsize,
+	    &&Ins_Subf##bitsize,
+		&&Ins_Multf##bitsize,
+		&&Ins_Divf##bitsize,
 	
 	static const void* InsJumpTable[] = {
 		&&Ins_Exit,

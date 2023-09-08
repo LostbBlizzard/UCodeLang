@@ -137,6 +137,22 @@ UCodeLangForceinline static void SInt##bitsize##To##UInt##bitsize(Instruction& O
 
 
 #define BuilderfloatSet(bitsize) \
+UCodeLangForceinline static void Addf##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
+{\
+	Out = Instruction(InstructionSet::Addf##bitsize, Instruction::TwoReg(reg,reg2));\
+}\
+UCodeLangForceinline static void Subf##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
+{\
+	Out = Instruction(InstructionSet::Subf##bitsize, Instruction::TwoReg(reg,reg2));\
+}\
+UCodeLangForceinline static void Multf##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
+{\
+Out = Instruction(InstructionSet::Multf##bitsize, Instruction::TwoReg(reg, reg2)); \
+}\
+UCodeLangForceinline static void Divf##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
+{\
+Out = Instruction(InstructionSet::Divf##bitsize, Instruction::TwoReg(reg, reg2)); \
+}\
 
 #pragma endregion
 	

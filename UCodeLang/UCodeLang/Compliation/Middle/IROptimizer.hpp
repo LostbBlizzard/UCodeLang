@@ -79,6 +79,9 @@ private:
 	bool Optimization_LoopFrequencyReduction = false;
 	bool Optimization_StaticAndThreadRemovealAndReadOnlyToValues = false;
 	bool Optimization_RemoveUnneedMeallocAndFree = false;
+
+	//break strict IEEE compliance
+	bool Optimization_FloatFastMath = false;
 	void ResetOptimizations()
 	{
 		Optimization_ShortFuncInline = false;
@@ -97,6 +100,7 @@ private:
 		Optimization_LoopFrequencyReduction = false;
 		Optimization_StaticAndThreadRemovealAndReadOnlyToValues = false;
 		Optimization_RemoveUnneedMeallocAndFree = false;
+		Optimization_FloatFastMath = false;
 	}
 	//
 	

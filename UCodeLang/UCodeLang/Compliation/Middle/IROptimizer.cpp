@@ -262,6 +262,8 @@ void IROptimizer::UpdateOptimizationList()
 			Optimization_InlineConditionalJump = false;
 			Optimization_RemoveUnreachable = true;
 			Optimization_RemoveUnneedMeallocAndFree = false;
+
+			Optimization_FloatFastMath = Stettings.HasFlagArg("ffast-math");
 		}
 
 		
@@ -422,6 +424,26 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 						{
 							ok = Ins->B.Value.AsInt64 != 0;
 						}
+						else if (Ins->ObjectType.IsType(IRTypes::f32))
+						{
+							if (Optimization_FloatFastMath)
+							{
+								//TODO add check for floats
+							}
+							else {
+								ok = false;
+							}
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::f64))
+						{
+							if (Optimization_FloatFastMath)
+							{
+								//TODO add check  for floats
+							}
+							else {
+								ok = false;
+							}
+						}
 						else
 						{
 							UCodeLangUnreachable();
@@ -453,6 +475,20 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 							ConstantBinaryFold(64);
 							Ins->Type = IRInstructionType::Load;
 							UpdatedCode();
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::f32))
+						{
+							if (Optimization_FloatFastMath)
+							{
+								//TODO ConstantBinaryFold for floats
+							}
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::f64))
+						{
+							if (Optimization_FloatFastMath)
+							{
+								//TODO ConstantBinaryFold for floats
+							}
 						}
 						else
 						{
