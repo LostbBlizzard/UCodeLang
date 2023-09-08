@@ -1,5 +1,5 @@
 AuthorName: "LostbBlizzard"
-ModuleName: "StandardLibarary"
+ModuleName: "TestsBuildSystem"
 Version: 0:0:0
 
 import LostbBlizzard::NStandardLibarary[0:0:0];
