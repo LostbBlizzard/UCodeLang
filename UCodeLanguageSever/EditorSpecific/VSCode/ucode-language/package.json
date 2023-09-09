@@ -1,0 +1,32 @@
+{
+  "name": "ucode-language",
+  "displayName": "UCode Language",
+  "description": "",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.82.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "uclang",
+      "aliases": ["UCodeLang", "uclang"],
+      "extensions": [".uc",".ucm"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "uclang",
+      "scopeName": "source.uclang",
+      "path": "./syntaxes/uclang.tmLanguage.json"
+    }],
+    "snippets": [
+      {
+        "language": "uclang",
+        "path": "./snippets.json"
+      }
+    ]
+  }
+}

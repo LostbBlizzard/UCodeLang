@@ -1,8 +1,8 @@
-AuthorName: "LostbBlizzard"
+AuthorName: "UCodeLang"
 ModuleName: "Win32"
 Version: 0:0:0
 Src: "src"
 Obj: "int"
 Out: "out"
 
-import LostbBlizzard::NWin32[0:0:0];
+import UCodeLang::NWin32[0:0:0];

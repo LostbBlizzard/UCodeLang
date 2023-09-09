@@ -1,5 +1,5 @@
-AuthorName: "LostbBlizzard"
+AuthorName: "UCodeLang"
 ModuleName: "TestsBuildSystem"
 Version: 0:0:0
 
-import LostbBlizzard::NStandardLibarary[0:0:0];
+import UCodeLang::NStandardLibarary[0:0:0];
