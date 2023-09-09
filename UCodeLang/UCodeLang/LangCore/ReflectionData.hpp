@@ -104,6 +104,15 @@ public:
 	{
 		return !this->operator==(Other);
 	}
+	ReflectionTypeInfo()
+	{
+
+	}
+	ReflectionTypeInfo(ReflectionTypes  Type)
+		: _Type(Type)
+	{
+
+	}
 };
 
 class ReflectionRawData
@@ -818,6 +827,48 @@ public:
 		}
 	}
 
+	Vector<ClassMethod*>  Find_Funcs(const String_view& FullName)
+	{
+		Vector<ClassMethod*> r;
+		for (auto& Item : Classes)
+		{
+			if (Item->Get_Type() == ClassType::Class)
+			{
+				for (auto& Item2 : Item->Get_ClassData().Methods)
+				{
+					if (Item2.DecorationName == FullName
+						|| Item2.FullName == FullName)
+					{
+						r.push_back(&Item2);
+					}
+				}
+
+			}
+		}
+		return r;
+	}
+
+	Vector<const ClassMethod*> Find_Funcs(const String_view& FullName) const
+	{
+		Vector<const ClassMethod*> r;
+		for (auto& Item : Classes)
+		{
+			if (Item->Get_Type() == ClassType::Class)
+			{
+				for (auto& Item2 : Item->Get_ClassData().Methods)
+				{
+					if (Item2.DecorationName == FullName
+						|| Item2.FullName == FullName)
+					{
+						r.push_back(&Item2);
+					}
+				}
+
+			}
+		}
+		return r;
+	}
+
 
 	const AssemblyNode* Find_Node(ReflectionCustomTypeID TypeID) const;
 	AssemblyNode* Find_Node(ReflectionCustomTypeID TypeID);
@@ -864,6 +915,27 @@ public:
 	//if the first Optional is empty the operation failed
 	Optional<Optional<Vector<OnDoDefaultConstructorCall>>> CallDestructor(const ReflectionTypeInfo& Type, void* Object, bool Is32Bit) const;
 
+	struct ParsedValue
+	{
+		TypedRawReflectionData Value;
+		BytesPtr other;
+		Vector<OnDoDefaultConstructorCall> Calls;
+		
+		void* GetData()
+		{
+			return Value._Data.Get_Data();
+		}
+		ReflectionTypeInfo GetType()
+		{
+			return Value._Type;
+		}
+	};
+	static Optional<ParsedValue> ParseToValue(const String_view txt, const ClassAssembly& Assembly, Vector<ReflectionTypeInfo> Hints);
+
+	static String ToString(const ClassMethod::Par& data, const ClassAssembly& Assembly);
+	static String ToString(const ReflectionTypeInfo& data, const ClassAssembly& Assembly);
+	static String ToString(const TypedRawReflectionData& data, const ClassAssembly& Assembly,bool is32mode= sizeof(void*) == 4);
+	static String ToStringJson(const TypedRawReflectionData& data,const ClassAssembly& Assembly, bool is32mode = sizeof(void*) == 4);
 
 	enum class CompareType_t
 	{

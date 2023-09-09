@@ -171,59 +171,7 @@ struct SeverPacket
         String jsonrpc;
         Variant<NotificationMessage_t, RequestMessage_t, ResponseMessage_t> Type;
     };
-    Optional<ParsedPacket> Parse() const
-    {
-        ParsedPacket r;
-        json Values = json::parse(_Data);
-
-        if (!Values.contains("jsonrpc")) { return {}; }
-        r.jsonrpc = Values["jsonrpc"].get<String>();
-        if (r.jsonrpc != "2.0") { return{}; }
-        if (Values.contains("id") &&  (Values.contains("result") || Values.contains("error")))
-        {
-            ResponseMessage_t v;
-            v.id = Values.at("id").get<integer>();
-
-            if (Values.contains("result"))
-            {
-                v.result = Values["result"];
-            }
-            else
-            {
-                UCodeLanguageSever::from_json(Values["error"], v.result);
-            }
-
-            r.Type = std::move(v);
-            return r;
-        }
-        else if (Values.contains("id") && Values.contains("method"))
-        {
-            RequestMessage_t v;
-            v.id = Values.at("id").get<integer>();
-
-            v.method = Values.at("method").get<String>();
-
-
-            v.params = Values["params"];
-
-
-            r.Type = std::move(v);
-            return r;
-        }
-        else if (Values.contains("method"))
-        {
-            NotificationMessage_t v;
-            v.method = Values.at("method").get<String>();
-
-
-            v.params = Values["params"];
-
-
-            r.Type = std::move(v);
-            return r;
-        }
-        return {};
-    }
+    Optional<ParsedPacket> Parse() const;
 };
 
 

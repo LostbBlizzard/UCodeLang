@@ -1,4 +1,8 @@
 #include "ReflectionData.hpp"
+
+#include "../Compliation/Helpers/ParseHelper.hpp"
+#include "../Compliation/LexerDefs.h"
+#include "../Compliation/UAssembly/UAssembly.hpp"
 UCodeLangStart
 void ClassAssembly::PushCopyClasses(const ClassAssembly& source, ClassAssembly& Out)
 {
@@ -616,6 +620,66 @@ Optional<Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>> ClassAssem
 {
 	using InerRetType = Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>;
 
+	return {};
+}
+Optional<ClassAssembly::ParsedValue> ClassAssembly::ParseToValue(const String_view txt, const ClassAssembly& Assembly, Vector<ReflectionTypeInfo> Hints)
+{
+	if (txt.size()) 
+	{
+		if (txt == "true" || txt == "false")
+		{
+			ParsedValue r;
+			r.Value._Type = ReflectionTypes::Bool;
+			r.Value._Data.Resize(sizeof(bool));
+			*r.Value._Data.Get_DataAs<bool>() = bool(txt == "true");
+			return r;
+		}
+		else if (LexerHelper::IsDigit(txt.front()))
+		{
+			ParsedValue r;
+			r.Value._Type = ReflectionTypes::sInt32;
+			r.Value._Data.Resize(sizeof(Int32));
+			if (ParseHelper::ParseStringToInt32(txt, *r.Value._Data.Get_DataAs<Int32>()))
+			{
+				return r;
+			}
+		}
+		else if (txt.front() == '\"' && txt.back() == '\'' && txt.size() > 1)
+		{
+			UCodeLangToDo();//add stringspan,string,path,pathspan,string8,string16,string32,stringspan8,stringspan16,stringspan32
+		}
+		else if (txt.front() == '\'' && txt.back() == '\'' && txt.size() > 2)
+		{
+			//TODO:add uft8,uft16,uft32 based on hints
+			
+			ParsedValue r;
+			r.Value._Type = ReflectionTypes::Char;
+			r.Value._Data.Resize(sizeof(char));
+			String_view charliteral;
+			charliteral = txt.substr(1, txt.size() - 1);
+			if (ParseHelper::ParseCharliteralToChar(txt, *r.Value._Data.Get_DataAs<char>()))
+			{
+				return r;
+			}
+		}
+	}
+
+	return {};
+}
+String ClassAssembly::ToString(const ClassMethod::Par& data, const ClassAssembly& Assembly)
+{
+	return UCodeLang::UAssembly::UAssembly::ToString(data, Assembly);
+}
+String ClassAssembly::ToString(const ReflectionTypeInfo& data, const ClassAssembly& Assembly)
+{
+	return UCodeLang::UAssembly::UAssembly::ToString(data, Assembly);
+}
+String ClassAssembly::ToString(const TypedRawReflectionData& data, const ClassAssembly& Assembly, bool is32mode)
+{
+	return UCodeLang::UAssembly::UAssembly::ToString(data,Assembly, is32mode ? UClib::NTypeSize::int32: UClib::NTypeSize::int64);
+}
+String ClassAssembly::ToStringJson(const TypedRawReflectionData& data, const ClassAssembly& Assembly, bool is32mode)
+{
 	return {};
 }
 ClassAssembly::CompareType_t ClassAssembly::CompareType(const ReflectionTypeInfo& TypeA, const ClassAssembly& TypeAAssembly, const ReflectionTypeInfo& TypeB, const ClassAssembly& TypeBAssembly)

@@ -52,6 +52,10 @@ public:
 
 	static ModuleIndex GetModuleIndex();
 
+	static bool SaveModuleIndex(ModuleIndex& Lib);
+
+
+	void RemoveDeletedModules();
 
 	inline static const char* FileName = "ModuleIndex";
 	inline static const char* FileExtWithDot = ".ucmi";
@@ -119,7 +123,9 @@ public:
 	inline static const Path ModuleIntPath = "int";
 	inline static const Path ModuleOutPath = "out";
 	inline static const Path ModuleBuildfile = "Build.uc";
-	
+
+	inline static const String DefaultSourceFile = "import UCodeLang::{Span,StringSpan,Console};\n\n\n|main[]:\n    Console::Log(\"Hello World\");";
+	inline static const String DefaultBuildFile = "import UCodeLang::StandardLibarary[0.0.0];//Build Srcipt Module Imports.\n\n\nimport UCodeLang::{BuildSystem};\n\n\n|build[BuildSystem& system] => system.Build();";
 private:
 	void BuildModuleDependencies(const ModuleIndex& Modules,CompliationErrors& Errs, bool& Err, Compiler& Compiler
 		, const Vector<ModuleIdentifier>& ModuleDependencies

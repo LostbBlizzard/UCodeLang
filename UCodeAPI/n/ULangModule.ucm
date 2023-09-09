@@ -1,0 +1,8 @@
+AuthorName:n
+ModuleName:n
+Version:0:0:0
+
+ForceImport:false
+RemoveUnSafe:false
+ModuleNameSpace:
+import UCodeLang::StandardLibarary[0:0:0];

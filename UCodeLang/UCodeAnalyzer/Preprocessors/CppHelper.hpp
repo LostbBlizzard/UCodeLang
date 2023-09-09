@@ -102,12 +102,14 @@ public:
 	/// <param name="ULangOut"></param>
 	/// <returns>if true it worked</returns>
 	static bool ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFile, const Path& ULangOut);
-	static void UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols);
-	static void OutputIRLineInfo(UCodeAnalyzer::CppHelper::SymbolData& Item, UCodeAnalyzer::Vector<FuncInfo>& V);
-	static void ParseCppToSybs(UCodeAnalyzer::String& FileText, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols);
-	static void DoOverLoadOnFunc(UCodeLang::VectorMap<UCodeAnalyzer::String, size_t>& Overloads, UCodeAnalyzer::CppHelper::SymbolData& Last, UCodeAnalyzer::CppHelper::FuncData* Val);
-	static bool ParseULangfileAndUpdateCpp(const Path& SrcLang, const Path& CppOut);
+	static bool ParseCppfileAndOutULangLink(const Path& SrcCpp, const Path& CppLinkFile, const Path& ULangOut);
+	static bool ParseULangToCppStaticLink(const Path& SrcCpp, const Path& CppLinkFile, const Path& ULangOut);
 
+	static void UpdateCppLinks(String& CppLinkText, Vector<CppHelper::SymbolData>& Symbols);
+	static void OutputIRLineInfo(CppHelper::SymbolData& Item, Vector<FuncInfo>& V);
+	static void ParseCppToSybs(String& FileText, Vector<CppHelper::SymbolData>& Symbols);
+	static void DoOverLoadOnFunc(UCodeLang::VectorMap<String, size_t>& Overloads, CppHelper::SymbolData& Last, CppHelper::FuncData* Val);
+	static bool ParseULangfileAndUpdateCpp(const Path& SrcLang, const Path& CppOut);
 	//
 	struct ParseCppState
 	{

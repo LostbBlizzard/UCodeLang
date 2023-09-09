@@ -176,6 +176,24 @@ ModuleIndex ModuleIndex::GetModuleIndex()
 		return LangIndex;
 	}
 }
+bool ModuleIndex::SaveModuleIndex(ModuleIndex& Lib)
+{
+	return Lib.ToFile(&Lib, ModuleIndex::GetModuleIndexFilePath());
+}
+void ModuleIndex::RemoveDeletedModules()
+{
+	namespace fs = std::filesystem;
+	Vector<IndexModuleFile> newlist;
+	for (auto& Item : _IndexedFiles)
+	{
+		if (fs::exists(Item._ModuleFullPath))
+		{
+			newlist.push_back(std::move(Item));
+		}
+	}
+
+	this->_IndexedFiles =std::move(newlist);
+}
 void ModuleIndex::FromType(BitReader& bit, Path& Value)
 {
 	String Out;
@@ -211,8 +229,9 @@ Compiler::CompilerPathData ModuleFile::GetPaths(Compiler& Compiler, bool IsSubMo
 	{
 		std::filesystem::create_directories(paths.OutFile);
 	}
-	paths.OutFile += ModuleName.ModuleName + Compiler.GetOutputExtWithDot();
 
+	paths.OutFile += ModuleName.ModuleName;
+	paths.OutFile += Compiler.GetOutputExtWithDot();
 	return paths;
 }
 String ModuleFile::ToName(const ModuleIdentifier& ID)
@@ -438,13 +457,23 @@ void ModuleFile::NewInit(String ModuleName, String AuthorName)
 	this->ModuleName.ModuleName = ModuleName;
 	this->ModuleName.AuthorName = AuthorName;
 
+	{
+		ModuleIdentifier f;
+		f.MajorVersion = 0;
+		f.MinorVersion = 0;
+		f.MinorVersion = 0;
+
+		f.AuthorName = "UCodeLang";
+		f.ModuleName = "StandardLibarary";
+		ModuleDependencies.push_back(std::move(f));
+	}
 }
 String ModuleFile::ToStringBytes(const ModuleIdentifier* Value)
 {
 	String out;
 
-	out += "AuthorName:" + Value->AuthorName;
-	out += "ModuleName:" + Value->ModuleName;
+	out += "AuthorName:" + Value->AuthorName + '\n';
+	out += "ModuleName:" + Value->ModuleName + '\n';
 
 	out += "Version:" + std::to_string(Value->MajorVersion) 
 		+ ":" + std::to_string(Value->MinorVersion) 
@@ -461,10 +490,10 @@ String ModuleFile::ToStringBytes(const Path* Value)
 String ModuleFile::ToStringBytes(const ModuleFile* Lib)
 {
 	String out;
-	out += ToStringBytes(&Lib->ModuleName);
+	out += ToStringBytes(&Lib->ModuleName) + "\n" + '\n';
 
-	out += (String)"ForceImport:" + (Lib->ForceImport ? "true" : "false");
-	out += (String)"RemoveUnSafe:" + (Lib->RemoveUnSafe ? "true" : "false");
+	out += (String)"ForceImport:" + (Lib->ForceImport ? "true" : "false") + "\n";
+	out += (String)"RemoveUnSafe:" + (Lib->RemoveUnSafe ? "true" : "false") + "\n";
 	out += "ModuleNameSpace:" + Lib->ModuleNameSpace;
 
 	out += "\n";
