@@ -33,6 +33,11 @@ public:
 		return true;
 	}
 		
+	static bool ParseCharliteralToChar(String_view string, char& out);
+	static bool ParseCharliteralToChar(String_view string, Utf8& out);
+	static bool ParseCharliteralToChar(String_view string, Utf16& out);
+	static bool ParseCharliteralToChar(String_view string, Utf32& out);
+
 	//if ret is 0 then good else bad and the Index-1 of the bad char is  
 	static size_t ParseStringliteralToString(String_view string, String& out);
 	//if ret is 0 then good else bad and the Index-1 of the bad char is  

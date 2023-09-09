@@ -1,6 +1,62 @@
 #include "ParseHelper.hpp"
 
-UCodeLangStart 
+UCodeLangStart
+bool ParseHelper::ParseCharliteralToChar(String_view string, char& out)
+{
+	String v;
+	if (ParseCharliteralToChar(string, v) == 0)
+	{
+		out = v.front();
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool ParseHelper::ParseCharliteralToChar(String_view string, Utf8& out)
+{
+	String8 v;
+	if (ParseCharliteralToChar(string, v) == 0)
+	{
+		out = v.front();
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool ParseHelper::ParseCharliteralToChar(String_view string, Utf16& out)
+{
+	String16 v;
+	if (ParseCharliteralToChar(string, v) == 0)
+	{
+		out = v.front();
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool ParseHelper::ParseCharliteralToChar(String_view string, Utf32& out)
+{
+	String32 v;
+	if (ParseCharliteralToChar(string, v) == 0)
+	{
+		out = v.front();
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 
 size_t ParseHelper::ParseStringliteralToString(String_view string, String& out)
 {

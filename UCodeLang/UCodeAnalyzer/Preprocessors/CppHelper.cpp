@@ -1554,4 +1554,14 @@ bool CppHelper::ParseULangfileAndUpdateCpp(const Path& SrcLang, const Path& CppO
 	return false;
 }
 
+bool CppHelper::ParseCppfileAndOutULangLink(const Path& SrcCpp, const Path& CppLinkFile, const Path& ULangOut)
+{
+	return false;
+}
+
+bool CppHelper::ParseULangToCppStaticLink(const Path& SrcCpp, const Path& CppLinkFile, const Path& ULangOut)
+{
+	return false;
+}
+
 UCodeAnalyzerEnd

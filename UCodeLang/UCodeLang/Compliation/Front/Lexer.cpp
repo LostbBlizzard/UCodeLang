@@ -62,7 +62,7 @@ void Lexer::Lex(const String_view& Text)
 			OnLine++;
 
 			NextChar = GetNextChar(1);
-		
+
 			NameAndKeyWords(ReadingState, _Token);
 			continue;
 		}

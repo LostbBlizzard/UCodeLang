@@ -127,7 +127,7 @@ project "UCodelangCL"
    location "UCodelangCL"
    kind "ConsoleApp"
    language "C++"
-   targetname ("ucodelang")
+   targetname ("uclang")
    
    
    dependson {"UCodeLang"}
@@ -222,7 +222,7 @@ project "UCodeLanguageSever"
    location "UCodeLanguageSever"
    kind "ConsoleApp"
    language "C++"
-
+   targetname ("uclanglsp")
    
    
    dependson {"UCodeLang","UCodeLanguageSeverlib"}

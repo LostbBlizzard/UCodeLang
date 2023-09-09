@@ -1,22 +1,44 @@
 {
   "name": "ucode-language",
   "displayName": "UCode Language",
-  "description": "",
+  "description": "UCode for Visual Studio Code",
   "version": "0.0.1",
+  "publisher": "UCodeLang",
   "engines": {
     "vscode": "^1.82.0"
   },
   "categories": [
     "Programming Languages",
-    "Snippets"
+    "Linters",
+    "Snippets",
+    "Formatters",
+    "Other"
   ],
-  "contributes": {
+  "keywords": [
+    "uclang",
+    "UCodeLang",
+    "ucl"
+],
+"icon": "icon.png",
+"contributes": {
     "languages": [{
       "id": "uclang",
       "aliases": ["UCodeLang", "uclang"],
       "extensions": [".uc",".ucm"],
-      "configuration": "./language-configuration.json"
+      "configuration": "./language-configuration.json",
+       "icon": {
+        "light": "./Logo.png",
+        "dark": "./Logo.png"
+      }
     }],
+    "license": "(MIT OR Apache-2.0)",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/LostbBlizzard/UCodeLang/tree/master"
+    },
+    "bugs": {
+        "url": "https://github.com/LostbBlizzard/UCodeLang/issues"
+    },
     "grammars": [{
       "language": "uclang",
       "scopeName": "source.uclang",
@@ -27,6 +49,69 @@
         "language": "uclang",
         "path": "./snippets.json"
       }
-    ]
+    ],
+    "commands": [
+        {
+          "command": "uclang.update",
+          "title": "Update UCode",
+          "description": "Update the UCodeLang lsp and compiler",
+          "category": "uclang"
+        },
+        {
+          "command": "uclang.restart",
+          "title": "Restart the UCodeLang lsp",
+          "description": "Update the UCodeLang lsp and compiler",
+          "category": "uclang"
+        },
+        {
+          "command": "uclang.start",
+          "title": "Start the UCodeLang server",
+          "description": "Start the UCodeLang server",
+          "category": "uclang"
+        },
+        {
+          "command": "uclang.stop",
+          "title": "Stop the UCodeLang server",
+          "description": "Stop the UCodeLang server for a workspace until manually started again",
+          "category": "uclang"
+        }
+      ]
+  },
+  "taskDefinitions": [
+    {
+        "type": "uclang",
+        "properties": {
+            "subcommand": {
+                "type": "string"
+            }
+        },
+        "required": [
+            "subcommand"
+        ]
+    }
+  ],
+  "main": "./out/extension.js",
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.82.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "16.x",
+    "@typescript-eslint/eslint-plugin": "^6.4.1",
+    "@typescript-eslint/parser": "^6.4.1",
+    "eslint": "^8.47.0",
+    "glob": "^10.3.3",
+    "mocha": "^10.2.0",
+    "typescript": "^5.1.6",
+    "@vscode/test-electron": "^2.3.4"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^7.0.0"
   }
 }

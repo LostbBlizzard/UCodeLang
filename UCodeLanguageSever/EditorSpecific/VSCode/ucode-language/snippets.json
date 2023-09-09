@@ -48,5 +48,15 @@
       "prefix": ["importBaseTypes"],
       "body": ["import UCodeLang::{Vector,String,Span,Optional,Unique_Array,Unique_ptr,Shared_Array,Shared_ptr};"],
       "description": "import Vector,String,Span and More"
+    },
+    "geter": {
+      "prefix": ["geter"],
+      "body": ["|${1:Varable}[umut this&] => _${1:Varable};"],
+      "description": "geter"
+    },
+    "seter": {
+      "prefix": ["seter"],
+      "body": ["|${1:Varable}[this&,umut ${2:Type}& ${1:Varable}]:_${1:Varable} =${1:Varable};"],
+      "description": "geter"
     }
   }

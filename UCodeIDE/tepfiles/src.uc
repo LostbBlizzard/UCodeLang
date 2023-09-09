@@ -1,5 +1,4 @@
 
-
 |main_if[] -> int:
  if 1 == 1:
   ret 10;

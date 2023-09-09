@@ -75,7 +75,7 @@ int ReadNumber(UCodeLang::String_view View, UCodeLang::String_view& ToUpdate)
 	return Value;
 }
 
-UCodeLang::String FilePath = "C:/CoolStuff/CoolCodeingStuff/C++/Projects/UCodeLang/UCodeLanguageSever/Msg.txt";
+UCodeLang::String FilePath = "C:/CoolStuff/CoolCodeingStuff/cpp/UCodeLang/UCodeLanguageSever/Msg.txt";
 std::ofstream File = std::ofstream(FilePath);
 std::mutex Lock = {};
 void LogMSG(const UCodeLang::String& Str)
@@ -87,31 +87,38 @@ void LogMSG(const UCodeLang::String& Str)
 }
 
 //Args
-//--Start [SeverIp] [Port] 
+//start [SeverIp] [Port] 
+//start stdio
+
 void RunArg(UCodeLang::String_view View)
 {
 
-	
-	using StrHelp =	UCodeLang::StringHelper;	 
 
-	if (StrHelp::StartWith(View,"--"))
+	using StrHelp = UCodeLang::StringHelper;
+	if (StrHelp::StartWith(View, "start"))
 	{
-		View = View.substr(2);
+		View = View.substr(sizeof("start") - 1);
 
-		if (StrHelp::StartWith(View,"Start"))
+		for (size_t i = 0; i < View.size(); i++)
 		{
-			size_t ArgNameSize = sizeof("Start") - 1;
-			View = View.substr(ArgNameSize);
+			if (View[i] != ' ')
+			{
+				View = View.substr(i);
+				break;
+			}
+		}
 
-			UCodeLang::String SeverIp = (UCodeLang::String)ReadString(View,View);
-			//if (SeverIp == (UCodeLang::String)"stdio")
+		if (StrHelp::StartWith(View, "stdio"))
+		{
+			View = View.substr(sizeof("stdio") - 1);
+
 			{
 				static UCodeLanguageSever::LSPSever* SeverPtr = nullptr;
 				SeverPtr = nullptr;
 
 
 				LogMSG("Starting ULang Sever");
-				while (true);
+
 
 				std::thread SeverThread([]()
 					{
@@ -151,7 +158,7 @@ void RunArg(UCodeLang::String_view View)
 					std::cin >> V;
 					auto packet_op = UCodeLanguageSever::ClientPacket::Stream(state, V);
 
-					if (packet_op.has_value()) 
+					if (packet_op.has_value())
 					{
 						UCodeLanguageSever::ClientPacket& p = packet_op.value();
 						LogMSG("Got Packet:" + p._Data);
@@ -162,16 +169,14 @@ void RunArg(UCodeLang::String_view View)
 				}
 
 
-			
+
 
 
 				LogMSG("Sever End");
+
+
 			}
 
-		}
-		else
-		{
-			LogMSG("Bad Arg");
 		}
 	}
 }
@@ -179,6 +184,7 @@ void RunArg(UCodeLang::String_view View)
 
 int main(int argc, char* argv[])
 {
+	while (true);
 	for (size_t i = 0; i < argc; i++)
 	{
 		char* Arg = argv[i];

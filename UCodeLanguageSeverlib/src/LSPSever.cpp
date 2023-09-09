@@ -85,6 +85,61 @@ Optional<SeverPacket> SeverPacket::Stream(StreamState& State, char Char)
 		}
 
 	}
+	return {};
+}
+
+Optional<SeverPacket::ParsedPacket> SeverPacket::Parse() const
+{
+	ParsedPacket r;
+	json Values = json::parse(_Data);
+
+	if (!Values.contains("jsonrpc")) { return {}; }
+	r.jsonrpc = Values["jsonrpc"].get<String>();
+	if (r.jsonrpc != "2.0") { return{}; }
+	if (Values.contains("id") && (Values.contains("result") || Values.contains("error")))
+	{
+		ResponseMessage_t v;
+		v.id = Values.at("id").get<integer>();
+
+		if (Values.contains("result"))
+		{
+			v.result = std::move(Values["result"]);
+		}
+		else
+		{
+			UCodeLanguageSever::from_json(Values["error"], v.result);
+		}
+
+		r.Type = std::move(v);
+		return { r };
+	}
+	else if (Values.contains("id") && Values.contains("method"))
+	{
+		RequestMessage_t v;
+		v.id = Values.at("id").get<integer>();
+
+		v.method = Values.at("method").get<String>();
+
+
+		v.params = std::move(Values["params"]);
+
+
+		r.Type = std::move(v);
+		return { r };
+	}
+	else if (Values.contains("method"))
+	{
+		NotificationMessage_t v;
+		v.method = Values.at("method").get<String>();
+
+
+		v.params = std::move(Values["params"]);
+
+
+		r.Type = std::move(v);
+		return { r };
+	}
+	return {};
 }
 
 struct LanguageSeverFuncMap
