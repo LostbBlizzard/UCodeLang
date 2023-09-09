@@ -1,0 +1,32 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "UCodeLang",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [{
+				"name": "keyword.control.uclang",
+				"match": "\\b(if|while|for|return|import|true|false|bool|int|int8|int16|int32|int64|intptr|uint8|uint16|uint32|uint64|uintptr|char|utf8|utf16|utf32|float|float32|float64,void)\\b"
+			}]
+		},
+		"strings": {
+			"name": "string.quoted.double.uclang",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.uclang",
+					"match": "\\\\."
+				}
+			]
+		}
+	},
+	"scopeName": "source.uclang"
+}

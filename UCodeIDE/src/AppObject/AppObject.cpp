@@ -14,6 +14,8 @@
 #include "UCodeLang/Compliation/Back/Windows/WindowsBackEnd.hpp"
 #include "UCodeLang/Compliation/Back/Linux/LinuxBackEnd.hpp"
 
+#include "UCodeAnalyzer/SyntaxHelper.hpp"
+
 #include "UCodeLang/Compliation/Back/Windows/PE_File.hpp"
 //#include "UCodeLang/Compliation/Back/Linux/ELF_File.hpp"
 //#include <elfio/elfio_dump.hpp>
@@ -103,12 +105,21 @@ void AppObject::Init()
 
         TextEditor::LanguageDefinition Def;
         Def.mName = "UCodeLang";
+
+        auto keywords = SyntaxHelper::GetKeyWords();
+
+        for (auto& Item : keywords)
+        {
+            Def.mKeywords.insert(Item);
+        }
+        /*
         Def.mTokenize = [](const char* in_begin, const char* in_end, const char*& out_begin, const char*& out_end, TextEditor::PaletteIndex& paletteIndex)
         {
 
 
             return false;
         };
+        */
 
         _Editor.SetShowWhitespaces(false);
         //_Editor.SetLanguageDefinition(Def);
