@@ -276,6 +276,7 @@ void UClib::ToBytes(BitMaker& Output, const ClassField& Item2)
 }
 void UClib::ToBytes(BitMaker& Output, const Tag_Data& Data)
 {
+	Output.WriteType(Data.TypeID);
 }
 void UClib::ToBytes(BitMaker& Output, const UsedTagValueData& Data)
 {
@@ -892,6 +893,7 @@ void UClib::FromBytes(BitReader& reader, Alias_Data& Alias)
 }
 void UClib::FromBytes(BitReader& Input, Tag_Data& Data)
 {
+	Input.ReadType(Data.TypeID, Data.TypeID);
 }
 void UClib::FromBytes(BitReader& Input, UsedTagValueData& Data)
 {

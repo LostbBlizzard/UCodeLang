@@ -13,7 +13,7 @@ public:
 
 
 	String GetBackEndName() override { return "ULangIR"; }
-	String GetOutputExtWithDot() override { return FileExt::LibWithDot; }
+	String GetOutputExtWithDot() override { return FileExt::IRWithDot; }
 	static BackEndObject* MakeObject();
 };
 UCodeLangEnd

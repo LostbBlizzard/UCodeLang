@@ -1182,7 +1182,7 @@ private:
 
 	
 	void Assembly_ConvertAttributes(const Vector<Unique_ptr<AttributeNode>>& nodes,Vector<UsedTagValueData>& Out);
-	void Assembly_ConvertAttribute(const AttributeNode& nodes, UsedTagValueData Out);
+	void Assembly_ConvertAttribute(const AttributeNode& nodes, UsedTagValueData& Out);
 	void Assembly_LoadLibSymbols();
 	void Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode Mode);
 

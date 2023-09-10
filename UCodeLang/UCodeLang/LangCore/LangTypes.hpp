@@ -327,14 +327,17 @@ public:
 	inline static const char* Lib = "ulib";
 	inline static const char* Dll = "udll";
 	inline static const char* Object = "uo";
-
 	inline static const char* Asm = "ua";
-	inline static const char* AsmWithDot = ".ua";
+	inline static const char* IR = "uir";
+	inline static const char* IRText = ".uirasm";
 
 	inline static const char* SourceFileWithDot = ".uc";
 	inline static const char* LibWithDot = ".ulib";
 	inline static const char* DllWithDot = ".udll";
 	inline static const char* ObjectWithDot = ".uo";
+	inline static const char* AsmWithDot = ".ua";
+	inline static const char* IRWithDot = ".uir";
+	inline static const char* IRTextWithDot = ".uirasm";
 };
 
 template<typename T>
