@@ -134,7 +134,7 @@ void C89Backend::AddBaseTypes()
 	OutBuffer += "#endif\n\n";
 
 	OutBuffer += "#if __APPLE__\n";
-	OutBuffer += "#include \"TargetConditionals.h\";";
+	OutBuffer += "#include \"TargetConditionals.h\";\n";
 
 	OutBuffer += "#if TARGET_OS_IPHONE\n";
 	OutBuffer += "#define " + (String)IRIPHONEDefineName + " 1 \n";
@@ -159,7 +159,7 @@ void C89Backend::AddBaseTypes()
 	OutBuffer += "#endif\n\n";
 
 	OutBuffer += "#if " + (String)IRMSVCDefineName + "\n";
-	OutBuffer += "#define" + (String)IRForceinlineDefineName + "__forceinline\n";
+	OutBuffer += "#define " + (String)IRForceinlineDefineName + " __forceinline\n";
 	OutBuffer += "#elif " + (String)IRGNUCDefineName + "\n";
 	OutBuffer += "#define " + (String)IRForceinlineDefineName + " __attribute__((always_inline))\n";
 	OutBuffer += "#else\n";
@@ -171,8 +171,8 @@ void C89Backend::AddBaseTypes()
 	OutBuffer += "#include <inttypes.h>\n";
 
 	OutBuffer += "//Types\n";
-	OutBuffer += "//typedef float float32_t;\n";
-	OutBuffer += "//typedef double float64_t;\n";
+	OutBuffer += "typedef float float32_t;\n";
+	OutBuffer += "typedef double float64_t;\n";
 
 	
 	OutBuffer += '\n';
@@ -658,7 +658,7 @@ String C89Backend::ToString(ToStringState& State, IRInstruction& Ins, IROperator
 	}
 	case IROperatorType::IRParameter:
 	{
-		const IRPar* Par = _Func->GetPar(Value.identifer);
+		const IRPar* Par = Value.Parameter;
 		
 		return _Input->FromID(Par->identifier);
 	}
