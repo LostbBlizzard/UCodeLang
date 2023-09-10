@@ -13,7 +13,7 @@ class UAssembly
 public:
 	UAssembly(){}
 	~UAssembly(){}
-	void Assemble(const String_view& Text, UClib* Out);
+	bool Assemble(const String_view& Text, UClib* Out);
 	UCodeLangForceinline void Set_ErrorsOutput(CompliationErrors* V){_ErrorsOutput = V;}
 	UCodeLangForceinline void Set_Settings(CompliationSettings* V) {_Settings = V;}
 

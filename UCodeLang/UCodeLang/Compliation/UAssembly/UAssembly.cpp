@@ -80,7 +80,7 @@ void OutputIRLineInfo(IRBuilder* Builder,IRFunc* Func, const UDebugSetLineNumber
 		}
 	}
 }
-void UAssembly::Assemble(const String_view& Text, UClib* Out)
+bool UAssembly::Assemble(const String_view& Text, UClib* Out)
 {
 	Lexer Lex; 
 	Parser Parse; 
@@ -92,6 +92,8 @@ void UAssembly::Assemble(const String_view& Text, UClib* Out)
 	
 	Lex.Lex(Text);
 	Parse.Parse(Lex.Get_Output(), Out);
+
+	return _ErrorsOutput->Has_Errors() == false;
 }
 String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool ShowIR)
 {
@@ -153,12 +155,13 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 
 			for (auto Item2 : Class.Methods)
 			{
+				r += " ";
 				for (auto Item3 : Item2.Attributes.Attributes)
 				{
 					r += ToString(Item3, Assembly);
 				}
 
-				r += " |" + ScopeHelper::GetNameFromFullName(Item2.FullName) + "[";
+				r += "|" + ScopeHelper::GetNameFromFullName(Item2.FullName) + "[";
 				
 				for (auto& Item3 : Item2.ParsType)
 				{
@@ -253,6 +256,8 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 		break;
 		case ClassType::Tag:
 		{
+			r += "$" + Item->FullName + " tag:\n";
+			auto& TagData= Item->Get_TagData();
 
 		}
 		break;

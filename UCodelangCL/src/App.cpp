@@ -8,6 +8,7 @@
 #include "UCodeAnalyzer/Preprocessors/CppHelper.hpp"
 #include "UCodeLang/RunTime/AnyInterpreter.hpp"
 #include "UCodeLang/Compliation/Back/NativeBackEnd.hpp"
+#include "UCodeLang/Compliation/UAssembly/UAssembly.hpp"
 
 #include "UCodeLang/Compliation/Back/Windows/WindowsBackEnd.hpp"
 #include "UCodeLang/Compliation/Back/Linux/LinuxBackEnd.hpp"
@@ -16,6 +17,7 @@
 #include "UCodeLang/Compliation/Back/C89/C89Backend.hpp"
 #include "UCodeLang/Compliation/Back/LLVM/LLVMBackEnd.hpp"
 
+#include "UCodeLang/RunTime/TestRuner.hpp"
 using namespace UCodeLang;
 
 
@@ -651,9 +653,168 @@ void ParseLine(String_view Line)
 
 		}
 	}
+	else if (Word1 == "eval" || Word1 == "-e")
+	{
+		bool debugruning = false;
+		while (debugruning)
+		{
+
+		}
+	}
 	else if (Word1 == "test" || Word1 == "-t")
 	{
+		bool use01 = UCodeLang::StringHelper::Contains(Line, "-01");
+		bool use02 = UCodeLang::StringHelper::Contains(Line, "-02");
+		bool use03 = UCodeLang::StringHelper::Contains(Line, "-03");
+		bool usedebug = !(UCodeLang::StringHelper::Contains(Line, "-ndebug") || UCodeLang::StringHelper::Contains(Line, "-nd"));
+		bool use32mode = UCodeLang::StringHelper::Contains(Line, "-32");
+		bool use64mode = UCodeLang::StringHelper::Contains(Line, "-64");
+		
+		bool usejit = UCodeLang::StringHelper::Contains(Word1, "-jit");
+		bool usenative = UCodeLang::StringHelper::Contains(Word1, "-native");
 
+		auto oldline = Line;
+		String _Path = String(GetPath(Line));
+		auto _PathAsPath = Path(_Path);
+		if (_Path.size())
+		{
+			
+
+			bool isflag = false;
+			for (auto& Item : _Path)
+			{
+				if (Item == '-')
+				{
+					isflag = true;
+					break;
+				}
+			}
+
+			if (isflag)
+			{
+				Line = oldline;
+				_PathAsPath = std::filesystem::current_path();
+				_Path = _PathAsPath.generic_string();
+			}
+
+		}
+
+		Compiler _Compiler;
+		{
+			auto& Settings = _Compiler.Get_Settings();
+
+			if (use64mode) {
+				Settings.PtrSize = IntSizes::Int64;
+			}
+			if (use32mode) {
+				Settings.PtrSize = IntSizes::Int32;
+			}
+			if (usedebug)
+			{
+				*(OptimizationFlags_t*)&Settings._Flags |= (OptimizationFlags_t)OptimizationFlags::Debug;
+			}
+			else
+			{
+				*(OptimizationFlags_t*)&Settings._Flags &= ~(OptimizationFlags_t)OptimizationFlags::Debug;
+			}
+			if (use01)
+			{
+				*(OptimizationFlags_t*)&Settings._Flags |= (OptimizationFlags_t)OptimizationFlags::O_1;
+			}
+			else
+			{
+				*(OptimizationFlags_t*)&Settings._Flags &= ~(OptimizationFlags_t)OptimizationFlags::O_1;
+			}
+			if (use02)
+			{
+				*(OptimizationFlags_t*)&Settings._Flags |= (OptimizationFlags_t)OptimizationFlags::O_2;
+			}
+			else
+			{
+				*(OptimizationFlags_t*)&Settings._Flags &= ~(OptimizationFlags_t)OptimizationFlags::O_2;
+			}
+			if (use03)
+			{
+				*(OptimizationFlags_t*)&Settings._Flags |= (OptimizationFlags_t)OptimizationFlags::O_3;
+			}
+			else
+			{
+				*(OptimizationFlags_t*)&Settings._Flags &= ~(OptimizationFlags_t)OptimizationFlags::O_3;
+			}
+		}
+		Optional<UClib> libop;
+
+		if (usenative)
+		{
+			_Compiler.Set_BackEnd(NativeULangBackEnd::MakeObject);
+		}
+
+		if (!buildfile2(_PathAsPath, _Compiler, libop))
+		{
+			AppPrintin("Compiler Fail:");
+			AppPrintin(_Compiler.Get_Errors().ToString());
+			_This.ExeRet = EXIT_FAILURE;
+		}
+		else
+		{
+			auto& lib = libop.value();
+
+			*_This.output << _Compiler.Get_Errors().ToString();
+			AppPrintin("Runing Tests:");
+			
+
+			TestRuner::InterpreterType interpreter;
+			if (usenative)
+			{
+				interpreter = TestRuner::InterpreterType::NativeInterpreter;
+			}
+			else if (usejit)
+			{
+				interpreter = TestRuner::InterpreterType::JitInterpreter;
+			}
+			else
+			{
+				interpreter = TestRuner::InterpreterType::Interpreter;
+			}
+
+			TestRuner runer;
+			auto info = runer.RunTests(lib, interpreter, [](TestRuner::TestInfo& test)
+			{
+					if (test.Passed)
+					{
+						AppPrintin("Test :" << test.TestName << " Passed");
+					}
+					else
+					{
+						AppPrintin("Test :" << test.TestName << " Fail");
+					}
+			});
+			bool passed = info.TestCount == info.TestPassedCount;
+			AppPrintin("Ran all " << info.TestCount << " Tests");
+			
+			int passnumber;
+			if (info.TestPassedCount)
+			{
+				passnumber = ((float)info.TestPassedCount / (float)info.TestCount) *100;
+			}
+			else
+			{
+				passnumber = 100;
+			}
+			
+			
+			if (passed)
+			{
+				AppPrintin("Tests Passed.all 100% of tests passed");
+				_This.ExeRet = EXIT_SUCCESS;
+			}
+			else
+			{
+				AppPrintin("Tests Failed about " << passnumber << "% passed");
+
+				_This.ExeRet = EXIT_FAILURE;
+			}
+		}
 	}
 	else if (Word1 == "run" || Word1 == "-r")
 	{
@@ -887,6 +1048,104 @@ void ParseLine(String_view Line)
 	{
 		//downloads the modules
 	}
+	else if (Word1 == "dump" || Word1 == "-dp")
+	{
+		String _Path = String(GetPath(Line));
+		auto _PathAsPath = Path(_Path);
+		if (!_Path.size())
+		{
+			_PathAsPath = std::filesystem::current_path();
+			_Path = _PathAsPath.generic_string();
+		}
+
+		if (fs::exists(_PathAsPath))
+		{
+			if (fs::is_directory(_PathAsPath))
+			{
+				Compiler _Compiler;
+				Optional<UClib> libop;
+				if (!buildfile2(_PathAsPath, _Compiler, libop))
+				{
+					AppPrintin("Compiler Fail:");
+					AppPrintin(_Compiler.Get_Errors().ToString());
+					_This.ExeRet = EXIT_FAILURE;
+				}
+				else
+				{
+					AppPrintin(UCodeLang::UAssembly::UAssembly::ToString(&libop.value()));
+					_This.ExeRet = EXIT_SUCCESS;
+				}
+			}
+			else if (fs::is_regular_file(_PathAsPath))
+			{
+				auto ext = _PathAsPath.extension();
+				if (ext == FileExt::SourceFileWithDot ||ext == ModuleFile::FileExtWithDot)
+				{
+					Compiler _Compiler;
+					Optional<UClib> libop;
+					if (!buildfile2(_PathAsPath, _Compiler, libop))
+					{
+						AppPrintin("Compiler Fail:");
+						AppPrintin(_Compiler.Get_Errors().ToString());
+						_This.ExeRet = EXIT_FAILURE;
+					}
+					else 
+					{
+						AppPrintin(UCodeLang::UAssembly::UAssembly::ToString(&libop.value()));
+						_This.ExeRet = EXIT_SUCCESS;
+					}
+				}
+				else if (ext == FileExt::ObjectWithDot
+					|| ext == FileExt::LibWithDot
+					|| ext == FileExt::DllWithDot)
+				{
+					UClib lib;
+					if (UClib::FromFile(&lib, _PathAsPath))
+					{
+						AppPrintin(UCodeLang::UAssembly::UAssembly::ToString(&lib));
+						_This.ExeRet = EXIT_SUCCESS;
+					}
+					else
+					{
+						AppPrintin("Cant Open " << _PathAsPath);
+						_This.ExeRet = EXIT_FAILURE;
+
+					}
+				}
+				else if (ext == FileExt::IRWithDot)
+				{
+					IRBuilder lib;
+					if (IRBuilder::FromFile(lib, _PathAsPath))
+					{
+						AppPrintin(lib.ToString());
+						_This.ExeRet = EXIT_SUCCESS;
+					}
+					else
+					{
+						AppPrintin("Cant Open " << _PathAsPath);
+						_This.ExeRet = EXIT_FAILURE;
+
+					}
+				}
+				else
+				{
+					AppPrintin("Unknown file type" << _PathAsPath);
+					AppPrintin("Must be .uc,.uo,.ulib,.udll,.uir,.ucm");
+					_This.ExeRet = EXIT_FAILURE;
+				}
+			}
+			else
+			{
+				AppPrintin("file path must be file or directory.");
+				_This.ExeRet = EXIT_FAILURE;
+			}
+		}
+		else
+		{
+			AppPrintin("file path must exits.");
+			_This.ExeRet = EXIT_FAILURE;
+		}
+	}
 	else if (Word1 == "cpptoulangvm" || Word1 == "-cpptoulangvm")
 	{
 		Path cppfile;
@@ -1082,12 +1341,12 @@ bool buildfile2(UCodeLang::Path& filetorun, UCodeLang::Compiler& _Compiler, UCod
 				*_This.output << _Compiler.Get_Errors().ToString();
 				_This.ExeRet = EXIT_FAILURE;
 
-				r = true;
+				
 			}
 			else
 			{
 				Path uclibpath = module.GetPaths(_Compiler).OutFile;
-
+				r = true;
 				if (allwaysoutputfile == false) {
 					UClib v;
 					if (UClib::FromFile(&v, uclibpath))
@@ -1098,9 +1357,47 @@ bool buildfile2(UCodeLang::Path& filetorun, UCodeLang::Compiler& _Compiler, UCod
 			}
 		}
 	}
+	else if (filetorun.extension() == Path(UCodeLang::FileExt::AsmWithDot))
+	{
+		UAssembly::UAssembly compiler;
+		UClib lib;
+		auto txt = Compiler::GetTextFromFile(filetorun);
+		if (compiler.Assemble(txt, &lib))
+		{
+			outlibOp = std::move(lib);
+
+			if (allwaysoutputfile)
+			{
+				Path outpath = filetorun.native() + Path(UCodeLang::FileExt::LibWithDot).native();
+
+				*_This.output << _Compiler.Get_Errors().ToString();
+				if (UClib::ToFile(&lib, outpath))
+				{
+					_This.ExeRet = EXIT_SUCCESS;
+				}
+				else
+				{
+					*_This.output << "Cant Write File:\n";
+					_This.ExeRet = EXIT_FAILURE;
+				}
+			}
+		}
+		else
+		{
+			*_This.output << "Compiler Fail:\n";
+			*_This.output << _Compiler.Get_Errors().ToString();
+			_This.ExeRet = EXIT_FAILURE;
+		}
+	}
+	else if (filetorun.extension() == Path(UCodeLang::FileExt::IRTextWithDot))
+	{
+		IRBuilder builder;
+		auto txt = Compiler::GetTextFromFile(filetorun);
+		UCodeLangToDo();
+	}
 	else
 	{
-		AppPrintin("file type must be .uc or .ucm '" << filetorun << '\'');
+		AppPrintin("file type must be .uc,.ucm,.uirtxt,.uasm '" << filetorun << '\'');
 	}
 	return r;
 }

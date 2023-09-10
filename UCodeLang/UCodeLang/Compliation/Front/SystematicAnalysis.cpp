@@ -10599,7 +10599,7 @@ void SystematicAnalysis::Assembly_ConvertAttributes(const Vector<Unique_ptr<Attr
 		Assembly_ConvertAttribute(*nodes[i], Out[i]);
 	}
 }
-void SystematicAnalysis::Assembly_ConvertAttribute(const AttributeNode& nodes, UsedTagValueData Out)
+void SystematicAnalysis::Assembly_ConvertAttribute(const AttributeNode& nodes, UsedTagValueData& Out)
 {
 	auto Syb = Symbol_GetSymbol(Symbol_GetSymbolID(nodes));
 	Out.TypeID = Type_GetTypeID(TypesEnum::CustomType,Syb->VarType._CustomTypeSymbol);

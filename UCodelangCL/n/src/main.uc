@@ -3,4 +3,10 @@
 
 |main[] => 0;
 
-|func[int a] => a;
+$Test tag;
+
+[Test]
+|func[] => false;
+
+[Test]
+|func2[] => true;
