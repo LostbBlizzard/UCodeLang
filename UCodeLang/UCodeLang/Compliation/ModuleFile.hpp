@@ -80,8 +80,12 @@ public:
 		Compiler::CompilerRet CompilerRet;
 		Path OutputItemPath;
 	};
-
-	Vector<ModuleIdentifier> ModuleDependencies;
+	struct ModuleDependencie
+	{
+		ModuleIdentifier Identifier;
+		Optional<String> WebLink;
+	};
+	Vector<ModuleDependencie> ModuleDependencies;
 
 	ModuleFile()
 	{
@@ -98,8 +102,11 @@ public:
 	{
 		return Path(ThisModuleDir) / (String(FileName) + FileExtWithDot);;
 	}
+	bool DownloadModules(const ModuleIndex& Modules, OptionalRef<String> LogsOut = {});
 
-	ModuleRet BuildModule(Compiler& Compiler,const ModuleIndex& Modules,bool IsSubModule = false);
+	ModuleRet BuildModule(Compiler& Compiler,const ModuleIndex& Modules,bool IsSubModule = false, OptionalRef<String> LogsOut = {});
+	ModuleRet BuildFile(const String& filestring, Compiler& Compiler, const ModuleIndex& Modules);
+	
 	static bool ToFile(const ModuleFile* Lib, const Path& path);
 	static bool FromFile(ModuleFile* Lib, const Path& path);
 
@@ -128,7 +135,7 @@ public:
 	inline static const String DefaultBuildFile = "import UCodeLang::StandardLibarary[0.0.0];//Build Srcipt Module Imports.\n\n\nimport UCodeLang::{BuildSystem};\n\n\n|build[BuildSystem& system] => system.Build();";
 private:
 	void BuildModuleDependencies(const ModuleIndex& Modules,CompliationErrors& Errs, bool& Err, Compiler& Compiler
-		, const Vector<ModuleIdentifier>& ModuleDependencies
+		, const Vector<ModuleDependencie>& ModuleDependencies
 		, Compiler::ExternalFiles& externfilesoutput);
 
 };

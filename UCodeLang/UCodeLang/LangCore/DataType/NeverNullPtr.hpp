@@ -207,6 +207,10 @@ public:
 	using NeverNullType = NeverNullPtr<T>;
 	using NullableType = NullablePtr<T>;
 
+	constexpr OptionalRef()
+	{
+
+	}
 	explicit OptionalRef(T& value)
 		: base(&value)
 	{
@@ -223,17 +227,17 @@ public:
 
 	constexpr bool has_value() const noexcept
 	{
-		return Value != nullptr;
+		return base != nullptr;
 	}
 
 	const T& value() const
 	{
-		UCodeLangAssert(Value);
+		UCodeLangAssert(base);
 		return *base;
 	}
 	T& value() 
 	{
-		UCodeLangAssert(Value);
+		UCodeLangAssert(base);
 		return *base;
 	}
 private:

@@ -1046,7 +1046,72 @@ void ParseLine(String_view Line)
 	}
 	else if (Word1 == "get" || Word1 == "-g")
 	{
-		//downloads the modules
+		String _Path = String(GetPath(Line));
+		auto _PathAsPath = Path(_Path);
+
+
+		if (_Path.size()==0)
+		{
+			_PathAsPath = std::filesystem::current_path();
+			_Path = _PathAsPath.generic_string();
+		}
+
+		Optional<ModuleFile> modfile;
+		if (fs::is_directory(_PathAsPath))
+		{
+			Path modulepath = _PathAsPath / ModuleFile::FileNameWithExt;
+			if (fs::exists(modulepath))
+			{
+				ModuleIndex _ModuleIndex = ModuleIndex::GetModuleIndex();
+
+				UCodeLang::ModuleFile module;
+				if (!UCodeLang::ModuleFile::FromFile(&module, modulepath))
+				{
+					*_This.output << "Cant Open module file\n";
+					_This.ExeRet = EXIT_FAILURE;
+				}
+				else
+				{
+					modfile = std::move(module);
+				}
+			}
+		}
+		else if (fs::is_regular_file(_PathAsPath) && _PathAsPath.extension() == ModuleFile::FileExt)
+		{
+			UCodeLang::ModuleFile module;
+			if (!UCodeLang::ModuleFile::FromFile(&module, _PathAsPath))
+			{
+				*_This.output << "Cant Open module file\n";
+				_This.ExeRet = EXIT_FAILURE;
+			}
+			else
+			{
+				modfile = std::move(module);
+			}
+		}
+		else
+		{
+			AppPrintin("Cant find Path '" << _PathAsPath << "'");
+		}
+
+		if (modfile.has_value())
+		{
+			ModuleIndex _ModuleIndex = ModuleIndex::GetModuleIndex();
+			auto& mod = modfile.value();
+
+			String out;
+			bool ok = mod.DownloadModules(_ModuleIndex, Optionalref(out));
+
+			AppPrintin(out);
+			if (ok)
+			{
+				_This.ExeRet = EXIT_SUCCESS;
+			}
+			else
+			{
+				_This.ExeRet = EXIT_FAILURE;
+			}
+		}
 	}
 	else if (Word1 == "dump" || Word1 == "-dp")
 	{
