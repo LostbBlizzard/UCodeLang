@@ -8,6 +8,14 @@
 #include "UCodeAnalyzer/Preprocessors/CppHelper.hpp"
 #include "UCodeLang/RunTime/AnyInterpreter.hpp"
 #include "UCodeLang/Compliation/Back/NativeBackEnd.hpp"
+
+#include "UCodeLang/Compliation/Back/Windows/WindowsBackEnd.hpp"
+#include "UCodeLang/Compliation/Back/Linux/LinuxBackEnd.hpp"
+#include "UCodeLang/Compliation/Back/IR/IRBackEnd.hpp"
+#include "UCodeLang/Compliation/Back/WebAssembly/WebAssembly.hpp"
+#include "UCodeLang/Compliation/Back/C89/C89Backend.hpp"
+#include "UCodeLang/Compliation/Back/LLVM/LLVMBackEnd.hpp"
+
 using namespace UCodeLang;
 
 
@@ -171,7 +179,7 @@ bool IsList(String_view List, char V)
 
 #define Worddef Letersdef Numdef NameChardef
 
-#define PathDef Letersdef Numdef ":/\\.+()"
+#define PathDef Letersdef Numdef ":/\\.+()-"
 
 String_view GetWord_t(String_view& Line,String_view GoodChars_t)
 {
@@ -198,9 +206,17 @@ String_view GetWord_t(String_view& Line,String_view GoodChars_t)
 			}
 		}
 	}
-	auto r2 = String_view(Line.data(), Line.size());
-	Line = Line.substr(Line.size());
-	return r2;
+
+	if (Reading) {
+		auto r2 = String_view(&Line[goodindex]);
+		Line = Line.substr(Line.size());
+		return r2;
+	}
+	else
+	{
+		auto r2 = String_view();
+		return r2;
+	}
 }
 String_view GetWord(String_view& Line)
 {
@@ -224,24 +240,173 @@ void ParseLine(String_view Line)
 		ModuleIndex _ModuleIndex = ModuleIndex::GetModuleIndex();
 		Compiler _Compiler;
 
-
+		auto oldline = Line;
 		String _Path = String(GetPath(Line));
 		auto _PathAsPath = Path(_Path);
-		if (_Path.size() == 0)
-		{	
+		if (_Path.size())
+		{
+			bool isflag = false;
+			for (auto& Item : _Path)
+			{
+				if (Item == '-')
+				{
+					isflag = true;
+					break;
+				}
+			}
+
+			if (isflag) 
+			{
+				Line = oldline;
+				_PathAsPath = std::filesystem::current_path();
+				_Path = _PathAsPath.generic_string();
+			}
+
+		}
+		else
+		{
 			_PathAsPath = std::filesystem::current_path();
 			_Path = _PathAsPath.generic_string();
 		}
 
 
-		auto _PathVar2 = GetPath(Line);
-		if (_PathVar2.size() == 0)
+	
 		{
-			_PathVar2 = "";
-		}
-		buildfile(_PathAsPath, _Compiler);
+			bool use01 = UCodeLang::StringHelper::Contains(Line, "-01");
+			bool use02 = UCodeLang::StringHelper::Contains(Line, "-02");
+			bool use03 = UCodeLang::StringHelper::Contains(Line, "-03");
+			bool usedebug = !(UCodeLang::StringHelper::Contains(Line, "-ndebug") || UCodeLang::StringHelper::Contains(Line, "-nd"));
+			bool use32mode = UCodeLang::StringHelper::Contains(Line, "-32");
+			bool use64mode = UCodeLang::StringHelper::Contains(Line, "-64");
+			{
+				auto& Settings = _Compiler.Get_Settings();
 
-		if (buildfile(_PathAsPath, _Compiler))
+				if (use64mode) {
+					Settings.PtrSize = IntSizes::Int64;
+				}
+				if (use32mode) {
+					Settings.PtrSize = IntSizes::Int32;
+				}
+				if (usedebug) 
+				{
+					*(OptimizationFlags_t*)&Settings._Flags |= (OptimizationFlags_t)OptimizationFlags::Debug;
+				}
+				else
+				{
+					*(OptimizationFlags_t*)&Settings._Flags &= ~(OptimizationFlags_t)OptimizationFlags::Debug;
+				}
+				if (use01)
+				{
+					*(OptimizationFlags_t*)&Settings._Flags |= (OptimizationFlags_t)OptimizationFlags::O_1;
+				}
+				else
+				{
+					*(OptimizationFlags_t*)&Settings._Flags &= ~(OptimizationFlags_t)OptimizationFlags::O_1;
+				}
+				if (use02)
+				{
+					*(OptimizationFlags_t*)&Settings._Flags |= (OptimizationFlags_t)OptimizationFlags::O_2;
+				}
+				else
+				{
+					*(OptimizationFlags_t*)&Settings._Flags &= ~(OptimizationFlags_t)OptimizationFlags::O_2;
+				}
+				if (use03)
+				{
+					*(OptimizationFlags_t*)&Settings._Flags |= (OptimizationFlags_t)OptimizationFlags::O_3;
+				}
+				else
+				{
+					*(OptimizationFlags_t*)&Settings._Flags &= ~(OptimizationFlags_t)OptimizationFlags::O_3;
+				}
+
+
+				if (UCodeLang::StringHelper::Contains(Line, "-c89"))
+				{
+					_Compiler.Set_BackEnd(UCodeLang::C89Backend::MakeObject);
+				}
+				else if (UCodeLang::StringHelper::Contains(Line, "-llvm"))
+				{
+					_Compiler.Set_BackEnd(UCodeLang::LLVMBackEnd::MakeObject);
+				}
+				else if (UCodeLang::StringHelper::Contains(Line, "-wasm"))
+				{
+					_Compiler.Set_BackEnd(UCodeLang::WebAssemblyBackEnd::MakeObject);
+				}
+				else if (UCodeLang::StringHelper::Contains(Line, "-ir"))
+				{
+					_Compiler.Set_BackEnd(UCodeLang::IRBackEnd::MakeObject);
+				}
+				else if (UCodeLang::StringHelper::Contains(Line, "-uvm:this"))
+				{
+					_Compiler.Set_BackEnd(UCodeLang::NativeULangBackEnd::MakeObject);
+				}
+				else if (UCodeLang::StringHelper::Contains(Line, "-uvm:x86_64"))
+				{
+					_Compiler.Set_BackEnd(UCodeLang::X86_64UNativeBackEnd::MakeObject);
+				}
+				else if (UCodeLang::StringHelper::Contains(Line, "-uvm:x86"))
+				{
+					//_Compiler.Set_BackEnd(UCodeLang::x::MakeObject);
+				}
+				else if (UCodeLang::StringHelper::Contains(Line, "-uvm:arm_64"))
+				{
+					
+				}
+				else if (UCodeLang::StringHelper::Contains(Line, "-uvm:arm"))
+				{
+					//_Compiler.Set_BackEnd(UCodeLang::x::MakeObject);
+				}
+				else if (UCodeLang::StringHelper::Contains(Line, "-native:this"))
+				{
+					_Compiler.Set_BackEnd(UCodeLang::NativePlatformBackEnd::MakeObject);
+				}
+				else if (UCodeLang::StringHelper::Contains(Line, "-native:linux"))
+				{
+					_Compiler.Set_BackEnd(UCodeLang::LinuxBackEnd::MakeObject);
+				}
+				else if (UCodeLang::StringHelper::Contains(Line, "-native:windows"))
+				{
+					_Compiler.Set_BackEnd(UCodeLang::WindowsBackEnd::MakeObject);
+				}
+				else if (UCodeLang::StringHelper::Contains(Line, "-native:mac"))
+				{
+					
+				}
+			}
+
+			for (size_t i = 0; i < Line.size(); i++)
+			{
+				auto& V = Line[i];
+				if (V == '-')
+				{
+					String_view arg = GetWord(Line.substr(i + 1));
+					size_t offsettomove = (arg.data() - &V);
+					offsettomove += arg.size();
+					i += offsettomove;
+
+					if (i < Line.size()) {
+						auto V2 = Line[i];
+						auto& Settings = _Compiler.Get_Settings();
+
+						if (V2 == ':') {
+							String_view arg2 = GetWord(Line.substr(i + 1));
+							Settings.AddArgValue(String(arg), String(arg2));
+
+							size_t offsettomove2 = (arg2.data() - &V);
+							offsettomove2 += arg2.size();
+							i += offsettomove2;
+
+						}
+						else
+						{
+							Settings.AddArgFlag(String(arg));
+						}
+					}
+				}
+			}
+		}
+		if (!buildfile(_PathAsPath, _Compiler))
 		{
 			AppPrintin("Compiler Fail:");
 			AppPrintin(_Compiler.Get_Errors().ToString());
@@ -356,6 +521,7 @@ void ParseLine(String_view Line)
 		String _Path = String(GetPath(Line));
 		String Name = String(GetPath(Line));
 
+		
 		String OwnerName = String(GetPath(Line));
 
 		auto DoGit = GetPath(Line);
