@@ -2,7 +2,6 @@ workspace "UCodeLang"
    configurations { "Debug", "Release","Published" }
    platforms { "Win32", "Win64","linux32","linux64", "MacOS" }
    defines {"UCodeLangDebug","ZYCORE_STATIC_BUILD","UCodeLangExperimental"}
-
    startproject "UCodeIDE"
 
    if os.host() == "windows" then
@@ -380,15 +379,10 @@ group "UCodeAPIs"
   files { 
   "UCodeAPI/%{prj.name}/ignoreC.c",
 
-  "UCodeAPI/%{prj.name}/src/**.uc",
-  "UCodeAPI/%{prj.name}/%{prj.name}.ucm",
-
   "UCodeAPI/%{prj.name}/src/**.c",
   "UCodeAPI/%{prj.name}/src/**.h",
   "UCodeAPI/%{prj.name}/src/**.cpp",
   "UCodeAPI/%{prj.name}/src/**.hpp", 
-  "UCodeAPI/%{prj.name}/src/**.uc",
-  "UCodeAPI/%{prj.name}/test/**.uc",
   
   }
 
@@ -412,16 +406,11 @@ group "UCodeAPIs"
   files { 
   "UCodeAPI/%{prj.name}/ignoreC.c",
   "UCodeAPI/%{prj.name}/src/**.uc",
-  "UCodeAPI/%{prj.name}/%{prj.name}.ucm",
 
   "UCodeAPI/%{prj.name}/src/**.c",
   "UCodeAPI/%{prj.name}/src/**.h",
   "UCodeAPI/%{prj.name}/src/**.cpp",
   "UCodeAPI/%{prj.name}/src/**.hpp",
-
-  "UCodeAPI/%{prj.name}/src/**.uc",
-  "UCodeAPI/%{prj.name}/test/**.uc",
-  "UCodeAPI/%{prj.name}**.ucm",
   }
 
 
@@ -443,17 +432,11 @@ group "UCodeAPIs"
   dependson {"UCodelangCL"}
   files { 
   "UCodeAPI/%{prj.name}/ignoreC.c",
-  "UCodeAPI/%{prj.name}/src/**.uc",
-  "UCodeAPI/%{prj.name}/%{prj.name}.ucm",
 
   "UCodeAPI/%{prj.name}/src/**.c",
   "UCodeAPI/%{prj.name}/src/**.h",
   "UCodeAPI/%{prj.name}/src/**.cpp",
   "UCodeAPI/%{prj.name}/src/**.hpp",
-  
-  "UCodeAPI/%{prj.name}/src/**.uc",
-  "UCodeAPI/%{prj.name}/test/**.uc",
-  
   }
 
   postbuildcommands 
@@ -472,16 +455,11 @@ group "UCodeAPIs"
    dependson {"UCodelangCL"}
    files { 
    "UCodeAPI/%{prj.name}/ignoreC.c",
-   "UCodeAPI/%{prj.name}/src/**.uc",
-   "UCodeAPI/%{prj.name}/%{prj.name}.ucm",
 
    "UCodeAPI/%{prj.name}/src/**.c",
    "UCodeAPI/%{prj.name}/src/**.h",
    "UCodeAPI/%{prj.name}/src/**.cpp",
-   "UCodeAPI/%{prj.name}/src/**.hpp", 
-   
-   "UCodeAPI/%{prj.name}/src/**.uc",
-   "UCodeAPI/%{prj.name}/test/**.uc",
+   "UCodeAPI/%{prj.name}/src/**.hpp",
    }
 
    postbuildcommands 

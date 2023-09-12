@@ -9,6 +9,8 @@
 
 #if UCodeLang_Platform_Windows
 #include <Windows.h>
+#elif UCodeLang_Platform_Posix
+#include <dlfcn.h>
 #endif
 UCodeTestStart
 
@@ -318,6 +320,9 @@ using namespace UCodeLang;
 				#if UCodeLang_Platform_Windows
 				auto lib = LoadLibrary(dllfile.c_str());
 				auto functocall = GetProcAddress(lib, cfuncname.c_str());
+				#elif UCodeLang_Platform_Posix
+				auto lib = dlopen(dllfile.c_str(), RTLD_NOW);
+                auto functocall = dlsym(lib,cfuncname.c_str());
 				#endif  
 				
 				UCodeLangAssert(functocall);
@@ -393,6 +398,8 @@ using namespace UCodeLang;
 
 				#if UCodeLang_Platform_Windows
 				FreeLibrary(lib);
+				#elif UCodeLang_Platform_Posix
+                dlclose(lib);
 				#endif      
 			}
 		}

@@ -358,10 +358,10 @@ void Interpreter::Extecute(Instruction& Inst)
 	 &&Ins_SInt##bitsize##ToUInt##bitsize, \
 
 	#define JumpTablefloat(bitsize) \
-        &&Ins_Addf##bitsize,
-	    &&Ins_Subf##bitsize,
-		&&Ins_Multf##bitsize,
-		&&Ins_Divf##bitsize,
+        &&Ins_Addf##bitsize, \
+	    &&Ins_Subf##bitsize, \
+		&&Ins_Multf##bitsize, \
+		&&Ins_Divf##bitsize, \
 	
 	static const void* InsJumpTable[] = {
 		&&Ins_Exit,

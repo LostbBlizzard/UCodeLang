@@ -1982,7 +1982,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		newInfo->FullName = FullName;
 		newInfo->_FuncType = FuncType;
 		newInfo->IsUnsafe = node._Signature._HasUnsafeKeyWord;
-		newInfo->IsExternC = node._Signature.ExternType != ExternType::ExternUCode;
+		newInfo->IsExternC = node._Signature.Externtype != ExternType::ExternUCode;
 
 		syb->Info.reset(newInfo);
 
@@ -2370,7 +2370,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		}
 
 
-		if (node._Signature.ExternType != ExternType::NoExternKeyWord)
+		if (node._Signature.Externtype != ExternType::NoExternKeyWord)
 		{
 			bool HasBody = node._Body.has_value();
 			if (HasBody)

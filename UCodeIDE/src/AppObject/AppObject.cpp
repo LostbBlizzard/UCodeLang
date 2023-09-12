@@ -32,7 +32,7 @@
 #if UCodeLang_Platform_Windows
 #include <Windows.h>
 #elif UCodeLang_Platform_Posix
-
+#include <dlfcn.h>
 #else
 
 #endif 
@@ -654,7 +654,7 @@ void AppObject::DrawTestMenu()
                     State = TestState::Passed;
                     return true;
                 }
-                else
+                else if (Testmod == TestMode::C89)
                 {
                     UClib& ulib = *Com_r.OutPut;
                     auto ufunc = ulib.Get_Assembly().Find_Func(Test.FuncToCall);
@@ -674,6 +674,9 @@ void AppObject::DrawTestMenu()
                         #if UCodeLang_Platform_Windows
                         auto lib = LoadLibrary(dllfile.c_str());
                         auto functocall = GetProcAddress(lib, cfuncname.c_str());
+                        #elif UCodeLang_Platform_Posix
+                        auto lib = dlopen(dllfile.c_str(), RTLD_NOW);
+                        auto functocall = dlsym(lib,cfuncname.c_str());
                         #endif       
                         
                         UCodeLangAssert(functocall);
@@ -749,6 +752,8 @@ void AppObject::DrawTestMenu()
 
                         #if UCodeLang_Platform_Windows
                         FreeLibrary(lib);
+                        #elif UCodeLang_Platform_Posix
+                        dlclose(lib);
                         #endif      
 
                         String Type = "NativeC";
@@ -782,6 +787,10 @@ void AppObject::DrawTestMenu()
                         }
                     }
                     return true;
+                }
+                else 
+                {
+                    UCodeLangUnreachable();
                 }
             }
         };

@@ -1,7 +1,7 @@
 #pragma once
 #include "../UCodeLangNameSpace.hpp"
 #include "../LangDef.hpp"
-#include <xhash>
+#include <functional>//hash
 UCodeLangStart
 
 
@@ -166,7 +166,7 @@ public:
 	{
 		if (has_value())
 		{
-			return value()
+			return value();
 		}
 		else
 		{

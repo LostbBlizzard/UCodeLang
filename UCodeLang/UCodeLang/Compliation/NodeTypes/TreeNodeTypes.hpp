@@ -516,7 +516,7 @@ struct FuncSignatureNode :Node
 	TypeNode _ReturnType;
 	AccessModifierType _Access = AccessModifierType::Default;
 
-	ExternType ExternType = ExternType::NoExternKeyWord;
+	ExternType Externtype = ExternType::NoExternKeyWord;
 	bool _HasDynamicKeyWord = false;
 	bool _HasEvalKeyWord = false;
 	bool _HasUnsafeKeyWord = false;
