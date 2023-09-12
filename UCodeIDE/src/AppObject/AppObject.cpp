@@ -668,14 +668,15 @@ void AppObject::DrawTestMenu()
                         Cmd += " -shared -std=c89"; 
                         Cmd += " -o " + dllfile.generic_string();
                         system(Cmd.c_str());
-                        
-                        #if UCodeLang_Platform_Windows
-                        auto lib = LoadLibrary(dllfile.c_str());
 
                         auto cfuncname = C89Backend::UpdateToCindentifier(ufunc->DecorationName);
-                        auto functocall = GetProcAddress(lib, cfuncname.c_str());
-                        UCodeLangAssert(functocall);
 
+                        #if UCodeLang_Platform_Windows
+                        auto lib = LoadLibrary(dllfile.c_str());
+                        auto functocall = GetProcAddress(lib, cfuncname.c_str());
+                        #endif       
+                        
+                        UCodeLangAssert(functocall);
                         RetValue = std::make_unique<Byte[]>(Test.RunTimeSuccessSize);
                         {
                             if (ufunc->RetType._Type == ReflectionTypes::Bool)
@@ -696,10 +697,19 @@ void AppObject::DrawTestMenu()
                                 UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
                                 memcpy(RetValue.get(), &val, sizeof(val));
                             }
+                            else  if (ufunc->RetType._Type == ReflectionTypes::uInt16
+                                || ufunc->RetType._Type == ReflectionTypes::sInt16)
+                            {
+                                using GetValueFunc = Int16(*)();
+                                auto val = ((GetValueFunc)functocall)();
+
+                                UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
+                                memcpy(RetValue.get(), &val, sizeof(val));
+                            }
                             else  if (ufunc->RetType._Type == ReflectionTypes::uInt32
                                 || ufunc->RetType._Type == ReflectionTypes::sInt32)
                             {
-                                using GetValueFunc =int(*)();
+                                using GetValueFunc =Int32(*)();
                                 auto val = ((GetValueFunc)functocall)();
 
                                 UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
@@ -737,7 +747,7 @@ void AppObject::DrawTestMenu()
                         }
 
 
-
+                        #if UCodeLang_Platform_Windows
                         FreeLibrary(lib);
                         #endif      
 
