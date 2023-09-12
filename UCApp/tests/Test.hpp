@@ -106,13 +106,13 @@ UCodeTestStart
 		TestInfo("Float_Test_ret_1_Float","BasicTests/main.uc","Float_Test",SuccessCondition::RunTimeValue,(UCodeLang::float32)1.5),
 
 		TestInfo("BasicObjects_0","Objects/BasicObjects.uc","Main2",SuccessCondition::Compilation),
-		TestInfo("NewAndDrop","NewAndDrop/main.uc","Main",SuccessCondition::RunTimeValue,(UCodeLang::Byte)0),
+		TestInfo("NewAndDrop","NewAndDrop/main.uc","main",SuccessCondition::RunTimeValue,(UCodeLang::Byte)0),
 		TestInfo("genericWithMemberAccess","Syntax/genericWithMemberAccess.uc","Main",SuccessCondition::CompilationFail),
 
 		TestInfo("scopetest","BasicTests/scopetest.uc","Main",SuccessCondition::RunTimeValue,(UCodeLang::Byte)0),
 		TestInfo("BasicObjects_ret_1","Objects/BasicObjects2.uc","Main",SuccessCondition::RunTimeValue,(UCodeLang::Byte)1),
 
-		TestInfo("GenericSize_t ret 4","Objects/GenericSize_t.uc","Main",SuccessCondition::RunTimeValue,sizeof(int)),
+		TestInfo("GenericSize_t_ret_4","Objects/GenericSize_t.uc","Main",SuccessCondition::RunTimeValue,sizeof(int)),
 		TestInfo("DependencyCycle","Objects/DependencyCycle.uc","n/a",SuccessCondition::CompilationFail),
 
 		TestInfo("pointers1","BasicTests/pointers.uc","main",SuccessCondition::RunTimeValue,(int)1),
@@ -125,7 +125,7 @@ UCodeTestStart
 		TestInfo("loops4","BasicTests/loops.uc","main_do",SuccessCondition::RunTimeValue,(int)10),
 
 
-		TestInfo("Func 1","BasicTests/Func.uc","main",SuccessCondition::RunTimeValue,(int)0),
+		TestInfo("Func_1","BasicTests/Func.uc","main",SuccessCondition::RunTimeValue,(int)0),
 		TestInfo("MemberInit","Objects/MemberInit.uc","main",SuccessCondition::RunTimeValue,(int)1),
 		TestInfo("Constructor","Objects/Constructor.uc","main",SuccessCondition::RunTimeValue,(float)0),
 		TestInfo("MemberCall","Objects/MemberCall.uc","main",SuccessCondition::RunTimeValue,(int)0),
@@ -134,11 +134,11 @@ UCodeTestStart
 
 		TestInfo("OperatorOverloading","Objects/OperatorOverloading.uc","main",SuccessCondition::RunTimeValue,Vec2(0,0)),
 
-		TestInfo("Enum 1","Objects/Enum.uc","main",SuccessCondition::RunTimeValue,(int)1),
-		TestInfo("Enum 2","Objects/Enum2.uc","main",SuccessCondition::RunTimeValue,(float)1.5),
+		TestInfo("Enum_1","Objects/Enum.uc","main",SuccessCondition::RunTimeValue,(int)1),
+		TestInfo("Enum_2","Objects/Enum2.uc","main",SuccessCondition::RunTimeValue,(float)1.5),
 
-		TestInfo("FuncPointer 1","BasicTests/FuncPointer.uc","main",SuccessCondition::RunTimeValue,(int)0),
-		TestInfo("FuncPointer 2","Objects/FuncPointer.uc","main",SuccessCondition::RunTimeValue,(int)0),
+		TestInfo("FuncPointer_1","BasicTests/FuncPointer.uc","main",SuccessCondition::RunTimeValue,(int)0),
+		TestInfo("FuncPointer_2","Objects/FuncPointer.uc","main",SuccessCondition::RunTimeValue,(int)0),
 
 		TestInfo("GenericsParameter","Generics/GenericsParameter.uc","main",SuccessCondition::RunTimeValue,(size_t)0),
 		TestInfo("GenericType","Generics/GenericType.uc","main",SuccessCondition::RunTimeValue,(size_t)0),
@@ -193,8 +193,8 @@ UCodeTestStart
 		TestInfo("outfunc_1","BasicTests/outfunc.uc","main",SuccessCondition::RunTimeValue,(int)10),
 		TestInfo("outfunc_2","BasicTests/outfunc2.uc","main",SuccessCondition::RunTimeValue,(int)10),
 
-		TestInfo("outoforder 1","OutofOrder/eval.uc","main",SuccessCondition::RunTimeValue,(int)1),
-		TestInfo("tag 1","Eval/tag1.uc","main",SuccessCondition::Compilation),
+		TestInfo("outoforder_1","OutofOrder/eval.uc","main",SuccessCondition::RunTimeValue,(int)1),
+		TestInfo("tag_1","Eval/tag1.uc","main",SuccessCondition::Compilation),
 
 		TestInfo("typeerror","Syntax/typeerror.uc","main",SuccessCondition::RunTimeValue,(bool)1),
 		TestInfo("Result","Syntax/Result.uc","main",SuccessCondition::RunTimeValue,(int)1),

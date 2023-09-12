@@ -1115,13 +1115,15 @@ void SystematicAnalysis::OnAttributeNode(const AttributeNode& node)
 	}
 	else if (_PassType == PassType::FixedTypes)
 	{	
+		String V;
+		node._ScopedName.GetScopedName(V);
+
 		auto SybID = Symbol_GetSymbolID(node);
-		auto& Syb = Symbol_AddSymbol(SymbolType::UsedTag,"_","_",AccessModifierType::Private);
+		auto& Syb = Symbol_AddSymbol(SymbolType::UsedTag,CompilerGeneratedStart + V + CompilerGeneratedEnd, CompilerGeneratedStart + V + CompilerGeneratedEnd, AccessModifierType::Private);
 		_Table.AddSymbolID(Syb, SybID);
 		
 
-		String V;
-		node._ScopedName.GetScopedName(V);
+		
 		auto AttOp = Symbol_GetSymbol(V,SymbolType::Tag_class);
 		if (AttOp)
 		{
@@ -1344,6 +1346,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 		Syb.Info.reset(ClassInf);
 		Syb.VarType.SetType(Syb.ID);
 
+		ClassInf->_IsExternalC = Node.IsExternCStruct;
 		if (Isgeneric_t)
 		{
 			_Table.AddScope(GenericTestStr);
@@ -1962,7 +1965,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 
 	auto UseingIndex = _Table.GetUseingIndex();
-	OnAttributesNode(node._Attributes);
+	
 	if (_PassType == PassType::GetTypes)
 	{
 		SymbolType Type = IsGenericS && IsgenericInstantiation == false ?
@@ -1979,6 +1982,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		newInfo->FullName = FullName;
 		newInfo->_FuncType = FuncType;
 		newInfo->IsUnsafe = node._Signature._HasUnsafeKeyWord;
+		newInfo->IsExternC = node._Signature.ExternType != ExternType::ExternUCode;
 
 		syb->Info.reset(newInfo);
 
@@ -2119,6 +2123,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		_Table.RemoveScope();
 		return;
 	}
+	OnAttributesNode(node._Attributes);
 	FuncInfo* Info = syb->Get_Info<FuncInfo>();
 
 
@@ -2365,7 +2370,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		}
 
 
-		if (node._Signature._HasExternKeyWord)
+		if (node._Signature.ExternType != ExternType::NoExternKeyWord)
 		{
 			bool HasBody = node._Body.has_value();
 			if (HasBody)
@@ -5199,6 +5204,7 @@ IRidentifierID SystematicAnalysis::IR_Build_ConvertToIRClassIR(const Symbol& Cla
 		auto& Item = clasinfo->Fields[i];
 		auto& Out = IRStuct->Fields[i];
 		Out.Type = IR_ConvertToIRType(Item.Type);
+		Out.Offset = Type_GetOffset(*clasinfo,&Item).value();
 	}
 
 	_Symbol_SybToIRMap[ClassSybID] = V;
@@ -6183,9 +6189,34 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 			{
 				auto& Item = (*Field);
 				Item->Type = syb->VarType;
-
-				Class.Size += Type_GetSize(Item->Type).value_or(0);
 				
+				
+
+
+				if (&Class.Fields.back() == Item)
+				{
+					const FieldInfo* bigestoffsetfield = nullptr;
+					Optional<size_t> bigestoffset;
+					for (auto& cfield : Class.Fields)
+					{
+						auto offset = Type_GetOffset(Class, &cfield).value();
+						if (offset > bigestoffset || !bigestoffset.has_value())
+						{
+							bigestoffset = offset;
+							bigestoffsetfield = &cfield;
+						}
+					}
+
+					if (bigestoffset.has_value()) {
+						Class.Size = bigestoffset.value();
+						Class.Size += Type_GetSize(bigestoffsetfield->Type).value();
+					}
+					else
+					{
+						Class.Size = 0;
+					}
+				}
+
 				if (node._Expression._Value) 
 				{
 					Class._WillHaveFieldInit= true;
@@ -6197,7 +6228,6 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 			}
 
 			
-
 		}
 	}
 	_LookingForTypes.pop();
@@ -7883,11 +7913,17 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 				LogError_CantUseThisInStaticFunction(NeverNullptr(node._ScopedName[Start]._token));
 				return false;
 			}
-
+			
 
 
 			auto& Func = _FuncStack.back().Pointer;
 			auto ObjectType = Func->GetObjectForCall();
+			if (Type_IsUnMapType(*ObjectType))
+			{
+				Out.Type = *Func->GetObjectForCall();
+				Out._Symbol = Symbol_GetSymbol(*ObjectType).value().value();
+				return true;
+			}
 
 			auto objecttypesyb = Symbol_GetSymbol(*ObjectType).value();
 			ClassInfo* V = objecttypesyb->Get_Info<ClassInfo>();
@@ -9606,12 +9642,18 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 		if (!Context_IsInThisFuncCall())
 		{
 			LogError_CantUseThisInStaticFunction(FToken);
+			_LastExpressionType = TypeSymbol(TypesEnum::Null);
+			return;
 		}
 
 		
 		auto& Func = _FuncStack.back();
 		auto ObjectType = Func.Pointer->GetObjectForCall();
-
+		if (Type_IsUnMapType(*ObjectType))
+		{
+			_LastExpressionType = *ObjectType;
+			return;
+		}
 		auto objecttypesyb = Symbol_GetSymbol(*ObjectType).value();
 		ClassInfo* V = objecttypesyb->Get_Info<ClassInfo>();
 
@@ -12300,7 +12342,7 @@ void SystematicAnalysis::Assembly_AddClass(const Vector<Unique_ptr<AttributeNode
 	
 	TypeSymbol AsType = TypeSymbol(ClassSyb->ID);
 
-	VClass.Size = 0;
+	VClass.Size = Type_GetSize(AsType).value();
 	VClass.TypeID = Type_GetTypeID(AsType._Type, AsType._CustomTypeSymbol);
 	
 	for (const auto& node : Class->Fields)
@@ -12312,10 +12354,9 @@ void SystematicAnalysis::Assembly_AddClass(const Vector<Unique_ptr<AttributeNode
 	
 		Item.Name =ScopeHelper::GetNameFromFullName(node.Name);
 		Item.Type = Assembly_ConvertToType(node.Type);
-		Item.offset = VClass.Size;
-		VClass.Size += Size;
+		Item.offset = Type_GetOffset(*Class,&node).value();
 	}
-	
+
 	for (const auto& Trait : Class->_InheritedTypes)
 	{
 		auto Typeid = Type_GetTypeID(TypesEnum::CustomType, Trait.Syb->ID);
@@ -12402,11 +12443,7 @@ void SystematicAnalysis::Assembly_AddEnum(const NeverNullPtr<Symbol> ClassSyb)
 
 
 
-				size_t TypeSize = 0;
-				for (auto& Field : Sym->Get_Info<ClassInfo>()->Fields)
-				{
-					TypeSize += Type_GetSize(Field.Type).value();
-				}
+				size_t TypeSize = Type_GetSize(Type).value();
 				if (TypeSize > MaxSize)
 				{
 					MaxSize = TypeSize;
@@ -14330,7 +14367,9 @@ void  SystematicAnalysis::Symbol_Update_ClassSym_ToFixedTypes(NeverNullPtr<Symbo
 		}
 		else
 		{
-			LogError_TypeDependencyCycle(NeverNullptr(classNode._className.token), Vp);
+			if (_ClassDependencies.size() > 1) {
+				LogError_TypeDependencyCycle(NeverNullptr(classNode._className.token), Vp);
+			}
 		}
 
 		/*
@@ -14694,18 +14733,101 @@ bool SystematicAnalysis::Type_GetOffset(const ClassInfo& Type, const FieldInfo* 
 {
 	UAddress offset = 0;
 	
-
-	for (auto& Item : Type.Fields)
+	bool packed = true;//for testing
+	if (Type._IsExternalC)
 	{
-		if (&Item == Field)
+		auto maxalignment = _Settings->PtrSize == IntSizes::Int64 ? 8 : 4;
+		for (auto& Item : Type.Fields)
 		{
-			OutOffset = offset;
-			return true;
+			UAddress FieldSize = 0;
+			Type_GetSize(Item.Type, FieldSize);
+
+
+
+			auto alignment = FieldSize;
+			if (alignment > maxalignment)
+			{
+				alignment = maxalignment;
+			}
+
+			auto misalignment = offset % alignment;
+			auto padding = alignment - misalignment;
+
+			if (&Item != &Type.Fields.front()) {
+				offset += padding;
+			}
+			if (&Item == Field)
+			{
+				OutOffset = offset;
+				return true;
+			}
+			
 		}
-		UAddress FieldSize = 0;
-		Type_GetSize(Item.Type, FieldSize);
-		offset += FieldSize;
 	}
+	else if (packed)
+	{
+		for (auto& Item : Type.Fields)
+		{
+			if (&Item == Field)
+			{
+				OutOffset = offset;
+				return true;
+			}
+			UAddress FieldSize = 0;
+			Type_GetSize(Item.Type, FieldSize);
+			offset += FieldSize;
+		}
+	}
+	else
+	{
+		//UCodePacking
+		Vector<const FieldInfo*>  bestorder;
+		bestorder.resize(Type.Fields.size());
+		
+		for (size_t i = 0; i < Type.Fields.size(); i++)
+		{
+			bestorder[i] = &Type.Fields[i];
+		}
+
+		std::sort(bestorder.begin(), bestorder.end(), [this](const FieldInfo* A, const FieldInfo* B)
+		{
+
+				return Type_GetSize(A->Type).value() > Type_GetSize(B->Type).value();
+		});
+
+		auto maxalignment = _Settings->PtrSize == IntSizes::Int64 ? 8 : 4;
+
+		
+
+		for (auto& Item : bestorder)
+		{
+			
+			UAddress FieldSize = 0;
+			Type_GetSize(Item->Type, FieldSize);
+
+
+
+			auto alignment = FieldSize;
+			
+			if (alignment > maxalignment)
+			{
+				alignment = maxalignment;
+			}
+
+			auto misalignment = offset % alignment;
+			auto padding = alignment - misalignment;
+
+			if (Item != bestorder.back()) {
+				offset += padding;
+			}
+			if (Item == Field)
+			{
+				OutOffset = offset;
+				return true;
+			}
+		}
+	}
+
 
 	OutOffset = offset;
 	return false;
@@ -18844,16 +18966,23 @@ void SystematicAnalysis::TryLogError_OnWritingVar(NeverNullPtr<Symbol> Symbol, c
 
 String SystematicAnalysis::IR_MangleName(const FuncInfo* Func)
 {
-	Vector<ClassMethod::Par> Vect;
-	for (auto& Item : Func->Pars)
+	if (Func->IsExternC)
 	{
-		ClassMethod::Par V;
-		V.Type = Assembly_ConvertToType(Item.Type);
-		V.IsOutPar = Item.IsOutPar;
-		Vect.push_back(V);
+		return Func->FullName;
 	}
+	else
+	{
+		Vector<ClassMethod::Par> Vect;
+		for (auto& Item : Func->Pars)
+		{
+			ClassMethod::Par V;
+			V.Type = Assembly_ConvertToType(Item.Type);
+			V.IsOutPar = Item.IsOutPar;
+			Vect.push_back(V);
+		}
 
-	return NameDecoratior::GetDecoratedName(Func->FullName, Vect);
+		return NameDecoratior::GetDecoratedName(Func->FullName, Vect);
+	}
 }
 
 IRidentifierID SystematicAnalysis::IR_GetIRID(const FuncInfo* Func)

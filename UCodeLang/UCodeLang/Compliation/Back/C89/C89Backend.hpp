@@ -18,6 +18,8 @@ public:
 	String GetBackEndName()override { return "CLang89"; };
 	String GetOutputExtWithDot()override { return ".c"; }
 	static BackEndObject* MakeObject() { return new C89Backend(); }
+
+	static String UpdateToCindentifier(const String& Value);
 private:
 	String OutBuffer;
 	const IRBuilder* _Input =nullptr;
@@ -27,17 +29,12 @@ private:
 		BinaryVectorMap<IRInstruction*, String> PointerToName;
 		Vector<IRInstruction*> TepPushedParameters;
 
-		size_t StrValue = 0;
+		
+		String Val;
 
-		String GetName(IRInstruction* Ptr)
-		{
-			char r = 'A' + (char)StrValue;
-			StrValue++;
-			auto V = (String)String_view(&r, 1);
-			PointerToName[Ptr] = V;
-			return V;
-		}
+		String GetName(IRInstruction* Ptr);
 	};
+	IRType OutType;
 	String ToString();
 
 	void AddSybToString(UCodeLang::String& r);
@@ -50,7 +47,7 @@ private:
 
 	String ToString(ToStringState& State, IRInstruction& Ins, IROperator& Value);
 	String ToStringBinary(ToStringState& State, IRInstruction* Ins, const char* V);
-	String UpdateToCindentifier(const 	String& Value);
+	
 	String FromIDToCindentifier(IRidentifierID Value);
 };
 UCodeLangEnd
