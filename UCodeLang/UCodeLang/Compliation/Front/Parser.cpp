@@ -930,7 +930,7 @@ GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 
 	if (funcToken->Type == TokenType::KeyWord_extern)
 	{
-		out.ExternType = ExternType::ExternUCode;
+		out.Externtype = ExternType::ExternUCode;
 		NextToken();
 
 		funcToken = TryGetToken();
@@ -945,15 +945,15 @@ GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 			auto& str = funcToken->Value._String;
 			if (str == "c")
 			{
-				out.ExternType = ExternType::ExternC;
+				out.Externtype = ExternType::ExternC;
 			}
 			else if(str == "ucode")
 			{
-				out.ExternType = ExternType::ExternUCode;
+				out.Externtype = ExternType::ExternUCode;
 			}
 			else if (str == "system")
 			{
-				out.ExternType = ExternType::ExternSystem;
+				out.Externtype = ExternType::ExternSystem;
 			}
 			else if (str == "C")
 			{

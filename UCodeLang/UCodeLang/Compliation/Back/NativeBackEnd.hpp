@@ -1,11 +1,10 @@
 #include "UCodeLang/LangCore/UCodeLangNameSpace.hpp"
 #include "UCodeLang/LangCore/LangDef.hpp"
 
-
 #if UCodeLang_Platform_Windows
 #include "Windows/WindowsBackEnd.hpp"
-#else 
-
+#elif UCodeLang_Platform_Linux
+#include "Linux/LinuxBackEnd.hpp"
 #endif// UCodeLang_Platform_Windows
 
 #if UCodeLang_CPUIs_x86_64
@@ -18,6 +17,8 @@ UCodeLangStart
 
 #if UCodeLang_Platform_Windows
 using NativePlatformBackEnd = WindowsBackEnd;
+#elif UCodeLang_Platform_Linux
+using NativePlatformBackEnd = LinuxBackEnd;
 #else
 using NativePlatformBackEnd = void*;
 #endif

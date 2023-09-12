@@ -334,7 +334,8 @@ void ParseLine(String_view Line)
 				auto& V = Line[i];
 				if (V == '-')
 				{
-					String_view arg = GetWord(Line.substr(i + 1));
+					auto NewStr =Line.substr(i + 1);
+					String_view arg = GetWord(NewStr);
 					size_t offsettomove = (arg.data() - &V);
 					offsettomove += arg.size();
 					i += offsettomove;
@@ -344,7 +345,8 @@ void ParseLine(String_view Line)
 						auto& Settings = _Compiler.Get_Settings();
 
 						if (V2 == ':') {
-							String_view arg2 = GetWord(Line.substr(i + 1));
+							auto newstr =Line.substr(i + 1);
+							String_view arg2 = GetWord(newstr);
 							Settings.AddArgValue(String(arg), String(arg2));
 
 							size_t offsettomove2 = (arg2.data() - &V);

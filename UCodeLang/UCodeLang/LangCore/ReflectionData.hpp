@@ -806,6 +806,7 @@ public:
 
 			}
 		}
+		return nullptr;
 	}
 
 	const ClassMethod* Find_Func(const String_view& FullName) const
@@ -825,6 +826,7 @@ public:
 
 			}
 		}
+		return nullptr;
 	}
 
 	Vector<ClassMethod*>  Find_Funcs(const String_view& FullName)

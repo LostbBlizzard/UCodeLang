@@ -148,10 +148,13 @@
 #endif // DEBUG
 
 
-
+#if UCodeLangMSVC
 #define UCodeLangNoDiscard [[nodiscard]]
-
-
+#elif UCodeLangGNUC
+#define UCodeLangNoDiscard __attribute__((__warn_unused_result__))
+#else
+#define UCodeLangNoDiscard [[nodiscard]]
+#endif
 
 
 #define UCodeLangConstexprForceinline constexpr UCodeLangForceinline
