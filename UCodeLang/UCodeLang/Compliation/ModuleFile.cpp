@@ -250,9 +250,15 @@ bool ModuleFile::DownloadModules(const ModuleIndex& Modules,OptionalRef<String> 
 		auto file = Modules.FindFile(Item.Identifier);
 		if (!file.has_value() && Item.WebLink)
 		{
-			const auto& WebLink = Item.WebLink;
+			const auto& WebLink = Item.WebLink.value();
 		
-		
+			bool isgithub = StringHelper::StartWith(WebLink,"https://github.com");
+
+			if (LogsOut.has_value())
+			{
+				LogsOut.value() += "Download Modules is not added yet";
+			}
+			return false;
 		}
 	}
 

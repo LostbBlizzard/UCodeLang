@@ -392,6 +392,29 @@ GotNodeType Parser::DoClassType(ClassNode* output, const Token* ClassToken, Gene
 	output->_Access = GetModifier();
 	output->_Attributes = Get_TepAttributes();
 
+	if (ColonToken->Type == TokenType::KeyWord_extern)
+	{
+		NextToken();
+		auto strtoken = TryGetToken();
+		
+		TokenTypeCheck(strtoken,TokenType::String_literal);
+		if (strtoken->Type == TokenType::String_literal)
+		{
+			if (strtoken->Value._String == "c")
+			{
+				NextToken();
+
+				output->IsExternCStruct = true;
+				ColonToken = TryGetToken();
+			}
+			else
+			{
+				_ErrorsOutput->AddError(ErrorCodes::InValidName, strtoken->OnLine, strtoken->OnPos, "String Must be 'c'");
+			}
+
+		}
+	}
+
 	TokenTypeCheck(ColonToken, TokenType::Colon);
 	NextToken();
 
@@ -907,13 +930,35 @@ GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 
 	if (funcToken->Type == TokenType::KeyWord_extern)
 	{
-		out._HasExternKeyWord = true;
+		out.ExternType = ExternType::ExternUCode;
 		NextToken();
 
 		funcToken = TryGetToken();
 		if (funcToken->Type == TokenType::KeyWord_dynamic)
 		{
 			out._HasDynamicKeyWord = true;
+			NextToken();
+			funcToken = TryGetToken();
+		}
+		else if (funcToken->Type == TokenType::String_literal)
+		{
+			auto& str = funcToken->Value._String;
+			if (str == "c")
+			{
+				out.ExternType = ExternType::ExternC;
+			}
+			else if(str == "ucode")
+			{
+				out.ExternType = ExternType::ExternUCode;
+			}
+			else if (str == "system")
+			{
+				out.ExternType = ExternType::ExternSystem;
+			}
+			else if (str == "C")
+			{
+				_ErrorsOutput->AddError(ErrorCodes::InValidName, funcToken->OnLine, funcToken->OnPos, "did you mean 'extern c'");
+			}
 			NextToken();
 			funcToken = TryGetToken();
 		}

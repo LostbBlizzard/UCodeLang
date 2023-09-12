@@ -167,33 +167,6 @@ $Result<T,E> enum:
   ret 10;
  else:
   ret 0;
-
-|main_else[] -> int:
- if 1 == 2:
-  ret 10;
- else:
-  ret 0;
-
-
-|main_while[] -> int:
- 
- int A = 0;
- while A < 10:
-  A++;
-
- ret A;
-
-
-|main_do[] -> int:
- 
- int A = 0;
-
- do:
-  A++;
- while A < 10;
-
- ret A;
-
 /*
 |main[] -> async<bool>:
  async<int> a = await func();
@@ -453,8 +426,15 @@ void AppObject::DrawTestMenu()
 #if UCodeLangDebug   
 
     static constexpr size_t TestCount = ULangTest::Tests.size();
+
+    enum class TestMode
+    {
+        UCodeLang,
+        C89,
+    };
     struct TestInfo
     {
+        TestMode Testmode;
         size_t MinTestIndex = 0;
         size_t MaxTestCount = 30;//40;//ULangTest::Tests.size();
 
@@ -507,7 +487,7 @@ void AppObject::DrawTestMenu()
                 out << "]\n";
                 return _Compiler.Get_Errors().Has_Errors();
             }
-            bool RunTestForFlag(const ULangTest::TestInfo& Test, UCodeLang::OptimizationFlags flag)
+            bool RunTestForFlag(const ULangTest::TestInfo& Test, UCodeLang::OptimizationFlags flag,TestMode Testmod)
             {
 
                 Logs.clear();
@@ -516,7 +496,14 @@ void AppObject::DrawTestMenu()
                 using namespace ULangTest;
 
                 Compiler::CompilerPathData paths;
+
+
                 Compiler Com;
+                if (Testmod == TestMode::C89)
+                {
+                    Com.Set_BackEnd(C89Backend::MakeObject);
+                }
+
                 Com.Get_Settings()._Flags = flag;
                 Com.Get_Settings().PtrSize = IntSizes::Native;
 
@@ -527,7 +514,7 @@ void AppObject::DrawTestMenu()
                 OutFileDir = p.parent_path().generic_string() + "/" + +Test.TestName + "/";
 
                 std::filesystem::create_directories(OutFileDir);
-                std::string OutFilePath = OutFileDir + Test.TestName + ULangTest::ModeType(flag) + ".ulibtest";
+                std::string OutFilePath = OutFileDir + Test.TestName + ULangTest::ModeType(flag) + ".ulibtest" + Com.GetOutputExtWithDot();
 
 
 
@@ -595,45 +582,166 @@ void AppObject::DrawTestMenu()
                     return false;
                 }
 
-
-                UClib lib;
-                if (!UClib::FromFile(&lib, OutFilePath))
+                if (Testmod == TestMode::UCodeLang)
                 {
-                    State = TestState::Fail;
-
-                    Logs += (String)"fail from test [Cant Open ULib File] '" + Test.TestName + ModeType(flag) + "'" + '\n';
-                    return false;
-                }
-
-                RunTimeLangState state;
-                RunTimeLib rLib;
-                rLib.Init(&lib);
-                state.AddLib(&rLib);
-                state.LinkLibs();
-                {
-                    Interpreter RunTime;
-                    RunTime.Init(&state);
-
-                    Interpreter::Return_t r;
-                    try
+                    UClib lib;
+                    if (!UClib::FromFile(&lib, OutFilePath))
                     {
-                        r = RunTime.Call(Test.FuncToCall);
+                        State = TestState::Fail;
 
-                    }
-                    catch (const std::exception& ex)
-                    {
-                        State = TestState::Exception;
-
-                        Logs += (String)"fail from test [exception] '" + ex.what() + "' : " + "'" + Test.TestName + "'" + ModeType(flag) + '\n';
+                        Logs += (String)"fail from test [Cant Open ULib File] '" + Test.TestName + ModeType(flag) + "'" + '\n';
                         return false;
                     }
 
-                    if (Test.Condition == SuccessCondition::RunTimeValue)
+                    RunTimeLangState state;
+                    RunTimeLib rLib;
+                    rLib.Init(&lib);
+                    state.AddLib(&rLib);
+                    state.LinkLibs();
                     {
-                        RetValue = std::make_unique<Byte[]>(Test.RunTimeSuccessSize);
-                        RunTime.Get_Return(RetValue.get(), Test.RunTimeSuccessSize);
+                        Interpreter RunTime;
+                        RunTime.Init(&state);
 
-                        String Type = "Interpreter";
+                        Interpreter::Return_t r;
+                        try
+                        {
+                            r = RunTime.Call(Test.FuncToCall);
+
+                        }
+                        catch (const std::exception& ex)
+                        {
+                            State = TestState::Exception;
+
+                            Logs += (String)"fail from test [exception] '" + ex.what() + "' : " + "'" + Test.TestName + "'" + ModeType(flag) + '\n';
+                            return false;
+                        }
+
+                        if (Test.Condition == SuccessCondition::RunTimeValue)
+                        {
+                            RetValue = std::make_unique<Byte[]>(Test.RunTimeSuccessSize);
+                            RunTime.Get_Return(RetValue.get(), Test.RunTimeSuccessSize);
+
+                            String Type = "Interpreter";
+
+                            bool IsSame = true;
+                            for (size_t i = 0; i < Test.RunTimeSuccessSize; i++)
+                            {
+                                if (RetValue[i] != Test.RunTimeSuccess[i])
+                                {
+                                    IsSame = false;
+                                    break;
+                                }
+                            }
+                            if (IsSame)
+                            {
+                                Logs += "Success from test '" + (String)Test.TestName + "'" + ModeType(flag) + " " + Type + '\n';
+                            }
+                            else
+                            {
+                                State = TestState::Fail;
+
+                                Logs += "fail from got value '";
+                                Logs += OutputBytesToString(RetValue.get(), Test.RunTimeSuccessSize);
+
+                                Logs += "' but expecting '";
+                                Logs += OutputBytesToString(Test.RunTimeSuccess.get(), Test.RunTimeSuccessSize);
+                                Logs += ": '" + Type + "," + ModeType(flag) + "'" + Type + '\n';
+                                return false;
+                            }
+                        }
+                        RunTime.UnLoad();
+                    }
+                    State = TestState::Passed;
+                    return true;
+                }
+                else
+                {
+                    UClib& ulib = *Com_r.OutPut;
+                    auto ufunc = ulib.Get_Assembly().Find_Func(Test.FuncToCall);
+                    UCodeLangAssert(ufunc);
+                    {
+                        // String filetxt = Compiler::GetTextFromFile(OutFilePath);
+
+                        Path  dllfile = OutFilePath + ".lib";
+                        Path Testablefile = OutFilePath;
+                        String Cmd = "gcc " + Testablefile.generic_string();
+                        Cmd += " -shared -std=c89"; 
+                        Cmd += " -o " + dllfile.generic_string();
+                        system(Cmd.c_str());
+                        
+                        #if UCodeLang_Platform_Windows
+                        auto lib = LoadLibrary(dllfile.c_str());
+
+                        auto cfuncname = C89Backend::UpdateToCindentifier(ufunc->DecorationName);
+                        auto functocall = GetProcAddress(lib, cfuncname.c_str());
+                        UCodeLangAssert(functocall);
+
+                        RetValue = std::make_unique<Byte[]>(Test.RunTimeSuccessSize);
+                        {
+                            if (ufunc->RetType._Type == ReflectionTypes::Bool)
+                            {
+                                using GetValueFunc = bool(*)();
+                                auto val = ((GetValueFunc)functocall)();
+
+                                UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
+                                memcpy(RetValue.get(), &val, sizeof(val));
+                            }
+                            else if (ufunc->RetType._Type == ReflectionTypes::sInt8
+                                || ufunc->RetType._Type == ReflectionTypes::uInt8
+                                || ufunc->RetType._Type == ReflectionTypes::Char)
+                            {
+                                using GetValueFunc = UInt8(*)();
+                                auto val = ((GetValueFunc)functocall)();
+
+                                UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
+                                memcpy(RetValue.get(), &val, sizeof(val));
+                            }
+                            else  if (ufunc->RetType._Type == ReflectionTypes::uInt32
+                                || ufunc->RetType._Type == ReflectionTypes::sInt32)
+                            {
+                                using GetValueFunc =int(*)();
+                                auto val = ((GetValueFunc)functocall)();
+
+                                UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
+                                memcpy(RetValue.get(), &val, sizeof(val));
+                            }
+                            else  if (ufunc->RetType._Type == ReflectionTypes::float32)
+                            {
+                                using GetValueFunc = float32(*)();
+                                auto val = ((GetValueFunc)functocall)();
+
+                                UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
+                                memcpy(RetValue.get(), &val, sizeof(val));
+                            }
+                            else  if (ufunc->RetType._Type == ReflectionTypes::float64)
+                            {
+                                using GetValueFunc = float64(*)();
+                                auto val = ((GetValueFunc)functocall)();
+
+                                UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
+                                memcpy(RetValue.get(), &val, sizeof(val));
+                            }
+                            else  if (ufunc->RetType._Type == ReflectionTypes::uIntPtr
+                                || ufunc->RetType._Type == ReflectionTypes::sIntPtr)
+                            {
+                                using GetValueFunc = uintptr_t(*)();
+                                auto val = ((GetValueFunc)functocall)();
+
+                                UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
+                                memcpy(RetValue.get(), &val, sizeof(val));
+                            }
+                            else
+                            {
+                                UCodeLangUnreachable();
+                            }
+                        }
+
+
+
+                        FreeLibrary(lib);
+                        #endif      
+
+                        String Type = "NativeC";
 
                         bool IsSame = true;
                         for (size_t i = 0; i < Test.RunTimeSuccessSize; i++)
@@ -647,6 +755,8 @@ void AppObject::DrawTestMenu()
                         if (IsSame)
                         {
                             Logs += "Success from test '" + (String)Test.TestName + "'" + ModeType(flag) + " " + Type + '\n';
+                            State = TestState::Passed;
+                            return true;
                         }
                         else
                         {
@@ -661,10 +771,8 @@ void AppObject::DrawTestMenu()
                             return false;
                         }
                     }
-                    RunTime.UnLoad();
+                    return true;
                 }
-                State = TestState::Passed;
-                return true;
             }
         };
 
@@ -725,6 +833,13 @@ void AppObject::DrawTestMenu()
 
     if (ImGui::Begin("Tests"))
     {
+        static const Vector<ImguiHelper::EnumValue<TestMode>> TestModeList =
+        {
+            { "UCodeLang",TestMode::UCodeLang },
+            { "C89",TestMode::C89},
+        };
+
+
         const  ImVec4 ColorRed = { 0.839, 0.129, 0.051,1 };
         const  ImVec4 ColorGreen = { 0.267, 0.788, 0.2,1 };
         const  ImVec4 ColorGray = { 0.431, 0.427, 0.365,1 };
@@ -748,6 +863,12 @@ void AppObject::DrawTestMenu()
                 }
             }
             UCodeLang::OptimizationFlags flags = TestWindowData.Flags;
+            bool FlagsWasUpdated = false;
+
+            if (ImguiHelper::EnumField("BackEnd", TestWindowData.Testmode, TestModeList))
+            {
+                FlagsWasUpdated = true;
+            }
 
             if (TestWindowData.DebugMode)
             {
@@ -775,18 +896,18 @@ void AppObject::DrawTestMenu()
                     auto& Thread = TestWindowData.Threads[i];
 
 
-                    Thread = std::make_unique< std::future<bool>>(std::async(std::launch::async, [i, flags]
+                    Thread = std::make_unique< std::future<bool>>(std::async(std::launch::async, [i, flags,testmod = TestWindowData.Testmode]
                         {
                             auto& ItemTest = ULangTest::Tests[i];
                             auto& ItemTestOut = TestWindowData.Testinfo[i];
 
                             ItemTestOut.State == TestInfo::TestState::Exception;
-                            ItemTestOut.RunTestForFlag(ItemTest, flags);
+                            ItemTestOut.RunTestForFlag(ItemTest, flags,testmod);
                             return false;
                         }));
                 }
             }
-            bool FlagsWasUpdated = false;
+           
             if (ImguiHelper::BoolEnumField("DebugFlag", TestWindowData.DebugMode))
             {
 
@@ -1027,13 +1148,13 @@ void AppObject::DrawTestMenu()
                                 auto& Thread = TestWindowData.Threads[i];
 
 
-                                Thread = std::make_unique< std::future<bool>>(std::async(std::launch::async, [i, flags]
+                                Thread = std::make_unique< std::future<bool>>(std::async(std::launch::async, [i, flags,testmod =TestWindowData.Testmode]
                                     {
                                         auto& ItemTest = ULangTest::Tests[i];
                                         auto& ItemTestOut = TestWindowData.Testinfo[i];
 
                                         ItemTestOut.State == TestInfo::TestState::Exception;
-                                        ItemTestOut.RunTestForFlag(ItemTest, flags);
+                                        ItemTestOut.RunTestForFlag(ItemTest, flags,testmod);
                                         return false;
                                     }));
                             }

@@ -37,87 +37,43 @@ struct AppInfo
 static AppInfo _This;
 #if UCodeLang_Platform_Windows
 #include <windows.h>
-bool SetPermanentEnvironmentVariable(LPCTSTR value, LPCTSTR data)
-{
-	HKEY hKey;
-	LPCTSTR keyPath = TEXT("System\\CurrentControlSet\\Control\\Session Manager\\Environment");
-	LSTATUS lOpenStatus = RegOpenKeyEx(HKEY_LOCAL_MACHINE, keyPath, 0, KEY_ALL_ACCESS, &hKey);
-	if (lOpenStatus == ERROR_SUCCESS)
-	{
-		LSTATUS lSetStatus = RegSetValueEx(hKey, value, 0, REG_SZ, (LPBYTE)data, wcslen(data) + 1);
-		RegCloseKey(hKey);
-
-		if (lSetStatus == ERROR_SUCCESS)
-		{
-			SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0, (LPARAM)"Environment", SMTO_BLOCK, 100, NULL);
-			return true;
-		}
-	}
-
-	return false;
-}
-VOID startup(LPCTSTR lpApplicationName)
-{
-	// additional information
-	STARTUPINFO si;
-	PROCESS_INFORMATION pi;
-
-	// set the size of the structures
-	ZeroMemory(&si, sizeof(si));
-	si.cb = sizeof(si);
-	ZeroMemory(&pi, sizeof(pi));
-
-	// start the program up
-	CreateProcess(lpApplicationName,   // the path
-	nullptr,        // Command line
-		NULL,           // Process handle not inheritable
-		NULL,           // Thread handle not inheritable
-		FALSE,          // Set handle inheritance to FALSE
-		0,              // No creation flags
-		NULL,           // Use parent's environment block
-		NULL,           // Use parent's starting directory 
-		&si,            // Pointer to STARTUPINFO structure
-		&pi             // Pointer to PROCESS_INFORMATION structure (removed extra parentheses)
-	);
-	while (true)
-	{
-
-	}
-	// Close process and thread handles. 
-	CloseHandle(pi.hProcess);
-	CloseHandle(pi.hThread);
-}
 #endif
 int App::main(int argc, char* argv[])
 {
 	namespace fs = std::filesystem;
-	
+	//while (true);
 
-	
+
+	bool IsDebuging = false;
+	#if UCodeLang_Platform_Windows
+	IsDebuging = IsDebuggerPresent();
+	#endif
 
 	#if UCodeLang_Platform_Windows
-	
 	#if UCodeLangDebug
-	auto ucodebinpath = UCodeLang::LangInfo::GetUCodeGlobalBin();
-	auto Ulangexepath = ucodebinpath / Path("ucodelang.exe");
-	Path ThisRuningExePath = argv[0];
-	bool ShouldCopy = true;
-	if (fs::exists(Ulangexepath))
+	if (IsDebuging) 
 	{
-		ShouldCopy = fs::file_size(Ulangexepath) != fs::file_size(ThisRuningExePath);
-		if (ShouldCopy)
+		auto ucodebinpath = UCodeLang::LangInfo::GetUCodeGlobalBin();
+		auto Ulangexepath = ucodebinpath / Path("ucodelang.exe");
+		Path ThisRuningExePath = argv[0];
+		bool ShouldCopy = true;
+		if (fs::exists(Ulangexepath))
 		{
-			fs::remove(Ulangexepath);
+			ShouldCopy = fs::file_size(Ulangexepath) != fs::file_size(ThisRuningExePath);
+			if (ShouldCopy)
+			{
+				fs::remove(Ulangexepath);
+			}
 		}
-	}
 
-	if (ShouldCopy && (ThisRuningExePath != Ulangexepath))
-	{
-		fs::copy_file(ThisRuningExePath, Ulangexepath);
+		if (ShouldCopy && (ThisRuningExePath != Ulangexepath))
+		{
+			fs::copy_file(ThisRuningExePath, Ulangexepath);
+		}
 	}
 	#endif // DEBUG
 	#endif
-
+	
 	//break point here
 
 	//SetPermanentEnvironmentVariable(R"PATH");
@@ -132,10 +88,6 @@ int App::main(int argc, char* argv[])
 		ParseLine(String_view(argv[i]));
 	}
 
-	bool IsDebuging = false;
-	#if UCodeLang_Platform_Windows
-	IsDebuging = IsDebuggerPresent();
-	#endif
 
 	#if UCodeLangDebug
 	if (IsDebuging) {
@@ -416,7 +368,7 @@ void ParseLine(String_view Line)
 		}
 		else
 		{
-			*_This.output << _Compiler.Get_Errors().ToString();
+			AppPrintin(_Compiler.Get_Errors().ToString());
 			_This.ExeRet = EXIT_SUCCESS;
 		}
 	}

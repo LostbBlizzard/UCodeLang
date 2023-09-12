@@ -321,12 +321,12 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 							r += "   //Source Line:";
 							String LineStr;
 
-							String* ItemValue=nullptr;
+							String* ItemValue = nullptr;
 							if (OpenedSourceFilesLines.HasValue(OnFile))
 							{
 								auto& Item = OpenedSourceFilesLines.at(OnFile);
 
-								if (Val->LineNumber-1 < Item.size()) {
+								if (Val->LineNumber - 1 < Item.size()) {
 									ItemValue = &Item[Val->LineNumber - 1];
 								}
 							}
@@ -342,11 +342,11 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 									{
 										Lines.push_back(std::move(str));
 									}
-									OpenedSourceFilesLines.AddValue(OnFile,std::move(Lines));
-								
+									OpenedSourceFilesLines.AddValue(OnFile, std::move(Lines));
+
 									auto& Item = OpenedSourceFilesLines.at(OnFile);
 
-									if (Val->LineNumber-1 < Item.size()) {
+									if (Val->LineNumber - 1 < Item.size()) {
 										ItemValue = &Item[Val->LineNumber - 1];
 									}
 								}
@@ -354,7 +354,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 								{
 									OpenedSourceFilesLines.AddValue(OnFile, {});
 								}
-								
+
 							}
 
 
@@ -374,7 +374,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 						{
 							auto& IRInfoVal = IRInfo.value();
 
-							
+
 							bool HasStackFrame = OnFuncFrameStackSize != 0;
 							if (StaticVariablesInitializeFunc == OnFunc)
 							{
@@ -386,7 +386,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 									IRInfoVal.ToString(LineState.State, &IRInfoVal._StaticInit, Unused);
 									IRStringStates.AddValue(Id, std::move(LineState));
 								}
-								OutputIRLineInfo(&IRInfoVal,&IRInfoVal._StaticInit, Val, IRStringStates.at(Id), r);
+								OutputIRLineInfo(&IRInfoVal, &IRInfoVal._StaticInit, Val, IRStringStates.at(Id), r);
 							}
 							else if (ThreadVariablesInitializeFunc == OnFunc)
 							{
@@ -419,62 +419,62 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 								{
 									OutputIRLineState LineState;
 									String Unused;
-IRInfoVal.ToString(LineState.State, &IRInfoVal._threaddeInit, Unused);
-IRStringStates.AddValue(Id, std::move(LineState));
+									IRInfoVal.ToString(LineState.State, &IRInfoVal._threaddeInit, Unused);
+									IRStringStates.AddValue(Id, std::move(LineState));
 								}
 								OutputIRLineInfo(&IRInfoVal, &IRInfoVal._threaddeInit, Val, IRStringStates.at(Id), r);
 							}
 							else
 							{
-							for (auto& Func : IRInfoVal.Funcs)
-							{
-
-								if (IRInfoVal.FromID(Func->identifier) == OnFunc)
+								for (auto& Func : IRInfoVal.Funcs)
 								{
-									auto Id = Func->identifier;
-									if (!IRStringStates.HasValue(Id))
+
+									if (IRInfoVal.FromID(Func->identifier) == OnFunc)
 									{
-										OutputIRLineState LineState;
-										String Unused;
-										IRInfoVal.ToString(LineState.State, Func.get(), Unused);
-										IRStringStates.AddValue(Id, std::move(LineState));
+										auto Id = Func->identifier;
+										if (!IRStringStates.HasValue(Id))
+										{
+											OutputIRLineState LineState;
+											String Unused;
+											IRInfoVal.ToString(LineState.State, Func.get(), Unused);
+											IRStringStates.AddValue(Id, std::move(LineState));
+										}
+										OutputIRLineInfo(&IRInfoVal, Func.get(), Val, IRStringStates.at(Id), r);
+										break;
 									}
-									OutputIRLineInfo(&IRInfoVal, Func.get(), Val, IRStringStates.at(Id), r);
-									break;
 								}
-							}
 							}
 						}
 					}
 					else if (auto Val = Item->Debug.Get_If<UDebugSetFuncStackFrameSize>())
 					{
-					r += "   //StackFrameSize:" + std::to_string(Val->StackFrameSize);
-					r += '\n';
-					OnFuncFrameStackSize = Val->StackFrameSize;
+						r += "   //StackFrameSize:" + std::to_string(Val->StackFrameSize);
+						r += '\n';
+						OnFuncFrameStackSize = Val->StackFrameSize;
 					}
 					else if (Info.DebugInfo.has_value())
 					{
-					auto& Value = Info.DebugInfo.value();
-					auto List = Value.GetForIns(i);
-					for (auto& Item : List)
-					{
-						if (auto Val = Item->Debug.Get_If<UDebugSetVarableLoc>())
+						auto& Value = Info.DebugInfo.value();
+						auto List = Value.GetForIns(i);
+						for (auto& Item : List)
 						{
-							r += "   //";
+							if (auto Val = Item->Debug.Get_If<UDebugSetVarableLoc>())
+							{
+								r += "   //";
 
-							if (auto Value = Val->Type.Get_If<RegisterID>())
-							{
-								r += GetRegisterToString(*Value);
+								if (auto Value = Val->Type.Get_If<RegisterID>())
+								{
+									r += GetRegisterToString(*Value);
+								}
+								else
+								{
+									UCodeLangThrowException("not added");
+								}
+								r += " = ";
+								r += Val->VarableFullName;
+								r += '\n';
 							}
-							else
-							{
-								UCodeLangThrowException("not added");
-							}
-							r += " = ";
-							r += Val->VarableFullName;
-							r += '\n';
 						}
-					}
 					}
 
 				}

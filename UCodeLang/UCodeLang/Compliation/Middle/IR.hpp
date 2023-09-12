@@ -913,15 +913,21 @@ struct IRBlock
 	//mem
 	IRInstruction* NewMallocCall(IRInstruction* Size)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::MallocCall, IROperator(Size))).get();
+		auto r =  Instructions.emplace_back(new IRInstruction(IRInstructionType::MallocCall, IROperator(Size))).get();
+		r->ObjectType = IRTypes::pointer;
+		return r;
 	}
 	IRInstruction* NewCalloc(IRInstruction* Size)
 	{
-		return Instructions.emplace_back(new IRInstruction(IRInstructionType::Calloc, IROperator(Size))).get();
+		auto r = Instructions.emplace_back(new IRInstruction(IRInstructionType::Calloc, IROperator(Size))).get();
+		r->ObjectType = IRTypes::pointer;
+		return r;
 	}	
 	IRInstruction* NewRealloc(IRInstruction* old, IRInstruction* Size)
 	{
-		return Instructions.emplace_back(new IRInstruction(IRInstructionType::Realloc, IROperator(old), IROperator(Size))).get();
+		auto r = Instructions.emplace_back(new IRInstruction(IRInstructionType::Realloc, IROperator(old), IROperator(Size))).get();
+		r->ObjectType = IRTypes::pointer;
+		return r;
 	}
 
 	void NewMemcpy(IRInstruction* destination,IRInstruction* source,IRInstruction* size)

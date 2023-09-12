@@ -181,7 +181,7 @@ IRType IRBuilder::GetType(const IRInstruction* IR) const
 {
 	if (IR->Type == IRInstructionType::PushParameter)
 	{
-		return GetType(IR->Target());
+		return GetType(IR,IR->Target());
 	}
 
 	if (IR->Type == IRInstructionType::Member_Access)
@@ -1549,7 +1549,7 @@ bool IRBuilder::ToString(
 		r += "LowLevel::Free(" + ToString(State, *I, I->Target()) + ")";
 		break;
 	case IRInstructionType::LoadReturn:
-		r += "ret " + ToString(State, *I, I->Target());
+		r += "ret = " + ToString(State, *I, I->Target());
 		break;
 	case IRInstructionType::LoadNone:
 		r += ToString(I->ObjectType);
@@ -1673,7 +1673,6 @@ bool IRBuilder::ToString(
 		r += ")";
 		break;
 	case IRInstructionType::Return:
-		if (i != 0 && Block->Instructions[i - 1]->Type == IRInstructionType::LoadReturn) { { return false; }; }
 		r += "ret";
 		break;
 	case  IRInstructionType::Member_Access:

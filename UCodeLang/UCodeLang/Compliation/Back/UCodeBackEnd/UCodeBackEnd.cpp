@@ -493,7 +493,8 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		size_t Jumpto;
 	};
 	Vector<InsToUpdate_t> InsToUpdate;
-	VectorMap<size_t, UAddress> IRToUCodeIns;
+	VectorMap<size_t, UAddress> IRToUCodeInsPost;
+	VectorMap<size_t, UAddress> IRToUCodeInsPre;
 
 	BinaryVectorMap<IRidentifierID,Optional<RegistersManager>> Jumps;
 	for (size_t i = 0; i < IR->Instructions.size(); i++)
@@ -529,34 +530,17 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		auto Item = Item_.get();
 		Index = i;
 
-
-		if (IsDebugMode()) {
-			auto DebugInfo = IR->DebugInfo.Get_debugfor(i);
-			for (auto& Item : DebugInfo)
-			{
-			
-				if (auto Val = Item->Debug.Get_If<IRDebugSetFile>())
-				{
-					Add_SetFile(Val->FileName,
-						i == 0 ? _OutLayer->_Instructions.size() : _OutLayer->_Instructions.size() -1);
-				}
-				else if (auto Val = Item->Debug.Get_If<IRDebugSetLineNumber>())
-				{
-					Add_SetLineNumber(Val->LineNumber,
-						i == 0 ? _OutLayer->_Instructions.size() : _OutLayer->_Instructions.size() - 1);
-
-					
-				}
-			}
-		}
+		IRToUCodeInsPre[i] = _OutLayer->_Instructions.size();
 		
+		/*
 		for (auto& JumpItem : Jumps)
 		{
 			if (JumpItem._Key == i-1)
 			{
-				IRToUCodeIns[i-1] = _OutLayer->Get_Instructions().size()-1;
+				IRToUCodeIns[i-1] = _OutLayer->Get_Instructions().size();
 			}
 		}
+		*/
 
 		switch (Item->Type)
 		{
@@ -1359,15 +1343,24 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			break;
 		}
 
-		if (IsDebugMode()) {
-			auto DebugInfo = IR->DebugInfo.Get_debugfor(i);
+
+		if (IsDebugMode())
+		{
+			auto lastIRIndex = i - 1;
+			auto DebugInfo = IR->DebugInfo.Get_debugfor(lastIRIndex);
 			for (auto& Item : DebugInfo)
 			{
-
-				if (auto Val = Item->Debug.Get_If<IRDebugSetLineNumber>())
+				auto InsIndex = (IRToUCodeInsPre[i]);
+					
+					//i == 0 ? _OutLayer->_Instructions.size() : _OutLayer->_Instructions.size() - 1;
+				if (auto Val = Item->Debug.Get_If<IRDebugSetFile>())
 				{
-
+					Add_SetFile(Val->FileName, InsIndex);
+				}
+				else if (auto Val = Item->Debug.Get_If<IRDebugSetLineNumber>())
+				{
 					InstructionBuilder::Debug_LineEnter(_Ins); PushIns();
+					Add_SetLineNumber(Val->LineNumber, InsIndex);
 				}
 			}
 		}
@@ -1377,19 +1370,9 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		UpdateVarableLocs();
 
 		
-		
-		IRToUCodeIns[i] = _OutLayer->Get_Instructions().size() - 1;	
-		
 		for (auto& JumpItem : Jumps)
 		{
-			if (JumpItem._Key == i - 1)
-			{
-				//IRToUCodeIns[i-1] = _OutLayer->Get_Instructions().size()-1;
-
-
-				IRToUCodeIns[i] = _OutLayer->Get_Instructions().size();
-			}
-			if (JumpItem._Key == i)
+			if (JumpItem._Key == i-1)
 			{
 				if (JumpItem._Value.has_value())
 				{
@@ -1401,6 +1384,9 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 				}
 			}
 		}
+		IRToUCodeInsPost[i] = _OutLayer->Get_Instructions().size() - 1;	
+		
+		
 	}
 DoneLoop:
 	DropStack();
@@ -1411,7 +1397,7 @@ DoneLoop:
 		InstructionBuilder::Debug_FuncEnd(_Ins); PushIns();
 	}
 	InstructionBuilder::Return(ExitState::Success, _Ins); PushIns();
-	IRToUCodeIns[Index] = _OutLayer->Get_Instructions().size() - 1;
+	IRToUCodeInsPost[Index] = _OutLayer->Get_Instructions().size() - 1;
 
 	UpdateVarableLocs();
 
@@ -1423,7 +1409,7 @@ DoneLoop:
 		size_t IndexOfset = Get_Settings().PtrSize == IntSizes::Int64 ? 4 : 1;
 
 		Instruction& Ins = _OutLayer->Get_Instructions()[Index+3];
-		UAddress JumpPos = IRToUCodeIns[Item.Jumpto];
+		UAddress JumpPos = IRToUCodeInsPost[Item.Jumpto];
 
 		if (Ins.OpCode != InstructionSet::Jumpif) 
 		{

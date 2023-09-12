@@ -19,6 +19,7 @@ public:
 	{
 		CompilerState _State= CompilerState::Null;
 		UClib* OutPut =nullptr;
+		BytesPtr OutFile;
 	};
 	struct CompilerPathData
 	{

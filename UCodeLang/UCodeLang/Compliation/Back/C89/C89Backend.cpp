@@ -27,6 +27,10 @@ UCodeLangStart
 
 #define IRUnreachableDefineName IRPrefix "Unreachable"
 
+#define IRhreadLocal "ThreadLocalKeyWord"
+
+#define IRReturnValue "_ReturnVal"
+
 C89Backend::C89Backend()
 {
 
@@ -57,7 +61,7 @@ void C89Backend::Build(const IRBuilder* Input)
 		}
 		else
 		{
-			OutBuffer += "//Made using UCodeLang C89 Backend.Next Part is an IR Binary this will be used when linking.";
+			OutBuffer += "/*Made using UCodeLang C89 Backend.Next Part is an IR Binary this will be used when linking.*/";
 			
 			auto Data = Input->ToBytes();
 			OutBuffer += String_view((char*)Data.Data(), Data.Size());
@@ -86,15 +90,16 @@ void C89Backend::Build(const IRBuilder* Input)
 
 void C89Backend::AddTextSignature()
 {
-	OutBuffer += "//Made using UCodeLang C89 Backend.\n";
-	OutBuffer += "//\n";
-	OutBuffer += "//\n";
+	OutBuffer += "/*Made using UCodeLang C89 Backend.\n";
+	OutBuffer += "\n";
+	OutBuffer += "\n";
+	OutBuffer += "*/\n";
 }
 
 void C89Backend::AddBaseTypes()
 {
 	
-	OutBuffer += "//defs\n\n";
+	OutBuffer += "/*defs*/\n\n";
 	
 	OutBuffer += "#if defined(_MSC_VER)\n";
 	OutBuffer += "#define " + (String)IRMSVCDefineName + " 1 \n";
@@ -166,11 +171,19 @@ void C89Backend::AddBaseTypes()
 	OutBuffer += "#define " + (String)IRForceinlineDefineName + " inline\n";
 	OutBuffer += "#endif\n\n";
 
-	OutBuffer += "//includes\n\n";
+	//OutBuffer += "#if " + (String)IRMSVCDefineName + "\n";
+	OutBuffer += "#define " + (String)IRhreadLocal + " \n";
+	//OutBuffer += "#elif " + (String)IRGNUCDefineName + "\n";
+	//OutBuffer += "#define " + (String)IRThreadLocal  + " __attribute__((always_inline))\n";
+	//OutBuffer += "#else\n";
+	//OutBuffer += "#define " + (String)IRForceinlineDefineName + " inline\n";
+	//OutBuffer += "#endif\n\n";
+
+	OutBuffer += "/*includes*/\n\n";
 	
 	OutBuffer += "#include <inttypes.h>\n";
 
-	OutBuffer += "//Types\n";
+	OutBuffer += "/*Types*/\n";
 	OutBuffer += "typedef float float32_t;\n";
 	OutBuffer += "typedef double float64_t;\n";
 
@@ -218,6 +231,7 @@ String C89Backend::ToString(const IRType& Type)
 	}
 	break;
 	default:
+		UCodeLangUnreachable();
 		break;
 	}
 	return "void";
@@ -228,7 +242,7 @@ String C89Backend::ToString()
 	String r;
 	ToStringState State;
 
-	r += "\n\n//file.h\n\n";
+	r += "\n\n/*file.h*/\n\n";
 
 	AddSybToString(r);
 	r += "\n";
@@ -252,7 +266,7 @@ String C89Backend::ToString()
 			r += "int main(int argc, char** argv);";
 		}
 	}
-	r += "\n\n//file.cpp\n\n";
+	r += "\n\n/*file.cpp*/\n\n";
 	{
 		{
 			ToString(r, &_Input->_StaticInit, State,true);
@@ -264,7 +278,12 @@ String C89Backend::ToString()
 			{
 
 				_Func = Item.get();
-				ToString(r, Item.get(), State,true);
+
+
+				if (_Func->Linkage == IRFuncLink::StaticLink) {
+					ToString(r, Item.get(), State, true);
+				}
+
 			}
 
 			if (_Input->EntryPoint.has_value()) 
@@ -295,7 +314,7 @@ String C89Backend::ToString()
 				}
 				else
 				{
-					r += "\n return 0;";
+					r += "\n return 0;\n";
 				}
 				r += "}";
 			}
@@ -374,7 +393,7 @@ void C89Backend::AddSybToString(UCodeLang::String& r)
 		case IRSymbolType::ThreadLocalVarable:
 		{
 			IRBufferData* V = Item->Get_ExAs<IRBufferData>();
-			r += "thread_local " + ToString(Item->Type) + " " + SybName;
+			r += IRhreadLocal + (String)" " + ToString(Item->Type) + " " + SybName;
 			UpdateCppLinks(r, V);
 		}
 		break;
@@ -445,21 +464,34 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 	}
 	r += ")";
 
+	State.PointerToName.clear();
+	State.TepPushedParameters.clear();
+	State.Val.clear();
 	if (OutputBody)
 	{
 
 		r += "\n{";
 		String Tabs = " ";
 
+		if (!Item->ReturnType.IsSame(IRTypes::Void))
+		{
+			r += ToString(Item->ReturnType) + (String)IRReturnValue ";";
+		}
 		
 		for (auto& Block : Item->Blocks)
 		{
 
-			r += Tabs + "//Block \n";
+			r += Tabs + "/*Block*/ \n";
+
+			
 
 			BinaryVectorMap<size_t, String> Names;
 			for (size_t i = 0; i < Block->Instructions.size(); i++)
 			{
+				
+				
+				
+				
 				auto& I = Block->Instructions[i];
 				switch (I->Type)
 				{
@@ -476,17 +508,39 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 				auto& I = Block->Instructions[i];
 				if (I->Type == IRInstructionType::None) { continue; }
 
+				auto DebugInfo = Block->DebugInfo.Get_debugfor(i);
+				for (auto& Item : DebugInfo)
+				{
+					if (auto Val = Item->Debug.Get_If<IRDebugSetFile>())
+					{
+						r += '\n';
+						r += "/*File:" + Val->FileName;
+						r += "*/";
+					}
+					else if (auto Val = Item->Debug.Get_If<IRDebugSetLineNumber>())
+					{
+						r += '\n';
+						r += "/*Line:" + std::to_string(Val->LineNumber);
+						r += "*/";
+					}
+				}
+				if (DebugInfo.size())
+				{
+					r += '\n';
+					r += '\n';
+				}
+
 				if (I->Type != IRInstructionType::PushParameter)
 				{
 					r += Tabs;
 				}
 
 
-
+				OutType = I->ObjectType;
 				switch (I->Type)
 				{
 				case IRInstructionType::LoadReturn:
-					r += "return " + ToString(State, *I, I->Target());
+					r += (String)IRReturnValue + " = " + ToString(State, *I, I->Target());
 					break;
 				case IRInstructionType::LoadNone:
 					r += ToString(I->ObjectType);
@@ -498,6 +552,13 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					r += " = " + ToString(State, *I, I->Target());
 					break;
 				case IRInstructionType::Reassign:
+					r += ToString(State, *I, I->Target());
+					r += " = " + ToString(State, *I, I->Input());
+					break;
+				case IRInstructionType::Reassign_dereference:
+					r += "*(";
+					r += ToString(I->ObjectType);
+					r += "*)";
 					r += ToString(State, *I, I->Target());
 					r += " = " + ToString(State, *I, I->Input());
 					break;
@@ -567,16 +628,20 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					r += Names[I->Target().identifer];
 					break;
 				case IRInstructionType::ConditionalJump:
-					r += "gotoif (";
+					r += "if (";
 					r += ToString(State, *I, I->Input());
-					r += ") ";
+					r += "){goto ";
 					r += Names[I->Target().identifer];
+					r += "; }";
 					break;
 				case IRInstructionType::Call:
 				{
-					r += ToString(I->ObjectType);
-					r += " " + State.GetName(I.get());
-					r += " = ";
+					if (!I->ObjectType.IsSame(IRTypes::Void))
+					{
+						r += ToString(I->ObjectType);
+						r += " " + State.GetName(I.get());
+						r += " = ";
+					}
 					r += FromIDToCindentifier(I->Target().identifer) + "(";
 					for (auto& Item : State.TepPushedParameters)
 					{
@@ -590,15 +655,37 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					r += ")";
 				}break;
 				case IRInstructionType::Return:
-					if (i != 0 && Block->Instructions[i - 1]->Type == IRInstructionType::LoadReturn) { continue; }
-					r += "return";
+					if (Item->ReturnType.IsSame(IRTypes::Void))
+					{
+						r += "return";
+					}
+					else 
+					{
+						r += "return " + (String)IRReturnValue;
+					}
+					break;
+				case IRInstructionType::Member_Access:
+					State.PointerToName[I.get()] = ToString(State, *I, I->Target()) + ".__" + std::to_string(I->Input().Value.AsUIntNative);
+					goto GoOver;
+				break;
+				case IRInstructionType::Member_Access_Dereference:
+					State.PointerToName[I.get()] = ToString(State, *I, I->Target()) + "->__" + std::to_string(I->Input().Value.AsUIntNative);
+					goto GoOver;
+					break;
+				case IRInstructionType::MallocCall:
+					r += ToString(I->ObjectType);
+					r += " " + State.GetName(I.get());
+					r += " = malloc(" + ToString(State, *I, I->Target()) + ")";
+					break;
+				case IRInstructionType::FreeCall:
+					r += "free(" + ToString(State, *I, I->Target()) + ")";
 					break;
 				default:
 					UCodeLangUnreachable();
 					break;
 				}
 				r += ";\n";
-
+				GoOver:
 				for (auto& Item : Names)
 				{
 					if (Item._Key == i)
@@ -638,31 +725,42 @@ String C89Backend::ToString(ToStringState& State, IRInstruction& Ins, IROperator
 		case IRTypes::i64:return std::to_string(Value.Value.AsInt64);
 		case IRTypes::f32:return std::to_string(Value.Value.Asfloat32);
 		case IRTypes::f64:return std::to_string(Value.Value.Asfloat64);
-		default:return "[]";
+		default:UCodeLangUnreachable();
 		}
 	}
 	case IROperatorType::IRidentifier:
 	{
-		return _Input->FromID(Value.identifer);
+		return FromIDToCindentifier(Value.identifer);
 	}
-
+	case IROperatorType::Get_PointerOf_IRidentifier:
+	{
+		return "&" + FromIDToCindentifier(Value.identifer);
+	}
 	case IROperatorType::IRInstruction:
 	{
-		//for
-
 		return  State.PointerToName.at(Value.Pointer);
 	}
 	case IROperatorType::Get_PointerOf_IRInstruction:
 	{
 		return "&" + State.PointerToName.at(Value.Pointer);
 	}
+	case IROperatorType::DereferenceOf_IRInstruction:
+	{
+		return "*(" + ToString(OutType) + "*)" + State.PointerToName.at(Value.Pointer);
+	}
 	case IROperatorType::IRParameter:
 	{
-		const IRPar* Par = Value.Parameter;
-		
-		return _Input->FromID(Par->identifier);
+		return FromIDToCindentifier(Value.Parameter->identifier);
 	}
-	default:return "[]";
+	case IROperatorType::DereferenceOf_IRParameter:
+	{
+		return  "*(" + ToString(Value.Parameter->type) + "*)" + FromIDToCindentifier(Value.Parameter->identifier);
+	}
+	case IROperatorType::Get_PointerOf_IRParameter:
+	{
+		return "&" + FromIDToCindentifier(Value.Parameter->identifier);
+	}
+	default:UCodeLangUnreachable();
 	}
 }
 
@@ -714,7 +812,28 @@ String C89Backend::FromIDToCindentifier(IRidentifierID Value)
 { 
 	return UpdateToCindentifier(_Input->FromID(Value));
 }
+String C89Backend::ToStringState::GetName(IRInstruction* Ptr)
+{
+	if (Val.size() == 0)
+	{
+		Val = 'A';
+	}
+	else
+	{
+		if (Val.back() == 'Z')
+		{
+			Val += 'A';
+		}
+		char r = Val.back();
+		Val.back()++;
+
+
+	}
+
+	auto V = Val;
+	PointerToName[Ptr] = V;
+	return V;
+}
 
 UCodeLangEnd
-
 

@@ -5,5 +5,5 @@ Version:0:0:0
 ForceImport:false
 RemoveUnSafe:false
 ModuleNameSpace:
-import UCodeLang::StandardLibarary[0:0:0];
-import UCodeLang::Test[0:0:0]("https://github.com/nothings/stb/tree/master");
+//import UCodeLang::StandardLibarary[0:0:0];
+//import UCodeLang::Test[0:0:0];

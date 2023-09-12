@@ -16,7 +16,8 @@ Compiler::CompilerRet Compiler::CompileText(const String_view& Text)
 
 	_Errors.FilePath = _Errors.FilePath;
 
-	if (_FrontEndObject == nullptr)
+	if (_FrontEndObject == nullptr
+		|| (_oldFrontEnd != _FrontEnd))
 	{
 		_FrontEndObject.reset(_FrontEnd());
 	}
@@ -42,7 +43,6 @@ Compiler::CompilerRet Compiler::CompileText(const String_view& Text)
 	_FrontEndObject->BuildIR(Files);
 
 	if (_BackEndObject == nullptr 
-		|| (_oldFrontEnd != _FrontEnd)
 		|| (_oldBackEnd != _BackEnd))
 	{
 		_BackEndObject.reset(_BackEnd());
@@ -73,6 +73,14 @@ Compiler::CompilerRet Compiler::CompileText(const String_view& Text)
 
 	
 	CompilerRet.OutPut = &_BackEndObject->Getliboutput();
+	
+	
+	if (_BackEndObject->GetOutput().Size()) {
+		auto bytes = _BackEndObject->GetOutput();
+		CompilerRet.OutFile.Resize(bytes.Size());
+		memcpy(CompilerRet.OutFile.Data(), bytes.Data(), bytes.Size());
+	}
+
 	return CompilerRet;
 }
 String Compiler::GetTextFromFile(const Path& path)
@@ -124,8 +132,21 @@ Compiler::CompilerRet Compiler::CompilePathToObj(const Path& path, const Path& O
 	auto Text = GetTextFromFile(path);
 	CompilerRet r = CompileText(Text);
 
-	if (r._State == CompilerState::Success) {
-		UClib::ToFile(r.OutPut, OutLib);
+	if (r._State == CompilerState::Success)
+	{
+		if (r.OutFile.Size())
+		{
+			std::ofstream File(OutLib, std::ios::binary);
+			if (File.is_open())
+			{
+				File.write((const char*)r.OutFile.Data(), r.OutFile.Size());
+				File.close();
+			}
+		}
+		else 
+		{
+			UClib::ToFile(r.OutPut, OutLib);
+		}
 	}
 
 	return r;
@@ -256,8 +277,13 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 					_BackEndObject->Build(output);
 
 					auto Output = _BackEndObject->GetOutput();
+
+					r.OutPut = &_BackEndObject->Getliboutput();
 					if (Output.Size())
 					{
+						r.OutFile.Resize(Output.Size());
+						memcpy(r.OutFile.Data(), Output.Data(), Output.Size());
+
 						std::ofstream File(Data.OutFile, std::ios::binary);
 						if (File.is_open())
 						{
@@ -267,7 +293,6 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 					}
 					else
 					{
-						r.OutPut = &_BackEndObject->Getliboutput();
 						UClib::ToFile(r.OutPut, Data.OutFile);
 					}
 				}

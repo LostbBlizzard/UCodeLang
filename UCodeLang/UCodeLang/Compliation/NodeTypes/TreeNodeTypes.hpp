@@ -290,6 +290,7 @@ struct ClassNode :Node
 	InheritedTypeData _Inherited;
 	AccessModifierType _Access = AccessModifierType::Default;
 	Vector<Unique_ptr<AttributeNode>> _Attributes;
+	bool IsExternCStruct = false;
 };
 
 
@@ -500,6 +501,13 @@ struct StatementsNode :Node
 	StatementsNode(StatementsNode& source) = default;
 	StatementsNode& operator=(StatementsNode& source) = default;
 };
+enum class ExternType
+{
+	NoExternKeyWord,
+	ExternUCode,
+	ExternC,
+	ExternSystem,
+};
 struct FuncSignatureNode :Node
 {
 	NameNode _Name;
@@ -508,7 +516,7 @@ struct FuncSignatureNode :Node
 	TypeNode _ReturnType;
 	AccessModifierType _Access = AccessModifierType::Default;
 
-	bool _HasExternKeyWord = false;
+	ExternType ExternType = ExternType::NoExternKeyWord;
 	bool _HasDynamicKeyWord = false;
 	bool _HasEvalKeyWord = false;
 	bool _HasUnsafeKeyWord = false;
