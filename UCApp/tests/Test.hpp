@@ -227,10 +227,15 @@ UCodeTestStart
 
 	};
 	
+	enum class TestMode
+	{
+		UCodeLangBackEnd,
+		CLang89BackEnd,
+	};
 
-	bool RunTest(const TestInfo& Test);
+	bool RunTest(const TestInfo& Test, TestMode mode);
 
-	bool RunTest(const ModuleTest& Test);
+	bool RunTest(const ModuleTest& Test, TestMode mode);
 
 	int RunTests(bool MultThread =true);
 
