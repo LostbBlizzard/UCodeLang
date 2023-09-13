@@ -1,5 +1,6 @@
 #include "IR.hpp"
 #include <fstream>
+#include <UCodeLang/LangCore/TypeNames.hpp>
 UCodeLangStart
 
 
@@ -252,16 +253,17 @@ IRType IRBuilder::GetType(const IROperator& IR) const
 
 IRBuilder::IRBuilder()
 {
-	_StaticInit.identifier = ToID("_StaticInit");
+	_StaticInit.identifier = ToID(StaticVariablesInitializeFunc);
 	_StaticInit.ReturnType = IRTypes::Void;
 
-	_StaticdeInit.identifier = ToID("_Static_deInit");
+	_StaticdeInit.identifier = ToID(StaticVariablesUnLoadFunc);
 	_StaticdeInit.ReturnType = IRTypes::Void;
 
-	_threadInit.identifier = ToID("_threadInit");
+
+	_threadInit.identifier = ToID(ThreadVariablesInitializeFunc);
 	_threadInit.ReturnType = IRTypes::Void;
 
-	_threaddeInit.identifier = ToID("_thread_deInit");
+	_threaddeInit.identifier = ToID(ThreadVariablesUnLoadFunc);
 	_threaddeInit.ReturnType = IRTypes::Void;
 }
 

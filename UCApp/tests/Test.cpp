@@ -316,16 +316,43 @@ using namespace UCodeLang;
 
 				auto cfuncname = C89Backend::UpdateToCindentifier(ufunc->DecorationName);
 
+				auto staticinitname = C89Backend::UpdateToCindentifier(StaticVariablesInitializeFunc);
+                auto threadinitname = C89Backend::UpdateToCindentifier(ThreadVariablesInitializeFunc);
+
+                auto staticdeinitname = C89Backend::UpdateToCindentifier(StaticVariablesUnLoadFunc);
+                auto threaddeinitname = C89Backend::UpdateToCindentifier(ThreadVariablesUnLoadFunc);
+
 
 				#if UCodeLang_Platform_Windows
 				auto lib = LoadLibrary(dllfile.c_str());
+				auto staticinittocall = GetProcAddress(lib,staticinitname.c_str());
+                auto threadinittocall = GetProcAddress(lib,threadinitname.c_str());
+                auto staticdeinittocall = GetProcAddress(lib,staticdeinitname.c_str());
+                auto threaddeinittocall = GetProcAddress(lib,threaddeinitname.c_str());
+
+
 				auto functocall = GetProcAddress(lib, cfuncname.c_str());
 				#elif UCodeLang_Platform_Posix
 				auto lib = dlopen(dllfile.c_str(), RTLD_NOW);
+				auto staticinittocall = dlsym(lib,staticinitname.c_str());
+                auto threadinittocall = dlsym(lib,threadinitname.c_str());
+            	auto staticdeinittocall = dlsym(lib,staticdeinitname.c_str());
+                auto threaddeinittocall = dlsym(lib,threaddeinitname.c_str());
+                        
+
                 auto functocall = dlsym(lib,cfuncname.c_str());
 				#endif  
 				
 				UCodeLangAssert(functocall);
+
+				bool hasautocall = cfuncname == "main";
+                if (!hasautocall)
+                {
+                    using Func = void(*)();
+                    ((Func)staticinittocall)();
+                    ((Func)threadinittocall)();
+                }
+
 				auto RetValue = std::make_unique<Byte[]>(Test.RunTimeSuccessSize);
 				{
 					if (ufunc->RetType._Type == ReflectionTypes::Bool)
@@ -395,6 +422,12 @@ using namespace UCodeLang;
 					}
 				}
 
+				if (!hasautocall)
+                {
+                    using Func = void(*)();
+                    ((Func)staticdeinittocall)();
+                    ((Func)threaddeinittocall)();
+                }
 
 				#if UCodeLang_Platform_Windows
 				FreeLibrary(lib);

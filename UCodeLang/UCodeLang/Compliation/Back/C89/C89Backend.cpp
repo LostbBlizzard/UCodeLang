@@ -182,6 +182,7 @@ void C89Backend::AddBaseTypes()
 	OutBuffer += "/*includes*/\n\n";
 	
 	OutBuffer += "#include <inttypes.h>\n";
+	OutBuffer += "#include <stdlib.h>\n";
 
 	OutBuffer += "/*Types*/\n";
 	OutBuffer += "typedef float float32_t;\n";
@@ -475,7 +476,9 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 
 		if (!Item->ReturnType.IsSame(IRTypes::Void))
 		{
-			r += ToString(Item->ReturnType) + (String)IRReturnValue ";";
+			r +=  "\n ";
+			r += ToString(Item->ReturnType) + " " + (String)IRReturnValue ";";
+			r +=  "\n";
 		}
 		
 		for (auto& Block : Item->Blocks)
@@ -514,13 +517,13 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					if (auto Val = Item->Debug.Get_If<IRDebugSetFile>())
 					{
 						r += '\n';
-						r += "/*File:" + Val->FileName;
+						r += " /*File:" + Val->FileName;
 						r += "*/";
 					}
 					else if (auto Val = Item->Debug.Get_If<IRDebugSetLineNumber>())
 					{
 						r += '\n';
-						r += "/*Line:" + std::to_string(Val->LineNumber);
+						r += " /*Line:" + std::to_string(Val->LineNumber);
 						r += "*/";
 					}
 				}

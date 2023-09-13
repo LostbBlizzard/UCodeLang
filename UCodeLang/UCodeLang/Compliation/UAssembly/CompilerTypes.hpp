@@ -234,7 +234,7 @@ static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 	AddMapValueValue(Debug_LineEnter,InstructionSet::Debug_LineEnter,OpCodeType::NoOpCode,OpCodeType::NoOpCode),
 };
 
-static inline Unordered_map<InstructionSet, const InsMapValue*> InsToInsMapValue;
+thread_local inline Unordered_map<InstructionSet, const InsMapValue*> InsToInsMapValue;
 inline void SetUp()
 {
 	for (auto& Item : StringToInsMap)
