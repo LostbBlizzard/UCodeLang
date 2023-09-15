@@ -1216,8 +1216,7 @@ void SystematicAnalysis::OnFileNode(const FileNode& File)
 	for (auto& node : File._Nodes)
 	{
 		Push_ToNodeScope(*node.get());
-		Defer _{ [this](){Pop_NodeScope(); } };
-
+		UCodeLangDefer(Pop_NodeScope());
 
 		if (DoneWithImports == false && node->Get_Type() != NodeType::ImportStatement && _PassType == PassType::FixedTypes)
 		{
@@ -1982,7 +1981,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		newInfo->FullName = FullName;
 		newInfo->_FuncType = FuncType;
 		newInfo->IsUnsafe = node._Signature._HasUnsafeKeyWord;
-		newInfo->IsExternC = node._Signature.Externtype != ExternType::ExternUCode;
+		newInfo->IsExternC = node._Signature.Externtype == ExternType::ExternC
+			 || node._Signature.Externtype == ExternType::ExternSystem;
 
 		syb->Info.reset(newInfo);
 
@@ -5549,6 +5549,7 @@ void SystematicAnalysis::OnStatement(const Node& node2)
 	case NodeType::AwaitStatement:OnAwaitStatement(*AwaitStatement::As(&node2)); break;
 	case NodeType::YieldStatement:OnYieldStatement(*YieldStatement::As(&node2)); break;
 	case NodeType::UnsafeStatementsNode:OnUnsafeStatement(*UnsafeStatementsNode::As(&node2)); break;
+	case NodeType::DeferStatementNode:OnDeferStatement(*DeferStatementNode::As(&node2)); break;
 	default:UCodeLangUnreachable(); break;
 	}
 	Pop_NodeScope();
@@ -11600,6 +11601,40 @@ void SystematicAnalysis::OnUnsafeExpression(const UnsafeExpression& node)
 	OnExpressionTypeNode(node._Base, _GetExpressionMode.top());
 	block.IsUnSafeBlock = oldblock;
 
+}
+void SystematicAnalysis::OnDeferStatement(const DeferStatementNode& node)
+{
+	if (_PassType == PassType::GetTypes)
+	{
+		for (auto& Item : node._Base._Nodes)
+		{
+			if (Item->Get_Type() == NodeType::RetStatementNode)
+			{
+				RetStatementNode* node = RetStatementNode::As(Item.get());
+				NeverNullPtr<Token> token =_LastLookedAtToken.value();
+				
+				this->LogError(ErrorCodes::ExpectingToken, "Cant use return statement in Defer Statement.", token);
+			}
+			else
+			{
+				OnStatement(*Item);
+			}
+		}
+	}
+	else if (_PassType == PassType::FixedTypes)
+	{
+		for (auto& Item : node._Base._Nodes)
+		{
+			OnStatement(*Item);
+		}
+	}
+	else if (_PassType == PassType::BuidCode)
+	{
+		for (auto& Item : node._Base._Nodes)
+		{
+			OnStatement(*Item);
+		}//only for tests shold be updated
+	}
 }
 TypeSymbol SystematicAnalysis::Type_MakeFutureFromType(const TypeSymbol& BaseType)
 {

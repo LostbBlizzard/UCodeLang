@@ -1390,4 +1390,14 @@ struct UnsafeStatementsNode : Node
 
 	}
 };
+struct DeferStatementNode : Node
+{
+	StatementsNode _Base;
+
+	AddforNode(DeferStatementNode);
+	DeferStatementNode() : Node(NodeType::DeferStatementNode)
+	{
+
+	}
+};
 UCodeLangFrontEnd

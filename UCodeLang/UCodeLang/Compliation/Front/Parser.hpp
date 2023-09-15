@@ -689,6 +689,17 @@ private:
 		return { r,V };
 	}
 	GotNodeType GetUnsafeExpression(UnsafeExpression& out);
+
+
+	TryGetNode GetDeferStatementNode()
+	{
+		DeferStatementNode* V = DeferStatementNode::Gen();
+		auto r = GetDeferStatementNode(*V);
+		TrippedCheck(r);
+		return { r,V };
+	}
+
+	GotNodeType GetDeferStatementNode(DeferStatementNode& out);
 };
 UCodeLangFrontEnd
 

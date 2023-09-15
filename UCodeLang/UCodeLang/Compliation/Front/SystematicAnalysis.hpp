@@ -1148,6 +1148,7 @@ private:
 
 	void OnUnsafeStatement(const UnsafeStatementsNode& node);
 	void OnUnsafeExpression(const UnsafeExpression& node);
+	void OnDeferStatement(const DeferStatementNode& node);
 
 	TypeSymbol Type_MakeFutureFromType(const TypeSymbol& BaseType);
 	bool Type_IsFuture(const TypeSymbol& Future);

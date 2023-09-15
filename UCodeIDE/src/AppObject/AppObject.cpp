@@ -162,6 +162,22 @@ $Result<T,E> enum:
         */
         _Editor.SetText(
             R"(
+
+thread int a = 0;
+|cleanupfunc[] => a++;
+|Initfunc[] => a = 1;
+
+|main[]:
+ var V = Initfunc(V);
+ defer cleanupfunc(V);
+
+
+ var V2 = Initfunc(V);
+ defer: 
+     cleanupfunc(V);
+
+ ret V + V2;//4
+
 |main_if[] -> int:
  if 1 == 1:
   ret 10;
@@ -669,6 +685,7 @@ void AppObject::DrawTestMenu()
                         Cmd += " -o " + dllfile.generic_string();
                         system(Cmd.c_str());
 
+                        auto& Assembly = ulib.Get_Assembly();
                         auto cfuncname = C89Backend::UpdateToCindentifier(ufunc->DecorationName);
 
                         auto staticinitname = C89Backend::UpdateToCindentifier(StaticVariablesInitializeFunc);
@@ -679,6 +696,7 @@ void AppObject::DrawTestMenu()
 
                         #if UCodeLang_Platform_Windows
                         auto lib = LoadLibrary(dllfile.c_str());
+                        UCodeLangDefer(FreeLibrary(lib));
                         auto staticinittocall = GetProcAddress(lib,staticinitname.c_str());
                         auto threadinittocall = GetProcAddress(lib,threadinitname.c_str());
                         auto staticdeinittocall = GetProcAddress(lib,staticdeinitname.c_str());
@@ -687,6 +705,8 @@ void AppObject::DrawTestMenu()
                         auto functocall = GetProcAddress(lib, cfuncname.c_str());
                         #elif UCodeLang_Platform_Posix
                         auto lib = dlopen(dllfile.c_str(), RTLD_NOW);
+                        UCodeLangDefer(dlclose(lib));
+
                         auto staticinittocall = dlsym(lib,staticinitname.c_str());
                         auto threadinittocall = dlsym(lib,threadinitname.c_str());
                         auto staticdeinittocall = dlsym(lib,staticdeinitname.c_str());
@@ -768,6 +788,22 @@ void AppObject::DrawTestMenu()
                                 UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
                                 memcpy(RetValue.get(), &val, sizeof(val));
                             }
+                            else if (auto typenod = Assembly.Find_Node(ufunc->RetType))
+                            {
+                                if (StringHelper::StartWith(typenod->FullName,"Vec2")
+                                    || StringHelper::StartWith(typenod->FullName, "vec2"))
+                                {
+                                    using GetValueFunc = Vec2(*)();
+                                    auto val = ((GetValueFunc)functocall)();
+
+                                    UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
+                                    memcpy(RetValue.get(), &val, sizeof(val));
+                                }
+                                else
+                                {
+                                    UCodeLangUnreachable();
+                                }
+                            }
                             else
                             {
                                 UCodeLangUnreachable();
@@ -780,12 +816,6 @@ void AppObject::DrawTestMenu()
                             ((Func)staticdeinittocall)();
                             ((Func)threaddeinittocall)();
                         }
-
-                        #if UCodeLang_Platform_Windows
-                        FreeLibrary(lib);
-                        #elif UCodeLang_Platform_Posix
-                        dlclose(lib);
-                        #endif      
 
                         String Type = "NativeC";
 
