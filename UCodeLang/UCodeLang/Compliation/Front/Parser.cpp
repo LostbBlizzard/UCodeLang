@@ -719,6 +719,13 @@ GotNodeType Parser::GetStatement(Node*& out)
 		return r.GotNode;
 	}
 	break;
+	case TokenType::KeyWord_defer:
+	{
+		auto r = GetUnsafeStatementNode();
+		out = r.Node;
+		return r.GotNode;
+	}
+	break;
 	default:
 	{
 		size_t OldIndex = _TokenIndex;
@@ -4702,5 +4709,22 @@ GotNodeType Parser::GetUnsafeExpression(UnsafeExpression& out)
 	NextToken();
 
 	return GetExpressionTypeNode(out._Base);
+}
+GotNodeType Parser::GetDeferStatementNode(DeferStatementNode& out)
+{
+	TokenTypeCheck(TryGetToken(), TokenType::KeyWord_defer);
+	NextToken();
+
+	auto token = TryGetToken();
+	if (token->Type == TokenType::Colon)
+	{
+		NextToken();
+		return GetStatements(out._Base);
+	}
+
+	Node* nodeptr = nullptr;
+	auto r = GetStatement(nodeptr);
+	out._Base._Nodes.push_back(Unique_ptr<Node>(nodeptr));
+	return r;
 }
 UCodeLangFrontEnd

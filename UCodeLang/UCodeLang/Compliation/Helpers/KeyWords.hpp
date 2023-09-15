@@ -107,6 +107,8 @@ inline const char* S_KeyWord_utf64 = "utf64";
 inline const char* S_KeyWord_unsafe = "unsafe";
 
 inline const char* S_KeyWord_block = "block";
+
+inline const char* S_KeyWord_defer = "defer";
 struct KeyWord
 {
 	const char* keyWord;
@@ -220,6 +222,7 @@ inline KeyWord KeyWords[] =
 
 	KeyWord(S_KeyWord_unsafe,TokenType::KeyWord_unsafe),
 	KeyWord(S_KeyWord_block, TokenType::KeyWord_block),
+	KeyWord(S_KeyWord_defer, TokenType::KeyWord_defer),
 };
 constexpr size_t KeyWords_Size = sizeof(KeyWords) / sizeof(KeyWords[0]);
 class KeyWordHelper
