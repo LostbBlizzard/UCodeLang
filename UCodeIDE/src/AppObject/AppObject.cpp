@@ -162,11 +162,8 @@ $Result<T,E> enum:
         */
         _Editor.SetText(
             R"(
-|main[]:
- if 10 != 5:
-  ret 10;
+|main[] => 0;
 
- ret 5;
             )");
 
 
@@ -593,9 +590,19 @@ void AppObject::DrawTestMenu()
                             ((Func)threadinittocall)();
                         }
 
+                        auto rettype = ufunc->RetType;
+                        if (auto val = Assembly.Find_Node(rettype))
+                        {
+                            if (val->Get_Type() == ClassType::Enum)
+                            {
+                                auto& Enum = val->Get_EnumData();
+                                rettype = Enum.BaseType;
+                            }
+                        }
+
                         RetValue = std::make_unique<Byte[]>(Test.RunTimeSuccessSize);
                         {
-                            if (ufunc->RetType._Type == ReflectionTypes::Bool)
+                            if (rettype._Type == ReflectionTypes::Bool)
                             {
                                 using GetValueFunc = bool(*)();
                                 auto val = ((GetValueFunc)functocall)();
@@ -603,9 +610,9 @@ void AppObject::DrawTestMenu()
                                 UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
                                 memcpy(RetValue.get(), &val, sizeof(val));
                             }
-                            else if (ufunc->RetType._Type == ReflectionTypes::sInt8
-                                || ufunc->RetType._Type == ReflectionTypes::uInt8
-                                || ufunc->RetType._Type == ReflectionTypes::Char)
+                            else if (rettype._Type == ReflectionTypes::sInt8
+                                || rettype._Type == ReflectionTypes::uInt8
+                                || rettype._Type == ReflectionTypes::Char)
                             {
                                 using GetValueFunc = UInt8(*)();
                                 auto val = ((GetValueFunc)functocall)();
@@ -613,8 +620,8 @@ void AppObject::DrawTestMenu()
                                 UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
                                 memcpy(RetValue.get(), &val, sizeof(val));
                             }
-                            else  if (ufunc->RetType._Type == ReflectionTypes::uInt16
-                                || ufunc->RetType._Type == ReflectionTypes::sInt16)
+                            else  if (rettype._Type == ReflectionTypes::uInt16
+                                || rettype._Type == ReflectionTypes::sInt16)
                             {
                                 using GetValueFunc = Int16(*)();
                                 auto val = ((GetValueFunc)functocall)();
@@ -622,8 +629,8 @@ void AppObject::DrawTestMenu()
                                 UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
                                 memcpy(RetValue.get(), &val, sizeof(val));
                             }
-                            else  if (ufunc->RetType._Type == ReflectionTypes::uInt32
-                                || ufunc->RetType._Type == ReflectionTypes::sInt32)
+                            else  if (rettype._Type == ReflectionTypes::uInt32
+                                || rettype._Type == ReflectionTypes::sInt32)
                             {
                                 using GetValueFunc =Int32(*)();
                                 auto val = ((GetValueFunc)functocall)();
@@ -631,7 +638,7 @@ void AppObject::DrawTestMenu()
                                 UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
                                 memcpy(RetValue.get(), &val, sizeof(val));
                             }
-                            else  if (ufunc->RetType._Type == ReflectionTypes::float32)
+                            else  if (rettype._Type == ReflectionTypes::float32)
                             {
                                 using GetValueFunc = float32(*)();
                                 auto val = ((GetValueFunc)functocall)();
@@ -639,7 +646,7 @@ void AppObject::DrawTestMenu()
                                 UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
                                 memcpy(RetValue.get(), &val, sizeof(val));
                             }
-                            else  if (ufunc->RetType._Type == ReflectionTypes::float64)
+                            else  if (rettype._Type == ReflectionTypes::float64)
                             {
                                 using GetValueFunc = float64(*)();
                                 auto val = ((GetValueFunc)functocall)();
@@ -647,8 +654,8 @@ void AppObject::DrawTestMenu()
                                 UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
                                 memcpy(RetValue.get(), &val, sizeof(val));
                             }
-                            else  if (ufunc->RetType._Type == ReflectionTypes::uIntPtr
-                                || ufunc->RetType._Type == ReflectionTypes::sIntPtr)
+                            else  if (rettype._Type == ReflectionTypes::uIntPtr
+                                || rettype._Type == ReflectionTypes::sIntPtr)
                             {
                                 using GetValueFunc = uintptr_t(*)();
                                 auto val = ((GetValueFunc)functocall)();
@@ -656,7 +663,7 @@ void AppObject::DrawTestMenu()
                                 UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
                                 memcpy(RetValue.get(), &val, sizeof(val));
                             }
-                            else if (auto typenod = Assembly.Find_Node(ufunc->RetType))
+                            else if (auto typenod = Assembly.Find_Node(rettype))
                             {
                                 if (StringHelper::StartWith(typenod->FullName,"Vec2")
                                     || StringHelper::StartWith(typenod->FullName, "vec2"))
@@ -794,6 +801,7 @@ void AppObject::DrawTestMenu()
         const  ImVec4 Colorlightgrey = { 0.675, 0.702, 0.675,1 };
         const  ImVec4 ColorOrange = { 0.929, 0.329, 0.09,1 };
         const  ImVec4 ColorBlue = { 0.396, 0.722, 0.769,1 };
+        const  ImVec4 ColorYellow = {1, 1, 0,1 };
         {
 
             {
@@ -964,15 +972,18 @@ void AppObject::DrawTestMenu()
                     bool isworking = false;
                     if (Thread.get())
                     {
-                        if (!Thread->valid())
+                        if (Thread->valid())
                         {
-                            isworking = true;
+                            if (Thread->wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+                            {
+                                isworking = true;
+                            }
                         }
                     }
 
                     if (isworking)
                     {
-                        buttioncolor = { 0.431, 0.427, 0.365,1 };//gray
+                        buttioncolor = ColorYellow;//gray
                     }
                     else
                     {
@@ -1002,15 +1013,8 @@ void AppObject::DrawTestMenu()
 
                     if (isopen)
                     {
-                        bool IsWorking = false;
+                        bool IsWorking = isworking;
 
-                        if (Thread.get())
-                        {
-                            if (!Thread->valid())
-                            {
-                                IsWorking = true;
-                            }
-                        }
                         {
                             String txt = "State:" + TestInfo::GetToString(ItemTestOut.State);
                             ImGui::Text(txt.c_str());
@@ -1072,6 +1076,11 @@ void AppObject::DrawTestMenu()
                         if (ImGui::Button("Show in files"))
                         {
                             ShowInFiles(UCodeLang_UCAppDir_Test_UCodeFiles + ItemTest.InputFilesOrDir);
+                        }
+                        ImGui::SameLine();
+                        if (ImGui::Button("Show Output in files"))
+                        {
+                            ShowInFiles(UCodeLang_UCAppDir_Test_OutputFiles + ItemTest.TestName);
                         }
                         ImGui::SameLine();
                         if (ImGui::Button("Set file.uc"))
@@ -1265,9 +1274,12 @@ void AppObject::DrawTestMenu()
 
                     if (Thread.get())
                     {
-                        if (!Thread->valid())
+                        if (Thread->valid())
                         {
-                            IsWorking = true;
+                            if (Thread->wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+                            {
+                                IsWorking = true;
+                            }
                         }
                     }
                     if (!IsWorking)

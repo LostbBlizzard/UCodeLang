@@ -2499,13 +2499,21 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			}
 			
 		}
+		
 		for (auto& Item : _IR_Rets)
 		{
-			_IR_LookingAtIRBlock->UpdateJump(Item.JumpIns, _IR_LookingAtIRBlock->Instructions.size());
+			_IR_LookingAtIRBlock->UpdateJump(Item.JumpIns, _IR_LookingAtIRBlock->Instructions.size()-2);
+			if (Item.JumpIns == _IR_LookingAtIRBlock->Instructions.back().get())
+			{
+				Item.JumpIns->SetAsNone();
+			}
 		}
 		_IR_Rets.clear();
-
+		
 		_IR_LookingAtIRBlock->NewRet();
+		
+		
+
 
 		if (FuncName == "main" && _IR_LookingAtIRFunc->Pars.size() == 0)
 		{
@@ -2837,6 +2845,15 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 		_Table.AddSymbolID(*syb, sybId);
 
 
+		{
+			DeclareVariableInfo* info = new DeclareVariableInfo();
+
+			syb->Info.reset(info);
+
+			info->LineNumber = node._Name->OnLine;
+		}
+
+
 		if (node._Type == ForNode::ForType::Traditional)
 		{
 			TypeSymbol BoolType(TypesEnum::Bool);
@@ -3052,6 +3069,8 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 				OnVarable = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(syb->VarType));
 				syb->IR_Ins = OnVarable;
 
+				Debug_Add_SetLineNumber(NeverNullptr(node._Name), _IR_LookingAtIRBlock->GetIndex());
+				Debug_Add_SetVarableInfo(*syb, _IR_LookingAtIRBlock->GetIndex());
 
 				IsStructObjectPassRef = Type_IsStructPassByRef(syb);
 
@@ -3069,7 +3088,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 
 				FileDependency_AddDependencyToCurrentFile(syb->VarType);
 			}
-
+			
 
 			{
 				TypeSymbol BoolType(TypesEnum::Bool);
@@ -3189,6 +3208,10 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 					IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType, syb->VarType);
 					auto FuncRet = _IR_LastExpressionField;
 					syb->IR_Ins = FuncRet;
+
+					Debug_Add_SetLineNumber(NeverNullptr(node._Name), _IR_LookingAtIRBlock->GetIndex());
+					Debug_Add_SetVarableInfo(*syb, _IR_LookingAtIRBlock->GetIndex());
+
 					IR_Build_AddDestructorToStack(syb, syb->ID,syb->IR_Ins);
 				}
 
@@ -6621,7 +6644,7 @@ void SystematicAnalysis::OnIfNode(const IfNode& node)
 
 		if (_PassType == PassType::BuidCode)
 		{
-			auto JumpIndex = _IR_LookingAtIRBlock->GetIndex();
+			auto JumpIndex = _IR_LookingAtIRBlock->GetIndex()-1;
 			_IR_LookingAtIRBlock->UpdateJump(ElseIndex, JumpIndex);
 			_IR_LookingAtIRBlock->UpdateConditionaJump(IfIndex.ConditionalJump, IfIndex.logicalNot, ElseI);
 		}

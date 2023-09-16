@@ -346,8 +346,7 @@ void UCodeBackEndObject::RegWillBeUsed(RegisterID Value)
 				auto V = _Registers.GetFreeRegister();
 				auto type = GetType(*Item);
 
-				_Registers.FreeRegister(Value);
-
+				
 				if (V.has_value() && V != Value)
 				{
 					SetRegister(V.value(),*Item);
@@ -357,6 +356,8 @@ void UCodeBackEndObject::RegWillBeUsed(RegisterID Value)
 				{
 					CopyValueToStack(*Item, type, Value);
 				}
+
+				_Registers.FreeRegister(Value);
 			}
 		}
 	}
@@ -2014,7 +2015,8 @@ void UCodeBackEndObject::BuildUIntToIntCast(const IRInstruction* Ins, const IROp
 }
 RegisterID UCodeBackEndObject::GetRegisterOut(const IRInstruction* Item)
 {
-	return RegisterID::OutPutRegister;
+	auto r = RegisterID::OutPutRegister;
+	return r;
 }
 void UCodeBackEndObject::BuildSIntToIntCast(const IRInstruction* Ins, const IROperator& Op, size_t IntSize)
 {
@@ -2793,7 +2795,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 				R.ObjectType = GetType(Ins);
 				if (GetAddress)
 				{
-					auto old = R;
+					auto old = std::move(R);
 					R = GetPointerOf(old);
 				}
 				return R;
@@ -2809,7 +2811,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 
 					if (GetAddress)
 					{
-						auto old = R;
+						auto old = std::move(R);
 						R = GetPointerOf(old);
 					}
 					return R;
@@ -2841,7 +2843,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 			auto R = GetIRLocData(Ins->Target().Pointer);
 			if (GetAddress)
 			{
-				auto old = R;
+				auto old = std::move(R);
 				R = GetPointerOf(old);
 			}
 			return R;
