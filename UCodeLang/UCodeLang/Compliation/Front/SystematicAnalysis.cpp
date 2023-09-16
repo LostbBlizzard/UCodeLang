@@ -2499,6 +2499,11 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			}
 			
 		}
+		for (auto& Item : _IR_Rets)
+		{
+			_IR_LookingAtIRBlock->UpdateJump(Item.JumpIns, _IR_LookingAtIRBlock->Instructions.size());
+		}
+		_IR_Rets.clear();
 
 		_IR_LookingAtIRBlock->NewRet();
 
@@ -3233,6 +3238,7 @@ void SystematicAnalysis::IR_Build_UpdateJumpsBreakContiunes(size_t JumpIndex, si
 		}
 		break;
 		default:
+			UCodeLangUnreachable();
 			break;
 		}
 	}
@@ -5606,6 +5612,9 @@ void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 			{
 				_IR_LookingAtIRBlock->NewRetValue(_IR_LastExpressionField);
 			}
+			RetData v;
+			v.JumpIns = _IR_LookingAtIRBlock->NewJump();
+			_IR_Rets.push_back(std::move(v));
 		}
 	}
 
@@ -6612,7 +6621,7 @@ void SystematicAnalysis::OnIfNode(const IfNode& node)
 
 		if (_PassType == PassType::BuidCode)
 		{
-			auto JumpIndex = _IR_LookingAtIRBlock->GetIndex() -1;
+			auto JumpIndex = _IR_LookingAtIRBlock->GetIndex();
 			_IR_LookingAtIRBlock->UpdateJump(ElseIndex, JumpIndex);
 			_IR_LookingAtIRBlock->UpdateConditionaJump(IfIndex.ConditionalJump, IfIndex.logicalNot, ElseI);
 		}
@@ -6747,7 +6756,7 @@ void SystematicAnalysis::OnDoNode(const DoNode& node)
 
 		size_t BreakCode = 0;
 
-		_IR_LookingAtIRBlock->NewConditionalFalseJump(_IR_LastExpressionField, StartIndex);
+		_IR_LookingAtIRBlock->NewConditionalJump(_IR_LastExpressionField, StartIndex);
 
 
 		IR_Build_UpdateJumpsBreakContiunes(JumpIndex,StartIndex, BreakCode);

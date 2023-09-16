@@ -309,10 +309,7 @@ using namespace UCodeLang;
 
 				Path  dllfile = OutFilePath + ".lib";
 				Path Testablefile = OutFilePath;
-				String Cmd = "gcc " + Testablefile.generic_string();
-				Cmd += " -shared -std=c89";
-				Cmd += " -o " + dllfile.generic_string();
-				system(Cmd.c_str());
+				UCodeLangAssert(CompileC89ToLib(Testablefile, dllfile));
 
 
 				auto& Assembly = ulib.Get_Assembly();

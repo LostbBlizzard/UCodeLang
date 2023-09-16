@@ -607,6 +607,10 @@ private:
 		Jumps_t Type = Jumps_t::Continue;
 		IRInstruction* JumpIns = nullptr;
 	};
+	struct RetData
+	{
+		IRInstruction* JumpIns = nullptr;
+	};
 	enum class NodeSyb_t
 	{
 		Any,
@@ -760,7 +764,8 @@ private:
 	Stack<IRLocation_Cotr> _IR_IRlocations;//for Constructors
 	Vector<IRCodeStackFrames> _IR_StackFrames;
 	Stack<GenericFuncInfo> _Generic_GenericSymbolStack;
-	Vector< JumpsData> _IR_Jumps;
+	Vector<JumpsData> _IR_Jumps;
+	Vector<RetData> _IR_Rets;
 	String _LastIRFileName;
 	size_t _LastLineNumber = -1;
 

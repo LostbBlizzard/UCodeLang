@@ -96,7 +96,7 @@ UCodeTestStart
 		}
 		return r;
 	}
-	static const Array<TestInfo, 78> Tests
+	static const Array<TestInfo, 80> Tests
 	{
 
 		TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation),
@@ -123,6 +123,8 @@ UCodeTestStart
 		TestInfo("loops2","BasicTests/loops.uc","main_else",SuccessCondition::RunTimeValue,(int)0),
 		TestInfo("loops3","BasicTests/loops.uc","main_while",SuccessCondition::RunTimeValue,(int)10),
 		TestInfo("loops4","BasicTests/loops.uc","main_do",SuccessCondition::RunTimeValue,(int)10),
+		TestInfo("loops5","BasicTests/loopsif.uc","main",SuccessCondition::RunTimeValue,(int)10),
+		TestInfo("loops6","BasicTests/loopsfor.uc","main",SuccessCondition::RunTimeValue,(int)10),
 
 
 		TestInfo("Func_1","BasicTests/Func.uc","main",SuccessCondition::RunTimeValue,(int)0),
@@ -240,5 +242,13 @@ UCodeTestStart
 	int RunTests(bool MultThread =true);
 
 	bool LogErrors(std::ostream& out, UCodeLang::Compiler& _Compiler);
+
+	bool CompileC89ToLib(const Path& Cfile, const Path& Outdllfile)
+	{
+		String Cmd = "gcc " + Cfile.generic_string();
+		Cmd += " -shared -std=c89";
+		Cmd += " -o " + Outdllfile.generic_string();
+		return system(Cmd.c_str()) == EXIT_SUCCESS;//yes i know the return value is not the same on all systems
+	}
 	
 UCodeTestEnd

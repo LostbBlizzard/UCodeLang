@@ -595,25 +595,26 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 
 		case IRInstructionType::SMult:
 		{
-			RegisterID V = RegisterID::MathOutPutRegister;
 			RegisterID A = MakeIntoRegister(Item, Item->A);
 			SetRegister(A, Item);
 			RegisterID B = MakeIntoRegister(Item, Item->B);
 
+			RegisterID V = GetRegisterOut(Item);
 			RegWillBeUsed(V);
+
 			switch (Item->ObjectType._Type)
 			{
-			case IRTypes::i8:InstructionBuilder::MultS8(_Ins, A, B); PushIns(); break;
-			case IRTypes::i16:InstructionBuilder::MultS16(_Ins, A, B); PushIns(); break;
+			case IRTypes::i8:InstructionBuilder::MultS8(_Ins, A, B,V); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::MultS16(_Ins, A, B, V); PushIns(); break;
 
 			bit32label:
-			case IRTypes::i32:InstructionBuilder::MultS32(_Ins, A, B); PushIns(); break;
+			case IRTypes::i32:InstructionBuilder::MultS32(_Ins, A, B, V); PushIns(); break;
 
 			bit64label:
-			case IRTypes::i64:InstructionBuilder::MultS64(_Ins, A, B); PushIns(); break;
+			case IRTypes::i64:InstructionBuilder::MultS64(_Ins, A, B, V); PushIns(); break;
 
-			case IRTypes::f32:InstructionBuilder::Multf32(_Ins, A, B); PushIns(); break;
-			case IRTypes::f64:InstructionBuilder::Multf64(_Ins, A, B); PushIns(); break;
+			case IRTypes::f32:InstructionBuilder::Multf32(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::f64:InstructionBuilder::Multf64(_Ins, A, B, V); PushIns(); break;
 
 			case IRTypes::pointer:
 				if (Get_Settings().PtrSize == IntSizes::Int32)
@@ -636,28 +637,29 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		break;
 		case IRInstructionType::UMult:
 		{
-			RegisterID V = RegisterID::MathOutPutRegister;
 			RegisterID A = MakeIntoRegister(Item, Item->A);
 			SetRegister(A, Item);
 			RegisterID B = MakeIntoRegister(Item, Item->B);
 
 
+			RegisterID V = GetRegisterOut(Item);
 			RegWillBeUsed(V);
+
 			auto& Object_t = Item->ObjectType;
 			switch (Object_t._Type)
 			{
-			case IRTypes::i8:InstructionBuilder::MultU8(_Ins, A, B); PushIns(); break;
-			case IRTypes::i16:InstructionBuilder::MultU16(_Ins, A, B); PushIns(); break;
+			case IRTypes::i8:InstructionBuilder::MultU8(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::MultU16(_Ins, A, B, V); PushIns(); break;
 
 			bit32label1:
-			case IRTypes::i32:InstructionBuilder::MultU32(_Ins, A, B); PushIns(); break;
+			case IRTypes::i32:InstructionBuilder::MultU32(_Ins, A, B, V); PushIns(); break;
 
 			bit64label1:
-			case IRTypes::i64:InstructionBuilder::MultU64(_Ins, A, B); PushIns(); break;
+			case IRTypes::i64:InstructionBuilder::MultU64(_Ins, A, B, V); PushIns(); break;
 
 
-			case IRTypes::f32:InstructionBuilder::Multf32(_Ins, A, B); PushIns(); break;
-			case IRTypes::f64:InstructionBuilder::Multf64(_Ins, A, B); PushIns(); break;
+			case IRTypes::f32:InstructionBuilder::Multf32(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::f64:InstructionBuilder::Multf64(_Ins, A, B, V); PushIns(); break;
 
 			case IRTypes::pointer:
 				if (Get_Settings().PtrSize == IntSizes::Int32)
@@ -681,7 +683,6 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 
 		case IRInstructionType::SDiv:
 		{
-			RegisterID V = RegisterID::MathOutPutRegister;
 			RegisterID A = MakeIntoRegister(Item, Item->A);
 
 			auto OldA = std::move(_Registers.GetInfo(A));
@@ -689,20 +690,22 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			RegisterID B = MakeIntoRegister(Item, Item->B);
 
 
+			RegisterID V = GetRegisterOut(Item);
 			RegWillBeUsed(V);
+
 			switch (Item->ObjectType._Type)
 			{
-			case IRTypes::i8:InstructionBuilder::DivS8(_Ins, A, B); PushIns(); break;
-			case IRTypes::i16:InstructionBuilder::DivS16(_Ins, A, B); PushIns(); break;
+			case IRTypes::i8:InstructionBuilder::DivS8(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::DivS16(_Ins, A, B, V); PushIns(); break;
 
 			bit32label2:
-			case IRTypes::i32:InstructionBuilder::DivS32(_Ins, A, B); PushIns(); break;
+			case IRTypes::i32:InstructionBuilder::DivS32(_Ins, A, B, V); PushIns(); break;
 
 			bit64label2:
-			case IRTypes::i64:InstructionBuilder::DivS64(_Ins, A, B); PushIns(); break;
+			case IRTypes::i64:InstructionBuilder::DivS64(_Ins, A, B, V); PushIns(); break;
 
-			case IRTypes::f32:InstructionBuilder::Divf32(_Ins, A, B); PushIns(); break;
-			case IRTypes::f64:InstructionBuilder::Divf64(_Ins, A, B); PushIns(); break;
+			case IRTypes::f32:InstructionBuilder::Divf32(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::f64:InstructionBuilder::Divf64(_Ins, A, B, V); PushIns(); break;
 
 			case IRTypes::pointer:
 				if (Get_Settings().PtrSize == IntSizes::Int32)
@@ -725,7 +728,6 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		break;
 		case IRInstructionType::UDiv:
 		{
-			RegisterID V = RegisterID::MathOutPutRegister;
 			RegisterID A = MakeIntoRegister(Item, Item->A);
 
 			auto OldA = std::move(_Registers.GetInfo(A));
@@ -734,20 +736,22 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			RegisterID B = MakeIntoRegister(Item, Item->B);
 
 
+			RegisterID V = GetRegisterOut(Item);
 			RegWillBeUsed(V);
+
 			switch (Item->ObjectType._Type)
 			{
-			case IRTypes::i8:InstructionBuilder::DivU8(_Ins, A, B); PushIns(); break;
-			case IRTypes::i16:InstructionBuilder::DivU16(_Ins, A, B); PushIns(); break;
+			case IRTypes::i8:InstructionBuilder::DivU8(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::DivU16(_Ins, A, B, V); PushIns(); break;
 
 			bit32label5:
-			case IRTypes::i32:InstructionBuilder::DivU32(_Ins, A, B); PushIns(); break;
+			case IRTypes::i32:InstructionBuilder::DivU32(_Ins, A, B, V); PushIns(); break;
 
 			bit64label5:
-			case IRTypes::i64:InstructionBuilder::DivU64(_Ins, A, B); PushIns(); break;
+			case IRTypes::i64:InstructionBuilder::DivU64(_Ins, A, B, V); PushIns(); break;
 
-			case IRTypes::f32:InstructionBuilder::Divf32(_Ins, A, B); PushIns(); break;
-			case IRTypes::f64:InstructionBuilder::Divf64(_Ins, A, B); PushIns(); break;
+			case IRTypes::f32:InstructionBuilder::Divf32(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::f64:InstructionBuilder::Divf64(_Ins, A, B, V); PushIns(); break;
 
 			case IRTypes::pointer:
 				if (Get_Settings().PtrSize == IntSizes::Int32)
@@ -771,7 +775,6 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 
 		case IRInstructionType::Add:
 		{
-			RegisterID V = RegisterID::MathOutPutRegister;
 			RegisterID A = MakeIntoRegister(Item, Item->A);
 
 			auto OldA = std::move(_Registers.GetInfo(A));
@@ -779,20 +782,22 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			RegisterID B = MakeIntoRegister(Item, Item->B);
 
 
+			RegisterID V = GetRegisterOut(Item);
 			RegWillBeUsed(V);
+
 			switch (Item->ObjectType._Type)
 			{
-			case IRTypes::i8:InstructionBuilder::Add8(_Ins, A, B); PushIns(); break;
-			case IRTypes::i16:InstructionBuilder::Add16(_Ins, A, B); PushIns(); break;
+			case IRTypes::i8:InstructionBuilder::Add8(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::Add16(_Ins, A, B, V); PushIns(); break;
 
 			bit32label6:
-			case IRTypes::i32:InstructionBuilder::Add32(_Ins, A, B); PushIns(); break;
+			case IRTypes::i32:InstructionBuilder::Add32(_Ins, A, B, V); PushIns(); break;
 
 			bit64label6:
-			case IRTypes::i64:InstructionBuilder::Add64(_Ins, A, B); PushIns(); break;
+			case IRTypes::i64:InstructionBuilder::Add64(_Ins, A, B, V); PushIns(); break;
 
-			case IRTypes::f32:InstructionBuilder::Addf32(_Ins, A, B); PushIns(); break;
-			case IRTypes::f64:InstructionBuilder::Addf64(_Ins, A, B); PushIns(); break;
+			case IRTypes::f32:InstructionBuilder::Addf32(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::f64:InstructionBuilder::Addf64(_Ins, A, B, V); PushIns(); break;
 
 			case IRTypes::pointer:
 				if (Get_Settings().PtrSize == IntSizes::Int32)
@@ -815,7 +820,6 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		break;
 		case IRInstructionType::Sub:
 		{
-			RegisterID V = RegisterID::MathOutPutRegister;
 			RegisterID A = MakeIntoRegister(Item, Item->A);
 
 			auto OldA = std::move(_Registers.GetInfo(A));
@@ -823,19 +827,21 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			RegisterID B = MakeIntoRegister(Item, Item->B);
 
 
+			RegisterID V = GetRegisterOut(Item);
 			RegWillBeUsed(V);
+
 			switch (Item->ObjectType._Type)
 			{
-			case IRTypes::i8:InstructionBuilder::Sub8(_Ins, A, B); PushIns(); break;
-			case IRTypes::i16:InstructionBuilder::Sub16(_Ins, A, B); PushIns(); break;
+			case IRTypes::i8:InstructionBuilder::Sub8(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::Sub16(_Ins, A, B, V); PushIns(); break;
 			bit32label4:
-			case IRTypes::i32:InstructionBuilder::Sub32(_Ins, A, B); PushIns(); break;
+			case IRTypes::i32:InstructionBuilder::Sub32(_Ins, A, B, V); PushIns(); break;
 
 			bit64label4:
-			case IRTypes::i64:InstructionBuilder::Sub64(_Ins, A, B); PushIns(); break;
+			case IRTypes::i64:InstructionBuilder::Sub64(_Ins, A, B, V); PushIns(); break;
 
-			case IRTypes::f32:InstructionBuilder::Subf32(_Ins, A, B); PushIns(); break;
-			case IRTypes::f64:InstructionBuilder::Subf64(_Ins, A, B); PushIns(); break;
+			case IRTypes::f32:InstructionBuilder::Subf32(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::f64:InstructionBuilder::Subf64(_Ins, A, B, V); PushIns(); break;
 
 			case IRTypes::pointer:
 				if (Get_Settings().PtrSize == IntSizes::Int32)
@@ -1006,23 +1012,23 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		break; 
 		case IRInstructionType::EqualTo:
 		{
-			RegisterID V = RegisterID::BoolRegister;
 			RegisterID A = MakeIntoRegister(Item, Item->A);
 			auto optype = GetType(Item, Item->A);
 
 			SetRegister(A,Item);
 			RegisterID B = MakeIntoRegister(Item, Item->B);
 
+			RegisterID V = GetRegisterOut(Item);
 			RegWillBeUsed(V);
 			switch (optype._Type)
 			{
-			case IRTypes::i8:InstructionBuilder::equalto8(_Ins, A, B); PushIns(); break;
-			case IRTypes::i16:InstructionBuilder::equalto16(_Ins, A, B); PushIns(); break;
+			case IRTypes::i8:InstructionBuilder::equalto8(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::equalto16(_Ins, A, B,V); PushIns(); break;
 
 			bit32label3:
-			case IRTypes::i32:InstructionBuilder::equalto32(_Ins, A, B); PushIns(); break;
+			case IRTypes::i32:InstructionBuilder::equalto32(_Ins, A, B,V); PushIns(); break;
 			bit64label3:
-			case IRTypes::i64:InstructionBuilder::equalto64(_Ins, A, B); PushIns(); break;
+			case IRTypes::i64:InstructionBuilder::equalto64(_Ins, A, B,V); PushIns(); break;
 
 			case IRTypes::pointer:
 				if (Get_Settings().PtrSize == IntSizes::Int32)
@@ -1181,7 +1187,6 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		case IRInstructionType::SGreaterThanOrEqual:
 		case IRInstructionType::UGreaterThanOrEqual:	
 		{
-			RegisterID V = RegisterID::BoolRegister;
 			RegisterID A = MakeIntoRegister(Item, Item->A);
 			auto optype = GetType(Item, Item->A);
 
@@ -1189,25 +1194,26 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			SetRegister(A, Item);
 			RegisterID B = MakeIntoRegister(Item, Item->B);
 
+			RegisterID V = GetRegisterOut(Item);
 			RegWillBeUsed(V);
 			switch (optype._Type)
 			{
-			case IRTypes::i8:InstructionBuilder::equal_greaterthan8(_Ins, A, B); PushIns(); break;
-			case IRTypes::i16:InstructionBuilder::equal_greaterthan16(_Ins, A, B); PushIns(); break;
+			case IRTypes::i8:InstructionBuilder::equal_greaterthan8(_Ins, A, B,V); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::equal_greaterthan16(_Ins, A, B,V); PushIns(); break;
 
 			bit32label38:
-			case IRTypes::i32:InstructionBuilder::equal_greaterthan32(_Ins, A, B); PushIns(); break;
+			case IRTypes::i32:InstructionBuilder::equal_greaterthan32(_Ins, A, B,V); PushIns(); break;
 			bit64label38:
-			case IRTypes::i64:InstructionBuilder::equal_greaterthan64(_Ins, A, B); PushIns(); break;
+			case IRTypes::i64:InstructionBuilder::equal_greaterthan64(_Ins, A, B,V); PushIns(); break;
 
 			case IRTypes::pointer:
 				if (Get_Settings().PtrSize == IntSizes::Int32)
 				{
-					InstructionBuilder::equal_greaterthan32(_Ins, A, B); PushIns(); 
+					InstructionBuilder::equal_greaterthan32(_Ins, A, B,V); PushIns(); 
 				}
 				else
 				{
-					InstructionBuilder::equal_greaterthan64(_Ins, A, B); PushIns();
+					InstructionBuilder::equal_greaterthan64(_Ins, A, B,V); PushIns();
 				}
 				break;
 			default:
@@ -1222,7 +1228,6 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		case IRInstructionType::ULessThan:
 		case IRInstructionType::SLessThan:
 		{
-			RegisterID V = RegisterID::BoolRegister;
 			RegisterID A = MakeIntoRegister(Item, Item->A);
 
 			auto optype = GetType(Item, Item->A);
@@ -1230,24 +1235,26 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			SetRegister(A, Item);
 			RegisterID B = MakeIntoRegister(Item, Item->B);
 
+			RegisterID V = GetRegisterOut(Item);
 			RegWillBeUsed(V);
+
 			switch (optype._Type)
 			{
-			case IRTypes::i8:InstructionBuilder::lessthan8(_Ins, A, B); PushIns(); break;
-			case IRTypes::i16:InstructionBuilder::lessthan16(_Ins, A, B); PushIns(); break;
+			case IRTypes::i8:InstructionBuilder::lessthan8(_Ins, A, B,V); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::lessthan16(_Ins, A, B,V); PushIns(); break;
 
-			case IRTypes::i32:InstructionBuilder::lessthan32(_Ins, A, B); PushIns(); break;
+			case IRTypes::i32:InstructionBuilder::lessthan32(_Ins, A, B,V); PushIns(); break;
 			
-			case IRTypes::i64:InstructionBuilder::lessthan64(_Ins, A, B); PushIns(); break;
+			case IRTypes::i64:InstructionBuilder::lessthan64(_Ins, A, B,V); PushIns(); break;
 
 			case IRTypes::pointer:
 				if (Get_Settings().PtrSize == IntSizes::Int32)
 				{
-					InstructionBuilder::lessthan32(_Ins, A, B); PushIns(); break;
+					InstructionBuilder::lessthan32(_Ins, A, B,V); PushIns(); break;
 				}
 				else
 				{
-					InstructionBuilder::lessthan64(_Ins, A, B); PushIns(); break;
+					InstructionBuilder::lessthan64(_Ins, A, B,V); PushIns(); break;
 				}
 				break;
 			default:
@@ -1262,7 +1269,6 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		case IRInstructionType::SGreaterThan:
 		case IRInstructionType::UGreaterThan:
 		{
-			RegisterID V = RegisterID::BoolRegister;
 			RegisterID A = MakeIntoRegister(Item, Item->A);
 			auto optype = GetType(Item, Item->A);
 
@@ -1270,24 +1276,26 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			SetRegister(A, Item);
 			RegisterID B = MakeIntoRegister(Item, Item->B);
 
+			RegisterID V = GetRegisterOut(Item);
 			RegWillBeUsed(V);
+
 			switch (optype._Type)
 			{
-			case IRTypes::i8:InstructionBuilder::greaterthan8(_Ins, A, B); PushIns(); break;
-			case IRTypes::i16:InstructionBuilder::greaterthan16(_Ins, A, B); PushIns(); break;
+			case IRTypes::i8:InstructionBuilder::greaterthan8(_Ins, A, B,V); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::greaterthan16(_Ins, A, B,V); PushIns(); break;
 
-			case IRTypes::i32:InstructionBuilder::greaterthan32(_Ins, A, B); PushIns(); break;
+			case IRTypes::i32:InstructionBuilder::greaterthan32(_Ins, A, B,V); PushIns(); break;
 
-			case IRTypes::i64:InstructionBuilder::greaterthan64(_Ins, A, B); PushIns(); break;
+			case IRTypes::i64:InstructionBuilder::greaterthan64(_Ins, A, B,V); PushIns(); break;
 
 			case IRTypes::pointer:
 				if (Get_Settings().PtrSize == IntSizes::Int32)
 				{
-					InstructionBuilder::greaterthan32(_Ins, A, B); PushIns(); break;
+					InstructionBuilder::greaterthan32(_Ins, A, B,V); PushIns(); break;
 				}
 				else
 				{
-					InstructionBuilder::greaterthan64(_Ins, A, B); PushIns(); break;
+					InstructionBuilder::greaterthan64(_Ins, A, B,V); PushIns(); break;
 				}
 				break;
 			default:
@@ -1302,31 +1310,72 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		case IRInstructionType::SLessThanOrEqual:
 		case IRInstructionType::ULessThanOrEqual:
 		{
-			RegisterID V = RegisterID::BoolRegister;
 			RegisterID A = MakeIntoRegister(Item, Item->A);
 			auto optype = GetType(Item, Item->A);
 
 			SetRegister(A, Item);
 			RegisterID B = MakeIntoRegister(Item, Item->B);
 
+		
+			RegisterID V = GetRegisterOut(Item);
 			RegWillBeUsed(V);
+
 			switch (optype._Type)
 			{
-			case IRTypes::i8:InstructionBuilder::equal_greaterthan8(_Ins, A, B); PushIns(); break;
-			case IRTypes::i16:InstructionBuilder::equal_greaterthan16(_Ins, A, B); PushIns(); break;
+			case IRTypes::i8:InstructionBuilder::equal_greaterthan8(_Ins, A, B,V); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::equal_greaterthan16(_Ins, A, B,V); PushIns(); break;
 
-			case IRTypes::i32:InstructionBuilder::equal_greaterthan32(_Ins, A, B); PushIns(); break;
+			case IRTypes::i32:InstructionBuilder::equal_greaterthan32(_Ins, A, B,V); PushIns(); break;
 
-			case IRTypes::i64:InstructionBuilder::equal_greaterthan64(_Ins, A, B); PushIns(); break;
+			case IRTypes::i64:InstructionBuilder::equal_greaterthan64(_Ins, A, B,V); PushIns(); break;
 
 			case IRTypes::pointer:
 				if (Get_Settings().PtrSize == IntSizes::Int32)
 				{
-					InstructionBuilder::equal_greaterthan32(_Ins, A, B); PushIns(); break;
+					InstructionBuilder::equal_greaterthan32(_Ins, A, B,V); PushIns(); break;
 				}
 				else
 				{
-					InstructionBuilder::equal_greaterthan64(_Ins, A, B); PushIns(); break;
+					InstructionBuilder::equal_greaterthan64(_Ins, A, B,V); PushIns(); break;
+				}
+				break;
+			default:
+				UCodeLangUnreachable();
+				break;
+			}
+
+			FreeRegister(A);
+			SetRegister(V, Item);
+		}
+		break;
+		case IRInstructionType::NotEqualTo:
+		{
+		
+			RegisterID A = MakeIntoRegister(Item, Item->A);
+			auto optype = GetType(Item, Item->A);
+
+			SetRegister(A, Item);
+			RegisterID B = MakeIntoRegister(Item, Item->B);
+
+			RegisterID V = GetRegisterOut(Item);
+			RegWillBeUsed(V);
+			switch (optype._Type)
+			{
+			case IRTypes::i8:InstructionBuilder::notequalto8(_Ins, A, B,V); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::notequalto16(_Ins, A, B,V); PushIns(); break;
+
+			case IRTypes::i32:InstructionBuilder::notequalto32(_Ins, A, B,V); PushIns(); break;
+
+			case IRTypes::i64:InstructionBuilder::notequalto64(_Ins, A, B,V); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					InstructionBuilder::notequalto32(_Ins, A, B,V); PushIns(); break;
+				}
+				else
+				{
+					InstructionBuilder::notequalto64(_Ins, A, B,V); PushIns(); break;
 				}
 				break;
 			default:
@@ -1963,6 +2012,10 @@ void UCodeBackEndObject::BuildUIntToIntCast(const IRInstruction* Ins, const IROp
 	FreeRegister(A);
 	SetRegister(V,Ins);
 }
+RegisterID UCodeBackEndObject::GetRegisterOut(const IRInstruction* Item)
+{
+	return RegisterID::OutPutRegister;
+}
 void UCodeBackEndObject::BuildSIntToIntCast(const IRInstruction* Ins, const IROperator& Op, size_t IntSize)
 {
 	BuildUIntToIntCast(Ins, Op, IntSize);
@@ -2084,7 +2137,8 @@ RegisterID UCodeBackEndObject::MakeIntoRegister(const IRlocData& Value, Optional
 
 		return Tep;
 	}
-	else if (auto Val = Value.Info.Get_If<IRlocData_StaticPos>())
+	else if (Value.Info.Is<IRlocData_StaticPos>()
+		|| Value.Info.Is<IRlocData_ThreadPos>())
 	{
 		RegisterID Tep;
 		if (RegisterToPut.has_value())
@@ -2098,7 +2152,15 @@ RegisterID UCodeBackEndObject::MakeIntoRegister(const IRlocData& Value, Optional
 
 		auto Size = GetSize(Value.ObjectType);
 
-		InstructionBuilder::GetPointerOfStaticMem(_Ins, Tep, Val->offset); PushIns();
+		if (auto Val = Value.Info.Get_If<IRlocData_StaticPos>()) 
+		{
+			InstructionBuilder::GetPointerOfStaticMem(_Ins, Tep, Val->offset);
+		}
+		else  if (auto Val = Value.Info.Get_If<IRlocData_ThreadPos>())
+		{
+			InstructionBuilder::GetPointerOfThreadMem(_Ins, Tep, Val->offset);
+		}
+		PushIns();
 		
 		switch (Size)
 		{

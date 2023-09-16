@@ -12,36 +12,36 @@ UCodeLangStart
 	case InstructionSet::StoreRegOnStackSub##IntSize: return Instruction::OpType::RegUInt16;\
 	case InstructionSet::GetFromStack##IntSize: return Instruction::OpType::RegUInt16;\
 	case InstructionSet::GetFromStackSub##IntSize: return Instruction::OpType::RegUInt16;\
-	case InstructionSet::Add##IntSize: return Instruction::OpType::TwoReg;\
-	case InstructionSet::Sub##IntSize: return Instruction::OpType::TwoReg;\
-	case InstructionSet::MultS##IntSize: return Instruction::OpType::TwoReg;\
-	case InstructionSet::MultU##IntSize: return Instruction::OpType::TwoReg;\
-	case InstructionSet::DivS##IntSize: return Instruction::OpType::TwoReg;\
-	case InstructionSet::DivU##IntSize: return Instruction::OpType::TwoReg;\
-	case InstructionSet::LogicalAnd##IntSize: return Instruction::OpType::TwoReg;\
-	case InstructionSet::Logicalor##IntSize: return Instruction::OpType::TwoReg;\
+	case InstructionSet::Add##IntSize: return Instruction::OpType::ThreeReg;\
+	case InstructionSet::Sub##IntSize: return Instruction::OpType::ThreeReg;\
+	case InstructionSet::MultS##IntSize: return Instruction::OpType::ThreeReg;\
+	case InstructionSet::MultU##IntSize: return Instruction::OpType::ThreeReg;\
+	case InstructionSet::DivS##IntSize: return Instruction::OpType::ThreeReg;\
+	case InstructionSet::DivU##IntSize: return Instruction::OpType::ThreeReg;\
+	case InstructionSet::LogicalAnd##IntSize: return Instruction::OpType::ThreeReg;\
+	case InstructionSet::Logicalor##IntSize: return Instruction::OpType::ThreeReg;\
 	case InstructionSet::LogicalNot##IntSize: return Instruction::OpType::TwoReg;\
-	case InstructionSet::equalto##IntSize: return Instruction::OpType::TwoReg;\
-	case InstructionSet::notequalto##IntSize: return Instruction::OpType::TwoReg;\
-	case InstructionSet::lessthan##IntSize: return Instruction::OpType::TwoReg; \
-	case InstructionSet::greaterthan##IntSize: return Instruction::OpType::TwoReg; \
-	case InstructionSet::equal_lessthan##IntSize: return Instruction::OpType::TwoReg; \
-	case InstructionSet::equal_greaterthan##IntSize: return Instruction::OpType::TwoReg; \
-	case InstructionSet::bitwiseAnd##IntSize: return Instruction::OpType::TwoReg; \
-	case InstructionSet::bitwiseOr##IntSize: return Instruction::OpType::TwoReg; \
-	case InstructionSet::bitwiseLeftShift##IntSize: return Instruction::OpType::TwoReg; \
-	case InstructionSet::bitwiseRightShift##IntSize: return Instruction::OpType::TwoReg; \
-	case InstructionSet::bitwiseXor##IntSize: return Instruction::OpType::TwoReg; \
+	case InstructionSet::equalto##IntSize: return Instruction::OpType::ThreeReg;\
+	case InstructionSet::notequalto##IntSize: return Instruction::OpType::ThreeReg;\
+	case InstructionSet::lessthan##IntSize: return Instruction::OpType::ThreeReg; \
+	case InstructionSet::greaterthan##IntSize: return Instruction::OpType::ThreeReg; \
+	case InstructionSet::equal_lessthan##IntSize: return Instruction::OpType::ThreeReg; \
+	case InstructionSet::equal_greaterthan##IntSize: return Instruction::OpType::ThreeReg; \
+	case InstructionSet::bitwiseAnd##IntSize: return Instruction::OpType::ThreeReg; \
+	case InstructionSet::bitwiseOr##IntSize: return Instruction::OpType::ThreeReg; \
+	case InstructionSet::bitwiseLeftShift##IntSize: return Instruction::OpType::ThreeReg; \
+	case InstructionSet::bitwiseRightShift##IntSize: return Instruction::OpType::ThreeReg; \
+	case InstructionSet::bitwiseXor##IntSize: return Instruction::OpType::ThreeReg; \
 	case InstructionSet::bitwise_Not##IntSize: return Instruction::OpType::TwoReg; \
 	case InstructionSet::UInt##IntSize##ToSInt##IntSize: return Instruction::OpType::TwoReg; \
 	case InstructionSet::SInt##IntSize##ToUInt##IntSize: return Instruction::OpType::TwoReg; \
 
 
 #define Setfloat(IntSize)\
-case InstructionSet::Addf##IntSize: return Instruction::OpType::TwoReg; \
-case InstructionSet::Subf##IntSize: return Instruction::OpType::TwoReg; \
-case InstructionSet::Multf##IntSize: return Instruction::OpType::TwoReg; \
-case InstructionSet::Divf##IntSize: return Instruction::OpType::TwoReg; \
+case InstructionSet::Addf##IntSize: return Instruction::OpType::ThreeReg; \
+case InstructionSet::Subf##IntSize: return Instruction::OpType::ThreeReg; \
+case InstructionSet::Multf##IntSize: return Instruction::OpType::ThreeReg; \
+case InstructionSet::Divf##IntSize: return Instruction::OpType::ThreeReg; \
 
 
 Instruction::OpType Instruction::GetOpType(InstructionSet OpCode)
@@ -117,6 +117,8 @@ Instruction::OpType Instruction::GetOpType(InstructionSet OpCode)
 	case InstructionSet::DoNothing:
 		return Instruction::OpType::NoneOp;
 
+	case InstructionSet::GetPointerOfStaticMem:
+	case InstructionSet::GetPointerOfThreadMem:
 	case InstructionSet::GetPointerOfStack:
 	case InstructionSet::GetPointerOfStackSub:
 		return Instruction::OpType::RegUInt16;
