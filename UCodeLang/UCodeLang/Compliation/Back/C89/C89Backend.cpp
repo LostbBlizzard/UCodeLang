@@ -657,6 +657,23 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					State.TepPushedParameters.clear();
 					r += ")";
 				}break;
+				case IRInstructionType::CallFuncPtr:
+				{
+					r += ToString(I->ObjectType);
+					r += " " + State.GetName(I.get());
+					r += " = ";
+					r += ToString(State, *I, I->Target()) + "(";
+					for (auto& Item : State.TepPushedParameters)
+					{
+						r += ToString(State, *Item, Item->Target());
+						if (&Item != &State.TepPushedParameters.back())
+						{
+							r += ",";
+						}
+					}
+					State.TepPushedParameters.clear();
+					r += ")";
+				}break;
 				case IRInstructionType::Return:
 					if (Item->ReturnType.IsSame(IRTypes::Void))
 					{
@@ -762,6 +779,10 @@ String C89Backend::ToString(ToStringState& State, IRInstruction& Ins, IROperator
 	case IROperatorType::Get_PointerOf_IRParameter:
 	{
 		return "&" + FromIDToCindentifier(Value.Parameter->identifier);
+	}
+	case IROperatorType::Get_Func_Pointer:
+	{
+		return "&" + FromIDToCindentifier(Value.identifer);
 	}
 	default:UCodeLangUnreachable();
 	}

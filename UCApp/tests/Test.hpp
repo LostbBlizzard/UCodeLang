@@ -106,7 +106,7 @@ UCodeTestStart
 		TestInfo("Float_Test_ret_1_Float","BasicTests/main.uc","Float_Test",SuccessCondition::RunTimeValue,(UCodeLang::float32)1.5),
 
 		TestInfo("BasicObjects_0","Objects/BasicObjects.uc","Main2",SuccessCondition::Compilation),
-		TestInfo("NewAndDrop","NewAndDrop/main.uc","main",SuccessCondition::RunTimeValue,(UCodeLang::Byte)0),
+		TestInfo("NewAndDrop","NewAndDrop/main.uc","main",SuccessCondition::RunTimeValue,(int)0),
 		TestInfo("genericWithMemberAccess","Syntax/genericWithMemberAccess.uc","Main",SuccessCondition::CompilationFail),
 
 		TestInfo("scopetest","BasicTests/scopetest.uc","Main",SuccessCondition::RunTimeValue,(UCodeLang::Byte)0),
@@ -134,7 +134,7 @@ UCodeTestStart
 		TestInfo("pointer3","Objects/pointer3.uc","main",SuccessCondition::RunTimeValue,(char)'0'),
 		TestInfo("FuncOverloading","Objects/FuncOverloading.uc","main",SuccessCondition::RunTimeValue,(int)0),
 
-		TestInfo("OperatorOverloading","Objects/OperatorOverloading.uc","main",SuccessCondition::RunTimeValue,Vec2(0,0)),
+		TestInfo("OperatorOverloading","Objects/OperatorOverloading.uc","test",SuccessCondition::RunTimeValue,Vec2(0,0)),
 
 		TestInfo("Enum_1","Objects/Enum.uc","main",SuccessCondition::RunTimeValue,(int)1),
 		TestInfo("Enum_2","Objects/Enum2.uc","main",SuccessCondition::RunTimeValue,(float)1.5),
@@ -245,10 +245,49 @@ UCodeTestStart
 
 	bool CompileC89ToLib(const Path& Cfile, const Path& Outdllfile)
 	{
+		/*
+		#if UCodeLangMSVC
+
+		String msbuildfile = R"(<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+		<ItemGroup>
+			<ProjectConfiguration Include="Debug|x64">
+				<Configuration>Debug</Configuration>
+				<Platform>x64</Platform>
+			</ItemGroup>
+			<Import Project = "$(VCTargetsPath)\Microsoft.Cpp.default.props" / >
+			<PropertyGroup>
+			<ConfigurationType>Application< / ConfigurationType>
+			<PlatformToolset>v142< / PlatformToolset>
+			</PropertyGroup>
+			<Import Project = "$(VCTargetsPath)\Microsoft.Cpp.props" / >
+			<ItemGroup>
+			<ClCompile Include = ")" + Cfile.filename().generic_string() + R"("/>
+			</ItemGroup>
+			<ItemGroup>
+			<ClInclude Include = ")" + Cfile.filename().generic_string() + R"("/>
+			</ItemGroup>
+			<Import Project = "$(VCTargetsPath)\Microsoft.Cpp.Targets" / >
+			</Project>)";
+
+
+		std::ofstream file(Path(Cfile.native() + Path(".vcxproj").native()));
+		file << msbuildfile;
+		file.close();
+
+		String Cmd = "msbuild " + Cfile.generic_string();
+		return system(Cmd.c_str()) == EXIT_SUCCESS;//yes i know the return value is not the same on all systems
+		#endif
+		
+		#if UCodeLangGNUC
+		*/
 		String Cmd = "gcc " + Cfile.generic_string();
-		Cmd += " -shared -std=c89";
+		Cmd += " -shared -std=c89 -g";
 		Cmd += " -o " + Outdllfile.generic_string();
 		return system(Cmd.c_str()) == EXIT_SUCCESS;//yes i know the return value is not the same on all systems
+		/*
+		#endif
+		*/
 	}
 	
 UCodeTestEnd
