@@ -2,7 +2,6 @@
 #include "../../LangCore.hpp"
 UCodeLangStart
 
-
 #pragma region MyRegion
 
 #define BuilderIntSet(bitsize) \
@@ -42,85 +41,85 @@ UCodeLangForceinline static void GetFromStackSub##bitsize(Instruction& Out, UInt
 {\
   Out = Instruction(InstructionSet::GetFromStackSub##bitsize,Instruction::RegUInt16(Reg,Stackoffset));\
 }\
-UCodeLangForceinline static void Add##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
+UCodeLangForceinline static void Add##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2,RegisterID out)\
 {\
-	Out = Instruction(InstructionSet::Add##bitsize, Instruction::TwoReg(reg,reg2));\
+	Out = Instruction(InstructionSet::Add##bitsize,Instruction::ThreeReg(reg, reg2,out));\
 }\
-UCodeLangForceinline static void Sub##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
+UCodeLangForceinline static void Sub##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2,RegisterID out)\
 {\
-	Out = Instruction(InstructionSet::Sub##bitsize, Instruction::TwoReg(reg,reg2));\
+	Out = Instruction(InstructionSet::Sub##bitsize,Instruction::ThreeReg(reg, reg2,out));\
 }\
-UCodeLangForceinline static void MultS##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
+UCodeLangForceinline static void MultS##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2,RegisterID out)\
 {\
-	Out = Instruction(InstructionSet::MultS##bitsize, Instruction::TwoReg(reg,reg2));\
+	Out = Instruction(InstructionSet::MultS##bitsize,Instruction::ThreeReg(reg, reg2,out));\
 }\
-UCodeLangForceinline static void MultU##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
+UCodeLangForceinline static void MultU##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2,RegisterID out)\
 {\
-	Out = Instruction(InstructionSet::MultU##bitsize, Instruction::TwoReg(reg,reg2));\
+	Out = Instruction(InstructionSet::MultU##bitsize,Instruction::ThreeReg(reg, reg2,out));\
 }\
-UCodeLangForceinline static void DivS##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
+UCodeLangForceinline static void DivS##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2,RegisterID out)\
 {\
-	Out = Instruction(InstructionSet::DivS##bitsize, Instruction::TwoReg(reg,reg2));\
+	Out = Instruction(InstructionSet::DivS##bitsize,Instruction::ThreeReg(reg, reg2,out));\
 }\
-UCodeLangForceinline static void DivU##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
+UCodeLangForceinline static void DivU##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2,RegisterID out)\
 {\
-	Out = Instruction(InstructionSet::DivU##bitsize, Instruction::TwoReg(reg,reg2));\
+	Out = Instruction(InstructionSet::DivU##bitsize,Instruction::ThreeReg(reg, reg2,out));\
 }\
-UCodeLangForceinline static void LogicalAnd##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2) \
+UCodeLangForceinline static void LogicalAnd##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2,RegisterID out) \
 {\
-	Out = Instruction(InstructionSet::LogicalAnd##bitsize, Instruction::TwoReg(reg,reg2));\
+	Out = Instruction(InstructionSet::LogicalAnd##bitsize,Instruction::ThreeReg(reg, reg2,out));\
 }\
-UCodeLangForceinline static void LogicalOr##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
+UCodeLangForceinline static void LogicalOr##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2,RegisterID out)\
 {\
-	Out = Instruction(InstructionSet::Logicalor##bitsize, Instruction::TwoReg(reg,reg2));\
+	Out = Instruction(InstructionSet::Logicalor##bitsize,Instruction::ThreeReg(reg, reg2,out));\
 }\
 UCodeLangForceinline static void LogicalNot##bitsize(Instruction& Out, RegisterID reg, RegisterID out)\
 {\
 	Out = Instruction(InstructionSet::LogicalNot##bitsize, Instruction::TwoReg(reg,out));\
 }\
-UCodeLangForceinline static void equalto##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
+UCodeLangForceinline static void equalto##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2,RegisterID out)\
 {\
-	Out = Instruction(InstructionSet::equalto##bitsize, Instruction::TwoReg(reg,reg2));\
+	Out = Instruction(InstructionSet::equalto##bitsize, Instruction::ThreeReg(reg, reg2,out));\
 }\
-UCodeLangForceinline static void notequalto##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
+UCodeLangForceinline static void notequalto##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2,RegisterID out)\
 {\
-	Out = Instruction(InstructionSet::notequalto##bitsize, Instruction::TwoReg(reg,reg2));\
+	Out = Instruction(InstructionSet::notequalto##bitsize, Instruction::ThreeReg(reg, reg2,out));\
 }\
-UCodeLangForceinline static void lessthan##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
+UCodeLangForceinline static void lessthan##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2,RegisterID out)\
 { \
-	Out = Instruction(InstructionSet::lessthan##bitsize, Instruction::TwoReg(reg,reg2));\
+	Out = Instruction(InstructionSet::lessthan##bitsize, Instruction::ThreeReg(reg, reg2,out));\
 }\
-UCodeLangForceinline static void greaterthan##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
+UCodeLangForceinline static void greaterthan##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2,RegisterID out)\
 {\
-	Out = Instruction(InstructionSet::greaterthan##bitsize, Instruction::TwoReg(reg,reg2));\
+	Out = Instruction(InstructionSet::greaterthan##bitsize, Instruction::ThreeReg(reg, reg2,out));\
 }\
-UCodeLangForceinline static void equal_lessthan##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
+UCodeLangForceinline static void equal_lessthan##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2,RegisterID out)\
 {\
-	Out = Instruction(InstructionSet::equal_lessthan##bitsize, Instruction::TwoReg(reg,reg2));\
+	Out = Instruction(InstructionSet::equal_lessthan##bitsize, Instruction::ThreeReg(reg, reg2,out));\
 }\
-UCodeLangForceinline static void equal_greaterthan##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
+UCodeLangForceinline static void equal_greaterthan##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2,RegisterID out)\
 {\
-	Out = Instruction(InstructionSet::equal_greaterthan##bitsize, Instruction::TwoReg(reg,reg2));\
+	Out = Instruction(InstructionSet::equal_greaterthan##bitsize, Instruction::ThreeReg(reg, reg2,out));\
 }\
-UCodeLangForceinline static void bitwise_and##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
+UCodeLangForceinline static void bitwise_and##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2,RegisterID out)\
 {\
-	Out = Instruction(InstructionSet::bitwiseAnd##bitsize, Instruction::TwoReg(reg,reg2));\
+	Out = Instruction(InstructionSet::bitwiseAnd##bitsize,Instruction::ThreeReg(reg, reg2,out));\
 }\
 UCodeLangForceinline static void bitwise_or##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
 {\
 	Out = Instruction(InstructionSet::bitwiseOr##bitsize, Instruction::TwoReg(reg,reg2));\
 }\
-UCodeLangForceinline static void bitwise_LeftShift##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
+UCodeLangForceinline static void bitwise_LeftShift##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2,RegisterID out)\
 {\
-	Out = Instruction(InstructionSet::bitwiseLeftShift##bitsize, Instruction::TwoReg(reg,reg2));\
+	Out = Instruction(InstructionSet::bitwiseLeftShift##bitsize,Instruction::ThreeReg(reg, reg2,out));\
 }\
-UCodeLangForceinline static void bitwise_RightShift##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
+UCodeLangForceinline static void bitwise_RightShift##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2,RegisterID out)\
 {\
-	Out = Instruction(InstructionSet::bitwiseRightShift##bitsize, Instruction::TwoReg(reg,reg2));\
+	Out = Instruction(InstructionSet::bitwiseRightShift##bitsize,Instruction::ThreeReg(reg, reg2,out));\
 }\
-UCodeLangForceinline static void bitwise_Xor##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
+UCodeLangForceinline static void bitwise_Xor##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2,RegisterID out)\
 {\
-	Out = Instruction(InstructionSet::bitwiseXor##bitsize, Instruction::TwoReg(reg,reg2));\
+	Out = Instruction(InstructionSet::bitwiseXor##bitsize,Instruction::ThreeReg(reg, reg2,out));\
 }\
 UCodeLangForceinline static void bitwise_Not##bitsize(Instruction& Out, RegisterID reg, RegisterID out)\
 {\
@@ -137,21 +136,21 @@ UCodeLangForceinline static void SInt##bitsize##To##UInt##bitsize(Instruction& O
 
 
 #define BuilderfloatSet(bitsize) \
-UCodeLangForceinline static void Addf##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
+UCodeLangForceinline static void Addf##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2, RegisterID out)\
 {\
-	Out = Instruction(InstructionSet::Addf##bitsize, Instruction::TwoReg(reg,reg2));\
+	Out = Instruction(InstructionSet::Addf##bitsize, Instruction::ThreeReg(reg, reg2,out));\
 }\
-UCodeLangForceinline static void Subf##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
+UCodeLangForceinline static void Subf##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2, RegisterID out)\
 {\
-	Out = Instruction(InstructionSet::Subf##bitsize, Instruction::TwoReg(reg,reg2));\
+	Out = Instruction(InstructionSet::Subf##bitsize, Instruction::ThreeReg(reg, reg2,out));\
 }\
-UCodeLangForceinline static void Multf##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
+UCodeLangForceinline static void Multf##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2, RegisterID out)\
 {\
-Out = Instruction(InstructionSet::Multf##bitsize, Instruction::TwoReg(reg, reg2)); \
+Out = Instruction(InstructionSet::Multf##bitsize, Instruction::ThreeReg(reg, reg2,out)); \
 }\
-UCodeLangForceinline static void Divf##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
+UCodeLangForceinline static void Divf##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2, RegisterID out)\
 {\
-Out = Instruction(InstructionSet::Divf##bitsize, Instruction::TwoReg(reg, reg2)); \
+Out = Instruction(InstructionSet::Divf##bitsize, Instruction::ThreeReg(reg, reg2,out)); \
 }\
 
 #pragma endregion

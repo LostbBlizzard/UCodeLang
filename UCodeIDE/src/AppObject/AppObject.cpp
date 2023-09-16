@@ -162,141 +162,11 @@ $Result<T,E> enum:
         */
         _Editor.SetText(
             R"(
-
-thread int a = 0;
-|cleanupfunc[] => a++;
-|Initfunc[] => a = 1;
-
 |main[]:
- var V = Initfunc(V);
- defer cleanupfunc(V);
-
-
- var V2 = Initfunc(V);
- defer: 
-     cleanupfunc(V);
-
- ret V + V2;//4
-
-|main_if[] -> int:
- if 1 == 1:
+ if 10 != 5:
   ret 10;
- else:
-  ret 0;
-/*
-|main[] -> async<bool>:
- async<int> a = await func();
- yield a;
-*/ 
 
-//yield await [] => 0;
-//ret 0;
-
-//$Future<T>;
-/*
-IntVector VectorTest = [];
-String StringTest = [];
-
-//A simplified standard Library below.
-
-$Vec2:
- int X = 0;
- int Y = 0;
-
-$Vec3:
- int X = 0;
- int Y = 0;
- int Z = 0;
-
-//Syntactic alias: T? = Optional<T>
-$Optional<T> enum:
- Value[T val],
- None,
-
-//Syntactic alias: T!E = Result<T,E>
-$Result<T,E> enum:
- Value[T val],
- Error[E err],
-
-$OpInt = int?;//make type.
-$Opbool = bool?;//make type.
-$Opchar = char?;//make type.
-
-$IntVector = int[];
-
-
-
-|NullPtr<T>[] => bitcast<T>(0);
-|NullPtrArr<T>[] => bitcast<T[&]>(0);
-|AreSamePtrArr<T>[umut T[&] A,umut T[&] B] => bitcast<uintptr>(A) == bitcast<uintptr>(B);
-|IsNullPtrArr<T>[umut T[&] Ptr] => bitcast<uintptr>(Ptr) == uintptr(0);
-
-//Syntactic alias: T[] = Vector<T>
-$Vector<T>:
- private:
-  T[&] _Data = NullPtrArr<T>();
-  uintptr _Capacity = 0;
-  uintptr _Size = 0;
-  |Data[umut this&] -> T[&]:ret _Data;//So  ClassAssembly::IsString_t will work.
- public: 
-  |Size[umut this&] => _Size;
-  |Capacity[umut this&] => _Capacity;
- 
-  |Resize[this&,uintptr size] -> void:
-   Reserve(size);
-   _Size = size;
-  |Reserve[this&,uintptr size] -> void:
-
-    if IsNullPtrArr(_Data):
-      drop(_Data);
-
-    _Data =: new T[size]; 
-    _Capacity = size;
-
-  |Clear[this&]:_Size = 0;
-
-  |Push[this&,moved T Item] => Insert(Item,_Size);
-  |Push[this&,umut T& Item] => Insert(Item,_Size);
-  |Pop[this&] => Remove(_Size - uintptr(1));
-
-  |Remove[this&,uintptr Index] -> T;
- 
-  |Insert[this&,moved T Item,uintptr Index] -> void:
-   //_Size++;
-   //if _Capacity < _Size:
-   //Resize(_Size);
-
-   //_Data[Index] = Item;
-    
-  |Insert[this&,umut T& Item,uintptr Index] -> void:
-   //_Size++;
-   //if _Capacity < _Size:
-   //Resize(_Size);
-
-   //_Data[Index] = Item;
-
-$String = String_t<char>;
-
-$String_t<T>:
- private:
-  Vector<T> Base = [];
-  |Data[umut this&] => Base.Data();
- public: 
-  
-  |Size[umut this&] => Base.Size();
-  |Capacity[umut this&] => Base.Capacity();
-
-  |Resize[this&,uintptr size] => Base.Resize(size);
-  |Clear[this&] => Base.Clear();
-  |Push[this&, T Item] => Base.Push(Item);
-  |Pop[this&] => Base.Pop();
-  |Remove[this&,uintptr Index] => Base.Remove(Index);
-  |Insert[this&,uintptr Index, T Item] => Base.Insert(Item,Index);
-
-//inlined enum variant: X || Y || Z
-//$InlinedEnum = int || bool || char;
-
-*/
+ ret 5;
             )");
 
 
@@ -680,10 +550,8 @@ void AppObject::DrawTestMenu()
 
                         Path  dllfile = OutFilePath + ".lib";
                         Path Testablefile = OutFilePath;
-                        String Cmd = "gcc " + Testablefile.generic_string();
-                        Cmd += " -shared -std=c89"; 
-                        Cmd += " -o " + dllfile.generic_string();
-                        system(Cmd.c_str());
+                        UCodeLangAssert(CompileC89ToLib(Testablefile, dllfile));
+                        
 
                         auto& Assembly = ulib.Get_Assembly();
                         auto cfuncname = C89Backend::UpdateToCindentifier(ufunc->DecorationName);
@@ -1559,7 +1427,7 @@ void AppObject::DrawPerformanceMenu()
     {
         {
             String Cpuinfo;
-#if UCodeLang_Platform_Windows 
+            #if UCodeLang_Platform_Windows 
             int CPUInfo[4] = { -1 };
             unsigned   nExIds, i = 0;
             char CPUBrandString[0x40];
@@ -1579,22 +1447,38 @@ void AppObject::DrawPerformanceMenu()
             }
             //string includes manufacturer, model and clockspeed
             Cpuinfo = CPUBrandString;
-#endif // 
+            #endif // 
             ImGui::BeginDisabled();
             ImguiHelper::InputText("CPU Info", Cpuinfo);
             String OSInfo;
-#if UCodeLang_Platform_Windows
+            #if UCodeLang_Platform_Windows
             OSInfo += "Windows";
-#endif
-#if UCodeLang_Platform_Linux
+            #endif
+            #if UCodeLang_Platform_Linux
             OSInfo += "Linux";
-#endif
+            #endif
+   
+            #if UCodeLang_Platform_IPHONE
+            OSInfo += "IPHONE";
+            #endif
 
-#if UCodeLang_32BitSytem
+            #if UCodeLang_Platform_MacOS
+            OSInfo += "MacOS";
+            #endif
+
+            #if UCodeLang_Platform_ANDROID
+            OSInfo += "ANDROID";
+            #endif
+
+            #if UCodeLang_Platform_Wasm 
+            OSInfo += "Wasm ";
+            #endif
+
+            #if UCodeLang_32BitSytem
             OSInfo += "- 32 bit";
-#else
+            #else
             OSInfo += "- 64 bit";
-#endif
+            #endif
             ImguiHelper::InputText("OS Info", OSInfo);
 
             String UCodeLangInfo;
@@ -1604,26 +1488,26 @@ void AppObject::DrawPerformanceMenu()
 
             UCodeLangInfo += " ";
 
-#if UCodeLangMSVC
+            #if UCodeLangMSVC
             UCodeLangInfo += "MSVC";
-#endif
-#if UCodeLangGNUC
+            #endif
+            #if UCodeLangGNUC
             UCodeLangInfo += "GNUC";
-#endif
-#if UCodeLangClang
+            #endif
+            #if UCodeLangClang
             UCodeLangInfo += "Clang";
-#endif
+            #endif
 
 
-#if UCodeLangDebug
+            #if UCodeLangDebug
             UCodeLangInfo += " Debug";
-#endif
-#if Release
+            #endif
+            #if Release
             UCodeLangInfo += " Release";
-#endif
-#if Release
+            #endif
+            #if Release
             UCodeLangInfo += " Published";
-#endif
+            #endif
 
             ImguiHelper::InputText("UCodeLang Info", UCodeLangInfo);
 
@@ -1631,50 +1515,104 @@ void AppObject::DrawPerformanceMenu()
         }
 
 
-        if (ImGui::TreeNode("VM"))
+        if (ImGui::TreeNode("ULang Tests"))
         {
+            if (ImGui::Button("RunTests"))
+            {
+
+            }
+
             ImGui::Text("Report");
-            float ULangRelativeSpeedCS = 0;
-            float ULangRelativeSpeedCpp = 0;
-            float ULangRelativeSpeedLua = 0;
+            float ULangInterpreterRelativeSpeedC89 = 0;
+            float ULangJitInterpreterRelativeSpeedC89 = 0;
+            float ULangNativeInterpreterRelativeSpeedC89 = 0;
 
-
+            
             ImGui::BeginDisabled();
 
-            ImguiHelper::float32Field("UCode Relative To Lua", ULangRelativeSpeedLua);
-
-            ImguiHelper::float32Field("UCode Relative To C#", ULangRelativeSpeedCS);
-
-            ImguiHelper::float32Field("UCode Relative To C++", ULangRelativeSpeedCpp);
+            ImguiHelper::float32Field("UCode Interpreter Relative C89", ULangInterpreterRelativeSpeedC89);
+            ImguiHelper::float32Field("UCode Jit-Interpreter Relative C89", ULangJitInterpreterRelativeSpeedC89);
+            ImguiHelper::float32Field("UCode Native-Interpreter Relative To C89", ULangNativeInterpreterRelativeSpeedC89);
 
             ImGui::EndDisabled();
 
             ImGui::TreePop();
         }
-        if (ImGui::TreeNode("Native"))
+        if (ImGui::TreeNode("ULang PerformanceTests"))
         {
+            struct TestInfo
+            {
+                String TestName;
+                Path DirPath;
+                 
+            };
+            static Vector<TestInfo> Tests;
+
+            if (Tests.size()==0)
+            {
+                for (auto& dirEntry : std::filesystem::directory_iterator(UCodeLang_UCAppDir_TestPerformanceTestsOut)) 
+                {
+                    if (dirEntry.is_directory())
+                    {
+                        TestInfo f;
+                        f.DirPath = dirEntry.path();
+                        f.TestName = dirEntry.path().filename().generic_string();
+                        Tests.push_back(std::move(f));
+                    }
+
+                }
+            }
+
+            if (ImGui::Button("RunTests"))
+            {
+              
+            }
+
             ImGui::Text("Report");
-            float ULangRelativeSpeedCS = 0;
-            float ULangRelativeSpeedCpp = 0;
-            float ULangRelativeSpeedLua = 0;
+            float ULangInterpreterRelativeSpeedC89 = 0;
+            float ULangJitInterpreterRelativeSpeedC89 = 0;
+            float ULangNativeInterpreterRelativeSpeedC89 = 0;
 
 
             ImGui::BeginDisabled();
 
-            ImguiHelper::float32Field("UCode Relative To Lua", ULangRelativeSpeedLua);
-
-            ImguiHelper::float32Field("UCode Relative To C#", ULangRelativeSpeedCS);
-
-            ImguiHelper::float32Field("UCode Relative To C++", ULangRelativeSpeedCpp);
+            ImguiHelper::float32Field("UCode Interpreter Relative C89", ULangInterpreterRelativeSpeedC89);
+            ImguiHelper::float32Field("UCode Jit-Interpreter Relative C89", ULangJitInterpreterRelativeSpeedC89);
+            ImguiHelper::float32Field("UCode Native-Interpreter Relative To C89", ULangNativeInterpreterRelativeSpeedC89);
 
             ImGui::EndDisabled();
-          
+
+            ImGui::Text("Indivual Report");
+            for (auto& Item : Tests)
+            {
+                if (ImGui::TreeNode(Item.TestName.c_str()))
+                {
+                    float ULangInterpreterRelativeSpeedC89 = 0;
+                    float ULangJitInterpreterRelativeSpeedC89 = 0;
+                    float ULangNativeInterpreterRelativeSpeedC89 = 0;
+
+
+                    ImGui::BeginDisabled();
+
+                    ImguiHelper::float32Field("UCode Interpreter Relative C89", ULangInterpreterRelativeSpeedC89);
+                    ImguiHelper::float32Field("UCode Jit-Interpreter Relative C89", ULangJitInterpreterRelativeSpeedC89);
+                    ImguiHelper::float32Field("UCode Native-Interpreter Relative To C89", ULangNativeInterpreterRelativeSpeedC89);
+
+                    ImGui::EndDisabled();
+                    ImGui::TreePop();
+                }
+            }
+
             ImGui::TreePop();
         }
         
     }ImGui::End();
 
  
+}
+bool AppObject::CompileC89ToLib(const Path& Cfile, const Path& Outdllfile)
+{
+    return ULangTest::CompileC89ToLib(Cfile, Outdllfile);
 }
 void AppObject::OnDraw()
 {

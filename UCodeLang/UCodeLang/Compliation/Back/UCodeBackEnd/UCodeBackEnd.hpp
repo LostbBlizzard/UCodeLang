@@ -414,6 +414,7 @@ private:
 	void BuildSIntToIntCast(const IRInstruction* Item, const IROperator& Op, size_t IntSize);
 	void BuildUIntToIntCast(const IRInstruction* Item, const IROperator& Op, size_t IntSize);
 
+	RegisterID GetRegisterOut(const IRInstruction* Item);
 
 
 	FuncCallEndData FuncCallStart(const Vector<IRType>& Pars, const IRType& RetType);

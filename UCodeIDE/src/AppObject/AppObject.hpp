@@ -302,6 +302,8 @@ private:
 	void DrawTestMenu();
 
 	void DrawPerformanceMenu();
+
+	static bool CompileC89ToLib(const Path& Cfile, const Path& Outdllfile);
 };
 
 UCodeIDEEnd

@@ -119,6 +119,7 @@ AddMapValueValue(lessthan##bitsize, InstructionSet::lessthan##bitsize, OpCodeTyp
 AddMapValueValue(greaterthan##bitsize, InstructionSet::greaterthan##bitsize, OpCodeType::Register, OpCodeType::Register), \
 AddMapValueValue(equal_greaterthan##bitsize, InstructionSet::equal_greaterthan##bitsize, OpCodeType::Register, OpCodeType::Register), \
 AddMapValueValue(equal_lessthan##bitsize, InstructionSet::equal_lessthan##bitsize, OpCodeType::Register, OpCodeType::Register), \
+AddMapValueValue(notequalto##bitsize, InstructionSet::notequalto##bitsize, OpCodeType::Register, OpCodeType::Register), \
 
 
 
@@ -128,6 +129,7 @@ AddMapValueValue(Addf##bitsize, InstructionSet::Addf##bitsize, OpCodeType::Regis
 AddMapValueValue(Subf##bitsize, InstructionSet::Subf##bitsize, OpCodeType::Register, OpCodeType::Register),\
 AddMapValueValue(Multf##bitsize, InstructionSet::Multf##bitsize, OpCodeType::Register, OpCodeType::Register),\
 AddMapValueValue(Divf##bitsize, InstructionSet::Divf##bitsize, OpCodeType::Register, OpCodeType::Register),\
+
 
 static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 {	

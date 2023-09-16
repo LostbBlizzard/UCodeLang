@@ -156,10 +156,10 @@ enum class IRInstructionType : IRInstructionType_t
 	SLessThanOrEqual,
 	SGreaterThanOrEqual,
 
-	//
+	//Control flow
 	Jump,
 	ConditionalJump,
-	//
+	//FuncionPointers
 	CallFuncPtr,
 
 	//memory
@@ -203,6 +203,15 @@ enum class IRInstructionType : IRInstructionType_t
 	Await_SetValue,
 	Await_GetValue,
 	Await_Free_Task,
+
+	//exceptions
+	CleanupFuncCall,
+	ThrowException,
+	CatchException,
+
+	//compiler intrinsics
+	Unreachable,
+	Assume,
 
 	//internal stuff
 };
@@ -1244,6 +1253,27 @@ struct IRBlock
 
 		V->ObjectType = IRType(IRTypes::Void);
 	}
+
+	void NewUnreachable()
+	{
+		Instructions.emplace_back(new IRInstruction(IRInstructionType::Unreachable)).get();
+	}
+	void NewAssume(IRInstruction* BoolToAlwaysbetrue)
+	{
+		Instructions.emplace_back(new IRInstruction(IRInstructionType::Assume)).get();
+	}
+	void CleanupFuncCall(IRidentifierID identifier)
+	{
+		Instructions.emplace_back(new IRInstruction(IRInstructionType::CleanupFuncCall,IROperator(identifier))).get();
+	}
+	void ThrowException(IRInstruction* Msg)
+	{
+		Instructions.emplace_back(new IRInstruction(IRInstructionType::ThrowException, IROperator(Msg))).get();
+	}
+	/*
+	CatchException,
+	*/
+	
 
 	size_t GetIndex()
 	{

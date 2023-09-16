@@ -721,7 +721,7 @@ GotNodeType Parser::GetStatement(Node*& out)
 	break;
 	case TokenType::KeyWord_defer:
 	{
-		auto r = GetUnsafeStatementNode();
+		auto r = GetDeferStatementNode();
 		out = r.Node;
 		return r.GotNode;
 	}

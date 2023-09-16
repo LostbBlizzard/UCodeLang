@@ -207,85 +207,85 @@ InsCase(GetFromStackSub##Bits):\
 	Get_Register(Inst.Op_RegUInt16.A).Value. signedAnyIntValue = _CPU.Stack.GetValueSub< signedCType>(Inst.Op_RegUInt16.B);\
 	 InsBreak();\
 InsCase(Add##Bits):\
-	Get_MathOutRegister().Value. signedAnyIntValue = Get_Register(Inst.Op_TwoReg.A).Value. signedAnyIntValue +\
-		Get_Register(Inst.Op_TwoReg.B).Value. signedAnyIntValue;\
+	Get_Register(Inst.Op_ThreeReg.C).Value. signedAnyIntValue = Get_Register(Inst.Op_ThreeReg.A).Value. signedAnyIntValue +\
+		Get_Register(Inst.Op_ThreeReg.B).Value. signedAnyIntValue;\
 	 InsBreak();\
 InsCase(Sub##Bits):\
-	Get_MathOutRegister().Value. signedAnyIntValue = Get_Register(Inst.Op_TwoReg.A).Value. unsignedAnyIntValue -\
-		Get_Register(Inst.Op_TwoReg.B).Value. unsignedAnyIntValue;\
+	Get_Register(Inst.Op_ThreeReg.C).Value. signedAnyIntValue = Get_Register(Inst.Op_ThreeReg.A).Value. unsignedAnyIntValue -\
+		Get_Register(Inst.Op_ThreeReg.B).Value. unsignedAnyIntValue;\
 	 InsBreak();\
 InsCase(MultS##Bits):\
-	Get_MathOutRegister().Value. signedAnyIntValue = Get_Register(Inst.Op_TwoReg.A).Value. signedAnyIntValue *\
-		Get_Register(Inst.Op_TwoReg.B).Value. signedAnyIntValue;\
+	Get_Register(Inst.Op_ThreeReg.C).Value. signedAnyIntValue = Get_Register(Inst.Op_ThreeReg.A).Value. signedAnyIntValue *\
+		Get_Register(Inst.Op_ThreeReg.B).Value. signedAnyIntValue;\
 	 InsBreak();\
 InsCase(MultU##Bits):\
-	Get_MathOutRegister().Value. signedAnyIntValue = Get_Register(Inst.Op_TwoReg.A).Value. unsignedAnyIntValue *\
-		Get_Register(Inst.Op_TwoReg.B).Value. unsignedAnyIntValue;\
+	 Get_Register(Inst.Op_ThreeReg.C).Value. signedAnyIntValue = Get_Register(Inst.Op_ThreeReg.A).Value. unsignedAnyIntValue *\
+		Get_Register(Inst.Op_ThreeReg.B).Value. unsignedAnyIntValue;\
 	 InsBreak();\
 InsCase(DivS##Bits):\
-	Get_MathOutRegister().Value. signedAnyIntValue = Get_Register(Inst.Op_TwoReg.A).Value. signedAnyIntValue / \
-		Get_Register(Inst.Op_TwoReg.B).Value. signedAnyIntValue;\
+	Get_MathOutRegister().Value. signedAnyIntValue = Get_Register(Inst.Op_ThreeReg.A).Value. signedAnyIntValue / \
+		Get_Register(Inst.Op_ThreeReg.B).Value. signedAnyIntValue;\
 	 InsBreak();\
 InsCase(DivU##Bits):\
-	Get_MathOutRegister().Value. signedAnyIntValue = Get_Register(Inst.Op_TwoReg.A).Value. unsignedAnyIntValue / \
-		Get_Register(Inst.Op_TwoReg.B).Value. unsignedAnyIntValue;\
+	Get_MathOutRegister().Value. signedAnyIntValue = Get_Register(Inst.Op_ThreeReg.A).Value. unsignedAnyIntValue / \
+		Get_Register(Inst.Op_ThreeReg.B).Value. unsignedAnyIntValue;\
 	 InsBreak();\
 InsCase(LogicalAnd##Bits):\
-	Get_BoolRegister().Value =\
-		Get_Register(Inst.Op_TwoReg.A).Value. unsignedAnyIntValue\
-		&& Get_Register(Inst.Op_TwoReg.B).Value. unsignedAnyIntValue;\
+	Get_Register(Inst.Op_ThreeReg.C).Value =\
+		Get_Register(Inst.Op_ThreeReg.A).Value. unsignedAnyIntValue\
+		&& Get_Register(Inst.Op_ThreeReg.B).Value. unsignedAnyIntValue;\
  InsBreak();\
 InsCase(Logicalor##Bits):\
-	Get_BoolRegister().Value =\
-		Get_Register(Inst.Op_TwoReg.A).Value. unsignedAnyIntValue\
-		|| Get_Register(Inst.Op_TwoReg.B).Value. unsignedAnyIntValue;\
+	Get_Register(Inst.Op_ThreeReg.C).Value =\
+		Get_Register(Inst.Op_ThreeReg.A).Value. unsignedAnyIntValue\
+		|| Get_Register(Inst.Op_ThreeReg.B).Value. unsignedAnyIntValue;\
  InsBreak();\
 InsCase(LogicalNot##Bits):\
 	Get_Register(Inst.Op_TwoReg.B).Value. unsignedAnyIntValue = !Get_Register(Inst.Op_TwoReg.A).Value. unsignedAnyIntValue;\
  InsBreak();\
 InsCase(equalto##Bits):\
-	Get_BoolRegister().Value = Get_Register(Inst.Op_TwoReg.A).Value. signedAnyIntValue ==\
-		Get_Register(Inst.Op_TwoReg.B).Value. signedAnyIntValue;\
+	Get_Register(Inst.Op_ThreeReg.C).Value = Get_Register(Inst.Op_ThreeReg.A).Value. signedAnyIntValue ==\
+		Get_Register(Inst.Op_ThreeReg.B).Value. signedAnyIntValue;\
 	 InsBreak();\
 InsCase(notequalto##Bits):\
-	Get_BoolRegister().Value = Get_Register(Inst.Op_TwoReg.A).Value. signedAnyIntValue !=\
-		Get_Register(Inst.Op_TwoReg.B).Value. signedAnyIntValue;\
+	Get_Register(Inst.Op_ThreeReg.C).Value = Get_Register(Inst.Op_ThreeReg.A).Value. signedAnyIntValue !=\
+		Get_Register(Inst.Op_ThreeReg.B).Value. signedAnyIntValue;\
 	 InsBreak();\
 InsCase(lessthan##Bits):\
-	Get_BoolRegister().Value = Get_Register(Inst.Op_TwoReg.A).Value. signedAnyIntValue <\
-		Get_Register(Inst.Op_TwoReg.B).Value. signedAnyIntValue;\
+	Get_Register(Inst.Op_ThreeReg.C).Value = Get_Register(Inst.Op_ThreeReg.A).Value. signedAnyIntValue <\
+		Get_Register(Inst.Op_ThreeReg.B).Value. signedAnyIntValue;\
 	 InsBreak();\
 InsCase(greaterthan##Bits):\
-	Get_BoolRegister().Value = Get_Register(Inst.Op_TwoReg.A).Value. signedAnyIntValue >\
-		Get_Register(Inst.Op_TwoReg.B).Value. signedAnyIntValue;\
+	Get_Register(Inst.Op_ThreeReg.C).Value = Get_Register(Inst.Op_ThreeReg.A).Value. signedAnyIntValue >\
+		Get_Register(Inst.Op_ThreeReg.B).Value. signedAnyIntValue;\
 	 InsBreak();\
 InsCase(equal_lessthan##Bits):\
-	Get_BoolRegister().Value = Get_Register(Inst.Op_TwoReg.A).Value. signedAnyIntValue <=\
-		Get_Register(Inst.Op_TwoReg.B).Value. signedAnyIntValue;\
+	Get_Register(Inst.Op_ThreeReg.C).Value = Get_Register(Inst.Op_ThreeReg.A).Value. signedAnyIntValue <=\
+		Get_Register(Inst.Op_ThreeReg.B).Value. signedAnyIntValue;\
 	 InsBreak();\
 InsCase(equal_greaterthan##Bits):\
-	Get_BoolRegister().Value = Get_Register(Inst.Op_TwoReg.A).Value. signedAnyIntValue >=\
-		Get_Register(Inst.Op_TwoReg.B).Value. signedAnyIntValue;\
+	Get_Register(Inst.Op_ThreeReg.C).Value = Get_Register(Inst.Op_ThreeReg.A).Value. signedAnyIntValue >=\
+		Get_Register(Inst.Op_ThreeReg.B).Value. signedAnyIntValue;\
 	 InsBreak();\
 InsCase(bitwiseAnd##Bits):\
-	Get_BitwiseRegister().Value = Get_Register(Inst.Op_TwoReg.A).Value. signedAnyIntValue &\
-		Get_Register(Inst.Op_TwoReg.B).Value. signedAnyIntValue;\
+	Get_Register(Inst.Op_ThreeReg.C).Value = Get_Register(Inst.Op_ThreeReg.A).Value. signedAnyIntValue &\
+		Get_Register(Inst.Op_ThreeReg.B).Value. signedAnyIntValue;\
 	 InsBreak();\
 InsCase(bitwiseOr##Bits):\
-	Get_BitwiseRegister().Value = Get_Register(Inst.Op_TwoReg.A).Value. signedAnyIntValue |\
-		Get_Register(Inst.Op_TwoReg.B).Value. signedAnyIntValue;\
+	Get_Register(Inst.Op_ThreeReg.C).Value = Get_Register(Inst.Op_ThreeReg.A).Value. signedAnyIntValue |\
+		Get_Register(Inst.Op_ThreeReg.B).Value. signedAnyIntValue;\
 	 InsBreak();\
 InsCase(bitwiseLeftShift##Bits):\
-	Get_BitwiseRegister().Value = Get_Register(Inst.Op_TwoReg.A).Value. signedAnyIntValue <<\
-		Get_Register(Inst.Op_TwoReg.B).Value. signedAnyIntValue;\
+	Get_Register(Inst.Op_ThreeReg.C).Value = Get_Register(Inst.Op_ThreeReg.A).Value. signedAnyIntValue <<\
+		Get_Register(Inst.Op_ThreeReg.B).Value. signedAnyIntValue;\
 	 InsBreak();\
 InsCase(bitwiseRightShift##Bits):\
-	Get_BitwiseRegister().Value = Get_Register(Inst.Op_TwoReg.A).Value. signedAnyIntValue >>\
-		Get_Register(Inst.Op_TwoReg.B).Value. signedAnyIntValue;\
+	Get_Register(Inst.Op_ThreeReg.C).Value = Get_Register(Inst.Op_ThreeReg.A).Value. signedAnyIntValue >>\
+		Get_Register(Inst.Op_ThreeReg.B).Value. signedAnyIntValue;\
 	 InsBreak();\
 InsCase(bitwiseXor##Bits):\
-	Get_BitwiseRegister().Value = Get_Register(Inst.Op_TwoReg.A).Value. signedAnyIntValue ^\
-		Get_Register(Inst.Op_TwoReg.B).Value. signedAnyIntValue;\
+	Get_Register(Inst.Op_ThreeReg.C).Value = Get_Register(Inst.Op_ThreeReg.A).Value. signedAnyIntValue ^\
+		Get_Register(Inst.Op_ThreeReg.B).Value. signedAnyIntValue;\
 	 InsBreak();\
 InsCase(bitwise_Not##Bits):\
 	Get_Register(Inst.Op_TwoReg.B).Value. unsignedAnyIntValue = ~Get_Register(Inst.Op_TwoReg.A).Value. unsignedAnyIntValue;\
@@ -303,20 +303,20 @@ InsCase(SInt##Bits##ToUInt##Bits):\
 
 #define floatSet(Bits,CType,AnyValue) \
 InsCase(Addf##Bits):\
-	Get_MathOutRegister().Value. AnyValue = Get_Register(Inst.Op_TwoReg.A).Value. AnyValue +\
-		Get_Register(Inst.Op_TwoReg.B).Value. AnyValue;\
+	Get_Register(Inst.Op_ThreeReg.C).Value. AnyValue = Get_Register(Inst.Op_ThreeReg.A).Value. AnyValue +\
+		Get_Register(Inst.Op_ThreeReg.B).Value. AnyValue;\
 	 InsBreak();\
 InsCase(Subf##Bits):\
-	Get_MathOutRegister().Value. AnyValue = Get_Register(Inst.Op_TwoReg.A).Value. AnyValue -\
-		Get_Register(Inst.Op_TwoReg.B).Value. AnyValue;\
+	Get_Register(Inst.Op_ThreeReg.C).Value. AnyValue = Get_Register(Inst.Op_ThreeReg.A).Value. AnyValue -\
+		Get_Register(Inst.Op_ThreeReg.B).Value. AnyValue;\
 	 InsBreak();\
 InsCase(Multf##Bits):\
-	Get_MathOutRegister().Value. AnyValue = Get_Register(Inst.Op_TwoReg.A).Value. AnyValue *\
-		Get_Register(Inst.Op_TwoReg.B).Value. AnyValue;\
+	Get_Register(Inst.Op_ThreeReg.C).Value. AnyValue = Get_Register(Inst.Op_ThreeReg.A).Value. AnyValue *\
+		Get_Register(Inst.Op_ThreeReg.B).Value. AnyValue;\
 	 InsBreak();\
 InsCase(Divf##Bits):\
-	Get_MathOutRegister().Value. AnyValue = Get_Register(Inst.Op_TwoReg.A).Value. AnyValue / \
-		Get_Register(Inst.Op_TwoReg.B).Value. AnyValue;\
+	Get_Register(Inst.Op_ThreeReg.C).Value. AnyValue = Get_Register(Inst.Op_ThreeReg.A).Value. AnyValue / \
+		Get_Register(Inst.Op_ThreeReg.B).Value. AnyValue;\
 	 InsBreak();\
 
 
