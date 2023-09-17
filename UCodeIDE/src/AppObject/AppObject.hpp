@@ -29,6 +29,7 @@ public:
 	void Init();
 	void OnDraw();
 
+	
 	void ProcessSeverPackets();
 
 	static void ShowInFiles(const Path& path);
@@ -52,6 +53,8 @@ public:
 	}
 private:
 	void OnAppEnd();
+	void UpdateBackEnd();
+
 	bool _IsAppRuning = false;
 	bool _IsLSPRuning = false;
 	float DetaTime = 0;
@@ -202,24 +205,24 @@ private:
 	{
 		x86,
 		x86_64,
-		Amd,
-		Amd64,
+		Armd,
+		Arm64,
 
 #if UCodeLang_CPUIs_x86
 		Native = x86,
 #elif UCodeLang_CPUIs_x86_64
 		Native = x86_64,
 #elif UCodeLang_CPUIs_Arm
-		Native = Amd,
+		Native = Armd,
 #elif UCodeLang_CPUIs_Arm64
-		Native = Amd64,
+		Native = Arm64,
 #else
 		Native = x86_64,
 #endif
 	};
 	struct OutputWindowData
 	{
-		BackEndType Type = BackEndType::UCodeVM;
+		BackEndType Type = BackEndType::C89;
 
 		bool AutoCompile = true;
 		bool AutoReload = true;

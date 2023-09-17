@@ -818,15 +818,15 @@ Optional<Optional<Vector<ClassAssembly::OnMoveConstructorCall>>> ClassAssembly::
 				return { InerRet() };
 				break;
 			case 2:
-				*(UInt8*)Output = SrcAsInt.AsUInt16;
+				*(UInt16*)Output = SrcAsInt.AsUInt16;
 				return { InerRet() };
 				break;
 			case 4:
-				*(UInt8*)Output = SrcAsInt.AsUInt32;
+				*(UInt32*)Output = SrcAsInt.AsUInt32;
 				return { InerRet() };
 				break;
 			case 8:
-				*(UInt8*)Output = SrcAsInt.AsUInt64;
+				*(UInt64*)Output = SrcAsInt.AsUInt64;
 				return { InerRet() };
 				break;
 			default:
@@ -843,15 +843,15 @@ Optional<Optional<Vector<ClassAssembly::OnMoveConstructorCall>>> ClassAssembly::
 				return { InerRet() };
 				break;
 			case 2:
-				*(Int8*)Output = SrcAsInt.AsInt16;
+				*(Int16*)Output = SrcAsInt.AsInt16;
 				return { InerRet() };
 				break;
 			case 4:
-				*(Int8*)Output = SrcAsInt.AsInt32;
+				*(Int32*)Output = SrcAsInt.AsInt32;
 				return { InerRet() };
 				break;
 			case 8:
-				*(Int8*)Output = SrcAsInt.AsInt64;
+				*(Int64*)Output = SrcAsInt.AsInt64;
 				return { InerRet() };
 				break;
 			default:

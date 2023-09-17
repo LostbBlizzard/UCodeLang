@@ -1221,7 +1221,7 @@ private:
 	bool Type_AreTheSame(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
 	bool Type_AreTheSame(const ParInfo& TypeA, const ParInfo& TypeB);
 	bool Type_AreTheSameWithOutimmutable(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
-
+	bool Type_AreTheSameWithOutMoveAndimmutable(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
 
 	BinaryOverLoadWith_t Type_HasBinaryOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
 	CompoundOverLoadWith_t Type_HasCompoundOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB);
@@ -1229,6 +1229,8 @@ private:
 	IndexOverLoadWith_t  Type_HasIndexedOverLoadWith(const TypeSymbol& TypeA, const TypeSymbol& TypeB);
 	ForOverLoadWith_t Type_HasForOverLoadWith(const TypeSymbol& TypeA);
 	UrinaryOverLoadWith_t Type_HasUrinaryOverLoadWith(const TypeSymbol& TypeA, TokenType Op);
+
+	bool Type_IsCopyable(const TypeSymbol& Type);
 
 	TypeSymbol Type_BinaryExpressionShouldRurn(TokenType Op, const TypeSymbol& Ex0Type);
 
@@ -1802,6 +1804,7 @@ private:
 	void LogError_yieldnotAsync(const NeverNullPtr<Token> token);
 	void LogError_UseScopeResolutionAndNotDot(const NeverNullPtr<Symbol>& Sym, const NeverNullPtr<Token>& ItemToken);
 	void LogError_UseDotAndNotScopeResolution(const NeverNullPtr<Symbol>& Sym, const NeverNullPtr<Token>& ItemToken);
+	void LogError_TypeIsNotCopyable(const NeverNullPtr<Token> Token,const TypeSymbol& Ex0Type);
 
 	ReadVarErrorCheck_t TryLogError_OnReadVar(String_view VarName, const NeverNullPtr<Token> Token, const NullablePtr<Symbol> Syb);
 	void TryLogError_OnWritingVar(NeverNullPtr<Symbol> Symbol, const NeverNullPtr<Token> Token,const String_view Name);

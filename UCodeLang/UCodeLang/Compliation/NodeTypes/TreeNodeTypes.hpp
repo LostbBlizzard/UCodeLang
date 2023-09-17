@@ -520,6 +520,8 @@ struct FuncSignatureNode :Node
 	bool _HasDynamicKeyWord = false;
 	bool _HasEvalKeyWord = false;
 	bool _HasUnsafeKeyWord = false;
+
+	bool _IsRemoved = false;
 };
 struct FuncBodyNode :Node
 {

@@ -1256,19 +1256,19 @@ struct IRBlock
 
 	void NewUnreachable()
 	{
-		Instructions.emplace_back(new IRInstruction(IRInstructionType::Unreachable)).get();
+		Instructions.emplace_back(new IRInstruction(IRInstructionType::Unreachable));
 	}
 	void NewAssume(IRInstruction* BoolToAlwaysbetrue)
 	{
-		Instructions.emplace_back(new IRInstruction(IRInstructionType::Assume)).get();
+		Instructions.emplace_back(new IRInstruction(IRInstructionType::Assume));
 	}
 	void CleanupFuncCall(IRidentifierID identifier)
 	{
-		Instructions.emplace_back(new IRInstruction(IRInstructionType::CleanupFuncCall,IROperator(identifier))).get();
+		Instructions.emplace_back(new IRInstruction(IRInstructionType::CleanupFuncCall, IROperator(identifier)));
 	}
 	void ThrowException(IRInstruction* Msg)
 	{
-		Instructions.emplace_back(new IRInstruction(IRInstructionType::ThrowException, IROperator(Msg))).get();
+		Instructions.emplace_back(new IRInstruction(IRInstructionType::ThrowException, IROperator(Msg)));
 	}
 	/*
 	CatchException,
