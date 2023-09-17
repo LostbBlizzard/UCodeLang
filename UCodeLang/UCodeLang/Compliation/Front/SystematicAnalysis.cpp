@@ -2123,10 +2123,11 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		_Table.RemoveScope();
 		return;
 	}
+
 	OnAttributesNode(node._Attributes);
 	FuncInfo* Info = syb->Get_Info<FuncInfo>();
 
-
+	syb->PassState = _PassType;
 	_FuncStack.push_back(Info);
 
 
@@ -2548,7 +2549,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	_Table.RemoveScope();
 
 
-	syb->PassState = _PassType;
+	
 
 }
 
@@ -8359,6 +8360,7 @@ void SystematicAnalysis::OnExpressionTypeNode(const Node* node, GetValueMode Mod
 	{
 	case NodeType::BinaryExpressionNode:OnExpressionNode(*BinaryExpressionNode::As(node));break;
 	case NodeType::ValueExpressionNode:OnExpressionNode(*ValueExpressionNode::As(node)); break;
+	case NodeType::UnaryExpressionNode:OnExpressionNode(*UnaryExpressionNode::As(node)); break;
 	case NodeType::CastNode:OnExpressionNode(*CastNode::As(node)); break;
 	case NodeType::IndexedExpresionNode:OnExpressionNode(*IndexedExpresionNode::As(node)); break;
 	case NodeType::ExtendedScopeExpression:OnExpressionNode(*ExtendedScopeExpression::As(node)); break;
@@ -11668,6 +11670,78 @@ void SystematicAnalysis::OnDeferStatement(const DeferStatementNode& node)
 		}//only for tests shold be updated
 	}
 }
+void SystematicAnalysis::OnExpressionNode(const UnaryExpressionNode& node)
+{
+	if (_PassType == PassType::GetTypes)
+	{
+		OnExpressionTypeNode(node._Value0, GetValueMode::Read);
+	}
+	else if (_PassType == PassType::FixedTypes)
+	{
+		OnExpressionTypeNode(node._Value0, GetValueMode::Read);
+
+		auto extype =_LastExpressionType;
+
+		auto BinaryOp = NeverNullptr(node._UnaryOp);
+		auto Info = Type_HasUrinaryOverLoadWith(extype, node._UnaryOp->Type);
+
+		if (!Info.HasValue)
+		{
+			LogError_CantFindUnaryOpForTypes(BinaryOp, extype);
+		}
+		else
+		{
+			SymbolID SymID = Symbol_GetSymbolID(node);
+
+			UnaryExpression_Data Data;
+			Data.FuncToCall = nullptr; 
+			if (Info.Value.has_value())
+			{
+				Data.FuncToCall = Info.Value.value();
+			}
+			Data.Op0 = extype;
+
+			_UnaryDatas.AddValue(SymID, std::move(Data));
+		}
+		
+	}
+	else if (_PassType == PassType::BuidCode)
+	{
+		SymbolID SymID = Symbol_GetSymbolID(node);
+		auto& Data = _UnaryDatas.at(SymID);
+
+
+		OnExpressionTypeNode(node._Value0, GetValueMode::Read);
+		auto ex = _IR_LastExpressionField;
+
+		switch (node._UnaryOp->Type)
+		{
+		case TokenType::Not:
+		{
+			_IR_LastExpressionField = _IR_LookingAtIRBlock->NewlogicalNot(ex);
+		}
+		case TokenType::bitwise_not:
+		{
+			UCodeLangUnreachable();
+		}
+		case TokenType::QuestionMark:
+		{
+			UCodeLangUnreachable();
+		}
+		case TokenType::plus:
+		{
+			UCodeLangUnreachable();
+		}
+		case TokenType::minus:
+		{
+			UCodeLangUnreachable();
+		}
+		default:
+			UCodeLangUnreachable();
+			break;
+		}
+	}
+}
 TypeSymbol SystematicAnalysis::Type_MakeFutureFromType(const TypeSymbol& BaseType)
 {
 	auto symbolsOp = Symbol_GetSymbol(UCode_FutureType,SymbolType::Generic_class);
@@ -13017,7 +13091,16 @@ SystematicAnalysis::UrinaryOverLoadWith_t SystematicAnalysis::Type_HasUrinaryOve
 			}
 		}
 	}
-
+	else
+	{
+		if (TypeA._Type == TypesEnum::Bool)
+		{
+			if (Op == TokenType::Not)
+			{
+				return { {} };
+			}
+		}
+	}
 	return {  };
 }
 String SystematicAnalysis::ToString(const TypeSymbol& Type) const
@@ -19147,6 +19230,14 @@ void SystematicAnalysis::LogError_CantFindBinaryOpForTypes(const NeverNullPtr<To
 	LogError(ErrorCodes::InValidType, BinaryOp->OnLine, BinaryOp->OnPos,
 		"The type '" + ToString(Ex0Type) + "'" + " cant be '"
 		+ ToString(BinaryOp->Type) + "' with '" + ToString(Ex1Type) + "'");
+}
+void SystematicAnalysis::LogError_CantFindUnaryOpForTypes(const NeverNullPtr<Token> BinaryOp, TypeSymbol& Ex0Type)
+{
+	if (Ex0Type.IsBadType() || Type_IsUnMapType(Ex0Type)) { return; }
+
+	LogError(ErrorCodes::InValidType, BinaryOp->OnLine, BinaryOp->OnPos,
+		"The type '" + ToString(Ex0Type) + "'" + " cant be '"
+		+ ToString(BinaryOp->Type) + "'");
 }
 void SystematicAnalysis::LogError_ExpressionMustbeAnLocationValueError(const NeverNullPtr<Token> Token, TypeSymbol& Ex0Type)
 {

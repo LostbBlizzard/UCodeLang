@@ -493,11 +493,6 @@ void Lexer::Lex(const String_view& Text)
 				_Tokens.push_back(_Token);
 				TextIndex++;
 			}
-			else if (LexerHelper::IsDigit(NextChar))
-			{
-				ReadingState = ReadingNameState::Number;
-				if (NameBufferStart == NameBufferNullValue) { NameBufferStart = TextIndex; }
-			}
 			else
 			{
 				_Token.Type = TokenType::minus;

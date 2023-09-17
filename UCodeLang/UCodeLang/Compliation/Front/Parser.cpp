@@ -1360,10 +1360,94 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 {
 	Node* ExNode = nullptr;
+
+	auto tokenu = TryGetToken();
+
+	if (tokenu && ExpressionNodeType::IsUnaryOperator(tokenu))
+	{
+		NextToken();
+	}
+	else
+	{
+		tokenu = nullptr;
+	}
+
 	auto Ex = GetExpressionNode(ExNode);
-	auto token = TryGetToken();
 	GotNodeType r_t= GotNodeType::Null;
 	Node* r_out =nullptr;
+
+	if (tokenu)
+	{
+		bool isnumberliteral = false;
+		if (Ex == GotNodeType::Success) 
+		{
+			if (tokenu->Type == TokenType::minus
+				|| tokenu->Type == TokenType::plus)
+			{
+				bool isplus = tokenu->Type == TokenType::plus;
+				if (ExNode->Get_Type() == NodeType::NumberliteralNode)
+				{
+					NumberliteralNode* num = NumberliteralNode::As(ExNode);
+					String newstring;
+					if (!isplus)
+					{
+						newstring += "-";
+					}
+					newstring += num->token->Value._String;
+					_Tree.TemporaryStrings.push_back(std::make_unique<String>(std::move(newstring)));
+
+					isnumberliteral = true;
+					auto newtoken = std::make_unique<Token>();
+					newtoken->OnLine = num->token->OnLine;
+					newtoken->OnPos = num->token->OnPos;
+					newtoken->Type = num->token->Type;
+					newtoken->Value._String = *_Tree.TemporaryStrings.back();
+
+					num->token = newtoken.get();
+					_Tree.TemporaryTokens.push_back(std::move(newtoken));
+
+				}
+				else if (ExNode->Get_Type() == NodeType::FloatliteralNode)
+				{
+					FloatliteralNode* num = FloatliteralNode::As(ExNode);
+					String newstring;
+					if (!isplus)
+					{
+						newstring += "-";
+					}
+					newstring += num->token->Value._String;
+					_Tree.TemporaryStrings.push_back(std::make_unique<String>(std::move(newstring)));
+
+					isnumberliteral = true;
+					auto newtoken = std::make_unique<Token>();
+					newtoken->OnLine = num->token->OnLine;
+					newtoken->OnPos = num->token->OnPos;
+					newtoken->Type = num->token->Type;
+					newtoken->Value._String = *_Tree.TemporaryStrings.back();
+
+
+					num->token = newtoken.get();
+					_Tree.TemporaryTokens.push_back(std::move(newtoken));
+				}
+			}
+		}
+
+		if (isnumberliteral == false) 
+		{
+			auto r = UnaryExpressionNode::Gen();
+
+			auto Ptr = ValueExpressionNode::Gen();
+			Ptr->_Value = Unique_ptr<Node>(ExNode);
+			r->_Value0._Value = Unique_ptr<Node>(Ptr->As());
+
+			r->_UnaryOp = tokenu;
+			r_t = GotNodeType::Success;
+			r_out = r;
+		}
+	}
+
+	auto token = TryGetToken();
+	
 	if (token->Type == TokenType::KeyWord_RangeOperator)
 	{
 		NextToken();

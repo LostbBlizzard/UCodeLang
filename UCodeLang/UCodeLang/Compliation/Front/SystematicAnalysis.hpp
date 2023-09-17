@@ -383,7 +383,7 @@ private:
 	};
 	using CastExpressionNode_Data = PostFixExpressionNode_Data;
 	using AssignExpression_Data = BinaryExpressionNode_Data;
-
+	using UnaryExpression_Data = PostFixExpressionNode_Data;
 	enum class  ObjectToDropType
 	{
 		IRInstruction,
@@ -737,7 +737,7 @@ private:
 	BinaryVectorMap<SymbolID, MatchExpressionData> _MatchExpressionDatas;
 	BinaryVectorMap<SymbolID, AwaitData>  _AwaitDatas;
 	BinaryVectorMap<SymbolID, YieldData>  _YieldDatas;
-
+	BinaryVectorMap<SymbolID, UnaryExpression_Data>  _UnaryDatas;
 
 	BinaryVectorMap<SymbolID, VarableMemberData> _VarableMemberDatas;//Var.$Item
 
@@ -1154,6 +1154,7 @@ private:
 	void OnUnsafeStatement(const UnsafeStatementsNode& node);
 	void OnUnsafeExpression(const UnsafeExpression& node);
 	void OnDeferStatement(const DeferStatementNode& node);
+	void OnExpressionNode(const UnaryExpressionNode& node);
 
 	TypeSymbol Type_MakeFutureFromType(const TypeSymbol& BaseType);
 	bool Type_IsFuture(const TypeSymbol& Future);
@@ -1720,6 +1721,8 @@ private:
 	void LogError_CantFindCompoundOpForTypes(const NeverNullPtr<Token> BinaryOp, TypeSymbol& Ex0Type, TypeSymbol& Ex1Type);
 	void LogError_CantFindPostfixOpForTypes(const NeverNullPtr<Token> BinaryOp, TypeSymbol& Ex0Type);
 	void LogError_CantFindBinaryOpForTypes(const NeverNullPtr<Token> BinaryOp, TypeSymbol& Ex0Type, TypeSymbol& Ex1Type);
+	void LogError_CantFindUnaryOpForTypes(const NeverNullPtr<Token> BinaryOp, TypeSymbol& Ex0Type);
+
 
 	void LogError_ExpressionMustbeAnLocationValueError(const NeverNullPtr<Token> Token, TypeSymbol& Ex0Type);
 	void LogError_YouMustReturnSomethingError(const NeverNullPtr<Token> Token);
