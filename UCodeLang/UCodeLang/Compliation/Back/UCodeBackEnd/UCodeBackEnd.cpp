@@ -608,10 +608,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			case IRTypes::i8:InstructionBuilder::MultS8(_Ins, A, B,V); PushIns(); break;
 			case IRTypes::i16:InstructionBuilder::MultS16(_Ins, A, B, V); PushIns(); break;
 
-			bit32label:
 			case IRTypes::i32:InstructionBuilder::MultS32(_Ins, A, B, V); PushIns(); break;
-
-			bit64label:
 			case IRTypes::i64:InstructionBuilder::MultS64(_Ins, A, B, V); PushIns(); break;
 
 			case IRTypes::f32:InstructionBuilder::Multf32(_Ins, A, B, V); PushIns(); break;
@@ -620,11 +617,11 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			case IRTypes::pointer:
 				if (Get_Settings().PtrSize == IntSizes::Int32)
 				{
-					goto bit32label;
+					InstructionBuilder::MultS32(_Ins, A, B, V); PushIns(); break;
 				}
 				else
 				{
-					goto bit64label;
+					InstructionBuilder::MultS64(_Ins, A, B, V); PushIns(); break;
 				}
 				break;
 			default:
@@ -651,11 +648,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			{
 			case IRTypes::i8:InstructionBuilder::MultU8(_Ins, A, B, V); PushIns(); break;
 			case IRTypes::i16:InstructionBuilder::MultU16(_Ins, A, B, V); PushIns(); break;
-
-			bit32label1:
 			case IRTypes::i32:InstructionBuilder::MultU32(_Ins, A, B, V); PushIns(); break;
-
-			bit64label1:
 			case IRTypes::i64:InstructionBuilder::MultU64(_Ins, A, B, V); PushIns(); break;
 
 
@@ -665,11 +658,11 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			case IRTypes::pointer:
 				if (Get_Settings().PtrSize == IntSizes::Int32)
 				{
-					goto bit32label1;
+					InstructionBuilder::MultU32(_Ins, A, B, V); PushIns(); break;
 				}
 				else
 				{
-					goto bit64label1;
+					InstructionBuilder::MultU64(_Ins, A, B, V); PushIns(); break;
 				}
 				break;
 			default:
@@ -699,10 +692,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			case IRTypes::i8:InstructionBuilder::DivS8(_Ins, A, B, V); PushIns(); break;
 			case IRTypes::i16:InstructionBuilder::DivS16(_Ins, A, B, V); PushIns(); break;
 
-			bit32label2:
 			case IRTypes::i32:InstructionBuilder::DivS32(_Ins, A, B, V); PushIns(); break;
-
-			bit64label2:
 			case IRTypes::i64:InstructionBuilder::DivS64(_Ins, A, B, V); PushIns(); break;
 
 			case IRTypes::f32:InstructionBuilder::Divf32(_Ins, A, B, V); PushIns(); break;
@@ -711,11 +701,11 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			case IRTypes::pointer:
 				if (Get_Settings().PtrSize == IntSizes::Int32)
 				{
-					goto bit32label2;
+					InstructionBuilder::DivS32(_Ins, A, B, V); PushIns(); break;
 				}
 				else
 				{
-					goto bit64label2;
+					InstructionBuilder::DivS64(_Ins, A, B, V); PushIns(); break;
 				}
 				break;
 			default:
@@ -745,10 +735,8 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			case IRTypes::i8:InstructionBuilder::DivU8(_Ins, A, B, V); PushIns(); break;
 			case IRTypes::i16:InstructionBuilder::DivU16(_Ins, A, B, V); PushIns(); break;
 
-			bit32label5:
 			case IRTypes::i32:InstructionBuilder::DivU32(_Ins, A, B, V); PushIns(); break;
 
-			bit64label5:
 			case IRTypes::i64:InstructionBuilder::DivU64(_Ins, A, B, V); PushIns(); break;
 
 			case IRTypes::f32:InstructionBuilder::Divf32(_Ins, A, B, V); PushIns(); break;
@@ -757,11 +745,11 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			case IRTypes::pointer:
 				if (Get_Settings().PtrSize == IntSizes::Int32)
 				{
-					goto bit32label5;
+					InstructionBuilder::DivU32(_Ins, A, B, V); PushIns(); break;
 				}
 				else
 				{
-					goto bit64label5;
+					InstructionBuilder::DivU64(_Ins, A, B, V); PushIns(); break;
 				}
 				break;
 			default:
@@ -791,10 +779,8 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			case IRTypes::i8:InstructionBuilder::Add8(_Ins, A, B, V); PushIns(); break;
 			case IRTypes::i16:InstructionBuilder::Add16(_Ins, A, B, V); PushIns(); break;
 
-			bit32label6:
 			case IRTypes::i32:InstructionBuilder::Add32(_Ins, A, B, V); PushIns(); break;
 
-			bit64label6:
 			case IRTypes::i64:InstructionBuilder::Add64(_Ins, A, B, V); PushIns(); break;
 
 			case IRTypes::f32:InstructionBuilder::Addf32(_Ins, A, B, V); PushIns(); break;
@@ -803,11 +789,11 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			case IRTypes::pointer:
 				if (Get_Settings().PtrSize == IntSizes::Int32)
 				{
-					goto bit32label6;
+					InstructionBuilder::Add32(_Ins, A, B, V); PushIns(); break;
 				}
 				else
 				{
-					goto bit64label6;
+					InstructionBuilder::Add64(_Ins, A, B, V); PushIns(); break;
 				}
 				break;
 			default:
@@ -835,10 +821,8 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			{
 			case IRTypes::i8:InstructionBuilder::Sub8(_Ins, A, B, V); PushIns(); break;
 			case IRTypes::i16:InstructionBuilder::Sub16(_Ins, A, B, V); PushIns(); break;
-			bit32label4:
-			case IRTypes::i32:InstructionBuilder::Sub32(_Ins, A, B, V); PushIns(); break;
 
-			bit64label4:
+			case IRTypes::i32:InstructionBuilder::Sub32(_Ins, A, B, V); PushIns(); break;
 			case IRTypes::i64:InstructionBuilder::Sub64(_Ins, A, B, V); PushIns(); break;
 
 			case IRTypes::f32:InstructionBuilder::Subf32(_Ins, A, B, V); PushIns(); break;
@@ -847,11 +831,11 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			case IRTypes::pointer:
 				if (Get_Settings().PtrSize == IntSizes::Int32)
 				{
-					goto bit32label4;
+					InstructionBuilder::Sub32(_Ins, A, B, V); PushIns(); break;
 				}
 				else
 				{
-					goto bit64label4;
+					InstructionBuilder::Sub64(_Ins, A, B, V); PushIns(); break;
 				}
 				break;
 			default:
@@ -1025,20 +1009,17 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			{
 			case IRTypes::i8:InstructionBuilder::equalto8(_Ins, A, B, V); PushIns(); break;
 			case IRTypes::i16:InstructionBuilder::equalto16(_Ins, A, B,V); PushIns(); break;
-
-			bit32label3:
 			case IRTypes::i32:InstructionBuilder::equalto32(_Ins, A, B,V); PushIns(); break;
-			bit64label3:
 			case IRTypes::i64:InstructionBuilder::equalto64(_Ins, A, B,V); PushIns(); break;
 
 			case IRTypes::pointer:
 				if (Get_Settings().PtrSize == IntSizes::Int32)
 				{
-					goto bit32label3;
+					InstructionBuilder::equalto32(_Ins, A, B, V); PushIns(); break;
 				}
 				else
 				{
-					goto bit64label3;
+					InstructionBuilder::equalto64(_Ins, A, B, V); PushIns(); break;
 				}
 				break;
 			default:
@@ -1084,20 +1065,17 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			{
 			case IRTypes::i8:InstructionBuilder::SInt8ToUInt8(_Ins, A, V); PushIns(); break;
 			case IRTypes::i16:InstructionBuilder::SInt16ToUInt16(_Ins, A, V); PushIns(); break;
-			bit32label44:
 			case IRTypes::i32:InstructionBuilder::SInt32ToUInt32(_Ins, A, V); PushIns(); break;
-
-			bit64label44:
 			case IRTypes::i64:InstructionBuilder::SInt64ToUInt64(_Ins, A, V); PushIns(); break;
 
 			case IRTypes::pointer:
 				if (Get_Settings().PtrSize == IntSizes::Int32)
 				{
-					goto bit32label44;
+					InstructionBuilder::SInt32ToUInt32(_Ins, A, V); PushIns(); break;
 				}
 				else
 				{
-					goto bit64label44;
+					InstructionBuilder::SInt64ToUInt64(_Ins, A, V); PushIns(); break;
 				}
 				break;
 			default:
@@ -1119,20 +1097,17 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			{
 			case IRTypes::i8:InstructionBuilder::UInt8ToSInt8(_Ins, A, V); PushIns(); break;
 			case IRTypes::i16:InstructionBuilder::UInt16ToSInt16(_Ins, A, V); PushIns(); break;
-			bit32label9:
 			case IRTypes::i32:InstructionBuilder::UInt32ToSInt32(_Ins, A, V); PushIns(); break;
-
-			bit64label9:
 			case IRTypes::i64:InstructionBuilder::UInt64ToSInt64(_Ins, A, V); PushIns(); break;
 
 			case IRTypes::pointer:
 				if (Get_Settings().PtrSize == IntSizes::Int32)
 				{
-					goto bit32label9;
+					InstructionBuilder::UInt32ToSInt32(_Ins, A, V); PushIns(); break;
 				}
 				else
 				{
-					goto bit64label9;
+					InstructionBuilder::UInt64ToSInt64(_Ins, A, V); PushIns(); break;
 				}
 				break;
 			default:
@@ -1202,9 +1177,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			case IRTypes::i8:InstructionBuilder::equal_greaterthan8(_Ins, A, B,V); PushIns(); break;
 			case IRTypes::i16:InstructionBuilder::equal_greaterthan16(_Ins, A, B,V); PushIns(); break;
 
-			bit32label38:
 			case IRTypes::i32:InstructionBuilder::equal_greaterthan32(_Ins, A, B,V); PushIns(); break;
-			bit64label38:
 			case IRTypes::i64:InstructionBuilder::equal_greaterthan64(_Ins, A, B,V); PushIns(); break;
 
 			case IRTypes::pointer:

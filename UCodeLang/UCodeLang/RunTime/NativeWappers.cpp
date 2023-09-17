@@ -39,6 +39,29 @@ UCodeLangAPIExport UFileHandle::Handle UFileHandle::Open(const Span<char> path, 
 UCodeLangAPIExport UFileHandle::Handle UFileHandle::Openn(const Span<PathChar> path, FileOpenMode Mode)
 {
 	std::ios_base::openmode mode;
+	if (Mode.Type == FileType::Bytes)
+	{
+		mode = std::ios::binary;
+	}
+	else
+	{
+		mode = {};
+	}
+
+	if (Mode.Io == IoMode::In)
+	{
+		mode |= std::ios_base::in;
+	}
+	else if (Mode.Io == IoMode::Out)
+	{
+		mode |= std::ios_base::out;
+	}
+	else
+	{
+		mode |= std::ios_base::in;
+		mode |= std::ios_base::out;
+	}
+
 	return (Handle)new std::fstream((Path)PathView(path.Data(), path.Size()), mode);
 }
 

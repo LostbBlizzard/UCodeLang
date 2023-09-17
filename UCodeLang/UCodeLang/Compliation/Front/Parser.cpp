@@ -1063,6 +1063,19 @@ GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 	{
 		TypeNode::Gen_Var(out._ReturnType, *Arrow);
 	}
+	else if (Arrow->Type == TokenType::equal)
+	{
+		NextToken();
+
+		TokenTypeCheck(TryGetToken(), TokenType::KeyWord_invalid);
+
+		NextToken();
+
+		auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
+		
+
+		out._IsRemoved = true;
+	}
 	else
 	{
 		Ret_Type = nullptr;

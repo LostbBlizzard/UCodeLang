@@ -136,14 +136,16 @@ void AppObject::Init()
             R"(
 $MoveOnly<T>:
  T Base;
- |new[T base]:
+ |new[this&]:
+  Base = [];
+ |new[this&,T base]:
   Base =base;
 
- |new[imut T& base] => invalid;
+ |new[this&,imut this& other] = invalid;
 
 |main[]:
  MoveOnly<int> Val = [];
- MoveOnly<int> Val2 = move Val;//ok
+ //MoveOnly<int> Val2 = move Val;//ok
  MoveOnly<int> Val3 = Val;//bad
 
 
@@ -151,7 +153,7 @@ $MoveOnly<T>:
 
 
 
-
+        UpdateBackEnd();
         CompileText(GetTextEditorString());
 
 
@@ -795,14 +797,14 @@ void AppObject::DrawTestMenu()
         {
 
             {
-                int v = TestWindowData.MinTestIndex;
+                int v = (int)TestWindowData.MinTestIndex;
                 if (ImGui::SliderInt("MinShowTests", &v, 0, TestWindowData.MaxTestCount - 1))
                 {
                     TestWindowData.MinTestIndex = v;
                 }
             }
             {
-                int v = TestWindowData.MaxTestCount;
+                int v = (int)TestWindowData.MaxTestCount;
                 if (ImGui::SliderInt("MaxShowTests", &v, TestWindowData.MinTestIndex + 1, ULangTest::Tests.size() - 1))
                 {
                     TestWindowData.MaxTestCount = v;
@@ -847,7 +849,7 @@ void AppObject::DrawTestMenu()
                             auto& ItemTest = ULangTest::Tests[i];
                             auto& ItemTestOut = TestWindowData.Testinfo[i];
 
-                            ItemTestOut.State == TestInfo::TestState::Exception;
+                            ItemTestOut.State = TestInfo::TestState::Exception;
                             ItemTestOut.RunTestForFlag(ItemTest, flags,testmod);
                             return false;
                         }));
@@ -1100,7 +1102,7 @@ void AppObject::DrawTestMenu()
                                         auto& ItemTest = ULangTest::Tests[i];
                                         auto& ItemTestOut = TestWindowData.Testinfo[i];
 
-                                        ItemTestOut.State == TestInfo::TestState::Exception;
+                                        ItemTestOut.State = TestInfo::TestState::Exception;
                                         ItemTestOut.RunTestForFlag(ItemTest, flags,testmod);
                                         return false;
                                     }));
@@ -1237,14 +1239,14 @@ void AppObject::DrawTestMenu()
             ImGui::Separator();
             ImGui::Text("ModuleTests");
             {
-                int v = TestWindowData.ModuleIndex;
+                int v = (int)TestWindowData.ModuleIndex;
                 if (ImGui::SliderInt("MinShowTests", &v, 0, TestWindowData.ModuleTestCount - 1))
                 {
                     TestWindowData.ModuleIndex = v;
                 }
             }
             {
-                int v = TestWindowData.ModuleTestCount;
+                int v = (int)TestWindowData.ModuleTestCount;
                 if (ImGui::SliderInt("MaxShowTests", &v, TestWindowData.ModuleIndex + 1, ULangTest::ModuleTests.size() - 1))
                 {
                     TestWindowData.ModuleTestCount = v;
@@ -1695,7 +1697,7 @@ void AppObject::OnDraw()
                 auto text = GetTextEditorString();
 
 
-                _Editor.SetCursorPosition(TextEditor::Coordinates(item._Error.Line, GetColumn(text, item._Error.Line, item._Error.Pos)));
+                _Editor.SetCursorPosition(TextEditor::Coordinates((int)item._Error.Line, (int)GetColumn(text, item._Error.Line, item._Error.Pos)));
                 // handle selection
             }
         }
@@ -1739,56 +1741,9 @@ void AppObject::OnDraw()
             _CompilerStr = "";
             _RunTimeStr = "";
             _LibInfoString = "";
-            UCodeLang::BackEndObject_Ptr _BackEnd;
+           
 
-            switch (OutputWindow.Type)
-            {
-            case BackEndType::UCodeVM:
-                _BackEnd = UCodeLang::UCodeBackEndObject::MakeObject;
-
-                if (windowdata.VMType == UCodeVMType::Native_Interpreter) 
-                {
-                    switch (OutputWindow.OldNativeCpuType)
-                    {
-                    case NativeSet::x86:
-                    {
-                        UCodeLangUnreachable();
-                    }
-                    break;
-                    case NativeSet::x86_64:
-                    {
-                        _BackEnd = UCodeLang::X86_64UNativeBackEnd::MakeObject;
-                    }
-                    break;
-                    default:
-                        UCodeLangUnreachable();
-                        break;
-                    }
-                }
-                break;
-            case BackEndType::C89:
-                _BackEnd = UCodeLang::C89Backend::MakeObject;
-                break;
-            case BackEndType::IR:
-                _BackEnd = UCodeLang::IRBackEnd::MakeObject;
-                break;
-            case BackEndType::LLVM:
-                _BackEnd = UCodeLang::LLVMBackEnd::MakeObject;
-                break;
-            case BackEndType::WebAssembly:
-                _BackEnd = UCodeLang::WebAssemblyBackEnd::MakeObject;
-                break;
-            case BackEndType::WindowsExecutable:
-                _BackEnd = UCodeLang::WindowsBackEnd::MakeObject;
-                break;
-            case BackEndType::LinuxExecutable:
-                _BackEnd = UCodeLang::LinuxBackEnd::MakeObject;
-                break;
-            default:
-                UCodeLangUnreachable();
-                break;
-            }
-            _Compiler.Set_BackEnd(_BackEnd);
+            UpdateBackEnd();
 
             CompileText(GetTextEditorString());
         }
@@ -2027,6 +1982,59 @@ void AppObject::OnDraw()
     EndDockSpace();
 
    
+}
+
+void AppObject::UpdateBackEnd()
+{
+    UCodeLang::BackEndObject_Ptr _BackEnd;
+    switch (OutputWindow.Type)
+    {
+    case BackEndType::UCodeVM:
+        _BackEnd = UCodeLang::UCodeBackEndObject::MakeObject;
+
+        if (windowdata.VMType == UCodeVMType::Native_Interpreter)
+        {
+            switch (OutputWindow.OldNativeCpuType)
+            {
+            case NativeSet::x86:
+            {
+                UCodeLangUnreachable();
+            }
+            break;
+            case NativeSet::x86_64:
+            {
+                _BackEnd = UCodeLang::X86_64UNativeBackEnd::MakeObject;
+            }
+            break;
+            default:
+                UCodeLangUnreachable();
+                break;
+            }
+        }
+        break;
+    case BackEndType::C89:
+        _BackEnd = UCodeLang::C89Backend::MakeObject;
+        break;
+    case BackEndType::IR:
+        _BackEnd = UCodeLang::IRBackEnd::MakeObject;
+        break;
+    case BackEndType::LLVM:
+        _BackEnd = UCodeLang::LLVMBackEnd::MakeObject;
+        break;
+    case BackEndType::WebAssembly:
+        _BackEnd = UCodeLang::WebAssemblyBackEnd::MakeObject;
+        break;
+    case BackEndType::WindowsExecutable:
+        _BackEnd = UCodeLang::WindowsBackEnd::MakeObject;
+        break;
+    case BackEndType::LinuxExecutable:
+        _BackEnd = UCodeLang::LinuxBackEnd::MakeObject;
+        break;
+    default:
+        UCodeLangUnreachable();
+        break;
+    }
+    _Compiler.Set_BackEnd(_BackEnd);
 }
 
 void AppObject::ProcessSeverPackets()
@@ -2791,11 +2799,11 @@ void AppObject::OnErrorListUpdated()
     TextEditor::ErrorMarkers marks;
     for (auto& Item : Errors)
     {
-        marks[Item._Error.Line] = Item._Error._Msg;
+        marks[(int)Item._Error.Line] = Item._Error._Msg;
     }
     for (auto& Item : PublishedDiagnostics.diagnostics)
     {
-        marks[Item.range.start.line] = Item.message;
+        marks[(int)Item.range.start.line] = Item.message;
     }
     _Editor.SetErrorMarkers(marks);
 }

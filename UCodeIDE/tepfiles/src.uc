@@ -1,14 +1,16 @@
 
 $MoveOnly<T>:
  T Base;
- |new[T base]:
+ |new[this&]:
+  Base = [];
+ |new[this&,T base]:
   Base =base;
 
- |new[imut T& base] = invalid;
+ |new[this&,imut this& other] = invalid;
 
 |main[]:
  MoveOnly<int> Val = [];
- MoveOnly<int> Val2 = move Val;//ok
+ //MoveOnly<int> Val2 = move Val;//ok
  MoveOnly<int> Val3 = Val;//bad
 
 

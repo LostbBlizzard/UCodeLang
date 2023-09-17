@@ -947,8 +947,6 @@ void UClib::FixRawValue(Endian AssemblyEndian, NTypeSize BitSize,const ClassAsse
 	{
 		switch (Type._Type)
 		{
-
-		Bit16Type:
 		case ReflectionTypes::sInt16:
 		case ReflectionTypes::uInt16:
 		{
@@ -982,6 +980,7 @@ void UClib::FixRawValue(Endian AssemblyEndian, NTypeSize BitSize,const ClassAsse
 			case NTypeSize::int32:goto Bit32Type;
 			case NTypeSize::int64:goto Bit64Type;
 			default:
+				UCodeLangUnreachable();
 				break;
 			}
 		}
@@ -990,6 +989,7 @@ void UClib::FixRawValue(Endian AssemblyEndian, NTypeSize BitSize,const ClassAsse
 			UCodeLangThrowException("not addded yet");
 		}
 		default:
+			UCodeLangUnreachable();
 			break;
 		}
 	}

@@ -1995,6 +1995,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		newInfo->IsUnsafe = node._Signature._HasUnsafeKeyWord;
 		newInfo->IsExternC = node._Signature.Externtype == ExternType::ExternC
 			 || node._Signature.Externtype == ExternType::ExternSystem;
+		newInfo->IsRemoved = node._Signature._IsRemoved;
 
 		syb->Info.reset(newInfo);
 
@@ -2133,8 +2134,10 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		}
 		else
 		{
-			Type_ConvertAndValidateType(node._Signature._ReturnType, syb->VarType,NodeSyb_t::Ret);
-			Info->Ret = syb->VarType;
+			if (!node._Signature._IsRemoved) {
+				Type_ConvertAndValidateType(node._Signature._ReturnType, syb->VarType, NodeSyb_t::Ret);
+				Info->Ret = syb->VarType;
+			}
 		}
 
 
@@ -2188,7 +2191,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 
 
-	bool buidCode = _PassType == PassType::BuidCode;
+	bool buidCode = _PassType == PassType::BuidCode && Info->IsRemoved == false;
 	bool ignoreBody = !IsgenericInstantiation && IsGenericS;
 	
 	
@@ -2660,6 +2663,7 @@ Class_Data* SystematicAnalysis::Assembly_GetAssemblyClass(const String& FullName
 }
 void SystematicAnalysis::FuncRetCheck(const Token& Name, const NeverNullPtr<Symbol> FuncSyb, const FuncInfo* Func)
 {
+	if (Func->IsRemoved == true) { return; }
 	switch (Func->_FuncType)
 	{
 	case FuncInfo::FuncType::Drop:
@@ -6143,6 +6147,8 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 			auto Token = NeverNullptr(node._Type._name.token);
 			Type_DeclareVariableTypeCheck(VarType, Ex, Token);
 
+		
+
 			if (syb->Type == SymbolType::ConstantExpression && !VarType.IsNull())
 			{
 				ConstantExpressionInfo* Info = syb->Get_Info<ConstantExpressionInfo>();
@@ -6423,9 +6429,11 @@ void SystematicAnalysis::Type_DeclareVariableTypeCheck(TypeSymbol& VarType, cons
 				VarType._TypeInfo = OldTypeInfo;
 			}
 			VarType.SetAsLocation();
+
+
 		}
 	}
-	
+
 	if (!Type_CanBeImplicitConverted(Ex, VarType, false))
 	{
 		LogError_CantCastImplicitTypes(Token, Ex, VarType, false);
@@ -9616,6 +9624,8 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 			return;
 		}
 		_LastExpressionType = V.Type;
+
+		
 	}
 	
 
@@ -10455,6 +10465,7 @@ void SystematicAnalysis::Type_SetFuncRetAsLastEx(const Get_FuncInfo& Info)
 			{
 				_LastExpressionType = (*Info.Func->GetObjectForCall());
 				_LastExpressionType._IsAddress = false;
+				_LastExpressionType.SetAsMoved();
 			}
 			else
 			{
@@ -12630,13 +12641,9 @@ bool SystematicAnalysis::Type_AreTheSame(const ParInfo& TypeA, const ParInfo& Ty
 
 	return Type_AreTheSame(TypeA.Type, TypeB.Type);
 }
-bool SystematicAnalysis::Type_AreTheSameWithOutimmutable(const TypeSymbol& TypeA, const TypeSymbol& TypeB)
+bool  SystematicAnalysis::Type_AreTheSameWithOutMoveAndimmutable(const TypeSymbol& TypeA, const TypeSymbol& TypeB)
 {
 	if (TypeA.IsAddressArray() != TypeB.IsAddressArray())
-	{
-		return false;
-	}
-	if (TypeA._MoveData != TypeB._MoveData)
 	{
 		return false;
 	}
@@ -12667,7 +12674,7 @@ bool SystematicAnalysis::Type_AreTheSameWithOutimmutable(const TypeSymbol& TypeA
 			{
 				return false;
 			}
-		
+
 
 			for (size_t i = 0; i < F1->Pars.size(); i++)
 			{
@@ -12701,6 +12708,17 @@ bool SystematicAnalysis::Type_AreTheSameWithOutimmutable(const TypeSymbol& TypeA
 
 
 	return false;
+}
+bool SystematicAnalysis::Type_AreTheSameWithOutimmutable(const TypeSymbol& TypeA, const TypeSymbol& TypeB)
+{
+	if (TypeA._MoveData != TypeB._MoveData)
+	{
+		return false;
+	}
+	else
+	{
+		return Type_AreTheSameWithOutMoveAndimmutable(TypeA, TypeB);
+	}
 }
 void SystematicAnalysis::Assembly_LoadType(const ReflectionTypeInfo& Item, TypeSymbol& Out)
 {
@@ -13089,6 +13107,15 @@ SystematicAnalysis::UrinaryOverLoadWith_t SystematicAnalysis::Type_HasUrinaryOve
 	}
 	return {  };
 }
+bool SystematicAnalysis::Type_IsCopyable(const TypeSymbol& Type)
+{
+	if (Type_IsPrimitiveNotIncludingPointers(Type))
+	{
+		return true;
+	}
+	return false;
+}
+
 String SystematicAnalysis::ToString(const TypeSymbol& Type) const
 {
 	String r;
@@ -14029,11 +14056,16 @@ bool SystematicAnalysis::Type_IsValid(TypeSymbol& Out)
 }
 bool SystematicAnalysis::Type_CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode )
 {
-	if (Type_AreTheSameWithOutimmutable(TypeToCheck, Type)) 
+	if (Type_AreTheSameWithOutMoveAndimmutable(TypeToCheck, Type))
 	{ 
 		bool V0 =Type_IsimmutableRulesfollowed(TypeToCheck, Type);
 
 		bool V1 = Type_IsAddessAndLValuesRulesfollowed(TypeToCheck, Type, ReassignMode);
+
+		if (!TypeToCheck.IsMovedType() && (!Type_IsCopyable(TypeToCheck)))
+		{
+			return false;
+		}
 
 		return V0 && V1;
 	}
@@ -16683,6 +16715,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 				}
 			}
 		}
+		
 
 		return RValue;
 		
@@ -19245,6 +19278,10 @@ void SystematicAnalysis::LogError_CantCastImplicitTypes(const NeverNullPtr<Token
 		LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 			, "The expression is not an Location in memory'");
 	}
+	else if (!UintptrType.IsMovedType() && (!Type_IsCopyable(UintptrType)))
+	{
+		LogError_TypeIsNotCopyable(Token, UintptrType);
+	}
 	else
 	{
 		LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
@@ -19303,6 +19340,13 @@ void SystematicAnalysis::LogError_CantFindUnaryOpForTypes(const NeverNullPtr<Tok
 	LogError(ErrorCodes::InValidType, BinaryOp->OnLine, BinaryOp->OnPos,
 		"The type '" + ToString(Ex0Type) + "'" + " cant be '"
 		+ ToString(BinaryOp->Type) + "'");
+}
+void SystematicAnalysis::LogError_TypeIsNotCopyable(const NeverNullPtr<Token> Token,const TypeSymbol& Ex0Type)
+{
+	if (Ex0Type.IsBadType() || Type_IsUnMapType(Ex0Type)) { return; }
+
+	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos,
+		"The type '" + ToString(Ex0Type) + "'" + " is not copyable.");
 }
 void SystematicAnalysis::LogError_ExpressionMustbeAnLocationValueError(const NeverNullPtr<Token> Token, TypeSymbol& Ex0Type)
 {
