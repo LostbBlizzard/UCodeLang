@@ -582,9 +582,6 @@ struct ExpressionNodeType :Node
 	{
 		return token->Type == TokenType::plus
 			|| token->Type == TokenType::minus
-			|| token->Type == TokenType::KeyWorld_Sizeof
-			|| token->Type == TokenType::KeyWorld_Nameof
-			|| token->Type == TokenType::KeyWorld_typeof
 			|| token->Type == TokenType::Not
 			|| token->Type == TokenType::bitwise_not
 			|| token->Type == TokenType::QuestionMark;
@@ -1399,5 +1396,16 @@ struct DeferStatementNode : Node
 	{
 
 	}
+};
+struct UnaryExpressionNode :Node
+{
+	UnaryExpressionNode() : Node(NodeType::UnaryExpressionNode)
+	{
+
+	}
+	AddforNode(UnaryExpressionNode);
+
+	ExpressionNodeType _Value0;
+	const Token* _UnaryOp = nullptr;
 };
 UCodeLangFrontEnd

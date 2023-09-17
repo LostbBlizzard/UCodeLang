@@ -96,7 +96,7 @@ UCodeTestStart
 		}
 		return r;
 	}
-	static const Array<TestInfo, 80> Tests
+	static const Array<TestInfo, 83> Tests
 	{
 
 		TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation),
@@ -135,6 +135,8 @@ UCodeTestStart
 		TestInfo("FuncOverloading","Objects/FuncOverloading.uc","main",SuccessCondition::RunTimeValue,(int)0),
 
 		TestInfo("OperatorOverloading","Objects/OperatorOverloading.uc","test",SuccessCondition::RunTimeValue,Vec2(0,0)),
+
+		TestInfo("factorial","BasicTests/factorial.uc","main",SuccessCondition::RunTimeValue,(int)3628800),
 
 		TestInfo("Enum_1","Objects/Enum.uc","main",SuccessCondition::RunTimeValue,(int)1),
 		TestInfo("Enum_2","Objects/Enum2.uc","main",SuccessCondition::RunTimeValue,(float)1.5),
@@ -207,6 +209,8 @@ UCodeTestStart
 		TestInfo("UseDotAndNotScope", "Objects/UseDotAndNotScope.uc","main", SuccessCondition::CompilationFail),
 		TestInfo("UsescopeAndnotdot", "Objects/UsescopeAndnotdot.uc", "main", SuccessCondition::CompilationFail),
 		TestInfo("UsescopeAndnotdot2", "Objects/UsescopeAndnotdot2.uc", "main", SuccessCondition::CompilationFail),
+		TestInfo("OptionalOp", "Syntax/OptionalOp.uc", "main", SuccessCondition::RunTimeValue, (int)5),
+		TestInfo("ResultOp", "Syntax/ResultOp.uc", "main", SuccessCondition::RunTimeValue, (int)5),
 	};
 
 

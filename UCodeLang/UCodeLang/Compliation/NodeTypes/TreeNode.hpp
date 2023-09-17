@@ -85,6 +85,7 @@ enum class NodeType :UInt8
 	UnsafeExpression,
 	UnsafeStatementsNode,
 	DeferStatementNode,
+	UnaryExpressionNode
 };
 
 
@@ -165,9 +166,12 @@ struct FileNode : FileNode_t,Node
 
 	Vector<Token> Tokens;
 	Vector<Unique_ptr<Token>> TemporaryTokens;//int?,int[],int[10],int[:] etc.
+	Vector<Unique_ptr<String>> TemporaryStrings;
 	void Reset()
 	{
 		_Nodes.clear();
+		TemporaryTokens.clear();
+		TemporaryStrings.clear();
 	}
 };
 
