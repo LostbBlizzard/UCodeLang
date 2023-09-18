@@ -646,11 +646,18 @@ void AppObject::DrawTestMenu()
                             }
                             else if (auto typenod = Assembly.Find_Node(rettype))
                             {
-                                if (StringHelper::StartWith(typenod->FullName,"Vec2")
+                                if (StringHelper::StartWith(typenod->FullName, "Vec2")
                                     || StringHelper::StartWith(typenod->FullName, "vec2"))
                                 {
-                                    using GetValueFunc = Vec2(*)();
-                                    auto val = ((GetValueFunc)functocall)();
+                                   // using GetValueFunc = Vec2(*)();//I have no idea why this does not work
+                                   // auto val = ((GetValueFunc)functocall)();
+
+
+
+                                    using GetValueFunc2 = Int64(*)();
+                                    auto val2 = ((GetValueFunc2)functocall)();
+
+                                    Vec2& val = *(Vec2*)&val2;
 
                                     UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
                                     memcpy(RetValue.get(), &val, sizeof(val));
