@@ -16245,7 +16245,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 							{
 								if (Par.Type.IsBadType())//Type was not made because its generic.
 								{
-									auto& ItemSyb = ItemSybOp.value();
+									auto ItemSyb = ItemSybOp.value();
 									auto& Funcnode = *Item->Get_NodeInfo<FuncNode>();
 									auto& FuncnodePars = Funcnode._Signature._Parameters;
 									auto& FuncnodePartype = FuncnodePars._Parameters[i]._Type;
