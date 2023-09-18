@@ -1,6 +1,6 @@
 #pragma once
 #include <functional>
-#include "../LangTypes.hpp"
+#include "UCodeLang/LangCore/LangDef.hpp"
 UCodeLangStart
 class Defer
 {

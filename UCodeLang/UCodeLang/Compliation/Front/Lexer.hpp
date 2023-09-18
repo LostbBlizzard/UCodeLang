@@ -2,12 +2,19 @@
 
 #include "../../LangCore.hpp"
 #include "../Helpers/CompilerTypes.hpp"
-#include "../Helpers/CompliationErrors.hpp"
-#include "../CompliationSettings.hpp"
 #include "../LexerDefs.h"
 
 #include "UCodeFrontEndNameSpace.hpp"
+
+UCodeLangStart
+
+class CompliationErrors;
+struct CompliationSettings;
+
+UCodeLangEnd
+
 UCodeLangFrontStart
+
 class Lexer
 {
 	enum class ReadingNameState :UInt8

@@ -10,6 +10,8 @@
 
 #include <UCodeLang/RunTime/Interpreters/Interpreter.hpp>
 #include <UCodeLang/RunTime/RunTimeLangState.hpp>
+
+#include "CompliationSettings.hpp"
 UCodeLangStart
 
 

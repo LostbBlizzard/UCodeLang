@@ -1,8 +1,8 @@
 #pragma once
 #include "../BackEndInterface.hpp"
-#include "UCodeLang/Compliation/UAssembly/UAssembly.hpp"
-#include "UCodeLang/Compliation/Front/SystematicAnalysis.hpp"
 #include "RegistersManager.hpp"
+#include "UCodeLang/LangCore/UClib.hpp"
+#include "UCodeLang/Compliation/CompliationSettings.hpp"
 UCodeLangStart
 
 class UCodeBackEndObject : BackEndObject

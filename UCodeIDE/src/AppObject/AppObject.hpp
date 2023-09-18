@@ -18,7 +18,8 @@ struct SandBoxLanguageSever
 {
 	UCodeLanguageSever::LSPSever _Sever;
 };
-class  AppClientFuncMap;
+
+struct AppClientFuncMap;
 class AppObject
 {
 public:

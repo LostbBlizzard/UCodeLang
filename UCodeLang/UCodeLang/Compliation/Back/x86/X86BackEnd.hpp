@@ -32,7 +32,7 @@ public:
 	static BackEndObject* MakeObject() { return new X86BackEnd_UCodeLib(); }
 	void Reset() override;
 	void Build(const IRBuilder* Input) override;
-	CodeLayer* _OutLayer = nullptr;
+	//CodeLayer* _OutLayer = nullptr;
 };
 
 UCodeLangEnd

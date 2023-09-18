@@ -6,7 +6,7 @@ UCodeLangStart
 
 using IRidentifier = String;
 using IRidentifierID = UInt64;
-using IRTypes_t = int;
+using IRTypes_t = Byte;
 enum class IRTypes :IRTypes_t
 {
 	Null,
@@ -39,8 +39,8 @@ struct IRSymbol
 };
 struct IRType
 {
-	IRTypes _Type;
 	IRSymbol _symbol;
+	IRTypes _Type;
 
 	IRType():_Type(IRTypes::Null), _symbol(){}
 	IRType(IRTypes type) :_Type(IRTypes::Null), _symbol() { SetType(type); }

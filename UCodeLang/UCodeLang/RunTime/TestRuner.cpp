@@ -1,5 +1,6 @@
 #include "TestRuner.hpp"
 #include "AnyInterpreter.hpp"
+#include "UCodeLang/LangCore/StringHelper.hpp"
 UCodeLangStart
 
 TestRuner::TestsResult TestRuner::RunTests(UClib& lib, InterpreterType Type, Optional<OnTestDone> OnDone)

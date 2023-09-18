@@ -1,7 +1,7 @@
 #pragma once
 
 #include "UCodeLang/LangCore.hpp"
-#include "UCodeLang/RunTime/RunTimeLib.hpp"
+#include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
 UCodeLangStart
 enum class CPUBitSize : UInt8
 {
@@ -96,6 +96,9 @@ struct NullJitCalls
 #endif
 
 class RunTimeLangState;
+class ClassMethod;
+class InterpreterCPPinterface;
+
 class JitCompiler
 {
 public:
@@ -104,7 +107,7 @@ public:
 	{
 		size_t Offset = 0;
 	};
-	using FuncType = RunTimeLib::CPPCallBack;
+	using FuncType = void(UCodeLangAPI*)(InterpreterCPPinterface& Input);;
 	using InterpreterCPPinterface_SetRet = void(*)(void* Input);
 	using InterpreterCPPinterface_GetParm = void(*)(void* Input, void* Pointer, size_t ParSize);
 	using JitBuildAddress = void(*)(UAddress Input);

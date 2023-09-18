@@ -1,4 +1,5 @@
 #include "WebAssembly.hpp"
+#include "UCodeLang/Compliation/Middle/IR.hpp"
 UCodeLangStart
 WebAssemblyBackEnd::WebAssemblyBackEnd()
 {

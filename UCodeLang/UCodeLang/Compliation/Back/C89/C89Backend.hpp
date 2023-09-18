@@ -1,5 +1,6 @@
 #pragma once
 #include "../BackEndInterface.hpp"
+#include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
 UCodeLangStart
 class C89Backend : BackEndObject
 {
@@ -34,7 +35,7 @@ private:
 
 		String GetName(IRInstruction* Ptr);
 	};
-	IRType OutType;
+	IRType* OutType;
 	String ToString();
 
 	void AddSybToString(UCodeLang::String& r);

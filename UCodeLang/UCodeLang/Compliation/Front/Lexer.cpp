@@ -1,5 +1,8 @@
 #include "Lexer.hpp"
 #include "../Helpers/KeyWords.hpp"
+
+#include "../Helpers/CompliationErrors.hpp"
+#include "../CompliationSettings.hpp"
 UCodeLangFrontStart
 void Lexer::Reset()
 {

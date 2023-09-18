@@ -1,4 +1,5 @@
 #include "LLVMBackEnd.hpp"
+#include "UCodeLang/Compliation/Middle/IR.hpp"
 UCodeLangStart
 void LLVMBackEnd::Reset()
 {

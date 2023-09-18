@@ -1,6 +1,7 @@
 #pragma once
 #include "../../LangCore.hpp"
 #include "../Front/FrontEndObject.hpp"
+#include "UCodeLang/LangCore/UClib.hpp"
 UCodeLangStart
 
 enum class NodeType :UInt8

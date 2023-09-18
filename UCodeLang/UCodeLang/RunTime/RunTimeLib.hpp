@@ -4,21 +4,11 @@
 #include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
 UCodeLangStart
 
-
-
-#if UCodeLangMSVC 
-#define UCodeLangAPI __cdecl 
-#else
-#define UCodeLangAPI 
-#endif
 class InterpreterCPPinterface;
-
-using CPPCallRet = void;
-
 class RunTimeLib
 {
 public:
-	using CPPCallBack = CPPCallRet(UCodeLangAPI*)(InterpreterCPPinterface& Input);
+	using CPPCallBack = void(UCodeLangAPI*)(InterpreterCPPinterface& Input);
 	template<typename T, typename... Pars>
 	using NativeCall = T(UCodeLangAPI*)(Pars...);
 	struct CPPCall

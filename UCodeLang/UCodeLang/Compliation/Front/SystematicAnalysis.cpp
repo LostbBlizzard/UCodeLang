@@ -1,11 +1,8 @@
 #include "SystematicAnalysis.hpp"
 #include "UCodeLang/Compliation/Helpers/KeyWords.hpp"
-
 #include "UCodeLang/Compliation/Helpers/InstructionBuilder.hpp"
-#include "UCodeLang/Compliation/Back/UCodeBackEnd/UCodeBackEnd.hpp"
 #include "UCodeLang/Compliation/Helpers/ParseHelper.hpp"
 #include "UCodeLang/Compliation/Helpers/NameDecoratior.hpp"
-#include "UCodeLang/LangCore/DataType/Defer.hpp"
 UCodeLangFrontStart
 
 
@@ -13113,7 +13110,25 @@ bool SystematicAnalysis::Type_IsCopyable(const TypeSymbol& Type)
 	{
 		return true;
 	}
-	return false;
+	if (auto val = Symbol_GetSymbol(Type))
+	{
+		auto& Syb = *val.value().value();
+
+		switch (Syb.Type)
+		{
+		case SymbolType::Type_class:
+		{
+			auto v = Syb.Get_Info<ClassInfo>();
+			return v->_ClassAutoGenerateCopyConstructor
+				|| v->_ClassHasMoveConstructor;
+		}
+		break;
+
+		default:
+			break;
+		}
+	}
+	return true;
 }
 
 String SystematicAnalysis::ToString(const TypeSymbol& Type) const
@@ -16416,6 +16431,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 						TypeSymbol V;
 						V.SetType(Item->ID);
 						V.SetAsAddress();
+						V.SetAsMoved();
 						ValueTypes.insert(ValueTypes.begin(), { false,V });
 					}
 

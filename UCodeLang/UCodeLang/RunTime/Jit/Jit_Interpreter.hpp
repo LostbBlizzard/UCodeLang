@@ -258,7 +258,7 @@ private:
 
 
 	static void OnUAddressCall(UAddress addresstojit);
-	CPPCallRet Call_CPPFunc(JitFunc ToCall);
+	void Call_CPPFunc(JitFunc ToCall);
 
 
 	void BuildCheck(Jit_Interpreter::JitFuncData& Item, const UCodeLang::UAddress& address);

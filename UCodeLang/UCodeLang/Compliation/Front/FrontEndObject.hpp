@@ -1,11 +1,11 @@
 #pragma once
-#include "UCodeLang/LangCore/UClib.hpp"
 #include "UCodeLang/Compliation/Helpers/CompilerTypes.hpp"
-#include "UCodeLang/Compliation/Helpers/CompliationErrors.hpp"
-#include "UCodeLang/Compliation/CompliationSettings.hpp"
-#include "UCodeLang/Compliation/Middle/IR.hpp"
 UCodeLangStart
 
+class CompliationErrors;
+class IRBuilder;
+class UClib;
+struct CompliationSettings;
 
 enum class FrontEndType : UInt8
 {
