@@ -4,7 +4,7 @@ $CoolEnum[int] enum:
  Green,
 
 
-$CString = umut char[&];
+$CString = imut char[&];
 
 
 |main[]:

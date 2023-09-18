@@ -1,13 +1,15 @@
 
-$Item<T>:
- |Value[] => sizeof(T);
+$MoveOnly<T>:
+ T Base;
+ |new[T base]:
+  Base =base;
 
-
-|func<T>[Item<T> item]:
- ret Item<T>::Value();
+ |new[imut T& base] = invalid;
 
 |main[]:
- var A = Item<int>();
- ret func(A) - sizeof(int);
+ MoveOnly<int> Val = [];
+ MoveOnly<int> Val2 = move Val;//ok
+ MoveOnly<int> Val3 = Val;//bad
+
 
             

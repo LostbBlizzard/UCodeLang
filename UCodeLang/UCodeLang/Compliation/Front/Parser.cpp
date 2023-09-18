@@ -73,7 +73,7 @@ void Parser::Parse(const Vector<Token>& Tokens)
 		case TokenType::Left_Bracket:V = GetAttribute(); break;
 		case TokenType::KeyWord_static:V = GetDeclareStaticVariable(); break;
 		case TokenType::KeyWord_Thread:V = GetDeclareThreadVariable(); break;
-		case TokenType::KeyWord_umut:V = GetumutVariableDeclare(); break;
+		case TokenType::KeyWord_imut:V = GetimutVariableDeclare(); break;
 		case TokenType::KeyWord_eval:V = GetEvalDeclare(); break;
 		case TokenType::KeyWord_Import:V = GetImportStatement(); break;
 		default: GetDeclareVariableNoObject(V); break;
@@ -203,7 +203,7 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 		case TokenType::Left_Bracket:V = GetAttribute();break;
 		case TokenType::KeyWord_static:V = GetDeclareStaticVariable(); break;
 		case TokenType::KeyWord_Thread:V = GetDeclareThreadVariable(); break;
-		case TokenType::KeyWord_umut:V = GetumutVariableDeclare(); break;
+		case TokenType::KeyWord_imut:V = GetimutVariableDeclare(); break;
 		case TokenType::KeyWord_eval:V = GetEvalDeclare(); break;
 		default: GetDeclareVariableNoObject(V); break;
 		}
@@ -439,7 +439,7 @@ GotNodeType Parser::DoClassType(ClassNode* output, const Token* ClassToken, Gene
 		case TokenType::Left_Bracket:V = GetAttribute(); break;
 		case TokenType::KeyWord_static:V = GetDeclareStaticVariable(); break;
 		case TokenType::KeyWord_Thread:V = GetDeclareThreadVariable(); break;
-		case TokenType::KeyWord_umut:V = GetumutVariableDeclare(); break;
+		case TokenType::KeyWord_imut:V = GetimutVariableDeclare(); break;
 		case TokenType::KeyWord_eval:V = GetEvalDeclare(); break;
 		case TokenType::KeyWorld_public:
 		{
@@ -509,7 +509,7 @@ void Parser::ClassTypeAccessModifierInerScope(Vector<Unique_ptr<Node>>& Out)
 		case TokenType::Left_Bracket:V = GetAttribute(); break;
 		case TokenType::KeyWord_static:V = GetDeclareStaticVariable(); break;
 		case TokenType::KeyWord_Thread:V = GetDeclareThreadVariable(); break;
-		case TokenType::KeyWord_umut:V = GetumutVariableDeclare(); break;
+		case TokenType::KeyWord_imut:V = GetimutVariableDeclare(); break;
 		case TokenType::KeyWord_eval:V = GetEvalDeclare(); break;
 		default:V = GetDeclareVariable();
 		}
@@ -649,9 +649,9 @@ GotNodeType Parser::GetStatement(Node*& out)
 		return r.GotNode;
 	}
 	break;
-	case TokenType::KeyWord_umut:
+	case TokenType::KeyWord_imut:
 	{
-		auto r = GetumutVariableDeclare();
+		auto r = GetimutVariableDeclare();
 		out = r.Node;
 		return r.GotNode;
 	}
@@ -2139,7 +2139,7 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 	bool Isasync = false;
 	if (!ignoreleftHandType)
 	{
-		if (Token->Type == TokenType::KeyWord_umut)
+		if (Token->Type == TokenType::KeyWord_imut)
 		{
 			out->SetAsimmutable();
 			NextToken();
@@ -3225,9 +3225,9 @@ GotNodeType Parser::GetNewExpresionNode(NewExpresionNode& out)
 	}
 	return GotNodeType::Success;
 }
-GotNodeType Parser::GetumutVariableDeclare(Node*& out)
+GotNodeType Parser::GetimutVariableDeclare(Node*& out)
 {
-	auto NewToken = TryGetToken(); TokenTypeCheck(NewToken, TokenType::KeyWord_umut);
+	auto NewToken = TryGetToken(); TokenTypeCheck(NewToken, TokenType::KeyWord_imut);
 	NextToken();
 
 	auto Token2 = TryGetToken(); 

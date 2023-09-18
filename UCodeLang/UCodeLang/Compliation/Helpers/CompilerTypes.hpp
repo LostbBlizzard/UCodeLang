@@ -111,7 +111,7 @@ enum class TokenType : TokenType_t
 
 	KeyWord_Enum,//enum
 	KeyWord_Tag,//tag
-	KeyWord_umut,//umut
+	KeyWord_imut,//imut
 
 	ellipses,//...
 	DollarSign,//$
@@ -281,7 +281,7 @@ public:
 		case TokenType::hash: return "#";
 
 		case TokenType::KeyWord_Enum:return "enum";
-		case TokenType::KeyWord_umut:return "umut";
+		case TokenType::KeyWord_imut:return "imut";
 		case TokenType::KeyWord_Tag: return "tag";
 
 		case TokenType::QuestionMark:return "?";
