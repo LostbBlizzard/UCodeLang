@@ -247,7 +247,7 @@ UCodeTestStart
 
 	bool LogErrors(std::ostream& out, UCodeLang::Compiler& _Compiler);
 
-	bool CompileC89ToLib(const Path& Cfile, const Path& Outdllfile)
+	inline bool CompileC89ToLib(const Path& Cfile, const Path& Outdllfile)
 	{
 		/*
 		#if UCodeLangMSVC
