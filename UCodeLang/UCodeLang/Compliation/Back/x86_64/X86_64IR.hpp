@@ -1,6 +1,7 @@
 #pragma once
 #include "x86_64Data.hpp"
 #include "X86_64Builder.hpp"
+#include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
 UCodeLangStart
 
 //were register allcations,stack allcations,Instruction Selection Happens ect. 

@@ -1,6 +1,8 @@
 #include "UCodeBackEnd.hpp"
 #include "UCodeLang/Compliation/Helpers/InstructionBuilder.hpp"
 #include "UCodeLang/Compliation/Helpers/NameDecoratior.hpp"
+#include "UCodeLang/LangCore/UClib.hpp"
+#include "UCodeLang/Compliation/CompliationSettings.hpp"
 UCodeLangStart
 
 #define GenIns(x) ResetIns(); x;
@@ -242,7 +244,8 @@ void UCodeBackEndObject::DoOptimizations()
 		BinaryVectorMap<size_t, UCodeFunc*> FuncsHash;
 		for (auto& Item : Funcs)
 		{
-			Item->_Hash = UAssembly::UAssembly::BuildHashForSub(Item->_Ins.data(), Item->_Ins.size());
+			UCodeLangUnreachable();
+			//Item->_Hash = UAssembly::UAssembly::BuildHashForSub(Item->_Ins.data(), Item->_Ins.size());
 		}
 
 		for (auto& Item : Funcs)

@@ -1,5 +1,7 @@
 #include "IRUBChecker.hpp"
 
+#include "IR.hpp"
+#include "../Helpers/CompliationErrors.hpp"
 UCodeLangStart
 
 void IRUBChecker::Reset()

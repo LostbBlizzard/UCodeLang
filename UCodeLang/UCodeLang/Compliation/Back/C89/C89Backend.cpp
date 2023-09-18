@@ -1,4 +1,8 @@
 #include "C89Backend.hpp"
+#include "../../Middle/IR.hpp"
+#include "../../CompliationSettings.hpp"
+#include "../../Helpers/CompliationErrors.hpp"
+#include "UCodeLang/LangCore/UClib.hpp"
 UCodeLangStart
 
 
@@ -547,7 +551,7 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 				}
 
 
-				OutType = I->ObjectType;
+				OutType = &I->ObjectType;
 				switch (I->Type)
 				{
 				case IRInstructionType::LoadReturn:
@@ -774,7 +778,7 @@ String C89Backend::ToString(ToStringState& State, IRInstruction& Ins, IROperator
 	}
 	case IROperatorType::DereferenceOf_IRInstruction:
 	{
-		return "*(" + ToString(OutType) + "*)" + State.PointerToName.at(Value.Pointer);
+		return "*(" + ToString(*OutType) + "*)" + State.PointerToName.at(Value.Pointer);
 	}
 	case IROperatorType::IRParameter:
 	{

@@ -371,7 +371,7 @@ private:
     void window_logMessage(MessageType Type, String MSg);
 
     static Position GetPosition(StringView text, size_t CharIndex, size_t Line);
-    size_t Test = 1;
+    integer Test = 1;
 
     UCodeAnalyzer::LanguageServer BaseSever;
     UCodeAnalyzer::Fileidentifier Cast(const  UCodeLanguageSever::DocumentUri& Item);

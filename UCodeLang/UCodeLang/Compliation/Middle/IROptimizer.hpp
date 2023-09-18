@@ -1,13 +1,12 @@
 #pragma once
 #include "IR.hpp"
-#include "../Helpers/CompliationErrors.hpp"
-#include "../CompliationSettings.hpp"
 #include "IRTypeFixer.hpp"
 #include "IRUBChecker.hpp"
 UCodeLangStart
 
 
-
+class CompliationErrors;
+struct CompliationSettings;
 
 enum class InlineState
 {

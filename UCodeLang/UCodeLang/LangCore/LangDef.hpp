@@ -286,6 +286,12 @@
 #endif
 
 
+#if UCodeLangMSVC 
+#define UCodeLangAPI __cdecl 
+#else
+#define UCodeLangAPI 
+#endif
+
 #define UCodeLangExportSymbol(Namespace)
 
 

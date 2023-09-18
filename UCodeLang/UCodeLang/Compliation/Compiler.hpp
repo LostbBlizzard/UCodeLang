@@ -6,6 +6,8 @@
 #include "UCodeLang/LangCore/UClib.hpp"
 #include "Back/BackEndInterface.hpp"
 #include "DependencyFile.hpp"
+
+#include "CompliationSettings.hpp"
 UCodeLangStart
 class Compiler
 {

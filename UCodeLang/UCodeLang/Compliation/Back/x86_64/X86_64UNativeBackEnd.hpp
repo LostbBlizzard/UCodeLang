@@ -16,7 +16,6 @@ public:
 private:
 	const IRBuilder* _Input = nullptr;
 	UClib* _Output = nullptr;
-	CodeLayer::MachineCode* _OutLayer = nullptr;
 
 
 	inline UClib& Get_Output()

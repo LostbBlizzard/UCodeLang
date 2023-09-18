@@ -1,7 +1,5 @@
 #pragma once
-#include "../BackEndInterface.hpp"
-#include "UCodeLang/Compliation/Front/SystematicAnalysis.hpp"
-
+#include "../../Middle/IR.hpp"
 UCodeLangStart
 class RegistersManager
 {

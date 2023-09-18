@@ -1,9 +1,12 @@
 #pragma once
 
-#include "IR.hpp"
-#include "../Helpers/CompliationErrors.hpp"
-
+#include "UCodeLang/LangCore/UCodeLangNameSpace.hpp"
+#include "UCodeLang/LangCore/LangDef.hpp"
 UCodeLangStart
+
+class IRBuilder;
+class CompliationErrors;
+
 class IRUBChecker
 {
 public:

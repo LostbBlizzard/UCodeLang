@@ -15,7 +15,7 @@ int Func(int A,int B)
 }
 
 //template
-CPPCallRet TempFunc(InterpreterCPPinterface& Input)
+void TempFunc(InterpreterCPPinterface& Input)
 {
 	auto A = Input.GetParameter<int>();
 	auto B = Input.GetParameter<int>();

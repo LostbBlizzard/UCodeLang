@@ -1,5 +1,7 @@
 #include "IROptimizer.hpp"
 #include <iostream>
+#include "../Helpers/CompliationErrors.hpp"
+#include "../CompliationSettings.hpp"
 UCodeLangStart
 
 

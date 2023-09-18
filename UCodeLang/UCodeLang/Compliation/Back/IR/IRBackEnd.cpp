@@ -1,4 +1,5 @@
 #include "IRBackEnd.hpp"
+#include "../../Middle/IR.hpp"
 UCodeLangStart
 IRBackEnd::IRBackEnd()
 {
