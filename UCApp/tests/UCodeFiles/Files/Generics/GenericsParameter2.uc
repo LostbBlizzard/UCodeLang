@@ -2,7 +2,7 @@ $Item<T>:
  |Value[] => sizeof(T);
 
 
-|func[Item<T> Item]:
+|func<T>[Item<T> item]:
  ret Item<T>::Value();
 
 |main[]:

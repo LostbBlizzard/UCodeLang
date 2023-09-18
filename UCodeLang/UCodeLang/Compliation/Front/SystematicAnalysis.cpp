@@ -1912,7 +1912,19 @@ void SystematicAnalysis::Generic_InitGenericalias(const GenericValuesNode& Gener
 		}
 		else
 		{
-			GenericType->Type = SymbolType::Unmaped_Generic_Type;
+			if (Item._Generictype == GenericValueNode::GenericType::Name)
+			{
+				GenericType->Type = SymbolType::Unmaped_Generic_Type;
+			}
+			else if (Item._Generictype == GenericValueNode::GenericType::ConstantExpression)
+			{
+				GenericType->Type = SymbolType::Unmaped_Varable;
+			}
+			else
+			{
+				UCodeLangUnreachable();
+			}
+
 			GenericType->OutputIR = false;
 
 			SymbolID ID = Symbol_GetSymbolID(GenericType->NodePtr);
@@ -1988,60 +2000,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 		auto& GenericList = node._Signature._generic;
 
-
-		for (size_t i = 0; i < GenericList._Values.size(); i++)
-		{
-			auto& Item = GenericList._Values[i];
-
-			auto GenericTypeName = Item.AsString();
-			auto GenericType = &Symbol_AddSymbol(SymbolType::Type_alias, GenericTypeName,
-				_Table._Scope.GetApendedString(GenericTypeName)
-			,node._Signature._Access);
-
-			if (IsgenericInstantiation)
-			{
-				GenericType->Type = SymbolType::Type_alias;
-
-				GenericFuncInfo& V2 = _Generic_GenericSymbolStack.top();
-			
-				auto TepVarable = Generic_TypeToGenericDataType(Item._Generictype);
-				
-
-				if (TepVarable == GenericData::Type::Pack) 
-				{
-					GenericType->VarType = TypeSymbol(V2.Pack.value());
-				}
-				else
-				{
-					GenericType->VarType = (*V2.GenericInput)[i];
-				}
-			
-			}
-			else
-			{
-				GenericType->Type = SymbolType::Unmaped_Generic_Type;
-
-				
-				SymbolID ID = Symbol_GetSymbolID(&Item);
-				_Table.AddSymbolID(*GenericType, ID);
-
-				GenericData Info;
-				Info.SybID = ID;
-				Info.type = Generic_TypeToGenericDataType(Item._Generictype);
-
-				newInfo->_GenericData._Generic.push_back(Info);
-
-				if (Info.type == GenericData::Type::Pack)
-				{
-					bool IsLast = i == GenericList._Values.size() - 1;
-					if (!IsLast)
-					{
-						LogError_ParPackTypeIsNotLast(NeverNullptr(Item.token));
-					}
-				}
-			}
-
-		}
+		Generic_InitGenericalias(GenericList, IsgenericInstantiation, newInfo->_GenericData);
 
 
 		{
@@ -6996,7 +6955,7 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 		}
 		else if (_PassType == PassType::BuidCode)
 		{
-			auto Data = _VarableMemberDatas.at(Symbol_GetSymbolID(&Item));
+			auto& Data = _VarableMemberDatas.at(Symbol_GetSymbolID(&Item));
 			ItemTokenString = Data.MemberString;
 		}
 
@@ -9589,9 +9548,11 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(const AnonymousObjectConst
 
 				auto Syb = &Symbol_AddSymbol(SymbolType::Type_StaticArray, FullName, FullName,AccessModifierType::Public);
 				_Table.AddSymbolID(*Syb, id);
+				
+				Syb->PassState = _PassType;
 
 				info = new StaticArrayInfo();
-
+				
 
 				info->Type = ArrItemType;
 				info->Exnode = nullptr;
@@ -9604,6 +9565,7 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(const AnonymousObjectConst
 
 			info->Count = nod->_Fields._Nodes.size();
 			info->IsCountInitialized = true;
+
 
 			for (size_t i = 1; i < nod->_Fields._Nodes.size(); i++)
 			{
@@ -10181,6 +10143,7 @@ void SystematicAnalysis::OnExpressionNode(const CastNode& node)
 				auto  Token = NeverNullptr(node._ToType._name.token);
 
 				LogError_CantCastExplicityTypes(Token, Ex0Type, ToTypeAs);
+				_LastExpressionType = TypesEnum::Null;
 			}
 			else
 			{
@@ -10407,21 +10370,44 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 					lookingfor = SourcType;
 					_LastExpressionType = lookingfor;
 				}
+				else if (Type_IsStaticArray(SourcType))
+				{
+					auto Syb = Symbol_GetSymbol(SourcType).value();
+					lookingfor = Syb->Get_Info<StaticArrayInfo>()->Type;
+					lookingfor.SetAsAddress();
+
+					_LastExpressionType = lookingfor;
+				}
 				else
 				{
 					lookingfor = SourcType;
 					lookingfor.SetAsAddress();
 					lookingfor._IsAddressArray = false;
-
 					_LastExpressionType = lookingfor;
 				}
+
 			}
 
 			_LastExpressionType = lookingfor;
 
+
 			if (IsWrite(_GetExpressionMode.top()))
 			{
 				_IR_LastStoreField =IROperator(_IR_LastExpressionField);
+			}
+
+			if (IsRead(_GetExpressionMode.top())) 
+			{
+				if (_LookingForTypes.top().IsAddress() == false)
+				{
+					if (_LastExpressionType.IsAddress())
+					{
+						_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad_Dereferenc(_IR_LastExpressionField
+							,IR_ConvertToIRType(_LookingForTypes.top()));
+
+						_LastExpressionType._IsAddress=false;
+					}
+				}
 			}
 		}
 
@@ -13755,7 +13741,7 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 	if (V._IsStackArray)
 	{
 		ExpressionNodeType* node = (ExpressionNodeType*)V._node.get();
-		SymbolID id = Symbol_GetSymbolID(node);
+		SymbolID id = Symbol_GetSymbolID(V);
 		auto BaseTypeName = ToString(Out);
 		auto FullName = CompilerGenerated("StaticArray_") + BaseTypeName + std::to_string(id.AsInt());
 
@@ -13767,9 +13753,10 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 		Symbol* Syb = Symbol_GetSymbol(FullName,SymbolType::Null).value_unchecked();
 		if (Syb == nullptr)
 		{
-			SymbolID id = Symbol_GetSymbolID(node);
 			Syb = &Symbol_AddSymbol(SymbolType::Type_StaticArray, FullName, FullName,AccessModifierType::Public);
 			_Table.AddSymbolID(*Syb, id);
+
+			Syb->PassState = _PassType;
 
 			StaticArrayInfo* info = new StaticArrayInfo();
 
@@ -13866,6 +13853,8 @@ TypeSymbol SystematicAnalysis::Type_GetStaticArrayType(const TypeSymbol& BaseTyp
 		SymbolID id = Symbol_GetSymbolID(Syb.value().value());
 		_Table.AddSymbolID(*Syb.value(), id);
 
+		Syb.value()->PassState = _PassType;
+
 		StaticArrayInfo* info = new StaticArrayInfo();
 
 
@@ -13911,8 +13900,9 @@ bool SystematicAnalysis::Type_ValidateType(const TypeSymbol& V, const NeverNullP
 
 			if (!V->IsCountInitialized)
 			{
-				LogError_BeMoreSpecifiicWithStaticArrSize(Token, V->Type);
-				return false;
+				//Is Checked
+				//LogError_BeMoreSpecifiicWithStaticArrSize(Token, V->Type);
+				//return false;
 			}
 		}
 		if (Syb2->Type == SymbolType::ConstantExpression && Syb != NodeSyb_t::Any)
@@ -14081,6 +14071,18 @@ SystematicAnalysis::CastOverLoadWith_t  SystematicAnalysis::Type_CanBeExplicitly
 		}
 
 	}
+	else if (Type._Type == TypesEnum::CustomType)
+	{
+		Symbol& syb = *Symbol_GetSymbol(Type._CustomTypeSymbol);
+		if (syb.Type == SymbolType::Hard_Type_alias)
+		{
+			if (Type_AreTheSameWithOutimmutable(syb.VarType, TypeToCheck))
+			{
+				return { true };
+			}
+		}
+
+	}
 
 	if (Type_IsIntType(TypeToCheck) && Type_IsIntType(Type)) { return { true }; }
 
@@ -14196,6 +14198,18 @@ void SystematicAnalysis::IR_Build_ExplicitConversion(IRInstruction* Ex, const Ty
 		if (ExType._Type == TypesEnum::CustomType)
 		{
 			Symbol& syb = *Symbol_GetSymbol(ExType._CustomTypeSymbol);
+			if (syb.Type == SymbolType::Hard_Type_alias)
+			{
+				if (Type_AreTheSameWithOutimmutable(syb.VarType, ToType))
+				{
+					return;//do nothing
+				}
+			}
+
+		}
+		else if (ToType._Type == TypesEnum::CustomType)
+		{
+			Symbol& syb = *Symbol_GetSymbol(ToType._CustomTypeSymbol);
 			if (syb.Type == SymbolType::Hard_Type_alias)
 			{
 				if (Type_AreTheSameWithOutimmutable(syb.VarType, ExType))
@@ -16176,10 +16190,11 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 			
 			for (size_t i = 0; i < ValueTypes.size(); i++)
 			{
-				auto& Item = ValueTypes[i];
+				auto& ItemValueType = ValueTypes[i];
 				if (_ThisTypeIsNotNull && i == 0) { continue; }
 
 				bool Added = false;
+				auto InputType = ItemValueType.Type;
 
 				if (i < Info->Pars.size()) 
 				{
@@ -16187,17 +16202,65 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 					for (size_t i2 = 0; i2 < Info->_GenericData._Generic.size(); i2++)
 					{
 						auto& V3 = Info->_GenericData._Generic[i2];
-						if (V3.SybID == Par.Type._CustomTypeSymbol)
+						bool addinput = false;
+						if (V3.SybID == Par.Type._CustomTypeSymbol)//Func<T>[T Item] ,caller: Func(3)
+						{
+							addinput = true;
+						}
+						else
+						{
+							if (auto ItemSybOp = Symbol_GetSymbol(ItemValueType.Type))//Func<T>[Item<T> Item] ,caller:Item<int> V; Func(V)
+							{
+								if (Par.Type.IsBadType())//Type was not made because its generic.
+								{
+									auto& ItemSyb = ItemSybOp.value();
+									auto& Funcnode = *Item->Get_NodeInfo<FuncNode>();
+									auto& FuncnodePars = Funcnode._Signature._Parameters;
+									auto& FuncnodePartype = FuncnodePars._Parameters[i]._Type;
+
+
+									auto GenericOp = Symbol_GetSymbol(FuncnodePartype._name.token->Value._String, ItemSyb->Type);
+
+									if (GenericOp && GenericOp.value()->Type == SymbolType::Generic_class)
+									{
+										
+
+										if (ItemSyb->Type == SymbolType::Type_class)
+										{
+											auto& ItemGenericData = ItemSyb->Get_Info<ClassInfo>()->_GenericData;
+
+											bool HasSameGenericHasThis = true;
+											//TODO check if is the same Generic
+											if (HasSameGenericHasThis)
+											{
+												auto& GenericOpGenericData = GenericOp.value()->Get_NodeInfo<ClassNode>()->_generic._Values[i2];
+
+												auto name = GenericOpGenericData.token->Value._String;
+
+												auto scopedname = ItemSyb->FullName;
+												ScopeHelper::GetApendedString(scopedname, name);
+
+											
+												InputType = Symbol_GetSymbol(scopedname, SymbolType::Type_alias).value()->VarType;
+												addinput = true;
+											}
+										}
+									}
+								}
+							}
+						}
+						
+						if (addinput) 
 						{
 							if (i2 >= HasBenAdded.size())
 							{
-								GenericInput.push_back(Item.Type);
+								GenericInput.push_back(InputType);
 								Added = true;
 								continue;
 							}
 							else if (HasBenAdded[i2] == false)
 							{
-								GenericInput.push_back(Item.Type);
+								GenericInput.push_back(InputType);
 								HasBenAdded[i2] = true;
 								Added = true;
 								continue;
@@ -16222,7 +16285,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 					bool CMPBool = true;
 					if (CMPBool) {
-						GenericInput.push_back(Item.Type);
+						GenericInput.push_back(ItemValueType.Type);
 					}
 				}
 			}
@@ -17546,14 +17609,16 @@ int SystematicAnalysis::Type_GetCompatibleScore(const IsCompatiblePar& Func, con
 		}
 	}
 	int r = 0;
-	for (size_t i = StartIndex; i < (*Func.Pars).size(); i++)
+	auto& Pars = *Func.Pars;
+
+	for (size_t i = StartIndex; i < (Pars).size(); i++)
 	{
 		size_t ValueTypesIndex = StartIndex == 1 ? i - 1 : i;
-		r += Type_GetCompatibleScore((*Func.Pars)[i], ValueTypes[ValueTypesIndex]);
+		r += Type_GetCompatibleScore(Pars[i], ValueTypes[ValueTypesIndex]);
 	}
 
 
-	return (*Func.Pars).size() ? (int)(r / (*Func.Pars).size()) : (int)r;
+	return  Pars.size() ? (int)(r / Pars.size()) : (int)r;
 }
 bool SystematicAnalysis::Symbol_AccessCheck(const NeverNullPtr<Symbol> Syb,const NeverNullPtr<Token> Token, const String_view Scope)
 {

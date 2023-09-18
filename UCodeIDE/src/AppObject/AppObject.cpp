@@ -131,38 +131,19 @@ void AppObject::Init()
         */
       
         UCodeIDEStyle(nullptr);
-        /*
-        |func[] => 0;
-|main[] => 1;
-|coolerror[] -> int!bool;
-|coolmultypes[] -> int||bool;
-|coolmultypes3[] -> int||bool||char;
-|CallocTest[] =>unsafe new int[10];
 
-|RangeTest[] => 1..10;
-|RangeTest2[] => 1..=10;
-$Range_t<T>:
- T start;
- T end;
- |new[this&,T Start,T End]:
-  start = Start;
-  end = End;
-$RangeInclusive_t<T>:
- T start;
- T end;
- |new[this&,T Start,T End]:
-  start = Start;
-  end = End;
-
-|Range<T>[T start,T end] => Range_t<T>(start,end);
-|RangeInclusive<T>[T start,T end] =>RangeInclusive_t<T>(start,end);
-
-$Result<T,E> enum:
- Value[T val],
-        */
         _Editor.SetText(
             R"(
-|main[] => 0;
+$Item<T>:
+ |Value[] => sizeof(T);
+
+
+|func<T>[Item<T> item]:
+ ret Item<T>::Value();
+
+|main[]:
+ var A = Item<int>();
+ ret func(A) - sizeof(int);
 
             )");
 
@@ -317,9 +298,9 @@ void AppObject::DrawTestMenu()
     };
     struct TestInfo
     {
-        TestMode Testmode;
+        TestMode Testmode = TestMode::C89;
         size_t MinTestIndex = 0;
-        size_t MaxTestCount = 30;//40;//ULangTest::Tests.size();
+        size_t MaxTestCount = 40;//40;//ULangTest::Tests.size();
 
         size_t ModuleIndex = 0;
         size_t ModuleTestCount = 1;//40;//ULangTest::Tests.size();
