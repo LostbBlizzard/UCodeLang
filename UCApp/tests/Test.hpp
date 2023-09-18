@@ -115,23 +115,23 @@ UCodeTestStart
 		TestInfo("GenericSize_t_ret_4","Objects/GenericSize_t.uc","Main",SuccessCondition::RunTimeValue,sizeof(int)),
 		TestInfo("DependencyCycle","Objects/DependencyCycle.uc","n/a",SuccessCondition::CompilationFail),
 
-		TestInfo("pointers1","BasicTests/pointers.uc","main",SuccessCondition::RunTimeValue,(int)1),
-		TestInfo("pointers2","BasicTests/pointers.uc","main2",SuccessCondition::RunTimeValue,(int)1),
+		TestInfo("pointers_1","BasicTests/pointers.uc","main",SuccessCondition::RunTimeValue,(int)1),
+		TestInfo("pointers_2","BasicTests/pointers.uc","main2",SuccessCondition::RunTimeValue,(int)1),
 
 
-		TestInfo("loops1","BasicTests/loops.uc","main_if",SuccessCondition::RunTimeValue,(int)10),
-		TestInfo("loops2","BasicTests/loops.uc","main_else",SuccessCondition::RunTimeValue,(int)0),
-		TestInfo("loops3","BasicTests/loops.uc","main_while",SuccessCondition::RunTimeValue,(int)10),
-		TestInfo("loops4","BasicTests/loops.uc","main_do",SuccessCondition::RunTimeValue,(int)10),
-		TestInfo("loops5","BasicTests/loopsif.uc","main",SuccessCondition::RunTimeValue,(int)10),
-		TestInfo("loops6","BasicTests/loopsfor.uc","main",SuccessCondition::RunTimeValue,(int)10),
+		TestInfo("loops_1","BasicTests/loops.uc","main_if",SuccessCondition::RunTimeValue,(int)10),
+		TestInfo("loops_2","BasicTests/loops.uc","main_else",SuccessCondition::RunTimeValue,(int)0),
+		TestInfo("loops_3","BasicTests/loops.uc","main_while",SuccessCondition::RunTimeValue,(int)10),
+		TestInfo("loops_4","BasicTests/loops.uc","main_do",SuccessCondition::RunTimeValue,(int)10),
+		TestInfo("loops_5","BasicTests/loopsif.uc","main",SuccessCondition::RunTimeValue,(int)10),
+		TestInfo("loops_6","BasicTests/loopsfor.uc","main",SuccessCondition::RunTimeValue,(int)10),
 
 
 		TestInfo("Func_1","BasicTests/Func.uc","main",SuccessCondition::RunTimeValue,(int)0),
 		TestInfo("MemberInit","Objects/MemberInit.uc","main",SuccessCondition::RunTimeValue,(int)1),
 		TestInfo("Constructor","Objects/Constructor.uc","main",SuccessCondition::RunTimeValue,(float)0),
 		TestInfo("MemberCall","Objects/MemberCall.uc","main",SuccessCondition::RunTimeValue,(int)0),
-		TestInfo("pointer3","Objects/pointer3.uc","main",SuccessCondition::RunTimeValue,(char)'0'),
+		TestInfo("pointer_3","Objects/pointer3.uc","main",SuccessCondition::RunTimeValue,(char)'0'),
 		TestInfo("FuncOverloading","Objects/FuncOverloading.uc","main",SuccessCondition::RunTimeValue,(int)0),
 
 		TestInfo("OperatorOverloading","Objects/OperatorOverloading.uc","test",SuccessCondition::RunTimeValue,Vec2(0,0)),
@@ -146,14 +146,14 @@ UCodeTestStart
 
 		TestInfo("GenericsParameter","Generics/GenericsParameter.uc","main",SuccessCondition::RunTimeValue,(size_t)0),
 		TestInfo("GenericType","Generics/GenericType.uc","main",SuccessCondition::RunTimeValue,(size_t)0),
-		TestInfo("GenericsParameter2","Generics/GenericsParameter2.uc","main",SuccessCondition::RunTimeValue,(size_t)0),
+		TestInfo("GenericsParameter_2","Generics/GenericsParameter2.uc","main",SuccessCondition::RunTimeValue,(size_t)0),
 
 		TestInfo("HardAlias","BasicTests/HardAlias.uc","main",SuccessCondition::Compilation),
-		TestInfo("HardAlias2","BasicTests/HardAlias2.uc","main",SuccessCondition::CompilationFail),
-		TestInfo("HardAlias3","BasicTests/HardAlias3.uc","main",SuccessCondition::CompilationFail),
+		TestInfo("HardAlias_2","BasicTests/HardAlias2.uc","main",SuccessCondition::CompilationFail),
+		TestInfo("HardAlias_3","BasicTests/HardAlias3.uc","main",SuccessCondition::CompilationFail),
 
 		TestInfo("Index","BasicTests/Index.uc","main",SuccessCondition::RunTimeValue,(int)1),
-		TestInfo("Index","BasicTests/Index2.uc","main",SuccessCondition::RunTimeValue,(int)1),
+		TestInfo("Index_2","BasicTests/Index2.uc","main",SuccessCondition::RunTimeValue,(bool)true),
 
 		TestInfo("GenericsExpression","Generics/GenericsExpression.uc","main",SuccessCondition::RunTimeValue,(int)1),
 		TestInfo("GenericsExpression2","Generics/GenericsExpression2.uc","main",SuccessCondition::CompilationFail),
@@ -167,7 +167,7 @@ UCodeTestStart
 		TestInfo("Lamdba_6","Objects/Lambda3.uc","main2",SuccessCondition::RunTimeValue,(int)1),
 
 		TestInfo("enumvariant","Objects/enumvariant.uc","main",SuccessCondition::RunTimeValue,(int)1),
-		TestInfo("enumvariant2","Objects/enumvariant2.uc","main",SuccessCondition::RunTimeValue,(int)10),
+		TestInfo("enumvariant_2","Objects/enumvariant2.uc","main",SuccessCondition::RunTimeValue,(int)10),
 
 		TestInfo("enumvariantdrop","NewAndDrop/enumvariantdrop.uc","main",SuccessCondition::RunTimeValue,(int)1),
 		TestInfo("StaticArrDrop","NewAndDrop/StaticArrDrop.uc","main",SuccessCondition::RunTimeValue,true),
@@ -192,7 +192,7 @@ UCodeTestStart
 		TestInfo("GetEnum_Base","Eval/GetEnumBase.uc","main",SuccessCondition::RunTimeValue,(bool)true),
 
 		TestInfo("MatchAllSet","BasicTests/MatchAllSet.uc","main",SuccessCondition::CompilationFail),
-		TestInfo("MatchAllSet2","BasicTests/MatchAllSet2.uc","main",SuccessCondition::CompilationFail),
+		TestInfo("MatchAllSet_2","BasicTests/MatchAllSet2.uc","main",SuccessCondition::CompilationFail),
 
 		TestInfo("outfunc_1","BasicTests/outfunc.uc","main",SuccessCondition::RunTimeValue,(int)10),
 		TestInfo("outfunc_2","BasicTests/outfunc2.uc","main",SuccessCondition::RunTimeValue,(int)10),
@@ -208,7 +208,7 @@ UCodeTestStart
 
 		TestInfo("UseDotAndNotScope", "Objects/UseDotAndNotScope.uc","main", SuccessCondition::CompilationFail),
 		TestInfo("UsescopeAndnotdot", "Objects/UsescopeAndnotdot.uc", "main", SuccessCondition::CompilationFail),
-		TestInfo("UsescopeAndnotdot2", "Objects/UsescopeAndnotdot2.uc", "main", SuccessCondition::CompilationFail),
+		TestInfo("UsescopeAndnotdot_2", "Objects/UsescopeAndnotdot2.uc", "main", SuccessCondition::CompilationFail),
 		TestInfo("OptionalOp", "Syntax/OptionalOp.uc", "main", SuccessCondition::RunTimeValue, (int)5),
 		TestInfo("ResultOp", "Syntax/ResultOp.uc", "main", SuccessCondition::RunTimeValue, (int)5),
 	};

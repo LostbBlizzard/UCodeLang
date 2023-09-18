@@ -489,7 +489,7 @@ public:
 	}
 
 
-	UAddress Size = NullAddress;
+	UAddress Size = 0;
 	Vector<FieldInfo> Fields;
 	bool SizeInitialized = false;
 

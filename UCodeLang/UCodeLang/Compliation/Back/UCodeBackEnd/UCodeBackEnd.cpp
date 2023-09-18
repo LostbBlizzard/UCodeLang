@@ -2119,6 +2119,7 @@ RegisterID UCodeBackEndObject::MakeIntoRegister(const IRlocData& Value, Optional
 	
 		switch (Size)
 		{
+		case 0:
 		case 1:
 			InstructionBuilder::GetFromStackSub8(_Ins, 0, Tep);
 			break;

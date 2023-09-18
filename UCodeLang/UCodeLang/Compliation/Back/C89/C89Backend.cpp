@@ -381,7 +381,15 @@ void C89Backend::AddSybToString(UCodeLang::String& r)
 		case IRSymbolType::StaticArray:
 		{
 			IRStaticArray* V = Item->Get_ExAs<IRStaticArray>();
-			r += "$" + SybName + " = " + ToString(V->Type) + "[/" + std::to_string(V->Count) + "]\n";
+
+			r += "typedef struct ";
+			r += SybName + " {";
+			r += ToString(V->Type);
+			r += " base[";
+			r += std::to_string(V->Count) + "];";
+			r += " } ";
+			r += SybName;
+			r += ";\n\n";
 		}
 		break;
 		case IRSymbolType::StaticVarable:
