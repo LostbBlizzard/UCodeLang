@@ -811,7 +811,7 @@ String UAssembly::ToString(const ReflectionTypeInfo& Value, const ClassAssembly&
 	String r;
 	if (Value.Isimmutable())
 	{
-		r = "umut ";
+		r = "imut ";
 	}
 
 	if (Value._MoveData ==ReflectionMoveData::Moved)

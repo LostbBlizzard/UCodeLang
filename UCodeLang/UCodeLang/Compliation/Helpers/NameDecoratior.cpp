@@ -114,7 +114,7 @@ String NameDecoratior::DecoratedNameType(const ReflectionTypeInfo& Type)
 	}
 	if (Type._Isimmutable)
 	{
-		R += "umut";
+		R += "imut";
 	}
 	if (Type._IsDynamic)
 	{

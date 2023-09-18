@@ -64,7 +64,7 @@ inline const char* S_KeyWord_private = "private";
 inline const char* S_KeyWord_enum = "enum";
 inline const char* S_KeyWord_tag = "tag";
 
-inline const char* S_KeyWord_umut = "umut";
+inline const char* S_KeyWord_imut = "imut";
 
 inline const char* S_KeyWord_trait = "trait";
 inline const char* S_KeyWord_dynamic = "dynamic";
@@ -109,6 +109,8 @@ inline const char* S_KeyWord_unsafe = "unsafe";
 inline const char* S_KeyWord_block = "block";
 
 inline const char* S_KeyWord_defer = "defer";
+
+inline const char* S_KeyWord_mut = "mut";
 struct KeyWord
 {
 	const char* keyWord;
@@ -186,7 +188,7 @@ inline KeyWord KeyWords[] =
 
 	KeyWord(S_KeyWord_enum,TokenType::KeyWord_Enum),
 	KeyWord(S_KeyWord_tag,TokenType::KeyWord_Tag),
-	KeyWord(S_KeyWord_umut,TokenType::KeyWord_umut),
+	KeyWord(S_KeyWord_imut,TokenType::KeyWord_imut),
 	KeyWord(S_KeyWord_trait,TokenType::KeyWord_trait),
 	KeyWord(S_KeyWord_dynamic,TokenType::KeyWord_dynamic),
 	KeyWord(S_KeyWord_out,TokenType::KeyWord_out),
@@ -209,8 +211,6 @@ inline KeyWord KeyWords[] =
 
 	KeyWord(S_KeyWord_extern,TokenType::KeyWord_extern),
 
-	KeyWord(S_KeyWord_extern,TokenType::KeyWord_extern),
-
 	KeyWord(S_KeyWord_await,TokenType::KeyWord_await),
 	KeyWord(S_KeyWord_async,TokenType::KeyWord_async),
 	KeyWord(S_KeyWord_yield,TokenType::KeyWord_yeild),
@@ -223,6 +223,8 @@ inline KeyWord KeyWords[] =
 	KeyWord(S_KeyWord_unsafe,TokenType::KeyWord_unsafe),
 	KeyWord(S_KeyWord_block, TokenType::KeyWord_block),
 	KeyWord(S_KeyWord_defer, TokenType::KeyWord_defer),
+
+	KeyWord(S_KeyWord_mut,TokenType::Null),
 };
 constexpr size_t KeyWords_Size = sizeof(KeyWords) / sizeof(KeyWords[0]);
 class KeyWordHelper

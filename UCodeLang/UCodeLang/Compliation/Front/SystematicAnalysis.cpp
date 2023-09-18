@@ -37,11 +37,11 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 		if (Type.IsOutPar == false)
 		{
 			
-			bool WantsUmutCString =false;
+			bool WantsimutCString =false;
 			if (This._LookingForTypes.size())
 			{
 				auto Type = This._LookingForTypes.top();
-				WantsUmutCString = Type._Type == TypesEnum::Char && Type._IsAddressArray && Type._Isimmutable;
+				WantsimutCString = Type._Type == TypesEnum::Char && Type._IsAddressArray && Type._Isimmutable;
 			}
 
 			if (Type.Type._TypeInfo == TypeInfoPrimitive::TypeInfo)
@@ -66,7 +66,7 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 
 
 				_Func.EvalObject = std::move(Ex.EvaluatedObject);
-				_Func.EvalAsCString = WantsUmutCString;
+				_Func.EvalAsCString = WantsimutCString;
 				return _Func;
 			}
 			else if (FuncName == "Name" && Type.Type._TypeInfo == TypeInfoPrimitive::ClassFieldInfo && Type.ExpressionNode)
@@ -85,7 +85,7 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 					This.Eval_Set_ObjectAs(Ex,Value.data(), Value.size());
 
 					_Func.EvalObject = std::move(Ex.EvaluatedObject);
-					_Func.EvalAsCString = WantsUmutCString;
+					_Func.EvalAsCString = WantsimutCString;
 					return _Func;
 				}
 				else
@@ -112,7 +112,7 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 					This.Eval_Set_ObjectAs(Ex, Value.data(), Value.size());
 
 					_Func.EvalObject = std::move(Ex.EvaluatedObject);
-					_Func.EvalAsCString = WantsUmutCString;
+					_Func.EvalAsCString = WantsimutCString;
 					return _Func;
 				}
 				else
@@ -13110,7 +13110,7 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type) const
 
 	if (Type.Isimmutable())
 	{
-		r = "umut ";
+		r = "imut ";
 	}
 
 	if (Type._MoveData == MoveData::Moved)

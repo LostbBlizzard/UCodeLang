@@ -419,14 +419,14 @@ private:
 
 	GotNodeType GetNewExpresionNode(NewExpresionNode& out);
 
-	TryGetNode GetumutVariableDeclare()
+	TryGetNode GetimutVariableDeclare()
 	{
 		Node* V = nullptr;
-		auto r = GetumutVariableDeclare(V);
+		auto r = GetimutVariableDeclare(V);
 		TrippedCheck(r);
 		return { r,V };
 	}
-	GotNodeType GetumutVariableDeclare(Node*& out);
+	GotNodeType GetimutVariableDeclare(Node*& out);
 
 
 	TryGetNode GetForNode()
