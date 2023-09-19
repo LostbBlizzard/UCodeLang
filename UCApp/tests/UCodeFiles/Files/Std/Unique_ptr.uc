@@ -1,4 +1,3 @@
-
 $Unique_ptr<T>:
  private:
   T& _ptr;
@@ -24,4 +23,3 @@ $Unique_ptr<T>:
  int r = V2.Get();
 
  ret r;
- 

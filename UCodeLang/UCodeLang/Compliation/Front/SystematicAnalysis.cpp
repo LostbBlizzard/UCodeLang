@@ -5596,6 +5596,7 @@ void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 	if (_PassType == PassType::FixedTypes)
 	{
 		auto& T = LookForT;
+
 		if (T._Type != TypesEnum::Var)
 		{
 			bool IsPassedYield = IsAfterYield();
@@ -5604,6 +5605,7 @@ void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 			{
 				_LastExpressionType = Type_MakeFutureFromType(_LastExpressionType);
 			}
+			_LastExpressionType.SetAsMoved();
 
 			if (!Type_CanBeImplicitConverted(_LastExpressionType, T,false))
 			{
@@ -5614,6 +5616,8 @@ void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 	else if (_PassType == PassType::BuidCode)
 	{
 		auto& T = Type_Get_LookingForType();
+		_LastExpressionType.SetAsMoved();
+
 		IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType, T);
 		if (node._Expression._Value)
 		{
@@ -6542,7 +6546,8 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 
 
 		_LookingForTypes.push(AssignType.Op1);
-		OnExpressionTypeNode(node._ToAssign._Value.get(), GetValueMode::Write);
+		OnExpressionTypeNode(node._ToAssign._Value.get(),
+			node._ReassignAddress ? GetValueMode::WritePointerReassment : GetValueMode::Write);
 		_LookingForTypes.pop();
 
 		auto AssignIR = _IR_LastExpressionField;
@@ -9766,8 +9771,16 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 				}
 				
 
-				if (DoStore) {
-					_IR_LastStoreField = IR_Build_Member_Store(V, V.Type);
+				if (DoStore)
+				{
+					if (_GetExpressionMode.top() == GetValueMode::WritePointerReassment) 
+					{
+						_IR_LastStoreField = IR_Build_Member_Store(V);
+					}
+					else 
+					{
+						_IR_LastStoreField = IR_Build_Member_Store(V, V.Type);
+					}
 				}
 			}
 
@@ -14103,7 +14116,8 @@ bool SystematicAnalysis::Type_CanBeImplicitConverted(const TypeSymbol& TypeToChe
 		bool V1 = Type_IsAddessAndLValuesRulesfollowed(TypeToCheck, Type, ReassignMode);
 
 		if (TypeToCheck._ValueInfo != TypeValueInfo::IsValue
-			&& !TypeToCheck.IsMovedType() && (!Type_IsCopyable(TypeToCheck)))
+			&& !TypeToCheck.IsMovedType() && (!Type_IsCopyable(TypeToCheck))
+			&& !Type.IsAddress())
 		{
 			return false;
 		}
@@ -19399,10 +19413,10 @@ void SystematicAnalysis::LogError_CantCastImplicitTypes(const NeverNullPtr<Token
 			, "The expression is not an Location in memory'");
 	}
 	else if (
-		(UintptrType._ValueInfo != TypeValueInfo::IsValue
-			&& !UintptrType.IsMovedType()
+		Ex1Type._ValueInfo != TypeValueInfo::IsValue
+		&& !Ex1Type.IsMovedType() && (!Type_IsCopyable(Ex1Type))
+		&& !UintptrType.IsAddress()
 		)
-		&& (!Type_IsCopyable(UintptrType)))
 	{
 		LogError_TypeIsNotCopyable(Token, UintptrType);
 	}
