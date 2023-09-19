@@ -467,6 +467,8 @@ private:
 		Read,
 		Write,
 		ReadAndWrite,
+	
+		WritePointerReassment,
 	};
 
 	struct Get_FuncInfo
@@ -877,7 +879,8 @@ private:
 	void Lib_BuildLib(const UClib& lib, const Path& LibName);
 	static bool IsWrite(GetValueMode Value)
 	{
-		return Value == GetValueMode::Write || Value == GetValueMode::ReadAndWrite;
+		return Value == GetValueMode::Write 
+			|| Value == GetValueMode::WritePointerReassment || Value == GetValueMode::ReadAndWrite;
 	}
 	static bool IsRead(GetValueMode Value)
 	{
