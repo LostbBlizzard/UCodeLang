@@ -134,19 +134,21 @@ void AppObject::Init()
 
         _Editor.SetText(
             R"(
-$MoveOnly<T>:
- T Base;
- |new[this&]:
-  Base = [];
- |new[this&,T base]:
-  Base =base;
+int Value1 = 0;
+int Value2 = 0;
 
- |new[this&,imut this& other] = invalid;
+$MoveType:
+ |new[this&]:
+  Value1++;
+ |new[this&,moved this& other]:
+  Value2++;
 
 |main[]:
- MoveOnly<int> Val = [];
- //MoveOnly<int> Val2 = move Val;//ok
- MoveOnly<int> Val3 = Val;//bad
+ MoveType CVal = [];//Contruct
+ MoveType CVal2 = move CVal;//Move
+
+ ret Value1 == Value2;
+
 
 
             )");
@@ -805,7 +807,7 @@ void AppObject::DrawTestMenu()
             }
             {
                 int v = (int)TestWindowData.MaxTestCount;
-                if (ImGui::SliderInt("MaxShowTests", &v, TestWindowData.MinTestIndex + 1, ULangTest::Tests.size() - 1))
+                if (ImGui::SliderInt("MaxShowTests", &v, TestWindowData.MinTestIndex + 1, ULangTest::Tests.size()))
                 {
                     TestWindowData.MaxTestCount = v;
                 }

@@ -2183,6 +2183,33 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			}
 		}
 
+		if (FuncType == FuncInfo::FuncType::New)
+		{
+			if (Info->Pars.size() == 2) 
+			{
+				auto& Classinfo = _ClassStack.top().Info;
+				auto& OtherPar = Info->Pars[1];
+				if (OtherPar.Type.IsAddress() && OtherPar.IsOutPar == false)
+				{
+					if (OtherPar.Type.IsMovedType())
+					{
+						//Move Contructer
+						Classinfo->_ClassHasMoveConstructor = sybId;
+					}
+					else
+					{
+						if (!OtherPar.Type.Isimmutable())
+						{
+							auto ParToken = node._Signature._Parameters._Parameters[1]._Name.token;
+							LogError(ErrorCodes::InValidType,
+								(String)"Copy Constructor '" + (String)ParToken->Value._String + (String)"' should be imut.",NeverNullptr(ParToken));
+						}
+						//Copy Contructer
+						Classinfo->_ClassHasCopyConstructor = sybId;
+					}
+				}
+			}
+		}
 	}
 
 
@@ -9519,7 +9546,7 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(const AnonymousObjectConst
 
 			IR_Build_FuncCall(Type, Func, ValuePars);
 
-
+			Type_SetFuncRetAsLastEx(Func);
 		}
 	}
 	else
@@ -9589,8 +9616,6 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(const AnonymousObjectConst
 			return;
 		}
 	}
-
-	_LastExpressionType = Type;
 }
 
 void SystematicAnalysis::IR_Build_FuncCall(const TypeSymbol& Type, const Get_FuncInfo& Func, const ValueParametersNode& ValuePars)
@@ -10462,7 +10487,7 @@ void SystematicAnalysis::Type_SetFuncRetAsLastEx(const Get_FuncInfo& Info)
 			{
 				_LastExpressionType = (*Info.Func->GetObjectForCall());
 				_LastExpressionType._IsAddress = false;
-				_LastExpressionType.SetAsMoved();
+				_LastExpressionType._ValueInfo = TypeValueInfo::IsValue;
 			}
 			else
 			{
@@ -13120,7 +13145,7 @@ bool SystematicAnalysis::Type_IsCopyable(const TypeSymbol& Type)
 		{
 			auto v = Syb.Get_Info<ClassInfo>();
 			return v->_ClassAutoGenerateCopyConstructor
-				|| v->_ClassHasMoveConstructor;
+				|| v->_ClassHasCopyConstructor.has_value();
 		}
 		break;
 
@@ -14077,7 +14102,8 @@ bool SystematicAnalysis::Type_CanBeImplicitConverted(const TypeSymbol& TypeToChe
 
 		bool V1 = Type_IsAddessAndLValuesRulesfollowed(TypeToCheck, Type, ReassignMode);
 
-		if (!TypeToCheck.IsMovedType() && (!Type_IsCopyable(TypeToCheck)))
+		if (TypeToCheck._ValueInfo != TypeValueInfo::IsValue
+			&& !TypeToCheck.IsMovedType() && (!Type_IsCopyable(TypeToCheck)))
 		{
 			return false;
 		}
@@ -14205,7 +14231,85 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 
 	if (Type_AreTheSame(ExType, ToType))
 	{
+		bool ShouldCallCopyFunc = ExType._ValueInfo != TypeValueInfo::IsValue;
+		if (ShouldCallCopyFunc)
+		{
+			auto GetSymOp = Symbol_GetSymbol(ExType);
+			if (GetSymOp.has_value())
+			{
+				auto GetSym = GetSymOp.value();
+				if (GetSym->Type == SymbolType::Type_class)
+				{
+					auto info = GetSym->Get_Info<ClassInfo>();
+
+					if (info->_ClassHasCopyConstructor)
+					{
+						auto CopySybID = info->_ClassHasCopyConstructor.value();
+						auto Syb = Symbol_GetSymbol(CopySybID);
+						auto irfuncid = IR_GetIRID(Syb->Get_Info<FuncInfo>());
+
+
+						auto tep = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(ExType));
+
+						_IR_LookingAtIRBlock->NewPushParameter(_IR_LookingAtIRBlock->NewLoadPtr(tep));
+						if (ExType.IsAddress())
+						{
+							_IR_LookingAtIRBlock->NewPushParameter(Ex);
+						}
+						else
+						{
+							_IR_LookingAtIRBlock->NewPushParameter(_IR_LookingAtIRBlock->NewLoadPtr(Ex));
+						}
+						_IR_LookingAtIRBlock->NewCall(irfuncid);
+						_IR_LastExpressionField = tep;
+					}
+				}
+			}
+		}
+
 		return true;
+	}
+	else if (Type_AreTheSameWithOutMoveAndimmutable(ExType,ToType))
+	{
+		//if (ExType.IsMovedType() && ExType.IsAddress() 
+		//	&& ToType.IsMovedType() == false)
+
+		bool ShouldCallMoveFunc = ExType._ValueInfo != TypeValueInfo::IsValue;
+		if (ShouldCallMoveFunc)
+		{
+			auto GetSymOp = Symbol_GetSymbol(ExType);
+			if (GetSymOp.has_value())
+			{
+				auto GetSym = GetSymOp.value();
+				if (GetSym->Type == SymbolType::Type_class)
+				{
+					auto info = GetSym->Get_Info<ClassInfo>();
+
+					if (info->_ClassHasMoveConstructor) 
+					{
+						auto MoveSybID = info->_ClassHasMoveConstructor.value();
+						auto Syb = Symbol_GetSymbol(MoveSybID);
+						auto irfuncid = IR_GetIRID(Syb->Get_Info<FuncInfo>());
+
+						
+						auto tep = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(ExType));
+
+						_IR_LookingAtIRBlock->NewPushParameter(_IR_LookingAtIRBlock->NewLoadPtr(tep));
+						if (ExType.IsAddress())
+						{
+							_IR_LookingAtIRBlock->NewPushParameter(Ex);
+						}
+						else 
+						{
+							_IR_LookingAtIRBlock->NewPushParameter(_IR_LookingAtIRBlock->NewLoadPtr(Ex));
+						}
+						_IR_LookingAtIRBlock->NewCall(irfuncid);
+						_IR_LastExpressionField = tep;
+					}
+				}
+			}
+		}
+
 	}
 
 	if (Type_CanDoTypeToTrait(ExType,ToType))
@@ -19294,7 +19398,11 @@ void SystematicAnalysis::LogError_CantCastImplicitTypes(const NeverNullPtr<Token
 		LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
 			, "The expression is not an Location in memory'");
 	}
-	else if (!UintptrType.IsMovedType() && (!Type_IsCopyable(UintptrType)))
+	else if (
+		(UintptrType._ValueInfo != TypeValueInfo::IsValue
+			&& !UintptrType.IsMovedType()
+		)
+		&& (!Type_IsCopyable(UintptrType)))
 	{
 		LogError_TypeIsNotCopyable(Token, UintptrType);
 	}

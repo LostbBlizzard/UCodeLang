@@ -96,7 +96,7 @@ UCodeTestStart
 		}
 		return r;
 	}
-	static const Array<TestInfo, 83> Tests
+	static const Array<TestInfo, 85> Tests
 	{
 
 		TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation),
@@ -211,6 +211,8 @@ UCodeTestStart
 		TestInfo("UsescopeAndnotdot_2", "Objects/UsescopeAndnotdot2.uc", "main", SuccessCondition::CompilationFail),
 		TestInfo("OptionalOp", "Syntax/OptionalOp.uc", "main", SuccessCondition::RunTimeValue, (int)5),
 		TestInfo("ResultOp", "Syntax/ResultOp.uc", "main", SuccessCondition::RunTimeValue, (int)5),
+		TestInfo("MoveContruct", "Objects/MoveContruct.uc", "main", SuccessCondition::RunTimeValue, (bool)true),
+		TestInfo("CopyContruct", "Objects/CopyContruct.uc", "main", SuccessCondition::RunTimeValue, (bool)true),
 	};
 
 

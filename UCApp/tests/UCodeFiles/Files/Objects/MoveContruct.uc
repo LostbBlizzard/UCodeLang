@@ -1,4 +1,5 @@
 
+
 int Value1 = 0;
 int Value2 = 0;
 
@@ -13,7 +14,3 @@ $MoveType:
  MoveType CVal2 = move CVal;//Move
 
  ret Value1 == Value2;
-
-
-
-            
