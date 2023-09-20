@@ -103,26 +103,28 @@ void AppObject::Init()
             });
 
 
-        TextEditor::LanguageDefinition Def;
-        Def.mName = "UCodeLang";
-
-        auto keywords = SyntaxHelper::GetKeyWords();
-
-        for (auto& Item : keywords)
         {
-            Def.mKeywords.insert(Item);
+            TextEditor::LanguageDefinition Def = Def.CPlusPlus();
+            Def.mName = "UCodeLang";
+            auto keywords = SyntaxHelper::GetKeyWords();
+
+            Def.mKeywords.clear();
+            for (auto& Item : keywords)
+            {
+                Def.mKeywords.insert(Item);
+            }
+            /*
+            Def.mTokenize = [](const char* in_begin, const char* in_end, const char*& out_begin, const char*& out_end, TextEditor::PaletteIndex& paletteIndex)
+            {
+
+
+                return false;
+            };
+            */
+
+            _Editor.SetShowWhitespaces(false);
+            _Editor.SetLanguageDefinition(Def);
         }
-        /*
-        Def.mTokenize = [](const char* in_begin, const char* in_end, const char*& out_begin, const char*& out_end, TextEditor::PaletteIndex& paletteIndex)
-        {
-
-
-            return false;
-        };
-        */
-
-        _Editor.SetShowWhitespaces(false);
-        //_Editor.SetLanguageDefinition(Def);
         /*
         r += ToString(I->ObjectType);
 		r += " " + State.GetName(I);
@@ -131,18 +133,22 @@ void AppObject::Init()
         */
       
         UCodeIDEStyle(nullptr);
-   
-        _Editor.SetText(
-            R"(
-$Unique_ptr<T>:
+   /*
+   $Unique_ptr<T>:
  private:
   T& _ptr;
  public:
   |new[this&] -> void:
    _ptr =: unsafe bitcast<T&>(0);
+  
   |new[this&,moved this& Value] -> void:
    _ptr =: Value._ptr;
    Value._ptr =: unsafe bitcast<T&>(0);
+  
+  |drop[this&]:
+   uintptr ptr =unsafe bitcast<uintptr>(_ptr);
+   if ptr != uintptr(0):
+    unsafe drop(_ptr);
 
   |Get[this&] -> T&:ret _ptr;
   |Make[] -> this:
@@ -158,8 +164,17 @@ $Unique_ptr<T>:
  int^ V2 = move V;
  int r = V2.Get();
 
- ret r;
+ ret r;*/
+        _Editor.SetText(
+            R"(
+|main_if[] -> int:
+ if 1 == 1:
+  ret 10;
+ else:
+  ret 0;
  )");
+
+      
 
 
 

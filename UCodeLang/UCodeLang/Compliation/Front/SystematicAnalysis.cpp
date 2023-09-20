@@ -2468,8 +2468,11 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 	if (buidCode && !ignoreBody)
 	{
+		bool hasins = _IR_LookingAtIRBlock->Instructions.size();
+		auto lastbefordrop = hasins ? _IR_LookingAtIRBlock->Instructions.back().get() : nullptr;
+	
 		Pop_StackFrame();
-
+		size_t droploc = hasins ? _IR_LookingAtIRBlock->Instructions.size()-2 : 0;
 
 		if (FuncType == FuncInfo::FuncType::Drop)
 		{
@@ -2482,15 +2485,14 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 				_IR_LookingAtIRBlock->NewPushParameter(_IR_LookingAtIRBlock->NewLoad(&_IR_LookingAtIRFunc->Pars.front()));
 				_IR_LookingAtIRBlock->NewCall(_IR_Builder.ToID(InitFunc));
-				_IR_LookingAtIRBlock->NewRet();
 			}
 			
 		}
 		
 		for (auto& Item : _IR_Rets)
 		{
-			_IR_LookingAtIRBlock->UpdateJump(Item.JumpIns, _IR_LookingAtIRBlock->Instructions.size()-2);
-			if (Item.JumpIns == _IR_LookingAtIRBlock->Instructions.back().get())
+			_IR_LookingAtIRBlock->UpdateJump(Item.JumpIns, droploc);
+			if (Item.JumpIns == lastbefordrop)
 			{
 				Item.JumpIns->SetAsNone();
 			}
@@ -5580,7 +5582,12 @@ void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 		_FuncStack.back().IsOnRetStatemnt = true;
 		//LookForT.SetAsRawValue();
 
-		_LookingForTypes.push(LookForT);
+		auto lookfortypecopy = LookForT;
+		if (HasMoveContructerHasIRFunc(lookfortypecopy)) {
+			lookfortypecopy.SetAsMoved();
+		}
+		_LookingForTypes.push(lookfortypecopy);
+
 		OnExpressionTypeNode(node._Expression._Value.get(), GetValueMode::Read);
 
 		_LookingForTypes.pop();
@@ -5616,7 +5623,10 @@ void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 	else if (_PassType == PassType::BuidCode)
 	{
 		auto& T = Type_Get_LookingForType();
-		_LastExpressionType.SetAsMoved();
+
+		if (HasMoveContructerHasIRFunc(T)) {
+			_LastExpressionType.SetAsMoved();
+		}
 
 		IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType, T);
 		if (node._Expression._Value)
@@ -5627,10 +5637,11 @@ void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 			{
 				_IR_LookingAtIRBlock->NewRetValue(_IR_LastExpressionField);
 			}
-			RetData v;
-			v.JumpIns = _IR_LookingAtIRBlock->NewJump();
-			_IR_Rets.push_back(std::move(v));
+
 		}
+		RetData v;
+		v.JumpIns = _IR_LookingAtIRBlock->NewJump();
+		_IR_Rets.push_back(std::move(v));
 	}
 
 }
@@ -8579,8 +8590,14 @@ void SystematicAnalysis::OnCompareTypesNode(const CMPTypesNode& node)
 void SystematicAnalysis::OnMovedNode(const MoveNode* nod)
 {
 
+	auto newtype = Type_Get_LookingForType();
+	newtype.SetAsMoved();
+	_LookingForTypes.push(newtype);
+
 	OnExpressionTypeNode(nod->_expression._Value.get(), GetValueMode::Read);
 	
+	_LookingForTypes.pop();
+
 	auto ExType = _LastExpressionType;
 	ExType.SetAsMoved();
 	_LastExpressionType = ExType;
@@ -9751,8 +9768,10 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 
 
 			bool LookIsAddress = LookForT.IsAddress() || LookForT.IsAddressArray();
-			bool AmIsAddress = V.Type.IsAddress();
+			bool LookMove = LookForT.IsMovedType();
 
+			bool AmIsAddress = V.Type.IsAddress();
+			
 			bool AsPointer = LookForT.IsAddress();
 
 			//
@@ -9786,6 +9805,11 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 
 			if (IsRead(_GetExpressionMode.top())) 
 			{
+				if (LookMove && HasMoveContructerHasIRFunc(V.Type))
+				{
+					_IR_LastExpressionField = IR_Build_Member_AsPointer(V);
+				}
+				else
 				if (LookIsAddress == true && AmIsAddress == true)
 				{
 					_IR_LastExpressionField = IR_Build_Member_GetValue(V);
@@ -10484,6 +10508,17 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 	{
 		auto& SybID = _FuncToSyboID.at(Symbol_GetSymbolID(node));
 		IR_Build_FuncCall(SybID, node._FuncName, node.Parameters);
+
+		
+		auto lasttype = _LastExpressionType;
+		auto ir = _IR_LastExpressionField;
+		auto lookfortype = _LookingForTypes.top();
+		if (!lookfortype.IsAddress() && lasttype.IsAddress())
+		{
+			auto typetoget = lasttype;
+			typetoget._IsAddress = false;
+			_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad_Dereferenc(ir,IR_ConvertToIRType(typetoget));
+		}
 	}
 }
 void SystematicAnalysis::Type_SetFuncRetAsLastEx(const Get_FuncInfo& Info)
@@ -14240,6 +14275,24 @@ Optional < FuncInfo*> SystematicAnalysis::Symbol_GetAnExplicitlyConvertedFunc(co
 	}
 	return {nullptr};
 }
+bool SystematicAnalysis::HasMoveContructerHasIRFunc(const TypeSymbol& ExType)
+{
+	auto GetSymOp = Symbol_GetSymbol(ExType);
+	if (GetSymOp.has_value())
+	{
+		auto GetSym = GetSymOp.value();
+		if (GetSym->Type == SymbolType::Type_class)
+		{
+			auto info = GetSym->Get_Info<ClassInfo>();
+
+			if (info->_ClassHasMoveConstructor)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
 bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const TypeSymbol ExType, const TypeSymbol& ToType)
 {
 
@@ -14289,7 +14342,7 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 		//	&& ToType.IsMovedType() == false)
 
 		bool ShouldCallMoveFunc = ExType._ValueInfo != TypeValueInfo::IsValue;
-		if (ShouldCallMoveFunc)
+		if (ShouldCallMoveFunc && HasMoveContructerHasIRFunc(ExType))
 		{
 			auto GetSymOp = Symbol_GetSymbol(ExType);
 			if (GetSymOp.has_value())
@@ -14299,24 +14352,19 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 				{
 					auto info = GetSym->Get_Info<ClassInfo>();
 
-					if (info->_ClassHasMoveConstructor) 
+					if (info->_ClassHasMoveConstructor)
 					{
 						auto MoveSybID = info->_ClassHasMoveConstructor.value();
 						auto Syb = Symbol_GetSymbol(MoveSybID);
 						auto irfuncid = IR_GetIRID(Syb->Get_Info<FuncInfo>());
 
-						
+
 						auto tep = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(ExType));
 
 						_IR_LookingAtIRBlock->NewPushParameter(_IR_LookingAtIRBlock->NewLoadPtr(tep));
-						if (ExType.IsAddress())
-						{
-							_IR_LookingAtIRBlock->NewPushParameter(Ex);
-						}
-						else 
-						{
-							_IR_LookingAtIRBlock->NewPushParameter(_IR_LookingAtIRBlock->NewLoadPtr(Ex));
-						}
+
+						_IR_LookingAtIRBlock->NewPushParameter(Ex);
+
 						_IR_LookingAtIRBlock->NewCall(irfuncid);
 						_IR_LastExpressionField = tep;
 					}
@@ -15743,7 +15791,7 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 	}
 	else
 	{
-		_LastExpressionType = Func.Func->Ret;
+		Type_SetFuncRetAsLastEx(Func);
 	}
 }
 void SystematicAnalysis::IR_Build_DestructorCall(const ObjectToDrop& Object)
@@ -16027,7 +16075,10 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 			if (Pars._Nodes.size() == 1)
 			{
 				auto FuncType = _LastExpressionType;
+
+				_LookingForTypes.push(FuncType);
 				OnExpressionTypeNode(Pars._Nodes[0].get(), GetValueMode::Read);
+				_LookingForTypes.pop();
 
 				if (!Type_CanBeImplicitConverted(_LastExpressionType, FuncType, true))
 				{
