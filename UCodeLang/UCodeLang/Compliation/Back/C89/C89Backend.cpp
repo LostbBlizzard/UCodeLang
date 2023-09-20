@@ -552,6 +552,7 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 
 
 				OutType = &I->ObjectType;
+				IRType tep;
 				switch (I->Type)
 				{
 				case IRInstructionType::LoadReturn:
@@ -578,49 +579,97 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					r += " = " + ToString(State, *I, I->Input());
 					break;
 				case IRInstructionType::Add:
+					tep = *OutType;
+					OutType = &tep;
+					if (tep._Type == IRTypes::pointer)
+					{
+						tep = Get_Settings().PtrSize == IntSizes::Int64 ? IRTypes::i64 : IRTypes::i32;
+					}
+
 					r += ToStringBinary(State, I.get(), "+");
 					break;
 				case IRInstructionType::Sub:
+					tep = *OutType;
+					OutType = &tep;
+					if (tep._Type == IRTypes::pointer)
+					{
+						tep = Get_Settings().PtrSize == IntSizes::Int64 ? IRTypes::i64 : IRTypes::i32;
+					}
+
 					r += ToStringBinary(State, I.get(), "-");
 					break;
 				case IRInstructionType::UMult:
 				case IRInstructionType::SMult:
+					tep = *OutType;
+					OutType = &tep;
+					if (tep._Type == IRTypes::pointer)
+					{
+						tep = Get_Settings().PtrSize == IntSizes::Int64 ? IRTypes::i64 : IRTypes::i32;
+					}
+
 					r += ToStringBinary(State, I.get(), "*");
 					break;
 				case IRInstructionType::SDiv:
 				case IRInstructionType::UDiv:
+					tep = *OutType;
+					OutType = &tep;
+					if (tep._Type == IRTypes::pointer)
+					{
+						tep = Get_Settings().PtrSize == IntSizes::Int64 ? IRTypes::i64 : IRTypes::i32;
+					}
+
 					r += ToStringBinary(State, I.get(), "/");
 					break;
 				case IRInstructionType::EqualTo:
+					OutType = &tep;
+					tep = _Input->GetType(I.get(), I.get()->Target());
 					r += ToStringBinary(State, I.get(), "==");
 					break;
 				case IRInstructionType::NotEqualTo:
+					OutType = &tep;
+					tep = _Input->GetType(I.get(), I.get()->Target());
 					r += ToStringBinary(State, I.get(), "!=");
 					break;
 
 				case IRInstructionType::UGreaterThan:
+					OutType = &tep;
+					tep = _Input->GetType(I.get(), I.get()->Target());
 					r += ToStringBinary(State, I.get(), ">");
 					break;
 				case IRInstructionType::ULessThan:
+					OutType = &tep;
+					tep = _Input->GetType(I.get(), I.get()->Target());
 					r += ToStringBinary(State, I.get(), "<");
 					break;
 				case IRInstructionType::UGreaterThanOrEqual:
+					OutType = &tep;
+					tep = _Input->GetType(I.get(), I.get()->Target());
 					r += ToStringBinary(State, I.get(), ">=");
 					break;
 				case IRInstructionType::ULessThanOrEqual:
+					OutType = &tep;
+					tep = _Input->GetType(I.get(), I.get()->Target());
 					r += ToStringBinary(State, I.get(), "<=");
 					break;
 
 				case IRInstructionType::SGreaterThan:
+					OutType = &tep;
+					tep = _Input->GetType(I.get(), I.get()->Target());
 					r += ToStringBinary(State, I.get(), ">");
 					break;
 				case IRInstructionType::SLessThan:
+					OutType = &tep;
+					tep = _Input->GetType(I.get(), I.get()->Target());
 					r += ToStringBinary(State, I.get(), "<");
 					break;
 				case IRInstructionType::SGreaterThanOrEqual:
+					OutType = &tep;
+					tep = _Input->GetType(I.get(), I.get()->Target());
 					r += ToStringBinary(State, I.get(), ">=");
 					break;
 				case IRInstructionType::SLessThanOrEqual:
+					OutType = &tep;
+					tep = _Input->GetType(I.get(), I.get()->Target());
 					r += ToStringBinary(State, I.get(), "<=");
 					break;
 
@@ -671,13 +720,15 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 				}break;
 				case IRInstructionType::CallFuncPtr:
 				{
+					OutType = &tep;
+					tep = _Input->GetType(I.get(), I.get()->Target());
 					r += ToString(I->ObjectType);
 					r += " " + State.GetName(I.get());
 					r += " = ";
 					r += ToString(State, *I, I->Target()) + "(";
 					for (auto& Item : State.TepPushedParameters)
 					{
-						r += ToString(State, *Item, Item->Target());
+						r += State.PointerToName.at(Item->Target().Pointer);
 						if (&Item != &State.TepPushedParameters.back())
 						{
 							r += ",";
@@ -705,11 +756,15 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					goto GoOver;
 					break;
 				case IRInstructionType::MallocCall:
+					OutType = &tep;
+					tep = Get_Settings().PtrSize ==IntSizes::Int64 ? IRTypes::i64 : IRTypes::i32;
 					r += ToString(I->ObjectType);
 					r += " " + State.GetName(I.get());
 					r += " = malloc(" + ToString(State, *I, I->Target()) + ")";
 					break;
 				case IRInstructionType::FreeCall:
+					OutType = &tep;
+					tep = _Input->GetType(I.get(), I.get()->Target());
 					r += "free(" + ToString(State, *I, I->Target()) + ")";
 					break;
 				default:
@@ -745,59 +800,104 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 
 String C89Backend::ToString(ToStringState& State, IRInstruction& Ins, IROperator& Value)
 {
+	String r;
+
+	if (Ins.Type == IRInstructionType::Member_Access || Ins.Type == IRInstructionType::Member_Access_Dereference)
+	{
+		int a = 0;
+	}
+	
+	if (Ins.Type != IRInstructionType::Member_Access
+		&& Ins.Type != IRInstructionType::Member_Access_Dereference) {
+
+		IRType ThisVal = _Input->GetType(&Ins, Value);
+
+		if (!ThisVal.IsSame(*OutType))
+		{
+			bool isok = false;
+			if (Ins.Type == IRInstructionType::Reassign
+				|| Ins.Type == IRInstructionType::Reassign_dereference)
+			{
+				isok = &Ins.Target() != &Value;
+			}
+			else
+			{
+				isok = true;
+			}
+
+			if (isok)
+			{
+				r += "(";
+				r += ToString(*OutType);
+				r += ")";
+			}
+		}
+	}
 	switch (Value.Type)
 	{
 	case IROperatorType::Value:
 	{
 		switch (Ins.ObjectType._Type)
 		{
-		case IRTypes::i8:return std::to_string(Value.Value.AsInt8);
-		case IRTypes::i16:return std::to_string(Value.Value.AsInt16);
-		case IRTypes::i32:return std::to_string(Value.Value.AsInt32);
-		case IRTypes::i64:return std::to_string(Value.Value.AsInt64);
-		case IRTypes::f32:return std::to_string(Value.Value.Asfloat32);
-		case IRTypes::f64:return std::to_string(Value.Value.Asfloat64);
+		case IRTypes::i8:r += std::to_string(Value.Value.AsInt8); break;
+		case IRTypes::i16:r += std::to_string(Value.Value.AsInt16); break;
+		case IRTypes::i32:r += std::to_string(Value.Value.AsInt32); break;
+		case IRTypes::i64:r += std::to_string(Value.Value.AsInt64); break;
+		case IRTypes::f32:r += std::to_string(Value.Value.Asfloat32); break;
+		case IRTypes::f64:r += std::to_string(Value.Value.Asfloat64); break;
 		default:UCodeLangUnreachable();
 		}
 	}
+	break;
 	case IROperatorType::IRidentifier:
 	{
-		return FromIDToCindentifier(Value.identifer);
+		r += FromIDToCindentifier(Value.identifer);
 	}
+	break;
 	case IROperatorType::Get_PointerOf_IRidentifier:
 	{
-		return "&" + FromIDToCindentifier(Value.identifer);
+		r += "&" + FromIDToCindentifier(Value.identifer);
 	}
+	break;
 	case IROperatorType::IRInstruction:
 	{
-		return  State.PointerToName.at(Value.Pointer);
+		r += State.PointerToName.at(Value.Pointer);
 	}
+	break;
 	case IROperatorType::Get_PointerOf_IRInstruction:
 	{
-		return "&" + State.PointerToName.at(Value.Pointer);
+		r += "&" + State.PointerToName.at(Value.Pointer);
 	}
+	break;
 	case IROperatorType::DereferenceOf_IRInstruction:
 	{
-		return "*(" + ToString(*OutType) + "*)" + State.PointerToName.at(Value.Pointer);
+		r += "*(" + ToString(*OutType) + "*)" + State.PointerToName.at(Value.Pointer);
 	}
+	break;
 	case IROperatorType::IRParameter:
 	{
-		return FromIDToCindentifier(Value.Parameter->identifier);
+		r += FromIDToCindentifier(Value.Parameter->identifier);
 	}
+	break;
 	case IROperatorType::DereferenceOf_IRParameter:
 	{
-		return  "*(" + ToString(Value.Parameter->type) + "*)" + FromIDToCindentifier(Value.Parameter->identifier);
+		r +=  "*(" + ToString(Value.Parameter->type) + "*)" + FromIDToCindentifier(Value.Parameter->identifier);
 	}
+	break;
 	case IROperatorType::Get_PointerOf_IRParameter:
 	{
-		return "&" + FromIDToCindentifier(Value.Parameter->identifier);
+		r += "&" + FromIDToCindentifier(Value.Parameter->identifier);
 	}
+	break;
 	case IROperatorType::Get_Func_Pointer:
 	{
-		return "&" + FromIDToCindentifier(Value.identifer);
+		r += "&" + FromIDToCindentifier(Value.identifer);
 	}
+	break;
 	default:UCodeLangUnreachable();
 	}
+
+	return r;
 }
 
 String C89Backend::ToStringBinary(ToStringState& State, IRInstruction* Ins, const char* V)

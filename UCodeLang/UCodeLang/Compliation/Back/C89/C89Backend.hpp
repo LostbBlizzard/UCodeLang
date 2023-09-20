@@ -50,5 +50,6 @@ private:
 	String ToStringBinary(ToStringState& State, IRInstruction* Ins, const char* V);
 	
 	String FromIDToCindentifier(IRidentifierID Value);
+
 };
 UCodeLangEnd

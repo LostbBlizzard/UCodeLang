@@ -23,7 +23,8 @@ Vector<String> SyntaxHelper::GetTypeKeywords()
 }
 Vector<String> SyntaxHelper::GetOtherKeywords()
 {
-	Vector<String> r = { "if","else","for","while","break","continue","ret" };
+	Vector<String> r = { "if","else","for","while","break",
+		"continue","ret","public","private","unsafe","new","unq","move","this"};
 	return r;
 }
 Vector<String> SyntaxHelper::GetKeyWords()
