@@ -178,6 +178,11 @@ private:
 	};
 	void OnErrorListUpdated();
 
+	Path Outfilepath()
+	{
+		return "out.data";
+	}
+
 	void CompileText(const UCodeAnalyzer::String& String);
 
 	void OnDoneCompileing(UCodeLang::Compiler::CompilerRet& Val, const UCodeAnalyzer::Path& tepoutpath);

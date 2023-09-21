@@ -3824,7 +3824,7 @@ GotNodeType Parser::GetBitCastExpression(BitCastExpression& out)
 
 	TokenTypeCheck(TryGetToken(), TokenType::lessthan); NextToken();
 
-	GetType(out._Type);
+	GetType(out._Type,false, false);
 
 	TokenTypeCheck(TryGetToken(), TokenType::greaterthan); NextToken();
 

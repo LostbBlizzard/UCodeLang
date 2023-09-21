@@ -167,11 +167,79 @@ void AppObject::Init()
  ret r;*/
         _Editor.SetText(
             R"(
-|main_if[] -> int:
- if 1 == 1:
-  ret 10;
- else:
-  ret 0;
+$StringSpan_t<T>:
+ T[&] _data;
+ uintptr _size;
+ 
+ |new[this&]:
+  _data = unsafe bitcast<T[&]>(0);
+  _size = 0;
+ 
+ unsafe |new[this&,T[&] Data,uintptr Size]:
+  _data = Data;
+  _size = Size;
+
+
+$String_t<T>:
+ T[&] _data;
+ uintptr _size;
+ uintptr _capacity;
+
+ $StringSpan = StringSpan_t<T>;
+ 
+ |new[this&]:
+  _data = unsafe bitcast<T[&]>(0);
+  _size = 0;
+  _capacity = 0;
+ |new[this&,imut StringSpan string]:
+  _data = unsafe new T[string._size];
+  _size = string._size;
+  _capacity = string._size;
+
+  for [uintptr i = uintptr(0);i < string._size;i++]:
+   //_data[i] = string._data[i];
+
+ |drop[this&]:
+  uintptr ptr =unsafe bitcast<uintptr>(_data);
+  if ptr == uintptr(0):
+   unsafe drop(_data);
+
+ |realloc[this&,uintptr size]:
+  
+  if size > _capacity:
+   var oldsize = _size;
+   var& old = _data;
+
+   _capacity = size;
+   _data = unsafe new T[size];
+   //for [uintptr i = uintptr(0);i < oldsize;i++]:
+   //_data[i] = old[i];
+
+ |+=[this&,imut StringSpan string]:
+  var newsize = _size + string._size;
+  realloc(newsize);
+
+  var oldsize = _size;
+  _size = newsize; 
+  
+  for [uintptr i = uintptr(0);i < newsize;i++]:
+   //_data[i + oldsize] = string._data[i];
+
+
+$StringSpan = StringSpan_t<char>;
+$String = String_t<char>;
+
+|main[]:
+ imut StringSpan Str = "Hello";//5
+ imut StringSpan Str2 = " World";//6
+  
+ String Txt = Str;
+ Txt += Str2;
+ ret Txt._size;
+
+ //bool sizegood = Txt._size == uintptr(11);
+
+ //ret sizegood && Txt._data[Txt._size - 1] == 'd';
  )");
 
       
@@ -2129,146 +2197,208 @@ void AppObject::ShowInFiles(const Path& path)
 
 void AppObject::ShowUCodeVMWindow()
 {
-    static const Vector<ImguiHelper::EnumValue<UCodeVMType>> List =
+    if (OutputWindow.Type == BackEndType::C89)
     {
-        { "Interpreter",UCodeVMType::Interpreter },
-        { "Jit_Interpreter",UCodeVMType::Jit_Interpreter },
-        { "Native_Interpreter",UCodeVMType::Native_Interpreter },
+        static UCodeLang::Optional<int> Value;
+        if (ImGui::Button("Run Main"))
+        {
+
+
+            Path dllfile = "Out.lib";
+            auto v = Outfilepath();
+            auto cfilepath = v.native() + Path(".c").native();
+            {
+                std::ofstream f(cfilepath);
+                f << UCodeLang::Compiler::GetTextFromFile(v);
+                f.close();
+            }
+            UCodeLangAssert(CompileC89ToLib(cfilepath, dllfile));
+
+            using namespace  UCodeLang;
+            auto staticinitname = C89Backend::UpdateToCindentifier(StaticVariablesInitializeFunc);
+            auto threadinitname = C89Backend::UpdateToCindentifier(ThreadVariablesInitializeFunc);
+
+            auto staticdeinitname = C89Backend::UpdateToCindentifier(StaticVariablesUnLoadFunc);
+            auto threaddeinitname = C89Backend::UpdateToCindentifier(ThreadVariablesUnLoadFunc);
+
+            auto functocallStr = "main";
+            #if UCodeLang_Platform_Windows
+            auto lib = LoadLibrary(dllfile.c_str());
+            UCodeLangDefer(FreeLibrary(lib));
+            auto staticinittocall = GetProcAddress(lib, staticinitname.c_str());
+            auto threadinittocall = GetProcAddress(lib, threadinitname.c_str());
+            auto staticdeinittocall = GetProcAddress(lib, staticdeinitname.c_str());
+            auto threaddeinittocall = GetProcAddress(lib, threaddeinitname.c_str());
+
+            auto functocall = GetProcAddress(lib, functocallStr);
+            #elif UCodeLang_Platform_Posix
+            auto lib = dlopen(dllfile.c_str(), RTLD_NOW);
+            UCodeLangDefer(dlclose(lib));
+
+            auto staticinittocall = dlsym(lib, staticinitname.c_str());
+            auto threadinittocall = dlsym(lib, threadinitname.c_str());
+            auto staticdeinittocall = dlsym(lib, staticdeinitname.c_str());
+            auto threaddeinittocall = dlsym(lib, threaddeinitname.c_str());
+
+            auto functocall = dlsym(lib, functocallStr);
+            #endif
+
+            using Func = int (*)();
+            int retvalue = ((Func)functocall)();
+
+            Value = retvalue;
+
+        }
+
+        if (Value.has_value())
+        {
+            ImguiHelper::Int32Field("Retrned", Value.value());
+
+        }
+    }
+    else
+    {
+        static const Vector<ImguiHelper::EnumValue<UCodeVMType>> List =
+        {
+            { "Interpreter",UCodeVMType::Interpreter },
+            { "Jit_Interpreter",UCodeVMType::Jit_Interpreter },
+            { "Native_Interpreter",UCodeVMType::Native_Interpreter },
+        };
+        static const Vector<ImguiHelper::EnumValue<NativeSet>> NativeSetList =
+        {
+    #if UCodeLang_CPUIs_x86
+            { "Native(x86)",NativeSet::Native },
+    #else
+            { "Native(x86_64)",NativeSet::Native },
+    #endif
+            { "x86",NativeSet::x86 },
+            { "x86_64",NativeSet::x86_64 },
     };
-    static const Vector<ImguiHelper::EnumValue<NativeSet>> NativeSetList =
-    {
-#if UCodeLang_CPUIs_x86
-        { "Native(x86)",NativeSet::Native },
-#else
-        { "Native(x86_64)",NativeSet::Native },
-#endif
-        { "x86",NativeSet::x86 },
-        { "x86_64",NativeSet::x86_64 },
-    };
 
 
-    if (ImguiHelper::EnumField("Type", windowdata.VMType, List))
-    {
-        switch (windowdata.VMType)
+        if (ImguiHelper::EnumField("Type", windowdata.VMType, List))
         {
-        case UCodeVMType::Interpreter:
-        {
-            _AnyInterpreter.SetAsInterpreter();
-            _AnyInterpreter.Init(&_RunTimeState);
-        }
-        break;
-        case UCodeVMType::Jit_Interpreter:
-        {
-            _AnyInterpreter.SetAsJitInterpreter();
-
-            _AnyInterpreter.GetAs_JitInterpreter().AlwaysJit = true;
-            _AnyInterpreter.Init(&_RunTimeState);
-        }
-        break;
-        case UCodeVMType::Native_Interpreter:
-        {
-            _AnyInterpreter.SetAsNativeInterpreter();
-
-            _AnyInterpreter.Init(&_RunTimeState);
-        }
-        break;
-        default:
+            switch (windowdata.VMType)
+            {
+            case UCodeVMType::Interpreter:
+            {
+                _AnyInterpreter.SetAsInterpreter();
+                _AnyInterpreter.Init(&_RunTimeState);
+            }
             break;
+            case UCodeVMType::Jit_Interpreter:
+            {
+                _AnyInterpreter.SetAsJitInterpreter();
+
+                _AnyInterpreter.GetAs_JitInterpreter().AlwaysJit = true;
+                _AnyInterpreter.Init(&_RunTimeState);
+            }
+            break;
+            case UCodeVMType::Native_Interpreter:
+            {
+                _AnyInterpreter.SetAsNativeInterpreter();
+
+                _AnyInterpreter.Init(&_RunTimeState);
+            }
+            break;
+            default:
+                break;
+            }
+            ImguiHelper::_Ptr = _AnyInterpreter.GetPtr();
         }
-        ImguiHelper::_Ptr = _AnyInterpreter.GetPtr();
-    }
 
 
-    if (windowdata.VMType == UCodeVMType::Native_Interpreter)
-    {
-        ImGui::SameLine();
-        ImguiHelper::EnumField("CpuType", windowdata.NativeCpuType, NativeSetList);
-    }
-    ImGui::Separator();
-
-    {
-        ImGui::Columns(2, "DebugerOrCode");
+        if (windowdata.VMType == UCodeVMType::Native_Interpreter)
         {
-            {
-                bool CanBeRan = true;
-                if (windowdata.VMType == UCodeVMType::Native_Interpreter)
-                {
-                    if (windowdata.NativeCpuType != NativeSet::Native) {
-                        CanBeRan = false;
-                    }
-                }
-
-                if (CanBeRan)
-                {
-                    ImGui::TextUnformatted("Debuger");
-                }
-                else
-                {
-                    ImGui::TextUnformatted("Debuger(Cant run this Code)");
-                }
-
-
-
-                ImGui::BeginDisabled(!CanBeRan);
-                ShowDebugerMenu(windowdata);
-                ImGui::EndDisabled();
-
-            }
-            ImGui::NextColumn();
-            {
-                ImGui::TextUnformatted("Code");
-
-
-                if (windowdata.VMType == UCodeVMType::Native_Interpreter)
-                {
-
-
-                }
-                else if (windowdata.VMType == UCodeVMType::Jit_Interpreter)
-                {
-                    auto& jit = _AnyInterpreter.GetAs_JitInterpreter();
-                    String txt = jit.GetJitState();
-
-                    ImGui::BeginDisabled();
-
-                    ImGui::PushID(&txt);
-
-                    ImGui::InputTextMultiline("", &txt, ImGui::GetContentRegionAvail());
-
-                    ImGui::PopID();
-
-                    ImGui::EndDisabled();
-                }
-                else if (windowdata.VMType == UCodeVMType::Interpreter)
-                {
-                    if (ImGui::BeginTable("split2", 2, ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders))
-                    {
-                        for (auto& Item : windowdata.InsInfo)
-                        {
-
-                            //ImGui::TableNextColumn(); 
-                            //ImGui::SetColumnWidth(0, 20.0f);
-                            //ImGui::Dummy({20,20});
-
-                            ImGui::TableNextColumn();
-
-                            //mGui::TableNextColumn(0, 20.0f);
-
-                            ImGui::Text(std::to_string(Item.InsAddress).c_str());
-
-                            ImGui::TableNextColumn();
-
-                            ImGui::Text(Item.StringValue.c_str());
-
-                            ImGui::TableNextRow();
-                        }
-
-                        ImGui::EndTable();
-                    }
-                }
-            }
+            ImGui::SameLine();
+            ImguiHelper::EnumField("CpuType", windowdata.NativeCpuType, NativeSetList);
         }
-        ImGui::Columns();
+        ImGui::Separator();
+
+        {
+            ImGui::Columns(2, "DebugerOrCode");
+            {
+                {
+                    bool CanBeRan = true;
+                    if (windowdata.VMType == UCodeVMType::Native_Interpreter)
+                    {
+                        if (windowdata.NativeCpuType != NativeSet::Native) {
+                            CanBeRan = false;
+                        }
+                    }
+
+                    if (CanBeRan)
+                    {
+                        ImGui::TextUnformatted("Debuger");
+                    }
+                    else
+                    {
+                        ImGui::TextUnformatted("Debuger(Cant run this Code)");
+                    }
+
+
+
+                    ImGui::BeginDisabled(!CanBeRan);
+                    ShowDebugerMenu(windowdata);
+                    ImGui::EndDisabled();
+
+                }
+                ImGui::NextColumn();
+                {
+                    ImGui::TextUnformatted("Code");
+
+
+                    if (windowdata.VMType == UCodeVMType::Native_Interpreter)
+                    {
+
+
+                    }
+                    else if (windowdata.VMType == UCodeVMType::Jit_Interpreter)
+                    {
+                        auto& jit = _AnyInterpreter.GetAs_JitInterpreter();
+                        String txt = jit.GetJitState();
+
+                        ImGui::BeginDisabled();
+
+                        ImGui::PushID(&txt);
+
+                        ImGui::InputTextMultiline("", &txt, ImGui::GetContentRegionAvail());
+
+                        ImGui::PopID();
+
+                        ImGui::EndDisabled();
+                    }
+                    else if (windowdata.VMType == UCodeVMType::Interpreter)
+                    {
+                        if (ImGui::BeginTable("split2", 2, ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders))
+                        {
+                            for (auto& Item : windowdata.InsInfo)
+                            {
+
+                                //ImGui::TableNextColumn(); 
+                                //ImGui::SetColumnWidth(0, 20.0f);
+                                //ImGui::Dummy({20,20});
+
+                                ImGui::TableNextColumn();
+
+                                //mGui::TableNextColumn(0, 20.0f);
+
+                                ImGui::Text(std::to_string(Item.InsAddress).c_str());
+
+                                ImGui::TableNextColumn();
+
+                                ImGui::Text(Item.StringValue.c_str());
+
+                                ImGui::TableNextRow();
+                            }
+
+                            ImGui::EndTable();
+                        }
+                    }
+                }
+            }
+            ImGui::Columns();
+        }
     }
 }
 
@@ -2840,7 +2970,7 @@ void AppObject::CompileText(const String& String)
     _Compiler.Get_Errors().Remove_Errors();
     const Path tepfilesdir = "tepfiles";
     const Path tepfilepath = tepfilesdir / "src.uc";
-    const Path tepoutpath = "out.data";
+    const Path tepoutpath = Outfilepath();
     
     std::filesystem::create_directory(tepfilesdir);
 
