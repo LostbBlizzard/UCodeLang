@@ -8282,7 +8282,7 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 			Get_FuncInfo V;
 			V.Func = f;
 			V.SymFunc = Data.FuncToCall;
-			V.ThisPar = Get_FuncInfo::ThisPar_t::PushFromLast;
+			V.ThisPar = Get_FuncInfo::ThisPar_t::NoThisPar;
 
 
 			ScopedNameNode Tep;
@@ -13179,7 +13179,7 @@ SystematicAnalysis::UrinaryOverLoadWith_t SystematicAnalysis::Type_HasUrinaryOve
 }
 bool SystematicAnalysis::Type_IsCopyable(const TypeSymbol& Type)
 {
-	if (Type_IsPrimitiveNotIncludingPointers(Type))
+	if (Type_IsPrimitive(Type))
 	{
 		return true;
 	}
@@ -13192,8 +13192,22 @@ bool SystematicAnalysis::Type_IsCopyable(const TypeSymbol& Type)
 		case SymbolType::Type_class:
 		{
 			auto v = Syb.Get_Info<ClassInfo>();
-			return v->_ClassAutoGenerateCopyConstructor
+			bool r = v->_ClassAutoGenerateCopyConstructor
 				|| v->_ClassHasCopyConstructor.has_value();
+			
+			if (r == false)
+			{
+				for (auto& Item : v->Fields)
+				{
+					if (!Type_IsCopyable(Item.Type))
+					{
+						return false;
+					}
+				}
+				return true;
+			}
+
+			return r;
 		}
 		break;
 
@@ -14174,6 +14188,44 @@ bool SystematicAnalysis::Type_CanBeImplicitConverted(const TypeSymbol& TypeToChe
 		}
 	}
 	
+	if (auto syb = Symbol_GetSymbol(Type).value_unchecked())
+	{
+		if (syb->Type == SymbolType::Type_class)
+		{
+			auto info = syb->Get_Info<ClassInfo>();
+
+			
+			Symbol_Update_ClassSym_ToFixedTypes(NeverNullptr(syb));
+
+			String Scope = info->FullName;
+			ScopeHelper::GetApendedString(Scope, ClassConstructorfunc);
+
+			auto ConstructorSymbols = _Table.GetSymbolsWithName(Scope, SymbolType::Any);
+
+
+			for (auto& Item2 : ConstructorSymbols)
+			{
+				if (Item2->Type == SymbolType::Func)
+				{
+					FuncInfo* funcinfo = Item2->Get_Info<FuncInfo>();
+					if (funcinfo->Pars.size() == 2)
+					{
+						Symbol_Update_FuncSym_ToFixedTypes(NeverNullptr(Item2));
+
+						auto& Par = funcinfo->Pars[1];
+						auto par = Par.Type;
+						par._IsAddress = false;
+						if (Type_AreTheSame(par, TypeToCheck))
+						{
+							return true;
+						}
+					}
+				}
+
+			}
+		}
+	}
+
 	
 	return false;
 }
@@ -14402,6 +14454,53 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 		return true;
 	}
 
+	if (auto syb = Symbol_GetSymbol(ToType).value_unchecked())
+	{
+		if (syb->Type == SymbolType::Type_class)
+		{
+			auto info = syb->Get_Info<ClassInfo>();
+
+
+			Symbol_Update_ClassSym_ToFixedTypes(NeverNullptr(syb));
+
+			String Scope = info->FullName;
+			ScopeHelper::GetApendedString(Scope, ClassConstructorfunc);
+
+			auto ConstructorSymbols = _Table.GetSymbolsWithName(Scope, SymbolType::Any);
+
+
+			for (auto& Item2 : ConstructorSymbols)
+			{
+				if (Item2->Type == SymbolType::Func)
+				{
+					FuncInfo* funcinfo = Item2->Get_Info<FuncInfo>();
+					if (funcinfo->Pars.size() == 2)
+					{
+						Symbol_Update_FuncSym_ToFixedTypes(NeverNullptr(Item2));
+
+						auto& Par = funcinfo->Pars[1];
+						auto par = Par.Type;
+						par._IsAddress = false;
+						if (Type_AreTheSame(par, ExType))
+						{
+							IRInstruction* ret = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(ToType));
+
+							_IR_LookingAtIRBlock->NewPushParameter(_IR_LookingAtIRBlock->NewLoadPtr(ret));
+							_IR_LookingAtIRBlock->NewPushParameter(Ex);
+
+							_IR_LookingAtIRBlock->NewCall(IR_GetIRID(funcinfo));
+							
+							_IR_LastExpressionField = ret;
+
+							return true;
+						}
+					}
+				}
+
+			}
+		}
+	}
+	
 	return false;
 }
 void SystematicAnalysis::IR_Build_ExplicitConversion(IRInstruction* Ex, const TypeSymbol ExType, const TypeSymbol& ToType, const CastExpressionNode_Data& Data)
@@ -19469,7 +19568,7 @@ void SystematicAnalysis::LogError_CantCastImplicitTypes(const NeverNullPtr<Token
 		&& !UintptrType.IsAddress()
 		)
 	{
-		LogError_TypeIsNotCopyable(Token, UintptrType);
+		LogError_TypeIsNotCopyable(Token, Ex1Type);
 	}
 	else
 	{
