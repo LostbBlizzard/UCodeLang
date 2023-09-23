@@ -35,6 +35,8 @@ UCodeLangStart
 
 #define IRReturnValue "_ReturnVal"
 
+#define IRReinterpretCastTep "_tep";
+
 C89Backend::C89Backend()
 {
 
@@ -197,15 +199,15 @@ void C89Backend::AddBaseTypes()
 	
 }
 
-String C89Backend::ToString(const IRType& Type)
+String C89Backend::ToString(const IRType& Type, bool IsUnsigned)
 
 {
 	switch (Type._Type)
 	{
-	case IRTypes::i8:return "int8_t";
-	case IRTypes::i16:return "int16_t";
-	case IRTypes::i32:return "int32_t";
-	case IRTypes::i64:return "int64_t";
+	case IRTypes::i8:return IsUnsigned ? "uint8_t" : "int8_t";
+	case IRTypes::i16:return IsUnsigned ? "uint16_t" : "int16_t";
+	case IRTypes::i32:return IsUnsigned ? "uint32_t" : "int32_t";
+	case IRTypes::i64:return IsUnsigned ? "uint64_t"  : "int64_t";
 	case IRTypes::f32:return "float32_t";
 	case IRTypes::f64:return "float64_t";
 
@@ -785,7 +787,7 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					{
 						r += "return";
 					}
-					else 
+					else
 					{
 						r += "return " + (String)IRReturnValue;
 					}
@@ -793,14 +795,14 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 				case IRInstructionType::Member_Access:
 					State.PointerToName[I.get()] = ToString(State, *I, I->Target()) + ".__" + std::to_string(I->Input().Value.AsUIntNative);
 					goto GoOver;
-				break;
+					break;
 				case IRInstructionType::Member_Access_Dereference:
 					State.PointerToName[I.get()] = ToString(State, *I, I->Target()) + "->__" + std::to_string(I->Input().Value.AsUIntNative);
 					goto GoOver;
 					break;
 				case IRInstructionType::MallocCall:
 					OutType = &tep;
-					tep = Get_Settings().PtrSize ==IntSizes::Int64 ? IRTypes::i64 : IRTypes::i32;
+					tep = Get_Settings().PtrSize == IntSizes::Int64 ? IRTypes::i64 : IRTypes::i32;
 					r += ToString(I->ObjectType);
 					r += " " + State.GetName(I.get());
 					r += " = malloc(" + ToString(State, *I, I->Target()) + ")";
@@ -810,6 +812,126 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					tep = _Input->GetType(I.get(), I.get()->Target());
 					r += "free(" + ToString(State, *I, I->Target()) + ")";
 					break;
+				case IRInstructionType::SIntToUInt:
+				{
+					OutType = &tep;
+					tep = _Input->GetType(I.get(), I.get()->Target());
+
+					auto valname = State.GetName(I.get());
+
+					r += ToString(I->ObjectType, true);
+					r += " " + valname + IRReinterpretCastTep;
+					r += " = ";
+					r += "(";
+					r += ToString(I->ObjectType, true);
+					r += ")";
+
+					r += ToString(State, *I, I->Target());
+
+					r += ";\n ";
+
+					r += ToString(I->ObjectType);
+					r += " " + valname;
+					r += " = ";
+
+
+					r += "*(";
+					r += ToString(I->ObjectType);
+					r += "*)&";
+
+					r += valname + IRReinterpretCastTep;
+				}
+				break;
+				case IRInstructionType::UIntToSInt:
+				{
+					OutType = &tep;
+					tep = _Input->GetType(I.get(), I.get()->Target());
+					auto valname = State.GetName(I.get());
+
+					r += ToString(I->ObjectType);
+					r += " " + valname + IRReinterpretCastTep;
+					r += " = ";
+					r += ToString(State, *I, I->Target());
+					r += ";\n ";
+
+
+					r += ToString(I->ObjectType);
+					r += " " + valname;
+					r += " = ";
+
+					r += "(";
+					r += ToString(I->ObjectType);
+					r += ")";
+
+					r += "(";
+
+					r += "*(";
+					r += ToString(I->ObjectType, true);
+					r += "*)&";
+
+					r += valname + IRReinterpretCastTep;
+
+					r += ")";
+				}
+					break;
+
+				case IRInstructionType::SIntToSInt8:
+				case IRInstructionType::SIntToSInt16:
+				case IRInstructionType::SIntToSInt32:
+				case IRInstructionType::SIntToSInt64:
+					OutType = &tep;
+					tep = _Input->GetType(I.get(), I.get()->Target());
+
+					r += ToString(I->ObjectType);
+					r += " " + State.GetName(I.get());
+					r += " = ";
+
+					r += "(";
+					r += ToString(I->ObjectType);
+					r += ")";
+
+					r += ToString(State, *I, I->Target());
+					break;
+
+				case IRInstructionType::UIntToUInt8:
+				case IRInstructionType::UIntToUInt16:
+				case IRInstructionType::UIntToUInt32:
+				case IRInstructionType::UIntToUInt64:
+				{
+					OutType = &tep;
+					tep = _Input->GetType(I.get(), I.get()->Target());
+
+					auto valname = State.GetName(I.get());
+
+
+					r += ToString(I->ObjectType,true);
+					r += " " + valname + IRReinterpretCastTep;
+					r += " = ";
+					r += "*(";
+					r += ToString(I->ObjectType, true);
+					r += "*)&";
+
+					r += ToString(State, *I, I->Target());
+
+					r += ";\n ";
+
+					r += ToString(I->ObjectType,true);
+					r += " " + valname + IRReinterpretCastTep + "2";
+					r += " = ";
+
+					r += "(";
+					r += ToString(I->ObjectType, true);
+					r += ")";
+					r += valname + IRReinterpretCastTep;
+					r += ";\n ";
+
+					r += ToString(I->ObjectType);
+					r += " " + valname;
+					r += " = ";
+
+					r += valname + IRReinterpretCastTep + "2";
+				}	
+				break;
 				default:
 					UCodeLangUnreachable();
 					break;

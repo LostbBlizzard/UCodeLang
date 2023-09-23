@@ -4102,7 +4102,7 @@ void SystematicAnalysis::OnBitCast(const BitCastExpression& node)
 				LogError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "bitcast<T>. T must be an address or an uintptr and not '" + ToString(ToType) + "'");
 			}
 		}
-		bool IsIntPtr = !ToType.IsAddress();
+		bool IsIntPtr = ToType.IsAddress() || ToType.IsAddressArray();
 
 		if (IsIntPtr) {
 			_LookingForTypes.push(TypesEnum::uIntPtr);
@@ -4127,10 +4127,10 @@ void SystematicAnalysis::OnBitCast(const BitCastExpression& node)
 	{
 		TypeSymbol ToType = Type_ConvertAndValidateType(node._Type, NodeSyb_t::Any);
 
-		bool IsIntPtr = !ToType.IsAddress();
+		bool IsIntPtr = ToType.IsAddress() || ToType.IsAddressArray();
 
 		//!to stop *(_Expression) and do (_Expression)
-		if (!IsIntPtr) {
+		if (IsIntPtr) {
 			_LookingForTypes.push(TypesEnum::uIntPtr);
 		}
 		else
@@ -8049,11 +8049,13 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 			return false;
 		}
 
+		/*
 		if (IsWrite(Mod) && !(Out._Symbol->Type == SymbolType::Class_Field || Symbol_IsVarableType(Out._Symbol->Type)))
 		{
 			auto& Item = NeverNullptr(node._ScopedName.back()._token);
 			LogError(ErrorCodes::InValidType, Item->OnLine, Item->OnPos, "You Cant Write to a " + ToString(Out._Symbol->Type));
 		}
+		*/
 
 
 
@@ -9731,7 +9733,7 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 		
 
 
-
+		/*
 		if (IsRead(_GetExpressionMode.top()))
 		{
 			Info = TryLogError_OnReadVar(Str, Token, Symbol);
@@ -9741,6 +9743,7 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 			Symbol->SetTovalid();
 
 		}
+		*/
 
 		if (Info.CantFindVar)
 		{
@@ -10303,6 +10306,7 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 		{
 			auto  Token = _LastLookedAtToken;
 			LogError_CantBeIndexWithType(Token.value(), SourcType, IndexType);
+			
 		}
 
 
@@ -10315,52 +10319,60 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 
 
 		//all float bool int types
-		if (HasInfo.Value.has_value())
+		if (!HasInfo.HasValue)
 		{
-			FuncInfo* f = HasInfo.Value.value()->Get_Info<FuncInfo>();
-
-			V.Op0 = f->Pars[0].Type;
-			V.Op1 = f->Pars[1].Type;
-			V.FuncToCall = HasInfo.Value.value();
-
-			_LastExpressionType = f->Ret;
+			_LastExpressionType = TypesEnum::Null;
 		}
 		else
 		{
-			TypeSymbol lookingfor = _LookingForTypes.top();
-			V.Op0 = SourcType;
-
-			
-			V.Op0._IsAddress = true;
-			
-
-			V.Op1 = IndexType;
-			V.Op1._IsAddress = false;
-
-			if (lookingfortype.IsAddressArray())
+			if (HasInfo.Value.has_value())
 			{
-				lookingfor = SourcType;
-				_LastExpressionType = lookingfor;
-			}
-			else if (IsSrcStaticArray)
-			{
-				auto Syb = Symbol_GetSymbol(SourcType).value();
-				lookingfor = Syb->Get_Info<StaticArrayInfo>()->Type;
-				lookingfor.SetAsAddress();
+				FuncInfo* f = HasInfo.Value.value()->Get_Info<FuncInfo>();
 
-				_LastExpressionType = lookingfor;
+				V.Op0 = f->Pars[0].Type;
+				V.Op1 = f->Pars[1].Type;
+				V.FuncToCall = HasInfo.Value.value();
+
+				_LastExpressionType = f->Ret;
 			}
 			else
 			{
-				lookingfor = SourcType;
 
-				if (IsWrite(_GetExpressionMode.top()))
+				TypeSymbol lookingfor = _LookingForTypes.top();
+				V.Op0 = SourcType;
+
+
+				V.Op0._IsAddress = true;
+
+
+				V.Op1 = IndexType;
+				V.Op1._IsAddress = false;
+
+				if (lookingfortype.IsAddressArray())
 				{
-					lookingfor.SetAsAddress();
+					lookingfor = SourcType;
+					_LastExpressionType = lookingfor;
 				}
-				lookingfor._IsAddressArray = false;
+				else if (IsSrcStaticArray)
+				{
+					auto Syb = Symbol_GetSymbol(SourcType).value();
+					lookingfor = Syb->Get_Info<StaticArrayInfo>()->Type;
+					lookingfor.SetAsAddress();
 
-				_LastExpressionType = lookingfor;
+					_LastExpressionType = lookingfor;
+				}
+				else
+				{
+					lookingfor = SourcType;
+
+					if (IsWrite(_GetExpressionMode.top()))
+					{
+						lookingfor.SetAsAddress();
+					}
+					lookingfor._IsAddressArray = false;
+
+					_LastExpressionType = lookingfor;
+				}
 			}
 		}
 
@@ -10485,9 +10497,15 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 
 			if (IsRead(_GetExpressionMode.top())) 
 			{
-				if (_LookingForTypes.top().IsAddress() == false)
+				bool LookCopyByValue = _LookingForTypes.top().IsAddress()
+					|| _LookingForTypes.top().IsAddressArray();
+
+				if (LookCopyByValue == false)
 				{
-					if (_LastExpressionType.IsAddress() || !IsWrite(_GetExpressionMode.top()))
+					bool CopyByValue = _LastExpressionType.IsAddress() ||
+						_LastExpressionType.IsAddressArray();
+
+					if (CopyByValue || !IsWrite(_GetExpressionMode.top()))
 					{
 						_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad_Dereferenc(_IR_LastExpressionField
 							,IR_ConvertToIRType(_LookingForTypes.top()));
@@ -13095,7 +13113,7 @@ SystematicAnalysis::IndexOverLoadWith_t SystematicAnalysis::Type_HasIndexedOverL
 			String funcName = Syb->FullName;
 			ScopeHelper::GetApendedString(funcName,Overload_Index_Func);
 
-			auto& V = _Table.GetSymbolsWithName(funcName, SymbolType::Func);
+			auto V = _Table.GetSymbolsWithName(funcName, SymbolType::Func);
 
 			for (auto& Item : V)
 			{
@@ -16030,7 +16048,7 @@ void SystematicAnalysis::IR_Build_DestructorCall(const ObjectToDrop& Object)
 		
 	}
 }
-SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedNameNode& Name,const ValueParametersNode& Pars, TypeSymbol Ret)
+SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedNameNode& Name, const ValueParametersNode& Pars, TypeSymbol Ret)
 {
 
 
@@ -16057,14 +16075,14 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 			GetMemberTypeSymbolFromVar_t V;
 			bool VBool = Symbol_MemberTypeSymbolFromVar(0, Name._ScopedName.size() - 1, Name, V);
 			_GetExpressionMode.pop();
-			
+
 			if (VBool)
 			{
 				_ThisType = V.Type;
 				_ThisType.SetAsAddress();
 
 				auto tep_ = V.Type;
-				
+
 				if (tep_._IsDynamic)
 				{
 					tep_._IsDynamic = false;
@@ -16092,7 +16110,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 				return { Get_FuncInfo::ThisPar_t::NoThisPar, nullptr };
 			}
 		}
-		else 
+		else
 		{
 			ScopedName = "";
 			for (auto& Item : Name._ScopedName)
@@ -16137,19 +16155,19 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 		}
 	}
 	bool _ThisTypeIsNotNull = !_ThisType.IsNull();
-	
+
 	_LastLookedAtToken = Nullableptr(Name._ScopedName.back()._token);
 	{
 
 		auto SymbolsV = Symbol_GetSymbol(ScopedName, SymbolType::Any);
 
-		
+
 		if (SymbolsV && SymbolsV.value()->Type == SymbolType::Type_alias)
 		{
 			ScopedName = ToString(SymbolsV.value()->VarType);
 		}
-		
-		
+
+
 		if (ScopedName == Uint8TypeName ||
 			ScopedName == Uint16TypeName ||
 			ScopedName == Uint32TypeName ||
@@ -16157,7 +16175,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 			ScopedName == Sint8TypeName ||
 			ScopedName == Sint16TypeName ||
 			ScopedName == Sint32TypeName ||
-			ScopedName == Sint64TypeName || 
+			ScopedName == Sint64TypeName ||
 			ScopedName == SintPtrTypeName ||
 			ScopedName == UintPtrTypeName ||
 			ScopedName == boolTypeName ||
@@ -16165,20 +16183,20 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 			ScopedName == float32TypeName ||
 			ScopedName == float64TypeName)
 		{
-			
+
 			if (Pars._Nodes.size() > 1)
 			{
 				LogError_CanIncorrectParCount(NeverNullptr(Name._ScopedName.back()._token), ScopedName, Pars._Nodes.size(), 1);
 			}
 
-			
-			
+
+
 			{
-				if (ScopedName == Uint8TypeName){_LastExpressionType = TypesEnum::uInt8;}
+				if (ScopedName == Uint8TypeName) { _LastExpressionType = TypesEnum::uInt8; }
 				else if (ScopedName == Uint16TypeName) { _LastExpressionType = TypesEnum::uInt16; }
 				else if (ScopedName == Uint32TypeName) { _LastExpressionType = TypesEnum::uInt32; }
 				else if (ScopedName == Uint64TypeName) { _LastExpressionType = TypesEnum::uInt64; }
-				 
+
 				else if (ScopedName == Sint8TypeName) { _LastExpressionType = TypesEnum::sInt8; }
 				else if (ScopedName == Sint16TypeName) { _LastExpressionType = TypesEnum::sInt16; }
 				else if (ScopedName == Sint32TypeName) { _LastExpressionType = TypesEnum::sInt32; }
@@ -16209,31 +16227,82 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 				if (!Type_CanBeImplicitConverted(_LastExpressionType, FuncType, true))
 				{
-					LogError_CantCastImplicitTypes(_LastLookedAtToken.value(), _LastExpressionType, FuncType,true);
+					LogError_CantCastImplicitTypes(_LastLookedAtToken.value(), _LastExpressionType, FuncType, true);
 				}
 				_LastExpressionType = FuncType;
 			}
 
 			return { Get_FuncInfo::ThisPar_t::NoThisPar, nullptr };
 		}
-	
-	
-	
-		
+
+
+
+
 	}
-	
+
 	bool AutoThisCall = false;
-	
+
 	SymbolType T = SymbolType::Null;
 	Symbol* FuncSymbol = nullptr;
 	FuncInfo* r = nullptr;
 
 	auto& RetType = Type_Get_LookingForType();
 	bool RetIsSet = !(RetType.IsAn(TypesEnum::Var) || RetType.IsAn(TypesEnum::Any));
-	
+
 
 	Vector<ParInfo> ValueTypes;
 	ValueTypes.reserve(_ThisTypeIsNotNull ? Pars._Nodes.size() + 1 : Pars._Nodes.size());
+
+
+	auto Symbols = _Table.GetSymbolsWithName(ScopedName, SymbolType::Any);
+
+	Vector<ParInfo> Infer;
+	bool Inferautopushtis = false;
+
+
+	{
+
+		for (auto& Item : Symbols)
+		{
+			if (Item->Type == SymbolType::Func)
+			{
+				if (Item->IsInvalid())
+				{
+					return {};
+				}
+				const FuncInfo* Info = Item->Get_Info<FuncInfo>();
+				Symbol_Update_FuncSym_ToFixedTypes(Item);
+
+				size_t parcount = Pars._Nodes.size();
+				if (Info->Pars.size() == parcount) {
+					Infer = Info->Pars;
+					Inferautopushtis = false;
+				}
+			}
+			else if (Item->Type == SymbolType::Type_class)
+			{
+				ClassInfo* V = Item->Get_Info<ClassInfo>();
+				Symbol_Update_ClassSym_ToFixedTypes(Item);
+				String Scope = V->FullName;
+				ScopeHelper::GetApendedString(Scope, ClassConstructorfunc);
+
+				auto ConstructorSymbols = _Table.GetSymbolsWithName(Scope, SymbolType::Any);
+
+
+				for (auto& Item2 : ConstructorSymbols)
+				{
+					FuncInfo* Info = Item2->Get_Info<FuncInfo>();
+					bool PushThisPar = Info->IsObjectCall();
+
+					size_t parcount = PushThisPar ? Pars._Nodes.size() + 1 : Pars._Nodes.size();
+					if (Info->Pars.size() == parcount) {
+						Infer = Info->Pars;
+						Inferautopushtis = PushThisPar;
+					}
+				}
+			}
+		}
+	}
 
 	if (_ThisTypeIsNotNull)
 	{
@@ -16249,7 +16318,19 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 		auto& Item = Pars._Nodes[i];
 		auto& ValueItem = ValueTypes.emplace_back();
 
-		_LookingForTypes.push(NullSymbol);
+		TypeSymbol InferedType = NullSymbol;	
+		
+		{
+			size_t newindex = Inferautopushtis ? i + 1 : i;
+		
+			if (newindex < Infer.size())
+			{
+				InferedType = Infer[newindex].Type;
+			}
+		}
+
+
+		_LookingForTypes.push(InferedType);
 
 
 		if (Item->Get_Type() == NodeType::OutExpression)
@@ -16437,7 +16518,6 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 	}
 	//
 
-	auto Symbols = _Table.GetSymbolsWithName(ScopedName, SymbolType::Any);
 	StartSymbolsLoop:
 
 	Vector<Get_FuncInfo> OkFuncions;
@@ -16940,6 +17020,8 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 		}
 		else 
 		{
+			ValueTypes.erase(ValueTypes.begin());
+
 			_LastExpressionType = TypeSymbol(TypesEnum::Null);
 			LogError_CantFindFuncError(NeverNullptr(Name._ScopedName.back()._token), ScopedName, {}, ValueTypes, RetType);
 			return { };
@@ -19542,13 +19624,18 @@ String SystematicAnalysis::IR_MangleName(const FuncInfo* Func)
 	}
 	else
 	{
-		Vector<ClassMethod::Par> Vect;
+		Vector<NameDecoratior::Par> Vect;
 		for (auto& Item : Func->Pars)
 		{
-			ClassMethod::Par V;
-			V.Type = Assembly_ConvertToType(Item.Type);
-			V.IsOutPar = Item.IsOutPar;
-			Vect.push_back(V);
+			NameDecoratior::Par V;
+			V.par.Type = Assembly_ConvertToType(Item.Type);
+			V.par.IsOutPar = Item.IsOutPar;
+			
+			if (auto Val = Symbol_GetSymbol(Item.Type).value_unchecked())
+			{
+				V.symbolFullName = Val->FullName;
+			}
+			Vect.push_back(std::move(V));
 		}
 
 		return NameDecoratior::GetDecoratedName(Func->FullName, Vect);

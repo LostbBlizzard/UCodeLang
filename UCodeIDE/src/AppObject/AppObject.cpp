@@ -133,159 +133,72 @@ void AppObject::Init()
         */
       
         UCodeIDEStyle(nullptr);
-   /*
-   $Unique_ptr<T>:
- private:
-  T& _ptr;
- public:
-  |new[this&] -> void:
-   _ptr =: unsafe bitcast<T&>(0);
-  
-  |new[this&,moved this& Value] -> void:
-   _ptr =: Value._ptr;
-   Value._ptr =: unsafe bitcast<T&>(0);
-  
-  |drop[this&]:
-   uintptr ptr =unsafe bitcast<uintptr>(_ptr);
-   if ptr != uintptr(0):
-    unsafe drop(_ptr);
-
-  |Get[this&] -> T&:ret _ptr;
-  |Make[] -> this:
-   this r = [];
-   r._ptr =: unsafe new T();
-   ret r;
-
-|main[]:
- int^ V = unq int();
- int& rptr = V.Get();
- rptr++;
-
- int^ V2 = move V;
- int r = V2.Get();
-
- ret r;*/
         _Editor.SetText(
             R"(
 
-$StringSpan_t<T>:
+$Range_t<T>:
+  T _start;
+  T _end;
+  |new[this&]:
+   _start = [];
+   _end = [];
+  |new[this&,T start,T end]:
+   _start = start;
+   _end = end;
+
+|Range<T>[T start,T end] -> Range_t<T>:
+ ret [start,end];
+ 
+
+$Span<T>:
  T[&] _data;
  uintptr _size;
- 
  |new[this&]:
   _data = unsafe bitcast<T[&]>(0);
   _size = 0;
- 
- unsafe |new[this&,T[&] Data,uintptr Size]:
-  _data = Data;
-  _size = Size;
 
+ |new[this&,T[&] data,uintptr size]:
+  _data = data;
+  _size = size;
 
-$String_t<T>:
+$Vector<T>:
  T[&] _data;
  uintptr _size;
  uintptr _capacity;
 
- $StringSpan = StringSpan_t<T>;
- 
  |new[this&]:
   _data = unsafe bitcast<T[&]>(0);
   _size = 0;
   _capacity = 0;
- |new[this&,imut StringSpan string]:
-  _data = unsafe new T[string._size];
-  _size = string._size;
-  _capacity = string._size;
+ 
+ //|new<T...>[this&,T Elems] -> void;
 
-  for [uintptr i = uintptr(0);i < string._size;i++]:
-   _data[i] = string._data[i];
+ |[][this&,Range_t<uintptr> V] -> int[:]:
+  ret [_data[V._start],V._end - V._start];
 
- |drop[this&]:
-  uintptr ptr =unsafe bitcast<uintptr>(_data);
-  if ptr == uintptr(0):
-   unsafe drop(_data);
-
- |realloc[this&,uintptr size]:
-  
-  if size > _capacity:
-   var oldsize = _size;
-   var old = _data;
-
-   _capacity = size;
-   _data = unsafe new T[size];
-   for [uintptr i = uintptr(0);i < oldsize;i++]:
-     _data[i] = old[i];
-
-
-   unsafe drop(old);
-
- |AsSpan[this&] -> StringSpan:
-  ret unsafe StringSpan(_data,_size);
-
-
- |+=[this&,imut StringSpan string]:
-  var newsize = _size + string._size;
-  realloc(newsize);
-
-  var oldsize = _size;
-  _size = newsize; 
-  
-  for [uintptr i = uintptr(0);i < newsize;i++]:
-     _data[i + oldsize] = string._data[i];
-
-
-$StringSpan = StringSpan_t<char>;
-$String = String_t<char>;
-
-extern "c" |putchar[char V] -> void;
-
-|Print[char Str]:
- putchar(Str);
-
-
-
-
-|Print[imut StringSpan Str] -> void:
- for [uintptr i = uintptr(0);i < Str._size;i++]:
-  putchar(Str._data[i]);
-
-
-|Println[char Str]:
- Print(Str);
- Print('\n');
-
-|Println[imut StringSpan Str] -> void:
- Print(Str);
- Print('\n');
+ |[][this&,Range_t<int> V] -> int[:]:
+  ret [_data[V._start -> uintptr],(V._end - V._start) -> uintptr];
 
 |main[]:
- imut StringSpan Str = "Hello";//5
- imut StringSpan Str2 = " World";//6
+ //int[] list = [0,1,2,3,4,5,6,7,8,9,10];
+ int[] list = [];
 
- String Txt = Str;
- 
- Println(Txt.AsSpan()); 
+ int[:] span = list[5..10];
 
- Txt += Str2;
-
- Println(Txt.AsSpan());
-
- bool sizegood = Txt._size == uintptr(11);
- bool chargood = Txt._data[Txt._size - 1] == 'd';
- 
- ret sizegood && chargood;
+ ret span._size;
+ //int[] newlist = span.filter([x] => x % 2 != 0).collect();
+ //ret newlist;
 
 
 /*
 |main[]:
  char[&] _data =unsafe bitcast<char[&]>(0);
- for [uintptr i = uintptr(0);i < uintptr(5);i++]:
-  char V = _data[i];
-
+ char[&] V = _data;
 */
 
- )");
 
+ )");
+        
         static int8_t _Const_SpanString_Hello_World[] = { 5,4 };
         
 
