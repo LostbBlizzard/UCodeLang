@@ -1,5 +1,3 @@
-
-
 $StringSpan_t<T>:
  T[&] _data;
  uintptr _size;
@@ -69,51 +67,16 @@ $String_t<T>:
 $StringSpan = StringSpan_t<char>;
 $String = String_t<char>;
 
-extern "c" |putchar[char V] -> void;
-
-|Print[char Str]:
- putchar(Str);
-
-
-
-
-|Print[imut StringSpan Str] -> void:
- for [uintptr i = uintptr(0);i < Str._size;i++]:
-  putchar(Str._data[i]);
-
-
-|Println[char Str]:
- Print(Str);
- Print('\n');
-
-|Println[imut StringSpan Str] -> void:
- Print(Str);
- Print('\n');
-
 |main[]:
  imut StringSpan Str = "Hello";//5
  imut StringSpan Str2 = " World";//6
 
  String Txt = Str;
- 
- Println(Txt.AsSpan()); 
 
  Txt += Str2;
 
- Println(Txt.AsSpan());
 
  bool sizegood = Txt._size == uintptr(11);
  bool chargood = Txt._data[Txt._size - 1] == 'd';
  
  ret sizegood && chargood;
-
-
-/*
-|main[]:
- char[&] _data =unsafe bitcast<char[&]>(0);
- for [uintptr i = uintptr(0);i < uintptr(5);i++]:
-  char V = _data[i];
-
-*/
-
- 

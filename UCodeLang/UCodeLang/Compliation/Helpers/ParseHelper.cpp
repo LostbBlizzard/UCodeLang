@@ -127,7 +127,7 @@ size_t ParseHelper::ParseCharliteralToChar(String_view string, String& out)
 	{
 		if (string.size() >= 1)
 		{
-			char Char2 = string[1];
+			
 
 			struct MyStruct
 			{
@@ -135,7 +135,8 @@ size_t ParseHelper::ParseCharliteralToChar(String_view string, String& out)
 				char Output;// 'x00';
 				MyStruct()
 				{
-
+					Input = 0;
+					Input = 0;
 				}
 				MyStruct(char A, char B)
 				{
@@ -155,10 +156,25 @@ size_t ParseHelper::ParseCharliteralToChar(String_view string, String& out)
 				MyStruct{ '\"','\"' },
 				MyStruct{ 'r','\r' },
 				MyStruct{ 'f','\f' },
+				MyStruct{ 'n','\n' },
 			};
-
-			out += Char2;
-			return 1;
+			Optional<char> Char2;
+			for (auto& Item : EscapeSequences) 
+			{
+				if (Item.Input == string[1])
+				{
+					Char2 = Item.Output;
+				}
+			}
+			if (Char2.has_value()) 
+			{
+				out += Char2.value();
+				return 1;
+			}
+			else
+			{
+				return 0;
+			}
 		}
 	}
 	else

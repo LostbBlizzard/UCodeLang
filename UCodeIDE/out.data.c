@@ -99,20 +99,26 @@ typedef struct
 
 } String_t_char_;
 
-static int8_t _Const_SpanString_Hello;
-static int8_t _Const_SpanString__World;
+static int8_t _Const_SpanString_Hello[] = {72,101,108,108,111};
+static int8_t _Const_SpanString__World[] = {32,87,111,114,108,100};
 
 void __StaticInit__();
 void __StaticUnload__();
 void __threadInit__();
 void __threadUnload__();
-int64_t _Entry();
+void putchar(int8_t V);
+void Print_c(int8_t Str);
+void Print___imut(StringSpan_t_char_ Str);
+void Println_c(int8_t Str);
+void Println___imut(StringSpan_t_char_ Str);
+int8_t _Entry();
 void StringSpan_t_char_____new______(StringSpan_t_char_* __this__);
 void StringSpan_t_char_____new_______c____uptr(StringSpan_t_char_* __this__,void* Data,int64_t Size);
 void String_t_char_____new______(String_t_char_* __this__);
 void String_t_char_____new_________imut(String_t_char_* __this__,StringSpan_t_char_ string);
 void String_t_char_____drop______(String_t_char_* __this__);
 void String_t_char__realloc_____uptr(String_t_char_* __this__,int64_t size);
+StringSpan_t_char_ String_t_char__AsSpan____(String_t_char_* __this__);
 void String_t_char____Compound_Plus_________imut(String_t_char_* __this__,StringSpan_t_char_ string);
 int main(int argc, char** argv);
 
@@ -130,13 +136,91 @@ void __threadInit__()
 void __threadUnload__()
 {
 }
-int64_t _Entry()
+void Print_c(int8_t Str)
+{ /*Block*/ 
+
+ /*File:/src.uc*/
+ /*Line:75*/
+
+ int8_t A = Str;
+ putchar(A);
+ return;
+
+}
+void Print___imut(StringSpan_t_char_ Str)
+{ /*Block*/ 
+
+
+ int64_t A;
+ int64_t B = 0;
+ A = B;
+ _label1:
+  int64_t C = Str.__1;
+ int64_t D = A;
+ int8_t E = D<C;
+ int8_t F = !E;
+ if (F){goto _label0; };
+
+ /*Line:82*/
+
+  void* G = Str.__0;
+ int64_t H = A;
+ int64_t I = 1;
+ int64_t J = H*I;
+ void* K = (int64_t)G+J;
+ int8_t L = *(int8_t*)K;
+ putchar(L);
+
+ /*Line:81*/
+
+ int64_t M = A;
+ int64_t N = 1;
+ int64_t O = M+N;
+ A = O;
+ goto _label1;
+ _label0:
+ return;
+
+}
+void Println_c(int8_t Str)
+{ /*Block*/ 
+
+ /*File:/src.uc*/
+ /*Line:86*/
+
+ int8_t A = Str;
+ Print_c(A);
+
+ /*Line:87*/
+
+ int8_t B = 10;
+ Print_c(B);
+ return;
+
+}
+void Println___imut(StringSpan_t_char_ Str)
+{ /*Block*/ 
+
+ /*File:/src.uc*/
+ /*Line:90*/
+
+ StringSpan_t_char_ A = Str;
+ Print___imut(A);
+
+ /*Line:91*/
+
+ int8_t B = 10;
+ Print_c(B);
+ return;
+
+}
+int8_t _Entry()
 {
- int64_t _ReturnVal;
+ int8_t _ReturnVal;
  /*Block*/ 
 
  /*File:/src.uc*/
- /*Line:65*/
+ /*Line:94*/
 
  StringSpan_t_char_ A;
  void* B = &_Const_SpanString_Hello;
@@ -146,7 +230,7 @@ int64_t _Entry()
  StringSpan_t_char_____new_______c____uptr(E,B,C);
  A = D;
 
- /*Line:66*/
+ /*Line:95*/
 
  StringSpan_t_char_ F;
  void* G = &_Const_SpanString__World;
@@ -156,7 +240,7 @@ int64_t _Entry()
  StringSpan_t_char_____new_______c____uptr(J,G,H);
  F = I;
 
- /*Line:68*/
+ /*Line:97*/
 
  String_t_char_ K;
  StringSpan_t_char_ L = A;
@@ -165,21 +249,58 @@ int64_t _Entry()
  String_t_char_____new_________imut(N,L);
  K = M;
 
- /*Line:69*/
+ /*Line:99*/
 
  String_t_char_* O = &K;
- StringSpan_t_char_ P = F;
- String_t_char____Compound_Plus_________imut(O,P);
+ StringSpan_t_char_ P = String_t_char__AsSpan____(O);
+ Println___imut(P);
 
- /*Line:70*/
+ /*Line:101*/
 
-  int64_t Q = K.__1;
- _ReturnVal = Q;
+ String_t_char_* Q = &K;
+ StringSpan_t_char_ R = F;
+ String_t_char____Compound_Plus_________imut(Q,R);
+
+ /*Line:103*/
+
+ String_t_char_* S = &K;
+ StringSpan_t_char_ T = String_t_char__AsSpan____(S);
+ Println___imut(T);
+
+ /*Line:105*/
+
+ int8_t U;
+ int64_t V = 11;
+  int64_t W = K.__1;
+ int8_t X = W==V;
+ U = X;
+
+ /*Line:106*/
+
+ int8_t Y;
+ int8_t Z = 100;
+  void* ZB = K.__0;
+ int64_t ZC = 1;
+  int64_t ZD = K.__1;
+ int64_t ZE = ZD-ZC;
+ int64_t ZF = 1;
+ int64_t ZG = ZE*ZF;
+ void* ZH = (int64_t)ZB+ZG;
+ int8_t ZI = *(int8_t*)ZH;
+ int8_t ZJ = ZI==Z;
+ Y = ZJ;
+
+ /*Line:108*/
+
+ int8_t ZK = Y;
+ int8_t ZL = U;
+ int8_t ZM = ZL&&ZK;
+ _ReturnVal = ZM;
 
  /*Line:0*/
 
- String_t_char_* R = &K;
- String_t_char_____drop______(R);
+ String_t_char_* ZN = &K;
+ String_t_char_____drop______(ZN);
  return _ReturnVal;
 
 }
@@ -187,12 +308,12 @@ void StringSpan_t_char_____new______(StringSpan_t_char_* __this__)
 { /*Block*/ 
 
  /*File:/src.uc*/
- /*Line:7*/
+ /*Line:8*/
 
  int32_t A = 0;
   __this__->__0 = (void*)A;
 
- /*Line:8*/
+ /*Line:9*/
 
  int64_t B = 0;
   __this__->__1 = B;
@@ -203,12 +324,12 @@ void StringSpan_t_char_____new_______c____uptr(StringSpan_t_char_* __this__,void
 { /*Block*/ 
 
  /*File:/src.uc*/
- /*Line:11*/
+ /*Line:12*/
 
  void* A = Data;
   __this__->__0 = A;
 
- /*Line:12*/
+ /*Line:13*/
 
  int64_t B = Size;
   __this__->__1 = B;
@@ -219,17 +340,17 @@ void String_t_char_____new______(String_t_char_* __this__)
 { /*Block*/ 
 
  /*File:/src.uc*/
- /*Line:23*/
+ /*Line:24*/
 
  int32_t A = 0;
   __this__->__0 = (void*)A;
 
- /*Line:24*/
+ /*Line:25*/
 
  int64_t B = 0;
   __this__->__1 = B;
 
- /*Line:25*/
+ /*Line:26*/
 
  int64_t C = 0;
   __this__->__2 = C;
@@ -240,7 +361,7 @@ void String_t_char_____new_________imut(String_t_char_* __this__,StringSpan_t_ch
 { /*Block*/ 
 
  /*File:/src.uc*/
- /*Line:27*/
+ /*Line:28*/
 
   int64_t A = string.__1;
  int64_t B = 1;
@@ -264,16 +385,16 @@ void String_t_char_____new_________imut(String_t_char_* __this__,StringSpan_t_ch
  _label0:
   __this__->__0 = D;
 
- /*Line:28*/
+ /*Line:29*/
 
   int64_t L = string.__1;
   __this__->__1 = L;
 
- /*Line:29*/
+ /*Line:30*/
 
   int64_t M = string.__1;
  
- /*Line:31*/
+ /*Line:32*/
 
  __this__->__2 = M;
 
@@ -287,10 +408,28 @@ void String_t_char_____new_________imut(String_t_char_* __this__,StringSpan_t_ch
  int8_t R = Q<P;
  int8_t S = !R;
  if (S){goto _label2; };
- int64_t T = N;
- int64_t U = 1;
- int64_t V = T+U;
- N = V;
+
+ /*Line:33*/
+
+  void* T = string.__0;
+ int64_t U = N;
+ int64_t V = 1;
+ int64_t W = U*V;
+ void* X = (int64_t)T+W;
+ int8_t Y = *(int8_t*)X;
+  void* Z = __this__->__0;
+ int64_t ZB = N;
+ int64_t ZC = 1;
+ int64_t ZD = ZB*ZC;
+ void* ZE = (int64_t)Z+ZD;
+ *(int8_t*)ZE = Y;
+
+ /*Line:32*/
+
+ int64_t ZF = N;
+ int64_t ZG = 1;
+ int64_t ZH = ZF+ZG;
+ N = ZH;
  goto _label3;
  _label2:
  return;
@@ -300,13 +439,13 @@ void String_t_char_____drop______(String_t_char_* __this__)
 { /*Block*/ 
 
  /*File:/src.uc*/
- /*Line:35*/
+ /*Line:36*/
 
  int64_t A;
   void* B = __this__->__0;
  A = (int64_t)B;
 
- /*Line:36*/
+ /*Line:37*/
 
  int64_t C = 0;
  int64_t D = A;
@@ -314,7 +453,7 @@ void String_t_char_____drop______(String_t_char_* __this__)
  int8_t F = !E;
  if (F){goto _label0; };
  
- /*Line:37*/
+ /*Line:38*/
 
  void* G = __this__->__0;
  free(G);
@@ -328,7 +467,7 @@ void String_t_char__realloc_____uptr(String_t_char_* __this__,int64_t size)
 
  
  /*File:/src.uc*/
- /*Line:41*/
+ /*Line:42*/
 
  int64_t A = __this__->__2;
  int64_t B = size;
@@ -336,24 +475,24 @@ void String_t_char__realloc_____uptr(String_t_char_* __this__,int64_t size)
  int8_t D = !C;
  if (D){goto _label0; };
 
- /*Line:42*/
+ /*Line:43*/
 
  int64_t E;
   int64_t F = __this__->__1;
  E = F;
 
- /*Line:43*/
+ /*Line:44*/
 
  void* G;
   void* H = __this__->__0;
  G = H;
 
- /*Line:45*/
+ /*Line:46*/
 
  int64_t I = size;
   __this__->__2 = I;
 
- /*Line:46*/
+ /*Line:47*/
 
  int64_t J = size;
  int64_t K = 1;
@@ -375,16 +514,76 @@ void String_t_char__realloc_____uptr(String_t_char_* __this__,int64_t size)
  N = T;
  goto _label2;
  _label1:
-  __this__->__0 = M;
+ 
+ /*Line:48*/
+
+ __this__->__0 = M;
+
+
+ int64_t U;
+ int64_t V = 0;
+ U = V;
+ _label4:
+ int64_t W = E;
+ int64_t X = U;
+ int8_t Y = X<W;
+ int8_t Z = !Y;
+ if (Z){goto _label3; };
+
+ /*Line:49*/
+
+ void* ZB = G;
+ int64_t ZC = U;
+ int64_t ZD = 1;
+ int64_t ZE = ZC*ZD;
+ void* ZF = (int64_t)ZB+ZE;
+ int8_t ZG = *(int8_t*)ZF;
+  void* ZH = __this__->__0;
+ int64_t ZI = U;
+ int64_t ZJ = 1;
+ int64_t ZK = ZI*ZJ;
+ void* ZL = (int64_t)ZH+ZK;
+ *(int8_t*)ZL = ZG;
+
+ /*Line:48*/
+
+ int64_t ZM = U;
+ int64_t ZN = 1;
+ int64_t ZO = ZM+ZN;
+ U = ZO;
+ goto _label4;
+ _label3:
+
+ /*Line:52*/
+
+ void* ZP = G;
+ free(ZP);
  _label0:
  return;
+
+}
+StringSpan_t_char_ String_t_char__AsSpan____(String_t_char_* __this__)
+{
+ StringSpan_t_char_ _ReturnVal;
+ /*Block*/ 
+
+ /*File:/src.uc*/
+ /*Line:55*/
+
+ StringSpan_t_char_ A;
+ StringSpan_t_char_* B = &A;
+  void* C = __this__->__0;
+  int64_t D = __this__->__1;
+ StringSpan_t_char_____new_______c____uptr(B,C,D);
+ _ReturnVal = A;
+ return _ReturnVal;
 
 }
 void String_t_char____Compound_Plus_________imut(String_t_char_* __this__,StringSpan_t_char_ string)
 { /*Block*/ 
 
  /*File:/src.uc*/
- /*Line:51*/
+ /*Line:59*/
 
  int64_t A;
   int64_t B = string.__1;
@@ -392,23 +591,23 @@ void String_t_char____Compound_Plus_________imut(String_t_char_* __this__,String
  int64_t D = C+B;
  A = D;
 
- /*Line:52*/
+ /*Line:60*/
 
  String_t_char_* E = __this__;
  int64_t F = A;
  String_t_char__realloc_____uptr(E,F);
 
- /*Line:54*/
+ /*Line:62*/
 
  int64_t G;
   int64_t H = __this__->__1;
  G = H;
 
- /*Line:55*/
+ /*Line:63*/
 
  int64_t I = A;
  
- /*Line:57*/
+ /*Line:65*/
 
  __this__->__1 = I;
 
@@ -422,10 +621,30 @@ void String_t_char____Compound_Plus_________imut(String_t_char_* __this__,String
  int8_t N = M<L;
  int8_t O = !N;
  if (O){goto _label0; };
- int64_t P = J;
- int64_t Q = 1;
- int64_t R = P+Q;
- J = R;
+
+ /*Line:66*/
+
+  void* P = string.__0;
+ int64_t Q = J;
+ int64_t R = 1;
+ int64_t S = Q*R;
+ void* T = (int64_t)P+S;
+ int8_t U = *(int8_t*)T;
+  void* V = __this__->__0;
+ int64_t W = G;
+ int64_t X = J;
+ int64_t Y = X+W;
+ int64_t Z = 1;
+ int64_t ZB = Y*Z;
+ void* ZC = (int64_t)V+ZB;
+ *(int8_t*)ZC = U;
+
+ /*Line:65*/
+
+ int64_t ZD = J;
+ int64_t ZE = 1;
+ int64_t ZF = ZD+ZE;
+ J = ZF;
  goto _label1;
  _label0:
  return;
