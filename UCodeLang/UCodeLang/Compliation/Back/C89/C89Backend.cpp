@@ -399,14 +399,53 @@ void C89Backend::AddSybToString(UCodeLang::String& r)
 		case IRSymbolType::StaticVarable:
 		{
 			IRBufferData* V = Item->Get_ExAs<IRBufferData>();
-			r += "static " + ToString(Item->Type) + " " + SybName;
+			r += "static " + ToString(Item->Type);
+			
+			r += " " + SybName;
+			if (V->Bytes.size())
+			{
+				r += "[]";
+				r += " = ";
+
+				r += "{";
+				for (auto& Item : V->Bytes)
+				{
+					r += std::to_string((int)Item);	
+					if (&Item != &V->Bytes.back())
+					{
+						r += ",";
+					}
+				}
+				r += "}";
+			}
+
 			UpdateCppLinks(r, V);
 		}
 		break;
 		case IRSymbolType::ThreadLocalVarable:
 		{
 			IRBufferData* V = Item->Get_ExAs<IRBufferData>();
-			r += IRhreadLocal + (String)" " + ToString(Item->Type) + " " + SybName;
+			r += IRhreadLocal + ToString(Item->Type);
+		
+			r += " " + SybName;
+
+			if (V->Bytes.size())
+			{
+				r += "[]";
+				r += " = ";
+
+				r += "{";
+				for (auto& Item : V->Bytes)
+				{
+					r += std::to_string((int)Item);
+					if (&Item != &V->Bytes.back())
+					{
+						r += ",";
+					}
+				}
+				r += "}";
+			}
+
 			UpdateCppLinks(r, V);
 		}
 		break;
@@ -513,7 +552,11 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 				case IRInstructionType::Jump:
 
 				case IRInstructionType::ConditionalJump:
-					Names[I->Target().identifer] = "_label" + std::to_string(Names.size());
+					if (!Names.HasValue(I->Target().identifer))
+					{
+						auto LabelName = "_label" + std::to_string(Names.size());
+						Names[I->Target().identifer] = LabelName;
+					}
 					break;
 				}
 			}

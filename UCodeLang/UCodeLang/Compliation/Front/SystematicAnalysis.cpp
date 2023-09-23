@@ -924,7 +924,11 @@ void SystematicAnalysis::Debug_Add_SetVarableInfo(const Symbol& Syb, size_t InsI
 	else
 	{
 		auto irfuncname = _IR_LookingAtIRFunc ? _IR_Builder.FromID(_IR_LookingAtIRFunc->identifier) : "";
+		
+		//auto func = Symbol_GetSymbol(_FuncStack.back().Pointer);
+
 		irvarname = irfuncname + ScopeHelper::_ScopeSep + ScopeHelper::GetNameFromFullName(Syb.FullName);
+		//irvarname = Syb.FullName;
 	}
 	auto ID = _IR_Builder.ToID(irvarname);
 	IRDebugSetVarableName V;
@@ -2815,7 +2819,7 @@ void SystematicAnalysis::LogError_CantUseOutInOverloadFunc(const Token& Name)
 void SystematicAnalysis::OnForNode(const ForNode& node)
 {
 	auto& StrVarName = node._Name->Value._String;
-	auto FullName = _Table._Scope.GetApendedString(StrVarName);
+	
 
 	
 	Symbol* syb;
@@ -2824,6 +2828,8 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 
 	Push_NewStackFrame();
 	_Table.AddScope(ScopeName);
+	auto FullName = _Table._Scope.GetApendedString(StrVarName);
+	
 	SymbolID sybId = Symbol_GetSymbolID(node);
 
 	if (_PassType == PassType::GetTypes)
@@ -7869,6 +7875,8 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 			if (!SymbolVarOp.has_value())
 			{
 				LogError_CantFindVarError(Token, Str);
+				Out._Symbol = nullptr;
+				Out.Type = TypeSymbol();
 				return false;
 			}	
 			auto SymbolVar = SymbolVarOp.value();
@@ -9665,6 +9673,7 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 		GetMemberTypeSymbolFromVar_t V;
 		if (!Symbol_MemberTypeSymbolFromVar(nod._VariableName, V))
 		{
+			_LastExpressionType = TypesEnum::Null;
 			return;
 		}
 		_LastExpressionType = V.Type;
@@ -10320,8 +10329,12 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 		{
 			TypeSymbol lookingfor = _LookingForTypes.top();
 			V.Op0 = SourcType;
-			V.Op1 = IndexType;
+
+			
 			V.Op0._IsAddress = true;
+			
+
+			V.Op1 = IndexType;
 			V.Op1._IsAddress = false;
 
 			if (lookingfortype.IsAddressArray())
@@ -10340,7 +10353,11 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 			else
 			{
 				lookingfor = SourcType;
-				lookingfor.SetAsAddress();
+
+				if (IsWrite(_GetExpressionMode.top()))
+				{
+					lookingfor.SetAsAddress();
+				}
 				lookingfor._IsAddressArray = false;
 
 				_LastExpressionType = lookingfor;
@@ -10450,26 +10467,27 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 				else
 				{
 					lookingfor = SourcType;
-					lookingfor.SetAsAddress();
+					if (IsWrite(_GetExpressionMode.top()))
+					{
+						lookingfor.SetAsAddress();
+					}
 					lookingfor._IsAddressArray = false;
 					_LastExpressionType = lookingfor;
 				}
 
 			}
 
+			auto copy = lookingfor;
 			_LastExpressionType = lookingfor;
 
 
-			if (IsWrite(_GetExpressionMode.top()))
-			{
-				_IR_LastStoreField =IROperator(_IR_LastExpressionField);
-			}
+		
 
 			if (IsRead(_GetExpressionMode.top())) 
 			{
 				if (_LookingForTypes.top().IsAddress() == false)
 				{
-					if (_LastExpressionType.IsAddress())
+					if (_LastExpressionType.IsAddress() || !IsWrite(_GetExpressionMode.top()))
 					{
 						_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad_Dereferenc(_IR_LastExpressionField
 							,IR_ConvertToIRType(_LookingForTypes.top()));
@@ -10477,6 +10495,12 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 						_LastExpressionType._IsAddress=false;
 					}
 				}
+			}	
+
+			if (IsWrite(_GetExpressionMode.top()))
+			{
+				_IR_LastStoreField = IROperator(_IR_LastExpressionField);
+				_LastExpressionType = lookingfor;
 			}
 		}
 
@@ -13043,6 +13067,10 @@ SystematicAnalysis::PostFixOverLoadWith_t SystematicAnalysis::Type_HasPostfixOve
 }
 SystematicAnalysis::IndexOverLoadWith_t SystematicAnalysis::Type_HasIndexedOverLoadWith(const TypeSymbol& TypeA, const TypeSymbol& TypeB)
 {
+	if (Type_IsUnMapType(TypeB) || Type_IsUnMapType(TypeA))
+	{
+		return { true, {} };
+	}
 
 	if (Type_IsUIntType(TypeB)) 
 	{
@@ -16247,16 +16275,13 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 	{//unmaped
 		for (auto& Item : ValueTypes)
 		{
-			auto SymbolsV = Symbol_GetSymbol(Item.Type);
-			if (SymbolsV.has_value())
+			if (Type_IsUnMapType(Item.Type))
 			{
-				if (SymbolsV.value()->Type == SymbolType::Unmaped_Generic_Type)
-				{
-					Get_FuncInfo V;
-					V.CantCheckBecauseIsUnMaped = true;
 
-					return V;//cant check because we are just testing.
-				}
+				Get_FuncInfo V;
+				V.CantCheckBecauseIsUnMaped = true;
+
+				return V;//cant check because we are just testing.
 			}
 		}
 
@@ -16898,6 +16923,19 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 			ValueTypes.insert(ValueTypes.begin(), { false ,*_FuncStack.back().Pointer->GetObjectForCall() });
 			ThisParType = Get_FuncInfo::ThisPar_t::AutoPushThis;
+
+
+
+			//the code here should be removed.
+			if (Type_IsUnMapType(ValueTypes.front().Type))
+			{
+
+					Get_FuncInfo V;
+					V.CantCheckBecauseIsUnMaped = true;
+
+					return V;//cant check because we are just testing.
+			}
+
 			goto StartSymbolsLoop;
 		}
 		else 

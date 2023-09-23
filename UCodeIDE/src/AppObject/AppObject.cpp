@@ -167,6 +167,7 @@ void AppObject::Init()
  ret r;*/
         _Editor.SetText(
             R"(
+
 $StringSpan_t<T>:
  T[&] _data;
  uintptr _size;
@@ -197,7 +198,7 @@ $String_t<T>:
   _capacity = string._size;
 
   for [uintptr i = uintptr(0);i < string._size;i++]:
-   //_data[i] = string._data[i];
+   _data[i] = string._data[i];
 
  |drop[this&]:
   uintptr ptr =unsafe bitcast<uintptr>(_data);
@@ -208,12 +209,19 @@ $String_t<T>:
   
   if size > _capacity:
    var oldsize = _size;
-   var& old = _data;
+   var old = _data;
 
    _capacity = size;
    _data = unsafe new T[size];
-   //for [uintptr i = uintptr(0);i < oldsize;i++]:
-   //_data[i] = old[i];
+   for [uintptr i = uintptr(0);i < oldsize;i++]:
+     _data[i] = old[i];
+
+
+   unsafe drop(old);
+
+ |AsSpan[this&] -> StringSpan:
+  ret unsafe StringSpan(_data,_size);
+
 
  |+=[this&,imut StringSpan string]:
   var newsize = _size + string._size;
@@ -223,28 +231,63 @@ $String_t<T>:
   _size = newsize; 
   
   for [uintptr i = uintptr(0);i < newsize;i++]:
-   //_data[i + oldsize] = string._data[i];
+     _data[i + oldsize] = string._data[i];
 
 
 $StringSpan = StringSpan_t<char>;
 $String = String_t<char>;
 
+extern "c" |putchar[char V] -> void;
+
+|Print[char Str]:
+ putchar(Str);
+
+
+
+
+|Print[imut StringSpan Str] -> void:
+ for [uintptr i = uintptr(0);i < Str._size;i++]:
+  putchar(Str._data[i]);
+
+
+|Println[char Str]:
+ Print(Str);
+ Print('\n');
+
+|Println[imut StringSpan Str] -> void:
+ Print(Str);
+ Print('\n');
+
 |main[]:
  imut StringSpan Str = "Hello";//5
  imut StringSpan Str2 = " World";//6
-  
+
  String Txt = Str;
+ 
+ Println(Txt.AsSpan()); 
+
  Txt += Str2;
- ret Txt._size;
 
- //bool sizegood = Txt._size == uintptr(11);
+ Println(Txt.AsSpan());
 
- //ret sizegood && Txt._data[Txt._size - 1] == 'd';
+ bool sizegood = Txt._size == uintptr(11);
+ bool chargood = Txt._data[Txt._size - 1] == 'd';
+ 
+ ret sizegood && chargood;
+
+
+/*
+|main[]:
+ char[&] _data =unsafe bitcast<char[&]>(0);
+ for [uintptr i = uintptr(0);i < uintptr(5);i++]:
+  char V = _data[i];
+
+*/
+
  )");
 
-      
-
-
+        static int8_t _Const_SpanString_Hello_World[] = { 5,4 };
+        
 
         UpdateBackEnd();
         CompileText(GetTextEditorString());
@@ -2213,7 +2256,7 @@ void AppObject::ShowUCodeVMWindow()
                 f.close();
             }
             UCodeLangAssert(CompileC89ToLib(cfilepath, dllfile));
-
+            
             using namespace  UCodeLang;
             auto staticinitname = C89Backend::UpdateToCindentifier(StaticVariablesInitializeFunc);
             auto threadinitname = C89Backend::UpdateToCindentifier(ThreadVariablesInitializeFunc);

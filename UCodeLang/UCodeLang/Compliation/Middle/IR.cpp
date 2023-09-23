@@ -1439,7 +1439,7 @@ void IRBuilder::ToString(ToStringState& State, IRFunc* Item, String& r)
 	{
 		String Tabs = " ";
 
-
+		
 		for (auto& Block : Item->Blocks)
 		{
 
@@ -1452,10 +1452,13 @@ void IRBuilder::ToString(ToStringState& State, IRFunc* Item, String& r)
 				switch (I->Type)
 				{
 				case IRInstructionType::Jump:
-
 				case IRInstructionType::ConditionalJump:
-					if (!Names.HasValue(I->Target().identifer)) {
-						Names.AddValue(I->Target().identifer, "_label" + std::to_string(Names.size()));
+					if (!Names.HasValue(I->Target().identifer)) 
+					{
+						auto LabelName = "_label" + std::to_string(Names.size());
+						Names.AddValue(I->Target().identifer, LabelName);
+					
+						
 					}
 					break;
 				}
