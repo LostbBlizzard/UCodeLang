@@ -44,7 +44,7 @@ private:
 
 	void ToString(String& r, const IRFunc* Item, C89Backend::ToStringState& State,bool OutputBody = false);
 
-	String ToString(const IRType& Type);
+	String ToString(const IRType& Type,bool IsUnsigned = false);
 
 	String ToString(ToStringState& State, IRInstruction& Ins, IROperator& Value);
 	String ToStringBinary(ToStringState& State, IRInstruction* Ins, const char* V);

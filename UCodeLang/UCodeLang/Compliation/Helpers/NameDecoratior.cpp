@@ -7,7 +7,7 @@
 
 UCodeLangStart
 
-String NameDecoratior::GetDecoratedName(const String_view funcName, const Vector<ClassMethod::Par>& Pars)
+String NameDecoratior::GetDecoratedName(const String_view funcName, const Vector<Par>& Pars)
 {
 	String r = (String)funcName;
 
@@ -27,30 +27,14 @@ String NameDecoratior::GetDecoratedName(const String_view funcName, const Vector
 
 	return r;
 }
-String NameDecoratior::GetDecoratedName(const String_view funcName, const Vector<ReflectionTypeInfo>& Pars)
-{
-	String r = (String)funcName;
-
-	if (Pars.size())
-	{
-		r += "^";
-		for (auto& Item : Pars)
-		{
-			r += DecoratedNameType(Item);
-			
-			if (&Item != &Pars.back())
-			{
-				r += ",";
-			}
-		}
-	}
-
-	return r;
-}
-String NameDecoratior::DecoratedNameType(const ReflectionTypeInfo& Type)
+String NameDecoratior::DecoratedNameType(const Par& Type)
 {
 	String R;
-	switch (Type._Type)
+	if (Type.par.IsOutPar)
+	{
+		R += "out";
+	}
+	switch (Type.par.Type._Type)
 	{
 	case ReflectionTypes::Void:
 		R += "v";
@@ -101,42 +85,32 @@ String NameDecoratior::DecoratedNameType(const ReflectionTypeInfo& Type)
 		R += "f64";
 		break;
 	default:
-		R += "[]";
+		R += Type.symbolFullName;
 		break;
 	}
-	if (Type._IsAddress)
+	if (Type.par.Type._IsAddress)
 	{
 		R += "&";
 	}
-	if (Type._IsAddressArray)
+	if (Type.par.Type._IsAddressArray)
 	{
 		R += "[&]";
 	}
-	if (Type._Isimmutable)
+	if (Type.par.Type._Isimmutable)
 	{
 		R += "imut";
 	}
-	if (Type._IsDynamic)
+	if (Type.par.Type._IsDynamic)
 	{
 		R += "dyn";
 	}
-	if (Type._MoveData == ReflectionMoveData::Moved)
+	if (Type.par.Type._MoveData == ReflectionMoveData::Moved)
 	{
 		R += "mov";
 	}
 
 	
 
-	return R;
-}
-String NameDecoratior::DecoratedNameType(const ClassMethod::Par& Type)
-{
-	String R;
-	if (Type.IsOutPar)
-	{
-		R += "out ";
-	}
-	R += DecoratedNameType(Type.Type);
 	return R;
 }
 String NameDecoratior::GetUnDecoratedName(const String& DecoratedName)
