@@ -86,13 +86,6 @@ typedef double float64_t;
 
 typedef struct 
 {
- void* __0; 
- int64_t __1; 
-
-} Span_sint32_;
-
-typedef struct 
-{
  int64_t __0; 
  int64_t __1; 
 
@@ -100,18 +93,10 @@ typedef struct
 
 typedef struct 
 {
- int32_t __0; 
- int32_t __1; 
+ int8_t __0; 
+ int8_t __1; 
 
-} Range_t_sint32_;
-
-typedef struct 
-{
- void* __0; 
- int64_t __1; 
- int64_t __2; 
-
-} Vector_sint32_;
+} Range_t_uint8_;
 
 
 void __StaticInit__();
@@ -119,16 +104,12 @@ void __StaticUnload__();
 void __threadInit__();
 void __threadUnload__();
 int64_t _Entry();
-void Span_sint32_____new___Span_sint32__(Span_sint32_* __this__);
-void Span_sint32_____new___Span_sint32___i32____uptr(Span_sint32_* __this__,void* data,int64_t size);
 void Range_t_uintptr_____new___Range_t_uintptr__(Range_t_uintptr_* __this__);
 void Range_t_uintptr_____new___Range_t_uintptr___uptr_uptr(Range_t_uintptr_* __this__,int64_t start,int64_t end);
-void Range_t_sint32_____new___Range_t_sint32__(Range_t_sint32_* __this__);
-void Range_t_sint32_____new___Range_t_sint32___i32_i32(Range_t_sint32_* __this__,int32_t start,int32_t end);
-void Vector_sint32_____new___Vector_sint32__(Vector_sint32_* __this__);
-Span_sint32_ Vector_sint32____Index___Vector_sint32___Range_t_uintptr_(Vector_sint32_* __this__,Range_t_uintptr_ V);
-Span_sint32_ Vector_sint32____Index___Vector_sint32___Range_t_sint32_(Vector_sint32_* __this__,Range_t_sint32_ V);
-Range_t_sint32_ Range_sint32__i32_i32(int32_t start,int32_t end);
+Range_t_uintptr_ Range_uintptr__uptr_uptr(int64_t start,int64_t end);
+void Range_t_uint8_____new___Range_t_uint8__(Range_t_uint8_* __this__);
+void Range_t_uint8_____new___Range_t_uint8___u8_u8(Range_t_uint8_* __this__,int8_t start,int8_t end);
+Range_t_uint8_ Range_uint8__u8_u8(int8_t start,int8_t end);
 int main(int argc, char** argv);
 
 /*file.cpp*/
@@ -151,82 +132,45 @@ int64_t _Entry()
  /*Block*/ 
 
  /*File:/src.uc*/
- /*Line:48*/
+ /*Line:72*/
 
- Vector_sint32_ A;
-
- /*Line:0*/
-
- Vector_sint32_* B = &A;
-
- /*Line:48*/
-
- Vector_sint32_____new___Vector_sint32__(B);
-
- /*Line:50*/
-
- Span_sint32_ C;
-
- /*Line:52*/
- /*Line:50*/
-
- Vector_sint32_* D = &A;
- int32_t E = 5;
- int32_t F = 10;
- Range_t_sint32_ G = Range_sint32__i32_i32(E,F);
- Span_sint32_ H = Vector_sint32____Index___Vector_sint32___Range_t_sint32_(D,G);
- C = H;
-
- /*Line:52*/
-
-  int64_t I = C.__1;
- _ReturnVal = I;
- return _ReturnVal;
-
-}
-void Span_sint32_____new___Span_sint32__(Span_sint32_* __this__)
-{ /*Block*/ 
-
- /*File:/src.uc*/
- /*Line:21*/
-
- int64_t A = 0;
-  __this__->__0 = (void*)A;
-
- /*Line:22*/
-
+ Range_t_uintptr_ A;
  int64_t B = 0;
-  __this__->__1 = B;
- return;
+ int64_t C = 5;
+ Range_t_uintptr_ D = Range_uintptr__uptr_uptr(B,C);
+ A = D;
 
-}
-void Span_sint32_____new___Span_sint32___i32____uptr(Span_sint32_* __this__,void* data,int64_t size)
-{ /*Block*/ 
+ /*Line:73*/
 
- /*File:/src.uc*/
- /*Line:25*/
+ Range_t_uint8_ E;
+ int8_t F = 0;
+ int8_t G = 5;
+ Range_t_uint8_ H = Range_uint8__u8_u8(F,G);
+ E = H;
 
- void* A = data;
-  __this__->__0 = A;
+ /*Line:75*/
 
- /*Line:26*/
-
- int64_t B = size;
-  __this__->__1 = B;
- return;
+  int8_t I = E.__1;
+ uint8_t J_tep = *(uint8_t*)&I;
+ uint64_t J_tep2 = (uint64_t)J_tep;
+ int64_t J = *(int64_t*)&J_tep2;
+  int64_t K = A.__1;
+ int64_t L = K+J;
+ _ReturnVal = L;
+ return _ReturnVal;
 
 }
 void Range_t_uintptr_____new___Range_t_uintptr__(Range_t_uintptr_* __this__)
 { /*Block*/ 
 
  /*File:/src.uc*/
- /*Line:7*/
+ /*Line:62*/
  /*Line:0*/
 
  int64_t A = 0;
   __this__->__0 = A;
 
- /*Line:8*/
+ /*Line:63*/
  /*Line:0*/
 
  int64_t B = 0;
@@ -238,147 +182,88 @@ void Range_t_uintptr_____new___Range_t_uintptr___uptr_uptr(Range_t_uintptr_* __t
 { /*Block*/ 
 
  /*File:/src.uc*/
- /*Line:10*/
+ /*Line:65*/
 
  int64_t A = start;
   __this__->__0 = A;
 
- /*Line:11*/
+ /*Line:66*/
 
  int64_t B = end;
   __this__->__1 = B;
  return;
 
 }
-void Range_t_sint32_____new___Range_t_sint32__(Range_t_sint32_* __this__)
-{ /*Block*/ 
-
- /*File:/src.uc*/
- /*Line:7*/
- /*Line:0*/
-
- int32_t A = 0;
-  __this__->__0 = A;
-
- /*Line:8*/
- /*Line:0*/
-
- int32_t B = 0;
-  __this__->__1 = B;
- return;
-
-}
-void Range_t_sint32_____new___Range_t_sint32___i32_i32(Range_t_sint32_* __this__,int32_t start,int32_t end)
-{ /*Block*/ 
-
- /*File:/src.uc*/
- /*Line:10*/
-
- int32_t A = start;
-  __this__->__0 = A;
-
- /*Line:11*/
-
- int32_t B = end;
-  __this__->__1 = B;
- return;
-
-}
-void Vector_sint32_____new___Vector_sint32__(Vector_sint32_* __this__)
-{ /*Block*/ 
-
- /*File:/src.uc*/
- /*Line:34*/
-
- int64_t A = 0;
-  __this__->__0 = (void*)A;
-
- /*Line:35*/
-
- int64_t B = 0;
-  __this__->__1 = B;
-
- /*Line:36*/
-
- int64_t C = 0;
-  __this__->__2 = C;
- return;
-
-}
-Span_sint32_ Vector_sint32____Index___Vector_sint32___Range_t_uintptr_(Vector_sint32_* __this__,Range_t_uintptr_ V)
+Range_t_uintptr_ Range_uintptr__uptr_uptr(int64_t start,int64_t end)
 {
- Span_sint32_ _ReturnVal;
+ Range_t_uintptr_ _ReturnVal;
  /*Block*/ 
 
  /*File:/src.uc*/
  /*Line:0*/
 
- Span_sint32_ A;
- Span_sint32_* B = &A;
- 
- /*Line:41*/
+ Range_t_uintptr_ A;
+ Range_t_uintptr_* B = &A;
 
- void* C = __this__->__0;
-  int64_t D = V.__0;
- int64_t E = 4;
- int64_t F = D*E;
- void* G = (int64_t)C+F;
-  int64_t H = V.__0;
-  int64_t I = V.__1;
- int64_t J = I-H;
- Span_sint32_____new___Span_sint32___i32____uptr(B,G,J);
+ /*Line:69*/
+
+ int64_t C = start;
+ int64_t D = end;
+ Range_t_uintptr_____new___Range_t_uintptr___uptr_uptr(B,C,D);
  _ReturnVal = A;
  return _ReturnVal;
 
 }
-Span_sint32_ Vector_sint32____Index___Vector_sint32___Range_t_sint32_(Vector_sint32_* __this__,Range_t_sint32_ V)
-{
- Span_sint32_ _ReturnVal;
- /*Block*/ 
+void Range_t_uint8_____new___Range_t_uint8__(Range_t_uint8_* __this__)
+{ /*Block*/ 
 
  /*File:/src.uc*/
+ /*Line:62*/
  /*Line:0*/
 
- Span_sint32_ A;
- Span_sint32_* B = &A;
- 
- /*Line:44*/
+ int8_t A = 0;
+  __this__->__0 = A;
 
- void* C = __this__->__0;
-  int32_t D = V.__0;
- int64_t E = (int64_t)D;
- uint64_t F_tep = (uint64_t)E;
- int64_t F = *(int64_t*)&F_tep;
- int64_t G = 4;
- int64_t H = F*G;
- void* I = (int64_t)C+H;
-  int32_t J = V.__0;
-  int32_t K = V.__1;
- int32_t L = K-J;
- int64_t M = (int64_t)L;
- uint64_t N_tep = (uint64_t)M;
- int64_t N = *(int64_t*)&N_tep;
- Span_sint32_____new___Span_sint32___i32____uptr(B,I,N);
- _ReturnVal = A;
- return _ReturnVal;
+ /*Line:63*/
+ /*Line:0*/
+
+ int8_t B = 0;
+  __this__->__1 = B;
+ return;
 
 }
-Range_t_sint32_ Range_sint32__i32_i32(int32_t start,int32_t end)
+void Range_t_uint8_____new___Range_t_uint8___u8_u8(Range_t_uint8_* __this__,int8_t start,int8_t end)
+{ /*Block*/ 
+
+ /*File:/src.uc*/
+ /*Line:65*/
+
+ int8_t A = start;
+  __this__->__0 = A;
+
+ /*Line:66*/
+
+ int8_t B = end;
+  __this__->__1 = B;
+ return;
+
+}
+Range_t_uint8_ Range_uint8__u8_u8(int8_t start,int8_t end)
 {
- Range_t_sint32_ _ReturnVal;
+ Range_t_uint8_ _ReturnVal;
  /*Block*/ 
 
  /*File:/src.uc*/
  /*Line:0*/
 
- Range_t_sint32_ A;
- Range_t_sint32_* B = &A;
+ Range_t_uint8_ A;
+ Range_t_uint8_* B = &A;
 
- /*Line:14*/
+ /*Line:69*/
 
- int32_t C = start;
- int32_t D = end;
- Range_t_sint32_____new___Range_t_sint32___i32_i32(B,C,D);
+ int8_t C = start;
+ int8_t D = end;
+ Range_t_uint8_____new___Range_t_uint8___u8_u8(B,C,D);
  _ReturnVal = A;
  return _ReturnVal;
 

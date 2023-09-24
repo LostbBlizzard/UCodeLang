@@ -96,7 +96,7 @@ UCodeTestStart
 		}
 		return r;
 	}
-	static const Array<TestInfo, 90> Tests
+	static const Array<TestInfo, 91> Tests
 	{
 
 		TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation),
@@ -219,6 +219,7 @@ UCodeTestStart
 		TestInfo("Array", "Array/Array.uc", "main", SuccessCondition::RunTimeValue, (int)10),
 		TestInfo("defer", "Objects/defer.uc", "main", SuccessCondition::RunTimeValue, (int)1),
 		TestInfo("StdString", "Std/String.uc", "main", SuccessCondition::RunTimeValue, (bool)1),
+		TestInfo("inferredgenericreturn", "Generics/inferredgenericreturn.uc", "main", SuccessCondition::RunTimeValue, (uintptr_t)10),
 	};
 
 
