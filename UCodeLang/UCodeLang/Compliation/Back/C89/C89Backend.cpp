@@ -35,7 +35,7 @@ UCodeLangStart
 
 #define IRReturnValue "_ReturnVal"
 
-#define IRReinterpretCastTep "_tep";
+#define IRReinterpretCastTep "_tep"
 
 C89Backend::C89Backend()
 {
@@ -904,11 +904,11 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					auto valname = State.GetName(I.get());
 
 
-					r += ToString(I->ObjectType,true);
+					r += ToString(tep, true);
 					r += " " + valname + IRReinterpretCastTep;
 					r += " = ";
 					r += "*(";
-					r += ToString(I->ObjectType, true);
+					r += ToString(tep,true);
 					r += "*)&";
 
 					r += ToString(State, *I, I->Target());
@@ -916,7 +916,7 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					r += ";\n ";
 
 					r += ToString(I->ObjectType,true);
-					r += " " + valname + IRReinterpretCastTep + "2";
+					r += " " + valname + (String)IRReinterpretCastTep + (String)"2";
 					r += " = ";
 
 					r += "(";
@@ -929,7 +929,10 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					r += " " + valname;
 					r += " = ";
 
-					r += valname + IRReinterpretCastTep + "2";
+					r += "*(";
+					r += ToString(I->ObjectType);
+					r += "*)&";
+					r += valname + String(IRReinterpretCastTep) + String("2");
 				}	
 				break;
 				default:

@@ -16279,6 +16279,109 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 					Inferautopushtis = false;
 				}
 			}
+			else if (Item->Type == SymbolType::GenericFunc)
+			{
+				// Func<T>[T V] -> T
+				// uintptr a = Func(0) 
+				// becomes
+				// uintptr a = Func<uintptr>(0) 
+				// and not
+				// uintptr a = Func<int>(0) 
+
+				if (Item->IsInvalid())
+				{
+					return {};
+				}
+				const FuncInfo* Info = Item->Get_Info<FuncInfo>();
+				Symbol_Update_FuncSym_ToFixedTypes(Item);
+
+				size_t parcount = Pars._Nodes.size();
+				if (Info->Pars.size() == parcount) {
+					//Infer = Info->Pars;
+					//Inferautopushtis = false;
+					//InferFunc = Item;
+				
+					auto FuncRet = Info->Ret;
+					auto LookForType = _LookingForTypes.top();
+					
+					bool IsGenericLookForType = true;
+					//To Do Check if LookForType is a Generic of FuncRet
+					if (auto Syb = Symbol_GetSymbol(FuncRet).value_unchecked())
+					{
+						//IsGenericLookForType = Syb->Type == SymbolType::Generic_class;
+					}
+
+					
+					if (IsGenericLookForType) {
+						auto& Pars = Info->Pars;
+						auto& Generic = Info->_GenericData;
+						Vector<ParInfo> R;
+						
+					  	BinaryVectorMap<SymbolID,TypeSymbol> typemap;
+						if (auto Val = Symbol_GetSymbol(LookForType).value_unchecked())
+						{
+							const auto& Funcnode = Item->Get_NodeInfo<FuncNode>();
+							auto& rettypenode = Funcnode->_Signature._ReturnType;
+
+
+							for (auto& Gtype : rettypenode._generic._Values)
+							{
+
+								Optional<size_t> ToMap;
+								for (size_t i = 0; i < Funcnode->_Signature._generic._Values.size(); i++)
+								{
+									auto& G = Funcnode->_Signature._generic._Values[i];
+									if (G.token->Value._String == Gtype._name.token->Value._String)
+									{
+										ToMap = i;
+
+									}
+								}
+
+
+								if (ToMap.has_value()) 
+								{
+									auto MapVal = ToMap.value();
+									String FName = (String)Funcnode->_Signature._generic._Values[MapVal].token->Value._String;
+
+									String GName = (String)Gtype._name.token->Value._String;
+
+									String Scope = ScopeHelper::ApendedStrings(Val->FullName, GName);
+									
+									auto key = Info->_GenericData._Generic[MapVal].SybID;
+
+									if (!typemap.HasValue(key)) 
+									{
+										auto ty = Symbol_GetSymbol(Scope, SymbolType::Type_class).value()->VarType;
+										typemap.AddValue(key, ty);
+									}
+								}
+							}
+
+						}
+						
+						for (auto& Item : Pars)
+						{
+							Optional<ParInfo> RetType;
+
+							for (auto& GItem : Generic._Generic)
+							{
+								if (typemap.HasValue(GItem.SybID))
+								{
+									RetType = { Item.IsOutPar,typemap.at(GItem.SybID) };
+									break;
+								}
+							}
+
+
+							R.push_back(RetType.value_or(Item));
+
+
+						}
+						Infer = std::move(R);
+					}
+				}
+			}
 			else if (Item->Type == SymbolType::Type_class)
 			{
 				ClassInfo* V = Item->Get_Info<ClassInfo>();
