@@ -1059,6 +1059,7 @@ private:
 	
 	TypeSymbol Type_GetUnMapType();
 	bool Type_IsUnMapType(const TypeSymbol& Type) const;
+	bool Type_IsUnMapType(const Symbol& Type) const;
 
 	void OnCompareTypesNode(const CMPTypesNode& node);
 	bool Type_Compare(const TypeSymbol& Type0, const TypeSymbol& Type1, const NeverNullPtr<Token> Value);
@@ -1413,6 +1414,13 @@ private:
 	Get_FuncInfo Type_GetFunc(const TypeSymbol& Name,const ValueParametersNode& Pars);
 	Get_FuncInfo Type_GetFunc(const ScopedNameNode& Name,const ValueParametersNode& Pars,TypeSymbol Ret);
 
+	Optional<Optional<Get_FuncInfo>> Type_FuncinferGenerics(Vector<TypeSymbol>& GenericInput, const Vector<ParInfo>& ValueTypes
+		, const UseGenericsNode* Generics
+		, Symbol* Item
+		, bool _ThisTypeIsNotNull);
+
+	bool CheckForGenericInputIsConstantExpression(const FuncInfo* Info, const Vector<TypeSymbol>& GenericInput);
+
 	void Type_RemoveTypeattributes(TypeSymbol& tep_);
 
 
@@ -1454,7 +1462,7 @@ private:
 
 	void Push_GenericInfo(const String& NewName, const Vector<TypeSymbol>& GenericInput, const NeverNullPtr<Symbol> Func, const Generic& GenericData);
 
-	String Generic_GetGenericExtendedErrValue(const Generic& Generic, const GenericValuesNode GenericAsNode, const Vector<TypeSymbol>& GenericInput);
+	String Generic_GetGenericExtendedErrValue(const Generic& Generic, const GenericValuesNode& GenericAsNode, const Vector<TypeSymbol>& GenericInput);
 	Optional<SymbolID> Generic_MakeTypePackSymbolIfNeeded(const String& NewName, const Vector<TypeSymbol>& GenericInput, const Generic& Generic);
 
 	String Generic_SymbolGenericFullName(const NeverNullPtr<Symbol> Func, const Vector<TypeSymbol>& Type) const;
@@ -1476,7 +1484,7 @@ private:
 	template<typename T> T* Eval_Get_ObjectAs(const TypeSymbol& Input, const RawEvaluatedObject& Input2)
 	{
 		#if UCodeLangDebug
-		if (Input2.ObjectSize == sizeof(T))
+		if (Input2.ObjectSize != sizeof(T))
 		{
 			String TepStr = "type miss-mach when EvaluatedObject To Cpp type '" + (String)typeid(T).name() + "' ";
 			UCodeLangThrowException(TepStr.c_str());
@@ -1492,7 +1500,7 @@ private:
 	template<typename T> const T* Eval_Get_ObjectAs(const TypeSymbol& Input, const RawEvaluatedObject& Input2) const
 	{
 		#if UCodeLangDebug
-		if (Input2.ObjectSize == sizeof(T))
+		if (Input2.ObjectSize != sizeof(T))
 		{
 			String TepStr = "type miss-mach when EvaluatedObject To Cpp type '" + (String)typeid(T).name() + "' ";
 			UCodeLangThrowException(TepStr.c_str());

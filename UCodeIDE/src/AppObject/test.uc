@@ -99,4 +99,3 @@ $FuncPtr = |[int A] -> int;
 |main[]:
  var V = Func([A] => 0);
 
-
