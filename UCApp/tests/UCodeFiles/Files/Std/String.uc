@@ -32,7 +32,7 @@ $String_t<T>:
 
  |drop[this&]:
   uintptr ptr =unsafe bitcast<uintptr>(_data);
-  if ptr == uintptr(0):
+  if ptr != uintptr(0):
    unsafe drop(_data);
 
  |realloc[this&,uintptr size]:
@@ -46,8 +46,9 @@ $String_t<T>:
    for [uintptr i = uintptr(0);i < oldsize;i++]:
      _data[i] = old[i];
 
-
-   unsafe drop(old);
+   uintptr ptr =unsafe bitcast<uintptr>(old);
+   if ptr == uintptr(0):
+      unsafe drop(old);
 
  |AsSpan[this&] -> StringSpan:
   ret unsafe StringSpan(_data,_size);

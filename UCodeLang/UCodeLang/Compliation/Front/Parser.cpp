@@ -2249,11 +2249,12 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 	auto Token2 = TryGetToken();
 	while (!ignoreRighthandOFtype && Token2)
 	{
-		if (Token2->Type == TokenType::bitwise_and)//int&
+		if (Token2->Type == TokenType::bitwise_and 
+			&& out->_IsAddess == false)//int&
 		{
 			NextToken();
 			out->SetAsAddess();
-			break;
+			Token2 = TryGetToken();
 		}
 		else if (Token2 && Token2->Type == TokenType::Left_Bracket)
 		{
@@ -3658,11 +3659,13 @@ GotNodeType Parser::GetShortLambdaNode(LambdaNode& out)
 {
 	while (TryGetToken()->Type == TokenType::Name)
 	{
+		auto nametoken = TryGetToken();
 		NextToken();
 
-		if (TryGetToken()->Type == TokenType::Comma)
+		if (TryGetToken()->Type == TokenType::Comma
+			|| TryGetToken()->Type == TokenType::Right_Bracket)
 		{
-			NextToken();
+			//NextToken();
 		}
 		else
 		{
@@ -3670,7 +3673,7 @@ GotNodeType Parser::GetShortLambdaNode(LambdaNode& out)
 		}
 
 		NamedParameterNode par;
-		par._Name.token = TryGetToken();
+		par._Name.token = nametoken;
 		TypeNode::Gen_Var(par._Type, *par._Name.token);
 		out._Pars._Parameters.push_back(std::move(par));
 	}
@@ -3679,6 +3682,8 @@ GotNodeType Parser::GetShortLambdaNode(LambdaNode& out)
 	auto endtoken = TryGetToken();
 	TokenTypeCheck(endtoken, TokenType::Right_Bracket);
 	NextToken();
+
+	out._LambdaStart = endtoken;
 
 	auto AssmentToken = TryGetToken();
 	if (AssmentToken->Type == TokenType::Colon)
