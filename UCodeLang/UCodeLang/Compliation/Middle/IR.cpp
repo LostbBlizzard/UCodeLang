@@ -1777,6 +1777,9 @@ bool IRBuilder::ToString(
 		r += " = ";
 		r += "await::GetValue(" + ToString(State, *I, I->Target()) + ")";
 		break;
+	case IRInstructionType::Unreachable:
+		r += "LowLevel::Unreachable()";
+		break;
 	default:
 		UCodeLangUnreachable();
 		break;

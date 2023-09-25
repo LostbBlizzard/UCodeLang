@@ -313,10 +313,14 @@ inline bool IsLocation(IRInstructionType Value)
 inline bool IsAction(IRInstructionType Value)
 {
 	return Value == IRInstructionType::Return
+		|| Value == IRInstructionType::Jump
+		|| Value == IRInstructionType::LoadReturn
 		|| Value == IRInstructionType::FreeCall
 		|| Value == IRInstructionType::Await_PassPar
 		|| Value == IRInstructionType::Await_RunTask
-		|| Value == IRInstructionType::Await_Free_Task;
+		|| Value == IRInstructionType::Await_Free_Task
+		|| Value == IRInstructionType::Assume
+		|| Value == IRInstructionType::Unreachable;
 }
 
 inline bool IsOperatorValueInTarget(IRInstructionType Value)
