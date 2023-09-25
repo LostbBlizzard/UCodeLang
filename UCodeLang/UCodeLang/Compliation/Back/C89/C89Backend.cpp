@@ -333,127 +333,230 @@ String C89Backend::ToString()
 
 void C89Backend::AddSybToString(UCodeLang::String& r)
 {
+	BinaryVectorMap<IRidentifierID, bool> Vals;
+	Vals.reserve(_Input->_Symbols.size());
+
 	for (auto& Item : _Input->_Symbols)
 	{
-		String SybName = FromIDToCindentifier(Item->identifier);
-		switch (Item->SymType)
-		{
-		case IRSymbolType::FuncPtr:
-		{
-			IRFuncPtr* V = Item->Get_ExAs<IRFuncPtr>();
-			r += "typedef ";
-			r += ToString(V->Ret);
-			r += "(*" + SybName + ")";
-			r += "(";
+		Vals.AddValue(Item->identifier, false);
+	}
+	size_t Values = _Input->_Symbols.size();
 
-			for (auto& Item2 : V->Pars)
+
+	while (Values != 0)
+	{
+
+
+		for (auto& Item : _Input->_Symbols)
+		{
+			if (Vals.at(Item->identifier) == false)
 			{
-				r += ToString(Item2);
-				if (&Item2 != &V->Pars.back())
+
+				String SybName = FromIDToCindentifier(Item->identifier);
+				switch (Item->SymType)
 				{
-					r += ",";
-				}
-			}
-
-			r += ")";
-			r += ";\n\n";
-		}
-		break;
-		case IRSymbolType::Struct:
-		{
-			IRStruct* V = Item->Get_ExAs<IRStruct>();
-
-			r += "typedef ";
-			
-			if (V->IsUnion) 
-			{
-				r += "union";
-			}
-			else
-			{
-				r += "struct";
-			}
-			
-			r += " \n{\n";
-
-			for (size_t i = 0; i < V->Fields.size(); i++)
-			{
-				r += " " + ToString(V->Fields[i].Type) + " __" + std::to_string(i) + "; \n";
-			}
-
-			r += "\n} " + SybName + ";\n\n";
-		}
-		break;
-		case IRSymbolType::StaticArray:
-		{
-			IRStaticArray* V = Item->Get_ExAs<IRStaticArray>();
-
-			r += "typedef struct ";
-			r += SybName + " {";
-			r += ToString(V->Type);
-			r += " base[";
-			r += std::to_string(V->Count) + "];";
-			r += " } ";
-			r += SybName;
-			r += ";\n\n";
-		}
-		break;
-		case IRSymbolType::StaticVarable:
-		{
-			IRBufferData* V = Item->Get_ExAs<IRBufferData>();
-			r += "static " + ToString(Item->Type);
-			
-			r += " " + SybName;
-			if (V->Bytes.size())
-			{
-				r += "[]";
-				r += " = ";
-
-				r += "{";
-				for (auto& Item : V->Bytes)
+				case IRSymbolType::FuncPtr:
 				{
-					r += std::to_string((int)Item);	
-					if (&Item != &V->Bytes.back())
+					IRFuncPtr* V = Item->Get_ExAs<IRFuncPtr>();
+
+					for (auto& Item2 : V->Pars)
 					{
-						r += ",";
+						if (Item2._Type == IRTypes::IRsymbol || Item2._Type == IRTypes::pointer)
+						{
+							if (Vals.HasValue(Item2._symbol.ID))
+							{
+								if (Vals.at(Item2._symbol.ID) == false)
+								{
+
+									goto NextMainLoop;
+								}
+							}
+						}
 					}
-				}
-				r += "}";
-			}
 
-			UpdateCppLinks(r, V);
-		}
-		break;
-		case IRSymbolType::ThreadLocalVarable:
-		{
-			IRBufferData* V = Item->Get_ExAs<IRBufferData>();
-			r += IRhreadLocal + ToString(Item->Type);
-		
-			r += " " + SybName;
+					r += "typedef ";
+					r += ToString(V->Ret);
+					r += "(*" + SybName + ")";
+					r += "(";
 
-			if (V->Bytes.size())
-			{
-				r += "[]";
-				r += " = ";
-
-				r += "{";
-				for (auto& Item : V->Bytes)
-				{
-					r += std::to_string((int)Item);
-					if (&Item != &V->Bytes.back())
+					for (auto& Item2 : V->Pars)
 					{
-						r += ",";
+						r += ToString(Item2);
+						if (&Item2 != &V->Pars.back())
+						{
+							r += ",";
+						}
 					}
-				}
-				r += "}";
-			}
 
-			UpdateCppLinks(r, V);
-		}
-		break;
-		default:
-			UCodeLangUnreachable();//Ptr was not set
-			break;
+					r += ")";
+					r += ";\n\n";
+
+				}
+				break;
+				case IRSymbolType::Struct:
+				{
+					IRStruct* V = Item->Get_ExAs<IRStruct>();
+
+					for (size_t i = 0; i < V->Fields.size(); i++)
+					{
+						auto& Item2 = V->Fields[i].Type;
+						if (Item2._Type == IRTypes::IRsymbol || Item2._Type == IRTypes::pointer)
+						{
+							if (Vals.HasValue(Item2._symbol.ID))
+							{
+								if (Vals.at(Item2._symbol.ID) == false)
+								{
+
+									goto NextMainLoop;
+								}
+							}
+						}
+					}
+
+					r += "typedef ";
+
+					if (V->IsUnion)
+					{
+						r += "union";
+					}
+					else
+					{
+						r += "struct";
+					}
+
+					r += " \n{\n";
+
+					for (size_t i = 0; i < V->Fields.size(); i++)
+					{
+						r += " " + ToString(V->Fields[i].Type) + " __" + std::to_string(i) + "; \n";
+					}
+
+					r += "\n} " + SybName + ";\n\n";
+				}
+				break;
+				case IRSymbolType::StaticArray:
+				{
+					IRStaticArray* V = Item->Get_ExAs<IRStaticArray>();
+
+					{
+						auto& Item2 = V->Type;
+						if (Item2._Type == IRTypes::IRsymbol || Item2._Type == IRTypes::pointer)
+						{
+							if (Vals.HasValue(Item2._symbol.ID))
+							{
+								if (Vals.at(Item2._symbol.ID) == false)
+								{
+
+									goto NextMainLoop;
+								}
+							}
+						}
+					}
+
+					r += "typedef struct ";
+					r += SybName + " {";
+					r += ToString(V->Type);
+					r += " base[";
+					r += std::to_string(V->Count) + "];";
+					r += " } ";
+					r += SybName;
+					r += ";\n\n";
+				}
+				break;
+				case IRSymbolType::StaticVarable:
+				{
+					IRBufferData* V = Item->Get_ExAs<IRBufferData>();
+
+					{
+						auto& Item2 = Item->Type;
+						if (Item2._Type == IRTypes::IRsymbol || Item2._Type == IRTypes::pointer)
+						{
+							if (Vals.HasValue(Item2._symbol.ID))
+							{
+								if (Vals.at(Item2._symbol.ID) == false)
+								{
+									goto NextMainLoop;
+								}
+							}
+						}
+					}
+
+
+					r += "static " + ToString(Item->Type);
+
+					r += " " + SybName;
+					if (V->Bytes.size())
+					{
+						r += "[]";
+						r += " = ";
+
+						r += "{";
+						for (auto& Item : V->Bytes)
+						{
+							r += std::to_string((int)Item);
+							if (&Item != &V->Bytes.back())
+							{
+								r += ",";
+							}
+						}
+						r += "}";
+					}
+
+					UpdateCppLinks(r, V);
+				}
+				break;
+				case IRSymbolType::ThreadLocalVarable:
+				{
+					IRBufferData* V = Item->Get_ExAs<IRBufferData>();
+
+					{
+						auto& Item2 = Item->Type;
+						if (Item2._Type == IRTypes::IRsymbol || Item2._Type == IRTypes::pointer)
+						{
+							if (Vals.HasValue(Item2._symbol.ID))
+							{
+								if (Vals.at(Item2._symbol.ID) == false)
+								{
+									continue;
+								}
+							}
+						}
+					}
+
+					r += IRhreadLocal + ToString(Item->Type);
+
+					r += " " + SybName;
+
+					if (V->Bytes.size())
+					{
+						r += "[]";
+						r += " = ";
+
+						r += "{";
+						for (auto& Item : V->Bytes)
+						{
+							r += std::to_string((int)Item);
+							if (&Item != &V->Bytes.back())
+							{
+								r += ",";
+							}
+						}
+						r += "}";
+					}
+
+					UpdateCppLinks(r, V);
+				}
+				break;
+				default:
+					UCodeLangUnreachable();//Ptr was not set
+					break;
+				}
+
+				Vals.at(Item->identifier) = true;
+				Values--;
+			NextMainLoop:
+				int a = 0;
+			}
 		}
 	}
 }

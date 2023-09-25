@@ -19,6 +19,13 @@ constexpr size_t GenericTestStrSize = sizeof(GenericTestStr);
 
 constexpr size_t BuiltInCount = (size_t)Systematic_BuiltInFunctions::ID::Max - 1;
 
+
+constexpr size_t EnumVarantKeyIndex = 0;
+constexpr size_t EnumVarantUnionIndex = 1;
+
+constexpr size_t DymTraitIRPointerIndex = 0;
+constexpr size_t DymTraitIRVTableIndex = 1;
+
 static const Array<Systematic_BuiltInFunctions::FunctionData, BuiltInCount> BuiltFuncList =
 {
 	 Systematic_BuiltInFunctions::FunctionData("Name",Systematic_BuiltInFunctions::ID::TypeInfo_GetName),
@@ -3328,6 +3335,13 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 			auto& Sym = Symbol_AddSymbol(SymbolType::ParameterVarable, Item._Name.AsString()
 				, _Table._Scope.ScopeHelper::GetApendedString(Item._Name.AsStringView()),AccessModifierType::Public);
 
+			ParameterInfo* Par = new ParameterInfo();
+			Sym.Info.reset(Par);
+			
+			Par->IsOutValue = false;
+			Par->MyFunc = _FuncStack.front().Pointer;
+			
+
 			_Table.AddSymbolID(Sym, Symbol_GetSymbolID(Item));
 		}
 
@@ -5850,13 +5864,20 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 							AnonymousSyb.VarType.SetType(AnonymousSyb.ID);
 
 							AnonymousTypeNode* Typenode = AnonymousTypeNode::As(VariantType_._node.get());
+							
+							size_t NewSize = 0;
 							for (auto& Item3 : Typenode->_Fields._Parameters)
 							{
 								auto Fieldtype = Type_ConvertAndValidateType(Item3._Type, NodeSyb_t::Parameter);
 								V.Types.push_back(Fieldtype);
 								ClassInf->AddField(Item3._Name.AsString(), Fieldtype);
+
+								NewSize += Type_GetSize(Fieldtype).value();
 							}
 							V.ClassSymbol = AnonymousSybID;
+
+							ClassInf->SizeInitialized = true;
+							ClassInf->Size = NewSize;
 						} 
 
 						EnumVa.Variants.push_back(std::move(V));
@@ -7577,7 +7598,7 @@ IRInstruction* SystematicAnalysis::IR_Build_Member_GetValue(const GetMemberTypeS
 
 			auto VariantClass = _IR_LookingAtIRBlock->NewLoad(IRType(ID));
 			IRStruct* V = _IR_Builder.GetSymbol(ID)->Get_ExAs<IRStruct>();
-			auto Member = _IR_LookingAtIRBlock->New_Member_Access(VariantClass, V, 0);
+			auto Member = _IR_LookingAtIRBlock->New_Member_Access(VariantClass, V, EnumVarantKeyIndex);
 			_IR_LookingAtIRBlock->NewStore(Member, Key);
 			return VariantClass;
 		}
@@ -7940,9 +7961,64 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 		
 			if (!SymbolVarOp.has_value())
 			{
+			
+
+				if (node._ScopedName.size() == 1) 
+				{
+					auto look = Type_Get_LookingForType();
+					if (auto val = Symbol_GetSymbol(look).value_unchecked())
+					{
+						if (val->Type == SymbolType::Enum)
+						{
+							EnumInfo* Einfo = val->Get_Info<EnumInfo>();
+							auto& NameString = Str;
+
+							auto FeldInfo = Einfo->GetFieldIndex(NameString);
+							if (FeldInfo.has_value())
+							{
+								if (Einfo->VariantData)
+								{
+									auto& Item = Einfo->VariantData.value().Variants[FeldInfo.value()];
+
+									bool IsOk = Item.Types.size() == 0;
+
+									if (!IsOk)
+									{
+
+										LogError_MustMakeEnumLikeafuncion(Einfo, FeldInfo.value(), Token);
+
+
+										Out._Symbol = nullptr;
+										Out.Type = TypesEnum::Null;
+										return false;
+									}
+								}
+
+								Out.Type.SetType(val->ID);//set enum type
+
+								{
+									String FeildSymFullName = val->FullName;
+									ScopeHelper::GetApendedString(FeildSymFullName, NameString);
+
+									Symbol* FeildSym = Symbol_GetSymbol(FeildSymFullName, SymbolType::Enum_Field).value().value();
+
+									Out._Symbol = FeildSym;//set symbol as enum feild
+
+
+									Out.Set_V1(&Einfo->Fields[*FeldInfo]);
+									Out.Set_V2(Einfo);
+
+								}
+								return true;
+							}
+						}
+					}
+				}
+
 				LogError_CantFindVarError(Token, Str);
 				Out._Symbol = nullptr;
 				Out.Type = TypeSymbol();
+
 				return false;
 			}	
 			auto SymbolVar = SymbolVarOp.value();
@@ -9738,7 +9814,7 @@ void SystematicAnalysis::IR_Build_FuncCall(const TypeSymbol& Type, const Get_Fun
 
 void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 {
-
+Symbol* Symbol =nullptr;
 	if (_PassType != PassType::BuidCode) 
 	{
 		GetMemberTypeSymbolFromVar_t V;
@@ -9748,14 +9824,14 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 			return;
 		}
 		_LastExpressionType = V.Type;
-
+		Symbol = V._Symbol;
 		
 	}
 	
 
 	auto FToken =NeverNullptr(nod._VariableName._ScopedName.front()._token);
 
-	Symbol* Symbol;
+	
 	auto Token = NeverNullptr(nod._VariableName._ScopedName.back()._token);
 	auto Str = FToken->Value._String;
 
@@ -9763,6 +9839,7 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 	bool DoStuff = false;
 	if (FToken->Type == TokenType::KeyWord_This)
 	{
+		/*
 		if (_ClassStack.size() == 0)
 		{
 			LogError_CantUseThisKeyWordHereError(FToken);
@@ -9792,17 +9869,19 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 		Symbol = Symbol_GetSymbol(*ObjectType).value_unchecked();
 			
 		DoStuff = true;
+		*/
 	}
 	
 	ReadVarErrorCheck_t Info;
 	if (DoStuff == false) 
 	{
+		/*
 		Symbol = Symbol_GetSymbol(Str, SymbolType::Varable_t).value_unchecked();
 
 		
 
 
-		/*
+		
 		if (IsRead(_GetExpressionMode.top()))
 		{
 			Info = TryLogError_OnReadVar(Str, Token, Symbol);
@@ -9812,7 +9891,7 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 			Symbol->SetTovalid();
 
 		}
-		*/
+		
 
 		if (Info.CantFindVar)
 		{
@@ -9828,15 +9907,13 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 				LogError_UseingVarableBeforDeclared(FToken);
 			}
 		}
+		*/
 	}
 
 	if (!Info.VarIsInvalid)
 	{
-		SymbolID sybId = Symbol->ID;
 		if (_PassType == PassType::BuidCode)
 		{
-			FileDependency_AddDependencyToCurrentFile(Symbol);
-
 			auto& LookForT = Type_Get_LookingForType();
 
 
@@ -9846,7 +9923,7 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 			{
 				return;
 			}
-
+			FileDependency_AddDependencyToCurrentFile(V._Symbol);
 
 			bool LookIsAddress = LookForT.IsAddress() || LookForT.IsAddressArray();
 			bool LookMove = LookForT.IsMovedType();
@@ -12046,7 +12123,7 @@ void SystematicAnalysis::OnMatchStatement(const MatchStatement& node)
 
 			_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
 
-			OnExpressionTypeNode(Item._Expression, GetValueMode::Read);
+			//OnExpressionTypeNode(Item._Expression, GetValueMode::Read);
 			
 			for (auto& Statement : Item._Statements._Nodes) 
 			{
@@ -12442,6 +12519,7 @@ SystematicAnalysis::BuildMatch_ret SystematicAnalysis::IR_Build_Match(const Type
 			auto Syb = Symbol_GetSymbol(MatchItem).value();
 			if (Syb->Type == SymbolType::Enum)
 			{
+				auto eInfo = Syb->Get_Info<EnumInfo>();
 				if (MatchShouldOutPassEnumValue(ArmEx))
 				{
 					const ValueExpressionNode* Val = ValueExpressionNode::As(ArmEx._Value.get());
@@ -12461,7 +12539,6 @@ SystematicAnalysis::BuildMatch_ret SystematicAnalysis::IR_Build_Match(const Type
 					auto Type = _LastExpressionType;
 					auto ArmExIR = _IR_LastExpressionField;
 
-
 					SystematicAnalysis::BuildMatch_ret R;
 					R.JumpToUpdateIFMatchTrue = _IR_LookingAtIRBlock->NewConditionalFalseJump(ArmExIR, 0);
 					return R;
@@ -12474,6 +12551,14 @@ SystematicAnalysis::BuildMatch_ret SystematicAnalysis::IR_Build_Match(const Type
 
 					auto Type = _LastExpressionType;
 					auto ArmExIR = _IR_LastExpressionField;
+
+					if (eInfo->VariantData.has_value())
+					{
+						const IRStruct* B = _IR_Builder.GetSymbol(IR_ConvertToIRType(Type)._symbol)->Get_ExAs<IRStruct>();
+						Item = _IR_LookingAtIRBlock->New_Member_Access(Item, B, EnumVarantKeyIndex);
+						ArmExIR = _IR_LookingAtIRBlock->New_Member_Access(ArmExIR, B, EnumVarantKeyIndex);
+					}
+
 					auto IRToTest = _IR_LookingAtIRBlock->NewC_Equalto(Item, ArmExIR);
 
 
@@ -14590,7 +14675,7 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 
 		IRStruct* IRStructPtr = _IR_Builder.GetSymbol(IRType._symbol)->Get_ExAs<IRStruct>();
 
-		auto Member = _IR_LookingAtIRBlock->New_Member_Access(structV, IRStructPtr, 0);
+		auto Member = _IR_LookingAtIRBlock->New_Member_Access(structV, IRStructPtr,DymTraitIRPointerIndex);
 		
 		if (ExType.IsAddress())
 		{
@@ -14601,7 +14686,7 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 			_IR_LookingAtIRBlock->NewStore(Member, _IR_LookingAtIRBlock->NewLoadPtr(Ex));
 		}
 
-		auto Member2 = _IR_LookingAtIRBlock->New_Member_Access(structV, IRStructPtr, 1);
+		auto Member2 = _IR_LookingAtIRBlock->New_Member_Access(structV, IRStructPtr, DymTraitIRVTableIndex);
 
 		auto IDVTable = _IR_Builder.ToID(Str_GetClassWithTraitVTableName(Symbol_GetSymbol(ExType).value()->FullName, Symbol_GetSymbol(ToType).value()->FullName));
 
@@ -15570,9 +15655,8 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 			if (Func.SymFunc->Type == SymbolType::Enum_Field)
 			{
 				auto ScopedName = Str_GetScopedNameAsString(Name);
-				String EnumClassFullName = ScopedName;
+				String EnumClassFullName = Func.SymFunc->FullName;
 				ScopeHelper::ReMoveScope(EnumClassFullName);
-
 
 
 				auto EnumSymbol = Symbol_GetSymbol(EnumClassFullName, SymbolType::Enum);
@@ -15610,9 +15694,9 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 
 
 						
-						auto Member = _IR_LookingAtIRBlock->New_Member_Dereference(ThisObj, IR_ConvertToIRType(EnumSymbol.value()->ID), 0);
+						auto Member = _IR_LookingAtIRBlock->New_Member_Dereference(ThisObj, IR_ConvertToIRType(EnumSymbol.value()->ID), EnumVarantKeyIndex);
 
-						auto ObjUnion = _IR_LookingAtIRBlock->New_Member_Dereference(ThisObj, IR_ConvertToIRType(EnumSymbol.value()->ID), 1);
+						auto ObjUnion = _IR_LookingAtIRBlock->New_Member_Dereference(ThisObj, IR_ConvertToIRType(EnumSymbol.value()->ID), EnumVarantUnionIndex);
 
 
 						if (Type_IsPrimitiveNotIncludingPointers(EnumSybInfo->Basetype))
@@ -15674,11 +15758,11 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 
 						auto VariantClass = _IR_LookingAtIRBlock->NewLoad(IRType(ID));
 						IRStruct* V = _IR_Builder.GetSymbol(ID)->Get_ExAs<IRStruct>();
-						auto Member = _IR_LookingAtIRBlock->New_Member_Access(VariantClass, V, 0);
+						auto Member = _IR_LookingAtIRBlock->New_Member_Access(VariantClass, V, EnumVarantKeyIndex);
 						_IR_LookingAtIRBlock->NewStore(Member, Key);
 
 						if (EnumVariantFeildData.Types.size()) {
-							auto UnionMember = _IR_LookingAtIRBlock->New_Member_Access(VariantClass, V, 1);
+							auto UnionMember = _IR_LookingAtIRBlock->New_Member_Access(VariantClass, V, EnumVarantUnionIndex);
 
 
 							String UnionName = Str_GetEnumVariantUnionName(EnumSybInfo->FullName);
@@ -16820,6 +16904,28 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 	const UseGenericsNode* Generics = Name._ScopedName.back()._generic.get();
 	
+	if (Symbols.size() == 0 && Name._ScopedName.size() == 1)
+	{
+		auto look = Ret;
+		if (auto Val = Symbol_GetSymbol(look).value_unchecked())
+		{
+			if (Val->Type == SymbolType::Enum)
+			{
+				String_view EnumFeildName = ScopedName;
+
+				EnumInfo* Enuminfo = Val->Get_Info<EnumInfo>();
+				auto FeildIndexOp = Enuminfo->GetFieldIndex(EnumFeildName);
+				if (FeildIndexOp.has_value()) {
+					size_t FeildIndex = FeildIndexOp.value();
+
+					auto ScopeName = ScopeHelper::ApendedStrings(Val->FullName, EnumFeildName);
+					auto FieldSym = Symbol_GetSymbol(ScopeName,SymbolType::Enum_Field).value();
+
+					return Symbol_GetEnumVariantFunc(Val, FeildIndex, FieldSym, Pars, NeverNullptr(Name._ScopedName.back()._token), ValueTypes);
+				}
+			}
+		}
+	}
 
 	for (auto& Item : Symbols)
 	{
@@ -17187,9 +17293,12 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 					EnumInfo* Enuminfo = EnumSymbol->Get_Info<EnumInfo>();
 					if (Enuminfo->VariantData.has_value())
 					{
-						size_t FeildIndex = Enuminfo->GetFieldIndex(ScopeHelper::GetNameFromFullName(Item->FullName)).value();
+						auto FeildIndexOp = Enuminfo->GetFieldIndex(ScopeHelper::GetNameFromFullName(Item->FullName));
+						if (FeildIndexOp.has_value()) {
+							size_t FeildIndex = FeildIndexOp.value();
 
-						return Symbol_GetEnumVariantFunc(EnumSymbol, FeildIndex,Item, Pars,NeverNullptr(Name._ScopedName.back()._token),ValueTypes);
+							return Symbol_GetEnumVariantFunc(EnumSymbol, FeildIndex, Item, Pars, NeverNullptr(Name._ScopedName.back()._token), ValueTypes);
+						}
 					}
 				}
 			}
