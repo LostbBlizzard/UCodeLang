@@ -781,7 +781,8 @@ GotNodeType Parser::GetStatement(Node*& out)
 							|| Token.Type == TokenType::Right_Bracket
 							|| Token.Type == TokenType::bitwise_and
 							|| Token.Type == TokenType::bitwise_XOr
-							|| Token.Type == TokenType::DollarSign)
+							|| Token.Type == TokenType::DollarSign
+							|| Token.Type == TokenType::QuestionMark)
 						{
 							StatemeType = MyEnum::DeclareVar;
 						}

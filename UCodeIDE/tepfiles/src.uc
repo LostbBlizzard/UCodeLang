@@ -87,11 +87,12 @@ $Optional<T> enum:
 
  int&? newlist = span.Find([x] => x == 7);
 
+
  match newlist:
   Null:ret [];
   Value(out Value):ret Value;
+ 
 
-*/
 
 $FuncPtr = |[int A] -> int;
 |Func[FuncPtr ptr] -> int:ret 0;
@@ -99,4 +100,16 @@ $FuncPtr = |[int A] -> int;
 |main[]:
  var V = Func([A] => 0);
 
+*/
+
+$Optional<T> enum:
+ Option[T Value],
+ Null,
+
+|main[] -> int:
+ int? Val = Option(5);
+
+ match Val:
+  Option(out Valu):ret Valu;
+  Null:ret 0;
 
