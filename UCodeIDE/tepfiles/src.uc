@@ -1,5 +1,4 @@
 
-/*
 $Range_t<T>:
   T _start;
   T _end;
@@ -24,6 +23,10 @@ $Span<T>:
  |new[this&,T[&] data,uintptr size]:
   _data = data;
   _size = size;
+
+ $FindFunc = |[T& Ptr] -> bool;
+ |Find[this&,FindFunc Func] -> int&?:
+  ret Null;
 
 $Vector<T>:
  T[&] _data;
@@ -70,46 +73,27 @@ $Vector<T>:
   if ptr != uintptr(0):
    unsafe drop(_data);
 
- $FindFunc = |[T& Ptr] -> bool;
- |Find[FindFunc Func] -> int&?:
-  ret Null;
-
-$Optional<T> enum:
- Value[T Value],
- Null,
- 
-
-
-|main[] -> int:
- int[] list = [0,1,2,3,4,5,6,7,8,9,10];
- 
- int[:] span = list[5..10];
-
- int&? newlist = span.Find([x] => x == 7);
-
-
- match newlist:
-  Null:ret [];
-  Value(out Value):ret Value;
- 
-
-
-$FuncPtr = |[int A] -> int;
-|Func[FuncPtr ptr] -> int:ret 0;
-
-|main[]:
- var V = Func([A] => 0);
-
-*/
 
 $Optional<T> enum:
  Option[T Value],
  Null,
+ 
+
 
 |main[] -> int:
- int? Val = Option(5);
+ /*
+ int[] list = [0,1,2,3,4,5,6,7,8,9,10];
+ 
+ int[:] span = list[5..10];
 
- match Val:
-  Option(out Valu):ret Valu;
+ int&? numOp = span.Find([x] => x == 7);
+ 
+ */
+
+ int&? numOp = Null;
+ //ret 0;
+ 
+ match numOp:
   Null:ret 0;
+  Option(out Value):ret Value;
 

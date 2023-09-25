@@ -3794,6 +3794,7 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 				FuncStackInfo _FuncData(Info->_ClassCall);
 				_FuncStack.push_back(_FuncData);
 
+				Push_NewStackFrame();
 				if (node._Statements.has_value())
 				{
 					for (const auto& node2 : node._Statements.value()._Nodes)
@@ -3804,6 +3805,22 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 
 				_ClassStack.pop();
 				_FuncStack.pop_back();
+
+				bool hasins = _IR_LookingAtIRBlock->Instructions.size();
+				auto lastbefordrop = hasins ? _IR_LookingAtIRBlock->Instructions.back().get() : nullptr;
+
+				Pop_StackFrame();
+				size_t droploc = hasins ? _IR_LookingAtIRBlock->Instructions.size() - 2 : 0;
+
+				for (auto& Item : _IR_Rets)
+				{
+					_IR_LookingAtIRBlock->UpdateJump(Item.JumpIns, droploc);
+					if (Item.JumpIns == lastbefordrop)
+					{
+						Item.JumpIns->SetAsNone();
+					}
+				}
+				_IR_Rets.clear();
 
 				_IR_LookingAtIRBlock->NewRet();
 				//
@@ -3841,7 +3858,7 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 				Sym.IR_Par = &_IR_LookingAtIRFunc->Pars[i];
 			}
 
-
+			Push_NewStackFrame();
 			if (node._Statements.has_value())
 			{
 				for (const auto& node2 : node._Statements.value()._Nodes)
@@ -3849,6 +3866,22 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 					OnStatement(*node2);
 				}
 			}
+
+			bool hasins = _IR_LookingAtIRBlock->Instructions.size();
+			auto lastbefordrop = hasins ? _IR_LookingAtIRBlock->Instructions.back().get() : nullptr;
+
+			Pop_StackFrame();
+			size_t droploc = hasins ? _IR_LookingAtIRBlock->Instructions.size() - 2 : 0;
+
+			for (auto& Item : _IR_Rets)
+			{
+				_IR_LookingAtIRBlock->UpdateJump(Item.JumpIns, droploc);
+				if (Item.JumpIns == lastbefordrop)
+				{
+					Item.JumpIns->SetAsNone();
+				}
+			}
+			_IR_Rets.clear();
 
 			_IR_LookingAtIRBlock->NewRet();
 			//
@@ -12252,6 +12285,16 @@ void SystematicAnalysis::OnMatchStatement(const MatchStatement& node)
 
 			_Table.RemoveScope();
 		}
+		else
+		{
+			auto V = IR_Build_InvaildMatch(ToMatchType, Ex, State);
+
+			_IR_LookingAtIRBlock->NewUnreachable();
+
+			IR_Build_Match(V, State);
+
+			State.MatchList.push_back(std::move(V));
+		}
 
 		IR_Build_MatchState(State);
 	}
@@ -12755,6 +12798,17 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 
 			_Table.RemoveScope();
 		}
+		else
+		{
+			auto V = IR_Build_InvaildMatch(ToMatchType, Ex, State);
+
+			_IR_LookingAtIRBlock->NewUnreachable();
+
+			IR_Build_Match(V, State);
+
+			State.MatchList.push_back(std::move(V));
+		}
+
 
 		IR_Build_MatchState(State);
 
@@ -16454,7 +16508,10 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 	Vector<ParInfo> Infer;
 	bool Inferautopushtis = false;
 
-
+	if (ScopedName == "Span<sint32>:Find")
+	{
+		int a = 0;
+	}
 	{
 
 		for (auto& Item : Symbols)
@@ -16468,7 +16525,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 				const FuncInfo* Info = Item->Get_Info<FuncInfo>();
 				Symbol_Update_FuncSym_ToFixedTypes(Item);
 
-				size_t parcount = Pars._Nodes.size();
+				size_t parcount = _ThisTypeIsNotNull ? Pars._Nodes.size() + 1 : Pars._Nodes.size();
 				if (Info->Pars.size() == parcount) {
 					Infer = Info->Pars;
 					Inferautopushtis = false;
@@ -16619,7 +16676,21 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 		TypeSymbol InferedType = NullSymbol;	
 		
 		{
-			size_t newindex = Inferautopushtis ? i + 1 : i;
+			bool OneOrOtherButNotBoth = false;
+			if (Inferautopushtis)
+			{
+				if (_ThisTypeIsNotNull == false) {
+					OneOrOtherButNotBoth = true;
+				}
+			}
+			else
+			if (_ThisTypeIsNotNull)
+			{
+				if (Inferautopushtis == false) {
+					OneOrOtherButNotBoth = true;
+				}
+			}
+			size_t newindex = OneOrOtherButNotBoth ? i + 1 : i;
 		
 			if (newindex < Infer.size())
 			{

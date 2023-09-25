@@ -31,6 +31,8 @@ UCodeLangStart
 
 #define IRUnreachableDefineName IRPrefix "Unreachable"
 
+#define IRAssumeDefineName IRPrefix "Assume"
+
 #define IRhreadLocal "ThreadLocalKeyWord"
 
 #define IRReturnValue "_ReturnVal"
@@ -184,6 +186,23 @@ void C89Backend::AddBaseTypes()
 	//OutBuffer += "#else\n";
 	//OutBuffer += "#define " + (String)IRForceinlineDefineName + " inline\n";
 	//OutBuffer += "#endif\n\n";
+
+	OutBuffer += "#if " + (String)IRMSVCDefineName + "\n";
+	OutBuffer += "#define " + (String)IRUnreachableDefineName + " __assume(0)\n";
+	OutBuffer += "#elif " + (String)IRGNUCDefineName + "\n";
+	OutBuffer += "#define " + (String)IRUnreachableDefineName + " __builtin_unreachable()\n";
+	OutBuffer += "#else\n";
+	OutBuffer += "#define " + (String)IRUnreachableDefineName + " \n";
+	OutBuffer += "#endif\n\n";
+
+
+	OutBuffer += "#if " + (String)IRMSVCDefineName + "\n";
+	OutBuffer += "#define " + (String)IRAssumeDefineName + "(X) __assume(X)\n";
+	OutBuffer += "#elif " + (String)IRCLangDefineName + "\n";
+	OutBuffer += "#define " + (String)IRAssumeDefineName + "(X) __builtin_assume(X)\n";
+	OutBuffer += "#else\n";
+	OutBuffer += "#define " + (String)IRAssumeDefineName + "(X) \n";
+	OutBuffer += "#endif\n\n";
 
 	OutBuffer += "/*includes*/\n\n";
 	
@@ -1038,6 +1057,15 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					r += valname + String(IRReinterpretCastTep) + String("2");
 				}	
 				break;
+				case IRInstructionType::Unreachable:
+					r += IRUnreachableDefineName;
+					break;
+				case IRInstructionType::Assume:
+					r += IRAssumeDefineName;
+					r += "(";
+					r += ToString(State, *I, I->Target());
+					r += ")";
+					break;
 				default:
 					UCodeLangUnreachable();
 					break;
@@ -1152,7 +1180,7 @@ String C89Backend::ToString(ToStringState& State, IRInstruction& Ins, IROperator
 	break;
 	case IROperatorType::DereferenceOf_IRParameter:
 	{
-		r +=  "*(" + ToString(Value.Parameter->type) + "*)" + FromIDToCindentifier(Value.Parameter->identifier);
+		r +=  "*(" + ToString(*OutType) + "*)" + FromIDToCindentifier(Value.Parameter->identifier);
 	}
 	break;
 	case IROperatorType::Get_PointerOf_IRParameter:
