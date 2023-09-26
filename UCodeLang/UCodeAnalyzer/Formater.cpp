@@ -230,22 +230,22 @@ void Formater::ReFormat(const UF::DeclareEvalVariableNode& Node)
 
 void Formater::ReFormat(const UF::TypeNode& Node)
 {
-	if (Node._name.token->Type == UCodeLang::TokenType::Name) 
+	if (Node._name._ScopedName.front()._token->Type == UCodeLang::TokenType::Name) 
 	{
-		AddToOutput(Node._name.token->Value._String);
+		AddToOutput(Node._name._ScopedName.front()._token->Value._String);
 	}
 	else
 	{
-		if (_InputString[Node._name.token->OnPos - 3] == 'i')
+		if (_InputString[Node._name._ScopedName.front()._token->OnPos - 3] == 'i')
 		{
 			AddToOutput("int");
 		}
 		else
 		{
-			AddToOutput(ToName(Node._name.token->Type));
+			AddToOutput(ToName(Node._name._ScopedName.front()._token->Type));
 		}
 	}
-	ReFormat(Node._generic);
+	//ReFormat(Node._generic);
 }
 
 void Formater::ReFormat(const UF::UseGenericsNode& Node)
@@ -253,7 +253,7 @@ void Formater::ReFormat(const UF::UseGenericsNode& Node)
 	for (auto& Item : Node._Values)
 	{
 		
-		if (Item._name.token->Type == UCodeLang::TokenType::internal_Constant_expression)
+		if (Item._name._ScopedName.front()._token->Type == UCodeLang::TokenType::internal_Constant_expression)
 		{
 			AddToOutput(ToName(UCodeLang::TokenType::Left_Parentheses));
 

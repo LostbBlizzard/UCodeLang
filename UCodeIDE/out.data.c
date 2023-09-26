@@ -102,51 +102,27 @@ typedef double float64_t;
 
 typedef struct 
 {
- void* __0; 
-
-} Optional_sint32___Option_;
-
-typedef struct 
-{
- void* __0; 
- int64_t __1; 
-
-} Span_sint32_;
-
-typedef struct 
-{
  int64_t __0; 
  int64_t __1; 
+ int64_t __2; 
+ int64_t __3; 
 
-} Range_t_uintptr_;
-
-typedef int8_t(*Span_sint32__FindFunc)(void*);
-
-typedef union 
-{
- Optional_sint32___Option_ __0; 
-
-} Optional_sint32__u;
-
-typedef struct 
-{
- int8_t __0; 
- Optional_sint32__u __1; 
-
-} Optional_sint32__;
+} Vec4_t_sint64_;
 
 
 void __StaticInit__();
 void __StaticUnload__();
 void __threadInit__();
 void __threadUnload__();
-int32_t _Entry();
-void Span_sint32_____new___Span_sint32__(Span_sint32_* __this__);
-void Span_sint32_____new___Span_sint32___i32____uptr(Span_sint32_* __this__,void* data,int64_t size);
-Optional_sint32__ Span_sint32__Find_Span_sint32___Span_sint32__FindFunc(Span_sint32_* __this__,Span_sint32__FindFunc Func);
-void Range_t_uintptr_____new___Range_t_uintptr__(Range_t_uintptr_* __this__);
-void Range_t_uintptr_____new___Range_t_uintptr___uptr_uptr(Range_t_uintptr_* __this__,int64_t start,int64_t end);
-int main(int argc, char** argv);
+Vec4_t_sint64_ CopyV_Vec4_t_sint64_imut(Vec4_t_sint64_ Val);
+Vec4_t_sint64_ main2_Vec4_t_sint64_(Vec4_t_sint64_ Val);
+int64_t Get_X_Vec4_t_sint64_(Vec4_t_sint64_ Val);
+int64_t Get_Y_Vec4_t_sint64_(Vec4_t_sint64_ Val);
+int64_t Get_Z_Vec4_t_sint64_(Vec4_t_sint64_ Val);
+int64_t Get_W_Vec4_t_sint64_(Vec4_t_sint64_ Val);
+void Vec4_t_sint64_____init__(Vec4_t_sint64_* __this__);
+void Vec4_t_sint64_____new___Vec4_t_sint64__(Vec4_t_sint64_* __this__);
+
 
 /*file.cpp*/
 
@@ -162,149 +138,111 @@ void __threadInit__()
 void __threadUnload__()
 {
 }
-int32_t _Entry()
+Vec4_t_sint64_ CopyV_Vec4_t_sint64_imut(Vec4_t_sint64_ Val)
 {
- int32_t _ReturnVal;
+ Vec4_t_sint64_ _ReturnVal;
  /*Block*/ 
 
  /*File:/src.uc*/
- /*Line:93*/
+ /*Line:131*/
 
- Optional_sint32__ A;
- int8_t B = 1;
- Optional_sint32__ C;
-  C.__0 = B;
- A = C;
-
- /*Line:96*/
-
- Optional_sint32__ D = A;
- int8_t E = 1;
- Optional_sint32__ F;
-  F.__0 = E;
-   int8_t G = D.__0==F.__0;
- int8_t H = !G;
- if (H){goto _label0; };
-
- /*Line:97*/
-
- int32_t I = 0;
- _ReturnVal = I;
- goto _label1;
- goto _label2;
- _label0:
-
- /*Line:98*/
- /*Line:96*/
-
- Optional_sint32__* J = &A;
- int8_t K = 0;
-   int8_t L = J->__0==K;
-   int8_t M = !L;
- if (M){goto _label3; };
-
- /*Line:98*/
-
- int32_t N = *(int32_t*)J->__1.__0.__0;
- _ReturnVal = N;
- goto _label1;
- goto _label2;
- _label3:
- UCIR_Unreachable;
- _label1:
- goto _label2;
- _label2:
+ Vec4_t_sint64_ A = Val;
+ _ReturnVal = A;
  return _ReturnVal;
 
 }
-void Span_sint32_____new___Span_sint32__(Span_sint32_* __this__)
-{ /*Block*/ 
-
- /*File:/src.uc*/
- /*Line:20*/
-
- int64_t A = 0;
-  __this__->__0 = (void*)A;
-
- /*Line:21*/
-
- int64_t B = 0;
-  __this__->__1 = B;
- return;
-
-}
-void Span_sint32_____new___Span_sint32___i32____uptr(Span_sint32_* __this__,void* data,int64_t size)
-{ /*Block*/ 
-
- /*File:/src.uc*/
- /*Line:24*/
-
- void* A = data;
-  __this__->__0 = A;
-
- /*Line:25*/
-
- int64_t B = size;
-  __this__->__1 = B;
- return;
-
-}
-Optional_sint32__ Span_sint32__Find_Span_sint32___Span_sint32__FindFunc(Span_sint32_* __this__,Span_sint32__FindFunc Func)
+Vec4_t_sint64_ main2_Vec4_t_sint64_(Vec4_t_sint64_ Val)
 {
- Optional_sint32__ _ReturnVal;
+ Vec4_t_sint64_ _ReturnVal;
  /*Block*/ 
 
+ /*File:/src.uc*/
+ /*Line:134*/
 
- int8_t A = 1;
- Optional_sint32__ B;
-  B.__0 = A;
+ Vec4_t_sint64_ A = Val;
+ Vec4_t_sint64_ B = CopyV_Vec4_t_sint64_imut(A);
  _ReturnVal = B;
  return _ReturnVal;
 
 }
-void Range_t_uintptr_____new___Range_t_uintptr__(Range_t_uintptr_* __this__)
-{ /*Block*/ 
-
- /*File:/src.uc*/
- /*Line:6*/
- /*Line:0*/
-
- int64_t A = 0;
-  __this__->__0 = A;
-
- /*Line:7*/
- /*Line:0*/
-
- int64_t B = 0;
-  __this__->__1 = B;
- return;
-
-}
-void Range_t_uintptr_____new___Range_t_uintptr___uptr_uptr(Range_t_uintptr_* __this__,int64_t start,int64_t end)
-{ /*Block*/ 
-
- /*File:/src.uc*/
- /*Line:9*/
-
- int64_t A = start;
-  __this__->__0 = A;
-
- /*Line:10*/
-
- int64_t B = end;
-  __this__->__1 = B;
- return;
-
-}
-int main(int argc, char** argv)
+int64_t Get_X_Vec4_t_sint64_(Vec4_t_sint64_ Val)
 {
-__StaticInit__();
-__threadInit__();
+ int64_t _ReturnVal;
+ /*Block*/ 
 
-int exitcode = _Entry();
+ /*File:/src.uc*/
+ /*Line:137*/
 
-__threadUnload__();
-__StaticUnload__();
+  int64_t A = Val.__0;
+ _ReturnVal = A;
+ return _ReturnVal;
 
- return exitcode;
+}
+int64_t Get_Y_Vec4_t_sint64_(Vec4_t_sint64_ Val)
+{
+ int64_t _ReturnVal;
+ /*Block*/ 
+
+ /*File:/src.uc*/
+ /*Line:140*/
+
+  int64_t A = Val.__1;
+ _ReturnVal = A;
+ return _ReturnVal;
+
+}
+int64_t Get_Z_Vec4_t_sint64_(Vec4_t_sint64_ Val)
+{
+ int64_t _ReturnVal;
+ /*Block*/ 
+
+ /*File:/src.uc*/
+ /*Line:143*/
+
+  int64_t A = Val.__2;
+ _ReturnVal = A;
+ return _ReturnVal;
+
+}
+int64_t Get_W_Vec4_t_sint64_(Vec4_t_sint64_ Val)
+{
+ int64_t _ReturnVal;
+ /*Block*/ 
+
+ /*File:/src.uc*/
+ /*Line:146*/
+
+  int64_t A = Val.__3;
+ _ReturnVal = A;
+ return _ReturnVal;
+
+}
+void Vec4_t_sint64_____init__(Vec4_t_sint64_* __this__)
+{ /*Block*/ 
+ int64_t A = 1;
+ 
+ /*Line:124*/
+
+ __this__->__0 = A;
+ int64_t B = 2;
+ 
+ /*Line:125*/
+
+ __this__->__1 = B;
+ int64_t C = 3;
+ 
+ /*Line:126*/
+
+ __this__->__2 = C;
+ int64_t D = 4;
+  __this__->__3 = D;
+ return;
+
+}
+void Vec4_t_sint64_____new___Vec4_t_sint64__(Vec4_t_sint64_* __this__)
+{ /*Block*/ 
+ Vec4_t_sint64_* A = __this__;
+ Vec4_t_sint64_____init__(A);
+ return;
+
 }

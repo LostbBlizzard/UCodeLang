@@ -107,9 +107,23 @@ public:
 
 	template<typename T>Variant(T&& Value) : _Base(std::move(Value)) {}
 
+	Variant(const ThisType& Value) noexcept :_Base(Value._Base) {}
+	Variant(ThisType&& Value) noexcept :_Base(std::move(Value._Base)) {}
+
 	Variant()
 	{
 
+	}
+
+	ThisType& operator=(const ThisType& Value) noexcept
+	{
+		_Base = Value._Base;
+		return *this;
+	}
+	ThisType& operator=(ThisType&& Value) noexcept
+	{
+		_Base = std::move(Value._Base);
+		return *this;
 	}
 
 	template<typename T> ThisType& operator=(const T& Value)

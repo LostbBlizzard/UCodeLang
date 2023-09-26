@@ -1199,6 +1199,7 @@ private:
 
 	void Assembly_LoadClassSymbol(const Class_Data& Item,const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 	void Assembly_LoadEnumSymbol(const Enum_Data& Item,const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
+	void Assembly_LoadAliasSymbol(const Alias_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 
 	void Assembly_LoadSymbol(const ClassMethod& Item, SystematicAnalysis::LoadLibMode Mode);
 	void Assembly_LoadType(const ReflectionTypeInfo& Item, TypeSymbol& Out);
@@ -1585,7 +1586,7 @@ private:
 
 				if (InputTypeIsConstantExpression != GenericInfo.IsConstantExpression())
 				{
-					const NeverNullPtr<Token> nodeToken =NeverNullptr(Tnode._name.token);
+					const NeverNullPtr<Token> nodeToken =NeverNullptr(Tnode._name._ScopedName.back()._token);
 					auto& GenericNo = SymbolGenericValues._Values[i];
 					if (InputTypeIsConstantExpression)
 					{

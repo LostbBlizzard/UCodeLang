@@ -2092,7 +2092,7 @@ void AppObject::ShowUCodeVMWindow()
         {
 
 
-            Path dllfile = "Out.lib";
+            Path dllfile = "out.lib";
             auto v = Outfilepath();
             auto cfilepath = v.native() + Path(".c").native();
             {
@@ -2506,12 +2506,12 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                         _AnyInterpreter.Get_Return(callFuncContext._LastRet.Data(), callFuncContext._LastRet.Size());
                     }
                 }
-                ImGui::BeginDisabled();
+               // ImGui::BeginDisabled();
                 if (callFuncContext._LastRetType == callFuncContext.current_method->RetType)
                 {
                     ImguiHelper::UCodeObjectField("Returned", callFuncContext._LastRet.Data(),callFuncContext._LastRetType, Assembly);
                 }
-                ImGui::EndDisabled();
+               // ImGui::EndDisabled();
             }
         }
 
