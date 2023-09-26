@@ -182,6 +182,8 @@ struct ScopedNameNode :Node
 
 		}
 	}
+	inline void GetScopedName()
+	{}
 };
 
 struct ReadVariableNode :Node
@@ -313,8 +315,7 @@ struct TypeNode :Node
 	{
 
 	}
-	NameNode _name;
-	UseGenericsNode _generic;
+	ScopedNameNode _name;
 	Unique_ptr<Node> _node = nullptr;
 
 	static constexpr bool IsType(TokenType Type)
@@ -363,7 +364,10 @@ struct TypeNode :Node
 		T->OnLine = ToGetLinesFrom.OnLine;
 		T->OnPos = ToGetLinesFrom.OnPos;
 		Out._GenToken = std::move(T);
-		Out._name.token =Out._GenToken.get();
+
+		ScopedName V;
+		V._token = Out._GenToken.get();
+		Out._name._ScopedName.push_back(std::move(V));
 	}
 	static void Gen_void(TypeNode& Out, const Token& ToGetLinesFrom)
 	{
@@ -389,17 +393,17 @@ struct TypeNode :Node
 
 	bool IsThisMemberFunc() const
 	{
-		return _name.token->Type == TokenType::KeyWord_This
+		return _name._ScopedName.front()._token->Type == TokenType::KeyWord_This
 			&& _IsAddess;
 	}
 	String AsString() const
 	{
-		auto T = _name.token->Type;
+		auto T = _name._ScopedName.front()._token->Type;
 		if (IsPrimitive(T))
 		{
 			return TokenStringHelper::ToString(T);
 		}
-		return String(_name.token->Value._String);
+		return String(_name._ScopedName.front()._token->Value._String);
 	}
 	TypeNode(const TypeNode& ToCopyFrom) = default;
 	TypeNode(TypeNode&& source) = default;

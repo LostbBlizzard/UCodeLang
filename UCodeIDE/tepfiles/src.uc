@@ -1,4 +1,4 @@
-
+/*
 $Range_t<T>:
   T _start;
   T _end;
@@ -81,19 +81,79 @@ $Optional<T> enum:
 
 
 |main[] -> int:
- /*
+ 
  int[] list = [0,1,2,3,4,5,6,7,8,9,10];
  
  int[:] span = list[5..10];
 
  int&? numOp = span.Find([x] => x == 7);
  
- */
+ 
 
- int&? numOp = Null;
+ //int&? numOp = Null;
  //ret 0;
  
  match numOp:
   Null:ret 0;
   Option(out Value):ret Value;
+
+*/
+
+/*
+$StringSpan_t<T>:
+ //$String = String_t<T>;
+ T[&] _data;
+ uintptr _size;
+ |new[this&]:
+  _data = unsafe bitcast<T[&]>(0);
+  _size = 0;
+
+ unsafe |new[this&,T[&] data,uintptr size]:
+  _data = data;
+  _size = size;
+
+ |Size[imut this&] => _size;
+ unsafe |Data[imut this&] => _data;
+
+$StringSpan =StringSpan_t<char>;
+*/
+
+
+$Vec4_t<T>:
+ T X = 1;
+ T Y = 2;
+ T Z = 3;
+ T W = 4;
+
+$Vec4 = Vec4_t<int64>;
+
+|CopyV[imut Vec4 Val]:
+ ret Val;
+
+|main2[Vec4 Val]: 
+ ret CopyV(Val);
+
+|Get_X[Vec4 Val]: 
+ ret Val.X;
+
+|Get_Y[Vec4 Val]: 
+ ret Val.Y;
+
+|Get_Z[Vec4 Val]: 
+ ret Val.Z;
+
+|Get_W[Vec4 Val]: 
+ ret Val.W;
+
+/*
+|Print[imut StringSpan Val]:
+ ret Val.Size() + uintptr(5);
+
+|Copy[imut StringSpan Val]:
+ ret Val;
+|main[]: 
+ //var V = "Hello World";
+ ret Copy("Hello World");// V.Size();
+
+*/
 

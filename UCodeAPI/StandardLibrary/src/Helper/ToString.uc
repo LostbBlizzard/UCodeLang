@@ -1,5 +1,4 @@
-%ULang:
- 
- $StringConverter:
-  |ToString<T>[umut T& Value] -> String:
-   ret [];
+
+
+|ToString<T,Char_t>[imut T& Object] -> String_t<Char_t>:
+ ret [];

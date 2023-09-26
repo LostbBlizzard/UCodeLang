@@ -2189,7 +2189,10 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 			auto ExNode = new ExpressionNodeType();
 			out->_node.reset(ExNode);
 			auto Ex = GetExpressionTypeNode(*ExNode);
-			out->_name.token = Token;
+
+			ScopedName V;
+			V._token = Token;
+			out->_name._ScopedName.push_back(std::move(V));
 
 			TokenTypeCheck(TryGetToken(), TokenType::Right_Parentheses);
 			NextToken();
@@ -2226,19 +2229,23 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 	if (Token->Type == TokenType::Name)
 	{
 		auto A = GetName(out->_name);
-		auto B = TryGetGeneric(out->_generic);
-		r = Merge(A,B);
+		r = A;
 	}
 	else if (TypeNode::IsType(Token->Type))
 	{
 		NextToken();
-		out->_name.token = Token;
+
+		ScopedName V;
+		V._token = Token;
+		out->_name._ScopedName.push_back(std::move(V));
 		r = GotNodeType::Success;
 	}
 	else if (Token->Type == TokenType::Void)
 	{
 		NextToken();
-		out->_name.token = Token;
+		ScopedName V;
+		V._token = Token;
+		out->_name._ScopedName.push_back(std::move(V));
 		r = GotNodeType::Success;
 	}
 	else
@@ -2289,9 +2296,6 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 				NextToken();
 				TypeNode* New = new TypeNode();
 
-				New->_Isimmutable = out->_Isimmutable;
-				out->_Isimmutable = false;
-				New->_generic._Values.push_back(std::move(*out));
 
 				auto NameToken = new UCodeLang::Token();
 				NameToken->OnLine = Token2->OnLine;
@@ -2301,7 +2305,16 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 
 				_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
 
-				New->_name.token = NameToken;
+				ScopedName V;
+				V._token = NameToken;
+				V._generic.reset(new UseGenericsNode());
+
+				New->_Isimmutable = out->_Isimmutable;
+				out->_Isimmutable = false;
+				V._generic->_Values.push_back(std::move(*out));
+
+
+				New->_name._ScopedName.push_back(std::move(V));
 				out = New;
 			}
 			else if (Token2->Type == TokenType::Right_Bracket)//int[] => Vector<int>
@@ -2311,7 +2324,7 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 
 				New->_Isimmutable = out->_Isimmutable;
 				out->_Isimmutable = false;
-				New->_generic._Values.push_back(std::move(*out));
+				
 
 				auto NameToken = new UCodeLang::Token();
 				NameToken->OnLine = Token2->OnLine;
@@ -2321,7 +2334,12 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 
 				_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
 
-				New->_name.token = NameToken;
+				ScopedName V;
+				V._token = NameToken;
+				V._generic.reset(new UseGenericsNode());
+				V._generic->_Values.push_back(std::move(*out));
+
+				New->_name._ScopedName.push_back(std::move(V));
 				out = New;
 			}
 			else if (Token2->Type == TokenType::bitwise_XOr)//int[^] => Unique_Array<int>
@@ -2331,8 +2349,7 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 
 				New->_Isimmutable = out->_Isimmutable;
 				out->_Isimmutable = false;
-				New->_generic._Values.push_back(std::move(*out));
-
+				
 				auto NameToken = new UCodeLang::Token();
 				NameToken->OnLine = Token2->OnLine;
 				NameToken->OnPos = Token2->OnPos;
@@ -2341,7 +2358,12 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 
 				_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
 
-				New->_name.token = NameToken;
+				ScopedName V;
+				V._token = NameToken;
+				V._generic.reset(new UseGenericsNode());
+				V._generic->_Values.push_back(std::move(*out));
+
+				New->_name._ScopedName.push_back(std::move(V));
 				out = New;
 			}
 			else if (Token2->Type == TokenType::DollarSign)//int[^] => Unique_Array<int>
@@ -2351,8 +2373,7 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 
 				New->_Isimmutable = out->_Isimmutable;
 				out->_Isimmutable = false;
-				New->_generic._Values.push_back(std::move(*out));
-
+				
 				auto NameToken = new UCodeLang::Token();
 				NameToken->OnLine = Token2->OnLine;
 				NameToken->OnPos = Token2->OnPos;
@@ -2361,7 +2382,13 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 
 				_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
 
-				New->_name.token = NameToken;
+				ScopedName V;
+				V._token = NameToken;
+				V._generic.reset(new UseGenericsNode());
+				V._generic->_Values.push_back(std::move(*out));
+
+
+				New->_name._ScopedName.push_back(std::move(V));
 				out = New;
 			}
 			else//int[0] => Array<int,(0)>
@@ -2373,8 +2400,7 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 				{
 					New->_Isimmutable = out->_Isimmutable;
 					out->_Isimmutable = false;
-					New->_generic._Values.push_back(std::move(*out));
-
+					
 					auto NameToken = new UCodeLang::Token();
 					NameToken->OnLine = Token2->OnLine;
 					NameToken->OnPos = Token2->OnPos;
@@ -2383,7 +2409,13 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 
 					_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
 
-					New->_name.token = NameToken;
+					ScopedName V;
+					V._token = NameToken;
+					V._generic.reset(new UseGenericsNode());
+					V._generic->_Values.push_back(std::move(*out));
+
+
+					New->_name._ScopedName.push_back(std::move(V));
 				}
 
 				{//Array expression
@@ -2395,7 +2427,10 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 					ExTypeNode._node.reset(ExNode);
 					auto Ex = GetExpressionTypeNode(*ExNode);
 					
-					New->_generic._Values.push_back(std::move(ExTypeNode));
+
+					auto& _generic = *New->_name._ScopedName.front()._generic;
+					
+					_generic._Values.push_back(std::move(ExTypeNode));
 				}
 
 
@@ -2420,7 +2455,7 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 
 			New->_Isimmutable = out->_Isimmutable;
 			out->_Isimmutable = false;
-			New->_generic._Values.push_back(std::move(*out));
+			
 
 			auto NameToken = new UCodeLang::Token();
 			NameToken->OnLine = Token2->OnLine;
@@ -2430,7 +2465,12 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 
 			_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
 
-			New->_name.token = NameToken;
+			ScopedName V;
+			V._token = NameToken;
+			V._generic.reset(new UseGenericsNode());
+			V._generic->_Values.push_back(std::move(*out));
+
+			New->_name._ScopedName.push_back(std::move(V));
 			out = New;
 
 			Token2 = TryGetToken();
@@ -2442,7 +2482,6 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 
 			New->_Isimmutable = out->_Isimmutable;
 			out->_Isimmutable = false;
-			New->_generic._Values.push_back(std::move(*out));
 
 			auto NameToken = new UCodeLang::Token();
 			NameToken->OnLine = Token2->OnLine;
@@ -2452,7 +2491,12 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 
 			_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
 
-			New->_name.token = NameToken;
+			ScopedName V;
+			V._token = NameToken;
+			V._generic.reset(new UseGenericsNode());
+			V._generic->_Values.push_back(std::move(*out));
+
+			New->_name._ScopedName.push_back(std::move(V));
 			out = New;
 
 			Token2 = TryGetToken();
@@ -2464,7 +2508,6 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 
 			New->_Isimmutable = out->_Isimmutable;
 			out->_Isimmutable = false;
-			New->_generic._Values.push_back(std::move(*out));
 
 			auto NameToken = new UCodeLang::Token();
 			NameToken->OnLine = Token2->OnLine;
@@ -2474,7 +2517,12 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 
 			_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
 
-			New->_name.token = NameToken;
+			ScopedName V;
+			V._token = NameToken;
+			V._generic.reset(new UseGenericsNode());
+			V._generic->_Values.push_back(std::move(*out));
+
+			New->_name._ScopedName.push_back(std::move(V));
 			out = New;
 
 			Token2 = TryGetToken();
@@ -2499,9 +2547,7 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 
 			New->_Isimmutable = out->_Isimmutable;
 			out->_Isimmutable = false;
-			New->_generic._Values.push_back(std::move(*out));
-			New->_generic._Values.push_back(std::move(othertype));
-
+			
 			auto NameToken = new UCodeLang::Token();
 			NameToken->OnLine = Token2->OnLine;
 			NameToken->OnPos = Token2->OnPos;
@@ -2510,7 +2556,13 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 
 			_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
 
-			New->_name.token = NameToken;
+			ScopedName V;
+			V._token = NameToken;
+			V._generic.reset(new UseGenericsNode());
+			V._generic->_Values.push_back(std::move(*out));
+			V._generic->_Values.push_back(std::move(othertype));
+
+			New->_name._ScopedName.push_back(std::move(V));
 			out = New;
 
 			Token2 = TryGetToken();
@@ -2538,9 +2590,13 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 			_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
 
 			TypeNode* New = new TypeNode();
-			New->_name.token = NameToken;
-			New->_generic._Values = std::move(Typelist);
+			ScopedName V;
+			V._token = NameToken;
+			V._generic.reset(new UseGenericsNode());
+			V._generic->_Values = std::move(Typelist);
 
+			New->_name._ScopedName.push_back(std::move(V));
+			
 			out = New;
 			Token2 = TryGetToken();
 		}
@@ -2566,8 +2622,12 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 		TypeNode* New = new TypeNode();
 
 		out->_Isimmutable = false;
-		New->_generic._Values.push_back(std::move(*out));
-		New->_name.token = NameToken;
+		
+		ScopedName V;
+		V._token = NameToken;
+		V._generic.reset(new UseGenericsNode());
+		V._generic->_Values.push_back(std::move(*out));
+		New->_name._ScopedName.push_back(std::move(V));
 
 		out = New;
 
@@ -2939,7 +2999,9 @@ GotNodeType Parser::DoEnumType(EnumNode* output, const Token* ClassToken, Generi
 	}
 	if (Inherited._values.size())
 	{
-		output->_BaseType._name.token = std::move(Inherited._values.front()._Name.token);
+		ScopedName V;
+		V._token = std::move(Inherited._values.front()._Name.token);
+		output->_BaseType._name._ScopedName.push_back(std::move(V));
 	}
 	else
 	{
