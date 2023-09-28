@@ -574,9 +574,6 @@ bool SystematicAnalysis::Analyze(const Vector<NeverNullPtr<FileNode>>& Files, co
 	_Files = &Files;
 	_Libs = &Libs;
 
-	int V = 0;
-	int* Ptr = &V;
-	Symbol_GetSymbolID(Ptr);
 
 	{
 		for (const auto& File : *_Files)
@@ -589,7 +586,7 @@ bool SystematicAnalysis::Analyze(const Vector<NeverNullPtr<FileNode>>& Files, co
 		_ForceImportArgWasPassed = _Settings->HasFlagArg("ForceImport");
 		_ImmutabilityIsForced = _Settings->HasFlagArg("ForcedImmutability");
 
-		_StartingNameSpace = _Settings->GetArgValueFlag("StartingNameSpac");
+		_StartingNameSpace = _Settings->GetArgValueFlag("StartingNameSpace");
 	}
 
 	_PassType = PassType::GetTypes;
@@ -604,10 +601,12 @@ bool SystematicAnalysis::Analyze(const Vector<NeverNullPtr<FileNode>>& Files, co
 		Pass();
 
 
-		if (!_ErrorsOutput->Has_Errors()) {
-			Lib_BuildLibs();
-			if (!_ErrorsOutput->Has_Errors()) {
-				BuildCode();
+		if (!_ErrorsOutput->Has_Errors()) 
+		{
+			BuildCode();
+			if (!_ErrorsOutput->Has_Errors())
+			{
+				Lib_BuildLibs();
 			}
 		}
 	};
@@ -743,7 +742,7 @@ void SystematicAnalysis::BuildCode()
 }
 void SystematicAnalysis::Lib_BuildLibs()
 {
-	if (_Settings->_Type != OutPutType::IRAndSymbols) 
+	//if (_Settings->_Type != OutPutType::IRAndSymbols) 
 	{
 		for (size_t i = 0; i < _Libs->size(); i++)
 		{
@@ -851,6 +850,7 @@ void SystematicAnalysis::ToIntFile(FileNode_t* File, const Path& path)
 
 
 	TepIR.ConstStaticStrings = _IR_Builder.ConstStaticStrings;
+	TepIR._Map = _IR_Builder._Map;
 
 
 	auto IRLayer = Tep.AddLayer(UCode_CodeLayer_IR_Name);
@@ -5602,29 +5602,7 @@ void SystematicAnalysis::Pop_StackFrame()
 }
 SymbolID SystematicAnalysis::Symbol_GetSymbolID(const void* Item)
 {
-	#if UCodeLangDebug
-	bool OnStack = false;
 
-	
-
-	constexpr size_t KbMul =  1024;
-	constexpr size_t MbMul = KbMul * 1024;
-	constexpr size_t StackSize = MbMul * 4;
-
-	uintptr_t StackPointer = (uintptr_t)&OnStack;
-	uintptr_t ItemInt = (uintptr_t)Item;
-	if (StackPointer + StackSize < ItemInt 
-	 && StackPointer - StackSize > ItemInt)
-	{
-		OnStack = true;
-	}
-
-
-	if (OnStack)
-	{
-		UCodeLangThrowException("Item Is on Stack not on heep");
-	}
-	#endif // DEBUG
 	auto Scope = _Table._Scope.ThisScope;
 
 	if (!_SybIdMap.HasValue(Scope))

@@ -875,6 +875,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			{
 				if (IsPrimitive(GetType(Item)))
 				{
+					RegWillBeUsed(_InputPar);
 					LoadOpToReg(Item, Item->Target(), _InputPar);
 					SetRegister(_InputPar, Item->Target());
 					Reg++;
@@ -1779,6 +1780,24 @@ void UCodeBackEndObject::AddOffset(IRlocData& Pos, size_t Offset)
 		Val->offset += Offset;
 	}
 }
+size_t UCodeBackEndObject::GetMainObjectSizeForStackPre(const IRlocData& Val)
+{
+	auto preoffset = Val.Info.Get<IRlocData_StackPre>().offset;
+	for (auto& Item : CurrentFuncParPos)
+	{
+		if (auto Item2 = Item.Location.Get_If<StackPreCall>()) 
+		{
+			auto pos = Item2->Offset;
+			auto obj = GetSize(Item.Par->type);
+			if (preoffset <= (pos + obj) 
+				&& preoffset >= (pos))
+			{
+				return obj;
+			}
+		}
+	}
+	UCodeLangUnreachable();
+}
 void UCodeBackEndObject::DropStack()
 {
 	if (_Stack.Size)
@@ -2144,11 +2163,13 @@ RegisterID UCodeBackEndObject::MakeIntoRegister(const IRlocData& Value, Optional
 		}
 		else 
 		{
-			auto& Val2 = Value.Info.Get<IRlocData_StackPre>();
+			auto Val2 = Value.Info.Get_If<IRlocData_StackPre>();
 
-			auto v = GetSize(Value.ObjectType);
+			
+			auto mainobjsize = GetMainObjectSizeForStackPre(Value);
 
-			_Stack.AddReUpdatePreFunc(PushIns(), Val2.offset);
+			auto newpos = mainobjsize - Val2->offset;
+			_Stack.AddReUpdatePreFunc(PushIns(), newpos);
 		}
 		return Tep;
 	}
@@ -2277,8 +2298,10 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetPointerOf(const IRlocData& 
 		}
 		else if (auto Val2 = Value.Info.Get_If<IRlocData_StackPre>())
 		{
-			auto v =GetSize(Value.ObjectType);
-			_Stack.AddReUpdatePreFunc(PushIns(), Val2->offset+ v);
+			auto mainobjsize = GetMainObjectSizeForStackPre(Value);
+
+			auto newpos = mainobjsize - Val2->offset;
+			_Stack.AddReUpdatePreFunc(PushIns(), newpos);
 		}
 		else
 		{
@@ -3436,8 +3459,10 @@ void UCodeBackEndObject::MoveValueInReg(const IRlocData& Value, size_t Offset, R
 		{
 			auto Val2 = Value.Info.Get_If<IRlocData_StackPre>();
 
-			auto v = GetSize(Value.ObjectType);
-			_Stack.AddReUpdatePreFunc(PushIns(), Val2->offset + v + Offset);
+			auto mainobjsize = GetMainObjectSizeForStackPre(Value);
+
+			auto newpos = mainobjsize - Val2->offset;
+			_Stack.AddReUpdatePreFunc(PushIns(), newpos+Offset);
 		}
 	}
 	else if (auto Val = Value.Info.Get_If<IRlocData_StaticPos>())

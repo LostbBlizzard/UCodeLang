@@ -144,6 +144,7 @@ IRType IRBuilder::GetType(const IRInstruction* IR, const IROperator& Op) const
 		case IROperatorType::Value:
 			return  IR->ObjectType;
 		default:
+
 			break;
 		}
 	}
@@ -1139,7 +1140,7 @@ void IRBuilder::CombineWith(const IRBuilder& Other)
 				auto& Syb = _Symbols.emplace_back(new IRSymbolData());
 				auto SybPtr = Syb.get();
 
-
+				
 				SybPtr->identifier = Item->identifier;
 				SybPtr->SymType = Item->SymType;
 				SybPtr->Type = Item->Type;
@@ -1170,7 +1171,24 @@ void IRBuilder::CombineWith(const IRBuilder& Other)
 					*Ptr = *Item->Get_ExAs<IRStruct>();
 				}
 				break;
+				case IRSymbolType::StaticVarable:
+				{
+					auto Ptr = new IRBufferData();
+					SybPtr->Ex.reset(Ptr);
+
+					*Ptr = *Item->Get_ExAs<IRBufferData>();
+				}
+				break;
+				case IRSymbolType::ThreadLocalVarable:
+				{
+					auto Ptr = new IRBufferData();
+					SybPtr->Ex.reset(Ptr);
+
+					*Ptr = *Item->Get_ExAs<IRBufferData>();
+				}
+				break;
 				default:
+					UCodeLangUnreachable();
 					break;
 				}
 			}
@@ -1182,7 +1200,7 @@ void IRBuilder::CombineWith(IRBuilder&& Other)
 {
 	//temporary body
 	CombineWith(Other);
-	Other.Reset();
+	//Other.Reset();
 }
 
 bool IRBuilder::IsTheSame(const IRFuncPtr* Func, const IRFuncPtr* Func2)const
@@ -1210,7 +1228,7 @@ void IRBuilder::CopyBodyInTo(IRFunc& ToUpdate, const IRFunc& Func)
 	{
 		ToUpdate.Blocks.push_back({});
 		const auto& Item = Func.Blocks[i];
-		auto& ToUpdateItem = ToUpdate.Blocks[i];
+		auto& ToUpdateItem = ToUpdate.Blocks.back();
 		
 		auto Ptr = new IRBlock();
 		ToUpdateItem.reset(Ptr);

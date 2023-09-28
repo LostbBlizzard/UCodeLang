@@ -68,11 +68,17 @@ public:
 	Unique_ptr<FileNode_t> LoadExternFile(const Path& path);
 	virtual Unique_ptr<FileNode_t> LoadExternFile(const BytesView Bytes, const Path& Ext){return nullptr;}
 
-
-	virtual Unique_ptr<FileNode_t> LoadIntFile(const Path& path) { return nullptr; }
+	Unique_ptr<FileNode_t> LoadIntFile(const Path& path);
+	virtual Unique_ptr<FileNode_t> LoadIntFile(const BytesView Bytes, const Path& Ext) { return nullptr; }
 	
 
 	virtual void ToIntFile(FileNode_t* File,const Path& path) { }
+
+	void BuildIR(const Vector<Unique_ptr<FileNode_t>>& FileNode)
+	{
+		Vector<FileNode_t*>& _Files = *(Vector<FileNode_t*>*) &FileNode;
+		return  BuildIR(_Files);
+	}
 
 	virtual void BuildIR(const Vector<FileNode_t*>& FileNode) {}
 

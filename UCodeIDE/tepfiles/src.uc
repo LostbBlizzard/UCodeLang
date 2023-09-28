@@ -99,26 +99,8 @@ $Optional<T> enum:
 
 */
 
+
 /*
-$StringSpan_t<T>:
- //$String = String_t<T>;
- T[&] _data;
- uintptr _size;
- |new[this&]:
-  _data = unsafe bitcast<T[&]>(0);
-  _size = 0;
-
- unsafe |new[this&,T[&] data,uintptr size]:
-  _data = data;
-  _size = size;
-
- |Size[imut this&] => _size;
- unsafe |Data[imut this&] => _data;
-
-$StringSpan =StringSpan_t<char>;
-*/
-
-
 $Vec4_t<T>:
  T X = 1;
  T Y = 2;
@@ -145,7 +127,10 @@ $Vec4 = Vec4_t<int64>;
 |Get_W[Vec4 Val]: 
  ret Val.W;
 
+*/
+
 /*
+
 |Print[imut StringSpan Val]:
  ret Val.Size() + uintptr(5);
 
