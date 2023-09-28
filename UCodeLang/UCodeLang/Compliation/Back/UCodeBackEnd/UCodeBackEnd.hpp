@@ -424,6 +424,8 @@ private:
 
 	void AddOffset(IRlocData& Pos, size_t Offset);
 
+	size_t GetMainObjectSizeForStackPre(const IRlocData& Val);
+
 	FindParsLoc GetParsLoc(const Vector<IRType>& Pars);
 	FindParsLoc GetParsLoc(const Vector<IRPar>& Pars);
 

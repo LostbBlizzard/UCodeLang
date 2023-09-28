@@ -232,10 +232,11 @@ private:
 
 		bool AutoCompile = true;
 		bool AutoReload = true;
-		bool AutoHotReload = true;
+		bool AutoHotReload = false;
 
 		UCodeLang::OptimizationFlags Flags = UCodeLang::OptimizationFlags::NoOptimization;
 		bool InDebug = true;
+		bool ImportStandardLibrary = true;
 
 		NativeSet OldNativeCpuType = NativeSet::x86;
 	};

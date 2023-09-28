@@ -1294,9 +1294,9 @@ bool buildfile2(UCodeLang::Path& filetorun, UCodeLang::Compiler& _Compiler, UCod
 		else
 		{
 			Compiler::CompilerPathData v;
-			v.FileDir = filetorun.generic_string();
-			v.IntDir = (filetorun / ModuleFile::ModuleIntPath).generic_string();
-			v.OutFile = Path((filetorun / filetorun.filename()).native() + Path(_Compiler.GetOutputExtWithDot()).native()).generic_string();
+			v.FileDir = filetorun;
+			v.IntDir = (filetorun / ModuleFile::ModuleIntPath);
+			v.OutFile = Path((filetorun / filetorun.filename()).native() + Path(_Compiler.GetOutputExtWithDot()).native());
 			
 			bool ItWorked = _Compiler.CompileFiles_UseIntDir(v)._State == Compiler::CompilerState::Success;
 			if (!ItWorked)

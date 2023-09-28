@@ -7,6 +7,7 @@ LangDefInfo& UCodeLangInfo::GetLangInfo()
 {
 	if (Init == false)
 	{
+		Init = true;
 		Info.LangName = "UCode";
 		Info.FileTypes.push_back({ FileExt::SourceFileWithDot,FrontEndType::Text,(LangDefInfo::FileID)FileTypes::SourceFile });
 
@@ -66,13 +67,11 @@ Unique_ptr<FileNode_t> UCodeFrontEndObject::BuildFile(String_view Text)
 	}
 	return nullptr;
 }
-Unique_ptr<FileNode_t> UCodeFrontEndObject::LoadIntFile(const Path& path) 
+Unique_ptr<FileNode_t> UCodeFrontEndObject::LoadIntFile(const BytesView Bytes, const Path& Ext)
 { 
-	auto Bytes = Compiler::GetBytesFromFile(path);
-
 	LibImportNode tep;
 	tep.Mode = ImportMode::IntermediateFile;
-	if (UClib::FromBytes(&tep.LIb, Bytes.AsSpan()))
+	if (UClib::FromBytes(&tep.LIb, Bytes))
 	{
 		return Unique_ptr<FileNode_t>(new LibImportNode(std::move(tep)));
 	}

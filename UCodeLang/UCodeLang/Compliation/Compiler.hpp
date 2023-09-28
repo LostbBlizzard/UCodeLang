@@ -25,32 +25,31 @@ public:
 	};
 	struct CompilerPathData
 	{
-		String FileDir;
-		String IntDir;
-		String OutFile;
+		Path FileDir;
+		Path IntDir;
+		Path OutFile;
 	};
 	struct ExternalFiles
 	{
-		Vector<String> Files;
+		Vector<Path> Files;
 	};
 	
 	
-	UCodeLangAPIExport CompilerRet CompileText(const String_view& Text);
+	UCodeLangAPIExport CompilerRet CompileText(const String_view& Text, const ExternalFiles& ExternalFiles = {});
 	UCodeLangAPIExport static String GetTextFromFile(const Path& path);
 	UCodeLangAPIExport static BytesPtr GetBytesFromFile(const Path& path);
-	UCodeLangForceinline CompilerRet CompileFileToLib(const Path& path)
+	UCodeLangForceinline CompilerRet CompileFileToLib(const Path& path, const ExternalFiles& ExternalFiles = {})
 	{
-		return  CompileText(GetTextFromFile(path));
+		return  CompileText(GetTextFromFile(path),ExternalFiles);
 	}
-	UCodeLangAPIExport CompilerRet CompilePathToObj(const Path& path, const Path& OutLib);
-	UCodeLangAPIExport CompilerRet CompileFiles(const CompilerPathData& Data);
+	UCodeLangAPIExport CompilerRet CompilePathToObj(const Path& path, const Path& OutLib, const ExternalFiles& ExternalFiles = {});
+	
+	
+	
+	UCodeLangAPIExport CompilerRet CompileFiles(const CompilerPathData& Data, const ExternalFiles& ExternalFiles = {});
 
-	UCodeLangAPIExport CompilerRet CompileFiles_UseIntDir(const CompilerPathData& Data)
-	{
-		ExternalFiles External;
-		return CompileFiles_UseIntDir(Data, External);
-	}
-	UCodeLangAPIExport CompilerRet CompileFiles_UseIntDir(const CompilerPathData& Data,const ExternalFiles& ExternalFiles);
+
+	UCodeLangAPIExport CompilerRet CompileFiles_UseIntDir(const CompilerPathData& Data, const ExternalFiles& ExternalFiles = {});
 	//CompilerRet CompileFiles_UseIntDir(const Vector<Path>& files, const Path& intDir, const  ExternalFiles& ExternalFiles = {});
 
 	UCodeLangAPIExport BytesPtr OpenFile(const LangDefInfo::FileInfo* FInfo, const Path& path);

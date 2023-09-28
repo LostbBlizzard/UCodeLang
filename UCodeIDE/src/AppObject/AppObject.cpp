@@ -1715,6 +1715,7 @@ void AppObject::OnDraw()
         {
             UpdateLib = OutputWindow.OldNativeCpuType != windowdata.NativeCpuType;
         }
+       
 
         if (ImguiHelper::EnumField("Type", OutputWindow.Type, List) || UpdateLib)
         {
@@ -1809,12 +1810,24 @@ void AppObject::OnDraw()
             {"0_2",UCodeLang::OptimizationFlags::ForSpeed},
             {"0_3",UCodeLang::OptimizationFlags::ForMaxSpeed},
         };
+        bool UpdatedCompileInfo = false;
 
+       
         if (ImguiHelper::EnumField("Optimizations", OutputWindow.Flags, OpflagList))
         {
-            CompileText(GetTextEditorString());
+            UpdatedCompileInfo = true;
         }
         if (ImguiHelper::BoolEnumField("In Debug Mode", OutputWindow.InDebug))
+        {
+            UpdatedCompileInfo = true;
+        }
+        if (ImguiHelper::BoolEnumField("With StandardLibrary", OutputWindow.ImportStandardLibrary))
+        {
+            UpdatedCompileInfo = true;
+        }
+
+
+        if (UpdatedCompileInfo)
         {
             CompileText(GetTextEditorString());
         }
@@ -2201,6 +2214,7 @@ void AppObject::ShowUCodeVMWindow()
             ImGui::SameLine();
             ImguiHelper::EnumField("CpuType", windowdata.NativeCpuType, NativeSetList);
         }
+       
         ImGui::Separator();
 
         {
@@ -2859,12 +2873,15 @@ void AppObject::CompileText(const String& String)
     const Path tepfilesdir = "tepfiles";
     const Path tepfilepath = tepfilesdir / "src.uc";
     const Path tepoutpath = Outfilepath();
-    
+    const Path tepintpath = "int";
+
     std::filesystem::create_directory(tepfilesdir);
 
     UCodeLang::Compiler::CompilerPathData paths;
-    paths.FileDir = tepfilesdir.generic_string();
-    paths.OutFile = tepoutpath.generic_string();
+
+    paths.FileDir = tepfilesdir;
+    paths.OutFile = tepoutpath;
+    paths.IntDir = tepintpath;
 
     std::ofstream file(tepfilepath);
     file << String;
@@ -2875,12 +2892,39 @@ void AppObject::CompileText(const String& String)
     if (OutputWindow.InDebug) {
         Settings._Flags = (UCodeLang::OptimizationFlags)((UCodeLang::OptimizationFlags_t)Settings._Flags | (UCodeLang::OptimizationFlags_t)UCodeLang::OptimizationFlags::Debug);
     }
-    auto r = _Compiler.CompileFiles(paths);
-    
+   
     IsRuningCompiler = true;
-    std::function<UCodeLang::Compiler::CompilerRet()> Func = [this, paths]()
+    bool AddStandardLibrary = OutputWindow.ImportStandardLibrary;
+    std::function<UCodeLang::Compiler::CompilerRet()> Func = [this, paths,AddStandardLibrary ]()
     {
-       auto r = _Compiler.CompileFiles(paths);
+        UCodeLang::Compiler::ExternalFiles ExternalFiles;
+
+        if (AddStandardLibrary)
+        {
+            UCodeLang::ModuleFile f;
+            Path modpath = Path(UCodeLang_SoultionDir) / "UCodeAPI";
+            modpath /= "StandardLibrary";
+            modpath /= UCodeLang::ModuleFile::FileNameWithExt;
+
+            f.FromFile(&f, modpath);
+            UCodeLang::ModuleIndex index = UCodeLang::ModuleIndex::GetModuleIndex();
+
+
+            auto v = f.BuildModule(_Compiler, index,true);
+            if (v.CompilerRet._State
+                ==
+                UCodeLang::Compiler::CompilerState::Fail)
+            {
+                auto& r = v.CompilerRet;
+                return std::move(r);
+            }
+            else
+            {
+                ExternalFiles.Files.push_back(v.OutputItemPath);
+            }
+        }
+
+       auto r = _Compiler.CompileFiles_UseIntDir(paths,ExternalFiles);
        IsRuningCompiler = false;
        return r;
     };

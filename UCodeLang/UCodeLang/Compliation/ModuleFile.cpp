@@ -233,7 +233,13 @@ Compiler::CompilerPathData ModuleFile::GetPaths(Compiler& Compiler, bool IsSubMo
 	}
 
 	paths.OutFile += ModuleName.ModuleName;
-	paths.OutFile += Compiler.GetOutputExtWithDot();
+	if (IsSubModule) 
+	{
+		paths.OutFile += FileExt::LibWithDot;
+	}
+	else {
+		paths.OutFile += Compiler.GetOutputExtWithDot();
+	}
 	return paths;
 }
 String ModuleFile::ToName(const ModuleIdentifier& ID)
@@ -368,7 +374,7 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 					ModuleRet CompilerRet;
 					{
 						Compiler.Get_Settings()._Type = IsSubModule ? OutPutType::IRAndSymbols : OldSettings._Type;
-						CompilerRet.OutputItemPath = paths.OutFile;
+						CompilerRet.OutputItemPath = GetPaths(Compiler, IsSubModule).OutFile;
 
 
 						if (ForceImport) {
