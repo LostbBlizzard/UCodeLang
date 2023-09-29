@@ -554,14 +554,14 @@ private:
 	GotNodeType GetEvalDeclare(Node*& out);
 
 	
-	TryGetNode GetCompileTimeIf()
+	TryGetNode GetCompileTimeIf(bool IsInFunc = true)
 	{
 		CompileTimeIfNode* V = CompileTimeIfNode::Gen();
-		auto r = GetCompileTimeIf(V);
+		auto r = GetCompileTimeIf(V,IsInFunc);
 		TrippedCheck(r);
 		return { r,V };
 	}
-	GotNodeType GetCompileTimeIf(CompileTimeIfNode*& out);
+	GotNodeType GetCompileTimeIf(CompileTimeIfNode*& out, bool IsInFunc = true);
 
 
 	TryGetNode GetCompileTimeForNode()

@@ -12,6 +12,9 @@ eval bool IsDebug = compiler::IsDebug();
 |Wasm[] => IsWasm;
 |Debug[] => IsDebug;
 
+$if IsDebug:
+ |FuncOnlyInDebug[] -> void;
+
 |main[]: 
  //Fmt::Print("Hello World");
 

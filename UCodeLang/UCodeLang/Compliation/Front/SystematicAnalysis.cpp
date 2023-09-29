@@ -1261,7 +1261,12 @@ void SystematicAnalysis::OnFileNode(const FileNode& File)
 			}
 			break;
 		}
-		default:break;
+		case NodeType::CompileTimeIfNode:
+			OnCompileTimeIfNode(*CompileTimeIfNode::As(node.get()),false);
+			break;
+		default:
+			UCodeLangUnreachable();
+			break;
 		}
 
 	}
@@ -1461,7 +1466,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			bool HasCopyConstructor = false;
 			bool HasMoveConstructor = false;
 
-			const auto& Funcs = _Table.GetSymbolsWithName((String)ClassConstructorfunc, SymbolType::Func);
+			const auto& Funcs = GetSymbolsWithName((String)ClassConstructorfunc, SymbolType::Func);
 			for (auto& Item : Funcs)
 			{
 				if (Item->Type == SymbolType::Func)
@@ -4282,7 +4287,7 @@ void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo
 			FuncInfo* Info = Item.Syb->Get_Info<FuncInfo>();
 
 			auto FuncName = Info->Get_Name();
-			auto& List = _Table.GetSymbolsWithName(Info->Get_Name());
+			auto& List = GetSymbolsWithName(Info->Get_Name());
 
 			bool HasFunc = false;
 
@@ -4487,71 +4492,201 @@ void SystematicAnalysis::Symbol_BuildTrait(const NeverNullPtr<Symbol> Syb, Class
 		_ClassStack.pop();
 	}
 }
-void SystematicAnalysis::OnCompileTimeIfNode(const CompileTimeIfNode& node)
+void SystematicAnalysis::OnCompileTimeIfNode(const CompileTimeIfNode& node, bool IsInFunc)
 {
+	auto FuncNodeCall = [this](Node* Item)
+	{
+		switch (Item->Get_Type())
+		{
+		case NodeType::FuncNode:
+			OnFuncNode(*FuncNode::As(Item));
+			break;
+		case NodeType::AliasNode:
+			OnAliasNode(*AliasNode::As(Item));
+			break;
+		case NodeType::EnumNode:
+			OnEnum(*EnumNode::As(Item));
+			break;
+		case NodeType::ClassNode:
+			OnClassNode(*ClassNode::As(Item));
+			break;
+		default:
+			UCodeLangUnreachable();
+			break;
+		}
+
+	};
+
 	if (_PassType == PassType::GetTypes)
 	{
 		_LookingForTypes.push(TypesEnum::Bool);
 		OnExpressionTypeNode(node._Expression._Value.get(),GetValueMode::Read);
 		_LookingForTypes.pop();
+
+		if (IsInFunc==false)
+		{
+			Vector<String_view> PossibleSymbolNames;
+			
+			for (auto& Item : node._Body._Nodes)
+			{
+				String_view SymbolName;
+
+				
+				switch (Item->Get_Type())
+				{
+				case NodeType::FuncNode:
+					SymbolName = FuncNode::As(Item.get())->_Signature._Name.token->Value._String;
+					break;
+				case NodeType::AliasNode:
+					SymbolName = AliasNode::As(Item.get())->_AliasName.token->Value._String;
+					break;
+				case NodeType::EnumNode:
+					SymbolName = EnumNode::As(Item.get())->_EnumName.token->Value._String;
+					break;
+				case NodeType::ClassNode:
+					SymbolName = ClassNode::As(Item.get())->_className.token->Value._String;
+					break;
+				default:
+					UCodeLangUnreachable();
+					break;
+				}
+
+				PossibleSymbolNames.push_back(SymbolName);
+			}
+			Test info;
+			info.node = &node;
+			info.Context = Save_SymbolContext();
+			info._SymID = Symbol_GetSymbolID(node);
+
+			Test1 M;
+			M.PossibleSymbolNames = std::move(PossibleSymbolNames);
+			M.node = std::move(info);
+			
+
+			NodeCompileTimeIfs.push_back(std::move(M));
+		}
 	}
 	else if (_PassType == PassType::FixedTypes)
 	{
-		
-		_LookingForTypes.push(TypesEnum::Bool);
-		auto BoolValue = Eval_Evaluate(TypesEnum::Bool,node._Expression);
-		_LookingForTypes.pop();
-
-		if (BoolValue.has_value())
+		bool hasevalthis = true;
+		if (IsInFunc == false)
 		{
-			const bool& EvalValue = *(bool*)Eval_Get_Object(BoolValue.value());
-		
-
-			if (EvalValue)
+			auto SymID = Symbol_GetSymbolID(node);
+			for (size_t i = 0; i < NodeCompileTimeIfs.size(); i++)
 			{
-				auto PassOld = _PassType;
-				_PassType = PassType::GetTypes;
-				for (auto& Item : node._Body._Nodes)
-				{
-					OnStatement(*Item.get());
-				}
-				_PassType = PassType::FixedTypes;
-				for (auto& Item : node._Body._Nodes)
-				{
-					OnStatement(*Item.get());
-				}
+				auto& Item = NodeCompileTimeIfs[i];
 
-				_PassType = PassOld;
+				if (Item.node._SymID == SymID)
+				{
+					NodeCompileTimeIfs.erase(NodeCompileTimeIfs.begin() + i);
+					hasevalthis = false;
+					break;
+				}
 			}
-			else
+		}
+		else
+		{
+			hasevalthis = false;
+		}
+
+		if (hasevalthis == false) 
+		{
+			_LookingForTypes.push(TypesEnum::Bool);
+			auto BoolValue = Eval_Evaluate(TypesEnum::Bool, node._Expression);
+			_LookingForTypes.pop();
+
+
+
+			if (BoolValue.has_value())
 			{
-				if (node._Else.get())
+				const bool& EvalValue = *Eval_Get_ObjectAs<bool>(BoolValue.value());
+
+
+				if (EvalValue)
+				{
+					auto PassOld = _PassType;
+					_PassType = PassType::GetTypes;
+
+					if (IsInFunc)
+					{
+						for (auto& Item : node._Body._Nodes)
+						{
+							OnStatement(*Item.get());
+						}
+					}
+					else
+					{
+						for (auto& Item : node._Body._Nodes)
+						{
+							FuncNodeCall(Item.get());
+						}
+					}
+					_PassType = PassType::FixedTypes;
+					if (IsInFunc)
+					{
+						for (auto& Item : node._Body._Nodes)
+						{
+							OnStatement(*Item.get());
+						}
+					}
+					else
+					{
+						for (auto& Item : node._Body._Nodes)
+						{
+							FuncNodeCall(Item.get());
+						}
+					}
+
+					_PassType = PassOld;
+				}
+				else if (node._Else.get())
 				{
 					ElseNode* Elsenode = ElseNode::As(node._Else.get());
 
 					auto PassOld = _PassType;
 					_PassType = PassType::GetTypes;
-					
-					for (const auto& node3 : Elsenode->_Body._Nodes)
+
+					if (IsInFunc)
 					{
-						OnStatement(*node3);
+						for (const auto& node3 : Elsenode->_Body._Nodes)
+						{
+							OnStatement(*node3);
+						}
+					}
+					else
+					{
+						for (auto& Item : Elsenode->_Body._Nodes)
+						{
+							FuncNodeCall(Item.get());
+						}
 					}
 
 					_PassType = PassType::FixedTypes;
-					
-					for (const auto& node3 : Elsenode->_Body._Nodes)
+
+					if (IsInFunc)
 					{
-						OnStatement(*node3);
+						for (const auto& node3 : Elsenode->_Body._Nodes)
+						{
+							OnStatement(*node3);
+						}
+					}
+					else
+					{
+						for (auto& Item : Elsenode->_Body._Nodes)
+						{
+							FuncNodeCall(Item.get());
+						}
 					}
 
 					_PassType = PassOld;
+
 				}
+
+				_ValidNodes.AddValue(Symbol_GetSymbolID(node), EvalValue);
+
 			}
 
-			_ValidNodes.AddValue(Symbol_GetSymbolID(node), EvalValue);
-
 		}
-
 	}
 	else if (_PassType == PassType::BuidCode)
 	{
@@ -4559,18 +4694,37 @@ void SystematicAnalysis::OnCompileTimeIfNode(const CompileTimeIfNode& node)
 
 		if (EvalValue)
 		{
-			for (auto& Item : node._Body._Nodes)
+			if (IsInFunc)
 			{
-				OnStatement(*Item.get());
+				for (auto& Item : node._Body._Nodes)
+				{
+					OnStatement(*Item.get());
+				}
+			}
+			else
+			{
+				for (auto& Item : node._Body._Nodes)
+				{
+					FuncNodeCall(Item.get());
+				}
 			}
 		}
-		else
+		else if (node._Else.get())
 		{
 			ElseNode* Elsenode = ElseNode::As(node._Else.get());
-
-			for (const auto& node3 : Elsenode->_Body._Nodes)
+			if (IsInFunc)
 			{
-				OnStatement(*node3);
+				for (const auto& node3 : Elsenode->_Body._Nodes)
+				{
+					OnStatement(*node3);
+				}
+			}
+			else
+			{
+				for (auto& Item : Elsenode->_Body._Nodes)
+				{
+					FuncNodeCall(Item.get());
+				}
 			}
 		}
 	}
@@ -5123,7 +5277,7 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 			Name += Str_GetScopedNameAsString(Item._ImportedSybol);
 			
 			
-			auto List = _Table.GetSymbolsWithName(Name);
+			auto List = GetSymbolsWithName(Name);
 
 			if (List.empty())
 			{
@@ -7499,7 +7653,7 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 			String Scope = ToString(Out.Type);
 			ScopeHelper::GetApendedString(Scope, Data.CompilerName);
 
-			auto ConstructorSymbols = _Table.GetSymbolsWithName(Scope, SymbolType::Any);
+			auto ConstructorSymbols = GetSymbolsWithName(Scope, SymbolType::Any);
 
 			Symbol* funcToCallSys = nullptr;
 
@@ -7780,7 +7934,7 @@ void SystematicAnalysis::StepBuildMember_Access(const ScopedName& ITem, TypeSymb
 			String Scope = ToString(Last_Type);
 			ScopeHelper::GetApendedString(Scope, Data.CompilerName);
 
-			auto ConstructorSymbols = _Table.GetSymbolsWithName(Scope, SymbolType::Any);
+			auto ConstructorSymbols = GetSymbolsWithName(Scope, SymbolType::Any);
 
 			Symbol* funcToCallSys = nullptr;
 
@@ -9071,7 +9225,7 @@ void SystematicAnalysis::OnStringLiteral(const StringliteralNode* nod, bool& ret
 			{
 				String scope = ScopeHelper::ApendedStrings(ToString(SpanStringType), ClassConstructorfunc);
 
-				auto list = _Table.GetSymbolsWithName(scope);
+				auto list = GetSymbolsWithName(scope);
 				for (auto& Item : list)
 				{
 					if (Item->Type == SymbolType::Func)
@@ -9348,7 +9502,7 @@ void SystematicAnalysis::OnStringLiteral(const StringliteralNode* nod, bool& ret
 				String scope = ScopeHelper::ApendedStrings(ToString(spantype), ClassConstructorfunc);
 				spantype.SetAsimmutable();
 
-				auto list = _Table.GetSymbolsWithName(scope);
+				auto list = GetSymbolsWithName(scope);
 				for (auto& Item : list)
 				{
 					if (Item->Type == SymbolType::Func)
@@ -10464,7 +10618,7 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 					String funcName = Syb->FullName;
 					ScopeHelper::GetApendedString(funcName, Overload_Index_Func);
 
-					auto V = _Table.GetSymbolsWithName(funcName, SymbolType::Func);
+					auto V = GetSymbolsWithName(funcName, SymbolType::Func);
 
 					for (auto& Item : V)
 					{
@@ -10721,7 +10875,8 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 	else
 	if (_PassType == PassType::FixedTypes)
 	{
-		if (!_FuncToSyboID.HasValue(Symbol_GetSymbolID(node))) 
+		auto symid = Symbol_GetSymbolID(node);
+		if (!_FuncToSyboID.HasValue(symid))
 		{
 
 			auto Info = Type_GetFunc(node._FuncName, node.Parameters, Type_Get_LookingForType());
@@ -10731,9 +10886,12 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 				FileDependency_AddDependencyToCurrentFile(Info.SymFunc);
 			}
 
-			_FuncToSyboID.AddValue(Symbol_GetSymbolID(node), std::move(Info));
-
 			Type_SetFuncRetAsLastEx(Info);
+			_FuncToSyboID.AddValue(symid, std::move(Info));
+		}
+		else
+		{
+			Type_SetFuncRetAsLastEx(_FuncToSyboID.at(symid));
 		}
 	}
 	else if (_PassType == PassType::BuidCode)
@@ -11335,7 +11493,7 @@ void SystematicAnalysis::Assembly_LoadSymbol(const ClassMethod& Item, Systematic
 }
 NullablePtr<Symbol> SystematicAnalysis::Symbol_GetSymbol(String_view Name, SymbolType Type)
 {
-	auto& Symbols = _Table.GetSymbolsWithName(Name,Type);
+	auto& Symbols = GetSymbolsWithName(Name,Type);
 	auto Symbol = Symbols.size() ? Symbols[0] : nullptr;
 
 	if (Symbol && Symbol->Type == SymbolType::ParameterVarable)
@@ -11354,7 +11512,7 @@ NullablePtr<Symbol> SystematicAnalysis::Symbol_GetSymbol(String_view Name, Symbo
 }
 const NullablePtr<Symbol> SystematicAnalysis::Symbol_GetSymbol(String_view Name, SymbolType Type) const
 {
-	auto& Symbols = _Table.GetSymbolsWithName(Name, Type);
+	auto& Symbols = GetSymbolsWithName(Name, Type);
 	auto Symbol = Symbols.size() ? Symbols[0] : nullptr;
 	return Nullableptr(Symbol);
 }
@@ -13099,19 +13257,19 @@ void SystematicAnalysis::Assembly_LoadType(const ReflectionTypeInfo& Item, TypeS
 			{
 			case ClassType::Class:
 			{
-				auto& Syb = _Table.GetSymbolsWithName(Node->FullName).front();
+				auto& Syb = GetSymbolsWithName(Node->FullName).front();
 				Out.SetType(Syb->ID);
 			}
 				break;
 			case ClassType::Alias:
 			{
-				auto& Syb = _Table.GetSymbolsWithName(Node->FullName).front();
+				auto& Syb = GetSymbolsWithName(Node->FullName).front();
 				Out.SetType(Syb->ID);
 			}
 			break;
 			case ClassType::Enum:
 			{
-				auto& Syb = _Table.GetSymbolsWithName(Node->FullName).front();
+				auto& Syb = GetSymbolsWithName(Node->FullName).front();
 				Out.SetType(Syb->ID);
 			}
 				break;
@@ -13210,7 +13368,7 @@ SystematicAnalysis::BinaryOverLoadWith_t SystematicAnalysis::Type_HasBinaryOverL
 					String funcName = Syb->FullName;
 					ScopeHelper::GetApendedString(funcName,Item.CompilerName);
 
-					auto& V = _Table.GetSymbolsWithName(funcName, SymbolType::Func);
+					auto& V = GetSymbolsWithName(funcName, SymbolType::Func);
 
 					for (auto& Item : V)
 					{
@@ -13262,7 +13420,7 @@ SystematicAnalysis::CompoundOverLoadWith_t SystematicAnalysis::Type_HasCompoundO
 					String funcName = Syb->FullName;
 					ScopeHelper::GetApendedString(funcName, Item.CompilerName);
 
-					auto& V = _Table.GetSymbolsWithName(funcName, SymbolType::Func);
+					auto& V = GetSymbolsWithName(funcName, SymbolType::Func);
 
 					for (auto& Item : V)
 					{
@@ -13311,7 +13469,7 @@ SystematicAnalysis::PostFixOverLoadWith_t SystematicAnalysis::Type_HasPostfixOve
 					String funcName = Syb->FullName;
 					ScopeHelper::GetApendedString(funcName, Item.CompilerName);
 
-					auto& V = _Table.GetSymbolsWithName(funcName, SymbolType::Func);
+					auto& V = GetSymbolsWithName(funcName, SymbolType::Func);
 
 					for (auto& Item : V)
 					{
@@ -13367,7 +13525,7 @@ SystematicAnalysis::IndexOverLoadWith_t SystematicAnalysis::Type_HasIndexedOverL
 			String funcName = Syb->FullName;
 			ScopeHelper::GetApendedString(funcName,Overload_Index_Func);
 
-			auto V = _Table.GetSymbolsWithName(funcName, SymbolType::Func);
+			auto V = GetSymbolsWithName(funcName, SymbolType::Func);
 
 			for (auto& Item : V)
 			{
@@ -13403,7 +13561,7 @@ SystematicAnalysis::ForOverLoadWith_t SystematicAnalysis::Type_HasForOverLoadWit
 			String funcName = Syb->FullName;
 			ScopeHelper::GetApendedString(funcName, Overload_For_Func);
 
-			auto& V = _Table.GetSymbolsWithName(funcName, SymbolType::Func);
+			auto& V = GetSymbolsWithName(funcName, SymbolType::Func);
 
 			for (auto& Item : V)
 			{
@@ -13442,7 +13600,7 @@ SystematicAnalysis::UrinaryOverLoadWith_t SystematicAnalysis::Type_HasUrinaryOve
 					String funcName = Syb->FullName;
 					ScopeHelper::GetApendedString(funcName, Item.CompilerName);
 
-					auto& V = _Table.GetSymbolsWithName(funcName, SymbolType::Func);
+					auto& V = GetSymbolsWithName(funcName, SymbolType::Func);
 
 					for (auto& Item : V)
 					{
@@ -14384,7 +14542,44 @@ TypeSymbol SystematicAnalysis::Type_ConvertAndValidateType(const TypeNode& V,Nod
 	return r;
 }
 
+Vector<Symbol*>& SystematicAnalysis::GetSymbolsWithName(const String_view& Name)
+{
+	if (_PassType != PassType::GetTypes) {
+		for (size_t i = 0; i < NodeCompileTimeIfs.size(); i++)
+		{
+			auto& Item = NodeCompileTimeIfs[i];
 
+			bool mayhavesymbol = false;
+			for (auto& Str : Item.PossibleSymbolNames)
+			{
+				if (StringHelper::Contains(Str, Name))
+				{
+					mayhavesymbol = true;
+					break;
+				}
+			}
+
+			if (mayhavesymbol)
+			{
+				auto oldcontext = SaveAndMove_SymbolContext();
+				Set_SymbolConext(Item.node.Context);
+
+				OnCompileTimeIfNode(*Item.node.node, false);
+
+				Set_SymbolConext(std::move(oldcontext));
+
+				i--;//Item Was Removed from list
+
+			}
+		}
+	}
+
+	return  _Table.GetSymbolsWithName(Name);
+}
+const Vector<const Symbol*>& SystematicAnalysis::GetSymbolsWithName(const String_view& Name) const
+{
+	return  _Table.GetSymbolsWithName(Name);
+}
 void SystematicAnalysis::Symbol_RedefinitionCheck(const NeverNullPtr<Symbol> Syb, const NeverNullPtr<Token> Value)
 {
 	auto other = Symbol_GetSymbol(Syb->FullName,Syb->Type);
@@ -14525,7 +14720,7 @@ bool SystematicAnalysis::Type_CanBeImplicitConverted(const TypeSymbol& TypeToChe
 			String Scope = info->FullName;
 			ScopeHelper::GetApendedString(Scope, ClassConstructorfunc);
 
-			auto ConstructorSymbols = _Table.GetSymbolsWithName(Scope, SymbolType::Any);
+			auto ConstructorSymbols = GetSymbolsWithName(Scope, SymbolType::Any);
 
 
 			for (auto& Item2 : ConstructorSymbols)
@@ -14594,7 +14789,7 @@ SystematicAnalysis::CastOverLoadWith_t  SystematicAnalysis::Type_CanBeExplicitly
 			String funcName = Syb.value()->FullName;
 			ScopeHelper::GetApendedString(funcName, Overload_Cast_Func);
 
-			auto& V = _Table.GetSymbolsWithName(funcName, SymbolType::Func);
+			auto& V = GetSymbolsWithName(funcName, SymbolType::Func);
 
 			for (auto& Item : V)
 			{
@@ -14630,7 +14825,7 @@ Optional < FuncInfo*> SystematicAnalysis::Symbol_GetAnExplicitlyConvertedFunc(co
 			String funcName = Syb.value()->FullName;
 			ScopeHelper::GetApendedString(funcName, Overload_Cast_Func);
 
-			auto& V = _Table.GetSymbolsWithName(funcName, SymbolType::Func);
+			auto& V = GetSymbolsWithName(funcName, SymbolType::Func);
 
 			for (auto& Item : V)
 			{
@@ -14791,7 +14986,7 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 			String Scope = info->FullName;
 			ScopeHelper::GetApendedString(Scope, ClassConstructorfunc);
 
-			auto ConstructorSymbols = _Table.GetSymbolsWithName(Scope, SymbolType::Any);
+			auto ConstructorSymbols = GetSymbolsWithName(Scope, SymbolType::Any);
 
 
 			for (auto& Item2 : ConstructorSymbols)
@@ -16534,16 +16729,11 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 	Vector<ParInfo> ValueTypes;
 	ValueTypes.reserve(_ThisTypeIsNotNull ? Pars._Nodes.size() + 1 : Pars._Nodes.size());
 
-
-	auto Symbols = _Table.GetSymbolsWithName(ScopedName, SymbolType::Any);
+	auto Symbols = GetSymbolsWithName(ScopedName, SymbolType::Any);
 
 	Vector<ParInfo> Infer;
 	bool Inferautopushtis = false;
 
-	if (ScopedName == "Span<sint32>:Find")
-	{
-		int a = 0;
-	}
 	{
 
 		for (auto& Item : Symbols)
@@ -16673,7 +16863,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 				String Scope = V->FullName;
 				ScopeHelper::GetApendedString(Scope, ClassConstructorfunc);
 
-				auto ConstructorSymbols = _Table.GetSymbolsWithName(Scope, SymbolType::Any);
+				auto ConstructorSymbols = GetSymbolsWithName(Scope, SymbolType::Any);
 
 
 				for (auto& Item2 : ConstructorSymbols)
@@ -17280,7 +17470,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 			String Scope = V->FullName;
 			ScopeHelper::GetApendedString(Scope, ClassConstructorfunc);
 
-			auto ConstructorSymbols = _Table.GetSymbolsWithName(Scope, SymbolType::Any);
+			auto ConstructorSymbols = GetSymbolsWithName(Scope, SymbolType::Any);
 
 
 			for (auto& Item2 : ConstructorSymbols)
@@ -17413,7 +17603,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 				String Scope = classsyb->FullName;
 				ScopeHelper::GetApendedString(Scope, ClassConstructorfunc);
 
-				auto ConstructorSymbols = _Table.GetSymbolsWithName(Scope, SymbolType::Any);
+				auto ConstructorSymbols = GetSymbolsWithName(Scope, SymbolType::Any);
 
 
 				for (auto& Item2 : ConstructorSymbols)
@@ -17488,7 +17678,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 				{
 					String Scope = Type->FullName;
 					ScopeHelper::GetApendedString(Scope, Overload_Invoke_Func);
-					auto ConstructorSymbols = _Table.GetSymbolsWithName(Scope, SymbolType::Any);
+					auto ConstructorSymbols = GetSymbolsWithName(Scope, SymbolType::Any);
 
 
 					for (auto& Item2 : ConstructorSymbols)

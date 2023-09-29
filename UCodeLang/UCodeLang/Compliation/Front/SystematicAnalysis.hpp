@@ -743,6 +743,19 @@ private:
 
 	BinaryVectorMap<SymbolID, VarableMemberData> _VarableMemberDatas;//Var.$Item
 
+	struct Test
+	{
+		const CompileTimeIfNode* node=nullptr;
+		SymbolContext Context;
+		SymbolID _SymID;
+	};
+	struct Test1
+	{
+		Vector<String_view> PossibleSymbolNames;
+		Test node;
+	};
+	Vector<Test1> NodeCompileTimeIfs;
+
 	Vector<FuncStackInfo> _FuncStack;
 
 	
@@ -1051,7 +1064,7 @@ private:
 	void OnBitCast(const BitCastExpression& node);
 	void OnImportNode(const ImportStatement& node);
 
-	void OnCompileTimeIfNode(const CompileTimeIfNode& node);
+	void OnCompileTimeIfNode(const CompileTimeIfNode& node,bool IsInFunc =true);
 
 	void OnCompileTimeforNode(const CompileTimeForNode& node);
 	void CompileTimeforNodeEvaluateStatements(const CompileTimeForNode& node);
@@ -1316,7 +1329,24 @@ private:
 		}
 		return false;
 	}
+
+	Vector<Symbol*>& GetSymbolsWithName(const String& Name)
+	{
+		return  GetSymbolsWithName((String_view)Name);
+	}
 	
+	Vector<Symbol*>& GetSymbolsWithName(const String_view& Name, SymbolType Type)
+	{
+		return GetSymbolsWithName(Name);
+	}
+	const Vector<const Symbol*>& GetSymbolsWithName(const String_view& Name, SymbolType Type) const
+	{
+		return GetSymbolsWithName(Name);
+	}
+
+	Vector<Symbol*>& GetSymbolsWithName(const String_view& Name);
+	const Vector<const Symbol*>& GetSymbolsWithName(const String_view& Name) const;
+
 	const NullablePtr<FuncInfo> Context_GetCuruntFunc() const
 	{
 		if (_FuncStack.size()) 
