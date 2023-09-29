@@ -1894,7 +1894,8 @@ void SystematicAnalysis::OnUseingNode(const UsingNode& node)
 	{
 		if (!Symbol_GetSymbol(UseingString, SymbolType::Namespace))
 		{
-			LogError_CantFindNamespace(T, UseingString);
+			//LogError_CantFindNamespace(T, UseingString);
+			//TODO Readd this
 		}
 	}
 }
@@ -16881,8 +16882,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 							}
 						}
 					
-						*Eval_Get_ObjectAs<bool>(ValEx) = AllSameType;
-						
+						Eval_Set_ObjectAs<bool>(ValEx, AllSameType);
 						F.EvalObject = std::move(ValEx.EvaluatedObject);
 
 
@@ -16940,7 +16940,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 				ItemFuncPar.ExpressionNode = ItemNode;
 			}
 
-			auto FuncData = Systematic_BuiltInFunctions::GetFunction(ScopedName, BuiltInPars,*this);
+			auto FuncData = Systematic_BuiltInFunctions::GetFunction(ScopedName, BuiltInPars, *this);
 
 			if (AutoPassThis)
 			{
@@ -16954,7 +16954,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 				{//OutPars
 
 					size_t OutParIndex = 0;
-					
+
 					for (size_t i = 0; i < BuiltInPars.size(); i++)
 					{
 						bool IsOutPar = BuiltInPars[i].IsOutPar;
@@ -16969,7 +16969,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 							{
 								EvaluatedEx EvaluatedValue;
 								EvaluatedValue.Type = FuncDataOutPar.Type;
-								EvaluatedValue.EvaluatedObject =std::move(FuncDataOutPar.EvalObject.value());
+								EvaluatedValue.EvaluatedObject = std::move(FuncDataOutPar.EvalObject.value());
 								Eval_SetOutExpressionEval(Ex, EvaluatedValue);
 							}
 							else
@@ -16998,6 +16998,158 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 		}
 	}
+	//compiler
+	{
+		if (Name._ScopedName.size() == 2)
+		{
+			auto& compilername = Name._ScopedName[0];
+			auto compilertoken = compilername._token;
+			if (compilertoken->Type == TokenType::KeyWord_compiler)
+			{
+				String_view functocall = Name._ScopedName[1]._token->Value._String;
+
+				if (functocall == "IsBackendUCodeVM" && ValueTypes.size() == 0)
+				{
+					bool RetValue = _Settings->_BackEndInfo.IsUCodeVm();
+
+					Systematic_BuiltInFunctions::Func F;
+					F.RetType = TypeSymbol(TypesEnum::Bool);
+
+					auto ValEx = Eval_MakeEx(F.RetType);
+					Eval_Set_ObjectAs<bool>(ValEx, RetValue);
+					F.EvalObject = std::move(ValEx.EvaluatedObject);
+					Get_FuncInfo R;
+					R.ThisPar = ThisParType;
+					R._BuiltFunc = std::move(F);
+					return R;
+				}
+				if (functocall == "IsBackendC89" && ValueTypes.size() == 0)
+				{
+					bool RetValue = _Settings->_BackEndInfo.IsC89();
+
+					Systematic_BuiltInFunctions::Func F;
+					F.RetType = TypeSymbol(TypesEnum::Bool);
+
+					auto ValEx = Eval_MakeEx(F.RetType);
+					Eval_Set_ObjectAs<bool>(ValEx, RetValue);
+					F.EvalObject = std::move(ValEx.EvaluatedObject);
+					Get_FuncInfo R;
+					R.ThisPar = ThisParType;
+					R._BuiltFunc = std::move(F);
+					return R;
+				}
+				if (functocall == "IsBackendWasm" && ValueTypes.size() == 0)
+				{
+					bool RetValue = _Settings->_BackEndInfo.IsWasm();
+
+					Systematic_BuiltInFunctions::Func F;
+					F.RetType = TypeSymbol(TypesEnum::Bool);
+
+					auto ValEx = Eval_MakeEx(F.RetType);
+					Eval_Set_ObjectAs<bool>(ValEx, RetValue);
+					F.EvalObject = std::move(ValEx.EvaluatedObject);
+					Get_FuncInfo R;
+					R.ThisPar = ThisParType;
+					R._BuiltFunc = std::move(F);
+					return R;
+				}
+				if (functocall == "IsBackendWindows" && ValueTypes.size() == 0)
+				{
+					bool RetValue = _Settings->_BackEndInfo.IsWindows();
+
+					Systematic_BuiltInFunctions::Func F;
+					F.RetType = TypeSymbol(TypesEnum::Bool);
+
+					auto ValEx = Eval_MakeEx(F.RetType);
+					Eval_Set_ObjectAs<bool>(ValEx, RetValue);
+					F.EvalObject = std::move(ValEx.EvaluatedObject);
+					Get_FuncInfo R;
+					R.ThisPar = ThisParType;
+					R._BuiltFunc = std::move(F);
+					return R;
+				}
+				if (functocall == "IsBackendLinux" && ValueTypes.size() == 0)
+				{
+					bool RetValue = _Settings->_BackEndInfo.IsLinux();
+
+					Systematic_BuiltInFunctions::Func F;
+					F.RetType = TypeSymbol(TypesEnum::Bool);
+
+					auto ValEx = Eval_MakeEx(F.RetType);
+					Eval_Set_ObjectAs<bool>(ValEx, RetValue);
+					F.EvalObject = std::move(ValEx.EvaluatedObject);
+					Get_FuncInfo R;
+					R.ThisPar = ThisParType;
+					R._BuiltFunc = std::move(F);
+					return R;
+				}
+				if (functocall == "IsBackendMacOS" && ValueTypes.size() == 0)
+				{
+					bool RetValue = _Settings->_BackEndInfo.IsMacOs();
+
+					Systematic_BuiltInFunctions::Func F;
+					F.RetType = TypeSymbol(TypesEnum::Bool);
+
+					auto ValEx = Eval_MakeEx(F.RetType);
+					Eval_Set_ObjectAs<bool>(ValEx, RetValue);
+					F.EvalObject = std::move(ValEx.EvaluatedObject);
+					Get_FuncInfo R;
+					R.ThisPar = ThisParType;
+					R._BuiltFunc = std::move(F);
+					return R;
+				}
+				if (functocall == "IsCPU_X86" && ValueTypes.size() == 0)
+				{
+					bool RetValue = _Settings->_BackEndInfo.IsX86();
+
+					Systematic_BuiltInFunctions::Func F;
+					F.RetType = TypeSymbol(TypesEnum::Bool);
+
+					auto ValEx = Eval_MakeEx(F.RetType);
+					Eval_Set_ObjectAs<bool>(ValEx, RetValue);
+					F.EvalObject = std::move(ValEx.EvaluatedObject);
+					Get_FuncInfo R;
+					R.ThisPar = ThisParType;
+					R._BuiltFunc = std::move(F);
+					return R;
+				}
+				if (functocall == "IsCPU_Arm" && ValueTypes.size() == 0)
+				{
+					bool RetValue = _Settings->_BackEndInfo.IsArm();
+
+					Systematic_BuiltInFunctions::Func F;
+					F.RetType = TypeSymbol(TypesEnum::Bool);
+
+					auto ValEx = Eval_MakeEx(F.RetType);
+					Eval_Set_ObjectAs<bool>(ValEx, RetValue);
+					F.EvalObject = std::move(ValEx.EvaluatedObject);
+					Get_FuncInfo R;
+					R.ThisPar = ThisParType;
+					R._BuiltFunc = std::move(F);
+					return R;
+				}
+				if (functocall == "IsDebug" && ValueTypes.size() == 0)
+				{
+					bool RetValue = 
+						(OptimizationFlags_t)_Settings->_Flags & (OptimizationFlags_t)OptimizationFlags::Debug;
+
+
+					Systematic_BuiltInFunctions::Func F;
+					F.RetType = TypeSymbol(TypesEnum::Bool);
+
+					auto ValEx = Eval_MakeEx(F.RetType);
+					Eval_Set_ObjectAs<bool>(ValEx, RetValue);
+					F.EvalObject = std::move(ValEx.EvaluatedObject);
+					Get_FuncInfo R;
+					R.ThisPar = ThisParType;
+					R._BuiltFunc = std::move(F);
+					return R;
+				}
+
+			}
+		}
+	}
+	
 	//
 
 	StartSymbolsLoop:
@@ -18194,7 +18346,7 @@ void SystematicAnalysis::Generic_TypeInstantiate(const NeverNullPtr<Symbol> Clas
 		OnClassNode(*node);
 
 		auto& addedSymbol = *_Table.Symbols[NewSymbolIndex].get();
-		UCodeLangAssert(addedSymbol.FullName == NewName);
+		UCodeLangAssert(addedSymbol.FullName == FullName);
 		UCodeLangAssert(addedSymbol.Type == SymbolType::Type_class);
 		UCodeLangAssert(addedSymbol.PassState == PassType::GetTypes);
 
@@ -18380,7 +18532,7 @@ void SystematicAnalysis::Generic_TypeInstantiate_Enum(const NeverNullPtr<Symbol>
 
 		auto& addedSymbol = *_Table.Symbols[NewSymbolIndex].get();
 
-		UCodeLangAssert(addedSymbol.FullName == NewName);
+		UCodeLangAssert(addedSymbol.FullName == FullName);
 		UCodeLangAssert(addedSymbol.Type == SymbolType::Enum);
 		UCodeLangAssert(addedSymbol.PassState == PassType::GetTypes);
 

@@ -20,6 +20,12 @@ public:
 
 	String GetBackEndName() override { return "UCodeVM"; }
 	String GetOutputExtWithDot() override { return FileExt::LibWithDot; }
+	void UpdateBackInfo(CompliationBackEndInfo& BackInfo) override
+	{
+		BackInfo.Output = CompliationBackEndInfo::BackEnd::UCodeVm;
+		BackInfo.OutputSet = CompliationBackEndInfo::InsSet::Other;
+	}
+
 	static BackEndObject* MakeObject() { return new UCodeBackEndObject(); }
 private:
 

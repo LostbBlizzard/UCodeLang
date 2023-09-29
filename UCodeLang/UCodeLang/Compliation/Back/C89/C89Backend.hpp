@@ -21,6 +21,7 @@ public:
 	static BackEndObject* MakeObject() { return new C89Backend(); }
 
 	static String UpdateToCindentifier(const String& Value);
+	void UpdateBackInfo(CompliationBackEndInfo& BackInfo) override;
 private:
 	String OutBuffer;
 	const IRBuilder* _Input =nullptr;

@@ -7,6 +7,7 @@ class IRBuilder;
 class UClib;
 class CompliationErrors;
 struct CompliationSettings;
+struct CompliationBackEndInfo;
 struct IRFunc;
 struct IRInstruction;
 struct IROperator;
@@ -30,6 +31,7 @@ public:
 
 	virtual String GetBackEndName() = 0;
 	virtual String GetOutputExtWithDot() = 0;
+	virtual void UpdateBackInfo(CompliationBackEndInfo& BackInfo) = 0;
 
 	inline CompliationErrors& Get_ErrorsOutput()
 	{

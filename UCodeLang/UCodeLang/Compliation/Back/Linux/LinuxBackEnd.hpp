@@ -11,6 +11,7 @@ public:
 	String GetBackEndName() override { return "Linux"; }
 	String GetOutputExtWithDot() override { return ""; }
 	static BackEndObject* MakeObject() { return new LinuxBackEnd(); }
+	void UpdateBackInfo(CompliationBackEndInfo& BackInfo) override;
 private:
 };
 

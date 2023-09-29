@@ -88,6 +88,14 @@ public:
 		Unique_ptr<BackEndObject> obj = Unique_ptr<BackEndObject>(_BackEnd());
 		return obj->GetOutputExtWithDot();
 	}
+	CompliationBackEndInfo GetOutputBackEndInfo()
+	{
+		CompliationBackEndInfo V;
+		Unique_ptr<BackEndObject> obj = Unique_ptr<BackEndObject>(_BackEnd());
+		obj->UpdateBackInfo(V);
+		return V;
+	}
+
 	Compiler();
 private:
 	CompliationSettings _Settings;

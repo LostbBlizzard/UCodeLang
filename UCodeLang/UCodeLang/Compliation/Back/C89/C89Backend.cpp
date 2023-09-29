@@ -1243,6 +1243,12 @@ String C89Backend::UpdateToCindentifier(const String& Value)
 	return v;
 }
 
+void C89Backend::UpdateBackInfo(CompliationBackEndInfo& BackInfo)
+{
+	BackInfo.Output = CompliationBackEndInfo::BackEnd::C89;
+	BackInfo.OutputSet = CompliationBackEndInfo::InsSet::Other;
+}
+
 String C89Backend::FromIDToCindentifier(IRidentifierID Value)
 { 
 	return UpdateToCindentifier(_Input->FromID(Value));

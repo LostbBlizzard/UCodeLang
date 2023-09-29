@@ -25,6 +25,8 @@ Compiler::CompilerRet Compiler::CompileText(const String_view& Text, const Exter
 	{
 		_FrontEndObject->Reset();
 	}
+	_Settings._BackEndInfo = GetOutputBackEndInfo();
+
 	_FrontEndObject->Set_FileIDType(LangDefInfo::DefaultTextFileID);
 	_FrontEndObject->Set_Settings(&_Settings);
 	_FrontEndObject->Set_ErrorsOutput(&_Errors);
@@ -131,6 +133,7 @@ Compiler::CompilerRet Compiler::CompilePathToObj(const Path& path, const Path& O
 	{
 		_FrontEndObject->Reset();
 	}
+	_Settings._BackEndInfo = GetOutputBackEndInfo();
 
 	_FrontEndObject->SetSourcePath(path);
 	auto Text = GetTextFromFile(path);
@@ -173,11 +176,13 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data, const
 	{
 		_FrontEndObject.reset(_FrontEnd());
 		_oldFrontEnd = _FrontEnd;
+
 	}
 	else
 	{
 		_FrontEndObject->Reset();
 	}
+	_Settings._BackEndInfo = GetOutputBackEndInfo();
 
 	const LangDefInfo* Lang = _FrontEndObject->GetInfo();
 	_FrontEndObject->Set_Settings(&_Settings);
@@ -386,12 +391,12 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 		_FrontEndObject.reset(_FrontEnd());
 		_oldFrontEnd = _FrontEnd;
 		_oldBackEnd = _BackEnd;
-
 	}
 	else
 	{
 		_FrontEndObject->Reset();
 	}
+	_Settings._BackEndInfo = GetOutputBackEndInfo();
 	const LangDefInfo* Lang = _FrontEndObject->GetInfo();
 	_FrontEndObject->Set_Settings(&_Settings);
 	_FrontEndObject->Set_ErrorsOutput(&_Errors);
