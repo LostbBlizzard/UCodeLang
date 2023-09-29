@@ -59,4 +59,9 @@ void X86_64UNativeBackEnd::Build(const IRBuilder* Input)
 		}
 	}
 }
+void X86_64UNativeBackEnd::UpdateBackInfo(CompliationBackEndInfo& BackInfo)
+{
+	BackInfo.Output = CompliationBackEndInfo::BackEnd::UCodeVm;
+	BackInfo.OutputSet = CompliationBackEndInfo::InsSet::X86;
+}
 UCodeLangEnd

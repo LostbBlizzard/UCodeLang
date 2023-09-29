@@ -2894,7 +2894,9 @@ void AppObject::CompileText(const String& String)
     }
    
     IsRuningCompiler = true;
-    bool AddStandardLibrary = OutputWindow.ImportStandardLibrary;
+    //bool AddStandardLibrary = OutputWindow.ImportStandardLibrary;
+    bool AddStandardLibrary = false;
+
     std::function<UCodeLang::Compiler::CompilerRet()> Func = [this, paths,AddStandardLibrary ]()
     {
         UCodeLang::Compiler::ExternalFiles ExternalFiles;
@@ -2915,6 +2917,7 @@ void AppObject::CompileText(const String& String)
                 ==
                 UCodeLang::Compiler::CompilerState::Fail)
             {
+                IsRuningCompiler = false;
                 auto& r = v.CompilerRet;
                 return std::move(r);
             }
@@ -2931,7 +2934,7 @@ void AppObject::CompileText(const String& String)
      
     _RuningPaths = std::move(paths);
     _RuningCompiler = SendTaskToWorkerThread<UCodeLang::Compiler::CompilerRet>(Func);
-
+    //Func();
    
 }
 

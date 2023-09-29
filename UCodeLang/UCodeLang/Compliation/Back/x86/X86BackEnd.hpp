@@ -16,7 +16,7 @@ public:
 	static BackEndObject* MakeObject() { return new X86BackEnd(); }
 	void Reset() override;
 	void Build(const IRBuilder* Input) override;
-
+	void UpdateBackInfo(CompliationBackEndInfo& BackInfo)  override;
 };
 
 //uses UCodeLib
@@ -33,6 +33,8 @@ public:
 	void Reset() override;
 	void Build(const IRBuilder* Input) override;
 	//CodeLayer* _OutLayer = nullptr;
+	void UpdateBackInfo(CompliationBackEndInfo& BackInfo) override;
+
 };
 
 UCodeLangEnd

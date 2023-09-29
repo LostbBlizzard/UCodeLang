@@ -1,5 +1,6 @@
 AuthorName: "UCodeLang"
 ModuleName: "StandardLibarary"
 Version: 0:0:0
+NameSpace: ULang
 
 import UCodeLang::NStandardLibarary[0:0:0];

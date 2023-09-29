@@ -170,6 +170,7 @@ enum class TokenType : TokenType_t
 	KeyWord_block,//block
 	KeyWord_RangeOperator,//..
 	KeyWord_defer,//..
+	KeyWord_compiler,//..
 	//used internally
 	internal_Constant_expression,
 	internal_InlineEnumVariant,
@@ -289,6 +290,7 @@ public:
 		case TokenType::KeyWord_uft8:return "uft8";
 		case TokenType::KeyWord_uft16:return "uft16";
 		case TokenType::KeyWord_uft32:return "uft32";
+		case TokenType::KeyWord_compiler:return "compiler";
 		default:return "Unknown token";
 		}
 	}

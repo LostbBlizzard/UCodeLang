@@ -324,6 +324,7 @@ struct TypeNode :Node
 		else if (Type == TokenType::KeyWorld_var) { return true; }
 		else if (Type == TokenType::Name) { return true; }
 		else if (Type == TokenType::KeyWord_This) { return true; }
+		else if (Type == TokenType::KeyWord_compiler) { return true; }
 
 		return false;
 	}

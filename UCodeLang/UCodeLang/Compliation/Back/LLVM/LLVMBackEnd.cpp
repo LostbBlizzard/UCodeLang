@@ -1,5 +1,6 @@
 #include "LLVMBackEnd.hpp"
 #include "UCodeLang/Compliation/Middle/IR.hpp"
+#include "UCodeLang/Compliation/CompliationSettings.hpp"
 UCodeLangStart
 void LLVMBackEnd::Reset()
 {
@@ -55,6 +56,11 @@ void LLVMBackEnd::Build(const IRBuilder* Input)
 	}
 
 	Set_Output(_OutStr);
+}
+void LLVMBackEnd::UpdateBackInfo(CompliationBackEndInfo& BackInfo)
+{
+	BackInfo.Output = CompliationBackEndInfo::BackEnd::C89;
+	BackInfo.OutputSet = CompliationBackEndInfo::InsSet::Other;
 }
 void LLVMBackEnd::OnFunc(const IRFunc* Func)
 {

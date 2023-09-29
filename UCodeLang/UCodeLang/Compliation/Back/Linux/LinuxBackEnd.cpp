@@ -1,6 +1,8 @@
 #include "LinuxBackEnd.hpp"
 #include "../x86_64/IRToX86_64IR.hpp"
 #include <sstream>
+
+#include "UCodeLang/Compliation/CompliationSettings.hpp"
 UCodeLangStart
 void LinuxBackEnd::Reset()
 {
@@ -21,5 +23,10 @@ void LinuxBackEnd::Build(const IRBuilder* Input)
 	auto f = s.str();
 	Set_Output(BytesView::Make((const Byte*)f.data(),f.size()));
 	*/
+}
+void LinuxBackEnd::UpdateBackInfo(CompliationBackEndInfo& BackInfo)
+{
+	BackInfo.Output = CompliationBackEndInfo::BackEnd::Linux;
+	BackInfo.OutputSet = CompliationBackEndInfo::InsSet::X86;
 }
 UCodeLangEnd

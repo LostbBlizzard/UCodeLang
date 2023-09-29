@@ -13,6 +13,7 @@ public:
 	String GetBackEndName() override { return "Windows"; }
 	String GetOutputExtWithDot() override { return ".exe"; }
 	static BackEndObject* MakeObject() { return new WindowsBackEnd(); }
+	void UpdateBackInfo(CompliationBackEndInfo& BackInfo) override;
 private:
 };
 UCodeLangEnd

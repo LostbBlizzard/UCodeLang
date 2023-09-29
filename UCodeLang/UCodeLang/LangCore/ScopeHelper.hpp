@@ -61,33 +61,12 @@ struct ScopeHelper
 	}
 	static void ReMoveScope(String& ThisScope)
 	{
-		if (ThisScope.size() == 0) { return; }
-		for (size_t i = ThisScope.size() - 1; i > 0; i--)
-		{
-			char C = ThisScope[i];
-			if (C == _ScopeSep)
-			{
-				ThisScope = ThisScope.substr(0, i);
-				return;
-			}
-		}
-		return ThisScope.clear();
+		String_view V = ThisScope;
+		ReMoveScope(V);
+		ThisScope = V;
 	};
 
-	static void ReMoveScope(String_view& ThisScope)
-	{
-		if (ThisScope.size() == 0) { return; }
-		for (size_t i = ThisScope.size() - 1; i > 0; i--)
-		{
-			char C = ThisScope[i];
-			if (C == _ScopeSep)
-			{
-				ThisScope = ThisScope.substr(0, i);
-				return;
-			}
-		}
-		ThisScope = "";
-	};
+	static void ReMoveScope(String_view& ThisScope);;
 
 	static String_view GetReMoveScope(String_view ThisScope)
 	{
@@ -123,23 +102,13 @@ struct ScopeHelper
 	{
 		ReMoveScope(ThisScope);
 	};
-	static String GetNameFromFullName(String FullName)
+	static String GetNameFromFullName(const String& FullName)
 	{
 		return (String)GetNameFromFullName((String_view)FullName);
 	}
 
-	static String_view GetNameFromFullName(String_view FullName)
-	{
-		if (FullName.size() == 0) { return FullName; }
-		for (size_t i = FullName.size() - 1; i > 0; i--)
-		{
-			char C = FullName[i];
-			if (C == _ScopeSep)
-			{
-				return FullName.substr(i+1);
-			}
-		}
-		return FullName;
-	}
+	static String_view ScopeHelper::GetNameFromFullName(String_view FullName);
+
+	
 };
 UCodeLangEnd

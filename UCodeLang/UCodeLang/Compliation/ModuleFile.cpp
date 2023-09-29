@@ -498,7 +498,7 @@ void ModuleFile::NewInit(String ModuleName, String AuthorName)
 {
 	this->ModuleName.ModuleName = ModuleName;
 	this->ModuleName.AuthorName = AuthorName;
-
+	this->ModuleNameSpace = ModuleName;
 	{
 		
 		ModuleDependencie f;
@@ -574,7 +574,7 @@ String ModuleFile::ToStringBytes(const ModuleFile* Lib)
 
 	out += (String)"ForceImport:" + (Lib->ForceImport ? "true" : "false") + "\n";
 	out += (String)"RemoveUnSafe:" + (Lib->RemoveUnSafe ? "true" : "false") + "\n";
-	out += "ModuleNameSpace:" + Lib->ModuleNameSpace;
+	out += "NameSpace:" + Lib->ModuleNameSpace;
 
 	out += "\n";
 
@@ -650,7 +650,7 @@ bool ModuleFile::FromString(ModuleFile* Lib, const String_view& Data)
 					{
 						Lib->RemoveUnSafe = tokens[i].Type == TokenType::KeyWorld_True;
 					}
-					else if (Item.Value._String == "ModuleNameSpace")
+					else if (Item.Value._String == "NameSpace")
 					{
 						if (tokens[i].Type == TokenType::Name) {
 							Lib->ModuleNameSpace = tokens[i].Value._String;

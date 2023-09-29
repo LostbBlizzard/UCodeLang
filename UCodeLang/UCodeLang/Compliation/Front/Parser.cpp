@@ -1879,6 +1879,7 @@ GotNodeType Parser::GetName(ScopedNameNode& out, bool CanHaveVarableName)
 			{
 				V = true;
 			}
+			
 			if (V)
 			{
 				TokenTypeCheck(NameToken, TokenType::Name);
@@ -2009,7 +2010,9 @@ Parser::GetNameCheck_ret2 Parser::GetNameCheck2(ScopedNameNode& out, bool CanHav
 		if (NameToken == nullptr
 			||
 			(
-				NameToken->Type != TokenType::Name && !(NameToken->Type == TokenType::KeyWord_This && out._ScopedName.size() == 0)
+				NameToken->Type != TokenType::Name && 
+				NameToken->Type != TokenType::KeyWord_compiler &&
+				!(NameToken->Type == TokenType::KeyWord_This && out._ScopedName.size() == 0)
 				)
 			)
 		{
