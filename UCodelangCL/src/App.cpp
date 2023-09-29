@@ -364,8 +364,6 @@ void ParseLine(String_view Line)
 		}
 		if (!buildfile(_PathAsPath, _Compiler))
 		{
-			AppPrintin("Compiler Fail:");
-			AppPrintin(_Compiler.Get_Errors().ToString());
 			_This.ExeRet = EXIT_FAILURE;
 		}
 		else
@@ -705,8 +703,6 @@ void ParseLine(String_view Line)
 
 		if (!buildfile2(_PathAsPath, _Compiler, libop))
 		{
-			AppPrintin("Compiler Fail:");
-			AppPrintin(_Compiler.Get_Errors().ToString());
 			_This.ExeRet = EXIT_FAILURE;
 		}
 		else

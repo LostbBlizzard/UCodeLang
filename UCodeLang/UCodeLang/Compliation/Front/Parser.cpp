@@ -76,9 +76,10 @@ void Parser::Parse(const Vector<Token>& Tokens)
 		case TokenType::KeyWord_imut:V = GetimutVariableDeclare(); break;
 		case TokenType::KeyWord_eval:V = GetEvalDeclare(); break;
 		case TokenType::KeyWord_Import:V = GetImportStatement(); break;
+		case TokenType::KeyWord_ClassIf:V = GetCompileTimeIf(false); break;
 		default: GetDeclareVariableNoObject(V); break;
 		}
-
+		
 		if (T->Type != TokenType::Left_Bracket)
 		{
 			AttributeCheck();
@@ -4145,7 +4146,7 @@ GotNodeType Parser::GetEvalDeclare(Node*& out)
 		return r;
 	}
 }
-GotNodeType Parser::GetCompileTimeIf(CompileTimeIfNode*& out)
+GotNodeType Parser::GetCompileTimeIf(CompileTimeIfNode*& out, bool IsInFunc)
 {
 	auto Token = TryGetToken();
 	TokenTypeCheck(Token, TokenType::KeyWord_ClassIf);
@@ -4158,8 +4159,68 @@ GotNodeType Parser::GetCompileTimeIf(CompileTimeIfNode*& out)
 	TokenTypeCheck(Token3, TokenType::Colon);
 	NextToken();
 
-	auto Statements = GetStatementsorStatementNode(out->_Body);
+	GotNodeType Statements;
+	if (IsInFunc)
+	{
+		Statements = GetStatementsorStatementNode(out->_Body);
+	}
+	else
+	{
+		auto TabToken = TryGetToken();
 
+		if (TabToken->Type == TokenType::StartTab)
+		{
+			NextToken();
+		}
+
+		while (TryGetToken()->Type != TokenType::EndofFile)
+		{
+			auto T = TryGetToken();
+			TryGetNode V;
+
+			switch (T->Type)
+			{
+			case TokenType::Class:V = GetClassNode(); break;
+			case TokenType::KeyWord_unsafe:
+			case TokenType::KeyWord_extern:
+			case Parser::declareFunc:V = GetFuncNode(); break;
+			case TokenType::KeyWord_static:V = GetDeclareStaticVariable(); break;
+			case TokenType::KeyWord_Thread:V = GetDeclareThreadVariable(); break;
+			case TokenType::KeyWord_imut:V = GetimutVariableDeclare(); break;
+			case TokenType::KeyWord_eval:V = GetEvalDeclare(); break;
+			case TokenType::Left_Bracket:V = GetAttribute(); break;
+			default:
+				break;
+			}
+
+			if (T->Type != TokenType::Left_Bracket)
+			{
+				AttributeCheck();
+			}
+			else
+			{
+				continue;
+			}
+
+			if (V.Node)
+			{
+				out->_Body._Nodes.push_back(Unique_ptr<Node>(V.Node));
+			}
+			else { break; }
+
+
+			if (V.GotNode != GotNodeType::Success) { break; }
+		}
+
+
+		auto TabToken2 = TryGetToken();
+
+		if (TabToken2->Type == TokenType::EndTab)
+		{
+			NextToken();
+		}
+		Statements = GotNodeType::Success;
+	}
 	while (TryGetToken()->Type != TokenType::EndofFile)
 	{
 		auto T = TryGetToken();
