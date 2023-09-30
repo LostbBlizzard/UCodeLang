@@ -15,6 +15,14 @@ public:
 	};
 	struct CPPType
 	{
+		enum class Mode
+		{
+			None,
+			Ptr,
+			Address
+		};
+		bool IsConst = false;
+		Mode mode = Mode::None;
 		String Value;
 	};
 	
@@ -33,6 +41,7 @@ public:
 		};
 		Vector<Field> Fields;
 		Vector<SymbolData> Symbols;
+		bool IsTrait = false;
 	};
 	
 	struct EnumType
@@ -70,6 +79,7 @@ public:
 		CPPType Ret;
 
 		Optional<size_t> OverloadNumber;
+		bool IsStatic = false;
 	};
 	struct SymbolData
 	{
@@ -92,6 +102,7 @@ public:
 		String Ret;
 		Optional<size_t> OverloadValue;
 		Optional<String> MemberFuncClass;
+		FuncData* MyData = nullptr;
 	};
 	
 	/// <summary>

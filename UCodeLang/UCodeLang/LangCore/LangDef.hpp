@@ -292,10 +292,13 @@
 #define UCodeLangAPI 
 #endif
 
+//Use this To Export Class,Enum,Funcions to .uc 
+//using UCodeAnalyzer/Preprocessors/CppHelper ParseCppfileAndOutULang
+
 #define UCodeLangExportSymbol(Namespace)
 
 
-//Use only in Classes
+//Use only in side of Classes
 #define UCodeLangExport
 
 #define UCodeLangImportSymbol(SymbolToImoport)
@@ -305,9 +308,14 @@
 //make sure you update it
 #define UCodeLangOutPartype(Type) Type*
 
+//Adds the text to the .uc
+#define UCodeLangEmbed(Txt) 
+
+#define UCodeLangExportTrait struct
 
 //Excludes enum fields
 #define UCodeLangExclude
 
+//Use this To Link All the Cpp Calls to a RuntimeLib
 #define UCodeLangAutoLink(Lib,CppFuncsNameSpace)
 

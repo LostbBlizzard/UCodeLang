@@ -266,7 +266,7 @@ project "UCodeIDE"
    location "UCodeIDE" 
    language "C++"
    
-   dependson {"UCodeLang","UCodeLanguageSeverlib"}
+   dependson {"UCodelangCL","UCodeLanguageSeverlib"}
    targetdir ("Output/%{prj.name}/" .. OutDirPath)
    objdir ("Output/int/%{prj.name}/" .. OutDirPath)
 
@@ -324,6 +324,11 @@ project "UCodeIDE"
       "UCodeLanguageSeverlib",
       "UCodeLang",
    }
+   prebuildcommands
+   {
+     UCPathExe.." cpptoulangvm %{prj.location}src/AppObject/AppAPI.hpp %{prj.location}src/AppObject/AppAPILink.cpp %{prj.location}tepfiles/AppAPU.uc",
+   }
+   prebuildmessage "runing cpptoulangvm"
 
    filter { "system:Windows" }
     kind "ConsoleApp"   

@@ -82,12 +82,32 @@ int App::main(int argc, char* argv[])
 		
 	_This.output = &std::cout;
 	_This.Input = &std::cin;
+	
 
-	for (size_t i = 0; i < argc; i++)
 	{
-		ParseLine(String_view(argv[i]));
-	}
+		String V;
+		for (size_t i = 0; i < argc; i++)
+		{
+			V += String_view(argv[i]);
+			V += " ";
 
+		}
+		//while (true);
+		String_view Line =V;
+		while (Line.size())
+		{
+			ParseLine(Line);
+
+			bool AllSame = false;
+			for (auto& Item : Line)
+			{
+				if (Item == ' ') {
+					AllSame = true;
+				}
+			}
+			if (AllSame) {break;}
+		}
+	}
 
 	#if UCodeLangDebug
 	if (IsDebuging) {
@@ -96,7 +116,8 @@ int App::main(int argc, char* argv[])
 			std::string line;
 			std::getline(*_This.Input, line);
 
-			ParseLine(line);
+			String_view Line = line;
+			ParseLine(Line);
 		}
 	}
 	#endif
@@ -184,11 +205,13 @@ String_view GetPath(String_view& Line)
 #define AppPrint(x) *_This.output << x;
 #define AppPrintin(x) *_This.output << x << std::endl;
 
-void ParseLine(String_view Line)
+void ParseLine(String_view& Line)
 {
 	namespace fs = std::filesystem;
 	String_view Word1 = GetWord(Line);
 
+
+	
 	if (Word1 == "build")
 	{
 		ModuleIndex _ModuleIndex = ModuleIndex::GetModuleIndex();
@@ -1163,9 +1186,14 @@ void ParseLine(String_view Line)
 	}
 	else if (Word1 == "cpptoulangvm" || Word1 == "-cpptoulangvm")
 	{
-		Path cppfile;
-		Path cpplink;
-		Path ulangout;
+		Path cppfile = GetPath(Line);
+		Path cpplink = GetPath(Line);
+		Path ulangout = GetPath(Line);
+
+		AppPrintin(cppfile);
+		AppPrintin(cpplink);
+
+		AppPrintin(ulangout);
 
 		UCodeAnalyzer::CppHelper v;
 		v.ParseCppfileAndOutULang(cppfile, cpplink, ulangout);
@@ -1224,7 +1252,8 @@ void ParseLine(String_view Line)
 
 			for (std::string line; getline(file, line); )
 			{
-				ParseLine(line);
+				std::string_view V = line;
+				ParseLine(V);
 			}
 
 			file.close();
