@@ -8,8 +8,16 @@
 #include "UCodeLang/Compliation/Back/BackEndInterface.hpp"
 #include "../Middle/Symbol.hpp"
 #include "UCodeFrontEndNameSpace.hpp"
+
 UCodeLangFrontStart
 
+#define GenericTestStr CompilerGenerated("___GenericTest")
+
+constexpr size_t EnumVarantKeyIndex = 0;
+constexpr size_t EnumVarantUnionIndex = 1;
+
+constexpr size_t DymTraitIRPointerIndex = 0;
+constexpr size_t DymTraitIRVTableIndex = 1;
 
 struct Systematic_BinaryOverloadData
 {
