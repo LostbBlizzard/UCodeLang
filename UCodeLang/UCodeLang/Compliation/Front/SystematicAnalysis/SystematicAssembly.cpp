@@ -348,6 +348,9 @@ void SystematicAnalysis::Assembly_LoadSymbol(const ClassMethod& Item, Systematic
 
 		Funcinfo->FullName = Syb.FullName;
 		Funcinfo->FrontParIsUnNamed = Item.IsThisFuncion;
+		Funcinfo->IsUnsafe = Item.IsUnsafe;
+		Funcinfo->IsExternC = Item.IsExternC;
+		Funcinfo->IsRemoved = Item.IsRemoved;
 
 		Funcinfo->Pars.resize(Item.ParsType.size());
 	}
@@ -578,6 +581,10 @@ void SystematicAnalysis::Lib_BuildLib(const UClib& lib, const Path& LibName)
 	if (GotIRCode == false)
 	{
 		LogError(ErrorCodes::CouldNotFindFunc, 0, 0, "Cant get IR from '" + LibName.generic_string() + "' Object file.Try deleting it");
+	}
+	else
+	{
+		ClassAssembly::PushCopyClasses(lib._Assembly, _Lib.Get_Assembly());
 	}
 }
 

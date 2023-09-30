@@ -37,6 +37,8 @@ public:
 
 	void ShowUCodeVMWindow();
 
+	void ShowCurrentFuncInsList();
+
 
 
 	static size_t GetColumn(const String& text, size_t line, size_t Pos);

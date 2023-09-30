@@ -2,19 +2,19 @@
 
 use ULang;
 
-eval bool IsC89 = compiler::IsBackendC89();
-eval bool IsUCodeVm = compiler::IsBackendUCodeVM();
-eval bool IsWasm = compiler::IsBackendWasm();
-eval bool IsDebug = compiler::IsDebug();
+|func[int a]:
+ a++;
 
-|C89[] => IsC89;
-|UCodeVm[] => IsUCodeVm;
-|Wasm[] => IsWasm;
-|Debug[] => IsDebug;
+ ret a;
 
-$if IsDebug:
- |FuncOnlyInDebug[] -> void;
-
+/*
 |main[]: 
- //Fmt::Print("Hello World");
+ int a = 0;
+
+ int b = 5;
+
+ int c = 2;
+
+ Fmt::Println("Hello World");
+*/
 

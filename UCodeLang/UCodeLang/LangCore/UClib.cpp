@@ -295,6 +295,10 @@ void UClib::ToBytes(BitMaker& Output, const ClassMethod& Data)
 		ToBytes(Output,Item);
 	}
 	Output.WriteType(Data.IsThisFuncion);
+	Output.WriteType(Data.IsUnsafe);
+	Output.WriteType(Data.IsExternC);
+	Output.WriteType(Data.IsRemoved);
+
 	ToBytes(Output, Data.Attributes);
 }
 void UClib::ToBytes(BitMaker& Output, const ReflectionTypeInfo& Data)
@@ -927,6 +931,10 @@ void UClib::FromBytes(BitReader& Input, ClassMethod& Data)
 		}
 	}
 	Input.ReadType(Data.IsThisFuncion);
+	Input.ReadType(Data.IsUnsafe);
+	Input.ReadType(Data.IsExternC);
+	Input.ReadType(Data.IsRemoved);
+
 	FromBytes(Input, Data.Attributes);
 }
 void UClib::FromBytes(BitReader& Input, ReflectionTypeInfo& Data)

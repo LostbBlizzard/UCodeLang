@@ -688,8 +688,13 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		V.FullName = FullName;
 		V.DecorationName = DecName;
 		V.RetType = Assembly_ConvertToType(Info->Ret);
+		;
 
 		V.IsThisFuncion = Info->FrontParIsUnNamed;
+		V.IsExternC = Info->IsExternC;
+		V.IsUnsafe = Info->IsUnsafe;
+		V.IsRemoved = Info->IsRemoved;
+		
 		for (size_t i = 0; i < Info->Pars.size(); i++)
 		{
 			auto& Item = Info->Pars[i];

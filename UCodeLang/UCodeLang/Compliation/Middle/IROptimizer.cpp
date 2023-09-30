@@ -48,6 +48,7 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 
 			if (_Settings->_Flags == OptimizationFlags::NoOptimization
 				|| _Settings->_Flags == OptimizationFlags::Debug) { return; }
+			if (true) { return; }
 
 			if (_ErrorsOutput->Has_Errors())
 			{

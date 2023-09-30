@@ -14,6 +14,8 @@
 #include "UCodeLang/Compliation/Back/Windows/WindowsBackEnd.hpp"
 #include "UCodeLang/Compliation/Back/Linux/LinuxBackEnd.hpp"
 
+#include "UCodeLang/RunTime/ProfilerDebuger.hpp"
+
 #include "UCodeAnalyzer/SyntaxHelper.hpp"
 
 #include "UCodeLang/Compliation/Back/Windows/PE_File.hpp"
@@ -39,6 +41,7 @@
 
 UCodeIDEStart
 
+static UCodeLang::ProfilerDebuger Debuger;
 
 void UCodeIDEStyle(ImGuiStyle* dst)
 {
@@ -1651,6 +1654,13 @@ void AppObject::OnDraw()
 
         _Editor.Render("File.uc");
 
+        static TextEditor::Breakpoints old;
+        auto& Break = _Editor.Get_Breakpoints();
+        if (old.size() != Break.size())
+        {
+            Debuger.ClearBreakPoints();
+        }
+
     } ImGui::End();
 
     if (ImGui::Begin("Error List"))
@@ -2247,6 +2257,21 @@ void AppObject::ShowUCodeVMWindow()
                 }
                 ImGui::NextColumn();
                 {
+                    if (Debuger.IsinFunc())
+                    {
+                        String V;
+                        V = _RunTimeState.GetName(Debuger.GetStartofFunc(Debuger.GetCurrentInstruction()));
+                        ImGui::TextUnformatted(V.c_str());
+                        
+                        if (ImGui::BeginTable("split2", 2, ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders))
+                        {
+                           
+
+
+                            ShowCurrentFuncInsList();
+                        }
+                    }
+
                     ImGui::TextUnformatted("Code");
 
 
@@ -2276,20 +2301,34 @@ void AppObject::ShowUCodeVMWindow()
                         {
                             for (auto& Item : windowdata.InsInfo)
                             {
+                                bool IsOnIns = false;
 
-                                //ImGui::TableNextColumn(); 
-                                //ImGui::SetColumnWidth(0, 20.0f);
-                                //ImGui::Dummy({20,20});
+                                if (Debuger.IsinFunc())
+                                {
+                                    IsOnIns = Item.InsAddress == Debuger.GetCurrentInstruction();
+                                }
 
+                               
                                 ImGui::TableNextColumn();
 
-                                //mGui::TableNextColumn(0, 20.0f);
+                               
+                                if (IsOnIns)
+                                {
+                                    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
+                                }
 
                                 ImGui::Text(std::to_string(Item.InsAddress).c_str());
 
+                              
+
                                 ImGui::TableNextColumn();
 
-                                ImGui::Text(Item.StringValue.c_str());
+                                ImGui::Text(Item.StringValue.c_str());  
+                                
+                                if (IsOnIns)
+                                {
+                                    ImGui::PopStyleColor();
+                                }
 
                                 ImGui::TableNextRow();
                             }
@@ -2302,6 +2341,57 @@ void AppObject::ShowUCodeVMWindow()
             ImGui::Columns();
         }
     }
+}
+
+void AppObject::ShowCurrentFuncInsList()
+{
+    bool Start = false;
+    for (auto& Item : windowdata.InsInfo)
+    {
+        bool IsOnIns = Item.InsAddress == Debuger.GetCurrentInstruction();
+
+        if (Start == false)
+        {
+            Start = Item.InsAddress == Debuger.GetStartofFunc(Debuger.GetCurrentInstruction());
+        }
+
+
+        if (Start)
+        {
+            ImGui::TableNextColumn();
+
+
+            if (IsOnIns)
+            {
+                ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
+            }
+
+            ImGui::Text(std::to_string(Item.InsAddress).c_str());
+
+
+
+            ImGui::TableNextColumn();
+
+            ImGui::Text(Item.StringValue.c_str());
+
+            if (IsOnIns)
+            {
+                ImGui::PopStyleColor();
+            }
+
+            ImGui::TableNextRow();
+            if (Start)
+            {
+                auto& ins = _RunTimeState.GetInst(Item.InsAddress);
+                if (ins.OpCode == UCodeLang::InstructionSet::Return)
+                {
+                    break;
+                }
+            }
+        }
+    }
+
+    ImGui::EndTable();
 }
 
 void AppObject::UpdateInsData(UCodeVMWindow& windowdata)
@@ -2343,7 +2433,9 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
     bool IsinFileMode = false;
     ImVec2 Buttonsize = { 80,20 };
 
-    bool InFuncion = false;
+    static UCodeLang::DebugData DebugInfo;
+
+    bool InFuncion = Debuger.IsinFunc();
 
     ImGui::Button("Reset", Buttonsize);
 
@@ -2351,9 +2443,35 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
 
     ImGui::BeginDisabled(!InFuncion);
 
-    ImGui::Button("Step in", Buttonsize); ImGui::SameLine();
-    ImGui::Button("Step over", Buttonsize); ImGui::SameLine();
-    ImGui::Button("Step out", Buttonsize);
+    if (ImGui::Button("Step in", Buttonsize))
+    {
+        Debuger.StepIn();
+    } ImGui::SameLine();
+
+    if (ImGui::Button("Step over", Buttonsize))
+    {
+        Debuger.StepOver();
+    }ImGui::SameLine();
+
+    if (ImGui::Button("Step out", Buttonsize))
+    {
+        Debuger.StepOut();
+    }
+
+    if (ImGui::Button("Vm Step in", Buttonsize))
+    {
+        Debuger.VM_StepIn();
+    } ImGui::SameLine();
+
+    if (ImGui::Button("Vm Step over", Buttonsize))
+    {
+        Debuger.VM_StepOver();
+    }ImGui::SameLine();
+
+    if (ImGui::Button("Vm Step out", Buttonsize))
+    {
+        Debuger.VM_StepOut();
+    }
 
     ImGui::EndDisabled();
 
@@ -2364,12 +2482,25 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
             _AnyInterpreter.GetAs_JitInterpreter().TryBuildAllFuncs();
         }
     }
-
-    if (!InFuncion) {
+    
+    if (InFuncion)
+    {
+        Debuger.UpdateDebugData(DebugInfo);
         ImGui::Text("Varables");
+        auto& thisFrame = DebugInfo._StackFrames.front();
+
+
+        for (auto& Item : thisFrame._Varables) 
+        {
+            ImguiHelper::UCodeObjectField(
+                Item.VarableName.c_str(),
+                Item.GetObjectPtr(),
+                Item.Type, 
+                _RunTimeState.Get_Assembly());
+        }
     }
 
-    if (!InFuncion) {
+    if (InFuncion) {
         ImGui::Text("StackFrames");
     }
 
@@ -2377,7 +2508,7 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
     {
         auto& Assembly = _RunTimeState.Get_Assembly();
         bool Updated = false;
-      
+        
 
         auto GlobalObject = Assembly.Get_GlobalObject_Class();
 
@@ -2520,6 +2651,27 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                         _AnyInterpreter.Get_Return(callFuncContext._LastRet.Data(), callFuncContext._LastRet.Size());
                     }
                 }
+                ImGui::SameLine();
+                if (ImGui::Button(((String)"Step Into:" + MethodString).c_str()))
+                {
+                    Debuger.Attach(&_RunTimeState);
+                    callFuncContext._LastRetType = callFuncContext.current_method->RetType;
+                    callFuncContext._LastRet.Resize(Assembly.GetSize(callFuncContext._LastRetType, Is32bits).value_or(0));
+
+
+                    for (size_t i = 0; i < callFuncContext.current_method->ParsType.size(); i++)
+                    {
+                        auto& Arg = callFuncContext.Args[i];
+                        _AnyInterpreter.PushParameter(Arg.Data(), Arg.Size());
+                    }
+                    if (windowdata.CallStaticVarOnReload || callFuncContext.CallStaticAndThreadInit)
+                    {
+                        _AnyInterpreter.Call(StaticVariablesInitializeFunc);
+                        _AnyInterpreter.Call(ThreadVariablesInitializeFunc);
+                    }
+                    Debuger.StepInto(
+                        &_AnyInterpreter.GetAs_Interpreter(), callFuncContext.current_method);
+                }
                // ImGui::BeginDisabled();
                 if (callFuncContext._LastRetType == callFuncContext.current_method->RetType)
                 {
@@ -2531,6 +2683,16 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
 
     }
 
+
+    if (Debuger.HasExitedFunc())
+    {
+        Debuger.StepOutof();
+
+        if (callFuncContext._LastRet.Size())
+        {
+            _AnyInterpreter.Get_Return(callFuncContext._LastRet.Data(), callFuncContext._LastRet.Size());
+        }
+    }
 
     {
         if (ImGui::Begin("Stack-Memory"))
@@ -2894,8 +3056,7 @@ void AppObject::CompileText(const String& String)
     }
    
     IsRuningCompiler = true;
-    //bool AddStandardLibrary = OutputWindow.ImportStandardLibrary;
-    bool AddStandardLibrary = false;
+    bool AddStandardLibrary = OutputWindow.ImportStandardLibrary;
 
     std::function<UCodeLang::Compiler::CompilerRet()> Func = [this, paths,AddStandardLibrary ]()
     {
