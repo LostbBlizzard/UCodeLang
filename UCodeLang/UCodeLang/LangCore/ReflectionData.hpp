@@ -220,6 +220,9 @@ public:
 	ReflectionTypeInfo RetType;
 	Vector<Par> ParsType;
 	bool IsThisFuncion = false;
+	bool IsUnsafe = false;
+	bool IsExternC = false;
+	bool IsRemoved = false;
 
 	UsedTags Attributes;
 };

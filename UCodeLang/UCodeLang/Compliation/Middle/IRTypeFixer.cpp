@@ -196,6 +196,10 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 				{
 					Ins->ObjectType = Item->ReturnType;
 				}
+				else
+				{
+					UCodeLangUnreachable();
+				}
 			}
 			else
 			{

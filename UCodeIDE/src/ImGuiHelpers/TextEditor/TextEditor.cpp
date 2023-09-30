@@ -955,6 +955,25 @@ void TextEditor::Render()
 				}
 			}
 
+			if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_MouseRight))
+			{
+				auto end = ImVec2(lineStartScreenPos.x + contentSize.x + 2.0f * scrollX, lineStartScreenPos.y + mCharAdvance.y);
+				if (ImGui::IsMouseHoveringRect(lineStartScreenPos, end))
+				{
+					auto num = lineNo + 1;
+					if (mBreakpoints.count(num))
+					{
+						mBreakpoints.erase(num);
+					}
+					else
+					{
+						mBreakpoints.insert(num);
+					}
+				}
+			}
+
+			
+
 			// Draw line number (right aligned)
 			snprintf(buf, 16, "%d  ", lineNo + 1);
 

@@ -27,44 +27,43 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 			OnExpressionTypeNode(Item.get(), GetValueMode::Read);
 		}
 	}
-	else
-		if (_PassType == PassType::FixedTypes)
+	else if (_PassType == PassType::FixedTypes)
+	{
+		auto symid = Symbol_GetSymbolID(node);
+		if (!_FuncToSyboID.HasValue(symid))
 		{
-			auto symid = Symbol_GetSymbolID(node);
-			if (!_FuncToSyboID.HasValue(symid))
+
+			auto Info = Type_GetFunc(node._FuncName, node.Parameters, Type_Get_LookingForType());
+
+			if (Info.SymFunc)
 			{
-
-				auto Info = Type_GetFunc(node._FuncName, node.Parameters, Type_Get_LookingForType());
-
-				if (Info.SymFunc)
-				{
-					FileDependency_AddDependencyToCurrentFile(Info.SymFunc);
-				}
-
-				Type_SetFuncRetAsLastEx(Info);
-				_FuncToSyboID.AddValue(symid, std::move(Info));
+				FileDependency_AddDependencyToCurrentFile(Info.SymFunc);
 			}
-			else
-			{
-				Type_SetFuncRetAsLastEx(_FuncToSyboID.at(symid));
-			}
+
+			Type_SetFuncRetAsLastEx(Info);
+			_FuncToSyboID.AddValue(symid, std::move(Info));
 		}
-		else if (_PassType == PassType::BuidCode)
+		else
 		{
-			auto& SybID = _FuncToSyboID.at(Symbol_GetSymbolID(node));
-			IR_Build_FuncCall(SybID, node._FuncName, node.Parameters);
-
-
-			auto lasttype = _LastExpressionType;
-			auto ir = _IR_LastExpressionField;
-			auto lookfortype = _LookingForTypes.top();
-			if (!lookfortype.IsAddress() && lasttype.IsAddress())
-			{
-				auto typetoget = lasttype;
-				typetoget._IsAddress = false;
-				_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad_Dereferenc(ir, IR_ConvertToIRType(typetoget));
-			}
+			Type_SetFuncRetAsLastEx(_FuncToSyboID.at(symid));
 		}
+	}
+	else if (_PassType == PassType::BuidCode)
+	{
+		auto& SybID = _FuncToSyboID.at(Symbol_GetSymbolID(node));
+		IR_Build_FuncCall(SybID, node._FuncName, node.Parameters);
+
+
+		auto lasttype = _LastExpressionType;
+		auto ir = _IR_LastExpressionField;
+		auto lookfortype = _LookingForTypes.top();
+		if (!lookfortype.IsAddress() && lasttype.IsAddress())
+		{
+			auto typetoget = lasttype;
+			typetoget._IsAddress = false;
+			_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad_Dereferenc(ir, IR_ConvertToIRType(typetoget));
+		}
+	}
 }
 void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNode& Name, const ValueParametersNode& Pars)
 {

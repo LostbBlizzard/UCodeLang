@@ -1188,9 +1188,33 @@ void ParseLine(String_view Line)
 		UCodeAnalyzer::CppHelper v;
 		v.ParseULangToCppStaticLink(cppfile, cpplink, ulangout);
 	}
-	else if (Word1 == "clearcache" || Word1 == "-cc")
+	else if (Word1 == "clear" || Word1 == "-cc")
 	{
+		String _Path = String(GetPath(Line));
+		auto _PathAsPath = Path(_Path);
+		if (_Path.size() == 0)
+		{
+			_PathAsPath = std::filesystem::current_path();
+			_Path = _PathAsPath.generic_string();
+		}
+		else if (fs::exists(_PathAsPath) && _PathAsPath.extension() == UCodeLang::ModuleFile::FileExtWithDot)
+		{
+			_PathAsPath = _PathAsPath.parent_path();
+			_Path = _PathAsPath.generic_string();
+		}
 
+		if (fs::is_directory(_PathAsPath))
+		{
+			auto intpath = _PathAsPath / "int";
+			auto outpath = _PathAsPath / "out";
+
+			fs::remove_all(intpath);
+			fs::remove_all(outpath);
+		}
+		else
+		{
+
+		}
 	}
 	else if (Word1 == "runlines" || Word1 == "-el")
 	{

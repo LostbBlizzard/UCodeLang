@@ -49,22 +49,16 @@ struct DebugVarable
 	VarType VarableType = VarType::Stack;
 
 
-	void* GetObject()
+	void* GetObjectPtr()
 	{
 		return Object;
 	}
-	AnyInt64* GetObjectAsAnyInt()
-	{
-		return (AnyInt64*)GetObject();
-	}
 
-private:
 	void* Object = nullptr;
 };
 struct DebugStackFrame
 {
 	UAddress _Funcion =NullAddress;
-	const ClassMethod* _Method=nullptr;
 
 	Optional<ProfilerTime_point> FuncStart;
 
@@ -88,7 +82,11 @@ public:
 	{
 		return _Stats;
 	}
-	void Clear_Stats()
+	UCodeLangAPIExport void Clear_Stats()
+	{
+
+	}
+	UCodeLangAPIExport void ClearBreakPoints()
 	{
 
 	}
@@ -96,6 +94,42 @@ public:
 	UCodeLangAPIExport void AddRunTimeBreakPoint(UAddress Item, OnBreakPointCallBack OnHit);
 	UCodeLangAPIExport void RemoveRunTimeBreakPoint(UAddress Item);
 	UCodeLangAPIExport void UpdateDebugData(DebugData& Out);
+	DebugData GetDebugData()
+	{
+		DebugData v;
+		UpdateDebugData(v);
+		return v;
+	}
+	
+	UCodeLangAPIExport void StepInto(Interpreter* Interpreter, UAddress Address);
+	UCodeLangAPIExport void StepInto(Interpreter* Interpreter, const String& FunctionName)
+	{
+		return StepInto(Interpreter, _state->FindAddress(FunctionName).value());
+	}
+	UCodeLangAPIExport void StepInto(Interpreter* Interpreter, const ClassMethod* Function)
+	{
+		return StepInto(Interpreter, Function->DecorationName);
+	}
+	UCodeLangAPIExport bool HasExitedFunc();
+	UCodeLangAPIExport bool IsinFunc() {return IsInFunc;}
+	UCodeLangAPIExport void StepOutof();
+	UCodeLangAPIExport UAddress GetCurrentInstruction()
+	{
+		UCodeLangAssert(IsinFunc());
+		return StepedInterpreter->_CPU.ProgramCounter;
+	}
+
+	UCodeLangAPIExport UAddress GetStartofFunc(UAddress Ins);
+	
+	UCodeLangAPIExport void StepIn();
+	UCodeLangAPIExport void StepOver();
+	UCodeLangAPIExport void StepOut();
+	UCodeLangAPIExport void Continue();
+
+	UCodeLangAPIExport void VM_StepIn();
+	UCodeLangAPIExport void VM_StepOver();
+	UCodeLangAPIExport void VM_StepOut();
+	
 private:
 	RunTimeLangState* _state = nullptr;
 	AnyInterpreterPtr _Interpreter;
@@ -107,6 +141,12 @@ private:
 	Vector<ProfilerDuration_point> InFunc;
 	//Debug
 	DebugData _Debug;
+
+	//StepInto
+	Interpreter* StepedInterpreter = nullptr;
+	bool IsInFunc = false;
+	UAddress _OldStackPrePars = NullAddress;
+	UAddress _OldStackoffset = NullAddress;
 
 	void OnFuncStart(AnyInterpreterPtr Ptr);
 	void OnFuncEnd(AnyInterpreterPtr Ptr);

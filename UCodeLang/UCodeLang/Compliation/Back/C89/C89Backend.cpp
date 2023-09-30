@@ -615,6 +615,15 @@ void C89Backend::UpdateCppLinks(UCodeLang::String& r, UCodeLang::IRBufferData* V
 
 void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C89Backend::ToStringState& State, bool OutputBody)
 {
+	{
+		auto str = FromIDToCindentifier(Item->identifier);
+		if (str == "malloc"
+			|| str == "free")
+		{
+			return;
+		}
+	}
+
 	if (_Input->EntryPoint.has_value() && Item->identifier == _Input->EntryPoint.value())
 	{
 
@@ -1270,6 +1279,7 @@ String C89Backend::ToStringState::GetName(IRInstruction* Ptr)
 
 
 	}
+	Val += "tepvir";
 
 	auto V = Val;
 	PointerToName[Ptr] = V;
