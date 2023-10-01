@@ -12,11 +12,13 @@ bool Value = false;
 int IntValue = 0;
 int V = 0;
 
+
+
 |OnDraw[] -> void: 
- Imgui::Button("Hello");
+ Imgui::Button("Say Hello");
+ 
+ Imgui::ObjectField("Val 1",IntValue);
+ Imgui::ObjectField("Val 2",Value);
 
- Imgui::ObjectField("My Boolen",Value);
- Imgui::ObjectField("My Int",IntValue);
-
- V++;
-
+ //Fmt::Println("Hello World");
+ //V++;

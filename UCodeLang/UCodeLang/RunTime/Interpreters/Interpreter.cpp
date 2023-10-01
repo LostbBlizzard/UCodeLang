@@ -85,6 +85,7 @@ Interpreter::Return_t Interpreter::Call(UAddress address)
 				|| funcname == ThreadVariablesUnLoadFunc)
 			{
 				UCodeLangAssert(_Parameters.GetParameterCount() == 0);//incorrect parameter count
+				GotRetValue = true;
 			}
 			else
 			{
@@ -1019,7 +1020,7 @@ void Interpreter::Extecute(Instruction& Inst)
 
 	InsCase(Cout_Buffer):
 	{
-		Get_State()->Log((char*)Get_Register(Inst.Op_OneReg.A).Value.AsPtr, Get_Register(Inst.Op_OneReg.A).Value.AsUIntNative);
+		Get_State()->Log((char*)Get_Register(Inst.Op_TwoReg.A).Value.AsPtr, Get_Register(Inst.Op_TwoReg.B).Value.AsUIntNative);
 	}
 	InsBreak();
 

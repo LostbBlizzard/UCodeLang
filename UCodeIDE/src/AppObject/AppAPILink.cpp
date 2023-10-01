@@ -14,6 +14,7 @@ void LinkAppAPICallsTo(UCodeLang::RunTimeLib& lib)
 		using Imgui__Button0_ptr = bool(*UCodeLangAPI)(StringView,const Vec2&); 
 		using Imgui__ObjectField_ptr = bool(*UCodeLangAPI)(StringView,Int32&); 
 		using Imgui__ObjectField0_ptr = bool(*UCodeLangAPI)(StringView,bool&); 
+		using Imgui__Text_ptr = void(*UCodeLangAPI)(StringView); 
 		lib.Add_CPPCall("API:LogTrait:Log",[](UCodeLang::InterpreterCPPinterface& Input) 
 			{
 			
@@ -98,6 +99,16 @@ void LinkAppAPICallsTo(UCodeLang::RunTimeLib& lib)
 				Input.Set_Return<bool>(Ret);
 			
 			},(Imgui__ObjectField0_ptr)API::Imgui::ObjectField); 
+		lib.Add_CPPCall("API:Imgui:Text",[](UCodeLang::InterpreterCPPinterface& Input) 
+			{
+			
+				StringView Par0 = Input.GetParameter<StringView>();
+				
+				API::Imgui::Text(Par0);
+				
+				Input.Set_Return();
+			
+			},(Imgui__Text_ptr)API::Imgui::Text); 
 	}//Made by UCodeAutoLink End
 }
 

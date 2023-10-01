@@ -1642,11 +1642,17 @@ void AppObject::OnDraw()
 
     if (ImGui::Begin("VM Draw Window"))
     {
-        if (windowdata.CallFrame) {
+        if (!Debuger.IsinFunc()) {
+            if (windowdata.CallFrame) {
 
 
-            _AnyInterpreter.Call("OnDraw");
+                _AnyInterpreter.Call("OnDraw");
 
+            }
+        }
+        else
+        {
+            ImGui::Text("Cant Draw while Debuging");
         }
     }
     ImGui::End();
@@ -2652,17 +2658,18 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                     callFuncContext._LastRetType = callFuncContext.current_method->RetType;
                     callFuncContext._LastRet.Resize(Assembly.GetSize(callFuncContext._LastRetType, Is32bits).value_or(0));
 
-                    for (size_t i = 0; i < callFuncContext.current_method->ParsType.size(); i++)
-                    {
-                        auto& Arg = callFuncContext.Args[i];
-                        _AnyInterpreter.PushParameter(Arg.Data(), Arg.Size());
-                    }
+                    
                     if (windowdata.CallStaticVarOnReload || callFuncContext.CallStaticAndThreadInit)
                     {
                         _AnyInterpreter.Call(StaticVariablesInitializeFunc);
                         _AnyInterpreter.Call(ThreadVariablesInitializeFunc);
                     }
 
+                    for (size_t i = 0; i < callFuncContext.current_method->ParsType.size(); i++)
+                    {
+                        auto& Arg = callFuncContext.Args[i];
+                        _AnyInterpreter.PushParameter(Arg.Data(), Arg.Size());
+                    }
                     _AnyInterpreter.Call(callFuncContext.current_method);
 
                     if (windowdata.CallStaticVarOnReload || callFuncContext.CallStaticAndThreadDeInit)
@@ -2684,15 +2691,17 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                     callFuncContext._LastRet.Resize(Assembly.GetSize(callFuncContext._LastRetType, Is32bits).value_or(0));
 
 
-                    for (size_t i = 0; i < callFuncContext.current_method->ParsType.size(); i++)
-                    {
-                        auto& Arg = callFuncContext.Args[i];
-                        _AnyInterpreter.PushParameter(Arg.Data(), Arg.Size());
-                    }
+                   
                     if (windowdata.CallStaticVarOnReload || callFuncContext.CallStaticAndThreadInit)
                     {
                         _AnyInterpreter.Call(StaticVariablesInitializeFunc);
                         _AnyInterpreter.Call(ThreadVariablesInitializeFunc);
+                    } 
+                    
+                    for (size_t i = 0; i < callFuncContext.current_method->ParsType.size(); i++)
+                    {
+                        auto& Arg = callFuncContext.Args[i];
+                        _AnyInterpreter.PushParameter(Arg.Data(), Arg.Size());
                     }
                     Debuger.StepInto(
                         &_AnyInterpreter.GetAs_Interpreter(), callFuncContext.current_method);
@@ -3123,7 +3132,7 @@ void AppObject::CompileText(const String& String)
      
     _RuningPaths = std::move(paths);
     _RuningCompiler = SendTaskToWorkerThread<UCodeLang::Compiler::CompilerRet>(Func);
-    //Func();
+    //_RuningCompiler._Set_value(Func(),false);
    
 }
 

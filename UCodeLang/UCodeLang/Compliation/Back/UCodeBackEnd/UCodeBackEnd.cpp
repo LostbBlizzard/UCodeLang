@@ -912,6 +912,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			}
 
 			FuncCallEnd(FData);
+			GiveFuncReturnName(FuncInfo->ReturnType, Item);
 		}
 		break;
 		case IRInstructionType::MallocCall:
@@ -1062,6 +1063,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 
 
 			FuncCallEnd(FData);
+			GiveFuncReturnName(FuncInfo->Ret, Item);
 		}
 		break;
 		
@@ -1483,6 +1485,28 @@ DoneLoop:
 		}
 	}
 }
+void UCodeBackEndObject::GiveFuncReturnName(const IRType& ReturnType, const IRInstruction* Item)
+{
+	if (ReturnType._Type != IRTypes::Void) {
+		if (GetSize(ReturnType) <= sizeof(AnyInt64))
+		{
+			SetRegister(RegisterID::OutPutRegister, Item);
+		}
+		else
+		{
+			IRlocData CompilerRet;
+			CompilerRet.ObjectType = ReturnType;
+			CompilerRet.Info = RegisterID::OutPutRegister;
+
+			IRlocData tep = GetFreeStackLoc(ReturnType);
+
+			CopyValues(CompilerRet, tep, true, false);
+			CompilerRet = tep;
+
+			GiveNameTo(CompilerRet, Item);
+		}
+	}
+}
 UCodeBackEndObject::FuncCallEndData UCodeBackEndObject::FuncCallStart(const Vector<IRType>& Pars, const IRType& RetType)
 {
 	Vector<IRPar> Tep;
@@ -1663,33 +1687,93 @@ void UCodeBackEndObject::FuncCallEnd(UCodeBackEndObject::FuncCallEndData& Data)
 
 	if (PopBufferSize != 0)
 	{
+		_Stack.PushedOffset -= PopBufferSize;
 		RegisterID PopRegister = GetRegisterForTep();
-		while (PopBufferSize != 0)
+		bool dopop = IsDebugMode();
+
+		auto loadsize = Get_Settings().PtrSize == IntSizes::Int32 ? 2 : 4;
+		if (dopop == false)
 		{
-			if (PopBufferSize >= 8)
+			size_t InsCount = 0;
+			size_t PopBufferSize = 0;
+			while (PopBufferSize != 0)
 			{
-				InstructionBuilder::Pop64(_Ins, PopRegister);
-				PopBufferSize -= 8;
+				if (PopBufferSize >= 8)
+				{
+					InsCount++;
+					PopBufferSize -= 8;
+				}
+				else if (PopBufferSize >= 4)
+				{
+					InsCount++;
+					PopBufferSize -= 4;
+				}
+				else if (PopBufferSize >= 2)
+				{
+					InsCount++;
+					PopBufferSize -= 2;
+				}
+				else if (PopBufferSize >= 1)
+				{
+					InsCount++;
+					PopBufferSize -= 1;
+				}
 			}
-			else if (PopBufferSize >= 4)
+			dopop = InsCount < loadsize;
+		}
+		if (dopop)
+		{
+
+
+			while (PopBufferSize != 0)
 			{
-				InstructionBuilder::Pop32(_Ins, PopRegister);
-				PopBufferSize -= 4;
+				if (PopBufferSize >= 8)
+				{
+					InstructionBuilder::Pop64(_Ins, PopRegister);
+					PopBufferSize -= 8;
+				}
+				else if (PopBufferSize >= 4)
+				{
+					InstructionBuilder::Pop32(_Ins, PopRegister);
+					PopBufferSize -= 4;
+				}
+				else if (PopBufferSize >= 2)
+				{
+					InstructionBuilder::Pop16(_Ins, PopRegister);
+					PopBufferSize -= 2;
+				}
+				else if (PopBufferSize >= 1)
+				{
+					InstructionBuilder::Pop8(_Ins, PopRegister);
+					PopBufferSize -= 1;
+				}
+				PushIns();
 			}
-			else if (PopBufferSize >= 2)
+
+
+		}
+		else
+		{
+			
+			if (Get_Settings().PtrSize == IntSizes::Int32)
 			{
-				InstructionBuilder::Pop16(_Ins, PopRegister);
-				PopBufferSize -= 2;
+				InstructionBuilder::Store32_V1(_Ins,PopRegister, (UInt32)PopBufferSize); PushIns();
+				InstructionBuilder::Store32_V2(_Ins,PopRegister, (UInt32)PopBufferSize); PushIns();
 			}
-			else if (PopBufferSize >= 8)
+			else
 			{
-				InstructionBuilder::Pop8(_Ins, PopRegister);
-				PopBufferSize -= 1;
+				InstructionBuilder::Store64_V1(_Ins, PopRegister, (UInt64)PopBufferSize); PushIns();
+				InstructionBuilder::Store64_V2(_Ins, PopRegister, (UInt64)PopBufferSize); PushIns();
+				InstructionBuilder::Store64_V3(_Ins, PopRegister, (UInt64)PopBufferSize); PushIns();
+				InstructionBuilder::Store64_V4(_Ins, PopRegister, (UInt64)PopBufferSize); PushIns();
 			}
+			InstructionBuilder::DecrementStackPointer(_Ins, PopRegister);
 			PushIns();
 		}
-
 	}
+	
+
+
 	_InputPar = RegisterID::StartParameterRegister;
 
 
@@ -3070,11 +3154,6 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 				{
 					return GetIRLocData(Item,GetAddress);
 				}
-				else if (Item->Type == IRInstructionType::Call
-					 || Item->Type == IRInstructionType::CallFuncPtr)
-				{
-					CompilerRet.Info = RegisterID::OutPutRegister;
-				}
 				else if (Item->Type == IRInstructionType::Load)
 				{
 					return GetIRLocData(Item, Item->Target(), GetAddress);
@@ -3205,25 +3284,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 				}
 				else
 				{
-					if (Item->Type == IRInstructionType::Call
-						|| Item->Type == IRInstructionType::CallFuncPtr)
-					{
-						size_t ObjectSize = GetSize(Item);
-						if (ObjectSize > sizeof(AnyInt64))
-						{
-							CompilerRet.Info = RegisterID::OutPutRegister;
-
-							IRlocData tep = GetFreeStackLoc(GetType(Item));
-
-							CopyValues(CompilerRet, tep, true, false);
-							CompilerRet = tep;
-						}
-						else
-						{
-							CompilerRet.Info = RegisterID::OutPutRegister;
-						}
-					}
-					else if (Item->Type == IRInstructionType::Load)
+					if (Item->Type == IRInstructionType::Load)
 					{
 						return GetIRLocData(Item,Item->Target());
 					}
