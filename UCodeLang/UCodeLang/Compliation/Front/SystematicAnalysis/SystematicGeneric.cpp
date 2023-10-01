@@ -241,7 +241,7 @@ void SystematicAnalysis::Generic_TypeInstantiate_Alias(const NeverNullPtr<Symbol
 
 		auto& addedSymbol = *_Table.Symbols[NewSymbolIndex].get();
 
-		UCodeLangAssert(addedSymbol.FullName == NewName);
+		UCodeLangAssert(addedSymbol.FullName == FullName);
 		UCodeLangAssert(addedSymbol.Type == SymbolType::Type_alias
 			|| addedSymbol.Type == SymbolType::Hard_Type_alias
 			|| addedSymbol.Type == SymbolType::Func_ptr

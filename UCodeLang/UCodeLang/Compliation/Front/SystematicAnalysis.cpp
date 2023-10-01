@@ -218,6 +218,19 @@ void SystematicAnalysis::BuildCode()
 				
 			}
 			break;
+			case SymbolType::Type_alias:
+			{
+				auto Info = Symbol->Get_Info<Generic_AliasInfo>();
+				auto node = AliasNode::As(Symbol->Get_NodeInfo<Node>());
+
+
+				Set_SymbolConext(std::move(Info->Conext.value()));
+				OnAliasNode(*node);
+				Info->Conext = SaveAndMove_SymbolContext();
+
+
+			}
+			break;
 			default:
 				UCodeLangUnreachable();
 				break;
@@ -485,6 +498,7 @@ void SystematicAnalysis::OnFileNode(const FileNode& File)
 		_Table.AddScope(_StartingNameSpace.value());
 	}
 
+	auto UseingIndex = _Table.GetUseingIndex();
 	for (auto& node : File._Nodes)
 	{
 		Push_ToNodeScope(*node.get());
@@ -532,9 +546,11 @@ void SystematicAnalysis::OnFileNode(const FileNode& File)
 			UCodeLangUnreachable();
 			break;
 		}
+		
 
 	}
-
+	_Table.RemovePopUseing(UseingIndex);
+	
 	if (_StartingNameSpace.has_value())
 	{
 		_Table.RemoveScope();
@@ -2220,7 +2236,8 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 			if (Type_IsUnMapType(*ObjectType))
 			{
 				Out.Type = *Func->GetObjectForCall();
-				Out._Symbol = Symbol_GetSymbol(*ObjectType).value().value();
+				Out._Symbol = Symbol_GetSymbol(ScopeHelper::ApendedStrings(Symbol_GetSymbol(Func)->FullName, ThisSymbolName), SymbolType::ParameterVarable)
+					.value().value();
 				return true;
 			}
 
@@ -2228,7 +2245,9 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 			ClassInfo* V = objecttypesyb->Get_Info<ClassInfo>();
 
 			Out.Type = *Func->GetObjectForCall();
-			Out._Symbol = Symbol_GetSymbol(*ObjectType).value().value();
+			Out._Symbol =
+				Symbol_GetSymbol(ScopeHelper::ApendedStrings(Symbol_GetSymbol(Func)->FullName, ThisSymbolName), SymbolType::ParameterVarable)
+				.value().value();
 			//
 			Start++;
 			End--;

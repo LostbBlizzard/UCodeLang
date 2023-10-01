@@ -2159,7 +2159,7 @@ RegisterID UCodeBackEndObject::MakeIntoRegister(const IRlocData& Value, Optional
 
 		if (auto Val = Value.Info.Get_If<IRlocData_StackPost>()) 
 		{
-			_Stack.AddReUpdatePostFunc(PushIns(), Val->offset);
+			_Stack.AddReUpdatePostFunc(PushIns(), Val->offset- _Stack.PushedOffset);
 		}
 		else 
 		{
@@ -2169,7 +2169,7 @@ RegisterID UCodeBackEndObject::MakeIntoRegister(const IRlocData& Value, Optional
 			auto mainobjsize = GetMainObjectSizeForStackPre(Value);
 
 			auto newpos = mainobjsize - Val2->offset;
-			_Stack.AddReUpdatePreFunc(PushIns(), newpos);
+			_Stack.AddReUpdatePreFunc(PushIns(), newpos- _Stack.PushedOffset);
 		}
 		return Tep;
 	}
@@ -2316,7 +2316,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetPointerOf(const IRlocData& 
 	else if (auto Val = Value.Info.Get_If<IRlocData_StaticPos>())
 	{
 		auto R = GetRegisterForTep();
-		InstructionBuilder::GetPointerOfStaticMem(_Ins, R, Val->offset);
+		InstructionBuilder::GetPointerOfStaticMem(_Ins, R, Val->offset); PushIns();
 
 		IRlocData V;
 		V.Info = R;
@@ -2326,7 +2326,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetPointerOf(const IRlocData& 
 	else if (auto Val = Value.Info.Get_If<IRlocData_ThreadPos>())
 	{
 		auto R = GetRegisterForTep();
-		InstructionBuilder::GetPointerOfThreadMem(_Ins, R, Val->offset);
+		InstructionBuilder::GetPointerOfThreadMem(_Ins, R, Val->offset); PushIns();
 
 		IRlocData V;
 		V.Info = R;
@@ -2513,11 +2513,18 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction* Ins, const  IROperato
 				StaticMemoryManager::StaticMemInfo& Value = _ThreadMemory._List[Op.identifer];
 
 				auto V = GetRegisterForTep();
-				InstructionBuilder::GetPointerOfStaticMem(_Ins, V, Value.Offset); PushIns();
+				InstructionBuilder::GetPointerOfThreadMem(_Ins, V, Value.Offset); PushIns();
 
 				return V;
 			}
-
+			else
+			{
+				UCodeLangUnreachable();
+			}
+		}
+		else
+		{
+			UCodeLangUnreachable();
 		}
 	}
 	else if (Op.Type == IROperatorType::Get_PointerOf_IRInstruction)
@@ -3124,6 +3131,10 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 					UCodeLangUnreachable();
 				}
 			}
+			else
+			{
+				UCodeLangUnreachable();
+			}
 			CompilerRet = GetPointerOf(CompilerRet);
 		}
 		else if (Op.Type == IROperatorType::Value)
@@ -3362,7 +3373,7 @@ void UCodeBackEndObject::MoveRegInValue(RegisterID Value, const IRlocData& To, s
 			UCodeLangUnreachable();
 			break;
 		}
-		_Stack.AddReUpdatePostFunc(PushIns(), Val->offset + Offset);
+		_Stack.AddReUpdatePostFunc(PushIns(),Val->offset + Offset - _Stack.PushedOffset);
 	}
 	else if (auto Val = To.Info.Get_If<IRlocData_StaticPos>())
 	{
@@ -3453,7 +3464,7 @@ void UCodeBackEndObject::MoveValueInReg(const IRlocData& Value, size_t Offset, R
 			break;
 		}
 		if (auto Val = Value.Info.Get_If<IRlocData_StackPost>()) {
-			_Stack.AddReUpdatePostFunc(PushIns(), Val->offset + Offset);
+			_Stack.AddReUpdatePostFunc(PushIns(), Val->offset + Offset- _Stack.PushedOffset);
 		}
 		else
 		{
@@ -3462,7 +3473,7 @@ void UCodeBackEndObject::MoveValueInReg(const IRlocData& Value, size_t Offset, R
 			auto mainobjsize = GetMainObjectSizeForStackPre(Value);
 
 			auto newpos = mainobjsize - Val2->offset;
-			_Stack.AddReUpdatePreFunc(PushIns(), newpos+Offset);
+			_Stack.AddReUpdatePreFunc(PushIns(), newpos+Offset- _Stack.PushedOffset);
 		}
 	}
 	else if (auto Val = Value.Info.Get_If<IRlocData_StaticPos>())
