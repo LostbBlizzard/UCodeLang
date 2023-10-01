@@ -118,8 +118,8 @@ private:
 
 	struct SSAState
 	{
-		VectorMap<IROperator*, IROperator> Updated;
-		VectorMap<IROperator, IRInstruction*> Map;
+		UnorderedMap<IROperator*, IROperator> Updated;
+		UnorderedMap<IROperator, IRInstruction*> Map;
 	};
 
 	void ToSSA(const IRFunc* Func, SSAState& state);
@@ -141,12 +141,12 @@ private:
 	{
 		bool IsReferenced = false;
 	};
-	BinaryVectorMap<IRInstruction*, MyStruct> IRData;
+	UnorderedMap<IRInstruction*, MyStruct> IRData;
 	auto& Get_IRData(IRInstruction* V)
 	{
 		return  IRData[V];
 	}
-	BinaryVectorMap<IRFunc*, IROptimizationFuncData> Funcs;
+	UnorderedMap<IRFunc*, IROptimizationFuncData> Funcs;
 };
 
 UCodeLangEnd

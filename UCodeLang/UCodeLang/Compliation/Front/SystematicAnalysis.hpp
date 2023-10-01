@@ -348,14 +348,14 @@ public:
 		SpanData IRSymbolSpan;
 		SpanData IRConstStringSpan;
 	};
-	const FileNodeData& GetFileDataPub(const  NeverNullPtr<FileNode_t> file) const { return *_FilesData.at(file); }
+	const FileNodeData& GetFileDataPub(const  NeverNullPtr<FileNode_t> file) const { return *_FilesData.GetValue(file); }
 	void SetLibNames(const Vector <Path>* LibsNames)
 	{
 		_LibsNames = LibsNames;
 	}
 	void ToIntFile(FileNode_t* File, const Path& path);
 private:
-	FileNodeData& GetFileData(const NeverNullPtr<FileNode_t> file) { return *_FilesData.at(file); }
+	FileNodeData& GetFileData(const NeverNullPtr<FileNode_t> file) { return *_FilesData.GetValue(file); }
 
 	//Types
 	struct BinaryExpressionNode_Data
@@ -538,10 +538,10 @@ private:
 	};
 	struct EvalFuncData
 	{
-		VectorMap<SymbolID, RawEvaluatedObject> Pars;
+		UnorderedMap<SymbolID, RawEvaluatedObject> Pars;
 		RawEvaluatedObject Ret;
 
-		VectorMap<SymbolID,RawEvaluatedObject> Vars;
+		UnorderedMap<SymbolID,RawEvaluatedObject> Vars;
 
 		const Symbol* FuncSyb = nullptr;
 		const FuncInfo* Get_funcInfo()
@@ -722,7 +722,7 @@ private:
 	Vector<FileNode> _LibsFiles;
 	SymbolTable _Table;
 
-	VectorMap<String,BinaryVectorMap<const void*, SymbolID>> _SybIdMap;
+	UnorderedMap<String,UnorderedMap<const void*, SymbolID>> _SybIdMap;
 	uintptr_t _IDIndex = 0;
 	//Args
 	bool _ForceImportArgWasPassed = false;
@@ -733,23 +733,23 @@ private:
 
 
 	const FileNode* _LookingAtFile = nullptr;
-	BinaryVectorMap<NeverNullPtr<FileNode_t>,Shared_ptr<FileNodeData>> _FilesData;
-	BinaryVectorMap<SymbolID, BinaryExpressionNode_Data> _BinaryExpressionNode_Datas;
-	BinaryVectorMap<SymbolID, IndexedExpresion_Data> _IndexedExpresion_Datas;
-	BinaryVectorMap<SymbolID, PostFixExpressionNode_Data> _PostFix_Datas;
-	BinaryVectorMap<SymbolID, CompoundExpresion_Data> _Compound_Datas;
-	BinaryVectorMap<SymbolID, ForExpresion_Data> _For_Datas;
-	BinaryVectorMap<SymbolID, CastExpressionNode_Data> _CastDatas;
-	BinaryVectorMap<SymbolID, AssignExpression_Data > _AssignExpressionDatas;
-	BinaryVectorMap<SymbolID, bool> _ValidNodes;
-	BinaryVectorMap<SymbolID, CompileTimeforNode> _ForNodes;
-	BinaryVectorMap<SymbolID, MatchStatementData> _MatchStatementDatas;
-	BinaryVectorMap<SymbolID, MatchExpressionData> _MatchExpressionDatas;
-	BinaryVectorMap<SymbolID, AwaitData>  _AwaitDatas;
-	BinaryVectorMap<SymbolID, YieldData>  _YieldDatas;
-	BinaryVectorMap<SymbolID, UnaryExpression_Data>  _UnaryDatas;
+	UnorderedMap<NeverNullPtr<FileNode_t>,Shared_ptr<FileNodeData>> _FilesData;
+	UnorderedMap<SymbolID, BinaryExpressionNode_Data> _BinaryExpressionNode_Datas;
+	UnorderedMap<SymbolID, IndexedExpresion_Data> _IndexedExpresion_Datas;
+	UnorderedMap<SymbolID, PostFixExpressionNode_Data> _PostFix_Datas;
+	UnorderedMap<SymbolID, CompoundExpresion_Data> _Compound_Datas;
+	UnorderedMap<SymbolID, ForExpresion_Data> _For_Datas;
+	UnorderedMap<SymbolID, CastExpressionNode_Data> _CastDatas;
+	UnorderedMap<SymbolID, AssignExpression_Data > _AssignExpressionDatas;
+	UnorderedMap<SymbolID, bool> _ValidNodes;
+	UnorderedMap<SymbolID, CompileTimeforNode> _ForNodes;
+	UnorderedMap<SymbolID, MatchStatementData> _MatchStatementDatas;
+	UnorderedMap<SymbolID, MatchExpressionData> _MatchExpressionDatas;
+	UnorderedMap<SymbolID, AwaitData>  _AwaitDatas;
+	UnorderedMap<SymbolID, YieldData>  _YieldDatas;
+	UnorderedMap<SymbolID, UnaryExpression_Data>  _UnaryDatas;
 
-	BinaryVectorMap<SymbolID, VarableMemberData> _VarableMemberDatas;//Var.$Item
+	UnorderedMap<SymbolID, VarableMemberData> _VarableMemberDatas;//Var.$Item
 
 	struct Test
 	{
@@ -774,7 +774,7 @@ private:
 	//
 	Stack<TypeSymbol> _LookingForTypes;
 	TypeSymbol _LastExpressionType;
-	BinaryVectorMap<SymbolID, Get_FuncInfo> _FuncToSyboID;
+	UnorderedMap<SymbolID, Get_FuncInfo> _FuncToSyboID;
 	Vector< NewFuncData> _TepFuncs;
 	Vector<const ClassInfo*> _ClassDependencies;
 	Vector< FuncInfo*>_RetLoopStack;
@@ -792,7 +792,7 @@ private:
 	String _LastIRFileName;
 	size_t _LastLineNumber = -1;
 
-	BinaryVectorMap<void*, SymbolID> _ConstantExpressionMap;
+	UnorderedMap<void*, SymbolID> _ConstantExpressionMap;
 	Stack<GetValueMode> _GetExpressionMode;
 	Stack<VarableUseData> _Varable;
 	Vector<Unique_ptr<EvalFuncData>> _Eval_FuncStackFrames;
@@ -801,7 +801,7 @@ private:
 	//To Fix Types being Loaded out of order.
 	Vector<LibLoadTypeSeter> _Lib_TypesToFix;
 
-	BinaryVectorMap<SymbolID, IRidentifierID> _Symbol_SybToIRMap;
+	UnorderedMap<SymbolID, IRidentifierID> _Symbol_SybToIRMap;
 
 	IRBlockDebugInfo* _Debug_LastLookAtDebugBlock = nullptr;
 	Optional<SymbolID> _Type_UnMapTypeSymbol;

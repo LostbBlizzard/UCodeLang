@@ -111,7 +111,7 @@ public:
 	{
 		size_t Offset=0;
 	};
-	BinaryVectorMap<IRidentifierID, StaticMemInfo> _List;
+	UnorderedMap<IRidentifierID, StaticMemInfo> _List;
 };
 struct StackItem
 {

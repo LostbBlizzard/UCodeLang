@@ -1,7 +1,7 @@
 #pragma once
 
 #include "UCodeLang/LangCore.hpp"
-#include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
+#include "UCodeLang/LangCore/DataType/UnorderedMap.hpp"
 UCodeLangStart
 enum class CPUBitSize : UInt8
 {
@@ -127,7 +127,7 @@ public:
 		UAddress OnUAddress = 0;
 	};
 
-	BinaryVectorMap<UAddress, UnLoadedFuncPlaceHolder> FuncsPlaceHolder;
+	UnorderedMap<UAddress, UnLoadedFuncPlaceHolder> FuncsPlaceHolder;
 	Vector<FuncToLink> LinkingData;
 	InterpreterCPPinterface_SetRet  InterpreterCPPinterface_Set_ReturnPtr = nullptr;
 	InterpreterCPPinterface_GetParm InterpreterCPPinterface_Get_Par = nullptr;

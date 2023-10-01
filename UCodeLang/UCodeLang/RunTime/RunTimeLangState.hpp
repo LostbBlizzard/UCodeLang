@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include "Jit/Jit.hpp"
-#include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
+#include "UCodeLang/LangCore/DataType/UnorderedMap.hpp"
 #include "Interpreters/ParameterPassingHelper.hpp"
 UCodeLangStart
 
@@ -54,8 +54,8 @@ private:
 	bool _CanReserveData;
 	bool _MallocOnlyInPages;
 	
-	VectorMap<PtrType, MemData> _Data;
-	VectorMap<PtrType, MemData> _ReservedData;
+	UnorderedMap<PtrType, MemData> _Data;
+	UnorderedMap<PtrType, MemData> _ReservedData;
 	Vector<void*> Tep_Values;
 	PtrType FindReservedPtr(NSize_t Size);
 };

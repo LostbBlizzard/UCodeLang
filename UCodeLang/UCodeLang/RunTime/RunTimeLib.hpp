@@ -1,7 +1,7 @@
 #pragma once
 #include "../LangCore.hpp"
 #include "UCodeLang/LangCore/UClib.hpp"
-#include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
+#include "UCodeLang/LangCore/DataType/UnorderedMap.hpp"
 UCodeLangStart
 
 class InterpreterCPPinterface;
@@ -51,7 +51,7 @@ private:
 	Vector<Instruction> _Instruction;
 	
 	
-	VectorMap<String, CPPCall> _NameToCppCall;
+	UnorderedMap<String, CPPCall> _NameToCppCall;
 };
 
 UCodeLangEnd

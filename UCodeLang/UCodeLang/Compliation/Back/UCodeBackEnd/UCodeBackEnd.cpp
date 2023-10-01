@@ -253,7 +253,7 @@ void UCodeBackEndObject::DoOptimizations()
 
 	if (_Optimizations.InlineFuncionCopys)
 	{
-		BinaryVectorMap<size_t, UCodeFunc*> FuncsHash;
+		UnorderedMap<size_t, UCodeFunc*> FuncsHash;
 		for (auto& Item : Funcs)
 		{
 			UCodeLangUnreachable();
@@ -509,10 +509,10 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		size_t Jumpto;
 	};
 	Vector<InsToUpdate_t> InsToUpdate;
-	VectorMap<size_t, UAddress> IRToUCodeInsPost;
-	VectorMap<size_t, UAddress> IRToUCodeInsPre;
+	UnorderedMap<size_t, UAddress> IRToUCodeInsPost;
+	UnorderedMap<size_t, UAddress> IRToUCodeInsPre;
 
-	BinaryVectorMap<IRidentifierID,Optional<RegistersManager>> Jumps;
+	UnorderedMap<IRidentifierID,Optional<RegistersManager>> Jumps;
 	for (size_t i = 0; i < IR->Instructions.size(); i++)
 	{
 		auto& I = IR->Instructions[i];

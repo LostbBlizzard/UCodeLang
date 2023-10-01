@@ -175,7 +175,7 @@ public:
 	}
 
 
-	template<typename T> T& GetOr(const T& Or) 
+	template<typename T> T GetOr(const T& Or) 
 	{
 		if (Is<T>())
 		{
@@ -184,7 +184,7 @@ public:
 		return Or;
 	}
 
-	template<typename T> const T& GetOr(const T& Or) const
+	template<typename T> const T GetOr(const T& Or) const
 	{
 		if (Is<T>())
 		{
@@ -203,6 +203,120 @@ public:
 	}
 private:
 	std::variant<Types...> _Base;
+};
+
+template<typename T,typename E>
+class Result
+{
+public:
+	Result(){}
+	~Result(){}
+
+	Result(const T& Value)
+		:_Base(Value){}
+
+	Result(T&& Value)
+		:_Base(std::move(Value)){}
+
+	Result(const E& Value)
+		:_Base(Value) {}
+
+	Result(E&& Value)
+		:_Base(std::move(Value)) {}
+
+	bool IsError() const
+	{
+		return _Base.Is<E>();
+	}
+	bool IsValue() const
+	{
+		return _Base.Is<T>();
+	}
+	E* IfError()
+	{
+		return _Base.Get_If<E>();
+	}
+	T* IfValue() 
+	{
+		return _Base.Get_If<T>();
+	}
+	
+	const E* IfError() const
+	{
+		return _Base.Get_If<E>();
+	}
+	const T* IfValue() const
+	{
+		return _Base.Get_If<T>();
+	}
+
+	const E& GetError() const
+	{
+		return _Base.Get_If<E>();
+	}
+	const T& GetValue() const
+	{
+		return _Base.Get_If<T>();
+	}
+	E& GetError()
+	{
+		return _Base.Get_If<E>();
+	}
+	T& GetValue() 
+	{
+		return _Base.Get_If<T>();
+	}
+
+	T ValueOr(const T& Or)
+	{
+		if (IsValue())
+		{
+			return GetValue();
+		}
+		return Or;
+	}
+	const T ValueOr(const T& Or) const
+	{
+		if (IsValue())
+		{
+			return GetValue();
+		}
+		return Or;
+	}
+	T ErrorOr(const T Or)
+	{
+		if (IsError())
+		{
+			return GetError();
+		}
+		return Or;
+	}
+	const T ErrorOr(const T& Or) const
+	{
+		if (IsError())
+		{
+			return GetError();
+		}
+		return Or;
+	}
+	Optional<T> AsOption()
+	{
+		if (IsValue())
+		{
+			return GetValue();
+		}
+		return {};
+	}
+	Optional<E> AsOptionError()
+	{
+		if (IsError())
+		{
+			return GetError();
+		}
+		return {};
+	}
+private:
+	Variant<T,E> _Base;
 };
 
 using RegisterID_t = UInt8;

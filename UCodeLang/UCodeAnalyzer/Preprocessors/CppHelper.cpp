@@ -735,7 +735,7 @@ void CppHelper::ParseCppToSybs(UCodeAnalyzer::String& FileText, UCodeAnalyzer::V
 	}
 }
 
-void CppHelper::DoOverLoadOnFunc(UCodeLang::VectorMap<UCodeAnalyzer::String, size_t>& Overloads, UCodeAnalyzer::CppHelper::SymbolData& Last, UCodeAnalyzer::CppHelper::FuncData* Val)
+void CppHelper::DoOverLoadOnFunc(UCodeLang::UnorderedMap<UCodeAnalyzer::String, size_t>& Overloads, UCodeAnalyzer::CppHelper::SymbolData& Last, UCodeAnalyzer::CppHelper::FuncData* Val)
 {
 	if (Overloads.HasValue(Last._Name))
 	{
@@ -908,7 +908,7 @@ void CppHelper::DoEnumType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnal
 void CppHelper::DoClassOrStruct(const String& Keywordlet, size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols, ParseCppState& State)
 {
 	ClassType _type;
-	UCodeLang::VectorMap<String, size_t> Overloads;
+	UCodeLang::UnorderedMap<String, size_t> Overloads;
 	{//pass the spaces
 		MovePassSpace(i, FileText);
 	}

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "AnyInterpreter.hpp"
-#include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
+#include "UCodeLang/LangCore/DataType/UnorderedMap.hpp"
 #include <chrono>
 UCodeLangStart
 
@@ -30,7 +30,7 @@ struct HotPathStats
 
 struct ProfilerStats
 {
-	BinaryVectorMap<UAddress, ProfilerFuncStats> _Funcs;
+	UnorderedMap<UAddress, ProfilerFuncStats> _Funcs;
 	Vector<HotPathStats> HotPaths;
 };
 

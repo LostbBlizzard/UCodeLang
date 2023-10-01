@@ -42,7 +42,7 @@ void X86_64UNativeBackEnd::Build(const IRBuilder* Input)
 		}
 		_OutLayer->_Code.reserve(MaxBuffersize);
 
-		BinaryVectorMap<IRidentifierID,size_t> Funcoffsets;
+		UnorderedMap<IRidentifierID,size_t> Funcoffsets;
 		for (auto& Item : Info.Funcs)
 		{
 			Funcoffsets.AddValue(Item.Func, _OutLayer->_Code.size());

@@ -2,7 +2,7 @@
 #include "UCodeLang/LangCore/ScopeHelper.hpp"
 #include "SymbolID.hpp"
 #include "../Front/UCodeFrontEndNameSpace.hpp"
-#include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
+#include "UCodeLang/LangCore/DataType/UnorderedMap.hpp"
 #include "UCodeLang/LangCore/ReflectionData.hpp"
 UCodeLangStart
 struct IRInstruction;
@@ -1010,11 +1010,11 @@ public:
 	//use a ptr for the Id;
 	Symbol& GetSymbol(SymbolID ID)
 	{
-		return *IDToSymbols.at(ID);
+		return *IDToSymbols.GetValue(ID);
 	}
 	const Symbol& GetSymbol(SymbolID ID) const
 	{
-		return *IDToSymbols.at(ID);
+		return *IDToSymbols.GetValue(ID);
 	}
 
 	void AddSymbolID(Symbol& Syb, SymbolID ID);
@@ -1022,6 +1022,6 @@ public:
 
 		
 private:
-	BinaryVectorMap<SymbolID,Symbol*> IDToSymbols;
+	UnorderedMap<SymbolID,Symbol*> IDToSymbols;
 };
 UCodeLangFrontEnd

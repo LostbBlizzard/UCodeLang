@@ -186,7 +186,7 @@ private:
 	UClib* _Output = nullptr;
 	CodeLayer::UCodeByteCode* _OutLayer = nullptr;
 
-	BinaryVectorMap< const IRBlock*, BlockData> IRToBlockData;
+	UnorderedMap< const IRBlock*, BlockData> IRToBlockData;
 
 
 	StaticMemoryManager _StaticMemory;

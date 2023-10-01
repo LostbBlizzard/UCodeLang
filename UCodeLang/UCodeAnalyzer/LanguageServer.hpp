@@ -126,14 +126,14 @@ public:
 	{
 		return _Files.at(file);
 	}
-	BinaryVectorMap<Fileidentifier, UCFile>& GetFiles()
+	UnorderedMap<Fileidentifier, UCFile>& GetFiles()
 	{
 		return _Files;
 	}
 
 	UCodeLang::Vector<UCodeLang::CompliationErrors::Error> ErrorList;
 private:
-	BinaryVectorMap<Fileidentifier, UCFile> _Files;
+	UnorderedMap<Fileidentifier, UCFile> _Files;
 
 	size_t OldErrorListCount = 0;
 	UCodeLang::CompliationSettings Settings;

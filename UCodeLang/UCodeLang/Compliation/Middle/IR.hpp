@@ -1,6 +1,6 @@
 #pragma once
 #include "UCodeLang/LangCore/LangTypes.hpp"
-#include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
+#include "UCodeLang/LangCore/DataType/UnorderedMap.hpp"
 #include "UCodeLang/LangCore/BitMaker.hpp"
 UCodeLangStart
 
@@ -607,7 +607,7 @@ struct IRDebugSybol
 };
 struct IRDebugSybInfo
 {
-	BinaryVectorMap< IRidentifierID, IRDebugSybol> Symbols;
+	UnorderedMap< IRidentifierID, IRDebugSybol> Symbols;
 };
 struct IRBlockDebugInfo
 {
@@ -1409,8 +1409,8 @@ public:
 	IRFunc _threaddeInit;
 	Vector<Unique_ptr<IRFunc>> Funcs;
 	Vector<Unique_ptr<IRSymbolData>> _Symbols;
-	BinaryVectorMap<IRidentifierID, IRidentifier> _Map;
-	VectorMap<String, IRidentifierID> ConstStaticStrings;
+	UnorderedMap<IRidentifierID, IRidentifier> _Map;
+	UnorderedMap<String, IRidentifierID> ConstStaticStrings;
 
 	IRDebugSybInfo _Debug;
 	
@@ -1458,7 +1458,7 @@ public:
 		String VKey = (String)Buffer;
 		if (ConstStaticStrings.HasValue(VKey))
 		{
-			return ConstStaticStrings.at(VKey);
+			return ConstStaticStrings.GetValue(VKey);
 		}
 		IRidentifierID identifier = ToID(".Const.CString:" + (String)Buffer);
 		auto V = NewStaticVarable(identifier, IRType(IRTypes::i8));
@@ -1510,7 +1510,7 @@ public:
 		String VKey = (String)Buffer;
 		if (ConstStaticStrings.HasValue(VKey))
 		{
-			return { ConstStaticStrings.at(VKey),0 };
+			return { ConstStaticStrings.GetValue(VKey),0 };
 		}
 		IRidentifierID identifier = ToID(".Const.SpanString:" + (String)Buffer);
 		auto V = NewStaticVarable(identifier, IRType(IRTypes::i8));
@@ -1592,7 +1592,7 @@ public:
 	IRidentifierID ToID(const IRidentifier& Value);
 	IRidentifier FromID(IRidentifierID Value) const
 	{
-		return _Map.at(Value);
+		return _Map.GetValue(Value);
 	}
 
 	IRSymbolData* GetSymbol(IRidentifierID Value)
@@ -1657,7 +1657,7 @@ public:
 
 	struct ToStringState
 	{
-		BinaryVectorMap<const IRInstruction*, String> PointerToName;
+		UnorderedMap<const IRInstruction*, String> PointerToName;
 		Vector<const IRInstruction*> TepPushedParameters;
 
 		size_t StrValue = 0;
@@ -1668,7 +1668,7 @@ public:
 			char r = 'A' + (char)StrValue;
 			StrValue++;
 			auto V = (String)String_view(&r, 1);
-			PointerToName[Ptr] = V;
+			PointerToName.AddValue(Ptr,V);
 			return V;
 		}
 	};
@@ -1682,7 +1682,7 @@ public:
 	bool ToString(const IRInstruction* I
 		, String& r
 		, IRBuilder::ToStringState& State
-		,BinaryVectorMap<IRidentifierID, IRidentifier>& Names
+		,UnorderedMap<IRidentifierID, IRidentifier>& Names
 		, const size_t& i
 		, const IRBlock* Block);
 		

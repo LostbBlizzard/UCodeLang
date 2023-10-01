@@ -53,8 +53,8 @@ private:
 	{
 		Variant<None, const IRInstruction*,AnyInt64> Type;
 	};
-	BinaryVectorMap<GReg, RegInfo> TemVarRegs;
-	BinaryVectorMap<const IRInstruction*, IRLoc> IRLocs;
+	UnorderedMap<GReg, RegInfo> TemVarRegs;
+	UnorderedMap<const IRInstruction*, IRLoc> IRLocs;
 	X86_64IR::Func* OutFunc=nullptr;
 	const IRFunc* OnFunc = nullptr;
 

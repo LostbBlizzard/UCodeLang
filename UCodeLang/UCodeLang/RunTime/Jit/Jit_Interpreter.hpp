@@ -4,7 +4,7 @@
 #include "UCodeLang/RunTime/Interpreters/Interpreter.hpp"
 #include "JitCompilers.hpp"
 #include "Jit_State.hpp"
-#include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
+#include "UCodeLang/LangCore/DataType/UnorderedMap.hpp"
 UCodeLangStart
 
 
@@ -252,7 +252,7 @@ private:
 	size_t Insoffset = 0;
 
 	
-	BinaryVectorMap<UAddress, JitFuncData> UFuncToCPPFunc;
+	UnorderedMap<UAddress, JitFuncData> UFuncToCPPFunc;
 	Vector<Byte> TepOutBuffer;
 	#endif
 

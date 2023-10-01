@@ -119,7 +119,7 @@ public:
 	static void UpdateCppLinks(String& CppLinkText, Vector<CppHelper::SymbolData>& Symbols);
 	static void OutputIRLineInfo(CppHelper::SymbolData& Item, Vector<FuncInfo>& V);
 	static void ParseCppToSybs(String& FileText, Vector<CppHelper::SymbolData>& Symbols);
-	static void DoOverLoadOnFunc(UCodeLang::VectorMap<String, size_t>& Overloads, CppHelper::SymbolData& Last, CppHelper::FuncData* Val);
+	static void DoOverLoadOnFunc(UCodeLang::UnorderedMap<String, size_t>& Overloads, CppHelper::SymbolData& Last, CppHelper::FuncData* Val);
 	static bool ParseULangfileAndUpdateCpp(const Path& SrcLang, const Path& CppOut);
 	//
 	struct ParseCppState
@@ -183,7 +183,7 @@ public:
 			}
 		}
 		String LastNameSpace;
-		UCodeLang::VectorMap<String, String> InternalNameSpaces;
+		UCodeLang::UnorderedMap<String, String> InternalNameSpaces;
 	};
 	static String ToString(CppToULangState& State, const SymbolData& Syb);
 	static String ToString(CppToULangState& State, const EnumType& Value, const SymbolData& Syb);
