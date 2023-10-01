@@ -877,7 +877,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 						auto& Generic = Info->_GenericData;
 						Vector<ParInfo> R;
 
-						BinaryVectorMap<SymbolID, TypeSymbol> typemap;
+						UnorderedMap<SymbolID, TypeSymbol> typemap;
 						if (auto Val = Symbol_GetSymbol(LookForType).value_unchecked())
 						{
 							const auto& Funcnode = Item->Get_NodeInfo<FuncNode>();

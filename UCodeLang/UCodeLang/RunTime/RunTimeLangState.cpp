@@ -355,8 +355,8 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 		UBytePtr NewStaticMem;
 		Vector<Byte> ReadOnlyStaticMem;
 
-		VectorMap<String,StaticObjectInfo> StaticObjectsInfo;
-		VectorMap<String,ThreadObjectInfo> ThreadObjectsInfo;
+		UnorderedMap<String,StaticObjectInfo> StaticObjectsInfo;
+		UnorderedMap<String,ThreadObjectInfo> ThreadObjectsInfo;
 
 		Vector<Instruction> NewIns;
 		ULangDebugInfo NewDebugInfo;

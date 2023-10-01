@@ -1,7 +1,7 @@
 #pragma once
 #include "x86_64Data.hpp"
 #include "X86_64Builder.hpp"
-#include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
+#include "UCodeLang/LangCore/DataType/UnorderedMap.hpp"
 UCodeLangStart
 
 //were register allcations,stack allcations,Instruction Selection Happens ect. 
@@ -771,7 +771,7 @@ struct X86_64IR
 		Vector<BuildFunc> Funcs;
 	};
 	Vector<Func> Funcs;
-	BinaryVectorMap<CallConventionID,CallConvention> CallingConventions;
+	UnorderedMap<CallConventionID,CallConvention> CallingConventions;
 	CallConventionID AddCallConvention(CallConvention&& Convention)
 	{
 		auto R = Next_NextCallID();

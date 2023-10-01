@@ -392,7 +392,7 @@ void SystematicAnalysis::FileDependency_AddDependencyToCurrentFile(const NeverNu
 	const NeverNullPtr<FileNode_t> file_t = NeverNullptr<FileNode_t>(file.value());
 	if (CurrentFile != file)
 	{
-		FileNodeData& Data = *_FilesData[CurrentFile_t];
+		FileNodeData& Data = *_FilesData.GetValue(CurrentFile_t);
 		
 		for (auto& Item : Data._Dependencys)
 		{
@@ -778,7 +778,7 @@ IRidentifierID SystematicAnalysis::IR_Build_ConvertToIRClassIR(const Symbol& Cla
 	auto ClassSybID = Class.ID;
 	if (_Symbol_SybToIRMap.HasValue(ClassSybID))
 	{
-		return _Symbol_SybToIRMap.at(ClassSybID);
+		return _Symbol_SybToIRMap.GetValue(ClassSybID);
 	}
 	const ClassInfo* clasinfo = Class.Get_Info < ClassInfo>();
 
@@ -796,7 +796,7 @@ IRidentifierID SystematicAnalysis::IR_Build_ConvertToIRClassIR(const Symbol& Cla
 		Out.Offset = Type_GetOffset(*clasinfo,&Item).value();
 	}
 
-	_Symbol_SybToIRMap[ClassSybID] = V;
+	_Symbol_SybToIRMap.AddValue(ClassSybID,V);
 	return V;
 }
 
@@ -805,7 +805,7 @@ IRidentifierID SystematicAnalysis::IR_Build_ConvertToStaticArray(const Symbol& C
 	auto ClassSybID = Class.ID;
 	if (_Symbol_SybToIRMap.HasValue(ClassSybID))
 	{
-		return _Symbol_SybToIRMap.at(ClassSybID);
+		return _Symbol_SybToIRMap.GetValue(ClassSybID);
 	}
 	const StaticArrayInfo* clasinfo = Class.Get_Info <StaticArrayInfo>();
 
@@ -814,7 +814,7 @@ IRidentifierID SystematicAnalysis::IR_Build_ConvertToStaticArray(const Symbol& C
 	auto IRStuct = _IR_Builder.NewStaticArray(V,IR_ConvertToIRType(clasinfo->Type),clasinfo->Count);
 
 
-	_Symbol_SybToIRMap[ClassSybID] = V;
+	_Symbol_SybToIRMap.AddValue(ClassSybID,V);
 	return V;
 }
 
@@ -827,7 +827,7 @@ IRidentifierID SystematicAnalysis::IR_Build_ConveToIRVariantEnum(const Symbol& E
 		auto ClassSybID = Enum.ID;
 		if (_Symbol_SybToIRMap.HasValue(ClassSybID))
 		{
-			return _Symbol_SybToIRMap.at(ClassSybID);
+			return _Symbol_SybToIRMap.GetValue(ClassSybID);
 		}
 
 
@@ -881,7 +881,7 @@ IRidentifierID SystematicAnalysis::IR_Build_ConveToIRVariantEnum(const Symbol& E
 		}
 
 		//
-		_Symbol_SybToIRMap[ClassSybID] = UnionID;
+		_Symbol_SybToIRMap.AddValue(ClassSybID,UnionID);
 		return V;
 	}
 	return 0;
@@ -952,7 +952,7 @@ IRType SystematicAnalysis::IR_ConvertToIRType(const TypeSymbol& Value)
 		{
 			if (_Symbol_SybToIRMap.HasValue(syb.ID))
 			{
-				r = IRType(_Symbol_SybToIRMap.at(syb.ID));
+				r = IRType(_Symbol_SybToIRMap.GetValue(syb.ID));
 			}
 			else
 			{
@@ -970,7 +970,7 @@ IRType SystematicAnalysis::IR_ConvertToIRType(const TypeSymbol& Value)
 				}
 				tep->Ret = IR_ConvertToIRType(V->Ret);
 
-				_Symbol_SybToIRMap[syb.ID] = IRid;
+				_Symbol_SybToIRMap.AddValue(syb.ID,IRid);
 				return r;
 			}
 		}
@@ -990,7 +990,7 @@ IRType SystematicAnalysis::IR_ConvertToIRType(const TypeSymbol& Value)
 		{
 			if (_Symbol_SybToIRMap.HasValue(syb.ID))
 			{
-				r = IRType(_Symbol_SybToIRMap.at(syb.ID));
+				r = IRType(_Symbol_SybToIRMap.GetValue(syb.ID));
 			}
 			else
 			{
@@ -1011,7 +1011,7 @@ IRType SystematicAnalysis::IR_ConvertToIRType(const TypeSymbol& Value)
 				}
 
 				r = IRType(IRid);
-				_Symbol_SybToIRMap[syb.ID] = IRid;
+				_Symbol_SybToIRMap.AddValue(syb.ID,IRid);
 			}
 		}
 		else
@@ -1060,7 +1060,7 @@ SymbolID SystematicAnalysis::Symbol_GetSymbolID(const void* Item)
 	{
 		_SybIdMap.AddValue(Scope, {});
 	}
-	BinaryVectorMap<const void*, SymbolID>& ID = _SybIdMap.at(Scope);
+	UnorderedMap<const void*, SymbolID>& ID = _SybIdMap.GetValue(Scope);
 
 	if (!ID.HasValue(Item))
 	{
@@ -1070,7 +1070,7 @@ SymbolID SystematicAnalysis::Symbol_GetSymbolID(const void* Item)
 	}
 	else
 	{
-		return ID.at(Item);
+		return ID.GetValue(Item);
 	}
 }
 void SystematicAnalysis::OnStatement(const Node& node2)
@@ -1571,7 +1571,7 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 
 					
 					_VarableMemberDatas.AddValue(Symbol_GetSymbolID(&Item), std::move(Data));
-					ItemTokenString = _VarableMemberDatas.at(Symbol_GetSymbolID(&Item)).MemberString;
+					ItemTokenString = _VarableMemberDatas.GetValue(Symbol_GetSymbolID(&Item)).MemberString;
 				}
 				else
 				{
@@ -1593,7 +1593,7 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 		}
 		else if (_PassType == PassType::BuidCode)
 		{
-			auto& Data = _VarableMemberDatas.at(Symbol_GetSymbolID(&Item));
+			auto& Data = _VarableMemberDatas.GetValue(Symbol_GetSymbolID(&Item));
 			ItemTokenString = Data.MemberString;
 		}
 
@@ -2567,7 +2567,7 @@ void SystematicAnalysis::OnCompareTypesNode(const CMPTypesNode& node)
 	}
 	if (_PassType == PassType::BuidCode)
 	{
-		_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad(_ValidNodes[Symbol_GetSymbolID(node)]);
+		_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad(_ValidNodes.GetValue(Symbol_GetSymbolID(node)));
 	}
 
 	_LastExpressionType.SetType(TypesEnum::Bool);

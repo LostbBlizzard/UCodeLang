@@ -123,7 +123,7 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 		if (Optimization_RemoveFuncsWithSameBody)
 		{
 			BitMaker bits;
-			BinaryVectorMap<size_t,const IRFunc*> Hashs;
+			UnorderedMap<size_t,const IRFunc*> Hashs;
 			for (auto& Func : Input->Funcs)
 			{
 				auto& FuncData = Funcs[Func.get()];

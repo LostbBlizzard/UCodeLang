@@ -1,6 +1,6 @@
 #include "UAssembly.hpp"
 #include "CompilerTypes.hpp"
-#include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
+#include "UCodeLang/LangCore/DataType/UnorderedMap.hpp"
 #include "UCodeLang/Compliation/Helpers/NameDecoratior.hpp"
 
 #include <fstream>
@@ -13,7 +13,7 @@ UAssemblyStart
 struct OutputIRLineState
 {
 	IRBuilder::ToStringState State;
-	UCodeLang::BinaryVectorMap<UCodeLang::IRidentifierID, String> Names;
+	UCodeLang::UnorderedMap<UCodeLang::IRidentifierID, String> Names;
 };
 void OutputIRLineInfo(IRBuilder* Builder,IRFunc* Func, const UDebugSetLineNumber* Val, OutputIRLineState& State, String& r)
 {
@@ -99,9 +99,9 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 {
 	auto& InsMapData = Get_InsToInsMapValue();
     String r;
-	BinaryVectorMap<UAddress, String> AddressToName;
+	UnorderedMap<UAddress, String> AddressToName;
 
-	VectorMap<String, Vector<String>> OpenedSourceFilesLines;
+	UnorderedMap<String, Vector<String>> OpenedSourceFilesLines;
 	String OnFile;
 
 	auto UCodeLayer = Lib->GetLayer(UCode_CodeLayer_UCodeVM_Name);
@@ -277,7 +277,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 
 		auto& Insts = Info.Get_Instructions();
 		String OnFunc; 
-		BinaryVectorMap<IRidentifierID, OutputIRLineState> IRStringStates;
+		UnorderedMap<IRidentifierID, OutputIRLineState> IRStringStates;
 		BytesView staticbytesview = BytesView::Make(Lib->_StaticBytes.data(), Lib->_StaticBytes.size());
 		for (size_t i = 0; i < Insts.size(); i++)
 		{
@@ -504,7 +504,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 			{
 				r += "\n[Native-Instructions:" + Item->_Name + "]-- \n";
 				
-				BinaryVectorMap<UAddress, String> AddressToName;
+				UnorderedMap<UAddress, String> AddressToName;
 				for (const auto& Item2 : Val->_NameToPtr)
 				{
 					AddressToName[Item2._Value] = Item2._Key;
@@ -546,7 +546,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
     return r;
 }
 
-size_t UAssembly::ParseInstruction( size_t I,const Span<Instruction> Data, String& r, const BytesView staticbytesview, BinaryVectorMap<UAddress, String>& AddressToName
+size_t UAssembly::ParseInstruction( size_t I,const Span<Instruction> Data, String& r, const BytesView staticbytesview, UnorderedMap<UAddress, String>& AddressToName
 , bool CombineIns)
 {
 	auto& InsMapData = Get_InsToInsMapValue();
@@ -721,7 +721,7 @@ size_t UAssembly::ParseInstruction( size_t I,const Span<Instruction> Data, Strin
 	}
 }
 
-void UAssembly::ToStringInstruction(const Instruction& Item, String& r, const BytesView staticbytesview, BinaryVectorMap<UAddress,String>& AddressToName)
+void UAssembly::ToStringInstruction(const Instruction& Item, String& r, const BytesView staticbytesview, UnorderedMap<UAddress,String>& AddressToName)
 {
 	auto& InsMapData = Get_InsToInsMapValue();
 	if (InsMapData.count(Item.OpCode))
@@ -981,7 +981,7 @@ String UAssembly::ToString(const ClassMethod::Par& Value, const ClassAssembly& A
 	R += ToString(Value.Type, Assembly);
 	return R;
 }
-void UAssembly::OpValueToString(OpCodeType OpType,const void* In,const BinaryVectorMap<UAddress, String>& AddressToName,const BytesView StaticVarablesData, String& out)
+void UAssembly::OpValueToString(OpCodeType OpType,const void* In,const UnorderedMap<UAddress, String>& AddressToName,const BytesView StaticVarablesData, String& out)
 {
 
 	switch (OpType)

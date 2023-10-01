@@ -352,7 +352,7 @@ String C89Backend::ToString()
 
 void C89Backend::AddSybToString(UCodeLang::String& r)
 {
-	BinaryVectorMap<IRidentifierID, bool> Vals;
+	UnorderedMap<IRidentifierID, bool> Vals;
 	Vals.reserve(_Input->_Symbols.size());
 
 	for (auto& Item : _Input->_Symbols)
@@ -672,7 +672,7 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 
 			
 
-			BinaryVectorMap<size_t, String> Names;
+			UnorderedMap<size_t, String> Names;
 			for (size_t i = 0; i < Block->Instructions.size(); i++)
 			{
 				

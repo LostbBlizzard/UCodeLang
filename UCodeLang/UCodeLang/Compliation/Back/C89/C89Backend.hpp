@@ -1,6 +1,6 @@
 #pragma once
 #include "../BackEndInterface.hpp"
-#include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
+#include "UCodeLang/LangCore/DataType/UnorderedMap.hpp"
 UCodeLangStart
 class C89Backend : BackEndObject
 {
@@ -28,7 +28,7 @@ private:
 	const IRFunc* _Func = nullptr;
 	struct ToStringState
 	{
-		BinaryVectorMap<IRInstruction*, String> PointerToName;
+		UnorderedMap<IRInstruction*, String> PointerToName;
 		Vector<IRInstruction*> TepPushedParameters;
 
 		
