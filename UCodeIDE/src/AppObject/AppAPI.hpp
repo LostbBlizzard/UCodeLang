@@ -65,6 +65,11 @@ namespace API
 		{
 			return 	ImguiHelper::UCodeObjectField(ToCChar(Name),Object, Info,{});
 		}
+
+		UCodeLangExport static void Text(StringView Name)
+		{
+			return  ImGui::Text(ToCChar(Name));
+		}
 	};
 }
 UCodeIDEEnd

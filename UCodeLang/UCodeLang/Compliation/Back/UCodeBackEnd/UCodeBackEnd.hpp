@@ -238,6 +238,8 @@ private:
 
 	void OnBlockBuildCode(const IRBlock* IR);
 
+	void GiveFuncReturnName(const IRType& ReturnType, const IRInstruction* Item);
+
 
 	size_t GetSize(const IRInstruction* Ins)
 	{
