@@ -118,6 +118,11 @@ public:
 		UCodeLangAssert(IsinFunc());
 		return StepedInterpreter->_CPU.ProgramCounter;
 	}
+	UCodeLangAPIExport UAddress GetStackOffset()
+	{
+		UCodeLangAssert(IsinFunc());
+		return StepedInterpreter->_CPU.Stack.StackOffSet;
+	}
 
 	UCodeLangAPIExport UAddress GetStartofFunc(UAddress Ins);
 	

@@ -1,6 +1,8 @@
 #include "AppObject.hpp"
 #include "imgui/imgui.h"
 #include "ImGuiHelpers/ImguiHelper.hpp"
+#include "AppAPILink.hpp"
+
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "UCodeLang/Compliation/UAssembly/UAssembly.hpp"
 
@@ -1638,6 +1640,16 @@ void AppObject::OnDraw()
 
     }  ImGui::End();
 
+    if (ImGui::Begin("VM Draw Window"))
+    {
+        if (windowdata.CallFrame) {
+
+
+            _AnyInterpreter.Call("OnDraw");
+
+        }
+    }
+    ImGui::End();
 
     if (ImGui::Begin("Files"))
     {
@@ -2428,6 +2440,8 @@ void AppObject::UpdateInsData(UCodeVMWindow& windowdata)
 void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
 {
 
+   
+
     ImGui::Separator();
 
     bool IsinFileMode = false;
@@ -2440,6 +2454,9 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
     ImGui::Button("Reset", Buttonsize);
 
     ImguiHelper::BoolEnumField("Call Static/Thread Init On Reload", windowdata.CallStaticVarOnReload);
+
+    ImguiHelper::BoolEnumField("Call Frame", windowdata.CallFrame);
+
 
     ImGui::BeginDisabled(!InFuncion);
 
@@ -2500,9 +2517,17 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
         }
     }
 
-    if (InFuncion) {
+    if (InFuncion) 
+    {
+        String V = "StackPtrOffset:";
+        V += std::to_string(Debuger.GetStackOffset());
+        ImGui::Text(V.c_str());
+
         ImGui::Text("StackFrames");
+
     }
+
+    
 
     if (!InFuncion) 
     {
@@ -2925,6 +2950,8 @@ void AppObject::FullReloadRunTime()
     _RuntimeLib.UnLoad();
     _RuntimeLib.Init(&_CompiledLib);
 
+    LinkAppAPICallsTo(_RuntimeLib);
+
     _RunTimeState.ClearRunTimeState();
     _RunTimeState.AddLib(&_RuntimeLib);
     _RunTimeState.LinkLibs();
@@ -2962,6 +2989,7 @@ void AppObject::HotReloadRunTime()
     }
     UCodeLang::RunTimeLib teplib;
     teplib.Init(&_CompiledLib);
+    LinkAppAPICallsTo(teplib);
 
     UCodeLang::RunTimeLangState::HotReloadLib reloadlib;
     reloadlib.LibToUpdate = &_RuntimeLib;

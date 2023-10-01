@@ -586,7 +586,7 @@ public:
 		if (IsBigerRegister || ParValue == RegisterID::EndParameterRegister)
 		{
 			ParStackOffset += BufferSize;
-			auto r = This._Ptr->_CPU.Stack.GetTopOfStackWithoffset(ParStackOffset);
+			auto r = This._Ptr->_CPU.Stack.GetTopOfStackWithoffsetSub(ParStackOffset + sizeof(UAddress));
 			memcpy(Pointer,r,BufferSize);
 		}
 		else

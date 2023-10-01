@@ -118,6 +118,11 @@ bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFi
 	
 	{
 		String R;
+		R += "use ULang;";
+		R += '\n';
+		R += '\n';
+		R += '\n';
+
 		CppToULangState state;
 		for (auto& Item : Symbols)
 		{
@@ -1448,7 +1453,7 @@ String CppHelper::ToString(CppToULangState& State, const FuncData& Value, const 
 	}
 	R += "|" + Syb._Name + "[";
 	
-	if (Value.MemberClassName.has_value())
+	if (Value.MemberClassName.has_value() && Value.IsStatic == false)
 	{
 		R += "this&";
 		if (Value.Pars.size())
@@ -1482,6 +1487,14 @@ String CppHelper::ToString(CppToULangState& State, const FuncData& Value, const 
 		R += "=> " + (String)"Internal::" + CppFuncName;
 
 		R += "(";
+		if (Value.MemberClassName.has_value() && Value.IsStatic == false)
+		{
+			R += "this";
+			if (Value.Pars.size())
+			{
+				R += ",";
+			}
+		}
 		for (auto& Item : Value.Pars)
 		{
 			R += Item.Name;
@@ -1498,9 +1511,10 @@ String CppHelper::ToString(CppToULangState& State, const FuncData& Value, const 
 		State.AddScope(AddStr);
 		AddStr += "extern dynamic |" + CppFuncName;
 		AddStr += "[";
-		if (Value.MemberClassName.has_value())
+		if (Value.MemberClassName.has_value() && Value.IsStatic == false)
 		{
-			AddStr += "this&";
+			AddStr += Value.MemberClassName.value();
+			AddStr += "&";
 			if (Value.Pars.size())
 			{
 				AddStr += ',';

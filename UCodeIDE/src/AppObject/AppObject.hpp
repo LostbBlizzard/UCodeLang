@@ -261,6 +261,7 @@ private:
 		bool ShowHeapMemory = false;
 
 		bool CallStaticVarOnReload = true;
+		bool CallFrame = false;
 		struct InsData
 		{
 			UCodeLang::UAddress InsAddress = UCodeLang::NullAddress;

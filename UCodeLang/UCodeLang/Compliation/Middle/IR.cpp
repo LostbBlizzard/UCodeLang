@@ -1444,7 +1444,9 @@ void IRBuilder::ToString(ToStringState& State, IRFunc* Item, String& r)
 	r += "[";
 	for (auto& Par : Item->Pars)
 	{
-		r += ToString(Par.type) + " " + FromID(Par.identifier);
+		r += ToString(Par.type) 
+			+ " " 
+			+ FromID(Par.identifier);
 		if (&Par != &Item->Pars.back())
 		{
 			r += ",";

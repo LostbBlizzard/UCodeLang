@@ -95,6 +95,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 		{
 			auto Ptr = new Generic_AliasInfo();
 			Syb.Info.reset(Ptr);
+			Ptr->Conext = Save_SymbolContextRemoveOneScopeName();
 			Generic_InitGenericalias(node.Generic, false, Ptr->_GenericData);
 		}
 	}
