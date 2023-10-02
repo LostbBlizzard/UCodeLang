@@ -1,5 +1,2 @@
 #pragma once
-class ELF_File
-{
-};
-
+//#include "elfio/elfio.hpp"

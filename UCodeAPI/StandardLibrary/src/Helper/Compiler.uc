@@ -1,23 +1,10 @@
-%ULang:
- 
- $CompilationMode:
-  Debug,
-  Release,
-  Publish,
 
- $PlatformType:
-  UCodeVM,
-  Windows,
-  Linux,
-  Android,
-  Apple,
-  Web,
- 
- 
+$Compiler:
+ eval |Is64Bit[] => true;
+ eval |Is32Bit[] => true;
 
- $Compiler:
-  eval CompilationMode = CompilationMode::Debug;
-  eval PlatformType = PlatformType::UCodeVM;
-  
+ eval |IsBackendC89[] => true;
+ eval |IsBackendUCodeVM[] => true;
+ eval |IsBackendWasm[] => true;
 
-  eval bool IsDebugBuild = true;
+ eval |IsBackendVM[] => true;

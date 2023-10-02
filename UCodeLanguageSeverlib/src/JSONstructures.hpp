@@ -4,7 +4,7 @@
 #include "UCodeAnalyzer/Typedef.hpp"
 #include "nlohmann/json.hpp"
 #include <variant>
-LanguageSeverStart
+UCodeLanguageSeverStart
 
 namespace UA = UCodeAnalyzer;
 
@@ -955,5 +955,5 @@ struct PublishDiagnosticsParams {
 };
 
 
-LanguageSeverEnd
+UCodeLanguageSeverEnd
 

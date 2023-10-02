@@ -10,6 +10,9 @@
 #include <array>
 #include <memory>
 #include <variant>
+
+#include "DataType/NeverNullPtr.hpp"
+#include "DataType/Defer.hpp"
 UCodeLangStart
 
 
@@ -74,6 +77,12 @@ using PathChar = Path::value_type;
 using PathView = std::basic_string_view<PathChar>;
 using PathStr = Path::string_type;
 
+
+using ULangPathChar = char;
+using ULangPathView = std::basic_string_view<ULangPathChar>;
+using ULangPathStr = std::basic_string<ULangPathChar>;
+
+
 template<typename T> using Unique_ptr = std::unique_ptr<T>;
 template<typename T> using Unique_Array = std::unique_ptr<T[]>;
 
@@ -98,9 +107,23 @@ public:
 
 	template<typename T>Variant(T&& Value) : _Base(std::move(Value)) {}
 
+	Variant(const ThisType& Value) noexcept :_Base(Value._Base) {}
+	Variant(ThisType&& Value) noexcept :_Base(std::move(Value._Base)) {}
+
 	Variant()
 	{
 
+	}
+
+	ThisType& operator=(const ThisType& Value) noexcept
+	{
+		_Base = Value._Base;
+		return *this;
+	}
+	ThisType& operator=(ThisType&& Value) noexcept
+	{
+		_Base = std::move(Value._Base);
+		return *this;
 	}
 
 	template<typename T> ThisType& operator=(const T& Value)
@@ -152,7 +175,7 @@ public:
 	}
 
 
-	template<typename T> T& GetOr(const T& Or) 
+	template<typename T> T GetOr(const T& Or) 
 	{
 		if (Is<T>())
 		{
@@ -161,7 +184,7 @@ public:
 		return Or;
 	}
 
-	template<typename T> const T& GetOr(const T& Or) const
+	template<typename T> const T GetOr(const T& Or) const
 	{
 		if (Is<T>())
 		{
@@ -182,6 +205,120 @@ private:
 	std::variant<Types...> _Base;
 };
 
+template<typename T,typename E>
+class Result
+{
+public:
+	Result(){}
+	~Result(){}
+
+	Result(const T& Value)
+		:_Base(Value){}
+
+	Result(T&& Value)
+		:_Base(std::move(Value)){}
+
+	Result(const E& Value)
+		:_Base(Value) {}
+
+	Result(E&& Value)
+		:_Base(std::move(Value)) {}
+
+	bool IsError() const
+	{
+		return _Base.template  Is<E>();
+	}
+	bool IsValue() const
+	{
+		return _Base.template Is<T>();
+	}
+	E* IfError()
+	{
+		return _Base.template Get_If<E>();
+	}
+	T* IfValue() 
+	{
+		return _Base.template Get_If<T>();
+	}
+	
+	const E* IfError() const
+	{
+		return _Base.template Get_If<E>();
+	}
+	const T* IfValue() const
+	{
+		return _Base.template Get_If<T>();
+	}
+
+	const E& GetError() const
+	{
+		return _Base.template Get<E>();
+	}
+	const T& GetValue() const
+	{
+		return _Base.template Get<T>();
+	}
+	E& GetError()
+	{
+		return _Base.template Get<E>();
+	}
+	T& GetValue() 
+	{
+		return _Base.template Get<T>();
+	}
+
+	T ValueOr(const T& Or)
+	{
+		if (IsValue())
+		{
+			return GetValue();
+		}
+		return Or;
+	}
+	const T ValueOr(const T& Or) const
+	{
+		if (IsValue())
+		{
+			return GetValue();
+		}
+		return Or;
+	}
+	T ErrorOr(const T Or)
+	{
+		if (IsError())
+		{
+			return GetError();
+		}
+		return Or;
+	}
+	const T ErrorOr(const T& Or) const
+	{
+		if (IsError())
+		{
+			return GetError();
+		}
+		return Or;
+	}
+	Optional<T> AsOption()
+	{
+		if (IsValue())
+		{
+			return GetValue();
+		}
+		return {};
+	}
+	Optional<E> AsOptionError()
+	{
+		if (IsError())
+		{
+			return GetError();
+		}
+		return {};
+	}
+private:
+	Variant<T,E> _Base;
+};
+
 using RegisterID_t = UInt8;
 enum class RegisterID : RegisterID_t
 {
@@ -194,16 +331,24 @@ enum class RegisterID : RegisterID_t
 
 	ThisRegister = (RegisterID_t)RegisterID::D,
 	InPutRegister = (RegisterID_t)RegisterID::E,
-	OuPutRegister = (RegisterID_t)RegisterID::F,
+	OutPutRegister = (RegisterID_t)RegisterID::F,
 
-	MathOuPutRegister = OuPutRegister,
-	BoolRegister = OuPutRegister,
-	BitwiseRegister = OuPutRegister,
+	MathOutPutRegister = OutPutRegister,
+	BoolRegister = OutPutRegister,
+	BitwiseRegister = OutPutRegister,
+
+	AwaitOutRegister = OutPutRegister,
 
 	StartParameterRegister = (RegisterID_t)RegisterID::D,//the range the runtime will pass funcion Parameters into Registers
 	EndParameterRegister = (RegisterID_t)RegisterID::F + 1,
 
+	Parameter1_Register = (RegisterID_t)RegisterID::StartParameterRegister,
+	Parameter2_Register = (RegisterID_t)RegisterID::StartParameterRegister + 1,
+	Parameter3_Register = (RegisterID_t)RegisterID::StartParameterRegister + 2,
 
+
+	//were the Interpreter sets the Address before a jump or call
+	LinkRegister = A,
 };
 
 struct AnyInt64
@@ -311,14 +456,17 @@ public:
 	inline static const char* Lib = "ulib";
 	inline static const char* Dll = "udll";
 	inline static const char* Object = "uo";
-
 	inline static const char* Asm = "ua";
-	inline static const char* AsmWithDot = ".ua";
+	inline static const char* IR = "uir";
+	inline static const char* IRText = ".uirasm";
 
 	inline static const char* SourceFileWithDot = ".uc";
 	inline static const char* LibWithDot = ".ulib";
 	inline static const char* DllWithDot = ".udll";
 	inline static const char* ObjectWithDot = ".uo";
+	inline static const char* AsmWithDot = ".ua";
+	inline static const char* IRWithDot = ".uir";
+	inline static const char* IRTextWithDot = ".uirasm";
 };
 
 template<typename T>

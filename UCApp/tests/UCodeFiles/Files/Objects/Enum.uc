@@ -1,4 +1,4 @@
-enum Item[int]:
+$Item[int] enum :
  Red = 0,
  Green,
  Blue,

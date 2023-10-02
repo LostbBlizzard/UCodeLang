@@ -2,7 +2,7 @@
 
 
 UCodeLangFrontStart
-size_t SymbolTable::GetUseingIndex() { return Useings.size()  ? Useings.size() - 1 : 0; }
+size_t SymbolTable::GetUseingIndex() { return Useings.size(); }
 void SymbolTable::RemovePopUseing(size_t Index)
 {
 	size_t toremove =Useings.size() - Index;

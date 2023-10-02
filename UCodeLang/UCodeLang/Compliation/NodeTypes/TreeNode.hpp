@@ -1,6 +1,7 @@
 #pragma once
 #include "../../LangCore.hpp"
 #include "../Front/FrontEndObject.hpp"
+#include "UCodeLang/LangCore/UClib.hpp"
 UCodeLangStart
 
 enum class NodeType :UInt8
@@ -80,6 +81,12 @@ enum class NodeType :UInt8
 	ImportStatement,
 	AwaitExpression,
 	AwaitStatement,
+	YieldExpression,
+	YieldStatement,
+	UnsafeExpression,
+	UnsafeStatementsNode,
+	DeferStatementNode,
+	UnaryExpressionNode
 };
 
 
@@ -118,7 +125,7 @@ using TryGetNode = TryGetNode_<Node>;
 
 //ALL nodes must have this as there first member. 
 #define AddforNode(Type) \
-static constexpr NodeType Node_t = NodeType::##Type;\
+static constexpr NodeType Node_t = NodeType:: Type;\
 Node* As(){return (Node*)this;}\
 const Node* As() const {return (const Node*)this;}\
 static Type* Gen(){return new Type();} \
@@ -127,22 +134,12 @@ static UCodeLangForceinline const Node* As(const Type* Value) {return (const Nod
 \
 static UCodeLangForceinline Type* As(Node* Value) \
 { \
-if (UCodeLangDebug){ \
-if (Value->Get_Type() != Node_t) \
-{ \
-	UCodeLangThrowException("invalid cast"); \
-} \
-} \
+UCodeLangAssert(Value->Get_Type() == Node_t);\
 return (Type*)Value; \
 } \
 static UCodeLangForceinline const Type* As(const Node* Value) \
 { \
-if (UCodeLangDebug) { \
-if (Value->Get_Type() != Node_t) \
-{ \
-	UCodeLangThrowException("invalid cast"); \
-} \
-} \
+UCodeLangAssert(Value->Get_Type() == Node_t); \
 return (const Type*)Value; \
 } \
 
@@ -170,9 +167,12 @@ struct FileNode : FileNode_t,Node
 
 	Vector<Token> Tokens;
 	Vector<Unique_ptr<Token>> TemporaryTokens;//int?,int[],int[10],int[:] etc.
+	Vector<Unique_ptr<String>> TemporaryStrings;
 	void Reset()
 	{
 		_Nodes.clear();
+		TemporaryTokens.clear();
+		TemporaryStrings.clear();
 	}
 };
 

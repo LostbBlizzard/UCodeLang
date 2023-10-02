@@ -1,5 +1,13 @@
 #pragma once
+
+#ifdef __cplusplus
 #include "UCodeLangNameSpace.hpp"
+#endif
+
+
+#define UCodeLangMajorVersion 0
+#define UCodeLangMinorVersion 2
+#define UCodeLangPatchVersion 3
 
 #if defined(_MSC_VER)
 #define UCodeLangMSVC 1
@@ -13,24 +21,20 @@
 #define UCodeLangGNUC 0
 #endif
 
-#if UCodeLangGNUC
-#if __x86_64__ || __ppc64__
-#define UCodeLang_64BitSytem 1
+#if defined(__clang__)
+#define UCodeLangClang 1
 #else
-#define UCodeLang_64BitSytem 0
+#define UCodeLangClang 0
 #endif
 
-#else
 
-#if _WIN64
-#define UCodeLang_64BitSytem 1
+#if defined(__EMSCRIPTEN__)
+#define UCodeLangEmscripten 1
 #else
-#define UCodeLang_64BitSytem 0
+#define UCodeLangEmscripten 0
 #endif
 
-#endif
 
-#define UCodeLang_32BitSytem !UCodeLang_64BitSytem
 
 #if _WIN64 || _WIN32
 #define UCodeLang_Platform_Windows 1
@@ -49,7 +53,52 @@
 #define UCodeLang_Platform_MacOS 1
 #else
 #define UCodeLang_Platform_MacOS 0
-#endif // linux 
+#endif // MacOs
+
+
+#if __APPLE__ 
+#include "TargetConditionals.h"
+
+#if TARGET_OS_IPHONE
+#define UCodeLang_Platform_IPHONE 1
+#else 
+#define UCodeLang_Platform_IPHONE 0
+#endif 
+
+#else
+#define UCodeLang_Platform_IPHONE 0
+#endif // MacOs
+
+#if __ANDROID__
+#define UCodeLang_Platform_ANDROID 1
+#else
+#define UCodeLang_Platform_ANDROID 0
+#endif // ANDROID
+
+#if  defined(__wasm32__) || defined(__wasm64__)
+#define UCodeLang_Platform_Wasm 1
+#else
+#define UCodeLang_Platform_Wasm 0
+#endif // Wasm 
+
+#if defined(__wasm32__)
+#define UCodeLang_Platform_Wasm32 1
+#else
+#define UCodeLang_Platform_Wasm32 0
+#endif // wasm32
+
+#if defined(__wasm64__)
+#define UCodeLang_Platform_Wasm64 1
+#else
+#define UCodeLang_Platform_Wasm64 0
+#endif // wasm64
+
+
+#if defined(__unix__) || (__APPLE__ && __MACH__)
+#define UCodeLang_Platform_Posix 1
+#else
+#define UCodeLang_Platform_Posix 0
+#endif // MacOs
 
 
 #ifndef UCodeLangDebug
@@ -59,22 +108,84 @@
 #define UCodeLangDebug 0
 #endif // DEBUG
 
+
+#endif
+
+#if UCodeLang_Platform_Windows 
+#define UCodeLang_64BitSytem _WIN64
+#elif __wasm64__
+#define UCodeLang_64BitSytem 1
+#else 
+
+#if __x86_64__ || __ppc64__
+#define UCodeLang_64BitSytem 1
+#else
+#define UCodeLang_64BitSytem 0
+#endif
+
+#endif
+
+
+
+#define UCodeLang_32BitSytem !UCodeLang_64BitSytem
+
+#ifndef UCodeLangExperimental
+#define UCodeLangExperimental 0
 #endif
 
 #if UCodeLangDebug
 #define UCodeLangForceinline inline
 #else 
+
+#if UCodeLangMSVC
 #define UCodeLangForceinline __forceinline 
+#elif UCodeLangGNUC
+#define UCodeLangForceinline __attribute__((always_inline))
+#else
+#define UCodeLangForceinline inline
+#endif
+
 #endif // DEBUG
+
+
+#if UCodeLangMSVC
+#define UCodeLangNoDiscard [[nodiscard]]
+#elif UCodeLangGNUC
+#define UCodeLangNoDiscard __attribute__((__warn_unused_result__))
+#else
+#define UCodeLangNoDiscard [[nodiscard]]
+#endif
+
 
 #define UCodeLangConstexprForceinline constexpr UCodeLangForceinline
 
 
 #define UCodeLangHasMultipleThreads __STDCPP_THREADS__
 
+#if  defined(__x86_64__) || defined(_M_X64)
+#define UCodeLang_CPUIs_x86_64 1
+#else
+#define UCodeLang_CPUIs_x86_64 0
+#endif
 
-#define UCodeLang_CPUIs_x86_64 defined(__x86_64__) || defined(_M_X64)
-#define UCodeLang_CPUIs_x86 defined(i386) || defined(__i386__) || defined(__i386) || defined(_M_IX86)
+#if defined(i386) || defined(__i386__) || defined(__i386) || defined(_M_IX86)
+#define UCodeLang_CPUIs_x86 1
+#else
+#define UCodeLang_CPUIs_x86 0
+#endif
+
+#if defined(__arm__)
+#define UCodeLang_CPUIs_Arm 1
+#else
+#define UCodeLang_CPUIs_Arm 0
+#endif
+
+#if defined(__aarch64__)
+#define UCodeLang_CPUIs_Arm64 1
+#else
+#define UCodeLang_CPUIs_Arm64 0
+#endif
+
 
 #if defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN || \
     defined(__BIG_ENDIAN__) || \
@@ -175,10 +286,19 @@
 #endif
 
 
+#if UCodeLangMSVC 
+#define UCodeLangAPI __cdecl 
+#else
+#define UCodeLangAPI 
+#endif
+
+//Use this To Export Class,Enum,Funcions to .uc 
+//using UCodeAnalyzer/Preprocessors/CppHelper ParseCppfileAndOutULang
+
 #define UCodeLangExportSymbol(Namespace)
 
 
-//Use only in Classes
+//Use only in side of Classes
 #define UCodeLangExport
 
 #define UCodeLangImportSymbol(SymbolToImoport)
@@ -188,9 +308,14 @@
 //make sure you update it
 #define UCodeLangOutPartype(Type) Type*
 
+//Adds the text to the .uc
+#define UCodeLangEmbed(Txt) 
+
+#define UCodeLangExportTrait struct
 
 //Excludes enum fields
 #define UCodeLangExclude
 
+//Use this To Link All the Cpp Calls to a RuntimeLib
 #define UCodeLangAutoLink(Lib,CppFuncsNameSpace)
 

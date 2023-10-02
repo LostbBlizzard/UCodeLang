@@ -1,5 +1,5 @@
 #pragma once
-#include "../LangCore/DataType/BinaryVectorMap.hpp"
+#include "../LangCore/DataType/UnorderedMap.hpp"
 #include "ReflectionData.hpp"
 #include "BitMaker.hpp"
 UCodeLangStart
@@ -233,7 +233,7 @@ struct VarableInfo
 struct ULangDebugInfo
 {
 	Vector<UDebugIns> DebugInfo;
-	BinaryVectorMap<String, VarableInfo> VarablesInfo;
+	UnorderedMap<String, VarableInfo> VarablesInfo;
 
 	static void ToBytes(BitMaker& bit, const ULangDebugInfo& Value);
 	static bool FromBytes(BitReader& bit, ULangDebugInfo& Value);

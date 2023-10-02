@@ -50,6 +50,8 @@ const char UCodeLangOutPartypeString[] = "UCodeLangOutPartype";
 const char UCodeLangExcludeString[] = "UCodeLangExclude";
 const char UCodeLangAutoLinkString[] = "UCodeLangAutoLink";
 
+const char* UCodeLangTrait = "UCodeLangExportTrait";
+
 constexpr size_t UCodeLangExportSymbolSize = sizeof(UCodeLangExportString);
 constexpr size_t UCodeLangExportVSymbolSize = sizeof(UCodeLangExportV);
 constexpr size_t UCodeLangOutPartypeSize = sizeof(UCodeLangOutPartypeString);
@@ -73,9 +75,25 @@ void AddTabCount(size_t Tabs, String& Str)
 	}
 }
 
-String ToCType(const CppHelper::Type& Value)
+String ToCType(const CppHelper::CPPType& Value)
 {
-	return Value.Value;
+	String r;
+	if (Value.IsConst)
+	{
+		r += "const ";
+	}
+
+	r += Value.Value;
+
+	if (Value.mode == CppHelper::CPPType::Mode::Address)
+	{
+		r += "*";
+	}
+	if (Value.mode == CppHelper::CPPType::Mode::Ptr)
+	{
+		r += "*";
+	}
+	return r;
 }
 
 String ToCType(const CppHelper::FuncData::Par& Value)
@@ -100,6 +118,11 @@ bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFi
 	
 	{
 		String R;
+		R += "use ULang;";
+		R += '\n';
+		R += '\n';
+		R += '\n';
+
 		CppToULangState state;
 		for (auto& Item : Symbols)
 		{
@@ -108,8 +131,8 @@ bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFi
 
 		for (auto& Item : state.InternalNameSpaces)
 		{
-			R += Item._Key + "::" + "Internal:\n";
-			R += Item._Value;
+			R += Item.first + "::" + "Internal:\n";
+			R += Item.second;
 
 		}
 
@@ -125,7 +148,7 @@ bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFi
 	
 
 
-	return false;
+	return true;
 }
 
 
@@ -303,8 +326,9 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 
 							Linkstr += " = " + Item.Ret + "(*UCodeLangAPI)(";
 
+							bool IsStatic = Item.MyData->IsStatic;
 							bool IsMemberFuncion = Item.MemberFuncClass.has_value();
-							if (IsMemberFuncion)
+							if (IsStatic == false && IsMemberFuncion)
 							{
 								String ClassName = CppNameSpace + "::" + Item.MemberFuncClass.value();
 								Linkstr += ClassName + "*";
@@ -314,9 +338,21 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 								}
 							}
 
-							for (auto& Par : Item.Pars)
+							for (size_t i = 0; i < Item.Pars.size(); i++)
 							{
-								Linkstr += Par;
+								auto& Par = Item.Pars[i];
+
+								bool IsAddress = Item.MyData->Pars[i].Type.mode == CPPType::Mode::Address;
+
+								if (IsAddress) 
+								{
+									Linkstr += Par.substr(0, Par.size() - 1);
+									Linkstr += '&';
+								}
+								else
+								{
+									Linkstr += Par;
+								}
 								if (&Par != &Item.Pars.back())
 								{
 									Linkstr += ",";
@@ -329,6 +365,7 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 
 						for (auto& Item : V)
 						{
+							
 							String FuncName = CppNameSpace + "::" + Item.FuncName;
 
 							AddTabCount(TabCount + 2, Linkstr);
@@ -377,9 +414,11 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 							Linkstr += "{\n";
 							AddTabCount(TabCount + 3, Linkstr);
 
+							bool IsStatic = Item.MyData->IsStatic;
 							bool IsMemberFuncion = Item.MemberFuncClass.has_value();
 							String ClassName;
-							if (IsMemberFuncion)
+							
+							if (IsStatic == false && IsMemberFuncion)
 							{
 								Linkstr += "\n";
 								AddTabCount(TabCount + 4, Linkstr);
@@ -418,18 +457,33 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 								Linkstr += Item.Ret + " Ret =";
 							}
 
-							if (IsMemberFuncion)
+							if (IsStatic == false && IsMemberFuncion)
 							{
 								Linkstr += "thisPar->" + Item.FuncName + "(";
 							}
 							else 
 							{
-								Linkstr += FuncName + "(";
+								if (IsMemberFuncion) {
+									Linkstr += CppNameSpace + "::" + Item.MemberFuncClass.value() + "::";
+									Linkstr += UCodeLang::ScopeHelper::GetNameFromFullName(FuncName);
+								}
+								else {
+									Linkstr += FuncName;
+								}
+								Linkstr += "(";
+
 							}
 							{
 								size_t ParCount = 0;
 								for (auto& Par : Item.Pars)
 								{
+									
+									if (Item.MyData->Pars[ParCount].Type.mode ==
+										CppHelper::CPPType::Mode::Address)
+									{
+										Linkstr += "*";
+									}
+
 									Linkstr += "Par" + std::to_string(ParCount);
 									if (&Par != &Item.Pars.back())
 									{
@@ -465,7 +519,7 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 
 							Linkstr += "},";
 
-							if (IsMemberFuncion)
+							if (IsStatic == false && IsMemberFuncion)
 							{
 								//c++  member funcion can be casted into funcion pointer.
 								//but this is less unsafe.
@@ -519,6 +573,12 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 									size_t ParCount = 0;
 									for (auto& Par : Item.Pars)
 									{
+
+										if (Item.MyData->Pars[ParCount].Type.mode ==
+											CppHelper::CPPType::Mode::Address)
+										{
+											Linkstr += "*";
+										}
 										Linkstr += "Par" + std::to_string(ParCount);
 										if (&Par != &Item.Pars.back())
 										{
@@ -542,9 +602,13 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 								}
 								Linkstr += FuncPtrEnder + (String)")";
 
-
-								Linkstr += FuncName;
-
+								if (IsMemberFuncion) {
+									Linkstr += CppNameSpace + "::" + Item.MemberFuncClass.value() + "::";
+									Linkstr += UCodeLang::ScopeHelper::GetNameFromFullName(FuncName);
+								}
+								else {
+									Linkstr += FuncName;
+								}
 							}
 
 							Linkstr += "); \n";
@@ -574,6 +638,7 @@ void CppHelper::OutputIRLineInfo(UCodeAnalyzer::CppHelper::SymbolData& Item, UCo
 	if (auto Val = Item._Type.Get_If<FuncData>())
 	{
 		FuncInfo Vinfo;
+		Vinfo.MyData = Val;
 		Vinfo.Ret = ToCType(Val->Ret);
 		Vinfo.FuncName = Item._Name;
 		Vinfo.OverloadValue = Val->OverloadNumber;
@@ -588,6 +653,8 @@ void CppHelper::OutputIRLineInfo(UCodeAnalyzer::CppHelper::SymbolData& Item, UCo
 			Vinfo.Pars[i] = ToCType(Val->Pars[i]);
 		}
 		V.push_back(std::move(Vinfo));
+
+		
 	}
 	else if (auto Val = Item._Type.Get_If<ClassType>())
 	{
@@ -601,7 +668,7 @@ void CppHelper::OutputIRLineInfo(UCodeAnalyzer::CppHelper::SymbolData& Item, UCo
 void CppHelper::ParseCppToSybs(UCodeAnalyzer::String& FileText, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols)
 {
 	size_t IndexBuffer = 0;
-	UCodeLang::VectorMap<String, size_t> Overloads;
+	UCodeLang::UnorderedMap<String, size_t> Overloads;
 	ParseCppState State;
 	for (size_t i = 0; i < FileText.size(); i++)
 	{
@@ -668,11 +735,11 @@ void CppHelper::ParseCppToSybs(UCodeAnalyzer::String& FileText, UCodeAnalyzer::V
 	}
 }
 
-void CppHelper::DoOverLoadOnFunc(UCodeLang::VectorMap<UCodeAnalyzer::String, size_t>& Overloads, UCodeAnalyzer::CppHelper::SymbolData& Last, UCodeAnalyzer::CppHelper::FuncData* Val)
+void CppHelper::DoOverLoadOnFunc(UCodeLang::UnorderedMap<UCodeAnalyzer::String, size_t>& Overloads, UCodeAnalyzer::CppHelper::SymbolData& Last, UCodeAnalyzer::CppHelper::FuncData* Val)
 {
 	if (Overloads.HasValue(Last._Name))
 	{
-		auto& Item = Overloads.at(Last._Name);
+		auto& Item = Overloads.GetValue(Last._Name);
 
 
 		Val->OverloadNumber = Item;
@@ -765,7 +832,7 @@ void CppHelper::DoEnumType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnal
 		{//pass the spaces
 			MovePass(i, FileText, ' ');
 		}
-		Type V;
+		CPPType V;
 		GetType(i, FileText, V);
 		_type._EnumBaseType = V;
 	}
@@ -841,7 +908,7 @@ void CppHelper::DoEnumType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnal
 void CppHelper::DoClassOrStruct(const String& Keywordlet, size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::CppHelper::SymbolData& Tep, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols, ParseCppState& State)
 {
 	ClassType _type;
-	UCodeLang::VectorMap<String, size_t> Overloads;
+	UCodeLang::UnorderedMap<String, size_t> Overloads;
 	{//pass the spaces
 		MovePassSpace(i, FileText);
 	}
@@ -851,6 +918,10 @@ void CppHelper::DoClassOrStruct(const String& Keywordlet, size_t& i, UCodeAnalyz
 		Tep._FullName = State.ScopesAsString() + Tep._Name;
 	}
 
+	if (Keywordlet == UCodeLangTrait)
+	{
+		_type.IsTrait = true;
+	}
 
 	{//pass the spaces
 		MovePassSpace(i, FileText);
@@ -901,14 +972,17 @@ void CppHelper::DoClassOrStruct(const String& Keywordlet, size_t& i, UCodeAnalyz
 						bool v = OnDo(StrStart, TepStr, i, Scope, ItemTep, _type.Symbols, State);
 						if (v)
 						{
-							auto& LastSybol = _type.Symbols.back();
-							if (auto Val = LastSybol._Type.Get_If<FuncData>())
-							{
-								LastSybol._NameSpace = Tep._NameSpace;
-								DoOverLoadOnFunc(Overloads, LastSybol, Val);
+							if (_type.Symbols.size()) {
+								auto& LastSybol = _type.Symbols.back();
+								if (auto Val = LastSybol._Type.Get_If<FuncData>())
+								{
 
-								auto ScopeStr = State.ScopesAsString();
-								Val->MemberClassName = ScopeStr.substr(0, ScopeStr.size() -2 );//removeing the  :: at the end.
+									LastSybol._NameSpace = Tep._NameSpace;
+									DoOverLoadOnFunc(Overloads, LastSybol, Val);
+
+									auto ScopeStr = State.ScopesAsString();
+									Val->MemberClassName = ScopeStr.substr(0, ScopeStr.size() - 2);//removeing the  :: at the end.
+								}
 							}
 						}
 						else
@@ -938,7 +1012,37 @@ void CppHelper::DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size
 	Optional<SummaryTag> Sum;
 	GetSummaryTag(i,FileText,Sum);
 	i = StartIndex;
-	Type V;
+
+	{
+		auto oldindex = i;
+		String Indentifier;
+		GetIndentifier(i, FileText, Indentifier);
+		if (Indentifier == "inline")
+		{
+			MovePassSpace(i, FileText);
+		}
+		else
+		{
+			i = oldindex;
+		}
+	}
+
+	bool IsStatic = false;
+	{
+		auto oldindex = i;
+		String Indentifier;
+		GetIndentifier(i, FileText, Indentifier);
+		if (Indentifier == "static")
+		{
+			IsStatic = true;
+			MovePassSpace(i, FileText);
+		}
+		else
+		{
+			i = oldindex;
+		}
+	}
+	CPPType V;
 	GetType(i, FileText, V);
 
 	String Indentifier;
@@ -1002,6 +1106,7 @@ void CppHelper::DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size
 				i++;
 			}
 		}
+		func.IsStatic = IsStatic;
 
 		Tep._Name = std::move(Indentifier);
 		Tep._FullName = State.ScopesAsString() + Tep._Name;
@@ -1028,12 +1133,12 @@ bool CppHelper::OnDo(size_t StartIndex,const String& Keywordlet, size_t& i, UCod
 		DoConstexprType(i, Scope, Tep, Symbols, State);
 		return true;
 	}
-	else if (Keywordlet == "struct" || Keywordlet == "class")
+	else if (Keywordlet == "struct" || Keywordlet == "class" || Keywordlet == UCodeLangTrait)
 	{
 		DoClassOrStruct(Keywordlet, i, Scope, Tep, Symbols, State);
 		return true;
 	}
-	else if (Keywordlet == "inline")
+	else if (Keywordlet == "inline" || Keywordlet == "static")
 	{
 		DoVarableOrFunc(StartIndex, Keywordlet, i, Scope, Tep, Symbols, State);
 		return true;
@@ -1129,9 +1234,31 @@ void CppHelper::GetIndentifier(size_t& i, UCodeAnalyzer::String& FileText, UCode
 		}
 	}
 }
-void CppHelper::GetType(size_t& i, UCodeAnalyzer::String& FileText, Type& Out)
+void CppHelper::GetType(size_t& i, UCodeAnalyzer::String& FileText, CPPType& Out)
 {
-	GetIndentifier(i, FileText, Out.Value);
+	String Tep;
+	GetIndentifier(i, FileText, Tep);
+	if (Tep == "const") {
+		Out.IsConst = true;
+		MovePassSpace(i, FileText);
+		GetIndentifier(i, FileText, Out.Value);
+	}
+	else
+	{
+		Out.Value = std::move(Tep);
+	}
+	MovePassSpace(i, FileText);
+	char NextChar = FileText[i];
+	if (NextChar == '*')
+	{
+		Out.mode = CPPType::Mode::Ptr;
+		i++;
+	}
+	else if (NextChar == '&')
+	{
+		Out.mode = CPPType::Mode::Address;
+		i++;
+	}
 }
 void CppHelper::MovePass(size_t& i, UCodeAnalyzer::String& FileText, const char& passChar)
 {
@@ -1276,7 +1403,7 @@ String CppHelper::ToString(CppToULangState& State, const ClassType& Value, const
 
 	State.AddScopesUseingScopeCount(R);
 	ToString(State, Syb.Summary);
-	R += "$" + Syb._Name + ":\n";
+	R += "$" + Syb._Name + " extern \"c\" :\n";
 
 	State.ScopeCount++;
 	for (auto& Item : Value.Fields)
@@ -1326,7 +1453,7 @@ String CppHelper::ToString(CppToULangState& State, const FuncData& Value, const 
 	}
 	R += "|" + Syb._Name + "[";
 	
-	if (Value.MemberClassName.has_value())
+	if (Value.MemberClassName.has_value() && Value.IsStatic == false)
 	{
 		R += "this&";
 		if (Value.Pars.size())
@@ -1360,6 +1487,14 @@ String CppHelper::ToString(CppToULangState& State, const FuncData& Value, const 
 		R += "=> " + (String)"Internal::" + CppFuncName;
 
 		R += "(";
+		if (Value.MemberClassName.has_value() && Value.IsStatic == false)
+		{
+			R += "this";
+			if (Value.Pars.size())
+			{
+				R += ",";
+			}
+		}
 		for (auto& Item : Value.Pars)
 		{
 			R += Item.Name;
@@ -1376,9 +1511,10 @@ String CppHelper::ToString(CppToULangState& State, const FuncData& Value, const 
 		State.AddScope(AddStr);
 		AddStr += "extern dynamic |" + CppFuncName;
 		AddStr += "[";
-		if (Value.MemberClassName.has_value())
+		if (Value.MemberClassName.has_value() && Value.IsStatic == false)
 		{
-			AddStr += "this&";
+			AddStr += Value.MemberClassName.value();
+			AddStr += "&";
 			if (Value.Pars.size())
 			{
 				AddStr += ',';
@@ -1412,7 +1548,7 @@ String CppHelper::ToString(CppToULangState& State, const FuncData& Value, const 
 			NameSpace = Syb._NameSpace;
 		}
 
-		State.InternalNameSpaces[NameSpace] += AddStr;
+		State.InternalNameSpaces.GetOrAdd(NameSpace, {}) += AddStr;
 
 	}
 	else 
@@ -1423,10 +1559,19 @@ String CppHelper::ToString(CppToULangState& State, const FuncData& Value, const 
 	}
 	return R;
 }
-String CppHelper::ToString(CppToULangState& State, const Type& Value)
+String CppHelper::ToString(CppToULangState& State, const CPPType& Value)
 {
 	String R;
 	String CMPStr = Value.Value;
+	if (Value.IsConst)
+	{
+		R += "imut ";
+	}
+
+	if (Value.mode == CppHelper::CPPType::Mode::Ptr)
+	{
+		R += "Ptr<";
+	}
 
 	if (CMPStr == "uint8_t" || CMPStr == "uint8" || CMPStr == "UInt8" || CMPStr == "uInt8")
 	{
@@ -1507,11 +1652,24 @@ String CppHelper::ToString(CppToULangState& State, const Type& Value)
 	{
 		R += "void";
 	}
+	else if (CMPStr == "StringView"
+		|| CMPStr == "string_view")
+	{
+		R += "StringSpan";
+	}
 	else
 	{
 		R += CMPStr;
 	}
 
+	if (Value.mode == CppHelper::CPPType::Mode::Address)
+	{
+		R += '&';
+	}
+	if (Value.mode == CppHelper::CPPType::Mode::Ptr)
+	{
+		R += '>';
+	}
 
 	return R;
 }
@@ -1551,6 +1709,16 @@ String CppHelper::ToString(const CppToULangState& State, const SummaryTag& Value
 bool CppHelper::ParseULangfileAndUpdateCpp(const Path& SrcLang, const Path& CppOut)
 {
 
+	return false;
+}
+
+bool CppHelper::ParseCppfileAndOutULangLink(const Path& SrcCpp, const Path& CppLinkFile, const Path& ULangOut)
+{
+	return false;
+}
+
+bool CppHelper::ParseULangToCppStaticLink(const Path& SrcCpp, const Path& CppLinkFile, const Path& ULangOut)
+{
 	return false;
 }
 

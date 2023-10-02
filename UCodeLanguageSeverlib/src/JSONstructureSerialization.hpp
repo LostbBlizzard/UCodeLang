@@ -1,17 +1,17 @@
 #pragma once
 #include "JSONstructures.hpp"
 
-namespace ns 
-{
-	using json = nlohmann::json;
-	#define UCL UCodeLanguageSever
+UCodeLanguageSeverStart
+
+using json = nlohmann::json;
+#define UCL UCodeLanguageSever
 
 	
 
 	template<typename T>
-	inline void to_json(json& Json,const T Object)
+	inline void to_json(json& Json,const T& Object)
 	{
-		Json = Object;
+		Json = json(Object);
 	}
 	template<typename T>
 	inline void from_json(const json& Json, T& Object)
@@ -68,6 +68,7 @@ namespace ns
 		
 	}
 
+	
 	template<typename T>
 	inline void from_json(const json& Json, UCL::TsArray<T>& Object)
 	{
@@ -389,7 +390,11 @@ namespace ns
 
 		//to_jsonOp(Object.severity,"severity", Json);
 
-		to_jsonOp(Object.code, "code", Json);
+
+		if (Object.code.has_value())
+		{
+			to_json(Json["code"], Object.code.value());
+		}
 
 		//to_jsonOp(Object.codeDescription, "codeDescription", Json);
 
@@ -420,4 +425,4 @@ namespace ns
 
 		to_json(Json["diagnostics"], Object.diagnostics);
 	}
-}
+UCodeLanguageSeverEnd

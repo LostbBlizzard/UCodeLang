@@ -2,6 +2,8 @@
 #include "../LangCore.hpp"
 #include "TypeNames.hpp"
 #include "ScopeHelper.hpp"
+
+#include <cstring> //memcpy
 UCodeLangStart
 
 
@@ -101,6 +103,15 @@ public:
 	bool operator!=(const ReflectionTypeInfo& Other) const
 	{
 		return !this->operator==(Other);
+	}
+	ReflectionTypeInfo()
+	{
+
+	}
+	ReflectionTypeInfo(ReflectionTypes  Type)
+		: _Type(Type)
+	{
+
 	}
 };
 
@@ -209,6 +220,9 @@ public:
 	ReflectionTypeInfo RetType;
 	Vector<Par> ParsType;
 	bool IsThisFuncion = false;
+	bool IsUnsafe = false;
+	bool IsExternC = false;
+	bool IsRemoved = false;
 
 	UsedTags Attributes;
 };
@@ -364,6 +378,8 @@ struct StaticArray_Data
 };
 struct FuncPtr_Data
 {
+	ReflectionTypeInfo RetType;
+	Vector<ClassMethod::Par> ParsType;
 	~FuncPtr_Data()
 	{
 
@@ -640,6 +656,15 @@ public:
 		r.FullName = FullName;
 		return r.Get_TagData();
 	}
+	inline FuncPtr_Data& AddFuncPtr(const String& Name, const String& FullName = "")
+	{
+		auto V = std::make_unique<AssemblyNode>(ClassType::FuncPtr);
+		Classes.push_back(std::move(V));
+		auto& r = *Classes.back();
+		r.Name = Name;
+		r.FullName = FullName;
+		return r.Get_FuncPtr();
+	}
 	static void PushCopyClasses(const ClassAssembly& source, ClassAssembly& Out);
 	AssemblyNode* Find_Node(const String& Name, const String& Scope ="")
 	{
@@ -784,6 +809,7 @@ public:
 
 			}
 		}
+		return nullptr;
 	}
 
 	const ClassMethod* Find_Func(const String_view& FullName) const
@@ -803,6 +829,49 @@ public:
 
 			}
 		}
+		return nullptr;
+	}
+
+	Vector<ClassMethod*>  Find_Funcs(const String_view& FullName)
+	{
+		Vector<ClassMethod*> r;
+		for (auto& Item : Classes)
+		{
+			if (Item->Get_Type() == ClassType::Class)
+			{
+				for (auto& Item2 : Item->Get_ClassData().Methods)
+				{
+					if (Item2.DecorationName == FullName
+						|| Item2.FullName == FullName)
+					{
+						r.push_back(&Item2);
+					}
+				}
+
+			}
+		}
+		return r;
+	}
+
+	Vector<const ClassMethod*> Find_Funcs(const String_view& FullName) const
+	{
+		Vector<const ClassMethod*> r;
+		for (auto& Item : Classes)
+		{
+			if (Item->Get_Type() == ClassType::Class)
+			{
+				for (auto& Item2 : Item->Get_ClassData().Methods)
+				{
+					if (Item2.DecorationName == FullName
+						|| Item2.FullName == FullName)
+					{
+						r.push_back(&Item2);
+					}
+				}
+
+			}
+		}
+		return r;
 	}
 
 
@@ -851,6 +920,27 @@ public:
 	//if the first Optional is empty the operation failed
 	Optional<Optional<Vector<OnDoDefaultConstructorCall>>> CallDestructor(const ReflectionTypeInfo& Type, void* Object, bool Is32Bit) const;
 
+	struct ParsedValue
+	{
+		TypedRawReflectionData Value;
+		BytesPtr other;
+		Vector<OnDoDefaultConstructorCall> Calls;
+		
+		void* GetData()
+		{
+			return Value._Data.Get_Data();
+		}
+		ReflectionTypeInfo GetType()
+		{
+			return Value._Type;
+		}
+	};
+	static Optional<ParsedValue> ParseToValue(const String_view txt, const ClassAssembly& Assembly, Vector<ReflectionTypeInfo> Hints);
+
+	static String ToString(const ClassMethod::Par& data, const ClassAssembly& Assembly);
+	static String ToString(const ReflectionTypeInfo& data, const ClassAssembly& Assembly);
+	static String ToString(const TypedRawReflectionData& data, const ClassAssembly& Assembly,bool is32mode= sizeof(void*) == 4);
+	static String ToStringJson(const TypedRawReflectionData& data,const ClassAssembly& Assembly, bool is32mode = sizeof(void*) == 4);
 
 	enum class CompareType_t
 	{
@@ -1054,23 +1144,23 @@ public:
 	{
 		ReflectionTypeInfo ElementType;
 
-		const ClassMethod* Data_Method = nullptr;//|Data[umut this&] -> ElementType[&];
-		const ClassMethod* Size_Method = nullptr;//|Size[umut this&] -> uintptr;
-		const ClassMethod* Capacity_Method = nullptr;//|Capacity[umut this&] -> uintptr;
+		const ClassMethod* Data_Method = nullptr;//|Data[imut this&] -> ElementType[&];
+		const ClassMethod* Size_Method = nullptr;//|Size[imut this&] -> uintptr;
+		const ClassMethod* Capacity_Method = nullptr;//|Capacity[imut this&] -> uintptr;
 
 		const ClassMethod* Resize_Method = nullptr;//|Resize[this&,uintptr Size] -> void;
 		const ClassMethod* Reserve_Method = nullptr;//|Reserve[this&,uintptr Size] -> void;
 		const ClassMethod* Clear_Method = nullptr;//|Clear[this&] -> void;
 
 		//if Element is copyable
-		const ClassMethod* Push_copy_Method = nullptr;//|Push[this&,umut ElementType& Item] -> void;
+		const ClassMethod* Push_copy_Method = nullptr;//|Push[this&,imut ElementType& Item] -> void;
 		const ClassMethod* Push_moved_Method = nullptr;//|Push[this&,moved ElementType Item] -> void;
 		const ClassMethod* Pop_Method = nullptr;//|Pop[this&] -> ElementType;
 
 		const ClassMethod* Remove_Method = nullptr;//|Remove[this&,uintptr Index] -> ElementType;
 
 		//if Element is copyable
-		const ClassMethod* Insert_Copy_Method = nullptr;//|Insert[this&,uintptr Index,umut ElementType& Item] -> void;
+		const ClassMethod* Insert_Copy_Method = nullptr;//|Insert[this&,uintptr Index,imut ElementType& Item] -> void;
 		const ClassMethod* Insert_Moved_Method = nullptr;//|Insert[this&,uintptr Index,moved ElementType Item] -> void;
 	};
 	// includes type aliases
@@ -1095,9 +1185,9 @@ public:
 	{
 		ReflectionTypeInfo ElementType;//is any of the char_t types
 
-		const ClassMethod* Data_Method = nullptr;//|Data[umut this&] -> ElementType[&];
-		const ClassMethod* Size_Method = nullptr;//|Size[umut this&] -> uintptr;
-		const ClassMethod* Capacity_Method = nullptr;//|Capacity[umut this&] -> uintptr;
+		const ClassMethod* Data_Method = nullptr;//|Data[imut this&] -> ElementType[&];
+		const ClassMethod* Size_Method = nullptr;//|Size[imut this&] -> uintptr;
+		const ClassMethod* Capacity_Method = nullptr;//|Capacity[imut this&] -> uintptr;
 
 		const ClassMethod* Resize_Method = nullptr;//|Resize[this&,uintptr Size] -> void;
 		const ClassMethod* Reserve_Method = nullptr;//|Reserve[this&,uintptr Size] -> void;

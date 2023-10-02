@@ -2,26 +2,30 @@
 //#include "UCodeLang/Compliation/Helpers/KeyWords.hpp"
 #define EnumBaseTypeName "base_t";
 
-#define CharTypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWord_Char)
-#define boolTypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWord_Bool)
+#define CharTypeName UCodeLang::TokenStringHelper::ToString(UCodeLang::TokenType::KeyWord_Char)
+#define boolTypeName UCodeLang::TokenStringHelper::ToString(UCodeLang::TokenType::KeyWord_Bool)
 
-#define Uint8TypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWord_UInt8)
-#define Sint8TypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWord_SInt8)
+#define Uint8TypeName UCodeLang::TokenStringHelper::ToString(UCodeLang::TokenType::KeyWord_UInt8)
+#define Sint8TypeName UCodeLang::TokenStringHelper::ToString(UCodeLang::TokenType::KeyWord_SInt8)
 
-#define Uint16TypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWord_UInt16)
-#define Sint16TypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWord_SInt16)
+#define Uint16TypeName UCodeLang::TokenStringHelper::ToString(UCodeLang::TokenType::KeyWord_UInt16)
+#define Sint16TypeName UCodeLang::TokenStringHelper::ToString(UCodeLang::TokenType::KeyWord_SInt16)
 
-#define Uint32TypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWord_UInt32)
-#define Sint32TypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWord_SInt32)
+#define Uint32TypeName UCodeLang::TokenStringHelper::ToString(UCodeLang::TokenType::KeyWord_UInt32)
+#define Sint32TypeName UCodeLang::TokenStringHelper::ToString(UCodeLang::TokenType::KeyWord_SInt32)
 
-#define Uint64TypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWord_UInt64)
-#define Sint64TypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWord_SInt64)
+#define Uint64TypeName UCodeLang::TokenStringHelper::ToString(UCodeLang::TokenType::KeyWord_UInt64)
+#define Sint64TypeName UCodeLang::TokenStringHelper::ToString(UCodeLang::TokenType::KeyWord_SInt64)
 
-#define UintPtrTypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWord_uintptr)
-#define SintPtrTypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWord_sintptr)
+#define UintPtrTypeName UCodeLang::TokenStringHelper::ToString(UCodeLang::TokenType::KeyWord_uintptr)
+#define SintPtrTypeName UCodeLang::TokenStringHelper::ToString(UCodeLang::TokenType::KeyWord_sintptr)
 
-#define float32TypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWord_float32)
-#define float64TypeName UCodeLang::StringHelper::ToString(UCodeLang::TokenType::KeyWord_float64)
+#define float32TypeName UCodeLang::TokenStringHelper::ToString(UCodeLang::TokenType::KeyWord_float32)
+#define float64TypeName UCodeLang::TokenStringHelper::ToString(UCodeLang::TokenType::KeyWord_float64)
+
+#define Uft8typeName UCodeLang::TokenStringHelper::ToString(UCodeLang::TokenType::KeyWord_uft8)
+#define Uft16typeName UCodeLang::TokenStringHelper::ToString(UCodeLang::TokenType::KeyWord_uft16)
+#define Uft32typeName UCodeLang::TokenStringHelper::ToString(UCodeLang::TokenType::KeyWord_uft32)
 
 #define VoidPtrTypeName "VoidPtr"
 #define CStringTypeName "CString"
@@ -85,6 +89,24 @@
 #define UCode_ArrayType "Array"//int[10]
 #define UCode_VectorType "Vector"//int[]
 #define UCode_SpanType "Span"//int[:]
+#define UCode_ResultType "Result"//int!
+#define UCode_RangeFuncion "Range"//0..10 Range(0,10)
+#define UCode_RangeInclusiveFuncion "RangeInclusive"//0..=10 RangeInclusive(0,10)
+
+#define UCode_RangeType "Range_t"//0..10 Range_t<int>(0,10)
+#define UCode_RangeInclusiveType "RangeInclusive_t"//0..=10 RangeInclusive<int>(0,10)
+
+
+#define UCodeLangStringType "String"
+#define UCodeLangString8Type  "String8"
+#define UCodeLangString16Type  "String16"
+#define UCodeLangString32Type  "String32"
+
+#define UCodeLangStringSpanType "StringSpan"
+#define UCodeLangStringSpan8Type  "StringSpan8"
+#define UCodeLangStringSpan16Type  "StringSpan16"
+#define UCodeLangStringSpan32Type  "StringSpan32"
+
 
 #define UCode_Unique_ptr "Unique_ptr"//int^ 
 #define UCode_Shared_ptr "Shared_ptr"//int$ 

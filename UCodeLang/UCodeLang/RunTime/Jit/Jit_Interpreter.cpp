@@ -15,7 +15,7 @@ int Func(int A,int B)
 }
 
 //template
-CPPCallRet TempFunc(InterpreterCPPinterface& Input)
+void TempFunc(InterpreterCPPinterface& Input)
 {
 	auto A = Input.GetParameter<int>();
 	auto B = Input.GetParameter<int>();
@@ -54,12 +54,19 @@ void Jit_Interpreter::TryBuildAllFuncs()
 #if HasSupportforJit
 	for (auto& Item : Get_State()->Get_Libs().Get_NameToAddress())
 	{
-		auto address = Item._Value;
-		if (!UFuncToCPPFunc.count(address)) { UFuncToCPPFunc[address] = {}; }
-		auto& Item = UFuncToCPPFunc[address];
-		BuildCheck(Item, address);
+		auto address = Item.second;
+		if (!UFuncToCPPFunc.HasValue(address)) { UFuncToCPPFunc.AddValue(address,{}); }
+		auto Itemp = UFuncToCPPFunc.GetValue(address);
+		BuildCheck(Itemp, address);
 	}
 #endif
+}
+
+//Makes UClib with the Generated native code and be used for fast reloading just link it in RunTimeState instead of the compiled byte-code.
+
+UClib Jit_Interpreter::GetStateAsLib()
+{
+	return UClib();
 }
 
 Interpreter::Return_t Jit_Interpreter::Call(const String& FunctionName)
@@ -83,17 +90,18 @@ thread_local JitRuningState _ThisState = {};
 
 Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 {
-	#if HasNoSupportforJit
+#if HasNoSupportforJit
 	return _Interpreter.Call(address);
-	#else
-	if (!UFuncToCPPFunc.count(address)){UFuncToCPPFunc[address] = {};}
-	auto& Item = UFuncToCPPFunc[address];
+#else
+	if (!UFuncToCPPFunc.HasValue(address)) { UFuncToCPPFunc.AddValue(address,{}); }
+	auto& Item = UFuncToCPPFunc.GetValue(address);
 
 	//return _Interpreter.Call(address);//remove this when jit-Interpreter works
 
-
-	TempFunc(InterpreterCPPinterface(&_Interpreter));
-
+	{
+		InterpreterCPPinterface p = InterpreterCPPinterface(&_Interpreter);
+		TempFunc(p);
+	}
 	BuildCheck(Item, address);
 
 
@@ -111,7 +119,8 @@ Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 		_Interpreter.FlushParametersIntoCPU();
 		
 		{//here the magic happens and were your going to spend debug for hours.
-			Item.Func(InterpreterCPPinterface(&_Interpreter));
+			InterpreterCPPinterface p = InterpreterCPPinterface(&_Interpreter);
+			Item.Func(p);
 
 			//using Func = int(*)(int V);
 			//int V = 0;
@@ -225,22 +234,22 @@ Optional<String> Jit_Interpreter::GetNameForHex(const String& Hex)
 		{
 			for (auto& Item : UFuncToCPPFunc)
 			{
-				if (CMP(Item._Value.UCodeFunc,Hex))
+				if (CMP(Item.second.UCodeFunc,Hex))
 				{
 					String Str;
-					Str = "cpp-call:" + std::to_string(Item._Key);
+					Str = "cpp-call:" + std::to_string(Item.first);
 
-					Str += '-' + Get_State()->GetName(Item._Key);
+					Str += '-' + Get_State()->GetName(Item.first);
 					return Str;
 				}
 				else
 				{
-					if (CMP(Item._Value.NativeFunc, Hex))
+					if (CMP(Item.second.NativeFunc, Hex))
 					{
 						String Str;
-						Str = "native:" + std::to_string(Item._Key);
+						Str = "native:" + std::to_string(Item.first);
 
-						Str += '-' + Get_State()->GetName(Item._Key);
+						Str += '-' + Get_State()->GetName(Item.first);
 						return Str;
 					}
 				}
@@ -248,33 +257,33 @@ Optional<String> Jit_Interpreter::GetNameForHex(const String& Hex)
 
 			for (auto& Item : _Assembler.FuncsPlaceHolder)
 			{
-				void* Pointer = (void*)((uintptr_t)this->ExBuffer.Data + Item._Value.Offset);
+				void* Pointer = (void*)((uintptr_t)this->ExBuffer.Data + Item.second.Offset);
 				if (CMP(Pointer, Hex))
 				{
 					String Str;
-					Str = "PlaceHolder-" + std::to_string(Item._Key);
+					Str = "PlaceHolder-" + std::to_string(Item.first);
 
-					Str += '-' + Get_State()->GetName(Item._Key);
+					Str += '-' + Get_State()->GetName(Item.first);
 					return Str;
 				}
 			}
 
 			for (auto& Item : Get_State()->Get_Libs().Get_CPPCalls())
 			{
-				void* Pointer = Item._Value.NativeCall;
+				void* Pointer = Item.second.NativeCall;
 				if (CMP(Pointer, Hex))
 				{
 					String Str;
-					Str = "CPP-Native-" + Item._Key;
+					Str = "CPP-Native-" + Item.first;
 					return Str;
 				}
 				else
 				{
-					void* Pointer = Item._Value.InterpreterCall;
+					void* Pointer = (void*)Item.second.InterpreterCall;
 					if (CMP(Pointer, Hex))
 					{
 						String Str;
-						Str = "CPP-Interpreter-" + Item._Key;
+						Str = "CPP-Interpreter-" + Item.first;
 						return Str;
 					}
 				}
@@ -299,7 +308,7 @@ void Jit_Interpreter::BuildCheck(UCodeLang::Jit_Interpreter::JitFuncData& Item, 
 		if (NextIns.OpCode == InstructionSet::Call_Code)
 		{
 			Item.Type = JitFuncType::CPPCall;
-			Item.Func = Get_State()->Get_Libs().Get_ExFunc(NextIns.Value0.AsAddress);
+			Item.Func = Get_State()->Get_Libs().Get_ExFunc(NextIns.Op_ValUInt16.A);
 		}
 		else
 		{
@@ -330,14 +339,14 @@ void Jit_Interpreter::BuildCheck(UCodeLang::Jit_Interpreter::JitFuncData& Item, 
 				{
 					for (auto& Item : _Assembler.LinkingData)
 					{
-						if (UFuncToCPPFunc.count(Item.OnUAddress))
+						if (UFuncToCPPFunc.HasValue(Item.OnUAddress))
 						{
-							auto& SomeV = UFuncToCPPFunc.at(Item.OnUAddress);
+							auto& SomeV = UFuncToCPPFunc.GetValue(Item.OnUAddress);
 
 							if (SomeV.Type == JitFuncType::CPPCall)
 							{
 								intptr_t val = (intptr_t)SomeV.NativeFunc;
-								_Assembler.SubCall((JitInfo::FuncType)(val - 5), Item.CPPOffset, ExBuffer.Data);
+								_Assembler.SubCall((JitCompiler::FuncType)(val - 5), Item.CPPOffset, ExBuffer.Data);
 							}
 						}
 						else
@@ -466,23 +475,23 @@ String Jit_Interpreter::GetJitState()
 		void* Pointer = (void*)((uintptr_t)InsData + offset);
 		for (auto& Item : UFuncToCPPFunc)
 		{
-			if (Item._Value.Type != JitFuncType::CPPCall) { continue; }
-			if ((ZyanU64)Item._Value.Func == (ZyanU64)Pointer)
+			if (Item.second.Type != JitFuncType::CPPCall) { continue; }
+			if ((ZyanU64)Item.second.Func == (ZyanU64)Pointer)
 			{
 				r << "\n";
-				r << "CPPCall-" + std::to_string(Item._Key) + "-";
+				r << "CPPCall-" + std::to_string(Item.first) + "-";
 
-				r << Get_State()->GetName(Item._Key);
+				r << Get_State()->GetName(Item.first);
 
 				r << ":";
 				r << '\n';
 			}
-			else if ((ZyanU64)Item._Value.NativeFunc == (ZyanU64)Pointer)
+			else if ((ZyanU64)Item.second.NativeFunc == (ZyanU64)Pointer)
 			{
 				r << "\n";
-				r << "Native-" << Item._Key << '-';
+				r << "Native-" << Item.first << '-';
 
-				r << Get_State()->GetName(Item._Key);
+				r << Get_State()->GetName(Item.first);
 
 				r << ":";
 				r << std::endl;
@@ -491,13 +500,13 @@ String Jit_Interpreter::GetJitState()
 
 		for (auto& Item : _Assembler.FuncsPlaceHolder)
 		{
-			void* Pointer2 = (void*)((uintptr_t)this->ExBuffer.Data + Item._Value.Offset);
+			void* Pointer2 = (void*)((uintptr_t)this->ExBuffer.Data + Item.second.Offset);
 			if (Pointer == Pointer2)
 			{
 				r << "\n";
-				r << "PlaceHolder-" + std::to_string(Item._Key);
+				r << "PlaceHolder-" + std::to_string(Item.first);
 
-				r << '-' + Get_State()->GetName(Item._Key);
+				r << '-' + Get_State()->GetName(Item.first);
 				r << ":";
 				r << std::endl;
 			}
@@ -586,8 +595,11 @@ void Jit_Interpreter::OnUAddressCall(UAddress addresstojit)
 	auto State = _ThisState._This->Get_State();
 	auto& LibManger = State->Get_Libs();
 
-	if (!_ThisState._This->UFuncToCPPFunc.count(addresstojit)) { _ThisState._This->UFuncToCPPFunc[addresstojit] = {}; }
-	auto& Item = _ThisState._This->UFuncToCPPFunc[addresstojit];
+	if (!_ThisState._This->UFuncToCPPFunc.HasValue(addresstojit))
+	{ 
+		_ThisState._This->UFuncToCPPFunc.AddValue(addresstojit,{}); 
+	}
+	auto& Item = _ThisState._This->UFuncToCPPFunc.GetValue(addresstojit);
 
 	bool shouldJit = _ThisState._This->ShouldJit(addresstojit,LibManger.GetInstructions());
 

@@ -16,6 +16,7 @@ public:
 	String GetBackEndName() override { return "WebAssembly"; }
 	String GetOutputExtWithDot() override { return ".wast"; }
 	static BackEndObject* MakeObject();
+	void UpdateBackInfo(CompliationBackEndInfo& BackInfo) override;
 private:
 	const IRBuilder* _Input = nullptr;
 	String _Output;

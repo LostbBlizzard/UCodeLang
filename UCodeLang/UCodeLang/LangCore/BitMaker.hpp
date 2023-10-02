@@ -1,6 +1,6 @@
 #pragma once
 #include "BitConverter.hpp"
-
+#include <cstring>//Strlen
 UCodeLangStart
 
 //Endian will be BitConverter InputOutEndian
@@ -58,40 +58,29 @@ public:
 	UCodeLangForceinline  void WriteType(const T& Value){ BitData<T>::ToBytes(*this, Value);}
 
 
-	template<>
 	UCodeLangForceinline  void WriteType(const bool& Value) { WriteTypeAsBytes(BitConverter::GetBytes(Value)); }
 
-	template<>
+	
 	UCodeLangForceinline  void WriteType(const Byte& Value) { WriteTypeAsBytes(BitConverter::GetBytes(Value)); }
 
-	template<>
 	UCodeLangForceinline  void WriteType(const Int8& Value) { WriteTypeAsBytes(BitConverter::GetBytes(Value)); }
 
-	template<>
 	UCodeLangForceinline  void WriteType(const char& Value) { WriteTypeAsBytes(BitConverter::GetBytes(Value)); }
 
-	template<>
 	UCodeLangForceinline  void WriteType(const UInt16& Value) { WriteTypeAsBytes(BitConverter::GetBytes(Value));}
 
-	template<>
 	UCodeLangForceinline  void WriteType(const Int16& Value) { WriteTypeAsBytes(BitConverter::GetBytes(Value)); }
 	
-	template<>
 	UCodeLangForceinline  void WriteType(const UInt32& Value) { WriteTypeAsBytes(BitConverter::GetBytes(Value)); }
 	
-	template<>
 	UCodeLangForceinline  void WriteType(const Int32& Value) { WriteTypeAsBytes(BitConverter::GetBytes(Value)); }
 	
-	template<>
 	UCodeLangForceinline  void WriteType(const UInt64& Value) { WriteTypeAsBytes(BitConverter::GetBytes(Value)); }
 
-	template<>
 	UCodeLangForceinline  void WriteType(const Int64& Value) { WriteTypeAsBytes(BitConverter::GetBytes(Value)); }
 	
-	template<>
 	UCodeLangForceinline  void WriteType(const float32& Value) { WriteTypeAsBytes(BitConverter::GetBytes(Value)); }
 
-	template<>
 	UCodeLangForceinline  void WriteType(const float64& Value) { WriteTypeAsBytes(BitConverter::GetBytes(Value)); }
 
 
@@ -110,7 +99,6 @@ public:
 		WriteBytes((const Byte*)Value, size);
 	}
 
-	template<>
 	UCodeLangForceinline  void WriteType(const String& Value) 
 	{
 		size_t size = Value.size();
@@ -226,25 +214,25 @@ public:
 		}
 	}
 	//
-	template<> void ReadType(Byte& Out)
+	void ReadType(Byte& Out)
 	{
 		SizeCheck(sizeof(Byte));
 		Out = BitConverter::BytesToUChar(_Bytes, _BitOffset);
 		_BitOffset += sizeof(Byte);
 	}
-	template<> void ReadType(Int8& Out)
+	void ReadType(Int8& Out)
 	{
 		SizeCheck(sizeof(Int8));
 		Out =  BitConverter::BytesToSChar(_Bytes, _BitOffset);
 		_BitOffset += sizeof(Int8);
 	}
-	template<> void ReadType(char& Out)
+	void ReadType(char& Out)
 	{
 		SizeCheck(sizeof(char));
 		 BitConverter::BytesToChar(_Bytes, _BitOffset, &Out);
 		_BitOffset += sizeof(char);
 	}
-	template<> void ReadType(bool& Out)
+	void ReadType(bool& Out)
 	{
 		SizeCheck(sizeof(bool));
 		 BitConverter::BytesToBool(_Bytes, _BitOffset, &Out);
@@ -252,39 +240,39 @@ public:
 	}
 
 
-	template<> void ReadType(UInt16& Out)
+	void ReadType(UInt16& Out)
 	{
 		SizeCheck(sizeof(UInt16));
 		 BitConverter::BytesToInt16(_Bytes, _BitOffset,&Out);
 		_BitOffset += sizeof(UInt16);
 	}
-	template<> void ReadType(Int16& Out)
+	void ReadType(Int16& Out)
 	{
 		SizeCheck(sizeof(Int16));
 		 BitConverter::BytesToInt16(_Bytes, _BitOffset, &Out);
 		_BitOffset += sizeof(Int16);
 	}
 
-	template<> void ReadType(UInt32& Out)
+	void ReadType(UInt32& Out)
 	{
 		SizeCheck(sizeof(UInt32));
 		 BitConverter::BytesToInt(_Bytes, _BitOffset, &Out);
 		_BitOffset += sizeof(UInt32);
 	}
-	template<> void ReadType(Int32& Out)
+	void ReadType(Int32& Out)
 	{
 		SizeCheck(sizeof(Int32));
 		 BitConverter::BytesToInt(_Bytes, _BitOffset, &Out);
 		_BitOffset += sizeof(Int32);
 	}
 
-	template<> void ReadType(UInt64& Out)
+	void ReadType(UInt64& Out)
 	{
 		SizeCheck(sizeof(UInt64));
 		 BitConverter::BytesToInt64(_Bytes, _BitOffset, &Out);
 		_BitOffset += sizeof(UInt64);
 	}
-	template<> void ReadType(Int64& Out)
+	void ReadType(Int64& Out)
 	{
 		SizeCheck(sizeof(Int64));
 		 BitConverter::BytesToInt64(_Bytes, _BitOffset, &Out);
@@ -292,14 +280,14 @@ public:
 	}
 
 	
-	template<> void ReadType(float32& Out)
+	void ReadType(float32& Out)
 	{
 		SizeCheck(sizeof(float32));
 		 BitConverter::BytesTofloat(_Bytes, _BitOffset, &Out);
 		_BitOffset += sizeof(float32);
 	}
 
-	template<> void ReadType(float64& Out)
+	void ReadType(float64& Out)
 	{
 		SizeCheck(sizeof(float64));
 		BitConverter::BytesTofloat64(_Bytes, _BitOffset, &Out);
@@ -319,7 +307,7 @@ public:
 		}
 		return Out;
 	}
-	template<> void ReadType(String& Out)
+	void ReadType(String& Out)
 	{
 		SizeAsBits StrSize;
 		ReadType<SizeAsBits>(StrSize, 0);

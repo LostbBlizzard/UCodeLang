@@ -1,6 +1,7 @@
 #pragma once
 #include "../LangCore/UCodeLangNameSpace.hpp"
 #include "../LangCore/LangTypes.hpp"
+#include "../LangCore/StringHelper.hpp"
 UCodeLangStart
 enum class OutPutType : UInt8
 {
@@ -33,13 +34,54 @@ enum class OptimizationFlags : OptimizationFlags_t
 	Stable_MaxSpeed = O_None,
 	Stable_ForDebuging = O_None | Debug,
 };
+
+
+struct CompliationBackEndInfo
+{
+	enum class BackEnd :Byte
+	{
+		UCodeVm,
+		C89,
+		Wasm,
+		
+		Windows,
+		Linux,
+		MacOs,
+
+		Other,
+	};
+	enum class InsSet :Byte
+	{
+		X86,
+		Arm,
+		Other,
+	};
+
+	BackEnd Output = BackEnd::Other;
+	InsSet OutputSet = InsSet::Other;
+
+
+
+	bool IsUCodeVm() { return Output == BackEnd::UCodeVm; }
+	bool IsC89() { return Output == BackEnd::C89; }
+	bool IsWasm() { return Output == BackEnd::Wasm; }
+
+	bool IsWindows() { return Output == BackEnd::Windows; }
+	bool IsLinux() { return Output == BackEnd::Linux; }
+	bool IsMacOs() { return Output == BackEnd::MacOs; }
+
+	bool IsX86(){ return OutputSet == InsSet::X86; }
+	bool IsArm() { return OutputSet == InsSet::Arm; }
+};
 struct CompliationSettings
 {
 	OutPutType _Type = OutPutType::Lib;
 	OptimizationFlags _Flags = OptimizationFlags::ForDebuging;
 	IntSizes PtrSize = IntSizes::Native;
+	CompliationBackEndInfo _BackEndInfo;
 	Vector<String> _Args;
 
+	
 
 	void AddArgFlag(const String& FlagName)
 	{
@@ -70,7 +112,7 @@ struct CompliationSettings
 		Optional<String> R;
 		for (auto& Item : _Args)
 		{
-			if (Item._Starts_with(ValueName))
+			if (StringHelper::StartWith(Item,ValueName))
 			{
 				R = Item.substr(ValueName.size() + 1);//pass the :
 			}

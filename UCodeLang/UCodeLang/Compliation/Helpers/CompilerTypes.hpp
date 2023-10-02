@@ -111,7 +111,7 @@ enum class TokenType : TokenType_t
 
 	KeyWord_Enum,//enum
 	KeyWord_Tag,//tag
-	KeyWord_umut,//umut
+	KeyWord_imut,//imut
 
 	ellipses,//...
 	DollarSign,//$
@@ -160,15 +160,22 @@ enum class TokenType : TokenType_t
 
 	KeyWord_await,//await
 	KeyWord_async,//async
+	KeyWord_yeild,//yeild
 
-	KeyWord_uft8,
-	KeyWord_uft16,
-	KeyWord_uft32,
+	KeyWord_uft8,//utf8
+	KeyWord_uft16,//utf16
+	KeyWord_uft32,//utf32
 
+	KeyWord_unsafe,//unsafe
+	KeyWord_block,//block
+	KeyWord_RangeOperator,//..
+	KeyWord_defer,//..
+	KeyWord_compiler,//..
 	//used internally
-	internal_Constant_expression
+	internal_Constant_expression,
+	internal_InlineEnumVariant,
 };
-class StringHelper
+class TokenStringHelper
 {
 public:
 	static void PushString(String& out,TokenType V)
@@ -275,12 +282,15 @@ public:
 		case TokenType::hash: return "#";
 
 		case TokenType::KeyWord_Enum:return "enum";
-		case TokenType::KeyWord_umut:return "umut";
+		case TokenType::KeyWord_imut:return "imut";
 		case TokenType::KeyWord_Tag: return "tag";
 
 		case TokenType::QuestionMark:return "?";
 		case TokenType::modulo:return "%";
-
+		case TokenType::KeyWord_uft8:return "uft8";
+		case TokenType::KeyWord_uft16:return "uft16";
+		case TokenType::KeyWord_uft32:return "uft32";
+		case TokenType::KeyWord_compiler:return "compiler";
 		default:return "Unknown token";
 		}
 	}
@@ -346,7 +356,7 @@ struct Token
 			out += +"\"";
 			break;
 		default:
-			StringHelper::PushString(out, T.Type);
+			TokenStringHelper::PushString(out, T.Type);
 			break;
 		}
 		

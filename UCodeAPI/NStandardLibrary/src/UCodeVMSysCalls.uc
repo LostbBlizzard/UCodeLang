@@ -1,35 +1,32 @@
 
 
-//Testing
+$if compiler::IsBackendUCodeVM():
+ $FilePathChar = char;
+ $FileHandle = uintptr;
+ $Socket = uintptr;
 
-extern dynamic |__Debug[int A] -> int;
+ //Cout/Cin
+ extern dynamic |__Log[imut char[&] Buff] -> void;
 
+ extern dynamic |__LogChar[char Value] -> void;
 
-//Cout/Cin
-extern dynamic |__Log[umut char[&] Buff] -> void;
+ extern dynamic |__LogBuffer[imut char[&] Value,uintptr Size] -> void;
 
-extern dynamic |__LogChar[char Value] -> void;
+ extern dynamic |__ReadChar[] -> char;
 
-extern dynamic |__LogBuffer[char[&] Value,uintptr Size] -> void;
+ //Memory
+ extern dynamic |__Malloc[uintptr Size] -> byte[&];
 
-extern dynamic |__ReadChar[] -> char;
+ extern dynamic |__Free[byte[&] Block] -> void;
 
-//Memory
-extern dynamic |__Malloc[uintptr Size] -> byte[&];
+ //File IO
 
-extern dynamic |__Free[byte[&] Block] -> void;
+ extern dynamic |__OpenFile[FilePathChar[&] Path,uintptr Size] -> FileHandle;
 
-//File IO
+ extern dynamic |__CloseFile[FileHandle File] -> void;
 
-$FilePathChar = char;
-$FileHandle = uintptr;
+ extern dynamic |__IsFileOpen[FileHandle File] -> void;
 
-extern dynamic |__OpenFile[FilePathChar[&] Path,uintptr Size] -> FileHandle;
+ //Network IO
 
-extern dynamic |__CloseFile[FileHandle File] -> void;
-
-extern dynamic |__IsFileOpen[FileHandle File] -> void;
-
-//Network IO
-
-$Socket = uintptr;
+ 

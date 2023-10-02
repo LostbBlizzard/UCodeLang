@@ -16,6 +16,8 @@ public:
 	String GetBackEndName() override { return " X86_64IR"; }
 	String GetOutputExtWithDot() override { return ".txt"; }
 	static BackEndObject* MakeObject() { return new X86_64IRBackEnd(); }
+	void  UpdateBackInfo(CompliationBackEndInfo& BackInfo)  override {}
+
 };
 
 UCodeLangEnd

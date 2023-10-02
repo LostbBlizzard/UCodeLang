@@ -1,6 +1,6 @@
 #include "UAssembly.hpp"
 #include "CompilerTypes.hpp"
-#include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
+#include "UCodeLang/LangCore/DataType/UnorderedMap.hpp"
 #include "UCodeLang/Compliation/Helpers/NameDecoratior.hpp"
 
 #include <fstream>
@@ -13,7 +13,7 @@ UAssemblyStart
 struct OutputIRLineState
 {
 	IRBuilder::ToStringState State;
-	UCodeLang::BinaryVectorMap<UCodeLang::IRidentifierID, String> Names;
+	UCodeLang::UnorderedMap<UCodeLang::IRidentifierID, String> Names;
 };
 void OutputIRLineInfo(IRBuilder* Builder,IRFunc* Func, const UDebugSetLineNumber* Val, OutputIRLineState& State, String& r)
 {
@@ -80,7 +80,7 @@ void OutputIRLineInfo(IRBuilder* Builder,IRFunc* Func, const UDebugSetLineNumber
 		}
 	}
 }
-void UAssembly::Assemble(const String_view& Text, UClib* Out)
+bool UAssembly::Assemble(const String_view& Text, UClib* Out)
 {
 	Lexer Lex; 
 	Parser Parse; 
@@ -92,14 +92,16 @@ void UAssembly::Assemble(const String_view& Text, UClib* Out)
 	
 	Lex.Lex(Text);
 	Parse.Parse(Lex.Get_Output(), Out);
+
+	return _ErrorsOutput->Has_Errors() == false;
 }
 String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool ShowIR)
 {
 	auto& InsMapData = Get_InsToInsMapValue();
     String r;
-	BinaryVectorMap<UAddress, String> AddressToName;
+	UnorderedMap<UAddress, String> AddressToName;
 
-	VectorMap<String, Vector<String>> OpenedSourceFilesLines;
+	UnorderedMap<String, Vector<String>> OpenedSourceFilesLines;
 	String OnFile;
 
 	auto UCodeLayer = Lib->GetLayer(UCode_CodeLayer_UCodeVM_Name);
@@ -109,7 +111,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 		const CodeLayer::UCodeByteCode& Info = UCodeLayer->_Data.Get<CodeLayer::UCodeByteCode>();
 		for (const auto& Item2 : Info._NameToPtr)
 		{
-			AddressToName[Item2._Value] = Item2._Key;
+			AddressToName.AddValue(Item2.second,Item2.first);
 		}
 	}
 	Optional<IRBuilder> IRInfo;
@@ -153,12 +155,13 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 
 			for (auto Item2 : Class.Methods)
 			{
+				r += " ";
 				for (auto Item3 : Item2.Attributes.Attributes)
 				{
 					r += ToString(Item3, Assembly);
 				}
 
-				r += " |" + ScopeHelper::GetNameFromFullName(Item2.FullName) + "[";
+				r += "|" + ScopeHelper::GetNameFromFullName(Item2.FullName) + "[";
 				
 				for (auto& Item3 : Item2.ParsType)
 				{
@@ -190,7 +193,12 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 		case ClassType::Alias:
 		{
 			auto& Class = Item->Get_AliasData();
-			r += "$" + Item->FullName + " = " + ToString(Class.Type, Assembly) + ";\n\n";
+			r += "$" + Item->FullName + " = ";
+
+			if (Class.HardAliasTypeID.has_value()) {
+				r += "!";
+			}
+			r += ToString(Class.Type, Assembly) + ";\n\n";
 		}
 		break;
 		case ClassType::Enum:
@@ -227,7 +235,34 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 			r += "\n\n";
 		}
 		break;
+		case ClassType::FuncPtr:
+		{
+			auto& FuncPtr = Item->Get_FuncPtr();
+
+			r += "$" + Item->FullName + " = |[";
+
+			for (auto& Item : FuncPtr.ParsType)
+			{
+				r += ToString(Item, Assembly);
+				if (&Item != &FuncPtr.ParsType.back())
+				{
+					r += ",";
+				}
+			}
+
+			r += "] -> ";
+			r += ToString(FuncPtr.RetType, Assembly) + ";\n\n";
+		}
+		break;
+		case ClassType::Tag:
+		{
+			r += "$" + Item->FullName + " tag:\n";
+			auto& TagData= Item->Get_TagData();
+
+		}
+		break;
 		default:
+			UCodeLangUnreachable();
 			break;
 		} 
 	}
@@ -242,14 +277,15 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 
 		auto& Insts = Info.Get_Instructions();
 		String OnFunc; 
-		BinaryVectorMap<IRidentifierID, OutputIRLineState> IRStringStates;
+		UnorderedMap<IRidentifierID, OutputIRLineState> IRStringStates;
+		BytesView staticbytesview = BytesView::Make(Lib->_StaticBytes.data(), Lib->_StaticBytes.size());
 		for (size_t i = 0; i < Insts.size(); i++)
 		{
 			auto& Item = Insts[i];
 			UAddress address = (UAddress)i;
-			if (AddressToName.count(address))
+			if (AddressToName.HasValue(address))
 			{
-				String Name = AddressToName[address];
+				String Name = AddressToName.GetValue(address);
 				r += "---" + Name + ": \n";
 				OnFunc = Name;
 			}
@@ -285,18 +321,19 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 							r += "   //Source Line:";
 							String LineStr;
 
-							String* ItemValue=nullptr;
+							String* ItemValue = nullptr;
 							if (OpenedSourceFilesLines.HasValue(OnFile))
 							{
-								auto& Item = OpenedSourceFilesLines.at(OnFile);
+								auto& Item = OpenedSourceFilesLines.GetValue(OnFile);
 
-								if (Val->LineNumber-1 < Item.size()) {
+								if (Val->LineNumber - 1 < Item.size()) {
 									ItemValue = &Item[Val->LineNumber - 1];
 								}
 							}
 							else
 							{
-								std::ifstream file(SourceFiles.value().native() + Path(OnFile).native());
+								std::ifstream file;
+								file.open(Path(SourceFiles.value().native() + Path(OnFile).native()));
 								if (file.is_open())
 								{
 									std::string str;
@@ -305,11 +342,11 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 									{
 										Lines.push_back(std::move(str));
 									}
-									OpenedSourceFilesLines.AddValue(OnFile,std::move(Lines));
-								
-									auto& Item = OpenedSourceFilesLines.at(OnFile);
+									OpenedSourceFilesLines.AddValue(OnFile, std::move(Lines));
 
-									if (Val->LineNumber-1 < Item.size()) {
+									auto& Item = OpenedSourceFilesLines.GetValue(OnFile);
+
+									if (Val->LineNumber - 1 < Item.size()) {
 										ItemValue = &Item[Val->LineNumber - 1];
 									}
 								}
@@ -317,7 +354,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 								{
 									OpenedSourceFilesLines.AddValue(OnFile, {});
 								}
-								
+
 							}
 
 
@@ -337,7 +374,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 						{
 							auto& IRInfoVal = IRInfo.value();
 
-							
+
 							bool HasStackFrame = OnFuncFrameStackSize != 0;
 							if (StaticVariablesInitializeFunc == OnFunc)
 							{
@@ -349,7 +386,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 									IRInfoVal.ToString(LineState.State, &IRInfoVal._StaticInit, Unused);
 									IRStringStates.AddValue(Id, std::move(LineState));
 								}
-								OutputIRLineInfo(&IRInfoVal,&IRInfoVal._StaticInit, Val, IRStringStates.at(Id), r);
+								OutputIRLineInfo(&IRInfoVal, &IRInfoVal._StaticInit, Val, IRStringStates.GetValue(Id), r);
 							}
 							else if (ThreadVariablesInitializeFunc == OnFunc)
 							{
@@ -361,7 +398,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 									IRInfoVal.ToString(LineState.State, &IRInfoVal._threadInit, Unused);
 									IRStringStates.AddValue(Id, std::move(LineState));
 								}
-								OutputIRLineInfo(&IRInfoVal, &IRInfoVal._threadInit, Val, IRStringStates.at(Id), r);
+								OutputIRLineInfo(&IRInfoVal, &IRInfoVal._threadInit, Val, IRStringStates.GetValue(Id), r);
 							}
 							else if (StaticVariablesUnLoadFunc == OnFunc)
 							{
@@ -373,7 +410,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 									IRInfoVal.ToString(LineState.State, &IRInfoVal._StaticdeInit, Unused);
 									IRStringStates.AddValue(Id, std::move(LineState));
 								}
-								OutputIRLineInfo(&IRInfoVal, &IRInfoVal._StaticdeInit, Val, IRStringStates.at(Id), r);
+								OutputIRLineInfo(&IRInfoVal, &IRInfoVal._StaticdeInit, Val, IRStringStates.GetValue(Id), r);
 							}
 							else if (ThreadVariablesUnLoadFunc == OnFunc)
 							{
@@ -382,62 +419,62 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 								{
 									OutputIRLineState LineState;
 									String Unused;
-IRInfoVal.ToString(LineState.State, &IRInfoVal._threaddeInit, Unused);
-IRStringStates.AddValue(Id, std::move(LineState));
+									IRInfoVal.ToString(LineState.State, &IRInfoVal._threaddeInit, Unused);
+									IRStringStates.AddValue(Id, std::move(LineState));
 								}
-								OutputIRLineInfo(&IRInfoVal, &IRInfoVal._threaddeInit, Val, IRStringStates.at(Id), r);
+								OutputIRLineInfo(&IRInfoVal, &IRInfoVal._threaddeInit, Val, IRStringStates.GetValue(Id), r);
 							}
 							else
 							{
-							for (auto& Func : IRInfoVal.Funcs)
-							{
-
-								if (IRInfoVal.FromID(Func->identifier) == OnFunc)
+								for (auto& Func : IRInfoVal.Funcs)
 								{
-									auto Id = Func->identifier;
-									if (!IRStringStates.HasValue(Id))
+
+									if (IRInfoVal.FromID(Func->identifier) == OnFunc)
 									{
-										OutputIRLineState LineState;
-										String Unused;
-										IRInfoVal.ToString(LineState.State, Func.get(), Unused);
-										IRStringStates.AddValue(Id, std::move(LineState));
+										auto Id = Func->identifier;
+										if (!IRStringStates.HasValue(Id))
+										{
+											OutputIRLineState LineState;
+											String Unused;
+											IRInfoVal.ToString(LineState.State, Func.get(), Unused);
+											IRStringStates.AddValue(Id, std::move(LineState));
+										}
+										OutputIRLineInfo(&IRInfoVal, Func.get(), Val, IRStringStates.GetValue(Id), r);
+										break;
 									}
-									OutputIRLineInfo(&IRInfoVal, Func.get(), Val, IRStringStates.at(Id), r);
-									break;
 								}
-							}
 							}
 						}
 					}
 					else if (auto Val = Item->Debug.Get_If<UDebugSetFuncStackFrameSize>())
 					{
-					r += "   //StackFrameSize:" + std::to_string(Val->StackFrameSize);
-					r += '\n';
-					OnFuncFrameStackSize = Val->StackFrameSize;
+						r += "   //StackFrameSize:" + std::to_string(Val->StackFrameSize);
+						r += '\n';
+						OnFuncFrameStackSize = Val->StackFrameSize;
 					}
 					else if (Info.DebugInfo.has_value())
 					{
-					auto& Value = Info.DebugInfo.value();
-					auto List = Value.GetForIns(i);
-					for (auto& Item : List)
-					{
-						if (auto Val = Item->Debug.Get_If<UDebugSetVarableLoc>())
+						auto& Value = Info.DebugInfo.value();
+						auto List = Value.GetForIns(i);
+						for (auto& Item : List)
 						{
-							r += "   //";
+							if (auto Val = Item->Debug.Get_If<UDebugSetVarableLoc>())
+							{
+								r += "   //";
 
-							if (auto Value = Val->Type.Get_If<RegisterID>())
-							{
-								r += GetRegisterToString(*Value);
+								if (auto Value = Val->Type.Get_If<RegisterID>())
+								{
+									r += GetRegisterToString(*Value);
+								}
+								else
+								{
+									UCodeLangThrowException("not added");
+								}
+								r += " = ";
+								r += Val->VarableFullName;
+								r += '\n';
 							}
-							else
-							{
-								UCodeLangThrowException("not added");
-							}
-							r += " = ";
-							r += Val->VarableFullName;
-							r += '\n';
 						}
-					}
 					}
 
 				}
@@ -452,31 +489,7 @@ IRStringStates.AddValue(Id, std::move(LineState));
 
 			r += "   " + std::to_string(i) + " :";
 
-			if (InsMapData.count(Item.OpCode))
-			{
-				auto& MapData = InsMapData[Item.OpCode];
-				r += (String)MapData->InsName;
-				r += " ";
-
-				auto staticbytesview = BytesView::Make(Lib->Get_StaticBytes().data(), Lib->Get_StaticBytes().size());
-				if (MapData->Op_0 != OpCodeType::NoOpCode)
-				{
-					OpValueToString(MapData->Op_0, Item.Value0, AddressToName, staticbytesview, r);
-				}
-				if (MapData->Op_1 != OpCodeType::NoOpCode)
-				{
-					r += ",";
-					OpValueToString(MapData->Op_1, Item.Value1, AddressToName, staticbytesview, r);
-				}
-
-			}
-			else
-			{
-				r += "Ins " + std::to_string((uintptr_t)Item.OpCode) + ":" + std::to_string((uintptr_t)Item.Value0.AsPtr) + ","
-					+ std::to_string((uintptr_t)Item.Value1.AsPtr);
-			}
-
-
+			i += ParseInstruction(i,Span<Instruction>::Make(Insts.data(), Insts.size()), r, staticbytesview, AddressToName);
 
 			r += '\n';
 		}
@@ -491,10 +504,10 @@ IRStringStates.AddValue(Id, std::move(LineState));
 			{
 				r += "\n[Native-Instructions:" + Item->_Name + "]-- \n";
 				
-				BinaryVectorMap<UAddress, String> AddressToName;
+				UnorderedMap<UAddress, String> AddressToName;
 				for (const auto& Item2 : Val->_NameToPtr)
 				{
-					AddressToName[Item2._Value] = Item2._Key;
+					AddressToName.AddValue(Item2.second,Item2.first);
 				}
 				
 				auto MachineMode = ZYDIS_MACHINE_MODE_LONG_64;
@@ -513,9 +526,9 @@ IRStringStates.AddValue(Id, std::move(LineState));
 					/* instruction:     */ &instruction
 				)))
 				{
-					if (AddressToName.count(offset))
+					if (AddressToName.HasValue(offset))
 					{
-						String Name = AddressToName[offset];
+						String Name = AddressToName.GetValue(offset);
 						r += "---" + Name + ": \n";
 						
 					}
@@ -533,12 +546,272 @@ IRStringStates.AddValue(Id, std::move(LineState));
     return r;
 }
 
+size_t UAssembly::ParseInstruction( size_t I,const Span<Instruction> Data, String& r, const BytesView staticbytesview, UnorderedMap<UAddress, String>& AddressToName
+, bool CombineIns)
+{
+	auto& InsMapData = Get_InsToInsMapValue();
+
+	if (CombineIns == false) 
+	{
+		ToStringInstruction(Data[I], r, staticbytesview, AddressToName);
+		return 0;
+	}
+	else
+	{
+		auto& Ins = Data[I];
+		if (Data[I].OpCode == InstructionSet::Store32v1)
+		{
+			auto Opt = Instruction::IsLoad32(Data, I);
+			if (Opt)
+			{
+				Int32 V = Opt.value();
+				UInt32& VU = *(UInt32*)&V;
+				((UInt16*)&V)[0] = Ins.Op_RegUInt16.B;
+				r += "Store32 " + GetRegisterToString(Ins.Op_RegUInt16.A);
+				r += ", " + std::to_string(VU);
+				if (std::to_string(V) != std::to_string(VU))
+				{
+					r += "|";
+					r += std::to_string(V);
+				}
+				return 1;
+			}
+		}
+
+	
+		if (Data[I].OpCode == InstructionSet::Storef32v1)
+		{	
+			auto Opt = Instruction::IsLoadf32(Data, I);
+			if (Opt)
+			{
+				float32 V = Opt.value();
+				r += "Storef32 " + GetRegisterToString(Ins.Op_RegUInt16.A);
+				r += ", " + std::to_string(V);
+				return 1;
+			}
+		}
+		if (Data[I].OpCode == InstructionSet::Store64v1) 
+		{
+			auto Opt = Instruction::IsLoad64(Data, I);
+			if (Opt)
+			{
+				Int64 V = Opt.value();
+				UInt64& VU = *(UInt64*)&V;
+
+
+				r += "Store64 " + GetRegisterToString(Ins.Op_RegUInt16.A);
+				r += ", " + std::to_string(VU);
+				if (std::to_string(V) != std::to_string(VU))
+				{
+					r += "|";
+					r += std::to_string(V);
+				}
+				return 3;
+
+			}
+		}
+		if (Data[I].OpCode == InstructionSet::Storef64v1)
+		{
+			auto Opt = Instruction::IsLoadf64(Data, I);
+			if (Opt)
+			{
+				float64 V = Opt.value();
+				r += "Storef64 " + GetRegisterToString(Ins.Op_RegUInt16.A);
+				r += ", " + std::to_string(V);
+
+				return 3;
+			}
+
+		}
+		if (Data[I].OpCode == InstructionSet::Callv1)
+		{
+
+			{
+				auto Opt = Instruction::IsCall(Data, I);
+				if (Opt)
+				{
+					UAddress V = Opt.value();
+					r += "Call ";
+					OpValueToString(InsMapData.at(Data[I].OpCode)->Op_A, &V, AddressToName, staticbytesview, r);
+
+
+					#if UCodeLang_32BitSytem
+					return 1;
+					#else
+					return 3;
+					#endif 
+				}
+			}
+			{
+				auto Opt = Instruction::IsCallIf(Data, I);
+				if (Opt)
+				{
+					UAddress V = Opt.value().Func;
+					r += "Callif ";
+					OpValueToString(InsMapData.at(Data[I].OpCode)->Op_B, &V, AddressToName, staticbytesview, r);
+					r += "," + GetRegisterToString(Opt.value().Reg);
+					#if UCodeLang_32BitSytem
+					return 1;
+					#else
+					return 3;
+					#endif 
+				}
+
+			}
+		}
+		if (Data[I].OpCode == InstructionSet::Jumpv1)
+		{
+
+			{
+				auto Opt = Instruction::IsJump(Data, I);
+				if (Opt)
+				{
+					UAddress V = Opt.value();
+					r += "Jump ";
+					OpValueToString(InsMapData.at(Data[I].OpCode)->Op_A, &V, AddressToName, staticbytesview, r);
+
+
+					#if UCodeLang_32BitSytem
+					return 1;
+					#else
+					return 3;
+					#endif 
+				}
+			}
+			{
+				auto Opt = Instruction::IsJumpIf(Data, I);
+				if (Opt)
+				{
+					UAddress V = Opt.value().Func;
+					r += "Jumpif ";
+					r += GetRegisterToString(Opt.value().Reg);
+					r += ",";
+					OpValueToString(InsMapData.at(InstructionSet::Jumpif)->Op_B, &V, AddressToName, staticbytesview, r);
+
+					#if UCodeLang_32BitSytem
+					return 1;
+					#else
+					return 3;
+					#endif 
+				}
+
+			}
+		}
+		if (Data[I].OpCode == InstructionSet::LoadFuncPtrV1)
+		{
+			auto Opt = Instruction::IsLoadFuncPtr(Data, I);
+			if (Opt)
+			{
+				UAddress V = Opt.value();
+				r += "LoadFuncPtr " + GetRegisterToString(Ins.Op_RegUInt16.A);
+				r += ", "; 
+				OpValueToString(InsMapData.at(Data[I].OpCode)->Op_B, &V, AddressToName, staticbytesview, r);
+
+				#if UCodeLang_32BitSytem
+				return 1;
+				#else
+				return 3;
+				#endif 
+			}
+
+		}
+
+		ToStringInstruction(Data[I], r, staticbytesview, AddressToName);
+		return 0;
+	}
+}
+
+void UAssembly::ToStringInstruction(const Instruction& Item, String& r, const BytesView staticbytesview, UnorderedMap<UAddress,String>& AddressToName)
+{
+	auto& InsMapData = Get_InsToInsMapValue();
+	if (InsMapData.count(Item.OpCode))
+	{
+		auto& MapData = InsMapData[Item.OpCode];
+		r += (String)MapData->InsName;
+		r += " ";
+
+		auto optype = Instruction::GetOpType(Item.OpCode);
+		switch (optype)
+		{
+		case UCodeLang::Instruction::OpType::NoneOp:
+			break;
+		case UCodeLang::Instruction::OpType::OneReg:
+		{
+			r += GetRegisterToString(Item.Op_TwoReg.A);
+		}
+		break;
+		case UCodeLang::Instruction::OpType::TwoReg:
+		{
+			r += GetRegisterToString(Item.Op_TwoReg.A);
+			r += ',';
+			r += GetRegisterToString(Item.Op_TwoReg.B);
+		}
+		break;
+		case UCodeLang::Instruction::OpType::ThreeReg:
+		{
+			r += GetRegisterToString(Item.Op_ThreeReg.A);
+			r += ',';
+			r += GetRegisterToString(Item.Op_ThreeReg.B);
+			r += ',';
+			r += GetRegisterToString(Item.Op_ThreeReg.C);
+		}
+		break;
+		case UCodeLang::Instruction::OpType::RegUInt8:
+		{
+			r += GetRegisterToString(Item.Op_RegUInt8.A);
+			r += ',';
+			OpValueToString(MapData->Op_B, &Item.Op_RegUInt8.B, AddressToName, staticbytesview, r);
+		}
+		break;
+		case UCodeLang::Instruction::OpType::RegUInt16:
+		{
+			if (MapData->Op_A != OpCodeType::NoOpCode)
+			{
+				r += GetRegisterToString(Item.Op_RegUInt16.A);
+				r += ',';
+				OpValueToString(MapData->Op_B, &Item.Op_RegUInt16.B, AddressToName, staticbytesview, r);
+			}
+		}
+		break;
+		case UCodeLang::Instruction::OpType::ValUInt8:
+		{
+			OpValueToString(MapData->Op_A, &Item.Op_ValUInt8.A, AddressToName, staticbytesview, r);
+		}
+		break;
+		case UCodeLang::Instruction::OpType::ValUInt16:
+		{
+			OpValueToString(MapData->Op_A, &Item.Op_ValUInt16.A, AddressToName, staticbytesview, r);
+		}
+		break;
+		case UCodeLang::Instruction::OpType::TwoRegInt8:
+		{
+			r += GetRegisterToString(Item.Op_TwoRegInt8.A);
+			r += ',';
+			r += GetRegisterToString(Item.Op_TwoRegInt8.B);
+			r += ',';
+			OpValueToString(MapData->Op_C, &Item.Op_TwoRegInt8.C, AddressToName, staticbytesview, r);
+		}
+		break;
+		default:
+			UCodeLangUnreachable();
+			break;
+		}
+	}
+	else
+	{
+		r += "Ins " + std::to_string((uintptr_t)Item.OpCode) + ":" + 
+			std::to_string((uintptr_t)Item.Op_ThreeUInt8.A) + "," +
+			std::to_string((uintptr_t)Item.Op_ThreeUInt8.B) + "," +
+			std::to_string((uintptr_t)Item.Op_ThreeUInt8.C);
+	}
+}
+
 String UAssembly::ToString(const ReflectionTypeInfo& Value, const ClassAssembly& Assembly)
 {
 	String r;
 	if (Value.Isimmutable())
 	{
-		r = "umut ";
+		r = "imut ";
 	}
 
 	if (Value._MoveData ==ReflectionMoveData::Moved)
@@ -556,6 +829,12 @@ String UAssembly::ToString(const ReflectionTypeInfo& Value, const ClassAssembly&
 	case ReflectionTypes::Bool:r += "bool";break;
 	case ReflectionTypes::Char:r += "char"; break;
 
+	case ReflectionTypes::Uft8:r += "uft8"; break;
+	case ReflectionTypes::Uft16:r += "uft16"; break;
+	case ReflectionTypes::Uft32:r += "uft32"; break;
+
+
+	
 	case ReflectionTypes::sInt8:r += "sint8"; break;
 	case ReflectionTypes::uInt8:r += "uint8"; break;
 
@@ -702,7 +981,7 @@ String UAssembly::ToString(const ClassMethod::Par& Value, const ClassAssembly& A
 	R += ToString(Value.Type, Assembly);
 	return R;
 }
-void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In,const BinaryVectorMap<UAddress, String>& AddressToName,const BytesView StaticVarablesData, String& out)
+void UAssembly::OpValueToString(OpCodeType OpType,const void* In,const UnorderedMap<UAddress, String>& AddressToName,const BytesView StaticVarablesData, String& out)
 {
 
 	switch (OpType)
@@ -711,74 +990,56 @@ void UAssembly::OpValueToString(OpCodeType OpType,const AnyInt64& In,const Binar
 		break;
 	case OpCodeType::AnyInt8:
 	{
-		String tepS = std::to_string((UInt64)In.AsUInt8);
-		String teps2 = std::to_string((Int64)In.AsInt8);
+		String tepS = std::to_string((UInt64)(*(UInt8*)In));
+		String teps2 = std::to_string((Int64)(*(Int8*)In));
 		out += (tepS == teps2) ? tepS : tepS + "|" + teps2;
 	}	
 	break;
 	case OpCodeType::AnyInt16:
 	{
-		String tepS = std::to_string((UInt64)In.AsUInt16);
-		String teps2 = std::to_string((Int64)In.AsInt16);
+		String tepS = std::to_string((UInt64)(*(UInt16*)In));
+		String teps2 = std::to_string((Int64)(*(Int16*)In));
 		out += (tepS == teps2) ? tepS : tepS + "|" + teps2;
 	}
 	break;
 	case OpCodeType::AnyInt32:
 	{
-		String tepS = std::to_string((UInt64)In.AsUInt32);
-		String teps2 = std::to_string((Int64)In.AsInt32);
+		String tepS = std::to_string((UInt64)(*(UInt32*)In));
+		String teps2 = std::to_string((Int64)(*(Int32*)In));
 		out += (tepS == teps2) ? tepS : tepS + "|" + teps2;
 	}	
 	break;
 	case OpCodeType::AnyInt64:
 	{
-		String tepS = std::to_string((UInt64)In.AsUInt64);
-		String teps2 = std::to_string((Int64)In.AsInt64);
+		String tepS = std::to_string((UInt64)(*(UInt64*)In));
+		String teps2 = std::to_string((Int64)(*(Int32*)In));
 		out += (tepS == teps2) ? tepS : tepS + "|" + teps2;
 	}	
 	break;
 
-	case OpCodeType::Anyfloat32:
-		out += std::to_string(In.Asfloat32);
-		break;
-	case OpCodeType::Anyfloat64:
-		out += std::to_string(In.Asfloat64);
-		break;
-
+	
 	case OpCodeType::Register:
-		out += GetRegisterToString(In.AsRegister);
+		out += GetRegisterToString(*(RegisterID*)In);
 		break;
-	case OpCodeType::UIntPtr:
-		out += std::to_string(In.AsUInt64);
-		break;
-		
 	case OpCodeType::StaticCString:
-		out += "\"" + (String)(const char*)&StaticVarablesData[In.AsUIntNative] + "\"";
+		out += "\"" + (String)(const char*)&StaticVarablesData[(*(UInt16*)In)] + "\"";
 		break;
 
 	case OpCodeType::InsAddress:
 	{
-		auto NewAddress = In.AsAddress + 1;
-		if (AddressToName.count(NewAddress))
+		auto NewAddress = (*(UAddress*)In) + 1;
+		if (AddressToName.HasValue(NewAddress))
 		{
-			out += "{" + AddressToName.at(NewAddress) + "}";
+			out += "{" + AddressToName.GetValue(NewAddress) + "}";
 		}
 		else
 		{
-			out += "{" + std::to_string(In.AsUInt64) + "}";
+			out += "{" + std::to_string(NewAddress) + "}";
 		}
 	}	
 	break;
-	case OpCodeType::RegPtrAndRegOut:
-	{
-		const RegisterID* ReV = &In.AsRegister;
-		RegisterID Ptr = ReV[0];
-		RegisterID RegOut = ReV[1];
-		out += "[Ptr:" + GetRegisterToString(Ptr) + "]," + "[Target:" + GetRegisterToString(RegOut) + "]";
-	}
-		
-		break;
 	default:
+		UCodeLangUnreachable();
 		break;
 	}
 }

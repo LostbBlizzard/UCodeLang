@@ -15,4 +15,7 @@ inline const UCodeLang::String UCodeLang_UCAppDir_Test_LanguageSeverFilesOut = U
 
 inline const UCodeLang::String UCodeLang_UCAppDir_Test_CppHelperFiles = UCodeLang_UCAppDir_TestDir + "CppHelperFiles/Files/";
 inline const UCodeLang::String UCodeLang_UCAppDir_Test_CppHelperOut = UCodeLang_UCAppDir_TestDir + "CppHelperFiles/Output/";
+
+inline const UCodeLang::String  UCodeLang_UCAppDir_TestPerformanceTests = UCodeLang_UCAppDir_TestDir + "PerformanceTests/";
+inline const UCodeLang::String  UCodeLang_UCAppDir_TestPerformanceTestsOut = UCodeLang_UCAppDir_TestDir + "PerformanceTests/Output/";
 #endif // DEBUG

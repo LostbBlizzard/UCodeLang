@@ -1,16 +1,28 @@
 #include "AppObject.hpp"
 #include "imgui/imgui.h"
-#include "LanguageSever.hpp"
 #include "ImGuiHelpers/ImguiHelper.hpp"
-#include "Imgui/misc/cpp/imgui_stdlib.h"
+#include "AppAPILink.hpp"
+
+#include "imgui/misc/cpp/imgui_stdlib.h"
 #include "UCodeLang/Compliation/UAssembly/UAssembly.hpp"
 
+#include "UCodeLang/Compliation/ModuleFile.hpp"
 
 #include "UCodeLang/Compliation/Back/UCodeBackEnd/UCodeBackEnd.hpp"
 #include "UCodeLang/Compliation/Back/C89/C89Backend.hpp"
 #include "UCodeLang/Compliation/Back/IR/IRBackEnd.hpp"
 #include "UCodeLang/Compliation/Back/LLVM/LLVMBackEnd.hpp"
 #include "UCodeLang/Compliation/Back/WebAssembly/WebAssembly.hpp"
+#include "UCodeLang/Compliation/Back/Windows/WindowsBackEnd.hpp"
+#include "UCodeLang/Compliation/Back/Linux/LinuxBackEnd.hpp"
+
+#include "UCodeLang/RunTime/ProfilerDebuger.hpp"
+
+#include "UCodeAnalyzer/SyntaxHelper.hpp"
+
+#include "UCodeLang/Compliation/Back/Windows/PE_File.hpp"
+//#include "UCodeLang/Compliation/Back/Linux/ELF_File.hpp"
+//#include <elfio/elfio_dump.hpp>
 
 #include "UCodeLang/Compliation/Back/x86_64/X86_64UNativeBackEnd.hpp"
 #include "UCodeLang/Compliation/Back/x86_64/X86_64JitCompiler.hpp"
@@ -21,12 +33,17 @@
 #include <tests/Test.hpp>
 #include <future>
 #include <sstream>
-#ifdef UCodeLang_Platform_Windows
+#if UCodeLang_Platform_Windows
 #include <Windows.h>
-#endif // DEBUG
+#elif UCodeLang_Platform_Posix
+#include <dlfcn.h>
+#else
+
+#endif 
 
 UCodeIDEStart
 
+static UCodeLang::ProfilerDebuger Debuger;
 
 void UCodeIDEStyle(ImGuiStyle* dst)
 {
@@ -91,133 +108,38 @@ void AppObject::Init()
             });
 
 
-        TextEditor::LanguageDefinition Def;
-        Def.mName = "UCodeLang";
-        Def.mTokenize = [](const char* in_begin, const char* in_end, const char*& out_begin, const char*& out_end, TextEditor::PaletteIndex& paletteIndex)
         {
+            TextEditor::LanguageDefinition Def = Def.CPlusPlus();
+            Def.mName = "UCodeLang";
+            auto keywords = SyntaxHelper::GetKeyWords();
+
+            Def.mKeywords.clear();
+            for (auto& Item : keywords)
+            {
+                Def.mKeywords.insert(Item);
+            }
+            /*
+            Def.mTokenize = [](const char* in_begin, const char* in_end, const char*& out_begin, const char*& out_end, TextEditor::PaletteIndex& paletteIndex)
+            {
 
 
-            return false;
-        };
+                return false;
+            };
+            */
 
-
-        _Editor.SetShowWhitespaces(false);
-        //_Editor.SetLanguageDefinition(Def);
-
+            _Editor.SetShowWhitespaces(false);
+            _Editor.SetLanguageDefinition(Def);
+        }
+        /*
+        r += ToString(I->ObjectType);
+		r += " " + State.GetName(I);
+		r += " = ";
+		r += "await::new(" + ToString(State, *I, I->Target()) + ")";
+        */
+      
         UCodeIDEStyle(nullptr);
-        _Editor.SetText(
-            R"(
-
-|main[] => 0;
-
-IntVector VectorTest = [];
-String StringTest = [];
-
-//A simplified standard Library below.
-
-$Vec2:
- int X = 0;
- int Y = 0;
-
-$Vec3:
- int X = 0;
- int Y = 0;
- int Z = 0;
-
-//Syntactic alias: T? = Optional<T>
-$Optional<T> enum:
- Value[T val],
- None,
-
-//Syntactic alias: T!E = Result<T,E>
-$Result<T,E> enum:
- Value[T val],
- Error[E err],
-
-$OpInt = int?;//make type.
-$Opbool = bool?;//make type.
-$Opchar = char?;//make type.
-
-$IntVector = int[];
-
-
-
-|NullPtr<T>[] => bitcast<T>(0);
-|NullPtrArr<T>[] => bitcast<T[&]>(0);
-|AreSamePtrArr<T>[umut T[&] A,umut T[&] B] => bitcast<uintptr>(A) == bitcast<uintptr>(B);
-|IsNullPtrArr<T>[umut T[&] Ptr] => bitcast<uintptr>(Ptr) == uintptr(0);
-
-//Syntactic alias: T[] = Vector<T>
-$Vector<T>:
- private:
-  T[&] _Data = NullPtrArr<T>();
-  uintptr _Capacity = 0;
-  uintptr _Size = 0;
-  |Data[umut this&] -> T[&]:ret _Data;//So  ClassAssembly::IsString_t will work.
- public: 
-  |Size[umut this&] => _Size;
-  |Capacity[umut this&] => _Capacity;
- 
-  |Resize[this&,uintptr size] -> void:
-   Reserve(size);
-   _Size = size;
-  |Reserve[this&,uintptr size] -> void:
-
-    if IsNullPtrArr(_Data):
-      drop(_Data);
-
-    _Data =: new T[size]; 
-    _Capacity = size;
-
-  |Clear[this&]:_Size = 0;
-
-  |Push[this&,moved T Item] => Insert(Item,_Size);
-  |Push[this&,umut T& Item] => Insert(Item,_Size);
-  |Pop[this&] => Remove(_Size - uintptr(1));
-
-  |Remove[this&,uintptr Index] -> T;
- 
-  |Insert[this&,moved T Item,uintptr Index] -> void:
-   //_Size++;
-   //if _Capacity < _Size:
-   //Resize(_Size);
-
-   //_Data[Index] = Item;
-    
-  |Insert[this&,umut T& Item,uintptr Index] -> void:
-   //_Size++;
-   //if _Capacity < _Size:
-   //Resize(_Size);
-
-   //_Data[Index] = Item;
-
-$String = String_t<char>;
-
-$String_t<T>:
- private:
-  Vector<T> Base = [];
-  |Data[umut this&] => Base.Data();
- public: 
-  
-  |Size[umut this&] => Base.Size();
-  |Capacity[umut this&] => Base.Capacity();
-
-  |Resize[this&,uintptr size] => Base.Resize(size);
-  |Clear[this&] => Base.Clear();
-  |Push[this&, T Item] => Base.Push(Item);
-  |Pop[this&] => Base.Pop();
-  |Remove[this&,uintptr Index] => Base.Remove(Index);
-  |Insert[this&,uintptr Index, T Item] => Base.Insert(Item,Index);
-
-//inlined enum variant: X || Y || Z
-//$InlinedEnum = int || bool || char;
-
-
-            )");
-
-
-
-
+        _Editor.SetText(UCodeLang::Compiler::GetTextFromFile("src/AppObject/test.uc"));
+        UpdateBackEnd();
         CompileText(GetTextEditorString());
 
 
@@ -344,95 +266,34 @@ void EndDockSpace()
 }
 void AppObject::OpenOnWeb(const String& WebLink)
 {
+    #if UCodeLang_Platform_Windows
     ShellExecuteA(0, 0, WebLink.c_str(), 0, 0, SW_SHOW);
+    #elif UCodeLang_Platform_Posix
+    auto cmd =String("open ") + WebLink;
+    system(cmd.c_str());
+    #else //MacOS
+
+    #endif 
 }
-void AppObject::OnDraw()
+void AppObject::DrawTestMenu()
 {
-    {
-        auto now = SteadyClock::now();
-
-        auto TimePassed =  now - LastFrame;
-
-        DetaTime = std::chrono::duration_cast<std::chrono::duration<float>>(TimePassed).count();
-
-
-        LastFrame = now;
-    }
-    
-    ProcessSeverPackets();
-
-    {
-        if (IsRuningCompiler == false && _RuningCompiler._Is_ready())
-        {
-            OnDoneCompileing(_RuningCompiler.get(), _RuningPaths.OutFile);
-        }
-    }
-
-    bool Doc = true;
-    BeginDockSpace(&Doc);
-
-    //ImGui::ShowDemoWindow();
-
-
-    if (ImGui::Begin("ShowStyleEditor"))
-    {
-        ImGui::ShowStyleEditor();
-
-    }  ImGui::End();
-
-
-    if (ImGui::Begin("Files"))
-    {
-
-    } ImGui::End();
-    if (ImGui::Begin("File.uc"))
-    {
-
-        _Editor.Render("File.uc");
-
-    } ImGui::End();
-
-    if (ImGui::Begin("Error List"))
-    {
-        ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.50f);
-        //ImGui::ListBoxHeader("Errors");  
-        
-        for (auto& item : PublishedDiagnostics.diagnostics)
-        {
-            String label = "LSP:" + item.message;
-            if (ImGui::Selectable(label.c_str(), false))
-            {
-                auto text = GetTextEditorString();
-
-
-                _Editor.SetCursorPosition(TextEditor::Coordinates(item.range.start.line, item.range.start.character));
-                // handle selection
-            }
-        }
-        for (auto& item : Errors)
-        {
-            String label = "Compier:" + item._Error._Msg;
-            if (ImGui::Selectable(label.c_str(), item.IsSelected))
-            {
-                auto text = GetTextEditorString();
-
-
-                _Editor.SetCursorPosition(TextEditor::Coordinates(item._Error.Line, GetColumn(text, item._Error.Line, item._Error.Pos)));
-                // handle selection
-            }
-        }
-      
-        //ImGui::EndListBox();
-
-
-        ImGui::PopItemWidth();
-    } ImGui::End();
-
 #if UCodeLangDebug   
 
     static constexpr size_t TestCount = ULangTest::Tests.size();
+
+    enum class TestMode
+    {
+        UCodeLang,
+        C89,
+    };
     struct TestInfo
     {
+        TestMode Testmode = TestMode::C89;
+        size_t MinTestIndex = 40;
+        size_t MaxTestCount = 50;//;//ULangTest::Tests.size();
+
+        size_t ModuleIndex = 0;
+        size_t ModuleTestCount = 1;//;//ULangTest::Tests.size();
         bool TestAsRan = false;
         enum class TestState
         {
@@ -441,7 +302,8 @@ void AppObject::OnDraw()
             Fail,
             Exception
         };
-        
+        using SuccessCondition = ULangTest::SuccessCondition;
+
 
         struct TestData
         {
@@ -468,7 +330,7 @@ void AppObject::OnDraw()
                 stream << '\0';
                 return stream.str();
             }
-            bool LogErrors(std::ostream& out,UCodeLang::Compiler& _Compiler)
+            bool LogErrors(std::ostream& out, UCodeLang::Compiler& _Compiler)
             {
                 out << "[\n";
                 auto& Errors = _Compiler.Get_Errors().Get_Errors();
@@ -479,16 +341,23 @@ void AppObject::OnDraw()
                 out << "]\n";
                 return _Compiler.Get_Errors().Has_Errors();
             }
-            bool RunTestForFlag(const ULangTest::TestInfo& Test,UCodeLang::OptimizationFlags flag)
+            bool RunTestForFlag(const ULangTest::TestInfo& Test, UCodeLang::OptimizationFlags flag,TestMode Testmod)
             {
-               
+
                 Logs.clear();
 
                 using namespace UCodeLang;
                 using namespace ULangTest;
 
                 Compiler::CompilerPathData paths;
+
+
                 Compiler Com;
+                if (Testmod == TestMode::C89)
+                {
+                    Com.Set_BackEnd(C89Backend::MakeObject);
+                }
+
                 Com.Get_Settings()._Flags = flag;
                 Com.Get_Settings().PtrSize = IntSizes::Native;
 
@@ -499,8 +368,7 @@ void AppObject::OnDraw()
                 OutFileDir = p.parent_path().generic_string() + "/" + +Test.TestName + "/";
 
                 std::filesystem::create_directories(OutFileDir);
-                std::string OutFilePath = OutFileDir + Test.TestName + ULangTest::ModeType(flag) + ".ulibtest";
-
+                std::string OutFilePath = OutFileDir + Test.TestName + ULangTest::ModeType(flag) + ".ulibtest" + Com.GetOutputExtWithDot();
 
 
 
@@ -524,7 +392,7 @@ void AppObject::OnDraw()
                 catch (const std::exception& ex)
                 {
                     State = TestState::Exception;
-                    Logs += "fail from Compile [exception] '" + (String)ex.what() + "' : " + "'"  + Test.TestName + "'" + '\n';
+                    Logs += "fail from Compile [exception] '" + (String)ex.what() + "' : " + "'" + Test.TestName + "'" + '\n';
                     //ErrStream << "fail from Compile [exception] '" << ex.what() << "' : " << "'" << Test.TestName << "'" << std::endl;
                     return false;
                 }
@@ -539,7 +407,7 @@ void AppObject::OnDraw()
                         (Com_r._State == Compiler::CompilerState::Fail && Test.Condition == SuccessCondition::CompilationFail)
                         )
                     {
-                        Logs += "Success from test '" +  (String)Test.TestName + ModeType(flag) + "'" + '\n';
+                        Logs += "Success from test '" + (String)Test.TestName + ModeType(flag) + "'" + '\n';
                         State = TestState::Passed;
                         return true;
                     }
@@ -568,50 +436,246 @@ void AppObject::OnDraw()
                     return false;
                 }
 
-                
-                UClib lib;
-                if (!UClib::FromFile(&lib, OutFilePath))
+                if (Testmod == TestMode::UCodeLang)
                 {
-                    State = TestState::Fail;
-
-                    Logs += (String)"fail from test [Cant Open ULib File] '" + Test.TestName + ModeType(flag) + "'" +  '\n';
-                    return false;
-                }
-
-                RunTimeLangState state;
-                RunTimeLib rLib;
-                rLib.Init(&lib);
-                state.AddLib(&rLib);
-                state.LinkLibs();
-                {
-                    Interpreter RunTime;
-                    RunTime.Init(&state);
-
-                    Interpreter::Return_t r;
-                    try
+                    UClib lib;
+                    if (!UClib::FromFile(&lib, OutFilePath))
                     {
-                       // r = RunTime.Call(Test.FuncToCall);
+                        State = TestState::Fail;
 
-                    }
-                    catch (const std::exception& ex)
-                    {
-                        State = TestState::Exception;
-
-                        Logs += (String)"fail from test [exception] '" + ex.what() + "' : " + "'" + Test.TestName + "'" + ModeType(flag) + '\n';
+                        Logs += (String)"fail from test [Cant Open ULib File] '" + Test.TestName + ModeType(flag) + "'" + '\n';
                         return false;
                     }
 
-                    if (Test.Condition == SuccessCondition::RunTimeValue)
+                    RunTimeLangState state;
+                    RunTimeLib rLib;
+                    rLib.Init(&lib);
+                    state.AddLib(&rLib);
+                    state.LinkLibs();
                     {
-                        std::unique_ptr<Byte[]> RetState = std::make_unique<Byte[]>(Test.RunTimeSuccessSize);
-                        RunTime.Get_Return(RetState.get(), Test.RunTimeSuccessSize);
+                        Interpreter RunTime;
+                        RunTime.Init(&state);
 
-                        String Type = "Interpreter";
+                        Interpreter::Return_t r;
+                        try
+                        {
+                            r = RunTime.Call(Test.FuncToCall);
+
+                        }
+                        catch (const std::exception& ex)
+                        {
+                            State = TestState::Exception;
+
+                            Logs += (String)"fail from test [exception] '" + ex.what() + "' : " + "'" + Test.TestName + "'" + ModeType(flag) + '\n';
+                            return false;
+                        }
+
+                        if (Test.Condition == SuccessCondition::RunTimeValue)
+                        {
+                            RetValue = std::make_unique<Byte[]>(Test.RunTimeSuccessSize);
+                            RunTime.Get_Return(RetValue.get(), Test.RunTimeSuccessSize);
+
+                            String Type = "Interpreter";
+
+                            bool IsSame = true;
+                            for (size_t i = 0; i < Test.RunTimeSuccessSize; i++)
+                            {
+                                if (RetValue[i] != Test.RunTimeSuccess[i])
+                                {
+                                    IsSame = false;
+                                    break;
+                                }
+                            }
+                            if (IsSame)
+                            {
+                                Logs += "Success from test '" + (String)Test.TestName + "'" + ModeType(flag) + " " + Type + '\n';
+                            }
+                            else
+                            {
+                                State = TestState::Fail;
+
+                                Logs += "fail from got value '";
+                                Logs += OutputBytesToString(RetValue.get(), Test.RunTimeSuccessSize);
+
+                                Logs += "' but expecting '";
+                                Logs += OutputBytesToString(Test.RunTimeSuccess.get(), Test.RunTimeSuccessSize);
+                                Logs += ": '" + Type + "," + ModeType(flag) + "'" + Type + '\n';
+                                return false;
+                            }
+                        }
+                        RunTime.UnLoad();
+                    }
+                    State = TestState::Passed;
+                    return true;
+                }
+                else if (Testmod == TestMode::C89)
+                {
+                    UClib& ulib = *Com_r.OutPut;
+                    auto ufunc = ulib.Get_Assembly().Find_Func(Test.FuncToCall);
+                    UCodeLangAssert(ufunc);
+                    {
+                        // String filetxt = Compiler::GetTextFromFile(OutFilePath);
+
+                        Path  dllfile = OutFilePath + ".lib";
+                        Path Testablefile = OutFilePath;
+                        UCodeLangAssert(CompileC89ToLib(Testablefile, dllfile));
+                        
+
+                        auto& Assembly = ulib.Get_Assembly();
+                        auto cfuncname = C89Backend::UpdateToCindentifier(ufunc->DecorationName);
+
+                        auto staticinitname = C89Backend::UpdateToCindentifier(StaticVariablesInitializeFunc);
+                        auto threadinitname = C89Backend::UpdateToCindentifier(ThreadVariablesInitializeFunc);
+
+                        auto staticdeinitname = C89Backend::UpdateToCindentifier(StaticVariablesUnLoadFunc);
+                        auto threaddeinitname = C89Backend::UpdateToCindentifier(ThreadVariablesUnLoadFunc);
+
+                        #if UCodeLang_Platform_Windows
+                        auto lib = LoadLibrary(dllfile.c_str());
+                        UCodeLangDefer(FreeLibrary(lib));
+                        auto staticinittocall = GetProcAddress(lib,staticinitname.c_str());
+                        auto threadinittocall = GetProcAddress(lib,threadinitname.c_str());
+                        auto staticdeinittocall = GetProcAddress(lib,staticdeinitname.c_str());
+                        auto threaddeinittocall = GetProcAddress(lib,threaddeinitname.c_str());
+
+                        auto functocall = GetProcAddress(lib, cfuncname.c_str());
+                        #elif UCodeLang_Platform_Posix
+                        auto lib = dlopen(dllfile.c_str(), RTLD_NOW);
+                        UCodeLangDefer(dlclose(lib));
+
+                        auto staticinittocall = dlsym(lib,staticinitname.c_str());
+                        auto threadinittocall = dlsym(lib,threadinitname.c_str());
+                        auto staticdeinittocall = dlsym(lib,staticdeinitname.c_str());
+                        auto threaddeinittocall = dlsym(lib,threaddeinitname.c_str());
+                        
+                        auto functocall = dlsym(lib,cfuncname.c_str());
+                        #endif       
+                        
+                        UCodeLangAssert(functocall);
+
+                        bool hasautocall = cfuncname == "main";
+                        if (!hasautocall)
+                        {
+                            using Func = void(*)();
+                            ((Func)staticinittocall)();
+                            ((Func)threadinittocall)();
+                        }
+
+                        auto rettype = ufunc->RetType;
+                        if (auto val = Assembly.Find_Node(rettype))
+                        {
+                            if (val->Get_Type() == ClassType::Enum)
+                            {
+                                auto& Enum = val->Get_EnumData();
+                                rettype = Enum.BaseType;
+                            }
+                        }
+
+                        RetValue = std::make_unique<Byte[]>(Test.RunTimeSuccessSize);
+                        {
+                            if (rettype._Type == ReflectionTypes::Bool)
+                            {
+                                using GetValueFunc = bool(*)();
+                                auto val = ((GetValueFunc)functocall)();
+
+                                UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
+                                memcpy(RetValue.get(), &val, sizeof(val));
+                            }
+                            else if (rettype._Type == ReflectionTypes::sInt8
+                                || rettype._Type == ReflectionTypes::uInt8
+                                || rettype._Type == ReflectionTypes::Char)
+                            {
+                                using GetValueFunc = UInt8(*)();
+                                auto val = ((GetValueFunc)functocall)();
+
+                                UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
+                                memcpy(RetValue.get(), &val, sizeof(val));
+                            }
+                            else  if (rettype._Type == ReflectionTypes::uInt16
+                                || rettype._Type == ReflectionTypes::sInt16)
+                            {
+                                using GetValueFunc = Int16(*)();
+                                auto val = ((GetValueFunc)functocall)();
+
+                                UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
+                                memcpy(RetValue.get(), &val, sizeof(val));
+                            }
+                            else  if (rettype._Type == ReflectionTypes::uInt32
+                                || rettype._Type == ReflectionTypes::sInt32)
+                            {
+                                using GetValueFunc =Int32(*)();
+                                auto val = ((GetValueFunc)functocall)();
+
+                                UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
+                                memcpy(RetValue.get(), &val, sizeof(val));
+                            }
+                            else  if (rettype._Type == ReflectionTypes::float32)
+                            {
+                                using GetValueFunc = float32(*)();
+                                auto val = ((GetValueFunc)functocall)();
+
+                                UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
+                                memcpy(RetValue.get(), &val, sizeof(val));
+                            }
+                            else  if (rettype._Type == ReflectionTypes::float64)
+                            {
+                                using GetValueFunc = float64(*)();
+                                auto val = ((GetValueFunc)functocall)();
+
+                                UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
+                                memcpy(RetValue.get(), &val, sizeof(val));
+                            }
+                            else  if (rettype._Type == ReflectionTypes::uIntPtr
+                                || rettype._Type == ReflectionTypes::sIntPtr)
+                            {
+                                using GetValueFunc = uintptr_t(*)();
+                                auto val = ((GetValueFunc)functocall)();
+
+                                UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
+                                memcpy(RetValue.get(), &val, sizeof(val));
+                            }
+                            else if (auto typenod = Assembly.Find_Node(rettype))
+                            {
+                                if (StringHelper::StartWith(typenod->FullName, "Vec2")
+                                    || StringHelper::StartWith(typenod->FullName, "vec2"))
+                                {
+                                   // using GetValueFunc = Vec2(*)();//I have no idea why this does not work
+                                   // auto val = ((GetValueFunc)functocall)();
+
+
+
+                                    using GetValueFunc2 = Int64(*)();
+                                    auto val2 = ((GetValueFunc2)functocall)();
+
+                                    Vec2& val = *(Vec2*)&val2;
+
+                                    UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
+                                    memcpy(RetValue.get(), &val, sizeof(val));
+                                }
+                                else
+                                {
+                                    UCodeLangUnreachable();
+                                }
+                            }
+                            else
+                            {
+                                UCodeLangUnreachable();
+                            }
+                        }
+
+                        if (!hasautocall)
+                        {
+                            using Func = void(*)();
+                            ((Func)staticdeinittocall)();
+                            ((Func)threaddeinittocall)();
+                        }
+
+                        String Type = "NativeC";
 
                         bool IsSame = true;
                         for (size_t i = 0; i < Test.RunTimeSuccessSize; i++)
                         {
-                            if (RetState[i] != Test.RunTimeSuccess[i])
+                            if (RetValue[i] != Test.RunTimeSuccess[i])
                             {
                                 IsSame = false;
                                 break;
@@ -620,11 +684,15 @@ void AppObject::OnDraw()
                         if (IsSame)
                         {
                             Logs += "Success from test '" + (String)Test.TestName + "'" + ModeType(flag) + " " + Type + '\n';
+                            State = TestState::Passed;
+                            return true;
                         }
                         else
                         {
+                            State = TestState::Fail;
+
                             Logs += "fail from got value '";
-                            Logs += OutputBytesToString(RetState.get(), Test.RunTimeSuccessSize);
+                            Logs += OutputBytesToString(RetValue.get(), Test.RunTimeSuccessSize);
 
                             Logs += "' but expecting '";
                             Logs += OutputBytesToString(Test.RunTimeSuccess.get(), Test.RunTimeSuccessSize);
@@ -632,16 +700,18 @@ void AppObject::OnDraw()
                             return false;
                         }
                     }
-                    RunTime.UnLoad();
+                    return true;
                 }
-
-                return true;
+                else 
+                {
+                    UCodeLangUnreachable();
+                }
             }
         };
 
         UCodeLang::Array<TestData, TestCount> Testinfo;
         UCodeLang::Array<UCodeLang::Unique_ptr<std::future<bool>>, TestCount> Threads;
-        
+
         TestState SortBy = TestState::Null;
         String SortByName;
         bool IncludeOptimization = false;
@@ -659,198 +729,996 @@ void AppObject::OnDraw()
             case TestInfo::TestState::Fail:return "fail";
             case TestInfo::TestState::Exception:return "exception";
             default:
-                return "";
+                UCodeLangUnreachable();
                 break;
             }
         }
+        static String GetToString(SuccessCondition Value)
+        {
+            switch (Value)
+            {
+            case SuccessCondition::Compilation:return "Compilation";
+            case SuccessCondition::CompilationFail:return "CompilationFail";
+            case SuccessCondition::RunTimeValue:return "RunTimeValue";
+            default:
+                UCodeLangUnreachable();
+                break;
+            }
+        }
+        bool DebugMode = true;
+        UCodeLang::OptimizationFlags Flags;
+
+
+        struct ModuleTestData
+        {
+            TestState State = TestState::Null;
+
+            String Logs;
+        };
+
+        UCodeLang::Array<ModuleTestData, ULangTest::ModuleTests.size()> ModuleTestinfo;
+        UCodeLang::Array<UCodeLang::Unique_ptr<std::future<bool>>, ULangTest::ModuleTests.size()> ModuleThreads;
     };
     static TestInfo TestWindowData;
+    bool SetTextFocus = false;
+
+   
 
     if (ImGui::Begin("Tests"))
     {
-
-        if (ImGui::Button("Run Tests"))
+        static const Vector<ImguiHelper::EnumValue<TestMode>> TestModeList =
         {
-            
-            TestWindowData.TestAsRan = true;
-            const auto& Tests = ULangTest::Tests;
-            for (size_t i = 0; i < ULangTest::Tests.size(); i++)
+            { "UCodeLang",TestMode::UCodeLang },
+            { "C89",TestMode::C89},
+        };
+
+
+        const  ImVec4 ColorRed = { 0.839, 0.129, 0.051,1 };
+        const  ImVec4 ColorGreen = { 0.267, 0.788, 0.2,1 };
+        const  ImVec4 ColorGray = { 0.431, 0.427, 0.365,1 };
+        const  ImVec4 Colorlightgrey = { 0.675, 0.702, 0.675,1 };
+        const  ImVec4 ColorOrange = { 0.929, 0.329, 0.09,1 };
+        const  ImVec4 ColorBlue = { 0.396, 0.722, 0.769,1 };
+        const  ImVec4 ColorYellow = {1, 1, 0,1 };
+        {
+
+            {
+                int v = (int)TestWindowData.MinTestIndex;
+                if (ImGui::SliderInt("MinShowTests", &v, 0, TestWindowData.MaxTestCount - 1))
+                {
+                    TestWindowData.MinTestIndex = v;
+                }
+            }
+            {
+                int v = (int)TestWindowData.MaxTestCount;
+                if (ImGui::SliderInt("MaxShowTests", &v, TestWindowData.MinTestIndex + 1, ULangTest::Tests.size()))
+                {
+                    TestWindowData.MaxTestCount = v;
+                }
+            }
+            UCodeLang::OptimizationFlags flags = TestWindowData.Flags;
+            bool FlagsWasUpdated = false;
+
+            if (ImguiHelper::EnumField("BackEnd", TestWindowData.Testmode, TestModeList))
+            {
+                FlagsWasUpdated = true;
+            }
+
+            if (TestWindowData.DebugMode)
+            {
+                *(UCodeLang::OptimizationFlags_t*)&flags |= (UCodeLang::OptimizationFlags_t)UCodeLang::OptimizationFlags::Debug;
+            }
+
+
+            thread_local UCodeLang::UnorderedMap<String, String> Openedfiles;
+            thread_local UCodeLang::UnorderedMap<String, UCodeLang::Optional<std::shared_ptr<UCodeLang::UClib>>> Outputfiles;
+            thread_local UCodeLang::UnorderedMap<String, String> OutputIRStr;
+            thread_local UCodeLang::UnorderedMap<String, String> OutputLibStr;
+            if (ImGui::Button("Run Tests"))
+            {
+                Openedfiles.clear();
+                Outputfiles.clear();
+                OutputIRStr.clear();
+                OutputLibStr.clear();
+
+                TestWindowData.TestAsRan = true;
+                const auto& Tests = ULangTest::Tests;
+                for (size_t i = 0; i < TestWindowData.MaxTestCount; i++)
+                {
+                    auto& ItemTest = ULangTest::Tests[i];
+                    auto& ItemTestOut = TestWindowData.Testinfo[i];
+                    auto& Thread = TestWindowData.Threads[i];
+
+
+                    Thread = std::make_unique< std::future<bool>>(std::async(std::launch::async, [i, flags,testmod = TestWindowData.Testmode]
+                        {
+                            auto& ItemTest = ULangTest::Tests[i];
+                            auto& ItemTestOut = TestWindowData.Testinfo[i];
+
+                            ItemTestOut.State = TestInfo::TestState::Exception;
+                            ItemTestOut.RunTestForFlag(ItemTest, flags,testmod);
+                            return false;
+                        }));
+                }
+            }
+           
+            if (ImguiHelper::BoolEnumField("DebugFlag", TestWindowData.DebugMode))
+            {
+
+                FlagsWasUpdated = true;
+            }
+
+            static const Vector<ImguiHelper::EnumValue<UCodeLang::OptimizationFlags>> OptimizationList =
+            {
+                { "NoOptimization",UCodeLang::OptimizationFlags::NoOptimization },
+                { "ForSize",UCodeLang::OptimizationFlags::ForSize },
+                { "ForSpeed",UCodeLang::OptimizationFlags::ForSpeed },
+                { "SizeAndSpeed",UCodeLang::OptimizationFlags::ForMaxSpeed },
+            };
+
+            ImGui::SameLine();
+            if (ImguiHelper::EnumField("Optimization", TestWindowData.Flags, OptimizationList))
+            {
+                FlagsWasUpdated = true;
+            }
+
+
+            if (FlagsWasUpdated) {
+                Openedfiles.clear();
+                Outputfiles.clear();
+                OutputIRStr.clear();
+                OutputLibStr.clear();
+            }
+            //ImguiHelper::BoolEnumField("Include O1,02,03 Optimizations", TestWindowData.IncludeOptimization);
+            ImguiHelper::BoolEnumField("Include JitInterpreter", TestWindowData.IncludeJitInterpreter);
+            ImguiHelper::BoolEnumField("Include NativeInterpreter", TestWindowData.IncludeNativeInterpreter);
+
+            size_t TestPassedCount = 0;
+            size_t TestRuningCount = 0;
+            for (size_t i = TestWindowData.MinTestIndex; i < TestWindowData.MaxTestCount; i++)
             {
                 auto& ItemTest = ULangTest::Tests[i];
                 auto& ItemTestOut = TestWindowData.Testinfo[i];
                 auto& Thread = TestWindowData.Threads[i];
-                if (i == 45) {
-                    break;
+
+                if (ItemTestOut.State == TestInfo::TestState::Passed)
+                {
+                    TestPassedCount++;
+                }
+                if (Thread.get() && Thread->valid())
+                {
+                    TestRuningCount++;
+                }
+            }
+
+
+            {
+                String info;
+                info += "TestPassed:";
+                info += std::to_string(TestPassedCount);
+                info += "/";
+                info += std::to_string(TestWindowData.MaxTestCount - TestWindowData.MinTestIndex);
+                info += " :" + std::to_string((int)(((float)TestPassedCount / (float)(TestWindowData.MaxTestCount - TestWindowData.MinTestIndex)) * 100));
+                info += " percent";
+                ImGui::Text(info.c_str());
+            }
+            {
+                String info;
+                info += "TestRuning:";
+                info += std::to_string(TestRuningCount);
+                info += "/";
+                info += std::to_string(TestWindowData.MaxTestCount - TestWindowData.MinTestIndex);
+                info += " :" + std::to_string((int)(((float)TestRuningCount / (float)(TestWindowData.MaxTestCount - TestWindowData.MinTestIndex) * 100)));
+                info += " percent";
+                ImGui::Text(info.c_str());
+            }
+            static const Vector<ImguiHelper::EnumValue<TestInfo::TestState>> List =
+            {
+                { "Null ",TestInfo::TestState::Null },
+                { "Passed",TestInfo::TestState::Passed },
+                { "Fail",TestInfo::TestState::Fail },
+                { "Exception",TestInfo::TestState::Exception },
+            };
+
+            ImguiHelper::InputText("Sort:", TestWindowData.SortByName);
+            ImGui::SameLine();
+            ImguiHelper::EnumField("Type:", TestWindowData.SortBy, List);
+
+            ImGui::Separator();
+
+            for (size_t i = TestWindowData.MinTestIndex; i < TestWindowData.MaxTestCount; i++)
+            {
+                auto& ItemTest = ULangTest::Tests[i];
+                auto& ItemTestOut = TestWindowData.Testinfo[i];
+                auto& Thread = TestWindowData.Threads[i];
+
+                bool CanBeShowed = false;
+                if (TestWindowData.SortBy == TestInfo::TestState::Null)
+                {
+                    CanBeShowed = true;
+                }
+                else
+                {
+                    CanBeShowed = TestWindowData.SortBy == ItemTestOut.State;
                 }
 
-                Thread = std::make_unique< std::future<bool>>(std::async(std::launch::async, [i]
-                    {
-                        auto& ItemTest = ULangTest::Tests[i];
-                        auto& ItemTestOut = TestWindowData.Testinfo[i];
-
-                        ItemTestOut.State == TestInfo::TestState::Exception;
-                        ItemTestOut.RunTestForFlag(ItemTest, UCodeLang::OptimizationFlags::NoOptimization);
-                        return false;
-                    }));
-            }
-        }
-        ImguiHelper::BoolEnumField("Include O1,02,03 Optimizations", TestWindowData.IncludeOptimization);
-        ImguiHelper::BoolEnumField("Include JitInterpreter", TestWindowData.IncludeJitInterpreter);
-        ImguiHelper::BoolEnumField("Include NativeInterpreter", TestWindowData.IncludeNativeInterpreter);
-
-        size_t TestPassedCount = 0;
-        size_t TestRuningCount = 0;
-        for (size_t i = 0; i < ULangTest::Tests.size(); i++)
-        {
-            auto& ItemTest = ULangTest::Tests[i];
-            auto& ItemTestOut = TestWindowData.Testinfo[i];
-            auto& Thread = TestWindowData.Threads[i];
-
-            if (ItemTestOut.State == TestInfo::TestState::Passed)
-            {
-                TestPassedCount++;
-            }
-            if (Thread.get() && Thread->_Is_ready())
-            {
-                TestRuningCount++;
-            }
-        }
-
-
-        {   
-            String info;
-        info += "TestPassed:";
-        info += std::to_string(TestPassedCount);
-        info += "/";
-        info += std::to_string(TestWindowData.Testinfo.size());
-        info += " " + std::to_string((int)(((float)TestPassedCount / (float)TestWindowData.Testinfo.size()) * 100));
-        info += "%";
-        ImGui::Text(info.c_str());
-        }
-        {
-            String info;
-            info += "TestRuning:";
-            info += std::to_string(TestRuningCount);
-            info += "/";
-            info += std::to_string(TestWindowData.Testinfo.size());
-            info += " " + std::to_string((int)(((float)TestRuningCount / (float)TestWindowData.Testinfo.size())*100));
-            info += "%";
-            ImGui::Text(info.c_str());
-        }
-        static const Vector<ImguiHelper::EnumValue<TestInfo::TestState>> List =
-        {
-            { "Null ",TestInfo::TestState::Null},
-            { "Passed",TestInfo::TestState::Passed},
-            { "Fail",TestInfo::TestState::Fail},
-            { "Exception",TestInfo::TestState::Exception},
-        };
-
-        ImguiHelper::InputText("Sort:", TestWindowData.SortByName);
-        ImGui::SameLine();
-        ImguiHelper::EnumField("Type:", TestWindowData.SortBy, List);
-
-        ImGui::Separator();
-
-        for (size_t i = 0; i < ULangTest::Tests.size(); i++)
-        {
-            auto& ItemTest = ULangTest::Tests[i];
-            auto& ItemTestOut = TestWindowData.Testinfo[i];
-            auto& Thread = TestWindowData.Threads[i];
-
-            bool CanBeShowed = false;
-            if (TestWindowData.SortBy == TestInfo::TestState::Null)
-            {
-                CanBeShowed = true;
-            }
-            else
-            {
-                CanBeShowed = TestWindowData.SortBy == ItemTestOut.State;
-            }
-
-            if (CanBeShowed) 
-            {
-                String TestV = "Test:";
-                TestV += ItemTest.TestName;
-                TestV += ",State:" + TestInfo::GetToString(ItemTestOut.State);
-                if (Thread.get())
+                if (CanBeShowed)
                 {
-                    if (!Thread->_Is_ready())
+                    ImVec4 buttioncolor;
+
+
+                    bool isworking = false;
+                    if (Thread.get())
                     {
-                        TestV += ",Working...";
+                        if (Thread->valid())
+                        {
+                            if (Thread->wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+                            {
+                                isworking = true;
+                            }
+                        }
+                    }
+
+                    if (isworking)
+                    {
+                        buttioncolor = ColorYellow;//gray
+                    }
+                    else
+                    {
+                        if (ItemTestOut.State == TestInfo::TestState::Passed)
+                        {
+                            buttioncolor = ColorGreen;//green
+                        }
+                        else if (ItemTestOut.State == TestInfo::TestState::Null)
+                        {
+                            buttioncolor = Colorlightgrey;
+                        }
+                        else if (ItemTestOut.State == TestInfo::TestState::Fail)
+                        {
+                            buttioncolor = ColorOrange;
+                        }
+                        else
+                        {
+                            buttioncolor = ColorRed;//red
+                        }
+                    }
+
+                    String TestV = "Test:";
+                    TestV += ItemTest.TestName;
+                    ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_Text, buttioncolor);
+                    bool isopen = ImGui::TreeNode(TestV.c_str());
+                    ImGui::PopStyleColor();
+
+                    if (isopen)
+                    {
+                        bool IsWorking = isworking;
+
+                        {
+                            String txt = "State:" + TestInfo::GetToString(ItemTestOut.State);
+                            ImGui::Text(txt.c_str());
+                        }
+                        ImGui::BeginDisabled();
+
+                        String tepstr1 = ItemTest.TestName;
+                        ImguiHelper::InputText("TestName", tepstr1);
+
+                        String tepstr2 = ItemTest.InputFilesOrDir;
+                        ImguiHelper::InputText("TestPath", tepstr2);
+
+                        String tepstr3 = TestInfo::GetToString(ItemTest.Condition);
+                        ImguiHelper::InputText("Success Condition", tepstr3);
+
+                        if (ItemTest.Condition == ULangTest::SuccessCondition::RunTimeValue)
+                        {
+                            auto valsize = ItemTest.RunTimeSuccessSize;
+                            auto val = ItemTest.RunTimeSuccess.get();
+
+                            if (Outputfiles.HasValue(ItemTest.TestName))
+                            {
+
+                                if (Outputfiles.GetValue(ItemTest.TestName).has_value())
+                                {
+                                    const auto& lib = Outputfiles.GetValue(ItemTest.TestName).value();
+                                    UCodeLang::ReflectionTypeInfo valtype = lib->Get_Assembly().Find_Func(ItemTest.FuncToCall)->RetType;
+
+                                    ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_Text, ColorBlue);
+                                    ImguiHelper::UCodeObjectField("Expected", val, valtype, lib->Get_Assembly());
+                                    ImGui::PopStyleColor();
+
+                                    if (ItemTestOut.RetValue.get())
+                                    {
+
+                                        ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_Text,
+                                            ItemTestOut.State == TestInfo::TestState::Passed ? ColorGreen : ColorRed);
+
+                                        ImguiHelper::UCodeObjectField("Returned", ItemTestOut.RetValue.get(), valtype, lib->Get_Assembly());
+                                        ImGui::PopStyleColor();
+
+
+                                    }
+                                }
+                            }
+                        }
+                        ImGui::EndDisabled();
+
+                        if (ImGui::TreeNode("Logs")) {
+                            ImGui::BeginDisabled();
+                            ImGui::InputTextMultiline("Logs", &ItemTestOut.Logs);
+                            ImGui::EndDisabled();
+                            ImGui::TreePop();
+                        }
+                        //ImGui::SameLine();
+
+
+
+                        if (ImGui::Button("Show in files"))
+                        {
+                            ShowInFiles(UCodeLang_UCAppDir_Test_UCodeFiles + ItemTest.InputFilesOrDir);
+                        }
+                        ImGui::SameLine();
+                        if (ImGui::Button("Show Output in files"))
+                        {
+                            ShowInFiles(UCodeLang_UCAppDir_Test_OutputFiles + ItemTest.TestName);
+                        }
+                        ImGui::SameLine();
+                        if (ImGui::Button("Set file.uc"))
+                        {
+                            if (Openedfiles.HasValue(ItemTest.TestName))
+                            {
+                                _Editor.SetText(Openedfiles.GetValue(ItemTest.TestName));
+                                SetTextFocus = true;
+                            }
+                        }
+                        ImGui::SameLine();
+
+
+                        ImGui::BeginDisabled(IsWorking);
+                        if (ImGui::Button("Run Test"))
+                        {
+                            if (!IsWorking)
+                            {
+
+                                auto& ItemTest = ULangTest::Tests[i];
+                                auto& ItemTestOut = TestWindowData.Testinfo[i];
+                                auto& Thread = TestWindowData.Threads[i];
+
+
+                                Thread = std::make_unique< std::future<bool>>(std::async(std::launch::async, [i, flags,testmod =TestWindowData.Testmode]
+                                    {
+                                        auto& ItemTest = ULangTest::Tests[i];
+                                        auto& ItemTestOut = TestWindowData.Testinfo[i];
+
+                                        ItemTestOut.State = TestInfo::TestState::Exception;
+                                        ItemTestOut.RunTestForFlag(ItemTest, flags,testmod);
+                                        return false;
+                                    }));
+                            }
+                        }
+                        ImGui::EndDisabled();
+
+                        ImGui::BeginDisabled();
+
+                        ImGui::PushID(&ItemTest.TestName);
+                        {
+
+
+                            String filetxt = "file...";
+                            if (Openedfiles.HasValue(ItemTest.TestName))
+                            {
+                                filetxt = Openedfiles.GetValue(ItemTest.TestName);
+                            }
+                            else
+                            {
+                                filetxt = UCodeLang::Compiler::GetTextFromFile(UCodeLang_UCAppDir_Test_UCodeFiles + ItemTest.InputFilesOrDir);
+                                Openedfiles.AddValue(ItemTest.TestName, filetxt);
+                            }
+
+
+                            ImGui::InputTextMultiline("src", &filetxt);
+                        }
+                        ImGui::PopID();
+
+                        std::string OutFileDir = UCodeLang_UCAppDir_Test_OutputFiles + ItemTest.TestName;
+                        std::string OutFilePath = OutFileDir + "/" + ItemTest.TestName + ULangTest::ModeType(flags) + ".ulibtest";
+
+
+                        if (!Outputfiles.HasValue(ItemTest.TestName))
+                        {
+                            UCodeLang::UClib lib;
+                            if (UCodeLang::UClib::FromFile(&lib, OutFilePath))
+                            {
+                                Outputfiles.AddValue(ItemTest.TestName, std::make_shared<UCodeLang::UClib>(std::move(lib)));
+                            }
+                            else
+                            {
+                                Outputfiles.AddValue(ItemTest.TestName, {});
+                            }
+
+                        }
+
+                        ImGui::PushID(&ItemTest.RunTimeSuccess);
+                        {
+                            String filetxt = "file...";
+                            if (Outputfiles.HasValue(ItemTest.TestName))
+                            {
+                                auto& v = Outputfiles.GetValue(ItemTest.TestName);
+                                if (!OutputIRStr.HasValue(ItemTest.TestName))
+                                {
+                                    String str;
+                                    if (v.has_value())
+                                    {
+                                        auto IRLayer = v.value()->GetLayer(UCode_CodeLayer_IR_Name);
+                                        if (IRLayer && IRLayer->_Data.Is<UCodeLang::CodeLayer::JustData>())
+                                        {
+                                            auto& Data = IRLayer->_Data.Get<UCodeLang::CodeLayer::JustData>();
+                                            UCodeLang::IRBuilder tep;
+                                            if (UCodeLang::IRBuilder::FromBytes(tep, BytesView::Make(Data._Data.data(), Data._Data.size())))
+                                            {
+                                                str = tep.ToString();
+                                            }
+                                        }
+
+                                    }
+                                    OutputIRStr.AddValue(ItemTest.TestName, str);
+                                }
+                                else
+                                {
+                                    filetxt = OutputIRStr.GetValue(ItemTest.TestName);
+                                }
+                            }
+                            ImGui::InputTextMultiline("ir", &filetxt);
+                        }
+                        ImGui::PopID();
+
+                        ImGui::PushID(&ItemTest.FuncToCall);
+                        {
+                            String filetxt = "out...";
+                            if (Outputfiles.HasValue(ItemTest.TestName))
+                            {
+                                if (!OutputLibStr.HasValue(ItemTest.TestName))
+                                {
+
+                                    auto& v = Outputfiles.GetValue(ItemTest.TestName);
+                                    if (v.has_value())
+                                    {
+                                        filetxt = UCodeLang::UAssembly::UAssembly::ToString(v.value().get());
+                                    }
+                                    OutputLibStr.AddValue(ItemTest.TestName, filetxt);
+                                }
+                                else
+                                {
+                                    filetxt = OutputLibStr.GetValue(ItemTest.TestName);
+                                }
+                            }
+                            ImGui::InputTextMultiline("out", &filetxt);
+                        }
+                        ImGui::PopID();
+
+                        if (IsWorking)
+                        {
+                            ImGui::Text("Working");
+                        }
+                        else
+                        {
+
+                        }
+                        ImGui::EndDisabled();
+
+                        if (!IsWorking)
+                        {
+                            if (ImGui::Button("Show in files"))
+                            {
+                                ShowInFiles(UCodeLang_UCAppDir_Test_UCodeFiles + ItemTest.InputFilesOrDir);
+                            }
+                            ImGui::SameLine();
+                        }
+
+                        ImGui::TreePop();
                     }
                 }
 
-                if (ImGui::TreeNode(TestV.c_str()))
+            }
+
+        }
+
+        {
+            ImGui::Separator();
+            ImGui::Text("ModuleTests");
+            {
+                int v = (int)TestWindowData.ModuleIndex;
+                if (ImGui::SliderInt("MinShowTests", &v, 0, TestWindowData.ModuleTestCount - 1))
+                {
+                    TestWindowData.ModuleIndex = v;
+                }
+            }
+            {
+                int v = (int)TestWindowData.ModuleTestCount;
+                if (ImGui::SliderInt("MaxShowTests", &v, TestWindowData.ModuleIndex + 1, ULangTest::ModuleTests.size() - 1))
+                {
+                    TestWindowData.ModuleTestCount = v;
+                }
+            }
+
+          
+            if (ImGui::Button("Run Module Tests"))
+            {
+                for (size_t i = TestWindowData.ModuleIndex; i < TestWindowData.ModuleTestCount; i++)
+                {
+                    auto& ItemTest = ULangTest::ModuleTests[i];
+                    auto& ItemTestOut = TestWindowData.ModuleTestinfo[i];
+                    auto& Thread = TestWindowData.ModuleThreads[i];
+
+                    bool IsWorking = false;
+
+                    if (Thread.get())
+                    {
+                        if (Thread->valid())
+                        {
+                            if (Thread->wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+                            {
+                                IsWorking = true;
+                            }
+                        }
+                    }
+                    if (!IsWorking)
+                    {
+
+                        Thread = std::make_unique< std::future<bool>>(std::async(std::launch::async, [i]
+                            {
+                                auto& ItemTest = ULangTest::ModuleTests[i];
+                                auto& ItemOut = TestWindowData.ModuleTestinfo[i];
+                                UCodeLang::ModuleFile file;
+
+                                Path pathdir = UCodeLang_UCAppDir_Test_UCodeFiles + ItemTest.Modulefile;
+                                Path modulefilepath = pathdir / Path(UCodeLang::ModuleFile::FileNameWithExt);
+                                bool r = false;
+                                if (file.FromFile(&file, modulefilepath))
+                                {
+                                    UCodeLang::Compiler compiler;
+                                    UCodeLang::ModuleIndex LangIndex = UCodeLang::ModuleIndex::GetModuleIndex();
+
+                                    try
+                                    {
+                                        auto ret = file.BuildModule(compiler, LangIndex);
+                                        if (ret.CompilerRet._State == UCodeLang::Compiler::CompilerState::Success)
+                                        {
+
+                                            ItemOut.State = TestInfo::TestState::Passed;
+                                            r = true;
+                                        }
+                                        else
+                                        {
+                                            ItemOut.State = TestInfo::TestState::Fail;
+                                        }
+                                    }
+                                    catch (const std::exception&)
+                                    {
+                                        ItemOut.State = TestInfo::TestState::Exception;
+                                    }
+                                   
+
+                                }
+
+                                return r;
+                            }));
+                    }
+                }
+            }
+
+            for (size_t i = TestWindowData.ModuleIndex; i < TestWindowData.ModuleTestCount; i++)
+            {
+                auto& ItemTest = ULangTest::ModuleTests[i];
+                auto& ItemTestOut = TestWindowData.ModuleTestinfo[i];
+                auto& Thread = TestWindowData.ModuleThreads[i];
+
+
+                ImVec4 buttioncolor;
+                if (ItemTestOut.State == TestInfo::TestState::Passed)
+                {
+                    buttioncolor = ColorGreen;//green
+                }
+                else if (ItemTestOut.State == TestInfo::TestState::Null)
+                {
+                    buttioncolor = Colorlightgrey;
+                }
+                else if (ItemTestOut.State == TestInfo::TestState::Fail)
+                {
+                    buttioncolor = ColorOrange;
+                }
+                else
+                {
+                    buttioncolor = ColorRed;//red
+                }
+
+
+                String TestV = "Test:";
+                TestV += ItemTest.TestName;
+                ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_Text, buttioncolor);
+                bool isopen = ImGui::TreeNode(TestV.c_str());
+                ImGui::PopStyleColor();
+
+                if (isopen)
                 {
                     bool IsWorking = false;
 
                     if (Thread.get())
                     {
-                        if (!Thread->_Is_ready())
+                        if (!Thread->valid())
                         {
                             IsWorking = true;
                         }
                     }
 
-                    ImGui::BeginDisabled();
-                    ImguiHelper::InputText("TestName", String(ItemTest.TestName));
-                    ImguiHelper::InputText("TestPath", String(ItemTest.InputFilesOrDir));
-
-                    ImGui::SameLine();
-                    ImGui::EndDisabled();
-
-
                     if (ImGui::Button("Show in files"))
                     {
-                        ShowInFiles(UCodeLang_UCAppDir_TestDir + ItemTest.InputFilesOrDir);
+                        ShowInFiles(UCodeLang_UCAppDir_Test_UCodeFiles + ItemTest.Modulefile);
                     }
+                    ImGui::SameLine();
 
-                    ImGui::BeginDisabled();
+                    ImGui::BeginDisabled(IsWorking);
+                    if (ImGui::Button("Run Test"))
+                    {
+                        if (!IsWorking)
+                        {
 
-                    ImGui::PushID(&ItemTest.TestName);
-                    {
-                        String filetxt = "file...";
-                        ImGui::InputTextMultiline("src", &filetxt);
-                    }
-                    ImGui::PopID();
+                            Thread = std::make_unique< std::future<bool>>(std::async(std::launch::async, [i]
+                                {
+                                    auto& ItemTest = ULangTest::ModuleTests[i];
+                                    auto& ItemOut = TestWindowData.ModuleTestinfo[i];
+                                    UCodeLang::ModuleFile file;
 
-                    ImGui::PushID(&ItemTest.RunTimeSuccess);
-                    {
-                        String filetxt = "file...";
-                        ImGui::InputTextMultiline("ir", &filetxt);
-                    }
-                    ImGui::PopID();
-                    
-                    ImGui::PushID(&ItemTest.FuncToCall);
-                    {
-                        String filetxt = "out...";
-                        ImGui::InputTextMultiline("out", &filetxt);
-                    }
-                    ImGui::PopID();
+                                    Path pathdir = UCodeLang_UCAppDir_Test_UCodeFiles + ItemTest.Modulefile;
+                                    Path modulefilepath = pathdir / Path(UCodeLang::ModuleFile::FileNameWithExt);
+                                    bool r = false;
+                                    if (file.FromFile(&file, modulefilepath))
+                                    {
+                                        UCodeLang::Compiler compiler;
+                                        UCodeLang::ModuleIndex LangIndex = UCodeLang::ModuleIndex::GetModuleIndex();
 
-                    if (IsWorking)
-                    {
-                        ImGui::Text("Working");
-                    }
-                    else
-                    {
+                                        try
+                                        {
+                                            auto ret = file.BuildModule(compiler, LangIndex);
+                                            if (ret.CompilerRet._State == UCodeLang::Compiler::CompilerState::Success)
+                                            {
 
+                                                ItemOut.State = TestInfo::TestState::Passed;
+                                                r = true;
+                                            }
+                                            else
+                                            {
+                                                ItemOut.State = TestInfo::TestState::Fail;
+                                            }
+                                        }
+                                        catch (const std::exception&)
+                                        {
+                                            ItemOut.State = TestInfo::TestState::Exception;
+                                        }
+
+
+                                    }
+
+                                    return r;
+                                }));
+                        }
                     }
                     ImGui::EndDisabled();
 
-                    if (!IsWorking)
-                    {
+                    ImGui::TreePop();
+                }
 
+            }
+        }
+    }ImGui::End();
+#endif // DEBUG
+}
+void AppObject::DrawPerformanceMenu()
+{
+    if (ImGui::Begin("Performance"))
+    {
+        {
+            String Cpuinfo;
+            #if UCodeLang_Platform_Windows 
+            int CPUInfo[4] = { -1 };
+            unsigned   nExIds, i = 0;
+            char CPUBrandString[0x40];
+            // Get the information associated with each extended ID.
+            __cpuid(CPUInfo, 0x80000000);
+            nExIds = CPUInfo[0];
+            for (i = 0x80000000; i <= nExIds; ++i)
+            {
+                __cpuid(CPUInfo, i);
+                // Interpret CPU brand string
+                if (i == 0x80000002)
+                    memcpy(CPUBrandString, CPUInfo, sizeof(CPUInfo));
+                else if (i == 0x80000003)
+                    memcpy(CPUBrandString + 16, CPUInfo, sizeof(CPUInfo));
+                else if (i == 0x80000004)
+                    memcpy(CPUBrandString + 32, CPUInfo, sizeof(CPUInfo));
+            }
+            //string includes manufacturer, model and clockspeed
+            Cpuinfo = CPUBrandString;
+            #endif // 
+            ImGui::BeginDisabled();
+            ImguiHelper::InputText("CPU Info", Cpuinfo);
+            String OSInfo;
+            #if UCodeLang_Platform_Windows
+            OSInfo += "Windows";
+            #endif
+            #if UCodeLang_Platform_Linux
+            OSInfo += "Linux";
+            #endif
+   
+            #if UCodeLang_Platform_IPHONE
+            OSInfo += "IPHONE";
+            #endif
+
+            #if UCodeLang_Platform_MacOS
+            OSInfo += "MacOS";
+            #endif
+
+            #if UCodeLang_Platform_ANDROID
+            OSInfo += "ANDROID";
+            #endif
+
+            #if UCodeLang_Platform_Wasm 
+            OSInfo += "Wasm ";
+            #endif
+
+            #if UCodeLang_32BitSytem
+            OSInfo += "- 32 bit";
+            #else
+            OSInfo += "- 64 bit";
+            #endif
+            ImguiHelper::InputText("OS Info", OSInfo);
+
+            String UCodeLangInfo;
+            UCodeLangInfo += std::to_string(UCodeLangMajorVersion);
+            UCodeLangInfo += "," + std::to_string(UCodeLangMinorVersion);
+            UCodeLangInfo += "," + std::to_string(UCodeLangPatchVersion);
+
+            UCodeLangInfo += " ";
+
+            #if UCodeLangMSVC
+            UCodeLangInfo += "MSVC";
+            #endif
+            #if UCodeLangGNUC
+            UCodeLangInfo += "GNUC";
+            #endif
+            #if UCodeLangClang
+            UCodeLangInfo += "Clang";
+            #endif
+
+
+            #if UCodeLangDebug
+            UCodeLangInfo += " Debug";
+            #endif
+            #if Release
+            UCodeLangInfo += " Release";
+            #endif
+            #if Release
+            UCodeLangInfo += " Published";
+            #endif
+
+            ImguiHelper::InputText("UCodeLang Info", UCodeLangInfo);
+
+            ImGui::EndDisabled();
+        }
+
+
+        if (ImGui::TreeNode("ULang Tests"))
+        {
+            if (ImGui::Button("RunTests"))
+            {
+
+            }
+
+            ImGui::Text("Report");
+            float ULangInterpreterRelativeSpeedC89 = 0;
+            float ULangJitInterpreterRelativeSpeedC89 = 0;
+            float ULangNativeInterpreterRelativeSpeedC89 = 0;
+
+            
+            ImGui::BeginDisabled();
+
+            ImguiHelper::float32Field("UCode Interpreter Relative C89", ULangInterpreterRelativeSpeedC89);
+            ImguiHelper::float32Field("UCode Jit-Interpreter Relative C89", ULangJitInterpreterRelativeSpeedC89);
+            ImguiHelper::float32Field("UCode Native-Interpreter Relative To C89", ULangNativeInterpreterRelativeSpeedC89);
+
+            ImGui::EndDisabled();
+
+            ImGui::TreePop();
+        }
+        if (ImGui::TreeNode("ULang PerformanceTests"))
+        {
+            struct TestInfo
+            {
+                String TestName;
+                Path DirPath;
+                 
+            };
+            static Vector<TestInfo> Tests;
+
+            if (Tests.size()==0)
+            {
+                for (auto& dirEntry : std::filesystem::directory_iterator(UCodeLang_UCAppDir_TestPerformanceTestsOut)) 
+                {
+                    if (dirEntry.is_directory())
+                    {
+                        TestInfo f;
+                        f.DirPath = dirEntry.path();
+                        f.TestName = dirEntry.path().filename().generic_string();
+                        Tests.push_back(std::move(f));
                     }
 
+                }
+            }
+
+            if (ImGui::Button("RunTests"))
+            {
+              
+            }
+
+            ImGui::Text("Report");
+            float ULangInterpreterRelativeSpeedC89 = 0;
+            float ULangJitInterpreterRelativeSpeedC89 = 0;
+            float ULangNativeInterpreterRelativeSpeedC89 = 0;
+
+
+            ImGui::BeginDisabled();
+
+            ImguiHelper::float32Field("UCode Interpreter Relative C89", ULangInterpreterRelativeSpeedC89);
+            ImguiHelper::float32Field("UCode Jit-Interpreter Relative C89", ULangJitInterpreterRelativeSpeedC89);
+            ImguiHelper::float32Field("UCode Native-Interpreter Relative To C89", ULangNativeInterpreterRelativeSpeedC89);
+
+            ImGui::EndDisabled();
+
+            ImGui::Text("Indivual Report");
+            for (auto& Item : Tests)
+            {
+                if (ImGui::TreeNode(Item.TestName.c_str()))
+                {
+                    float ULangInterpreterRelativeSpeedC89 = 0;
+                    float ULangJitInterpreterRelativeSpeedC89 = 0;
+                    float ULangNativeInterpreterRelativeSpeedC89 = 0;
+
+
+                    ImGui::BeginDisabled();
+
+                    ImguiHelper::float32Field("UCode Interpreter Relative C89", ULangInterpreterRelativeSpeedC89);
+                    ImguiHelper::float32Field("UCode Jit-Interpreter Relative C89", ULangJitInterpreterRelativeSpeedC89);
+                    ImguiHelper::float32Field("UCode Native-Interpreter Relative To C89", ULangNativeInterpreterRelativeSpeedC89);
+
+                    ImGui::EndDisabled();
                     ImGui::TreePop();
                 }
             }
 
+            ImGui::TreePop();
+        }
+        
+    }ImGui::End();
+
+ 
+}
+bool AppObject::CompileC89ToLib(const Path& Cfile, const Path& Outdllfile)
+{
+    return ULangTest::CompileC89ToLib(Cfile, Outdllfile);
+}
+void AppObject::OnDraw()
+{
+    bool SetTextFocus = false;
+    {
+        auto now = SteadyClock::now();
+
+        auto TimePassed =  now - LastFrame;
+
+        DetaTime = std::chrono::duration_cast<std::chrono::duration<float>>(TimePassed).count();
+
+
+        LastFrame = now;
+    }
+    
+    ProcessSeverPackets();
+
+    {
+        if (IsRuningCompiler == false && _RuningCompiler.valid())
+        {
+            auto compilerret =_RuningCompiler.get();
+            OnDoneCompileing(compilerret, _RuningPaths.OutFile);
+        }
+    }
+
+    bool Doc = true;
+    BeginDockSpace(&Doc);
+
+    //ImGui::ShowDemoWindow();
+
+
+    if (ImGui::Begin("ShowStyleEditor"))
+    {
+        ImGui::ShowStyleEditor();
+
+    }  ImGui::End();
+
+    if (ImGui::Begin("VM Draw Window"))
+    {
+        if (!Debuger.IsinFunc()) {
+            if (windowdata.CallFrame) {
+
+
+                _AnyInterpreter.Call("OnDraw");
+
+            }
+        }
+        else
+        {
+            ImGui::Text("Cant Draw while Debuging");
+        }
+    }
+    ImGui::End();
+
+    if (ImGui::Begin("Files"))
+    {
+
+    } ImGui::End();
+    if (ImGui::Begin("File.uc"))
+    {
+        if (SetTextFocus)
+        {
+            ImGui::SetWindowFocus();
+            SetTextFocus = false;
+        }
+     
+
+        _Editor.Render("File.uc");
+
+        static TextEditor::Breakpoints old;
+        auto& Break = _Editor.Get_Breakpoints();
+        if (old.size() != Break.size())
+        {
+            Debuger.ClearBreakPoints();
         }
 
-    }ImGui::End();
-#endif // DEBUG
+    } ImGui::End();
+
+    if (ImGui::Begin("Error List"))
+    {
+        ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.50f);
+        //ImGui::ListBoxHeader("Errors");  
+        
+        for (auto& item : PublishedDiagnostics.diagnostics)
+        {
+            String label = "LSP:" + item.message;
+            if (ImGui::Selectable(label.c_str(), false))
+            {
+                auto text = GetTextEditorString();
+
+
+                _Editor.SetCursorPosition(TextEditor::Coordinates(item.range.start.line, item.range.start.character));
+                // handle selection
+            }
+        }
+        for (auto& item : Errors)
+        {
+            String label = "Compier:" + item._Error._Msg;
+            if (ImGui::Selectable(label.c_str(), item.IsSelected))
+            {
+                auto text = GetTextEditorString();
+
+
+                _Editor.SetCursorPosition(TextEditor::Coordinates((int)item._Error.Line, (int)GetColumn(text, item._Error.Line, item._Error.Pos)));
+                // handle selection
+            }
+        }
+      
+        //ImGui::EndListBox();
+
+
+        ImGui::PopItemWidth();
+    } ImGui::End();
+
+    DrawTestMenu();
+    DrawPerformanceMenu();
 
     if (ImGui::Begin("Output"))
     {
@@ -865,6 +1733,9 @@ void AppObject::OnDraw()
             {"C89",BackEndType::C89},
             {"LLVM",BackEndType::LLVM},
             {"WebAssembly",BackEndType::WebAssembly},
+
+            {"WindowsExecutable",BackEndType::WindowsExecutable},
+            {"LinuxExecutable",BackEndType::LinuxExecutable},
         };
 
         bool UpdateLib = false;
@@ -872,6 +1743,7 @@ void AppObject::OnDraw()
         {
             UpdateLib = OutputWindow.OldNativeCpuType != windowdata.NativeCpuType;
         }
+       
 
         if (ImguiHelper::EnumField("Type", OutputWindow.Type, List) || UpdateLib)
         {
@@ -879,49 +1751,9 @@ void AppObject::OnDraw()
             _CompilerStr = "";
             _RunTimeStr = "";
             _LibInfoString = "";
-            UCodeLang::BackEndObject_Ptr _BackEnd;
+           
 
-            switch (OutputWindow.Type)
-            {
-            case BackEndType::UCodeVM:
-                _BackEnd = UCodeLang::UCodeBackEndObject::MakeObject;
-
-                if (windowdata.VMType == UCodeVMType::Native_Interpreter) 
-                {
-                    switch (OutputWindow.OldNativeCpuType)
-                    {
-                    case NativeSet::x86:
-                    {
-
-                    }
-                    break;
-                    case NativeSet::x86_64:
-                    {
-                        _BackEnd = UCodeLang::X86_64UNativeBackEnd::MakeObject;
-                    }
-                    break;
-                    default:
-                        UCodeLangUnreachable();
-                        break;
-                    }
-                }
-                break;
-            case BackEndType::C89:
-                _BackEnd = UCodeLang::C89Backend::MakeObject;
-                break;
-            case BackEndType::IR:
-                _BackEnd = UCodeLang::IRBackEnd::MakeObject;
-                break;
-            case BackEndType::LLVM:
-                _BackEnd = UCodeLang::LLVMBackEnd::MakeObject;
-                break;
-            case BackEndType::WebAssembly:
-                _BackEnd = UCodeLang::WebAssemblyBackEnd::MakeObject;
-                break;
-            default:
-                break;
-            }
-            _Compiler.Set_BackEnd(_BackEnd);
+            UpdateBackEnd();
 
             CompileText(GetTextEditorString());
         }
@@ -1006,12 +1838,24 @@ void AppObject::OnDraw()
             {"0_2",UCodeLang::OptimizationFlags::ForSpeed},
             {"0_3",UCodeLang::OptimizationFlags::ForMaxSpeed},
         };
+        bool UpdatedCompileInfo = false;
 
+       
         if (ImguiHelper::EnumField("Optimizations", OutputWindow.Flags, OpflagList))
         {
-            CompileText(GetTextEditorString());
+            UpdatedCompileInfo = true;
         }
         if (ImguiHelper::BoolEnumField("In Debug Mode", OutputWindow.InDebug))
+        {
+            UpdatedCompileInfo = true;
+        }
+        if (ImguiHelper::BoolEnumField("With StandardLibrary", OutputWindow.ImportStandardLibrary))
+        {
+            UpdatedCompileInfo = true;
+        }
+
+
+        if (UpdatedCompileInfo)
         {
             CompileText(GetTextEditorString());
         }
@@ -1162,6 +2006,59 @@ void AppObject::OnDraw()
    
 }
 
+void AppObject::UpdateBackEnd()
+{
+    UCodeLang::BackEndObject_Ptr _BackEnd;
+    switch (OutputWindow.Type)
+    {
+    case BackEndType::UCodeVM:
+        _BackEnd = UCodeLang::UCodeBackEndObject::MakeObject;
+
+        if (windowdata.VMType == UCodeVMType::Native_Interpreter)
+        {
+            switch (OutputWindow.OldNativeCpuType)
+            {
+            case NativeSet::x86:
+            {
+                UCodeLangUnreachable();
+            }
+            break;
+            case NativeSet::x86_64:
+            {
+                _BackEnd = UCodeLang::X86_64UNativeBackEnd::MakeObject;
+            }
+            break;
+            default:
+                UCodeLangUnreachable();
+                break;
+            }
+        }
+        break;
+    case BackEndType::C89:
+        _BackEnd = UCodeLang::C89Backend::MakeObject;
+        break;
+    case BackEndType::IR:
+        _BackEnd = UCodeLang::IRBackEnd::MakeObject;
+        break;
+    case BackEndType::LLVM:
+        _BackEnd = UCodeLang::LLVMBackEnd::MakeObject;
+        break;
+    case BackEndType::WebAssembly:
+        _BackEnd = UCodeLang::WebAssemblyBackEnd::MakeObject;
+        break;
+    case BackEndType::WindowsExecutable:
+        _BackEnd = UCodeLang::WindowsBackEnd::MakeObject;
+        break;
+    case BackEndType::LinuxExecutable:
+        _BackEnd = UCodeLang::LinuxBackEnd::MakeObject;
+        break;
+    default:
+        UCodeLangUnreachable();
+        break;
+    }
+    _Compiler.Set_BackEnd(_BackEnd);
+}
+
 void AppObject::ProcessSeverPackets()
 {
     if (this->SeverPtr)
@@ -1202,153 +2099,317 @@ void AppObject::ProcessSeverPackets()
 
 void AppObject::ShowInFiles(const Path& path)
 {
-   
-    ShellExecute(NULL, L"open", path.c_str(), NULL, NULL, SW_SHOWDEFAULT);
+    Path copy;
+    if (std::filesystem::is_directory(path) && path.native().back() != Path::preferred_separator)
+    {
+        copy = path / "";
+    }
+    else if (std::filesystem::is_regular_file(path))
+    {
+        copy = path.parent_path();
+        copy /= "";
+    }
+    else
+    {
+        copy = path;
+    }
+
+    #if UCodeLang_Platform_Windows
+    ShellExecute(NULL, L"open", copy.c_str(), NULL, NULL, SW_SHOWDEFAULT);
+    #elif UCodeLang_Platform_Posix
+    auto cmd =(String("open ") + path.generic_string());
+    system(cmd.c_str());
+    #else //MacOS
+
+    #endif 
 }
 
 void AppObject::ShowUCodeVMWindow()
 {
-    static const Vector<ImguiHelper::EnumValue<UCodeVMType>> List =
+    if (OutputWindow.Type == BackEndType::C89)
     {
-        { "Interpreter",UCodeVMType::Interpreter },
-        { "Jit_Interpreter",UCodeVMType::Jit_Interpreter },
-        { "Native_Interpreter",UCodeVMType::Native_Interpreter },
+        static UCodeLang::Optional<int> Value;
+        if (ImGui::Button("Run Main"))
+        {
+
+
+            Path dllfile = "out.lib";
+            auto v = Outfilepath();
+            auto cfilepath = v.native() + Path(".c").native();
+            {
+                std::ofstream f(cfilepath);
+                f << UCodeLang::Compiler::GetTextFromFile(v);
+                f.close();
+            }
+            UCodeLangAssert(CompileC89ToLib(cfilepath, dllfile));
+            
+            using namespace  UCodeLang;
+            auto staticinitname = C89Backend::UpdateToCindentifier(StaticVariablesInitializeFunc);
+            auto threadinitname = C89Backend::UpdateToCindentifier(ThreadVariablesInitializeFunc);
+
+            auto staticdeinitname = C89Backend::UpdateToCindentifier(StaticVariablesUnLoadFunc);
+            auto threaddeinitname = C89Backend::UpdateToCindentifier(ThreadVariablesUnLoadFunc);
+
+            auto functocallStr = "main";
+            #if UCodeLang_Platform_Windows
+            auto lib = LoadLibrary(dllfile.c_str());
+            UCodeLangDefer(FreeLibrary(lib));
+            auto staticinittocall = GetProcAddress(lib, staticinitname.c_str());
+            auto threadinittocall = GetProcAddress(lib, threadinitname.c_str());
+            auto staticdeinittocall = GetProcAddress(lib, staticdeinitname.c_str());
+            auto threaddeinittocall = GetProcAddress(lib, threaddeinitname.c_str());
+
+            auto functocall = GetProcAddress(lib, functocallStr);
+            #elif UCodeLang_Platform_Posix
+            auto lib = dlopen(dllfile.c_str(), RTLD_NOW);
+            UCodeLangDefer(dlclose(lib));
+
+            auto staticinittocall = dlsym(lib, staticinitname.c_str());
+            auto threadinittocall = dlsym(lib, threadinitname.c_str());
+            auto staticdeinittocall = dlsym(lib, staticdeinitname.c_str());
+            auto threaddeinittocall = dlsym(lib, threaddeinitname.c_str());
+
+            auto functocall = dlsym(lib, functocallStr);
+            #endif
+
+            using Func = int (*)();
+            int retvalue = ((Func)functocall)();
+
+            Value = retvalue;
+
+        }
+
+        if (Value.has_value())
+        {
+            ImguiHelper::Int32Field("Retrned", Value.value());
+
+        }
+    }
+    else
+    {
+        static const Vector<ImguiHelper::EnumValue<UCodeVMType>> List =
+        {
+            { "Interpreter",UCodeVMType::Interpreter },
+            { "Jit_Interpreter",UCodeVMType::Jit_Interpreter },
+            { "Native_Interpreter",UCodeVMType::Native_Interpreter },
+        };
+        static const Vector<ImguiHelper::EnumValue<NativeSet>> NativeSetList =
+        {
+    #if UCodeLang_CPUIs_x86
+            { "Native(x86)",NativeSet::Native },
+    #else
+            { "Native(x86_64)",NativeSet::Native },
+    #endif
+            { "x86",NativeSet::x86 },
+            { "x86_64",NativeSet::x86_64 },
     };
-    static const Vector<ImguiHelper::EnumValue<NativeSet>> NativeSetList =
-    {
-#if UCodeLang_CPUIs_x86
-        { "Native(x86)",NativeSet::Native },
-#else
-        { "Native(x86_64)",NativeSet::Native },
-#endif
-        { "x86",NativeSet::x86 },
-        { "x86_64",NativeSet::x86_64 },
-    };
 
 
-    if (ImguiHelper::EnumField("Type", windowdata.VMType, List))
-    {
-        switch (windowdata.VMType)
+        if (ImguiHelper::EnumField("Type", windowdata.VMType, List))
         {
-        case UCodeVMType::Interpreter:
-        {
-            _AnyInterpreter.SetAsInterpreter();
-            _AnyInterpreter.Init(&_RunTimeState);
-        }
-        break;
-        case UCodeVMType::Jit_Interpreter:
-        {
-            _AnyInterpreter.SetAsJitInterpreter();
-
-            _AnyInterpreter.GetAs_JitInterpreter().AlwaysJit = true;
-            _AnyInterpreter.Init(&_RunTimeState);
-        }
-        break;
-        case UCodeVMType::Native_Interpreter:
-        {
-            _AnyInterpreter.SetAsNativeInterpreter();
-
-            _AnyInterpreter.Init(&_RunTimeState);
-        }
-        break;
-        default:
+            switch (windowdata.VMType)
+            {
+            case UCodeVMType::Interpreter:
+            {
+                _AnyInterpreter.SetAsInterpreter();
+                _AnyInterpreter.Init(&_RunTimeState);
+            }
             break;
+            case UCodeVMType::Jit_Interpreter:
+            {
+                _AnyInterpreter.SetAsJitInterpreter();
+
+                _AnyInterpreter.GetAs_JitInterpreter().AlwaysJit = true;
+                _AnyInterpreter.Init(&_RunTimeState);
+            }
+            break;
+            case UCodeVMType::Native_Interpreter:
+            {
+                _AnyInterpreter.SetAsNativeInterpreter();
+
+                _AnyInterpreter.Init(&_RunTimeState);
+            }
+            break;
+            default:
+                break;
+            }
+            ImguiHelper::_Ptr = _AnyInterpreter.GetPtr();
         }
-        ImguiHelper::_Ptr = _AnyInterpreter.GetPtr();
-    }
 
 
-    if (windowdata.VMType == UCodeVMType::Native_Interpreter)
-    {
-        ImGui::SameLine();
-        ImguiHelper::EnumField("CpuType", windowdata.NativeCpuType, NativeSetList);
-    }
-    ImGui::Separator();
-
-    {
-        ImGui::Columns(2, "DebugerOrCode");
+        if (windowdata.VMType == UCodeVMType::Native_Interpreter)
         {
+            ImGui::SameLine();
+            ImguiHelper::EnumField("CpuType", windowdata.NativeCpuType, NativeSetList);
+        }
+       
+        ImGui::Separator();
+
+        {
+            ImGui::Columns(2, "DebugerOrCode");
             {
-                bool CanBeRan = true;
-                if (windowdata.VMType == UCodeVMType::Native_Interpreter)
                 {
-                    if (windowdata.NativeCpuType != NativeSet::Native) {
-                        CanBeRan = false;
-                    }
-                }
-
-                if (CanBeRan)
-                {
-                    ImGui::TextUnformatted("Debuger");
-                }
-                else
-                {
-                    ImGui::TextUnformatted("Debuger(Cant run this Code)");
-                }
-
-
-
-                ImGui::BeginDisabled(!CanBeRan);
-                ShowDebugerMenu(windowdata);
-                ImGui::EndDisabled();
-
-            }
-            ImGui::NextColumn();
-            {
-                ImGui::TextUnformatted("Code");
-
-
-                if (windowdata.VMType == UCodeVMType::Native_Interpreter)
-                {
-
-
-                }
-                else if (windowdata.VMType == UCodeVMType::Jit_Interpreter)
-                {
-                    auto& jit = _AnyInterpreter.GetAs_JitInterpreter();
-                    String txt = jit.GetJitState();
-
-                    ImGui::BeginDisabled();
-
-                    ImGui::PushID(&txt);
-
-                    ImGui::InputTextMultiline("", &txt, ImGui::GetContentRegionAvail());
-
-                    ImGui::PopID();
-
-                    ImGui::EndDisabled();
-                }
-                else if (windowdata.VMType == UCodeVMType::Interpreter)
-                {
-                    if (ImGui::BeginTable("split2", 2, ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders))
+                    bool CanBeRan = true;
+                    if (windowdata.VMType == UCodeVMType::Native_Interpreter)
                     {
-                        for (auto& Item : windowdata.InsInfo)
-                        {
-
-                            //ImGui::TableNextColumn(); 
-                            //ImGui::SetColumnWidth(0, 20.0f);
-                            //ImGui::Dummy({20,20});
-
-                            ImGui::TableNextColumn();
-
-                            //mGui::TableNextColumn(0, 20.0f);
-
-                            ImGui::Text(std::to_string(Item.InsAddress).c_str());
-
-                            ImGui::TableNextColumn();
-
-                            ImGui::Text(Item.StringValue.c_str());
-
-                            ImGui::TableNextRow();
+                        if (windowdata.NativeCpuType != NativeSet::Native) {
+                            CanBeRan = false;
                         }
-
-                        ImGui::EndTable();
                     }
+
+                    if (CanBeRan)
+                    {
+                        ImGui::TextUnformatted("Debuger");
+                    }
+                    else
+                    {
+                        ImGui::TextUnformatted("Debuger(Cant run this Code)");
+                    }
+
+
+
+                    ImGui::BeginDisabled(!CanBeRan);
+                    ShowDebugerMenu(windowdata);
+                    ImGui::EndDisabled();
+
+                }
+                ImGui::NextColumn();
+                {
+                    if (Debuger.IsinFunc())
+                    {
+                        String V;
+                        V = _RunTimeState.GetName(Debuger.GetStartofFunc(Debuger.GetCurrentInstruction()));
+                        ImGui::TextUnformatted(V.c_str());
+                        
+                        if (ImGui::BeginTable("split2", 2, ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders))
+                        {
+                           
+
+
+                            ShowCurrentFuncInsList();
+                        }
+                    }
+
+                    ImGui::TextUnformatted("Code");
+
+
+                    if (windowdata.VMType == UCodeVMType::Native_Interpreter)
+                    {
+
+
+                    }
+                    else if (windowdata.VMType == UCodeVMType::Jit_Interpreter)
+                    {
+                        auto& jit = _AnyInterpreter.GetAs_JitInterpreter();
+                        String txt = jit.GetJitState();
+
+                        ImGui::BeginDisabled();
+
+                        ImGui::PushID(&txt);
+
+                        ImGui::InputTextMultiline("", &txt, ImGui::GetContentRegionAvail());
+
+                        ImGui::PopID();
+
+                        ImGui::EndDisabled();
+                    }
+                    else if (windowdata.VMType == UCodeVMType::Interpreter)
+                    {
+                        if (ImGui::BeginTable("split2", 2, ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders))
+                        {
+                            for (auto& Item : windowdata.InsInfo)
+                            {
+                                bool IsOnIns = false;
+
+                                if (Debuger.IsinFunc())
+                                {
+                                    IsOnIns = Item.InsAddress == Debuger.GetCurrentInstruction();
+                                }
+
+                               
+                                ImGui::TableNextColumn();
+
+                               
+                                if (IsOnIns)
+                                {
+                                    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
+                                }
+
+                                ImGui::Text(std::to_string(Item.InsAddress).c_str());
+
+                              
+
+                                ImGui::TableNextColumn();
+
+                                ImGui::Text(Item.StringValue.c_str());  
+                                
+                                if (IsOnIns)
+                                {
+                                    ImGui::PopStyleColor();
+                                }
+
+                                ImGui::TableNextRow();
+                            }
+
+                            ImGui::EndTable();
+                        }
+                    }
+                }
+            }
+            ImGui::Columns();
+        }
+    }
+}
+
+void AppObject::ShowCurrentFuncInsList()
+{
+    bool Start = false;
+    for (auto& Item : windowdata.InsInfo)
+    {
+        bool IsOnIns = Item.InsAddress == Debuger.GetCurrentInstruction();
+
+        if (Start == false)
+        {
+            Start = Item.InsAddress == Debuger.GetStartofFunc(Debuger.GetCurrentInstruction());
+        }
+
+
+        if (Start)
+        {
+            ImGui::TableNextColumn();
+
+
+            if (IsOnIns)
+            {
+                ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
+            }
+
+            ImGui::Text(std::to_string(Item.InsAddress).c_str());
+
+
+
+            ImGui::TableNextColumn();
+
+            ImGui::Text(Item.StringValue.c_str());
+
+            if (IsOnIns)
+            {
+                ImGui::PopStyleColor();
+            }
+
+            ImGui::TableNextRow();
+            if (Start)
+            {
+                auto& ins = _RunTimeState.GetInst(Item.InsAddress);
+                if (ins.OpCode == UCodeLang::InstructionSet::Return)
+                {
+                    break;
                 }
             }
         }
-        ImGui::Columns();
     }
+
+    ImGui::EndTable();
 }
 
 void AppObject::UpdateInsData(UCodeVMWindow& windowdata)
@@ -1361,10 +2422,11 @@ void AppObject::UpdateInsData(UCodeVMWindow& windowdata)
 
 
     auto& InsMapData = UCodeLang::UAssembly::Get_InsToInsMapValue();
-    BinaryVectorMap<UCodeLang::UAddress, String> AddressToName;
+    UnorderedMap<UCodeLang::UAddress, String> AddressToName;
 
 
     auto& Inslist = RunTime.Get_Libs().GetInstructions();
+    const BytesView staticbytesview = BytesView::Make((Byte*)RunTime.Get_StaticMemPtr(), RunTime.Get_Libs().GetStaticBytes().size());
     for (size_t i = 0; i < Inslist.size(); i++)
     {
         auto& Item = Inslist[i];
@@ -1373,29 +2435,7 @@ void AppObject::UpdateInsData(UCodeVMWindow& windowdata)
         V.InsAddress = i;
         String Vstr;
 
-        if (InsMapData.count(Item.OpCode))
-        {
-            auto& MapData = InsMapData[Item.OpCode];
-            Vstr += (String)MapData->InsName;
-            Vstr += " ";
-
-            auto staticbytesview = BytesView::Make((const Byte*)RunTime.Get_StaticMemPtr(), RunTime.Get_Libs().GetStaticBytes().size());
-            if (MapData->Op_0 != OpCodeType::NoOpCode)
-            {
-                UAssembly::OpValueToString(MapData->Op_0, Item.Value0, AddressToName, staticbytesview, Vstr);
-            }
-            if (MapData->Op_1 != OpCodeType::NoOpCode)
-            {
-                Vstr += ",";
-                UAssembly::OpValueToString(MapData->Op_1, Item.Value1, AddressToName, staticbytesview, Vstr);
-            }
-
-        }
-        else
-        {
-            Vstr += "Ins " + std::to_string((uintptr_t)Item.OpCode) + ":" + std::to_string((uintptr_t)Item.Value0.AsPtr) + ","
-                + std::to_string((uintptr_t)Item.Value1.AsPtr);
-        }
+        i += UAssembly::ParseInstruction(i, Span<UCodeLang::Instruction>::Make(Inslist.data(), Inslist.size()), Vstr,staticbytesview, AddressToName);
 
         V.StringValue = std::move(Vstr.c_str());
 
@@ -1406,22 +2446,55 @@ void AppObject::UpdateInsData(UCodeVMWindow& windowdata)
 void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
 {
 
+   
+
     ImGui::Separator();
 
     bool IsinFileMode = false;
     ImVec2 Buttonsize = { 80,20 };
 
-    bool InFuncion = false;
+    static UCodeLang::DebugData DebugInfo;
+
+    bool InFuncion = Debuger.IsinFunc();
 
     ImGui::Button("Reset", Buttonsize);
 
     ImguiHelper::BoolEnumField("Call Static/Thread Init On Reload", windowdata.CallStaticVarOnReload);
 
+    ImguiHelper::BoolEnumField("Call Frame", windowdata.CallFrame);
+
+
     ImGui::BeginDisabled(!InFuncion);
 
-    ImGui::Button("Step in", Buttonsize); ImGui::SameLine();
-    ImGui::Button("Step over", Buttonsize); ImGui::SameLine();
-    ImGui::Button("Step out", Buttonsize);
+    if (ImGui::Button("Step in", Buttonsize))
+    {
+        Debuger.StepIn();
+    } ImGui::SameLine();
+
+    if (ImGui::Button("Step over", Buttonsize))
+    {
+        Debuger.StepOver();
+    }ImGui::SameLine();
+
+    if (ImGui::Button("Step out", Buttonsize))
+    {
+        Debuger.StepOut();
+    }
+
+    if (ImGui::Button("Vm Step in", Buttonsize))
+    {
+        Debuger.VM_StepIn();
+    } ImGui::SameLine();
+
+    if (ImGui::Button("Vm Step over", Buttonsize))
+    {
+        Debuger.VM_StepOver();
+    }ImGui::SameLine();
+
+    if (ImGui::Button("Vm Step out", Buttonsize))
+    {
+        Debuger.VM_StepOut();
+    }
 
     ImGui::EndDisabled();
 
@@ -1432,20 +2505,41 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
             _AnyInterpreter.GetAs_JitInterpreter().TryBuildAllFuncs();
         }
     }
-
-    if (!InFuncion) {
+    
+    if (InFuncion)
+    {
+        Debuger.UpdateDebugData(DebugInfo);
         ImGui::Text("Varables");
+        auto& thisFrame = DebugInfo._StackFrames.front();
+
+
+        for (auto& Item : thisFrame._Varables) 
+        {
+            ImguiHelper::UCodeObjectField(
+                Item.VarableName.c_str(),
+                Item.GetObjectPtr(),
+                Item.Type, 
+                _RunTimeState.Get_Assembly());
+        }
     }
 
-    if (!InFuncion) {
+    if (InFuncion) 
+    {
+        String V = "StackPtrOffset:";
+        V += std::to_string(Debuger.GetStackOffset());
+        ImGui::Text(V.c_str());
+
         ImGui::Text("StackFrames");
+
     }
+
+    
 
     if (!InFuncion) 
     {
         auto& Assembly = _RunTimeState.Get_Assembly();
         bool Updated = false;
-      
+        
 
         auto GlobalObject = Assembly.Get_GlobalObject_Class();
 
@@ -1564,17 +2658,18 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                     callFuncContext._LastRetType = callFuncContext.current_method->RetType;
                     callFuncContext._LastRet.Resize(Assembly.GetSize(callFuncContext._LastRetType, Is32bits).value_or(0));
 
-                    for (size_t i = 0; i < callFuncContext.current_method->ParsType.size(); i++)
-                    {
-                        auto& Arg = callFuncContext.Args[i];
-                        _AnyInterpreter.PushParameter(Arg.Data(), Arg.Size());
-                    }
+                    
                     if (windowdata.CallStaticVarOnReload || callFuncContext.CallStaticAndThreadInit)
                     {
                         _AnyInterpreter.Call(StaticVariablesInitializeFunc);
                         _AnyInterpreter.Call(ThreadVariablesInitializeFunc);
                     }
 
+                    for (size_t i = 0; i < callFuncContext.current_method->ParsType.size(); i++)
+                    {
+                        auto& Arg = callFuncContext.Args[i];
+                        _AnyInterpreter.PushParameter(Arg.Data(), Arg.Size());
+                    }
                     _AnyInterpreter.Call(callFuncContext.current_method);
 
                     if (windowdata.CallStaticVarOnReload || callFuncContext.CallStaticAndThreadDeInit)
@@ -1588,17 +2683,50 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                         _AnyInterpreter.Get_Return(callFuncContext._LastRet.Data(), callFuncContext._LastRet.Size());
                     }
                 }
-                ImGui::BeginDisabled();
+                ImGui::SameLine();
+                if (ImGui::Button(((String)"Step Into:" + MethodString).c_str()))
+                {
+                    Debuger.Attach(&_RunTimeState);
+                    callFuncContext._LastRetType = callFuncContext.current_method->RetType;
+                    callFuncContext._LastRet.Resize(Assembly.GetSize(callFuncContext._LastRetType, Is32bits).value_or(0));
+
+
+                   
+                    if (windowdata.CallStaticVarOnReload || callFuncContext.CallStaticAndThreadInit)
+                    {
+                        _AnyInterpreter.Call(StaticVariablesInitializeFunc);
+                        _AnyInterpreter.Call(ThreadVariablesInitializeFunc);
+                    } 
+                    
+                    for (size_t i = 0; i < callFuncContext.current_method->ParsType.size(); i++)
+                    {
+                        auto& Arg = callFuncContext.Args[i];
+                        _AnyInterpreter.PushParameter(Arg.Data(), Arg.Size());
+                    }
+                    Debuger.StepInto(
+                        &_AnyInterpreter.GetAs_Interpreter(), callFuncContext.current_method);
+                }
+               // ImGui::BeginDisabled();
                 if (callFuncContext._LastRetType == callFuncContext.current_method->RetType)
                 {
                     ImguiHelper::UCodeObjectField("Returned", callFuncContext._LastRet.Data(),callFuncContext._LastRetType, Assembly);
                 }
-                ImGui::EndDisabled();
+               // ImGui::EndDisabled();
             }
         }
 
     }
 
+
+    if (Debuger.HasExitedFunc())
+    {
+        Debuger.StepOutof();
+
+        if (callFuncContext._LastRet.Size())
+        {
+            _AnyInterpreter.Get_Return(callFuncContext._LastRet.Data(), callFuncContext._LastRet.Size());
+        }
+    }
 
     {
         if (ImGui::Begin("Stack-Memory"))
@@ -1649,11 +2777,11 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
 
             for (auto& Item : AlocsInfo)
             {
-                Mems.push_back({ false,Item._Key,Item._Value });
+                Mems.push_back({ false,Item.first,Item.second });
             }
             for (auto& Item : ReservedAlocsInfo)
             {
-                Mems.push_back({ true,Item._Key,Item._Value });
+                Mems.push_back({ true,Item.first,Item.second});
             }
 
             std::sort(Mems.begin(), Mems.end(),
@@ -1698,13 +2826,13 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                             auto& DebugInfo = _RunTimeState.Get_Libs().Get_DebugInfo();
                             for (auto& Item : DebugInfo.VarablesInfo)
                             {
-                                if (auto Val = Item._Value.TypeLoc.Get_If<UCodeLang::VarableInfo::Static>())
+                                if (auto Val = Item.second.TypeLoc.Get_If<UCodeLang::VarableInfo::Static>())
                                 {
                                     void* Object = (void*)((uintptr_t)Staticptr + (uintptr_t)Val->offset);
 
                                     ImGui::Text(("offset:" + std::to_string(Val->offset)).c_str());
                                     ImGui::SameLine();
-                                    ImguiHelper::UCodeObjectField(Item._Key.c_str(), Object, Item._Value.ReflectionType, Assembly);
+                                    ImguiHelper::UCodeObjectField(Item.first.c_str(), Object, Item.second.ReflectionType, Assembly);
                                 }
                             }
                         }
@@ -1713,13 +2841,13 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                             auto& DebugInfo = _RunTimeState.Get_Libs().Get_DebugInfo();
                             for (auto& Item : DebugInfo.VarablesInfo)
                             {
-                                if (auto Val = Item._Value.TypeLoc.Get_If<UCodeLang::VarableInfo::Thread>())
+                                if (auto Val = Item.second.TypeLoc.Get_If<UCodeLang::VarableInfo::Thread>())
                                 {
                                     void* Object = (void*)((uintptr_t)Threadptr + (uintptr_t)Val->offset);
 
                                     ImGui::Text(("offset:" + std::to_string(Val->offset)).c_str());
                                     ImGui::SameLine();
-                                    ImguiHelper::UCodeObjectField(Item._Key.c_str(), Object, Item._Value.ReflectionType, Assembly);
+                                    ImguiHelper::UCodeObjectField(Item.first.c_str(), Object, Item.second.ReflectionType, Assembly);
                                 }
                             }
                         }
@@ -1764,13 +2892,13 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                 auto& DebugInfo = _RunTimeState.Get_Libs().Get_DebugInfo();
                 for (auto& Item : DebugInfo.VarablesInfo)
                 {
-                    if (auto Val = Item._Value.TypeLoc.Get_If<UCodeLang::VarableInfo::Static>())
+                    if (auto Val = Item.second.TypeLoc.Get_If<UCodeLang::VarableInfo::Static>())
                     {
                         void* Object = (void*)((uintptr_t)Memptr + (uintptr_t)Val->offset);
 
                         ImGui::Text(("offset:" + std::to_string(Val->offset)).c_str());
                         ImGui::SameLine();
-                        ImguiHelper::UCodeObjectField(Item._Key.c_str(), Object, Item._Value.ReflectionType, Assembly);
+                        ImguiHelper::UCodeObjectField(Item.first.c_str(), Object, Item.second.ReflectionType, Assembly);
                     }
                 }
 
@@ -1794,13 +2922,13 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                 auto& DebugInfo = _RunTimeState.Get_Libs().Get_DebugInfo();
                 for (auto& Item : DebugInfo.VarablesInfo)
                 {
-                    if (auto Val = Item._Value.TypeLoc.Get_If<UCodeLang::VarableInfo::Thread>())
+                    if (auto Val = Item.second.TypeLoc.Get_If<UCodeLang::VarableInfo::Thread>())
                     {
                         void* Object = (void*)((uintptr_t)Memptr + (uintptr_t)Val->offset);
 
                         ImGui::Text(("offset:" + std::to_string(Val->offset)).c_str());
                         ImGui::SameLine();
-                        ImguiHelper::UCodeObjectField(Item._Key.c_str(),Object, Item._Value.ReflectionType, Assembly);
+                        ImguiHelper::UCodeObjectField(Item.first.c_str(),Object, Item.second.ReflectionType, Assembly);
                     }
                 }
 
@@ -1831,6 +2959,8 @@ void AppObject::FullReloadRunTime()
     _RuntimeLib.UnLoad();
     _RuntimeLib.Init(&_CompiledLib);
 
+    LinkAppAPICallsTo(_RuntimeLib);
+
     _RunTimeState.ClearRunTimeState();
     _RunTimeState.AddLib(&_RuntimeLib);
     _RunTimeState.LinkLibs();
@@ -1847,19 +2977,19 @@ void AppObject::HotReloadRunTime()
     case  UCodeLang::InterpreterTypes::Interpreter:
     {
         n.ThisInterpreter = &_AnyInterpreter.GetAs_Interpreter();
-        n.Type = UCodeLang::DebugContext::Type::Interpreter;
+        n.type = UCodeLang::DebugContext::Type::Interpreter;
     }
     break;
     case  UCodeLang::InterpreterTypes::Jit_Interpreter:
     {
         n.ThisInterpreter = &_AnyInterpreter.GetAs_JitInterpreter();
-        n.Type = UCodeLang::DebugContext::Type::Jit_Interpreter;
+        n.type = UCodeLang::DebugContext::Type::Jit_Interpreter;
     }
     break;
     case  UCodeLang::InterpreterTypes::NativeInterpreter:
     {
         n.ThisInterpreter = &_AnyInterpreter.GetAs_NativeInterpreter();
-        n.Type = UCodeLang::DebugContext::Type::Native_Interpreter;
+        n.type = UCodeLang::DebugContext::Type::Native_Interpreter;
     }
     break;
     default:
@@ -1868,6 +2998,7 @@ void AppObject::HotReloadRunTime()
     }
     UCodeLang::RunTimeLib teplib;
     teplib.Init(&_CompiledLib);
+    LinkAppAPICallsTo(teplib);
 
     UCodeLang::RunTimeLangState::HotReloadLib reloadlib;
     reloadlib.LibToUpdate = &_RuntimeLib;
@@ -1891,7 +3022,7 @@ void AppObject::HotReloadRunTime()
 void AppObject::OnPublishDiagnostics(const UCodeLanguageSever::json& Params)
 {
     LS::PublishDiagnosticsParams params;
-    ns::from_json(Params, params);
+    UCodeLanguageSever::from_json(Params, params);
 
     PublishedDiagnostics = std::move(params);
     OnErrorListUpdated();
@@ -1914,7 +3045,7 @@ bool AppObject::LSPHasNoErrors()
 
 void AppObject::SetRequestCallBack(UCodeLanguageSever::integer RequestID, RequestCallBack CallBack)
 {
-    auto& Item = RequestCallBacks[RequestID];
+    auto& Item = RequestCallBacks.GetOrAdd(RequestID, {});
     Item.RequestID = RequestID;
     Item.CallBack = CallBack;
 }
@@ -1924,11 +3055,11 @@ void AppObject::OnErrorListUpdated()
     TextEditor::ErrorMarkers marks;
     for (auto& Item : Errors)
     {
-        marks[Item._Error.Line] = Item._Error._Msg;
+        marks[(int)Item._Error.Line] = Item._Error._Msg;
     }
     for (auto& Item : PublishedDiagnostics.diagnostics)
     {
-        marks[Item.range.start.line] = Item.message;
+        marks[(int)Item.range.start.line] = Item.message;
     }
     _Editor.SetErrorMarkers(marks);
 }
@@ -1940,13 +3071,16 @@ void AppObject::CompileText(const String& String)
     _Compiler.Get_Errors().Remove_Errors();
     const Path tepfilesdir = "tepfiles";
     const Path tepfilepath = tepfilesdir / "src.uc";
-    const Path tepoutpath = "out.data";
-    
+    const Path tepoutpath = Outfilepath();
+    const Path tepintpath = "int";
+
     std::filesystem::create_directory(tepfilesdir);
 
     UCodeLang::Compiler::CompilerPathData paths;
-    paths.FileDir = tepfilesdir.generic_string();
-    paths.OutFile = tepoutpath.generic_string();
+
+    paths.FileDir = tepfilesdir;
+    paths.OutFile = tepoutpath;
+    paths.IntDir = tepintpath;
 
     std::ofstream file(tepfilepath);
     file << String;
@@ -1957,20 +3091,59 @@ void AppObject::CompileText(const String& String)
     if (OutputWindow.InDebug) {
         Settings._Flags = (UCodeLang::OptimizationFlags)((UCodeLang::OptimizationFlags_t)Settings._Flags | (UCodeLang::OptimizationFlags_t)UCodeLang::OptimizationFlags::Debug);
     }
-    auto r = _Compiler.CompileFiles(paths);
-    
+   
     IsRuningCompiler = true;
-    std::function<UCodeLang::Compiler::CompilerRet()> Func = [this, paths]()
+    bool AddStandardLibrary = OutputWindow.ImportStandardLibrary;
+    bool Apifile = false;
+    std::function<UCodeLang::Compiler::CompilerRet()> Func = [this, paths, AddStandardLibrary, Apifile, tepfilepath]()
     {
-       auto r = _Compiler.CompileFiles(paths);
-       IsRuningCompiler = false;
-       return r;
+        UCodeLang::Compiler::ExternalFiles ExternalFiles;
+
+
+
+        if (AddStandardLibrary)
+        {
+            UCodeLang::ModuleFile f;
+            Path modpath = Path(UCodeLang_SoultionDir) / "UCodeAPI";
+            modpath /= "StandardLibrary";
+            modpath /= UCodeLang::ModuleFile::FileNameWithExt;
+
+            f.FromFile(&f, modpath);
+            UCodeLang::ModuleIndex index = UCodeLang::ModuleIndex::GetModuleIndex();
+
+
+            auto v = f.BuildModule(_Compiler, index, true);
+            if (v.CompilerRet._State
+                ==
+                UCodeLang::Compiler::CompilerState::Fail)
+            {
+                IsRuningCompiler = false;
+                auto& r = v.CompilerRet;
+                return std::move(r);
+            }
+            else
+            {
+                ExternalFiles.Files.push_back(v.OutputItemPath);
+            }
+        }
+
+
+        UCodeLang::Compiler::CompilerRet r;
+        if (Apifile)
+        {
+            r = _Compiler.CompileFiles_UseIntDir(paths, ExternalFiles);
+        }
+        else
+        {
+            r = _Compiler.CompilePathToObj(tepfilepath, paths.OutFile, ExternalFiles);
+        }
+        IsRuningCompiler = false;
+        return r;
     };
      
     _RuningPaths = std::move(paths);
     _RuningCompiler = SendTaskToWorkerThread<UCodeLang::Compiler::CompilerRet>(Func);
-
-   
+    //Func();
 }
 
 void AppObject::OnDoneCompileing(UCodeLang::Compiler::CompilerRet& Val, const UCodeAnalyzer::Path& tepoutpath)
@@ -2008,8 +3181,117 @@ void AppObject::OnDoneCompileing(UCodeLang::Compiler::CompilerRet& Val, const UC
         case BackEndType::WebAssembly:
             _LibInfoString = _Compiler.GetTextFromFile(tepoutpath);
             break;
-        default:
+        case BackEndType::WindowsExecutable:
+        {
+            /*
+            enma::pe_image image(tepoutpath);
+
+            _LibInfoString += "Portable Executable:\n";
+
+
+            {
+                _LibInfoString += " Machine:";
+
+                switch (image.get_machine())
+                {
+                case IMAGE_FILE_MACHINE_AMD64:
+                    _LibInfoString += "AMD64";
+                    break;
+                case IMAGE_FILE_MACHINE_UNKNOWN:
+                default:
+                    _LibInfoString += "UNKNOWN";
+                    break;
+                }
+                _LibInfoString += '\n';
+                _LibInfoString += " SectionsNumber:";
+                _LibInfoString += std::to_string(image.get_sections_number());
+             
+                _LibInfoString += '\n';
+                _LibInfoString += " Characteristics";
+                if (image.get_characteristics() & IMAGE_FILE_EXECUTABLE_IMAGE)
+                {
+                    _LibInfoString += ":EXECUTABLE";
+                }
+                _LibInfoString += '\n';
+                _LibInfoString += " DllCharacteristics";
+                if (image.get_characteristics_dll() & IMAGE_DLLCHARACTERISTICS_NX_COMPAT)
+                {
+                    _LibInfoString += ":NX_COMPAT";
+                }
+                if (image.get_characteristics_dll() & IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA)
+                {
+                    _LibInfoString += ":HIGH_ENTROPY_VA";
+                }
+                if (image.get_characteristics_dll() & IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE)
+                {
+                    _LibInfoString += ":DYNAMIC_BASE";
+                }
+                if (image.get_characteristics_dll() & IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE)
+                {
+                    _LibInfoString += ":TERMINAL_SERVER_AWARE";
+                }
+                _LibInfoString += '\n';
+                _LibInfoString += " Subsystem:";
+                switch (image.get_sub_system())
+                {
+                case IMAGE_SUBSYSTEM_WINDOWS_CUI:
+                    _LibInfoString += "CUI";
+                    break;
+                case IMAGE_SUBSYSTEM_WINDOWS_GUI:
+                    _LibInfoString += "GUI";
+                    break;
+                default:
+                    _LibInfoString += "UNKNOWN";
+                    break;
+                }
+                _LibInfoString += " Sections:\n";
+                for (auto& Item : image.get_sections())
+                {
+                    _LibInfoString += "\n  ";
+                    _LibInfoString += Item->get_section_name();
+                    _LibInfoString += ":\n";
+
+                    _LibInfoString += "   Characteristics";
+                    if (Item->get_characteristics() & IMAGE_SCN_MEM_EXECUTE)
+                    {
+                        _LibInfoString += ":EXECUTABLE";
+                    }
+                    if (Item->get_characteristics() & IMAGE_SCN_MEM_WRITE)
+                    {
+                        _LibInfoString += ":WRITE";
+                    }
+                    if (Item->get_characteristics() & IMAGE_SCN_MEM_READ)
+                    {
+                        _LibInfoString += ":READ";
+                    }
+                    _LibInfoString += '\n';
+                    _LibInfoString += "   Data:"; 
+                    auto& datas = Item->get_section_data();
+
+                }
+
+            }
+            */
             _LibInfoString = "";
+        }break;
+        case BackEndType::LinuxExecutable:
+        {
+            /*
+            std::stringstream s;
+            ELFIO::elfio reader;
+            reader.load(tepoutpath.generic_string());
+            ELFIO::dump::header(s, reader);
+            ELFIO::dump::section_headers(s, reader);
+            ELFIO::dump::symbol_tables(std::cout, reader);
+            ELFIO::dump::segment_datas(std::cout, reader);
+
+            _LibInfoString = s.str();
+            */
+            _LibInfoString = "";
+        }    
+        break;
+        default:
+            UCodeLangUnreachable();
             break;
         }
 
@@ -2061,7 +3343,7 @@ size_t AppObject::GetColumn(const String& text,size_t line,size_t Pos)
     size_t OnColumn = 0;
     for (size_t i = 0; i < text.size(); i++)
     {
-        if (text[i] == '/n')
+        if (text[i] == '\n')
         {
             OnLine++;
         }
@@ -2129,7 +3411,7 @@ void AppObject::OnSeverPacket(SPacket&& packet)
         {
             if (RequestCallBacks.HasValue(Val->id))
             {
-                auto& Item = RequestCallBacks.at(Val->id);
+                auto& Item = RequestCallBacks.GetValue(Val->id);
                 if (Item.CallBack)
                 {
                     Item.CallBack(*Val);

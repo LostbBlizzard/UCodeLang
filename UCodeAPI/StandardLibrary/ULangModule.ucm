@@ -1,8 +1,6 @@
-AuthorName: "LostbBlizzard"
+AuthorName: "UCodeLang"
 ModuleName: "StandardLibarary"
 Version: 0:0:0
-Src: "src"
-Obj: "int"
-Out: "out"
+NameSpace: ULang
 
-import LostbBlizzard::NStandardLibarary[0:0:0];
+import UCodeLang::NStandardLibarary[0:0:0];

@@ -13,8 +13,16 @@ public:
 	{
 		String Value;
 	};
-	struct Type
+	struct CPPType
 	{
+		enum class Mode
+		{
+			None,
+			Ptr,
+			Address
+		};
+		bool IsConst = false;
+		Mode mode = Mode::None;
 		String Value;
 	};
 	
@@ -26,13 +34,14 @@ public:
 		{
 			Optional<SummaryTag> Summary;
 			String Name;
-			Type Type;
+			CPPType Type;
 			Optional<CPPExpression> Value;
 
 			bool Exported = false;
 		};
 		Vector<Field> Fields;
 		Vector<SymbolData> Symbols;
+		bool IsTrait = false;
 	};
 	
 	struct EnumType
@@ -43,7 +52,7 @@ public:
 			Optional<CPPExpression> Value;
 			Optional<SummaryTag> Summary;
 		};
-		Optional<Type> _EnumBaseType;
+		Optional<CPPType> _EnumBaseType;
 		Vector<Field> Fields;
 		
 	};
@@ -53,7 +62,7 @@ public:
 	};
 	struct ConstexprType
 	{
-		Type _Type;
+		CPPType _Type;
 		CPPExpression _Value;
 	};
 	struct FuncData 
@@ -61,15 +70,16 @@ public:
 		struct Par
 		{
 			bool IsOut = false;
-			Type Type;
+			CPPType Type;
 			String Name;
 			Optional<CPPExpression> Default;
 		};
 		Optional<String> MemberClassName;
 		Vector<Par> Pars;
-		Type Ret;
+		CPPType Ret;
 
 		Optional<size_t> OverloadNumber;
+		bool IsStatic = false;
 	};
 	struct SymbolData
 	{
@@ -79,7 +89,9 @@ public:
 		Optional<SummaryTag> Summary;
 		String _FullName;
 		String _Name;
-		Variant<ClassType, EnumType, ConstexprType, FuncData> _Type;
+
+		//int becuase gcc is unable use ClassType in Variant as default
+		Variant<int,ClassType, EnumType, ConstexprType, FuncData> _Type;
 	};
 
 
@@ -92,6 +104,7 @@ public:
 		String Ret;
 		Optional<size_t> OverloadValue;
 		Optional<String> MemberFuncClass;
+		FuncData* MyData = nullptr;
 	};
 	
 	/// <summary>
@@ -102,12 +115,14 @@ public:
 	/// <param name="ULangOut"></param>
 	/// <returns>if true it worked</returns>
 	static bool ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFile, const Path& ULangOut);
-	static void UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols);
-	static void OutputIRLineInfo(UCodeAnalyzer::CppHelper::SymbolData& Item, UCodeAnalyzer::Vector<FuncInfo>& V);
-	static void ParseCppToSybs(UCodeAnalyzer::String& FileText, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols);
-	static void DoOverLoadOnFunc(UCodeLang::VectorMap<UCodeAnalyzer::String, size_t>& Overloads, UCodeAnalyzer::CppHelper::SymbolData& Last, UCodeAnalyzer::CppHelper::FuncData* Val);
-	static bool ParseULangfileAndUpdateCpp(const Path& SrcLang, const Path& CppOut);
+	static bool ParseCppfileAndOutULangLink(const Path& SrcCpp, const Path& CppLinkFile, const Path& ULangOut);
+	static bool ParseULangToCppStaticLink(const Path& SrcCpp, const Path& CppLinkFile, const Path& ULangOut);
 
+	static void UpdateCppLinks(String& CppLinkText, Vector<CppHelper::SymbolData>& Symbols);
+	static void OutputIRLineInfo(CppHelper::SymbolData& Item, Vector<FuncInfo>& V);
+	static void ParseCppToSybs(String& FileText, Vector<CppHelper::SymbolData>& Symbols);
+	static void DoOverLoadOnFunc(UCodeLang::UnorderedMap<String, size_t>& Overloads, CppHelper::SymbolData& Last, CppHelper::FuncData* Val);
+	static bool ParseULangfileAndUpdateCpp(const Path& SrcLang, const Path& CppOut);
 	//
 	struct ParseCppState
 	{
@@ -142,7 +157,7 @@ public:
 	static void GetStringliteral(size_t& i, String& FileText, String& Out);
 	static void GetStringScope(size_t& i, String& FileText, String& Out);
 	static void GetIndentifier(size_t& i, String& FileText, String& Out);
-	static void GetType(size_t& i, String& FileText, Type& Out);
+	static void GetType(size_t& i, String& FileText, CPPType& Out);
 	static void MovePass(size_t& i, String& FileText, const char& passChar);
 	static void MovePassSpace(size_t& i, String& FileText);
 
@@ -170,7 +185,7 @@ public:
 			}
 		}
 		String LastNameSpace;
-		UCodeLang::VectorMap<String, String> InternalNameSpaces;
+		UCodeLang::UnorderedMap<String, String> InternalNameSpaces;
 	};
 	static String ToString(CppToULangState& State, const SymbolData& Syb);
 	static String ToString(CppToULangState& State, const EnumType& Value, const SymbolData& Syb);
@@ -179,7 +194,7 @@ public:
 	static String ToString(CppToULangState& State, const ClassType& Value, const SymbolData& Syb);
 	static String ToString(CppToULangState& State, const FuncData& Value, const SymbolData& Syb,bool IsInClass = false);
 
-	static String ToString(CppToULangState& State, const Type& Value);
+	static String ToString(CppToULangState& State, const CPPType& Value);
 	static String ToString(CppToULangState& State, const CPPExpression& Value);
 
 	static void DoNameSpace(CppToULangState& State, const SymbolData& Syb, String& R);

@@ -35,7 +35,7 @@ public:
 	}
 	inline size_t max_size()
 	{
-		return UInt64_MaxSize;
+		return SIZE_MAX;
 	}
 	inline void resize(size_t size)
 	{
@@ -314,7 +314,7 @@ public:
 	}
 	inline size_t max_size()
 	{
-		return UInt64_MaxSize;
+		return SIZE_MAX;
 	}
 	inline void resize(size_t size)
 	{

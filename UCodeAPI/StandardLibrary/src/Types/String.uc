@@ -1,71 +1,31 @@
-%ULang:
- 
- $String_t<T>[Buffer<T>]:
-  private:
-   Vector<T> Data;
-  public:
-   |new[this&,umut this& Buffer] -> void;
-   |new[this&,umut Vector<T>& Buffer] -> void;
-   
-   
-   |AsView[umut this&] => Data.AsView();
-   |AsView[this&] => Data.AsView();
-
-   |Add[this&,umut T& Item] => Data.Add(Item);
-   |Add[this&,moved T Item] => Data.Add(Item);
-  
-   |Add[this&,umut T[:] Items] => Data.Add(Item);
-   |Add[this&,moved T[:] Items] => Data.Add(Item);
 
 
-   |Capacity[umut this&] =>  Data.Capacity();
+$StringSpan_t<T>:
+ //$String = String_t<T>;
+ T[&] _data;
+ uintptr _size;
+ |new[this&]:
+  _data = unsafe bitcast<T[&]>(0);
+  _size = 0;
 
-   |Resize[this&,size_t Offset] -> void;
-   |Clear[this&] -> void;
+ unsafe |new[this&,T[&] data,uintptr size]:
+  _data = data;
+  _size = size;
 
-   |+[umut this&,umut T[:] Other] -> this:
-     Vector<T> R;
-     R.Resize(Data.Size() + Other.Size());
-     
-     R.Add(AsView());
-     R.Add(Other);
-     ret R;
+ |Size[imut this&] => _size;
+ unsafe |Data[imut this&] => _data;
 
-   |+[umut this&,umut this& Other] => this + Other.AsView();
+$String_t<T>:
+ //$StringSpan = StringSpan_t<T>;
 
-   |+[umut this&,moved T[:] Other] -> this:
-     Vector<T> R;
-     R.Resize(Data.Size() + Other.Size());
-     
-     R.Add(AsView());
-     R.Add(Other);
-     ret R;
+$String = String_t<char>;
+$StringSpan = StringSpan_t<char>;
 
-   |+[umut this&,moved this Other] => this + Other.AsView();
+$String8 = String_t<utf8>;
+$StringSpan8 = StringSpan_t<utf8>;
 
-   |+=[this&,umut T[:] Other] -> void:
-     Data.Add(AsView());
+$String16 = String_t<utf16>;
+$StringSpan16 = StringSpan_t<utf16>;
 
-   |+=[this&,umut this& Other]: this += Other.AsView();
-
-   |+=[this&,moved T[:] Other] -> void:
-     Data.Add(AsView());
-
-   |+=[this&,moved this Other]: this += Other.AsView();
-
- $StringView_t<T> = T[:];
-
- $String = String_t<char>; 
- $StringView = StringView_t<char>;
-
- $ASCIIString = String_t<ascllchar>; 
- $ASCIIStringView = String_t<ascllchar>; 
-
- $UTF8String = String_t<char8>; 
- $UTF8StringView = StringView_t<char8>;
-
- $UTF16String = String_t<char16>; 
- $UTF16StringView = StringView_t<char16>;
-
- $UTF32String = String_t<char32>; 
- $UTF32StringView = StringView_t<char32>;
+$String32 = String_t<utf32>;
+$StringSpan32 = StringSpan_t<utf32>;

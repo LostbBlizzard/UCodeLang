@@ -1,11 +1,11 @@
 #pragma once
-#include "UCodeLang/LangCore/UClib.hpp"
 #include "UCodeLang/Compliation/Helpers/CompilerTypes.hpp"
-#include "UCodeLang/Compliation/Helpers/CompliationErrors.hpp"
-#include "UCodeLang/Compliation/CompliationSettings.hpp"
-#include "UCodeLang/Compliation/Middle/IR.hpp"
 UCodeLangStart
 
+class CompliationErrors;
+class IRBuilder;
+class UClib;
+struct CompliationSettings;
 
 enum class FrontEndType : UInt8
 {
@@ -24,7 +24,7 @@ public:
 	{
 		String FileExtWithDot;
 		FrontEndType Type;
-		FileID FileID;
+		FileID FileId;
 	};
 	
 	
@@ -62,17 +62,23 @@ public:
 	};
 
 	virtual Gep_DepPreIR Get_DependenciesPreIR(FileNode_t* File) { return {}; }
-	virtual Vector<const FileNode_t*> Get_DependenciesPostIR(FileNode_t* File) { return {}; }
+	virtual Vector<NeverNullPtr<FileNode_t>> Get_DependenciesPostIR(FileNode_t* File) { return {}; }
 	
 	//
 	Unique_ptr<FileNode_t> LoadExternFile(const Path& path);
 	virtual Unique_ptr<FileNode_t> LoadExternFile(const BytesView Bytes, const Path& Ext){return nullptr;}
 
-
-	virtual Unique_ptr<FileNode_t> LoadIntFile(const Path& path) { return nullptr; }
+	Unique_ptr<FileNode_t> LoadIntFile(const Path& path);
+	virtual Unique_ptr<FileNode_t> LoadIntFile(const BytesView Bytes, const Path& Ext) { return nullptr; }
 	
 
 	virtual void ToIntFile(FileNode_t* File,const Path& path) { }
+
+	void BuildIR(const Vector<Unique_ptr<FileNode_t>>& FileNode)
+	{
+		Vector<FileNode_t*>& _Files = *(Vector<FileNode_t*>*) &FileNode;
+		return  BuildIR(_Files);
+	}
 
 	virtual void BuildIR(const Vector<FileNode_t*>& FileNode) {}
 

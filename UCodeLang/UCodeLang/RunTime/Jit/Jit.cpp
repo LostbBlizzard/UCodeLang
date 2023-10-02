@@ -2,9 +2,10 @@
 
 #if UCodeLang_Platform_Windows
 #include <Windows.h>
-#elif UCodeLang_Platform_Linux
+#elif UCodeLang_Platform_Posix
 #include <sys/mman.h>
 #endif
+#include <cstring>
 UCodeLangStart
 void GetCPUData(EnvironmentData& Out)
 {
@@ -90,7 +91,7 @@ void AsmBuffer::SetToReadWriteMode()
 	#if  UCodeLang_Platform_Windows
 	DWORD old;
 	VirtualProtect(Data, sizeof(Data), PAGE_READWRITE, &old);
-	#elif UCodeLang_Platform_Linux
+	#elif UCodeLang_Platform_Posix
 	mmap(Data, sizeof(Data), PROT_READ | PROT_WRITE,MAP_PRIVATE | MAP_ANONYMOUS ,-1, 0);
 	#endif
 }
@@ -110,7 +111,7 @@ void AsmBuffer::Alloc(const size_t Size)
 	#if UCodeLang_Platform_Windows
 	DWORD type = MEM_RESERVE | MEM_COMMIT;
 	Data = VirtualAlloc(NULL, Size, type, PAGE_READWRITE);
-	#elif UCodeLang_Platform_Linux
+	#elif UUCodeLang_Platform_Posix
 	Data = mmap(nullptr,Size, PROT_READ | PROT_WRITE,MAP_PRIVATE | MAP_ANONYMOUS ,-1, 0);
 	#endif
 	

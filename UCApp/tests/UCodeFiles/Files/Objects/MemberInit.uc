@@ -1,11 +1,11 @@
 
 $Item:
- int A = 0;
- |new[this&];
+ int A = 1;
+ |new[this&] -> void;
 
- |GetValue[] => A;
+ |GetValue[this&] => A;
 
 
 |main[] -> int:
- Item V;
+ Item V = [];
  ret V.GetValue(); 

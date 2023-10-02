@@ -1,7 +1,7 @@
 #include "LanguageSeverTest.hpp"
 #include <fstream>
 #include <filesystem>
-#include "UCodeLang/Compliation/Back/x86_64/X86_64Gen.hpp"
+#include "UCodeLang/Compliation/Back/x86_64/X86_64Builder.hpp"
 #include "Zydis/Zydis.h"
 #include <inttypes.h>
 #include <stdio.h>
@@ -55,7 +55,7 @@ void LanguageSeverTest::RunTest(String_view FileAsString)
 {
 	{
 		ImportUseing86x64Gen
-		X86_64Gen gen;
+		X86_64Builder gen;
 		gen.mov64(GReg::RAX, IndrReg(GReg::RAX));
 		
 
@@ -111,7 +111,7 @@ void LanguageSeverTest::RunTest(String_view FileAsString)
 	{
 		auto& V = Lines[i];
 		
-		if (V._Starts_with("@ulangsevertester::"))
+		if (StringHelper::StartWith(V,"@ulangsevertester::"))
 		{
 			Info info;
 			info.FileLine = i;

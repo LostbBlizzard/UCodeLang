@@ -1,5 +1,8 @@
 #include "Lexer.hpp"
 #include "../Helpers/KeyWords.hpp"
+
+#include "../Helpers/CompliationErrors.hpp"
+#include "../CompliationSettings.hpp"
 UCodeLangFrontStart
 void Lexer::Reset()
 {
@@ -62,7 +65,7 @@ void Lexer::Lex(const String_view& Text)
 			OnLine++;
 
 			NextChar = GetNextChar(1);
-		
+
 			NameAndKeyWords(ReadingState, _Token);
 			continue;
 		}
@@ -195,6 +198,14 @@ void Lexer::Lex(const String_view& Text)
 					_Token.Value = nullptr;
 					_Tokens.push_back(_Token);
 					TextIndex+=2;
+				}
+				else
+				{
+					IsDot = false;
+					_Token.Type = TokenType::KeyWord_RangeOperator;
+					_Token.Value = nullptr;
+					_Tokens.push_back(_Token);
+					TextIndex += 1;
 				}
 			}
 

@@ -43,9 +43,9 @@ public:
 	Unique_ptr<FileNode_t> BuildFile(const BytesView Bytes)  override{ return BuildFile(String_view((const char*)Bytes.Data(), Bytes.Size()) ); }
 
 
-	Unique_ptr<FileNode_t> LoadIntFile(const Path& path) override;
+	Unique_ptr<FileNode_t> LoadIntFile(const BytesView Bytes, const Path& Ext) override;
 	Unique_ptr<FileNode_t> LoadExternFile(const BytesView Bytes, const Path& Ext) override;
-	Vector<const FileNode_t*> Get_DependenciesPostIR(FileNode_t* File);
+	Vector<NeverNullPtr<FileNode_t>> Get_DependenciesPostIR(FileNode_t* File);
 
 	void ToIntFile(FileNode_t* File, const Path& path) override;
 

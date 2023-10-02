@@ -17,15 +17,14 @@ public:
 	}
 	void Reset();
 	void FixTypes(IRBuilder* Input);
-	void OnFunc(IRFunc* Func);
-	void GetMemberAccessTypeForIns(UCodeLang::IRType& ClassType, UCodeLang::IRBuilder* Input, UCodeLang::Unique_ptr<UCodeLang::IRInstruction>& Ins);
-
 	UCodeLangForceinline void Set_ErrorsOutput(CompliationErrors* V) { _Errs = V; }
 private:
 	IRBuilder* _Input=nullptr;
 	CompliationErrors* _Errs=nullptr;
 	IRFunc* _Func = nullptr;
 	IRBlock* _Block = nullptr;
+	void OnFunc(IRFunc* Func);
+	void GetMemberAccessTypeForIns(UCodeLang::IRType& ClassType, UCodeLang::IRBuilder* Input, UCodeLang::Unique_ptr<UCodeLang::IRInstruction>& Ins);
 	bool InList(const IRPar* Par,const Vector<IRPar>& Pars)
 	{
 		for (auto& Item : _Func->Pars)
@@ -51,7 +50,7 @@ private:
 	}
 
 	void OnOp(IRInstruction& Ins, IROperator& Op,bool UpdateInsType =true);
-	void LogCantFindInsInBlock();
+	void LogCantFindInsInBlock(IRInstruction* Ins);
 	void LogErrorCantFindPar(UCodeLang::IROperator& Op);
 };
 UCodeLangEnd

@@ -7,6 +7,11 @@
 #include <thread>
 #include <mutex>
 #include <future>
+
+#include <UCodeLang/RunTime/Interpreters/Interpreter.hpp>
+#include <UCodeLang/RunTime/RunTimeLangState.hpp>
+
+#include "CompliationSettings.hpp"
 UCodeLangStart
 
 
@@ -153,7 +158,44 @@ void ModuleIndex::WriteType(BitMaker& bit, const Path& Value)
 {
 	bit.WriteType(Value.generic_string());
 }
+ModuleIndex ModuleIndex::GetModuleIndex()
+{
+	ModuleIndex	LangIndex;
+	auto Path = ModuleIndex::GetModuleIndexFilePath();
+	if (!std::filesystem::exists(Path))
+	{
+		ModuleIndex::ToFile(&LangIndex, Path);
 
+		return LangIndex;
+	}
+
+	if (ModuleIndex::FromFile(&LangIndex, Path))
+	{
+		return LangIndex;
+	}
+	else
+	{
+		return LangIndex;
+	}
+}
+bool ModuleIndex::SaveModuleIndex(ModuleIndex& Lib)
+{
+	return Lib.ToFile(&Lib, ModuleIndex::GetModuleIndexFilePath());
+}
+void ModuleIndex::RemoveDeletedModules()
+{
+	namespace fs = std::filesystem;
+	Vector<IndexModuleFile> newlist;
+	for (auto& Item : _IndexedFiles)
+	{
+		if (fs::exists(Item._ModuleFullPath))
+		{
+			newlist.push_back(std::move(Item));
+		}
+	}
+
+	this->_IndexedFiles =std::move(newlist);
+}
 void ModuleIndex::FromType(BitReader& bit, Path& Value)
 {
 	String Out;
@@ -189,8 +231,15 @@ Compiler::CompilerPathData ModuleFile::GetPaths(Compiler& Compiler, bool IsSubMo
 	{
 		std::filesystem::create_directories(paths.OutFile);
 	}
-	paths.OutFile += ModuleName.ModuleName + Compiler.GetOutputExtWithDot();
 
+	paths.OutFile += ModuleName.ModuleName;
+	if (IsSubModule) 
+	{
+		paths.OutFile += FileExt::LibWithDot;
+	}
+	else {
+		paths.OutFile += Compiler.GetOutputExtWithDot();
+	}
 	return paths;
 }
 String ModuleFile::ToName(const ModuleIdentifier& ID)
@@ -201,20 +250,185 @@ String ModuleFile::ToName(const ModuleIdentifier& ID)
 	R += ID.AuthorName;
 	return R;
 }
-ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIndex& Modules, bool IsSubModule)
+bool ModuleFile::DownloadModules(const ModuleIndex& Modules,OptionalRef<String> LogsOut)
 {
-	Compiler::CompilerPathData paths = GetPaths(Compiler,IsSubModule);
-	Compiler::ExternalFiles ExternFiles;
-	auto& Errs = Compiler.Get_Errors();
 
-	Errs.FilePath = GetFullPathName();
-	bool Err = false;
 	for (auto& Item : ModuleDependencies)
 	{
-		auto V = Modules.FindFile(Item);
+		auto file = Modules.FindFile(Item.Identifier);
+		if (!file.has_value() && Item.WebLink)
+		{
+			const auto& WebLink = Item.WebLink.value();
+		
+			bool isgithub = StringHelper::StartWith(WebLink,"https://github.com");
+
+			if (LogsOut.has_value())
+			{
+				LogsOut.value() += "Download Modules is not added yet";
+			}
+			return false;
+		}
+	}
+
+	return true;
+}
+ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIndex& Modules, bool IsSubModule, OptionalRef<String> LogsOut)
+{
+	String out;
+	if (DownloadModules(Modules,Optionalref(out)))
+	{
+		if (LogsOut.has_value())
+		{
+			LogsOut.value() += out;
+		}
+		Compiler::CompilerPathData paths = GetPaths(Compiler, IsSubModule);
+		Compiler::ExternalFiles ExternFiles;
+		auto& Errs = Compiler.Get_Errors();
+
+		Errs.FilePath = GetFullPathName();
+
+		Path buildfile = ThisModuleDir / ModuleBuildfile.native();
+
+
+		{
+
+			namespace fs = std::filesystem;
+			if (fs::exists(buildfile))
+			{
+				auto OldSettings = Compiler.Get_Settings();
+
+				Compiler.Get_Settings() = CompliationSettings();
+
+				
+				auto build = BuildFile(Compiler.GetTextFromFile(buildfile),Compiler, Modules);
+
+				Compiler.Get_Settings() = OldSettings;
+				
+				if (build.CompilerRet._State == Compiler::CompilerState::Success)
+				{
+					UClib& buildscriptlib = *build.CompilerRet.OutPut;
+
+					ClassMethod* buildfuncion = buildscriptlib.Get_Assembly().Find_Func("build");
+
+					if (buildfuncion)
+					{
+						using BuildRuner = Interpreter;
+
+						RunTimeLib buildscriptrlib;
+						buildscriptrlib.Init(&buildscriptlib);
+
+						RunTimeLib BuildSystemlib;
+						//BuildSystemlib.Add_CPPCall("BuildSystem::Build",nullptr, nullptr);
+
+						RunTimeLangState state;
+						state.AddLib(&buildscriptrlib);
+
+						state.LinkLibs();
+
+
+						BuildRuner runer;
+						runer.Init(&state);
+
+
+						auto itworked = runer.RCall<int>(buildfuncion, this);
+
+
+						if (itworked == 0)
+						{
+							ModuleRet CompilerRet;
+							CompilerRet.CompilerRet._State = Compiler::CompilerState::Success;
+							return CompilerRet;
+						}
+						else
+						{
+							ModuleRet CompilerRet;
+							CompilerRet.CompilerRet._State = Compiler::CompilerState::Fail;
+							return CompilerRet;
+						}
+					}
+					else
+					{
+						Compiler.Get_Errors().AddError(ErrorCodes::ExpectingToken, 0, 0, "Cant find funcion |build[BuildSystem& system] for build script.");
+						ModuleRet CompilerRet;
+						CompilerRet.CompilerRet._State = Compiler::CompilerState::Fail;
+						return CompilerRet;
+					}
+				}
+				else
+				{
+					ModuleRet CompilerRet;
+					CompilerRet.CompilerRet._State = Compiler::CompilerState::Fail;
+					return CompilerRet;
+				}
+			}
+			else
+			{
+				bool Err = false;
+
+				BuildModuleDependencies(Modules, Errs, Err, Compiler, this->ModuleDependencies, ExternFiles);
+
+				if (Err == false)
+				{
+					auto OldSettings = Compiler.Get_Settings();
+
+					ModuleRet CompilerRet;
+					{
+						Compiler.Get_Settings()._Type = IsSubModule ? OutPutType::IRAndSymbols : OldSettings._Type;
+						CompilerRet.OutputItemPath = GetPaths(Compiler, IsSubModule).OutFile;
+
+
+						if (ForceImport) {
+							Compiler.Get_Settings().AddArgFlag("ForceImport");
+						}
+
+						if (ModuleNameSpace.size())
+						{
+							Compiler.Get_Settings().AddArgValue("StartingNameSpace", ModuleNameSpace);
+						}
+
+						CompilerRet.CompilerRet = Compiler.CompileFiles_UseIntDir(paths, ExternFiles);
+					}
+
+					Compiler.Get_Settings() = OldSettings;
+					return CompilerRet;
+				}
+				else
+				{
+					ModuleRet CompilerRet;
+					CompilerRet.CompilerRet._State = Compiler::CompilerState::Fail;
+					return CompilerRet;
+				}
+			}
+		}
+	}
+	else
+	{
+		if (LogsOut.has_value())
+		{
+			LogsOut.value() += out;
+		}
+		Compiler.Get_Errors().AddError(ErrorCodes::CouldNotFindFunc, 0, 0, "Download Error:" + out);
+
+
+		ModuleRet CompilerRet;
+		CompilerRet.CompilerRet._State = Compiler::CompilerState::Fail;
+		return CompilerRet;
+	}
+}
+
+void ModuleFile::BuildModuleDependencies(
+	const ModuleIndex& Modules, 
+	CompliationErrors& Errs, bool& Err,
+	Compiler& Compiler,
+	const Vector<ModuleDependencie>& ModuleDependencies,
+	Compiler::ExternalFiles& externfilesoutput)
+{
+	for (auto& Item : ModuleDependencies)
+	{
+		auto V = Modules.FindFile(Item.Identifier);
 		if (!V.has_value())
 		{
-			Errs.AddError(ErrorCodes::ExpectingSequence, 0, 0, "Cant Find Mudule Named " + ToName(Item));
+			Errs.AddError(ErrorCodes::ExpectingSequence, 0, 0, "Cant Find Mudule Named " + ToName(Item.Identifier));
 			Err = true;
 		}
 		else
@@ -223,59 +437,24 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 			ModuleFile MFile;
 			if (ModuleFile::FromFile(&MFile, Index._ModuleFullPath))
 			{
-				auto BuildData = MFile.BuildModule(Compiler, Modules,true);
+				auto BuildData = MFile.BuildModule(Compiler, Modules, true);
 				if (BuildData.CompilerRet._State == Compiler::CompilerState::Fail)
 				{
 					Errs.FilePath = GetFullPathName();
 
-					Errs.AddError(ErrorCodes::ExpectingSequence, 0, 0, "Cant Build Mudule " + ToName(ModuleName) + " because of an Err in " + ToName(Item));
+					Errs.AddError(ErrorCodes::ExpectingSequence, 0, 0, "Cant Build Mudule " + ToName(ModuleName) + " because of an Err in " + ToName(Item.Identifier));
 					Err = true;
 				}
 				else
 				{
-					ExternFiles.Files.push_back(MFile.GetPaths(Compiler,true).OutFile);
+					externfilesoutput.Files.push_back(MFile.GetPaths(Compiler, true).OutFile);
 				}
 
 			}
 
 		}
 	}
-	
-	if (Err == false)
-	{
-		auto OldSettings = Compiler.Get_Settings();
 
-		ModuleRet CompilerRet;
-		{
-			Compiler.Get_Settings()._Type = IsSubModule ? OutPutType::IRAndSymbols : OldSettings._Type;
-			CompilerRet.OutputItemPath = paths.OutFile;
-
-
-			if (ForceImport) {
-				Compiler.Get_Settings().AddArgFlag("ForceImport");
-			}
-
-			if (RemoveUnSafe) {
-				Compiler.Get_Settings().AddArgFlag("RemoveUnsafe");
-			}
-
-			if (ModuleNameSpace.size()) 
-			{
-				Compiler.Get_Settings().AddArgValue("StartingNameSpac",ModuleNameSpace);
-			}
-
-			CompilerRet.CompilerRet = Compiler.CompileFiles_UseIntDir(paths, ExternFiles);
-		}
-		
-		Compiler.Get_Settings() = OldSettings;
-		return CompilerRet;
-	}
-	else
-	{
-		ModuleRet CompilerRet;
-		CompilerRet.CompilerRet._State = Compiler::CompilerState::Fail;
-		return CompilerRet;
-	}
 }
 
 bool ModuleFile::ToFile(const ModuleFile* Lib, const Path& path)
@@ -319,22 +498,67 @@ void ModuleFile::NewInit(String ModuleName, String AuthorName)
 {
 	this->ModuleName.ModuleName = ModuleName;
 	this->ModuleName.AuthorName = AuthorName;
+	this->ModuleNameSpace = ModuleName;
+	{
+		
+		ModuleDependencie f;
+		f.Identifier.MajorVersion = 0;
+		f.Identifier.MinorVersion = 0;
+		f.Identifier.MinorVersion = 0;
 
-	ModuleSourcePath = "src";
-	ModuleIntPath = "int";
-	ModuleOutPath = "out";
+		f.Identifier.AuthorName = "UCodeLang";
+		f.Identifier.ModuleName = "StandardLibarary";
+		ModuleDependencies.push_back(std::move(f));
+	}
 }
 String ModuleFile::ToStringBytes(const ModuleIdentifier* Value)
 {
 	String out;
 
-	out += "AuthorName:" + Value->AuthorName;
-	out += "ModuleName:" + Value->ModuleName;
+	out += "AuthorName:" + Value->AuthorName + '\n';
+	out += "ModuleName:" + Value->ModuleName + '\n';
 
 	out += "Version:" + std::to_string(Value->MajorVersion) 
 		+ ":" + std::to_string(Value->MinorVersion) 
 		+ ":" + std::to_string(Value->RevisionVersion);
 	return out;
+}
+ModuleFile::ModuleRet ModuleFile::BuildFile(const String& filestring, Compiler& Compiler, const ModuleIndex& Modules)
+{
+	auto& Errs = Compiler.Get_Errors();
+	String fileimports = "";
+	String filetext = "$BuildSystem; \n|build[BuildSystem& system] => 0;";
+
+	Vector<ModuleDependencie> buildfileDependencies;
+	Compiler::ExternalFiles buildExternFiles;
+
+	bool Err = false;
+	BuildModuleDependencies(Modules, Errs, Err, Compiler, buildfileDependencies, buildExternFiles);
+
+	auto buildscriptinfo = Compiler.CompileText(filetext);
+	if (Err == false)
+	{
+		if (buildscriptinfo._State == Compiler::CompilerState::Success)
+		{
+			ModuleRet CompilerRet;
+			CompilerRet.OutputItemPath = "";
+			CompilerRet.CompilerRet._State = std::move(buildscriptinfo._State);
+			return CompilerRet;
+		}
+		else
+		{
+			ModuleRet CompilerRet;
+			CompilerRet.OutputItemPath = "";
+			CompilerRet.CompilerRet._State = std::move(buildscriptinfo._State);
+			return CompilerRet;
+		}
+	}
+	else
+	{
+		ModuleRet CompilerRet;
+		CompilerRet.CompilerRet._State = Compiler::CompilerState::Fail;
+		return CompilerRet;
+	}
 }
 String ModuleFile::ToStringBytes(const Path* Value)
 {
@@ -346,26 +570,30 @@ String ModuleFile::ToStringBytes(const Path* Value)
 String ModuleFile::ToStringBytes(const ModuleFile* Lib)
 {
 	String out;
-	out += ToStringBytes(&Lib->ModuleName);
+	out += ToStringBytes(&Lib->ModuleName) + "\n" + '\n';
 
-	out += "Src:" + ToStringBytes(&Lib->ModuleSourcePath);
-	out += "Obj:" + ToStringBytes(&Lib->ModuleIntPath);
-	out += "Out:" + ToStringBytes(&Lib->ModuleOutPath);
-
-	out += (String)"ForceImport:" + (Lib->ForceImport ? "true" : "false");
-	out += (String)"RemoveUnSafe:" + (Lib->RemoveUnSafe ? "true" : "false");
-	out += "ModuleNameSpace:" + Lib->ModuleNameSpace;
+	out += (String)"ForceImport:" + (Lib->ForceImport ? "true" : "false") + "\n";
+	out += (String)"RemoveUnSafe:" + (Lib->RemoveUnSafe ? "true" : "false") + "\n";
+	out += "NameSpace:" + Lib->ModuleNameSpace;
 
 	out += "\n";
 
 	for (auto& Item : Lib->ModuleDependencies)
 	{
 		out += "import ";
-		out += Item.AuthorName;
-		out += "::" + Item.ModuleName;
-		out += + "[" + std::to_string(Item.MajorVersion) 
-			+ ':' + std::to_string(Item.MinorVersion)
-			+ ':' + std::to_string(Item.RevisionVersion) + "];";
+		out += Item.Identifier.AuthorName;
+		out += "::" + Item.Identifier.ModuleName;
+		out += + "[" + std::to_string(Item.Identifier.MajorVersion)
+			+ ':' + std::to_string(Item.Identifier.MinorVersion)
+			+ ':' + std::to_string(Item.Identifier.RevisionVersion) + "]";
+
+		if (Item.WebLink.has_value())
+		{
+			out += "(";
+			out += Item.WebLink.value();
+			out += ")";
+		}
+		out += ";\n";
 	}
 	
 
@@ -380,7 +608,7 @@ bool ModuleFile::FromString(ModuleFile* Lib, const String_view& Data)
 	lex.Lex(Data);
 	
 
-	auto& V = lex.Get_Tokens();
+	auto& tokens = lex.Get_Tokens();
 
 	if (tep.Has_Errors())
 	{
@@ -389,42 +617,26 @@ bool ModuleFile::FromString(ModuleFile* Lib, const String_view& Data)
 
 	{
 		ModuleIdentifier Tep;
+		Optional<String> WebLink;
 
+#define IsGood(x) if (i > tokens.size()) {return false;}
 
-#define IsGood(x) if (i > V.size()) {return false;}
-
-		for (size_t i = 0; i < V.size(); i++)
+		for (size_t i = 0; i < tokens.size(); i++)
 		{
-			auto& Item = V[i];
+			auto& Item = tokens[i];
 			if (Item.Type == TokenType::Name)
 			{
 				i++; IsGood(i);
-				if (V[i].Type == TokenType::Colon)
+				if (tokens[i].Type == TokenType::Colon)
 				{
 					i++; IsGood(i);
 					if (Item.Value._String == "AuthorName")
 					{
-						Tep.AuthorName = V[i].Value._String;
+						Tep.AuthorName = tokens[i].Value._String;
 					}
 					else if (Item.Value._String == "ModuleName")
 					{
-						Tep.ModuleName = V[i].Value._String;
-					}
-					else if (Item.Value._String == "ModuleSourcePath")
-					{
-						Lib->ModuleSourcePath = V[i].Value._String;
-					}
-					else if (Item.Value._String == "Files")
-					{
-						Lib->ModuleSourcePath = V[i].Value._String;
-					}
-					else if (Item.Value._String == "obj")
-					{
-						Lib->ModuleIntPath = V[i].Value._String;
-					}
-					else if (Item.Value._String == "out")
-					{
-						Lib->ModuleOutPath = V[i].Value._String;
+						Tep.ModuleName = tokens[i].Value._String;
 					}
 					else if (Item.Value._String == "Version")
 					{
@@ -432,15 +644,21 @@ bool ModuleFile::FromString(ModuleFile* Lib, const String_view& Data)
 					}
 					else if (Item.Value._String == "ForceImport")
 					{
-						Lib->ForceImport = V[i].Type == TokenType::KeyWorld_True;
+						Lib->ForceImport = tokens[i].Type == TokenType::KeyWorld_True;
 					}
 					else if (Item.Value._String == "RemoveUnSafe")
 					{
-						Lib->RemoveUnSafe = V[i].Type == TokenType::KeyWorld_True;
+						Lib->RemoveUnSafe = tokens[i].Type == TokenType::KeyWorld_True;
 					}
-					else if (Item.Value._String == "ModuleNameSpace")
+					else if (Item.Value._String == "NameSpace")
 					{
-						Lib->ModuleNameSpace = V[i].Value._String;
+						if (tokens[i].Type == TokenType::Name) {
+							Lib->ModuleNameSpace = tokens[i].Value._String;
+						}
+						else
+						{
+							i--;
+						}
 					}
 				}
 
@@ -448,63 +666,80 @@ bool ModuleFile::FromString(ModuleFile* Lib, const String_view& Data)
 			else if (Item.Type == TokenType::KeyWord_Import)
 			{
 				i++; IsGood(i);
-				if (V[i].Type == TokenType::Name)
+				if (tokens[i].Type == TokenType::Name)
 				{
-					auto& AuthorNameName = V[i];
+					auto& AuthorNameName = tokens[i];
 
 					i++; IsGood(i);
-					if (V[i].Type != TokenType::ScopeResolution)
+					if (tokens[i].Type != TokenType::ScopeResolution)
 					{
 						return false;
 					}
 
 					i++; IsGood(i);
-					if (V[i].Type != TokenType::Name)
+					if (tokens[i].Type != TokenType::Name)
 					{
 						return false;
 					}	
-					auto& ModNameName = V[i];
+					auto& ModNameName = tokens[i];
 				
 					i++; IsGood(i);
-					if (V[i].Type != TokenType::Left_Bracket)
+					if (tokens[i].Type != TokenType::Left_Bracket)
 					{
 						return false;
 					}
 
 					i++; IsGood(i);
-					if (V[i].Type != TokenType::Number_literal)
+					if (tokens[i].Type != TokenType::Number_literal)
 					{
 						return false;
 					}
-					auto& Num0 = V[i];
+					auto& Num0 = tokens[i];
 
 					i++;
 
 					i++; IsGood(i);
-					if (V[i].Type != TokenType::Number_literal)
+					if (tokens[i].Type != TokenType::Number_literal)
 					{
 						return false;
 					}
-					auto& Num1 = V[i];
+					auto& Num1 = tokens[i];
 
 					i++;
 
 					i++; IsGood(i);
-					if (V[i].Type != TokenType::Number_literal)
+					if (tokens[i].Type != TokenType::Number_literal)
 					{
 						return false;
 					}
-					auto& Num2 = V[i];
+					auto& Num2 = tokens[i];
+
+					i++; IsGood(i);
+					i++;
+					if (i < tokens.size()) 
+					{
+						if (tokens[i].Type == TokenType::Left_Parentheses)
+						{
+							i++; IsGood(i);
+							if (tokens[i].Type == TokenType::String_literal)
+							{
+								WebLink = tokens[i].Value._String;
+							}
+						}
+					}
 
 
-					Tep.AuthorName = AuthorNameName.Value._String;
-					Tep.ModuleName = ModNameName.Value._String;
+					ModuleDependencie moddep;
 					
-					Tep.MajorVersion = std::stoi((String)Num0.Value._String);
-					Tep.MinorVersion = std::stoi((String)Num1.Value._String);
-					Tep.RevisionVersion = std::stoi((String)Num2.Value._String);
+					moddep.Identifier.AuthorName = AuthorNameName.Value._String;
+					moddep.Identifier.ModuleName = ModNameName.Value._String;
+					
+					moddep.Identifier.MajorVersion = std::stoi((String)Num0.Value._String);
+					moddep.Identifier.MinorVersion = std::stoi((String)Num1.Value._String);
+					moddep.Identifier.RevisionVersion = std::stoi((String)Num2.Value._String);
 
-					Lib->ModuleDependencies.push_back(std::move(Tep));
+					moddep.WebLink = std::move(WebLink);
+					Lib->ModuleDependencies.push_back(std::move(moddep));
 				}
 			}
 		}

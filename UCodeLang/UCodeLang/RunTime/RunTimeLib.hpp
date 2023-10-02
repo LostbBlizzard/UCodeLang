@@ -1,20 +1,21 @@
 #pragma once
 #include "../LangCore.hpp"
 #include "UCodeLang/LangCore/UClib.hpp"
-#include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
+#include "UCodeLang/LangCore/DataType/UnorderedMap.hpp"
 UCodeLangStart
 
-#define UCodeLangAPI __cdecl 
 class InterpreterCPPinterface;
-
-using CPPCallRet = void;
-
 class RunTimeLib
 {
 public:
-	using CPPCallBack = CPPCallRet(UCodeLangAPI*)(InterpreterCPPinterface& Input);
+	using CPPCallBack = void(UCodeLangAPI*)(InterpreterCPPinterface& Input);
 	template<typename T, typename... Pars>
 	using NativeCall = T(UCodeLangAPI*)(Pars...);
+	struct CPPCall
+	{
+		CPPCallBack InterpreterCall = nullptr;
+		void* NativeCall = nullptr;
+	};
 
 	RunTimeLib(): _Lib(nullptr)
 	{
@@ -33,7 +34,7 @@ public:
 
 	UCodeLangForceinline void Add_CPPCall(const String& Name, CPPCallBack CPP)
 	{
-		_NameToCppCall[Name] = { CPP,nullptr };
+		_NameToCppCall.AddValue(Name,{ CPP,nullptr });
 	}
 	
 
@@ -42,19 +43,15 @@ public:
 	template<typename T,typename... Pars>
 	UCodeLangForceinline void Add_CPPCall(const String& Name,CPPCallBack CPP, NativeCall<T,Pars...> Native)
 	{
-		_NameToCppCall[Name] = { CPP,(void*)Native };
+		_NameToCppCall.AddValue(Name,{ CPP,(void*)Native });
 	}
-	struct CPPCall
-	{
-		CPPCallBack InterpreterCall = nullptr;
-		void* NativeCall = nullptr;
-	};
+	
 private:
 	UClib* _Lib;
 	Vector<Instruction> _Instruction;
 	
 	
-	VectorMap<String, CPPCall> _NameToCppCall;
+	UnorderedMap<String, CPPCall> _NameToCppCall;
 };
 
 UCodeLangEnd

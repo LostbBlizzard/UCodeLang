@@ -1,7 +1,6 @@
 #pragma once
 #include "../BackEndInterface.hpp"
 
-
 UCodeLangStart
 
 
@@ -18,6 +17,7 @@ public:
 	String GetBackEndName() override { return " LLVMBackEnd"; }
 	String GetOutputExtWithDot() override { return ".ll"; }
 	static BackEndObject* MakeObject() { return new LLVMBackEnd(); }
+	void UpdateBackInfo(CompliationBackEndInfo& BackInfo) override;
 private:
 	const IRBuilder* _Input =nullptr;
 	String _OutStr;

@@ -1,13 +1,20 @@
 #pragma once
 
-#include "UCodeLang/Compliation/Front/Parser.hpp"
-
-#include "UCodeLang/LangCore/UClib.hpp"
-
+#include "UCodeLang/LangCore/LangTypes.hpp"
 #include <cstring> //memcpy
 UCodeLangStart
 class IRBuilder;
-
+class UClib;
+class CompliationErrors;
+struct CompliationSettings;
+struct CompliationBackEndInfo;
+struct IRFunc;
+struct IRInstruction;
+struct IROperator;
+struct IRType;
+struct IRBufferData;
+using IRidentifierID = UInt64;
+	
 enum class BackEndObjectOutputType
 {
 	UCLib,
@@ -24,6 +31,7 @@ public:
 
 	virtual String GetBackEndName() = 0;
 	virtual String GetOutputExtWithDot() = 0;
+	virtual void UpdateBackInfo(CompliationBackEndInfo& BackInfo) = 0;
 
 	inline CompliationErrors& Get_ErrorsOutput()
 	{
