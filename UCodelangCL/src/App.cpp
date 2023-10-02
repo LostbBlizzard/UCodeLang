@@ -84,9 +84,10 @@ int App::main(int argc, char* argv[])
 	_This.Input = &std::cin;
 	
 
+	
 	{
 		String V;
-		for (size_t i = 0; i < argc; i++)
+		for (size_t i = 1; i < argc; i++)
 		{
 			V += String_view(argv[i]);
 			V += " ";
@@ -98,11 +99,12 @@ int App::main(int argc, char* argv[])
 		{
 			ParseLine(Line);
 
-			bool AllSame = false;
+			bool AllSame = true;
 			for (auto& Item : Line)
 			{
-				if (Item == ' ') {
-					AllSame = true;
+				if (Item != ' ') {
+					AllSame = false;
+					break;
 				}
 			}
 			if (AllSame) {break;}
@@ -1196,7 +1198,14 @@ void ParseLine(String_view& Line)
 		AppPrintin(ulangout);
 
 		UCodeAnalyzer::CppHelper v;
-		v.ParseCppfileAndOutULang(cppfile, cpplink, ulangout);
+		if (v.ParseCppfileAndOutULang(cppfile, cpplink, ulangout))
+		{
+			_This.ExeRet = EXIT_SUCCESS;
+		}
+		else
+		{
+			_This.ExeRet = EXIT_FAILURE;
+		}
 	}
 	else if (Word1 == "cpptolink" || Word1 == "-cpptoulanglink")
 	{
@@ -1205,7 +1214,14 @@ void ParseLine(String_view& Line)
 		Path ulangout;
 
 		UCodeAnalyzer::CppHelper v;
-		v.ParseCppfileAndOutULangLink(cppfile, cpplink, ulangout);
+		if (v.ParseCppfileAndOutULangLink(cppfile, cpplink, ulangout))
+		{
+			_This.ExeRet = EXIT_SUCCESS;
+		}
+		else
+		{
+			_This.ExeRet = EXIT_FAILURE;
+		}
 	}
 	else if (Word1 == "ulangtocpp" || Word1 == "-ulangtocpp")
 	{
@@ -1214,7 +1230,14 @@ void ParseLine(String_view& Line)
 		Path ulangout;
 
 		UCodeAnalyzer::CppHelper v;
-		v.ParseULangToCppStaticLink(cppfile, cpplink, ulangout);
+		if (v.ParseULangToCppStaticLink(cppfile, cpplink, ulangout))
+		{
+			_This.ExeRet = EXIT_SUCCESS;
+		}
+		else
+		{
+			_This.ExeRet = EXIT_FAILURE;
+		}
 	}
 	else if (Word1 == "clear" || Word1 == "-cc")
 	{
@@ -1241,7 +1264,7 @@ void ParseLine(String_view& Line)
 		}
 		else
 		{
-
+			_This.ExeRet = EXIT_FAILURE;
 		}
 	}
 	else if (Word1 == "runlines" || Word1 == "-el")

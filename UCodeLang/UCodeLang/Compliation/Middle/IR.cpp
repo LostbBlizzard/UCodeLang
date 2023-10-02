@@ -377,7 +377,7 @@ bool IRBuilder::FromBytes(IRBuilder& Out, const BytesView Bytes)
 			IRidentifier Value = {};
 			Bits.ReadType(Value, Value);
 
-			Out._Map.AddValue(std::move(Key),std::move(Value));
+			Out._Map.AddIfNotHaveKey(std::move(Key),std::move(Value));
 		}
 
 	}
@@ -1102,14 +1102,14 @@ void IRBuilder::CombineWith(const IRBuilder& Other)
 	{
 		for (auto& Item : Other.ConstStaticStrings)
 		{
-			ConstStaticStrings.AddValue(Item.first,Item.second);
+			ConstStaticStrings.AddIfNotHaveKey(Item.first,Item.second);
 		}
 	}
 
 	{
 		for (auto& Item : Other._Map)
 		{
-			_Map.AddValue(Item.first,Item.second);
+			_Map.AddIfNotHaveKey(Item.first,Item.second);
 		}
 	}
 
