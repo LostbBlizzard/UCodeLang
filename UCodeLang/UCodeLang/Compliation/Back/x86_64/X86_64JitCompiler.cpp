@@ -9,11 +9,15 @@ UCodeLangStart
 
 X86_64JitCompiler::X86_64JitCompiler()
 {
-	auto& CallConvention = X86_64IR::CallConvention();
+	auto CallConvention = X86_64IR::CallConvention();
 #if UCodeLang_Platform_Windows
 	CallConvention.SetWindows();
+#elif UCodeLang_Platform_Linux
+	CallConvention.SetLinux();
+#elif UCodeLang_Platform_MacOS
+	CallConvention.SetMacOSandIOS;
 #else
-	UCodeLangThrowException("Cant find Call Convetion");
+	static_assert(true, "Cant find Call Convetion");
 #endif
 	_CallConvention = _IR.AddCallConvention(std::move(CallConvention));
 
@@ -30,9 +34,9 @@ void X86_64JitCompiler::Reset()
 	new (this)  X86_64JitCompiler;
 }
 
-X86_64Gen::GReg X86_64JitCompiler::To(RegisterID id)
+X86_64Builder::GReg X86_64JitCompiler::To(RegisterID id)
 {
-	const auto& Convention = _IR.CallingConventions.at(_IntrCallConvention);
+	const auto& Convention = _IR.CallingConventions.GetValue(_IntrCallConvention);
 	switch (id)
 	{
 	case UCodeLang::RegisterID::A:return Convention.CallClobberedGRegisters[0];
@@ -40,9 +44,10 @@ X86_64Gen::GReg X86_64JitCompiler::To(RegisterID id)
 	case UCodeLang::RegisterID::C:return Convention.CallClobberedGRegisters[2];
 	case UCodeLang::RegisterID::ThisRegister:return Convention.IntegerFuncionArguments[0];
 	case UCodeLang::RegisterID::InPutRegister:return Convention.IntegerFuncionArguments[1];
-	case UCodeLang::RegisterID::OuPutRegister:return Convention.IntegerReturnValue;
+	case UCodeLang::RegisterID::OutPutRegister:return Convention.IntegerReturnValue;
 	default:break;
 	}
+	UCodeLangUnreachable();
 }
 
 bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress, Vector<Byte>& X64Output)
@@ -90,22 +95,27 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 			case InstructionSet::Debug_FuncStart:break;
 			case InstructionSet::Debug_FuncEnd:break;
 			case InstructionSet::Debug_LineEnter:break;
-			case InstructionSet::Store32:
+			case InstructionSet::Storef32v1:
 			{
-				auto& Value = UIns.Value0;
-				const auto& OutReg = UIns.Value1.AsRegister;
+				auto op = Instruction::IsLoad32(Span<Instruction>::Make(Ins.data(), Ins.size()), i);
+				if (op.has_value())
+				{
+					const auto& OutReg = UIns.Op_RegUInt16.A;
 
-				newfunc.Add_Ins(
-					X86_64IR::Ins::Move(
-						X86_64IR::Ins::Move::ConstToReg(Value, To(OutReg))
-					)
-				);
+					newfunc.Add_Ins(
+						X86_64IR::Ins::Move(
+							X86_64IR::Ins::Move::ConstToReg(op.value(), To(OutReg))
+						)
+					);
+
+					i++;
+				}
 			}
 			break;
 			case InstructionSet::StoreRegToReg32:
 			{
-				const auto& InReg = UIns.Value0.AsRegister;
-				const auto& OutReg = UIns.Value1.AsRegister;
+				const auto& InReg = UIns.Op_TwoReg.A;
+				const auto& OutReg = UIns.Op_TwoReg.B;
 
 				newfunc.Add_Ins(
 					X86_64IR::Ins::Move(
@@ -164,7 +174,7 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 
 		for (auto& Item : Relocations)
 		{
-			if (Item.RelocationID == NativeFuncNearCallRelocation.ID)
+			if (Item.RelocationId == NativeFuncNearCallRelocation.ID)
 			{
 				Byte* bitstoupdate = Outputbytes.data() + Item.ByteToUpdateOffset;
 				Byte* callpos = Outputbytes.data() + Out_NativeCallOffset;
@@ -190,33 +200,10 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 	return true;
 }
 
-void X86_64JitCompiler::SubCall(JitInfo::FuncType Value, uintptr_t CPPOffset, void* X64Output)
+void X86_64JitCompiler::SubCall(JitCompiler::FuncType Value, uintptr_t CPPOffset, void* X64Output)
 {
 }
 
-void BuildSysCallIns(InstructionSysCall Ins, RegisterID Reg)
-{
-	switch (Ins)
-	{
 
-	case UCodeLang::InstructionSysCall::Cout_CString:
-		break;
-	case UCodeLang::InstructionSysCall::Cout_Char:
-		break;
-	case UCodeLang::InstructionSysCall::Cout_Buffer:
-		break;
-	case UCodeLang::InstructionSysCall::Cout_ReadChar:
-		
-		break;
-	case UCodeLang::InstructionSysCall::File_Open:
-		break;
-	case UCodeLang::InstructionSysCall::File_Close:
-		break;
-	case UCodeLang::InstructionSysCall::File_Read:
-		break;
-	default:
-		break;
-	}
-}
 UCodeLangEnd
 

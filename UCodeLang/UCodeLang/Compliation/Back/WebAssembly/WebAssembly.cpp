@@ -1,4 +1,6 @@
 #include "WebAssembly.hpp"
+#include "UCodeLang/Compliation/Middle/IR.hpp"
+#include "UCodeLang/Compliation/CompliationSettings.hpp"
 UCodeLangStart
 WebAssemblyBackEnd::WebAssemblyBackEnd()
 {
@@ -56,6 +58,12 @@ void WebAssemblyBackEnd::Build(const IRBuilder* Input)
 BackEndObject* WebAssemblyBackEnd::MakeObject()
 {
 	return new WebAssemblyBackEnd();
+}
+
+void WebAssemblyBackEnd::UpdateBackInfo(CompliationBackEndInfo& BackInfo)
+{
+	BackInfo.Output = CompliationBackEndInfo::BackEnd::Wasm;
+	BackInfo.OutputSet = CompliationBackEndInfo::InsSet::Other;
 }
 
 void WebAssemblyBackEnd::OnFunc(const IRFunc* Func)

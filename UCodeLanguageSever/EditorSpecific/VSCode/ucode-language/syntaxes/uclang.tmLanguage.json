@@ -1,0 +1,219 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "UCodeLang",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+		},
+		{
+			"include": "#compare_op"
+		},
+		{
+			"include": "#arithmetic_op"
+		},
+		{
+			"include": "#numbers"
+		},
+		{
+			"include": "#assignment_op"
+		},
+		{
+			"include": "#letter"
+		},
+		{
+			"include": "#expression"
+		},
+		
+		{
+			"include": "#control_flow"
+		},
+		{
+			"include": "#const_vars"
+		},
+		{
+            "include": "#class_definition"
+        },
+		{
+			"include": "#function_declaration"
+		},
+		{
+            "include": "#variable_definition"
+        }
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [{
+				"name": "keyword.control.uclang",
+				"match": "\\b(import|true|false|bool|int|int8|int16|int32|int64|intptr|uint8|uint16|uint32|uint64|uintptr|char|utf8|utf16|utf32|float|float32|float64|void|tag|enum|trait|public|private|new|drop|unsafe)\\b"
+			}]
+		},
+		"strings": {
+			"name": "string.quoted.double.uclang",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.uclang",
+					"match": "\\\\."
+				}
+			]
+		},
+		"letter": {
+			"begin": "'",
+			"end": "'",
+			"patterns": [
+				{
+					"name": "constant.character.escape.untitled",
+					"match": "\\\\."
+				}
+			],
+			"name": "string.quoted.single.uclang"
+		},
+		"expression": {
+			"patterns": [{ "include": "#letter" }, { "include": "#paren-expression" }]
+		  },
+		
+		"paren-expression": {
+			"begin": "\\(",
+			"end": "\\)",
+			"beginCaptures": {
+			  "0": { "name": "punctuation.paren.open" }
+			},
+			"endCaptures": {
+			  "0": { "name": "punctuation.paren.close" }
+			},
+			"name": "expression.group",
+			"patterns": [{ "include": "#expression" }]
+		  },
+		  "compare_op": {
+            "match": "<=|>=|==|<|>|!=",
+            "name": "keyword.operator.comparison.uclang"
+          },
+          "arithmetic_op": {
+            "match": "\\+=|-=|\\*=|/=|%=|&=|\\|=|\\*|/|%|\\+|-|<<|>>|&|\\||\\^|~",
+            "name": "keyword.operator.arithmetic.uclang"
+          },
+          "assignment_op": {
+            "match": "=|:=|=>",
+            "name": "keyword.operator.assignment.uclang"
+          },
+          "control_flow": {
+            "match": "\\b(?i:if|else|for|while|break|continue|ret|match|yield|await)\\b",
+            "name": "keyword.control.uclang"
+          },
+		  "const_vars": {
+            "match": "\\b([A-Z_][A-Z_0-9]*)\\b",
+            "name": "constant.language.uclang"
+          },
+		  "function_declaration": {
+            "name": "meta.function.uclang",
+            "begin": "(?x) \\s*\n (|) \\s+\n ([a-zA-Z_]\\w*) \\s*\n (?=\\()",
+            "end": "((:)|(?=[#'\"\\n]))",
+            "patterns": [
+                {
+                    "include": "#parameters"
+                },
+                {
+                    "include": "#line_continuation"
+                },
+                {
+                    "match": "\\s*(\\-\\>)\\s*([a-zA-Z_]\\w*)\\s*\\:",
+                    "captures": {
+                        "1": {},
+                        "2": {
+                            "name": "entity.name.type.class.gdscript"
+                        }
+                    }
+                },
+                {
+                    "include": "#base_expression"
+                }
+            ]
+          },
+		  "class_definition": {
+            "captures": {
+                "1": {
+                    "name": "entity.name.type.class.uclang"
+                },
+                "2": {
+                    "name": "class.other.uclang"
+                }
+            },
+            "match": "(?<=^$)\\s+([a-zA-Z_]\\w*)\\s*(?=:)"
+        },
+		"numbers": {
+            "patterns": [
+                {
+                    "match": "\\b(?i:0x\\h*)\\b",
+                    "name": "constant.numeric.integer.hexadecimal.uclang"
+                },
+                {
+                    "match": "\\b(?i:(\\d+\\.\\d*(e[\\-\\+]?\\d+)?))\\b",
+                    "name": "constant.numeric.float.uclang"
+                },
+                {
+                    "match": "\\b(?i:(\\.\\d+(e[\\-\\+]?\\d+)?))\\b",
+                    "name": "constant.numeric.float.uclang"
+                },
+                {
+                    "match": "\\b(?i:(\\d+e[\\-\\+]?\\d+))\\b",
+                    "name": "constant.numeric.float.uclang"
+                },
+                {
+                    "match": "\\b\\d+\\b",
+                    "name": "constant.numeric.integer.uclang"
+                }
+            ]
+        },
+		"variable_definition": {
+            "begin": "\\b(?:(var)|(umut))\\s+",
+            "end": "$|;",
+            "beginCaptures": {
+                "1": {
+                    "name": "storage.type.var.uclang"
+                },
+                "2": {
+                    "name": "storage.type.umut.uclang"
+                }
+            },
+            "patterns": [
+                {
+                    "match": "(:)\\s*([a-zA-Z_]\\w*)?",
+                    "captures": {
+                        "1": {
+                            "name": "punctuation.separator.annotation.uclang"
+                        },
+                        "2": {
+                            "name": "entity.name.type.class.uclang"
+                        }
+                    }
+                },
+                {
+                    "match": "=(?!=)",
+                    "name": "keyword.operator.assignment.uclang"
+                },
+                {
+                    "match": "(setget)\\s+([a-zA-Z_]\\w*)(?:[,]\\s*([a-zA-Z_]\\w*))?",
+                    "captures": {
+                        "1": {
+                            "name": "storage.type.const.uclang"
+                        },
+                        "2": {
+                            "name": "entity.name.function.uclang"
+                        },
+                        "3": {
+                            "name": "entity.name.function.uclang"
+                        }
+                    }
+                },
+                {
+                    "include": "#base_expression"
+                }
+            ]
+        }
+	},
+	"scopeName": "source.uclang"
+}

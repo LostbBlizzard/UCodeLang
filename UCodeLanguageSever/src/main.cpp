@@ -1,10 +1,11 @@
 
 #include <iostream>
-#include "LanguageSever.hpp"
+#include "LSPSever.hpp"
 #include <iostream>
 #include <string>
 #include <thread>
 #include <fstream>
+#include <UCodeLang/LangCore/StringHelper.hpp>
 
 const char NumberCharList[] = "1234567890";
 bool IsInNumCharList(char Value)
@@ -33,7 +34,7 @@ bool IsInNameCharList(char Value)
 }
 
 
-std::string_view ReadString(std::string_view View, std::string_view& ToUpdate)
+UCodeLang::String_view ReadString(UCodeLang::String_view View, UCodeLang::String_view& ToUpdate)
 {
 	size_t Size =0;
 	size_t Start = 0;
@@ -63,21 +64,21 @@ std::string_view ReadString(std::string_view View, std::string_view& ToUpdate)
 	return { View.data()+ Start,Size };
 }
 
-int ReadNumber(std::string_view View, std::string_view& ToUpdate)
+int ReadNumber(UCodeLang::String_view View, UCodeLang::String_view& ToUpdate)
 {
 	auto Str = ReadString(View, ToUpdate);
 
 
-	std::string TepStr = (std::string)Str;
+	UCodeLang::String TepStr = (UCodeLang::String)Str;
 	auto Value = std::atoi(TepStr.c_str()); 
 
 	return Value;
 }
 
-std::string FilePath = "C:/CoolStuff/CoolCodeingStuff/C++/Projects/UCodeLang/UCodeLanguageSever/Msg.txt";
+UCodeLang::String FilePath = "C:/CoolStuff/CoolCodeingStuff/cpp/UCodeLang/UCodeLanguageSever/Msg.txt";
 std::ofstream File = std::ofstream(FilePath);
 std::mutex Lock = {};
-void LogMSG(const std::string& Str)
+void LogMSG(const UCodeLang::String& Str)
 {
 	Lock.lock();
 	//std::cerr << Str << std::endl;
@@ -86,31 +87,42 @@ void LogMSG(const std::string& Str)
 }
 
 //Args
-//--Start [SeverIp] [Port] 
-void RunArg(std::string_view View)
+//start [SeverIp] [Port] 
+//start stdio
+
+void RunArg(UCodeLang::String_view View)
 {
-	if (View._Starts_with("--"))
+
+
+	using StrHelp = UCodeLang::StringHelper;
+	if (StrHelp::StartWith(View, "start"))
 	{
-		View = View.substr(2);
+		View = View.substr(sizeof("start") - 1);
 
-		if (View._Starts_with("Start"))
+		for (size_t i = 0; i < View.size(); i++)
 		{
-			size_t ArgNameSize = sizeof("Start") - 1;
-			View = View.substr(ArgNameSize);
-
-			std::string SeverIp = (std::string)ReadString(View,View);
-			//if (SeverIp == (std::string)"stdio")
+			if (View[i] != ' ')
 			{
-				static UCodeLanguageSever::LanguageSever* SeverPtr = nullptr;
+				View = View.substr(i);
+				break;
+			}
+		}
+
+		if (StrHelp::StartWith(View, "stdio"))
+		{
+			View = View.substr(sizeof("stdio") - 1);
+
+			{
+				static UCodeLanguageSever::LSPSever* SeverPtr = nullptr;
 				SeverPtr = nullptr;
 
 
 				LogMSG("Starting ULang Sever");
-				while (true);
+
 
 				std::thread SeverThread([]()
 					{
-						UCodeLanguageSever::LanguageSever Sever;
+						UCodeLanguageSever::LSPSever Sever;
 						SeverPtr = &Sever;
 
 
@@ -146,7 +158,7 @@ void RunArg(std::string_view View)
 					std::cin >> V;
 					auto packet_op = UCodeLanguageSever::ClientPacket::Stream(state, V);
 
-					if (packet_op.has_value()) 
+					if (packet_op.has_value())
 					{
 						UCodeLanguageSever::ClientPacket& p = packet_op.value();
 						LogMSG("Got Packet:" + p._Data);
@@ -157,16 +169,14 @@ void RunArg(std::string_view View)
 				}
 
 
-			
+
 
 
 				LogMSG("Sever End");
+
+
 			}
 
-		}
-		else
-		{
-			LogMSG("Bad Arg");
 		}
 	}
 }
@@ -174,10 +184,11 @@ void RunArg(std::string_view View)
 
 int main(int argc, char* argv[])
 {
+	while (true);
 	for (size_t i = 0; i < argc; i++)
 	{
 		char* Arg = argv[i];
-		RunArg(std::string_view(Arg));
+		RunArg(UCodeLang::String_view(Arg));
 	}
 
 	return 0;

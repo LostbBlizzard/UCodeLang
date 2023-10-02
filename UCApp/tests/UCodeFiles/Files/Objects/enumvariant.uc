@@ -1,4 +1,4 @@
-enum Color:
+$Color enum:
  Red[bool],
  Green,
  Blue[int32],

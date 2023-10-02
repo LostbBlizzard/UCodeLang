@@ -79,8 +79,8 @@ private:
 		if (Item.size())
 		{
 			auto& F = Item.front();
-			auto Token = F->ScopedName.ScopedName.front().token;
-			_ErrorsOutput->AddError(ErrorCodes::TreeAnalyerError, Token->OnLine, Token->OnPos, "You cant put the Tag '" + (String)F->ScopedName.ScopedName.front().token->Value._String + "' here.");
+			auto Token = F->_ScopedName._ScopedName.front()._token;
+			_ErrorsOutput->AddError(ErrorCodes::TreeAnalyerError, Token->OnLine, Token->OnPos, "You cant put the Tag '" + (String)F->_ScopedName._ScopedName.front()._token->Value._String + "' here.");
 		}
 	}
 	
@@ -238,8 +238,8 @@ private:
 	};
 	GetNameCheck_ret2 GetNameCheck2(ScopedNameNode& out, bool CanHaveVarableName = false);
 
-	GotNodeType GetType(TypeNode*& out,bool ignoreRighthandOFtype =false,bool ignoreleftHandType = true);
-	GotNodeType GetType(TypeNode& out, bool ignoreRighthandOFtype = false, bool ignoreleftHandType = true);
+	GotNodeType GetType(TypeNode*& out,bool ignoreRighthandOFtype =false,bool ignoreleftHandType = true,bool CanUseInlineEnum = true);
+	GotNodeType GetType(TypeNode& out, bool ignoreRighthandOFtype = false, bool ignoreleftHandType = true,bool CanUseInlineEnum =true);
 	GotNodeType GetNumericType(TypeNode& out);
 
 
@@ -419,14 +419,14 @@ private:
 
 	GotNodeType GetNewExpresionNode(NewExpresionNode& out);
 
-	TryGetNode GetumutVariableDeclare()
+	TryGetNode GetimutVariableDeclare()
 	{
 		Node* V = nullptr;
-		auto r = GetumutVariableDeclare(V);
+		auto r = GetimutVariableDeclare(V);
 		TrippedCheck(r);
 		return { r,V };
 	}
-	GotNodeType GetumutVariableDeclare(Node*& out);
+	GotNodeType GetimutVariableDeclare(Node*& out);
 
 
 	TryGetNode GetForNode()
@@ -554,14 +554,14 @@ private:
 	GotNodeType GetEvalDeclare(Node*& out);
 
 	
-	TryGetNode GetCompileTimeIf()
+	TryGetNode GetCompileTimeIf(bool IsInFunc = true)
 	{
 		CompileTimeIfNode* V = CompileTimeIfNode::Gen();
-		auto r = GetCompileTimeIf(V);
+		auto r = GetCompileTimeIf(V,IsInFunc);
 		TrippedCheck(r);
 		return { r,V };
 	}
-	GotNodeType GetCompileTimeIf(CompileTimeIfNode*& out);
+	GotNodeType GetCompileTimeIf(CompileTimeIfNode*& out, bool IsInFunc = true);
 
 
 	TryGetNode GetCompileTimeForNode()
@@ -648,6 +648,58 @@ private:
 
 	GotNodeType GetAwaitStatementNode(AwaitStatement& out);
 
+
+	TryGetNode GetYieldExpresionNode()
+	{
+		YieldExpression* V = YieldExpression::Gen();
+		auto r = GetYieldExpresionNode(*V);
+		TrippedCheck(r);
+		return { r,V };
+	}
+
+	GotNodeType GetYieldExpresionNode(YieldExpression& out);
+
+	TryGetNode GetYieldStatementNode()
+	{
+		YieldStatement* V = YieldStatement::Gen();
+		auto r = GetYieldStatementNode(*V);
+		TrippedCheck(r);
+		return { r,V };
+	}
+
+	GotNodeType GetYieldStatementNode(YieldStatement& out);
+
+
+	TryGetNode GetUnsafeStatementNode()
+	{
+		UnsafeStatementsNode* V = UnsafeStatementsNode::Gen();
+		auto r = GetUnsafeStatementNode(*V);
+		TrippedCheck(r);
+		return { r,V };
+	}
+
+	GotNodeType GetUnsafeStatementNode(UnsafeStatementsNode& out);
+
+	
+	TryGetNode GetUnsafeExpression()
+	{
+		UnsafeExpression* V = UnsafeExpression::Gen();
+		auto r = GetUnsafeExpression(*V);
+		TrippedCheck(r);
+		return { r,V };
+	}
+	GotNodeType GetUnsafeExpression(UnsafeExpression& out);
+
+
+	TryGetNode GetDeferStatementNode()
+	{
+		DeferStatementNode* V = DeferStatementNode::Gen();
+		auto r = GetDeferStatementNode(*V);
+		TrippedCheck(r);
+		return { r,V };
+	}
+
+	GotNodeType GetDeferStatementNode(DeferStatementNode& out);
 };
 UCodeLangFrontEnd
 

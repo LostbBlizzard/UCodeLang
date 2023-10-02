@@ -67,11 +67,11 @@ public:
 
 	String GetName(UAddress address) const;
 
-	inline VectorMap<String, RunTimeLib::CPPCall>& Get_CPPCalls()
+	inline UnorderedMap<String, RunTimeLib::CPPCall>& Get_CPPCalls()
 	{
 		return _NameToCPP;
 	}
-	inline const VectorMap<String, RunTimeLib::CPPCall>& Get_CPPCalls() const
+	inline const UnorderedMap<String, RunTimeLib::CPPCall>& Get_CPPCalls() const
 	{
 		return _NameToCPP;
 	}	
@@ -89,8 +89,11 @@ public:
 		return _DebugInfo;
 	}
 private:
-	VectorMap<String, UAddress> _NameToAddress;
-	VectorMap<String, RunTimeLib::CPPCall> _NameToCPP;
+	void LinkLib(RunTimeLib* Item,bool HotReloadKeepStatic);
+	void HotReloadClearState();
+
+	UnorderedMap<String, UAddress> _NameToAddress;
+	UnorderedMap<String, RunTimeLib::CPPCall> _NameToCPP;
 	Vector<Instruction> _Instructions;
 
 	Vector<Byte> _Code;

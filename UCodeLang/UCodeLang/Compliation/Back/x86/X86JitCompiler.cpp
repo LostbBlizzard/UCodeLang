@@ -13,4 +13,8 @@ bool X86JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress, V
 {
 	return false;
 }
+void  X86JitCompiler::SubCall(FuncType Value, uintptr_t CPPOffset, void* X64Output) 
+{
+	UCodeLangUnreachable();
+}
 UCodeLangEnd

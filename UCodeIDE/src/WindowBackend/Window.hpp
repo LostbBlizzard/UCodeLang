@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Imgui/backends/imgui_impl_glfw.h"
+#include "imgui/backends/imgui_impl_glfw.h"
 class Window
 {
 public:

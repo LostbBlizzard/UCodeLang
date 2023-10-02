@@ -1,9 +1,9 @@
 
 |main[]:
- var H = new int[1];
+ var H = unsafe new int[1];
  H[0] = 1;
  int Tep = H[0];
  
- drop(H);
+ unsafe drop(H);
  
  ret Tep;

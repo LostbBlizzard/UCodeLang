@@ -1,5 +1,5 @@
 #include "ImguiHelper.hpp"
-#include "Imgui/misc/cpp/imgui_stdlib.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
 UCodeIDEStart
 
 
@@ -88,6 +88,16 @@ bool ImguiHelper::UCodeObjectField(const char* FieldName, void* Object, const UC
 	case UCodeLang::ReflectionTypes::float64:
 	{
 		return float64Field(FieldName, *(float64*)Object);
+	}
+	break;
+	case UCodeLang::ReflectionTypes::uIntPtr:
+	{
+		return InputSize_t(FieldName, (size_t*)Object);
+	}
+	break;
+	case UCodeLang::ReflectionTypes::sIntPtr:
+	{
+		return InputSize_t(FieldName, (intptr_t*)Object);
 	}
 	break;
 	case UCodeLang::ReflectionTypes::CustomType:
@@ -224,9 +234,13 @@ bool ImguiHelper::UCodeObjectField(const char* FieldName, void* Object, const UC
 		return false;
 	}
 		break;
+	case UCodeLang::ReflectionTypes::Void:
+			break;
 	default:
+		UCodeLangUnreachable();
 		break;
 	}
+	return false;
 }
 
 bool ImguiHelper::DrawEnum(void* Pointer, const UCodeLang::Enum_Data& Class, const UCodeLang::ClassAssembly& Assembly)
@@ -438,6 +452,28 @@ bool ImguiHelper::uInt8Field(const char* FieldName, UInt8& Value)
 
 	ImGui::PushID(&Value);
 	auto V = ImGui::DragScalar("", ImGuiDataType_U8, (void*)&Value);
+	ImGui::PopID();
+
+	return V;
+}
+bool ImguiHelper::uIntptrField(const char* FieldName, uintptr_t& Value)
+{
+	ImGui::Text(FieldName);
+	ImGui::SameLine();
+
+	ImGui::PushID(&Value);
+	auto V = InputSize_t("",&Value);
+	ImGui::PopID();
+
+	return V;
+}
+bool ImguiHelper::IntptrField(const char* FieldName, intptr_t& Value)
+{
+	ImGui::Text(FieldName);
+	ImGui::SameLine();
+
+	ImGui::PushID(&Value);
+	auto V = InputSize_t("", &Value);
 	ImGui::PopID();
 
 	return V;
@@ -881,7 +917,7 @@ bool ImguiHelper::EnumField(const char* label, void* Value, const EnumValue2* Va
 
 	return Updated;
 }
-bool ImguiHelper::InputSize_t(const char* label, size_t* v, int step, int step_fast, ImGuiInputTextFlags flags)
+bool ImguiHelper::InputSize_t(const char* label, size_t* v, ImGuiInputTextFlags flags)
 {
 	if constexpr (sizeof(size_t) == sizeof(UInt64))
 	{
@@ -890,6 +926,17 @@ bool ImguiHelper::InputSize_t(const char* label, size_t* v, int step, int step_f
 	else
 	{
 		return ImGui::InputScalar(label, ImGuiDataType_::ImGuiDataType_U32, v, nullptr, nullptr, nullptr, flags);
+	}
+}
+bool ImguiHelper::InputSize_t(const char* label, intptr_t* v,ImGuiInputTextFlags flags)
+{
+	if constexpr (sizeof(size_t) == sizeof(UInt64))
+	{
+		return ImGui::InputScalar(label, ImGuiDataType_::ImGuiDataType_S64, v, nullptr, nullptr, nullptr, flags);
+	}
+	else
+	{
+		return ImGui::InputScalar(label, ImGuiDataType_::ImGuiDataType_S32, v, nullptr, nullptr, nullptr, flags);
 	}
 }
 bool ImguiHelper::DrawVector(const char* label, UCodeLang::ReflectionVector& vector, const UCodeLang::ClassAssembly& assembly)
@@ -966,7 +1013,7 @@ bool ImguiHelper::DrawVector(const char* label, void* Object, void* Buffer, size
 	{
 		ImGui::PushItemWidth(ImGui::CalcItemWidth() - (ButtionSize.x * 2) - 30);
 		ImGui::PushID(&Item);
-		bool ResizeWasUpdated = InputSize_t("", &NewSize, 1, 100, ImGuiInputTextFlags_EnterReturnsTrue);
+		bool ResizeWasUpdated = InputSize_t("", &NewSize);
 		ImGui::PopID();
 		ImGui::PopItemWidth();
 		if (ResizeWasUpdated && Item._ResizeVector.has_value())

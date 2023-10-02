@@ -6,7 +6,7 @@ void X86_64IR::CleanUp(CleanUpMode Mode)
 	{
 		for (auto& Item : Funcs)
 		{
-			auto& CallConvention = CallingConventions.at(Item.CallConvention);
+			auto& CallConvention = CallingConventions.GetValue(Item.CallConvention);
 			for (size_t i = 0; i < Item.Body.size(); i++)
 			{
 				auto& Insi = Item.Body[i];
@@ -83,7 +83,7 @@ X86_64IR::BuildInfo X86_64IR::Build() const
 }
 void X86_64IR::Build(BuildInfo::BuildFunc& Out, BuildState& State, const Func& Value) const
 {
-	auto& CallConvention = CallingConventions.at(Value.CallConvention);
+	auto& CallConvention = CallingConventions.GetValue(Value.CallConvention);
 	for (auto& Item : CallConvention.FuncionProlog)
 	{
 		State.Gen._Base._Output.ByteOutput.push_back(Item);
@@ -216,7 +216,7 @@ void X86_64IR::Build(BuildInfo::BuildFunc& Out, BuildState& State, const Ins& Va
 
 			Relocation v;
 			v.ByteToUpdateOffset = State.Gen.Size() - 4;
-			v.RelocationID = Val2->Value.ID;
+			v.RelocationId = Val2->Value.ID;
 			v.Type = RelocationType::Size32;
 			Out.Relocations.push_back(std::move(v));
 		}

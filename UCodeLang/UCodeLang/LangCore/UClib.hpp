@@ -3,7 +3,7 @@
 #include "../LangCore.hpp"
 #include "../LangCore/ReflectionData.hpp"
 #include "UCodeLang/LangCore/BitMaker.hpp"
-#include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
+#include "UCodeLang/LangCore/DataType/UnorderedMap.hpp"
 #include "UCodeLang/LangCore/ULangDebugInfo.hpp"
 UCodeLangStart
 
@@ -32,25 +32,25 @@ struct CodeLayer
 		Vector<Instruction>  _Instructions;
 
 		//Funcion Names to Call displacement
-		VectorMap<String, UAddress> _NameToPtr;
+		UnorderedMap<String, UAddress> _NameToPtr;
 
 		//DebugInfo
 		Optional<ULangDebugInfo> DebugInfo;
 
 		UCodeLangForceinline void Add_NameToLastInstruction(const String& Name)
 		{
-			_NameToPtr[Name] = (UAddress)(_Instructions.size() - 1);
+			_NameToPtr.AddValue(Name,(UAddress)(_Instructions.size() - 1));
 		}
 
 		UCodeLangForceinline void Add_NameToInstruction(UAddress Index, const String& Name)
 		{
-			_NameToPtr[Name] = (UAddress)(Index);
+			_NameToPtr.AddValue(Name, (UAddress)(Index));
 		}
 		inline UAddress Get_NameToInstruction(const String& Name) const
 		{
-			if (_NameToPtr.count(Name))
+			if (_NameToPtr.HasValue(Name))
 			{
-				return _NameToPtr.at(Name);
+				return _NameToPtr.HasValue(Name);
 			}
 			else
 			{
@@ -60,15 +60,12 @@ struct CodeLayer
 
 		UCodeLangForceinline bool Get_HasNameToPtr(const String& Name) const
 		{
-			return _NameToPtr.count(Name);
+			return _NameToPtr.HasValue(Name);
 		}
 
 		UCodeLangForceinline UAddress NothingThing_Instruction()
 		{
-			Instruction Data;
-			Data.OpCode = InstructionSet::DoNothing;
-			Data.Value0.AsUInt64 = (UInt64)nullptr;
-			Data.Value1.AsUInt64 = (UInt64)nullptr;
+			Instruction Data = Instruction(InstructionSet::DoNothing, Instruction::NoneOp());
 			return Add_Instruction(Data);
 		}
 		UCodeLangForceinline UAddress Add_Instruction(const Instruction& V)
@@ -111,7 +108,7 @@ struct CodeLayer
 		Vector<Byte> _Code;
 
 		//Funcion Names to Call displacement
-		VectorMap<String, UAddress> _NameToPtr;
+		UnorderedMap<String, UAddress> _NameToPtr;
 
 		//CPU specufic Debug Info
 		Optional<Vector<Byte>> DebugInfo;
@@ -427,6 +424,7 @@ public:
 		ToBytes(Output, Tags.Attributes);
 	}
 	static void ToBytes(BitMaker& Output, const ClassMethod::Par& Par);
+	static void ToBytes(BitMaker& Output, const FuncPtr_Data& FuncPtrData);
 	//
 	static bool FromBytes(UClib* Lib,const BytesView& Data);
 
@@ -451,7 +449,7 @@ public:
 	{
 		FromBytes(reader, Attributes.Attributes);
 	}
-
+	static void FromBytes(BitReader& reader, FuncPtr_Data& Ptr);
 	static void FromBytes(BitReader& Input, ClassMethod::Par& Data);
 	//
 

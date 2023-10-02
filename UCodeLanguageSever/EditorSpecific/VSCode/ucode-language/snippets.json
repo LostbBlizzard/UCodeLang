@@ -1,0 +1,62 @@
+{
+    "For Loop": {
+      "prefix": ["for", "for-umut"],
+      "body": ["for [var ${2:element} : ${1:array}]\t", "\t\t$0",""],
+      "description": "A for loop."
+    },
+    "class": {
+      "prefix": ["class"],
+      "body": ["$${1:Class}:\t", "\t\t$0",""],
+      "description": "A class type."
+    },
+    "enum": {
+      "prefix": ["enum"],
+      "body": ["$${1:Enum} enum:\t","\t\t$0",""],
+      "description": "A enum type."
+    },
+    "trait": {
+      "prefix": ["trait"],
+      "body": ["$${1:Trait} trait:\t","\t\t$0",""],
+      "description": "A tag trait."
+    },
+    "tag": {
+      "prefix": ["tag"],
+      "body": ["$${1:Tag} tag:\t", "\t\t$0",""],
+      "description": "A tag type."
+    },
+    "print": {
+      "prefix": ["print"],
+      "body": ["Console::Log(${1:text});"],
+      "description": "Log something to Console."
+    },
+    "println": {
+      "prefix": ["printin"],
+      "body": ["Console::LogLine(${1:text});"],
+      "description": "Log Line something to Console."
+    },
+    "import": {
+      "prefix": ["import"],
+      "body": ["import ${1:UCodeLang}::{};"],
+      "description": "import type"
+    },
+    "importmod": {
+      "prefix": ["importmod"],
+      "body": ["import ${1:Author}::${2:Module}::[1.0.0];"],
+      "description": "import Module"
+    },
+    "importBaseTypes": {
+      "prefix": ["importBaseTypes"],
+      "body": ["import UCodeLang::{Vector,String,Span,Optional,Unique_Array,Unique_ptr,Shared_Array,Shared_ptr};"],
+      "description": "import Vector,String,Span and More"
+    },
+    "geter": {
+      "prefix": ["geter"],
+      "body": ["|${1:Varable}[umut this&] => _${1:Varable};"],
+      "description": "geter"
+    },
+    "seter": {
+      "prefix": ["seter"],
+      "body": ["|${1:Varable}[this&,umut ${2:Type}& ${1:Varable}]:_${1:Varable} =${1:Varable};"],
+      "description": "geter"
+    }
+  }

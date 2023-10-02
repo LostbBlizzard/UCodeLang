@@ -1,12 +1,12 @@
 #pragma once
 #include "UCodeLang/LangCore/LangTypes.hpp"
-#include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
+#include "UCodeLang/LangCore/DataType/UnorderedMap.hpp"
 #include "UCodeLang/LangCore/BitMaker.hpp"
 UCodeLangStart
 
 using IRidentifier = String;
 using IRidentifierID = UInt64;
-using IRTypes_t = int;
+using IRTypes_t = Byte;
 enum class IRTypes :IRTypes_t
 {
 	Null,
@@ -21,6 +21,9 @@ enum class IRTypes :IRTypes_t
 	pointer,
 
 	IRsymbol,
+
+	i1 = i8,
+	Bool = i1,
 };
 struct IRSymbol
 {
@@ -36,8 +39,8 @@ struct IRSymbol
 };
 struct IRType
 {
-	IRTypes _Type;
 	IRSymbol _symbol;
+	IRTypes _Type;
 
 	IRType():_Type(IRTypes::Null), _symbol(){}
 	IRType(IRTypes type) :_Type(IRTypes::Null), _symbol() { SetType(type); }
@@ -153,15 +156,22 @@ enum class IRInstructionType : IRInstructionType_t
 	SLessThanOrEqual,
 	SGreaterThanOrEqual,
 
-	//
+	//Control flow
 	Jump,
 	ConditionalJump,
-	//
+	//FuncionPointers
 	CallFuncPtr,
 
 	//memory
 	MallocCall,
 	FreeCall,
+	Realloc,
+	Calloc,
+	Memcpy,
+	Memmove,
+	Memcmp,
+	Strlen,
+
 	Reassign_dereference,//Reassign Target
 
 	//structs
@@ -181,6 +191,28 @@ enum class IRInstructionType : IRInstructionType_t
 
 	UIntToSInt,
 	SIntToUInt,
+
+	//await
+	New_Await_Task,
+	Await_PassPar,
+	Await_RunTask,
+	Await_IsDone,
+	Await_SetComplete,
+	Await_OnCancelled,
+	Await_CancelTask,
+	Await_SetValue,
+	Await_GetValue,
+	Await_Free_Task,
+
+	//exceptions
+	CleanupFuncCall,
+	ThrowException,
+	CatchException,
+
+	//compiler intrinsics
+	Unreachable,
+	Assume,
+
 	//internal stuff
 };
 
@@ -246,7 +278,15 @@ inline bool IsLoadValueOnlyInTarget(IRInstructionType Value)
 		|| Value == IRInstructionType::LoadReturn
 		|| Value == IRInstructionType::PushParameter
 		|| Value == IRInstructionType::MallocCall
-		|| Value == IRInstructionType::FreeCall;
+		|| Value == IRInstructionType::FreeCall
+		|| Value == IRInstructionType::Calloc
+		|| Value == IRInstructionType::Strlen
+
+		|| Value == IRInstructionType::New_Await_Task
+		|| Value == IRInstructionType::Await_PassPar
+		|| Value == IRInstructionType::Await_IsDone
+		|| Value == IRInstructionType::Await_GetValue
+		|| Value == IRInstructionType::Await_Free_Task;
 }
 inline bool IsLoadValueOnInput(IRInstructionType Value)
 {
@@ -260,13 +300,27 @@ inline bool IsLocation(IRInstructionType Value)
 		|| Value == IRInstructionType::Call
 		|| Value == IRInstructionType::CallFuncPtr
 		|| Value == IRInstructionType::MallocCall
+		|| Value == IRInstructionType::Calloc
+		|| Value == IRInstructionType::Realloc
+		|| Value == IRInstructionType::Strlen
+		|| Value == IRInstructionType::Memcmp
 		|| IsBinary(Value)
-		|| IsUnary(Value);
+		|| IsUnary(Value)
+		|| Value == IRInstructionType::New_Await_Task
+		|| Value == IRInstructionType::Await_IsDone
+		|| Value == IRInstructionType::Await_GetValue;
 }
 inline bool IsAction(IRInstructionType Value)
 {
 	return Value == IRInstructionType::Return
-		|| Value == IRInstructionType::FreeCall;
+		|| Value == IRInstructionType::Jump
+		|| Value == IRInstructionType::LoadReturn
+		|| Value == IRInstructionType::FreeCall
+		|| Value == IRInstructionType::Await_PassPar
+		|| Value == IRInstructionType::Await_RunTask
+		|| Value == IRInstructionType::Await_Free_Task
+		|| Value == IRInstructionType::Assume
+		|| Value == IRInstructionType::Unreachable;
 }
 
 inline bool IsOperatorValueInTarget(IRInstructionType Value)
@@ -276,19 +330,34 @@ inline bool IsOperatorValueInTarget(IRInstructionType Value)
 		|| IsLoadValueOnlyInTarget(Value)
 		|| Value == IRInstructionType::Member_Access_Dereference
 		|| Value == IRInstructionType::Member_Access
-		|| Value == IRInstructionType::Reassign;
+		|| Value == IRInstructionType::Reassign
+		|| Value == IRInstructionType::MallocCall
+		|| Value == IRInstructionType::Realloc
+		|| Value == IRInstructionType::Memcpy
+		|| Value == IRInstructionType::Memmove
+		|| Value == IRInstructionType::Memcmp
+		|| Value == IRInstructionType::CallFuncPtr;
 }
 inline bool IsOperatorValueInInput(IRInstructionType Value)
 {
 	return IsBinary(Value)
-		|| IsLoadValueOnInput(Value);
+		|| IsLoadValueOnInput(Value)
+		|| Value == IRInstructionType::Realloc
+		|| Value == IRInstructionType::Memcpy
+		|| Value == IRInstructionType::Memmove
+		|| Value == IRInstructionType::Memcmp;
 }
 inline bool BothOperatorValueAreUnUsed(IRInstructionType Value)
 {
 	return Value == IRInstructionType::Return
 		|| Value == IRInstructionType::LoadNone;
 }
-
+inline bool HasExtraPushAsInput(IRInstructionType Value)
+{
+	return Value == IRInstructionType::Memcpy
+		|| Value == IRInstructionType::Memmove
+		|| Value == IRInstructionType::Memcmp;
+}
 
 
 inline IRInstructionType GetInverse(IRInstructionType Value)
@@ -489,26 +558,26 @@ struct IRDebugIns
 	Variant<IRDebugSetFile, IRDebugSetLineNumber, IRDebugSetVarableName> Debug;
 
 	using Variant_t = Byte;
-	enum class Variant : Variant_t
+	enum class IRVariant : Variant_t
 	{
 		IRDebugSetFile,
 		IRDebugSetLineNumber,
 		IRDebugSetVarableName,
 	};
 
-	Variant GetVariantType() const
+	IRVariant GetVariantType() const
 	{
 		if (Debug.Is<IRDebugSetFile>())
 		{
-			return Variant::IRDebugSetFile;
+			return IRVariant::IRDebugSetFile;
 		}
 		else if (Debug.Is<IRDebugSetLineNumber>())
 		{
-			return Variant::IRDebugSetLineNumber;
+			return IRVariant::IRDebugSetLineNumber;
 		}
 		else if (Debug.Is<IRDebugSetVarableName>())
 		{
-			return Variant::IRDebugSetVarableName;
+			return IRVariant::IRDebugSetVarableName;
 		}
 		else
 		{
@@ -538,7 +607,7 @@ struct IRDebugSybol
 };
 struct IRDebugSybInfo
 {
-	BinaryVectorMap< IRidentifierID, IRDebugSybol> Symbols;
+	UnorderedMap< IRidentifierID, IRDebugSybol> Symbols;
 };
 struct IRBlockDebugInfo
 {
@@ -591,6 +660,10 @@ struct IRBlock
 	IRInstruction* NewLoad(bool Value) { return NewLoad(*(UInt8*)&Value); }
 	IRInstruction* NewLoad(char Value) { return NewLoad(*(UInt8*)&Value); }
 
+	#ifdef __cpp_lib_char8_t
+	IRInstruction* NewLoad(Utf8 Value) { return NewLoad(*(UInt8*)&Value); }
+	#endif // __cpp_lib_char8_t
+	
 	//16bit
 	IRInstruction* NewLoad(UInt16 Value)
 	{
@@ -600,8 +673,8 @@ struct IRBlock
 		V->ObjectType = IRType(IRTypes::i16);
 		return V;
 	}
-	IRInstruction* NewLoad(Int16 Value) { return NewLoad(*(UInt8*)&Value); }
-
+	IRInstruction* NewLoad(Int16 Value) { return NewLoad(*(UInt16*)&Value); }
+	IRInstruction* NewLoad(Utf16 Value) { return NewLoad(*(UInt16*)&Value); }
 	//32bit
 	IRInstruction* NewLoad(UInt32 Value)
 	{
@@ -620,7 +693,7 @@ struct IRBlock
 		V->ObjectType = IRType(IRTypes::f32);
 		return V;
 	}
-	
+	IRInstruction* NewLoad(Utf32 Value) { return NewLoad(*(UInt32*)&Value); }
 	//64bit
 
 	IRInstruction* NewLoad(UInt64 Value)
@@ -724,60 +797,86 @@ struct IRBlock
 	//comparison operators
 	IRInstruction* NewC_Equalto(IRInstruction* A, IRInstruction* B)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::EqualTo, IROperator(A), IROperator(B))).get();
+		auto v = Instructions.emplace_back(new IRInstruction(IRInstructionType::EqualTo, IROperator(A), IROperator(B))).get();
+		v->ObjectType = IRTypes::Bool;
+		return v;
 	}
 	IRInstruction* NewC_NotEqualto(IRInstruction* A, IRInstruction* B)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::NotEqualTo, IROperator(A), IROperator(B))).get();
+		auto v = Instructions.emplace_back(new IRInstruction(IRInstructionType::NotEqualTo, IROperator(A), IROperator(B))).get();
+		v->ObjectType = IRTypes::Bool;
+		return v;
 	}
 
 	IRInstruction* NewULessThan(IRInstruction* A, IRInstruction* B)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::ULessThan, IROperator(A), IROperator(B))).get();
+		auto v = Instructions.emplace_back(new IRInstruction(IRInstructionType::ULessThan, IROperator(A), IROperator(B))).get();
+		v->ObjectType = IRTypes::Bool;
+		return v;
 	}
 	IRInstruction* NewUGreaterThan(IRInstruction* A, IRInstruction* B)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::UGreaterThan, IROperator(A), IROperator(B))).get();
+		auto v = Instructions.emplace_back(new IRInstruction(IRInstructionType::UGreaterThan, IROperator(A), IROperator(B))).get();
+		v->ObjectType = IRTypes::Bool;
+		return v;
 	}
 	IRInstruction* NewULessThanOrEqual(IRInstruction* A, IRInstruction* B)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::ULessThanOrEqual, IROperator(A), IROperator(B))).get();
+		auto v = Instructions.emplace_back(new IRInstruction(IRInstructionType::ULessThanOrEqual, IROperator(A), IROperator(B))).get();
+		v->ObjectType = IRTypes::Bool;
+		return v;
 	}
 	IRInstruction* NewUGreaterThanOrEqual(IRInstruction* A, IRInstruction* B)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::UGreaterThanOrEqual, IROperator(A), IROperator(B))).get();
+		auto v = Instructions.emplace_back(new IRInstruction(IRInstructionType::UGreaterThanOrEqual, IROperator(A), IROperator(B))).get();
+		v->ObjectType = IRTypes::Bool;
+		return v;
 	}
 
 
 	IRInstruction* NewSLessThan(IRInstruction* A, IRInstruction* B)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::SLessThan, IROperator(A), IROperator(B))).get();
+		auto v = Instructions.emplace_back(new IRInstruction(IRInstructionType::SLessThan, IROperator(A), IROperator(B))).get();
+		v->ObjectType = IRTypes::Bool;
+		return v;
 	}
 	IRInstruction* NewSGreaterThan(IRInstruction* A, IRInstruction* B)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::SGreaterThan, IROperator(A), IROperator(B))).get();
+		auto v = Instructions.emplace_back(new IRInstruction(IRInstructionType::SGreaterThan, IROperator(A), IROperator(B))).get();
+		v->ObjectType = IRTypes::Bool;
+		return v;
 	}
 	IRInstruction* NewSLessThanOrEqual(IRInstruction* A, IRInstruction* B)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::SLessThanOrEqual, IROperator(A), IROperator(B))).get();
+		auto v = Instructions.emplace_back(new IRInstruction(IRInstructionType::SLessThanOrEqual, IROperator(A), IROperator(B))).get();
+		v->ObjectType = IRTypes::Bool;
+		return v;
 	}
 	IRInstruction* NewSGreaterThanOrEqual(IRInstruction* A, IRInstruction* B)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::SGreaterThanOrEqual, IROperator(A), IROperator(B))).get();
+		auto v = Instructions.emplace_back(new IRInstruction(IRInstructionType::SGreaterThanOrEqual, IROperator(A), IROperator(B))).get();
+		v->ObjectType = IRTypes::Bool;
+		return v;
 	}
 	//logical operators
 
 	IRInstruction* NewlogicalAnd(IRInstruction* A, IRInstruction* B)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::Logical_And, IROperator(A), IROperator(B))).get();
+		auto v = Instructions.emplace_back(new IRInstruction(IRInstructionType::Logical_And, IROperator(A), IROperator(B))).get();
+		v->ObjectType = IRTypes::Bool;
+		return v;
 	}
 	IRInstruction* NewlogicalOr(IRInstruction* A, IRInstruction* B)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::Logical_Or, IROperator(A), IROperator(B))).get();
+		auto v = Instructions.emplace_back(new IRInstruction(IRInstructionType::Logical_Or, IROperator(A), IROperator(B))).get();
+		v->ObjectType = IRTypes::Bool;
+		return v;
 	}
 	IRInstruction* NewlogicalNot(IRInstruction* Value)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::Logical_Not, IROperator(Value))).get();
+		auto v =  Instructions.emplace_back(new IRInstruction(IRInstructionType::Logical_Not, IROperator(Value))).get();
+		v->ObjectType = IRTypes::Bool;
+		return v;
 	}
 	//control flow
 	
@@ -827,12 +926,57 @@ struct IRBlock
 	//mem
 	IRInstruction* NewMallocCall(IRInstruction* Size)
 	{
-		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::MallocCall, IROperator(Size))).get();
+		auto r =  Instructions.emplace_back(new IRInstruction(IRInstructionType::MallocCall, IROperator(Size))).get();
+		r->ObjectType = IRTypes::pointer;
+		return r;
 	}
+	IRInstruction* NewCalloc(IRInstruction* Size)
+	{
+		auto r = Instructions.emplace_back(new IRInstruction(IRInstructionType::Calloc, IROperator(Size))).get();
+		r->ObjectType = IRTypes::pointer;
+		return r;
+	}	
+	IRInstruction* NewRealloc(IRInstruction* old, IRInstruction* Size)
+	{
+		auto r = Instructions.emplace_back(new IRInstruction(IRInstructionType::Realloc, IROperator(old), IROperator(Size))).get();
+		r->ObjectType = IRTypes::pointer;
+		return r;
+	}
+
+	void NewMemcpy(IRInstruction* destination,IRInstruction* source,IRInstruction* size)
+	{
+		NewPushParameter(size);
+		Instructions.emplace_back(new IRInstruction(IRInstructionType::Memcpy,
+			IROperator(destination),
+			IROperator(source)));
+	}
+	void NewMemove(IRInstruction* destination, IRInstruction* source, IRInstruction* size)
+	{
+		NewPushParameter(size);
+		Instructions.emplace_back(new IRInstruction(IRInstructionType::Memmove,
+			IROperator(destination),
+			IROperator(source)));
+	}
+	IRInstruction* NewMemcmp(IRInstruction* destination, IRInstruction* source, IRInstruction* size)
+	{
+		NewPushParameter(size);
+		return Instructions.emplace_back(new IRInstruction(IRInstructionType::Memcmp,
+			IROperator(destination),
+			IROperator(source))).get();
+	}
+
+
+	IRInstruction* Strlen(IRInstruction* ptr)
+	{
+		return Instructions.emplace_back(new IRInstruction(IRInstructionType::Strlen, IROperator(ptr))).get();
+	}
+	
 	void NewFreeCall(IRInstruction* Ptr)
 	{
 		Instructions.emplace_back(new IRInstruction(IRInstructionType::FreeCall, IROperator(Ptr)));
 	}
+
+	
 
 	void NewDereferenc_Store(IRInstruction* Ptr,IRInstruction* Value)
 	{
@@ -1033,6 +1177,108 @@ struct IRBlock
 		V->ObjectType = Type;
 		return V.get();
 	}
+	// |[void* Await] -> void;
+	IRInstruction* New_Await_Task(IRInstruction* FuncPtr)
+	{
+		auto& V = Instructions.emplace_back(new IRInstruction(IRInstructionType::New_Await_Task, IROperator(FuncPtr)));
+
+		V->ObjectType = IRTypes::pointer;
+		return V.get();
+	}
+	void New_Await_PassPar(IRInstruction* AwaitHandle, IRInstruction* Par)
+	{
+		auto& V = Instructions.emplace_back(
+		new IRInstruction(IRInstructionType::Await_PassPar
+			,IROperator(AwaitHandle)
+			,IROperator(Par)));
+	}
+	void New_Await_RunTask(IRInstruction* AwaitHandle)
+	{
+		auto& V = Instructions.emplace_back(
+			new IRInstruction(IRInstructionType::Await_RunTask
+				, IROperator(AwaitHandle)
+				));
+	}
+	IRInstruction* New_Await_IsDone(IRInstruction* AwaitHandle)
+	{
+		auto& V = Instructions.emplace_back(
+			new IRInstruction(IRInstructionType::Await_IsDone
+				, IROperator(AwaitHandle)
+			));
+
+		V->ObjectType = IRTypes::i8;
+		return V.get();
+	}
+
+	//CancelledFuncPtr |[void* Await] -> void;
+	void New_Await_OnComplete(IRInstruction* AwaitHandle, IRInstruction* OnDoneFuncPtr)
+	{
+		auto& V = Instructions.emplace_back(
+			new IRInstruction(IRInstructionType::Await_SetComplete
+				, IROperator(AwaitHandle)
+				, IROperator(OnDoneFuncPtr)
+			));
+		V->ObjectType = IRType(IRTypes::Void);
+	}
+	//CancelledFuncPtr |[void* Await] -> void;
+	void New_Await_OnCancelled(IRInstruction* AwaitHandle, IRInstruction* OnCancelledFuncPtr)
+	{
+		auto& V = Instructions.emplace_back(
+			new IRInstruction(IRInstructionType::Await_OnCancelled
+				, IROperator(AwaitHandle)
+				, IROperator(OnCancelledFuncPtr)
+			));
+
+		V->ObjectType = IRType(IRTypes::Void);
+	}
+	void New_Await_SetValue(IRInstruction* AwaitHandle, IRInstruction* Value)
+	{
+		auto& V = Instructions.emplace_back(
+			new IRInstruction(IRInstructionType::Await_SetValue
+				, IROperator(AwaitHandle)
+				, IROperator(Value)
+			));
+
+		V->ObjectType = IRType(IRTypes::Void);
+	}
+	IRInstruction* New_Await_GetValue(IRInstruction* AwaitHandle,IRType ObjectType)
+	{
+		auto& V = Instructions.emplace_back(
+			new IRInstruction(IRInstructionType::Await_GetValue
+				, IROperator(AwaitHandle)
+			));
+
+		V->ObjectType = ObjectType;
+		return V.get();
+	}
+	void Free_Await_Task(IRInstruction* AwaitHandle)
+	{
+		auto& V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Await_Free_Task, IROperator(AwaitHandle)));
+
+		V->ObjectType = IRType(IRTypes::Void);
+	}
+
+	void NewUnreachable()
+	{
+		Instructions.emplace_back(new IRInstruction(IRInstructionType::Unreachable));
+	}
+	void NewAssume(IRInstruction* BoolToAlwaysbetrue)
+	{
+		Instructions.emplace_back(new IRInstruction(IRInstructionType::Assume));
+	}
+	void CleanupFuncCall(IRidentifierID identifier)
+	{
+		Instructions.emplace_back(new IRInstruction(IRInstructionType::CleanupFuncCall, IROperator(identifier)));
+	}
+	void ThrowException(IRInstruction* Msg)
+	{
+		Instructions.emplace_back(new IRInstruction(IRInstructionType::ThrowException, IROperator(Msg)));
+	}
+	/*
+	CatchException,
+	*/
+	
+
 	size_t GetIndex()
 	{
 		return Instructions.size()-1;
@@ -1163,10 +1409,14 @@ public:
 	IRFunc _threaddeInit;
 	Vector<Unique_ptr<IRFunc>> Funcs;
 	Vector<Unique_ptr<IRSymbolData>> _Symbols;
-	BinaryVectorMap<IRidentifierID, IRidentifier> _Map;
-	VectorMap<String, IRidentifierID> ConstStaticStrings;
+	UnorderedMap<IRidentifierID, IRidentifier> _Map;
+	UnorderedMap<String, IRidentifierID> ConstStaticStrings;
 
 	IRDebugSybInfo _Debug;
+	
+	//The Funcion to call after calling StaticInit,threadInit
+	//Funcion Must be like |Entry[] -> void;
+	Optional<IRidentifierID> EntryPoint;
 
 	struct ExternalVarable
 	{
@@ -1203,14 +1453,14 @@ public:
 
 
 	//note will not add a null char at the end.
-	IRidentifierID FindOrAddConstStrings(String_view Buffer)
+	IRidentifierID FindOrAddStaticCString(const String_view Buffer)
 	{
 		String VKey = (String)Buffer;
 		if (ConstStaticStrings.HasValue(VKey))
 		{
-			return ConstStaticStrings.at(VKey);
+			return ConstStaticStrings.GetValue(VKey);
 		}
-		IRidentifierID identifier = ToID(".Const.String:" + (String)Buffer);
+		IRidentifierID identifier = ToID(".Const.CString:" + (String)Buffer);
 		auto V = NewStaticVarable(identifier, IRType(IRTypes::i8));
 
 		V.Pointer->IsInitialized = true;
@@ -1221,7 +1471,59 @@ public:
 
 		return identifier;
 	}
+	//note will not add a null char at the end.
+	IRidentifierID FindOrAddStaticCString8(const String_view8 Buffer)
+	{
+		return FindOrAddStaticCString(String_view((const char*)Buffer.data(), Buffer.size()));
+	}
+	//note will not add a null char at the end.
+	IRidentifierID FindOrAddStaticCString16(const String_view16 Buffer)
+	{
+		return FindOrAddStaticCString(String_view((const char*)Buffer.data(), Buffer.size()*2));	
+	}
+	//note will not add a null char at the end.
+	IRidentifierID FindOrAddStaticCString32(const String_view32 Buffer)
+	{
+		return FindOrAddStaticCString(String_view((const char*)Buffer.data(), Buffer.size()*4));
+	}
 
+	struct StringSpanInfo
+	{
+		IRidentifierID StaticVar;
+		size_t Offset;
+	};
+	StringSpanInfo FindOrAddStaticSpanString8(const String_view32 Buffer)
+	{
+		return FindOrAddStaticSpanString(String_view((const char*)Buffer.data(),Buffer.size() *4));
+	}
+	StringSpanInfo FindOrAddStaticSpanString16(const String_view16 Buffer)
+	{
+		return FindOrAddStaticSpanString(String_view((const char*)Buffer.data(),Buffer.size()*2));
+	}
+	StringSpanInfo FindOrAddStaticSpanString8(const String_view8 Buffer)
+	{
+		return FindOrAddStaticSpanString(String_view((const char*)Buffer.data(),Buffer.size()));
+	}
+
+	StringSpanInfo FindOrAddStaticSpanString(const String_view Buffer)
+	{
+		String VKey = (String)Buffer;
+		if (ConstStaticStrings.HasValue(VKey))
+		{
+			return { ConstStaticStrings.GetValue(VKey),0 };
+		}
+		IRidentifierID identifier = ToID(".Const.SpanString:" + (String)Buffer);
+		auto V = NewStaticVarable(identifier, IRType(IRTypes::i8));
+
+		V.Pointer->IsInitialized = true;
+		V.Pointer->Bytes.resize(Buffer.size());
+		memcpy(V.Pointer->Bytes.data(), Buffer.data(), Buffer.size());
+
+		ConstStaticStrings.AddValue(VKey, identifier);
+
+		return { identifier,0 };
+	}
+	
 
 
 	IRStruct* NewStruct(IRidentifierID identifier)
@@ -1290,7 +1592,7 @@ public:
 	IRidentifierID ToID(const IRidentifier& Value);
 	IRidentifier FromID(IRidentifierID Value) const
 	{
-		return _Map.at(Value);
+		return _Map.GetValue(Value);
 	}
 
 	IRSymbolData* GetSymbol(IRidentifierID Value)
@@ -1355,7 +1657,7 @@ public:
 
 	struct ToStringState
 	{
-		BinaryVectorMap<const IRInstruction*, String> PointerToName;
+		UnorderedMap<const IRInstruction*, String> PointerToName;
 		Vector<const IRInstruction*> TepPushedParameters;
 
 		size_t StrValue = 0;
@@ -1366,7 +1668,7 @@ public:
 			char r = 'A' + (char)StrValue;
 			StrValue++;
 			auto V = (String)String_view(&r, 1);
-			PointerToName[Ptr] = V;
+			PointerToName.AddValue(Ptr,V);
 			return V;
 		}
 	};
@@ -1380,7 +1682,7 @@ public:
 	bool ToString(const IRInstruction* I
 		, String& r
 		, IRBuilder::ToStringState& State
-		,BinaryVectorMap<IRidentifierID, IRidentifier>& Names
+		,UnorderedMap<IRidentifierID, IRidentifier>& Names
 		, const size_t& i
 		, const IRBlock* Block);
 		
@@ -1493,3 +1795,19 @@ public:
 
 
 UCodeLangEnd
+
+template <>
+struct std::hash<UCodeLang::IROperator>
+{
+	std::size_t operator()(const UCodeLang::IROperator& k) const
+	{
+		using UCodeLang::IROperator;
+		using namespace UCodeLang;
+		// Compute individual hash values for first,
+		// second and third and combine them using XOR
+		// and bit shifting:
+
+		return ((hash<IROperator_t>()((IROperator_t)k.Type)
+			^ (hash<IRidentifierID>()(k.identifer) << 1)) >> 1);
+	}
+};

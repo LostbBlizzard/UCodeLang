@@ -1,6 +1,6 @@
 #pragma once
 #include <functional>
-#include "../LangTypes.hpp"
+#include "UCodeLang/LangCore/LangDef.hpp"
 UCodeLangStart
 class Defer
 {
@@ -22,4 +22,9 @@ public:
 private:
 	std::function<void()> _ToCall;
 };
+
+#define TOKENPASTE(x, y) x ## y
+#define TOKENPASTE2(x, y) TOKENPASTE(x, y)
+#define UCodeLangDefer(Func) Defer TOKENPASTE2(DeferredCall,__COUNTER__) ={ [&](){Func;} };
+
 UCodeLangEnd

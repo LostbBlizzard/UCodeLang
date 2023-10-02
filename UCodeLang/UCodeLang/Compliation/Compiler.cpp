@@ -7,7 +7,7 @@
 #include "Front/UCodeFrontEndObject.hpp"
 #include "Back/UCodeBackEnd/UCodeBackEnd.hpp"
 UCodeLangStart
-Compiler::CompilerRet Compiler::CompileText(const String_view& Text)
+Compiler::CompilerRet Compiler::CompileText(const String_view& Text, const ExternalFiles& ExternalFiles)
 {
 	//
 	CompilerRet CompilerRet;
@@ -16,7 +16,8 @@ Compiler::CompilerRet Compiler::CompileText(const String_view& Text)
 
 	_Errors.FilePath = _Errors.FilePath;
 
-	if (_FrontEndObject == nullptr)
+	if (_FrontEndObject == nullptr
+		|| (_oldFrontEnd != _FrontEnd))
 	{
 		_FrontEndObject.reset(_FrontEnd());
 	}
@@ -24,6 +25,8 @@ Compiler::CompilerRet Compiler::CompileText(const String_view& Text)
 	{
 		_FrontEndObject->Reset();
 	}
+	_Settings._BackEndInfo = GetOutputBackEndInfo();
+
 	_FrontEndObject->Set_FileIDType(LangDefInfo::DefaultTextFileID);
 	_FrontEndObject->Set_Settings(&_Settings);
 	_FrontEndObject->Set_ErrorsOutput(&_Errors);
@@ -37,12 +40,15 @@ Compiler::CompilerRet Compiler::CompileText(const String_view& Text)
 	if (Item == nullptr || _Errors.Has_Errors()) { return CompilerRet; }
 
 
-	Vector<FileNode_t*> Files;
-	Files.push_back(Item.get());
+	Vector<Unique_ptr<FileNode_t>> Files;
+	Files.push_back(std::move(Item));
+	for (auto& Item : ExternalFiles.Files) {
+		Files.push_back(_FrontEndObject->LoadExternFile(Item));
+	}
+
 	_FrontEndObject->BuildIR(Files);
 
 	if (_BackEndObject == nullptr 
-		|| (_oldFrontEnd != _FrontEnd)
 		|| (_oldBackEnd != _BackEnd))
 	{
 		_BackEndObject.reset(_BackEnd());
@@ -73,6 +79,14 @@ Compiler::CompilerRet Compiler::CompileText(const String_view& Text)
 
 	
 	CompilerRet.OutPut = &_BackEndObject->Getliboutput();
+	
+	
+	if (_BackEndObject->GetOutput().Size()) {
+		auto bytes = _BackEndObject->GetOutput();
+		CompilerRet.OutFile.Resize(bytes.Size());
+		memcpy(CompilerRet.OutFile.Data(), bytes.Data(), bytes.Size());
+	}
+
 	return CompilerRet;
 }
 String Compiler::GetTextFromFile(const Path& path)
@@ -109,7 +123,7 @@ BytesPtr Compiler::GetBytesFromFile(const Path& path)
 	
 	return r;
 }
-Compiler::CompilerRet Compiler::CompilePathToObj(const Path& path, const Path& OutLib)
+Compiler::CompilerRet Compiler::CompilePathToObj(const Path& path, const Path& OutLib, const ExternalFiles& ExternalFiles)
 {
 	if (_FrontEndObject == nullptr)
 	{
@@ -119,19 +133,33 @@ Compiler::CompilerRet Compiler::CompilePathToObj(const Path& path, const Path& O
 	{
 		_FrontEndObject->Reset();
 	}
+	_Settings._BackEndInfo = GetOutputBackEndInfo();
 
 	_FrontEndObject->SetSourcePath(path);
 	auto Text = GetTextFromFile(path);
-	CompilerRet r = CompileText(Text);
+	CompilerRet r = CompileText(Text,ExternalFiles);
 
-	if (r._State == CompilerState::Success) {
-		UClib::ToFile(r.OutPut, OutLib);
+	if (r._State == CompilerState::Success)
+	{
+		if (r.OutFile.Size())
+		{
+			std::ofstream File(OutLib, std::ios::binary);
+			if (File.is_open())
+			{
+				File.write((const char*)r.OutFile.Data(), r.OutFile.Size());
+				File.close();
+			}
+		}
+		else 
+		{
+			UClib::ToFile(r.OutPut, OutLib);
+		}
 	}
 
 	return r;
 }
 namespace fs = std::filesystem;
-Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
+Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data, const ExternalFiles& ExternalFiles)
 {
 
 
@@ -139,6 +167,8 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 	Vector<Unique_ptr<String>> FilesStrings;
 	Vector<BytesPtr> FilesBytes;
 	Vector<Unique_ptr<FileNode_t>> Files;
+
+	
 	//Refs
 
 	if (_FrontEndObject == nullptr
@@ -146,11 +176,13 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 	{
 		_FrontEndObject.reset(_FrontEnd());
 		_oldFrontEnd = _FrontEnd;
+
 	}
 	else
 	{
 		_FrontEndObject->Reset();
 	}
+	_Settings._BackEndInfo = GetOutputBackEndInfo();
 
 	const LangDefInfo* Lang = _FrontEndObject->GetInfo();
 	_FrontEndObject->Set_Settings(&_Settings);
@@ -177,7 +209,7 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 		if (FInfo == nullptr) { continue; }
 
 		const Path FilePath = dirEntry.path();
-		Path RePath = FileHelper::RelativePath(FilePath, Data.FileDir);
+		Path RePath = FileHelper::RelativePath(FilePath,Path(Data.FileDir));
 
 		_Errors.FilePath = RePath;
 
@@ -189,7 +221,7 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 		{
 			_FrontEndObject->Reset();
 		}
-		_FrontEndObject->Set_FileIDType(FInfo->FileID);
+		_FrontEndObject->Set_FileIDType(FInfo->FileId);
 
 		_FrontEndObject->SetSourcePath(FilePath);
 		if (FInfo->Type == FrontEndType::Text) 
@@ -226,8 +258,12 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 	r.OutPut = nullptr;
 	if (!_Errors.Has_Errors())
 	{
-		Vector<FileNode_t*>& _Files = *(Vector<FileNode_t*>*)&Files;
-		_FrontEndObject->BuildIR(_Files);
+	
+		for (auto& Item : ExternalFiles.Files) {
+			Files.push_back(_FrontEndObject->LoadExternFile(Item));
+		}
+
+		_FrontEndObject->BuildIR(Files);
 	
 
 		if (!_Errors.Has_Errors())
@@ -256,8 +292,13 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 					_BackEndObject->Build(output);
 
 					auto Output = _BackEndObject->GetOutput();
+
+					r.OutPut = &_BackEndObject->Getliboutput();
 					if (Output.Size())
 					{
+						r.OutFile.Resize(Output.Size());
+						memcpy(r.OutFile.Data(), Output.Data(), Output.Size());
+
 						std::ofstream File(Data.OutFile, std::ios::binary);
 						if (File.is_open())
 						{
@@ -267,7 +308,6 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 					}
 					else
 					{
-						r.OutPut = &_BackEndObject->Getliboutput();
 						UClib::ToFile(r.OutPut, Data.OutFile);
 					}
 				}
@@ -278,6 +318,16 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data)
 	
 	r._State = _Errors.Has_Errors() ? CompilerState::Fail : CompilerState::Success;
 	return r;
+}
+
+UInt64 GetFileHash(BytesView bytes)
+{
+	String_view Bits = String_view((const char*)bytes.Data(), bytes.Size());
+
+	auto hasher = std::hash<String_view>();
+	UInt64 BitsHash = hasher(Bits);
+
+	return BitsHash;
 }
 
 Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& Data, const ExternalFiles& ExternalFiles)
@@ -305,6 +355,11 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 
 		Unique_ptr<FileNode_t> _File;
 		Unique_ptr<FileNode_t> _IntFile;
+		bool HasOpenedFile()
+		{
+			return OpenedFile.Size() != 0;
+		}
+
 		MyStruct()
 		{
 
@@ -318,7 +373,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 		Vector<MyStructTreeNode*> _Dependencies;//must be compiled first.
 	};
 
-	const Path DependencyPath = Data.IntDir + DependencyFile::FileName;
+	const Path DependencyPath = Data.IntDir.native() + Path(DependencyFile::FileName).native();
 
 	DependencyFile File;
 	if (fs::exists(DependencyPath))
@@ -331,18 +386,17 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 	DependencyFile NewFile;
 
 	if (_FrontEndObject == nullptr
-		|| (_oldFrontEnd != _FrontEnd)
-		|| (_oldBackEnd != _BackEnd))
+		|| (_oldFrontEnd != _FrontEnd))
 	{
 		_FrontEndObject.reset(_FrontEnd());
 		_oldFrontEnd = _FrontEnd;
 		_oldBackEnd = _BackEnd;
-
 	}
 	else
 	{
 		_FrontEndObject->Reset();
 	}
+	_Settings._BackEndInfo = GetOutputBackEndInfo();
 	const LangDefInfo* Lang = _FrontEndObject->GetInfo();
 	_FrontEndObject->Set_Settings(&_Settings);
 	_FrontEndObject->Set_ErrorsOutput(&_Errors);
@@ -411,7 +465,9 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 			T.path = path;
 			DependencyFile::ExternalFileInfo F;
 			F.FullFilePath = path;
-			F.FileLastUpdated = *(UInt64*)&fs::last_write_time(path);
+
+			auto writetime = fs::last_write_time(path);
+			F.FileLastUpdated = *(UInt64*)&writetime;
 			F.FileSize = fs::file_size(path);
 			F.FileHash = 0;
 
@@ -431,17 +487,14 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 				else
 				{
 					BytesPtr V = OpenFile(FInfo,path);
-					String_view Bits = String_view((const char*)V.Data(), V.Size());
-
-					auto hasher = std::hash<String_view>();
-					UInt64 BitsHash = hasher(Bits);
-
-
-					if (BitsHash != F.FileHash)
+					UInt64 BitsHash = GetFileHash(V.AsSpan());
+					
+					if (FileInfo->FileHash != BitsHash)
 					{
 						NeedToBeRecomiled = true;
 						F.FileHash = BitsHash;
 					}
+					
 
 					T.OpenedFile = std::move(V);
 				}
@@ -456,6 +509,8 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 				{
 					T.Type = MyEnumClass::FileNotChanged;
 				}
+
+
 			}
 			else
 			{
@@ -517,14 +572,16 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 			if (FInfo == nullptr) { continue; }
 
 			auto& FilePath_t = dirEntry.path();
-			String FilePath = FilePath_t.generic_u8string();
+			Path  FilePath = FilePath_t;
 
-			String RePath = FileHelper::RelativePath(FilePath, Data.FileDir);
+			Path RePath = FileHelper::RelativePath(FilePath, Data.FileDir);
 
 			_Errors.FilePath = RePath;
 			DependencyFile::FileInfo F;
 			F.FilePath = RePath;
-			F.FileLastUpdated = *(UInt64*)&fs::last_write_time(FilePath_t);
+
+			auto writetime = fs::last_write_time(FilePath_t);
+			F.FileLastUpdated = (UInt64)writetime.time_since_epoch().count();
 			F.FileSize = fs::file_size(FilePath_t);
 			F.FileHash = 0;
 
@@ -555,18 +612,15 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 				else
 				{
 					BytesPtr V = OpenFile(FInfo, FilePath_t);
-					String_view Bits = String_view((const char*)V.Data(), V.Size());
+					UInt64 BitsHash = GetFileHash(V.AsSpan());
 
-					auto hasher = std::hash<String_view>();
-					UInt64 BitsHash = hasher(Bits);
-
-
-					if (BitsHash != F.FileHash)
+					
+					if (FileInfo->FileHash != BitsHash)
 					{
 						NeedToBeRecomiled = true;
 						F.FileHash = BitsHash;
 					}
-
+					
 					T.OpenedFile = std::move(V);
 				}
 
@@ -699,13 +753,34 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 		{
 			if (Item->IsExternal)
 			{
-				Item->_IntFile = _FrontEndObject->LoadExternFile(Item->path);
+				if (!Item->HasOpenedFile())
+				{
+					Item->_IntFile = _FrontEndObject->LoadExternFile(Item->path);
+				}
+				else
+				{
+					Item->_IntFile = _FrontEndObject->LoadExternFile(
+						Item->OpenedFile.AsSpan(), Item->path.extension());
+				}
+
 				Files.push_back(Item->_IntFile.get());
+				Files.back()->FileName = Item->path.filename();
 			}
 			else
 			{
-				Item->_IntFile = _FrontEndObject->LoadIntFile(Item->InterPath);
+				//if (!Item->HasOpenedFile())
+				{
+					Item->_IntFile = _FrontEndObject->LoadIntFile(Item->InterPath);
+				}
+				/*
+				else
+				{
+					Item->_IntFile = _FrontEndObject->LoadIntFile(
+						Item->OpenedFile.AsSpan(), Item->InterPath.extension());
+				}
+				*/
 				Files.push_back(Item->_IntFile.get());
+				Files.back()->FileName = Item->Repath;
 			}
 		}
 		
@@ -714,19 +789,18 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 		{
 			if (Item->IsExternal) 
 			{
-				if (!Item->OpenedFile.Data())
+				if (!Item->HasOpenedFile())
 				{
-					Item->_IntFile = _FrontEndObject->LoadExternFile(Item->path);
+					Item->OpenedFile = GetBytesFromFile(Item->path);
 				}
-				else
-				{
-					Item->_IntFile = _FrontEndObject->LoadExternFile(Item->path.extension());
-				}
+				Item->_IntFile = _FrontEndObject->LoadExternFile(
+						Item->OpenedFile.AsSpan(), Item->path.extension());
 
 				Files.push_back(Item->_IntFile.get());
+				Files.back()->FileName = Item->path.filename();
 				continue;
 			}
-			if (!Item->OpenedFile.Data())
+			if (!Item->HasOpenedFile())
 			{
 				Item->OpenedFile = OpenFile(Item->_FInfo, Item->path);
 			}
@@ -752,6 +826,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 
 
 				Files.push_back(Item->_File.get());
+				Files.back()->FileName = Item->Repath;
 			}
 		}
 
@@ -762,7 +837,9 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 	CompilerRet r;
 	r._State = CompilerState::Fail;
 	r.OutPut = nullptr;
-	if (!_Errors.Has_Errors())
+
+	bool sholdcompile = Files.size() || !fs::exists(Data.OutFile);
+	if (sholdcompile && !_Errors.Has_Errors())
 	{
 
 		if (CanFindDependencyBeforIR) 
@@ -779,7 +856,8 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 
 			if (!_Errors.Has_Errors())
 			{
-				if (_BackEndObject == nullptr)
+				if (_BackEndObject == nullptr
+					|| (_oldBackEnd != _BackEnd))
 				{
 					_BackEndObject.reset(_BackEnd());
 				}
@@ -800,7 +878,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 						_BackEndObject->Build(output);
 
 						auto Output = _BackEndObject->GetOutput();
-						if (!_BackEndObject->HasLibOutput())
+						if (Output.Size())
 						{
 							std::ofstream File(Data.OutFile, std::ios::binary);
 							if (File.is_open())
@@ -819,7 +897,11 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 						//spit file the get inters
 						for (auto& Item : ChangedFiles)
 						{
-							if (Item->IsExternal) { continue; }
+							if (Item->IsExternal) 
+							{ 
+								Item->ExternalFileInfo->FileHash= GetFileHash(Item->OpenedFile.AsSpan());
+								continue; 
+							}
 
 
 							{
@@ -833,29 +915,53 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 							_FrontEndObject->ToIntFile(Item->_File.get(), Item->InterPath);
 							auto FileDeps = _FrontEndObject->Get_DependenciesPostIR(Item->_File.get());
 
-							auto Str = String_view((char*)Item->OpenedFile.Data(), Item->OpenedFile.Size());
-							Item->FileInfo->FileHash = (UInt64)std::hash<String_view>()(Str);
+
+							Item->FileInfo->FileHash = GetFileHash(Item->OpenedFile.AsSpan());
 							Item->FileInfo->Dependencies.clear();
 							Item->FileInfo->ExternDependencies.clear();
 							for (auto& Item2 : FileDeps)
 							{
 
-								bool IsExtern = false;
-								for (auto& Item3 : NewExternalInfo)
+								bool IsExtern = Item->IsExternal;
+
+								MyStruct* depfileinfo = nullptr;
 								{
-									if (Item3->FullFilePath == Item2->FileName)
+									for (auto& Item : ChangedFiles)
 									{
-										IsExtern = true;
+										if (Item->IsExternal != IsExtern) { continue; }
+
+										auto& CmdStr = IsExtern ? Item->path : Item->Repath;
+
+										if (Item->Repath == CmdStr)
+										{
+											depfileinfo = Item;
+											break;
+										}
+									}
+									if (depfileinfo == nullptr) 
+									{
+										for (auto& Item : UnChangedFiles)
+										{
+											if (Item->IsExternal != IsExtern) { continue; }
+
+											auto& CmdStr = IsExtern ? Item->path : Item->Repath;
+
+											if (Item->Repath == CmdStr)
+											{
+												depfileinfo = Item;
+											}
+										}
 									}
 								}
 
+								UCodeLangAssert(depfileinfo);
 								if (IsExtern)
 								{
-									Item->FileInfo->ExternDependencies.push_back(Item2->FileName);
+									Item->FileInfo->ExternDependencies.push_back(depfileinfo->path);
 								}
 								else
 								{
-									Item->FileInfo->Dependencies.push_back(Item2->FileName);
+									Item->FileInfo->Dependencies.push_back(depfileinfo->Repath);
 								}
 
 							}
@@ -865,24 +971,50 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 			}
 		}
 	}
-
+	else
+	{
+		if (!_Errors.Has_Errors()) 
+		{
+			//TODO return UClib if BackEnd is not UCodeBackEnd.
+			auto bytes = GetBytesFromFile(Data.OutFile);
+			if (Data.OutFile.extension() == FileExt::LibWithDot)
+			{
+				thread_local UClib lib;
+				UClib::FromBytes(&lib, bytes.AsSpan());
+				r.OutPut = &lib;
+			}
+			else
+			{
+				r.OutFile = std::move(bytes);
+			}
+		}
+	}
 
 	r._State = _Errors.Has_Errors() ? CompilerState::Fail : CompilerState::Success;
 
-	for (auto& Item : NewFilesInfo)
-	{
-		NewFile.Files.push_back(std::move(*Item));
-	}
-	for (auto& Item : UnChangedFiles)
-	{
-		NewFile.Files.push_back(std::move(*Item->FileInfo));
-	}
-	for (auto& Item : NewExternalInfo)
-	{
-		NewFile.ExternalFiles.push_back(std::move(*Item));
-	}
+	
 
-	if (r._State == CompilerState::Success) {
+	if (r._State == CompilerState::Success && Files.size())
+	{
+		for (auto& Item : NewFilesInfo)
+		{
+			NewFile.Files.push_back(std::move(*Item));
+		}
+		for (auto& Item : UnChangedFiles)
+		{
+			if (Item->IsExternal)
+			{
+				NewFile.ExternalFiles.push_back(std::move(*Item->ExternalFileInfo));
+			}
+			else
+			{
+				NewFile.Files.push_back(std::move(*Item->FileInfo));
+			}
+		}
+		for (auto& Item : NewExternalInfo)
+		{
+			NewFile.ExternalFiles.push_back(std::move(*Item));
+		}
 		DependencyFile::ToFile(&NewFile, DependencyPath);
 	}
 

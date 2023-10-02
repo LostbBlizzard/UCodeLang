@@ -1,8 +1,8 @@
 #pragma once
 #include "../BackEndInterface.hpp"
-#include "UCodeLang/Compliation/UAssembly/UAssembly.hpp"
-#include "UCodeLang/Compliation/Front/SystematicAnalysis.hpp"
 #include "RegistersManager.hpp"
+#include "UCodeLang/LangCore/UClib.hpp"
+#include "UCodeLang/Compliation/CompliationSettings.hpp"
 UCodeLangStart
 
 class UCodeBackEndObject : BackEndObject
@@ -20,6 +20,12 @@ public:
 
 	String GetBackEndName() override { return "UCodeVM"; }
 	String GetOutputExtWithDot() override { return FileExt::LibWithDot; }
+	void UpdateBackInfo(CompliationBackEndInfo& BackInfo) override
+	{
+		BackInfo.Output = CompliationBackEndInfo::BackEnd::UCodeVm;
+		BackInfo.OutputSet = CompliationBackEndInfo::InsSet::Other;
+	}
+
 	static BackEndObject* MakeObject() { return new UCodeBackEndObject(); }
 private:
 
@@ -180,7 +186,7 @@ private:
 	UClib* _Output = nullptr;
 	CodeLayer::UCodeByteCode* _OutLayer = nullptr;
 
-	BinaryVectorMap< const IRBlock*, BlockData> IRToBlockData;
+	UnorderedMap< const IRBlock*, BlockData> IRToBlockData;
 
 
 	StaticMemoryManager _StaticMemory;
@@ -196,7 +202,7 @@ private:
 	UCodeFunc* BuildingFunc = nullptr;
 	Optimizations _Optimizations;
 	//code
-	bool IsPrimitive(IRType& type)
+	bool IsPrimitive(const IRType& type)
 	{
 		return _Input->IsPrimitive(type);
 	}
@@ -232,6 +238,8 @@ private:
 
 	void OnBlockBuildCode(const IRBlock* IR);
 
+	void GiveFuncReturnName(const IRType& ReturnType, const IRInstruction* Item);
+
 
 	size_t GetSize(const IRInstruction* Ins)
 	{
@@ -249,11 +257,11 @@ private:
 
 	BlockData& GetBlockData(const IRBlock* V)
 	{
-		return IRToBlockData.at(V);
+		return IRToBlockData.GetValue(V);
 	}
 	void BindBlockData(BlockData& Data, const IRBlock* V)
 	{
-		IRToBlockData[V] = Data;
+		IRToBlockData.AddValue(V,Data);
 	}
 	UAddress PushIns()
 	{
@@ -341,23 +349,26 @@ private:
 	RegisterID GetRegisterForTep(const IRInstruction* Value)
 	{
 		auto R = GetRegisterForTep();
+		RegWillBeUsed(R);
 		SetRegister(R, Value);
 		return R;
 	}
 	RegisterID GetRegisterForTep(const IROperator& Value)
 	{
 		auto R = GetRegisterForTep();
+		RegWillBeUsed(R);
 		SetRegister(R, Value);
 		return R;
 	}
 	RegisterID GetRegisterForTep(const IRlocData& Value)
 	{
 		auto R = GetRegisterForTep();
+		RegWillBeUsed(R);
 		SetRegister(R, Value);
 		return R;
 	}
 
-	Optional<RegisterID> FindIRInRegister(const IRInstruction* Value);
+	Optional<RegisterID> FindIRInRegister(const IRInstruction* Value, bool GetAddress =false);
 	Optional<RegisterID> FindValueInRegister(AnyInt64 Value);
 
 	void FreeRegister(RegisterID ID)
@@ -411,6 +422,7 @@ private:
 	void BuildSIntToIntCast(const IRInstruction* Item, const IROperator& Op, size_t IntSize);
 	void BuildUIntToIntCast(const IRInstruction* Item, const IROperator& Op, size_t IntSize);
 
+	RegisterID GetRegisterOut(const IRInstruction* Item);
 
 
 	FuncCallEndData FuncCallStart(const Vector<IRType>& Pars, const IRType& RetType);
@@ -419,6 +431,8 @@ private:
 	void FuncCallEnd(FuncCallEndData& Data);
 
 	void AddOffset(IRlocData& Pos, size_t Offset);
+
+	size_t GetMainObjectSizeForStackPre(const IRlocData& Val);
 
 	FindParsLoc GetParsLoc(const Vector<IRType>& Pars);
 	FindParsLoc GetParsLoc(const Vector<IRPar>& Pars);
@@ -482,6 +496,9 @@ private:
 	RegistersManager _OldVarableLocRegisters;
 	void ClearVarableLocs();
 	void UpdateVarableLocs();
+
+	void MoveValuesToState(const RegistersManager& state);
+	RegistersManager SaveState();
 };
 UCodeLangEnd
 

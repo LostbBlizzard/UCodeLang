@@ -49,6 +49,14 @@ public:
 	static void WriteType(BitMaker& bit, const Path& Value);
 	static void FromType(BitReader& bit, Path& Value);
 
+
+	static ModuleIndex GetModuleIndex();
+
+	static bool SaveModuleIndex(ModuleIndex& Lib);
+
+
+	void RemoveDeletedModules();
+
 	inline static const char* FileName = "ModuleIndex";
 	inline static const char* FileExtWithDot = ".ucmi";
 	inline static const char* FileExt = "ucmi";
@@ -62,10 +70,6 @@ class ModuleFile
 public:
 	ModuleIdentifier ModuleName;
 	Path ThisModuleDir;
-	//all are relative to ModulePath.
-	Path ModuleSourcePath = "src";
-	Path ModuleIntPath = "int";
-	Path ModuleOutPath = "out";
 	
 	bool ForceImport = false;
 	bool RemoveUnSafe = false;
@@ -76,8 +80,12 @@ public:
 		Compiler::CompilerRet CompilerRet;
 		Path OutputItemPath;
 	};
-
-	Vector<ModuleIdentifier> ModuleDependencies;
+	struct ModuleDependencie
+	{
+		ModuleIdentifier Identifier;
+		Optional<String> WebLink;
+	};
+	Vector<ModuleDependencie> ModuleDependencies;
 
 	ModuleFile()
 	{
@@ -94,8 +102,11 @@ public:
 	{
 		return Path(ThisModuleDir) / (String(FileName) + FileExtWithDot);;
 	}
+	bool DownloadModules(const ModuleIndex& Modules, OptionalRef<String> LogsOut = {});
 
-	ModuleRet BuildModule(Compiler& Compiler,const ModuleIndex& Modules,bool IsSubModule = false);
+	ModuleRet BuildModule(Compiler& Compiler,const ModuleIndex& Modules,bool IsSubModule = false, OptionalRef<String> LogsOut = {});
+	ModuleRet BuildFile(const String& filestring, Compiler& Compiler, const ModuleIndex& Modules);
+	
 	static bool ToFile(const ModuleFile* Lib, const Path& path);
 	static bool FromFile(ModuleFile* Lib, const Path& path);
 
@@ -111,5 +122,21 @@ public:
 	inline static const char* FileName = "ULangModule";
 	inline static const char* FileExtWithDot = ".ucm";
 	inline static const char* FileExt = "ucm";
+	inline static const char* FileNameWithExt = "ULangModule.ucm";
+
+
+	//all are relative to ModulePath.
+	inline static const Path ModuleSourcePath = "src";
+	inline static const Path ModuleIntPath = "int";
+	inline static const Path ModuleOutPath = "out";
+	inline static const Path ModuleBuildfile = "Build.uc";
+
+	inline static const String DefaultSourceFile = "import ULang::{Span,StringSpan,Console};\n\n\n|main[]:\n   Fmt::Println(\"Hello World\");";
+	inline static const String DefaultBuildFile = "import UCodeLang::StandardLibarary[0.0.0];//Build Srcipt Module Imports.\n\n\nimport UCodeLang::{BuildSystem};\n\n\n|build[BuildSystem& system] => system.Build();";
+private:
+	void BuildModuleDependencies(const ModuleIndex& Modules,CompliationErrors& Errs, bool& Err, Compiler& Compiler
+		, const Vector<ModuleDependencie>& ModuleDependencies
+		, Compiler::ExternalFiles& externfilesoutput);
+
 };
 UCodeLangEnd

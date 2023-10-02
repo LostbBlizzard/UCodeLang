@@ -1,6 +1,3 @@
-AuthorName: "LostbBlizzard"
+AuthorName: "UCodeLang"
 ModuleName: "NWin32"
 Version: 0:0:0
-Src: "src"
-Obj: "int"
-Out: "out"

@@ -1,27 +1,43 @@
 #include "X86BackEnd.hpp"
 #include "../../Helpers/InstructionBuilder.hpp"
+#include "UCodeLang/Compliation/CompliationSettings.hpp"
 UCodeLangStart
 
 void X86BackEnd::Reset()
 {
+	/*
 	_CodeGen.Reset();
+	*/
+	
 }
 
 void X86BackEnd::Build(const IRBuilder* Input)
 {
+/*
 	_CodeGen.Build(Input);
 	Vector<Byte>& Output = _CodeGen._Output._Output.ByteOutput;
 
 	Set_Output(BytesView(Output.data(), Output.size()));//output bytes
+
+*/
+}
+
+void X86BackEnd::UpdateBackInfo(CompliationBackEndInfo& BackInfo)
+{
+	BackInfo.Output = CompliationBackEndInfo::BackEnd::Other;
+	BackInfo.OutputSet= CompliationBackEndInfo::InsSet::X86;
 }
 
 void X86BackEnd_UCodeLib::Reset()
 {
+	/*
 	_CodeGen.Reset();
+	*/
 }
 
 void X86BackEnd_UCodeLib::Build(const IRBuilder* Input)
 {
+	/*
 	_CodeGen.Build(Input);
 	Vector<Byte>& Output = _CodeGen._Output._Output.ByteOutput;
 
@@ -31,7 +47,16 @@ void X86BackEnd_UCodeLib::Build(const IRBuilder* Input)
 	CodeLayer::MachineCode V;
 	V._Code = Output;
 	_OutLayer->_Data = std::move(V);
+	*/
 
+}
+
+//CodeLayer* _OutLayer = nullptr;
+
+void X86BackEnd_UCodeLib::UpdateBackInfo(CompliationBackEndInfo& BackInfo)
+{
+	BackInfo.Output = CompliationBackEndInfo::BackEnd::UCodeVm;
+	BackInfo.OutputSet = CompliationBackEndInfo::InsSet::X86;
 }
 UCodeLangEnd
 

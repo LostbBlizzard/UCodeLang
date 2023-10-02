@@ -32,7 +32,7 @@ constexpr RNGValue MaxRNGValue = UINT64_MAX;
 		}
 		template<typename T> T GetFloatValue(const T min, const T max)
 		{
-			T r = min + static_cast<T>(SeedValue) / (static_cast<T>(MaxRNGValue / (max - min)))
+			T r = min + static_cast<T>(SeedValue) / (static_cast<T>(MaxRNGValue / (max - min)));
 			UpdateState();
 			return r;
 		}
@@ -97,7 +97,7 @@ constexpr RNGValue MaxRNGValue = UINT64_MAX;
 	};
 	struct TestInput
 	{
-		bool Mode[(Mode_t)Mode::Max];
+		bool _mode[(Mode_t)Mode::Max];
 	};
 	struct Sybol
 	{

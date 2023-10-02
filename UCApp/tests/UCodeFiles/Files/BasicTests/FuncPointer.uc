@@ -1,4 +1,4 @@
-$FuncPointer = [int a,int b] -> int;
+$FuncPointer = |[int a,int b] -> int;
 
 |Add[int a,int b] => a + b;
 |Mult[int a,int b] => a * b;

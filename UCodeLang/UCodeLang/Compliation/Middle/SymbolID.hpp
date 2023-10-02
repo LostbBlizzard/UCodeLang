@@ -3,6 +3,7 @@
 UCodeLangStart
 
 
+//To Stop missuse
 struct SymbolID
 {
 public:
@@ -42,7 +43,7 @@ public:
 		return other.Base != this->Base;
 	}
 
-	uintptr_t AsInt()
+	uintptr_t AsInt() const
 	{
 		return Base;
 	}
@@ -65,3 +66,13 @@ private:
 };
 UCodeLangEnd
 
+
+template <>
+struct std::hash<UCodeLang::SymbolID>
+{
+	std::size_t operator()(const UCodeLang::SymbolID& k) const
+	{
+		return hash<uintptr_t>()(k.AsInt());
+
+	}
+};

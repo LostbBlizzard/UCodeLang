@@ -1,6 +1,7 @@
 #pragma once
-#include "x86_64Data.h"
-#include "X86_64Gen.hpp"
+#include "x86_64Data.hpp"
+#include "X86_64Builder.hpp"
+#include "UCodeLang/LangCore/DataType/UnorderedMap.hpp"
 UCodeLangStart
 
 //were register allcations,stack allcations,Instruction Selection Happens ect. 
@@ -17,7 +18,6 @@ struct X86_64IR
 	ImportUseing86x64Gen;
 	
 	using IDType = UInt64;
-	using RelocationID = IDType;
 	using FuncID = IDType;
 	using CallConventionID = IDType;
 	using RelocationID = IDType;
@@ -171,7 +171,7 @@ struct X86_64IR
 	};
 	struct Relocation
 	{
-		RelocationID RelocationID =0;
+		RelocationID RelocationId =0;
 		size_t ByteToUpdateOffset=0;
 		RelocationType Type = RelocationType::Size32;
 	};
@@ -213,8 +213,8 @@ struct X86_64IR
 
 		}
 	};
-	using NearRelocation32 = X86_64Gen::Near<Relocation32>;
-	using NearRelocation64 = X86_64Gen::Near<Relocation64>;
+	using NearRelocation32 = X86_64Builder::Near<Relocation32>;
+	using NearRelocation64 = X86_64Builder::Near<Relocation64>;
 	static String ToString(GReg V)
 	{
 		switch (V)
@@ -771,7 +771,7 @@ struct X86_64IR
 		Vector<BuildFunc> Funcs;
 	};
 	Vector<Func> Funcs;
-	BinaryVectorMap<CallConventionID,CallConvention> CallingConventions;
+	UnorderedMap<CallConventionID,CallConvention> CallingConventions;
 	CallConventionID AddCallConvention(CallConvention&& Convention)
 	{
 		auto R = Next_NextCallID();
@@ -846,7 +846,7 @@ struct X86_64IR
 
 	struct BuildState
 	{
-		X86_64Gen Gen;
+		X86_64Builder Gen;
 	};
 
 	void Build(BuildInfo::BuildFunc& Out,BuildState& State,const Func& Value) const;

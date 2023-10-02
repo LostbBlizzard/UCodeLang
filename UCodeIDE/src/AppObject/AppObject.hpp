@@ -4,7 +4,7 @@
 #include <thread>
 
 #include "ImGuiHelpers/TextEditor/TextEditor.h"
-#include "LanguageSever.hpp"
+#include "LSPSever.hpp"
 #include "UCodeLang/UCodeLang.hpp"
 
 #include "ImGuiHelpers/ImguiHelper.hpp"
@@ -16,9 +16,10 @@ using SteadyClock = std::chrono::steady_clock;
 
 struct SandBoxLanguageSever
 {
-	UCodeLanguageSever::LanguageSever _Sever;
+	UCodeLanguageSever::LSPSever _Sever;
 };
-class  AppClientFuncMap;
+
+struct AppClientFuncMap;
 class AppObject
 {
 public:
@@ -29,11 +30,14 @@ public:
 	void Init();
 	void OnDraw();
 
+	
 	void ProcessSeverPackets();
 
 	static void ShowInFiles(const Path& path);
 
 	void ShowUCodeVMWindow();
+
+	void ShowCurrentFuncInsList();
 
 
 
@@ -52,6 +56,8 @@ public:
 	}
 private:
 	void OnAppEnd();
+	void UpdateBackEnd();
+
 	bool _IsAppRuning = false;
 	bool _IsLSPRuning = false;
 	float DetaTime = 0;
@@ -156,7 +162,7 @@ private:
 		UCodeLanguageSever::integer RequestID;
 		RequestCallBack CallBack;
 	};
-	UCodeLang::BinaryVectorMap<UCodeLanguageSever::integer, OnGoingRequest> RequestCallBacks;
+	UCodeLang::UnorderedMap<UCodeLanguageSever::integer, OnGoingRequest> RequestCallBacks;
 	void SetRequestCallBack(UCodeLanguageSever::integer RequestID, RequestCallBack CallBack);
 
 	//SandBox
@@ -173,6 +179,11 @@ private:
 		bool IsSelected = false;
 	};
 	void OnErrorListUpdated();
+
+	Path Outfilepath()
+	{
+		return "out.data";
+	}
 
 	void CompileText(const UCodeAnalyzer::String& String);
 
@@ -193,36 +204,46 @@ private:
 		IR,
 		LLVM,
 		WebAssembly,
+
+		WindowsExecutable,
+		LinuxExecutable,
 	};
 
 	enum class NativeSet
 	{
 		x86,
 		x86_64,
-
+		Armd,
+		Arm64,
 
 #if UCodeLang_CPUIs_x86
 		Native = x86,
+#elif UCodeLang_CPUIs_x86_64
+		Native = x86_64,
+#elif UCodeLang_CPUIs_Arm
+		Native = Armd,
+#elif UCodeLang_CPUIs_Arm64
+		Native = Arm64,
 #else
 		Native = x86_64,
 #endif
 	};
 	struct OutputWindowData
 	{
-		BackEndType Type = BackEndType::UCodeVM;
+		BackEndType Type = BackEndType::C89;
 
 		bool AutoCompile = true;
 		bool AutoReload = true;
-		bool AutoHotReload = true;
+		bool AutoHotReload = false;
 
 		UCodeLang::OptimizationFlags Flags = UCodeLang::OptimizationFlags::NoOptimization;
 		bool InDebug = true;
+		bool ImportStandardLibrary = false;
 
-		NativeSet OldNativeCpuType= NativeSet::x86;
+		NativeSet OldNativeCpuType = NativeSet::x86;
 	};
 	OutputWindowData OutputWindow;
 
-	
 	enum class UCodeVMType
 	{
 		Interpreter,
@@ -240,6 +261,7 @@ private:
 		bool ShowHeapMemory = false;
 
 		bool CallStaticVarOnReload = true;
+		bool CallFrame = false;
 		struct InsData
 		{
 			UCodeLang::UAddress InsAddress = UCodeLang::NullAddress;
@@ -284,11 +306,17 @@ private:
 	UCodeLang::Compiler::CompilerPathData _RuningPaths;
 
 
-	template<typename T,typename... Pars> std::future<T> 
+	template<typename T, typename... Pars> std::future<T>
 		SendTaskToWorkerThread(std::function<T(Pars...)> Func, Pars... pars)
-	{
+		{
 			return std::async(Func, pars...);
-	}
+		}
+
+	void DrawTestMenu();
+
+	void DrawPerformanceMenu();
+
+	static bool CompileC89ToLib(const Path& Cfile, const Path& Outdllfile);
 };
 
 UCodeIDEEnd

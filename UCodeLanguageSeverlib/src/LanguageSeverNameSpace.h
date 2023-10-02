@@ -1,3 +1,3 @@
 #pragma once
-#define LanguageSeverStart namespace UCodeLanguageSever{
-#define LanguageSeverEnd }
+#define UCodeLanguageSeverStart namespace UCodeLanguageSever{
+#define UCodeLanguageSeverEnd }

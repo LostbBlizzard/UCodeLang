@@ -1,4 +1,4 @@
-AuthorName: "LostbBlizzard"
+AuthorName: "UCodeLang"
 ModuleName: "CodeTesting"
 Version: 0.0.0
 Files: "src"
@@ -8,5 +8,5 @@ ForceImport:false
 RemoveUnSafe:false
 ModuleNameSpace:"Testing"
 
-//import LostbBlizzard::StandardLibarary[0:0:0];
-//import LostbBlizzard::NStandardLibarary[0:0:0];
+//import UCodeLang::StandardLibarary[0:0:0];
+//import UCodeLang::NStandardLibarary[0:0:0];

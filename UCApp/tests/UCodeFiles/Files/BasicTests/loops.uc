@@ -5,6 +5,13 @@
  else:
   ret 0;
 
+|main_else[] -> int:
+ if 1 == 2:
+  ret 10;
+ else:
+  ret 0;
+
+
 |main_while[] -> int:
  
  int A = 0;

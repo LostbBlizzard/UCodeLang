@@ -45,16 +45,16 @@ void Parser::ParseIns()
 		auto& Item = StringToInsMap.at(InsName);
 		_TepIns.OpCode = Item.OpCode;
 
-		if (Item.Op_0 != OpCodeType::NoOpCode)
+		//if (Item.Op_0 != OpCodeType::NoOpCode)
 		{
-			ParseOp(_TepIns.Value0, Item.Op_0);
+			//ParseOp(_TepIns.Value0, Item.Op_0);
 		}
 
 		auto CommaToken = TryGetToken();
-		if (CommaToken && CommaToken->Type == TokenType::Comma && Item.Op_1 != OpCodeType::NoOpCode)
+		//if (CommaToken && CommaToken->Type == TokenType::Comma && Item.Op_1 != OpCodeType::NoOpCode)
 		{
 			NextToken();	
-			ParseOp(_TepIns.Value1, Item.Op_1);
+			//ParseOp(_TepIns.Value1, Item.Op_1);
 		}
 	
 		_OutLayer->Add_Instruction(_TepIns);
@@ -79,7 +79,6 @@ void Parser::ParseOp(AnyInt64& Out, OpCodeType Type)
 		break;
 	case OpCodeType::AnyInt32:
 		break;
-	case OpCodeType::UIntPtr:
 	case OpCodeType::AnyInt64:
 		ParseAny8(Out);
 		break;
@@ -124,10 +123,10 @@ void Parser::ParseOpRegister(AnyInt64& Out)
 	else if (Name == "F") { Out = RegisterID::F; }
 	else if (Name == "Input") { Out = RegisterID::InPutRegister; }
 	else if (Name == "In") { Out = RegisterID::InPutRegister; }
-	else if (Name == "Output") { Out = RegisterID::OuPutRegister; }
-	else if (Name == "Out") { Out = RegisterID::OuPutRegister; }
+	else if (Name == "Output") { Out = RegisterID::OutPutRegister; }
+	else if (Name == "Out") { Out = RegisterID::OutPutRegister; }
 	else if (Name == "This") { Out = RegisterID::ThisRegister; }
-	else if (Name == "Mathout") { Out = RegisterID::MathOuPutRegister; }
+	else if (Name == "Mathout") { Out = RegisterID::MathOutPutRegister; }
 	else if (Name == "CPUbool") { Out = RegisterID::BoolRegister; }
 	else if (Name == "Bitwis") { Out = RegisterID::BitwiseRegister; }
 	else

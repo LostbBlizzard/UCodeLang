@@ -1,2 +1,0 @@
-%ULang:
- tag DllImport;

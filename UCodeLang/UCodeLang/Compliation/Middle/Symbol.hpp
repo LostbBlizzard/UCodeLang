@@ -2,7 +2,7 @@
 #include "UCodeLang/LangCore/ScopeHelper.hpp"
 #include "SymbolID.hpp"
 #include "../Front/UCodeFrontEndNameSpace.hpp"
-#include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
+#include "UCodeLang/LangCore/DataType/UnorderedMap.hpp"
 #include "UCodeLang/LangCore/ReflectionData.hpp"
 UCodeLangStart
 struct IRInstruction;
@@ -408,6 +408,9 @@ public:
 	Optional<SymbolContext> Conext;
 
 	bool FrontParIsUnNamed = false;
+	bool IsUnsafe = false;
+	bool IsExternC = false;
+	bool IsRemoved = false;
 	bool IsObjectCall() const
 	{
 		return Pars.size() && (Pars.front().Type.IsAddress() && Pars.front().IsOutPar == false && FrontParIsUnNamed);
@@ -487,7 +490,7 @@ public:
 	}
 
 
-	UAddress Size = NullAddress;
+	UAddress Size = 0;
 	Vector<FieldInfo> Fields;
 	bool SizeInitialized = false;
 
@@ -553,18 +556,20 @@ public:
 	bool _ClassAutoGenerateCopyConstructor = false;
 	bool _ClassAutoGenerateMoveConstructor = false;
 
+	Optional<SymbolID> _ClassHasCopyConstructor;
+	Optional<SymbolID> _ClassHasMoveConstructor;
+
+	bool _IsExternalC = false;
 
 	Optional<SymbolContext> Conext;
 };
 
 struct RawEvaluatedObject
 {
-	//union 
-	struct
-	{
-		Unique_Array<Byte> Object_AsPointer;
-		size_t ObjectSize = 0;
-	};
+
+	Unique_Array<Byte> Object_AsPointer;
+	size_t ObjectSize = 0;
+
 	bool HasValue()
 	{
 		return Object_AsPointer.operator bool();
@@ -891,8 +896,15 @@ public:
 	{
 		UCodeLangAssert(Info.get());
 		return (T*)Info.get();
+	}	
+	template<typename T> const T* Get_Info() const
+	{
+		UCodeLangAssert(Info.get());
+		return (T*)Info.get();
 	}
 
+	
+	#if UCodeLangMSVC //On GCC explicit specialization in non-namespace scope
 	template<> FuncInfo* Get_Info()
 	{
 		#if UCodeLangDebug
@@ -905,23 +917,7 @@ public:
 		UCodeLangAssert(Info.get());
 		return (FuncInfo*)Info.get();
 	}
-	template<> FuncPtrInfo* Get_Info()
-	{
-		#if UCodeLangDebug
-		if (Type != SymbolType::Func_ptr)
-		{
-			UCodeLangThrowException("bad cast");
-		}
-		#endif // DEBUG
-		UCodeLangAssert(Info.get());
-		return (FuncPtrInfo*)Info.get();
-	}
-
-	template<typename T> const T* Get_Info() const
-	{
-		UCodeLangAssert(Info.get());
-		return (T*)Info.get();
-	}
+	
 	template<> const FuncInfo* Get_Info() const
 	{
 		#if UCodeLangDebug
@@ -933,6 +929,19 @@ public:
 
 		UCodeLangAssert(Info.get());
 		return (FuncInfo*)Info.get();
+	}
+	
+
+	template<> FuncPtrInfo* Get_Info()
+	{
+		#if UCodeLangDebug
+		if (Type != SymbolType::Func_ptr)
+		{
+			UCodeLangThrowException("bad cast");
+		}
+		#endif // DEBUG
+		UCodeLangAssert(Info.get());
+		return (FuncPtrInfo*)Info.get();
 	}
 	template<> const FuncPtrInfo* Get_Info() const
 	{
@@ -946,7 +955,7 @@ public:
 		UCodeLangAssert(Info.get());
 		return (FuncPtrInfo*)Info.get();
 	}
-
+	#endif // DEBUG
 
 
 
@@ -1001,11 +1010,11 @@ public:
 	//use a ptr for the Id;
 	Symbol& GetSymbol(SymbolID ID)
 	{
-		return *IDToSymbols.at(ID);
+		return *IDToSymbols.GetValue(ID);
 	}
 	const Symbol& GetSymbol(SymbolID ID) const
 	{
-		return *IDToSymbols.at(ID);
+		return *IDToSymbols.GetValue(ID);
 	}
 
 	void AddSymbolID(Symbol& Syb, SymbolID ID);
@@ -1013,6 +1022,6 @@ public:
 
 		
 private:
-	BinaryVectorMap<SymbolID,Symbol*> IDToSymbols;
+	UnorderedMap<SymbolID,Symbol*> IDToSymbols;
 };
 UCodeLangFrontEnd

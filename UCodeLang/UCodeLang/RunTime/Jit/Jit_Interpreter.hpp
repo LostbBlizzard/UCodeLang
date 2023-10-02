@@ -2,9 +2,9 @@
 
 #include "Jit.hpp"
 #include "UCodeLang/RunTime/Interpreters/Interpreter.hpp"
-#include "JitCompilers.h"
+#include "JitCompilers.hpp"
 #include "Jit_State.hpp"
-#include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
+#include "UCodeLang/LangCore/DataType/UnorderedMap.hpp"
 UCodeLangStart
 
 
@@ -20,7 +20,13 @@ public:
 	using Return_t = Interpreter::Return_t;
 	using RetState = Interpreter::RetState;
 	Jit_Interpreter(){}
-	~Jit_Interpreter() { UnLoad(); }
+	~Jit_Interpreter() 
+	{
+		#if UCodeLangDebug
+		InDestruct = true;
+		#endif 
+		UnLoad(); 
+	}
 	Jit_Interpreter(Jit_Interpreter&& Other) = default;
 	Jit_Interpreter& operator=(Jit_Interpreter&& Other) = default;
 	Jit_Interpreter(const Jit_Interpreter& Other) = delete;
@@ -36,13 +42,28 @@ public:
 		#if HasSupportforJit
 		this->jitState = JitState;
 		#endif
+
+		#if UCodeLangDebug
+		WasInit = true;
+		#endif
 	}
 	void UnLoad()
 	{
+		#if UCodeLangDebug
+		if (!InDestruct)
+		{
+			UCodeLangAssert(WasInit == true);
+		}
+	
+		GotRetValue = false;
+		CalledFuncBefor = false;
+		#endif
+
 		#if HasSupportforJit
 		UFuncToCPPFunc.clear();
 		#endif
 		#if UCodeLang_KeepJitInterpreterFallback
+		_Interpreter.InDestruct = InDestruct;
 		_Interpreter.UnLoad();
 		#endif
 	}
@@ -87,10 +108,10 @@ public:
 		{
 			#if HasSupportforJit
 			{//fast call
-				if (UFuncToCPPFunc.count(address))
+				if (UFuncToCPPFunc.HasValue(address))
 				{
 					using Func = T(*)(Args...);
-					Func Ptr = (Func)UFuncToCPPFunc[address].NativeFunc;
+					Func Ptr = (Func)UFuncToCPPFunc.GetValue(address).NativeFunc;
 					return Ptr(parameters...);
 				}
 			}
@@ -183,8 +204,19 @@ public:
 	String GetJitState();
 
 	void TryBuildAllFuncs();
+
+	//Makes UClib with the Generated native code and be used for fast reloading just link it in RunTimeState instead of the compiled byte-code.
+	UClib GetStateAsLib();
 private:
 	
+	#if UCodeLangDebug
+	bool WasInit = false;
+	bool InDestruct = false;
+	bool GotRetValue = false;
+	bool CalledFuncBefor = false;
+	#endif // DEBUG
+
+
 	enum class JitFuncType :UInt8
 	{
 		Null,
@@ -220,13 +252,13 @@ private:
 	size_t Insoffset = 0;
 
 	
-	BinaryVectorMap<UAddress, JitFuncData> UFuncToCPPFunc;
+	UnorderedMap<UAddress, JitFuncData> UFuncToCPPFunc;
 	Vector<Byte> TepOutBuffer;
 	#endif
 
 
 	static void OnUAddressCall(UAddress addresstojit);
-	CPPCallRet Call_CPPFunc(JitFunc ToCall);
+	void Call_CPPFunc(JitFunc ToCall);
 
 
 	void BuildCheck(Jit_Interpreter::JitFuncData& Item, const UCodeLang::UAddress& address);

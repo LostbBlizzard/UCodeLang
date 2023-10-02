@@ -4,7 +4,8 @@
 #include <stdlib.h>
 #include <iostream>
 #include "Jit/Jit.hpp"
-#include "UCodeLang/LangCore/DataType/BinaryVectorMap.hpp"
+#include "UCodeLang/LangCore/DataType/UnorderedMap.hpp"
+#include "Interpreters/ParameterPassingHelper.hpp"
 UCodeLangStart
 
 class RunTimeLangState;
@@ -53,8 +54,8 @@ private:
 	bool _CanReserveData;
 	bool _MallocOnlyInPages;
 	
-	VectorMap<PtrType, MemData> _Data;
-	VectorMap<PtrType, MemData> _ReservedData;
+	UnorderedMap<PtrType, MemData> _Data;
+	UnorderedMap<PtrType, MemData> _ReservedData;
 	Vector<void*> Tep_Values;
 	PtrType FindReservedPtr(NSize_t Size);
 };
@@ -73,9 +74,6 @@ struct UserMadeContext
 	void* _Ptr = nullptr;
 };
 
-
-
-
 struct DebugContext
 {
 	enum class Type
@@ -84,10 +82,12 @@ struct DebugContext
 		Jit_Interpreter,
 		Native_Interpreter,
 	};
+
+	//We Dont want to include AnyInterpreterPtr
 	struct InterpreterInfo
 	{
 		void* ThisInterpreter = nullptr;
-		Type Type;
+		Type type;
 	};
 	using FuncStart = void(*)(RunTimeLangState& This, void* _Ptr, InterpreterInfo Info);
 	using FuncEnd = void(*)(RunTimeLangState& This,void* _Ptr, InterpreterInfo Info);
@@ -122,11 +122,73 @@ struct DebugContext
 
 };
 
+class PackagedTask
+{
+public:
+	using InterpreterInfo = DebugContext::InterpreterInfo;
+	PackagedTask() { Reset(); }
+	~PackagedTask() {}
+
+	void Reset()
+	{
+		_Parameters.Clear();
+		Func = NullAddress;
+	}
+
+
+	void Invoke(InterpreterInfo& This);
+
+	template<typename T> T RInvoke(InterpreterInfo& This)
+	{
+		T CompilerRet;
+		RInvoke(This, &CompilerRet, sizeof(T));
+		return CompilerRet;
+	}
+
+	void RInvoke(InterpreterInfo& This, void* OutObject, size_t ReturnObjectSize);
+
+
+	template<typename T> UCodeLangForceinline void PushParameter(const T& Value)
+	{
+		PushParameter((const void*)&Value, sizeof(Value));
+	}
+	void PushParameter(const void* Value, size_t ValueSize)
+	{
+		_Parameters.Push(Value, ValueSize);
+	}
+	void Set_Func(UAddress func)
+	{
+		Func = func;
+	}
+
+private:
+	ParameterPassingHelper _Parameters;
+	UAddress Func = NullAddress;
+};
+
 class RunTimeLangState
 {
 public:
-	typedef void(*LogCallBack)(RunTimeLangState& This,const char* Text,size_t Size);
-	typedef char(*ReadCharCallBack)(RunTimeLangState& This);
+	using InterpreterInfo = DebugContext::InterpreterInfo;
+
+	using LogCallBack = void(*)(RunTimeLangState& This,const char* Text,size_t Size);
+	using ReadCharCallBack =  void(*)(RunTimeLangState& This,char* Buffer,size_t Size);
+	
+	using AwaitedTask = void*;
+	using AwaitNawTaskCallBack = AwaitedTask(*)(RunTimeLangState& This,PackagedTask&& Task);
+	using AwaitFreeTaskCallBack = void(*)(RunTimeLangState& This,AwaitedTask TaskToFree);
+	using AwaitIsDoneCallBack = bool(*)(RunTimeLangState& This,AwaitedTask Task);
+	using AwaitGetValueCallBack  = void(*)(RunTimeLangState& This,AwaitedTask Task, void* OutValue);
+
+
+	static void Default_Log(RunTimeLangState& This,const char* Text,size_t Size)
+	{
+		std::cout.write(Text, Size);
+	}
+	static void Default_Read(RunTimeLangState& This,char* Buffer, size_t Size)
+	{
+		std::cin.read(Buffer, Size);
+	}
 
 	static PtrType Default_Malloc(RunTimeLangState& This, NSize_t Size)
 	{
@@ -137,7 +199,38 @@ public:
 		return free(Ptr);
 	}
 
-	RunTimeLangState():_Allocator(Default_Malloc,Default_Free), _StaticMemPtr(nullptr), _Log(nullptr),_Read(nullptr)
+	static AwaitedTask Default_AwaitNawTask(RunTimeLangState& This,PackagedTask&& Task)
+	{
+		#if UCodeLangDebug
+		UCodeLangThrowException("AwaitNewTask was not overloaded")
+		#endif 
+		return AwaitedTask();
+	}
+	static void Default_AwaitFreeTask(RunTimeLangState& This, AwaitedTask TaskToFree)
+	{
+		#if UCodeLangDebug
+		UCodeLangThrowException("AwaitFreeTask was not overloaded")
+		#endif 
+	}
+	static bool Default_AwaitIsDone(RunTimeLangState& This, AwaitedTask Task)
+	{
+		#if UCodeLangDebug
+		UCodeLangThrowException("AwaitIsDone was not overloaded");
+		#endif
+		return false;
+	}
+	static void Default_AwaitGetValue(RunTimeLangState& This, AwaitedTask Task, void* OutValue)
+	{
+		#if UCodeLangDebug
+		UCodeLangThrowException("AwaitGetValue was not overloaded");
+		#endif
+	}
+
+
+	RunTimeLangState():_Allocator(Default_Malloc,Default_Free), 
+		_StaticMemPtr(nullptr), _Log(Default_Log),_Read(Default_Read),
+		_AwaitNewTask(Default_AwaitNawTask),_AwaitFreeTask(Default_AwaitFreeTask),
+		_AwaitIsDone(Default_AwaitIsDone),_AwaitGetValue(Default_AwaitGetValue)
 	{
 
 	}
@@ -160,12 +253,8 @@ public:
 	UCodeLangForceinline void ReservedBytes(NSize_t Size){_Allocator.ReservedBytes(*this, Size);}
 	PtrType Calloc(NSize_t Size) 
 	{
-
 		UInt8* Ptr = (UInt8*)Malloc(Size);
-		for (NSize_t i = 0; i < Size; i++)
-		{
-			Ptr[i] = 0;
-		}
+		memset(Ptr, 0, Size);
 		return (PtrType)Ptr;
 	}
 	UCodeLangForceinline Allocator& Get_Allocator()
@@ -177,33 +266,39 @@ public:
 	{
 		Log(ptr, strlen(ptr));
 	}
-	void Log(const char* ptr,size_t Size)
+	void Log(const char* ptr, size_t Size)
 	{
-		if (_Log)
-		{
-			_Log(*this, ptr, Size);
-		}
-		else
-		{
-			std::cout.write(ptr, Size);
-		}
+		_Log(*this, ptr, Size);
 	}
 
+	void ReadChar(char* Out, size_t Size)
+	{
+		return _Read(*this, Out, Size);
+	}
 	char ReadChar()
 	{
-		if (_Read)
-		{
-			return _Read(*this);
-		}
-		else
-		{
-			char Value;
-			std::cin.read(&Value,1);
-			return Value;
-		}
+		char V;
+		ReadChar(&V, 1);
+		return V;
 	}
 
-	
+	AwaitedTask AwaitNewTask(PackagedTask&& Task)
+	{
+		return _AwaitNewTask(*this,std::move(Task));
+	}
+	bool AwaitIsDone(AwaitedTask Task)
+	{
+		return _AwaitIsDone(*this, Task);
+	}
+	void AwaitGetValue(AwaitedTask Task,void* OutValue)
+	{
+		_AwaitGetValue(*this,Task, OutValue);
+	}
+	void AwaitFreeTask(AwaitedTask Task)
+	{
+		_AwaitFreeTask(*this, Task);
+	}
+
 	UCodeLangForceinline void AddLib(RunTimeLib* lib)
 	{
 		_Data.AddLib(lib);
@@ -297,12 +392,51 @@ public:
 	{
 		return _Debug;
 	}
+
+	//Set CallBacks
+	void Set_Malloc(Allocator::Malloc_t CallBack)
+	{
+		_Allocator.Set_Malloc(CallBack);
+	}
+	void Set_Free(Allocator::Free_t CallBack)
+	{
+		_Allocator.Set_Free(CallBack);
+	}
+	void Set_Log(LogCallBack CallBack)
+	{
+		_Log = CallBack;
+	}
+	void Set_Read(ReadCharCallBack CallBack)
+	{
+		_Read = CallBack;
+	}
+	void Set_AwaitNew(AwaitNawTaskCallBack CallBack)
+	{
+		_AwaitNewTask = CallBack;
+	}
+	void Set_AwaitFree(AwaitFreeTaskCallBack CallBack)
+	{
+		_AwaitFreeTask = CallBack;
+	}
+	void Set_AwaitIsDone(AwaitIsDoneCallBack CallBack)
+	{
+		_AwaitIsDone = CallBack;
+	}
+	void Set_AwaitGetValue(AwaitGetValueCallBack CallBack)
+	{
+		_AwaitGetValue = CallBack;
+	}
 private:
 	Allocator _Allocator;
 	UCLibManger _Data;
 	PtrType _StaticMemPtr;
 	LogCallBack _Log;
 	ReadCharCallBack _Read;
+
+	AwaitNawTaskCallBack _AwaitNewTask;
+	AwaitFreeTaskCallBack _AwaitFreeTask;
+	AwaitIsDoneCallBack _AwaitIsDone;
+	AwaitGetValueCallBack _AwaitGetValue;
 
 	UserMadeContext _UserMadeContext;
 	DebugContext _Debug;

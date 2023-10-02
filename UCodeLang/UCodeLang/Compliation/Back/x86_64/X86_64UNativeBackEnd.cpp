@@ -1,5 +1,8 @@
 #include "X86_64UNativeBackEnd.hpp"
 #include "IRToX86_64IR.hpp"
+#include "UCodeLang/Compliation/Middle/IR.hpp"
+#include "UCodeLang/Compliation/CompliationSettings.hpp"
+#include "UCodeLang/LangCore/UClib.hpp"
 UCodeLangStart
 void X86_64UNativeBackEnd::Reset()
 {
@@ -25,11 +28,11 @@ void X86_64UNativeBackEnd::Build(const IRBuilder* Input)
 	{
 		auto V = _Output->AddLayer(UCode_CodeLayer_X86_UCodeVM_Name);
 		V->_Data = CodeLayer::MachineCode();
-		_OutLayer = V->_Data.Get_If<CodeLayer::MachineCode>();
+		CodeLayer::MachineCode* _OutLayer = V->_Data.Get_If<CodeLayer::MachineCode>();
 
 		auto x8664_ir = IRToX86_64IR::Into(*Input);
 
-		auto& Info = x8664_ir.Build();
+		auto Info = x8664_ir.Build();
 
 		size_t MaxBuffersize = 0;
 		for (auto& Item : Info.Funcs)
@@ -39,7 +42,7 @@ void X86_64UNativeBackEnd::Build(const IRBuilder* Input)
 		}
 		_OutLayer->_Code.reserve(MaxBuffersize);
 
-		BinaryVectorMap<IRidentifierID,size_t> Funcoffsets;
+		UnorderedMap<IRidentifierID,size_t> Funcoffsets;
 		for (auto& Item : Info.Funcs)
 		{
 			Funcoffsets.AddValue(Item.Func, _OutLayer->_Code.size());
@@ -52,8 +55,13 @@ void X86_64UNativeBackEnd::Build(const IRBuilder* Input)
 
 		for (auto& Item : Funcoffsets)
 		{
-			_OutLayer->_NameToPtr.AddValue(_Input->FromID(Item._Key), Item._Value);
+			_OutLayer->_NameToPtr.AddValue(_Input->FromID(Item.first), Item.second);
 		}
 	}
+}
+void X86_64UNativeBackEnd::UpdateBackInfo(CompliationBackEndInfo& BackInfo)
+{
+	BackInfo.Output = CompliationBackEndInfo::BackEnd::UCodeVm;
+	BackInfo.OutputSet = CompliationBackEndInfo::InsSet::X86;
 }
 UCodeLangEnd

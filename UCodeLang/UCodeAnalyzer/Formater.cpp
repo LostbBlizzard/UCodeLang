@@ -18,7 +18,7 @@ void Formater::Reset()
 
 constexpr const char* ToName(UCodeLang::TokenType Type)
 {
-	return UCodeLang::StringHelper::ToString(Type);
+	return UCodeLang::TokenStringHelper::ToString(Type);
 }
 
 Optional<String> Formater::Format(StrScope scope, StringView Text)
@@ -132,13 +132,13 @@ void Formater::ReFormat(const UF::ImportStatement& Node)
 void Formater::ReFormat(const UF::ClassNode& Node)
 {
 	//$ClassName<T>[A,B,C]:
-	ReFormat(Node.Access);
+	ReFormat(Node._Access);
 
 	AddToOutput("$");
-	AddToOutput(Node.ClassName.Token->Value._String);
+	AddToOutput(Node._className.token->Value._String);
 
-	ReFormat(Node.Generic);
-	ReFormat(Node.Inherited);
+	ReFormat(Node._generic);
+	ReFormat(Node._Inherited);
 
 	AddToOutput(ToName(UCodeLang::TokenType::Colon));
 	
@@ -186,19 +186,19 @@ void Formater::ReFormat(const UF::InheritedTypeData& Node)
 
 void Formater::ReFormat(const UF::DeclareVariableNode& Node)
 {
-	ReFormat(Node.Access);
-	ReFormat(Node.Type);
+	ReFormat(Node._Access);
+	ReFormat(Node._Type);
 
 	AddToOutput(" ");
-	AddToOutput(Node.Name.Token->Value._String);
+	AddToOutput(Node._Name.token->Value._String);
 
-	if (Node.Expression.Value.get()) 
+	if (Node._Expression._Value.get()) 
 	{
 		AddToOutput(" ");
 		AddToOutput(ToName(UCodeLang::TokenType::equal));
 		AddToOutput(" ");
 
-		ReFormat(Node.Expression);
+		ReFormat(Node._Expression);
 
 		AddToOutput(ToName(UCodeLang::TokenType::Semicolon));
 	}
@@ -213,47 +213,47 @@ void Formater::ReFormat(const UF::DeclareVariableNode& Node)
 void Formater::ReFormat(const UF::DeclareStaticVariableNode& Node)
 {
 	AddToOutput(ToName(UCodeLang::TokenType::KeyWord_static));
-	ReFormat(Node.Variable);
+	ReFormat(Node._Variable);
 }
 
 void Formater::ReFormat(const UF::DeclareThreadVariableNode& Node)
 {
 	AddToOutput(ToName(UCodeLang::TokenType::KeyWord_Thread));
-	ReFormat(Node.Variable);
+	ReFormat(Node._Variable);
 }
 
 void Formater::ReFormat(const UF::DeclareEvalVariableNode& Node)
 {
 	AddToOutput(ToName(UCodeLang::TokenType::KeyWord_eval));
-	ReFormat(Node.Variable);
+	ReFormat(Node._Variable);
 }
 
 void Formater::ReFormat(const UF::TypeNode& Node)
 {
-	if (Node.Name.Token->Type == UCodeLang::TokenType::Name) 
+	if (Node._name._ScopedName.front()._token->Type == UCodeLang::TokenType::Name) 
 	{
-		AddToOutput(Node.Name.Token->Value._String);
+		AddToOutput(Node._name._ScopedName.front()._token->Value._String);
 	}
 	else
 	{
-		if (_InputString[Node.Name.Token->OnPos - 3] == 'i')
+		if (_InputString[Node._name._ScopedName.front()._token->OnPos - 3] == 'i')
 		{
 			AddToOutput("int");
 		}
 		else
 		{
-			AddToOutput(ToName(Node.Name.Token->Type));
+			AddToOutput(ToName(Node._name._ScopedName.front()._token->Type));
 		}
 	}
-	ReFormat(Node.Generic);
+	//ReFormat(Node._generic);
 }
 
 void Formater::ReFormat(const UF::UseGenericsNode& Node)
 {
-	for (auto& Item : Node.Values)
+	for (auto& Item : Node._Values)
 	{
 		
-		if (Item.Name.Token->Type == UCodeLang::TokenType::internal_Constant_expression)
+		if (Item._name._ScopedName.front()._token->Type == UCodeLang::TokenType::internal_Constant_expression)
 		{
 			AddToOutput(ToName(UCodeLang::TokenType::Left_Parentheses));
 
@@ -264,7 +264,7 @@ void Formater::ReFormat(const UF::UseGenericsNode& Node)
 		{
 			ReFormat(Item);
 
-			if (&Item != &Node.Values.back())
+			if (&Item != &Node._Values.back())
 			{
 				AddToOutput(ToName(UCodeLang::TokenType::Comma));
 			}
@@ -275,9 +275,9 @@ void Formater::ReFormat(const UF::UseGenericsNode& Node)
 
 void Formater::ReFormat(const UF::ExpressionNodeType& Node)
 {
-	switch (Node.Value->Get_Type())
+	switch (Node._Value->Get_Type())
 	{
-	case UCodeLang::NodeType::ValueExpressionNode:ReFormat(*UF::ValueExpressionNode::As(Node.Value.get()));break;
+	case UCodeLang::NodeType::ValueExpressionNode:ReFormat(*UF::ValueExpressionNode::As(Node._Value.get()));break;
 	default:
 		CantReFormat();
 		break;
@@ -286,10 +286,10 @@ void Formater::ReFormat(const UF::ExpressionNodeType& Node)
 
 void Formater::ReFormat(const UF::ValueExpressionNode& Node)
 {
-	switch (Node.Value->Get_Type())
+	switch (Node._Value->Get_Type())
 	{
 	case UCodeLang::NodeType::NumberliteralNode: 
-		ReFormat(*UF::NumberliteralNode::As(Node.Value.get()));
+		ReFormat(*UF::NumberliteralNode::As(Node._Value.get()));
 		break;
 	default:
 		CantReFormat();
@@ -299,7 +299,7 @@ void Formater::ReFormat(const UF::ValueExpressionNode& Node)
 
 void Formater::ReFormat(const UF::NumberliteralNode& Node)
 {
-	AddToOutput(Node.Token->Value._String);
+	AddToOutput(Node.token->Value._String);
 }
 
 void Formater::ReFormat(UCodeLang::AccessModifierType Type)

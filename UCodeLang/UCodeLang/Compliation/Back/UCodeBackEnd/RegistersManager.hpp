@@ -1,7 +1,5 @@
 #pragma once
-#include "../BackEndInterface.hpp"
-#include "UCodeLang/Compliation/Front/SystematicAnalysis.hpp"
-
+#include "../../Middle/IR.hpp"
 UCodeLangStart
 class RegistersManager
 {
@@ -113,7 +111,7 @@ public:
 	{
 		size_t Offset=0;
 	};
-	BinaryVectorMap<IRidentifierID, StaticMemInfo> _List;
+	UnorderedMap<IRidentifierID, StaticMemInfo> _List;
 };
 struct StackItem
 {
