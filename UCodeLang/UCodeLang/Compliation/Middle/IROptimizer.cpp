@@ -36,9 +36,7 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 			_TypeFixer.Set_ErrorsOutput(_ErrorsOutput);
 			_TypeFixer.FixTypes(Input);
 
-
-
-
+			
 
 			#ifdef UCodeLangDebug
 			{//for debuging

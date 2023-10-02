@@ -360,16 +360,26 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 
 	if (In._Symbol->Type == SymbolType::Class_Field && _FuncStack.size() && _ClassStack.top().Info)
 	{
-		auto& Func = _FuncStack.back();
-		auto& PointerIr = _IR_LookingAtIRFunc->Pars.front();
+		auto& Func = _FuncStack.back().Pointer;
+	
+		auto ThisParSym = Symbol_GetSymbol(Func->Pars.front().Type).value();
+		TypeSymbol ObjectType;
+		Variant<IRPar*, IRInstruction*> PointerIr;
+		if (IsSymbolLambdaObjectClass(ThisParSym))
+		{
+			//auto parsym = Symbol_GetSymbol(ScopeHelper::ApendedStrings(Symbol_GetSymbol(Func)->FullName, ThisSymbolName), SymbolType::ParameterVarable).value();
+			PointerIr = &_IR_LookingAtIRFunc->Pars.front();// LoadSymbolWhenInLambdaObjectInvoke(parsym);
+			ObjectType = *Func->GetObjectForCall();
+		}
+		else
+		{
+			PointerIr = &_IR_LookingAtIRFunc->Pars.front();
+			ObjectType = *Func->GetObjectForCall();
+		}
 
-		auto ObjectType = *Func.Pointer->GetObjectForCall();
 		ObjectType._IsAddress = false;
 
 		auto objecttypesyb = Symbol_GetSymbol(ObjectType).value();
-
-
-
 
 		auto IRStructV = IR_Build_ConvertToIRClassIR(*objecttypesyb);
 		auto F = _IR_Builder.GetSymbol(IRStructV)->Get_ExAs<IRStruct>();
@@ -380,7 +390,19 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 		size_t MemberIndex = V->GetFieldIndex(Str).value();
 
 
-		Output = _IR_LookingAtIRBlock->New_Member_Dereference(&PointerIr, IRType(IRSymbol(IRStructV)), MemberIndex);
+		if (auto ir = PointerIr.Get_If<IRPar*>()) 
+		{
+			Output = _IR_LookingAtIRBlock->New_Member_Dereference(*ir, IRType(IRSymbol(IRStructV)), MemberIndex);
+		}
+		else if (auto ir = PointerIr.Get_If<IRInstruction*>())
+		{
+			Output = _IR_LookingAtIRBlock->New_Member_Dereference(*ir, IRType(IRSymbol(IRStructV)), MemberIndex);
+		}
+		else
+		{
+			UCodeLangUnreachable();
+		}
+
 		return;
 	}
 	if (In.Start[0]._token->Type == TokenType::KeyWord_This)

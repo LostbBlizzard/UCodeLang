@@ -230,7 +230,7 @@ private:
 	};
 	struct OutputWindowData
 	{
-		BackEndType Type = BackEndType::UCodeVM;
+		BackEndType Type = BackEndType::C89;
 
 		bool AutoCompile = true;
 		bool AutoReload = true;
@@ -238,7 +238,7 @@ private:
 
 		UCodeLang::OptimizationFlags Flags = UCodeLang::OptimizationFlags::NoOptimization;
 		bool InDebug = true;
-		bool ImportStandardLibrary = true;
+		bool ImportStandardLibrary = false;
 
 		NativeSet OldNativeCpuType = NativeSet::x86;
 	};

@@ -16,7 +16,7 @@ $Object:
   var Func2 = |[] => 5 * this.Call2();
   var Func3 = |[] => 5 * Call2(this);
   var Func4 = |[] => ((a - this.a * 2) / 2); 
-  ret (Func1() / 100) + (Func2() - Func3()) + Func4;
+  ret (Func1() / 100) + (Func2() - Func3()) + Func4();
 
 |main2[]:
  Object Item = [];

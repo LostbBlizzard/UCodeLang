@@ -289,11 +289,11 @@ void AppObject::DrawTestMenu()
     struct TestInfo
     {
         TestMode Testmode = TestMode::C89;
-        size_t MinTestIndex = 0;
-        size_t MaxTestCount = 40;//40;//ULangTest::Tests.size();
+        size_t MinTestIndex = 40;
+        size_t MaxTestCount = 50;//;//ULangTest::Tests.size();
 
         size_t ModuleIndex = 0;
-        size_t ModuleTestCount = 1;//40;//ULangTest::Tests.size();
+        size_t ModuleTestCount = 1;//;//ULangTest::Tests.size();
         bool TestAsRan = false;
         enum class TestState
         {
@@ -3094,10 +3094,12 @@ void AppObject::CompileText(const String& String)
    
     IsRuningCompiler = true;
     bool AddStandardLibrary = OutputWindow.ImportStandardLibrary;
-
-    std::function<UCodeLang::Compiler::CompilerRet()> Func = [this, paths,AddStandardLibrary ]()
+    bool Apifile = false;
+    std::function<UCodeLang::Compiler::CompilerRet()> Func = [this, paths, AddStandardLibrary, Apifile, tepfilepath]()
     {
         UCodeLang::Compiler::ExternalFiles ExternalFiles;
+
+
 
         if (AddStandardLibrary)
         {
@@ -3110,7 +3112,7 @@ void AppObject::CompileText(const String& String)
             UCodeLang::ModuleIndex index = UCodeLang::ModuleIndex::GetModuleIndex();
 
 
-            auto v = f.BuildModule(_Compiler, index,true);
+            auto v = f.BuildModule(_Compiler, index, true);
             if (v.CompilerRet._State
                 ==
                 UCodeLang::Compiler::CompilerState::Fail)
@@ -3125,15 +3127,23 @@ void AppObject::CompileText(const String& String)
             }
         }
 
-       auto r = _Compiler.CompileFiles_UseIntDir(paths,ExternalFiles);
-       IsRuningCompiler = false;
-       return r;
+
+        UCodeLang::Compiler::CompilerRet r;
+        if (Apifile)
+        {
+            r = _Compiler.CompileFiles_UseIntDir(paths, ExternalFiles);
+        }
+        else
+        {
+            r = _Compiler.CompilePathToObj(tepfilepath, paths.OutFile, ExternalFiles);
+        }
+        IsRuningCompiler = false;
+        return r;
     };
      
     _RuningPaths = std::move(paths);
     _RuningCompiler = SendTaskToWorkerThread<UCodeLang::Compiler::CompilerRet>(Func);
-    //_RuningCompiler._Set_value(Func(),false);
-   
+    //Func();
 }
 
 void AppObject::OnDoneCompileing(UCodeLang::Compiler::CompilerRet& Val, const UCodeAnalyzer::Path& tepoutpath)
