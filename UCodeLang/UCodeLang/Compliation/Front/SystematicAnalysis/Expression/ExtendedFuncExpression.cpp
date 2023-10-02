@@ -94,7 +94,7 @@ void SystematicAnalysis::OnExpressionNode(const ExtendedFuncExpression& node)
 	}
 	if (_PassType == PassType::BuidCode)
 	{
-		auto& FuncInfo = _FuncToSyboID.at(Symbol_GetSymbolID(node));
+		auto& FuncInfo = _FuncToSyboID.GetValue(Symbol_GetSymbolID(node));
 
 
 

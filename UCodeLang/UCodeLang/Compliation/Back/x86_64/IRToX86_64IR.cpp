@@ -26,7 +26,7 @@ void IRToX86_64IR::Build(const IRBuilder* builder, X86_64IR::CleanUpMode mode)
 	IRLocs.clear();
 	TemVarRegs.clear();
 
-	auto& MainCallConvention = _Out.CallingConventions.at(_MainCallConvention);
+	auto& MainCallConvention = _Out.CallingConventions.GetValue(_MainCallConvention);
 	for (auto& Item : MainCallConvention.CallClobberedGRegisters)
 	{
 		TemVarRegs.AddValue(Item, RegInfo());

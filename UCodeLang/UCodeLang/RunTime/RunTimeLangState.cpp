@@ -26,19 +26,19 @@ PtrType Allocator::Malloc(RunTimeLangState& This, NSize_t Size)
 	
 	{
 		auto r = _Malloc(This, Size);
-		_Data[r] = { false, Size };
+		_Data.AddValue(r,{ false, Size });
 		return r;
 	}
 }
 void Allocator::Free(RunTimeLangState& This, PtrType ptr)
 {
-	auto& M = _Data[ptr];
+	auto& M = _Data.GetValue(ptr);
 	if (_CanReserveData)
 	{
 		
 
 
-		_ReservedData[ptr] = { M };
+		_ReservedData.AddValue(ptr,{ M });
 		_Data.erase(ptr);
 
 		return;
@@ -49,7 +49,7 @@ void Allocator::Free(RunTimeLangState& This, PtrType ptr)
 }
 PtrType Allocator::Realloc(RunTimeLangState& This, PtrType oldptr, NSize_t Size)
 {
-	auto& Data = _Data[oldptr];
+	auto& Data = _Data.GetValue(oldptr);
 	if (Data.Size < Size)
 	{
 		Free(This, oldptr);
@@ -60,18 +60,18 @@ PtrType Allocator::Realloc(RunTimeLangState& This, PtrType oldptr, NSize_t Size)
 void Allocator::ReservedBytes(RunTimeLangState& This, NSize_t Size)
 {
 	auto r = _Malloc(This, Size);
-	_ReservedData[r] = {false, Size };
+	_ReservedData.AddValue(r,{false, Size });
 }
 void Allocator::FreeAllAllocations(RunTimeLangState& This)
 {
 	for (auto& Item : _Data)
 	{
-		PtrType ptr = Item._Key;
-		auto& M = _Data[ptr];
+		PtrType ptr = Item.first;
+		auto& M = _Data.GetValue(ptr);
 		if (_CanReserveData)
 		{
 			
-			_ReservedData[ptr] = { M };
+			_ReservedData.AddValue(ptr,{ M });
 			continue;
 		}
 		if (!M.IsfakePtr) { _Free(This, ptr); }
@@ -82,9 +82,9 @@ void Allocator::FreeAllReservedAllocations(RunTimeLangState& This)
 {
 	for (auto& Item : _ReservedData)
 	{
-		if (!Item._Value.IsfakePtr)
+		if (!Item.second.IsfakePtr)
 		{
-			_Free(This, Item._Key);
+			_Free(This, Item.first);
 		}
 	}
 	_ReservedData.clear();
@@ -98,8 +98,8 @@ void Allocator::MergeReservedAllocations()//This no work
 		auto& Item = *it;
 
 		
-		auto& ItemPtr = Item._Key;
-		auto& ItemValue = Item._Value;
+		auto& ItemPtr = Item.first;
+		auto& ItemValue = Item.second;
 	
 		NSize_t ItemSize = ItemValue.Size;
 		NSize_t BuffSize = ItemSize;
@@ -107,9 +107,9 @@ void Allocator::MergeReservedAllocations()//This no work
 		Tep_Values.push_back(ItemPtr);
 		while (true)
 		{
-			if (_ReservedData.count(Ptr))
+			if (_ReservedData.HasValue(Ptr))
 			{
-				auto& NewData = _ReservedData.at(Ptr);
+				auto& NewData = _ReservedData.GetValue(Ptr);
 				BuffSize += NewData.Size;
 				Tep_Values.push_back(Ptr);
 				Ptr = (void*)((uintptr_t)ItemPtr + (uintptr_t)NewData.Size);
@@ -142,21 +142,21 @@ PtrType Allocator::FindReservedPtr(NSize_t Size)
 {
 	for (auto& Item : _ReservedData)
 	{
-		auto& Itemfirst = Item._Key;
-		auto& Itemsecond = Item._Value;
+		auto& Itemfirst = Item.first;
+		auto& Itemsecond = Item.second;
 
 		if (Itemsecond.Size >= Size)
 		{
 			auto Ptr = Itemfirst;
 
 
-			_Data[Ptr] = { Itemsecond.IsfakePtr, Size };
+			_Data.AddValue(Ptr,{ Itemsecond.IsfakePtr, Size });
 
 			auto Sizediff = Itemsecond.Size - Size;
 			if (Sizediff != 0)
 			{
 				void* subptr = (void*)((uintptr_t)Ptr + (uintptr_t)Sizediff);
-				_ReservedData[subptr] = { true,Sizediff };
+				_ReservedData.AddValue(subptr,{ true,Sizediff });
 			}
 			_ReservedData.erase(Itemfirst);
 			return Ptr;
@@ -169,19 +169,19 @@ PtrType Allocator::FindReservedPtr(NSize_t Size)
 			Tep_Values.push_back(Itemfirst);
 			while (true)
 			{
-				if (_ReservedData.count(Ptr))
+				if (_ReservedData.HasValue(Ptr))
 				{
-					auto& NewData = _ReservedData.at(Ptr);
+					auto& NewData = _ReservedData.GetValue(Ptr);
 					BuffSize += NewData.Size;
 					Tep_Values.push_back(Ptr);
 					if (BuffSize >= Size)
 					{
-						_Data[Ptr] = { Itemsecond.IsfakePtr, Size };
+						_Data.AddValue(Ptr,{ Itemsecond.IsfakePtr, Size });
 						auto Sizediff = BuffSize - Size;
 						if (Sizediff != 0)
 						{
 							void* subptr = (void*)((uintptr_t)Ptr + (uintptr_t)Sizediff);
-							_ReservedData[subptr] = { true,Sizediff };
+							_ReservedData.AddValue(subptr,{ true,Sizediff });
 						}
 						for (auto& Items : Tep_Values) { _ReservedData.erase(Items); }
 
@@ -440,7 +440,7 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 							
 							for (auto& Item : DebugInfo.VarablesInfo)
 							{
-								GlobalInfo.NewDebugInfo.VarablesInfo.AddValue(Item._Key, Item._Value);
+								GlobalInfo.NewDebugInfo.VarablesInfo.AddValue(Item.first, Item.second);
 							}
 							for (auto& Item : DebugInfo.DebugInfo)
 							{
@@ -462,56 +462,56 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 
 		for (auto& Item : RunTimeDebugInfo.VarablesInfo)
 		{
-			if (auto Val =Item._Value.TypeLoc.Get_If<VarableInfo::Static>())
+			if (auto Val =Item.second.TypeLoc.Get_If<VarableInfo::Static>())
 			{
 				StaticObjectInfo::State oldstate;
 				oldstate.Offset = Val->offset;
-				oldstate.Type = Item._Value.ReflectionType;
+				oldstate.Type = Item.second.ReflectionType;
 
 				StaticObjectInfo b;
 				b.OldRunTimeState = std::move(oldstate);
 
-				GlobalInfo.StaticObjectsInfo.AddValue(Item._Key,std::move(b));
+				GlobalInfo.StaticObjectsInfo.AddValue(Item.first,std::move(b));
 			}
-			else if (auto Val = Item._Value.TypeLoc.Get_If<VarableInfo::Thread>())
+			else if (auto Val = Item.second.TypeLoc.Get_If<VarableInfo::Thread>())
 			{
 				ThreadObjectInfo::State oldstate;
 				oldstate.Offset = Val->offset;
-				oldstate.Type = Item._Value.ReflectionType;
+				oldstate.Type = Item.second.ReflectionType;
 
 				ThreadObjectInfo b;
 				b.OldRunTimeState = std::move(oldstate);
 
-				GlobalInfo.ThreadObjectsInfo.AddValue(Item._Key, std::move(b));
+				GlobalInfo.ThreadObjectsInfo.AddValue(Item.first, std::move(b));
 			}
 		}
 		for (auto& Item : GlobalInfo.NewDebugInfo.VarablesInfo)
 		{
-			if (auto Val = Item._Value.TypeLoc.Get_If<VarableInfo::Static>())
+			if (auto Val = Item.second.TypeLoc.Get_If<VarableInfo::Static>())
 			{
 				StaticObjectInfo::State oldstate;
 				oldstate.Offset = Val->offset;
-				oldstate.Type = Item._Value.ReflectionType;
-				oldstate.FileDeclared = Item._Value.FileDeclaredIn;
-				oldstate.LineDeclared = Item._Value.DeclaredLine;
+				oldstate.Type = Item.second.ReflectionType;
+				oldstate.FileDeclared = Item.second.FileDeclaredIn;
+				oldstate.LineDeclared = Item.second.DeclaredLine;
 
-				StaticObjectInfo b =std::move(GlobalInfo.StaticObjectsInfo[Item._Key]);
+				StaticObjectInfo b =std::move(GlobalInfo.StaticObjectsInfo.GetValue(Item.first));
 				b.NewRunTimeState = std::move(oldstate);
 
-				GlobalInfo.StaticObjectsInfo[Item._Key] = std::move(b);
+				GlobalInfo.StaticObjectsInfo.AddValue(Item.first,std::move(b));
 			}
-			else if (auto Val = Item._Value.TypeLoc.Get_If<VarableInfo::Thread>())
+			else if (auto Val = Item.second.TypeLoc.Get_If<VarableInfo::Thread>())
 			{
 				ThreadObjectInfo::State oldstate;
 				oldstate.Offset = Val->offset;
-				oldstate.Type = Item._Value.ReflectionType;
-				oldstate.FileDeclared = Item._Value.FileDeclaredIn;
-				oldstate.LineDeclared = Item._Value.DeclaredLine;
+				oldstate.Type = Item.second.ReflectionType;
+				oldstate.FileDeclared = Item.second.FileDeclaredIn;
+				oldstate.LineDeclared = Item.second.DeclaredLine;
 
-				ThreadObjectInfo b = std::move(GlobalInfo.ThreadObjectsInfo[Item._Key]);
+				ThreadObjectInfo b = std::move(GlobalInfo.ThreadObjectsInfo.GetValue(Item.first));
 				b.NewRunTimeState = std::move(oldstate);
 
-				GlobalInfo.ThreadObjectsInfo[Item._Key] = std::move(b);
+				GlobalInfo.ThreadObjectsInfo.AddValue(Item.first,std::move(b));
 			}
 		}
 
@@ -709,7 +709,7 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 
 		for (auto& Item : GlobalInfo.StaticObjectsInfo)
 		{
-			if (!Func(Item._Value.OldRunTimeState, Item._Value.NewRunTimeState, _StaticMemPtr, GlobalInfo.NewStaticMem.Data()))
+			if (!Func(Item.second.OldRunTimeState, Item.second.NewRunTimeState, _StaticMemPtr, GlobalInfo.NewStaticMem.Data()))
 			{
 				return false;
 			}
@@ -722,7 +722,7 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 
 			for (auto& Item : GlobalInfo.ThreadObjectsInfo)
 			{
-				if (!Func(Item._Value.OldRunTimeState, Item._Value.NewRunTimeState, Loc.RunTimeThreadValues.Data(), Loc.NewThreadMem.Data()))
+				if (!Func(Item.second.OldRunTimeState, Item.second.NewRunTimeState, Loc.RunTimeThreadValues.Data(), Loc.NewThreadMem.Data()))
 				{
 					return false;
 				}

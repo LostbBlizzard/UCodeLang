@@ -87,16 +87,16 @@ private:
 
 	IRLoc GetLoc(const IRInstruction* ins)
 	{
-		return IRLocs.at(ins);
+		return IRLocs.GetValue(ins);
 	}
 
 	Optional<GReg> Get_FreeReg()
 	{
 		for (auto& Item : TemVarRegs)
 		{
-			if (Item._Value.Type.Is<None>())
+			if (Item.second.Type.Is<None>())
 			{
-				return Item._Key;
+				return Item.first;
 			}
 		}
 		return {};
@@ -108,13 +108,13 @@ private:
 
 	void SetInfo(GReg Reg, const IRInstruction* Value)
 	{
-		TemVarRegs.at(Reg).Type = Value;
+		TemVarRegs.GetValue(Reg).Type = Value;
 	}
 	void SetInfo(GReg Reg, const IROperator& Value)
 	{
 		if (Value.Type == IROperatorType::Value)
 		{
-			TemVarRegs.at(Reg).Type = Value.Value;
+			TemVarRegs.GetValue(Reg).Type = Value.Value;
 		}
 		else
 		{

@@ -131,8 +131,8 @@ bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFi
 
 		for (auto& Item : state.InternalNameSpaces)
 		{
-			R += Item._Key + "::" + "Internal:\n";
-			R += Item._Value;
+			R += Item.first + "::" + "Internal:\n";
+			R += Item.second;
 
 		}
 
@@ -668,7 +668,7 @@ void CppHelper::OutputIRLineInfo(UCodeAnalyzer::CppHelper::SymbolData& Item, UCo
 void CppHelper::ParseCppToSybs(UCodeAnalyzer::String& FileText, UCodeAnalyzer::Vector<UCodeAnalyzer::CppHelper::SymbolData>& Symbols)
 {
 	size_t IndexBuffer = 0;
-	UCodeLang::VectorMap<String, size_t> Overloads;
+	UCodeLang::UnorderedMap<String, size_t> Overloads;
 	ParseCppState State;
 	for (size_t i = 0; i < FileText.size(); i++)
 	{
@@ -739,7 +739,7 @@ void CppHelper::DoOverLoadOnFunc(UCodeLang::UnorderedMap<UCodeAnalyzer::String, 
 {
 	if (Overloads.HasValue(Last._Name))
 	{
-		auto& Item = Overloads.at(Last._Name);
+		auto& Item = Overloads.GetValue(Last._Name);
 
 
 		Val->OverloadNumber = Item;
@@ -1548,7 +1548,7 @@ String CppHelper::ToString(CppToULangState& State, const FuncData& Value, const 
 			NameSpace = Syb._NameSpace;
 		}
 
-		State.InternalNameSpaces[NameSpace] += AddStr;
+		State.InternalNameSpaces.GetValue(NameSpace) += AddStr;
 
 	}
 	else 

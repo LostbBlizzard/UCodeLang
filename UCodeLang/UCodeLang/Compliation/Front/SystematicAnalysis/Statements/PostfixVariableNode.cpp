@@ -41,7 +41,7 @@ void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 		else
 			if (_PassType == PassType::BuidCode)
 			{
-				const PostFixExpressionNode_Data& Data = _PostFix_Datas.at(Symbol_GetSymbolID(node));
+				const PostFixExpressionNode_Data& Data = _PostFix_Datas.GetValue(Symbol_GetSymbolID(node));
 
 				if (Data.FuncToCall)
 				{

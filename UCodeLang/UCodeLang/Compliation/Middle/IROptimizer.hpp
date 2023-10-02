@@ -57,7 +57,7 @@ private:
 	void UpdatedCode() { _UpdatedCode = true; }
 	void UpdatedCodeFor(IRFunc* Func) {
 		_UpdatedCode = true;
-		auto& FuncData = Funcs[Func];
+		auto& FuncData = Funcs.GetValue(Func);
 		FuncData.FuncBodyWasUpdated = true;
 	}
 	//
@@ -144,7 +144,7 @@ private:
 	UnorderedMap<IRInstruction*, MyStruct> IRData;
 	auto& Get_IRData(IRInstruction* V)
 	{
-		return  IRData[V];
+		return  IRData.GetValue(V);
 	}
 	UnorderedMap<IRFunc*, IROptimizationFuncData> Funcs;
 };

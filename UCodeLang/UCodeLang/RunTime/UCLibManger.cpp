@@ -103,7 +103,7 @@ _Instructions.reserve(oldSize + Ins_s.size());
 
 			for (const auto& Item2 : InsLayer.Get_NameToPtr())
 			{
-				_NameToAddress[Item2._Key] = Item2._Value;
+				_NameToAddress.AddValue(Item2.first,Item2.second);
 			}
 			auto& _Assembly = Item->Get_Lib()->Get_Assembly();
 			ClassAssembly::PushCopyClasses(_Assembly, Assembly);
@@ -115,7 +115,7 @@ _Instructions.reserve(oldSize + Ins_s.size());
 				for (auto& Item : Debug.VarablesInfo)
 				{
 					//TODO Add offset based on this lib StaticBytes and ThreadBytes
-					_DebugInfo.VarablesInfo.AddValue(Item._Key, Item._Value);
+					_DebugInfo.VarablesInfo.AddValue(Item.first, Item.second);
 				}
 				for (auto& Item : Debug.DebugInfo)
 				{
@@ -127,7 +127,7 @@ _Instructions.reserve(oldSize + Ins_s.size());
 	}
 	for (const auto& Item2 : Item->Get_CPPCalls())
 	{
-		_NameToCPP[Item2._Key] = Item2._Value;
+		_NameToCPP.AddValue(Item2.first,Item2.second);
 	}
 }
 
@@ -145,16 +145,16 @@ void UCLibManger::HotReloadClearState()
 
 Optional<UAddress> UCLibManger::FindAddress(const String& FunctionName) const
 {
-	if (_NameToAddress.count(FunctionName))
+	if (_NameToAddress.HasValue(FunctionName))
 	{
-		return _NameToAddress.at(FunctionName);
+		return _NameToAddress.HasValue(FunctionName);
 	}
 	else
 	{
 		auto tep = NameDecoratior::GetUnDecoratedName(FunctionName);
-		if (_NameToAddress.count(tep))
+		if (_NameToAddress.HasValue(tep))
 		{
-			return _NameToAddress.at(tep);
+			return _NameToAddress.GetValue(tep);
 		}
 
 		return {};
@@ -163,16 +163,16 @@ Optional<UAddress> UCLibManger::FindAddress(const String& FunctionName) const
 
 Optional<const RunTimeLib::CPPCall*> UCLibManger::FindCPPCall(const String& FunctionName) const
 {
-	if (_NameToCPP.count(FunctionName))
+	if (_NameToCPP.HasValue(FunctionName))
 	{
-		return &_NameToCPP.at(FunctionName);
+		return &_NameToCPP.GetValue(FunctionName);
 	}
 	else
 	{
 		auto tep = NameDecoratior::GetUnDecoratedName(FunctionName);
-		if (_NameToCPP.count(tep))
+		if (_NameToCPP.HasValue(tep))
 		{
-			return &_NameToCPP.at(tep);
+			return &_NameToCPP.GetValue(tep);
 		}
 
 
@@ -190,9 +190,9 @@ String UCLibManger::GetName(UAddress address) const
 {
 	for (auto& item : _NameToAddress)
 	{
-		if (item._Value == address)
+		if (item.second == address)
 		{
-			return item._Key;
+			return item.first;
 		}
 	}
 	return "";

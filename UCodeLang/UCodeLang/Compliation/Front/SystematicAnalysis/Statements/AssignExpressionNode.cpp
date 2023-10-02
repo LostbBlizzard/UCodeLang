@@ -45,7 +45,7 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 	{
 
 		auto ID = Symbol_GetSymbolID(node);
-		auto& AssignType = _AssignExpressionDatas.at(ID);
+		auto& AssignType = _AssignExpressionDatas.GetValue(ID);
 
 		Debug_Add_SetLineNumber(NeverNullptr(node._Token), _IR_LookingAtIRBlock->Instructions.size());
 

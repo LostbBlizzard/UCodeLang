@@ -2,6 +2,9 @@
 #include <iostream>
 #include "../Helpers/CompliationErrors.hpp"
 #include "../CompliationSettings.hpp"
+
+
+
 UCodeLangStart
 
 
@@ -86,7 +89,7 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 				{
 					continue;
 				}
-				IROptimizationFuncData& FuncData = Funcs[Func.get()];
+				IROptimizationFuncData& FuncData = Funcs.GetValue(Func.get());
 				size_t InsCount = 0;
 
 				for (auto& Block : Func->Blocks)
@@ -126,7 +129,7 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 			UnorderedMap<size_t,const IRFunc*> Hashs;
 			for (auto& Func : Input->Funcs)
 			{
-				auto& FuncData = Funcs[Func.get()];
+				auto& FuncData = Funcs.GetValue(Func.get());
 				if (FuncData.BodyWasRemoved) { continue; }
 
 				size_t Hash = 0;
@@ -170,7 +173,7 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 
 				if (Hashs.HasValue(Hash))
 				{
-					const auto& SameFunc = Hashs.at(Hash);
+					const auto& SameFunc = Hashs.GetValue(Hash);
 					
 					Func->Blocks.clear();
 
@@ -1017,7 +1020,7 @@ void IROptimizer::UpdateCallWhenParWasRemoved(IRFunc* Item, const IRFunc* Func, 
 
 void IROptimizer::DoInlines(IRFunc* Func)
 {
-	auto& FuncData = Funcs[Func];
+	auto& FuncData = Funcs.GetValue(Func);
 	if (FuncData.BodyWasRemoved) { return; }
 
 	for (auto& Item : Func->Blocks)
@@ -1036,7 +1039,7 @@ void IROptimizer::DoInlines(IRFunc* Func,IRBlock* Block)
 			auto* FuncToCall = Input->GetFunc(Ins->Target().identifer);
 			if (FuncToCall)
 			{
-				IROptimizationFuncData& FuncData = Funcs[FuncToCall];
+				IROptimizationFuncData& FuncData = Funcs.GetValue(FuncToCall);
 
 				if (FuncData.Inlinestate == InlineState::AutoInline)
 				{
@@ -1136,7 +1139,7 @@ void IROptimizer::ToSSA(const IRFunc* Func, SSAState& state)
 				Ins->Target() =Ins->Input();
 				Ins->Input() = IROperator();
 
-				state.Map[ToUpdate] = Ins.get();
+				state.Map.AddValue(ToUpdate,Ins.get());
 			}
 			else
 			{
@@ -1145,7 +1148,7 @@ void IROptimizer::ToSSA(const IRFunc* Func, SSAState& state)
 					if (state.Map.HasValue(Ins->Target()))
 					{
 						state.Updated.AddValue(&Ins->Target(), Ins->Target());
-						Ins->Target() = IROperator(state.Map.at(Ins->Target()));
+						Ins->Target() = IROperator(state.Map.GetValue(Ins->Target()));
 					}
 				}	
 				
@@ -1154,7 +1157,7 @@ void IROptimizer::ToSSA(const IRFunc* Func, SSAState& state)
 					if (state.Map.HasValue(Ins->Input()))
 					{
 						state.Updated.AddValue(&Ins->Input(), Ins->Input());
-						Ins->Target() = IROperator(state.Map.at(Ins->Input()));
+						Ins->Target() = IROperator(state.Map.GetValue(Ins->Input()));
 					}
 				}
 			}
@@ -1165,7 +1168,7 @@ void  IROptimizer::UndoSSA(const IRFunc* Func, const SSAState& state)
 {
 	for (auto& Item : state.Updated)
 	{
-		*Item._Key = Item._Value;
+		*Item.first = Item.second;
 	}
 }
 void IROptimizer::InLineFunc(InLineData& Data)
@@ -1367,4 +1370,7 @@ void IROptimizer::InLineSubOperator(InLineData& Data, IROperator& Op, size_t Off
 
 }
 
+
+
 UCodeLangEnd
+

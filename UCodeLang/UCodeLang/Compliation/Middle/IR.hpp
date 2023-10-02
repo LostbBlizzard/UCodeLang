@@ -1795,3 +1795,19 @@ public:
 
 
 UCodeLangEnd
+
+template <>
+struct std::hash<UCodeLang::IROperator>
+{
+	std::size_t operator()(const UCodeLang::IROperator& k) const
+	{
+		using UCodeLang::IROperator;
+		using namespace UCodeLang;
+		// Compute individual hash values for first,
+		// second and third and combine them using XOR
+		// and bit shifting:
+
+		return ((hash<IROperator_t>()((IROperator_t)k.Type)
+			^ (hash<IRidentifierID>()(k.identifer) << 1)) >> 1);
+	}
+};

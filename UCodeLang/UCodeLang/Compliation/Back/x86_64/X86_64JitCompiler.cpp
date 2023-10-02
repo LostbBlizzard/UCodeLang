@@ -36,7 +36,7 @@ void X86_64JitCompiler::Reset()
 
 X86_64Builder::GReg X86_64JitCompiler::To(RegisterID id)
 {
-	const auto& Convention = _IR.CallingConventions.at(_IntrCallConvention);
+	const auto& Convention = _IR.CallingConventions.GetValue(_IntrCallConvention);
 	switch (id)
 	{
 	case UCodeLang::RegisterID::A:return Convention.CallClobberedGRegisters[0];

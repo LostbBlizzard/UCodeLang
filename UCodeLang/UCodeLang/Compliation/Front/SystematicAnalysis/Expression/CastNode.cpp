@@ -10,7 +10,7 @@ void SystematicAnalysis::OnExpressionNode(const CastNode& node)
 
 	if (_PassType == PassType::BuidCode)
 	{
-		auto& Item = _CastDatas.at(Symbol_GetSymbolID(node));
+		auto& Item = _CastDatas.GetValue(Symbol_GetSymbolID(node));
 		if (Item.FuncToCall)
 		{
 			_LookingForTypes.push(Item.FuncToCall->Get_Info<FuncInfo>()->Pars[0].Type);
@@ -76,7 +76,7 @@ void SystematicAnalysis::OnExpressionNode(const CastNode& node)
 
 	if (_PassType == PassType::BuidCode)
 	{
-		IR_Build_ExplicitConversion(_IR_LastExpressionField, _LastExpressionType, ToTypeAs, _CastDatas.at(Symbol_GetSymbolID(node)));
+		IR_Build_ExplicitConversion(_IR_LastExpressionField, _LastExpressionType, ToTypeAs, _CastDatas.GetValue(Symbol_GetSymbolID(node)));
 
 		_LastExpressionType = ToTypeAs;
 	}

@@ -236,7 +236,7 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 	}
 	else if (_PassType == PassType::BuidCode)
 	{
-		CompileTimeforNode& Nodes = _ForNodes.at(Symbol_GetSymbolID(node));
+		CompileTimeforNode& Nodes = _ForNodes.GetValue(Symbol_GetSymbolID(node));
 		if (Nodes.SybToLoopOver->Type == SymbolType::ParameterVarable)
 		{
 			const String ScopeName = std::to_string(Symbol_GetSymbolID(node).AsInt());

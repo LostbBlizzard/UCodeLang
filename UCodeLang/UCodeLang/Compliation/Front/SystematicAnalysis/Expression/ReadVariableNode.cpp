@@ -473,7 +473,7 @@ void SystematicAnalysis::StepBuildMember_Access(const ScopedName& ITem, TypeSymb
 	String MemberName;
 	if (ITem._token->Type == TokenType::Class)
 	{
-		MemberName = _VarableMemberDatas.at(Symbol_GetSymbolID(&ITem)).MemberString;
+		MemberName = _VarableMemberDatas.GetValue(Symbol_GetSymbolID(&ITem)).MemberString;
 	}
 	else
 	{
@@ -488,7 +488,7 @@ void SystematicAnalysis::StepBuildMember_Access(const ScopedName& ITem, TypeSymb
 		auto* Classinfo = Sym->Get_Info<ClassInfo>();
 		size_t MemberIndex = Classinfo->GetFieldIndex(MemberName).value();
 		FieldInfo* FInfo = &Classinfo->Fields[MemberIndex];
-		IRStruct* IRstruct = _IR_Builder.GetSymbol(_Symbol_SybToIRMap[Sym->ID])->Get_ExAs<IRStruct>();
+		IRStruct* IRstruct = _IR_Builder.GetSymbol(_Symbol_SybToIRMap.GetValue(Sym->ID))->Get_ExAs<IRStruct>();
 		if (Output == nullptr)
 		{
 			switch (In._Symbol->Type)

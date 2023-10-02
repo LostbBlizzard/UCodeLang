@@ -367,7 +367,7 @@ Position LSPSever::GetPosition(StringView text, size_t CharIndex, size_t Line)
 }
 UCodeLanguageSever::DocumentUri LSPSever::Cast(const UCodeAnalyzer::Fileidentifier& Item)
 {
-	return Item.generic_string();
+	return UCodeAnalyzer::Path(Item).generic_string();
 }
 void LSPSever::UpdateClientErrorList()
 {
@@ -406,7 +406,7 @@ void LSPSever::UpdateClientErrorList()
 			auto& files = BaseSever.GetFiles();
 			for (auto& file : files)
 			{
-				p.uri = Cast(file._Key);
+				p.uri = Cast(file.first);
 				Send_PublishDiagnostics_ToClient(std::move(p));
 			}
 		}
@@ -466,7 +466,7 @@ void LSPSever::UpdateClientErrorList()
 }
 UCodeAnalyzer::Fileidentifier LSPSever::Cast(const UCodeLanguageSever::DocumentUri& Item)
 {
-	return Item;
+	return UCodeAnalyzer::Path(Item).native();
 }
 void LSPSever::Sever_initialize(integer requestid, const json& Params)
 {

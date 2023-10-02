@@ -47,9 +47,9 @@ void UCodeBackEndObject::BuildSymbols()
 			if (IsDebugMode()) {
 				for (auto& Item2 : _Input->_Debug.Symbols)
 				{
-					if (Item2._Key == Item->identifier)
+					if (Item2.first == Item->identifier)
 					{
-						Sybol = &Item2._Value;
+						Sybol = &Item2.second;
 						break;
 					}
 				}
@@ -546,7 +546,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		auto Item = Item_.get();
 		Index = i;
 
-		IRToUCodeInsPre[i] = _OutLayer->_Instructions.size();
+		IRToUCodeInsPre.AddValue(i,_OutLayer->_Instructions.size());
 		
 		/*
 		for (auto& JumpItem : Jumps)
@@ -936,7 +936,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		{
 			auto jumpos = Item->Target().Value.AsUIntNative;
 			
-			auto& jumpdata = Jumps.at(jumpos);
+			auto& jumpdata = Jumps.GetValue(jumpos);
 			if (jumpdata.has_value())
 			{
 				//MoveValuesToState(jumpdata.value());
@@ -963,7 +963,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		case IRInstructionType::ConditionalJump:
 		{
 			auto jumpos = Item->Target().Value.AsUIntNative;
-			auto& jumpdata = Jumps.at(jumpos);
+			auto& jumpdata = Jumps.GetValue(jumpos);
 			if (jumpdata.has_value())
 			{
 				//UCodeLangToDo();//we should check if that path is true befor checking the state
@@ -1395,7 +1395,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			auto DebugInfo = IR->DebugInfo.Get_debugfor(lastIRIndex);
 			for (auto& Item : DebugInfo)
 			{
-				auto InsIndex = (IRToUCodeInsPre[i]);
+				auto InsIndex = (IRToUCodeInsPre.GetValue(i));
 					
 					//i == 0 ? _OutLayer->_Instructions.size() : _OutLayer->_Instructions.size() - 1;
 				if (auto Val = Item->Debug.Get_If<IRDebugSetFile>())
@@ -1417,19 +1417,19 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		
 		for (auto& JumpItem : Jumps)
 		{
-			if (JumpItem._Key == i-1)
+			if (JumpItem.first == i-1)
 			{
-				if (JumpItem._Value.has_value())
+				if (JumpItem.second.has_value())
 				{
-					MoveValuesToState(JumpItem._Value.value());
+					MoveValuesToState(JumpItem.second.value());
 				}
 				else
 				{
-					JumpItem._Value = SaveState();
+					JumpItem.second = SaveState();
 				}
 			}
 		}
-		IRToUCodeInsPost[i] = _OutLayer->Get_Instructions().size() - 1;	
+		IRToUCodeInsPost.AddValue(i,_OutLayer->Get_Instructions().size() - 1);	
 		
 		
 	}
@@ -1442,7 +1442,7 @@ DoneLoop:
 		InstructionBuilder::Debug_FuncEnd(_Ins); PushIns();
 	}
 	InstructionBuilder::Return(ExitState::Success, _Ins); PushIns();
-	IRToUCodeInsPost[Index] = _OutLayer->Get_Instructions().size() - 1;
+	IRToUCodeInsPost.AddValue(Index,_OutLayer->Get_Instructions().size() - 1);
 
 	UpdateVarableLocs();
 
@@ -1454,7 +1454,7 @@ DoneLoop:
 		size_t IndexOfset = Get_Settings().PtrSize == IntSizes::Int64 ? 4 : 1;
 
 		Instruction& Ins = _OutLayer->Get_Instructions()[Index+3];
-		UAddress JumpPos = IRToUCodeInsPost[Item.Jumpto];
+		UAddress JumpPos = IRToUCodeInsPost.GetValue(Item.Jumpto);
 
 		if (Ins.OpCode != InstructionSet::Jumpif) 
 		{
@@ -2585,7 +2585,7 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction* Ins, const  IROperato
 		{
 			if (Syb->SymType == IRSymbolType::StaticVarable)
 			{
-				StaticMemoryManager::StaticMemInfo& Value = _StaticMemory._List[Op.identifer];
+				StaticMemoryManager::StaticMemInfo& Value = _StaticMemory._List.GetValue(Op.identifer);
 
 				auto V = GetRegisterForTep();
 				InstructionBuilder::GetPointerOfStaticMem(_Ins, V, Value.Offset); PushIns();
@@ -2594,7 +2594,7 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction* Ins, const  IROperato
 			}
 			else if (Syb->SymType == IRSymbolType::ThreadLocalVarable)
 			{
-				StaticMemoryManager::StaticMemInfo& Value = _ThreadMemory._List[Op.identifer];
+				StaticMemoryManager::StaticMemInfo& Value = _ThreadMemory._List.GetValue(Op.identifer);
 
 				auto V = GetRegisterForTep();
 				InstructionBuilder::GetPointerOfThreadMem(_Ins, V, Value.Offset); PushIns();
@@ -3195,13 +3195,13 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 			{
 				if (Syb->SymType == IRSymbolType::StaticVarable)
 				{
-					const auto& Mem = _StaticMemory._List.at(Op.identifer);
+					const auto& Mem = _StaticMemory._List.GetValue(Op.identifer);
 					CompilerRet.Info = IRlocData_StaticPos(Mem.Offset);
 					CompilerRet.ObjectType = Syb->Type;
 				}
 				else if (Syb->SymType == IRSymbolType::ThreadLocalVarable)
 				{
-					const auto& Mem = _ThreadMemory._List.at(Op.identifer);
+					const auto& Mem = _ThreadMemory._List.GetValue(Op.identifer);
 					CompilerRet.Info = IRlocData_ThreadPos(Mem.Offset);
 					CompilerRet.ObjectType = Syb->Type;
 				}
@@ -3231,13 +3231,13 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 			{
 				if (Syb->SymType == IRSymbolType::StaticVarable)
 				{
-					const auto& Mem = _StaticMemory._List.at(Op.identifer);
+					const auto& Mem = _StaticMemory._List.GetValue(Op.identifer);
 					CompilerRet.Info = IRlocData_StaticPos(Mem.Offset);
 					CompilerRet.ObjectType = Syb->Type;
 				}
 				else if (Syb->SymType == IRSymbolType::ThreadLocalVarable)
 				{
-					const auto& Mem = _ThreadMemory._List.at(Op.identifer);
+					const auto& Mem = _ThreadMemory._List.GetValue(Op.identifer);
 					CompilerRet.Info = IRlocData_ThreadPos(Mem.Offset);
 					CompilerRet.ObjectType = Syb->Type;
 				}
@@ -3303,12 +3303,12 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 			{
 				if (Syb->SymType == IRSymbolType::StaticVarable)
 				{
-					const auto& Mem = _StaticMemory._List.at(Op.identifer);
+					const auto& Mem = _StaticMemory._List.GetValue(Op.identifer);
 					CompilerRet.Info = IRlocData_StaticPos(Mem.Offset);
 				}
 				else if (Syb->SymType == IRSymbolType::ThreadLocalVarable)
 				{
-					const auto& Mem =_ThreadMemory._List.at(Op.identifer);
+					const auto& Mem =_ThreadMemory._List.GetValue(Op.identifer);
 					CompilerRet.Info = IRlocData_ThreadPos(Mem.Offset);
 				}
 				else

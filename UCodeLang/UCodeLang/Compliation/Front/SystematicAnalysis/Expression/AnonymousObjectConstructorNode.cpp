@@ -81,14 +81,14 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(const AnonymousObjectConst
 		if (_PassType == PassType::FixedTypes)
 		{
 			auto Func = Type_GetFunc(Type, nod->_Fields);
-			_FuncToSyboID[Symbol_GetSymbolID(nod)] = Func;
+			_FuncToSyboID.AddValue(Symbol_GetSymbolID(nod),Func);
 
 			Type_SetFuncRetAsLastEx(Func);
 			return;
 		}
 		else if (_PassType == PassType::BuidCode)
 		{
-			const auto& Func = _FuncToSyboID.at(Symbol_GetSymbolID(nod));
+			const auto& Func = _FuncToSyboID.GetValue(Symbol_GetSymbolID(nod));
 			auto& ValuePars = nod->_Fields;
 
 
