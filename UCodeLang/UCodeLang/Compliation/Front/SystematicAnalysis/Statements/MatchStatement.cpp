@@ -96,7 +96,7 @@ void SystematicAnalysis::OnMatchStatement(const MatchStatement& node)
 		auto Ex = _IR_LastExpressionField;
 		auto ToMatchType = _LastExpressionType;
 
-		MatchStatementData& V = _MatchStatementDatas.at(Symbol_GetSymbolID(node));
+		MatchStatementData& V = _MatchStatementDatas.GetValue(Symbol_GetSymbolID(node));
 
 
 		BuildMatch_State State;
@@ -605,7 +605,7 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 		auto Ex = _IR_LastExpressionField;
 		auto ToMatchType = _LastExpressionType;
 
-		MatchExpressionData& V = _MatchExpressionDatas.at(Symbol_GetSymbolID(node));
+		MatchExpressionData& V = _MatchExpressionDatas.GetValue(Symbol_GetSymbolID(node));
 
 
 

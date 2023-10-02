@@ -1303,7 +1303,7 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 		auto* node = V._node.get();
 		if (_ConstantExpressionMap.HasValue(node))
 		{
-			auto& item = _ConstantExpressionMap.at(node);
+			auto& item = _ConstantExpressionMap.GetValue(node);
 			Out.SetType(item);
 		}
 		else

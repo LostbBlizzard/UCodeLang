@@ -85,7 +85,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 	bool IsBuildFunc = false;
 	if (BuildCode)
 	{
-		Data = &_BinaryExpressionNode_Datas.at(Symbol_GetSymbolID(node));
+		Data = &_BinaryExpressionNode_Datas.GetValue(Symbol_GetSymbolID(node));
 		_LookingForTypes.top() = Data->Op1;
 
 		if (Data->FuncToCall)
@@ -161,7 +161,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 	}
 	if (_PassType == PassType::BuidCode)
 	{
-		auto& Data = _BinaryExpressionNode_Datas.at(Symbol_GetSymbolID(node));
+		auto& Data = _BinaryExpressionNode_Datas.GetValue(Symbol_GetSymbolID(node));
 
 		if (Data.FuncToCall)
 		{

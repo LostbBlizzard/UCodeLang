@@ -368,7 +368,7 @@ void C89Backend::AddSybToString(UCodeLang::String& r)
 
 		for (auto& Item : _Input->_Symbols)
 		{
-			if (Vals.at(Item->identifier) == false)
+			if (Vals.GetValue(Item->identifier) == false)
 			{
 
 				String SybName = FromIDToCindentifier(Item->identifier);
@@ -384,7 +384,7 @@ void C89Backend::AddSybToString(UCodeLang::String& r)
 						{
 							if (Vals.HasValue(Item2._symbol.ID))
 							{
-								if (Vals.at(Item2._symbol.ID) == false)
+								if (Vals.GetValue(Item2._symbol.ID) == false)
 								{
 
 									goto NextMainLoop;
@@ -423,7 +423,7 @@ void C89Backend::AddSybToString(UCodeLang::String& r)
 						{
 							if (Vals.HasValue(Item2._symbol.ID))
 							{
-								if (Vals.at(Item2._symbol.ID) == false)
+								if (Vals.GetValue(Item2._symbol.ID) == false)
 								{
 
 									goto NextMainLoop;
@@ -463,7 +463,7 @@ void C89Backend::AddSybToString(UCodeLang::String& r)
 						{
 							if (Vals.HasValue(Item2._symbol.ID))
 							{
-								if (Vals.at(Item2._symbol.ID) == false)
+								if (Vals.GetValue(Item2._symbol.ID) == false)
 								{
 
 									goto NextMainLoop;
@@ -492,7 +492,7 @@ void C89Backend::AddSybToString(UCodeLang::String& r)
 						{
 							if (Vals.HasValue(Item2._symbol.ID))
 							{
-								if (Vals.at(Item2._symbol.ID) == false)
+								if (Vals.GetValue(Item2._symbol.ID) == false)
 								{
 									goto NextMainLoop;
 								}
@@ -534,7 +534,7 @@ void C89Backend::AddSybToString(UCodeLang::String& r)
 						{
 							if (Vals.HasValue(Item2._symbol.ID))
 							{
-								if (Vals.at(Item2._symbol.ID) == false)
+								if (Vals.GetValue(Item2._symbol.ID) == false)
 								{
 									continue;
 								}
@@ -571,7 +571,7 @@ void C89Backend::AddSybToString(UCodeLang::String& r)
 					break;
 				}
 
-				Vals.at(Item->identifier) = true;
+				Vals.GetValue(Item->identifier) = true;
 				Values--;
 			NextMainLoop:
 				int a = 0;
@@ -688,7 +688,7 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					if (!Names.HasValue(I->Target().identifer))
 					{
 						auto LabelName = "_label" + std::to_string(Names.size());
-						Names[I->Target().identifer] = LabelName;
+						Names.AddValue(I->Target().identifer,LabelName);
 					}
 					break;
 				}
@@ -865,13 +865,13 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					break;
 				case IRInstructionType::Jump:
 					r += "goto ";
-					r += Names[I->Target().identifer];
+					r += Names.GetValue(I->Target().identifer);
 					break;
 				case IRInstructionType::ConditionalJump:
 					r += "if (";
 					r += ToString(State, *I, I->Input());
 					r += "){goto ";
-					r += Names[I->Target().identifer];
+					r += Names.GetValue(I->Target().identifer);
 					r += "; }";
 					break;
 				case IRInstructionType::Call:
@@ -885,7 +885,7 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					r += FromIDToCindentifier(I->Target().identifer) + "(";
 					for (auto& Item : State.TepPushedParameters)
 					{
-						r += State.PointerToName.at(Item->Target().Pointer);
+						r += State.PointerToName.GetValue(Item->Target().Pointer);
 						if (&Item != &State.TepPushedParameters.back())
 						{
 							r += ",";
@@ -904,7 +904,7 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					r += ToString(State, *I, I->Target()) + "(";
 					for (auto& Item : State.TepPushedParameters)
 					{
-						r += State.PointerToName.at(Item->Target().Pointer);
+						r += State.PointerToName.GetValue(Item->Target().Pointer);
 						if (&Item != &State.TepPushedParameters.back())
 						{
 							r += ",";
@@ -924,11 +924,11 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					}
 					break;
 				case IRInstructionType::Member_Access:
-					State.PointerToName[I.get()] = ToString(State, *I, I->Target()) + ".__" + std::to_string(I->Input().Value.AsUIntNative);
+					State.PointerToName.AddValue(I.get(),ToString(State, *I, I->Target()) + ".__" + std::to_string(I->Input().Value.AsUIntNative));
 					goto GoOver;
 					break;
 				case IRInstructionType::Member_Access_Dereference:
-					State.PointerToName[I.get()] = ToString(State, *I, I->Target()) + "->__" + std::to_string(I->Input().Value.AsUIntNative);
+					State.PointerToName.AddValue(I.get(),ToString(State, *I, I->Target()) + "->__" + std::to_string(I->Input().Value.AsUIntNative));
 					goto GoOver;
 					break;
 				case IRInstructionType::MallocCall:
@@ -1083,10 +1083,10 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 				GoOver:
 				for (auto& Item : Names)
 				{
-					if (Item._Key == i)
+					if (Item.first == i)
 					{
 						r += Tabs;
-						r += Item._Value + ":";
+						r += Item.second+ ":";
 						r += "\n";
 
 					}
@@ -1169,17 +1169,17 @@ String C89Backend::ToString(ToStringState& State, IRInstruction& Ins, IROperator
 	break;
 	case IROperatorType::IRInstruction:
 	{
-		r += State.PointerToName.at(Value.Pointer);
+		r += State.PointerToName.GetValue(Value.Pointer);
 	}
 	break;
 	case IROperatorType::Get_PointerOf_IRInstruction:
 	{
-		r += "&" + State.PointerToName.at(Value.Pointer);
+		r += "&" + State.PointerToName.GetValue(Value.Pointer);
 	}
 	break;
 	case IROperatorType::DereferenceOf_IRInstruction:
 	{
-		r += "*(" + ToString(*OutType) + "*)" + State.PointerToName.at(Value.Pointer);
+		r += "*(" + ToString(*OutType) + "*)" + State.PointerToName.GetValue(Value.Pointer);
 	}
 	break;
 	case IROperatorType::IRParameter:
@@ -1282,7 +1282,9 @@ String C89Backend::ToStringState::GetName(IRInstruction* Ptr)
 	Val += "tepvir";
 
 	auto V = Val;
-	PointerToName[Ptr] = V;
+	if (PointerToName.HasValue(Ptr)) {
+		PointerToName.AddValue(Ptr, V);
+	}
 	return V;
 }
 

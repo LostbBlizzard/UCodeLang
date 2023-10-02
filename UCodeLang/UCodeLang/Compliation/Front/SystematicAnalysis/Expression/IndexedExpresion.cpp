@@ -154,7 +154,7 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 
 	if (_PassType == PassType::BuidCode)
 	{
-		auto& Data = _IndexedExpresion_Datas.at(Symbol_GetSymbolID(node));
+		auto& Data = _IndexedExpresion_Datas.GetValue(Symbol_GetSymbolID(node));
 
 		if (Data.FuncToCall)
 		{

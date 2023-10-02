@@ -314,7 +314,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 		else
 		{
 
-			const ForExpresion_Data& Data = _For_Datas.at(Symbol_GetSymbolID(node));
+			const ForExpresion_Data& Data = _For_Datas.GetValue(Symbol_GetSymbolID(node));
 			{
 				FileDependency_AddDependencyToCurrentFile(Data.FuncGetLoopAble);
 				FileDependency_AddDependencyToCurrentFile(Data.FuncToCheck);

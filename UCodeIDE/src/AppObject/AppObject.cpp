@@ -810,10 +810,10 @@ void AppObject::DrawTestMenu()
             }
 
 
-            thread_local UCodeLang::BinaryVectorMap<String, String> Openedfiles;
-            thread_local UCodeLang::BinaryVectorMap<String, UCodeLang::Optional<std::shared_ptr<UCodeLang::UClib>>> Outputfiles;
-            thread_local UCodeLang::BinaryVectorMap<String, String> OutputIRStr;
-            thread_local UCodeLang::BinaryVectorMap<String, String> OutputLibStr;
+            thread_local UCodeLang::UnorderedMap<String, String> Openedfiles;
+            thread_local UCodeLang::UnorderedMap<String, UCodeLang::Optional<std::shared_ptr<UCodeLang::UClib>>> Outputfiles;
+            thread_local UCodeLang::UnorderedMap<String, String> OutputIRStr;
+            thread_local UCodeLang::UnorderedMap<String, String> OutputLibStr;
             if (ImGui::Button("Run Tests"))
             {
                 Openedfiles.clear();
@@ -1016,9 +1016,9 @@ void AppObject::DrawTestMenu()
                             if (Outputfiles.HasValue(ItemTest.TestName))
                             {
 
-                                if (Outputfiles.at(ItemTest.TestName).has_value())
+                                if (Outputfiles.GetValue(ItemTest.TestName).has_value())
                                 {
-                                    const auto& lib = Outputfiles.at(ItemTest.TestName).value();
+                                    const auto& lib = Outputfiles.GetValue(ItemTest.TestName).value();
                                     UCodeLang::ReflectionTypeInfo valtype = lib->Get_Assembly().Find_Func(ItemTest.FuncToCall)->RetType;
 
                                     ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_Text, ColorBlue);
@@ -2422,7 +2422,7 @@ void AppObject::UpdateInsData(UCodeVMWindow& windowdata)
 
 
     auto& InsMapData = UCodeLang::UAssembly::Get_InsToInsMapValue();
-    BinaryVectorMap<UCodeLang::UAddress, String> AddressToName;
+    UnorderedMap<UCodeLang::UAddress, String> AddressToName;
 
 
     auto& Inslist = RunTime.Get_Libs().GetInstructions();
@@ -2777,11 +2777,11 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
 
             for (auto& Item : AlocsInfo)
             {
-                Mems.push_back({ false,Item._Key,Item._Value });
+                Mems.push_back({ false,Item.first,Item.second });
             }
             for (auto& Item : ReservedAlocsInfo)
             {
-                Mems.push_back({ true,Item._Key,Item._Value });
+                Mems.push_back({ true,Item.first,Item.second});
             }
 
             std::sort(Mems.begin(), Mems.end(),
@@ -2826,13 +2826,13 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                             auto& DebugInfo = _RunTimeState.Get_Libs().Get_DebugInfo();
                             for (auto& Item : DebugInfo.VarablesInfo)
                             {
-                                if (auto Val = Item._Value.TypeLoc.Get_If<UCodeLang::VarableInfo::Static>())
+                                if (auto Val = Item.second.TypeLoc.Get_If<UCodeLang::VarableInfo::Static>())
                                 {
                                     void* Object = (void*)((uintptr_t)Staticptr + (uintptr_t)Val->offset);
 
                                     ImGui::Text(("offset:" + std::to_string(Val->offset)).c_str());
                                     ImGui::SameLine();
-                                    ImguiHelper::UCodeObjectField(Item._Key.c_str(), Object, Item._Value.ReflectionType, Assembly);
+                                    ImguiHelper::UCodeObjectField(Item.first.c_str(), Object, Item.second.ReflectionType, Assembly);
                                 }
                             }
                         }
@@ -2841,13 +2841,13 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                             auto& DebugInfo = _RunTimeState.Get_Libs().Get_DebugInfo();
                             for (auto& Item : DebugInfo.VarablesInfo)
                             {
-                                if (auto Val = Item._Value.TypeLoc.Get_If<UCodeLang::VarableInfo::Thread>())
+                                if (auto Val = Item.second.TypeLoc.Get_If<UCodeLang::VarableInfo::Thread>())
                                 {
                                     void* Object = (void*)((uintptr_t)Threadptr + (uintptr_t)Val->offset);
 
                                     ImGui::Text(("offset:" + std::to_string(Val->offset)).c_str());
                                     ImGui::SameLine();
-                                    ImguiHelper::UCodeObjectField(Item._Key.c_str(), Object, Item._Value.ReflectionType, Assembly);
+                                    ImguiHelper::UCodeObjectField(Item.first.c_str(), Object, Item.second.ReflectionType, Assembly);
                                 }
                             }
                         }
@@ -2892,13 +2892,13 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                 auto& DebugInfo = _RunTimeState.Get_Libs().Get_DebugInfo();
                 for (auto& Item : DebugInfo.VarablesInfo)
                 {
-                    if (auto Val = Item._Value.TypeLoc.Get_If<UCodeLang::VarableInfo::Static>())
+                    if (auto Val = Item.second.TypeLoc.Get_If<UCodeLang::VarableInfo::Static>())
                     {
                         void* Object = (void*)((uintptr_t)Memptr + (uintptr_t)Val->offset);
 
                         ImGui::Text(("offset:" + std::to_string(Val->offset)).c_str());
                         ImGui::SameLine();
-                        ImguiHelper::UCodeObjectField(Item._Key.c_str(), Object, Item._Value.ReflectionType, Assembly);
+                        ImguiHelper::UCodeObjectField(Item.first.c_str(), Object, Item.second.ReflectionType, Assembly);
                     }
                 }
 
@@ -2922,13 +2922,13 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                 auto& DebugInfo = _RunTimeState.Get_Libs().Get_DebugInfo();
                 for (auto& Item : DebugInfo.VarablesInfo)
                 {
-                    if (auto Val = Item._Value.TypeLoc.Get_If<UCodeLang::VarableInfo::Thread>())
+                    if (auto Val = Item.second.TypeLoc.Get_If<UCodeLang::VarableInfo::Thread>())
                     {
                         void* Object = (void*)((uintptr_t)Memptr + (uintptr_t)Val->offset);
 
                         ImGui::Text(("offset:" + std::to_string(Val->offset)).c_str());
                         ImGui::SameLine();
-                        ImguiHelper::UCodeObjectField(Item._Key.c_str(),Object, Item._Value.ReflectionType, Assembly);
+                        ImguiHelper::UCodeObjectField(Item.first.c_str(),Object, Item.second.ReflectionType, Assembly);
                     }
                 }
 
@@ -3045,7 +3045,7 @@ bool AppObject::LSPHasNoErrors()
 
 void AppObject::SetRequestCallBack(UCodeLanguageSever::integer RequestID, RequestCallBack CallBack)
 {
-    auto& Item = RequestCallBacks[RequestID];
+    auto& Item = RequestCallBacks.GetValue(RequestID);
     Item.RequestID = RequestID;
     Item.CallBack = CallBack;
 }
@@ -3401,7 +3401,7 @@ void AppObject::OnSeverPacket(SPacket&& packet)
         {
             if (RequestCallBacks.HasValue(Val->id))
             {
-                auto& Item = RequestCallBacks.at(Val->id);
+                auto& Item = RequestCallBacks.GetValue(Val->id);
                 if (Item.CallBack)
                 {
                     Item.CallBack(*Val);

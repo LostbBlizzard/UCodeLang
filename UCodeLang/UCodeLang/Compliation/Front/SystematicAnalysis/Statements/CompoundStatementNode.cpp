@@ -53,7 +53,7 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 	}
 	else if (_PassType == PassType::BuidCode)
 	{
-		const auto& Data = _Compound_Datas.at(Symbol_GetSymbolID(node));
+		const auto& Data = _Compound_Datas.GetValue(Symbol_GetSymbolID(node));
 
 		if (Data.FuncToCall)
 		{

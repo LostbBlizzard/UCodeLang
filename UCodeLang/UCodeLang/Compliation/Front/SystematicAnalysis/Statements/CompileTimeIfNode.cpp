@@ -199,7 +199,7 @@ void SystematicAnalysis::OnCompileTimeIfNode(const CompileTimeIfNode& node, bool
 	}
 	else if (_PassType == PassType::BuidCode)
 	{
-		const bool EvalValue = _ValidNodes.at(Symbol_GetSymbolID(node));
+		const bool EvalValue = _ValidNodes.GetValue(Symbol_GetSymbolID(node));
 
 		if (EvalValue)
 		{

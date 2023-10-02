@@ -36,7 +36,7 @@ void SystematicAnalysis::OnNewNode(const NewExpresionNode* nod)
 		}
 
 		auto Func = Type_GetFunc(Type, nod->_Parameters);
-		_FuncToSyboID[Symbol_GetSymbolID(nod)] = Func;
+		_FuncToSyboID.AddValue(Symbol_GetSymbolID(nod),Func);
 
 
 
@@ -55,7 +55,7 @@ void SystematicAnalysis::OnNewNode(const NewExpresionNode* nod)
 	{
 
 
-		auto Func = _FuncToSyboID.at(Symbol_GetSymbolID(nod));
+		auto Func = _FuncToSyboID.GetValue(Symbol_GetSymbolID(nod));
 		auto& ValuePars = nod->_Parameters;
 
 

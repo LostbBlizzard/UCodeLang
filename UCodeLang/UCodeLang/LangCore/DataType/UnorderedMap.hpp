@@ -79,6 +79,21 @@ public:
 		return Base.at(key);
 	}
 
+	void AddIfNotHaveKey(ConstKey key, const Value& Or)
+	{
+		if (!HasValue(key))
+		{
+			AddValue(key, Or);
+		}
+	}
+	void AddIfNotHaveKey(ConstKey key, Value&& Or)
+	{
+		if (!HasValue(key))
+		{
+			AddValue(key, std::move(Or));
+		}
+	}
+
 	Value& GetValue(ConstKey key)
 	{
 		#if UCodeLangDebug
@@ -118,21 +133,21 @@ public:
 	{
 		return Base.erase(_Where);
 	}
-	iterator erase(const_iterator _Where)
+	const_iterator erase(const_iterator _Where)
 	{
 		return Base.erase(_Where);
 	}
-	iterator erase(ConstKey _Where)
+	void erase(ConstKey _Where)
 	{
 		#if UCodeLangDebug
 
-		if (!HasBase(_Where))
+		if (!HasValue(_Where))
 		{
 			UCodeLangThrowException("there no Value for the key");
 		}
 
 		#endif // DEBUG
-		return Base.erase(Base.begin() + GetBaseIndex(_Where).value());
+		Base.erase(_Where);
 	}
 private:
 	Unordered_map<Key,Value> Base;

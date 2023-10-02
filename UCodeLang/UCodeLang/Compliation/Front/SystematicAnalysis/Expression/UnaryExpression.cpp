@@ -39,7 +39,7 @@ void SystematicAnalysis::OnExpressionNode(const UnaryExpressionNode& node)
 	else if (_PassType == PassType::BuidCode)
 	{
 		SymbolID SymID = Symbol_GetSymbolID(node);
-		auto& Data = _UnaryDatas.at(SymID);
+		auto& Data = _UnaryDatas.GetValue(SymID);
 
 
 		OnExpressionTypeNode(node._Value0, GetValueMode::Read);

@@ -147,8 +147,8 @@ void UClib::ToBytes(BitMaker& Output, const CodeLayer& Data)
 			Output.WriteType((Size_tAsBits)Val->_NameToPtr.size());
 			for (auto& Item : Val->_NameToPtr)
 			{
-				Output.WriteType(Item._Key);
-				Output.WriteType((Size_tAsBits)Item._Value);
+				Output.WriteType(Item.first);
+				Output.WriteType((Size_tAsBits)Item.second);
 			}
 		}
 
@@ -168,8 +168,8 @@ void UClib::ToBytes(BitMaker& Output, const CodeLayer& Data)
 			Output.WriteType((Size_tAsBits)Val->_NameToPtr.size());
 			for (auto& Item : Val->_NameToPtr)
 			{
-				Output.WriteType(Item._Key);
-				Output.WriteType((Size_tAsBits)Item._Value);
+				Output.WriteType(Item.first);
+				Output.WriteType((Size_tAsBits)Item.second);
 			}
 		}
 
@@ -580,7 +580,7 @@ void UClib::FromBytes(BitReader& Input, CodeLayer& Data)
 				Input.ReadType(V2, V2);
 				V2bits_Size = V2;
 
-				V._NameToPtr[V1] = V2;
+				V._NameToPtr.AddValue(V1,V2);
 			}
 
 			bool HasDebugInfo = false;
@@ -630,7 +630,7 @@ void UClib::FromBytes(BitReader& Input, CodeLayer& Data)
 				Input.ReadType(V2, V2);
 				V2bits_Size = V2;
 
-				V._NameToPtr[V1] = V2;
+				V._NameToPtr.AddValue(V1,V2);
 			}
 
 			Input.ReadType(V.DebugInfo, V.DebugInfo);

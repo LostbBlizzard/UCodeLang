@@ -24,7 +24,7 @@ void SystematicAnalysis::OnAwaitExpression(const AwaitExpression& node)
 			const FuncCallNode& Funcnode = node._Func;
 			OnFuncCallNode(Funcnode);
 
-			const auto& GetFunc = _FuncToSyboID.at(Symbol_GetSymbolID(Funcnode));
+			const auto& GetFunc = _FuncToSyboID.GetValue(Symbol_GetSymbolID(Funcnode));
 
 			Type_SetFuncRetAsLastEx(GetFunc);
 			FuncRetType = _LastExpressionType;
@@ -57,7 +57,7 @@ void SystematicAnalysis::OnAwaitExpression(const AwaitExpression& node)
 		if (node._IsFunc)
 		{
 			const FuncCallNode& Funcnode = node._Func;
-			const auto& GetFunc = _FuncToSyboID.at(Symbol_GetSymbolID(Funcnode));
+			const auto& GetFunc = _FuncToSyboID.GetValue(Symbol_GetSymbolID(Funcnode));
 
 			thread_local int a = 0; a++;
 			auto NewAwaitSetIRName = _FuncStack.begin()->Pointer->FullName + "awaitset_" + std::to_string(a);

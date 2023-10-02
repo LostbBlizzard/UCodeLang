@@ -111,7 +111,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 		const CodeLayer::UCodeByteCode& Info = UCodeLayer->_Data.Get<CodeLayer::UCodeByteCode>();
 		for (const auto& Item2 : Info._NameToPtr)
 		{
-			AddressToName[Item2._Value] = Item2._Key;
+			AddressToName.AddValue(Item2.second,Item2.first);
 		}
 	}
 	Optional<IRBuilder> IRInfo;
@@ -283,9 +283,9 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 		{
 			auto& Item = Insts[i];
 			UAddress address = (UAddress)i;
-			if (AddressToName.count(address))
+			if (AddressToName.HasValue(address))
 			{
-				String Name = AddressToName[address];
+				String Name = AddressToName.GetValue(address);
 				r += "---" + Name + ": \n";
 				OnFunc = Name;
 			}
@@ -324,7 +324,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 							String* ItemValue = nullptr;
 							if (OpenedSourceFilesLines.HasValue(OnFile))
 							{
-								auto& Item = OpenedSourceFilesLines.at(OnFile);
+								auto& Item = OpenedSourceFilesLines.GetValue(OnFile);
 
 								if (Val->LineNumber - 1 < Item.size()) {
 									ItemValue = &Item[Val->LineNumber - 1];
@@ -344,7 +344,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 									}
 									OpenedSourceFilesLines.AddValue(OnFile, std::move(Lines));
 
-									auto& Item = OpenedSourceFilesLines.at(OnFile);
+									auto& Item = OpenedSourceFilesLines.GetValue(OnFile);
 
 									if (Val->LineNumber - 1 < Item.size()) {
 										ItemValue = &Item[Val->LineNumber - 1];
@@ -386,7 +386,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 									IRInfoVal.ToString(LineState.State, &IRInfoVal._StaticInit, Unused);
 									IRStringStates.AddValue(Id, std::move(LineState));
 								}
-								OutputIRLineInfo(&IRInfoVal, &IRInfoVal._StaticInit, Val, IRStringStates.at(Id), r);
+								OutputIRLineInfo(&IRInfoVal, &IRInfoVal._StaticInit, Val, IRStringStates.GetValue(Id), r);
 							}
 							else if (ThreadVariablesInitializeFunc == OnFunc)
 							{
@@ -398,7 +398,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 									IRInfoVal.ToString(LineState.State, &IRInfoVal._threadInit, Unused);
 									IRStringStates.AddValue(Id, std::move(LineState));
 								}
-								OutputIRLineInfo(&IRInfoVal, &IRInfoVal._threadInit, Val, IRStringStates.at(Id), r);
+								OutputIRLineInfo(&IRInfoVal, &IRInfoVal._threadInit, Val, IRStringStates.GetValue(Id), r);
 							}
 							else if (StaticVariablesUnLoadFunc == OnFunc)
 							{
@@ -410,7 +410,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 									IRInfoVal.ToString(LineState.State, &IRInfoVal._StaticdeInit, Unused);
 									IRStringStates.AddValue(Id, std::move(LineState));
 								}
-								OutputIRLineInfo(&IRInfoVal, &IRInfoVal._StaticdeInit, Val, IRStringStates.at(Id), r);
+								OutputIRLineInfo(&IRInfoVal, &IRInfoVal._StaticdeInit, Val, IRStringStates.GetValue(Id), r);
 							}
 							else if (ThreadVariablesUnLoadFunc == OnFunc)
 							{
@@ -422,7 +422,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 									IRInfoVal.ToString(LineState.State, &IRInfoVal._threaddeInit, Unused);
 									IRStringStates.AddValue(Id, std::move(LineState));
 								}
-								OutputIRLineInfo(&IRInfoVal, &IRInfoVal._threaddeInit, Val, IRStringStates.at(Id), r);
+								OutputIRLineInfo(&IRInfoVal, &IRInfoVal._threaddeInit, Val, IRStringStates.GetValue(Id), r);
 							}
 							else
 							{
@@ -439,7 +439,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 											IRInfoVal.ToString(LineState.State, Func.get(), Unused);
 											IRStringStates.AddValue(Id, std::move(LineState));
 										}
-										OutputIRLineInfo(&IRInfoVal, Func.get(), Val, IRStringStates.at(Id), r);
+										OutputIRLineInfo(&IRInfoVal, Func.get(), Val, IRStringStates.GetValue(Id), r);
 										break;
 									}
 								}
@@ -507,7 +507,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 				UnorderedMap<UAddress, String> AddressToName;
 				for (const auto& Item2 : Val->_NameToPtr)
 				{
-					AddressToName[Item2._Value] = Item2._Key;
+					AddressToName.AddValue(Item2.second,Item2.first);
 				}
 				
 				auto MachineMode = ZYDIS_MACHINE_MODE_LONG_64;
@@ -526,9 +526,9 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 					/* instruction:     */ &instruction
 				)))
 				{
-					if (AddressToName.count(offset))
+					if (AddressToName.HasValue(offset))
 					{
-						String Name = AddressToName[offset];
+						String Name = AddressToName.GetValue(offset);
 						r += "---" + Name + ": \n";
 						
 					}
@@ -1028,9 +1028,9 @@ void UAssembly::OpValueToString(OpCodeType OpType,const void* In,const Unordered
 	case OpCodeType::InsAddress:
 	{
 		auto NewAddress = (*(UAddress*)In) + 1;
-		if (AddressToName.count(NewAddress))
+		if (AddressToName.HasValue(NewAddress))
 		{
-			out += "{" + AddressToName.at(NewAddress) + "}";
+			out += "{" + AddressToName.GetValue(NewAddress) + "}";
 		}
 		else
 		{

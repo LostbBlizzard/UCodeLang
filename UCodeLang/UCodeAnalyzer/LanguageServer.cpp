@@ -12,7 +12,7 @@ void LanguageServer::Step()
 	UpdateErrorList();
 	for (auto& Item : _Files)
 	{
-		Item._Value.Step();
+		Item.second.Step();
 	}
 }
 
@@ -25,11 +25,11 @@ void LanguageServer::UpdateErrorList()
 	ErrorList.clear();
 	for (auto& Item : _Files)//this is a bit slow should be cashed.
 	{
-		for (auto& Error : Item._Value.lexingErrors)
+		for (auto& Error : Item.second.lexingErrors)
 		{
 			ErrorList.push_back(Error);
 		}
-		for (auto& Error : Item._Value.parseErrors)
+		for (auto& Error : Item.second.parseErrors)
 		{
 			ErrorList.push_back(Error);
 		}

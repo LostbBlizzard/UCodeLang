@@ -7,7 +7,7 @@ UCodeAnalyzerStart
 
 #define UCodeLangLanguageId ""
 
-using Fileidentifier = Path;
+using Fileidentifier = Path::string_type;
 
 class LanguageAnalyzer
 {
@@ -124,7 +124,7 @@ public:
 	}
 	UCFile& GetFile(const Fileidentifier& file)
 	{
-		return _Files.at(file);
+		return _Files.GetValue(file);
 	}
 	UnorderedMap<Fileidentifier, UCFile>& GetFiles()
 	{

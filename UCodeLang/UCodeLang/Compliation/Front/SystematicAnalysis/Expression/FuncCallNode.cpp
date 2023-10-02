@@ -45,12 +45,12 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 		}
 		else
 		{
-			Type_SetFuncRetAsLastEx(_FuncToSyboID.at(symid));
+			Type_SetFuncRetAsLastEx(_FuncToSyboID.GetValue(symid));
 		}
 	}
 	else if (_PassType == PassType::BuidCode)
 	{
-		auto& SybID = _FuncToSyboID.at(Symbol_GetSymbolID(node));
+		auto& SybID = _FuncToSyboID.GetValue(Symbol_GetSymbolID(node));
 		IR_Build_FuncCall(SybID, node._FuncName, node.Parameters);
 
 
@@ -928,7 +928,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 							{
 								if (typemap.HasValue(GItem.SybID))
 								{
-									RetType = { Item.IsOutPar,typemap.at(GItem.SybID) };
+									RetType = { Item.IsOutPar,typemap.GetValue(GItem.SybID) };
 									break;
 								}
 							}

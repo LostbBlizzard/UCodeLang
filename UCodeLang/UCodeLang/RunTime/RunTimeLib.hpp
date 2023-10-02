@@ -34,7 +34,7 @@ public:
 
 	UCodeLangForceinline void Add_CPPCall(const String& Name, CPPCallBack CPP)
 	{
-		_NameToCppCall[Name] = { CPP,nullptr };
+		_NameToCppCall.AddValue(Name,{ CPP,nullptr });
 	}
 	
 
@@ -43,7 +43,7 @@ public:
 	template<typename T,typename... Pars>
 	UCodeLangForceinline void Add_CPPCall(const String& Name,CPPCallBack CPP, NativeCall<T,Pars...> Native)
 	{
-		_NameToCppCall[Name] = { CPP,(void*)Native };
+		_NameToCppCall.AddValue(Name,{ CPP,(void*)Native });
 	}
 	
 private:

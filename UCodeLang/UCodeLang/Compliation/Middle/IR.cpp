@@ -8,9 +8,12 @@ UCodeLangStart
 IRidentifierID IRBuilder::ToID(const IRidentifier& Value)
 {
 	String V = Value;
-
 	auto r = std::hash<IRidentifier>()(V);
-	_Map[r] = V;
+	
+	if (!_Map.HasValue(r))
+	{
+		_Map.AddValue(r, V);
+	}
 	return r;
 }
 void IRBuilder::Reset()
@@ -296,8 +299,8 @@ BytesPtr IRBuilder::ToBytes() const
 		V.WriteType((BitMaker::SizeAsBits)_Map.size());
 		for (auto& Item : _Map)
 		{
-			V.WriteType(Item._Key);
-			V.WriteType(Item._Value);
+			V.WriteType(Item.first);
+			V.WriteType(Item.second);
 		}
 	}
 
@@ -305,8 +308,8 @@ BytesPtr IRBuilder::ToBytes() const
 		V.WriteType((BitMaker::SizeAsBits)ConstStaticStrings.size());
 		for (auto& Item : ConstStaticStrings)
 		{
-			V.WriteType(Item._Key);
-			V.WriteType(Item._Value);
+			V.WriteType(Item.first);
+			V.WriteType(Item.second);
 		}
 	}
 	{
@@ -374,7 +377,7 @@ bool IRBuilder::FromBytes(IRBuilder& Out, const BytesView Bytes)
 			IRidentifier Value = {};
 			Bits.ReadType(Value, Value);
 
-			Out._Map[std::move(Key)] = std::move(Value);
+			Out._Map.AddValue(std::move(Key),std::move(Value));
 		}
 
 	}
@@ -392,7 +395,7 @@ bool IRBuilder::FromBytes(IRBuilder& Out, const BytesView Bytes)
 			IRidentifierID Value;
 			Bits.ReadType(Value, Value);
 
-			Out.ConstStaticStrings[std::move(Key)] = std::move(Value);
+			Out.ConstStaticStrings.AddValue(std::move(Key),std::move(Value));
 		}
 	}
 	{
@@ -893,9 +896,9 @@ void IRBuilder::ToBytes(BitMaker& Out, const IRDebugSybInfo& Value)
 	Out.WriteType((BitMaker::SizeAsBits)Value.Symbols.size());
 	for (auto& Item : Value.Symbols)
 	{
-		Out.WriteType(Item._Key);
+		Out.WriteType(Item.first);
 		
-		const auto& Value = Item._Value;
+		const auto& Value = Item.second;
 		ToBytes(Out, Value);
 	}
 }
@@ -1099,14 +1102,14 @@ void IRBuilder::CombineWith(const IRBuilder& Other)
 	{
 		for (auto& Item : Other.ConstStaticStrings)
 		{
-			ConstStaticStrings[Item._Key] = Item._Value;
+			ConstStaticStrings.AddValue(Item.first,Item.second);
 		}
 	}
 
 	{
 		for (auto& Item : Other._Map)
 		{
-			_Map[Item._Key] = Item._Value;
+			_Map.AddValue(Item.first,Item.second);
 		}
 	}
 
@@ -1537,10 +1540,10 @@ void IRBuilder::ToString(ToStringState& State, IRFunc* Item, String& r)
 
 				for (auto& Item : Names)
 				{
-					if (Item._Key == i)
+					if (Item.first == i)
 					{
 						r += Tabs;
-						r += Item._Value + ":";
+						r += Item.second+ ":";
 						r += "\n";
 
 					}
@@ -1652,13 +1655,13 @@ bool IRBuilder::ToString(
 		break;
 	case IRInstructionType::Jump:
 		r += "goto ";
-		r += Names[I->Target().identifer];
+		r += Names.GetValue(I->Target().identifer);
 		break;
 	case IRInstructionType::ConditionalJump:
 		r += "gotoif (";
 		r += ToString(State, *I, I->Input());
 		r += ") ";
-		r += Names[I->Target().identifer];
+		r += Names.GetValue(I->Target().identifer);
 		break;
 	case IRInstructionType::Call:
 	{
@@ -1702,12 +1705,12 @@ bool IRBuilder::ToString(
 		break;
 	case  IRInstructionType::Member_Access:
 	{
-		State.PointerToName[I] = ToString(State, *I, I->Target()) + ".__" + std::to_string(I->Input().Value.AsUIntNative);
+		State.PointerToName.AddValue(I,ToString(State, *I, I->Target()) + ".__" + std::to_string(I->Input().Value.AsUIntNative));
 		return false;
 	}
 	case  IRInstructionType::Member_Access_Dereference:
 	{
-		State.PointerToName[I] = ToString(State, *I, I->Target()) + "->__" + std::to_string(I->Input().Value.AsUIntNative);
+		State.PointerToName.AddValue(I,ToString(State, *I, I->Target()) + "->__" + std::to_string(I->Input().Value.AsUIntNative));
 		return false;
 	}
 	case IRInstructionType::SIntToUInt:
@@ -1869,7 +1872,7 @@ String IRBuilder::ToString(ToStringState& State, const IRInstruction& Ins, const
 	{
 		//for
 
-		return  State.PointerToName.at(Value.Pointer);
+		return  State.PointerToName.GetValue(Value.Pointer);
 	}
 	case IROperatorType::IRParameter:
 	{
@@ -1878,7 +1881,7 @@ String IRBuilder::ToString(ToStringState& State, const IRInstruction& Ins, const
 	}
 	case IROperatorType::Get_PointerOf_IRInstruction:
 	{
-		return "&" + State.PointerToName.at(Value.Pointer); 
+		return "&" + State.PointerToName.GetValue(Value.Pointer); 
 	}
 	case IROperatorType::Get_PointerOf_IRParameter:
 	{
@@ -1892,7 +1895,7 @@ String IRBuilder::ToString(ToStringState& State, const IRInstruction& Ins, const
 
 	case IROperatorType::DereferenceOf_IRInstruction:
 	{
-		return "*" + State.PointerToName.at(Value.Pointer);
+		return "*" + State.PointerToName.GetValue(Value.Pointer);
 	}
 	case IROperatorType::DereferenceOf_IRParameter:
 	{

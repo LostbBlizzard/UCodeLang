@@ -162,7 +162,7 @@ private:
 		UCodeLanguageSever::integer RequestID;
 		RequestCallBack CallBack;
 	};
-	UCodeLang::BinaryVectorMap<UCodeLanguageSever::integer, OnGoingRequest> RequestCallBacks;
+	UCodeLang::UnorderedMap<UCodeLanguageSever::integer, OnGoingRequest> RequestCallBacks;
 	void SetRequestCallBack(UCodeLanguageSever::integer RequestID, RequestCallBack CallBack);
 
 	//SandBox

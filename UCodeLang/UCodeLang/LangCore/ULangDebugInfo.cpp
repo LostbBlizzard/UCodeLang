@@ -14,8 +14,8 @@ void ULangDebugInfo::ToBytes(BitMaker& bit, const ULangDebugInfo& Value)
 	bit.WriteType((BitMaker::SizeAsBits)Value.VarablesInfo.size());
 	for (auto& Item : Value.VarablesInfo)
 	{
-		bit.WriteType(Item._Key);
-		ToBytes(bit, Item._Value);
+		bit.WriteType(Item.first);
+		ToBytes(bit, Item.second);
 	}
 }
 

@@ -108,10 +108,10 @@ public:
 		{
 			#if HasSupportforJit
 			{//fast call
-				if (UFuncToCPPFunc.count(address))
+				if (UFuncToCPPFunc.HasValue(address))
 				{
 					using Func = T(*)(Args...);
-					Func Ptr = (Func)UFuncToCPPFunc[address].NativeFunc;
+					Func Ptr = (Func)UFuncToCPPFunc.GetValue(address).NativeFunc;
 					return Ptr(parameters...);
 				}
 			}

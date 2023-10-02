@@ -53,7 +53,7 @@ void SystematicAnalysis::OnvalidNode(const ValidNode& node)
 	}
 	if (_PassType == PassType::BuidCode)
 	{
-		bool IsValid = _ValidNodes.at(Symbol_GetSymbolID(node));
+		bool IsValid = _ValidNodes.GetValue(Symbol_GetSymbolID(node));
 
 
 		_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad(IsValid);

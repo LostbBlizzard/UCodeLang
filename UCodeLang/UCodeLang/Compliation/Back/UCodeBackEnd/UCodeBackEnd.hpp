@@ -257,11 +257,11 @@ private:
 
 	BlockData& GetBlockData(const IRBlock* V)
 	{
-		return IRToBlockData.at(V);
+		return IRToBlockData.GetValue(V);
 	}
 	void BindBlockData(BlockData& Data, const IRBlock* V)
 	{
-		IRToBlockData[V] = Data;
+		IRToBlockData.AddValue(V,Data);
 	}
 	UAddress PushIns()
 	{

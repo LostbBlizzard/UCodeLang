@@ -55,7 +55,7 @@ void X86_64UNativeBackEnd::Build(const IRBuilder* Input)
 
 		for (auto& Item : Funcoffsets)
 		{
-			_OutLayer->_NameToPtr.AddValue(_Input->FromID(Item._Key), Item._Value);
+			_OutLayer->_NameToPtr.AddValue(_Input->FromID(Item.first), Item.second);
 		}
 	}
 }
