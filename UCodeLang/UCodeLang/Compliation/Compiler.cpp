@@ -572,7 +572,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 			if (FInfo == nullptr) { continue; }
 
 			auto& FilePath_t = dirEntry.path();
-			String FilePath = FilePath_t.generic_u8string();
+			Path  FilePath = FilePath_t;
 
 			Path RePath = FileHelper::RelativePath(FilePath, Data.FileDir);
 

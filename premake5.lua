@@ -30,7 +30,7 @@ workspace "UCodeLang"
    
    OutDirPath ="%{cfg.platform}/%{cfg.buildcfg}"
 
-   UCPathExeDir = "%{wks.location}Output/UCodelangCL/" .. OutDirPath .. "/"
+   UCPathExeDir = "%{wks.location}/Output/UCodelangCL/" .. OutDirPath .. "/"
    UCPathExeName ="uclang"
    UCPathExe = UCPathExeDir ..  UCPathExeName
 
@@ -390,11 +390,11 @@ group "UCodeAPIs"
 
 
  
-  postbuildmessage 'compiling ucodelang files'
-  postbuildcommands 
+  prebuildmessage 'compiling ucodelang files'
+  prebuildcommands  
   {
-    UCPathExe.." index %{prj.location}",
-    UCPathExe.." build %{prj.location}"
+   UCPathExe.." index %{prj.location}",
+   -- UCPathExe.." build %{prj.location}"
   }
   
  project "NStandardLibrary"
@@ -415,11 +415,11 @@ group "UCodeAPIs"
 
 
  
-  postbuildmessage 'compiling ucodelang files'
-  postbuildcommands 
+  prebuildmessage 'compiling ucodelang files'
+  prebuildcommands 
   {
    UCPathExe.." index %{prj.location}",
-   UCPathExe.." build %{prj.location}"
+   --UCPathExe.." build %{prj.location}"
   }
  project "Win32"
   location "UCodeAPI/Win32"
@@ -437,11 +437,11 @@ group "UCodeAPIs"
   "UCodeAPI/%{prj.name}/ULangModule.ucm",
   }
 
-  postbuildmessage 'compiling ucodelang files'
-  postbuildcommands 
+  prebuildmessage 'compiling ucodelang files'
+  prebuildcommands 
   {
     UCPathExe.." index %{prj.location}",
-    UCPathExe.." build %{prj.location}"
+    --UCPathExe.." build %{prj.location}"
   }
  project "NWin32"
    location "UCodeAPI/NWin32"
@@ -459,11 +459,11 @@ group "UCodeAPIs"
    "UCodeAPI/%{prj.name}/ULangModule.ucm",
    }
 
-   postbuildmessage 'compiling ucodelang files'
-   postbuildcommands 
+   prebuildmessage 'compiling ucodelang files'
+   prebuildcommands 
    {
     UCPathExe.." index %{prj.location}",
-    UCPathExe.." build %{prj.location}"
+    --UCPathExe.." build %{prj.location}"
    }
  project "Example"
    location "UCodeAPI/Example"
@@ -484,5 +484,5 @@ group "UCodeAPIs"
    prebuildmessage 'compiling ucodelang files'
    prebuildcommands 
    {
-    UCPathExe.." build %{prj.location} -c89",
+    --UCPathExe.." build %{prj.location} -c89",
    }

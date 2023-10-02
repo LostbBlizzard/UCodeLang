@@ -89,7 +89,9 @@ public:
 		Optional<SummaryTag> Summary;
 		String _FullName;
 		String _Name;
-		Variant<ClassType, EnumType, ConstexprType, FuncData> _Type;
+
+		//int becuase gcc is unable use ClassType in Variant as default
+		Variant<int,ClassType, EnumType, ConstexprType, FuncData> _Type;
 	};
 
 

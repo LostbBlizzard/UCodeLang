@@ -226,45 +226,45 @@ public:
 
 	bool IsError() const
 	{
-		return _Base.Is<E>();
+		return _Base.template  Is<E>();
 	}
 	bool IsValue() const
 	{
-		return _Base.Is<T>();
+		return _Base.template Is<T>();
 	}
 	E* IfError()
 	{
-		return _Base.Get_If<E>();
+		return _Base.template Get_If<E>();
 	}
 	T* IfValue() 
 	{
-		return _Base.Get_If<T>();
+		return _Base.template Get_If<T>();
 	}
 	
 	const E* IfError() const
 	{
-		return _Base.Get_If<E>();
+		return _Base.template Get_If<E>();
 	}
 	const T* IfValue() const
 	{
-		return _Base.Get_If<T>();
+		return _Base.template Get_If<T>();
 	}
 
 	const E& GetError() const
 	{
-		return _Base.Get_If<E>();
+		return _Base.template Get<E>();
 	}
 	const T& GetValue() const
 	{
-		return _Base.Get_If<T>();
+		return _Base.template Get<T>();
 	}
 	E& GetError()
 	{
-		return _Base.Get_If<E>();
+		return _Base.template Get<E>();
 	}
 	T& GetValue() 
 	{
-		return _Base.Get_If<T>();
+		return _Base.template Get<T>();
 	}
 
 	T ValueOr(const T& Or)
