@@ -1548,7 +1548,7 @@ String CppHelper::ToString(CppToULangState& State, const FuncData& Value, const 
 			NameSpace = Syb._NameSpace;
 		}
 
-		State.InternalNameSpaces.GetValue(NameSpace) += AddStr;
+		State.InternalNameSpaces.GetOrAdd(NameSpace, {}) += AddStr;
 
 	}
 	else 

@@ -7,8 +7,8 @@ use API;
 |main[]: 
  Fmt::Println("Hello World");
 
-$Vector<T> = int;
-byte[] List = [];
+//$Vector<T> = int;
+//byte[] List = [];
 int V = 5;
 
 

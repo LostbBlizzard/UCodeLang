@@ -3045,7 +3045,7 @@ bool AppObject::LSPHasNoErrors()
 
 void AppObject::SetRequestCallBack(UCodeLanguageSever::integer RequestID, RequestCallBack CallBack)
 {
-    auto& Item = RequestCallBacks.GetValue(RequestID);
+    auto& Item = RequestCallBacks.GetOrAdd(RequestID, {});
     Item.RequestID = RequestID;
     Item.CallBack = CallBack;
 }
