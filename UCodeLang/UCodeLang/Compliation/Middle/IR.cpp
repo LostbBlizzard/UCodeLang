@@ -1842,10 +1842,10 @@ String IRBuilder::ToString(const IRType& Type)
 	}
 	break;
 	default:
-		//UCodeLangUnreachable();
-		return "null";
+		UCodeLangUnreachable();
 		break;
 	}
+	return "null";
 }
 String IRBuilder::ToString(ToStringState& State, const IRInstruction& Ins, const IROperator& Value)
 {

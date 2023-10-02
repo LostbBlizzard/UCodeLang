@@ -374,8 +374,8 @@ private:
     integer Test = 1;
 
     UCodeAnalyzer::LanguageServer BaseSever;
-    UCodeAnalyzer::Fileidentifier Cast(const  UCodeLanguageSever::DocumentUri& Item);
-    UCodeLanguageSever::DocumentUri Cast(const  UCodeAnalyzer::Fileidentifier& Item);
+    UCodeAnalyzer::Fileidentifier CastToFileId(const  UCodeLanguageSever::DocumentUri& Item);
+    UCodeLanguageSever::DocumentUri CastToUri(const  UCodeAnalyzer::Fileidentifier& Item);
 
     UCodeLang::Vector<UCodeLang::CompliationErrors::Error> _ClientSideErrorsList;
 

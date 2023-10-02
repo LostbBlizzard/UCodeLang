@@ -107,7 +107,7 @@ struct ScopeHelper
 		return (String)GetNameFromFullName((String_view)FullName);
 	}
 
-	static String_view ScopeHelper::GetNameFromFullName(String_view FullName);
+	static String_view GetNameFromFullName(String_view FullName);
 
 	
 };

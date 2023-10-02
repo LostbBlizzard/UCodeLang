@@ -119,7 +119,7 @@ public:
 	size_t capacity() const { return Base.capacity(); }
 	void reserve(size_t capacity) { Base.reserve(capacity); }
 
-	using _UnorderedBase =typename Unordered_map<Key, Value>;
+	using _UnorderedBase = Unordered_map<Key, Value>;
 	using iterator = typename _UnorderedBase::iterator;
 	using const_iterator = typename _UnorderedBase::const_iterator;
 
@@ -150,7 +150,7 @@ public:
 		Base.erase(_Where);
 	}
 private:
-	Unordered_map<Key,Value> Base;
+	_UnorderedBase Base;
 };
 	
 

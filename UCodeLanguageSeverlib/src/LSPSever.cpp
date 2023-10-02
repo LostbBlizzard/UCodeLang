@@ -274,7 +274,7 @@ void LSPSever::textDocument_didOpen(const json& Params)
 
 	if (params.textDocument.languageId == UCodeLangLanguageId) {
 		UA::UCFile newfile;
-		newfile._Fileidentifier = Cast(params.textDocument.uri);
+		newfile._Fileidentifier = CastToFileId(params.textDocument.uri);
 		newfile.FileName = params.textDocument.uri;
 		newfile.filetext = params.textDocument.text;
 		newfile.oldfile = newfile.filetext;
@@ -287,14 +287,14 @@ void LSPSever::textDocument_didClose(const json& Params)
 	DidCloseTextDocumentParams params;
 	UCodeLanguageSever::from_json(Params, params);
 
-	BaseSever.RemoveFile(Cast(params.textDocument.uri));
+	BaseSever.RemoveFile(CastToFileId(params.textDocument.uri));
 }
 void LSPSever::textDocument_didChange(const json& Params)
 {
 	DidChangeTextDocumentParams params;
 	UCodeLanguageSever::from_json(Params, params);
 
-	auto& Ufile = BaseSever.GetFile(Cast(params.textDocument.uri));
+	auto& Ufile = BaseSever.GetFile(CastToFileId(params.textDocument.uri));
 	
 
 	for (auto& Item : params.contentChanges)
@@ -365,9 +365,13 @@ Position LSPSever::GetPosition(StringView text, size_t CharIndex, size_t Line)
 
 	return r;
 }
-UCodeLanguageSever::DocumentUri LSPSever::Cast(const UCodeAnalyzer::Fileidentifier& Item)
+UCodeLanguageSever::DocumentUri LSPSever::CastToUri(const UCodeAnalyzer::Fileidentifier& Item)
 {
 	return UCodeAnalyzer::Path(Item).generic_string();
+}
+UCodeAnalyzer::Fileidentifier LSPSever::CastToFileId(const UCodeLanguageSever::DocumentUri& Item)
+{
+	return UCodeAnalyzer::Path(Item).native();
 }
 void LSPSever::UpdateClientErrorList()
 {
@@ -406,7 +410,7 @@ void LSPSever::UpdateClientErrorList()
 			auto& files = BaseSever.GetFiles();
 			for (auto& file : files)
 			{
-				p.uri = Cast(file.first);
+				p.uri = CastToUri(file.first);
 				Send_PublishDiagnostics_ToClient(std::move(p));
 			}
 		}
@@ -416,7 +420,7 @@ void LSPSever::UpdateClientErrorList()
 		{
 			auto& Item = _ClientSideErrorsList[i];
 
-			URI ItemUrl = Cast(Item.File);
+			URI ItemUrl = CastToUri(Item.File);
 
 			UCodeAnalyzer::UCFile& f = BaseSever.GetFile(Item.File);
 
@@ -451,7 +455,7 @@ void LSPSever::UpdateClientErrorList()
 			}
 
 			if (IsLast ||
-				(NextErr && ItemUrl != Cast(NextErr->File)))
+				(NextErr && ItemUrl != CastToUri(NextErr->File)))
 			{
 
 				p.uri = LastSet.value();
@@ -464,10 +468,7 @@ void LSPSever::UpdateClientErrorList()
 
 	}
 }
-UCodeAnalyzer::Fileidentifier LSPSever::Cast(const UCodeLanguageSever::DocumentUri& Item)
-{
-	return UCodeAnalyzer::Path(Item).native();
-}
+
 void LSPSever::Sever_initialize(integer requestid, const json& Params)
 {
 	InitializeParams params;

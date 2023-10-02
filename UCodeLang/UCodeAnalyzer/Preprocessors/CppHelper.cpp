@@ -1570,7 +1570,7 @@ String CppHelper::ToString(CppToULangState& State, const CPPType& Value)
 
 	if (Value.mode == CppHelper::CPPType::Mode::Ptr)
 	{
-		R += 'Ptr<';
+		R += "Ptr<";
 	}
 
 	if (CMPStr == "uint8_t" || CMPStr == "uint8" || CMPStr == "UInt8" || CMPStr == "uInt8")

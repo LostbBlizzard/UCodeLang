@@ -5,6 +5,7 @@
 #elif UCodeLang_Platform_Posix
 #include <sys/mman.h>
 #endif
+#include <cstring>
 UCodeLangStart
 void GetCPUData(EnvironmentData& Out)
 {
