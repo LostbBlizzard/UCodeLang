@@ -587,6 +587,10 @@ int SystematicAnalysis::Type_GetCompatibleScore(const IsCompatiblePar& Func, con
 			{
 				StartIndex++;
 			}
+			else if (Info->_FuncType == FuncInfo::FuncType::Invoke)
+			{
+				StartIndex++;
+			}
 		}
 	}
 	int r = 0;

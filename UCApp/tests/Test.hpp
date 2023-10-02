@@ -160,8 +160,8 @@ UCodeTestStart
 		TestInfo("GenericsExpression3","Generics/GenericsExpression3.uc","main",SuccessCondition::CompilationFail),
 
 		TestInfo("Lamdba_1","Objects/Lambda.uc","main",SuccessCondition::RunTimeValue,(int)1),
-		TestInfo("Lamdba_2","Objects/Lambda.uc","main2",SuccessCondition::RunTimeValue,(int)1),
-		TestInfo("Lamdba_3","Objects/Lambda2.uc","main",SuccessCondition::RunTimeValue,(int)1),
+		TestInfo("Lamdba_2","Objects/Lambda.uc","main2",SuccessCondition::RunTimeValue,(int)5),
+		TestInfo("Lamdba_3","Objects/Lambda2.uc","main",SuccessCondition::RunTimeValue,(int)-5),
 		TestInfo("Lamdba_4","Objects/Lambda2.uc","main2",SuccessCondition::RunTimeValue,(int)1),
 		TestInfo("Lamdba_5","Objects/Lambda3.uc","main",SuccessCondition::RunTimeValue,(int)1),
 		TestInfo("Lamdba_6","Objects/Lambda3.uc","main2",SuccessCondition::RunTimeValue,(int)1),

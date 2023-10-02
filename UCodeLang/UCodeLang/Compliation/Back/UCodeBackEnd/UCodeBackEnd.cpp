@@ -1442,7 +1442,7 @@ DoneLoop:
 		InstructionBuilder::Debug_FuncEnd(_Ins); PushIns();
 	}
 	InstructionBuilder::Return(ExitState::Success, _Ins); PushIns();
-	IRToUCodeInsPost.AddValue(Index,_OutLayer->Get_Instructions().size() - 1);
+	IRToUCodeInsPost.GetOrAdd(Index,_OutLayer->Get_Instructions().size() - 1);
 
 	UpdateVarableLocs();
 

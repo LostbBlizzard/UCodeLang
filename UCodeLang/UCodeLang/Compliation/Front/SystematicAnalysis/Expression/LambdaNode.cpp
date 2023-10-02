@@ -260,8 +260,8 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 					{
 						const NeverNullPtr<Token> Token = NeverNullptr(node._LambdaStart);
 
-						LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "cant indirect pass the varable  '" +
-							Item.Name + "' between lambdas.be explicit and make a new varable and assign useing '" + Item.Name + "' in this lambda.");
+						//LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "cant indirect pass the varable  '" +
+							//Item.Name + "' between lambdas.be explicit and make a new varable and assign useing '" + Item.Name + "' in this lambda.");
 
 						Info->_CapturedVarables.push_back(Item);
 					}
@@ -277,8 +277,12 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 				String FullName = _Table._Scope.ThisScope;
 				ScopeHelper::GetApendedString(FullName, LambdaClassName);
 				auto& SymClass = Symbol_AddSymbol(SymbolType::Type_class, LambdaClassName, FullName, AccessModifierType::Public);
+				SymClass.PassState = PassType::FixedTypes;
 
+
+				_Table.AddScope(LambdaName);
 				const SymbolID ClassSymID = Symbol_GetSymbolID(&node._Capture);
+				_Table.RemoveScope();
 
 				_Table.AddSymbolID(SymClass, ClassSymID);
 
@@ -383,15 +387,42 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 				{
 					auto& Item = Info->_CapturedVarables[i];
 
+					auto newsyb = Symbol_GetSymbol(Item.Name, Item.Sym->Type).value();
+					//because lambda's may have other lambdas and may make a new symbol for us to use
+
 
 					IRInstruction* Value = nullptr;
-					if (Item.Sym->Type == SymbolType::StackVarable)
+					if (newsyb->Type == SymbolType::StackVarable)
 					{
-						Value = _IR_LookingAtIRBlock->NewLoad(Item.Sym->IR_Ins);
+						Value = _IR_LookingAtIRBlock->NewLoad(newsyb->IR_Ins);
 					}
-					else if (Item.Sym->Type == SymbolType::ParameterVarable)
+					else if (newsyb->Type == SymbolType::ParameterVarable)
 					{
-						Value = _IR_LookingAtIRBlock->NewLoad(Item.Sym->IR_Par);
+						Value = _IR_LookingAtIRBlock->NewLoad(newsyb->IR_Par);
+					}
+					else if (newsyb->Type == SymbolType::Class_Field)//this.X
+					{
+						auto& Func = _FuncStack.back().Pointer;
+						auto ThisParSym = Symbol_GetSymbol(Func->Pars.front().Type).value();
+						//if (IsSymbolLambdaObjectClass(ThisParSym))
+						{
+							int a = 0;
+							//If The ThisPar an Lambda Object
+							//auto parsym = Symbol_GetSymbol(ScopeHelper::ApendedStrings(Symbol_GetSymbol(Func)->FullName, ThisSymbolName), SymbolType::ParameterVarable).value();
+							//Output = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(In._Symbol->VarType));
+							//Value = LoadSymbolWhenInLambdaObjectInvoke(newsyb);
+						}
+						//else
+						{
+							auto classSb = _ClassStack.top().Syb;
+							auto Classtype = TypeSymbol(classSb->ID);
+							auto GG = classSb->Get_Info<ClassInfo>();
+							auto IndexFeild = GG->GetFieldIndex(ScopeHelper::GetNameFromFullName(newsyb->FullName)).value();
+
+
+							IRStruct* V = _IR_Builder.GetSymbol(IR_Build_ConvertToIRClassIR(*classSb))->Get_ExAs<IRStruct>();
+							Value = _IR_LookingAtIRBlock->New_Member_Dereference(&_IR_LookingAtIRFunc->Pars[0], IR_ConvertToIRType(classSb->ID), IndexFeild);
+						}
 					}
 					else
 					{
@@ -403,8 +434,11 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 					_IR_LookingAtIRBlock->NewStore(Member, Value);
 
 					{
-						auto FullName = _Table._Scope.ThisScope;
+						String FullName = _Table._Scope.ThisScope;
+
 						ScopeHelper::GetApendedString(FullName, Item.Name);
+
+
 						auto& Sym = Symbol_AddSymbol(SymbolType::Class_Field, Item.Name, FullName, AccessModifierType::Public);//to make a this indirection.
 						Sym.VarType = Item.Type;
 					}
@@ -589,4 +623,12 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 		}
 }
 
+bool SystematicAnalysis::IsSymbolLambdaObjectClass(const NeverNullPtr<Symbol> Sym) const
+{
+	return StringHelper::StartWith(ScopeHelper::GetNameFromFullName(Sym->FullName), CompilerGenerated("Lambda"));
+}
+IRInstruction* SystematicAnalysis::LoadSymbolWhenInLambdaObjectInvoke(const NeverNullPtr<Symbol> Sym)
+{
+	return _IR_LookingAtIRBlock->NewLoad((int)5000000);
+}
 UCodeLangFrontEnd

@@ -2241,14 +2241,26 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 				return true;
 			}
 
-			auto objecttypesyb = Symbol_GetSymbol(*ObjectType).value();
-			ClassInfo* V = objecttypesyb->Get_Info<ClassInfo>();
 
-			Out.Type = *Func->GetObjectForCall();
-			Out._Symbol =
-				Symbol_GetSymbol(ScopeHelper::ApendedStrings(Symbol_GetSymbol(Func)->FullName, ThisSymbolName), SymbolType::ParameterVarable)
-				.value().value();
-			//
+			auto ThisParSym = Symbol_GetSymbol(Func->Pars.front().Type).value();
+			if (IsSymbolLambdaObjectClass(ThisParSym))
+			{
+				//If The ThisPar an Lambda Object
+				auto parsym = Symbol_GetSymbol(ScopeHelper::ApendedStrings(Symbol_GetSymbol(Func)->FullName, ThisSymbolName), SymbolType::ParameterVarable).value();
+
+				Out.Type = parsym->VarType;
+				Out._Symbol = parsym.value();
+			}
+			else 
+			{
+				auto objecttypesyb = Symbol_GetSymbol(*ObjectType).value();
+				ClassInfo* V = objecttypesyb->Get_Info<ClassInfo>();
+
+				Out.Type = *Func->GetObjectForCall();
+				Out._Symbol =
+					Symbol_GetSymbol(ScopeHelper::ApendedStrings(Symbol_GetSymbol(Func)->FullName, ThisSymbolName), SymbolType::ParameterVarable)
+					.value().value();
+			}//
 			Start++;
 			End--;
 			ScopedCount++;

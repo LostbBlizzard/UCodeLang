@@ -451,7 +451,7 @@ void C89Backend::AddSybToString(UCodeLang::String& r)
 					}
 					if (V->Fields.size() == 0)
 					{
-						r += " int __Empty;\n //C requires that a struct or union has at least one member";
+						r += " int __Empty; /*C requires that a struct or union has at least one member*/";
 					}
 
 					r += "\n} " + SybName + ";\n\n";

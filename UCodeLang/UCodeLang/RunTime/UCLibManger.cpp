@@ -147,7 +147,7 @@ Optional<UAddress> UCLibManger::FindAddress(const String& FunctionName) const
 {
 	if (_NameToAddress.HasValue(FunctionName))
 	{
-		return _NameToAddress.HasValue(FunctionName);
+		return _NameToAddress.GetValue(FunctionName);
 	}
 	else
 	{

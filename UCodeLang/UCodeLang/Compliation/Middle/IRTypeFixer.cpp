@@ -1,4 +1,5 @@
 #include "IRTypeFixer.hpp"
+#include <iostream>
 UCodeLangStart
 
 
@@ -231,10 +232,10 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op, bool UpdateInsType)
 		}
 
 
-		UCodeLangAssert(InBlock(Op.Pointer));
+		//UCodeLangAssert(InBlock(Op.Pointer));
 		if (!InBlock(Op.Pointer))
 		{
-			LogCantFindInsInBlock();
+			LogCantFindInsInBlock(Op.Pointer);
 		}
 	}
 	else if (Op.Type == IROperatorType::Get_PointerOf_IRInstruction
@@ -280,7 +281,7 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op, bool UpdateInsType)
 			UCodeLangAssert(InBlock(Op.Pointer));
 			if (!InBlock(Op.Pointer))
 			{
-				LogCantFindInsInBlock();
+				LogCantFindInsInBlock(Op.Pointer);
 			}
 			
 		}
@@ -338,8 +339,23 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op, bool UpdateInsType)
 		UCodeLangUnreachable();
 	}
 }
-void IRTypeFixer::LogCantFindInsInBlock()
+void IRTypeFixer::LogCantFindInsInBlock(IRInstruction* Ins)
 {
+	for (auto& Item : _Input->Funcs)
+	{
+		for (auto& Item2 : Item->Blocks)
+		{
+			for (auto& Item3 : Item2->Instructions)
+			{
+				if (Item3.get() == Ins)
+				{
+					std::cout << _Input->FromID(Item->identifier);
+					std::cout << " but were in " << _Input->FromID(_Func->identifier);
+					std::cout << std::endl;
+				}
+			}
+		}
+	}
 	_Errs->AddError(ErrorCodes::ExpectingSequence, 0, 0, "CantFind IR in Block");
 }
 void IRTypeFixer::LogErrorCantFindPar(UCodeLang::IROperator& Op)

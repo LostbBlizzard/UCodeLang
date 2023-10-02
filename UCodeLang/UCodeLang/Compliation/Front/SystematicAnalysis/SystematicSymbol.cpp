@@ -228,18 +228,16 @@ const Vector<const Symbol*>& SystematicAnalysis::GetSymbolsWithName(const String
 }
 void SystematicAnalysis::Symbol_RedefinitionCheck(const NeverNullPtr<Symbol> Syb, const NeverNullPtr<Token> Value)
 {
-	auto other = Symbol_GetSymbol(Syb->FullName, Syb->Type);
-	if (other)
-	{
-		LogError_SymbolRedefinition(Value, Syb);
-	}
+	Symbol_RedefinitionCheck(Syb->FullName, Syb->Type, Value);
 }
 void SystematicAnalysis::Symbol_RedefinitionCheck(const String_view FullName, SymbolType Type, const NeverNullPtr<Token> Value)
 {
 	auto other = Symbol_GetSymbol(FullName, Type);
 	if (other)
 	{
-		LogError_SymbolRedefinition(Value, other.value());
+		if (other.value()->FullName == FullName) {
+			LogError_SymbolRedefinition(Value, other.value());
+		}
 	}
 }
 void SystematicAnalysis::Symbol_RedefinitionCheck(const NeverNullPtr<Symbol> Syb, const FuncInfo* Fvalue, const NeverNullPtr<Token> Value)
