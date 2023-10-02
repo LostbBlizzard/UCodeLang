@@ -326,7 +326,7 @@ project "UCodeIDE"
    }
    prebuildcommands
    {
-     UCPathExe.." cpptoulangvm %{prj.location}src/AppObject/AppAPI.hpp %{prj.location}src/AppObject/AppAPILink.cpp %{prj.location}tepfiles/AppAPU.uc",
+     UCPathExe.." cpptoulangvm %{prj.location}src/AppObject/AppAPI.hpp %{prj.location}src/AppObject/AppAPILink.cpp %{prj.location}tepfiles/AppAPI.uc",
    }
    prebuildmessage "runing cpptoulangvm"
 
@@ -384,22 +384,19 @@ group "UCodeAPIs"
 
   files { 
   "UCodeAPI/%{prj.name}/ignoreC.c",
-
-  "UCodeAPI/%{prj.name}/src/**.c",
-  "UCodeAPI/%{prj.name}/src/**.h",
-  "UCodeAPI/%{prj.name}/src/**.cpp",
-  "UCodeAPI/%{prj.name}/src/**.hpp", 
-  
+  "UCodeAPI/%{prj.name}/src/**.uc",
+  "UCodeAPI/%{prj.name}/ULangModule.ucm",
   }
 
 
  
-
+  postbuildmessage 'compiling ucodelang files'
   postbuildcommands 
   {
     UCPathExe.." index %{prj.location}",
     UCPathExe.." build %{prj.location}"
   }
+  
  project "NStandardLibrary"
   location "UCodeAPI/NStandardLibrary"
   kind "StaticLib"
@@ -413,16 +410,12 @@ group "UCodeAPIs"
   files { 
   "UCodeAPI/%{prj.name}/ignoreC.c",
   "UCodeAPI/%{prj.name}/src/**.uc",
-
-  "UCodeAPI/%{prj.name}/src/**.c",
-  "UCodeAPI/%{prj.name}/src/**.h",
-  "UCodeAPI/%{prj.name}/src/**.cpp",
-  "UCodeAPI/%{prj.name}/src/**.hpp",
+  "UCodeAPI/%{prj.name}/ULangModule.ucm",
   }
 
 
  
-
+  postbuildmessage 'compiling ucodelang files'
   postbuildcommands 
   {
    UCPathExe.." index %{prj.location}",
@@ -440,13 +433,11 @@ group "UCodeAPIs"
   dependson {"UCodelangCL","NWin32"}
   files { 
   "UCodeAPI/%{prj.name}/ignoreC.c",
-
-  "UCodeAPI/%{prj.name}/src/**.c",
-  "UCodeAPI/%{prj.name}/src/**.h",
-  "UCodeAPI/%{prj.name}/src/**.cpp",
-  "UCodeAPI/%{prj.name}/src/**.hpp",
+  "UCodeAPI/%{prj.name}/src/**.uc",
+  "UCodeAPI/%{prj.name}/ULangModule.ucm",
   }
 
+  postbuildmessage 'compiling ucodelang files'
   postbuildcommands 
   {
     UCPathExe.." index %{prj.location}",
@@ -464,15 +455,34 @@ group "UCodeAPIs"
    dependson {"UCodelangCL"}
    files { 
    "UCodeAPI/%{prj.name}/ignoreC.c",
-
-   "UCodeAPI/%{prj.name}/src/**.c",
-   "UCodeAPI/%{prj.name}/src/**.h",
-   "UCodeAPI/%{prj.name}/src/**.cpp",
-   "UCodeAPI/%{prj.name}/src/**.hpp",
+   "UCodeAPI/%{prj.name}/src/**.uc",
+   "UCodeAPI/%{prj.name}/ULangModule.ucm",
    }
 
+   postbuildmessage 'compiling ucodelang files'
    postbuildcommands 
    {
     UCPathExe.." index %{prj.location}",
     UCPathExe.." build %{prj.location}"
+   }
+ project "Example"
+   location "UCodeAPI/Example"
+   kind "ConsoleApp"
+   language "C++"
+
+   targetdir ("Output/%{prj.name}/" .. OutDirPath)
+   objdir ("Output/int/%{prj.name}/" .. OutDirPath)
+
+   
+   dependson {"StandardLibrary"}
+   files { 
+   "UCodeAPI/%{prj.name}/out/CLang89/Example.c",
+   "UCodeAPI/%{prj.name}/src/**.uc",
+   "UCodeAPI/%{prj.name}/ULangModule.ucm",
+   }
+
+   prebuildmessage 'compiling ucodelang files'
+   prebuildcommands 
+   {
+    UCPathExe.." build %{prj.location} -c89",
    }

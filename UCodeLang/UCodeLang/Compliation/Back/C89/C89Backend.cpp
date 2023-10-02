@@ -449,6 +449,10 @@ void C89Backend::AddSybToString(UCodeLang::String& r)
 					{
 						r += " " + ToString(V->Fields[i].Type) + " __" + std::to_string(i) + "; \n";
 					}
+					if (V->Fields.size() == 0)
+					{
+						r += " int __Empty;\n //C requires that a struct or union has at least one member";
+					}
 
 					r += "\n} " + SybName + ";\n\n";
 				}
@@ -1282,7 +1286,7 @@ String C89Backend::ToStringState::GetName(IRInstruction* Ptr)
 	Val += "tepvir";
 
 	auto V = Val;
-	if (PointerToName.HasValue(Ptr)) {
+	if (!PointerToName.HasValue(Ptr)) {
 		PointerToName.AddValue(Ptr, V);
 	}
 	return V;

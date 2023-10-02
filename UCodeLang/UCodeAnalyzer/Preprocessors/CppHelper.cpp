@@ -148,7 +148,7 @@ bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFi
 	
 
 
-	return false;
+	return true;
 }
 
 
