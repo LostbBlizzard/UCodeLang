@@ -131,7 +131,7 @@ public:
 	inline static const Path ModuleOutPath = "out";
 	inline static const Path ModuleBuildfile = "Build.uc";
 
-	inline static const String DefaultSourceFile = "import UCodeLang::{Span,StringSpan,Console};\n\n\n|main[]:\n    Console::Log(\"Hello World\");";
+	inline static const String DefaultSourceFile = "import ULang::{Span,StringSpan,Console};\n\n\n|main[]:\n   Fmt::Println(\"Hello World\");";
 	inline static const String DefaultBuildFile = "import UCodeLang::StandardLibarary[0.0.0];//Build Srcipt Module Imports.\n\n\nimport UCodeLang::{BuildSystem};\n\n\n|build[BuildSystem& system] => system.Build();";
 private:
 	void BuildModuleDependencies(const ModuleIndex& Modules,CompliationErrors& Errs, bool& Err, Compiler& Compiler

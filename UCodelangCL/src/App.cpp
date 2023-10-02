@@ -1192,11 +1192,6 @@ void ParseLine(String_view& Line)
 		Path cpplink = GetPath(Line);
 		Path ulangout = GetPath(Line);
 
-		AppPrintin(cppfile);
-		AppPrintin(cpplink);
-
-		AppPrintin(ulangout);
-
 		UCodeAnalyzer::CppHelper v;
 		if (v.ParseCppfileAndOutULang(cppfile, cpplink, ulangout))
 		{
