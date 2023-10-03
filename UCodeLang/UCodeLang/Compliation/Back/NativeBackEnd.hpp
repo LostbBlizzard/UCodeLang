@@ -21,12 +21,14 @@ using NativePlatformBackEnd = WindowsBackEnd;
 using NativePlatformBackEnd = LinuxBackEnd;
 #else
 using NativePlatformBackEnd = void*;
+#define UCodeLang_HasNoPlatformBackEndBackEnd 
 #endif
 
 #if UCodeLang_CPUIs_x86_64
 using NativeULangBackEnd = X86_64UNativeBackEnd;
 #else
-using NativePlatformBackEnd = void*;
+using NativeULangBackEnd = void*;
+#define UCodeLang_HasNoNativeULangBackEnd 
 #endif
 
 
