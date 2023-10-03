@@ -17,6 +17,8 @@
 #include "UCodeLang/Compliation/Back/C89/C89Backend.hpp"
 #include "UCodeLang/Compliation/Back/LLVM/LLVMBackEnd.hpp"
 
+#include "UCodeLang/Compliation/Back/x86_64/X86_64UNativeBackEnd.hpp"
+
 #include "UCodeLang/RunTime/TestRuner.hpp"
 using namespace UCodeLang;
 
@@ -318,7 +320,12 @@ void ParseLine(String_view& Line)
 				}
 				else if (UCodeLang::StringHelper::Contains(Line, "-uvm:this"))
 				{
+					#ifdef UCodeLang_HasNoNativeULangBackEnd
+					_This.ExeRet = EXIT_FAILURE;
+					AppPrintin("There is no Native-UCodeVM backend for this CPU");
+					#else
 					_Compiler.Set_BackEnd(UCodeLang::NativeULangBackEnd::MakeObject);
+					#endif
 				}
 				else if (UCodeLang::StringHelper::Contains(Line, "-uvm:x86_64"))
 				{
@@ -338,7 +345,12 @@ void ParseLine(String_view& Line)
 				}
 				else if (UCodeLang::StringHelper::Contains(Line, "-native:this"))
 				{
+					#ifdef UCodeLang_HasNoPlatformBackEndBackEnd 
+					_This.ExeRet = EXIT_FAILURE;
+					AppPrintin("There is no Native-Platform backend for this Operating System");
+					#else
 					_Compiler.Set_BackEnd(UCodeLang::NativePlatformBackEnd::MakeObject);
+					#endif
 				}
 				else if (UCodeLang::StringHelper::Contains(Line, "-native:linux"))
 				{
@@ -648,8 +660,12 @@ void ParseLine(String_view& Line)
 		bool use64mode = UCodeLang::StringHelper::Contains(Line, "-64");
 		
 		bool usejit = UCodeLang::StringHelper::Contains(Word1, "-jit");
+		
+		#ifdef UCodeLang_HasNoNativeULangBackEnd
+		bool usenative = false;
+		#else 
 		bool usenative = UCodeLang::StringHelper::Contains(Word1, "-native");
-
+		#endif
 		auto oldline = Line;
 		String _Path = String(GetPath(Line));
 		auto _PathAsPath = Path(_Path);
@@ -723,7 +739,11 @@ void ParseLine(String_view& Line)
 
 		if (usenative)
 		{
+			#ifdef UCodeLang_HasNoNativeULangBackEnd
+			UCodeLangUnreachable();
+			#else
 			_Compiler.Set_BackEnd(NativeULangBackEnd::MakeObject);
+			#endif
 		}
 
 		if (!buildfile2(_PathAsPath, _Compiler, libop))
@@ -794,7 +814,12 @@ void ParseLine(String_view& Line)
 	else if (Word1 == "run" || Word1 == "-r")
 	{
 		bool usejit = UCodeLang::StringHelper::Contains(Word1, "-jit");
+		
+		#ifdef UCodeLang_HasNoNativeULangBackEnd
+		bool usenative = false;
+		#else
 		bool usenative = UCodeLang::StringHelper::Contains(Word1, "-native");
+		#endif
 		bool use03 = UCodeLang::StringHelper::Contains(Word1, "-03");
 		bool tooutjson = UCodeLang::StringHelper::Contains(Word1, "-outjson");
 
@@ -846,7 +871,11 @@ void ParseLine(String_view& Line)
 				Compiler _Compiler;
 				if (usenative)
 				{
+					#ifdef UCodeLang_HasNoNativeULangBackEnd
+					UCodeLangUnreachable();
+					#else
 					_Compiler.Set_BackEnd(NativeULangBackEnd::MakeObject);
+					#endif
 				}
 				if (use03)
 				{
