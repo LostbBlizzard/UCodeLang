@@ -2,10 +2,18 @@
 
 
 #include "../BackEndInterface.hpp"
+#include "WasmFile.hpp"
 UCodeLangStart
 class WebAssemblyBackEnd : BackEndObject
 {
 public:
+	using TypeSection = WasmFile::TypeSection;
+	using FuncSection = WasmFile::FuncSection;
+	using CodeSection = WasmFile::CodeSection;
+	using ValType = WasmFile::ValType;
+	using WasmType = WasmFile::WasmType;
+	using FuncType = WasmFile::FuncType;
+
 	WebAssemblyBackEnd();
 	~WebAssemblyBackEnd() override;
 
@@ -14,20 +22,25 @@ public:
 
 
 	String GetBackEndName() override { return "WebAssembly"; }
-	String GetOutputExtWithDot() override { return ".wast"; }
+	String GetOutputExtWithDot() override { return ".wasm"; }
 	static BackEndObject* MakeObject();
 	void UpdateBackInfo(CompliationBackEndInfo& BackInfo) override;
 private:
 	const IRBuilder* _Input = nullptr;
-	String _Output;
+	WasmFile _Output;
 
+	TypeSection* _typeSection =nullptr;
+	FuncSection* _funcSection = nullptr;
+	CodeSection* _codeSection = nullptr;
+
+	WasmFile::Code* _funccode = nullptr;
 
 	void OnFunc(const IRFunc* Func);
-	void OnFuncSyb(const IRFunc* Func);
+
+	
+	WasmType ToType(const IRType& Type);
 	
 	String ToWebName(const IRidentifierID Name);
 
-
-	String ToString(const IRType& Type);
 };
 UCodeLangEnd

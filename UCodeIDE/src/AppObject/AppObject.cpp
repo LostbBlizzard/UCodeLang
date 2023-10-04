@@ -3178,115 +3178,21 @@ void AppObject::OnDoneCompileing(UCodeLang::Compiler::CompilerRet& Val, const UC
         case BackEndType::LLVM:
             _LibInfoString = _Compiler.GetTextFromFile(tepoutpath);
             break;
-        case BackEndType::WebAssembly:
-            _LibInfoString = _Compiler.GetTextFromFile(tepoutpath);
-            break;
+        case BackEndType::WebAssembly: 
+        {
+            UCodeLang::WasmFile file;
+            UCodeLang::WasmFile::FromFile(tepoutpath, file);
+            _LibInfoString = file.ToWat();
+        }
+        break;
         case BackEndType::WindowsExecutable:
         {
-            /*
-            enma::pe_image image(tepoutpath);
-
-            _LibInfoString += "Portable Executable:\n";
-
-
-            {
-                _LibInfoString += " Machine:";
-
-                switch (image.get_machine())
-                {
-                case IMAGE_FILE_MACHINE_AMD64:
-                    _LibInfoString += "AMD64";
-                    break;
-                case IMAGE_FILE_MACHINE_UNKNOWN:
-                default:
-                    _LibInfoString += "UNKNOWN";
-                    break;
-                }
-                _LibInfoString += '\n';
-                _LibInfoString += " SectionsNumber:";
-                _LibInfoString += std::to_string(image.get_sections_number());
-             
-                _LibInfoString += '\n';
-                _LibInfoString += " Characteristics";
-                if (image.get_characteristics() & IMAGE_FILE_EXECUTABLE_IMAGE)
-                {
-                    _LibInfoString += ":EXECUTABLE";
-                }
-                _LibInfoString += '\n';
-                _LibInfoString += " DllCharacteristics";
-                if (image.get_characteristics_dll() & IMAGE_DLLCHARACTERISTICS_NX_COMPAT)
-                {
-                    _LibInfoString += ":NX_COMPAT";
-                }
-                if (image.get_characteristics_dll() & IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA)
-                {
-                    _LibInfoString += ":HIGH_ENTROPY_VA";
-                }
-                if (image.get_characteristics_dll() & IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE)
-                {
-                    _LibInfoString += ":DYNAMIC_BASE";
-                }
-                if (image.get_characteristics_dll() & IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE)
-                {
-                    _LibInfoString += ":TERMINAL_SERVER_AWARE";
-                }
-                _LibInfoString += '\n';
-                _LibInfoString += " Subsystem:";
-                switch (image.get_sub_system())
-                {
-                case IMAGE_SUBSYSTEM_WINDOWS_CUI:
-                    _LibInfoString += "CUI";
-                    break;
-                case IMAGE_SUBSYSTEM_WINDOWS_GUI:
-                    _LibInfoString += "GUI";
-                    break;
-                default:
-                    _LibInfoString += "UNKNOWN";
-                    break;
-                }
-                _LibInfoString += " Sections:\n";
-                for (auto& Item : image.get_sections())
-                {
-                    _LibInfoString += "\n  ";
-                    _LibInfoString += Item->get_section_name();
-                    _LibInfoString += ":\n";
-
-                    _LibInfoString += "   Characteristics";
-                    if (Item->get_characteristics() & IMAGE_SCN_MEM_EXECUTE)
-                    {
-                        _LibInfoString += ":EXECUTABLE";
-                    }
-                    if (Item->get_characteristics() & IMAGE_SCN_MEM_WRITE)
-                    {
-                        _LibInfoString += ":WRITE";
-                    }
-                    if (Item->get_characteristics() & IMAGE_SCN_MEM_READ)
-                    {
-                        _LibInfoString += ":READ";
-                    }
-                    _LibInfoString += '\n';
-                    _LibInfoString += "   Data:"; 
-                    auto& datas = Item->get_section_data();
-
-                }
-
-            }
-            */
             _LibInfoString = "";
-        }break;
+        }
+        break;
         case BackEndType::LinuxExecutable:
         {
-            /*
-            std::stringstream s;
-            ELFIO::elfio reader;
-            reader.load(tepoutpath.generic_string());
-            ELFIO::dump::header(s, reader);
-            ELFIO::dump::section_headers(s, reader);
-            ELFIO::dump::symbol_tables(std::cout, reader);
-            ELFIO::dump::segment_datas(std::cout, reader);
-
-            _LibInfoString = s.str();
-            */
+           
             _LibInfoString = "";
         }    
         break;
