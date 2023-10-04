@@ -102,7 +102,6 @@ using namespace UCodeLang;
 
 	bool RunTestForFlag(const TestInfo& Test, OptimizationFlags flag, std::ostream& LogStream, std::ostream& ErrStream, TestMode mode)
 	{
-		return false;
 		#if UCodeLangDebug
 		Compiler::CompilerPathData paths;
 		Compiler Com;
@@ -355,9 +354,19 @@ using namespace UCodeLang;
                     ((Func)threadinittocall)();
                 }
 
+				auto rettype = ufunc->RetType;
+				if (auto val = Assembly.Find_Node(rettype))
+				{
+					if (val->Get_Type() == ClassType::Enum)
+					{
+						auto& Enum = val->Get_EnumData();
+						rettype = Enum.BaseType;
+					}
+				}
+
 				auto RetValue = std::make_unique<Byte[]>(Test.RunTimeSuccessSize);
 				{
-					if (ufunc->RetType._Type == ReflectionTypes::Bool)
+					if (rettype._Type == ReflectionTypes::Bool)
 					{
 						using GetValueFunc = bool(*)();
 						auto val = ((GetValueFunc)functocall)();
@@ -365,9 +374,9 @@ using namespace UCodeLang;
 						UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
 						memcpy(RetValue.get(), &val, sizeof(val));
 					}
-					else if (ufunc->RetType._Type == ReflectionTypes::sInt8
-						|| ufunc->RetType._Type == ReflectionTypes::uInt8
-						|| ufunc->RetType._Type == ReflectionTypes::Char)
+					else if (rettype._Type == ReflectionTypes::sInt8
+						|| rettype._Type == ReflectionTypes::uInt8
+						|| rettype._Type == ReflectionTypes::Char)
 					{
 						using GetValueFunc = UInt8(*)();
 						auto val = ((GetValueFunc)functocall)();
@@ -375,8 +384,8 @@ using namespace UCodeLang;
 						UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
 						memcpy(RetValue.get(), &val, sizeof(val));
 					}
-					else  if (ufunc->RetType._Type == ReflectionTypes::uInt16
-						|| ufunc->RetType._Type == ReflectionTypes::sInt16)
+					else  if (rettype._Type == ReflectionTypes::uInt16
+						|| rettype._Type == ReflectionTypes::sInt16)
 					{
 						using GetValueFunc = Int16(*)();
 						auto val = ((GetValueFunc)functocall)();
@@ -384,8 +393,8 @@ using namespace UCodeLang;
 						UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
 						memcpy(RetValue.get(), &val, sizeof(val));
 					}
-					else  if (ufunc->RetType._Type == ReflectionTypes::uInt32
-						|| ufunc->RetType._Type == ReflectionTypes::sInt32)
+					else  if (rettype._Type == ReflectionTypes::uInt32
+						|| rettype._Type == ReflectionTypes::sInt32)
 					{
 						using GetValueFunc = Int32(*)();
 						auto val = ((GetValueFunc)functocall)();
@@ -393,7 +402,7 @@ using namespace UCodeLang;
 						UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
 						memcpy(RetValue.get(), &val, sizeof(val));
 					}
-					else  if (ufunc->RetType._Type == ReflectionTypes::float32)
+					else  if (rettype._Type == ReflectionTypes::float32)
 					{
 						using GetValueFunc = float32(*)();
 						auto val = ((GetValueFunc)functocall)();
@@ -401,7 +410,7 @@ using namespace UCodeLang;
 						UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
 						memcpy(RetValue.get(), &val, sizeof(val));
 					}
-					else  if (ufunc->RetType._Type == ReflectionTypes::float64)
+					else  if (rettype._Type == ReflectionTypes::float64)
 					{
 						using GetValueFunc = float64(*)();
 						auto val = ((GetValueFunc)functocall)();
@@ -409,8 +418,8 @@ using namespace UCodeLang;
 						UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
 						memcpy(RetValue.get(), &val, sizeof(val));
 					}
-					else  if (ufunc->RetType._Type == ReflectionTypes::uIntPtr
-						|| ufunc->RetType._Type == ReflectionTypes::sIntPtr)
+					else  if (rettype._Type == ReflectionTypes::uIntPtr
+						|| rettype._Type == ReflectionTypes::sIntPtr)
 					{
 						using GetValueFunc = uintptr_t(*)();
 						auto val = ((GetValueFunc)functocall)();
@@ -418,7 +427,7 @@ using namespace UCodeLang;
 						UCodeLangAssert(Test.RunTimeSuccessSize == sizeof(val));
 						memcpy(RetValue.get(), &val, sizeof(val));
 					}
-					else if (auto typenod = Assembly.Find_Node(ufunc->RetType))
+					else if (auto typenod = Assembly.Find_Node(rettype))
 					{
 						if (StringHelper::StartWith(typenod->FullName, "Vec2")
 							|| StringHelper::StartWith(typenod->FullName, "vec2"))
@@ -545,228 +554,157 @@ using namespace UCodeLang;
 		return r;
 	}
 
+	constexpr size_t BackEndsCount = (size_t)TestMode::Max;
 
 	int RunTests(bool MultThread)
 	{
-		size_t TestPassed = 0;
+		struct TestBackEndGroup
 		{
+			size_t TestsPassed = 0;
+			size_t TestsSkiped = 0;
+			size_t TestsFail = 0;
 
-			std::cout << "---runing Test" << std::endl;
+			size_t TestModulePassed = 0;
+		};
+		Array< TestBackEndGroup, BackEndsCount> TestInfo;
+
+		for (size_t i = 0; i < BackEndsCount; i++)
+		{
+			auto& MyTestInfo = TestInfo[i];
+			TestMode mode = (TestMode)i;
+
+			std::cout << "---runing Test for" << TestModeToName(mode) << std::endl;
 
 			Vector<std::future<bool>> List;
+			List.resize(Tests.size());
 
-			UCodeLang::UAssembly::Get_InsToInsMapValue();
-			for (auto& Test : Tests)
+
+			for (size_t i = 0; i < Tests.size(); i++)
 			{
-				//if (RunTest(Test)) { TestPassed++; }
-
-				if (MultThread == false)
+				auto& Test = Tests[i];
+		
+				if (!ShouldSkipTests(i, mode))
 				{
-					auto TestR = RunTest(Test, TestMode::UCodeLangBackEnd);
+					if (MultThread == false)
+					{
+						auto TestR = RunTest(Test, mode);
+						auto F = std::async(std::launch::async, [&]
+						{
+								return TestR;
+						});
+						List[i] = std::move(F);
+					}
+					else
+					{
+						auto F = std::async(std::launch::async, [&]
+							{
+								try
+								{
+									return RunTest(Test, mode);
+								}
+								catch (const std::exception& why)
+								{
+									std::cout << why.what();
+									return false;
+								}
+							}
+						);
+						List[i] = std::move(F);
+					}
 				}
 				else
 				{
-					auto F = std::async(std::launch::async, [&]
-						{
-							try
-							{
-								return RunTest(Test, TestMode::UCodeLangBackEnd);
-							}
-							catch (const std::exception& why)
-							{
-								std::cout << why.what();
-								return false;
-							}
-						}
-					);
-					List.push_back(std::move(F));
+					MyTestInfo.TestsSkiped++;
 				}
 			}
 
-			for (auto& Item : List)
+			for (size_t i = 0; i < Tests.size(); i++)
 			{
-				try
+				auto& Item = List[i];
+
+				if (!ShouldSkipTests(i, mode))
 				{
-					Item.wait();
-					if (Item.get()) { TestPassed++; };
+					try
+					{
+						Item.wait();
+						if (Item.get())
+						{
+							MyTestInfo.TestsPassed++;
+						}
+						else
+						{
+							MyTestInfo.TestsFail++;
+						}
+					}
+					catch (const std::exception& why)
+					{
+						std::cout << why.what();
+						MyTestInfo.TestsFail++;
+					}
 				}
-				catch (const std::exception& why)
-				{
-					std::cout << why.what();
-				}
+
 
 			}
 
-			std::cout << "---Tests ended" << std::endl;
-			std::cout << "passed " << TestPassed << "/" << Tests.size() << " Tests" << std::endl;
+			std::cout << "---Tests ended for " << TestModeToName(mode) << std::endl;
+			std::cout << "passed " << MyTestInfo.TestsPassed << "/" << Tests.size() << " Tests" << std::endl;
+			std::cout << "skiped " << MyTestInfo.TestsSkiped << "/" << Tests.size() << " Tests" << std::endl;
+			std::cout << "failed " << MyTestInfo.TestsFail << "/" << Tests.size() << " Tests" << std::endl;
 		}
 
-		size_t TestModulePassed = 0;
+		std::cout << "---Tests Review" << std::endl;
+		for (size_t i = 0; i < BackEndsCount; i++)
 		{
+			auto& MyTestInfo = TestInfo[i];
+			TestMode mode = (TestMode)i;
 
-			std::cout << "---runing Module Tests" << std::endl;
-
-			Vector<std::future<bool>> List;
-
-			UCodeLang::UAssembly::Get_InsToInsMapValue();
-			for (auto& Test : ModuleTests)
-			{
-				//if (RunTest(Test)) { TestPassed++; }
-
-				if (MultThread == false)
-				{
-
-					auto TestR = RunTest(Test, TestMode::UCodeLangBackEnd);
-				}
-				else
-				{
-					auto F = std::async(std::launch::async, [&]
-						{
-							try
-							{
-								return RunTest(Test, TestMode::UCodeLangBackEnd);
-							}
-							catch (const std::exception& why)
-							{
-								std::cout << why.what();
-								return false;
-							}
-						}
-					);
-					List.push_back(std::move(F));
-				}
-			}
-
-			for (auto& Item : List)
-			{
-				try
-				{
-					Item.wait();
-					if (Item.get()) { TestModulePassed++; };
-				}
-				catch (const std::exception& why)
-				{
-					std::cout << why.what();
-				}
-
-			}
-
-			std::cout << "---Module ended" << std::endl;
-			std::cout << "passed " << TestModulePassed << "/" << ModuleTests.size() << "Module Tests" << std::endl;
+			std::cout << "BackEnd :" << TestModeToName(mode) << std::endl;
+			
+			std::cout << "  passed :" << MyTestInfo.TestsPassed << "/" << Tests.size()
+				<< " (" << (int)(((float)MyTestInfo.TestsPassed / (float)Tests.size()) * 100) << "%)" << " Tests" << std::endl;
+			
+			std::cout << "  skiped :" << MyTestInfo.TestsSkiped << "/" << Tests.size()
+				<< " (" << (int)(((float)MyTestInfo.TestsSkiped / (float)Tests.size())*100) << "%) " << " Tests" << std::endl;
+			
+			std::cout << "  failed :" << MyTestInfo.TestsFail << "/" << Tests.size()
+				<< " (" << (int)(((float)MyTestInfo.TestsFail / (float)Tests.size())*100) << "%) "  << " Tests" << std::endl;
 		}
-
-
-		size_t CTestPassed = 0;
+		std::cout << "---Tests Average" << std::endl;
 		{
-			std::cout << "---runing Module Tests" << std::endl;
+			size_t PassCount = 0;
+			size_t SkipedCount = 0;
+			size_t FailCount = 0;
 
-			Vector<std::future<bool>> List;
-
-			UCodeLang::UAssembly::Get_InsToInsMapValue();
-			for (auto& Test : ModuleTests)
+			auto alltestcount = Tests.size() * BackEndsCount;
+			for (size_t i = 0; i < BackEndsCount; i++)
 			{
-				//if (RunTest(Test)) { TestPassed++; }
-
-				if (MultThread == false)
-				{
-
-					auto TestR = RunTest(Test, TestMode::CLang89BackEnd);
-				}
-				else
-				{
-					auto F = std::async(std::launch::async, [&]
-						{
-							try
-							{
-								return RunTest(Test, TestMode::CLang89BackEnd);
-							}
-							catch (const std::exception& why)
-							{
-								std::cout << why.what();
-								return false;
-							}
-						}
-					);
-					List.push_back(std::move(F));
-				}
+				auto& MyTestInfo = TestInfo[i];
+				TestMode mode = (TestMode)i;
+				PassCount += MyTestInfo.TestsPassed;
+				SkipedCount += MyTestInfo.TestsSkiped;
+				FailCount += MyTestInfo.TestsFail;
 			}
-
-			for (auto& Item : List)
-			{
-				try
-				{
-					Item.wait();
-					if (Item.get()) { CTestPassed++; };
-				}
-				catch (const std::exception& why)
-				{
-					std::cout << why.what();
-				}
-
-			}
-
-			std::cout << "---Module ended" << std::endl;
-			std::cout << "passed " << CTestPassed << "/" << Tests.size() << "Module Tests" << std::endl;
+			std::cout << "  passed :" << PassCount << "/" << alltestcount 
+				<< " (" << (int)(((float)PassCount/(float)alltestcount)*100) << "%) " << " Tests" << std::endl;
+			
+			std::cout << "  skiped :" << SkipedCount << "/" << alltestcount 
+				<< " (" << (int)(((float)SkipedCount / (float)alltestcount) * 100) << "%) " << " Tests" << std::endl;
+			
+			std::cout << "  failed :" << FailCount << "/" << alltestcount 
+				<< " (" << (int)(((float)FailCount / (float)alltestcount) * 100) << "%) " << " Tests" << std::endl;
 		}
-		size_t CTestModulePassed = 0;
+
+		bool isok = true;
+		for (auto& Item : TestInfo)
 		{
-
-
-			std::cout << "---runing Module Tests" << std::endl;
-
-			Vector<std::future<bool>> List;
-
-			UCodeLang::UAssembly::Get_InsToInsMapValue();
-			for (auto& Test : ModuleTests)
+			if (Item.TestsFail)
 			{
-				//if (RunTest(Test)) { TestPassed++; }
-
-				if (MultThread == false)
-				{
-
-					auto TestR = RunTest(Test, TestMode::CLang89BackEnd);
-				}
-				else
-				{
-					auto F = std::async(std::launch::async, [&]
-						{
-							try
-							{
-								return RunTest(Test, TestMode::CLang89BackEnd);
-							}
-							catch (const std::exception& why)
-							{
-								std::cout << why.what();
-								return false;
-							}
-						}
-					);
-					List.push_back(std::move(F));
-				}
+				isok = false;
 			}
-
-			for (auto& Item : List)
-			{
-				try
-				{
-					Item.wait();
-					if (Item.get()) { CTestModulePassed++; };
-				}
-				catch (const std::exception& why)
-				{
-					std::cout << why.what();
-				}
-
-			}
-
-			std::cout << "---Module ended" << std::endl;
-			std::cout << "passed " << CTestModulePassed << "/" << ModuleTests.size() << "Module Tests" << std::endl;
+			return true;
 		}
 
-		return TestPassed == Tests.size()
-			&& TestModulePassed == ModuleTests.size()
-			&& CTestPassed == Tests.size()
-			&& CTestModulePassed == ModuleTests.size();
+		return isok;
 	}
 
 	bool LogErrors(std::ostream& out, Compiler& _Compiler)
