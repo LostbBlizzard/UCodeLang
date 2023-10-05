@@ -63,7 +63,9 @@ public:
 		UFuncToCPPFunc.clear();
 		#endif
 		#if UCodeLang_KeepJitInterpreterFallback
+		#if UCodeLangDebug
 		_Interpreter.InDestruct = InDestruct;
+		#endif
 		_Interpreter.UnLoad();
 		#endif
 	}

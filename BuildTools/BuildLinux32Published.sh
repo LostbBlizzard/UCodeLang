@@ -1,1 +1,1 @@
-make confg=published_linux32
+make config=published_linux32

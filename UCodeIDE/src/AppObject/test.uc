@@ -19,6 +19,7 @@ int V = 5;
 
 */
 
+/*
 
 |main[]:
  int z = 2;
@@ -28,6 +29,7 @@ int V = 5;
    ret FuncTwo(a + b) / 2;
  ;
  ret Func(14,6);
+
 
 
 $Object:
@@ -44,3 +46,7 @@ $Object:
 |main2[]:
  Object Item = [];
  ret Item.Call();
+
+*/
+
+|main[] => 0;

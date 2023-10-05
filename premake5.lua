@@ -40,9 +40,19 @@ workspace "UCodeLang"
    filter { "platforms:Win32" }
     system "Windows"
     architecture "x86"
+
+    if os.host() == "linux" then
+      gccprefix ("i686-w64-mingw32-")
+    end
+
    filter { "platforms:Win64" }
      system "Windows"
      architecture "x86_64"
+
+     if os.host() == "linux" then
+      gccprefix ("x86_64-w64-mingw32-")
+      buildoptions { "-posix" }
+     end
 
    filter { "platforms:linux32" }
     system "linux"
@@ -326,7 +336,7 @@ project "UCodeIDE"
    }
    prebuildcommands
    {
-     UCPathExe.." cpptoulangvm %{prj.location}src/AppObject/AppAPI.hpp %{prj.location}src/AppObject/AppAPILink.cpp %{prj.location}tepfiles/AppAPI.uc",
+     UCPathExe.." cpptoulangvm %{prj.location}/src/AppObject/AppAPI.hpp %{prj.location}src/AppObject/AppAPILink.cpp %{prj.location}tepfiles/AppAPI.uc",
    }
    prebuildmessage "runing cpptoulangvm"
 
