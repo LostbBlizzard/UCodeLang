@@ -62,7 +62,7 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Install X11 Library
-      run: sudo apt-get install -y libx11-dev
+      run: sudo apt install libxcursor-dev
     
     - name: Install OpenGL Library
       run: sudo apt install freeglut3-dev
