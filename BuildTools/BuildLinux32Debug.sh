@@ -1,1 +1,1 @@
-make confg=debug_linux32
+make config=debug_linux32

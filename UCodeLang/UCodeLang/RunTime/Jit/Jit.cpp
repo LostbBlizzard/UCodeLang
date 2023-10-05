@@ -1,7 +1,7 @@
 #include "Jit.hpp"
 
 #if UCodeLang_Platform_Windows
-#include <Windows.h>
+#include <windows.h>
 #elif UCodeLang_Platform_Posix
 #include <sys/mman.h>
 #endif

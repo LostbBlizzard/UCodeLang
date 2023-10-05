@@ -1,5 +1,7 @@
 #pragma once
-#include "UCodeLang/LangCore/LangDef.hpp"
+
+
+#define UCodeLangAPIExport
 
 //C includes
 #include  <inttypes.h>
