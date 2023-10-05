@@ -20,10 +20,11 @@ UCodeAPI/StandardLibrary/out/
 UCodeAPI/NStandardLibrary/int/
 UCodeAPI/NStandardLibrary/out/
 
-UCodeIDE/imgui.ini
 
-UCodeIDE/tepfiles/
 
-UCodeIDE/out.data
-UCodeIDE/out.data.c
 UCodeIDE/out.lib
+UCodeIDE/out.data.c
+UCodeIDE/imgui.ini
+UCodeIDE/tepfiles/
+UCodeIDE/int/
+UCodeIDEUCodeIDE/intDep.data

@@ -96,6 +96,9 @@ UCodeTestStart
 		}
 		return r;
 	}
+
+	
+
 	static const Array<TestInfo, 92> Tests
 	{
 
@@ -223,7 +226,42 @@ UCodeTestStart
 		TestInfo("inferredenumfield", "Generics/inferredenumfield.uc", "main", SuccessCondition::RunTimeValue, (int)5),
 	};
 
+	struct SkipTestRange
+	{
+		size_t Start;
+		size_t End;
+	};
+	static const Vector<SkipTestRange> UCodeVmSkipTests
+		= { {10, Tests.size() } };
+	static const Vector<SkipTestRange> C89SkipTests
+		= { {40, Tests.size() } };
+	static const Vector<SkipTestRange> WasmSkipTests
+		= { {0, Tests.size() } };
 
+	inline bool ShouldSkipTest(size_t Index, const Vector<SkipTestRange>& list)
+	{
+		for (auto& Item : list)
+		{
+			if (Item.Start <= Index && Item.End > Index)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	inline bool ShouldVmSkipTest(size_t Index)
+	{
+		return ShouldSkipTest(Index, UCodeVmSkipTests);
+	}
+	inline bool ShouldC89SkipTest(size_t Index)
+	{
+		return ShouldSkipTest(Index, C89SkipTests);
+	}
+	inline bool ShouldWasmSkipTest(size_t Index)
+	{
+		return ShouldSkipTest(Index, WasmSkipTests);
+	}
 
 	struct ModuleTest
 	{
@@ -247,7 +285,49 @@ UCodeTestStart
 	{
 		UCodeLangBackEnd,
 		CLang89BackEnd,
+		WasmBackEnd,
+
+		Max,
 	};
+	inline String TestModeToName(TestMode mode)
+	{
+		switch (mode)
+		{
+		case ULangTest::TestMode::UCodeLangBackEnd:
+		{
+			return "UCodeVm";
+		}
+		break;
+		case ULangTest::TestMode::CLang89BackEnd:
+		{
+			return "C89";
+		}
+		break;
+		case ULangTest::TestMode::WasmBackEnd:
+		{
+			return "Wasm";
+		}
+		break;
+		default:
+			UCodeLangUnreachable();
+			break;
+		}
+	}
+	inline bool ShouldSkipTests(size_t Index,TestMode mode)
+	{
+		switch (mode)
+		{
+		case ULangTest::TestMode::UCodeLangBackEnd:
+			return ShouldVmSkipTest(Index);
+		case ULangTest::TestMode::CLang89BackEnd:
+			return ShouldC89SkipTest(Index);
+		case ULangTest::TestMode::WasmBackEnd:
+			return ShouldWasmSkipTest(Index);
+		default:
+			UCodeLangUnreachable();
+			break;
+		}
+	}
 
 	bool RunTest(const TestInfo& Test, TestMode mode);
 

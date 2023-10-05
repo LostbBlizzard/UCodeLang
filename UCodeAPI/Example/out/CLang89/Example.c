@@ -104,7 +104,7 @@ static int8_t _Const_SpanString_A_Mini_Linux_Terminal_Emulator[] = {65,32,77,105
 typedef struct 
 {
  void* __0; 
- int64_t __1; 
+ int32_t __1; 
 
 } ULang_StringSpan_t_char_;
 
@@ -117,68 +117,67 @@ static int8_t _Const_SpanString_cp______Copy[] = {99,112,32,32,32,32,47,47,67,11
 static int8_t _Const_SpanString_rm______Remove_file[] = {114,109,32,32,32,32,47,47,82,101,109,111,118,101,32,102,105,108,101};
 typedef struct 
 {
- int __Empty;
- //C requires that a struct or union has at least one member
+ int __Empty; /*C requires that a struct or union has at least one member*/
 } ULang_Compiler;
 
 typedef struct 
 {
- int __Empty;
- //C requires that a struct or union has at least one member
+ int __Empty; /*C requires that a struct or union has at least one member*/
 } ULang_Empty;
 
 typedef struct 
 {
- int __Empty;
- //C requires that a struct or union has at least one member
+ int __Empty; /*C requires that a struct or union has at least one member*/
 } ULang_LowLevel;
 
 typedef struct 
 {
- int __Empty;
- //C requires that a struct or union has at least one member
+ int __Empty; /*C requires that a struct or union has at least one member*/
 } ULang_Math;
 
 typedef struct 
 {
- int __Empty;
- //C requires that a struct or union has at least one member
+ int __Empty; /*C requires that a struct or union has at least one member*/
 } ULang_Fmt;
 
 typedef struct 
 {
- int __Empty;
- //C requires that a struct or union has at least one member
+ int __Empty; /*C requires that a struct or union has at least one member*/
 } ULang_OpenedFile;
 
 typedef struct 
 {
- int __Empty;
- //C requires that a struct or union has at least one member
+ int __Empty; /*C requires that a struct or union has at least one member*/
 } ULang_OpenFileError;
 
 typedef struct 
 {
- int __Empty;
- //C requires that a struct or union has at least one member
+ int __Empty; /*C requires that a struct or union has at least one member*/
 } ULang_File;
 
 typedef struct 
 {
- int __Empty;
- //C requires that a struct or union has at least one member
+ int __Empty; /*C requires that a struct or union has at least one member*/
 } ULang_Writer;
 
 typedef struct 
 {
- int __Empty;
- //C requires that a struct or union has at least one member
+ int __Empty; /*C requires that a struct or union has at least one member*/
+} ULang_Future;
+
+typedef struct 
+{
+ int __Empty; /*C requires that a struct or union has at least one member*/
+} ULang_Thread;
+
+typedef struct 
+{
+ int __Empty; /*C requires that a struct or union has at least one member*/
 } ULang_Path;
 
 typedef struct 
 {
- int __Empty;
- //C requires that a struct or union has at least one member
+ int __Empty; /*C requires that a struct or union has at least one member*/
 } ULang_String_t_char_;
 
 typedef struct 
@@ -208,15 +207,15 @@ typedef struct
 typedef struct 
 {
  void* __0; 
- int64_t __1; 
- int64_t __2; 
+ int32_t __1; 
+ int32_t __2; 
 
 } ULang_Vector_uint8_;
 
 typedef struct 
 {
  void* __0; 
- int64_t __1; 
+ int32_t __1; 
 
 } ULang_Span_uint8_;
 
@@ -234,40 +233,37 @@ typedef struct
 
 typedef struct 
 {
- int __Empty;
- //C requires that a struct or union has at least one member
+ int __Empty; /*C requires that a struct or union has at least one member*/
 } ULang_String_t_uft8_;
 
 typedef struct 
 {
  void* __0; 
- int64_t __1; 
+ int32_t __1; 
 
 } ULang_StringSpan_t_uft8_;
 
 typedef struct 
 {
- int __Empty;
- //C requires that a struct or union has at least one member
+ int __Empty; /*C requires that a struct or union has at least one member*/
 } ULang_String_t_uft16_;
 
 typedef struct 
 {
  void* __0; 
- int64_t __1; 
+ int32_t __1; 
 
 } ULang_StringSpan_t_uft16_;
 
 typedef struct 
 {
- int __Empty;
- //C requires that a struct or union has at least one member
+ int __Empty; /*C requires that a struct or union has at least one member*/
 } ULang_String_t_uft32_;
 
 typedef struct 
 {
  void* __0; 
- int64_t __1; 
+ int32_t __1; 
 
 } ULang_StringSpan_t_uft32_;
 
@@ -358,10 +354,10 @@ int8_t ULang_Compiler_IsBackendWasm();
 int8_t ULang_Compiler_IsBackendVM();
 void ULang_Compiler____new___ULang_Compiler_(ULang_Compiler* __this__);
 void ULang_Empty____new___ULang_Empty_(ULang_Empty* __this__);
-void ULang_LowLevel_Malloc_uptr(int64_t Size);
+void ULang_LowLevel_Malloc_uptr(int32_t Size);
 void ULang_LowLevel_Free_u8___(void* Block);
-void ULang_LowLevel_Memcopy_u8____u8____uptr(void* destination,void* source,int64_t num);
-void ULang_LowLevel_Memmove_u8____u8____uptr(void* destination,void* source,int64_t num);
+void ULang_LowLevel_Memcopy_u8____u8____uptr(void* destination,void* source,int32_t num);
+void ULang_LowLevel_Memmove_u8____u8____uptr(void* destination,void* source,int32_t num);
 void ULang_LowLevel____new___ULang_LowLevel_(ULang_LowLevel* __this__);
 void ULang_Math____new___ULang_Math_(ULang_Math* __this__);
 void ULang_Fmt_Print_c(int8_t Str);
@@ -387,15 +383,17 @@ int8_t ULang_Tests_Max_1();
 int8_t ULang_Tests_Max_2();
 int8_t ULang_Tests_Min_1();
 int8_t ULang_Tests_Min_2();
+void ULang_Future____new___ULang_Future_(ULang_Future* __this__);
+void ULang_Thread____new___ULang_Thread_(ULang_Thread* __this__);
 void ULang_Path____new___ULang_Path_(ULang_Path* __this__);
 void ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char__(ULang_StringSpan_t_char_* __this__);
-void ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char___c____uptr(ULang_StringSpan_t_char_* __this__,void* data,int64_t size);
-int64_t ULang_StringSpan_t_char__Size_ULang_StringSpan_t_char__imut(ULang_StringSpan_t_char_* __this__);
+void ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char___c____uptr(ULang_StringSpan_t_char_* __this__,void* data,int32_t size);
+int32_t ULang_StringSpan_t_char__Size_ULang_StringSpan_t_char__imut(ULang_StringSpan_t_char_* __this__);
 void* ULang_StringSpan_t_char__Data_ULang_StringSpan_t_char__imut(ULang_StringSpan_t_char_* __this__);
 void ULang_String_t_char_____new___ULang_String_t_char__(ULang_String_t_char_* __this__);
 void ULang_Span_uint8_____new___ULang_Span_uint8__(ULang_Span_uint8_* __this__);
-void ULang_Span_uint8_____new___ULang_Span_uint8___u8____uptr(ULang_Span_uint8_* __this__,void* data,int64_t size);
-int64_t ULang_Span_uint8__Size_ULang_Span_uint8__imut(ULang_Span_uint8_* __this__);
+void ULang_Span_uint8_____new___ULang_Span_uint8___u8____uptr(ULang_Span_uint8_* __this__,void* data,int32_t size);
+int32_t ULang_Span_uint8__Size_ULang_Span_uint8__imut(ULang_Span_uint8_* __this__);
 void* ULang_Span_uint8__Data_ULang_Span_uint8__imut(ULang_Span_uint8_* __this__);
 void ULang_Vector_uint8_____new___ULang_Vector_uint8__(ULang_Vector_uint8_* __this__);
 int32_t ULang_Vector_uint8__Push_u8_imut(void* Val);
@@ -404,18 +402,18 @@ int32_t ULang_Math_Max_sint32__i32_i32(int32_t A,int32_t B);
 int32_t ULang_Math_Min_sint32__i32_i32(int32_t A,int32_t B);
 void ULang_String_t_uft8_____new___ULang_String_t_uft8__(ULang_String_t_uft8_* __this__);
 void ULang_StringSpan_t_uft8_____new___ULang_StringSpan_t_uft8__(ULang_StringSpan_t_uft8_* __this__);
-void ULang_StringSpan_t_uft8_____new___ULang_StringSpan_t_uft8_______uptr(ULang_StringSpan_t_uft8_* __this__,void* data,int64_t size);
-int64_t ULang_StringSpan_t_uft8__Size_ULang_StringSpan_t_uft8__imut(ULang_StringSpan_t_uft8_* __this__);
+void ULang_StringSpan_t_uft8_____new___ULang_StringSpan_t_uft8_______uptr(ULang_StringSpan_t_uft8_* __this__,void* data,int32_t size);
+int32_t ULang_StringSpan_t_uft8__Size_ULang_StringSpan_t_uft8__imut(ULang_StringSpan_t_uft8_* __this__);
 void* ULang_StringSpan_t_uft8__Data_ULang_StringSpan_t_uft8__imut(ULang_StringSpan_t_uft8_* __this__);
 void ULang_String_t_uft16_____new___ULang_String_t_uft16__(ULang_String_t_uft16_* __this__);
 void ULang_StringSpan_t_uft16_____new___ULang_StringSpan_t_uft16__(ULang_StringSpan_t_uft16_* __this__);
-void ULang_StringSpan_t_uft16_____new___ULang_StringSpan_t_uft16_______uptr(ULang_StringSpan_t_uft16_* __this__,void* data,int64_t size);
-int64_t ULang_StringSpan_t_uft16__Size_ULang_StringSpan_t_uft16__imut(ULang_StringSpan_t_uft16_* __this__);
+void ULang_StringSpan_t_uft16_____new___ULang_StringSpan_t_uft16_______uptr(ULang_StringSpan_t_uft16_* __this__,void* data,int32_t size);
+int32_t ULang_StringSpan_t_uft16__Size_ULang_StringSpan_t_uft16__imut(ULang_StringSpan_t_uft16_* __this__);
 void* ULang_StringSpan_t_uft16__Data_ULang_StringSpan_t_uft16__imut(ULang_StringSpan_t_uft16_* __this__);
 void ULang_String_t_uft32_____new___ULang_String_t_uft32__(ULang_String_t_uft32_* __this__);
 void ULang_StringSpan_t_uft32_____new___ULang_StringSpan_t_uft32__(ULang_StringSpan_t_uft32_* __this__);
-void ULang_StringSpan_t_uft32_____new___ULang_StringSpan_t_uft32_______uptr(ULang_StringSpan_t_uft32_* __this__,void* data,int64_t size);
-int64_t ULang_StringSpan_t_uft32__Size_ULang_StringSpan_t_uft32__imut(ULang_StringSpan_t_uft32_* __this__);
+void ULang_StringSpan_t_uft32_____new___ULang_StringSpan_t_uft32_______uptr(ULang_StringSpan_t_uft32_* __this__,void* data,int32_t size);
+int32_t ULang_StringSpan_t_uft32__Size_ULang_StringSpan_t_uft32__imut(ULang_StringSpan_t_uft32_* __this__);
 void* ULang_StringSpan_t_uft32__Data_ULang_StringSpan_t_uft32__imut(ULang_StringSpan_t_uft32_* __this__);
 void ULang_Vec2f_t_float32_____new___ULang_Vec2f_t_float32__(ULang_Vec2f_t_float32_* __this__);
 void ULang_Vec2f_t_float32_____new___ULang_Vec2f_t_float32___f32_f32(ULang_Vec2f_t_float32_* __this__,float32_t x,float32_t y);
@@ -427,9 +425,9 @@ void ULang_Vec3f_t_sint32_____new___ULang_Vec3f_t_sint32__(ULang_Vec3f_t_sint32_
 void ULang_Vec3f_t_sint32_____new___ULang_Vec3f_t_sint32___i32_i32_i32(ULang_Vec3f_t_sint32_* __this__,int32_t x,int32_t y,int32_t z);
 void putchar(int8_t Val);
 void ULang_Native_OS_PrintChar_c(int8_t Value);
-void ULang_Native_OS_PrintSpan_c___imut_uptr(void* Buffer,int64_t Size);
+void ULang_Native_OS_PrintSpan_c___imut_uptr(void* Buffer,int32_t Size);
 void ULang_Native_OS_PrintClear();
-void ULang_Native_OS_Malloc_uptr(int64_t Size);
+void ULang_Native_OS_Malloc_uptr(int32_t Size);
 void ULang_Native_OS_Free_u8___(void* Block);
 int main(int argc, char** argv);
 
@@ -454,7 +452,7 @@ void _Entry()
  /*Line:6*/
 
  void* Atepvir = &_Const_SpanString_A_Mini_Linux_Terminal_Emulator;
- int64_t Atepvistepvir = 30;
+ int32_t Atepvistepvir = 30;
  ULang_StringSpan_t_char_ Atepvistepvistepvir;
  ULang_StringSpan_t_char_* Atepvistepvistepvistepvir = &Atepvistepvistepvir;
  ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char___c____uptr(Atepvistepvistepvistepvir,Atepvir,Atepvistepvir);
@@ -463,7 +461,7 @@ void _Entry()
  /*Line:7*/
 
  void* Atepvistepvistepvistepvistepvir = &_Const_SpanString_Available_commands_;
- int64_t Atepvistepvistepvistepvistepvistepvir = 19;
+ int32_t Atepvistepvistepvistepvistepvistepvir = 19;
  ULang_StringSpan_t_char_ Atepvistepvistepvistepvistepvistepvistepvir;
  ULang_StringSpan_t_char_* Atepvistepvistepvistepvistepvistepvistepvistepvir = &Atepvistepvistepvistepvistepvistepvistepvir;
  ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char___c____uptr(Atepvistepvistepvistepvistepvistepvistepvistepvir,Atepvistepvistepvistepvistepvir,Atepvistepvistepvistepvistepvistepvir);
@@ -472,7 +470,7 @@ void _Entry()
  /*Line:8*/
 
  void* Atepvistepvistepvistepvistepvistepvistepvistepvistepvir = &_Const_SpanString_cd______Change_Directory;
- int64_t Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = 24;
+ int32_t Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = 24;
  ULang_StringSpan_t_char_ Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir;
  ULang_StringSpan_t_char_* Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = &Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir;
  ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char___c____uptr(Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir,Atepvistepvistepvistepvistepvistepvistepvistepvistepvir,Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir);
@@ -481,7 +479,7 @@ void _Entry()
  /*Line:9*/
 
  void* Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = &_Const_SpanString_clear___Clear_terminal_screen;
- int64_t Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = 29;
+ int32_t Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = 29;
  ULang_StringSpan_t_char_ Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir;
  ULang_StringSpan_t_char_* Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = &Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir;
  ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char___c____uptr(Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir,Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir,Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir);
@@ -490,7 +488,7 @@ void _Entry()
  /*Line:10*/
 
  void* Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = &_Const_SpanString_echo____Display_message_on_screen;
- int64_t Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = 33;
+ int32_t Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = 33;
  ULang_StringSpan_t_char_ Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir;
  ULang_StringSpan_t_char_* Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = &Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir;
  ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char___c____uptr(Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir,Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir,Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir);
@@ -499,7 +497,7 @@ void _Entry()
  /*Line:11*/
 
  void* Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = &_Const_SpanString_cat_____Display_file_on_screen;
- int64_t Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = 30;
+ int32_t Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = 30;
  ULang_StringSpan_t_char_ Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir;
  ULang_StringSpan_t_char_* Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = &Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir;
  ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char___c____uptr(Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir,Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir,Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir);
@@ -508,7 +506,7 @@ void _Entry()
  /*Line:12*/
 
  void* Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = &_Const_SpanString_cp______Copy;
- int64_t Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = 12;
+ int32_t Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = 12;
  ULang_StringSpan_t_char_ Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir;
  ULang_StringSpan_t_char_* Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = &Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir;
  ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char___c____uptr(Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir,Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir,Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir);
@@ -517,7 +515,7 @@ void _Entry()
  /*Line:13*/
 
  void* Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = &_Const_SpanString_rm______Remove_file;
- int64_t Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = 19;
+ int32_t Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = 19;
  ULang_StringSpan_t_char_ Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir;
  ULang_StringSpan_t_char_* Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = &Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir;
  ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char___c____uptr(Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir,Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir,Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir);
@@ -622,13 +620,13 @@ void ULang_Empty____new___ULang_Empty_(ULang_Empty* __this__)
  return;
 
 }
-void ULang_LowLevel_Malloc_uptr(int64_t Size)
+void ULang_LowLevel_Malloc_uptr(int32_t Size)
 { /*Block*/ 
 
  /*File:/Helper/LowLevel.uc*/
  /*Line:3*/
 
- int64_t Atepvir = Size;
+ int32_t Atepvir = Size;
  ULang_Native_OS_Malloc_uptr(Atepvir);
  return;
 
@@ -644,14 +642,14 @@ void ULang_LowLevel_Free_u8___(void* Block)
  return;
 
 }
-void ULang_LowLevel_Memcopy_u8____u8____uptr(void* destination,void* source,int64_t num)
+void ULang_LowLevel_Memcopy_u8____u8____uptr(void* destination,void* source,int32_t num)
 { /*Block*/ 
 
 
  return;
 
 }
-void ULang_LowLevel_Memmove_u8____u8____uptr(void* destination,void* source,int64_t num)
+void ULang_LowLevel_Memmove_u8____u8____uptr(void* destination,void* source,int32_t num)
 { /*Block*/ 
 
 
@@ -688,7 +686,7 @@ void ULang_Fmt_Print_ULang_StringSpan_t_char_imut(ULang_StringSpan_t_char_ Str)
  ULang_StringSpan_t_char_* Atepvir = &Str;
  void* Atepvistepvir = ULang_StringSpan_t_char__Data_ULang_StringSpan_t_char__imut(Atepvir);
  ULang_StringSpan_t_char_* Atepvistepvistepvir = &Str;
- int64_t Atepvistepvistepvistepvir = ULang_StringSpan_t_char__Size_ULang_StringSpan_t_char__imut(Atepvistepvistepvir);
+ int32_t Atepvistepvistepvistepvir = ULang_StringSpan_t_char__Size_ULang_StringSpan_t_char__imut(Atepvistepvistepvir);
  ULang_Native_OS_PrintSpan_c___imut_uptr(Atepvistepvir,Atepvistepvistepvistepvir);
  return;
 
@@ -836,7 +834,7 @@ int8_t ULang_Tests_Print1()
  /*Line:7*/
 
  void* Atepvir = &_Const_SpanString_Hello_World;
- int64_t Atepvistepvir = 11;
+ int32_t Atepvistepvir = 11;
  ULang_StringSpan_t_char_ Atepvistepvistepvir;
  ULang_StringSpan_t_char_* Atepvistepvistepvistepvir = &Atepvistepvistepvir;
  ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char___c____uptr(Atepvistepvistepvistepvir,Atepvir,Atepvistepvir);
@@ -940,6 +938,16 @@ int8_t ULang_Tests_Min_2()
  return _ReturnVal;
 
 }
+void ULang_Future____new___ULang_Future_(ULang_Future* __this__)
+{ /*Block*/ 
+ return;
+
+}
+void ULang_Thread____new___ULang_Thread_(ULang_Thread* __this__)
+{ /*Block*/ 
+ return;
+
+}
 void ULang_Path____new___ULang_Path_(ULang_Path* __this__)
 { /*Block*/ 
  return;
@@ -951,17 +959,17 @@ void ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char__(ULang_StringSpa
  /*File:/Types/String.uc*/
  /*Line:8*/
 
- int64_t Atepvir = 0;
+ int32_t Atepvir = 0;
   __this__->__0 = (void*)Atepvir;
 
  /*Line:9*/
 
- int64_t Atepvistepvir = 0;
+ int32_t Atepvistepvir = 0;
   __this__->__1 = Atepvistepvir;
  return;
 
 }
-void ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char___c____uptr(ULang_StringSpan_t_char_* __this__,void* data,int64_t size)
+void ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char___c____uptr(ULang_StringSpan_t_char_* __this__,void* data,int32_t size)
 { /*Block*/ 
 
  /*File:/Types/String.uc*/
@@ -972,14 +980,14 @@ void ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char___c____uptr(ULang
 
  /*Line:13*/
 
- int64_t Atepvistepvir = size;
+ int32_t Atepvistepvir = size;
   __this__->__1 = Atepvistepvir;
  return;
 
 }
-int64_t ULang_StringSpan_t_char__Size_ULang_StringSpan_t_char__imut(ULang_StringSpan_t_char_* __this__)
+int32_t ULang_StringSpan_t_char__Size_ULang_StringSpan_t_char__imut(ULang_StringSpan_t_char_* __this__)
 {
- int64_t _ReturnVal;
+ int32_t _ReturnVal;
  /*Block*/ 
 
 
@@ -987,7 +995,7 @@ int64_t ULang_StringSpan_t_char__Size_ULang_StringSpan_t_char__imut(ULang_String
  /*File:/Types/String.uc*/
  /*Line:15*/
 
- int64_t Atepvir = __this__->__1;
+ int32_t Atepvir = __this__->__1;
  _ReturnVal = Atepvir;
  return _ReturnVal;
 
@@ -1018,17 +1026,17 @@ void ULang_Span_uint8_____new___ULang_Span_uint8__(ULang_Span_uint8_* __this__)
  /*File:/Types/Span.uc*/
  /*Line:5*/
 
- int64_t Atepvir = 0;
+ int32_t Atepvir = 0;
   __this__->__0 = (void*)Atepvir;
 
  /*Line:6*/
 
- int64_t Atepvistepvir = 0;
+ int32_t Atepvistepvir = 0;
   __this__->__1 = Atepvistepvir;
  return;
 
 }
-void ULang_Span_uint8_____new___ULang_Span_uint8___u8____uptr(ULang_Span_uint8_* __this__,void* data,int64_t size)
+void ULang_Span_uint8_____new___ULang_Span_uint8___u8____uptr(ULang_Span_uint8_* __this__,void* data,int32_t size)
 { /*Block*/ 
 
  /*File:/Types/Span.uc*/
@@ -1039,14 +1047,14 @@ void ULang_Span_uint8_____new___ULang_Span_uint8___u8____uptr(ULang_Span_uint8_*
 
  /*Line:10*/
 
- int64_t Atepvistepvir = size;
+ int32_t Atepvistepvir = size;
   __this__->__1 = Atepvistepvir;
  return;
 
 }
-int64_t ULang_Span_uint8__Size_ULang_Span_uint8__imut(ULang_Span_uint8_* __this__)
+int32_t ULang_Span_uint8__Size_ULang_Span_uint8__imut(ULang_Span_uint8_* __this__)
 {
- int64_t _ReturnVal;
+ int32_t _ReturnVal;
  /*Block*/ 
 
 
@@ -1054,7 +1062,7 @@ int64_t ULang_Span_uint8__Size_ULang_Span_uint8__imut(ULang_Span_uint8_* __this_
  /*File:/Types/Span.uc*/
  /*Line:12*/
 
- int64_t Atepvir = __this__->__1;
+ int32_t Atepvir = __this__->__1;
  _ReturnVal = Atepvir;
  return _ReturnVal;
 
@@ -1080,17 +1088,17 @@ void ULang_Vector_uint8_____new___ULang_Vector_uint8__(ULang_Vector_uint8_* __th
  /*File:/Types/Vector.uc*/
  /*Line:8*/
 
- int64_t Atepvir = 0;
+ int32_t Atepvir = 0;
   __this__->__0 = (void*)Atepvir;
 
  /*Line:9*/
 
- int64_t Atepvistepvir = 0;
+ int32_t Atepvistepvir = 0;
   __this__->__1 = Atepvistepvir;
 
  /*Line:10*/
 
- int64_t Atepvistepvistepvir = 0;
+ int32_t Atepvistepvistepvir = 0;
   __this__->__2 = Atepvistepvistepvir;
  return;
 
@@ -1184,17 +1192,17 @@ void ULang_StringSpan_t_uft8_____new___ULang_StringSpan_t_uft8__(ULang_StringSpa
  /*File:/Types/String.uc*/
  /*Line:8*/
 
- int64_t Atepvir = 0;
+ int32_t Atepvir = 0;
   __this__->__0 = (void*)Atepvir;
 
  /*Line:9*/
 
- int64_t Atepvistepvir = 0;
+ int32_t Atepvistepvir = 0;
   __this__->__1 = Atepvistepvir;
  return;
 
 }
-void ULang_StringSpan_t_uft8_____new___ULang_StringSpan_t_uft8_______uptr(ULang_StringSpan_t_uft8_* __this__,void* data,int64_t size)
+void ULang_StringSpan_t_uft8_____new___ULang_StringSpan_t_uft8_______uptr(ULang_StringSpan_t_uft8_* __this__,void* data,int32_t size)
 { /*Block*/ 
 
  /*File:/Types/String.uc*/
@@ -1205,14 +1213,14 @@ void ULang_StringSpan_t_uft8_____new___ULang_StringSpan_t_uft8_______uptr(ULang_
 
  /*Line:13*/
 
- int64_t Atepvistepvir = size;
+ int32_t Atepvistepvir = size;
   __this__->__1 = Atepvistepvir;
  return;
 
 }
-int64_t ULang_StringSpan_t_uft8__Size_ULang_StringSpan_t_uft8__imut(ULang_StringSpan_t_uft8_* __this__)
+int32_t ULang_StringSpan_t_uft8__Size_ULang_StringSpan_t_uft8__imut(ULang_StringSpan_t_uft8_* __this__)
 {
- int64_t _ReturnVal;
+ int32_t _ReturnVal;
  /*Block*/ 
 
 
@@ -1220,7 +1228,7 @@ int64_t ULang_StringSpan_t_uft8__Size_ULang_StringSpan_t_uft8__imut(ULang_String
  /*File:/Types/String.uc*/
  /*Line:15*/
 
- int64_t Atepvir = __this__->__1;
+ int32_t Atepvir = __this__->__1;
  _ReturnVal = Atepvir;
  return _ReturnVal;
 
@@ -1251,17 +1259,17 @@ void ULang_StringSpan_t_uft16_____new___ULang_StringSpan_t_uft16__(ULang_StringS
  /*File:/Types/String.uc*/
  /*Line:8*/
 
- int64_t Atepvir = 0;
+ int32_t Atepvir = 0;
   __this__->__0 = (void*)Atepvir;
 
  /*Line:9*/
 
- int64_t Atepvistepvir = 0;
+ int32_t Atepvistepvir = 0;
   __this__->__1 = Atepvistepvir;
  return;
 
 }
-void ULang_StringSpan_t_uft16_____new___ULang_StringSpan_t_uft16_______uptr(ULang_StringSpan_t_uft16_* __this__,void* data,int64_t size)
+void ULang_StringSpan_t_uft16_____new___ULang_StringSpan_t_uft16_______uptr(ULang_StringSpan_t_uft16_* __this__,void* data,int32_t size)
 { /*Block*/ 
 
  /*File:/Types/String.uc*/
@@ -1272,14 +1280,14 @@ void ULang_StringSpan_t_uft16_____new___ULang_StringSpan_t_uft16_______uptr(ULan
 
  /*Line:13*/
 
- int64_t Atepvistepvir = size;
+ int32_t Atepvistepvir = size;
   __this__->__1 = Atepvistepvir;
  return;
 
 }
-int64_t ULang_StringSpan_t_uft16__Size_ULang_StringSpan_t_uft16__imut(ULang_StringSpan_t_uft16_* __this__)
+int32_t ULang_StringSpan_t_uft16__Size_ULang_StringSpan_t_uft16__imut(ULang_StringSpan_t_uft16_* __this__)
 {
- int64_t _ReturnVal;
+ int32_t _ReturnVal;
  /*Block*/ 
 
 
@@ -1287,7 +1295,7 @@ int64_t ULang_StringSpan_t_uft16__Size_ULang_StringSpan_t_uft16__imut(ULang_Stri
  /*File:/Types/String.uc*/
  /*Line:15*/
 
- int64_t Atepvir = __this__->__1;
+ int32_t Atepvir = __this__->__1;
  _ReturnVal = Atepvir;
  return _ReturnVal;
 
@@ -1318,17 +1326,17 @@ void ULang_StringSpan_t_uft32_____new___ULang_StringSpan_t_uft32__(ULang_StringS
  /*File:/Types/String.uc*/
  /*Line:8*/
 
- int64_t Atepvir = 0;
+ int32_t Atepvir = 0;
   __this__->__0 = (void*)Atepvir;
 
  /*Line:9*/
 
- int64_t Atepvistepvir = 0;
+ int32_t Atepvistepvir = 0;
   __this__->__1 = Atepvistepvir;
  return;
 
 }
-void ULang_StringSpan_t_uft32_____new___ULang_StringSpan_t_uft32_______uptr(ULang_StringSpan_t_uft32_* __this__,void* data,int64_t size)
+void ULang_StringSpan_t_uft32_____new___ULang_StringSpan_t_uft32_______uptr(ULang_StringSpan_t_uft32_* __this__,void* data,int32_t size)
 { /*Block*/ 
 
  /*File:/Types/String.uc*/
@@ -1339,14 +1347,14 @@ void ULang_StringSpan_t_uft32_____new___ULang_StringSpan_t_uft32_______uptr(ULan
 
  /*Line:13*/
 
- int64_t Atepvistepvir = size;
+ int32_t Atepvistepvir = size;
   __this__->__1 = Atepvistepvir;
  return;
 
 }
-int64_t ULang_StringSpan_t_uft32__Size_ULang_StringSpan_t_uft32__imut(ULang_StringSpan_t_uft32_* __this__)
+int32_t ULang_StringSpan_t_uft32__Size_ULang_StringSpan_t_uft32__imut(ULang_StringSpan_t_uft32_* __this__)
 {
- int64_t _ReturnVal;
+ int32_t _ReturnVal;
  /*Block*/ 
 
 
@@ -1354,7 +1362,7 @@ int64_t ULang_StringSpan_t_uft32__Size_ULang_StringSpan_t_uft32__imut(ULang_Stri
  /*File:/Types/String.uc*/
  /*Line:15*/
 
- int64_t Atepvir = __this__->__1;
+ int32_t Atepvir = __this__->__1;
  _ReturnVal = Atepvir;
  return _ReturnVal;
 
@@ -1533,16 +1541,16 @@ void ULang_Native_OS_PrintChar_c(int8_t Value)
  return;
 
 }
-void ULang_Native_OS_PrintSpan_c___imut_uptr(void* Buffer,int64_t Size)
+void ULang_Native_OS_PrintSpan_c___imut_uptr(void* Buffer,int32_t Size)
 { /*Block*/ 
 
 
- int64_t Atepvir;
- int64_t Atepvistepvir = 0;
+ int32_t Atepvir;
+ int32_t Atepvistepvir = 0;
  Atepvir = Atepvistepvir;
  _label1:
- int64_t Atepvistepvistepvir = Size;
- int64_t Atepvistepvistepvistepvir = Atepvir;
+ int32_t Atepvistepvistepvir = Size;
+ int32_t Atepvistepvistepvistepvir = Atepvir;
  int8_t Atepvistepvistepvistepvistepvir = Atepvistepvistepvistepvir<Atepvistepvistepvir;
  int8_t Atepvistepvistepvistepvistepvistepvir = !Atepvistepvistepvistepvistepvir;
  if (Atepvistepvistepvistepvistepvistepvir){goto _label0; };
@@ -1550,18 +1558,18 @@ void ULang_Native_OS_PrintSpan_c___imut_uptr(void* Buffer,int64_t Size)
  /*Line:17*/
 
  void* Atepvistepvistepvistepvistepvistepvistepvir = Buffer;
- int64_t Atepvistepvistepvistepvistepvistepvistepvistepvir = Atepvir;
- int64_t Atepvistepvistepvistepvistepvistepvistepvistepvistepvir = 1;
- int64_t Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = Atepvistepvistepvistepvistepvistepvistepvistepvir*Atepvistepvistepvistepvistepvistepvistepvistepvistepvir;
- void* Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = (int64_t)Atepvistepvistepvistepvistepvistepvistepvir+Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir;
+ int32_t Atepvistepvistepvistepvistepvistepvistepvistepvir = Atepvir;
+ int32_t Atepvistepvistepvistepvistepvistepvistepvistepvistepvir = 1;
+ int32_t Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = Atepvistepvistepvistepvistepvistepvistepvistepvir*Atepvistepvistepvistepvistepvistepvistepvistepvistepvir;
+ void* Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = (int32_t)Atepvistepvistepvistepvistepvistepvistepvir+Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir;
  int8_t Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = *(int8_t*)Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir;
  ULang_Native_OS_PrintChar_c(Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir);
 
  /*Line:16*/
 
- int64_t Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = Atepvir;
- int64_t Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = 1;
- int64_t Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir+Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir;
+ int32_t Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = Atepvir;
+ int32_t Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = 1;
+ int32_t Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir = Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir+Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir;
  Atepvir = Atepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvistepvir;
  goto _label1;
  _label0:
@@ -1573,13 +1581,13 @@ void ULang_Native_OS_PrintClear()
  return;
 
 }
-void ULang_Native_OS_Malloc_uptr(int64_t Size)
+void ULang_Native_OS_Malloc_uptr(int32_t Size)
 { /*Block*/ 
 
  /*File:/OS_Calls.uc*/
  /*Line:27*/
 
- int64_t Atepvir = Size;
+ int32_t Atepvir = Size;
  void* Atepvistepvir = malloc(Atepvir);
  return;
 

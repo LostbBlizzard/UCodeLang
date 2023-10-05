@@ -307,6 +307,24 @@ public:
 		}
 		return Out;
 	}
+
+	Vector<Byte> ReadBytes(size_t Size)
+	{
+		Vector<Byte> r;
+		r.resize(Size);
+
+		for (size_t i = 0; i < Size; i++)
+		{
+			ReadType(r[i]);
+		}
+		return r;
+	}
+	Span<Byte> ReadBytesAsSpan(size_t Size)
+	{
+		Span<Byte> r = Span<Byte>::Make(&GetByteWith_offset(0),Size);
+		_BitOffset += Size;
+		return r;
+	}
 	void ReadType(String& Out)
 	{
 		SizeAsBits StrSize;
