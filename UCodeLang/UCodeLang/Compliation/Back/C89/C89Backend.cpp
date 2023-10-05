@@ -655,7 +655,7 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 
 	State.PointerToName.clear();
 	State.TepPushedParameters.clear();
-	State.Val.clear();
+	State.Num = 0;
 	if (OutputBody)
 	{
 
@@ -1268,28 +1268,15 @@ String C89Backend::FromIDToCindentifier(IRidentifierID Value)
 }
 String C89Backend::ToStringState::GetName(IRInstruction* Ptr)
 {
-	if (Val.size() == 0)
+	if (!PointerToName.HasValue(Ptr)) 
 	{
-		Val = 'A';
-	}
-	else
-	{
-		if (Val.back() == 'Z')
-		{
-			Val += 'A';
-		}
-		char r = Val.back();
-		Val.back()++;
 
-
-	}
-	Val += "tepvir";
-
-	auto V = Val;
-	if (!PointerToName.HasValue(Ptr)) {
+		auto V = "tep" + std::to_string(Num);
+		Num++;
 		PointerToName.AddValue(Ptr, V);
+		
 	}
-	return V;
+	return PointerToName.GetValue(Ptr);
 }
 
 UCodeLangEnd
