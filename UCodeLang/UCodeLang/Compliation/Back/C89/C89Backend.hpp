@@ -32,7 +32,7 @@ private:
 		Vector<IRInstruction*> TepPushedParameters;
 
 		
-		String Val;
+		size_t Num = 0;
 
 		String GetName(IRInstruction* Ptr);
 	};
