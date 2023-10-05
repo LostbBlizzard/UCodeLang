@@ -130,7 +130,7 @@ jobs:
         run: echo Build
 
   build-Web:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     outputs:
       myoutput: ${{ steps.step2.outputs.myoutput }}
