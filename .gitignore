@@ -22,8 +22,9 @@ UCodeAPI/NStandardLibrary/out/
 
 
 
-UCodeIDE/Out.lib
+UCodeIDE/out.lib
 UCodeIDE/out.data.c
 UCodeIDE/imgui.ini
 UCodeIDE/tepfiles/
 UCodeIDE/int/
+UCodeIDEUCodeIDE/intDep.data

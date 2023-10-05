@@ -1,5 +1,6 @@
 #include "Test.hpp"
 #include <future>
+#include <mutex>
 #include <memory>
 #include <sstream>
 #include <fstream>
@@ -8,7 +9,7 @@
 #include <UCodeLang/Compliation/Back/C89/C89Backend.hpp>
 
 #if UCodeLang_Platform_Windows
-#include <Windows.h>
+#include <windows.h>
 #elif UCodeLang_Platform_Posix
 #include <dlfcn.h>
 #endif

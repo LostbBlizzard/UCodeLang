@@ -35,6 +35,8 @@ on:
 
 
 jobs:
+
+  
   build-Windows:
     runs-on: windows-latest
 
@@ -52,12 +54,12 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: ./Output
-          key: ${{ runner.os }}-deployment
+          key: ${{ runner.os }}-windows-deployment
 
       - name: Build 64 bit
         run: |
            cd ./BuildTools
-           ./BuildWin32Published.bat
+           ./BuildWin64Published.bat
 
       - name: Build 32 bit
         run: |
@@ -98,7 +100,7 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: ./Output
-          key: ${{ runner.os }}-deployment
+          key: ${{ runner.os }}-1inux-deployment
 
       - name: Build 64 bit
         run: ./BuildTools/BuildLinux64Published.sh
@@ -179,13 +181,13 @@ jobs:
           prerelease: ${{ inputs.IsPreRelease }}
           tag_name: Release
       
-      - name: Upload Release Asset
+      - name: Upload UCodeLangCAPI
         id: upload-release-asset 
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: ./premake5.lua
-          asset_name: test.txt
+          asset_path: ./UCodeLang/UCodeLang/UCodeLangCAPI.h
+          asset_name: UCodeLangCAPI.h
           asset_content_type: text/plain #https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
