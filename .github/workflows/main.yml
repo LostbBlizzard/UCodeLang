@@ -60,6 +60,9 @@ jobs:
 
    steps:
     - uses: actions/checkout@v3
+
+    - name: Install X11 Library
+      run: sudo apt-get install -y libx11-dev
     
     - name: Install OpenGL Library
       run: sudo apt install freeglut3-dev
