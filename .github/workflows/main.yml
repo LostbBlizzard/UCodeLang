@@ -63,6 +63,9 @@ jobs:
 
     - name: Install X11 Library
       run: sudo apt install libxcursor-dev
+
+    - name: Install X11-Randr Library
+      run: sudo apt-get install -y libxrandr-dev
     
     - name: Install OpenGL Library
       run: sudo apt install freeglut3-dev
