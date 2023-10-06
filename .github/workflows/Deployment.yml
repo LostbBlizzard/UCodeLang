@@ -92,6 +92,15 @@ jobs:
       - name: Install X11-Randr Library
         run: sudo apt-get install -y libxrandr-dev
 
+      - name: Install X11-xinerama0 Library
+        run: sudo apt-get install libx11-dev libxinerama-dev
+
+      - name: Install X11-xinput Library
+        run: sudo apt-get install xinput
+
+      - name: Install X11-shape Library
+        run: sudo apt-get install -y libxcb-shape0
+
       - name: Install OpenGL Library
         run: sudo apt install freeglut3-dev
 
