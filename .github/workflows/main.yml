@@ -62,6 +62,9 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Install X11 Library
+      run: apt-get install libxi-dev
+
+    - name: Install X11 Librarycursor
       run: sudo apt install libxcursor-dev
 
     - name: Install X11-Randr Library
