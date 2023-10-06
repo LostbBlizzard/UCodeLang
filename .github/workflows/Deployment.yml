@@ -86,6 +86,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Install OpenGL Library
+        run: sudo apt install freeglut3-dev
+
       - name: Make a scripts executable
         run: |
           chmod +x ./GNU_Make.sh
@@ -221,6 +224,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: ./Output/Win32/Published/UCodeLang.lib
-          asset_name: UCodeLangWin32.lib
+          asset_path: ./Output/UCodelangCL/Win64/Published/uclang.exe
+          asset_name: uclang.exe
+          asset_content_type: application/octet-stream #https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
+
+      - name: Upload UCodeLangCLWindows32
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: ./Output/UCodelangCL/Win32/Published/uclang.exe
+          asset_name: uclang32.exe
           asset_content_type: application/octet-stream #https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
