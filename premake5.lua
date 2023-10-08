@@ -280,7 +280,7 @@ project "UCodeIDE"
    targetdir ("Output/%{prj.name}/" .. OutDirPath)
    objdir ("Output/int/%{prj.name}/" .. OutDirPath)
 
-   defines {"GLEW_STATIC"}
+   defines {"GLEW_STATIC","GLEW_NO_GLU"}
    
    
    
