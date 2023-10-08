@@ -1,0 +1,3 @@
+[submodule "UCodeWebsite/themes/hugo-theme-learn"]
+	path = UCodeWebsite/themes/hugo-theme-learn
+	url = https://github.com/LostbBlizzard/hugo-theme-learn
