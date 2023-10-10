@@ -161,7 +161,9 @@ void ProfilerDebuger::VM_StepIn()
 		Inslength = 4;
 	}
 	else if (v.OpCode == InstructionSet::Callv1
-		|| v.OpCode == InstructionSet::LoadFuncPtrV1)
+		|| v.OpCode == InstructionSet::LoadFuncPtrV1
+		|| v.OpCode == InstructionSet::Jumpif
+		|| v.OpCode == InstructionSet::Jumpv1)
 	{
 		Inslength = Is32bit ? 2 : 4;
 	}

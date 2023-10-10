@@ -51,22 +51,27 @@ void SystematicAnalysis::OnExpressionNode(const UnaryExpressionNode& node)
 		{
 			_IR_LastExpressionField = _IR_LookingAtIRBlock->NewlogicalNot(ex);
 		}
+		break;
 		case TokenType::bitwise_not:
 		{
 			UCodeLangUnreachable();
 		}
+		break;
 		case TokenType::QuestionMark:
 		{
 			UCodeLangUnreachable();
 		}
+		break;
 		case TokenType::plus:
 		{
 			UCodeLangUnreachable();
 		}
+		break;
 		case TokenType::minus:
 		{
 			UCodeLangUnreachable();
 		}
+		break;
 		default:
 			UCodeLangUnreachable();
 			break;

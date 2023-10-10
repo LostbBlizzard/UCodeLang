@@ -1646,7 +1646,7 @@ void AppObject::OnDraw()
             if (windowdata.CallFrame) {
 
 
-                _AnyInterpreter.Call("OnDraw");
+                _AnyInterpreter.Call("frame");
 
             }
         }
@@ -3066,7 +3066,7 @@ void AppObject::OnErrorListUpdated()
 
 void AppObject::CompileText(const String& String)
 {
-    if (IsRuningCompiler) { return;}
+    if (IsRuningCompiler) { return; }
 
     _Compiler.Get_Errors().Remove_Errors();
     const Path tepfilesdir = "tepfiles";
@@ -3091,7 +3091,7 @@ void AppObject::CompileText(const String& String)
     if (OutputWindow.InDebug) {
         Settings._Flags = (UCodeLang::OptimizationFlags)((UCodeLang::OptimizationFlags_t)Settings._Flags | (UCodeLang::OptimizationFlags_t)UCodeLang::OptimizationFlags::Debug);
     }
-   
+
     IsRuningCompiler = true;
     bool AddStandardLibrary = OutputWindow.ImportStandardLibrary;
     bool Apifile = false;
@@ -3131,6 +3131,7 @@ void AppObject::CompileText(const String& String)
         UCodeLang::Compiler::CompilerRet r;
         if (Apifile)
         {
+            std::filesystem::remove_all(paths.IntDir);
             r = _Compiler.CompileFiles_UseIntDir(paths, ExternalFiles);
         }
         else
@@ -3140,10 +3141,21 @@ void AppObject::CompileText(const String& String)
         IsRuningCompiler = false;
         return r;
     };
-     
+
     _RuningPaths = std::move(paths);
-    _RuningCompiler = SendTaskToWorkerThread<UCodeLang::Compiler::CompilerRet>(Func);
-    //Func();
+    
+
+    static bool ItWorked = false;
+    if (ItWorked == false)
+    {
+        ItWorked = true;
+        Func();
+    }
+
+
+    {
+        _RuningCompiler = SendTaskToWorkerThread<UCodeLang::Compiler::CompilerRet>(Func);
+    }
 }
 
 void AppObject::OnDoneCompileing(UCodeLang::Compiler::CompilerRet& Val, const UCodeAnalyzer::Path& tepoutpath)

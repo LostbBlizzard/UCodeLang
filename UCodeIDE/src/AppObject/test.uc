@@ -48,5 +48,12 @@ $Object:
  ret Item.Call();
 
 */
+use API;
 
-|main[] => 0;
+|main_if[] -> int:
+ if 1 == 1:
+  ret 10;
+ else:
+  ret 0;
+
+
