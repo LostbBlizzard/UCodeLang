@@ -1281,7 +1281,8 @@ struct IRBlock
 
 	size_t GetIndex()
 	{
-		return Instructions.size()-1;
+		UCodeLangAssert(Instructions.size());
+		return Instructions.size();
 	}
 	size_t InsCount()
 	{

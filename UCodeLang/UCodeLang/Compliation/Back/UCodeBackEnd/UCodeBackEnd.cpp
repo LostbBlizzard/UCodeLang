@@ -379,11 +379,48 @@ void UCodeBackEndObject::RegWillBeUsed(RegisterID Value)
 }
 void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 {
-
+	lookingatfunc = IR;
 	//build code
 	UAddress FuncStart = _OutLayer->GetLastInstruction() + 1;
 
 
+	for (auto& Item : IR->Pars)
+	{
+		VarableInfo U;
+		U.DeclaredLine = 0;
+		U.DeclaredPos = 0;
+		U.FileDeclaredIn = "n/a.uc";
+		
+		const IRDebugSybol* Sybol = nullptr;
+
+		IRidentifier ParId = _Input->FromID(IR->identifier) + ":" + _Input->FromID(Item.identifier);
+		
+		if (IsDebugMode()) 
+		{
+			for (auto& Item2 : _Input->_Debug.Symbols)
+			{
+				if (_Input->FromID(Item2.first) == ParId)
+				{
+					Sybol = &Item2.second;
+					break;
+				}
+			}
+		}
+		if (!Sybol)
+		{
+			continue;
+		}
+
+		if (Sybol->LangType == UCode_LangType_UCodeLang)
+		{
+			BytesView bits = BytesView::Make(Sybol->TypeInfo.data(), Sybol->TypeInfo.size());
+			BitReader r;
+			r.SetBytes(bits.Data(), bits.Size());
+			UClib::FromBytes(r, U.ReflectionType);
+		};
+		U.VarableType = VarableInfoType::Parameter;
+		this->_DebugInfo.Add_SetVarableName(ParId, std::move(U));
+	}
 	{
 		auto V = GetParsLoc(IR->Pars);
 		CurrentFuncParPos =std::move(V.ParsPos);
@@ -944,15 +981,6 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		{
 			auto jumpos = Item->Target().Value.AsUIntNative;
 			
-			auto& jumpdata = Jumps.GetValue(jumpos);
-			if (jumpdata.has_value())
-			{
-				//MoveValuesToState(jumpdata.value());
-			}
-			else
-			{
-				//jumpdata = SaveState();
-			}
 
 			InstructionBuilder::Jumpv1(NullAddress, _Ins); PushIns();
 			InsToUpdate.push_back({ _OutLayer->Get_Instructions().size(),jumpos});
@@ -966,30 +994,30 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 
 
 			
+			auto& jumpdata = Jumps.GetValue(jumpos);
+			if (jumpdata.has_value())
+			{
+				MoveValuesToState(jumpdata.value());
+			}
+			else
+			{
+				jumpdata = SaveState();
+			}
 		}
 			break;
 		case IRInstructionType::ConditionalJump:
 		{
 			auto jumpos = Item->Target().Value.AsUIntNative;
-			auto& jumpdata = Jumps.GetValue(jumpos);
-			if (jumpdata.has_value())
-			{
-				//UCodeLangToDo();//we should check if that path is true befor checking the state
-				//MoveValuesToState(jumpdata.value());
-			}
-			else
-			{
-				//jumpdata = SaveState();
-			}
-			
-			
+
+
+
 			auto reg = MakeIntoRegister(Item, Item->Input());
 			if (reg == RegisterID::LinkRegister)
 			{
 				auto otherreg = RegisterID::B;
 				RegWillBeUsed(otherreg);
 				RegToReg(GetType(Item, Item->Input())._Type, reg, otherreg, false);
-				
+
 				reg = otherreg;
 			}
 
@@ -1006,7 +1034,15 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 
 			InstructionBuilder::Jumpif(NullAddress, reg, _Ins); PushIns();
 
-		
+			auto& jumpdata = Jumps.GetValue(jumpos);
+			if (jumpdata.has_value())
+			{
+				MoveValuesToState(jumpdata.value());
+			}
+			else
+			{
+				jumpdata = SaveState();
+			}
 		}	break;
 		case IRInstructionType::Logical_Not:
 		{	
@@ -1435,6 +1471,8 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		{
 			if (JumpItem.first == i-1)
 			{
+
+
 				if (JumpItem.second.has_value())
 				{
 					MoveValuesToState(JumpItem.second.value());
@@ -1455,6 +1493,7 @@ DoneLoop:
 	DropStack();
 	DropPars();
 
+	IRToUCodeInsPost.GetOrAdd(IR->Instructions.size()-1,_OutLayer->Get_Instructions().size());
 
 	if (IsDebugMode())
 	{
@@ -1462,8 +1501,7 @@ DoneLoop:
 	}
 	InstructionBuilder::Return(ExitState::Success, _Ins); PushIns();
 
-	IRToUCodeInsPost.GetOrAdd(IR->Instructions.size()-1,_OutLayer->Get_Instructions().size());
-
+	
 	UpdateVarableLocs();
 
 	for (auto& Item : InsToUpdate)
@@ -1474,12 +1512,18 @@ DoneLoop:
 		size_t IndexOfset = Get_Settings().PtrSize == IntSizes::Int64 ? 4 : 1;
 
 		Instruction& Ins = _OutLayer->Get_Instructions()[Index+3];
-		UAddress JumpPos = IRToUCodeInsPost.GetValue(Item.Jumpto) + 4;
-
-		if (Item.InsToUpdate > Item.Jumpto)
+		UAddress JumpPos = IRToUCodeInsPre.GetValue(Item.Jumpto);
+		
+		
+		if (Ins.OpCode == InstructionSet::Jumpif)
 		{
-			//Jump Up
+			JumpPos += 4;
 		}
+		else
+		{
+			//JumpPos += 4;
+		}
+
 
 		if (Ins.OpCode != InstructionSet::Jumpif) 
 		{
@@ -4004,6 +4048,30 @@ void UCodeBackEndObject::ClearVarableLocs()
 {
 	_OldVarableLocRegisters.Reset();
 }
+
+enum class TypeRegVal
+{
+	IRIns,
+	IROp,
+	Val
+};
+TypeRegVal Get(Variant<AnyInt64,const IRInstruction*, IROperator>& Item)
+{
+	if (Item.Is< const IRInstruction*>())
+	{
+		return TypeRegVal::IRIns;
+	}
+	else if (Item.Is<IROperator>())
+	{
+		return TypeRegVal::IROp;
+	}
+	else
+	{
+		return TypeRegVal::Val;
+	}
+}
+
+
 void UCodeBackEndObject::UpdateVarableLocs()
 {
 	if (IsDebugMode())
@@ -4020,7 +4088,31 @@ void UCodeBackEndObject::UpdateVarableLocs()
 			{
 				if (Item2.Types.has_value() && OldItemInfo.Types.has_value())
 				{
-					CanSet = Item2.Types.value().Get_If<const IRInstruction*>() == OldItemInfo.Types.value().Get_If<const IRInstruction*>();
+					enum class TypeEVal
+					{
+						IRIns,
+						IROp,
+					};
+
+					TypeRegVal One =Get(Item2.Types.value());
+					TypeRegVal Two = Get(OldItemInfo.Types.value());
+
+					if (One != Two)
+					{
+						CanSet = true;
+					}
+					else
+					{
+						if (auto val = Item2.Types.value().Get_If<const IRInstruction*>())
+						{
+							CanSet = *val != OldItemInfo.Types.value().Get<const IRInstruction*>();
+						}
+						else if (auto val = Item2.Types.value().Get_If<IROperator>())
+						{
+							CanSet = *val != OldItemInfo.Types.value().Get<IROperator>();
+						}
+
+					}
 				}
 			}
 
@@ -4047,8 +4139,32 @@ void UCodeBackEndObject::UpdateVarableLocs()
 								Loc.Type = RegValue;
 
 								_DebugInfo.Add_SetVarableLoc(std::move(Loc));
+								break;
 							}
 						}
+					}
+					else if (auto Ir = TypesV.Get_If<IROperator>())
+					{
+
+						if (Ir->Type == IROperatorType::IRParameter)
+						{
+							IRPar* p = Ir->Parameter;
+
+							UDebugSetVarableLoc Loc;
+							Loc.ForIns = _OutLayer->Get_Instructions().size();
+							Loc.VarableFullName = _Input->FromID(this->lookingatfunc->identifier) + ":" + _Input->FromID(p->identifier);
+							Loc.Type = RegValue;
+
+							_DebugInfo.Add_SetVarableLoc(std::move(Loc));
+						}
+						else
+						{
+							//UCodeLangUnreachable();
+						}
+					}
+					else
+					{
+						UCodeLangUnreachable();
 					}
 				}
 				OldItemInfo.Types = Item2.Types;

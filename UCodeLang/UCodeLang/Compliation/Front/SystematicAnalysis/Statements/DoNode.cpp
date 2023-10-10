@@ -34,7 +34,7 @@ void SystematicAnalysis::OnDoNode(const DoNode& node)
 	size_t boolCode;
 	if (_PassType == PassType::BuidCode)
 	{
-		boolCode = _IR_LookingAtIRBlock->GetIndex();
+		boolCode = _IR_LookingAtIRBlock->InsCount() ? _IR_LookingAtIRBlock->GetIndex() : 0;
 	}
 
 

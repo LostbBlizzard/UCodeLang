@@ -34,7 +34,7 @@ Compiler::CompilerRet Compiler::CompileText(const String_view& Text, const Exter
 
 
 	auto Item = _FrontEndObject->BuildFile(Text);
-
+	Item->FileName = "src.uc";
 
 
 	if (Item == nullptr || _Errors.Has_Errors()) { return CompilerRet; }

@@ -1505,8 +1505,26 @@ void IRBuilder::ToString(ToStringState& State, IRFunc* Item, String& r)
 						r += '\n';
 						r += "//Line:" + std::to_string(Val->LineNumber);
 					}
+					else if (auto Val = Item->Debug.Get_If<IRDebugSetVarableName>())
+					{
+						r += "\n";
+						r += "//Varable:" + Val->VarableName;
+					}
 				}
-				if (DebugInfo.size())
+
+				bool name = false;
+				for (auto& Item : Names)
+				{
+					if (Item.first == i)
+					{
+						r += "\n";
+						r += Tabs;
+						r += Item.second + ":";
+						name = true;
+					}
+				}
+
+				if (DebugInfo.size() || name)
 				{
 					r += '\n';
 					r += '\n';
@@ -1529,25 +1547,10 @@ void IRBuilder::ToString(ToStringState& State, IRFunc* Item, String& r)
 					}
 				}
 				r += ";";
-				for (auto& Item : DebugInfo)
-				{
-					if (auto Val = Item->Debug.Get_If<IRDebugSetVarableName>())
-					{
-						r += "//Varable:" + Val->VarableName;
-					}
-				}
+				
 				r += "\n";
 
-				for (auto& Item : Names)
-				{
-					if (Item.first == i)
-					{
-						r += Tabs;
-						r += Item.second+ ":";
-						r += "\n";
-
-					}
-				}
+				
 			}
 			
 		}

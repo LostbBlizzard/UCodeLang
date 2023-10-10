@@ -3063,14 +3063,13 @@ void AppObject::OnErrorListUpdated()
     }
     _Editor.SetErrorMarkers(marks);
 }
-
+const Path tepfilesdir = "tepfiles";
+const Path tepfilepath = tepfilesdir / "src.uc";
 void AppObject::CompileText(const String& String)
 {
     if (IsRuningCompiler) { return; }
 
     _Compiler.Get_Errors().Remove_Errors();
-    const Path tepfilesdir = "tepfiles";
-    const Path tepfilepath = tepfilesdir / "src.uc";
     const Path tepoutpath = Outfilepath();
     const Path tepintpath = "int";
 
@@ -3095,7 +3094,7 @@ void AppObject::CompileText(const String& String)
     IsRuningCompiler = true;
     bool AddStandardLibrary = OutputWindow.ImportStandardLibrary;
     bool Apifile = false;
-    std::function<UCodeLang::Compiler::CompilerRet()> Func = [this, paths, AddStandardLibrary, Apifile, tepfilepath]()
+    std::function<UCodeLang::Compiler::CompilerRet()> Func = [this, paths, AddStandardLibrary, Apifile]()
     {
         UCodeLang::Compiler::ExternalFiles ExternalFiles;
 
@@ -3151,8 +3150,7 @@ void AppObject::CompileText(const String& String)
         ItWorked = true;
         Func();
     }
-
-
+    else
     {
         _RuningCompiler = SendTaskToWorkerThread<UCodeLang::Compiler::CompilerRet>(Func);
     }
@@ -3173,7 +3171,8 @@ void AppObject::OnDoneCompileing(UCodeLang::Compiler::CompilerRet& Val, const UC
             UCodeLang::UClib::FromFile(&lib, tepoutpath);
             _CompiledLib = std::move(lib);
 
-            _LibInfoString = UCodeLang::UAssembly::UAssembly::ToString(&_CompiledLib);
+            _LibInfoString = UCodeLang::UAssembly::UAssembly::ToString(&_CompiledLib
+            ,tepfilesdir,false);
         }
         break;
         case BackEndType::IR:

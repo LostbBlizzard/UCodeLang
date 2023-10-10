@@ -719,7 +719,18 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 						r += "*/";
 					}
 				}
-				if (DebugInfo.size())
+				bool hasname = false;
+				for (auto& Item : Names)
+				{
+					if (Item.first == i)
+					{
+						r += "\n";
+						r += Tabs;
+						r += Item.second + ":";
+						hasname = true;
+					}
+				}
+				if (DebugInfo.size() || hasname)
 				{
 					r += '\n';
 					r += '\n';
@@ -1084,17 +1095,8 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					break;
 				}
 				r += ";\n";
-				GoOver:
-				for (auto& Item : Names)
-				{
-					if (Item.first == i)
-					{
-						r += Tabs;
-						r += Item.second+ ":";
-						r += "\n";
-
-					}
-				}
+			GoOver:
+				int a = 0;
 			}
 			State.PointerToName.clear();
 		}

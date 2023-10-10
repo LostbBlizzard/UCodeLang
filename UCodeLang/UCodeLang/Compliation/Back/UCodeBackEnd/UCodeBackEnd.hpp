@@ -201,6 +201,7 @@ private:
 	Vector<Unique_ptr<UCodeFunc>> Funcs;
 	UCodeFunc* BuildingFunc = nullptr;
 	Optimizations _Optimizations;
+	const IRFunc* lookingatfunc= nullptr;
 	//code
 	bool IsPrimitive(const IRType& type)
 	{

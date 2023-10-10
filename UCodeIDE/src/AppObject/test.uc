@@ -50,10 +50,33 @@ $Object:
 */
 use API;
 
+//bool V = true;
+
+/*
 |main_if[] -> int:
- if 1 == 1:
+ if V:
   ret 10;
  else:
   ret 0;
 
+*/
+
+
+/*
+|main_if2[bool V] -> int:
+ int Vret = 0;
+ 
+ if V:
+  Vret = 10;
+ else:
+  Vret = 0;
+
+ ret Vret;
+*/
+
+
+|main_loop[int a,bool b,int c]:
+
+ int help = 5;
+ ret 0;
 

@@ -81,7 +81,7 @@ void SystematicAnalysis::OnIfNode(const IfNode& node)
 
 		if (_PassType == PassType::BuidCode)
 		{
-			auto JumpIndex = _IR_LookingAtIRBlock->GetIndex() - 1;
+			auto JumpIndex = _IR_LookingAtIRBlock->GetIndex();
 			_IR_LookingAtIRBlock->UpdateJump(ElseIndex, JumpIndex);
 			_IR_LookingAtIRBlock->UpdateConditionaJump(IfIndex.ConditionalJump, IfIndex.logicalNot, ElseI);
 		}
