@@ -333,7 +333,8 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 							else
 							{
 								std::ifstream file;
-								file.open(Path(SourceFiles.value().native() + Path(OnFile).native()));
+
+								file.open(Path(SourceFiles.value() / Path(OnFile).native()));
 								if (file.is_open())
 								{
 									std::string str;
@@ -452,31 +453,22 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 						r += '\n';
 						OnFuncFrameStackSize = Val->StackFrameSize;
 					}
-					else if (Info.DebugInfo.has_value())
+					else if (auto Val = Item->Debug.Get_If<UDebugSetVarableLoc>())
 					{
-						auto& Value = Info.DebugInfo.value();
-						auto List = Value.GetForIns(i);
-						for (auto& Item : List)
+						r += "   //";
+
+						if (auto Value = Val->Type.Get_If<RegisterID>())
 						{
-							if (auto Val = Item->Debug.Get_If<UDebugSetVarableLoc>())
-							{
-								r += "   //";
-
-								if (auto Value = Val->Type.Get_If<RegisterID>())
-								{
-									r += GetRegisterToString(*Value);
-								}
-								else
-								{
-									UCodeLangThrowException("not added");
-								}
-								r += " = ";
-								r += Val->VarableFullName;
-								r += '\n';
-							}
+							r += GetRegisterToString(*Value);
 						}
+						else
+						{
+							UCodeLangThrowException("not added");
+						}
+						r += " = ";
+						r += Val->VarableFullName;
+						r += '\n';
 					}
-
 				}
 
 

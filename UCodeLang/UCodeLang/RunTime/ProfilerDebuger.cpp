@@ -51,20 +51,52 @@ UCodeLangAPIExport void ProfilerDebuger::UpdateDebugData(DebugData& Out)
 
 	Out._StackFrames.clear();
 
+
+	auto& DebugInfo = StepedInterpreter->Get_State()->Get_Libs().Get_DebugInfo();
+
+	DebugStackFrame F;
+	F._Funcion = func;
+
+
+	const ClassMethod* FuncString = nullptr;
+	for (size_t i = func; i < ins; i++)
 	{
-		DebugStackFrame F;
-		F._Funcion = func;
+		auto info = DebugInfo.GetForIns(i);
 
-		DebugVarable d;
-		d.Type = ReflectionTypes::sInt32;
-		d.VarableName = "var";
-		d.VarableType = DebugVarable::VarType::Parameter;
-		d.Object = &StepedInterpreter->_CPU.D;
+		for (auto& Item : info)
+		{
+			if (auto loc = Item->Debug.Get_If<UDebugSetVarableLoc>()) 
+			{
+				if (FuncString == nullptr)
+				{
+					FuncString = StepedInterpreter->Get_State()->GetMethod(func);
+				}
 
-		F._Varables.push_back(std::move(d));
+				DebugVarable d;
+				d.VarableName = ScopeHelper::GetNameFromFullName(loc->VarableFullName);
 
-		Out._StackFrames.push_back(std::move(F));
+				const VarableInfo& Var = DebugInfo.VarablesInfo.GetValue(loc->VarableFullName);
+
+				if (auto v = loc->Type.Get_If<RegisterID>())
+				{
+					d.Object = &StepedInterpreter->Get_Register(*v).Value;
+				}
+				else
+				{
+					UCodeLangUnreachable();
+				}
+
+				d.VarableType = DebugVarable::VarType::Parameter;
+				d.Type = Var.ReflectionType;
+
+				F._Varables.push_back(d);
+			}
+		}
 	}
+
+
+	Out._StackFrames.push_back(std::move(F));
+
 
     return;
 }
