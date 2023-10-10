@@ -421,7 +421,10 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 		BuildLink(FuncName,IR->Linkage);
 	}
 
-
+	if (IR->identifier == 15624169452398137894)
+	{
+		int a = 0;
+	}
 
 	if (IR->Blocks.size())
 	{
@@ -539,7 +542,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		}	
 
 	}
-
+	
 	for (size_t i = 0; i < IR->Instructions.size(); i++)
 	{
 		auto& Item_ = IR->Instructions[i];
@@ -587,6 +590,11 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		{
 			auto V = GetIRLocData(Item, Item->Target());
 			GiveNameTo(V, Item);
+
+			//if (V.Info.Is < )
+			{
+				StoreValue(Item,IROperator(Item), Item->Target());
+			}
 		}
 		break;
 		case IRInstructionType::LoadReturn:
@@ -1383,6 +1391,14 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			SetRegister(V, Item);
 		}
 		break;
+		case IRInstructionType::Unreachable:
+		{
+			if (IsDebugMode())
+			{
+				InstructionBuilder::DoNothing(_Ins); PushIns();
+			}
+		}
+		break;
 		default:
 			UCodeLangUnreachable();
 			break;
@@ -1429,20 +1445,24 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 				}
 			}
 		}
-		IRToUCodeInsPost.AddValue(i,_OutLayer->Get_Instructions().size() - 1);	
+		IRToUCodeInsPost.AddValue(i,_OutLayer->Get_Instructions().size());	
 		
 		
 	}
 DoneLoop:
+	IRToUCodeInsPre.GetOrAdd(IR->Instructions.size()-1, _OutLayer->Get_Instructions().size());
+
 	DropStack();
 	DropPars();
+
 
 	if (IsDebugMode())
 	{
 		InstructionBuilder::Debug_FuncEnd(_Ins); PushIns();
 	}
 	InstructionBuilder::Return(ExitState::Success, _Ins); PushIns();
-	IRToUCodeInsPost.GetOrAdd(Index,_OutLayer->Get_Instructions().size() - 1);
+
+	IRToUCodeInsPost.GetOrAdd(IR->Instructions.size()-1,_OutLayer->Get_Instructions().size());
 
 	UpdateVarableLocs();
 
@@ -1454,7 +1474,12 @@ DoneLoop:
 		size_t IndexOfset = Get_Settings().PtrSize == IntSizes::Int64 ? 4 : 1;
 
 		Instruction& Ins = _OutLayer->Get_Instructions()[Index+3];
-		UAddress JumpPos = IRToUCodeInsPost.GetValue(Item.Jumpto);
+		UAddress JumpPos = IRToUCodeInsPost.GetValue(Item.Jumpto) + 4;
+
+		if (Item.InsToUpdate > Item.Jumpto)
+		{
+			//Jump Up
+		}
 
 		if (Ins.OpCode != InstructionSet::Jumpif) 
 		{
@@ -3809,7 +3834,7 @@ void UCodeBackEndObject::CopyValues(const IRlocData& Src, const IRlocData& Out, 
 
 void UCodeBackEndObject::LogicalNot(IRTypes Type, RegisterID In, RegisterID Out)
 {
-	if (In != Out)
+
 	{
 		switch (Type)
 		{

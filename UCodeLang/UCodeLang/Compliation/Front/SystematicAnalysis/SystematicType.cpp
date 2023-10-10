@@ -1035,7 +1035,7 @@ SystematicAnalysis::UrinaryOverLoadWith_t SystematicAnalysis::Type_HasUrinaryOve
 		{
 			if (Op == TokenType::Not)
 			{
-				return { {} };
+				return { {true} };
 			}
 		}
 	}
