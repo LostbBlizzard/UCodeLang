@@ -289,8 +289,8 @@ void AppObject::DrawTestMenu()
     struct TestInfo
     {
         TestMode Testmode = TestMode::C89;
-        size_t MinTestIndex = 40;
-        size_t MaxTestCount = 50;//;//ULangTest::Tests.size();
+        size_t MinTestIndex = 0;
+        size_t MaxTestCount = 40;//;//ULangTest::Tests.size();
 
         size_t ModuleIndex = 0;
         size_t ModuleTestCount = 1;//;//ULangTest::Tests.size();
@@ -2443,6 +2443,37 @@ void AppObject::UpdateInsData(UCodeVMWindow& windowdata)
     }
 }
 
+bool DrawAnyInt64(const char* Name,UCodeLang::AnyInt64& V)
+{
+    bool updated = false;
+    if (ImGui::TreeNode(Name))
+    {
+        if (ImguiHelper::Int8Field("int8", V.AsInt8))
+        {
+            updated = true;
+        }
+        if (ImguiHelper::Int16Field("int16", V.AsInt16))
+        {
+            updated = true;
+        }
+        if (ImguiHelper::Int32Field("int32", V.AsInt32))
+        {
+            updated = true;
+        }
+        if (ImguiHelper::Int64Field("int64", V.AsInt64))
+        {
+            updated = true;
+        }
+        ImguiHelper::float32Field("float32", V.Asfloat32);
+        ImguiHelper::float64Field("float64", V.Asfloat64);
+
+
+
+        ImGui::TreePop();
+    }
+    return  updated;
+}
+
 void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
 {
 
@@ -2532,7 +2563,18 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
         ImGui::Text("StackFrames");
 
     }
+    if (InFuncion)
+    {
+        ImGui::Text("Registers");
 
+        for (UCodeLang::RegisterID_t i = (UCodeLang::RegisterID_t)UCodeLang::RegisterID::StartRegister;
+            i < (UCodeLang::RegisterID_t)UCodeLang::RegisterID::EndRegister; i++)
+        {
+            auto reg = (UCodeLang::RegisterID)i;
+            auto tep = UCodeLang::UAssembly::UAssembly::GetRegisterToString(reg);
+            DrawAnyInt64(tep.c_str(), Debuger.GetReg(reg).Value);
+        }
+    }
     
 
     if (!InFuncion) 
