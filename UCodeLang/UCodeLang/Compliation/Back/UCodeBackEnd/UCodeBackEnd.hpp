@@ -219,7 +219,13 @@ private:
 	{
 		return _Input->GetType(IR, Op);
 	}
-
+	struct BinaryOpRet
+	{
+		RegisterID A;
+		RegisterID B;
+		RegisterID V;
+	};
+	BinaryOpRet DoBinaryOpValues(const IRInstruction* IR);
 
 
 	UCodeFunc* NewBuildFunc()
@@ -500,6 +506,8 @@ private:
 
 	void MoveValuesToState(const RegistersManager& state);
 	RegistersManager SaveState();
+
+	void SynchronizePars();
 };
 UCodeLangEnd
 
