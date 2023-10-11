@@ -8,6 +8,44 @@ namespace API
 	using Vec2 = ImVec2;
 	using Vec4 = ImVec4;
 	using TypeInfo = UCodeLang::ReflectionTypeInfo;
+
+	UCodeLangExportSymbol("API") enum class ImKey
+	{
+		W,
+		A,
+		S,
+		D,
+		UpArrow,
+		DownArrow,
+		LeftArrow,
+		RightArrow,
+	};
+	inline ImGuiKey To(ImKey key)
+	{
+		switch (key)
+		{
+		case ImKey::W:
+			return ImGuiKey::ImGuiKey_W;
+		case ImKey::A:
+			return ImGuiKey::ImGuiKey_A;
+		case ImKey::S:
+			return ImGuiKey::ImGuiKey_S;
+		case ImKey::D:
+			return ImGuiKey::ImGuiKey_D;
+		case ImKey::UpArrow:
+			return ImGuiKey::ImGuiKey_UpArrow;
+		case ImKey::DownArrow:
+			return ImGuiKey::ImGuiKey_DownArrow;
+		case ImKey::LeftArrow:
+			return ImGuiKey::ImGuiKey_LeftArrow;
+		case ImKey::RightArrow:
+			return ImGuiKey::ImGuiKey_RightArrow;
+		default:
+			UCodeLangUnreachable();
+			break;
+		}
+	}
+
 	UCodeLangExportSymbol("API") UCodeLangExportTrait LogTrait
 	{
 		UCodeLangExport int SomeVal = 0;
@@ -69,6 +107,11 @@ namespace API
 		UCodeLangExport static void Text(StringView Name)
 		{
 			return  ImGui::Text(ToCChar(Name));
+		}
+
+		UCodeLangExport static bool KeyDown(ImKey key)
+		{
+			return ImGui::IsKeyDown(To(key));
 		}
 	};
 }

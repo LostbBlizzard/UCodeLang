@@ -1,3 +1,4 @@
+/*
 $FuncPointer = |[Vec2&] -> float;
 $FuncPointer2 = |[Vec3&] -> float;
 
@@ -15,6 +16,7 @@ $Vec2:
 
  |Update[this&] => Y;
 
+
 |main[]:
  Vec3 A = [];
  Vec2 B = [];
@@ -29,3 +31,27 @@ $Vec2:
  a += Func2(A);
 
  ret a;
+
+*/
+
+use API;
+
+
+
+bool WKey = false;
+bool AKey = false;
+bool SKey = false;
+bool DKey = false;
+
+Vec2 pos = [];
+
+|frame[]:
+ WKey = Imgui::KeyDown(ImKey::W);
+ AKey = Imgui::KeyDown(ImKey::A);
+ SKey = Imgui::KeyDown(ImKey::S);
+ DKey = Imgui::KeyDown(ImKey::D);
+ 
+ if WKey:pos.Y += 1;
+ if AKey:pos.X -= 1;
+ if SKey:pos.Y -= 1;
+ if DKey:pos.X += 1;
