@@ -251,13 +251,10 @@ UCodeBackEndObject::BinaryOpRet UCodeBackEndObject::DoBinaryOpValues(const IRIns
 
 	RegisterID A = MakeIntoRegister(IR, IR->A);
 
-	if (_Registers.GetInfo(A).Types.has_value())
-	{
 
-	}
-	else
+	bool ok = !_Registers.GetInfo(A).Types.has_value();
+	if (ok)
 	{
-
 		SetRegister(A, IR);//So MakeIntoRegister Item->B Does not update it
 	}
 	//auto OldA = std::move(_Registers.GetInfo(A));
@@ -265,7 +262,7 @@ UCodeBackEndObject::BinaryOpRet UCodeBackEndObject::DoBinaryOpValues(const IRIns
 
 
 	
-	if (!_Registers.GetInfo(A).Types.has_value())
+	if (ok)
 	{
 		FreeRegister(A);
 	}
@@ -1504,7 +1501,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		
 		for (auto& JumpItem : Jumps)
 		{
-			if (JumpItem.first == i-1)
+			if (JumpItem.first == i)
 			{
 
 
@@ -2712,9 +2709,12 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction* Ins, const  IROperato
 		FuncsToLink.push_back(Tep);
 
 		InstructionBuilder::LoadFuncPtr_V2(NullAddress, V, _Ins); PushIns();
-		InstructionBuilder::LoadFuncPtr_V3(NullAddress, V, _Ins); PushIns();
-		InstructionBuilder::LoadFuncPtr_V4(NullAddress, V, _Ins); PushIns();
 
+		if (Get_Settings().PtrSize == IntSizes::Int32) 
+		{
+			InstructionBuilder::LoadFuncPtr_V3(NullAddress, V, _Ins); PushIns();
+			InstructionBuilder::LoadFuncPtr_V4(NullAddress, V, _Ins); PushIns();
+		}
 		return V;
 	}
 	else if (Op.Type == IROperatorType::Get_PointerOf_IRidentifier)
@@ -3464,6 +3464,41 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IROperator&
 		}
 		return CompilerRet;
 	}
+	else if (Op.Type == IROperatorType::IRidentifier)
+	{
+		auto Syb = _Input->GetSymbol(Op.identifer);
+		if (Syb)
+		{
+			if (Syb->SymType == IRSymbolType::StaticVarable)
+			{
+				StaticMemoryManager::StaticMemInfo& Value = _StaticMemory._List.GetValue(Op.identifer);
+
+				IRlocData CompilerRet;
+				CompilerRet.ObjectType = Syb->Type;
+				CompilerRet.Info = IRlocData_StaticPos(Value.Offset);
+
+				return CompilerRet;
+			}
+			else if (Syb->SymType == IRSymbolType::ThreadLocalVarable)
+			{
+				StaticMemoryManager::StaticMemInfo& Value = _ThreadMemory._List.GetValue(Op.identifer);
+
+				IRlocData CompilerRet;
+				CompilerRet.ObjectType = Syb->Type;
+				CompilerRet.Info = IRlocData_ThreadPos(Value.Offset);
+
+				return CompilerRet;
+			}
+			else
+			{
+				UCodeLangUnreachable();
+			}
+		}
+		else
+		{
+			UCodeLangUnreachable();
+		}
+	}
 	else
 	{
 		UCodeLangUnreachable();
@@ -3503,6 +3538,32 @@ void UCodeBackEndObject::MoveRegInValue(RegisterID Value, const IRlocData& To, s
 			break;
 		}
 		_Stack.AddReUpdatePostFunc(PushIns(),Val->offset + Offset - _Stack.PushedOffset);
+	}
+	else if (auto Val = To.Info.Get_If<IRlocData_StackPre>())
+	{
+		switch (Size)
+		{
+		case 1:
+			InstructionBuilder::StoreRegOnStackSub8(_Ins, Value, 0);
+			break;
+		case 2:
+			InstructionBuilder::StoreRegOnStackSub16(_Ins, Value, 0);
+			break;
+		case 4:
+			InstructionBuilder::StoreRegOnStackSub32(_Ins, Value, 0);
+			break;
+		case 8:
+			InstructionBuilder::StoreRegOnStackSub64(_Ins, Value, 0);
+			break;
+		default:
+			UCodeLangUnreachable();
+			break;
+		}
+
+		auto mainobjsize = GetMainObjectSizeForStackPre(To);
+
+		auto newpos = mainobjsize - Val->offset;
+		_Stack.AddReUpdatePreFunc(PushIns(), newpos + Offset - _Stack.PushedOffset);
 	}
 	else if (auto Val = To.Info.Get_If<IRlocData_StaticPos>())
 	{

@@ -1345,7 +1345,7 @@ String CppHelper::ToString(CppToULangState& State, const EnumType& Value, const 
 	{
 		R += "[int]";
 	}
-
+	R += " enum";
 
 	if (Value.Fields.size() == 0)
 	{

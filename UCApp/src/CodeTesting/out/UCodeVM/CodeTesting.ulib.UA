@@ -13,7 +13,7 @@ $[_global]:
 
    //File:/Main.uc
    //Line:33
-   //Source Line:  int A = 0 + 7;
+   //Source Line:[Cant Find Line]
 
    1 :Store32 [A], 7
    3 :Debug_LineEnter 
@@ -22,9 +22,8 @@ $[_global]:
    7 :StoreRegToReg32 [F],[D]
    8 :StoreRegToReg32 [D],[C]
 
-   //[C] = main:A
    //Line:34
-   //Source Line:  A+=5;
+   //Source Line:[Cant Find Line]
 
    9 :Store32 [E], 5
    11 :Debug_LineEnter 
@@ -33,7 +32,7 @@ $[_global]:
    14 :StoreRegToReg32 [A],[C]
 
    //Line:35
-   //Source Line:  ret A;
+   //Source Line:[Cant Find Line]
 
    15 :StoreRegToReg32 [C],[F]
    16 :Debug_LineEnter 
@@ -42,25 +41,9 @@ $[_global]:
 ---main2^i32,i32,i32,i32: 
    19 :Debug_FuncStart 
 
-   //[D] = main2:Par1
-   //[D] = main2:Par2
-   //[D] = main2:Par3
-   //[D] = main2:Par4
-   //[D] = main2:Par1
-   //[D] = main2:Par2
-   //[D] = main2:Par3
-   //[D] = main2:Par4
-   //[D] = main2:Par1
-   //[D] = main2:Par2
-   //[D] = main2:Par3
-   //[D] = main2:Par4
-   //[D] = main2:Par1
-   //[D] = main2:Par2
-   //[D] = main2:Par3
-   //[D] = main2:Par4
    //File:/Main.uc
    //Line:41
-   //Source Line:  ret Par1;
+   //Source Line:[Cant Find Line]
 
    20 :StoreRegToReg32 [D],[F]
    21 :Debug_LineEnter 

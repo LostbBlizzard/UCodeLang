@@ -25,7 +25,9 @@ void UCLibManger::LinkLib(UCodeLang::RunTimeLib* Item)
 }
 void UCLibManger::LinkLib(UCodeLang::RunTimeLib* Item, bool HotReloadKeepStatic)
 {
-	
+	const bool is32bitmode = sizeof(void*) == 4;
+
+
 	size_t oldSize = _Instructions.size();
 	
 	if (HotReloadKeepStatic == false) {
@@ -33,8 +35,8 @@ void UCLibManger::LinkLib(UCodeLang::RunTimeLib* Item, bool HotReloadKeepStatic)
 		_Code.reserve(oldSize2 + _Code.size());
 	}
 
-auto& Ins_s = Item->Get_Instructions();
-_Instructions.reserve(oldSize + Ins_s.size());
+	auto& Ins_s = Item->Get_Instructions();
+	_Instructions.reserve(oldSize + Ins_s.size());
 	Span<Instruction> InsSpan = Span<Instruction>::Make(Ins_s.data(), Ins_s.size());
 
 	for (size_t i = 0; i < Ins_s.size(); i++)
@@ -56,8 +58,16 @@ _Instructions.reserve(oldSize + Ins_s.size());
 
 				InstructionBuilder::LoadFuncPtr_V1(newaddress,v, Tep); _Instructions.push_back(Tep); Tep = Instruction();
 				InstructionBuilder::LoadFuncPtr_V2(newaddress, v, Tep); _Instructions.push_back(Tep); Tep = Instruction();
-				InstructionBuilder::LoadFuncPtr_V3(newaddress, v, Tep); _Instructions.push_back(Tep); Tep = Instruction();
-				InstructionBuilder::LoadFuncPtr_V4(newaddress, v, Tep); _Instructions.push_back(Tep); Tep = Instruction();
+				
+				i += 1;
+
+				if (!is32bitmode) 
+				{
+					InstructionBuilder::LoadFuncPtr_V3(newaddress, v, Tep); _Instructions.push_back(Tep); Tep = Instruction();
+					InstructionBuilder::LoadFuncPtr_V4(newaddress, v, Tep); _Instructions.push_back(Tep); Tep = Instruction();
+
+					i += 2;
+				}
 				continue;
 			}
 		}
@@ -72,8 +82,16 @@ _Instructions.reserve(oldSize + Ins_s.size());
 
 				InstructionBuilder::Callv1(newaddress, Tep); _Instructions.push_back(Tep); Tep = Instruction();
 				InstructionBuilder::Callv2(newaddress, Tep); _Instructions.push_back(Tep); Tep = Instruction();
-				InstructionBuilder::Callv3(newaddress, Tep); _Instructions.push_back(Tep); Tep = Instruction();
-				InstructionBuilder::Callv4(newaddress, Tep); _Instructions.push_back(Tep); Tep = Instruction();
+
+				i += 1;
+
+				if (!is32bitmode) 
+				{
+					InstructionBuilder::Callv3(newaddress, Tep); _Instructions.push_back(Tep); Tep = Instruction();
+					InstructionBuilder::Callv4(newaddress, Tep); _Instructions.push_back(Tep); Tep = Instruction();
+				
+					i += 2;
+				}
 				continue;
 			}
 		}
