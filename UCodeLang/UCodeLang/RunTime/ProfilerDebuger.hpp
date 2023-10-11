@@ -110,6 +110,12 @@ public:
 	{
 		return StepInto(Interpreter, Function->DecorationName);
 	}
+	UCodeLangAPIExport Interpreter::Register& GetReg(RegisterID Reg)
+	{
+		return StepedInterpreter->Get_Register(Reg);
+	}
+
+
 	UCodeLangAPIExport bool HasExitedFunc();
 	UCodeLangAPIExport bool IsinFunc() {return IsInFunc;}
 	UCodeLangAPIExport void StepOutof();

@@ -980,7 +980,15 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		case IRInstructionType::Jump:
 		{
 			auto jumpos = Item->Target().Value.AsUIntNative;
-			
+			auto& jumpdata = Jumps.GetValue(jumpos);
+			if (jumpdata.has_value())
+			{
+				MoveValuesToState(jumpdata.value());
+			}
+			if (!jumpdata.has_value())
+			{
+				jumpdata = SaveState();
+			}
 
 			InstructionBuilder::Jumpv1(NullAddress, _Ins); PushIns();
 			InsToUpdate.push_back({ _OutLayer->Get_Instructions().size(),jumpos});
@@ -994,15 +1002,6 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 
 
 			
-			auto& jumpdata = Jumps.GetValue(jumpos);
-			if (jumpdata.has_value())
-			{
-				MoveValuesToState(jumpdata.value());
-			}
-			else
-			{
-				jumpdata = SaveState();
-			}
 		}
 			break;
 		case IRInstructionType::ConditionalJump:
@@ -1464,7 +1463,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		
 	
 		
-		UpdateVarableLocs();
+		//UpdateVarableLocs();
 
 		
 		for (auto& JumpItem : Jumps)
@@ -1512,16 +1511,28 @@ DoneLoop:
 		size_t IndexOfset = Get_Settings().PtrSize == IntSizes::Int64 ? 4 : 1;
 
 		Instruction& Ins = _OutLayer->Get_Instructions()[Index+3];
-		UAddress JumpPos = IRToUCodeInsPre.GetValue(Item.Jumpto);
+		UAddress JumpPos = IRToUCodeInsPre.GetValue(Item.Jumpto)-1;
 		
+		Instruction& InsToJumpOn = _OutLayer->Get_Instructions()[JumpPos +1];
 		
-		if (Ins.OpCode == InstructionSet::Jumpif)
+
+		//Jump on real Ins and not intermediate.
+		if (Ins.OpCode == InstructionSet::Store32v2
+			|| Ins.OpCode == InstructionSet::Callv2
+			|| Ins.OpCode == InstructionSet::Jumpv2
+			|| Ins.OpCode == InstructionSet::LoadFuncPtrV2
+			|| Ins.OpCode == InstructionSet::Storef32v2)
 		{
-			JumpPos += 4;
+			JumpPos -= 1;
 		}
-		else
+		else if (Ins.OpCode == InstructionSet::Store64v3
+			|| Ins.OpCode == InstructionSet::Storef64v3
+			|| Ins.OpCode == InstructionSet::Callv3
+			|| Ins.OpCode == InstructionSet::Jumpv3
+			|| Ins.OpCode == InstructionSet::LoadFuncPtrV3
+			)
 		{
-			//JumpPos += 4;
+			JumpPos -= 3;
 		}
 
 
@@ -4148,6 +4159,7 @@ void UCodeBackEndObject::UpdateVarableLocs()
 
 						if (Ir->Type == IROperatorType::IRParameter)
 						{
+							/*
 							IRPar* p = Ir->Parameter;
 
 							UDebugSetVarableLoc Loc;
@@ -4156,6 +4168,7 @@ void UCodeBackEndObject::UpdateVarableLocs()
 							Loc.Type = RegValue;
 
 							_DebugInfo.Add_SetVarableLoc(std::move(Loc));
+							*/
 						}
 						else
 						{
@@ -4164,7 +4177,7 @@ void UCodeBackEndObject::UpdateVarableLocs()
 					}
 					else
 					{
-						UCodeLangUnreachable();
+						//UCodeLangUnreachable();
 					}
 				}
 				OldItemInfo.Types = Item2.Types;
@@ -4174,6 +4187,30 @@ void UCodeBackEndObject::UpdateVarableLocs()
 }
 void UCodeBackEndObject::MoveValuesToState(const RegistersManager& state)
 {
+	/*
+	RegisterID_t reg = (RegisterID_t)-1;
+	for (auto& Item : _Registers.Registers)
+	{
+		reg++;
+
+		if (Item.Types.has_value())
+		{
+			auto& type = Item.Types.value();
+
+			if (auto val = type.Get_If<const IRInstruction*>())
+			{
+				if (auto stackitem = _Stack.Has((*val)->A.Pointer) )
+				{
+					IRlocData V;
+					V.Info = IRlocData_StackPost(stackitem->Offset);
+					V.ObjectType = stackitem->IR->ObjectType;
+
+					MoveRegInValue((RegisterID)reg,V, 0);
+				}
+			}
+		}
+	}
+	*/
 	_Registers = state;
 }
 RegistersManager UCodeBackEndObject::SaveState()

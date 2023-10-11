@@ -701,7 +701,6 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 			for (size_t i = 0; i < Block->Instructions.size(); i++)
 			{
 				auto& I = Block->Instructions[i];
-				if (I->Type == IRInstructionType::None) { continue; }
 
 				auto DebugInfo = Block->DebugInfo.Get_debugfor(i);
 				for (auto& Item : DebugInfo)
@@ -736,6 +735,8 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					r += '\n';
 				}
 
+
+				if (I->Type == IRInstructionType::None) { continue; }
 				if (I->Type != IRInstructionType::PushParameter)
 				{
 					r += Tabs;

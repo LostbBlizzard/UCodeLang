@@ -200,8 +200,9 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 					_IR_LookingAtIRFunc = &_IR_Builder._threadInit;
 					_IR_LookingAtIRBlock = _IR_LookingAtIRFunc->Blocks.front().get();
 
-					Debug_Add_SetLineNumber(NeverNullptr(node._Name.token), _IR_LookingAtIRBlock->GetIndex());
-					Debug_Add_SetVarableInfo(*syb, _IR_LookingAtIRBlock->GetIndex());
+					auto pos = _IR_LookingAtIRBlock->InsCount() ? _IR_LookingAtIRBlock->GetIndex() : 0;
+					Debug_Add_SetLineNumber(NeverNullptr(node._Name.token),pos);
+					Debug_Add_SetVarableInfo(*syb, pos);
 
 					if (Type_IsStructPassByRef(syb)) {
 						OnVarable = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(syb->VarType));
@@ -234,7 +235,8 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 					_IR_LookingAtIRFunc = Classinfo->_ClassFieldInit;
 					_IR_LookingAtIRBlock = _IR_LookingAtIRFunc->Blocks.front().get();
 
-					Debug_Add_SetLineNumber(NeverNullptr(node._Name.token), _IR_LookingAtIRBlock->GetIndex());
+					auto pos = _IR_LookingAtIRBlock->InsCount() ? _IR_LookingAtIRBlock->GetIndex() : 0;
+					Debug_Add_SetLineNumber(NeverNullptr(node._Name.token), pos);
 
 					if (Type_IsStructPassByRef(syb)) {
 						OnVarable = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(syb->VarType));
