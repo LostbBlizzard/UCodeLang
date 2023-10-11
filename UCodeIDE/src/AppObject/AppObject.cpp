@@ -288,9 +288,9 @@ void AppObject::DrawTestMenu()
     };
     struct TestInfo
     {
-        TestMode Testmode = TestMode::C89;
+        TestMode Testmode = TestMode::UCodeLang;
         size_t MinTestIndex = 0;
-        size_t MaxTestCount = 40;//;//ULangTest::Tests.size();
+        size_t MaxTestCount = 37;//;//ULangTest::Tests.size();
 
         size_t ModuleIndex = 0;
         size_t ModuleTestCount = 1;//;//ULangTest::Tests.size();
@@ -2568,7 +2568,7 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
         ImGui::Text("Registers");
 
         for (UCodeLang::RegisterID_t i = (UCodeLang::RegisterID_t)UCodeLang::RegisterID::StartRegister;
-            i < (UCodeLang::RegisterID_t)UCodeLang::RegisterID::EndRegister; i++)
+            i < (UCodeLang::RegisterID_t)UCodeLang::RegisterID::EndRegister + 1; i++)
         {
             auto reg = (UCodeLang::RegisterID)i;
             auto tep = UCodeLang::UAssembly::UAssembly::GetRegisterToString(reg);
@@ -2687,7 +2687,10 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                     auto& Arg = callFuncContext.Args[i];
 
                     String ParName = "Arg" + std::to_string(i);
+
+                    ImGui::PushID(Arg.Data());
                     ImguiHelper::UCodeObjectField(ParName.c_str(), (void*)Arg.Data(), Par, Assembly);
+                    ImGui::PopID();
                 }
 
                 if (windowdata.CallStaticVarOnReload == false) {
