@@ -7,7 +7,7 @@ public:
 	
 	struct SummaryTag
 	{
-
+		String text;
 	};
 	struct CPPExpression
 	{
