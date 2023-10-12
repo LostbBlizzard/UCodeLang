@@ -114,6 +114,8 @@ inline const char* S_KeyWord_mut = "mut";
 
 inline const char* S_KeyWord_compiler = "compiler";
 
+inline const char* S_KeyWord_export = "export";
+
 struct KeyWord
 {
 	const char* keyWord;
@@ -230,6 +232,8 @@ inline KeyWord KeyWords[] =
 	KeyWord(S_KeyWord_mut,TokenType::Null),
 
 	KeyWord(S_KeyWord_compiler, TokenType::KeyWord_compiler),
+
+	KeyWord(S_KeyWord_export, TokenType::KeyWord_export),
 };
 constexpr size_t KeyWords_Size = sizeof(KeyWords) / sizeof(KeyWords[0]);
 class KeyWordHelper

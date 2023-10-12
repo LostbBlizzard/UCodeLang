@@ -171,6 +171,7 @@ enum class TokenType : TokenType_t
 	KeyWord_RangeOperator,//..
 	KeyWord_defer,//..
 	KeyWord_compiler,//..
+	KeyWord_export,//export
 	//used internally
 	internal_Constant_expression,
 	internal_InlineEnumVariant,
