@@ -34,24 +34,18 @@ $Vec2:
 
 */
 
-use API;
+$FuncPointer = |[int a,int b] -> int;
 
+|Add[int a,int b] => a + b;
+|Mult[int a,int b] => a * b;
 
+|main[]:
+ FuncPointer V = Add;
+ int a = 99;
+ a = V(5,5);
 
-bool WKey = false;
-bool AKey = false;
-bool SKey = false;
-bool DKey = false;
+ V = Mult;
 
-Vec2 pos = [];
+ a = V(a,0);
 
-|frame[]:
- WKey = Imgui::KeyDown(ImKey::W);
- AKey = Imgui::KeyDown(ImKey::A);
- SKey = Imgui::KeyDown(ImKey::S);
- DKey = Imgui::KeyDown(ImKey::D);
- 
- if WKey:pos.Y += 1;
- if AKey:pos.X -= 1;
- if SKey:pos.Y -= 1;
- if DKey:pos.X += 1;
+ ret a;

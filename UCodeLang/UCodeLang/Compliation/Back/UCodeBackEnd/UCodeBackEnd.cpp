@@ -2710,7 +2710,7 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction* Ins, const  IROperato
 
 		InstructionBuilder::LoadFuncPtr_V2(NullAddress, V, _Ins); PushIns();
 
-		if (Get_Settings().PtrSize == IntSizes::Int32) 
+		if (Get_Settings().PtrSize != IntSizes::Int32) 
 		{
 			InstructionBuilder::LoadFuncPtr_V3(NullAddress, V, _Ins); PushIns();
 			InstructionBuilder::LoadFuncPtr_V4(NullAddress, V, _Ins); PushIns();
