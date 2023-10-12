@@ -201,6 +201,7 @@ private:
 	Vector<Unique_ptr<UCodeFunc>> Funcs;
 	UCodeFunc* BuildingFunc = nullptr;
 	Optimizations _Optimizations;
+	const IRFunc* lookingatfunc= nullptr;
 	//code
 	bool IsPrimitive(const IRType& type)
 	{
@@ -218,7 +219,13 @@ private:
 	{
 		return _Input->GetType(IR, Op);
 	}
-
+	struct BinaryOpRet
+	{
+		RegisterID A;
+		RegisterID B;
+		RegisterID V;
+	};
+	BinaryOpRet DoBinaryOpValues(const IRInstruction* IR);
 
 
 	UCodeFunc* NewBuildFunc()
@@ -499,6 +506,8 @@ private:
 
 	void MoveValuesToState(const RegistersManager& state);
 	RegistersManager SaveState();
+
+	void SynchronizePars();
 };
 UCodeLangEnd
 

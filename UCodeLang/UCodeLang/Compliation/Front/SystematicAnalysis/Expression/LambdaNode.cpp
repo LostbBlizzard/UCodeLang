@@ -527,7 +527,7 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 					auto lastbefordrop = hasins ? _IR_LookingAtIRBlock->Instructions.back().get() : nullptr;
 
 					Pop_StackFrame();
-					size_t droploc = hasins ? _IR_LookingAtIRBlock->Instructions.size() - 2 : 0;
+					size_t droploc = hasins ? _IR_LookingAtIRBlock->Instructions.size() - 1 : 0;
 
 					for (auto& Item : _IR_Rets)
 					{

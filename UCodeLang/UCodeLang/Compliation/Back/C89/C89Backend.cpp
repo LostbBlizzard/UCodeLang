@@ -701,7 +701,6 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 			for (size_t i = 0; i < Block->Instructions.size(); i++)
 			{
 				auto& I = Block->Instructions[i];
-				if (I->Type == IRInstructionType::None) { continue; }
 
 				auto DebugInfo = Block->DebugInfo.Get_debugfor(i);
 				for (auto& Item : DebugInfo)
@@ -719,12 +718,25 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 						r += "*/";
 					}
 				}
-				if (DebugInfo.size())
+				bool hasname = false;
+				for (auto& Item : Names)
+				{
+					if (Item.first == i)
+					{
+						r += "\n";
+						r += Tabs;
+						r += Item.second + ":";
+						hasname = true;
+					}
+				}
+				if (DebugInfo.size() || hasname)
 				{
 					r += '\n';
 					r += '\n';
 				}
 
+
+				if (I->Type == IRInstructionType::None) { continue; }
 				if (I->Type != IRInstructionType::PushParameter)
 				{
 					r += Tabs;
@@ -1084,17 +1096,8 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					break;
 				}
 				r += ";\n";
-				GoOver:
-				for (auto& Item : Names)
-				{
-					if (Item.first == i)
-					{
-						r += Tabs;
-						r += Item.second+ ":";
-						r += "\n";
-
-					}
-				}
+			GoOver:
+				int a = 0;
 			}
 			State.PointerToName.clear();
 		}

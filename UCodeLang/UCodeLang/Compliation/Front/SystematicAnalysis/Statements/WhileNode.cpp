@@ -17,7 +17,7 @@ void SystematicAnalysis::OnWhileNode(const WhileNode& node)
 	size_t BoolJumps;
 	if (_PassType == PassType::BuidCode)
 	{
-		BoolCode = _IR_LookingAtIRBlock->GetIndex();
+		BoolCode = _IR_LookingAtIRBlock->InsCount() ? _IR_LookingAtIRBlock->GetIndex() : 0;
 		BoolJumps = IR_GetJumpsIndex();
 	}
 	OnExpressionTypeNode(node._Expression._Value.get(), GetValueMode::Read);

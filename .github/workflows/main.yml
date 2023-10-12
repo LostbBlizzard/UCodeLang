@@ -103,10 +103,10 @@ jobs:
         key: ${{ runner.os }}-cl-1inux
 
     - name: Build 64 bit
-      run: ./BuildTools/BuildLinux64Debug.sh
+      run: make config=debug_linux64
 
     - name: Build 32 bit
-      run: ./BuildTools/BuildLinux32Debug.sh
+      run: make config=debug_linux32
 
     - name: Save cached Objs
       id: cache-Objs-save

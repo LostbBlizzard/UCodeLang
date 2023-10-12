@@ -288,9 +288,9 @@ void AppObject::DrawTestMenu()
     };
     struct TestInfo
     {
-        TestMode Testmode = TestMode::C89;
-        size_t MinTestIndex = 40;
-        size_t MaxTestCount = 50;//;//ULangTest::Tests.size();
+        TestMode Testmode = TestMode::UCodeLang;
+        size_t MinTestIndex = 0;
+        size_t MaxTestCount = 37;//;//ULangTest::Tests.size();
 
         size_t ModuleIndex = 0;
         size_t ModuleTestCount = 1;//;//ULangTest::Tests.size();
@@ -1646,7 +1646,7 @@ void AppObject::OnDraw()
             if (windowdata.CallFrame) {
 
 
-                _AnyInterpreter.Call("OnDraw");
+                _AnyInterpreter.Call("frame");
 
             }
         }
@@ -2443,6 +2443,37 @@ void AppObject::UpdateInsData(UCodeVMWindow& windowdata)
     }
 }
 
+bool DrawAnyInt64(const char* Name,UCodeLang::AnyInt64& V)
+{
+    bool updated = false;
+    if (ImGui::TreeNode(Name))
+    {
+        if (ImguiHelper::Int8Field("int8", V.AsInt8))
+        {
+            updated = true;
+        }
+        if (ImguiHelper::Int16Field("int16", V.AsInt16))
+        {
+            updated = true;
+        }
+        if (ImguiHelper::Int32Field("int32", V.AsInt32))
+        {
+            updated = true;
+        }
+        if (ImguiHelper::Int64Field("int64", V.AsInt64))
+        {
+            updated = true;
+        }
+        ImguiHelper::float32Field("float32", V.Asfloat32);
+        ImguiHelper::float64Field("float64", V.Asfloat64);
+
+
+
+        ImGui::TreePop();
+    }
+    return  updated;
+}
+
 void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
 {
 
@@ -2532,7 +2563,18 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
         ImGui::Text("StackFrames");
 
     }
+    if (InFuncion)
+    {
+        ImGui::Text("Registers");
 
+        for (UCodeLang::RegisterID_t i = (UCodeLang::RegisterID_t)UCodeLang::RegisterID::StartRegister;
+            i < (UCodeLang::RegisterID_t)UCodeLang::RegisterID::EndRegister + 1; i++)
+        {
+            auto reg = (UCodeLang::RegisterID)i;
+            auto tep = UCodeLang::UAssembly::UAssembly::GetRegisterToString(reg);
+            DrawAnyInt64(tep.c_str(), Debuger.GetReg(reg).Value);
+        }
+    }
     
 
     if (!InFuncion) 
@@ -2645,7 +2687,10 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                     auto& Arg = callFuncContext.Args[i];
 
                     String ParName = "Arg" + std::to_string(i);
+
+                    ImGui::PushID(Arg.Data());
                     ImguiHelper::UCodeObjectField(ParName.c_str(), (void*)Arg.Data(), Par, Assembly);
+                    ImGui::PopID();
                 }
 
                 if (windowdata.CallStaticVarOnReload == false) {
@@ -3063,14 +3108,13 @@ void AppObject::OnErrorListUpdated()
     }
     _Editor.SetErrorMarkers(marks);
 }
-
+const Path tepfilesdir = "tepfiles";
+const Path tepfilepath = tepfilesdir / "src.uc";
 void AppObject::CompileText(const String& String)
 {
-    if (IsRuningCompiler) { return;}
+    if (IsRuningCompiler) { return; }
 
     _Compiler.Get_Errors().Remove_Errors();
-    const Path tepfilesdir = "tepfiles";
-    const Path tepfilepath = tepfilesdir / "src.uc";
     const Path tepoutpath = Outfilepath();
     const Path tepintpath = "int";
 
@@ -3091,11 +3135,11 @@ void AppObject::CompileText(const String& String)
     if (OutputWindow.InDebug) {
         Settings._Flags = (UCodeLang::OptimizationFlags)((UCodeLang::OptimizationFlags_t)Settings._Flags | (UCodeLang::OptimizationFlags_t)UCodeLang::OptimizationFlags::Debug);
     }
-   
+
     IsRuningCompiler = true;
     bool AddStandardLibrary = OutputWindow.ImportStandardLibrary;
-    bool Apifile = false;
-    std::function<UCodeLang::Compiler::CompilerRet()> Func = [this, paths, AddStandardLibrary, Apifile, tepfilepath]()
+    bool Apifile = UCodeLang::StringHelper::Contains(String, "API");
+    std::function<UCodeLang::Compiler::CompilerRet()> Func = [this, paths, AddStandardLibrary, Apifile]()
     {
         UCodeLang::Compiler::ExternalFiles ExternalFiles;
 
@@ -3131,6 +3175,7 @@ void AppObject::CompileText(const String& String)
         UCodeLang::Compiler::CompilerRet r;
         if (Apifile)
         {
+            std::filesystem::remove_all(paths.IntDir);
             r = _Compiler.CompileFiles_UseIntDir(paths, ExternalFiles);
         }
         else
@@ -3140,10 +3185,20 @@ void AppObject::CompileText(const String& String)
         IsRuningCompiler = false;
         return r;
     };
-     
+
     _RuningPaths = std::move(paths);
-    _RuningCompiler = SendTaskToWorkerThread<UCodeLang::Compiler::CompilerRet>(Func);
-    //Func();
+    
+
+    static bool ItWorked = false;
+    if (ItWorked == false)
+    {
+        ItWorked = true;
+        Func();
+    }
+    else
+    {
+        _RuningCompiler = SendTaskToWorkerThread<UCodeLang::Compiler::CompilerRet>(Func);
+    }
 }
 
 void AppObject::OnDoneCompileing(UCodeLang::Compiler::CompilerRet& Val, const UCodeAnalyzer::Path& tepoutpath)
@@ -3161,7 +3216,8 @@ void AppObject::OnDoneCompileing(UCodeLang::Compiler::CompilerRet& Val, const UC
             UCodeLang::UClib::FromFile(&lib, tepoutpath);
             _CompiledLib = std::move(lib);
 
-            _LibInfoString = UCodeLang::UAssembly::UAssembly::ToString(&_CompiledLib);
+            _LibInfoString = UCodeLang::UAssembly::UAssembly::ToString(&_CompiledLib
+            ,tepfilesdir,false);
         }
         break;
         case BackEndType::IR:

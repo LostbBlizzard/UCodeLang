@@ -18,7 +18,7 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 
 		TypeSymbol ToAssignType = _LastExpressionType;
 
-		_LookingForTypes.push(TypesEnum::Any);
+		_LookingForTypes.push(ToAssignType);
 		OnExpressionTypeNode(node._Expession._Value.get(), GetValueMode::Read);
 		_LookingForTypes.pop();
 

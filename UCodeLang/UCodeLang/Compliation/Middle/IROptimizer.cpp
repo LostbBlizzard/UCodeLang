@@ -28,6 +28,7 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 
 	UpdateOptimizationList();
 	
+	bool didonepass = false;
 	
 	do 
 	{
@@ -49,6 +50,7 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 
 			if (_Settings->_Flags == OptimizationFlags::NoOptimization
 				|| _Settings->_Flags == OptimizationFlags::Debug) { return; }
+			
 			if (true) { return; }
 
 			if (_ErrorsOutput->Has_Errors())
@@ -87,7 +89,7 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 				{
 					continue;
 				}
-				IROptimizationFuncData& FuncData = Funcs.GetValue(Func.get());
+				IROptimizationFuncData& FuncData = Funcs.GetOrAdd(Func.get(), {});
 				size_t InsCount = 0;
 
 				for (auto& Block : Func->Blocks)
@@ -109,7 +111,14 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 				}
 
 			}
+			Funcs.GetOrAdd(&Input->_StaticInit, {});
+			Funcs.GetOrAdd(&Input->_threadInit, {});
+			Funcs.GetOrAdd(&Input->_threaddeInit, {});
+			Funcs.GetOrAdd(&Input->_StaticdeInit, {});
 
+
+
+			didonepass = true;
 			UpdateCodePass();
 
 
@@ -245,7 +254,17 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 	} while (_UpdatedCode);
 	
 
+
+
+	if (didonepass)
+	{
+		for (auto& Item : Funcs) 
+		{
+			UndoSSA(Item.first, Item.second.SsA.value());
+		}
+	}
 }
+
 void IROptimizer::UpdateOptimizationList()
 {
 	auto& Stettings = *_Settings;
@@ -336,8 +355,12 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 	{
 		return;
 	}
-	SSAState _State;
-	ToSSA(Func, _State);
+	if (!Funcs.GetValue(Func).SsA.has_value()) 
+	{
+		SSAState _data;
+		ToSSA(Func, _data);
+		Funcs.GetValue(Func).SsA = std::move(_data);
+	}
 	
 	LookAtfunc = Func;
 	
@@ -704,9 +727,6 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 		}
 	}
 
-	if ((OptimizationFlags_t)_Settings->_Flags & (OptimizationFlags_t)OptimizationFlags::Debug) {
-		UndoSSA(Func, _State);
-	}
 }
 void IROptimizer::DoDestructurStructMembers(UCodeLang::Unique_ptr<UCodeLang::IRInstruction>& Ins, UCodeLang::IRStruct* structtype, UCodeLang::IRFunc* Func, UCodeLang::Unique_ptr<UCodeLang::IRBlock>& Block, const size_t& i)
 {
@@ -1115,8 +1135,83 @@ void IROptimizer::ConstantFoldOperator(IRInstruction& I, IROperator& Value,ReadO
 	}
 
 }
-void IROptimizer::ToSSA(const IRFunc* Func, SSAState& state)
+void IROptimizer::ToSSA(IRFunc* Func, SSAState& state)
 {
+	if (Func->Blocks.size() == 0) { return; }
+	UCodeLangAssert(Func->Blocks.size());
+
+	auto Block = Func->Blocks.front().get();
+	UnorderedMap<size_t,size_t> IndexToBlock;
+	for (size_t i = 0; i < Block->Instructions.size(); i++)
+	{
+		auto& I = Block->Instructions[i];
+		switch (I->Type)
+		{
+		case IRInstructionType::Jump:
+		case IRInstructionType::ConditionalJump:
+			if (!IndexToBlock.HasValue(I->Target().identifer))
+			{
+				IRBlock v;
+
+				Func->Blocks.push_back(std::make_unique<IRBlock>(std::move(v)));
+				IndexToBlock.AddValue(I->Target().identifer,Func->Blocks.size()-1);
+
+
+			}
+			break;
+		}
+	}
+
+
+	IRBlock* OnBlock = Block;
+	auto size = Block->Instructions.size();
+	for (size_t i = 0; i < size; i++)
+	{
+		auto& Ins = Block->Instructions[i];
+
+
+		if (IndexToBlock.HasValue(i))
+		{
+			OnBlock = Func->Blocks[IndexToBlock.GetValue(i)].get();
+		}
+
+		if (Ins->Type == IRInstructionType::Jump)
+		{
+			Ins->Type = IRInstructionType::JumpBlock;
+			Ins->Target().Value = IndexToBlock.GetValue(Ins->Target().Value.AsUIntNative);
+		}
+		else if (Ins->Type == IRInstructionType::ConditionalJump)
+		{
+			Ins->Type = IRInstructionType::JumpBlockIf;
+			Ins->Target().Value = IndexToBlock.GetValue(Ins->Target().Value.AsUIntNative);
+		}
+
+		OnBlock->Instructions.push_back(std::move(Ins));
+
+	}
+
+	std::reverse(Func->Blocks.begin() + 1, Func->Blocks.end());
+	
+	for (auto& Item : Func->Blocks) 
+	{
+		Item->DebugInfo.DebugInfo.clear();
+		auto& myList = Item->Instructions;
+		myList.erase(
+			std::remove_if(myList.begin(), myList.end(),
+				[](const Unique_ptr<IRInstruction>& o) { return o.get() ==nullptr || o->Type ==IRInstructionType::None; }),
+			myList.end());
+
+	}
+	if (Func->Blocks.size())
+	{
+		int a = 0;
+	}
+	
+	auto S = Input->ToString();
+
+	std::cout << "-----" << std::endl;
+	std::cout << S;
+	/*
 	for (auto& Block : Func->Blocks)
 	{
 		for (size_t i = 0; i < Block->Instructions.size(); i++)
@@ -1161,8 +1256,9 @@ void IROptimizer::ToSSA(const IRFunc* Func, SSAState& state)
 			}
 		}
 	}
+	*/
 }
-void  IROptimizer::UndoSSA(const IRFunc* Func, const SSAState& state)
+void  IROptimizer::UndoSSA(IRFunc* Func, const SSAState& state)
 {
 	for (auto& Item : state.Updated)
 	{

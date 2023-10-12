@@ -214,6 +214,8 @@ enum class IRInstructionType : IRInstructionType_t
 	Assume,
 
 	//internal stuff
+	JumpBlock,
+	JumpBlockIf
 };
 
 inline bool IsCommutative(IRInstructionType Value)
@@ -1281,7 +1283,8 @@ struct IRBlock
 
 	size_t GetIndex()
 	{
-		return Instructions.size()-1;
+		UCodeLangAssert(Instructions.size());
+		return Instructions.size();
 	}
 	size_t InsCount()
 	{

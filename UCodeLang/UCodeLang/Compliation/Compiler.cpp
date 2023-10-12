@@ -34,10 +34,10 @@ Compiler::CompilerRet Compiler::CompileText(const String_view& Text, const Exter
 
 
 	auto Item = _FrontEndObject->BuildFile(Text);
-
-
+	
 
 	if (Item == nullptr || _Errors.Has_Errors()) { return CompilerRet; }
+	Item->FileName = "src.uc";
 
 
 	Vector<Unique_ptr<FileNode_t>> Files;

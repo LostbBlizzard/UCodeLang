@@ -51,20 +51,52 @@ UCodeLangAPIExport void ProfilerDebuger::UpdateDebugData(DebugData& Out)
 
 	Out._StackFrames.clear();
 
+
+	auto& DebugInfo = StepedInterpreter->Get_State()->Get_Libs().Get_DebugInfo();
+
+	DebugStackFrame F;
+	F._Funcion = func;
+
+
+	const ClassMethod* FuncString = nullptr;
+	for (size_t i = func; i < ins; i++)
 	{
-		DebugStackFrame F;
-		F._Funcion = func;
+		auto info = DebugInfo.GetForIns(i);
 
-		DebugVarable d;
-		d.Type = ReflectionTypes::sInt32;
-		d.VarableName = "var";
-		d.VarableType = DebugVarable::VarType::Parameter;
-		d.Object = &StepedInterpreter->_CPU.D;
+		for (auto& Item : info)
+		{
+			if (auto loc = Item->Debug.Get_If<UDebugSetVarableLoc>()) 
+			{
+				if (FuncString == nullptr)
+				{
+					FuncString = StepedInterpreter->Get_State()->GetMethod(func);
+				}
 
-		F._Varables.push_back(std::move(d));
+				DebugVarable d;
+				d.VarableName = ScopeHelper::GetNameFromFullName(loc->VarableFullName);
 
-		Out._StackFrames.push_back(std::move(F));
+				const VarableInfo& Var = DebugInfo.VarablesInfo.GetValue(loc->VarableFullName);
+
+				if (auto v = loc->Type.Get_If<RegisterID>())
+				{
+					d.Object = &StepedInterpreter->Get_Register(*v).Value;
+				}
+				else
+				{
+					UCodeLangUnreachable();
+				}
+
+				d.VarableType = DebugVarable::VarType::Parameter;
+				d.Type = Var.ReflectionType;
+
+				F._Varables.push_back(d);
+			}
+		}
 	}
+
+
+	Out._StackFrames.push_back(std::move(F));
+
 
     return;
 }
@@ -161,7 +193,9 @@ void ProfilerDebuger::VM_StepIn()
 		Inslength = 4;
 	}
 	else if (v.OpCode == InstructionSet::Callv1
-		|| v.OpCode == InstructionSet::LoadFuncPtrV1)
+		|| v.OpCode == InstructionSet::LoadFuncPtrV1
+		|| v.OpCode == InstructionSet::Jumpif
+		|| v.OpCode == InstructionSet::Jumpv1)
 	{
 		Inslength = Is32bit ? 2 : 4;
 	}
@@ -177,7 +211,8 @@ void ProfilerDebuger::VM_StepIn()
 void ProfilerDebuger::VM_StepOver()
 {
 	auto& v = StepedInterpreter->Get_State()->GetInst(GetCurrentInstruction());
-	if (v.OpCode == InstructionSet::Callv1)
+	if (v.OpCode == InstructionSet::Callv1
+		|| v.OpCode == InstructionSet::CallReg)
 	{
 		size_t vl = StepedInterpreter->GetStackOffset();
 		do

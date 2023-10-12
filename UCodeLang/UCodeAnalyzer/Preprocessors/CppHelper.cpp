@@ -857,6 +857,8 @@ void CppHelper::DoEnumType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnal
 			if (i < Scope.size())
 			{
 				EnumType::Field field;
+
+				GetSummaryTag(i,Scope,field.Summary);
 				GetIndentifier(i, Scope, field.Name);
 
 				bool Exclude = false;
@@ -1298,6 +1300,56 @@ void CppHelper::GetSummaryTag(size_t& i, UCodeAnalyzer::String& FileText, Summar
 
 void CppHelper::GetSummaryTag(size_t& i, UCodeAnalyzer::String& FileText, Optional<SummaryTag>& Out)
 {
+	if (FileText.size() > i + 2) 
+	{
+		char B = FileText[i];
+		char B2 = FileText[i + 1];
+		if (B == '/' && B2 == '/')
+		{
+			i += 2;
+
+			size_t NewIndex = 0;
+			for (size_t i2 = i; i2 < FileText.size(); i2++)
+			{
+				if (FileText[i2] == '\n')
+				{
+					NewIndex = i2;
+					break;
+				}
+			}
+			SummaryTag t;
+			t.text = StringView(&FileText[i], NewIndex - i);
+			Out = std::move(t);
+
+			i = NewIndex + 1;
+		}
+		else if (B == '/' && B2 == '*')
+		{
+			i += 2;
+
+			size_t NewIndex = 0;
+			for (size_t i2 = i; i2 < FileText.size(); i2++)
+			{
+				if (i2 + 1 < FileText.size()) 
+				{
+					if (FileText[i2] == '*'
+						&& FileText[i2 + 1] == '/')
+					{
+						NewIndex = i2;
+						break;
+					}
+				}
+			}
+			SummaryTag t;
+			t.text = StringView(&FileText[i], NewIndex - i);
+			Out = std::move(t);
+
+			i = NewIndex + 2;
+
+		}
+
+		MovePassSpace(i, FileText);
+	}
 }
 
 String CppHelper::ToString(CppToULangState& State, const SymbolData& Syb)
@@ -1333,7 +1385,16 @@ String CppHelper::ToString(CppToULangState& State, const EnumType& Value, const 
 
 	State.AddScopesUseingScopeCount(R);
 
-	ToString(State, Syb.Summary);
+
+	{
+		auto summary = ToString(State, Syb.Summary);
+		if (summary.size())
+		{
+			R += summary;
+			State.AddScopesUseingScopeCount(R);
+		}
+
+	}
 	R += "$" + Syb._Name + "";
 	if (Value._EnumBaseType.has_value())
 	{
@@ -1345,7 +1406,7 @@ String CppHelper::ToString(CppToULangState& State, const EnumType& Value, const 
 	{
 		R += "[int]";
 	}
-
+	R += " enum export";
 
 	if (Value.Fields.size() == 0)
 	{
@@ -1361,7 +1422,12 @@ String CppHelper::ToString(CppToULangState& State, const EnumType& Value, const 
 		R += '\n';
 		State.AddScopesUseingScopeCount(R);
 
-		ToString(State, Syb.Summary);
+		auto summary = ToString(State, Item.Summary);
+		if (summary.size())
+		{
+			R += summary;
+			State.AddScopesUseingScopeCount(R);
+		};
 		R += Item.Name;
 
 		if (Item.Value.has_value())
@@ -1391,8 +1457,13 @@ String CppHelper::ToString(CppToULangState& State, const ConstexprType& Value, c
 
 	State.AddScopesUseingScopeCount(R);
 
-	ToString(State, Syb.Summary);
-	R += "eval " + ToString(State,Value._Type) + " " + Syb._Name + " = " + ToString(State, Value._Value);
+	auto summary = ToString(State, Syb.Summary);
+	if (summary.size())
+	{
+		R += summary;
+		State.AddScopesUseingScopeCount(R);
+	}
+	R += "export eval " + ToString(State,Value._Type) + " " + Syb._Name + " = " + ToString(State, Value._Value);
 	R += ";\n";
 	return R;
 }
@@ -1402,8 +1473,14 @@ String CppHelper::ToString(CppToULangState& State, const ClassType& Value, const
 	DoNameSpace(State, Syb, R);
 
 	State.AddScopesUseingScopeCount(R);
-	ToString(State, Syb.Summary);
-	R += "$" + Syb._Name + " extern \"c\" :\n";
+
+	auto summary = ToString(State, Syb.Summary);
+	if (summary.size())
+	{
+		R += summary;
+		State.AddScopesUseingScopeCount(R);
+	}
+	R += "$" + Syb._Name + " extern \"c\" export:\n";
 
 	State.ScopeCount++;
 	for (auto& Item : Value.Fields)
@@ -1444,9 +1521,15 @@ String CppHelper::ToString(CppToULangState& State, const FuncData& Value, const 
 	DoNameSpace(State, Syb, R);
 
 	State.AddScopesUseingScopeCount(R);
-	ToString(State, Syb.Summary);
 
+	auto summary = ToString(State, Syb.Summary);
+	if (summary.size())
+	{
+		R += summary;
+		State.AddScopesUseingScopeCount(R);
+	}
 
+	R += "export ";
 	if (!Value.OverloadNumber.has_value())
 	{
 		R += "extern dynamic ";
@@ -1703,7 +1786,8 @@ String CppHelper::ToString(const CppToULangState& State, const Optional<SummaryT
 
 String CppHelper::ToString(const CppToULangState& State, const SummaryTag& Value)
 {
-	return "";
+
+	return "/*" + Value.text + "*/\n";
 }
 
 bool CppHelper::ParseULangfileAndUpdateCpp(const Path& SrcLang, const Path& CppOut)

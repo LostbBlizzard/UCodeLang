@@ -124,10 +124,10 @@ jobs:
           key: ${{ runner.os }}-1inux-deployment
 
       - name: Build 64 bit
-        run: ./BuildTools/BuildLinux64Published.sh
+        run: make config=published_linux64
 
       - name: Build 32 bit
-        run: ./BuildTools/BuildLinux32Published.sh
+        run: make config=published_linux32
 
       - name: Save cached Objs
         id: cache-Objs-save
