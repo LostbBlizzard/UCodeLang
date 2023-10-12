@@ -211,7 +211,8 @@ void ProfilerDebuger::VM_StepIn()
 void ProfilerDebuger::VM_StepOver()
 {
 	auto& v = StepedInterpreter->Get_State()->GetInst(GetCurrentInstruction());
-	if (v.OpCode == InstructionSet::Callv1)
+	if (v.OpCode == InstructionSet::Callv1
+		|| v.OpCode == InstructionSet::CallReg)
 	{
 		size_t vl = StepedInterpreter->GetStackOffset();
 		do
