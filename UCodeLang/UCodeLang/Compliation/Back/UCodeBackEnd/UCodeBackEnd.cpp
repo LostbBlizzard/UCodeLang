@@ -654,19 +654,120 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		auto& Item_ = IR->Instructions[i];
 		auto Item = Item_.get();
 		Index = i;
+		
+		for (auto& JumpItem : Jumps)
+		{
+			if (JumpItem.first == i)
+			{
+				bool IsInLoop = false;
+				Vector<IROperator> UsedInLoop;
+				for (size_t i2 = i; i2 < IR->Instructions.size(); i2++)
+				{
+					auto Test = IR->Instructions[i2].get();
+
+
+					auto OnOp = [&UsedInLoop, this, IR, i](IROperator& op)
+					{
+						if (op.Type == IROperatorType::IRInstruction
+							|| op.Type == IROperatorType::Get_PointerOf_IRInstruction
+							|| op.Type == IROperatorType::DereferenceOf_IRInstruction)
+						{
+							auto Irpoint = op.Pointer;
+
+							for (size_t i3 = 0; i3 < IR->Instructions.size(); i3++)
+							{
+								auto& Item = IR->Instructions[i3];
+
+
+								if (Item.get() == Irpoint)
+								{
+									if (i > i3)
+									{
+										UsedInLoop.push_back(IROperator(Item.get()));
+									}
+								}
+							}
+						}
+					};
+
+
+					if (Test->Type == IRInstructionType::Reassign ||
+						Test->Type == IRInstructionType::Reassign_dereference)
+					{
+						int a = 0;
+					}
+
+					if (IsOperatorValueInInput(Test->Type))
+					{
+						OnOp(Test->Input());
+					}
+
+					if (IsOperatorValueInTarget(Test->Type))
+					{
+						OnOp(Test->Target());
+					}
+
+
+
+					if (Test->Type == IRInstructionType::Jump
+						|| Test->Type == IRInstructionType::ConditionalJump)
+					{
+						if (Test->Target().Value.AsUIntNative == i)
+						{
+							IsInLoop = true;
+
+							break;
+						}
+					}
+				}
+
+
+				if (IsInLoop && UsedInLoop.size())
+				{
+					int a = 0;
+					//IRToUCodeInsPre[i]
+				}
+
+				/*
+				if (IsInLoop && UsedInLoop.size())
+				{
+					for (auto& Item : UsedInLoop)
+					{
+						if (Item.Type == IROperatorType::IRInstruction)
+						{
+							if (auto val = this->_Stack.Has(Item.Pointer))
+							{
+								UCodeLangUnreachable();
+							}
+							else
+							{
+								CopyValueToStack(Item.Pointer, Item.Pointer->ObjectType,
+									_Registers.GetInfo(Item.Pointer).value());
+							}
+						}
+						else
+						{
+							UCodeLangUnreachable();
+						}
+					}
+				}
+				*/
+
+				if (JumpItem.second.has_value())
+				{
+					MoveValuesToState(JumpItem.second.value());
+				}
+				else
+				{
+					JumpItem.second = SaveState();
+				}
+			}
+		}
+
 
 		IRToUCodeInsPre.AddValue(i,_OutLayer->_Instructions.size());
 		
-		/*
-		for (auto& JumpItem : Jumps)
-		{
-			if (JumpItem._Key == i-1)
-			{
-				IRToUCodeIns[i-1] = _OutLayer->Get_Instructions().size();
-			}
-		}
-		*/
-
+		
 		switch (Item->Type)
 		{
 		case IRInstructionType::None:
@@ -1499,23 +1600,8 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		//UpdateVarableLocs();
 
 		
-		for (auto& JumpItem : Jumps)
-		{
-			if (JumpItem.first == i)
-			{
-
-
-				if (JumpItem.second.has_value())
-				{
-					MoveValuesToState(JumpItem.second.value());
-				}
-				else
-				{
-					JumpItem.second = SaveState();
-				}
-			}
-		}
-		IRToUCodeInsPost.AddValue(i,_OutLayer->Get_Instructions().size());	
+		
+		IRToUCodeInsPost.AddValue(i,_OutLayer->Get_Instructions().size()-1);	
 		
 		
 	}
@@ -1541,14 +1627,26 @@ DoneLoop:
 		auto& Inst = _OutLayer->Get_Instructions();
 		size_t Index = Item.InsToUpdate - 1;
 
-		size_t IndexOfset = Get_Settings().PtrSize == IntSizes::Int64 ? 4 : 1;
-
+		
 		Instruction& Ins = _OutLayer->Get_Instructions()[Index+3];
-		UAddress JumpPos = IRToUCodeInsPre.GetValue(Item.Jumpto)-1;
+		UAddress JumpPos = IRToUCodeInsPre.GetValue(Item.Jumpto)-1;	
+		UAddress JumpPos2 = IRToUCodeInsPost.GetValue(Item.Jumpto-1);
 		
 		Instruction& InsToJumpOn = _OutLayer->Get_Instructions()[JumpPos +1];
 		
 
+		if (_Stack.Size)
+		{
+			if (Get_Settings().PtrSize == IntSizes::Int32)
+			{
+				JumpPos += 3;
+			}
+			else
+			{
+				JumpPos += 5;
+			}
+		}
+	
 		//Jump on real Ins and not intermediate.
 		if (Ins.OpCode == InstructionSet::Store32v2
 			|| Ins.OpCode == InstructionSet::Callv2

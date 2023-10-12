@@ -22,6 +22,11 @@ enum class FuncionType
 	Recursive,
 };
 
+struct SSAState
+{
+	UnorderedMap<IROperator*, IROperator> Updated;
+	UnorderedMap<IROperator, IRInstruction*> Map;
+};
 struct IROptimizationFuncData
 {
 public:
@@ -29,6 +34,7 @@ public:
 	InlineState Inlinestate= InlineState::Null;
 	bool BodyWasRemoved = false;
 	bool FuncBodyWasUpdated = false;
+	Optional<SSAState> SsA;
 };
 
 
@@ -116,14 +122,10 @@ private:
 	void DoInlines(IRFunc* Func, IRBlock* Block);
 	void ConstantFoldOperator(IRInstruction& I,IROperator& Value,ReadOrWrite OpType);
 
-	struct SSAState
-	{
-		UnorderedMap<IROperator*, IROperator> Updated;
-		UnorderedMap<IROperator, IRInstruction*> Map;
-	};
+	
 
-	void ToSSA(const IRFunc* Func, SSAState& state);
-	void UndoSSA(const IRFunc* Func, const SSAState& state);
+	void ToSSA(IRFunc* Func, SSAState& state);
+	void UndoSSA(IRFunc* Func, const SSAState& state);
 
 	struct InLineData
 	{

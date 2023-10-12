@@ -230,13 +230,13 @@ private:
 	};
 	struct OutputWindowData
 	{
-		BackEndType Type = BackEndType::UCodeVM;
+		BackEndType Type = BackEndType::IR;
 
 		bool AutoCompile = true;
 		bool AutoReload = true;
 		bool AutoHotReload = false;
 
-		UCodeLang::OptimizationFlags Flags = UCodeLang::OptimizationFlags::NoOptimization;
+		UCodeLang::OptimizationFlags Flags = UCodeLang::OptimizationFlags::O_1;
 		bool InDebug = true;
 		bool ImportStandardLibrary = false;
 
