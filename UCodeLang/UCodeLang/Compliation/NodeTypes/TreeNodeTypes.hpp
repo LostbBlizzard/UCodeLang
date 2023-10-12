@@ -293,6 +293,7 @@ struct ClassNode :Node
 	AccessModifierType _Access = AccessModifierType::Default;
 	Vector<Unique_ptr<AttributeNode>> _Attributes;
 	bool IsExternCStruct = false;
+	bool _IsExport = false;
 };
 
 
@@ -527,6 +528,7 @@ struct FuncSignatureNode :Node
 	bool _HasUnsafeKeyWord = false;
 
 	bool _IsRemoved = false;
+	bool _IsExport = false;
 };
 struct FuncBodyNode :Node
 {
@@ -682,6 +684,7 @@ struct DeclareVariableNode :Node
 	NameNode _Name;
 	ExpressionNodeType _Expression;
 	AccessModifierType _Access = AccessModifierType::Default;
+	bool _IsExport = false;
 
 	DeclareVariableNode(DeclareVariableNode&& source) = default;
 	DeclareVariableNode& operator=(DeclareVariableNode&& source) = default;
@@ -767,6 +770,7 @@ struct EnumNode :Node
 	Vector<EnumValueNode> _Values;
 	TypeNode _BaseType;
 	AccessModifierType _Access = AccessModifierType::Default;
+	bool _IsExport = false;
 };
 
 struct TagTypeNode :Node
@@ -780,6 +784,7 @@ struct TagTypeNode :Node
 	NameNode _AttributeName;
 	GenericValuesNode _generic;
 	AccessModifierType _Access = AccessModifierType::Default;
+	bool _IsExport = false;
 
 	TagTypeNode(TagTypeNode&& source) = default;
 	TagTypeNode& operator=(TagTypeNode&& source) = default;
@@ -1075,6 +1080,7 @@ struct TraitNode :Node
 	NameNode _Name;
 	AccessModifierType _Access = AccessModifierType::Default;
 	GenericValuesNode _generic;
+	bool _IsExport = false;
 	AddforNodeAndWithList(TraitNode);
 
 };

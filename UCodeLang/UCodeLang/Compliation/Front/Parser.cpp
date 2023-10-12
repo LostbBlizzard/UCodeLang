@@ -65,6 +65,31 @@ void Parser::Parse(const Vector<Token>& Tokens)
 
 		switch (T->Type)
 		{
+		case TokenType::KeyWord_export:
+		{
+			NextToken();
+			auto etoken = TryGetToken();
+			bool isvar = etoken->Type != declareFunc;
+			_TokenIndex--;
+
+			if (isvar)
+			{
+				switch (etoken->Type)
+				{
+				case TokenType::KeyWord_static:V = GetDeclareStaticVariable(); break;
+				case TokenType::KeyWord_Thread:V = GetDeclareThreadVariable(); break;
+				case TokenType::KeyWord_imut:V = GetimutVariableDeclare(); break;
+				case TokenType::KeyWord_eval:V = GetEvalDeclare(); break;
+				default: GetDeclareVariableNoObject(V); break;
+				}
+			}
+			else
+			{
+				V = GetFuncNode();
+			}
+		}
+		break;
+
 		case TokenType::Class:V = GetClassNode(); break;
 		case TokenType::KeyWord_unsafe:
 		case TokenType::KeyWord_extern:
@@ -392,6 +417,14 @@ GotNodeType Parser::DoClassType(ClassNode* output, const Token* ClassToken, Gene
 	output->_generic = std::move(TepGenerics);
 	output->_Access = GetModifier();
 	output->_Attributes = Get_TepAttributes();
+
+
+	if (TryGetToken()->Type == TokenType::KeyWord_export)
+	{
+		output->_IsExport = true;
+		NextToken();
+	}
+
 
 	if (ColonToken->Type == TokenType::KeyWord_extern)
 	{
@@ -929,6 +962,13 @@ GotNodeType Parser::GetFuncNode(FuncNode& out)
 GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 {
 	auto funcToken = TryGetToken();
+
+	if (funcToken->Type == TokenType::KeyWord_export)
+	{
+		out._IsExport = true;
+		NextToken();
+		funcToken = TryGetToken();
+	}
 
 	if (funcToken->Type == TokenType::KeyWord_unsafe)
 	{
@@ -2734,6 +2774,13 @@ GotNodeType Parser::GetRetStatement(RetStatementNode& out)
 GotNodeType Parser::GetDeclareStaticVariable(DeclareStaticVariableNode& out, bool ignoreleftHandType)
 {
 	auto RetToken = TryGetToken();
+	if (RetToken->Type == TokenType::KeyWord_export)
+	{
+		out._Variable._IsExport = true;
+		NextToken();
+		RetToken = TryGetToken();
+	}
+
 	TokenTypeCheck(RetToken, TokenType::KeyWord_static);
 	NextToken();
 
@@ -2764,6 +2811,13 @@ GotNodeType Parser::GetDeclareStaticVariable(DeclareStaticVariableNode& out, boo
 GotNodeType Parser::GetDeclareThreadVariable(DeclareThreadVariableNode& out, bool ignoreleftHandType)
 {
 	auto RetToken = TryGetToken();
+	if (RetToken->Type == TokenType::KeyWord_export)
+	{
+		out._Variable._IsExport = true;
+		NextToken();
+		RetToken = TryGetToken();
+	}
+
 	TokenTypeCheck(RetToken, TokenType::KeyWord_Thread);
 	NextToken();
 
@@ -2795,6 +2849,12 @@ GotNodeType Parser::GetDeclareThreadVariable(DeclareThreadVariableNode& out, boo
 void Parser::GetDeclareVariableNoObject(TryGetNode& out)
 {
 	DeclareVariableNode node;
+
+	if (TryGetToken()->Type == TokenType::KeyWord_export)
+	{
+		node._IsExport = true;
+		NextToken();
+	}
  	out.GotNode = GetDeclareVariable(node);
 	if (out.GotNode == GotNodeType::Success)
 	{
@@ -2994,6 +3054,12 @@ GotNodeType Parser::DoEnumType(EnumNode* output, const Token* ClassToken, Generi
 	TokenTypeCheck(Token, TokenType::KeyWord_Enum);
 	NextToken();
 
+	if (TryGetToken()->Type == TokenType::KeyWord_export)
+	{
+		output->_IsExport = true;
+		NextToken();
+	}
+
 	output->_EnumName.token = ClassToken;
 	output->_generic = std::move(TepGenerics);
 	output->_Access = GetModifier();
@@ -3142,6 +3208,12 @@ GotNodeType Parser::DoTagType(TagTypeNode* output, const Token* ClassToken, Gene
 
 	auto ColonToken = TryGetToken();
 	if (ColonToken->Type == TokenType::Semicolon) { NextToken(); return GotNodeType::Success; }
+
+	if (TryGetToken()->Type == TokenType::KeyWord_export)
+	{
+		output->_IsExport = true;
+		NextToken();
+	}
 
 	TokenTypeCheck(ColonToken, TokenType::Colon); NextToken();
 	auto StartToken = TryGetToken(); TokenTypeCheck(StartToken, TokenType::StartTab); NextToken();
@@ -3794,6 +3866,12 @@ GotNodeType Parser::DoTraitType(TraitNode* output, const Token* ClassToken, Gene
 	auto ColonToken = TryGetToken();
 	if (ColonToken->Type == TokenType::Semicolon) { NextToken(); return GotNodeType::Success; }
 
+	if (TryGetToken()->Type == TokenType::KeyWord_export)
+	{
+		output->_IsExport = true;
+		NextToken();
+	}
+
 	TokenTypeCheck(ColonToken, TokenType::Colon); NextToken();
 	auto StartToken = TryGetToken(); TokenTypeCheck(StartToken, TokenType::StartTab); NextToken();
 
@@ -4100,7 +4178,16 @@ GotNodeType Parser::GetEvalDeclare(Node*& out)
 	}
 	else 
 	{
+		
+
+		bool isexport = false;
+		if (TryGetToken()->Type == TokenType::KeyWord_export)
+		{
+			isexport = true;
+			NextToken();
+		}
 		size_t OldIndex = _TokenIndex;
+
 
 		NameNode NameValue;
 		GetNameCheck(NameValue);
@@ -4115,6 +4202,11 @@ GotNodeType Parser::GetEvalDeclare(Node*& out)
 		{
 			NextToken();
 			DeclareEvalVariableNode* V = DeclareEvalVariableNode::Gen();
+
+			if (isexport)
+			{
+				V->_Variable._IsExport = true;
+			}
 
 			out = V;
 			TypeNode::Gen_Var(V->_Variable._Type, *NameValue.token);

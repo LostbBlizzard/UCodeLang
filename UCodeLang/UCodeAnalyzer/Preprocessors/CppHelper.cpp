@@ -1406,7 +1406,7 @@ String CppHelper::ToString(CppToULangState& State, const EnumType& Value, const 
 	{
 		R += "[int]";
 	}
-	R += " enum";
+	R += " enum export";
 
 	if (Value.Fields.size() == 0)
 	{
@@ -1463,7 +1463,7 @@ String CppHelper::ToString(CppToULangState& State, const ConstexprType& Value, c
 		R += summary;
 		State.AddScopesUseingScopeCount(R);
 	}
-	R += "eval " + ToString(State,Value._Type) + " " + Syb._Name + " = " + ToString(State, Value._Value);
+	R += "export eval " + ToString(State,Value._Type) + " " + Syb._Name + " = " + ToString(State, Value._Value);
 	R += ";\n";
 	return R;
 }
@@ -1480,7 +1480,7 @@ String CppHelper::ToString(CppToULangState& State, const ClassType& Value, const
 		R += summary;
 		State.AddScopesUseingScopeCount(R);
 	}
-	R += "$" + Syb._Name + " extern \"c\" :\n";
+	R += "$" + Syb._Name + " extern \"c\" export:\n";
 
 	State.ScopeCount++;
 	for (auto& Item : Value.Fields)
@@ -1529,7 +1529,7 @@ String CppHelper::ToString(CppToULangState& State, const FuncData& Value, const 
 		State.AddScopesUseingScopeCount(R);
 	}
 
-
+	R += "export ";
 	if (!Value.OverloadNumber.has_value())
 	{
 		R += "extern dynamic ";
