@@ -11,10 +11,17 @@ namespace API
 
 	UCodeLangExportSymbol("API") enum class ImKey
 	{
+		//Me String
 		W,
 		A,
 		S,
 		D,
+		
+		/*
+		Me
+		String 
+		2.0
+		*/
 		UpArrow,
 		DownArrow,
 		LeftArrow,
