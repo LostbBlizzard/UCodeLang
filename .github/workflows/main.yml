@@ -85,4 +85,4 @@ jobs:
         key: ${{ steps.cache-objs-restore.outputs.cache-primary-key }}
 
     - name: RunTests for 64 bit
-      run: ./BuildTools/RunTestsLinux32Debug.sh
+      run: ./BuildTools/RunTestsLinux64Debug.sh
