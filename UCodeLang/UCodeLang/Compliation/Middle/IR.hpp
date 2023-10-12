@@ -214,6 +214,8 @@ enum class IRInstructionType : IRInstructionType_t
 	Assume,
 
 	//internal stuff
+	JumpBlock,
+	JumpBlockIf
 };
 
 inline bool IsCommutative(IRInstructionType Value)

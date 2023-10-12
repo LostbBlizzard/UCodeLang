@@ -1462,13 +1462,18 @@ void IRBuilder::ToString(ToStringState& State, IRFunc* Item, String& r)
 	{
 		String Tabs = " ";
 
-		
-		for (auto& Block : Item->Blocks)
+		for (size_t Blocki = 0; Blocki < Item->Blocks.size(); Blocki++)
 		{
+			auto& Block = Item->Blocks[Blocki];
 
-			r += Tabs + "//Block \n";
+			r += "\n\n";
+			r += Tabs + "[Block:";
+			r += std::to_string(Blocki);
+			r += "]\n\n";
 
-			UnorderedMap<IRidentifierID, String> Names;
+			Tabs += "  ";
+
+			UnorderedMap<size_t, String> Names;
 			for (size_t i = 0; i < Block->Instructions.size(); i++)
 			{
 				auto& I = Block->Instructions[i];
@@ -1553,6 +1558,9 @@ void IRBuilder::ToString(ToStringState& State, IRFunc* Item, String& r)
 				
 			}
 			
+
+			Tabs.pop_back();
+			Tabs.pop_back();
 		}
 	}
 	else
@@ -1805,6 +1813,12 @@ bool IRBuilder::ToString(
 		break;
 	case IRInstructionType::Unreachable:
 		r += "LowLevel::Unreachable()";
+		break;
+	case IRInstructionType::JumpBlockIf:
+		r += (String)"  JumpIf (" + ToString(State, *I, I->Input()) + ") : [" + std::to_string(I->Target().Value.AsUIntNative) + "]";
+		break;
+	case IRInstructionType::JumpBlock:
+		r += (String)"  Jump : [" + std::to_string(I->Target().Value.AsUIntNative) + "]";
 		break;
 	default:
 		UCodeLangUnreachable();
