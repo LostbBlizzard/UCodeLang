@@ -50,11 +50,6 @@ jobs:
            cd ./BuildTools
            ./RunTestsWin64Debug.bat
 
-    - name: RunTests for 32 bit
-      run: |
-           cd ./BuildTools
-           ./RunTestsWin32Debug.bat
-
   gmake-linux-build:
    runs-on: ubuntu-latest
 
