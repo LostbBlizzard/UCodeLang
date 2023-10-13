@@ -1,1 +1,2 @@
-Output\UCApp\linux64\Debug\UCApp --RunTests
+cd ../
+.\Output\UCApp\linux64\Debug\UCApp --RunTests
