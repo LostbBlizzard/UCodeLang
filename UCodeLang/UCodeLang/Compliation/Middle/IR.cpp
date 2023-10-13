@@ -1473,7 +1473,7 @@ void IRBuilder::ToString(ToStringState& State, IRFunc* Item, String& r)
 
 			Tabs += "  ";
 
-			UnorderedMap<size_t, String> Names;
+			UnorderedMap<IRidentifierID, String> Names;
 			for (size_t i = 0; i < Block->Instructions.size(); i++)
 			{
 				auto& I = Block->Instructions[i];
