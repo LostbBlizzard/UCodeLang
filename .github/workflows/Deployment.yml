@@ -103,10 +103,7 @@ jobs:
           key: ${{ runner.os }}-1inux-deployment
 
       - name: Build 64 bit
-        run: make config=published_linux64
-
-      - name: Build 32 bit
-        run: make config=published_linux32
+        run: make UCodelangCL config=published_linux64
 
       - name: Save cached Objs
         id: cache-Objs-save

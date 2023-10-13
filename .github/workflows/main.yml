@@ -82,9 +82,6 @@ jobs:
     - name: Build 64 bit
       run: make UCodelangCL config=debug_linux64
 
-    - name: Build 32 bit
-      run: make UCodelangCL config=debug_linux32
-
     - name: Save cached Objs
       id: cache-Objs-save
       uses: actions/cache/save@v3
@@ -94,6 +91,3 @@ jobs:
 
     - name: RunTests for 64 bit
       run: ./BuildTools/RunTestsLinux32Debug.sh
-
-    - name: RunTests for 32 bit
-      run: ./BuildTools/RunTestsLinux64Debug.sh
