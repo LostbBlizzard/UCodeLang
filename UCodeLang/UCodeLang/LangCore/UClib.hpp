@@ -425,6 +425,9 @@ public:
 	}
 	static void ToBytes(BitMaker& Output, const ClassMethod::Par& Par);
 	static void ToBytes(BitMaker& Output, const FuncPtr_Data& FuncPtrData);
+	static void ToBytes(BitMaker& Output, const GenericClass_Data& FuncPtrData);
+	static void ToBytes(BitMaker& Output, const GenericFuncion_Data& FuncPtrData);
+	static void ToBytes(BitMaker& Output, const GenericBase_Data& FuncPtrData);
 	//
 	static bool FromBytes(UClib* Lib,const BytesView& Data);
 
@@ -451,6 +454,11 @@ public:
 	}
 	static void FromBytes(BitReader& reader, FuncPtr_Data& Ptr);
 	static void FromBytes(BitReader& Input, ClassMethod::Par& Data);
+
+
+	static void FromBytes(BitReader& reader, GenericClass_Data& Ptr);
+	static void FromBytes(BitReader& reader, GenericFuncion_Data& Ptr);
+	static void FromBytes(BitReader& Input, GenericBase_Data& Data);
 	//
 
 	static void FixRawValue(Endian AssemblyEndian, NTypeSize BitSize, const ClassAssembly& Types, TypedRawReflectionData& RawValue)

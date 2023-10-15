@@ -18,10 +18,12 @@ void Parser::Reset()
 
 
 
-void Parser::Parse(const Vector<Token>& Tokens)
+void Parser::Parse(const String_view FileText, const Vector<Token>& Tokens)
 {
 	Reset();
 	_Nodes = &Tokens;
+
+	_Tree.FileText = FileText;
 
 
 	AttributeStart();
@@ -383,6 +385,7 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 		output->_Inherited = std::move(InheritedTypes);
 		output->_Access = GetModifier();
 		output->_Attributes = Get_TepAttributes();
+		output->EndOfClass = TryGetToken();
 		return GotNodeType::Success;
 	}
 	else if (ColonToken->Type == TokenType::KeyWord_Enum)
@@ -521,6 +524,7 @@ EndLoop:
 	AccessEnd();
 	auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::EndTab);
 	NextToken();
+	output->EndOfClass = EndToken;
 
 	return GotNodeType::Success;
 }

@@ -294,6 +294,8 @@ struct ClassNode :Node
 	Vector<Unique_ptr<AttributeNode>> _Attributes;
 	bool IsExternCStruct = false;
 	bool _IsExport = false;
+
+	const Token* EndOfClass = nullptr;
 };
 
 

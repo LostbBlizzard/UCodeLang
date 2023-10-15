@@ -24,7 +24,9 @@ const AssemblyNode* ClassAssembly::Find_Node(ReflectionCustomTypeID TypeID) cons
 		case ClassType::Alias:Valu = Item->Get_AliasData().HardAliasTypeID; break;
 		case ClassType::Trait:Valu = Item->Get_TraitData().TypeID; break;
 		case ClassType::Tag:Valu = Item->Get_TagData().TypeID; break;
-		case ClassType::FuncPtr:Valu = 0; break;
+		case ClassType::FuncPtr:break;
+		case ClassType::GenericClass:break;
+		case ClassType::GenericFuncion:break;
 		default:
 			UCodeLangUnreachable();
 			break;
@@ -1342,7 +1344,7 @@ AssemblyNode& AssemblyNode::operator=(AssemblyNode&& node)
 		new (&_GenericFunc) GenericFuncion_Data(node.Get_GenericFuncionData());
 		break;
 	default:
-		UCodeLangThrowException("bad path");
+		UCodeLangUnreachable();
 		break;
 	}
 
@@ -1395,7 +1397,7 @@ AssemblyNode& AssemblyNode::operator=(const AssemblyNode& node)
 		new (&_GenericFunc) GenericFuncion_Data(node.Get_GenericFuncionData());
 		break;
 	default:
-		UCodeLangThrowException("bad path");
+		UCodeLangUnreachable();
 		break;
 	}
 	return *this;
@@ -1443,7 +1445,7 @@ AssemblyNode::~AssemblyNode()
 		_GenericFunc.~GenericFuncion_Data();
 		break;
 	default:
-		//UCodeLangThrowException("bad path");
+		UCodeLangUnreachable();
 		break;
 	}
 }
