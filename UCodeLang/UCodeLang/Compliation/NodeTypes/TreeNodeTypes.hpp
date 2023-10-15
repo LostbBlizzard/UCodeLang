@@ -773,6 +773,7 @@ struct EnumNode :Node
 	TypeNode _BaseType;
 	AccessModifierType _Access = AccessModifierType::Default;
 	bool _IsExport = false;
+	const Token* EndOfClass = nullptr;
 };
 
 struct TagTypeNode :Node

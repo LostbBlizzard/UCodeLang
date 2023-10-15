@@ -9,7 +9,10 @@ $Vector<T>:
  T Obj;
 
 */
+
+[Test]
 $SomeNewType;
 
 
-SomeNewType[] Vex = [];
+[Test]
+|Func[] => 0;

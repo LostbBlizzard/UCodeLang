@@ -240,6 +240,24 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 		{
 			Assembly_AddEnum(NeverNullptr(&Syb));
 		}
+
+		if (Isgeneric_t && IsgenericInstantiation == false)
+		{
+			String_view Text = _LookingAtFile->FileText;
+
+			String ClassStr = "$";
+			ClassStr += node._EnumName.token->Value._String;
+
+			String_view ClassBody =
+				String_view(&Text[node._EnumName.token->OnPos],
+					node.EndOfClass->OnPos - node._EnumName.token->OnPos);
+
+			GenericClass_Data& VClass = _Lib.Get_Assembly().AddGenericClass((String)ClassInf->Get_Name(), ClassInf->FullName);
+
+			VClass.Base.Implementation = ClassStr + String(ClassBody);
+			VClass.Base.Implementation += '\n\n';
+			
+		}
 	}
 
 	_Table.RemoveScope();

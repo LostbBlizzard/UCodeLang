@@ -3110,6 +3110,7 @@ GotNodeType Parser::DoEnumType(EnumNode* output, const Token* ClassToken, Generi
 
 	auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::EndTab);
 	NextToken();
+	output->EndOfClass = EndToken;
 
 	return GotNodeType::Success;
 }
