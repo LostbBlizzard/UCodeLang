@@ -410,6 +410,27 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 				Symbol_BuildTrait(&Syb, ClassInf, Item.Syb, NeverNullptr(Node._className.token));
 			}
 		}
+
+
+		if (Isgeneric_t && IsgenericInstantiation == false)
+		{
+			String_view Text = _LookingAtFile->FileText;
+
+			String ClassStr = "$";
+			ClassStr += Node._className.token->Value._String;
+
+			String_view ClassBody =
+				String_view(&Text[Node._className.token->OnPos],
+					Node.EndOfClass->OnPos -Node._className.token->OnPos);
+
+			GenericClass_Data& VClass = _Lib.Get_Assembly().AddGenericClass((String)ClassInf->Get_Name(), ClassInf->FullName);
+
+			VClass.Base.Implementation = ClassStr + String(ClassBody);
+			VClass.Base.Implementation += '\n\n';
+			//Assembly_AddClass()
+			int a = 0;
+
+		}
 	}
 
 

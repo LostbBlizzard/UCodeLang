@@ -121,6 +121,20 @@ void UClib::ToBytes(BitMaker& Output, const ClassAssembly& Assembly)
 			ToBytes(Output, TagData);
 		}
 		break;
+		case ClassType::GenericClass:
+		{
+			auto& TagData = Item->Get_GenericClass();
+
+			ToBytes(Output, TagData);
+		}
+		break;
+		case ClassType::GenericFuncion:
+		{
+			auto& TagData = Item->Get_GenericFuncionData();
+
+			ToBytes(Output, TagData);
+		}
+		break;
 		default:
 			UCodeLangUnreachable();
 			break;
@@ -324,6 +338,18 @@ void UClib::ToBytes(BitMaker& Output, const FuncPtr_Data& FuncPtrData)
 	{
 		ToBytes(Output, Item);
 	}
+}
+void UClib::ToBytes(BitMaker& Output, const GenericClass_Data& FuncPtrData)
+{
+	ToBytes(Output,FuncPtrData.Base);
+}
+void UClib::ToBytes(BitMaker& Output, const GenericFuncion_Data& FuncPtrData)
+{
+	ToBytes(Output,FuncPtrData.Base);
+}
+void UClib::ToBytes(BitMaker& Output, const GenericBase_Data& FuncPtrData)
+{
+	Output.WriteType(FuncPtrData.Implementation);
 }
 bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 {
@@ -707,6 +733,18 @@ void UClib::FromBytes(BitReader& reader, ClassAssembly& Assembly)
 			FromBytes(reader, Tag);
 		}
 		break;
+		case ClassType::GenericClass:
+		{
+			auto& Tag = _Node.Get_GenericClass();
+			FromBytes(reader, Tag);
+		}
+		break;
+		case ClassType::GenericFuncion:
+		{
+			auto& Tag = _Node.Get_GenericFuncionData();
+			FromBytes(reader, Tag);
+		}
+		break;
 		default:
 			UCodeLangUnreachable();
 			break;
@@ -854,6 +892,18 @@ void UClib::FromBytes(BitReader& Input, ClassMethod::Par& Data)
 {
 	Input.ReadType(Data.IsOutPar);
 	FromBytes(Input, Data.Type);
+}
+void UClib::FromBytes(BitReader& reader, GenericClass_Data& Ptr)
+{
+	FromBytes(reader, Ptr.Base);
+}
+void UClib::FromBytes(BitReader& reader, GenericFuncion_Data& Ptr)
+{
+	FromBytes(reader, Ptr.Base);
+}
+void UClib::FromBytes(BitReader& Input, GenericBase_Data& Data)
+{
+	Input.ReadType(Data.Implementation);
 }
 void UClib::FromBytes(BitReader& reader,Vector<UsedTagValueData>& Attributes)
 {

@@ -168,6 +168,7 @@ struct FileNode : FileNode_t,Node
 	Vector<Token> Tokens;
 	Vector<Unique_ptr<Token>> TemporaryTokens;//int?,int[],int[10],int[:] etc.
 	Vector<Unique_ptr<String>> TemporaryStrings;
+	String_view FileText;//needed to save generics in .ulib
 	void Reset()
 	{
 		_Nodes.clear();
@@ -188,13 +189,11 @@ struct LibImportNode :FileNode_t, Node
 	{
 
 	}
-	LibImportNode(LibImportNode&& source) noexcept : Node(NodeType::LibImportNode), LIb(std::move(source.LIb))
-	{
-
-	}
+	LibImportNode(LibImportNode&& source);
 	AddforNode(LibImportNode);
 
 	UClib LIb;
+	Vector<Unique_ptr<Node>> _Nodes;
 	ImportMode Mode = ImportMode::IntermediateFile;
 };
 UCodeLangEnd

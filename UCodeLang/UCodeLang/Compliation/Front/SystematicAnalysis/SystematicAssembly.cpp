@@ -1,4 +1,5 @@
 #include "UCodeLang/Compliation/Front/SystematicAnalysis.hpp"
+#include "UCodeLang/Compliation/Front/Lexer.hpp"
 UCodeLangFrontStart
 
 void SystematicAnalysis::Assembly_ConvertAttributes(const Vector<Unique_ptr<AttributeNode>>& nodes, Vector<UsedTagValueData>& Out)
@@ -126,6 +127,104 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode M
 		}
 	}
 
+	static Vector<Unique_ptr<Vector<Token>>> tokens;
+	static Vector<Unique_ptr<String>> nodestext;
+	static Vector<Unique_ptr<FileNode>> madenodes;
+	if (Mode == LoadLibMode::GetTypes) {
+		//this feals off
+		FrontEnd::Lexer _Lexer;
+		FrontEnd::Parser _Parser;
+
+		_Lexer.Set_ErrorsOutput(_ErrorsOutput);
+		_Parser.Set_ErrorsOutput(_ErrorsOutput);
+
+
+		_Lexer.Set_Settings(_Settings);
+		_Parser.Set_Settings(_Settings);
+
+		for (auto& Item : lib.Get_Assembly().Classes)
+		{
+			Optional<String_view> TextOp;
+			if (Item->Get_Type() == ClassType::GenericClass)
+			{
+				TextOp = Item->Get_GenericClass().Base.Implementation;
+			}
+
+
+			if (TextOp.has_value())
+			{
+				nodestext.push_back(std::make_unique<String>(TextOp.value()));
+				String_view Text = *nodestext.back().get();
+				
+
+				_Lexer.Lex(Text);
+
+				tokens.push_back(std::make_unique<Vector<Token>>(std::move(_Lexer.Get_Tokens())));
+				auto& tokenslist = *tokens.back().get();
+
+
+				_Parser.Parse(Text, tokenslist);
+
+				UCodeLangAssert(!_ErrorsOutput->Has_Errors());
+
+
+				if (GetSymbolsWithName(Item->FullName).size())
+				{
+					continue;
+				}
+				madenodes.push_back(
+					std::make_unique<FileNode>(std::move(_Parser.Get_Tree())));
+
+				_FilesData.AddValue(NeverNullptr((FileNode_t*)madenodes.back().get()),
+					std::make_shared<FileNodeData>());
+
+				auto& list = madenodes.back().get()->_Nodes;
+				_LookingAtFile = madenodes.back().get();
+
+				auto pass = _PassType;
+				for (auto& Item2 : list)
+				{
+					Push_ToNodeScope(*Item2.get());
+					switch (Item2->Get_Type())
+					{
+					case NodeType::ClassNode: OnClassNode(*ClassNode::As(Item2.get())); break;
+					case NodeType::AliasNode:OnAliasNode(*AliasNode::As(Item2.get())); break;
+					case NodeType::EnumNode:OnEnum(*EnumNode::As(Item2.get())); break;
+					case NodeType::FuncNode:OnFuncNode(*FuncNode::As(Item2.get())); break;
+					case NodeType::UsingNode: OnUseingNode(*UsingNode::As(Item2.get())); break;
+					case NodeType::TraitNode:OnTrait(*TraitNode::As(Item2.get())); break;
+					case NodeType::TagTypeNode:OnTag(*TagTypeNode::As(Item2.get())); break;
+					default:
+						UCodeLangUnreachable();
+						break;
+					}
+
+					_PassType = PassType::FixedTypes;
+
+					switch (Item2->Get_Type())
+					{
+					case NodeType::ClassNode: OnClassNode(*ClassNode::As(Item2.get())); break;
+					case NodeType::AliasNode:OnAliasNode(*AliasNode::As(Item2.get())); break;
+					case NodeType::EnumNode:OnEnum(*EnumNode::As(Item2.get())); break;
+					case NodeType::FuncNode:OnFuncNode(*FuncNode::As(Item2.get())); break;
+					case NodeType::UsingNode: OnUseingNode(*UsingNode::As(Item2.get())); break;
+					case NodeType::TraitNode:OnTrait(*TraitNode::As(Item2.get())); break;
+					case NodeType::TagTypeNode:OnTag(*TagTypeNode::As(Item2.get())); break;
+					default:
+						UCodeLangUnreachable();
+						break;
+					}
+
+					_PassType = pass;
+
+					Pop_NodeScope();
+				}
+
+
+
+			}
+		}
+	}
 }
 void SystematicAnalysis::Assembly_LoadClassSymbol(const Class_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode)
 {

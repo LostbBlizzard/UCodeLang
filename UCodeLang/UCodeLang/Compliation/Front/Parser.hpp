@@ -37,7 +37,7 @@ public:
 	UCodeLangForceinline void Set_Settings(CompliationSettings* V) { _Settings = V; }
 
 	
-	void Parse(const Vector<Token>& Tokens);
+	void Parse(const String_view FileText,const Vector<Token>& Tokens);
 	UCodeLangForceinline bool Get_ParseSucces() { return _ParseSuccess; }
 	UCodeLangForceinline FileNode& Get_Tree() { return _Tree; }
 private:
