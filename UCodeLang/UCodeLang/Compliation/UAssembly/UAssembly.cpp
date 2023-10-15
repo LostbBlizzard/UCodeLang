@@ -261,6 +261,14 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 
 		}
 		break;
+		case ClassType::Trait:
+		{
+			r += "$" + Item->FullName + " trait:\n";
+			auto& TraitData = Item->Get_TraitData();
+
+
+		}
+		break;
 		case ClassType::GenericClass:
 		{
 			r += "---\n\n";

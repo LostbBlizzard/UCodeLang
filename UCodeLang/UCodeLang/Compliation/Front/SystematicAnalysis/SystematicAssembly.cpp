@@ -122,6 +122,11 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode M
 			Assembly_LoadEnumSymbol(Item->Get_EnumData(), FullName, Scope, Mode);
 		}
 		break;
+		case ClassType::Tag:
+		{
+			Assembly_LoadTagSymbol(Item->Get_TagData(), FullName, Scope, Mode);
+		}
+		break;
 		default:
 			break;
 		}
@@ -428,6 +433,38 @@ void SystematicAnalysis::Assembly_LoadAliasSymbol(const Alias_Data& Item, const 
 		auto& Syb = _Table.GetSymbol(Symbol_GetSymbolID(&Item));
 
 		Assembly_LoadType(Item.Type, Syb.VarType);
+	}
+
+
+	_Table._Scope = std::move(TepScope);
+}
+void SystematicAnalysis::Assembly_LoadTagSymbol(const Tag_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode)
+{
+	auto TepScope = std::move(_Table._Scope);
+
+	_Table._Scope = {};
+	_Table._Scope.ThisScope = Scope;
+
+	if (Mode == LoadLibMode::GetTypes)
+	{
+		auto Name = ScopeHelper::GetNameFromFullName(FullName);
+		auto& Syb = Symbol_AddSymbol(SymbolType::Tag_class, Name, FullName, AccessModifierType::Public);
+		_Table.AddSymbolID(Syb, Symbol_GetSymbolID(&Item));
+
+		Syb.PassState = PassType::BuidCode;
+		Syb.OutputIR = false;
+
+		Syb.VarType = TypeSymbol();
+
+		auto enumInfo = new TagInfo();
+		Syb.Info.reset(enumInfo);
+
+
+	}
+	else if (Mode == LoadLibMode::FixTypes)
+	{
+		auto& Syb = _Table.GetSymbol(Symbol_GetSymbolID(&Item));
+
 	}
 
 

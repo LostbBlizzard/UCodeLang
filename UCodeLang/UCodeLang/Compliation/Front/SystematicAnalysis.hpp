@@ -1225,6 +1225,8 @@ private:
 	void Assembly_LoadClassSymbol(const Class_Data& Item,const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 	void Assembly_LoadEnumSymbol(const Enum_Data& Item,const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 	void Assembly_LoadAliasSymbol(const Alias_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
+	void Assembly_LoadTagSymbol(const Tag_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
+
 
 	void Assembly_LoadSymbol(const ClassMethod& Item, SystematicAnalysis::LoadLibMode Mode);
 	void Assembly_LoadType(const ReflectionTypeInfo& Item, TypeSymbol& Out);
