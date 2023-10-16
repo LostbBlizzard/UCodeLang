@@ -277,11 +277,7 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 	String out;
 	if (DownloadModules(Modules,Optionalref(out)))
 	{
-		#if UCodeLangDebug
-		std::cout << "Building:" << this->ModuleName.ModuleName;
-		std::cout << '\n';
-		#endif
-
+		
 		if (LogsOut.has_value())
 		{
 			LogsOut.value() += out;
@@ -375,6 +371,11 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 				if (Err == false)
 				{
 					auto OldSettings = Compiler.Get_Settings();
+
+					#if UCodeLangDebug
+					std::cout << "Building:" << this->ModuleName.ModuleName;
+					std::cout << '\n';
+					#endif
 
 					ModuleRet CompilerRet;
 					{

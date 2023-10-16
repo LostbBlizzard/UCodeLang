@@ -1856,6 +1856,8 @@ String IRBuilder::ToString(const IRType& Type)
 		{
 			return FromID(Syb->identifier);
 		}
+
+		UCodeLangUnreachable();
 	}
 	break;
 	default:

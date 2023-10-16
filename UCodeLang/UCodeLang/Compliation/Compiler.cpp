@@ -483,11 +483,12 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 			{
 				bool NeedToBeRecomiled = false;
 
-				if (FileInfo->FileLastUpdated != F.FileLastUpdated)
+				if (FileInfo->FileLastUpdated != F.FileLastUpdated )
 				{
-					NeedToBeRecomiled = true;
+					//NeedToBeRecomiled = true;
 				}
-				else if (FileInfo->FileSize != F.FileSize)
+				//else 
+				if (FileInfo->FileSize != F.FileSize)
 				{
 					NeedToBeRecomiled = true;
 				}
@@ -608,7 +609,8 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 				{
 					NeedToBeRecomiled = true;
 				}
-				else if (FileInfo->FileSize != F.FileSize)
+				else 
+				if (FileInfo->FileSize != F.FileSize)
 				{
 					NeedToBeRecomiled = true;
 				}
@@ -701,7 +703,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 					for (auto& Item2 : ChangedFiles)
 					{
 						
-						if (Item2->FileInfo) //Is not External File
+						if (Item.FileInfo) //Is not External File
 						{
 							if (Item.IsExternal ?
 								Item.FileInfo->HasExternDependence(Item2->path)
@@ -770,9 +772,15 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 
 	Vector<FileNode_t*> Files;
 	bool CanFindDependencyBeforIR = true;
+	
+
+	//Not working yet
+	#define CanWorkwithIntFiles 0
+
 
 	if (ChangedFiles.size())
 	{
+		#if CanWorkwithIntFiles
 		for (auto& Item : UnChangedFiles)
 		{
 			if (Item->IsExternal)
@@ -807,7 +815,52 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 				Files.back()->FileName = Item->Repath;
 			}
 		}
-		
+		#else
+		for (auto& Item : UnChangedFiles)
+		{
+			if (Item->IsExternal)
+			{
+				if (!Item->HasOpenedFile())
+				{
+					Item->OpenedFile = GetBytesFromFile(Item->path);
+				}
+				Item->_IntFile = _FrontEndObject->LoadExternFile(
+					Item->OpenedFile.AsSpan(), Item->path.extension());
+
+				Files.push_back(Item->_IntFile.get());
+				Files.back()->FileName = Item->path.filename();
+				continue;
+			}
+			if (!Item->HasOpenedFile())
+			{
+				Item->OpenedFile = OpenFile(Item->_FInfo, Item->path);
+			}
+
+			_Errors.FilePath = Item->Repath;
+			_FrontEndObject->SetSourcePath(Item->path);
+
+			Item->_File = _FrontEndObject->BuildFile(Item->OpenedFile.AsSpan());
+			if (Item->_File)
+			{
+				Item->_File->FileName = Item->Repath;
+
+
+				auto V = _FrontEndObject->Get_DependenciesPreIR(Item->_File.get());
+				if (V.CanGetDependencies == false)
+				{
+					CanFindDependencyBeforIR = false;
+				}
+				else
+				{
+					Item->FileInfo->Dependencies = std::move(V._Files);
+				}
+
+
+				Files.push_back(Item->_File.get());
+				Files.back()->FileName = Item->Repath;
+			}
+		}
+		#endif
 
 		for (auto& Item : ChangedFiles)
 		{
@@ -853,6 +906,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 				Files.back()->FileName = Item->Repath;
 			}
 		}
+		
 
 		#if UCodeLangDebug
 		std::cout << "--files was Recompiled";
@@ -962,7 +1016,15 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 							for (auto& Item2 : FileDeps)
 							{
 
-								bool IsExtern = Item->IsExternal;
+								bool IsExtern = false;
+								for (auto& ItemP : ExternalFiles.Files)
+								{
+									if (Item2->FileName == ItemP.filename())
+									{
+										IsExtern = true;
+										break;
+									}
+								}
 
 								MyStruct* depfileinfo = nullptr;
 								{
@@ -970,7 +1032,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 									{
 										if (Item3->IsExternal != IsExtern) { continue; }
 
-										auto& CmdStr = IsExtern ? Item3->path : Item3->Repath;
+										auto CmdStr = IsExtern ? Item3->path.filename() : Item3->Repath;
 
 										if (Item2->FileName == CmdStr)
 										{
@@ -982,9 +1044,9 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 									{
 										for (auto& Item3 : UnChangedFiles)
 										{
-											if (Item->IsExternal != IsExtern) { continue; }
+											if (Item3->IsExternal != IsExtern) { continue; }
 
-											auto& CmdStr = IsExtern ? Item3->path : Item3->Repath;
+											auto& CmdStr = IsExtern ? Item3->path.filename() : Item3->Repath;
 
 											if (Item2->FileName == CmdStr)
 											{
@@ -993,7 +1055,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 										}
 									}
 								}
-
+								
 								UCodeLangAssert(depfileinfo);
 								if (IsExtern)
 								{

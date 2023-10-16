@@ -96,11 +96,11 @@ void TestingGround()
 	}
 	//ULangTest::CppHelperTests::RunTests();
 	//ULangTest::RunTests(false);
- 	//ULangTest::RunLanguageSeverTests();
- 	Interpreter RunTime;
+	//ULangTest::RunLanguageSeverTests();
+	Interpreter RunTime;
 
-	
-	
+
+
 	ULangTest::TestGenerator V;
 	V.SetSeed(1);
 
@@ -140,9 +140,40 @@ void TestingGround()
 	ModuleFile Mfile;
 	ModuleFile::FromFile(&Mfile, CodeTestingModluePath);
 
-	auto OutData = Mfile.BuildModule(_Compiler, LangIndex);
+	if (false)
+	{
+		ModuleFile Mfile;
+		ModuleFile::FromFile(&Mfile, UCodeLangVSAPIPath + "\\StandardLibrary\\ULangModule.ucm");
 
+		auto OutData = Mfile.BuildModule(_Compiler, LangIndex);
+		using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
+
+		for (const auto& dirEntry : recursive_directory_iterator(UCodeLangVSAPIPath + "\\StandardLibrary"))
+		{
+			if (dirEntry.path().extension() == FileExt::SourceFileWithDot)
+			{
+
+				{//update file
+					auto txt = Compiler::GetTextFromFile(dirEntry.path());
+
+					std::ofstream out(dirEntry.path());
+					out << txt;
+					out.close();
+				}
+
+				OutData = Mfile.BuildModule(_Compiler, LangIndex);
+
+				if (_Compiler.Get_Errors().Has_Warning())
+				{
+					int a = 0;
+				}
+				int a = 0;
+			}
+		}
+	}
 	
+
+	auto OutData = Mfile.BuildModule(_Compiler, LangIndex);
 
 
 	if (!ULangTest::LogErrors(std::cout, _Compiler))
