@@ -490,13 +490,13 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 		U.VarableType = VarableInfoType::Parameter;
 		this->_DebugInfo.Add_SetVarableName(ParId, std::move(U));
 	}
+
+	auto FuncName = _Input->FromID(IR->identifier);
 	{
 		auto V = GetParsLoc(IR->Pars);
 		CurrentFuncParPos =std::move(V.ParsPos);
 	}
 
-
-	auto FuncName = _Input->FromID(IR->identifier);
 	if (&_Input->_StaticInit == IR)
 	{
 		FuncName = StaticVariablesInitializeFunc;
