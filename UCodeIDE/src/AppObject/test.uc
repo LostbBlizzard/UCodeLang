@@ -10,9 +10,11 @@ $Vector<T>:
 
 */
 
-[Test]
-$SomeNewType;
+//[Test]
+$SomeNewType[Debug]:
+ int c = 0;
+ |ToString[] -> int:ret 4; 
 
 
-[Test]
+//[Test]
 |Func[] => 0;

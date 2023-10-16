@@ -2,6 +2,14 @@
 
 
 UCodeLangFrontStart
+
+#define WithUnorderedMap 0
+
+#if WithUnorderedMap
+UnorderedMap<String,Vector<Symbol*>> TestTable;
+#endif	
+
+
 size_t SymbolTable::GetUseingIndex() { return Useings.size(); }
 void SymbolTable::RemovePopUseing(size_t Index)
 {
@@ -24,16 +32,41 @@ void SymbolTable::GetSymbolsInNameSpace(const String_view& NameSpace, const Stri
 	String TepScope = (String)NameSpace;
 	String TepNameSpace = (String)NameSpace + ScopeHelper::_ScopeSep + (String)Name;
 
-	
+
 
 	while (TepNameSpace.size())
 	{
-
 		ScopeHelper::ReMoveScope(TepNameSpace);
+		String FullName = TepNameSpace.size() ?
+			TepNameSpace + ScopeHelper::_ScopeSep + (String)Name : (String)Name;
+
+#if  WithUnorderedMap
+		if (TestTable.HasValue(FullName))
+		{
+			auto& List = TestTable.GetValue(FullName);
+
+
+			for (auto& Item : List)
+			{
+				bool HasItem = false;
+				for (auto& Item2 : Output)
+				{
+					if (Item == Item2)
+					{
+						HasItem = true;
+						break;
+					}
+				}
+
+				if (!HasItem)
+				{
+					Output.push_back(Item);
+				}
+			}
+		}
+#else		 
 		for (auto& Item : Symbols)
 		{
-			String FullName = TepNameSpace.size() ?
-				TepNameSpace + ScopeHelper::_ScopeSep + (String)Name : (String)Name;
 			if (Item->FullName == FullName)
 			{
 
@@ -48,16 +81,16 @@ void SymbolTable::GetSymbolsInNameSpace(const String_view& NameSpace, const Stri
 					}
 				}
 
-				if (!HasItem) 
+				if (!HasItem)
 				{
 					Output.push_back(Item.get());
 				}
 			}
 		}
+#endif	
 	}
-
 }
- Vector<Symbol*>& SymbolTable::GetSymbolsWithName(const String_view& Name)
+Vector<Symbol*>& SymbolTable::GetSymbolsWithName(const String_view& Name)
 {
 	thread_local Vector<Symbol*> Tep;
 	Tep.clear();
@@ -80,43 +113,11 @@ void SymbolTable::GetSymbolsInNameSpace(const String_view& NameSpace, const Stri
 	 return r;
  }
 
+
  void SymbolTable::GetSymbolsInNameSpace(const String_view& NameSpace, const String_view& Name, Vector<const Symbol*>& Output) const
  {
-	 String TepScope = (String)NameSpace;
-	 String TepNameSpace = (String)NameSpace + ScopeHelper::_ScopeSep + (String)Name;
-
-
-
-	 while (TepNameSpace.size())
-	 {
-
-		 ScopeHelper::ReMoveScope(TepNameSpace);
-		 for (auto& Item : Symbols)
-		 {
-			 String FullName = TepNameSpace.size() ?
-				 TepNameSpace + ScopeHelper::_ScopeSep + (String)Name : (String)Name;
-			 if (Item->FullName == FullName)
-			 {
-
-
-				 bool HasItem = false;
-				 for (auto& Item2 : Output)
-				 {
-					 if (Item.get() == Item2)
-					 {
-						 HasItem = true;
-						 break;
-					 }
-				 }
-
-				 if (!HasItem)
-				 {
-					 Output.push_back(Item.get());
-				 }
-			 }
-		 }
-	 }
-
+	 SymbolTable* v = (SymbolTable*)this;
+	 return v->GetSymbolsInNameSpace(NameSpace, Name, Output);
  }
 
  Vector<const Symbol*>& SymbolTable::GetSymbolsWithName(const String_view& Name) const
@@ -140,6 +141,12 @@ void SymbolTable::GetSymbolsInNameSpace(const String_view& NameSpace, const Stri
 	 auto& Item = *Symbols.back();
 
 	 Item.Access = Access;
+
+
+#if  WithUnorderedMap
+	 TestTable.GetOrAdd(FullName, {}).push_back(&Item);
+#endif
+
 	 return Item;
  }
 

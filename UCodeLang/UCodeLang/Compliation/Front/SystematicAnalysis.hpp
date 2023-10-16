@@ -807,6 +807,13 @@ private:
 	Optional<SymbolID> _Type_UnMapTypeSymbol;
 	Vector<GeneratedGenericSymbolData> _Generic_GeneratedGenericSybol;
 	Vector<NeverNullPtr<Symbol>> _InlineEnums;
+
+	Vector<Unique_ptr<String>> StringsFromLoadLib;
+	
+	Vector<Unique_ptr<FileNode>> NodesFromLoadLib;
+	Vector<Unique_ptr<Vector<Token>>> TokensFromLoadLib;
+
+
 	//Funcs
 	bool IsInUnSafeBlock()
 	{
@@ -1226,9 +1233,13 @@ private:
 	void Assembly_LoadEnumSymbol(const Enum_Data& Item,const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 	void Assembly_LoadAliasSymbol(const Alias_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 	void Assembly_LoadTagSymbol(const Tag_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
+	void Assembly_LoadTraitSymbol(const Trait_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 
 
 	void Assembly_LoadSymbol(const ClassMethod& Item, SystematicAnalysis::LoadLibMode Mode);
+	void LoadFuncInfoGetTypes(FuncInfo* Funcinfo, const ClassMethod& Item);
+	void LoadFuncInfoFixTypes(FuncInfo* Funcinfo, const ClassMethod& Item);
+
 	void Assembly_LoadType(const ReflectionTypeInfo& Item, TypeSymbol& Out);
 	TypeSymbol Assembly_LoadType(const ReflectionTypeInfo& Item);
 
