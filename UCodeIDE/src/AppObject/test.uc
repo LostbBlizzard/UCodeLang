@@ -13,7 +13,8 @@ $Vector<T>:
 //[Test]
 $SomeNewType[Debug]:
  int c = 0;
- |ToString[] -> int:ret 4; 
+
+ //|ToString[] -> int:ret 5; 
 
 
 //[Test]
