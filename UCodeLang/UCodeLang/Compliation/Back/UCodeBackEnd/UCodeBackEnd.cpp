@@ -355,6 +355,7 @@ void UCodeBackEndObject::LinkFuncs()
 				break;
 			}
 		}
+
 		UCodeLangAssert(funcpos.has_value());
 
 		UAddress tocall = funcpos.value();

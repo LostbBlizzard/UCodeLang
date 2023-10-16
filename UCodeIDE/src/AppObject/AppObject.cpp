@@ -98,7 +98,7 @@ void AppObject::Init()
     if (!_IsAppRuning) {
         _IsAppRuning = true;
 
-
+        /*
         _LangSeverThread = std::make_unique<std::thread>([this]()
             {
                 SandBoxLanguageSever SandBox;
@@ -106,6 +106,7 @@ void AppObject::Init()
                 while (SandBox._Sever.Step());
                 this->SeverPtr = nullptr;
             });
+        */
 
 
         {

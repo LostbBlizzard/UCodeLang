@@ -960,6 +960,7 @@ GotNodeType Parser::GetFuncNode(FuncNode& out)
 		TokenTypeCheck(ColonToken, TokenType::Colon);
 		break;
 	}
+	out.EndOfFunc = TryGetToken();
 
 	return GotNodeType::Success;
 }

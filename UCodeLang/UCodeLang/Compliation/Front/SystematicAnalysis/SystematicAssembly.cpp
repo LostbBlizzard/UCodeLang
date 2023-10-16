@@ -127,15 +127,17 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode M
 			Assembly_LoadTagSymbol(Item->Get_TagData(), FullName, Scope, Mode);
 		}
 		break;
+		case ClassType::Trait:
+		{
+			Assembly_LoadTraitSymbol(Item->Get_TraitData(), FullName, Scope, Mode);
+		}
+		break;
 		default:
 			break;
 		}
 	}
 
-	static Vector<Unique_ptr<Vector<Token>>> tokens;
-	static Vector<Unique_ptr<String>> nodestext;
-	static Vector<Unique_ptr<FileNode>> madenodes;
-	if (Mode == LoadLibMode::GetTypes) {
+	if (Mode == LoadLibMode::FixTypes) {
 		//this feals off
 		FrontEnd::Lexer _Lexer;
 		FrontEnd::Parser _Parser;
@@ -158,14 +160,14 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode M
 
 			if (TextOp.has_value())
 			{
-				nodestext.push_back(std::make_unique<String>(TextOp.value()));
-				String_view Text = *nodestext.back().get();
+				StringsFromLoadLib.push_back(std::make_unique<String>(TextOp.value()));
+				String_view Text = *StringsFromLoadLib.back().get();
 				
 
 				_Lexer.Lex(Text);
 
-				tokens.push_back(std::make_unique<Vector<Token>>(std::move(_Lexer.Get_Tokens())));
-				auto& tokenslist = *tokens.back().get();
+				TokensFromLoadLib.push_back(std::make_unique<Vector<Token>>(std::move(_Lexer.Get_Tokens())));
+				auto& tokenslist = *TokensFromLoadLib.back().get();
 
 
 				_Parser.Parse(Text, tokenslist);
@@ -177,14 +179,14 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode M
 				{
 					continue;
 				}
-				madenodes.push_back(
+				NodesFromLoadLib.push_back(
 					std::make_unique<FileNode>(std::move(_Parser.Get_Tree())));
 
-				_FilesData.AddValue(NeverNullptr((FileNode_t*)madenodes.back().get()),
+				_FilesData.AddValue(NeverNullptr((FileNode_t*)NodesFromLoadLib.back().get()),
 					std::make_shared<FileNodeData>());
 
-				auto& list = madenodes.back().get()->_Nodes;
-				_LookingAtFile = madenodes.back().get();
+				auto& list = NodesFromLoadLib.back().get()->_Nodes;
+				_LookingAtFile = NodesFromLoadLib.back().get();
 
 				auto pass = _PassType;
 				for (auto& Item2 : list)
@@ -470,6 +472,215 @@ void SystematicAnalysis::Assembly_LoadTagSymbol(const Tag_Data& Item, const Stri
 
 	_Table._Scope = std::move(TepScope);
 }
+void SystematicAnalysis::Assembly_LoadTraitSymbol(const Trait_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode)
+{
+	auto TepScope = std::move(_Table._Scope);
+
+	_Table._Scope = {};
+	_Table._Scope.ThisScope = Scope;
+
+	if (Mode == LoadLibMode::GetTypes)
+	{
+		auto Name = ScopeHelper::GetNameFromFullName(FullName);
+		auto& Syb = Symbol_AddSymbol(SymbolType::Trait_class, Name, FullName, AccessModifierType::Public);
+		_Table.AddSymbolID(Syb, Symbol_GetSymbolID(&Item));
+
+
+
+		auto& SybClass = Symbol_AddSymbol(SymbolType::Type_class
+			, (String)Name + "%Class", _Table._Scope.ThisScope + "%Class", Syb.Access);
+		_Table.AddSymbolID(SybClass, Symbol_GetSymbolID(&Item.Methods));
+
+		SybClass.VarType = SybClass.ID;
+		SybClass.PassState = PassType::BuidCode;
+		SybClass.Info.reset(new ClassInfo());
+
+		SybClass.OutputIR = false;
+		SybClass.PassState = PassType::BuidCode;
+
+
+		Syb.PassState = PassType::BuidCode;
+		Syb.OutputIR = false;
+
+		Syb.VarType = Syb.ID;
+
+		auto enumInfo = new TraitInfo();
+		Syb.Info.reset(enumInfo);
+
+		enumInfo->TraitClassInfo = &SybClass;
+
+		for (auto& Item : Item.Fields)
+		{
+			auto& varsyb = Symbol_AddSymbol(SymbolType::Class_Field, Item.Name,ScopeHelper::ApendedStrings(FullName,Item.Name), AccessModifierType::Public);
+			varsyb.OutputIR = false;
+			varsyb.PassState = PassType::BuidCode;
+			
+			TraitVar var;
+			var.Syb = &varsyb;
+			enumInfo->_Vars.push_back(std::move(var));
+		}
+
+		auto oldpasstype = _PassType;
+		_PassType = PassType::GetTypes;
+
+		auto oldscope = _Table._Scope.ThisScope;
+		_Table._Scope.ThisScope = Syb.FullName;
+
+
+		for (auto& Item : Item.Methods)
+		{
+			Symbol* funcsyb = nullptr;
+
+			if (Item.FuncBody.has_value())
+			{
+				auto& FuncStr = Item.FuncBody.value();
+
+				//this feals off
+				FrontEnd::Lexer _Lexer;
+				FrontEnd::Parser _Parser;
+
+				_Lexer.Set_ErrorsOutput(_ErrorsOutput);
+				_Parser.Set_ErrorsOutput(_ErrorsOutput);
+
+
+				_Lexer.Set_Settings(_Settings);
+				_Parser.Set_Settings(_Settings);
+
+				_Lexer.Lex(FuncStr);
+
+				TokensFromLoadLib.push_back(std::make_unique<Vector<Token>>(std::move(_Lexer.Get_Tokens())));
+
+				_Parser.Parse(FuncStr, *TokensFromLoadLib.back());
+
+				NodesFromLoadLib.push_back(std::make_unique<FileNode>(std::move(_Parser.Get_Tree())));
+				Node* node = NodesFromLoadLib.back()->_Nodes[0].get();
+
+
+				ClassStackInfo info;
+				info.Syb = &Syb;
+
+				_ClassStack.push(info);
+
+				size_t Index = _Table.Symbols.size();
+
+				OnFuncNode(*FuncNode::As(node));
+
+				_ClassStack.pop();
+
+				funcsyb = _Table.Symbols[Index].get();
+				funcsyb->OutputIR = false;
+				funcsyb->PassState = PassType::BuidCode;
+			}
+			else
+			{
+				funcsyb = &Symbol_AddSymbol(SymbolType::Func, ScopeHelper::GetNameFromFullName(Item.method.FullName), Item.method.FullName, AccessModifierType::Public);
+				funcsyb->OutputIR = false;
+				funcsyb->PassState = PassType::BuidCode;
+
+				auto Funcinfo = new FuncInfo();
+				funcsyb->Info.reset(Funcinfo);
+				LoadFuncInfoGetTypes(Funcinfo, Item.method);
+
+				if (Item.method.IsThisFuncion)
+				{
+					auto& FuncP = Funcinfo->Pars.front();
+					FuncP.Type._Type = TypesEnum::CustomType;
+					FuncP.Type._CustomTypeSymbol = SybClass.ID;
+				}
+			}
+
+			TraitFunc func;
+			func.HasBody = Item.FuncBody.has_value();
+			func.Syb = funcsyb;
+			enumInfo->_Funcs.push_back(std::move(func));
+		}
+	
+		_Table._Scope.ThisScope = oldscope;
+	
+		_PassType = oldpasstype;
+	}
+	else if (Mode == LoadLibMode::FixTypes)
+	{
+		auto Name = ScopeHelper::GetNameFromFullName(FullName);
+		auto& Syb = _Table.GetSymbol(Symbol_GetSymbolID(&Item));
+		TraitInfo* info = Syb.Get_Info<TraitInfo>();
+
+		for (size_t i = 0; i < info->_Vars.size(); i++)
+		{
+			info->_Vars[i].Syb->VarType = Assembly_LoadType(Item.Fields[i].Type);
+
+		}
+
+
+		ClassStackInfo stackinfo;
+		stackinfo.Syb = info->TraitClassInfo;
+
+		_ClassStack.push(stackinfo);
+
+		auto oldpasstype = _PassType;
+		_PassType = PassType::FixedTypes;
+
+
+		auto oldscope = _Table._Scope.ThisScope;
+		_Table._Scope.ThisScope = Syb.FullName;
+
+
+
+
+		for (size_t i = 0; i < info->_Funcs.size(); i++)
+		{
+			auto& Item2 = info->_Funcs[i];
+			if (Item2.HasBody)
+			{
+				Node* node = (Node*)Item2.Syb->NodePtr;
+
+				OnFuncNode(*FuncNode::As(node));
+			}
+			else
+			{
+				FuncInfo* finfo = Item2.Syb->Get_Info<FuncInfo>();
+				LoadFuncInfoFixTypes(finfo, Item.Methods[i].method);
+				if (Item.Methods[i].method.IsThisFuncion)
+				{
+					auto& FuncP = finfo->Pars.front();
+					FuncP.Type._Type = TypesEnum::CustomType;
+					FuncP.Type._CustomTypeSymbol = info->TraitClassInfo->ID;
+				}
+			}
+		}
+
+		_Table._Scope.ThisScope = oldscope;
+
+		_ClassStack.pop();
+		//
+
+
+		auto StructVtablueClass = _IR_Builder.NewStruct(_IR_Builder.ToID(Str_GetTraitVStructTableName(Syb.FullName)));
+
+
+
+		for (auto& Item : info->_Funcs)
+		{
+			FuncInfo* ItemInfo = Item.Syb->Get_Info<FuncInfo>();
+			auto StrFunc = GetTepFuncPtrName(ItemInfo);
+			auto PtrFunc = GetTepFuncPtrSyb(StrFunc, ItemInfo).value();
+			PtrFunc->FullName = StrFunc;
+			TypeSymbol PtrType = PtrFunc->ID;
+
+			auto IRType = IR_ConvertToIRType(PtrType);
+
+			IRStructField V;
+			V.Type = IRType;
+			StructVtablueClass->Fields.push_back(V);
+		}
+
+		_PassType = oldpasstype;
+		int a = 0;
+	}
+
+
+	_Table._Scope = std::move(TepScope);
+}
 void SystematicAnalysis::Assembly_LoadSymbol(const ClassMethod& Item, SystematicAnalysis::LoadLibMode Mode)
 {
 	if (Mode == LoadLibMode::GetTypes)
@@ -482,28 +693,39 @@ void SystematicAnalysis::Assembly_LoadSymbol(const ClassMethod& Item, Systematic
 		auto Funcinfo = new FuncInfo();
 		Syb.Info.reset(Funcinfo);
 
-		Funcinfo->FullName = Syb.FullName;
-		Funcinfo->FrontParIsUnNamed = Item.IsThisFuncion;
-		Funcinfo->IsUnsafe = Item.IsUnsafe;
-		Funcinfo->IsExternC = Item.IsExternC;
-		Funcinfo->IsRemoved = Item.IsRemoved;
-
-		Funcinfo->Pars.resize(Item.ParsType.size());
+		LoadFuncInfoGetTypes(Funcinfo, Item);
 	}
 	else if (Mode == LoadLibMode::FixTypes)
 	{
 		auto& Syb = _Table.GetSymbol(Symbol_GetSymbolID(&Item));
 		auto Funcinfo = Syb.Get_Info<FuncInfo>();
 
-		Assembly_LoadType(Item.RetType, Funcinfo->Ret);
+		LoadFuncInfoFixTypes(Funcinfo,Item);
+
 		Syb.VarType = Funcinfo->Ret;
 
-		for (size_t i = 0; i < Funcinfo->Pars.size(); i++)
-		{
-			const ClassMethod::Par& ItemPar = Item.ParsType[i];
-			Funcinfo->Pars[i].IsOutPar = ItemPar.IsOutPar;
-			Assembly_LoadType(ItemPar.Type, Funcinfo->Pars[i].Type);
-		}
+	}
+}
+
+void SystematicAnalysis::LoadFuncInfoGetTypes(UCodeLang::FrontEnd::FuncInfo* Funcinfo, const UCodeLang::ClassMethod& Item)
+{
+	Funcinfo->FullName = Item.FullName;
+	Funcinfo->FrontParIsUnNamed = Item.IsThisFuncion;
+	Funcinfo->IsUnsafe = Item.IsUnsafe;
+	Funcinfo->IsExternC = Item.IsExternC;
+	Funcinfo->IsRemoved = Item.IsRemoved;
+
+	Funcinfo->Pars.resize(Item.ParsType.size());
+}
+void SystematicAnalysis::LoadFuncInfoFixTypes(FuncInfo* Funcinfo, const ClassMethod& Item)
+{
+	Assembly_LoadType(Item.RetType, Funcinfo->Ret);
+
+	for (size_t i = 0; i < Funcinfo->Pars.size(); i++)
+	{
+		const ClassMethod::Par& ItemPar = Item.ParsType[i];
+		Funcinfo->Pars[i].IsOutPar = ItemPar.IsOutPar;
+		Assembly_LoadType(ItemPar.Type, Funcinfo->Pars[i].Type);
 	}
 }
 

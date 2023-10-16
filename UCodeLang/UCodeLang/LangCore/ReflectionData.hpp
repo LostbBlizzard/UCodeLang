@@ -347,9 +347,16 @@ struct Tag_Data
 
 	}
 };
+struct TraitMethod
+{
+	ClassMethod method;
+	Optional<String> FuncBody;
+};
 struct Trait_Data
 {
 	ReflectionCustomTypeID TypeID = {};
+	Vector<ClassField> Fields;
+	Vector<TraitMethod> Methods;
 	~Trait_Data()
 	{
 

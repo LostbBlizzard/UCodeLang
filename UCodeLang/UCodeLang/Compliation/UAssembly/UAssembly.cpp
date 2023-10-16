@@ -265,7 +265,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 		{
 			r += "$" + Item->FullName + " trait:\n";
 			auto& TraitData = Item->Get_TraitData();
-
+		
 
 		}
 		break;

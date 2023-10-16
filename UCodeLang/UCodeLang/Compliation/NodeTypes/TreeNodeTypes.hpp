@@ -552,6 +552,7 @@ struct FuncNode :Node
 	FuncSignatureNode _Signature;
 	Optional<FuncBodyNode> _Body;
 	Vector<Unique_ptr<AttributeNode>> _Attributes;
+	const Token* EndOfFunc = nullptr;
 };
 
 struct AsmBlockNode :Node
