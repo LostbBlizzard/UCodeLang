@@ -6,6 +6,13 @@
 
 #include "Front/UCodeFrontEndObject.hpp"
 #include "Back/UCodeBackEnd/UCodeBackEnd.hpp"
+
+
+
+#if DEBUG
+#include <iostream>
+#endif
+
 UCodeLangStart
 Compiler::CompilerRet Compiler::CompileText(const String_view& Text, const ExternalFiles& ExternalFiles)
 {
@@ -667,7 +674,16 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 			}
 
 		}
+		#if UCodeLangDebug
+		std::cout << "--files was Updated";
+		std::cout << "\n";
 
+		for (auto& Item : ChangedFiles)
+		{
+			std::cout << "-:" << Item->Repath;
+			std::cout << "\n";
+		}
+		#endif // DEBUG
 
 		size_t OldSize = ChangedFiles.size();
 
@@ -677,21 +693,23 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 			//if dependence is an updated file
 			for (auto& Item : FilesInfo)
 			{
-				if (Item.Type == MyEnumClass::UpdatedFile)
+				if (Item.Type == MyEnumClass::FileNotChanged)
 				{
 					bool IsDependence = false;
+					MyStruct* ptr = nullptr;
 
 					for (auto& Item2 : ChangedFiles)
 					{
 						
-						if (Item.FileInfo) //Is not External File
+						if (Item2->FileInfo) //Is not External File
 						{
 							if (Item.IsExternal ?
 								Item.FileInfo->HasExternDependence(Item2->path)
 								:
-								Item.FileInfo->HasDependence(Item2->Repath))
+								Item.FileInfo->HasDependence(Item2->Repath.generic_string()))
 							{
 								IsDependence = true;
+								ptr = Item2;
 								break;
 							}
 						}
@@ -700,7 +718,6 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 					if (IsDependence)
 					{
 						bool HasIt = false;
-
 						for (auto& Item2 : ChangedFiles)
 						{
 							if (Item2 == &Item)
@@ -713,6 +730,13 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 						if (!HasIt)
 						{
 							ChangedFiles.push_back(&Item);
+							#if UCodeLangDebug
+							std::cout << "--";
+							std::cout << Item.Repath;
+							std::cout << " Was Recompiled because it used ";
+							std::cout << ptr->Repath;
+							std::cout << '\n';
+							#endif // DEBUG
 						}
 					}
 				}
@@ -830,9 +854,25 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 			}
 		}
 
+		#if UCodeLangDebug
+		std::cout << "--files was Recompiled";
+		std::cout << "\n";
+
+		for (auto& Item : ChangedFiles)
+		{
+			std::cout << "-:" << Item->Repath;
+			std::cout << "\n";
+		}
+		#endif // DEBUG
 	}
+	else
+	{
+		#if DEBUG
+		std::cout << "--No files was Updated";
+		std::cout << "\n";
+		#endif // DEBUG
 
-
+	}
 
 	CompilerRet r;
 	r._State = CompilerState::Fail;
@@ -926,29 +966,29 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 
 								MyStruct* depfileinfo = nullptr;
 								{
-									for (auto& Item : ChangedFiles)
+									for (auto& Item3 : ChangedFiles)
 									{
-										if (Item->IsExternal != IsExtern) { continue; }
+										if (Item3->IsExternal != IsExtern) { continue; }
 
-										auto& CmdStr = IsExtern ? Item->path : Item->Repath;
+										auto& CmdStr = IsExtern ? Item3->path : Item3->Repath;
 
-										if (Item->Repath == CmdStr)
+										if (Item2->FileName == CmdStr)
 										{
-											depfileinfo = Item;
+											depfileinfo = Item3;
 											break;
 										}
 									}
 									if (depfileinfo == nullptr) 
 									{
-										for (auto& Item : UnChangedFiles)
+										for (auto& Item3 : UnChangedFiles)
 										{
 											if (Item->IsExternal != IsExtern) { continue; }
 
-											auto& CmdStr = IsExtern ? Item->path : Item->Repath;
+											auto& CmdStr = IsExtern ? Item3->path : Item3->Repath;
 
-											if (Item->Repath == CmdStr)
+											if (Item2->FileName == CmdStr)
 											{
-												depfileinfo = Item;
+												depfileinfo = Item3;
 											}
 										}
 									}
