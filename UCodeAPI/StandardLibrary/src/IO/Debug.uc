@@ -1,5 +1,5 @@
 
 $Debug trait:
  int a = 0;
- |ToString[] -> int; 
+ |ToString[] => 4; 
  |ToStringV2[this&] => a; 

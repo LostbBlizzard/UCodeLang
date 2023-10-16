@@ -270,6 +270,29 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 		{
 			Symbol_InheritTrait(&Syb, ClassInf, Item.Syb, NeverNullptr(Node._className.token));
 		}
+
+		{
+			const FieldInfo* bigestoffsetfield = nullptr;
+			Optional<size_t> bigestoffset;
+			for (auto& cfield : ClassInf->Fields)
+			{
+				auto offset = Type_GetOffset(*ClassInf, &cfield).value();
+				if (offset > bigestoffset || !bigestoffset.has_value())
+				{
+					bigestoffset = offset;
+					bigestoffsetfield = &cfield;
+				}
+			}
+
+			if (bigestoffset.has_value()) {
+				ClassInf->Size = bigestoffset.value();
+				ClassInf->Size += Type_GetSize(bigestoffsetfield->Type).value();
+			}
+			else
+			{
+				ClassInf->Size = 0;
+			}
+		}
 	}
 	if (_PassType == PassType::BuidCode)
 	{

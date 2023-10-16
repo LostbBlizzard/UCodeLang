@@ -280,6 +280,7 @@ void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo
 
 	bool HasErr = false;
 
+
 	
 	for (auto& Item : Traitinfo->_Vars)
 	{
@@ -301,7 +302,18 @@ void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo
 		auto& Fieldsyb = Symbol_AddSymbol(SymbolType::Class_Field, (String)VarName,
 			ScopeHelper::ApendedStrings(ClassInfo->FullName, VarName) , Item.Syb->Access);
 		Fieldsyb.VarType = Item.Syb->VarType;
+
+		if (true)
+		{
+			ClassInfo->_WillHaveFieldInit = true;
+		}
+		if (Symbol_HasDestructor(Item.Syb->VarType))
+		{
+			ClassInfo->_WillHaveFielddeInit = true;
+		}
+	
 	}
+
 	
 	for (auto& Item : Traitinfo->_Funcs)
 	{

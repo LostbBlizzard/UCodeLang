@@ -319,47 +319,11 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 		if (IsField)
 		{
 			auto& Class = *_ClassStack.top().Info;
-			if (!Class.SizeInitialized)
-			{
-				if (Class.Size == NullAddress)
-				{
-					Class.Size = 0;
-				}
-
-				auto& Type = syb->VarType;
-			}
 			auto Field = Class.GetField(ScopeHelper::GetNameFromFullName(FullName));
 			if (Field)
 			{
 				auto& Item = (*Field);
 				Item->Type = syb->VarType;
-
-
-
-
-				if (&Class.Fields.back() == Item)
-				{
-					const FieldInfo* bigestoffsetfield = nullptr;
-					Optional<size_t> bigestoffset;
-					for (auto& cfield : Class.Fields)
-					{
-						auto offset = Type_GetOffset(Class, &cfield).value();
-						if (offset > bigestoffset || !bigestoffset.has_value())
-						{
-							bigestoffset = offset;
-							bigestoffsetfield = &cfield;
-						}
-					}
-
-					if (bigestoffset.has_value()) {
-						Class.Size = bigestoffset.value();
-						Class.Size += Type_GetSize(bigestoffsetfield->Type).value();
-					}
-					else
-					{
-						Class.Size = 0;
-					}
-				}
 
 				if (node._Expression._Value)
 				{
