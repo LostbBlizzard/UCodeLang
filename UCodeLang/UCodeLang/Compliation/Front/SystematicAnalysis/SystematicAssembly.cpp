@@ -137,10 +137,11 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode M
 		}
 	}
 
-	if (Mode == LoadLibMode::FixTypes) {
+	if (Mode == LoadLibMode::GetTypes) {
 		//this feals off
 		FrontEnd::Lexer _Lexer;
 		FrontEnd::Parser _Parser;
+
 
 		_Lexer.Set_ErrorsOutput(_ErrorsOutput);
 		_Parser.Set_ErrorsOutput(_ErrorsOutput);
@@ -155,6 +156,10 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode M
 			if (Item->Get_Type() == ClassType::GenericClass)
 			{
 				TextOp = Item->Get_GenericClass().Base.Implementation;
+			}
+			else if (Item->Get_Type() == ClassType::GenericFuncion)
+			{
+				TextOp = Item->Get_GenericFuncionData().Base.Implementation;
 			}
 
 
@@ -172,6 +177,11 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode M
 
 				_Parser.Parse(Text, tokenslist);
 
+				if (_ErrorsOutput->Has_Errors())
+				{
+					int a = 0;
+				}
+
 				UCodeLangAssert(!_ErrorsOutput->Has_Errors());
 
 
@@ -179,6 +189,9 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode M
 				{
 					continue;
 				}
+
+
+
 				NodesFromLoadLib.push_back(
 					std::make_unique<FileNode>(std::move(_Parser.Get_Tree())));
 
@@ -187,6 +200,29 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode M
 
 				auto& list = NodesFromLoadLib.back().get()->_Nodes;
 				_LookingAtFile = NodesFromLoadLib.back().get();
+
+				auto namespaceV = ScopeHelper::GetReMoveScope(Item->FullName);
+
+				auto namespacesyb = GetSymbolsWithName(namespaceV);
+				Symbol* nameSymbol = nullptr;
+
+				if (namespacesyb.size())
+				{
+					auto SymV = namespacesyb.front();
+
+					nameSymbol = SymV;
+					int a = 0;
+				
+				
+					if (nameSymbol->Type == SymbolType::Type_class)
+					{
+						ClassStackInfo tep;
+						tep.Syb = nameSymbol;
+						tep.Info = nameSymbol->Get_Info<ClassInfo>();
+
+						_ClassStack.push(std::move(tep));
+					}
+				}
 
 				auto pass = _PassType;
 				for (auto& Item2 : list)
@@ -206,31 +242,89 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode M
 						break;
 					}
 
-					_PassType = PassType::FixedTypes;
-
-					switch (Item2->Get_Type())
-					{
-					case NodeType::ClassNode: OnClassNode(*ClassNode::As(Item2.get())); break;
-					case NodeType::AliasNode:OnAliasNode(*AliasNode::As(Item2.get())); break;
-					case NodeType::EnumNode:OnEnum(*EnumNode::As(Item2.get())); break;
-					case NodeType::FuncNode:OnFuncNode(*FuncNode::As(Item2.get())); break;
-					case NodeType::UsingNode: OnUseingNode(*UsingNode::As(Item2.get())); break;
-					case NodeType::TraitNode:OnTrait(*TraitNode::As(Item2.get())); break;
-					case NodeType::TagTypeNode:OnTag(*TagTypeNode::As(Item2.get())); break;
-					default:
-						UCodeLangUnreachable();
-						break;
-					}
-
 					_PassType = pass;
 
 					Pop_NodeScope();
 				}
 
-
-
+				if (nameSymbol) 
+				{
+					if (nameSymbol->Type == SymbolType::Type_class)
+					{
+						_ClassStack.pop();
+					}
+				}
 			}
 		}
+	}
+
+
+	if (Mode == LoadLibMode::FixTypes) 
+	{
+
+		auto pass = _PassType;
+
+		_PassType = PassType::FixedTypes;
+
+		for (auto& Item : lib.Get_Assembly().Classes)
+		{
+			
+			if (Item->Get_Type() == ClassType::GenericClass || Item->Get_Type() == ClassType::GenericFuncion)
+			{
+				auto Sym = Symbol_GetSymbol(Item->FullName, SymbolType::Any);
+				if (Sym) {
+					Node* Item2 = (Node*)Sym.value()->NodePtr;
+
+
+					auto namespaceV = ScopeHelper::GetReMoveScope(Item->FullName);
+
+					auto namespacesyb = GetSymbolsWithName(namespaceV);
+					Symbol* nameSymbol = nullptr;
+
+					if (namespacesyb.size())
+					{
+						auto SymV = namespacesyb.front();
+
+						nameSymbol = SymV;
+						int a = 0;
+
+
+						if (nameSymbol->Type == SymbolType::Type_class)
+						{
+							ClassStackInfo tep;
+							tep.Syb = nameSymbol;
+							tep.Info = nameSymbol->Get_Info<ClassInfo>();
+
+							_ClassStack.push(std::move(tep));
+						}
+					}
+
+					switch (Item2->Get_Type())
+					{
+					case NodeType::ClassNode: OnClassNode(*ClassNode::As(Item2)); break;
+					case NodeType::AliasNode:OnAliasNode(*AliasNode::As(Item2)); break;
+					case NodeType::EnumNode:OnEnum(*EnumNode::As(Item2)); break;
+					case NodeType::FuncNode:OnFuncNode(*FuncNode::As(Item2)); break;
+					case NodeType::UsingNode: OnUseingNode(*UsingNode::As(Item2)); break;
+					case NodeType::TraitNode:OnTrait(*TraitNode::As(Item2)); break;
+					case NodeType::TagTypeNode:OnTag(*TagTypeNode::As(Item2)); break;
+					default:
+						UCodeLangUnreachable();
+						break;
+					}
+
+					if (nameSymbol)
+					{
+						if (nameSymbol->Type == SymbolType::Type_class)
+						{
+							_ClassStack.pop();
+						}
+					}
+				}
+			}
+		}
+		_PassType = pass;
+
 	}
 }
 void SystematicAnalysis::Assembly_LoadClassSymbol(const Class_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode)

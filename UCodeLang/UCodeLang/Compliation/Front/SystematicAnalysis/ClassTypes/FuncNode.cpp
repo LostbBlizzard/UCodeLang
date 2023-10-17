@@ -709,6 +709,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 		Ptr->Methods.push_back(std::move(V));
 
+		
+
 		auto& RetType = node._Signature._ReturnType._node;
 		if (RetType && RetType->Get_Type() == NodeType::AnonymousTypeNode)
 		{
@@ -739,7 +741,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		//
 	}
 
-
+	
 
 	if (CheckgenericForErr)
 	{
@@ -812,7 +814,18 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 	}
 
+	if (syb->Type == SymbolType::GenericFunc && _PassType == PassType::BuidCode)
+	{
+		const FuncNode* body = &node;
 
+		auto nametoken = body->_Signature._Name.token;
+		auto endtoken = body->EndOfFunc;
+		String_view filetext = this->_LookingAtFile->FileText;
+
+		auto& assemblyfunc = _Lib.Get_Assembly().AddGenericFunc(ScopeHelper::GetNameFromFullName(syb->FullName), syb->FullName);
+
+		assemblyfunc.Base.Implementation = GetImplementationFromFunc(filetext, nametoken, endtoken);
+	}
 
 	if (_PassType == PassType::FixedTypes)
 	{
@@ -826,6 +839,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			auto Token = NeverNullptr(node._Signature._Name.token);
 			Symbol_RedefinitionCheck(syb, Info, Token);
 		}
+
+		
 	}
 
 	_FuncStack.pop_back();
@@ -836,6 +851,35 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 
 	_Table.RemoveScope();
+}
+
+String SystematicAnalysis::GetImplementationFromFunc(String_view filetext, const Token* nametoken, const Token* endtoken)
+{
+
+	String funcstr = (String)"|" + (String)nametoken->Value._String;
+
+
+
+	size_t offset = 0;
+	if (endtoken->Type == TokenType::Semicolon)
+	{
+		offset++;
+	}
+
+
+	funcstr += (String)filetext.substr(nametoken->OnPos,
+		endtoken->OnPos - nametoken->OnPos + offset);
+
+	if (funcstr._Starts_with("|ToString"))
+	{
+		int a = 0;
+	}
+
+
+	funcstr += "\n ";
+
+
+	return funcstr;
 }
 
 String SystematicAnalysis::IR_MangleName(const FuncInfo* Func)

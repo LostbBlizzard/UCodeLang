@@ -5,4 +5,4 @@
 
 //|main2[] => Hello<bool>();
 
-|main3[] => Hello<char>();
+|main3[] => ULang::Math::Min<float>(5.0,8.0);

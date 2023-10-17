@@ -253,14 +253,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 
 				String_view filetext = this->_LookingAtFile->FileText;
 				
-				String funcstr = (String)"|" + (String)nametoken->Value._String;
-
-				funcstr += (String)filetext.substr(nametoken->OnPos,
-					endtoken->OnPos - nametoken->OnPos);
-
-				funcstr += '\n\n';
-
-				method.FuncBody = std::move(funcstr);
+				method.FuncBody = GetImplementationFromFunc(filetext, nametoken, endtoken);
 			}
 
 			TraitData.Methods.push_back(std::move(method));

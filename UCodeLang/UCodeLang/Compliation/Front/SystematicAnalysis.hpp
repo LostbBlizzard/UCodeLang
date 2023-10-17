@@ -1036,6 +1036,7 @@ private:
 
 	void Generic_InitGenericalias(const GenericValuesNode& GenericList, bool IsgenericInstantiation, Generic& Out);
 	void OnFuncNode(const FuncNode& node);
+	String GetImplementationFromFunc(String_view filetext, const Token* nametoken, const Token* endtoken);
 	void Node_InStatetements(bool Value);
 	void Str_FuncGetName(const NeverNullPtr<Token> NameToken, String_view& FuncName, FuncInfo::FuncType& FuncType);
 
