@@ -41,10 +41,10 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 
 			#ifdef UCodeLangDebug
 			{//for debuging
-				//auto S = Input->ToString();
+				auto S = Input->ToString();
 
-				//std::cout << "-----" << std::endl;
-				//std::cout << S;
+				std::cout << "-----" << std::endl;
+				std::cout << S;
 			}
 			#endif // UCodeLangDebug
 

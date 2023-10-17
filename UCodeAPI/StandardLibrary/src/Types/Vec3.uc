@@ -14,6 +14,14 @@ $Vec3f_t<T>:
   Y = y;
   Z = z;
 
+ |==[imut this&,this& Other]:
+  ret this.X == Other.X
+   && this.Y == Other.Y
+   && this.Z == Other.Z;
+
+ |!=[imut this&,this& Other]:
+  ret !(this == Other);
+
 $Vec3i_t<T>:
  T X;
  T Y;
@@ -28,6 +36,14 @@ $Vec3i_t<T>:
   X = x;
   Y = y;
   Z = z;
+
+ |==[imut this&,imut this& Other]:
+  ret this.X == Other.X
+   && this.Y == Other.Y
+   && this.Z == Other.Z;
+
+ |!=[imut this&,imut this& Other]:
+  ret !(this == Other);
 
 $Vec3 = Vec3f_t<float>;
 $Vec3i = Vec3f_t<int>;

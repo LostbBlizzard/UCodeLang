@@ -1200,10 +1200,6 @@ private:
 	IRInstruction* GetFutureHandle(const TypeSymbol& Future, IRInstruction* IR);
 	IRInstruction* MakeFutureFromHandle(const TypeSymbol& Future, IRInstruction* IR);
 
-	Byte OperatorPrecedenceValue(const Node* node);
-	Byte OperatorPrecedence(TokenType V);
-	bool Node_SwapForOperatorPrecedence(const Node* nodeA, const Node* nodeB);
-
 	bool Type_IsStaticCharArr(const TypeSymbol& Type);
 
 	TypeSymbol ExtendedFuncExpressionGetTypeToStart(const TypeSymbol& ExpressionType, const ExtendedFuncExpression& node);
