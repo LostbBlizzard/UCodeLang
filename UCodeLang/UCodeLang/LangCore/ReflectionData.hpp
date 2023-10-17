@@ -682,7 +682,7 @@ public:
 		r.FullName = FullName;
 		return r.Get_GenericClass();
 	}
-	inline GenericFuncion_Data& AddFuncClass(const String& Name, const String& FullName = "")
+	inline GenericFuncion_Data& AddGenericFunc(const String& Name, const String& FullName = "")
 	{
 		auto V = std::make_unique<AssemblyNode>(ClassType::GenericFuncion);
 		Classes.push_back(std::move(V));

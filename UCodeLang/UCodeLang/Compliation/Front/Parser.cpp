@@ -931,6 +931,8 @@ GotNodeType Parser::GetFuncNode(FuncNode& out)
 	case TokenType::Semicolon:
 		NextToken();
 		out._Body = {};
+
+		out.EndOfFunc = ColonToken;
 		break;
 	case TokenType::Colon: 
 	{
@@ -938,6 +940,8 @@ GotNodeType Parser::GetFuncNode(FuncNode& out)
 		FuncBodyNode V;
 		GetFuncBodyNode(V);
 		out._Body = std::move(V);
+
+		out.EndOfFunc = TryPeekNextToken(-1);
 	}break;
 	case TokenType::RightAssignArrow:
 	{
@@ -954,13 +958,14 @@ GotNodeType Parser::GetFuncNode(FuncNode& out)
 
 		auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
 		NextToken();
+
+		out.EndOfFunc = SemicolonToken;
 	}
 	break;
 	default:
 		TokenTypeCheck(ColonToken, TokenType::Colon);
 		break;
 	}
-	out.EndOfFunc = TryGetToken();
 
 	return GotNodeType::Success;
 }
