@@ -19,6 +19,7 @@
 #include <chrono>
 #include "JitPerformance.hpp"
 #include "UCodeLangProjectPaths.hpp"
+#include "UCodeLang/RunTime/TestRuner.hpp"
 using namespace UCodeLang;
 
 #ifdef UCodeLangDebug
@@ -186,6 +187,44 @@ void TestingGround()
 			std::ofstream out(Path);
 			out << Text;
 			out.close();
+		}
+
+		{
+			TestRuner runer;
+			auto info = runer.RunTests(MLib, TestRuner::InterpreterType::Interpreter, [](TestRuner::TestInfo& test)
+				{
+					if (test.Passed)
+					{
+						std::cout << "Test :" << test.TestName << " Passed\n";
+					}
+					else
+					{
+						std::cout <<  "Test :" << test.TestName << " Fail\n";
+					}
+				});
+			bool passed = info.TestCount == info.TestPassedCount;
+			std::cout << "Ran all " << info.TestCount << " Tests\m";
+
+			int passnumber;
+			if (info.TestPassedCount)
+			{
+				passnumber = ((float)info.TestPassedCount / (float)info.TestCount) * 100;
+			}
+			else
+			{
+				passnumber = 100;
+			}
+
+
+			if (passed)
+			{
+				std::cout << "Tests Passed.all 100% of tests passed\m";
+			}
+			else
+			{
+				std::cout << "Tests Failed about " << passnumber << "% passed\m";
+			}
+			int a = 0;
 		}
 
 

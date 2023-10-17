@@ -1561,6 +1561,43 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			SetRegister(V, Item);
 		}
 		break;
+		case IRInstructionType::Logical_And:
+		{
+			auto optype = Item->ObjectType;
+
+			auto BOpVals = DoBinaryOpValues(Item);
+			RegisterID A = BOpVals.A;
+			RegisterID B = BOpVals.B;
+			RegisterID V = BOpVals.V;
+
+			switch (optype._Type)
+			{
+			case IRTypes::i8:InstructionBuilder::LogicalAnd8(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::LogicalAnd16(_Ins, A, B, V); PushIns(); break;
+
+			case IRTypes::i32:InstructionBuilder::LogicalAnd32(_Ins, A, B, V); PushIns(); break;
+
+			case IRTypes::i64:InstructionBuilder::LogicalAnd64(_Ins, A, B, V); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					InstructionBuilder::LogicalAnd32(_Ins, A, B, V); PushIns(); break;
+				}
+				else
+				{
+					InstructionBuilder::LogicalAnd64(_Ins, A, B, V); PushIns(); break;
+				}
+				break;
+			default:
+				UCodeLangUnreachable();
+				break;
+			}
+
+			FreeRegister(A);
+			SetRegister(V, Item);
+		}
+		break;
 		case IRInstructionType::Unreachable:
 		{
 			if (IsDebugMode())

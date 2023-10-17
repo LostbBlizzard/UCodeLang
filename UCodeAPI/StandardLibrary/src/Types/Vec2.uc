@@ -11,6 +11,13 @@ $Vec2f_t<T>:
   X = x;
   Y = y;
 
+ |==[imut this&,imut this& Other]:
+  ret this.X == Other.X
+   && this.Y == Other.Y;
+
+ |!=[imut this&,imut this& Other]:
+  ret !(this == Other);
+
 $Vec2i_t<T>:
  T X;
  T Y;
@@ -20,6 +27,13 @@ $Vec2i_t<T>:
  |new[this&,T x,T y]:
   X = x;
   Y = y;
+
+ |==[imut this&,imut this& Other]:
+  ret this.X == Other.X
+   && this.Y == Other.Y;
+
+ |!=[imut this&,imut this& Other]:
+  ret !(this == Other);
 
 $Vec2 = Vec2f_t<float>;
 $Vec2i = Vec2f_t<int>;
