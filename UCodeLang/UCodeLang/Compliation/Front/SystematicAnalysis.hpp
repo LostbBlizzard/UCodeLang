@@ -903,8 +903,8 @@ private:
 		_ExtendedErr.pop_back();
 	}
 
-	void Lib_BuildLibs();
-	void Lib_BuildLib(const UClib& lib, const Path& LibName);
+	void Lib_BuildLibs(bool DoIR);
+	void Lib_BuildLib(const UClib& lib, const Path& LibName,bool DoIR);
 	static bool IsWrite(GetValueMode Value)
 	{
 		return Value == GetValueMode::Write 

@@ -95,7 +95,7 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode M
 		String Scope;
 		Assembly_LoadClassSymbol(*GlobalObject, Scope, Scope, Mode);
 	}
-
+	auto libname = _LookingAtFile->FileName;
 
 	for (auto& Item : lib.Get_Assembly().Classes)
 	{
@@ -167,7 +167,7 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode M
 			{
 				StringsFromLoadLib.push_back(std::make_unique<String>(TextOp.value()));
 				String_view Text = *StringsFromLoadLib.back().get();
-				
+
 
 				_Lexer.Lex(Text);
 
@@ -176,11 +176,6 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode M
 
 
 				_Parser.Parse(Text, tokenslist);
-
-				if (_ErrorsOutput->Has_Errors())
-				{
-					int a = 0;
-				}
 
 				UCodeLangAssert(!_ErrorsOutput->Has_Errors());
 
@@ -198,10 +193,16 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode M
 				_FilesData.AddValue(NeverNullptr((FileNode_t*)NodesFromLoadLib.back().get()),
 					std::make_shared<FileNodeData>());
 
+				NodesFromLoadLib.back()->FileName = libname;
+
 				auto& list = NodesFromLoadLib.back().get()->_Nodes;
 				_LookingAtFile = NodesFromLoadLib.back().get();
 
 				auto namespaceV = ScopeHelper::GetReMoveScope(Item->FullName);
+
+				size_t ScopeCount = ScopeHelper::Get_ScopeCount(namespaceV) + 1;
+
+				_Table.AddScope(namespaceV);
 
 				auto namespacesyb = GetSymbolsWithName(namespaceV);
 				Symbol* nameSymbol = nullptr;
@@ -212,8 +213,8 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode M
 
 					nameSymbol = SymV;
 					int a = 0;
-				
-				
+
+
 					if (nameSymbol->Type == SymbolType::Type_class)
 					{
 						ClassStackInfo tep;
@@ -247,19 +248,26 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode M
 					Pop_NodeScope();
 				}
 
-				if (nameSymbol) 
+				if (nameSymbol)
 				{
 					if (nameSymbol->Type == SymbolType::Type_class)
 					{
 						_ClassStack.pop();
 					}
 				}
+
+				for (size_t i = 0; i < ScopeCount; i++)
+				{
+					_Table.RemoveScope();
+				}
+				UCodeLangAssert(_Table._Scope.ThisScope.size() == 0);
 			}
+
 		}
 	}
 
 
-	if (Mode == LoadLibMode::FixTypes) 
+	if (Mode == LoadLibMode::FixTypes)
 	{
 
 		auto pass = _PassType;
@@ -268,59 +276,73 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode M
 
 		for (auto& Item : lib.Get_Assembly().Classes)
 		{
-			
+
 			if (Item->Get_Type() == ClassType::GenericClass || Item->Get_Type() == ClassType::GenericFuncion)
 			{
 				auto Sym = Symbol_GetSymbol(Item->FullName, SymbolType::Any);
-				if (Sym) {
-					Node* Item2 = (Node*)Sym.value()->NodePtr;
+				UCodeLangAssert(Sym);
 
 
-					auto namespaceV = ScopeHelper::GetReMoveScope(Item->FullName);
+				Node* Item2 = (Node*)Sym.value()->NodePtr;
 
-					auto namespacesyb = GetSymbolsWithName(namespaceV);
-					Symbol* nameSymbol = nullptr;
 
-					if (namespacesyb.size())
+				auto namespaceV = ScopeHelper::GetReMoveScope(Item->FullName);
+
+				size_t ScopeCount = ScopeHelper::Get_ScopeCount(namespaceV) + 1;
+
+				_Table.AddScope(namespaceV);
+
+
+				auto namespacesyb = GetSymbolsWithName(namespaceV);
+				Symbol* nameSymbol = nullptr;
+
+				if (namespacesyb.size())
+				{
+					auto SymV = namespacesyb.front();
+
+					nameSymbol = SymV;
+
+
+					if (nameSymbol->Type == SymbolType::Type_class)
 					{
-						auto SymV = namespacesyb.front();
+						ClassStackInfo tep;
+						tep.Syb = nameSymbol;
+						tep.Info = nameSymbol->Get_Info<ClassInfo>();
 
-						nameSymbol = SymV;
-						int a = 0;
-
-
-						if (nameSymbol->Type == SymbolType::Type_class)
-						{
-							ClassStackInfo tep;
-							tep.Syb = nameSymbol;
-							tep.Info = nameSymbol->Get_Info<ClassInfo>();
-
-							_ClassStack.push(std::move(tep));
-						}
-					}
-
-					switch (Item2->Get_Type())
-					{
-					case NodeType::ClassNode: OnClassNode(*ClassNode::As(Item2)); break;
-					case NodeType::AliasNode:OnAliasNode(*AliasNode::As(Item2)); break;
-					case NodeType::EnumNode:OnEnum(*EnumNode::As(Item2)); break;
-					case NodeType::FuncNode:OnFuncNode(*FuncNode::As(Item2)); break;
-					case NodeType::UsingNode: OnUseingNode(*UsingNode::As(Item2)); break;
-					case NodeType::TraitNode:OnTrait(*TraitNode::As(Item2)); break;
-					case NodeType::TagTypeNode:OnTag(*TagTypeNode::As(Item2)); break;
-					default:
-						UCodeLangUnreachable();
-						break;
-					}
-
-					if (nameSymbol)
-					{
-						if (nameSymbol->Type == SymbolType::Type_class)
-						{
-							_ClassStack.pop();
-						}
+						_ClassStack.push(std::move(tep));
 					}
 				}
+
+				switch (Item2->Get_Type())
+				{
+				case NodeType::ClassNode: OnClassNode(*ClassNode::As(Item2)); break;
+				case NodeType::AliasNode:OnAliasNode(*AliasNode::As(Item2)); break;
+				case NodeType::EnumNode:OnEnum(*EnumNode::As(Item2)); break;
+				case NodeType::FuncNode:OnFuncNode(*FuncNode::As(Item2)); break;
+				case NodeType::UsingNode: OnUseingNode(*UsingNode::As(Item2)); break;
+				case NodeType::TraitNode:OnTrait(*TraitNode::As(Item2)); break;
+				case NodeType::TagTypeNode:OnTag(*TagTypeNode::As(Item2)); break;
+				default:
+					UCodeLangUnreachable();
+					break;
+				}
+
+				if (nameSymbol)
+				{
+					if (nameSymbol->Type == SymbolType::Type_class)
+					{
+						_ClassStack.pop();
+					}
+				}
+
+				for (size_t i = 0; i < ScopeCount; i++)
+				{
+					_Table.RemoveScope();
+				}
+
+
+				UCodeLangAssert(_Table._Scope.ThisScope.size() == 0);
+
 			}
 		}
 		_PassType = pass;
@@ -1001,7 +1023,7 @@ Class_Data* SystematicAnalysis::Assembly_GetAssemblyClass(const String& FullName
 	}
 	UCodeLangUnreachable();
 }
-void SystematicAnalysis::Lib_BuildLibs()
+void SystematicAnalysis::Lib_BuildLibs(bool DoIR)
 {
 	//if (_Settings->_Type != OutPutType::IRAndSymbols) 
 	{
@@ -1009,34 +1031,36 @@ void SystematicAnalysis::Lib_BuildLibs()
 		{
 			auto Item = (*_Libs)[i];
 
-			Lib_BuildLib(*Item, (*_LibsNames)[i]);
+			Lib_BuildLib(*Item, (*_LibsNames)[i],DoIR);
 		}
 	}
 }
-void SystematicAnalysis::Lib_BuildLib(const UClib& lib, const Path& LibName)
+void SystematicAnalysis::Lib_BuildLib(const UClib& lib, const Path& LibName, bool DoIR)
 {
-	auto IRLayer = lib.GetLayer(UCode_CodeLayer_IR_Name);
-
-	bool GotIRCode = false;
-	if (IRLayer)
-	{
-		IRBuilder IRToImport;
-		auto& LayerInfo = IRLayer->_Data.Get<CodeLayer::JustData>();
-
-		if (IRBuilder::FromBytes(IRToImport, BytesView((Byte*)LayerInfo._Data.data(), LayerInfo._Data.size())))
-		{
-			GotIRCode = true;
-			_IR_Builder.CombineWith(std::move(IRToImport));
-		}
-	}
-
-	if (GotIRCode == false)
-	{
-		LogError(ErrorCodes::CouldNotFindFunc, 0, 0, "Cant get IR from '" + LibName.generic_string() + "' Object file.Try deleting it");
-	}
-	else
+	if (!DoIR)
 	{
 		ClassAssembly::PushCopyClasses(lib._Assembly, _Lib.Get_Assembly());
+	}
+	else {
+		auto IRLayer = lib.GetLayer(UCode_CodeLayer_IR_Name);
+
+		bool GotIRCode = false;
+		if (IRLayer)
+		{
+			IRBuilder IRToImport;
+			auto& LayerInfo = IRLayer->_Data.Get<CodeLayer::JustData>();
+
+			if (IRBuilder::FromBytes(IRToImport, BytesView((Byte*)LayerInfo._Data.data(), LayerInfo._Data.size())))
+			{
+				GotIRCode = true;
+				_IR_Builder.CombineWith(std::move(IRToImport));
+			}
+		}
+
+		if (GotIRCode == false)
+		{
+			LogError(ErrorCodes::CouldNotFindFunc, 0, 0, "Cant get IR from '" + LibName.generic_string() + "' Object file.Try deleting it");
+		}
 	}
 }
 
