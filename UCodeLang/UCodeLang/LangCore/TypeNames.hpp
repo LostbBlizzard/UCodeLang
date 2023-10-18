@@ -61,6 +61,9 @@
 #define Overload_minus_Func CompilerGenerated("Minus")
 
 
+#define Overload_equal_Func CompilerGenerated("equal")
+#define Overload_notequal_Func CompilerGenerated("notequal")
+
 //Postfix
 #define Overload_increment_Func CompilerGenerated("Increment")
 #define Overload_decrement_Func CompilerGenerated("Decrement")

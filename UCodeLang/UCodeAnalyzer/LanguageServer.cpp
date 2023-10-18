@@ -67,7 +67,7 @@ void UCFile::AnalyzedParseAndLex()
 		_oldParser->Set_Settings(_CompliationSettings);
 		_oldParser->Set_ErrorsOutput(&_CompliationErrors);
 
-		_oldParser->Parse(parsertokens);
+		_oldParser->Parse(old, parsertokens);
 
 		parsepassing = !_CompliationErrors.Has_Errors();
 		parseErrors = std::move(_CompliationErrors.Get_Errors());

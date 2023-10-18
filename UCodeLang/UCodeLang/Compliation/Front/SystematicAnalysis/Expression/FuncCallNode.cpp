@@ -883,41 +883,43 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 							const auto& Funcnode = Item->Get_NodeInfo<FuncNode>();
 							auto& rettypenode = Funcnode->_Signature._ReturnType;
 
-							auto& _generic = *rettypenode._name._ScopedName.back()._generic;
-							for (auto& Gtype : _generic._Values)
+							if (rettypenode._name._ScopedName.back()._generic.get()) 
 							{
-
-								Optional<size_t> ToMap;
-								for (size_t i = 0; i < Funcnode->_Signature._generic._Values.size(); i++)
+								auto& _generic = *rettypenode._name._ScopedName.back()._generic;
+								for (auto& Gtype : _generic._Values)
 								{
-									auto& G = Funcnode->_Signature._generic._Values[i];
-									if (G.token->Value._String == Gtype._name._ScopedName.back()._token->Value._String)
-									{
-										ToMap = i;
 
+									Optional<size_t> ToMap;
+									for (size_t i = 0; i < Funcnode->_Signature._generic._Values.size(); i++)
+									{
+										auto& G = Funcnode->_Signature._generic._Values[i];
+										if (G.token->Value._String == Gtype._name._ScopedName.back()._token->Value._String)
+										{
+											ToMap = i;
+
+										}
 									}
-								}
 
 
-								if (ToMap.has_value())
-								{
-									auto MapVal = ToMap.value();
-									String FName = (String)Funcnode->_Signature._generic._Values[MapVal].token->Value._String;
-
-									String GName = (String)Gtype._name._ScopedName.back()._token->Value._String;
-
-									String Scope = ScopeHelper::ApendedStrings(Val->FullName, GName);
-
-									auto key = Info->_GenericData._Generic[MapVal].SybID;
-
-									if (!typemap.HasValue(key))
+									if (ToMap.has_value())
 									{
-										auto ty = Symbol_GetSymbol(Scope, SymbolType::Type_class).value()->VarType;
-										typemap.AddValue(key, ty);
+										auto MapVal = ToMap.value();
+										String FName = (String)Funcnode->_Signature._generic._Values[MapVal].token->Value._String;
+
+										String GName = (String)Gtype._name._ScopedName.back()._token->Value._String;
+
+										String Scope = ScopeHelper::ApendedStrings(Val->FullName, GName);
+
+										auto key = Info->_GenericData._Generic[MapVal].SybID;
+
+										if (!typemap.HasValue(key))
+										{
+											auto ty = Symbol_GetSymbol(Scope, SymbolType::Type_class).value()->VarType;
+											typemap.AddValue(key, ty);
+										}
 									}
 								}
 							}
-
 						}
 
 						for (auto& Item : Pars)
@@ -2411,7 +2413,12 @@ SystematicAnalysis::Get_FuncInfo SystematicAnalysis::Type_GetFunc(const TypeSymb
 			}
 		}
 	}
-	String B = ToString(Name);
+	auto copyname = Name;
+	copyname._Isimmutable = false;
+	copyname._MoveData = MoveData::None;
+	
+	
+	String B = ToString(copyname);
 	Token T;
 	T.Type = TokenType::Name;
 	T.Value._String = B;

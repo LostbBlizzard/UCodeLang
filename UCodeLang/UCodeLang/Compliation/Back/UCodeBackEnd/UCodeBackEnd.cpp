@@ -355,6 +355,7 @@ void UCodeBackEndObject::LinkFuncs()
 				break;
 			}
 		}
+
 		UCodeLangAssert(funcpos.has_value());
 
 		UAddress tocall = funcpos.value();
@@ -489,13 +490,13 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 		U.VarableType = VarableInfoType::Parameter;
 		this->_DebugInfo.Add_SetVarableName(ParId, std::move(U));
 	}
+
+	auto FuncName = _Input->FromID(IR->identifier);
 	{
 		auto V = GetParsLoc(IR->Pars);
 		CurrentFuncParPos =std::move(V.ParsPos);
 	}
 
-
-	auto FuncName = _Input->FromID(IR->identifier);
 	if (&_Input->_StaticInit == IR)
 	{
 		FuncName = StaticVariablesInitializeFunc;
@@ -1560,6 +1561,43 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			SetRegister(V, Item);
 		}
 		break;
+		case IRInstructionType::Logical_And:
+		{
+			auto optype = Item->ObjectType;
+
+			auto BOpVals = DoBinaryOpValues(Item);
+			RegisterID A = BOpVals.A;
+			RegisterID B = BOpVals.B;
+			RegisterID V = BOpVals.V;
+
+			switch (optype._Type)
+			{
+			case IRTypes::i8:InstructionBuilder::LogicalAnd8(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::LogicalAnd16(_Ins, A, B, V); PushIns(); break;
+
+			case IRTypes::i32:InstructionBuilder::LogicalAnd32(_Ins, A, B, V); PushIns(); break;
+
+			case IRTypes::i64:InstructionBuilder::LogicalAnd64(_Ins, A, B, V); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					InstructionBuilder::LogicalAnd32(_Ins, A, B, V); PushIns(); break;
+				}
+				else
+				{
+					InstructionBuilder::LogicalAnd64(_Ins, A, B, V); PushIns(); break;
+				}
+				break;
+			default:
+				UCodeLangUnreachable();
+				break;
+			}
+
+			FreeRegister(A);
+			SetRegister(V, Item);
+		}
+		break;
 		case IRInstructionType::Unreachable:
 		{
 			if (IsDebugMode())
@@ -2548,7 +2586,15 @@ void  UCodeBackEndObject::GiveNameTo(const IRlocData& Value, const IRInstruction
 	}
 	else if (auto Val = Value.Info.Get_If<IRlocData_StackPost>())
 	{
-		_Stack.Add(Name, Val->offset);
+
+		if (auto v = _Stack.Get(Val->offset))
+		{
+			v->IR = Name;
+		}
+		else 
+		{
+			_Stack.Add(Name, Val->offset);
+		}
 	}
 	else if (auto Val = Value.Info.Get_If<IRlocData_StaticPos>())
 	{
@@ -3454,7 +3500,13 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 					{
 						return GetIRLocData(Item,Item->Target());
 					}
-					else 
+					else if (Item->Type == IRInstructionType::LoadNone)
+					{
+						auto t = GetIRLocData(Item);
+						GiveNameTo(t,Item);
+						return t;
+					}
+					else
 					{
 						UCodeLangUnreachable();
 					}
@@ -3488,10 +3540,11 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 		{
 			auto Ins = Op.Pointer;
 			auto V = GetIRLocData(Ins);
-	
+
 			IRlocData tep = GetFreeStackLoc(Ins->ObjectType);
 
 			CopyValues(V, tep, true, false);
+
 			return tep;
 		}
 		else if (Op.Type == IROperatorType::DereferenceOf_IRParameter)

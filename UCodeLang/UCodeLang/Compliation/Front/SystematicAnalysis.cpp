@@ -91,10 +91,12 @@ bool SystematicAnalysis::Analyze(const Vector<NeverNullPtr<FileNode>>& Files, co
 
 		if (!_ErrorsOutput->Has_Errors()) 
 		{
+			Lib_BuildLibs(false);//Because of generics the ClassAssembly may need them.
+			
 			BuildCode();
 			if (!_ErrorsOutput->Has_Errors())
 			{
-				Lib_BuildLibs();
+				Lib_BuildLibs(true);
 			}
 		}
 	};
@@ -2260,6 +2262,24 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 				Out._Symbol =
 					Symbol_GetSymbol(ScopeHelper::ApendedStrings(Symbol_GetSymbol(Func)->FullName, ThisSymbolName), SymbolType::ParameterVarable)
 					.value().value();
+
+				bool readcopythisptr = true;
+				if (_LookingForTypes.top().IsAddress())
+				{
+					readcopythisptr = false;
+				}
+
+
+				if (readcopythisptr)
+				{
+					auto old = Out.Type;
+
+
+					Out.Type = TypeSymbol();
+
+					Out.Type._Type = old._Type;
+					Out.Type._CustomTypeSymbol = old._CustomTypeSymbol;
+				}
 			}//
 			Start++;
 			End--;

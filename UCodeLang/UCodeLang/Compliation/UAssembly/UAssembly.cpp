@@ -261,6 +261,28 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 
 		}
 		break;
+		case ClassType::Trait:
+		{
+			r += "$" + Item->FullName + " trait:\n";
+			auto& TraitData = Item->Get_TraitData();
+		
+
+		}
+		break;
+		case ClassType::GenericClass:
+		{
+			r += "---\n\n";
+			r += Item->Get_GenericClass().Base.Implementation;
+			r += "---\n";
+		}
+		break;
+		case ClassType::GenericFuncion:
+		{
+			r += "---\n\n";
+			r += Item->Get_GenericFuncionData().Base.Implementation;
+			r += "---\n";
+		}
+		break;
 		default:
 			UCodeLangUnreachable();
 			break;

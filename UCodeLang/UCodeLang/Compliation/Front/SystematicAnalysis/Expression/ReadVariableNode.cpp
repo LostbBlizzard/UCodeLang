@@ -156,27 +156,26 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 				{
 					_IR_LastExpressionField = IR_Build_Member_AsPointer(V);
 				}
+				else if (LookIsAddress == true && AmIsAddress == true)
+				{
+					_IR_LastExpressionField = IR_Build_Member_GetValue(V);
+				}
+				else if (LookIsAddress == false && AmIsAddress == false)
+				{
+					_IR_LastExpressionField = IR_Build_Member_AsValue(V);
+				}
+				else if (LookIsAddress == true && AmIsAddress == false)
+				{
+					_IR_LastExpressionField = IR_Build_Member_AsPointer(V);
+				}
+				else if (LookIsAddress == false && AmIsAddress == true)
+				{
+					_IR_LastExpressionField = IR_Build_Member_AsValue(V);
+				}
 				else
-					if (LookIsAddress == true && AmIsAddress == true)
-					{
-						_IR_LastExpressionField = IR_Build_Member_GetValue(V);
-					}
-					else if (LookIsAddress == false && AmIsAddress == false)
-					{
-						_IR_LastExpressionField = IR_Build_Member_AsValue(V);
-					}
-					else if (LookIsAddress == true && AmIsAddress == false)
-					{
-						_IR_LastExpressionField = IR_Build_Member_AsPointer(V);
-					}
-					else if (LookIsAddress == false && AmIsAddress == true)
-					{
-						_IR_LastExpressionField = IR_Build_Member_AsValue(V);
-					}
-					else
-					{
-						UCodeLangUnreachable();
-					}
+				{
+					UCodeLangUnreachable();
+				}
 
 			}
 
@@ -412,6 +411,16 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 
 		auto& Func = _FuncStack.back();
 		Last_Type = *Func.Pointer->GetObjectForCall();
+	
+	
+		if (1 == In.End)
+		{
+			auto newtype = Last_Type;
+			newtype._IsAddress = false;
+
+			Output = _IR_LookingAtIRBlock->NewLoad_Dereferenc(Output, IR_ConvertToIRType(newtype));
+			Last_Type = newtype;
+		}
 	}
 	//
 

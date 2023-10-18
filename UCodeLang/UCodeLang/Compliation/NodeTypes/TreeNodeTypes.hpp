@@ -294,6 +294,8 @@ struct ClassNode :Node
 	Vector<Unique_ptr<AttributeNode>> _Attributes;
 	bool IsExternCStruct = false;
 	bool _IsExport = false;
+
+	const Token* EndOfClass = nullptr;
 };
 
 
@@ -550,6 +552,7 @@ struct FuncNode :Node
 	FuncSignatureNode _Signature;
 	Optional<FuncBodyNode> _Body;
 	Vector<Unique_ptr<AttributeNode>> _Attributes;
+	const Token* EndOfFunc = nullptr;
 };
 
 struct AsmBlockNode :Node
@@ -771,6 +774,7 @@ struct EnumNode :Node
 	TypeNode _BaseType;
 	AccessModifierType _Access = AccessModifierType::Default;
 	bool _IsExport = false;
+	const Token* EndOfClass = nullptr;
 };
 
 struct TagTypeNode :Node

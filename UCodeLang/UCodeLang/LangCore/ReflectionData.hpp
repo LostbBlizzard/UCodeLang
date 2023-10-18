@@ -347,9 +347,16 @@ struct Tag_Data
 
 	}
 };
+struct TraitMethod
+{
+	ClassMethod method;
+	Optional<String> FuncBody;
+};
 struct Trait_Data
 {
 	ReflectionCustomTypeID TypeID = {};
+	Vector<ClassField> Fields;
+	Vector<TraitMethod> Methods;
 	~Trait_Data()
 	{
 
@@ -385,18 +392,19 @@ struct FuncPtr_Data
 
 	}
 };
+struct GenericBase_Data
+{
+	String Implementation;
+};
 struct GenericClass_Data
 {
+	GenericBase_Data Base;
 	~GenericClass_Data()
 	{
 
 	}
 };
 
-struct GenericBase_Data
-{
-	String Implementation;
-};
 
 struct GenericFuncion_Data
 {
@@ -460,123 +468,123 @@ public:
 
 	Class_Data& Get_ClassData()
 	{
-		if (Type != ClassType::Class) {UCodeLangThrowException("bad access");}
+		UCodeLangAssert(Type == ClassType::Class);
 		return _Class;
 	}
 	Enum_Data& Get_EnumData()
 	{
-		if (Type != ClassType::Enum) { UCodeLangThrowException("bad access"); }
+		UCodeLangAssert(Type == ClassType::Enum);
 		return _Enum;
 	}
 	Alias_Data& Get_AliasData()
 	{
-		if (Type != ClassType::Alias) { UCodeLangThrowException("bad access"); }
+		UCodeLangAssert(Type == ClassType::Alias);
 		return _Alias;
 	}
 	Eval_Data& Get_EvalData()
 	{
-		if (Type != ClassType::Eval) { UCodeLangThrowException("bad access"); }
+		UCodeLangAssert(Type == ClassType::Eval);
 		return  _Eval;
 	}
 	Trait_Data& Get_TraitData()
 	{
-		if (Type != ClassType::Trait) { UCodeLangThrowException("bad access"); }
+		UCodeLangAssert(Type == ClassType::Trait);
 		return  _Trait;
 	}
 	Tag_Data& Get_TagData()
 	{
-		if (Type != ClassType::Tag) { UCodeLangThrowException("bad access"); }
+		UCodeLangAssert(Type == ClassType::Tag);
 		return  _Tag;
 	}
 	StaticVar_Data& Get_StaticVar()
 	{
-		if (Type != ClassType::StaticVarable) { UCodeLangThrowException("bad access"); }
+		UCodeLangAssert(Type == ClassType::StaticVarable);
 		return  _StaticVar;
 	}
 	ThreadVar_Data& Get_ThreadVar()
 	{
-		if (Type != ClassType::ThreadVarable) { UCodeLangThrowException("bad access"); }
+		UCodeLangAssert(Type == ClassType::ThreadVarable);
 		return _ThreadVar;
 	}
 	StaticArray_Data& Get_StaticArray() 
 	{
-		if (Type != ClassType::StaticArray) { UCodeLangThrowException("bad access"); }
+		UCodeLangAssert(Type == ClassType::StaticArray);
 		return _StaticArr;
 	}
 	FuncPtr_Data& Get_FuncPtr() 
 	{
-		if (Type != ClassType::FuncPtr) { UCodeLangThrowException("bad access"); }
+		UCodeLangAssert(Type == ClassType::FuncPtr);
 		return _FuncPtr;
 	}
 	GenericClass_Data& Get_GenericClass() 
 	{
-		if (Type != ClassType::GenericClass) { UCodeLangThrowException("bad access"); }
+		UCodeLangAssert(Type == ClassType::GenericClass);
 		return _GenericClass;
 	}
 	GenericFuncion_Data& Get_GenericFuncionData() 
 	{
-		if (Type != ClassType::GenericFuncion) { UCodeLangThrowException("bad access"); }
+		UCodeLangAssert(Type == ClassType::GenericFuncion);
 		return _GenericFunc;
 	}
 	
 	const Class_Data& Get_ClassData() const
 	{
-		if (Type != ClassType::Class) { UCodeLangThrowException("bad access"); }
+		UCodeLangAssert(Type == ClassType::Class);
 		return _Class;
 	}
 	const Enum_Data& Get_EnumData()const
 	{
-		if (Type != ClassType::Enum) { UCodeLangThrowException("bad access"); }
+		UCodeLangAssert(Type == ClassType::Enum);
 		return _Enum;
 	}
 	const Alias_Data& Get_AliasData()const
 	{
-		if (Type != ClassType::Alias) { UCodeLangThrowException("bad access"); }
+		UCodeLangAssert(Type == ClassType::Alias);
 		return _Alias;
 	}
 	const Eval_Data& Get_EvalData()const
 	{
-		if (Type != ClassType::Eval) { UCodeLangThrowException("bad access"); }
+		UCodeLangAssert(Type == ClassType::Eval);
 		return  _Eval;
 	}
 	const Trait_Data& Get_TraitData()const
 	{
-		if (Type != ClassType::Trait) { UCodeLangThrowException("bad access"); }
+		UCodeLangAssert(Type == ClassType::Trait);
 		return  _Trait;
 	}
 	const Tag_Data& Get_TagData()const
 	{
-		if (Type != ClassType::Tag) { UCodeLangThrowException("bad access"); }
+		UCodeLangAssert(Type == ClassType::Tag);
 		return  _Tag;
 	}
 	const StaticVar_Data& Get_StaticVar()const
 	{
-		if (Type != ClassType::StaticVarable) { UCodeLangThrowException("bad access"); }
+		UCodeLangAssert(Type == ClassType::StaticVarable);
 		return  _StaticVar;
 	}
 	const ThreadVar_Data& Get_ThreadVar() const
 	{
-		if (Type != ClassType::ThreadVarable) { UCodeLangThrowException("bad access"); }
+		UCodeLangAssert(Type == ClassType::ThreadVarable);
 		return _ThreadVar;
 	}
 	const StaticArray_Data& Get_StaticArray() const
 	{
-		if (Type != ClassType::StaticArray) { UCodeLangThrowException("bad access"); }
+		UCodeLangAssert(Type == ClassType::StaticArray);
 		return _StaticArr;
 	}
 	const FuncPtr_Data& Get_FuncPtr() const
 	{
-		if (Type != ClassType::FuncPtr) { UCodeLangThrowException("bad access"); }
+		UCodeLangAssert(Type == ClassType::FuncPtr);
 		return _FuncPtr;
 	}
 	const GenericClass_Data& Get_GenericClass() const
 	{
-		if (Type != ClassType::GenericClass) { UCodeLangThrowException("bad access"); }
+		UCodeLangAssert(Type == ClassType::GenericClass);
 		return _GenericClass;
 	}
 	const GenericFuncion_Data& Get_GenericFuncionData() const
 	{
-		if (Type != ClassType::GenericFuncion) { UCodeLangThrowException("bad access"); }
+		UCodeLangAssert(Type == ClassType::GenericFuncion);
 		return _GenericFunc;
 	}
 	inline ClassType Get_Type() const
@@ -664,6 +672,24 @@ public:
 		r.Name = Name;
 		r.FullName = FullName;
 		return r.Get_FuncPtr();
+	}
+	inline GenericClass_Data& AddGenericClass(const String& Name, const String& FullName = "")
+	{
+		auto V = std::make_unique<AssemblyNode>(ClassType::GenericClass);
+		Classes.push_back(std::move(V));
+		auto& r = *Classes.back();
+		r.Name = Name;
+		r.FullName = FullName;
+		return r.Get_GenericClass();
+	}
+	inline GenericFuncion_Data& AddGenericFunc(const String& Name, const String& FullName = "")
+	{
+		auto V = std::make_unique<AssemblyNode>(ClassType::GenericFuncion);
+		Classes.push_back(std::move(V));
+		auto& r = *Classes.back();
+		r.Name = Name;
+		r.FullName = FullName;
+		return r.Get_GenericFuncionData();
 	}
 	static void PushCopyClasses(const ClassAssembly& source, ClassAssembly& Out);
 	AssemblyNode* Find_Node(const String& Name, const String& Scope ="")

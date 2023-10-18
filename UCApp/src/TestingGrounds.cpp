@@ -19,6 +19,7 @@
 #include <chrono>
 #include "JitPerformance.hpp"
 #include "UCodeLangProjectPaths.hpp"
+#include "UCodeLang/RunTime/TestRuner.hpp"
 using namespace UCodeLang;
 
 #ifdef UCodeLangDebug
@@ -96,11 +97,11 @@ void TestingGround()
 	}
 	//ULangTest::CppHelperTests::RunTests();
 	//ULangTest::RunTests(false);
- 	//ULangTest::RunLanguageSeverTests();
- 	Interpreter RunTime;
+	//ULangTest::RunLanguageSeverTests();
+	Interpreter RunTime;
 
-	
-	
+
+
 	ULangTest::TestGenerator V;
 	V.SetSeed(1);
 
@@ -140,9 +141,40 @@ void TestingGround()
 	ModuleFile Mfile;
 	ModuleFile::FromFile(&Mfile, CodeTestingModluePath);
 
-	auto OutData = Mfile.BuildModule(_Compiler, LangIndex);
+	if (false)
+	{
+		ModuleFile Mfile;
+		ModuleFile::FromFile(&Mfile, UCodeLangVSAPIPath + "\\StandardLibrary\\ULangModule.ucm");
 
+		auto OutData = Mfile.BuildModule(_Compiler, LangIndex);
+		using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
+
+		for (const auto& dirEntry : recursive_directory_iterator(UCodeLangVSAPIPath + "\\StandardLibrary"))
+		{
+			if (dirEntry.path().extension() == FileExt::SourceFileWithDot)
+			{
+
+				{//update file
+					auto txt = Compiler::GetTextFromFile(dirEntry.path());
+
+					std::ofstream out(dirEntry.path());
+					out << txt;
+					out.close();
+				}
+
+				OutData = Mfile.BuildModule(_Compiler, LangIndex);
+
+				if (_Compiler.Get_Errors().Has_Warning())
+				{
+					int a = 0;
+				}
+				int a = 0;
+			}
+		}
+	}
 	
+
+	auto OutData = Mfile.BuildModule(_Compiler, LangIndex);
 
 
 	if (!ULangTest::LogErrors(std::cout, _Compiler))
@@ -155,6 +187,44 @@ void TestingGround()
 			std::ofstream out(Path);
 			out << Text;
 			out.close();
+		}
+
+		{
+			TestRuner runer;
+			auto info = runer.RunTests(MLib, TestRuner::InterpreterType::Interpreter, [](TestRuner::TestInfo& test)
+				{
+					if (test.Passed)
+					{
+						std::cout << "Test :" << test.TestName << " Passed\n";
+					}
+					else
+					{
+						std::cout <<  "Test :" << test.TestName << " Fail\n";
+					}
+				});
+			bool passed = info.TestCount == info.TestPassedCount;
+			std::cout << "Ran all " << info.TestCount << " Tests\m";
+
+			int passnumber;
+			if (info.TestPassedCount)
+			{
+				passnumber = ((float)info.TestPassedCount / (float)info.TestCount) * 100;
+			}
+			else
+			{
+				passnumber = 100;
+			}
+
+
+			if (passed)
+			{
+				std::cout << "Tests Passed.all 100% of tests passed\m";
+			}
+			else
+			{
+				std::cout << "Tests Failed about " << passnumber << "% passed\m";
+			}
+			int a = 0;
 		}
 
 
@@ -190,7 +260,7 @@ void TestingGround()
 		Vec3 BufferToCopy[3]{ 1,2,3 };
 
 
-		auto AutoPtr = RunTime.RCall<int>(FuncMain,(int)8);
+		auto AutoPtr = RunTime.RCall<int>(FuncMain);
 
 
 		//std::cout << " Got Value " << (int)AutoPtr << std::endl;

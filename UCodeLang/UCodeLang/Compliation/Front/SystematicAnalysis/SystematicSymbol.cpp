@@ -266,7 +266,7 @@ void SystematicAnalysis::Symbol_RedefinitionCheck(const NeverNullPtr<Symbol> Syb
 					auto& V1 = Fvalue->Pars[i];
 					auto& V2 = SybValue->Pars[i];
 
-					if (!Type_AreTheSameWithOutimmutable(V1.Type, V2.Type) || V1.IsOutPar != V2.IsOutPar)
+					if (!Type_AreTheSame(V1.Type, V2.Type) || V1.IsOutPar != V2.IsOutPar)
 					{
 
 						return;
@@ -280,7 +280,10 @@ void SystematicAnalysis::Symbol_RedefinitionCheck(const NeverNullPtr<Symbol> Syb
 			}
 		}
 
-
+		if (other->Type == SymbolType::GenericFunc)
+		{
+			Good = true;
+		}
 	GoodJump:
 		if (!Good)
 		{

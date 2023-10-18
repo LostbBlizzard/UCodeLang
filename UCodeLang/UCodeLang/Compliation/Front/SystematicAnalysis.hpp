@@ -33,10 +33,13 @@ public:
 
 		}
 	};
-	inline static const Array<Data,2> Data =
+	inline static const Array<Data,4> Data =
 	{
 		Data(TokenType::plus,Overload_Plus_Func,FuncInfo::FuncType::plus),
 		Data(TokenType::minus,Overload_minus_Func,FuncInfo::FuncType::minus),
+
+		Data(TokenType::equal_Comparison,Overload_equal_Func,FuncInfo::FuncType::equal),
+		Data(TokenType::Notequal_Comparison,Overload_notequal_Func,FuncInfo::FuncType::notequal),
 	};
 	static bool IsBinaryOverload(FuncInfo::FuncType Type)
 	{
@@ -807,6 +810,13 @@ private:
 	Optional<SymbolID> _Type_UnMapTypeSymbol;
 	Vector<GeneratedGenericSymbolData> _Generic_GeneratedGenericSybol;
 	Vector<NeverNullPtr<Symbol>> _InlineEnums;
+
+	Vector<Unique_ptr<String>> StringsFromLoadLib;
+	
+	Vector<Unique_ptr<FileNode>> NodesFromLoadLib;
+	Vector<Unique_ptr<Vector<Token>>> TokensFromLoadLib;
+
+
 	//Funcs
 	bool IsInUnSafeBlock()
 	{
@@ -896,8 +906,8 @@ private:
 		_ExtendedErr.pop_back();
 	}
 
-	void Lib_BuildLibs();
-	void Lib_BuildLib(const UClib& lib, const Path& LibName);
+	void Lib_BuildLibs(bool DoIR);
+	void Lib_BuildLib(const UClib& lib, const Path& LibName,bool DoIR);
 	static bool IsWrite(GetValueMode Value)
 	{
 		return Value == GetValueMode::Write 
@@ -1029,6 +1039,7 @@ private:
 
 	void Generic_InitGenericalias(const GenericValuesNode& GenericList, bool IsgenericInstantiation, Generic& Out);
 	void OnFuncNode(const FuncNode& node);
+	String GetImplementationFromFunc(String_view filetext, const Token* nametoken, const Token* endtoken);
 	void Node_InStatetements(bool Value);
 	void Str_FuncGetName(const NeverNullPtr<Token> NameToken, String_view& FuncName, FuncInfo::FuncType& FuncType);
 
@@ -1192,10 +1203,6 @@ private:
 	IRInstruction* GetFutureHandle(const TypeSymbol& Future, IRInstruction* IR);
 	IRInstruction* MakeFutureFromHandle(const TypeSymbol& Future, IRInstruction* IR);
 
-	Byte OperatorPrecedenceValue(const Node* node);
-	Byte OperatorPrecedence(TokenType V);
-	bool Node_SwapForOperatorPrecedence(const Node* nodeA, const Node* nodeB);
-
 	bool Type_IsStaticCharArr(const TypeSymbol& Type);
 
 	TypeSymbol ExtendedFuncExpressionGetTypeToStart(const TypeSymbol& ExpressionType, const ExtendedFuncExpression& node);
@@ -1225,8 +1232,14 @@ private:
 	void Assembly_LoadClassSymbol(const Class_Data& Item,const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 	void Assembly_LoadEnumSymbol(const Enum_Data& Item,const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 	void Assembly_LoadAliasSymbol(const Alias_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
+	void Assembly_LoadTagSymbol(const Tag_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
+	void Assembly_LoadTraitSymbol(const Trait_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
+
 
 	void Assembly_LoadSymbol(const ClassMethod& Item, SystematicAnalysis::LoadLibMode Mode);
+	void LoadFuncInfoGetTypes(FuncInfo* Funcinfo, const ClassMethod& Item);
+	void LoadFuncInfoFixTypes(FuncInfo* Funcinfo, const ClassMethod& Item);
+
 	void Assembly_LoadType(const ReflectionTypeInfo& Item, TypeSymbol& Out);
 	TypeSymbol Assembly_LoadType(const ReflectionTypeInfo& Item);
 

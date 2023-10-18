@@ -1,74 +1,11 @@
 #include "UCodeLang/Compliation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
 
-Byte SystematicAnalysis::OperatorPrecedenceValue(const Node* node)
-{
-	if (node->Get_Type() == NodeType::ValueExpressionNode)
-	{
-		const ValueExpressionNode* nod = ValueExpressionNode::As(node);
-
-		if (nod->_Value->Get_Type() == NodeType::ParenthesesExpresionNode)
-		{
-			return 8;
-		}
-
-	}
-
-	if (node->Get_Type() == NodeType::BinaryExpressionNode)
-	{
-		const BinaryExpressionNode* nod = BinaryExpressionNode::As(node);
-
-		auto V = nod->_BinaryOp->Type;
-		return OperatorPrecedence(V);
-	}
-
-
-	return 0;
-}
-
-Byte SystematicAnalysis::OperatorPrecedence(TokenType V)
-{
-	//https://en.cppreference.com/w/c/language/operator_precedence
-
-	//the biger number will have a higher precedence
-	switch (V)
-	{
-	case TokenType::modulo:
-	case TokenType::forwardslash:
-	case TokenType::star:
-		return 6;
-
-	case TokenType::Not:
-	case TokenType::bitwise_not:
-
-	case TokenType::plus:
-	case TokenType::minus:
-	default:
-		return 0;
-	}
-}
-
-
-bool SystematicAnalysis::Node_SwapForOperatorPrecedence(const Node* nodeA, const Node* nodeB)
-{
-	return OperatorPrecedenceValue(nodeA) < OperatorPrecedenceValue(nodeB);
-}
 
 void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 {
 	auto Ex0node = node._Value0._Value.get();
 	auto Ex1node = node._Value1._Value.get();
-
-	if (_PassType != PassType::GetTypes &&
-		(
-			Node_SwapForOperatorPrecedence(Ex0node, Ex1node) && Node_SwapForOperatorPrecedence(&node, Ex1node)//i have no clue why this works
-			)
-		)
-	{
-		std::swap(Ex0node, Ex1node);
-	}
-
-
 
 	if (_LookingForTypes.size() && _LookingForTypes.top()._Type != TypesEnum::Var)
 	{

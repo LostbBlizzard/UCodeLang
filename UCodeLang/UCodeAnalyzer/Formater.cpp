@@ -62,7 +62,7 @@ Optional<String> Formater::Format(StrScope scope, StringView Text)
 
 	_Parser.Set_ErrorsOutput(&_Err);
 	_Parser.Set_Settings(&_Set);
-	_Parser.Parse(_Lexer.Get_Tokens());
+	_Parser.Parse(Tep,_Lexer.Get_Tokens());
 	if (_Err.Has_Errors())
 	{
 		return {};

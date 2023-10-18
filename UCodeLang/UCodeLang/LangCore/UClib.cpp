@@ -121,6 +121,20 @@ void UClib::ToBytes(BitMaker& Output, const ClassAssembly& Assembly)
 			ToBytes(Output, TagData);
 		}
 		break;
+		case ClassType::GenericClass:
+		{
+			auto& TagData = Item->Get_GenericClass();
+
+			ToBytes(Output, TagData);
+		}
+		break;
+		case ClassType::GenericFuncion:
+		{
+			auto& TagData = Item->Get_GenericFuncionData();
+
+			ToBytes(Output, TagData);
+		}
+		break;
 		default:
 			UCodeLangUnreachable();
 			break;
@@ -206,6 +220,18 @@ void UClib::ToBytes(BitMaker& Output, const Optional<ReflectionTypeInfo>& Data)
 void UClib::ToBytes(BitMaker& Output, const Trait_Data& TraitData)
 {
 	Output.WriteType(TraitData.TypeID);
+
+	Output.WriteType((Size_tAsBits)TraitData.Fields.size());
+	for (auto& Item2 : TraitData.Fields)
+	{
+		ToBytes(Output, Item2);
+	}
+
+	Output.WriteType((Size_tAsBits)TraitData.Methods.size());
+	for (auto& Item2 : TraitData.Methods)
+	{
+		ToBytes(Output, Item2);
+	}
 }
 void UClib::ToBytes(BitMaker& Output, const InheritedTrait_Data& TraitData)
 {
@@ -323,6 +349,29 @@ void UClib::ToBytes(BitMaker& Output, const FuncPtr_Data& FuncPtrData)
 	for (auto& Item : FuncPtrData.ParsType)
 	{
 		ToBytes(Output, Item);
+	}
+}
+void UClib::ToBytes(BitMaker& Output, const GenericClass_Data& FuncPtrData)
+{
+	ToBytes(Output,FuncPtrData.Base);
+}
+void UClib::ToBytes(BitMaker& Output, const GenericFuncion_Data& FuncPtrData)
+{
+	ToBytes(Output,FuncPtrData.Base);
+}
+void UClib::ToBytes(BitMaker& Output, const GenericBase_Data& FuncPtrData)
+{
+	Output.WriteType(FuncPtrData.Implementation);
+}
+void UClib::ToBytes(BitMaker& Output, const TraitMethod& FuncPtrData)
+{
+	ToBytes(Output,FuncPtrData.method);
+
+	Output.WriteType(FuncPtrData.FuncBody.has_value());
+	
+	if (FuncPtrData.FuncBody.has_value())
+	{
+		Output.WriteType(FuncPtrData.FuncBody.value());
 	}
 }
 bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
@@ -707,6 +756,18 @@ void UClib::FromBytes(BitReader& reader, ClassAssembly& Assembly)
 			FromBytes(reader, Tag);
 		}
 		break;
+		case ClassType::GenericClass:
+		{
+			auto& Tag = _Node.Get_GenericClass();
+			FromBytes(reader, Tag);
+		}
+		break;
+		case ClassType::GenericFuncion:
+		{
+			auto& Tag = _Node.Get_GenericFuncionData();
+			FromBytes(reader, Tag);
+		}
+		break;
 		default:
 			UCodeLangUnreachable();
 			break;
@@ -833,6 +894,39 @@ void UClib::FromBytes(BitReader& Input, ReflectionRawData& Data)
 void UClib::FromBytes(BitReader& Input, Trait_Data& Data)
 {
 	Input.ReadType(Data.TypeID, Data.TypeID);
+	{
+		union
+		{
+			Size_tAsBits  Feld_Sizebits = 0;
+			size_t Feld_Size;
+		};
+		Input.ReadType(Feld_Sizebits, Feld_Sizebits);
+		Feld_Size = Feld_Sizebits;
+
+		Data.Fields.resize(Feld_Size);
+		for (size_t i2 = 0; i2 < Feld_Size; i2++)
+		{
+			auto& Item2 = Data.Fields[i2];
+			FromBytes(Input, Item2);
+		}
+	}
+
+	{
+		union
+		{
+			Size_tAsBits  Methods_Sizebits = 0;
+			size_t Methods_Size;
+		};
+		Input.ReadType(Methods_Sizebits, Methods_Sizebits);
+		Methods_Size = Methods_Sizebits;
+
+		Data.Methods.resize(Methods_Size);
+		for (size_t i2 = 0; i2 < Methods_Size; i2++)
+		{
+			auto& Item2 = Data.Methods[i2];
+			FromBytes(Input, Item2);
+		}
+	}
 }
 void UClib::FromBytes(BitReader& Input, InheritedTrait_Data& Data)
 {
@@ -854,6 +948,33 @@ void UClib::FromBytes(BitReader& Input, ClassMethod::Par& Data)
 {
 	Input.ReadType(Data.IsOutPar);
 	FromBytes(Input, Data.Type);
+}
+void UClib::FromBytes(BitReader& reader, GenericClass_Data& Ptr)
+{
+	FromBytes(reader, Ptr.Base);
+}
+void UClib::FromBytes(BitReader& reader, GenericFuncion_Data& Ptr)
+{
+	FromBytes(reader, Ptr.Base);
+}
+void UClib::FromBytes(BitReader& Input, GenericBase_Data& Data)
+{
+	Input.ReadType(Data.Implementation);
+}
+void UClib::FromBytes(BitReader& Input, TraitMethod& Data)
+{
+	FromBytes(Input, Data.method);
+
+	bool v = false;
+	Input.ReadType(v);
+
+	if (v)
+	{
+		String str;
+		Input.ReadType(str);
+
+		Data.FuncBody = std::move(str);
+	}
 }
 void UClib::FromBytes(BitReader& reader,Vector<UsedTagValueData>& Attributes)
 {

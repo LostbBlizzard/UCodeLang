@@ -86,12 +86,17 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Get Packages
+        run: sudo apt-get install libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev
+
+
       - name: Make a scripts executable
         run: |
           chmod +x ./GNU_Make.sh
           chmod +x ./BuildTools/BuildLinux32Published.sh
           chmod +x ./BuildTools/BuildLinux64Published.sh
 
+          
       - name: Run Premake
         run: ./GNU_Make.sh
 

@@ -48,7 +48,7 @@ Unique_ptr<FileNode_t> UCodeFrontEndObject::BuildFile(String_view Text)
 		if (Err->Has_Errors()) { return {}; }
 
 
-		_Parser.Parse(_Lexer.Get_Tokens());
+		_Parser.Parse(Text,_Lexer.Get_Tokens());
 
 		if (Err->Has_Errors()) { return {}; }
 

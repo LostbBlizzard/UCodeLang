@@ -130,6 +130,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 			FuncPtr._IsAddress = true;
 			Funcinfo->Pars.push_back({ false,FuncPtr });
 			Funcinfo->Ret = TypesEnum::Void;
+			Funcinfo->FrontParIsUnNamed = true;
 
 			_Func.HasBody = false;
 			info->_Funcs.push_back(_Func);
@@ -209,6 +210,54 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 
 		Trait_Data& TraitData = _Lib.Get_Assembly().AddTrait(ScopeHelper::GetNameFromFullName(Syb.FullName), Syb.FullName);
 		TraitData.TypeID = Type_GetTypeID(TypesEnum::CustomType, Syb.ID);
+
+		for (auto& Item : info->_Vars)
+		{
+			auto Name = ScopeHelper::GetNameFromFullName(Item.Syb->FullName);
+			auto& VarType = Item.Syb->VarType;
+
+			ClassField field;
+			field.Name = Name;
+			field.Type = Assembly_ConvertToType(VarType);
+
+			TraitData.Fields.push_back(std::move(field));
+		}
+
+		for (auto& Item : info->_Funcs)
+		{
+			auto Name = ScopeHelper::GetNameFromFullName(Item.Syb->FullName);
+			FuncInfo* funcinfo = Item.Syb->Get_Info<FuncInfo>();
+
+			TraitMethod method;
+
+			method.method.FullName = funcinfo->FullName;
+			method.method.IsThisFuncion = funcinfo->FrontParIsUnNamed;
+			method.method.IsUnsafe = funcinfo->IsUnsafe;
+			method.method.IsRemoved = funcinfo->IsRemoved;
+			method.method.IsExternC = funcinfo->IsExternC;
+			method.method.RetType = Assembly_ConvertToType(funcinfo->Ret);
+
+			method.method.ParsType.resize(funcinfo->Pars.size());
+			for (size_t i = 0; i < funcinfo->Pars.size(); i++)
+			{
+				method.method.ParsType[i].IsOutPar = funcinfo->Pars[i].IsOutPar;
+				method.method.ParsType[i].Type = Assembly_ConvertToType(funcinfo->Pars[i].Type);
+			}
+
+			if (Item.HasBody)
+			{
+				const FuncNode* body = Item.Syb->Get_NodeInfo<FuncNode>();
+
+				auto nametoken = body->_Signature._Name.token;
+				auto endtoken = body->EndOfFunc;
+
+				String_view filetext = this->_LookingAtFile->FileText;
+				
+				method.FuncBody = GetImplementationFromFunc(filetext, nametoken, endtoken);
+			}
+
+			TraitData.Methods.push_back(std::move(method));
+		}
 	}
 
 
@@ -224,6 +273,41 @@ void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo
 
 	bool HasErr = false;
 
+
+	
+	for (auto& Item : Traitinfo->_Vars)
+	{
+		auto VarName = ScopeHelper::GetNameFromFullName((String_view)Item.Syb->FullName);
+
+
+		for (auto& Field : ClassInfo->Fields)
+		{
+			if (Field.Name == VarName)
+			{
+				HasErr = true;
+				LogError(ErrorCodes::Redefinition, "cant inherit '" + Trait->FullName + "' because " + ClassInfo->FullName + " already has a field named '" + (String)VarName + "'", ClassNameToken);
+				continue;
+			}
+		}
+
+		ClassInfo->AddField(VarName, Item.Syb->VarType);
+
+		auto& Fieldsyb = Symbol_AddSymbol(SymbolType::Class_Field, (String)VarName,
+			ScopeHelper::ApendedStrings(ClassInfo->FullName, VarName) , Item.Syb->Access);
+		Fieldsyb.VarType = Item.Syb->VarType;
+
+		if (true)
+		{
+			ClassInfo->_WillHaveFieldInit = true;
+		}
+		if (Symbol_HasDestructor(Item.Syb->VarType))
+		{
+			ClassInfo->_WillHaveFielddeInit = true;
+		}
+	
+	}
+
+	
 	for (auto& Item : Traitinfo->_Funcs)
 	{
 		if (Item.HasBody)
@@ -260,6 +344,11 @@ void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo
 
 					if (ItemFunc->Pars.size() == Info->Pars.size())
 					{
+						if (Info->Pars.size() == 0)
+						{
+							HasFunc = true;
+						}
+
 						for (size_t i = 0; i < Info->Pars.size(); i++)
 						{
 							const auto& TraitPar = Info->Pars[i];
@@ -308,25 +397,6 @@ void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo
 		}
 	}
 
-	for (auto& Item : Traitinfo->_Vars)
-	{
-		auto VarName = ScopeHelper::GetNameFromFullName((String_view)Item.Syb->FullName);
-
-
-		for (auto& Field : ClassInfo->Fields)
-		{
-			if (Field.Name == VarName)
-			{
-				HasErr = true;
-				LogError(ErrorCodes::Redefinition, "cant inherit '" + Trait->FullName + "' because " + ClassInfo->FullName + " already has a field named '" + (String)VarName + "'", ClassNameToken);
-				continue;
-			}
-		}
-
-		ClassInfo->AddField(VarName, Item.Syb->VarType);
-
-
-	}
 
 	if (!HasErr)
 	{
@@ -387,6 +457,7 @@ void SystematicAnalysis::Symbol_BuildTrait(const NeverNullPtr<Symbol> Syb, Class
 	{
 		ClassStackInfo _ClStack;
 		_ClStack._InStatements = false;
+		_ClStack.Syb = Syb.value();
 		_ClStack.Info = ClassInfo;
 		_ClassStack.push(_ClStack);
 	}
@@ -436,7 +507,7 @@ void SystematicAnalysis::Symbol_BuildTrait(const NeverNullPtr<Symbol> Syb, Class
 			Symbol* Func = Item.Type == ClassInfo_InheritTypeInfo::FuncType::Added ? IDSyb.AddedFuncs[Item.Index].Func : IDSyb.OverLoadedFuncs[Item.Index].Func;
 
 			auto Member = _IR_LookingAtIRBlock->New_Member_Dereference(Ptr, StaticVarableType, i);
-			_IR_LookingAtIRBlock->NewStore(Member, _IR_LookingAtIRBlock->NewLoadFuncPtr(_IR_Builder.ToID(Func->FullName)));
+			_IR_LookingAtIRBlock->NewStore(Member, _IR_LookingAtIRBlock->NewLoadFuncPtr(IR_GetIRID(Func->Get_Info<FuncInfo>())));
 		}
 		//
 		_IR_LookingAtIRFunc = oldIRFunc;

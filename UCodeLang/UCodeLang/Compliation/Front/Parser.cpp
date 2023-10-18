@@ -18,10 +18,12 @@ void Parser::Reset()
 
 
 
-void Parser::Parse(const Vector<Token>& Tokens)
+void Parser::Parse(const String_view FileText, const Vector<Token>& Tokens)
 {
 	Reset();
 	_Nodes = &Tokens;
+
+	_Tree.FileText = FileText;
 
 
 	AttributeStart();
@@ -383,6 +385,7 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 		output->_Inherited = std::move(InheritedTypes);
 		output->_Access = GetModifier();
 		output->_Attributes = Get_TepAttributes();
+		output->EndOfClass = TryGetToken();
 		return GotNodeType::Success;
 	}
 	else if (ColonToken->Type == TokenType::KeyWord_Enum)
@@ -521,6 +524,7 @@ EndLoop:
 	AccessEnd();
 	auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::EndTab);
 	NextToken();
+	output->EndOfClass = EndToken;
 
 	return GotNodeType::Success;
 }
@@ -927,6 +931,8 @@ GotNodeType Parser::GetFuncNode(FuncNode& out)
 	case TokenType::Semicolon:
 		NextToken();
 		out._Body = {};
+
+		out.EndOfFunc = ColonToken;
 		break;
 	case TokenType::Colon: 
 	{
@@ -934,6 +940,8 @@ GotNodeType Parser::GetFuncNode(FuncNode& out)
 		FuncBodyNode V;
 		GetFuncBodyNode(V);
 		out._Body = std::move(V);
+
+		out.EndOfFunc = TryPeekNextToken(-1);
 	}break;
 	case TokenType::RightAssignArrow:
 	{
@@ -950,6 +958,8 @@ GotNodeType Parser::GetFuncNode(FuncNode& out)
 
 		auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
 		NextToken();
+
+		out.EndOfFunc = SemicolonToken;
 	}
 	break;
 	default:
@@ -1412,6 +1422,45 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 		break;
 	}
 }
+
+//https://en.cppreference.com/w/c/language/operator_precedence
+int Operator_precedenceBinary(TokenType type)
+{
+	switch (type)
+	{
+
+	case TokenType::star:
+	case TokenType::forwardslash:
+	case TokenType::modulo:
+		return 3;
+	case TokenType::plus:
+	case TokenType::minus:return 4;
+
+	case TokenType::bitwise_LeftShift:
+	case TokenType::bitwise_RightShift:return 5;
+
+	case TokenType::greaterthan:
+	case TokenType::lessthan:
+	case TokenType::less_than_or_equalto:
+	case TokenType::greater_than_or_equalto:
+		return 6;
+
+	case TokenType::equal_Comparison:
+	case TokenType::Notequal_Comparison:
+		return 7;
+
+	case TokenType::bitwise_and:
+		return 8;
+
+
+	case TokenType::logical_and:
+		return 11;
+	default:
+		UCodeLangUnreachable();
+		break;
+	}
+}
+
 GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 {
 	Node* ExNode = nullptr;
@@ -1665,12 +1714,47 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 
 		auto r = BinaryExpressionNode::Gen();
 
-		r->_Value0._Value= Unique_ptr<Node>(r_out);
-		
+		r->_Value0._Value = Unique_ptr<Node>(r_out);
+
 		r->_BinaryOp = token;
 		r->_Value1._Value = Unique_ptr<Node>(Other);
 		r_out = r->As();
 		r_t = Merge(Ex, Ex2);
+
+		{
+			if (r->_Value1._Value->Get_Type() == NodeType::BinaryExpressionNode)
+			{
+				auto val1 = BinaryExpressionNode::As(r->_Value1._Value.get());
+
+
+				auto opnum = Operator_precedenceBinary(r->_BinaryOp->Type);
+				auto opnum2 = Operator_precedenceBinary(val1->_BinaryOp->Type);
+
+				if (opnum < opnum2)
+				{
+					std::swap(r->_BinaryOp, val1->_BinaryOp);
+					std::swap(r->_Value0._Value, val1->_Value1._Value);
+				}
+			}
+			else if (r->_Value0._Value->Get_Type() == NodeType::ValueExpressionNode)
+			{
+				auto valex = ValueExpressionNode::As(r->_Value0._Value.get());
+				if (valex->_Value->Get_Type() == NodeType::ParenthesesExpresionNode) 
+				{
+					auto val1 = ParenthesesExpresionNode::As(valex->_Value.get());
+
+
+					auto opnum = Operator_precedenceBinary(r->_BinaryOp->Type);
+					auto opnum2 = 0;
+
+					if (opnum > opnum2)
+					{
+						std::swap(r->_Value0._Value, r->_Value1._Value);
+					}
+				}
+			}
+		}
+
 	}
 	else
 	{
@@ -1678,8 +1762,8 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 		r_t = Ex;
 	}
 
-
-
+	
+	
 	out = r_out;
 	return r_t;
 }
@@ -3106,6 +3190,7 @@ GotNodeType Parser::DoEnumType(EnumNode* output, const Token* ClassToken, Generi
 
 	auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::EndTab);
 	NextToken();
+	output->EndOfClass = EndToken;
 
 	return GotNodeType::Success;
 }

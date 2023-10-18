@@ -507,14 +507,6 @@ bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const BinaryExpressionN
 {
 	auto Ex0node = node._Value0._Value.get();
 	auto Ex1node = node._Value1._Value.get();
-	if (_PassType == PassType::BuidCode &&
-		(
-			Node_SwapForOperatorPrecedence(Ex0node, Ex1node) && Node_SwapForOperatorPrecedence(&node, Ex1node)//i have no clue why this works
-			)
-		)
-	{
-		std::swap(Ex0node, Ex1node);
-	}
 
 	return false;
 }

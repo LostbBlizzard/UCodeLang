@@ -1,41 +1,23 @@
-/*
-
-|main[] -> int:
-
- int A = 0;
-
- int& V = A;
- V = 1;
-
- ret V;
-
-|main2[] -> int:
-
- int A = 1;
-
- int& V = A;
- int H = A;
- ret H;
 
 
 
-|main3[int A] -> int&:
- int& R = A;
- //A = 0;
- A = 15;
- ret R;
+//|main[] => Hello<int>();
+
+$Test:
+ int a;
+ |-[imut this&,imut this& Other] -> this:
+  var copy = this;
+  copy.a = 10;
+  ret copy;
+ |==[imut this&,imut this& Other] => true;
+ |!=[imut this&,imut this& Other] => true;
+  
+ /*
+ |Test[imut this&]:
+  var copy = this;
+  ret copy == this;
  
-*/
-
-
-|main[]:
-
-  int A = 0 + 7;
-  A+=5;
-  ret A;
-
-
-
-
-|main2[int Par1,int Par2,int Par3,int Par4]:
-  ret Par1;
+ |Test2[imut this&]:
+  var copy = this;
+  ret copy != this;
+ */

@@ -1,11 +1,35 @@
 
 
-|ptr<T>[imut T& V] => 0;
+|ptr<T>[imut T& V] => Ptr<T>::Make(V);
+
+|ptr<T>[T& V] => Ptr<T>::Make(V);
+
+$Ptr<T>:
+ private: 
+  T& _base;
+ public:
+  |new[this&,T& base]:
+   _base =: base;
+  
+  |Get[this&] -> T&:ret _base;
+  |Get[imut this&] -> imut T&:ret _base;
+  
+  |Write[this&,imut T& newvalue]:Get() = newvalue;
+  |Write[this&,moved T newvalue]:Get() = newvalue;
+
+  |ReadPtr[imut this&] -> imut T&:ret Get();
+
+  |~>[this&] -> T&:ret Get();
+
+  |~>[imut this&] -> imut T&:ret Get();
+
+  |ReassignTo[this&,T& newbase]:_base =: newbase;
 
 
-//|ptr<T>[T& V] => 0;
 
-$Ptr<T> = int;
+  |Make[imut T& V] -> imut this:ret [unsafe bitcast<T&>(V)];
+  |Make[T& V] -> this:ret [V];
+
 
 
 //$Ptr<T = void> = Ptr<Empty>;

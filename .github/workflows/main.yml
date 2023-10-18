@@ -50,11 +50,20 @@ jobs:
            cd ./BuildTools
            ./RunTestsWin64Debug.bat
 
+    - name: RunTests for 32 bit
+      run: |
+           cd ./BuildTools
+           ./RunTestsWin32Debug.bat
+
   gmake-linux-build:
    runs-on: ubuntu-latest
 
    steps:
     - uses: actions/checkout@v3
+
+    - name: Get Packages
+      run: sudo apt-get install libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev
+
 
     - name: Make a scripts executable
       run: |
@@ -75,7 +84,10 @@ jobs:
         key: ${{ runner.os }}-cl-1inux
 
     - name: Build 64 bit
-      run: make UCodelangCL config=debug_linux64
+      run: make config=debug_linux64
+
+    - name: Build 32 bit
+      run: make config=debug_linux32
 
     - name: Save cached Objs
       id: cache-Objs-save
@@ -86,3 +98,7 @@ jobs:
 
     - name: RunTests for 64 bit
       run: ./BuildTools/RunTestsLinux64Debug.sh
+
+    - name: RunTests for 32 bit
+      run: ./BuildTools/RunTestsLinux32Debug.sh
+
