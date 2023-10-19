@@ -172,9 +172,17 @@ void TestingGround()
 		}
 	}
 	
+	for (size_t i = (size_t)TokenType::Null; i < (size_t)TokenType::internal_Constant_expression; i++)
+	{
+		auto v = UCodeLang::TokenStringHelper::ToString((TokenType)i);
+
+
+	}
+	
 
 	auto OutData = Mfile.BuildModule(_Compiler, LangIndex);
-	
+
+
 
 	if (!ULangTest::LogErrors(std::cout, _Compiler))
 	{
