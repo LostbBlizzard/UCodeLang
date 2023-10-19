@@ -15,7 +15,7 @@ for example.
 
 </code>
 
-a hard alias can be done like this.
+A Typed alias can be done like this.
 
 <code>
  
@@ -36,6 +36,6 @@ this makes the alias that's a completely unique type.
 also alias's can be generic.
 <code>
 
-    $Vector<T> = T[];
+    $FVector<T> = T[];
 
 </code>

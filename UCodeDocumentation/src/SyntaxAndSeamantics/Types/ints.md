@@ -81,12 +81,10 @@ They are their own distinct types.
 
 
 # byte/sbyte
-<code>
+
 
 is a byte keyword that directly Maps maps to keyword uint8.
 
 is a sbyte keyword that directly Maps maps to keyword sint8.
 
 these only exist to make the cold a bit more readable and to express your intent.
-
-</code>
