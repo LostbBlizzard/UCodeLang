@@ -1202,10 +1202,6 @@ void IROptimizer::ToSSA(IRFunc* Func, SSAState& state)
 			myList.end());
 
 	}
-	if (Func->Blocks.size())
-	{
-		int a = 0;
-	}
 	
 	auto S = Input->ToString();
 

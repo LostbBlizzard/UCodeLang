@@ -578,7 +578,7 @@ void C89Backend::AddSybToString(UCodeLang::String& r)
 				Vals.GetValue(Item->identifier) = true;
 				Values--;
 			NextMainLoop:
-				int a = 0;
+				;
 			}
 		}
 	}
@@ -1097,7 +1097,7 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 				}
 				r += ";\n";
 			GoOver:
-				int a = 0;
+				;
 			}
 			State.PointerToName.clear();
 		}
@@ -1119,7 +1119,7 @@ String C89Backend::ToString(ToStringState& State, IRInstruction& Ins, IROperator
 
 	if (Ins.Type == IRInstructionType::Member_Access || Ins.Type == IRInstructionType::Member_Access_Dereference)
 	{
-		int a = 0;
+		;
 	}
 	
 	if (Ins.Type != IRInstructionType::Member_Access

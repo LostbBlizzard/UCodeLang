@@ -871,12 +871,6 @@ String SystematicAnalysis::GetImplementationFromFunc(String_view filetext, const
 	funcstr += (String)filetext.substr(nametoken->OnPos,
 		endtoken->OnPos - nametoken->OnPos + offset);
 
-	if (funcstr._Starts_with("|ToString"))
-	{
-		int a = 0;
-	}
-
-
 	funcstr += "\n ";
 
 
