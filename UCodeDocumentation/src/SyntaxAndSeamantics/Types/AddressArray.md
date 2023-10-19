@@ -21,7 +21,7 @@ For example, if you have an array of integers, you can access the first element 
     int[&] = Buffer[0];
 
     Buffer[0] = 5;
-    Console::Log(Buffer[0]);
+    Fmt::Print(Buffer[0]);
     //outputs 5 
 
 </code>
