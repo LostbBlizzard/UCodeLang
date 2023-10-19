@@ -136,7 +136,7 @@ using ULang;//include standard Library.
  int&? LastItem = List.Back();
 
  match LastItem:
-  Value(out myvalue):
+  Option(out myvalue):
   
     if myvalue == 30:
        Fmt::Print("myvalue does equal 30");
