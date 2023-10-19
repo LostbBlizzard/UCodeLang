@@ -1,5 +1,8 @@
 # Address/pointers
 
+>[!IMPORTANT]
+>This Is section Is wrong and out of date.
+
 The syntax for addressing is &Value, where Value is the expression that needs to be pointed to. For example:
 
 -&x obtains a pointer to the variable x
