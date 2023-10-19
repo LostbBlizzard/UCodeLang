@@ -758,6 +758,44 @@ using namespace UCodeLang;
 			}
 		}
 
+		
+		{//incremental compilation
+			UCodeLang::Compiler _Compiler;
+
+			auto index = ModuleIndex::GetModuleIndex();
+
+			ModuleFile Mfile;
+			ModuleFile::FromFile(&Mfile, UCodeLangVSAPIPath + "\\StandardLibrary\\ULangModule.ucm");
+
+			using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
+
+			for (const auto& dirEntry : recursive_directory_iterator(UCodeLangVSAPIPath + "\\StandardLibrary"))
+			{
+				if (dirEntry.path().extension() == FileExt::SourceFileWithDot)
+				{
+
+					{//update file
+						auto txt = Compiler::GetTextFromFile(dirEntry.path());
+
+						std::ofstream out(dirEntry.path());
+						out << txt;
+						out.close();
+					}
+
+					auto OutData = Mfile.BuildModule(_Compiler, index);
+
+					if (_Compiler.Get_Errors().Has_Warning())
+					{
+						std::cout << "Errors on incremental compilation ";
+						std::cout << "On updated file " << dirEntry.path().generic_string();
+						std::cout << '\n';
+
+						return false;
+					}
+				}
+			}
+		}
+
 		std::cout << "---Init Tests Review" << std::endl;
 		for (size_t i = 0; i < BackEndsCount; i++)
 		{

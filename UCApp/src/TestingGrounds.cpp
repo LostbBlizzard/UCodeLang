@@ -140,46 +140,6 @@ void TestingGround()
 	ModuleFile Mfile;
 	ModuleFile::FromFile(&Mfile, CodeTestingModluePath);
 
-	if (false)
-	{
-		ModuleFile Mfile;
-		ModuleFile::FromFile(&Mfile, UCodeLangVSAPIPath + "\\StandardLibrary\\ULangModule.ucm");
-
-		auto OutData = Mfile.BuildModule(_Compiler, LangIndex);
-		using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
-
-		for (const auto& dirEntry : recursive_directory_iterator(UCodeLangVSAPIPath + "\\StandardLibrary"))
-		{
-			if (dirEntry.path().extension() == FileExt::SourceFileWithDot)
-			{
-
-				{//update file
-					auto txt = Compiler::GetTextFromFile(dirEntry.path());
-
-					std::ofstream out(dirEntry.path());
-					out << txt;
-					out.close();
-				}
-
-				OutData = Mfile.BuildModule(_Compiler, LangIndex);
-
-				if (_Compiler.Get_Errors().Has_Warning())
-				{
-					int a = 0;
-				}
-				int a = 0;
-			}
-		}
-	}
-	
-	for (size_t i = (size_t)TokenType::Null; i < (size_t)TokenType::internal_Constant_expression; i++)
-	{
-		auto v = UCodeLang::TokenStringHelper::ToString((TokenType)i);
-
-
-	}
-	
-
 	auto OutData = Mfile.BuildModule(_Compiler, LangIndex);
 
 
