@@ -90,7 +90,7 @@ also since we're makeing a new Language we can learn past languages mistakes wit
 
 Despite being made for game engines UCode does not need a VM it can be used by itself and can be compiled directly to C(the only thing that really works the intermediate representation is practically just C).
 
-More directly to Native machine code when that gets done.
+or directly to native machine code when that gets done.
 
 # UCodeLang Is Not Done!
 
