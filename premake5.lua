@@ -110,6 +110,10 @@ project "UCApp"
      "%{prj.name}/tests/**.h",
      "%{prj.name}/tests/**.cpp",
      "%{prj.name}/tests/**.hpp", 
+
+
+     "%{prj.name}/**.uc", 
+     "%{prj.name}/**.ucm", 
    }
    removefiles{
      "%{prj.name}/tests/PerformanceTests/**", 
