@@ -28,3 +28,5 @@ invalid can take in the parameters
 - [String](../../Standardlibrary/Types/Classes/String.md) //constant expression string
 
  - 0 parameters will out put the Error instead "Reached Invaild Statemet"
+
+

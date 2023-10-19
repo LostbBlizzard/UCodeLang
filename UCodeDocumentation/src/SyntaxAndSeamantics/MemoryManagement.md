@@ -24,3 +24,7 @@ you can also allocate an array.
 
 because not deallocate memory can cause your Progarm to run out memory.
 You can use Smart Pointers in the Standardlibrary.Unique_ptr and Shared_ptr are both Smart Pointers and can deallocate memory when its not used.
+
+
+>[!IMPORTANT]
+>This Is section Is incomplete.

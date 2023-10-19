@@ -2,6 +2,10 @@
 
 The list of Type's in the standard library.
 
+
+
+
+
  - Classes:
    - [String](./Types/Classes/String.md)
    - [StringView](./Types/Classes/StringView.md)
@@ -30,3 +34,7 @@ The list of Type's in the standard library.
    - [Unique_ptr](./Types/Generic/Unique_ptr.md)
    
    - [Shared_ptr](./Types/Generic/Shared_ptr.md)
+
+
+>[!IMPORTANT]
+>This Is section Is incomplete.

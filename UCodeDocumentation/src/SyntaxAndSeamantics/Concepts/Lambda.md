@@ -97,3 +97,9 @@ also note you can put expressions in the capture list.
 </code> 
 
 Note it is not possible to explicitly assigned the captures varable in the short-form syntax.
+
+>[!IMPORTANT]
+>
+>Explicitly assigned Lambda Capturing has no implementation on the compiler yet.
+>
+>Lambda inside Lambdas is not tested yet.

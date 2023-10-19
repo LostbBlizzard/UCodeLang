@@ -16,4 +16,6 @@ for example:
 
 the varable "DoesFuncExist" is false because the compiler will detect that Func cant be found in the scope.
 
-Note the valid keyword only checks the statement or expression.the statement or expression will never execute the code at runtime.
+
+>[!NOTE]
+>The valid keyword only checks the statement or expression.the statement or expression will never execute the code at runtime.

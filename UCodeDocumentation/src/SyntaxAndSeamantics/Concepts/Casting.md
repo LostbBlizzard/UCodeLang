@@ -1,3 +1,5 @@
+# Casting
+
 Casting is a way of converting a value from one type to another. Casting can be used to change the representation or interpretation of a value, such as converting a float to an int or an int to a pointer. Casting can also be used to perform explicit conversions that are not allowed implicitly, such as converting an int64 to an int8 or an uint16 to an int16.
 
 The syntax for casting is Value -> Type, where Value is the expression that needs to be converted and Type is the desired type. For example:
@@ -16,13 +18,13 @@ Here is an example of how casting is used in UCode:
 
     float x = 1.23; //Assigns 1.23 to x
     int y = x -> int; //Casts x to int and assigns it to y
-    Console::Log(y); //Prints 1
+    Fmt::Print(y); //Prints 1
 
     char c = 'a'; //Assigns 'a' to c
     int z = c -> int; //Casts c to int and assigns it to z
-    Console::Log(z); //Prints 97
+    Fmt::Print(z); //Prints 97
 
     uintptr u = (uintptr) (x -> int&) -> uintptr; //Casts the address of x to uintptr and assigns it to u
-    Console::Log(u);
+    Fmt::Print(u);
 
 </code>

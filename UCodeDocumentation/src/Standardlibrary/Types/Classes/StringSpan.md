@@ -1,4 +1,4 @@
-# Shared_ptr(Standardlibrary/Type/Generic)
+# StringSpan(Standardlibrary/Type)
 
 >[!IMPORTANT]
 >This Is section Is incomplete.

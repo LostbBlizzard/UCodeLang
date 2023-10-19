@@ -12,7 +12,7 @@
 
      - [enum](./SyntaxAndSeamantics/keywords/Enum.md)
 
-     - [umut](./SyntaxAndSeamantics/Concepts/umut.md)
+     - [imut](./SyntaxAndSeamantics/Concepts/imut.md)
 
      - [var](./SyntaxAndSeamantics/Types/Var.md)
 
