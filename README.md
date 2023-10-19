@@ -39,13 +39,68 @@ mainly
   - multi-paradigm
   - Compile time power
 
+
+# Why use this Programming Language.
+
+This Language was made because the lack of suitable scripting languages
+for a GameEngine's that allowed you for low-level control over memory and is easy to analyze
+for reflection.
+
+for example 
+
+
+```
+$Vec2:
+ float x;
+ float y;
+
+$Weapon;
+
+$Player:
+ Vec2 pos;
+ Weapon[] Weapons;
+
+```
+
+After compiling will become  
+
+```
+$Vec2:   //size 8
+ float x;//offset 0
+ float y;//offset 4
+
+$Weapon;//size 0
+
+$Player: //32
+ Vec2 pos;//offset 0
+ Vector<Weapon> Weapons;//offset 8
+
+$Vector<Weapon>: //size 24
+ Weapon[&] _Data; //offset 0
+ uintptr _Size; //offset 8
+ uintptr _Capacity; //offset 16
+
+```
+
+
+We want C# like assembly data but with C++ low level control over memory and without C# garbage collector. 
+
+also since we're makeing a new Language we can learn past languages mistakes with Optional and Result types and no exceptions enum variant types and more.
+
+
+Despite being made for game engines UCode does not need a VM it can be used by itself and can be compiled directly to C(the only thing that really works the intermediate representation is practically just C).
+
+More directly to Native machine code when that gets done.
+
+# UCodeLang Is Not Done!
+
+UCodeLang is not done and  unstable and lacks documentation.
+and documentation that does exist is out of date.
+It's nowhere near completion. 
+
 # Supported Progaming Languages
 
 - [C++](https://github.com/LostbBlizzard/UCodeLang) //This Repository
-- [C89](https://github.com/LostbBlizzard/UCodeLang-C89) 
-- [Rust](https://github.com/LostbBlizzard/UCodelang-Rust)
-- [Zig](https://github.com/LostbBlizzard/UCodelang-Zig/tree/main)
-
 
 # Downloads & Documentation
 
@@ -57,9 +112,90 @@ mainly
 //Goto "UCodeDocumentation/src/SUMMARY.md" if link does not work
 
 [VSCode Extension]()
+//not done
 
 [How To Add To Your C++ Project]("UCodeDocumentation/src/ForImplementers.md")
 //Goto "UCodeDocumentation/src/ForImplementers.md" if link does not work
+
+# Example(User)
+
+
+```
+using ULang;//include standard Library.
+
+|main[] -> int:
+ int a = 10;
+ int b = 20;
+
+ var c = a + b;
+ 
+ int[] List;
+
+ List.Push(c);
+ 
+ int&? LastItem = List.Back();
+
+ match LastItem:
+  Value(out myvalue):
+  
+    if myvalue == 30:
+       Fmt::Print("myvalue does equal 30");
+     
+  Null: panic("List size was 0");
+
+```
+
+# Example(Implementers)
+
+```cpp
+#include <UCodeLang/UCodeLang.hpp>
+
+int main()
+{
+  const char* MyUCode = "|main[] => 1;";
+
+  UCodeLang::Compiler myCompiler;
+  auto comilerRet = myCompiler.CompileText(MyUCode);
+
+
+  if (comilerRet._State == UCodeLang::Compiler::CompilerState::Success)
+  { 
+    //your ucode was Compiled
+    UCodeLang::RunTimeLangState State;
+
+    UCodeLang::RunTimeLib Lib;
+	Lib.Init(comilerRet.OutPut);//initialize RunTimeLib useing our Compiled code.
+
+
+    State.AddLib(&Lib);//Add RunTimeLib
+    State.LinkLibs();//Link libraries
+   
+    UCodeLang::Interpreter interpreter;
+    interpreter.Init(&State);
+
+    interpreter.Call(StaticVariablesInitializeFunc);//initialize our Static Varables.
+	interpreter.Call(ThreadVariablesInitializeFunc);//initialize thread local/Interpreter local Varables.
+
+    int Value = interpreter.RCall<int>("main");//Call main
+    std::cout << " Got Value " << Value;
+
+
+	interpreter.Call(ThreadVariablesUnLoadFunc);//Call  Thread local Varables destructors.
+    interpreter.Call(StaticVariablesUnLoadFunc);//Call Static Varables destructors.
+  }
+  else 
+  {
+    //your code some how failed to compile
+    ULangTest::LogErrors(std::cout, myCompiler); 
+  }
+}
+```
+
+# Dependencys
+
+UCodeLang has a Dependency on zycore and zydis for debuging reasons and X86 code generation.
+
+both are planned to be removed.
 
 # Project File Structure / github contributions
 
@@ -163,6 +299,7 @@ The file Project Structure is lad out like this
 
 - /UCodeIDE
    - "Its use is for testing things that would be hard to test useing a debuger"
+   - "it's called the UCodeIDE but it realy just an internal testing tool"
 
 - /UCodeWebsite
    - "Were the UCodeWebsite is im not a web dev so it's probably just the bare minimum"
@@ -176,20 +313,36 @@ use the github discussions to talk about the language and new features and langu
 also keep it civil.
 
 
+Also don't be shy to Criticize how things are implemented I know the code can be beter in places thing.
+
+Constructive criticism is welcome(dont be too harsh).
+
+Please ask questions about anything Project since I barely documented anything.
+
+the main branche for releases and the feature is where I do actual development.
+
 The final vision of the Project has Backends for 
+
  - UCodeVM(Interpreter,JitInterpreter,NativeInterpreter)
  
  - C89
 
- - LLVM Assembly text.
+ - WebAssembly
 
- - Web Assembly text
+ - Windows(native executable),
 
- - Windows,
+ - Linux(native executable),
 
- - Linux,
+ - MacOs(native executable),
 
- - MacOs,
+ - X86
+
+ - X86_64
+
+ - Arm
+
+ - Arm64
+
 
 
 # Credits

@@ -155,6 +155,7 @@ struct StackInfo
 		Reupdates.push_back({ InsIndex,true,StackOffset });
 	}
 
+
 	StackItem* Get(size_t Offset)
 	{
 		for (auto& Item : Items)

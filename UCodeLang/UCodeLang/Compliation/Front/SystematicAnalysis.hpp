@@ -33,10 +33,13 @@ public:
 
 		}
 	};
-	inline static const Array<Data,2> Data =
+	inline static const Array<Data,4> Data =
 	{
 		Data(TokenType::plus,Overload_Plus_Func,FuncInfo::FuncType::plus),
 		Data(TokenType::minus,Overload_minus_Func,FuncInfo::FuncType::minus),
+
+		Data(TokenType::equal_Comparison,Overload_equal_Func,FuncInfo::FuncType::equal),
+		Data(TokenType::Notequal_Comparison,Overload_notequal_Func,FuncInfo::FuncType::notequal),
 	};
 	static bool IsBinaryOverload(FuncInfo::FuncType Type)
 	{

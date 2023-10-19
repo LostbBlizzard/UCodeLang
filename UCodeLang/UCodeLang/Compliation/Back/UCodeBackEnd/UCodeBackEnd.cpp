@@ -2586,7 +2586,15 @@ void  UCodeBackEndObject::GiveNameTo(const IRlocData& Value, const IRInstruction
 	}
 	else if (auto Val = Value.Info.Get_If<IRlocData_StackPost>())
 	{
-		_Stack.Add(Name, Val->offset);
+
+		if (auto v = _Stack.Get(Val->offset))
+		{
+			v->IR = Name;
+		}
+		else 
+		{
+			_Stack.Add(Name, Val->offset);
+		}
 	}
 	else if (auto Val = Value.Info.Get_If<IRlocData_StaticPos>())
 	{
@@ -3492,7 +3500,13 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 					{
 						return GetIRLocData(Item,Item->Target());
 					}
-					else 
+					else if (Item->Type == IRInstructionType::LoadNone)
+					{
+						auto t = GetIRLocData(Item);
+						GiveNameTo(t,Item);
+						return t;
+					}
+					else
 					{
 						UCodeLangUnreachable();
 					}
@@ -3526,10 +3540,11 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 		{
 			auto Ins = Op.Pointer;
 			auto V = GetIRLocData(Ins);
-	
+
 			IRlocData tep = GetFreeStackLoc(Ins->ObjectType);
 
 			CopyValues(V, tep, true, false);
+
 			return tep;
 		}
 		else if (Op.Type == IROperatorType::DereferenceOf_IRParameter)

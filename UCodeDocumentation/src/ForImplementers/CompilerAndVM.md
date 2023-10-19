@@ -183,7 +183,7 @@ int main()
   }
   else 
   {
-    //your ucode some how failed  
+    //your code some how failed  
     ULangTest::LogErrors(std::cout, myCompiler); 
   }
 }
