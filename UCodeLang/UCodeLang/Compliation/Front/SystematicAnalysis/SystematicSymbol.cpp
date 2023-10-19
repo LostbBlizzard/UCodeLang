@@ -280,7 +280,10 @@ void SystematicAnalysis::Symbol_RedefinitionCheck(const NeverNullPtr<Symbol> Syb
 			}
 		}
 
-
+		if (other->Type == SymbolType::GenericFunc)
+		{
+			Good = true;
+		}
 	GoodJump:
 		if (!Good)
 		{

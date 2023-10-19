@@ -375,6 +375,8 @@ public:
 		//operator overloading
 		plus,
 		minus,
+		equal,
+		notequal,
 
 		//Postfix
 		increment,

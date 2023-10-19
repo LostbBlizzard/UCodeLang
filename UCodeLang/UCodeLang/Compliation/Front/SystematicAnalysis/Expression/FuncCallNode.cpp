@@ -2413,7 +2413,12 @@ SystematicAnalysis::Get_FuncInfo SystematicAnalysis::Type_GetFunc(const TypeSymb
 			}
 		}
 	}
-	String B = ToString(Name);
+	auto copyname = Name;
+	copyname._Isimmutable = false;
+	copyname._MoveData = MoveData::None;
+	
+	
+	String B = ToString(copyname);
 	Token T;
 	T.Type = TokenType::Name;
 	T.Value._String = B;

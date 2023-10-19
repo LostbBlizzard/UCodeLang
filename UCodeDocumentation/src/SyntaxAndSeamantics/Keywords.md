@@ -8,7 +8,7 @@
 
  - [enum](keywords/Enum.md)
 
- - [umut](./Concepts/umut.md)
+ - [imut](./Concepts/imut.md)
 
  - [var](./Types/Var.md)
 

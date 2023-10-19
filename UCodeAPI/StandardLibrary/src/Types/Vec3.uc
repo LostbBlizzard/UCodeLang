@@ -15,12 +15,30 @@ $Vec3f_t<T>:
   Z = z;
 
  |==[imut this&,this& Other]:
-  ret this.X == Other.X
-   && this.Y == Other.Y
-   && this.Z == Other.Z;
+  ret this.X == Other.X && this.Y == Other.Y && this.Z == Other.Z;
 
  |!=[imut this&,this& Other]:
   ret !(this == Other);
+
+ |+=[this&,imut this& Other]:
+  this.X += Other.X;
+  this.Y += Other.Y;
+  this.Z += Other.Z;
+
+ |-=[this&,imut this& Other]:
+  this.X -= Other.X;
+  this.Y -= Other.Y;
+  this.Z -= Other.Z;
+
+ |+[imut this&,imut this& Other] -> this:
+  var copy = this;
+  copy += Other;
+  ret copy;
+
+ |-[imut this&,imut this& Other] -> this:
+  var copy = this;
+  copy -= Other;
+  ret copy;
 
 $Vec3i_t<T>:
  T X;
@@ -38,12 +56,30 @@ $Vec3i_t<T>:
   Z = z;
 
  |==[imut this&,imut this& Other]:
-  ret this.X == Other.X
-   && this.Y == Other.Y
-   && this.Z == Other.Z;
+  ret this.X == Other.X && this.Y == Other.Y && this.Z == Other.Z;
 
  |!=[imut this&,imut this& Other]:
   ret !(this == Other);
+
+ |+=[this&,imut this& Other]:
+  this.X += Other.X;
+  this.Y += Other.Y;
+  this.Z += Other.Z;
+
+ |-=[this&,imut this& Other]:
+  this.X -= Other.X;
+  this.Y -= Other.Y;
+  this.Z -= Other.Z;
+
+ |+[imut this&,imut this& Other] -> this:
+  var copy = this;
+  copy += Other;
+  ret copy;
+
+ |-[imut this&,imut this& Other] -> this:
+  var copy = this;
+  copy -= Other;
+  ret copy;
 
 $Vec3 = Vec3f_t<float>;
 $Vec3i = Vec3f_t<int>;

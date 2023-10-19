@@ -41,7 +41,7 @@ Tests:
 
   r += 5;
 
-  ret Vptr.Read() == 10;
+  ret Vptr.ReadPtr() == 10;
 
 
  [Test]
