@@ -1101,7 +1101,6 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 			{
 				if (Val->Type == SymbolType::Type_Pack)
 				{
-					int a = 0;
 
 					const TypePackInfo* Info = Val->Get_Info<TypePackInfo>();
 

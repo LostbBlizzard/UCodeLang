@@ -74,7 +74,7 @@ void IRToX86_64IR::Build(const IRBlock* func)
 		{
 		case IRInstructionType::LoadNone:
 		{
-			int a = 0;
+
 		}
 			break;
 		case IRInstructionType::Load:
@@ -99,7 +99,6 @@ void IRToX86_64IR::Build(const IRBlock* func)
 			{
 				UCodeLangUnreachable();
 			}
-			int a = 0;
 		}
 		break;
 		case IRInstructionType::Return:

@@ -2912,7 +2912,6 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                     }
                        
                 }
-                int a = 0;
             }
             ImGui::NextColumn();
             {

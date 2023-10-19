@@ -88,11 +88,6 @@ void LanguageSeverTest::RunTest(String_view FileAsString)
 			offset += instruction.info.length;
 			runtime_address += instruction.info.length;
 		}
-		if (Str != "mov [rax], rax\n")
-		{
-			int a = 0;
-		}
-		int a = 0;
 	}
 
 

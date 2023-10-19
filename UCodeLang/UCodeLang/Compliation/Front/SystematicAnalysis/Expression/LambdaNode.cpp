@@ -406,7 +406,6 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 						auto ThisParSym = Symbol_GetSymbol(Func->Pars.front().Type).value();
 						//if (IsSymbolLambdaObjectClass(ThisParSym))
 						{
-							int a = 0;
 							//If The ThisPar an Lambda Object
 							//auto parsym = Symbol_GetSymbol(ScopeHelper::ApendedStrings(Symbol_GetSymbol(Func)->FullName, ThisSymbolName), SymbolType::ParameterVarable).value();
 							//Output = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(In._Symbol->VarType));

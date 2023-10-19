@@ -752,7 +752,7 @@ bool RunTimeLangState::HotReload(const HotReloadData& Item)
 			}
 			else if (Loc._Ptr.Get_InterpreterType() == InterpreterTypes::NativeInterpreter)
 			{
-				int a = 0;
+
 			}
 			else
 			{

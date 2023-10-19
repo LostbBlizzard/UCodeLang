@@ -78,8 +78,6 @@ void TestFormater()
 	auto V = _F.Format(UCodeAnalyzer::Formater::StrScope::FileScope, Str);
 
 	auto Output = _F.Get_Output();
-
-	int a = 0;
 }
 
 
@@ -89,14 +87,6 @@ void TestFormater()
 /// </summary>
 void TestingGround()
 {
-
-	//V
-	{
-		//JitPerformance::main(JitPerformance::Task::Main);
-	}
-	//ULangTest::CppHelperTests::RunTests();
-	//ULangTest::RunTests(false);
-	//ULangTest::RunLanguageSeverTests();
 	Interpreter RunTime;
 
 
@@ -129,9 +119,6 @@ void TestingGround()
 
 	UCodeLang::Compiler _Compiler;
 	UCodeLang::CompliationSettings& Settings = _Compiler.Get_Settings();
-
-	//Settings.PtrSize = IntSizes::Int8;
-
 
 	Settings._Type = OutPutType::Lib;
 	Settings._Flags = OptimizationFlags::Stable_ForDebuging;
@@ -191,7 +178,6 @@ void TestingGround()
 			{
 				std::cout << "Tests Failed about " << passnumber << "% passed\n";
 			}
-			int a = 0;
 		}
 
 

@@ -630,7 +630,6 @@ using namespace UCodeLang;
 			{
 				std::cout << "Tests Failed about " << passnumber << "% passed\n";
 			}
-			int a = 0;
 		}
 
 		
