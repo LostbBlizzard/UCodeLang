@@ -25,7 +25,6 @@ using namespace UCodeLang;
 #ifdef UCodeLangDebug
 const UCodeLang::String TopDir = UCodeLang_UCAppDir_ScrDir + "CodeTesting/";
 const UCodeLang::String CodeTestingModluePath = TopDir + "ULangModule.ucm";
-const UCodeLang::String UCodeLangVSAPIPath = UCodeLang_SoultionDir + "UCodeAPI/";
 #else
 const UCodeLang::String TopDir = "n/a";
 const UCodeLang::String CodeTestingModluePath = "n/a";
@@ -175,7 +174,7 @@ void TestingGround()
 	
 
 	auto OutData = Mfile.BuildModule(_Compiler, LangIndex);
-
+	
 
 	if (!ULangTest::LogErrors(std::cout, _Compiler))
 	{
@@ -218,11 +217,11 @@ void TestingGround()
 
 			if (passed)
 			{
-				std::cout << "Tests Passed.all 100% of tests passed\m";
+				std::cout << "Tests Passed.all 100% of tests passed\n";
 			}
 			else
 			{
-				std::cout << "Tests Failed about " << passnumber << "% passed\m";
+				std::cout << "Tests Failed about " << passnumber << "% passed\n";
 			}
 			int a = 0;
 		}

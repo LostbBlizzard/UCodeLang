@@ -2231,7 +2231,11 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 				return false;
 			}
 			
-
+			bool readcopythisptr = true;
+			if (_LookingForTypes.top().IsAddress())
+			{
+				readcopythisptr = false;
+			}
 
 			auto& Func = _FuncStack.back().Pointer;
 			auto ObjectType = Func->GetObjectForCall();
@@ -2240,6 +2244,20 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 				Out.Type = *Func->GetObjectForCall();
 				Out._Symbol = Symbol_GetSymbol(ScopeHelper::ApendedStrings(Symbol_GetSymbol(Func)->FullName, ThisSymbolName), SymbolType::ParameterVarable)
 					.value().value();
+
+
+			
+				if (readcopythisptr)
+				{
+					auto old = Out.Type;
+
+
+					Out.Type = TypeSymbol();
+
+					Out.Type._Type = old._Type;
+					Out.Type._CustomTypeSymbol = old._CustomTypeSymbol;
+				}
+
 				return true;
 			}
 
@@ -2263,13 +2281,7 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 					Symbol_GetSymbol(ScopeHelper::ApendedStrings(Symbol_GetSymbol(Func)->FullName, ThisSymbolName), SymbolType::ParameterVarable)
 					.value().value();
 
-				bool readcopythisptr = true;
-				if (_LookingForTypes.top().IsAddress())
-				{
-					readcopythisptr = false;
-				}
-
-
+			
 				if (readcopythisptr)
 				{
 					auto old = Out.Type;

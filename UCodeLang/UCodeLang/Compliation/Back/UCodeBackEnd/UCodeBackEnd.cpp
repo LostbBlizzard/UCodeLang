@@ -3538,6 +3538,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 		}
 		else if (Op.Type == IROperatorType::DereferenceOf_IRInstruction)
 		{
+			//
 			auto Ins = Op.Pointer;
 			auto V = GetIRLocData(Ins);
 
