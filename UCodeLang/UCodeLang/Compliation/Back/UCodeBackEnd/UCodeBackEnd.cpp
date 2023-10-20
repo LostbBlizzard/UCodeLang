@@ -3129,9 +3129,6 @@ void UCodeBackEndObject::PushOpStack(const IRInstruction* Ins, const  IROperator
 				_Stack.PushedOffset += 4;
 			}
 
-			Offset += 8;
-			Size -= 8;
-
 			Offset += 4;
 			Size -= 4;
 		}
