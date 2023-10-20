@@ -16,7 +16,49 @@ $StringSpan_t<T>:
  unsafe |Data[imut this&] => _data;
 
 $String_t<T>:
- //$StringSpan = StringSpan_t<T>;
+ private: 
+  Vector<T> _base;//there's some optimizations we could do but I just need something working
+ public:
+  //$StringSpan = StringSpan_t<T>;
+  $StringSpan = int;
+
+  |Data[imut this&] => _base.Data();
+  |Size[imut this&] => _base.Size();
+  |Capacity[imut this&] => _base.Capacity();
+
+  |Resize[this&,uintptr Size] -> void:_base.Resize(Size);
+  |Reserve[this&,uintptr Size] -> void:_base.Reserve(Size);
+  |Clear[this&] -> void:_base.Clear(Size);
+
+  |Pop[this&] -> T:ret _base.Pop(Size);
+  |Remove[this&,uintptr Index] -> T:ret _base.Remove(Index);
+
+  |Push[this&,imut T& Val] -> void:_base.Push(Val);
+  |Push[this&,moved T Val] -> void:_base.Push(Val);
+
+  |Insert[this&,uintptr Index,imut T& Item] -> void:_base.Insert(Index,Item);
+  |Insert[this&,uintptr Index,moved T Item] -> void:_base.Insert(Index,Item);
+  
+  //Not required Funcions 
+  |Append[this&,imut T[:] Val] -> void:_base.Append(Val);
+  |Append[this&,moved T[:] Val] -> void:_base.Append(Val);
+
+  |==[imut this&,imut this& Other] -> bool;
+
+  |!=[imut this&,imut this& Other]:ret !(this == Other);
+
+  |+[imut this&,imut this& Other] -> this;
+
+  |+=[this&,imut this& Other] -> this;
+
+
+  |==[imut this&,imut StringSpan& Other] -> bool;
+
+  |!=[imut this&,imut StringSpan& Other]:ret !(this == Other);
+
+  |+[imut this&,imut StringSpan& Other] -> this;
+
+  |+=[this&,imut StringSpan& Other] -> this;
 
 $String = String_t<char>;
 $StringSpan = StringSpan_t<char>;
