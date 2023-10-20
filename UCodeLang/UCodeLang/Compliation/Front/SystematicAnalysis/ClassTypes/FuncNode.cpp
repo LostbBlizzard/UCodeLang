@@ -387,7 +387,6 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	if (_PassType == PassType::FixedTypes
 		|| (IsGenericS && _PassType == PassType::GetTypes))
 	{
-
 		auto& RetType = node._Signature._ReturnType._node;
 		if (RetType && RetType->Get_Type() == NodeType::AnonymousTypeNode)
 		{
@@ -507,6 +506,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 				}
 			}
 		}
+		
 	}
 
 

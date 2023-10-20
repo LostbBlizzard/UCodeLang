@@ -20,6 +20,7 @@
 #include "JitPerformance.hpp"
 #include "UCodeLangProjectPaths.hpp"
 #include "UCodeLang/RunTime/TestRuner.hpp"
+#include "TestingGrounds.hpp"
 using namespace UCodeLang;
 
 #ifdef UCodeLangDebug
@@ -34,17 +35,6 @@ const UCodeLang::String UCodeLangVSAPIPath = "n/a";
 #define StandardLibrarynamespace "ULang"
 
 
-struct Vec3
-{
-	int X;
-	int Y;
-	int Z;
-};
-struct Vec2
-{
-	int X;
-	int Y;
-};
 
 int UCodeLangAPI Test(int A,int B)
 {
@@ -59,28 +49,6 @@ void UCodeLangAPI ULang_Test(InterpreterCPPinterface& Input)
 	Input.Set_Return(Test(A,B));
 }
 
-
-
-template< typename T >
-std::string int_to_hex(T i)
-{
-	std::stringstream stream;
-	stream << "0x"
-		<< std::setfill('0') << std::setw(sizeof(T) * 2)
-		<< std::hex << i;
-	return stream.str();
-}
-void TestFormater()
-{
-	String Str = "$Hello :\n  private:\n   int a = 10;\n   int b = 20;\n  public:\n    int a = 10;\n    int b = 20;\n";
-
-	UCodeAnalyzer::Formater _F;
-	auto V = _F.Format(UCodeAnalyzer::Formater::StrScope::FileScope, Str);
-
-	auto Output = _F.Get_Output();
-}
-
-
 /// <summary>
 /// this is for testing and debuging features. 
 /// do whatever you want here.
@@ -88,17 +56,6 @@ void TestFormater()
 void TestingGround()
 {
 	Interpreter RunTime;
-
-
-
-	ULangTest::TestGenerator V;
-	V.SetSeed(1);
-
-	V.Reset();
-	V.MakeFile();
-
-	String OutFile = V.Get_OutFile();
-
 
 
 	ModuleIndex LangIndex;
@@ -143,42 +100,7 @@ void TestingGround()
 			out.close();
 		}
 
-		{
-			TestRuner runer;
-			auto info = runer.RunTests(MLib, TestRuner::InterpreterType::Interpreter, [](TestRuner::TestInfo& test)
-				{
-					if (test.Passed)
-					{
-						std::cout << "Test :" << test.TestName << " Passed\n";
-					}
-					else
-					{
-						std::cout <<  "Test :" << test.TestName << " Fail\n";
-					}
-				});
-			bool passed = info.TestCount == info.TestPassedCount;
-			std::cout << "Ran all " << info.TestCount << " Tests\m";
-
-			int passnumber;
-			if (info.TestPassedCount)
-			{
-				passnumber = ((float)info.TestPassedCount / (float)info.TestCount) * 100;
-			}
-			else
-			{
-				passnumber = 100;
-			}
-
-
-			if (passed)
-			{
-				std::cout << "Tests Passed.all 100% of tests passed\n";
-			}
-			else
-			{
-				std::cout << "Tests Failed about " << passnumber << "% passed\n";
-			}
-		}
+		RunTests(MLib);
 
 
 		UCodeLang::RunTimeLib Lib;
@@ -201,20 +123,11 @@ void TestingGround()
 		//RunTime.AlwaysJit = true;
 
 		auto FuncMain = State.Get_Assembly().Get_GlobalObject_Class()->Get_ClassMethod("main");
-
-		//auto Value = RunTime.RCall<char>("__ReadChar");
+		
 		RunTime.Call(StaticVariablesInitializeFunc);
 		RunTime.Call(ThreadVariablesInitializeFunc);
 
-		auto CallIndex = State.FindAddress(FuncMain->DecorationName);
-
-
-
-		Vec3 BufferToCopy[3]{ 1,2,3 };
-
-
 		auto AutoPtr = RunTime.RCall<int>(FuncMain);
-
 
 		//std::cout << " Got Value " << (int)AutoPtr << std::endl;
 
@@ -222,5 +135,45 @@ void TestingGround()
 		RunTime.Call(StaticVariablesUnLoadFunc);
 
 		RunTime.UnLoad();
+	}
+}
+
+void RunTests(UCodeLang::UClib& MLib)
+{
+	{
+		TestRuner runer;
+		auto info = runer.RunTests(MLib, TestRuner::InterpreterType::Interpreter, [](TestRuner::TestInfo& test)
+			{
+				if (test.Passed)
+				{
+					std::cout << "Test :" << test.TestName << " Passed\n";
+				}
+				else
+				{
+					std::cout << "Test :" << test.TestName << " Fail\n";
+				}
+			});
+		bool passed = info.TestCount == info.TestPassedCount;
+		std::cout << "Ran all " << info.TestCount << " Tests\m";
+
+		int passnumber;
+		if (info.TestPassedCount)
+		{
+			passnumber = ((float)info.TestPassedCount / (float)info.TestCount) * 100;
+		}
+		else
+		{
+			passnumber = 100;
+		}
+
+
+		if (passed)
+		{
+			std::cout << "Tests Passed.all 100% of tests passed\n";
+		}
+		else
+		{
+			std::cout << "Tests Failed about " << passnumber << "% passed\n";
+		}
 	}
 }

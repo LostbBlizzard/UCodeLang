@@ -608,6 +608,12 @@ else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _IR_LastExpressionFiel
 	else
 	{
 		Type_SetFuncRetAsLastEx(Func);
+
+		if (_GetExpressionMode.size() && IsWrite(_GetExpressionMode.top()))
+		{
+			_IR_LastStoreField = IROperator(_IR_LastExpressionField);
+		}
+
 	}
 }
 SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedNameNode& Name, const ValueParametersNode& Pars, TypeSymbol Ret)
