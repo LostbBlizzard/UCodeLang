@@ -85,7 +85,8 @@ $Vector<Weapon>: //size 24
 
 We want C# like assembly data but with C++ low level control over memory and without C# garbage collector. 
 
-also since we're makeing a new Language we can learn past languages mistakes with Optional and Result types and no exceptions enum variant types and more.
+also since we're makeing a new Language we can learn past languages mistakes with using Optional,Result types and enum variant types and 
+removeing exceptions and more.
 
 
 Despite being made for game engines UCode does not need a VM it can be used by itself and can be compiled directly to C(the only thing that really works the intermediate representation is practically just C).

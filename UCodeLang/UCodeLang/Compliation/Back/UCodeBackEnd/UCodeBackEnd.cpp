@@ -497,6 +497,12 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 		CurrentFuncParPos =std::move(V.ParsPos);
 	}
 
+
+	if (FuncName == "ULang:Tests:Ptr_5")
+	{
+		int a = 0;
+	}
+
 	if (&_Input->_StaticInit == IR)
 	{
 		FuncName = StaticVariablesInitializeFunc;
