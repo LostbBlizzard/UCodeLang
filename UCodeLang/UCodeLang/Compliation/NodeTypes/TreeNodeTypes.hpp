@@ -750,6 +750,7 @@ struct AliasNode :Node
 	Unique_ptr<Node> _Node;
 
 	AccessModifierType _Access = AccessModifierType::Default;
+	const Token* EndOfClass = nullptr;
 };
 
 

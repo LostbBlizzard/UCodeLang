@@ -36,3 +36,12 @@ $Vector<T>:
   
   |[][this&,uintptr Index] -> T&:ret _data[Index];
   |[][imut this&,uintptr Index] -> imut T&:ret _data[Index];
+
+
+  //Span
+
+  |[][this&,Range_t<uintptr> Range] -> T[:]:ret AsSpan()[Range]; 
+  |[][imut this&,Range_t<uintptr> Range] -> imut T[:]:ret AsSpan()[Range];
+
+  |AsSpan[this&] -> T[:]:ret unsafe [_data,_size];
+  |AsSpan[imut this&] -> imut T[:]:ret unsafe [_data,_size];
