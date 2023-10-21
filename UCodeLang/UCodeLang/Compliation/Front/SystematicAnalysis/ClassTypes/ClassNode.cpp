@@ -286,7 +286,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 
 			if (bigestoffset.has_value()) {
 				ClassInf->Size = bigestoffset.value();
-				ClassInf->Size += Type_GetSize(bigestoffsetfield->Type).value();
+				ClassInf->Size += Type_GetSize(bigestoffsetfield->Type).value_or(0);
 			}
 			else
 			{
