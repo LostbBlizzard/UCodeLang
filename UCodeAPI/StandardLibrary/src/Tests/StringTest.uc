@@ -13,5 +13,10 @@ Tests:
  |StringSpan_3[]:
   ret "Hello" == "Hello";
 
+ [Test]
+ |StringSpan_4[]:
+  String Txt = "Hello";
+  ret Txt == "Hello";
+
 
   

@@ -5,7 +5,7 @@ $StringSpan_t<T>:
   T[&] _data;
   uintptr _size;
  public: 
-  $MyString = String_t<T>;
+  //$MyString = String_t<T>;
   $MySpan = Span<T>;
   
   |new[this&]:
@@ -33,8 +33,8 @@ $StringSpan_t<T>:
   |[][this&,uintptr Index] -> T&:ret _data[Index];
   |[][imut this&,uintptr Index] -> imut T&:ret _data[Index];
 
-  |[][this&,Range_t<uintptr> Range] -> T[:]:ret ToStr(AsSpan()[Range]);
-  |[][imut this&,Range_t<uintptr> Range] -> imut T[:]:ret ToStr(AsSpan()[Range]);
+  |[][this&,Range_t<uintptr> Range] -> this:ret ToStr(AsSpan()[Range]);
+  |[][imut this&,Range_t<uintptr> Range] -> this:ret ToStr(AsSpan()[Range]);
 
 $String_t<T>:
  private: 
@@ -43,6 +43,11 @@ $String_t<T>:
   $MyStringSpan = StringSpan_t<T>;
   $MySpan = Span<T>;
 
+  |new[this&] -> void;
+
+  
+  |new[this&,IPar<MyStringSpan> span] -> void:
+   Resize(span.Size());
 
   unsafe |Data[imut this&] -> imut T[&]:ret unsafe _base.Data();
   unsafe |Data[this&] -> T[&]:ret unsafe _base.Data();

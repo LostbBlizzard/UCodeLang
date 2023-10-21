@@ -862,6 +862,7 @@ using namespace UCodeLang;
 		for (auto& Item : Errors)
 		{
 			out << Item.ToString() << std::endl;
+			out << '\n';
 		}
 		out << "]\n";
 		return _Compiler.Get_Errors().Has_Errors();

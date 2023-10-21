@@ -773,7 +773,7 @@ SystematicAnalysis::BinaryOverLoadWith_t SystematicAnalysis::Type_HasBinaryOverL
 					String funcName = Syb->FullName;
 					ScopeHelper::GetApendedString(funcName, Item.CompilerName);
 
-					auto& V = GetSymbolsWithName(funcName, SymbolType::Func);
+					auto V = GetSymbolsWithName(funcName, SymbolType::Func);
 
 					for (auto& Item : V)
 					{
