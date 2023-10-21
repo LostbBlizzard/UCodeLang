@@ -79,7 +79,7 @@ void TestingGround()
 
 	Settings._Type = OutPutType::Lib;
 	Settings._Flags = OptimizationFlags::Stable_ForDebuging;
-	//_Compiler.Set_BackEnd(ULangTest::C89Backend::MakeObject);
+	_Compiler.Set_BackEnd(ULangTest::C89Backend::MakeObject);
 
 	ModuleFile Mfile;
 	ModuleFile::FromFile(&Mfile, CodeTestingModluePath);
@@ -90,17 +90,10 @@ void TestingGround()
 
 	if (!ULangTest::LogErrors(std::cout, _Compiler))
 	{
-		UCodeLang::UClib MLib;
-		if (UClib::FromFile(&MLib, OutData.OutputItemPath))
-		{
-			auto Text = UAssembly::UAssembly::ToString(&MLib, Mfile.ThisModuleDir / Mfile.ModuleSourcePath);
-			String Path = OutData.OutputItemPath.generic_string() + ".UA";
-			std::ofstream out(Path);
-			out << Text;
-			out.close();
-		}
+		UCodeLang::UClib& MLib =*OutData.CompilerRet.OutPut;
+		
 
-		RunTests(MLib);
+		RunTests(MLib, OutData.OutputItemPath);
 
 
 		UCodeLang::RunTimeLib Lib;
@@ -138,11 +131,11 @@ void TestingGround()
 	}
 }
 
-void RunTests(UCodeLang::UClib& MLib)
+void RunTests(UCodeLang::UClib& MLib,const Path& output)
 {
 	{
-		TestRuner runer;
-		auto info = runer.RunTests(MLib, TestRuner::InterpreterType::Interpreter, [](TestRuner::TestInfo& test)
+		ULangTest::TestRuner runer;
+		auto info = runer.RunTests(MLib, output, ULangTest::TestMode::CLang89BackEnd, [](TestRuner::TestInfo& test)
 			{
 				if (test.Passed)
 				{
@@ -154,7 +147,7 @@ void RunTests(UCodeLang::UClib& MLib)
 				}
 			});
 		bool passed = info.TestCount == info.TestPassedCount;
-		std::cout << "Ran all " << info.TestCount << " Tests\m";
+		std::cout << "Ran all " << info.TestCount << " Tests\n";
 
 		int passnumber;
 		if (info.TestPassedCount)

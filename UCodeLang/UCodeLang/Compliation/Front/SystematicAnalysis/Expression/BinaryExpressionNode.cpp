@@ -87,11 +87,6 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 			if (Info.Value.has_value())
 			{
 				FuncInfo* f = Info.Value.value()->Get_Info<FuncInfo>();
-				
-				if (f->Pars.size() == 1)
-				{
-					int a = 0;
-				}
 
 				V.Op0 = f->Pars[0].Type;
 				V.Op1 = f->Pars[1].Type;
@@ -232,6 +227,9 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 				}
 				break;
 			case TypesEnum::Char:
+			case TypesEnum::Uft8:
+			case TypesEnum::Uft16:
+			case TypesEnum::Uft32:
 				switch (Op)
 				{
 				case TokenType::equal_Comparison:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewC_Equalto(Ex1, Ex0); break;

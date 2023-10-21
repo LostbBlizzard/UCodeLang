@@ -444,9 +444,16 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			String ClassStr = "$";
 			ClassStr += Node._className.token->Value._String;
 
+			size_t offset = 0;
+			if (Node.EndOfClass->Type == TokenType::Semicolon)
+			{
+				offset += 1;
+			}
+
+
 			String_view ClassBody =
 				String_view(&Text[Node._className.token->OnPos],
-					Node.EndOfClass->OnPos -Node._className.token->OnPos);
+					Node.EndOfClass->OnPos - Node._className.token->OnPos + offset);
 
 			GenericClass_Data& VClass = _Lib.Get_Assembly().AddGenericClass((String)ClassInf->Get_Name(), ClassInf->FullName);
 

@@ -26,6 +26,8 @@ public:
 	};
 	using OnTestDone = std::function<void(TestInfo& test)>;
 	TestsResult RunTests(UClib& lib, InterpreterType Type, Optional<OnTestDone> OnDone = {});
+
+	static Vector<const ClassMethod*> GetTests(const ClassAssembly& Assembly);
 private:
 };
 UCodeLangEnd

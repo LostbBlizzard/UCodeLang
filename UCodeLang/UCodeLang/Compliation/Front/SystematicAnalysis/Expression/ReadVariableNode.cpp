@@ -1365,8 +1365,8 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 		auto& Func = _FuncStack.back();
 		Last_Type = *Func.Pointer->GetObjectForCall();
 	
-	
-		if (1 == In.End)
+		auto& lookingfortype = _LookingForTypes.top();
+		if (1 == In.End && !lookingfortype.IsAddress())
 		{
 			auto newtype = Last_Type;
 			newtype._IsAddress = false;
@@ -1450,6 +1450,11 @@ void SystematicAnalysis::StepBuildMember_Access(const ScopedName& Item, TypeSymb
 				_IR_LastExpressionField = Output;
 			}
 
+			auto par = Funcf->Pars[0].Type;
+			if (par.IsAddress() && !Last_Type.IsAddress())
+			{
+				_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoadPtr(_IR_LastExpressionField);
+			}
 
 			ValueParametersNode h;
 			IR_Build_FuncCall(Last_Type, V, h);

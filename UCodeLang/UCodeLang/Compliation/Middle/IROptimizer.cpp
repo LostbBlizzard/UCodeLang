@@ -4,6 +4,9 @@
 #include "../CompliationSettings.hpp"
 
 
+#if UCodeLangDebug
+#include <fstream>
+#endif
 
 UCodeLangStart
 
@@ -39,12 +42,16 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 
 			
 
-			#ifdef UCodeLangDebug
+			#if UCodeLangDebug
 			{//for debuging
 				auto S = Input->ToString();
 
 				std::cout << "-----" << std::endl;
-				std::cout << S;
+				//std::cout << S;
+
+				std::ofstream file("OutIR.txt");
+				file << S;
+				file.close();
 			}
 			#endif // UCodeLangDebug
 

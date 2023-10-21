@@ -75,8 +75,11 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 
 				if (node._Traditional_Assignment_Expression._Value)
 				{
+					_LookingForTypes.push(VarType);
+
 					OnExpressionTypeNode(node._Traditional_Assignment_Expression._Value.get(), GetValueMode::Read);
 
+					_LookingForTypes.pop();
 
 					syb->SetTovalid();
 
@@ -86,6 +89,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 					auto& Ex = _LastExpressionType;
 					auto token = node._typeNode._name._ScopedName.back()._token;
 					Type_DeclareVariableTypeCheck(VarType, Ex, NeverNullptr(token));
+				
 				}
 			}
 
@@ -238,7 +242,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 	}
 	else if (_PassType == PassType::BuidCode)
 	{
-		Debug_Add_SetLineNumber(NeverNullptr(node._Name), _IR_LookingAtIRBlock->GetIndex());
+		Debug_Add_SetLineNumber(NeverNullptr(node._Name), _IR_LookingAtIRBlock->InsCount() ? _IR_LookingAtIRBlock->GetIndex() : 0);
 		if (node._Type == ForNode::ForType::Traditional)
 		{
 			IRInstruction* OnVarable{};
