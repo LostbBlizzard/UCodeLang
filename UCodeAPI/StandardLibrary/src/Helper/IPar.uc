@@ -1,0 +1,3 @@
+
+
+$IPar<T> = imut T&;

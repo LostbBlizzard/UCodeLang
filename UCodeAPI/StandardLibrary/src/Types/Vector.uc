@@ -11,7 +11,9 @@ $Vector<T>:
    _size = 0;
    _capacity = 0;
 
-  |Data[imut this&] => _data;
+  unsafe |Data[imut this&] -> imut T&:ret _data;
+  unsafe |Data[this&] -> T&:ret _data;
+
   |Size[imut this&] => _size;
   |Capacity[imut this&] => _capacity;
 
@@ -23,11 +25,15 @@ $Vector<T>:
   |Remove[this&,uintptr Index] -> T;
 
   |Push[this&,imut T& Val] -> void;
-  |Push[this&,moved T Val] -> void;
+  //|Push[this&,moved T Val] -> void;
 
   |Insert[this&,uintptr Index,imut T& Item] -> void;
-  |Insert[this&,uintptr Index,moved T Item] -> void;
+  //|Insert[this&,uintptr Index,moved T Item] -> void;
 
   //Not required Funcions 
   |Append[this&,imut T[:] Val] -> void;
-  |Append[this&,moved T[:] Val] -> void;
+  //|Append[this&,moved T[:] Val] -> void;
+
+  
+  |[][this&,uintptr Index] -> T&:ret _data[Index];
+  |[][imut this&,uintptr Index] -> imut T&:ret _data[Index];

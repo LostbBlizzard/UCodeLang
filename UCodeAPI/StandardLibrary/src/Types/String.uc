@@ -22,7 +22,10 @@ $String_t<T>:
   //$StringSpan = StringSpan_t<T>;
   $StringSpan = int;
 
-  |Data[imut this&] => _base.Data();
+  unsafe |Data[imut this&] -> imut T&:ret unsafe _base.Data();
+  unsafe |Data[this&] -> T&:ret unsafe _base.Data();
+  
+
   |Size[imut this&] => _base.Size();
   |Capacity[imut this&] => _base.Capacity();
 
@@ -34,12 +37,15 @@ $String_t<T>:
   |Remove[this&,uintptr Index] -> T:ret _base.Remove(Index);
 
   |Push[this&,imut T& Val] -> void:_base.Push(Val);
-  |Push[this&,moved T Val] -> void:_base.Push(Val);
+  //|Push[this&,moved T Val] -> void:_base.Push(Val);
 
   |Insert[this&,uintptr Index,imut T& Item] -> void:_base.Insert(Index,Item);
-  |Insert[this&,uintptr Index,moved T Item] -> void:_base.Insert(Index,Item);
+  //|Insert[this&,uintptr Index,moved T Item] -> void:_base.Insert(Index,Item);
   
   //Not required Funcions 
+  |[][this&,uintptr Index] -> T&:ret _base[Index];
+  |[][imut this&,uintptr Index] -> imut T&:ret _base[Index];
+
   |Append[this&,imut T[:] Val] -> void:_base.Append(Val);
   |Append[this&,moved T[:] Val] -> void:_base.Append(Val);
 
@@ -52,13 +58,13 @@ $String_t<T>:
   |+=[this&,imut this& Other] -> this;
 
 
-  |==[imut this&,imut StringSpan& Other] -> bool;
+  |==[imut this&, IPar<StringSpan> Other] -> bool;
 
-  |!=[imut this&,imut StringSpan& Other]:ret !(this == Other);
+  |!=[imut this&, IPar<StringSpan> Other]:ret !(this == Other);
 
-  |+[imut this&,imut StringSpan& Other] -> this;
+  //|+[imut this&, IPar<StringSpan> Other] -> this;
 
-  |+=[this&,imut StringSpan& Other] -> this;
+  |+=[this&, IPar<StringSpan> Other] -> void;
 
 $String = String_t<char>;
 $StringSpan = StringSpan_t<char>;

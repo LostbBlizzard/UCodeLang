@@ -95,14 +95,28 @@ void SystematicAnalysis::Symbol_Update_AliasSym_ToFixedTypes(NeverNullPtr<Symbol
 {
 	if (Sym->PassState == PassType::GetTypes)
 	{
-		AliasInfo* info = Sym->Get_Info<AliasInfo>();
+		if (Sym->Type == SymbolType::Generic_Alias)
+		{
+			Generic_AliasInfo* info = Sym->Get_Info<Generic_AliasInfo>();
 
-		auto OldConext = SaveAndMove_SymbolContext();
-		Set_SymbolConext(info->Conext.value());
+			auto OldConext = SaveAndMove_SymbolContext();
+			Set_SymbolConext(info->Conext.value());
 
-		OnAliasNode(*Sym->Get_NodeInfo<AliasNode>());
+			OnAliasNode(*Sym->Get_NodeInfo<AliasNode>());
 
-		Set_SymbolConext(std::move(OldConext));
+			Set_SymbolConext(std::move(OldConext));
+		}
+		else
+		{
+			AliasInfo* info = Sym->Get_Info<AliasInfo>();
+
+			auto OldConext = SaveAndMove_SymbolContext();
+			Set_SymbolConext(info->Conext.value());
+
+			OnAliasNode(*Sym->Get_NodeInfo<AliasNode>());
+
+			Set_SymbolConext(std::move(OldConext));
+		}
 	}
 }
 void SystematicAnalysis::Symbol_Update_EvalSym_ToFixedTypes(NeverNullPtr<Symbol> Sym)
