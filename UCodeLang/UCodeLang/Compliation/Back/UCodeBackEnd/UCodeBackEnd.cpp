@@ -3243,7 +3243,18 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 		}
 		else if (Ins->Type == IRInstructionType::Load)
 		{
-			auto R = GetIRLocData(Ins->Target());
+			IRlocData R;
+			if (Ins->Target().Type == IROperatorType::Value)
+			{
+				auto reg = LoadOp(Ins, Ins->Target());
+				R.Info = reg;
+				R.ObjectType = GetType(Ins, Ins->Target());
+			}
+			else 
+			{
+				auto R = GetIRLocData(Ins->Target());
+			}
+			
 			if (GetAddress)
 			{
 				auto old = std::move(R);

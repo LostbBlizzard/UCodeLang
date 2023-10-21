@@ -85,9 +85,8 @@ bool SystematicAnalysis::Type_IsimmutableRulesfollowed(const TypeSymbol& TypeToC
 	}
 	else if (CmpTypeimm == false && Chechimm == true)
 	{
-		if (!TypeToCheck.IsAddress() && !Type.IsAddress()) {
-			return true;
-		}
+		return TypeToCheck.IsAddress() && Type.IsAddress();
+		
 	}
 
 	return false;
