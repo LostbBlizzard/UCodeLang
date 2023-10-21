@@ -2,9 +2,7 @@
 Tests:
  [Test]
  |Vector_1[]:
-  int[] List;
+  int[] List = [];
+  List.Push(5);
 
-  int item = 5;
-  List.Push(item);
-
-  ret item.Size() == 1 && item[0] == 5;
+  ret List.Size() == 1 && List[0] == 5;

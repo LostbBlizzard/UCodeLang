@@ -40,7 +40,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 	TypeSymbol Ex1Type;
 	if (IsBuildFunc == false)
 	{
-		OnExpressionTypeNode(Ex1node, GetValueMode::Read);
+		OnExpressionTypeNode(Ex0node, GetValueMode::Read);
 		Ex0 = _IR_LastExpressionField;
 		Ex0Type = _LastExpressionType;
 
@@ -48,8 +48,12 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 		{
 			_LookingForTypes.top() = Data->Op0;
 		}
-
-		OnExpressionTypeNode(Ex0node, GetValueMode::Read);
+		else
+		{
+			_LookingForTypes.top() = _LastExpressionType;
+		}
+		
+		OnExpressionTypeNode(Ex1node, GetValueMode::Read);
 		Ex1 = _IR_LastExpressionField;
 		Ex1Type = _LastExpressionType;
 
@@ -63,6 +67,12 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 
 			if (!Info.HasValue)
 			{
+				auto v = ToString(Ex0Type);
+				if (v == "imut ULang:StringSpan_t<uft8>&")
+				{
+					int a = 0;
+				}
+
 				LogError_CantFindBinaryOpForTypes(BinaryOp, Ex0Type, Ex1Type);
 			}
 
@@ -74,7 +84,6 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 			V.Op1 = Ex1Type;
 
 
-			//all float bool int types
 			if (Info.Value.has_value())
 			{
 				FuncInfo* f = Info.Value.value()->Get_Info<FuncInfo>();
@@ -86,6 +95,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 			}
 			else
 			{
+				//all float bool int types
 				V.Op0._IsAddress = false;
 				V.Op1._IsAddress = false;
 				_LastExpressionType = Type_BinaryExpressionShouldRurn(Op, Ex0Type);

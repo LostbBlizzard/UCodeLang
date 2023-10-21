@@ -266,6 +266,10 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 			}
 		}
 
+		if (ToType.IsAddress() && !ExType.IsAddress() && ExType._ValueInfo == TypeValueInfo::IsValue)
+		{
+			_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoadPtr(Ex);
+		}
 	}
 
 	if (Type_CanDoTypeToTrait(ExType, ToType))

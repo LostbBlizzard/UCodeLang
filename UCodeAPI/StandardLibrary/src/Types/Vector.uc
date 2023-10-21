@@ -4,15 +4,14 @@ $Vector<T>:
   T[&] _data;
   uintptr _size;
   uintptr _capacity;
- //$Span = Span<T>;
  public:
   |new[this&]:
    _data = unsafe bitcast<T[&]>(0);
    _size = 0;
    _capacity = 0;
 
-  unsafe |Data[imut this&] -> imut T&:ret _data;
-  unsafe |Data[this&] -> T&:ret _data;
+  unsafe |Data[imut this&] -> imut T[&]:ret _data;
+  unsafe |Data[this&] -> T[&]:ret _data;
 
   |Size[imut this&] => _size;
   |Capacity[imut this&] => _capacity;
