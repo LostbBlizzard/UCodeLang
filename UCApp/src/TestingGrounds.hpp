@@ -5,4 +5,4 @@
 /// </summary>
 void TestingGround();
 
-void RunTests(UCodeLang::UClib& MLib);
+void RunTests(UCodeLang::UClib& MLib, const UCodeLang::Path& output);

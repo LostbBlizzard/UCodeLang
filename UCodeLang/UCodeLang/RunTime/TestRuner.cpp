@@ -34,43 +34,7 @@ TestRuner::TestsResult TestRuner::RunTests(UClib& lib, InterpreterType Type, Opt
 	Interpreter.Init(&state);
 
 	auto& Assembly = state.Get_Assembly();
-	Vector<const ClassMethod*> tests;
-	for (auto& Item : Assembly.Classes)
-	{
-		if (Item->Get_Type() == ClassType::Class) 
-		{
-			auto& classInfo = Item->Get_ClassData();
-			
-			for (auto& Func : classInfo.Methods)
-			{
-				if (Func.ParsType.size()) { continue; }
-
-				if (!Assembly.IsJust(Func.RetType)) { continue; }
-
-				if (Func.RetType._Type == ReflectionTypes::Bool || Func.RetType._Type == ReflectionTypes::Void)
-				{
-
-					bool hastesttag = false;
-					for (auto& tag : Func.Attributes.Attributes)
-					{
-						if (auto val = Assembly.Find_Node(tag.TypeID))
-						{
-							if (StringHelper::Contains(val->FullName, "test") || StringHelper::Contains(val->FullName, "Test"))
-							{
-								hastesttag = true;
-								break;
-							}
-						}
-					}
-
-					if (hastesttag)
-					{
-						tests.push_back(&Func);
-					}
-				}
-			}
-		}
-	}
+	Vector<const ClassMethod*> tests = GetTests(Assembly);
 	r.Tests.resize(tests.size());
 
 	for (size_t i = 0; i < r.Tests.size(); i++)
@@ -113,6 +77,47 @@ TestRuner::TestsResult TestRuner::RunTests(UClib& lib, InterpreterType Type, Opt
 	}
 
 	return r;
+}
+Vector<const ClassMethod*> TestRuner::GetTests(const ClassAssembly& Assembly)
+{
+	Vector<const ClassMethod*> tests;
+	for (auto& Item : Assembly.Classes)
+	{
+		if (Item->Get_Type() == ClassType::Class)
+		{
+			auto& classInfo = Item->Get_ClassData();
+
+			for (auto& Func : classInfo.Methods)
+			{
+				if (Func.ParsType.size()) { continue; }
+
+				if (!Assembly.IsJust(Func.RetType)) { continue; }
+
+				if (Func.RetType._Type == ReflectionTypes::Bool || Func.RetType._Type == ReflectionTypes::Void)
+				{
+
+					bool hastesttag = false;
+					for (auto& tag : Func.Attributes.Attributes)
+					{
+						if (auto val = Assembly.Find_Node(tag.TypeID))
+						{
+							if (StringHelper::Contains(val->FullName, "test") || StringHelper::Contains(val->FullName, "Test"))
+							{
+								hastesttag = true;
+								break;
+							}
+						}
+					}
+
+					if (hastesttag)
+					{
+						tests.push_back(&Func);
+					}
+				}
+			}
+		}
+	}
+	return  tests;
 }
 UCodeLangEnd
 

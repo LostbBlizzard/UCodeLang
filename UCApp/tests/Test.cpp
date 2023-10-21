@@ -6,7 +6,6 @@
 #include <fstream>
 #include <UCodeLang/Compliation/UAssembly/UAssembly.hpp>
 #include <UCodeLang/Compliation/ModuleFile.hpp>
-#include <UCodeLang/Compliation/Back/C89/C89Backend.hpp>
 
 
 #include "../src/UCodeLangProjectPaths.hpp"
@@ -594,8 +593,8 @@ using namespace UCodeLang;
 			
 
 
-			TestRuner runer;
-			auto info = runer.RunTests(MLib, TestRuner::InterpreterType::Interpreter, [](TestRuner::TestInfo& test)
+			UCodeLang::TestRuner runer;
+			auto info = runer.RunTests(MLib, UCodeLang::TestRuner::InterpreterType::Interpreter, [](TestRuner::TestInfo& test)
 				{
 					if (test.Passed)
 					{

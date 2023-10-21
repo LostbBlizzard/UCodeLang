@@ -247,7 +247,17 @@
 
 
 #if UCodeLangDebug
-#define UCodeLangUnreachable() UCodeLangThrowException("bad path");
+
+#if UCodeLangMSVC
+#define UCodeLangBreakPoint() __debugbreak()
+#else
+#define UCodeLangBreakPoint() __builtin_trap()
+#endif 
+
+#endif
+
+#if UCodeLangDebug
+#define UCodeLangUnreachable() UCodeLangBreakPoint();
 #else
 
 
@@ -270,7 +280,7 @@
 #endif
 
 #if UCodeLangDebug
-#define UCodeLangAssert(condition) if (!(condition)){UCodeLangThrowException("bad");}
+#define UCodeLangAssert(condition) if (!(condition)){UCodeLangBreakPoint();}
 #else
 #define UCodeLangAssert(condition)
 #endif

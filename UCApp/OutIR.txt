@@ -1,0 +1,206 @@
+$Ptr<sint32>
+ void* __0; 
+
+
+|(&StaticInit&)[] -> void:;
+
+|(&StaticUnload&)[] -> void:;
+
+|(&threadInit&)[] -> void:;
+
+|(&threadUnload&)[] -> void:;
+
+|main2[] -> void:
+
+ [Block:0]
+
+
+//File:/Main.uc
+//Line:9
+//Varable:main2:v
+
+   Ptr<sint32> A;
+   int32 B = 3;
+   void* C = &B;
+   Ptr<sint32> D = ptr<sint32>^i32&(C);
+   A = D;
+   ret;
+
+|Ptr<sint32>:(&_new&)^Ptr<sint32>&,i32&[Ptr<sint32>* (&this&),void* base] -> void:
+
+ [Block:0]
+
+
+//Varable:Ptr<sint32>:(&_new&):(&this&)
+//Varable:Ptr<sint32>:(&_new&):base
+//File:/OtherFile.uc
+//Line:12
+
+   void* A = base;
+   (&this&)->__0 = A;
+   ret;
+
+|Ptr<sint32>:Get^Ptr<sint32>&[Ptr<sint32>* (&this&)] -> void*:
+
+ [Block:0]
+
+
+//Varable:Ptr<sint32>:Get:(&this&)
+
+
+//File:/OtherFile.uc
+//Line:14
+
+   void* A = (&this&)->__0;
+   ret = A;
+   ret;
+
+|Ptr<sint32>:Get^Ptr<sint32>&imut[Ptr<sint32>* (&this&)] -> void*:
+
+ [Block:0]
+
+
+//Varable:Ptr<sint32>:Get:(&this&)
+
+
+//File:/OtherFile.uc
+//Line:15
+
+   void* A = (&this&)->__0;
+   ret = A;
+   ret;
+
+|Ptr<sint32>:Write^Ptr<sint32>&,i32&imut[Ptr<sint32>* (&this&),void* newvalue] -> void:
+
+ [Block:0]
+
+
+//Varable:Ptr<sint32>:Write:(&this&)
+//Varable:Ptr<sint32>:Write:newvalue
+
+   ret;
+
+|Ptr<sint32>:Write^Ptr<sint32>&,i32mov[Ptr<sint32>* (&this&),int32 newvalue] -> void:
+
+ [Block:0]
+
+
+//Varable:Ptr<sint32>:Write:(&this&)
+//Varable:Ptr<sint32>:Write:newvalue
+
+   ret;
+
+|Ptr<sint32>:ReadPtr^Ptr<sint32>&imut[Ptr<sint32>* (&this&)] -> void*:
+
+ [Block:0]
+
+
+//Varable:Ptr<sint32>:ReadPtr:(&this&)
+//File:/OtherFile.uc
+//Line:20
+
+   Ptr<sint32>* A = (&this&);
+   void* B = Ptr<sint32>:Get^Ptr<sint32>&imut(A);
+   ret = B;
+   ret;
+
+|Ptr<sint32>:(&IndirectMember&)^Ptr<sint32>&[Ptr<sint32>* (&this&)] -> void*:
+
+ [Block:0]
+
+
+//Varable:Ptr<sint32>:(&IndirectMember&):(&this&)
+//File:/OtherFile.uc
+//Line:22
+
+   Ptr<sint32>* A = (&this&);
+   void* B = Ptr<sint32>:Get^Ptr<sint32>&(A);
+   ret = B;
+   ret;
+
+|Ptr<sint32>:(&IndirectMember&)^Ptr<sint32>&imut[Ptr<sint32>* (&this&)] -> void*:
+
+ [Block:0]
+
+
+//Varable:Ptr<sint32>:(&IndirectMember&):(&this&)
+//File:/OtherFile.uc
+//Line:24
+
+   Ptr<sint32>* A = (&this&);
+   void* B = Ptr<sint32>:Get^Ptr<sint32>&imut(A);
+   ret = B;
+   ret;
+
+|Ptr<sint32>:ReassignTo^Ptr<sint32>&,i32&[Ptr<sint32>* (&this&),void* newbase] -> void:
+
+ [Block:0]
+
+
+//Varable:Ptr<sint32>:ReassignTo:(&this&)
+//Varable:Ptr<sint32>:ReassignTo:newbase
+//File:/OtherFile.uc
+//Line:26
+
+   void* A = newbase;
+   (&this&)->__0 = A;
+   ret;
+
+|Ptr<sint32>:Make^i32&imut[void* V] -> Ptr<sint32>:
+
+ [Block:0]
+
+
+//Varable:Ptr<sint32>:Make:V
+//File:/OtherFile.uc
+//Line:0
+
+   Ptr<sint32> A;
+   Ptr<sint32>* B = &A;
+
+//Line:30
+
+   int32 C = *V;
+   void D = Ptr<sint32>:(&_new&)^Ptr<sint32>&,i32&(B,C);
+   ret = A;
+   ret;
+
+|Ptr<sint32>:Make^i32&[void* V] -> Ptr<sint32>:
+
+ [Block:0]
+
+
+//Varable:Ptr<sint32>:Make:V
+//File:/OtherFile.uc
+//Line:0
+
+   Ptr<sint32> A;
+   Ptr<sint32>* B = &A;
+
+//Line:31
+
+   void* C = V;
+   void D = Ptr<sint32>:(&_new&)^Ptr<sint32>&,i32&(B,C);
+   ret = A;
+   ret;
+
+|Ptr<sint32>:(&_new&)^Ptr<sint32>&[Ptr<sint32>* (&this&)] -> void:
+
+ [Block:0]
+
+   ret;
+
+|ptr<sint32>^i32&[void* V] -> Ptr<sint32>:
+
+ [Block:0]
+
+
+//Varable:ptr<sint32>:V
+//File:/OtherFile.uc
+//Line:5
+
+   void* A = V;
+   Ptr<sint32> B = Ptr<sint32>:Make^i32&(A);
+   ret = B;
+   ret;
+

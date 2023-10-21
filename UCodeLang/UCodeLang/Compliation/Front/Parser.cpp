@@ -387,7 +387,7 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 		output->_Inherited = std::move(InheritedTypes);
 		output->_Access = GetModifier();
 		output->_Attributes = Get_TepAttributes();
-		output->EndOfClass = TryGetToken();
+		output->EndOfClass = ColonToken;
 		return GotNodeType::Success;
 	}
 	else if (ColonToken->Type == TokenType::KeyWord_Enum)

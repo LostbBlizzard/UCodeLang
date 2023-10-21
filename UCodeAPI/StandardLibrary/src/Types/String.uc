@@ -20,7 +20,15 @@ $StringSpan_t<T>:
   unsafe |Data[imut this&] -> imut T[&]:ret _data;
   unsafe |Data[this&] -> T[&]:ret _data; 
 
-  |==[imut this&,imut this& Other] => true;
+  |==[imut this&,imut this& Other] -> bool:
+   if this.Size() != Other.Size():ret false;
+
+   for [uintptr i = 0;i < this.Size();i++]:
+
+    if this[i] != Other[i]:ret false;
+
+   ret true;
+
   |!=[imut this&,imut this& Other] => !(this == Other);
 
   |AsSpan[this&] -> T[:]:ret unsafe [_data,_size];
@@ -48,6 +56,8 @@ $String_t<T>:
   
   |new[this&,IPar<MyStringSpan> span] -> void:
    Resize(span.Size());
+   for [uintptr i = 0;i < span.Size();i++]:
+    this[i] = span[i];
 
   unsafe |Data[imut this&] -> imut T[&]:ret unsafe _base.Data();
   unsafe |Data[this&] -> T[&]:ret unsafe _base.Data();
@@ -76,7 +86,8 @@ $String_t<T>:
   |Append[this&,imut T[:] Val] -> void:_base.Append(Val);
   //|Append[this&,moved T[:] Val] -> void:_base.Append(Val);
 
-  |==[imut this&,imut this& Other] -> bool;
+  |==[imut this&,imut this& Other] -> bool:
+   ret this.AsStrSpan() == Other.AsStrSpan();
 
   |!=[imut this&,imut this& Other]:ret !(this == Other);
 
@@ -85,7 +96,8 @@ $String_t<T>:
   |+=[this&,imut this& Other] -> this;
 
 
-  |==[imut this&, IPar<MyStringSpan> Other] -> bool;
+  |==[imut this&, IPar<MyStringSpan> Other] -> bool:
+   ret this.AsStrSpan() == Other;
 
   |!=[imut this&, IPar<MyStringSpan> Other]:ret !(this == Other);
 
@@ -96,8 +108,11 @@ $String_t<T>:
   |AsSpan[this&] -> T[:]:ret unsafe [];
   |AsSpan[imut this&] -> imut T[:]:ret unsafe [];
 
-  |[][this&,Range_t<uintptr> Range] -> T[:]:ret AsSpan()[Range];
-  |[][imut this&,Range_t<uintptr> Range] -> imut T[:]:ret AsSpan()[Range];
+  |AsStrSpan[this&] -> MyStringSpan:ret unsafe [];
+  |AsStrSpan[imut this&] -> imut MyStringSpan:ret unsafe [];
+
+  |[][this&,Range_t<uintptr> Range] -> MyStringSpan:ret AsStrSpan()[Range];
+  |[][imut this&,Range_t<uintptr> Range] -> imut MyStringSpan:ret AsStrSpan()[Range];
 
 $String = String_t<char>;
 $StringSpan = StringSpan_t<char>;

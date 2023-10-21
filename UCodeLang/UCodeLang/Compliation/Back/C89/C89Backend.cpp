@@ -662,7 +662,7 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 		r += "\n{";
 		String Tabs = " ";
 
-		if (!Item->ReturnType.IsSame(IRTypes::Void))
+		if (Item->ReturnType != IRTypes::Void)
 		{
 			r +=  "\n ";
 			r += ToString(Item->ReturnType) + " " + (String)IRReturnValue ";";
@@ -892,7 +892,7 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					break;
 				case IRInstructionType::Call:
 				{
-					if (!I->ObjectType.IsSame(IRTypes::Void))
+					if (I->ObjectType != IRTypes::Void)
 					{
 						r += ToString(I->ObjectType);
 						r += " " + State.GetName(I.get());
@@ -930,7 +930,7 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					r += ")";
 				}break;
 				case IRInstructionType::Return:
-					if (Item->ReturnType.IsSame(IRTypes::Void))
+					if (Item->ReturnType == IRTypes::Void)
 					{
 						r += "return";
 					}
@@ -1127,7 +1127,7 @@ String C89Backend::ToString(ToStringState& State, IRInstruction& Ins, IROperator
 
 		IRType ThisVal = _Input->GetType(&Ins, Value);
 
-		if (!ThisVal.IsSame(*OutType))
+		if (ThisVal != (*OutType))
 		{
 			bool isok = false;
 			if (Ins.Type == IRInstructionType::Reassign
@@ -1220,7 +1220,19 @@ String C89Backend::ToStringBinary(ToStringState& State, IRInstruction* Ins, cons
 	String r;
 	r += ToString(Ins->ObjectType);
 	r += " " + State.GetName(Ins);
-	r += " = " + ToString(State, *Ins, Ins->A) + String(V) + ToString(State, *Ins, Ins->B);
+
+	bool docast = Ins->ObjectType != _Input->GetType(Ins->B);
+	r += " = ";
+	if (docast)
+	{
+		r += "(" + ToString(Ins->ObjectType) + ")(";
+	}
+	r += ToString(State, *Ins, Ins->A) + String(V) + ToString(State, *Ins, Ins->B);
+	
+	if (docast)
+	{
+		r += ")";
+	}
 	return r;
 }
 

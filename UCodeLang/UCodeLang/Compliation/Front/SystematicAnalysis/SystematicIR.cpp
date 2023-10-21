@@ -320,6 +320,7 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 				if (Item2->Type == SymbolType::Func)
 				{
 					FuncInfo* funcinfo = Item2->Get_Info<FuncInfo>();
+
 					if (funcinfo->Pars.size() == 2)
 					{
 						Symbol_Update_FuncSym_ToFixedTypes(NeverNullptr(Item2));
@@ -332,11 +333,19 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 							IRInstruction* ret = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(ToType));
 
 							_IR_LookingAtIRBlock->NewPushParameter(_IR_LookingAtIRBlock->NewLoadPtr(ret));
+
+							if (!ExType.IsAddress() && Par.Type.IsAddress())
+							{
+								Ex = _IR_LookingAtIRBlock->NewLoadPtr(Ex);
+							}
+
 							_IR_LookingAtIRBlock->NewPushParameter(Ex);
 
 							_IR_LookingAtIRBlock->NewCall(IR_GetIRID(funcinfo));
 
 							_IR_LastExpressionField = ret;
+
+							
 
 							return true;
 						}

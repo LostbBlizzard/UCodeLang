@@ -381,6 +381,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 	};
 
 	const Path DependencyPath = Data.IntDir.native() + Path(DependencyFile::FileName).native();
+	const Path ExtraOutputLibPath = Data.OutFile.native() + Path(FileExt::LibWithDot).native();
 
 	DependencyFile File;
 	if (fs::exists(DependencyPath))
@@ -980,6 +981,8 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 								File.write((const char*)Output.Data(), Output.Size());
 								File.close();
 							}
+							r.OutPut = &_BackEndObject->Getliboutput();
+							UClib::ToFile(r.OutPut, ExtraOutputLibPath);
 						}
 						else
 						{
@@ -1077,7 +1080,6 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 	{
 		if (!_Errors.Has_Errors()) 
 		{
-			//TODO return UClib if BackEnd is not UCodeBackEnd.
 			auto bytes = GetBytesFromFile(Data.OutFile);
 			if (Data.OutFile.extension() == FileExt::LibWithDot)
 			{
@@ -1087,7 +1089,11 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 			}
 			else
 			{
+				thread_local UClib lib;
+				UClib::FromFile(&lib,ExtraOutputLibPath);
+
 				r.OutFile = std::move(bytes);
+				r.OutPut = &lib;
 			}
 		}
 	}

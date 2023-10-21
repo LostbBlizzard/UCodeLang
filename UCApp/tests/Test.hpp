@@ -6,6 +6,17 @@
 #include <filesystem>
 #include "TestNameSpace.hpp"
 #include "../src/UCodeLangProjectPaths.hpp"
+#include <UCodeLang/RunTime/TestRuner.hpp>
+
+#include <UCodeLang/Compliation/Back/C89/C89Backend.hpp>
+
+#if UCodeLang_Platform_Windows
+#include <Windows.h>
+#elif UCodeLang_Platform_Posix
+#include <dlfcn.h>
+#else
+
+#endif 
 UCodeTestStart
 
 //Are for Unit testing and Regression Testing 
@@ -347,5 +358,129 @@ UCodeTestStart
 		Cmd += " -o " + Outdllfile.generic_string();
 		return system(Cmd.c_str()) == EXIT_SUCCESS;
 	}
+
+	class TestRuner
+	{
+	public:
+		using TestInfo = UCodeLang::TestRuner::TestInfo;
+		using TestsResult = UCodeLang::TestRuner::TestsResult;
+		using OnTestDone = UCodeLang::TestRuner::OnTestDone;
+		inline TestsResult RunTests(UClib& lib,const Path& outfilepath, TestMode Type, Optional<OnTestDone> OnDone = {})
+		{
+			switch (Type)
+			{
+			case TestMode::UCodeLangBackEnd:
+			{
+				UCodeLang::TestRuner runer;
+				return runer.RunTests(lib, UCodeLang::TestRuner::InterpreterType::Interpreter,OnDone);
+			}
+			break;
+			case TestMode::CLang89BackEnd:
+			{
+				auto tests = UCodeLang::TestRuner::GetTests(lib.Get_Assembly());
+				Path dllfile = outfilepath.native() + Path(".lib").native();
+
+				TestsResult r;
+				r.Tests.resize(tests.size());
+
+				bool v = CompileC89ToLib(outfilepath, dllfile);
+				UCodeLangAssert(v);
+				
+				if (v)
+				{
+
+					auto staticinitname = C89Backend::UpdateToCindentifier(StaticVariablesInitializeFunc);
+					auto threadinitname = C89Backend::UpdateToCindentifier(ThreadVariablesInitializeFunc);
+
+					auto staticdeinitname = C89Backend::UpdateToCindentifier(StaticVariablesUnLoadFunc);
+					auto threaddeinitname = C89Backend::UpdateToCindentifier(ThreadVariablesUnLoadFunc);
+
+
+					#if UCodeLang_Platform_Windows
+					auto lib = LoadLibrary(dllfile.c_str());
+					UCodeLangDefer(FreeLibrary(lib));
+					auto staticinittocall = GetProcAddress(lib, staticinitname.c_str());
+					auto threadinittocall = GetProcAddress(lib, threadinitname.c_str());
+					auto staticdeinittocall = GetProcAddress(lib, staticdeinitname.c_str());
+					auto threaddeinittocall = GetProcAddress(lib, threaddeinitname.c_str());
+					#elif UCodeLang_Platform_Posix
+					auto lib = dlopen(dllfile.c_str(), RTLD_NOW);
+					UCodeLangDefer(dlclose(lib));
+
+					auto staticinittocall = dlsym(lib, staticinitname.c_str());
+					auto threadinittocall = dlsym(lib, threadinitname.c_str());
+					auto staticdeinittocall = dlsym(lib, staticdeinitname.c_str());
+					auto threaddeinittocall = dlsym(lib, threaddeinitname.c_str());
+
+					auto functocall = dlsym(lib, cfuncname.c_str());
+					#endif       
+
+
+					for (size_t i = 0; i < r.Tests.size(); i++)
+					{
+						auto& TestOut = r.Tests[i];
+						auto& TestFunc = tests[i];
+
+						bool passed = true;
+
+						
+						auto cfuncname = C89Backend::UpdateToCindentifier(TestFunc->DecorationName);
+						
+						#if UCodeLang_Platform_Windows
+						auto functocall = GetProcAddress(lib, cfuncname.c_str());
+						#elif UCodeLang_Platform_Posix
+						auto functocall = dlsym(lib, cfuncname.c_str());
+						#endif   
+
+						UCodeLangAssert(functocall);
+
+						{
+							using Func = void(*)();
+							((Func)staticinittocall)();
+							((Func)threadinittocall)();
+						}
+
+						{
+							using Func = bool(*)();
+							passed = ((Func)functocall)();
+						}
+
+						{
+							using Func = void(*)();
+							((Func)staticdeinittocall)();
+							((Func)threaddeinittocall)();
+						}
+
+						TestOut.Passed = passed;
+						TestOut.TestName = TestFunc->DecorationName;
+
+						if (passed)
+						{
+							r.TestPassedCount++;
+						}
+						r.TestCount++;
+
+						if (OnDone.has_value())
+						{
+							OnDone.value()(TestOut);
+						}
+					}
+				}
+				return r;
+			}
+			break;
+			case TestMode::WasmBackEnd:
+			{
+
+			}
+			break;
+			default:
+				UCodeLangUnreachable();
+				break;
+			}
+			return {};
+		}
+	private:
+	};
 	
 UCodeTestEnd

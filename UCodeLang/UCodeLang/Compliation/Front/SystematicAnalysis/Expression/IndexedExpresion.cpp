@@ -132,15 +132,18 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 				}
 				else
 				{
-					lookingfor = SourcType;
-
+					auto newtype = SourcType;
 					if (IsWrite(_GetExpressionMode.top()))
 					{
-						lookingfor.SetAsAddress();
+						newtype.SetAsAddress();
 					}
-					lookingfor._IsAddressArray = false;
+					newtype._IsAddressArray = false;
 
-					_LastExpressionType = lookingfor;
+					if (!lookingfor.IsAddress())
+					{
+						newtype._Isimmutable = false;
+					}
+					_LastExpressionType = newtype;
 				}
 			}
 		}
