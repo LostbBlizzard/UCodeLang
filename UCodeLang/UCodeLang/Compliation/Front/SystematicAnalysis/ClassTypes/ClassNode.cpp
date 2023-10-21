@@ -32,6 +32,8 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 		return;
 	}
 
+	Syb.PassState = _PassType;
+
 	OnAttributesNode(Node._Attributes);
 
 	ClassInfo* ClassInf = nullptr;
@@ -457,12 +459,6 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 
 	_Table.RemoveScope();
 
-
-
-
-
-
-	Syb.PassState = _PassType;
 }
 
 UCodeLangFrontEnd
