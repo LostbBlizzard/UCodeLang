@@ -17,5 +17,5 @@ $Span<T>:
   |[][this&,uintptr Index] -> T&:ret _data[Index];
   |[][imut this&,uintptr Index] -> imut T&:ret _data[Index];
 
-  |[][this&,Range_t<uintptr> Range] -> T[:]:ret unsafe [_data[Range.Start()],Range.End() - Range.Start()];
-  |[][imut this&,Range_t<uintptr> Range] -> imut T[:]:ret unsafe [_data[Range.Start()],Range.End() - Range.Start()];
+  |[][this&,Range_t<uintptr> Range] -> this:ret unsafe [_data[Range.Start()],Range.End() - Range.Start()];
+  |[][imut this&,Range_t<uintptr> Range] -> this:ret unsafe [_data[Range.Start()],Range.End() - Range.Start()];

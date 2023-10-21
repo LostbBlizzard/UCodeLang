@@ -87,6 +87,12 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 			if (Info.Value.has_value())
 			{
 				FuncInfo* f = Info.Value.value()->Get_Info<FuncInfo>();
+				
+				if (f->Pars.size() == 1)
+				{
+					int a = 0;
+				}
+
 				V.Op0 = f->Pars[0].Type;
 				V.Op1 = f->Pars[1].Type;
 				V.FuncToCall = Info.Value.value();
