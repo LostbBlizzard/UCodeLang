@@ -19,6 +19,9 @@ $StringSpan_t<T>:
   unsafe |Data[imut this&] -> imut T[&]:ret _data;
   unsafe |Data[this&] -> T[&]:ret _data; 
 
+  |==[imut this&,imut this& Other] => true;
+  |!=[imut this&,imut this& Other] => false;
+
 $String_t<T>:
  private: 
   Vector<T> _base;//there's some optimizations we could do but I just need something working
