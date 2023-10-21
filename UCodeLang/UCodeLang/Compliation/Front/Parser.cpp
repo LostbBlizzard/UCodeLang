@@ -307,6 +307,8 @@ GotNodeType Parser::GetAlias(const Token* AliasName,GenericValuesNode&& AliasGen
 	auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
 	NextToken();
 
+
+	out.EndOfClass = TryGetToken();
 	return r;
 }
 GotNodeType Parser::GetClassTypeNode(Node*& out)

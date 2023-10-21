@@ -152,6 +152,24 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 				V.RetType = Assembly_ConvertToType(nodeinfo_->Ret);
 			}
 		}
+
+		if (Isgeneric_t && IsgenericInstantiation == false)
+		{
+			String_view Text = _LookingAtFile->FileText;
+
+			String ClassStr = "$";
+			ClassStr += node._AliasName.token->Value._String;
+
+			String_view ClassBody =
+				String_view(&Text[node._AliasName.token->OnPos],
+					node.EndOfClass->OnPos - node._AliasName.token->OnPos);
+
+			GenericClass_Data& VClass = _Lib.Get_Assembly().AddGenericClass(
+				(String)ScopeHelper::GetNameFromFullName(Syb.FullName), Syb.FullName);
+
+			VClass.Base.Implementation = ClassStr + String(ClassBody);
+			VClass.Base.Implementation += '\n\n';
+		}
 	}
 
 	_Table.RemoveScope();

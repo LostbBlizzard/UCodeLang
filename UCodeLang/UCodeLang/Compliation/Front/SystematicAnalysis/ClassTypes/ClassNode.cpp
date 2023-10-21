@@ -452,7 +452,6 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 
 			VClass.Base.Implementation = ClassStr + String(ClassBody);
 			VClass.Base.Implementation += '\n\n';
-			//Assembly_AddClass
 		}
 	}
 

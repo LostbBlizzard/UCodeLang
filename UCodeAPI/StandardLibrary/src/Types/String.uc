@@ -4,7 +4,10 @@ $StringSpan_t<T>:
  private:
   T[&] _data;
   uintptr _size;
- public:
+ public: 
+  $MyString = String_t<T>;
+  $MySpan = Span<T>;
+  
   |new[this&]:
    _data = unsafe bitcast<T[&]>(0);
    _size = 0;
@@ -13,14 +16,25 @@ $StringSpan_t<T>:
    _data = data;
    _size = size;
 
-  //$String = String_t<T>;
-
   |Size[imut this&] => _size;
   unsafe |Data[imut this&] -> imut T[&]:ret _data;
   unsafe |Data[this&] -> T[&]:ret _data; 
 
   |==[imut this&,imut this& Other] => true;
-  |!=[imut this&,imut this& Other] => false;
+  |!=[imut this&,imut this& Other] => !(this == Other);
+
+  |AsSpan[this&] -> T[:]:ret unsafe [_data,_size];
+  |AsSpan[imut this&] -> imut T[:]:ret unsafe [_data,_size];
+
+  
+  |ToStr[MySpan& span] -> this: ret unsafe [span.Data(),span.Size()];
+  |ToStr[imut MySpan& span] -> this:ret unsafe [span.Data(),span.Size()];
+
+  |[][this&,uintptr Index] -> T&:ret _data[Index];
+  |[][imut this&,uintptr Index] -> imut T&:ret _data[Index];
+
+  |[][this&,Range_t<uintptr> Range] -> T[:]:ret ToStr(AsSpan()[Range]);
+  |[][imut this&,Range_t<uintptr> Range] -> imut T[:]:ret ToStr(AsSpan()[Range]);
 
 $String_t<T>:
  private: 
@@ -73,6 +87,12 @@ $String_t<T>:
   //|+[imut this&, IPar<MyStringSpan> Other] -> this;
 
   |+=[this&, IPar<MyStringSpan> Other] -> void;
+
+  |AsSpan[this&] -> T[:]:ret unsafe [];
+  |AsSpan[imut this&] -> imut T[:]:ret unsafe [];
+
+  |[][this&,Range_t<uintptr> Range] -> T[:]:ret AsSpan()[Range];
+  |[][imut this&,Range_t<uintptr> Range] -> imut T[:]:ret AsSpan()[Range];
 
 $String = String_t<char>;
 $StringSpan = StringSpan_t<char>;
