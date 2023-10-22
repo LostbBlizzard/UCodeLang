@@ -514,6 +514,7 @@ int8_t ULang_Tests_StringSpan_1();
 int8_t ULang_Tests_StringSpan_2();
 int8_t ULang_Tests_StringSpan_3();
 int8_t ULang_Tests_StringSpan_4();
+int8_t ULang_Tests_StringSpan_5();
 int8_t ULang_Tests_Vector_1();
 int8_t ULang_Tests_Vector_2();
 void ULang_Future____new___ULang_Future_(ULang_Future* __this__);
@@ -566,6 +567,7 @@ ULang_Span_char_ ULang_Vector_char____Index___ULang_Vector_char___ULang_Range_t_
 ULang_Span_char_ ULang_Vector_char____Index___ULang_Vector_char__imut_ULang_Range_t_uintptr_(ULang_Vector_char_* __this__,ULang_Range_t_uintptr_ Range);
 ULang_Span_char_ ULang_Vector_char__AsSpan_ULang_Vector_char__(ULang_Vector_char_* __this__);
 ULang_Span_char_ ULang_Vector_char__AsSpan_ULang_Vector_char__imut(ULang_Vector_char_* __this__);
+void ULang_String_t_char_____init__(ULang_String_t_char_* __this__);
 void ULang_String_t_char_____new___ULang_String_t_char__(ULang_String_t_char_* __this__);
 void ULang_String_t_char_____new___ULang_String_t_char___ULang_StringSpan_t_char__imut(ULang_String_t_char_* __this__,ULang_StringSpan_t_char_* span);
 void* ULang_String_t_char__Data_ULang_String_t_char__imut(ULang_String_t_char_* __this__);
@@ -745,6 +747,7 @@ void* ULang_StringSpan_t_uft8____Index___ULang_StringSpan_t_uft8___uptr(ULang_St
 void* ULang_StringSpan_t_uft8____Index___ULang_StringSpan_t_uft8__imut_uptr(ULang_StringSpan_t_uft8_* __this__,int64_t Index);
 ULang_StringSpan_t_uft8_ ULang_StringSpan_t_uft8____Index___ULang_StringSpan_t_uft8___ULang_Range_t_uintptr_(ULang_StringSpan_t_uft8_* __this__,ULang_Range_t_uintptr_ Range);
 ULang_StringSpan_t_uft8_ ULang_StringSpan_t_uft8____Index___ULang_StringSpan_t_uft8__imut_ULang_Range_t_uintptr_(ULang_StringSpan_t_uft8_* __this__,ULang_Range_t_uintptr_ Range);
+void ULang_String_t_uft8_____init__(ULang_String_t_uft8_* __this__);
 void ULang_String_t_uft8_____new___ULang_String_t_uft8__(ULang_String_t_uft8_* __this__);
 void ULang_String_t_uft8_____new___ULang_String_t_uft8___ULang_StringSpan_t_uft8__imut(ULang_String_t_uft8_* __this__,ULang_StringSpan_t_uft8_* span);
 void* ULang_String_t_uft8__Data_ULang_String_t_uft8__imut(ULang_String_t_uft8_* __this__);
@@ -819,6 +822,7 @@ void* ULang_StringSpan_t_uft16____Index___ULang_StringSpan_t_uft16___uptr(ULang_
 void* ULang_StringSpan_t_uft16____Index___ULang_StringSpan_t_uft16__imut_uptr(ULang_StringSpan_t_uft16_* __this__,int64_t Index);
 ULang_StringSpan_t_uft16_ ULang_StringSpan_t_uft16____Index___ULang_StringSpan_t_uft16___ULang_Range_t_uintptr_(ULang_StringSpan_t_uft16_* __this__,ULang_Range_t_uintptr_ Range);
 ULang_StringSpan_t_uft16_ ULang_StringSpan_t_uft16____Index___ULang_StringSpan_t_uft16__imut_ULang_Range_t_uintptr_(ULang_StringSpan_t_uft16_* __this__,ULang_Range_t_uintptr_ Range);
+void ULang_String_t_uft16_____init__(ULang_String_t_uft16_* __this__);
 void ULang_String_t_uft16_____new___ULang_String_t_uft16__(ULang_String_t_uft16_* __this__);
 void ULang_String_t_uft16_____new___ULang_String_t_uft16___ULang_StringSpan_t_uft16__imut(ULang_String_t_uft16_* __this__,ULang_StringSpan_t_uft16_* span);
 void* ULang_String_t_uft16__Data_ULang_String_t_uft16__imut(ULang_String_t_uft16_* __this__);
@@ -893,6 +897,7 @@ void* ULang_StringSpan_t_uft32____Index___ULang_StringSpan_t_uft32___uptr(ULang_
 void* ULang_StringSpan_t_uft32____Index___ULang_StringSpan_t_uft32__imut_uptr(ULang_StringSpan_t_uft32_* __this__,int64_t Index);
 ULang_StringSpan_t_uft32_ ULang_StringSpan_t_uft32____Index___ULang_StringSpan_t_uft32___ULang_Range_t_uintptr_(ULang_StringSpan_t_uft32_* __this__,ULang_Range_t_uintptr_ Range);
 ULang_StringSpan_t_uft32_ ULang_StringSpan_t_uft32____Index___ULang_StringSpan_t_uft32__imut_ULang_Range_t_uintptr_(ULang_StringSpan_t_uft32_* __this__,ULang_Range_t_uintptr_ Range);
+void ULang_String_t_uft32_____init__(ULang_String_t_uft32_* __this__);
 void ULang_String_t_uft32_____new___ULang_String_t_uft32__(ULang_String_t_uft32_* __this__);
 void ULang_String_t_uft32_____new___ULang_String_t_uft32___ULang_StringSpan_t_uft32__imut(ULang_String_t_uft32_* __this__,ULang_StringSpan_t_uft32_* span);
 void* ULang_String_t_uft32__Data_ULang_String_t_uft32__imut(ULang_String_t_uft32_* __this__);
@@ -1701,6 +1706,37 @@ int8_t ULang_Tests_StringSpan_4()
 
  ULang_String_t_char_* tep17 = &tep0;
  ULang_String_t_char_____drop___ULang_String_t_char__(tep17);
+ return _ReturnVal;
+
+}
+int8_t ULang_Tests_StringSpan_5()
+{
+ int8_t _ReturnVal;
+ /*Block*/ 
+
+ /*File:/Tests/StringTest.uc*/
+ /*Line:23*/
+
+ ULang_String_t_char_ tep0;
+
+ /*Line:0*/
+
+ ULang_String_t_char_* tep1 = &tep0;
+ ULang_String_t_char_____new___ULang_String_t_char__(tep1);
+
+ /*Line:23*/
+ /*Line:24*/
+
+ ULang_String_t_char_* tep2 = &tep0;
+ int64_t tep3 = ULang_String_t_char__Size_ULang_String_t_char__imut(tep2);
+ int64_t tep4 = 0;
+ int8_t tep5 = (int8_t)(tep3==tep4);
+ _ReturnVal = tep5;
+
+ /*Line:0*/
+
+ ULang_String_t_char_* tep6 = &tep0;
+ ULang_String_t_char_____drop___ULang_String_t_char__(tep6);
  return _ReturnVal;
 
 }
@@ -2818,44 +2854,63 @@ ULang_Span_char_ ULang_Vector_char__AsSpan_ULang_Vector_char__imut(ULang_Vector_
  return _ReturnVal;
 
 }
+void ULang_String_t_char_____init__(ULang_String_t_char_* __this__)
+{ /*Block*/ 
+
+ /*File:/Types/String.uc*/
+ /*Line:49*/
+
+ 
+ /*Line:0*/
+
+ ULang_Vector_char_____new___ULang_Vector_char__(__this__->__0);
+ return;
+
+}
 void ULang_String_t_char_____new___ULang_String_t_char__(ULang_String_t_char_* __this__)
 { /*Block*/ 
 
 
+ ULang_String_t_char_* tep0 = __this__;
+ ULang_String_t_char_____init__(tep0);
  return;
 
 }
 void ULang_String_t_char_____new___ULang_String_t_char___ULang_StringSpan_t_char__imut(ULang_String_t_char_* __this__,ULang_StringSpan_t_char_* span)
 { /*Block*/ 
 
+
+ ULang_String_t_char_* tep0 = __this__;
+ ULang_String_t_char_____init__(tep0);
+
  /*File:/Types/String.uc*/
  /*Line:58*/
 
- ULang_String_t_char_* tep0 = __this__;
- ULang_StringSpan_t_char_* tep1 = span;
- int64_t tep2 = ULang_StringSpan_t_char__Size_ULang_StringSpan_t_char__imut(tep1);
- ULang_String_t_char__Resize_ULang_String_t_char___uptr(tep0,tep2);
+ ULang_String_t_char_* tep1 = __this__;
+ ULang_StringSpan_t_char_* tep2 = span;
+ int64_t tep3 = ULang_StringSpan_t_char__Size_ULang_StringSpan_t_char__imut(tep2);
+ ULang_String_t_char__Resize_ULang_String_t_char___uptr(tep1,tep3);
 
  /*Line:59*/
 
- int64_t tep3;
+ int64_t tep4;
 
 
- int32_t tep4 = 0;
- tep3 = (int64_t)tep4;
+ int32_t tep5 = 0;
+ tep4 = (int64_t)tep5;
 
  _label1:
 
- int64_t tep5 = tep3;
- ULang_StringSpan_t_char_* tep6 = span;
- int64_t tep7 = ULang_StringSpan_t_char__Size_ULang_StringSpan_t_char__imut(tep6);
- int8_t tep8 = (int8_t)(tep5<tep7);
- int8_t tep9 = !tep8;
- if (tep9){goto _label0; };
- int64_t tep10 = tep3;
- int64_t tep11 = 1;
- int64_t tep12 = tep10+tep11;
- tep3 = tep12;
+ int64_t tep6 = tep4;
+ ULang_StringSpan_t_char_* tep7 = span;
+ int64_t tep8 = ULang_StringSpan_t_char__Size_ULang_StringSpan_t_char__imut(tep7);
+ int8_t tep9 = (int8_t)(tep6<tep8);
+ int8_t tep10 = !tep9;
+ if (tep10){goto _label0; };
+ int64_t tep11 = tep4;
+ int64_t tep12 = 1;
+ int64_t tep13 = tep11+tep12;
+ tep4 = tep13;
  goto _label1;
 
  _label0:
@@ -6134,44 +6189,63 @@ ULang_StringSpan_t_uft8_ ULang_StringSpan_t_uft8____Index___ULang_StringSpan_t_u
  return _ReturnVal;
 
 }
+void ULang_String_t_uft8_____init__(ULang_String_t_uft8_* __this__)
+{ /*Block*/ 
+
+ /*File:/Types/String.uc*/
+ /*Line:49*/
+
+ 
+ /*Line:0*/
+
+ ULang_Vector_uft8_____new___ULang_Vector_uft8__(__this__->__0);
+ return;
+
+}
 void ULang_String_t_uft8_____new___ULang_String_t_uft8__(ULang_String_t_uft8_* __this__)
 { /*Block*/ 
 
 
+ ULang_String_t_uft8_* tep0 = __this__;
+ ULang_String_t_uft8_____init__(tep0);
  return;
 
 }
 void ULang_String_t_uft8_____new___ULang_String_t_uft8___ULang_StringSpan_t_uft8__imut(ULang_String_t_uft8_* __this__,ULang_StringSpan_t_uft8_* span)
 { /*Block*/ 
 
+
+ ULang_String_t_uft8_* tep0 = __this__;
+ ULang_String_t_uft8_____init__(tep0);
+
  /*File:/Types/String.uc*/
  /*Line:58*/
 
- ULang_String_t_uft8_* tep0 = __this__;
- ULang_StringSpan_t_uft8_* tep1 = span;
- int64_t tep2 = ULang_StringSpan_t_uft8__Size_ULang_StringSpan_t_uft8__imut(tep1);
- ULang_String_t_uft8__Resize_ULang_String_t_uft8___uptr(tep0,tep2);
+ ULang_String_t_uft8_* tep1 = __this__;
+ ULang_StringSpan_t_uft8_* tep2 = span;
+ int64_t tep3 = ULang_StringSpan_t_uft8__Size_ULang_StringSpan_t_uft8__imut(tep2);
+ ULang_String_t_uft8__Resize_ULang_String_t_uft8___uptr(tep1,tep3);
 
  /*Line:59*/
 
- int64_t tep3;
+ int64_t tep4;
 
 
- int32_t tep4 = 0;
- tep3 = (int64_t)tep4;
+ int32_t tep5 = 0;
+ tep4 = (int64_t)tep5;
 
  _label1:
 
- int64_t tep5 = tep3;
- ULang_StringSpan_t_uft8_* tep6 = span;
- int64_t tep7 = ULang_StringSpan_t_uft8__Size_ULang_StringSpan_t_uft8__imut(tep6);
- int8_t tep8 = (int8_t)(tep5<tep7);
- int8_t tep9 = !tep8;
- if (tep9){goto _label0; };
- int64_t tep10 = tep3;
- int64_t tep11 = 1;
- int64_t tep12 = tep10+tep11;
- tep3 = tep12;
+ int64_t tep6 = tep4;
+ ULang_StringSpan_t_uft8_* tep7 = span;
+ int64_t tep8 = ULang_StringSpan_t_uft8__Size_ULang_StringSpan_t_uft8__imut(tep7);
+ int8_t tep9 = (int8_t)(tep6<tep8);
+ int8_t tep10 = !tep9;
+ if (tep10){goto _label0; };
+ int64_t tep11 = tep4;
+ int64_t tep12 = 1;
+ int64_t tep13 = tep11+tep12;
+ tep4 = tep13;
  goto _label1;
 
  _label0:
@@ -7507,44 +7581,63 @@ ULang_StringSpan_t_uft16_ ULang_StringSpan_t_uft16____Index___ULang_StringSpan_t
  return _ReturnVal;
 
 }
+void ULang_String_t_uft16_____init__(ULang_String_t_uft16_* __this__)
+{ /*Block*/ 
+
+ /*File:/Types/String.uc*/
+ /*Line:49*/
+
+ 
+ /*Line:0*/
+
+ ULang_Vector_uft16_____new___ULang_Vector_uft16__(__this__->__0);
+ return;
+
+}
 void ULang_String_t_uft16_____new___ULang_String_t_uft16__(ULang_String_t_uft16_* __this__)
 { /*Block*/ 
 
 
+ ULang_String_t_uft16_* tep0 = __this__;
+ ULang_String_t_uft16_____init__(tep0);
  return;
 
 }
 void ULang_String_t_uft16_____new___ULang_String_t_uft16___ULang_StringSpan_t_uft16__imut(ULang_String_t_uft16_* __this__,ULang_StringSpan_t_uft16_* span)
 { /*Block*/ 
 
+
+ ULang_String_t_uft16_* tep0 = __this__;
+ ULang_String_t_uft16_____init__(tep0);
+
  /*File:/Types/String.uc*/
  /*Line:58*/
 
- ULang_String_t_uft16_* tep0 = __this__;
- ULang_StringSpan_t_uft16_* tep1 = span;
- int64_t tep2 = ULang_StringSpan_t_uft16__Size_ULang_StringSpan_t_uft16__imut(tep1);
- ULang_String_t_uft16__Resize_ULang_String_t_uft16___uptr(tep0,tep2);
+ ULang_String_t_uft16_* tep1 = __this__;
+ ULang_StringSpan_t_uft16_* tep2 = span;
+ int64_t tep3 = ULang_StringSpan_t_uft16__Size_ULang_StringSpan_t_uft16__imut(tep2);
+ ULang_String_t_uft16__Resize_ULang_String_t_uft16___uptr(tep1,tep3);
 
  /*Line:59*/
 
- int64_t tep3;
+ int64_t tep4;
 
 
- int32_t tep4 = 0;
- tep3 = (int64_t)tep4;
+ int32_t tep5 = 0;
+ tep4 = (int64_t)tep5;
 
  _label1:
 
- int64_t tep5 = tep3;
- ULang_StringSpan_t_uft16_* tep6 = span;
- int64_t tep7 = ULang_StringSpan_t_uft16__Size_ULang_StringSpan_t_uft16__imut(tep6);
- int8_t tep8 = (int8_t)(tep5<tep7);
- int8_t tep9 = !tep8;
- if (tep9){goto _label0; };
- int64_t tep10 = tep3;
- int64_t tep11 = 1;
- int64_t tep12 = tep10+tep11;
- tep3 = tep12;
+ int64_t tep6 = tep4;
+ ULang_StringSpan_t_uft16_* tep7 = span;
+ int64_t tep8 = ULang_StringSpan_t_uft16__Size_ULang_StringSpan_t_uft16__imut(tep7);
+ int8_t tep9 = (int8_t)(tep6<tep8);
+ int8_t tep10 = !tep9;
+ if (tep10){goto _label0; };
+ int64_t tep11 = tep4;
+ int64_t tep12 = 1;
+ int64_t tep13 = tep11+tep12;
+ tep4 = tep13;
  goto _label1;
 
  _label0:
@@ -8880,44 +8973,63 @@ ULang_StringSpan_t_uft32_ ULang_StringSpan_t_uft32____Index___ULang_StringSpan_t
  return _ReturnVal;
 
 }
+void ULang_String_t_uft32_____init__(ULang_String_t_uft32_* __this__)
+{ /*Block*/ 
+
+ /*File:/Types/String.uc*/
+ /*Line:49*/
+
+ 
+ /*Line:0*/
+
+ ULang_Vector_uft32_____new___ULang_Vector_uft32__(__this__->__0);
+ return;
+
+}
 void ULang_String_t_uft32_____new___ULang_String_t_uft32__(ULang_String_t_uft32_* __this__)
 { /*Block*/ 
 
 
+ ULang_String_t_uft32_* tep0 = __this__;
+ ULang_String_t_uft32_____init__(tep0);
  return;
 
 }
 void ULang_String_t_uft32_____new___ULang_String_t_uft32___ULang_StringSpan_t_uft32__imut(ULang_String_t_uft32_* __this__,ULang_StringSpan_t_uft32_* span)
 { /*Block*/ 
 
+
+ ULang_String_t_uft32_* tep0 = __this__;
+ ULang_String_t_uft32_____init__(tep0);
+
  /*File:/Types/String.uc*/
  /*Line:58*/
 
- ULang_String_t_uft32_* tep0 = __this__;
- ULang_StringSpan_t_uft32_* tep1 = span;
- int64_t tep2 = ULang_StringSpan_t_uft32__Size_ULang_StringSpan_t_uft32__imut(tep1);
- ULang_String_t_uft32__Resize_ULang_String_t_uft32___uptr(tep0,tep2);
+ ULang_String_t_uft32_* tep1 = __this__;
+ ULang_StringSpan_t_uft32_* tep2 = span;
+ int64_t tep3 = ULang_StringSpan_t_uft32__Size_ULang_StringSpan_t_uft32__imut(tep2);
+ ULang_String_t_uft32__Resize_ULang_String_t_uft32___uptr(tep1,tep3);
 
  /*Line:59*/
 
- int64_t tep3;
+ int64_t tep4;
 
 
- int32_t tep4 = 0;
- tep3 = (int64_t)tep4;
+ int32_t tep5 = 0;
+ tep4 = (int64_t)tep5;
 
  _label1:
 
- int64_t tep5 = tep3;
- ULang_StringSpan_t_uft32_* tep6 = span;
- int64_t tep7 = ULang_StringSpan_t_uft32__Size_ULang_StringSpan_t_uft32__imut(tep6);
- int8_t tep8 = (int8_t)(tep5<tep7);
- int8_t tep9 = !tep8;
- if (tep9){goto _label0; };
- int64_t tep10 = tep3;
- int64_t tep11 = 1;
- int64_t tep12 = tep10+tep11;
- tep3 = tep12;
+ int64_t tep6 = tep4;
+ ULang_StringSpan_t_uft32_* tep7 = span;
+ int64_t tep8 = ULang_StringSpan_t_uft32__Size_ULang_StringSpan_t_uft32__imut(tep7);
+ int8_t tep9 = (int8_t)(tep6<tep8);
+ int8_t tep10 = !tep9;
+ if (tep10){goto _label0; };
+ int64_t tep11 = tep4;
+ int64_t tep12 = 1;
+ int64_t tep13 = tep11+tep12;
+ tep4 = tep13;
  goto _label1;
 
  _label0:
