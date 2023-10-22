@@ -18,5 +18,10 @@ Tests:
   String Txt = "Hello";
   ret Txt == "Hello";
 
+ [Test]
+ |StringSpan_5[]:
+  String Txt = [];
+  ret Txt.Size() == 0;
+
 
   
