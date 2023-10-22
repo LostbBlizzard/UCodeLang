@@ -22,9 +22,9 @@ void SystematicAnalysis::OnBitCast(const BitCastExpression& node)
 				LogError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "bitcast<T>. T must be an address or an uintptr and not '" + ToString(ToType) + "'");
 			}
 		}
-		bool IsIntPtr = ToType._Type == TypesEnum::uIntPtr && ToType.IsAddress() == false;
+		bool lookforIntPtr =!(ToType._Type == TypesEnum::uIntPtr && ToType.IsAddress() == false);
 
-		if (IsIntPtr) {
+		if (lookforIntPtr) {
 			_LookingForTypes.push(TypesEnum::uIntPtr);
 		}
 		else
@@ -47,10 +47,10 @@ void SystematicAnalysis::OnBitCast(const BitCastExpression& node)
 	{
 		TypeSymbol ToType = Type_ConvertAndValidateType(node._Type, NodeSyb_t::Any);
 
-		bool IsIntPtr = ToType._Type == TypesEnum::uIntPtr && ToType.IsAddress() == false;
+		bool lookforIntPtr = !(ToType._Type == TypesEnum::uIntPtr && ToType.IsAddress() == false);
 
 		//!to stop *(_Expression) and do (_Expression)
-		if (IsIntPtr) {
+		if (lookforIntPtr) {
 			_LookingForTypes.push(TypesEnum::uIntPtr);
 		}
 		else

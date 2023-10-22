@@ -27,7 +27,7 @@ $Ptr<T>:
 
 
 
-  |Make[imut T& V] -> imut this:ret [unsafe bitcast<T&>(V)];
+  |Make[imut T& V] -> imut this:ret [unsafe bitcast<T&>(bitcast<uintptr>(V))];
   |Make[T& V] -> this:ret [V];
 
 

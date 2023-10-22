@@ -185,6 +185,28 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 			auto par1 = pars._Nodes[1].release();
 			//its ok.no mem leak Par node has Unique_ptr to SourceExpression and IndexExpression just borrowing them
 			_LastExpressionType = V.Func->Ret;
+
+
+
+			if (_LastExpressionType.IsAddress()) {
+				bool LookCopyByValue = !(_LookingForTypes.top().IsAddress());
+
+				if (LookCopyByValue)
+				{
+					bool CopyByValue = _LastExpressionType.IsAddress();
+
+					if (CopyByValue || !IsWrite(_GetExpressionMode.top()))
+					{
+						auto rawtype = _LastExpressionType;
+						rawtype._IsAddress = false;
+
+						_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad_Dereferenc(_IR_LastExpressionField
+							, IR_ConvertToIRType(rawtype));
+
+						_LastExpressionType = rawtype;
+					}
+				}
+			}
 		}
 		else
 		{
