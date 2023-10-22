@@ -199,6 +199,10 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 				}
 				else
 				{
+					#if UCodeLangDebug
+					auto funcname = _Input->FromID(Ins->Target().identifer);
+					#endif
+
 					UCodeLangUnreachable();
 				}
 			}

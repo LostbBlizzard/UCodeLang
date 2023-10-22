@@ -63,6 +63,11 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 			typetoget._IsAddress = false;
 			_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad_Dereferenc(ir, IR_ConvertToIRType(typetoget));
 		}
+
+		if (_GetExpressionMode.size() && IsWrite(_GetExpressionMode.top()))
+		{
+			int a = 0;
+		}
 	}
 }
 void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNode& Name, const ValueParametersNode& Pars)
@@ -101,8 +106,8 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 
 		PrimitiveTypeCall(Uint8TypeName, TypesEnum::uInt8, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((UInt8)0);)
 		else PrimitiveTypeCall(Uint16TypeName, TypesEnum::uInt16, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((UInt16)0))
-else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((UInt32)0))
-	else PrimitiveTypeCall(Uint16TypeName, TypesEnum::uInt64, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad(((UInt64)0)))
+		else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((UInt32)0))
+		else PrimitiveTypeCall(Uint16TypeName, TypesEnum::uInt64, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad(((UInt64)0)))
 
 		else PrimitiveTypeCall(Sint8TypeName, TypesEnum::sInt8, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((Int8)0);)
 		else PrimitiveTypeCall(Sint16TypeName, TypesEnum::sInt16, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((Int16)0))
@@ -111,6 +116,11 @@ else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _IR_LastExpressionFiel
 
 		else PrimitiveTypeCall(boolTypeName, TypesEnum::Bool, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad(false))
 		else PrimitiveTypeCall(CharTypeName, TypesEnum::Char, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad('\0'))
+		else PrimitiveTypeCall(Uft8typeName, TypesEnum::Uft8, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad(Utf8('\0')))
+		else PrimitiveTypeCall(Uft16typeName, TypesEnum::Uft16, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad(Utf16('\0')))
+		else PrimitiveTypeCall(Uft32typeName, TypesEnum::Uft32, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad(Utf32('\0')))
+
+
 
 		else PrimitiveTypeCall(float32TypeName, TypesEnum::float32, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((float32)0))
 		else PrimitiveTypeCall(float64TypeName, TypesEnum::float64, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((float64)0))
@@ -748,6 +758,9 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 			ScopedName == UintPtrTypeName ||
 			ScopedName == boolTypeName ||
 			ScopedName == CharTypeName ||
+			ScopedName == Uft8typeName ||
+			ScopedName == Uft16typeName ||
+			ScopedName == Uft32typeName ||
 			ScopedName == float32TypeName ||
 			ScopedName == float64TypeName)
 		{
@@ -775,6 +788,9 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 				else if (ScopedName == boolTypeName) { _LastExpressionType = TypesEnum::Bool; }
 				else if (ScopedName == CharTypeName) { _LastExpressionType = TypesEnum::Char; }
+				else if (ScopedName == Uft8typeName) { _LastExpressionType = TypesEnum::Uft8; }
+				else if (ScopedName == Uft16typeName) { _LastExpressionType = TypesEnum::Uft16; }
+				else if (ScopedName == Uft32typeName) { _LastExpressionType = TypesEnum::Uft32; }
 
 				else if (ScopedName == float32TypeName) { _LastExpressionType = TypesEnum::float32; }
 				else if (ScopedName == float64TypeName) { _LastExpressionType = TypesEnum::float64; }
