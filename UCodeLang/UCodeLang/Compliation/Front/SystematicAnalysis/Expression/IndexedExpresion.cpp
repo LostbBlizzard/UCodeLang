@@ -54,8 +54,10 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 
 					for (auto& Item : V)
 					{
-						FuncInfo* func = Item->Get_Info<FuncInfo>();
-						gesstype = func->Pars[1].Type;
+						if (V.size() == 2) {
+							FuncInfo* func = Item->Get_Info<FuncInfo>();
+							gesstype = func->Pars[1].Type;
+						}
 					}
 				}
 			}
@@ -195,7 +197,7 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 				{
 					bool CopyByValue = _LastExpressionType.IsAddress();
 
-					if (CopyByValue || !IsWrite(_GetExpressionMode.top()))
+					if (CopyByValue && !IsWrite(_GetExpressionMode.top()))
 					{
 						auto rawtype = _LastExpressionType;
 						rawtype._IsAddress = false;
@@ -207,6 +209,7 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 					}
 				}
 			}
+			
 		}
 		else
 		{

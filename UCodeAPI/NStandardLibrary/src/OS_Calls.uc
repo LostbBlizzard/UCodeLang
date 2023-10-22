@@ -13,7 +13,7 @@ ULang::Native:
 
   $if compiler::IsBackendC89():
    
-   for [uintptr i = uintptr(0);i < Size;i++]:
+   for [uintptr i = 0;i < Size;i++]:
      OS_PrintChar(Buffer[i]);
 
   $else:

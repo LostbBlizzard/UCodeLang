@@ -56,8 +56,7 @@ $String_t<T>:
   
   |new[this&,IPar<MyStringSpan> span] -> void:
    Resize(span.Size());
-   for [uintptr i = 0;i < span.Size();i++]:
-    this[i] = span[i];
+   for [uintptr i = 0;i < span.Size();i++];//this[i] = span[i];
 
   unsafe |Data[imut this&] -> imut T[&]:ret unsafe _base.Data();
   unsafe |Data[this&] -> T[&]:ret unsafe _base.Data();
