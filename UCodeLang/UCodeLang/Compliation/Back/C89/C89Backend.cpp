@@ -748,17 +748,44 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 				switch (I->Type)
 				{
 				case IRInstructionType::LoadReturn:
-					r += (String)IRReturnValue + " = " + ToString(State, *I, I->Target());
-					break;
+				{	
+					
+					bool docast = _Func->ReturnType != _Input->GetType(I.get(), I->Target());
+					r += (String)IRReturnValue + " = ";
+					if (docast)
+					{
+						r += "(" + ToString(_Func->ReturnType) + ")(";
+					}
+					r += ToString(State, *I, I->Target());
+					if (docast)
+					{
+						r += ")";
+					}
+				}break;
 				case IRInstructionType::LoadNone:
 					r += ToString(I->ObjectType);
 					r += " " + State.GetName(I.get());
 					break;
 				case IRInstructionType::Load:
+				{
 					r += ToString(I->ObjectType);
 					r += " " + State.GetName(I.get());
-					r += " = " + ToString(State, *I, I->Target());
-					break;
+					r += " = ";
+					
+					bool docast = I->ObjectType != _Input->GetType(I.get(),I->Target());
+					
+					if (docast)
+					{
+						r += "(" + ToString(I->ObjectType) + ")(";
+					}
+					r += ToString(State, *I, I->Target());
+
+					if (docast)
+					{
+						r += ")";
+					}
+				}	
+				break;
 				case IRInstructionType::Reassign:
 					r += ToString(State, *I, I->Target());
 					r += " = " + ToString(State, *I, I->Input());

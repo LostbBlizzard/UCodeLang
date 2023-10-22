@@ -205,13 +205,63 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 
 |(&threadUnload&)[] -> void:;
 
-|main2[] -> int8:
+|NullPtr[] -> void*:
 
  [Block:0]
 
 
 //File:/Main.uc
 //Line:4
+
+   int64 A = 0;
+   ret = A;
+   ret;
+
+|NullPtr2[] -> void*:
+
+ [Block:0]
+
+
+//File:/Main.uc
+//Line:6
+
+   int64 A = 0;
+   ret = A;
+   ret;
+
+|NullPtr_^i32&[void* P] -> int64:
+
+ [Block:0]
+
+
+//Varable:NullPtr_:P
+//File:/Main.uc
+//Line:9
+
+   void* A = P;
+   ret = A;
+   ret;
+
+|NullPtr2_^i32&[void* P] -> int64:
+
+ [Block:0]
+
+
+//Varable:NullPtr2_:P
+//File:/Main.uc
+//Line:11
+
+   void* A = P;
+   ret = A;
+   ret;
+
+|main2[] -> int8:
+
+ [Block:0]
+
+
+//File:/Main.uc
+//Line:17
 
    int8 A = 1;
    ret = A;
@@ -1000,14 +1050,15 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
    ULang:Vector<sint32>* H = &A;
    int64 I = 0;
    void* J = ULang:Vector<sint32>:(&Index&)^ULang:Vector<sint32>&,uptr(H,I);
-   int32 K = 5;
-   int8 L = K==J;
-   ULang:Vector<sint32>* M = &A;
-   int64 N = ULang:Vector<sint32>:Size^ULang:Vector<sint32>&imut(M);
-   int64 O = 1;
-   int8 P = O==N;
-   int8 Q = P&&L;
-   ret = Q;
+   int32 K = *J;
+   int32 L = 5;
+   int8 M = L==K;
+   ULang:Vector<sint32>* N = &A;
+   int64 O = ULang:Vector<sint32>:Size^ULang:Vector<sint32>&imut(N);
+   int64 P = 1;
+   int8 Q = P==O;
+   int8 R = Q&&M;
+   ret = R;
    ret;
 
 |ULang:Tests:Vector_2[] -> int8:
@@ -1061,14 +1112,15 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
    ULang:Span<sint32>* R = &L;
    int64 S = 0;
    void* T = ULang:Span<sint32>:(&Index&)^ULang:Span<sint32>&,uptr(R,S);
-   int32 U = 15;
-   int8 V = U==T;
-   ULang:Span<sint32>* W = &L;
-   int64 X = ULang:Span<sint32>:Size^ULang:Span<sint32>&imut(W);
-   int64 Y = 1;
-   int8 Z = Y==X;
-   int8 [ = Z&&V;
-   ret = [;
+   int32 U = *T;
+   int32 V = 15;
+   int8 W = V==U;
+   ULang:Span<sint32>* X = &L;
+   int64 Y = ULang:Span<sint32>:Size^ULang:Span<sint32>&imut(X);
+   int64 Z = 1;
+   int8 [ = Z==Y;
+   int8 \ = [&&W;
+   ret = \;
    ret;
 
 |ULang:Future:(&_new&)^ULang:Future&[ULang:Future* (&this&)] -> void:
@@ -1168,7 +1220,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/Span.uc
 //Line:7
 
-   int32 A = 0;
+   int64 A = 0;
    (&this&)->__0 = A;
 
 //Line:8
@@ -1336,7 +1388,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:12
 
-   int32 A = 0;
+   int64 A = 0;
    (&this&)->__0 = A;
 
 //Line:13
@@ -1438,7 +1490,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 
    int64 J;
 
-//Varable:ULang:StringSpan_t<char>:(&equal&):2270304464448:i
+//Varable:ULang:StringSpan_t<char>:(&equal&):2061104310400:i
 
    int32 K = 0;
    J = K;
@@ -1460,30 +1512,32 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
    ULang:StringSpan_t<char>* T = S;
    int64 U = J;
    void* V = ULang:StringSpan_t<char>:(&Index&)^ULang:StringSpan_t<char>&,uptr(T,U);
-   ULang:StringSpan_t<char>* W = Other;
-   int64 X = J;
-   void* Y = ULang:StringSpan_t<char>:(&Index&)^ULang:StringSpan_t<char>&,uptr(W,X);
-   int8 Z = Y!=V;
-   int8 [ = !Z;
-   gotoif ([) _label3;
-   int8 \ = 0;
-   ret = \;
+   int8 W = *V;
+   ULang:StringSpan_t<char>* X = Other;
+   int64 Y = J;
+   void* Z = ULang:StringSpan_t<char>:(&Index&)^ULang:StringSpan_t<char>&,uptr(X,Y);
+   int8 [ = *Z;
+   int8 \ = [!=W;
+   int8 ] = !\;
+   gotoif (]) _label3;
+   int8 ^ = 0;
+   ret = ^;
    goto _label1;
 
 //Line:26
    _label3:
 
-   int64 ] = J;
-   int64 ^ = 1;
-   int64 _ = ]+^;
-   J = _;
+   int64 _ = J;
+   int64 ` = 1;
+   int64 a = _+`;
+   J = a;
    goto _label4;
 
 //Line:30
    _label2:
 
-   int8 ` = 1;
-   ret = `;
+   int8 b = 1;
+   ret = b;
 
    _label1:
 
@@ -1684,7 +1738,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/Vector.uc
 //Line:9
 
-   int32 A = 0;
+   int64 A = 0;
    (&this&)->__0 = A;
 
 //Line:10
@@ -1983,7 +2037,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 
    int64 E;
 
-//Varable:ULang:String_t<char>:(&_new&):2270304482512:i
+//Varable:ULang:String_t<char>:(&_new&):2061104310752:i
 
    int32 F = 0;
    E = F;
@@ -2008,14 +2062,15 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
    ULang:String_t<char>* P = O;
    int64 Q = E;
    void* R = ULang:String_t<char>:(&Index&)^ULang:String_t<char>&,uptr(P,Q);
+   int8 S = *R;
    R = N;
 
 //Line:59
 
-   int64 S = E;
-   int64 T = 1;
-   int64 U = S+T;
-   E = U;
+   int64 T = E;
+   int64 U = 1;
+   int64 V = T+U;
+   E = V;
    goto _label1;
 
    _label0:
@@ -2031,7 +2086,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:62
 
-   ULang:String_t<char>* A = &(&this&)->__0;
+   ULang:Vector<char>* A = &(&this&)->__0;
    void* B = ULang:Vector<char>:Data^ULang:Vector<char>&(A);
    ret = B;
    ret;
@@ -2045,7 +2100,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:63
 
-   ULang:String_t<char>* A = &(&this&)->__0;
+   ULang:Vector<char>* A = &(&this&)->__0;
    void* B = ULang:Vector<char>:Data^ULang:Vector<char>&(A);
    ret = B;
    ret;
@@ -2059,7 +2114,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:66
 
-   ULang:String_t<char>* A = &(&this&)->__0;
+   ULang:Vector<char>* A = &(&this&)->__0;
    int64 B = ULang:Vector<char>:Size^ULang:Vector<char>&imut(A);
    ret = B;
    ret;
@@ -2073,7 +2128,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:67
 
-   ULang:String_t<char>* A = &(&this&)->__0;
+   ULang:Vector<char>* A = &(&this&)->__0;
    int64 B = ULang:Vector<char>:Capacity^ULang:Vector<char>&imut(A);
    ret = B;
    ret;
@@ -2088,7 +2143,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:69
 
-   ULang:String_t<char>* A = &(&this&)->__0;
+   ULang:Vector<char>* A = &(&this&)->__0;
    int64 B = Size;
    void C = ULang:Vector<char>:Resize^ULang:Vector<char>&,uptr(A,B);
    ret;
@@ -2103,7 +2158,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:70
 
-   ULang:String_t<char>* A = &(&this&)->__0;
+   ULang:Vector<char>* A = &(&this&)->__0;
    int64 B = Size;
    void C = ULang:Vector<char>:Reserve^ULang:Vector<char>&,uptr(A,B);
    ret;
@@ -2117,7 +2172,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:71
 
-   ULang:String_t<char>* A = &(&this&)->__0;
+   ULang:Vector<char>* A = &(&this&)->__0;
    void B = ULang:Vector<char>:Clear^ULang:Vector<char>&(A);
    ret;
 
@@ -2130,7 +2185,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:73
 
-   ULang:String_t<char>* A = &(&this&)->__0;
+   ULang:Vector<char>* A = &(&this&)->__0;
    int8 B = ULang:Vector<char>:Pop^ULang:Vector<char>&(A);
    ret = B;
    ret;
@@ -2145,7 +2200,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:74
 
-   ULang:String_t<char>* A = &(&this&)->__0;
+   ULang:Vector<char>* A = &(&this&)->__0;
    int64 B = Index;
    int8 C = ULang:Vector<char>:Remove^ULang:Vector<char>&,uptr(A,B);
    ret = C;
@@ -2161,7 +2216,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:76
 
-   ULang:String_t<char>* A = &(&this&)->__0;
+   ULang:Vector<char>* A = &(&this&)->__0;
    void* B = Val;
    void C = ULang:Vector<char>:Push^ULang:Vector<char>&,c&imut(A,B);
    ret;
@@ -2177,7 +2232,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:79
 
-   ULang:String_t<char>* A = &(&this&)->__0;
+   ULang:Vector<char>* A = &(&this&)->__0;
    int64 B = Index;
    void* C = Item;
    void D = ULang:Vector<char>:Insert^ULang:Vector<char>&,uptr,c&imut(A,B,C);
@@ -2196,7 +2251,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 
 //Line:83
 
-   ULang:String_t<char>* A = &(&this&)->__0;
+   ULang:Vector<char>* A = &(&this&)->__0;
    int64 B = Index;
    void* C = ULang:Vector<char>:(&Index&)^ULang:Vector<char>&,uptr(A,B);
    ret = C;
@@ -2215,7 +2270,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 
 //Line:84
 
-   ULang:String_t<char>* A = &(&this&)->__0;
+   ULang:Vector<char>* A = &(&this&)->__0;
    int64 B = Index;
    void* C = ULang:Vector<char>:(&Index&)^ULang:Vector<char>&,uptr(A,B);
    ret = C;
@@ -2231,7 +2286,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:86
 
-   ULang:String_t<char>* A = &(&this&)->__0;
+   ULang:Vector<char>* A = &(&this&)->__0;
    ULang:Span<char> B = Val;
    void C = ULang:Vector<char>:Append^ULang:Vector<char>&,ULang:Span<char>imut(A,B);
    ret;
@@ -2449,7 +2504,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/Span.uc
 //Line:7
 
-   int32 A = 0;
+   int64 A = 0;
    (&this&)->__0 = A;
 
 //Line:8
@@ -2617,7 +2672,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/Vector.uc
 //Line:9
 
-   int32 A = 0;
+   int64 A = 0;
    (&this&)->__0 = A;
 
 //Line:10
@@ -3505,7 +3560,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/Span.uc
 //Line:7
 
-   int32 A = 0;
+   int64 A = 0;
    (&this&)->__0 = A;
 
 //Line:8
@@ -3673,7 +3728,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/Vector.uc
 //Line:9
 
-   int32 A = 0;
+   int64 A = 0;
    (&this&)->__0 = A;
 
 //Line:10
@@ -4138,7 +4193,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/Span.uc
 //Line:7
 
-   int32 A = 0;
+   int64 A = 0;
    (&this&)->__0 = A;
 
 //Line:8
@@ -4306,7 +4361,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/Vector.uc
 //Line:9
 
-   int32 A = 0;
+   int64 A = 0;
    (&this&)->__0 = A;
 
 //Line:10
@@ -4586,7 +4641,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:12
 
-   int32 A = 0;
+   int64 A = 0;
    (&this&)->__0 = A;
 
 //Line:13
@@ -4688,7 +4743,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 
    int64 J;
 
-//Varable:ULang:StringSpan_t<uft8>:(&equal&):2270304464448:i
+//Varable:ULang:StringSpan_t<uft8>:(&equal&):2061104310400:i
 
    int32 K = 0;
    J = K;
@@ -4710,30 +4765,32 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
    ULang:StringSpan_t<uft8>* T = S;
    int64 U = J;
    void* V = ULang:StringSpan_t<uft8>:(&Index&)^ULang:StringSpan_t<uft8>&,uptr(T,U);
-   ULang:StringSpan_t<uft8>* W = Other;
-   int64 X = J;
-   void* Y = ULang:StringSpan_t<uft8>:(&Index&)^ULang:StringSpan_t<uft8>&,uptr(W,X);
-   int8 Z = Y!=V;
-   int8 [ = !Z;
-   gotoif ([) _label3;
-   int8 \ = 0;
-   ret = \;
+   int8 W = *V;
+   ULang:StringSpan_t<uft8>* X = Other;
+   int64 Y = J;
+   void* Z = ULang:StringSpan_t<uft8>:(&Index&)^ULang:StringSpan_t<uft8>&,uptr(X,Y);
+   int8 [ = *Z;
+   int8 \ = [!=W;
+   int8 ] = !\;
+   gotoif (]) _label3;
+   int8 ^ = 0;
+   ret = ^;
    goto _label1;
 
 //Line:26
    _label3:
 
-   int64 ] = J;
-   int64 ^ = 1;
-   int64 _ = ]+^;
-   J = _;
+   int64 _ = J;
+   int64 ` = 1;
+   int64 a = _+`;
+   J = a;
    goto _label4;
 
 //Line:30
    _label2:
 
-   int8 ` = 1;
-   ret = `;
+   int8 b = 1;
+   ret = b;
 
    _label1:
 
@@ -4953,7 +5010,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 
    int64 E;
 
-//Varable:ULang:String_t<uft8>:(&_new&):2270304482512:i
+//Varable:ULang:String_t<uft8>:(&_new&):2061104310752:i
 
    int32 F = 0;
    E = F;
@@ -4978,14 +5035,15 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
    ULang:String_t<uft8>* P = O;
    int64 Q = E;
    void* R = ULang:String_t<uft8>:(&Index&)^ULang:String_t<uft8>&,uptr(P,Q);
+   int8 S = *R;
    R = N;
 
 //Line:59
 
-   int64 S = E;
-   int64 T = 1;
-   int64 U = S+T;
-   E = U;
+   int64 T = E;
+   int64 U = 1;
+   int64 V = T+U;
+   E = V;
    goto _label1;
 
    _label0:
@@ -5001,7 +5059,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:62
 
-   ULang:String_t<uft8>* A = &(&this&)->__0;
+   ULang:Vector<uft8>* A = &(&this&)->__0;
    void* B = ULang:Vector<uft8>:Data^ULang:Vector<uft8>&(A);
    ret = B;
    ret;
@@ -5015,7 +5073,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:63
 
-   ULang:String_t<uft8>* A = &(&this&)->__0;
+   ULang:Vector<uft8>* A = &(&this&)->__0;
    void* B = ULang:Vector<uft8>:Data^ULang:Vector<uft8>&(A);
    ret = B;
    ret;
@@ -5029,7 +5087,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:66
 
-   ULang:String_t<uft8>* A = &(&this&)->__0;
+   ULang:Vector<uft8>* A = &(&this&)->__0;
    int64 B = ULang:Vector<uft8>:Size^ULang:Vector<uft8>&imut(A);
    ret = B;
    ret;
@@ -5043,7 +5101,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:67
 
-   ULang:String_t<uft8>* A = &(&this&)->__0;
+   ULang:Vector<uft8>* A = &(&this&)->__0;
    int64 B = ULang:Vector<uft8>:Capacity^ULang:Vector<uft8>&imut(A);
    ret = B;
    ret;
@@ -5058,7 +5116,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:69
 
-   ULang:String_t<uft8>* A = &(&this&)->__0;
+   ULang:Vector<uft8>* A = &(&this&)->__0;
    int64 B = Size;
    void C = ULang:Vector<uft8>:Resize^ULang:Vector<uft8>&,uptr(A,B);
    ret;
@@ -5073,7 +5131,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:70
 
-   ULang:String_t<uft8>* A = &(&this&)->__0;
+   ULang:Vector<uft8>* A = &(&this&)->__0;
    int64 B = Size;
    void C = ULang:Vector<uft8>:Reserve^ULang:Vector<uft8>&,uptr(A,B);
    ret;
@@ -5087,7 +5145,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:71
 
-   ULang:String_t<uft8>* A = &(&this&)->__0;
+   ULang:Vector<uft8>* A = &(&this&)->__0;
    void B = ULang:Vector<uft8>:Clear^ULang:Vector<uft8>&(A);
    ret;
 
@@ -5100,7 +5158,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:73
 
-   ULang:String_t<uft8>* A = &(&this&)->__0;
+   ULang:Vector<uft8>* A = &(&this&)->__0;
    int8 B = ULang:Vector<uft8>:Pop^ULang:Vector<uft8>&(A);
    ret = B;
    ret;
@@ -5115,7 +5173,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:74
 
-   ULang:String_t<uft8>* A = &(&this&)->__0;
+   ULang:Vector<uft8>* A = &(&this&)->__0;
    int64 B = Index;
    int8 C = ULang:Vector<uft8>:Remove^ULang:Vector<uft8>&,uptr(A,B);
    ret = C;
@@ -5131,7 +5189,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:76
 
-   ULang:String_t<uft8>* A = &(&this&)->__0;
+   ULang:Vector<uft8>* A = &(&this&)->__0;
    void* B = Val;
    void C = ULang:Vector<uft8>:Push^ULang:Vector<uft8>&,&imut(A,B);
    ret;
@@ -5147,7 +5205,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:79
 
-   ULang:String_t<uft8>* A = &(&this&)->__0;
+   ULang:Vector<uft8>* A = &(&this&)->__0;
    int64 B = Index;
    void* C = Item;
    void D = ULang:Vector<uft8>:Insert^ULang:Vector<uft8>&,uptr,&imut(A,B,C);
@@ -5166,7 +5224,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 
 //Line:83
 
-   ULang:String_t<uft8>* A = &(&this&)->__0;
+   ULang:Vector<uft8>* A = &(&this&)->__0;
    int64 B = Index;
    void* C = ULang:Vector<uft8>:(&Index&)^ULang:Vector<uft8>&,uptr(A,B);
    ret = C;
@@ -5185,7 +5243,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 
 //Line:84
 
-   ULang:String_t<uft8>* A = &(&this&)->__0;
+   ULang:Vector<uft8>* A = &(&this&)->__0;
    int64 B = Index;
    void* C = ULang:Vector<uft8>:(&Index&)^ULang:Vector<uft8>&,uptr(A,B);
    ret = C;
@@ -5201,7 +5259,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:86
 
-   ULang:String_t<uft8>* A = &(&this&)->__0;
+   ULang:Vector<uft8>* A = &(&this&)->__0;
    ULang:Span<uft8> B = Val;
    void C = ULang:Vector<uft8>:Append^ULang:Vector<uft8>&,ULang:Span<uft8>imut(A,B);
    ret;
@@ -5419,7 +5477,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/Span.uc
 //Line:7
 
-   int32 A = 0;
+   int64 A = 0;
    (&this&)->__0 = A;
 
 //Line:8
@@ -5587,7 +5645,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/Vector.uc
 //Line:9
 
-   int32 A = 0;
+   int64 A = 0;
    (&this&)->__0 = A;
 
 //Line:10
@@ -5867,7 +5925,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:12
 
-   int32 A = 0;
+   int64 A = 0;
    (&this&)->__0 = A;
 
 //Line:13
@@ -5969,7 +6027,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 
    int64 J;
 
-//Varable:ULang:StringSpan_t<uft16>:(&equal&):2270304464448:i
+//Varable:ULang:StringSpan_t<uft16>:(&equal&):2061104310400:i
 
    int32 K = 0;
    J = K;
@@ -5991,30 +6049,32 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
    ULang:StringSpan_t<uft16>* T = S;
    int64 U = J;
    void* V = ULang:StringSpan_t<uft16>:(&Index&)^ULang:StringSpan_t<uft16>&,uptr(T,U);
-   ULang:StringSpan_t<uft16>* W = Other;
-   int64 X = J;
-   void* Y = ULang:StringSpan_t<uft16>:(&Index&)^ULang:StringSpan_t<uft16>&,uptr(W,X);
-   int8 Z = Y!=V;
-   int8 [ = !Z;
-   gotoif ([) _label3;
-   int8 \ = 0;
-   ret = \;
+   int16 W = *V;
+   ULang:StringSpan_t<uft16>* X = Other;
+   int64 Y = J;
+   void* Z = ULang:StringSpan_t<uft16>:(&Index&)^ULang:StringSpan_t<uft16>&,uptr(X,Y);
+   int16 [ = *Z;
+   int8 \ = [!=W;
+   int8 ] = !\;
+   gotoif (]) _label3;
+   int8 ^ = 0;
+   ret = ^;
    goto _label1;
 
 //Line:26
    _label3:
 
-   int64 ] = J;
-   int64 ^ = 1;
-   int64 _ = ]+^;
-   J = _;
+   int64 _ = J;
+   int64 ` = 1;
+   int64 a = _+`;
+   J = a;
    goto _label4;
 
 //Line:30
    _label2:
 
-   int8 ` = 1;
-   ret = `;
+   int8 b = 1;
+   ret = b;
 
    _label1:
 
@@ -6234,7 +6294,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 
    int64 E;
 
-//Varable:ULang:String_t<uft16>:(&_new&):2270304482512:i
+//Varable:ULang:String_t<uft16>:(&_new&):2061104310752:i
 
    int32 F = 0;
    E = F;
@@ -6259,14 +6319,15 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
    ULang:String_t<uft16>* P = O;
    int64 Q = E;
    void* R = ULang:String_t<uft16>:(&Index&)^ULang:String_t<uft16>&,uptr(P,Q);
+   int16 S = *R;
    R = N;
 
 //Line:59
 
-   int64 S = E;
-   int64 T = 1;
-   int64 U = S+T;
-   E = U;
+   int64 T = E;
+   int64 U = 1;
+   int64 V = T+U;
+   E = V;
    goto _label1;
 
    _label0:
@@ -6282,7 +6343,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:62
 
-   ULang:String_t<uft16>* A = &(&this&)->__0;
+   ULang:Vector<uft16>* A = &(&this&)->__0;
    void* B = ULang:Vector<uft16>:Data^ULang:Vector<uft16>&(A);
    ret = B;
    ret;
@@ -6296,7 +6357,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:63
 
-   ULang:String_t<uft16>* A = &(&this&)->__0;
+   ULang:Vector<uft16>* A = &(&this&)->__0;
    void* B = ULang:Vector<uft16>:Data^ULang:Vector<uft16>&(A);
    ret = B;
    ret;
@@ -6310,7 +6371,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:66
 
-   ULang:String_t<uft16>* A = &(&this&)->__0;
+   ULang:Vector<uft16>* A = &(&this&)->__0;
    int64 B = ULang:Vector<uft16>:Size^ULang:Vector<uft16>&imut(A);
    ret = B;
    ret;
@@ -6324,7 +6385,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:67
 
-   ULang:String_t<uft16>* A = &(&this&)->__0;
+   ULang:Vector<uft16>* A = &(&this&)->__0;
    int64 B = ULang:Vector<uft16>:Capacity^ULang:Vector<uft16>&imut(A);
    ret = B;
    ret;
@@ -6339,7 +6400,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:69
 
-   ULang:String_t<uft16>* A = &(&this&)->__0;
+   ULang:Vector<uft16>* A = &(&this&)->__0;
    int64 B = Size;
    void C = ULang:Vector<uft16>:Resize^ULang:Vector<uft16>&,uptr(A,B);
    ret;
@@ -6354,7 +6415,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:70
 
-   ULang:String_t<uft16>* A = &(&this&)->__0;
+   ULang:Vector<uft16>* A = &(&this&)->__0;
    int64 B = Size;
    void C = ULang:Vector<uft16>:Reserve^ULang:Vector<uft16>&,uptr(A,B);
    ret;
@@ -6368,7 +6429,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:71
 
-   ULang:String_t<uft16>* A = &(&this&)->__0;
+   ULang:Vector<uft16>* A = &(&this&)->__0;
    void B = ULang:Vector<uft16>:Clear^ULang:Vector<uft16>&(A);
    ret;
 
@@ -6381,7 +6442,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:73
 
-   ULang:String_t<uft16>* A = &(&this&)->__0;
+   ULang:Vector<uft16>* A = &(&this&)->__0;
    int16 B = ULang:Vector<uft16>:Pop^ULang:Vector<uft16>&(A);
    ret = B;
    ret;
@@ -6396,7 +6457,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:74
 
-   ULang:String_t<uft16>* A = &(&this&)->__0;
+   ULang:Vector<uft16>* A = &(&this&)->__0;
    int64 B = Index;
    int16 C = ULang:Vector<uft16>:Remove^ULang:Vector<uft16>&,uptr(A,B);
    ret = C;
@@ -6412,7 +6473,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:76
 
-   ULang:String_t<uft16>* A = &(&this&)->__0;
+   ULang:Vector<uft16>* A = &(&this&)->__0;
    void* B = Val;
    void C = ULang:Vector<uft16>:Push^ULang:Vector<uft16>&,&imut(A,B);
    ret;
@@ -6428,7 +6489,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:79
 
-   ULang:String_t<uft16>* A = &(&this&)->__0;
+   ULang:Vector<uft16>* A = &(&this&)->__0;
    int64 B = Index;
    void* C = Item;
    void D = ULang:Vector<uft16>:Insert^ULang:Vector<uft16>&,uptr,&imut(A,B,C);
@@ -6447,7 +6508,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 
 //Line:83
 
-   ULang:String_t<uft16>* A = &(&this&)->__0;
+   ULang:Vector<uft16>* A = &(&this&)->__0;
    int64 B = Index;
    void* C = ULang:Vector<uft16>:(&Index&)^ULang:Vector<uft16>&,uptr(A,B);
    ret = C;
@@ -6466,7 +6527,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 
 //Line:84
 
-   ULang:String_t<uft16>* A = &(&this&)->__0;
+   ULang:Vector<uft16>* A = &(&this&)->__0;
    int64 B = Index;
    void* C = ULang:Vector<uft16>:(&Index&)^ULang:Vector<uft16>&,uptr(A,B);
    ret = C;
@@ -6482,7 +6543,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:86
 
-   ULang:String_t<uft16>* A = &(&this&)->__0;
+   ULang:Vector<uft16>* A = &(&this&)->__0;
    ULang:Span<uft16> B = Val;
    void C = ULang:Vector<uft16>:Append^ULang:Vector<uft16>&,ULang:Span<uft16>imut(A,B);
    ret;
@@ -6700,7 +6761,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/Span.uc
 //Line:7
 
-   int32 A = 0;
+   int64 A = 0;
    (&this&)->__0 = A;
 
 //Line:8
@@ -6868,7 +6929,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/Vector.uc
 //Line:9
 
-   int32 A = 0;
+   int64 A = 0;
    (&this&)->__0 = A;
 
 //Line:10
@@ -7148,7 +7209,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:12
 
-   int32 A = 0;
+   int64 A = 0;
    (&this&)->__0 = A;
 
 //Line:13
@@ -7250,7 +7311,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 
    int64 J;
 
-//Varable:ULang:StringSpan_t<uft32>:(&equal&):2270304464448:i
+//Varable:ULang:StringSpan_t<uft32>:(&equal&):2061104310400:i
 
    int32 K = 0;
    J = K;
@@ -7272,30 +7333,32 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
    ULang:StringSpan_t<uft32>* T = S;
    int64 U = J;
    void* V = ULang:StringSpan_t<uft32>:(&Index&)^ULang:StringSpan_t<uft32>&,uptr(T,U);
-   ULang:StringSpan_t<uft32>* W = Other;
-   int64 X = J;
-   void* Y = ULang:StringSpan_t<uft32>:(&Index&)^ULang:StringSpan_t<uft32>&,uptr(W,X);
-   int8 Z = Y!=V;
-   int8 [ = !Z;
-   gotoif ([) _label3;
-   int8 \ = 0;
-   ret = \;
+   int32 W = *V;
+   ULang:StringSpan_t<uft32>* X = Other;
+   int64 Y = J;
+   void* Z = ULang:StringSpan_t<uft32>:(&Index&)^ULang:StringSpan_t<uft32>&,uptr(X,Y);
+   int32 [ = *Z;
+   int8 \ = [!=W;
+   int8 ] = !\;
+   gotoif (]) _label3;
+   int8 ^ = 0;
+   ret = ^;
    goto _label1;
 
 //Line:26
    _label3:
 
-   int64 ] = J;
-   int64 ^ = 1;
-   int64 _ = ]+^;
-   J = _;
+   int64 _ = J;
+   int64 ` = 1;
+   int64 a = _+`;
+   J = a;
    goto _label4;
 
 //Line:30
    _label2:
 
-   int8 ` = 1;
-   ret = `;
+   int8 b = 1;
+   ret = b;
 
    _label1:
 
@@ -7515,7 +7578,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 
    int64 E;
 
-//Varable:ULang:String_t<uft32>:(&_new&):2270304482512:i
+//Varable:ULang:String_t<uft32>:(&_new&):2061104310752:i
 
    int32 F = 0;
    E = F;
@@ -7540,14 +7603,15 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
    ULang:String_t<uft32>* P = O;
    int64 Q = E;
    void* R = ULang:String_t<uft32>:(&Index&)^ULang:String_t<uft32>&,uptr(P,Q);
+   int32 S = *R;
    R = N;
 
 //Line:59
 
-   int64 S = E;
-   int64 T = 1;
-   int64 U = S+T;
-   E = U;
+   int64 T = E;
+   int64 U = 1;
+   int64 V = T+U;
+   E = V;
    goto _label1;
 
    _label0:
@@ -7563,7 +7627,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:62
 
-   ULang:String_t<uft32>* A = &(&this&)->__0;
+   ULang:Vector<uft32>* A = &(&this&)->__0;
    void* B = ULang:Vector<uft32>:Data^ULang:Vector<uft32>&(A);
    ret = B;
    ret;
@@ -7577,7 +7641,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:63
 
-   ULang:String_t<uft32>* A = &(&this&)->__0;
+   ULang:Vector<uft32>* A = &(&this&)->__0;
    void* B = ULang:Vector<uft32>:Data^ULang:Vector<uft32>&(A);
    ret = B;
    ret;
@@ -7591,7 +7655,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:66
 
-   ULang:String_t<uft32>* A = &(&this&)->__0;
+   ULang:Vector<uft32>* A = &(&this&)->__0;
    int64 B = ULang:Vector<uft32>:Size^ULang:Vector<uft32>&imut(A);
    ret = B;
    ret;
@@ -7605,7 +7669,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:67
 
-   ULang:String_t<uft32>* A = &(&this&)->__0;
+   ULang:Vector<uft32>* A = &(&this&)->__0;
    int64 B = ULang:Vector<uft32>:Capacity^ULang:Vector<uft32>&imut(A);
    ret = B;
    ret;
@@ -7620,7 +7684,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:69
 
-   ULang:String_t<uft32>* A = &(&this&)->__0;
+   ULang:Vector<uft32>* A = &(&this&)->__0;
    int64 B = Size;
    void C = ULang:Vector<uft32>:Resize^ULang:Vector<uft32>&,uptr(A,B);
    ret;
@@ -7635,7 +7699,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:70
 
-   ULang:String_t<uft32>* A = &(&this&)->__0;
+   ULang:Vector<uft32>* A = &(&this&)->__0;
    int64 B = Size;
    void C = ULang:Vector<uft32>:Reserve^ULang:Vector<uft32>&,uptr(A,B);
    ret;
@@ -7649,7 +7713,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:71
 
-   ULang:String_t<uft32>* A = &(&this&)->__0;
+   ULang:Vector<uft32>* A = &(&this&)->__0;
    void B = ULang:Vector<uft32>:Clear^ULang:Vector<uft32>&(A);
    ret;
 
@@ -7662,7 +7726,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:73
 
-   ULang:String_t<uft32>* A = &(&this&)->__0;
+   ULang:Vector<uft32>* A = &(&this&)->__0;
    int32 B = ULang:Vector<uft32>:Pop^ULang:Vector<uft32>&(A);
    ret = B;
    ret;
@@ -7677,7 +7741,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:74
 
-   ULang:String_t<uft32>* A = &(&this&)->__0;
+   ULang:Vector<uft32>* A = &(&this&)->__0;
    int64 B = Index;
    int32 C = ULang:Vector<uft32>:Remove^ULang:Vector<uft32>&,uptr(A,B);
    ret = C;
@@ -7693,7 +7757,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:76
 
-   ULang:String_t<uft32>* A = &(&this&)->__0;
+   ULang:Vector<uft32>* A = &(&this&)->__0;
    void* B = Val;
    void C = ULang:Vector<uft32>:Push^ULang:Vector<uft32>&,&imut(A,B);
    ret;
@@ -7709,7 +7773,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:79
 
-   ULang:String_t<uft32>* A = &(&this&)->__0;
+   ULang:Vector<uft32>* A = &(&this&)->__0;
    int64 B = Index;
    void* C = Item;
    void D = ULang:Vector<uft32>:Insert^ULang:Vector<uft32>&,uptr,&imut(A,B,C);
@@ -7728,7 +7792,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 
 //Line:83
 
-   ULang:String_t<uft32>* A = &(&this&)->__0;
+   ULang:Vector<uft32>* A = &(&this&)->__0;
    int64 B = Index;
    void* C = ULang:Vector<uft32>:(&Index&)^ULang:Vector<uft32>&,uptr(A,B);
    ret = C;
@@ -7747,7 +7811,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 
 //Line:84
 
-   ULang:String_t<uft32>* A = &(&this&)->__0;
+   ULang:Vector<uft32>* A = &(&this&)->__0;
    int64 B = Index;
    void* C = ULang:Vector<uft32>:(&Index&)^ULang:Vector<uft32>&,uptr(A,B);
    ret = C;
@@ -7763,7 +7827,7 @@ static uint8[/5]:int8 .Const.SpanString:World= [87,111,114,108,100]
 //File:/Types/String.uc
 //Line:86
 
-   ULang:String_t<uft32>* A = &(&this&)->__0;
+   ULang:Vector<uft32>* A = &(&this&)->__0;
    ULang:Span<uft32> B = Val;
    void C = ULang:Vector<uft32>:Append^ULang:Vector<uft32>&,ULang:Span<uft32>imut(A,B);
    ret;

@@ -23,7 +23,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 	if (BuildCode)
 	{
 		Data = &_BinaryExpressionNode_Datas.GetValue(Symbol_GetSymbolID(node));
-		_LookingForTypes.top() = Data->Op1;
+		_LookingForTypes.top() = Data->Op0;
 
 		if (Data->FuncToCall)
 		{
@@ -46,7 +46,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 
 		if (BuildCode)
 		{
-			_LookingForTypes.top() = Data->Op0;
+			_LookingForTypes.top() = Data->Op1;
 		}
 		else
 		{
@@ -68,10 +68,6 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 			if (!Info.HasValue)
 			{
 				auto v = ToString(Ex0Type);
-				if (v == "imut ULang:StringSpan_t<uft8>&")
-				{
-					int a = 0;
-				}
 
 				LogError_CantFindBinaryOpForTypes(BinaryOp, Ex0Type, Ex1Type);
 			}
@@ -102,6 +98,8 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 				_LastExpressionType = Type_BinaryExpressionShouldRurn(Op, Ex0Type);
 			}
 
+
+			
 			_BinaryExpressionNode_Datas.AddValue(Symbol_GetSymbolID(node), V);
 
 
