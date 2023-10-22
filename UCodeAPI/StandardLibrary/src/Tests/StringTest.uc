@@ -13,15 +13,15 @@ Tests:
  |StringSpan_3[]:
   ret "Hello" == "Hello";
 
- //[Test]
+ [Test]
  |StringSpan_4[]:
   String Txt = "Hello";
   ret Txt == "Hello";
 
  [Test]
  |StringSpan_5[]:
-  String Txt = [];
-  ret Txt.Size() == 0;
+  String Txt = "World";
+  ret Txt != "Hello";
 
 
   

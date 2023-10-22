@@ -483,9 +483,10 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			if (Info->Pars.size() == 2)
 			{
 				auto& Classinfo = _ClassStack.top().Info;
+				auto classsybid = _ClassStack.top().Syb->ID;
 				auto& OtherPar = Info->Pars[1];
 				if (OtherPar.Type.IsAddress() && OtherPar.IsOutPar == false
-					&& OtherPar.Type._CustomTypeSymbol == syb->ID)
+					&& OtherPar.Type._CustomTypeSymbol == classsybid)
 				{
 					if (OtherPar.Type.IsMovedType())
 					{

@@ -319,7 +319,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 
 						auto Func = Type_GetFunc(syb->VarType, {});
 						Func.ThisPar = Get_FuncInfo::ThisPar_t::PushFromLast;
-						_IR_LastExpressionField = output;
+						_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoadPtr(output);
 
 						IR_Build_FuncCall(syb->VarType, Func, {});
 					}
