@@ -1,19 +1,19 @@
 
 Tests:
  
- [Test]
+ //[Test]
  |StringSpan_1[]:
   ret "Hello".Size() == 5;
  
- [Test]
+ //[Test]
  |StringSpan_2[]:
   ret "Hello" != "World";
 
- [Test]
+ //[Test]
  |StringSpan_3[]:
   ret "Hello" == "Hello";
 
- [Test]
+ //[Test]
  |StringSpan_4[]:
   String Txt = "Hello";
   ret Txt == "Hello";

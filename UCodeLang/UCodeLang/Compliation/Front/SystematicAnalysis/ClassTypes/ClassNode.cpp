@@ -359,7 +359,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 				auto OldFunc = _IR_LookingAtIRFunc;
 				auto OldBlock = _IR_LookingAtIRBlock;
 				//
-				_IR_LookingAtIRFunc = _IR_Builder.NewFunc(IR_GetIRID(&V), IR_ConvertToIRType(V.Ret));
+				_IR_LookingAtIRFunc = _IR_Builder.NewFunc(V.FullName, IR_ConvertToIRType(V.Ret));
 				IRType ThisPar = IR_ConvertToIRType(V.Pars.front());
 				{
 					IRPar par = IRPar();

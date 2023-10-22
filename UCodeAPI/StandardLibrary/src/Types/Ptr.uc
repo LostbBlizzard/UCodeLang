@@ -14,8 +14,8 @@ $Ptr<T>:
   |Get[this&] -> T&:ret _base;
   |Get[imut this&] -> imut T&:ret _base;
   
-  |Write[this&,imut T& newvalue] -> void;//Get() = newvalue;
-  |Write[this&,moved T newvalue] -> void;//Get() = newvalue;
+  |Write[this&,imut T& newvalue] -> void:Get() = newvalue;
+  |Write[this&,moved T newvalue] -> void:Get() = newvalue;
 
   |ReadPtr[imut this&] -> imut T&:ret Get();
 
