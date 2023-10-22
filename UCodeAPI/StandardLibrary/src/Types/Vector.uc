@@ -29,6 +29,7 @@ $Vector<T>:
       var oldsize = _size;
       var old = _data;
 
+
       _capacity = Size;
       _data = unsafe new T[Size];
       for [uintptr i = 0;i < oldsize;i++]:

@@ -246,6 +246,25 @@ typedef struct
 typedef struct 
 {
  void* __0; 
+
+} ULang_Ptr_sint32_;
+
+typedef struct 
+{
+ float32_t __0; 
+ float32_t __1; 
+
+} ULang_Vec2f_t_float32_;
+
+typedef struct 
+{
+ ULang_Vec2f_t_float32_* __0; 
+
+} ULang_Ptr_ULang_Vec2f_t_float32__;
+
+typedef struct 
+{
+ void* __0; 
  int64_t __1; 
  int64_t __2; 
 
@@ -257,6 +276,12 @@ typedef struct
  int64_t __1; 
 
 } ULang_Span_sint32_;
+
+typedef struct 
+{
+ ULang_Empty* __0; 
+
+} ULang_Ptr_ULang_Empty_;
 
 typedef struct 
 {
@@ -326,13 +351,6 @@ typedef struct
 
 typedef struct 
 {
- float32_t __0; 
- float32_t __1; 
-
-} ULang_Vec2f_t_float32_;
-
-typedef struct 
-{
  int32_t __0; 
  int32_t __1; 
 
@@ -353,24 +371,6 @@ typedef struct
  int32_t __2; 
 
 } ULang_Vec3f_t_sint32_;
-
-typedef struct 
-{
- ULang_Empty* __0; 
-
-} ULang_Ptr_ULang_Empty_;
-
-typedef struct 
-{
- void* __0; 
-
-} ULang_Ptr_sint32_;
-
-typedef struct 
-{
- ULang_Vec2f_t_float32_* __0; 
-
-} ULang_Ptr_ULang_Vec2f_t_float32__;
 
 typedef struct 
 {
@@ -505,6 +505,11 @@ int8_t ULang_Tests_Max_1();
 int8_t ULang_Tests_Max_2();
 int8_t ULang_Tests_Min_1();
 int8_t ULang_Tests_Min_2();
+int8_t ULang_Tests_Ptr_1();
+int8_t ULang_Tests_Ptr_2();
+int8_t ULang_Tests_Ptr_3();
+int8_t ULang_Tests_Ptr_4();
+int8_t ULang_Tests_Ptr_5();
 int8_t ULang_Tests_StringSpan_1();
 int8_t ULang_Tests_StringSpan_2();
 int8_t ULang_Tests_StringSpan_3();
@@ -514,11 +519,6 @@ int8_t ULang_Tests_Vector_2();
 void ULang_Future____new___ULang_Future_(ULang_Future* __this__);
 void ULang_Thread____new___ULang_Thread_(ULang_Thread* __this__);
 void ULang_Path____new___ULang_Path_(ULang_Path* __this__);
-int8_t ULang_Tests_Ptr_1();
-int8_t ULang_Tests_Ptr_2();
-int8_t ULang_Tests_Ptr_3();
-int8_t ULang_Tests_Ptr_4();
-int8_t ULang_Tests_Ptr_5();
 void ULang_Range_t_uintptr_____new___ULang_Range_t_uintptr__(ULang_Range_t_uintptr_* __this__);
 void ULang_Range_t_uintptr_____new___ULang_Range_t_uintptr___uptr_uptr(ULang_Range_t_uintptr_* __this__,int64_t start,int64_t end);
 int64_t ULang_Range_t_uintptr__Start_ULang_Range_t_uintptr__imut(ULang_Range_t_uintptr_* __this__);
@@ -627,6 +627,40 @@ ULang_Span_uint8_ ULang_Vector_uint8__AsSpan_ULang_Vector_uint8__(ULang_Vector_u
 ULang_Span_uint8_ ULang_Vector_uint8__AsSpan_ULang_Vector_uint8__imut(ULang_Vector_uint8_* __this__);
 int32_t ULang_Math_Max_sint32__i32_i32(int32_t A,int32_t B);
 int32_t ULang_Math_Min_sint32__i32_i32(int32_t A,int32_t B);
+void ULang_Ptr_sint32_____new___ULang_Ptr_sint32___i32_(ULang_Ptr_sint32_* __this__,void* base);
+void* ULang_Ptr_sint32__Get_ULang_Ptr_sint32__(ULang_Ptr_sint32_* __this__);
+void* ULang_Ptr_sint32__Get_ULang_Ptr_sint32__imut(ULang_Ptr_sint32_* __this__);
+void ULang_Ptr_sint32__Write_ULang_Ptr_sint32___i32_imut(ULang_Ptr_sint32_* __this__,void* newvalue);
+void ULang_Ptr_sint32__Write_ULang_Ptr_sint32___i32mov(ULang_Ptr_sint32_* __this__,int32_t newvalue);
+void* ULang_Ptr_sint32__ReadPtr_ULang_Ptr_sint32__imut(ULang_Ptr_sint32_* __this__);
+void* ULang_Ptr_sint32____IndirectMember___ULang_Ptr_sint32__(ULang_Ptr_sint32_* __this__);
+void* ULang_Ptr_sint32____IndirectMember___ULang_Ptr_sint32__imut(ULang_Ptr_sint32_* __this__);
+void ULang_Ptr_sint32__ReassignTo_ULang_Ptr_sint32___i32_(ULang_Ptr_sint32_* __this__,void* newbase);
+ULang_Ptr_sint32_ ULang_Ptr_sint32__Make_i32_imut(void* V);
+ULang_Ptr_sint32_ ULang_Ptr_sint32__Make_i32_(void* V);
+void ULang_Ptr_sint32_____new___ULang_Ptr_sint32__(ULang_Ptr_sint32_* __this__);
+ULang_Ptr_sint32_ ULang_ptr_sint32__i32_(void* V);
+void ULang_Vec2f_t_float32_____new___ULang_Vec2f_t_float32__(ULang_Vec2f_t_float32_* __this__);
+void ULang_Vec2f_t_float32_____new___ULang_Vec2f_t_float32___f32_f32(ULang_Vec2f_t_float32_* __this__,float32_t x,float32_t y);
+int8_t ULang_Vec2f_t_float32____equal___ULang_Vec2f_t_float32__imut_ULang_Vec2f_t_float32__imut(ULang_Vec2f_t_float32_* __this__,ULang_Vec2f_t_float32_* Other);
+int8_t ULang_Vec2f_t_float32____notequal___ULang_Vec2f_t_float32__imut_ULang_Vec2f_t_float32__imut(ULang_Vec2f_t_float32_* __this__,ULang_Vec2f_t_float32_* Other);
+void ULang_Vec2f_t_float32____Compound_Plus___ULang_Vec2f_t_float32___ULang_Vec2f_t_float32__imut(ULang_Vec2f_t_float32_* __this__,ULang_Vec2f_t_float32_* Other);
+void ULang_Vec2f_t_float32____Compound_Sub___ULang_Vec2f_t_float32___ULang_Vec2f_t_float32__imut(ULang_Vec2f_t_float32_* __this__,ULang_Vec2f_t_float32_* Other);
+ULang_Vec2f_t_float32_ ULang_Vec2f_t_float32____Plus___ULang_Vec2f_t_float32__imut_ULang_Vec2f_t_float32__imut(ULang_Vec2f_t_float32_* __this__,ULang_Vec2f_t_float32_* Other);
+ULang_Vec2f_t_float32_ ULang_Vec2f_t_float32____Minus___ULang_Vec2f_t_float32__imut_ULang_Vec2f_t_float32__imut(ULang_Vec2f_t_float32_* __this__,ULang_Vec2f_t_float32_* Other);
+void ULang_Ptr_ULang_Vec2f_t_float32______new___ULang_Ptr_ULang_Vec2f_t_float32____ULang_Vec2f_t_float32__(ULang_Ptr_ULang_Vec2f_t_float32__* __this__,ULang_Vec2f_t_float32_* base);
+ULang_Vec2f_t_float32_* ULang_Ptr_ULang_Vec2f_t_float32___Get_ULang_Ptr_ULang_Vec2f_t_float32___(ULang_Ptr_ULang_Vec2f_t_float32__* __this__);
+ULang_Vec2f_t_float32_* ULang_Ptr_ULang_Vec2f_t_float32___Get_ULang_Ptr_ULang_Vec2f_t_float32___imut(ULang_Ptr_ULang_Vec2f_t_float32__* __this__);
+void ULang_Ptr_ULang_Vec2f_t_float32___Write_ULang_Ptr_ULang_Vec2f_t_float32____ULang_Vec2f_t_float32__imut(ULang_Ptr_ULang_Vec2f_t_float32__* __this__,ULang_Vec2f_t_float32_* newvalue);
+void ULang_Ptr_ULang_Vec2f_t_float32___Write_ULang_Ptr_ULang_Vec2f_t_float32____ULang_Vec2f_t_float32_mov(ULang_Ptr_ULang_Vec2f_t_float32__* __this__,ULang_Vec2f_t_float32_ newvalue);
+ULang_Vec2f_t_float32_* ULang_Ptr_ULang_Vec2f_t_float32___ReadPtr_ULang_Ptr_ULang_Vec2f_t_float32___imut(ULang_Ptr_ULang_Vec2f_t_float32__* __this__);
+ULang_Vec2f_t_float32_* ULang_Ptr_ULang_Vec2f_t_float32_____IndirectMember___ULang_Ptr_ULang_Vec2f_t_float32___(ULang_Ptr_ULang_Vec2f_t_float32__* __this__);
+ULang_Vec2f_t_float32_* ULang_Ptr_ULang_Vec2f_t_float32_____IndirectMember___ULang_Ptr_ULang_Vec2f_t_float32___imut(ULang_Ptr_ULang_Vec2f_t_float32__* __this__);
+void ULang_Ptr_ULang_Vec2f_t_float32___ReassignTo_ULang_Ptr_ULang_Vec2f_t_float32____ULang_Vec2f_t_float32__(ULang_Ptr_ULang_Vec2f_t_float32__* __this__,ULang_Vec2f_t_float32_* newbase);
+ULang_Ptr_ULang_Vec2f_t_float32__ ULang_Ptr_ULang_Vec2f_t_float32___Make_ULang_Vec2f_t_float32__imut(ULang_Vec2f_t_float32_* V);
+ULang_Ptr_ULang_Vec2f_t_float32__ ULang_Ptr_ULang_Vec2f_t_float32___Make_ULang_Vec2f_t_float32__(ULang_Vec2f_t_float32_* V);
+void ULang_Ptr_ULang_Vec2f_t_float32______new___ULang_Ptr_ULang_Vec2f_t_float32___(ULang_Ptr_ULang_Vec2f_t_float32__* __this__);
+ULang_Ptr_ULang_Vec2f_t_float32__ ULang_ptr_ULang_Vec2f_t_float32___ULang_Vec2f_t_float32__(ULang_Vec2f_t_float32_* V);
 void ULang_Span_sint32_____new___ULang_Span_sint32__(ULang_Span_sint32_* __this__);
 void ULang_Span_sint32_____new___ULang_Span_sint32___i32____uptr(ULang_Span_sint32_* __this__,void* data,int64_t size);
 int64_t ULang_Span_sint32__Size_ULang_Span_sint32__imut(ULang_Span_sint32_* __this__);
@@ -656,6 +690,18 @@ ULang_Span_sint32_ ULang_Vector_sint32____Index___ULang_Vector_sint32__imut_ULan
 ULang_Span_sint32_ ULang_Vector_sint32__AsSpan_ULang_Vector_sint32__(ULang_Vector_sint32_* __this__);
 ULang_Span_sint32_ ULang_Vector_sint32__AsSpan_ULang_Vector_sint32__imut(ULang_Vector_sint32_* __this__);
 ULang_Range_t_uintptr_ ULang_Range_uintptr__uptr_uptr(int64_t start,int64_t end);
+void ULang_Ptr_ULang_Empty_____new___ULang_Ptr_ULang_Empty___ULang_Empty_(ULang_Ptr_ULang_Empty_* __this__,ULang_Empty* base);
+ULang_Empty* ULang_Ptr_ULang_Empty__Get_ULang_Ptr_ULang_Empty__(ULang_Ptr_ULang_Empty_* __this__);
+ULang_Empty* ULang_Ptr_ULang_Empty__Get_ULang_Ptr_ULang_Empty__imut(ULang_Ptr_ULang_Empty_* __this__);
+void ULang_Ptr_ULang_Empty__Write_ULang_Ptr_ULang_Empty___ULang_Empty_imut(ULang_Ptr_ULang_Empty_* __this__,ULang_Empty* newvalue);
+void ULang_Ptr_ULang_Empty__Write_ULang_Ptr_ULang_Empty___ULang_Emptymov(ULang_Ptr_ULang_Empty_* __this__,ULang_Empty newvalue);
+ULang_Empty* ULang_Ptr_ULang_Empty__ReadPtr_ULang_Ptr_ULang_Empty__imut(ULang_Ptr_ULang_Empty_* __this__);
+ULang_Empty* ULang_Ptr_ULang_Empty____IndirectMember___ULang_Ptr_ULang_Empty__(ULang_Ptr_ULang_Empty_* __this__);
+ULang_Empty* ULang_Ptr_ULang_Empty____IndirectMember___ULang_Ptr_ULang_Empty__imut(ULang_Ptr_ULang_Empty_* __this__);
+void ULang_Ptr_ULang_Empty__ReassignTo_ULang_Ptr_ULang_Empty___ULang_Empty_(ULang_Ptr_ULang_Empty_* __this__,ULang_Empty* newbase);
+ULang_Ptr_ULang_Empty_ ULang_Ptr_ULang_Empty__Make_ULang_Empty_imut(ULang_Empty* V);
+ULang_Ptr_ULang_Empty_ ULang_Ptr_ULang_Empty__Make_ULang_Empty_(ULang_Empty* V);
+void ULang_Ptr_ULang_Empty_____new___ULang_Ptr_ULang_Empty__(ULang_Ptr_ULang_Empty_* __this__);
 void ULang_Span_uft8_____new___ULang_Span_uft8__(ULang_Span_uft8_* __this__);
 void ULang_Span_uft8_____new___ULang_Span_uft8_______uptr(ULang_Span_uft8_* __this__,void* data,int64_t size);
 int64_t ULang_Span_uft8__Size_ULang_Span_uft8__imut(ULang_Span_uft8_* __this__);
@@ -878,14 +924,6 @@ ULang_StringSpan_t_uft32_ ULang_String_t_uft32____Index___ULang_String_t_uft32__
 ULang_StringSpan_t_uft32_ ULang_String_t_uft32____Index___ULang_String_t_uft32__imut_ULang_Range_t_uintptr_(ULang_String_t_uft32_* __this__,ULang_Range_t_uintptr_ Range);
 void ULang_String_t_uft32_____drop___ULang_String_t_uft32__(ULang_String_t_uft32_* __this__);
 void ULang_String_t_uft32_____de_init__(ULang_String_t_uft32_* __this__);
-void ULang_Vec2f_t_float32_____new___ULang_Vec2f_t_float32__(ULang_Vec2f_t_float32_* __this__);
-void ULang_Vec2f_t_float32_____new___ULang_Vec2f_t_float32___f32_f32(ULang_Vec2f_t_float32_* __this__,float32_t x,float32_t y);
-int8_t ULang_Vec2f_t_float32____equal___ULang_Vec2f_t_float32__imut_ULang_Vec2f_t_float32__imut(ULang_Vec2f_t_float32_* __this__,ULang_Vec2f_t_float32_* Other);
-int8_t ULang_Vec2f_t_float32____notequal___ULang_Vec2f_t_float32__imut_ULang_Vec2f_t_float32__imut(ULang_Vec2f_t_float32_* __this__,ULang_Vec2f_t_float32_* Other);
-void ULang_Vec2f_t_float32____Compound_Plus___ULang_Vec2f_t_float32___ULang_Vec2f_t_float32__imut(ULang_Vec2f_t_float32_* __this__,ULang_Vec2f_t_float32_* Other);
-void ULang_Vec2f_t_float32____Compound_Sub___ULang_Vec2f_t_float32___ULang_Vec2f_t_float32__imut(ULang_Vec2f_t_float32_* __this__,ULang_Vec2f_t_float32_* Other);
-ULang_Vec2f_t_float32_ ULang_Vec2f_t_float32____Plus___ULang_Vec2f_t_float32__imut_ULang_Vec2f_t_float32__imut(ULang_Vec2f_t_float32_* __this__,ULang_Vec2f_t_float32_* Other);
-ULang_Vec2f_t_float32_ ULang_Vec2f_t_float32____Minus___ULang_Vec2f_t_float32__imut_ULang_Vec2f_t_float32__imut(ULang_Vec2f_t_float32_* __this__,ULang_Vec2f_t_float32_* Other);
 void ULang_Vec2f_t_sint32_____new___ULang_Vec2f_t_sint32__(ULang_Vec2f_t_sint32_* __this__);
 void ULang_Vec2f_t_sint32_____new___ULang_Vec2f_t_sint32___i32_i32(ULang_Vec2f_t_sint32_* __this__,int32_t x,int32_t y);
 int8_t ULang_Vec2f_t_sint32____equal___ULang_Vec2f_t_sint32__imut_ULang_Vec2f_t_sint32__imut(ULang_Vec2f_t_sint32_* __this__,ULang_Vec2f_t_sint32_* Other);
@@ -910,44 +948,6 @@ void ULang_Vec3f_t_sint32____Compound_Plus___ULang_Vec3f_t_sint32___ULang_Vec3f_
 void ULang_Vec3f_t_sint32____Compound_Sub___ULang_Vec3f_t_sint32___ULang_Vec3f_t_sint32__imut(ULang_Vec3f_t_sint32_* __this__,ULang_Vec3f_t_sint32_* Other);
 ULang_Vec3f_t_sint32_ ULang_Vec3f_t_sint32____Plus___ULang_Vec3f_t_sint32__imut_ULang_Vec3f_t_sint32__imut(ULang_Vec3f_t_sint32_* __this__,ULang_Vec3f_t_sint32_* Other);
 ULang_Vec3f_t_sint32_ ULang_Vec3f_t_sint32____Minus___ULang_Vec3f_t_sint32__imut_ULang_Vec3f_t_sint32__imut(ULang_Vec3f_t_sint32_* __this__,ULang_Vec3f_t_sint32_* Other);
-void ULang_Ptr_ULang_Empty_____new___ULang_Ptr_ULang_Empty___ULang_Empty_(ULang_Ptr_ULang_Empty_* __this__,ULang_Empty* base);
-ULang_Empty* ULang_Ptr_ULang_Empty__Get_ULang_Ptr_ULang_Empty__(ULang_Ptr_ULang_Empty_* __this__);
-ULang_Empty* ULang_Ptr_ULang_Empty__Get_ULang_Ptr_ULang_Empty__imut(ULang_Ptr_ULang_Empty_* __this__);
-void ULang_Ptr_ULang_Empty__Write_ULang_Ptr_ULang_Empty___ULang_Empty_imut(ULang_Ptr_ULang_Empty_* __this__,ULang_Empty* newvalue);
-void ULang_Ptr_ULang_Empty__Write_ULang_Ptr_ULang_Empty___ULang_Emptymov(ULang_Ptr_ULang_Empty_* __this__,ULang_Empty newvalue);
-ULang_Empty* ULang_Ptr_ULang_Empty__ReadPtr_ULang_Ptr_ULang_Empty__imut(ULang_Ptr_ULang_Empty_* __this__);
-ULang_Empty* ULang_Ptr_ULang_Empty____IndirectMember___ULang_Ptr_ULang_Empty__(ULang_Ptr_ULang_Empty_* __this__);
-ULang_Empty* ULang_Ptr_ULang_Empty____IndirectMember___ULang_Ptr_ULang_Empty__imut(ULang_Ptr_ULang_Empty_* __this__);
-void ULang_Ptr_ULang_Empty__ReassignTo_ULang_Ptr_ULang_Empty___ULang_Empty_(ULang_Ptr_ULang_Empty_* __this__,ULang_Empty* newbase);
-ULang_Ptr_ULang_Empty_ ULang_Ptr_ULang_Empty__Make_ULang_Empty_imut(ULang_Empty* V);
-ULang_Ptr_ULang_Empty_ ULang_Ptr_ULang_Empty__Make_ULang_Empty_(ULang_Empty* V);
-void ULang_Ptr_ULang_Empty_____new___ULang_Ptr_ULang_Empty__(ULang_Ptr_ULang_Empty_* __this__);
-void ULang_Ptr_sint32_____new___ULang_Ptr_sint32___i32_(ULang_Ptr_sint32_* __this__,void* base);
-void* ULang_Ptr_sint32__Get_ULang_Ptr_sint32__(ULang_Ptr_sint32_* __this__);
-void* ULang_Ptr_sint32__Get_ULang_Ptr_sint32__imut(ULang_Ptr_sint32_* __this__);
-void ULang_Ptr_sint32__Write_ULang_Ptr_sint32___i32_imut(ULang_Ptr_sint32_* __this__,void* newvalue);
-void ULang_Ptr_sint32__Write_ULang_Ptr_sint32___i32mov(ULang_Ptr_sint32_* __this__,int32_t newvalue);
-void* ULang_Ptr_sint32__ReadPtr_ULang_Ptr_sint32__imut(ULang_Ptr_sint32_* __this__);
-void* ULang_Ptr_sint32____IndirectMember___ULang_Ptr_sint32__(ULang_Ptr_sint32_* __this__);
-void* ULang_Ptr_sint32____IndirectMember___ULang_Ptr_sint32__imut(ULang_Ptr_sint32_* __this__);
-void ULang_Ptr_sint32__ReassignTo_ULang_Ptr_sint32___i32_(ULang_Ptr_sint32_* __this__,void* newbase);
-ULang_Ptr_sint32_ ULang_Ptr_sint32__Make_i32_imut(void* V);
-ULang_Ptr_sint32_ ULang_Ptr_sint32__Make_i32_(void* V);
-void ULang_Ptr_sint32_____new___ULang_Ptr_sint32__(ULang_Ptr_sint32_* __this__);
-ULang_Ptr_sint32_ ULang_ptr_sint32__i32_(void* V);
-void ULang_Ptr_ULang_Vec2f_t_float32______new___ULang_Ptr_ULang_Vec2f_t_float32____ULang_Vec2f_t_float32__(ULang_Ptr_ULang_Vec2f_t_float32__* __this__,ULang_Vec2f_t_float32_* base);
-ULang_Vec2f_t_float32_* ULang_Ptr_ULang_Vec2f_t_float32___Get_ULang_Ptr_ULang_Vec2f_t_float32___(ULang_Ptr_ULang_Vec2f_t_float32__* __this__);
-ULang_Vec2f_t_float32_* ULang_Ptr_ULang_Vec2f_t_float32___Get_ULang_Ptr_ULang_Vec2f_t_float32___imut(ULang_Ptr_ULang_Vec2f_t_float32__* __this__);
-void ULang_Ptr_ULang_Vec2f_t_float32___Write_ULang_Ptr_ULang_Vec2f_t_float32____ULang_Vec2f_t_float32__imut(ULang_Ptr_ULang_Vec2f_t_float32__* __this__,ULang_Vec2f_t_float32_* newvalue);
-void ULang_Ptr_ULang_Vec2f_t_float32___Write_ULang_Ptr_ULang_Vec2f_t_float32____ULang_Vec2f_t_float32_mov(ULang_Ptr_ULang_Vec2f_t_float32__* __this__,ULang_Vec2f_t_float32_ newvalue);
-ULang_Vec2f_t_float32_* ULang_Ptr_ULang_Vec2f_t_float32___ReadPtr_ULang_Ptr_ULang_Vec2f_t_float32___imut(ULang_Ptr_ULang_Vec2f_t_float32__* __this__);
-ULang_Vec2f_t_float32_* ULang_Ptr_ULang_Vec2f_t_float32_____IndirectMember___ULang_Ptr_ULang_Vec2f_t_float32___(ULang_Ptr_ULang_Vec2f_t_float32__* __this__);
-ULang_Vec2f_t_float32_* ULang_Ptr_ULang_Vec2f_t_float32_____IndirectMember___ULang_Ptr_ULang_Vec2f_t_float32___imut(ULang_Ptr_ULang_Vec2f_t_float32__* __this__);
-void ULang_Ptr_ULang_Vec2f_t_float32___ReassignTo_ULang_Ptr_ULang_Vec2f_t_float32____ULang_Vec2f_t_float32__(ULang_Ptr_ULang_Vec2f_t_float32__* __this__,ULang_Vec2f_t_float32_* newbase);
-ULang_Ptr_ULang_Vec2f_t_float32__ ULang_Ptr_ULang_Vec2f_t_float32___Make_ULang_Vec2f_t_float32__imut(ULang_Vec2f_t_float32_* V);
-ULang_Ptr_ULang_Vec2f_t_float32__ ULang_Ptr_ULang_Vec2f_t_float32___Make_ULang_Vec2f_t_float32__(ULang_Vec2f_t_float32_* V);
-void ULang_Ptr_ULang_Vec2f_t_float32______new___ULang_Ptr_ULang_Vec2f_t_float32___(ULang_Ptr_ULang_Vec2f_t_float32__* __this__);
-ULang_Ptr_ULang_Vec2f_t_float32__ ULang_ptr_ULang_Vec2f_t_float32___ULang_Vec2f_t_float32__(ULang_Vec2f_t_float32_* V);
 void putchar(int8_t Val);
 void ULang_Native_OS_PrintChar_c(int8_t Value);
 void ULang_Native_OS_PrintSpan_c___imut_uptr(void* Buffer,int64_t Size);
@@ -1376,245 +1376,6 @@ int8_t ULang_Tests_Min_2()
  return _ReturnVal;
 
 }
-int8_t ULang_Tests_StringSpan_1()
-{
- int8_t _ReturnVal;
- /*Block*/ 
-
- /*File:/Tests/StringTest.uc*/
- /*Line:6*/
-
- void* tep0 = &_Const_SpanString_Hello;
- int64_t tep1 = 5;
- ULang_StringSpan_t_char_ tep2;
- ULang_StringSpan_t_char_* tep3 = &tep2;
- ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char___c____uptr(tep3,tep0,tep1);
- ULang_StringSpan_t_char_* tep4 = &tep2;
- int64_t tep5 = ULang_StringSpan_t_char__Size_ULang_StringSpan_t_char__imut(tep4);
- int64_t tep6 = 5;
- int8_t tep7 = (int8_t)(tep5==tep6);
- _ReturnVal = tep7;
- return _ReturnVal;
-
-}
-int8_t ULang_Tests_StringSpan_2()
-{
- int8_t _ReturnVal;
- /*Block*/ 
-
- /*File:/Tests/StringTest.uc*/
- /*Line:10*/
-
- void* tep0 = &_Const_SpanString_Hello;
- int64_t tep1 = 5;
- ULang_StringSpan_t_char_ tep2;
- ULang_StringSpan_t_char_* tep3 = &tep2;
- ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char___c____uptr(tep3,tep0,tep1);
- ULang_StringSpan_t_char_* tep4 = &tep2;
- void* tep5 = &_Const_SpanString_World;
- int64_t tep6 = 5;
- ULang_StringSpan_t_char_ tep7;
- ULang_StringSpan_t_char_* tep8 = &tep7;
- ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char___c____uptr(tep8,tep5,tep6);
- ULang_StringSpan_t_char_* tep9 = &tep7;
- int8_t tep10 = ULang_StringSpan_t_char____notequal___ULang_StringSpan_t_char__imut_ULang_StringSpan_t_char__imut(tep4,tep9);
- _ReturnVal = tep10;
- return _ReturnVal;
-
-}
-int8_t ULang_Tests_StringSpan_3()
-{
- int8_t _ReturnVal;
- /*Block*/ 
-
- /*File:/Tests/StringTest.uc*/
- /*Line:14*/
-
- void* tep0 = &_Const_SpanString_Hello;
- int64_t tep1 = 5;
- ULang_StringSpan_t_char_ tep2;
- ULang_StringSpan_t_char_* tep3 = &tep2;
- ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char___c____uptr(tep3,tep0,tep1);
- ULang_StringSpan_t_char_* tep4 = &tep2;
- void* tep5 = &_Const_SpanString_Hello;
- int64_t tep6 = 5;
- ULang_StringSpan_t_char_ tep7;
- ULang_StringSpan_t_char_* tep8 = &tep7;
- ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char___c____uptr(tep8,tep5,tep6);
- ULang_StringSpan_t_char_* tep9 = &tep7;
- int8_t tep10 = ULang_StringSpan_t_char____equal___ULang_StringSpan_t_char__imut_ULang_StringSpan_t_char__imut(tep4,tep9);
- _ReturnVal = tep10;
- return _ReturnVal;
-
-}
-int8_t ULang_Tests_StringSpan_4()
-{
- int8_t _ReturnVal;
- /*Block*/ 
-
- /*File:/Tests/StringTest.uc*/
- /*Line:18*/
-
- ULang_String_t_char_ tep0;
- void* tep1 = &_Const_SpanString_Hello;
- int64_t tep2 = 5;
- ULang_StringSpan_t_char_ tep3;
- ULang_StringSpan_t_char_* tep4 = &tep3;
- ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char___c____uptr(tep4,tep1,tep2);
- ULang_String_t_char_ tep5;
- ULang_String_t_char_* tep6 = &tep5;
- ULang_StringSpan_t_char_* tep7 = &tep3;
- ULang_String_t_char_____new___ULang_String_t_char___ULang_StringSpan_t_char__imut(tep6,tep7);
- tep0 = tep5;
-
- /*Line:19*/
-
- ULang_String_t_char_* tep8 = &tep0;
- void* tep9 = &_Const_SpanString_Hello;
- int64_t tep10 = 5;
- ULang_StringSpan_t_char_ tep11;
- ULang_StringSpan_t_char_* tep12 = &tep11;
- ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char___c____uptr(tep12,tep9,tep10);
- ULang_String_t_char_* tep13;
- ULang_String_t_char_* tep14 = &tep13;
- ULang_StringSpan_t_char_* tep15 = &tep11;
- ULang_String_t_char_____new___ULang_String_t_char___ULang_StringSpan_t_char__imut(tep14,tep15);
- int8_t tep16 = ULang_String_t_char____equal___ULang_String_t_char__imut_ULang_String_t_char__imut(tep8,tep13);
- _ReturnVal = tep16;
-
- /*Line:0*/
-
- ULang_String_t_char_* tep17 = &tep0;
- ULang_String_t_char_____drop___ULang_String_t_char__(tep17);
- return _ReturnVal;
-
-}
-int8_t ULang_Tests_Vector_1()
-{
- int8_t _ReturnVal;
- /*Block*/ 
-
- /*File:/Tests/VectorTest.uc*/
- /*Line:5*/
-
- ULang_Vector_sint32_ tep0;
-
- /*Line:0*/
-
- ULang_Vector_sint32_* tep1 = &tep0;
- ULang_Vector_sint32_____new___ULang_Vector_sint32__(tep1);
-
- /*Line:5*/
- /*Line:6*/
-
- ULang_Vector_sint32_* tep2 = &tep0;
- int32_t tep3 = 5;
- void* tep4 = &tep3;
- ULang_Vector_sint32__Push_ULang_Vector_sint32___i32_imut(tep2,tep4);
-
- /*Line:7*/
-
- ULang_Vector_sint32_* tep5 = &tep0;
- int64_t tep6 = 0;
- void* tep7 = ULang_Vector_sint32____Index___ULang_Vector_sint32___uptr(tep5,tep6);
- int32_t tep8 = *(int32_t*)tep7;
- int32_t tep9 = 5;
- int8_t tep10 = (int8_t)(tep8==tep9);
- ULang_Vector_sint32_* tep11 = &tep0;
- int64_t tep12 = ULang_Vector_sint32__Size_ULang_Vector_sint32__imut(tep11);
- int64_t tep13 = 1;
- int8_t tep14 = (int8_t)(tep12==tep13);
- int8_t tep15 = tep10&&tep14;
- _ReturnVal = tep15;
-
- /*Line:0*/
-
- ULang_Vector_sint32_* tep16 = &tep0;
- ULang_Vector_sint32_____drop___ULang_Vector_sint32__(tep16);
- return _ReturnVal;
-
-}
-int8_t ULang_Tests_Vector_2()
-{
- int8_t _ReturnVal;
- /*Block*/ 
-
- /*File:/Tests/VectorTest.uc*/
- /*Line:11*/
-
- ULang_Vector_sint32_ tep0;
-
- /*Line:0*/
-
- ULang_Vector_sint32_* tep1 = &tep0;
- ULang_Vector_sint32_____new___ULang_Vector_sint32__(tep1);
-
- /*Line:11*/
- /*Line:12*/
-
- ULang_Vector_sint32_* tep2 = &tep0;
- int32_t tep3 = 5;
- void* tep4 = &tep3;
- ULang_Vector_sint32__Push_ULang_Vector_sint32___i32_imut(tep2,tep4);
-
- /*Line:13*/
-
- ULang_Vector_sint32_* tep5 = &tep0;
- int32_t tep6 = 15;
- void* tep7 = &tep6;
- ULang_Vector_sint32__Push_ULang_Vector_sint32___i32_imut(tep5,tep7);
-
- /*Line:15*/
-
- ULang_Span_sint32_ tep8;
-
- /*Line:13*/
- /*Line:15*/
-
- ULang_Vector_sint32_* tep9 = &tep0;
- int64_t tep10 = 1;
- int64_t tep11 = 2;
- ULang_Range_t_uintptr_ tep12 = ULang_Range_uintptr__uptr_uptr(tep10,tep11);
- ULang_Span_sint32_ tep13 = ULang_Vector_sint32____Index___ULang_Vector_sint32___ULang_Range_t_uintptr_(tep9,tep12);
- tep8 = tep13;
-
- /*Line:17*/
-
- ULang_Span_sint32_* tep14 = &tep8;
- int64_t tep15 = 0;
- void* tep16 = ULang_Span_sint32____Index___ULang_Span_sint32___uptr(tep14,tep15);
- int32_t tep17 = *(int32_t*)tep16;
- int32_t tep18 = 15;
- int8_t tep19 = (int8_t)(tep17==tep18);
- ULang_Span_sint32_* tep20 = &tep8;
- int64_t tep21 = ULang_Span_sint32__Size_ULang_Span_sint32__imut(tep20);
- int64_t tep22 = 1;
- int8_t tep23 = (int8_t)(tep21==tep22);
- int8_t tep24 = tep19&&tep23;
- _ReturnVal = tep24;
-
- /*Line:0*/
-
- ULang_Vector_sint32_* tep25 = &tep0;
- ULang_Vector_sint32_____drop___ULang_Vector_sint32__(tep25);
- return _ReturnVal;
-
-}
-void ULang_Future____new___ULang_Future_(ULang_Future* __this__)
-{ /*Block*/ 
- return;
-
-}
-void ULang_Thread____new___ULang_Thread_(ULang_Thread* __this__)
-{ /*Block*/ 
- return;
-
-}
-void ULang_Path____new___ULang_Path_(ULang_Path* __this__)
-{ /*Block*/ 
- return;
-
-}
 int8_t ULang_Tests_Ptr_1()
 {
  int8_t _ReturnVal;
@@ -1828,6 +1589,245 @@ int8_t ULang_Tests_Ptr_5()
  int8_t tep19 = ULang_Vec2f_t_float32____equal___ULang_Vec2f_t_float32__imut_ULang_Vec2f_t_float32__imut(tep13,tep18);
  _ReturnVal = tep19;
  return _ReturnVal;
+
+}
+int8_t ULang_Tests_StringSpan_1()
+{
+ int8_t _ReturnVal;
+ /*Block*/ 
+
+ /*File:/Tests/StringTest.uc*/
+ /*Line:6*/
+
+ void* tep0 = &_Const_SpanString_Hello;
+ int64_t tep1 = 5;
+ ULang_StringSpan_t_char_ tep2;
+ ULang_StringSpan_t_char_* tep3 = &tep2;
+ ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char___c____uptr(tep3,tep0,tep1);
+ ULang_StringSpan_t_char_* tep4 = &tep2;
+ int64_t tep5 = ULang_StringSpan_t_char__Size_ULang_StringSpan_t_char__imut(tep4);
+ int64_t tep6 = 5;
+ int8_t tep7 = (int8_t)(tep5==tep6);
+ _ReturnVal = tep7;
+ return _ReturnVal;
+
+}
+int8_t ULang_Tests_StringSpan_2()
+{
+ int8_t _ReturnVal;
+ /*Block*/ 
+
+ /*File:/Tests/StringTest.uc*/
+ /*Line:10*/
+
+ void* tep0 = &_Const_SpanString_Hello;
+ int64_t tep1 = 5;
+ ULang_StringSpan_t_char_ tep2;
+ ULang_StringSpan_t_char_* tep3 = &tep2;
+ ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char___c____uptr(tep3,tep0,tep1);
+ ULang_StringSpan_t_char_* tep4 = &tep2;
+ void* tep5 = &_Const_SpanString_World;
+ int64_t tep6 = 5;
+ ULang_StringSpan_t_char_ tep7;
+ ULang_StringSpan_t_char_* tep8 = &tep7;
+ ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char___c____uptr(tep8,tep5,tep6);
+ ULang_StringSpan_t_char_* tep9 = &tep7;
+ int8_t tep10 = ULang_StringSpan_t_char____notequal___ULang_StringSpan_t_char__imut_ULang_StringSpan_t_char__imut(tep4,tep9);
+ _ReturnVal = tep10;
+ return _ReturnVal;
+
+}
+int8_t ULang_Tests_StringSpan_3()
+{
+ int8_t _ReturnVal;
+ /*Block*/ 
+
+ /*File:/Tests/StringTest.uc*/
+ /*Line:14*/
+
+ void* tep0 = &_Const_SpanString_Hello;
+ int64_t tep1 = 5;
+ ULang_StringSpan_t_char_ tep2;
+ ULang_StringSpan_t_char_* tep3 = &tep2;
+ ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char___c____uptr(tep3,tep0,tep1);
+ ULang_StringSpan_t_char_* tep4 = &tep2;
+ void* tep5 = &_Const_SpanString_Hello;
+ int64_t tep6 = 5;
+ ULang_StringSpan_t_char_ tep7;
+ ULang_StringSpan_t_char_* tep8 = &tep7;
+ ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char___c____uptr(tep8,tep5,tep6);
+ ULang_StringSpan_t_char_* tep9 = &tep7;
+ int8_t tep10 = ULang_StringSpan_t_char____equal___ULang_StringSpan_t_char__imut_ULang_StringSpan_t_char__imut(tep4,tep9);
+ _ReturnVal = tep10;
+ return _ReturnVal;
+
+}
+int8_t ULang_Tests_StringSpan_4()
+{
+ int8_t _ReturnVal;
+ /*Block*/ 
+
+ /*File:/Tests/StringTest.uc*/
+ /*Line:18*/
+
+ ULang_String_t_char_ tep0;
+ void* tep1 = &_Const_SpanString_Hello;
+ int64_t tep2 = 5;
+ ULang_StringSpan_t_char_ tep3;
+ ULang_StringSpan_t_char_* tep4 = &tep3;
+ ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char___c____uptr(tep4,tep1,tep2);
+ ULang_String_t_char_ tep5;
+ ULang_String_t_char_* tep6 = &tep5;
+ ULang_StringSpan_t_char_* tep7 = &tep3;
+ ULang_String_t_char_____new___ULang_String_t_char___ULang_StringSpan_t_char__imut(tep6,tep7);
+ tep0 = tep5;
+
+ /*Line:19*/
+
+ ULang_String_t_char_* tep8 = &tep0;
+ void* tep9 = &_Const_SpanString_Hello;
+ int64_t tep10 = 5;
+ ULang_StringSpan_t_char_ tep11;
+ ULang_StringSpan_t_char_* tep12 = &tep11;
+ ULang_StringSpan_t_char_____new___ULang_StringSpan_t_char___c____uptr(tep12,tep9,tep10);
+ ULang_String_t_char_* tep13;
+ ULang_String_t_char_* tep14 = &tep13;
+ ULang_StringSpan_t_char_* tep15 = &tep11;
+ ULang_String_t_char_____new___ULang_String_t_char___ULang_StringSpan_t_char__imut(tep14,tep15);
+ int8_t tep16 = ULang_String_t_char____equal___ULang_String_t_char__imut_ULang_String_t_char__imut(tep8,tep13);
+ _ReturnVal = tep16;
+
+ /*Line:0*/
+
+ ULang_String_t_char_* tep17 = &tep0;
+ ULang_String_t_char_____drop___ULang_String_t_char__(tep17);
+ return _ReturnVal;
+
+}
+int8_t ULang_Tests_Vector_1()
+{
+ int8_t _ReturnVal;
+ /*Block*/ 
+
+ /*File:/Tests/VectorTest.uc*/
+ /*Line:6*/
+
+ ULang_Vector_sint32_ tep0;
+
+ /*Line:0*/
+
+ ULang_Vector_sint32_* tep1 = &tep0;
+ ULang_Vector_sint32_____new___ULang_Vector_sint32__(tep1);
+
+ /*Line:6*/
+ /*Line:7*/
+
+ ULang_Vector_sint32_* tep2 = &tep0;
+ int32_t tep3 = 5;
+ void* tep4 = &tep3;
+ ULang_Vector_sint32__Push_ULang_Vector_sint32___i32_imut(tep2,tep4);
+
+ /*Line:8*/
+
+ ULang_Vector_sint32_* tep5 = &tep0;
+ int64_t tep6 = 0;
+ void* tep7 = ULang_Vector_sint32____Index___ULang_Vector_sint32___uptr(tep5,tep6);
+ int32_t tep8 = *(int32_t*)tep7;
+ int32_t tep9 = 5;
+ int8_t tep10 = (int8_t)(tep8==tep9);
+ ULang_Vector_sint32_* tep11 = &tep0;
+ int64_t tep12 = ULang_Vector_sint32__Size_ULang_Vector_sint32__imut(tep11);
+ int64_t tep13 = 1;
+ int8_t tep14 = (int8_t)(tep12==tep13);
+ int8_t tep15 = tep10&&tep14;
+ _ReturnVal = tep15;
+
+ /*Line:0*/
+
+ ULang_Vector_sint32_* tep16 = &tep0;
+ ULang_Vector_sint32_____drop___ULang_Vector_sint32__(tep16);
+ return _ReturnVal;
+
+}
+int8_t ULang_Tests_Vector_2()
+{
+ int8_t _ReturnVal;
+ /*Block*/ 
+
+ /*File:/Tests/VectorTest.uc*/
+ /*Line:12*/
+
+ ULang_Vector_sint32_ tep0;
+
+ /*Line:0*/
+
+ ULang_Vector_sint32_* tep1 = &tep0;
+ ULang_Vector_sint32_____new___ULang_Vector_sint32__(tep1);
+
+ /*Line:12*/
+ /*Line:13*/
+
+ ULang_Vector_sint32_* tep2 = &tep0;
+ int32_t tep3 = 5;
+ void* tep4 = &tep3;
+ ULang_Vector_sint32__Push_ULang_Vector_sint32___i32_imut(tep2,tep4);
+
+ /*Line:14*/
+
+ ULang_Vector_sint32_* tep5 = &tep0;
+ int32_t tep6 = 15;
+ void* tep7 = &tep6;
+ ULang_Vector_sint32__Push_ULang_Vector_sint32___i32_imut(tep5,tep7);
+
+ /*Line:16*/
+
+ ULang_Span_sint32_ tep8;
+
+ /*Line:14*/
+ /*Line:16*/
+
+ ULang_Vector_sint32_* tep9 = &tep0;
+ int64_t tep10 = 1;
+ int64_t tep11 = 2;
+ ULang_Range_t_uintptr_ tep12 = ULang_Range_uintptr__uptr_uptr(tep10,tep11);
+ ULang_Span_sint32_ tep13 = ULang_Vector_sint32____Index___ULang_Vector_sint32___ULang_Range_t_uintptr_(tep9,tep12);
+ tep8 = tep13;
+
+ /*Line:18*/
+
+ ULang_Span_sint32_* tep14 = &tep8;
+ int64_t tep15 = 0;
+ void* tep16 = ULang_Span_sint32____Index___ULang_Span_sint32___uptr(tep14,tep15);
+ int32_t tep17 = *(int32_t*)tep16;
+ int32_t tep18 = 15;
+ int8_t tep19 = (int8_t)(tep17==tep18);
+ ULang_Span_sint32_* tep20 = &tep8;
+ int64_t tep21 = ULang_Span_sint32__Size_ULang_Span_sint32__imut(tep20);
+ int64_t tep22 = 1;
+ int8_t tep23 = (int8_t)(tep21==tep22);
+ int8_t tep24 = tep19&&tep23;
+ _ReturnVal = tep24;
+
+ /*Line:0*/
+
+ ULang_Vector_sint32_* tep25 = &tep0;
+ ULang_Vector_sint32_____drop___ULang_Vector_sint32__(tep25);
+ return _ReturnVal;
+
+}
+void ULang_Future____new___ULang_Future_(ULang_Future* __this__)
+{ /*Block*/ 
+ return;
+
+}
+void ULang_Thread____new___ULang_Thread_(ULang_Thread* __this__)
+{ /*Block*/ 
+ return;
+
+}
+void ULang_Path____new___ULang_Path_(ULang_Path* __this__)
+{ /*Block*/ 
+ return;
 
 }
 void ULang_Range_t_uintptr_____new___ULang_Range_t_uintptr__(ULang_Range_t_uintptr_* __this__)
@@ -2539,12 +2539,12 @@ void ULang_Vector_char__Reserve_ULang_Vector_char___uptr(ULang_Vector_char_* __t
   void* tep7 = __this__->__0;
  tep6 = tep7;
 
- /*Line:32*/
+ /*Line:33*/
 
  int64_t tep8 = Size;
   __this__->__2 = tep8;
 
- /*Line:33*/
+ /*Line:34*/
 
  int64_t tep9 = Size;
  int64_t tep10 = 1;
@@ -2572,7 +2572,7 @@ void ULang_Vector_char__Reserve_ULang_Vector_char___uptr(ULang_Vector_char_* __t
 
   __this__->__0 = tep12;
 
- /*Line:34*/
+ /*Line:35*/
 
  int64_t tep20;
 
@@ -2588,7 +2588,7 @@ void ULang_Vector_char__Reserve_ULang_Vector_char___uptr(ULang_Vector_char_* __t
  int8_t tep25 = !tep24;
  if (tep25){goto _label3; };
 
- /*Line:35*/
+ /*Line:36*/
 
  void* tep26 = tep6;
  int64_t tep27 = tep20;
@@ -2603,7 +2603,7 @@ void ULang_Vector_char__Reserve_ULang_Vector_char___uptr(ULang_Vector_char_* __t
  void* tep36 = (void*)((int64_t)tep32+tep35);
  *(int8_t*)tep36 = tep31;
 
- /*Line:34*/
+ /*Line:35*/
 
  int64_t tep37 = tep20;
  int64_t tep38 = 1;
@@ -2611,14 +2611,14 @@ void ULang_Vector_char__Reserve_ULang_Vector_char___uptr(ULang_Vector_char_* __t
  tep20 = tep39;
  goto _label4;
 
- /*Line:37*/
+ /*Line:38*/
  _label3:
 
  int64_t tep40;
  void* tep41 = tep6;
  tep40 = (int64_t)tep41;
 
- /*Line:38*/
+ /*Line:39*/
 
  int64_t tep42 = tep40;
  int64_t tep43 = 0;
@@ -2626,7 +2626,7 @@ void ULang_Vector_char__Reserve_ULang_Vector_char___uptr(ULang_Vector_char_* __t
  int8_t tep45 = !tep44;
  if (tep45){goto _label0; };
 
- /*Line:39*/
+ /*Line:40*/
 
  void* tep46 = tep6;
  free(tep46);
@@ -2640,7 +2640,7 @@ void ULang_Vector_char__Clear_ULang_Vector_char__(ULang_Vector_char_* __this__)
 { /*Block*/ 
 
  /*File:/Types/Vector.uc*/
- /*Line:41*/
+ /*Line:42*/
 
  int64_t tep0 = 0;
   __this__->__1 = tep0;
@@ -2669,15 +2669,15 @@ void ULang_Vector_char__Push_ULang_Vector_char___c_imut(ULang_Vector_char_* __th
 { /*Block*/ 
 
  /*File:/Types/Vector.uc*/
- /*Line:47*/
+ /*Line:48*/
 
  ULang_Vector_char_* tep0 = __this__;
   int64_t tep1 = __this__->__1;
  int64_t tep2 = 1;
- int64_t tep3 = tep1+tep1;
+ int64_t tep3 = tep1+tep2;
  ULang_Vector_char__Resize_ULang_Vector_char___uptr(tep0,tep3);
 
- /*Line:48*/
+ /*Line:49*/
 
  int8_t tep4 = *(int8_t*)Val;
  ULang_Vector_char_* tep5 = __this__;
@@ -2686,8 +2686,7 @@ void ULang_Vector_char__Push_ULang_Vector_char___c_imut(ULang_Vector_char_* __th
  int64_t tep8 = 1;
  int64_t tep9 = tep7-tep8;
  void* tep10 = ULang_Vector_char____Index___ULang_Vector_char___uptr(tep6,tep9);
- int8_t tep11 = *(int8_t*)tep10;
- tep10 = (void*)tep4;
+ *(int8_t*)tep10 = tep4;
  return;
 
 }
@@ -2713,7 +2712,7 @@ void* ULang_Vector_char____Index___ULang_Vector_char___uptr(ULang_Vector_char_* 
 
  
  /*File:/Types/Vector.uc*/
- /*Line:61*/
+ /*Line:62*/
 
  void* tep0 = __this__->__0;
  int64_t tep1 = Index;
@@ -2732,7 +2731,7 @@ void* ULang_Vector_char____Index___ULang_Vector_char__imut_uptr(ULang_Vector_cha
 
  
  /*File:/Types/Vector.uc*/
- /*Line:62*/
+ /*Line:63*/
 
  void* tep0 = __this__->__0;
  int64_t tep1 = Index;
@@ -2749,8 +2748,8 @@ ULang_Span_char_ ULang_Vector_char____Index___ULang_Vector_char___ULang_Range_t_
  /*Block*/ 
 
  /*File:/Types/Vector.uc*/
- /*Line:62*/
- /*Line:67*/
+ /*Line:63*/
+ /*Line:68*/
 
  ULang_Vector_char_* tep0 = __this__;
  ULang_Span_char_ tep1 = ULang_Vector_char__AsSpan_ULang_Vector_char__(tep0);
@@ -2767,8 +2766,8 @@ ULang_Span_char_ ULang_Vector_char____Index___ULang_Vector_char__imut_ULang_Rang
  /*Block*/ 
 
  /*File:/Types/Vector.uc*/
- /*Line:67*/
  /*Line:68*/
+ /*Line:69*/
 
  ULang_Vector_char_* tep0 = __this__;
  ULang_Span_char_ tep1 = ULang_Vector_char__AsSpan_ULang_Vector_char__imut(tep0);
@@ -2790,7 +2789,7 @@ ULang_Span_char_ ULang_Vector_char__AsSpan_ULang_Vector_char__(ULang_Vector_char
  ULang_Span_char_ tep0;
  ULang_Span_char_* tep1 = &tep0;
  
- /*Line:70*/
+ /*Line:71*/
 
  void* tep2 = __this__->__0;
   int64_t tep3 = __this__->__1;
@@ -2810,7 +2809,7 @@ ULang_Span_char_ ULang_Vector_char__AsSpan_ULang_Vector_char__imut(ULang_Vector_
  ULang_Span_char_ tep0;
  ULang_Span_char_* tep1 = &tep0;
  
- /*Line:71*/
+ /*Line:72*/
 
  void* tep2 = __this__->__0;
   int64_t tep3 = __this__->__1;
@@ -2853,28 +2852,10 @@ void ULang_String_t_char_____new___ULang_String_t_char___ULang_StringSpan_t_char
  int8_t tep8 = (int8_t)(tep5<tep7);
  int8_t tep9 = !tep8;
  if (tep9){goto _label0; };
-
- /*Line:60*/
- /*Line:59*/
- /*Line:60*/
-
- ULang_StringSpan_t_char_* tep10 = span;
- int64_t tep11 = tep3;
- void* tep12 = ULang_StringSpan_t_char____Index___ULang_StringSpan_t_char___uptr(tep10,tep11);
- int8_t tep13 = *(int8_t*)tep12;
- ULang_String_t_char_* tep14 = __this__;
- ULang_String_t_char_* tep15 = tep14;
- int64_t tep16 = tep3;
- void* tep17 = ULang_String_t_char____Index___ULang_String_t_char___uptr(tep15,tep16);
- int8_t tep18 = *(int8_t*)tep17;
- tep17 = (void*)tep13;
-
- /*Line:59*/
-
- int64_t tep19 = tep3;
- int64_t tep20 = 1;
- int64_t tep21 = tep19+tep20;
- tep3 = tep21;
+ int64_t tep10 = tep3;
+ int64_t tep11 = 1;
+ int64_t tep12 = tep10+tep11;
+ tep3 = tep12;
  goto _label1;
 
  _label0:
@@ -2888,7 +2869,7 @@ void* ULang_String_t_char__Data_ULang_String_t_char__imut(ULang_String_t_char_* 
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:62*/
+ /*Line:61*/
 
   ULang_Vector_char_* tep0 = &__this__->__0;
  void* tep1 = ULang_Vector_char__Data_ULang_Vector_char__(tep0);
@@ -2902,7 +2883,7 @@ void* ULang_String_t_char__Data_ULang_String_t_char__(ULang_String_t_char_* __th
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:63*/
+ /*Line:62*/
 
   ULang_Vector_char_* tep0 = &__this__->__0;
  void* tep1 = ULang_Vector_char__Data_ULang_Vector_char__(tep0);
@@ -2916,7 +2897,7 @@ int64_t ULang_String_t_char__Size_ULang_String_t_char__imut(ULang_String_t_char_
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:66*/
+ /*Line:65*/
 
   ULang_Vector_char_* tep0 = &__this__->__0;
  int64_t tep1 = ULang_Vector_char__Size_ULang_Vector_char__imut(tep0);
@@ -2930,7 +2911,7 @@ int64_t ULang_String_t_char__Capacity_ULang_String_t_char__imut(ULang_String_t_c
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:67*/
+ /*Line:66*/
 
   ULang_Vector_char_* tep0 = &__this__->__0;
  int64_t tep1 = ULang_Vector_char__Capacity_ULang_Vector_char__imut(tep0);
@@ -2942,7 +2923,7 @@ void ULang_String_t_char__Resize_ULang_String_t_char___uptr(ULang_String_t_char_
 { /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:69*/
+ /*Line:68*/
 
   ULang_Vector_char_* tep0 = &__this__->__0;
  int64_t tep1 = Size;
@@ -2954,7 +2935,7 @@ void ULang_String_t_char__Reserve_ULang_String_t_char___uptr(ULang_String_t_char
 { /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:70*/
+ /*Line:69*/
 
   ULang_Vector_char_* tep0 = &__this__->__0;
  int64_t tep1 = Size;
@@ -2966,7 +2947,7 @@ void ULang_String_t_char__Clear_ULang_String_t_char__(ULang_String_t_char_* __th
 { /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:71*/
+ /*Line:70*/
 
   ULang_Vector_char_* tep0 = &__this__->__0;
  ULang_Vector_char__Clear_ULang_Vector_char__(tep0);
@@ -2979,7 +2960,7 @@ int8_t ULang_String_t_char__Pop_ULang_String_t_char__(ULang_String_t_char_* __th
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:73*/
+ /*Line:72*/
 
   ULang_Vector_char_* tep0 = &__this__->__0;
  int8_t tep1 = ULang_Vector_char__Pop_ULang_Vector_char__(tep0);
@@ -2993,7 +2974,7 @@ int8_t ULang_String_t_char__Remove_ULang_String_t_char___uptr(ULang_String_t_cha
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:74*/
+ /*Line:73*/
 
   ULang_Vector_char_* tep0 = &__this__->__0;
  int64_t tep1 = Index;
@@ -3006,7 +2987,7 @@ void ULang_String_t_char__Push_ULang_String_t_char___c_imut(ULang_String_t_char_
 { /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:76*/
+ /*Line:75*/
 
   ULang_Vector_char_* tep0 = &__this__->__0;
  void* tep1 = Val;
@@ -3018,7 +2999,7 @@ void ULang_String_t_char__Insert_ULang_String_t_char___uptr_c_imut(ULang_String_
 { /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:79*/
+ /*Line:78*/
 
   ULang_Vector_char_* tep0 = &__this__->__0;
  int64_t tep1 = Index;
@@ -3033,10 +3014,10 @@ void* ULang_String_t_char____Index___ULang_String_t_char___uptr(ULang_String_t_c
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:79*/
+ /*Line:78*/
 
  
- /*Line:83*/
+ /*Line:82*/
 
  ULang_Vector_char_* tep0 = &__this__->__0;
  int64_t tep1 = Index;
@@ -3051,10 +3032,10 @@ void* ULang_String_t_char____Index___ULang_String_t_char__imut_uptr(ULang_String
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:83*/
+ /*Line:82*/
 
  
- /*Line:84*/
+ /*Line:83*/
 
  ULang_Vector_char_* tep0 = &__this__->__0;
  int64_t tep1 = Index;
@@ -3067,7 +3048,7 @@ void ULang_String_t_char__Append_ULang_String_t_char___ULang_Span_char_imut(ULan
 { /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:86*/
+ /*Line:85*/
 
   ULang_Vector_char_* tep0 = &__this__->__0;
  ULang_Span_char_ tep1 = Val;
@@ -3081,7 +3062,7 @@ int8_t ULang_String_t_char____equal___ULang_String_t_char__imut_ULang_String_t_c
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:90*/
+ /*Line:89*/
 
  ULang_String_t_char_* tep0 = __this__;
  ULang_String_t_char_* tep1 = tep0;
@@ -3101,7 +3082,7 @@ int8_t ULang_String_t_char____notequal___ULang_String_t_char__imut_ULang_String_
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:92*/
+ /*Line:91*/
 
  ULang_String_t_char_* tep0 = __this__;
  ULang_String_t_char_* tep1 = tep0;
@@ -3136,7 +3117,7 @@ int8_t ULang_String_t_char____equal___ULang_String_t_char__imut_ULang_StringSpan
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:100*/
+ /*Line:99*/
 
  ULang_String_t_char_* tep0 = __this__;
  ULang_String_t_char_* tep1 = tep0;
@@ -3154,7 +3135,7 @@ int8_t ULang_String_t_char____notequal___ULang_String_t_char__imut_ULang_StringS
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:102*/
+ /*Line:101*/
 
  ULang_String_t_char_* tep0 = __this__;
  ULang_String_t_char_* tep1 = tep0;
@@ -3238,8 +3219,8 @@ ULang_StringSpan_t_char_ ULang_String_t_char____Index___ULang_String_t_char___UL
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:102*/
- /*Line:114*/
+ /*Line:101*/
+ /*Line:113*/
 
  ULang_String_t_char_* tep0 = __this__;
  ULang_StringSpan_t_char_ tep1 = ULang_String_t_char__AsStrSpan_ULang_String_t_char__(tep0);
@@ -3256,8 +3237,8 @@ ULang_StringSpan_t_char_ ULang_String_t_char____Index___ULang_String_t_char__imu
  /*Block*/ 
 
  /*File:/Types/String.uc*/
+ /*Line:113*/
  /*Line:114*/
- /*Line:115*/
 
  ULang_String_t_char_* tep0 = __this__;
  ULang_StringSpan_t_char_ tep1 = ULang_String_t_char__AsStrSpan_ULang_String_t_char__imut(tep0);
@@ -3594,12 +3575,12 @@ void ULang_Vector_uint8__Reserve_ULang_Vector_uint8___uptr(ULang_Vector_uint8_* 
   void* tep7 = __this__->__0;
  tep6 = tep7;
 
- /*Line:32*/
+ /*Line:33*/
 
  int64_t tep8 = Size;
   __this__->__2 = tep8;
 
- /*Line:33*/
+ /*Line:34*/
 
  int64_t tep9 = Size;
  int64_t tep10 = 1;
@@ -3627,7 +3608,7 @@ void ULang_Vector_uint8__Reserve_ULang_Vector_uint8___uptr(ULang_Vector_uint8_* 
 
   __this__->__0 = tep12;
 
- /*Line:34*/
+ /*Line:35*/
 
  int64_t tep20;
 
@@ -3643,7 +3624,7 @@ void ULang_Vector_uint8__Reserve_ULang_Vector_uint8___uptr(ULang_Vector_uint8_* 
  int8_t tep25 = !tep24;
  if (tep25){goto _label3; };
 
- /*Line:35*/
+ /*Line:36*/
 
  void* tep26 = tep6;
  int64_t tep27 = tep20;
@@ -3658,7 +3639,7 @@ void ULang_Vector_uint8__Reserve_ULang_Vector_uint8___uptr(ULang_Vector_uint8_* 
  void* tep36 = (void*)((int64_t)tep32+tep35);
  *(int8_t*)tep36 = tep31;
 
- /*Line:34*/
+ /*Line:35*/
 
  int64_t tep37 = tep20;
  int64_t tep38 = 1;
@@ -3666,14 +3647,14 @@ void ULang_Vector_uint8__Reserve_ULang_Vector_uint8___uptr(ULang_Vector_uint8_* 
  tep20 = tep39;
  goto _label4;
 
- /*Line:37*/
+ /*Line:38*/
  _label3:
 
  int64_t tep40;
  void* tep41 = tep6;
  tep40 = (int64_t)tep41;
 
- /*Line:38*/
+ /*Line:39*/
 
  int64_t tep42 = tep40;
  int64_t tep43 = 0;
@@ -3681,7 +3662,7 @@ void ULang_Vector_uint8__Reserve_ULang_Vector_uint8___uptr(ULang_Vector_uint8_* 
  int8_t tep45 = !tep44;
  if (tep45){goto _label0; };
 
- /*Line:39*/
+ /*Line:40*/
 
  void* tep46 = tep6;
  free(tep46);
@@ -3695,7 +3676,7 @@ void ULang_Vector_uint8__Clear_ULang_Vector_uint8__(ULang_Vector_uint8_* __this_
 { /*Block*/ 
 
  /*File:/Types/Vector.uc*/
- /*Line:41*/
+ /*Line:42*/
 
  int64_t tep0 = 0;
   __this__->__1 = tep0;
@@ -3724,15 +3705,15 @@ void ULang_Vector_uint8__Push_ULang_Vector_uint8___u8_imut(ULang_Vector_uint8_* 
 { /*Block*/ 
 
  /*File:/Types/Vector.uc*/
- /*Line:47*/
+ /*Line:48*/
 
  ULang_Vector_uint8_* tep0 = __this__;
   int64_t tep1 = __this__->__1;
  int64_t tep2 = 1;
- int64_t tep3 = tep1+tep1;
+ int64_t tep3 = tep1+tep2;
  ULang_Vector_uint8__Resize_ULang_Vector_uint8___uptr(tep0,tep3);
 
- /*Line:48*/
+ /*Line:49*/
 
  int8_t tep4 = *(int8_t*)Val;
  ULang_Vector_uint8_* tep5 = __this__;
@@ -3741,8 +3722,7 @@ void ULang_Vector_uint8__Push_ULang_Vector_uint8___u8_imut(ULang_Vector_uint8_* 
  int64_t tep8 = 1;
  int64_t tep9 = tep7-tep8;
  void* tep10 = ULang_Vector_uint8____Index___ULang_Vector_uint8___uptr(tep6,tep9);
- int8_t tep11 = *(int8_t*)tep10;
- tep10 = (void*)tep4;
+ *(int8_t*)tep10 = tep4;
  return;
 
 }
@@ -3768,7 +3748,7 @@ void* ULang_Vector_uint8____Index___ULang_Vector_uint8___uptr(ULang_Vector_uint8
 
  
  /*File:/Types/Vector.uc*/
- /*Line:61*/
+ /*Line:62*/
 
  void* tep0 = __this__->__0;
  int64_t tep1 = Index;
@@ -3787,7 +3767,7 @@ void* ULang_Vector_uint8____Index___ULang_Vector_uint8__imut_uptr(ULang_Vector_u
 
  
  /*File:/Types/Vector.uc*/
- /*Line:62*/
+ /*Line:63*/
 
  void* tep0 = __this__->__0;
  int64_t tep1 = Index;
@@ -3804,8 +3784,8 @@ ULang_Span_uint8_ ULang_Vector_uint8____Index___ULang_Vector_uint8___ULang_Range
  /*Block*/ 
 
  /*File:/Types/Vector.uc*/
- /*Line:62*/
- /*Line:67*/
+ /*Line:63*/
+ /*Line:68*/
 
  ULang_Vector_uint8_* tep0 = __this__;
  ULang_Span_uint8_ tep1 = ULang_Vector_uint8__AsSpan_ULang_Vector_uint8__(tep0);
@@ -3822,8 +3802,8 @@ ULang_Span_uint8_ ULang_Vector_uint8____Index___ULang_Vector_uint8__imut_ULang_R
  /*Block*/ 
 
  /*File:/Types/Vector.uc*/
- /*Line:67*/
  /*Line:68*/
+ /*Line:69*/
 
  ULang_Vector_uint8_* tep0 = __this__;
  ULang_Span_uint8_ tep1 = ULang_Vector_uint8__AsSpan_ULang_Vector_uint8__imut(tep0);
@@ -3845,7 +3825,7 @@ ULang_Span_uint8_ ULang_Vector_uint8__AsSpan_ULang_Vector_uint8__(ULang_Vector_u
  ULang_Span_uint8_ tep0;
  ULang_Span_uint8_* tep1 = &tep0;
  
- /*Line:70*/
+ /*Line:71*/
 
  void* tep2 = __this__->__0;
   int64_t tep3 = __this__->__1;
@@ -3865,7 +3845,7 @@ ULang_Span_uint8_ ULang_Vector_uint8__AsSpan_ULang_Vector_uint8__imut(ULang_Vect
  ULang_Span_uint8_ tep0;
  ULang_Span_uint8_* tep1 = &tep0;
  
- /*Line:71*/
+ /*Line:72*/
 
  void* tep2 = __this__->__0;
   int64_t tep3 = __this__->__1;
@@ -3927,6 +3907,536 @@ int32_t ULang_Math_Min_sint32__i32_i32(int32_t A,int32_t B)
 
  _label1:
 
+ return _ReturnVal;
+
+}
+void ULang_Ptr_sint32_____new___ULang_Ptr_sint32___i32_(ULang_Ptr_sint32_* __this__,void* base)
+{ /*Block*/ 
+
+ /*File:/Types/Ptr.uc*/
+ /*Line:12*/
+
+ void* tep0 = base;
+  __this__->__0 = tep0;
+ return;
+
+}
+void* ULang_Ptr_sint32__Get_ULang_Ptr_sint32__(ULang_Ptr_sint32_* __this__)
+{
+ void* _ReturnVal;
+ /*Block*/ 
+
+
+ 
+ /*File:/Types/Ptr.uc*/
+ /*Line:14*/
+
+ void* tep0 = __this__->__0;
+ _ReturnVal = tep0;
+ return _ReturnVal;
+
+}
+void* ULang_Ptr_sint32__Get_ULang_Ptr_sint32__imut(ULang_Ptr_sint32_* __this__)
+{
+ void* _ReturnVal;
+ /*Block*/ 
+
+
+ 
+ /*File:/Types/Ptr.uc*/
+ /*Line:15*/
+
+ void* tep0 = __this__->__0;
+ _ReturnVal = tep0;
+ return _ReturnVal;
+
+}
+void ULang_Ptr_sint32__Write_ULang_Ptr_sint32___i32_imut(ULang_Ptr_sint32_* __this__,void* newvalue)
+{ /*Block*/ 
+
+ /*File:/Types/Ptr.uc*/
+ /*Line:17*/
+
+ int32_t tep0 = *(int32_t*)newvalue;
+ ULang_Ptr_sint32_* tep1 = __this__;
+ void* tep2 = ULang_Ptr_sint32__Get_ULang_Ptr_sint32__(tep1);
+ *(int32_t*)tep2 = tep0;
+ return;
+
+}
+void ULang_Ptr_sint32__Write_ULang_Ptr_sint32___i32mov(ULang_Ptr_sint32_* __this__,int32_t newvalue)
+{ /*Block*/ 
+
+ /*File:/Types/Ptr.uc*/
+ /*Line:18*/
+
+ int32_t tep0 = newvalue;
+ ULang_Ptr_sint32_* tep1 = __this__;
+ void* tep2 = ULang_Ptr_sint32__Get_ULang_Ptr_sint32__(tep1);
+ *(int32_t*)tep2 = tep0;
+ return;
+
+}
+void* ULang_Ptr_sint32__ReadPtr_ULang_Ptr_sint32__imut(ULang_Ptr_sint32_* __this__)
+{
+ void* _ReturnVal;
+ /*Block*/ 
+
+ /*File:/Types/Ptr.uc*/
+ /*Line:20*/
+
+ ULang_Ptr_sint32_* tep0 = __this__;
+ void* tep1 = ULang_Ptr_sint32__Get_ULang_Ptr_sint32__imut(tep0);
+ _ReturnVal = tep1;
+ return _ReturnVal;
+
+}
+void* ULang_Ptr_sint32____IndirectMember___ULang_Ptr_sint32__(ULang_Ptr_sint32_* __this__)
+{
+ void* _ReturnVal;
+ /*Block*/ 
+
+ /*File:/Types/Ptr.uc*/
+ /*Line:22*/
+
+ ULang_Ptr_sint32_* tep0 = __this__;
+ void* tep1 = ULang_Ptr_sint32__Get_ULang_Ptr_sint32__(tep0);
+ _ReturnVal = tep1;
+ return _ReturnVal;
+
+}
+void* ULang_Ptr_sint32____IndirectMember___ULang_Ptr_sint32__imut(ULang_Ptr_sint32_* __this__)
+{
+ void* _ReturnVal;
+ /*Block*/ 
+
+ /*File:/Types/Ptr.uc*/
+ /*Line:24*/
+
+ ULang_Ptr_sint32_* tep0 = __this__;
+ void* tep1 = ULang_Ptr_sint32__Get_ULang_Ptr_sint32__imut(tep0);
+ _ReturnVal = tep1;
+ return _ReturnVal;
+
+}
+void ULang_Ptr_sint32__ReassignTo_ULang_Ptr_sint32___i32_(ULang_Ptr_sint32_* __this__,void* newbase)
+{ /*Block*/ 
+
+ /*File:/Types/Ptr.uc*/
+ /*Line:26*/
+
+ void* tep0 = newbase;
+  __this__->__0 = tep0;
+ return;
+
+}
+ULang_Ptr_sint32_ ULang_Ptr_sint32__Make_i32_imut(void* V)
+{
+ ULang_Ptr_sint32_ _ReturnVal;
+ /*Block*/ 
+
+ /*File:/Types/Ptr.uc*/
+ /*Line:0*/
+
+ ULang_Ptr_sint32_ tep0;
+ ULang_Ptr_sint32_* tep1 = &tep0;
+
+ /*Line:30*/
+
+ void* tep2 = V;
+ ULang_Ptr_sint32_____new___ULang_Ptr_sint32___i32_(tep1,tep2);
+ _ReturnVal = tep0;
+ return _ReturnVal;
+
+}
+ULang_Ptr_sint32_ ULang_Ptr_sint32__Make_i32_(void* V)
+{
+ ULang_Ptr_sint32_ _ReturnVal;
+ /*Block*/ 
+
+ /*File:/Types/Ptr.uc*/
+ /*Line:0*/
+
+ ULang_Ptr_sint32_ tep0;
+ ULang_Ptr_sint32_* tep1 = &tep0;
+
+ /*Line:31*/
+
+ void* tep2 = V;
+ ULang_Ptr_sint32_____new___ULang_Ptr_sint32___i32_(tep1,tep2);
+ _ReturnVal = tep0;
+ return _ReturnVal;
+
+}
+void ULang_Ptr_sint32_____new___ULang_Ptr_sint32__(ULang_Ptr_sint32_* __this__)
+{ /*Block*/ 
+ return;
+
+}
+ULang_Ptr_sint32_ ULang_ptr_sint32__i32_(void* V)
+{
+ ULang_Ptr_sint32_ _ReturnVal;
+ /*Block*/ 
+
+ /*File:/Types/Ptr.uc*/
+ /*Line:5*/
+
+ void* tep0 = V;
+ ULang_Ptr_sint32_ tep1 = ULang_Ptr_sint32__Make_i32_(tep0);
+ _ReturnVal = tep1;
+ return _ReturnVal;
+
+}
+void ULang_Vec2f_t_float32_____new___ULang_Vec2f_t_float32__(ULang_Vec2f_t_float32_* __this__)
+{ /*Block*/ 
+
+ /*File:/Types/Vec2.uc*/
+ /*Line:7*/
+
+ float32_t tep0 = 0.000000;
+  __this__->__0 = tep0;
+
+ /*Line:8*/
+
+ float32_t tep1 = 0.000000;
+  __this__->__1 = tep1;
+ return;
+
+}
+void ULang_Vec2f_t_float32_____new___ULang_Vec2f_t_float32___f32_f32(ULang_Vec2f_t_float32_* __this__,float32_t x,float32_t y)
+{ /*Block*/ 
+
+ /*File:/Types/Vec2.uc*/
+ /*Line:11*/
+
+ float32_t tep0 = x;
+  __this__->__0 = tep0;
+
+ /*Line:12*/
+
+ float32_t tep1 = y;
+  __this__->__1 = tep1;
+ return;
+
+}
+int8_t ULang_Vec2f_t_float32____equal___ULang_Vec2f_t_float32__imut_ULang_Vec2f_t_float32__imut(ULang_Vec2f_t_float32_* __this__,ULang_Vec2f_t_float32_* Other)
+{
+ int8_t _ReturnVal;
+ /*Block*/ 
+
+
+ ULang_Vec2f_t_float32_* tep0 = __this__;
+
+ /*File:/Types/Vec2.uc*/
+ /*Line:15*/
+
+  float32_t tep1 = tep0->__1;
+  float32_t tep2 = Other->__1;
+ int8_t tep3 = (int8_t)(tep1==tep2);
+ ULang_Vec2f_t_float32_* tep4 = __this__;
+  float32_t tep5 = tep4->__0;
+  float32_t tep6 = Other->__0;
+ int8_t tep7 = (int8_t)(tep5==tep6);
+ int8_t tep8 = tep3&&tep7;
+ _ReturnVal = tep8;
+ return _ReturnVal;
+
+}
+int8_t ULang_Vec2f_t_float32____notequal___ULang_Vec2f_t_float32__imut_ULang_Vec2f_t_float32__imut(ULang_Vec2f_t_float32_* __this__,ULang_Vec2f_t_float32_* Other)
+{
+ int8_t _ReturnVal;
+ /*Block*/ 
+
+ /*File:/Types/Vec2.uc*/
+ /*Line:18*/
+
+ ULang_Vec2f_t_float32_* tep0 = __this__;
+ ULang_Vec2f_t_float32_* tep1 = tep0;
+ ULang_Vec2f_t_float32_* tep2 = Other;
+ int8_t tep3 = ULang_Vec2f_t_float32____equal___ULang_Vec2f_t_float32__imut_ULang_Vec2f_t_float32__imut(tep1,tep2);
+ int8_t tep4 = !tep3;
+ _ReturnVal = tep4;
+ return _ReturnVal;
+
+}
+void ULang_Vec2f_t_float32____Compound_Plus___ULang_Vec2f_t_float32___ULang_Vec2f_t_float32__imut(ULang_Vec2f_t_float32_* __this__,ULang_Vec2f_t_float32_* Other)
+{ /*Block*/ 
+
+
+ ULang_Vec2f_t_float32_* tep0 = __this__;
+
+ /*File:/Types/Vec2.uc*/
+ /*Line:21*/
+
+  ULang_Vec2f_t_float32_* tep1 = __this__;
+  float32_t tep2 = tep1->__0;
+  float32_t tep3 = Other->__0;
+ float32_t tep4 = tep2+tep3;
+ tep0->__0 = tep4;
+ ULang_Vec2f_t_float32_* tep5 = __this__;
+
+ /*Line:22*/
+
+  ULang_Vec2f_t_float32_* tep6 = __this__;
+  float32_t tep7 = tep6->__1;
+  float32_t tep8 = Other->__1;
+ float32_t tep9 = tep7+tep8;
+ tep5->__1 = tep9;
+ return;
+
+}
+void ULang_Vec2f_t_float32____Compound_Sub___ULang_Vec2f_t_float32___ULang_Vec2f_t_float32__imut(ULang_Vec2f_t_float32_* __this__,ULang_Vec2f_t_float32_* Other)
+{ /*Block*/ 
+
+
+ ULang_Vec2f_t_float32_* tep0 = __this__;
+
+ /*File:/Types/Vec2.uc*/
+ /*Line:25*/
+
+  ULang_Vec2f_t_float32_* tep1 = __this__;
+  float32_t tep2 = tep1->__0;
+  float32_t tep3 = Other->__0;
+ float32_t tep4 = tep2-tep3;
+ tep0->__0 = tep4;
+ ULang_Vec2f_t_float32_* tep5 = __this__;
+
+ /*Line:26*/
+
+  ULang_Vec2f_t_float32_* tep6 = __this__;
+  float32_t tep7 = tep6->__1;
+  float32_t tep8 = Other->__1;
+ float32_t tep9 = tep7-tep8;
+ tep5->__1 = tep9;
+ return;
+
+}
+ULang_Vec2f_t_float32_ ULang_Vec2f_t_float32____Plus___ULang_Vec2f_t_float32__imut_ULang_Vec2f_t_float32__imut(ULang_Vec2f_t_float32_* __this__,ULang_Vec2f_t_float32_* Other)
+{
+ ULang_Vec2f_t_float32_ _ReturnVal;
+ /*Block*/ 
+
+ /*File:/Types/Vec2.uc*/
+ /*Line:29*/
+
+ ULang_Vec2f_t_float32_ tep0;
+ ULang_Vec2f_t_float32_* tep1 = __this__;
+ ULang_Vec2f_t_float32_ tep2 = *(ULang_Vec2f_t_float32_*)tep1;
+ tep0 = tep2;
+
+ /*Line:30*/
+
+ ULang_Vec2f_t_float32_* tep3 = &tep0;
+ ULang_Vec2f_t_float32_* tep4 = Other;
+ ULang_Vec2f_t_float32____Compound_Plus___ULang_Vec2f_t_float32___ULang_Vec2f_t_float32__imut(tep3,tep4);
+
+ /*Line:31*/
+
+ ULang_Vec2f_t_float32_ tep5 = tep0;
+ _ReturnVal = tep5;
+ return _ReturnVal;
+
+}
+ULang_Vec2f_t_float32_ ULang_Vec2f_t_float32____Minus___ULang_Vec2f_t_float32__imut_ULang_Vec2f_t_float32__imut(ULang_Vec2f_t_float32_* __this__,ULang_Vec2f_t_float32_* Other)
+{
+ ULang_Vec2f_t_float32_ _ReturnVal;
+ /*Block*/ 
+
+ /*File:/Types/Vec2.uc*/
+ /*Line:34*/
+
+ ULang_Vec2f_t_float32_ tep0;
+ ULang_Vec2f_t_float32_* tep1 = __this__;
+ ULang_Vec2f_t_float32_ tep2 = *(ULang_Vec2f_t_float32_*)tep1;
+ tep0 = tep2;
+
+ /*Line:35*/
+
+ ULang_Vec2f_t_float32_* tep3 = &tep0;
+ ULang_Vec2f_t_float32_* tep4 = Other;
+ ULang_Vec2f_t_float32____Compound_Sub___ULang_Vec2f_t_float32___ULang_Vec2f_t_float32__imut(tep3,tep4);
+
+ /*Line:36*/
+
+ ULang_Vec2f_t_float32_ tep5 = tep0;
+ _ReturnVal = tep5;
+ return _ReturnVal;
+
+}
+void ULang_Ptr_ULang_Vec2f_t_float32______new___ULang_Ptr_ULang_Vec2f_t_float32____ULang_Vec2f_t_float32__(ULang_Ptr_ULang_Vec2f_t_float32__* __this__,ULang_Vec2f_t_float32_* base)
+{ /*Block*/ 
+
+ /*File:/Types/Ptr.uc*/
+ /*Line:12*/
+
+ ULang_Vec2f_t_float32_* tep0 = base;
+  __this__->__0 = tep0;
+ return;
+
+}
+ULang_Vec2f_t_float32_* ULang_Ptr_ULang_Vec2f_t_float32___Get_ULang_Ptr_ULang_Vec2f_t_float32___(ULang_Ptr_ULang_Vec2f_t_float32__* __this__)
+{
+ ULang_Vec2f_t_float32_* _ReturnVal;
+ /*Block*/ 
+
+
+ 
+ /*File:/Types/Ptr.uc*/
+ /*Line:14*/
+
+ ULang_Vec2f_t_float32_* tep0 = __this__->__0;
+ _ReturnVal = tep0;
+ return _ReturnVal;
+
+}
+ULang_Vec2f_t_float32_* ULang_Ptr_ULang_Vec2f_t_float32___Get_ULang_Ptr_ULang_Vec2f_t_float32___imut(ULang_Ptr_ULang_Vec2f_t_float32__* __this__)
+{
+ ULang_Vec2f_t_float32_* _ReturnVal;
+ /*Block*/ 
+
+
+ 
+ /*File:/Types/Ptr.uc*/
+ /*Line:15*/
+
+ ULang_Vec2f_t_float32_* tep0 = __this__->__0;
+ _ReturnVal = tep0;
+ return _ReturnVal;
+
+}
+void ULang_Ptr_ULang_Vec2f_t_float32___Write_ULang_Ptr_ULang_Vec2f_t_float32____ULang_Vec2f_t_float32__imut(ULang_Ptr_ULang_Vec2f_t_float32__* __this__,ULang_Vec2f_t_float32_* newvalue)
+{ /*Block*/ 
+
+ /*File:/Types/Ptr.uc*/
+ /*Line:17*/
+
+ ULang_Vec2f_t_float32_ tep0 = *(ULang_Vec2f_t_float32_*)newvalue;
+ ULang_Ptr_ULang_Vec2f_t_float32__* tep1 = __this__;
+ ULang_Vec2f_t_float32_* tep2 = ULang_Ptr_ULang_Vec2f_t_float32___Get_ULang_Ptr_ULang_Vec2f_t_float32___(tep1);
+ *(ULang_Vec2f_t_float32_*)tep2 = tep0;
+ return;
+
+}
+void ULang_Ptr_ULang_Vec2f_t_float32___Write_ULang_Ptr_ULang_Vec2f_t_float32____ULang_Vec2f_t_float32_mov(ULang_Ptr_ULang_Vec2f_t_float32__* __this__,ULang_Vec2f_t_float32_ newvalue)
+{ /*Block*/ 
+
+ /*File:/Types/Ptr.uc*/
+ /*Line:18*/
+
+ ULang_Vec2f_t_float32_ tep0 = newvalue;
+ ULang_Ptr_ULang_Vec2f_t_float32__* tep1 = __this__;
+ ULang_Vec2f_t_float32_* tep2 = ULang_Ptr_ULang_Vec2f_t_float32___Get_ULang_Ptr_ULang_Vec2f_t_float32___(tep1);
+ *(ULang_Vec2f_t_float32_*)tep2 = tep0;
+ return;
+
+}
+ULang_Vec2f_t_float32_* ULang_Ptr_ULang_Vec2f_t_float32___ReadPtr_ULang_Ptr_ULang_Vec2f_t_float32___imut(ULang_Ptr_ULang_Vec2f_t_float32__* __this__)
+{
+ ULang_Vec2f_t_float32_* _ReturnVal;
+ /*Block*/ 
+
+ /*File:/Types/Ptr.uc*/
+ /*Line:20*/
+
+ ULang_Ptr_ULang_Vec2f_t_float32__* tep0 = __this__;
+ ULang_Vec2f_t_float32_* tep1 = ULang_Ptr_ULang_Vec2f_t_float32___Get_ULang_Ptr_ULang_Vec2f_t_float32___imut(tep0);
+ _ReturnVal = tep1;
+ return _ReturnVal;
+
+}
+ULang_Vec2f_t_float32_* ULang_Ptr_ULang_Vec2f_t_float32_____IndirectMember___ULang_Ptr_ULang_Vec2f_t_float32___(ULang_Ptr_ULang_Vec2f_t_float32__* __this__)
+{
+ ULang_Vec2f_t_float32_* _ReturnVal;
+ /*Block*/ 
+
+ /*File:/Types/Ptr.uc*/
+ /*Line:22*/
+
+ ULang_Ptr_ULang_Vec2f_t_float32__* tep0 = __this__;
+ ULang_Vec2f_t_float32_* tep1 = ULang_Ptr_ULang_Vec2f_t_float32___Get_ULang_Ptr_ULang_Vec2f_t_float32___(tep0);
+ _ReturnVal = tep1;
+ return _ReturnVal;
+
+}
+ULang_Vec2f_t_float32_* ULang_Ptr_ULang_Vec2f_t_float32_____IndirectMember___ULang_Ptr_ULang_Vec2f_t_float32___imut(ULang_Ptr_ULang_Vec2f_t_float32__* __this__)
+{
+ ULang_Vec2f_t_float32_* _ReturnVal;
+ /*Block*/ 
+
+ /*File:/Types/Ptr.uc*/
+ /*Line:24*/
+
+ ULang_Ptr_ULang_Vec2f_t_float32__* tep0 = __this__;
+ ULang_Vec2f_t_float32_* tep1 = ULang_Ptr_ULang_Vec2f_t_float32___Get_ULang_Ptr_ULang_Vec2f_t_float32___imut(tep0);
+ _ReturnVal = tep1;
+ return _ReturnVal;
+
+}
+void ULang_Ptr_ULang_Vec2f_t_float32___ReassignTo_ULang_Ptr_ULang_Vec2f_t_float32____ULang_Vec2f_t_float32__(ULang_Ptr_ULang_Vec2f_t_float32__* __this__,ULang_Vec2f_t_float32_* newbase)
+{ /*Block*/ 
+
+ /*File:/Types/Ptr.uc*/
+ /*Line:26*/
+
+ ULang_Vec2f_t_float32_* tep0 = newbase;
+  __this__->__0 = tep0;
+ return;
+
+}
+ULang_Ptr_ULang_Vec2f_t_float32__ ULang_Ptr_ULang_Vec2f_t_float32___Make_ULang_Vec2f_t_float32__imut(ULang_Vec2f_t_float32_* V)
+{
+ ULang_Ptr_ULang_Vec2f_t_float32__ _ReturnVal;
+ /*Block*/ 
+
+ /*File:/Types/Ptr.uc*/
+ /*Line:0*/
+
+ ULang_Ptr_ULang_Vec2f_t_float32__ tep0;
+ ULang_Ptr_ULang_Vec2f_t_float32__* tep1 = &tep0;
+
+ /*Line:30*/
+
+ ULang_Vec2f_t_float32_* tep2 = V;
+ ULang_Ptr_ULang_Vec2f_t_float32______new___ULang_Ptr_ULang_Vec2f_t_float32____ULang_Vec2f_t_float32__(tep1,tep2);
+ _ReturnVal = tep0;
+ return _ReturnVal;
+
+}
+ULang_Ptr_ULang_Vec2f_t_float32__ ULang_Ptr_ULang_Vec2f_t_float32___Make_ULang_Vec2f_t_float32__(ULang_Vec2f_t_float32_* V)
+{
+ ULang_Ptr_ULang_Vec2f_t_float32__ _ReturnVal;
+ /*Block*/ 
+
+ /*File:/Types/Ptr.uc*/
+ /*Line:0*/
+
+ ULang_Ptr_ULang_Vec2f_t_float32__ tep0;
+ ULang_Ptr_ULang_Vec2f_t_float32__* tep1 = &tep0;
+
+ /*Line:31*/
+
+ ULang_Vec2f_t_float32_* tep2 = V;
+ ULang_Ptr_ULang_Vec2f_t_float32______new___ULang_Ptr_ULang_Vec2f_t_float32____ULang_Vec2f_t_float32__(tep1,tep2);
+ _ReturnVal = tep0;
+ return _ReturnVal;
+
+}
+void ULang_Ptr_ULang_Vec2f_t_float32______new___ULang_Ptr_ULang_Vec2f_t_float32___(ULang_Ptr_ULang_Vec2f_t_float32__* __this__)
+{ /*Block*/ 
+ return;
+
+}
+ULang_Ptr_ULang_Vec2f_t_float32__ ULang_ptr_ULang_Vec2f_t_float32___ULang_Vec2f_t_float32__(ULang_Vec2f_t_float32_* V)
+{
+ ULang_Ptr_ULang_Vec2f_t_float32__ _ReturnVal;
+ /*Block*/ 
+
+ /*File:/Types/Ptr.uc*/
+ /*Line:5*/
+
+ ULang_Vec2f_t_float32_* tep0 = V;
+ ULang_Ptr_ULang_Vec2f_t_float32__ tep1 = ULang_Ptr_ULang_Vec2f_t_float32___Make_ULang_Vec2f_t_float32__(tep0);
+ _ReturnVal = tep1;
  return _ReturnVal;
 
 }
@@ -4238,12 +4748,12 @@ void ULang_Vector_sint32__Reserve_ULang_Vector_sint32___uptr(ULang_Vector_sint32
   void* tep7 = __this__->__0;
  tep6 = tep7;
 
- /*Line:32*/
+ /*Line:33*/
 
  int64_t tep8 = Size;
   __this__->__2 = tep8;
 
- /*Line:33*/
+ /*Line:34*/
 
  int64_t tep9 = Size;
  int64_t tep10 = 4;
@@ -4271,7 +4781,7 @@ void ULang_Vector_sint32__Reserve_ULang_Vector_sint32___uptr(ULang_Vector_sint32
 
   __this__->__0 = tep12;
 
- /*Line:34*/
+ /*Line:35*/
 
  int64_t tep20;
 
@@ -4287,7 +4797,7 @@ void ULang_Vector_sint32__Reserve_ULang_Vector_sint32___uptr(ULang_Vector_sint32
  int8_t tep25 = !tep24;
  if (tep25){goto _label3; };
 
- /*Line:35*/
+ /*Line:36*/
 
  void* tep26 = tep6;
  int64_t tep27 = tep20;
@@ -4302,7 +4812,7 @@ void ULang_Vector_sint32__Reserve_ULang_Vector_sint32___uptr(ULang_Vector_sint32
  void* tep36 = (void*)((int64_t)tep32+tep35);
  *(int32_t*)tep36 = tep31;
 
- /*Line:34*/
+ /*Line:35*/
 
  int64_t tep37 = tep20;
  int64_t tep38 = 1;
@@ -4310,14 +4820,14 @@ void ULang_Vector_sint32__Reserve_ULang_Vector_sint32___uptr(ULang_Vector_sint32
  tep20 = tep39;
  goto _label4;
 
- /*Line:37*/
+ /*Line:38*/
  _label3:
 
  int64_t tep40;
  void* tep41 = tep6;
  tep40 = (int64_t)tep41;
 
- /*Line:38*/
+ /*Line:39*/
 
  int64_t tep42 = tep40;
  int64_t tep43 = 0;
@@ -4325,7 +4835,7 @@ void ULang_Vector_sint32__Reserve_ULang_Vector_sint32___uptr(ULang_Vector_sint32
  int8_t tep45 = !tep44;
  if (tep45){goto _label0; };
 
- /*Line:39*/
+ /*Line:40*/
 
  void* tep46 = tep6;
  free(tep46);
@@ -4339,7 +4849,7 @@ void ULang_Vector_sint32__Clear_ULang_Vector_sint32__(ULang_Vector_sint32_* __th
 { /*Block*/ 
 
  /*File:/Types/Vector.uc*/
- /*Line:41*/
+ /*Line:42*/
 
  int64_t tep0 = 0;
   __this__->__1 = tep0;
@@ -4368,15 +4878,15 @@ void ULang_Vector_sint32__Push_ULang_Vector_sint32___i32_imut(ULang_Vector_sint3
 { /*Block*/ 
 
  /*File:/Types/Vector.uc*/
- /*Line:47*/
+ /*Line:48*/
 
  ULang_Vector_sint32_* tep0 = __this__;
   int64_t tep1 = __this__->__1;
  int64_t tep2 = 1;
- int64_t tep3 = tep1+tep1;
+ int64_t tep3 = tep1+tep2;
  ULang_Vector_sint32__Resize_ULang_Vector_sint32___uptr(tep0,tep3);
 
- /*Line:48*/
+ /*Line:49*/
 
  int32_t tep4 = *(int32_t*)Val;
  ULang_Vector_sint32_* tep5 = __this__;
@@ -4385,8 +4895,7 @@ void ULang_Vector_sint32__Push_ULang_Vector_sint32___i32_imut(ULang_Vector_sint3
  int64_t tep8 = 1;
  int64_t tep9 = tep7-tep8;
  void* tep10 = ULang_Vector_sint32____Index___ULang_Vector_sint32___uptr(tep6,tep9);
- int32_t tep11 = *(int32_t*)tep10;
- tep10 = (void*)tep4;
+ *(int32_t*)tep10 = tep4;
  return;
 
 }
@@ -4412,7 +4921,7 @@ void* ULang_Vector_sint32____Index___ULang_Vector_sint32___uptr(ULang_Vector_sin
 
  
  /*File:/Types/Vector.uc*/
- /*Line:61*/
+ /*Line:62*/
 
  void* tep0 = __this__->__0;
  int64_t tep1 = Index;
@@ -4431,7 +4940,7 @@ void* ULang_Vector_sint32____Index___ULang_Vector_sint32__imut_uptr(ULang_Vector
 
  
  /*File:/Types/Vector.uc*/
- /*Line:62*/
+ /*Line:63*/
 
  void* tep0 = __this__->__0;
  int64_t tep1 = Index;
@@ -4448,8 +4957,8 @@ ULang_Span_sint32_ ULang_Vector_sint32____Index___ULang_Vector_sint32___ULang_Ra
  /*Block*/ 
 
  /*File:/Types/Vector.uc*/
- /*Line:62*/
- /*Line:67*/
+ /*Line:63*/
+ /*Line:68*/
 
  ULang_Vector_sint32_* tep0 = __this__;
  ULang_Span_sint32_ tep1 = ULang_Vector_sint32__AsSpan_ULang_Vector_sint32__(tep0);
@@ -4466,8 +4975,8 @@ ULang_Span_sint32_ ULang_Vector_sint32____Index___ULang_Vector_sint32__imut_ULan
  /*Block*/ 
 
  /*File:/Types/Vector.uc*/
- /*Line:67*/
  /*Line:68*/
+ /*Line:69*/
 
  ULang_Vector_sint32_* tep0 = __this__;
  ULang_Span_sint32_ tep1 = ULang_Vector_sint32__AsSpan_ULang_Vector_sint32__imut(tep0);
@@ -4489,7 +4998,7 @@ ULang_Span_sint32_ ULang_Vector_sint32__AsSpan_ULang_Vector_sint32__(ULang_Vecto
  ULang_Span_sint32_ tep0;
  ULang_Span_sint32_* tep1 = &tep0;
  
- /*Line:70*/
+ /*Line:71*/
 
  void* tep2 = __this__->__0;
   int64_t tep3 = __this__->__1;
@@ -4509,7 +5018,7 @@ ULang_Span_sint32_ ULang_Vector_sint32__AsSpan_ULang_Vector_sint32__imut(ULang_V
  ULang_Span_sint32_ tep0;
  ULang_Span_sint32_* tep1 = &tep0;
  
- /*Line:71*/
+ /*Line:72*/
 
  void* tep2 = __this__->__0;
   int64_t tep3 = __this__->__1;
@@ -4536,6 +5045,169 @@ ULang_Range_t_uintptr_ ULang_Range_uintptr__uptr_uptr(int64_t start,int64_t end)
  ULang_Range_t_uintptr_____new___ULang_Range_t_uintptr___uptr_uptr(tep1,tep2,tep3);
  _ReturnVal = tep0;
  return _ReturnVal;
+
+}
+void ULang_Ptr_ULang_Empty_____new___ULang_Ptr_ULang_Empty___ULang_Empty_(ULang_Ptr_ULang_Empty_* __this__,ULang_Empty* base)
+{ /*Block*/ 
+
+ /*File:/Types/Ptr.uc*/
+ /*Line:12*/
+
+ ULang_Empty* tep0 = base;
+  __this__->__0 = tep0;
+ return;
+
+}
+ULang_Empty* ULang_Ptr_ULang_Empty__Get_ULang_Ptr_ULang_Empty__(ULang_Ptr_ULang_Empty_* __this__)
+{
+ ULang_Empty* _ReturnVal;
+ /*Block*/ 
+
+
+ 
+ /*File:/Types/Ptr.uc*/
+ /*Line:14*/
+
+ ULang_Empty* tep0 = __this__->__0;
+ _ReturnVal = tep0;
+ return _ReturnVal;
+
+}
+ULang_Empty* ULang_Ptr_ULang_Empty__Get_ULang_Ptr_ULang_Empty__imut(ULang_Ptr_ULang_Empty_* __this__)
+{
+ ULang_Empty* _ReturnVal;
+ /*Block*/ 
+
+
+ 
+ /*File:/Types/Ptr.uc*/
+ /*Line:15*/
+
+ ULang_Empty* tep0 = __this__->__0;
+ _ReturnVal = tep0;
+ return _ReturnVal;
+
+}
+void ULang_Ptr_ULang_Empty__Write_ULang_Ptr_ULang_Empty___ULang_Empty_imut(ULang_Ptr_ULang_Empty_* __this__,ULang_Empty* newvalue)
+{ /*Block*/ 
+
+ /*File:/Types/Ptr.uc*/
+ /*Line:17*/
+
+ ULang_Empty tep0 = *(ULang_Empty*)newvalue;
+ ULang_Ptr_ULang_Empty_* tep1 = __this__;
+ ULang_Empty* tep2 = ULang_Ptr_ULang_Empty__Get_ULang_Ptr_ULang_Empty__(tep1);
+ *(ULang_Empty*)tep2 = tep0;
+ return;
+
+}
+void ULang_Ptr_ULang_Empty__Write_ULang_Ptr_ULang_Empty___ULang_Emptymov(ULang_Ptr_ULang_Empty_* __this__,ULang_Empty newvalue)
+{ /*Block*/ 
+
+ /*File:/Types/Ptr.uc*/
+ /*Line:18*/
+
+ ULang_Empty tep0 = newvalue;
+ ULang_Ptr_ULang_Empty_* tep1 = __this__;
+ ULang_Empty* tep2 = ULang_Ptr_ULang_Empty__Get_ULang_Ptr_ULang_Empty__(tep1);
+ *(ULang_Empty*)tep2 = tep0;
+ return;
+
+}
+ULang_Empty* ULang_Ptr_ULang_Empty__ReadPtr_ULang_Ptr_ULang_Empty__imut(ULang_Ptr_ULang_Empty_* __this__)
+{
+ ULang_Empty* _ReturnVal;
+ /*Block*/ 
+
+ /*File:/Types/Ptr.uc*/
+ /*Line:20*/
+
+ ULang_Ptr_ULang_Empty_* tep0 = __this__;
+ ULang_Empty* tep1 = ULang_Ptr_ULang_Empty__Get_ULang_Ptr_ULang_Empty__imut(tep0);
+ _ReturnVal = tep1;
+ return _ReturnVal;
+
+}
+ULang_Empty* ULang_Ptr_ULang_Empty____IndirectMember___ULang_Ptr_ULang_Empty__(ULang_Ptr_ULang_Empty_* __this__)
+{
+ ULang_Empty* _ReturnVal;
+ /*Block*/ 
+
+ /*File:/Types/Ptr.uc*/
+ /*Line:22*/
+
+ ULang_Ptr_ULang_Empty_* tep0 = __this__;
+ ULang_Empty* tep1 = ULang_Ptr_ULang_Empty__Get_ULang_Ptr_ULang_Empty__(tep0);
+ _ReturnVal = tep1;
+ return _ReturnVal;
+
+}
+ULang_Empty* ULang_Ptr_ULang_Empty____IndirectMember___ULang_Ptr_ULang_Empty__imut(ULang_Ptr_ULang_Empty_* __this__)
+{
+ ULang_Empty* _ReturnVal;
+ /*Block*/ 
+
+ /*File:/Types/Ptr.uc*/
+ /*Line:24*/
+
+ ULang_Ptr_ULang_Empty_* tep0 = __this__;
+ ULang_Empty* tep1 = ULang_Ptr_ULang_Empty__Get_ULang_Ptr_ULang_Empty__imut(tep0);
+ _ReturnVal = tep1;
+ return _ReturnVal;
+
+}
+void ULang_Ptr_ULang_Empty__ReassignTo_ULang_Ptr_ULang_Empty___ULang_Empty_(ULang_Ptr_ULang_Empty_* __this__,ULang_Empty* newbase)
+{ /*Block*/ 
+
+ /*File:/Types/Ptr.uc*/
+ /*Line:26*/
+
+ ULang_Empty* tep0 = newbase;
+  __this__->__0 = tep0;
+ return;
+
+}
+ULang_Ptr_ULang_Empty_ ULang_Ptr_ULang_Empty__Make_ULang_Empty_imut(ULang_Empty* V)
+{
+ ULang_Ptr_ULang_Empty_ _ReturnVal;
+ /*Block*/ 
+
+ /*File:/Types/Ptr.uc*/
+ /*Line:0*/
+
+ ULang_Ptr_ULang_Empty_ tep0;
+ ULang_Ptr_ULang_Empty_* tep1 = &tep0;
+
+ /*Line:30*/
+
+ ULang_Empty* tep2 = V;
+ ULang_Ptr_ULang_Empty_____new___ULang_Ptr_ULang_Empty___ULang_Empty_(tep1,tep2);
+ _ReturnVal = tep0;
+ return _ReturnVal;
+
+}
+ULang_Ptr_ULang_Empty_ ULang_Ptr_ULang_Empty__Make_ULang_Empty_(ULang_Empty* V)
+{
+ ULang_Ptr_ULang_Empty_ _ReturnVal;
+ /*Block*/ 
+
+ /*File:/Types/Ptr.uc*/
+ /*Line:0*/
+
+ ULang_Ptr_ULang_Empty_ tep0;
+ ULang_Ptr_ULang_Empty_* tep1 = &tep0;
+
+ /*Line:31*/
+
+ ULang_Empty* tep2 = V;
+ ULang_Ptr_ULang_Empty_____new___ULang_Ptr_ULang_Empty___ULang_Empty_(tep1,tep2);
+ _ReturnVal = tep0;
+ return _ReturnVal;
+
+}
+void ULang_Ptr_ULang_Empty_____new___ULang_Ptr_ULang_Empty__(ULang_Ptr_ULang_Empty_* __this__)
+{ /*Block*/ 
+ return;
 
 }
 void ULang_Span_uft8_____new___ULang_Span_uft8__(ULang_Span_uft8_* __this__)
@@ -4846,12 +5518,12 @@ void ULang_Vector_uft8__Reserve_ULang_Vector_uft8___uptr(ULang_Vector_uft8_* __t
   void* tep7 = __this__->__0;
  tep6 = tep7;
 
- /*Line:32*/
+ /*Line:33*/
 
  int64_t tep8 = Size;
   __this__->__2 = tep8;
 
- /*Line:33*/
+ /*Line:34*/
 
  int64_t tep9 = Size;
  int64_t tep10 = 1;
@@ -4879,7 +5551,7 @@ void ULang_Vector_uft8__Reserve_ULang_Vector_uft8___uptr(ULang_Vector_uft8_* __t
 
   __this__->__0 = tep12;
 
- /*Line:34*/
+ /*Line:35*/
 
  int64_t tep20;
 
@@ -4895,7 +5567,7 @@ void ULang_Vector_uft8__Reserve_ULang_Vector_uft8___uptr(ULang_Vector_uft8_* __t
  int8_t tep25 = !tep24;
  if (tep25){goto _label3; };
 
- /*Line:35*/
+ /*Line:36*/
 
  void* tep26 = tep6;
  int64_t tep27 = tep20;
@@ -4910,7 +5582,7 @@ void ULang_Vector_uft8__Reserve_ULang_Vector_uft8___uptr(ULang_Vector_uft8_* __t
  void* tep36 = (void*)((int64_t)tep32+tep35);
  *(int8_t*)tep36 = tep31;
 
- /*Line:34*/
+ /*Line:35*/
 
  int64_t tep37 = tep20;
  int64_t tep38 = 1;
@@ -4918,14 +5590,14 @@ void ULang_Vector_uft8__Reserve_ULang_Vector_uft8___uptr(ULang_Vector_uft8_* __t
  tep20 = tep39;
  goto _label4;
 
- /*Line:37*/
+ /*Line:38*/
  _label3:
 
  int64_t tep40;
  void* tep41 = tep6;
  tep40 = (int64_t)tep41;
 
- /*Line:38*/
+ /*Line:39*/
 
  int64_t tep42 = tep40;
  int64_t tep43 = 0;
@@ -4933,7 +5605,7 @@ void ULang_Vector_uft8__Reserve_ULang_Vector_uft8___uptr(ULang_Vector_uft8_* __t
  int8_t tep45 = !tep44;
  if (tep45){goto _label0; };
 
- /*Line:39*/
+ /*Line:40*/
 
  void* tep46 = tep6;
  free(tep46);
@@ -4947,7 +5619,7 @@ void ULang_Vector_uft8__Clear_ULang_Vector_uft8__(ULang_Vector_uft8_* __this__)
 { /*Block*/ 
 
  /*File:/Types/Vector.uc*/
- /*Line:41*/
+ /*Line:42*/
 
  int64_t tep0 = 0;
   __this__->__1 = tep0;
@@ -4976,15 +5648,15 @@ void ULang_Vector_uft8__Push_ULang_Vector_uft8____imut(ULang_Vector_uft8_* __thi
 { /*Block*/ 
 
  /*File:/Types/Vector.uc*/
- /*Line:47*/
+ /*Line:48*/
 
  ULang_Vector_uft8_* tep0 = __this__;
   int64_t tep1 = __this__->__1;
  int64_t tep2 = 1;
- int64_t tep3 = tep1+tep1;
+ int64_t tep3 = tep1+tep2;
  ULang_Vector_uft8__Resize_ULang_Vector_uft8___uptr(tep0,tep3);
 
- /*Line:48*/
+ /*Line:49*/
 
  int8_t tep4 = *(int8_t*)Val;
  ULang_Vector_uft8_* tep5 = __this__;
@@ -4993,8 +5665,7 @@ void ULang_Vector_uft8__Push_ULang_Vector_uft8____imut(ULang_Vector_uft8_* __thi
  int64_t tep8 = 1;
  int64_t tep9 = tep7-tep8;
  void* tep10 = ULang_Vector_uft8____Index___ULang_Vector_uft8___uptr(tep6,tep9);
- int8_t tep11 = *(int8_t*)tep10;
- tep10 = (void*)tep4;
+ *(int8_t*)tep10 = tep4;
  return;
 
 }
@@ -5020,7 +5691,7 @@ void* ULang_Vector_uft8____Index___ULang_Vector_uft8___uptr(ULang_Vector_uft8_* 
 
  
  /*File:/Types/Vector.uc*/
- /*Line:61*/
+ /*Line:62*/
 
  void* tep0 = __this__->__0;
  int64_t tep1 = Index;
@@ -5039,7 +5710,7 @@ void* ULang_Vector_uft8____Index___ULang_Vector_uft8__imut_uptr(ULang_Vector_uft
 
  
  /*File:/Types/Vector.uc*/
- /*Line:62*/
+ /*Line:63*/
 
  void* tep0 = __this__->__0;
  int64_t tep1 = Index;
@@ -5056,8 +5727,8 @@ ULang_Span_uft8_ ULang_Vector_uft8____Index___ULang_Vector_uft8___ULang_Range_t_
  /*Block*/ 
 
  /*File:/Types/Vector.uc*/
- /*Line:62*/
- /*Line:67*/
+ /*Line:63*/
+ /*Line:68*/
 
  ULang_Vector_uft8_* tep0 = __this__;
  ULang_Span_uft8_ tep1 = ULang_Vector_uft8__AsSpan_ULang_Vector_uft8__(tep0);
@@ -5074,8 +5745,8 @@ ULang_Span_uft8_ ULang_Vector_uft8____Index___ULang_Vector_uft8__imut_ULang_Rang
  /*Block*/ 
 
  /*File:/Types/Vector.uc*/
- /*Line:67*/
  /*Line:68*/
+ /*Line:69*/
 
  ULang_Vector_uft8_* tep0 = __this__;
  ULang_Span_uft8_ tep1 = ULang_Vector_uft8__AsSpan_ULang_Vector_uft8__imut(tep0);
@@ -5097,7 +5768,7 @@ ULang_Span_uft8_ ULang_Vector_uft8__AsSpan_ULang_Vector_uft8__(ULang_Vector_uft8
  ULang_Span_uft8_ tep0;
  ULang_Span_uft8_* tep1 = &tep0;
  
- /*Line:70*/
+ /*Line:71*/
 
  void* tep2 = __this__->__0;
   int64_t tep3 = __this__->__1;
@@ -5117,7 +5788,7 @@ ULang_Span_uft8_ ULang_Vector_uft8__AsSpan_ULang_Vector_uft8__imut(ULang_Vector_
  ULang_Span_uft8_ tep0;
  ULang_Span_uft8_* tep1 = &tep0;
  
- /*Line:71*/
+ /*Line:72*/
 
  void* tep2 = __this__->__0;
   int64_t tep3 = __this__->__1;
@@ -5497,28 +6168,10 @@ void ULang_String_t_uft8_____new___ULang_String_t_uft8___ULang_StringSpan_t_uft8
  int8_t tep8 = (int8_t)(tep5<tep7);
  int8_t tep9 = !tep8;
  if (tep9){goto _label0; };
-
- /*Line:60*/
- /*Line:59*/
- /*Line:60*/
-
- ULang_StringSpan_t_uft8_* tep10 = span;
- int64_t tep11 = tep3;
- void* tep12 = ULang_StringSpan_t_uft8____Index___ULang_StringSpan_t_uft8___uptr(tep10,tep11);
- int8_t tep13 = *(int8_t*)tep12;
- ULang_String_t_uft8_* tep14 = __this__;
- ULang_String_t_uft8_* tep15 = tep14;
- int64_t tep16 = tep3;
- void* tep17 = ULang_String_t_uft8____Index___ULang_String_t_uft8___uptr(tep15,tep16);
- int8_t tep18 = *(int8_t*)tep17;
- tep17 = (void*)tep13;
-
- /*Line:59*/
-
- int64_t tep19 = tep3;
- int64_t tep20 = 1;
- int64_t tep21 = tep19+tep20;
- tep3 = tep21;
+ int64_t tep10 = tep3;
+ int64_t tep11 = 1;
+ int64_t tep12 = tep10+tep11;
+ tep3 = tep12;
  goto _label1;
 
  _label0:
@@ -5532,7 +6185,7 @@ void* ULang_String_t_uft8__Data_ULang_String_t_uft8__imut(ULang_String_t_uft8_* 
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:62*/
+ /*Line:61*/
 
   ULang_Vector_uft8_* tep0 = &__this__->__0;
  void* tep1 = ULang_Vector_uft8__Data_ULang_Vector_uft8__(tep0);
@@ -5546,7 +6199,7 @@ void* ULang_String_t_uft8__Data_ULang_String_t_uft8__(ULang_String_t_uft8_* __th
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:63*/
+ /*Line:62*/
 
   ULang_Vector_uft8_* tep0 = &__this__->__0;
  void* tep1 = ULang_Vector_uft8__Data_ULang_Vector_uft8__(tep0);
@@ -5560,7 +6213,7 @@ int64_t ULang_String_t_uft8__Size_ULang_String_t_uft8__imut(ULang_String_t_uft8_
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:66*/
+ /*Line:65*/
 
   ULang_Vector_uft8_* tep0 = &__this__->__0;
  int64_t tep1 = ULang_Vector_uft8__Size_ULang_Vector_uft8__imut(tep0);
@@ -5574,7 +6227,7 @@ int64_t ULang_String_t_uft8__Capacity_ULang_String_t_uft8__imut(ULang_String_t_u
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:67*/
+ /*Line:66*/
 
   ULang_Vector_uft8_* tep0 = &__this__->__0;
  int64_t tep1 = ULang_Vector_uft8__Capacity_ULang_Vector_uft8__imut(tep0);
@@ -5586,7 +6239,7 @@ void ULang_String_t_uft8__Resize_ULang_String_t_uft8___uptr(ULang_String_t_uft8_
 { /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:69*/
+ /*Line:68*/
 
   ULang_Vector_uft8_* tep0 = &__this__->__0;
  int64_t tep1 = Size;
@@ -5598,7 +6251,7 @@ void ULang_String_t_uft8__Reserve_ULang_String_t_uft8___uptr(ULang_String_t_uft8
 { /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:70*/
+ /*Line:69*/
 
   ULang_Vector_uft8_* tep0 = &__this__->__0;
  int64_t tep1 = Size;
@@ -5610,7 +6263,7 @@ void ULang_String_t_uft8__Clear_ULang_String_t_uft8__(ULang_String_t_uft8_* __th
 { /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:71*/
+ /*Line:70*/
 
   ULang_Vector_uft8_* tep0 = &__this__->__0;
  ULang_Vector_uft8__Clear_ULang_Vector_uft8__(tep0);
@@ -5623,7 +6276,7 @@ int8_t ULang_String_t_uft8__Pop_ULang_String_t_uft8__(ULang_String_t_uft8_* __th
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:73*/
+ /*Line:72*/
 
   ULang_Vector_uft8_* tep0 = &__this__->__0;
  int8_t tep1 = ULang_Vector_uft8__Pop_ULang_Vector_uft8__(tep0);
@@ -5637,7 +6290,7 @@ int8_t ULang_String_t_uft8__Remove_ULang_String_t_uft8___uptr(ULang_String_t_uft
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:74*/
+ /*Line:73*/
 
   ULang_Vector_uft8_* tep0 = &__this__->__0;
  int64_t tep1 = Index;
@@ -5650,7 +6303,7 @@ void ULang_String_t_uft8__Push_ULang_String_t_uft8____imut(ULang_String_t_uft8_*
 { /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:76*/
+ /*Line:75*/
 
   ULang_Vector_uft8_* tep0 = &__this__->__0;
  void* tep1 = Val;
@@ -5662,7 +6315,7 @@ void ULang_String_t_uft8__Insert_ULang_String_t_uft8___uptr__imut(ULang_String_t
 { /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:79*/
+ /*Line:78*/
 
   ULang_Vector_uft8_* tep0 = &__this__->__0;
  int64_t tep1 = Index;
@@ -5677,10 +6330,10 @@ void* ULang_String_t_uft8____Index___ULang_String_t_uft8___uptr(ULang_String_t_u
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:79*/
+ /*Line:78*/
 
  
- /*Line:83*/
+ /*Line:82*/
 
  ULang_Vector_uft8_* tep0 = &__this__->__0;
  int64_t tep1 = Index;
@@ -5695,10 +6348,10 @@ void* ULang_String_t_uft8____Index___ULang_String_t_uft8__imut_uptr(ULang_String
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:83*/
+ /*Line:82*/
 
  
- /*Line:84*/
+ /*Line:83*/
 
  ULang_Vector_uft8_* tep0 = &__this__->__0;
  int64_t tep1 = Index;
@@ -5711,7 +6364,7 @@ void ULang_String_t_uft8__Append_ULang_String_t_uft8___ULang_Span_uft8_imut(ULan
 { /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:86*/
+ /*Line:85*/
 
   ULang_Vector_uft8_* tep0 = &__this__->__0;
  ULang_Span_uft8_ tep1 = Val;
@@ -5725,7 +6378,7 @@ int8_t ULang_String_t_uft8____equal___ULang_String_t_uft8__imut_ULang_String_t_u
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:90*/
+ /*Line:89*/
 
  ULang_String_t_uft8_* tep0 = __this__;
  ULang_String_t_uft8_* tep1 = tep0;
@@ -5745,7 +6398,7 @@ int8_t ULang_String_t_uft8____notequal___ULang_String_t_uft8__imut_ULang_String_
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:92*/
+ /*Line:91*/
 
  ULang_String_t_uft8_* tep0 = __this__;
  ULang_String_t_uft8_* tep1 = tep0;
@@ -5780,7 +6433,7 @@ int8_t ULang_String_t_uft8____equal___ULang_String_t_uft8__imut_ULang_StringSpan
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:100*/
+ /*Line:99*/
 
  ULang_String_t_uft8_* tep0 = __this__;
  ULang_String_t_uft8_* tep1 = tep0;
@@ -5798,7 +6451,7 @@ int8_t ULang_String_t_uft8____notequal___ULang_String_t_uft8__imut_ULang_StringS
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:102*/
+ /*Line:101*/
 
  ULang_String_t_uft8_* tep0 = __this__;
  ULang_String_t_uft8_* tep1 = tep0;
@@ -5882,8 +6535,8 @@ ULang_StringSpan_t_uft8_ ULang_String_t_uft8____Index___ULang_String_t_uft8___UL
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:102*/
- /*Line:114*/
+ /*Line:101*/
+ /*Line:113*/
 
  ULang_String_t_uft8_* tep0 = __this__;
  ULang_StringSpan_t_uft8_ tep1 = ULang_String_t_uft8__AsStrSpan_ULang_String_t_uft8__(tep0);
@@ -5900,8 +6553,8 @@ ULang_StringSpan_t_uft8_ ULang_String_t_uft8____Index___ULang_String_t_uft8__imu
  /*Block*/ 
 
  /*File:/Types/String.uc*/
+ /*Line:113*/
  /*Line:114*/
- /*Line:115*/
 
  ULang_String_t_uft8_* tep0 = __this__;
  ULang_StringSpan_t_uft8_ tep1 = ULang_String_t_uft8__AsStrSpan_ULang_String_t_uft8__imut(tep0);
@@ -6238,12 +6891,12 @@ void ULang_Vector_uft16__Reserve_ULang_Vector_uft16___uptr(ULang_Vector_uft16_* 
   void* tep7 = __this__->__0;
  tep6 = tep7;
 
- /*Line:32*/
+ /*Line:33*/
 
  int64_t tep8 = Size;
   __this__->__2 = tep8;
 
- /*Line:33*/
+ /*Line:34*/
 
  int64_t tep9 = Size;
  int64_t tep10 = 2;
@@ -6271,7 +6924,7 @@ void ULang_Vector_uft16__Reserve_ULang_Vector_uft16___uptr(ULang_Vector_uft16_* 
 
   __this__->__0 = tep12;
 
- /*Line:34*/
+ /*Line:35*/
 
  int64_t tep20;
 
@@ -6287,7 +6940,7 @@ void ULang_Vector_uft16__Reserve_ULang_Vector_uft16___uptr(ULang_Vector_uft16_* 
  int8_t tep25 = !tep24;
  if (tep25){goto _label3; };
 
- /*Line:35*/
+ /*Line:36*/
 
  void* tep26 = tep6;
  int64_t tep27 = tep20;
@@ -6302,7 +6955,7 @@ void ULang_Vector_uft16__Reserve_ULang_Vector_uft16___uptr(ULang_Vector_uft16_* 
  void* tep36 = (void*)((int64_t)tep32+tep35);
  *(int16_t*)tep36 = tep31;
 
- /*Line:34*/
+ /*Line:35*/
 
  int64_t tep37 = tep20;
  int64_t tep38 = 1;
@@ -6310,14 +6963,14 @@ void ULang_Vector_uft16__Reserve_ULang_Vector_uft16___uptr(ULang_Vector_uft16_* 
  tep20 = tep39;
  goto _label4;
 
- /*Line:37*/
+ /*Line:38*/
  _label3:
 
  int64_t tep40;
  void* tep41 = tep6;
  tep40 = (int64_t)tep41;
 
- /*Line:38*/
+ /*Line:39*/
 
  int64_t tep42 = tep40;
  int64_t tep43 = 0;
@@ -6325,7 +6978,7 @@ void ULang_Vector_uft16__Reserve_ULang_Vector_uft16___uptr(ULang_Vector_uft16_* 
  int8_t tep45 = !tep44;
  if (tep45){goto _label0; };
 
- /*Line:39*/
+ /*Line:40*/
 
  void* tep46 = tep6;
  free(tep46);
@@ -6339,7 +6992,7 @@ void ULang_Vector_uft16__Clear_ULang_Vector_uft16__(ULang_Vector_uft16_* __this_
 { /*Block*/ 
 
  /*File:/Types/Vector.uc*/
- /*Line:41*/
+ /*Line:42*/
 
  int64_t tep0 = 0;
   __this__->__1 = tep0;
@@ -6368,15 +7021,15 @@ void ULang_Vector_uft16__Push_ULang_Vector_uft16____imut(ULang_Vector_uft16_* __
 { /*Block*/ 
 
  /*File:/Types/Vector.uc*/
- /*Line:47*/
+ /*Line:48*/
 
  ULang_Vector_uft16_* tep0 = __this__;
   int64_t tep1 = __this__->__1;
  int64_t tep2 = 1;
- int64_t tep3 = tep1+tep1;
+ int64_t tep3 = tep1+tep2;
  ULang_Vector_uft16__Resize_ULang_Vector_uft16___uptr(tep0,tep3);
 
- /*Line:48*/
+ /*Line:49*/
 
  int16_t tep4 = *(int16_t*)Val;
  ULang_Vector_uft16_* tep5 = __this__;
@@ -6385,8 +7038,7 @@ void ULang_Vector_uft16__Push_ULang_Vector_uft16____imut(ULang_Vector_uft16_* __
  int64_t tep8 = 1;
  int64_t tep9 = tep7-tep8;
  void* tep10 = ULang_Vector_uft16____Index___ULang_Vector_uft16___uptr(tep6,tep9);
- int16_t tep11 = *(int16_t*)tep10;
- tep10 = (void*)tep4;
+ *(int16_t*)tep10 = tep4;
  return;
 
 }
@@ -6412,7 +7064,7 @@ void* ULang_Vector_uft16____Index___ULang_Vector_uft16___uptr(ULang_Vector_uft16
 
  
  /*File:/Types/Vector.uc*/
- /*Line:61*/
+ /*Line:62*/
 
  void* tep0 = __this__->__0;
  int64_t tep1 = Index;
@@ -6431,7 +7083,7 @@ void* ULang_Vector_uft16____Index___ULang_Vector_uft16__imut_uptr(ULang_Vector_u
 
  
  /*File:/Types/Vector.uc*/
- /*Line:62*/
+ /*Line:63*/
 
  void* tep0 = __this__->__0;
  int64_t tep1 = Index;
@@ -6448,8 +7100,8 @@ ULang_Span_uft16_ ULang_Vector_uft16____Index___ULang_Vector_uft16___ULang_Range
  /*Block*/ 
 
  /*File:/Types/Vector.uc*/
- /*Line:62*/
- /*Line:67*/
+ /*Line:63*/
+ /*Line:68*/
 
  ULang_Vector_uft16_* tep0 = __this__;
  ULang_Span_uft16_ tep1 = ULang_Vector_uft16__AsSpan_ULang_Vector_uft16__(tep0);
@@ -6466,8 +7118,8 @@ ULang_Span_uft16_ ULang_Vector_uft16____Index___ULang_Vector_uft16__imut_ULang_R
  /*Block*/ 
 
  /*File:/Types/Vector.uc*/
- /*Line:67*/
  /*Line:68*/
+ /*Line:69*/
 
  ULang_Vector_uft16_* tep0 = __this__;
  ULang_Span_uft16_ tep1 = ULang_Vector_uft16__AsSpan_ULang_Vector_uft16__imut(tep0);
@@ -6489,7 +7141,7 @@ ULang_Span_uft16_ ULang_Vector_uft16__AsSpan_ULang_Vector_uft16__(ULang_Vector_u
  ULang_Span_uft16_ tep0;
  ULang_Span_uft16_* tep1 = &tep0;
  
- /*Line:70*/
+ /*Line:71*/
 
  void* tep2 = __this__->__0;
   int64_t tep3 = __this__->__1;
@@ -6509,7 +7161,7 @@ ULang_Span_uft16_ ULang_Vector_uft16__AsSpan_ULang_Vector_uft16__imut(ULang_Vect
  ULang_Span_uft16_ tep0;
  ULang_Span_uft16_* tep1 = &tep0;
  
- /*Line:71*/
+ /*Line:72*/
 
  void* tep2 = __this__->__0;
   int64_t tep3 = __this__->__1;
@@ -6889,28 +7541,10 @@ void ULang_String_t_uft16_____new___ULang_String_t_uft16___ULang_StringSpan_t_uf
  int8_t tep8 = (int8_t)(tep5<tep7);
  int8_t tep9 = !tep8;
  if (tep9){goto _label0; };
-
- /*Line:60*/
- /*Line:59*/
- /*Line:60*/
-
- ULang_StringSpan_t_uft16_* tep10 = span;
- int64_t tep11 = tep3;
- void* tep12 = ULang_StringSpan_t_uft16____Index___ULang_StringSpan_t_uft16___uptr(tep10,tep11);
- int16_t tep13 = *(int16_t*)tep12;
- ULang_String_t_uft16_* tep14 = __this__;
- ULang_String_t_uft16_* tep15 = tep14;
- int64_t tep16 = tep3;
- void* tep17 = ULang_String_t_uft16____Index___ULang_String_t_uft16___uptr(tep15,tep16);
- int16_t tep18 = *(int16_t*)tep17;
- tep17 = (void*)tep13;
-
- /*Line:59*/
-
- int64_t tep19 = tep3;
- int64_t tep20 = 1;
- int64_t tep21 = tep19+tep20;
- tep3 = tep21;
+ int64_t tep10 = tep3;
+ int64_t tep11 = 1;
+ int64_t tep12 = tep10+tep11;
+ tep3 = tep12;
  goto _label1;
 
  _label0:
@@ -6924,7 +7558,7 @@ void* ULang_String_t_uft16__Data_ULang_String_t_uft16__imut(ULang_String_t_uft16
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:62*/
+ /*Line:61*/
 
   ULang_Vector_uft16_* tep0 = &__this__->__0;
  void* tep1 = ULang_Vector_uft16__Data_ULang_Vector_uft16__(tep0);
@@ -6938,7 +7572,7 @@ void* ULang_String_t_uft16__Data_ULang_String_t_uft16__(ULang_String_t_uft16_* _
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:63*/
+ /*Line:62*/
 
   ULang_Vector_uft16_* tep0 = &__this__->__0;
  void* tep1 = ULang_Vector_uft16__Data_ULang_Vector_uft16__(tep0);
@@ -6952,7 +7586,7 @@ int64_t ULang_String_t_uft16__Size_ULang_String_t_uft16__imut(ULang_String_t_uft
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:66*/
+ /*Line:65*/
 
   ULang_Vector_uft16_* tep0 = &__this__->__0;
  int64_t tep1 = ULang_Vector_uft16__Size_ULang_Vector_uft16__imut(tep0);
@@ -6966,7 +7600,7 @@ int64_t ULang_String_t_uft16__Capacity_ULang_String_t_uft16__imut(ULang_String_t
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:67*/
+ /*Line:66*/
 
   ULang_Vector_uft16_* tep0 = &__this__->__0;
  int64_t tep1 = ULang_Vector_uft16__Capacity_ULang_Vector_uft16__imut(tep0);
@@ -6978,7 +7612,7 @@ void ULang_String_t_uft16__Resize_ULang_String_t_uft16___uptr(ULang_String_t_uft
 { /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:69*/
+ /*Line:68*/
 
   ULang_Vector_uft16_* tep0 = &__this__->__0;
  int64_t tep1 = Size;
@@ -6990,7 +7624,7 @@ void ULang_String_t_uft16__Reserve_ULang_String_t_uft16___uptr(ULang_String_t_uf
 { /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:70*/
+ /*Line:69*/
 
   ULang_Vector_uft16_* tep0 = &__this__->__0;
  int64_t tep1 = Size;
@@ -7002,7 +7636,7 @@ void ULang_String_t_uft16__Clear_ULang_String_t_uft16__(ULang_String_t_uft16_* _
 { /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:71*/
+ /*Line:70*/
 
   ULang_Vector_uft16_* tep0 = &__this__->__0;
  ULang_Vector_uft16__Clear_ULang_Vector_uft16__(tep0);
@@ -7015,7 +7649,7 @@ int16_t ULang_String_t_uft16__Pop_ULang_String_t_uft16__(ULang_String_t_uft16_* 
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:73*/
+ /*Line:72*/
 
   ULang_Vector_uft16_* tep0 = &__this__->__0;
  int16_t tep1 = ULang_Vector_uft16__Pop_ULang_Vector_uft16__(tep0);
@@ -7029,7 +7663,7 @@ int16_t ULang_String_t_uft16__Remove_ULang_String_t_uft16___uptr(ULang_String_t_
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:74*/
+ /*Line:73*/
 
   ULang_Vector_uft16_* tep0 = &__this__->__0;
  int64_t tep1 = Index;
@@ -7042,7 +7676,7 @@ void ULang_String_t_uft16__Push_ULang_String_t_uft16____imut(ULang_String_t_uft1
 { /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:76*/
+ /*Line:75*/
 
   ULang_Vector_uft16_* tep0 = &__this__->__0;
  void* tep1 = Val;
@@ -7054,7 +7688,7 @@ void ULang_String_t_uft16__Insert_ULang_String_t_uft16___uptr__imut(ULang_String
 { /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:79*/
+ /*Line:78*/
 
   ULang_Vector_uft16_* tep0 = &__this__->__0;
  int64_t tep1 = Index;
@@ -7069,10 +7703,10 @@ void* ULang_String_t_uft16____Index___ULang_String_t_uft16___uptr(ULang_String_t
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:79*/
+ /*Line:78*/
 
  
- /*Line:83*/
+ /*Line:82*/
 
  ULang_Vector_uft16_* tep0 = &__this__->__0;
  int64_t tep1 = Index;
@@ -7087,10 +7721,10 @@ void* ULang_String_t_uft16____Index___ULang_String_t_uft16__imut_uptr(ULang_Stri
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:83*/
+ /*Line:82*/
 
  
- /*Line:84*/
+ /*Line:83*/
 
  ULang_Vector_uft16_* tep0 = &__this__->__0;
  int64_t tep1 = Index;
@@ -7103,7 +7737,7 @@ void ULang_String_t_uft16__Append_ULang_String_t_uft16___ULang_Span_uft16_imut(U
 { /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:86*/
+ /*Line:85*/
 
   ULang_Vector_uft16_* tep0 = &__this__->__0;
  ULang_Span_uft16_ tep1 = Val;
@@ -7117,7 +7751,7 @@ int8_t ULang_String_t_uft16____equal___ULang_String_t_uft16__imut_ULang_String_t
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:90*/
+ /*Line:89*/
 
  ULang_String_t_uft16_* tep0 = __this__;
  ULang_String_t_uft16_* tep1 = tep0;
@@ -7137,7 +7771,7 @@ int8_t ULang_String_t_uft16____notequal___ULang_String_t_uft16__imut_ULang_Strin
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:92*/
+ /*Line:91*/
 
  ULang_String_t_uft16_* tep0 = __this__;
  ULang_String_t_uft16_* tep1 = tep0;
@@ -7172,7 +7806,7 @@ int8_t ULang_String_t_uft16____equal___ULang_String_t_uft16__imut_ULang_StringSp
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:100*/
+ /*Line:99*/
 
  ULang_String_t_uft16_* tep0 = __this__;
  ULang_String_t_uft16_* tep1 = tep0;
@@ -7190,7 +7824,7 @@ int8_t ULang_String_t_uft16____notequal___ULang_String_t_uft16__imut_ULang_Strin
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:102*/
+ /*Line:101*/
 
  ULang_String_t_uft16_* tep0 = __this__;
  ULang_String_t_uft16_* tep1 = tep0;
@@ -7274,8 +7908,8 @@ ULang_StringSpan_t_uft16_ ULang_String_t_uft16____Index___ULang_String_t_uft16__
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:102*/
- /*Line:114*/
+ /*Line:101*/
+ /*Line:113*/
 
  ULang_String_t_uft16_* tep0 = __this__;
  ULang_StringSpan_t_uft16_ tep1 = ULang_String_t_uft16__AsStrSpan_ULang_String_t_uft16__(tep0);
@@ -7292,8 +7926,8 @@ ULang_StringSpan_t_uft16_ ULang_String_t_uft16____Index___ULang_String_t_uft16__
  /*Block*/ 
 
  /*File:/Types/String.uc*/
+ /*Line:113*/
  /*Line:114*/
- /*Line:115*/
 
  ULang_String_t_uft16_* tep0 = __this__;
  ULang_StringSpan_t_uft16_ tep1 = ULang_String_t_uft16__AsStrSpan_ULang_String_t_uft16__imut(tep0);
@@ -7630,12 +8264,12 @@ void ULang_Vector_uft32__Reserve_ULang_Vector_uft32___uptr(ULang_Vector_uft32_* 
   void* tep7 = __this__->__0;
  tep6 = tep7;
 
- /*Line:32*/
+ /*Line:33*/
 
  int64_t tep8 = Size;
   __this__->__2 = tep8;
 
- /*Line:33*/
+ /*Line:34*/
 
  int64_t tep9 = Size;
  int64_t tep10 = 4;
@@ -7663,7 +8297,7 @@ void ULang_Vector_uft32__Reserve_ULang_Vector_uft32___uptr(ULang_Vector_uft32_* 
 
   __this__->__0 = tep12;
 
- /*Line:34*/
+ /*Line:35*/
 
  int64_t tep20;
 
@@ -7679,7 +8313,7 @@ void ULang_Vector_uft32__Reserve_ULang_Vector_uft32___uptr(ULang_Vector_uft32_* 
  int8_t tep25 = !tep24;
  if (tep25){goto _label3; };
 
- /*Line:35*/
+ /*Line:36*/
 
  void* tep26 = tep6;
  int64_t tep27 = tep20;
@@ -7694,7 +8328,7 @@ void ULang_Vector_uft32__Reserve_ULang_Vector_uft32___uptr(ULang_Vector_uft32_* 
  void* tep36 = (void*)((int64_t)tep32+tep35);
  *(int32_t*)tep36 = tep31;
 
- /*Line:34*/
+ /*Line:35*/
 
  int64_t tep37 = tep20;
  int64_t tep38 = 1;
@@ -7702,14 +8336,14 @@ void ULang_Vector_uft32__Reserve_ULang_Vector_uft32___uptr(ULang_Vector_uft32_* 
  tep20 = tep39;
  goto _label4;
 
- /*Line:37*/
+ /*Line:38*/
  _label3:
 
  int64_t tep40;
  void* tep41 = tep6;
  tep40 = (int64_t)tep41;
 
- /*Line:38*/
+ /*Line:39*/
 
  int64_t tep42 = tep40;
  int64_t tep43 = 0;
@@ -7717,7 +8351,7 @@ void ULang_Vector_uft32__Reserve_ULang_Vector_uft32___uptr(ULang_Vector_uft32_* 
  int8_t tep45 = !tep44;
  if (tep45){goto _label0; };
 
- /*Line:39*/
+ /*Line:40*/
 
  void* tep46 = tep6;
  free(tep46);
@@ -7731,7 +8365,7 @@ void ULang_Vector_uft32__Clear_ULang_Vector_uft32__(ULang_Vector_uft32_* __this_
 { /*Block*/ 
 
  /*File:/Types/Vector.uc*/
- /*Line:41*/
+ /*Line:42*/
 
  int64_t tep0 = 0;
   __this__->__1 = tep0;
@@ -7760,15 +8394,15 @@ void ULang_Vector_uft32__Push_ULang_Vector_uft32____imut(ULang_Vector_uft32_* __
 { /*Block*/ 
 
  /*File:/Types/Vector.uc*/
- /*Line:47*/
+ /*Line:48*/
 
  ULang_Vector_uft32_* tep0 = __this__;
   int64_t tep1 = __this__->__1;
  int64_t tep2 = 1;
- int64_t tep3 = tep1+tep1;
+ int64_t tep3 = tep1+tep2;
  ULang_Vector_uft32__Resize_ULang_Vector_uft32___uptr(tep0,tep3);
 
- /*Line:48*/
+ /*Line:49*/
 
  int32_t tep4 = *(int32_t*)Val;
  ULang_Vector_uft32_* tep5 = __this__;
@@ -7777,8 +8411,7 @@ void ULang_Vector_uft32__Push_ULang_Vector_uft32____imut(ULang_Vector_uft32_* __
  int64_t tep8 = 1;
  int64_t tep9 = tep7-tep8;
  void* tep10 = ULang_Vector_uft32____Index___ULang_Vector_uft32___uptr(tep6,tep9);
- int32_t tep11 = *(int32_t*)tep10;
- tep10 = (void*)tep4;
+ *(int32_t*)tep10 = tep4;
  return;
 
 }
@@ -7804,7 +8437,7 @@ void* ULang_Vector_uft32____Index___ULang_Vector_uft32___uptr(ULang_Vector_uft32
 
  
  /*File:/Types/Vector.uc*/
- /*Line:61*/
+ /*Line:62*/
 
  void* tep0 = __this__->__0;
  int64_t tep1 = Index;
@@ -7823,7 +8456,7 @@ void* ULang_Vector_uft32____Index___ULang_Vector_uft32__imut_uptr(ULang_Vector_u
 
  
  /*File:/Types/Vector.uc*/
- /*Line:62*/
+ /*Line:63*/
 
  void* tep0 = __this__->__0;
  int64_t tep1 = Index;
@@ -7840,8 +8473,8 @@ ULang_Span_uft32_ ULang_Vector_uft32____Index___ULang_Vector_uft32___ULang_Range
  /*Block*/ 
 
  /*File:/Types/Vector.uc*/
- /*Line:62*/
- /*Line:67*/
+ /*Line:63*/
+ /*Line:68*/
 
  ULang_Vector_uft32_* tep0 = __this__;
  ULang_Span_uft32_ tep1 = ULang_Vector_uft32__AsSpan_ULang_Vector_uft32__(tep0);
@@ -7858,8 +8491,8 @@ ULang_Span_uft32_ ULang_Vector_uft32____Index___ULang_Vector_uft32__imut_ULang_R
  /*Block*/ 
 
  /*File:/Types/Vector.uc*/
- /*Line:67*/
  /*Line:68*/
+ /*Line:69*/
 
  ULang_Vector_uft32_* tep0 = __this__;
  ULang_Span_uft32_ tep1 = ULang_Vector_uft32__AsSpan_ULang_Vector_uft32__imut(tep0);
@@ -7881,7 +8514,7 @@ ULang_Span_uft32_ ULang_Vector_uft32__AsSpan_ULang_Vector_uft32__(ULang_Vector_u
  ULang_Span_uft32_ tep0;
  ULang_Span_uft32_* tep1 = &tep0;
  
- /*Line:70*/
+ /*Line:71*/
 
  void* tep2 = __this__->__0;
   int64_t tep3 = __this__->__1;
@@ -7901,7 +8534,7 @@ ULang_Span_uft32_ ULang_Vector_uft32__AsSpan_ULang_Vector_uft32__imut(ULang_Vect
  ULang_Span_uft32_ tep0;
  ULang_Span_uft32_* tep1 = &tep0;
  
- /*Line:71*/
+ /*Line:72*/
 
  void* tep2 = __this__->__0;
   int64_t tep3 = __this__->__1;
@@ -8281,28 +8914,10 @@ void ULang_String_t_uft32_____new___ULang_String_t_uft32___ULang_StringSpan_t_uf
  int8_t tep8 = (int8_t)(tep5<tep7);
  int8_t tep9 = !tep8;
  if (tep9){goto _label0; };
-
- /*Line:60*/
- /*Line:59*/
- /*Line:60*/
-
- ULang_StringSpan_t_uft32_* tep10 = span;
- int64_t tep11 = tep3;
- void* tep12 = ULang_StringSpan_t_uft32____Index___ULang_StringSpan_t_uft32___uptr(tep10,tep11);
- int32_t tep13 = *(int32_t*)tep12;
- ULang_String_t_uft32_* tep14 = __this__;
- ULang_String_t_uft32_* tep15 = tep14;
- int64_t tep16 = tep3;
- void* tep17 = ULang_String_t_uft32____Index___ULang_String_t_uft32___uptr(tep15,tep16);
- int32_t tep18 = *(int32_t*)tep17;
- tep17 = (void*)tep13;
-
- /*Line:59*/
-
- int64_t tep19 = tep3;
- int64_t tep20 = 1;
- int64_t tep21 = tep19+tep20;
- tep3 = tep21;
+ int64_t tep10 = tep3;
+ int64_t tep11 = 1;
+ int64_t tep12 = tep10+tep11;
+ tep3 = tep12;
  goto _label1;
 
  _label0:
@@ -8316,7 +8931,7 @@ void* ULang_String_t_uft32__Data_ULang_String_t_uft32__imut(ULang_String_t_uft32
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:62*/
+ /*Line:61*/
 
   ULang_Vector_uft32_* tep0 = &__this__->__0;
  void* tep1 = ULang_Vector_uft32__Data_ULang_Vector_uft32__(tep0);
@@ -8330,7 +8945,7 @@ void* ULang_String_t_uft32__Data_ULang_String_t_uft32__(ULang_String_t_uft32_* _
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:63*/
+ /*Line:62*/
 
   ULang_Vector_uft32_* tep0 = &__this__->__0;
  void* tep1 = ULang_Vector_uft32__Data_ULang_Vector_uft32__(tep0);
@@ -8344,7 +8959,7 @@ int64_t ULang_String_t_uft32__Size_ULang_String_t_uft32__imut(ULang_String_t_uft
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:66*/
+ /*Line:65*/
 
   ULang_Vector_uft32_* tep0 = &__this__->__0;
  int64_t tep1 = ULang_Vector_uft32__Size_ULang_Vector_uft32__imut(tep0);
@@ -8358,7 +8973,7 @@ int64_t ULang_String_t_uft32__Capacity_ULang_String_t_uft32__imut(ULang_String_t
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:67*/
+ /*Line:66*/
 
   ULang_Vector_uft32_* tep0 = &__this__->__0;
  int64_t tep1 = ULang_Vector_uft32__Capacity_ULang_Vector_uft32__imut(tep0);
@@ -8370,7 +8985,7 @@ void ULang_String_t_uft32__Resize_ULang_String_t_uft32___uptr(ULang_String_t_uft
 { /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:69*/
+ /*Line:68*/
 
   ULang_Vector_uft32_* tep0 = &__this__->__0;
  int64_t tep1 = Size;
@@ -8382,7 +8997,7 @@ void ULang_String_t_uft32__Reserve_ULang_String_t_uft32___uptr(ULang_String_t_uf
 { /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:70*/
+ /*Line:69*/
 
   ULang_Vector_uft32_* tep0 = &__this__->__0;
  int64_t tep1 = Size;
@@ -8394,7 +9009,7 @@ void ULang_String_t_uft32__Clear_ULang_String_t_uft32__(ULang_String_t_uft32_* _
 { /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:71*/
+ /*Line:70*/
 
   ULang_Vector_uft32_* tep0 = &__this__->__0;
  ULang_Vector_uft32__Clear_ULang_Vector_uft32__(tep0);
@@ -8407,7 +9022,7 @@ int32_t ULang_String_t_uft32__Pop_ULang_String_t_uft32__(ULang_String_t_uft32_* 
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:73*/
+ /*Line:72*/
 
   ULang_Vector_uft32_* tep0 = &__this__->__0;
  int32_t tep1 = ULang_Vector_uft32__Pop_ULang_Vector_uft32__(tep0);
@@ -8421,7 +9036,7 @@ int32_t ULang_String_t_uft32__Remove_ULang_String_t_uft32___uptr(ULang_String_t_
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:74*/
+ /*Line:73*/
 
   ULang_Vector_uft32_* tep0 = &__this__->__0;
  int64_t tep1 = Index;
@@ -8434,7 +9049,7 @@ void ULang_String_t_uft32__Push_ULang_String_t_uft32____imut(ULang_String_t_uft3
 { /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:76*/
+ /*Line:75*/
 
   ULang_Vector_uft32_* tep0 = &__this__->__0;
  void* tep1 = Val;
@@ -8446,7 +9061,7 @@ void ULang_String_t_uft32__Insert_ULang_String_t_uft32___uptr__imut(ULang_String
 { /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:79*/
+ /*Line:78*/
 
   ULang_Vector_uft32_* tep0 = &__this__->__0;
  int64_t tep1 = Index;
@@ -8461,10 +9076,10 @@ void* ULang_String_t_uft32____Index___ULang_String_t_uft32___uptr(ULang_String_t
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:79*/
+ /*Line:78*/
 
  
- /*Line:83*/
+ /*Line:82*/
 
  ULang_Vector_uft32_* tep0 = &__this__->__0;
  int64_t tep1 = Index;
@@ -8479,10 +9094,10 @@ void* ULang_String_t_uft32____Index___ULang_String_t_uft32__imut_uptr(ULang_Stri
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:83*/
+ /*Line:82*/
 
  
- /*Line:84*/
+ /*Line:83*/
 
  ULang_Vector_uft32_* tep0 = &__this__->__0;
  int64_t tep1 = Index;
@@ -8495,7 +9110,7 @@ void ULang_String_t_uft32__Append_ULang_String_t_uft32___ULang_Span_uft32_imut(U
 { /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:86*/
+ /*Line:85*/
 
   ULang_Vector_uft32_* tep0 = &__this__->__0;
  ULang_Span_uft32_ tep1 = Val;
@@ -8509,7 +9124,7 @@ int8_t ULang_String_t_uft32____equal___ULang_String_t_uft32__imut_ULang_String_t
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:90*/
+ /*Line:89*/
 
  ULang_String_t_uft32_* tep0 = __this__;
  ULang_String_t_uft32_* tep1 = tep0;
@@ -8529,7 +9144,7 @@ int8_t ULang_String_t_uft32____notequal___ULang_String_t_uft32__imut_ULang_Strin
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:92*/
+ /*Line:91*/
 
  ULang_String_t_uft32_* tep0 = __this__;
  ULang_String_t_uft32_* tep1 = tep0;
@@ -8564,7 +9179,7 @@ int8_t ULang_String_t_uft32____equal___ULang_String_t_uft32__imut_ULang_StringSp
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:100*/
+ /*Line:99*/
 
  ULang_String_t_uft32_* tep0 = __this__;
  ULang_String_t_uft32_* tep1 = tep0;
@@ -8582,7 +9197,7 @@ int8_t ULang_String_t_uft32____notequal___ULang_String_t_uft32__imut_ULang_Strin
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:102*/
+ /*Line:101*/
 
  ULang_String_t_uft32_* tep0 = __this__;
  ULang_String_t_uft32_* tep1 = tep0;
@@ -8666,8 +9281,8 @@ ULang_StringSpan_t_uft32_ ULang_String_t_uft32____Index___ULang_String_t_uft32__
  /*Block*/ 
 
  /*File:/Types/String.uc*/
- /*Line:102*/
- /*Line:114*/
+ /*Line:101*/
+ /*Line:113*/
 
  ULang_String_t_uft32_* tep0 = __this__;
  ULang_StringSpan_t_uft32_ tep1 = ULang_String_t_uft32__AsStrSpan_ULang_String_t_uft32__(tep0);
@@ -8684,8 +9299,8 @@ ULang_StringSpan_t_uft32_ ULang_String_t_uft32____Index___ULang_String_t_uft32__
  /*Block*/ 
 
  /*File:/Types/String.uc*/
+ /*Line:113*/
  /*Line:114*/
- /*Line:115*/
 
  ULang_String_t_uft32_* tep0 = __this__;
  ULang_StringSpan_t_uft32_ tep1 = ULang_String_t_uft32__AsStrSpan_ULang_String_t_uft32__imut(tep0);
@@ -8712,182 +9327,6 @@ void ULang_String_t_uft32_____de_init__(ULang_String_t_uft32_* __this__)
  ULang_Vector_uft32_* tep0 = &__this__->__0;
  ULang_Vector_uft32_____drop___ULang_Vector_uft32__(tep0);
  return;
-
-}
-void ULang_Vec2f_t_float32_____new___ULang_Vec2f_t_float32__(ULang_Vec2f_t_float32_* __this__)
-{ /*Block*/ 
-
- /*File:/Types/Vec2.uc*/
- /*Line:7*/
-
- float32_t tep0 = 0.000000;
-  __this__->__0 = tep0;
-
- /*Line:8*/
-
- float32_t tep1 = 0.000000;
-  __this__->__1 = tep1;
- return;
-
-}
-void ULang_Vec2f_t_float32_____new___ULang_Vec2f_t_float32___f32_f32(ULang_Vec2f_t_float32_* __this__,float32_t x,float32_t y)
-{ /*Block*/ 
-
- /*File:/Types/Vec2.uc*/
- /*Line:11*/
-
- float32_t tep0 = x;
-  __this__->__0 = tep0;
-
- /*Line:12*/
-
- float32_t tep1 = y;
-  __this__->__1 = tep1;
- return;
-
-}
-int8_t ULang_Vec2f_t_float32____equal___ULang_Vec2f_t_float32__imut_ULang_Vec2f_t_float32__imut(ULang_Vec2f_t_float32_* __this__,ULang_Vec2f_t_float32_* Other)
-{
- int8_t _ReturnVal;
- /*Block*/ 
-
-
- ULang_Vec2f_t_float32_* tep0 = __this__;
-
- /*File:/Types/Vec2.uc*/
- /*Line:15*/
-
-  float32_t tep1 = tep0->__1;
-  float32_t tep2 = Other->__1;
- int8_t tep3 = (int8_t)(tep1==tep2);
- ULang_Vec2f_t_float32_* tep4 = __this__;
-  float32_t tep5 = tep4->__0;
-  float32_t tep6 = Other->__0;
- int8_t tep7 = (int8_t)(tep5==tep6);
- int8_t tep8 = tep3&&tep7;
- _ReturnVal = tep8;
- return _ReturnVal;
-
-}
-int8_t ULang_Vec2f_t_float32____notequal___ULang_Vec2f_t_float32__imut_ULang_Vec2f_t_float32__imut(ULang_Vec2f_t_float32_* __this__,ULang_Vec2f_t_float32_* Other)
-{
- int8_t _ReturnVal;
- /*Block*/ 
-
- /*File:/Types/Vec2.uc*/
- /*Line:18*/
-
- ULang_Vec2f_t_float32_* tep0 = __this__;
- ULang_Vec2f_t_float32_* tep1 = tep0;
- ULang_Vec2f_t_float32_* tep2 = Other;
- int8_t tep3 = ULang_Vec2f_t_float32____equal___ULang_Vec2f_t_float32__imut_ULang_Vec2f_t_float32__imut(tep1,tep2);
- int8_t tep4 = !tep3;
- _ReturnVal = tep4;
- return _ReturnVal;
-
-}
-void ULang_Vec2f_t_float32____Compound_Plus___ULang_Vec2f_t_float32___ULang_Vec2f_t_float32__imut(ULang_Vec2f_t_float32_* __this__,ULang_Vec2f_t_float32_* Other)
-{ /*Block*/ 
-
-
- ULang_Vec2f_t_float32_* tep0 = __this__;
-
- /*File:/Types/Vec2.uc*/
- /*Line:21*/
-
-  ULang_Vec2f_t_float32_* tep1 = __this__;
-  float32_t tep2 = tep1->__0;
-  float32_t tep3 = Other->__0;
- float32_t tep4 = tep2+tep3;
- tep0->__0 = tep4;
- ULang_Vec2f_t_float32_* tep5 = __this__;
-
- /*Line:22*/
-
-  ULang_Vec2f_t_float32_* tep6 = __this__;
-  float32_t tep7 = tep6->__1;
-  float32_t tep8 = Other->__1;
- float32_t tep9 = tep7+tep8;
- tep5->__1 = tep9;
- return;
-
-}
-void ULang_Vec2f_t_float32____Compound_Sub___ULang_Vec2f_t_float32___ULang_Vec2f_t_float32__imut(ULang_Vec2f_t_float32_* __this__,ULang_Vec2f_t_float32_* Other)
-{ /*Block*/ 
-
-
- ULang_Vec2f_t_float32_* tep0 = __this__;
-
- /*File:/Types/Vec2.uc*/
- /*Line:25*/
-
-  ULang_Vec2f_t_float32_* tep1 = __this__;
-  float32_t tep2 = tep1->__0;
-  float32_t tep3 = Other->__0;
- float32_t tep4 = tep2-tep3;
- tep0->__0 = tep4;
- ULang_Vec2f_t_float32_* tep5 = __this__;
-
- /*Line:26*/
-
-  ULang_Vec2f_t_float32_* tep6 = __this__;
-  float32_t tep7 = tep6->__1;
-  float32_t tep8 = Other->__1;
- float32_t tep9 = tep7-tep8;
- tep5->__1 = tep9;
- return;
-
-}
-ULang_Vec2f_t_float32_ ULang_Vec2f_t_float32____Plus___ULang_Vec2f_t_float32__imut_ULang_Vec2f_t_float32__imut(ULang_Vec2f_t_float32_* __this__,ULang_Vec2f_t_float32_* Other)
-{
- ULang_Vec2f_t_float32_ _ReturnVal;
- /*Block*/ 
-
- /*File:/Types/Vec2.uc*/
- /*Line:29*/
-
- ULang_Vec2f_t_float32_ tep0;
- ULang_Vec2f_t_float32_* tep1 = __this__;
- ULang_Vec2f_t_float32_ tep2 = *(ULang_Vec2f_t_float32_*)tep1;
- tep0 = tep2;
-
- /*Line:30*/
-
- ULang_Vec2f_t_float32_* tep3 = &tep0;
- ULang_Vec2f_t_float32_* tep4 = Other;
- ULang_Vec2f_t_float32____Compound_Plus___ULang_Vec2f_t_float32___ULang_Vec2f_t_float32__imut(tep3,tep4);
-
- /*Line:31*/
-
- ULang_Vec2f_t_float32_ tep5 = tep0;
- _ReturnVal = tep5;
- return _ReturnVal;
-
-}
-ULang_Vec2f_t_float32_ ULang_Vec2f_t_float32____Minus___ULang_Vec2f_t_float32__imut_ULang_Vec2f_t_float32__imut(ULang_Vec2f_t_float32_* __this__,ULang_Vec2f_t_float32_* Other)
-{
- ULang_Vec2f_t_float32_ _ReturnVal;
- /*Block*/ 
-
- /*File:/Types/Vec2.uc*/
- /*Line:34*/
-
- ULang_Vec2f_t_float32_ tep0;
- ULang_Vec2f_t_float32_* tep1 = __this__;
- ULang_Vec2f_t_float32_ tep2 = *(ULang_Vec2f_t_float32_*)tep1;
- tep0 = tep2;
-
- /*Line:35*/
-
- ULang_Vec2f_t_float32_* tep3 = &tep0;
- ULang_Vec2f_t_float32_* tep4 = Other;
- ULang_Vec2f_t_float32____Compound_Sub___ULang_Vec2f_t_float32___ULang_Vec2f_t_float32__imut(tep3,tep4);
-
- /*Line:36*/
-
- ULang_Vec2f_t_float32_ tep5 = tep0;
- _ReturnVal = tep5;
- return _ReturnVal;
 
 }
 void ULang_Vec2f_t_sint32_____new___ULang_Vec2f_t_sint32__(ULang_Vec2f_t_sint32_* __this__)
@@ -9484,523 +9923,6 @@ ULang_Vec3f_t_sint32_ ULang_Vec3f_t_sint32____Minus___ULang_Vec3f_t_sint32__imut
  return _ReturnVal;
 
 }
-void ULang_Ptr_ULang_Empty_____new___ULang_Ptr_ULang_Empty___ULang_Empty_(ULang_Ptr_ULang_Empty_* __this__,ULang_Empty* base)
-{ /*Block*/ 
-
- /*File:/Types/Ptr.uc*/
- /*Line:12*/
-
- ULang_Empty* tep0 = base;
-  __this__->__0 = tep0;
- return;
-
-}
-ULang_Empty* ULang_Ptr_ULang_Empty__Get_ULang_Ptr_ULang_Empty__(ULang_Ptr_ULang_Empty_* __this__)
-{
- ULang_Empty* _ReturnVal;
- /*Block*/ 
-
-
- 
- /*File:/Types/Ptr.uc*/
- /*Line:14*/
-
- ULang_Empty* tep0 = __this__->__0;
- _ReturnVal = tep0;
- return _ReturnVal;
-
-}
-ULang_Empty* ULang_Ptr_ULang_Empty__Get_ULang_Ptr_ULang_Empty__imut(ULang_Ptr_ULang_Empty_* __this__)
-{
- ULang_Empty* _ReturnVal;
- /*Block*/ 
-
-
- 
- /*File:/Types/Ptr.uc*/
- /*Line:15*/
-
- ULang_Empty* tep0 = __this__->__0;
- _ReturnVal = tep0;
- return _ReturnVal;
-
-}
-void ULang_Ptr_ULang_Empty__Write_ULang_Ptr_ULang_Empty___ULang_Empty_imut(ULang_Ptr_ULang_Empty_* __this__,ULang_Empty* newvalue)
-{ /*Block*/ 
-
- /*File:/Types/Ptr.uc*/
- /*Line:17*/
-
- ULang_Empty tep0 = *(ULang_Empty*)newvalue;
- ULang_Ptr_ULang_Empty_* tep1 = __this__;
- ULang_Empty* tep2 = ULang_Ptr_ULang_Empty__Get_ULang_Ptr_ULang_Empty__(tep1);
- *(ULang_Empty*)tep2 = tep0;
- return;
-
-}
-void ULang_Ptr_ULang_Empty__Write_ULang_Ptr_ULang_Empty___ULang_Emptymov(ULang_Ptr_ULang_Empty_* __this__,ULang_Empty newvalue)
-{ /*Block*/ 
-
- /*File:/Types/Ptr.uc*/
- /*Line:18*/
-
- ULang_Empty tep0 = newvalue;
- ULang_Ptr_ULang_Empty_* tep1 = __this__;
- ULang_Empty* tep2 = ULang_Ptr_ULang_Empty__Get_ULang_Ptr_ULang_Empty__(tep1);
- *(ULang_Empty*)tep2 = tep0;
- return;
-
-}
-ULang_Empty* ULang_Ptr_ULang_Empty__ReadPtr_ULang_Ptr_ULang_Empty__imut(ULang_Ptr_ULang_Empty_* __this__)
-{
- ULang_Empty* _ReturnVal;
- /*Block*/ 
-
- /*File:/Types/Ptr.uc*/
- /*Line:20*/
-
- ULang_Ptr_ULang_Empty_* tep0 = __this__;
- ULang_Empty* tep1 = ULang_Ptr_ULang_Empty__Get_ULang_Ptr_ULang_Empty__imut(tep0);
- _ReturnVal = tep1;
- return _ReturnVal;
-
-}
-ULang_Empty* ULang_Ptr_ULang_Empty____IndirectMember___ULang_Ptr_ULang_Empty__(ULang_Ptr_ULang_Empty_* __this__)
-{
- ULang_Empty* _ReturnVal;
- /*Block*/ 
-
- /*File:/Types/Ptr.uc*/
- /*Line:22*/
-
- ULang_Ptr_ULang_Empty_* tep0 = __this__;
- ULang_Empty* tep1 = ULang_Ptr_ULang_Empty__Get_ULang_Ptr_ULang_Empty__(tep0);
- _ReturnVal = tep1;
- return _ReturnVal;
-
-}
-ULang_Empty* ULang_Ptr_ULang_Empty____IndirectMember___ULang_Ptr_ULang_Empty__imut(ULang_Ptr_ULang_Empty_* __this__)
-{
- ULang_Empty* _ReturnVal;
- /*Block*/ 
-
- /*File:/Types/Ptr.uc*/
- /*Line:24*/
-
- ULang_Ptr_ULang_Empty_* tep0 = __this__;
- ULang_Empty* tep1 = ULang_Ptr_ULang_Empty__Get_ULang_Ptr_ULang_Empty__imut(tep0);
- _ReturnVal = tep1;
- return _ReturnVal;
-
-}
-void ULang_Ptr_ULang_Empty__ReassignTo_ULang_Ptr_ULang_Empty___ULang_Empty_(ULang_Ptr_ULang_Empty_* __this__,ULang_Empty* newbase)
-{ /*Block*/ 
-
- /*File:/Types/Ptr.uc*/
- /*Line:26*/
-
- ULang_Empty* tep0 = newbase;
-  __this__->__0 = tep0;
- return;
-
-}
-ULang_Ptr_ULang_Empty_ ULang_Ptr_ULang_Empty__Make_ULang_Empty_imut(ULang_Empty* V)
-{
- ULang_Ptr_ULang_Empty_ _ReturnVal;
- /*Block*/ 
-
- /*File:/Types/Ptr.uc*/
- /*Line:0*/
-
- ULang_Ptr_ULang_Empty_ tep0;
- ULang_Ptr_ULang_Empty_* tep1 = &tep0;
-
- /*Line:30*/
-
- ULang_Empty* tep2 = V;
- ULang_Ptr_ULang_Empty_____new___ULang_Ptr_ULang_Empty___ULang_Empty_(tep1,tep2);
- _ReturnVal = tep0;
- return _ReturnVal;
-
-}
-ULang_Ptr_ULang_Empty_ ULang_Ptr_ULang_Empty__Make_ULang_Empty_(ULang_Empty* V)
-{
- ULang_Ptr_ULang_Empty_ _ReturnVal;
- /*Block*/ 
-
- /*File:/Types/Ptr.uc*/
- /*Line:0*/
-
- ULang_Ptr_ULang_Empty_ tep0;
- ULang_Ptr_ULang_Empty_* tep1 = &tep0;
-
- /*Line:31*/
-
- ULang_Empty* tep2 = V;
- ULang_Ptr_ULang_Empty_____new___ULang_Ptr_ULang_Empty___ULang_Empty_(tep1,tep2);
- _ReturnVal = tep0;
- return _ReturnVal;
-
-}
-void ULang_Ptr_ULang_Empty_____new___ULang_Ptr_ULang_Empty__(ULang_Ptr_ULang_Empty_* __this__)
-{ /*Block*/ 
- return;
-
-}
-void ULang_Ptr_sint32_____new___ULang_Ptr_sint32___i32_(ULang_Ptr_sint32_* __this__,void* base)
-{ /*Block*/ 
-
- /*File:/Types/Ptr.uc*/
- /*Line:12*/
-
- void* tep0 = base;
-  __this__->__0 = tep0;
- return;
-
-}
-void* ULang_Ptr_sint32__Get_ULang_Ptr_sint32__(ULang_Ptr_sint32_* __this__)
-{
- void* _ReturnVal;
- /*Block*/ 
-
-
- 
- /*File:/Types/Ptr.uc*/
- /*Line:14*/
-
- void* tep0 = __this__->__0;
- _ReturnVal = tep0;
- return _ReturnVal;
-
-}
-void* ULang_Ptr_sint32__Get_ULang_Ptr_sint32__imut(ULang_Ptr_sint32_* __this__)
-{
- void* _ReturnVal;
- /*Block*/ 
-
-
- 
- /*File:/Types/Ptr.uc*/
- /*Line:15*/
-
- void* tep0 = __this__->__0;
- _ReturnVal = tep0;
- return _ReturnVal;
-
-}
-void ULang_Ptr_sint32__Write_ULang_Ptr_sint32___i32_imut(ULang_Ptr_sint32_* __this__,void* newvalue)
-{ /*Block*/ 
-
- /*File:/Types/Ptr.uc*/
- /*Line:17*/
-
- int32_t tep0 = *(int32_t*)newvalue;
- ULang_Ptr_sint32_* tep1 = __this__;
- void* tep2 = ULang_Ptr_sint32__Get_ULang_Ptr_sint32__(tep1);
- *(int32_t*)tep2 = tep0;
- return;
-
-}
-void ULang_Ptr_sint32__Write_ULang_Ptr_sint32___i32mov(ULang_Ptr_sint32_* __this__,int32_t newvalue)
-{ /*Block*/ 
-
- /*File:/Types/Ptr.uc*/
- /*Line:18*/
-
- int32_t tep0 = newvalue;
- ULang_Ptr_sint32_* tep1 = __this__;
- void* tep2 = ULang_Ptr_sint32__Get_ULang_Ptr_sint32__(tep1);
- *(int32_t*)tep2 = tep0;
- return;
-
-}
-void* ULang_Ptr_sint32__ReadPtr_ULang_Ptr_sint32__imut(ULang_Ptr_sint32_* __this__)
-{
- void* _ReturnVal;
- /*Block*/ 
-
- /*File:/Types/Ptr.uc*/
- /*Line:20*/
-
- ULang_Ptr_sint32_* tep0 = __this__;
- void* tep1 = ULang_Ptr_sint32__Get_ULang_Ptr_sint32__imut(tep0);
- _ReturnVal = tep1;
- return _ReturnVal;
-
-}
-void* ULang_Ptr_sint32____IndirectMember___ULang_Ptr_sint32__(ULang_Ptr_sint32_* __this__)
-{
- void* _ReturnVal;
- /*Block*/ 
-
- /*File:/Types/Ptr.uc*/
- /*Line:22*/
-
- ULang_Ptr_sint32_* tep0 = __this__;
- void* tep1 = ULang_Ptr_sint32__Get_ULang_Ptr_sint32__(tep0);
- _ReturnVal = tep1;
- return _ReturnVal;
-
-}
-void* ULang_Ptr_sint32____IndirectMember___ULang_Ptr_sint32__imut(ULang_Ptr_sint32_* __this__)
-{
- void* _ReturnVal;
- /*Block*/ 
-
- /*File:/Types/Ptr.uc*/
- /*Line:24*/
-
- ULang_Ptr_sint32_* tep0 = __this__;
- void* tep1 = ULang_Ptr_sint32__Get_ULang_Ptr_sint32__imut(tep0);
- _ReturnVal = tep1;
- return _ReturnVal;
-
-}
-void ULang_Ptr_sint32__ReassignTo_ULang_Ptr_sint32___i32_(ULang_Ptr_sint32_* __this__,void* newbase)
-{ /*Block*/ 
-
- /*File:/Types/Ptr.uc*/
- /*Line:26*/
-
- void* tep0 = newbase;
-  __this__->__0 = tep0;
- return;
-
-}
-ULang_Ptr_sint32_ ULang_Ptr_sint32__Make_i32_imut(void* V)
-{
- ULang_Ptr_sint32_ _ReturnVal;
- /*Block*/ 
-
- /*File:/Types/Ptr.uc*/
- /*Line:0*/
-
- ULang_Ptr_sint32_ tep0;
- ULang_Ptr_sint32_* tep1 = &tep0;
-
- /*Line:30*/
-
- void* tep2 = V;
- ULang_Ptr_sint32_____new___ULang_Ptr_sint32___i32_(tep1,tep2);
- _ReturnVal = tep0;
- return _ReturnVal;
-
-}
-ULang_Ptr_sint32_ ULang_Ptr_sint32__Make_i32_(void* V)
-{
- ULang_Ptr_sint32_ _ReturnVal;
- /*Block*/ 
-
- /*File:/Types/Ptr.uc*/
- /*Line:0*/
-
- ULang_Ptr_sint32_ tep0;
- ULang_Ptr_sint32_* tep1 = &tep0;
-
- /*Line:31*/
-
- void* tep2 = V;
- ULang_Ptr_sint32_____new___ULang_Ptr_sint32___i32_(tep1,tep2);
- _ReturnVal = tep0;
- return _ReturnVal;
-
-}
-void ULang_Ptr_sint32_____new___ULang_Ptr_sint32__(ULang_Ptr_sint32_* __this__)
-{ /*Block*/ 
- return;
-
-}
-ULang_Ptr_sint32_ ULang_ptr_sint32__i32_(void* V)
-{
- ULang_Ptr_sint32_ _ReturnVal;
- /*Block*/ 
-
- /*File:/Types/Ptr.uc*/
- /*Line:5*/
-
- void* tep0 = V;
- ULang_Ptr_sint32_ tep1 = ULang_Ptr_sint32__Make_i32_(tep0);
- _ReturnVal = tep1;
- return _ReturnVal;
-
-}
-void ULang_Ptr_ULang_Vec2f_t_float32______new___ULang_Ptr_ULang_Vec2f_t_float32____ULang_Vec2f_t_float32__(ULang_Ptr_ULang_Vec2f_t_float32__* __this__,ULang_Vec2f_t_float32_* base)
-{ /*Block*/ 
-
- /*File:/Types/Ptr.uc*/
- /*Line:12*/
-
- ULang_Vec2f_t_float32_* tep0 = base;
-  __this__->__0 = tep0;
- return;
-
-}
-ULang_Vec2f_t_float32_* ULang_Ptr_ULang_Vec2f_t_float32___Get_ULang_Ptr_ULang_Vec2f_t_float32___(ULang_Ptr_ULang_Vec2f_t_float32__* __this__)
-{
- ULang_Vec2f_t_float32_* _ReturnVal;
- /*Block*/ 
-
-
- 
- /*File:/Types/Ptr.uc*/
- /*Line:14*/
-
- ULang_Vec2f_t_float32_* tep0 = __this__->__0;
- _ReturnVal = tep0;
- return _ReturnVal;
-
-}
-ULang_Vec2f_t_float32_* ULang_Ptr_ULang_Vec2f_t_float32___Get_ULang_Ptr_ULang_Vec2f_t_float32___imut(ULang_Ptr_ULang_Vec2f_t_float32__* __this__)
-{
- ULang_Vec2f_t_float32_* _ReturnVal;
- /*Block*/ 
-
-
- 
- /*File:/Types/Ptr.uc*/
- /*Line:15*/
-
- ULang_Vec2f_t_float32_* tep0 = __this__->__0;
- _ReturnVal = tep0;
- return _ReturnVal;
-
-}
-void ULang_Ptr_ULang_Vec2f_t_float32___Write_ULang_Ptr_ULang_Vec2f_t_float32____ULang_Vec2f_t_float32__imut(ULang_Ptr_ULang_Vec2f_t_float32__* __this__,ULang_Vec2f_t_float32_* newvalue)
-{ /*Block*/ 
-
- /*File:/Types/Ptr.uc*/
- /*Line:17*/
-
- ULang_Vec2f_t_float32_ tep0 = *(ULang_Vec2f_t_float32_*)newvalue;
- ULang_Ptr_ULang_Vec2f_t_float32__* tep1 = __this__;
- ULang_Vec2f_t_float32_* tep2 = ULang_Ptr_ULang_Vec2f_t_float32___Get_ULang_Ptr_ULang_Vec2f_t_float32___(tep1);
- *(ULang_Vec2f_t_float32_*)tep2 = tep0;
- return;
-
-}
-void ULang_Ptr_ULang_Vec2f_t_float32___Write_ULang_Ptr_ULang_Vec2f_t_float32____ULang_Vec2f_t_float32_mov(ULang_Ptr_ULang_Vec2f_t_float32__* __this__,ULang_Vec2f_t_float32_ newvalue)
-{ /*Block*/ 
-
- /*File:/Types/Ptr.uc*/
- /*Line:18*/
-
- ULang_Vec2f_t_float32_ tep0 = newvalue;
- ULang_Ptr_ULang_Vec2f_t_float32__* tep1 = __this__;
- ULang_Vec2f_t_float32_* tep2 = ULang_Ptr_ULang_Vec2f_t_float32___Get_ULang_Ptr_ULang_Vec2f_t_float32___(tep1);
- *(ULang_Vec2f_t_float32_*)tep2 = tep0;
- return;
-
-}
-ULang_Vec2f_t_float32_* ULang_Ptr_ULang_Vec2f_t_float32___ReadPtr_ULang_Ptr_ULang_Vec2f_t_float32___imut(ULang_Ptr_ULang_Vec2f_t_float32__* __this__)
-{
- ULang_Vec2f_t_float32_* _ReturnVal;
- /*Block*/ 
-
- /*File:/Types/Ptr.uc*/
- /*Line:20*/
-
- ULang_Ptr_ULang_Vec2f_t_float32__* tep0 = __this__;
- ULang_Vec2f_t_float32_* tep1 = ULang_Ptr_ULang_Vec2f_t_float32___Get_ULang_Ptr_ULang_Vec2f_t_float32___imut(tep0);
- _ReturnVal = tep1;
- return _ReturnVal;
-
-}
-ULang_Vec2f_t_float32_* ULang_Ptr_ULang_Vec2f_t_float32_____IndirectMember___ULang_Ptr_ULang_Vec2f_t_float32___(ULang_Ptr_ULang_Vec2f_t_float32__* __this__)
-{
- ULang_Vec2f_t_float32_* _ReturnVal;
- /*Block*/ 
-
- /*File:/Types/Ptr.uc*/
- /*Line:22*/
-
- ULang_Ptr_ULang_Vec2f_t_float32__* tep0 = __this__;
- ULang_Vec2f_t_float32_* tep1 = ULang_Ptr_ULang_Vec2f_t_float32___Get_ULang_Ptr_ULang_Vec2f_t_float32___(tep0);
- _ReturnVal = tep1;
- return _ReturnVal;
-
-}
-ULang_Vec2f_t_float32_* ULang_Ptr_ULang_Vec2f_t_float32_____IndirectMember___ULang_Ptr_ULang_Vec2f_t_float32___imut(ULang_Ptr_ULang_Vec2f_t_float32__* __this__)
-{
- ULang_Vec2f_t_float32_* _ReturnVal;
- /*Block*/ 
-
- /*File:/Types/Ptr.uc*/
- /*Line:24*/
-
- ULang_Ptr_ULang_Vec2f_t_float32__* tep0 = __this__;
- ULang_Vec2f_t_float32_* tep1 = ULang_Ptr_ULang_Vec2f_t_float32___Get_ULang_Ptr_ULang_Vec2f_t_float32___imut(tep0);
- _ReturnVal = tep1;
- return _ReturnVal;
-
-}
-void ULang_Ptr_ULang_Vec2f_t_float32___ReassignTo_ULang_Ptr_ULang_Vec2f_t_float32____ULang_Vec2f_t_float32__(ULang_Ptr_ULang_Vec2f_t_float32__* __this__,ULang_Vec2f_t_float32_* newbase)
-{ /*Block*/ 
-
- /*File:/Types/Ptr.uc*/
- /*Line:26*/
-
- ULang_Vec2f_t_float32_* tep0 = newbase;
-  __this__->__0 = tep0;
- return;
-
-}
-ULang_Ptr_ULang_Vec2f_t_float32__ ULang_Ptr_ULang_Vec2f_t_float32___Make_ULang_Vec2f_t_float32__imut(ULang_Vec2f_t_float32_* V)
-{
- ULang_Ptr_ULang_Vec2f_t_float32__ _ReturnVal;
- /*Block*/ 
-
- /*File:/Types/Ptr.uc*/
- /*Line:0*/
-
- ULang_Ptr_ULang_Vec2f_t_float32__ tep0;
- ULang_Ptr_ULang_Vec2f_t_float32__* tep1 = &tep0;
-
- /*Line:30*/
-
- ULang_Vec2f_t_float32_* tep2 = V;
- ULang_Ptr_ULang_Vec2f_t_float32______new___ULang_Ptr_ULang_Vec2f_t_float32____ULang_Vec2f_t_float32__(tep1,tep2);
- _ReturnVal = tep0;
- return _ReturnVal;
-
-}
-ULang_Ptr_ULang_Vec2f_t_float32__ ULang_Ptr_ULang_Vec2f_t_float32___Make_ULang_Vec2f_t_float32__(ULang_Vec2f_t_float32_* V)
-{
- ULang_Ptr_ULang_Vec2f_t_float32__ _ReturnVal;
- /*Block*/ 
-
- /*File:/Types/Ptr.uc*/
- /*Line:0*/
-
- ULang_Ptr_ULang_Vec2f_t_float32__ tep0;
- ULang_Ptr_ULang_Vec2f_t_float32__* tep1 = &tep0;
-
- /*Line:31*/
-
- ULang_Vec2f_t_float32_* tep2 = V;
- ULang_Ptr_ULang_Vec2f_t_float32______new___ULang_Ptr_ULang_Vec2f_t_float32____ULang_Vec2f_t_float32__(tep1,tep2);
- _ReturnVal = tep0;
- return _ReturnVal;
-
-}
-void ULang_Ptr_ULang_Vec2f_t_float32______new___ULang_Ptr_ULang_Vec2f_t_float32___(ULang_Ptr_ULang_Vec2f_t_float32__* __this__)
-{ /*Block*/ 
- return;
-
-}
-ULang_Ptr_ULang_Vec2f_t_float32__ ULang_ptr_ULang_Vec2f_t_float32___ULang_Vec2f_t_float32__(ULang_Vec2f_t_float32_* V)
-{
- ULang_Ptr_ULang_Vec2f_t_float32__ _ReturnVal;
- /*Block*/ 
-
- /*File:/Types/Ptr.uc*/
- /*Line:5*/
-
- ULang_Vec2f_t_float32_* tep0 = V;
- ULang_Ptr_ULang_Vec2f_t_float32__ tep1 = ULang_Ptr_ULang_Vec2f_t_float32___Make_ULang_Vec2f_t_float32__(tep0);
- _ReturnVal = tep1;
- return _ReturnVal;
-
-}
 void ULang_Native_OS_PrintChar_c(int8_t Value)
 { /*Block*/ 
 
@@ -10021,14 +9943,14 @@ void ULang_Native_OS_PrintSpan_c___imut_uptr(void* Buffer,int64_t Size)
  int64_t tep0;
 
 
- int64_t tep1 = 0;
- tep0 = tep1;
+ int32_t tep1 = 0;
+ tep0 = (int64_t)tep1;
 
  _label1:
 
  int64_t tep2 = tep0;
  int64_t tep3 = Size;
- int8_t tep4 = (int8_t)(tep3<tep2);
+ int8_t tep4 = (int8_t)(tep2<tep3);
  int8_t tep5 = !tep4;
  if (tep5){goto _label0; };
 

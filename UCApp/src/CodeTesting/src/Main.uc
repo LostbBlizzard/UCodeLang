@@ -2,7 +2,3 @@
 
 
 
-//$Test tag;
-use ULang;
-
-

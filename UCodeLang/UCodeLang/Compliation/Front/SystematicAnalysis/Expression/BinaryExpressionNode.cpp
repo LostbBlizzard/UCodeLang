@@ -160,7 +160,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 
 #define BindaryBuildU(x) switch (Op) \
 		{\
-		case TokenType::plus:_IR_LastExpressionField=_IR_LookingAtIRBlock->NewAdd(Ex0, Ex0);break;\
+		case TokenType::plus:_IR_LastExpressionField=_IR_LookingAtIRBlock->NewAdd(Ex0, Ex1);break;\
 		case TokenType::minus:_IR_LastExpressionField=_IR_LookingAtIRBlock->NewSub(Ex0, Ex1);break;\
 		case TokenType::star:_IR_LastExpressionField=_IR_LookingAtIRBlock->NewUMul(Ex0, Ex1);break; \
 		case TokenType::forwardslash:_IR_LastExpressionField=_IR_LookingAtIRBlock->NewUDiv(Ex0, Ex1);break; \

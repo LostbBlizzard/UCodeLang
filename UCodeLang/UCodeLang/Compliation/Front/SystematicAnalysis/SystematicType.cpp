@@ -777,6 +777,7 @@ SystematicAnalysis::BinaryOverLoadWith_t SystematicAnalysis::Type_HasBinaryOverL
 
 					for (auto& Item : V)
 					{
+						Symbol_Update_FuncSym_ToFixedTypes(NeverNullptr(Item));
 						if (Item->Type == SymbolType::Func)
 						{
 							auto funcInfo = Item->Get_Info<FuncInfo>();
@@ -829,6 +830,7 @@ SystematicAnalysis::CompoundOverLoadWith_t SystematicAnalysis::Type_HasCompoundO
 
 					for (auto& Item : V)
 					{
+						Symbol_Update_FuncSym_ToFixedTypes(NeverNullptr(Item));
 						if (Item->Type == SymbolType::Func)
 						{
 							auto funcInfo = Item->Get_Info<FuncInfo>();
@@ -878,6 +880,7 @@ SystematicAnalysis::PostFixOverLoadWith_t SystematicAnalysis::Type_HasPostfixOve
 
 					for (auto& Item : V)
 					{
+						Symbol_Update_FuncSym_ToFixedTypes(NeverNullptr(Item));
 						if (Item->Type == SymbolType::Func)
 						{
 							auto funcInfo = Item->Get_Info<FuncInfo>();
@@ -934,6 +937,7 @@ SystematicAnalysis::IndexOverLoadWith_t SystematicAnalysis::Type_HasIndexedOverL
 
 			for (auto& Item : V)
 			{
+				Symbol_Update_FuncSym_ToFixedTypes(NeverNullptr(Item));
 				if (Item->Type == SymbolType::Func)
 				{
 					auto funcInfo = Item->Get_Info<FuncInfo>();
@@ -970,6 +974,7 @@ SystematicAnalysis::ForOverLoadWith_t SystematicAnalysis::Type_HasForOverLoadWit
 
 			for (auto& Item : V)
 			{
+				Symbol_Update_FuncSym_ToFixedTypes(NeverNullptr(Item));
 				if (Item->Type == SymbolType::Func)
 				{
 					auto funcInfo = Item->Get_Info<FuncInfo>();
@@ -1009,6 +1014,7 @@ SystematicAnalysis::UrinaryOverLoadWith_t SystematicAnalysis::Type_HasUrinaryOve
 
 					for (auto& Item : V)
 					{
+						Symbol_Update_FuncSym_ToFixedTypes(NeverNullptr(Item));
 						if (Item->Type == SymbolType::Func)
 						{
 							auto funcInfo = Item->Get_Info<FuncInfo>();
