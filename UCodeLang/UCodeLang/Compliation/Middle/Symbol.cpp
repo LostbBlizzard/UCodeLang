@@ -86,7 +86,7 @@ Vector<Symbol*>& SymbolTable::GetSymbolsWithName(const String_view& Name)
  void SymbolTable::GetSymbolsInNameSpace(const String_view& NameSpace, const String_view& Name, Vector<const Symbol*>& Output) const
  {
 	 SymbolTable* v = (SymbolTable*)this;
-	 return v->GetSymbolsInNameSpace(NameSpace, Name, Output);
+	 return v->GetSymbolsInNameSpace(NameSpace, Name, (Vector<Symbol*>&)Output);
  }
 
  Vector<const Symbol*>& SymbolTable::GetSymbolsWithName(const String_view& Name) const

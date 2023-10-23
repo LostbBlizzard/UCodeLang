@@ -1487,7 +1487,7 @@ private:
 
 	void Type_SetFuncRetAsLastEx(const Get_FuncInfo& Info);
 	
-	
+	bool Type_HasDefaultConstructorFunc(const TypeSymbol& Type) const;
 
 	bool Type_IsCompatible(const IsCompatiblePar& FuncPar, const Vector<ParInfo>& ValueTypes, bool _ThisTypeIsNotNull, const NeverNullPtr<Token> Token);
 

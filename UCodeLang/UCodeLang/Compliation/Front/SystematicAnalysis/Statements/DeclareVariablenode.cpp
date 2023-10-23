@@ -273,7 +273,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 			}
 			else if (syb->Type == SymbolType::Class_Field)
 			{
-				bool hasdefaultConstructor = Symbol_GetSymbol(syb->VarType).has_value() && syb->VarType.IsAddress() == false;
+				bool hasdefaultConstructor = Type_HasDefaultConstructorFunc(syb->VarType);
 				if (hasdefaultConstructor) 
 				{
 
@@ -383,7 +383,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 				auto& Item = (*Field);
 				Item->Type = syb->VarType;
 
-				bool hasdefaultConstructor = Symbol_GetSymbol(syb->VarType).has_value() && syb->VarType.IsAddress() == false;
+				bool hasdefaultConstructor = Type_HasDefaultConstructorFunc(syb->VarType);
 				if (node._Expression._Value || hasdefaultConstructor)
 				{
 					Class._WillHaveFieldInit = true;

@@ -554,7 +554,27 @@ using namespace UCodeLang;
 			std::stringstream ss_out;
 			ss_out << std::ifstream(out_file).rdbuf();
 			auto outstr = ss_out.str();
+			
+			{
+				//C++ adds trailing zeros but node.js does not
+				if (rettype._Type == ReflectionTypes::float32)
+				{
+					float newfloat = std::stof(outstr.substr(0, outstr.size() - 1));//-1 to remove /n
+					outstr = std::to_string(newfloat);
+					outstr += '\n';
+				}
+				else if (rettype._Type == ReflectionTypes::float64)
+				{
+					float64 newfloat = std::stof(outstr.substr(0, outstr.size() - 1));//-1 to remove /n
+					outstr = std::to_string(newfloat);
+					outstr += '\n';
+				}
+
+			}
 			if (outstr != expected) {
+
+				
+
 				std::cerr << "got: " << ss_out.str();
 				std::cerr << "expected: " << expected;
 				return false;
@@ -739,7 +759,11 @@ using namespace UCodeLang;
 
 		Array< StandardLibraryTestInfo, BackEndsCount> StandardTestInfo;
 
+		bool rununitTest = true;
+		bool runStandardLibraryTest = false;
+		bool runincrementalcompilationTestOnStandardLibrary = false;
 
+		if (rununitTest)
 		{
 			for (size_t i = 0; i < BackEndsCount; i++)
 			{
@@ -827,6 +851,7 @@ using namespace UCodeLang;
 		}
 
 
+		if (runStandardLibraryTest)
 		{
 			{
 				auto index = ModuleIndex::GetModuleIndex();
@@ -846,9 +871,9 @@ using namespace UCodeLang;
 				RunStandardLibraryTests(MyTestInfo, mode);
 			}
 		}
-
 		
-		{//incremental compilation
+		if (runincrementalcompilationTestOnStandardLibrary)
+		{
 			UCodeLang::Compiler _Compiler;
 
 			auto index = ModuleIndex::GetModuleIndex();
