@@ -23,6 +23,8 @@ UCodeAPI/NStandardLibrary/out/
 UCApp/src/CodeTesting/out/
 UCApp/src/CodeTesting/int/
 
+OutIR.txt
+
 UCodeIDE/out.lib
 UCodeIDE/out.data.c
 UCodeIDE/imgui.ini

@@ -255,7 +255,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 			GenericClass_Data& VClass = _Lib.Get_Assembly().AddGenericClass((String)ClassInf->Get_Name(), ClassInf->FullName);
 
 			VClass.Base.Implementation = ClassStr + String(ClassBody);
-			VClass.Base.Implementation += '\n\n';
+			VClass.Base.Implementation += "\n\n";
 			
 		}
 	}

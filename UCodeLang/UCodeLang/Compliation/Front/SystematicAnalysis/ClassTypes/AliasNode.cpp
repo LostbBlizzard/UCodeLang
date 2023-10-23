@@ -168,7 +168,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 				(String)ScopeHelper::GetNameFromFullName(Syb.FullName), Syb.FullName);
 
 			VClass.Base.Implementation = ClassStr + String(ClassBody);
-			VClass.Base.Implementation += '\n\n';
+			VClass.Base.Implementation += "\n\n";
 
 		}
 	}
