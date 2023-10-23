@@ -665,6 +665,13 @@ public:
 
 				Type = std::move(r);
 			}
+			else if (sectionNumber == ExportSection::SectionNumber)
+			{
+				ExportSection r;
+				r.FromBytes(bit);
+
+				Type = std::move(r);
+			}
 			else
 			{
 				UCodeLangUnreachable();

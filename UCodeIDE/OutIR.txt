@@ -1,0 +1,45 @@
+
+|(&StaticInit&)[] -> void:;
+
+|(&StaticUnload&)[] -> void:;
+
+|(&threadInit&)[] -> void:;
+
+|(&threadUnload&)[] -> void:;
+
+|Char_Test[] -> int8:
+
+ [Block:0]
+
+
+//File:src.uc
+//Line:3
+
+   int8 A = 49;
+   ret = A;
+   ret;
+
+|Byte_Test[] -> int8:
+
+ [Block:0]
+
+
+//File:src.uc
+//Line:5
+
+   int8 A = 1;
+   ret = A;
+   ret;
+
+|Float_Test[] -> float32:
+
+ [Block:0]
+
+
+//File:src.uc
+//Line:7
+
+   float32 A = 1.500000;
+   ret = A;
+   ret;
+
