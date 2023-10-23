@@ -212,7 +212,6 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode M
 					auto SymV = namespacesyb.front();
 
 					nameSymbol = SymV;
-					int a = 0;
 
 
 					if (nameSymbol->Type == SymbolType::Type_class)
@@ -791,7 +790,6 @@ void SystematicAnalysis::Assembly_LoadTraitSymbol(const Trait_Data& Item, const 
 		}
 
 		_PassType = oldpasstype;
-		int a = 0;
 	}
 
 

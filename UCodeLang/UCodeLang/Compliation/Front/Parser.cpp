@@ -307,6 +307,8 @@ GotNodeType Parser::GetAlias(const Token* AliasName,GenericValuesNode&& AliasGen
 	auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
 	NextToken();
 
+
+	out.EndOfClass = TryGetToken();
 	return r;
 }
 GotNodeType Parser::GetClassTypeNode(Node*& out)
@@ -385,7 +387,7 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 		output->_Inherited = std::move(InheritedTypes);
 		output->_Access = GetModifier();
 		output->_Attributes = Get_TepAttributes();
-		output->EndOfClass = TryGetToken();
+		output->EndOfClass = ColonToken;
 		return GotNodeType::Success;
 	}
 	else if (ColonToken->Type == TokenType::KeyWord_Enum)
@@ -1732,8 +1734,10 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 
 				if (opnum < opnum2)
 				{
+					//this code is so hard to visualize in your head
 					std::swap(r->_BinaryOp, val1->_BinaryOp);
 					std::swap(r->_Value0._Value, val1->_Value1._Value);
+					std::swap(val1->_Value1._Value, val1->_Value0._Value);
 				}
 			}
 			else if (r->_Value0._Value->Get_Type() == NodeType::ValueExpressionNode)

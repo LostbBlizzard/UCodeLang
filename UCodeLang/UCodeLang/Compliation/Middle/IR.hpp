@@ -71,9 +71,13 @@ struct IRType
 		_Type = type;
 		_symbol = Value;
 	}
-	bool IsSame(IRType Value) const
+	bool operator==(const IRType& Other) const
 	{
-		return _Type == Value._Type && _symbol.ID == Value._symbol.ID;
+		return _Type == Other._Type && _symbol.ID == Other._symbol.ID;
+	}
+	bool operator!=(const IRType& Other) const
+	{
+		return !this->operator==(Other);
 	}
 };
 using PureState_t = int;
@@ -1707,7 +1711,7 @@ public:
 
 	bool IsTheSame(const IRType& Type0, const IRType& Type1)const
 	{
-		return Type0.IsSame(Type1);
+		return Type0 == Type1;
 	}
 	bool IsTheSame(const IRFuncPtr* Func, const IRFuncPtr* Func2) const;
 	bool IsTheSame(const IRFuncPtr* Func, const IRFunc* Func2)const;

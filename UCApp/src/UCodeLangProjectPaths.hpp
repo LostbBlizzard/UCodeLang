@@ -18,4 +18,6 @@ inline const UCodeLang::String UCodeLang_UCAppDir_Test_CppHelperOut = UCodeLang_
 
 inline const UCodeLang::String  UCodeLang_UCAppDir_TestPerformanceTests = UCodeLang_UCAppDir_TestDir + "PerformanceTests/";
 inline const UCodeLang::String  UCodeLang_UCAppDir_TestPerformanceTestsOut = UCodeLang_UCAppDir_TestDir + "PerformanceTests/Output/";
+
+inline const UCodeLang::String UCodeLangVSAPIPath = UCodeLang_SoultionDir + "UCodeAPI/";
 #endif // DEBUG

@@ -1025,5 +1025,6 @@ public:
 		
 private:
 	UnorderedMap<SymbolID,Symbol*> IDToSymbols;
+	UnorderedMap<String, Vector<Symbol*>> NameToSymbol;
 };
 UCodeLangFrontEnd

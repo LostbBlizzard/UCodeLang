@@ -578,7 +578,7 @@ void C89Backend::AddSybToString(UCodeLang::String& r)
 				Vals.GetValue(Item->identifier) = true;
 				Values--;
 			NextMainLoop:
-				int a = 0;
+				;
 			}
 		}
 	}
@@ -662,7 +662,7 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 		r += "\n{";
 		String Tabs = " ";
 
-		if (!Item->ReturnType.IsSame(IRTypes::Void))
+		if (Item->ReturnType != IRTypes::Void)
 		{
 			r +=  "\n ";
 			r += ToString(Item->ReturnType) + " " + (String)IRReturnValue ";";
@@ -748,17 +748,44 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 				switch (I->Type)
 				{
 				case IRInstructionType::LoadReturn:
-					r += (String)IRReturnValue + " = " + ToString(State, *I, I->Target());
-					break;
+				{	
+					
+					bool docast = _Func->ReturnType != _Input->GetType(I.get(), I->Target());
+					r += (String)IRReturnValue + " = ";
+					if (docast)
+					{
+						r += "(" + ToString(_Func->ReturnType) + ")(";
+					}
+					r += ToString(State, *I, I->Target());
+					if (docast)
+					{
+						r += ")";
+					}
+				}break;
 				case IRInstructionType::LoadNone:
 					r += ToString(I->ObjectType);
 					r += " " + State.GetName(I.get());
 					break;
 				case IRInstructionType::Load:
+				{
 					r += ToString(I->ObjectType);
 					r += " " + State.GetName(I.get());
-					r += " = " + ToString(State, *I, I->Target());
-					break;
+					r += " = ";
+					
+					bool docast = I->ObjectType != _Input->GetType(I.get(),I->Target());
+					
+					if (docast)
+					{
+						r += "(" + ToString(I->ObjectType) + ")(";
+					}
+					r += ToString(State, *I, I->Target());
+
+					if (docast)
+					{
+						r += ")";
+					}
+				}	
+				break;
 				case IRInstructionType::Reassign:
 					r += ToString(State, *I, I->Target());
 					r += " = " + ToString(State, *I, I->Input());
@@ -892,7 +919,7 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					break;
 				case IRInstructionType::Call:
 				{
-					if (!I->ObjectType.IsSame(IRTypes::Void))
+					if (I->ObjectType != IRTypes::Void)
 					{
 						r += ToString(I->ObjectType);
 						r += " " + State.GetName(I.get());
@@ -930,7 +957,7 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					r += ")";
 				}break;
 				case IRInstructionType::Return:
-					if (Item->ReturnType.IsSame(IRTypes::Void))
+					if (Item->ReturnType == IRTypes::Void)
 					{
 						r += "return";
 					}
@@ -1097,7 +1124,7 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 				}
 				r += ";\n";
 			GoOver:
-				int a = 0;
+				;
 			}
 			State.PointerToName.clear();
 		}
@@ -1119,7 +1146,7 @@ String C89Backend::ToString(ToStringState& State, IRInstruction& Ins, IROperator
 
 	if (Ins.Type == IRInstructionType::Member_Access || Ins.Type == IRInstructionType::Member_Access_Dereference)
 	{
-		int a = 0;
+		;
 	}
 	
 	if (Ins.Type != IRInstructionType::Member_Access
@@ -1127,7 +1154,7 @@ String C89Backend::ToString(ToStringState& State, IRInstruction& Ins, IROperator
 
 		IRType ThisVal = _Input->GetType(&Ins, Value);
 
-		if (!ThisVal.IsSame(*OutType))
+		if (ThisVal != (*OutType))
 		{
 			bool isok = false;
 			if (Ins.Type == IRInstructionType::Reassign
@@ -1220,7 +1247,19 @@ String C89Backend::ToStringBinary(ToStringState& State, IRInstruction* Ins, cons
 	String r;
 	r += ToString(Ins->ObjectType);
 	r += " " + State.GetName(Ins);
-	r += " = " + ToString(State, *Ins, Ins->A) + String(V) + ToString(State, *Ins, Ins->B);
+
+	bool docast = Ins->ObjectType != _Input->GetType(Ins->B);
+	r += " = ";
+	if (docast)
+	{
+		r += "(" + ToString(Ins->ObjectType) + ")(";
+	}
+	r += ToString(State, *Ins, Ins->A) + String(V) + ToString(State, *Ins, Ins->B);
+	
+	if (docast)
+	{
+		r += ")";
+	}
 	return r;
 }
 

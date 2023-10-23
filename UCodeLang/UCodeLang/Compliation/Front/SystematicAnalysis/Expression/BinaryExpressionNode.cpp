@@ -23,7 +23,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 	if (BuildCode)
 	{
 		Data = &_BinaryExpressionNode_Datas.GetValue(Symbol_GetSymbolID(node));
-		_LookingForTypes.top() = Data->Op1;
+		_LookingForTypes.top() = Data->Op0;
 
 		if (Data->FuncToCall)
 		{
@@ -40,16 +40,20 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 	TypeSymbol Ex1Type;
 	if (IsBuildFunc == false)
 	{
-		OnExpressionTypeNode(Ex1node, GetValueMode::Read);
+		OnExpressionTypeNode(Ex0node, GetValueMode::Read);
 		Ex0 = _IR_LastExpressionField;
 		Ex0Type = _LastExpressionType;
 
 		if (BuildCode)
 		{
-			_LookingForTypes.top() = Data->Op0;
+			_LookingForTypes.top() = Data->Op1;
 		}
-
-		OnExpressionTypeNode(Ex0node, GetValueMode::Read);
+		else
+		{
+			_LookingForTypes.top() = _LastExpressionType;
+		}
+		
+		OnExpressionTypeNode(Ex1node, GetValueMode::Read);
 		Ex1 = _IR_LastExpressionField;
 		Ex1Type = _LastExpressionType;
 
@@ -63,6 +67,8 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 
 			if (!Info.HasValue)
 			{
+				auto v = ToString(Ex0Type);
+
 				LogError_CantFindBinaryOpForTypes(BinaryOp, Ex0Type, Ex1Type);
 			}
 
@@ -74,10 +80,10 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 			V.Op1 = Ex1Type;
 
 
-			//all float bool int types
 			if (Info.Value.has_value())
 			{
 				FuncInfo* f = Info.Value.value()->Get_Info<FuncInfo>();
+
 				V.Op0 = f->Pars[0].Type;
 				V.Op1 = f->Pars[1].Type;
 				V.FuncToCall = Info.Value.value();
@@ -86,11 +92,14 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 			}
 			else
 			{
+				//all float bool int types
 				V.Op0._IsAddress = false;
 				V.Op1._IsAddress = false;
 				_LastExpressionType = Type_BinaryExpressionShouldRurn(Op, Ex0Type);
 			}
 
+
+			
 			_BinaryExpressionNode_Datas.AddValue(Symbol_GetSymbolID(node), V);
 
 
@@ -151,16 +160,16 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 
 #define BindaryBuildU(x) switch (Op) \
 		{\
-		case TokenType::plus:_IR_LastExpressionField=_IR_LookingAtIRBlock->NewAdd(Ex1, Ex0);break;\
-		case TokenType::minus:_IR_LastExpressionField=_IR_LookingAtIRBlock->NewSub(Ex1, Ex0);break;\
-		case TokenType::star:_IR_LastExpressionField=_IR_LookingAtIRBlock->NewUMul(Ex1, Ex0);break; \
-		case TokenType::forwardslash:_IR_LastExpressionField=_IR_LookingAtIRBlock->NewUDiv(Ex1, Ex0);break; \
-		case TokenType::equal_Comparison:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewC_Equalto(Ex1, Ex0); break; \
-		case TokenType::Notequal_Comparison:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewC_NotEqualto(Ex1, Ex0);break; \
-		case TokenType::greaterthan:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewUGreaterThan(Ex1, Ex0); break; \
-		case TokenType::lessthan:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewULessThan(Ex1, Ex0); break; \
-		case TokenType::greater_than_or_equalto:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewUGreaterThanOrEqual(Ex1, Ex0); break; \
-		case TokenType::less_than_or_equalto:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewULessThanOrEqual(Ex1, Ex0); break; \
+		case TokenType::plus:_IR_LastExpressionField=_IR_LookingAtIRBlock->NewAdd(Ex0, Ex1);break;\
+		case TokenType::minus:_IR_LastExpressionField=_IR_LookingAtIRBlock->NewSub(Ex0, Ex1);break;\
+		case TokenType::star:_IR_LastExpressionField=_IR_LookingAtIRBlock->NewUMul(Ex0, Ex1);break; \
+		case TokenType::forwardslash:_IR_LastExpressionField=_IR_LookingAtIRBlock->NewUDiv(Ex0, Ex1);break; \
+		case TokenType::equal_Comparison:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewC_Equalto(Ex0, Ex1); break; \
+		case TokenType::Notequal_Comparison:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewC_NotEqualto(Ex0, Ex1);break; \
+		case TokenType::greaterthan:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewUGreaterThan(Ex0, Ex1); break; \
+		case TokenType::lessthan:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewULessThan(Ex0, Ex1); break; \
+		case TokenType::greater_than_or_equalto:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewUGreaterThanOrEqual(Ex0, Ex1); break; \
+		case TokenType::less_than_or_equalto:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewULessThanOrEqual(Ex0, Ex1); break; \
 		default:\
 			UCodeLangUnreachable();\
 			break;\
@@ -169,16 +178,16 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 
 #define BindaryBuildS(x) switch (Op) \
 			{\
-			case TokenType::plus:_IR_LastExpressionField=_IR_LookingAtIRBlock->NewAdd(Ex1, Ex0);break;\
-			case TokenType::minus:_IR_LastExpressionField=_IR_LookingAtIRBlock->NewSub(Ex1, Ex0);break;\
-			case TokenType::star:_IR_LastExpressionField=_IR_LookingAtIRBlock->NewSMul(Ex1, Ex0);break; \
-			case TokenType::forwardslash:_IR_LastExpressionField=_IR_LookingAtIRBlock->NewSDiv(Ex1, Ex0);break; \
-			case TokenType::equal_Comparison:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewC_Equalto(Ex1, Ex0); break; \
-			case TokenType::Notequal_Comparison:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewC_NotEqualto(Ex1, Ex0); break; \
-			case TokenType::greaterthan:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewSGreaterThan(Ex1, Ex0); break; \
-			case TokenType::lessthan:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewSLessThan(Ex1, Ex0); break; \
-			case TokenType::greater_than_or_equalto:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewSGreaterThanOrEqual(Ex1, Ex0); break; \
-			case TokenType::less_than_or_equalto:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewSLessThanOrEqual(Ex1, Ex0); break; \
+			case TokenType::plus:_IR_LastExpressionField=_IR_LookingAtIRBlock->NewAdd(Ex0, Ex1);break;\
+			case TokenType::minus:_IR_LastExpressionField=_IR_LookingAtIRBlock->NewSub(Ex0, Ex1);break;\
+			case TokenType::star:_IR_LastExpressionField=_IR_LookingAtIRBlock->NewSMul(Ex0, Ex1);break; \
+			case TokenType::forwardslash:_IR_LastExpressionField=_IR_LookingAtIRBlock->NewSDiv(Ex0, Ex1);break; \
+			case TokenType::equal_Comparison:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewC_Equalto(Ex0, Ex1); break; \
+			case TokenType::Notequal_Comparison:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewC_NotEqualto(Ex0, Ex1); break; \
+			case TokenType::greaterthan:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewSGreaterThan(Ex0, Ex1); break; \
+			case TokenType::lessthan:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewSLessThan(Ex0, Ex1); break; \
+			case TokenType::greater_than_or_equalto:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewSGreaterThanOrEqual(Ex0, Ex1); break; \
+			case TokenType::less_than_or_equalto:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewSLessThanOrEqual(Ex0, Ex1); break; \
 			default:\
 				UCodeLangUnreachable(); \
 				break; \
@@ -206,20 +215,23 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 			case TypesEnum::Bool:
 				switch (Op)
 				{
-				case TokenType::equal_Comparison:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewC_Equalto(Ex1, Ex0); break;
-				case TokenType::Notequal_Comparison:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewC_NotEqualto(Ex1, Ex0); break;
-				case TokenType::logical_and:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewlogicalAnd(Ex1, Ex0); break;
-				case TokenType::logical_or:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewlogicalOr(Ex1, Ex0); break;
+				case TokenType::equal_Comparison:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewC_Equalto(Ex0, Ex1); break;
+				case TokenType::Notequal_Comparison:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewC_NotEqualto(Ex0, Ex1); break;
+				case TokenType::logical_and:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewlogicalAnd(Ex0, Ex1); break;
+				case TokenType::logical_or:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewlogicalOr(Ex0, Ex1); break;
 				default:
 					UCodeLangUnreachable();
 					break;
 				}
 				break;
 			case TypesEnum::Char:
+			case TypesEnum::Uft8:
+			case TypesEnum::Uft16:
+			case TypesEnum::Uft32:
 				switch (Op)
 				{
-				case TokenType::equal_Comparison:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewC_Equalto(Ex1, Ex0); break;
-				case TokenType::Notequal_Comparison:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewC_NotEqualto(Ex1, Ex0); break;
+				case TokenType::equal_Comparison:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewC_Equalto(Ex0, Ex1); break;
+				case TokenType::Notequal_Comparison:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewC_NotEqualto(Ex0, Ex1); break;
 				default:
 					UCodeLangUnreachable();
 					break;

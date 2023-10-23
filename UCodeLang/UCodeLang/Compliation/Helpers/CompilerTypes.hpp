@@ -270,7 +270,7 @@ public:
 		case TokenType::KeyWord_Drop: return "drop";
 		case TokenType::KeyWord_new: return "new";
 		case TokenType::KeyWord_static: return "static";
-		case TokenType::KeyWord_Thread: return "staticforthread";
+		case TokenType::KeyWord_Thread: return "thread";
 
 		case TokenType::KeyWord_uintptr: return "uintptr";
 		case TokenType::KeyWord_sintptr: return "sintptr";
@@ -292,6 +292,44 @@ public:
 		case TokenType::KeyWord_uft16:return "uft16";
 		case TokenType::KeyWord_uft32:return "uft32";
 		case TokenType::KeyWord_compiler:return "compiler";
+		case TokenType::bitwise_XOr:return "^";
+		case TokenType::bitwise_not:return "~";
+
+		case TokenType::leftArrow:return "<-";
+		case TokenType::RightAssignArrow:return "=>";
+		case TokenType::IndirectMember:return "~>";
+		case TokenType::ExclamationDot:return "!=";
+
+
+		case TokenType::KeyWord_move:return "move";
+		case TokenType::KeyWord_moved:return "moved";
+		case TokenType::KeyWord_match:return "match";
+
+		case TokenType::KeyWord_unq:return "unq";
+		case TokenType::KeyWord_shr:return "shr";
+
+		case TokenType::KeyWord_trait:return "trait";
+		case TokenType::KeyWord_dynamic:return "dynamic";
+		case TokenType::KeyWord_out:return "out";
+		case TokenType::KeyWord_bitcast:return "bitcast";
+		case TokenType::KeyWord_panic:return "panic";
+
+		case TokenType::KeyWord_ClassIf:return "$if";
+		case TokenType::KeyWord_ClassFor:return "$for";
+		case TokenType::KeyWord_ClassElse:return "$else";
+
+		case TokenType::KeyWord_eval:return "eval";
+		case TokenType::KeyWord_Import:return "import";
+		case TokenType::KeyWord_TypeInfo:return "typeinfo";
+		case TokenType::KeyWord_extern:return "extern";
+		case TokenType::KeyWord_await:return "await";
+		case TokenType::KeyWord_async:return "async";
+		case TokenType::KeyWord_yeild:return "yeild";
+		case TokenType::KeyWord_unsafe:return "unsafe";
+		case TokenType::KeyWord_block:return "block";
+		case TokenType::KeyWord_defer:return "defer";
+		case TokenType::KeyWord_export:return "export";
+
 		default:return "Unknown token";
 		}
 	}

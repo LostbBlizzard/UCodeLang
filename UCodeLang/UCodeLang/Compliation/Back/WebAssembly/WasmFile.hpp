@@ -199,9 +199,52 @@ public:
 	{
 		static constexpr SectionID SectionNumber = 6;
 	};
+
+	enum class ExportTag :Byte
+	{
+		Func = 0,
+		Table = 1,
+		mem = 2,
+		global = 4,
+	};
+
+		
+	struct Export
+	{
+		String Name;
+		ExportTag Tag = ExportTag::Func;
+		varU32 Index;
+	};
 	struct ExportSection
 	{
 		static constexpr SectionID SectionNumber = 7;
+		Vector<Export> Exports;
+
+		void ToBytes(BitMaker& bit) const
+		{
+			bit.WriteType(SectionNumber);
+
+			BitMaker tep;
+
+			{
+				WasmFile::WriteLEB128(tep, (VectorLength)Exports.size());
+
+				for (auto& Item : Exports)
+				{
+					Write_String(tep, Item.Name);
+					tep.WriteType((Byte)Item.Tag);
+					WasmFile::WriteLEB128(tep, Item.Index);
+				}
+			}
+
+			auto& bytes = tep.Get_Bytes();
+			WasmFile::WriteLEB128(bit, (varU32)bytes.size());
+			bit.WriteBytes(bytes.data(), bytes.size());
+		}
+		void FromBytes(BitReader& bit)
+		{
+
+		}
 	};
 	struct StartSection
 	{
@@ -223,6 +266,17 @@ public:
 			i64const = 0x42,
 			f32const = 0x43,
 			f64const = 0x44,
+
+			i32store = 0x36,
+			i64store = 0x37,
+			f32store = 0x38,
+			f64store = 0x39,
+
+			i32load = 0x28,
+			i64load = 0x29,
+			f32load = 0x2a,
+			f64load = 0x2b,
+
 			end = 0x0b,
 		};
 		Ins InsType= Ins::Unreachable;
@@ -258,6 +312,40 @@ public:
 			Const = v;
 		}
 
+		void i32_store()
+		{
+			InsType = Ins::i32store;
+		}
+		void i64_store()
+		{
+			InsType = Ins::i64store;
+		}
+		void f32_store()
+		{
+			InsType = Ins::f32store;
+		}
+		void f64_store()
+		{
+			InsType = Ins::f64store;
+		}
+
+		void i32_load()
+		{
+			InsType = Ins::i32load;
+		}
+		void i64_load()
+		{
+			InsType = Ins::i64load;
+		}
+		void f32_load()
+		{
+			InsType = Ins::f32load;
+		}
+		void f64_load()
+		{
+			InsType = Ins::f64load;
+		}
+
 		void i32_const(UInt32 v) { i32_const(*(Int32*)&v); }
 		void i64_const(UInt64 v)  { i64_const(*(Int64*)&v); }
 
@@ -273,9 +361,15 @@ public:
 			{
 				WriteLEB128(bit, Const.AsUInt32);
 			}
+			else if (InsType == Ins::f32const)
+			{
+				bit.WriteType(Const.Asfloat32);
+			}
 			else if (InsType == Ins::Return
 				|| InsType == Ins::Unreachable
-				|| InsType == Ins::end)
+				|| InsType == Ins::end
+				|| InsType == Ins::i32store
+				|| InsType == Ins::i32load)
 			{
 
 			}
@@ -293,7 +387,8 @@ public:
 			}
 			else if (InsType == Ins::Return
 				|| InsType == Ins::Unreachable
-				|| InsType == Ins::end)
+				|| InsType == Ins::end
+				|| InsType == Ins::i32store)
 			{
 
 			}
@@ -340,7 +435,7 @@ public:
 				}
 			}
 			{
-				WasmFile::WriteLEB128(tep, (VectorLength)Ins.size());
+				//WasmFile::WriteLEB128(tep, (VectorLength)Ins.size());
 
 				for (auto& Item : Ins)
 				{
@@ -380,44 +475,85 @@ public:
 			}
 		}
 
-		void Add_i32_const(Int32 v)
+		void Push_i32_const(Int32 v)
 		{
 			Ins.push_back({});
 			Ins.back().i32_const(v);
 		}
-		void Add_i64_const(Int64 v)
+		void Push_i64_const(Int64 v)
 		{
 			Ins.push_back({});
 			Ins.back().i64_const(v);
 		}
-		void Add_f32_const(float32 v)
+		void Push_f32_const(float32 v)
 		{
 			Ins.push_back({});
 			Ins.back().f32_const(v);
 		}
-		void Add_f64_const(float64 v)
+		void Push_f64_const(float64 v)
 		{
 			Ins.push_back({});
 			Ins.back().f64_const(v);
 		}
 
+		void Push_i32_store()
+		{
+			Ins.push_back({});
+			Ins.back().i32_store();
+		}
+		void Push_i64_store()
+		{
+			Ins.push_back({});
+			Ins.back().i64_store();
+		}
+		void Push_f32_store()
+		{
+			Ins.push_back({});
+			Ins.back().f32_store();
+		}
+		void Push_f64_store()
+		{
+			Ins.push_back({});
+			Ins.back().f64_store();
+		}
+
+		void Push_i32_load()
+		{
+			Ins.push_back({});
+			Ins.back().i32_load();
+		}
+		void Push_i64_load()
+		{
+			Ins.push_back({});
+			Ins.back().i64_load();
+		}
+
+		void Push_f32_load()
+		{
+			Ins.push_back({});
+			Ins.back().f32_load();
+		}
+		void Add_f64_load()
+		{
+			Ins.push_back({});
+			Ins.back().f64_load();
+		}
 
 
+		void Push_i32_const(UInt32 v) { Push_i32_const(*(Int32*)&v); }
+		void Push_i64_const(UInt64 v) { Push_i64_const(*(Int64*)&v); }
 
-		void Add_i32_const(UInt32 v) { Add_i32_const(*(Int32*)&v); }
-		void Add_i64_const(UInt64 v) { Add_i64_const(*(Int64*)&v); }
-
-		void Add_Unreachable()
+		void Push_Unreachable()
 		{
 			Ins.push_back({});
 			Ins.back().Unreachable();
 		}
-		void Add_Return()
+		void Push_Return()
 		{
 			Ins.push_back({});
 			Ins.back().Return();
 		}
-		void Add_End()
+		void Push_End()
 		{
 			Ins.push_back({});
 			Ins.back().end();
@@ -479,7 +615,7 @@ public:
 	struct Section
 	{
 		struct None{};
-		Variant<None, TypeSection,FuncSection,CodeSection> Type;
+		Variant<None, TypeSection,FuncSection,ExportSection,CodeSection> Type;
 
 		void ToBytes(BitMaker& bit) const
 		{
@@ -492,6 +628,10 @@ public:
 				V->ToBytes(bit);
 			}
 			else if (auto V = Type.Get_If<CodeSection>())
+			{
+				V->ToBytes(bit);
+			}
+			else if (auto V = Type.Get_If<ExportSection>())
 			{
 				V->ToBytes(bit);
 			}
@@ -525,6 +665,13 @@ public:
 
 				Type = std::move(r);
 			}
+			else if (sectionNumber == ExportSection::SectionNumber)
+			{
+				ExportSection r;
+				r.FromBytes(bit);
+
+				Type = std::move(r);
+			}
 			else
 			{
 				UCodeLangUnreachable();
@@ -545,7 +692,13 @@ public:
 
 	static void ReadLEB128(BitReader& bit, WasmFile::varU32& out);
 	static void WriteLEB128(BitMaker& bit, WasmFile::varU32 value);
-
+	static void Write_String(BitMaker& bit,const String& str) 
+	{
+		bit.WriteType((Byte)str.size());
+		for (const auto& c : str) {
+			bit.WriteType(c);
+		}
+	}
 	//For Debuging
 	String ToWat() const;
 

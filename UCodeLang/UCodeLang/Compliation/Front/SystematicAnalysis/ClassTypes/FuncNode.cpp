@@ -387,7 +387,6 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	if (_PassType == PassType::FixedTypes
 		|| (IsGenericS && _PassType == PassType::GetTypes))
 	{
-
 		auto& RetType = node._Signature._ReturnType._node;
 		if (RetType && RetType->Get_Type() == NodeType::AnonymousTypeNode)
 		{
@@ -484,9 +483,10 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			if (Info->Pars.size() == 2)
 			{
 				auto& Classinfo = _ClassStack.top().Info;
+				auto classsybid = _ClassStack.top().Syb->ID;
 				auto& OtherPar = Info->Pars[1];
 				if (OtherPar.Type.IsAddress() && OtherPar.IsOutPar == false
-					&& OtherPar.Type._CustomTypeSymbol == syb->ID)
+					&& OtherPar.Type._CustomTypeSymbol == classsybid)
 				{
 					if (OtherPar.Type.IsMovedType())
 					{
@@ -507,6 +507,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 				}
 			}
 		}
+		
 	}
 
 
@@ -870,12 +871,6 @@ String SystematicAnalysis::GetImplementationFromFunc(String_view filetext, const
 
 	funcstr += (String)filetext.substr(nametoken->OnPos,
 		endtoken->OnPos - nametoken->OnPos + offset);
-
-	if (funcstr._Starts_with("|ToString"))
-	{
-		int a = 0;
-	}
-
 
 	funcstr += "\n ";
 

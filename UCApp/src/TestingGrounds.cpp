@@ -9,6 +9,7 @@
 #include <sstream>
 #include "UCodeLang/Compliation/Back/C89/C89Backend.hpp"
 #include "UCodeLang/Compliation/Back/x86/X86BackEnd.hpp"
+#include "UCodeLang/Compliation/Back/WebAssembly/WebAssembly.hpp"
 #include "UCodeLang/Compliation/ModuleFile.hpp"
 #include "UCodeLang/RunTime/ProfilerDebuger.hpp"
 
@@ -20,12 +21,12 @@
 #include "JitPerformance.hpp"
 #include "UCodeLangProjectPaths.hpp"
 #include "UCodeLang/RunTime/TestRuner.hpp"
+#include "TestingGrounds.hpp"
 using namespace UCodeLang;
 
 #ifdef UCodeLangDebug
 const UCodeLang::String TopDir = UCodeLang_UCAppDir_ScrDir + "CodeTesting/";
 const UCodeLang::String CodeTestingModluePath = TopDir + "ULangModule.ucm";
-const UCodeLang::String UCodeLangVSAPIPath = UCodeLang_SoultionDir + "UCodeAPI/";
 #else
 const UCodeLang::String TopDir = "n/a";
 const UCodeLang::String CodeTestingModluePath = "n/a";
@@ -35,17 +36,6 @@ const UCodeLang::String UCodeLangVSAPIPath = "n/a";
 #define StandardLibrarynamespace "ULang"
 
 
-struct Vec3
-{
-	int X;
-	int Y;
-	int Z;
-};
-struct Vec2
-{
-	int X;
-	int Y;
-};
 
 int UCodeLangAPI Test(int A,int B)
 {
@@ -60,56 +50,13 @@ void UCodeLangAPI ULang_Test(InterpreterCPPinterface& Input)
 	Input.Set_Return(Test(A,B));
 }
 
-
-
-template< typename T >
-std::string int_to_hex(T i)
-{
-	std::stringstream stream;
-	stream << "0x"
-		<< std::setfill('0') << std::setw(sizeof(T) * 2)
-		<< std::hex << i;
-	return stream.str();
-}
-void TestFormater()
-{
-	String Str = "$Hello :\n  private:\n   int a = 10;\n   int b = 20;\n  public:\n    int a = 10;\n    int b = 20;\n";
-
-	UCodeAnalyzer::Formater _F;
-	auto V = _F.Format(UCodeAnalyzer::Formater::StrScope::FileScope, Str);
-
-	auto Output = _F.Get_Output();
-
-	int a = 0;
-}
-
-
 /// <summary>
 /// this is for testing and debuging features. 
 /// do whatever you want here.
 /// </summary>
 void TestingGround()
 {
-
-	//V
-	{
-		//JitPerformance::main(JitPerformance::Task::Main);
-	}
-	//ULangTest::CppHelperTests::RunTests();
-	//ULangTest::RunTests(false);
-	//ULangTest::RunLanguageSeverTests();
 	Interpreter RunTime;
-
-
-
-	ULangTest::TestGenerator V;
-	V.SetSeed(1);
-
-	V.Reset();
-	V.MakeFile();
-
-	String OutFile = V.Get_OutFile();
-
 
 
 	ModuleIndex LangIndex;
@@ -131,101 +78,29 @@ void TestingGround()
 	UCodeLang::Compiler _Compiler;
 	UCodeLang::CompliationSettings& Settings = _Compiler.Get_Settings();
 
-	//Settings.PtrSize = IntSizes::Int8;
-
-
 	Settings._Type = OutPutType::Lib;
 	Settings._Flags = OptimizationFlags::Stable_ForDebuging;
-	//_Compiler.Set_BackEnd(ULangTest::C89Backend::MakeObject);
-
+	_Compiler.Set_BackEnd(ULangTest::WebAssemblyBackEnd::MakeObject);
+	
 	ModuleFile Mfile;
 	ModuleFile::FromFile(&Mfile, CodeTestingModluePath);
 
-	if (false)
-	{
-		ModuleFile Mfile;
-		ModuleFile::FromFile(&Mfile, UCodeLangVSAPIPath + "\\StandardLibrary\\ULangModule.ucm");
 
-		auto OutData = Mfile.BuildModule(_Compiler, LangIndex);
-		using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
-
-		for (const auto& dirEntry : recursive_directory_iterator(UCodeLangVSAPIPath + "\\StandardLibrary"))
-		{
-			if (dirEntry.path().extension() == FileExt::SourceFileWithDot)
-			{
-
-				{//update file
-					auto txt = Compiler::GetTextFromFile(dirEntry.path());
-
-					std::ofstream out(dirEntry.path());
-					out << txt;
-					out.close();
-				}
-
-				OutData = Mfile.BuildModule(_Compiler, LangIndex);
-
-				if (_Compiler.Get_Errors().Has_Warning())
-				{
-					int a = 0;
-				}
-				int a = 0;
-			}
-		}
-	}
-	
+	std::filesystem::remove_all(Mfile.GetPaths(_Compiler).IntDir);
+	std::filesystem::remove(Mfile.GetPaths(_Compiler).OutFile);
 
 	auto OutData = Mfile.BuildModule(_Compiler, LangIndex);
-
-
+	
+	
 	if (!ULangTest::LogErrors(std::cout, _Compiler))
 	{
-		UCodeLang::UClib MLib;
-		if (UClib::FromFile(&MLib, OutData.OutputItemPath))
-		{
-			auto Text = UAssembly::UAssembly::ToString(&MLib, Mfile.ThisModuleDir / Mfile.ModuleSourcePath);
-			String Path = OutData.OutputItemPath.generic_string() + ".UA";
-			std::ofstream out(Path);
-			out << Text;
-			out.close();
-		}
+		UCodeLang::UClib& MLib =*OutData.CompilerRet.OutPut;
+		
 
-		{
-			TestRuner runer;
-			auto info = runer.RunTests(MLib, TestRuner::InterpreterType::Interpreter, [](TestRuner::TestInfo& test)
-				{
-					if (test.Passed)
-					{
-						std::cout << "Test :" << test.TestName << " Passed\n";
-					}
-					else
-					{
-						std::cout <<  "Test :" << test.TestName << " Fail\n";
-					}
-				});
-			bool passed = info.TestCount == info.TestPassedCount;
-			std::cout << "Ran all " << info.TestCount << " Tests\m";
-
-			int passnumber;
-			if (info.TestPassedCount)
-			{
-				passnumber = ((float)info.TestPassedCount / (float)info.TestCount) * 100;
-			}
-			else
-			{
-				passnumber = 100;
-			}
+		ULangTest::RunTests(false);
 
 
-			if (passed)
-			{
-				std::cout << "Tests Passed.all 100% of tests passed\m";
-			}
-			else
-			{
-				std::cout << "Tests Failed about " << passnumber << "% passed\m";
-			}
-			int a = 0;
-		}
+		RunTests(MLib, OutData.OutputItemPath);
 
 
 		UCodeLang::RunTimeLib Lib;
@@ -248,20 +123,11 @@ void TestingGround()
 		//RunTime.AlwaysJit = true;
 
 		auto FuncMain = State.Get_Assembly().Get_GlobalObject_Class()->Get_ClassMethod("main");
-
-		//auto Value = RunTime.RCall<char>("__ReadChar");
+		
 		RunTime.Call(StaticVariablesInitializeFunc);
 		RunTime.Call(ThreadVariablesInitializeFunc);
 
-		auto CallIndex = State.FindAddress(FuncMain->DecorationName);
-
-
-
-		Vec3 BufferToCopy[3]{ 1,2,3 };
-
-
 		auto AutoPtr = RunTime.RCall<int>(FuncMain);
-
 
 		//std::cout << " Got Value " << (int)AutoPtr << std::endl;
 
@@ -269,5 +135,45 @@ void TestingGround()
 		RunTime.Call(StaticVariablesUnLoadFunc);
 
 		RunTime.UnLoad();
+	}
+}
+
+void RunTests(UCodeLang::UClib& MLib,const Path& output)
+{
+	{
+		ULangTest::TestRuner runer;
+		auto info = runer.RunTests(MLib, output, ULangTest::TestMode::WasmBackEnd, [](TestRuner::TestInfo& test)
+			{
+				if (test.Passed)
+				{
+					std::cout << "Test :" << test.TestName << " Passed\n";
+				}
+				else
+				{
+					std::cout << "Test :" << test.TestName << " Fail\n";
+				}
+			});
+		bool passed = info.TestCount == info.TestPassedCount;
+		std::cout << "Ran all " << info.TestCount << " Tests\n";
+
+		int passnumber;
+		if (info.TestPassedCount)
+		{
+			passnumber = ((float)info.TestPassedCount / (float)info.TestCount) * 100;
+		}
+		else
+		{
+			passnumber = 100;
+		}
+
+
+		if (passed)
+		{
+			std::cout << "Tests Passed.all 100% of tests passed\n";
+		}
+		else
+		{
+			std::cout << "Tests Failed about " << passnumber << "% passed\n";
+		}
 	}
 }

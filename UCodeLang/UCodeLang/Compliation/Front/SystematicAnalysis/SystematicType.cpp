@@ -85,9 +85,8 @@ bool SystematicAnalysis::Type_IsimmutableRulesfollowed(const TypeSymbol& TypeToC
 	}
 	else if (CmpTypeimm == false && Chechimm == true)
 	{
-		if (!TypeToCheck.IsAddress() && !Type.IsAddress()) {
-			return true;
-		}
+		return TypeToCheck.IsAddress() && Type.IsAddress();
+		
 	}
 
 	return false;
@@ -703,7 +702,36 @@ bool SystematicAnalysis::Type_AreTheSameWithOutimmutable(const TypeSymbol& TypeA
 		return Type_AreTheSameWithOutMoveAndimmutable(TypeA, TypeB);
 	}
 }
+bool SystematicAnalysis::Type_HasDefaultConstructorFunc(const TypeSymbol& Type) const
+{
+	if (Type.IsAddress() == false) 
+	{
+		auto symOp = Symbol_GetSymbol(Type);
+		if (symOp.has_value())
+		{
+			auto sym = symOp.value();
+			if (sym->Type == SymbolType::Type_class)
+			{
+				auto scopename = sym->FullName;
+				ScopeHelper::GetApendedString(scopename, ClassConstructorfunc);
 
+				for (auto& Item : GetSymbolsWithName(scopename))
+				{
+					if (Item->Type == SymbolType::Func) 
+					{
+						auto funcinfo = Item->Get_Info<FuncInfo>();
+						if (funcinfo->Pars.size() == 1)
+						{
+							return true;
+						}
+					}
+				}
+
+			}
+		}
+	}
+	return false;
+}
 SystematicAnalysis::BinaryOverLoadWith_t SystematicAnalysis::Type_HasBinaryOverLoadWith(const TypeSymbol& TypeA, TokenType BinaryOp, const TypeSymbol& TypeB)
 {
 
@@ -774,10 +802,11 @@ SystematicAnalysis::BinaryOverLoadWith_t SystematicAnalysis::Type_HasBinaryOverL
 					String funcName = Syb->FullName;
 					ScopeHelper::GetApendedString(funcName, Item.CompilerName);
 
-					auto& V = GetSymbolsWithName(funcName, SymbolType::Func);
+					auto V = GetSymbolsWithName(funcName, SymbolType::Func);
 
 					for (auto& Item : V)
 					{
+						Symbol_Update_FuncSym_ToFixedTypes(NeverNullptr(Item));
 						if (Item->Type == SymbolType::Func)
 						{
 							auto funcInfo = Item->Get_Info<FuncInfo>();
@@ -830,6 +859,7 @@ SystematicAnalysis::CompoundOverLoadWith_t SystematicAnalysis::Type_HasCompoundO
 
 					for (auto& Item : V)
 					{
+						Symbol_Update_FuncSym_ToFixedTypes(NeverNullptr(Item));
 						if (Item->Type == SymbolType::Func)
 						{
 							auto funcInfo = Item->Get_Info<FuncInfo>();
@@ -879,6 +909,7 @@ SystematicAnalysis::PostFixOverLoadWith_t SystematicAnalysis::Type_HasPostfixOve
 
 					for (auto& Item : V)
 					{
+						Symbol_Update_FuncSym_ToFixedTypes(NeverNullptr(Item));
 						if (Item->Type == SymbolType::Func)
 						{
 							auto funcInfo = Item->Get_Info<FuncInfo>();
@@ -935,6 +966,7 @@ SystematicAnalysis::IndexOverLoadWith_t SystematicAnalysis::Type_HasIndexedOverL
 
 			for (auto& Item : V)
 			{
+				Symbol_Update_FuncSym_ToFixedTypes(NeverNullptr(Item));
 				if (Item->Type == SymbolType::Func)
 				{
 					auto funcInfo = Item->Get_Info<FuncInfo>();
@@ -971,6 +1003,7 @@ SystematicAnalysis::ForOverLoadWith_t SystematicAnalysis::Type_HasForOverLoadWit
 
 			for (auto& Item : V)
 			{
+				Symbol_Update_FuncSym_ToFixedTypes(NeverNullptr(Item));
 				if (Item->Type == SymbolType::Func)
 				{
 					auto funcInfo = Item->Get_Info<FuncInfo>();
@@ -1010,6 +1043,7 @@ SystematicAnalysis::UrinaryOverLoadWith_t SystematicAnalysis::Type_HasUrinaryOve
 
 					for (auto& Item : V)
 					{
+						Symbol_Update_FuncSym_ToFixedTypes(NeverNullptr(Item));
 						if (Item->Type == SymbolType::Func)
 						{
 							auto funcInfo = Item->Get_Info<FuncInfo>();

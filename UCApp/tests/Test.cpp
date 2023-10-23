@@ -6,7 +6,12 @@
 #include <fstream>
 #include <UCodeLang/Compliation/UAssembly/UAssembly.hpp>
 #include <UCodeLang/Compliation/ModuleFile.hpp>
-#include <UCodeLang/Compliation/Back/C89/C89Backend.hpp>
+
+#include <UCodeLang/Compliation/Back/WebAssembly/WebAssembly.hpp>
+
+#include "../src/UCodeLangProjectPaths.hpp"
+
+#include "UCodeLang/RunTime/TestRuner.hpp"
 
 #if UCodeLang_Platform_Windows
 #include <windows.h>
@@ -120,6 +125,10 @@ using namespace UCodeLang;
 		if (mode == TestMode::CLang89BackEnd)
 		{
 			Com.Set_BackEnd(C89Backend::MakeObject);
+		}
+		else if (mode == TestMode::WasmBackEnd)
+		{
+			Com.Set_BackEnd(WebAssemblyBackEnd::MakeObject);
 		}
 		std::string OutFilePath = OutFileDir + Test.TestName + ModeType(flag) + ".ulibtest" + Com.GetOutputExtWithDot();
 
@@ -465,6 +474,112 @@ using namespace UCodeLang;
                 }
 			}
 		}
+		else if (mode == TestMode::WasmBackEnd)
+		{
+			UClib& ulib = *Com_r.OutPut;
+
+
+			auto ufunc = ulib.Get_Assembly().Find_Func(Test.FuncToCall);
+			UCodeLangAssert(ufunc);
+
+			String JsString = "const wasm = new Uint8Array([";
+
+			std::stringstream ss;
+			ss << "const wasm = new Uint8Array([";
+			for (const auto& b : Com_r.OutFile) {
+				ss << "0x" << std::hex << static_cast<int>(b) << ", ";
+			}
+			ss << "]);\n";
+			ss << "const m = new WebAssembly.Module(wasm);\n";
+			ss << "const instance = new WebAssembly.Instance(m, {});\n";
+			ss << "console.log(instance.exports.";
+			ss << WebAssemblyBackEnd::ToWebName(ufunc->DecorationName);
+			ss << "());";
+
+			Path node_file = paths.OutFile.native() + Path("test.js").native();
+			Path out_file = paths.OutFile.native() + Path("test.js.out").native();
+
+
+			std::ofstream nf(node_file);
+			nf << ss.str();
+			nf << std::flush;
+
+			String expected;
+			auto rettype = ufunc->RetType;
+
+			if (rettype._Type == ReflectionTypes::sInt32)
+			{
+				expected += std::to_string(*(int*)Test.RunTimeSuccess.get());
+			}
+			else if (rettype._Type == ReflectionTypes::sInt16)
+			{
+				expected += std::to_string(*(Int16*)Test.RunTimeSuccess.get());
+			}
+			else if (rettype._Type == ReflectionTypes::sInt8)
+			{
+				expected += std::to_string(*(Int8*)Test.RunTimeSuccess.get());
+			}
+			else if (rettype._Type == ReflectionTypes::uInt16)
+			{
+				expected += std::to_string(*(UInt16*)Test.RunTimeSuccess.get());
+			}
+			else if (rettype._Type == ReflectionTypes::uInt8)
+			{
+				expected += std::to_string(*(UInt8*)Test.RunTimeSuccess.get());
+			}
+			else if (rettype._Type == ReflectionTypes::Char)
+			{
+				expected += std::to_string(*(Int8*)Test.RunTimeSuccess.get());
+			}
+			else if (rettype._Type == ReflectionTypes::float32)
+			{
+				expected += std::to_string(*(float32*)Test.RunTimeSuccess.get());
+			}
+			else if (rettype._Type == ReflectionTypes::float64)
+			{
+				expected += std::to_string(*(float64*)Test.RunTimeSuccess.get());
+			}
+			else
+			{
+				UCodeLangUnreachable();
+			}
+
+
+			expected += '\n';
+
+			{
+				std::system(("node " + node_file.generic_string() + " > " + out_file.generic_string()).c_str());
+			}
+
+			std::stringstream ss_out;
+			ss_out << std::ifstream(out_file).rdbuf();
+			auto outstr = ss_out.str();
+			
+			{
+				//C++ adds trailing zeros but node.js does not
+				if (rettype._Type == ReflectionTypes::float32)
+				{
+					float newfloat = std::stof(outstr.substr(0, outstr.size() - 1));//-1 to remove /n
+					outstr = std::to_string(newfloat);
+					outstr += '\n';
+				}
+				else if (rettype._Type == ReflectionTypes::float64)
+				{
+					float64 newfloat = std::stof(outstr.substr(0, outstr.size() - 1));//-1 to remove /n
+					outstr = std::to_string(newfloat);
+					outstr += '\n';
+				}
+
+			}
+			if (outstr != expected) {
+
+				
+
+				std::cerr << "got: " << ss_out.str();
+				std::cerr << "expected: " << expected;
+				return false;
+			}
+		}
 		else
 		{
 			UCodeLangUnreachable();
@@ -557,6 +672,79 @@ using namespace UCodeLang;
 
 	constexpr size_t BackEndsCount = (size_t)TestMode::Max;
 
+	struct StandardLibraryTestInfo
+	{
+		bool ProjectCompiled = true;
+	};
+
+
+	void RunStandardLibraryTests(StandardLibraryTestInfo& Out,TestMode mode)
+	{
+		if (mode == TestMode::WasmBackEnd)
+		{
+			return;
+		}
+
+		ModuleFile Mfile;
+		ModuleFile::FromFile(&Mfile, UCodeLangVSAPIPath + "\\StandardLibrary\\ULangModule.ucm");
+
+		Compiler compiler;
+
+
+		auto index = ModuleIndex::GetModuleIndex();
+		std::cout << "Runing StandardLibraryTests for " << TestModeToName(mode) << " ";
+
+		auto OutData = Mfile.BuildModule(compiler, index);
+		LogErrors(std::cout, compiler);
+
+		if (OutData.CompilerRet._State == Compiler::CompilerState::Success)
+		{
+			UCodeLang::UClib MLib;
+			UCodeLangAssert(UClib::FromFile(&MLib, OutData.OutputItemPath));
+			
+
+
+			UCodeLang::TestRuner runer;
+			auto info = runer.RunTests(MLib, UCodeLang::TestRuner::InterpreterType::Interpreter, [](TestRuner::TestInfo& test)
+				{
+					if (test.Passed)
+					{
+						std::cout << "Test :" << test.TestName << " Passed\n";
+					}
+					else
+					{
+						std::cout << "Test :" << test.TestName << " Fail\n";
+					}
+				});
+
+			bool passed = info.TestCount == info.TestPassedCount;
+			std::cout << "Ran all " << info.TestCount << " Tests\n";
+
+			int passnumber;
+			if (info.TestPassedCount)
+			{
+				passnumber = ((float)info.TestPassedCount / (float)info.TestCount) * 100;
+			}
+			else
+			{
+				passnumber = 100;
+			}
+
+
+			std::cout << TestModeToName(mode) << " ";
+			if (passed)
+			{
+				std::cout << "Tests Passed.all 100% of tests passed\n";
+			}
+			else
+			{
+				std::cout << "Tests Failed about " << passnumber << "% passed\n";
+			}
+		}
+
+		
+	}
+
 	int RunTests(bool MultThread)
 	{
 		struct TestBackEndGroup
@@ -569,91 +757,160 @@ using namespace UCodeLang;
 		};
 		Array< TestBackEndGroup, BackEndsCount> TestInfo;
 
-		for (size_t i = 0; i < BackEndsCount; i++)
+		Array< StandardLibraryTestInfo, BackEndsCount> StandardTestInfo;
+
+		bool rununitTest = true;
+		bool runStandardLibraryTest = false;
+		bool runincrementalcompilationTestOnStandardLibrary = false;
+
+		if (rununitTest)
 		{
-			auto& MyTestInfo = TestInfo[i];
-			TestMode mode = (TestMode)i;
-
-			std::cout << "---runing Test for" << TestModeToName(mode) << std::endl;
-
-			Vector<std::future<bool>> List;
-			List.resize(Tests.size());
-
-
-			for (size_t i = 0; i < Tests.size(); i++)
+			for (size_t i = 0; i < BackEndsCount; i++)
 			{
-				auto& Test = Tests[i];
-		
-				if (!ShouldSkipTests(i, mode))
-				{
-					if (MultThread == false)
-					{
-						auto TestR = RunTest(Test, mode);
-						auto F = std::async(std::launch::async, [&]
-						{
-								return TestR;
-						});
-						List[i] = std::move(F);
-					}
-					else
-					{
-						auto F = std::async(std::launch::async, [&]
-							{
-								try
-								{
-									return RunTest(Test, mode);
-								}
-								catch (const std::exception& why)
-								{
-									std::cout << why.what();
-									return false;
-								}
-							}
-						);
-						List[i] = std::move(F);
-					}
-				}
-				else
-				{
-					MyTestInfo.TestsSkiped++;
-				}
-			}
+				auto& MyTestInfo = TestInfo[i];
+				TestMode mode = (TestMode)i;
 
-			for (size_t i = 0; i < Tests.size(); i++)
-			{
-				auto& Item = List[i];
+				std::cout << "---runing Test for" << TestModeToName(mode) << std::endl;
 
-				if (!ShouldSkipTests(i, mode))
+				Vector<std::future<bool>> List;
+				List.resize(Tests.size());
+
+
+				for (size_t i = 0; i < Tests.size(); i++)
 				{
-					try
+					auto& Test = Tests[i];
+
+					if (!ShouldSkipTests(i, mode))
 					{
-						Item.wait();
-						if (Item.get())
+						if (MultThread == false)
 						{
-							MyTestInfo.TestsPassed++;
+							auto TestR = RunTest(Test, mode);
+							auto F = std::async(std::launch::async, [&]
+								{
+									return TestR;
+								});
+							List[i] = std::move(F);
 						}
 						else
 						{
-							MyTestInfo.TestsFail++;
+							auto F = std::async(std::launch::async, [&]
+								{
+									try
+									{
+										return RunTest(Test, mode);
+									}
+									catch (const std::exception& why)
+									{
+										std::cout << why.what();
+										return false;
+									}
+								}
+							);
+							List[i] = std::move(F);
 						}
 					}
-					catch (const std::exception& why)
+					else
 					{
-						std::cout << why.what();
-						MyTestInfo.TestsFail++;
+						MyTestInfo.TestsSkiped++;
 					}
 				}
 
+				for (size_t i = 0; i < Tests.size(); i++)
+				{
+					auto& Item = List[i];
 
+					if (!ShouldSkipTests(i, mode))
+					{
+						try
+						{
+							Item.wait();
+							if (Item.get())
+							{
+								MyTestInfo.TestsPassed++;
+							}
+							else
+							{
+								MyTestInfo.TestsFail++;
+							}
+						}
+						catch (const std::exception& why)
+						{
+							std::cout << why.what();
+							MyTestInfo.TestsFail++;
+						}
+					}
+
+
+				}
+
+				std::cout << "---Tests ended for " << TestModeToName(mode) << std::endl;
+				std::cout << "passed " << MyTestInfo.TestsPassed << "/" << Tests.size() << " Tests" << std::endl;
+				std::cout << "skiped " << MyTestInfo.TestsSkiped << "/" << Tests.size() << " Tests" << std::endl;
+				std::cout << "failed " << MyTestInfo.TestsFail << "/" << Tests.size() << " Tests" << std::endl;
 			}
-
-			std::cout << "---Tests ended for " << TestModeToName(mode) << std::endl;
-			std::cout << "passed " << MyTestInfo.TestsPassed << "/" << Tests.size() << " Tests" << std::endl;
-			std::cout << "skiped " << MyTestInfo.TestsSkiped << "/" << Tests.size() << " Tests" << std::endl;
-			std::cout << "failed " << MyTestInfo.TestsFail << "/" << Tests.size() << " Tests" << std::endl;
 		}
 
-		std::cout << "---Tests Review" << std::endl;
+
+		if (runStandardLibraryTest)
+		{
+			{
+				auto index = ModuleIndex::GetModuleIndex();
+
+				index.AddModueToList(UCodeLangVSAPIPath + "\\StandardLibrary\\ULangModule.ucm");
+				index.AddModueToList(UCodeLangVSAPIPath + "\\Win32\\ULangModule.ucm");
+
+				index.AddModueToList(UCodeLangVSAPIPath + "\\NStandardLibrary\\ULangModule.ucm");
+				index.AddModueToList(UCodeLangVSAPIPath + "\\NWin32\\ULangModule.ucm");
+				
+				ModuleIndex::SaveModuleIndex(index);
+			}
+			for (size_t i = 0; i < BackEndsCount; i++)
+			{
+				auto& MyTestInfo = StandardTestInfo[i];
+				TestMode mode = (TestMode)i;
+				RunStandardLibraryTests(MyTestInfo, mode);
+			}
+		}
+		
+		if (runincrementalcompilationTestOnStandardLibrary)
+		{
+			UCodeLang::Compiler _Compiler;
+
+			auto index = ModuleIndex::GetModuleIndex();
+
+			ModuleFile Mfile;
+			ModuleFile::FromFile(&Mfile, UCodeLangVSAPIPath + "\\StandardLibrary\\ULangModule.ucm");
+
+			using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
+
+			for (const auto& dirEntry : recursive_directory_iterator(UCodeLangVSAPIPath + "\\StandardLibrary"))
+			{
+				if (dirEntry.path().extension() == FileExt::SourceFileWithDot)
+				{
+
+					{//update file
+						auto txt = Compiler::GetTextFromFile(dirEntry.path());
+
+						std::ofstream out(dirEntry.path());
+						out << txt;
+						out.close();
+					}
+
+					auto OutData = Mfile.BuildModule(_Compiler, index);
+
+					if (_Compiler.Get_Errors().Has_Warning())
+					{
+						std::cout << "Errors on incremental compilation ";
+						std::cout << "On updated file " << dirEntry.path().generic_string();
+						std::cout << '\n';
+
+						return false;
+					}
+				}
+			}
+		}
+
+		std::cout << "---Init Tests Review" << std::endl;
 		for (size_t i = 0; i < BackEndsCount; i++)
 		{
 			auto& MyTestInfo = TestInfo[i];
@@ -670,7 +927,7 @@ using namespace UCodeLang;
 			std::cout << "  failed :" << MyTestInfo.TestsFail << "/" << Tests.size()
 				<< " (" << (int)(((float)MyTestInfo.TestsFail / (float)Tests.size())*100) << "%) "  << " Tests" << std::endl;
 		}
-		std::cout << "---Tests Average" << std::endl;
+		std::cout << "---Init Tests Average" << std::endl;
 		{
 			size_t PassCount = 0;
 			size_t SkipedCount = 0;
@@ -705,6 +962,11 @@ using namespace UCodeLang;
 			return true;
 		}
 
+		if (isok)
+		{
+
+		}
+
 		return isok;
 	}
 
@@ -715,6 +977,7 @@ using namespace UCodeLang;
 		for (auto& Item : Errors)
 		{
 			out << Item.ToString() << std::endl;
+			out << '\n';
 		}
 		out << "]\n";
 		return _Compiler.Get_Errors().Has_Errors();

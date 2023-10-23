@@ -497,6 +497,12 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 		CurrentFuncParPos =std::move(V.ParsPos);
 	}
 
+
+	if (FuncName == "ULang:Tests:Ptr_5")
+	{
+		int a = 0;
+	}
+
 	if (&_Input->_StaticInit == IR)
 	{
 		FuncName = StaticVariablesInitializeFunc;
@@ -527,11 +533,7 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 		BuildLink(FuncName,IR->Linkage);
 	}
 
-	if (IR->identifier == 8991736829591096668)
-	{
-		int a = 0;
-	}
-
+	
 	if (IR->Blocks.size())
 	{
 		SynchronizePars();
@@ -695,7 +697,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 					if (Test->Type == IRInstructionType::Reassign ||
 						Test->Type == IRInstructionType::Reassign_dereference)
 					{
-						int a = 0;
+						;
 					}
 
 					if (IsOperatorValueInInput(Test->Type))
@@ -725,7 +727,6 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 
 				if (IsInLoop && UsedInLoop.size())
 				{
-					int a = 0;
 					//IRToUCodeInsPre[i]
 				}
 
@@ -2952,10 +2953,6 @@ void UCodeBackEndObject::StoreValue(const IRInstruction* Ins, const  IROperator&
 		V.Target() = OutputLocationIR;
 
 		auto Out = GetIRLocData(Ins, OutputLocationIR);
-		if (Out.ObjectType.IsType(IRTypes::Null))
-		{
-			int a = 0;
-		}
 		//auto TepInfo = std::move(_Registers.GetInfo(Ins));
 
 		auto Src = GetIRLocData(Ins, Input);
@@ -3138,9 +3135,6 @@ void UCodeBackEndObject::PushOpStack(const IRInstruction* Ins, const  IROperator
 				_Stack.PushedOffset += 4;
 			}
 
-			Offset += 8;
-			Size -= 8;
-
 			Offset += 4;
 			Size -= 4;
 		}
@@ -3249,7 +3243,18 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 		}
 		else if (Ins->Type == IRInstructionType::Load)
 		{
-			auto R = GetIRLocData(Ins->Target());
+			IRlocData R;
+			if (Ins->Target().Type == IROperatorType::Value)
+			{
+				auto reg = LoadOp(Ins, Ins->Target());
+				R.Info = reg;
+				R.ObjectType = GetType(Ins, Ins->Target());
+			}
+			else 
+			{
+				auto R = GetIRLocData(Ins->Target());
+			}
+			
 			if (GetAddress)
 			{
 				auto old = std::move(R);
@@ -3538,6 +3543,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 		}
 		else if (Op.Type == IROperatorType::DereferenceOf_IRInstruction)
 		{
+			//
 			auto Ins = Op.Pointer;
 			auto V = GetIRLocData(Ins);
 

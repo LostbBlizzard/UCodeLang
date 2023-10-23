@@ -11,7 +11,7 @@ UCode uses whitespace to indicate the structure and indentation of the code. Whi
     return x + y; //A whitespace indicates this block belongs to the function
 
     int result = add(2,3); //A newline ends this expression
-    Console::Log(result); //Another newline ends this expression
+    Fmt::Print(result); //Another newline ends this expression
 
     //This is a blank line
 

@@ -24,6 +24,10 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 
 		auto ExpressionType = _LastExpressionType;
 
+		if (node._ReassignAddress == false)
+		{
+			ExpressionType._IsAddress = false;
+		}
 
 
 
@@ -56,7 +60,7 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 		auto ExpressionType = _LastExpressionType;
 		auto ExIR = _IR_LastExpressionField;
 
-		IR_Build_ImplicitConversion(ExIR, ExpressionType, AssignType.Op1);
+		IR_Build_ImplicitConversion(ExIR, ExpressionType, AssignType.Op0);
 		ExIR = _IR_LastExpressionField;
 
 

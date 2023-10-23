@@ -1,10 +1,10 @@
-# umut and immutability (keyword)
+# imut and immutability (keyword)
 The umut keyword in UCode is used to indicate that a variable or a type is read-only and cannot be modified. 
 
 <code>
 
     |main[]:
-     umut int Num = 10;
+     imut int Num = 10;
      Num = 5;//the variable is read-only and cannot be modified. 
 
 </code>
@@ -16,7 +16,7 @@ The umut keyword can be used with Addresss to indicate that the value pointed to
 
     |main[]:
      int Num = 10
-     umut int& NumPtr = Num;
+     imut int& NumPtr = Num;
      NumPtr = 5;//the variable is read-only and cannot be modified. 
 
 </code>
@@ -26,7 +26,7 @@ The umut keyword cannot be cast away, as casting away the umut qualification all
 <code>
 
     |main[]:
-     umut int Num = 10
+     imut int Num = 10
      int& NumPtr = Num;//error trying casting away the umut qualification.
 
 </code>
@@ -40,7 +40,7 @@ umut also applies to structures and member calls. When a structure is declared a
     $Money: 
      int Count = 10;
      
-     |UpdateMoney[umut this&,int NewCount]:
+     |UpdateMoney[imut this&,int NewCount]:
       Count = NewCount;//error 'this' is umut it cannot be modified. 
 
 </code>
@@ -49,7 +49,7 @@ because umut is allways before a variable declaration you can make variable decl
 
 <code>
     
-    umut Hello = 10;
+    imut Hello = 10;
 
 </code>
 
@@ -57,7 +57,7 @@ the comiler will interpret this as
 
 <code>
     
-    umut var Hello = 10;
+    imut var Hello = 10;
 
 </code>
 
@@ -65,6 +65,6 @@ and finally
 
 <code>
     
-    umut int Hello = 10;
+    imut int Hello = 10;
 
 </code>

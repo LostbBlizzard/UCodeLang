@@ -32,6 +32,8 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 		return;
 	}
 
+	Syb.PassState = _PassType;
+
 	OnAttributesNode(Node._Attributes);
 
 	ClassInfo* ClassInf = nullptr;
@@ -286,7 +288,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 
 			if (bigestoffset.has_value()) {
 				ClassInf->Size = bigestoffset.value();
-				ClassInf->Size += Type_GetSize(bigestoffsetfield->Type).value();
+				ClassInf->Size += Type_GetSize(bigestoffsetfield->Type).value_or(0);
 			}
 			else
 			{
@@ -357,7 +359,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 				auto OldFunc = _IR_LookingAtIRFunc;
 				auto OldBlock = _IR_LookingAtIRBlock;
 				//
-				_IR_LookingAtIRFunc = _IR_Builder.NewFunc(IR_GetIRID(&V), IR_ConvertToIRType(V.Ret));
+				_IR_LookingAtIRFunc = _IR_Builder.NewFunc(V.FullName, IR_ConvertToIRType(V.Ret));
 				IRType ThisPar = IR_ConvertToIRType(V.Pars.front());
 				{
 					IRPar par = IRPar();
@@ -442,29 +444,27 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			String ClassStr = "$";
 			ClassStr += Node._className.token->Value._String;
 
+			size_t offset = 0;
+			if (Node.EndOfClass->Type == TokenType::Semicolon)
+			{
+				offset += 1;
+			}
+
+
 			String_view ClassBody =
 				String_view(&Text[Node._className.token->OnPos],
-					Node.EndOfClass->OnPos -Node._className.token->OnPos);
+					Node.EndOfClass->OnPos - Node._className.token->OnPos + offset);
 
 			GenericClass_Data& VClass = _Lib.Get_Assembly().AddGenericClass((String)ClassInf->Get_Name(), ClassInf->FullName);
 
 			VClass.Base.Implementation = ClassStr + String(ClassBody);
 			VClass.Base.Implementation += '\n\n';
-			//Assembly_AddClass()
-			int a = 0;
-
 		}
 	}
 
 
 	_Table.RemoveScope();
 
-
-
-
-
-
-	Syb.PassState = _PassType;
 }
 
 UCodeLangFrontEnd

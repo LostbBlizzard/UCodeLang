@@ -88,6 +88,7 @@ Optional<TypeSymbol> SystematicAnalysis::Type_GetStringSpan(const NeverNullPtr<T
 		if (symOp)
 		{
 			auto sym = symOp.value();
+			Symbol_Update_Sym_ToFixedTypes(sym);
 			return sym->VarType;
 		}
 		else

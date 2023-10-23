@@ -271,7 +271,65 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 				OnVarable = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(syb->VarType));
 				syb->IR_Ins = OnVarable;
 			}
+			else if (syb->Type == SymbolType::Class_Field)
+			{
+				bool hasdefaultConstructor = Type_HasDefaultConstructorFunc(syb->VarType);
+				if (hasdefaultConstructor) 
+				{
 
+					oldIRFunc = _IR_LookingAtIRFunc;
+					oldblock = _IR_LookingAtIRBlock;
+
+					auto* Classinfo = _ClassStack.top().Info;
+					if (Classinfo->_ClassFieldInit == nullptr)
+					{
+						String funcName = _Table._Scope.GetApendedString((String)ClassInitializefuncName);
+
+
+						Classinfo->_ClassFieldInit = _IR_Builder.NewFunc(funcName, IRTypes::Void);
+						Classinfo->_ClassFieldInit->NewBlock(".");
+						{
+							auto Classtype = TypeSymbol(_ClassStack.top().Syb->ID);
+							Classtype._IsAddress = true;
+
+							IRPar ThisPar;
+							ThisPar.identifier = _IR_Builder.ToID(ThisSymbolName);
+							ThisPar.type = IR_ConvertToIRType(Classtype);
+							Classinfo->_ClassFieldInit->Pars.push_back(ThisPar);
+						}
+					}
+
+
+					_IR_LookingAtIRFunc = Classinfo->_ClassFieldInit;
+					_IR_LookingAtIRBlock = _IR_LookingAtIRFunc->Blocks.front().get();
+
+					auto pos = _IR_LookingAtIRBlock->InsCount() ? _IR_LookingAtIRBlock->GetIndex() : 0;
+					Debug_Add_SetLineNumber(NeverNullptr(node._Name.token), pos);
+
+				
+					{
+						auto Classinfo = _ClassStack.top().Info;
+						auto classSb = _ClassStack.top().Syb;
+						auto Classtype = TypeSymbol(classSb->ID);
+						auto GG = classSb->Get_Info<ClassInfo>();
+						auto IndexFeild = GG->GetFieldIndex(ScopeHelper::GetNameFromFullName(syb->FullName)).value();
+
+						IRStruct* V = _IR_Builder.GetSymbol(IR_Build_ConvertToIRClassIR(*classSb))->Get_ExAs<IRStruct>();
+						auto output = _IR_LookingAtIRBlock->New_Member_Dereference(&_IR_LookingAtIRFunc->Pars[0], IR_ConvertToIRType(classSb->ID), IndexFeild);
+
+						auto Func = Type_GetFunc(syb->VarType, {});
+						Func.ThisPar = Get_FuncInfo::ThisPar_t::PushFromLast;
+						_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoadPtr(output);
+
+						IR_Build_FuncCall(syb->VarType, Func, {});
+					}
+
+					
+
+					_IR_LookingAtIRFunc = oldIRFunc;
+					_IR_LookingAtIRBlock = oldblock;
+				}
+			}
 
 		}
 	}
@@ -325,7 +383,8 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 				auto& Item = (*Field);
 				Item->Type = syb->VarType;
 
-				if (node._Expression._Value)
+				bool hasdefaultConstructor = Type_HasDefaultConstructorFunc(syb->VarType);
+				if (node._Expression._Value || hasdefaultConstructor)
 				{
 					Class._WillHaveFieldInit = true;
 				}

@@ -55,41 +55,40 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 				Generic_InitGenericalias(node.Generic, true, Ptr->_GenericData);
 				Ptr->Conext = Save_SymbolContextRemoveOneScopeName();
 			}
+			else if (node._AliasType == AliasType::Type)
+			{
+				auto V = new AliasInfo();
+				Syb.Info.reset(V);
+
+				Type_ConvertAndValidateType(node._Type, Syb.VarType, NodeSyb_t::Any);
+
+				V->Conext = Save_SymbolContextRemoveOneScopeName();
+			}
 			else
-				if (node._AliasType == AliasType::Type)
+			{
+
+				AliasNode_Func* node_ = (AliasNode_Func*)node._Node.get();
+				auto V = new FuncPtrInfo();
+				Syb.Info.reset(V);
+
+				V->Pars.resize(node_->_Parameters._Parameters.size());
+
+				for (size_t i = 0; i < V->Pars.size(); i++)
 				{
-					auto V = new AliasInfo();
-					Syb.Info.reset(V);
-
-					Type_ConvertAndValidateType(node._Type, Syb.VarType, NodeSyb_t::Any);
-
-					V->Conext = Save_SymbolContextRemoveOneScopeName();
+					auto& NodePar = node_->_Parameters._Parameters[i];
+					auto& Par = V->Pars[i];
+					Par.IsOutPar = NodePar._IsOutVarable;
+					Type_ConvertAndValidateType(NodePar._Type, Par.Type, NodeSyb_t::Parameter);
 				}
-				else
-				{
 
-					AliasNode_Func* node_ = (AliasNode_Func*)node._Node.get();
-					auto V = new FuncPtrInfo();
-					Syb.Info.reset(V);
+				Type_ConvertAndValidateType(node_->_ReturnType, V->Ret, NodeSyb_t::Ret);
 
-					V->Pars.resize(node_->_Parameters._Parameters.size());
+				Syb.VarType.SetType(SybID);
 
-					for (size_t i = 0; i < V->Pars.size(); i++)
-					{
-						auto& NodePar = node_->_Parameters._Parameters[i];
-						auto& Par = V->Pars[i];
-						Par.IsOutPar = NodePar._IsOutVarable;
-						Type_ConvertAndValidateType(NodePar._Type, Par.Type, NodeSyb_t::Parameter);
-					}
+				Syb.Type = SymbolType::Func_ptr;
 
-					Type_ConvertAndValidateType(node_->_ReturnType, V->Ret, NodeSyb_t::Ret);
-
-					Syb.VarType.SetType(SybID);
-
-					Syb.Type = SymbolType::Func_ptr;
-
-					V->Conext = Save_SymbolContextRemoveOneScopeName();
-				}
+				V->Conext = Save_SymbolContextRemoveOneScopeName();
+			}
 		}
 		else
 		{
@@ -152,6 +151,25 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 				}
 				V.RetType = Assembly_ConvertToType(nodeinfo_->Ret);
 			}
+		}
+
+		if (Isgeneric_t && IsgenericInstantiation == false)
+		{
+			String_view Text = _LookingAtFile->FileText;
+
+			String ClassStr = "$";
+			ClassStr += node._AliasName.token->Value._String;
+
+			String_view ClassBody =
+				String_view(&Text[node._AliasName.token->OnPos],
+					node.EndOfClass->OnPos - node._AliasName.token->OnPos);
+
+			GenericClass_Data& VClass = _Lib.Get_Assembly().AddGenericClass(
+				(String)ScopeHelper::GetNameFromFullName(Syb.FullName), Syb.FullName);
+
+			VClass.Base.Implementation = ClassStr + String(ClassBody);
+			VClass.Base.Implementation += '\n\n';
+
 		}
 	}
 

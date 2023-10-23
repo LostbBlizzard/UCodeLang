@@ -199,6 +199,10 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 				}
 				else
 				{
+					#if UCodeLangDebug
+					auto funcname = _Input->FromID(Ins->Target().identifer);
+					#endif
+
 					UCodeLangUnreachable();
 				}
 			}
@@ -247,11 +251,11 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op, bool UpdateInsType)
 			IRSymbol Symval = 0;
 			if (Op.Type == IROperatorType::Get_PointerOf_IRInstruction)
 			{
-				Symval = Op.Pointer->ObjectType._symbol;
+				Symval = _Input->GetType(Op.Pointer)._symbol;
 			}
 			else if (Op.Type == IROperatorType::Get_PointerOf_IRParameter)
 			{
-				Symval = Op.Parameter->type._symbol;
+				Symval = _Input->GetType(Op.Parameter)._symbol;
 			}
 			else if (Op.Type == IROperatorType::Get_PointerOf_IRidentifier)
 			{

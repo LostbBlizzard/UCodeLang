@@ -17,8 +17,20 @@ $Unique_ptr<T>:
    if ptr != uintptr(0):
     unsafe drop(_ptr);
 
-  |Get[this&] -> T&:ret _ptr;
   |Make[] -> this:
    this r = [];
    r._ptr =: unsafe new T();
    ret r;
+
+
+  |Get[this&] -> T&:ret _ptr;
+  |Get[imut this&] -> imut T&:ret _ptr;
+  
+  |Write[this&,imut T& newvalue] -> void:Get() = newvalue;
+  |Write[this&,moved T newvalue] -> void:Get() = newvalue;
+
+  |ReadPtr[imut this&] -> imut T&:ret Get();
+
+  |~>[this&] -> T&:ret Get();
+
+  |~>[imut this&] -> imut T&:ret Get();

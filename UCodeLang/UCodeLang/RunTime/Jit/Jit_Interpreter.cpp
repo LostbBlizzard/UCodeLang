@@ -453,7 +453,6 @@ String Jit_Interpreter::GetJitState()
 								}
 							}
 
-							int a = 0;
 							auto NewName = GetNameForHex(B);
 
 							NewIns += NewName.value_or(B);

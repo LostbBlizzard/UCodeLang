@@ -296,7 +296,6 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 						CppLinkText = newfile;
 						i = RemoveOffset;
 
-						int a = 0;
 						//CppLinkText = CppLinkText.substr
 					}
 
@@ -693,7 +692,6 @@ void CppHelper::ParseCppToSybs(UCodeAnalyzer::String& FileText, UCodeAnalyzer::V
 					}
 				}
 				size_t StrStart = i;
-				int a = 0;
 
 				SymbolData Tep;
 
@@ -899,7 +897,6 @@ void CppHelper::DoEnumType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnal
 			}
 		}
 	}
-	int a = 0;
 
 	Tep._Type = std::move(_type);
 
@@ -954,7 +951,6 @@ void CppHelper::DoClassOrStruct(const String& Keywordlet, size_t& i, UCodeAnalyz
 					i++;
 					MovePassSpace(i, Scope);
 					size_t StrStart = i;
-					int a = 0;
 
 					SymbolData ItemTep;
 

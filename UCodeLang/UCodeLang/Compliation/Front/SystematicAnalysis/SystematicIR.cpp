@@ -234,6 +234,7 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 	{
 		//if (ExType.IsMovedType() && ExType.IsAddress() 
 		//	&& ToType.IsMovedType() == false)
+		bool calledmoved = false;
 
 		bool ShouldCallMoveFunc = ExType._ValueInfo != TypeValueInfo::IsValue;
 		if (ShouldCallMoveFunc && HasMoveContructerHasIRFunc(ExType))
@@ -261,11 +262,22 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 
 						_IR_LookingAtIRBlock->NewCall(irfuncid);
 						_IR_LastExpressionField = tep;
+
+						calledmoved = true;
 					}
 				}
 			}
 		}
 
+		if (ToType.IsAddress() && !ExType.IsAddress() && ExType._ValueInfo == TypeValueInfo::IsValue)
+		{
+			_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoadPtr(Ex);
+		}
+
+		if (calledmoved)
+		{
+			return true;
+		}
 	}
 
 	if (Type_CanDoTypeToTrait(ExType, ToType))
@@ -316,6 +328,7 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 				if (Item2->Type == SymbolType::Func)
 				{
 					FuncInfo* funcinfo = Item2->Get_Info<FuncInfo>();
+
 					if (funcinfo->Pars.size() == 2)
 					{
 						Symbol_Update_FuncSym_ToFixedTypes(NeverNullptr(Item2));
@@ -328,11 +341,19 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 							IRInstruction* ret = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(ToType));
 
 							_IR_LookingAtIRBlock->NewPushParameter(_IR_LookingAtIRBlock->NewLoadPtr(ret));
+
+							if (!ExType.IsAddress() && Par.Type.IsAddress())
+							{
+								Ex = _IR_LookingAtIRBlock->NewLoadPtr(Ex);
+							}
+
 							_IR_LookingAtIRBlock->NewPushParameter(Ex);
 
 							_IR_LookingAtIRBlock->NewCall(IR_GetIRID(funcinfo));
 
 							_IR_LastExpressionField = ret;
+
+							
 
 							return true;
 						}
