@@ -1,6 +1,8 @@
-#include "WebAssembly.hpp"
+ #include "WebAssembly.hpp"
 #include "UCodeLang/Compliation/Middle/IR.hpp"
 #include "UCodeLang/Compliation/CompliationSettings.hpp"
+
+#include "Source.hpp"
 UCodeLangStart
 WebAssemblyBackEnd::WebAssemblyBackEnd()
 {
@@ -41,6 +43,15 @@ void WebAssemblyBackEnd::Build(const IRBuilder* Input)
 	{
 		WasmFile::Section V1;
 
+		WasmFile::ExportSection V2;
+
+
+		V1.Type = std::move(V2);
+		_Output.section.push_back(std::move(V1));
+	}
+	{
+		WasmFile::Section V1;
+
 		WasmFile::CodeSection V2;
 
 
@@ -50,15 +61,17 @@ void WebAssemblyBackEnd::Build(const IRBuilder* Input)
 
 	_typeSection = &_Output.section[0].Type.Get<WasmFile::TypeSection>();
 	_funcSection = &_Output.section[1].Type.Get<WasmFile::FuncSection>();
-	_codeSection = &_Output.section[2].Type.Get<WasmFile::CodeSection>();
+	_exportSection = &_Output.section[2].Type.Get<WasmFile::ExportSection>();
+	_codeSection = &_Output.section[3].Type.Get<WasmFile::CodeSection>();
 	
-	//OnFunc(&Input->_StaticInit);
+	OnFunc(&Input->_StaticInit);
 	
-	//OnFunc(&Input->_threadInit);
+	OnFunc(&Input->_threadInit);
 
-	//OnFunc(&Input->_StaticdeInit);
+	OnFunc(&Input->_threaddeInit);
 
-	//OnFunc(&Input->_threadInit);
+	OnFunc(&Input->_StaticdeInit);
+
 
 	for (auto& Item : Input->Funcs)
 	{
@@ -68,6 +81,45 @@ void WebAssemblyBackEnd::Build(const IRBuilder* Input)
 
 	auto outbytes = WasmFile::ToBytes(_Output);
 	Set_Output(BytesView::Make(outbytes.Data(), outbytes.Size()));
+
+	/*
+	{
+		struct Code : wasmblr::CodeGenerator {
+			Code() : wasmblr::CodeGenerator() {
+				auto add_func = function({}, { i32 }, [&]() {
+					i32.const_(2);
+					//i32.const_(5);
+					});
+				export_(add_func, "main");
+			}
+		};
+
+
+		Code c;
+		auto bytes = c.emit();
+
+		Vector<Byte> outbytelist;
+
+		for (auto& Item : outbytes)
+		{
+			outbytelist.push_back(Item);
+		}
+
+		
+		UCodeLangAssert(outbytelist.size() == bytes.size());
+		for (size_t i = 0; i < outbytelist.size(); i++)
+		{
+			if (outbytelist[i] != bytes[i])
+			{
+				UCodeLangBreakPoint();
+			}
+		}
+		
+
+		int a = 0;
+		//Set_Output(BytesView::Make(bytes.data(), bytes.size()));
+	}
+	*/
 }
 
 BackEndObject* WebAssemblyBackEnd::MakeObject()
@@ -83,6 +135,9 @@ void WebAssemblyBackEnd::UpdateBackInfo(CompliationBackEndInfo& BackInfo)
 
 void WebAssemblyBackEnd::OnFunc(const IRFunc* Func)
 {
+	Position.clear();
+
+	
 	FuncType func;
 	func.Params.resize(Func->Pars.size());
 	for (size_t i = 0; i < func.Params.size(); i++)
@@ -99,31 +154,75 @@ void WebAssemblyBackEnd::OnFunc(const IRFunc* Func)
 
 	if (Func->ReturnType._Type != IRTypes::Void)
 	{
-		_funccode->Add_i32_const(0);
-		_funccode->Add_Return();
+		auto& Block = Func->Blocks.front();
+		for (auto& ItemV : Block->Instructions)
+		{
+			auto Item = ItemV.get();
+			if (Item->Type == IRInstructionType::Load)
+			{
+				size_t MyPos = Position.size() * 4 ;
+				//_funccode->Push_i32_const((UInt32)MyPos);//the offset in memory where to store the number
+
+				LoadOp(Item, Item->Target());
+				
+				//_funccode->Push_i32_store();
+
+				Position.AddValue(Item, MyPos);
+
+			}
+			else if (Item->Type == IRInstructionType::LoadNone)
+			{
+				size_t MyPos = Position.size();
+				Position.AddValue(Item, MyPos);
+			}
+			else if (Item->Type == IRInstructionType::Unreachable)
+			{
+				_funccode->Push_Unreachable();
+			}
+			else if (Item->Type == IRInstructionType::LoadReturn)
+			{
+				//LoadOp(Item, Item->Target());//Push Value on stack
+			}
+			else if (Item->Type == IRInstructionType::Return)
+			{
+				_funccode->Push_Return();
+			}
+			else if (Item->Type == IRInstructionType::None)
+			{
+
+			}
+			else
+			{
+				UCodeLangUnreachable();
+			}	
+		}
 	}
-	//
 	
-	_funccode->Add_End();
+	_funccode->Push_End();
+	
 
 	_funcSection->TypesIndex.push_back(_typeSection->Types.size());
 	_typeSection->Types.push_back(std::move(func));
+
+	Export V;
+	V.Name = ToWebName(Func->identifier);
+	V.Tag = WasmFile::ExportTag::Func;
+	V.Index = _codeSection->code.size() - 1;
+	_exportSection->Exports.push_back(std::move(V));
 }
 
 WebAssemblyBackEnd::WasmType WebAssemblyBackEnd::ToType(const IRType& Type)
 {
 	switch (Type._Type)
 	{
-	case IRTypes::Void:
-		return WasmType::i32;
-		break;
+	case IRTypes::i8:
+	case IRTypes::i16:
 	case IRTypes::i32:
 		return WasmType::i32;
 		break;
 	case IRTypes::i64:
 		return WasmType::i64;
 		break;
-
 	case IRTypes::f32:
 		return WasmType::f32;
 		break;
@@ -136,8 +235,40 @@ WebAssemblyBackEnd::WasmType WebAssemblyBackEnd::ToType(const IRType& Type)
 	}
 }
 
+
+String WebAssemblyBackEnd::ToWebName(const String& IRName)
+{
+	return IRName;
+}
 String WebAssemblyBackEnd::ToWebName(const IRidentifierID Name)
 {
-	return _Input->FromID(Name);
+	return ToWebName(_Input->FromID(Name));
+}
+void WebAssemblyBackEnd::LoadOp(const IRInstruction* ir, const IROperator& Op)
+{
+	if (Op.Type == IROperatorType::Value)
+	{
+		if (ir->ObjectType._Type == IRTypes::f32)
+		{
+			_funccode->Push_f32_const(Op.Value.Asfloat32);
+		}
+		else 
+		{
+			_funccode->Push_i32_const(Op.Value.AsInt32);
+		}
+	}
+	else if (Op.Type == IROperatorType::IRInstruction)
+	{
+		auto pos = Position.GetValue(Op.Pointer);
+
+		_funccode->Push_i32_const((UInt32)pos);//the offset from where to load the number
+
+		_funccode->Push_i32_load();
+
+	}
+	else
+	{
+		UCodeLangUnreachable();
+	}
 }
 UCodeLangEnd

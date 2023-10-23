@@ -247,7 +247,7 @@ UCodeTestStart
 	static const Vector<SkipTestRange> C89SkipTests
 		= { {40, Tests.size() } };
 	static const Vector<SkipTestRange> WasmSkipTests
-		= { {0, Tests.size() } };
+		= { {4, Tests.size() } };
 
 	inline bool ShouldSkipTest(size_t Index, const Vector<SkipTestRange>& list)
 	{
@@ -471,7 +471,7 @@ UCodeTestStart
 			break;
 			case TestMode::WasmBackEnd:
 			{
-
+				int a = 0;
 			}
 			break;
 			default:

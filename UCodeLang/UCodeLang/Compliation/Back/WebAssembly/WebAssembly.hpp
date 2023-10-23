@@ -1,6 +1,6 @@
 #pragma once
 
-
+#include "UCodeLang/LangCore/DataType/UnorderedMap.hpp"
 #include "../BackEndInterface.hpp"
 #include "WasmFile.hpp"
 UCodeLangStart
@@ -10,9 +10,11 @@ public:
 	using TypeSection = WasmFile::TypeSection;
 	using FuncSection = WasmFile::FuncSection;
 	using CodeSection = WasmFile::CodeSection;
+	using ExportSection = WasmFile::ExportSection;
 	using ValType = WasmFile::ValType;
 	using WasmType = WasmFile::WasmType;
 	using FuncType = WasmFile::FuncType;
+	using Export = WasmFile::Export;
 
 	WebAssemblyBackEnd();
 	~WebAssemblyBackEnd() override;
@@ -25,12 +27,15 @@ public:
 	String GetOutputExtWithDot() override { return ".wasm"; }
 	static BackEndObject* MakeObject();
 	void UpdateBackInfo(CompliationBackEndInfo& BackInfo) override;
+
+	static String ToWebName(const String& IRName);
 private:
 	const IRBuilder* _Input = nullptr;
 	WasmFile _Output;
 
 	TypeSection* _typeSection =nullptr;
 	FuncSection* _funcSection = nullptr;
+	ExportSection* _exportSection = nullptr;
 	CodeSection* _codeSection = nullptr;
 
 	WasmFile::Code* _funccode = nullptr;
@@ -41,6 +46,10 @@ private:
 	WasmType ToType(const IRType& Type);
 	
 	String ToWebName(const IRidentifierID Name);
+	
+	void LoadOp(const IRInstruction* ir, const IROperator& Op);
+
+	UnorderedMap<const IRInstruction*,size_t> Position;
 
 };
 UCodeLangEnd

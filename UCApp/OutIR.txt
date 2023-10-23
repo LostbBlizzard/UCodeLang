@@ -1,6 +1,3 @@
-$Unique_ptr<sint32>
- void* __0; 
-
 
 |(&StaticInit&)[] -> void:;
 
@@ -10,243 +7,39 @@ $Unique_ptr<sint32>
 
 |(&threadUnload&)[] -> void:;
 
-|Tests:Unique_ptr_1[] -> int8:
+|Char_Test[] -> int8:
 
  [Block:0]
 
 
-//File:/Main.uc
-//Line:11
-//Varable:Tests:Unique_ptr_1:v
+//File:src.uc
+//Line:3
 
-   Unique_ptr<sint32> A;
-   Unique_ptr<sint32> B = Unique_ptr<sint32>:Make();
-   A = B;
-
-//Line:12
-
-   Unique_ptr<sint32>* C = &A;
-   void* D = Unique_ptr<sint32>:Get^Unique_ptr<sint32>&(C);
-   int32 E = *D;
-   int32 F = 0;
-   int8 G = E==F;
-   ret = G;
-
-//Line:0
-
-   Unique_ptr<sint32>* H = &A;
-   void I = Unique_ptr<sint32>:(&_drop&)^Unique_ptr<sint32>&(H);
+   int8 A = 49;
+   ret = A;
    ret;
 
-|Unique_ptr<sint32>:(&_new&)^Unique_ptr<sint32>&[Unique_ptr<sint32>* (&this&)] -> void:
+|Byte_Test[] -> int8:
 
  [Block:0]
 
 
-//Varable:Unique_ptr<sint32>:(&_new&):(&this&)
-//File:/OtherFile.uc
+//File:src.uc
+//Line:5
+
+   int8 A = 1;
+   ret = A;
+   ret;
+
+|Float_Test[] -> float32:
+
+ [Block:0]
+
+
+//File:src.uc
 //Line:7
 
-   int64 A = 0;
-   (&this&)->__0 = A;
-   ret;
-
-|Unique_ptr<sint32>:(&_new&)^Unique_ptr<sint32>&,Unique_ptr<sint32>&mov[Unique_ptr<sint32>* (&this&),Unique_ptr<sint32>* Value] -> void:
-
- [Block:0]
-
-
-//Varable:Unique_ptr<sint32>:(&_new&):(&this&)
-//Varable:Unique_ptr<sint32>:(&_new&):Value
-//File:/OtherFile.uc
-//Line:12
-
-   void* A = Value->__0;
-   (&this&)->__0 = A;
-
-//Line:13
-
-   int64 B = 0;
-   Value->__0 = B;
-   ret;
-
-|Unique_ptr<sint32>:(&_drop&)^Unique_ptr<sint32>&[Unique_ptr<sint32>* (&this&)] -> void:
-
- [Block:0]
-
-
-//Varable:Unique_ptr<sint32>:(&_drop&):(&this&)
-//File:/OtherFile.uc
-//Line:16
-//Varable:Unique_ptr<sint32>:(&_drop&):ptr
-
-   int64 A;
-   void* B = (&this&)->__0;
-   A = B;
-
-//Line:17
-
-   int64 C = A;
-   int64 D = 0;
-   int8 E = C!=D;
-   int8 F = !E;
-   gotoif (F) _label0;
-
-//Line:18
-
-   void* G = (&this&)->__0;
-   LowLevel::Free(G);
-
-   _label0:
-
-   ret;
-
-|Unique_ptr<sint32>:Make[] -> Unique_ptr<sint32>:
-
- [Block:0]
-
-
-//File:/OtherFile.uc
-//Line:21
-//Varable:Unique_ptr<sint32>:Make:r
-
-   Unique_ptr<sint32> A;
-
-//Line:0
-
-   Unique_ptr<sint32>* B = &A;
-   void C = Unique_ptr<sint32>:(&_new&)^Unique_ptr<sint32>&(B);
-
-//Line:21
-//Line:22
-
-   int64 D = 4;
-   void* E = LowLevel::Malloc(D);
-
-//Line:0
-
-   int32 F = 0;
-   *E = F;
-
-//Line:22
-
-   A.__0 = E;
-
-//Line:23
-
-   Unique_ptr<sint32>* G = &A;
-   Unique_ptr<sint32> H;
-   Unique_ptr<sint32>* I = &H;
-   void J = Unique_ptr<sint32>:(&_new&)^Unique_ptr<sint32>&,Unique_ptr<sint32>&mov(I,G);
-   ret = H;
-
-//Line:0
-
-   Unique_ptr<sint32>* K = &A;
-   void L = Unique_ptr<sint32>:(&_drop&)^Unique_ptr<sint32>&(K);
-   ret;
-
-|Unique_ptr<sint32>:Get^Unique_ptr<sint32>&[Unique_ptr<sint32>* (&this&)] -> void*:
-
- [Block:0]
-
-
-//Varable:Unique_ptr<sint32>:Get:(&this&)
-
-
-//File:/OtherFile.uc
-//Line:26
-
-   void* A = (&this&)->__0;
+   float32 A = 1.500000;
    ret = A;
-   ret;
-
-|Unique_ptr<sint32>:Get^Unique_ptr<sint32>&imut[Unique_ptr<sint32>* (&this&)] -> void*:
-
- [Block:0]
-
-
-//Varable:Unique_ptr<sint32>:Get:(&this&)
-
-
-//File:/OtherFile.uc
-//Line:27
-
-   void* A = (&this&)->__0;
-   ret = A;
-   ret;
-
-|Unique_ptr<sint32>:Write^Unique_ptr<sint32>&,i32&imut[Unique_ptr<sint32>* (&this&),void* newvalue] -> void:
-
- [Block:0]
-
-
-//Varable:Unique_ptr<sint32>:Write:(&this&)
-//Varable:Unique_ptr<sint32>:Write:newvalue
-//File:/OtherFile.uc
-//Line:29
-
-   int32 A = *newvalue;
-   Unique_ptr<sint32>* B = (&this&);
-   void* C = Unique_ptr<sint32>:Get^Unique_ptr<sint32>&(B);
-   *C = A;
-   ret;
-
-|Unique_ptr<sint32>:Write^Unique_ptr<sint32>&,i32mov[Unique_ptr<sint32>* (&this&),int32 newvalue] -> void:
-
- [Block:0]
-
-
-//Varable:Unique_ptr<sint32>:Write:(&this&)
-//Varable:Unique_ptr<sint32>:Write:newvalue
-//File:/OtherFile.uc
-//Line:30
-
-   int32 A = newvalue;
-   Unique_ptr<sint32>* B = (&this&);
-   void* C = Unique_ptr<sint32>:Get^Unique_ptr<sint32>&(B);
-   *C = A;
-   ret;
-
-|Unique_ptr<sint32>:ReadPtr^Unique_ptr<sint32>&imut[Unique_ptr<sint32>* (&this&)] -> void*:
-
- [Block:0]
-
-
-//Varable:Unique_ptr<sint32>:ReadPtr:(&this&)
-//File:/OtherFile.uc
-//Line:32
-
-   Unique_ptr<sint32>* A = (&this&);
-   void* B = Unique_ptr<sint32>:Get^Unique_ptr<sint32>&imut(A);
-   ret = B;
-   ret;
-
-|Unique_ptr<sint32>:(&IndirectMember&)^Unique_ptr<sint32>&[Unique_ptr<sint32>* (&this&)] -> void*:
-
- [Block:0]
-
-
-//Varable:Unique_ptr<sint32>:(&IndirectMember&):(&this&)
-//File:/OtherFile.uc
-//Line:34
-
-   Unique_ptr<sint32>* A = (&this&);
-   void* B = Unique_ptr<sint32>:Get^Unique_ptr<sint32>&(A);
-   ret = B;
-   ret;
-
-|Unique_ptr<sint32>:(&IndirectMember&)^Unique_ptr<sint32>&imut[Unique_ptr<sint32>* (&this&)] -> void*:
-
- [Block:0]
-
-
-//Varable:Unique_ptr<sint32>:(&IndirectMember&):(&this&)
-//File:/OtherFile.uc
-//Line:36
-
-   Unique_ptr<sint32>* A = (&this&);
-   void* B = Unique_ptr<sint32>:Get^Unique_ptr<sint32>&imut(A);
-   ret = B;
    ret;
 

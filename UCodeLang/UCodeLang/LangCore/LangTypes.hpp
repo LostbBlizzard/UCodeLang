@@ -527,6 +527,36 @@ struct Span
 	{
 		return  _Size;
 	}
+
+	struct Iterator
+	{
+		using iterator_category = std::forward_iterator_tag;
+		using difference_type = std::ptrdiff_t;
+		using value_type = T;
+		using pointer = T*;
+		using reference = T&;
+
+		Iterator(pointer ptr) : m_ptr(ptr) {}
+
+		reference operator*() const { return *m_ptr; }
+		pointer operator->() { return m_ptr; }
+
+		Iterator& operator++() { m_ptr++; return *this; }
+
+		Iterator operator++(T) { Iterator tmp = *this; ++(*this); return tmp; }
+
+		friend bool operator== (const Iterator& a, const Iterator& b) { return a.m_ptr == b.m_ptr; };
+		friend bool operator!= (const Iterator& a, const Iterator& b) { return a.m_ptr != b.m_ptr; };
+
+	private:
+
+		pointer m_ptr;
+	};
+
+	Iterator begin() { return Iterator(_Data); }
+	Iterator end() { return Iterator(&_Data[_Size]); }
+	const Iterator begin() const { return Iterator(_Data); }
+	const Iterator end() const { return Iterator(&_Data[_Size]); }
 private:
 	T* _Data;
 	size_t _Size;
@@ -667,6 +697,37 @@ struct SpanPtr
 	{
 		return  _Size;
 	}
+
+	struct Iterator
+	{
+		using iterator_category = std::forward_iterator_tag;
+		using difference_type = std::ptrdiff_t;
+		using value_type = T;
+		using pointer = T*;
+		using reference = T&;
+
+		Iterator(pointer ptr) : m_ptr(ptr) {}
+
+		reference operator*() const { return *m_ptr; }
+		pointer operator->() { return m_ptr; }
+
+		Iterator& operator++() { m_ptr++; return *this; }
+
+		Iterator operator++(int) { Iterator tmp = *this; ++(*this); return tmp; }
+
+		friend bool operator== (const Iterator& a, const Iterator& b) { return a.m_ptr == b.m_ptr; };
+		friend bool operator!= (const Iterator& a, const Iterator& b) { return a.m_ptr != b.m_ptr; };
+
+	private:
+
+		pointer m_ptr;
+	};
+
+	Iterator begin() { return Iterator(_Data.get()); }
+	Iterator end() { return Iterator(&_Data.get()[_Size]); } 
+	const Iterator begin() const { return Iterator(_Data.get()); }
+	const Iterator end() const { return Iterator(&_Data.get()[_Size]); }
+
 private:
 	Unique_Array<T> _Data;
 	size_t _Size=0;

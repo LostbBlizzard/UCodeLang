@@ -9,6 +9,7 @@
 #include <sstream>
 #include "UCodeLang/Compliation/Back/C89/C89Backend.hpp"
 #include "UCodeLang/Compliation/Back/x86/X86BackEnd.hpp"
+#include "UCodeLang/Compliation/Back/WebAssembly/WebAssembly.hpp"
 #include "UCodeLang/Compliation/ModuleFile.hpp"
 #include "UCodeLang/RunTime/ProfilerDebuger.hpp"
 
@@ -79,19 +80,25 @@ void TestingGround()
 
 	Settings._Type = OutPutType::Lib;
 	Settings._Flags = OptimizationFlags::Stable_ForDebuging;
-	_Compiler.Set_BackEnd(ULangTest::C89Backend::MakeObject);
-
+	_Compiler.Set_BackEnd(ULangTest::WebAssemblyBackEnd::MakeObject);
+	
 	ModuleFile Mfile;
 	ModuleFile::FromFile(&Mfile, CodeTestingModluePath);
 
+
+	std::filesystem::remove_all(Mfile.GetPaths(_Compiler).IntDir);
+	std::filesystem::remove(Mfile.GetPaths(_Compiler).OutFile);
+
 	auto OutData = Mfile.BuildModule(_Compiler, LangIndex);
-
-
-
+	
+	
 	if (!ULangTest::LogErrors(std::cout, _Compiler))
 	{
 		UCodeLang::UClib& MLib =*OutData.CompilerRet.OutPut;
 		
+
+		ULangTest::RunTests(false);
+
 
 		RunTests(MLib, OutData.OutputItemPath);
 
@@ -135,7 +142,7 @@ void RunTests(UCodeLang::UClib& MLib,const Path& output)
 {
 	{
 		ULangTest::TestRuner runer;
-		auto info = runer.RunTests(MLib, output, ULangTest::TestMode::CLang89BackEnd, [](TestRuner::TestInfo& test)
+		auto info = runer.RunTests(MLib, output, ULangTest::TestMode::WasmBackEnd, [](TestRuner::TestInfo& test)
 			{
 				if (test.Passed)
 				{
