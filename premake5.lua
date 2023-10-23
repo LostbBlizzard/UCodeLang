@@ -118,6 +118,7 @@ project "UCApp"
    removefiles{
      "%{prj.name}/tests/PerformanceTests/**", 
      "%{prj.name}/tests/UCodeFiles/Output/**", 
+     "%{prj.name}/CodeTesting/UCodeFiles/out/**", 
    }
    includedirs{
     "%{prj.name}/src",

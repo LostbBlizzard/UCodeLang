@@ -1049,7 +1049,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 										{
 											if (Item3->IsExternal != IsExtern) { continue; }
 
-											auto& CmdStr = IsExtern ? Item3->path.filename() : Item3->Repath;
+											auto CmdStr = IsExtern ? Item3->path.filename() : Item3->Repath;
 
 											if (Item2->FileName == CmdStr)
 											{
