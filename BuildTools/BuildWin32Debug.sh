@@ -1,1 +1,0 @@
-make config=debug_win32

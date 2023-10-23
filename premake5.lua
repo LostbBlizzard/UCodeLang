@@ -1,8 +1,9 @@
 workspace "UCodeLang"
    configurations { "Debug", "Release","Published" }
-   platforms { "Win32", "Win64","linux32","linux64", "MacOS" }
+   platforms { "Win32", "Win64","linux32","linux64", "MacOS","Android","IOS","Web" }
    defines {"UCodeLangDebug","ZYCORE_STATIC_BUILD","UCodeLangExperimental"}
    startproject "UCodeIDE"
+   cppdialect "c++17"
 
    if os.host() == "windows" then
       if os.is64bit() then
@@ -41,37 +42,35 @@ workspace "UCodeLang"
     system "Windows"
     architecture "x86"
 
-    if os.host() == "linux" then
-      gccprefix ("i686-w64-mingw32-")
-    end
-
    filter { "platforms:Win64" }
      system "Windows"
      architecture "x86_64"
 
-     if os.host() == "linux" then
-      gccprefix ("x86_64-w64-mingw32-")
-      buildoptions { "-posix" }
-     end
-
    filter { "platforms:linux32" }
     system "linux"
     architecture "x86"
+
    filter { "platforms:linux64" }
      system "linux"
      architecture "x86_64"
 
-   filter { "MacOS" }
+   filter { "platforms:MacOS" }
     system "macosx"
+    architecture "universal"
+    toolset "clang"
    
-   filter { "system:Windows" }
-     cppdialect "c++17"
-     
-   filter { "system:linux" }
-     cppdialect "c++17"
-   
-   filter { "system:macosx" }
-     cppdialect "c++17"
+   filter { "platforms:Android" }
+    system "android"
+    architecture "ARM64"
+
+   filter { "platforms:IOS" }
+    system "ios"
+    architecture "universal"
+    toolset "clang"
+
+   filter { "platforms:Web" }
+    system "linux"
+    architecture "x86_64"
 
    filter { "configurations:Debug" }
       defines { "DEBUG" }
@@ -279,14 +278,15 @@ project "UCodeDocumentation"
 
 project "UCodeIDE"
    location "UCodeIDE" 
+   kind "ConsoleApp" 
    language "C++"
-   
+
    dependson {"UCodelangCL","UCodeLanguageSeverlib"}
    targetdir ("Output/%{prj.name}/" .. OutDirPath)
    objdir ("Output/int/%{prj.name}/" .. OutDirPath)
 
    defines {"GLEW_STATIC","GLEW_NO_GLU"}
-   
+     
    
    
    files { 
@@ -363,7 +363,7 @@ project "UCodeIDE"
     defines {"_GLFW_X11"}
     links {"GL"}
 
-   filter { "system:MacOS" }
+   filter { "system:macosx" }
     kind "ConsoleApp"   
     defines {"_GLFW_COCOA"}
 
