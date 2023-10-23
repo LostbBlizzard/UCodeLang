@@ -411,8 +411,6 @@ UCodeTestStart
 					auto threadinittocall = dlsym(lib, threadinitname.c_str());
 					auto staticdeinittocall = dlsym(lib, staticdeinitname.c_str());
 					auto threaddeinittocall = dlsym(lib, threaddeinitname.c_str());
-
-					auto functocall = dlsym(lib, cfuncname.c_str());
 					#endif       
 
 
