@@ -2,12 +2,6 @@
 
 
 
-$Test tag;
+|main[] => 2.0;
 
-Tests:
-
- [Test]
- |Unique_ptr_1[]:
-  int^ v = unq int();
-  ret v.Get() == 0;
-
+|main2[] => 2.5;

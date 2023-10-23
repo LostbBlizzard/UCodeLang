@@ -1950,7 +1950,8 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type) const
 		else if (Syb.Type == SymbolType::Type_Pack)
 		{
 			const TypePackInfo* Info = Syb.Get_Info<TypePackInfo>();
-			r += "[" + ToString(Syb.VarType);
+			r += "TypePack[";
+			//+ToString(Syb.VarType);
 			for (auto& Item : Info->List)
 			{
 				r += ToString(Item);
@@ -2249,6 +2250,10 @@ String SystematicAnalysis::Generic_GetGenericExtendedErrValue(const Generic& Gen
 				{
 					V += ToString(Item);
 				}
+			}
+			else
+			{
+				V += ToString(Item);
 			}
 
 			if (i + 1 < GenericInput.size())

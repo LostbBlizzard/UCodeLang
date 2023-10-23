@@ -7,6 +7,7 @@
 #include <UCodeLang/Compliation/UAssembly/UAssembly.hpp>
 #include <UCodeLang/Compliation/ModuleFile.hpp>
 
+#include <UCodeLang/Compliation/Back/WebAssembly/WebAssembly.hpp>
 
 #include "../src/UCodeLangProjectPaths.hpp"
 
@@ -124,6 +125,10 @@ using namespace UCodeLang;
 		if (mode == TestMode::CLang89BackEnd)
 		{
 			Com.Set_BackEnd(C89Backend::MakeObject);
+		}
+		else if (mode == TestMode::WasmBackEnd)
+		{
+			Com.Set_BackEnd(WebAssemblyBackEnd::MakeObject);
 		}
 		std::string OutFilePath = OutFileDir + Test.TestName + ModeType(flag) + ".ulibtest" + Com.GetOutputExtWithDot();
 
@@ -467,6 +472,92 @@ using namespace UCodeLang;
                     ((Func)staticdeinittocall)();
                     ((Func)threaddeinittocall)();
                 }
+			}
+		}
+		else if (mode == TestMode::WasmBackEnd)
+		{
+			UClib& ulib = *Com_r.OutPut;
+
+
+			auto ufunc = ulib.Get_Assembly().Find_Func(Test.FuncToCall);
+			UCodeLangAssert(ufunc);
+
+			String JsString = "const wasm = new Uint8Array([";
+
+			std::stringstream ss;
+			ss << "const wasm = new Uint8Array([";
+			for (const auto& b : Com_r.OutFile) {
+				ss << "0x" << std::hex << static_cast<int>(b) << ", ";
+			}
+			ss << "]);\n";
+			ss << "const m = new WebAssembly.Module(wasm);\n";
+			ss << "const instance = new WebAssembly.Instance(m, {});\n";
+			ss << "console.log(instance.exports.";
+			ss << WebAssemblyBackEnd::ToWebName(ufunc->DecorationName);
+			ss << "());";
+
+			Path node_file = paths.OutFile.native() + Path("test.js").native();
+			Path out_file = paths.OutFile.native() + Path("test.js.out").native();
+
+
+			std::ofstream nf(node_file);
+			nf << ss.str();
+			nf << std::flush;
+
+			String expected;
+			auto rettype = ufunc->RetType;
+
+			if (rettype._Type == ReflectionTypes::sInt32)
+			{
+				expected += std::to_string(*(int*)Test.RunTimeSuccess.get());
+			}
+			else if (rettype._Type == ReflectionTypes::sInt16)
+			{
+				expected += std::to_string(*(Int16*)Test.RunTimeSuccess.get());
+			}
+			else if (rettype._Type == ReflectionTypes::sInt8)
+			{
+				expected += std::to_string(*(Int8*)Test.RunTimeSuccess.get());
+			}
+			else if (rettype._Type == ReflectionTypes::uInt16)
+			{
+				expected += std::to_string(*(UInt16*)Test.RunTimeSuccess.get());
+			}
+			else if (rettype._Type == ReflectionTypes::uInt8)
+			{
+				expected += std::to_string(*(UInt8*)Test.RunTimeSuccess.get());
+			}
+			else if (rettype._Type == ReflectionTypes::Char)
+			{
+				expected += std::to_string(*(Int8*)Test.RunTimeSuccess.get());
+			}
+			else if (rettype._Type == ReflectionTypes::float32)
+			{
+				expected += std::to_string(*(float32*)Test.RunTimeSuccess.get());
+			}
+			else if (rettype._Type == ReflectionTypes::float64)
+			{
+				expected += std::to_string(*(float64*)Test.RunTimeSuccess.get());
+			}
+			else
+			{
+				UCodeLangUnreachable();
+			}
+
+
+			expected += '\n';
+
+			{
+				std::system(("node " + node_file.generic_string() + " > " + out_file.generic_string()).c_str());
+			}
+
+			std::stringstream ss_out;
+			ss_out << std::ifstream(out_file).rdbuf();
+			auto outstr = ss_out.str();
+			if (outstr != expected) {
+				std::cerr << "got: " << ss_out.str();
+				std::cerr << "expected: " << expected;
+				return false;
 			}
 		}
 		else
