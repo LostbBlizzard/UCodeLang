@@ -30,6 +30,7 @@ jobs:
 
 
     - name: Restore cached objs
+      if: always()
       id: cache-objs-restore
       uses: actions/cache/restore@v3
       with:
@@ -92,6 +93,7 @@ jobs:
       run: make config=debug_linux64
 
     - name: Save cached Objs
+      if: always()
       id: cache-Objs-save
       uses: actions/cache/save@v3
       with:
@@ -126,6 +128,7 @@ jobs:
       run: make
 
     - name: Save cached Objs
+      if: always()
       id: cache-Objs-save
       uses: actions/cache/save@v3
       with:
