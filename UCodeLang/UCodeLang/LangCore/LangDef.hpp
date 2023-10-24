@@ -107,25 +107,14 @@
 #else 
 #define UCodeLangDebug 0
 #endif // DEBUG
-
-
 #endif
 
-#if UCodeLang_Platform_Windows 
-#define UCodeLang_64BitSytem _WIN64
-#elif UCodeLang_Platform_Wasm64 || defined(__aarch64__)
-#define UCodeLang_64BitSytem 1
-#else 
-
-
-
-#if __x86_64__ || __ppc64__
+#if UCodeLang_Platform_Wasm64 || defined(__x86_64__) || defined(_M_X64) || defined(__aarch64__)
 #define UCodeLang_64BitSytem 1
 #else
 #define UCodeLang_64BitSytem 0
 #endif
 
-#endif
 
 
 
