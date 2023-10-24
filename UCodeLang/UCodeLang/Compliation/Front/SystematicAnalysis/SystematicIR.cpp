@@ -157,7 +157,7 @@ IRInstruction* SystematicAnalysis::LoadEvaluatedEx(const RawEvaluatedObject& Val
 			RawEvaluatedObject _DataAsIndex;
 			_DataAsIndex.ObjectSize = BaseSize;
 			_DataAsIndex.Object_AsPointer.reset(new Byte[BaseSize]);
-			auto BaseAsIR = _IR_LookingAtIRBlock->NewLoad(BaseSize);
+			auto BaseAsIR = IR_Load_UIntptr(BaseSize);
 			for (size_t i = 0; i < Info->Count; i++)
 			{
 				void* ItemOffset = Value.Object_AsPointer.get() + (BaseSize * i);

@@ -1,1 +1,1 @@
-make config=published_win64
+make config=published_win64 -j

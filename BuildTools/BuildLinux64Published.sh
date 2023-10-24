@@ -1,1 +1,1 @@
-make config=published_linux64
+make config=published_linux64 -j
