@@ -307,18 +307,18 @@ struct GenericData
 
 struct Generic
 {
-	Vector<GenericData> _Generic;
+	Vector<GenericData> _Genericlist;
 
 	
 	inline bool IsGeneric() const
 	{
-		return _Generic.size() != 0;
+		return _Genericlist.size() != 0;
 	}
 	inline bool IsPack()const
 	{
-		if (_Generic.size()) 
+		if (_Genericlist.size())
 		{
-			return  _Generic.back().type == GenericData::Type::Pack;
+			return  _Genericlist.back().type == GenericData::Type::Pack;
 		}
 		else
 		{
@@ -327,7 +327,7 @@ struct Generic
 	}
 	inline size_t GetMinimumCount()const
 	{
-		auto r = _Generic.size();
+		auto r = _Genericlist.size();
 		if (IsPack())
 		{
 			r -= 1;

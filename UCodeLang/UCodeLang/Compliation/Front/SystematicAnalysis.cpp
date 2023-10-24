@@ -2158,9 +2158,9 @@ bool SystematicAnalysis::CheckForGenericInputIsConstantExpression(const FuncInfo
 	{
 		const auto& Tnode = GenericInput[i];
 
-		if (i < Info->_GenericData._Generic.size())
+		if (i < Info->_GenericData._Genericlist.size())
 		{
-			const auto& GenericInfo = Info->_GenericData._Generic[i];
+			const auto& GenericInfo = Info->_GenericData._Genericlist[i];
 
 			bool InputTypeIsConstantExpression = false;
 
@@ -2203,11 +2203,11 @@ String SystematicAnalysis::Generic_GetGenericExtendedErrValue(const Generic& Gen
 
 
 	bool IsPack = Generic.IsPack();
-	size_t LoopSize = IsPack ? Generic._Generic.size() - 1 : Generic._Generic.size();
+	size_t LoopSize = IsPack ? Generic._Genericlist.size() - 1 : Generic._Genericlist.size();
 	for (size_t i = 0; i < LoopSize; i++)
 	{
 		const auto& Item = GenericInput[i];
-		bool IsExpression = Generic._Generic[i].IsConstantExpression();
+		bool IsExpression = Generic._Genericlist[i].IsConstantExpression();
 
 		const auto& GenericName = GenericAsNode._Values[i].token->Value._String;
 		if (IsExpression)
@@ -2232,7 +2232,7 @@ String SystematicAnalysis::Generic_GetGenericExtendedErrValue(const Generic& Gen
 		const auto& PackName = GenericAsNode._Values.back().token->Value._String;
 		V += "[" + (String)PackName + "] = [";
 
-		size_t Index = Generic._Generic.size() - 1;
+		size_t Index = Generic._Genericlist.size() - 1;
 		for (size_t i = Index; i < GenericInput.size(); i++)
 		{
 			auto& Item = GenericInput[i];
@@ -2270,7 +2270,7 @@ Optional<SymbolID>  SystematicAnalysis::Generic_MakeTypePackSymbolIfNeeded(const
 {
 	if (Generic.IsPack())
 	{
-		size_t Index = Generic._Generic.size() - 1;
+		size_t Index = Generic._Genericlist.size() - 1;
 		Vector<TypeSymbol> _PackList;
 
 		_PackList.resize(GenericInput.size() - Index);

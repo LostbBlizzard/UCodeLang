@@ -42,7 +42,7 @@ void SystematicAnalysis::Str_FuncGetName(const NeverNullPtr<Token> NameToken, St
 	default:
 
 
-		for (auto& Item : Systematic_BinaryOverloadData::Data)
+		for (auto& Item : Systematic_BinaryOverloadData::data)
 		{
 			if (NameToken->Type == Item.token)
 			{
@@ -53,7 +53,7 @@ void SystematicAnalysis::Str_FuncGetName(const NeverNullPtr<Token> NameToken, St
 			}
 		}
 
-		for (auto& Item : Systematic_PostfixOverloadData::Data)
+		for (auto& Item : Systematic_PostfixOverloadData::data)
 		{
 			if (NameToken->Type == Item.token)
 			{
@@ -64,7 +64,7 @@ void SystematicAnalysis::Str_FuncGetName(const NeverNullPtr<Token> NameToken, St
 			}
 		}
 
-		for (auto& Item : Systematic_UrinaryOverloadData::Data)
+		for (auto& Item : Systematic_UrinaryOverloadData::data)
 		{
 			if (NameToken->Type == Item.token)
 			{
@@ -75,7 +75,7 @@ void SystematicAnalysis::Str_FuncGetName(const NeverNullPtr<Token> NameToken, St
 			}
 		}
 
-		for (auto& Item : Systematic_CompoundOverloadData::Data)
+		for (auto& Item : Systematic_CompoundOverloadData::data)
 		{
 			if (NameToken->Type == Item.token)
 			{
@@ -86,7 +86,7 @@ void SystematicAnalysis::Str_FuncGetName(const NeverNullPtr<Token> NameToken, St
 			}
 		}
 
-		for (auto& Item : Systematic_MemberOverloadData::Data)
+		for (auto& Item : Systematic_MemberOverloadData::data)
 		{
 			if (NameToken->Type == Item.token)
 			{
@@ -282,7 +282,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		_Table.AddSymbolID(*syb, sybId);
 
 		FuncInfo* newInfo = new FuncInfo();
-		newInfo->Conext = Save_SymbolContextRemoveOneScopeName();
+		newInfo->Conext = Opt(Save_SymbolContextRemoveOneScopeName());
 		newInfo->FullName = FullName;
 		newInfo->_FuncType = FuncType;
 		newInfo->IsUnsafe = node._Signature._HasUnsafeKeyWord;
@@ -450,7 +450,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			{//Par Pack Err
 				if (Item2.Type._CustomTypeSymbol.HasValue() && (&Item2 != &Info->Pars.back()))
 				{
-					for (auto& GenericItem : Info->_GenericData._Generic)
+					for (auto& GenericItem : Info->_GenericData._Genericlist)
 					{
 						if (GenericItem.SybID == Item2.Type._CustomTypeSymbol)
 						{
@@ -491,7 +491,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 					if (OtherPar.Type.IsMovedType())
 					{
 						//Move Contructer
-						Classinfo->_ClassHasMoveConstructor = sybId;
+						Classinfo->_ClassHasMoveConstructor = Opt<SymbolID>(sybId);
 					}
 					else
 					{
@@ -502,7 +502,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 								(String)"Copy Constructor '" + (String)ParToken->Value._String + (String)"' should be imut.", NeverNullptr(ParToken));
 						}
 						//Copy Contructer
-						Classinfo->_ClassHasCopyConstructor = sybId;
+						Classinfo->_ClassHasCopyConstructor = Opt<SymbolID>(sybId);
 					}
 				}
 			}
@@ -811,7 +811,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 		if (FuncName == "main" && _IR_LookingAtIRFunc->Pars.size() == 0)
 		{
-			_IR_Builder.EntryPoint = _IR_LookingAtIRFunc->identifier;
+			_IR_Builder.EntryPoint = Opt<IRidentifierID>(_IR_LookingAtIRFunc->identifier);
 		}
 
 	}

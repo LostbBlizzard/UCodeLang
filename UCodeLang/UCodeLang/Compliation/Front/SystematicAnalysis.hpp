@@ -33,7 +33,7 @@ public:
 
 		}
 	};
-	inline static const Array<Data,4> Data =
+	inline static const Array<Data,4> data =
 	{
 		Data(TokenType::plus,Overload_Plus_Func,FuncInfo::FuncType::plus),
 		Data(TokenType::minus,Overload_minus_Func,FuncInfo::FuncType::minus),
@@ -43,7 +43,7 @@ public:
 	};
 	static bool IsBinaryOverload(FuncInfo::FuncType Type)
 	{
-		for (auto& Item : Data)
+		for (auto& Item : data)
 		{
 			if (Item.Type == Type)
 			{
@@ -68,14 +68,14 @@ public:
 
 		}
 	};
-	inline static const Array<Data, 2> Data =
+	inline static const Array<Data, 2> data =
 	{
 		Data(TokenType::increment,Overload_increment_Func,FuncInfo::FuncType::increment),
 		Data(TokenType::decrement,Overload_decrement_Func,FuncInfo::FuncType::decrement),
 	};
 	static bool IsPostfixOverload(FuncInfo::FuncType Type)
 	{
-		for (auto& Item : Data)
+		for (auto& Item : data)
 		{
 			if (Item.Type == Type)
 			{
@@ -100,7 +100,7 @@ public:
 
 		}
 	};
-	inline static const Array<Data, 3> Data =
+	inline static const Array<Data, 3> data =
 	{
 		Data(TokenType::Not,Overload_Not_Func ,FuncInfo::FuncType::Not),
 		Data(TokenType::bitwise_not,Overload_Bitwise_Not  ,FuncInfo::FuncType::Not),
@@ -108,7 +108,7 @@ public:
 	};
 	static bool IsUrinaryOverload(FuncInfo::FuncType Type)
 	{
-		for (auto& Item : Data)
+		for (auto& Item : data)
 		{
 			if (Item.Type == Type)
 			{
@@ -133,14 +133,14 @@ public:
 
 		}
 	};
-	inline static const Array<Data, 2> Data =
+	inline static const Array<Data, 2> data =
 	{
 		Data(TokenType::CompoundAdd,Overload_Compoundplus_Func ,FuncInfo::FuncType::Compound_plus),
 		Data(TokenType::CompoundSub,Overload_CompoundSub_Func,FuncInfo::FuncType::Compound_Minus),
 	};
 	static bool IsCompoundOverload(FuncInfo::FuncType Type)
 	{
-		for (auto& Item : Data)
+		for (auto& Item : data)
 		{
 			if (Item.Type == Type)
 			{
@@ -165,7 +165,7 @@ public:
 
 		}
 	};
-	inline static const Array<Data_t, 3> Data =
+	inline static const Array<Data_t, 3> data =
 	{
 		Data_t(TokenType::IndirectMember,Overload_IndirectMember_Func ,FuncInfo::FuncType::IndirectMember),
 		Data_t(TokenType::OptionalDot, Overload_OptionalDot_Func,FuncInfo::FuncType::OptionalDot),
@@ -173,7 +173,7 @@ public:
 	};
 	static bool IsMemerOverload(FuncInfo::FuncType Type)
 	{
-		for (auto& Item : Data)
+		for (auto& Item : data)
 		{
 			if (Item.Type == Type)
 			{
@@ -185,11 +185,11 @@ public:
 
 	static Optional<const Data_t*> GetOverloadData(TokenType type)
 	{
-		for (auto& Item : Data)
+		for (auto& Item : data)
 		{
 			if (Item.token== type)
 			{
-				return { &Item };
+				return Opt(&Item);
 			}
 		}
 		return {};
@@ -1448,7 +1448,7 @@ private:
 		UAddress V;
 		if (Type_GetSize(Type, V))
 		{
-			return V;
+			return Opt<UAddress>(V);
 		}
 		return {};
 	}
@@ -1459,7 +1459,7 @@ private:
 		UAddress V;
 		if (Type_GetOffset(Type, Field, V))
 		{
-			return V;
+			return Opt<UAddress>(V);
 		}
 		return {};
 	}
@@ -1610,9 +1610,9 @@ private:
 	using TypeInstantiateFunc = void(SystematicAnalysis::*)(const NeverNullPtr<Symbol> Symbol,const Vector<TypeSymbol>& GenericInput);
 	NullablePtr<Symbol> Generic_InstantiateOrFindGenericSymbol(const NeverNullPtr<Token> Name,const NeverNullPtr<Symbol> Symbol,const GenericValuesNode& SymbolGenericValues,const Generic& GenericData,const UseGenericsNode& UseNode,TypeInstantiateFunc Instantiate)
 	{
-		if (GenericData._Generic.size() != UseNode._Values.size())
+		if (GenericData._Genericlist.size() != UseNode._Values.size())
 		{
-			LogError_CanIncorrectGenericCount(Name, Name->Value._String, UseNode._Values.size(), GenericData._Generic.size());
+			LogError_CanIncorrectGenericCount(Name, Name->Value._String, UseNode._Values.size(), GenericData._Genericlist.size());
 			return nullptr;
 		}
 
@@ -1621,7 +1621,7 @@ private:
 		for (size_t i = 0; i < UseNode._Values.size(); i++)
 		{
 			const auto& Tnode = UseNode._Values[i];
-			const auto& GenericInfo = GenericData._Generic[i];
+			const auto& GenericInfo = GenericData._Genericlist[i];
 			TypeSymbol Type;
 			Type_ConvertAndValidateType(Tnode, Type, NodeSyb_t::Any);
 

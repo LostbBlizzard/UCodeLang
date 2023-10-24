@@ -154,6 +154,7 @@ struct ScopedNameNode :Node
 
 	Vector<ScopedName> _ScopedName;
 
+
 	
 	inline void GetScopedName(String& out,size_t Start =0 ) const
 	{
@@ -409,7 +410,7 @@ struct TypeNode :Node
 		}
 		return String(_name._ScopedName.front()._token->Value._String);
 	}
-	TypeNode(const TypeNode& ToCopyFrom) = default;
+	TypeNode(const TypeNode& ToCopyFrom) = delete;
 	TypeNode(TypeNode&& source) = default;
 	TypeNode& operator=(TypeNode&& source) = default;
 	~TypeNode() = default;
@@ -506,8 +507,6 @@ struct StatementsNode :Node
 	AddforNodeAndWithList(StatementsNode);
 	StatementsNode(StatementsNode&& source) = default;
 	StatementsNode& operator=(StatementsNode&& source) = default;
-	StatementsNode(StatementsNode& source) = default;
-	StatementsNode& operator=(StatementsNode& source) = default;
 };
 enum class ExternType
 {
@@ -573,7 +572,7 @@ struct ExpressionNodeType :Node
 	}
 	AddforNode(ExpressionNodeType);
 	Unique_ptr<Node> _Value = nullptr;
-	ExpressionNodeType(const ExpressionNodeType& ToCopyFrom) = default;
+	ExpressionNodeType(const ExpressionNodeType& ToCopyFrom) = delete;
 	ExpressionNodeType(ExpressionNodeType&& source) = default;
 	~ExpressionNodeType() = default;
 	ExpressionNodeType& operator=(ExpressionNodeType&& source) = default;
@@ -648,7 +647,7 @@ struct ValueExpressionNode :Node
 	}
 	AddforNode(ValueExpressionNode);
 	Unique_ptr<Node> _Value = nullptr;
-	ValueExpressionNode(const ValueExpressionNode& ToCopyFrom) = default;
+	ValueExpressionNode(const ValueExpressionNode& ToCopyFrom) = delete;
 	ValueExpressionNode(ValueExpressionNode&& source) = default;
 	
 	~ValueExpressionNode() = default;
@@ -760,6 +759,13 @@ struct EnumValueNode :Node
 	NameNode _Name;
 	ExpressionNodeType _Expression;
 	Optional<TypeNode> _VariantType;
+	~EnumValueNode()
+	{
+
+	}
+	EnumValueNode(){}
+	EnumValueNode(EnumValueNode&& source) noexcept = default;
+	EnumValueNode& operator=(EnumValueNode&& source) noexcept = default;
 };
 struct EnumNode :Node
 {
@@ -1351,6 +1357,7 @@ struct AwaitExpression : Node
 	{
 
 	}
+	
 };
 struct AwaitStatement : Node
 {
