@@ -15,7 +15,7 @@ X86_64JitCompiler::X86_64JitCompiler()
 #elif UCodeLang_Platform_Linux
 	CallConvention.SetLinux();
 #elif UCodeLang_Platform_MacOS
-	CallConvention.SetMacOSandIOS;
+	//CallConvention.SetMacOSandIOS;
 #else
 	static_assert(true, "Cant find Call Convetion");
 #endif
