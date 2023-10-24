@@ -66,6 +66,7 @@ jobs:
            ./BuildWin32Published.bat
 
       - name: Save cached Objs
+        if: always()
         id: cache-Objs-save
         uses: actions/cache/save@v3
         with:
@@ -115,6 +116,7 @@ jobs:
         run: make UCodelangCL config=published_linux64
 
       - name: Save cached Objs
+        if: always()
         id: cache-Objs-save
         uses: actions/cache/save@v3
         with:
@@ -152,7 +154,8 @@ jobs:
       - name: Build 
         run: make
 
-      - name: Save cached Objs
+      - name: Save cached 
+        if: always()
         id: cache-Objs-save
         uses: actions/cache/save@v3
         with:
