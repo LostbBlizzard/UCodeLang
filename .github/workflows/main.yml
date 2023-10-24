@@ -90,7 +90,7 @@ jobs:
         key: ${{ runner.os }}-cl-1inux
 
     - name: Build 64 bit
-      run: make config=debug_linux64
+      run: make config=debug_linux64 -j
 
     - name: Save cached Objs
       if: always()
@@ -125,7 +125,7 @@ jobs:
         key: ${{ runner.os }}-cl-1
 
     - name: Build 
-      run: make
+      run: make -j
 
     - name: Save cached Objs
       if: always()

@@ -113,7 +113,7 @@ jobs:
           key: ${{ runner.os }}-linux-deployment
 
       - name: Build 64 bit
-        run: make UCodelangCL config=published_linux64
+        run: make config=published_linux64 -j
 
       - name: Save cached Objs
         if: always()
@@ -152,7 +152,7 @@ jobs:
           key: ${{ runner.os }}-macos-deployment
 
       - name: Build 
-        run: make
+        run: make -j
 
       - name: Save cached 
         if: always()
