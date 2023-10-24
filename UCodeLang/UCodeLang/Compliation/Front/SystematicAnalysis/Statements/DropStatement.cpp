@@ -50,14 +50,14 @@ void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 
 			if (TypeHaveDestructor)
 			{
-				UAddress UintptrSize;
+				size_t UintptrSize;
 				TypeSymbol UintptrType;
 				{
 					UintptrType = TypeSymbol();
 					UintptrType.SetType(TypesEnum::uIntPtr);
 					Type_GetSize(UintptrType, UintptrSize);
 				}
-				UAddress TypeObjectSize;
+				size_t TypeObjectSize;
 				TypeSymbol TypeOfArr;
 				{
 					TypeOfArr = Ex0Type;

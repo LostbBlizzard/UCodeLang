@@ -796,10 +796,10 @@ void Interpreter::Extecute(Instruction& Inst)
 		_CPU.Stack.DecrementStack(Get_Register(Inst.Op_TwoReg.A).Value.AsUIntNative);
 		 InsBreak();
 	InsCase(GetPointerOfStaticMem):
-		Get_Register(Inst.Op_RegUInt16.A).Value = (uintptr_t)Get_StaticMemPtr() + Inst.Op_RegUInt16.B;
+		Get_Register(Inst.Op_RegUInt16.A).Value.AsUIntNative = (uintptr_t)Get_StaticMemPtr() + Inst.Op_RegUInt16.B;
 		 InsBreak();
 	InsCase(GetPointerOfThreadMem):
-		Get_Register(Inst.Op_RegUInt16.A).Value = (uintptr_t)GetThreadPtr() + Inst.Op_RegUInt16.B;
+		Get_Register(Inst.Op_RegUInt16.A).Value.AsUIntNative = (uintptr_t)GetThreadPtr() + Inst.Op_RegUInt16.B;
 		 InsBreak();
 	InsCase(Malloc):
 		Get_Register(Inst.Op_TwoReg.B).Value = 
@@ -823,7 +823,7 @@ void Interpreter::Extecute(Instruction& Inst)
 				   ,Get_Register(Inst.Op_ThreeReg.B).Value.AsUIntNative);
 		 InsBreak();
 	InsCase(Strlen):
-			 Get_Register(Inst.Op_TwoReg.B).Value =
+			 Get_Register(Inst.Op_TwoReg.B).Value.AsUIntNative =
 			 strlen((char*)Get_Register(Inst.Op_TwoReg.A).Value.AsPtr);
 	InsBreak();
 	InsCase(Memset) :
@@ -1088,7 +1088,7 @@ void Interpreter::Extecute(Instruction& Inst)
 
 	InsCase(File_GetPos):
 	{
-		Get_Register(Inst.Op_TwoReg.B).Value = UFileHandle::GetPos(Get_Register(Inst.Op_TwoReg.A).Value.AsPtr);
+		Get_Register(Inst.Op_TwoReg.B).Value.AsUIntNative = UFileHandle::GetPos(Get_Register(Inst.Op_TwoReg.A).Value.AsPtr);
 	}
 	InsBreak();
 

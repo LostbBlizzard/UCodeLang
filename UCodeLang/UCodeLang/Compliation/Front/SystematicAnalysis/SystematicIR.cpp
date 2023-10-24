@@ -165,7 +165,7 @@ IRInstruction* SystematicAnalysis::LoadEvaluatedEx(const RawEvaluatedObject& Val
 
 				auto ItemIR = LoadEvaluatedEx(_DataAsIndex, Base);
 
-				_IR_LookingAtIRBlock->New_Index_Vetor(Ptr, _IR_LookingAtIRBlock->NewLoad(i), BaseAsIR);
+				_IR_LookingAtIRBlock->New_Index_Vetor(Ptr,IR_Load_UIntptr(i), BaseAsIR);
 			}
 
 			return R;

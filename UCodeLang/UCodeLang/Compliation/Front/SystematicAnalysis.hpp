@@ -1445,25 +1445,25 @@ private:
 
 	Optional<size_t> Type_GetSize(const TypeSymbol& Type)
 	{
-		UAddress V;
+		size_t V;
 		if (Type_GetSize(Type, V))
 		{
-			return Opt<UAddress>(V);
+			return Opt<size_t>(V);
 		}
 		return {};
 	}
-	bool Type_GetSize(const TypeSymbol& Type, UAddress& OutSize);
+	bool Type_GetSize(const TypeSymbol& Type, size_t& OutSize);
 
 	Optional<size_t> Type_GetOffset(const ClassInfo& Type, const FieldInfo* Field)
 	{
-		UAddress V;
+		size_t V;
 		if (Type_GetOffset(Type, Field, V))
 		{
-			return Opt<UAddress>(V);
+			return Opt<size_t>(V);
 		}
 		return {};
 	}
-	bool Type_GetOffset(const ClassInfo& Type, const FieldInfo* Field, UAddress& OutOffset);
+	bool Type_GetOffset(const ClassInfo& Type, const FieldInfo* Field, size_t& OutOffset);
 
 
 

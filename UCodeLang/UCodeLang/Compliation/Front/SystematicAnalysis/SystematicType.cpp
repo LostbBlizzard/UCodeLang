@@ -156,7 +156,7 @@ bool SystematicAnalysis::Symbol_HasDestructor(const TypeSymbol& TypeToCheck)
 }
 
 
-bool SystematicAnalysis::Type_GetSize(const TypeSymbol& Type, UAddress& OutSize)
+bool SystematicAnalysis::Type_GetSize(const TypeSymbol& Type, size_t& OutSize)
 {
 	if (Type.IsAddress() || Type.IsAddressArray()) { goto IntPtr; }
 
