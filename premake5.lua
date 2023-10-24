@@ -36,6 +36,9 @@ workspace "UCodeLang"
    UCPathExe = UCPathExeDir ..  UCPathExeName
 
 
+   if _ACTION == "vs2019" or _ACTION == "vs2022" then
+    flags { "MultiProcessorCompile" }
+   end 
    
 
    filter { "platforms:Win32" }
