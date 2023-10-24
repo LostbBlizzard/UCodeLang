@@ -115,7 +115,7 @@ jobs:
     
     - name: Make a scripts executable
       run: |
-       chmod +x ./GNU_Make.sh
+       chmod +x ./GNU_MakeMacOS.sh
        chmod +x ./BuildTools/RunTestsMacOSDebug.sh
 
     - name: Run Premake
