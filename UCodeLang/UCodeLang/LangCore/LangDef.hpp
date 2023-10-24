@@ -113,9 +113,11 @@
 
 #if UCodeLang_Platform_Windows 
 #define UCodeLang_64BitSytem _WIN64
-#elif __wasm64__
+#elif UCodeLang_Platform_Wasm64 || defined(__aarch64__)
 #define UCodeLang_64BitSytem 1
 #else 
+
+
 
 #if __x86_64__ || __ppc64__
 #define UCodeLang_64BitSytem 1
