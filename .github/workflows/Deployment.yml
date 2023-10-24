@@ -110,7 +110,7 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: ./Output
-          key: ${{ runner.os }}-1inux-deployment
+          key: ${{ runner.os }}-linux-deployment
 
       - name: Build 64 bit
         run: make UCodelangCL config=published_linux64
@@ -149,7 +149,7 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: ./Output
-          key: ${{ runner.os }}-1
+          key: ${{ runner.os }}-macos-deployment
 
       - name: Build 
         run: make
