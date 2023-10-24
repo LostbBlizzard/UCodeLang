@@ -35,7 +35,6 @@ on:
 
 
 jobs:
-
   
   build-Windows:
     runs-on: windows-latest
@@ -89,6 +88,11 @@ jobs:
       - name: Get Packages
         run: sudo apt-get install libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev
 
+      - name: Get X11 Packages
+        run: sudo apt-get install libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev
+
+      - name: Get OpenGl Packages
+        run: sudo apt install mesa-common-dev
 
       - name: Make a scripts executable
         run: |
@@ -125,11 +129,38 @@ jobs:
           retention-days: 1
 
   build-MacOS:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     
     steps:
-      - name: Build MacOS
-        run: echo Build
+      - uses: actions/checkout@v3
+    
+      - name: Make a scripts executable
+        run: |
+         chmod +x ./GNU_Make.sh
+         chmod +x ./BuildTools/RunTestsMacOSDebug.sh
+
+      - name: Run Premake
+        run: ./GNU_Make.sh
+
+      - name: Restore cached objs
+        id: cache-objs-restore
+        uses: actions/cache/restore@v3
+        with:
+          path: ./Output
+          key: ${{ runner.os }}-1
+
+      - name: Build 
+        run: make
+
+      - name: Save cached Objs
+        id: cache-Objs-save
+        uses: actions/cache/save@v3
+        with:
+         path: ./Output
+         key: ${{ steps.cache-objs-restore.outputs.cache-primary-key }}
+
+      - name: RunTests
+        run: ./BuildTools/RunTestsMacOSDebug.sh
 
   build-Web:
     runs-on: ubuntu-latest
