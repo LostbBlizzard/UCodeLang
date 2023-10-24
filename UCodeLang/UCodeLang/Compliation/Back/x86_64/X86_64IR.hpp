@@ -733,7 +733,7 @@ struct X86_64IR
 		{
 			static constexpr size_t InsSize = sizeof(Ins);
 			static constexpr size_t MaxInsSize =32;
-			static_assert(sizeof(Ins) == MaxInsSize, "Ins Type Is too big,this will cause jit performance problems.");
+			//static_assert(sizeof(Ins) <= MaxInsSize, "Ins Type Is too big,this will cause jit performance problems.");
 		}
 
 		

@@ -204,7 +204,7 @@ public:
 
 	UCodeLangForceinline const UserMadeContext& Get_UserMadeContext() { return _UserMadeContext; }
 	UCodeLangForceinline void Set_UserMadeContext(UserMadeContext Context) { _UserMadeContext = Context; }
-	UCodeLangForceinline auto Get_State() { return _State; }
+	UCodeLangForceinline RunTimeLangState* Get_State() { return _State; }
 	bool CheckIfFunctionExist(const String& FunctionName);
 
 	template<typename T> T Get_Return()
@@ -550,9 +550,9 @@ public:
 		return _Ptr->_State;
 	}
 
-	UCodeLangForceinline auto& Get_InPutRegister() { return _Ptr->Get_InputRegister(); }
-	UCodeLangForceinline auto& Get_OutPutRegister() { return _Ptr->Get_OutRegister(); }
-	UCodeLangForceinline auto& Get_ThisRegister() { return _Ptr->Get_ThisRegister(); }
+	UCodeLangForceinline Interpreter::Register& Get_InPutRegister() { return _Ptr->Get_InputRegister(); }
+	UCodeLangForceinline Interpreter::Register& Get_OutPutRegister() { return _Ptr->Get_OutRegister(); }
+	UCodeLangForceinline Interpreter::Register& Get_ThisRegister() { return _Ptr->Get_ThisRegister(); }
 	
 //
 	UCodeLangForceinline PtrType Malloc(NSize_t Size) { return _Ptr->Malloc(Size); }

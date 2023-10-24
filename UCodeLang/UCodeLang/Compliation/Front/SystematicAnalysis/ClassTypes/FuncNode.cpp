@@ -407,10 +407,10 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 			Push_ClassDependencie(ClassInf);
 
-			UAddress ClassSize = 0;
+			size_t ClassSize = 0;
 			for (auto& Item : ClassInf->Fields)
 			{
-				UAddress V = NullAddress;
+				size_t V = NullAddress;
 				Type_GetSize(Item.Type, V);
 				ClassSize += V;
 			}
