@@ -14,28 +14,32 @@
 
 UCodeLangStart
 
+
+
+#define IsOnNoJitPlatform  UCodeLang_Platform_MacOS || UCodeLang_Platform_IPHONE
+
 #if UCodeLang_CPUIs_x86_64
 using NativeJitAssembler = X86_64JitCompiler;
 
-#if !UCodeLangExperimental
+#if !UCodeLangExperimental || IsOnNoJitPlatform
 #define HasNoSupportforJit 1
 #endif
 #elif UCodeLang_CPUIs_x86
 using NativeJitAssembler = X86JitCompiler;
 
-#if !UCodeLangExperimental
+#if !UCodeLangExperimental || IsOnNoJitPlatform
 #define HasNoSupportforJit 1
 #endif
 #elif UCodeLang_CPUIs_Arm
 using NativeJitAssembler = ARMJitCompiler;
 
-#if !UCodeLangExperimental
+#if !UCodeLangExperimental || IsOnNoJitPlatform
 #define HasNoSupportforJit 1
 #endif
 #elif UCodeLang_CPUIs_Arm64
 using NativeJitAssembler = ARM64JitCompiler;
 
-#if !UCodeLangExperimental
+#if !UCodeLangExperimental || IsOnNoJitPlatform
 #define HasNoSupportforJit 1
 #endif
 #else
