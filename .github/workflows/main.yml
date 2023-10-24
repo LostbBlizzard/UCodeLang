@@ -119,7 +119,7 @@ jobs:
        chmod +x ./BuildTools/RunTestsMacOSDebug.sh
 
     - name: Run Premake
-      run: ./GNU_Make.sh
+      run: ./GNU_MakeMacOS.sh
 
     - name: Restore cached objs
       id: cache-objs-restore
