@@ -932,7 +932,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 										String Scope = ScopeHelper::ApendedStrings(Val->FullName, GName);
 
-										auto key = Info->_GenericData._Generic[MapVal].SybID;
+										auto key = Info->_GenericData._Genericlist[MapVal].SybID;
 
 										if (!typemap.HasValue(key))
 										{
@@ -948,11 +948,11 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 						{
 							Optional<ParInfo> RetType;
 
-							for (auto& GItem : Generic._Generic)
+							for (auto& GItem : Generic._Genericlist)
 							{
 								if (typemap.HasValue(GItem.SybID))
 								{
-									RetType = { Item.IsOutPar,typemap.GetValue(GItem.SybID) };
+									RetType =Opt<ParInfo>({ Item.IsOutPar,typemap.GetValue(GItem.SybID) });
 									break;
 								}
 							}
@@ -1146,13 +1146,13 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 							Eval_Set_ObjectAs(ValEx, (UInt64)Count);
 						}
 
-						F.EvalObject = std::move(ValEx.EvaluatedObject);
+						F.EvalObject =Opt(std::move(ValEx.EvaluatedObject));
 
 
 
 						Get_FuncInfo R;
 						R.ThisPar = ThisParType;
-						R._BuiltFunc = std::move(F);
+						R._BuiltFunc = Opt(std::move(F));
 						return R;
 					}
 					else if (TryingToCallFunc == "IsAllSameType")
@@ -1168,7 +1168,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 						{
 							if (!MainType.has_value())
 							{
-								MainType = Item;
+								MainType = Opt(Item);
 							}
 							else
 							{
@@ -1188,7 +1188,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 						Get_FuncInfo R;
 						R.ThisPar = ThisParType;
-						R._BuiltFunc = std::move(F);
+						R._BuiltFunc = Opt(std::move(F));
 						return R;
 					}
 				}
@@ -1212,7 +1212,8 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 			{
 				_TepThisPar._Value.reset(&_TepThisValue);
 				_TepThisValue._Value.reset(&_TepThisReadNode);
-				_TepThisReadNode._VariableName = Name;
+				_TepThisReadNode._VariableName._ScopedName = Name._ScopedName;
+
 				_TepThisReadNode._VariableName._ScopedName.pop_back();
 				_TepThisReadNode._VariableName._ScopedName.back()._operator = ScopedName::Operator_t::Null;
 			}
@@ -1285,7 +1286,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 				Get_FuncInfo R;
 				R.ThisPar = ThisParType;
-				R._BuiltFunc = std::move(FuncDataValue);
+				R._BuiltFunc = Opt(std::move(FuncDataValue));
 
 
 
@@ -1346,10 +1347,10 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 					auto ValEx = Eval_MakeEx(F.RetType);
 					Eval_Set_ObjectAs<bool>(ValEx, RetValue);
-					F.EvalObject = std::move(ValEx.EvaluatedObject);
+					F.EvalObject = Opt(std::move(ValEx.EvaluatedObject));
 					Get_FuncInfo R;
 					R.ThisPar = ThisParType;
-					R._BuiltFunc = std::move(F);
+					R._BuiltFunc = Opt(std::move(F));
 					return R;
 				}
 				if (functocall == "IsBackendWindows" && ValueTypes.size() == 0)
@@ -1361,10 +1362,10 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 					auto ValEx = Eval_MakeEx(F.RetType);
 					Eval_Set_ObjectAs<bool>(ValEx, RetValue);
-					F.EvalObject = std::move(ValEx.EvaluatedObject);
+					F.EvalObject = Opt(std::move(ValEx.EvaluatedObject));
 					Get_FuncInfo R;
 					R.ThisPar = ThisParType;
-					R._BuiltFunc = std::move(F);
+					R._BuiltFunc = Opt(std::move(F));
 					return R;
 				}
 				if (functocall == "IsBackendLinux" && ValueTypes.size() == 0)
@@ -1376,10 +1377,10 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 					auto ValEx = Eval_MakeEx(F.RetType);
 					Eval_Set_ObjectAs<bool>(ValEx, RetValue);
-					F.EvalObject = std::move(ValEx.EvaluatedObject);
+					F.EvalObject = Opt(std::move(ValEx.EvaluatedObject));
 					Get_FuncInfo R;
 					R.ThisPar = ThisParType;
-					R._BuiltFunc = std::move(F);
+					R._BuiltFunc = Opt(std::move(F));
 					return R;
 				}
 				if (functocall == "IsBackendMacOS" && ValueTypes.size() == 0)
@@ -1391,10 +1392,10 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 					auto ValEx = Eval_MakeEx(F.RetType);
 					Eval_Set_ObjectAs<bool>(ValEx, RetValue);
-					F.EvalObject = std::move(ValEx.EvaluatedObject);
+					F.EvalObject = Opt(std::move(ValEx.EvaluatedObject));
 					Get_FuncInfo R;
 					R.ThisPar = ThisParType;
-					R._BuiltFunc = std::move(F);
+					R._BuiltFunc = Opt(std::move(F));
 					return R;
 				}
 				if (functocall == "IsCPU_X86" && ValueTypes.size() == 0)
@@ -1406,10 +1407,10 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 					auto ValEx = Eval_MakeEx(F.RetType);
 					Eval_Set_ObjectAs<bool>(ValEx, RetValue);
-					F.EvalObject = std::move(ValEx.EvaluatedObject);
+					F.EvalObject = Opt(std::move(ValEx.EvaluatedObject));
 					Get_FuncInfo R;
 					R.ThisPar = ThisParType;
-					R._BuiltFunc = std::move(F);
+					R._BuiltFunc = Opt(std::move(F));
 					return R;
 				}
 				if (functocall == "IsCPU_Arm" && ValueTypes.size() == 0)
@@ -1421,10 +1422,10 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 					auto ValEx = Eval_MakeEx(F.RetType);
 					Eval_Set_ObjectAs<bool>(ValEx, RetValue);
-					F.EvalObject = std::move(ValEx.EvaluatedObject);
+					F.EvalObject = Opt(std::move(ValEx.EvaluatedObject));
 					Get_FuncInfo R;
 					R.ThisPar = ThisParType;
-					R._BuiltFunc = std::move(F);
+					R._BuiltFunc = Opt(std::move(F));
 					return R;
 				}
 				if (functocall == "IsDebug" && ValueTypes.size() == 0)
@@ -2002,7 +2003,7 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 {
 	FuncInfo* Info = Item->Get_Info<FuncInfo>();
 	bool IsParPack = Info->_GenericData.IsPack();
-	bool LastParIsPack = IsParPack && Info->Pars.back().Type._CustomTypeSymbol == Info->_GenericData._Generic.back().SybID;
+	bool LastParIsPack = IsParPack && Info->Pars.back().Type._CustomTypeSymbol == Info->_GenericData._Genericlist.back().SybID;
 
 	if (IsParPack)
 	{
@@ -2020,7 +2021,7 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 	}
 
 	Vector<bool> HasBenAdded;
-	HasBenAdded.resize(Info->_GenericData._Generic.size());
+	HasBenAdded.resize(Info->_GenericData._Genericlist.size());
 
 	if (LastParIsPack)
 	{
@@ -2030,7 +2031,7 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 	}
 	else
 	{
-		HasBenAdded.resize(Info->_GenericData._Generic.size());
+		HasBenAdded.resize(Info->_GenericData._Genericlist.size());
 	}
 
 	if (Generics) {
@@ -2064,9 +2065,9 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 		if (i < Info->Pars.size())
 		{
 			auto& Par = Info->Pars[i];
-			for (size_t i2 = 0; i2 < Info->_GenericData._Generic.size(); i2++)
+			for (size_t i2 = 0; i2 < Info->_GenericData._Genericlist.size(); i2++)
 			{
-				auto& V3 = Info->_GenericData._Generic[i2];
+				auto& V3 = Info->_GenericData._Genericlist[i2];
 				bool addinput = false;
 				if (V3.SybID == Par.Type._CustomTypeSymbol)//Func<T>[T Item] ,caller: Func(3)
 				{
@@ -2143,7 +2144,7 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 			auto PackParsIndex = Info->Pars.size() - 1;
 			auto PackAddedPar = i - PackParsIndex;
 
-			auto PackGenericIndex = Info->_GenericData._Generic.size() - 1;
+			auto PackGenericIndex = Info->_GenericData._Genericlist.size() - 1;
 			auto PackAddedG = i - PackGenericIndex;
 
 			//is logically incorrect

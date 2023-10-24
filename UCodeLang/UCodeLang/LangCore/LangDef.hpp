@@ -153,6 +153,7 @@
 #elif UCodeLangGNUC
 #define UCodeLangNoDiscard __attribute__((__warn_unused_result__))
 #else
+
 #define UCodeLangNoDiscard [[nodiscard]]
 #endif
 
@@ -256,18 +257,18 @@
 
 #endif
 
-#if UCodeLangDebug
+#if 0
 #define UCodeLangUnreachable() UCodeLangBreakPoint();
 #else
 
 
 
 #if UCodeLangMSVC
-#define UCodeLangUnreachable() __assume(0);
+#define UCodeLangUnreachable() __assume(0)
 #elif UCodeLangGNUC
 #define UCodeLangUnreachable() __builtin_unreachable()
 #else
-#define UCodeLangUnreachable()
+#define UCodeLangUnreachable()  __builtin_unreachable()
 #endif
 
 #endif

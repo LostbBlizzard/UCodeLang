@@ -261,7 +261,7 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 GotNodeType Parser::GetAlias(const Token* AliasName,GenericValuesNode&& AliasGenerics, AliasNode& out)
 {
 	out._AliasName.token = AliasName;
-	out.Generic = AliasGenerics;
+	out.Generic = std::move(AliasGenerics);
 	out._Access = GetModifier();
 
 
@@ -941,7 +941,7 @@ GotNodeType Parser::GetFuncNode(FuncNode& out)
 		NextToken();
 		FuncBodyNode V;
 		GetFuncBodyNode(V);
-		out._Body = std::move(V);
+		out._Body = Opt(std::move(V));
 
 		out.EndOfFunc = TryPeekNextToken(-1);
 	}break;
@@ -956,7 +956,7 @@ GotNodeType Parser::GetFuncNode(FuncNode& out)
 		GetExpressionTypeNode(r->_Expression);
 		V._Statements._Nodes.back() = Unique_ptr<Node>(r);
 
-		out._Body = std::move(V);
+		out._Body = Opt(std::move(V));
 
 		auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
 		NextToken();
@@ -3182,7 +3182,7 @@ GotNodeType Parser::DoEnumType(EnumNode* output, const Token* ClassToken, Generi
 
 		if (T == nullptr || T->Type == TokenType::EndTab) { break; }
 
-		output->_Values.push_back({});
+		output->_Values.push_back(EnumValueNode());
 		EnumValueNode& EnumValue = output->_Values.back();
 		GetEnumValueNode(EnumValue);
 
@@ -3261,7 +3261,7 @@ GotNodeType Parser::GetEnumValueNode(EnumValueNode& out)
 					continue;
 				}
 
-				out._VariantType = std::move(V);
+				out._VariantType = Opt(std::move(V));
 				break;
 			}
 
@@ -3272,7 +3272,7 @@ GotNodeType Parser::GetEnumValueNode(EnumValueNode& out)
 		{
 			TypeNode V;
 			V._node.reset(ClassType);
-			out._VariantType = std::move(V);
+			out._VariantType = Opt(std::move(V));
 		}
 
 		auto RToken = TryGetToken();
@@ -3845,7 +3845,7 @@ GotNodeType Parser::GetLambdaNode(LambdaNode& out)
 		NextToken();
 		LambdaCapturesData Captures;
 
-		out._Capture = std::move(Captures);
+		out._Capture =Opt(std::move(Captures));
 		auto OtherPar = TryGetToken(); TokenTypeCheck(OtherPar, TokenType::Right_Parentheses); NextToken();
 	}
 
@@ -3857,7 +3857,7 @@ GotNodeType Parser::GetLambdaNode(LambdaNode& out)
 		StatementsNode Statements;
 		GetStatementsorStatementNode(Statements);
 
-		out._Statements = std::move(Statements);
+		out._Statements = Opt(std::move(Statements));
 	}
 	else if (AssmentToken->Type == TokenType::RightAssignArrow)
 	{
@@ -3869,7 +3869,7 @@ GotNodeType Parser::GetLambdaNode(LambdaNode& out)
 		Statements._Nodes.push_back(Unique_ptr<Node>(r));
 
 
-		out._Statements = std::move(Statements);
+		out._Statements = Opt(std::move(Statements));
 		
 	}
 	else if (AssmentToken->Type == TokenType::Semicolon)
@@ -3920,7 +3920,7 @@ GotNodeType Parser::GetShortLambdaNode(LambdaNode& out)
 		StatementsNode Statements;
 		GetStatementsorStatementNode(Statements);
 
-		out._Statements = std::move(Statements);
+		out._Statements = Opt(std::move(Statements));
 	}
 	else if (AssmentToken->Type == TokenType::RightAssignArrow)
 	{
@@ -3932,7 +3932,7 @@ GotNodeType Parser::GetShortLambdaNode(LambdaNode& out)
 		Statements._Nodes.push_back(Unique_ptr<Node>(r1));
 
 
-		out._Statements = std::move(Statements);
+		out._Statements = Opt(std::move(Statements));
 
 	}
 	else if (AssmentToken->Type == TokenType::Semicolon)
@@ -4684,7 +4684,7 @@ GotNodeType Parser::GetMatchStatement(MatchStatement& out)
 			}
 			else
 			{
-				out._InvaidCase = std::move(V);
+				out._InvaidCase = Opt(std::move(V));
 			}
 			
 		}
@@ -4741,7 +4741,7 @@ GotNodeType Parser::GetMatchExpression(MatchExpression& out)
 			}
 			else
 			{
-				out._InvaidCase = std::move(V);
+				out._InvaidCase = Opt(std::move(V));
 			}
 		}
 		else
@@ -4986,7 +4986,7 @@ GotNodeType Parser::GetImportStatement(ImportStatement& out)
 		TokenTypeCheck(ScopeToken, TokenType::ScopeResolution);
 		NextToken();
 
-		out._StartingNameSpace = std::move(StartNameSpace);
+		out._StartingNameSpace = Opt(std::move(StartNameSpace));
 	}
 
 
@@ -5007,7 +5007,7 @@ GotNodeType Parser::GetImportStatement(ImportStatement& out)
 
 
 			ImportValue importvalue;
-			importvalue._AliasName = ValueName;
+			importvalue._AliasName = Opt<const Token*>(ValueName);
 			GetName(importvalue._ImportedSybol);
 
 			out._Imports.push_back(std::move(importvalue));

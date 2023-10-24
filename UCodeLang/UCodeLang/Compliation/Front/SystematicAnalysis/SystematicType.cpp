@@ -795,7 +795,7 @@ SystematicAnalysis::BinaryOverLoadWith_t SystematicAnalysis::Type_HasBinaryOverL
 		if (Syb->Type == SymbolType::Type_class)
 		{
 
-			for (auto& Item : Systematic_BinaryOverloadData::Data)
+			for (auto& Item : Systematic_BinaryOverloadData::data)
 			{
 				if (Item.token == BinaryOp)
 				{
@@ -848,7 +848,7 @@ SystematicAnalysis::CompoundOverLoadWith_t SystematicAnalysis::Type_HasCompoundO
 		if (Syb->Type == SymbolType::Type_class)
 		{
 
-			for (auto& Item : Systematic_CompoundOverloadData::Data)
+			for (auto& Item : Systematic_CompoundOverloadData::data)
 			{
 				if (Item.token == BinaryOp)
 				{
@@ -898,7 +898,7 @@ SystematicAnalysis::PostFixOverLoadWith_t SystematicAnalysis::Type_HasPostfixOve
 		if (Syb->Type == SymbolType::Type_class)
 		{
 
-			for (auto& Item : Systematic_PostfixOverloadData::Data)
+			for (auto& Item : Systematic_PostfixOverloadData::data)
 			{
 				if (Item.token == BinaryOp)
 				{
@@ -1032,7 +1032,7 @@ SystematicAnalysis::UrinaryOverLoadWith_t SystematicAnalysis::Type_HasUrinaryOve
 		if (Syb->Type == SymbolType::Type_class)
 		{
 
-			for (auto& Item : Systematic_UrinaryOverloadData::Data)
+			for (auto& Item : Systematic_UrinaryOverloadData::data)
 			{
 				if (Item.token == Op)
 				{
