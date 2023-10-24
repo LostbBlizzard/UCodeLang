@@ -30,13 +30,9 @@ using UInt64 = uint64_t;
 
 using float32 = float;
 using float64 = double;
-#if UCodeLang_64BitSytem
-using SIntNative = Int64;
-using UIntNative = UInt64;
-#else
-using SIntNative = Int32;
-using UIntNative = UInt32;
-#endif
+
+using SIntNative = intptr_t;
+using UIntNative = uintptr_t;
 
 #ifdef __cpp_lib_char8_t
 using Utf8 = char8_t;

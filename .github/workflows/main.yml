@@ -5,6 +5,11 @@ on:
   push:
     branches:
       - master
+    paths:
+      - './**.c'
+      - './**.h'
+      - './**.hpp'
+      - './**.cpp'
   workflow_dispatch:
     branches:
       - feature
