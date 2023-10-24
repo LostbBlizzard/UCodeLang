@@ -5,10 +5,13 @@ on:
   push:
     branches:
       - master
-      
+  workflow_dispatch:
+    branches:
+      - feature
+
 jobs:
 
-  msbuild-build:
+  msbuild-windows-build:
     runs-on: windows-latest
 
     steps:
@@ -61,9 +64,11 @@ jobs:
    steps:
     - uses: actions/checkout@v3
 
-    - name: Get Packages
+    - name: Get X11 Packages
       run: sudo apt-get install libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev
 
+    - name: Get OpenGl Packages
+      run: sudo apt install mesa-common-dev
 
     - name: Make a scripts executable
       run: |
@@ -102,3 +107,36 @@ jobs:
     - name: RunTests for 32 bit
       run: ./BuildTools/RunTestsLinux32Debug.sh
 
+  clang-macos-build:
+   runs-on: macos-latest
+
+   steps:
+    - uses: actions/checkout@v3
+    
+    - name: Make a scripts executable
+      run: |
+       chmod +x ./GNU_Make.sh
+       chmod +x ./BuildTools/RunTestsMacOSDebug.sh
+
+    - name: Run Premake
+      run: ./GNU_Make.sh
+
+    - name: Restore cached objs
+      id: cache-objs-restore
+      uses: actions/cache/restore@v3
+      with:
+        path: ./Output
+        key: ${{ runner.os }}-1
+
+    - name: Build 
+      run: make
+
+    - name: Save cached Objs
+      id: cache-Objs-save
+      uses: actions/cache/save@v3
+      with:
+        path: ./Output
+        key: ${{ steps.cache-objs-restore.outputs.cache-primary-key }}
+
+    - name: RunTests
+      run: ./BuildTools/RunTestsMacOSDebug.sh
