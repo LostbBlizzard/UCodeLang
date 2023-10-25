@@ -1,2 +1,1 @@
-make UCodeLang config=debug_macos -k -j
-make config=debug_macos -k
+make config=debug_macos -k -j4

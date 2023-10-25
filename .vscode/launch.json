@@ -27,6 +27,56 @@
             "environment": [],
             "console": "externalTerminal",
             "preLaunchTask": "Build UCApp"
+        },
+        {
+            "name": "(Linux) Launch UCodeIDE",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/Output/UCodeIDE/linux64/Debug/UCodeIDE",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/UCodeIDE",
+            "environment": [],
+            "preLaunchTask": "Build UCodeIDE",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(Linux) Launch UCApp",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/Output/UCApp/linux64/Debug/UCApp",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/UCApp",
+            "environment": [],
+            "preLaunchTask": "Build UCApp",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
         }
     ]
 }

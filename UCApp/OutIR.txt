@@ -1,3 +1,6 @@
+$Item
+ void* __0; 
+
 
 |(&StaticInit&)[] -> void:;
 
@@ -7,34 +10,99 @@
 
 |(&threadUnload&)[] -> void:;
 
+|Item:(&_new&)^Item&[Item* (&this&)] -> void:
+
+ [Block:0]
+
+
+//Varable:Item:(&_new&):(&this&)
+//File:src.uc
+//Line:4
+
+   int64 A = 1;
+   void* B = LowLevel::Malloc(A);
+
+//Line:0
+//Line:4
+
+   int8 C = 65;
+   *B = C;
+   (&this&)->__0 = B;
+   ret;
+
 //EntryPoint 
-|main[] -> int32:
+|main[] -> int8:
 
  [Block:0]
 
 
 //File:src.uc
-//Line:3
+//Line:7
+//Varable:main:item
 
-   int32 A = 10;
-   int32 B = 5;
-   int8 C = A!=B;
-   int8 D = !C;
-   gotoif (D) _label0;
+   Item A;
 
-//Line:4
+//Line:0
 
-   int32 E = 10;
-   ret = E;
-   goto _label1;
+   Item* B = &A;
+   void C = Item:(&_new&)^Item&(B);
+
+//Line:7
+//Line:9
+
+   int8 D = 48;
+   *A.__0 = D;
+
+//Line:10
+//Varable:main:f
+
+   int8 E;
+   int8 F = *A.__0;
+   E = F;
+
+//Line:12
+
+   void* G = A.__0;
+   LowLevel::Free(G);
+
+//Line:15
+
+   int8 H = E;
+   ret = H;
+   ret;
+
+:Value();
+   ret = A;
+   ret;
+
+t323* T = P+S;
+   *T = O;
 
 //Line:6
-   _label0:
 
-   int32 F = 5;
-   ret = F;
+   int32 U = 1;
+   (&StaticArray_&)sint324* V = &H;
+   int64 W = 0;
+   int64 X = 4;
+   int64 Y = W*X;
+   (&StaticArray_&)sint324* Z = V+Y;
+   *Z = U;
 
-   _label1:
+//Line:8
 
+   (&StaticArray_&)sint323* [ = &A;
+   int64 \ = 0;
+   int64 ] = 4;
+   int64 ^ = \*];
+   (&StaticArray_&)sint323* _ = [+^;
+   int32 ` = *_;
+   (&StaticArray_&)sint324* a = &H;
+   int64 b = 0;
+   int64 c = 4;
+   int64 d = b*c;
+   (&StaticArray_&)sint324* e = a+d;
+   int32 f = *e;
+   int8 g = `==f;
+   ret = g;
    ret;
 

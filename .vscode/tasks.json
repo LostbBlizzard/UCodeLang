@@ -7,15 +7,16 @@
           "command": "make",
           "args": [
             "UCApp",
-            "-j"
+            "-j4"
           ]
         },
         "linux": {
           "command": "make",
           "args": [
             "UCApp",
-            "-j"
-          ]
+            "-j4"
+          ],
+          "problemMatcher": ["$gcc"],
         },
         "windows": {
           "command": "msbuild",
@@ -37,15 +38,16 @@
           "command": "make",
           "args": [
             "UCodeIDE",
-            "-j"
+            "-j4"
           ]
         },
         "linux": {
           "command": "make",
           "args": [
             "UCodeIDE",
-            "-j"
-          ]
+            "-j4"
+          ],
+          "problemMatcher": ["$gcc"],
         },
         "windows": {
           "command": "msbuild",
