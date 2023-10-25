@@ -289,7 +289,7 @@
 
 
 #if UCodeLangMSVC 
-#define UCodeLangAPI __cdecl 
+#define UCodeLangAPI 
 #else
 #define UCodeLangAPI 
 #endif
