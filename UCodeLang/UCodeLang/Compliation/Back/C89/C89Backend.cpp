@@ -147,7 +147,7 @@ void C89Backend::AddBaseTypes()
 	OutBuffer += "#endif\n\n";
 
 	OutBuffer += "#if __APPLE__\n";
-	OutBuffer += "#include \"TargetConditionals.h\";\n";
+	OutBuffer += "#include \"TargetConditionals.h\"\n";
 
 	OutBuffer += "#if TARGET_OS_IPHONE\n";
 	OutBuffer += "#define " + (String)IRIPHONEDefineName + " 1 \n";
