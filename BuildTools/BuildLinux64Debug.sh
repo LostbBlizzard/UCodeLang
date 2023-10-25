@@ -1,1 +1,1 @@
-make config=debug_linux64 
+make config=debug_linux64 -j4

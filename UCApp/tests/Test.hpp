@@ -355,6 +355,7 @@ UCodeTestStart
 		#if UCodeLang_32BitSytem
 		Cmd += " -m32";
 		#endif
+		Cmd += " -fPIC";
 		Cmd += " -o " + Outdllfile.generic_string();
 		return system(Cmd.c_str()) == EXIT_SUCCESS;
 	}

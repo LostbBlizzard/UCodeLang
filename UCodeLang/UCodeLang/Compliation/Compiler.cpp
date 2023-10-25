@@ -339,6 +339,7 @@ UInt64 GetFileHash(BytesView bytes)
 
 Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& Data, const ExternalFiles& ExternalFiles)
 {
+	#define LogCopilerBuildState 0
 	enum class MyEnumClass :UInt8
 	{
 		FileNotChanged,
@@ -677,7 +678,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 			}
 
 		}
-		#if UCodeLangDebug
+		#if LogCopilerBuildState
 		std::cout << "--files was Updated";
 		std::cout << "\n";
 
@@ -733,7 +734,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 						if (!HasIt)
 						{
 							ChangedFiles.push_back(&Item);
-							#if UCodeLangDebug
+							#if LogCopilerBuildState
 							std::cout << "--";
 							std::cout << Item.Repath;
 							std::cout << " Was Recompiled because it used ";
@@ -909,7 +910,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 		}
 		
 
-		#if UCodeLangDebug
+		#if LogCopilerBuildState
 		std::cout << "--files was Recompiled";
 		std::cout << "\n";
 
@@ -922,7 +923,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 	}
 	else
 	{
-		#if DEBUG
+		#if LogCopilerBuildState
 		std::cout << "--No files was Updated";
 		std::cout << "\n";
 		#endif // DEBUG

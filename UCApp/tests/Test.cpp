@@ -770,16 +770,16 @@ using namespace UCodeLang;
 				auto& MyTestInfo = TestInfo[i];
 				TestMode mode = (TestMode)i;
 
-				std::cout << "---runing Test for" << TestModeToName(mode) << std::endl;
+				std::cout << "---runing Test for " << TestModeToName(mode) << std::endl;
 				
 				Vector<std::future<bool>> List;
 				List.resize(Tests.size());
-				#if UCodeLang_Platform_Linux
+				//#if UCodeLang_Platform_Linux
 				if (mode == TestMode::CLang89BackEnd)
 				{
-					continue;
+					//continue;
 				}
-				#endif
+				//#endif
 
 				for (size_t i = 0; i < Tests.size(); i++)
 				{
