@@ -964,15 +964,10 @@ using namespace UCodeLang;
 			{
 				isok = false;
 			}
-			return true;
 		}
 
-		if (isok)
-		{
-
-		}
-
-		return isok;
+		
+		return isok ? EXIT_SUCCESS : EXIT_FAILURE;
 	}
 
 	bool LogErrors(std::ostream& out, Compiler& _Compiler)
