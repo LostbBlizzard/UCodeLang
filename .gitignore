@@ -1,6 +1,5 @@
 Output/
 .vs/
-.vscode/
 *.sln
 *.filters
 *.vcxproj

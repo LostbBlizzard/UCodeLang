@@ -7,7 +7,8 @@
 
 |(&threadUnload&)[] -> void:;
 
-|Char_Test[] -> int8:
+//EntryPoint 
+|main[] -> int32:
 
  [Block:0]
 
@@ -15,31 +16,25 @@
 //File:src.uc
 //Line:3
 
-   int8 A = 49;
-   ret = A;
-   ret;
+   int32 A = 10;
+   int32 B = 5;
+   int8 C = A!=B;
+   int8 D = !C;
+   gotoif (D) _label0;
 
-|Byte_Test[] -> int8:
+//Line:4
 
- [Block:0]
+   int32 E = 10;
+   ret = E;
+   goto _label1;
 
+//Line:6
+   _label0:
 
-//File:src.uc
-//Line:5
+   int32 F = 5;
+   ret = F;
 
-   int8 A = 1;
-   ret = A;
-   ret;
+   _label1:
 
-|Float_Test[] -> float32:
-
- [Block:0]
-
-
-//File:src.uc
-//Line:7
-
-   float32 A = 1.500000;
-   ret = A;
    ret;
 

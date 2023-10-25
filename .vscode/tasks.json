@@ -1,0 +1,108 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Build UCApp",
+        "osx": {
+          "command": "make",
+          "args": [
+            "UCApp",
+            "-j"
+          ]
+        },
+        "linux": {
+          "command": "make",
+          "args": [
+            "UCApp",
+            "-j"
+          ]
+        },
+        "windows": {
+          "command": "msbuild",
+          "args": [
+            "UCApp/UCApp.vcxproj",
+            "-v:m",
+            "-maxcpucount",
+            "/property:GenerateFullPaths=true"
+          ]
+        },
+        "problemMatcher": [
+          "$msCompile"
+        ],
+        "group": "build"
+      },
+      {
+        "label": "Build UCodeIDE",
+        "osx": {
+          "command": "make",
+          "args": [
+            "UCodeIDE",
+            "-j"
+          ]
+        },
+        "linux": {
+          "command": "make",
+          "args": [
+            "UCodeIDE",
+            "-j"
+          ]
+        },
+        "windows": {
+          "command": "msbuild",
+          "args": [
+            "UCApp/UCApp.vcxproj",
+            "-v:m",
+            "-maxcpucount",
+            "/property:GenerateFullPaths=true"
+          ]
+        },
+        "group": "build"
+      },
+      {
+        "label": "run UCApp test",
+        "command": "./BuildTools/RunTestsLinux64Debug.sh",
+        "dependsOn": [
+          "Build UCApp"
+        ],
+        "problemMatcher": [
+          "$msCompile"
+        ],
+        "group": {
+          "kind": "test",
+          "isDefault": true
+        },
+      },
+      {
+        "label": "clean",
+        "osx": {
+          "command": "make",
+          "args": [
+            "clean"
+          ]
+        },
+        "linux": {
+          "command": "make",
+          "args": [
+            "clean"
+          ]
+        },
+        "windows": {
+          "command": "msbuild",
+          "args": [
+            "UCodeLang.sln /t:Clean"
+          ]
+        },
+        "group": "none"
+      },
+      {
+        "label": "run premake vs2019",
+        "command": "VS_2019.bat",
+        "group": "none",
+      },
+      {
+        "label": "run premake vs2020",
+        "command": "VS_2020.bat",
+        "group": "none",
+      },
+    ]
+  }
