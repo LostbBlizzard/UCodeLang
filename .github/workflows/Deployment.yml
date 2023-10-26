@@ -188,7 +188,13 @@ jobs:
         working-directory: ./UCodeLanguageSever/EditorSpecific/VSCode/ucode-language
 
       - name: Publish
+        if: ${{ inputs.IsPreRelease == 'true'}}
         run: vsce publish patch -p ${{ secrets.VSCE_TOKEN }}
+        working-directory: ./UCodeLanguageSever/EditorSpecific/VSCode/ucode-language
+
+      - name: Publish
+        if: ${{ inputs.IsPreRelease == 'false'}}
+        run: vsce publish patch --pre-release -p ${{ secrets.VSCE_TOKEN }}
         working-directory: ./UCodeLanguageSever/EditorSpecific/VSCode/ucode-language
 
   deployment-GitHub:
