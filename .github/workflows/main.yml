@@ -108,6 +108,12 @@ jobs:
 
    steps:
     - uses: actions/checkout@v3
+
+    - name: Get brew
+      run: ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    
+    - name: Get glfw
+      run: brew install glfw
     
     - name: Make a scripts executable
       run: |

@@ -1,1 +1,1 @@
-make config=debug_macos -k -j4
+make config=debug_macos -j4
