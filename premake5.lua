@@ -514,7 +514,7 @@ group "UCodeAPIs"
 
    prebuildmessage 'compiling ucodelang files'
 
-   if os.host() != "macosx" then--MacOs CL build fail because of this. 
+   if not os.host() == "macosx" then--MacOs CL build fail because of this. 
    prebuildcommands 
    {
     UCPathExe.." build %{prj.location} -c89",
