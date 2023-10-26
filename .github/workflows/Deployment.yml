@@ -181,24 +181,6 @@ jobs:
         env:
           VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
 
-  build-Web:
-    runs-on: ubuntu-latest
-
-    outputs:
-      myoutput: ${{ steps.step2.outputs.myoutput }}
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Build
-        run:  echo "Do Build Here"
-
-      - name: Archive Output
-        uses: actions/upload-artifact@v3
-        with:
-          name: Output_Web
-          path: Output/
-
   deployment-GitHub:
     needs: [build-Windows,build-Linux,build-MacOS,build-Web]
     runs-on: ubuntu-latest
