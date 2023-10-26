@@ -372,6 +372,10 @@ project "UCodeIDE"
     kind "ConsoleApp"   
     defines {"_GLFW_COCOA"}
     links { "glfw","OpenGL.framework","Cocoa.framework"}
+    files
+    {
+      "%{prj.name}/Dependencies/GLFW/src/**.m"
+    }
 
    filter { "system:Windows","configurations:Published" }
     kind ("WindowedApp")
