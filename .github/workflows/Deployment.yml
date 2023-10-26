@@ -185,7 +185,7 @@ jobs:
           VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
 
   deployment-GitHub:
-    needs: [build-Windows,build-Linux,build-MacOS,build-Web]
+    needs: [build-Windows,build-Linux,build-MacOS]
     runs-on: ubuntu-latest
     environment: production
     steps:
