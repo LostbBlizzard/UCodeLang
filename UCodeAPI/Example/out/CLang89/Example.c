@@ -123,19 +123,7 @@ void __threadUnload__()
 {
 }
 void _Entry()
-{ /*Block*/ 
-
- /*File:/main.uc*/
- /*Line:15*/
- _label1:
-
- int8_t tep0 = 1;
- int8_t tep1 = !tep0;
- if (tep1){goto _label0; };
- goto _label1;
-
- _label0:
-
+{
  return;
 
 }
