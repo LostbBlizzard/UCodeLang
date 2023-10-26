@@ -95,7 +95,7 @@
     }
   ],
   "main": "./out/extension.js",
-  
+  "activationEvents":[],
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
