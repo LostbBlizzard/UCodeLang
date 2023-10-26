@@ -371,7 +371,13 @@ project "UCodeIDE"
    filter { "system:macosx" }
     kind "ConsoleApp"   
     defines {"_GLFW_COCOA"}
-    links { "glfw","OpenGL.framework","Cocoa.framework"}
+    links { "glfw",
+    "OpenGL.framework",
+    "Cocoa.framework",
+    "IOKit.framework",
+    "CoreVideo.framework",
+    "Carbon.framework",
+    }
     files
     {
       "%{prj.name}/Dependencies/GLFW/src/**.m"
