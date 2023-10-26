@@ -1,17 +1,16 @@
 #include <UCodeLang/LangCore/LangDef.hpp>
 #include "App.hpp"
 
-#ifdef PUBLISHED
-#ifdef  UCodeLang_Platform_Windows
-#include <Windows.h>
+
+
+#if defined(PUBLISHED) && UCodeLang_Platform_Windows
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow)
 {
-	LPWSTR* argv;
+	LPWSTR *argv;
 	int argc;
 	argv = CommandLineToArgvW(GetCommandLine(), &argc);
 	return App::main(argc, (char**)&argv);
 }
-#endif 
 #else
 int main(int argc, char* argv[])
 {
