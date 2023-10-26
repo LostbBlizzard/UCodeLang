@@ -181,14 +181,12 @@ jobs:
 
       - name: Install the dependencies
         run: npm i
+        working-directory: ./UCodeLanguageSever/EditorSpecific/VSCode/ucode-language
 
       - name: Install vsce
         run: npm i -g vsce
+        working-directory: ./UCodeLanguageSever/EditorSpecific/VSCode/ucode-language
 
-      - name: Build
-        working-directory: 
-        run:  npm install
-      
       - name: Publish
         run: vsce publish -p ${{ secrets.VSCE_PAT }}
 
