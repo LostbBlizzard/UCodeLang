@@ -132,6 +132,9 @@ jobs:
     
     steps:
       - uses: actions/checkout@v3
+
+      - name: Get glfw
+        run: brew install glfw
     
       - name: Make a scripts executable
         run: |
