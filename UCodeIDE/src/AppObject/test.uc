@@ -1,5 +1,11 @@
 
 
-//|main2[] => unsafe new int[1];
 
-|Func[] => 0;
+//|main[] => factorial(10);
+
+
+|factorial[int n] -> int: 
+  if n == 0:
+    ret 1;
+  else:
+    ret n * factorial(n-1);

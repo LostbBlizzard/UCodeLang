@@ -23,7 +23,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 	if (BuildCode)
 	{
 		Data = &_BinaryExpressionNode_Datas.GetValue(Symbol_GetSymbolID(node));
-		_LookingForTypes.top() = Data->Op0;
+		_LookingForTypes.top() = Data->Op1;
 
 		if (Data->FuncToCall)
 		{
@@ -40,23 +40,22 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 	TypeSymbol Ex1Type;
 	if (IsBuildFunc == false)
 	{
-		OnExpressionTypeNode(Ex0node, GetValueMode::Read);
-		Ex0 = _IR_LastExpressionField;
-		Ex0Type = _LastExpressionType;
+		OnExpressionTypeNode(Ex1node, GetValueMode::Read);
+		Ex1 = _IR_LastExpressionField;
+		Ex1Type = _LastExpressionType;
 
 		if (BuildCode)
 		{
-			_LookingForTypes.top() = Data->Op1;
+			_LookingForTypes.top() = Data->Op0;
 		}
 		else
 		{
 			_LookingForTypes.top() = _LastExpressionType;
 		}
 		
-		OnExpressionTypeNode(Ex1node, GetValueMode::Read);
-		Ex1 = _IR_LastExpressionField;
-		Ex1Type = _LastExpressionType;
-
+		OnExpressionTypeNode(Ex0node, GetValueMode::Read);
+		Ex0 = _IR_LastExpressionField;
+		Ex0Type = _LastExpressionType;
 
 		_LookingForTypes.pop();
 
