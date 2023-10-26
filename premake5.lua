@@ -505,7 +505,7 @@ group "UCodeAPIs"
    objdir ("Output/int/%{prj.name}/" .. OutDirPath)
 
    
-   dependson {"StandardLibrary"}
+   dependson {"StandardLibrary","UCodelangCL"}
    files { 
    "UCodeAPI/%{prj.name}/out/CLang89/Example.c",
    "UCodeAPI/%{prj.name}/src/**.uc",
@@ -515,5 +515,5 @@ group "UCodeAPIs"
    prebuildmessage 'compiling ucodelang files'
    prebuildcommands 
    {
-    --UCPathExe.." build %{prj.location} -c89",
+    UCPathExe.." build %{prj.location} -c89",
    }
