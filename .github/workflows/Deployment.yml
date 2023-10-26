@@ -189,12 +189,12 @@ jobs:
 
       - name: PublishPreRelease
         if: ${{ inputs.IsPreRelease == true}}
-        run: vsce publish patch --pre-release -p ${{ secrets.VSCE_TOKEN }}
+        run: vsce publish --pre-release -p ${{ secrets.VSCE_TOKEN }}
         working-directory: ./UCodeLanguageSever/EditorSpecific/VSCode/ucode-language
 
       - name: Publish
         if: ${{ inputs.IsPreRelease == false}}
-        run: vsce publish patch -p ${{ secrets.VSCE_TOKEN }}
+        run: vsce publish -p ${{ secrets.VSCE_TOKEN }}
         working-directory: ./UCodeLanguageSever/EditorSpecific/VSCode/ucode-language
 
   deployment-GitHub:
@@ -248,7 +248,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output/Win64/Published/UCodeLang.lib
+          asset_path: ./Output_Windows/Win64/Published/UCodeLang.lib
           asset_name: UCodeLang-win64.lib
           asset_content_type: application/octet-stream 
 
@@ -258,7 +258,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output/UCodelangCL/Win64/Published/uclang.exe
+          asset_path: ./Output_Windows/UCodelangCL/Win64/Published/uclang.exe
           asset_name: uclang-win64.exe
           asset_content_type: application/octet-stream 
           
@@ -268,7 +268,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output/UCodeLanguageSever/Win64/Published/uclanglsp.exe
+          asset_path: ./Output_Windows/UCodeLanguageSever/Win64/Published/uclanglsp.exe
           asset_name: uclanglsp-win64.exe
           asset_content_type: application/octet-stream 
 
@@ -279,7 +279,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} 
-          asset_path: ./Output/Win32/Published/UCodeLang.lib
+          asset_path: ./Output_Windows/Win32/Published/UCodeLang.lib
           asset_name: UCodeLang-win32.lib
           asset_content_type: application/octet-stream 
       
@@ -289,7 +289,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output/UCodelangCL/Win32/Published/uclang.exe
+          asset_path: ./Output_Windows/UCodelangCL/Win32/Published/uclang.exe
           asset_name: uclang-win32.exe
           asset_content_type: application/octet-stream 
       
@@ -299,7 +299,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output/UCodeLanguageSever/Win32/Published/uclanglsp.exe
+          asset_path: ./Output_Windows/UCodeLanguageSever/Win32/Published/uclanglsp.exe
           asset_name: uclanglsp-win32.exe
           asset_content_type: application/octet-stream 
       
@@ -310,7 +310,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output/UCodeLang/Linux/Published/libUCodeLang.a
+          asset_path: ./Output_Linux/UCodeLang/Linux/Published/libUCodeLang.a
           asset_name: libUCodeLang-linux64.a
           asset_content_type: application/octet-stream 
 
@@ -320,7 +320,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output/UCodelangCL/linux64/Published/uclang
+          asset_path: ./Output_Linux/UCodelangCL/linux64/Published/uclang
           asset_name: uclang-linux64
           asset_content_type: application/octet-stream 
 
@@ -330,7 +330,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output/UCodeLanguageSever/linux64/Published/uclang
+          asset_path: ./Output_Linux/UCodeLanguageSever/linux64/Published/uclang
           asset_name: uclanglsp-linux64
           asset_content_type: application/octet-stream 
 
@@ -341,7 +341,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output/UCodeLang/MacOS/Published/libUCodeLang.a
+          asset_path: ./Output_MacOS/UCodeLang/MacOS/Published/libUCodeLang.a
           asset_name: libUCodeLang-macos.a
           asset_content_type: application/octet-stream 
 
@@ -351,7 +351,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output/UCodelangCL/MacOS/Published/uclang
+          asset_path: ./Output_MacOS/UCodelangCL/MacOS/Published/uclang
           asset_name: uclang-macos
           asset_content_type: application/octet-stream 
 
@@ -361,6 +361,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output/UCodeLanguageSever/MacOS/Published/uclang
+          asset_path: ./Output_MacOS/UCodeLanguageSever/MacOS/Published/uclang
           asset_name: uclanglsp-macos
           asset_content_type: application/octet-stream 
