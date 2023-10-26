@@ -112,8 +112,7 @@ It's nowhere near completion.
 [Documentation]("UCodeDocumentation/src/SUMMARY.md")
 //Goto "UCodeDocumentation/src/SUMMARY.md" if link does not work
 
-[VSCode Extension]()
-//not done
+[VSCode Extension](https://marketplace.visualstudio.com/items?itemName=Lostblizzard.ucode-language)
 
 [How To Add To Your C++ Project]("UCodeDocumentation/src/ForImplementers.md")
 //Goto "UCodeDocumentation/src/ForImplementers.md" if link does not work

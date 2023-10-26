@@ -1,1 +1,1 @@
-make config=published_linux32
+make config=published_linux32 -j4

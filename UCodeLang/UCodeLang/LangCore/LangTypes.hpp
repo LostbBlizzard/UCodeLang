@@ -30,13 +30,9 @@ using UInt64 = uint64_t;
 
 using float32 = float;
 using float64 = double;
-#if UCodeLang_64BitSytem
-using SIntNative = Int64;
-using UIntNative = UInt64;
-#else
-using SIntNative = Int32;
-using UIntNative = UInt32;
-#endif
+
+using SIntNative = intptr_t;
+using UIntNative = uintptr_t;
 
 #ifdef __cpp_lib_char8_t
 using Utf8 = char8_t;
@@ -58,7 +54,7 @@ using UAddress = UIntNative;
 constexpr UAddress NullAddress = (UAddress)-1;
 constexpr Byte DebugGarbageByte = 'Y';
 //
-constexpr UInt64 NullUInt64 = (UInt64)nullptr;
+constexpr UInt64 NullUInt64 = (UInt64)0;
 
 using String = std::string;
 using String_view = std::string_view;
@@ -86,11 +82,22 @@ using ULangPathStr = std::basic_string<ULangPathChar>;
 template<typename T> using Unique_ptr = std::unique_ptr<T>;
 template<typename T> using Unique_Array = std::unique_ptr<T[]>;
 
+
 template<typename T> using Shared_ptr = std::shared_ptr<T>;
 template<typename T> using Weak_ptr = std::weak_ptr<T>;
 
 
 template<typename T> using Optional = std::optional<T>;
+
+template<typename T> Optional<T> Opt(const T& val)
+{
+	return std::make_optional<T>(val);
+}
+template<typename T> Optional<T> Opt(T&& val)
+{
+	return std::make_optional<T>(std::move(val));
+}
+
 template<typename T> using Vector = std::vector<T>;
 template<typename T> using Stack = std::stack<T>;
 template<typename T, typename T2> using Unordered_map = std::unordered_map<T, T2>;

@@ -3,7 +3,7 @@
   "displayName": "UCode Language",
   "description": "UCode for Visual Studio Code",
   "version": "0.0.1",
-  "publisher": "UCodeLang",
+  "publisher": "Lostblizzard",
   "engines": {
     "vscode": "^1.82.0"
   },
@@ -19,7 +19,11 @@
     "UCodeLang",
     "ucl"
 ],
-"icon": "icon.png",
+"icon": "Logo.png",
+ "repository": {
+  "type": "git",
+  "url": "https://github.com/LostbBlizzard/UCodeLang/tree/master"
+ },
 "contributes": {
     "languages": [{
       "id": "uclang",
@@ -91,6 +95,7 @@
     }
   ],
   "main": "./out/extension.js",
+  
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",

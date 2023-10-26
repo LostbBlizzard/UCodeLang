@@ -36,6 +36,9 @@ workspace "UCodeLang"
    UCPathExe = UCPathExeDir ..  UCPathExeName
 
 
+   if _ACTION == "vs2019" or _ACTION == "vs2022" then
+    flags { "MultiProcessorCompile" }
+   end 
    
 
    filter { "platforms:Win32" }
@@ -87,7 +90,9 @@ workspace "UCodeLang"
       optimize "Speed"
       symbols "off"
 
-
+   filter { "platforms:Web" }
+      optimize "Speed"
+      symbols "off"
    
 project "UCApp"
    location "UCApp"
@@ -366,6 +371,17 @@ project "UCodeIDE"
    filter { "system:macosx" }
     kind "ConsoleApp"   
     defines {"_GLFW_COCOA"}
+    links { "glfw",
+    "OpenGL.framework",
+    "Cocoa.framework",
+    "IOKit.framework",
+    "CoreVideo.framework",
+    "Carbon.framework",
+    }
+    files
+    {
+      "%{prj.name}/Dependencies/GLFW/src/**.m"
+    }
 
    filter { "system:Windows","configurations:Published" }
     kind ("WindowedApp")
@@ -489,7 +505,7 @@ group "UCodeAPIs"
    objdir ("Output/int/%{prj.name}/" .. OutDirPath)
 
    
-   dependson {"StandardLibrary"}
+   dependson {"StandardLibrary","UCodelangCL"}
    files { 
    "UCodeAPI/%{prj.name}/out/CLang89/Example.c",
    "UCodeAPI/%{prj.name}/src/**.uc",
@@ -497,7 +513,10 @@ group "UCodeAPIs"
    }
 
    prebuildmessage 'compiling ucodelang files'
+
+   if not os.host() == "macosx" then--MacOs CL build fail because of this. 
    prebuildcommands 
    {
     --UCPathExe.." build %{prj.location} -c89",
    }
+   end

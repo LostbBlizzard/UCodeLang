@@ -3,26 +3,25 @@
 
 #include "../Helpers/CompliationErrors.hpp"
 #include "../CompliationSettings.hpp"
-UCodeLangFrontStart
-void Lexer::Reset()
+UCodeLangFrontStart void Lexer::Reset()
 {
 	auto ErrorsOutput = _ErrorsOutput;
 	auto Settings = _Settings;
 
 	this->~Lexer();
-	new (this)Lexer;
-	
+	new (this) Lexer;
+
 	this->_ErrorsOutput = ErrorsOutput;
 	this->_Settings = Settings;
+
+
 }
-void Lexer::Lex(const String_view& Text)
+void Lexer::Lex(const String_view &Text)
 {
-#define GetNextChar(offset) Text.size() > (TextIndex  + offset) ? Text[TextIndex  + offset] : '\0';
+#define GetNextChar(offset) Text.size() > (TextIndex + offset) ? Text[TextIndex + offset] : '\0';
 	Reset();
 	_Text = Text;
-	
 
-	
 	for (TextIndex = 0; TextIndex < Text.size(); TextIndex++)
 	{
 		_Token = Token();
@@ -58,7 +57,7 @@ void Lexer::Lex(const String_view& Text)
 		}
 		if (Char == '\n')
 		{
-			NextLine:
+		NextLine:
 			IsIndentationing = true;
 			IndentationLevel = 0;
 			OnLinePos = 0;
@@ -78,8 +77,6 @@ void Lexer::Lex(const String_view& Text)
 		{
 			continue;
 		}
-		
-
 
 		switch (ReadingState)
 		{
@@ -114,27 +111,32 @@ void Lexer::Lex(const String_view& Text)
 			break;
 		}
 
-	
-
-		if (LexerHelper::IsNondigitName(Char) || (NameBufferSize() != 0 && LexerHelper::IsNameChar(Char) ))// != 0 for Not geting names as numbers
+		if (LexerHelper::IsNondigitName(Char) || (NameBufferSize() != 0 && LexerHelper::IsNameChar(Char))) // != 0 for Not geting names as numbers
 		{
-			if (NameBufferStart == NameBufferNullValue){NameBufferStart = TextIndex;}
+			if (NameBufferStart == NameBufferNullValue)
+			{
+				NameBufferStart = TextIndex;
+			}
 			continue;
 		}
 		else if (LexerHelper::IsDigit(Char))
 		{
 			ReadingState = ReadingNameState::Number;
 
-			if (NameBufferStart == NameBufferNullValue){NameBufferStart = TextIndex;}
+			if (NameBufferStart == NameBufferNullValue)
+			{
+				NameBufferStart = TextIndex;
+			}
 			continue;
 		}
 		auto OldNodesCount = _Tokens.size();
-		NameAndKeyWords(ReadingState,_Token);
+		NameAndKeyWords(ReadingState, _Token);
 
-		//if added token
-		if (OldNodesCount != _Tokens.size()){continue;}
-
-	
+		// if added token
+		if (OldNodesCount != _Tokens.size())
+		{
+			continue;
+		}
 
 		switch (Char)
 		{
@@ -197,7 +199,7 @@ void Lexer::Lex(const String_view& Text)
 					_Token.Type = TokenType::ellipses;
 					_Token.Value = nullptr;
 					_Tokens.push_back(_Token);
-					TextIndex+=2;
+					TextIndex += 2;
 				}
 				else
 				{
@@ -209,7 +211,7 @@ void Lexer::Lex(const String_view& Text)
 				}
 			}
 
-			if (IsDot) 
+			if (IsDot)
 			{
 				_Token.Type = TokenType::Dot;
 				_Token.Value = nullptr;
@@ -224,7 +226,7 @@ void Lexer::Lex(const String_view& Text)
 			break;
 		case '~':
 			NextChar = GetNextChar(1);
-			if (NextChar == '=') 
+			if (NextChar == '=')
 			{
 				TextIndex++;
 				_Token.Type = TokenType::approximate_Comparison;
@@ -260,7 +262,7 @@ void Lexer::Lex(const String_view& Text)
 			break;
 		case '\"':
 			ReadingState = ReadingNameState::String;
-			NameBufferStart = TextIndex +1;
+			NameBufferStart = TextIndex + 1;
 			break;
 		case '\'':
 			ReadingState = ReadingNameState::Char;
@@ -334,7 +336,7 @@ void Lexer::Lex(const String_view& Text)
 				_Token.Value = nullptr;
 				_Tokens.push_back(_Token);
 			}
-			else if(NextChar == '<')
+			else if (NextChar == '<')
 			{
 				TextIndex++;
 				_Token.Type = TokenType::bitwise_LeftShift;
@@ -518,7 +520,7 @@ void Lexer::Lex(const String_view& Text)
 				_Token.Value = nullptr;
 				_Tokens.push_back(_Token);
 			}
-			break;		
+			break;
 		case '%':
 			NextChar = GetNextChar(1);
 			if (LexerHelper::IsLetter(NextChar))
@@ -540,24 +542,23 @@ void Lexer::Lex(const String_view& Text)
 		case ' ':
 			break;
 		case '\t':
-			//break;
+			// break;
 		default:
 			if (_ErrorsOutput)
 			{
-				auto& Error = _ErrorsOutput->AddError(ErrorCodes::UnknownChar, OnLine, TextIndex);
+				auto &Error = _ErrorsOutput->AddError(ErrorCodes::UnknownChar, OnLine, TextIndex);
 
 				String A(1, Char);
 				Error._Msg = "UnknownChar \'" + A + "\' ";
 			};
 			break;
 		}
-
 	}
-	
-	IndentationLevel = 0;
-	DoIndentation(IsIndentationing,'\0', IndentationLevel, LastIndentationLevel, _Token);
 
-	if (CommentState == CommentState::NoComment) 
+	IndentationLevel = 0;
+	DoIndentation(IsIndentationing, '\0', IndentationLevel, LastIndentationLevel, _Token);
+
+	if (CommentState == CommentState::NoComment)
 	{
 		NameAndKeyWords(ReadingState, _Token);
 	}
@@ -565,12 +566,11 @@ void Lexer::Lex(const String_view& Text)
 	{
 		if (_ErrorsOutput)
 		{
-			auto& Error = _ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, OnLine, Text.size());
+			auto &Error = _ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, OnLine, Text.size());
 
 			Error._Msg = "ExpectingSequence \' */ \' To End MultLine Comment";
 		};
 	}
-
 
 	_Token = Token();
 	_Token.Type = TokenType::EndofFile;
@@ -580,7 +580,7 @@ void Lexer::Lex(const String_view& Text)
 
 	_LexerSuccess = !_ErrorsOutput->Has_Errors();
 }
-bool Lexer::DoIndentation(bool& IsIndentationing, char Char, size_t& IndentationLevel, size_t& LastIndentationLevel, UCodeLang::Token& _Token)
+bool Lexer::DoIndentation(bool &IsIndentationing, char Char, size_t &IndentationLevel, size_t &LastIndentationLevel, UCodeLang::Token &_Token)
 {
 	if (IsIndentationing)
 	{
@@ -589,10 +589,10 @@ bool Lexer::DoIndentation(bool& IsIndentationing, char Char, size_t& Indentation
 			IndentationLevel++;
 			return true;
 		}
-		//else if (Char == '\t')
+		// else if (Char == '\t')
 		//{
-			//IndentationLevel += 4;
-			//return true;
+		// IndentationLevel += 4;
+		// return true;
 		//}
 		else
 		{
@@ -604,7 +604,7 @@ bool Lexer::DoIndentation(bool& IsIndentationing, char Char, size_t& Indentation
 					_Token.Type = TokenType::StartTab;
 					_Token.Value = IndentationLevel;
 					_Tokens.push_back(_Token);
-					
+
 					_Token = Token();
 					_Token.OnLine = OnLine;
 					_Token.OnPos = TextIndex;
@@ -618,7 +618,7 @@ bool Lexer::DoIndentation(bool& IsIndentationing, char Char, size_t& Indentation
 					for (auto it = Indentations.rbegin(); it != Indentations.rend();)
 					{
 						auto Item_ = *it;
-						Token& Item = _Tokens[Item_];
+						Token &Item = _Tokens[Item_];
 						size_t IndentationLvl = Item.Value._Size_t;
 						if (IndentationLvl > IndentationLevel)
 						{
@@ -628,24 +628,22 @@ bool Lexer::DoIndentation(bool& IsIndentationing, char Char, size_t& Indentation
 							_Token = Token();
 							_Token.OnLine = OnLine;
 							_Token.OnPos = TextIndex;
-						
+
 							it = std::reverse_iterator(Indentations.erase(std::next(it).base()));
 							LastIndentationLevel = IndentationLevel;
 							continue;
 						}
-						++it;	
+						++it;
 					}
-
-
 				}
 			}
 		}
 	}
 	return false;
 }
-void Lexer::NameAndKeyWords(ReadingNameState& ReadingState, Token& _Token)
+void Lexer::NameAndKeyWords(ReadingNameState &ReadingState, Token &_Token)
 {
-	
+
 	if (NameBufferStart != NameBufferNullValue)
 	{
 		NameBufferEnd = TextIndex;
@@ -672,8 +670,6 @@ void Lexer::NameAndKeyWords(ReadingNameState& ReadingState, Token& _Token)
 				}
 			}
 			_Token.Type = KeyWord;
-
-			
 		}
 		else
 		{
@@ -702,7 +698,10 @@ void Lexer::NameAndKeyWords(ReadingNameState& ReadingState, Token& _Token)
 					{
 
 						char LookingAtChar = _Text[TextIndex];
-						if (!LexerHelper::IsDigit(LookingAtChar)) { break; }
+						if (!LexerHelper::IsDigit(LookingAtChar))
+						{
+							break;
+						}
 						TextIndex++;
 						IsReadingfloat = true;
 					}
@@ -728,7 +727,6 @@ void Lexer::NameAndKeyWords(ReadingNameState& ReadingState, Token& _Token)
 				Type = TokenType::Null;
 				break;
 			}
-
 
 			_Token.Type = Type;
 			_Token.Value = NameBuffer;

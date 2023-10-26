@@ -1,6 +1,5 @@
 Output/
 .vs/
-.vscode/
 *.sln
 *.filters
 *.vcxproj
@@ -19,6 +18,9 @@ UCodeAPI/StandardLibrary/out/
 
 UCodeAPI/NStandardLibrary/int/
 UCodeAPI/NStandardLibrary/out/
+
+UCodeAPI/Example/int/
+UCodeAPI/Example/out/
 
 UCApp/src/CodeTesting/out/
 UCApp/src/CodeTesting/int/

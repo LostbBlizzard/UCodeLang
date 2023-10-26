@@ -29,6 +29,10 @@ enum class OsType : UInt8
 	Win64,
 	Linux32,
 	Linux64,
+	MacOS,
+	Android,
+	IOS,
+	Web,
 
 #if UCodeLang_Platform_Windows
 	#if UCodeLang_64BitSytem
@@ -42,6 +46,14 @@ enum class OsType : UInt8
 	#else
 	ThisOs = Linux64,
 	#endif
+#elif UCodeLang_Platform_MacOS
+	ThisOs = MacOS,
+#elif UCodeLang_Platform_IPHONE
+	ThisOs = IOS,
+#elif UCodeLang_Platform_ANDROID
+	ThisOs = Android,
+#elif UCodeLang_Platform_Wasm
+	ThisOs = Web,
 #else
 ThisOs = None,
 #error "I Dont Know What OS Im runing on"

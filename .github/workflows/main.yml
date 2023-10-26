@@ -5,6 +5,11 @@ on:
   push:
     branches:
       - master
+    paths:
+      - './**.c'
+      - './**.h'
+      - './**.hpp'
+      - './**.cpp'
   workflow_dispatch:
     branches:
       - feature
@@ -25,11 +30,12 @@ jobs:
 
 
     - name: Restore cached objs
+      if: always()
       id: cache-objs-restore
       uses: actions/cache/restore@v3
       with:
         path: ./Output
-        key: ${{ runner.os }}-1
+        key: ${{ runner.os }}-cl-1
 
     - name: Build 64 bit
       run: |
@@ -52,11 +58,6 @@ jobs:
       run: |
            cd ./BuildTools
            ./RunTestsWin64Debug.bat
-
-    - name: RunTests for 32 bit
-      run: |
-           cd ./BuildTools
-           ./RunTestsWin32Debug.bat
 
   gmake-linux-build:
    runs-on: ubuntu-latest
@@ -89,12 +90,10 @@ jobs:
         key: ${{ runner.os }}-cl-1inux
 
     - name: Build 64 bit
-      run: make config=debug_linux64
-
-    - name: Build 32 bit
-      run: make config=debug_linux32
+      run: ./BuildTools/BuildLinux64Debug.sh
 
     - name: Save cached Objs
+      if: always()
       id: cache-Objs-save
       uses: actions/cache/save@v3
       with:
@@ -104,34 +103,36 @@ jobs:
     - name: RunTests for 64 bit
       run: ./BuildTools/RunTestsLinux64Debug.sh
 
-    - name: RunTests for 32 bit
-      run: ./BuildTools/RunTestsLinux32Debug.sh
-
   clang-macos-build:
    runs-on: macos-latest
 
    steps:
     - uses: actions/checkout@v3
+
+    - name: Get glfw
+      run: brew install glfw
     
     - name: Make a scripts executable
       run: |
-       chmod +x ./GNU_Make.sh
+       chmod +x ./GNU_MakeMacOS.sh
+       chmod +x ./BuildTools/BuildMacOSDebug.sh
        chmod +x ./BuildTools/RunTestsMacOSDebug.sh
 
     - name: Run Premake
-      run: ./GNU_Make.sh
+      run: ./GNU_MakeMacOS.sh
 
     - name: Restore cached objs
       id: cache-objs-restore
       uses: actions/cache/restore@v3
       with:
         path: ./Output
-        key: ${{ runner.os }}-1
+        key: ${{ runner.os }}-cl-1
 
     - name: Build 
-      run: make
+      run: ./BuildTools/BuildMacOSDebug.sh
 
     - name: Save cached Objs
+      if: always()
       id: cache-Objs-save
       uses: actions/cache/save@v3
       with:

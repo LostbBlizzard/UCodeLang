@@ -230,7 +230,7 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 			IndexedObjectPointer._IsAddressArray = false;
 			IndexedObjectPointer._IsAddress = false;
 
-			UAddress V;
+			size_t V;
 			{
 				auto VSybOp = Symbol_GetSymbol(IndexedObjectPointer);
 				if (VSybOp)
@@ -256,7 +256,7 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 
 
 
-			_IR_LastExpressionField = _IR_LookingAtIRBlock->New_Index_Vetor(Pointer, IndexField, _IR_LookingAtIRBlock->NewLoad(V));
+			_IR_LastExpressionField = _IR_LookingAtIRBlock->New_Index_Vetor(Pointer, IndexField,IR_Load_UIntptr(V));
 
 			TypeSymbol lookingfor = _LookingForTypes.top();
 			{

@@ -1,1 +1,1 @@
-make config=published_win32
+make config=published_win32 -j

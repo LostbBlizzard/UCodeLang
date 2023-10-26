@@ -205,8 +205,8 @@ public:
 
 		bool operator==(const Par& Other) const
 		{
-			return Other.IsOutPar == Other.IsOutPar &&
-				Other.Type == Other.Type;
+			return this->IsOutPar == Other.IsOutPar &&
+				this->Type == Other.Type;
 		}
 		bool operator!=(const Par& Other) const
 		{

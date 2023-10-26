@@ -48,7 +48,7 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(const AnonymousObjectConst
 
 				const auto& ArrItemType = StaticArr->Type;
 				const auto IRItemType = IR_ConvertToIRType(ArrItemType);
-				UAddress Size;
+				size_t Size;
 				Type_GetSize(ArrItemType, Size);
 				auto ValueSizeIR = IR_Load_UIntptr(Size);
 

@@ -53,7 +53,7 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: ./Output
-          key: ${{ runner.os }}-windows-deployment
+          key: ${{ runner.os }}-deployment
 
       - name: Build 64 bit
         run: |
@@ -66,6 +66,7 @@ jobs:
            ./BuildWin32Published.bat
 
       - name: Save cached Objs
+        if: always()
         id: cache-Objs-save
         uses: actions/cache/save@v3
         with:
@@ -85,14 +86,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Get Packages
-        run: sudo apt-get install libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev
-
       - name: Get X11 Packages
-        run: sudo apt-get install libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev
+         run: sudo apt-get install libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev
 
       - name: Get OpenGl Packages
-        run: sudo apt install mesa-common-dev
+         run: sudo apt install mesa-common-dev
 
       - name: Make a scripts executable
         run: |
@@ -109,12 +107,13 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: ./Output
-          key: ${{ runner.os }}-1inux-deployment
+          key: ${{ runner.os }}-deployment
 
       - name: Build 64 bit
-        run: make UCodelangCL config=published_linux64
+        run: make config=published_linux64 -j4
 
       - name: Save cached Objs
+        if: always()
         id: cache-Objs-save
         uses: actions/cache/save@v3
         with:
@@ -136,31 +135,51 @@ jobs:
     
       - name: Make a scripts executable
         run: |
-         chmod +x ./GNU_Make.sh
+         chmod +x ./GNU_MakeMacOS.sh
          chmod +x ./BuildTools/RunTestsMacOSDebug.sh
 
       - name: Run Premake
-        run: ./GNU_Make.sh
+        run: ./GNU_MakeMacOS.sh
 
       - name: Restore cached objs
         id: cache-objs-restore
         uses: actions/cache/restore@v3
         with:
           path: ./Output
-          key: ${{ runner.os }}-1
+          key: ${{ runner.os }}-deployment
 
       - name: Build 
-        run: make
+        run: make config=published_macos -j4
 
-      - name: Save cached Objs
+      - name: Save cached 
+        if: always()
         id: cache-Objs-save
         uses: actions/cache/save@v3
         with:
          path: ./Output
          key: ${{ steps.cache-objs-restore.outputs.cache-primary-key }}
 
-      - name: RunTests
-        run: ./BuildTools/RunTestsMacOSDebug.sh
+      - name: Archive Output
+        uses: actions/upload-artifact@v3
+        with:
+          name: Output_MacOS
+          path: Output/
+          retention-days: 1
+
+  build-Extensions:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build
+        working-directory: ./UCodeLanguageSever/EditorSpecific/VSCode/ucode-language
+        run:  npm install
+      - uses: lannonbr/vsce-action@3.0.0
+        with:
+          args: "publish -p $VSCE_TOKEN"
+        env:
+          VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
 
   build-Web:
     runs-on: ubuntu-latest
@@ -181,7 +200,7 @@ jobs:
           path: Output/
 
   deployment-GitHub:
-    needs: [build-Windows,build-Linux,build-MacOS,build-Web]
+    needs: [build-Windows,build-Linux,build-MacOS,build-Web,build-Extensions]
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -220,10 +239,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./UCodeLang/UCodeLang/UCodeLangCAPI.h
           asset_name: UCodeLangCAPI.h
-          asset_content_type: text/plain #https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
+          asset_content_type: text/plain 
       
       - name: Upload UCodeLangLibWindows64
         id: upload-release-asset 
@@ -231,10 +250,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./Output/Win64/Published/UCodeLang.lib
-          asset_name: UCodeLangWin64.lib
-          asset_content_type: application/octet-stream #https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
+          asset_name: UCodeLang-win64.lib
+          asset_content_type: application/octet-stream 
 
       - name: Upload UCodeLangLibWindows32
         id: upload-release-asset 
@@ -242,10 +261,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          upload_url: ${{ steps.create_release.outputs.upload_url }} 
           asset_path: ./Output/Win32/Published/UCodeLang.lib
-          asset_name: UCodeLangWin32.lib
-          asset_content_type: application/octet-stream #https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
+          asset_name: UCodeLang-win32.lib
+          asset_content_type: application/octet-stream 
 
       - name: Upload UCodeLangCLWindows64
         id: upload-release-asset 
@@ -253,10 +272,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./Output/UCodelangCL/Win64/Published/uclang.exe
-          asset_name: uclang.exe
-          asset_content_type: application/octet-stream #https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
+          asset_name: uclang-win64.exe
+          asset_content_type: application/octet-stream 
 
       - name: Upload UCodeLangCLWindows32
         id: upload-release-asset 
@@ -264,7 +283,29 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./Output/UCodelangCL/Win32/Published/uclang.exe
-          asset_name: uclang32.exe
-          asset_content_type: application/octet-stream #https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
+          asset_name: uclang-win32.exe
+          asset_content_type: application/octet-stream 
+
+      - name: Upload UCodeLangSeverWindows64
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./Output/UCodeLanguageSever/Win64/Published/uclanglsp.exe
+          asset_name: uclanglsp-win64.exe
+          asset_content_type: application/octet-stream 
+
+      - name: Upload UCodeLangSeverWindows32
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./Output/UCodeLanguageSever/Win32/Published/uclanglsp.exe
+          asset_name: uclanglsp-win32.exe
+          asset_content_type: application/octet-stream 

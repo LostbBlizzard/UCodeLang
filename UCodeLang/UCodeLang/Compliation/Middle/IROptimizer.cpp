@@ -19,6 +19,7 @@ void IROptimizer::Reset()
 }
 void IROptimizer::Optimized(IRBuilder& IRcode)
 {
+	#define RunlogIRState 0
 	Input = &IRcode;
 
 	_IDChecker.Set_ErrorsOutput(_ErrorsOutput);
@@ -42,11 +43,11 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 
 			
 
-			#if UCodeLangDebug
+			#if RunlogIRState
 			{//for debuging
 				auto S = Input->ToString();
 
-				std::cout << "-----" << std::endl;
+				//std::cout << "-----" << std::endl;
 				//std::cout << S;
 
 				std::ofstream file("OutIR.txt");
@@ -1185,12 +1186,12 @@ void IROptimizer::ToSSA(IRFunc* Func, SSAState& state)
 		if (Ins->Type == IRInstructionType::Jump)
 		{
 			Ins->Type = IRInstructionType::JumpBlock;
-			Ins->Target().Value = IndexToBlock.GetValue(Ins->Target().Value.AsUIntNative);
+			Ins->Target().Value = AnyInt64(IndexToBlock.GetValue(Ins->Target().Value.AsUIntNative));
 		}
 		else if (Ins->Type == IRInstructionType::ConditionalJump)
 		{
 			Ins->Type = IRInstructionType::JumpBlockIf;
-			Ins->Target().Value = IndexToBlock.GetValue(Ins->Target().Value.AsUIntNative);
+			Ins->Target().Value = AnyInt64(IndexToBlock.GetValue(Ins->Target().Value.AsUIntNative));
 		}
 
 		OnBlock->Instructions.push_back(std::move(Ins));

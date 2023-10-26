@@ -21,58 +21,58 @@ public:
 	{
 		UCodeLangAssert(Value);//never null
 	}
-	UCodeLangForceinline UCodeLangNoDiscard static const ThisType Make(const T* Value)
+	UCodeLangNoDiscard UCodeLangForceinline static const ThisType Make(const T* Value)
 	{
 		return ThisType((PtrType)Value);
 	}
-	UCodeLangForceinline UCodeLangNoDiscard static ThisType Make(T* Value)
+	UCodeLangNoDiscard UCodeLangForceinline static ThisType Make(T* Value)
 	{
 		return ThisType(Value);
 	}
 	
-	UCodeLangForceinline UCodeLangNoDiscard constexpr PtrType value() noexcept
+	UCodeLangNoDiscard UCodeLangForceinline constexpr PtrType value() noexcept
 	{
 		return Value;
 	}
-	UCodeLangForceinline UCodeLangNoDiscard constexpr const PtrType value() const noexcept
-	{
-		return Value;
-	}
-
-	UCodeLangForceinline UCodeLangNoDiscard constexpr const T* operator->() const noexcept
-	{
-		return Value;
-	}
-	UCodeLangForceinline UCodeLangNoDiscard constexpr T* operator->() noexcept
+	UCodeLangNoDiscard UCodeLangForceinline constexpr const PtrType value() const noexcept
 	{
 		return Value;
 	}
 
-	UCodeLangForceinline UCodeLangNoDiscard constexpr const T& operator*() const noexcept
+	UCodeLangNoDiscard UCodeLangForceinline constexpr const T* operator->() const noexcept
+	{
+		return Value;
+	}
+	UCodeLangNoDiscard UCodeLangForceinline constexpr T* operator->() noexcept
+	{
+		return Value;
+	}
+
+	UCodeLangNoDiscard UCodeLangForceinline constexpr const T& operator*() const noexcept
 	{
 		return *Value;
 	}
-	UCodeLangForceinline UCodeLangNoDiscard constexpr T& operator*() noexcept
+	UCodeLangNoDiscard UCodeLangForceinline constexpr T& operator*() noexcept
 	{
 		return *Value;
 	}
 
-	UCodeLangForceinline UCodeLangNoDiscard bool operator==(const NeverNullPtr other) const
+	UCodeLangNoDiscard UCodeLangForceinline bool operator==(const NeverNullPtr other) const
 	{
 		return Value == other.Value;
 	}
-	UCodeLangForceinline UCodeLangNoDiscard bool operator!=(const NeverNullPtr other) const
+	UCodeLangNoDiscard UCodeLangForceinline bool operator!=(const NeverNullPtr other) const
 	{
 		return Value != other.Value;
 	}
 
 
-	UCodeLangForceinline UCodeLangNoDiscard const NullableType AsNullable() const
+	UCodeLangNoDiscard UCodeLangForceinline const NullableType AsNullable() const
 	{
 		const NullableType r = NullableType::Make(value());
 		return r;
 	}
-	UCodeLangForceinline UCodeLangNoDiscard NullableType AsNullable()
+	UCodeLangNoDiscard UCodeLangForceinline NullableType AsNullable()
 	{
 		NullableType r = NullableType::Make(value());
 		return r;
@@ -111,29 +111,29 @@ public:
 	{
 
 	}
-	UCodeLangForceinline UCodeLangNoDiscard static ThisType Make(T* Value)
+	UCodeLangNoDiscard UCodeLangForceinline static ThisType Make(T* Value)
 	{
 		return ThisType(Value);
 	}
-	UCodeLangForceinline UCodeLangNoDiscard static const ThisType Make(const T* Value)
+	UCodeLangNoDiscard UCodeLangForceinline static const ThisType Make(const T* Value)
 	{
 		return ThisType((PtrType)Value);
 	}
 
-	UCodeLangForceinline UCodeLangNoDiscard constexpr explicit operator bool() const
+	UCodeLangNoDiscard UCodeLangForceinline constexpr explicit operator bool() const
 	{
 		return Value != nullptr;
 	}
-	UCodeLangForceinline UCodeLangNoDiscard constexpr bool has_value() const noexcept
+	UCodeLangNoDiscard UCodeLangForceinline constexpr bool has_value() const noexcept
 	{
 		return Value != nullptr;
 	}
-	UCodeLangForceinline UCodeLangNoDiscard constexpr const NeverNullType value() const
+	UCodeLangNoDiscard UCodeLangForceinline constexpr const NeverNullType value() const
 	{
 		UCodeLangAssert(Value);
 		return NeverNullType::Make(Value);
 	}
-	UCodeLangForceinline UCodeLangNoDiscard constexpr NeverNullType value()
+	UCodeLangNoDiscard UCodeLangForceinline constexpr NeverNullType value()
 	{
 		UCodeLangAssert(Value);
 		return NeverNullType::Make(Value);
@@ -141,16 +141,16 @@ public:
 
 
 	
-	UCodeLangForceinline UCodeLangNoDiscard constexpr PtrType value_unchecked()noexcept
+	UCodeLangNoDiscard UCodeLangForceinline constexpr PtrType value_unchecked()noexcept
 	{
 		return Value;
 	}
-	UCodeLangForceinline UCodeLangNoDiscard constexpr const PtrType value_unchecked() const noexcept
+	UCodeLangNoDiscard UCodeLangForceinline constexpr const PtrType value_unchecked() const noexcept
 	{
 		return Value;
 	}
 
-	UCodeLangForceinline UCodeLangNoDiscard NeverNullType value_or(NeverNullType other)
+	UCodeLangNoDiscard UCodeLangForceinline NeverNullType value_or(NeverNullType other)
 	{
 		if (has_value())
 		{
@@ -162,7 +162,7 @@ public:
 		}
 	}
 
-	UCodeLangForceinline UCodeLangNoDiscard const NeverNullType value_or(NeverNullType other) const
+	UCodeLangNoDiscard UCodeLangForceinline const NeverNullType value_or(NeverNullType other) const
 	{
 		if (has_value())
 		{
@@ -174,11 +174,11 @@ public:
 		}
 	}
 
-	UCodeLangForceinline UCodeLangNoDiscard bool operator==(const NullablePtr other) const
+	UCodeLangNoDiscard UCodeLangForceinline bool operator==(const NullablePtr other) const
 	{
 		return Value == other.Value;
 	}
-	UCodeLangForceinline UCodeLangNoDiscard bool operator!=(const NullablePtr other) const
+	UCodeLangNoDiscard UCodeLangForceinline bool operator!=(const NullablePtr other) const
 	{
 		return Value == other.Value;
 	}

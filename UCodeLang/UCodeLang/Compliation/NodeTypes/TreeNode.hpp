@@ -97,6 +97,11 @@ struct Node
 
 	virtual ~Node(){} ;
 
+	Node(const Node& source) = delete;
+	Node& operator=(const Node& source) = delete;
+
+	Node(Node&& source) noexcept = default;
+	Node& operator=(Node&& source) noexcept = default;
 
 	UCodeLangForceinline NodeType Get_Type() const
 	{
@@ -142,7 +147,6 @@ static UCodeLangForceinline const Type* As(const Node* Value) \
 UCodeLangAssert(Value->Get_Type() == Node_t); \
 return (const Type*)Value; \
 } \
-
 
 
 #define Has_NodesList(Type) \
