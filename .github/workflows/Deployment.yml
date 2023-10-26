@@ -189,6 +189,7 @@ jobs:
 
       - name: Publish
         run: vsce publish -p ${{ secrets.VSCE_TOKEN }}
+        working-directory: ./UCodeLanguageSever/EditorSpecific/VSCode/ucode-language
 
   deployment-GitHub:
     needs: [build-Windows,build-Linux,build-MacOS]
