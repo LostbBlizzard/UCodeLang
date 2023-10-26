@@ -86,10 +86,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-       - name: Get X11 Packages
+      - name: Get X11 Packages
          run: sudo apt-get install libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev
 
-       - name: Get OpenGl Packages
+      - name: Get OpenGl Packages
          run: sudo apt install mesa-common-dev
 
       - name: Make a scripts executable
