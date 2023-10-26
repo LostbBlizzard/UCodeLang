@@ -247,7 +247,7 @@ jobs:
 
           draft: false
           prerelease: ${{ inputs.IsPreRelease }}
-          tag_name: Release 
+          tag_name: Release ${{ inputs.VersionNumber }}
       
       - name: Upload UCodeLangCAPI
         uses: actions/upload-release-asset@v1
@@ -351,7 +351,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output_Linux/UCodeLanguageSever/linux64/Published/uclang
+          asset_path: ./Output_Linux/UCodeLanguageSever/linux64/Published/uclanglsp
           asset_name: uclanglsp-linux64
           asset_content_type: application/octet-stream 
 
@@ -382,6 +382,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output_MacOS/UCodeLanguageSever/MacOS/Published/uclang
+          asset_path: ./Output_MacOS/UCodeLanguageSever/MacOS/Published/uclanglsp
           asset_name: uclanglsp-macos
           asset_content_type: application/octet-stream 
