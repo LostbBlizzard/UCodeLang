@@ -247,7 +247,7 @@ jobs:
 
           draft: false
           prerelease: ${{ inputs.IsPreRelease }}
-          tag_name: Release ${{ inputs.VersionNumber }}
+          tag_name: Release-${{ inputs.VersionNumber }}
       
       - name: Upload UCodeLangCAPI
         uses: actions/upload-release-asset@v1
