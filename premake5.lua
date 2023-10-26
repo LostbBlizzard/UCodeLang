@@ -371,6 +371,7 @@ project "UCodeIDE"
    filter { "system:macosx" }
     kind "ConsoleApp"   
     defines {"_GLFW_COCOA"}
+    links { "OpenGL.framework","glfw"}
 
    filter { "system:Windows","configurations:Published" }
     kind ("WindowedApp")
