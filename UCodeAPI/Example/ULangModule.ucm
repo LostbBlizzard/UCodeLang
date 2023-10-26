@@ -5,4 +5,4 @@ Version:0:0:0
 ForceImport:false
 RemoveUnSafe:false
 NameSpace:Example
-import UCodeLang::StandardLibarary[0:0:0];
+//import UCodeLang::StandardLibarary[0:0:0];
