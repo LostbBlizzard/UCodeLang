@@ -77,6 +77,15 @@
                     "ignoreFailures": true
                 }
             ]
+        },
+        {
+            "name": "Launch Hugo",
+            "request": "launch",
+            "program": "hugo sever",
+            "args": [],
+            "cwd": "${workspaceFolder}/UCodeWebsite",
+            "environment": [],
+            "preLaunchTask": "Build UCodeWebsite",
         }
     ]
 }

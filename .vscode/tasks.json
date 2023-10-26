@@ -106,5 +106,14 @@
         "command": "VS_2020.bat",
         "group": "none",
       },
+      {
+        "label": "Build UCodeWebsite",
+        "command": "hugo",
+        "group": "build",
+      },
+      {
+        "label": "start UCodeWebsite",
+        "command": "hugo server"
+      },
     ]
   }
