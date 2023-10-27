@@ -27,6 +27,13 @@ on:
         type: string
         default: 'added: fixed: removed:'
 
+
+      UploadToVSMarketPlace:
+        description: 'Upload To VS MarketPlace'
+        required: true
+        type: boolean
+        default: false
+
       LSPChangelog:
         description: 'The Change Log for Editor Extenions'
         required: true
@@ -61,6 +68,7 @@ jobs:
            ./BuildWin64Published.bat
 
       - name: Build 32 bit
+        if: ${{ inputs.IsPreRelease == false}}
         run: |
            cd ./BuildTools
            ./BuildWin32Published.bat
@@ -77,7 +85,10 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: Output_Windows
-          path: Output/
+          path: |
+           Output/UCodelangCL
+           Output/UCodeLanguageSever
+           Output/UCodeLang
           retention-days: 1
 
   build-Linux:
@@ -124,7 +135,10 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: Output_Linux
-          path: Output/
+          path: |
+           Output/UCodelangCL
+           Output/UCodeLanguageSever
+           Output/UCodeLang
           retention-days: 1
 
   build-MacOS:
@@ -166,10 +180,14 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: Output_MacOS
-          path: Output/
+          path: |
+           Output/UCodelangCL
+           Output/UCodeLanguageSever
+           Output/UCodeLang
           retention-days: 1
 
   build-Extensions:
+    if: ${{ inputs.UploadToVSMarketPlace == true}}
     runs-on: ubuntu-latest
 
     steps:
@@ -229,7 +247,7 @@ jobs:
 
           draft: false
           prerelease: ${{ inputs.IsPreRelease }}
-          tag_name: Release
+          tag_name: Release ${{ inputs.VersionNumber }}
       
       - name: Upload UCodeLangCAPI
         uses: actions/upload-release-asset@v1
