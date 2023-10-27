@@ -11,6 +11,8 @@
     ret factorial(n-1) * n;
 */
 
+/*
+
 thread int V1 = 0;
 thread int V2 = 0;
 thread int V3 = 0;
@@ -41,3 +43,5 @@ thread int V6 = 0;
  V6 = c;
 
  ret a;
+
+*/

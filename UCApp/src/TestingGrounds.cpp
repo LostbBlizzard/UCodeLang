@@ -94,7 +94,7 @@ void TestingGround()
 	
 	if (!ULangTest::LogErrors(std::cout, _Compiler))
 	{
-		UCodeLang::UClib& MLib =*OutData.CompilerRet.OutPut;
+		UCodeLang::UClib& MLib = *OutData.CompilerRet.GetValue().OutPut;
 		
 
 		ULangTest::RunTests(false);

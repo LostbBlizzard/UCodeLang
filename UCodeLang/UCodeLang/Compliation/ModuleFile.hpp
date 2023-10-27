@@ -79,6 +79,14 @@ public:
 	{
 		Compiler::CompilerRet CompilerRet;
 		Path OutputItemPath;
+		ModuleRet(NeverNullPtr<UClib> OutPut):
+			CompilerRet(OutPut)
+		{
+		}
+		ModuleRet(Compiler::CompilerRet&& OutPut) :
+			CompilerRet(std::move(OutPut))
+		{
+		}
 	};
 	struct ModuleDependencie
 	{

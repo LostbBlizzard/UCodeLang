@@ -82,8 +82,7 @@ Compiler::CompilerRet Compiler::CompileText(const String_view& Text, const Exter
 
 	if (_Errors.Has_Errors()) { return error; }
 
-	CompliationSuccess r;
-	r.OutPut = NeverNullptr(&_BackEndObject->Getliboutput());
+	CompliationSuccess r = NeverNullptr(&_BackEndObject->Getliboutput());
 	
 
 	
@@ -304,8 +303,7 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data, const
 
 					auto Output = _BackEndObject->GetOutput();
 					
-					CompliationSuccess success;
-					success.OutPut = &_BackEndObject->Getliboutput();
+					CompliationSuccess success = &_BackEndObject->Getliboutput();
 					
 					
 					if (Output.Size())
@@ -983,7 +981,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 
 						auto Output = _BackEndObject->GetOutput();
 
-						CompliationSuccess success;
+						CompliationSuccess success = &_BackEndObject->Getliboutput();
 
 						if (Output.Size())
 						{
@@ -997,7 +995,6 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 							m.Resize(Output.Size());
 							memcpy(m.Data(), Output.Data(), Output.Size());
 						}
-						success.OutPut = &_BackEndObject->Getliboutput();
 						UClib::ToFile(&_BackEndObject->Getliboutput(), Data.OutFile);
 
 						r = std::move(success);
@@ -1098,10 +1095,9 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 			if (Data.OutFile.extension() == FileExt::LibWithDot)
 			{
 				
-				CompliationSuccess success;
+				CompliationSuccess success = &lib;
 
 				UClib::FromBytes(&lib, bytes.AsSpan());
-				success.OutPut = &lib;
 
 				r = std::move(success);
 			}
@@ -1109,11 +1105,9 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 			{
 				UClib::FromFile(&lib,ExtraOutputLibPath);
 
-				CompliationSuccess success;
+				CompliationSuccess success = &lib;
 
 				success.OutFile = std::move(bytes);
-				success.OutPut = &lib;
-
 				r = std::move(success);
 			}
 		}

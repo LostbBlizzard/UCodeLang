@@ -15,19 +15,19 @@ class Compiler
 public:
 	struct CompliationSuccess
 	{
-		NeverNullPtr<UClib> OutPut = nullptr;
+		NeverNullPtr<UClib> OutPut;
 		Optional<BytesPtr> OutFile;
 		CompliationSuccess()
 		{
 
 		}
 		CompliationSuccess(NeverNullPtr<UClib> OutPut)
+			: OutPut(OutPut)
 		{
-			this->OutPut = OutPut;
 		}
 		CompliationSuccess(NeverNullPtr<UClib> OutPut, BytesPtr&& OutFile)
+			: OutPut(OutPut)
 		{
-			this->OutPut = OutPut;
 			this->OutFile =std::move(OutFile);
 		}
 	};
