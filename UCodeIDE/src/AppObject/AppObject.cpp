@@ -27,6 +27,7 @@
 #include "UCodeLang/Compliation/Back/x86_64/X86_64UNativeBackEnd.hpp"
 #include "UCodeLang/Compliation/Back/x86_64/X86_64JitCompiler.hpp"
 
+#include "ECSExample.hpp"
 #include <fstream>
 #include <filesystem>
 #include "ImGuiHelpers/imgui_memory_editor/imgui_memory_editor.h"
@@ -367,7 +368,7 @@ void AppObject::DrawTestMenu()
                 Com.Get_Settings()._Flags = flag;
                 Com.Get_Settings().PtrSize = IntSizes::Native;
 
-                Compiler::CompilerRet Com_r;
+                Compiler::CompilerRet Com_r = NeverNullptr(&Com.Get_Errors());
                 std::string InputFilesPath = UCodeLang_UCAppDir_Test_UCodeFiles + Test.InputFilesOrDir;
                 std::string OutFileDir = UCodeLang_UCAppDir_Test_OutputFiles + Test.TestName;
                 std::filesystem::path p = OutFileDir;
@@ -1746,7 +1747,11 @@ void AppObject::OnDraw()
     BeginDockSpace(&Doc);
 
     //ImGui::ShowDemoWindow();
+    if (ImGui::Begin("ECE Example"))
+    {
+        ECSExample::_Context.ImguiDraw();
 
+    }  ImGui::End();
 
     if (ImGui::Begin("ShowStyleEditor"))
     {

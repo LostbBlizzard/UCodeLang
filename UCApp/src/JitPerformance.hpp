@@ -51,10 +51,10 @@ public:
 
 		UCodeLang::RunTimeLangState State;
 		UCodeLang::Compiler V;
-		auto Lib = V.CompileText(Value._UCode);
+		auto& Lib = V.CompileText(Value._UCode).GetValue();
 
 		UCodeLang::RunTimeLib CodeLib;
-		CodeLib.Init(Lib.OutPut);
+		CodeLib.Init(Lib.OutPut.value());
 
 		State.AddLib(&CodeLib);
 		State.LinkLibs();

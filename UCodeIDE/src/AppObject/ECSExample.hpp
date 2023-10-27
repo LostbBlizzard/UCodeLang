@@ -1,6 +1,9 @@
 #pragma once
 #include <UCodeLang/UCodeLang.hpp>
 #include "imgui.h"
+#include <ImGuiHelpers/ImguiHelper.hpp>
+
+UCodeIDEStart
 
 namespace ECSExample
 {
@@ -20,6 +23,8 @@ namespace ECSExample
 	};
 	using Vec2 = ImVec2;
 
+
+	struct Entity;
 	struct Component
 	{
 		virtual void Start()
@@ -81,10 +86,10 @@ namespace ECSExample
 
 		}
 
-		String Name;
+		String Name = "New Entity";
 		Vector<Unique_ptr<Component>> Components;
 		Vector<Unique_ptr<Entity>> ChildEntitys;
-		Scene* myscenc =nullptr;
+		Scene* myscenc = nullptr;
 		Entity* myparent = nullptr;
 
 		Scene* scenc()
@@ -105,6 +110,10 @@ namespace ECSExample
 			r->myparent = this;
 
 			return r;
+		}
+		void Remove()
+		{
+
 		}
 
 		template<typename T>
@@ -147,9 +156,47 @@ namespace ECSExample
 		UCodeLang::AnyInterpreter Interpreter;
 		Scene scene;
 
+		void ImguiDraw(Entity* entity)
+		{
+			if (ImGui::TreeNode(entity, entity->Name.c_str()))
+			{
+				if (ImGui::Button("New ChildEntity"))
+				{
+					entity->AddChildEntity();
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Remove Entity"))
+				{
+					entity->Remove();
+				}
+
+
+				ImguiHelper::InputText("Name", entity->Name);
+				ImguiHelper::Vec3float32Field("Position", &entity->Position.X);
+				ImguiHelper::Vec3float32Field("Rotation", &entity->Rotation.X);
+				ImguiHelper::Vec3float32Field("Scale", &entity->Scale.X);
+
+				for (auto& Item : entity->ChildEntitys)
+				{
+					ImguiDraw(Item.get());
+				}
+
+				ImGui::TreePop();
+			}
+		}
+
 		void ImguiDraw()
 		{
-
+			if (ImGui::Button("New Entity"))
+			{
+				scene.AddEntity();
+			}
+			ImGui::Separator();
+			
+			for (auto& Item : scene.Entitys)
+			{
+				ImguiDraw(Item.get());
+			}
 		}
 	};
 	thread_local RunTime _Context;
@@ -259,3 +306,5 @@ namespace ECSExample
 		bool _CalledULangObjectStart = false;
 	};
 }
+
+UCodeIDEEnd

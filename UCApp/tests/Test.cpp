@@ -114,7 +114,7 @@ using namespace UCodeLang;
 		Com.Get_Settings()._Flags = flag;
 		Com.Get_Settings().PtrSize = IntSizes::Native;
 		
-		Compiler::CompilerRet Com_r;
+		Compiler::CompilerRet Com_r =NeverNullptr(&Com.Get_Errors());
 		std::string InputFilesPath = UCodeLang_UCAppDir_Test_UCodeFiles + Test.InputFilesOrDir;
 		std::string OutFileDir = UCodeLang_UCAppDir_Test_OutputFiles + Test.TestName;
 		std::filesystem::path p = OutFileDir;
@@ -161,9 +161,9 @@ using namespace UCodeLang;
 			|| Test.Condition == SuccessCondition::CompilationFail)
 		{
 			if (
-				(Com_r._State == Compiler::CompilerState::Success && Test.Condition == SuccessCondition::Compilation)
+				(Com_r.IsValue() && Test.Condition == SuccessCondition::Compilation)
 				||
-				(Com_r._State == Compiler::CompilerState::Fail && Test.Condition == SuccessCondition::CompilationFail)
+				(Com_r.IsError() && Test.Condition == SuccessCondition::CompilationFail)
 				)
 			{
 				LogStream << "Success from test '" << Test.TestName << ModeType(flag) << "'" << std::endl;
@@ -179,7 +179,7 @@ using namespace UCodeLang;
 
 		}
 
-		if (Com_r._State != Compiler::CompilerState::Success)
+		if (Com_r.IfError())
 		{
 			ErrStream << "fail from test [Cant Compile File/Files] '" << Test.TestName << ModeType(flag) << "'" << std::endl;
 
@@ -308,7 +308,7 @@ using namespace UCodeLang;
 		}
 		else if (mode == TestMode::CLang89BackEnd)
 		{
-			UClib& ulib = *Com_r.OutPut;
+		UClib& ulib = *Com_r.GetValue().OutPut;
 
 
 			auto ufunc = ulib.Get_Assembly().Find_Func(Test.FuncToCall);
@@ -476,8 +476,8 @@ using namespace UCodeLang;
 		}
 		else if (mode == TestMode::WasmBackEnd)
 		{
-			UClib& ulib = *Com_r.OutPut;
-
+			UClib& ulib = *Com_r.GetValue().OutPut;
+			auto& OutFile = Com_r.GetValue().OutFile.value();
 
 			auto ufunc = ulib.Get_Assembly().Find_Func(Test.FuncToCall);
 			UCodeLangAssert(ufunc);
@@ -486,7 +486,7 @@ using namespace UCodeLang;
 
 			std::stringstream ss;
 			ss << "const wasm = new Uint8Array([";
-			for (const auto& b : Com_r.OutFile) {
+			for (const auto& b : OutFile) {
 				ss << "0x" << std::hex << static_cast<int>(b) << ", ";
 			}
 			ss << "]);\n";
@@ -651,7 +651,7 @@ using namespace UCodeLang;
 
 
 			auto ret = file.BuildModule(compiler, LangIndex);
-			if (ret.CompilerRet._State == Compiler::CompilerState::Success)
+			if (ret.CompilerRet.IsValue())
 			{
 				r = true;
 			}
@@ -697,7 +697,7 @@ using namespace UCodeLang;
 		auto OutData = Mfile.BuildModule(compiler, index);
 		LogErrors(std::cout, compiler);
 
-		if (OutData.CompilerRet._State == Compiler::CompilerState::Success)
+		if (OutData.CompilerRet.IsValue())
 		{
 			UCodeLang::UClib MLib;
 			UCodeLangAssert(UClib::FromFile(&MLib, OutData.OutputItemPath));
