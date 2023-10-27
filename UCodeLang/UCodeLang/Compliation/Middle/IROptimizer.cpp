@@ -19,7 +19,7 @@ void IROptimizer::Reset()
 }
 void IROptimizer::Optimized(IRBuilder& IRcode)
 {
-	#define RunlogIRState 0
+	#define RunlogIRState 1
 	Input = &IRcode;
 
 	_IDChecker.Set_ErrorsOutput(_ErrorsOutput);
@@ -47,8 +47,8 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 			{//for debuging
 				auto S = Input->ToString();
 
-				//std::cout << "-----" << std::endl;
-				//std::cout << S;
+				std::cout << "-----" << std::endl;
+				std::cout << S;
 
 				std::ofstream file("OutIR.txt");
 				file << S;

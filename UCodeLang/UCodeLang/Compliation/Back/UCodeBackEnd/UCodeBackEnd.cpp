@@ -438,7 +438,29 @@ void UCodeBackEndObject::RegWillBeUsed(RegisterID Value)
 				else
 				{
 					UCodeLangToDo();
-					//CopyValueToStack(*Item, type, Value);
+				}
+
+				_Registers.FreeRegister(Value);
+			}
+		}
+		else if (auto Item = TypesValue.Get_If<IRAndOperator>())
+		{
+			if (IsReferencedAfterThisIndex(Item->GetOp()))
+			{
+				isreferenced = true;
+				auto V = _Registers.GetFreeRegister();
+				auto type = GetType(Item->Ins,Item->GetOp());
+
+
+				if (V.has_value() && V != Value)
+				{
+					SetRegister(V.value(), Item->Ins);
+					RegToReg(type._Type, Value, V.value(), false);
+				}
+				else
+				{
+					UCodeLangToDo();
+					MoveValueToStack(Item->Ins,type, Value);
 				}
 
 				_Registers.FreeRegister(Value);
@@ -2588,7 +2610,7 @@ void  UCodeBackEndObject::GiveNameTo(const IRlocData& Value, const IRInstruction
 	else if (auto Val = Value.Info.Get_If<IRlocData_StackPost>())
 	{
 
-		if (auto v = _Stack.Get(Val->offset))
+		if (auto v = _Stack.Get(Val->offset).value_unchecked())
 		{
 			v->IR = Name;
 		}
@@ -3190,8 +3212,8 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 		if (Ins->Type == IRInstructionType::LoadNone)
 		{
 
-			auto V = _Stack.Has(Ins);
-			if (V)
+			auto VPtr = _Stack.Has(Ins);
+			if (auto V = VPtr.value_unchecked())
 			{
 				UCodeBackEndObject::IRlocData R;
 				R.Info = IRlocData_StackPost(V->Offset);
@@ -3348,8 +3370,8 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 			}
 			else
 			{
-				auto Stack = _Stack.Has(Item);
-				if (Stack)
+				auto StackPtr = _Stack.Has(Item);
+				if (auto Stack = StackPtr.value_unchecked())
 				{
 					CompilerRet.Info = IRlocData_StackPost(Stack->Offset);
 				}
@@ -3493,9 +3515,9 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 			}
 			else
 			{
-				auto Val = _Stack.Has(Item);
+				auto ValPtr = _Stack.Has(Item);
 
-				if (Val)
+				if (auto Val = ValPtr.value_unchecked())
 				{
 					CompilerRet.Info = IRlocData_StackPost(Val->Offset);
 				}
@@ -3605,9 +3627,8 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IROperator&
 		}
 		else
 		{
-			auto Val = _Stack.Has(Ins);
-
-			if (Val)
+			
+			if (auto Val = _Stack.Has(Ins).value_unchecked())
 			{
 				CompilerRet.Info = IRlocData_StackPost(Val->Offset);
 				
@@ -4270,9 +4291,10 @@ enum class TypeRegVal
 {
 	IRIns,
 	IROp,
+	IRAndOp,
 	Val
 };
-TypeRegVal Get(Variant<AnyInt64,const IRInstruction*, IROperator>& Item)
+TypeRegVal Get(Variant<AnyInt64,const IRInstruction*, IROperator,IRAndOperator>& Item)
 {
 	if (Item.Is< const IRInstruction*>())
 	{
@@ -4281,6 +4303,10 @@ TypeRegVal Get(Variant<AnyInt64,const IRInstruction*, IROperator>& Item)
 	else if (Item.Is<IROperator>())
 	{
 		return TypeRegVal::IROp;
+	}
+	else if (Item.Is<IRAndOperator>())
+	{
+		return TypeRegVal::IRAndOp;
 	}
 	else
 	{
@@ -4588,8 +4614,10 @@ void  UCodeBackEndObject::SynchronizePar(ParlocData* Par)
 	{
 		auto& Item = *_Stack.Items[i];
 
-		if (Item.IR == nullptr) { continue; }
-		if (IsLookingAtPar(Item.IR, Par->Par))
+		auto ptr = Item.IR.Get<const IRInstruction*>();
+
+		if (ptr == nullptr) { continue; }
+		if (IsLookingAtPar(ptr, Par->Par))
 		{
 			Par->Location = StackPostCall(Item.Offset);
 		}
