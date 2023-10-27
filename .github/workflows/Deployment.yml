@@ -331,7 +331,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output_Linux/UCodeLang/Linux/Published/libUCodeLang.a
+          asset_path: ./Output_Linux/UCodeLang/linux64/Published/libUCodeLang.a
           asset_name: libUCodeLang-linux64.a
           asset_content_type: application/octet-stream 
 
