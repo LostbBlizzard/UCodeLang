@@ -1,45 +1,142 @@
+thread uint8[/4]:int32 V1= [?,?,?,?]
+thread uint8[/4]:int32 V2= [?,?,?,?]
+thread uint8[/4]:int32 V3= [?,?,?,?]
+thread uint8[/4]:int32 V4= [?,?,?,?]
+thread uint8[/4]:int32 V5= [?,?,?,?]
+thread uint8[/4]:int32 V6= [?,?,?,?]
 
 |(&StaticInit&)[] -> void:;
 
 |(&StaticUnload&)[] -> void:;
 
-|(&threadInit&)[] -> void:;
+|(&threadInit&)[] -> void:
+
+ [Block:0]
+
+
+//File:src.uc
+//Line:14
+//Varable:V1
+
+   int32 A = 0;
+   V1 = A;
+
+//Line:15
+//Varable:V2
+
+   int32 B = 0;
+   V2 = B;
+
+//Line:16
+//Varable:V3
+
+   int32 C = 0;
+   V3 = C;
+
+//Line:18
+//Varable:V4
+
+   int32 D = 0;
+   V4 = D;
+
+//Line:19
+//Varable:V5
+
+   int32 E = 0;
+   V5 = E;
+
+//Line:20
+//Varable:V6
+
+   int32 F = 0;
+   V6 = F;
 
 |(&threadUnload&)[] -> void:;
 
-|Char_Test[] -> int8:
+|coolp^i32,i32,i32[int32 a,int32 b,int32 c] -> int32:
 
  [Block:0]
 
 
+//Varable:coolp:a
+//Varable:coolp:b
+//Varable:coolp:c
 //File:src.uc
-//Line:3
+//Line:26
+//Varable:coolp:m1
 
-   int8 A = 49;
-   ret = A;
-   ret;
+   int32 A;
+   int32 B = a;
+   A = B;
 
-|Byte_Test[] -> int8:
+//Line:27
+//Varable:coolp:m2
 
- [Block:0]
+   int32 C;
+   int32 D = b;
+   C = D;
 
+//Line:28
+//Varable:coolp:m3
 
-//File:src.uc
-//Line:5
+   int32 E;
+   int32 F = c;
+   E = F;
 
-   int8 A = 1;
-   ret = A;
-   ret;
+//Line:30
 
-|Float_Test[] -> float32:
+   int32 G = a;
+   int32 H = 1;
+   int32 I = G+H;
+   a = I;
 
- [Block:0]
+//Line:31
 
+   int32 J = b;
+   int32 K = 1;
+   int32 L = J+K;
+   b = L;
 
-//File:src.uc
-//Line:7
+//Line:32
 
-   float32 A = 1.500000;
-   ret = A;
+   int32 M = c;
+   int32 N = 1;
+   int32 O = M+N;
+   c = O;
+
+//Line:34
+
+   int32 P = A;
+   V1 = P;
+
+//Line:35
+
+   int32 Q = C;
+   V2 = Q;
+
+//Line:36
+
+   int32 R = E;
+   V3 = R;
+
+//Line:39
+
+   int32 S = a;
+   V4 = S;
+
+//Line:40
+
+   int32 T = b;
+   V5 = T;
+
+//Line:41
+
+   int32 U = c;
+   V6 = U;
+
+//Line:43
+
+   int32 V = a;
+   ret = V;
    ret;
 

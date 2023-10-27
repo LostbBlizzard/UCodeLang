@@ -1,13 +1,16 @@
 #pragma once
 #include "../../Middle/IR.hpp"
+#include "../../Middle/IRBackEndHelper.hpp"
 UCodeLangStart
+
 class RegistersManager
 {
 public:
 	
+	
 	struct RegisterInfo 
 	{
-		Optional<Variant< AnyInt64,const IRInstruction*, IROperator>> Types;
+		Optional<Variant<AnyInt64,const IRInstruction*, IROperator, IRAndOperator>> Types;
 	};
 	
 	RegistersManager();
@@ -116,12 +119,21 @@ public:
 struct StackItem
 {
 	size_t Offset = 0;
-	const IRInstruction* IR = nullptr;
+	Variant<const IRInstruction*, IRAndOperator> IR;
+
+	bool IsOperator = false;
 	StackItem(
 		size_t offset, const IRInstruction* ir)
 		:Offset(offset),IR(ir)
 	{
 
+		IsOperator = false;
+	}
+	StackItem(
+		size_t offset, const IRAndOperator& ir)
+		:Offset(offset), IR(ir)
+	{
+		IsOperator = true;
 	}
 };
 struct StackInfo
@@ -156,7 +168,7 @@ struct StackInfo
 	}
 
 
-	StackItem* Get(size_t Offset)
+	NullablePtr<StackItem> Get(size_t Offset)
 	{
 		for (auto& Item : Items)
 		{
@@ -169,27 +181,56 @@ struct StackInfo
 		return nullptr;
 	}
 
-	StackItem* Has(const IRInstruction* Value)
+	NullablePtr<StackItem> Has(const IRInstruction* Value)
 	{
 		for (auto& Item : Items)
 		{
-			if (Item->IR == Value)
+			if (auto Val = Item->IR.Get_If<const IRInstruction*>())
 			{
-				return Item.get();
+				if (*Val == Value)
+				{
+					return Item.get();
+				}
+			}
+		}
+
+		return {};
+	}
+	NullablePtr<StackItem> Has(const IRAndOperator& Value)
+	{
+		for (auto& Item : Items)
+		{
+			if (auto Val = Item->IR.Get_If<IRAndOperator>())
+			{
+				if (*Val == Value)
+				{
+					return Item.get();
+				}
 			}
 		}
 
 		return nullptr;
 	}
-	StackItem* Add(const IRInstruction* IR, size_t Offset)
+
+	NeverNullPtr<StackItem> Add(const IRInstruction* IR, size_t Offset)
 	{
 		return Items.emplace_back(std::make_unique<StackItem>(Offset,IR)).get();
 	}
-	StackItem* Add(const StackItem& Item)
+	NeverNullPtr<StackItem> Add(const IRAndOperator& IR, size_t Offset)
 	{
-		return Add(Item.IR, Item.Offset);
+		return Items.emplace_back(std::make_unique<StackItem>(Offset, IR)).get();
 	}
-	StackItem* AddWithSize(const IRInstruction* IR, size_t ObjectSize)
+	NeverNullPtr<StackItem> Add(const StackItem& Item)
+	{
+		return Items.emplace_back(std::make_unique<StackItem>(Item)).get();
+	}
+	NeverNullPtr<StackItem> AddWithSize(const IRInstruction* IR, size_t ObjectSize)
+	{
+		auto R = Add(IR, Size);
+		Size += ObjectSize;
+		return R;
+	}
+	NeverNullPtr<StackItem> AddWithSize(const IRAndOperator& IR, size_t ObjectSize)
 	{
 		auto R = Add(IR, Size);
 		Size += ObjectSize;
