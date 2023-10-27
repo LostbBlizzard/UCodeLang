@@ -13,16 +13,26 @@ class Compiler
 {
 
 public:
-	enum class CompilerState : UInt8
+	struct CompliationSuccess
 	{
-		Null,Fail,Success, CompilerError
+		NeverNullPtr<UClib> OutPut = nullptr;
+		Optional<BytesPtr> OutFile;
+		CompliationSuccess()
+		{
+
+		}
+		CompliationSuccess(NeverNullPtr<UClib> OutPut)
+		{
+			this->OutPut = OutPut;
+		}
+		CompliationSuccess(NeverNullPtr<UClib> OutPut, BytesPtr&& OutFile)
+		{
+			this->OutPut = OutPut;
+			this->OutFile =std::move(OutFile);
+		}
 	};
-	struct CompilerRet
-	{
-		CompilerState _State= CompilerState::Null;
-		UClib* OutPut =nullptr;
-		BytesPtr OutFile;
-	};
+	using CompilerRet = Result<CompliationSuccess,NeverNullPtr<CompliationErrors>>;
+
 	struct CompilerPathData
 	{
 		Path FileDir;
@@ -50,8 +60,7 @@ public:
 
 
 	UCodeLangAPIExport CompilerRet CompileFiles_UseIntDir(const CompilerPathData& Data, const ExternalFiles& ExternalFiles = {});
-	//CompilerRet CompileFiles_UseIntDir(const Vector<Path>& files, const Path& intDir, const  ExternalFiles& ExternalFiles = {});
-
+	
 	UCodeLangAPIExport BytesPtr OpenFile(const LangDefInfo::FileInfo* FInfo, const Path& path);
 
 	

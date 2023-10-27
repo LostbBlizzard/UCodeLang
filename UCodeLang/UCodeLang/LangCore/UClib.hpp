@@ -379,14 +379,14 @@ public:
 	{
 		auto V = GetLayer(Name);
 
-		if (V)
-		{
-			return V;
-		}
-		else
-		{
-			return AddLayer(Name);
-		}
+if (V)
+{
+	return V;
+}
+else
+{
+	return AddLayer(Name);
+}
 	}
 
 	inline ClassAssembly& Get_Assembly()
@@ -430,7 +430,7 @@ public:
 	static void ToBytes(BitMaker& Output, const GenericBase_Data& FuncPtrData);
 	static void ToBytes(BitMaker& Output, const TraitMethod& FuncPtrData);
 	//
-	static bool FromBytes(UClib* Lib,const BytesView& Data);
+	static bool FromBytes(UClib* Lib, const BytesView& Data);
 
 	static void FromBytes(BitReader& Input, CodeLayer& Data);
 
@@ -466,14 +466,28 @@ public:
 
 	static void FixRawValue(Endian AssemblyEndian, NTypeSize BitSize, const ClassAssembly& Types, TypedRawReflectionData& RawValue)
 	{
-		FixRawValue(AssemblyEndian,BitSize, Types, RawValue._Data, RawValue._Type);
+		FixRawValue(AssemblyEndian, BitSize, Types, RawValue._Data, RawValue._Type);
 	}
-	static void FixRawValue(Endian AssemblyEndian, NTypeSize BitSize,const ClassAssembly& Types, ReflectionRawData& RawValue, const ReflectionTypeInfo& Type);
+	static void FixRawValue(Endian AssemblyEndian, NTypeSize BitSize, const ClassAssembly& Types, ReflectionRawData& RawValue, const ReflectionTypeInfo& Type);
 	static void FixAssemblyRawValues(Endian AssemblyEndian, NTypeSize BitSize, const ClassAssembly& Assembly);
 
 
-	static bool ToFile(const UClib* Lib,const Path& path);
+	static bool ToFile(const UClib* Lib, const Path& path);
 	static bool FromFile(UClib* Lib, const Path& path);
+
+	static Optional<UClib> OpenFile(const Path& path)
+	{
+		UClib r;
+		if (FromFile(&r, path))
+		{
+			return r;
+		}
+		return {};
+	}
+	bool WriteToFile(const Path& path)
+	{
+		return ToFile(this, path);
+	}
 
 	NTypeSize BitSize = NTypeSize::intNative;
 	LibType _LibType = LibType::Default;

@@ -1365,7 +1365,7 @@ bool buildfile2(UCodeLang::Path& filetorun, UCodeLang::Compiler& _Compiler, UCod
 				_This.ExeRet = EXIT_FAILURE;
 			}
 			else {
-				bool ItWorked = module.BuildModule(_Compiler, _ModuleIndex).CompilerRet._State == Compiler::CompilerState::Success;
+				bool ItWorked = module.BuildModule(_Compiler, _ModuleIndex).CompilerRet.IsValue();
 				if (!ItWorked)
 				{
 					*_This.output << "Compiler Fail:\n";
@@ -1394,7 +1394,7 @@ bool buildfile2(UCodeLang::Path& filetorun, UCodeLang::Compiler& _Compiler, UCod
 			v.IntDir = (filetorun / ModuleFile::ModuleIntPath);
 			v.OutFile = Path((filetorun / filetorun.filename()).native() + Path(_Compiler.GetOutputExtWithDot()).native());
 			
-			bool ItWorked = _Compiler.CompileFiles_UseIntDir(v)._State == Compiler::CompilerState::Success;
+			bool ItWorked = _Compiler.CompileFiles_UseIntDir(v).IsValue();
 			if (!ItWorked)
 			{
 				*_This.output << "Compiler Fail:\n";
@@ -1417,7 +1417,7 @@ bool buildfile2(UCodeLang::Path& filetorun, UCodeLang::Compiler& _Compiler, UCod
 	else if (filetorun.extension() == Path(FileExt::SourceFileWithDot))
 	{
 		Path v = filetorun.native() + Path("out").native() + Path(_Compiler.GetOutputExtWithDot()).native();
-		bool ItWorked = _Compiler.CompilePathToObj(filetorun, v)._State == Compiler::CompilerState::Success;
+		bool ItWorked = _Compiler.CompilePathToObj(filetorun, v).IsValue();
 		
 		if (!ItWorked)
 		{
@@ -1449,7 +1449,7 @@ bool buildfile2(UCodeLang::Path& filetorun, UCodeLang::Compiler& _Compiler, UCod
 		}
 		else 
 		{
-			bool ItWorked = module.BuildModule(_Compiler, _ModuleIndex).CompilerRet._State == Compiler::CompilerState::Success;
+			bool ItWorked = module.BuildModule(_Compiler, _ModuleIndex).CompilerRet.IsValue();
 			if (!ItWorked)
 			{
 				*_This.output << "Compiler Fail:\n";

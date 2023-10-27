@@ -305,9 +305,9 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 
 				Compiler.Get_Settings() = OldSettings;
 				
-				if (build.CompilerRet._State == Compiler::CompilerState::Success)
+				if (build.CompilerRet.IsValue())
 				{
-					UClib& buildscriptlib = *build.CompilerRet.OutPut;
+					UClib& buildscriptlib = *build.CompilerRet.GetValue().OutPut;
 
 					ClassMethod* buildfuncion = buildscriptlib.Get_Assembly().Find_Func("build");
 
@@ -337,13 +337,12 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 						if (itworked == 0)
 						{
 							ModuleRet CompilerRet;
-							CompilerRet.CompilerRet._State = Compiler::CompilerState::Success;
 							return CompilerRet;
 						}
 						else
 						{
 							ModuleRet CompilerRet;
-							CompilerRet.CompilerRet._State = Compiler::CompilerState::Fail;
+							CompilerRet.CompilerRet = NeverNullptr(&Compiler.Get_Errors());
 							return CompilerRet;
 						}
 					}
@@ -351,14 +350,14 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 					{
 						Compiler.Get_Errors().AddError(ErrorCodes::ExpectingToken, 0, 0, "Cant find funcion |build[BuildSystem& system] for build script.");
 						ModuleRet CompilerRet;
-						CompilerRet.CompilerRet._State = Compiler::CompilerState::Fail;
+						CompilerRet.CompilerRet = NeverNullptr(&Compiler.Get_Errors());
 						return CompilerRet;
 					}
 				}
 				else
 				{
 					ModuleRet CompilerRet;
-					CompilerRet.CompilerRet._State = Compiler::CompilerState::Fail;
+					CompilerRet.CompilerRet = NeverNullptr(&Compiler.Get_Errors());
 					return CompilerRet;
 				}
 			}
@@ -401,7 +400,7 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 				else
 				{
 					ModuleRet CompilerRet;
-					CompilerRet.CompilerRet._State = Compiler::CompilerState::Fail;
+					CompilerRet.CompilerRet = NeverNullptr(&Compiler.Get_Errors());
 					return CompilerRet;
 				}
 			}
@@ -417,7 +416,7 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 
 
 		ModuleRet CompilerRet;
-		CompilerRet.CompilerRet._State = Compiler::CompilerState::Fail;
+		CompilerRet.CompilerRet = NeverNullptr(&Compiler.Get_Errors());
 		return CompilerRet;
 	}
 }
@@ -444,7 +443,7 @@ void ModuleFile::BuildModuleDependencies(
 			if (ModuleFile::FromFile(&MFile, Index._ModuleFullPath))
 			{
 				auto BuildData = MFile.BuildModule(Compiler, Modules, true);
-				if (BuildData.CompilerRet._State == Compiler::CompilerState::Fail)
+				if (BuildData.CompilerRet.IsError())
 				{
 					Errs.FilePath = GetFullPathName();
 
@@ -544,25 +543,25 @@ ModuleFile::ModuleRet ModuleFile::BuildFile(const String& filestring, Compiler& 
 	auto buildscriptinfo = Compiler.CompileText(filetext);
 	if (Err == false)
 	{
-		if (buildscriptinfo._State == Compiler::CompilerState::Success)
+		if (buildscriptinfo.IsValue())
 		{
 			ModuleRet CompilerRet;
 			CompilerRet.OutputItemPath = "";
-			CompilerRet.CompilerRet._State = std::move(buildscriptinfo._State);
+			CompilerRet.CompilerRet = std::move(buildscriptinfo);
 			return CompilerRet;
 		}
 		else
 		{
 			ModuleRet CompilerRet;
 			CompilerRet.OutputItemPath = "";
-			CompilerRet.CompilerRet._State = std::move(buildscriptinfo._State);
+			CompilerRet.CompilerRet = std::move(buildscriptinfo);
 			return CompilerRet;
 		}
 	}
 	else
 	{
 		ModuleRet CompilerRet;
-		CompilerRet.CompilerRet._State = Compiler::CompilerState::Fail;
+		CompilerRet.CompilerRet = NeverNullptr(&Compiler.Get_Errors());
 		return CompilerRet;
 	}
 }
