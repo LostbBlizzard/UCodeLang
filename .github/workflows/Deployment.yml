@@ -247,7 +247,7 @@ jobs:
 
           draft: false
           prerelease: ${{ inputs.IsPreRelease }}
-          tag_name: Release ${{ inputs.VersionNumber }}
+          tag_name: Release 
       
       - name: Upload UCodeLangCAPI
         uses: actions/upload-release-asset@v1
@@ -266,7 +266,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output_Windows/Win64/Published/UCodeLang.lib
+          asset_path: ./Output_Windows/UCodeLang/Win64/Published/UCodeLang.lib
           asset_name: UCodeLang-win64.lib
           asset_content_type: application/octet-stream 
 
@@ -292,16 +292,18 @@ jobs:
 
       
       - name: Upload UCodeLangLibWindows32
+        if: ${{ inputs.IsPreRelease == false}}
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} 
-          asset_path: ./Output_Windows/Win32/Published/UCodeLang.lib
+          asset_path: ./Output_Windows/UCodeLang/Win32/Published/UCodeLang.lib
           asset_name: UCodeLang-win32.lib
           asset_content_type: application/octet-stream 
       
       - name: Upload UCodeLangCLWindows32
+        if: ${{ inputs.IsPreRelease == false}}
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -312,6 +314,7 @@ jobs:
           asset_content_type: application/octet-stream 
       
       - name: Upload UCodeLangSeverWindows32
+        if: ${{ inputs.IsPreRelease == false}}
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
