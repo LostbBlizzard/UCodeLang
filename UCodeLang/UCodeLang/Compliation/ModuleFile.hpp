@@ -110,6 +110,20 @@ public:
 	static bool ToFile(const ModuleFile* Lib, const Path& path);
 	static bool FromFile(ModuleFile* Lib, const Path& path);
 
+	static Optional<ModuleFile> OpenFile(const Path& path)
+	{
+		ModuleFile r;
+		if (FromFile(&r, path))
+		{
+			return r;
+		}
+		return {};
+	}
+	bool WriteToFile(const Path& path)
+	{
+		return ToFile(this, path);
+	}
+
 	void NewInit(String ModuleName, String AuthorName);
 
 

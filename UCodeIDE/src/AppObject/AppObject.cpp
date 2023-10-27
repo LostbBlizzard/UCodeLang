@@ -408,9 +408,9 @@ void AppObject::DrawTestMenu()
                     || Test.Condition == SuccessCondition::CompilationFail)
                 {
                     if (
-                        (Com_r._State == Compiler::CompilerState::Success && Test.Condition == SuccessCondition::Compilation)
+                        (Com_r.IsValue() && Test.Condition == SuccessCondition::Compilation)
                         ||
-                        (Com_r._State == Compiler::CompilerState::Fail && Test.Condition == SuccessCondition::CompilationFail)
+                        (Com_r.IsError() && Test.Condition == SuccessCondition::CompilationFail)
                         )
                     {
                         Logs += "Success from test '" + (String)Test.TestName + ModeType(flag) + "'" + '\n';
@@ -431,7 +431,7 @@ void AppObject::DrawTestMenu()
 
                 }
 
-                if (Com_r._State != Compiler::CompilerState::Success)
+                if (Com_r.IsError())
                 {
                     Logs += (String)"fail from test [Cant Compile File/Files] '" + String(Test.TestName) + ModeType(flag) + "'" + '\n';
 
@@ -516,7 +516,7 @@ void AppObject::DrawTestMenu()
                 }
                 else if (Testmod == TestMode::C89)
                 {
-                    UClib& ulib = *Com_r.OutPut;
+                    UClib& ulib = *Com_r.GetValue().OutPut;
                     auto ufunc = ulib.Get_Assembly().Find_Func(Test.FuncToCall);
                     UCodeLangAssert(ufunc);
                     {
@@ -710,7 +710,8 @@ void AppObject::DrawTestMenu()
                 }
                 else if (Testmod == TestMode::Wasm)
                 {
-                    UClib& ulib = *Com_r.OutPut;
+                    UClib& ulib = *Com_r.GetValue().OutPut;
+                    auto& outfile = Com_r.GetValue().OutFile.value();
 
                     auto ufunc = ulib.Get_Assembly().Find_Func(Test.FuncToCall);
                     UCodeLangAssert(ufunc);
@@ -719,7 +720,7 @@ void AppObject::DrawTestMenu()
 
                     std::stringstream ss;
                     ss << "const wasm = new Uint8Array([";
-                    for (const auto& b : Com_r.OutFile) {
+                    for (const auto& b : outfile) {
                         ss << "0x" << std::hex << static_cast<int>(b) << ", ";
                     }
                     ss << "]);\n";
@@ -1393,7 +1394,7 @@ void AppObject::DrawTestMenu()
                                     try
                                     {
                                         auto ret = file.BuildModule(compiler, LangIndex);
-                                        if (ret.CompilerRet._State == UCodeLang::Compiler::CompilerState::Success)
+                                        if (ret.CompilerRet.IsValue())
                                         {
 
                                             ItemOut.State = TestInfo::TestState::Passed;
@@ -1491,7 +1492,7 @@ void AppObject::DrawTestMenu()
                                         try
                                         {
                                             auto ret = file.BuildModule(compiler, LangIndex);
-                                            if (ret.CompilerRet._State == UCodeLang::Compiler::CompilerState::Success)
+                                            if (ret.CompilerRet.IsValue())
                                             {
 
                                                 ItemOut.State = TestInfo::TestState::Passed;
@@ -3269,9 +3270,7 @@ void AppObject::CompileText(const String& String)
 
 
             auto v = f.BuildModule(_Compiler, index, true);
-            if (v.CompilerRet._State
-                ==
-                UCodeLang::Compiler::CompilerState::Fail)
+            if (v.CompilerRet.IsError())
             {
                 IsRuningCompiler = false;
                 auto& r = v.CompilerRet;
@@ -3284,7 +3283,7 @@ void AppObject::CompileText(const String& String)
         }
 
 
-        UCodeLang::Compiler::CompilerRet r;
+        UCodeLang::Compiler::CompilerRet r =UCodeLang::NeverNullptr(&_Compiler.Get_Errors());
         if (Apifile)
         {
             std::filesystem::remove_all(paths.IntDir);
@@ -3315,7 +3314,7 @@ void AppObject::CompileText(const String& String)
 
 void AppObject::OnDoneCompileing(UCodeLang::Compiler::CompilerRet& Val, const UCodeAnalyzer::Path& tepoutpath)
 {
-    if (Val._State == UCodeLang::Compiler::CompilerState::Success)
+    if (Val.IsValue())
     {
         Errors.clear();
 

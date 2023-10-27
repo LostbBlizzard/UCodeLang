@@ -14,12 +14,12 @@
 #endif
 
 UCodeLangStart
+
+
 Compiler::CompilerRet Compiler::CompileText(const String_view& Text, const ExternalFiles& ExternalFiles)
 {
 	//
-	CompilerRet CompilerRet;
-	CompilerRet._State = CompilerState::Fail;
-	CompilerRet.OutPut = nullptr;
+	CompilerRet error = NeverNullptr(&_Errors);
 
 	_Errors.FilePath = _Errors.FilePath;
 
@@ -43,7 +43,7 @@ Compiler::CompilerRet Compiler::CompileText(const String_view& Text, const Exter
 	auto Item = _FrontEndObject->BuildFile(Text);
 	
 
-	if (Item == nullptr || _Errors.Has_Errors()) { return CompilerRet; }
+	if (Item == nullptr || _Errors.Has_Errors()) { return error; }
 	Item->FileName = "src.uc";
 
 
@@ -76,25 +76,26 @@ Compiler::CompilerRet Compiler::CompileText(const String_view& Text, const Exter
 	auto& IRCode = *_FrontEndObject->Get_Builder();
 	Optimize(IRCode);
 	
-	if (_Errors.Has_Errors()) { return CompilerRet; }
+	if (_Errors.Has_Errors()) { return error; }
 
 	_BackEndObject->Build(&IRCode);
 
-	if (_Errors.Has_Errors()) { return CompilerRet; }
+	if (_Errors.Has_Errors()) { return error; }
 
-	CompilerRet._State = _Errors.Has_Errors() ? CompilerState::Fail : CompilerState::Success;
+	CompliationSuccess r;
+	r.OutPut = NeverNullptr(&_BackEndObject->Getliboutput());
+	
 
-	
-	CompilerRet.OutPut = &_BackEndObject->Getliboutput();
-	
 	
 	if (_BackEndObject->GetOutput().Size()) {
 		auto bytes = _BackEndObject->GetOutput();
-		CompilerRet.OutFile.Resize(bytes.Size());
-		memcpy(CompilerRet.OutFile.Data(), bytes.Data(), bytes.Size());
+		BytesPtr m;
+		m.Resize(bytes.Size());
+		memcpy(m.Data(), bytes.Data(), bytes.Size());
+		r.OutFile = std::move(m);
 	}
 
-	return CompilerRet;
+	return error;
 }
 String Compiler::GetTextFromFile(const Path& path)
 {
@@ -146,26 +147,30 @@ Compiler::CompilerRet Compiler::CompilePathToObj(const Path& path, const Path& O
 	auto Text = GetTextFromFile(path);
 	CompilerRet r = CompileText(Text,ExternalFiles);
 
-	if (r._State == CompilerState::Success)
+	if (auto Val = r.IfValue())
 	{
-		if (r.OutFile.Size())
+		if (Val->OutFile.has_value())
 		{
+			auto& file = Val->OutFile.value();
+
 			std::ofstream File(OutLib, std::ios::binary);
 			if (File.is_open())
 			{
-				File.write((const char*)r.OutFile.Data(), r.OutFile.Size());
+				File.write((const char*)file.Data(), file.Size());
 				File.close();
 			}
 		}
 		else 
 		{
-			UClib::ToFile(r.OutPut, OutLib);
+			UClib::ToFile(Val->OutPut.value(), OutLib);
 		}
 	}
 
 	return r;
 }
 namespace fs = std::filesystem;
+
+
 Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data, const ExternalFiles& ExternalFiles)
 {
 
@@ -260,9 +265,8 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data, const
 	}
 
 	
-	CompilerRet r;
-	r._State = CompilerState::Fail;
-	r.OutPut = nullptr;
+	CompilerRet r = NeverNullptr(&_Errors);
+
 	if (!_Errors.Has_Errors())
 	{
 	
@@ -299,12 +303,18 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data, const
 					_BackEndObject->Build(output);
 
 					auto Output = _BackEndObject->GetOutput();
-
-					r.OutPut = &_BackEndObject->Getliboutput();
+					
+					CompliationSuccess success;
+					success.OutPut = &_BackEndObject->Getliboutput();
+					
+					
 					if (Output.Size())
 					{
-						r.OutFile.Resize(Output.Size());
-						memcpy(r.OutFile.Data(), Output.Data(), Output.Size());
+						BytesPtr m;
+						m.Resize(Output.Size());
+						memcpy(m.Data(), Output.Data(), Output.Size());
+
+						success.OutFile = std::move(m);
 
 						std::ofstream File(Data.OutFile, std::ios::binary);
 						if (File.is_open())
@@ -315,15 +325,15 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data, const
 					}
 					else
 					{
-						UClib::ToFile(r.OutPut, Data.OutFile);
+						UClib::ToFile(&_BackEndObject->Getliboutput(), Data.OutFile);
 					}
+					return success;
 				}
 			}
 		}
 	}
 
 	
-	r._State = _Errors.Has_Errors() ? CompilerState::Fail : CompilerState::Success;
 	return r;
 }
 
@@ -930,9 +940,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 
 	}
 
-	CompilerRet r;
-	r._State = CompilerState::Fail;
-	r.OutPut = nullptr;
+	CompilerRet r = NeverNullptr(&_Errors);
 
 	bool sholdcompile = Files.size() || !fs::exists(Data.OutFile);
 	if (sholdcompile && !_Errors.Has_Errors())
@@ -974,6 +982,9 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 						_BackEndObject->Build(output);
 
 						auto Output = _BackEndObject->GetOutput();
+
+						CompliationSuccess success;
+
 						if (Output.Size())
 						{
 							std::ofstream File(Data.OutFile, std::ios::binary);
@@ -982,15 +993,14 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 								File.write((const char*)Output.Data(), Output.Size());
 								File.close();
 							}
-							r.OutPut = &_BackEndObject->Getliboutput();
-							UClib::ToFile(r.OutPut, ExtraOutputLibPath);
+							BytesPtr m;
+							m.Resize(Output.Size());
+							memcpy(m.Data(), Output.Data(), Output.Size());
 						}
-						else
-						{
-							r.OutPut = &_BackEndObject->Getliboutput();
-							UClib::ToFile(r.OutPut, Data.OutFile);
-						}
+						success.OutPut = &_BackEndObject->Getliboutput();
+						UClib::ToFile(&_BackEndObject->Getliboutput(), Data.OutFile);
 
+						r = std::move(success);
 
 						//spit file the get inters
 						for (auto& Item : ChangedFiles)
@@ -1082,28 +1092,35 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 		if (!_Errors.Has_Errors()) 
 		{
 			auto bytes = GetBytesFromFile(Data.OutFile);
+
+			thread_local UClib lib;
+
 			if (Data.OutFile.extension() == FileExt::LibWithDot)
 			{
-				thread_local UClib lib;
+				
+				CompliationSuccess success;
+
 				UClib::FromBytes(&lib, bytes.AsSpan());
-				r.OutPut = &lib;
+				success.OutPut = &lib;
+
+				r = std::move(success);
 			}
 			else
 			{
-				thread_local UClib lib;
 				UClib::FromFile(&lib,ExtraOutputLibPath);
 
-				r.OutFile = std::move(bytes);
-				r.OutPut = &lib;
+				CompliationSuccess success;
+
+				success.OutFile = std::move(bytes);
+				success.OutPut = &lib;
+
+				r = std::move(success);
 			}
 		}
 	}
 
-	r._State = _Errors.Has_Errors() ? CompilerState::Fail : CompilerState::Success;
-
 	
-
-	if (r._State == CompilerState::Success && Files.size())
+	if (r.IsValue() && Files.size())
 	{
 		for (auto& Item : NewFilesInfo)
 		{
