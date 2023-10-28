@@ -86,7 +86,24 @@ int App::main(int argc, char* argv[])
 	_This.Input = &std::cin;
 	
 
-	
+	bool nohasCmds = argc == 1;
+
+	if (nohasCmds)
+	{
+		String_view Line = "help";
+		ParseLine(Line);
+		
+		
+		while (_This.EndApp == false)
+		{
+			std::string line;
+			std::getline(*_This.Input, line);
+
+			String_view Line = line;
+			ParseLine(Line);
+		}
+	}
+	else
 	{
 		String V;
 		for (size_t i = 1; i < argc; i++)
@@ -113,18 +130,6 @@ int App::main(int argc, char* argv[])
 		}
 	}
 
-	#if UCodeLangDebug
-	if (IsDebuging) {
-		while (_This.EndApp == false)
-		{
-			std::string line;
-			std::getline(*_This.Input, line);
-
-			String_view Line = line;
-			ParseLine(Line);
-		}
-	}
-	#endif
 	
 
 	return _This.ExeRet;
@@ -1315,30 +1320,59 @@ void ParseLine(String_view& Line)
 		UCodeLang::ModuleIndex f = UCodeLang::ModuleIndex::GetModuleIndex();
 		f.RemoveDeletedModules();
 		UCodeLang::ModuleIndex::SaveModuleIndex(f);
+
+
+		_This.ExeRet = EXIT_SUCCESS;
 	}
 	else if (Word1 == "help" || Word1 == "-h")
 	{
+		AppPrintin("Usage: uclang [command] [args]");
 		*_This.output << "put help info here.\n";
+
+		AppPrintin("new           [Path]     :Makes a new Module Project");
+		AppPrintin("build         [Path]     :Builds the UCode file,Module,folder");
+		AppPrintin("run           [Path] <FuncionName(<Args>)>    :run the UCode file,Module,folder,.ulib");
+		AppPrintin("test          [Path]     :Runs Tests the UCode file,Module,folder,.ulib");
+		AppPrintin("dump          [Path]     :Convert the UCode file,Module,folder,.ulib to Readable Text");
+		AppPrintin("fmt           [Path]     :Format the UCode file,Module,folder");
+		AppPrintin("index         [Path]     :Adds Module to to the Module Index");
+		AppPrintin("update        [Path]     :Updates Module Dependencies");
+		AppPrintin("cpptoulangvm  [CppPath] [UCodeLangBindingPath] [CppVMBindingPath]     :Makes ULang Bindings from C++ Source for UCodeVm");
+
+		AppPrintin("install [Name] :Installs a UCodeLangModule");
+		AppPrintin("runmod [Name] :runs a Installed UCodeLangModule");
+		AppPrintin("uninstallmod [Name] :uninstalls a Installed UCodeLangModule");
+
+		AppPrintin("updatetools [Name] :updates UCodeLangTools");
+		AppPrintin("uninstalltools [Name] :uninstalls UCodeLangTools");
+		AppPrintin("exit : closes the window");
 	}
-	else if (Word1 == "close" || Word1 == "-q")
+	else if (Word1 == "exit" || Word1 == "-q")
 	{
 		_This.EndApp = true;
 	}
 	else if (Word1 == "--new")
 	{
 		AppPrintin("use \"new\" and not \"--new\"");
+
+
+		_This.ExeRet = EXIT_FAILURE;
 	}
 	else if (Word1 == "--run")
 	{
 		AppPrintin("use \"run\" and not \"--run\"");
+
+		_This.ExeRet = EXIT_FAILURE;
 	}
 	else if (Word1 == "--help")
 	{
 		AppPrintin("use \"help\" and not \"--help\"\n");
+
+		_This.ExeRet = EXIT_FAILURE;
 	}
 	else
 	{
-		//*_This.output << "bad command use the \"help\" command for help\n";
+		AppPrintin("bad command use the \"help\" command for help");
 		//TokenCheck(Word1);
 	}
 }
