@@ -303,7 +303,7 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data, const
 
 					auto Output = _BackEndObject->GetOutput();
 					
-					CompliationSuccess success = CompliationSuccess(&_BackEndObject->Getliboutput());
+					CompliationSuccess success = CompliationSuccess(& _BackEndObject->Getliboutput());
 					
 					
 					if (Output.Size())
@@ -981,7 +981,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 
 						auto Output = _BackEndObject->GetOutput();
 
-						CompliationSuccess success =CompliationSuccess(&_BackEndObject->Getliboutput());
+						CompliationSuccess success = CompliationSuccess(& _BackEndObject->Getliboutput());
 
 						if (Output.Size())
 						{
@@ -1105,7 +1105,7 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 			{
 				UClib::FromFile(&lib,ExtraOutputLibPath);
 
-				CompliationSuccess success =CompliationSuccess(&lib);
+				CompliationSuccess success = CompliationSuccess(&lib);
 
 				success.OutFile = std::move(bytes);
 				r = std::move(success);
