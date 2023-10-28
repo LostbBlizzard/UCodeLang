@@ -65,6 +65,7 @@ workspace "UCodeLang"
    filter { "platforms:Android" }
     system "android"
     architecture "ARM64"
+    toolset "clang"
 
    filter { "platforms:IOS" }
     system "ios"

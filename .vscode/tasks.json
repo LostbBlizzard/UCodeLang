@@ -116,11 +116,20 @@
         "command": "hugo server"
       },
       {
-        "label": "Build web",
+        "label": "Build using emscripten",
         "command": "emmake",
         "args": [
           "make",
           "config=debug_web",
+          "-j4",
+        ],
+        "group": "build",
+      },
+      {
+        "label": "Build Android",
+        "command": "make",
+        "args": [
+          "config=debug_android",
           "-j4",
         ],
         "group": "build",
