@@ -121,7 +121,6 @@ namespace ECSExample
 		{
 			Components.push_back(std::make_unique<T>());
 			auto r = Components.back().get();
-			r->myscenc = myscenc;
 			r->myentity = this;
 
 			return r;

@@ -336,25 +336,25 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 
 						if (itworked == 0)
 						{
-							ModuleRet CompilerRet = NeverNullptr(&Compiler.Get_Errors());
+							ModuleRet CompilerRet =Compiler::CompilerRet(NeverNullptr(&Compiler.Get_Errors()));
 							return CompilerRet;
 						}
 						else
 						{
-							ModuleRet CompilerRet = NeverNullptr(&Compiler.Get_Errors());
+							ModuleRet CompilerRet =Compiler::CompilerRet(NeverNullptr(&Compiler.Get_Errors()));
 							return CompilerRet;
 						}
 					}
 					else
 					{
 						Compiler.Get_Errors().AddError(ErrorCodes::ExpectingToken, 0, 0, "Cant find funcion |build[BuildSystem& system] for build script.");
-						ModuleRet CompilerRet = NeverNullptr(&Compiler.Get_Errors());
+						ModuleRet CompilerRet =Compiler::CompilerRet(NeverNullptr(&Compiler.Get_Errors()));
 						return CompilerRet;
 					}
 				}
 				else
 				{
-					ModuleRet CompilerRet = NeverNullptr(&Compiler.Get_Errors());
+					ModuleRet CompilerRet = Compiler::CompilerRet(NeverNullptr(&Compiler.Get_Errors()));
 					return CompilerRet;
 				}
 			}
@@ -373,7 +373,7 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 					std::cout << '\n';
 					#endif
 
-					ModuleRet CompilerRet = NeverNullptr(&Compiler.Get_Errors());
+					ModuleRet CompilerRet = Compiler::CompilerRet(NeverNullptr(&Compiler.Get_Errors()));
 					{
 						Compiler.Get_Settings()._Type = IsSubModule ? OutPutType::IRAndSymbols : OldSettings._Type;
 						CompilerRet.OutputItemPath = GetPaths(Compiler, IsSubModule).OutFile;
@@ -396,7 +396,7 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 				}
 				else
 				{
-					ModuleRet CompilerRet = NeverNullptr(&Compiler.Get_Errors());
+					ModuleRet CompilerRet = Compiler::CompilerRet(NeverNullptr(&Compiler.Get_Errors()));
 					return CompilerRet;
 				}
 			}
@@ -411,7 +411,7 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 		Compiler.Get_Errors().AddError(ErrorCodes::CouldNotFindFunc, 0, 0, "Download Error:" + out);
 
 
-		ModuleRet CompilerRet = NeverNullptr(&Compiler.Get_Errors());
+		ModuleRet CompilerRet = Compiler::CompilerRet(NeverNullptr(&Compiler.Get_Errors()));
 		return CompilerRet;
 	}
 }
@@ -553,7 +553,7 @@ ModuleFile::ModuleRet ModuleFile::BuildFile(const String& filestring, Compiler& 
 	}
 	else
 	{
-		ModuleRet CompilerRet = NeverNullptr(&Compiler.Get_Errors());
+		ModuleRet CompilerRet = Compiler::CompilerRet(NeverNullptr(&Compiler.Get_Errors()));
 		return CompilerRet;
 	}
 }
