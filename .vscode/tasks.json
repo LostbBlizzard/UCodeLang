@@ -115,5 +115,15 @@
         "label": "start UCodeWebsite",
         "command": "hugo server"
       },
+      {
+        "label": "Build web",
+        "command": "emmake",
+        "args": [
+          "make",
+          "config=debug_web",
+          "-j4",
+        ],
+        "group": "build",
+      }
     ]
   }
