@@ -238,6 +238,7 @@ private:
 	void OnFunc(const IRFunc* IR);
 	void OnBlock(const IRBlock* IR);
 	void DoOptimizations();
+	void DoPostOptimizations();
 	void LinkFuncs();
 
 	void BuildSymbols();

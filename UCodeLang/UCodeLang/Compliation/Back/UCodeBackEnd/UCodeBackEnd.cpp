@@ -3,6 +3,7 @@
 #include "UCodeLang/Compliation/Helpers/NameDecoratior.hpp"
 #include "UCodeLang/LangCore/UClib.hpp"
 #include "UCodeLang/Compliation/CompliationSettings.hpp"
+#include "InsHelper.hpp"
 UCodeLangStart
 
 #define GenIns(x) ResetIns(); x;
@@ -184,7 +185,7 @@ void UCodeBackEndObject::Build(const IRBuilder* Input)
 
 		AddDebugInfo();
 
-		
+		DoPostOptimizations();
 	}
 }
 void UCodeBackEndObject::AddDebugInfo()
@@ -337,6 +338,107 @@ void UCodeBackEndObject::DoOptimizations()
 
 		}
 	}
+}
+void UCodeBackEndObject::DoPostOptimizations()
+{
+	return;
+
+	for (size_t i = 0; i < _OutLayer->_Instructions.size(); i++)
+	{
+		auto oldindex = i;
+		auto& Item = _OutLayer->_Instructions[i];
+		size_t FuncSize = 0;
+		while (i < _OutLayer->_Instructions.size())
+		{
+			if (_OutLayer->_Instructions[i].OpCode == InstructionSet::Return)
+			{
+				FuncSize = i - oldindex;
+				break;
+			}
+
+			i++;
+		}
+
+		Span<Instruction> FuncBody = Span<Instruction>::Make(&Item,FuncSize);
+		for (size_t i = 0; i < FuncBody.Size(); i++)
+		{
+			auto& Item = FuncBody[i];
+			if (Item.OpCode == InstructionSet::Store8)
+			{
+				if (Item.Op_RegUInt8.B == 0) {
+					auto reg = Item.Op_RegUInt8.A;
+					InstructionBuilder::bitwise_Xor8(Item, reg, reg, reg);
+				}
+			}
+			else if (Item.OpCode == InstructionSet::Store16)
+			{
+				if (Item.Op_RegUInt16.B == 0) {
+					auto reg = Item.Op_RegUInt8.A;
+					InstructionBuilder::bitwise_Xor16(Item, reg, reg, reg);
+				}
+			}
+			else if (Item.OpCode == InstructionSet::Store32v1)
+			{
+				auto& Other = FuncBody[i + 1];
+
+				if (Item.Op_RegUInt16.B == 0
+					&& Other.Op_RegUInt16.B == 0) {
+					auto reg = Item.Op_RegUInt8.A;
+					InstructionBuilder::bitwise_Xor32(Item, reg, reg, reg);
+
+					InstructionBuilder::DoNothing(Other);
+					i++;
+				}
+			}
+			else if (Item.OpCode == InstructionSet::Store64v1)
+			{
+				auto& Other = FuncBody[i + 1];
+				auto& Other2 = FuncBody[i + 2];
+				auto& Other3 = FuncBody[i + 3];
+
+				if (Item.Op_RegUInt16.B == 0
+					&& Other2.Op_RegUInt16.B == 0
+					&& Other3.Op_RegUInt16.B == 0) {
+					auto reg = Item.Op_RegUInt8.A;
+					InstructionBuilder::bitwise_Xor64(Item, reg, reg, reg);
+
+					InstructionBuilder::DoNothing(Other);
+
+					InstructionBuilder::DoNothing(Other2);
+
+					InstructionBuilder::DoNothing(Other3);
+					i+=3;
+				}
+			}
+
+			else if (Item.OpCode == InstructionSet::StoreRegToReg32)
+			{
+				auto input = Item.Op_TwoReg.A;
+				auto output = Item.Op_TwoReg.B;
+				for (int i2 = i - 1; i2 >= 0; i2--)
+				{
+					auto& ItemV = FuncBody[i2];
+					if (InsHelper::WriteReg(ItemV, input))
+					{
+						InsHelper::SetWriteReg(ItemV, output);
+						InstructionBuilder::DoNothing(Item);
+					}
+				}
+			}
+		}
+	
+	
+		
+	}
+	for (size_t i = 0; i < _OutLayer->_Instructions.size(); i++)
+	{
+		auto& Item = _OutLayer->_Instructions[i];
+
+		if (Item.OpCode == InstructionSet::DoNothing) {
+			_OutLayer->_Instructions.erase(_OutLayer->_Instructions.begin() + i);
+		}
+	}
+	
 }
 void UCodeBackEndObject::LinkFuncs()
 {

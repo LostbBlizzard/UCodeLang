@@ -590,7 +590,7 @@ struct Span
 
 		Iterator& operator++() { m_ptr++; return *this; }
 
-		Iterator operator++(T) { Iterator tmp = *this; ++(*this); return tmp; }
+		Iterator operator++(int) { Iterator tmp = *this; ++(*this); return tmp; }
 
 		friend bool operator== (const Iterator& a, const Iterator& b) { return a.m_ptr == b.m_ptr; };
 		friend bool operator!= (const Iterator& a, const Iterator& b) { return a.m_ptr != b.m_ptr; };
