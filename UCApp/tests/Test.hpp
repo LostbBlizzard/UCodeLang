@@ -110,7 +110,7 @@ UCodeTestStart
 
 	
 
-	static const Array<TestInfo, 92> Tests
+	static const Array<TestInfo, 96> Tests
 	{
 
 		TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation),
@@ -235,6 +235,11 @@ UCodeTestStart
 		TestInfo("StdString", "Std/String.uc", "main", SuccessCondition::RunTimeValue, (bool)1),
 		TestInfo("inferredgenericreturn", "Generics/inferredgenericreturn.uc", "main", SuccessCondition::RunTimeValue, (uintptr_t)10),
 		TestInfo("inferredenumfield", "Generics/inferredenumfield.uc", "main", SuccessCondition::RunTimeValue, (int)5),
+
+		TestInfo("OptionalAsPtr", "Objects/OptionalAsPtr.uc", "NullOp", SuccessCondition::RunTimeValue, (bool)true),
+		TestInfo("OptionalAsPtr", "Objects/OptionalAsPtr.uc", "NullOp2", SuccessCondition::RunTimeValue, (int)10),
+		TestInfo("factorial2", "BasicTests/factorial2.uc", "main", SuccessCondition::RunTimeValue, (int)3628800),
+		TestInfo("StressTest1", "StressTest/StressTest1.uc", "main", SuccessCondition::RunTimeValue, (int)6),
 	};
 
 	struct SkipTestRange
