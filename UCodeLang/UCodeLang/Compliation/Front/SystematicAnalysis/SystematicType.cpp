@@ -1062,6 +1062,66 @@ SystematicAnalysis::UrinaryOverLoadWith_t SystematicAnalysis::Type_HasUrinaryOve
 				}
 			}
 		}
+		else if (Syb->Type == SymbolType::Enum)
+		{
+			if (Op == TokenType::QuestionMark)
+			{
+				auto name = ScopeHelper::GetNameFromFullName(Syb->FullName);
+
+				if (StringHelper::StartWith(name,UCode_OptionalType))
+				{
+					EnumInfo* info = Syb->Get_Info<EnumInfo>();
+				
+					if (info->Fields.size() != 2 || !info->VariantData.has_value())
+					{
+						return {};
+					}
+					EnumVariantFeild* hasNone = false;
+					EnumVariantFeild* hasSome = false;
+
+					for (auto& Item : info->VariantData.value().Variants)
+					{
+						if (Item.Types.size() ==1)
+						{
+							hasSome = &Item;
+						}
+						else if (Item.Types.size() == 0)
+						{
+							hasNone = &Item;
+						}
+
+					}
+
+
+					if (hasSome && hasNone)
+					{
+						auto rettype = hasSome->Types[0];
+						
+
+						_LastExpressionType = rettype;//Should return rettype and not set _LastExpressionType
+
+						return { {true} };
+					}
+					else
+					{
+						return {};
+					}
+
+					
+
+				}
+				else if (StringHelper::StartWith(name,UCode_ResultType))
+				{
+					EnumInfo* info = Syb->Get_Info<EnumInfo>();
+
+					if (info->Fields.size() != 2)
+					{
+						return {};
+					}
+				}
+
+			}
+		}
 	}
 	else
 	{

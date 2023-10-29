@@ -268,7 +268,7 @@ void SystematicAnalysis::Type_CanMatch(const TypeSymbol& MatchItem, const Expres
 							_LookingForTypes.pop();
 							_NodeTypeStack.pop_back();
 
-							//MatchAutoPassEnd(Ptr);
+							MatchAutoPassEnd(Ptr);
 
 							_LastExpressionType = MatchItem;
 						}
@@ -321,7 +321,7 @@ void SystematicAnalysis::Type_CanMatch(const TypeSymbol& MatchItem, const Expres
 							_LookingForTypes.pop();
 							_NodeTypeStack.pop_back();
 
-							//MatchAutoPassEnd(Ptr);
+							MatchAutoPassEnd(Ptr);
 
 							_LastExpressionType = MatchItem;
 						}
@@ -357,7 +357,10 @@ void SystematicAnalysis::Type_CanMatch(const TypeSymbol& MatchItem, const Expres
 	if (IsOk == false)
 	{
 		const NeverNullPtr<Token> token = _LastLookedAtToken.value();
-		LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "The type '" + ToString(MatchItem) + "' cant be Matched");
+		if (!MatchItem.IsBadType())
+		{
+			LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "The type '" + ToString(MatchItem) + "' cant be Matched");
+		}
 	}
 }
 void SystematicAnalysis::TryError_AllValuesAreMatched(const TypeSymbol& MatchItem, const MatchArmData& Data)
@@ -371,7 +374,7 @@ void SystematicAnalysis::TryError_AllValuesAreMatched(const TypeSymbol& MatchIte
 		}
 	}
 }
-SystematicAnalysis::BuildMatch_ret SystematicAnalysis::IR_Build_Match(const TypeSymbol& MatchItem, const ExpressionNodeType& MatchValueNode, IRInstruction* Item, BuildMatch_State& State, MatchArm& Arm, const ExpressionNodeType& ArmEx)
+SystematicAnalysis::BuildMatch_ret SystematicAnalysis::IR_Build_Match(const TypeSymbol& MatchItem, const ExpressionNodeType& MatchValueNode, IRInstruction* Item, BuildMatch_State& State,MatchArm& Arm, const ExpressionNodeType& ArmEx)
 {
 	bool IsJust =
 		MatchItem._IsAddressArray == false
@@ -429,7 +432,7 @@ SystematicAnalysis::BuildMatch_ret SystematicAnalysis::IR_Build_Match(const Type
 
 					auto& Ptr = Arm.Get_AutoPassEnum();
 
-					//MatchAutoPassEnumValueStart(Ptr, MatchValueNode, Val, Call);
+					MatchAutoPassEnumValueStart(Ptr, MatchValueNode, Val, Call);
 
 
 					_LookingForTypes.push(MatchItem);
@@ -479,7 +482,7 @@ SystematicAnalysis::BuildMatch_ret SystematicAnalysis::IR_Build_Match(const Type
 	SystematicAnalysis::BuildMatch_ret R;
 	return R;
 }
-SystematicAnalysis::BuildMatch_ret SystematicAnalysis::IR_Build_InvaildMatch(const TypeSymbol& MatchItem, IRInstruction* Item, BuildMatch_State& State)
+SystematicAnalysis::BuildMatch_ret SystematicAnalysis::IR_Build_InvaildMatch(const TypeSymbol& MatchItem, IRInstruction* Item, const BuildMatch_State& State)
 {
 	size_t EndMatchIndex = _IR_LookingAtIRBlock->GetIndex();
 	if (State.MatchList.size())
@@ -490,13 +493,13 @@ SystematicAnalysis::BuildMatch_ret SystematicAnalysis::IR_Build_InvaildMatch(con
 	}
 	return BuildMatch_ret();
 }
-void SystematicAnalysis::IR_Build_Match(BuildMatch_ret& Value, BuildMatch_State& State)
+void SystematicAnalysis::IR_Build_Match(BuildMatch_ret& Value, const BuildMatch_State& State)
 {
 	size_t EndMatchIndex = _IR_LookingAtIRBlock->GetIndex();
 
 	Value.JumpToUpdateEndIndex = _IR_LookingAtIRBlock->NewJump();
 }
-void SystematicAnalysis::IR_Build_MatchState(BuildMatch_State& State)
+void SystematicAnalysis::IR_Build_MatchState(const BuildMatch_State& State)
 {
 	size_t EndIndex = _IR_LookingAtIRBlock->GetIndex();
 	for (auto& Item : State.MatchList)
@@ -523,6 +526,8 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 			OnExpressionTypeNode(Item._Expression, GetValueMode::Read);
 
 			OnExpressionTypeNode(Item._AssignmentExpression, GetValueMode::Read);
+
+			_Table.RemoveScope();
 		}
 
 
@@ -544,7 +549,6 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 		auto ToMatchType = _LastExpressionType;
 
 		auto MatchAssignmentType = _LookingForTypes.top();
-
 		const String ScopeName = std::to_string((uintptr_t)&node);
 
 
@@ -558,6 +562,12 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 
 			OnExpressionTypeNode(Item._AssignmentExpression, GetValueMode::Read);
 			auto AssignmentType = _LastExpressionType;
+			
+			if (MatchAssignmentType.IsAn(TypesEnum::Var))
+			{
+				MatchAssignmentType = AssignmentType;
+			}
+			
 			if (!Type_CanBeImplicitConverted(AssignmentType, MatchAssignmentType))
 			{
 				const NeverNullPtr<Token> token = _LastLookedAtToken.value();

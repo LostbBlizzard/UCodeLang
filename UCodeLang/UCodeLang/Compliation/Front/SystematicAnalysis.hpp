@@ -584,7 +584,11 @@ private:
 		{
 			return *_AutoPassEnum.get();
 		}
-		
+		const MatchAutoPassEnum& Get_AutoPassEnum() const
+		{
+			return *_AutoPassEnum.get();
+		}
+
 	};
 	struct MatchArmData
 	{
@@ -1219,9 +1223,9 @@ private:
 	
 	
 	BuildMatch_ret IR_Build_Match(const TypeSymbol& MatchItem, const ExpressionNodeType& MatchValueNode,IRInstruction* Item, BuildMatch_State& State, MatchArm& Arm, const ExpressionNodeType& ArmEx);
-	BuildMatch_ret IR_Build_InvaildMatch(const TypeSymbol& MatchItem, IRInstruction* Item, BuildMatch_State& State);
-	void IR_Build_Match(BuildMatch_ret& Value, BuildMatch_State& State);
-	void IR_Build_MatchState(BuildMatch_State& State);
+	BuildMatch_ret IR_Build_InvaildMatch(const TypeSymbol& MatchItem, IRInstruction* Item, const BuildMatch_State& State);
+	void IR_Build_Match(BuildMatch_ret& Value, const BuildMatch_State& State);
+	void IR_Build_MatchState(const BuildMatch_State& State);
 
 	
 	void Assembly_ConvertAttributes(const Vector<Unique_ptr<AttributeNode>>& nodes,Vector<UsedTagValueData>& Out);

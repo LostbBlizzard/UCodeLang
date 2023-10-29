@@ -1,3 +1,13 @@
+$Optional<sint32>
+ int8 __0; 
+ Optional<sint32>u __1; 
+
+union Optional<sint32>u
+ Optional<sint32>:Opt! __0; 
+
+$Optional<sint32>:Opt!
+ int32 __0; 
+
 
 |(&StaticInit&)[] -> void:;
 
@@ -6,4 +16,114 @@
 |(&threadInit&)[] -> void:;
 
 |(&threadUnload&)[] -> void:;
+
+//EntryPoint 
+|main[] -> int32:
+
+ [Block:0]
+
+
+//File:src.uc
+//Line:54
+
+   Optional<sint32> A = main2();
+   int32 B;
+
+//Line:55
+//Line:54
+
+   Optional<sint32> C = main2();
+   Optional<sint32>* D = &C;
+   int8 E = 0;
+   int8 F = D->__0==E;
+   int8 G = !F;
+   gotoif (G) _label0;
+
+//Line:55
+
+   int32 H = D->__1.__0.__0;
+   B = H;
+   goto _label1;
+
+   _label0:
+
+   int8 I = 1;
+   Optional<sint32> J;
+   J.__0 = I;
+   int8 K = A.__0==J.__0;
+   int8 L = !K;
+   gotoif (L) _label2;
+
+//Line:56
+
+   int32 M = 0;
+   B = M;
+   goto _label1;
+
+   _label2:
+
+   LowLevel::Unreachable();
+   goto _label1;
+
+   _label1:
+
+   ret = B;
+   ret;
+
+|main2[] -> Optional<sint32>:
+
+ [Block:0]
+
+
+//File:src.uc
+//Line:60
+//Varable:main2:V
+
+   Optional<sint32> A;
+   int8 B = 0;
+   Optional<sint32> C;
+   C.__0 = B;
+   int32 D = 5;
+   C.__1.__0.__0 = D;
+   A = C;
+
+//Line:62
+//Varable:main2:Val
+
+   int32 E;
+   Optional<sint32> F = A;
+   int8 G = 0;
+   int8 H = F.__0==G;
+   gotoif (H) _label0;
+   Optional<sint32> I;
+   int8 J = 1;
+   I.__0 = J;
+   ret = I;
+   goto _label1;
+
+   _label0:
+
+   E = F.__1.__0;
+
+//Line:64
+//Varable:main2:X
+
+   int32 K;
+   int32 L = 2;
+   int32 M = E;
+   int32 N = M+L;
+   K = N;
+
+//Line:66
+
+   int8 O = 0;
+   Optional<sint32> P;
+   P.__0 = O;
+   int32 Q = K;
+   P.__1.__0.__0 = Q;
+   ret = P;
+
+   _label1:
+
+   ret;
 
