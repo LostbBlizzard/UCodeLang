@@ -45,3 +45,26 @@ thread int V6 = 0;
  ret a;
 
 */
+
+$Optional<T> enum:
+ Opt[T Val],
+ NoOpt,
+
+
+|main[] => match main2():
+ Opt(out val) => val;
+ NoOpt => 0;
+;
+
+|main2[] -> int?:
+ int? V = Opt(5);
+
+ int Val = ?V;
+
+ int X = Val + 2;
+
+ ret Opt(X);
+ 
+
+|NullOp[]:
+ int&? V = NoOpt;
