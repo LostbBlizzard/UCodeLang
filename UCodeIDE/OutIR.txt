@@ -1,12 +1,5 @@
-$Optional<sint32>
- int8 __0; 
- Optional<sint32>u __1; 
-
-union Optional<sint32>u
- Optional<sint32>:Opt! __0; 
-
-$Optional<sint32>:Opt!
- int32 __0; 
+$Optional<sint32&>:Opt!
+ void* __0; 
 
 
 |(&StaticInit&)[] -> void:;
@@ -17,113 +10,95 @@ $Optional<sint32>:Opt!
 
 |(&threadUnload&)[] -> void:;
 
-//EntryPoint 
-|main[] -> int32:
+|NullOp[] -> int8:
 
  [Block:0]
 
 
 //File:src.uc
-//Line:54
+//Line:74
+//Varable:NullOp:V
 
-   Optional<sint32> A = main2();
-   int32 B;
-
-//Line:55
-//Line:54
-
-   Optional<sint32> C = main2();
-   Optional<sint32>* D = &C;
-   int8 E = 0;
-   int8 F = D->__0==E;
-   int8 G = !F;
-   gotoif (G) _label0;
-
-//Line:55
-
-   int32 H = D->__1.__0.__0;
-   B = H;
-   goto _label1;
-
-   _label0:
-
-   int8 I = 1;
-   Optional<sint32> J;
-   J.__0 = I;
-   int8 K = A.__0==J.__0;
-   int8 L = !K;
-   gotoif (L) _label2;
-
-//Line:56
-
-   int32 M = 0;
-   B = M;
-   goto _label1;
-
-   _label2:
-
-   LowLevel::Unreachable();
-   goto _label1;
-
-   _label1:
-
-   ret = B;
+   void* A;
+   int64 B = 0;
+   A = B;
+   int64 C = 8;
+   int64 D = 8;
+   int8 E = D==C;
+   ret = E;
    ret;
 
-|main2[] -> Optional<sint32>:
+|NullOp2[] -> void:
 
  [Block:0]
 
 
 //File:src.uc
-//Line:60
-//Varable:main2:V
+//Line:80
+//Varable:NullOp2:p
 
-   Optional<sint32> A;
-   int8 B = 0;
-   Optional<sint32> C;
-   C.__0 = B;
-   int32 D = 5;
-   C.__1.__0.__0 = D;
-   A = C;
+   int32 A;
+   int32 B = 10;
+   A = B;
 
-//Line:62
-//Varable:main2:Val
+//Line:81
+//Varable:NullOp2:V
 
-   int32 E;
-   Optional<sint32> F = A;
-   int8 G = 0;
-   int8 H = F.__0==G;
-   gotoif (H) _label0;
-   Optional<sint32> I;
-   int8 J = 1;
-   I.__0 = J;
-   ret = I;
+   void* C;
+   void* D = &A;
+   C = D;
+
+//Line:85
+
+   void* E = C;
+
+//Line:86
+//Line:85
+
+   void* F = &C;
+   int64 G = 0;
+   int8 H = F!=G;
+   int8 I = !H;
+   gotoif (I) _label0;
+
+//Line:88
+
+   int32 J = A;
+   int32 K = 5;
+   int32 L = J+K;
+   A = L;
+
+//Line:89
+
+   int32 M = 5;
+   int32 N = *F;
+   int32 O = N+M;
    goto _label1;
+   goto _label2;
 
    _label0:
 
-   E = F.__1.__0;
+   int64 P = 0;
+   int64 Q = 0;
+   int8 R = E==Q;
+   int8 S = !R;
+   gotoif (S) _label3;
 
-//Line:64
-//Varable:main2:X
+//Line:92
 
-   int32 K;
-   int32 L = 2;
-   int32 M = E;
-   int32 N = M+L;
-   K = N;
+   int32 T = 0;
+   goto _label1;
+   goto _label2;
 
-//Line:66
+   _label3:
 
-   int8 O = 0;
-   Optional<sint32> P;
-   P.__0 = O;
-   int32 Q = K;
-   P.__1.__0.__0 = Q;
-   ret = P;
+   LowLevel::Unreachable();
 
    _label1:
+
+   goto _label2;
+
+   _label2:
 
    ret;
 

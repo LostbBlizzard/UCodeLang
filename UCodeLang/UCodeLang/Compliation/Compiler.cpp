@@ -94,7 +94,7 @@ Compiler::CompilerRet Compiler::CompileText(const String_view& Text, const Exter
 		r.OutFile = std::move(m);
 	}
 
-	return error;
+	return r;
 }
 String Compiler::GetTextFromFile(const Path& path)
 {

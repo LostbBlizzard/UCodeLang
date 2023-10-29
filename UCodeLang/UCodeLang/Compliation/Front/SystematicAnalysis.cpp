@@ -824,7 +824,8 @@ IRidentifierID SystematicAnalysis::IR_Build_ConveToIRVariantEnum(const Symbol& E
 {
 	const EnumInfo* Info = Enum.Get_Info<EnumInfo>();
 	
-	if (Info->VariantData.has_value()) 
+	
+	if (Info->VariantData.has_value() && Info->IsOptionalAddress().has_value() == false)
 	{
 		auto ClassSybID = Enum.ID;
 		if (_Symbol_SybToIRMap.HasValue(ClassSybID))
@@ -936,7 +937,11 @@ IRType SystematicAnalysis::IR_ConvertToIRType(const TypeSymbol& Value)
 		if (syb.Type == SymbolType::Enum)
 		{
 			EnumInfo* V = syb.Get_Info <EnumInfo>();
-			if (V->VariantData.has_value())
+			if (auto opt = V->IsOptionalAddress().value_unchecked())
+			{
+				r = IR_ConvertToIRType(*opt);
+			}
+			else if (V->VariantData.has_value())
 			{
 				r = IRType(_IR_Builder.ToID(V->FullName));
 			}

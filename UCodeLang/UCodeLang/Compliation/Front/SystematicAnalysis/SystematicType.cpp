@@ -278,6 +278,14 @@ bool SystematicAnalysis::Type_GetSize(const TypeSymbol& Type, size_t& OutSize)
 		else if (V.Type == SymbolType::Enum)
 		{
 			EnumInfo* Info = V.Get_Info<EnumInfo>();
+			if (Info->IsOptionalAddress())
+			{
+				TypeSymbol pointer(TypesEnum::Bool);
+				pointer.SetAsAddress();
+				OutSize = Type_GetSize(pointer).value();
+				return true;
+			}
+			else
 			if (Info->VariantData.has_value())
 			{
 				auto tagsize = Type_GetSize(Info->Basetype, OutSize);
@@ -329,7 +337,8 @@ bool SystematicAnalysis::Type_GetSize(const TypeSymbol& Type, size_t& OutSize)
 		{
 			TypeSymbol pointer(TypesEnum::Bool);
 			pointer.SetAsAddress();
-			return Type_GetSize(pointer).value() * 2;
+			OutSize = Type_GetSize(pointer).value() * 2;
+			return true;
 		}
 		else if (V.Type == SymbolType::Unmaped_Generic_Type)
 		{

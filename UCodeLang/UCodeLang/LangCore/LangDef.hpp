@@ -248,7 +248,7 @@
 
 #endif
 
-#if 0
+#if UCodeLangDebug
 #define UCodeLangUnreachable() UCodeLangBreakPoint();
 #else
 

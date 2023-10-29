@@ -456,8 +456,11 @@ SystematicAnalysis::BuildMatch_ret SystematicAnalysis::IR_Build_Match(const Type
 
 					auto Type = _LastExpressionType;
 					auto ArmExIR = _IR_LastExpressionField;
-
-					if (eInfo->VariantData.has_value())
+					if (eInfo->IsOptionalAddress())
+					{
+						ArmExIR = IR_Load_UIntptr(0);
+					}
+					else if (eInfo->VariantData.has_value())
 					{
 						const IRStruct* B = _IR_Builder.GetSymbol(IR_ConvertToIRType(Type)._symbol)->Get_ExAs<IRStruct>();
 						Item = _IR_LookingAtIRBlock->New_Member_Access(Item, B, EnumVarantKeyIndex);
