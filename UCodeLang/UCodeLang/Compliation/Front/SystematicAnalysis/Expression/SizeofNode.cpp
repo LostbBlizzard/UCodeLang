@@ -31,6 +31,10 @@ void SystematicAnalysis::OnSizeofNode(const SizeofExpresionNode* nod)
 			Type.SetType(TypesEnum::uIntPtr);
 			break;
 		}
+		TypeSymbol Info;
+		Type_ConvertAndValidateType(nod->_Type, Info, NodeSyb_t::Any);
+		UAddress TypeSize;
+		Type_GetSize(Info, TypeSize);
 	}
 
 	if (_PassType == PassType::BuidCode)

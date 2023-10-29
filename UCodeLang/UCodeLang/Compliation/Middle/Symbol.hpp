@@ -669,6 +669,38 @@ public:
 		return r;
 	}
 
+	const NullablePtr<TypeSymbol> IsOptionalAddress() const
+	{
+		if (VariantData.has_value()) 
+		{
+			if (Fields.size() == 2)
+			{
+				bool hasnone = false;
+				const TypeSymbol* hasvalue = nullptr;
+				for (auto& Item : VariantData.value().Variants)
+				{
+					if (Item.Types.size() == 0)
+					{
+						hasnone = true;
+					}
+					else if (Item.Types.size() == 1)
+					{
+						if (Item.Types[0].IsAddress())
+						{
+							hasvalue = &Item.Types[0];
+						}
+					}
+				}
+
+				if (hasvalue && hasnone)
+				{
+					return Nullableptr(hasvalue);
+				}
+			}
+		}
+		return {};
+	}
+
 	Optional<EnumVariantData> VariantData;
 	Generic _GenericData;
 	Optional<SymbolContext> Conext;

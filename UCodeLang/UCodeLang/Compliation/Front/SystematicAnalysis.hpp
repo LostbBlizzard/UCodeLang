@@ -1677,7 +1677,7 @@ private:
 	}
 	NullablePtr<Symbol> Generic_InstantiateOrFindGeneric_Class(const NeverNullPtr<Token> Name, const NeverNullPtr<Symbol> Symbol, const GenericValuesNode& SymbolGenericValues, const Generic& GenericData, const UseGenericsNode& UseNode)
 	{
-		UCodeLangAssert(Symbol->PassState == PassType::FixedTypes);
+		UCodeLangAssert(Symbol->PassState == PassType::FixedTypes || Symbol->PassState == PassType::BuidCode);
 		UCodeLangAssert(Symbol->ValidState == SymbolValidState::valid);
 
 		TypeInstantiateFunc Func = &SystematicAnalysis::Generic_TypeInstantiate;
@@ -1685,7 +1685,7 @@ private:
 	}
 	NullablePtr<Symbol> Generic_InstantiateOrFindGeneric_Trait(const NeverNullPtr<Token> Name, const NeverNullPtr<Symbol> Symbol, const GenericValuesNode& SymbolGenericValues, const Generic& GenericData, const UseGenericsNode& UseNode)
 	{
-		UCodeLangAssert(Symbol->PassState == PassType::FixedTypes);
+		UCodeLangAssert(Symbol->PassState == PassType::FixedTypes || Symbol->PassState == PassType::BuidCode);
 		UCodeLangAssert(Symbol->ValidState == SymbolValidState::valid);
 
 		TypeInstantiateFunc Func = &SystematicAnalysis::Generic_TypeInstantiate_Trait;
@@ -1694,7 +1694,7 @@ private:
 
 	NullablePtr<Symbol> Generic_InstantiateOrFindGeneric_Alias(const NeverNullPtr<Token> Name, const NeverNullPtr<Symbol> Symbol, const GenericValuesNode& SymbolGenericValues, const Generic& GenericData, const UseGenericsNode& UseNode)
 	{
-		UCodeLangAssert(Symbol->PassState == PassType::FixedTypes);
+		UCodeLangAssert(Symbol->PassState == PassType::FixedTypes || Symbol->PassState == PassType::BuidCode);
 		UCodeLangAssert(Symbol->ValidState == SymbolValidState::valid);
 
 		TypeInstantiateFunc Func = &SystematicAnalysis::Generic_TypeInstantiate_Alias;
@@ -1702,7 +1702,7 @@ private:
 	}
 	NullablePtr<Symbol> Generic_InstantiateOrFindGeneric_Enum(const NeverNullPtr<Token> Name, const NeverNullPtr<Symbol> Symbol, const GenericValuesNode& SymbolGenericValues, const Generic& GenericData, const UseGenericsNode& UseNode)
 	{
-		UCodeLangAssert(Symbol->PassState == PassType::FixedTypes);
+		UCodeLangAssert(Symbol->PassState == PassType::FixedTypes || Symbol->PassState == PassType::BuidCode);
 		UCodeLangAssert(Symbol->ValidState == SymbolValidState::valid);
 
 		TypeInstantiateFunc Func = &SystematicAnalysis::Generic_TypeInstantiate_Enum;
@@ -1710,7 +1710,7 @@ private:
 	}
 	NullablePtr<Symbol> Generic_InstantiateOrFindGeneric_Tag(const NeverNullPtr<Token> Name, const NeverNullPtr<Symbol> Symbol, const GenericValuesNode& SymbolGenericValues, const Generic& GenericData, const UseGenericsNode& UseNode)
 	{
-		UCodeLangAssert(Symbol->PassState == PassType::FixedTypes);
+		UCodeLangAssert(Symbol->PassState == PassType::FixedTypes || Symbol->PassState == PassType::BuidCode);
 		UCodeLangAssert(Symbol->ValidState == SymbolValidState::valid);
 
 		TypeInstantiateFunc Func = &SystematicAnalysis::Generic_TypeInstantiate_Tag;

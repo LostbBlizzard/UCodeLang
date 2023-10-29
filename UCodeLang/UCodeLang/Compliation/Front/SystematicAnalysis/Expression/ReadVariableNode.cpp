@@ -1197,7 +1197,11 @@ IRInstruction* SystematicAnalysis::IR_Build_Member_GetValue(const GetMemberTypeS
 		auto Einfo = In.Get_V2<EnumInfo>();
 		auto FeldInfo = In.Get_V1<EnumFieldInfo>();
 
-		if (Einfo->VariantData.has_value())
+		if (Einfo->IsOptionalAddress().has_value())
+		{
+			return IR_Load_UIntptr(0);
+		}
+		else if (Einfo->VariantData.has_value())
 		{
 			auto ID = _IR_Builder.ToID(Einfo->FullName);
 
