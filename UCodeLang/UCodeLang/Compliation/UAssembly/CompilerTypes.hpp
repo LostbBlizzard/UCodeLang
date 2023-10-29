@@ -234,6 +234,18 @@ static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 	AddMapValueValue(Debug_FuncStart,InstructionSet::Debug_FuncStart,OpCodeType::NoOpCode,OpCodeType::NoOpCode),
 	AddMapValueValue(Debug_FuncEnd,InstructionSet::Debug_FuncEnd,OpCodeType::NoOpCode,OpCodeType::NoOpCode),
 	AddMapValueValue(Debug_LineEnter,InstructionSet::Debug_LineEnter,OpCodeType::NoOpCode,OpCodeType::NoOpCode),
+
+	AddMapValueValue2(bitwiseOr8, InstructionSet::bitwiseOr8, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register),
+	AddMapValueValue2(bitwiseOr16, InstructionSet::bitwiseOr16, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register),
+	AddMapValueValue2(bitwiseOr32, InstructionSet::bitwiseOr32, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register),
+	AddMapValueValue2(bitwiseOr64, InstructionSet::bitwiseOr64, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register),
+
+	AddMapValueValue2(bitwiseXor8, InstructionSet::bitwiseXor8, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register),
+	AddMapValueValue2(bitwiseXor16, InstructionSet::bitwiseXor16, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register),
+	AddMapValueValue2(bitwiseXor32, InstructionSet::bitwiseXor32, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register),
+	AddMapValueValue2(bitwiseXor64, InstructionSet::bitwiseXor64, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register),
+
+
 };
 
 thread_local inline Unordered_map<InstructionSet, const InsMapValue*> InsToInsMapValue;

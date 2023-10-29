@@ -16,32 +16,9 @@
 //File:src.uc
 //Line:5
 
-   int32 A = 3;
-   int32 B = 2;
-   int32 C = B+A;
-   int32 D = 1;
-   int32 E = D+C;
-   ret = E;
-   ret;
-
-|func[] -> void:
-
- [Block:0]
-
-
-//File:src.uc
-//Line:9
-//Varable:func:a
-
-   int32 A;
+   int32 A = 1;
    int32 B = 0;
-   A = B;
-
-//Line:11
-//Varable:func:b
-
-   int32 C;
-   int32 D = 5;
-   C = D;
+   int32 C = B+A;
+   ret = C;
    ret;
 
