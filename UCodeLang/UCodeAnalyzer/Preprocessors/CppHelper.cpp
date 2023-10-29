@@ -407,7 +407,9 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 								Linkstr += NewStr;
 							}
 
-							Linkstr += "\",[](UCodeLang::InterpreterCPPinterface& Input) \n";
+							Linkstr += "\",[](UCodeLang::InterpreterCPPinterface& Input) -> void";
+
+							Linkstr += '\n';
 							AddTabCount(TabCount + 3, Linkstr);
 
 							Linkstr += "{\n";
@@ -458,6 +460,10 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 
 							if (IsStatic == false && IsMemberFuncion)
 							{
+								if (Item.MyData->Ret.mode == CppHelper::CPPType::Mode::Address)
+								{
+									Linkstr += "&";
+								}
 								Linkstr += "thisPar->" + Item.FuncName + "(";
 							}
 							else 
@@ -556,8 +562,9 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 										ParCount++;
 									}
 								}
-								Linkstr += ")\n";
-
+								Linkstr += ") ->";
+								Linkstr += Item.Ret;
+								Linkstr += "\n";
 								AddTabCount(TabCount + 3, Linkstr);
 
 								Linkstr += "{\n";
@@ -566,6 +573,12 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 								if (Item.Ret != "void")
 								{
 									Linkstr += "return ";
+
+									if (Item.MyData->Ret.mode == CppHelper::CPPType::Mode::Address)
+									{
+										Linkstr += "&";
+									}
+
 								}
 								Linkstr += "thisPar->" + Item.FuncName + "(";
 								{
@@ -586,6 +599,7 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 										ParCount++;
 									}
 								}
+
 								Linkstr += ");\n";
 
 								AddTabCount(TabCount + 3, Linkstr);

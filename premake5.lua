@@ -353,6 +353,7 @@ project "UCodeIDE"
     prebuildcommands
     {
      UCPathExe.." cpptoulangvm %{prj.location}/src/AppObject/AppAPI.hpp %{prj.location}src/AppObject/AppAPILink.cpp %{prj.location}tepfiles/AppAPI.uc",
+     UCPathExe.." cpptoulangvm %{prj.location}/src/AppObject/ECSExample.hpp %{prj.location}src/AppObject/ECSExample.cpp %{prj.location}tepfiles/ECSAPI.uc",
     }
     prebuildmessage "runing cpptoulangvm"
 

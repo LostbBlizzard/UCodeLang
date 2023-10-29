@@ -7,6 +7,9 @@ UCodeIDEStart
 
 namespace ECSExample
 {
+
+	void ECSLink(UCodeLang::RunTimeLib& lib);
+
 	template<typename T>
 	using Unique_ptr = UCodeLang::Unique_ptr<T>;
 	
@@ -15,18 +18,83 @@ namespace ECSExample
 	template<typename T>
 	using Vector = UCodeLang::Vector<T>;
 
-	using Vec3 = struct
+	struct Vec3
 	{
-		float X;
-		float Y;
-		float Z;
+		float X = 0;
+		float Y = 0;
+		float Z = 0;
 	};
 	using Vec2 = ImVec2;
+	
+	template<typename T>
+	using NullablePtr = UCodeLang::NullablePtr<T>;
+
+	using String_view = UCodeLang::String_view;
+	
+	template<typename T>
+	struct Object
+	{
+	public:
+		Object()
+		{
+
+		}
+		Object(T* val)
+		{
+			base = std::make_shared<T*>(val);
+		}
+
+		void OnDestroy()
+		{
+			*base.get() = nullptr;
+		}
+		bool IsDestroyed()
+		{
+			if (base.get())
+			{
+				return (*base.get()) == nullptr;
+			}
+			return false;
+		}
+		bool Exist() {return !IsDestroyed();}
+
+		T* Get() { return *(base.get()); }
+
+		NullablePtr<T> GetPtr()
+		{
+			if (Exist())
+			{
+				return UCodeLang::Nullableptr(Get());
+			}
+			return {};
+		}
+
+		Object<const T> AsReadOnly() const
+		{
+			Object<const T> r;
+			r.base = *(UCodeLang::Shared_ptr<const T*>*)&base;
+			return r;
+		}
+	//private:
+		UCodeLang::Shared_ptr<T*> base;
+	};
+
+	template<typename T>
+	Object<T> obj(T* val)
+	{
+		return Object<T>(val);
+	}
+
 
 
 	struct Entity;
-	struct Component
+	UCodeLangExportSymbol("ECS") UCodeLangExportTrait Component
 	{
+	public:
+		Component()
+		{
+			myobj = obj(this);
+		}
 		virtual void Start()
 		{
 
@@ -37,30 +105,52 @@ namespace ECSExample
 		}
 		virtual ~Component()
 		{
+			myobj.OnDestroy();
+		}
 
-		}
-	public:
-		Entity* entity()
+
+		UCodeLangExport Entity* entity()
 		{
 			return myentity;
 		}
-		const Entity* entity() const
+		UCodeLangExport const Entity* ientity() const
 		{
 			return myentity;
 		}
+
+		UCodeLangExport void Destroy()
+		{
+			isdestroyed = true;
+		}
+
+		UCodeLangExport Object<Component> object() { return myobj; }
+		UCodeLangExport Object<const Component> iobject() const { return myobj.AsReadOnly(); }
+
+		
 
 		bool calledstart = false;
+		bool isdestroyed = false;
 	private:
 		Entity* myentity =nullptr;
+		Object<Component> myobj;
 	};
 
 	struct Scene;
 
-	struct Entity
+	UCodeLangExportSymbol("ECS") struct Entity
 	{
 		Vec3 Position;
 		Vec3 Rotation;
 		Vec3 Scale;
+
+		Entity()
+		{
+			myobj = obj(this);
+		}
+		~Entity()
+		{
+			myobj.OnDestroy();
+		}
 
 		void Update()
 		{
@@ -91,18 +181,20 @@ namespace ECSExample
 		Vector<Unique_ptr<Entity>> ChildEntitys;
 		Scene* myscenc = nullptr;
 		Entity* myparent = nullptr;
+		Object<Entity> myobj;
+		bool isdestroyed = false;
 
-		Scene* scenc()
+		UCodeLangExport  Scene* scenc()
 		{
 			return  myscenc;
 		}
-		const Scene* scenc() const
+		UCodeLangExport  const Scene* scenc() const
 		{
 			return  myscenc;
 		}
 
 
-		Entity* AddChildEntity()
+		UCodeLangExport Entity* AddChildEntity()
 		{
 			ChildEntitys.push_back(std::make_unique<Entity>());
 			auto r = ChildEntitys.back().get();
@@ -111,9 +203,9 @@ namespace ECSExample
 
 			return r;
 		}
-		void Remove()
+		UCodeLangExport void Destroy()
 		{
-
+			isdestroyed = true;
 		}
 
 		template<typename T>
@@ -125,11 +217,160 @@ namespace ECSExample
 
 			return r;
 		}
+
+		UCodeLangExport Object<Entity> object() { return myobj; }
+		UCodeLangExport Object<const Entity> iobject() const { return myobj.AsReadOnly(); }
+
+		//for this we allow geting the actual pointer of the member. you may not want this
+		UCodeLangExport String& name()
+		{
+			return Name;
+		}
+		UCodeLangExport const StringView iname() const
+		{
+			return Name;
+		}
+
+		UCodeLangExport Vec3& position()
+		{
+			return Position;
+		}
+		UCodeLangExport Vec2& position2d()
+		{
+			return (Vec2&)Position;
+		}
+
+		UCodeLangExport const Vec3& iposition() const
+		{
+			return Position;
+		}
+		UCodeLangExport const Vec2& iposition2d() const
+		{
+			return (const Vec2&)Position;
+		}
+
+		UCodeLangExport Vec3& scale()
+		{
+			return Scale;
+		}
+		UCodeLangExport Vec2& scale2d()
+		{
+			return (Vec2&)Scale;
+		}
+
+		UCodeLangExport const Vec3& iscale() const
+		{
+			return Scale;
+		}
+		UCodeLangExport const Vec2& iscale2d() const
+		{
+			return (Vec2&)Scale;
+		}
+
+		UCodeLangExport Vec3& rotation()
+		{
+			return Rotation;
+		}
+		UCodeLangExport Vec2& rotation2d()
+		{
+			return (Vec2&)Rotation;
+		}
+
+		UCodeLangExport const Vec3& irotation() const
+		{
+			return Rotation;
+		}
+		UCodeLangExport const Vec2& irotation2d() const
+		{
+			return (Vec2&)Rotation;
+		}
+
+		UCodeLangExport NullablePtr<Entity> parent()
+		{
+			return UCodeLang::Nullableptr(myparent);
+		}
+		UCodeLangExport const NullablePtr<Entity> iparent() const
+		{
+			return UCodeLang::Nullableptr(myparent);
+		}
+
+		UCodeLangExport Object<Entity> parentobj()
+		{
+			if (myparent)
+			{
+				return myparent->object();
+			}
+			return {};
+		}
+		UCodeLangExport Object<const Entity> iparentobj() const
+		{
+			if (myparent)
+			{
+				return myparent->iobject();
+			}
+			return {};
+		}
+
+		UCodeLangExport Vector<Entity*> childentitys()
+		{
+			Vector<Entity*> r;
+			r.resize(ChildEntitys.size());
+
+			for (size_t i = 0; i < r.size(); i++)
+			{
+				auto& Item = ChildEntitys[i];
+				r.push_back(Item.get());
+			}
+
+			return r;
+		}
+		UCodeLangExport Vector<const Entity*> ichildentitys() const
+		{
+			Vector<const Entity*> r;
+			r.resize(ChildEntitys.size());
+
+			for (size_t i = 0; i < r.size(); i++)
+			{
+				auto& Item = ChildEntitys[i];
+				r.push_back(Item.get());
+			}
+
+			return r;
+		}
+
+		UCodeLangExport Vector<Object<Entity>> childentitysobj()
+		{
+			Vector<Object<Entity>> r;
+			r.resize(ChildEntitys.size());
+
+			for (size_t i = 0; i < r.size(); i++)
+			{
+				auto& Item = ChildEntitys[i];
+				r.push_back(Item->object());
+			}
+
+			return r;
+		}
+		UCodeLangExport Vector<Object<const Entity>> ichildentitysobj() const
+		{
+			Vector<Object<const Entity>> r;
+			r.resize(ChildEntitys.size());
+
+			for (size_t i = 0; i < r.size(); i++)
+			{
+				auto& Item = ChildEntitys[i];
+				r.push_back(Item->iobject());
+			}
+
+			return r;
+		}
 	};
 
 	struct Scene
 	{
 		Vector<Unique_ptr<Entity>> Entitys;
+		Object<Scene> myobj;
+
 
 		void Update()
 		{
@@ -137,8 +378,20 @@ namespace ECSExample
 			{
 				Entitys[i]->Update();
 			}
+
+
+			//remove all destroyed entitys
+			std::remove_if(Entitys.begin(), Entitys.end(),
+				[](Unique_ptr<Entity>& val) {
+					if (val->isdestroyed)
+					{
+						return true;
+					}
+					return false;
+				}
+			);
 		}
-		Entity* AddEntity()
+		UCodeLangExport Entity* AddEntity()
 		{
 			Entitys.push_back(std::make_unique<Entity>());
 			auto r = Entitys.back().get();
@@ -147,6 +400,8 @@ namespace ECSExample
 			return r;
 		}
 
+		UCodeLangExport Object<Scene> object() { return myobj; }
+		UCodeLangExport Object<const Scene> iobject() const { return myobj.AsReadOnly(); }
 	};
 
 	static UCodeLang::RunTimeLangState State;
@@ -164,9 +419,9 @@ namespace ECSExample
 					entity->AddChildEntity();
 				}
 				ImGui::SameLine();
-				if (ImGui::Button("Remove Entity"))
+				if (ImGui::Button("Destroy Entity"))
 				{
-					entity->Remove();
+					entity->Destroy();
 				}
 
 
@@ -198,7 +453,7 @@ namespace ECSExample
 			}
 		}
 	};
-	thread_local RunTime _Context;
+	inline thread_local RunTime _Context;
 
 	static UCodeLang::RunTimeLangState& Get_State()
 	{
