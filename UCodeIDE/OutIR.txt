@@ -8,73 +8,81 @@
 |(&threadUnload&)[] -> void:;
 
 //EntryPoint 
-|main[] -> int32:
+|main[] -> int64:
 
  [Block:0]
 
 
 //File:src.uc
-//Line:3
-//Varable:main:H
-
-   void* A;
-   int64 B = 1;
-   int64 C = 4;
-   int64 D = B*C;
-   void* E = LowLevel::Malloc(D);
-   int64 F = 0;
-
-   _label1:
-
-   int8 G = F==B;
-   gotoif (G) _label0;
-   int64 H = F*C;
-   void* I = E+H;
-
-//Line:0
-
-   int32 J = 0;
-   *I = J;
-   int32 K = 1;
-   int64 L = F+K;
-   F = L;
-   goto _label1;
-
-//Line:3
-   _label0:
-
-   A = E;
-
-//Line:4
-
-   int32 M = 1;
-   void* N = A;
-   int64 O = 0;
-   int64 P = 4;
-   int64 Q = O*P;
-   void* R = N+Q;
-   *R = M;
-
 //Line:5
-//Varable:main:Tep
 
-   int32 S;
-   void* T = A;
-   int64 U = 0;
-   int64 V = 4;
-   int64 W = U*V;
-   void* X = T+W;
-   int32 Y = *X;
-   S = Y;
+   float32 A = 0.000000;
+   int64 B = func<float32>^f32(A);
+   int32 C = 0;
+   int64 D = func<sint32>^i32(C);
+   int64 E = D-B;
+   ret = E;
+   ret;
+
+|func<float32>^f32[float32 Value] -> int64:
+
+ [Block:0]
+
+
+//Varable:func<float32>:Value
+
+   int64 A = 4;
+   ret = A;
+   ret;
+
+|func<sint32>^i32[int32 Value] -> int64:
+
+ [Block:0]
+
+
+//Varable:func<sint32>:Value
+
+   int64 A = 4;
+   ret = A;
+   ret;
+
 
 //Line:7
+//Varable:main:V
 
-   void* Z = A;
-   LowLevel::Free(Z);
+   FuncPointer A;
+   FuncPointer B = (&)Add^i32,i32;
+   A = B;
+
+//Line:8
+//Varable:main:a
+
+   int32 C;
+   int32 D = 99;
+   C = D;
 
 //Line:9
 
-   int32 [ = S;
-   ret = [;
+   int32 E = 5;
+   int32 F = 5;
+   int32 G = A(E,F);
+   C = G;
+
+//Line:11
+
+   FuncPointer H = (&)Mult^i32,i32;
+   A = H;
+
+//Line:13
+
+   int32 I = C;
+   int32 J = 0;
+   int32 K = A(I,J);
+   C = K;
+
+//Line:15
+
+   int32 L = C;
+   ret = L;
    ret;
 
