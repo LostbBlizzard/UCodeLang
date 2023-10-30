@@ -8,38 +8,73 @@
 |(&threadUnload&)[] -> void:;
 
 //EntryPoint 
-|main[] -> void*:
+|main[] -> int32:
 
  [Block:0]
 
 
 //File:src.uc
-//Line:16
+//Line:3
+//Varable:main:H
 
-   int64 A = 4;
-   int64 B = 4;
-   int64 C = A*B;
-   void* D = LowLevel::Malloc(C);
-   int64 E = 0;
+   void* A;
+   int64 B = 1;
+   int64 C = 4;
+   int64 D = B*C;
+   void* E = LowLevel::Malloc(D);
+   int64 F = 0;
 
    _label1:
 
-   int8 F = E==A;
-   gotoif (F) _label0;
-   int64 G = E*B;
-   void* H = D+G;
+   int8 G = F==B;
+   gotoif (G) _label0;
+   int64 H = F*C;
+   void* I = E+H;
 
 //Line:0
 
-   int32 I = 0;
-   *H = I;
-   int32 J = 1;
-   int64 K = E+J;
-   E = K;
+   int32 J = 0;
+   *I = J;
+   int32 K = 1;
+   int64 L = F+K;
+   F = L;
    goto _label1;
 
+//Line:3
    _label0:
 
-   ret = D;
+   A = E;
+
+//Line:4
+
+   int32 M = 1;
+   void* N = A;
+   int64 O = 0;
+   int64 P = 4;
+   int64 Q = O*P;
+   void* R = N+Q;
+   *R = M;
+
+//Line:5
+//Varable:main:Tep
+
+   int32 S;
+   void* T = A;
+   int64 U = 0;
+   int64 V = 4;
+   int64 W = U*V;
+   void* X = T+W;
+   int32 Y = *X;
+   S = Y;
+
+//Line:7
+
+   void* Z = A;
+   LowLevel::Free(Z);
+
+//Line:9
+
+   int32 [ = S;
+   ret = [;
    ret;
 
