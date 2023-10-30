@@ -763,6 +763,8 @@ using namespace UCodeLang;
 		bool runStandardLibraryTest = false;
 		bool runincrementalcompilationTestOnStandardLibrary = false;
 
+		bool hasgcc = system("gcc -v") == EXIT_SUCCESS;
+
 		if (rununitTest)
 		{
 			for (size_t i = 0; i < BackEndsCount; i++)
@@ -774,12 +776,19 @@ using namespace UCodeLang;
 				
 				Vector<std::future<bool>> List;
 				List.resize(Tests.size());
-				//#if UCodeLang_Platform_Linux
-				if (mode == TestMode::CLang89BackEnd)
-				{
-					//continue;
+
+				
+				//geting gcc on 32 bit is a hassle
+				#if UCodeLang_32BitSytem
+				if (mode == TestMode::CLang89BackEnd) {
+					continue;
 				}
-				//#endif
+				#endif
+
+				if (mode == TestMode::CLang89BackEnd && hasgcc == false)
+				{
+					continue;
+				}
 
 				for (size_t i = 0; i < Tests.size(); i++)
 				{
