@@ -6,7 +6,7 @@ UCodeIDEStart
 namespace ECSExample
 {
 
-	void ECSExample::ECSLink(UCodeLang::RunTimeLib& lib)
+	void ECSLink(UCodeLang::RunTimeLib& lib)
 	{
 		UCodeLangAutoLink(lib, ECSExample);
 	{//Made by UCodeAutoLink 
