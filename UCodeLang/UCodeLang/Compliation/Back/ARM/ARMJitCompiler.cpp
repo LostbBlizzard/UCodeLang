@@ -8,7 +8,7 @@ void ARMJitCompiler::Reset()
 }
 bool ARMJitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress, Vector<UInt8>& ArmOutput)
 {
-
+	return false;
 }
 void ARMJitCompiler::SubCall(FuncType Value, uintptr_t CPPOffset, void* ArmOutput)
 {

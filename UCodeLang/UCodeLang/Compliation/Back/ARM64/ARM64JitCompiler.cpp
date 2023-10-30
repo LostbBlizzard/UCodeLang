@@ -11,7 +11,7 @@ bool ARM64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress,
 }
 void ARM64JitCompiler::SubCall(FuncType Value, uintptr_t CPPOffset, void* ArmOutput)
 {
-	return false;
+
 }
 
 UCodeLangEnd
