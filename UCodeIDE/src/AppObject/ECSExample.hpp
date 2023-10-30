@@ -131,7 +131,7 @@ namespace ECSExample
 
 		bool calledstart = false;
 		bool isdestroyed = false;
-	private:
+	
 		Entity* myentity =nullptr;
 		Object<Component> myobj;
 	};
