@@ -109,13 +109,13 @@ namespace ECSExample
 		}
 
 
-		UCodeLangExport Entity* entity()
+		UCodeLangExport Entity& entity()
 		{
-			return myentity;
+			return *myentity;
 		}
-		UCodeLangExport const Entity* ientity() const
+		UCodeLangExport const Entity& ientity() const
 		{
-			return myentity;
+			return *myentity;
 		}
 
 		UCodeLangExport void Destroy()
@@ -126,6 +126,7 @@ namespace ECSExample
 		UCodeLangExport Object<Component> object() { return myobj; }
 		UCodeLangExport Object<const Component> iobject() const { return myobj.AsReadOnly(); }
 
+		UCodeLangEmbed("uintptr _Handle = 0;");
 		
 
 		bool calledstart = false;
@@ -188,7 +189,7 @@ namespace ECSExample
 		{
 			return  myscenc;
 		}
-		UCodeLangExport  const Scene* scenc() const
+		UCodeLangExport  const Scene* iscenc() const
 		{
 			return  myscenc;
 		}
@@ -366,7 +367,7 @@ namespace ECSExample
 		}
 	};
 
-	struct Scene
+	UCodeLangExportSymbol("ECS") struct Scene
 	{
 		Vector<Unique_ptr<Entity>> Entitys;
 		Object<Scene> myobj;

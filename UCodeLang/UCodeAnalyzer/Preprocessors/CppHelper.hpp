@@ -80,6 +80,7 @@ public:
 
 		Optional<size_t> OverloadNumber;
 		bool IsStatic = false;
+		bool IsThisConst = false;
 	};
 	struct SymbolData
 	{

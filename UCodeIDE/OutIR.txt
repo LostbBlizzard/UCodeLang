@@ -8,17 +8,38 @@
 |(&threadUnload&)[] -> void:;
 
 //EntryPoint 
-|main[] -> int32:
+|main[] -> void*:
 
  [Block:0]
 
 
 //File:src.uc
-//Line:5
+//Line:16
 
-   int32 A = 1;
-   int32 B = 0;
-   int32 C = B+A;
-   ret = C;
+   int64 A = 4;
+   int64 B = 4;
+   int64 C = A*B;
+   void* D = LowLevel::Malloc(C);
+   int64 E = 0;
+
+   _label1:
+
+   int8 F = E==A;
+   gotoif (F) _label0;
+   int64 G = E*B;
+   void* H = D+G;
+
+//Line:0
+
+   int32 I = 0;
+   *H = I;
+   int32 J = 1;
+   int64 K = E+J;
+   E = K;
+   goto _label1;
+
+   _label0:
+
+   ret = D;
    ret;
 

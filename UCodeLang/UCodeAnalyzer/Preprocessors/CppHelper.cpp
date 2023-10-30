@@ -417,6 +417,8 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 
 							bool IsStatic = Item.MyData->IsStatic;
 							bool IsMemberFuncion = Item.MemberFuncClass.has_value();
+							bool IsReadOnlyThis = Item.MyData->IsThisConst;
+							
 							String ClassName;
 							
 							if (IsStatic == false && IsMemberFuncion)
@@ -426,8 +428,17 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 
 								ClassName = CppNameSpace + "::" + Item.MemberFuncClass.value();
 
+								if (IsReadOnlyThis)
+								{
+									Linkstr += "const ";
+								}
 								Linkstr += ClassName + "*" + (String)" thisPar" + " = ";
-								Linkstr += "Input.GetParameter<" + ClassName + "*" + ">();";
+								Linkstr += "Input.GetParameter<";
+								if (IsReadOnlyThis)
+								{
+									Linkstr += "const ";
+								}
+								Linkstr += ClassName + "*" + ">();";
 
 								Linkstr += "\n";
 								AddTabCount(TabCount + 4, Linkstr);
@@ -538,6 +549,10 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 								Linkstr += FuncPtrEnder + (String)")";
 
 								Linkstr += "[](";
+								if (IsReadOnlyThis)
+								{
+									Linkstr += "const ";
+								}
 								Linkstr += ClassName + "*" + (String)" thisPar";
 
 								if (Item.Pars.size())
@@ -1120,6 +1135,23 @@ void CppHelper::DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size
 		}
 		func.IsStatic = IsStatic;
 
+		
+		{
+			auto oldinex = i;
+			String AsStr;
+			GetIndentifier(i, FileText, AsStr);
+
+			if (AsStr == "const")
+			{
+				func.IsThisConst = true;
+			}
+			else
+			{
+				i = oldinex;
+			}
+		}
+
+
 		Tep._Name = std::move(Indentifier);
 		Tep._FullName = State.ScopesAsString() + Tep._Name;
 		Tep.Summary = std::move(Sum);
@@ -1490,7 +1522,17 @@ String CppHelper::ToString(CppToULangState& State, const ClassType& Value, const
 		R += summary;
 		State.AddScopesUseingScopeCount(R);
 	}
-	R += "$" + Syb._Name + " extern \"c\" export:\n";
+	R += "$" + Syb._Name;
+	
+	if (Value.IsTrait)
+	{
+		R += " trait";
+	}
+	else 
+	{
+		R += " export extern \"c\"";
+	}
+	R += ":\n";
 
 	State.ScopeCount++;
 	for (auto& Item : Value.Fields)
@@ -1548,6 +1590,10 @@ String CppHelper::ToString(CppToULangState& State, const FuncData& Value, const 
 	
 	if (Value.MemberClassName.has_value() && Value.IsStatic == false)
 	{
+		if (Value.IsThisConst)
+		{
+			R += "imut ";
+		}
 		R += "this&";
 		if (Value.Pars.size())
 		{
