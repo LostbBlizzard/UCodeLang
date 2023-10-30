@@ -3123,6 +3123,7 @@ void AppObject::FullReloadRunTime()
     _RuntimeLib.Init(&_CompiledLib);
 
     LinkAppAPICallsTo(_RuntimeLib);
+    ECSExample::ECSLink(_RuntimeLib);
 
     _RunTimeState.ClearRunTimeState();
     _RunTimeState.AddLib(&_RuntimeLib);

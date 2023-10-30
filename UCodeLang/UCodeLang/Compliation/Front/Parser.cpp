@@ -428,6 +428,8 @@ GotNodeType Parser::DoClassType(ClassNode* output, const Token* ClassToken, Gene
 	{
 		output->_IsExport = true;
 		NextToken();
+
+		ColonToken = TryGetToken();
 	}
 
 
@@ -471,6 +473,7 @@ GotNodeType Parser::DoClassType(ClassNode* output, const Token* ClassToken, Gene
 		{
 		case TokenType::EndTab:goto EndLoop;
 		case TokenType::Class:V = GetClassNode(); break;
+		case TokenType::KeyWord_export:
 		case TokenType::KeyWord_unsafe:
 		case TokenType::KeyWord_extern:
 		case Parser::declareFunc:V = GetFuncNode(); break;
@@ -3974,6 +3977,8 @@ GotNodeType Parser::DoTraitType(TraitNode* output, const Token* ClassToken, Gene
 		switch (T->Type)
 		{
 		case TokenType::EndTab:goto EndLoop;
+		case TokenType::KeyWord_export:
+		case TokenType::KeyWord_extern:
 		case TokenType::KeyWord_unsafe:
 		case Parser::declareFunc:V = GetFuncNode(); break;
 		case TokenType::KeyWorld_public:
