@@ -1085,8 +1085,8 @@ SystematicAnalysis::UrinaryOverLoadWith_t SystematicAnalysis::Type_HasUrinaryOve
 					{
 						return {};
 					}
-					EnumVariantFeild* hasNone = false;
-					EnumVariantFeild* hasSome = false;
+					EnumVariantFeild* hasNone = nullptr;
+					EnumVariantFeild* hasSome = nullptr;
 
 					for (auto& Item : info->VariantData.value().Variants)
 					{
