@@ -890,7 +890,10 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 							givename = false;
 						}
 					}
-
+					else 
+					{
+						RegWillBeUsed(reg);
+					}
 				}
 			}
 
@@ -1835,26 +1838,6 @@ Optional< RegisterID> UCodeBackEndObject::FindIRInRegister(const IRInstruction* 
 		return R.value();
 	}
 
-	for (size_t i = 0; i < _Registers.Registers.size(); i++)
-	{
-		auto& Item = _Registers.Registers[i];
-
-		if (Item.Types.has_value())
-		{
-			auto& ItemValue = Item.Types.value();
-			if (auto IR = ItemValue.Get_If<const IRInstruction*>())
-			{
-				auto IRV = *IR;
-				if (IRV->Type == IRInstructionType::Load)
-				{
-					if (IRV->Target().Pointer == Value)
-					{
-						return (RegisterID)i;
-					}
-				}
-			}
-		}
-	}
 	return {};
 }
 Optional<RegisterID>  UCodeBackEndObject::FindValueInRegister(AnyInt64 Value)
@@ -2403,6 +2386,7 @@ RegisterID  UCodeBackEndObject::ReadValueFromPointer(const IRType& ObjectType, R
 		UCodeLangUnreachable();
 		break;
 	}
+	_Registers.FreeRegister(Out);
 	return Out;
 }
 void UCodeBackEndObject::BuildUIntToIntCast(const IRInstruction* Ins, const IROperator& Op, size_t IntSize)
@@ -2770,7 +2754,9 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction* Ins, const  IROperato
 		auto CompilerRet = FindValueInRegister(Value);
 		if (CompilerRet.has_value())
 		{
-			//return CompilerRet.value();
+			if (!IsDebugMode()) {
+				return CompilerRet.value();
+			}
 		}
 
 		auto V = GetRegisterForTep();
@@ -4199,7 +4185,7 @@ RegisterID UCodeBackEndObject::GetRegisterForTep()
 	{
 		for (RegisterID_t i = (RegisterID_t)RegisterID::StartRegister; i < (RegisterID_t)RegisterID::EndRegister; i++)
 		{
-			RegisterID CompilerRet = (RegisterID)i;
+			RegisterID Regster = (RegisterID)i;
 			auto& Item = _Registers.Registers[i];
 			if (Item.Types.has_value())
 			{
@@ -4210,17 +4196,17 @@ RegisterID UCodeBackEndObject::GetRegisterForTep()
 					auto& IRV = *IR;
 					if (!IsReferencedAfterThisIndex(IRV))
 					{
-						return CompilerRet;
+						return Regster;
 					}
 				}
 				else if (auto IR = ItemValue.Get_If<AnyInt64>())
 				{
-					return CompilerRet;
+					return Regster;
 				}
 			}
 			else
 			{
-				return CompilerRet;
+				return Regster;
 			}
 		}
 
@@ -4613,7 +4599,8 @@ bool  UCodeBackEndObject::IsReferenceingTheSame(const IROperator& Test, const IR
 }
 bool UCodeBackEndObject::IsReferencedAfterThisIndex(const IROperator& Op)
 {
-	for (size_t i = Index+1; i < LookingBlock->Instructions.size(); i++)
+	//size_t i = Index+1 does not work because binaryOp relies on this to not trash first item register
+	for (size_t i = Index; i < LookingBlock->Instructions.size(); i++)
 	{
 		auto Item = LookingBlock->Instructions[i].get();
 
