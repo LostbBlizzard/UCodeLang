@@ -13,4 +13,10 @@ $Player[Component]:
   
 */
 
-|main[] => unsafe new int[4];
+|main_while[] -> int:
+ 
+ int A = 0;
+ while A < 10:
+  A++;
+
+ ret A;
