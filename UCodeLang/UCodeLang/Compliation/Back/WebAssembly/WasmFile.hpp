@@ -167,7 +167,7 @@ public:
 		}
 		void FromBytes(BitReader& bit)
 		{
-			varU32 L = 0;
+			varU32 L = 0;//SectionNumber
 			WasmFile::ReadLEB128(bit, L);
 
 			auto bytes = bit.ReadBytesAsSpan(L);
@@ -243,7 +243,28 @@ public:
 		}
 		void FromBytes(BitReader& bit)
 		{
+			varU32 L = 0;//SectionNumber
+			WasmFile::ReadLEB128(bit, L);
 
+			auto bytes = bit.ReadBytesAsSpan(L);
+			BitReader v;
+			v.SetBytes(bytes.Data(), bytes.Size());
+
+			{
+				VectorLength exportslength = 0;
+				WasmFile::ReadLEB128(v, exportslength);
+
+				Exports.resize(exportslength);
+
+				for (auto& Item : Exports)
+				{
+					Read_String(v,Item.Name);
+
+					v.ReadType(*(Byte*)&Item.Tag);
+
+					WasmFile::ReadLEB128(v, Item.Index);
+				}
+			}
 		}
 	};
 	struct StartSection
@@ -435,7 +456,6 @@ public:
 				}
 			}
 			{
-				//WasmFile::WriteLEB128(tep, (VectorLength)Ins.size());
 
 				for (auto& Item : Ins)
 				{
@@ -464,14 +484,19 @@ public:
 				}
 			}
 			{
-				varU32 Count = 0;
-				WasmFile::ReadLEB128(bit, Count);
-				Ins.resize(Count);
+				Expr val = Expr();
 
-				for (size_t i = 0; i < Count; i++)
+				do
 				{
-					Ins[i].FromBytes(bit);
-				}
+					val = Expr();
+
+					val.FromBytes(bit);
+
+					Ins.push_back(std::move(val));
+
+
+				} while (val.InsType != Expr::Ins::end);
+				
 			}
 		}
 
@@ -699,11 +724,24 @@ public:
 			bit.WriteType(c);
 		}
 	}
+	static void Read_String(BitReader& bit, String& str)
+	{
+		Byte V = 0;
+		bit.ReadType((Byte)V);
+
+		str.resize(V);
+
+		for (auto& c : str) {
+			bit.ReadType(c);
+		}
+	}
 	//For Debuging
 	String ToWat() const;
 
 	String ToWat(const ValType& Item) const;
 	String ToWat(const FuncType& Item) const;
+	String ToWat(const Code& Item) const;
+	String ToWat(const Expr& Item) const;
 private:
 };
 UCodeLangEnd

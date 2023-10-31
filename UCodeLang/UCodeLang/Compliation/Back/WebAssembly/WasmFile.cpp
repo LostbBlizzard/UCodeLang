@@ -113,7 +113,7 @@ BytesPtr WasmFile::ToBytes(const WasmFile& file)
 	bit.WriteType(WasmFileMagicAsInt);
 	bit.WriteType(file.Version);
 
-	//WriteLEB128(bit, (VectorLength)file.section.size());
+
 	for (size_t i = 0; i < file.section.size(); i++)
 	{
 		file.section[i].ToBytes(bit);
@@ -128,13 +128,39 @@ String WasmFile::ToWat() const
 
 	r += "(module\n ";
 
+	const CodeSection* CodeVal = nullptr;
+	for (auto& Item : section)
+	{
+		if (auto Val = Item.Type.Get_If<CodeSection>())
+		{
+			CodeVal = Val;
+		}
+	}
+	const ExportSection* ExportVal = nullptr;
+	for (auto& Item : section)
+	{
+		if (auto Val = Item.Type.Get_If<ExportSection>())
+		{
+			ExportVal= Val;
+		}
+	}
+
 	for (auto& Item : section)
 	{
 		if (auto Val = Item.Type.Get_If<TypeSection>())
 		{
-			for (auto& Item : Val->Types)
+			for (size_t i = 0; i < Val->Types.size(); i++)
 			{
+				auto& Item = Val->Types[i];
+				auto& Code = CodeVal->code[i];
+				auto& Export = ExportVal->Exports[i];
+
 				r += ToWat(Item);
+
+				r += "(export " + Export.Name + ")";
+
+				r += "\n";
+				r += ToWat(Code);
 				r += "\n ";
 			}
 		}
@@ -199,6 +225,50 @@ String WasmFile::ToWat(const FuncType& Item) const
 	}
 
 	r += "))";
+	return r;
+}
+String WasmFile::ToWat(const Code& Item) const
+{
+	String r;
+	for (auto& Item : Item.Ins)
+	{
+		r += "  ";
+		r += ToWat(Item);
+		r += '\n';
+	}
+	return r;
+}
+String WasmFile::ToWat(const Expr& Item) const
+{
+	String r;
+	switch (Item.InsType)
+	{
+	case Expr::Ins::end:
+		r += "end";
+		break;
+	case Expr::Ins::i32const:
+		r += "i32.const ";
+		r += std::to_string(Item.Const.AsInt32);
+		break;
+	case Expr::Ins::i64const:
+		r += "i64.const ";
+		r += std::to_string(Item.Const.AsInt64);
+		break;
+	case Expr::Ins::f32const:
+		r += "f32.const ";
+		r += std::to_string(Item.Const.Asfloat32);
+		break;
+	case Expr::Ins::f64const:
+		r += "f64.const ";
+		r += std::to_string(Item.Const.Asfloat64);
+		break;
+	case Expr::Ins::Return:
+		r += "return";
+		break;
+	default:
+		UCodeLangUnreachable();
+		break;
+	}
 	return r;
 }
 UCodeLangEnd
