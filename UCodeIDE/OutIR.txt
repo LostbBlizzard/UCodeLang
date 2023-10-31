@@ -8,7 +8,7 @@
 |(&threadUnload&)[] -> void:;
 
 //EntryPoint 
-|main[] -> int64:
+|main[] -> int8:
 
  [Block:0]
 
@@ -16,7 +16,7 @@
 //File:src.uc
 //Line:16
 
-   int64 A = 6;
+   int8 A = 1;
    ret = A;
    ret;
 

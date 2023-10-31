@@ -248,13 +248,33 @@ void WebAssemblyBackEnd::LoadOp(const IRInstruction* ir, const IROperator& Op)
 {
 	if (Op.Type == IROperatorType::Value)
 	{
-		if (ir->ObjectType._Type == IRTypes::f32)
+		switch (ir->ObjectType._Type)
 		{
+		case IRTypes::f32:
 			_funccode->Push_f32_const(Op.Value.Asfloat32);
-		}
-		else 
-		{
+			break;
+
+		case IRTypes::i8:
+			_funccode->Push_i32_const((Int32)Op.Value.AsInt8);
+			break;
+		case IRTypes::i16:
+			_funccode->Push_i32_const((Int32)Op.Value.AsInt16);
+			break;
+
+		case IRTypes::i32:
 			_funccode->Push_i32_const(Op.Value.AsInt32);
+			break;
+
+		case IRTypes::i64:
+			_funccode->Push_i64_const(Op.Value.AsInt64);
+			break;
+
+		case IRTypes::f64:
+			_funccode->Push_f64_const(Op.Value.Asfloat64);
+			break;
+		default:
+			UCodeLangUnreachable();
+			break;
 		}
 	}
 	else if (Op.Type == IROperatorType::IRInstruction)
