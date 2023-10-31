@@ -12,7 +12,7 @@
 #include "UCodeLang/Compliation/Back/C89/C89Backend.hpp"
 #include "UCodeLang/Compliation/Back/IR/IRBackEnd.hpp"
 #include "UCodeLang/Compliation/Back/LLVM/LLVMBackEnd.hpp"
-#include "UCodeLang/Compliation/Back/WebAssembly/WebAssembly.hpp"
+#include "UCodeLang/Compliation/Back/WebAssembly/WasmBackEnd.hpp"
 #include "UCodeLang/Compliation/Back/Windows/WindowsBackEnd.hpp"
 #include "UCodeLang/Compliation/Back/Linux/LinuxBackEnd.hpp"
 
@@ -362,7 +362,7 @@ void AppObject::DrawTestMenu()
                 }
                 else if (Testmod == TestMode::Wasm)
                 {
-                    Com.Set_BackEnd(WebAssemblyBackEnd::MakeObject);
+                    Com.Set_BackEnd(WasmBackEnd::MakeObject);
                 }
 
                 Com.Get_Settings()._Flags = flag;
@@ -728,7 +728,7 @@ void AppObject::DrawTestMenu()
                     ss << "const m = new WebAssembly.Module(wasm);\n";
                     ss << "const instance = new WebAssembly.Instance(m, {});\n";
                     ss << "console.log(instance.exports.";
-                    ss << WebAssemblyBackEnd::ToWebName(ufunc->DecorationName);
+                    ss << WasmBackEnd::ToWebName(ufunc->DecorationName);
                     ss << "());";
 
                     Path node_file = paths.OutFile.native() + Path("test.js").native();
@@ -2163,7 +2163,7 @@ void AppObject::UpdateBackEnd()
         _BackEnd = UCodeLang::LLVMBackEnd::MakeObject;
         break;
     case BackEndType::WebAssembly:
-        _BackEnd = UCodeLang::WebAssemblyBackEnd::MakeObject;
+        _BackEnd = UCodeLang::WasmBackEnd::MakeObject;
         break;
     case BackEndType::WindowsExecutable:
         _BackEnd = UCodeLang::WindowsBackEnd::MakeObject;

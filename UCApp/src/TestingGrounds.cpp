@@ -9,7 +9,7 @@
 #include <sstream>
 #include "UCodeLang/Compliation/Back/C89/C89Backend.hpp"
 #include "UCodeLang/Compliation/Back/x86/X86BackEnd.hpp"
-#include "UCodeLang/Compliation/Back/WebAssembly/WebAssembly.hpp"
+#include "UCodeLang/Compliation/Back/WebAssembly/WasmBackEnd.hpp"
 #include "UCodeLang/Compliation/ModuleFile.hpp"
 #include "UCodeLang/RunTime/ProfilerDebuger.hpp"
 
@@ -80,7 +80,7 @@ void TestingGround()
 
 	Settings._Type = OutPutType::Lib;
 	Settings._Flags = OptimizationFlags::Stable_ForDebuging;
-	_Compiler.Set_BackEnd(ULangTest::WebAssemblyBackEnd::MakeObject);
+	_Compiler.Set_BackEnd(ULangTest::WasmBackEnd::MakeObject);
 	
 	ModuleFile Mfile;
 	ModuleFile::FromFile(&Mfile, CodeTestingModluePath);

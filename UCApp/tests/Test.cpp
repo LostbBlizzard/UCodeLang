@@ -7,7 +7,7 @@
 #include <UCodeLang/Compliation/UAssembly/UAssembly.hpp>
 #include <UCodeLang/Compliation/ModuleFile.hpp>
 
-#include <UCodeLang/Compliation/Back/WebAssembly/WebAssembly.hpp>
+#include <UCodeLang/Compliation/Back/WebAssembly/WasmBackEnd.hpp>
 
 #include "../src/UCodeLangProjectPaths.hpp"
 
@@ -128,7 +128,7 @@ using namespace UCodeLang;
 		}
 		else if (mode == TestMode::WasmBackEnd)
 		{
-			Com.Set_BackEnd(WebAssemblyBackEnd::MakeObject);
+			Com.Set_BackEnd(WasmBackEnd::MakeObject);
 		}
 		std::string OutFilePath = OutFileDir + Test.TestName + ModeType(flag) + ".ulibtest" + Com.GetOutputExtWithDot();
 
@@ -493,7 +493,7 @@ using namespace UCodeLang;
 			ss << "const m = new WebAssembly.Module(wasm);\n";
 			ss << "const instance = new WebAssembly.Instance(m, {});\n";
 			ss << "console.log(instance.exports.";
-			ss << WebAssemblyBackEnd::ToWebName(ufunc->DecorationName);
+			ss << WasmBackEnd::ToWebName(ufunc->DecorationName);
 			ss << "());";
 
 			Path node_file = paths.OutFile.native() + Path("test.js").native();

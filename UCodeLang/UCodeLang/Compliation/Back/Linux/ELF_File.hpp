@@ -46,8 +46,6 @@ public:
 		Arm64 = 0xB7,
 		RISCV = 0xF3,
 	};
-	void ToBytes(BitMaker& bit) const;
-	bool FromBytes(BitReader& bit);
 
 
 	Classformat format = Classformat::bit64;
