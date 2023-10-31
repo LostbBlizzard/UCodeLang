@@ -15,14 +15,17 @@
 #include "UCodeLang/Compliation/Back/WebAssembly/WasmBackEnd.hpp"
 #include "UCodeLang/Compliation/Back/Windows/WindowsBackEnd.hpp"
 #include "UCodeLang/Compliation/Back/Linux/LinuxBackEnd.hpp"
+#include "UCodeLang/Compliation/Back/MacOs/MacOSBackEnd.hpp"
 
 #include "UCodeLang/RunTime/ProfilerDebuger.hpp"
 
 #include "UCodeAnalyzer/SyntaxHelper.hpp"
 
 #include "UCodeLang/Compliation/Back/Windows/PE_File.hpp"
-//#include "UCodeLang/Compliation/Back/Linux/ELF_File.hpp"
-//#include <elfio/elfio_dump.hpp>
+#include "UCodeLang/Compliation/Back/Linux/ELF_File.hpp"
+#include "UCodeLang/Compliation/Back/MacOs/MachO.hpp"
+
+
 
 #include "UCodeLang/Compliation/Back/x86_64/X86_64UNativeBackEnd.hpp"
 #include "UCodeLang/Compliation/Back/x86_64/X86_64JitCompiler.hpp"
