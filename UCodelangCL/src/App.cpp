@@ -13,7 +13,7 @@
 #include "UCodeLang/Compliation/Back/Windows/WindowsBackEnd.hpp"
 #include "UCodeLang/Compliation/Back/Linux/LinuxBackEnd.hpp"
 #include "UCodeLang/Compliation/Back/IR/IRBackEnd.hpp"
-#include "UCodeLang/Compliation/Back/WebAssembly/WebAssembly.hpp"
+#include "UCodeLang/Compliation/Back/WebAssembly/WasmBackEnd.hpp"
 #include "UCodeLang/Compliation/Back/C89/C89Backend.hpp"
 #include "UCodeLang/Compliation/Back/LLVM/LLVMBackEnd.hpp"
 
@@ -317,7 +317,7 @@ void ParseLine(String_view& Line)
 				}
 				else if (UCodeLang::StringHelper::Contains(Line, "-wasm"))
 				{
-					_Compiler.Set_BackEnd(UCodeLang::WebAssemblyBackEnd::MakeObject);
+					_Compiler.Set_BackEnd(UCodeLang::WasmBackEnd::MakeObject);
 				}
 				else if (UCodeLang::StringHelper::Contains(Line, "-ir"))
 				{

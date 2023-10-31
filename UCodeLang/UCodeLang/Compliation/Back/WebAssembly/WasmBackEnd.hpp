@@ -4,7 +4,7 @@
 #include "../BackEndInterface.hpp"
 #include "WasmFile.hpp"
 UCodeLangStart
-class WebAssemblyBackEnd : BackEndObject
+class WasmBackEnd : BackEndObject
 {
 public:
 	using TypeSection = WasmFile::TypeSection;
@@ -16,8 +16,8 @@ public:
 	using FuncType = WasmFile::FuncType;
 	using Export = WasmFile::Export;
 
-	WebAssemblyBackEnd();
-	~WebAssemblyBackEnd() override;
+	WasmBackEnd();
+	~WasmBackEnd() override;
 
 	void Reset() override;
 	void Build(const IRBuilder* Input) override;

@@ -1,23 +1,23 @@
- #include "WebAssembly.hpp"
+ #include "WasmBackEnd.hpp"
 #include "UCodeLang/Compliation/Middle/IR.hpp"
 #include "UCodeLang/Compliation/CompliationSettings.hpp"
 
 #include "Source.hpp"
 UCodeLangStart
-WebAssemblyBackEnd::WebAssemblyBackEnd()
+WasmBackEnd::WasmBackEnd()
 {
 }
-WebAssemblyBackEnd::~WebAssemblyBackEnd()
+WasmBackEnd::~WasmBackEnd()
 {
 }
 
-void WebAssemblyBackEnd::Reset()
+void WasmBackEnd::Reset()
 {
-	this->~WebAssemblyBackEnd();
-	new (this) WebAssemblyBackEnd;
+	this->~WasmBackEnd();
+	new (this) WasmBackEnd;
 }
 
-void WebAssemblyBackEnd::Build(const IRBuilder* Input)
+void WasmBackEnd::Build(const IRBuilder* Input)
 {
 	_Input = Input;
 
@@ -122,18 +122,18 @@ void WebAssemblyBackEnd::Build(const IRBuilder* Input)
 	*/
 }
 
-BackEndObject* WebAssemblyBackEnd::MakeObject()
+BackEndObject* WasmBackEnd::MakeObject()
 {
-	return new WebAssemblyBackEnd();
+	return new WasmBackEnd();
 }
 
-void WebAssemblyBackEnd::UpdateBackInfo(CompliationBackEndInfo& BackInfo)
+void WasmBackEnd::UpdateBackInfo(CompliationBackEndInfo& BackInfo)
 {
 	BackInfo.Output = CompliationBackEndInfo::BackEnd::Wasm;
 	BackInfo.OutputSet = CompliationBackEndInfo::InsSet::Other;
 }
 
-void WebAssemblyBackEnd::OnFunc(const IRFunc* Func)
+void WasmBackEnd::OnFunc(const IRFunc* Func)
 {
 	Position.clear();
 
@@ -211,7 +211,7 @@ void WebAssemblyBackEnd::OnFunc(const IRFunc* Func)
 	_exportSection->Exports.push_back(std::move(V));
 }
 
-WebAssemblyBackEnd::WasmType WebAssemblyBackEnd::ToType(const IRType& Type)
+WasmBackEnd::WasmType WasmBackEnd::ToType(const IRType& Type)
 {
 	switch (Type._Type)
 	{
@@ -236,15 +236,15 @@ WebAssemblyBackEnd::WasmType WebAssemblyBackEnd::ToType(const IRType& Type)
 }
 
 
-String WebAssemblyBackEnd::ToWebName(const String& IRName)
+String WasmBackEnd::ToWebName(const String& IRName)
 {
 	return IRName;
 }
-String WebAssemblyBackEnd::ToWebName(const IRidentifierID Name)
+String WasmBackEnd::ToWebName(const IRidentifierID Name)
 {
 	return ToWebName(_Input->FromID(Name));
 }
-void WebAssemblyBackEnd::LoadOp(const IRInstruction* ir, const IROperator& Op)
+void WasmBackEnd::LoadOp(const IRInstruction* ir, const IROperator& Op)
 {
 	if (Op.Type == IROperatorType::Value)
 	{
