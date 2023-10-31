@@ -66,6 +66,17 @@ public:
 	//Interpretation of this field depends on the target architecture.
 	UInt32 flags=0;
 	//TODO e_ehsize
+
+
+
+	void ToBytes(BitMaker& bit) const;
+	bool FromBytes(BitReader& bit);
+
+	static bool FromFile(const Path& path, ELFFile& file);
+	static bool ToFile(const ELFFile& file, const Path& path);
+
+	static bool FromBytes(ELFFile& file, const BytesView Bytes);
+	static BytesPtr ToBytes(const ELFFile& file);
 private:
 };
 
