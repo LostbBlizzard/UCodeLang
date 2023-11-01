@@ -675,7 +675,6 @@ size_t UAssembly::ParseInstruction( size_t I,const Span<Instruction> Data, Strin
 		}
 		if (Data[I].OpCode == InstructionSet::Jumpv1)
 		{
-
 			{
 				auto Opt = Instruction::IsJump(Data, I);
 				if (Opt)
