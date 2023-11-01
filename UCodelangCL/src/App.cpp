@@ -57,7 +57,7 @@ int App::main(int argc, char* argv[])
 	if (IsDebuging) 
 	{
 		auto ucodebinpath = UCodeLang::LangInfo::GetUCodeGlobalBin();
-		auto Ulangexepath = ucodebinpath / Path("ucodelang.exe");
+		auto Ulangexepath = ucodebinpath / Path("uclang.exe");
 		Path ThisRuningExePath = argv[0];
 		bool ShouldCopy = true;
 		if (fs::exists(Ulangexepath))

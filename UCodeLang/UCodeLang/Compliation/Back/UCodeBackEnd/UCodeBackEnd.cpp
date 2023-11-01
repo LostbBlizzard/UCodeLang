@@ -1262,10 +1262,13 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			{
 				InstructionBuilder::Jumpv2(NullAddress, _Ins); PushIns();
 				InstructionBuilder::Jumpv3(NullAddress, _Ins); PushIns();
+				InstructionBuilder::Jumpifv4(NullAddress, reg, _Ins); PushIns();
+			}
+			else
+			{
+				InstructionBuilder::Jumpifv2(NullAddress, reg, _Ins); PushIns();
 			}
 
-
-			InstructionBuilder::Jumpif(NullAddress, reg, _Ins); PushIns();
 
 			auto& jumpdata = Jumps.GetValue(jumpos);
 			if (jumpdata.has_value())
@@ -1297,7 +1300,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		break; 
 		case IRInstructionType::EqualTo:
 		{
-			auto optype = Item->ObjectType;
+			auto optype = GetType(Item->Target());
 
 			auto BOpVals = DoBinaryOpValues(Item);
 			RegisterID A = BOpVals.A;
@@ -1726,8 +1729,8 @@ DoneLoop:
 		auto& Inst = _OutLayer->Get_Instructions();
 		size_t Index = Item.InsToUpdate - 1;
 
-		
-		Instruction& Ins = _OutLayer->Get_Instructions()[Index+3];
+		auto offset = Get_Settings().PtrSize == IntSizes::Int32 ? 1 : 3;
+		Instruction& Ins = _OutLayer->Get_Instructions()[Index+ offset];
 		UAddress JumpPos = IRToUCodeInsPre.GetValue(Item.Jumpto)-1;	
 		UAddress JumpPos2 = IRToUCodeInsPost.GetValue(Item.Jumpto-1);
 		
@@ -1768,6 +1771,11 @@ DoneLoop:
 
 		if (Ins.OpCode != InstructionSet::Jumpif) 
 		{
+			if (Get_Settings().PtrSize == IntSizes::Int32)
+			{
+				JumpPos += 1;//not sure why this needs to be here
+			}
+
 			InstructionBuilder::Jumpv1(JumpPos, Inst[Index]);
 			InstructionBuilder::Jumpv2(JumpPos, Inst[Index + 1]);
 
@@ -1785,12 +1793,12 @@ DoneLoop:
 			{
 				InstructionBuilder::Jumpv2(JumpPos, Inst[Index + 1]);
 				InstructionBuilder::Jumpv3(JumpPos, Inst[Index + 2]);
-				InstructionBuilder::Jumpif(JumpPos, Ins.Op_RegUInt16.A, Inst[Index + 3]);
+				InstructionBuilder::Jumpifv4(JumpPos, Ins.Op_RegUInt16.A, Inst[Index + 3]);
 			}
 			else
 			{
 
-				InstructionBuilder::Jumpif(JumpPos, Ins.Op_RegUInt16.A, Inst[Index + 1]);
+				InstructionBuilder::Jumpifv2(JumpPos, Ins.Op_RegUInt16.A, Inst[Index + 1]);
 			}
 		}
 	}
@@ -4589,7 +4597,29 @@ bool  UCodeBackEndObject::IsReferenceingTheSame(const IROperator& Test, const IR
 
 	if (Test.Type == Other.Type)
 	{
-		if (Test.identifer == Other.identifer)
+		bool r =false;
+		switch (Test.Type)
+		{
+		case IROperatorType::IRidentifier:
+		case IROperatorType::Get_PointerOf_IRidentifier:
+			r = Test.identifer == Other.identifer;
+			break;
+		case IROperatorType::DereferenceOf_IRInstruction:
+		case IROperatorType::Get_PointerOf_IRInstruction:
+		case IROperatorType::IRInstruction:
+			r = Test.Pointer == Other.Pointer;
+			break;
+		case IROperatorType::DereferenceOf_IRParameter:
+		case IROperatorType::IRParameter:
+		case IROperatorType::Get_PointerOf_IRParameter:
+			r = Test.Parameter == Other.Parameter;
+			break;
+		default:
+			UCodeLangUnreachable();
+			break;
+		}
+
+		if (r)
 		{
 			return true;
 		}

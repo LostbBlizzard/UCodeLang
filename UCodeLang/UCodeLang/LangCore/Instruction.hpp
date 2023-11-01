@@ -522,7 +522,7 @@ struct Instruction
 					}
 					#else
 					UAddress V = 0;
-					((UInt16*)&V)[0] = Ins.Op_RegUInt16.B;
+					((UInt16*)&V)[0] = Ins.Op_ValUInt16.A;
 					((UInt16*)&V)[1] = NextIns.Op_RegUInt16.B;
 					return IfJumpToInfo{ V,NextIns.Op_RegUInt16.A };
 					#endif
