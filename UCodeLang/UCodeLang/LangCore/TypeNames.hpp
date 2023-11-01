@@ -106,9 +106,9 @@
 #define UCodeLangString32Type  "String32"
 
 #define UCodeLangStringSpanType "StringSpan"
-#define UCodeLangStringSpan8Type  "StringSpan8"
-#define UCodeLangStringSpan16Type  "StringSpan16"
-#define UCodeLangStringSpan32Type  "StringSpan32"
+#define UCodeLangStringSpan8Type  "String8Span"
+#define UCodeLangStringSpan16Type  "String16Span"
+#define UCodeLangStringSpan32Type  "String32Span"
 
 
 #define UCode_Unique_ptr "Unique_ptr"//int^ 

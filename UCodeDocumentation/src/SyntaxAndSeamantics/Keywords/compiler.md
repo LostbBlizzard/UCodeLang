@@ -1,6 +1,6 @@
 # compiler(Keyword)
 
-is a type that refers to systematic analysis part of the compiler. systematic analysis is are were symbols and types are checked.
+Is a type that refers to systematic analysis part of the compiler. systematic analysis is are were symbols and types are checked.
 
 it is used the make new symbols,type,funcions.
 and can used to read compiler data and Settings.

@@ -1774,7 +1774,7 @@ DoneLoop:
 			if (Get_Settings().PtrSize == IntSizes::Int32)
 			{
 				JumpPos += 1;//not sure why this needs to be here
-			}
+			}UCodeLangStringSpan8Type
 
 			InstructionBuilder::Jumpv1(JumpPos, Inst[Index]);
 			InstructionBuilder::Jumpv2(JumpPos, Inst[Index + 1]);
