@@ -29,7 +29,6 @@ uninstalltools | none | uninstalls uclang and uclanglsp all downloaded modules w
 install | Name | Installs a UCodeLangModule.
 runmod | Name | runs a Installed UCodeLangModule 
 uninstallmod | Name | uninstalls a Installed UCodeLangModule
-
 exits | none | 0 | exits ucodelang if opened without command line arguments.
 # Build Command 
 
