@@ -2,6 +2,10 @@
 
 - [Language and Why](./About.md)
 
+- [Geting Started Users](./ForImplementers.md)
+
+- [Geting Started Implementers](./.md)
+
 - [Syntax and semantics](./SyntaxAndSemantics.md)
 
    - [Syntax](./SyntaxAndSeamantics/Syntax.md)
@@ -80,9 +84,10 @@
 
 - [Standard library](./Standardlibrary.md)
   
-
 - [UCodeVM](./UCodeVM.md)
 
 - [ForImplementers](./ForImplementers.md)
 
-- [APIs](./APIs.md)
+- [UCodeCl](./ForImplementers.md)
+
+- [Library](./Library.md)
