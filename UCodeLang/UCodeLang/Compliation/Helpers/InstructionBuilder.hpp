@@ -235,7 +235,13 @@ public:
 
 		Out = Instruction(InstructionSet::Jumpv4, Instruction::ValUInt16(Val));
 	}
-	UCodeLangForceinline static void Jumpif(UInt64 address,RegisterID Bool, Instruction& Out)
+	UCodeLangForceinline static void Jumpifv2(UInt64 address,RegisterID Bool, Instruction& Out)
+	{
+		UInt16& Val = ((UInt16*)(&address))[1];
+
+		Out = Instruction(InstructionSet::Jumpif, Instruction::RegUInt16(Bool, Val));
+	}
+	UCodeLangForceinline static void Jumpifv4(UInt64 address, RegisterID Bool, Instruction& Out)
 	{
 		UInt16& Val = ((UInt16*)(&address))[3];
 

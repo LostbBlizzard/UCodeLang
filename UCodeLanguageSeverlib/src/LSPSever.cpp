@@ -480,11 +480,12 @@ void LSPSever::Sever_initialize(integer requestid, const json& Params)
 	V.capabilities.textDocumentSync = TextDocumentSyncKind::Incremental;
 
 	
+	
+	window_logMessage(MessageType::Log, "Hello World Sever Side");
 	SendResponseMessageToClient(requestid,V);
 
 	IsInitialized = true;
 
 	BaseSever.init();
-	//window_logMessage(MessageType::Log, "Hello World Sever Side");
 }
 UCodeLanguageSeverEnd

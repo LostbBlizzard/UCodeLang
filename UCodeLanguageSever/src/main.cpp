@@ -6,7 +6,9 @@
 #include <thread>
 #include <fstream>
 #include <UCodeLang/LangCore/StringHelper.hpp>
-
+#if UCodeLang_Platform_Windows
+#include <windows.h>
+#endif
 const char NumberCharList[] = "1234567890";
 bool IsInNumCharList(char Value)
 {
@@ -75,7 +77,7 @@ int ReadNumber(UCodeLang::String_view View, UCodeLang::String_view& ToUpdate)
 	return Value;
 }
 
-UCodeLang::String FilePath = "C:/CoolStuff/CoolCodeingStuff/cpp/UCodeLang/UCodeLanguageSever/Msg.txt";
+UCodeLang::String FilePath = "Msg.txt";
 std::ofstream File = std::ofstream(FilePath);
 std::mutex Lock = {};
 void LogMSG(const UCodeLang::String& Str)
@@ -116,9 +118,9 @@ void RunArg(UCodeLang::String_view View)
 				static UCodeLanguageSever::LSPSever* SeverPtr = nullptr;
 				SeverPtr = nullptr;
 
-
+				#if UCodeLangDebug
 				LogMSG("Starting ULang Sever");
-
+				#endif
 
 				std::thread SeverThread([]()
 					{
@@ -141,7 +143,10 @@ void RunArg(UCodeLang::String_view View)
 								auto List = SeverPtr->GetPackets();
 								for (auto& Item : List)
 								{
+									#if UCodeLangDebug
 									LogMSG("Sent Packet:" + Item._Data);
+									#endif
+
 
 									std::cout << Item.ToLanguageServerString();
 									std::cout.flush();
@@ -161,19 +166,19 @@ void RunArg(UCodeLang::String_view View)
 					if (packet_op.has_value())
 					{
 						UCodeLanguageSever::ClientPacket& p = packet_op.value();
+
+
+						#if UCodeLangDebug
 						LogMSG("Got Packet:" + p._Data);
+						#endif
 
 						SeverPtr->AddPacket(std::move(p));
 					}
 
 				}
-
-
-
-
-
+				#if UCodeLangDebug
 				LogMSG("Sever End");
-
+				#endif
 
 			}
 
@@ -184,11 +189,37 @@ void RunArg(UCodeLang::String_view View)
 
 int main(int argc, char* argv[])
 {
-	while (true);
-	for (size_t i = 0; i < argc; i++)
+
+	bool IsDebuging = false;
+	#if UCodeLang_Platform_Windows
+	IsDebuging = IsDebuggerPresent();
+	#endif
+	#if UCodeLang_Platform_Windows
+	#if UCodeLangDebug
+	if (IsDebuging)
+	{
+		namespace fs = std::filesystem;
+		auto ucodebinpath = UCodeLang::LangInfo::GetUCodeGlobalBin();
+		auto Ulangexepath = ucodebinpath / UCodeLang::Path("uclanglsp.exe");
+		UCodeLang::Path ThisRuningExePath = fs::absolute(argv[0]);
+		
+		if (ThisRuningExePath != Ulangexepath)
+		{
+			fs::copy_file(ThisRuningExePath, Ulangexepath,fs::copy_options::overwrite_existing);
+
+			auto p1 = ThisRuningExePath.replace_extension(".pdb");
+			auto p2 = Ulangexepath.replace_extension(".pdb");
+			fs::copy_file(p1,p2, fs::copy_options::overwrite_existing);
+		}
+	}
+	#endif // DEBUG
+	#endif
+	LogMSG("Sever main");
+	for (size_t i = 1; i < argc; i++)
 	{
 		char* Arg = argv[i];
 		RunArg(UCodeLang::String_view(Arg));
+		while (true);
 	}
 
 	return 0;
