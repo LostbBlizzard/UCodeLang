@@ -52,6 +52,9 @@ const char UCodeLangAutoLinkString[] = "UCodeLangAutoLink";
 
 const char* UCodeLangTrait = "UCodeLangExportTrait";
 
+const char* UCodeLangEebedString= "UCodeLangEmbed";
+
+
 constexpr size_t UCodeLangExportSymbolSize = sizeof(UCodeLangExportString);
 constexpr size_t UCodeLangExportVSymbolSize = sizeof(UCodeLangExportV);
 constexpr size_t UCodeLangOutPartypeSize = sizeof(UCodeLangOutPartypeString);
@@ -469,12 +472,13 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 								Linkstr += Item.Ret + " Ret =";
 							}
 
+
+							if (Item.MyData->Ret.mode == CppHelper::CPPType::Mode::Address)
+							{
+								Linkstr += "&";
+							}
 							if (IsStatic == false && IsMemberFuncion)
 							{
-								if (Item.MyData->Ret.mode == CppHelper::CPPType::Mode::Address)
-								{
-									Linkstr += "&";
-								}
 								Linkstr += "thisPar->" + Item.FuncName + "(";
 							}
 							else 
@@ -1187,12 +1191,102 @@ bool CppHelper::OnDo(size_t StartIndex,const String& Keywordlet, size_t& i, UCod
 		DoVarableOrFunc(StartIndex, Keywordlet, i, Scope, Tep, Symbols, State);
 		return true;
 	}
+	else if (Keywordlet == UCodeLangEebedString)
+	{
+		DoEmbed(StartIndex, Keywordlet, i, Scope, Tep, Symbols, State);
+		return true;
+	}
 	else
 	{
 		DoVarableOrFunc(StartIndex,Keywordlet, i, Scope, Tep, Symbols, State);
 		return true;
 	}
 	return false;
+}
+
+void CppHelper::DoEmbed(size_t StartIndex, const String& Keywordlet, size_t& i, String& FileText, SymbolData& Tep, Vector<SymbolData>& Symbols, ParseCppState& State)
+{
+	{
+		String Indentifier;
+		GetIndentifier(i, FileText, Indentifier);
+	}
+
+	MovePassSpace(i, FileText);
+
+	char nextchar = FileText[i];
+
+	if (nextchar == '(')
+	{
+		i++;
+		MovePassSpace(i, FileText);
+		if (FileText[i] == 'R')
+		{
+			i++;
+		}
+
+		MovePassSpace(i, FileText);//move pass the \"
+		i++;
+		
+		if (FileText[i] == '(')
+		{
+			i++;
+		}
+
+		String Body;
+
+		size_t Scope = 1;
+
+		
+		for (size_t i2 = i; i2 < FileText.size(); i2++)
+		{
+			char V = FileText[i2];
+			if (V == '(')
+			{
+				Scope+=1;
+			}
+			else if (V == ')')
+			{
+				Scope -= 1;
+				if (Scope == 0)
+				{
+					Body = StringView(&FileText[i], i2 - i - 1);
+					break;
+				}
+			}
+		}
+
+		for (size_t i = 0; i < Body.size(); i++)
+		{
+			char V = Body[i];
+			if (!(V == ' ' || V == '\t' || V == '\n'))
+			{
+				Body = Body.substr(i);
+				break;
+			}
+		}
+
+
+
+		String newstr;//remove tabs
+		for (size_t i = 0; i < Body.size(); i++)
+		{
+			char V = Body[i];
+			if (V == '\t')
+			{
+				newstr += "    ";
+			}
+			else
+			{
+				newstr +=V;
+			}
+		}
+		Body = std::move(newstr);
+
+		EmbedData _type;
+		_type.Body = std::move(Body);
+		Tep._Type = std::move(_type);
+		Symbols.push_back(std::move(Tep));
+	}
 }
 
 void CppHelper::GetStringliteral(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::String& Out)
@@ -1412,11 +1506,34 @@ String CppHelper::ToString(CppToULangState& State, const SymbolData& Syb)
 	{
 		return ToString(State, *Item, Syb);
 	}
+	else if (auto Item = Syb._Type.Get_If<EmbedData>())
+	{
+		return ToString(State, *Item, Syb);
+	}
 	else
 	{
 		UCodeLangUnreachable();//Ptr was not set
 	}
 	return "";
+}
+String CppHelper::ToString(CppToULangState& State, const EmbedData& Value, const SymbolData& Syb)
+{
+	String R;
+	DoNameSpace(State, Syb, R);
+
+	State.AddScopesUseingScopeCount(R);
+
+	auto summary = ToString(State, Syb.Summary);
+	if (summary.size())
+	{
+		R += summary;
+		State.AddScopesUseingScopeCount(R);
+	}
+	R += Value.Body;
+	R += '\n';
+	R += '\n';
+
+	return R;
 }
 
 String CppHelper::ToString(CppToULangState& State, const EnumType& Value, const SymbolData& Syb)

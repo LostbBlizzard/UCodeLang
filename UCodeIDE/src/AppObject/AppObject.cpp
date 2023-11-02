@@ -3260,7 +3260,7 @@ void AppObject::CompileText(const String& String)
 
     IsRuningCompiler = true;
     bool AddStandardLibrary = UCodeLang::StringHelper::Contains(String, "ULang");//OutputWindow.ImportStandardLibrary;
-    bool Apifile = UCodeLang::StringHelper::Contains(String, "API");
+    bool Apifile = UCodeLang::StringHelper::Contains(String, "use API");
     std::function<UCodeLang::Compiler::CompilerRet()> Func = [this, paths, AddStandardLibrary, Apifile]()
     {
         UCodeLang::Compiler::ExternalFiles ExternalFiles;

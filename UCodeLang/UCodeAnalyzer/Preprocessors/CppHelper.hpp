@@ -82,6 +82,10 @@ public:
 		bool IsStatic = false;
 		bool IsThisConst = false;
 	};
+	struct EmbedData
+	{
+		String Body;
+	};
 	struct SymbolData
 	{
 		String _NameSpace;
@@ -92,7 +96,7 @@ public:
 		String _Name;
 
 		//int becuase gcc is unable use ClassType in Variant as default
-		Variant<int,ClassType, EnumType, ConstexprType, FuncData> _Type;
+		Variant<int,ClassType, EnumType, ConstexprType, FuncData, EmbedData> _Type;
 	};
 
 
@@ -152,7 +156,7 @@ public:
 	static void DoClassOrStruct(const String& Keywordlet, size_t& i, String& FileText, SymbolData& Tep, Vector<SymbolData>& Symbols, ParseCppState& State);
 	static void DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size_t& i, String& FileText, SymbolData& Tep, Vector<SymbolData>& Symbols, ParseCppState& State);
 	static bool OnDo(size_t StartIndex, const String& Keywordlet, size_t& i, String& Scope, SymbolData& Tep, Vector<SymbolData>& Symbols, ParseCppState& State);
-	
+	static void DoEmbed(size_t StartIndex, const String& Keywordlet, size_t& i, String& FileText, SymbolData& Tep, Vector<SymbolData>& Symbols, ParseCppState& State);
 
 
 	static void GetStringliteral(size_t& i, String& FileText, String& Out);
@@ -197,6 +201,8 @@ public:
 
 	static String ToString(CppToULangState& State, const CPPType& Value);
 	static String ToString(CppToULangState& State, const CPPExpression& Value);
+
+	static String ToString(CppToULangState& State, const EmbedData& Value, const SymbolData& Syb);
 
 	static void DoNameSpace(CppToULangState& State, const SymbolData& Syb, String& R);
 

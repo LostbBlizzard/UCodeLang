@@ -1,7 +1,68 @@
-$(&StaticArray_&)sint323 = int32[/1]
-$(&StaticArray_&)sint324 = int32[/1]
+$API:Imgui
 
-|(&StaticInit&)[] -> void:;
+$ECS:ComponentAPI
+
+$ECS:Entity
+
+$ECS:Scene
+
+$Player
+ int64 __0; 
+
+$StringSpan_t<char>
+ void* __0; 
+ int64 __1; 
+
+$Vec2f_t<float32>
+ float32 __0; 
+ float32 __1; 
+
+$String_t<char>
+ int64 __0; 
+ void* __1; 
+ int64 __2; 
+
+$Vec3f_t<float32>
+ float32 __0; 
+ float32 __1; 
+ float32 __2; 
+
+$Vec2f_t<sint32>
+ int32 __0; 
+ int32 __1; 
+
+$Vec3f_t<sint32>
+ int32 __0; 
+ int32 __1; 
+ int32 __2; 
+
+$ECS:Componentvtable_type
+ _tepfptr|ECS:Component:entity __0; 
+ _tepfptr|ECS:Component:ientity __1; 
+ _tepfptr|ECS:Component:(&_drop&) __2; 
+
+$_tepfptr|ECS:Component:entity = |[ECS:Component%Class*] -> ECS:Entity*;
+
+$ECS:Component%Class
+ int64 __0; 
+
+$_tepfptr|ECS:Component:ientity = |[ECS:Component%Class*] -> ECS:Entity*;
+
+$_tepfptr|ECS:Component:(&_drop&) = |[ECS:Component%Class*] -> void;
+
+static uint8[/24]:ECS:Componentvtable_type ECS:Component:$Player= [?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?]
+
+|(&StaticInit&)[] -> void:
+
+ [Block:0]
+
+   ECS:Componentvtable_type* A = &ECS:Component:$Player;
+   void* B = (&)Player:entity^Player&;
+   A->__0 = B;
+   void* C = (&)Player:ientity^Player&;
+   A->__1 = C;
+   void* D = (&)Player:(&_drop&)^Player&;
+   A->__2 = D;
 
 |(&StaticUnload&)[] -> void:;
 
@@ -9,72 +70,694 @@ $(&StaticArray_&)sint324 = int32[/1]
 
 |(&threadUnload&)[] -> void:;
 
-//EntryPoint 
-|main[] -> int8:
+|API:Imgui:Ping^i32[int32 a] -> int32:
 
  [Block:0]
 
 
-//File:src.uc
-//Line:2
-//Varable:main:H
+//Varable:API:Imgui:Ping:a
 
-   (&StaticArray_&)sint323 A;
-   int32 B = 4;
-   (&StaticArray_&)sint323* C = &A;
-   int32 D = 1;
-   int32 E = 0;
-   int32 F = E*B;
-   (&StaticArray_&)sint323* G = C+F;
-   *G = D;
+   ret;
 
-//Line:3
-//Varable:main:C
+|API:Imgui:Button^StringSpan_t<char>[StringSpan_t<char> Name] -> int8:
 
-   (&StaticArray_&)sint324 H;
-   int32 I = 4;
-   (&StaticArray_&)sint324* J = &H;
-   int32 K = 1;
-   int32 L = 0;
-   int32 M = L*I;
-   (&StaticArray_&)sint324* N = J+M;
-   *N = K;
+ [Block:0]
 
-//Line:5
 
-   int32 O = 1;
-   (&StaticArray_&)sint323* P = &A;
-   int32 Q = 0;
-   int32 R = 4;
-   int32 S = Q*R;
-   (&StaticArray_&)sint323* T = P+S;
-   *T = O;
+//Varable:API:Imgui:Button:Name
 
-//Line:6
+   ret;
 
-   int32 U = 1;
-   (&StaticArray_&)sint324* V = &H;
-   int32 W = 0;
-   int32 X = 4;
-   int32 Y = W*X;
-   (&StaticArray_&)sint324* Z = V+Y;
-   *Z = U;
+|API:Imgui:Button^StringSpan_t<char>,Vec2f_t<float32>&imut[StringSpan_t<char> Name,Vec2f_t<float32>* Val] -> int8:
 
+ [Block:0]
+
+
+//Varable:API:Imgui:Button:Name
+//Varable:API:Imgui:Button:Val
+//File:/AppAPI.uc
+//Line:25
+
+   StringSpan_t<char> A = Name;
+   Vec2f_t<float32>* B = Val;
+   int8 C = API:Internal:Imgui__Button0^StringSpan_t<char>,Vec2f_t<float32>&imut(A,B);
+   ret = C;
+   ret;
+
+|API:Imgui:ObjectField^StringSpan_t<char>,i32&[StringSpan_t<char> Name,void* Val] -> int8:
+
+ [Block:0]
+
+
+//Varable:API:Imgui:ObjectField:Name
+//Varable:API:Imgui:ObjectField:Val
+
+   ret;
+
+|API:Imgui:ObjectField^StringSpan_t<char>,b&[StringSpan_t<char> Name,void* Val] -> int8:
+
+ [Block:0]
+
+
+//Varable:API:Imgui:ObjectField:Name
+//Varable:API:Imgui:ObjectField:Val
+//File:/AppAPI.uc
+//Line:27
+
+   StringSpan_t<char> A = Name;
+   void* B = Val;
+   int8 C = API:Internal:Imgui__ObjectField0^StringSpan_t<char>,b&(A,B);
+   ret = C;
+   ret;
+
+|API:Imgui:Text^StringSpan_t<char>[StringSpan_t<char> Name] -> void:
+
+ [Block:0]
+
+
+//Varable:API:Imgui:Text:Name
+
+   ret;
+
+|API:Imgui:KeyDown^API:ImKey[int32 key] -> int8:
+
+ [Block:0]
+
+
+//Varable:API:Imgui:KeyDown:key
+
+   ret;
+
+|API:Imgui:(&_new&)^API:Imgui&[API:Imgui* (&this&)] -> void:
+
+ [Block:0]
+
+   ret;
+
+|API:Internal:Imgui__Button0^StringSpan_t<char>,Vec2f_t<float32>&imut[StringSpan_t<char> Name,Vec2f_t<float32>* Val] -> int8:
+
+ [Block:0]
+
+
+//Varable:API:Internal:Imgui__Button0:Name
+//Varable:API:Internal:Imgui__Button0:Val
+
+   ret;
+
+|API:Internal:Imgui__ObjectField0^StringSpan_t<char>,b&[StringSpan_t<char> Name,void* Val] -> int8:
+
+ [Block:0]
+
+
+//Varable:API:Internal:Imgui__ObjectField0:Name
+//Varable:API:Internal:Imgui__ObjectField0:Val
+
+   ret;
+
+|ECS:ComponentAPI:entity^uptr[int64 _Handle] -> ECS:Entity*:
+
+ [Block:0]
+
+
+//Varable:ECS:ComponentAPI:entity:_Handle
+
+   ret;
+
+|ECS:ComponentAPI:ientity^uptr[int64 _Handle] -> ECS:Entity*:
+
+ [Block:0]
+
+
+//Varable:ECS:ComponentAPI:ientity:_Handle
+
+   ret;
+
+|ECS:ComponentAPI:(&_new&)^ECS:ComponentAPI&[ECS:ComponentAPI* (&this&)] -> void:
+
+ [Block:0]
+
+   ret;
+
+|ECS:Entity:scenc^ECS:Entity&[ECS:Entity* (&this&)] -> ECS:Scene*:
+
+ [Block:0]
+
+
+//Varable:ECS:Entity:scenc:(&this&)
+
+   ret;
+
+|ECS:Entity:iscenc^ECS:Entity&[ECS:Entity* (&this&)] -> ECS:Scene*:
+
+ [Block:0]
+
+
+//Varable:ECS:Entity:iscenc:(&this&)
+
+   ret;
+
+|ECS:Entity:AddChildEntity^ECS:Entity&[ECS:Entity* (&this&)] -> ECS:Entity*:
+
+ [Block:0]
+
+
+//Varable:ECS:Entity:AddChildEntity:(&this&)
+
+   ret;
+
+|ECS:Entity:Destroy^ECS:Entity&[ECS:Entity* (&this&)] -> void:
+
+ [Block:0]
+
+
+//Varable:ECS:Entity:Destroy:(&this&)
+//File:/ECSAPI.uc
+//Line:20
+
+   ECS:Entity* A = (&this&);
+   ECS:Entity* B = A;
+   void C = ECS:Internal:Entity__Destroy1^ECS:Entity&(B);
+   ret;
+
+|ECS:Entity:name^ECS:Entity&[ECS:Entity* (&this&)] -> String_t<char>*:
+
+ [Block:0]
+
+
+//Varable:ECS:Entity:name:(&this&)
+
+   ret;
+
+|ECS:Entity:iname^ECS:Entity&[ECS:Entity* (&this&)] -> StringSpan_t<char>:
+
+ [Block:0]
+
+
+//Varable:ECS:Entity:iname:(&this&)
+
+   ret;
+
+|ECS:Entity:position^ECS:Entity&[ECS:Entity* (&this&)] -> Vec3f_t<float32>*:
+
+ [Block:0]
+
+
+//Varable:ECS:Entity:position:(&this&)
+
+   ret;
+
+|ECS:Entity:position2d^ECS:Entity&[ECS:Entity* (&this&)] -> Vec2f_t<float32>*:
+
+ [Block:0]
+
+
+//Varable:ECS:Entity:position2d:(&this&)
+
+   ret;
+
+|ECS:Entity:iposition^ECS:Entity&[ECS:Entity* (&this&)] -> Vec3f_t<float32>*:
+
+ [Block:0]
+
+
+//Varable:ECS:Entity:iposition:(&this&)
+
+   ret;
+
+|ECS:Entity:iposition2d^ECS:Entity&[ECS:Entity* (&this&)] -> Vec2f_t<float32>*:
+
+ [Block:0]
+
+
+//Varable:ECS:Entity:iposition2d:(&this&)
+
+   ret;
+
+|ECS:Entity:scale^ECS:Entity&[ECS:Entity* (&this&)] -> Vec3f_t<float32>*:
+
+ [Block:0]
+
+
+//Varable:ECS:Entity:scale:(&this&)
+
+   ret;
+
+|ECS:Entity:scale2d^ECS:Entity&[ECS:Entity* (&this&)] -> Vec2f_t<float32>*:
+
+ [Block:0]
+
+
+//Varable:ECS:Entity:scale2d:(&this&)
+
+   ret;
+
+|ECS:Entity:iscale^ECS:Entity&[ECS:Entity* (&this&)] -> Vec3f_t<float32>*:
+
+ [Block:0]
+
+
+//Varable:ECS:Entity:iscale:(&this&)
+
+   ret;
+
+|ECS:Entity:iscale2d^ECS:Entity&[ECS:Entity* (&this&)] -> Vec2f_t<float32>*:
+
+ [Block:0]
+
+
+//Varable:ECS:Entity:iscale2d:(&this&)
+
+   ret;
+
+|ECS:Entity:rotation^ECS:Entity&[ECS:Entity* (&this&)] -> Vec3f_t<float32>*:
+
+ [Block:0]
+
+
+//Varable:ECS:Entity:rotation:(&this&)
+
+   ret;
+
+|ECS:Entity:rotation2d^ECS:Entity&[ECS:Entity* (&this&)] -> Vec2f_t<float32>*:
+
+ [Block:0]
+
+
+//Varable:ECS:Entity:rotation2d:(&this&)
+
+   ret;
+
+|ECS:Entity:irotation^ECS:Entity&[ECS:Entity* (&this&)] -> Vec3f_t<float32>*:
+
+ [Block:0]
+
+
+//Varable:ECS:Entity:irotation:(&this&)
+
+   ret;
+
+|ECS:Entity:irotation2d^ECS:Entity&[ECS:Entity* (&this&)] -> Vec2f_t<float32>*:
+
+ [Block:0]
+
+
+//Varable:ECS:Entity:irotation2d:(&this&)
+//File:/ECSAPI.uc
+//Line:34
+
+   ECS:Entity* A = (&this&);
+   ECS:Entity* B = A;
+   Vec2f_t<float32>* C = ECS:Internal:Entity__irotation2d7^ECS:Entity&(B);
+   ret = C;
+   ret;
+
+|ECS:Entity:(&_new&)^ECS:Entity&[ECS:Entity* (&this&)] -> void:
+
+ [Block:0]
+
+   ret;
+
+|ECS:Scene:AddEntity^ECS:Scene&[ECS:Scene* (&this&)] -> ECS:Entity*:
+
+ [Block:0]
+
+
+//Varable:ECS:Scene:AddEntity:(&this&)
+//File:/ECSAPI.uc
+//Line:38
+
+   ECS:Scene* A = (&this&);
+   ECS:Scene* B = A;
+   ECS:Entity* C = ECS:Internal:Scene__AddEntity1^ECS:Scene&(B);
+   ret = C;
+   ret;
+
+|ECS:Scene:(&_new&)^ECS:Scene&[ECS:Scene* (&this&)] -> void:
+
+ [Block:0]
+
+   ret;
+
+|ECS:Internal:Entity__Destroy1^ECS:Entity&[ECS:Entity* (&this&)] -> void:
+
+ [Block:0]
+
+
+//Varable:ECS:Internal:Entity__Destroy1:(&this&)
+
+   ret;
+
+|ECS:Internal:Entity__irotation2d7^ECS:Entity&[ECS:Entity* (&this&)] -> Vec2f_t<float32>*:
+
+ [Block:0]
+
+
+//Varable:ECS:Internal:Entity__irotation2d7:(&this&)
+
+   ret;
+
+|ECS:Internal:Scene__AddEntity1^ECS:Scene&[ECS:Scene* (&this&)] -> ECS:Entity*:
+
+ [Block:0]
+
+
+//Varable:ECS:Internal:Scene__AddEntity1:(&this&)
+
+   ret;
+
+|Player:Start^Player&[Player* (&this&)] -> void:
+
+ [Block:0]
+
+
+//Varable:Player:Start:(&this&)
+
+   ret;
+
+|Player:Update^Player&[Player* (&this&)] -> void:
+
+ [Block:0]
+
+
+//Varable:Player:Update:(&this&)
+
+   ret;
+
+|Player:(&_drop&)^Player&[Player* (&this&)] -> void:
+
+ [Block:0]
+
+   ret;
+
+|Player:(&_new&)^Player&[Player* (&this&)] -> void:
+
+ [Block:0]
+
+   ret;
+
+|Player:entity^Player&[Player* (&this&)] -> ECS:Entity*:
+
+ [Block:0]
+
+
+//Varable:Player:entity:(&this&)
+//File:/src.uc
+//Line:7
+
+   int64 A = (&this&)->__0;
+   ECS:Entity* B = ECS:ComponentAPI:entity^uptr(A);
+   ret = B;
+   ret;
+
+|Player:ientity^Player&[Player* (&this&)] -> ECS:Entity*:
+
+ [Block:0]
+
+
+//Varable:Player:ientity:(&this&)
+//File:/src.uc
 //Line:8
 
-   (&StaticArray_&)sint324* [ = &H;
-   int32 \ = 0;
-   int32 ] = 4;
-   int32 ^ = \*];
-   (&StaticArray_&)sint324* _ = [+^;
-   int32 ` = *_;
-   (&StaticArray_&)sint323* a = &A;
-   int32 b = 0;
-   int32 c = 4;
-   int32 d = b*c;
-   (&StaticArray_&)sint323* e = a+d;
-   int32 f = *e;
-   int8 g = f==`;
-   ret = g;
+   int64 A = (&this&)->__0;
+   ECS:Entity* B = ECS:ComponentAPI:ientity^uptr(A);
+   ret = B;
+   ret;
+
+//EntryPoint 
+|main[] -> int32:
+
+ [Block:0]
+
+
+//File:/src.uc
+//Line:16
+
+   int32 A = 0;
+   ret = A;
+   ret;
+
+|StringSpan_t<char>:(&_new&)^StringSpan_t<char>&[StringSpan_t<char>* (&this&)] -> void:
+
+ [Block:0]
+
+
+//Varable:StringSpan_t<char>:(&_new&):(&this&)
+//File:/stl.uc
+//Line:72
+
+   int64 A = 0;
+   (&this&)->__0 = A;
+
+//Line:73
+
+   int64 B = 0;
+   (&this&)->__1 = B;
+   ret;
+
+|StringSpan_t<char>:(&_new&)^StringSpan_t<char>&,c[&],uptr[StringSpan_t<char>* (&this&),void* data,int64 size] -> void:
+
+ [Block:0]
+
+
+//Varable:StringSpan_t<char>:(&_new&):(&this&)
+//Varable:StringSpan_t<char>:(&_new&):data
+//Varable:StringSpan_t<char>:(&_new&):size
+//File:/stl.uc
+//Line:76
+
+   void* A = data;
+   (&this&)->__0 = A;
+
+//Line:77
+
+   int64 B = size;
+   (&this&)->__1 = B;
+   ret;
+
+|StringSpan_t<char>:Size^StringSpan_t<char>&imut[StringSpan_t<char>* (&this&)] -> int64:
+
+ [Block:0]
+
+
+//Varable:StringSpan_t<char>:Size:(&this&)
+
+
+//File:/stl.uc
+//Line:79
+
+   int64 A = (&this&)->__1;
+   ret = A;
+   ret;
+
+|StringSpan_t<char>:Data^StringSpan_t<char>&imut[StringSpan_t<char>* (&this&)] -> void*:
+
+ [Block:0]
+
+
+//Varable:StringSpan_t<char>:Data:(&this&)
+
+
+//File:/stl.uc
+//Line:80
+
+   void* A = (&this&)->__0;
+   ret = A;
+   ret;
+
+|Vec2f_t<float32>:(&_new&)^Vec2f_t<float32>&[Vec2f_t<float32>* (&this&)] -> void:
+
+ [Block:0]
+
+
+//Varable:Vec2f_t<float32>:(&_new&):(&this&)
+//File:/stl.uc
+//Line:6
+
+   float32 A = 0.000000;
+   (&this&)->__0 = A;
+
+//Line:7
+
+   float32 B = 0.000000;
+   (&this&)->__1 = B;
+   ret;
+
+|Vec2f_t<float32>:(&_new&)^Vec2f_t<float32>&,f32,f32[Vec2f_t<float32>* (&this&),float32 x,float32 y] -> void:
+
+ [Block:0]
+
+
+//Varable:Vec2f_t<float32>:(&_new&):(&this&)
+//Varable:Vec2f_t<float32>:(&_new&):x
+//Varable:Vec2f_t<float32>:(&_new&):y
+//File:/stl.uc
+//Line:10
+
+   float32 A = x;
+   (&this&)->__0 = A;
+
+//Line:11
+
+   float32 B = y;
+   (&this&)->__1 = B;
+   ret;
+
+|String_t<char>:(&_new&)^String_t<char>&[String_t<char>* (&this&)] -> void:
+
+ [Block:0]
+
+
+//Varable:String_t<char>:(&_new&):(&this&)
+//File:/stl.uc
+//Line:63
+
+   int64 A = 0;
+   (&this&)->__0 = A;
+
+//Line:64
+
+   int64 B = 0;
+   (&this&)->__1 = B;
+
+//Line:65
+
+   int64 C = 0;
+   (&this&)->__2 = C;
+   ret;
+
+|Vec3f_t<float32>:(&_new&)^Vec3f_t<float32>&[Vec3f_t<float32>* (&this&)] -> void:
+
+ [Block:0]
+
+
+//Varable:Vec3f_t<float32>:(&_new&):(&this&)
+//File:/stl.uc
+//Line:29
+
+   float32 A = 0.000000;
+   (&this&)->__0 = A;
+
+//Line:30
+
+   float32 B = 0.000000;
+   (&this&)->__1 = B;
+
+//Line:31
+
+   float32 C = 0.000000;
+   (&this&)->__2 = C;
+   ret;
+
+|Vec3f_t<float32>:(&_new&)^Vec3f_t<float32>&,f32,f32,f32[Vec3f_t<float32>* (&this&),float32 x,float32 y,float32 z] -> void:
+
+ [Block:0]
+
+
+//Varable:Vec3f_t<float32>:(&_new&):(&this&)
+//Varable:Vec3f_t<float32>:(&_new&):x
+//Varable:Vec3f_t<float32>:(&_new&):y
+//Varable:Vec3f_t<float32>:(&_new&):z
+//File:/stl.uc
+//Line:34
+
+   float32 A = x;
+   (&this&)->__0 = A;
+
+//Line:35
+
+   float32 B = y;
+   (&this&)->__1 = B;
+
+//Line:36
+
+   float32 C = z;
+   (&this&)->__2 = C;
+   ret;
+
+|Vec2f_t<sint32>:(&_new&)^Vec2f_t<sint32>&[Vec2f_t<sint32>* (&this&)] -> void:
+
+ [Block:0]
+
+
+//Varable:Vec2f_t<sint32>:(&_new&):(&this&)
+//File:/stl.uc
+//Line:6
+
+   int32 A = 0;
+   (&this&)->__0 = A;
+
+//Line:7
+
+   int32 B = 0;
+   (&this&)->__1 = B;
+   ret;
+
+|Vec2f_t<sint32>:(&_new&)^Vec2f_t<sint32>&,i32,i32[Vec2f_t<sint32>* (&this&),int32 x,int32 y] -> void:
+
+ [Block:0]
+
+
+//Varable:Vec2f_t<sint32>:(&_new&):(&this&)
+//Varable:Vec2f_t<sint32>:(&_new&):x
+//Varable:Vec2f_t<sint32>:(&_new&):y
+//File:/stl.uc
+//Line:10
+
+   int32 A = x;
+   (&this&)->__0 = A;
+
+//Line:11
+
+   int32 B = y;
+   (&this&)->__1 = B;
+   ret;
+
+|Vec3f_t<sint32>:(&_new&)^Vec3f_t<sint32>&[Vec3f_t<sint32>* (&this&)] -> void:
+
+ [Block:0]
+
+
+//Varable:Vec3f_t<sint32>:(&_new&):(&this&)
+//File:/stl.uc
+//Line:29
+
+   int32 A = 0;
+   (&this&)->__0 = A;
+
+//Line:30
+
+   int32 B = 0;
+   (&this&)->__1 = B;
+
+//Line:31
+
+   int32 C = 0;
+   (&this&)->__2 = C;
+   ret;
+
+|Vec3f_t<sint32>:(&_new&)^Vec3f_t<sint32>&,i32,i32,i32[Vec3f_t<sint32>* (&this&),int32 x,int32 y,int32 z] -> void:
+
+ [Block:0]
+
+
+//Varable:Vec3f_t<sint32>:(&_new&):(&this&)
+//Varable:Vec3f_t<sint32>:(&_new&):x
+//Varable:Vec3f_t<sint32>:(&_new&):y
+//Varable:Vec3f_t<sint32>:(&_new&):z
+//File:/stl.uc
+//Line:34
+
+   int32 A = x;
+   (&this&)->__0 = A;
+
+//Line:35
+
+   int32 B = y;
+   (&this&)->__1 = B;
+
+//Line:36
+
+   int32 C = z;
+   (&this&)->__2 = C;
    ret;
 

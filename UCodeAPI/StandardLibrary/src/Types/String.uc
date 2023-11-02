@@ -117,10 +117,10 @@ $String = String_t<char>;
 $StringSpan = StringSpan_t<char>;
 
 $String8 = String_t<utf8>;
-$StringSpan8 = StringSpan_t<utf8>;
+$String8Span8 = StringSpan_t<utf8>;
 
 $String16 = String_t<utf16>;
-$StringSpan16 = StringSpan_t<utf16>;
+$String16Span = StringSpan_t<utf16>;
 
 $String32 = String_t<utf32>;
-$StringSpan32 = StringSpan_t<utf32>;
+$String32Span = StringSpan_t<utf32>;
