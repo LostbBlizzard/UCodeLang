@@ -53,23 +53,6 @@ namespace API
 		}
 	}
 
-	UCodeLangExportSymbol("API") UCodeLangExportTrait LogTrait
-	{
-		UCodeLangExport int SomeVal = 0;
-
-		UCodeLangExport void Log()
-		{
-			String V =std::to_string(SomeVal);
-		}
-		UCodeLangExport void Log(StringView Val)
-		{
-			std::cout << Val;
-		}
-		UCodeLangEmbed("|Log<T>[this&,T& value] => Log();")
-	private:
-	};
-	
-
 	UCodeLangExportSymbol("API") struct Imgui
 	{
 		

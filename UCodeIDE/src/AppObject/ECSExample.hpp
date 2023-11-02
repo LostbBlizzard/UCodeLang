@@ -87,8 +87,16 @@ namespace ECSExample
 
 
 
+	UCodeLangExportSymbol("ECS") UCodeLangEmbed(
+	R"(
+    $Component trait:
+	  uintptr _Handle;
+	  |entity[this&]  => ComponentAPI::entity(_Handle);
+	  |ientity[this&] => ComponentAPI::ientity(_Handle);
+    ")");
+
 	struct Entity;
-	UCodeLangExportSymbol("ECS") UCodeLangExportTrait Component
+	struct Component
 	{
 	public:
 		Component()
@@ -109,25 +117,22 @@ namespace ECSExample
 		}
 
 
-		UCodeLangExport Entity& entity()
+		Entity& entity()
 		{
 			return *myentity;
 		}
-		UCodeLangExport const Entity& ientity() const
+		const Entity& ientity() const
 		{
 			return *myentity;
 		}
 
-		UCodeLangExport void Destroy()
+		void Destroy()
 		{
 			isdestroyed = true;
 		}
 
-		UCodeLangExport Object<Component> object() { return myobj; }
-		UCodeLangExport Object<const Component> iobject() const { return myobj.AsReadOnly(); }
-
-		UCodeLangEmbed("uintptr _Handle = 0;");
-		
+		Object<Component> object() { return myobj; }
+		Object<const Component> iobject() const { return myobj.AsReadOnly(); }
 
 		bool calledstart = false;
 		bool isdestroyed = false;
@@ -135,6 +140,28 @@ namespace ECSExample
 		Entity* myentity =nullptr;
 		Object<Component> myobj;
 	};
+
+	UCodeLangExportSymbol("ECS") struct ComponentAPI
+	{
+		static Component& Cast(uintptr_t _Handle)
+		{
+			return (Component&)_Handle;
+		}
+		static const Component& iCast(uintptr_t _Handle)
+		{
+			return (const Component&)_Handle;
+		}
+
+		UCodeLangExport static Entity& entity(uintptr_t _Handle)
+		{
+			return Cast(_Handle).entity();
+		}
+		UCodeLangExport static const Entity& ientity(uintptr_t _Handle)
+		{
+			return iCast(_Handle).ientity();
+		}
+	};
+
 
 	struct Scene;
 

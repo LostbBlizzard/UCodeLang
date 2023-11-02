@@ -10,9 +10,8 @@ namespace ECSExample
 	{
 		UCodeLangAutoLink(lib, ECSExample);
 	{//Made by UCodeAutoLink 
-		using Component__entity_ptr = Entity*(*UCodeLangAPI)(ECSExample::Component*); 
-		using Component__ientity_ptr = const Entity*(*UCodeLangAPI)(ECSExample::Component*); 
-		using Component__Destroy1_ptr = void(*UCodeLangAPI)(ECSExample::Component*); 
+		using ComponentAPI__entity_ptr = Entity*(*UCodeLangAPI)(uintptr_t); 
+		using ComponentAPI__ientity_ptr = const Entity*(*UCodeLangAPI)(uintptr_t); 
 		using Entity__scenc_ptr = Scene*(*UCodeLangAPI)(ECSExample::Entity*); 
 		using Entity__iscenc_ptr = const Scene*(*UCodeLangAPI)(ECSExample::Entity*); 
 		using Entity__AddChildEntity_ptr = Entity*(*UCodeLangAPI)(ECSExample::Entity*); 
@@ -32,45 +31,26 @@ namespace ECSExample
 		using Entity__irotation_ptr = const Vec3*(*UCodeLangAPI)(ECSExample::Entity*); 
 		using Entity__irotation2d7_ptr = const Vec2*(*UCodeLangAPI)(ECSExample::Entity*); 
 		using Scene__AddEntity1_ptr = Entity*(*UCodeLangAPI)(ECSExample::Scene*); 
-		lib.Add_CPPCall("ECS:Component:entity",[](UCodeLang::InterpreterCPPinterface& Input) -> void
+		lib.Add_CPPCall("ECS:ComponentAPI:entity",[](UCodeLang::InterpreterCPPinterface& Input) -> void
 			{
 			
-				ECSExample::Component* thisPar = Input.GetParameter<ECSExample::Component*>();
+				uintptr_t Par0 = Input.GetParameter<uintptr_t>();
 				
-				Entity* Ret =&thisPar->entity();
+				Entity* Ret =&ECSExample::ComponentAPI::entity(Par0);
 				
 				Input.Set_Return<Entity*>(Ret);
 			
-			},(Component__entity_ptr)[](ECSExample::Component* thisPar) ->Entity*
-			{
-				return &thisPar->entity();
-			}); 
-		lib.Add_CPPCall("ECS:Component:ientity",[](UCodeLang::InterpreterCPPinterface& Input) -> void
+			},(ComponentAPI__entity_ptr)ECSExample::ComponentAPI::entity); 
+		lib.Add_CPPCall("ECS:ComponentAPI:ientity",[](UCodeLang::InterpreterCPPinterface& Input) -> void
 			{
 			
-				ECSExample::Component* thisPar = Input.GetParameter<ECSExample::Component*>();
+				uintptr_t Par0 = Input.GetParameter<uintptr_t>();
 				
-				const Entity* Ret =&thisPar->ientity();
+				const Entity* Ret =&ECSExample::ComponentAPI::ientity(Par0);
 				
 				Input.Set_Return<const Entity*>(Ret);
 			
-			},(Component__ientity_ptr)[](ECSExample::Component* thisPar) ->const Entity*
-			{
-				return &thisPar->ientity();
-			}); 
-		lib.Add_CPPCall("ECS:Internal:Component__Destroy1",[](UCodeLang::InterpreterCPPinterface& Input) -> void
-			{
-			
-				ECSExample::Component* thisPar = Input.GetParameter<ECSExample::Component*>();
-				
-				thisPar->Destroy();
-				
-				Input.Set_Return();
-			
-			},(Component__Destroy1_ptr)[](ECSExample::Component* thisPar) ->void
-			{
-				thisPar->Destroy();
-			}); 
+			},(ComponentAPI__ientity_ptr)ECSExample::ComponentAPI::ientity); 
 		lib.Add_CPPCall("ECS:Entity:scenc",[](UCodeLang::InterpreterCPPinterface& Input) -> void
 			{
 			
