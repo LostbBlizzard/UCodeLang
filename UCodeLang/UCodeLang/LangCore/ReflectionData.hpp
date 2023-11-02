@@ -291,7 +291,7 @@ struct Class_Data
 		return Get_ClassMethod(ClassDestructorFunc);
 	}//This May be null.
 
-	const ClassMethod* Get_ClassMethod(const String& Name) const
+	const ClassMethod* Get_ClassMethod(const String_view Name) const
 	{
 		for (auto& Item : Methods)
 		{
@@ -303,7 +303,7 @@ struct Class_Data
 		}
 		return nullptr;
 	}
-	Vector<const ClassMethod*> Get_ClassMethods(const String& Name) const
+	Vector<const ClassMethod*> Get_ClassMethods(const String_view Name) const
 	{
 		Vector<const ClassMethod*> r;
 		for (auto& Item : Methods)
@@ -319,6 +319,30 @@ struct Class_Data
 	Vector<const ClassMethod*> Get_ClassConstructors() const
 	{
 		return Get_ClassMethods(ClassConstructorfunc);
+	}//This May be null.
+
+	const ClassField* Get_ClassField(const String_view Name) const
+	{
+		for (auto& Item : Fields)
+		{
+			if (Item.Name == Name)
+			{
+				return &Item;
+			}
+		}
+		return nullptr;
+	}//This May be null.
+
+	ClassField* Get_ClassField(const String_view Name)
+	{
+		for (auto& Item : Fields)
+		{
+			if (Item.Name == Name)
+			{
+				return &Item;
+			}
+		}
+		return nullptr;
 	}//This May be null.
 };
 struct Enum_Data

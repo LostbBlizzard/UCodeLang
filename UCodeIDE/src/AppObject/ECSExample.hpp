@@ -240,7 +240,7 @@ namespace ECSExample
 		T* AddComponent()
 		{
 			Components.push_back(std::make_unique<T>());
-			auto r = Components.back().get();
+			auto r = (T*)Components.back().get();
 			r->myentity = this;
 
 			return r;
@@ -433,68 +433,12 @@ namespace ECSExample
 	};
 
 	static UCodeLang::RunTimeLangState State;
-	struct RunTime
-	{
-		UCodeLang::AnyInterpreter Interpreter;
-		Scene scene;
 
-		void ImguiDraw(Entity* entity)
-		{
-			if (ImGui::TreeNode(entity, entity->Name.c_str()))
-			{
-				if (ImGui::Button("New ChildEntity"))
-				{
-					entity->AddChildEntity();
-				}
-				ImGui::SameLine();
-				if (ImGui::Button("Destroy Entity"))
-				{
-					entity->Destroy();
-				}
-
-
-				ImguiHelper::InputText("Name", entity->Name);
-				ImguiHelper::Vec3float32Field("Position", &entity->Position.X);
-				ImguiHelper::Vec3float32Field("Rotation", &entity->Rotation.X);
-				ImguiHelper::Vec3float32Field("Scale", &entity->Scale.X);
-
-				for (auto& Item : entity->ChildEntitys)
-				{
-					ImguiDraw(Item.get());
-				}
-
-				ImGui::TreePop();
-			}
-		}
-
-		void ImguiDraw()
-		{
-			if (ImGui::Button("New Entity"))
-			{
-				scene.AddEntity();
-			}
-			ImGui::Separator();
-			
-			for (auto& Item : scene.Entitys)
-			{
-				ImguiDraw(Item.get());
-			}
-		}
-	};
-	inline thread_local RunTime _Context;
-
-	static UCodeLang::RunTimeLangState& Get_State()
-	{
-		return State;
-	}
-	static UCodeLang::AnyInterpreter& Get_Interpreter()
-	{
-		return _Context.Interpreter;
-	}
-
+	static UCodeLang::RunTimeLangState& Get_State();
+	static UCodeLang::AnyInterpreter& Get_Interpreter();
 	struct UCodeComponent :public Component
 	{
-		void SetClass(const UCodeLang::Class_Data* Class)
+		void SetClass(const UCodeLang::AssemblyNode* Class)
 		{
 
 			if (_Class)
@@ -503,17 +447,23 @@ namespace ECSExample
 			}
 			_Class = Class;
 
-			_Start = Class->Get_ClassMethod("Start");
-			_Update = Class->Get_ClassMethod("Update");
+			const UCodeLang::Class_Data* Classdata = &Class->Get_ClassData();
 
-			_Contructer = Class->Get_ClassMethod("Start");
-			_Destructor = Class->Get_ClassMethod("Update");
+
+			_Start = Classdata->Get_ClassMethod("Start");
+			_Update = Classdata->Get_ClassMethod("Update");
+
+			_Contructer = Classdata->Get_ClassConstructor();
+			_Destructor = Classdata->Get_ClassDestructor();
+		
+			
+			ULangHandleoffset = Classdata->Get_ClassField("_Handle")->offset;
 
 			UCodeLang::ReflectionTypeInfo type;
 			type._Type = UCodeLang::ReflectionTypes::CustomType;
-			type._CustomTypeID = Class->TypeID;
+			type._CustomTypeID = Classdata->TypeID;
 
-			auto classsize = Get_State().Get_Assembly().GetSize(type,sizeof(void*) == 4).value();
+			auto classsize = Get_State().Get_Assembly().GetSize(type, sizeof(void*) == 4).value();
 
 
 			ULangObject = Get_State().Malloc(classsize);
@@ -521,6 +471,15 @@ namespace ECSExample
 			{
 				Get_Interpreter().ThisCall(_Contructer, ULangObject);
 			}
+
+			//set Handle
+			{
+				uintptr_t HandlePtr = (uintptr_t)(ULangObject);
+				HandlePtr += ULangHandleoffset;
+
+				*((UCodeComponent**)HandlePtr) = this;
+			}
+
 			_CalledULangObjectStart = false;
 		}
 		void UnloadClass()
@@ -531,7 +490,7 @@ namespace ECSExample
 			}
 			Get_State().Free(ULangObject);
 			ULangObject = nullptr;
-			
+
 			_CalledULangObjectStart = false;
 			_Class = nullptr;
 			_Start = nullptr;
@@ -539,9 +498,10 @@ namespace ECSExample
 
 			_Contructer = nullptr;
 			_Destructor = nullptr;
+			ULangHandleoffset = 0;
 		}
 
-		
+
 		void Update() override
 		{
 			if (_Class)
@@ -569,24 +529,179 @@ namespace ECSExample
 			}
 		}
 
-		const UCodeLang::Class_Data*  Get_ClassData()
+
+		const UCodeLang::AssemblyNode* Get_AssemblyNode() const
 		{
 			return _Class;
 		}
+		const UCodeLang::Class_Data* Get_ClassData() const
+		{
+			return &_Class->Get_ClassData();
+		}
+		void* Get_ULangObject()
+		{
+			return ULangObject;
+		}
+		const void* Get_ULangObject() const
+		{
+			return ULangObject;
+		}
 	private:
-		const UCodeLang::Class_Data* _Class = nullptr;
+		const UCodeLang::AssemblyNode* _Class = nullptr;
 
 		const UCodeLang::ClassMethod* _Start = nullptr;
-		const UCodeLang::ClassMethod* _Update =nullptr;
+		const UCodeLang::ClassMethod* _Update = nullptr;
 
 
 		const UCodeLang::ClassMethod* _Contructer = nullptr;
 		const UCodeLang::ClassMethod* _Destructor = nullptr;
-		
-		void* ULangObject =nullptr;
+
+		void* ULangObject = nullptr;
 
 		bool _CalledULangObjectStart = false;
+		size_t ULangHandleoffset = 0;
 	};
+	struct RunTime
+	{
+		UCodeLang::AnyInterpreter Interpreter = UCodeLang::Interpreter();
+		Scene scene;
+
+		bool RunScene = false;
+
+		void ImguiDraw(Component* item)
+		{
+			if (UCodeComponent* v = dynamic_cast<UCodeComponent*>(item))
+			{
+				ImguiDraw(v);
+			}
+			else
+			{
+
+			}
+		}
+		void ImguiDraw(UCodeComponent* item)
+		{
+			if (ImGui::TreeNode(item, item->Get_AssemblyNode()->FullName.c_str()))
+			{
+				for (auto& Item : item->Get_ClassData()->Fields)
+				{
+					if (Item.Name == "_Handle") { continue; }
+
+					uintptr_t ptr = (uintptr_t)item->Get_ULangObject();
+					ptr += Item.offset;
+
+
+					ImguiHelper::UCodeObjectField(Item.Name.c_str(), (void*)ptr, Item.Type, Get_State().Get_Assembly());
+				}
+				ImGui::TreePop();
+			}
+		}
+
+		void ImguiDraw(Entity* entity)
+		{
+			if (ImGui::TreeNode(entity, entity->Name.c_str()))
+			{
+				if (ImGui::Button("New ChildEntity"))
+				{
+					entity->AddChildEntity();
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Destroy Entity"))
+				{
+					entity->Destroy();
+				}
+
+				{
+					auto& Assembly = State.Get_Assembly();
+					Vector<const UCodeLang::AssemblyNode*> Components;
+					for (auto& Item : Assembly.Classes)//Get all types with Component trait
+					{
+						if (Item->Get_Type() == UCodeLang::ClassType::Class)
+						{
+							auto& ClassData = Item->Get_ClassData();
+							
+							bool hascomponent = false;
+							for (auto& Item : ClassData.InheritedTypes)
+							{
+								if (auto v = Assembly.Find_Node(Item.TraitID))
+								{
+									if (v->FullName == "ECS:Component")
+									{
+										hascomponent = true;
+										break;
+									}
+								}
+							}
+							if (hascomponent)
+							{
+								Components.push_back(Item.get());
+							}
+						}
+					}
+					
+					for (auto& Item : Components) 
+					{
+						String namelable = "Add ";
+						namelable += Item->FullName;
+						namelable += "Component";
+						if (ImGui::Button(namelable.c_str()))
+						{
+							auto component = entity->AddComponent<UCodeComponent>();
+
+							component->SetClass(Item);
+						}
+					}
+				}
+
+				ImguiHelper::InputText("Name", entity->Name);
+				ImguiHelper::Vec3float32Field("Position", &entity->Position.X);
+				ImguiHelper::Vec3float32Field("Rotation", &entity->Rotation.X);
+				ImguiHelper::Vec3float32Field("Scale", &entity->Scale.X);
+
+				for (auto& Item : entity->ChildEntitys)
+				{
+					ImguiDraw(Item.get());
+				}
+				for (auto& Item : entity->Components)
+				{
+					ImguiDraw(Item.get());
+				}
+
+				ImGui::TreePop();
+			}
+		}
+
+		void ImguiDraw()
+		{
+			ImguiHelper::BoolEnumField("Call Update on Scene", RunScene);
+			if (ImGui::Button("New Entity"))
+			{
+				scene.AddEntity();
+			}
+			ImGui::Separator();
+
+			if (RunScene)
+			{
+				scene.Update();
+			}
+
+			for (auto& Item : scene.Entitys)
+			{
+				ImguiDraw(Item.get());
+			}
+		}
+	};
+	inline thread_local RunTime _Context;
+
+	static UCodeLang::RunTimeLangState& Get_State()
+	{
+		return State;
+	}
+	static UCodeLang::AnyInterpreter& Get_Interpreter()
+	{
+		return _Context.Interpreter;
+	}
+
 }
 
 UCodeIDEEnd
