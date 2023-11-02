@@ -2517,7 +2517,7 @@ SystematicAnalysis::Get_FuncInfo SystematicAnalysis::Type_GetFunc(const TypeSymb
 	auto copyname = Name;
 	copyname._Isimmutable = false;
 	copyname._MoveData = MoveData::None;
-	
+	copyname._IsAddress = false;
 	
 	String B = ToString(copyname);
 	Token T;

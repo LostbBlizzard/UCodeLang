@@ -3,14 +3,15 @@ use API;
 use ECS;
 
 $Player[Component]:
-
+ int num = 0;
  |Start[this&]:
-  var& entity = entity();
-  //entity().name() = "Hello World";
-  //entity().position() = [2,5];
+  entity().name() = "Hello World";
+  entity().position2d() = [2,5];
  
- |Update[this&] -> void;
+ |Update[this&] -> void:
+  num++;
   
 
 
 |main[] => 0;
+

@@ -7,7 +7,8 @@ $ECS:Entity
 $ECS:Scene
 
 $Player
- int64 __0; 
+ int32 __0; 
+ int64 __1; 
 
 $StringSpan_t<char>
  void* __0; 
@@ -425,13 +426,48 @@ static uint8[/24]:ECS:Componentvtable_type ECS:Component:$Player= [?,?,?,?,?,?,?
 
    ret;
 
+|Player:(&_init&)[Player* (&this&)] -> void:
+
+ [Block:0]
+
+
+//File:/src.uc
+//Line:6
+
+   int32 A = 0;
+   (&this&)->__0 = A;
+   ret;
+
 |Player:Start^Player&[Player* (&this&)] -> void:
 
  [Block:0]
 
 
 //Varable:Player:Start:(&this&)
+//File:/src.uc
+//Line:8
+//Varable:Player:Start:entity
 
+   ECS:Entity* A;
+   Player* B = (&this&);
+   ECS:Entity* C = Player:entity^Player&(B);
+   A = C;
+
+//Line:10
+//Line:0
+
+   Vec2f_t<float32> D;
+   Vec2f_t<float32>* E = &D;
+
+//Line:10
+
+   float32 F = 2.000000;
+   float32 G = 5.000000;
+   void H = Vec2f_t<float32>:(&_new&)^Vec2f_t<float32>&,f32,f32(E,F,G);
+   Player* I = (&this&);
+   ECS:Entity* J = Player:entity^Player&(I);
+   Vec2f_t<float32>* K = ECS:Entity:position2d^ECS:Entity&(J);
+   *K = D;
    ret;
 
 |Player:Update^Player&[Player* (&this&)] -> void:
@@ -441,6 +477,14 @@ static uint8[/24]:ECS:Componentvtable_type ECS:Component:$Player= [?,?,?,?,?,?,?
 
 //Varable:Player:Update:(&this&)
 
+
+//File:/src.uc
+//Line:13
+
+   int32 A = (&this&)->__0;
+   int32 B = 1;
+   int32 C = A+B;
+   (&this&)->__0 = C;
    ret;
 
 |Player:(&_drop&)^Player&[Player* (&this&)] -> void:
@@ -453,6 +497,8 @@ static uint8[/24]:ECS:Componentvtable_type ECS:Component:$Player= [?,?,?,?,?,?,?
 
  [Block:0]
 
+   Player* A = (&this&);
+   void B = Player:(&_init&)(A);
    ret;
 
 |Player:entity^Player&[Player* (&this&)] -> ECS:Entity*:
@@ -464,7 +510,7 @@ static uint8[/24]:ECS:Componentvtable_type ECS:Component:$Player= [?,?,?,?,?,?,?
 //File:/src.uc
 //Line:7
 
-   int64 A = (&this&)->__0;
+   int64 A = (&this&)->__1;
    ECS:Entity* B = ECS:ComponentAPI:entity^uptr(A);
    ret = B;
    ret;
@@ -478,7 +524,7 @@ static uint8[/24]:ECS:Componentvtable_type ECS:Component:$Player= [?,?,?,?,?,?,?
 //File:/src.uc
 //Line:8
 
-   int64 A = (&this&)->__0;
+   int64 A = (&this&)->__1;
    ECS:Entity* B = ECS:ComponentAPI:ientity^uptr(A);
    ret = B;
    ret;
@@ -490,7 +536,7 @@ static uint8[/24]:ECS:Componentvtable_type ECS:Component:$Player= [?,?,?,?,?,?,?
 
 
 //File:/src.uc
-//Line:16
+//Line:17
 
    int32 A = 0;
    ret = A;

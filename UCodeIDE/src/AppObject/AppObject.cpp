@@ -3132,6 +3132,15 @@ void AppObject::FullReloadRunTime()
     _RunTimeState.AddLib(&_RuntimeLib);
     _RunTimeState.LinkLibs();
 
+
+    //ESC
+    {
+        ECSExample::State.ClearRunTimeState();
+        ECSExample::State.AddLib(&_RuntimeLib);
+        ECSExample::State.LinkLibs();
+
+        ECSExample::_Context.Interpreter.Init(&ECSExample::State);
+    }
     _AnyInterpreter.Init(&_RunTimeState);
     OnRuntimeUpdated();
 }
