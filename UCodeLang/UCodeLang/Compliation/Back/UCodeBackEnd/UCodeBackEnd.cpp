@@ -539,7 +539,13 @@ void UCodeBackEndObject::RegWillBeUsed(RegisterID Value)
 				}
 				else
 				{
-					UCodeLangToDo();
+					IRInstruction V;
+					V.Type = IRInstructionType::Load;
+					V.Target() = *Item;
+
+					MoveValueToStack(&V, type, Value);
+
+					_Stack.Has(&V).value()->IR =*Item;
 				}
 
 				_Registers.FreeRegister(Value);
@@ -617,7 +623,7 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 
 	auto FuncName = _Input->FromID(IR->identifier);
 	{
-		auto V = GetParsLoc(IR->Pars);
+		auto V = GetParsLoc(IR->Pars,true);
 		CurrentFuncParPos =std::move(V.ParsPos);
 	}
 
@@ -1983,8 +1989,10 @@ void UCodeBackEndObject::FuncCallRet(const IRType& RetType)
 }
 void UCodeBackEndObject::FuncCallEnd(UCodeBackEndObject::FuncCallEndData& Data)
 {
+	auto& old = _Registers.Registers;
 	auto V = GetParsLoc(Data.Pars);
 
+	_Registers.Registers = old;
 
 	size_t PopBufferSize = 0;
 	for (size_t i = 0; i < V.OverflowedPars.size(); i++)
@@ -4679,16 +4687,26 @@ void  UCodeBackEndObject::SynchronizePar(ParlocData* Par)
 	{
 		auto& Item = *_Stack.Items[i];
 
-		auto ptr = Item.IR.Get<const IRInstruction*>();
-
-		if (ptr == nullptr) { continue; }
-		if (IsLookingAtPar(ptr, Par->Par))
+		if (auto ptrOp = Item.IR.Get_If<const IRInstruction*>())
 		{
-			Par->Location = StackPostCall(Item.Offset);
+			auto& ptr = *ptrOp;
+			if (ptr == nullptr) { continue; }
+			if (IsLookingAtPar(ptr, Par->Par))
+			{
+				Par->Location = StackPostCall(Item.Offset);
+			}
+		}
+		else if (auto ptrOp = Item.IR.Get_If<IROperator>())
+		{
+			auto& ptr = *ptrOp;
+			if (ptr.Type == IROperatorType::IRParameter && ptr.Parameter == Par->Par)
+			{
+				Par->Location = StackPostCall(Item.Offset);
+			}
 		}
 	}
 }
-UCodeBackEndObject::FindParsLoc UCodeBackEndObject::GetParsLoc(const Vector<IRType>& Pars)
+UCodeBackEndObject::FindParsLoc UCodeBackEndObject::GetParsLoc(const Vector<IRType>& Pars, bool SetReg)
 {
 	Vector<IRPar> Tep;
 	Tep.resize(Pars.size());
@@ -4698,9 +4716,9 @@ UCodeBackEndObject::FindParsLoc UCodeBackEndObject::GetParsLoc(const Vector<IRTy
 		auto& TepItem = Tep[i];
 		TepItem.type = Item;
 	}
-	return GetParsLoc(Tep);
+	return GetParsLoc(Tep,SetReg);
 }
-UCodeBackEndObject::FindParsLoc UCodeBackEndObject::GetParsLoc(const Vector<IRPar>& Pars)
+UCodeBackEndObject::FindParsLoc UCodeBackEndObject::GetParsLoc(const Vector<IRPar>& Pars,bool SetReg)
 {
 	FindParsLoc CompilerRet;
 
@@ -4723,7 +4741,9 @@ UCodeBackEndObject::FindParsLoc UCodeBackEndObject::GetParsLoc(const Vector<IRPa
 		{
 			Loc.Location = V;
 
-			SetRegister(V,&Item);
+			if (SetReg) {
+				SetRegister(V, &Item);
+			}
 
 			V2++;
 			if (V == RegisterID::EndParameterRegister)

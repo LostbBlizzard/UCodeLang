@@ -442,8 +442,8 @@ private:
 
 	size_t GetMainObjectSizeForStackPre(const IRlocData& Val);
 
-	FindParsLoc GetParsLoc(const Vector<IRType>& Pars);
-	FindParsLoc GetParsLoc(const Vector<IRPar>& Pars);
+	FindParsLoc GetParsLoc(const Vector<IRType>& Pars, bool SetReg = false);
+	FindParsLoc GetParsLoc(const Vector<IRPar>& Pars,bool SetReg =false);
 
 	AnyInt64 ToAnyInt(const IRType& ObjectType, const  IROperator& Op);
 

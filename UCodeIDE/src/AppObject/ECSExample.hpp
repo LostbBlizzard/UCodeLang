@@ -141,15 +141,24 @@ namespace ECSExample
 		Object<Component> myobj;
 	};
 
+
+	UCodeLangExportSymbol("ECS") struct Time
+	{
+	public:
+		UCodeLangExport static float DeltaTime()
+		{
+			return ImGui::GetIO().DeltaTime;
+		}
+	};
 	UCodeLangExportSymbol("ECS") struct ComponentAPI
 	{
 		static Component& Cast(uintptr_t _Handle)
 		{
-			return (Component&)_Handle;
+			return *(Component*)_Handle;
 		}
 		static const Component& iCast(uintptr_t _Handle)
 		{
-			return (const Component&)_Handle;
+			return *(const Component*)_Handle;
 		}
 
 		UCodeLangExport static Entity& entity(uintptr_t _Handle)
@@ -477,7 +486,10 @@ namespace ECSExample
 				uintptr_t HandlePtr = (uintptr_t)(ULangObject);
 				HandlePtr += ULangHandleoffset;
 
-				*((UCodeComponent**)HandlePtr) = this;
+				*((Component**)HandlePtr) = this;
+
+
+				//*((uintptr_t*)HandlePtr) = 15;
 			}
 
 			_CalledULangObjectStart = false;

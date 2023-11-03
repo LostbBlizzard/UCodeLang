@@ -1,5 +1,7 @@
 $API:Imgui
 
+$ECS:Time
+
 $ECS:ComponentAPI
 
 $ECS:Entity
@@ -7,7 +9,7 @@ $ECS:Entity
 $ECS:Scene
 
 $Player
- int32 __0; 
+ float32 __0; 
  int64 __1; 
 
 $StringSpan_t<char>
@@ -175,6 +177,18 @@ static uint8[/24]:ECS:Componentvtable_type ECS:Component:$Player= [?,?,?,?,?,?,?
 
    ret;
 
+|ECS:Time:DeltaTime[] -> float32:
+
+ [Block:0]
+
+   ret;
+
+|ECS:Time:(&_new&)^ECS:Time&[ECS:Time* (&this&)] -> void:
+
+ [Block:0]
+
+   ret;
+
 |ECS:ComponentAPI:entity^uptr[int64 _Handle] -> ECS:Entity*:
 
  [Block:0]
@@ -233,7 +247,7 @@ static uint8[/24]:ECS:Componentvtable_type ECS:Component:$Player= [?,?,?,?,?,?,?
 
 //Varable:ECS:Entity:Destroy:(&this&)
 //File:/ECSAPI.uc
-//Line:20
+//Line:24
 
    ECS:Entity* A = (&this&);
    ECS:Entity* B = A;
@@ -364,7 +378,7 @@ static uint8[/24]:ECS:Componentvtable_type ECS:Component:$Player= [?,?,?,?,?,?,?
 
 //Varable:ECS:Entity:irotation2d:(&this&)
 //File:/ECSAPI.uc
-//Line:34
+//Line:38
 
    ECS:Entity* A = (&this&);
    ECS:Entity* B = A;
@@ -385,7 +399,7 @@ static uint8[/24]:ECS:Componentvtable_type ECS:Component:$Player= [?,?,?,?,?,?,?
 
 //Varable:ECS:Scene:AddEntity:(&this&)
 //File:/ECSAPI.uc
-//Line:38
+//Line:42
 
    ECS:Scene* A = (&this&);
    ECS:Scene* B = A;
@@ -434,7 +448,7 @@ static uint8[/24]:ECS:Componentvtable_type ECS:Component:$Player= [?,?,?,?,?,?,?
 //File:/src.uc
 //Line:6
 
-   int32 A = 0;
+   float32 A = 1.000000;
    (&this&)->__0 = A;
    ret;
 
@@ -446,28 +460,20 @@ static uint8[/24]:ECS:Componentvtable_type ECS:Component:$Player= [?,?,?,?,?,?,?
 //Varable:Player:Start:(&this&)
 //File:/src.uc
 //Line:8
-//Varable:Player:Start:entity
-
-   ECS:Entity* A;
-   Player* B = (&this&);
-   ECS:Entity* C = Player:entity^Player&(B);
-   A = C;
-
-//Line:10
 //Line:0
 
-   Vec2f_t<float32> D;
-   Vec2f_t<float32>* E = &D;
+   Vec2f_t<float32> A;
+   Vec2f_t<float32>* B = &A;
 
-//Line:10
+//Line:8
 
-   float32 F = 2.000000;
-   float32 G = 5.000000;
-   void H = Vec2f_t<float32>:(&_new&)^Vec2f_t<float32>&,f32,f32(E,F,G);
-   Player* I = (&this&);
-   ECS:Entity* J = Player:entity^Player&(I);
-   Vec2f_t<float32>* K = ECS:Entity:position2d^ECS:Entity&(J);
-   *K = D;
+   float32 C = 2.000000;
+   float32 D = 5.000000;
+   void E = Vec2f_t<float32>:(&_new&)^Vec2f_t<float32>&,f32,f32(B,C,D);
+   Player* F = (&this&);
+   ECS:Entity* G = Player:entity^Player&(F);
+   Vec2f_t<float32>* H = ECS:Entity:position2d^ECS:Entity&(G);
+   *H = A;
    ret;
 
 |Player:Update^Player&[Player* (&this&)] -> void:
@@ -476,15 +482,31 @@ static uint8[/24]:ECS:Componentvtable_type ECS:Component:$Player= [?,?,?,?,?,?,?
 
 
 //Varable:Player:Update:(&this&)
-
-
 //File:/src.uc
-//Line:13
+//Line:14
+//Varable:Player:Update:pos
 
-   int32 A = (&this&)->__0;
-   int32 B = 1;
-   int32 C = A+B;
-   (&this&)->__0 = C;
+   Vec2f_t<float32>* A;
+   Player* B = (&this&);
+   ECS:Entity* C = Player:entity^Player&(B);
+   Vec2f_t<float32>* D = ECS:Entity:position2d^ECS:Entity&(C);
+   A = D;
+
+//Line:15
+//Varable:Player:Update:deltatime
+
+   float32 E;
+   float32 F = ECS:Time:DeltaTime();
+   E = F;
+
+//Line:17
+
+   float32 G = A->__1;
+   float32 H = E;
+   float32 I = (&this&)->__0;
+   float32 J = I*H;
+   float32 K = G+J;
+   A->__1 = K;
    ret;
 
 |Player:(&_drop&)^Player&[Player* (&this&)] -> void:
@@ -536,7 +558,7 @@ static uint8[/24]:ECS:Componentvtable_type ECS:Component:$Player= [?,?,?,?,?,?,?
 
 
 //File:/src.uc
-//Line:17
+//Line:34
 
    int32 A = 0;
    ret = A;
@@ -549,12 +571,12 @@ static uint8[/24]:ECS:Componentvtable_type ECS:Component:$Player= [?,?,?,?,?,?,?
 
 //Varable:StringSpan_t<char>:(&_new&):(&this&)
 //File:/stl.uc
-//Line:72
+//Line:76
 
    int64 A = 0;
    (&this&)->__0 = A;
 
-//Line:73
+//Line:77
 
    int64 B = 0;
    (&this&)->__1 = B;
@@ -569,12 +591,12 @@ static uint8[/24]:ECS:Componentvtable_type ECS:Component:$Player= [?,?,?,?,?,?,?
 //Varable:StringSpan_t<char>:(&_new&):data
 //Varable:StringSpan_t<char>:(&_new&):size
 //File:/stl.uc
-//Line:76
+//Line:80
 
    void* A = data;
    (&this&)->__0 = A;
 
-//Line:77
+//Line:81
 
    int64 B = size;
    (&this&)->__1 = B;
@@ -589,7 +611,7 @@ static uint8[/24]:ECS:Componentvtable_type ECS:Component:$Player= [?,?,?,?,?,?,?
 
 
 //File:/stl.uc
-//Line:79
+//Line:83
 
    int64 A = (&this&)->__1;
    ret = A;
@@ -604,7 +626,7 @@ static uint8[/24]:ECS:Componentvtable_type ECS:Component:$Player= [?,?,?,?,?,?,?
 
 
 //File:/stl.uc
-//Line:80
+//Line:84
 
    void* A = (&this&)->__0;
    ret = A;
@@ -666,6 +688,30 @@ static uint8[/24]:ECS:Componentvtable_type ECS:Component:$Player= [?,?,?,?,?,?,?
    (&this&)->__1 = B;
 
 //Line:65
+
+   int64 C = 0;
+   (&this&)->__2 = C;
+   ret;
+
+|String_t<char>:(&_new&)^String_t<char>&,StringSpan_t<char>[String_t<char>* (&this&),StringSpan_t<char> string] -> void:
+
+ [Block:0]
+
+
+//Varable:String_t<char>:(&_new&):(&this&)
+//Varable:String_t<char>:(&_new&):string
+//File:/stl.uc
+//Line:67
+
+   int64 A = 0;
+   (&this&)->__0 = A;
+
+//Line:68
+
+   int64 B = 0;
+   (&this&)->__1 = B;
+
+//Line:69
 
    int64 C = 0;
    (&this&)->__2 = C;
