@@ -1400,7 +1400,6 @@ void AppObject::DrawTestMenu()
                                         auto ret = file.BuildModule(compiler, LangIndex);
                                         if (ret.CompilerRet.IsValue())
                                         {
-
                                             ItemOut.State = TestInfo::TestState::Passed;
                                             r = true;
                                         }

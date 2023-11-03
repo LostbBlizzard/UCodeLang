@@ -119,21 +119,19 @@ public:
 struct StackItem
 {
 	size_t Offset = 0;
-	Variant<const IRInstruction*, IRAndOperator> IR;
+	Variant<const IRInstruction*,IROperator, IRAndOperator> IR;
 
-	bool IsOperator = false;
 	StackItem(
 		size_t offset, const IRInstruction* ir)
 		:Offset(offset),IR(ir)
 	{
 
-		IsOperator = false;
 	}
 	StackItem(
 		size_t offset, const IRAndOperator& ir)
 		:Offset(offset), IR(ir)
 	{
-		IsOperator = true;
+		
 	}
 };
 struct StackInfo

@@ -10,6 +10,7 @@ namespace ECSExample
 	{
 		UCodeLangAutoLink(lib, ECSExample);
 	{//Made by UCodeAutoLink 
+		using Time__DeltaTime_ptr = float(*UCodeLangAPI)(); 
 		using ComponentAPI__entity_ptr = Entity*(*UCodeLangAPI)(uintptr_t); 
 		using ComponentAPI__ientity_ptr = const Entity*(*UCodeLangAPI)(uintptr_t); 
 		using Entity__scenc_ptr = Scene*(*UCodeLangAPI)(ECSExample::Entity*); 
@@ -31,6 +32,14 @@ namespace ECSExample
 		using Entity__irotation_ptr = const Vec3*(*UCodeLangAPI)(ECSExample::Entity*); 
 		using Entity__irotation2d7_ptr = const Vec2*(*UCodeLangAPI)(ECSExample::Entity*); 
 		using Scene__AddEntity1_ptr = Entity*(*UCodeLangAPI)(ECSExample::Scene*); 
+		lib.Add_CPPCall("ECS:Time:DeltaTime",[](UCodeLang::InterpreterCPPinterface& Input) -> void
+			{
+			
+				float Ret =ECSExample::Time::DeltaTime();
+				
+				Input.Set_Return<float>(Ret);
+			
+			},(Time__DeltaTime_ptr)ECSExample::Time::DeltaTime); 
 		lib.Add_CPPCall("ECS:ComponentAPI:entity",[](UCodeLang::InterpreterCPPinterface& Input) -> void
 			{
 			

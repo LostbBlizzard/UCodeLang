@@ -144,6 +144,41 @@ using ULang;//include standard Library.
   Null: panic("List size was 0");
 
 ```
+# Example Entity component System
+
+This Can be Fuound in UCodeIDE/src/AppObject/ECSExample.hpp
+and UCodeIDE/src/AppObject/test.uc.
+
+```
+use API;//Imgui,Vec2,Time
+use ECS;//Component,Entity
+
+$Player[Component]:
+ float Speed = 1;
+ |Start[this&]:
+  entity().position2d() = [2,5];
+
+
+
+ |Update[this&] -> void:
+  
+  var& pos = entity().position2d();//get rereference to entity position.
+  float deltatime = Time::DeltaTime();
+  
+  if Imgui::KeyDown(ImKey::W):
+    pos.Y += Speed * deltatime;
+    
+  if Imgui::KeyDown(ImKey::S):
+    pos.Y -= Speed * deltatime;
+  
+  if Imgui::KeyDown(ImKey::A):
+    pos.X -= Speed * deltatime;
+  
+  if Imgui::KeyDown(ImKey::D):
+    pos.X += Speed * deltatime;
+
+```
+
 
 # Example(Implementers)
 
@@ -158,13 +193,13 @@ int main()
   auto comilerRet = myCompiler.CompileText(MyUCode);
 
 
-  if (comilerRet._State == UCodeLang::Compiler::CompilerState::Success)
+  if (!comilerRet.IsError())
   { 
     //your ucode was Compiled
     UCodeLang::RunTimeLangState State;
 
     UCodeLang::RunTimeLib Lib;
-	Lib.Init(comilerRet.OutPut);//initialize RunTimeLib useing our Compiled code.
+    Lib.Init(comilerRet.GetValue().OutPut.value());//initialize RunTimeLib useing our Compiled code.
 
 
     State.AddLib(&Lib);//Add RunTimeLib
@@ -174,13 +209,13 @@ int main()
     interpreter.Init(&State);
 
     interpreter.Call(StaticVariablesInitializeFunc);//initialize our Static Varables.
-	interpreter.Call(ThreadVariablesInitializeFunc);//initialize thread local/Interpreter local Varables.
+    interpreter.Call(ThreadVariablesInitializeFunc);//initialize thread local/Interpreter local Varables.
 
     int Value = interpreter.RCall<int>("main");//Call main
     std::cout << " Got Value " << Value;
 
 
-	interpreter.Call(ThreadVariablesUnLoadFunc);//Call  Thread local Varables destructors.
+    interpreter.Call(ThreadVariablesUnLoadFunc);//Call Thread local Varables destructors.
     interpreter.Call(StaticVariablesUnLoadFunc);//Call Static Varables destructors.
   }
   else 
