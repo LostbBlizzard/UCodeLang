@@ -1644,10 +1644,10 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 
 		auto newtoken = TryGetToken();
 
-		String_view funcname = UCode_RangeFuncion;
+		String_view funcname = UCode_RangeFunction;
 		if (newtoken->Type == TokenType::equal)
 		{
-			funcname = UCode_RangeInclusiveFuncion;
+			funcname = UCode_RangeInclusiveFunction;
 			NextToken();
 		}
 
@@ -4796,7 +4796,7 @@ GotNodeType Parser::GetUnqExpresionNode(Node*& out)
 		FuncCallNode* OutNode = new FuncCallNode();
 		out = OutNode;
 
-		SmartPointerNewToFuncName(TypeNode,Pars, Token, OutNode, UCode_Unique_ptr, UCode_Unique_Ptr_MakeFuncion);
+		SmartPointerNewToFuncName(TypeNode,Pars, Token, OutNode, UCode_Unique_ptr, UCode_Unique_Ptr_MakeFunction);
 		
 	}
 	else if (ParToken->Type == TokenType::Left_Bracket)
@@ -4814,7 +4814,7 @@ GotNodeType Parser::GetUnqExpresionNode(Node*& out)
 		//
 		FuncCallNode* OutNode = new FuncCallNode();
 		out = OutNode;
-		SmartPointerNewArray(TypeNode, Token, OutNode, ArrayCountexpression, UCode_Unique_Array, UCode_Unique_Array_MakeFuncion);
+		SmartPointerNewArray(TypeNode, Token, OutNode, ArrayCountexpression, UCode_Unique_Array, UCode_Unique_Array_MakeFunction);
 
 		//
 	}
@@ -4921,7 +4921,7 @@ GotNodeType Parser::GetShrExpresionNode(Node*& out)
 		FuncCallNode* OutNode = new FuncCallNode();
 		out = OutNode;
 
-		SmartPointerNewToFuncName(TypeNode, Pars, Token, OutNode, UCode_Shared_ptr, UCode_Shared_Ptr_MakeFuncion);
+		SmartPointerNewToFuncName(TypeNode, Pars, Token, OutNode, UCode_Shared_ptr, UCode_Shared_Ptr_MakeFunction);
 
 	}
 	else if (ParToken->Type == TokenType::Left_Bracket)
@@ -4940,7 +4940,7 @@ GotNodeType Parser::GetShrExpresionNode(Node*& out)
 		//
 		FuncCallNode* OutNode = new FuncCallNode();
 		out = OutNode;
-		SmartPointerNewArray(TypeNode, Token, OutNode, ArrayCountexpression, UCode_Shared_Array, UCode_Shared_Array_MakeFuncion);
+		SmartPointerNewArray(TypeNode, Token, OutNode, ArrayCountexpression, UCode_Shared_Array, UCode_Shared_Array_MakeFunction);
 
 		//
 	}

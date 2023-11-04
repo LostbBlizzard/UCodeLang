@@ -692,7 +692,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		V.RetType = Assembly_ConvertToType(Info->Ret);
 		;
 
-		V.IsThisFuncion = Info->FrontParIsUnNamed;
+		V.IsThisFunction = Info->FrontParIsUnNamed;
 		V.IsExternC = Info->IsExternC;
 		V.IsUnsafe = Info->IsUnsafe;
 		V.IsRemoved = Info->IsRemoved;

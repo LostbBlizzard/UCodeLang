@@ -2607,7 +2607,7 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
 
     static UCodeLang::DebugData DebugInfo;
 
-    bool InFuncion = Debuger.IsinFunc();
+    bool InFunction = Debuger.IsinFunc();
 
     ImGui::Button("Reset", Buttonsize);
 
@@ -2616,7 +2616,7 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
     ImguiHelper::BoolEnumField("Call Frame", windowdata.CallFrame);
 
 
-    ImGui::BeginDisabled(!InFuncion);
+    ImGui::BeginDisabled(!InFunction);
 
     if (ImGui::Button("Step in", Buttonsize))
     {
@@ -2658,7 +2658,7 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
         }
     }
     
-    if (InFuncion)
+    if (InFunction)
     {
         Debuger.UpdateDebugData(DebugInfo);
         ImGui::Text("Varables");
@@ -2675,7 +2675,7 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
         }
     }
 
-    if (InFuncion) 
+    if (InFunction) 
     {
         String V = "StackPtrOffset:";
         V += std::to_string(Debuger.GetStackOffset());
@@ -2684,7 +2684,7 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
         ImGui::Text("StackFrames");
 
     }
-    if (InFuncion)
+    if (InFunction)
     {
         ImGui::Text("Registers");
 
@@ -2698,7 +2698,7 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
     }
     
 
-    if (!InFuncion) 
+    if (!InFunction) 
     {
         auto& Assembly = _RunTimeState.Get_Assembly();
         bool Updated = false;
@@ -2706,7 +2706,7 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
 
         auto GlobalObject = Assembly.Get_GlobalObject_Class();
 
-        ImGui::Text("Call Funcion:"); ImGui::SameLine();
+        ImGui::Text("Call Function:"); ImGui::SameLine();
         
         ImGui::PushID(&callFuncContext.current_method);
 

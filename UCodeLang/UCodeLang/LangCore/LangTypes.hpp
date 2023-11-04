@@ -386,7 +386,7 @@ enum class RegisterID : RegisterID_t
 
 	AwaitOutRegister = OutPutRegister,
 
-	StartParameterRegister = (RegisterID_t)RegisterID::D,//the range the runtime will pass funcion Parameters into Registers
+	StartParameterRegister = (RegisterID_t)RegisterID::D,//the range the runtime will pass function Parameters into Registers
 	EndParameterRegister = (RegisterID_t)RegisterID::F + 1,
 
 	Parameter1_Register = (RegisterID_t)RegisterID::StartParameterRegister,

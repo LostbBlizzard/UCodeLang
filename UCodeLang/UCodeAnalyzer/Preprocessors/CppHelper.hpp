@@ -113,7 +113,7 @@ public:
 	};
 	
 	/// <summary>
-	/// Converts Enum,Classes,using,typedefs and funcions with the UCodeLangExportSymbol macro into Cpp calls and ULang types 
+	/// Converts Enum,Classes,using,typedefs and functions with the UCodeLangExportSymbol macro into Cpp calls and ULang types 
 	/// also adds summary tag to the made ucode files.
 	/// </summary>
 	/// <param name="SrcCpp"></param>

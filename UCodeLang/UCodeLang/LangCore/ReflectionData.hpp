@@ -219,7 +219,7 @@ public:
 	
 	ReflectionTypeInfo RetType;
 	Vector<Par> ParsType;
-	bool IsThisFuncion = false;
+	bool IsThisFunction = false;
 	bool IsUnsafe = false;
 	bool IsExternC = false;
 	bool IsRemoved = false;
@@ -265,7 +265,7 @@ enum class ClassType :ClassType_t
 	StaticArray,
 	FuncPtr,
 	GenericClass,
-	GenericFuncion,
+	GenericFunction,
 };
 struct Class_Data
 {
@@ -430,10 +430,10 @@ struct GenericClass_Data
 };
 
 
-struct GenericFuncion_Data
+struct GenericFunction_Data
 {
 	GenericBase_Data Base;
-	~GenericFuncion_Data()
+	~GenericFunction_Data()
 	{
 
 	}
@@ -545,9 +545,9 @@ public:
 		UCodeLangAssert(Type == ClassType::GenericClass);
 		return _GenericClass;
 	}
-	GenericFuncion_Data& Get_GenericFuncionData() 
+	GenericFunction_Data& Get_GenericFunctionData() 
 	{
-		UCodeLangAssert(Type == ClassType::GenericFuncion);
+		UCodeLangAssert(Type == ClassType::GenericFunction);
 		return _GenericFunc;
 	}
 	
@@ -606,9 +606,9 @@ public:
 		UCodeLangAssert(Type == ClassType::GenericClass);
 		return _GenericClass;
 	}
-	const GenericFuncion_Data& Get_GenericFuncionData() const
+	const GenericFunction_Data& Get_GenericFunctionData() const
 	{
-		UCodeLangAssert(Type == ClassType::GenericFuncion);
+		UCodeLangAssert(Type == ClassType::GenericFunction);
 		return _GenericFunc;
 	}
 	inline ClassType Get_Type() const
@@ -630,7 +630,7 @@ private:
 		StaticArray_Data _StaticArr;
 		FuncPtr_Data _FuncPtr;
 		GenericClass_Data _GenericClass;
-		GenericFuncion_Data _GenericFunc;
+		GenericFunction_Data _GenericFunc;
 	};
 };
 class ClassAssembly
@@ -706,14 +706,14 @@ public:
 		r.FullName = FullName;
 		return r.Get_GenericClass();
 	}
-	inline GenericFuncion_Data& AddGenericFunc(const String& Name, const String& FullName = "")
+	inline GenericFunction_Data& AddGenericFunc(const String& Name, const String& FullName = "")
 	{
-		auto V = std::make_unique<AssemblyNode>(ClassType::GenericFuncion);
+		auto V = std::make_unique<AssemblyNode>(ClassType::GenericFunction);
 		Classes.push_back(std::move(V));
 		auto& r = *Classes.back();
 		r.Name = Name;
 		r.FullName = FullName;
-		return r.Get_GenericFuncionData();
+		return r.Get_GenericFunctionData();
 	}
 	static void PushCopyClasses(const ClassAssembly& source, ClassAssembly& Out);
 	AssemblyNode* Find_Node(const String& Name, const String& Scope ="")

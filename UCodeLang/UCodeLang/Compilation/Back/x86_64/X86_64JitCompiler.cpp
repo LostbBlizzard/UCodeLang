@@ -42,8 +42,8 @@ X86_64Builder::GReg X86_64JitCompiler::To(RegisterID id)
 	case UCodeLang::RegisterID::A:return Convention.CallClobberedGRegisters[0];
 	case UCodeLang::RegisterID::B:return Convention.CallClobberedGRegisters[1];
 	case UCodeLang::RegisterID::C:return Convention.CallClobberedGRegisters[2];
-	case UCodeLang::RegisterID::ThisRegister:return Convention.IntegerFuncionArguments[0];
-	case UCodeLang::RegisterID::InPutRegister:return Convention.IntegerFuncionArguments[1];
+	case UCodeLang::RegisterID::ThisRegister:return Convention.IntegerFunctionArguments[0];
+	case UCodeLang::RegisterID::InPutRegister:return Convention.IntegerFunctionArguments[1];
 	case UCodeLang::RegisterID::OutPutRegister:return Convention.IntegerReturnValue;
 	default:break;
 	}

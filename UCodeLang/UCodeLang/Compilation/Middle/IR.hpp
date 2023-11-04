@@ -163,7 +163,7 @@ enum class IRInstructionType : IRInstructionType_t
 	//Control flow
 	Jump,
 	ConditionalJump,
-	//FuncionPointers
+	//FunctionPointers
 	CallFuncPtr,
 
 	//memory
@@ -1432,8 +1432,8 @@ public:
 
 	IRDebugSybInfo _Debug;
 	
-	//The Funcion to call after calling StaticInit,threadInit
-	//Funcion Must be like |Entry[] -> void;
+	//The Function to call after calling StaticInit,threadInit
+	//Function Must be like |Entry[] -> void;
 	Optional<IRidentifierID> EntryPoint;
 
 	struct ExternalVarable

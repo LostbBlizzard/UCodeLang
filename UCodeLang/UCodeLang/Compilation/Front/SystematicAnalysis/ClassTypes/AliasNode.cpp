@@ -145,7 +145,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 				V.ParsType.resize(nodeinfo_->Pars.size());
 				for (size_t i = 0; i < nodeinfo_->Pars.size(); i++)
 				{
-					//TODO should use a funcion like Assembly_ConvertToParType.
+					//TODO should use a function like Assembly_ConvertToParType.
 					V.ParsType[i].IsOutPar = nodeinfo_->Pars[i].IsOutPar;
 					V.ParsType[i].Type = Assembly_ConvertToType(nodeinfo_->Pars[i].Type);
 				}

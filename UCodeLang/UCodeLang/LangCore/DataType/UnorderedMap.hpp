@@ -3,7 +3,7 @@
 UCodeLangStart
 
 
-// Unordered_Map but with safer Funcions
+// Unordered_Map but with safer Functions
 template<typename Key, typename Value>
 class UnorderedMap
 {

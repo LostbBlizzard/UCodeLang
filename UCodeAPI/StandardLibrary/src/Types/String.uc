@@ -78,7 +78,7 @@ $String_t<T>:
   |Insert[this&,uintptr Index,imut T& Item] -> void:_base.Insert(Index,Item);
   //|Insert[this&,uintptr Index,moved T Item] -> void:_base.Insert(Index,Item);
   
-  //Not required Funcions 
+  //Not required Functions 
   |[][this&,uintptr Index] -> T&:ret _base[Index];
   |[][imut this&,uintptr Index] -> imut T&:ret _base[Index];
 

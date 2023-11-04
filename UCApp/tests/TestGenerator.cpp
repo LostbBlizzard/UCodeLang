@@ -5,7 +5,7 @@ namespace ULangTest
 
 	enum NodeTypes
 	{
-		Funcion,
+		Function,
 		EvalVarable,
 		StaticVarable,
 		ThreadVarable,
@@ -27,7 +27,7 @@ namespace ULangTest
 			}
 			else
 			{
-				MakeFuncion();
+				MakeFunction();
 			}
 
 		}
@@ -50,7 +50,7 @@ namespace ULangTest
 
 	}
 
-	void TestGenerator::MakeFuncion()
+	void TestGenerator::MakeFunction()
 	{
 		
 		{

@@ -165,7 +165,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 				
 				for (auto& Item3 : Item2.ParsType)
 				{
-					if (&Item3 == &Item2.ParsType.front() && Item2.IsThisFuncion)
+					if (&Item3 == &Item2.ParsType.front() && Item2.IsThisFunction)
 					{
 
 						if (Item3.Type.Isimmutable())
@@ -276,10 +276,10 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 			r += "---\n";
 		}
 		break;
-		case ClassType::GenericFuncion:
+		case ClassType::GenericFunction:
 		{
 			r += "---\n\n";
-			r += Item->Get_GenericFuncionData().Base.Implementation;
+			r += Item->Get_GenericFunctionData().Base.Implementation;
 			r += "---\n";
 		}
 		break;

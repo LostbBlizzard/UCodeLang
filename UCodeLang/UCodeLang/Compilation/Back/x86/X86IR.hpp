@@ -27,14 +27,14 @@ struct X86IR
 	struct CallConvention
 	{
 		/*
-		Vector<GReg> IntegerFuncionArguments;
-		Vector<FReg> FloatingPointFuncionArguments;
+		Vector<GReg> IntegerFunctionArguments;
+		Vector<FReg> FloatingPointFunctionArguments;
 
 		GReg IntegerReturnValue = GReg::RAX;
 		FReg FloatReturnValue = FReg::xmm0;
 
-		Vector<Byte> FuncionProlog;
-		Vector<Byte> FuncionEpilogue;
+		Vector<Byte> FunctionProlog;
+		Vector<Byte> FunctionEpilogue;
 
 		//if not here Register will not be used
 		Vector<GReg> CallPreservedGRegisters;
@@ -63,17 +63,17 @@ struct X86IR
 				UCodeLangThrowException("not added");
 			}
 
-			IntegerFuncionArguments = { GReg::RCX,GReg::RDX,GReg::r8,GReg::r9 };
-			FloatingPointFuncionArguments = { FReg::xmm0,FReg::xmm1,FReg::xmm2,FReg::xmm3 };
+			IntegerFunctionArguments = { GReg::RCX,GReg::RDX,GReg::r8,GReg::r9 };
+			FloatingPointFunctionArguments = { FReg::xmm0,FReg::xmm1,FReg::xmm2,FReg::xmm3 };
 
 			IntegerReturnValue = GReg::RAX;
 			FloatReturnValue = FReg::xmm0;
 
-			FuncionProlog = {
+			FunctionProlog = {
 				0x55,               // push rbp
 				0x48, 0x89, 0xe5,   // mov	rbp, rsp
 			};
-			FuncionEpilogue = {
+			FunctionEpilogue = {
 				0x5d,   // pop	rbp
 				0xc3    // ret
 			};
@@ -91,7 +91,7 @@ struct X86IR
 			//For testing
 			SetWindows();
 
-			IntegerFuncionArguments = { GReg::RDI,GReg::RSI,GReg::RDX,GReg::r8,GReg::r9 };
+			IntegerFunctionArguments = { GReg::RDI,GReg::RSI,GReg::RDX,GReg::r8,GReg::r9 };
 		}
 		//https://github.com/apple/swift/blob/main/docs/ABI/CallConvSummary.rst
 		//https://developer.apple.com/library/archive/documentation/DeveloperTools/Conceptual/LowLevelABI/140-x86-64_Function_Calling_Conventions/x86_64.html
@@ -107,7 +107,7 @@ struct X86IR
 			SetWindows();
 		}
 
-		//The calling convention meant to be used when funcion dont need to be exposed to any api
+		//The calling convention meant to be used when function dont need to be exposed to any api
 		//is undefined it may change at anytime.
 		void SetCallInternal()
 		{

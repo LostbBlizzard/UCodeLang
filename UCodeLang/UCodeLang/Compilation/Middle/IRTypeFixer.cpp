@@ -366,7 +366,7 @@ void IRTypeFixer::LogErrorCantFindPar(UCodeLang::IROperator& Op)
 {
 	IRPar* Par = Op.Parameter;
 	auto ParName= _Input->FromID(Par->identifier);
-	String MSG = "InternalCompilerError: the IR Funcion does not have the name Parameter Named '" + ParName + "'";
+	String MSG = "InternalCompilerError: the IR Function does not have the name Parameter Named '" + ParName + "'";
 
 	MSG += "the pointer is pointing to ";
 
@@ -387,7 +387,7 @@ void IRTypeFixer::LogErrorCantFindPar(UCodeLang::IROperator& Op)
 
 	if (Func == nullptr)
 	{
-		MSG += "[Cant Find Funcion]";
+		MSG += "[Cant Find Function]";
 	}
 	else
 	{

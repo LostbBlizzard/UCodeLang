@@ -1035,7 +1035,7 @@ void ParseLine(String_view& Line)
 				}
 				else
 				{
-					AppPrint("Cant find funcion '" << func << '[');
+					AppPrint("Cant find function '" << func << '[');
 					for (auto& Item : Pars)
 					{
 						AppPrint(ClassAssembly::ToString(Item.GetType(),Assembly));
@@ -1332,7 +1332,7 @@ void ParseLine(String_view& Line)
 
 		AppPrintin("new           [Path]     :Makes a new Module Project");
 		AppPrintin("build         [Path]     :Builds the UCode file,Module,folder");
-		AppPrintin("run           [Path] <FuncionName(<Args>)>    :run the UCode file,Module,folder,.ulib");
+		AppPrintin("run           [Path] <FunctionName(<Args>)>    :run the UCode file,Module,folder,.ulib");
 		AppPrintin("test          [Path]     :Runs Tests the UCode file,Module,folder,.ulib");
 		AppPrintin("dump          [Path]     :Convert the UCode file,Module,folder,.ulib to Readable Text");
 		AppPrintin("fmt           [Path]     :Format the UCode file,Module,folder");

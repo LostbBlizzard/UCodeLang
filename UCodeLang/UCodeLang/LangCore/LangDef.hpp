@@ -294,7 +294,7 @@
 #define UCodeLangAPI 
 #endif
 
-//Use this To Export Class,Enum,Funcions to .uc 
+//Use this To Export Class,Enum,Functions to .uc 
 //using UCodeAnalyzer/Preprocessors/CppHelper ParseCppfileAndOutULang
 
 #define UCodeLangExportSymbol(Namespace)

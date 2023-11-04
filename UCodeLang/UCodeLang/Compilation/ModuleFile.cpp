@@ -309,9 +309,9 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 				{
 					UClib& buildscriptlib = *build.CompilerRet.GetValue().OutPut;
 
-					ClassMethod* buildfuncion = buildscriptlib.Get_Assembly().Find_Func("build");
+					ClassMethod* buildfunction = buildscriptlib.Get_Assembly().Find_Func("build");
 
-					if (buildfuncion)
+					if (buildfunction)
 					{
 						using BuildRuner = Interpreter;
 
@@ -331,7 +331,7 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 						runer.Init(&state);
 
 
-						auto itworked = runer.RCall<int>(buildfuncion, this);
+						auto itworked = runer.RCall<int>(buildfunction, this);
 
 
 						if (itworked == 0)
@@ -347,7 +347,7 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 					}
 					else
 					{
-						Compiler.Get_Errors().AddError(ErrorCodes::ExpectingToken, 0, 0, "Cant find funcion |build[BuildSystem& system] for build script.");
+						Compiler.Get_Errors().AddError(ErrorCodes::ExpectingToken, 0, 0, "Cant find function |build[BuildSystem& system] for build script.");
 						ModuleRet CompilerRet =Compiler::CompilerRet(NeverNullptr(&Compiler.Get_Errors()));
 						return CompilerRet;
 					}

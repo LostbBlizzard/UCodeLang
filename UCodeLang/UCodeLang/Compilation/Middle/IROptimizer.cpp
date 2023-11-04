@@ -115,7 +115,7 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 				}
 				else
 				{
-					FuncData.Inlinestate = InlineState::FuncionCantBeInline;
+					FuncData.Inlinestate = InlineState::FunctionCantBeInline;
 				}
 
 			}
@@ -289,7 +289,7 @@ void IROptimizer::UpdateOptimizationList()
 			Optimization_RemoveUnsedVarables = true;
 			Optimization_RemoveUnusePars = true;
 			Optimization_RemoveFuncsWithSameBody = true;
-			Optimization_LowerToBodysToCFuncions = false;
+			Optimization_LowerToBodysToCFunctions = false;
 			Optimization_InlineConditionalJump = false;
 			Optimization_RemoveUnreachable = true;
 			Optimization_RemoveUnneedMeallocAndFree = false;
@@ -307,7 +307,7 @@ void IROptimizer::UpdateOptimizationList()
 		if (ForDebuging == false)
 		{
 			Optimization_DestructureStructMembers = true;
-			Optimization_ReorderFuncionsInToHotSpots = true;
+			Optimization_ReorderFunctionsInToHotSpots = true;
 			Optimization_ReorderInstructionsBaseOnMemoryAndHotSpots = true;
 			Optimization_LoopUnrolling = true;
 			Optimization_LoopFrequencyReduction = true;
@@ -728,7 +728,7 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 
 			if (!Par._IsUsed && Par._WasRemoved == false)
 			{
-				CopyFuncionWithoutUnusedParAndUpdateOtherCalls(Par, Func, i);
+				CopyFunctionWithoutUnusedParAndUpdateOtherCalls(Par, Func, i);
 				UpdatedCode();
 				break;
 			}
@@ -903,7 +903,7 @@ void IROptimizer::DoDestructurStructMembers(UCodeLang::Unique_ptr<UCodeLang::IRI
 
 	//std::cout << Input->ToString() << '\n';
 }
-void IROptimizer::CopyFuncionWithoutUnusedParAndUpdateOtherCalls(UCodeLang::IRPar& Par, UCodeLang::IRFunc* Func, const size_t& i)
+void IROptimizer::CopyFunctionWithoutUnusedParAndUpdateOtherCalls(UCodeLang::IRPar& Par, UCodeLang::IRFunc* Func, const size_t& i)
 {
 	Par._WasRemoved = true;
 	String NewFuncName = Input->FromID(Func->identifier) + "|||-unused[" + Input->FromID(Par.identifier) + "]";

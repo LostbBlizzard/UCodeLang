@@ -54,7 +54,7 @@ $Vector<T>:
   |Insert[this&,uintptr Index,imut T& Item] -> void;
   //|Insert[this&,uintptr Index,moved T Item] -> void;
 
-  //Not required Funcions 
+  //Not required Functions 
   |Append[this&,imut T[:] Val] -> void;
   //|Append[this&,moved T[:] Val] -> void;
 

@@ -58,7 +58,7 @@ struct DebugVarable
 };
 struct DebugStackFrame
 {
-	UAddress _Funcion =NullAddress;
+	UAddress _Function =NullAddress;
 
 	Optional<ProfilerTime_point> FuncStart;
 

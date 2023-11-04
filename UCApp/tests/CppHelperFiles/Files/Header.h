@@ -53,10 +53,10 @@ namespace CppLinkTest
 
 		UCodeLangExport constexpr static size_t SomeValue2 = 0;
 
-		//this should be a member funcion
+		//this should be a member function
 		UCodeLangExport void SomeMemberFunc(char V) {}
 
-		//this should be a static funcion
+		//this should be a static function
 		UCodeLangExport void SomeMemberStatic(char& V) {}
 
 

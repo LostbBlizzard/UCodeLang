@@ -231,7 +231,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 			TraitMethod method;
 
 			method.method.FullName = funcinfo->FullName;
-			method.method.IsThisFuncion = funcinfo->FrontParIsUnNamed;
+			method.method.IsThisFunction = funcinfo->FrontParIsUnNamed;
 			method.method.IsUnsafe = funcinfo->IsUnsafe;
 			method.method.IsRemoved = funcinfo->IsRemoved;
 			method.method.IsExternC = funcinfo->IsExternC;
@@ -391,7 +391,7 @@ void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo
 
 
 			if (!HasFunc) {
-				LogError_MissingFuncionforTrait(FuncName, Info, Trait, ClassNameToken);
+				LogError_MissingFunctionforTrait(FuncName, Info, Trait, ClassNameToken);
 				HasErr = true;
 			}
 		}
