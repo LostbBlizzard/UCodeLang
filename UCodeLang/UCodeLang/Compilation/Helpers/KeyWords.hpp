@@ -218,7 +218,7 @@ inline KeyWord KeyWords[] =
 
 	KeyWord(S_KeyWord_await,TokenType::KeyWord_await),
 	KeyWord(S_KeyWord_async,TokenType::KeyWord_async),
-	KeyWord(S_KeyWord_yield,TokenType::KeyWord_yeild),
+	KeyWord(S_KeyWord_yield,TokenType::KeyWord_yield),
 
 	KeyWord(S_KeyWord_utf8,TokenType::KeyWord_uft8),
 	KeyWord(S_KeyWord_utf16,TokenType::KeyWord_uft16),

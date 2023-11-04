@@ -865,7 +865,7 @@ void IROptimizer::DoDestructurStructMembers(UCodeLang::Unique_ptr<UCodeLang::IRI
 			}
 		}
 	}
-	//remove memeber
+	//remove member
 	for (auto& Block : Func->Blocks)
 	{
 		for (auto& Insv : Block->Instructions)
