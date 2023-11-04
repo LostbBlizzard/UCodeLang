@@ -285,7 +285,7 @@ void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo
 			if (Field.Name == VarName)
 			{
 				HasErr = true;
-				LogError(ErrorCodes::Redefinition, "cant inherit '" + Trait->FullName + "' because " + ClassInfo->FullName + " already has a field named '" + (String)VarName + "'", ClassNameToken);
+				LogError(ErrorCodes::Redefinition, "can't inherit '" + Trait->FullName + "' because " + ClassInfo->FullName + " already has a field named '" + (String)VarName + "'", ClassNameToken);
 				continue;
 			}
 		}

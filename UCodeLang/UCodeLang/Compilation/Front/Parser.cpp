@@ -2185,7 +2185,7 @@ Parser::GetNameCheck_ret2 Parser::GetNameCheck2(ScopedNameNode& out, bool CanHav
 			{
 				auto Token = out._ScopedName[0]._token;
 				_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos,
-					"generic cant be with a Memberaccess operator '" + (String)TokenStringHelper::ToString(Token->Type) + "'");
+					"generic can't be with a Memberaccess operator '" + (String)TokenStringHelper::ToString(Token->Type) + "'");
 			}
 		}
 		if (MemAccess)
@@ -2258,7 +2258,7 @@ Parser::GetNameCheck_ret Parser::GetNameCheck(ScopedNameNode& out,bool CanHaveVa
 			{
 				auto Token = out._ScopedName[0]._token;
 				_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos,
-					"generic cant be with a Memberaccess operator '" + (String)TokenStringHelper::ToString(Token->Type) + "'");
+					"generic can't be with a Memberaccess operator '" + (String)TokenStringHelper::ToString(Token->Type) + "'");
 			}
 		}
 		if (MemAccess)
@@ -3519,7 +3519,7 @@ GotNodeType Parser::GetimutVariableDeclare(Node*& out)
 
 		auto Token = NameValue.token;
 		_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
-			, "cant guess type theres no '=' [expression]");
+			, "can't guess type theres no '=' [expression]");
 		NextToken();
 		return GotNodeType::Success;
 	}
@@ -4318,7 +4318,7 @@ GotNodeType Parser::GetEvalDeclare(Node*& out)
 
 			auto Token = NameValue.token;
 			_ErrorsOutput->AddError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
-				, "cant guess type theres no '=' [expression]");
+				, "can't guess type theres no '=' [expression]");
 			NextToken();
 			return GotNodeType::Success;
 		}

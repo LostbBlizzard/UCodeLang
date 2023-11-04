@@ -80,7 +80,7 @@ private:
 		{
 			auto& F = Item.front();
 			auto Token = F->_ScopedName._ScopedName.front()._token;
-			_ErrorsOutput->AddError(ErrorCodes::TreeAnalyerError, Token->OnLine, Token->OnPos, "You cant put the Tag '" + (String)F->_ScopedName._ScopedName.front()._token->Value._String + "' here.");
+			_ErrorsOutput->AddError(ErrorCodes::TreeAnalyerError, Token->OnLine, Token->OnPos, "You can't put the Tag '" + (String)F->_ScopedName._ScopedName.front()._token->Value._String + "' here.");
 		}
 	}
 	

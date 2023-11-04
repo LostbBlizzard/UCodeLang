@@ -9,7 +9,7 @@ UCodeLangStart
 
 
 /*
-Trys to convert UCodeInstruction to CPP call's and fall's back on the Interpreter if it cant.
+Trys to convert UCodeInstruction to CPP call's and fall's back on the Interpreter if it can't.
 if you need more speed use the NativeInterpreter and NativeULangCompilerBackEnd.
 */
 class Jit_Interpreter

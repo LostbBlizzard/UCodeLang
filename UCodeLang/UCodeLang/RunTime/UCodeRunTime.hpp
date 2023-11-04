@@ -7,7 +7,7 @@ UCodeLangStart
 //#define UCodeLangCPUCoreKnow
 //#define UCodeLangCPUCoreCount 4
  
-//Use This if You cant jit on platfrom
+//Use This if You can't jit on platfrom
 //#define RunTimeCantBeJit 1
 
 //This is Best used as obect static

@@ -424,7 +424,7 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 				auto& Other = *ScopeName._generic;
 				auto& _generic = *Tep._name._ScopedName.back()._generic;
 
-				{//cant copy TypeNode but we need anyway.
+				{//can't copy TypeNode but we need anyway.
 					_generic._Values.resize(Other._Values.size());
 					memcpy(_generic._Values.data(), Other._Values.data(), sizeof(TypeNode) * Other._Values.size());
 

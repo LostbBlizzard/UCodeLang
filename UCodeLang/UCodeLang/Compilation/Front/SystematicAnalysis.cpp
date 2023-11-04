@@ -2444,7 +2444,7 @@ void SystematicAnalysis::LogError_CantCastImplicitTypes(const NeverNullPtr<Token
 void SystematicAnalysis::LogError_ReadingFromInvaidVariable(const NeverNullPtr<Token> Token, String_view Str)
 {
 	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
-		, "the variable named '" + (String)Str + "'" + " cant be read from you.can not read an invaid variable");
+		, "the variable named '" + (String)Str + "'" + " can't be read from you.can not read an invaid variable");
 }
 void SystematicAnalysis::LogError_CantFindVarError(const NeverNullPtr<Token> Token, String_view Str)
 {
@@ -2465,7 +2465,7 @@ void SystematicAnalysis::LogError_CantFindCompoundOpForTypes(const NeverNullPtr<
 		|| Type_IsUnMapType(Ex0Type) || Type_IsUnMapType(Ex1Type)) { return; }
 
 	LogError(ErrorCodes::InValidType, BinaryOp->OnLine, BinaryOp->OnPos,
-		"The type '" + ToString(Ex0Type) + "'" + " cant be '"
+		"The type '" + ToString(Ex0Type) + "'" + " can't be '"
 		+ ToString(BinaryOp->Type) + "' with '" + ToString(Ex1Type) + "'");
 }
 
@@ -2474,7 +2474,7 @@ void SystematicAnalysis::LogError_CantFindPostfixOpForTypes(const NeverNullPtr<T
 	if (Ex0Type.IsBadType() || Type_IsUnMapType(Ex0Type)) { return; }
 
 		LogError(ErrorCodes::InValidType, BinaryOp->OnLine, BinaryOp->OnPos,
-			"The type '" + ToString(Ex0Type) + "'" + " cant be '"
+			"The type '" + ToString(Ex0Type) + "'" + " can't be '"
 			+ ToString(BinaryOp->Type) + "'");
 }
 void SystematicAnalysis::LogError_CantFindBinaryOpForTypes(const NeverNullPtr<Token> BinaryOp, TypeSymbol& Ex0Type, TypeSymbol& Ex1Type)
@@ -2483,7 +2483,7 @@ void SystematicAnalysis::LogError_CantFindBinaryOpForTypes(const NeverNullPtr<To
 		|| Type_IsUnMapType(Ex1Type) || Type_IsUnMapType(Ex0Type)) { return; }
 
 	LogError(ErrorCodes::InValidType, BinaryOp->OnLine, BinaryOp->OnPos,
-		"The type '" + ToString(Ex0Type) + "'" + " cant be '"
+		"The type '" + ToString(Ex0Type) + "'" + " can't be '"
 		+ ToString(BinaryOp->Type) + "' with '" + ToString(Ex1Type) + "'");
 }
 void SystematicAnalysis::LogError_CantFindUnaryOpForTypes(const NeverNullPtr<Token> BinaryOp, TypeSymbol& Ex0Type)
@@ -2491,7 +2491,7 @@ void SystematicAnalysis::LogError_CantFindUnaryOpForTypes(const NeverNullPtr<Tok
 	if (Ex0Type.IsBadType() || Type_IsUnMapType(Ex0Type)) { return; }
 
 	LogError(ErrorCodes::InValidType, BinaryOp->OnLine, BinaryOp->OnPos,
-		"The type '" + ToString(Ex0Type) + "'" + " cant be '"
+		"The type '" + ToString(Ex0Type) + "'" + " can't be '"
 		+ ToString(BinaryOp->Type) + "'");
 }
 void SystematicAnalysis::LogError_TypeIsNotCopyable(const NeverNullPtr<Token> Token,const TypeSymbol& Ex0Type)
@@ -2515,16 +2515,16 @@ void SystematicAnalysis::LogError_YouMustReturnSomethingError(const NeverNullPtr
 void SystematicAnalysis::LogError_CantguessVarTypeError(const NeverNullPtr<Token> Token)
 {
 	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
-		, "cant guess 'var' type");
+		, "can't guess 'var' type");
 }
 void SystematicAnalysis::LogError_CantUseThisKeyWordHereError(const NeverNullPtr<Token> NameToken)
 {
-	LogError(ErrorCodes::InValidType, NameToken->OnLine, NameToken->OnPos, "cant use this here");
+	LogError(ErrorCodes::InValidType, NameToken->OnLine, NameToken->OnPos, "can't use this here");
 }
 void SystematicAnalysis::LogError_CantgussTypesTheresnoassignment(const NeverNullPtr<Token> Token)
 {
 	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
-		, "cant guess type theres no '=' [expression]");
+		, "can't guess type theres no '=' [expression]");
 }
 void SystematicAnalysis::LogError_CantCastExplicityTypes(const NeverNullPtr<Token> Token, TypeSymbol& Ex0Type, TypeSymbol& ToTypeAs)
 {
@@ -2680,12 +2680,12 @@ void SystematicAnalysis::LogError_Eval_CantDoPostfixOpForTypes(const NeverNullPt
 void SystematicAnalysis::LogError_Eval_CantCastImplicitTypes(const NeverNullPtr<Token> Token,const TypeSymbol& Ex1Type, const TypeSymbol& UintptrType)
 {
 	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
-		, "Casting Type '" + ToString(Ex1Type) + " to '" + ToString(UintptrType) + "' cant be done at compile time.");
+		, "Casting Type '" + ToString(Ex1Type) + " to '" + ToString(UintptrType) + "' can't be done at compile time.");
 }
 void SystematicAnalysis::LogError_CantFindNamespace(const NeverNullPtr<Token> Token, const String_view Namespace)
 {
 	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos
-		, "the cant find the Namespace '" + (String)Namespace + "'.");
+		, "the can't find the Namespace '" + (String)Namespace + "'.");
 }
 void SystematicAnalysis::LogError_TypeMustBeAnConstantExpressionAble(const NeverNullPtr<Token> Token, const TypeSymbol& Type)
 {
@@ -2966,7 +2966,7 @@ void SystematicAnalysis::LogError_DynamicMustBeRrait(const TypeNode& V,const Typ
 }
 void SystematicAnalysis::LogError_TraitCantBeAlone(const NeverNullPtr<Token> Token)
 {
-	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "the Type uses a Trait.but Traits cant be use alone.");
+	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "the Type uses a Trait.but Traits can't be use alone.");
 }
 
 void SystematicAnalysis::LogError_WantedAType(const TypeNode& V, Symbol* SybV)

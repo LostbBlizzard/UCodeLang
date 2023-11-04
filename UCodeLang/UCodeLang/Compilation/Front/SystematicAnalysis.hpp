@@ -1621,7 +1621,7 @@ private:
 		}
 
 
-		auto GenericInput = std::make_unique<Vector<TypeSymbol>>();//pointer must be unique so it cant be on the stack
+		auto GenericInput = std::make_unique<Vector<TypeSymbol>>();//pointer must be unique so it can't be on the stack
 		for (size_t i = 0; i < UseNode._Values.size(); i++)
 		{
 			const auto& Tnode = UseNode._Values[i];
