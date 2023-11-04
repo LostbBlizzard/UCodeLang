@@ -727,7 +727,7 @@ public:
 	static void Read_String(BitReader& bit, String& str)
 	{
 		Byte V = 0;
-		bit.ReadType((Byte)V);
+		bit.ReadType(V);
 
 		str.resize(V);
 
