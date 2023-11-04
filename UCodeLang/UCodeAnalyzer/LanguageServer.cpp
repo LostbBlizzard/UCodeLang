@@ -23,7 +23,7 @@ void LanguageServer::deinit()
 void LanguageServer::UpdateErrorList()
 {
 	ErrorList.clear();
-	for (auto& Item : _Files)//this is a bit slow should be cashed.
+	for (auto& Item : _Files)//this is a bit slow should be cached.
 	{
 		for (auto& Error : Item.second.lexingErrors)
 		{

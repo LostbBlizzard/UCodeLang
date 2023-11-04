@@ -73,7 +73,7 @@ Path LangInfo::GetUCodeGlobalBin()
 }
 Path LangInfo::GetUCodeGlobalCacheDirectory()
 {
-    auto Path = GetUCodeGlobalDirectory() / "cashe";
+    auto Path = GetUCodeGlobalDirectory() / "cache";
     if (!std::filesystem::exists(Path)) {
         std::filesystem::create_directory(Path);
     }
