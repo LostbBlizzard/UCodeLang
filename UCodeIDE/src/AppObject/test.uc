@@ -14,9 +14,9 @@ $Player[Component]:
   var& pos = entity().position2d();//get rereference to entity position.
   float deltatime = Time::DeltaTime();
   
-  pos.Y += Speed * deltatime;
+  //pos.Y += Speed * deltatime;
 
-  /*
+  
   if Imgui::KeyDown(ImKey::W):
     pos.Y += Speed * deltatime;
     
@@ -28,7 +28,7 @@ $Player[Component]:
   
   if Imgui::KeyDown(ImKey::D):
     pos.X += Speed * deltatime;
-  */
+  
 
 
 |main[] => 0;

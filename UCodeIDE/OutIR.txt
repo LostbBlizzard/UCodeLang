@@ -499,14 +499,75 @@ static uint8[/24]:ECS:Componentvtable_type ECS:Component:$Player= [?,?,?,?,?,?,?
    float32 F = ECS:Time:DeltaTime();
    E = F;
 
-//Line:17
+//Line:20
 
-   float32 G = A->__1;
-   float32 H = E;
-   float32 I = (&this&)->__0;
-   float32 J = I*H;
-   float32 K = G+J;
-   A->__1 = K;
+   int32 G = 0;
+   int8 H = API:Imgui:KeyDown^API:ImKey(G);
+   int8 I = !H;
+   gotoif (I) _label0;
+
+//Line:21
+
+   float32 J = A->__1;
+   float32 K = E;
+   float32 L = (&this&)->__0;
+   float32 M = L*K;
+   float32 N = J+M;
+   A->__1 = N;
+
+//Line:23
+   _label0:
+
+   int32 O = 2;
+   int8 P = API:Imgui:KeyDown^API:ImKey(O);
+   int8 Q = !P;
+   gotoif (Q) _label1;
+
+//Line:24
+
+   float32 R = A->__1;
+   float32 S = E;
+   float32 T = (&this&)->__0;
+   float32 U = T*S;
+   float32 V = R-U;
+   A->__1 = V;
+
+//Line:26
+   _label1:
+
+   int32 W = 1;
+   int8 X = API:Imgui:KeyDown^API:ImKey(W);
+   int8 Y = !X;
+   gotoif (Y) _label2;
+
+//Line:27
+
+   float32 Z = A->__0;
+   float32 [ = E;
+   float32 \ = (&this&)->__0;
+   float32 ] = \*[;
+   float32 ^ = Z-];
+   A->__0 = ^;
+
+//Line:29
+   _label2:
+
+   int32 _ = 3;
+   int8 ` = API:Imgui:KeyDown^API:ImKey(_);
+   int8 a = !`;
+   gotoif (a) _label3;
+
+//Line:30
+
+   float32 b = A->__0;
+   float32 c = E;
+   float32 d = (&this&)->__0;
+   float32 e = d*c;
+   float32 f = b+e;
+   A->__0 = f;
+
+   _label3:
+
    ret;
 
 |Player:(&_drop&)^Player&[Player* (&this&)] -> void:
