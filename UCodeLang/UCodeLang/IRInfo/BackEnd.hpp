@@ -1,3 +1,3 @@
 #pragma once
-#include "UCodeLang/Compliation/Back/BackEndInterface.hpp"
-#include "UCodeLang/Compliation/Middle/IR.hpp"
+#include "UCodeLang/Compilation/Back/BackEndInterface.hpp"
+#include "UCodeLang/Compilation/Middle/IR.hpp"

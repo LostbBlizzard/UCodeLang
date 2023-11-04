@@ -1,7 +1,7 @@
 #pragma once
 #include "Typedef.hpp"
-#include "UCodeLang/Compliation/Front/Lexer.hpp"
-#include "UCodeLang/Compliation/Front/Parser.hpp"
+#include "UCodeLang/Compilation/Front/Lexer.hpp"
+#include "UCodeLang/Compilation/Front/Parser.hpp"
 UCodeAnalyzerStart
 
 
@@ -47,14 +47,14 @@ struct UCFile
 	}
 
 
-	UCodeLang::CompliationSettings* _CompliationSettings = nullptr;
+	UCodeLang::CompilationSettings* _CompilationSettings = nullptr;
 
 	String oldfile;
 
 	
-	UCodeLang::Vector<UCodeLang::CompliationErrors::Error> lexingErrors;
+	UCodeLang::Vector<UCodeLang::CompilationErrors::Error> lexingErrors;
 	bool lexingpassing = false;
-	UCodeLang::Vector<UCodeLang::CompliationErrors::Error> parseErrors;
+	UCodeLang::Vector<UCodeLang::CompilationErrors::Error> parseErrors;
 	bool parsepassing = false;
 
 	//May return null if has Errors.
@@ -76,7 +76,7 @@ struct UCFile
 private:
 	String analyzedlex;
 	String analyzedpaser;
-	UCodeLang::CompliationErrors _CompliationErrors;
+	UCodeLang::CompilationErrors _CompilationErrors;
 	UCodeLang::FrontEnd::Lexer _oldLexer;
 	UCodeLang::Vector<UCodeLang::Token> parsertokens;
 
@@ -115,7 +115,7 @@ public:
 
 	void AddFile(UCFile&& file)
 	{
-		file._CompliationSettings = &Settings;
+		file._CompilationSettings = &Settings;
 		_Files.AddValue(file._Fileidentifier, file);
 	}
 	void RemoveFile(const Fileidentifier& file)
@@ -131,12 +131,12 @@ public:
 		return _Files;
 	}
 
-	UCodeLang::Vector<UCodeLang::CompliationErrors::Error> ErrorList;
+	UCodeLang::Vector<UCodeLang::CompilationErrors::Error> ErrorList;
 private:
 	UnorderedMap<Fileidentifier, UCFile> _Files;
 
 	size_t OldErrorListCount = 0;
-	UCodeLang::CompliationSettings Settings;
+	UCodeLang::CompilationSettings Settings;
 	void UpdateErrorList();
 };
 

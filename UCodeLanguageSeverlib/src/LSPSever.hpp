@@ -377,7 +377,7 @@ private:
     UCodeAnalyzer::Fileidentifier CastToFileId(const  UCodeLanguageSever::DocumentUri& Item);
     UCodeLanguageSever::DocumentUri CastToUri(const  UCodeAnalyzer::Fileidentifier& Item);
 
-    UCodeLang::Vector<UCodeLang::CompliationErrors::Error> _ClientSideErrorsList;
+    UCodeLang::Vector<UCodeLang::CompilationErrors::Error> _ClientSideErrorsList;
 
     void UpdateClientErrorList();
 };

@@ -175,7 +175,7 @@ private:
 	String _LibInfoString;
 	struct Error
 	{
-		UCodeLang::CompliationErrors::Error _Error;
+		UCodeLang::CompilationErrors::Error _Error;
 		bool IsSelected = false;
 	};
 	void OnErrorListUpdated();

@@ -1,6 +1,6 @@
 #include "UCLibManger.hpp"
-#include "UCodeLang/Compliation/Helpers/NameDecoratior.hpp"
-#include "UCodeLang/Compliation/Helpers/InstructionBuilder.hpp"
+#include "UCodeLang/Compilation/Helpers/NameDecoratior.hpp"
+#include "UCodeLang/Compilation/Helpers/InstructionBuilder.hpp"
 UCodeLangStart
 UCLibManger::UCLibManger()
 {

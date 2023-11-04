@@ -396,8 +396,8 @@ void LSPSever::UpdateClientErrorList()
 	{
 		_ClientSideErrorsList = BaseSever.ErrorList;
 
-		std::sort(_ClientSideErrorsList.begin(), _ClientSideErrorsList.end(), [](const UCodeLang::CompliationErrors::Error& A
-			, const UCodeLang::CompliationErrors::Error& B)
+		std::sort(_ClientSideErrorsList.begin(), _ClientSideErrorsList.end(), [](const UCodeLang::CompilationErrors::Error& A
+			, const UCodeLang::CompilationErrors::Error& B)
 			{
 				return A.File.native().size() > B.File.native().size();
 			});
@@ -431,22 +431,22 @@ void LSPSever::UpdateClientErrorList()
 			V.range.end = V.range.start;
 			V.message = Item._Msg;
 
-			if (UCodeLang::CompliationErrors::IsError(Item._Code)) {
+			if (UCodeLang::CompilationErrors::IsError(Item._Code)) {
 				V.severity = DiagnosticSeverity::Error;
 			}
-			else if (UCodeLang::CompliationErrors::IsWarning(Item._Code)) {
+			else if (UCodeLang::CompilationErrors::IsWarning(Item._Code)) {
 				V.severity = DiagnosticSeverity::Warning;
 			}
-			else if (UCodeLang::CompliationErrors::IsInfo(Item._Code)) {
+			else if (UCodeLang::CompilationErrors::IsInfo(Item._Code)) {
 				V.severity = DiagnosticSeverity::Information;
 			}
-			else if (UCodeLang::CompliationErrors::IsHint(Item._Code)) {
+			else if (UCodeLang::CompilationErrors::IsHint(Item._Code)) {
 				V.severity = DiagnosticSeverity::Hint;
 			}
 
 			p.diagnostics.push_back(std::move(V));
 
-			UCodeLang::CompliationErrors::Error* NextErr = nullptr;
+			UCodeLang::CompilationErrors::Error* NextErr = nullptr;
 			bool IsLast = &Item == &_ClientSideErrorsList.back();
 
 			if (!IsLast)

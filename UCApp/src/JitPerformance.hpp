@@ -1,6 +1,6 @@
 #pragma once
 #include "UCodeLang/UCodeLang.hpp"
-#include "UCodeLang/Compliation/UAssembly/UAssembly.hpp"
+#include "UCodeLang/Compilation/UAssembly/UAssembly.hpp"
 #include <fstream>
 #include <iostream>
 
@@ -8,9 +8,9 @@
 #include <optional>
 #include "UCodeAnalyzer/Formater.hpp"
 #include <sstream>
-#include "UCodeLang/Compliation/Back/C89/C89Backend.hpp"
-#include "UCodeLang/Compliation/Back/x86/X86BackEnd.hpp"
-#include "UCodeLang/Compliation/ModuleFile.hpp"
+#include "UCodeLang/Compilation/Back/C89/C89Backend.hpp"
+#include "UCodeLang/Compilation/Back/x86/X86BackEnd.hpp"
+#include "UCodeLang/Compilation/ModuleFile.hpp"
 #include "UCodeLang/RunTime/ProfilerDebuger.hpp"
 
 #include "../tests/TestGenerator.hpp"

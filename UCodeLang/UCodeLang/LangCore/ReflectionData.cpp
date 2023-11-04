@@ -1,8 +1,8 @@
 #include "ReflectionData.hpp"
 
-#include "../Compliation/Helpers/ParseHelper.hpp"
-#include "../Compliation/LexerDefs.h"
-#include "../Compliation/UAssembly/UAssembly.hpp"
+#include "../Compilation/Helpers/ParseHelper.hpp"
+#include "../Compilation/LexerDefs.h"
+#include "../Compilation/UAssembly/UAssembly.hpp"
 UCodeLangStart
 void ClassAssembly::PushCopyClasses(const ClassAssembly& source, ClassAssembly& Out)
 {

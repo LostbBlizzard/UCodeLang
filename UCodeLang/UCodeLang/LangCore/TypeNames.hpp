@@ -1,5 +1,5 @@
 #pragma once
-//#include "UCodeLang/Compliation/Helpers/KeyWords.hpp"
+//#include "UCodeLang/Compilation/Helpers/KeyWords.hpp"
 #define EnumBaseTypeName "base_t";
 
 #define CharTypeName UCodeLang::TokenStringHelper::ToString(UCodeLang::TokenType::KeyWord_Char)

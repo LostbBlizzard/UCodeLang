@@ -1,7 +1,7 @@
 #include "LanguageSeverTest.hpp"
 #include <fstream>
 #include <filesystem>
-#include "UCodeLang/Compliation/Back/x86_64/X86_64Builder.hpp"
+#include "UCodeLang/Compilation/Back/x86_64/X86_64Builder.hpp"
 #include "Zydis/Zydis.h"
 #include <inttypes.h>
 #include <stdio.h>

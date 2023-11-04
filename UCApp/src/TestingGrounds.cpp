@@ -1,5 +1,5 @@
 #include "UCodeLang/UCodeLang.hpp"
-#include "UCodeLang/Compliation/UAssembly/UAssembly.hpp"
+#include "UCodeLang/Compilation/UAssembly/UAssembly.hpp"
 #include <fstream>
 #include <iostream>
 
@@ -7,10 +7,10 @@
 #include <optional>
 #include "UCodeAnalyzer/Formater.hpp"
 #include <sstream>
-#include "UCodeLang/Compliation/Back/C89/C89Backend.hpp"
-#include "UCodeLang/Compliation/Back/x86/X86BackEnd.hpp"
-#include "UCodeLang/Compliation/Back/WebAssembly/WasmBackEnd.hpp"
-#include "UCodeLang/Compliation/ModuleFile.hpp"
+#include "UCodeLang/Compilation/Back/C89/C89Backend.hpp"
+#include "UCodeLang/Compilation/Back/x86/X86BackEnd.hpp"
+#include "UCodeLang/Compilation/Back/WebAssembly/WasmBackEnd.hpp"
+#include "UCodeLang/Compilation/ModuleFile.hpp"
 #include "UCodeLang/RunTime/ProfilerDebuger.hpp"
 
 #include "../tests/TestGenerator.hpp"
@@ -76,7 +76,7 @@ void TestingGround()
 
 
 	UCodeLang::Compiler _Compiler;
-	UCodeLang::CompliationSettings& Settings = _Compiler.Get_Settings();
+	UCodeLang::CompilationSettings& Settings = _Compiler.Get_Settings();
 
 	Settings._Type = OutPutType::Lib;
 	Settings._Flags = OptimizationFlags::Stable_ForDebuging;
