@@ -1328,7 +1328,7 @@ void CppHelper::GetStringScope(size_t& i, UCodeAnalyzer::String& FileText, UCode
 }
 
 const char Letters[] = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM";
-const char Numers[] = "1234567890";
+const char Numbers[] = "1234567890";
 
 bool IsLetter(char Value)
 {
@@ -1343,9 +1343,9 @@ bool IsLetter(char Value)
 }
 bool Isdigit(char Value)
 {
-	for (size_t i = 0; i < sizeof(Numers); i++)
+	for (size_t i = 0; i < sizeof(Numbers); i++)
 	{
-		if (Value == Numers[i])
+		if (Value == Numbers[i])
 		{
 			return true;
 		}
