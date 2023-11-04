@@ -441,9 +441,9 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 
 			auto ParSybID = Symbol_GetSymbolID(Item);
-			auto& Sybol = *Symbol_GetSymbol(ParSybID);
-			Type_ConvertAndValidateType(Item._Type, Sybol.VarType, NodeSyb_t::Parameter);
-			Item2.Type = Sybol.VarType;
+			auto& Symbol = *Symbol_GetSymbol(ParSybID);
+			Type_ConvertAndValidateType(Item._Type, Symbol.VarType, NodeSyb_t::Parameter);
+			Item2.Type = Symbol.VarType;
 
 
 
@@ -608,19 +608,19 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 				size_t V = ParNodeSize;
 
 
-				auto PackParSybol = Symbol_GetSymbol(Symbol_GetSymbolID(ParNodes.back()));
-				auto PackParSybolName = ScopeHelper::GetNameFromFullName(PackParSybol->FullName);
+				auto PackParSymbol = Symbol_GetSymbol(Symbol_GetSymbolID(ParNodes.back()));
+				auto PackParSymbolName = ScopeHelper::GetNameFromFullName(PackParSymbol->FullName);
 
 				for (size_t i = 0; i < PackPar->List.size(); i++)
 				{
 					auto& PackType = PackPar->List[i];
 					auto& d = _IR_LookingAtIRFunc->Pars[V];
 
-					auto ParName = PackParSybolName + std::to_string(i);
+					auto ParName = PackParSymbolName + std::to_string(i);
 
 
 
-					auto& TepPar = Symbol_AddSymbol(SymbolType::ParameterVarable, ParName, PackParSybol->FullName + std::to_string(i), AccessModifierType::Public);
+					auto& TepPar = Symbol_AddSymbol(SymbolType::ParameterVarable, ParName, PackParSymbol->FullName + std::to_string(i), AccessModifierType::Public);
 					auto ParSybID = Symbol_GetSymbolID(&TepPar);
 					TepPar.IR_Par = &d;
 

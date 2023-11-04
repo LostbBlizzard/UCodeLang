@@ -137,7 +137,7 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 							auto Item_FullName = _Table._Scope.ThisScope;
 							ScopeHelper::GetApendedString(Item_FullName, Item_Name);
 
-							auto& Sym = AddSybol(SymbolType::Class_Field, Item_Name
+							auto& Sym = AddSymbol(SymbolType::Class_Field, Item_Name
 								, Item_FullName);
 
 							_Table.AddSymbolID(Sym, (SymbolID)&Item);

@@ -84,7 +84,7 @@ void SystematicAnalysis::Pop_AddToGeneratedGenricSymbol(Symbol& addedSymbol, con
 	NewData.Types = GenericInput;
 	NewData.Info.GenericInput = &NewData.Types;
 
-	_Generic_GeneratedGenericSybol.push_back(std::move(NewData));
+	_Generic_GeneratedGenericSymbol.push_back(std::move(NewData));
 
 }
 

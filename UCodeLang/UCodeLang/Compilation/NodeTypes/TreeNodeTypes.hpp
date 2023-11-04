@@ -1329,7 +1329,7 @@ struct MatchExpression : Node
 struct ImportValue
 {
 	Optional<const Token*> _AliasName;
-	ScopedNameNode _ImportedSybol;
+	ScopedNameNode _ImportedSymbol;
 };
 
 struct ImportStatement : Node

@@ -603,7 +603,7 @@ struct IRDebugIns
 
 	}
 };
-struct IRDebugSybol
+struct IRDebugSymbol
 {
 	String IRVarableName;
 	String VarableName;
@@ -624,7 +624,7 @@ struct IRDebugSybol
 };
 struct IRDebugSybInfo
 {
-	UnorderedMap< IRidentifierID, IRDebugSybol> Symbols;
+	UnorderedMap< IRidentifierID, IRDebugSymbol> Symbols;
 };
 struct IRBlockDebugInfo
 {
@@ -1781,8 +1781,8 @@ public:
 	
 	static void FromBytes(BitReader& Out, IRDebugSybInfo& Value);
 
-	static void ToBytes(BitMaker& Out, const IRDebugSybol& Value);
-	static void FromBytes(BitReader& Out,IRDebugSybol& Value);
+	static void ToBytes(BitMaker& Out, const IRDebugSymbol& Value);
+	static void FromBytes(BitReader& Out,IRDebugSymbol& Value);
 
 	static void ToBytes(BitMaker& Out, const IRBlockDebugInfo& Value);
 	static void FromBytes(BitReader& Out, IRBlockDebugInfo& Value);

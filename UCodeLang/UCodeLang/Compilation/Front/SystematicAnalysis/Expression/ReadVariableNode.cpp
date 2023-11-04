@@ -1029,10 +1029,10 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 		else if (Symbol_IsVarableType(Out._Symbol->Type))
 		{
 			TypeSymbol VarableType = Out._Symbol->VarType;
-			NullablePtr<Symbol> TypeAsSybolOp = Symbol_GetSymbol(VarableType);
-			if (TypeAsSybolOp)
+			NullablePtr<Symbol> TypeAsSymbolOp = Symbol_GetSymbol(VarableType);
+			if (TypeAsSymbolOp)
 			{
-				auto TypeAsSybol = TypeAsSybolOp.value();
+				auto TypeAsSymbol = TypeAsSymbolOp.value();
 				if (Out._Symbol->Type == SymbolType::Class_Field)
 				{
 					const NeverNullPtr<Token> token = NeverNullptr(node._ScopedName.begin()->_token);
@@ -1041,7 +1041,7 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 					Symbol_AccessCheck(Out._Symbol, token);
 				}
 
-				if (TypeAsSybol->Type != SymbolType::Type_class)
+				if (TypeAsSymbol->Type != SymbolType::Type_class)
 				{
 					LogError_CantFindVarMemberError(ItemToken, ItemTokenString, Out.Type);
 
@@ -1049,7 +1049,7 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 					Out.Type = TypesEnum::Null;
 					return false;
 				}
-				ClassInfo* CInfo = TypeAsSybol->Get_Info<ClassInfo>();
+				ClassInfo* CInfo = TypeAsSymbol->Get_Info<ClassInfo>();
 
 
 				auto FeldInfo = CInfo->GetField(ItemTokenString);
@@ -1066,7 +1066,7 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 				}
 
 				{
-					auto FeldFullName = TypeAsSybol->FullName;
+					auto FeldFullName = TypeAsSymbol->FullName;
 					ScopeHelper::GetApendedString(FeldFullName, ItemTokenString);
 					auto FeldSyb = Symbol_GetSymbol(FeldFullName, SymbolType::Class_Field).value();
 					{

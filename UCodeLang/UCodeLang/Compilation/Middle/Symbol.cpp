@@ -104,7 +104,7 @@ Vector<Symbol*>& SymbolTable::GetSymbolsWithName(const String_view& Name)
 	 return Tep;
  }
 
- Symbol& SymbolTable::AddSybol(SymbolType type, const String& Name, const String& FullName, AccessModifierType Access)
+ Symbol& SymbolTable::AddSymbol(SymbolType type, const String& Name, const String& FullName, AccessModifierType Access)
  {
 	 Symbols.push_back(std::make_unique<Symbol>(type, FullName));
 	 auto& Item = *Symbols.back();

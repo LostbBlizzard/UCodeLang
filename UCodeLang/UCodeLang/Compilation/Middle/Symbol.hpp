@@ -1040,7 +1040,7 @@ public:
 	void GetSymbolsInNameSpace(const String_view& NameSpace, const String_view& Name, Vector<const Symbol*>& Output) const;
 	Vector<const Symbol*>& GetSymbolsWithName(const String_view& Name) const;
 
-	Symbol& AddSybol(SymbolType type, const String& Name, const String& FullName,AccessModifierType Access);
+	Symbol& AddSymbol(SymbolType type, const String& Name, const String& FullName,AccessModifierType Access);
 	//use a ptr for the Id;
 	Symbol& GetSymbol(SymbolID ID)
 	{
