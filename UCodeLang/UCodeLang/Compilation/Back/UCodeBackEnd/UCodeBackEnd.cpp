@@ -2,7 +2,7 @@
 #include "UCodeLang/Compilation/Helpers/InstructionBuilder.hpp"
 #include "UCodeLang/Compilation/Helpers/NameDecoratior.hpp"
 #include "UCodeLang/LangCore/UClib.hpp"
-#include "UCodeLang/Compilation/CompilationSettings.hpp"
+#include "UCodeLang/Compilation/CompliationSettings.hpp"
 #include "InsHelper.hpp"
 UCodeLangStart
 
@@ -271,11 +271,11 @@ UCodeBackEndObject::BinaryOpRet UCodeBackEndObject::DoBinaryOpValues(const IRIns
 }
 void UCodeBackEndObject::UpdateOptimizations()
 {
-	auto& Setings = Get_Settings();
-	bool Debug = (OptimizationFlags_t)Setings._Flags & (OptimizationFlags_t)OptimizationFlags::Debug;
-	bool ForSize = (OptimizationFlags_t)Setings._Flags & (OptimizationFlags_t)OptimizationFlags::ForSize;
-	bool ForSpeed = (OptimizationFlags_t)Setings._Flags & (OptimizationFlags_t)OptimizationFlags::ForSpeed;
-	bool ForMaxSpeed = (OptimizationFlags_t)Setings._Flags & (OptimizationFlags_t)OptimizationFlags::ForMaxSpeed;
+	auto& Settings = Get_Settings();
+	bool Debug = (OptimizationFlags_t)Settings._Flags & (OptimizationFlags_t)OptimizationFlags::Debug;
+	bool ForSize = (OptimizationFlags_t)Settings._Flags & (OptimizationFlags_t)OptimizationFlags::ForSize;
+	bool ForSpeed = (OptimizationFlags_t)Settings._Flags & (OptimizationFlags_t)OptimizationFlags::ForSpeed;
+	bool ForMaxSpeed = (OptimizationFlags_t)Settings._Flags & (OptimizationFlags_t)OptimizationFlags::ForMaxSpeed;
 
 
 	if (Debug == false)
