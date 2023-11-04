@@ -759,7 +759,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 					Get_FuncInfo V;
 					V.CantCheckBecauseIsUnMaped = true;
 
-					return V;//cant check because we are just testing.
+					return V;//can't check because we are just testing.
 				}
 			}
 			else
@@ -1142,7 +1142,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 				Get_FuncInfo V;
 				V.CantCheckBecauseIsUnMaped = true;
 
-				return V;//cant check because we are just testing.
+				return V;//can't check because we are just testing.
 			}
 		}
 
@@ -1624,7 +1624,7 @@ StartSymbolsLoop:
 							}
 						}
 						auto Pointer = std::make_unique<Vector<TypeSymbol>>(std::move(GenericInput));
-						//pointer must be unique so it cant be on the stack
+						//pointer must be unique so it can't be on the stack
 
 						Generic_GenericFuncInstantiate(FuncSym, *Pointer);
 
@@ -1745,7 +1745,7 @@ StartSymbolsLoop:
 									}
 								}
 								auto Pointer = std::make_unique<Vector<TypeSymbol>>(std::move(GenericInput));
-								//pointer must be unique so it cant be on the stack
+								//pointer must be unique so it can't be on the stack
 
 								Generic_GenericFuncInstantiate(FuncSym, *Pointer);
 								_TepFuncs.push_back({ std::move(Pointer) });//keep pointer 
@@ -1959,7 +1959,7 @@ StartSymbolsLoop:
 				Get_FuncInfo V;
 				V.CantCheckBecauseIsUnMaped = true;
 
-				return V;//cant check because we are just testing.
+				return V;//can't check because we are just testing.
 			}
 
 			goto StartSymbolsLoop;
@@ -2123,7 +2123,7 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 			{
 				Get_FuncInfo V;
 				V.CantCheckBecauseIsUnMaped = true;
-				return { V };//cant check because we are just testing.
+				return { V };//can't check because we are just testing.
 			}
 
 			HasBenAdded[i] = true;

@@ -234,7 +234,7 @@ void SystematicAnalysis::Type_CanMatch(const TypeSymbol& MatchItem, const Expres
 			else
 			{
 				const NeverNullPtr<Token> token = _LastLookedAtToken.value();
-				LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "The Expression cant be Matched use only ValueExpression");
+				LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "The Expression can't be Matched use only ValueExpression");
 			}
 
 		}
@@ -294,7 +294,7 @@ void SystematicAnalysis::Type_CanMatch(const TypeSymbol& MatchItem, const Expres
 					else
 					{
 						const NeverNullPtr<Token> token = _LastLookedAtToken.value();
-						LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "The Expression cant be Matched use only ValueExpression");
+						LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "The Expression can't be Matched use only ValueExpression");
 					}
 				}
 				else
@@ -347,7 +347,7 @@ void SystematicAnalysis::Type_CanMatch(const TypeSymbol& MatchItem, const Expres
 					else
 					{
 						const NeverNullPtr<Token> token = _LastLookedAtToken.value();
-						LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "The Expression cant be Matched use only ValueExpression");
+						LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "The Expression can't be Matched use only ValueExpression");
 					}
 				}
 			}
@@ -359,7 +359,7 @@ void SystematicAnalysis::Type_CanMatch(const TypeSymbol& MatchItem, const Expres
 		const NeverNullPtr<Token> token = _LastLookedAtToken.value();
 		if (!MatchItem.IsBadType())
 		{
-			LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "The type '" + ToString(MatchItem) + "' cant be Matched");
+			LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "The type '" + ToString(MatchItem) + "' can't be Matched");
 		}
 	}
 }
