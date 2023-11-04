@@ -10,12 +10,12 @@ void  SystematicAnalysis::Symbol_Update_ClassSym_ToFixedTypes(NeverNullPtr<Symbo
 		if (!Symbol_IsDependencies(Vp))
 		{
 			auto Old = SaveAndMove_SymbolContext();
-			Set_SymbolConext(Vp->Conext.value());
+			Set_SymbolContext(Vp->Context.value());
 
 			OnClassNode(classNode);//update class fields
 
 
-			Set_SymbolConext(std::move(Old));
+			Set_SymbolContext(std::move(Old));
 		}
 		else
 		{
@@ -26,12 +26,12 @@ void  SystematicAnalysis::Symbol_Update_ClassSym_ToFixedTypes(NeverNullPtr<Symbo
 
 		/*
 		ClassInfo* info = Sym->Get_Info<ClassInfo>();
-		auto OldConext = SaveAndMove_SymbolContext();
-		Set_SymbolConext(info->Conext.value());
+		auto OldContext = SaveAndMove_SymbolContext();
+		Set_SymbolContext(info->Context.value());
 
 		OnClassNode(*Sym->Get_NodeInfo<ClassNode>());
 
-		Set_SymbolConext(std::move(OldConext));
+		Set_SymbolContext(std::move(OldContext));
 		*/
 	}
 }
@@ -41,12 +41,12 @@ void  SystematicAnalysis::Symbol_Update_FuncSym_ToFixedTypes(NeverNullPtr<Symbol
 	{
 		FuncInfo* info = Sym->Get_Info<FuncInfo>();
 
-		auto OldConext = SaveAndMove_SymbolContext();
-		Set_SymbolConext(info->Conext.value());
+		auto OldContext = SaveAndMove_SymbolContext();
+		Set_SymbolContext(info->Context.value());
 
 		OnFuncNode(*Sym->Get_NodeInfo<FuncNode>());
 
-		Set_SymbolConext(std::move(OldConext));
+		Set_SymbolContext(std::move(OldContext));
 	}
 }
 void SystematicAnalysis::Symbol_Update_EnumSym_ToFixedTypes(NeverNullPtr<Symbol> Sym)
@@ -55,12 +55,12 @@ void SystematicAnalysis::Symbol_Update_EnumSym_ToFixedTypes(NeverNullPtr<Symbol>
 	{
 		EnumInfo* info = Sym->Get_Info<EnumInfo>();
 
-		auto OldConext = SaveAndMove_SymbolContext();
-		Set_SymbolConext(info->Conext.value());
+		auto OldContext = SaveAndMove_SymbolContext();
+		Set_SymbolContext(info->Context.value());
 
 		OnEnum(*Sym->Get_NodeInfo<EnumNode>());
 
-		Set_SymbolConext(std::move(OldConext));
+		Set_SymbolContext(std::move(OldContext));
 	}
 }
 void SystematicAnalysis::Symbol_Update_TraitSym_ToFixedTypes(NeverNullPtr<Symbol> Sym)
@@ -69,12 +69,12 @@ void SystematicAnalysis::Symbol_Update_TraitSym_ToFixedTypes(NeverNullPtr<Symbol
 	{
 		TraitInfo* info = Sym->Get_Info<TraitInfo>();
 
-		auto OldConext = SaveAndMove_SymbolContext();
-		Set_SymbolConext(info->Conext.value());
+		auto OldContext = SaveAndMove_SymbolContext();
+		Set_SymbolContext(info->Context.value());
 
 		OnTrait(*Sym->Get_NodeInfo<TraitNode>());
 
-		Set_SymbolConext(std::move(OldConext));
+		Set_SymbolContext(std::move(OldContext));
 	}
 }
 void SystematicAnalysis::Symbol_Update_TagSym_ToFixedTypes(NeverNullPtr<Symbol> Sym)
@@ -83,12 +83,12 @@ void SystematicAnalysis::Symbol_Update_TagSym_ToFixedTypes(NeverNullPtr<Symbol> 
 	{
 		TagInfo* info = Sym->Get_Info<TagInfo>();
 
-		auto OldConext = SaveAndMove_SymbolContext();
-		Set_SymbolConext(info->Conext.value());
+		auto OldContext = SaveAndMove_SymbolContext();
+		Set_SymbolContext(info->Context.value());
 
 		OnTag(*Sym->Get_NodeInfo<TagTypeNode>());
 
-		Set_SymbolConext(std::move(OldConext));
+		Set_SymbolContext(std::move(OldContext));
 	}
 }
 void SystematicAnalysis::Symbol_Update_AliasSym_ToFixedTypes(NeverNullPtr<Symbol> Sym)
@@ -99,23 +99,23 @@ void SystematicAnalysis::Symbol_Update_AliasSym_ToFixedTypes(NeverNullPtr<Symbol
 		{
 			Generic_AliasInfo* info = Sym->Get_Info<Generic_AliasInfo>();
 
-			auto OldConext = SaveAndMove_SymbolContext();
-			Set_SymbolConext(info->Conext.value());
+			auto OldContext = SaveAndMove_SymbolContext();
+			Set_SymbolContext(info->Context.value());
 
 			OnAliasNode(*Sym->Get_NodeInfo<AliasNode>());
 
-			Set_SymbolConext(std::move(OldConext));
+			Set_SymbolContext(std::move(OldContext));
 		}
 		else
 		{
 			AliasInfo* info = Sym->Get_Info<AliasInfo>();
 
-			auto OldConext = SaveAndMove_SymbolContext();
-			Set_SymbolConext(info->Conext.value());
+			auto OldContext = SaveAndMove_SymbolContext();
+			Set_SymbolContext(info->Context.value());
 
 			OnAliasNode(*Sym->Get_NodeInfo<AliasNode>());
 
-			Set_SymbolConext(std::move(OldConext));
+			Set_SymbolContext(std::move(OldContext));
 		}
 	}
 }
@@ -125,12 +125,12 @@ void SystematicAnalysis::Symbol_Update_EvalSym_ToFixedTypes(NeverNullPtr<Symbol>
 	{
 		ConstantExpressionInfo* info = Sym->Get_Info<ConstantExpressionInfo>();
 
-		auto OldConext = SaveAndMove_SymbolContext();
-		Set_SymbolConext(info->Conext.value());
+		auto OldContext = SaveAndMove_SymbolContext();
+		Set_SymbolContext(info->Context.value());
 
 		OnDeclareVariablenode(*Sym->Get_NodeInfo<DeclareVariableNode>(), DeclareStaticVariableNode_t::Eval);
 
-		Set_SymbolConext(std::move(OldConext));
+		Set_SymbolContext(std::move(OldContext));
 	}
 }
 void SystematicAnalysis::Symbol_Update_ThreadAndStatic_ToFixedTypes(NeverNullPtr<Symbol> Sym)
@@ -140,13 +140,13 @@ void SystematicAnalysis::Symbol_Update_ThreadAndStatic_ToFixedTypes(NeverNullPtr
 		UCodeLangAssert(Sym->Type == SymbolType::ThreadVarable || Sym->Type == SymbolType::StaticVarable);
 		DeclareVariableInfo* info = Sym->Get_Info<DeclareVariableInfo>();
 
-		auto OldConext = SaveAndMove_SymbolContext();
-		Set_SymbolConext(info->Conext.value());
+		auto OldContext = SaveAndMove_SymbolContext();
+		Set_SymbolContext(info->Context.value());
 
 		OnDeclareVariablenode(*Sym->Get_NodeInfo<DeclareVariableNode>(),
 			Sym->Type == SymbolType::ThreadVarable ? DeclareStaticVariableNode_t::Thread : DeclareStaticVariableNode_t::Static);
 
-		Set_SymbolConext(std::move(OldConext));
+		Set_SymbolContext(std::move(OldContext));
 	}
 }
 void SystematicAnalysis::Symbol_Update_Sym_ToFixedTypes(NeverNullPtr<Symbol> Sym)
@@ -222,11 +222,11 @@ Vector<Symbol*>& SystematicAnalysis::GetSymbolsWithName(const String_view& Name)
 			if (mayhavesymbol)
 			{
 				auto oldcontext = SaveAndMove_SymbolContext();
-				Set_SymbolConext(Item.node.Context);
+				Set_SymbolContext(Item.node.Context);
 
 				OnCompileTimeIfNode(*Item.node.node, false);
 
-				Set_SymbolConext(std::move(oldcontext));
+				Set_SymbolContext(std::move(oldcontext));
 
 				i--;//Item Was Removed from list
 

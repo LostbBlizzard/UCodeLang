@@ -282,7 +282,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		_Table.AddSymbolID(*syb, sybId);
 
 		FuncInfo* newInfo = new FuncInfo();
-		newInfo->Conext = Opt(Save_SymbolContextRemoveOneScopeName());
+		newInfo->Context = Opt(Save_SymbolContextRemoveOneScopeName());
 		newInfo->FullName = FullName;
 		newInfo->_FuncType = FuncType;
 		newInfo->IsUnsafe = node._Signature._HasUnsafeKeyWord;

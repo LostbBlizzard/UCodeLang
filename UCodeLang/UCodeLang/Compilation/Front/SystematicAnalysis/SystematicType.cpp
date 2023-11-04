@@ -250,12 +250,12 @@ bool SystematicAnalysis::Type_GetSize(const TypeSymbol& Type, size_t& OutSize)
 				if (!Symbol_IsDependencies(Vp))
 				{
 					auto Old = SaveAndMove_SymbolContext();
-					Set_SymbolConext(Vp->Conext.value());
+					Set_SymbolContext(Vp->Context.value());
 
 					OnClassNode(classNode);//update class fields
 
 
-					Set_SymbolConext(std::move(Old));
+					Set_SymbolContext(std::move(Old));
 				}
 				else
 				{
@@ -493,9 +493,9 @@ bool SystematicAnalysis::Type_IsCompatible(const IsCompatiblePar& FuncPar, const
 		if (!Symbol_IsDependencies(Info))
 		{
 			auto OldPass = _PassType;
-			auto oldconext = SaveAndMove_SymbolContext();
+			auto oldcontext = SaveAndMove_SymbolContext();
 
-			Set_SymbolConext(Info->Conext.value());
+			Set_SymbolContext(Info->Context.value());
 
 			_RetLoopStack.push_back(Info);
 
@@ -503,7 +503,7 @@ bool SystematicAnalysis::Type_IsCompatible(const IsCompatiblePar& FuncPar, const
 
 			_RetLoopStack.pop_back();
 
-			Set_SymbolConext(std::move(oldconext));
+			Set_SymbolContext(std::move(oldcontext));
 		}
 		else
 		{
@@ -1421,7 +1421,7 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 
 			ConstantExpressionInfo* info = new ConstantExpressionInfo();
 			info->Exnode = ExpressionNodeType::As(node);
-			info->Conext = Save_SymbolContext();
+			info->Context = Save_SymbolContext();
 
 			_LookingForTypes.push(TypesEnum::Any);
 

@@ -46,7 +46,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 
 		ClassInf = new ClassInfo();
 
-		ClassInf->Conext = Save_SymbolContextRemoveOneScopeName();
+		ClassInf->Context = Save_SymbolContextRemoveOneScopeName();
 		ClassInf->FullName = Syb.FullName;
 		Syb.Info.reset(ClassInf);
 		Syb.VarType.SetType(Syb.ID);

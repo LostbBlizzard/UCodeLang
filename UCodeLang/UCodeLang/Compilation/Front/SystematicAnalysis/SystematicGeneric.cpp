@@ -30,11 +30,11 @@ void SystematicAnalysis::Generic_GenericFuncInstantiate(const NeverNullPtr<Symbo
 	{
 		size_t NewSymbolIndex = _Table.Symbols.size();
 
-		auto OldConext = SaveAndMove_SymbolContext();
+		auto OldContext = SaveAndMove_SymbolContext();
 		auto Oldpasstype = _PassType;
 		auto Olderrcount = _ErrorsOutput->Get_ErrorCount();
 
-		Set_SymbolConext(FInfo->Conext.value());
+		Set_SymbolContext(FInfo->Context.value());
 		_PassType = PassType::GetTypes;
 		OnFuncNode(FuncBase);
 
@@ -50,7 +50,7 @@ void SystematicAnalysis::Generic_GenericFuncInstantiate(const NeverNullPtr<Symbo
 			OnFuncNode(FuncBase);
 			UCodeLangAssert(addedSymbol.PassState == PassType::FixedTypes);
 		}
-		Set_SymbolConext(std::move(OldConext));
+		Set_SymbolContext(std::move(OldContext));
 		_PassType = Oldpasstype;
 
 		Pop_AddToGeneratedGenricSymbol(addedSymbol, GenericInput);
@@ -107,11 +107,11 @@ void SystematicAnalysis::Generic_TypeInstantiate(const NeverNullPtr<Symbol> Clas
 		Push_ExtendedErr(Generic_GetGenericExtendedErrValue(classInfo->_GenericData, node->_generic, GenericInput), NeverNullptr(node->_className.token));
 	}
 	{
-		auto OldConext = SaveAndMove_SymbolContext();
+		auto OldContext = SaveAndMove_SymbolContext();
 		auto Oldpasstype = _PassType;
 		auto Olderrcount = _ErrorsOutput->Get_ErrorCount();
 
-		Set_SymbolConext(classInfo->Conext.value());
+		Set_SymbolContext(classInfo->Context.value());
 
 		size_t NewSymbolIndex = _Table.Symbols.size();
 		_PassType = PassType::GetTypes;
@@ -136,7 +136,7 @@ void SystematicAnalysis::Generic_TypeInstantiate(const NeverNullPtr<Symbol> Clas
 
 
 		//
-		Set_SymbolConext(std::move(OldConext));
+		Set_SymbolContext(std::move(OldContext));
 		_PassType = Oldpasstype;
 		//
 	}
@@ -169,11 +169,11 @@ void SystematicAnalysis::Generic_TypeInstantiate_Trait(const NeverNullPtr<Symbol
 		Push_ExtendedErr(Generic_GetGenericExtendedErrValue(classInfo->_GenericData, node->_generic, GenericInput), NeverNullptr(node->_Name.token));
 	}
 	{
-		auto OldConext = SaveAndMove_SymbolContext();
+		auto OldContext = SaveAndMove_SymbolContext();
 		auto Oldpasstype = _PassType;
 		auto Olderrcount = _ErrorsOutput->Get_ErrorCount();
 
-		Set_SymbolConext(classInfo->Conext.value());
+		Set_SymbolContext(classInfo->Context.value());
 
 		size_t NewSymbolIndex = _Table.Symbols.size();
 
@@ -198,7 +198,7 @@ void SystematicAnalysis::Generic_TypeInstantiate_Trait(const NeverNullPtr<Symbol
 		Pop_AddToGeneratedGenricSymbol(addedSymbol, GenericInput);
 
 		//
-		Set_SymbolConext(std::move(OldConext));
+		Set_SymbolContext(std::move(OldContext));
 		_PassType = Oldpasstype;
 		//
 	}
@@ -227,11 +227,11 @@ void SystematicAnalysis::Generic_TypeInstantiate_Alias(const NeverNullPtr<Symbol
 		Push_ExtendedErr(Generic_GetGenericExtendedErrValue(classInfo->_GenericData, node->Generic, GenericInput), NeverNullptr(node->_AliasName.token));
 	}
 	{
-		auto OldConext = SaveAndMove_SymbolContext();
+		auto OldContext = SaveAndMove_SymbolContext();
 		auto Oldpasstype = _PassType;
 		auto Olderrcount = _ErrorsOutput->Get_ErrorCount();
 
-		Set_SymbolConext(classInfo->Conext.value());
+		Set_SymbolContext(classInfo->Context.value());
 
 		size_t NewSymbolIndex = _Table.Symbols.size();
 
@@ -260,7 +260,7 @@ void SystematicAnalysis::Generic_TypeInstantiate_Alias(const NeverNullPtr<Symbol
 
 		Pop_AddToGeneratedGenricSymbol(addedSymbol, GenericInput);
 		//
-		Set_SymbolConext(std::move(OldConext));
+		Set_SymbolContext(std::move(OldContext));
 		_PassType = Oldpasstype;
 		//
 	}
@@ -290,11 +290,11 @@ void SystematicAnalysis::Generic_TypeInstantiate_Enum(const NeverNullPtr<Symbol>
 		Push_ExtendedErr(Generic_GetGenericExtendedErrValue(classInfo->_GenericData, node->_generic, GenericInput), NeverNullptr(node->_EnumName.token));
 	}
 	{
-		auto OldConext = SaveAndMove_SymbolContext();
+		auto OldContext = SaveAndMove_SymbolContext();
 		auto Oldpasstype = _PassType;
 		auto Olderrcount = _ErrorsOutput->Get_ErrorCount();
 
-		Set_SymbolConext(classInfo->Conext.value());
+		Set_SymbolContext(classInfo->Context.value());
 
 		size_t NewSymbolIndex = _Table.Symbols.size();
 
@@ -320,7 +320,7 @@ void SystematicAnalysis::Generic_TypeInstantiate_Enum(const NeverNullPtr<Symbol>
 
 		Pop_AddToGeneratedGenricSymbol(addedSymbol, GenericInput);
 		//
-		Set_SymbolConext(std::move(OldConext));
+		Set_SymbolContext(std::move(OldContext));
 		_PassType = Oldpasstype;
 		//
 	}
@@ -349,11 +349,11 @@ void SystematicAnalysis::Generic_TypeInstantiate_Tag(const NeverNullPtr<Symbol> 
 		Push_ExtendedErr(Generic_GetGenericExtendedErrValue(classInfo->_GenericData, node->_generic, GenericInput), NeverNullptr(node->_AttributeName.token));
 	}
 	{
-		auto OldConext = SaveAndMove_SymbolContext();
+		auto OldContext = SaveAndMove_SymbolContext();
 		auto Oldpasstype = _PassType;
 		auto Olderrcount = _ErrorsOutput->Get_ErrorCount();
 
-		Set_SymbolConext(classInfo->Conext.value());
+		Set_SymbolContext(classInfo->Context.value());
 
 		_Table._Scope.ThisScope = ScopeHelper::GetReMoveScope(FullName);
 
@@ -381,7 +381,7 @@ void SystematicAnalysis::Generic_TypeInstantiate_Tag(const NeverNullPtr<Symbol> 
 
 		Pop_AddToGeneratedGenricSymbol(addedSymbol, GenericInput);
 		//
-		Set_SymbolConext(std::move(OldConext));
+		Set_SymbolContext(std::move(OldContext));
 		_PassType = Oldpasstype;
 		//
 	}

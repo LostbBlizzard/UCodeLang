@@ -1087,7 +1087,7 @@ bool SystematicAnalysis::Eval_EvalutateFunc(EvalFuncData& State, const NeverNull
 	auto Conxet = SaveAndMove_SymbolContext();
 
 	const FuncInfo* funcInfo = Func->Get_Info<FuncInfo>();
-	Set_SymbolConext(funcInfo->Conext.value());
+	Set_SymbolContext(funcInfo->Context.value());
 	{
 		_Table.AddScope("__EvalFunc");
 
@@ -1120,7 +1120,7 @@ bool SystematicAnalysis::Eval_EvalutateFunc(EvalFuncData& State, const NeverNull
 		_Table.RemoveScope();
 	}
 
-	Set_SymbolConext(std::move(Conxet));
+	Set_SymbolContext(std::move(Conxet));
 	return !Fail;
 }
 bool SystematicAnalysis::Eval_EvalutateStatement(EvalFuncData& State, const Node* node)

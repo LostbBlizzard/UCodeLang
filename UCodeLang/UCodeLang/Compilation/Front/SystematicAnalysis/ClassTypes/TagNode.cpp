@@ -32,7 +32,7 @@ void SystematicAnalysis::OnTag(const TagTypeNode& node)
 
 		TagInfo* info = new TagInfo();
 		Syb.Info.reset(info);
-		info->Conext = Save_SymbolContextRemoveOneScopeName();
+		info->Context = Save_SymbolContextRemoveOneScopeName();
 		Generic_InitGenericalias(node._generic, IsgenericInstantiation, info->_GenericData);
 	}
 	else if (_PassType == PassType::FixedTypes)
