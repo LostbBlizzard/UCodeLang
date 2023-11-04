@@ -1003,7 +1003,7 @@ public:
 		const ReflectionTypeInfo& TypeA, const ClassAssembly& TypeAAssembly, 
 		const ReflectionTypeInfo& TypeB, const ClassAssembly& TypeBAssembly);
 	
-	//Convert one type to Another even if not the same type int to char,int to int32,enum to int ect
+	//Convert one type to Another even if not the same type int to char,int to int32,enum to int etc
 	//if the first Optional is empty the operation failed
 	//used in hot reloading
 	static Optional<Optional<Vector<OnMoveConstructorCall>>> DoTypeCoercion(
@@ -1031,7 +1031,7 @@ public:
 	}
 
 	//Is Char or Uf8,Uf16,Uf32 etc also includes type aliases
-	// use IsJust to exclude pointer and move's ect.
+	// use IsJust to exclude pointer and move's etc.
 	inline bool IsChar_t(const ReflectionTypeInfo& TypeA) const
 	{
 		switch (TypeA._Type)

@@ -4,7 +4,7 @@
 #include "UCodeLang/LangCore/DataType/UnorderedMap.hpp"
 UCodeLangStart
 
-//were register allcations,stack allcations,Instruction Selection Happens ect. 
+//were register allcations,stack allcations,Instruction Selection Happens etc. 
 struct X86_64IR
 {
 	X86_64IR()
@@ -270,7 +270,7 @@ struct X86_64IR
 		// Swap $Src <> $Out 
 		//Varable Names
 		// Return value: $Return-Result$ 
-		// Par# value: $Par#$ ect 
+		// Par# value: $Par#$ etc 
 		// Called Funcion Value: $Result$
 		enum class InsRegSize :Int8
 		{
