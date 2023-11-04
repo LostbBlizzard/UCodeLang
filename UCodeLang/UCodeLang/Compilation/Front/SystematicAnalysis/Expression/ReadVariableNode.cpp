@@ -550,7 +550,7 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 		Out.End = ScopedCount;
 		if (End == -1)
 		{
-			Out.End++;//i dont know why this needed its most likely its us useing two diff funcs for the same thing to get the start off syb.
+			Out.End++;//i dont know why this needed its most likely its us using two diff funcs for the same thing to get the start off syb.
 		}
 
 		{

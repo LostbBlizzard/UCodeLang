@@ -2778,7 +2778,7 @@ void SystematicAnalysis::LogError_SymbolRedefinition(const NeverNullPtr<Token> T
 {
 
 	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
-		, "the symbol '"+  Symbol->FullName + "\' is already define. try useing a different name");
+		, "the symbol '"+  Symbol->FullName + "\' is already define. try using a different name");
 }
 void SystematicAnalysis::LogError_UseingVarableBeforDeclared(const NeverNullPtr<Token> Token)
 {
@@ -2962,7 +2962,7 @@ void SystematicAnalysis::LogError_CantUseMoveTypeHere(const NeverNullPtr<Token> 
 void SystematicAnalysis::LogError_DynamicMustBeRrait(const TypeNode& V,const TypeSymbol& Out)
 {
 	auto token = V._name._ScopedName.back()._token;
-	LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "useing a Dynamic type on a none trait the type found '" + ToString(Out) + "'");
+	LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "using a Dynamic type on a none trait the type found '" + ToString(Out) + "'");
 }
 void SystematicAnalysis::LogError_TraitCantBeAlone(const NeverNullPtr<Token> Token)
 {
@@ -2986,7 +2986,7 @@ void SystematicAnalysis::LogError_ParamterMustBeAnOutExpression(const NeverNullP
 }
 void SystematicAnalysis::LogError_LogParPackIsNotLast(const NeverNullPtr<Token> Token)
 {
-	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Parameter  named '" + (String)Token->Value._String + "' is useing a Parameter pact.But Parameter pact must be last Paramter");
+	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Parameter  named '" + (String)Token->Value._String + "' is using a Parameter pact.But Parameter pact must be last Paramter");
 }
 void SystematicAnalysis::LogError_ParPackTypeIsNotLast(const NeverNullPtr<Token> Token)
 {

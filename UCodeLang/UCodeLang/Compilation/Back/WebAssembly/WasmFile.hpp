@@ -3,7 +3,7 @@
 #include <UCodeLang/LangCore/LangTypes.hpp>
 UCodeLangStart
 
-//made useing https://coinexsmartchain.medium.com/wasm-introduction-part-1-binary-format-57895d851580
+//made using https://coinexsmartchain.medium.com/wasm-introduction-part-1-binary-format-57895d851580
 class WasmFile
 {
 public:
