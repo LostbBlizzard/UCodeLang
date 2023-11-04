@@ -4,7 +4,7 @@
 #include <fstream>
 #include <filesystem>
 #include "UCodeLang/Compilation/ModuleFile.hpp"
-#include "UCodeAnalyzer/Formater.hpp"
+#include "UCodeAnalyzer/Formatter.hpp"
 #include "UCodeAnalyzer/Preprocessors/CppHelper.hpp"
 #include "UCodeLang/RunTime/AnyInterpreter.hpp"
 #include "UCodeLang/Compilation/Back/NativeBackEnd.hpp"

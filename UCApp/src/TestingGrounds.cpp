@@ -5,7 +5,7 @@
 
 #include <future>
 #include <optional>
-#include "UCodeAnalyzer/Formater.hpp"
+#include "UCodeAnalyzer/Formatter.hpp"
 #include <sstream>
 #include "UCodeLang/Compilation/Back/C89/C89Backend.hpp"
 #include "UCodeLang/Compilation/Back/x86/X86BackEnd.hpp"
