@@ -2,7 +2,7 @@
 #include "X86_64IR.hpp"
 UCodeLangStart
 
-//Makes an UCLib file that can be run on any OS useing NativeInterpreter for the x86_64 Cpu
+//Makes an UCLib file that can be run on any OS using NativeInterpreter for the x86_64 Cpu
 class X86_64UNativeBackEnd : BackEndObject
 {
 

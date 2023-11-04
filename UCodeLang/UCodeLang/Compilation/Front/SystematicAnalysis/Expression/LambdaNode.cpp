@@ -261,7 +261,7 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 						const NeverNullPtr<Token> Token = NeverNullptr(node._LambdaStart);
 
 						//LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "can't indirect pass the varable  '" +
-							//Item.Name + "' between lambdas.be explicit and make a new varable and assign useing '" + Item.Name + "' in this lambda.");
+							//Item.Name + "' between lambdas.be explicit and make a new varable and assign using '" + Item.Name + "' in this lambda.");
 
 						Info->_CapturedVarables.push_back(Item);
 					}

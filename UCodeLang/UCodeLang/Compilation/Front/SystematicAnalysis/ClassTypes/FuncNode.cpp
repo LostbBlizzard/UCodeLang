@@ -559,7 +559,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			}
 			else
 			{
-				_IR_LookingAtIRFunc->Pars.resize(ParNodes.size());//becuase we are useing ptrs.
+				_IR_LookingAtIRFunc->Pars.resize(ParNodes.size());//becuase we are using ptrs.
 			}
 
 			for (size_t i = 0; i < ParNodeSize; i++)
