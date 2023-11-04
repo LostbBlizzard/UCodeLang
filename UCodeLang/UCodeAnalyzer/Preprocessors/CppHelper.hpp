@@ -161,7 +161,7 @@ public:
 
 	static void GetStringliteral(size_t& i, String& FileText, String& Out);
 	static void GetStringScope(size_t& i, String& FileText, String& Out);
-	static void GetIndentifier(size_t& i, String& FileText, String& Out);
+	static void GetIdentifier(size_t& i, String& FileText, String& Out);
 	static void GetType(size_t& i, String& FileText, CPPType& Out);
 	static void MovePass(size_t& i, String& FileText, const char& passChar);
 	static void MovePassSpace(size_t& i, String& FileText);
