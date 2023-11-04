@@ -356,7 +356,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 					V2.RetType = Assembly_ConvertToType(Funcinfo->Ret);
 
 
-					V2.IsThisFuncion = Funcinfo->FrontParIsUnNamed;
+					V2.IsThisFunction = Funcinfo->FrontParIsUnNamed;
 					V2.IsExternC = Funcinfo->IsExternC;
 					V2.IsUnsafe = Funcinfo->IsUnsafe;
 					V2.IsRemoved = Funcinfo->IsRemoved;
@@ -466,7 +466,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 					V2.RetType = Assembly_ConvertToType(V.Ret);
 
 
-					V2.IsThisFuncion = V.FrontParIsUnNamed;
+					V2.IsThisFunction = V.FrontParIsUnNamed;
 					V2.IsExternC = V.IsExternC;
 					V2.IsUnsafe = V.IsUnsafe;
 					V2.IsRemoved = V.IsRemoved;

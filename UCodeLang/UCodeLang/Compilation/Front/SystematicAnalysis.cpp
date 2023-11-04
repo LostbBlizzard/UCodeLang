@@ -621,9 +621,9 @@ String SystematicAnalysis::Str_GetTraitVStructTableName(const String& TraitName)
 	return TraitName + "vtable_type";
 }
 
-void SystematicAnalysis::LogError_MissingFuncionforTrait(const String_view& FuncName, const FuncInfo* Info, const NeverNullPtr<Symbol> Trait, const NeverNullPtr<Token> ClassNameToken)
+void SystematicAnalysis::LogError_MissingFunctionforTrait(const String_view& FuncName, const FuncInfo* Info, const NeverNullPtr<Symbol> Trait, const NeverNullPtr<Token> ClassNameToken)
 {
-	String Msg = "Missing Funcion '" + (String)FuncName + "' with the parameters [";
+	String Msg = "Missing Function '" + (String)FuncName + "' with the parameters [";
 
 	for (auto& ItemP : Info->Pars)
 	{
@@ -2788,7 +2788,7 @@ void SystematicAnalysis::LogError_UseingVarableBeforDeclared(const NeverNullPtr<
 void SystematicAnalysis::LogError_BeMoreSpecifiicForRetType(const String_view FuncName, const NeverNullPtr<Token> Token)
 {
 	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
-		, "be more Specifiic For return Type. like |" + (String)FuncName + "[...] -> [Type]; or give the funcion a body.");
+		, "be more Specifiic For return Type. like |" + (String)FuncName + "[...] -> [Type]; or give the function a body.");
 }
 void SystematicAnalysis::LogError_CantBeIndexWithType(const NeverNullPtr<Token> Token, const  TypeSymbol& Ex0Type, const  TypeSymbol& IndexType)
 {
@@ -2934,7 +2934,7 @@ void SystematicAnalysis::LogError_CantFindMemberOverloadForType(const NeverNullP
 		, "Cant find operator overload for '" + ToString(Op) + "' For Type " + ToString(Out));
 
 }
-void SystematicAnalysis::LogError_MustMakeEnumLikeafuncion(EnumInfo* Einfo, size_t Index, const NeverNullPtr<Token> Token)
+void SystematicAnalysis::LogError_MustMakeEnumLikeafunction(EnumInfo* Einfo, size_t Index, const NeverNullPtr<Token> Token)
 {
 	auto& Str = Einfo->Fields[Index].Name;
 	String Msg = "The enum field '" + Str + "' on '" + Einfo->FullName + "' must be created like a function.Ex:";
@@ -3002,7 +3002,7 @@ void SystematicAnalysis::LogError_UseingTypeinfoInEvalFuncPar(const NeverNullPtr
 }
 void SystematicAnalysis::LogError_CantOutputTypeinfo(const NeverNullPtr<Token> Token)
 {
-	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Cant Output IR of an typeinfo. place this in an eval funcion or an eval varable");
+	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Cant Output IR of an typeinfo. place this in an eval function or an eval varable");
 }
 void SystematicAnalysis::LogError_DoesNotHaveForOverload(const NeverNullPtr<Token> Token, TypeSymbol& ExType)
 {

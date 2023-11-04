@@ -84,7 +84,7 @@ X86_64IR::BuildInfo X86_64IR::Build() const
 void X86_64IR::Build(BuildInfo::BuildFunc& Out, BuildState& State, const Func& Value) const
 {
 	auto& CallConvention = CallingConventions.GetValue(Value.CallConvention);
-	for (auto& Item : CallConvention.FuncionProlog)
+	for (auto& Item : CallConvention.FunctionProlog)
 	{
 		State.Gen._Base._Output.ByteOutput.push_back(Item);
 	}
@@ -95,7 +95,7 @@ void X86_64IR::Build(BuildInfo::BuildFunc& Out, BuildState& State, const Func& V
 
 		if (Item.variant.Is<Ins::Ret>())
 		{
-			for (auto& Item : CallConvention.FuncionEpilogue)
+			for (auto& Item : CallConvention.FunctionEpilogue)
 			{
 				State.Gen._Base._Output.ByteOutput.push_back(Item);
 			}
@@ -109,7 +109,7 @@ void X86_64IR::Build(BuildInfo::BuildFunc& Out, BuildState& State, const Func& V
 
 	if (Value.Body.size() == 0 || lastepilogue != State.Gen.Size())
 	{
-		for (auto& Item : CallConvention.FuncionEpilogue)
+		for (auto& Item : CallConvention.FunctionEpilogue)
 		{
 			State.Gen._Base._Output.ByteOutput.push_back(Item);
 		}

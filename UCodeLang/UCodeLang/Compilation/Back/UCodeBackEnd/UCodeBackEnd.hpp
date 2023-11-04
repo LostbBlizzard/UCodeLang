@@ -73,7 +73,7 @@ private:
 	};
 	struct Optimizations
 	{
-		bool InlineFuncionCopys = false;
+		bool InlineFunctionCopys = false;
 		bool ReOderForCacheHit = false;
 	};
 	struct UCodeFunc

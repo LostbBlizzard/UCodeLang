@@ -280,7 +280,7 @@ void UCodeBackEndObject::UpdateOptimizations()
 
 	if (Debug == false)
 	{
-		_Optimizations.InlineFuncionCopys = ForSize;
+		_Optimizations.InlineFunctionCopys = ForSize;
 	}
 	else
 	{
@@ -293,7 +293,7 @@ void UCodeBackEndObject::UpdateOptimizations()
 void UCodeBackEndObject::DoOptimizations()
 {
 
-	if (_Optimizations.InlineFuncionCopys)
+	if (_Optimizations.InlineFunctionCopys)
 	{
 		UnorderedMap<size_t, UCodeFunc*> FuncsHash;
 		for (auto& Item : Funcs)

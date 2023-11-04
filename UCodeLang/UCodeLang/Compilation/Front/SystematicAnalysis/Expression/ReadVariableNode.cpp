@@ -340,7 +340,7 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 									if (!IsOk)
 									{
 
-										LogError_MustMakeEnumLikeafuncion(Einfo, FeldInfo.value(), Token);
+										LogError_MustMakeEnumLikeafunction(Einfo, FeldInfo.value(), Token);
 
 
 										Out._Symbol = nullptr;
@@ -739,11 +739,11 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 			String Scope = ToString(Out.Type);
 			ScopeHelper::GetApendedString(Scope, Data.CompilerName);
 
-			auto OverloadFuncionSymbols = GetSymbolsWithName(Scope, SymbolType::Any);
+			auto OverloadFunctionSymbols = GetSymbolsWithName(Scope, SymbolType::Any);
 
 			Symbol* funcToCallSys = nullptr;
 
-			for (auto& Item2 : OverloadFuncionSymbols)
+			for (auto& Item2 : OverloadFunctionSymbols)
 			{
 				if (Item2->Type == SymbolType::Func)
 				{
@@ -922,7 +922,7 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 					if (!IsOk)
 					{
 
-						LogError_MustMakeEnumLikeafuncion(Einfo, FeldInfo.value(), ItemToken);
+						LogError_MustMakeEnumLikeafunction(Einfo, FeldInfo.value(), ItemToken);
 
 
 						Out._Symbol = nullptr;

@@ -11,14 +11,14 @@ struct CompilationSettings;
 enum class InlineState
 {
 	Null,
-	FuncionCantBeInline,
+	FunctionCantBeInline,
 	MayBeInlined,
 	AutoInline,
 };
-enum class FuncionType
+enum class FunctionType
 {
 	Null,
-	SimpleFuncion,
+	SimpleFunction,
 	Recursive,
 };
 
@@ -75,10 +75,10 @@ private:
 	bool Optimization_IndirectMemeberToDirectMemeber = false;
 	bool Optimization_DestructureStructMembers = false;
 	bool Optimization_ConstantFuncPtrToDirectCall = false;
-	bool Optimization_LowerToBodysToCFuncions = false;//Working On
+	bool Optimization_LowerToBodysToCFunctions = false;//Working On
 	bool Optimization_InlineConditionalJump = false;
 	bool Optimization_RemoveUnreachable = false;
-	bool Optimization_ReorderFuncionsInToHotSpots = false;
+	bool Optimization_ReorderFunctionsInToHotSpots = false;
 	bool Optimization_ReorderInstructionsBaseOnMemoryAndHotSpots = false;
 	bool Optimization_LoopUnrolling = false;
 	bool Optimization_LoopFrequencyReduction = false;
@@ -97,10 +97,10 @@ private:
 		Optimization_IndirectMemeberToDirectMemeber = false;
 		Optimization_DestructureStructMembers = false;
 		Optimization_ConstantFuncPtrToDirectCall = false;
-		Optimization_LowerToBodysToCFuncions = false;
+		Optimization_LowerToBodysToCFunctions = false;
 		Optimization_InlineConditionalJump = false;
 		Optimization_RemoveUnreachable = false;
-		Optimization_ReorderFuncionsInToHotSpots = false;
+		Optimization_ReorderFunctionsInToHotSpots = false;
 		Optimization_ReorderInstructionsBaseOnMemoryAndHotSpots = false;
 		Optimization_LoopFrequencyReduction = false;
 		Optimization_StaticAndThreadRemovealAndReadOnlyToValues = false;
@@ -116,7 +116,7 @@ private:
 	void UpdateCodePass();
 	void UpdateCodePassFunc(IRFunc* Func);
 	void DoDestructurStructMembers(UCodeLang::Unique_ptr<UCodeLang::IRInstruction>& Ins, UCodeLang::IRStruct* structtype, UCodeLang::IRFunc* Func, UCodeLang::Unique_ptr<UCodeLang::IRBlock>& Block, const size_t& i);
-	void CopyFuncionWithoutUnusedParAndUpdateOtherCalls(UCodeLang::IRPar& Par, UCodeLang::IRFunc* Func, const size_t& i);
+	void CopyFunctionWithoutUnusedParAndUpdateOtherCalls(UCodeLang::IRPar& Par, UCodeLang::IRFunc* Func, const size_t& i);
 	void UpdateCallWhenParWasRemoved(IRFunc* Item, const IRFunc* Func, const IRFunc& NewFunc, size_t i);
 	void DoInlines(IRFunc* Func);
 	void DoInlines(IRFunc* Func, IRBlock* Block);

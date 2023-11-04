@@ -91,7 +91,7 @@ constexpr RNGValue MaxRNGValue = UINT64_MAX;
 		EvalVarable,
 		StaticVarable,
 		ThreadVarable,
-		Funcion,
+		Function,
 
 		Max,
 	};
@@ -129,7 +129,7 @@ constexpr RNGValue MaxRNGValue = UINT64_MAX;
 		RNG _RNG;
 		String _OutFile;
 		size_t TabCount = 0;
-		void MakeFuncion();
+		void MakeFunction();
 		void BuildFuncStatments();
 		void MakeMain();
 		String MakeNewName();

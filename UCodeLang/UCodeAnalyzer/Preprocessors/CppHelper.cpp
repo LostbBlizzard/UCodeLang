@@ -329,8 +329,8 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 							Linkstr += " = " + Item.Ret + "(*UCodeLangAPI)(";
 
 							bool IsStatic = Item.MyData->IsStatic;
-							bool IsMemberFuncion = Item.MemberFuncClass.has_value();
-							if (IsStatic == false && IsMemberFuncion)
+							bool IsMemberFunction = Item.MemberFuncClass.has_value();
+							if (IsStatic == false && IsMemberFunction)
 							{
 								String ClassName = CppNameSpace + "::" + Item.MemberFuncClass.value();
 								Linkstr += ClassName + "*";
@@ -419,12 +419,12 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 							AddTabCount(TabCount + 3, Linkstr);
 
 							bool IsStatic = Item.MyData->IsStatic;
-							bool IsMemberFuncion = Item.MemberFuncClass.has_value();
+							bool IsMemberFunction = Item.MemberFuncClass.has_value();
 							bool IsReadOnlyThis = Item.MyData->IsThisConst;
 							
 							String ClassName;
 							
-							if (IsStatic == false && IsMemberFuncion)
+							if (IsStatic == false && IsMemberFunction)
 							{
 								Linkstr += "\n";
 								AddTabCount(TabCount + 4, Linkstr);
@@ -477,13 +477,13 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 							{
 								Linkstr += "&";
 							}
-							if (IsStatic == false && IsMemberFuncion)
+							if (IsStatic == false && IsMemberFunction)
 							{
 								Linkstr += "thisPar->" + Item.FuncName + "(";
 							}
 							else 
 							{
-								if (IsMemberFuncion) {
+								if (IsMemberFunction) {
 									Linkstr += CppNameSpace + "::" + Item.MemberFuncClass.value() + "::";
 									Linkstr += UCodeLang::ScopeHelper::GetNameFromFullName(FuncName);
 								}
@@ -539,9 +539,9 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 
 							Linkstr += "},";
 
-							if (IsStatic == false && IsMemberFuncion)
+							if (IsStatic == false && IsMemberFunction)
 							{
-								//c++  member funcion can be casted into funcion pointer.
+								//c++  member function can be casted into function pointer.
 								//but this is less unsafe.
 
 								Linkstr += "(";
@@ -634,7 +634,7 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 								}
 								Linkstr += FuncPtrEnder + (String)")";
 
-								if (IsMemberFuncion) {
+								if (IsMemberFunction) {
 									Linkstr += CppNameSpace + "::" + Item.MemberFuncClass.value() + "::";
 									Linkstr += UCodeLang::ScopeHelper::GetNameFromFullName(FuncName);
 								}

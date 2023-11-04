@@ -93,8 +93,8 @@
 #define UCode_VectorType "Vector"//int[]
 #define UCode_SpanType "Span"//int[:]
 #define UCode_ResultType "Result"//int!
-#define UCode_RangeFuncion "Range"//0..10 Range(0,10)
-#define UCode_RangeInclusiveFuncion "RangeInclusive"//0..=10 RangeInclusive(0,10)
+#define UCode_RangeFunction "Range"//0..10 Range(0,10)
+#define UCode_RangeInclusiveFunction "RangeInclusive"//0..=10 RangeInclusive(0,10)
 
 #define UCode_RangeType "Range_t"//0..10 Range_t<int>(0,10)
 #define UCode_RangeInclusiveType "RangeInclusive_t"//0..=10 RangeInclusive<int>(0,10)
@@ -114,16 +114,16 @@
 #define UCode_Unique_ptr "Unique_ptr"//int^ 
 #define UCode_Shared_ptr "Shared_ptr"//int$ 
 
-#define UCode_Unique_Ptr_MakeFuncion "Make"//int[^]::Make(...)
-#define UCode_Shared_Ptr_MakeFuncion "Make"//int[$]::Make(...)
+#define UCode_Unique_Ptr_MakeFunction "Make"//int[^]::Make(...)
+#define UCode_Shared_Ptr_MakeFunction "Make"//int[$]::Make(...)
 
 #define UCode_Unique_Array "Unique_Array"//int[^] 
 #define UCode_Shared_Array "Shared_Array"//int[$] 
 
 #define UCode_FutureType "Future"//async<int> 
 
-#define UCode_Unique_Array_MakeFuncion "Make"//int[^]::Make(...)
-#define UCode_Shared_Array_MakeFuncion "Make"//int[$]::Make(...)
+#define UCode_Unique_Array_MakeFunction "Make"//int[^]::Make(...)
+#define UCode_Shared_Array_MakeFunction "Make"//int[$]::Make(...)
 
 //
 #define UCode_CodeLayer_UCodeVM_Name "UCodeVm"

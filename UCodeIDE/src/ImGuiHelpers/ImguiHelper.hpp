@@ -268,7 +268,7 @@ public:
 	}
 	template<typename T> static bool DrawValue(T* Item)
 	{
-		static_assert(true,"funcion has no body");
+		static_assert(true,"function has no body");
 		return false;
 	}
 

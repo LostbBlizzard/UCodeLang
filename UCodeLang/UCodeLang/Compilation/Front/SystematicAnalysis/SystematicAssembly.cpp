@@ -157,9 +157,9 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode M
 			{
 				TextOp = Item->Get_GenericClass().Base.Implementation;
 			}
-			else if (Item->Get_Type() == ClassType::GenericFuncion)
+			else if (Item->Get_Type() == ClassType::GenericFunction)
 			{
-				TextOp = Item->Get_GenericFuncionData().Base.Implementation;
+				TextOp = Item->Get_GenericFunctionData().Base.Implementation;
 			}
 
 
@@ -276,7 +276,7 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode M
 		for (auto& Item : lib.Get_Assembly().Classes)
 		{
 
-			if (Item->Get_Type() == ClassType::GenericClass || Item->Get_Type() == ClassType::GenericFuncion)
+			if (Item->Get_Type() == ClassType::GenericClass || Item->Get_Type() == ClassType::GenericFunction)
 			{
 				auto Sym = Symbol_GetSymbol(Item->FullName, SymbolType::Any);
 				UCodeLangAssert(Sym);
@@ -696,7 +696,7 @@ void SystematicAnalysis::Assembly_LoadTraitSymbol(const Trait_Data& Item, const 
 				funcsyb->Info.reset(Funcinfo);
 				LoadFuncInfoGetTypes(Funcinfo, Item.method);
 
-				if (Item.method.IsThisFuncion)
+				if (Item.method.IsThisFunction)
 				{
 					auto& FuncP = Funcinfo->Pars.front();
 					FuncP.Type._Type = TypesEnum::CustomType;
@@ -755,7 +755,7 @@ void SystematicAnalysis::Assembly_LoadTraitSymbol(const Trait_Data& Item, const 
 			{
 				FuncInfo* finfo = Item2.Syb->Get_Info<FuncInfo>();
 				LoadFuncInfoFixTypes(finfo, Item.Methods[i].method);
-				if (Item.Methods[i].method.IsThisFuncion)
+				if (Item.Methods[i].method.IsThisFunction)
 				{
 					auto& FuncP = finfo->Pars.front();
 					FuncP.Type._Type = TypesEnum::CustomType;
@@ -824,7 +824,7 @@ void SystematicAnalysis::Assembly_LoadSymbol(const ClassMethod& Item, Systematic
 void SystematicAnalysis::LoadFuncInfoGetTypes(UCodeLang::FrontEnd::FuncInfo* Funcinfo, const UCodeLang::ClassMethod& Item)
 {
 	Funcinfo->FullName = Item.FullName;
-	Funcinfo->FrontParIsUnNamed = Item.IsThisFuncion;
+	Funcinfo->FrontParIsUnNamed = Item.IsThisFunction;
 	Funcinfo->IsUnsafe = Item.IsUnsafe;
 	Funcinfo->IsExternC = Item.IsExternC;
 	Funcinfo->IsRemoved = Item.IsRemoved;

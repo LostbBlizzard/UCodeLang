@@ -236,7 +236,7 @@ public:
 		String FuncName;
 		ID _ID = ID::Null;
 
-		bool IsMemberFuncion = false;
+		bool IsMemberFunction = false;
 		Vector<FunctionPar> Pars;
 		TypeSymbol Ret;
 		FunctionData(const String& Str, ID ID)
@@ -1852,7 +1852,7 @@ private:
 	void LogError_CantOverLoadOverload(const NeverNullPtr<Token> NameToken);
 	void LogError_CantFindMemberOverloadForType(const NeverNullPtr<Token> Item, TokenType Op, const TypeSymbol& Out);
 	void LogError_CantUseMoveTypeHere(const NeverNullPtr<Token> Token);
-	void LogError_MustMakeEnumLikeafuncion(EnumInfo* Einfo, size_t Index, const NeverNullPtr<Token> Token);
+	void LogError_MustMakeEnumLikeafunction(EnumInfo* Einfo, size_t Index, const NeverNullPtr<Token> Token);
 	void LogError_DynamicMustBeRrait(const TypeNode& V, const TypeSymbol& Out);
 	void LogError_TraitCantBeAlone(const NeverNullPtr<Token> Token);
 	void LogError_WantedAType(const TypeNode& V, Symbol* SybV);
@@ -1872,7 +1872,7 @@ private:
 	void LogError_CantOutputTypeinfo(const NeverNullPtr<Token> Token);
 	void LogError_DoesNotHaveForOverload(const NeverNullPtr<Token> Token,TypeSymbol& ExType);
 	void LogError_CantgussTypesTheresnoassignment(const NeverNullPtr<Token> Token);
-	void LogError_MissingFuncionforTrait(const String_view& FuncName, const FuncInfo* Info, const NeverNullPtr<Symbol> Trait, const NeverNullPtr<Token> ClassNameToken);
+	void LogError_MissingFunctionforTrait(const String_view& FuncName, const FuncInfo* Info, const NeverNullPtr<Symbol> Trait, const NeverNullPtr<Token> ClassNameToken);
 	void LogError_CantUseOutInOverloadFunc(const Token& Name);
 	void LogError_yieldnotAsync(const NeverNullPtr<Token> token);
 	void LogError_UseScopeResolutionAndNotDot(const NeverNullPtr<Symbol>& Sym, const NeverNullPtr<Token>& ItemToken);

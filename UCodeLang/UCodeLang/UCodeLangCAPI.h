@@ -165,7 +165,7 @@ extern "C"
             BoolRegister = OuPutRegister,
             BitwiseRegister = OuPutRegister,
 
-            StartParameterRegister = (UCodeLangCAPI_RegisterID_t)D,//the range the runtime will pass funcion Parameters into Registers
+            StartParameterRegister = (UCodeLangCAPI_RegisterID_t)D,//the range the runtime will pass function Parameters into Registers
             EndParameterRegister = (UCodeLangCAPI_RegisterID_t)F + 1,
 
 
@@ -219,7 +219,7 @@ extern "C"
     };
 
 
-    //funcions
+    //functions
 
     void UCodeLangAPIExport UCodeLangCAPI_Init();
     void UCodeLangAPIExport UCodeLangCAPI_DeInit();

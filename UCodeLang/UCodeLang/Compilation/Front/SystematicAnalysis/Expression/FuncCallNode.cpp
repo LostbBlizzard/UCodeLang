@@ -676,7 +676,7 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 		_IR_LastExpressionField = Tep;
 	}
 
-	if (_LookingForTypes.size() && Type_Get_LookingForType().IsnotAn(TypesEnum::Void) && PushIRStackRet)//constructors are just void funcions so just set last as the input this
+	if (_LookingForTypes.size() && Type_Get_LookingForType().IsnotAn(TypesEnum::Void) && PushIRStackRet)//constructors are just void functions so just set last as the input this
 	{
 
 		_IR_LastExpressionField = PushIRStackRet;
@@ -1533,7 +1533,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 StartSymbolsLoop:
 
-	Vector<Get_FuncInfo> OkFuncions;
+	Vector<Get_FuncInfo> OkFunctions;
 
 	const UseGenericsNode* Generics = Name._ScopedName.back()._generic.get();
 
@@ -1584,7 +1584,7 @@ StartSymbolsLoop:
 				r = Info;
 				FuncSymbol = Item;
 				T = SymbolType::FuncCall;
-				OkFuncions.push_back({ ThisParType,r,FuncSymbol });
+				OkFunctions.push_back({ ThisParType,r,FuncSymbol });
 			}
 		}
 		else if (Item->Type == SymbolType::GenericFunc)//TODO try for other befor this
@@ -1645,7 +1645,7 @@ StartSymbolsLoop:
 						r = FuncSym->Get_Info<FuncInfo>();
 						FuncSymbol = FuncSym.value();
 
-						OkFuncions.push_back({ ThisParType,r,FuncSymbol });
+						OkFunctions.push_back({ ThisParType,r,FuncSymbol });
 					}
 
 				}
@@ -1698,7 +1698,7 @@ StartSymbolsLoop:
 						r = Info;
 						FuncSymbol = Item2;
 						T = SymbolType::FuncCall;
-						OkFuncions.push_back({ PushThisPar ? Get_FuncInfo::ThisPar_t::OnIRlocationStack : ThisParType,r,FuncSymbol });
+						OkFunctions.push_back({ PushThisPar ? Get_FuncInfo::ThisPar_t::OnIRlocationStack : ThisParType,r,FuncSymbol });
 					}
 				}
 				else if (Item2->Type == SymbolType::GenericFunc)
@@ -1761,7 +1761,7 @@ StartSymbolsLoop:
 								r = FuncSym->Get_Info<FuncInfo>();
 								FuncSymbol = FuncSym.value();
 								T = SymbolType::FuncCall;
-								OkFuncions.push_back({ PushThisPar ? Get_FuncInfo::ThisPar_t::OnIRlocationStack : ThisParType,r,FuncSymbol });
+								OkFunctions.push_back({ PushThisPar ? Get_FuncInfo::ThisPar_t::OnIRlocationStack : ThisParType,r,FuncSymbol });
 							}
 
 						}
@@ -1830,7 +1830,7 @@ StartSymbolsLoop:
 							r = Info;
 							FuncSymbol = Item2;
 							T = SymbolType::FuncCall;
-							OkFuncions.push_back({ PushThisPar ? Get_FuncInfo::ThisPar_t::OnIRlocationStack : ThisParType,r,FuncSymbol });
+							OkFunctions.push_back({ PushThisPar ? Get_FuncInfo::ThisPar_t::OnIRlocationStack : ThisParType,r,FuncSymbol });
 						}
 					}
 
@@ -1860,7 +1860,7 @@ StartSymbolsLoop:
 						r = (FuncInfo*)Info;
 						FuncSymbol = Item;
 						T = SymbolType::FuncCall;
-						OkFuncions.push_back({ ThisParType,r,FuncSymbol });
+						OkFunctions.push_back({ ThisParType,r,FuncSymbol });
 					}
 				}
 				else if (Type->Type == SymbolType::Type_class)
@@ -1905,7 +1905,7 @@ StartSymbolsLoop:
 								r = Info;
 								FuncSymbol = Item2;
 								T = SymbolType::FuncCall;
-								OkFuncions.push_back({ Get_FuncInfo::ThisPar_t::FullScopedName,r,FuncSymbol });
+								OkFunctions.push_back({ Get_FuncInfo::ThisPar_t::FullScopedName,r,FuncSymbol });
 							}
 						}
 					}
@@ -1938,7 +1938,7 @@ StartSymbolsLoop:
 		}
 	ContinueOutloop:continue;
 	}
-	if (OkFuncions.size() == 0)
+	if (OkFunctions.size() == 0)
 	{
 		bool MayBeAutoThisFuncCall = Name._ScopedName.size() == 1 && Context_IsInThisFuncCall();
 
@@ -1983,7 +1983,7 @@ StartSymbolsLoop:
 
 		Optional<int> MinScore;
 		Get_FuncInfo* Ret = nullptr;
-		for (auto& Item : OkFuncions)
+		for (auto& Item : OkFunctions)
 		{
 			IsCompatiblePar CMPPar;
 			if (Item.SymFunc->Type == SymbolType::Func)
@@ -2062,7 +2062,7 @@ StartSymbolsLoop:
 
 				if (funcinfo->IsUnsafe)
 				{
-					LogError(ErrorCodes::InValidType, "trying to call 'unsafe' funcion but in safe mode", token);
+					LogError(ErrorCodes::InValidType, "trying to call 'unsafe' function but in safe mode", token);
 					return { };
 				}
 			}

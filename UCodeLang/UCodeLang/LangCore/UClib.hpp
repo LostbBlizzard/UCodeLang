@@ -31,7 +31,7 @@ struct CodeLayer
 		//Loaded By UCodeVM
 		Vector<Instruction>  _Instructions;
 
-		//Funcion Names to Call displacement
+		//Function Names to Call displacement
 		UnorderedMap<String, UAddress> _NameToPtr;
 
 		//DebugInfo
@@ -107,7 +107,7 @@ struct CodeLayer
 		//Will loaded in executable memory
 		Vector<Byte> _Code;
 
-		//Funcion Names to Call displacement
+		//Function Names to Call displacement
 		UnorderedMap<String, UAddress> _NameToPtr;
 
 		//CPU specufic Debug Info
@@ -426,7 +426,7 @@ else
 	static void ToBytes(BitMaker& Output, const ClassMethod::Par& Par);
 	static void ToBytes(BitMaker& Output, const FuncPtr_Data& FuncPtrData);
 	static void ToBytes(BitMaker& Output, const GenericClass_Data& FuncPtrData);
-	static void ToBytes(BitMaker& Output, const GenericFuncion_Data& FuncPtrData);
+	static void ToBytes(BitMaker& Output, const GenericFunction_Data& FuncPtrData);
 	static void ToBytes(BitMaker& Output, const GenericBase_Data& FuncPtrData);
 	static void ToBytes(BitMaker& Output, const TraitMethod& FuncPtrData);
 	//
@@ -458,7 +458,7 @@ else
 
 
 	static void FromBytes(BitReader& reader, GenericClass_Data& Ptr);
-	static void FromBytes(BitReader& reader, GenericFuncion_Data& Ptr);
+	static void FromBytes(BitReader& reader, GenericFunction_Data& Ptr);
 	static void FromBytes(BitReader& Input, GenericBase_Data& Data);
 
 	static void FromBytes(BitReader& Input, TraitMethod& Data);
