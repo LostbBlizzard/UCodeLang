@@ -1174,14 +1174,14 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		break;
 		case IRInstructionType::Call:
 		{
-			auto FuncInfo = _Input->GetFunc(Item->Target().identifer);
+			auto FuncInfo = _Input->GetFunc(Item->Target().identifier);
 			auto FData = FuncCallStart(FuncInfo->Pars, FuncInfo->ReturnType);
 
 			InstructionBuilder::Callv1(NullAddress, _Ins); PushIns();
 
 			FuncInsID Tep;
 			Tep.Index = _OutLayer->Get_Instructions().size() - 1;
-			Tep._FuncID = Item->Target().identifer;
+			Tep._FuncID = Item->Target().identifier;
 
 			FuncsToLink.push_back(Tep);
 
@@ -2908,7 +2908,7 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction* Ins, const  IROperato
 
 		FuncInsID Tep;
 		Tep.Index = _OutLayer->Get_Instructions().size() - 1;
-		Tep._FuncID = Op.identifer;
+		Tep._FuncID = Op.identifier;
 
 		FuncsToLink.push_back(Tep);
 
@@ -2923,12 +2923,12 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction* Ins, const  IROperato
 	}
 	else if (Op.Type == IROperatorType::Get_PointerOf_IRidentifier)
 	{
-		auto Syb = _Input->GetSymbol(Op.identifer);
+		auto Syb = _Input->GetSymbol(Op.identifier);
 		if (Syb)
 		{
 			if (Syb->SymType == IRSymbolType::StaticVarable)
 			{
-				StaticMemoryManager::StaticMemInfo& Value = _StaticMemory._List.GetValue(Op.identifer);
+				StaticMemoryManager::StaticMemInfo& Value = _StaticMemory._List.GetValue(Op.identifier);
 
 				auto V = GetRegisterForTep();
 				InstructionBuilder::GetPointerOfStaticMem(_Ins, V, Value.Offset); PushIns();
@@ -2937,7 +2937,7 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction* Ins, const  IROperato
 			}
 			else if (Syb->SymType == IRSymbolType::ThreadLocalVarable)
 			{
-				StaticMemoryManager::StaticMemInfo& Value = _ThreadMemory._List.GetValue(Op.identifer);
+				StaticMemoryManager::StaticMemInfo& Value = _ThreadMemory._List.GetValue(Op.identifier);
 
 				auto V = GetRegisterForTep();
 				InstructionBuilder::GetPointerOfThreadMem(_Ins, V, Value.Offset); PushIns();
@@ -3471,17 +3471,17 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 		}
 		else if (Op.Type == IROperatorType::Get_PointerOf_IRidentifier)
 		{
-			if (auto Syb = _Input->GetSymbol(Op.identifer))
+			if (auto Syb = _Input->GetSymbol(Op.identifier))
 			{
 				if (Syb->SymType == IRSymbolType::StaticVarable)
 				{
-					const auto& Mem = _StaticMemory._List.GetValue(Op.identifer);
+					const auto& Mem = _StaticMemory._List.GetValue(Op.identifier);
 					CompilerRet.Info = IRlocData_StaticPos(Mem.Offset);
 					CompilerRet.ObjectType = Syb->Type;
 				}
 				else if (Syb->SymType == IRSymbolType::ThreadLocalVarable)
 				{
-					const auto& Mem = _ThreadMemory._List.GetValue(Op.identifer);
+					const auto& Mem = _ThreadMemory._List.GetValue(Op.identifier);
 					CompilerRet.Info = IRlocData_ThreadPos(Mem.Offset);
 					CompilerRet.ObjectType = Syb->Type;
 				}
@@ -3507,17 +3507,17 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 		}
 		else if (Op.Type == IROperatorType::IRidentifier)
 		{
-			if (auto Syb = _Input->GetSymbol(Op.identifer))
+			if (auto Syb = _Input->GetSymbol(Op.identifier))
 			{
 				if (Syb->SymType == IRSymbolType::StaticVarable)
 				{
-					const auto& Mem = _StaticMemory._List.GetValue(Op.identifer);
+					const auto& Mem = _StaticMemory._List.GetValue(Op.identifier);
 					CompilerRet.Info = IRlocData_StaticPos(Mem.Offset);
 					CompilerRet.ObjectType = Syb->Type;
 				}
 				else if (Syb->SymType == IRSymbolType::ThreadLocalVarable)
 				{
-					const auto& Mem = _ThreadMemory._List.GetValue(Op.identifer);
+					const auto& Mem = _ThreadMemory._List.GetValue(Op.identifier);
 					CompilerRet.Info = IRlocData_ThreadPos(Mem.Offset);
 					CompilerRet.ObjectType = Syb->Type;
 				}
@@ -3585,16 +3585,16 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 		}
 		else if (Op.Type == IROperatorType::IRidentifier)
 		{
-			if (auto Syb = _Input->GetSymbol(Op.identifer))
+			if (auto Syb = _Input->GetSymbol(Op.identifier))
 			{
 				if (Syb->SymType == IRSymbolType::StaticVarable)
 				{
-					const auto& Mem = _StaticMemory._List.GetValue(Op.identifer);
+					const auto& Mem = _StaticMemory._List.GetValue(Op.identifier);
 					CompilerRet.Info = IRlocData_StaticPos(Mem.Offset);
 				}
 				else if (Syb->SymType == IRSymbolType::ThreadLocalVarable)
 				{
-					const auto& Mem =_ThreadMemory._List.GetValue(Op.identifer);
+					const auto& Mem =_ThreadMemory._List.GetValue(Op.identifier);
 					CompilerRet.Info = IRlocData_ThreadPos(Mem.Offset);
 				}
 				else
@@ -3685,12 +3685,12 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IROperator&
 	}
 	else if (Op.Type == IROperatorType::IRidentifier)
 	{
-		auto Syb = _Input->GetSymbol(Op.identifer);
+		auto Syb = _Input->GetSymbol(Op.identifier);
 		if (Syb)
 		{
 			if (Syb->SymType == IRSymbolType::StaticVarable)
 			{
-				StaticMemoryManager::StaticMemInfo& Value = _StaticMemory._List.GetValue(Op.identifer);
+				StaticMemoryManager::StaticMemInfo& Value = _StaticMemory._List.GetValue(Op.identifier);
 
 				IRlocData CompilerRet;
 				CompilerRet.ObjectType = Syb->Type;
@@ -3700,7 +3700,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IROperator&
 			}
 			else if (Syb->SymType == IRSymbolType::ThreadLocalVarable)
 			{
-				StaticMemoryManager::StaticMemInfo& Value = _ThreadMemory._List.GetValue(Op.identifer);
+				StaticMemoryManager::StaticMemInfo& Value = _ThreadMemory._List.GetValue(Op.identifier);
 
 				IRlocData CompilerRet;
 				CompilerRet.ObjectType = Syb->Type;
@@ -4613,7 +4613,7 @@ bool  UCodeBackEndObject::IsReferenceingTheSame(const IROperator& Test, const IR
 		{
 		case IROperatorType::IRidentifier:
 		case IROperatorType::Get_PointerOf_IRidentifier:
-			r = Test.identifer == Other.identifer;
+			r = Test.identifier == Other.identifier;
 			break;
 		case IROperatorType::DereferenceOf_IRInstruction:
 		case IROperatorType::Get_PointerOf_IRInstruction:

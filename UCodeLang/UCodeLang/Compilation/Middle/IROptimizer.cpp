@@ -220,7 +220,7 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 									auto& Ins = Block->Instructions[i];
 									if (Ins->Type == IRInstructionType::Call)
 									{
-										Ins->Target().identifer = SameFunc->identifier;
+										Ins->Target().identifier = SameFunc->identifier;
 										UpdatedCodeFor(Func.get());
 									}
 
@@ -229,7 +229,7 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 										auto Op = Ins->Target();
 										if (Op.Type == IROperatorType::Get_Func_Pointer)
 										{
-											Op.identifer = SameFunc->identifier;
+											Op.identifier = SameFunc->identifier;
 											UpdatedCodeFor(Func.get());
 										}
 									}
@@ -239,7 +239,7 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 										auto Op = Ins->Input();
 										if (Op.Type == IROperatorType::Get_Func_Pointer)
 										{
-											Op.identifer = SameFunc->identifier;
+											Op.identifier = SameFunc->identifier;
 											UpdatedCodeFor(Func.get());
 										}
 									}
@@ -543,7 +543,7 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 					if (target.Type == IROperatorType::Get_PointerOf_IRidentifier)
 					{
 						Ins->Type = IRInstructionType::Member_Access;
-						Ins->Target() = target.identifer;
+						Ins->Target() = target.identifier;
 
 						UpdatedCode();
 					}
@@ -584,9 +584,9 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 				{
 					if (Ins->Target().Type == IROperatorType::Get_Func_Pointer)
 					{
-						auto func = Ins->Target().identifer;
+						auto func = Ins->Target().identifier;
 						Ins->Type = IRInstructionType::Call;
-						Ins->Target().identifer = func;
+						Ins->Target().identifier = func;
 
 						UpdatedCode();
 					}
@@ -1008,9 +1008,9 @@ void IROptimizer::UpdateCallWhenParWasRemoved(IRFunc* Item, const IRFunc* Func, 
 			auto& Ins = Block->Instructions[iy];
 			if (Ins->Type == IRInstructionType::Call)
 			{
-				if (Ins->Target().identifer == Func->identifier)
+				if (Ins->Target().identifier == Func->identifier)
 				{
-					Ins->Target().identifer = NewFunc.identifier;
+					Ins->Target().identifier = NewFunc.identifier;
 
 					size_t ParIndex = Func->Pars.size() - 1;
 					for (int iz = iy - 1; iz >= 0; iz--)
@@ -1062,7 +1062,7 @@ void IROptimizer::DoInlines(IRFunc* Func,IRBlock* Block)
 
 		if (Ins->Type == IRInstructionType::Call)
 		{
-			auto* FuncToCall = Input->GetFunc(Ins->Target().identifer);
+			auto* FuncToCall = Input->GetFunc(Ins->Target().identifier);
 			if (FuncToCall)
 			{
 				IROptimizationFuncData& FuncData = Funcs.GetValue(FuncToCall);
@@ -1157,12 +1157,12 @@ void IROptimizer::ToSSA(IRFunc* Func, SSAState& state)
 		{
 		case IRInstructionType::Jump:
 		case IRInstructionType::ConditionalJump:
-			if (!IndexToBlock.HasValue(I->Target().identifer))
+			if (!IndexToBlock.HasValue(I->Target().identifier))
 			{
 				IRBlock v;
 
 				Func->Blocks.push_back(std::make_unique<IRBlock>(std::move(v)));
-				IndexToBlock.AddValue(I->Target().identifer,Func->Blocks.size()-1);
+				IndexToBlock.AddValue(I->Target().identifier,Func->Blocks.size()-1);
 
 
 			}
@@ -1274,7 +1274,7 @@ void IROptimizer::InLineFunc(InLineData& Data)
 	IRInstruction* Call = Data.Block->Instructions[Data.CallIndex].get();
 
 	//IRFunc* CalleFunc = Data.Func;
-	const IRFunc* FuncToCall = Input->GetFunc(Call->Target().identifer);
+	const IRFunc* FuncToCall = Input->GetFunc(Call->Target().identifier);
 
 
 	auto FuncParsCount = FuncToCall->Pars.size();
@@ -1409,7 +1409,7 @@ void IROptimizer::InLineFunc(InLineData& Data)
 void IROptimizer::InLineSubOperator(InLineData& Data, IROperator& Op, size_t Offset)
 {
 	IRInstruction* Call = Data.Block->Instructions[Data.CallIndex + Offset].get();
-	const IRFunc* CallFunc = Input->GetFunc(Call->Target().identifer);
+	const IRFunc* CallFunc = Input->GetFunc(Call->Target().identifier);
 
 #if UCodeLangDebug
 	if (CallFunc == nullptr)

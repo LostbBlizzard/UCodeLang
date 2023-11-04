@@ -97,7 +97,7 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 				}
 				else if (Ins->Target().Type == IROperatorType::IRidentifier)
 				{
-					auto ClassType =_Input->GetSymbol(Ins->Target().identifer)->Type;
+					auto ClassType =_Input->GetSymbol(Ins->Target().identifier)->Type;
 					GetMemberAccessTypeForIns(ClassType, _Input, Ins);
 
 				}
@@ -128,7 +128,7 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 				}
 				else if (Ins->Target().Type == IROperatorType::IRidentifier)
 				{
-					auto ClassType = _Input->GetSymbol(Ins->Target().identifer)->Type;
+					auto ClassType = _Input->GetSymbol(Ins->Target().identifier)->Type;
 					GetMemberAccessTypeForIns(ClassType, _Input, Ins);
 				}
 				else
@@ -192,7 +192,7 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 			}
 			else if (Ins->Type == IRInstructionType::Call)
 			{
-				auto Item = _Input->GetFunc(Ins->Target().identifer);
+				auto Item = _Input->GetFunc(Ins->Target().identifier);
 				if (Item)
 				{
 					Ins->ObjectType = Item->ReturnType;
@@ -200,7 +200,7 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 				else
 				{
 					#if UCodeLangDebug
-					auto funcname = _Input->FromID(Ins->Target().identifer);
+					auto funcname = _Input->FromID(Ins->Target().identifier);
 					#endif
 
 					UCodeLangUnreachable();
@@ -259,7 +259,7 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op, bool UpdateInsType)
 			}
 			else if (Op.Type == IROperatorType::Get_PointerOf_IRidentifier)
 			{
-				if (auto Syb = _Input->GetSymbol(Op.identifer))
+				if (auto Syb = _Input->GetSymbol(Op.identifier))
 				{
 					Symval = Syb->Type._symbol;
 				}
@@ -305,7 +305,7 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op, bool UpdateInsType)
 	}
 	else if (Op.Type == IROperatorType::Get_Func_Pointer)
 	{
-		auto FunSym = _Input->GetFunc(Op.identifer);
+		auto FunSym = _Input->GetFunc(Op.identifier);
 
 		if (FunSym)
 		{
@@ -333,7 +333,7 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op, bool UpdateInsType)
 	}
 	else if (Op.Type == IROperatorType::IRidentifier)
 	{
-		auto V = _Input->GetSymbol(Op.identifer);
+		auto V = _Input->GetSymbol(Op.identifier);
 		if (UpdateInsType) {
 			Ins.ObjectType = V->Type;
 		}
