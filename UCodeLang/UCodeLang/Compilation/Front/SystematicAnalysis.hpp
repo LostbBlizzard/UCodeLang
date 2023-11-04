@@ -885,19 +885,19 @@ private:
 		return R;
 	}
 
-	void Set_SymbolContext(const SymbolContext& Contex)
+	void Set_SymbolContext(const SymbolContext& Context)
 	{
-		_LookingAtFile = Contex.File;
-		_Table._Scope = Contex.Scope;
-		_Table.Useings = Contex.Useings;
-		_ClassStack = Contex._ClassStack;
+		_LookingAtFile = Context.File;
+		_Table._Scope = Context.Scope;
+		_Table.Useings = Context.Useings;
+		_ClassStack = Context._ClassStack;
 	}
-	void Set_SymbolContext(SymbolContext&& Contex)
+	void Set_SymbolContext(SymbolContext&& Context)
 	{
-		_LookingAtFile = std::move(Contex.File);
-		_Table._Scope = std::move(Contex.Scope);
-		_Table.Useings = std::move(Contex.Useings);
-		_ClassStack = std::move(Contex._ClassStack);
+		_LookingAtFile = std::move(Context.File);
+		_Table._Scope = std::move(Context.Scope);
+		_Table.Useings = std::move(Context.Useings);
+		_ClassStack = std::move(Context._ClassStack);
 	}
 
 
