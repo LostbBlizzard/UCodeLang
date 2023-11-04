@@ -3982,6 +3982,7 @@ void UCodeBackEndObject::ReadValueFromPointer(RegisterID Pointer, size_t Pointer
 				UCodeLangUnreachable();
 				break;
 			}
+
 		}
 	}
 	else
@@ -4633,6 +4634,25 @@ bool  UCodeBackEndObject::IsReferenceingTheSame(const IROperator& Test, const IR
 		{
 			return true;
 		}
+		else
+		{
+			if (Other.Type == IROperatorType::IRInstruction)
+			{
+				auto pointer = Other.Pointer;
+
+				if (pointer->Type == IRInstructionType::Member_Access_Dereference
+					|| pointer->Type == IRInstructionType::Member_Access)
+				{
+
+					if (IsReferenceingTheSame(Test, pointer->Target()))
+					{
+						return true;
+					}
+
+				}
+
+			}
+		}
 	}
 
 	return false;
@@ -4643,6 +4663,7 @@ bool UCodeBackEndObject::IsReferencedAfterThisIndex(const IROperator& Op)
 	for (size_t i = Index; i < LookingBlock->Instructions.size(); i++)
 	{
 		auto Item = LookingBlock->Instructions[i].get();
+
 
 		if (IsOperatorValueInTarget(Item->Type))
 		{
