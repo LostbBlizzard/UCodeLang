@@ -416,11 +416,11 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 							auto classSb = _ClassStack.top().Syb;
 							auto Classtype = TypeSymbol(classSb->ID);
 							auto GG = classSb->Get_Info<ClassInfo>();
-							auto IndexFeild = GG->GetFieldIndex(ScopeHelper::GetNameFromFullName(newsyb->FullName)).value();
+							auto IndexField = GG->GetFieldIndex(ScopeHelper::GetNameFromFullName(newsyb->FullName)).value();
 
 
 							IRStruct* V = _IR_Builder.GetSymbol(IR_Build_ConvertToIRClassIR(*classSb))->Get_ExAs<IRStruct>();
-							Value = _IR_LookingAtIRBlock->New_Member_Dereference(&_IR_LookingAtIRFunc->Pars[0], IR_ConvertToIRType(classSb->ID), IndexFeild);
+							Value = _IR_LookingAtIRBlock->New_Member_Dereference(&_IR_LookingAtIRFunc->Pars[0], IR_ConvertToIRType(classSb->ID), IndexField);
 						}
 					}
 					else

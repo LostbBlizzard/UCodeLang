@@ -1085,8 +1085,8 @@ SystematicAnalysis::UrinaryOverLoadWith_t SystematicAnalysis::Type_HasUrinaryOve
 					{
 						return {};
 					}
-					EnumVariantFeild* hasNone = nullptr;
-					EnumVariantFeild* hasSome = nullptr;
+					EnumVariantField* hasNone = nullptr;
+					EnumVariantField* hasSome = nullptr;
 
 					for (auto& Item : info->VariantData.value().Variants)
 					{
@@ -1639,7 +1639,7 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 						EnumVariantData Variantdata;
 						for (auto& Item : outtypelist)
 						{
-							EnumVariantFeild F;
+							EnumVariantField F;
 							F.Types.push_back(Item);
 
 							Variantdata.Variants.push_back(std::move(F));

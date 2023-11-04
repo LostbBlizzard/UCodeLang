@@ -633,7 +633,7 @@ private:
 		Any,
 		Varable,
 		Parameter,
-		ClassFeild,
+		ClassField,
 		Ret,
 	};
 	struct CompileTimeforNode
@@ -1484,7 +1484,7 @@ private:
 	void Type_RemoveTypeattributes(TypeSymbol& tep_);
 
 
-	Get_FuncInfo Symbol_GetEnumVariantFunc(NeverNullPtr<Symbol> EnumSyb, size_t FeildIndex, NeverNullPtr<Symbol> EnumFieldSyb, const ValueParametersNode& Pars,const NeverNullPtr<Token> Token,const Vector<ParInfo>& ValueTypes);
+	Get_FuncInfo Symbol_GetEnumVariantFunc(NeverNullPtr<Symbol> EnumSyb, size_t FieldIndex, NeverNullPtr<Symbol> EnumFieldSyb, const ValueParametersNode& Pars,const NeverNullPtr<Token> Token,const Vector<ParInfo>& ValueTypes);
 	void Symbol_SetOutExpression(const OutExpression* Ex, const TypeSymbol& TypeToSet);
 
 	NeverNullPtr<Symbol> Symbol_GetSymbolFromExpression(const NeverNullPtr<OutExpression> Ex);

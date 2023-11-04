@@ -608,7 +608,7 @@ public:
 	}
 };
 
-struct EnumVariantFeild
+struct EnumVariantField
 {
 	Optional<SymbolID> ClassSymbol;
 	Vector <TypeSymbol> Types;
@@ -618,7 +618,7 @@ struct EnumVariantData
 {
 	Optional<size_t> VariantSize;
 
-	Vector<EnumVariantFeild> Variants;
+	Vector<EnumVariantField> Variants;
 };
 
 class EnumInfo :public Symbol_Info
