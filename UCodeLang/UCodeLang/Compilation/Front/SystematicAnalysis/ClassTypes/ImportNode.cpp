@@ -1,6 +1,6 @@
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
-ImportBindType SybolTypeToImportBindType(SymbolType Type)
+ImportBindType SymbolTypeToImportBindType(SymbolType Type)
 {
 	if (Type == SymbolType::Type_class ||
 		Type == SymbolType::Type_alias ||
@@ -41,7 +41,7 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 		{
 
 
-			for (auto& Item2 : Item._ImportedSybol._ScopedName)
+			for (auto& Item2 : Item._ImportedSymbol._ScopedName)
 			{
 				if (Item2._operator != ScopedName::Operator_t::ScopeResolution
 					&& Item2._operator != ScopedName::Operator_t::Null)
@@ -70,14 +70,14 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 				Name += ScopeHelper::_ScopeSep;
 			}
 
-			Name += Str_GetScopedNameAsString(Item._ImportedSybol);
+			Name += Str_GetScopedNameAsString(Item._ImportedSymbol);
 
 
 			auto List = GetSymbolsWithName(Name);
 
 			if (List.empty())
 			{
-				auto Token = Item._ImportedSybol._ScopedName.front()._token;
+				auto Token = Item._ImportedSymbol._ScopedName.front()._token;
 				LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos,
 					"Cant find any Symbol for '" + Name + "'");
 				continue;
@@ -94,7 +94,7 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 				{
 					auto& SybToBind = List[i];
 					auto& NewSybInfo = ImportInfo.NewSymbols[i];
-					ImportBindType SybType = SybolTypeToImportBindType(SybToBind->Type);
+					ImportBindType SybType = SymbolTypeToImportBindType(SybToBind->Type);
 
 					if (SybType == ImportBindType::Type
 						|| SybType == ImportBindType::Func)
@@ -111,17 +111,17 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 
 				if (!IsOkToBind)
 				{
-					auto Token = Item._ImportedSybol._ScopedName.front()._token;
-					auto Sybol = List.front();
+					auto Token = Item._ImportedSymbol._ScopedName.front()._token;
+					auto Symbol = List.front();
 					LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos,
-						"Cant Map Symbol '" + Sybol->FullName + "[" + ToString(Sybol->Type) + "]' to Alias");
+						"Cant Map Symbol '" + Symbol->FullName + "[" + ToString(Symbol->Type) + "]' to Alias");
 				}
 				else if (!IsOuterfile)
 				{
-					auto Token = Item._ImportedSybol._ScopedName.front()._token;
-					auto Sybol = List.front();
+					auto Token = Item._ImportedSymbol._ScopedName.front()._token;
+					auto Symbol = List.front();
 
-					String V = "importing '" + Sybol->FullName + "' but it's Declared in this file.";
+					String V = "importing '" + Symbol->FullName + "' but it's Declared in this file.";
 					LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, V);
 
 				}
@@ -186,10 +186,10 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 
 				if (!IsOuterfile)
 				{
-					auto Token = Item._ImportedSybol._ScopedName.front()._token;
-					auto Sybol = List.front();
+					auto Token = Item._ImportedSymbol._ScopedName.front()._token;
+					auto Symbol = List.front();
 
-					String V = "importing '" + Sybol->FullName + "' but it's Declared in this file.";
+					String V = "importing '" + Symbol->FullName + "' but it's Declared in this file.";
 					LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, V);
 
 				}
@@ -210,9 +210,9 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 			auto& Item = node._Imports[i];
 			auto& ImportInfo = NewImports->NewAliases[i];
 
-			for (auto& ItemSybol : ImportInfo.NewSymbols)
+			for (auto& ItemSymbol : ImportInfo.NewSymbols)
 			{
-				if (ItemSybol.Type == ImportBindType::Func)//build func?
+				if (ItemSymbol.Type == ImportBindType::Func)//build func?
 				{
 
 				}
@@ -220,8 +220,8 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 
 			if (!ImportInfo.IsUsed)
 			{
-				auto Token = Item._ImportedSybol._ScopedName.front()._token;
-				auto Name = Str_GetScopedNameAsString(Item._ImportedSybol);
+				auto Token = Item._ImportedSymbol._ScopedName.front()._token;
+				auto Name = Str_GetScopedNameAsString(Item._ImportedSymbol);
 
 				LogError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "'" + Name + "' Import Symbol was not Used");
 			}

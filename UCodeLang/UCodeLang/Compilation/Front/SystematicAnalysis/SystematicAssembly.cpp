@@ -477,7 +477,7 @@ void SystematicAnalysis::Assembly_LoadEnumSymbol(const Enum_Data& Item, const St
 						if (Syb.Type == SymbolType::Type_class)
 						{
 							bool IsUnNamed = false;
-							if (Syb.FullName.back() == '!')//the unnamed Enum Sybol post fix
+							if (Syb.FullName.back() == '!')//the unnamed Enum Symbol post fix
 							{
 								IsUnNamed = true;
 							}

@@ -99,7 +99,7 @@ constexpr RNGValue MaxRNGValue = UINT64_MAX;
 	{
 		bool _mode[(Mode_t)Mode::Max];
 	};
-	struct Sybol
+	struct Symbol
 	{
 
 	};

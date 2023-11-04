@@ -1004,12 +1004,12 @@ void CppHelper::DoClassOrStruct(const String& Keywordlet, size_t& i, UCodeAnalyz
 						if (v)
 						{
 							if (_type.Symbols.size()) {
-								auto& LastSybol = _type.Symbols.back();
-								if (auto Val = LastSybol._Type.Get_If<FuncData>())
+								auto& LastSymbol = _type.Symbols.back();
+								if (auto Val = LastSymbol._Type.Get_If<FuncData>())
 								{
 
-									LastSybol._NameSpace = Tep._NameSpace;
-									DoOverLoadOnFunc(Overloads, LastSybol, Val);
+									LastSymbol._NameSpace = Tep._NameSpace;
+									DoOverLoadOnFunc(Overloads, LastSymbol, Val);
 
 									auto ScopeStr = State.ScopesAsString();
 									Val->MemberClassName = ScopeStr.substr(0, ScopeStr.size() - 2);//removeing the  :: at the end.

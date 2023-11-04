@@ -44,13 +44,13 @@ void UCodeBackEndObject::BuildSymbols()
 			newinfo.Offset = Offset;
 			
 
-			const IRDebugSybol* Sybol = nullptr;
+			const IRDebugSymbol* Symbol = nullptr;
 			if (IsDebugMode()) {
 				for (auto& Item2 : _Input->_Debug.Symbols)
 				{
 					if (Item2.first == Item->identifier)
 					{
-						Sybol = &Item2.second;
+						Symbol = &Item2.second;
 						break;
 					}
 				}
@@ -72,7 +72,7 @@ void UCodeBackEndObject::BuildSymbols()
 				}
 
 
-				if (Sybol)
+				if (Symbol)
 				{
 					VarableInfo U;
 					U.DeclaredLine = 0;
@@ -80,9 +80,9 @@ void UCodeBackEndObject::BuildSymbols()
 					U.FileDeclaredIn = "n/a.uc";
 					
 					
-					if (Sybol->LangType == UCode_LangType_UCodeLang) 
+					if (Symbol->LangType == UCode_LangType_UCodeLang) 
 					{
-						BytesView bits = BytesView::Make(Sybol->TypeInfo.data(), Sybol->TypeInfo.size());
+						BytesView bits = BytesView::Make(Symbol->TypeInfo.data(), Symbol->TypeInfo.size());
 						BitReader r;
 						r.SetBytes(bits.Data(), bits.Size());
 						UClib::FromBytes(r, U.ReflectionType);
@@ -91,7 +91,7 @@ void UCodeBackEndObject::BuildSymbols()
 					pos.offset = Offset;
 					U.TypeLoc = std::move(pos);
 					U.VarableType = VarableInfoType::Static;
-					this->_DebugInfo.Add_SetVarableName(Sybol->VarableName, std::move(U));
+					this->_DebugInfo.Add_SetVarableName(Symbol->VarableName, std::move(U));
 				}
 			}
 			else
@@ -107,7 +107,7 @@ void UCodeBackEndObject::BuildSymbols()
 					_Output->AddThreadBytes(ItemBuf->Bytes.data(), ItemSize);
 				}
 
-				if (Sybol)
+				if (Symbol)
 				{
 					VarableInfo U;
 					U.DeclaredLine = 0;
@@ -115,9 +115,9 @@ void UCodeBackEndObject::BuildSymbols()
 					U.FileDeclaredIn = "n/a.uc";
 
 
-					if (Sybol->LangType == UCode_LangType_UCodeLang)
+					if (Symbol->LangType == UCode_LangType_UCodeLang)
 					{
-						BytesView bits = BytesView::Make(Sybol->TypeInfo.data(), Sybol->TypeInfo.size());
+						BytesView bits = BytesView::Make(Symbol->TypeInfo.data(), Symbol->TypeInfo.size());
 						BitReader r;
 						r.SetBytes(bits.Data(), bits.Size());
 						UClib::FromBytes(r, U.ReflectionType);
@@ -126,7 +126,7 @@ void UCodeBackEndObject::BuildSymbols()
 					pos.offset = Offset;
 					U.TypeLoc = std::move(pos);
 					U.VarableType = VarableInfoType::Thread;
-					this->_DebugInfo.Add_SetVarableName(Sybol->VarableName, std::move(U));
+					this->_DebugInfo.Add_SetVarableName(Symbol->VarableName, std::move(U));
 				}
 			}
 		}
@@ -590,7 +590,7 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 		U.DeclaredPos = 0;
 		U.FileDeclaredIn = "n/a.uc";
 		
-		const IRDebugSybol* Sybol = nullptr;
+		const IRDebugSymbol* Symbol = nullptr;
 
 		IRidentifier ParId = _Input->FromID(IR->identifier) + ":" + _Input->FromID(Item.identifier);
 		
@@ -600,19 +600,19 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 			{
 				if (_Input->FromID(Item2.first) == ParId)
 				{
-					Sybol = &Item2.second;
+					Symbol = &Item2.second;
 					break;
 				}
 			}
 		}
-		if (!Sybol)
+		if (!Symbol)
 		{
 			continue;
 		}
 
-		if (Sybol->LangType == UCode_LangType_UCodeLang)
+		if (Symbol->LangType == UCode_LangType_UCodeLang)
 		{
-			BytesView bits = BytesView::Make(Sybol->TypeInfo.data(), Sybol->TypeInfo.size());
+			BytesView bits = BytesView::Make(Symbol->TypeInfo.data(), Symbol->TypeInfo.size());
 			BitReader r;
 			r.SetBytes(bits.Data(), bits.Size());
 			UClib::FromBytes(r, U.ReflectionType);

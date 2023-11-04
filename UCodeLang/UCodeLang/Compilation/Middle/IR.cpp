@@ -903,7 +903,7 @@ void IRBuilder::ToBytes(BitMaker& Out, const IRDebugSybInfo& Value)
 	}
 }
 
-void IRBuilder::ToBytes(UCodeLang::BitMaker& Out, const UCodeLang::IRDebugSybol& Value)
+void IRBuilder::ToBytes(UCodeLang::BitMaker& Out, const UCodeLang::IRDebugSymbol& Value)
 {
 	Out.WriteType(Value.IRVarableName);
 
@@ -913,9 +913,9 @@ void IRBuilder::ToBytes(UCodeLang::BitMaker& Out, const UCodeLang::IRDebugSybol&
 
 	Out.WriteType(Value.TypeInfo);
 
-	Out.WriteType((IRDebugSybol::Type_t)Value._Type);
+	Out.WriteType((IRDebugSymbol::Type_t)Value._Type);
 }
-void IRBuilder::FromBytes(BitReader& Out, IRDebugSybol& OtherValue)
+void IRBuilder::FromBytes(BitReader& Out, IRDebugSymbol& OtherValue)
 {
 	Out.ReadType(OtherValue.IRVarableName);
 
@@ -925,7 +925,7 @@ void IRBuilder::FromBytes(BitReader& Out, IRDebugSybol& OtherValue)
 
 	Out.ReadType(OtherValue.TypeInfo);
 
-	Out.ReadType(*(IRDebugSybol::Type_t*)&OtherValue._Type);
+	Out.ReadType(*(IRDebugSymbol::Type_t*)&OtherValue._Type);
 }
 
 void IRBuilder::FromBytes(BitReader& Out, IRDebugSybInfo& Value)
@@ -939,7 +939,7 @@ void IRBuilder::FromBytes(BitReader& Out, IRDebugSybInfo& Value)
 		IRidentifierID Key=0;
 		Out.ReadType(Key);
 
-		IRDebugSybol OtherValue;
+		IRDebugSymbol OtherValue;
 
 		FromBytes(Out, OtherValue);
 

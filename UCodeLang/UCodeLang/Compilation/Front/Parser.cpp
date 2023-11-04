@@ -5013,7 +5013,7 @@ GotNodeType Parser::GetImportStatement(ImportStatement& out)
 
 			ImportValue importvalue;
 			importvalue._AliasName = Opt<const Token*>(ValueName);
-			GetName(importvalue._ImportedSybol);
+			GetName(importvalue._ImportedSymbol);
 
 			out._Imports.push_back(std::move(importvalue));
 		}
@@ -5022,7 +5022,7 @@ GotNodeType Parser::GetImportStatement(ImportStatement& out)
 			_TokenIndex = ValueIndex;
 
 			ImportValue importvalue;
-			GetName(importvalue._ImportedSybol);
+			GetName(importvalue._ImportedSymbol);
 
 			out._Imports.push_back(std::move(importvalue));
 		}

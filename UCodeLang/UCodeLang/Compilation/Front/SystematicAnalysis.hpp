@@ -812,7 +812,7 @@ private:
 
 	IRBlockDebugInfo* _Debug_LastLookAtDebugBlock = nullptr;
 	Optional<SymbolID> _Type_UnMapTypeSymbol;
-	Vector<GeneratedGenericSymbolData> _Generic_GeneratedGenericSybol;
+	Vector<GeneratedGenericSymbolData> _Generic_GeneratedGenericSymbol;
 	Vector<NeverNullPtr<Symbol>> _InlineEnums;
 
 	Vector<Unique_ptr<String>> StringsFromLoadLib;
@@ -1029,7 +1029,7 @@ private:
 	void Debug_Add_SetLineNumber(const NeverNullPtr<Token> token, size_t InsInBlock);
 	void Debug_Add_SetVarableInfo(const Symbol& Syb, size_t InsInBlock);
 
-	const NeverNullPtr<FileNode> FileDependency_Get_FileUseingSybol(const NeverNullPtr<Symbol> Syb);
+	const NeverNullPtr<FileNode> FileDependency_Get_FileUseingSymbol(const NeverNullPtr<Symbol> Syb);
 	void FileDependency_AddDependencyToCurrentFile(const NeverNullPtr<Symbol> Syb);
 	void FileDependency_AddDependencyToCurrentFile(const NeverNullPtr<FileNode> file);
 	void FileDependency_AddDependencyToCurrentFile(const TypeSymbol& type);

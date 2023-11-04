@@ -178,7 +178,7 @@ void SystematicAnalysis::BuildCode()
 	}
 	{
 		auto oldconext = SaveAndMove_SymbolContext();
-		for (auto& Item : _Generic_GeneratedGenericSybol)
+		for (auto& Item : _Generic_GeneratedGenericSymbol)
 		{
 			auto Symbol = Symbol_GetSymbol(Item.ID);
 
@@ -297,7 +297,7 @@ void SystematicAnalysis::Debug_Add_SetVarableInfo(const Symbol& Syb, size_t InsI
 	
 	_IR_LookingAtIRBlock->DebugInfo.Add_SetVarableName(std::move(V));
 
-	IRDebugSybol Info;
+	IRDebugSymbol Info;
 	Info.IRVarableName = irvarname;
 	Info.VarableName = Syb.FullName;
 	
@@ -312,16 +312,16 @@ void SystematicAnalysis::Debug_Add_SetVarableInfo(const Symbol& Syb, size_t InsI
 	switch (Syb.Type)
 	{	
 	case SymbolType::ParameterVarable:
-		Info._Type = IRDebugSybol::Type::Par;
+		Info._Type = IRDebugSymbol::Type::Par;
 		break;
 	case SymbolType::StackVarable:
-		Info._Type = IRDebugSybol::Type::Stack;
+		Info._Type = IRDebugSymbol::Type::Stack;
 		break;
 	case SymbolType::StaticVarable:
-		Info._Type = IRDebugSybol::Type::Static;
+		Info._Type = IRDebugSymbol::Type::Static;
 		break;
 	case SymbolType::ThreadVarable:
-		Info._Type = IRDebugSybol::Type::Thread;
+		Info._Type = IRDebugSymbol::Type::Thread;
 		break;
 	default:
 		UCodeLangUnreachable();
@@ -329,13 +329,13 @@ void SystematicAnalysis::Debug_Add_SetVarableInfo(const Symbol& Syb, size_t InsI
 	}
 	_IR_Builder._Debug.Symbols.AddValue(ID,std::move(Info));
 }
-const NeverNullPtr<FileNode> SystematicAnalysis::FileDependency_Get_FileUseingSybol(const NeverNullPtr<Symbol> Syb)
+const NeverNullPtr<FileNode> SystematicAnalysis::FileDependency_Get_FileUseingSymbol(const NeverNullPtr<Symbol> Syb)
 {
 	return NeverNullptr(Syb->_File);
 }
 void SystematicAnalysis::FileDependency_AddDependencyToCurrentFile(const NeverNullPtr<Symbol> Syb)
 {
-	FileDependency_AddDependencyToCurrentFile(FileDependency_Get_FileUseingSybol(Syb));
+	FileDependency_AddDependencyToCurrentFile(FileDependency_Get_FileUseingSymbol(Syb));
 	
 	
 	auto CurrentFile = _LookingAtFile;
@@ -415,7 +415,7 @@ void SystematicAnalysis::FileDependency_AddDependencyToCurrentFile(const TypeSym
 Symbol& SystematicAnalysis::Symbol_AddSymbol(SymbolType type, const String& Name, const String& FullName,AccessModifierType Access)
 {
 
-	auto& r = _Table.AddSybol(type, Name, FullName,Access);
+	auto& r = _Table.AddSymbol(type, Name, FullName,Access);
 	r._File = _LookingAtFile;
 	return r;
 }
@@ -476,7 +476,7 @@ void SystematicAnalysis::OnFileNode(const FileNode& File)
 	size_t StaticDeInitStart = PassType::BuidCode == _PassType && _IR_Builder._StaticdeInit.Blocks.size() ? _IR_Builder._StaticdeInit.Blocks.front()->Instructions.size() : 0;
 	size_t ThreadDeInitStart = PassType::BuidCode == _PassType && _IR_Builder._threaddeInit.Blocks.size() ? _IR_Builder._threaddeInit.Blocks.front()->Instructions.size() : 0;
 	size_t IRFunsStart = PassType::BuidCode == _PassType ? _IR_Builder.Funcs.size() : 0;
-	size_t IRSybolsStart = PassType::BuidCode == _PassType ? _IR_Builder._Symbols.size() : 0;
+	size_t IRSymbolsStart = PassType::BuidCode == _PassType ? _IR_Builder._Symbols.size() : 0;
 	size_t IRConstStaticStart = PassType::BuidCode == _PassType ? _IR_Builder.ConstStaticStrings.size() : 0;
 
 	bool DoneWithImports = false;
@@ -572,7 +572,7 @@ void SystematicAnalysis::OnFileNode(const FileNode& File)
 		FileData.IRDeInitStaticSpan= FileNodeData::SpanData::NewWithNewIndex(StaticDeInitStart, _IR_Builder._StaticdeInit.Blocks.size() ? _IR_Builder._StaticdeInit.Blocks.front()->Instructions.size() : 0);
 		FileData.IRDeInitThreadSpan = FileNodeData::SpanData::NewWithNewIndex(ThreadDeInitStart, _IR_Builder._threaddeInit.Blocks.size() ? _IR_Builder._threaddeInit.Blocks.front()->Instructions.size() : 0);
 		FileData.IRFuncsSpan = FileNodeData::SpanData::NewWithNewIndex(IRFunsStart, _IR_Builder.Funcs.size());
-		FileData.IRSymbolSpan = FileNodeData::SpanData::NewWithNewIndex(IRSybolsStart, _IR_Builder._Symbols.size());
+		FileData.IRSymbolSpan = FileNodeData::SpanData::NewWithNewIndex(IRSymbolsStart, _IR_Builder._Symbols.size());
 		FileData.IRConstStringSpan = FileNodeData::SpanData::NewWithNewIndex(IRConstStaticStart, _IR_Builder.ConstStaticStrings.size());
 	}
 

@@ -523,8 +523,8 @@ bool SystematicAnalysis::Type_CanDoTypeToTrait(const TypeSymbol& TypeToCheck, co
 {
 	if (Type._IsDynamic)
 	{
-		auto SybolB = Symbol_GetSymbol(Type).value();
-		TraitInfo* Info = SybolB->Get_Info<TraitInfo>();
+		auto SymbolB = Symbol_GetSymbol(Type).value();
+		TraitInfo* Info = SymbolB->Get_Info<TraitInfo>();
 		auto TypeSybOp = Symbol_GetSymbol(TypeToCheck);
 
 		if (TypeSybOp)
@@ -534,7 +534,7 @@ bool SystematicAnalysis::Type_CanDoTypeToTrait(const TypeSymbol& TypeToCheck, co
 			{
 				ClassInfo* ClassF = TypeSyb->Get_Info<ClassInfo>();
 
-				auto Indexo = ClassF->Get_InheritedTypesIndex(SybolB.value());
+				auto Indexo = ClassF->Get_InheritedTypesIndex(SymbolB.value());
 
 				if (Indexo.has_value())
 				{

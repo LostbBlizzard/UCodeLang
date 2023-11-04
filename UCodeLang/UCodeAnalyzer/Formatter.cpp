@@ -119,7 +119,7 @@ void Formatter::ReFormat(const UF::ImportStatement& Node)
 			AddToOutput(ToName(UCodeLang::TokenType::equal));
 			AddToOutput(" ");
 		}
-		ReFormat(Item._ImportedSybol);
+		ReFormat(Item._ImportedSymbol);
 	}
 
 	AddToOutput(ToName(UCodeLang::TokenType::Right_Brace));
