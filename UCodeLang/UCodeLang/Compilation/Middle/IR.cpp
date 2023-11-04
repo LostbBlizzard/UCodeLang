@@ -212,7 +212,7 @@ IRType IRBuilder::GetType(const IROperator& IR) const
 	
 	case IROperatorType::IRidentifier:
 	{
-		auto Id = IR.identifer;
+		auto Id = IR.identifier;
 		if (auto Syb = GetSymbol(Id))
 		{
 			return Syb->Type;
@@ -233,7 +233,7 @@ IRType IRBuilder::GetType(const IROperator& IR) const
 	}
 	case IROperatorType::Get_PointerOf_IRidentifier:
 	{
-		auto Id = IR.identifer;
+		auto Id = IR.identifier;
 		if (auto Syb = GetSymbol(Id))
 		{
 			return IRType(IRTypes::pointer, Syb->Type._symbol);
@@ -826,7 +826,7 @@ void IRBuilder::ToBytes(BitMaker& Out, const IROperator& Value, const IRType& Ty
 		|| Value.Type == IROperatorType::Get_PointerOf_IRidentifier
 		|| Value.Type == IROperatorType::IRidentifier)
 	{
-		Out.WriteType(Value.identifer);
+		Out.WriteType(Value.identifier);
 	}
 }
 
@@ -887,7 +887,7 @@ void IRBuilder::FromBytes(BitReader& Out, IROperator& Value, const IRType& Type,
 		|| Value.Type == IROperatorType::Get_PointerOf_IRidentifier
 		|| Value.Type == IROperatorType::IRidentifier)
 	{
-		Out.ReadType(Value.identifer, Value.identifer);
+		Out.ReadType(Value.identifier, Value.identifier);
 	}
 }
 
@@ -1481,10 +1481,10 @@ void IRBuilder::ToString(ToStringState& State, IRFunc* Item, String& r)
 				{
 				case IRInstructionType::Jump:
 				case IRInstructionType::ConditionalJump:
-					if (!Names.HasValue(I->Target().identifer)) 
+					if (!Names.HasValue(I->Target().identifier)) 
 					{
 						auto LabelName = "_label" + std::to_string(Names.size());
-						Names.AddValue(I->Target().identifer, LabelName);
+						Names.AddValue(I->Target().identifier, LabelName);
 					
 						
 					}
@@ -1666,20 +1666,20 @@ bool IRBuilder::ToString(
 		break;
 	case IRInstructionType::Jump:
 		r += "goto ";
-		r += Names.GetValue(I->Target().identifer);
+		r += Names.GetValue(I->Target().identifier);
 		break;
 	case IRInstructionType::ConditionalJump:
 		r += "gotoif (";
 		r += ToString(State, *I, I->Input());
 		r += ") ";
-		r += Names.GetValue(I->Target().identifer);
+		r += Names.GetValue(I->Target().identifier);
 		break;
 	case IRInstructionType::Call:
 	{
 		r += ToString(I->ObjectType);
 		r += " " + State.GetName(I);
 		r += " = ";
-		r += FromID(I->Target().identifer) + "(";
+		r += FromID(I->Target().identifier) + "(";
 		for (auto& Item : State.TepPushedParameters)
 		{
 			r += ToString(State, *Item, Item->Target());
@@ -1885,7 +1885,7 @@ String IRBuilder::ToString(ToStringState& State, const IRInstruction& Ins, const
 	}
 	case IROperatorType::IRidentifier:
 	{
-		return FromID(Value.identifer);
+		return FromID(Value.identifier);
 	}
 
 	case IROperatorType::IRInstruction:
@@ -1910,7 +1910,7 @@ String IRBuilder::ToString(ToStringState& State, const IRInstruction& Ins, const
 	}
 	case IROperatorType::Get_PointerOf_IRidentifier:
 	{
-		return "&" + FromID(Value.identifer);
+		return "&" + FromID(Value.identifier);
 	}
 
 	case IROperatorType::DereferenceOf_IRInstruction:
@@ -1925,7 +1925,7 @@ String IRBuilder::ToString(ToStringState& State, const IRInstruction& Ins, const
 	
 	case IROperatorType::Get_Func_Pointer:
 	{
-		return "(&)" + FromID(Value.identifer);
+		return "(&)" + FromID(Value.identifier);
 	}
 	default:return "[]";
 	}

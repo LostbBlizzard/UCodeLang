@@ -689,10 +689,10 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 				case IRInstructionType::Jump:
 
 				case IRInstructionType::ConditionalJump:
-					if (!Names.HasValue(I->Target().identifer))
+					if (!Names.HasValue(I->Target().identifier))
 					{
 						auto LabelName = "_label" + std::to_string(Names.size());
-						Names.AddValue(I->Target().identifer,LabelName);
+						Names.AddValue(I->Target().identifier,LabelName);
 					}
 					break;
 				}
@@ -908,13 +908,13 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					break;
 				case IRInstructionType::Jump:
 					r += "goto ";
-					r += Names.GetValue(I->Target().identifer);
+					r += Names.GetValue(I->Target().identifier);
 					break;
 				case IRInstructionType::ConditionalJump:
 					r += "if (";
 					r += ToString(State, *I, I->Input());
 					r += "){goto ";
-					r += Names.GetValue(I->Target().identifer);
+					r += Names.GetValue(I->Target().identifier);
 					r += "; }";
 					break;
 				case IRInstructionType::Call:
@@ -925,7 +925,7 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 						r += " " + State.GetName(I.get());
 						r += " = ";
 					}
-					r += FromIDToCindentifier(I->Target().identifer) + "(";
+					r += FromIDToCindentifier(I->Target().identifier) + "(";
 					for (auto& Item : State.TepPushedParameters)
 					{
 						r += State.PointerToName.GetValue(Item->Target().Pointer);
@@ -1193,12 +1193,12 @@ String C89Backend::ToString(ToStringState& State, IRInstruction& Ins, IROperator
 	break;
 	case IROperatorType::IRidentifier:
 	{
-		r += FromIDToCindentifier(Value.identifer);
+		r += FromIDToCindentifier(Value.identifier);
 	}
 	break;
 	case IROperatorType::Get_PointerOf_IRidentifier:
 	{
-		r += "&" + FromIDToCindentifier(Value.identifer);
+		r += "&" + FromIDToCindentifier(Value.identifier);
 	}
 	break;
 	case IROperatorType::IRInstruction:
@@ -1233,7 +1233,7 @@ String C89Backend::ToString(ToStringState& State, IRInstruction& Ins, IROperator
 	break;
 	case IROperatorType::Get_Func_Pointer:
 	{
-		r += "&" + FromIDToCindentifier(Value.identifer);
+		r += "&" + FromIDToCindentifier(Value.identifier);
 	}
 	break;
 	default:UCodeLangUnreachable();

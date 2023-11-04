@@ -414,7 +414,7 @@ struct IROperator
 	{
 		IRInstruction* Pointer;
 		AnyInt64 Value;
-		IRidentifierID identifer;
+		IRidentifierID identifier;
 		IRPar* Parameter;
 	};
 
@@ -425,11 +425,11 @@ struct IROperator
 
 	IROperator(IRInstruction* pointer):Type(IROperatorType::IRInstruction),Pointer(pointer){}
 	IROperator(AnyInt64 value) :Type(IROperatorType::Value), Value(value) {}
-	IROperator(IRidentifierID Value):Type(IROperatorType::IRidentifier), identifer(Value) {}
+	IROperator(IRidentifierID Value):Type(IROperatorType::IRidentifier), identifier(Value) {}
 	IROperator(IRPar* Value) :Type(IROperatorType::IRParameter), Parameter(Value) {}
 	
 	IROperator(IROperatorType type,IRInstruction* pointer) :Type(type), Pointer(pointer) {}
-	IROperator(IROperatorType type, IRidentifierID Value) :Type(type), identifer(Value) {}
+	IROperator(IROperatorType type, IRidentifierID Value) :Type(type), identifier(Value) {}
 	IROperator(IROperatorType type, IRPar* Value) :Type(type), Parameter(Value) {}
 
 
@@ -444,7 +444,7 @@ struct IROperator
 			case IROperatorType::IRParameter:
 				return Parameter == Other.Parameter;
 			case IROperatorType::IRidentifier:
-				return identifer == Other.identifer;
+				return identifier == Other.identifier;
 			default:
 				UCodeLangUnreachable();
 				break;
@@ -1826,6 +1826,6 @@ struct std::hash<UCodeLang::IROperator>
 		// and bit shifting:
 
 		return ((hash<IROperator_t>()((IROperator_t)k.Type)
-			^ (hash<IRidentifierID>()(k.identifer) << 1)) >> 1);
+			^ (hash<IRidentifierID>()(k.identifier) << 1)) >> 1);
 	}
 };
