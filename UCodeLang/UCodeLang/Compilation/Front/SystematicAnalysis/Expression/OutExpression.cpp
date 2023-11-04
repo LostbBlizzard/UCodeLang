@@ -11,7 +11,7 @@ void SystematicAnalysis::Symbol_SetOutExpression(const OutExpression* Ex, const 
 	auto Syb = &Symbol_AddSymbol(SymbolType::StackVarable, (String)Str, FullName, AccessModifierType::Public);
 
 	_LookingForTypes.push(TypeToSet);
-	Syb->VarType = Type_ConvertAndValidateType(Ex->_Type, NodeSyb_t::Varable);
+	Syb->VarType = Type_ConvertAndValidateType(Ex->_Type, NodeSyb_t::Variable);
 	_LookingForTypes.pop();
 
 	Type_DeclareVariableTypeCheck(Syb->VarType, TypeToSet, NeverNullptr(Ex->_Name.token));
@@ -32,7 +32,7 @@ void SystematicAnalysis::Eval_SetOutExpressionEval(const OutExpression* Ex, cons
 	auto Syb = &Symbol_AddSymbol(SymbolType::ConstantExpression, (String)Str, FullName, AccessModifierType::Public);
 
 	_LookingForTypes.push(ObjectToSet.Type);
-	Syb->VarType = Type_ConvertAndValidateType(Ex->_Type, NodeSyb_t::Varable);
+	Syb->VarType = Type_ConvertAndValidateType(Ex->_Type, NodeSyb_t::Variable);
 	_LookingForTypes.pop();
 
 	Type_DeclareVariableTypeCheck(Syb->VarType, ObjectToSet.Type, NeverNullptr(Ex->_Name.token));

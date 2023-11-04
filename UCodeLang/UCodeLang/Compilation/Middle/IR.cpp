@@ -1513,7 +1513,7 @@ void IRBuilder::ToString(ToStringState& State, IRFunc* Item, String& r)
 					else if (auto Val = Item->Debug.Get_If<IRDebugSetVarableName>())
 					{
 						r += "\n";
-						r += "//Varable:" + Val->VarableName;
+						r += "//Variable:" + Val->VarableName;
 					}
 				}
 

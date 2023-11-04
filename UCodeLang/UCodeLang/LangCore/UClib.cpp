@@ -1115,7 +1115,7 @@ void UClib::FixRawValue(Endian AssemblyEndian, NTypeSize BitSize,const ClassAsse
 		}
 		case ReflectionTypes::CustomType:
 		{
-			UCodeLangThrowException("not addded yet");
+			UCodeLangThrowException("not added yet");
 		}
 		default:
 			UCodeLangUnreachable();

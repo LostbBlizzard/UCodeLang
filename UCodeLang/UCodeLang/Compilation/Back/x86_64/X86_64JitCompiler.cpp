@@ -17,7 +17,7 @@ X86_64JitCompiler::X86_64JitCompiler()
 #elif UCodeLang_Platform_MacOS
 	//CallConvention.SetMacOSandIOS;
 #else
-	static_assert(true, "Cant find Call Convetion");
+	static_assert(true, "Cant find Call Convention");
 #endif
 	_CallConvention = _IR.AddCallConvention(std::move(CallConvention));
 

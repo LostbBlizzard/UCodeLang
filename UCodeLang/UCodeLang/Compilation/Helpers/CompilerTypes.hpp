@@ -78,8 +78,8 @@ enum class TokenType : TokenType_t
 	CompoundMult,//*=
 	CompoundDiv,// /=
 
-	KeyWord_invalid,//invaild
-	KeyWord_valid,//vaild
+	KeyWord_invalid,//invalid
+	KeyWord_valid,//valid
 	KeyWord_continue,//continue
 	KeyWord_break,//break
 	ScopeResolution,//::

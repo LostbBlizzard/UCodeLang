@@ -585,7 +585,7 @@ void SystematicAnalysis::OnFileNode(const FileNode& File)
 			for (size_t i = 0; i < Import._AliasSymbols.size(); i++)
 			{
 				auto& Item = Import._AliasSymbols[i];
-				Import._TepSymbolFullNames[i] = std::move(Item->FullName);//removeing name to remove exposure from other files.
+				Import._TepSymbolFullNames[i] = std::move(Item->FullName);//removing name to remove exposure from other files.
 			}
 		}
 	}
@@ -1255,11 +1255,11 @@ void SystematicAnalysis::IR_Build_OnStoreVarable(bool IsStructObjectPassRef, IRI
 			_IR_LookingAtIRBlock = Func->Blocks.front().get();
 
 
-			auto Varable = _IR_LookingAtIRBlock->NewLoadPtr(id);
+			auto Variable = _IR_LookingAtIRBlock->NewLoadPtr(id);
 
 			ObjectToDrop V;
 			V.ID = sybId;
-			V._Object = Varable;
+			V._Object = Variable;
 			V.DropType = ObjectToDropType::IRInstructionNoMod;
 			V.Type = syb->VarType;
 			IR_Build_DestructorCall(V);
@@ -2783,7 +2783,7 @@ void SystematicAnalysis::LogError_SymbolRedefinition(const NeverNullPtr<Token> T
 void SystematicAnalysis::LogError_UseingVarableBeforDeclared(const NeverNullPtr<Token> Token)
 {
 	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
-		, "trying to use the varable '" + (String)Token->Value._String + "\' before its defined.");
+		, "trying to use the variable '" + (String)Token->Value._String + "\' before its defined.");
 }
 void SystematicAnalysis::LogError_BeMoreSpecifiicForRetType(const String_view FuncName, const NeverNullPtr<Token> Token)
 {
@@ -2994,7 +2994,7 @@ void SystematicAnalysis::LogError_ParPackTypeIsNotLast(const NeverNullPtr<Token>
 }
 void SystematicAnalysis::LogError_UseingTypeinfoInNonEvalVarable(const NeverNullPtr<Token> Token)
 {
-	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "Trying to use typeinfo in a Non-eval Varable");
+	LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, "Trying to use typeinfo in a Non-eval Variable");
 }
 void SystematicAnalysis::LogError_UseingTypeinfoInEvalFuncPar(const NeverNullPtr<Token> Token)
 {
@@ -3002,7 +3002,7 @@ void SystematicAnalysis::LogError_UseingTypeinfoInEvalFuncPar(const NeverNullPtr
 }
 void SystematicAnalysis::LogError_CantOutputTypeinfo(const NeverNullPtr<Token> Token)
 {
-	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Cant Output IR of an typeinfo. place this in an eval function or an eval varable");
+	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Cant Output IR of an typeinfo. place this in an eval function or an eval variable");
 }
 void SystematicAnalysis::LogError_DoesNotHaveForOverload(const NeverNullPtr<Token> Token, TypeSymbol& ExType)
 {

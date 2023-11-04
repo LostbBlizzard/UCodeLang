@@ -268,7 +268,7 @@
 #if PUBLISHED
 #define UCodeLangToDo() static_assert(true,"Add Code Path");
 #else
-#define UCodeLangToDo() UCodeLangThrowException("Code Path not vaild Is On ToDolist");
+#define UCodeLangToDo() UCodeLangThrowException("Code Path not valid Is On ToDolist");
 #endif
 
 #if UCodeLangDebug

@@ -290,7 +290,7 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 						String EndText = CppLinkText.substr(i);
 
 
-						//removeing the {...}
+						//removing the {...}
 						String newfile = StartText;
 						//newfile += '\n';
 						newfile += EndText;
@@ -744,9 +744,9 @@ void CppHelper::ParseCppToSybs(UCodeAnalyzer::String& FileText, UCodeAnalyzer::V
 				}
 
 				size_t StartIndex = i;
-				String Indentifer;
-				GetIdentifier(i, FileText, Indentifer);
-				if (OnDo(StartIndex, Indentifer, i, FileText, Tep, Symbols, State))
+				String Identifier;
+				GetIdentifier(i, FileText, Identifier);
+				if (OnDo(StartIndex, Identifier, i, FileText, Tep, Symbols, State))
 				{
 					auto& Last = Symbols.back();
 					if (auto Val = Last._Type.Get_If<FuncData>())
@@ -1012,7 +1012,7 @@ void CppHelper::DoClassOrStruct(const String& Keywordlet, size_t& i, UCodeAnalyz
 									DoOverLoadOnFunc(Overloads, LastSymbol, Val);
 
 									auto ScopeStr = State.ScopesAsString();
-									Val->MemberClassName = ScopeStr.substr(0, ScopeStr.size() - 2);//removeing the  :: at the end.
+									Val->MemberClassName = ScopeStr.substr(0, ScopeStr.size() - 2);//removing the  :: at the end.
 								}
 							}
 						}

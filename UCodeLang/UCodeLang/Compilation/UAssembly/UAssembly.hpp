@@ -22,7 +22,7 @@ public:
 
 
 
-	//retrun is added 
+	//return is added 
 	static size_t ParseInstruction(size_t I, const Span<Instruction> Data, String& r, const BytesView staticbytesview, UnorderedMap<UAddress, String>& AddressToName,bool CombineIns =true);
 	static void ToStringInstruction(const Instruction& Item, String& r, const BytesView staticbytesview, UnorderedMap<UAddress,String>& AddressToName);
 	

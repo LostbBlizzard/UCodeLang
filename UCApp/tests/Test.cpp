@@ -772,7 +772,7 @@ using namespace UCodeLang;
 				auto& MyTestInfo = TestInfo[i];
 				TestMode mode = (TestMode)i;
 
-				std::cout << "---runing Test for " << TestModeToName(mode) << std::endl;
+				std::cout << "---running Test for " << TestModeToName(mode) << std::endl;
 				
 				Vector<std::future<bool>> List;
 				List.resize(Tests.size());

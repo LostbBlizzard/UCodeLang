@@ -10,7 +10,7 @@ UCodeLangStart
 //Use This if You can't jit on platfrom
 //#define RunTimeCantBeJit 1
 
-//This is Best used as obect static
+//This is Best used as object static
 class UCodeRunTime
 {
 public:
