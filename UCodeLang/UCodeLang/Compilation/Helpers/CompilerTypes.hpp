@@ -160,7 +160,7 @@ enum class TokenType : TokenType_t
 
 	KeyWord_await,//await
 	KeyWord_async,//async
-	KeyWord_yeild,//yeild
+	KeyWord_yield,//yield
 
 	KeyWord_uft8,//utf8
 	KeyWord_uft16,//utf16
@@ -324,7 +324,7 @@ public:
 		case TokenType::KeyWord_extern:return "extern";
 		case TokenType::KeyWord_await:return "await";
 		case TokenType::KeyWord_async:return "async";
-		case TokenType::KeyWord_yeild:return "yeild";
+		case TokenType::KeyWord_yield:return "yield";
 		case TokenType::KeyWord_unsafe:return "unsafe";
 		case TokenType::KeyWord_block:return "block";
 		case TokenType::KeyWord_defer:return "defer";

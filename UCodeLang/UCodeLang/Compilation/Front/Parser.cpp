@@ -748,7 +748,7 @@ GotNodeType Parser::GetStatement(Node*& out)
 		return r.GotNode;
 	}
 	break;
-	case TokenType::KeyWord_yeild:
+	case TokenType::KeyWord_yield:
 	{
 		auto r = GetYieldStatementNode();
 		out = r.Node;
@@ -1398,7 +1398,7 @@ GotNodeType Parser::GetExpressionNode(Node*& out)
 		return V.GotNode;
 	}
 	break;
-	case TokenType::KeyWord_yeild:
+	case TokenType::KeyWord_yield:
 	{
 		auto V = GetYieldExpresionNode();
 		out = V.Node;
@@ -5084,7 +5084,7 @@ GotNodeType Parser::GetAwaitStatementNode(AwaitStatement& out)
 }
 GotNodeType Parser::GetYieldExpresionNode(YieldExpression& out)
 {
-	out._Token = TryGetToken(); TokenTypeCheck(out._Token, TokenType::KeyWord_yeild);
+	out._Token = TryGetToken(); TokenTypeCheck(out._Token, TokenType::KeyWord_yield);
 	NextToken();
 
 	GetExpressionTypeNode(out._Expression);
