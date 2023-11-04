@@ -187,7 +187,7 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 
 					String CppLibVar = "";
 					{
-						GetIndentifier(i, CppLinkText, CppLibVar);
+						GetIdentifier(i, CppLinkText, CppLibVar);
 					}
 
 					{//pass the ,
@@ -199,7 +199,7 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 
 					String CppNameSpace;
 					{
-						GetIndentifier(i, CppLinkText, CppNameSpace);
+						GetIdentifier(i, CppLinkText, CppNameSpace);
 					}
 
 					{//pass the )
@@ -745,7 +745,7 @@ void CppHelper::ParseCppToSybs(UCodeAnalyzer::String& FileText, UCodeAnalyzer::V
 
 				size_t StartIndex = i;
 				String Indentifer;
-				GetIndentifier(i, FileText, Indentifer);
+				GetIdentifier(i, FileText, Indentifer);
 				if (OnDo(StartIndex, Indentifer, i, FileText, Tep, Symbols, State))
 				{
 					auto& Last = Symbols.back();
@@ -792,7 +792,7 @@ void CppHelper::DoConstexprType(size_t& i, UCodeAnalyzer::String& FileText, UCod
 	{
 		size_t OldIndex = i;
 		String StrV;
-		GetIndentifier(i, FileText, StrV);
+		GetIdentifier(i, FileText, StrV);
 
 		if (StrV == "static")
 		{
@@ -809,7 +809,7 @@ void CppHelper::DoConstexprType(size_t& i, UCodeAnalyzer::String& FileText, UCod
 	{//pass the spaces
 		MovePassSpace(i, FileText);
 	}
-	GetIndentifier(i, FileText, Tep._Name);
+	GetIdentifier(i, FileText, Tep._Name);
 	Tep._FullName = State.ScopesAsString() + Tep._Name;
 	{//pass the spaces
 		MovePassSpace(i, FileText);
@@ -835,7 +835,7 @@ void CppHelper::DoEnumType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnal
 	{
 		String V;
 		size_t oldindex = i;
-		GetIndentifier(i, FileText,V);
+		GetIdentifier(i, FileText,V);
 
 		if (V != "class")
 		{
@@ -849,7 +849,7 @@ void CppHelper::DoEnumType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnal
 	}
 
 	{
-		GetIndentifier(i, FileText, Tep._Name);
+		GetIdentifier(i, FileText, Tep._Name);
 		Tep._FullName = State.ScopesAsString() + Tep._Name;
 	}
 
@@ -890,7 +890,7 @@ void CppHelper::DoEnumType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnal
 				EnumType::Field field;
 
 				GetSummaryTag(i,Scope,field.Summary);
-				GetIndentifier(i, Scope, field.Name);
+				GetIdentifier(i, Scope, field.Name);
 
 				bool Exclude = false;
 				if (field.Name == UCodeLangExcludeString)
@@ -898,7 +898,7 @@ void CppHelper::DoEnumType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnal
 					Exclude = true;
 
 					MovePassSpace(i, Scope);
-					GetIndentifier(i, Scope, field.Name);
+					GetIdentifier(i, Scope, field.Name);
 				}
 
 				MovePassSpace(i, Scope);
@@ -946,7 +946,7 @@ void CppHelper::DoClassOrStruct(const String& Keywordlet, size_t& i, UCodeAnalyz
 	}
 
 	{
-		GetIndentifier(i, FileText, Tep._Name);
+		GetIdentifier(i, FileText, Tep._Name);
 		Tep._FullName = State.ScopesAsString() + Tep._Name;
 	}
 
@@ -989,7 +989,7 @@ void CppHelper::DoClassOrStruct(const String& Keywordlet, size_t& i, UCodeAnalyz
 
 					String TepStr;
 					{
-						GetIndentifier(i, Scope, TepStr);
+						GetIdentifier(i, Scope, TepStr);
 					}
 
 					if (TepStr == "constexpr")
@@ -1046,9 +1046,9 @@ void CppHelper::DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size
 
 	{
 		auto oldindex = i;
-		String Indentifier;
-		GetIndentifier(i, FileText, Indentifier);
-		if (Indentifier == "inline")
+		String Identifier;
+		GetIdentifier(i, FileText, Identifier);
+		if (Identifier == "inline")
 		{
 			MovePassSpace(i, FileText);
 		}
@@ -1061,9 +1061,9 @@ void CppHelper::DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size
 	bool IsStatic = false;
 	{
 		auto oldindex = i;
-		String Indentifier;
-		GetIndentifier(i, FileText, Indentifier);
-		if (Indentifier == "static")
+		String Identifier;
+		GetIdentifier(i, FileText, Identifier);
+		if (Identifier == "static")
 		{
 			IsStatic = true;
 			MovePassSpace(i, FileText);
@@ -1076,11 +1076,11 @@ void CppHelper::DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size
 	CPPType V;
 	GetType(i, FileText, V);
 
-	String Indentifier;
+	String Identifier;
 	
 	MovePassSpace(i, FileText);
 	
-	GetIndentifier(i, FileText, Indentifier);
+	GetIdentifier(i, FileText, Identifier);
 
 
 	
@@ -1102,7 +1102,7 @@ void CppHelper::DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size
 			size_t OldNext = i;
 			
 			String AsStr;
-			GetIndentifier(i, FileText, AsStr);
+			GetIdentifier(i, FileText, AsStr);
 			if (AsStr == UCodeLangOutPartypeString)
 			{
 				tep.IsOut = true;
@@ -1124,7 +1124,7 @@ void CppHelper::DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size
 
 			MovePassSpace(i, FileText);
 
-			GetIndentifier(i, FileText, tep.Name);
+			GetIdentifier(i, FileText, tep.Name);
 
 			func.Pars.push_back(std::move(tep));
 
@@ -1143,7 +1143,7 @@ void CppHelper::DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size
 		{
 			auto oldinex = i;
 			String AsStr;
-			GetIndentifier(i, FileText, AsStr);
+			GetIdentifier(i, FileText, AsStr);
 
 			if (AsStr == "const")
 			{
@@ -1156,7 +1156,7 @@ void CppHelper::DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size
 		}
 
 
-		Tep._Name = std::move(Indentifier);
+		Tep._Name = std::move(Identifier);
 		Tep._FullName = State.ScopesAsString() + Tep._Name;
 		Tep.Summary = std::move(Sum);
 		Tep._Type = std::move(func);
@@ -1207,8 +1207,8 @@ bool CppHelper::OnDo(size_t StartIndex,const String& Keywordlet, size_t& i, UCod
 void CppHelper::DoEmbed(size_t StartIndex, const String& Keywordlet, size_t& i, String& FileText, SymbolData& Tep, Vector<SymbolData>& Symbols, ParseCppState& State)
 {
 	{
-		String Indentifier;
-		GetIndentifier(i, FileText, Indentifier);
+		String Identifier;
+		GetIdentifier(i, FileText, Identifier);
 	}
 
 	MovePassSpace(i, FileText);
@@ -1358,7 +1358,7 @@ bool IsIndextifierChar(char Value)
 	return IsLetter(Value) || Isdigit(Value) || Value == '_';
 }
 
-void CppHelper::GetIndentifier(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::String& Out)
+void CppHelper::GetIdentifier(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnalyzer::String& Out)
 {
 	for (size_t iq = i; iq < FileText.size(); iq++)
 	{
@@ -1375,11 +1375,11 @@ void CppHelper::GetIndentifier(size_t& i, UCodeAnalyzer::String& FileText, UCode
 void CppHelper::GetType(size_t& i, UCodeAnalyzer::String& FileText, CPPType& Out)
 {
 	String Tep;
-	GetIndentifier(i, FileText, Tep);
+	GetIdentifier(i, FileText, Tep);
 	if (Tep == "const") {
 		Out.IsConst = true;
 		MovePassSpace(i, FileText);
-		GetIndentifier(i, FileText, Out.Value);
+		GetIdentifier(i, FileText, Out.Value);
 	}
 	else
 	{
@@ -1427,7 +1427,7 @@ void CppHelper::MovePassSpace(size_t& i, UCodeAnalyzer::String& FileText)
 
 void CppHelper::GetCPPExpression(size_t& i, UCodeAnalyzer::String& FileText, CPPExpression& Out)
 {
-	GetIndentifier(i, FileText, Out.Value);
+	GetIdentifier(i, FileText, Out.Value);
 }
 
 void CppHelper::GetSummaryTag(size_t& i, UCodeAnalyzer::String& FileText, SummaryTag& Out)
