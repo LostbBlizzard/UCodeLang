@@ -47,7 +47,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 
 
 		SybClass.VarType.SetType(SybClass.ID);
-		info->Conext = Save_SymbolContextRemoveOneScopeName();
+		info->Context = Save_SymbolContextRemoveOneScopeName();
 		Generic_InitGenericalias(node._generic, IsgenericInstantiation, info->_GenericData);
 
 

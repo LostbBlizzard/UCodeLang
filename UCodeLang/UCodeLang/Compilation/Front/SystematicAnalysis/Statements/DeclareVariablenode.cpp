@@ -55,14 +55,14 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 		{
 			ConstantExpressionInfo* info = new ConstantExpressionInfo();
 			info->Exnode = &node._Expression;
-			info->Conext = Save_SymbolContext();
+			info->Context = Save_SymbolContext();
 			syb->Info.reset(info);
 		}
 		else
 		{
 			DeclareVariableInfo* info = new DeclareVariableInfo();
 			info->LineNumber = node._Name.token->OnPos;
-			info->Conext = Save_SymbolContext();
+			info->Context = Save_SymbolContext();
 			syb->Info.reset(info);
 		}
 

@@ -422,7 +422,7 @@ private:
 
 
 	};
-	struct BlockConext
+	struct BlockContext
 	{
 		String Scope;
 		bool PassedYield = false;
@@ -432,11 +432,11 @@ private:
 	{
 		FuncInfo* Pointer = nullptr;
 		bool IsOnRetStatemnt = false;
-		Vector<BlockConext> BlockConexts;
+		Vector<BlockContext> BlockContexts;
 		FuncStackInfo(FuncInfo* V)
 		{
 			Pointer = V;
-			BlockConexts.push_back({});
+			BlockContexts.push_back({});
 		}
 	};
 	struct IRLocation_Cotr
@@ -827,7 +827,7 @@ private:
 		if (_FuncStack.size())
 		{
 			auto& func = _FuncStack.front();
-			for (auto& Item : func.BlockConexts)
+			for (auto& Item : func.BlockContexts)
 			{
 				if (Item.IsUnSafeBlock)
 				{
@@ -842,7 +842,7 @@ private:
 	{
 		if (_FuncStack.size())
 		{
-			return _FuncStack.front().BlockConexts.front().PassedYield;
+			return _FuncStack.front().BlockContexts.front().PassedYield;
 		}
 		return false;
 	}
@@ -850,7 +850,7 @@ private:
 	{
 		if (_FuncStack.size())
 		{
-			_FuncStack.front().BlockConexts.front().PassedYield = true;
+			_FuncStack.front().BlockContexts.front().PassedYield = true;
 		}
 	}
 
@@ -885,14 +885,14 @@ private:
 		return R;
 	}
 
-	void Set_SymbolConext(const SymbolContext& Contex)
+	void Set_SymbolContext(const SymbolContext& Contex)
 	{
 		_LookingAtFile = Contex.File;
 		_Table._Scope = Contex.Scope;
 		_Table.Useings = Contex.Useings;
 		_ClassStack = Contex._ClassStack;
 	}
-	void Set_SymbolConext(SymbolContext&& Contex)
+	void Set_SymbolContext(SymbolContext&& Contex)
 	{
 		_LookingAtFile = std::move(Contex.File);
 		_Table._Scope = std::move(Contex.Scope);

@@ -177,7 +177,7 @@ void SystematicAnalysis::BuildCode()
 		}
 	}
 	{
-		auto oldconext = SaveAndMove_SymbolContext();
+		auto oldcontext = SaveAndMove_SymbolContext();
 		for (auto& Item : _Generic_GeneratedGenericSymbol)
 		{
 			auto Symbol = Symbol_GetSymbol(Item.ID);
@@ -191,9 +191,9 @@ void SystematicAnalysis::BuildCode()
 				auto node = FuncNode::As(Symbol->Get_NodeInfo<Node>());
 				
 				
-				Set_SymbolConext(std::move(Info->Conext.value()));
+				Set_SymbolContext(std::move(Info->Context.value()));
 				OnFuncNode(*node);
-				Info->Conext = SaveAndMove_SymbolContext();
+				Info->Context = SaveAndMove_SymbolContext();
 			}
 			break;
 			case SymbolType::Type_class:
@@ -202,9 +202,9 @@ void SystematicAnalysis::BuildCode()
 				auto node = ClassNode::As(Symbol->Get_NodeInfo<Node>());
 
 
-				Set_SymbolConext(std::move(Info->Conext.value()));
+				Set_SymbolContext(std::move(Info->Context.value()));
 				OnClassNode(*node);
-				Info->Conext = SaveAndMove_SymbolContext();
+				Info->Context = SaveAndMove_SymbolContext();
 			}
 			break;
 			case SymbolType::Enum:
@@ -213,9 +213,9 @@ void SystematicAnalysis::BuildCode()
 				auto node = EnumNode::As(Symbol->Get_NodeInfo<Node>());
 
 
-				Set_SymbolConext(std::move(Info->Conext.value()));
+				Set_SymbolContext(std::move(Info->Context.value()));
 				OnEnum(*node);
-				Info->Conext = SaveAndMove_SymbolContext();
+				Info->Context = SaveAndMove_SymbolContext();
 
 				
 			}
@@ -226,9 +226,9 @@ void SystematicAnalysis::BuildCode()
 				auto node = AliasNode::As(Symbol->Get_NodeInfo<Node>());
 
 
-				Set_SymbolConext(std::move(Info->Conext.value()));
+				Set_SymbolContext(std::move(Info->Context.value()));
 				OnAliasNode(*node);
-				Info->Conext = SaveAndMove_SymbolContext();
+				Info->Context = SaveAndMove_SymbolContext();
 
 
 			}

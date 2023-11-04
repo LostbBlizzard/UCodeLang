@@ -8,7 +8,7 @@ void SystematicAnalysis::OnUnsafeStatement(const UnsafeStatementsNode& node)
 
 	_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
 
-	auto& block = _FuncStack.front().BlockConexts.front();
+	auto& block = _FuncStack.front().BlockContexts.front();
 	auto oldblock = block.IsUnSafeBlock;
 
 	block.IsUnSafeBlock = true;
@@ -23,7 +23,7 @@ void SystematicAnalysis::OnUnsafeStatement(const UnsafeStatementsNode& node)
 }
 void SystematicAnalysis::OnUnsafeExpression(const UnsafeExpression& node)
 {
-	auto& block = _FuncStack.front().BlockConexts.front();
+	auto& block = _FuncStack.front().BlockContexts.front();
 	auto oldblock = block.IsUnSafeBlock;
 	block.IsUnSafeBlock = true;
 	OnExpressionTypeNode(node._Base, _GetExpressionMode.top());

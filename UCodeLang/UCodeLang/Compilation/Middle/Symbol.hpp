@@ -407,7 +407,7 @@ public:
 	TypeSymbol Ret;
 	
 	Generic _GenericData;
-	Optional<SymbolContext> Conext;
+	Optional<SymbolContext> Context;
 
 	bool FrontParIsUnNamed = false;
 	bool IsUnsafe = false;
@@ -563,7 +563,7 @@ public:
 
 	bool _IsExternalC = false;
 
-	Optional<SymbolContext> Conext;
+	Optional<SymbolContext> Context;
 };
 
 struct RawEvaluatedObject
@@ -703,7 +703,7 @@ public:
 
 	Optional<EnumVariantData> VariantData;
 	Generic _GenericData;
-	Optional<SymbolContext> Conext;
+	Optional<SymbolContext> Context;
 };
 
 class FuncPtrInfo :public Symbol_Info
@@ -719,7 +719,7 @@ public:
 	TypeSymbol Ret;
 
 	Generic _GenericData;
-	Optional<SymbolContext> Conext;
+	Optional<SymbolContext> Context;
 };
 
 
@@ -731,7 +731,7 @@ public:
 	const ExpressionNodeType* Exnode = nullptr;
 	RawEvaluatedObject Ex;
 
-	Optional<SymbolContext> Conext;
+	Optional<SymbolContext> Context;
 	ConstantExpressionInfo()
 	{
 
@@ -829,21 +829,21 @@ public:
 	Vector<TraitVar> _Vars;
 	Symbol* TraitClassInfo = nullptr;
 	Generic _GenericData;
-	Optional<SymbolContext> Conext;
+	Optional<SymbolContext> Context;
 };
 
 
 class AliasInfo :public Symbol_Info
 {
 public:
-	Optional<SymbolContext> Conext;
+	Optional<SymbolContext> Context;
 };
 
 class Generic_AliasInfo :public Symbol_Info
 {
 public:
 	Generic _GenericData;
-	Optional<SymbolContext> Conext;
+	Optional<SymbolContext> Context;
 };
 
 enum class ImportBindType
@@ -875,7 +875,7 @@ class TagInfo :public Symbol_Info
 {
 public:
 	Generic _GenericData;
-	Optional<SymbolContext> Conext;
+	Optional<SymbolContext> Context;
 
 };
 class DeclareVariableInfo :public Symbol_Info
@@ -884,7 +884,7 @@ public:
 	//for stack varables.
 	size_t LineNumber = 0;
 
-	Optional<SymbolContext> Conext;
+	Optional<SymbolContext> Context;
 };
 
 class Symbol
