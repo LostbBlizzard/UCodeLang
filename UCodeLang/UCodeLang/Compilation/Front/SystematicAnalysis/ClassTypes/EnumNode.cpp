@@ -85,8 +85,8 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 
 			_Table._Scope.AddScope(ItemName);
 			{
-				auto& EnumFeild = Symbol_AddSymbol(SymbolType::Enum_Field, (String)ItemName, _Table._Scope.ThisScope, AccessModifierType::Public);
-				EnumFeild.NodePtr = &Item;
+				auto& EnumField = Symbol_AddSymbol(SymbolType::Enum_Field, (String)ItemName, _Table._Scope.ThisScope, AccessModifierType::Public);
+				EnumField.NodePtr = &Item;
 			}
 			_Table._Scope.ReMoveScope();
 
@@ -112,7 +112,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 					auto& VariantType_ = Item._VariantType.value();
 					if (VariantType_._node && VariantType_._node->Get_Type() == NodeType::AnonymousTypeNode)
 					{
-						EnumVariantFeild V;
+						EnumVariantField V;
 
 						{
 							//
@@ -154,7 +154,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 					}
 					else
 					{
-						EnumVariantFeild V;
+						EnumVariantField V;
 						V.Types.push_back(Type_ConvertAndValidateType(VariantType_, NodeSyb_t::Parameter));
 
 						EnumVa.Variants.push_back(std::move(V));
@@ -162,7 +162,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 				}
 				else
 				{
-					EnumVariantFeild V;
+					EnumVariantField V;
 					EnumVa.Variants.push_back(std::move(V));
 				}
 

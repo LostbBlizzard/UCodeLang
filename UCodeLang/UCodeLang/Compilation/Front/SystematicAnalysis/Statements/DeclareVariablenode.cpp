@@ -117,7 +117,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 	if (_PassType == PassType::FixedTypes)
 	{
 		auto& VarType = syb->VarType;
-		Type_ConvertAndValidateType(node._Type, VarType, NodeSyb_t::ClassFeild);
+		Type_ConvertAndValidateType(node._Type, VarType, NodeSyb_t::ClassField);
 		VarType.SetAsLocation();
 
 
@@ -312,10 +312,10 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 						auto classSb = _ClassStack.top().Syb;
 						auto Classtype = TypeSymbol(classSb->ID);
 						auto GG = classSb->Get_Info<ClassInfo>();
-						auto IndexFeild = GG->GetFieldIndex(ScopeHelper::GetNameFromFullName(syb->FullName)).value();
+						auto IndexField = GG->GetFieldIndex(ScopeHelper::GetNameFromFullName(syb->FullName)).value();
 
 						IRStruct* V = _IR_Builder.GetSymbol(IR_Build_ConvertToIRClassIR(*classSb))->Get_ExAs<IRStruct>();
-						auto output = _IR_LookingAtIRBlock->New_Member_Dereference(&_IR_LookingAtIRFunc->Pars[0], IR_ConvertToIRType(classSb->ID), IndexFeild);
+						auto output = _IR_LookingAtIRBlock->New_Member_Dereference(&_IR_LookingAtIRFunc->Pars[0], IR_ConvertToIRType(classSb->ID), IndexField);
 
 						auto Func = Type_GetFunc(syb->VarType, {});
 						Func.ThisPar = Get_FuncInfo::ThisPar_t::PushFromLast;

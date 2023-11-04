@@ -352,12 +352,12 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 								Out.Type.SetType(val->ID);//set enum type
 
 								{
-									String FeildSymFullName = val->FullName;
-									ScopeHelper::GetApendedString(FeildSymFullName, NameString);
+									String FieldSymFullName = val->FullName;
+									ScopeHelper::GetApendedString(FieldSymFullName, NameString);
 
-									Symbol* FeildSym = Symbol_GetSymbol(FeildSymFullName, SymbolType::Enum_Field).value().value();
+									Symbol* FieldSym = Symbol_GetSymbol(FieldSymFullName, SymbolType::Enum_Field).value().value();
 
-									Out._Symbol = FeildSym;//set symbol as enum feild
+									Out._Symbol = FieldSym;//set symbol as enum field
 
 
 									Out.Set_V1(&Einfo->Fields[*FeldInfo]);
@@ -951,12 +951,12 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 				Out.Type.SetType(Out._Symbol->ID);//set enum type
 
 				{
-					String FeildSymFullName = Out._Symbol->FullName;
-					ScopeHelper::GetApendedString(FeildSymFullName, NameString);
+					String FieldSymFullName = Out._Symbol->FullName;
+					ScopeHelper::GetApendedString(FieldSymFullName, NameString);
 
-					Symbol* FeildSym = Symbol_GetSymbol(FeildSymFullName, SymbolType::Enum_Field).value().value();
+					Symbol* FieldSym = Symbol_GetSymbol(FieldSymFullName, SymbolType::Enum_Field).value().value();
 
-					Out._Symbol = FeildSym;//set symbol as enum feild
+					Out._Symbol = FieldSym;//set symbol as enum field
 
 
 					Out.Set_V1(&Einfo->Fields[*FeldInfo]);
