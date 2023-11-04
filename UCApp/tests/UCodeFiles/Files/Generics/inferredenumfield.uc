@@ -8,5 +8,5 @@ $Optional<T> enum:
  int? Val = Option(5);
 
  match Val:
-  Option(out Valu):ret Valu;
+  Option(out Value):ret Value;
   Null:ret 0;

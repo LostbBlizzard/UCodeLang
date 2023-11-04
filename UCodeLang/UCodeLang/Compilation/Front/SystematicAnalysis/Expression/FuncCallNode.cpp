@@ -1118,7 +1118,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 			const OutExpression* outEx = OutExpression::As(Item.get());
 			HasOutPar = true;
 			ValueItem.IsOutPar = true;
-			ValueItem.Type = Type_ConvertAndValidateType(outEx->_Type, NodeSyb_t::Varable);
+			ValueItem.Type = Type_ConvertAndValidateType(outEx->_Type, NodeSyb_t::Variable);
 		}
 		else
 		{

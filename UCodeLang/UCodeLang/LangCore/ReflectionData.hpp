@@ -1189,7 +1189,7 @@ public:
 	}
 
 
-	//should be chached
+	//should be cached
 	struct InfoVector_t
 	{
 		ReflectionTypeInfo ElementType;

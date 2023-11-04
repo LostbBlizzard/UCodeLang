@@ -2,7 +2,7 @@
 #include "UCodeLang/Compilation/Helpers/InstructionBuilder.hpp"
 #include "UCodeLang/Compilation/Helpers/NameDecoratior.hpp"
 #include "UCodeLang/LangCore/UClib.hpp"
-#include "UCodeLang/Compilation/CompliationSettings.hpp"
+#include "UCodeLang/Compilation/CompilationSettings.hpp"
 #include "InsHelper.hpp"
 UCodeLangStart
 
@@ -4204,7 +4204,7 @@ RegisterID UCodeBackEndObject::GetRegisterForTep()
 	{
 		for (RegisterID_t i = (RegisterID_t)RegisterID::StartRegister; i < (RegisterID_t)RegisterID::EndRegister; i++)
 		{
-			RegisterID Regster = (RegisterID)i;
+			RegisterID Register = (RegisterID)i;
 			auto& Item = _Registers.Registers[i];
 			if (Item.Types.has_value())
 			{
@@ -4215,17 +4215,17 @@ RegisterID UCodeBackEndObject::GetRegisterForTep()
 					auto& IRV = *IR;
 					if (!IsReferencedAfterThisIndex(IRV))
 					{
-						return Regster;
+						return Register;
 					}
 				}
 				else if (auto IR = ItemValue.Get_If<AnyInt64>())
 				{
-					return Regster;
+					return Register;
 				}
 			}
 			else
 			{
-				return Regster;
+				return Register;
 			}
 		}
 

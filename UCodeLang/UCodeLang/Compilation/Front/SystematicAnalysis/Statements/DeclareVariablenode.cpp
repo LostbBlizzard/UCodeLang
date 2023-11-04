@@ -91,7 +91,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 					break;
 				}
 
-				LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, VarType + " Varable must be assigned.missing '='.");
+				LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos, VarType + " Variable must be assigned.missing '='.");
 			}
 		}
 

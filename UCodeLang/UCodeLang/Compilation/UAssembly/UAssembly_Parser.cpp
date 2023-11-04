@@ -63,7 +63,7 @@ void Parser::ParseIns()
 	else
 	{
 		NextToken();
-		_ErrorsOutput->AddError(ErrorCodes::CantParseTree, T->OnLine, T->OnPos,(String)InsName + "Is Not a valid instrucion");
+		_ErrorsOutput->AddError(ErrorCodes::CantParseTree, T->OnLine, T->OnPos,(String)InsName + "Is Not a valid instruction");
 	}
 
 }

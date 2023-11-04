@@ -631,7 +631,7 @@ private:
 	enum class NodeSyb_t
 	{
 		Any,
-		Varable,
+		Variable,
 		Parameter,
 		ClassField,
 		Ret,

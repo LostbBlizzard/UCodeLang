@@ -15,15 +15,15 @@ const AssemblyNode* ClassAssembly::Find_Node(ReflectionCustomTypeID TypeID) cons
 {
 	for (auto& Item : Classes)
 	{
-		Optional< ReflectionCustomTypeID> Valu;
+		Optional< ReflectionCustomTypeID> Value;
 	
 		switch (Item->Get_Type())
 		{
-		case ClassType::Class:Valu = Item->Get_ClassData().TypeID; break;
-		case ClassType::Enum:Valu = Item->Get_EnumData().TypeID; break;
-		case ClassType::Alias:Valu = Item->Get_AliasData().HardAliasTypeID; break;
-		case ClassType::Trait:Valu = Item->Get_TraitData().TypeID; break;
-		case ClassType::Tag:Valu = Item->Get_TagData().TypeID; break;
+		case ClassType::Class:Value = Item->Get_ClassData().TypeID; break;
+		case ClassType::Enum:Value = Item->Get_EnumData().TypeID; break;
+		case ClassType::Alias:Value = Item->Get_AliasData().HardAliasTypeID; break;
+		case ClassType::Trait:Value = Item->Get_TraitData().TypeID; break;
+		case ClassType::Tag:Value = Item->Get_TagData().TypeID; break;
 		case ClassType::FuncPtr:break;
 		case ClassType::GenericClass:break;
 		case ClassType::GenericFunction:break;
@@ -32,9 +32,9 @@ const AssemblyNode* ClassAssembly::Find_Node(ReflectionCustomTypeID TypeID) cons
 			break;
 		}
 
-		if (Valu.has_value())
+		if (Value.has_value())
 		{
-			if (Valu.value() == TypeID)
+			if (Value.value() == TypeID)
 			{
 				return Item.get();
 			}

@@ -268,7 +268,7 @@ struct X86_64IR
 		//ToString helper
 		// Copy $Src => $Out 
 		// Swap $Src <> $Out 
-		//Varable Names
+		//Variable Names
 		// Return value: $Return-Result$ 
 		// Par# value: $Par#$ etc 
 		// Called Function Value: $Result$

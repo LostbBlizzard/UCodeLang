@@ -62,7 +62,7 @@ void OutputIRLineInfo(IRBuilder* Builder,IRFunc* Func, const UDebugSetLineNumber
 								{
 									if (auto Val = Item->Debug.Get_If<IRDebugSetVarableName>())
 									{
-										r += "//Varable:" + Val->VarableName;
+										r += "//Variable:" + Val->VarableName;
 									}
 								}
 							}

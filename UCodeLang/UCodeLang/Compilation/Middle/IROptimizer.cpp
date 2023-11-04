@@ -141,7 +141,7 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 		if (Optimization_RemoveFuncsWithSameBody)
 		{
 			BitMaker bits;
-			UnorderedMap<size_t,const IRFunc*> Hashs;
+			UnorderedMap<size_t,const IRFunc*> Hashes;
 			for (auto& Func : Input->Funcs)
 			{
 				auto& FuncData = Funcs.GetValue(Func.get());
@@ -186,9 +186,9 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 				}
 
 
-				if (Hashs.HasValue(Hash))
+				if (Hashes.HasValue(Hash))
 				{
-					const auto& SameFunc = Hashs.GetValue(Hash);
+					const auto& SameFunc = Hashes.GetValue(Hash);
 					
 					Func->Blocks.clear();
 
@@ -253,7 +253,7 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 				}
 				else
 				{
-					Hashs.AddValue(Hash, Func.get());
+					Hashes.AddValue(Hash, Func.get());
 				}
 			}
 		}
@@ -688,7 +688,7 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 		{
 			for (auto& Ins : Block->Instructions)
 			{
-				if (Ins->Type == IRInstructionType::Load) //removeing dead Instructions
+				if (Ins->Type == IRInstructionType::Load) //removing dead Instructions
 				{
 					auto& Data = Get_IRData(Ins.get());
 					if (!Data.IsReferenced)
@@ -697,7 +697,7 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 					}
 				}
 
-				if (Ins->Type == IRInstructionType::LoadNone)//removeing dead Instructions
+				if (Ins->Type == IRInstructionType::LoadNone)//removing dead Instructions
 				{
 					auto& Data = Get_IRData(Ins.get());
 					if (!Data.IsReferenced)
@@ -706,7 +706,7 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 					}
 				}
 
-				if (Ins->Type == IRInstructionType::Reassign)//removeing dead Instructions
+				if (Ins->Type == IRInstructionType::Reassign)//removing dead Instructions
 				{
 					if (Ins->Target().Pointer->Type == IRInstructionType::None)
 					{
