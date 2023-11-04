@@ -49,6 +49,26 @@ public:
 		}
 		return {};
 	}
+	Optional<RegisterID> GetInfo(IROperator Value)
+	{
+		for (size_t i = 0; i < RegisterSize; i++)
+		{
+			auto& Info = Registers[i];
+			if (Info.Types.has_value())
+			{
+				auto& TypesValue = Info.Types.value();
+				if (auto Any = TypesValue.Get_If<IROperator>())
+				{
+					if (*Any == Value)
+					{
+						return (RegisterID)i;
+					}
+				}
+			}
+		}
+		return {};
+	}
+
 	Optional<RegisterID> GetValue(AnyInt64 Value)
 	{
 		for (size_t i = 0; i < RegisterSize; i++)
@@ -68,6 +88,7 @@ public:
 		}
 		return {};
 	}
+	
 
 	Optional<RegisterID> GetFreeRegister()
 	{

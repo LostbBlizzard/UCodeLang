@@ -437,7 +437,18 @@ struct IROperator
 	{
 		if (Type == Other.Type)
 		{
-			return Pointer == Other.Pointer;
+			switch (Other.Type)
+			{
+			case IROperatorType::IRInstruction:
+				return Pointer == Other.Pointer;
+			case IROperatorType::IRParameter:
+				return Parameter == Other.Parameter;
+			case IROperatorType::IRidentifier:
+				return identifer == Other.identifer;
+			default:
+				UCodeLangUnreachable();
+				break;
+			}
 		}
 		return false;
 	}

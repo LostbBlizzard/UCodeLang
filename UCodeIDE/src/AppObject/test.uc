@@ -33,3 +33,6 @@ $Player[Component]:
 
 |main[] => 0;
 
+|F[]:
+ Player V = [];
+ V.Update();
