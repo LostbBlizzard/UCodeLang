@@ -1,7 +1,7 @@
 #include "SyntaxHelper.hpp"
 
-#include "UCodeLang/Compliation/Front/Lexer.hpp"
-#include "UCodeLang/Compliation/Helpers/KeyWords.hpp"
+#include "UCodeLang/Compilation/Front/Lexer.hpp"
+#include "UCodeLang/Compilation/Helpers/KeyWords.hpp"
 UCodeAnalyzerStart
 
 Vector<String> SyntaxHelper::GetControlFlowKeywords()

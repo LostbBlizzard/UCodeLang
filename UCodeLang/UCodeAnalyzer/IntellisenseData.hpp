@@ -1,9 +1,9 @@
 #pragma once
 #include "Typedef.hpp"
 
-#include "UCodeLang/Compliation/Front/Lexer.hpp"
-#include "UCodeLang/Compliation/Front/Parser.hpp"
-#include "UCodeLang/Compliation/Front/SystematicAnalysis.hpp"
+#include "UCodeLang/Compilation/Front/Lexer.hpp"
+#include "UCodeLang/Compilation/Front/Parser.hpp"
+#include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeAnalyzerStart
 class IntellisenseData
 {
@@ -18,8 +18,8 @@ public:
 	auto& Get_Settings() { return _Settings; }
 private:
 
-	UCodeLang::CompliationErrors _Errors;
-	UCodeLang::CompliationSettings _Settings;
+	UCodeLang::CompilationErrors _Errors;
+	UCodeLang::CompilationSettings _Settings;
 
 	UCodeLang::FrontEnd::Lexer _Lexer;
 	UCodeLang::FrontEnd::Parser _Parser;

@@ -4,10 +4,10 @@
 #include <memory>
 #include <sstream>
 #include <fstream>
-#include <UCodeLang/Compliation/UAssembly/UAssembly.hpp>
-#include <UCodeLang/Compliation/ModuleFile.hpp>
+#include <UCodeLang/Compilation/UAssembly/UAssembly.hpp>
+#include <UCodeLang/Compilation/ModuleFile.hpp>
 
-#include <UCodeLang/Compliation/Back/WebAssembly/WasmBackEnd.hpp>
+#include <UCodeLang/Compilation/Back/WebAssembly/WasmBackEnd.hpp>
 
 #include "../src/UCodeLangProjectPaths.hpp"
 

@@ -6,8 +6,8 @@
 #include <filesystem>
 #include "TestNameSpace.hpp"
 
-#include <UCodeLang/Compliation/Front/Lexer.hpp>
-#include <UCodeLang/Compliation/Front/Parser.hpp>
+#include <UCodeLang/Compilation/Front/Lexer.hpp>
+#include <UCodeLang/Compilation/Front/Parser.hpp>
 
 #include "../src/UCodeLangProjectPaths.hpp"
 UCodeTestStart

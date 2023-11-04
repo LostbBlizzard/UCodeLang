@@ -1,5 +1,5 @@
 #pragma once
-#include "UCodeLang/Compliation/Compiler.hpp"
+#include "UCodeLang/Compilation/Compiler.hpp"
 #include "UCodeLang/RunTime/UCodeRunTime.hpp"
 class App
 {

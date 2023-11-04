@@ -3,22 +3,22 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
-#include "UCodeLang/Compliation/ModuleFile.hpp"
+#include "UCodeLang/Compilation/ModuleFile.hpp"
 #include "UCodeAnalyzer/Formater.hpp"
 #include "UCodeAnalyzer/Preprocessors/CppHelper.hpp"
 #include "UCodeLang/RunTime/AnyInterpreter.hpp"
-#include "UCodeLang/Compliation/Back/NativeBackEnd.hpp"
-#include "UCodeLang/Compliation/UAssembly/UAssembly.hpp"
+#include "UCodeLang/Compilation/Back/NativeBackEnd.hpp"
+#include "UCodeLang/Compilation/UAssembly/UAssembly.hpp"
 
-#include "UCodeLang/Compliation/Back/Windows/WindowsBackEnd.hpp"
-#include "UCodeLang/Compliation/Back/Linux/LinuxBackEnd.hpp"
-#include "UCodeLang/Compliation/Back/MacOs/MacOSBackEnd.hpp"
-#include "UCodeLang/Compliation/Back/IR/IRBackEnd.hpp"
-#include "UCodeLang/Compliation/Back/WebAssembly/WasmBackEnd.hpp"
-#include "UCodeLang/Compliation/Back/C89/C89Backend.hpp"
-#include "UCodeLang/Compliation/Back/LLVM/LLVMBackEnd.hpp"
+#include "UCodeLang/Compilation/Back/Windows/WindowsBackEnd.hpp"
+#include "UCodeLang/Compilation/Back/Linux/LinuxBackEnd.hpp"
+#include "UCodeLang/Compilation/Back/MacOs/MacOSBackEnd.hpp"
+#include "UCodeLang/Compilation/Back/IR/IRBackEnd.hpp"
+#include "UCodeLang/Compilation/Back/WebAssembly/WasmBackEnd.hpp"
+#include "UCodeLang/Compilation/Back/C89/C89Backend.hpp"
+#include "UCodeLang/Compilation/Back/LLVM/LLVMBackEnd.hpp"
 
-#include "UCodeLang/Compliation/Back/x86_64/X86_64UNativeBackEnd.hpp"
+#include "UCodeLang/Compilation/Back/x86_64/X86_64UNativeBackEnd.hpp"
 
 #include "UCodeLang/RunTime/TestRuner.hpp"
 using namespace UCodeLang;
@@ -610,9 +610,9 @@ void ParseLine(String_view& Line)
 			{
 				if (dirEntry.is_regular_file())
 				{
-					UCodeAnalyzer::Formater f;
+					UCodeAnalyzer::Formatter f;
 					String txt = Compiler::GetTextFromFile(dirEntry.path());
-					auto newtxt = f.Format(UCodeAnalyzer::Formater::StrScope::FileScope, String_view(txt));
+					auto newtxt = f.Format(UCodeAnalyzer::Formatter::StrScope::FileScope, String_view(txt));
 					if (newtxt.has_value())
 					{
 						std::ofstream file(dirEntry.path());
@@ -625,9 +625,9 @@ void ParseLine(String_view& Line)
 		}
 		else if (fs::is_regular_file(_Path))
 		{
-			UCodeAnalyzer::Formater f;
+			UCodeAnalyzer::Formatter f;
 			String txt = Compiler::GetTextFromFile(_Path);
-			auto newtxt = f.Format(UCodeAnalyzer::Formater::StrScope::FileScope, String_view(txt));
+			auto newtxt = f.Format(UCodeAnalyzer::Formatter::StrScope::FileScope, String_view(txt));
 			if (newtxt.has_value())
 			{
 				std::ofstream file(_Path);

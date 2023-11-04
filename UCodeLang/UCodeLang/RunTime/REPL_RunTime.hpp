@@ -1,6 +1,6 @@
 #pragma once
 #include "Interpreters/Interpreter.hpp"
-#include "../Compliation/Compiler.hpp"
+#include "../Compilation/Compiler.hpp"
 UCodeLangStart
 class REPL_RunTime
 {

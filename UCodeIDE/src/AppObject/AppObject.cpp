@@ -4,31 +4,31 @@
 #include "AppAPILink.hpp"
 
 #include "imgui/misc/cpp/imgui_stdlib.h"
-#include "UCodeLang/Compliation/UAssembly/UAssembly.hpp"
+#include "UCodeLang/Compilation/UAssembly/UAssembly.hpp"
 
-#include "UCodeLang/Compliation/ModuleFile.hpp"
+#include "UCodeLang/Compilation/ModuleFile.hpp"
 
-#include "UCodeLang/Compliation/Back/UCodeBackEnd/UCodeBackEnd.hpp"
-#include "UCodeLang/Compliation/Back/C89/C89Backend.hpp"
-#include "UCodeLang/Compliation/Back/IR/IRBackEnd.hpp"
-#include "UCodeLang/Compliation/Back/LLVM/LLVMBackEnd.hpp"
-#include "UCodeLang/Compliation/Back/WebAssembly/WasmBackEnd.hpp"
-#include "UCodeLang/Compliation/Back/Windows/WindowsBackEnd.hpp"
-#include "UCodeLang/Compliation/Back/Linux/LinuxBackEnd.hpp"
-#include "UCodeLang/Compliation/Back/MacOs/MacOSBackEnd.hpp"
+#include "UCodeLang/Compilation/Back/UCodeBackEnd/UCodeBackEnd.hpp"
+#include "UCodeLang/Compilation/Back/C89/C89Backend.hpp"
+#include "UCodeLang/Compilation/Back/IR/IRBackEnd.hpp"
+#include "UCodeLang/Compilation/Back/LLVM/LLVMBackEnd.hpp"
+#include "UCodeLang/Compilation/Back/WebAssembly/WasmBackEnd.hpp"
+#include "UCodeLang/Compilation/Back/Windows/WindowsBackEnd.hpp"
+#include "UCodeLang/Compilation/Back/Linux/LinuxBackEnd.hpp"
+#include "UCodeLang/Compilation/Back/MacOs/MacOSBackEnd.hpp"
 
 #include "UCodeLang/RunTime/ProfilerDebuger.hpp"
 
 #include "UCodeAnalyzer/SyntaxHelper.hpp"
 
-#include "UCodeLang/Compliation/Back/Windows/PE_File.hpp"
-#include "UCodeLang/Compliation/Back/Linux/ELF_File.hpp"
-#include "UCodeLang/Compliation/Back/MacOs/MachO.hpp"
+#include "UCodeLang/Compilation/Back/Windows/PE_File.hpp"
+#include "UCodeLang/Compilation/Back/Linux/ELF_File.hpp"
+#include "UCodeLang/Compilation/Back/MacOs/MachO.hpp"
 
 
 
-#include "UCodeLang/Compliation/Back/x86_64/X86_64UNativeBackEnd.hpp"
-#include "UCodeLang/Compliation/Back/x86_64/X86_64JitCompiler.hpp"
+#include "UCodeLang/Compilation/Back/x86_64/X86_64UNativeBackEnd.hpp"
+#include "UCodeLang/Compilation/Back/x86_64/X86_64JitCompiler.hpp"
 
 #include "ECSExample.hpp"
 #include <fstream>
