@@ -3047,6 +3047,7 @@ void  UCodeBackEndObject::CopyValueToStack(const IRInstruction* IRName, const IR
 		_Stack.Size += 8;
 		InstructionBuilder::StoreRegOnStackSub64(_Ins, Item, _Stack.Size);
 		break;
+	Pointerl:
 	case IRTypes::pointer:
 		switch (Get_Settings().PtrSize)
 		{
@@ -3068,6 +3069,7 @@ void  UCodeBackEndObject::CopyValueToStack(const IRInstruction* IRName, const IR
 			_Stack.Size += _Input->GetSize(V);
 		}
 		break;
+		case IRSymbolType::FuncPtr:goto Pointerl;
 		default:
 			UCodeLangUnreachable();
 			break;
@@ -4663,10 +4665,7 @@ bool UCodeBackEndObject::IsReferencedAfterThisIndex(const IROperator& Op)
 void  UCodeBackEndObject::SynchronizePar(ParlocData* Par)
 {
 
-	if (auto val = Par->Location.Get_If<RegisterID>())
-	{ 
-		_Registers.GetInfo(*val).Types = IROperator((IRPar*)Par->Par);
-	}
+	
 	for (size_t i = 0; i < RegistersManager::RegisterSize; i++)
 	{
 		auto& Info = _Registers.Registers[i];
@@ -4676,6 +4675,16 @@ void  UCodeBackEndObject::SynchronizePar(ParlocData* Par)
 			{
 				const IRInstruction* IRV = *IR;
 				if (IsLookingAtPar(IRV, Par->Par))
+				{
+					Par->Location = (RegisterID)i;
+					break;
+				}
+			}
+			else if (auto Op = Info.Types.value().Get_If<IROperator>())
+			{
+				IROperator V = *Op;
+
+				if (V == IROperator((IRPar*)Par->Par))
 				{
 					Par->Location = (RegisterID)i;
 					break;
@@ -4704,6 +4713,12 @@ void  UCodeBackEndObject::SynchronizePar(ParlocData* Par)
 				Par->Location = StackPostCall(Item.Offset);
 			}
 		}
+	}
+	
+	
+	if (auto val = Par->Location.Get_If<RegisterID>())
+	{
+		_Registers.GetInfo(*val).Types = IROperator((IRPar*)Par->Par);
 	}
 }
 UCodeBackEndObject::FindParsLoc UCodeBackEndObject::GetParsLoc(const Vector<IRType>& Pars, bool SetReg)

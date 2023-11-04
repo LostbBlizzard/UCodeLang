@@ -90,7 +90,7 @@ namespace ECSExample
 	UCodeLangExportSymbol("ECS") UCodeLangEmbed(
 	R"(
     $Component trait:
-	  uintptr _Handle;
+	  uintptr _Handle = 0;
 	  |entity[this&]  => ComponentAPI::entity(_Handle);
 	  |ientity[this&] => ComponentAPI::ientity(_Handle);
     ")");

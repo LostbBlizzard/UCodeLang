@@ -1,71 +1,5 @@
-$API:Imgui
 
-$ECS:Time
-
-$ECS:ComponentAPI
-
-$ECS:Entity
-
-$ECS:Scene
-
-$Player
- float32 __0; 
- int64 __1; 
-
-$StringSpan_t<char>
- void* __0; 
- int64 __1; 
-
-$Vec2f_t<float32>
- float32 __0; 
- float32 __1; 
-
-$String_t<char>
- int64 __0; 
- void* __1; 
- int64 __2; 
-
-$Vec3f_t<float32>
- float32 __0; 
- float32 __1; 
- float32 __2; 
-
-$Vec2f_t<sint32>
- int32 __0; 
- int32 __1; 
-
-$Vec3f_t<sint32>
- int32 __0; 
- int32 __1; 
- int32 __2; 
-
-$ECS:Componentvtable_type
- _tepfptr|ECS:Component:entity __0; 
- _tepfptr|ECS:Component:ientity __1; 
- _tepfptr|ECS:Component:(&_drop&) __2; 
-
-$_tepfptr|ECS:Component:entity = |[ECS:Component%Class*] -> ECS:Entity*;
-
-$ECS:Component%Class
- int64 __0; 
-
-$_tepfptr|ECS:Component:ientity = |[ECS:Component%Class*] -> ECS:Entity*;
-
-$_tepfptr|ECS:Component:(&_drop&) = |[ECS:Component%Class*] -> void;
-
-static uint8[/24]:ECS:Componentvtable_type ECS:Component:$Player= [?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?]
-
-|(&StaticInit&)[] -> void:
-
- [Block:0]
-
-   ECS:Componentvtable_type* A = &ECS:Component:$Player;
-   void* B = (&)Player:entity^Player&;
-   A->__0 = B;
-   void* C = (&)Player:ientity^Player&;
-   A->__1 = C;
-   void* D = (&)Player:(&_drop&)^Player&;
-   A->__2 = D;
+|(&StaticInit&)[] -> void:;
 
 |(&StaticUnload&)[] -> void:;
 
@@ -73,783 +7,141 @@ static uint8[/24]:ECS:Componentvtable_type ECS:Component:$Player= [?,?,?,?,?,?,?
 
 |(&threadUnload&)[] -> void:;
 
-|API:Imgui:Ping^i32[int32 a] -> int32:
-
- [Block:0]
-
-
-//Varable:API:Imgui:Ping:a
-
-   ret;
-
-|API:Imgui:Button^StringSpan_t<char>[StringSpan_t<char> Name] -> int8:
-
- [Block:0]
-
-
-//Varable:API:Imgui:Button:Name
-
-   ret;
-
-|API:Imgui:Button^StringSpan_t<char>,Vec2f_t<float32>&imut[StringSpan_t<char> Name,Vec2f_t<float32>* Val] -> int8:
-
- [Block:0]
-
-
-//Varable:API:Imgui:Button:Name
-//Varable:API:Imgui:Button:Val
-//File:/AppAPI.uc
-//Line:25
-
-   StringSpan_t<char> A = Name;
-   Vec2f_t<float32>* B = Val;
-   int8 C = API:Internal:Imgui__Button0^StringSpan_t<char>,Vec2f_t<float32>&imut(A,B);
-   ret = C;
-   ret;
-
-|API:Imgui:ObjectField^StringSpan_t<char>,i32&[StringSpan_t<char> Name,void* Val] -> int8:
-
- [Block:0]
-
-
-//Varable:API:Imgui:ObjectField:Name
-//Varable:API:Imgui:ObjectField:Val
-
-   ret;
-
-|API:Imgui:ObjectField^StringSpan_t<char>,b&[StringSpan_t<char> Name,void* Val] -> int8:
-
- [Block:0]
-
-
-//Varable:API:Imgui:ObjectField:Name
-//Varable:API:Imgui:ObjectField:Val
-//File:/AppAPI.uc
-//Line:27
-
-   StringSpan_t<char> A = Name;
-   void* B = Val;
-   int8 C = API:Internal:Imgui__ObjectField0^StringSpan_t<char>,b&(A,B);
-   ret = C;
-   ret;
-
-|API:Imgui:Text^StringSpan_t<char>[StringSpan_t<char> Name] -> void:
-
- [Block:0]
-
-
-//Varable:API:Imgui:Text:Name
-
-   ret;
-
-|API:Imgui:KeyDown^API:ImKey[int32 key] -> int8:
-
- [Block:0]
-
-
-//Varable:API:Imgui:KeyDown:key
-
-   ret;
-
-|API:Imgui:(&_new&)^API:Imgui&[API:Imgui* (&this&)] -> void:
-
- [Block:0]
-
-   ret;
-
-|API:Internal:Imgui__Button0^StringSpan_t<char>,Vec2f_t<float32>&imut[StringSpan_t<char> Name,Vec2f_t<float32>* Val] -> int8:
-
- [Block:0]
-
-
-//Varable:API:Internal:Imgui__Button0:Name
-//Varable:API:Internal:Imgui__Button0:Val
-
-   ret;
-
-|API:Internal:Imgui__ObjectField0^StringSpan_t<char>,b&[StringSpan_t<char> Name,void* Val] -> int8:
-
- [Block:0]
-
-
-//Varable:API:Internal:Imgui__ObjectField0:Name
-//Varable:API:Internal:Imgui__ObjectField0:Val
-
-   ret;
-
-|ECS:Time:DeltaTime[] -> float32:
-
- [Block:0]
-
-   ret;
-
-|ECS:Time:(&_new&)^ECS:Time&[ECS:Time* (&this&)] -> void:
-
- [Block:0]
-
-   ret;
-
-|ECS:ComponentAPI:entity^uptr[int64 _Handle] -> ECS:Entity*:
-
- [Block:0]
-
-
-//Varable:ECS:ComponentAPI:entity:_Handle
-
-   ret;
-
-|ECS:ComponentAPI:ientity^uptr[int64 _Handle] -> ECS:Entity*:
-
- [Block:0]
-
-
-//Varable:ECS:ComponentAPI:ientity:_Handle
-
-   ret;
-
-|ECS:ComponentAPI:(&_new&)^ECS:ComponentAPI&[ECS:ComponentAPI* (&this&)] -> void:
-
- [Block:0]
-
-   ret;
-
-|ECS:Entity:scenc^ECS:Entity&[ECS:Entity* (&this&)] -> ECS:Scene*:
-
- [Block:0]
-
-
-//Varable:ECS:Entity:scenc:(&this&)
-
-   ret;
-
-|ECS:Entity:iscenc^ECS:Entity&[ECS:Entity* (&this&)] -> ECS:Scene*:
-
- [Block:0]
-
-
-//Varable:ECS:Entity:iscenc:(&this&)
-
-   ret;
-
-|ECS:Entity:AddChildEntity^ECS:Entity&[ECS:Entity* (&this&)] -> ECS:Entity*:
-
- [Block:0]
-
-
-//Varable:ECS:Entity:AddChildEntity:(&this&)
-
-   ret;
-
-|ECS:Entity:Destroy^ECS:Entity&[ECS:Entity* (&this&)] -> void:
-
- [Block:0]
-
-
-//Varable:ECS:Entity:Destroy:(&this&)
-//File:/ECSAPI.uc
-//Line:24
-
-   ECS:Entity* A = (&this&);
-   ECS:Entity* B = A;
-   void C = ECS:Internal:Entity__Destroy1^ECS:Entity&(B);
-   ret;
-
-|ECS:Entity:name^ECS:Entity&[ECS:Entity* (&this&)] -> String_t<char>*:
-
- [Block:0]
-
-
-//Varable:ECS:Entity:name:(&this&)
-
-   ret;
-
-|ECS:Entity:iname^ECS:Entity&[ECS:Entity* (&this&)] -> StringSpan_t<char>:
-
- [Block:0]
-
-
-//Varable:ECS:Entity:iname:(&this&)
-
-   ret;
-
-|ECS:Entity:position^ECS:Entity&[ECS:Entity* (&this&)] -> Vec3f_t<float32>*:
-
- [Block:0]
-
-
-//Varable:ECS:Entity:position:(&this&)
-
-   ret;
-
-|ECS:Entity:position2d^ECS:Entity&[ECS:Entity* (&this&)] -> Vec2f_t<float32>*:
-
- [Block:0]
-
-
-//Varable:ECS:Entity:position2d:(&this&)
-
-   ret;
-
-|ECS:Entity:iposition^ECS:Entity&[ECS:Entity* (&this&)] -> Vec3f_t<float32>*:
-
- [Block:0]
-
-
-//Varable:ECS:Entity:iposition:(&this&)
-
-   ret;
-
-|ECS:Entity:iposition2d^ECS:Entity&[ECS:Entity* (&this&)] -> Vec2f_t<float32>*:
-
- [Block:0]
-
-
-//Varable:ECS:Entity:iposition2d:(&this&)
-
-   ret;
-
-|ECS:Entity:scale^ECS:Entity&[ECS:Entity* (&this&)] -> Vec3f_t<float32>*:
-
- [Block:0]
-
-
-//Varable:ECS:Entity:scale:(&this&)
-
-   ret;
-
-|ECS:Entity:scale2d^ECS:Entity&[ECS:Entity* (&this&)] -> Vec2f_t<float32>*:
-
- [Block:0]
-
-
-//Varable:ECS:Entity:scale2d:(&this&)
-
-   ret;
-
-|ECS:Entity:iscale^ECS:Entity&[ECS:Entity* (&this&)] -> Vec3f_t<float32>*:
-
- [Block:0]
-
-
-//Varable:ECS:Entity:iscale:(&this&)
-
-   ret;
-
-|ECS:Entity:iscale2d^ECS:Entity&[ECS:Entity* (&this&)] -> Vec2f_t<float32>*:
-
- [Block:0]
-
-
-//Varable:ECS:Entity:iscale2d:(&this&)
-
-   ret;
-
-|ECS:Entity:rotation^ECS:Entity&[ECS:Entity* (&this&)] -> Vec3f_t<float32>*:
-
- [Block:0]
-
-
-//Varable:ECS:Entity:rotation:(&this&)
-
-   ret;
-
-|ECS:Entity:rotation2d^ECS:Entity&[ECS:Entity* (&this&)] -> Vec2f_t<float32>*:
-
- [Block:0]
-
-
-//Varable:ECS:Entity:rotation2d:(&this&)
-
-   ret;
-
-|ECS:Entity:irotation^ECS:Entity&[ECS:Entity* (&this&)] -> Vec3f_t<float32>*:
-
- [Block:0]
-
-
-//Varable:ECS:Entity:irotation:(&this&)
-
-   ret;
-
-|ECS:Entity:irotation2d^ECS:Entity&[ECS:Entity* (&this&)] -> Vec2f_t<float32>*:
-
- [Block:0]
-
-
-//Varable:ECS:Entity:irotation2d:(&this&)
-//File:/ECSAPI.uc
-//Line:38
-
-   ECS:Entity* A = (&this&);
-   ECS:Entity* B = A;
-   Vec2f_t<float32>* C = ECS:Internal:Entity__irotation2d7^ECS:Entity&(B);
-   ret = C;
-   ret;
-
-|ECS:Entity:(&_new&)^ECS:Entity&[ECS:Entity* (&this&)] -> void:
-
- [Block:0]
-
-   ret;
-
-|ECS:Scene:AddEntity^ECS:Scene&[ECS:Scene* (&this&)] -> ECS:Entity*:
-
- [Block:0]
-
-
-//Varable:ECS:Scene:AddEntity:(&this&)
-//File:/ECSAPI.uc
-//Line:42
-
-   ECS:Scene* A = (&this&);
-   ECS:Scene* B = A;
-   ECS:Entity* C = ECS:Internal:Scene__AddEntity1^ECS:Scene&(B);
-   ret = C;
-   ret;
-
-|ECS:Scene:(&_new&)^ECS:Scene&[ECS:Scene* (&this&)] -> void:
-
- [Block:0]
-
-   ret;
-
-|ECS:Internal:Entity__Destroy1^ECS:Entity&[ECS:Entity* (&this&)] -> void:
-
- [Block:0]
-
-
-//Varable:ECS:Internal:Entity__Destroy1:(&this&)
-
-   ret;
-
-|ECS:Internal:Entity__irotation2d7^ECS:Entity&[ECS:Entity* (&this&)] -> Vec2f_t<float32>*:
-
- [Block:0]
-
-
-//Varable:ECS:Internal:Entity__irotation2d7:(&this&)
-
-   ret;
-
-|ECS:Internal:Scene__AddEntity1^ECS:Scene&[ECS:Scene* (&this&)] -> ECS:Entity*:
-
- [Block:0]
-
-
-//Varable:ECS:Internal:Scene__AddEntity1:(&this&)
-
-   ret;
-
-|Player:(&_init&)[Player* (&this&)] -> void:
-
- [Block:0]
-
-
-//File:/src.uc
-//Line:6
-
-   float32 A = 1.000000;
-   (&this&)->__0 = A;
-   ret;
-
-|Player:Start^Player&[Player* (&this&)] -> void:
-
- [Block:0]
-
-
-//Varable:Player:Start:(&this&)
-//File:/src.uc
-//Line:8
-//Line:0
-
-   Vec2f_t<float32> A;
-   Vec2f_t<float32>* B = &A;
-
-//Line:8
-
-   float32 C = 2.000000;
-   float32 D = 5.000000;
-   void E = Vec2f_t<float32>:(&_new&)^Vec2f_t<float32>&,f32,f32(B,C,D);
-   Player* F = (&this&);
-   ECS:Entity* G = Player:entity^Player&(F);
-   Vec2f_t<float32>* H = ECS:Entity:position2d^ECS:Entity&(G);
-   *H = A;
-   ret;
-
-|Player:Update^Player&[Player* (&this&)] -> void:
-
- [Block:0]
-
-
-//Varable:Player:Update:(&this&)
-//File:/src.uc
-//Line:14
-//Varable:Player:Update:pos
-
-   Vec2f_t<float32>* A;
-   Player* B = (&this&);
-   ECS:Entity* C = Player:entity^Player&(B);
-   Vec2f_t<float32>* D = ECS:Entity:position2d^ECS:Entity&(C);
-   A = D;
-
-//Line:15
-//Varable:Player:Update:deltatime
-
-   float32 E;
-   float32 F = ECS:Time:DeltaTime();
-   E = F;
-
-//Line:17
-
-   float32 G = A->__1;
-   float32 H = E;
-   float32 I = (&this&)->__0;
-   float32 J = I*H;
-   float32 K = G+J;
-   A->__1 = K;
-   ret;
-
-|Player:(&_drop&)^Player&[Player* (&this&)] -> void:
-
- [Block:0]
-
-   ret;
-
-|Player:(&_new&)^Player&[Player* (&this&)] -> void:
-
- [Block:0]
-
-   Player* A = (&this&);
-   void B = Player:(&_init&)(A);
-   ret;
-
-|Player:entity^Player&[Player* (&this&)] -> ECS:Entity*:
-
- [Block:0]
-
-
-//Varable:Player:entity:(&this&)
-//File:/src.uc
-//Line:7
-
-   int64 A = (&this&)->__1;
-   ECS:Entity* B = ECS:ComponentAPI:entity^uptr(A);
-   ret = B;
-   ret;
-
-|Player:ientity^Player&[Player* (&this&)] -> ECS:Entity*:
-
- [Block:0]
-
-
-//Varable:Player:ientity:(&this&)
-//File:/src.uc
-//Line:8
-
-   int64 A = (&this&)->__1;
-   ECS:Entity* B = ECS:ComponentAPI:ientity^uptr(A);
-   ret = B;
-   ret;
-
 //EntryPoint 
 |main[] -> int32:
 
  [Block:0]
 
 
-//File:/src.uc
-//Line:34
+//File:src.uc
+//Line:3
+//Varable:main:H
 
-   int32 A = 0;
-   ret = A;
-   ret;
+   void* A;
+   int64 B = 1;
+   int64 C = 4;
+   int64 D = B*C;
+   void* E = LowLevel::Malloc(D);
+   int64 F = 0;
 
-|StringSpan_t<char>:(&_new&)^StringSpan_t<char>&[StringSpan_t<char>* (&this&)] -> void:
+   _label1:
 
- [Block:0]
+   int8 G = F==B;
+   gotoif (G) _label0;
+   int64 H = F*C;
+   void* I = E+H;
 
+//Line:0
 
-//Varable:StringSpan_t<char>:(&_new&):(&this&)
-//File:/stl.uc
-//Line:76
+   int32 J = 0;
+   *I = J;
+   int32 K = 1;
+   int64 L = F+K;
+   F = L;
+   goto _label1;
 
-   int64 A = 0;
-   (&this&)->__0 = A;
+//Line:3
+   _label0:
 
-//Line:77
+   A = E;
 
-   int64 B = 0;
-   (&this&)->__1 = B;
-   ret;
+//Line:4
 
-|StringSpan_t<char>:(&_new&)^StringSpan_t<char>&,c[&],uptr[StringSpan_t<char>* (&this&),void* data,int64 size] -> void:
+   int32 M = 1;
+   void* N = A;
+   int64 O = 0;
+   int64 P = 4;
+   int64 Q = O*P;
+   void* R = N+Q;
+   *R = M;
 
- [Block:0]
+//Line:5
+//Varable:main:Tep
 
-
-//Varable:StringSpan_t<char>:(&_new&):(&this&)
-//Varable:StringSpan_t<char>:(&_new&):data
-//Varable:StringSpan_t<char>:(&_new&):size
-//File:/stl.uc
-//Line:80
-
-   void* A = data;
-   (&this&)->__0 = A;
-
-//Line:81
-
-   int64 B = size;
-   (&this&)->__1 = B;
-   ret;
-
-|StringSpan_t<char>:Size^StringSpan_t<char>&imut[StringSpan_t<char>* (&this&)] -> int64:
-
- [Block:0]
-
-
-//Varable:StringSpan_t<char>:Size:(&this&)
-
-
-//File:/stl.uc
-//Line:83
-
-   int64 A = (&this&)->__1;
-   ret = A;
-   ret;
-
-|StringSpan_t<char>:Data^StringSpan_t<char>&imut[StringSpan_t<char>* (&this&)] -> void*:
-
- [Block:0]
-
-
-//Varable:StringSpan_t<char>:Data:(&this&)
-
-
-//File:/stl.uc
-//Line:84
-
-   void* A = (&this&)->__0;
-   ret = A;
-   ret;
-
-|Vec2f_t<float32>:(&_new&)^Vec2f_t<float32>&[Vec2f_t<float32>* (&this&)] -> void:
-
- [Block:0]
-
-
-//Varable:Vec2f_t<float32>:(&_new&):(&this&)
-//File:/stl.uc
-//Line:6
-
-   float32 A = 0.000000;
-   (&this&)->__0 = A;
+   int32 S;
+   void* T = A;
+   int64 U = 0;
+   int64 V = 4;
+   int64 W = U*V;
+   void* X = T+W;
+   int32 Y = *X;
+   S = Y;
 
 //Line:7
 
-   float32 B = 0.000000;
-   (&this&)->__1 = B;
+   void* Z = A;
+   LowLevel::Free(Z);
+
+//Line:9
+
+   int32 [ = S;
+   ret = [;
    ret;
 
-|Vec2f_t<float32>:(&_new&)^Vec2f_t<float32>&,f32,f32[Vec2f_t<float32>* (&this&),float32 x,float32 y] -> void:
-
- [Block:0]
+Block:0]
 
 
-//Varable:Vec2f_t<float32>:(&_new&):(&this&)
-//Varable:Vec2f_t<float32>:(&_new&):x
-//Varable:Vec2f_t<float32>:(&_new&):y
-//File:/stl.uc
-//Line:10
+//Varable:Vec2:(&Plus&):(&this&)
+//Varable:Vec2:(&Plus&):Other
+//File:src.uc
+//Line:0
 
-   float32 A = x;
-   (&this&)->__0 = A;
+   Vec2 A;
+   Vec2* B = &A;
 
 //Line:11
 
-   float32 B = y;
-   (&this&)->__1 = B;
+   float32 C = Other->__0;
+   float32 D = (&this&)->__0;
+   float32 E = D+C;
+   float32 F = Other->__1;
+   float32 G = (&this&)->__1;
+   float32 H = G+F;
+   void I = Vec2:(&_new&)^Vec2&,f32,f32(B,E,H);
+   ret = A;
    ret;
 
-|String_t<char>:(&_new&)^String_t<char>&[String_t<char>* (&this&)] -> void:
+|test[] -> Vec2:
 
  [Block:0]
 
 
-//Varable:String_t<char>:(&_new&):(&this&)
-//File:/stl.uc
-//Line:63
+//File:src.uc
+//Line:15
+//Varable:test:A
 
-   int64 A = 0;
-   (&this&)->__0 = A;
+   Vec2 A;
 
-//Line:64
+//Line:0
 
-   int64 B = 0;
-   (&this&)->__1 = B;
+   Vec2* B = &A;
 
-//Line:65
+//Line:15
 
-   int64 C = 0;
-   (&this&)->__2 = C;
-   ret;
+   float32 C = 1.000000;
+   float32 D = 1.000000;
+   void E = Vec2:(&_new&)^Vec2&,f32,f32(B,C,D);
 
-|String_t<char>:(&_new&)^String_t<char>&,StringSpan_t<char>[String_t<char>* (&this&),StringSpan_t<char> string] -> void:
+//Line:16
+//Varable:test:B
 
- [Block:0]
+   Vec2 F;
 
+//Line:0
 
-//Varable:String_t<char>:(&_new&):(&this&)
-//Varable:String_t<char>:(&_new&):string
-//File:/stl.uc
-//Line:67
+   Vec2* G = &F;
 
-   int64 A = 0;
-   (&this&)->__0 = A;
+//Line:16
 
-//Line:68
+   float32 H = -1.000000;
+   float32 I = -1.000000;
+   void J = Vec2:(&_new&)^Vec2&,f32,f32(G,H,I);
 
-   int64 B = 0;
-   (&this&)->__1 = B;
+//Line:17
 
-//Line:69
-
-   int64 C = 0;
-   (&this&)->__2 = C;
-   ret;
-
-|Vec3f_t<float32>:(&_new&)^Vec3f_t<float32>&[Vec3f_t<float32>* (&this&)] -> void:
-
- [Block:0]
-
-
-//Varable:Vec3f_t<float32>:(&_new&):(&this&)
-//File:/stl.uc
-//Line:29
-
-   float32 A = 0.000000;
-   (&this&)->__0 = A;
-
-//Line:30
-
-   float32 B = 0.000000;
-   (&this&)->__1 = B;
-
-//Line:31
-
-   float32 C = 0.000000;
-   (&this&)->__2 = C;
-   ret;
-
-|Vec3f_t<float32>:(&_new&)^Vec3f_t<float32>&,f32,f32,f32[Vec3f_t<float32>* (&this&),float32 x,float32 y,float32 z] -> void:
-
- [Block:0]
-
-
-//Varable:Vec3f_t<float32>:(&_new&):(&this&)
-//Varable:Vec3f_t<float32>:(&_new&):x
-//Varable:Vec3f_t<float32>:(&_new&):y
-//Varable:Vec3f_t<float32>:(&_new&):z
-//File:/stl.uc
-//Line:34
-
-   float32 A = x;
-   (&this&)->__0 = A;
-
-//Line:35
-
-   float32 B = y;
-   (&this&)->__1 = B;
-
-//Line:36
-
-   float32 C = z;
-   (&this&)->__2 = C;
-   ret;
-
-|Vec2f_t<sint32>:(&_new&)^Vec2f_t<sint32>&[Vec2f_t<sint32>* (&this&)] -> void:
-
- [Block:0]
-
-
-//Varable:Vec2f_t<sint32>:(&_new&):(&this&)
-//File:/stl.uc
-//Line:6
-
-   int32 A = 0;
-   (&this&)->__0 = A;
-
-//Line:7
-
-   int32 B = 0;
-   (&this&)->__1 = B;
-   ret;
-
-|Vec2f_t<sint32>:(&_new&)^Vec2f_t<sint32>&,i32,i32[Vec2f_t<sint32>* (&this&),int32 x,int32 y] -> void:
-
- [Block:0]
-
-
-//Varable:Vec2f_t<sint32>:(&_new&):(&this&)
-//Varable:Vec2f_t<sint32>:(&_new&):x
-//Varable:Vec2f_t<sint32>:(&_new&):y
-//File:/stl.uc
-//Line:10
-
-   int32 A = x;
-   (&this&)->__0 = A;
-
-//Line:11
-
-   int32 B = y;
-   (&this&)->__1 = B;
-   ret;
-
-|Vec3f_t<sint32>:(&_new&)^Vec3f_t<sint32>&[Vec3f_t<sint32>* (&this&)] -> void:
-
- [Block:0]
-
-
-//Varable:Vec3f_t<sint32>:(&_new&):(&this&)
-//File:/stl.uc
-//Line:29
-
-   int32 A = 0;
-   (&this&)->__0 = A;
-
-//Line:30
-
-   int32 B = 0;
-   (&this&)->__1 = B;
-
-//Line:31
-
-   int32 C = 0;
-   (&this&)->__2 = C;
-   ret;
-
-|Vec3f_t<sint32>:(&_new&)^Vec3f_t<sint32>&,i32,i32,i32[Vec3f_t<sint32>* (&this&),int32 x,int32 y,int32 z] -> void:
-
- [Block:0]
-
-
-//Varable:Vec3f_t<sint32>:(&_new&):(&this&)
-//Varable:Vec3f_t<sint32>:(&_new&):x
-//Varable:Vec3f_t<sint32>:(&_new&):y
-//Varable:Vec3f_t<sint32>:(&_new&):z
-//File:/stl.uc
-//Line:34
-
-   int32 A = x;
-   (&this&)->__0 = A;
-
-//Line:35
-
-   int32 B = y;
-   (&this&)->__1 = B;
-
-//Line:36
-
-   int32 C = z;
-   (&this&)->__2 = C;
+   Vec2* K = &F;
+   Vec2* L = &A;
+   Vec2 M = Vec2:(&Plus&)^Vec2&,Vec2&(K,L);
+   ret = M;
    ret;
 
