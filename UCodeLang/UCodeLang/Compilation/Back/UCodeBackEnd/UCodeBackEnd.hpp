@@ -440,8 +440,6 @@ private:
 
 	void AddOffset(IRlocData& Pos, size_t Offset);
 
-	size_t GetMainObjectSizeForStackPre(const IRlocData& Val);
-
 	FindParsLoc GetParsLoc(const Vector<IRType>& Pars, bool SetReg = false);
 	FindParsLoc GetParsLoc(const Vector<IRPar>& Pars,bool SetReg =false);
 
@@ -462,6 +460,12 @@ private:
 	{
 		return ItemStackOffset;
 	}
+
+	size_t PointerSize()
+	{
+		return Get_Settings().PtrSize == IntSizes::Int64 ? 8 : 4;
+	}
+
 	size_t GetPreCallStackOffset(size_t ItemStackOffset)
 	{
 		size_t FuncPointerSize = Get_Settings().PtrSize == IntSizes::Int64 ? 8 : 4;

@@ -1,6 +1,6 @@
 
-use API;//Imgui,Vec2
-use ECS;//Component,Entity,Time
+
+/*
 
 $Player[Component]:
  float Speed = 1;
@@ -28,11 +28,20 @@ $Player[Component]:
   
   if Imgui::KeyDown(ImKey::D):
     pos.X += Speed * deltatime;
-  
+*/
 
+$Color:
+ float R = 1;
+ float G = 1;
+ float B = 1;
+ float A = 1;
+ |new[this&] -> void;
+ 
+ |new[this&,float R,float G,float B,float A]:
+  this.R = R;
+  this.G = G;
+  this.B = B;
+  this.A = A;
 
-|main[] => 0;
+|main[] => Color(0.1,0.2,0.3,0.4);
 
-|F[]:
- Player V = [];
- V.Update();

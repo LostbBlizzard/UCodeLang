@@ -659,7 +659,7 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 		BuildLink(FuncName,IR->Linkage);
 	}
 
-	if (FuncName == "ULang:ColorRGB:(&_new&)^ULang:ColorRGB&,f32,f32,f32")
+	if (FuncName == "Color:(&_new&)^Color&,f32,f32,f32,f32")
 	{
 		int a = 0;
 	}
@@ -787,6 +787,11 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 	
 	for (size_t i = 0; i < IR->Instructions.size(); i++)
 	{
+		if (i == 6)
+		{
+			int a = 0;
+		}
+
 		auto& Item_ = IR->Instructions[i];
 		auto Item = Item_.get();
 		Index = i;
@@ -1895,7 +1900,7 @@ Optional<RegisterID>  UCodeBackEndObject::FindValueInRegister(AnyInt64 Value)
 UCodeBackEndObject::FuncCallEndData  UCodeBackEndObject::FuncCallStart(const Vector<IRPar>& Pars, const IRType& RetType)
 {
 	FuncCallRet(RetType);
-	for (RegisterID_t i = (RegisterID_t)RegisterID::StartRegister; i < (RegisterID_t)RegisterID::EndRegister; i++)
+	for (RegisterID_t i = (RegisterID_t)RegisterID::StartRegister; i < (RegisterID_t)RegisterID::EndRegister+1; i++)
 	{
 		RegisterID CompilerRet = (RegisterID)i;
 		auto& Item = _Registers.Registers[i];
@@ -2101,7 +2106,7 @@ void UCodeBackEndObject::FuncCallEnd(UCodeBackEndObject::FuncCallEndData& Data)
 
 
 
-	for (int i = (int)RegisterID::EndRegister - 1; i >= (int)RegisterID::StartRegister; i--)
+	for (int i = (int)RegisterID::EndRegister +1 - 1; i >= (int)RegisterID::StartRegister; i--)
 	{
 		RegisterID CompilerRet = (RegisterID)i;
 		auto& Item = _Registers.Registers[i];
@@ -2199,24 +2204,6 @@ void UCodeBackEndObject::AddOffset(IRlocData& Pos, size_t Offset)
 		Val->offset += Offset;
 	}
 }
-size_t UCodeBackEndObject::GetMainObjectSizeForStackPre(const IRlocData& Val)
-{
-	auto preoffset = Val.Info.Get<IRlocData_StackPre>().offset;
-	for (auto& Item : CurrentFuncParPos)
-	{
-		if (auto Item2 = Item.Location.Get_If<StackPreCall>()) 
-		{
-			auto pos = Item2->Offset;
-			auto obj = GetSize(Item.Par->type);
-			if (preoffset <= (pos + obj) 
-				&& preoffset >= (pos))
-			{
-				return obj;
-			}
-		}
-	}
-	UCodeLangUnreachable();
-}
 void UCodeBackEndObject::DropStack()
 {
 	if (_Stack.Size)
@@ -2248,11 +2235,11 @@ void UCodeBackEndObject::DropStack()
 		//if (Item.PostFunc)
 		{
 			size_t NewOffset = 0;
-
+			size_t PointerSize = (Get_Settings().PtrSize == IntSizes::Int32)
+					? 4 : 8;
 			if (!Item.PostFunc)
 			{
-				size_t PointerSize = (Get_Settings().PtrSize == IntSizes::Int32)
-					? 4 : 8;
+				
 				NewOffset = _Stack.Size + PointerSize + Item.StackOffset;
 			}
 			else
@@ -2586,9 +2573,9 @@ RegisterID UCodeBackEndObject::MakeIntoRegister(const IRlocData& Value, Optional
 			auto Val2 = Value.Info.Get_If<IRlocData_StackPre>();
 
 			
-			auto mainobjsize = GetMainObjectSizeForStackPre(Value);
+			auto mainobjsize = GetSize(Value.ObjectType);
 
-			auto newpos = mainobjsize - Val2->offset;
+			auto newpos = mainobjsize + Val2->offset;
 			_Stack.AddReUpdatePreFunc(PushIns(), newpos- _Stack.PushedOffset);
 		}
 		return Tep;
@@ -2726,9 +2713,9 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetPointerOf(const IRlocData& 
 		}
 		else if (auto Val2 = Value.Info.Get_If<IRlocData_StackPre>())
 		{
-			auto mainobjsize = GetMainObjectSizeForStackPre(Value);
+			auto mainobjsize = GetSize(Value.ObjectType);
 
-			auto newpos = mainobjsize - Val2->offset;
+			auto newpos = mainobjsize + Val2->offset;
 			_Stack.AddReUpdatePreFunc(PushIns(), newpos);
 		}
 		else
@@ -3319,7 +3306,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 			}
 			else 
 			{
-				auto R = GetIRLocData(Ins->Target());
+				R = GetIRLocData(Ins->Target());
 			}
 			
 			if (GetAddress)
@@ -3785,9 +3772,9 @@ void UCodeBackEndObject::MoveRegInValue(RegisterID Value, const IRlocData& To, s
 			break;
 		}
 
-		auto mainobjsize = GetMainObjectSizeForStackPre(To);
+		auto mainobjsize = GetSize(To.ObjectType);
 
-		auto newpos = mainobjsize - Val->offset;
+		auto newpos = mainobjsize + Val->offset;
 		_Stack.AddReUpdatePreFunc(PushIns(), newpos + Offset - _Stack.PushedOffset);
 	}
 	else if (auto Val = To.Info.Get_If<IRlocData_StaticPos>())
@@ -3885,9 +3872,9 @@ void UCodeBackEndObject::MoveValueInReg(const IRlocData& Value, size_t Offset, R
 		{
 			auto Val2 = Value.Info.Get_If<IRlocData_StackPre>();
 
-			auto mainobjsize = GetMainObjectSizeForStackPre(Value);
+			auto mainobjsize = GetSize(Value.ObjectType);
 
-			auto newpos = mainobjsize - Val2->offset;
+			auto newpos = mainobjsize + Val2->offset;
 			_Stack.AddReUpdatePreFunc(PushIns(), newpos+Offset- _Stack.PushedOffset);
 		}
 	}
@@ -4809,8 +4796,11 @@ UCodeBackEndObject::FindParsLoc UCodeBackEndObject::GetParsLoc(const Vector<IRPa
 		auto& Item0 = CompilerRet.ParsPos[CompilerRet.OverflowedPars[i]];
 		auto& Item1 = CompilerRet.ParsPos[CompilerRet.OverflowedPars[CompilerRet.OverflowedPars.size() - 1 - i]];
 
-		UCodeLangUnreachable();
-		//std::swap(Item0.StackOffset, Item1.StackOffset);
+		auto& Item0StackOffSet = Item0.Location.Get<StackPreCall>().Offset;
+		auto& Item1StackOffSet = Item1.Location.Get<StackPreCall>().Offset;
+
+
+		std::swap(Item0StackOffSet, Item1StackOffSet);
 	}
 
 	return CompilerRet;
