@@ -109,6 +109,22 @@ Instruction::OpType Instruction::GetOpType(InstructionSet OpCode)
 
 		Setfloat(64);
 
+	case InstructionSet::float32Tofloat64:
+	case InstructionSet::float64Tofloat32:
+	case InstructionSet::float32ToInt32:
+	case InstructionSet::float64ToInt64:
+	case InstructionSet::Int32Tofloat32:
+	case InstructionSet::Int64Tofloat64:
+	case InstructionSet::Int8ToInt16:
+	case InstructionSet::Int16ToInt32:
+	case InstructionSet::Int32ToInt64:
+	case InstructionSet::Int64ToInt32:
+	case InstructionSet::Int32ToInt16:
+	case InstructionSet::Int16ToInt8:
+	case InstructionSet::equaltof32:
+	case InstructionSet::equaltof64:
+	case InstructionSet::notequaltof32:
+	case InstructionSet::notequaltof64:
 	case InstructionSet::Malloc:
 		return Instruction::OpType::TwoReg;
 	case InstructionSet::Free:

@@ -27,7 +27,8 @@ Addf##bitsize,\
 Subf##bitsize,\
 Multf##bitsize,\
 Divf##bitsize,\
-
+equaltof##bitsize,\
+notequaltof##bitsize,\
 
 enum class InstructionSet : InstructionSet_t
 {
@@ -99,6 +100,9 @@ enum class InstructionSet : InstructionSet_t
 
 	Int32Tofloat32,
 	Int64Tofloat64,
+
+	float32Tofloat64,
+	float64Tofloat32,
 	//PointerMember Set
 	PointerMemberLoad8,
 	PointerMemberRead8,

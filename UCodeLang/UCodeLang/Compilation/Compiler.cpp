@@ -883,6 +883,8 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 				Item->_IntFile = _FrontEndObject->LoadExternFile(
 						Item->OpenedFile.AsSpan(), Item->path.extension());
 
+				UCodeLangAssert(Item->_IntFile.get());
+
 				Files.push_back(Item->_IntFile.get());
 				Files.back()->FileName = Item->path.filename();
 				continue;

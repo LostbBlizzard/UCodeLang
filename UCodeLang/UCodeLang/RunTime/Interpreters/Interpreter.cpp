@@ -319,7 +319,14 @@ InsCase(Divf##Bits):\
 	Get_Register(Inst.Op_ThreeReg.C).Value. AnyValue = Get_Register(Inst.Op_ThreeReg.A).Value. AnyValue / \
 		Get_Register(Inst.Op_ThreeReg.B).Value. AnyValue;\
 	 InsBreak();\
-
+InsCase(equaltof##Bits):\
+	Get_Register(Inst.Op_ThreeReg.C).Value = Get_Register(Inst.Op_ThreeReg.A).Value. AnyValue ==\
+		Get_Register(Inst.Op_ThreeReg.B).Value. AnyValue;\
+	 InsBreak();\
+InsCase(notequaltof##Bits):\
+	Get_Register(Inst.Op_ThreeReg.C).Value = Get_Register(Inst.Op_ThreeReg.A).Value. AnyValue !=\
+		Get_Register(Inst.Op_ThreeReg.B).Value. AnyValue;\
+	 InsBreak();\
 
 void Interpreter::Extecute(Instruction& Inst)
 {
@@ -363,6 +370,8 @@ void Interpreter::Extecute(Instruction& Inst)
 	    &&Ins_Subf##bitsize, \
 		&&Ins_Multf##bitsize, \
 		&&Ins_Divf##bitsize, \
+		&&Ins_equaltof##bitsize, \
+		&&Ins_notequaltof##bitsize, \
 	
 	static const void* InsJumpTable[] = {
 		&&Ins_Exit,
@@ -781,6 +790,14 @@ void Interpreter::Extecute(Instruction& Inst)
 
 	InsCase(Int64Tofloat64):
 		Get_Register(Inst.Op_TwoReg.B).Value = (Int64)Get_Register(Inst.Op_TwoReg.A).Value.Asfloat64;
+		 InsBreak();
+
+	InsCase(float32Tofloat64):
+			 Get_Register(Inst.Op_TwoReg.B).Value = (float64)Get_Register(Inst.Op_TwoReg.A).Value.Asfloat32;
+		 InsBreak();
+
+	InsCase(float64Tofloat32):
+			 Get_Register(Inst.Op_TwoReg.B).Value = (float32)Get_Register(Inst.Op_TwoReg.A).Value.Asfloat64;
 		 InsBreak();
 
 	InsCase(GetPointerOfStack):

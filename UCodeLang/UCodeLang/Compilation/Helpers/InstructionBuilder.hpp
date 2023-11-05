@@ -152,6 +152,10 @@ UCodeLangForceinline static void Divf##bitsize(Instruction& Out, RegisterID reg,
 {\
 Out = Instruction(InstructionSet::Divf##bitsize, Instruction::ThreeReg(reg, reg2,out)); \
 }\
+UCodeLangForceinline static void equaltof##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2, RegisterID out)\
+{\
+Out = Instruction(InstructionSet::equaltof##bitsize, Instruction::ThreeReg(reg, reg2,out)); \
+}\
 
 #pragma endregion
 	
@@ -458,6 +462,14 @@ public:
 		Out = Instruction(InstructionSet::Int32Tofloat32, Instruction::TwoReg(Regin, Regout));
 	}
 
+	UCodeLangForceinline static void float32Tofloat64(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+	{
+		Out = Instruction(InstructionSet::float32Tofloat64, Instruction::TwoReg(Regin, Regout));
+	}
+	UCodeLangForceinline static void float64Tofloat32(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+	{
+		Out = Instruction(InstructionSet::float64Tofloat32, Instruction::TwoReg(Regin, Regout));
+	}
 
 	UCodeLangForceinline static void LoadFuncPtr_V1(UInt64 address, RegisterID ptr, Instruction& Out)
 	{

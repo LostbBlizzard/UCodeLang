@@ -1,8 +1,24 @@
+$ColorRGB
+ float32 __0; 
+ float32 __1; 
+ float32 __2; 
+
 $Color
  float32 __0; 
  float32 __1; 
  float32 __2; 
  float32 __3; 
+
+$Color32
+ int8 __0; 
+ int8 __1; 
+ int8 __2; 
+ int8 __3; 
+
+$Color24
+ int8 __0; 
+ int8 __1; 
+ int8 __2; 
 
 
 |(&StaticInit&)[] -> void:;
@@ -13,28 +29,177 @@ $Color
 
 |(&threadUnload&)[] -> void:;
 
+|ColorRGB:(&_init&)[ColorRGB* (&this&)] -> void:
+
+ [Block:0]
+
+
+//File:src.uc
+//Line:36
+
+   float32 A = 1.000000;
+   (&this&)->__0 = A;
+
+//Line:37
+
+   float32 B = 1.000000;
+   (&this&)->__1 = B;
+
+//Line:38
+
+   float32 C = 1.000000;
+   (&this&)->__2 = C;
+   ret;
+
+|ColorRGB:(&_new&)^ColorRGB&[ColorRGB* (&this&)] -> void:
+
+ [Block:0]
+
+
+//Variable:ColorRGB:(&_new&):(&this&)
+
+   ColorRGB* A = (&this&);
+   void B = ColorRGB:(&_init&)(A);
+   ret;
+
+|ColorRGB:(&_new&)^ColorRGB&,f32,f32,f32[ColorRGB* (&this&),float32 R,float32 G,float32 B] -> void:
+
+ [Block:0]
+
+
+//Variable:ColorRGB:(&_new&):(&this&)
+//Variable:ColorRGB:(&_new&):R
+//Variable:ColorRGB:(&_new&):G
+//Variable:ColorRGB:(&_new&):B
+
+   ColorRGB* A = (&this&);
+   void B = ColorRGB:(&_init&)(A);
+
+//File:src.uc
+//Line:42
+
+   float32 C = R;
+   ColorRGB* D = (&this&);
+   D->__0 = C;
+
+//Line:43
+
+   float32 E = G;
+   ColorRGB* F = (&this&);
+   F->__1 = E;
+
+//Line:44
+
+   float32 G = B;
+   ColorRGB* H = (&this&);
+   H->__2 = G;
+   ret;
+
+|ColorRGB:(&equal&)^ColorRGB&,ColorRGB&imut[ColorRGB* (&this&),ColorRGB* other] -> int8:
+
+ [Block:0]
+
+
+//Variable:ColorRGB:(&equal&):(&this&)
+//Variable:ColorRGB:(&equal&):other
+
+   ColorRGB* A = (&this&);
+
+//File:src.uc
+//Line:47
+
+   float32 B = A->__2;
+   float32 C = other->__2;
+   int8 D = B==C;
+   ColorRGB* E = (&this&);
+   float32 F = E->__1;
+   float32 G = other->__1;
+   int8 H = F==G;
+   int8 I = D&&H;
+   ColorRGB* J = (&this&);
+   float32 K = J->__0;
+   float32 L = other->__0;
+   int8 M = K==L;
+   int8 N = I&&M;
+   ret = N;
+   ret;
+
+|ColorRGB:(&notequal&)^ColorRGB&,ColorRGB&imut[ColorRGB* (&this&),ColorRGB* other] -> int8:
+
+ [Block:0]
+
+
+//Variable:ColorRGB:(&notequal&):(&this&)
+//Variable:ColorRGB:(&notequal&):other
+//File:src.uc
+//Line:50
+
+   ColorRGB* A = (&this&);
+   ColorRGB* B = A;
+   ColorRGB* C = other;
+   int8 D = ColorRGB:(&equal&)^ColorRGB&,ColorRGB&imut(B,C);
+   int8 E = !D;
+   ret = E;
+   ret;
+
+|ColorRGB:(&Cast&)^ColorRGB&imut[ColorRGB* (&this&)] -> Color24:
+
+ [Block:0]
+
+
+//Variable:ColorRGB:(&Cast&):(&this&)
+//File:src.uc
+//Line:0
+
+   Color24 A;
+   Color24* B = &A;
+
+//Line:53
+
+   float32 C = (&this&)->__0;
+   float32 D = 255.000000;
+   float32 E = C*D;
+   int32 F = E -> int32;
+   int8 G = F -> sint8;
+   int8 H = G -> uint;
+   float32 I = (&this&)->__1;
+   float32 J = 255.000000;
+   float32 K = I*J;
+   int32 L = K -> int32;
+   int8 M = L -> sint8;
+   int8 N = M -> uint;
+   float32 O = (&this&)->__2;
+   float32 P = 255.000000;
+   float32 Q = O*P;
+   int32 R = Q -> int32;
+   int8 S = R -> sint8;
+   int8 T = S -> uint;
+   void U = Color24:(&_new&)^Color24&,u8,u8,u8(B,H,N,T);
+   ret = A;
+   ret;
+
 |Color:(&_init&)[Color* (&this&)] -> void:
 
  [Block:0]
 
 
 //File:src.uc
-//Line:34
+//Line:56
 
    float32 A = 1.000000;
    (&this&)->__0 = A;
 
-//Line:35
+//Line:57
 
    float32 B = 1.000000;
    (&this&)->__1 = B;
 
-//Line:36
+//Line:58
 
    float32 C = 1.000000;
    (&this&)->__2 = C;
 
-//Line:37
+//Line:59
 
    float32 D = 1.000000;
    (&this&)->__3 = D;
@@ -66,47 +231,580 @@ $Color
    void B = Color:(&_init&)(A);
 
 //File:src.uc
-//Line:41
+//Line:63
 
    float32 C = R;
    Color* D = (&this&);
    D->__0 = C;
 
-//Line:42
+//Line:64
 
    float32 E = G;
    Color* F = (&this&);
    F->__1 = E;
 
-//Line:43
+//Line:65
 
    float32 G = B;
    Color* H = (&this&);
    H->__2 = G;
 
-//Line:44
+//Line:66
 
    float32 I = A;
    Color* J = (&this&);
    J->__3 = I;
    ret;
 
-//EntryPoint 
-|main[] -> Color:
+|Color:(&_new&)^Color&,ColorRGB&imut,f32[Color* (&this&),ColorRGB* color,float32 A] -> void:
+
+ [Block:0]
+
+
+//Variable:Color:(&_new&):(&this&)
+//Variable:Color:(&_new&):color
+//Variable:Color:(&_new&):A
+
+   Color* A = (&this&);
+   void B = Color:(&_init&)(A);
+
+//File:src.uc
+//Line:69
+
+   float32 C = color->__0;
+   Color* D = (&this&);
+   D->__0 = C;
+
+//Line:70
+
+   float32 E = color->__1;
+   Color* F = (&this&);
+   F->__1 = E;
+
+//Line:71
+
+   float32 G = color->__2;
+   Color* H = (&this&);
+   H->__2 = G;
+
+//Line:72
+
+   float32 I = A;
+   Color* J = (&this&);
+   J->__3 = I;
+   ret;
+
+|Color:WithOutOpacity^Color&[Color* (&this&)] -> ColorRGB:
+
+ [Block:0]
+
+
+//Variable:Color:WithOutOpacity:(&this&)
+//File:src.uc
+//Line:0
+
+   ColorRGB A;
+   ColorRGB* B = &A;
+
+//Line:75
+
+   float32 C = (&this&)->__0;
+   float32 D = (&this&)->__1;
+   float32 E = (&this&)->__2;
+   void F = ColorRGB:(&_new&)^ColorRGB&,f32,f32,f32(B,C,D,E);
+   ret = A;
+   ret;
+
+|Color:(&equal&)^Color&,Color&imut[Color* (&this&),Color* other] -> int8:
+
+ [Block:0]
+
+
+//Variable:Color:(&equal&):(&this&)
+//Variable:Color:(&equal&):other
+
+   Color* A = (&this&);
+
+//File:src.uc
+//Line:78
+
+   float32 B = A->__3;
+   float32 C = other->__3;
+   int8 D = B==C;
+   Color* E = (&this&);
+   float32 F = E->__2;
+   float32 G = other->__2;
+   int8 H = F==G;
+   int8 I = D&&H;
+   Color* J = (&this&);
+   float32 K = J->__1;
+   float32 L = other->__1;
+   int8 M = K==L;
+   int8 N = I&&M;
+   Color* O = (&this&);
+   float32 P = O->__0;
+   float32 Q = other->__0;
+   int8 R = P==Q;
+   int8 S = N&&R;
+   ret = S;
+   ret;
+
+|Color:(&notequal&)^Color&,Color&imut[Color* (&this&),Color* other] -> int8:
+
+ [Block:0]
+
+
+//Variable:Color:(&notequal&):(&this&)
+//Variable:Color:(&notequal&):other
+//File:src.uc
+//Line:81
+
+   Color* A = (&this&);
+   Color* B = A;
+   Color* C = other;
+   int8 D = Color:(&equal&)^Color&,Color&imut(B,C);
+   int8 E = !D;
+   ret = E;
+   ret;
+
+|Color:(&Cast&)^Color&imut[Color* (&this&)] -> Color32:
+
+ [Block:0]
+
+
+//Variable:Color:(&Cast&):(&this&)
+//File:src.uc
+//Line:0
+
+   Color32 A;
+   Color32* B = &A;
+
+//Line:84
+
+   float32 C = (&this&)->__0;
+   float32 D = 255.000000;
+   float32 E = C*D;
+   int32 F = E -> int32;
+   int8 G = F -> sint8;
+   int8 H = G -> uint;
+   float32 I = (&this&)->__1;
+   float32 J = 255.000000;
+   float32 K = I*J;
+   int32 L = K -> int32;
+   int8 M = L -> sint8;
+   int8 N = M -> uint;
+   float32 O = (&this&)->__2;
+   float32 P = 255.000000;
+   float32 Q = O*P;
+   int32 R = Q -> int32;
+   int8 S = R -> sint8;
+   int8 T = S -> uint;
+   float32 U = (&this&)->__3;
+   float32 V = 255.000000;
+   float32 W = U*V;
+   int32 X = W -> int32;
+   int8 Y = X -> sint8;
+   int8 Z = Y -> uint;
+   void [ = Color32:(&_new&)^Color32&,u8,u8,u8,u8(B,H,N,T,Z);
+   ret = A;
+   ret;
+
+|Color32:(&_init&)[Color32* (&this&)] -> void:
 
  [Block:0]
 
 
 //File:src.uc
-//Line:46
+//Line:87
+
+   int8 A = -1;
+   (&this&)->__0 = A;
+
+//Line:88
+
+   int8 B = -1;
+   (&this&)->__1 = B;
+
+//Line:89
+
+   int8 C = -1;
+   (&this&)->__2 = C;
+
+//Line:90
+
+   int8 D = -1;
+   (&this&)->__3 = D;
+   ret;
+
+|Color32:(&_new&)^Color32&[Color32* (&this&)] -> void:
+
+ [Block:0]
+
+
+//Variable:Color32:(&_new&):(&this&)
+
+   Color32* A = (&this&);
+   void B = Color32:(&_init&)(A);
+   ret;
+
+|Color32:(&_new&)^Color32&,u8,u8,u8,u8[Color32* (&this&),int8 r,int8 g,int8 b,int8 a] -> void:
+
+ [Block:0]
+
+
+//Variable:Color32:(&_new&):(&this&)
+//Variable:Color32:(&_new&):r
+//Variable:Color32:(&_new&):g
+//Variable:Color32:(&_new&):b
+//Variable:Color32:(&_new&):a
+
+   Color32* A = (&this&);
+   void B = Color32:(&_init&)(A);
+
+//File:src.uc
+//Line:94
+
+   int8 C = r;
+   Color32* D = (&this&);
+   D->__0 = C;
+
+//Line:95
+
+   int8 E = g;
+   Color32* F = (&this&);
+   F->__1 = E;
+
+//Line:96
+
+   int8 G = b;
+   Color32* H = (&this&);
+   H->__2 = G;
+
+//Line:97
+
+   int8 I = a;
+   Color32* J = (&this&);
+   J->__3 = I;
+   ret;
+
+|Color32:(&_new&)^Color32&,Color24&imut,u8[Color32* (&this&),Color24* color,int8 a] -> void:
+
+ [Block:0]
+
+
+//Variable:Color32:(&_new&):(&this&)
+//Variable:Color32:(&_new&):color
+//Variable:Color32:(&_new&):a
+
+   Color32* A = (&this&);
+   void B = Color32:(&_init&)(A);
+
+//File:src.uc
+//Line:100
+
+   int8 C = color->__0;
+   Color32* D = (&this&);
+   D->__0 = C;
+
+//Line:101
+
+   int8 E = color->__1;
+   Color32* F = (&this&);
+   F->__1 = E;
+
+//Line:102
+
+   int8 G = color->__2;
+   Color32* H = (&this&);
+   H->__2 = G;
+
+//Line:103
+
+   int8 I = a;
+   Color32* J = (&this&);
+   J->__3 = I;
+   ret;
+
+|Color32:WithOutOpacity^Color32&[Color32* (&this&)] -> Color24:
+
+ [Block:0]
+
+
+//Variable:Color32:WithOutOpacity:(&this&)
+//File:src.uc
+//Line:0
+
+   Color24 A;
+   Color24* B = &A;
+
+//Line:106
+
+   int8 C = (&this&)->__0;
+   int8 D = (&this&)->__1;
+   int8 E = (&this&)->__2;
+   void F = Color24:(&_new&)^Color24&,u8,u8,u8(B,C,D,E);
+   ret = A;
+   ret;
+
+|Color32:(&equal&)^Color32&,Color32&imut[Color32* (&this&),Color32* other] -> int8:
+
+ [Block:0]
+
+
+//Variable:Color32:(&equal&):(&this&)
+//Variable:Color32:(&equal&):other
+
+   Color32* A = (&this&);
+
+//File:src.uc
+//Line:109
+
+   int8 B = A->__3;
+   int8 C = other->__3;
+   int8 D = B==C;
+   Color32* E = (&this&);
+   int8 F = E->__2;
+   int8 G = other->__2;
+   int8 H = F==G;
+   int8 I = D&&H;
+   Color32* J = (&this&);
+   int8 K = J->__1;
+   int8 L = other->__1;
+   int8 M = K==L;
+   int8 N = I&&M;
+   Color32* O = (&this&);
+   int8 P = O->__0;
+   int8 Q = other->__0;
+   int8 R = P==Q;
+   int8 S = N&&R;
+   ret = S;
+   ret;
+
+|Color32:(&notequal&)^Color32&,Color32&imut[Color32* (&this&),Color32* other] -> int8:
+
+ [Block:0]
+
+
+//Variable:Color32:(&notequal&):(&this&)
+//Variable:Color32:(&notequal&):other
+//File:src.uc
+//Line:112
+
+   Color32* A = (&this&);
+   Color32* B = A;
+   Color32* C = other;
+   int8 D = Color32:(&equal&)^Color32&,Color32&imut(B,C);
+   int8 E = !D;
+   ret = E;
+   ret;
+
+|Color32:(&Cast&)^Color32&imut[Color32* (&this&)] -> Color:
+
+ [Block:0]
+
+
+//Variable:Color32:(&Cast&):(&this&)
+//File:src.uc
+//Line:0
 
    Color A;
    Color* B = &A;
-   float32 C = 0.100000;
-   float32 D = 0.200000;
-   float32 E = 0.300000;
-   float32 F = 0.400000;
-   void G = Color:(&_new&)^Color&,f32,f32,f32,f32(B,C,D,E,F);
+
+//Line:115
+
+   int8 C = (&this&)->__0;
+   int32 D = C -> uint32;
+   int32 E = D -> sint;
+   float32 F = E -> float32;
+   float32 G = 255.000000;
+   float32 H = F/G;
+   int8 I = (&this&)->__1;
+   int32 J = I -> uint32;
+   int32 K = J -> sint;
+   float32 L = K -> float32;
+   float32 M = 255.000000;
+   float32 N = L/M;
+   int8 O = (&this&)->__2;
+   int32 P = O -> uint32;
+   int32 Q = P -> sint;
+   float32 R = Q -> float32;
+   float32 S = 255.000000;
+   float32 T = R/S;
+   int8 U = (&this&)->__3;
+   int32 V = U -> uint32;
+   int32 W = V -> sint;
+   float32 X = W -> float32;
+   float32 Y = 255.000000;
+   float32 Z = X/Y;
+   void [ = Color:(&_new&)^Color&,f32,f32,f32,f32(B,H,N,T,Z);
+   ret = A;
+   ret;
+
+|Color24:(&_init&)[Color24* (&this&)] -> void:
+
+ [Block:0]
+
+
+//File:src.uc
+//Line:120
+
+   int8 A = -1;
+   (&this&)->__0 = A;
+
+//Line:121
+
+   int8 B = -1;
+   (&this&)->__1 = B;
+
+//Line:122
+
+   int8 C = -1;
+   (&this&)->__2 = C;
+   ret;
+
+|Color24:(&_new&)^Color24&[Color24* (&this&)] -> void:
+
+ [Block:0]
+
+
+//Variable:Color24:(&_new&):(&this&)
+
+   Color24* A = (&this&);
+   void B = Color24:(&_init&)(A);
+   ret;
+
+|Color24:(&_new&)^Color24&,u8,u8,u8[Color24* (&this&),int8 r,int8 g,int8 b] -> void:
+
+ [Block:0]
+
+
+//Variable:Color24:(&_new&):(&this&)
+//Variable:Color24:(&_new&):r
+//Variable:Color24:(&_new&):g
+//Variable:Color24:(&_new&):b
+
+   Color24* A = (&this&);
+   void B = Color24:(&_init&)(A);
+
+//File:src.uc
+//Line:126
+
+   int8 C = r;
+   Color24* D = (&this&);
+   D->__0 = C;
+
+//Line:127
+
+   int8 E = g;
+   Color24* F = (&this&);
+   F->__1 = E;
+
+//Line:128
+
+   int8 G = b;
+   Color24* H = (&this&);
+   H->__2 = G;
+   ret;
+
+|Color24:(&equal&)^Color24&,Color24&imut[Color24* (&this&),Color24* other] -> int8:
+
+ [Block:0]
+
+
+//Variable:Color24:(&equal&):(&this&)
+//Variable:Color24:(&equal&):other
+
+   Color24* A = (&this&);
+
+//File:src.uc
+//Line:131
+
+   int8 B = A->__2;
+   int8 C = other->__2;
+   int8 D = B==C;
+   Color24* E = (&this&);
+   int8 F = E->__1;
+   int8 G = other->__1;
+   int8 H = F==G;
+   int8 I = D&&H;
+   Color24* J = (&this&);
+   int8 K = J->__0;
+   int8 L = other->__0;
+   int8 M = K==L;
+   int8 N = I&&M;
+   ret = N;
+   ret;
+
+|Color24:(&notequal&)^Color24&,Color24&imut[Color24* (&this&),Color24* other] -> int8:
+
+ [Block:0]
+
+
+//Variable:Color24:(&notequal&):(&this&)
+//Variable:Color24:(&notequal&):other
+//File:src.uc
+//Line:134
+
+   Color24* A = (&this&);
+   Color24* B = A;
+   Color24* C = other;
+   int8 D = Color24:(&equal&)^Color24&,Color24&imut(B,C);
+   int8 E = !D;
+   ret = E;
+   ret;
+
+|Color24:(&Cast&)^Color24&imut[Color24* (&this&)] -> ColorRGB:
+
+ [Block:0]
+
+
+//Variable:Color24:(&Cast&):(&this&)
+//File:src.uc
+//Line:0
+
+   ColorRGB A;
+   ColorRGB* B = &A;
+
+//Line:137
+
+   int8 C = (&this&)->__0;
+   int32 D = C -> uint32;
+   int32 E = D -> sint;
+   float32 F = E -> float32;
+   float32 G = 255.000000;
+   float32 H = F/G;
+   int8 I = (&this&)->__1;
+   int32 J = I -> uint32;
+   int32 K = J -> sint;
+   float32 L = K -> float32;
+   float32 M = 255.000000;
+   float32 N = L/M;
+   int8 O = (&this&)->__2;
+   int32 P = O -> uint32;
+   int32 Q = P -> sint;
+   float32 R = Q -> float32;
+   float32 S = 255.000000;
+   float32 T = R/S;
+   void U = ColorRGB:(&_new&)^ColorRGB&,f32,f32,f32(B,H,N,T);
+   ret = A;
+   ret;
+
+|Color2[] -> void:
+
+ [Block:0]
+
+   ret;
+
+//EntryPoint 
+|main[] -> int32:
+
+ [Block:0]
+
+
+//File:src.uc
+//Line:146
+
+   int32 A = 0;
    ret = A;
    ret;
 

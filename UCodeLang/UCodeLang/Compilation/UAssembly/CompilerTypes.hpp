@@ -96,12 +96,12 @@ struct InsMapValue
 };
 
 #define MapValueIntSet(bitsize)\
-AddMapValueValue(Add##bitsize, InstructionSet::Add##bitsize, OpCodeType::Register, OpCodeType::Register),\
-AddMapValueValue(Sub##bitsize, InstructionSet::Sub##bitsize, OpCodeType::Register, OpCodeType::Register),\
-AddMapValueValue(MultU##bitsize, InstructionSet::MultU##bitsize, OpCodeType::Register, OpCodeType::Register),\
-AddMapValueValue(MultS##bitsize, InstructionSet::MultS##bitsize, OpCodeType::Register, OpCodeType::Register),\
-AddMapValueValue(DivU##bitsize, InstructionSet::DivU##bitsize, OpCodeType::Register, OpCodeType::Register),\
-AddMapValueValue(DivS##bitsize, InstructionSet::DivS##bitsize, OpCodeType::Register, OpCodeType::Register),\
+AddMapValueValue2(Add##bitsize, InstructionSet::Add##bitsize, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register),\
+AddMapValueValue2(Sub##bitsize, InstructionSet::Sub##bitsize, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register),\
+AddMapValueValue2(MultU##bitsize, InstructionSet::MultU##bitsize, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register),\
+AddMapValueValue2(MultS##bitsize, InstructionSet::MultS##bitsize, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register),\
+AddMapValueValue2(DivU##bitsize, InstructionSet::DivU##bitsize, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register),\
+AddMapValueValue2(DivS##bitsize, InstructionSet::DivS##bitsize, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register),\
 AddMapValueValue(StoreRegOnStack##bitsize, InstructionSet::StoreRegOnStack##bitsize, OpCodeType::Register, OpCodeType::AnyInt16),\
 AddMapValueValue(StoreRegOnStackSub##bitsize, InstructionSet::StoreRegOnStackSub##bitsize, OpCodeType::Register, OpCodeType::AnyInt16),\
 AddMapValueValue(Push##bitsize, InstructionSet::Push##bitsize, OpCodeType::Register, OpCodeType::NoOpCode),\
@@ -111,15 +111,16 @@ AddMapValueValue(GetFromStack##bitsize, InstructionSet::GetFromStack##bitsize, O
 AddMapValueValue(GetFromStackSub##bitsize, InstructionSet::GetFromStackSub##bitsize,OpCodeType::Register,OpCodeType::AnyInt16),\
 AddMapValueValue(StoreRegToPtr##bitsize, InstructionSet::StoreRegToPtr##bitsize, OpCodeType::Register,OpCodeType::Register),\
 AddMapValueValue(LogicalNot##bitsize, InstructionSet::LogicalNot##bitsize, OpCodeType::Register, OpCodeType::Register), \
-AddMapValueValue(equalto##bitsize,InstructionSet::equalto##bitsize,OpCodeType::Register, OpCodeType::Register),\
+AddMapValueValue2(equalto##bitsize,InstructionSet::equalto##bitsize,OpCodeType::Register, OpCodeType::Register, OpCodeType::Register),\
 AddMapValueValue(StoreFromPtrToReg##bitsize,InstructionSet::StoreFromPtrToReg##bitsize,OpCodeType::Register, OpCodeType::Register),\
-AddMapValueValue(UInt##bitsize##ToSInt##bitsize,InstructionSet::UInt##bitsize##ToSInt##bitsize,OpCodeType::Register, OpCodeType::Register),\
-AddMapValueValue(SInt##bitsize##ToUInt##bitsize,InstructionSet::SInt##bitsize##ToUInt##bitsize,OpCodeType::Register, OpCodeType::Register),\
-AddMapValueValue(lessthan##bitsize, InstructionSet::lessthan##bitsize, OpCodeType::Register, OpCodeType::Register), \
-AddMapValueValue(greaterthan##bitsize, InstructionSet::greaterthan##bitsize, OpCodeType::Register, OpCodeType::Register), \
-AddMapValueValue(equal_greaterthan##bitsize, InstructionSet::equal_greaterthan##bitsize, OpCodeType::Register, OpCodeType::Register), \
-AddMapValueValue(equal_lessthan##bitsize, InstructionSet::equal_lessthan##bitsize, OpCodeType::Register, OpCodeType::Register), \
-AddMapValueValue(notequalto##bitsize, InstructionSet::notequalto##bitsize, OpCodeType::Register, OpCodeType::Register), \
+AddMapValueValue(UInt##bitsize##ToSInt##bitsize,InstructionSet::UInt##bitsize##ToSInt##bitsize,OpCodeType::Register, OpCodeType::Register, OpCodeType::Register),\
+AddMapValueValue(SInt##bitsize##ToUInt##bitsize,InstructionSet::SInt##bitsize##ToUInt##bitsize,OpCodeType::Register, OpCodeType::Register, OpCodeType::Register),\
+AddMapValueValue2(lessthan##bitsize, InstructionSet::lessthan##bitsize, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register), \
+AddMapValueValue2(greaterthan##bitsize, InstructionSet::greaterthan##bitsize, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register), \
+AddMapValueValue2(equal_greaterthan##bitsize, InstructionSet::equal_greaterthan##bitsize, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register), \
+AddMapValueValue2(equal_lessthan##bitsize, InstructionSet::equal_lessthan##bitsize, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register), \
+AddMapValueValue2(notequalto##bitsize, InstructionSet::notequalto##bitsize, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register), \
+AddMapValueValue2(LogicalAnd##bitsize, InstructionSet::LogicalAnd##bitsize, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register), \
 
 
 
@@ -129,10 +130,11 @@ AddMapValueValue(Addf##bitsize, InstructionSet::Addf##bitsize, OpCodeType::Regis
 AddMapValueValue(Subf##bitsize, InstructionSet::Subf##bitsize, OpCodeType::Register, OpCodeType::Register),\
 AddMapValueValue(Multf##bitsize, InstructionSet::Multf##bitsize, OpCodeType::Register, OpCodeType::Register),\
 AddMapValueValue(Divf##bitsize, InstructionSet::Divf##bitsize, OpCodeType::Register, OpCodeType::Register),\
-
+AddMapValueValue2(equaltof##bitsize, InstructionSet::equaltof##bitsize, OpCodeType::Register, OpCodeType::Register,OpCodeType::Register),\
+AddMapValueValue2(notequaltof##bitsize, InstructionSet::notequaltof##bitsize, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register), \
 
 static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
-{	
+{
 	AddMapValueValue(Exit,InstructionSet::Exit,OpCodeType::AnyInt8,OpCodeType::NoOpCode),
 	AddMapValueValue(Ret,InstructionSet::Return,OpCodeType::NoOpCode,OpCodeType::NoOpCode),
 
@@ -186,8 +188,8 @@ static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 	AddMapValueValue(Int16ToInt32,InstructionSet::Int16ToInt32,OpCodeType::Register,OpCodeType::Register),
 	AddMapValueValue(Int32ToInt64,InstructionSet::Int32ToInt64,OpCodeType::Register,OpCodeType::Register),
 
-	AddMapValueValue(Int64ToInt32,InstructionSet::Int8ToInt16,OpCodeType::Register,OpCodeType::Register),
-	AddMapValueValue(Int32ToInt16,InstructionSet::Int16ToInt32,OpCodeType::Register,OpCodeType::Register),
+	AddMapValueValue(Int64ToInt32,InstructionSet::Int64ToInt32,OpCodeType::Register,OpCodeType::Register),
+	AddMapValueValue(Int32ToInt16,InstructionSet::Int32ToInt16,OpCodeType::Register,OpCodeType::Register),
 	AddMapValueValue(Int16ToInt8,InstructionSet::Int16ToInt8,OpCodeType::Register,OpCodeType::Register),
 
 	AddMapValueValue(float32ToInt32,InstructionSet::float32ToInt32,OpCodeType::Register,OpCodeType::Register),
@@ -195,6 +197,9 @@ static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 
 	AddMapValueValue(Int32Tofloat32,InstructionSet::Int32Tofloat32,OpCodeType::Register,OpCodeType::Register),
 	AddMapValueValue(Int64Tofloat64,InstructionSet::Int64Tofloat64,OpCodeType::Register,OpCodeType::Register),
+
+	AddMapValueValue(float32Tofloat64,InstructionSet::float32Tofloat64,OpCodeType::Register,OpCodeType::Register),
+	AddMapValueValue(float64Tofloat32,InstructionSet::float64Tofloat32,OpCodeType::Register,OpCodeType::Register),
 
 	AddMapValueValue(Malloc,InstructionSet::Malloc,OpCodeType::Register,OpCodeType::Register),
 	AddMapValueValue(Free,InstructionSet::Free,OpCodeType::Register,OpCodeType::NoOpCode),
@@ -244,8 +249,6 @@ static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 	AddMapValueValue2(bitwiseXor16, InstructionSet::bitwiseXor16, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register),
 	AddMapValueValue2(bitwiseXor32, InstructionSet::bitwiseXor32, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register),
 	AddMapValueValue2(bitwiseXor64, InstructionSet::bitwiseXor64, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register),
-
-
 };
 
 thread_local inline Unordered_map<InstructionSet, const InsMapValue*> InsToInsMapValue;
