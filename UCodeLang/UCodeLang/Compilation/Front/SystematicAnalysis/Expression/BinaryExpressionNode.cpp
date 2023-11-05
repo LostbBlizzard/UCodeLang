@@ -40,9 +40,9 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 	TypeSymbol Ex1Type;
 	if (IsBuildFunc == false)
 	{
-		OnExpressionTypeNode(Ex1node, GetValueMode::Read);
-		Ex1 = _IR_LastExpressionField;
-		Ex1Type = _LastExpressionType;
+		OnExpressionTypeNode(Ex0node, GetValueMode::Read);
+		Ex0 = _IR_LastExpressionField;
+		Ex0Type = _LastExpressionType;
 
 		if (BuildCode)
 		{
@@ -53,9 +53,9 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 			_LookingForTypes.top() = _LastExpressionType;
 		}
 		
-		OnExpressionTypeNode(Ex0node, GetValueMode::Read);
-		Ex0 = _IR_LastExpressionField;
-		Ex0Type = _LastExpressionType;
+		OnExpressionTypeNode(Ex1node, GetValueMode::Read);
+		Ex1 = _IR_LastExpressionField;
+		Ex1Type = _LastExpressionType;
 
 		_LookingForTypes.pop();
 
