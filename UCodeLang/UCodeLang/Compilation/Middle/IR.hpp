@@ -1151,32 +1151,44 @@ struct IRBlock
 
 	IRInstruction* New_f32Toi32(IRInstruction* Value)
 	{
-		return Instructions.emplace_back(new IRInstruction(IRInstructionType::f32Toi32, IROperator(Value))).get();
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::f32Toi32, IROperator(Value))).get();
+		V->ObjectType = IRTypes::i32;
+		return V;
 	}
 
 	IRInstruction* New_f64Toi64(IRInstruction* Value)
 	{
-		return Instructions.emplace_back(new IRInstruction(IRInstructionType::f64Toi64, IROperator(Value))).get();
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::f64Toi64, IROperator(Value))).get();
+		V->ObjectType = IRTypes::i64;
+		return V;
 	}
 
 	IRInstruction* New_i32Tof32(IRInstruction* Value)
 	{
-		return Instructions.emplace_back(new IRInstruction(IRInstructionType::i32Tof32, IROperator(Value))).get();
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::i32Tof32, IROperator(Value))).get();
+		V->ObjectType = IRTypes::f32;
+		return V;
 	}
 
 	IRInstruction* New_i32Tof64(IRInstruction* Value)
 	{
-		return Instructions.emplace_back(new IRInstruction(IRInstructionType::i64Tof64, IROperator(Value))).get();
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::i64Tof64, IROperator(Value))).get();
+		V->ObjectType = IRTypes::f64;
+		return V;
 	}
 
 	IRInstruction* New_f32Tof64(IRInstruction* Value)
 	{
-		return Instructions.emplace_back(new IRInstruction(IRInstructionType::f32Tof64, IROperator(Value))).get();
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::f32Tof64, IROperator(Value))).get();
+		V->ObjectType = IRTypes::i64;
+		return V;
 	}
 
 	IRInstruction* New_f64Tof32(IRInstruction* Value)
 	{
-		return Instructions.emplace_back(new IRInstruction(IRInstructionType::f64Tof32, IROperator(Value))).get();
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::f64Tof32, IROperator(Value))).get();
+		V->ObjectType = IRTypes::f32;
+		return V;
 	}
 
 

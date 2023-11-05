@@ -1820,6 +1820,42 @@ bool IRBuilder::ToString(
 	case IRInstructionType::JumpBlock:
 		r += (String)"  Jump : [" + std::to_string(I->Target().Value.AsUIntNative) + "]";
 		break;
+	case IRInstructionType::i32Tof32:
+		r += ToString(I->ObjectType);
+		r += " " + State.GetName(I);
+		r += " = ";
+		r += ToString(State, *I, I->Target()) + " -> float32";
+		break;
+	case IRInstructionType::i64Tof64:
+		r += ToString(I->ObjectType);
+		r += " " + State.GetName(I);
+		r += " = ";
+		r += ToString(State, *I, I->Target()) + " -> float64";
+		break;
+	case IRInstructionType::f32Toi32:
+		r += ToString(I->ObjectType);
+		r += " " + State.GetName(I);
+		r += " = ";
+		r += ToString(State, *I, I->Target()) + " -> int32";
+		break;
+	case IRInstructionType::f64Toi64:
+		r += ToString(I->ObjectType);
+		r += " " + State.GetName(I);
+		r += " = ";
+		r += ToString(State, *I, I->Target()) + " -> int64";
+		break;
+	case IRInstructionType::f32Tof64:
+		r += ToString(I->ObjectType);
+		r += " " + State.GetName(I);
+		r += " = ";
+		r += ToString(State, *I, I->Target()) + " -> float64";
+		break;
+	case IRInstructionType::f64Tof32:
+		r += ToString(I->ObjectType);
+		r += " " + State.GetName(I);
+		r += " = ";
+		r += ToString(State, *I, I->Target()) + " -> float32";
+		break;
 	default:
 		UCodeLangUnreachable();
 		break;

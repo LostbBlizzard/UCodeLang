@@ -403,10 +403,15 @@ void SystematicAnalysis::IR_Build_ExplicitConversion(IRInstruction* Ex, const Ty
 			v.Func = f;
 			v.SymFunc = Data.FuncToCall;
 			v.ThisPar = Get_FuncInfo::ThisPar_t::PushFromLast;
+			
+			ScopedNameNode tep;
+			ScopedName tep2;
+			tep2._token = _LastLookedAtToken.value().value();
+			tep._ScopedName.push_back(std::move(tep2));
 
 			_IR_LastExpressionField = Ex;
 
-			IR_Build_FuncCall(v, {}, {});
+			IR_Build_FuncCall(v,tep, {});
 		}
 		else
 		{

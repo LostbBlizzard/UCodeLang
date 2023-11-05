@@ -16,7 +16,7 @@ $Color24:
  |!=[this&,IPar<this> other] -> bool:
   ret !(this == other);
 
- |->[imut this&] -> Color:
+ |->[imut this&] -> ColorRGB:
   ret [R -> int -> float / 255,G -> int -> float / 255,B -> int -> float / 255];
 
 $Color32:
