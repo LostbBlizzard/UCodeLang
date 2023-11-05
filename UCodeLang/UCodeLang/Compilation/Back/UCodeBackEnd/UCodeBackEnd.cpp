@@ -659,12 +659,18 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 		BuildLink(FuncName,IR->Linkage);
 	}
 
+	if (FuncName == "ULang:ColorRGB:(&_new&)^ULang:ColorRGB&,f32,f32,f32")
+	{
+		int a = 0;
+	}
 	
 	if (IR->Blocks.size())
 	{
 		SynchronizePars();
 		OnBlock(IR->Blocks.front().get());
 	}
+
+	
 
 	_InputPar = RegisterID::StartParameterRegister;
 

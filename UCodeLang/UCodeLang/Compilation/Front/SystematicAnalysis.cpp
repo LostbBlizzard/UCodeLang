@@ -813,6 +813,7 @@ IRidentifierID SystematicAnalysis::IR_Build_ConvertToStaticArray(const Symbol& C
 
 	IRidentifierID V = _IR_Builder.ToID(Class.FullName);
 
+
 	auto IRStuct = _IR_Builder.NewStaticArray(V,IR_ConvertToIRType(clasinfo->Type),clasinfo->Count);
 
 
