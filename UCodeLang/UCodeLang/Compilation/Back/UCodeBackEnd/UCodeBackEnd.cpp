@@ -1330,7 +1330,8 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			case IRTypes::i16:InstructionBuilder::equalto16(_Ins, A, B,V); PushIns(); break;
 			case IRTypes::i32:InstructionBuilder::equalto32(_Ins, A, B,V); PushIns(); break;
 			case IRTypes::i64:InstructionBuilder::equalto64(_Ins, A, B,V); PushIns(); break;
-
+			case IRTypes::f32:InstructionBuilder::equaltof32(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::f64:InstructionBuilder::equaltof64(_Ins, A, B, V); PushIns(); break;
 			case IRTypes::pointer:
 				if (Get_Settings().PtrSize == IntSizes::Int32)
 				{
@@ -1706,6 +1707,54 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			{
 				InstructionBuilder::DoNothing(_Ins); PushIns();
 			}
+		}
+		break;
+		case IRInstructionType::i32Tof32:	
+		{
+			auto V = MakeIntoRegister(Item, Item->Target());
+			auto R = GetRegisterForTep();
+			InstructionBuilder::Int32Tofloat32(_Ins, V, R); PushIns();
+			SetRegister(R, Item);
+		}
+		break;
+		case IRInstructionType::f32Toi32:
+		{
+			auto V = MakeIntoRegister(Item, Item->Target());
+			auto R = GetRegisterForTep();
+			InstructionBuilder::float32ToInt32(_Ins, V, R); PushIns();
+			SetRegister(R, Item);
+		}
+		break;
+		case IRInstructionType::i64Tof64:
+		{
+			auto V = MakeIntoRegister(Item, Item->Target());
+			auto R = GetRegisterForTep();
+			InstructionBuilder::Int64Tofloat64(_Ins, V, R); PushIns();
+			SetRegister(R, Item);
+		}
+		break;
+		case IRInstructionType::f64Toi64:
+		{
+			auto V = MakeIntoRegister(Item, Item->Target());
+			auto R = GetRegisterForTep();
+			InstructionBuilder::float64ToInt64(_Ins, V, R); PushIns();
+			SetRegister(R, Item);
+		}
+		break;
+		case IRInstructionType::f64Tof32:
+		{
+			auto V = MakeIntoRegister(Item, Item->Target());
+			auto R = GetRegisterForTep();
+			InstructionBuilder::float64Tofloat32(_Ins, V, R); PushIns();
+			SetRegister(R, Item);
+		}
+		break;
+		case IRInstructionType::f32Tof64:
+		{
+			auto V = MakeIntoRegister(Item, Item->Target());
+			auto R = GetRegisterForTep();
+			InstructionBuilder::float32Tofloat64(_Ins, V, R); PushIns();
+			SetRegister(R, Item);
 		}
 		break;
 		default:
@@ -2543,25 +2592,25 @@ RegisterID UCodeBackEndObject::MakeIntoRegister(const IRlocData& Value, Optional
 
 		auto Size = GetSize(Value.ObjectType);
 
-	
-		switch (Size)
+		if (Size <= 1)
 		{
-		case 0:
-		case 1:
 			InstructionBuilder::GetFromStackSub8(_Ins, 0, Tep);
-			break;
-		case 2:
+		}
+		else if (Size <= 2)
+		{
 			InstructionBuilder::GetFromStackSub16(_Ins, 0, Tep);
-			break;
-		case 4:
+		}
+		else if (Size <= 4)
+		{
 			InstructionBuilder::GetFromStackSub32(_Ins, 0, Tep);
-			break;
-		case 8:
+		}
+		else if (Size <= 8)
+		{
 			InstructionBuilder::GetFromStackSub64(_Ins, 0, Tep);
-			break;
-		default:
+		}
+		else
+		{
 			UCodeLangUnreachable();
-			break;
 		}
 
 		if (auto Val = Value.Info.Get_If<IRlocData_StackPost>()) 
