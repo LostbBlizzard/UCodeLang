@@ -196,6 +196,14 @@ enum class IRInstructionType : IRInstructionType_t
 	UIntToSInt,
 	SIntToUInt,
 
+	f32Toi32,
+	f64Toi64,
+	i32Tof32,
+	i64Tof64,
+	
+	f32Tof64,
+	f64Tof32,
+
 	//await
 	New_Await_Task,
 	Await_PassPar,
@@ -1139,6 +1147,36 @@ struct IRBlock
 	IRInstruction* New_SIntToUInt(IRInstruction* Value)
 	{
 		return Instructions.emplace_back(new IRInstruction(IRInstructionType::SIntToUInt, IROperator(Value))).get();
+	}
+
+	IRInstruction* New_f32Toi32(IRInstruction* Value)
+	{
+		return Instructions.emplace_back(new IRInstruction(IRInstructionType::f32Toi32, IROperator(Value))).get();
+	}
+
+	IRInstruction* New_f64Toi64(IRInstruction* Value)
+	{
+		return Instructions.emplace_back(new IRInstruction(IRInstructionType::f64Toi64, IROperator(Value))).get();
+	}
+
+	IRInstruction* New_i32Tof32(IRInstruction* Value)
+	{
+		return Instructions.emplace_back(new IRInstruction(IRInstructionType::i32Tof32, IROperator(Value))).get();
+	}
+
+	IRInstruction* New_i32Tof64(IRInstruction* Value)
+	{
+		return Instructions.emplace_back(new IRInstruction(IRInstructionType::i64Tof64, IROperator(Value))).get();
+	}
+
+	IRInstruction* New_f32Tof64(IRInstruction* Value)
+	{
+		return Instructions.emplace_back(new IRInstruction(IRInstructionType::f32Tof64, IROperator(Value))).get();
+	}
+
+	IRInstruction* New_f64Tof32(IRInstruction* Value)
+	{
+		return Instructions.emplace_back(new IRInstruction(IRInstructionType::f64Tof32, IROperator(Value))).get();
 	}
 
 

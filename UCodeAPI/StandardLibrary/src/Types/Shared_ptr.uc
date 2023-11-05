@@ -1,0 +1,2 @@
+
+$Shared_ptr<T>;

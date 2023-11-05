@@ -1,5 +1,5 @@
 
-$ColorRGB32:
+$Color24:
  byte R = 255;
  byte G = 255;
  byte B = 255;
@@ -16,6 +16,9 @@ $ColorRGB32:
  |!=[this&,IPar<this> other] -> bool:
   ret !(this == other);
 
+ |->[imut this&] -> Color:
+  ret [R -> int -> float / 255,G -> int -> float / 255,B -> int -> float / 255];
+
 $Color32:
  byte R = 255;
  byte G = 255;
@@ -29,13 +32,13 @@ $Color32:
   this.B = b;
   this.A = a;
 
- |new[this&,IPar<ColorRGB32> color,byte a]:
+ |new[this&,IPar<Color24> color,byte a]:
   this.R = color.R;
   this.G = color.G;
   this.B = color.B;
   this.A = a;
 
- |WithOutOpacity[this&] -> ColorRGB32:
+ |WithOutOpacity[this&] -> Color24:
   ret [R,G,B];
 
  |==[this&,IPar<this> other] -> bool:
@@ -44,4 +47,6 @@ $Color32:
  |!=[this&,IPar<this> other] -> bool:
   ret !(this == other);
 
+ |->[imut this&] -> Color:
+  ret [R -> int -> float / 255,G -> int -> float / 255,B -> int -> float / 255,A -> int -> float / 255];
 
