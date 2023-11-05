@@ -503,10 +503,34 @@ void SystematicAnalysis::IR_Build_ExplicitConversion(IRInstruction* Ex, const Ty
 					default:UCodeLangUnreachable(); break;
 					}
 				}
+				else if (ToType._Type ==TypesEnum::sInt32 && ExType._Type ==TypesEnum::float32)
+				{
+					_IR_LastExpressionField = _IR_LookingAtIRBlock->New_f32Toi32(Ex);
+				}
+				else if (ToType._Type == TypesEnum::sInt64 && ExType._Type == TypesEnum::float64)
+				{
+					_IR_LastExpressionField = _IR_LookingAtIRBlock->New_f64Toi64(Ex);
+				}
 				else
 				{
 					UCodeLangUnreachable();
 				}
+			}
+			else if (ToType._Type == TypesEnum::float32 && ExType._Type == TypesEnum::sInt32)
+			{
+				_IR_LastExpressionField = _IR_LookingAtIRBlock->New_i32Tof32(Ex);
+			}
+			else if (ToType._Type == TypesEnum::float64 && ExType._Type == TypesEnum::sInt64)
+			{
+				_IR_LastExpressionField = _IR_LookingAtIRBlock->New_i32Tof32(Ex);
+			}
+			else if (ToType._Type == TypesEnum::float32 && ExType._Type == TypesEnum::float64)
+			{
+				_IR_LastExpressionField = _IR_LookingAtIRBlock->New_f32Tof64(Ex);
+			}
+			else if (ToType._Type == TypesEnum::float64 && ExType._Type == TypesEnum::float32)
+			{
+				_IR_LastExpressionField = _IR_LookingAtIRBlock->New_f64Tof32(Ex);
 			}
 			else
 			{

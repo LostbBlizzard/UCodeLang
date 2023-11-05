@@ -2070,6 +2070,12 @@ SystematicAnalysis::CastOverLoadWith_t  SystematicAnalysis::Type_CanBeExplicitly
 	}
 
 	if (Type_IsIntType(TypeToCheck) && Type_IsIntType(Type)) { return { true }; }
+	if (TypeToCheck._Type ==TypesEnum::float32 && Type._Type ==TypesEnum::sInt32) { return { true }; }
+	if (TypeToCheck._Type == TypesEnum::float64 && Type._Type == TypesEnum::sInt64) { return { true }; }
+
+	if (TypeToCheck._Type == TypesEnum::sInt32 && Type._Type == TypesEnum::float32) { return { true }; }
+	if (TypeToCheck._Type == TypesEnum::sInt64 && Type._Type == TypesEnum::float64) { return { true }; }
+
 
 	auto Syb = Symbol_GetSymbol(TypeToCheck);
 	if (Syb)
