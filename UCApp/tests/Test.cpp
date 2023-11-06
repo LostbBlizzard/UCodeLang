@@ -764,6 +764,7 @@ using namespace UCodeLang;
 		bool runincrementalcompilationTestOnStandardLibrary = false;
 
 		bool hasgcc = system("gcc -v") == EXIT_SUCCESS;
+		bool hasnode = system("node -v") == EXIT_SUCCESS;
 
 		if (rununitTest)
 		{
@@ -781,12 +782,20 @@ using namespace UCodeLang;
 				//geting gcc on 32 bit is a hassle
 				#if UCodeLang_32BitSytem
 				if (mode == TestMode::CLang89BackEnd) {
+					MyTestInfo.TestsSkiped += Tests.size();
 					continue;
 				}
 				#endif
 
+				if (mode == TestMode::WasmBackEnd && hasnode == false)
+				{
+					MyTestInfo.TestsSkiped += Tests.size();
+					continue;
+				}
+
 				if (mode == TestMode::CLang89BackEnd && hasgcc == false)
 				{
+					MyTestInfo.TestsSkiped += Tests.size();
 					continue;
 				}
 
