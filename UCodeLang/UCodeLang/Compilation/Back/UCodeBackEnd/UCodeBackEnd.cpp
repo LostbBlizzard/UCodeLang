@@ -904,7 +904,13 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 					{
 						if (op->Type == IROperatorType::IRParameter)
 						{
-							givename = false;
+							//givename = false;
+							auto newreg = GetRegisterForTep();
+							RegToReg(op->Parameter->type._Type, reg, newreg, false);
+							V.Info = newreg;
+
+
+							//StoreValue(Item, IROperator(Item), Item->Target());
 						}
 					}
 					else 
@@ -941,14 +947,10 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 
 		case IRInstructionType::SMult:
 		{
-			RegisterID A = MakeIntoRegister(Item, Item->A);
-			SetRegister(A, Item);
-			RegisterID B = MakeIntoRegister(Item, Item->B);
-
-			FreeRegister(A);
-
-			RegisterID V = GetRegisterOut(Item);
-			RegWillBeUsed(V);
+			auto BOpVals = DoBinaryOpValues(Item);
+			RegisterID A = BOpVals.A;
+			RegisterID B = BOpVals.B;
+			RegisterID V = BOpVals.V;
 
 			switch (Item->ObjectType._Type)
 			{
@@ -4727,8 +4729,8 @@ void  UCodeBackEndObject::SynchronizePar(ParlocData* Par)
 				const IRInstruction* IRV = *IR;
 				if (IsLookingAtPar(IRV, Par->Par))
 				{
-					Par->Location = (RegisterID)i;
-					break;
+					//Par->Location = (RegisterID)i;
+					//break;
 				}
 			}
 			else if (auto Op = Info.Types.value().Get_If<IROperator>())
