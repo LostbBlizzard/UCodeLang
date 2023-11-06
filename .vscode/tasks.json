@@ -61,6 +61,34 @@
         "group": "build"
       },
       {
+        "label": "Build UCodelangCL",
+        "osx": {
+          "command": "make",
+          "args": [
+            "UCodelangCL",
+            "-j4"
+          ]
+        },
+        "linux": {
+          "command": "make",
+          "args": [
+            "UCodelangCL",
+            "-j4"
+          ],
+          "problemMatcher": ["$gcc"],
+        },
+        "windows": {
+          "command": "msbuild",
+          "args": [
+            "UCodelangCL/UCodelangCL.vcxproj",
+            "-v:m",
+            "-maxcpucount",
+            "/property:GenerateFullPaths=true"
+          ]
+        },
+        "group": "build"
+      },
+      {
         "label": "run UCApp test",
         "command": "./BuildTools/RunTestsLinux64Debug.sh",
         "dependsOn": [
