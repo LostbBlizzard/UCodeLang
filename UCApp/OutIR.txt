@@ -1,5 +1,5 @@
-$Type<(sint32;1)>
-
+$Item
+ int32 __0; 
 
 |(&StaticInit&)[] -> void:;
 
@@ -9,8 +9,7 @@ $Type<(sint32;1)>
 
 |(&threadUnload&)[] -> void:;
 
-//EntryPoint 
-|main[] -> int32:
+|Item:(&_init&)[Item* (&this&)] -> void:
 
  [Block:0]
 
@@ -18,21 +17,58 @@ $Type<(sint32;1)>
 //File:src.uc
 //Line:6
 
-   int32 A = Type<(sint32;1)>:Get();
-   ret = A;
-   ret;
-
-|Type<(sint32;1)>:Get[] -> int32:
-
- [Block:0]
-
    int32 A = 1;
-   ret = A;
+   (&this&)->__0 = A;
    ret;
 
-|Type<(sint32;1)>:(&_new&)^Type<(sint32;1)>&[Type<(sint32;1)>* (&this&)] -> void:
+|Item:(&_new&)^Item&[Item* (&this&)] -> void:
 
  [Block:0]
 
+
+//Varable:Item:(&_new&):(&this&)
+
+   Item* A = (&this&);
+   void B = Item:(&_init&)(A);
+   ret;
+
+|Item:GetValue^Item&[Item* (&this&)] -> int32:
+
+ [Block:0]
+
+
+//Varable:Item:GetValue:(&this&)
+
+
+//File:src.uc
+//Line:6
+
+   int32 A = (&this&)->__0;
+   ret = A;
+   ret;
+
+//EntryPoint 
+|main[] -> int32:
+
+ [Block:0]
+
+
+//File:src.uc
+//Line:10
+//Varable:main:V
+
+   Item A;
+
+//Line:0
+
+   Item* B = &A;
+   void C = Item:(&_new&)^Item&(B);
+
+//Line:10
+//Line:11
+
+   Item* D = &A;
+   int32 E = Item:GetValue^Item&(D);
+   ret = E;
    ret;
 
