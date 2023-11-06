@@ -428,12 +428,17 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 		else
 			if (Func.ThisPar == Get_FuncInfo::ThisPar_t::PushFromScopedName)
 			{
+				_LookingForTypes.push(Func.Func->Pars[0].Type);
+				
 				_GetExpressionMode.push(GetValueMode::Read);
 				GetMemberTypeSymbolFromVar_t V;
 				Symbol_MemberTypeSymbolFromVar(0, Name._ScopedName.size() - 1, Name, V);
 				_GetExpressionMode.pop();
 
+
 				IRParsList.push_back(IR_Build_Member_AsPointer(V));
+
+				_LookingForTypes.pop();
 			}
 			else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::PushFromLast)
 			{
