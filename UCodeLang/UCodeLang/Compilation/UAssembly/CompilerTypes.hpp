@@ -113,8 +113,6 @@ AddMapValueValue(StoreRegToPtr##bitsize, InstructionSet::StoreRegToPtr##bitsize,
 AddMapValueValue(LogicalNot##bitsize, InstructionSet::LogicalNot##bitsize, OpCodeType::Register, OpCodeType::Register), \
 AddMapValueValue2(equalto##bitsize,InstructionSet::equalto##bitsize,OpCodeType::Register, OpCodeType::Register, OpCodeType::Register),\
 AddMapValueValue(StoreFromPtrToReg##bitsize,InstructionSet::StoreFromPtrToReg##bitsize,OpCodeType::Register, OpCodeType::Register),\
-AddMapValueValue(UInt##bitsize##ToSInt##bitsize,InstructionSet::UInt##bitsize##ToSInt##bitsize,OpCodeType::Register, OpCodeType::Register, OpCodeType::Register),\
-AddMapValueValue(SInt##bitsize##ToUInt##bitsize,InstructionSet::SInt##bitsize##ToUInt##bitsize,OpCodeType::Register, OpCodeType::Register, OpCodeType::Register),\
 AddMapValueValue2(lessthan##bitsize, InstructionSet::lessthan##bitsize, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register), \
 AddMapValueValue2(greaterthan##bitsize, InstructionSet::greaterthan##bitsize, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register), \
 AddMapValueValue2(equal_greaterthan##bitsize, InstructionSet::equal_greaterthan##bitsize, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register), \
@@ -184,19 +182,31 @@ static inline const Unordered_map<String_view, InsMapValue> StringToInsMap =
 	AddMapValueValue(Storef64V3,InstructionSet::Storef64v3,OpCodeType::Register,OpCodeType::AnyInt16),
 	AddMapValueValue(Storef64V4,InstructionSet::Storef64v4,OpCodeType::Register,OpCodeType::AnyInt16),
 
-	AddMapValueValue(Int8ToInt16,InstructionSet::Int8ToInt16,OpCodeType::Register,OpCodeType::Register),
-	AddMapValueValue(Int16ToInt32,InstructionSet::Int16ToInt32,OpCodeType::Register,OpCodeType::Register),
-	AddMapValueValue(Int32ToInt64,InstructionSet::Int32ToInt64,OpCodeType::Register,OpCodeType::Register),
+	AddMapValueValue(UInt8ToUInt16,InstructionSet::UInt8ToUInt16,OpCodeType::Register,OpCodeType::Register),
+	AddMapValueValue(UInt16ToUInt32,InstructionSet::UInt16ToUInt32,OpCodeType::Register,OpCodeType::Register),
+	AddMapValueValue(UInt32ToUInt64,InstructionSet::UInt32ToUInt64,OpCodeType::Register,OpCodeType::Register),
 
-	AddMapValueValue(Int64ToInt32,InstructionSet::Int64ToInt32,OpCodeType::Register,OpCodeType::Register),
-	AddMapValueValue(Int32ToInt16,InstructionSet::Int32ToInt16,OpCodeType::Register,OpCodeType::Register),
-	AddMapValueValue(Int16ToInt8,InstructionSet::Int16ToInt8,OpCodeType::Register,OpCodeType::Register),
+	AddMapValueValue(UInt64ToUInt32,InstructionSet::UInt64ToUInt32,OpCodeType::Register,OpCodeType::Register),
+	AddMapValueValue(UInt32ToUInt16,InstructionSet::UInt32ToUInt16,OpCodeType::Register,OpCodeType::Register),
+	AddMapValueValue(UInt16ToUInt8,InstructionSet::UInt16ToUInt8,OpCodeType::Register,OpCodeType::Register),
+
+	AddMapValueValue(SInt8ToSInt16,InstructionSet::SInt8ToSInt16,OpCodeType::Register,OpCodeType::Register),
+	AddMapValueValue(SInt16ToSInt32,InstructionSet::SInt16ToSInt32,OpCodeType::Register,OpCodeType::Register),
+	AddMapValueValue(SInt32ToSInt64,InstructionSet::SInt32ToSInt64,OpCodeType::Register,OpCodeType::Register),
+
+	AddMapValueValue(SInt64ToSInt32,InstructionSet::SInt64ToSInt32,OpCodeType::Register,OpCodeType::Register),
+	AddMapValueValue(SInt32ToSInt16,InstructionSet::SInt32ToSInt16,OpCodeType::Register,OpCodeType::Register),
+	AddMapValueValue(SInt16ToSInt8,InstructionSet::SInt16ToSInt8,OpCodeType::Register,OpCodeType::Register),
+
+	AddMapValueValue(SInt32Tofloat32,InstructionSet::SInt32Tofloat32,OpCodeType::Register,OpCodeType::Register),
+	AddMapValueValue(SInt64Tofloat64,InstructionSet::SInt64Tofloat64,OpCodeType::Register,OpCodeType::Register),
+
+
+	AddMapValueValue(UInt32Tofloat32,InstructionSet::UInt32Tofloat32,OpCodeType::Register,OpCodeType::Register),
+	AddMapValueValue(UInt64Tofloat64,InstructionSet::UInt64Tofloat64,OpCodeType::Register,OpCodeType::Register),
 
 	AddMapValueValue(float32ToInt32,InstructionSet::float32ToInt32,OpCodeType::Register,OpCodeType::Register),
 	AddMapValueValue(float64ToInt64,InstructionSet::float64ToInt64,OpCodeType::Register,OpCodeType::Register),
-
-	AddMapValueValue(Int32Tofloat32,InstructionSet::Int32Tofloat32,OpCodeType::Register,OpCodeType::Register),
-	AddMapValueValue(Int64Tofloat64,InstructionSet::Int64Tofloat64,OpCodeType::Register,OpCodeType::Register),
 
 	AddMapValueValue(float32Tofloat64,InstructionSet::float32Tofloat64,OpCodeType::Register,OpCodeType::Register),
 	AddMapValueValue(float64Tofloat32,InstructionSet::float64Tofloat32,OpCodeType::Register,OpCodeType::Register),

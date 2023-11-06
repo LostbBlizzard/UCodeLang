@@ -1724,20 +1724,6 @@ bool IRBuilder::ToString(
 		State.PointerToName.AddValue(I,ToString(State, *I, I->Target()) + "->__" + std::to_string(I->Input().Value.AsUIntNative));
 		return false;
 	}
-	case IRInstructionType::SIntToUInt:
-		r += ToString(I->ObjectType);
-		r += " " + State.GetName(I);
-		r += " = ";
-		r += ToString(State, *I, I->Target()) + " -> uint";
-		break;
-	case IRInstructionType::UIntToSInt:
-		r += ToString(I->ObjectType);
-		r += " " + State.GetName(I);
-		r += " = ";
-		r += ToString(State, *I, I->Target()) + " -> sint";
-		break;
-
-
 	case IRInstructionType::UIntToUInt8:
 		r += ToString(I->ObjectType);
 		r += " " + State.GetName(I);
@@ -1820,13 +1806,25 @@ bool IRBuilder::ToString(
 	case IRInstructionType::JumpBlock:
 		r += (String)"  Jump : [" + std::to_string(I->Target().Value.AsUIntNative) + "]";
 		break;
-	case IRInstructionType::i32Tof32:
+	case IRInstructionType::Ui32Tof32:
 		r += ToString(I->ObjectType);
 		r += " " + State.GetName(I);
 		r += " = ";
 		r += ToString(State, *I, I->Target()) + " -> float32";
 		break;
-	case IRInstructionType::i64Tof64:
+	case IRInstructionType::Ui64Tof64:
+		r += ToString(I->ObjectType);
+		r += " " + State.GetName(I);
+		r += " = ";
+		r += ToString(State, *I, I->Target()) + " -> float64";
+		break;
+	case IRInstructionType::Si32Tof32:
+		r += ToString(I->ObjectType);
+		r += " " + State.GetName(I);
+		r += " = ";
+		r += ToString(State, *I, I->Target()) + " -> float32";
+		break;
+	case IRInstructionType::Si64Tof64:
 		r += ToString(I->ObjectType);
 		r += " " + State.GetName(I);
 		r += " = ";
