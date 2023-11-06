@@ -659,7 +659,7 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 		BuildLink(FuncName,IR->Linkage);
 	}
 
-	if (FuncName == "Color:(&_new&)^Color&,f32,f32,f32,f32")
+	if (FuncName == "StringSpan_t<char>:(&equal&)^StringSpan_t<char>&imut,StringSpan_t<char>&imut")
 	{
 		int a = 0;
 	}
