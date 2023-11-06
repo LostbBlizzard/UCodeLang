@@ -1,4 +1,4 @@
 
 $Result<T,E> enum:
- Value[T val],
- Error[E err],
+ Val[T val],
+ Err[E err],

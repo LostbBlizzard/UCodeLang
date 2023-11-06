@@ -12,7 +12,7 @@
 <h1>The UCode Programming Language</h1>
 
 
-A high level progaming language designed to be fast to write, to compile and to run.
+A high level programming language designed to be fast to write, to compile and to run.
 
 <div align=left>
 
@@ -35,7 +35,7 @@ mainly
    - Scalable compilation times
    - Reliable Tooling.
    - gradual learning curve
-- Reuseable 
+- Reusable 
   - multi-paradigm
   - Compile time power
 
@@ -85,8 +85,8 @@ $Vector<Weapon>: //size 24
 
 We want C# like assembly data but with C++ low level control over memory and without C# garbage collector. 
 
-also since we're makeing a new Language we can learn past languages mistakes with using Optional,Result types and enum variant types and 
-removeing exceptions and more.
+also since we're making a new Language we can learn past languages mistakes with using Optional,Result types and enum variant types and 
+removing exceptions and more.
 
 
 Despite being made for game engines UCode does not need a VM it can be used by itself and can be compiled directly to C(the only thing that really works the intermediate representation is practically just C).
@@ -99,13 +99,13 @@ UCodeLang is not done and  unstable and lacks documentation.
 and documentation that does exist may be out of date.
 It's nowhere near completion. 
 
-# Supported Progaming Languages
+# Supported programming Languages
 
 - [C++](https://github.com/LostbBlizzard/UCodeLang) //This Repository
 
 # Downloads & Documentation
 
-[WebSite and PlayGround]("https://lostbblizzard.github.io/UCodeLang/)
+[WebSite and PlayGround]("https://lostbblizzard.github.io/UCodeLang/")
 
 [Download]()
 
@@ -121,7 +121,7 @@ It's nowhere near completion.
 
 
 ```
-using ULang;//include standard Library.
+use ULang;//include standard Library.
 
 |main[] -> int:
  int a = 10;
@@ -144,6 +144,41 @@ using ULang;//include standard Library.
   Null: panic("List size was 0");
 
 ```
+# Example Entity component System
+
+This Can be Fuound in UCodeIDE/src/AppObject/ECSExample.hpp
+and UCodeIDE/src/AppObject/test.uc.
+
+```
+use API;//Imgui,Vec2,Time
+use ECS;//Component,Entity
+
+$Player[Component]:
+ float Speed = 1;
+ |Start[this&]:
+  entity().position2d() = [2,5];
+
+
+
+ |Update[this&] -> void:
+  
+  var& pos = entity().position2d();//get rereference to entity position.
+  float deltatime = Time::DeltaTime();
+  
+  if Imgui::KeyDown(ImKey::W):
+    pos.Y += Speed * deltatime;
+    
+  if Imgui::KeyDown(ImKey::S):
+    pos.Y -= Speed * deltatime;
+  
+  if Imgui::KeyDown(ImKey::A):
+    pos.X -= Speed * deltatime;
+  
+  if Imgui::KeyDown(ImKey::D):
+    pos.X += Speed * deltatime;
+
+```
+
 
 # Example(Implementers)
 
@@ -158,13 +193,13 @@ int main()
   auto comilerRet = myCompiler.CompileText(MyUCode);
 
 
-  if (comilerRet._State == UCodeLang::Compiler::CompilerState::Success)
+  if (!comilerRet.IsError())
   { 
     //your ucode was Compiled
     UCodeLang::RunTimeLangState State;
 
     UCodeLang::RunTimeLib Lib;
-	Lib.Init(comilerRet.OutPut);//initialize RunTimeLib useing our Compiled code.
+    Lib.Init(comilerRet.GetValue().OutPut.value());//initialize RunTimeLib using our Compiled code.
 
 
     State.AddLib(&Lib);//Add RunTimeLib
@@ -173,15 +208,15 @@ int main()
     UCodeLang::Interpreter interpreter;
     interpreter.Init(&State);
 
-    interpreter.Call(StaticVariablesInitializeFunc);//initialize our Static Varables.
-	interpreter.Call(ThreadVariablesInitializeFunc);//initialize thread local/Interpreter local Varables.
+    interpreter.Call(StaticVariablesInitializeFunc);//initialize our Static Variables.
+    interpreter.Call(ThreadVariablesInitializeFunc);//initialize thread local/Interpreter local Variables.
 
     int Value = interpreter.RCall<int>("main");//Call main
     std::cout << " Got Value " << Value;
 
 
-	interpreter.Call(ThreadVariablesUnLoadFunc);//Call  Thread local Varables destructors.
-    interpreter.Call(StaticVariablesUnLoadFunc);//Call Static Varables destructors.
+    interpreter.Call(ThreadVariablesUnLoadFunc);//Call Thread local Variables destructors.
+    interpreter.Call(StaticVariablesUnLoadFunc);//Call Static Variables destructors.
   }
   else 
   {
@@ -191,9 +226,9 @@ int main()
 }
 ```
 
-# Dependencys
+# Dependencies
 
-UCodeLang has a Dependency on zycore and zydis for debuging reasons and X86 code generation.
+UCodeLang has a Dependency on zycore and zydis for debugging reasons and X86 code generation.
 
 both are planned to be removed.
 
@@ -253,32 +288,32 @@ The file Project Structure is lad out like this
 - /UCApp 
   - "The Testing playground"
   - /src 
-    - "use this when testing and debuging features."
+    - "use this when testing and debugging features."
     - "I dont care too much for what happends here."
   - /tests
-    - "unit test and test helper funcions."
+    - "unit test and test helper functions."
 
 - /UCodeAPI
   - "lots of ucode files"
   - "contains the standard library and other librarys."
 
 - /UCodeLang
-  - "the core of ucode-lang if your useing this as a library add this to your include directory"
+  - "the core of ucode-lang if your using this as a library add this to your include directory"
   - /Dependencies
     - "decompilers for testing"
 
   - /UCodeAnalyzer 
-    - "classes/funcions for the UCodeLanguageSever."
+    - "classes/functions for the UCodeLanguageSever."
     - "Tools for analyzing UCodeLang"
 
   - /UCodeLang
-     - /Compliation
+     - /Compilation
        - "were ucode get compiled"
      - /LangCore
        - "helpers and other stuff".
      - /RunTime
        - "were your Interpreter jit-Interpreters and runtime live"
-       - "the jit-Interpreter compilers is in UCodeLang/Compliation/Back"
+       - "the jit-Interpreter compilers is in UCodeLang/Compilation/Back"
     
 - /UCodeLanguageSever
   - "the runable language sever"
@@ -298,28 +333,28 @@ The file Project Structure is lad out like this
      - "Generated from /UCodeAPI/UCodeDocumentation"
 
 - /UCodeIDE
-   - "Its use is for testing things that would be hard to test useing a debuger"
-   - "it's called the UCodeIDE but it realy just an internal testing tool"
+   - "Its use is for testing things that would be hard to test using a debugger"
+   - "it's called the UCodeIDE but it really just an internal testing tool"
 
 - /UCodeWebsite
    - "Were the UCodeWebsite is im not a web dev so it's probably just the bare minimum"
  
 
 
-The project is meant too have as few dependencies as possable because it is meant to be easy to added to any c++ pojects.
+The project is meant too have as few dependencies as possible because it is meant to be easy to added to any c++ pojects.
 
 use the github issue tab for bugs.
 use the github discussions to talk about the language and new features and language design.
 also keep it civil.
 
 
-Also don't be shy to Criticize how things are implemented I know the code can be beter in places thing.
+Also don't be shy to Criticize how things are implemented I know the code can be better in places thing.
 
 Constructive criticism is welcome(dont be too harsh).
 
 Please ask questions about anything Project since I barely documented anything.
 
-the main branche for releases and the feature is where I do actual development.
+the main branch for releases and the feature is where I do actual development.
 
 The final vision of the Project has Backends for 
 
@@ -358,15 +393,15 @@ The UCodeGameEngine(being worked on) the primary reason The Language was made.
 
 -  Q: UCodeLang is very similar to c++ and rust why not use Rust or C++?
 
-   A: C++ is too compilcaicated of a language and is unanalyzable after compiling(without hacking the compiler).rust memory features is not that usefull for my use cases and c++ Smart Pointer's is all i need.
+   A: C++ is too compilcaicated of a language and is unanalyzable after compiling(without hacking the compiler).rust memory features is not that useful for my use cases and c++ Smart Pointer's is all i need.
 
 - Q: Why is it written in c++.
 
-  A: Most Game Engines and specificaly my game engine is written in c++.c++ is stil the best tool for makeing game engines.
+  A: Most Game Engines and specifically my game engine is written in c++.c++ is still the best tool for making game engines.
 
 - Q:Why not use LLVM for your backend.
 
-  A:LLVM is too big of a dependency and writeing backends my self gives me a good excuse to learn about Computers(The Reason im makeing a game engine).
+  A:LLVM is too big of a dependency and writing backends my self gives me a good excuse to learn about Computers(The Reason im making a game engine).
    Also you just output llvm assembly text.
 
 - Q:Why significant white space?
@@ -381,21 +416,21 @@ The UCodeGameEngine(being worked on) the primary reason The Language was made.
 
 - Q:What does UCode mean? 
   
-  A:The word UCode means nothing and has no history it just just a name I made up for a progaming language idea.if you realy want a meaning a meaning it when the idea was made it stand for Unsigned Code based on c/c++ unsigned keyword.
+  A:The word UCode means nothing and has no history it just just a name I made up for a programming language idea.if you really want a meaning a meaning it when the idea was made it stand for Unsigned Code based on c/c++ unsigned keyword.
 
 
 - Q:Do you like c++?
 
-  A:I like it enough to spend a year makeing a new language useing it but not enough to make my users for my Game Engine Use it(Sorry unreal).though i do realy like c++ but also im aware of its flaws. 
+  A:I like it enough to spend a year making a new language using it but not enough to make my users for my Game Engine Use it(Sorry unreal).though i do really like c++ but also im aware of its flaws. 
 
 
 - Q:what next and when will be Language be done.
 
 
-- A:When the repository Opens (preferably on 1/2/2023 The one year anniversary of makeing the jit project) most features would be done and dont really plan on adding more unless it Just too Good. I'll be around for an extra year to finsh up the other architectures and backends and stabitly.at that point the project will be done and i can go on working on that game engine and go to work on biger and better things.Also I belive adding too many features can make a language worse.
+- A:When the repository Opens (preferably on 1/2/2023 The one year anniversary of making the jit project) most features would be done and dont really plan on adding more unless it Just too Good. I'll be around for an extra year to finish up the other architectures and backends and stabitly.at that point the project will be done and i can go on working on that game engine and go to work on biger and better things.Also I believe adding too many features can make a language worse.
 
-- Q:what your opinion on new progaming languages.
+- Q:what your opinion on new programming languages.
 
 - A:The more the merrier especially for systems languages.
-    Every language experiments the more we experiment the beter languages by we learning from there mistakes.
+    Every language experiments the more we experiment the better languages by we learning from there mistakes.
 

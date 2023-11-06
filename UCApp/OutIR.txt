@@ -1,6 +1,5 @@
 $Item
- void* __0; 
-
+ int32 __0; 
 
 |(&StaticInit&)[] -> void:;
 
@@ -10,35 +9,53 @@ $Item
 
 |(&threadUnload&)[] -> void:;
 
+|Item:(&_init&)[Item* (&this&)] -> void:
+
+ [Block:0]
+
+
+//File:src.uc
+//Line:6
+
+   int32 A = 1;
+   (&this&)->__0 = A;
+   ret;
+
 |Item:(&_new&)^Item&[Item* (&this&)] -> void:
 
  [Block:0]
 
 
 //Varable:Item:(&_new&):(&this&)
+
+   Item* A = (&this&);
+   void B = Item:(&_init&)(A);
+   ret;
+
+|Item:GetValue^Item&[Item* (&this&)] -> int32:
+
+ [Block:0]
+
+
+//Varable:Item:GetValue:(&this&)
+
+
 //File:src.uc
-//Line:4
+//Line:6
 
-   int64 A = 1;
-   void* B = LowLevel::Malloc(A);
-
-//Line:0
-//Line:4
-
-   int8 C = 65;
-   *B = C;
-   (&this&)->__0 = B;
+   int32 A = (&this&)->__0;
+   ret = A;
    ret;
 
 //EntryPoint 
-|main[] -> int8:
+|main[] -> int32:
 
  [Block:0]
 
 
 //File:src.uc
-//Line:7
-//Varable:main:item
+//Line:10
+//Varable:main:V
 
    Item A;
 
@@ -47,62 +64,11 @@ $Item
    Item* B = &A;
    void C = Item:(&_new&)^Item&(B);
 
-//Line:7
-//Line:9
-
-   int8 D = 48;
-   *A.__0 = D;
-
 //Line:10
-//Varable:main:f
+//Line:11
 
-   int8 E;
-   int8 F = *A.__0;
-   E = F;
-
-//Line:12
-
-   void* G = A.__0;
-   LowLevel::Free(G);
-
-//Line:15
-
-   int8 H = E;
-   ret = H;
-   ret;
-
-:Value();
-   ret = A;
-   ret;
-
-t323* T = P+S;
-   *T = O;
-
-//Line:6
-
-   int32 U = 1;
-   (&StaticArray_&)sint324* V = &H;
-   int64 W = 0;
-   int64 X = 4;
-   int64 Y = W*X;
-   (&StaticArray_&)sint324* Z = V+Y;
-   *Z = U;
-
-//Line:8
-
-   (&StaticArray_&)sint323* [ = &A;
-   int64 \ = 0;
-   int64 ] = 4;
-   int64 ^ = \*];
-   (&StaticArray_&)sint323* _ = [+^;
-   int32 ` = *_;
-   (&StaticArray_&)sint324* a = &H;
-   int64 b = 0;
-   int64 c = 4;
-   int64 d = b*c;
-   (&StaticArray_&)sint324* e = a+d;
-   int32 f = *e;
-   int8 g = `==f;
-   ret = g;
+   Item* D = &A;
+   int32 E = Item:GetValue^Item&(D);
+   ret = E;
    ret;
 

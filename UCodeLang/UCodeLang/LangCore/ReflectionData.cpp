@@ -1,8 +1,8 @@
 #include "ReflectionData.hpp"
 
-#include "../Compliation/Helpers/ParseHelper.hpp"
-#include "../Compliation/LexerDefs.h"
-#include "../Compliation/UAssembly/UAssembly.hpp"
+#include "../Compilation/Helpers/ParseHelper.hpp"
+#include "../Compilation/LexerDefs.h"
+#include "../Compilation/UAssembly/UAssembly.hpp"
 UCodeLangStart
 void ClassAssembly::PushCopyClasses(const ClassAssembly& source, ClassAssembly& Out)
 {
@@ -15,26 +15,26 @@ const AssemblyNode* ClassAssembly::Find_Node(ReflectionCustomTypeID TypeID) cons
 {
 	for (auto& Item : Classes)
 	{
-		Optional< ReflectionCustomTypeID> Valu;
+		Optional< ReflectionCustomTypeID> Value;
 	
 		switch (Item->Get_Type())
 		{
-		case ClassType::Class:Valu = Item->Get_ClassData().TypeID; break;
-		case ClassType::Enum:Valu = Item->Get_EnumData().TypeID; break;
-		case ClassType::Alias:Valu = Item->Get_AliasData().HardAliasTypeID; break;
-		case ClassType::Trait:Valu = Item->Get_TraitData().TypeID; break;
-		case ClassType::Tag:Valu = Item->Get_TagData().TypeID; break;
+		case ClassType::Class:Value = Item->Get_ClassData().TypeID; break;
+		case ClassType::Enum:Value = Item->Get_EnumData().TypeID; break;
+		case ClassType::Alias:Value = Item->Get_AliasData().HardAliasTypeID; break;
+		case ClassType::Trait:Value = Item->Get_TraitData().TypeID; break;
+		case ClassType::Tag:Value = Item->Get_TagData().TypeID; break;
 		case ClassType::FuncPtr:break;
 		case ClassType::GenericClass:break;
-		case ClassType::GenericFuncion:break;
+		case ClassType::GenericFunction:break;
 		default:
 			UCodeLangUnreachable();
 			break;
 		}
 
-		if (Valu.has_value())
+		if (Value.has_value())
 		{
-			if (Valu.value() == TypeID)
+			if (Value.value() == TypeID)
 			{
 				return Item.get();
 			}
@@ -1288,8 +1288,8 @@ AssemblyNode::AssemblyNode(ClassType type) : Type(type)
 	case ClassType::GenericClass:
 		new (&_GenericClass) GenericClass_Data();
 		break;
-	case ClassType::GenericFuncion:
-		new (&_GenericFunc) GenericFuncion_Data();
+	case ClassType::GenericFunction:
+		new (&_GenericFunc) GenericFunction_Data();
 		break;
 	default:
 		UCodeLangUnreachable();
@@ -1340,8 +1340,8 @@ AssemblyNode& AssemblyNode::operator=(AssemblyNode&& node)
 	case ClassType::GenericClass:
 		new (&_GenericClass) GenericClass_Data(node.Get_GenericClass());
 		break;
-	case ClassType::GenericFuncion:
-		new (&_GenericFunc) GenericFuncion_Data(node.Get_GenericFuncionData());
+	case ClassType::GenericFunction:
+		new (&_GenericFunc) GenericFunction_Data(node.Get_GenericFunctionData());
 		break;
 	default:
 		UCodeLangUnreachable();
@@ -1393,8 +1393,8 @@ AssemblyNode& AssemblyNode::operator=(const AssemblyNode& node)
 	case ClassType::GenericClass:
 		new (&_GenericClass) GenericClass_Data(node.Get_GenericClass());
 		break;
-	case ClassType::GenericFuncion:
-		new (&_GenericFunc) GenericFuncion_Data(node.Get_GenericFuncionData());
+	case ClassType::GenericFunction:
+		new (&_GenericFunc) GenericFunction_Data(node.Get_GenericFunctionData());
 		break;
 	default:
 		UCodeLangUnreachable();
@@ -1441,8 +1441,8 @@ AssemblyNode::~AssemblyNode()
 	case ClassType::GenericClass:
 		_GenericClass.~GenericClass_Data();
 		break;
-	case ClassType::GenericFuncion:
-		_GenericFunc.~GenericFuncion_Data();
+	case ClassType::GenericFunction:
+		_GenericFunc.~GenericFunction_Data();
 		break;
 	default:
 		UCodeLangUnreachable();

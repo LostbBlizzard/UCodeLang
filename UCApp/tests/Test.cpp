@@ -4,10 +4,10 @@
 #include <memory>
 #include <sstream>
 #include <fstream>
-#include <UCodeLang/Compliation/UAssembly/UAssembly.hpp>
-#include <UCodeLang/Compliation/ModuleFile.hpp>
+#include <UCodeLang/Compilation/UAssembly/UAssembly.hpp>
+#include <UCodeLang/Compilation/ModuleFile.hpp>
 
-#include <UCodeLang/Compliation/Back/WebAssembly/WebAssembly.hpp>
+#include <UCodeLang/Compilation/Back/WebAssembly/WasmBackEnd.hpp>
 
 #include "../src/UCodeLangProjectPaths.hpp"
 
@@ -114,7 +114,7 @@ using namespace UCodeLang;
 		Com.Get_Settings()._Flags = flag;
 		Com.Get_Settings().PtrSize = IntSizes::Native;
 		
-		Compiler::CompilerRet Com_r;
+		Compiler::CompilerRet Com_r =NeverNullptr(&Com.Get_Errors());
 		std::string InputFilesPath = UCodeLang_UCAppDir_Test_UCodeFiles + Test.InputFilesOrDir;
 		std::string OutFileDir = UCodeLang_UCAppDir_Test_OutputFiles + Test.TestName;
 		std::filesystem::path p = OutFileDir;
@@ -128,7 +128,7 @@ using namespace UCodeLang;
 		}
 		else if (mode == TestMode::WasmBackEnd)
 		{
-			Com.Set_BackEnd(WebAssemblyBackEnd::MakeObject);
+			Com.Set_BackEnd(WasmBackEnd::MakeObject);
 		}
 		std::string OutFilePath = OutFileDir + Test.TestName + ModeType(flag) + ".ulibtest" + Com.GetOutputExtWithDot();
 
@@ -161,9 +161,9 @@ using namespace UCodeLang;
 			|| Test.Condition == SuccessCondition::CompilationFail)
 		{
 			if (
-				(Com_r._State == Compiler::CompilerState::Success && Test.Condition == SuccessCondition::Compilation)
+				(Com_r.IsValue() && Test.Condition == SuccessCondition::Compilation)
 				||
-				(Com_r._State == Compiler::CompilerState::Fail && Test.Condition == SuccessCondition::CompilationFail)
+				(Com_r.IsError() && Test.Condition == SuccessCondition::CompilationFail)
 				)
 			{
 				LogStream << "Success from test '" << Test.TestName << ModeType(flag) << "'" << std::endl;
@@ -179,7 +179,7 @@ using namespace UCodeLang;
 
 		}
 
-		if (Com_r._State != Compiler::CompilerState::Success)
+		if (Com_r.IfError())
 		{
 			ErrStream << "fail from test [Cant Compile File/Files] '" << Test.TestName << ModeType(flag) << "'" << std::endl;
 
@@ -308,7 +308,7 @@ using namespace UCodeLang;
 		}
 		else if (mode == TestMode::CLang89BackEnd)
 		{
-			UClib& ulib = *Com_r.OutPut;
+		UClib& ulib = *Com_r.GetValue().OutPut;
 
 
 			auto ufunc = ulib.Get_Assembly().Find_Func(Test.FuncToCall);
@@ -476,8 +476,8 @@ using namespace UCodeLang;
 		}
 		else if (mode == TestMode::WasmBackEnd)
 		{
-			UClib& ulib = *Com_r.OutPut;
-
+			UClib& ulib = *Com_r.GetValue().OutPut;
+			auto& OutFile = Com_r.GetValue().OutFile.value();
 
 			auto ufunc = ulib.Get_Assembly().Find_Func(Test.FuncToCall);
 			UCodeLangAssert(ufunc);
@@ -486,14 +486,14 @@ using namespace UCodeLang;
 
 			std::stringstream ss;
 			ss << "const wasm = new Uint8Array([";
-			for (const auto& b : Com_r.OutFile) {
+			for (const auto& b : OutFile) {
 				ss << "0x" << std::hex << static_cast<int>(b) << ", ";
 			}
 			ss << "]);\n";
 			ss << "const m = new WebAssembly.Module(wasm);\n";
 			ss << "const instance = new WebAssembly.Instance(m, {});\n";
 			ss << "console.log(instance.exports.";
-			ss << WebAssemblyBackEnd::ToWebName(ufunc->DecorationName);
+			ss << WasmBackEnd::ToWebName(ufunc->DecorationName);
 			ss << "());";
 
 			Path node_file = paths.OutFile.native() + Path("test.js").native();
@@ -651,7 +651,7 @@ using namespace UCodeLang;
 
 
 			auto ret = file.BuildModule(compiler, LangIndex);
-			if (ret.CompilerRet._State == Compiler::CompilerState::Success)
+			if (ret.CompilerRet.IsValue())
 			{
 				r = true;
 			}
@@ -697,7 +697,7 @@ using namespace UCodeLang;
 		auto OutData = Mfile.BuildModule(compiler, index);
 		LogErrors(std::cout, compiler);
 
-		if (OutData.CompilerRet._State == Compiler::CompilerState::Success)
+		if (OutData.CompilerRet.IsValue())
 		{
 			UCodeLang::UClib MLib;
 			UCodeLangAssert(UClib::FromFile(&MLib, OutData.OutputItemPath));
@@ -763,6 +763,9 @@ using namespace UCodeLang;
 		bool runStandardLibraryTest = false;
 		bool runincrementalcompilationTestOnStandardLibrary = false;
 
+		bool hasgcc = system("gcc -v") == EXIT_SUCCESS;
+		bool hasnode = system("node -v") == EXIT_SUCCESS;
+
 		if (rununitTest)
 		{
 			for (size_t i = 0; i < BackEndsCount; i++)
@@ -770,16 +773,31 @@ using namespace UCodeLang;
 				auto& MyTestInfo = TestInfo[i];
 				TestMode mode = (TestMode)i;
 
-				std::cout << "---runing Test for " << TestModeToName(mode) << std::endl;
+				std::cout << "---running Test for " << TestModeToName(mode) << std::endl;
 				
 				Vector<std::future<bool>> List;
 				List.resize(Tests.size());
-				//#if UCodeLang_Platform_Linux
-				if (mode == TestMode::CLang89BackEnd)
-				{
-					//continue;
+
+				
+				//geting gcc on 32 bit is a hassle
+				#if UCodeLang_32BitSytem
+				if (mode == TestMode::CLang89BackEnd) {
+					MyTestInfo.TestsSkiped += Tests.size();
+					continue;
 				}
-				//#endif
+				#endif
+
+				if (mode == TestMode::WasmBackEnd && hasnode == false)
+				{
+					MyTestInfo.TestsSkiped += Tests.size();
+					continue;
+				}
+
+				if (mode == TestMode::CLang89BackEnd && hasgcc == false)
+				{
+					MyTestInfo.TestsSkiped += Tests.size();
+					continue;
+				}
 
 				for (size_t i = 0; i < Tests.size(); i++)
 				{

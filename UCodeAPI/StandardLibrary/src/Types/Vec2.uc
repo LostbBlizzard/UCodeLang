@@ -70,4 +70,4 @@ $Vec2i_t<T>:
   ret copy;
 
 $Vec2 = Vec2f_t<float>;
-$Vec2i = Vec2f_t<int>;
+$Vec2i = Vec2i_t<int>;

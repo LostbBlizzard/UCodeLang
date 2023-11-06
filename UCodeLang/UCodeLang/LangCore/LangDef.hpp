@@ -248,7 +248,7 @@
 
 #endif
 
-#if 0
+#if UCodeLangDebug
 #define UCodeLangUnreachable() UCodeLangBreakPoint();
 #else
 
@@ -268,7 +268,7 @@
 #if PUBLISHED
 #define UCodeLangToDo() static_assert(true,"Add Code Path");
 #else
-#define UCodeLangToDo() UCodeLangThrowException("Code Path not vaild Is On ToDolist");
+#define UCodeLangToDo() UCodeLangThrowException("Code Path not valid Is On ToDolist");
 #endif
 
 #if UCodeLangDebug
@@ -294,7 +294,7 @@
 #define UCodeLangAPI 
 #endif
 
-//Use this To Export Class,Enum,Funcions to .uc 
+//Use this To Export Class,Enum,Functions to .uc 
 //using UCodeAnalyzer/Preprocessors/CppHelper ParseCppfileAndOutULang
 
 #define UCodeLangExportSymbol(Namespace)

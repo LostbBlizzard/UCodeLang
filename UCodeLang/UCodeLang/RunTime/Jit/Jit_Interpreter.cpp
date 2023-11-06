@@ -606,7 +606,7 @@ void Jit_Interpreter::OnUAddressCall(UAddress addresstojit)
 	{
 		#ifdef UCodeLangDebug
 		{
-			std::cout << " building because a funcion needed it " << std::to_string(addresstojit) << std::endl;
+			std::cout << " building because a function needed it " << std::to_string(addresstojit) << std::endl;
 		}
 		#endif
 		_ThisState._This->BuildCheck(Item, addresstojit);

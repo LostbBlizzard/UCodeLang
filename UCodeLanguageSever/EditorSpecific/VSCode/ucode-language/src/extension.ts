@@ -14,6 +14,8 @@ let client: LanguageClient;
 export function activate(context: vscode.ExtensionContext) 
 {
 	console.log('Congratulations, your extension "uclang" is now active!');
+	
+	vscode.window.showInformationMessage("uclang");
 
 	let disposable = vscode.commands.registerCommand('uclang.update', () => 
 	{
@@ -48,17 +50,20 @@ export function activate(context: vscode.ExtensionContext)
 	  documentSelector: [{ scheme: 'file', language: 'uclang' }],
 	  synchronize: {
 		fileEvents: workspace.createFileSystemWatcher('**/.uc')
-	  }
+	  },
+	  
+	  //outputChannelName: 'ULang Language Server',
 	};
   
 	client = new LanguageClient(
-	  'languageServerExample',
-	  'Language Server Example',
+	  'languageServer',
+	  'UCodeLanguage Server',
 	  serverOptions,
 	  clientOptions
 	);
   
 	client.start();
+	vscode.window.showInformationMessage("Hello World");
 }
 
 // This method is called when your extension is deactivated

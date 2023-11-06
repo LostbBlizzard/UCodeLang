@@ -4,29 +4,33 @@
 #include "AppAPILink.hpp"
 
 #include "imgui/misc/cpp/imgui_stdlib.h"
-#include "UCodeLang/Compliation/UAssembly/UAssembly.hpp"
+#include "UCodeLang/Compilation/UAssembly/UAssembly.hpp"
 
-#include "UCodeLang/Compliation/ModuleFile.hpp"
+#include "UCodeLang/Compilation/ModuleFile.hpp"
 
-#include "UCodeLang/Compliation/Back/UCodeBackEnd/UCodeBackEnd.hpp"
-#include "UCodeLang/Compliation/Back/C89/C89Backend.hpp"
-#include "UCodeLang/Compliation/Back/IR/IRBackEnd.hpp"
-#include "UCodeLang/Compliation/Back/LLVM/LLVMBackEnd.hpp"
-#include "UCodeLang/Compliation/Back/WebAssembly/WebAssembly.hpp"
-#include "UCodeLang/Compliation/Back/Windows/WindowsBackEnd.hpp"
-#include "UCodeLang/Compliation/Back/Linux/LinuxBackEnd.hpp"
+#include "UCodeLang/Compilation/Back/UCodeBackEnd/UCodeBackEnd.hpp"
+#include "UCodeLang/Compilation/Back/C89/C89Backend.hpp"
+#include "UCodeLang/Compilation/Back/IR/IRBackEnd.hpp"
+#include "UCodeLang/Compilation/Back/LLVM/LLVMBackEnd.hpp"
+#include "UCodeLang/Compilation/Back/WebAssembly/WasmBackEnd.hpp"
+#include "UCodeLang/Compilation/Back/Windows/WindowsBackEnd.hpp"
+#include "UCodeLang/Compilation/Back/Linux/LinuxBackEnd.hpp"
+#include "UCodeLang/Compilation/Back/MacOs/MacOSBackEnd.hpp"
 
 #include "UCodeLang/RunTime/ProfilerDebuger.hpp"
 
 #include "UCodeAnalyzer/SyntaxHelper.hpp"
 
-#include "UCodeLang/Compliation/Back/Windows/PE_File.hpp"
-//#include "UCodeLang/Compliation/Back/Linux/ELF_File.hpp"
-//#include <elfio/elfio_dump.hpp>
+#include "UCodeLang/Compilation/Back/Windows/PE_File.hpp"
+#include "UCodeLang/Compilation/Back/Linux/ELF_File.hpp"
+#include "UCodeLang/Compilation/Back/MacOs/MachO.hpp"
 
-#include "UCodeLang/Compliation/Back/x86_64/X86_64UNativeBackEnd.hpp"
-#include "UCodeLang/Compliation/Back/x86_64/X86_64JitCompiler.hpp"
 
+
+#include "UCodeLang/Compilation/Back/x86_64/X86_64UNativeBackEnd.hpp"
+#include "UCodeLang/Compilation/Back/x86_64/X86_64JitCompiler.hpp"
+
+#include "ECSExample.hpp"
 #include <fstream>
 #include <filesystem>
 #include "ImGuiHelpers/imgui_memory_editor/imgui_memory_editor.h"
@@ -292,7 +296,7 @@ void AppObject::DrawTestMenu()
     {
         TestMode Testmode = TestMode::UCodeLang;
         size_t MinTestIndex = 0;
-        size_t MaxTestCount = 37;//;//ULangTest::Tests.size();
+        size_t MaxTestCount = 40;//;//ULangTest::Tests.size();
 
         size_t ModuleIndex = 0;
         size_t ModuleTestCount = 1;//;//ULangTest::Tests.size();
@@ -361,13 +365,13 @@ void AppObject::DrawTestMenu()
                 }
                 else if (Testmod == TestMode::Wasm)
                 {
-                    Com.Set_BackEnd(WebAssemblyBackEnd::MakeObject);
+                    Com.Set_BackEnd(WasmBackEnd::MakeObject);
                 }
 
                 Com.Get_Settings()._Flags = flag;
                 Com.Get_Settings().PtrSize = IntSizes::Native;
 
-                Compiler::CompilerRet Com_r;
+                Compiler::CompilerRet Com_r = NeverNullptr(&Com.Get_Errors());
                 std::string InputFilesPath = UCodeLang_UCAppDir_Test_UCodeFiles + Test.InputFilesOrDir;
                 std::string OutFileDir = UCodeLang_UCAppDir_Test_OutputFiles + Test.TestName;
                 std::filesystem::path p = OutFileDir;
@@ -408,9 +412,9 @@ void AppObject::DrawTestMenu()
                     || Test.Condition == SuccessCondition::CompilationFail)
                 {
                     if (
-                        (Com_r._State == Compiler::CompilerState::Success && Test.Condition == SuccessCondition::Compilation)
+                        (Com_r.IsValue() && Test.Condition == SuccessCondition::Compilation)
                         ||
-                        (Com_r._State == Compiler::CompilerState::Fail && Test.Condition == SuccessCondition::CompilationFail)
+                        (Com_r.IsError() && Test.Condition == SuccessCondition::CompilationFail)
                         )
                     {
                         Logs += "Success from test '" + (String)Test.TestName + ModeType(flag) + "'" + '\n';
@@ -431,7 +435,7 @@ void AppObject::DrawTestMenu()
 
                 }
 
-                if (Com_r._State != Compiler::CompilerState::Success)
+                if (Com_r.IsError())
                 {
                     Logs += (String)"fail from test [Cant Compile File/Files] '" + String(Test.TestName) + ModeType(flag) + "'" + '\n';
 
@@ -516,7 +520,7 @@ void AppObject::DrawTestMenu()
                 }
                 else if (Testmod == TestMode::C89)
                 {
-                    UClib& ulib = *Com_r.OutPut;
+                    UClib& ulib = *Com_r.GetValue().OutPut;
                     auto ufunc = ulib.Get_Assembly().Find_Func(Test.FuncToCall);
                     UCodeLangAssert(ufunc);
                     {
@@ -710,7 +714,8 @@ void AppObject::DrawTestMenu()
                 }
                 else if (Testmod == TestMode::Wasm)
                 {
-                    UClib& ulib = *Com_r.OutPut;
+                    UClib& ulib = *Com_r.GetValue().OutPut;
+                    auto& outfile = Com_r.GetValue().OutFile.value();
 
                     auto ufunc = ulib.Get_Assembly().Find_Func(Test.FuncToCall);
                     UCodeLangAssert(ufunc);
@@ -719,14 +724,14 @@ void AppObject::DrawTestMenu()
 
                     std::stringstream ss;
                     ss << "const wasm = new Uint8Array([";
-                    for (const auto& b : Com_r.OutFile) {
+                    for (const auto& b : outfile) {
                         ss << "0x" << std::hex << static_cast<int>(b) << ", ";
                     }
                     ss << "]);\n";
                     ss << "const m = new WebAssembly.Module(wasm);\n";
                     ss << "const instance = new WebAssembly.Instance(m, {});\n";
                     ss << "console.log(instance.exports.";
-                    ss << WebAssemblyBackEnd::ToWebName(ufunc->DecorationName);
+                    ss << WasmBackEnd::ToWebName(ufunc->DecorationName);
                     ss << "());";
 
                     Path node_file = paths.OutFile.native() + Path("test.js").native();
@@ -1393,9 +1398,8 @@ void AppObject::DrawTestMenu()
                                     try
                                     {
                                         auto ret = file.BuildModule(compiler, LangIndex);
-                                        if (ret.CompilerRet._State == UCodeLang::Compiler::CompilerState::Success)
+                                        if (ret.CompilerRet.IsValue())
                                         {
-
                                             ItemOut.State = TestInfo::TestState::Passed;
                                             r = true;
                                         }
@@ -1491,7 +1495,7 @@ void AppObject::DrawTestMenu()
                                         try
                                         {
                                             auto ret = file.BuildModule(compiler, LangIndex);
-                                            if (ret.CompilerRet._State == UCodeLang::Compiler::CompilerState::Success)
+                                            if (ret.CompilerRet.IsValue())
                                             {
 
                                                 ItemOut.State = TestInfo::TestState::Passed;
@@ -1745,7 +1749,11 @@ void AppObject::OnDraw()
     BeginDockSpace(&Doc);
 
     //ImGui::ShowDemoWindow();
+    if (ImGui::Begin("ECE Example"))
+    {
+        ECSExample::_Context.ImguiDraw();
 
+    }  ImGui::End();
 
     if (ImGui::Begin("ShowStyleEditor"))
     {
@@ -2157,7 +2165,7 @@ void AppObject::UpdateBackEnd()
         _BackEnd = UCodeLang::LLVMBackEnd::MakeObject;
         break;
     case BackEndType::WebAssembly:
-        _BackEnd = UCodeLang::WebAssemblyBackEnd::MakeObject;
+        _BackEnd = UCodeLang::WasmBackEnd::MakeObject;
         break;
     case BackEndType::WindowsExecutable:
         _BackEnd = UCodeLang::WindowsBackEnd::MakeObject;
@@ -2599,7 +2607,7 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
 
     static UCodeLang::DebugData DebugInfo;
 
-    bool InFuncion = Debuger.IsinFunc();
+    bool InFunction = Debuger.IsinFunc();
 
     ImGui::Button("Reset", Buttonsize);
 
@@ -2608,7 +2616,7 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
     ImguiHelper::BoolEnumField("Call Frame", windowdata.CallFrame);
 
 
-    ImGui::BeginDisabled(!InFuncion);
+    ImGui::BeginDisabled(!InFunction);
 
     if (ImGui::Button("Step in", Buttonsize))
     {
@@ -2650,7 +2658,7 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
         }
     }
     
-    if (InFuncion)
+    if (InFunction)
     {
         Debuger.UpdateDebugData(DebugInfo);
         ImGui::Text("Varables");
@@ -2667,7 +2675,7 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
         }
     }
 
-    if (InFuncion) 
+    if (InFunction) 
     {
         String V = "StackPtrOffset:";
         V += std::to_string(Debuger.GetStackOffset());
@@ -2676,7 +2684,7 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
         ImGui::Text("StackFrames");
 
     }
-    if (InFuncion)
+    if (InFunction)
     {
         ImGui::Text("Registers");
 
@@ -2690,7 +2698,7 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
     }
     
 
-    if (!InFuncion) 
+    if (!InFunction) 
     {
         auto& Assembly = _RunTimeState.Get_Assembly();
         bool Updated = false;
@@ -2698,7 +2706,7 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
 
         auto GlobalObject = Assembly.Get_GlobalObject_Class();
 
-        ImGui::Text("Call Funcion:"); ImGui::SameLine();
+        ImGui::Text("Call Function:"); ImGui::SameLine();
         
         ImGui::PushID(&callFuncContext.current_method);
 
@@ -3117,11 +3125,21 @@ void AppObject::FullReloadRunTime()
     _RuntimeLib.Init(&_CompiledLib);
 
     LinkAppAPICallsTo(_RuntimeLib);
+    ECSExample::ECSLink(_RuntimeLib);
 
     _RunTimeState.ClearRunTimeState();
     _RunTimeState.AddLib(&_RuntimeLib);
     _RunTimeState.LinkLibs();
 
+
+    //ESC
+    {
+        ECSExample::State.ClearRunTimeState();
+        ECSExample::State.AddLib(&_RuntimeLib);
+        ECSExample::State.LinkLibs();
+
+        ECSExample::_Context.Interpreter.Init(&ECSExample::State);
+    }
     _AnyInterpreter.Init(&_RunTimeState);
     OnRuntimeUpdated();
 }
@@ -3250,7 +3268,7 @@ void AppObject::CompileText(const String& String)
 
     IsRuningCompiler = true;
     bool AddStandardLibrary = UCodeLang::StringHelper::Contains(String, "ULang");//OutputWindow.ImportStandardLibrary;
-    bool Apifile = UCodeLang::StringHelper::Contains(String, "API");
+    bool Apifile = UCodeLang::StringHelper::Contains(String, "use API");
     std::function<UCodeLang::Compiler::CompilerRet()> Func = [this, paths, AddStandardLibrary, Apifile]()
     {
         UCodeLang::Compiler::ExternalFiles ExternalFiles;
@@ -3269,9 +3287,7 @@ void AppObject::CompileText(const String& String)
 
 
             auto v = f.BuildModule(_Compiler, index, true);
-            if (v.CompilerRet._State
-                ==
-                UCodeLang::Compiler::CompilerState::Fail)
+            if (v.CompilerRet.IsError())
             {
                 IsRuningCompiler = false;
                 auto& r = v.CompilerRet;
@@ -3284,7 +3300,7 @@ void AppObject::CompileText(const String& String)
         }
 
 
-        UCodeLang::Compiler::CompilerRet r;
+        UCodeLang::Compiler::CompilerRet r =UCodeLang::NeverNullptr(&_Compiler.Get_Errors());
         if (Apifile)
         {
             std::filesystem::remove_all(paths.IntDir);
@@ -3315,7 +3331,7 @@ void AppObject::CompileText(const String& String)
 
 void AppObject::OnDoneCompileing(UCodeLang::Compiler::CompilerRet& Val, const UCodeAnalyzer::Path& tepoutpath)
 {
-    if (Val._State == UCodeLang::Compiler::CompilerState::Success)
+    if (Val.IsValue())
     {
         Errors.clear();
 

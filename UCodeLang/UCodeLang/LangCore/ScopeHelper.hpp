@@ -4,7 +4,7 @@
 UCodeLangStart
 struct ScopeHelper
 {
-	static inline const char* _globalAssemblyObject = "[_global]";//where none class objs wiil be.
+	static inline const char* _globalAssemblyObject = "[_global]";//where none class objs will be.
 	static inline const char _ScopeSep = ':';
 
 	String ThisScope;

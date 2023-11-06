@@ -2,13 +2,13 @@
 #include "UCodeLang/LangCore/LangDef.hpp"
 
 #if UCodeLang_CPUIs_x86_64
-#include "UCodeLang/Compliation/Back/x86_64/X86_64JitCompiler.hpp"
+#include "UCodeLang/Compilation/Back/x86_64/X86_64JitCompiler.hpp"
 #elif UCodeLang_CPUIs_x86
-#include "UCodeLang/Compliation/Back/x86/X86JitCompiler.hpp"
+#include "UCodeLang/Compilation/Back/x86/X86JitCompiler.hpp"
 #elif UCodeLang_CPUIs_Arm
-#include "UCodeLang/Compliation/Back/ARM/ARMJitCompiler.hpp"
+#include "UCodeLang/Compilation/Back/ARM/ARMJitCompiler.hpp"
 #elif UCodeLang_CPUIs_Arm64
-#include "UCodeLang/Compliation/Back/ARM64/ARM64JitCompiler.hpp"
+#include "UCodeLang/Compilation/Back/ARM64/ARM64JitCompiler.hpp"
 #endif // CPUTypes
 
 

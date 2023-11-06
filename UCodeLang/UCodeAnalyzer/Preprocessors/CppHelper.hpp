@@ -80,6 +80,11 @@ public:
 
 		Optional<size_t> OverloadNumber;
 		bool IsStatic = false;
+		bool IsThisConst = false;
+	};
+	struct EmbedData
+	{
+		String Body;
 	};
 	struct SymbolData
 	{
@@ -91,7 +96,7 @@ public:
 		String _Name;
 
 		//int becuase gcc is unable use ClassType in Variant as default
-		Variant<int,ClassType, EnumType, ConstexprType, FuncData> _Type;
+		Variant<int,ClassType, EnumType, ConstexprType, FuncData, EmbedData> _Type;
 	};
 
 
@@ -108,7 +113,7 @@ public:
 	};
 	
 	/// <summary>
-	/// Converts Enum,Classes,using,typedefs and funcions with the UCodeLangExportSymbol macro into Cpp calls and ULang types 
+	/// Converts Enum,Classes,using,typedefs and functions with the UCodeLangExportSymbol macro into Cpp calls and ULang types 
 	/// also adds summary tag to the made ucode files.
 	/// </summary>
 	/// <param name="SrcCpp"></param>
@@ -151,12 +156,12 @@ public:
 	static void DoClassOrStruct(const String& Keywordlet, size_t& i, String& FileText, SymbolData& Tep, Vector<SymbolData>& Symbols, ParseCppState& State);
 	static void DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size_t& i, String& FileText, SymbolData& Tep, Vector<SymbolData>& Symbols, ParseCppState& State);
 	static bool OnDo(size_t StartIndex, const String& Keywordlet, size_t& i, String& Scope, SymbolData& Tep, Vector<SymbolData>& Symbols, ParseCppState& State);
-	
+	static void DoEmbed(size_t StartIndex, const String& Keywordlet, size_t& i, String& FileText, SymbolData& Tep, Vector<SymbolData>& Symbols, ParseCppState& State);
 
 
 	static void GetStringliteral(size_t& i, String& FileText, String& Out);
 	static void GetStringScope(size_t& i, String& FileText, String& Out);
-	static void GetIndentifier(size_t& i, String& FileText, String& Out);
+	static void GetIdentifier(size_t& i, String& FileText, String& Out);
 	static void GetType(size_t& i, String& FileText, CPPType& Out);
 	static void MovePass(size_t& i, String& FileText, const char& passChar);
 	static void MovePassSpace(size_t& i, String& FileText);
@@ -196,6 +201,8 @@ public:
 
 	static String ToString(CppToULangState& State, const CPPType& Value);
 	static String ToString(CppToULangState& State, const CPPExpression& Value);
+
+	static String ToString(CppToULangState& State, const EmbedData& Value, const SymbolData& Syb);
 
 	static void DoNameSpace(CppToULangState& State, const SymbolData& Syb, String& R);
 

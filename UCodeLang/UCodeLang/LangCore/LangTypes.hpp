@@ -109,13 +109,14 @@ struct Variant
 {
 public:
 	using ThisType = Variant<Types...>;
-	template<typename T>
-	Variant(const T& Value) :_Base(Value){}
-
-	template<typename T>Variant(T&& Value) : _Base(std::move(Value)) {}
-
+	
 	Variant(const ThisType& Value) noexcept :_Base(Value._Base) {}
 	Variant(ThisType&& Value) noexcept :_Base(std::move(Value._Base)) {}
+
+	
+	template<typename T> Variant(const T& Value) :_Base(Value){}
+
+	template<typename T>Variant(T&& Value) : _Base(std::move(Value)) {}
 
 	Variant()
 	{
@@ -219,6 +220,22 @@ public:
 	Result(){}
 	~Result(){}
 
+	Result(const Result& Value) noexcept
+		:_Base(Value._Base) {}
+	Result(Result&& Value) noexcept
+		:_Base(std::move(Value._Base)) {}
+
+	Result& operator=(const Result& Value) noexcept
+	{
+		_Base = Value._Base;
+		return *this;
+	}
+	Result& operator=(Result&& Value) noexcept
+	{
+		_Base =std::move(Value._Base);
+		return *this;
+	}
+
 	Result(const T& Value)
 		:_Base(Value){}
 
@@ -230,6 +247,29 @@ public:
 
 	Result(E&& Value)
 		:_Base(std::move(Value)) {}
+
+
+	Result& operator=(const T& Value) noexcept
+	{
+		_Base = Value;
+		return *this;
+	}
+	Result& operator=(const E& Value) noexcept
+	{
+		_Base = Value;
+		return *this;
+	}
+
+	Result& operator=(T&& Value) noexcept
+	{
+		_Base = std::move(Value);
+		return *this;
+	}
+	Result& operator=(E&& Value) noexcept
+	{
+		_Base = std::move(Value);
+		return *this;
+	}
 
 	bool IsError() const
 	{
@@ -346,7 +386,7 @@ enum class RegisterID : RegisterID_t
 
 	AwaitOutRegister = OutPutRegister,
 
-	StartParameterRegister = (RegisterID_t)RegisterID::D,//the range the runtime will pass funcion Parameters into Registers
+	StartParameterRegister = (RegisterID_t)RegisterID::D,//the range the runtime will pass function Parameters into Registers
 	EndParameterRegister = (RegisterID_t)RegisterID::F + 1,
 
 	Parameter1_Register = (RegisterID_t)RegisterID::StartParameterRegister,
@@ -550,7 +590,7 @@ struct Span
 
 		Iterator& operator++() { m_ptr++; return *this; }
 
-		Iterator operator++(T) { Iterator tmp = *this; ++(*this); return tmp; }
+		Iterator operator++(int) { Iterator tmp = *this; ++(*this); return tmp; }
 
 		friend bool operator== (const Iterator& a, const Iterator& b) { return a.m_ptr == b.m_ptr; };
 		friend bool operator!= (const Iterator& a, const Iterator& b) { return a.m_ptr != b.m_ptr; };

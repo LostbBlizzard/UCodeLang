@@ -14,7 +14,7 @@ $Vector<T>:
    if ptr != uintptr(0):
    unsafe drop(_data);
 
-  unsafe |Data[imut this&] -> imut T[&]:ret _data;
+  unsafe |iData[imut this&] -> imut T[&]:ret _data;
   unsafe |Data[this&] -> T[&]:ret _data;
 
   |Size[imut this&] => _size;
@@ -54,7 +54,7 @@ $Vector<T>:
   |Insert[this&,uintptr Index,imut T& Item] -> void;
   //|Insert[this&,uintptr Index,moved T Item] -> void;
 
-  //Not required Funcions 
+  //Not required Functions 
   |Append[this&,imut T[:] Val] -> void;
   //|Append[this&,moved T[:] Val] -> void;
 
@@ -69,4 +69,4 @@ $Vector<T>:
   |[][imut this&,Range_t<uintptr> Range] -> imut T[:]:ret AsSpan()[Range];
 
   |AsSpan[this&] -> T[:]:ret unsafe [_data,_size];
-  |AsSpan[imut this&] -> imut T[:]:ret unsafe [_data,_size];
+  |iAsSpan[imut this&] -> imut T[:]:ret unsafe [_data,_size];

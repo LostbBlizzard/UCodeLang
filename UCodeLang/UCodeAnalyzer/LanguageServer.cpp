@@ -23,7 +23,7 @@ void LanguageServer::deinit()
 void LanguageServer::UpdateErrorList()
 {
 	ErrorList.clear();
-	for (auto& Item : _Files)//this is a bit slow should be cashed.
+	for (auto& Item : _Files)//this is a bit slow should be cached.
 	{
 		for (auto& Error : Item.second.lexingErrors)
 		{
@@ -42,17 +42,17 @@ void UCFile::AnalyzedParseAndLex()
 	analyzedlex = oldfile;
 
 	_oldLexer.Reset();
-	_CompliationErrors.FilePath = this->FileName;
+	_CompilationErrors.FilePath = this->FileName;
 
-	_oldLexer.Set_Settings(_CompliationSettings);
-	_oldLexer.Set_ErrorsOutput(&_CompliationErrors);
+	_oldLexer.Set_Settings(_CompilationSettings);
+	_oldLexer.Set_ErrorsOutput(&_CompilationErrors);
 
 
 	_oldLexer.Lex(oldfile);
 
 
-	lexingpassing = !_CompliationErrors.Has_Errors();
-	lexingErrors = std::move(_CompliationErrors.Get_Errors());
+	lexingpassing = !_CompilationErrors.Has_Errors();
+	lexingErrors = std::move(_CompilationErrors.Get_Errors());
 	if (lexingpassing)
 	{
 		String old = std::move(analyzedpaser);
@@ -64,13 +64,13 @@ void UCFile::AnalyzedParseAndLex()
 
 		_oldParser = std::make_shared<UCodeLang::FrontEnd::Parser>();
 		_oldParser->Reset();
-		_oldParser->Set_Settings(_CompliationSettings);
-		_oldParser->Set_ErrorsOutput(&_CompliationErrors);
+		_oldParser->Set_Settings(_CompilationSettings);
+		_oldParser->Set_ErrorsOutput(&_CompilationErrors);
 
 		_oldParser->Parse(old, parsertokens);
 
-		parsepassing = !_CompliationErrors.Has_Errors();
-		parseErrors = std::move(_CompliationErrors.Get_Errors());
+		parsepassing = !_CompilationErrors.Has_Errors();
+		parseErrors = std::move(_CompilationErrors.Get_Errors());
 		if (parsepassing) 
 		{
 			analyzedtokens = std::move(parsertokens);

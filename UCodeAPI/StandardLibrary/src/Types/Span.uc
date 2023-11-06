@@ -11,8 +11,9 @@ $Span<T>:
    _data = data;
    _size = size;
   |Size[imut this&] => _size;
-  unsafe |Data[imut this&] => _data;
-
+  unsafe |Data[this&] => _data;
+  unsafe |iData[imut this&] => _data;
+  
 
   |[][this&,uintptr Index] -> T&:ret _data[Index];
   |[][imut this&,uintptr Index] -> imut T&:ret _data[Index];

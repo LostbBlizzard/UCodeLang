@@ -16,6 +16,11 @@ public:
 	using ThisType = NeverNullPtr<T>;
 	using NullableType= NullablePtr<T>;
 
+	NeverNullPtr()
+		:Value(nullptr)
+	{
+
+	}
 	NeverNullPtr(PtrType Value)
 		:Value(Value)
 	{

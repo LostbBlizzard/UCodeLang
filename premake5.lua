@@ -65,6 +65,9 @@ workspace "UCodeLang"
    filter { "platforms:Android" }
     system "android"
     architecture "ARM64"
+    androidapilevel (22)
+    exceptionhandling ("On")
+    rtti ("On")
 
    filter { "platforms:IOS" }
     system "ios"
@@ -344,11 +347,15 @@ project "UCodeIDE"
       "UCodeLanguageSeverlib",
       "UCodeLang",
    }
-   prebuildcommands
-   {
+
+
+   filter { "system:Windows or system:linux or system:macosx" }
+    prebuildcommands
+    {
      UCPathExe.." cpptoulangvm %{prj.location}/src/AppObject/AppAPI.hpp %{prj.location}src/AppObject/AppAPILink.cpp %{prj.location}tepfiles/AppAPI.uc",
-   }
-   prebuildmessage "runing cpptoulangvm"
+     UCPathExe.." cpptoulangvm %{prj.location}/src/AppObject/ECSExample.hpp %{prj.location}src/AppObject/ECSExample.cpp %{prj.location}tepfiles/ECSAPI.uc",
+    }
+    prebuildmessage "runing cpptoulangvm"
 
    filter { "system:Windows" }
     kind "ConsoleApp"   
@@ -420,13 +427,13 @@ group "UCodeAPIs"
   }
 
 
- 
-  prebuildmessage 'compiling ucodelang files'
-  prebuildcommands  
-  {
-   UCPathExe.." index %{prj.location}",
-   -- UCPathExe.." build %{prj.location}"
-  }
+  filter { "system:Windows or system:linux or system:macosx" }
+   prebuildmessage 'compiling ucodelang files'
+   prebuildcommands  
+   {
+    UCPathExe.." index %{prj.location}",
+    -- UCPathExe.." build %{prj.location}"
+   }
   
  project "NStandardLibrary"
   location "UCodeAPI/NStandardLibrary"
@@ -445,13 +452,13 @@ group "UCodeAPIs"
   }
 
 
- 
-  prebuildmessage 'compiling ucodelang files'
-  prebuildcommands 
-  {
-   UCPathExe.." index %{prj.location}",
-   --UCPathExe.." build %{prj.location}"
-  }
+  filter { "system:Windows or system:linux or system:macosx" }
+   prebuildmessage 'compiling ucodelang files'
+   prebuildcommands 
+   {
+    UCPathExe.." index %{prj.location}",
+    --UCPathExe.." build %{prj.location}"
+   }
  project "Win32"
   location "UCodeAPI/Win32"
   kind "StaticLib"
@@ -468,12 +475,14 @@ group "UCodeAPIs"
   "UCodeAPI/%{prj.name}/ULangModule.ucm",
   }
 
-  prebuildmessage 'compiling ucodelang files'
-  prebuildcommands 
-  {
-    UCPathExe.." index %{prj.location}",
-    --UCPathExe.." build %{prj.location}"
-  }
+  
+  filter { "system:Windows or system:linux or system:macosx" }
+   prebuildmessage 'compiling ucodelang files'
+   prebuildcommands 
+   {
+     UCPathExe.." index %{prj.location}",
+     --UCPathExe.." build %{prj.location}"
+   }
  project "NWin32"
    location "UCodeAPI/NWin32"
    kind "StaticLib"
@@ -490,12 +499,13 @@ group "UCodeAPIs"
    "UCodeAPI/%{prj.name}/ULangModule.ucm",
    }
 
-   prebuildmessage 'compiling ucodelang files'
-   prebuildcommands 
-   {
-    UCPathExe.." index %{prj.location}",
-    --UCPathExe.." build %{prj.location}"
-   }
+   filter { "system:Windows or system:linux or system:macosx" }
+    prebuildmessage 'compiling ucodelang files'
+    prebuildcommands 
+    {
+     UCPathExe.." index %{prj.location}",
+     --UCPathExe.." build %{prj.location}"
+    }
  project "Example"
    location "UCodeAPI/Example"
    kind "ConsoleApp"

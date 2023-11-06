@@ -4,7 +4,7 @@ UCodeLangStart
 
 
 //follows std::vector class kind of
-//a wapper to make use UCodeVectors easier.
+//a wrapper to make use UCodeVectors easier.
 struct ReflectionVector
 {
 public:
@@ -283,7 +283,7 @@ private:
 
 
 //follows std::string class kind of
-//a wapper to make use UCodeString easier.
+//a wrapper to make use UCodeString easier.
 struct ReflectionString
 {
 public:

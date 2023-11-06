@@ -8,7 +8,7 @@
 #include "../src/UCodeLangProjectPaths.hpp"
 #include <UCodeLang/RunTime/TestRuner.hpp>
 
-#include <UCodeLang/Compliation/Back/C89/C89Backend.hpp>
+#include <UCodeLang/Compilation/Back/C89/C89Backend.hpp>
 
 #if UCodeLang_Platform_Windows
 #include <Windows.h>
@@ -110,7 +110,7 @@ UCodeTestStart
 
 	
 
-	static const Array<TestInfo, 92> Tests
+	static const Array<TestInfo, 96> Tests
 	{
 
 		TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation),
@@ -235,6 +235,11 @@ UCodeTestStart
 		TestInfo("StdString", "Std/String.uc", "main", SuccessCondition::RunTimeValue, (bool)1),
 		TestInfo("inferredgenericreturn", "Generics/inferredgenericreturn.uc", "main", SuccessCondition::RunTimeValue, (uintptr_t)10),
 		TestInfo("inferredenumfield", "Generics/inferredenumfield.uc", "main", SuccessCondition::RunTimeValue, (int)5),
+
+		TestInfo("OptionalAsPtr", "Objects/OptionalAsPtr.uc", "NullOp", SuccessCondition::RunTimeValue, (bool)true),
+		TestInfo("OptionalAsPtr", "Objects/OptionalAsPtr.uc", "NullOp2", SuccessCondition::RunTimeValue, (int)10),
+		TestInfo("factorial2", "BasicTests/factorial2.uc", "main", SuccessCondition::RunTimeValue, (int)3628800),
+		TestInfo("StressTest1", "StressTest/StressTest1.uc", "main", SuccessCondition::RunTimeValue, (int)6),
 	};
 
 	struct SkipTestRange
@@ -243,7 +248,7 @@ UCodeTestStart
 		size_t End;
 	};
 	static const Vector<SkipTestRange> UCodeVmSkipTests
-		= { {10, Tests.size() } };
+		= { {40, Tests.size() } };
 	static const Vector<SkipTestRange> C89SkipTests
 		= { {40, Tests.size() } };
 	static const Vector<SkipTestRange> WasmSkipTests

@@ -55,7 +55,7 @@ UCodeLangAPIExport void ProfilerDebuger::UpdateDebugData(DebugData& Out)
 	auto& DebugInfo = StepedInterpreter->Get_State()->Get_Libs().Get_DebugInfo();
 
 	DebugStackFrame F;
-	F._Funcion = func;
+	F._Function = func;
 
 
 	const ClassMethod* FuncString = nullptr;
@@ -247,7 +247,7 @@ void ProfilerDebuger::OnFuncStart(AnyInterpreterPtr Ptr)
 		auto Interpreter = Ptr.GetAs_Interpreter();
 
 		DebugStackFrame frame;
-		frame._Funcion = Interpreter->_CPU.ProgramCounter;
+		frame._Function = Interpreter->_CPU.ProgramCounter;
 		frame.FuncStart = { now };
 		
 

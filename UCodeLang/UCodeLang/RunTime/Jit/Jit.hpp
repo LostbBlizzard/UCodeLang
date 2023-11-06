@@ -56,7 +56,7 @@ enum class OsType : UInt8
 	ThisOs = Web,
 #else
 ThisOs = None,
-#error "I Dont Know What OS Im runing on"
+#error "I Dont Know What OS Im running on"
 #endif // 
 };
 struct EnvironmentData

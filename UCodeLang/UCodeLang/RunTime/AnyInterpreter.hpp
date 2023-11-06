@@ -471,7 +471,7 @@ private:
 };
 
 
-//a thin wapper over the Interpreters
+//a thin wrapper over the Interpreters
 
 class AnyInterpreter
 {

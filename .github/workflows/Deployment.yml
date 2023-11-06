@@ -27,6 +27,13 @@ on:
         type: string
         default: 'added: fixed: removed:'
 
+
+      UploadToVSMarketPlace:
+        description: 'Upload To VS MarketPlace'
+        required: true
+        type: boolean
+        default: false
+
       LSPChangelog:
         description: 'The Change Log for Editor Extenions'
         required: true
@@ -61,6 +68,7 @@ jobs:
            ./BuildWin64Published.bat
 
       - name: Build 32 bit
+        if: ${{ inputs.IsPreRelease == false}}
         run: |
            cd ./BuildTools
            ./BuildWin32Published.bat
@@ -77,7 +85,10 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: Output_Windows
-          path: Output/
+          path: |
+           Output/UCodelangCL
+           Output/UCodeLanguageSever
+           Output/UCodeLang
           retention-days: 1
 
   build-Linux:
@@ -124,7 +135,10 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: Output_Linux
-          path: Output/
+          path: |
+           Output/UCodelangCL
+           Output/UCodeLanguageSever
+           Output/UCodeLang
           retention-days: 1
 
   build-MacOS:
@@ -132,6 +146,9 @@ jobs:
     
     steps:
       - uses: actions/checkout@v3
+
+      - name: Get glfw
+        run: brew install glfw
     
       - name: Make a scripts executable
         run: |
@@ -163,26 +180,43 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: Output_MacOS
-          path: Output/
+          path: |
+           Output/UCodelangCL
+           Output/UCodeLanguageSever
+           Output/UCodeLang
           retention-days: 1
 
   build-Extensions:
+    if: ${{ inputs.UploadToVSMarketPlace == true}}
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
 
-      - name: Build
+      - name: set working path
+        run: cd ./UCodeLanguageSever/EditorSpecific/VSCode/ucode-language
+
+
+      - name: Install the dependencies
+        run: npm i
         working-directory: ./UCodeLanguageSever/EditorSpecific/VSCode/ucode-language
-        run:  npm install
-      - uses: lannonbr/vsce-action@3.0.0
-        with:
-          args: "publish -p $VSCE_TOKEN"
-        env:
-          VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
+
+      - name: Install vsce
+        run: npm i -g vsce
+        working-directory: ./UCodeLanguageSever/EditorSpecific/VSCode/ucode-language
+
+      - name: PublishPreRelease
+        if: ${{ inputs.IsPreRelease == true}}
+        run: vsce publish --pre-release -p ${{ secrets.VSCE_TOKEN }}
+        working-directory: ./UCodeLanguageSever/EditorSpecific/VSCode/ucode-language
+
+      - name: Publish
+        if: ${{ inputs.IsPreRelease == false}}
+        run: vsce publish -p ${{ secrets.VSCE_TOKEN }}
+        working-directory: ./UCodeLanguageSever/EditorSpecific/VSCode/ucode-language
 
   deployment-GitHub:
-    needs: [build-Windows,build-Linux,build-MacOS,build-Web]
+    needs: [build-Windows,build-Linux,build-MacOS]
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -213,10 +247,9 @@ jobs:
 
           draft: false
           prerelease: ${{ inputs.IsPreRelease }}
-          tag_name: Release
+          tag_name: Release-${{ inputs.VersionNumber }}
       
       - name: Upload UCodeLangCAPI
-        id: upload-release-asset 
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -228,136 +261,127 @@ jobs:
       
      
       - name: Upload UCodeLangLibWindows64
-        id: upload-release-asset 
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output/Win64/Published/UCodeLang.lib
+          asset_path: ./Output_Windows/UCodeLang/Win64/Published/UCodeLang.lib
           asset_name: UCodeLang-win64.lib
           asset_content_type: application/octet-stream 
 
       - name: Upload UCodeLangCLWindows64
-        id: upload-release-asset 
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output/UCodelangCL/Win64/Published/uclang.exe
+          asset_path: ./Output_Windows/UCodelangCL/Win64/Published/uclang.exe
           asset_name: uclang-win64.exe
           asset_content_type: application/octet-stream 
           
       - name: Upload UCodeLangSeverWindows64
-        id: upload-release-asset 
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output/UCodeLanguageSever/Win64/Published/uclanglsp.exe
+          asset_path: ./Output_Windows/UCodeLanguageSever/Win64/Published/uclanglsp.exe
           asset_name: uclanglsp-win64.exe
           asset_content_type: application/octet-stream 
 
       
       - name: Upload UCodeLangLibWindows32
-        id: upload-release-asset 
+        if: ${{ inputs.IsPreRelease == false}}
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} 
-          asset_path: ./Output/Win32/Published/UCodeLang.lib
+          asset_path: ./Output_Windows/UCodeLang/Win32/Published/UCodeLang.lib
           asset_name: UCodeLang-win32.lib
           asset_content_type: application/octet-stream 
       
       - name: Upload UCodeLangCLWindows32
-        id: upload-release-asset 
+        if: ${{ inputs.IsPreRelease == false}}
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output/UCodelangCL/Win32/Published/uclang.exe
+          asset_path: ./Output_Windows/UCodelangCL/Win32/Published/uclang.exe
           asset_name: uclang-win32.exe
           asset_content_type: application/octet-stream 
       
       - name: Upload UCodeLangSeverWindows32
-        id: upload-release-asset 
+        if: ${{ inputs.IsPreRelease == false}}
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output/UCodeLanguageSever/Win32/Published/uclanglsp.exe
+          asset_path: ./Output_Windows/UCodeLanguageSever/Win32/Published/uclanglsp.exe
           asset_name: uclanglsp-win32.exe
           asset_content_type: application/octet-stream 
       
 
       - name: Upload UCodeLangLibLinux64
-        id: upload-release-asset 
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output/UCodeLang/Linux/Published/libUCodeLang.a
+          asset_path: ./Output_Linux/UCodeLang/linux64/Published/libUCodeLang.a
           asset_name: libUCodeLang-linux64.a
           asset_content_type: application/octet-stream 
 
       - name: Upload UCodeLangCLlinux64
-        id: upload-release-asset 
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output/UCodelangCL/linux64/Published/uclang
+          asset_path: ./Output_Linux/UCodelangCL/linux64/Published/uclang
           asset_name: uclang-linux64
           asset_content_type: application/octet-stream 
 
       - name: Upload UCodeLangSeverlinux64
-        id: upload-release-asset 
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output/UCodeLanguageSever/linux64/Published/uclang
+          asset_path: ./Output_Linux/UCodeLanguageSever/linux64/Published/uclanglsp
           asset_name: uclanglsp-linux64
           asset_content_type: application/octet-stream 
 
 
       - name: Upload UCodeLangLibMacOS
-        id: upload-release-asset 
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output/UCodeLang/MacOS/Published/libUCodeLang.a
+          asset_path: ./Output_MacOS/UCodeLang/MacOS/Published/libUCodeLang.a
           asset_name: libUCodeLang-macos.a
           asset_content_type: application/octet-stream 
 
       - name: Upload UCodeLangCLMacOS
-        id: upload-release-asset 
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output/UCodelangCL/MacOS/Published/uclang
+          asset_path: ./Output_MacOS/UCodelangCL/MacOS/Published/uclang
           asset_name: uclang-macos
           asset_content_type: application/octet-stream 
 
       - name: Upload UCodeLangSeverMacOS
-        id: upload-release-asset 
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output/UCodeLanguageSever/MacOS/Published/uclang
+          asset_path: ./Output_MacOS/UCodeLanguageSever/MacOS/Published/uclanglsp
           asset_name: uclanglsp-macos
           asset_content_type: application/octet-stream 

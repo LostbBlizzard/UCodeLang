@@ -11,3 +11,6 @@ $Math:
   ret B;
  
  |Pow<T>[T val,T power] => val;//TODO
+
+ |Lerp<T>[T start,T end,T time]:
+  ret start + (end - start) * time;

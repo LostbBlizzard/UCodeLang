@@ -219,7 +219,7 @@ public:
 	
 	ReflectionTypeInfo RetType;
 	Vector<Par> ParsType;
-	bool IsThisFuncion = false;
+	bool IsThisFunction = false;
 	bool IsUnsafe = false;
 	bool IsExternC = false;
 	bool IsRemoved = false;
@@ -265,7 +265,7 @@ enum class ClassType :ClassType_t
 	StaticArray,
 	FuncPtr,
 	GenericClass,
-	GenericFuncion,
+	GenericFunction,
 };
 struct Class_Data
 {
@@ -291,7 +291,7 @@ struct Class_Data
 		return Get_ClassMethod(ClassDestructorFunc);
 	}//This May be null.
 
-	const ClassMethod* Get_ClassMethod(const String& Name) const
+	const ClassMethod* Get_ClassMethod(const String_view Name) const
 	{
 		for (auto& Item : Methods)
 		{
@@ -303,7 +303,7 @@ struct Class_Data
 		}
 		return nullptr;
 	}
-	Vector<const ClassMethod*> Get_ClassMethods(const String& Name) const
+	Vector<const ClassMethod*> Get_ClassMethods(const String_view Name) const
 	{
 		Vector<const ClassMethod*> r;
 		for (auto& Item : Methods)
@@ -319,6 +319,30 @@ struct Class_Data
 	Vector<const ClassMethod*> Get_ClassConstructors() const
 	{
 		return Get_ClassMethods(ClassConstructorfunc);
+	}//This May be null.
+
+	const ClassField* Get_ClassField(const String_view Name) const
+	{
+		for (auto& Item : Fields)
+		{
+			if (Item.Name == Name)
+			{
+				return &Item;
+			}
+		}
+		return nullptr;
+	}//This May be null.
+
+	ClassField* Get_ClassField(const String_view Name)
+	{
+		for (auto& Item : Fields)
+		{
+			if (Item.Name == Name)
+			{
+				return &Item;
+			}
+		}
+		return nullptr;
 	}//This May be null.
 };
 struct Enum_Data
@@ -406,10 +430,10 @@ struct GenericClass_Data
 };
 
 
-struct GenericFuncion_Data
+struct GenericFunction_Data
 {
 	GenericBase_Data Base;
-	~GenericFuncion_Data()
+	~GenericFunction_Data()
 	{
 
 	}
@@ -521,9 +545,9 @@ public:
 		UCodeLangAssert(Type == ClassType::GenericClass);
 		return _GenericClass;
 	}
-	GenericFuncion_Data& Get_GenericFuncionData() 
+	GenericFunction_Data& Get_GenericFunctionData() 
 	{
-		UCodeLangAssert(Type == ClassType::GenericFuncion);
+		UCodeLangAssert(Type == ClassType::GenericFunction);
 		return _GenericFunc;
 	}
 	
@@ -582,9 +606,9 @@ public:
 		UCodeLangAssert(Type == ClassType::GenericClass);
 		return _GenericClass;
 	}
-	const GenericFuncion_Data& Get_GenericFuncionData() const
+	const GenericFunction_Data& Get_GenericFunctionData() const
 	{
-		UCodeLangAssert(Type == ClassType::GenericFuncion);
+		UCodeLangAssert(Type == ClassType::GenericFunction);
 		return _GenericFunc;
 	}
 	inline ClassType Get_Type() const
@@ -606,7 +630,7 @@ private:
 		StaticArray_Data _StaticArr;
 		FuncPtr_Data _FuncPtr;
 		GenericClass_Data _GenericClass;
-		GenericFuncion_Data _GenericFunc;
+		GenericFunction_Data _GenericFunc;
 	};
 };
 class ClassAssembly
@@ -682,14 +706,14 @@ public:
 		r.FullName = FullName;
 		return r.Get_GenericClass();
 	}
-	inline GenericFuncion_Data& AddGenericFunc(const String& Name, const String& FullName = "")
+	inline GenericFunction_Data& AddGenericFunc(const String& Name, const String& FullName = "")
 	{
-		auto V = std::make_unique<AssemblyNode>(ClassType::GenericFuncion);
+		auto V = std::make_unique<AssemblyNode>(ClassType::GenericFunction);
 		Classes.push_back(std::move(V));
 		auto& r = *Classes.back();
 		r.Name = Name;
 		r.FullName = FullName;
-		return r.Get_GenericFuncionData();
+		return r.Get_GenericFunctionData();
 	}
 	static void PushCopyClasses(const ClassAssembly& source, ClassAssembly& Out);
 	AssemblyNode* Find_Node(const String& Name, const String& Scope ="")
@@ -979,7 +1003,7 @@ public:
 		const ReflectionTypeInfo& TypeA, const ClassAssembly& TypeAAssembly, 
 		const ReflectionTypeInfo& TypeB, const ClassAssembly& TypeBAssembly);
 	
-	//Convert one type to Another even if not the same type int to char,int to int32,enum to int ect
+	//Convert one type to Another even if not the same type int to char,int to int32,enum to int etc
 	//if the first Optional is empty the operation failed
 	//used in hot reloading
 	static Optional<Optional<Vector<OnMoveConstructorCall>>> DoTypeCoercion(
@@ -1007,7 +1031,7 @@ public:
 	}
 
 	//Is Char or Uf8,Uf16,Uf32 etc also includes type aliases
-	// use IsJust to exclude pointer and move's ect.
+	// use IsJust to exclude pointer and move's etc.
 	inline bool IsChar_t(const ReflectionTypeInfo& TypeA) const
 	{
 		switch (TypeA._Type)
@@ -1165,7 +1189,7 @@ public:
 	}
 
 
-	//should be chached
+	//should be cached
 	struct InfoVector_t
 	{
 		ReflectionTypeInfo ElementType;

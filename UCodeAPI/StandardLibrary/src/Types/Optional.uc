@@ -1,4 +1,4 @@
 
 $Optional<T> enum:
- Option[T Value],
- Null,
+ Opt[T Value],
+ NoOpt,

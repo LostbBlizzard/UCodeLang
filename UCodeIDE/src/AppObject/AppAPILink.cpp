@@ -6,8 +6,6 @@ void LinkAppAPICallsTo(UCodeLang::RunTimeLib& lib)
 	using namespace API;
 	UCodeLangAutoLink(lib, API);
 	{//Made by UCodeAutoLink 
-		using LogTrait__Log_ptr = void(*UCodeLangAPI)(API::LogTrait*); 
-		using LogTrait__Log0_ptr = void(*UCodeLangAPI)(API::LogTrait*,StringView); 
 		using Imgui__Ping_ptr = int(*UCodeLangAPI)(int); 
 		using Imgui__Button_ptr = bool(*UCodeLangAPI)(StringView); 
 		using Imgui__Button0_ptr = bool(*UCodeLangAPI)(StringView,const Vec2&); 
@@ -15,35 +13,7 @@ void LinkAppAPICallsTo(UCodeLang::RunTimeLib& lib)
 		using Imgui__ObjectField0_ptr = bool(*UCodeLangAPI)(StringView,bool&); 
 		using Imgui__Text_ptr = void(*UCodeLangAPI)(StringView); 
 		using Imgui__KeyDown_ptr = bool(*UCodeLangAPI)(ImKey); 
-		lib.Add_CPPCall("API:LogTrait:Log",[](UCodeLang::InterpreterCPPinterface& Input) 
-			{
-			
-				API::LogTrait* thisPar = Input.GetParameter<API::LogTrait*>();
-				
-				thisPar->Log();
-				
-				Input.Set_Return();
-			
-			},(LogTrait__Log_ptr)[](API::LogTrait* thisPar)
-			{
-				thisPar->Log();
-			}); 
-		lib.Add_CPPCall("API:Internal:LogTrait__Log0",[](UCodeLang::InterpreterCPPinterface& Input) 
-			{
-			
-				API::LogTrait* thisPar = Input.GetParameter<API::LogTrait*>();
-				
-				StringView Par0 = Input.GetParameter<StringView>();
-				
-				thisPar->Log(Par0);
-				
-				Input.Set_Return();
-			
-			},(LogTrait__Log0_ptr)[](API::LogTrait* thisPar,StringView Par0)
-			{
-				thisPar->Log(Par0);
-			}); 
-		lib.Add_CPPCall("API:Imgui:Ping",[](UCodeLang::InterpreterCPPinterface& Input) 
+		lib.Add_CPPCall("API:Imgui:Ping",[](UCodeLang::InterpreterCPPinterface& Input) -> void
 			{
 			
 				int Par0 = Input.GetParameter<int>();
@@ -53,7 +23,7 @@ void LinkAppAPICallsTo(UCodeLang::RunTimeLib& lib)
 				Input.Set_Return<int>(Ret);
 			
 			},(Imgui__Ping_ptr)API::Imgui::Ping); 
-		lib.Add_CPPCall("API:Imgui:Button",[](UCodeLang::InterpreterCPPinterface& Input) 
+		lib.Add_CPPCall("API:Imgui:Button",[](UCodeLang::InterpreterCPPinterface& Input) -> void
 			{
 			
 				StringView Par0 = Input.GetParameter<StringView>();
@@ -63,7 +33,7 @@ void LinkAppAPICallsTo(UCodeLang::RunTimeLib& lib)
 				Input.Set_Return<bool>(Ret);
 			
 			},(Imgui__Button_ptr)API::Imgui::Button); 
-		lib.Add_CPPCall("API:Internal:Imgui__Button0",[](UCodeLang::InterpreterCPPinterface& Input) 
+		lib.Add_CPPCall("API:Internal:Imgui__Button0",[](UCodeLang::InterpreterCPPinterface& Input) -> void
 			{
 			
 				StringView Par0 = Input.GetParameter<StringView>();
@@ -75,7 +45,7 @@ void LinkAppAPICallsTo(UCodeLang::RunTimeLib& lib)
 				Input.Set_Return<bool>(Ret);
 			
 			},(Imgui__Button0_ptr)API::Imgui::Button); 
-		lib.Add_CPPCall("API:Imgui:ObjectField",[](UCodeLang::InterpreterCPPinterface& Input) 
+		lib.Add_CPPCall("API:Imgui:ObjectField",[](UCodeLang::InterpreterCPPinterface& Input) -> void
 			{
 			
 				StringView Par0 = Input.GetParameter<StringView>();
@@ -87,7 +57,7 @@ void LinkAppAPICallsTo(UCodeLang::RunTimeLib& lib)
 				Input.Set_Return<bool>(Ret);
 			
 			},(Imgui__ObjectField_ptr)API::Imgui::ObjectField); 
-		lib.Add_CPPCall("API:Internal:Imgui__ObjectField0",[](UCodeLang::InterpreterCPPinterface& Input) 
+		lib.Add_CPPCall("API:Internal:Imgui__ObjectField0",[](UCodeLang::InterpreterCPPinterface& Input) -> void
 			{
 			
 				StringView Par0 = Input.GetParameter<StringView>();
@@ -99,7 +69,7 @@ void LinkAppAPICallsTo(UCodeLang::RunTimeLib& lib)
 				Input.Set_Return<bool>(Ret);
 			
 			},(Imgui__ObjectField0_ptr)API::Imgui::ObjectField); 
-		lib.Add_CPPCall("API:Imgui:Text",[](UCodeLang::InterpreterCPPinterface& Input) 
+		lib.Add_CPPCall("API:Imgui:Text",[](UCodeLang::InterpreterCPPinterface& Input) -> void
 			{
 			
 				StringView Par0 = Input.GetParameter<StringView>();
@@ -109,7 +79,7 @@ void LinkAppAPICallsTo(UCodeLang::RunTimeLib& lib)
 				Input.Set_Return();
 			
 			},(Imgui__Text_ptr)API::Imgui::Text); 
-		lib.Add_CPPCall("API:Imgui:KeyDown",[](UCodeLang::InterpreterCPPinterface& Input) 
+		lib.Add_CPPCall("API:Imgui:KeyDown",[](UCodeLang::InterpreterCPPinterface& Input) -> void
 			{
 			
 				ImKey Par0 = Input.GetParameter<ImKey>();

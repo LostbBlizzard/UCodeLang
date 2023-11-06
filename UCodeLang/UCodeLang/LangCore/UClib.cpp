@@ -128,9 +128,9 @@ void UClib::ToBytes(BitMaker& Output, const ClassAssembly& Assembly)
 			ToBytes(Output, TagData);
 		}
 		break;
-		case ClassType::GenericFuncion:
+		case ClassType::GenericFunction:
 		{
-			auto& TagData = Item->Get_GenericFuncionData();
+			auto& TagData = Item->Get_GenericFunctionData();
 
 			ToBytes(Output, TagData);
 		}
@@ -320,7 +320,7 @@ void UClib::ToBytes(BitMaker& Output, const ClassMethod& Data)
 	{
 		ToBytes(Output,Item);
 	}
-	Output.WriteType(Data.IsThisFuncion);
+	Output.WriteType(Data.IsThisFunction);
 	Output.WriteType(Data.IsUnsafe);
 	Output.WriteType(Data.IsExternC);
 	Output.WriteType(Data.IsRemoved);
@@ -355,7 +355,7 @@ void UClib::ToBytes(BitMaker& Output, const GenericClass_Data& FuncPtrData)
 {
 	ToBytes(Output,FuncPtrData.Base);
 }
-void UClib::ToBytes(BitMaker& Output, const GenericFuncion_Data& FuncPtrData)
+void UClib::ToBytes(BitMaker& Output, const GenericFunction_Data& FuncPtrData)
 {
 	ToBytes(Output,FuncPtrData.Base);
 }
@@ -762,9 +762,9 @@ void UClib::FromBytes(BitReader& reader, ClassAssembly& Assembly)
 			FromBytes(reader, Tag);
 		}
 		break;
-		case ClassType::GenericFuncion:
+		case ClassType::GenericFunction:
 		{
-			auto& Tag = _Node.Get_GenericFuncionData();
+			auto& Tag = _Node.Get_GenericFunctionData();
 			FromBytes(reader, Tag);
 		}
 		break;
@@ -953,7 +953,7 @@ void UClib::FromBytes(BitReader& reader, GenericClass_Data& Ptr)
 {
 	FromBytes(reader, Ptr.Base);
 }
-void UClib::FromBytes(BitReader& reader, GenericFuncion_Data& Ptr)
+void UClib::FromBytes(BitReader& reader, GenericFunction_Data& Ptr)
 {
 	FromBytes(reader, Ptr.Base);
 }
@@ -1051,7 +1051,7 @@ void UClib::FromBytes(BitReader& Input, ClassMethod& Data)
 			FromBytes(Input,Data.ParsType[i]);
 		}
 	}
-	Input.ReadType(Data.IsThisFuncion);
+	Input.ReadType(Data.IsThisFunction);
 	Input.ReadType(Data.IsUnsafe);
 	Input.ReadType(Data.IsExternC);
 	Input.ReadType(Data.IsRemoved);
@@ -1115,7 +1115,7 @@ void UClib::FixRawValue(Endian AssemblyEndian, NTypeSize BitSize,const ClassAsse
 		}
 		case ReflectionTypes::CustomType:
 		{
-			UCodeLangThrowException("not addded yet");
+			UCodeLangThrowException("not added yet");
 		}
 		default:
 			UCodeLangUnreachable();
