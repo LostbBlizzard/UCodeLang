@@ -1,6 +1,3 @@
-$Item
- int32 __0; 
-
 
 |(&StaticInit&)[] -> void:;
 
@@ -10,7 +7,7 @@ $Item
 
 |(&threadUnload&)[] -> void:;
 
-|Item:(&_init&)[Item* (&this&)] -> void:
+|Char_Test[] -> int8:
 
  [Block:0]
 
@@ -18,58 +15,31 @@ $Item
 //File:src.uc
 //Line:3
 
-   int32 A = 1;
-   (&this&)->__0 = A;
-   ret;
-
-|Item:(&_new&)^Item&[Item* (&this&)] -> void:
-
- [Block:0]
-
-
-//Varable:Item:(&_new&):(&this&)
-
-   Item* A = (&this&);
-   void B = Item:(&_init&)(A);
-   ret;
-
-|Item:GetValue^Item&[Item* (&this&)] -> int32:
-
- [Block:0]
-
-
-//Varable:Item:GetValue:(&this&)
-
-
-//File:src.uc
-//Line:6
-
-   int32 A = (&this&)->__0;
+   int8 A = 49;
    ret = A;
    ret;
 
-//EntryPoint 
-|main[] -> int32:
+|Byte_Test[] -> int8:
 
  [Block:0]
 
 
 //File:src.uc
-//Line:10
-//Varable:main:V
+//Line:5
 
-   Item A;
+   int8 A = 1;
+   ret = A;
+   ret;
 
-//Line:0
+|Float_Test[] -> float32:
 
-   Item* B = &A;
-   void C = Item:(&_new&)^Item&(B);
+ [Block:0]
 
-//Line:10
-//Line:11
 
-   Item* D = &A;
-   int32 E = Item:GetValue^Item&(D);
-   ret = E;
+//File:src.uc
+//Line:7
+
+   float32 A = 1.500000;
+   ret = A;
    ret;
 

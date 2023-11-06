@@ -356,8 +356,6 @@ void Interpreter::Extecute(Instruction& Inst)
 	 &&Ins_bitwiseRightShift##bitsize, \
 	 &&Ins_bitwiseXor##bitsize, \
 	 &&Ins_bitwise_Not##bitsize, \
-	 &&Ins_UInt##bitsize##ToSInt##bitsize, \
-	 &&Ins_SInt##bitsize##ToUInt##bitsize, \
 
 	#define JumpTablefloat(bitsize) \
         &&Ins_Addf##bitsize, \
@@ -435,9 +433,15 @@ void Interpreter::Extecute(Instruction& Inst)
 		&&Ins_float32ToInt32,
 		&&Ins_float64ToInt64,
 
-		&&Ins_Int32Tofloat32,
-		&&Ins_Int64Tofloat64,
+		
+		&&Ins_SInt32Tofloat32,
+		&&Ins_UInt32Tofloat32,
 
+		&&Ins_SInt64Tofloat64,
+		&&Ins_UInt64Tofloat64,
+
+		&&Ins_float32Tofloat64,
+		&&Ins_float64Tofloat32,
 		//PointerMember Set
 
 		&&Ins_PointerMemberLoad8,
