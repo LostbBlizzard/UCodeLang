@@ -986,68 +986,6 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					tep = _Input->GetType(I.get(), I.get()->Target());
 					r += "free(" + ToString(State, *I, I->Target()) + ")";
 					break;
-				case IRInstructionType::SIntToUInt:
-				{
-					OutType = &tep;
-					tep = _Input->GetType(I.get(), I.get()->Target());
-
-					auto valname = State.GetName(I.get());
-
-					r += ToString(I->ObjectType, true);
-					r += " " + valname + IRReinterpretCastTep;
-					r += " = ";
-					r += "(";
-					r += ToString(I->ObjectType, true);
-					r += ")";
-
-					r += ToString(State, *I, I->Target());
-
-					r += ";\n ";
-
-					r += ToString(I->ObjectType);
-					r += " " + valname;
-					r += " = ";
-
-
-					r += "*(";
-					r += ToString(I->ObjectType);
-					r += "*)&";
-
-					r += valname + IRReinterpretCastTep;
-				}
-				break;
-				case IRInstructionType::UIntToSInt:
-				{
-					OutType = &tep;
-					tep = _Input->GetType(I.get(), I.get()->Target());
-					auto valname = State.GetName(I.get());
-
-					r += ToString(I->ObjectType);
-					r += " " + valname + IRReinterpretCastTep;
-					r += " = ";
-					r += ToString(State, *I, I->Target());
-					r += ";\n ";
-
-
-					r += ToString(I->ObjectType);
-					r += " " + valname;
-					r += " = ";
-
-					r += "(";
-					r += ToString(I->ObjectType);
-					r += ")";
-
-					r += "(";
-
-					r += "*(";
-					r += ToString(I->ObjectType, true);
-					r += "*)&";
-
-					r += valname + IRReinterpretCastTep;
-
-					r += ")";
-				}
-					break;
 
 				case IRInstructionType::SIntToSInt8:
 				case IRInstructionType::SIntToSInt16:

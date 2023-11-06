@@ -291,12 +291,6 @@ InsCase(bitwiseXor##Bits):\
 InsCase(bitwise_Not##Bits):\
 	Get_Register(Inst.Op_TwoReg.B).Value. unsignedAnyIntValue = ~Get_Register(Inst.Op_TwoReg.A).Value. unsignedAnyIntValue;\
 	 InsBreak();\
-InsCase(UInt##Bits##To##SInt##Bits):\
-	Get_Register(Inst.Op_TwoReg.B).Value. signedAnyIntValue = Get_Register(Inst.Op_TwoReg.A).Value. unsignedAnyIntValue;\
-	 InsBreak();\
-InsCase(SInt##Bits##ToUInt##Bits):\
-	Get_Register(Inst.Op_TwoReg.B).Value. unsignedAnyIntValue = Get_Register(Inst.Op_TwoReg.A).Value. signedAnyIntValue;\
-	 InsBreak();\
 
 
 
@@ -423,12 +417,20 @@ void Interpreter::Extecute(Instruction& Inst)
 		JumpTablefloat(64)
 
 		//casting
-		&&Ins_Int8ToInt16,
-		&&Ins_Int16ToInt32,
-		&&Ins_Int32ToInt64,
-		&&Ins_Int64ToInt32,
-		&&Ins_Int32ToInt16,
-		&&Ins_Int16ToInt8,
+		&&Ins_SInt8ToSInt16,
+		&&Ins_SInt16ToSInt32,
+		&&Ins_SInt32ToSInt64,
+		&&Ins_SInt64ToSInt32,
+		&&Ins_SInt32ToSInt16,
+		&&Ins_SInt16ToSInt8,
+
+
+		&&Ins_UInt8ToUInt16,
+		&&Ins_UInt16ToUInt32,
+		&&Ins_UInt32ToUInt64,
+		&&Ins_UInt64ToUInt32,
+		&&Ins_UInt32ToUInt16,
+		&&Ins_UInt16ToUInt8,
 
 		&&Ins_float32ToInt32,
 		&&Ins_float64ToInt64,
@@ -754,42 +756,76 @@ void Interpreter::Extecute(Instruction& Inst)
 
 
 	//Cast Set
-	InsCase(Int8ToInt16):
+	InsCase(SInt8ToSInt16):
 		Get_Register(Inst.Op_TwoReg.B).Value = (Int16)Get_Register(Inst.Op_TwoReg.A).Value.AsInt8;
 		 InsBreak();
-	InsCase(Int16ToInt32):
+
+	InsCase(SInt16ToSInt32):
 		Get_Register(Inst.Op_TwoReg.B).Value = (Int32)Get_Register(Inst.Op_TwoReg.A).Value.AsInt16;
 		 InsBreak();
-	InsCase(Int32ToInt64):
+
+	InsCase(SInt32ToSInt64):
 		Get_Register(Inst.Op_TwoReg.B).Value = (Int64)Get_Register(Inst.Op_TwoReg.A).Value.AsInt32;
 		 InsBreak();
 
-	InsCase(Int64ToInt32):
+	InsCase(SInt64ToSInt32):
 		Get_Register(Inst.Op_TwoReg.B).Value = (Int32)Get_Register(Inst.Op_TwoReg.A).Value.AsInt64;
 		 InsBreak();
 
-	InsCase(Int32ToInt16):
+	InsCase(SInt32ToSInt16):
 		Get_Register(Inst.Op_TwoReg.B).Value = (Int16)Get_Register(Inst.Op_TwoReg.A).Value.AsInt32;
 		 InsBreak();
 
-	InsCase(Int16ToInt8):
+	InsCase(SInt16ToSInt8):
 		Get_Register(Inst.Op_TwoReg.B).Value = (Int8)Get_Register(Inst.Op_TwoReg.A).Value.AsInt16;
 		 InsBreak();
 
+	InsCase(UInt8ToUInt16) :
+		Get_Register(Inst.Op_TwoReg.B).Value = (UInt16)Get_Register(Inst.Op_TwoReg.A).Value.AsUInt8;
+		InsBreak();
+		
+	InsCase(UInt16ToUInt32) :
+		Get_Register(Inst.Op_TwoReg.B).Value = (UInt32)Get_Register(Inst.Op_TwoReg.A).Value.AsUInt16;
+		InsBreak();
+	
+	InsCase(UInt32ToUInt64) :
+		 Get_Register(Inst.Op_TwoReg.B).Value = (UInt64)Get_Register(Inst.Op_TwoReg.A).Value.AsUInt32;
+		 InsBreak();
+
+	InsCase(UInt64ToUInt32) :
+		 Get_Register(Inst.Op_TwoReg.B).Value = (UInt32)Get_Register(Inst.Op_TwoReg.A).Value.AsUInt64;
+		 InsBreak();
+
+	InsCase(UInt32ToUInt16) :
+		 Get_Register(Inst.Op_TwoReg.B).Value = (UInt16)Get_Register(Inst.Op_TwoReg.A).Value.AsUInt32;
+		 InsBreak();
+
+	InsCase(UInt16ToUInt8) :
+		Get_Register(Inst.Op_TwoReg.B).Value = (UInt8)Get_Register(Inst.Op_TwoReg.A).Value.AsUInt8;
+		 InsBreak();
+
 	InsCase(float32ToInt32):
-		Get_Register(Inst.Op_TwoReg.B).Value = (float32)Get_Register(Inst.Op_TwoReg.A).Value.AsInt32;
+		Get_Register(Inst.Op_TwoReg.B).Value = (UInt32)Get_Register(Inst.Op_TwoReg.A).Value.Asfloat32;
 		 InsBreak();
 
 	InsCase(float64ToInt64):
+		Get_Register(Inst.Op_TwoReg.B).Value = (Int64)Get_Register(Inst.Op_TwoReg.A).Value.Asfloat64;
+		 InsBreak();
+
+	InsCase(SInt32Tofloat32):
+		Get_Register(Inst.Op_TwoReg.B).Value = (float32)Get_Register(Inst.Op_TwoReg.A).Value.AsInt32;
+		 InsBreak();
+
+	InsCase(SInt64Tofloat64):
 		Get_Register(Inst.Op_TwoReg.B).Value = (float64)Get_Register(Inst.Op_TwoReg.A).Value.AsInt64;
 		 InsBreak();
 
-	InsCase(Int32Tofloat32):
-		Get_Register(Inst.Op_TwoReg.B).Value = (Int32)Get_Register(Inst.Op_TwoReg.A).Value.Asfloat32;
+	InsCase(UInt32Tofloat32) :
+		 Get_Register(Inst.Op_TwoReg.B).Value = (float32)Get_Register(Inst.Op_TwoReg.A).Value.AsUInt32;
 		 InsBreak();
 
-	InsCase(Int64Tofloat64):
-		Get_Register(Inst.Op_TwoReg.B).Value = (Int64)Get_Register(Inst.Op_TwoReg.A).Value.Asfloat64;
+	InsCase(UInt64Tofloat64) :
+		 Get_Register(Inst.Op_TwoReg.B).Value = (float64)Get_Register(Inst.Op_TwoReg.A).Value.AsUInt64;
 		 InsBreak();
 
 	InsCase(float32Tofloat64):

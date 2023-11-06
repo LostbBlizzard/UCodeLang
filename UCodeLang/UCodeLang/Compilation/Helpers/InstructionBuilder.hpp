@@ -125,14 +125,7 @@ UCodeLangForceinline static void bitwise_Not##bitsize(Instruction& Out, Register
 {\
 	Out = Instruction(InstructionSet::bitwise_Not##bitsize, Instruction::TwoReg(reg,out));\
 }\
-UCodeLangForceinline static void UInt##bitsize##To##SInt##bitsize(Instruction& Out, RegisterID reg, RegisterID out)\
-{\
-	Out = Instruction(InstructionSet::UInt##bitsize##ToSInt##bitsize, Instruction::TwoReg(reg,out));\
-}\
-UCodeLangForceinline static void SInt##bitsize##To##UInt##bitsize(Instruction& Out, RegisterID reg, RegisterID out)\
-{\
-	Out = Instruction(InstructionSet::SInt##bitsize##ToUInt##bitsize, Instruction::TwoReg(reg,out));\
-}\
+
 
 
 #define BuilderfloatSet(bitsize) \
@@ -417,30 +410,57 @@ public:
 	BuilderfloatSet(64)
 
 	//Casting
-	UCodeLangForceinline static void Int8ToInt16(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+	UCodeLangForceinline static void SInt8ToSInt16(Instruction& Out, RegisterID Regin, RegisterID  Regout)
 	{
-		Out = Instruction(InstructionSet::Int8ToInt16, Instruction::TwoReg(Regin, Regout));
+		Out = Instruction(InstructionSet::SInt8ToSInt16, Instruction::TwoReg(Regin, Regout));
 	}
-	UCodeLangForceinline static void Int16ToInt32(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+	UCodeLangForceinline static void SInt16ToSInt32(Instruction& Out, RegisterID Regin, RegisterID  Regout)
 	{
-		Out = Instruction(InstructionSet::Int16ToInt32, Instruction::TwoReg(Regin, Regout));
+		Out = Instruction(InstructionSet::SInt16ToSInt32, Instruction::TwoReg(Regin, Regout));
 	}
-	UCodeLangForceinline static void Int32ToInt64(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+	UCodeLangForceinline static void SInt32ToSInt64(Instruction& Out, RegisterID Regin, RegisterID  Regout)
 	{
-		Out = Instruction(InstructionSet::Int32ToInt64, Instruction::TwoReg(Regin, Regout));
+		Out = Instruction(InstructionSet::SInt32ToSInt64, Instruction::TwoReg(Regin, Regout));
 	}
 
-	UCodeLangForceinline static void Int64ToInt32(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+	UCodeLangForceinline static void SInt64ToSInt32(Instruction& Out, RegisterID Regin, RegisterID  Regout)
 	{
-		Out = Instruction(InstructionSet::Int64ToInt32, Instruction::TwoReg(Regin, Regout));
+		Out = Instruction(InstructionSet::SInt64ToSInt32, Instruction::TwoReg(Regin, Regout));
 	}
-	UCodeLangForceinline static void Int32ToInt16(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+	UCodeLangForceinline static void SInt32ToSInt16(Instruction& Out, RegisterID Regin, RegisterID  Regout)
 	{
-		Out = Instruction(InstructionSet::Int32ToInt16, Instruction::TwoReg(Regin, Regout));
+		Out = Instruction(InstructionSet::SInt32ToSInt16, Instruction::TwoReg(Regin, Regout));
 	}
-	UCodeLangForceinline static void Int16ToInt8(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+	UCodeLangForceinline static void SInt16ToSInt8(Instruction& Out, RegisterID Regin, RegisterID  Regout)
 	{
-		Out = Instruction(InstructionSet::Int16ToInt8, Instruction::TwoReg(Regin, Regout));
+		Out = Instruction(InstructionSet::SInt16ToSInt8, Instruction::TwoReg(Regin, Regout));
+	}
+
+
+	UCodeLangForceinline static void UInt8ToUInt16(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+	{
+		Out = Instruction(InstructionSet::UInt8ToUInt16, Instruction::TwoReg(Regin, Regout));
+	}
+	UCodeLangForceinline static void UInt16ToUInt32(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+	{
+		Out = Instruction(InstructionSet::UInt16ToUInt32, Instruction::TwoReg(Regin, Regout));
+	}
+	UCodeLangForceinline static void UInt32ToUInt64(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+	{
+		Out = Instruction(InstructionSet::UInt32ToUInt64, Instruction::TwoReg(Regin, Regout));
+	}
+
+	UCodeLangForceinline static void UInt64ToUInt32(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+	{
+		Out = Instruction(InstructionSet::UInt64ToUInt32, Instruction::TwoReg(Regin, Regout));
+	}
+	UCodeLangForceinline static void UInt32ToUInt16(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+	{
+		Out = Instruction(InstructionSet::UInt32ToUInt16, Instruction::TwoReg(Regin, Regout));
+	}
+	UCodeLangForceinline static void UInt16ToUInt8(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+	{
+		Out = Instruction(InstructionSet::UInt16ToUInt8, Instruction::TwoReg(Regin, Regout));
 	}
 
 
@@ -453,13 +473,22 @@ public:
 		Out = Instruction(InstructionSet::float32ToInt32, Instruction::TwoReg(Regin, Regout));
 	}
 
-	UCodeLangForceinline static void Int64Tofloat64(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+	UCodeLangForceinline static void SInt64Tofloat64(Instruction& Out, RegisterID Regin, RegisterID  Regout)
 	{
-		Out = Instruction(InstructionSet::float64ToInt64, Instruction::TwoReg(Regin, Regout));
+		Out = Instruction(InstructionSet::SInt64Tofloat64, Instruction::TwoReg(Regin, Regout));
 	}
-	UCodeLangForceinline static void Int32Tofloat32(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+	UCodeLangForceinline static void SInt32Tofloat32(Instruction& Out, RegisterID Regin, RegisterID  Regout)
 	{
-		Out = Instruction(InstructionSet::Int32Tofloat32, Instruction::TwoReg(Regin, Regout));
+		Out = Instruction(InstructionSet::SInt32Tofloat32, Instruction::TwoReg(Regin, Regout));
+	}
+
+	UCodeLangForceinline static void UInt64Tofloat64(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+	{
+		Out = Instruction(InstructionSet::UInt64Tofloat64, Instruction::TwoReg(Regin, Regout));
+	}
+	UCodeLangForceinline static void UInt32Tofloat32(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+	{
+		Out = Instruction(InstructionSet::UInt32Tofloat32, Instruction::TwoReg(Regin, Regout));
 	}
 
 	UCodeLangForceinline static void float32Tofloat64(Instruction& Out, RegisterID Regin, RegisterID  Regout)

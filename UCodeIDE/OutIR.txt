@@ -35,17 +35,17 @@ $Color24
 
 
 //File:src.uc
-//Line:36
+//Line:38
 
    float32 A = 1.000000;
    (&this&)->__0 = A;
 
-//Line:37
+//Line:39
 
    float32 B = 1.000000;
    (&this&)->__1 = B;
 
-//Line:38
+//Line:40
 
    float32 C = 1.000000;
    (&this&)->__2 = C;
@@ -76,19 +76,19 @@ $Color24
    void B = ColorRGB:(&_init&)(A);
 
 //File:src.uc
-//Line:42
+//Line:44
 
    float32 C = R;
    ColorRGB* D = (&this&);
    D->__0 = C;
 
-//Line:43
+//Line:45
 
    float32 E = G;
    ColorRGB* F = (&this&);
    F->__1 = E;
 
-//Line:44
+//Line:46
 
    float32 G = B;
    ColorRGB* H = (&this&);
@@ -106,7 +106,7 @@ $Color24
    ColorRGB* A = (&this&);
 
 //File:src.uc
-//Line:47
+//Line:49
 
    float32 B = A->__2;
    float32 C = other->__2;
@@ -132,7 +132,7 @@ $Color24
 //Variable:ColorRGB:(&notequal&):(&this&)
 //Variable:ColorRGB:(&notequal&):other
 //File:src.uc
-//Line:50
+//Line:52
 
    ColorRGB* A = (&this&);
    ColorRGB* B = A;
@@ -154,27 +154,24 @@ $Color24
    Color24 A;
    Color24* B = &A;
 
-//Line:53
+//Line:55
 
    float32 C = (&this&)->__0;
    float32 D = 255.000000;
    float32 E = C*D;
    int32 F = E -> int32;
    int8 G = F -> sint8;
-   int8 H = G -> uint;
-   float32 I = (&this&)->__1;
-   float32 J = 255.000000;
-   float32 K = I*J;
-   int32 L = K -> int32;
-   int8 M = L -> sint8;
-   int8 N = M -> uint;
-   float32 O = (&this&)->__2;
-   float32 P = 255.000000;
-   float32 Q = O*P;
-   int32 R = Q -> int32;
-   int8 S = R -> sint8;
-   int8 T = S -> uint;
-   void U = Color24:(&_new&)^Color24&,u8,u8,u8(B,H,N,T);
+   float32 H = (&this&)->__1;
+   float32 I = 255.000000;
+   float32 J = H*I;
+   int32 K = J -> int32;
+   int8 L = K -> sint8;
+   float32 M = (&this&)->__2;
+   float32 N = 255.000000;
+   float32 O = M*N;
+   int32 P = O -> int32;
+   int8 Q = P -> sint8;
+   void R = Color24:(&_new&)^Color24&,u8,u8,u8(B,G,L,Q);
    ret = A;
    ret;
 
@@ -184,22 +181,22 @@ $Color24
 
 
 //File:src.uc
-//Line:56
+//Line:58
 
    float32 A = 1.000000;
    (&this&)->__0 = A;
 
-//Line:57
+//Line:59
 
    float32 B = 1.000000;
    (&this&)->__1 = B;
 
-//Line:58
+//Line:60
 
    float32 C = 1.000000;
    (&this&)->__2 = C;
 
-//Line:59
+//Line:61
 
    float32 D = 1.000000;
    (&this&)->__3 = D;
@@ -231,25 +228,25 @@ $Color24
    void B = Color:(&_init&)(A);
 
 //File:src.uc
-//Line:63
+//Line:65
 
    float32 C = R;
    Color* D = (&this&);
    D->__0 = C;
 
-//Line:64
+//Line:66
 
    float32 E = G;
    Color* F = (&this&);
    F->__1 = E;
 
-//Line:65
+//Line:67
 
    float32 G = B;
    Color* H = (&this&);
    H->__2 = G;
 
-//Line:66
+//Line:68
 
    float32 I = A;
    Color* J = (&this&);
@@ -269,25 +266,25 @@ $Color24
    void B = Color:(&_init&)(A);
 
 //File:src.uc
-//Line:69
+//Line:71
 
    float32 C = color->__0;
    Color* D = (&this&);
    D->__0 = C;
 
-//Line:70
+//Line:72
 
    float32 E = color->__1;
    Color* F = (&this&);
    F->__1 = E;
 
-//Line:71
+//Line:73
 
    float32 G = color->__2;
    Color* H = (&this&);
    H->__2 = G;
 
-//Line:72
+//Line:74
 
    float32 I = A;
    Color* J = (&this&);
@@ -306,7 +303,7 @@ $Color24
    ColorRGB A;
    ColorRGB* B = &A;
 
-//Line:75
+//Line:77
 
    float32 C = (&this&)->__0;
    float32 D = (&this&)->__1;
@@ -326,7 +323,7 @@ $Color24
    Color* A = (&this&);
 
 //File:src.uc
-//Line:78
+//Line:80
 
    float32 B = A->__3;
    float32 C = other->__3;
@@ -357,7 +354,7 @@ $Color24
 //Variable:Color:(&notequal&):(&this&)
 //Variable:Color:(&notequal&):other
 //File:src.uc
-//Line:81
+//Line:83
 
    Color* A = (&this&);
    Color* B = A;
@@ -379,33 +376,29 @@ $Color24
    Color32 A;
    Color32* B = &A;
 
-//Line:84
+//Line:86
 
    float32 C = (&this&)->__0;
    float32 D = 255.000000;
    float32 E = C*D;
    int32 F = E -> int32;
    int8 G = F -> sint8;
-   int8 H = G -> uint;
-   float32 I = (&this&)->__1;
-   float32 J = 255.000000;
-   float32 K = I*J;
-   int32 L = K -> int32;
-   int8 M = L -> sint8;
-   int8 N = M -> uint;
-   float32 O = (&this&)->__2;
-   float32 P = 255.000000;
-   float32 Q = O*P;
-   int32 R = Q -> int32;
-   int8 S = R -> sint8;
-   int8 T = S -> uint;
-   float32 U = (&this&)->__3;
-   float32 V = 255.000000;
-   float32 W = U*V;
-   int32 X = W -> int32;
-   int8 Y = X -> sint8;
-   int8 Z = Y -> uint;
-   void [ = Color32:(&_new&)^Color32&,u8,u8,u8,u8(B,H,N,T,Z);
+   float32 H = (&this&)->__1;
+   float32 I = 255.000000;
+   float32 J = H*I;
+   int32 K = J -> int32;
+   int8 L = K -> sint8;
+   float32 M = (&this&)->__2;
+   float32 N = 255.000000;
+   float32 O = M*N;
+   int32 P = O -> int32;
+   int8 Q = P -> sint8;
+   float32 R = (&this&)->__3;
+   float32 S = 255.000000;
+   float32 T = R*S;
+   int32 U = T -> int32;
+   int8 V = U -> sint8;
+   void W = Color32:(&_new&)^Color32&,u8,u8,u8,u8(B,G,L,Q,V);
    ret = A;
    ret;
 
@@ -415,22 +408,22 @@ $Color24
 
 
 //File:src.uc
-//Line:87
+//Line:89
 
    int8 A = -1;
    (&this&)->__0 = A;
 
-//Line:88
+//Line:90
 
    int8 B = -1;
    (&this&)->__1 = B;
 
-//Line:89
+//Line:91
 
    int8 C = -1;
    (&this&)->__2 = C;
 
-//Line:90
+//Line:92
 
    int8 D = -1;
    (&this&)->__3 = D;
@@ -462,25 +455,25 @@ $Color24
    void B = Color32:(&_init&)(A);
 
 //File:src.uc
-//Line:94
+//Line:96
 
    int8 C = r;
    Color32* D = (&this&);
    D->__0 = C;
 
-//Line:95
+//Line:97
 
    int8 E = g;
    Color32* F = (&this&);
    F->__1 = E;
 
-//Line:96
+//Line:98
 
    int8 G = b;
    Color32* H = (&this&);
    H->__2 = G;
 
-//Line:97
+//Line:99
 
    int8 I = a;
    Color32* J = (&this&);
@@ -500,25 +493,25 @@ $Color24
    void B = Color32:(&_init&)(A);
 
 //File:src.uc
-//Line:100
+//Line:102
 
    int8 C = color->__0;
    Color32* D = (&this&);
    D->__0 = C;
 
-//Line:101
+//Line:103
 
    int8 E = color->__1;
    Color32* F = (&this&);
    F->__1 = E;
 
-//Line:102
+//Line:104
 
    int8 G = color->__2;
    Color32* H = (&this&);
    H->__2 = G;
 
-//Line:103
+//Line:105
 
    int8 I = a;
    Color32* J = (&this&);
@@ -537,7 +530,7 @@ $Color24
    Color24 A;
    Color24* B = &A;
 
-//Line:106
+//Line:108
 
    int8 C = (&this&)->__0;
    int8 D = (&this&)->__1;
@@ -557,7 +550,7 @@ $Color24
    Color32* A = (&this&);
 
 //File:src.uc
-//Line:109
+//Line:111
 
    int8 B = A->__3;
    int8 C = other->__3;
@@ -588,7 +581,7 @@ $Color24
 //Variable:Color32:(&notequal&):(&this&)
 //Variable:Color32:(&notequal&):other
 //File:src.uc
-//Line:112
+//Line:114
 
    Color32* A = (&this&);
    Color32* B = A;
@@ -610,33 +603,29 @@ $Color24
    Color A;
    Color* B = &A;
 
-//Line:115
+//Line:117
 
    int8 C = (&this&)->__0;
    int32 D = C -> uint32;
-   int32 E = D -> sint;
-   float32 F = E -> float32;
-   float32 G = 255.000000;
-   float32 H = F/G;
-   int8 I = (&this&)->__1;
-   int32 J = I -> uint32;
-   int32 K = J -> sint;
-   float32 L = K -> float32;
-   float32 M = 255.000000;
-   float32 N = L/M;
-   int8 O = (&this&)->__2;
-   int32 P = O -> uint32;
-   int32 Q = P -> sint;
-   float32 R = Q -> float32;
-   float32 S = 255.000000;
-   float32 T = R/S;
-   int8 U = (&this&)->__3;
-   int32 V = U -> uint32;
-   int32 W = V -> sint;
-   float32 X = W -> float32;
-   float32 Y = 255.000000;
-   float32 Z = X/Y;
-   void [ = Color:(&_new&)^Color&,f32,f32,f32,f32(B,H,N,T,Z);
+   float32 E = D -> float32;
+   float32 F = 255.000000;
+   float32 G = E/F;
+   int8 H = (&this&)->__1;
+   int32 I = H -> uint32;
+   float32 J = I -> float32;
+   float32 K = 255.000000;
+   float32 L = J/K;
+   int8 M = (&this&)->__2;
+   int32 N = M -> uint32;
+   float32 O = N -> float32;
+   float32 P = 255.000000;
+   float32 Q = O/P;
+   int8 R = (&this&)->__3;
+   int32 S = R -> uint32;
+   float32 T = S -> float32;
+   float32 U = 255.000000;
+   float32 V = T/U;
+   void W = Color:(&_new&)^Color&,f32,f32,f32,f32(B,G,L,Q,V);
    ret = A;
    ret;
 
@@ -646,17 +635,17 @@ $Color24
 
 
 //File:src.uc
-//Line:120
+//Line:122
 
    int8 A = -1;
    (&this&)->__0 = A;
 
-//Line:121
+//Line:123
 
    int8 B = -1;
    (&this&)->__1 = B;
 
-//Line:122
+//Line:124
 
    int8 C = -1;
    (&this&)->__2 = C;
@@ -687,19 +676,19 @@ $Color24
    void B = Color24:(&_init&)(A);
 
 //File:src.uc
-//Line:126
+//Line:128
 
    int8 C = r;
    Color24* D = (&this&);
    D->__0 = C;
 
-//Line:127
+//Line:129
 
    int8 E = g;
    Color24* F = (&this&);
    F->__1 = E;
 
-//Line:128
+//Line:130
 
    int8 G = b;
    Color24* H = (&this&);
@@ -717,7 +706,7 @@ $Color24
    Color24* A = (&this&);
 
 //File:src.uc
-//Line:131
+//Line:133
 
    int8 B = A->__2;
    int8 C = other->__2;
@@ -743,7 +732,7 @@ $Color24
 //Variable:Color24:(&notequal&):(&this&)
 //Variable:Color24:(&notequal&):other
 //File:src.uc
-//Line:134
+//Line:136
 
    Color24* A = (&this&);
    Color24* B = A;
@@ -765,46 +754,77 @@ $Color24
    ColorRGB A;
    ColorRGB* B = &A;
 
-//Line:137
+//Line:139
 
    int8 C = (&this&)->__0;
    int32 D = C -> uint32;
-   int32 E = D -> sint;
-   float32 F = E -> float32;
-   float32 G = 255.000000;
-   float32 H = F/G;
-   int8 I = (&this&)->__1;
-   int32 J = I -> uint32;
-   int32 K = J -> sint;
-   float32 L = K -> float32;
-   float32 M = 255.000000;
-   float32 N = L/M;
-   int8 O = (&this&)->__2;
-   int32 P = O -> uint32;
-   int32 Q = P -> sint;
-   float32 R = Q -> float32;
-   float32 S = 255.000000;
-   float32 T = R/S;
-   void U = ColorRGB:(&_new&)^ColorRGB&,f32,f32,f32(B,H,N,T);
+   float32 E = D -> float32;
+   float32 F = 255.000000;
+   float32 G = E/F;
+   int8 H = (&this&)->__1;
+   int32 I = H -> uint32;
+   float32 J = I -> float32;
+   float32 K = 255.000000;
+   float32 L = J/K;
+   int8 M = (&this&)->__2;
+   int32 N = M -> uint32;
+   float32 O = N -> float32;
+   float32 P = 255.000000;
+   float32 Q = O/P;
+   void R = ColorRGB:(&_new&)^ColorRGB&,f32,f32,f32(B,G,L,Q);
    ret = A;
    ret;
 
-|Color2[] -> void:
-
- [Block:0]
-
-   ret;
-
-//EntryPoint 
-|main[] -> int32:
+|Color2[] -> int8:
 
  [Block:0]
 
 
 //File:src.uc
+//Line:144
+//Variable:Color2:white
+
+   Color32 A;
+
+//Line:0
+
+   Color32* B = &A;
+   void C = Color32:(&_new&)^Color32&(B);
+
+//Line:144
+//Line:145
+//Variable:Color2:r
+
+   Color D;
+   Color32* E = &A;
+   Color F = Color32:(&Cast&)^Color32&imut(E);
+   D = F;
+
 //Line:146
 
-   int32 A = 0;
-   ret = A;
+   Color* G = &D;
+   Color H;
+   Color* I = &H;
+   void J = Color:(&_new&)^Color&(I);
+   Color* K = &H;
+   int8 L = Color:(&equal&)^Color&,Color&imut(G,K);
+   ret = L;
+   ret;
+
+|main^u8[int8 R] -> float32:
+
+ [Block:0]
+
+
+//Variable:main:R
+//File:src.uc
+//Line:151
+
+   int8 A = R;
+   int32 B = A -> uint32;
+   float32 C = B -> float32;
+   float32 D = 255.000000;
+   float32 E = C/D;
+   ret = E;
    ret;
 

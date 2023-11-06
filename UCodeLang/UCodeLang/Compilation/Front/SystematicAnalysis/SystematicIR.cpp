@@ -422,17 +422,17 @@ void SystematicAnalysis::IR_Build_ExplicitConversion(IRInstruction* Ex, const Ty
 				{
 					switch (ToType._Type)
 					{
-					case TypesEnum::sInt8:_IR_LastExpressionField = _IR_LookingAtIRBlock->New_UIntToSInt(_IR_LookingAtIRBlock->New_UIntToUInt8(Ex)); break;
-					case TypesEnum::sInt16:_IR_LastExpressionField = _IR_LookingAtIRBlock->New_UIntToSInt(_IR_LookingAtIRBlock->New_UIntToUInt16(Ex)); break;
+					case TypesEnum::sInt8:_IR_LastExpressionField = Type_GetSize(ToType) == Type_GetSize(ExType) ? Ex : _IR_LookingAtIRBlock->New_UIntToUInt8(Ex); break;
+					case TypesEnum::sInt16:_IR_LastExpressionField = _IR_LookingAtIRBlock->New_UIntToUInt16(Ex); break;
 
 					ULablesint32:
-					case TypesEnum::sInt32:_IR_LastExpressionField = _IR_LookingAtIRBlock->New_UIntToSInt(_IR_LookingAtIRBlock->New_UIntToUInt32(Ex)); break;
+					case TypesEnum::sInt32:_IR_LastExpressionField = _IR_LookingAtIRBlock->New_UIntToUInt32(Ex); break;
 
 					ULablesint64:
-					case TypesEnum::sInt64:_IR_LastExpressionField = _IR_LookingAtIRBlock->New_UIntToSInt(_IR_LookingAtIRBlock->New_UIntToUInt64(Ex)); break;
+					case TypesEnum::sInt64:_IR_LastExpressionField = _IR_LookingAtIRBlock->New_UIntToUInt64(Ex); break;
 
 
-					case TypesEnum::uInt8:_IR_LastExpressionField = _IR_LookingAtIRBlock->New_UIntToUInt8(Ex); break;
+					case TypesEnum::uInt8:_IR_LastExpressionField =  _IR_LookingAtIRBlock->New_UIntToUInt8(Ex); break;
 					case TypesEnum::uInt16:_IR_LastExpressionField = _IR_LookingAtIRBlock->New_UIntToUInt16(Ex); break;
 
 					ULableuint32:
@@ -467,14 +467,14 @@ void SystematicAnalysis::IR_Build_ExplicitConversion(IRInstruction* Ex, const Ty
 				{
 					switch (ToType._Type)
 					{
-					case TypesEnum::uInt8:_IR_LastExpressionField = _IR_LookingAtIRBlock->New_SIntToUInt(_IR_LookingAtIRBlock->New_SIntToSInt8(Ex)); break;
-					case TypesEnum::uInt16:_IR_LastExpressionField = _IR_LookingAtIRBlock->New_SIntToUInt(_IR_LookingAtIRBlock->New_SIntToSInt16(Ex)); break;
+					case TypesEnum::uInt8:_IR_LastExpressionField = _IR_LookingAtIRBlock->New_SIntToSInt8(Ex); break;
+					case TypesEnum::uInt16:_IR_LastExpressionField = _IR_LookingAtIRBlock->New_SIntToSInt16(Ex); break;
 
 					SLableuint32:
-					case TypesEnum::uInt32:_IR_LastExpressionField = _IR_LookingAtIRBlock->New_SIntToUInt(_IR_LookingAtIRBlock->New_SIntToSInt32(Ex)); break;
+					case TypesEnum::uInt32:_IR_LastExpressionField = _IR_LookingAtIRBlock->New_SIntToSInt32(Ex); break;
 
 					SLableuint64:
-					case TypesEnum::uInt64:_IR_LastExpressionField = _IR_LookingAtIRBlock->New_SIntToUInt(_IR_LookingAtIRBlock->New_SIntToSInt64(Ex)); break;
+					case TypesEnum::uInt64:_IR_LastExpressionField = _IR_LookingAtIRBlock->New_SIntToSInt64(Ex); break;
 
 
 					case TypesEnum::sInt8:_IR_LastExpressionField = _IR_LookingAtIRBlock->New_SIntToSInt8(Ex); break;
@@ -523,19 +523,27 @@ void SystematicAnalysis::IR_Build_ExplicitConversion(IRInstruction* Ex, const Ty
 			}
 			else if (ToType._Type == TypesEnum::float32 && ExType._Type == TypesEnum::sInt32)
 			{
-				_IR_LastExpressionField = _IR_LookingAtIRBlock->New_i32Tof32(Ex);
+				_IR_LastExpressionField = _IR_LookingAtIRBlock->New_Si32Tof32(Ex);
 			}
 			else if (ToType._Type == TypesEnum::float64 && ExType._Type == TypesEnum::sInt64)
 			{
-				_IR_LastExpressionField = _IR_LookingAtIRBlock->New_i32Tof32(Ex);
+				_IR_LastExpressionField = _IR_LookingAtIRBlock->New_Si64Tof64(Ex);
+			}
+			else if (ToType._Type == TypesEnum::float32 && ExType._Type == TypesEnum::uInt32)
+			{
+				_IR_LastExpressionField = _IR_LookingAtIRBlock->New_Ui32Tof32(Ex);
+			}
+			else if (ToType._Type == TypesEnum::float64 && ExType._Type == TypesEnum::uInt64)
+			{
+				_IR_LastExpressionField = _IR_LookingAtIRBlock->New_Ui64Tof64(Ex);
 			}
 			else if (ToType._Type == TypesEnum::float32 && ExType._Type == TypesEnum::float64)
 			{
-				_IR_LastExpressionField = _IR_LookingAtIRBlock->New_f32Tof64(Ex);
+				_IR_LastExpressionField = _IR_LookingAtIRBlock->New_f64Tof32(Ex);
 			}
 			else if (ToType._Type == TypesEnum::float64 && ExType._Type == TypesEnum::float32)
 			{
-				_IR_LastExpressionField = _IR_LookingAtIRBlock->New_f64Tof32(Ex);
+				_IR_LastExpressionField = _IR_LookingAtIRBlock->New_f32Tof64(Ex);
 			}
 			else
 			{

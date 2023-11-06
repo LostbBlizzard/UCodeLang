@@ -1375,70 +1375,6 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		
 		}
 		break;
-		case IRInstructionType::SIntToUInt:
-		{
-			RegisterID V = GetRegisterForTep();
-			RegisterID A = MakeIntoRegister(Item, Item->Target());
-			SetRegister(A,Item);
-
-			switch (GetType(Item->Target())._Type)
-			{
-			case IRTypes::i8:InstructionBuilder::SInt8ToUInt8(_Ins, A, V); PushIns(); break;
-			case IRTypes::i16:InstructionBuilder::SInt16ToUInt16(_Ins, A, V); PushIns(); break;
-			case IRTypes::i32:InstructionBuilder::SInt32ToUInt32(_Ins, A, V); PushIns(); break;
-			case IRTypes::i64:InstructionBuilder::SInt64ToUInt64(_Ins, A, V); PushIns(); break;
-
-			case IRTypes::pointer:
-				if (Get_Settings().PtrSize == IntSizes::Int32)
-				{
-					InstructionBuilder::SInt32ToUInt32(_Ins, A, V); PushIns(); break;
-				}
-				else
-				{
-					InstructionBuilder::SInt64ToUInt64(_Ins, A, V); PushIns(); break;
-				}
-				break;
-			default:
-				UCodeLangUnreachable();
-				break;
-			}
-
-			FreeRegister(A);
-			SetRegister(V,Item);
-		}
-		break;
-		case IRInstructionType::UIntToSInt:
-		{
-			RegisterID V = GetRegisterForTep();
-			RegisterID A = MakeIntoRegister(Item, Item->Target());
-			SetRegister(A,Item);
-
-			switch (GetType(Item->Target())._Type)
-			{
-			case IRTypes::i8:InstructionBuilder::UInt8ToSInt8(_Ins, A, V); PushIns(); break;
-			case IRTypes::i16:InstructionBuilder::UInt16ToSInt16(_Ins, A, V); PushIns(); break;
-			case IRTypes::i32:InstructionBuilder::UInt32ToSInt32(_Ins, A, V); PushIns(); break;
-			case IRTypes::i64:InstructionBuilder::UInt64ToSInt64(_Ins, A, V); PushIns(); break;
-
-			case IRTypes::pointer:
-				if (Get_Settings().PtrSize == IntSizes::Int32)
-				{
-					InstructionBuilder::UInt32ToSInt32(_Ins, A, V); PushIns(); break;
-				}
-				else
-				{
-					InstructionBuilder::UInt64ToSInt64(_Ins, A, V); PushIns(); break;
-				}
-				break;
-			default:
-				UCodeLangUnreachable();
-				break;
-			}
-
-			FreeRegister(A);
-			SetRegister(V,Item);
-		}
-		break;
 		case IRInstructionType::SIntToSInt8:
 		{
 			BuildSIntToIntCast(Item, Item->Target(), 1);
@@ -1709,11 +1645,19 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			}
 		}
 		break;
-		case IRInstructionType::i32Tof32:	
+		case IRInstructionType::Ui32Tof32:	
 		{
 			auto V = MakeIntoRegister(Item, Item->Target());
 			auto R = GetRegisterForTep();
-			InstructionBuilder::Int32Tofloat32(_Ins, V, R); PushIns();
+			InstructionBuilder::UInt32Tofloat32(_Ins, V, R); PushIns();
+			SetRegister(R, Item);
+		}
+		break;
+		case IRInstructionType::Si32Tof32:
+		{
+			auto V = MakeIntoRegister(Item, Item->Target());
+			auto R = GetRegisterForTep();
+			InstructionBuilder::SInt32Tofloat32(_Ins, V, R); PushIns();
 			SetRegister(R, Item);
 		}
 		break;
@@ -1725,11 +1669,19 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			SetRegister(R, Item);
 		}
 		break;
-		case IRInstructionType::i64Tof64:
+		case IRInstructionType::Ui64Tof64:
 		{
 			auto V = MakeIntoRegister(Item, Item->Target());
 			auto R = GetRegisterForTep();
-			InstructionBuilder::Int64Tofloat64(_Ins, V, R); PushIns();
+			InstructionBuilder::UInt64Tofloat64(_Ins, V, R); PushIns();
+			SetRegister(R, Item);
+		}
+		break;
+		case IRInstructionType::Si64Tof64:
+		{
+			auto V = MakeIntoRegister(Item, Item->Target());
+			auto R = GetRegisterForTep();
+			InstructionBuilder::SInt64Tofloat64(_Ins, V, R); PushIns();
 			SetRegister(R, Item);
 		}
 		break;
@@ -1887,7 +1839,7 @@ void UCodeBackEndObject::GiveFuncReturnName(const IRType& ReturnType, const IRIn
 			CopyValues(CompilerRet, tep, true, false);
 			CompilerRet = tep;
 
-			GiveNameTo(CompilerRet, Item);
+			_Stack.Get(tep.Info.Get<IRlocData_StackPost>().offset).value()->IR = Item;
 		}
 	}
 }
@@ -2451,7 +2403,7 @@ void UCodeBackEndObject::BuildUIntToIntCast(const IRInstruction* Ins, const IROp
 {
 	RegisterID V = GetRegisterForTep();
 	RegisterID A = MakeIntoRegister(Ins, Op);
-	SetRegister(A,Ins);
+	//SetRegister(A,Ins);
 
 	size_t ItemSize = _Input->GetSize(GetType(Op));
 
@@ -2462,9 +2414,9 @@ void UCodeBackEndObject::BuildUIntToIntCast(const IRInstruction* Ins, const IROp
 		{
 			switch (ItemSize)
 			{
-			case 2:InstructionBuilder::Int16ToInt8(_Ins, A, V); PushIns(); ItemSize = 1; break;
-			case 4:InstructionBuilder::Int32ToInt16(_Ins, A, V); PushIns(); ItemSize = 2; break;
-			case 8:InstructionBuilder::Int64ToInt32(_Ins, A, V); PushIns(); ItemSize = 4; break;
+			case 2:InstructionBuilder::UInt16ToUInt8(_Ins, A, V); PushIns(); ItemSize = 1; break;
+			case 4:InstructionBuilder::UInt32ToUInt16(_Ins, A, V); PushIns(); ItemSize = 2; break;
+			case 8:InstructionBuilder::UInt64ToUInt32(_Ins, A, V); PushIns(); ItemSize = 4; break;
 			default:break;
 			}
 			A = V;
@@ -2473,9 +2425,9 @@ void UCodeBackEndObject::BuildUIntToIntCast(const IRInstruction* Ins, const IROp
 		{
 			switch (ItemSize)
 			{
-			case 1:InstructionBuilder::Int8ToInt16(_Ins, A, V); PushIns(); ItemSize = 2; break;
-			case 2:InstructionBuilder::Int16ToInt32(_Ins, A, V); PushIns(); ItemSize = 4; break;
-			case 4:InstructionBuilder::Int32ToInt64(_Ins, A, V); PushIns(); ItemSize = 8; break;
+			case 1:InstructionBuilder::UInt8ToUInt16(_Ins, A, V); PushIns(); ItemSize = 2; break;
+			case 2:InstructionBuilder::UInt16ToUInt32(_Ins, A, V); PushIns(); ItemSize = 4; break;
+			case 4:InstructionBuilder::UInt32ToUInt64(_Ins, A, V); PushIns(); ItemSize = 8; break;
 			default:break;
 			}
 			A = V;
@@ -2484,7 +2436,7 @@ void UCodeBackEndObject::BuildUIntToIntCast(const IRInstruction* Ins, const IROp
 
 	}
 
-	FreeRegister(A);
+	//FreeRegister(A);
 	SetRegister(V,Ins);
 }
 RegisterID UCodeBackEndObject::GetRegisterOut(const IRInstruction* Item)
@@ -2494,7 +2446,43 @@ RegisterID UCodeBackEndObject::GetRegisterOut(const IRInstruction* Item)
 }
 void UCodeBackEndObject::BuildSIntToIntCast(const IRInstruction* Ins, const IROperator& Op, size_t IntSize)
 {
-	BuildUIntToIntCast(Ins, Op, IntSize);
+	RegisterID V = GetRegisterForTep();
+	RegisterID A = MakeIntoRegister(Ins, Op);
+	//SetRegister(A,Ins);
+
+	size_t ItemSize = _Input->GetSize(GetType(Op));
+
+
+	while (ItemSize != IntSize)
+	{
+		if (ItemSize > IntSize)//cast down
+		{
+			switch (ItemSize)
+			{
+			case 2:InstructionBuilder::SInt16ToSInt8(_Ins, A, V); PushIns(); ItemSize = 1; break;
+			case 4:InstructionBuilder::SInt32ToSInt16(_Ins, A, V); PushIns(); ItemSize = 2; break;
+			case 8:InstructionBuilder::SInt64ToSInt32(_Ins, A, V); PushIns(); ItemSize = 4; break;
+			default:break;
+			}
+			A = V;
+		}
+		else//cast up
+		{
+			switch (ItemSize)
+			{
+			case 1:InstructionBuilder::SInt8ToSInt16(_Ins, A, V); PushIns(); ItemSize = 2; break;
+			case 2:InstructionBuilder::SInt16ToSInt32(_Ins, A, V); PushIns(); ItemSize = 4; break;
+			case 4:InstructionBuilder::SInt32ToSInt64(_Ins, A, V); PushIns(); ItemSize = 8; break;
+			default:break;
+			}
+			A = V;
+		}
+
+
+	}
+
+	//FreeRegister(A);
+	SetRegister(V, Ins);
 }
 void UCodeBackEndObject::StoreValueInPointer(RegisterID Pointer,size_t Pointerofset, const IRlocData& Value)
 {

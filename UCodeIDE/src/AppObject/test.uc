@@ -30,6 +30,8 @@ $Player[Component]:
     pos.X += Speed * deltatime;
 */
 
+
+
 $IPar<T> = imut T&;
 
 $ColorRGB:
@@ -139,9 +141,12 @@ $Color24:
 
 //[Test]
 |Color2[]:
- //Color32 white = [];
- //Color r = white -> Color;
- //ret r == Color();
+ Color32 white = [];
+ Color r = white -> Color;
+ ret r == Color();
 
-|main[] => 0;
+
+
+
+|main[byte R] =>  float(R -> uint32 -> float) / 255.0;
 

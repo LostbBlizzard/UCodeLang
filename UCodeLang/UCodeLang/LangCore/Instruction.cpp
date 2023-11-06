@@ -33,8 +33,6 @@ UCodeLangStart
 	case InstructionSet::bitwiseRightShift##IntSize: return Instruction::OpType::ThreeReg; \
 	case InstructionSet::bitwiseXor##IntSize: return Instruction::OpType::ThreeReg; \
 	case InstructionSet::bitwise_Not##IntSize: return Instruction::OpType::TwoReg; \
-	case InstructionSet::UInt##IntSize##ToSInt##IntSize: return Instruction::OpType::TwoReg; \
-	case InstructionSet::SInt##IntSize##ToUInt##IntSize: return Instruction::OpType::TwoReg; \
 
 
 #define Setfloat(IntSize)\
@@ -42,7 +40,8 @@ case InstructionSet::Addf##IntSize: return Instruction::OpType::ThreeReg; \
 case InstructionSet::Subf##IntSize: return Instruction::OpType::ThreeReg; \
 case InstructionSet::Multf##IntSize: return Instruction::OpType::ThreeReg; \
 case InstructionSet::Divf##IntSize: return Instruction::OpType::ThreeReg; \
-
+case InstructionSet::equaltof##IntSize: return Instruction::OpType::ThreeReg; \
+case InstructionSet::notequaltof##IntSize: return Instruction::OpType::ThreeReg; \
 
 Instruction::OpType Instruction::GetOpType(InstructionSet OpCode)
 {
@@ -113,18 +112,22 @@ Instruction::OpType Instruction::GetOpType(InstructionSet OpCode)
 	case InstructionSet::float64Tofloat32:
 	case InstructionSet::float32ToInt32:
 	case InstructionSet::float64ToInt64:
-	case InstructionSet::Int32Tofloat32:
-	case InstructionSet::Int64Tofloat64:
-	case InstructionSet::Int8ToInt16:
-	case InstructionSet::Int16ToInt32:
-	case InstructionSet::Int32ToInt64:
-	case InstructionSet::Int64ToInt32:
-	case InstructionSet::Int32ToInt16:
-	case InstructionSet::Int16ToInt8:
-	case InstructionSet::equaltof32:
-	case InstructionSet::equaltof64:
-	case InstructionSet::notequaltof32:
-	case InstructionSet::notequaltof64:
+	case InstructionSet::SInt32Tofloat32:
+	case InstructionSet::SInt64Tofloat64:
+	case InstructionSet::UInt32Tofloat32:
+	case InstructionSet::UInt64Tofloat64:
+	case InstructionSet::UInt8ToUInt16:
+	case InstructionSet::UInt16ToUInt32:
+	case InstructionSet::UInt32ToUInt64:
+	case InstructionSet::UInt64ToUInt32:
+	case InstructionSet::UInt32ToUInt16:
+	case InstructionSet::UInt16ToUInt8:
+	case InstructionSet::SInt8ToSInt16:
+	case InstructionSet::SInt16ToSInt32:
+	case InstructionSet::SInt32ToSInt64:
+	case InstructionSet::SInt64ToSInt32:
+	case InstructionSet::SInt32ToSInt16:
+	case InstructionSet::SInt16ToSInt8:
 	case InstructionSet::Malloc:
 		return Instruction::OpType::TwoReg;
 	case InstructionSet::Free:

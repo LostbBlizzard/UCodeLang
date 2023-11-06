@@ -2076,7 +2076,8 @@ SystematicAnalysis::CastOverLoadWith_t  SystematicAnalysis::Type_CanBeExplicitly
 
 	if (TypeToCheck._Type == TypesEnum::sInt32 && Type._Type == TypesEnum::float32) { return { true }; }
 	if (TypeToCheck._Type == TypesEnum::sInt64 && Type._Type == TypesEnum::float64) { return { true }; }
-
+	if (TypeToCheck._Type == TypesEnum::uInt32 && Type._Type == TypesEnum::float32) { return { true }; }
+	if (TypeToCheck._Type == TypesEnum::uInt64 && Type._Type == TypesEnum::float64) { return { true }; }
 
 	auto Syb = Symbol_GetSymbol(TypeToCheck);
 	if (Syb)

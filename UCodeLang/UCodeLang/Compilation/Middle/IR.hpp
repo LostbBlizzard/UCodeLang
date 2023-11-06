@@ -193,13 +193,14 @@ enum class IRInstructionType : IRInstructionType_t
 	SIntToSInt32,
 	SIntToSInt64,
 
-	UIntToSInt,
-	SIntToUInt,
-
 	f32Toi32,
 	f64Toi64,
-	i32Tof32,
-	i64Tof64,
+	
+	Ui32Tof32,
+	Ui64Tof64,
+
+	Si32Tof32,
+	Si64Tof64,
 	
 	f32Tof64,
 	f64Tof32,
@@ -282,9 +283,7 @@ inline bool IsUnary(IRInstructionType Value)
 		|| Value == IRInstructionType::SIntToSInt16
 		|| Value == IRInstructionType::SIntToSInt32
 		|| Value == IRInstructionType::SIntToSInt64
-		
-		|| Value == IRInstructionType::SIntToUInt
-		|| Value == IRInstructionType::UIntToSInt;
+		;
 }
 inline bool IsLoadValueOnlyInTarget(IRInstructionType Value)
 {
@@ -383,8 +382,6 @@ inline IRInstructionType GetInverse(IRInstructionType Value)
 	case IRInstructionType::Logical_Not:return IRInstructionType::Logical_Not;
 	case IRInstructionType::EqualTo:return IRInstructionType::NotEqualTo;
 	case IRInstructionType::NotEqualTo:return IRInstructionType::EqualTo;
-	case IRInstructionType::UIntToSInt:return IRInstructionType::SIntToUInt;
-	case IRInstructionType::SIntToUInt:return IRInstructionType::UIntToSInt;
 	default:return IRInstructionType::None;
 	}
 }
@@ -1140,15 +1137,6 @@ struct IRBlock
 	}
 
 
-	IRInstruction* New_UIntToSInt(IRInstruction* Value)
-	{
-		return Instructions.emplace_back(new IRInstruction(IRInstructionType::UIntToSInt, IROperator(Value))).get();
-	}
-	IRInstruction* New_SIntToUInt(IRInstruction* Value)
-	{
-		return Instructions.emplace_back(new IRInstruction(IRInstructionType::SIntToUInt, IROperator(Value))).get();
-	}
-
 	IRInstruction* New_f32Toi32(IRInstruction* Value)
 	{
 		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::f32Toi32, IROperator(Value))).get();
@@ -1163,16 +1151,30 @@ struct IRBlock
 		return V;
 	}
 
-	IRInstruction* New_i32Tof32(IRInstruction* Value)
+	IRInstruction* New_Ui32Tof32(IRInstruction* Value)
 	{
-		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::i32Tof32, IROperator(Value))).get();
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Ui32Tof32, IROperator(Value))).get();
 		V->ObjectType = IRTypes::f32;
 		return V;
 	}
 
-	IRInstruction* New_i32Tof64(IRInstruction* Value)
+	IRInstruction* New_Ui64Tof64(IRInstruction* Value)
 	{
-		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::i64Tof64, IROperator(Value))).get();
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Ui64Tof64, IROperator(Value))).get();
+		V->ObjectType = IRTypes::f64;
+		return V;
+	}
+
+	IRInstruction* New_Si32Tof32(IRInstruction* Value)
+	{
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Si32Tof32, IROperator(Value))).get();
+		V->ObjectType = IRTypes::f32;
+		return V;
+	}
+
+	IRInstruction* New_Si64Tof64(IRInstruction* Value)
+	{
+		auto V = Instructions.emplace_back(new IRInstruction(IRInstructionType::Si64Tof64, IROperator(Value))).get();
 		V->ObjectType = IRTypes::f64;
 		return V;
 	}
