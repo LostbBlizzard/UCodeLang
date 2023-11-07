@@ -1,4 +1,7 @@
 
+
+
+
 |Reverse<T>[ StringSpan_t<T> str ]:
  uintptr start = 0;
  uintptr end = str.Size() - 1;
@@ -23,3 +26,4 @@
 
 |ToString<T,Char_t>[imut T& Object] -> String_t<Char_t>:
  ret [];
+

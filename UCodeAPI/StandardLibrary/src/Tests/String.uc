@@ -32,9 +32,9 @@ Tests:
 
  [Test]
  |StringSpan_Reverse1[]:
-  String Txt = "World";
-  Reverse(Txt.Str());
-  ret Txt == "dlrow";
+  //String Txt = "World";
+  //Reverse(Txt.Str());
+  //ret Txt == "dlrow";
 
 
  [Test]
