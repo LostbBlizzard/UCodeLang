@@ -58,7 +58,7 @@ $Vector<T>:
 
   //Not required Functions 
   |Append[this&,imut T[:] Val] -> void;
-  |Append[this&,moved T[:] Val] -> void;
+  |Append[this&,moved Span<T> Val] -> void;
 
   
   |[][this&,uintptr Index] -> T&:ret _data[Index];

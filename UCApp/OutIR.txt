@@ -59,7 +59,7 @@
 
    int64 A;
 
-//Variable:ULang:Native:OS_PrintSpan:2338346449568:i
+//Variable:ULang:Native:OS_PrintSpan:2624469285312:i
 
    int32 B = 0;
    A = B;

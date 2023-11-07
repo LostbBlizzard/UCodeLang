@@ -83,7 +83,7 @@ $String_t<T>:
   |[][imut this&,uintptr Index] -> imut T&:ret _base[Index];
 
   |Append[this&,imut T[:] Val] -> void:_base.Append(Val);
-  |Append[this&,moved T[:] Val] -> void:_base.Append(Val);
+  |Append[this&,moved Span<T> Val] -> void:_base.Append(Val);
 
   |==[imut this&,imut this& Other] -> bool:
    ret this.iStr() == Other.iStr();
