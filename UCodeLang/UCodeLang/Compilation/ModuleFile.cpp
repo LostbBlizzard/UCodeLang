@@ -216,6 +216,34 @@ Compiler::CompilerPathData ModuleFile::GetPaths(Compiler& Compiler, bool IsSubMo
 		ValueToAddIfSubModule += "SubModule";
 	}
 
+	auto& Settings = Compiler.Get_Settings();
+	if (Settings.PtrSize == IntSizes::Int32)
+	{
+		ValueToAddIfSubModule += "-32";
+	}
+	else if (Settings.PtrSize == IntSizes::Int64)
+	{
+		ValueToAddIfSubModule += "-64";
+	}
+
+	if ((OptimizationFlags_t)Settings._Flags & (OptimizationFlags_t)OptimizationFlags::Debug)
+	{
+		ValueToAddIfSubModule += "-Debug";
+	}
+	
+	if ((OptimizationFlags_t)Settings._Flags & (OptimizationFlags_t)OptimizationFlags::O_1)
+	{
+		ValueToAddIfSubModule += "-O1";
+	}
+	if ((OptimizationFlags_t)Settings._Flags & (OptimizationFlags_t)OptimizationFlags::O_2)
+	{
+		ValueToAddIfSubModule += "-O2";
+	}
+	if ((OptimizationFlags_t)Settings._Flags & (OptimizationFlags_t)OptimizationFlags::O_3)
+	{
+		ValueToAddIfSubModule += "-O3";
+	}
+
 	paths.FileDir = Path((B.native() + Path::preferred_separator + Path(ModuleSourcePath).native())).generic_string();
 	paths.IntDir = Path((B.native()  + Path::preferred_separator + Path(ModuleIntPath).native() + ValueToAddIfSubModule.native() + Path::preferred_separator + Path(OutputName).native())).generic_string();
 	paths.OutFile = Path((B.native() + Path::preferred_separator + Path(ModuleOutPath).native() + ValueToAddIfSubModule.native() + Path::preferred_separator + Path(OutputName).native() + Path::preferred_separator)).generic_string();
@@ -290,6 +318,7 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 
 		Path buildfile = ThisModuleDir / ModuleBuildfile.native();
 
+		bool allowdebugsubmodules = false;
 
 		{
 
@@ -378,6 +407,11 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 						Compiler.Get_Settings()._Type = IsSubModule ? OutPutType::IRAndSymbols : OldSettings._Type;
 						CompilerRet.OutputItemPath = GetPaths(Compiler, IsSubModule).OutFile;
 
+						if (!allowdebugsubmodules)
+						{
+							//tell the IROptimizer ignored debug symbols so optimizations can take place since people dont debug submodules often
+							Compiler.Get_Settings().AddArgFlag("IgnoreDebug");
+						}
 
 						if (ForceImport) {
 							Compiler.Get_Settings().AddArgFlag("ForceImport");

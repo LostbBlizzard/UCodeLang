@@ -277,13 +277,21 @@ void IROptimizer::UpdateOptimizationList()
 {
 	auto& Stettings = *_Settings;
 
+	bool IgnoredebugFlag = Stettings.HasArg("IgnoreDebug");
 	bool ForDebuging = (OptimizationFlags_t)Stettings._Flags & (OptimizationFlags_t)OptimizationFlags::Debug;
 	bool ForSize =  (OptimizationFlags_t)Stettings._Flags & (OptimizationFlags_t)OptimizationFlags::ForSize;
 	bool ForSpeed = (OptimizationFlags_t)Stettings._Flags & (OptimizationFlags_t)OptimizationFlags::ForSpeed;
 	ResetOptimizations();
+	
+	bool isdebuging = ForDebuging;
+	if (IgnoredebugFlag)
+	{
+		isdebuging = false;
+	}
+
 	if (ForSize)
 	{
-		if (ForDebuging == false)
+		if (isdebuging == false)
 		{
 			
 			Optimization_RemoveUnsedVarables = true;
@@ -304,7 +312,7 @@ void IROptimizer::UpdateOptimizationList()
 	}
 	if (ForSpeed)
 	{
-		if (ForDebuging == false)
+		if (isdebuging == false)
 		{
 			Optimization_DestructureStructMembers = true;
 			Optimization_ReorderFunctionsInToHotSpots = true;
@@ -319,6 +327,36 @@ void IROptimizer::UpdateOptimizationList()
 			}
 		}
 		Optimization_ShortFuncInline = true;
+	}
+
+	if (!isdebuging)
+	{
+		Input->_Debug.Symbols.clear();
+
+		for (auto& Item2 : Input->_StaticInit.Blocks)
+		{
+			Item2->DebugInfo.DebugInfo.clear();
+		}
+		for (auto& Item2 : Input->_StaticdeInit.Blocks)
+		{
+			Item2->DebugInfo.DebugInfo.clear();
+		}
+		for (auto& Item2 : Input->_threadInit.Blocks)
+		{
+			Item2->DebugInfo.DebugInfo.clear();
+		}
+		for (auto& Item2 : Input->_threaddeInit.Blocks)
+		{
+			Item2->DebugInfo.DebugInfo.clear();
+		}
+
+		for (auto& Item : Input->Funcs)
+		{
+			for (auto& Item2 : Item->Blocks)
+			{
+				Item2->DebugInfo.DebugInfo.clear();
+			}
+		}
 	}
 }
 void IROptimizer::UpdateCodePass()
