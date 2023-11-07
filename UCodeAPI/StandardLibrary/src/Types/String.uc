@@ -32,7 +32,7 @@ $StringSpan_t<T>:
   |!=[imut this&,imut this& Other] => !(this == Other);
 
   |AsSpan[this&] -> T[:]:ret unsafe [_data,_size];
-  |AsSpan[imut this&] -> imut T[:]:ret unsafe [_data,_size];
+  |iAsSpan[imut this&] -> imut T[:]:ret unsafe [_data,_size];
 
   
   |ToStr[MySpan& span] -> this: ret unsafe [span.Data(),span.Size()];
@@ -56,7 +56,7 @@ $String_t<T>:
   
   |new[this&,IPar<MyStringSpan> span] -> void:
    Resize(span.Size());
-   for [uintptr i = 0;i < span.Size();i++];//this[i] = span[i];
+   for [uintptr i = 0;i < span.Size();i++]:this[i] = span[i];
 
   unsafe |iData[imut this&] -> imut T[&]:ret unsafe _base.iData();
   unsafe |Data[this&] -> T[&]:ret unsafe _base.Data();
@@ -73,45 +73,51 @@ $String_t<T>:
   |Remove[this&,uintptr Index] -> T:ret _base.Remove(Index);
 
   |Push[this&,imut T& Val] -> void:_base.Push(Val);
-  //|Push[this&,moved T Val] -> void:_base.Push(Val);
+  |Push[this&,moved T Val] -> void:_base.Push(Val);
 
   |Insert[this&,uintptr Index,imut T& Item] -> void:_base.Insert(Index,Item);
-  //|Insert[this&,uintptr Index,moved T Item] -> void:_base.Insert(Index,Item);
+  |Insert[this&,uintptr Index,moved T Item] -> void:_base.Insert(Index,Item);
   
   //Not required Functions 
   |[][this&,uintptr Index] -> T&:ret _base[Index];
   |[][imut this&,uintptr Index] -> imut T&:ret _base[Index];
 
   |Append[this&,imut T[:] Val] -> void:_base.Append(Val);
-  //|Append[this&,moved T[:] Val] -> void:_base.Append(Val);
+  |Append[this&,moved T[:] Val] -> void:_base.Append(Val);
 
   |==[imut this&,imut this& Other] -> bool:
-   ret this.iAsStrSpan() == Other.AsStrSpan();
+   ret this.iStr() == Other.iStr();
 
   |!=[imut this&,imut this& Other]:ret !(this == Other);
 
-  |+[imut this&,imut this& Other] -> this;
+  |+[imut this&,imut this& Other] -> this:
+   ret this + Other.iStr(); 
 
-  |+=[this&,imut this& Other] -> this;
+  |+=[this&,imut this& Other] -> void:
+   this += Other.iStr();
 
 
   |==[imut this&, IPar<MyStringSpan> Other] -> bool:
-   ret this.iAsStrSpan() == Other;
+   ret this.iStr() == Other;
 
   |!=[imut this&, IPar<MyStringSpan> Other]:ret !(this == Other);
 
-  //|+[imut this&, IPar<MyStringSpan> Other] -> this;
+  |+[imut this&, IPar<MyStringSpan> Other] -> this:
+   this copy = this;
+   copy += Other;
+   ret copy;
 
-  |+=[this&, IPar<MyStringSpan> Other] -> void;
+  |+=[this&, IPar<MyStringSpan> Other] -> void:
+   _base.Append(Other.iAsSpan());
 
   |AsSpan[this&] -> T[:]:ret unsafe [];
   |iAsSpan[imut this&] -> imut T[:]:ret unsafe [];
 
-  |AsStrSpan[this&] -> MyStringSpan:ret unsafe [];
-  |iAsStrSpan[imut this&] -> imut MyStringSpan:ret unsafe [];
+  |Str[this&] -> MyStringSpan:ret unsafe [];
+  |iStr[imut this&] -> imut MyStringSpan:ret unsafe [];
 
-  |[][this&,Range_t<uintptr> Range] -> MyStringSpan:ret AsStrSpan()[Range];
-  |[][imut this&,Range_t<uintptr> Range] -> imut MyStringSpan:ret AsStrSpan()[Range];
+  |[][this&,Range_t<uintptr> Range] -> MyStringSpan:ret Str()[Range];
+  |[][imut this&,Range_t<uintptr> Range] -> imut MyStringSpan:ret Str()[Range];
 
 $String = String_t<char>;
 $StringSpan = StringSpan_t<char>;
