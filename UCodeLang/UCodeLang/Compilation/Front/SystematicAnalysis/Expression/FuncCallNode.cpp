@@ -1138,6 +1138,19 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 	}
 
+
+	{
+		for (auto& Item : ValueTypes)
+		{
+			if (Item.IsOutPar == false && Item.Type.IsBadType())
+			{
+				Get_FuncInfo V;
+
+				return V;//can't check because we are just testing.
+			}
+		}
+	}
+
 	{//unmaped
 		for (auto& Item : ValueTypes)
 		{
