@@ -185,7 +185,7 @@ public:
 	UClib(const UClib& V) = delete;
 	UClib& operator=(const UClib& V) = delete;
 
-
+	void Reset();
 	
 	UCodeLangForceinline auto& Get_StaticBytes() const //Static Variables nad stuff
 	{

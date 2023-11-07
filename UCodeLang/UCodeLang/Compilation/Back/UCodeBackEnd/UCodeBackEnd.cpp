@@ -3278,6 +3278,19 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 		R.ObjectType = GetType(Ins);
 		return R;
 	}
+	else if (auto stack = _Stack.Has(Ins).value_unchecked())
+	{
+		UCodeBackEndObject::IRlocData R;
+		R.Info = IRlocData_StackPost(stack->Offset);
+		R.ObjectType = GetType(Ins);
+
+		if (GetAddress)
+		{
+			return GetPointerOf(R);
+		}
+
+		return R;
+	}
 	else
 	{
 		if (Ins->Type == IRInstructionType::LoadNone)

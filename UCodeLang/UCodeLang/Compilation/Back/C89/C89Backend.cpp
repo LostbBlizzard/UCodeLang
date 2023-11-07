@@ -1056,6 +1056,26 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					r += ToString(State, *I, I->Target());
 					r += ")";
 					break;
+
+
+				case IRInstructionType::Si32Tof32:
+				case IRInstructionType::Si64Tof64:
+				case IRInstructionType::f64Tof32:
+				case IRInstructionType::f64Toi64:
+				case IRInstructionType::f32Tof64:
+				case IRInstructionType::f32Toi32:
+				{
+					r += ToString(I->ObjectType);
+					r += " " + State.GetName(I.get());
+					r += " = ";
+
+					r += "(";
+					r += ToString(I->ObjectType);
+					r += ")";
+
+					r += ToString(State, *I, I->Target());
+				}
+				break;
 				default:
 					UCodeLangUnreachable();
 					break;

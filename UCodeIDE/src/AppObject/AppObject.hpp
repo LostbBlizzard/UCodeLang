@@ -230,7 +230,7 @@ private:
 	};
 	struct OutputWindowData
 	{
-		BackEndType Type = BackEndType::UCodeVM;
+		BackEndType Type = BackEndType::C89;
 
 		bool AutoCompile = true;
 		bool AutoReload = true;
