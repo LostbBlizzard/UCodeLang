@@ -864,7 +864,7 @@ SystematicAnalysis::CompoundOverLoadWith_t SystematicAnalysis::Type_HasCompoundO
 					String funcName = Syb->FullName;
 					ScopeHelper::GetApendedString(funcName, Item.CompilerName);
 
-					auto& V = GetSymbolsWithName(funcName, SymbolType::Func);
+					auto V = GetSymbolsWithName(funcName, SymbolType::Func);
 
 					for (auto& Item : V)
 					{
