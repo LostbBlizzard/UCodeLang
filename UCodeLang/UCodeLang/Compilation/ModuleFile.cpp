@@ -217,36 +217,39 @@ Compiler::CompilerPathData ModuleFile::GetPaths(Compiler& Compiler, bool IsSubMo
 	}
 
 	auto& Settings = Compiler.Get_Settings();
+
+	String SettingStr;
+
 	if (Settings.PtrSize == IntSizes::Int32)
 	{
-		ValueToAddIfSubModule += "-32";
+		SettingStr += "32";
 	}
 	else if (Settings.PtrSize == IntSizes::Int64)
 	{
-		ValueToAddIfSubModule += "-64";
+		SettingStr += "64";
 	}
 
 	if ((OptimizationFlags_t)Settings._Flags & (OptimizationFlags_t)OptimizationFlags::Debug)
 	{
-		ValueToAddIfSubModule += "-Debug";
+		SettingStr  += "-Debug";
 	}
 	
 	if ((OptimizationFlags_t)Settings._Flags & (OptimizationFlags_t)OptimizationFlags::O_1)
 	{
-		ValueToAddIfSubModule += "-O1";
+		SettingStr += "-O1";
 	}
 	if ((OptimizationFlags_t)Settings._Flags & (OptimizationFlags_t)OptimizationFlags::O_2)
 	{
-		ValueToAddIfSubModule += "-O2";
+		SettingStr += "-O2";
 	}
 	if ((OptimizationFlags_t)Settings._Flags & (OptimizationFlags_t)OptimizationFlags::O_3)
 	{
-		ValueToAddIfSubModule += "-O3";
+		SettingStr += "-O3";
 	}
 
 	paths.FileDir = Path((B.native() + Path::preferred_separator + Path(ModuleSourcePath).native())).generic_string();
-	paths.IntDir = Path((B.native()  + Path::preferred_separator + Path(ModuleIntPath).native() + ValueToAddIfSubModule.native() + Path::preferred_separator + Path(OutputName).native())).generic_string();
-	paths.OutFile = Path((B.native() + Path::preferred_separator + Path(ModuleOutPath).native() + ValueToAddIfSubModule.native() + Path::preferred_separator + Path(OutputName).native() + Path::preferred_separator)).generic_string();
+	paths.IntDir = Path((B.native()  + Path::preferred_separator + Path(ModuleIntPath).native() + ValueToAddIfSubModule.native() + Path::preferred_separator + Path(OutputName).native() + Path::preferred_separator + Path(SettingStr).native())).generic_string();
+	paths.OutFile = Path((B.native() + Path::preferred_separator + Path(ModuleOutPath).native() + ValueToAddIfSubModule.native() + Path::preferred_separator + Path(OutputName).native() + Path::preferred_separator + Path(SettingStr).native() + Path::preferred_separator)).generic_string();
 	
 	
 	if (!std::filesystem::exists(paths.IntDir))

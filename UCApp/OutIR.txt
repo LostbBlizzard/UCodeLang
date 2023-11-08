@@ -2553,7 +2553,7 @@ static uint8[/11]:int8 .Const.SpanString:Bello World= [66,101,108,108,111,32,87,
 
    int64 I;
 
-//Variable:ULang:StringSpan_t<char>:(&equal&):1851961762880:i
+//Variable:ULang:StringSpan_t<char>:(&equal&):2689164973472:i
 
    int32 J = 0;
    I = J;
@@ -2942,14 +2942,14 @@ static uint8[/11]:int8 .Const.SpanString:Bello World= [66,101,108,108,111,32,87,
    gotoif (D) _label0;
 
 //Line:29
-//Variable:ULang:Vector<char>:Reserve:1851963200432:oldsize
+//Variable:ULang:Vector<char>:Reserve:2689166096784:oldsize
 
    int64 E;
    int64 F = (&this&)->__1;
    E = F;
 
 //Line:30
-//Variable:ULang:Vector<char>:Reserve:1851963200432:old
+//Variable:ULang:Vector<char>:Reserve:2689166096784:old
 
    void* G;
    void* H = (&this&)->__0;
@@ -2992,7 +2992,7 @@ static uint8[/11]:int8 .Const.SpanString:Bello World= [66,101,108,108,111,32,87,
 
    int64 U;
 
-//Variable:ULang:Vector<char>:Reserve:1851963200432:1851961879728:i
+//Variable:ULang:Vector<char>:Reserve:2689166096784:2689165880864:i
 
    int32 V = 0;
    U = V;
@@ -3029,7 +3029,7 @@ static uint8[/11]:int8 .Const.SpanString:Bello World= [66,101,108,108,111,32,87,
    goto _label4;
 
 //Line:38
-//Variable:ULang:Vector<char>:Reserve:1851963200432:ptr
+//Variable:ULang:Vector<char>:Reserve:2689166096784:ptr
    _label3:
 
    int64 i;
@@ -3350,7 +3350,7 @@ static uint8[/11]:int8 .Const.SpanString:Bello World= [66,101,108,108,111,32,87,
 
    int64 G;
 
-//Variable:ULang:String_t<char>:(&_new&):1851962032560:i
+//Variable:ULang:String_t<char>:(&_new&):2689165513152:i
 
    int32 H = 0;
    G = H;
@@ -4253,14 +4253,14 @@ static uint8[/11]:int8 .Const.SpanString:Bello World= [66,101,108,108,111,32,87,
    gotoif (D) _label0;
 
 //Line:29
-//Variable:ULang:Vector<uint8>:Reserve:1851963200432:oldsize
+//Variable:ULang:Vector<uint8>:Reserve:2689166096784:oldsize
 
    int64 E;
    int64 F = (&this&)->__1;
    E = F;
 
 //Line:30
-//Variable:ULang:Vector<uint8>:Reserve:1851963200432:old
+//Variable:ULang:Vector<uint8>:Reserve:2689166096784:old
 
    void* G;
    void* H = (&this&)->__0;
@@ -4303,7 +4303,7 @@ static uint8[/11]:int8 .Const.SpanString:Bello World= [66,101,108,108,111,32,87,
 
    int64 U;
 
-//Variable:ULang:Vector<uint8>:Reserve:1851963200432:1851961879728:i
+//Variable:ULang:Vector<uint8>:Reserve:2689166096784:2689165880864:i
 
    int32 V = 0;
    U = V;
@@ -4340,7 +4340,7 @@ static uint8[/11]:int8 .Const.SpanString:Bello World= [66,101,108,108,111,32,87,
    goto _label4;
 
 //Line:38
-//Variable:ULang:Vector<uint8>:Reserve:1851963200432:ptr
+//Variable:ULang:Vector<uint8>:Reserve:2689166096784:ptr
    _label3:
 
    int64 i;
@@ -5360,7 +5360,7 @@ static uint8[/11]:int8 .Const.SpanString:Bello World= [66,101,108,108,111,32,87,
 
    int64 H;
 
-//Variable:ULang:StartWith<char>:1851961417520:i
+//Variable:ULang:StartWith<char>:2689164877280:i
 
    int32 I = 0;
    H = I;
@@ -5959,14 +5959,14 @@ static uint8[/11]:int8 .Const.SpanString:Bello World= [66,101,108,108,111,32,87,
    gotoif (D) _label0;
 
 //Line:29
-//Variable:ULang:Vector<sint32>:Reserve:1851963200432:oldsize
+//Variable:ULang:Vector<sint32>:Reserve:2689166096784:oldsize
 
    int64 E;
    int64 F = (&this&)->__1;
    E = F;
 
 //Line:30
-//Variable:ULang:Vector<sint32>:Reserve:1851963200432:old
+//Variable:ULang:Vector<sint32>:Reserve:2689166096784:old
 
    void* G;
    void* H = (&this&)->__0;
@@ -6009,7 +6009,7 @@ static uint8[/11]:int8 .Const.SpanString:Bello World= [66,101,108,108,111,32,87,
 
    int64 U;
 
-//Variable:ULang:Vector<sint32>:Reserve:1851963200432:1851961879728:i
+//Variable:ULang:Vector<sint32>:Reserve:2689166096784:2689165880864:i
 
    int32 V = 0;
    U = V;
@@ -6046,7 +6046,7 @@ static uint8[/11]:int8 .Const.SpanString:Bello World= [66,101,108,108,111,32,87,
    goto _label4;
 
 //Line:38
-//Variable:ULang:Vector<sint32>:Reserve:1851963200432:ptr
+//Variable:ULang:Vector<sint32>:Reserve:2689166096784:ptr
    _label3:
 
    int64 i;
@@ -6849,14 +6849,14 @@ static uint8[/11]:int8 .Const.SpanString:Bello World= [66,101,108,108,111,32,87,
    gotoif (D) _label0;
 
 //Line:29
-//Variable:ULang:Vector<uft8>:Reserve:1851963200432:oldsize
+//Variable:ULang:Vector<uft8>:Reserve:2689166096784:oldsize
 
    int64 E;
    int64 F = (&this&)->__1;
    E = F;
 
 //Line:30
-//Variable:ULang:Vector<uft8>:Reserve:1851963200432:old
+//Variable:ULang:Vector<uft8>:Reserve:2689166096784:old
 
    void* G;
    void* H = (&this&)->__0;
@@ -6899,7 +6899,7 @@ static uint8[/11]:int8 .Const.SpanString:Bello World= [66,101,108,108,111,32,87,
 
    int64 U;
 
-//Variable:ULang:Vector<uft8>:Reserve:1851963200432:1851961879728:i
+//Variable:ULang:Vector<uft8>:Reserve:2689166096784:2689165880864:i
 
    int32 V = 0;
    U = V;
@@ -6936,7 +6936,7 @@ static uint8[/11]:int8 .Const.SpanString:Bello World= [66,101,108,108,111,32,87,
    goto _label4;
 
 //Line:38
-//Variable:ULang:Vector<uft8>:Reserve:1851963200432:ptr
+//Variable:ULang:Vector<uft8>:Reserve:2689166096784:ptr
    _label3:
 
    int64 i;
@@ -7318,7 +7318,7 @@ static uint8[/11]:int8 .Const.SpanString:Bello World= [66,101,108,108,111,32,87,
 
    int64 I;
 
-//Variable:ULang:StringSpan_t<uft8>:(&equal&):1851961762880:i
+//Variable:ULang:StringSpan_t<uft8>:(&equal&):2689164973472:i
 
    int32 J = 0;
    I = J;
@@ -7605,7 +7605,7 @@ static uint8[/11]:int8 .Const.SpanString:Bello World= [66,101,108,108,111,32,87,
 
    int64 G;
 
-//Variable:ULang:String_t<uft8>:(&_new&):1851962032560:i
+//Variable:ULang:String_t<uft8>:(&_new&):2689165513152:i
 
    int32 H = 0;
    G = H;
@@ -8508,14 +8508,14 @@ static uint8[/11]:int8 .Const.SpanString:Bello World= [66,101,108,108,111,32,87,
    gotoif (D) _label0;
 
 //Line:29
-//Variable:ULang:Vector<uft16>:Reserve:1851963200432:oldsize
+//Variable:ULang:Vector<uft16>:Reserve:2689166096784:oldsize
 
    int64 E;
    int64 F = (&this&)->__1;
    E = F;
 
 //Line:30
-//Variable:ULang:Vector<uft16>:Reserve:1851963200432:old
+//Variable:ULang:Vector<uft16>:Reserve:2689166096784:old
 
    void* G;
    void* H = (&this&)->__0;
@@ -8558,7 +8558,7 @@ static uint8[/11]:int8 .Const.SpanString:Bello World= [66,101,108,108,111,32,87,
 
    int64 U;
 
-//Variable:ULang:Vector<uft16>:Reserve:1851963200432:1851961879728:i
+//Variable:ULang:Vector<uft16>:Reserve:2689166096784:2689165880864:i
 
    int32 V = 0;
    U = V;
@@ -8595,7 +8595,7 @@ static uint8[/11]:int8 .Const.SpanString:Bello World= [66,101,108,108,111,32,87,
    goto _label4;
 
 //Line:38
-//Variable:ULang:Vector<uft16>:Reserve:1851963200432:ptr
+//Variable:ULang:Vector<uft16>:Reserve:2689166096784:ptr
    _label3:
 
    int64 i;
@@ -8977,7 +8977,7 @@ static uint8[/11]:int8 .Const.SpanString:Bello World= [66,101,108,108,111,32,87,
 
    int64 I;
 
-//Variable:ULang:StringSpan_t<uft16>:(&equal&):1851961762880:i
+//Variable:ULang:StringSpan_t<uft16>:(&equal&):2689164973472:i
 
    int32 J = 0;
    I = J;
@@ -9264,7 +9264,7 @@ static uint8[/11]:int8 .Const.SpanString:Bello World= [66,101,108,108,111,32,87,
 
    int64 G;
 
-//Variable:ULang:String_t<uft16>:(&_new&):1851962032560:i
+//Variable:ULang:String_t<uft16>:(&_new&):2689165513152:i
 
    int32 H = 0;
    G = H;
@@ -10167,14 +10167,14 @@ static uint8[/11]:int8 .Const.SpanString:Bello World= [66,101,108,108,111,32,87,
    gotoif (D) _label0;
 
 //Line:29
-//Variable:ULang:Vector<uft32>:Reserve:1851963200432:oldsize
+//Variable:ULang:Vector<uft32>:Reserve:2689166096784:oldsize
 
    int64 E;
    int64 F = (&this&)->__1;
    E = F;
 
 //Line:30
-//Variable:ULang:Vector<uft32>:Reserve:1851963200432:old
+//Variable:ULang:Vector<uft32>:Reserve:2689166096784:old
 
    void* G;
    void* H = (&this&)->__0;
@@ -10217,7 +10217,7 @@ static uint8[/11]:int8 .Const.SpanString:Bello World= [66,101,108,108,111,32,87,
 
    int64 U;
 
-//Variable:ULang:Vector<uft32>:Reserve:1851963200432:1851961879728:i
+//Variable:ULang:Vector<uft32>:Reserve:2689166096784:2689165880864:i
 
    int32 V = 0;
    U = V;
@@ -10254,7 +10254,7 @@ static uint8[/11]:int8 .Const.SpanString:Bello World= [66,101,108,108,111,32,87,
    goto _label4;
 
 //Line:38
-//Variable:ULang:Vector<uft32>:Reserve:1851963200432:ptr
+//Variable:ULang:Vector<uft32>:Reserve:2689166096784:ptr
    _label3:
 
    int64 i;
@@ -10636,7 +10636,7 @@ static uint8[/11]:int8 .Const.SpanString:Bello World= [66,101,108,108,111,32,87,
 
    int64 I;
 
-//Variable:ULang:StringSpan_t<uft32>:(&equal&):1851961762880:i
+//Variable:ULang:StringSpan_t<uft32>:(&equal&):2689164973472:i
 
    int32 J = 0;
    I = J;
@@ -10923,7 +10923,7 @@ static uint8[/11]:int8 .Const.SpanString:Bello World= [66,101,108,108,111,32,87,
 
    int64 G;
 
-//Variable:ULang:String_t<uft32>:(&_new&):1851962032560:i
+//Variable:ULang:String_t<uft32>:(&_new&):2689165513152:i
 
    int32 H = 0;
    G = H;
@@ -12444,7 +12444,7 @@ static uint8[/11]:int8 .Const.SpanString:Bello World= [66,101,108,108,111,32,87,
 
    int64 A;
 
-//Variable:ULang:Native:OS_PrintSpan:2624469285312:i
+//Variable:ULang:Native:OS_PrintSpan:2689138275264:i
 
    int32 B = 0;
    A = B;
