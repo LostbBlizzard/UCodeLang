@@ -1,7 +1,7 @@
 
 
 
-|ReverseS<T>[ T[:] buf ]:
+|Reverse<T>[ T[:] buf ]:
  uintptr start = 0;
  uintptr end = buf.Size() - 1;
  

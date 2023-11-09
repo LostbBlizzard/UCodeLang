@@ -21,20 +21,19 @@ Tests:
  [Test]
  |StringSpan_5[]:
   String Txt = "World";
-  Fmt::Print(Txt);
   ret Txt != "Hello";
 
  [Test]
  |StringSpan_Reverse[]:
   String Txt = "World";
   Reverse(Txt);
-  ret Txt == "Hello";
+  ret Txt == "dlrow";
 
  [Test]
  |StringSpan_Reverse1[]:
-  //String Txt = "World";
-  //Reverse(Txt.Str());
-  //ret Txt == "dlrow";
+  String Txt = "World";
+  Reverse(Txt.Str());
+  ret Txt == "dlrow";
 
 
  [Test]

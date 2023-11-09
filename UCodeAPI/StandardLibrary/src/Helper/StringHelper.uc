@@ -12,7 +12,7 @@
     start++;
 
 
-//|Reverse<T>[ String_t<T> string ] => Reverse<T>(string.Str());
+|Reverse<T>[ String_t<T> string ] => Reverse<T>(string.Str());
  
 
 |StartWith<T>[StringSpan_t<T> string,StringSpan_t<T> with] -> bool:
