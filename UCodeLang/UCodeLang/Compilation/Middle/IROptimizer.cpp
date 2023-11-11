@@ -1153,6 +1153,348 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 							UCodeLangUnreachable();
 						}
 					}
+					
+					
+					if (
+						(Ins->Type == IRInstructionType::SDiv
+							|| Ins->Type == IRInstructionType::UDiv
+							)
+						&& (Ins->B.Type == IROperatorType::Value)
+						)
+					{
+						enum class mode
+						{
+							none,
+							Div0,
+							Div1,
+							Div2,
+							Div4,
+							Div8,
+							Div16,
+							Div32,
+							Div64,
+						};
+						auto& Op = Ins->B;
+
+						mode ok = mode::none;
+						if (Ins->ObjectType.IsType(IRTypes::i32))
+						{
+							if (Op.Value.AsInt32 == 0)
+							{
+								ok = mode::Div0;
+							}
+							else if (Op.Value.AsInt32 == 1)
+							{
+								ok = mode::Div1;
+							}
+							else if (Op.Value.AsInt32 == 2)
+							{
+								ok = mode::Div2;
+							}
+							else if (Op.Value.AsInt32 == 4)
+							{
+								ok = mode::Div4;
+							}
+							else if (Op.Value.AsInt32 == 8)
+							{
+								ok = mode::Div8;
+							}
+							else if (Op.Value.AsInt32 == 16)
+							{
+								ok = mode::Div16;
+							}
+							else if (Op.Value.AsInt32 == 32)
+							{
+								ok = mode::Div32;
+							}
+							else if (Op.Value.AsInt32 == 64)
+							{
+								ok = mode::Div64;
+							}
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::i16))
+						{
+							if (Op.Value.AsInt16 == 0)
+							{
+								ok = mode::Div0;
+							}
+							else if (Op.Value.AsInt16 == 1)
+							{
+								ok = mode::Div1;
+							}
+							else if (Op.Value.AsInt16 == 2)
+							{
+								ok = mode::Div2;
+							}
+							else if (Op.Value.AsInt16 == 4)
+							{
+								ok = mode::Div4;
+							}
+							else if (Op.Value.AsInt16 == 8)
+							{
+								ok = mode::Div8;
+							}
+							else if (Op.Value.AsInt16 == 16)
+							{
+								ok = mode::Div16;
+							}
+							else if (Op.Value.AsInt16 == 32)
+							{
+								ok = mode::Div32;
+							}
+							else if (Op.Value.AsInt16 == 64)
+							{
+								ok = mode::Div64;
+							}
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::i8))
+						{
+							if (Op.Value.AsInt8 == 0)
+							{
+								ok = mode::Div0;
+							}
+							else if (Op.Value.AsInt8 == 1)
+							{
+								ok = mode::Div1;
+							}
+							else if (Op.Value.AsInt8 == 2)
+							{
+								ok = mode::Div2;
+							}
+							else if (Op.Value.AsInt8 == 4)
+							{
+								ok = mode::Div4;
+							}
+							else if (Op.Value.AsInt8 == 8)
+							{
+								ok = mode::Div8;
+							}
+							else if (Op.Value.AsInt8 == 16)
+							{
+								ok = mode::Div16;
+							}
+							else if (Op.Value.AsInt8 == 32)
+							{
+								ok = mode::Div32;
+							}
+							else if (Op.Value.AsInt8 == 64)
+							{
+								ok = mode::Div64;
+							}
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::i64))
+						{
+							if (Op.Value.AsInt64 == 0)
+							{
+								ok = mode::Div0;
+							}
+							else if (Op.Value.AsInt64 == 1)
+							{
+								ok = mode::Div1;
+							}
+							else if (Op.Value.AsInt64 == 2)
+							{
+								ok = mode::Div2;
+							}
+							else if (Op.Value.AsInt64 == 4)
+							{
+								ok = mode::Div4;
+							}
+							else if (Op.Value.AsInt64 == 8)
+							{
+								ok = mode::Div8;
+							}
+							else if (Op.Value.AsInt64 == 16)
+							{
+								ok = mode::Div16;
+							}
+							else if (Op.Value.AsInt64 == 32)
+							{
+								ok = mode::Div32;
+							}
+							else if (Op.Value.AsInt64 == 64)
+							{
+								ok = mode::Div64;
+							}
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::f32))
+						{
+							if (Optimization_FloatFastMath) {
+								if (Op.Value.Asfloat32 == 0)
+								{
+									ok = mode::Div0;
+								}
+								else if (Op.Value.Asfloat32 == 1)
+								{
+									ok = mode::Div1;
+								}
+								else if (Op.Value.Asfloat32 == 2)
+								{
+									ok = mode::Div2;
+								}
+								else if (Op.Value.Asfloat32 == 4)
+								{
+									ok = mode::Div4;
+								}
+								else if (Op.Value.Asfloat32 == 8)
+								{
+									ok = mode::Div8;
+								}
+								else if (Op.Value.Asfloat32 == 16)
+								{
+									ok = mode::Div16;
+								}
+								else if (Op.Value.Asfloat32 == 32)
+								{
+									ok = mode::Div32;
+								}
+								else if (Op.Value.Asfloat32 == 64)
+								{
+									ok = mode::Div64;
+								}
+							}
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::f64))
+						{
+							if (Optimization_FloatFastMath) {
+								if (Op.Value.Asfloat64== 0)
+								{
+									ok = mode::Div0;
+								}
+								else if (Op.Value.Asfloat64 == 1)
+								{
+									ok = mode::Div1;
+								}
+								else if (Op.Value.Asfloat64 == 2)
+								{
+									ok = mode::Div2;
+								}
+								else if (Op.Value.Asfloat64 == 4)
+								{
+									ok = mode::Div4;
+								}
+								else if (Op.Value.Asfloat64 == 8)
+								{
+									ok = mode::Div8;
+								}
+								else if (Op.Value.Asfloat64 == 16)
+								{
+									ok = mode::Div16;
+								}
+								else if (Op.Value.Asfloat64 == 32)
+								{
+									ok = mode::Div32;
+								}
+								else if (Op.Value.Asfloat64 == 64)
+								{
+									ok = mode::Div64;
+								}
+							}
+							}
+
+						if (ok == mode::none)
+						{
+
+						}
+						else if (ok == mode::Div0)
+						{
+							//Block->Instructions.insert(Block->Instructions.begin() + i, std::make_unique<IRInstruction>(IRInstructionType::Unreachable));
+							//UpdatedCode();
+						}
+						else if (ok == mode::Div1)
+						{
+							Op = IROperator();
+							Ins->Target() = Ins->A;
+							Ins->Type = IRInstructionType::Load;
+							UpdatedCode();
+						}
+						else if (ok == mode::Div2)
+						{
+							Op = IROperator();
+							Ins->Target() = Ins->A;
+							Ins->Input() = AnyInt64(1);
+							Ins->Type = IRInstructionType::BitWise_ShiftR;
+							UpdatedCode();
+						}
+						else if (ok == mode::Div4)
+						{
+							Op = IROperator();
+							Ins->Target() = Ins->A;
+							Ins->Input() = AnyInt64(2);
+							Ins->Type = IRInstructionType::BitWise_ShiftR;
+							UpdatedCode();
+						}
+						else if (ok == mode::Div8)
+						{
+							Op = IROperator();
+							Ins->Target() = Ins->A;
+							Ins->Input() = AnyInt64(3);
+							Ins->Type = IRInstructionType::BitWise_ShiftR;
+							UpdatedCode();
+						}
+						else if (ok == mode::Div16)
+						{
+							Op = IROperator();
+							Ins->Target() = Ins->A;
+							Ins->Input() = AnyInt64(4);
+							Ins->Type = IRInstructionType::BitWise_ShiftR;
+							UpdatedCode();
+						}
+						else if (ok == mode::Div32)
+						{
+							Op = IROperator();
+							Ins->Target() = Ins->A;
+							Ins->Input() = AnyInt64(5);
+							Ins->Type = IRInstructionType::BitWise_ShiftR;
+							UpdatedCode();
+						}
+						else if (ok == mode::Div64)
+						{
+							Op = IROperator();
+							Ins->Target() = Ins->A;
+							Ins->Input() = AnyInt64(6);
+							Ins->Type = IRInstructionType::BitWise_ShiftR;
+							UpdatedCode();
+						}
+						else 
+						{
+							UCodeLangUnreachable();
+						}
+					}
+
+					if (
+						(Ins->Type == IRInstructionType::SDiv
+							|| Ins->Type == IRInstructionType::UDiv
+							)
+						&& (Ins->B == Ins->A)
+						)
+					{
+						if (Ins->ObjectType.IsType(IRTypes::f64))
+						{
+							if (Optimization_FloatFastMath) 
+							{
+								Ins->Target() = AnyInt64((float64)1);
+								Ins->Type = IRInstructionType::Load;
+								UpdatedCode();
+							}
+
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::f32))
+						{
+							if (Optimization_FloatFastMath) {
+								Ins->Target() = AnyInt64((float32)1);
+								Ins->Type = IRInstructionType::Load;
+								UpdatedCode();
+							}
+
+						}
+						else 
+						{
+							Ins->Target() = AnyInt64(1);
+							Ins->Type = IRInstructionType::Load;
+							UpdatedCode();
+						}
+					}
 				}
 			}
 			else if (Ins->Type == IRInstructionType::Member_Access_Dereference)

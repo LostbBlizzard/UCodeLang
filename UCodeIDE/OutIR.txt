@@ -11,7 +11,7 @@
 
  [Block:0]
 
-   int32 A = V<<2;
+   int32 A = V>>2;
    ret = A;
    ret;
 
@@ -19,7 +19,7 @@
 
  [Block:0]
 
-   int32 A = V<<1;
+   int32 A = V>>1;
    ret = A;
    ret;
 
@@ -34,14 +34,14 @@
 
  [Block:0]
 
-   ret = 0;
+   int32 A = V/0;
+   ret = A;
    ret;
 
 |main5^i32[int32 V] -> int32:
 
  [Block:0]
 
-   int32 A = V*V;
-   ret = A;
+   ret = 1;
    ret;
 
