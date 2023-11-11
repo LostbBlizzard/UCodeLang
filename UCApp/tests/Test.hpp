@@ -110,7 +110,7 @@ UCodeTestStart
 
 	
 
-	static const Array<TestInfo, 96> Tests
+	static const Array<TestInfo, 103> Tests
 	{
 
 		TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation),
@@ -172,6 +172,13 @@ UCodeTestStart
 		TestInfo("GenericsExpression","Generics/GenericsExpression.uc","main",SuccessCondition::RunTimeValue,(int)1),
 		TestInfo("GenericsExpression2","Generics/GenericsExpression2.uc","main",SuccessCondition::CompilationFail),
 		TestInfo("GenericsExpression3","Generics/GenericsExpression3.uc","main",SuccessCondition::CompilationFail),
+
+		TestInfo("BitWise1", "BasicTests/Bitwise.uc", "main1", SuccessCondition::RunTimeValue, (int)2),
+		TestInfo("BitWise2", "BasicTests/Bitwise.uc", "main2", SuccessCondition::RunTimeValue, (int)4),
+		TestInfo("BitWise3", "BasicTests/Bitwise.uc", "main3", SuccessCondition::RunTimeValue, (int)1),
+		TestInfo("BitWise4", "BasicTests/Bitwise.uc", "main4", SuccessCondition::RunTimeValue, (int)13),
+		TestInfo("BitWise5", "BasicTests/Bitwise.uc", "main5", SuccessCondition::RunTimeValue, (int)12),
+		TestInfo("BitWise6", "BasicTests/Bitwise.uc", "main6", SuccessCondition::RunTimeValue, (int)-6),
 
 		TestInfo("Lamdba_1","Objects/Lambda.uc","main",SuccessCondition::RunTimeValue,(int)1),
 		TestInfo("Lamdba_2","Objects/Lambda.uc","main2",SuccessCondition::RunTimeValue,(int)5),
@@ -240,7 +247,10 @@ UCodeTestStart
 		TestInfo("OptionalAsPtr", "Objects/OptionalAsPtr.uc", "NullOp2", SuccessCondition::RunTimeValue, (int)10),
 		TestInfo("factorial2", "BasicTests/factorial2.uc", "main", SuccessCondition::RunTimeValue, (int)3628800),
 		TestInfo("StressTest1", "StressTest/StressTest1.uc", "main", SuccessCondition::RunTimeValue, (int)6),
+		
+		TestInfo("GenericOverload", "Generics/GenericsOverload.uc", "main", SuccessCondition::RunTimeValue, (int)1),
 	};
+
 
 	struct SkipTestRange
 	{
@@ -248,9 +258,9 @@ UCodeTestStart
 		size_t End;
 	};
 	static const Vector<SkipTestRange> UCodeVmSkipTests
-		= { {40, Tests.size() } };
+		= { {48, Tests.size() } };
 	static const Vector<SkipTestRange> C89SkipTests
-		= { {40, Tests.size() } };
+		= { {48, Tests.size() } };
 	static const Vector<SkipTestRange> WasmSkipTests
 		= { {4, Tests.size() } };
 

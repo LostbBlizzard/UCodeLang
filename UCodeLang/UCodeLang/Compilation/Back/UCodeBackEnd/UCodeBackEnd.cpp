@@ -1711,14 +1711,195 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			SetRegister(R, Item);
 		}
 		break;
-		default:
+		case IRInstructionType::BitWise_ShiftL:
+		{
+			auto BOpVals = DoBinaryOpValues(Item);
+			RegisterID A = BOpVals.A;
+			RegisterID B = BOpVals.B;
+			RegisterID V = BOpVals.V;
+			switch (Item->ObjectType._Type)
+			{
+			case IRTypes::i8:InstructionBuilder::bitwise_LeftShift8(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::bitwise_LeftShift16(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::i32:InstructionBuilder::bitwise_LeftShift32(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::i64:InstructionBuilder::bitwise_LeftShift64(_Ins, A, B, V); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					InstructionBuilder::bitwise_LeftShift32(_Ins, A, B, V); PushIns(); break;
+				}
+				else
+				{
+					InstructionBuilder::bitwise_LeftShift64(_Ins, A, B, V); PushIns(); break;
+				}
+				break;
+			default:
+				UCodeLangUnreachable();
+				break;
+			}
+			SetRegister(V, Item);
+		}
+		break;
+		case IRInstructionType::BitWise_ShiftR:
+		{
+			auto BOpVals = DoBinaryOpValues(Item);
+			RegisterID A = BOpVals.A;
+			RegisterID B = BOpVals.B;
+			RegisterID V = BOpVals.V;
+			switch (Item->ObjectType._Type)
+			{
+			case IRTypes::i8:InstructionBuilder::bitwise_RightShift8(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::bitwise_RightShift16(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::i32:InstructionBuilder::bitwise_RightShift32(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::i64:InstructionBuilder::bitwise_RightShift64(_Ins, A, B, V); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					InstructionBuilder::bitwise_RightShift32(_Ins, A, B, V); PushIns(); break;
+				}
+				else
+				{
+					InstructionBuilder::bitwise_RightShift64(_Ins, A, B, V); PushIns(); break;
+				}
+				break;
+			default:
+				UCodeLangUnreachable();
+				break;
+			}
+			SetRegister(V, Item);
+		}
+		break;
+		case IRInstructionType::BitWise_Or:
+		{
+			auto BOpVals = DoBinaryOpValues(Item);
+			RegisterID A = BOpVals.A;
+			RegisterID B = BOpVals.B;
+			RegisterID V = BOpVals.V;
+			switch (Item->ObjectType._Type)
+			{
+			case IRTypes::i8:InstructionBuilder::bitwise_or8(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::bitwise_or16(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::i32:InstructionBuilder::bitwise_or32(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::i64:InstructionBuilder::bitwise_or64(_Ins, A, B, V); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					InstructionBuilder::bitwise_or32(_Ins, A, B, V); PushIns(); break;
+				}
+				else
+				{
+					InstructionBuilder::bitwise_or64(_Ins, A, B, V); PushIns(); break;
+				}
+				break;
+			default:
+				UCodeLangUnreachable();
+				break;
+			}
+			SetRegister(V, Item);
+		}
+		break;
+		case IRInstructionType::BitWise_And:
+		{
+			auto BOpVals = DoBinaryOpValues(Item);
+			RegisterID A = BOpVals.A;
+			RegisterID B = BOpVals.B;
+			RegisterID V = BOpVals.V;
+			switch (Item->ObjectType._Type)
+			{
+			case IRTypes::i8:InstructionBuilder::bitwise_and8(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::bitwise_and16(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::i32:InstructionBuilder::bitwise_and32(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::i64:InstructionBuilder::bitwise_and64(_Ins, A, B, V); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					InstructionBuilder::bitwise_and32(_Ins, A, B, V); PushIns(); break;
+				}
+				else
+				{
+					InstructionBuilder::bitwise_and64(_Ins, A, B, V); PushIns(); break;
+				}
+				break;
+			default:
+				UCodeLangUnreachable();
+				break;
+			}
+			SetRegister(V, Item);
+		}
+		break;
+		case IRInstructionType::BitWise_XOr:
+		{
+			auto BOpVals = DoBinaryOpValues(Item);
+			RegisterID A = BOpVals.A;
+			RegisterID B = BOpVals.B;
+			RegisterID V = BOpVals.V;
+			switch (Item->ObjectType._Type)
+			{
+			case IRTypes::i8:InstructionBuilder::bitwise_Xor8(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::bitwise_Xor16(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::i32:InstructionBuilder::bitwise_Xor32(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::i64:InstructionBuilder::bitwise_Xor64(_Ins, A, B, V); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					InstructionBuilder::bitwise_Xor32(_Ins, A, B, V); PushIns(); break;
+				}
+				else
+				{
+					InstructionBuilder::bitwise_Xor64(_Ins, A, B, V); PushIns(); break;
+				}
+				break;
+			default:
+				UCodeLangUnreachable();
+				break;
+			}
+			SetRegister(V, Item);
+		}
+		break;
+		case IRInstructionType::BitWise_Not:
+		{
+			RegisterID Out = GetRegisterForTep();
+			auto optype = GetType(Item, Item->Target());
+
+			auto V = MakeIntoRegister(Item, Item->Target());
+
+			switch (optype._Type)
+			{
+			case IRTypes::i8:InstructionBuilder::bitwise_Not8(_Ins, V, Out); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::bitwise_Not16(_Ins, V, Out); PushIns(); break;
+
+			case IRTypes::i32:InstructionBuilder::bitwise_Not32(_Ins, V, Out); PushIns(); break;
+
+			case IRTypes::i64:InstructionBuilder::bitwise_Not64(_Ins, V, Out); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					InstructionBuilder::bitwise_Not32(_Ins, V, Out); PushIns(); break;
+				}
+				else
+				{
+					InstructionBuilder::bitwise_Not64(_Ins, V, Out); PushIns(); break;
+				}
+				break;
+			default:
+				UCodeLangUnreachable();
+				break;
+			}
+			SetRegister(Out, Item);
+
+		}
+		break;
+	default:
 			UCodeLangUnreachable();
 			break;
 		}
 
-
-		
-		
 	
 		
 		//UpdateVarableLocs();

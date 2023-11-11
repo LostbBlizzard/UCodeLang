@@ -1854,6 +1854,27 @@ bool IRBuilder::ToString(
 		r += " = ";
 		r += ToString(State, *I, I->Target()) + " -> float32";
 		break;
+	case IRInstructionType::BitWise_And:
+		r += ToStringBinary(State, I, "&");
+		break;
+	case IRInstructionType::BitWise_Or:
+		r += ToStringBinary(State, I, "|");
+		break;
+	case IRInstructionType::BitWise_ShiftL:
+		r += ToStringBinary(State, I, "<<");
+		break;
+	case IRInstructionType::BitWise_ShiftR:
+		r += ToStringBinary(State, I, ">>");
+		break;
+	case IRInstructionType::BitWise_XOr:
+		r += ToStringBinary(State, I, "^");
+		break;
+	case IRInstructionType::BitWise_Not:
+		r += ToString(I->ObjectType);
+		r += " " + State.GetName(I);
+		r += " = ~" + ToString(State, *I, I->Target());
+		break;
+	
 	default:
 		UCodeLangUnreachable();
 		break;
