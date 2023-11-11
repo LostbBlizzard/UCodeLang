@@ -11,37 +11,7 @@
 
  [Block:0]
 
-   int32 A = V>>2;
+   int32 A = V%4;
    ret = A;
-   ret;
-
-|main2^i32[int32 V] -> int32:
-
- [Block:0]
-
-   int32 A = V>>1;
-   ret = A;
-   ret;
-
-|main3^i32[int32 V] -> int32:
-
- [Block:0]
-
-   ret = V;
-   ret;
-
-|main4^i32[int32 V] -> int32:
-
- [Block:0]
-
-   int32 A = V/0;
-   ret = A;
-   ret;
-
-|main5^i32[int32 V] -> int32:
-
- [Block:0]
-
-   ret = 1;
    ret;
 

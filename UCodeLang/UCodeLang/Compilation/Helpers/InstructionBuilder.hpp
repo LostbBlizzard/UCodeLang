@@ -125,7 +125,14 @@ UCodeLangForceinline static void bitwise_Not##bitsize(Instruction& Out, Register
 {\
 	Out = Instruction(InstructionSet::bitwise_Not##bitsize, Instruction::TwoReg(reg,out));\
 }\
-
+UCodeLangForceinline static void ModS##bitsize(Instruction& Out, RegisterID reg,RegisterID reg2, RegisterID out)\
+{\
+	Out = Instruction(InstructionSet::ModS##bitsize, Instruction::ThreeReg(reg, reg2,out));\
+}\
+UCodeLangForceinline static void ModU##bitsize(Instruction& Out, RegisterID reg,RegisterID reg2, RegisterID out)\
+{\
+	Out = Instruction(InstructionSet::ModU##bitsize, Instruction::ThreeReg(reg, reg2,out));\
+}\
 
 
 #define BuilderfloatSet(bitsize) \

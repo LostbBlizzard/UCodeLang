@@ -119,9 +119,8 @@ AddMapValueValue2(equal_greaterthan##bitsize, InstructionSet::equal_greaterthan#
 AddMapValueValue2(equal_lessthan##bitsize, InstructionSet::equal_lessthan##bitsize, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register), \
 AddMapValueValue2(notequalto##bitsize, InstructionSet::notequalto##bitsize, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register), \
 AddMapValueValue2(LAnd##bitsize, InstructionSet::LogicalAnd##bitsize, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register), \
-
-
-
+AddMapValueValue2(ModU##bitsize, InstructionSet::ModU##bitsize, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register), \
+AddMapValueValue2(ModS##bitsize, InstructionSet::ModS##bitsize, OpCodeType::Register, OpCodeType::Register, OpCodeType::Register), \
 
 #define MapValuefloatSet(bitsize)\
 AddMapValueValue(Addf##bitsize, InstructionSet::Addf##bitsize, OpCodeType::Register, OpCodeType::Register),\

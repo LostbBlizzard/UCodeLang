@@ -136,6 +136,8 @@ enum class IRInstructionType : IRInstructionType_t
 	SMult,
 	UDiv,
 	SDiv,
+	SMod,
+	UMod,
 	//bitwise
 	BitWise_And,
 	BitWise_Or,
@@ -272,7 +274,9 @@ inline bool IsBinary(IRInstructionType Value)
 		|| Value == IRInstructionType::BitWise_ShiftR
 		|| Value == IRInstructionType::BitWise_Or
 		|| Value == IRInstructionType::BitWise_XOr
-		|| Value == IRInstructionType::BitWise_And;
+		|| Value == IRInstructionType::BitWise_And
+		|| Value == IRInstructionType::SMod
+		|| Value == IRInstructionType::UMod;
 }
 inline bool IsUnary(IRInstructionType Value)
 {
@@ -847,7 +851,16 @@ struct IRBlock
 		auto v =  Instructions.emplace_back(new IRInstruction(IRInstructionType::BitWise_Not, IROperator(Value))).get();
 		return v;
 	}
-	
+	IRInstruction* NewUModulo(IRInstruction* A, IRInstruction* B)
+	{
+		auto v = Instructions.emplace_back(new IRInstruction(IRInstructionType::UMod, IROperator(A), IROperator(B))).get();
+		return v;
+	}
+	IRInstruction* NewSModulo(IRInstruction* A, IRInstruction* B)
+	{
+		auto v = Instructions.emplace_back(new IRInstruction(IRInstructionType::SMod, IROperator(A), IROperator(B))).get();
+		return v;
+	}
 	//comparison operators
 	IRInstruction* NewC_Equalto(IRInstruction* A, IRInstruction* B)
 	{

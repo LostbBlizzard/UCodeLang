@@ -33,6 +33,8 @@ UCodeLangStart
 	case InstructionSet::bitwiseRightShift##IntSize: return Instruction::OpType::ThreeReg; \
 	case InstructionSet::bitwiseXor##IntSize: return Instruction::OpType::ThreeReg; \
 	case InstructionSet::bitwise_Not##IntSize: return Instruction::OpType::TwoReg; \
+	case InstructionSet::ModS##IntSize: return Instruction::OpType::ThreeReg; \
+	case InstructionSet::ModU##IntSize: return Instruction::OpType::ThreeReg; \
 
 
 #define Setfloat(IntSize)\
