@@ -1895,6 +1895,66 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 
 		}
 		break;
+		case IRInstructionType::SMod:
+		{
+			auto BOpVals = DoBinaryOpValues(Item);
+			RegisterID A = BOpVals.A;
+			RegisterID B = BOpVals.B;
+			RegisterID V = BOpVals.V;
+			switch (Item->ObjectType._Type)
+			{
+			case IRTypes::i8:InstructionBuilder::ModS8(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::ModS16(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::i32:InstructionBuilder::ModS32(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::i64:InstructionBuilder::ModS64(_Ins, A, B, V); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					InstructionBuilder::ModS32(_Ins, A, B, V); PushIns(); break;
+				}
+				else
+				{
+					InstructionBuilder::ModS64(_Ins, A, B, V); PushIns(); break;
+				}
+				break;
+			default:
+				UCodeLangUnreachable();
+				break;
+			}
+			SetRegister(V, Item);
+		}
+		break;
+		case IRInstructionType::UMod:
+		{
+			auto BOpVals = DoBinaryOpValues(Item);
+			RegisterID A = BOpVals.A;
+			RegisterID B = BOpVals.B;
+			RegisterID V = BOpVals.V;
+			switch (Item->ObjectType._Type)
+			{
+			case IRTypes::i8:InstructionBuilder::ModU8(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::i16:InstructionBuilder::ModU16(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::i32:InstructionBuilder::ModU32(_Ins, A, B, V); PushIns(); break;
+			case IRTypes::i64:InstructionBuilder::ModU64(_Ins, A, B, V); PushIns(); break;
+
+			case IRTypes::pointer:
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					InstructionBuilder::ModU32(_Ins, A, B, V); PushIns(); break;
+				}
+				else
+				{
+					InstructionBuilder::ModU64(_Ins, A, B, V); PushIns(); break;
+				}
+				break;
+			default:
+				UCodeLangUnreachable();
+				break;
+			}
+			SetRegister(V, Item);
+		}
+		break;
 	default:
 			UCodeLangUnreachable();
 			break;

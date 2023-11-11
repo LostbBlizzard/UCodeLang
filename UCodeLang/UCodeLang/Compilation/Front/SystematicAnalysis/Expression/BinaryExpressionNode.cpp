@@ -174,6 +174,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 		case TokenType::bitwise_and:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseAnd(Ex0, Ex1); break; \
 		case TokenType::bitwise_XOr:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseXOr(Ex0, Ex1); break; \
 		case TokenType::bitwise_or:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseOr(Ex0, Ex1); break; \
+		case TokenType::modulo:_IR_LastExpressionField =  _IR_LookingAtIRBlock->NewUModulo(Ex0, Ex1); break; \
 		default:\
 			UCodeLangUnreachable();\
 			break;\
@@ -196,6 +197,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 			case TokenType::bitwise_and:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseAnd(Ex0, Ex1); break; \
 			case TokenType::bitwise_XOr:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseXOr(Ex0, Ex1); break; \
 			case TokenType::bitwise_or:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseOr(Ex0, Ex1); break; \
+			case TokenType::modulo:_IR_LastExpressionField =  _IR_LookingAtIRBlock->NewSModulo(Ex0, Ex1); break; \
 			default:\
 				UCodeLangUnreachable(); \
 				break; \
@@ -278,6 +280,7 @@ TypeSymbol SystematicAnalysis::Type_BinaryExpressionShouldRurn(TokenType Op, con
 	case TokenType::bitwise_and:
 	case TokenType::bitwise_or:
 	case TokenType::bitwise_XOr:
+	case TokenType::modulo:
 		V = Ex0Type;
 		break;
 	default:

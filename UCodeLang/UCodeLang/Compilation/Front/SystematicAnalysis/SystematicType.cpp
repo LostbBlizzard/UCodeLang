@@ -771,7 +771,7 @@ SystematicAnalysis::BinaryOverLoadWith_t SystematicAnalysis::Type_HasBinaryOverL
 
 		if (Type_IsIntType(TypeA))
 		{
-			return { IsMathOp || IsSameValueComparisonOp || IsMathValueComparisonOp || Isbitwise ,{} };
+			return { IsMathOp || IsSameValueComparisonOp || IsMathValueComparisonOp || Isbitwise || BinaryOp == TokenType::modulo ,{} };
 		}
 		if (Type_IsfloatType(TypeA))
 		{

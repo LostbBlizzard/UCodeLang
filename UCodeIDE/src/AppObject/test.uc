@@ -32,8 +32,4 @@ $Player[Component]:
 
 
 
-|main1[int V] => V / 4;
-|main2[int V] => V / 2;
-|main3[int V] => V / 1;
-|main4[int V] => V / 0;
-|main5[int V] => V / V;
+|main1[int V] => V % 4;

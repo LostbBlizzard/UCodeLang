@@ -291,7 +291,14 @@ InsCase(bitwiseXor##Bits):\
 InsCase(bitwise_Not##Bits):\
 	Get_Register(Inst.Op_TwoReg.B).Value. unsignedAnyIntValue = ~Get_Register(Inst.Op_TwoReg.A).Value. unsignedAnyIntValue;\
 	 InsBreak();\
-
+InsCase(ModS##Bits):\
+	Get_Register(Inst.Op_ThreeReg.C).Value. signedAnyIntValue = Get_Register(Inst.Op_ThreeReg.A).Value. signedAnyIntValue %\
+		Get_Register(Inst.Op_ThreeReg.B).Value. signedAnyIntValue;\
+	 InsBreak();\
+InsCase(ModU##Bits):\
+	Get_Register(Inst.Op_ThreeReg.C).Value. unsignedAnyIntValue = Get_Register(Inst.Op_ThreeReg.A).Value. unsignedAnyIntValue %\
+		Get_Register(Inst.Op_ThreeReg.B).Value. unsignedAnyIntValue;\
+	 InsBreak();\
 
 
 #pragma endregion
@@ -356,6 +363,8 @@ void Interpreter::Extecute(Instruction& Inst)
 	 &&Ins_bitwiseRightShift##bitsize, \
 	 &&Ins_bitwiseXor##bitsize, \
 	 &&Ins_bitwise_Not##bitsize, \
+     &&Ins_ModS##bitsize,
+	 &&Ins_ModU##bitsize,
 
 	#define JumpTablefloat(bitsize) \
         &&Ins_Addf##bitsize, \

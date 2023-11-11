@@ -1874,7 +1874,12 @@ bool IRBuilder::ToString(
 		r += " " + State.GetName(I);
 		r += " = ~" + ToString(State, *I, I->Target());
 		break;
-	
+	case IRInstructionType::SMod:
+		r += ToStringBinary(State, I, "%");
+		break;
+	case IRInstructionType::UMod:
+		r += ToStringBinary(State, I, "%");
+		break;
 	default:
 		UCodeLangUnreachable();
 		break;
