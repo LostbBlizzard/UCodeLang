@@ -763,7 +763,8 @@ SystematicAnalysis::BinaryOverLoadWith_t SystematicAnalysis::Type_HasBinaryOverL
 			|| BinaryOp == TokenType::bitwise_RightShift;
 
 		bool Isbitwise = IsBitShift || BinaryOp == TokenType::bitwise_and
-			|| BinaryOp == TokenType::bitwise_or;
+			|| BinaryOp == TokenType::bitwise_or
+			|| BinaryOp == TokenType::bitwise_XOr;
 
 		bool IslogicalOperator = BinaryOp == TokenType::logical_and
 			|| BinaryOp == TokenType::logical_or;
@@ -1140,6 +1141,10 @@ SystematicAnalysis::UrinaryOverLoadWith_t SystematicAnalysis::Type_HasUrinaryOve
 			{
 				return { {true} };
 			}
+		}
+		if (Type_IsIntType(TypeA) && Op == TokenType::bitwise_not)
+		{
+			return { {true} };
 		}
 	}
 	return {  };

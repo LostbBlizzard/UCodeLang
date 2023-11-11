@@ -1,9 +1,3 @@
-$StringSpan_t<char>
- void* __0; 
- int64 __1; 
-
-static uint8[/5]:int8 .Const.SpanString:Hello= [72,101,108,108,111]
-static uint8[/6]:int8 .Const.SpanString:World = [87,111,114,108,100,32]
 
 |(&StaticInit&)[] -> void:;
 
@@ -13,248 +7,86 @@ static uint8[/6]:int8 .Const.SpanString:World = [87,111,114,108,100,32]
 
 |(&threadUnload&)[] -> void:;
 
-//EntryPoint 
-|main[] -> int8:
+|main1[] -> int32:
 
  [Block:0]
 
 
 //File:src.uc
-//Line:70
+//Line:2
 
-   void* A = &.Const.SpanString:Hello;
-   int64 B = 5;
-   StringSpan_t<char> C;
-   StringSpan_t<char>* D = &C;
-   void E = StringSpan_t<char>:(&_new&)^StringSpan_t<char>&,c[&],uptr(D,A,B);
-   StringSpan_t<char>* F = &C;
-   void* G = &.Const.SpanString:World ;
-   int64 H = 6;
-   StringSpan_t<char> I;
-   StringSpan_t<char>* J = &I;
-   void K = StringSpan_t<char>:(&_new&)^StringSpan_t<char>&,c[&],uptr(J,G,H);
-   StringSpan_t<char>* L = &I;
-   int8 M = StringSpan_t<char>:(&equal&)^StringSpan_t<char>&imut,StringSpan_t<char>&imut(F,L);
-   ret = M;
+   int32 A = 8;
+   int32 B = 2;
+   int32 C = A>>B;
+   ret = C;
    ret;
 
-|StringSpan_t<char>:(&_new&)^StringSpan_t<char>&[StringSpan_t<char>* (&this&)] -> void:
+|main2[] -> int32:
 
  [Block:0]
 
 
-//Variable:StringSpan_t<char>:(&_new&):(&this&)
 //File:src.uc
-//Line:42
+//Line:3
 
-   int64 A = 0;
-   (&this&)->__0 = A;
-
-//Line:43
-
-   int64 B = 0;
-   (&this&)->__1 = B;
+   int32 A = 2;
+   int32 B = 1;
+   int32 C = A<<B;
+   ret = C;
    ret;
 
-|StringSpan_t<char>:(&_new&)^StringSpan_t<char>&,c[&],uptr[StringSpan_t<char>* (&this&),void* data,int64 size] -> void:
+|main3[] -> int32:
 
  [Block:0]
 
 
-//Variable:StringSpan_t<char>:(&_new&):(&this&)
-//Variable:StringSpan_t<char>:(&_new&):data
-//Variable:StringSpan_t<char>:(&_new&):size
 //File:src.uc
-//Line:46
+//Line:4
 
-   void* A = data;
-   (&this&)->__0 = A;
-
-//Line:47
-
-   int64 B = size;
-   (&this&)->__1 = B;
+   int32 A = 5;
+   int32 B = 9;
+   int32 C = A&B;
+   ret = C;
    ret;
 
-|StringSpan_t<char>:Size^StringSpan_t<char>&imut[StringSpan_t<char>* (&this&)] -> int64:
+|main4[] -> int32:
 
  [Block:0]
 
 
-//Variable:StringSpan_t<char>:Size:(&this&)
-
-
 //File:src.uc
-//Line:49
+//Line:5
 
-   int64 A = (&this&)->__1;
-   ret = A;
+   int32 A = 5;
+   int32 B = 9;
+   int32 C = A|B;
+   ret = C;
    ret;
 
-|StringSpan_t<char>:iData^StringSpan_t<char>&imut[StringSpan_t<char>* (&this&)] -> void*:
+|main5[] -> int32:
 
  [Block:0]
 
 
-//Variable:StringSpan_t<char>:iData:(&this&)
-
-
 //File:src.uc
-//Line:50
+//Line:6
 
-   void* A = (&this&)->__0;
-   ret = A;
+   int32 A = 5;
+   int32 B = 9;
+   int32 C = A^B;
+   ret = C;
    ret;
 
-|StringSpan_t<char>:Data^StringSpan_t<char>&[StringSpan_t<char>* (&this&)] -> void*:
+|main6[] -> int32:
 
  [Block:0]
 
 
-//Variable:StringSpan_t<char>:Data:(&this&)
-
-
 //File:src.uc
-//Line:51
+//Line:7
 
-   void* A = (&this&)->__0;
-   ret = A;
-   ret;
-
-|StringSpan_t<char>:(&equal&)^StringSpan_t<char>&imut,StringSpan_t<char>&imut[StringSpan_t<char>* (&this&),StringSpan_t<char>* Other] -> int8:
-
- [Block:0]
-
-
-//Variable:StringSpan_t<char>:(&equal&):(&this&)
-//Variable:StringSpan_t<char>:(&equal&):Other
-//File:src.uc
-//Line:54
-
-   StringSpan_t<char>* A = (&this&);
-   StringSpan_t<char>* B = A;
-   int64 C = StringSpan_t<char>:Size^StringSpan_t<char>&imut(B);
-   StringSpan_t<char>* D = Other;
-   int64 E = StringSpan_t<char>:Size^StringSpan_t<char>&imut(D);
-   int8 F = C!=E;
-   int8 G = !F;
-   gotoif (G) _label0;
-   int8 H = 0;
-   ret = H;
-   goto _label1;
-
-//Line:56
-   _label0:
-
-   int64 I;
-
-//Variable:StringSpan_t<char>:(&equal&):2838116433136:i
-
-   int32 J = 0;
-   I = J;
-
-   _label4:
-
-   int64 K = I;
-   StringSpan_t<char>* L = (&this&);
-   StringSpan_t<char>* M = L;
-   int64 N = StringSpan_t<char>:Size^StringSpan_t<char>&imut(M);
-   int8 O = K<N;
-   int8 P = !O;
-   gotoif (P) _label2;
-   StringSpan_t<char>* Q = (&this&);
-
-//Line:58
-
-   StringSpan_t<char>* R = Q;
-   int64 S = I;
-   void* T = StringSpan_t<char>:(&Index&)^StringSpan_t<char>&,uptr(R,S);
-   int8 U = *T;
-   StringSpan_t<char>* V = Other;
-   int64 W = I;
-   void* X = StringSpan_t<char>:(&Index&)^StringSpan_t<char>&,uptr(V,W);
-   int8 Y = *X;
-   int8 Z = U!=Y;
-   int8 [ = !Z;
-   gotoif ([) _label3;
-   int8 \ = 0;
-   ret = \;
-   goto _label1;
-
-//Line:56
-   _label3:
-
-   int64 ] = I;
-   int64 ^ = 1;
-   int64 _ = ]+^;
-   I = _;
-   goto _label4;
-
-//Line:60
-   _label2:
-
-   int8 ` = 1;
-   ret = `;
-
-   _label1:
-
-   ret;
-
-|StringSpan_t<char>:(&notequal&)^StringSpan_t<char>&imut,StringSpan_t<char>&imut[StringSpan_t<char>* (&this&),StringSpan_t<char>* Other] -> int8:
-
- [Block:0]
-
-
-//Variable:StringSpan_t<char>:(&notequal&):(&this&)
-//Variable:StringSpan_t<char>:(&notequal&):Other
-//File:src.uc
-//Line:62
-
-   StringSpan_t<char>* A = (&this&);
-   StringSpan_t<char>* B = A;
-   StringSpan_t<char>* C = Other;
-   int8 D = StringSpan_t<char>:(&equal&)^StringSpan_t<char>&imut,StringSpan_t<char>&imut(B,C);
-   int8 E = !D;
-   ret = E;
-   ret;
-
-|StringSpan_t<char>:(&Index&)^StringSpan_t<char>&,uptr[StringSpan_t<char>* (&this&),int64 Index] -> void*:
-
- [Block:0]
-
-
-//Variable:StringSpan_t<char>:(&Index&):(&this&)
-//Variable:StringSpan_t<char>:(&Index&):Index
-
-
-//File:src.uc
-//Line:64
-
-   void* A = (&this&)->__0;
-   int64 B = Index;
-   int64 C = 1;
-   int64 D = B*C;
-   void* E = A+D;
-   ret = E;
-   ret;
-
-|StringSpan_t<char>:(&Index&)^StringSpan_t<char>&imut,uptr[StringSpan_t<char>* (&this&),int64 Index] -> void*:
-
- [Block:0]
-
-
-//Variable:StringSpan_t<char>:(&Index&):(&this&)
-//Variable:StringSpan_t<char>:(&Index&):Index
-
-
-//File:src.uc
-//Line:65
-
-   void* A = (&this&)->__0;
-   int64 B = Index;
-   int64 C = 1;
-   int64 D = B*C;
-   void* E = A+D;
-   ret = E;
+   int32 A = 5;
+   int32 B = ~A;
+   ret = B;
    ret;
 

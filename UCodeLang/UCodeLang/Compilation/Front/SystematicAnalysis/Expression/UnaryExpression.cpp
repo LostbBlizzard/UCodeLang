@@ -55,7 +55,7 @@ void SystematicAnalysis::OnExpressionNode(const UnaryExpressionNode& node)
 		break;
 		case TokenType::bitwise_not:
 		{
-			UCodeLangUnreachable();
+			_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseNot(ex);
 		}
 		break;
 		case TokenType::QuestionMark:

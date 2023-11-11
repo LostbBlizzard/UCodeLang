@@ -127,9 +127,10 @@ void  UCodeLangAPIExport UCodeLangCAPI_Destroy_Compiler(UCodeLangCAPI_Compiler* 
 	delete As(Value);
 }
 
-void UCodeLangAPIExport UCodeLangCAPI_Compiler_Build(UCodeLangCAPI_Compiler* This, UCodeLangCAPI_CharSpan String, UCodeLangCAPI_CompilerOutput* Output)
+void UCodeLangAPIExport UCodeLangCAPI_Compiler_BuildTxt(UCodeLangCAPI_Compiler* This, UCodeLangCAPI_CharSpan String, UCodeLangCAPI_CompilerOutput* Output)
 {
-
+	auto r = As(This)->CompileText(As(&String));
+	Output->Success = r.IsError();
 }
 
 UCodeLangCAPI_RunTimeLangState* UCodeLangAPIExport UCodeLangCAPI_New_RunTimeState()

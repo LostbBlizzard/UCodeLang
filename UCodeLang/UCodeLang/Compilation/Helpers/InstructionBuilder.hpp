@@ -105,9 +105,9 @@ UCodeLangForceinline static void bitwise_and##bitsize(Instruction& Out, Register
 {\
 	Out = Instruction(InstructionSet::bitwiseAnd##bitsize,Instruction::ThreeReg(reg, reg2,out));\
 }\
-UCodeLangForceinline static void bitwise_or##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2)\
+UCodeLangForceinline static void bitwise_or##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2, RegisterID out)\
 {\
-	Out = Instruction(InstructionSet::bitwiseOr##bitsize, Instruction::TwoReg(reg,reg2));\
+	Out = Instruction(InstructionSet::bitwiseOr##bitsize, Instruction::ThreeReg(reg,reg2,out));\
 }\
 UCodeLangForceinline static void bitwise_LeftShift##bitsize(Instruction& Out, RegisterID reg, RegisterID reg2,RegisterID out)\
 {\

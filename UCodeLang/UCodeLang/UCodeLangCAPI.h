@@ -227,7 +227,7 @@ extern "C"
 
     UCodeLangCStruct UCodeLangCAPI_Compiler* UCodeLangAPIExport UCodeLangCAPI_New_Compiler();
     void UCodeLangAPIExport UCodeLangCAPI_Destroy_Compiler(UCodeLangCStruct UCodeLangCAPI_Compiler* Value);
-    void UCodeLangAPIExport UCodeLangCAPI_Compiler_Build(UCodeLangCStruct UCodeLangCAPI_Compiler* This, UCodeLangCStruct UCodeLangCAPI_CharSpan String, UCodeLangCStruct UCodeLangCAPI_CompilerOutput* Output);
+    void UCodeLangAPIExport UCodeLangCAPI_Compiler_BuildTxt(UCodeLangCStruct UCodeLangCAPI_Compiler* This, UCodeLangCStruct UCodeLangCAPI_CharSpan String, UCodeLangCStruct UCodeLangCAPI_CompilerOutput* Output);
 
     UCodeLangCStruct UCodeLangCAPI_RunTimeLangState* UCodeLangAPIExport UCodeLangCAPI_New_RunTimeState();
     void UCodeLangAPIExport UCodeLangCAPI_Destroy_RunTimeState(UCodeLangCStruct UCodeLangCAPI_RunTimeLangState* Value);

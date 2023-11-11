@@ -1076,7 +1076,37 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					r += ToString(State, *I, I->Target());
 				}
 				break;
-				default:
+				case IRInstructionType::BitWise_And:
+					OutType = &tep;
+					tep = _Input->GetType(I.get(), I.get()->Target());
+					r += ToStringBinary(State, I.get(), "&");
+					break;
+				case IRInstructionType::BitWise_Or:
+					OutType = &tep;
+					tep = _Input->GetType(I.get(), I.get()->Target());
+					r += ToStringBinary(State, I.get(), "|");
+					break;
+				case IRInstructionType::BitWise_ShiftL:
+					OutType = &tep;
+					tep = _Input->GetType(I.get(), I.get()->Target());
+					r += ToStringBinary(State, I.get(), "<<");
+					break;
+				case IRInstructionType::BitWise_ShiftR:
+					OutType = &tep;
+					tep = _Input->GetType(I.get(), I.get()->Target());
+					r += ToStringBinary(State, I.get(), ">>");
+					break;
+				case IRInstructionType::BitWise_XOr:
+					OutType = &tep;
+					tep = _Input->GetType(I.get(), I.get()->Target());
+					r += ToStringBinary(State, I.get(), "^");
+					break;
+				case IRInstructionType::BitWise_Not:
+					r += ToString(I->ObjectType);
+					r += " " + State.GetName(I.get());
+					r += " = ~" + ToString(State, *I, I->Target());
+					break;
+			default:
 					UCodeLangUnreachable();
 					break;
 				}

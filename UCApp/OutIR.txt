@@ -1,9 +1,3 @@
-$Cool<sint32>
-
-$Other<char>
-
-$Cool<char>
-
 
 |(&StaticInit&)[] -> void:;
 
@@ -13,15 +7,6 @@ $Cool<char>
 
 |(&threadUnload&)[] -> void:;
 
-|Func^i32[int32 V] -> void:
-
- [Block:0]
-
-
-//Variable:Func:V
-
-   ret;
-
 //EntryPoint 
 |main[] -> void:
 
@@ -29,90 +14,75 @@ $Cool<char>
 
 
 //File:/Main.uc
-//Line:14
-//Variable:main:V
+//Line:2
 
-   Cool<sint32> A;
-
-//Line:0
-
-   Cool<sint32>* B = &A;
-   void C = Cool<sint32>:(&_new&)^Cool<sint32>&(B);
-
-//Line:14
-//Line:15
-//Variable:main:V1
-
-   Other<char> D;
-
-//Line:0
-
-   Other<char>* E = &D;
-   void F = Other<char>:(&_new&)^Other<char>&(E);
-
-//Line:15
-//Line:16
-//Variable:main:V2
-
-   int32 G;
-
-//Line:0
-
-   int32 H = 0;
-
-//Line:16
-
-   G = H;
-
-//Line:18
-
-   Cool<sint32> I = A;
-   int32 J = Func<sint32>^Cool<sint32>(I);
-
-//Line:19
-
-   Other<char> K = D;
-   int32 L = Func<char>^Cool<char>(K);
-
-//Line:20
-
-   int32 M = G;
-   void N = Func^i32(M);
+   int32 A = 1;
+   int32 B = 2;
+   int32 C = A>>B;
    ret;
 
-|Cool<sint32>:(&_new&)^Cool<sint32>&[Cool<sint32>* (&this&)] -> void:
-
- [Block:0]
-
-   ret;
-
-|Other<char>:(&_new&)^Other<char>&[Other<char>* (&this&)] -> void:
-
- [Block:0]
-
-   ret;
-
-|Func<sint32>^Cool<sint32>[Cool<sint32> V] -> int32:
+|main2[] -> void:
 
  [Block:0]
 
 
-//Variable:Func<sint32>:V
+//File:/Main.uc
+//Line:3
 
+   int32 A = 8;
+   int32 B = 1;
+   int32 C = A<<B;
    ret;
 
-|Cool<char>:(&_new&)^Cool<char>&[Cool<char>* (&this&)] -> void:
+|main3[] -> void:
 
  [Block:0]
 
+
+//File:/Main.uc
+//Line:4
+
+   int32 A = 5;
+   int32 B = 9;
+   int32 C = A&B;
    ret;
 
-|Func<char>^Cool<char>[Cool<char> V] -> int32:
+|main4[] -> void:
 
  [Block:0]
 
 
-//Variable:Func<char>:V
+//File:/Main.uc
+//Line:5
 
+   int32 A = 5;
+   int32 B = 9;
+   int32 C = A|B;
+   ret;
+
+|main5[] -> void:
+
+ [Block:0]
+
+
+//File:/Main.uc
+//Line:6
+
+   int32 A = 5;
+   int32 B = 9;
+   int32 C = A^B;
+   ret;
+
+|main6[] -> int32:
+
+ [Block:0]
+
+
+//File:/Main.uc
+//Line:7
+
+   int32 A = 5;
+   int32 B = ~A;
+   ret = B;
    ret;
 

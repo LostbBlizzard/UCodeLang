@@ -252,7 +252,7 @@ inline bool IsBinary(IRInstructionType Value)
 		|| Value == IRInstructionType::SMult
 		|| Value == IRInstructionType::UDiv
 		|| Value == IRInstructionType::SDiv
-		
+
 		|| Value == IRInstructionType::EqualTo
 		|| Value == IRInstructionType::NotEqualTo
 
@@ -267,7 +267,12 @@ inline bool IsBinary(IRInstructionType Value)
 		|| Value == IRInstructionType::SLessThanOrEqual
 
 		|| Value == IRInstructionType::Logical_And
-		|| Value == IRInstructionType::Logical_Or;
+		|| Value == IRInstructionType::Logical_Or
+		|| Value == IRInstructionType::BitWise_ShiftL
+		|| Value == IRInstructionType::BitWise_ShiftR
+		|| Value == IRInstructionType::BitWise_Or
+		|| Value == IRInstructionType::BitWise_XOr
+		|| Value == IRInstructionType::BitWise_And;
 }
 inline bool IsUnary(IRInstructionType Value)
 {
@@ -816,7 +821,33 @@ struct IRBlock
 	{
 		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::SDiv, IROperator(A), IROperator(B))).get();
 	}
-
+	//bitwise
+	IRInstruction* NewBitWiseShiftL(IRInstruction* A, IRInstruction* B)
+	{
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::BitWise_ShiftL, IROperator(A), IROperator(B))).get();
+	}
+	IRInstruction* NewBitWiseShiftR(IRInstruction* A, IRInstruction* B)
+	{
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::BitWise_ShiftR, IROperator(A), IROperator(B))).get();
+	}
+	IRInstruction* NewBitWiseAnd(IRInstruction* A, IRInstruction* B)
+	{
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::BitWise_And, IROperator(A), IROperator(B))).get();
+	}
+	IRInstruction* NewBitWiseOr(IRInstruction* A, IRInstruction* B)
+	{
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::BitWise_Or, IROperator(A), IROperator(B))).get();
+	}
+	IRInstruction* NewBitWiseXOr(IRInstruction* A, IRInstruction* B)
+	{
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::BitWise_XOr, IROperator(A), IROperator(B))).get();
+	}
+	IRInstruction* NewBitWiseNot(IRInstruction* Value)
+	{
+		auto v =  Instructions.emplace_back(new IRInstruction(IRInstructionType::BitWise_Not, IROperator(Value))).get();
+		return v;
+	}
+	
 	//comparison operators
 	IRInstruction* NewC_Equalto(IRInstruction* A, IRInstruction* B)
 	{

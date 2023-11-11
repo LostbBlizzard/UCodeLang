@@ -1999,9 +1999,13 @@ StartSymbolsLoop:
 
 
 					const FuncSignatureNode* Signature = &Item.SymFunc->Get_NodeInfo<FuncNode>()->_Signature;
-
+					
+					if (GenericInput.size() != Signature->_generic._Values.size())
+					{
+						continue;
+					}
 					_Table.AddScope(std::to_string((uintptr_t)Item.Func));
-
+					
 					for (size_t i = 0; i < Signature->_generic._Values.size(); i++)
 					{
 						auto& Item = Signature->_generic._Values[i];
