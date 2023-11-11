@@ -86,7 +86,7 @@ private:
 	bool Optimization_StaticAndThreadRemovealAndReadOnlyToValues = false;
 	bool Optimization_RemoveUnneedMeallocAndFree = false;
 	bool Optimization_RemoveIdenticalTypes = false;
-
+	bool Optimization_StrengthReduction = false;
 	//break strict IEEE compliance
 	bool Optimization_FloatFastMath = false;
 	void ResetOptimizations()

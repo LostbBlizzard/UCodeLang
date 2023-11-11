@@ -197,23 +197,25 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 		bool removetypesfromIR = _Settings->_Type != OutPutType::IRAndSymbols;
 		if (removetypesfromIR)
 		{
-			Input->_Symbols.erase(std::remove_if(
-				Input->_Symbols.begin(),
-				Input->_Symbols.end(),
-				[RemovedTypes](Unique_ptr<IRSymbolData>& Item)
-				{
-					bool isinlist = false;
-					for (auto& Item2 : RemovedTypes)
+			if (Input->_Symbols.size()) {
+				Input->_Symbols.erase(std::remove_if(
+					Input->_Symbols.begin(),
+					Input->_Symbols.end(),
+					[RemovedTypes](Unique_ptr<IRSymbolData>& Item)
 					{
-						if (Item2 == Item.get())
+						bool isinlist = false;
+						for (auto& Item2 : RemovedTypes)
 						{
-							isinlist = true;
-							break;
+							if (Item2 == Item.get())
+							{
+								isinlist = true;
+								break;
+							}
 						}
-					}
 
-					return  isinlist;
-				}));
+						return  isinlist;
+					}));
+			}
 		}
 	}
 
@@ -551,6 +553,7 @@ void IROptimizer::UpdateOptimizationList()
 
 			Optimization_FloatFastMath = Stettings.HasFlagArg("ffast-math");
 		}
+		Optimization_StrengthReduction = true;
 		Optimization_RemoveIdenticalTypes = true;
 		Optimization_RemoveUnsedVarables = true;
 			
@@ -840,6 +843,310 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 							{
 								ConstantBinaryFoldfloat(64);
 							}
+						}
+						else
+						{
+							UCodeLangUnreachable();
+						}
+					}
+				}
+			
+
+				if (Optimization_StrengthReduction) 
+				{
+					if (
+						(Ins->Type == IRInstructionType::SMult
+							|| Ins->Type == IRInstructionType::UMult
+							)
+						&& (Ins->A.Type == IROperatorType::Value
+						|| Ins->B.Type == IROperatorType::Value)
+						)
+					{
+						// A * 1 => A
+						// A * 2 => A + A or A * 2 => A << 1
+
+						auto& Op = Ins->A.Type == IROperatorType::Value ? Ins->A : Ins->B;
+						auto& Other = Ins->A.Type != IROperatorType::Value ? Ins->A : Ins->B;
+
+						enum class mode
+						{
+							none,
+							Mult0,
+							Mult1,
+							Mult2,
+							Mult4,
+							Mult8,
+							Mult16,
+							Mult32,
+							Mult64,
+						};
+						mode ok = mode::none;
+						if (Ins->ObjectType.IsType(IRTypes::i8))
+						{
+							if (Op.Value.AsInt8 == 0)
+							{
+								ok = mode::Mult0;
+							}
+							else if (Op.Value.AsInt8 == 1)
+							{
+								ok = mode::Mult1;
+							}
+							else if (Op.Value.AsInt8 == 2)
+							{
+								ok = mode::Mult2;
+							}
+							else if (Op.Value.AsInt8 == 4)
+							{
+								ok = mode::Mult4;
+							}
+							else if (Op.Value.AsInt8 == 8)
+							{
+								ok = mode::Mult8;
+							}
+							else if (Op.Value.AsInt8 == 16)
+							{
+								ok = mode::Mult16;
+							}
+							else if (Op.Value.AsInt8 == 32)
+							{
+								ok = mode::Mult32;
+							}
+							else if (Op.Value.AsInt8 == 64)
+							{
+								ok = mode::Mult64;
+							}
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::i16))
+						{
+							if (Op.Value.AsInt16 == 0)
+							{
+								ok = mode::Mult0;
+							}
+							else if (Op.Value.AsInt16 == 1)
+							{
+								ok = mode::Mult1;
+							}
+							else if (Op.Value.AsInt16 == 2)
+							{
+								ok = mode::Mult2;
+							}
+							else if (Op.Value.AsInt16 == 4)
+							{
+								ok = mode::Mult4;
+							}
+							else if (Op.Value.AsInt16 == 8)
+							{
+								ok = mode::Mult8;
+							}
+							else if (Op.Value.AsInt16 == 16)
+							{
+								ok = mode::Mult16;
+							}
+							else if (Op.Value.AsInt16 == 32)
+							{
+								ok = mode::Mult32;
+							}
+							else if (Op.Value.AsInt16 == 64)
+							{
+								ok = mode::Mult64;
+							}
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::i32))
+						{
+							if (Op.Value.AsInt32 == 0)
+							{
+								ok = mode::Mult0;
+							}
+							else if (Op.Value.AsInt32 == 1)
+							{
+								ok = mode::Mult1;
+							}
+							else if (Op.Value.AsInt32 == 2)
+							{
+								ok = mode::Mult2;
+							}
+							else if (Op.Value.AsInt32 == 4)
+							{
+								ok = mode::Mult4;
+							}
+							else if (Op.Value.AsInt32 == 8)
+							{
+								ok = mode::Mult8;
+							}
+							else if (Op.Value.AsInt32 == 16)
+							{
+								ok = mode::Mult16;
+							}
+							else if (Op.Value.AsInt32 == 32)
+							{
+								ok = mode::Mult32;
+							}
+							else if (Op.Value.AsInt32 == 64)
+							{
+								ok = mode::Mult64;
+							}
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::i64))
+						{
+							if (Op.Value.AsInt64 == 0)
+							{
+								ok = mode::Mult0;
+							}
+							else if (Op.Value.AsInt64 == 1)
+							{
+								ok = mode::Mult1;
+							}
+							else if (Op.Value.AsInt64 == 2)
+							{
+								ok = mode::Mult2;
+							}
+							else if (Op.Value.AsInt64 == 4)
+							{
+								ok = mode::Mult4;
+							}
+							else if (Op.Value.AsInt64 == 8)
+							{
+								ok = mode::Mult8;
+							}
+							else if (Op.Value.AsInt64 == 16)
+							{
+								ok = mode::Mult16;
+							}
+							else if (Op.Value.AsInt64 == 32)
+							{
+								ok = mode::Mult32;
+							}
+							else if (Op.Value.AsInt64 == 64)
+							{
+								ok = mode::Mult64;
+							}
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::f32))
+						{
+							if (Optimization_FloatFastMath)
+							{
+								if (Op.Value.AsInt32 == 0)
+								{
+									ok = mode::Mult0;
+								}
+								else if (Op.Value.Asfloat32 == 1)
+								{
+									ok = mode::Mult1;
+								}
+								else if (Op.Value.Asfloat32 == 2)
+								{
+									ok = mode::Mult2;
+								}
+							}
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::f64))
+						{
+							if (Optimization_FloatFastMath)
+							{
+								if (Op.Value.AsInt8 == 0)
+								{
+									ok = mode::Mult0;
+								}
+								else if (Op.Value.Asfloat64 == 1)
+								{
+									ok = mode::Mult1;
+								}
+								else if (Op.Value.Asfloat64 == 2)
+								{
+									ok = mode::Mult2;
+								}
+							}
+						}
+
+						if (ok == mode::Mult1)
+						{
+							Op = IROperator();
+							Ins->Target() = Other;
+							Ins->Type = IRInstructionType::Load;
+							UpdatedCode();
+						}
+						else if (ok == mode::Mult2)
+						{
+							bool DoAdd = Ins->ObjectType.IsType(IRTypes::f64) || Ins->ObjectType.IsType(IRTypes::f32);
+							if (DoAdd) 
+							{
+								Op = IROperator();
+								Ins->Target() = Other;
+								Ins->Input() = Other;
+								Ins->Type = IRInstructionType::Add;
+							}
+							else
+							{
+								Op = IROperator();
+								Ins->Target() = Other;
+								Ins->Input() = AnyInt64(1);
+								Ins->Type = IRInstructionType::BitWise_ShiftL;
+							}
+							UpdatedCode();
+						}
+						else if (ok == mode::Mult4)
+						{
+							Op = IROperator();
+							Ins->Target() = Other;
+							Ins->Input() = AnyInt64(2);
+							Ins->Type = IRInstructionType::BitWise_ShiftL;
+							UpdatedCode();
+						}
+						else if (ok == mode::Mult8)
+						{
+							Op = IROperator();
+							Ins->Target() = Other;
+							Ins->Input() = AnyInt64(3);
+							Ins->Type = IRInstructionType::BitWise_ShiftL;
+							UpdatedCode();
+						}
+						else if (ok == mode::Mult16)
+						{
+							Op = IROperator();
+							Ins->Target() = Other;
+							Ins->Input() = AnyInt64(4);
+							Ins->Type = IRInstructionType::BitWise_ShiftL;
+							UpdatedCode();
+						}
+						else if (ok == mode::Mult32)
+						{
+							Op = IROperator();
+							Ins->Target() = Other;
+							Ins->Input() = AnyInt64(5);
+							Ins->Type = IRInstructionType::BitWise_ShiftL;
+							UpdatedCode();
+						}
+						else if (ok == mode::Mult64)
+						{
+							Op = IROperator();
+							Ins->Target() = Other;
+							Ins->Input() = AnyInt64(6);
+							Ins->Type = IRInstructionType::BitWise_ShiftL;
+							UpdatedCode();
+						}
+						else if (ok == mode::Mult0)
+						{
+							Op = IROperator();
+							
+							if (Ins->ObjectType.IsType(IRTypes::f64))
+							{
+								Ins->Target() = AnyInt64((float64)0);
+							}
+							else if (Ins->ObjectType.IsType(IRTypes::f32))
+							{
+								Ins->Target() = AnyInt64((float32)0);
+							}
+							else
+							{
+								Ins->Target() = AnyInt64(0);
+							}
+
+							Ins->Type = IRInstructionType::Load;
+							UpdatedCode();
+						}
+						else if (ok == mode::none)
+						{
+
 						}
 						else
 						{
