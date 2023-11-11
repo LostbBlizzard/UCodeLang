@@ -69,6 +69,7 @@ private:
 	//
 	bool Optimization_ShortFuncInline = false;
 	bool Optimization_RemoveUnsedVarables = false;
+	bool Optimization_RemoveUnsedNamedVarables = false;
 	bool Optimization_ConstantFoldVarables = false;
 	bool Optimization_RemoveUnusePars = false;
 	bool Optimization_RemoveFuncsWithSameBody = false;
@@ -84,6 +85,7 @@ private:
 	bool Optimization_LoopFrequencyReduction = false;
 	bool Optimization_StaticAndThreadRemovealAndReadOnlyToValues = false;
 	bool Optimization_RemoveUnneedMeallocAndFree = false;
+	bool Optimization_RemoveIdenticalTypes = false;
 
 	//break strict IEEE compliance
 	bool Optimization_FloatFastMath = false;
@@ -91,6 +93,7 @@ private:
 	{
 		Optimization_ShortFuncInline = false;
 		Optimization_RemoveUnsedVarables = false;
+		Optimization_RemoveUnsedNamedVarables = false;
 		Optimization_ConstantFoldVarables = false;
 		Optimization_RemoveUnusePars = false;
 		Optimization_RemoveFuncsWithSameBody = false;
@@ -110,7 +113,7 @@ private:
 	//
 	
 
-	
+	void ReplaceAllTypesTo(IRidentifierID typetolookfor, IRidentifierID newtype);
 
 	void UpdateOptimizationList();
 	void UpdateCodePass();
@@ -139,11 +142,11 @@ private:
 	void InLineFunc(InLineData& Data);
 	void InLineSubOperator(InLineData& Data, IROperator& Op,size_t Offset);
 
-	struct MyStruct
+	struct IRInstructionInfo
 	{
 		bool IsReferenced = false;
 	};
-	UnorderedMap<IRInstruction*, MyStruct> IRData;
+	UnorderedMap<IRInstruction*, IRInstructionInfo> IRData;
 	auto& Get_IRData(IRInstruction* V)
 	{
 		return  IRData.GetValue(V);

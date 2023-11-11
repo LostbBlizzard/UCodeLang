@@ -30,42 +30,14 @@ $Player[Component]:
     pos.X += Speed * deltatime;
 */
 
-$StringSpan_t<T>:
- private:
-  T[&] _data;
-  uintptr _size;
- public: 
-  //$MyString = String_t<T>;
-  //$MySpan = Span<T>;
-  
-  |new[this&]:
-   _data = unsafe bitcast<T[&]>(0);
-   _size = 0;
- 
-  unsafe |new[this&,T[&] data,uintptr size]:
-   _data = data;
-   _size = size;
+$Vec2:
+ int X = 0;
+ int Y = 0;
 
-  |Size[imut this&] => _size;
-  unsafe |iData[imut this&] -> imut T[&]:ret _data;
-  unsafe |Data[this&] -> T[&]:ret _data; 
+$Range:
+ int min = 0;
+ int max = 0;
 
-  |==[imut this&,imut this& Other] -> bool:
-   if this.Size() != Other.Size():ret false;
+|main[] => 5 + 1;
 
-   for [uintptr i = 0;i < this.Size();i++]:
-
-    if this[i] != Other[i]:ret false;
-
-   ret true;
-
-  |!=[imut this&,imut this& Other] => !(this == Other);
-
-  |[][this&,uintptr Index] -> T&:ret _data[Index];
-  |[][imut this&,uintptr Index] -> imut T&:ret _data[Index];
-
-
-$StringSpan = StringSpan_t<char>;
-
-|main[] => "Hello" == "World ";
-
+//|main2[int V] => V * 2;
