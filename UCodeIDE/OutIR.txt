@@ -1,7 +1,3 @@
-$Vec2
- int32 __0; 
- int32 __1; 
-
 
 |(&StaticInit&)[] -> void:;
 
@@ -11,40 +7,41 @@ $Vec2
 
 |(&threadUnload&)[] -> void:;
 
-|Vec2:(&_init&)[Vec2* (&this&)] -> void:
+|main1^i32[int32 V] -> int32:
 
  [Block:0]
 
-   (&this&)->__0 = 0;
-   (&this&)->__1 = 0;
+   int32 A = V<<2;
+   ret = A;
    ret;
 
-|Vec2:(&_new&)^Vec2&[Vec2* (&this&)] -> void:
+|main2^i32[int32 V] -> int32:
 
  [Block:0]
 
-   void A = Vec2:(&_new&)^Vec2&((&this&));
+   int32 A = V<<1;
+   ret = A;
    ret;
 
-|Range:(&_init&)[Vec2* (&this&)] -> void:
+|main3^i32[int32 V] -> int32:
 
  [Block:0]
 
-   void A = Vec2:(&_new&)^Vec2&((&this&));
+   ret = V;
    ret;
 
-|Range:(&_new&)^Range&[Vec2* (&this&)] -> void:
+|main4^i32[int32 V] -> int32:
 
  [Block:0]
 
-   void A = Vec2:(&_new&)^Vec2&((&this&));
+   ret = 0;
    ret;
 
-//EntryPoint 
-|main[] -> int32:
+|main5^i32[int32 V] -> int32:
 
  [Block:0]
 
-   ret = 6;
+   int32 A = V*V;
+   ret = A;
    ret;
 

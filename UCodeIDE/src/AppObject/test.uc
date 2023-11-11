@@ -30,14 +30,11 @@ $Player[Component]:
     pos.X += Speed * deltatime;
 */
 
-$Vec2:
- int X = 0;
- int Y = 0;
 
-$Range:
- int min = 0;
- int max = 0;
 
-|main[] => 5 + 1;
+|main1[int V] => V * 4;
+|main2[int V] => V * 2;
+|main3[int V] => V * 1;
+|main4[int V] => V * 0;
 
-//|main2[int V] => V * 2;
+|main5[int V] => V * V;
