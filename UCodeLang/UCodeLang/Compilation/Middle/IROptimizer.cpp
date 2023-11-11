@@ -34,6 +34,189 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 	
 	bool didonepass = false;
 	
+	if (Optimization_RemoveIdenticalTypes)
+	{
+		bool Updated = false;
+		Vector<IRSymbolData*> RemovedTypes;
+		do
+		{
+			Updated = false;
+			for (auto& Item1 : Input->_Symbols)
+			{
+				{
+					bool isinlist = false;
+					for (auto& ItemV : RemovedTypes)
+					{
+						if (ItemV == Item1.get())
+						{
+							isinlist = true;
+							break;
+						}
+					}
+					if (isinlist)
+					{
+						continue;
+					}
+				}
+				for (auto& Item2 : Input->_Symbols)
+				{
+					if (&Item2 != &Item1
+						&& Item1->SymType == Item2->SymType)
+					{
+						if (Item1->SymType == IRSymbolType::Struct)
+						{
+							IRStruct* Struct1 = Item1->Get_ExAs<IRStruct>();
+							IRStruct* Struct2 = Item2->Get_ExAs<IRStruct>();
+
+							if (Struct1->Fields.size() == Struct2->Fields.size())
+							{
+								if (Struct1->ObjectSize == Struct2->ObjectSize)
+								{
+									bool isfieldsthesame = true;
+									for (size_t i = 0; i < Struct1->Fields.size(); i++)
+									{
+										auto& Field1 = Struct1->Fields[i];
+										auto& Field2 = Struct2->Fields[i];
+
+										if (Field1.Offset != Field2.Offset
+											|| Field1.Type != Field2.Type)
+										{
+											isfieldsthesame = false;
+											break;
+										}
+
+									}
+
+									if (isfieldsthesame)
+									{
+										bool isinlist = false;
+										for (auto& ItemV : RemovedTypes)
+										{
+											if (ItemV == Item2.get())
+											{
+												isinlist = true;
+												break;
+											}
+										}
+										if (!isinlist)
+										{
+											RemovedTypes.push_back(Item2.get());
+
+											auto id1 = Item1->Type._symbol.ID;
+											auto id2 = Item2->Type._symbol.ID;
+											ReplaceAllTypesTo(id2, id1);
+											Updated = true;
+										}
+									}
+								}
+							}
+							if (Item1->SymType == IRSymbolType::FuncPtr)
+							{
+								IRFuncPtr* Struct1 = Item1->Get_ExAs<IRFuncPtr>();
+								IRFuncPtr* Struct2 = Item2->Get_ExAs<IRFuncPtr>();
+
+								if (Struct1->Pars.size() == Struct2->Pars.size()
+									&& Struct1->Ret == Struct2->Ret)
+								{
+									if (Struct1->Ret == Struct2->Ret)
+									{
+										bool isfieldsthesame = true;
+										for (size_t i = 0; i < Struct1->Pars.size(); i++)
+										{
+											auto& Field1 = Struct1->Pars[i];
+											auto& Field2 = Struct2->Pars[i];
+
+											if (Field1 == Field2)
+											{
+												isfieldsthesame = false;
+												break;
+											}
+										}
+										if (isfieldsthesame)
+										{
+											bool isinlist = false;
+											for (auto& ItemV : RemovedTypes)
+											{
+												if (ItemV == Item2.get())
+												{
+													isinlist = true;
+													break;
+												}
+											}
+											if (!isinlist)
+											{
+												RemovedTypes.push_back(Item2.get());
+
+												auto id1 = Item1->Type._symbol.ID;
+												auto id2 = Item2->Type._symbol.ID;
+												ReplaceAllTypesTo(id2, id1);
+												Updated = true;
+											}
+										}
+									}
+
+								}
+							}
+							if (Item1->SymType == IRSymbolType::StaticArray)
+							{
+								IRStaticArray* Struct1 = Item1->Get_ExAs<IRStaticArray>();
+								IRStaticArray* Struct2 = Item2->Get_ExAs<IRStaticArray>();
+
+								if (Struct1->Count == Struct2->Count &&
+									Struct1->Type == Struct2->Type)
+								{
+
+									bool isinlist = false;
+									for (auto& ItemV : RemovedTypes)
+									{
+										if (ItemV == Item2.get())
+										{
+											isinlist = true;
+											break;
+										}
+									}
+									if (!isinlist)
+									{
+										RemovedTypes.push_back(Item2.get());
+
+										auto id1 = Item1->Type._symbol.ID;
+										auto id2 = Item2->Type._symbol.ID;
+										ReplaceAllTypesTo(id2, id1);
+										Updated = true;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+		} while (Updated);
+
+
+		bool removetypesfromIR = _Settings->_Type != OutPutType::IRAndSymbols;
+		if (removetypesfromIR)
+		{
+			Input->_Symbols.erase(std::remove_if(
+				Input->_Symbols.begin(),
+				Input->_Symbols.end(),
+				[RemovedTypes](Unique_ptr<IRSymbolData>& Item)
+				{
+					bool isinlist = false;
+					for (auto& Item2 : RemovedTypes)
+					{
+						if (Item2 == Item.get())
+						{
+							isinlist = true;
+							break;
+						}
+					}
+
+					return  isinlist;
+				}));
+		}
+	}
+
 	do 
 	{
 		do
@@ -59,7 +242,7 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 			if (_Settings->_Flags == OptimizationFlags::NoOptimization
 				|| _Settings->_Flags == OptimizationFlags::Debug) { return; }
 			
-			if (true) { return; }
+			//if (true) { return; }
 
 			if (_ErrorsOutput->Has_Errors())
 			{
@@ -272,6 +455,70 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 		}
 	}
 }
+void IROptimizer::ReplaceAllTypesTo(IRidentifierID typetolookfor, IRidentifierID newtype)
+{
+	auto TestType = [typetolookfor,newtype](IRType& Update)
+	{
+			if (Update._symbol.ID == typetolookfor)
+			{
+				Update._symbol.ID = newtype;
+			}
+	};
+
+	for (auto& OtherItem : Input->_Symbols)
+	{
+		if (OtherItem->SymType == IRSymbolType::Struct)
+		{
+			IRStruct* V = OtherItem->Get_ExAs<IRStruct>();
+			for (auto& Item : V->Fields)
+			{
+				TestType(Item.Type);
+			}
+		}
+		else if (OtherItem->SymType == IRSymbolType::FuncPtr)
+		{
+			IRFuncPtr* V = OtherItem->Get_ExAs<IRFuncPtr>();
+
+			TestType(V->Ret);
+
+			for (auto& Item : V->Pars)
+			{
+				TestType(Item);
+			}
+		}
+		else if (OtherItem->SymType == IRSymbolType::StaticArray)
+		{
+			IRStaticArray* V = OtherItem->Get_ExAs<IRStaticArray>();
+
+			TestType(V->Type);
+		}
+		else if (OtherItem->SymType == IRSymbolType::ThreadLocalVarable
+			|| OtherItem->SymType == IRSymbolType::StaticVarable)
+		{
+			IRBufferData* V = OtherItem->Get_ExAs<IRBufferData>();
+			
+			TestType(OtherItem->Type);
+		}
+		else
+		{
+			UCodeLangUnreachable();
+		}
+	}
+	for (auto& OtherItem : Input->Funcs)
+	{
+		for (auto& Item : OtherItem->Pars)
+		{
+			TestType(Item.type);
+		}
+		for (auto& Block : OtherItem->Blocks)
+		{
+			for (auto& Item : Block->Instructions)
+			{
+				TestType(Item->ObjectType);
+			}
+		}
+	}
+}
 
 void IROptimizer::UpdateOptimizationList()
 {
@@ -293,8 +540,8 @@ void IROptimizer::UpdateOptimizationList()
 	{
 		if (isdebuging == false)
 		{
-			
-			Optimization_RemoveUnsedVarables = true;
+			Optimization_RemoveUnsedNamedVarables = true;
+
 			Optimization_RemoveUnusePars = true;
 			Optimization_RemoveFuncsWithSameBody = true;
 			Optimization_LowerToBodysToCFunctions = false;
@@ -304,7 +551,9 @@ void IROptimizer::UpdateOptimizationList()
 
 			Optimization_FloatFastMath = Stettings.HasFlagArg("ffast-math");
 		}
-
+		Optimization_RemoveIdenticalTypes = true;
+		Optimization_RemoveUnsedVarables = true;
+			
 		
 		Optimization_ConstantFoldVarables = true;
 		Optimization_IndirectMemeberToDirectMemeber = true;
@@ -420,9 +669,11 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 
 	for (auto& Block : Func->Blocks)
 	{
+		IRData.clear();
+
 		for (auto& Ins : Block->Instructions)
 		{
-			Get_IRData(Ins.get()).IsReferenced = false;
+			IRData.AddValue(Ins.get(), {});
 		}
 
 		for (size_t i = 0; i < Block->Instructions.size(); i++)
@@ -476,6 +727,32 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 						break;\
 					}\
 
+					#define	ConstantBinaryFoldfloat(bits) \
+					switch (Ins->Type) \
+					{\
+					case IRInstructionType::Add:Ins->Target().Value.Asfloat##bits = Ins->A.Value.AsInt##bits  + Ins->B.Value.Asfloat##bits ;break;\
+					case IRInstructionType::Sub:Ins->Target().Value.Asfloat##bits = Ins->A.Value.AsInt##bits  - Ins->B.Value.Asfloat##bits ;break;\
+					case IRInstructionType::UMult:Ins->Target().Value.Asfloat##bits = Ins->A.Value.AsUInt##bits  * Ins->B.Value.Asfloat##bits ;break;\
+					case IRInstructionType::SMult:Ins->Target().Value.Asfloat##bits  = Ins->A.Value.AsInt##bits  * Ins->B.Value.Asfloat##bits ;break;\
+					case IRInstructionType::UDiv:Ins->Target().Value.Asfloat##bits  = Ins->A.Value.AsUInt##bits  / Ins->B.Value.Asfloat##bits ;break;\
+					case IRInstructionType::SDiv:Ins->Target().Value.Asfloat##bits  = Ins->A.Value.AsInt##bits  / Ins->B.Value.Asfloat##bits ;break;\
+					case IRInstructionType::EqualTo:Ins->Target().Value.Asfloat##bits  = Ins->A.Value.AsInt##bits  == Ins->B.Value.Asfloat##bits ;break;\
+					case IRInstructionType::NotEqualTo:Ins->Target().Value.Asfloat##bits  = Ins->A.Value.AsInt##bits  != Ins->B.Value.Asfloat##bits ;break;\
+					case IRInstructionType::SGreaterThan:Ins->Target().Value.Asfloat##bits = Ins->A.Value.AsInt##bits > Ins->B.Value.Asfloat##bits; break; \
+					case IRInstructionType::SLessThan:Ins->Target().Value.Asfloat##bits = Ins->A.Value.AsInt##bits < Ins->B.Value.Asfloat##bits; break; \
+					case IRInstructionType::SGreaterThanOrEqual:Ins->Target().Value.Asfloat##bits = Ins->A.Value.AsInt##bits >= Ins->B.Value.Asfloat##bits; break; \
+					case IRInstructionType::SLessThanOrEqual:Ins->Target().Value.Asfloat##bits = Ins->A.Value.AsInt##bits <= Ins->B.Value.Asfloat##bits; break; \
+					case IRInstructionType::UGreaterThan:Ins->Target().Value.Asfloat##bits = Ins->A.Value.AsUInt##bits > Ins->B.Value.Asfloat##bits; break; \
+					case IRInstructionType::ULessThan:Ins->Target().Value.Asfloat##bits = Ins->A.Value.AsUInt##bits < Ins->B.Value.Asfloat##bits; break; \
+					case IRInstructionType::UGreaterThanOrEqual:Ins->Target().Value.Asfloat##bits = Ins->A.Value.AsUInt##bits >= Ins->B.Value.Asfloat##bits; break; \
+					case IRInstructionType::ULessThanOrEqual:Ins->Target().Value.Asfloat##bits = Ins->A.Value.AsUInt##bits <= Ins->B.Value.Asfloat##bits; break; \
+					case IRInstructionType::Logical_And:Ins->Target().Value.Asfloat##bits  = Ins->A.Value.AsInt##bits && Ins->B.Value.Asfloat##bits ;break;\
+					case IRInstructionType::Logical_Or:Ins->Target().Value.Asfloat##bits  = Ins->A.Value.AsInt##bits || Ins->B.Value.Asfloat##bits ;break;\
+					default:\
+						UCodeLangUnreachable();\
+						break;\
+					}\
+
 				if (Ins->A.Type == IROperatorType::Value && Ins->B.Type == IROperatorType::Value)
 				{
 					bool ok = true;
@@ -501,9 +778,10 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 						{
 							if (Optimization_FloatFastMath)
 							{
-								//TODO add check for floats
+								//TODO add check  for floats
 							}
-							else {
+							else 
+							{
 								ok = false;
 							}
 						}
@@ -553,14 +831,14 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 						{
 							if (Optimization_FloatFastMath)
 							{
-								//TODO ConstantBinaryFold for floats
+								ConstantBinaryFoldfloat(32);							
 							}
 						}
 						else if (Ins->ObjectType.IsType(IRTypes::f64))
 						{
 							if (Optimization_FloatFastMath)
 							{
-								//TODO ConstantBinaryFold for floats
+								ConstantBinaryFoldfloat(64);
 							}
 						}
 						else

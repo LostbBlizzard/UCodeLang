@@ -296,7 +296,7 @@ void AppObject::DrawTestMenu()
     {
         TestMode Testmode = TestMode::UCodeLang;
         size_t MinTestIndex = 0;
-        size_t MaxTestCount = 40;//;//ULangTest::Tests.size();
+        size_t MaxTestCount = 48;//;//ULangTest::Tests.size();
 
         size_t ModuleIndex = 0;
         size_t ModuleTestCount = 1;//;//ULangTest::Tests.size();
