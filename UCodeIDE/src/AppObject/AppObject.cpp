@@ -3303,7 +3303,6 @@ void AppObject::CompileText(const String& String)
         UCodeLang::Compiler::CompilerRet r =UCodeLang::NeverNullptr(&_Compiler.Get_Errors());
         if (Apifile)
         {
-            std::filesystem::remove_all(paths.IntDir);
             r = _Compiler.CompileFiles_UseIntDir(paths, ExternalFiles);
         }
         else

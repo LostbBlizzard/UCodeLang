@@ -38,6 +38,24 @@ public:
 			return false;
 		}
 	}
+
+	static bool EndWith(const String& string, const String_view MatchString)
+	{
+		return  EndWith(String_view(string), String_view(MatchString));
+	}
+	static bool EndWith(const String_view string, const String_view MatchString)
+	{
+		if (string.size() < MatchString.size()) { return false; }
+		for (int i = MatchString.size() - 1; i >= 0; i--)
+		{
+			if (string[i] != MatchString[i])
+			{
+				return false;
+				break;
+			}
+		}
+		return true;
+	}
 };
 
 

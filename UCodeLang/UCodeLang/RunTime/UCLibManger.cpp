@@ -1,6 +1,7 @@
 #include "UCLibManger.hpp"
 #include "UCodeLang/Compilation/Helpers/NameDecoratior.hpp"
 #include "UCodeLang/Compilation/Helpers/InstructionBuilder.hpp"
+#include "UCodeLang/LangCore/StringHelper.hpp"
 UCodeLangStart
 UCLibManger::UCLibManger()
 {
@@ -100,48 +101,100 @@ void UCLibManger::LinkLib(UCodeLang::RunTimeLib* Item, bool HotReloadKeepStatic)
 
 	if (Item->Get_Lib())
 	{
-		auto Layer = Item->Get_Lib()->GetLayer(UCode_CodeLayer_UCodeVM_Name);
-		if (Layer) 
 		{
-			auto& InsLayer = Layer->_Data.Get<CodeLayer::UCodeByteCode>();
-
-
-			if (HotReloadKeepStatic == false) {
-				for (const auto& Item : Item->Get_Lib()->Get_StaticBytes())
-				{
-					StaticBytes.push_back(Item);
-				}
-				for (const auto& Item : Item->Get_Lib()->Get_ThreadBytes())
-				{
-					ThreadBytes.push_back(Item);
-				}
-			}
-
-			
-
-			for (const auto& Item2 : InsLayer.Get_NameToPtr())
+			auto Layer = Item->Get_Lib()->GetLayer(UCode_CodeLayer_UCodeVM_Name);
+			if (Layer)
 			{
-				_NameToAddress.AddValue(Item2.first,Item2.second);
-			}
-			auto& _Assembly = Item->Get_Lib()->Get_Assembly();
-			ClassAssembly::PushCopyClasses(_Assembly, Assembly);
+				auto& InsLayer = Layer->_Data.Get<CodeLayer::UCodeByteCode>();
 
-			if (InsLayer.DebugInfo.has_value())
-			{
-				auto& Debug = InsLayer.DebugInfo.value();
 
-				for (auto& Item : Debug.VarablesInfo)
-				{
-					//TODO Add offset based on this lib StaticBytes and ThreadBytes
-					_DebugInfo.VarablesInfo.AddValue(Item.first, Item.second);
+				if (HotReloadKeepStatic == false) {
+					for (const auto& Item : Item->Get_Lib()->Get_StaticBytes())
+					{
+						StaticBytes.push_back(Item);
+					}
+					for (const auto& Item : Item->Get_Lib()->Get_ThreadBytes())
+					{
+						ThreadBytes.push_back(Item);
+					}
 				}
-				for (auto& Item : Debug.DebugInfo)
+
+
+
+				for (const auto& Item2 : InsLayer.Get_NameToPtr())
 				{
-					//TODO Add offset based on this lib StaticBytes and ThreadBytes
-					_DebugInfo.DebugInfo.push_back(Item);
+					_NameToAddress.AddValue(Item2.first, Item2.second);
+				}
+				auto& _Assembly = Item->Get_Lib()->Get_Assembly();
+				ClassAssembly::PushCopyClasses(_Assembly, Assembly);
+
+				if (InsLayer.DebugInfo.has_value())
+				{
+					auto& Debug = InsLayer.DebugInfo.value();
+
+					for (auto& Item : Debug.VarablesInfo)
+					{
+						//TODO Add offset based on this lib StaticBytes and ThreadBytes
+						_DebugInfo.VarablesInfo.AddValue(Item.first, Item.second);
+					}
+					for (auto& Item : Debug.DebugInfo)
+					{
+						//TODO Add offset based on this lib StaticBytes and ThreadBytes
+						_DebugInfo.DebugInfo.push_back(Item);
+					}
 				}
 			}
 		}
+		
+		#if UCodeLang_CPUIs_x86_64
+		{
+			auto Layer = Item->Get_Lib()->GetLayer(UCode_CodeLayer_X86_64_UCodeVM_Name);
+			if (Layer)
+			{
+				auto& InsLayer = Layer->_Data.Get<CodeLayer::MachineCode>();
+
+
+				if (HotReloadKeepStatic == false) {
+					for (const auto& Item : Item->Get_Lib()->Get_StaticBytes())
+					{
+						StaticBytes.push_back(Item);
+					}
+					for (const auto& Item : Item->Get_Lib()->Get_ThreadBytes())
+					{
+						ThreadBytes.push_back(Item);
+					}
+				}
+
+				for (const auto& Item : InsLayer._Code)
+				{
+					_Code.push_back(Item);
+				}
+
+				for (const auto& Item2 : InsLayer._NameToPtr)
+				{
+					auto newname = Item2.first;
+					
+					#if UCodeLang_Platform_Windows
+					if (StringHelper::EndWith(newname,"-[Windows]"))
+					{
+						newname = newname.substr(0, newname.size() - sizeof("-[Windows]"));
+					}
+					#elif UCodeLang_Platform_Posix
+					if (StringHelper::EndWith(newname, "-[Unix]"))
+					{
+						newname = newname.substr(0, newname.size() - sizeof("-[Unix]"));
+					}
+					#endif
+
+					_NameToAddress.AddValue(newname, Item2.second);
+				}
+				auto& _Assembly = Item->Get_Lib()->Get_Assembly();
+				ClassAssembly::PushCopyClasses(_Assembly, Assembly);
+
+			}
+		}
+		#endif
+
 	}
 	for (const auto& Item2 : Item->Get_CPPCalls())
 	{
