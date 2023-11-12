@@ -7,7 +7,7 @@ mkdir -p "$HOME/.ucodelang/bin"
 
 cd "$HOME/.ucodelang/bin"
 
-if [[ "$OSTYPE" == "darwin"* ]]; then
+if [ "$(uname)" == "Darwin" ] then
 curl -LJO https://github.com/LostbBlizzard/UCodeLang/releases/download/Release-0.0.5/uclang-macos
 
 mv uclang-macos uclang
@@ -19,7 +19,7 @@ mv uclanglsp-macos uclanglsp
 
 chmod +x uclanglsp
 
-elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+elif [ "$(uname)" == "Darwin" ] then
 
 curl -LJO https://github.com/LostbBlizzard/UCodeLang/releases/download/Release-0.0.5/uclang-linux64
 
