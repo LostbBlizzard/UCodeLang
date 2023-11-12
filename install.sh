@@ -60,11 +60,6 @@ then
  echo "export PATH=$HOME/.ucodelang/bin" >> $HOME/.profile
 fi
 
-if ! grep -Fxq "export PATH=$HOME/.ucodelang/bin" $HOME/.bash_profile
-then
- echo "export PATH=$HOME/.ucodelang/bin" >> $HOME/.bash_profile
-fi
-
 cd "$HOME/.ucodelang/bin"
 
 ./uclang index "$HOME/.ucodelang/modules/StandardLibrary"
