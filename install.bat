@@ -1,4 +1,4 @@
-
+echo off
 cd %UserProfile%
 mkdir .ucodelang
 
@@ -24,13 +24,16 @@ git clone https://github.com/LostbBlizzard/UCodeLang ./gitprojecttep
 move ./gitprojecttep/UCodeAPI/StandardLibrary ./
 move ./gitprojecttep/UCodeAPI/NStandardLibrary ./
 
-RMDIR /s /q ./gitprojecttep/ 
+RMDIR /S /Q "gitprojecttep/"
 
 
 call "%UserProfile%/.ucodelang/bin/uclang" index "%UserProfile%/.ucodelang/modules/StandardLibrary
 
 call "%UserProfile%/.ucodelang/bin/uclang" index "%UserProfile%/.ucodelang/modules/NStandardLibrary
 
-echo "add environment variable %UserProfile%/.ucodelang/bin/uclang to your PATH to complete"
-echo "installation of ucodelang. then try using \"uclang -help\"";
+echo ""
+echo ""
+
+echo add environment variable "%UserProfile%/.ucodelang/bin" to your PATH to complete
+echo installation of ucodelang. then try using \"uclang -help\";
 pause
