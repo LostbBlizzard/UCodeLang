@@ -124,7 +124,9 @@ curl https://raw.githubusercontent.com/LostbBlizzard/UCodeLang/feature/install.s
 
 Run The following in your terminal to install on Windows.
 ```
-curl.exe https://raw.githubusercontent.com/LostbBlizzard/UCodeLang/feature/install.bat ; call install.bat
+curl.exe https://raw.githubusercontent.com/LostbBlizzard/UCodeLang/feature/install.bat --output ucodelanginstall.bat
+call ucodelanginstall.bat
+del ucodelanginstall.bat
 ```
 
 # Example(User)
