@@ -511,7 +511,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 
 	for (auto& Item : Lib->_Layers) 
 	{
-		if (Item->_Name == UCode_CodeLayer_X86_UCodeVM_Name) 
+		if (Item->_Name == UCode_CodeLayer_X86_64_UCodeVM_Name)
 		{
 			
 			if (auto Val = Item->_Data.Get_If<CodeLayer::MachineCode>())

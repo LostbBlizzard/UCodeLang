@@ -7,11 +7,10 @@
 
 |(&threadUnload&)[] -> void:;
 
-|main1^i32[int32 V] -> int32:
+|main1[] -> int32:
 
  [Block:0]
 
-   int32 A = V%4;
-   ret = A;
+   ret = 14;
    ret;
 

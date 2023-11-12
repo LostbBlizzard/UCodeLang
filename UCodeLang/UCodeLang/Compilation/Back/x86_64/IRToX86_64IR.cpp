@@ -72,11 +72,16 @@ void IRToX86_64IR::Build(const IRBlock* func)
 	{
 		switch (Item->Type)
 		{
+		case IRInstructionType::None:
+		{
+
+		}
+		break;
 		case IRInstructionType::LoadNone:
 		{
 
 		}
-			break;
+		break;
 		case IRInstructionType::Load:
 		{
 			GReg r = Get_FreeReg().value();

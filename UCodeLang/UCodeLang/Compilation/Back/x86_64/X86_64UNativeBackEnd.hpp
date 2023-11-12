@@ -17,12 +17,31 @@ public:
 private:
 	const IRBuilder* _Input = nullptr;
 	UClib* _Output = nullptr;
-
+	X86_64IR x8664_ir;
 
 	inline UClib& Get_Output()
 	{
 		return Getliboutput();
 	}
+
+
+	struct NewID
+	{
+		uintptr_t oldid = 0;
+		uintptr_t newid = 0;
+	};
+	UnorderedMap<uintptr_t, String> newidnames;
+	Vector< NewID> newids;
+
+	void MakeWapperFuncion(const IRFunc* func);
+
+
+	struct ABIInfo
+	{
+		X86_64IR::CallConventionID id;
+		String OS;
+	};
+	Vector<ABIInfo> ABIList;
 };
 
 UCodeLangEnd

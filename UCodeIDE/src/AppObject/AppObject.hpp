@@ -240,7 +240,7 @@ private:
 		bool InDebug = true;
 		bool ImportStandardLibrary = false;
 
-		NativeSet OldNativeCpuType = NativeSet::x86;
+		NativeSet OldNativeCpuType = NativeSet::Native;
 	};
 	OutputWindowData OutputWindow;
 
@@ -252,7 +252,7 @@ private:
 	};
 	struct UCodeVMWindow
 	{
-		UCodeVMType VMType = UCodeVMType::Interpreter;
+		UCodeVMType VMType = UCodeVMType::Native_Interpreter;
 		NativeSet NativeCpuType = NativeSet::Native;
 		bool ShowRegisters = false;
 		bool ShowStack = false;

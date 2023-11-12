@@ -325,6 +325,14 @@ public:
 	{
 		return _Data.GetInst(address);
 	}
+	UCodeLangForceinline const void* GetNativeCode(UAddress address) const
+	{
+		return &_Data.Get_Code()[address];
+	}
+	UCodeLangForceinline const void* GetNativeCodeEx(UAddress address) const
+	{
+		return &((Byte*)_Data._ExCode.Data)[address];
+	}
 	UCodeLangForceinline PtrType Get_StaticMemPtr()
 	{
 		return _StaticMemPtr;

@@ -32,4 +32,4 @@ $Player[Component]:
 
 
 
-|main1[int V] => V % 4;
+|main1[] => 5 + 9;
