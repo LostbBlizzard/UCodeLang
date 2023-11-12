@@ -119,12 +119,12 @@ It's nowhere near completion.
 
 Run The following in your terminal to install on linux/MacOs.
 ```
-curl https://github.com/LostbBlizzard/UCodeLang/blob/feature/install.sh | sh
+curl https://raw.githubusercontent.com/LostbBlizzard/UCodeLang/feature/install.sh | sh
 ```
 
 Run The following in your terminal to install on Windows.
 ```
-curl https://github.com/LostbBlizzard/UCodeLang/blob/feature/install.sh | sh
+curl https://raw.githubusercontent.com/LostbBlizzard/UCodeLang/feature/install.sh | sh
 ```
 
 # Example(User)

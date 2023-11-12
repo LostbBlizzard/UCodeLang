@@ -7,7 +7,7 @@ mkdir -p "$HOME/.ucodelang/bin"
 
 cd "$HOME/.ucodelang/bin"
 
-if [ "$(uname)" == "Darwin" ]; then
+if [[ "$OSTYPE" == "darwin"* ]]; then
 curl -LJO https://github.com/LostbBlizzard/UCodeLang/releases/download/Release-0.0.5/uclang-macos
 
 mv uclang-macos uclang
@@ -19,7 +19,7 @@ mv uclanglsp-macos uclanglsp
 
 chmod +x uclanglsp
 
-elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
 
 curl -LJO https://github.com/LostbBlizzard/UCodeLang/releases/download/Release-0.0.5/uclang-linux64
 
@@ -45,7 +45,7 @@ git clone https://github.com/LostbBlizzard/UCodeLang ./gitprojecttep
 cp -r ./gitprojecttep/UCodeAPI/StandardLibrary ./
 cp -r ./gitprojecttep/UCodeAPI/NStandardLibrary ./
 
-rm -f -v -r ./gitprojecttep/ 
+rm -f -r ./gitprojecttep/ 
 
 if ! grep -Fxq "export PATH=$HOME/.ucodelang/bin" $HOME/.bashrc
 then
