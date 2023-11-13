@@ -68,8 +68,8 @@ using namespace UCodeLang;
 		OptimizationFlags::NoOptimization,
 		OptimizationFlags::Debug,
 		
-		OptimizationFlags::O_1,
-		OptimizationFlags::ForDebuging,
+		//OptimizationFlags::O_1,
+		//OptimizationFlags::ForDebuging,
 
 
 		//OptimizationFlags::ForSize,
