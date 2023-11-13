@@ -1,4 +1,5 @@
 #pragma once
+#ifndef UCodeLangNoCompiler
 
 #define UpLettersCharSet "QWERTYUIOPASDFGHJKLZXCVBNM"
 #define LowLettersCharSet "qwertyuiopasdfghjklzxcvbnm"
@@ -66,3 +67,5 @@ struct LexerHelper
 		return isascii(Char);
 	}
 };
+
+#endif

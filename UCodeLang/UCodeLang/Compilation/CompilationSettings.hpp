@@ -1,4 +1,6 @@
 #pragma once
+
+#ifndef UCodeLangNoCompiler
 #include "../LangCore/UCodeLangNameSpace.hpp"
 #include "../LangCore/LangTypes.hpp"
 #include "../LangCore/StringHelper.hpp"
@@ -126,3 +128,4 @@ struct CompilationSettings
 	}
 };
 UCodeLangEnd
+#endif

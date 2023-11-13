@@ -6,6 +6,10 @@
 #include "RunTime/AnyInterpreter.hpp"
 #include "RunTime/UCodeRunTime.hpp"
 #include "LangCore/UClib.hpp"
+
+#ifndef UCodeLangNoCompiler
 #include "Compilation/Compiler.hpp"
+#endif
+
 #include "RunTime/ReflectionStl.hpp"
 #include "RunTime/ProfilerDebuger.hpp"

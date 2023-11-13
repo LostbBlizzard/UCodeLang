@@ -3,6 +3,8 @@
 
 
 //Casts
+
+#ifndef UCodeLangNoCompiler
 UCodeLang::Compiler* As(UCodeLangCAPI_Compiler* Value)
 {
 	return (UCodeLang::Compiler*)Value;
@@ -19,6 +21,7 @@ const UCodeLangCAPI_Const_Compiler* As(const UCodeLang::Compiler* Value)
 {
 	return (UCodeLangCAPI_Const_Compiler*)Value;
 }
+#endif
 
 UCodeLang::Interpreter* As(UCodeLangCAPI_Interpreter* Value)
 {
@@ -117,6 +120,8 @@ void UCodeLangAPIExport UCodeLangCAPI_DeInit()
 }
 
 //Funcs
+
+#ifndef UCodeLangNoCompiler
 UCodeLangCAPI_Compiler* UCodeLangAPIExport UCodeLangCAPI_New_Compiler()
 {
 	return As(new UCodeLang::Compiler());
@@ -132,6 +137,7 @@ void UCodeLangAPIExport UCodeLangCAPI_Compiler_BuildTxt(UCodeLangCAPI_Compiler* 
 	auto r = As(This)->CompileText(As(&String));
 	Output->Success = r.IsError();
 }
+#endif
 
 UCodeLangCAPI_RunTimeLangState* UCodeLangAPIExport UCodeLangCAPI_New_RunTimeState()
 {
