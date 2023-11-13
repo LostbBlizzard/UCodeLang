@@ -27,8 +27,8 @@ private:
 
 	struct NewID
 	{
-		uintptr_t oldid = 0;
-		uintptr_t newid = 0;
+		IRidentifierID oldid = 0;
+		X86_64IR::FuncID newid = 0;
 	};
 	UnorderedMap<uintptr_t, String> newidnames;
 	Vector< NewID> newids;

@@ -10,11 +10,11 @@ mkdir "modules"
 
 cd ./bin
 
-curl.exe -LJO https://github.com/LostbBlizzard/UCodeLang/releases/download/Release-0.0.5/uclang-win64.exe
+curl.exe -LJO https://github.com/LostbBlizzard/UCodeLang/releases/download/Release-0.0.6/uclang-win64.exe
 
 ren uclang-win64.exe  uclang.exe
 
-curl.exe -LJO https://github.com/LostbBlizzard/UCodeLang/releases/download/Release-0.0.5/uclanglsp-win64.exe
+curl.exe -LJO https://github.com/LostbBlizzard/UCodeLang/releases/download/Release-0.0.6/uclanglsp-win64.exe
 
 ren uclanglsp-win64.exe  uclanglsp.exe
 
