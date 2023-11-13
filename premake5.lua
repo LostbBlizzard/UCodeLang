@@ -96,6 +96,8 @@ workspace "UCodeLang"
    filter { "platforms:Web" }
       optimize "Speed"
       symbols "off"
+      defines { "ZYAN_POSIX" }
+      architecture "x86"
    
 project "UCApp"
    location "UCApp"
@@ -144,7 +146,6 @@ project "UCApp"
    libdirs { 
       "Output/UCodeLang/" .. OutDirPath,
    }
-
 project "UCodelangCL"
    location "UCodelangCL"
    kind "ConsoleApp"
@@ -273,7 +274,6 @@ project "UCodeLanguageSever"
       "Output/UCodeLang/" .. OutDirPath,
       "Output/UCodeLanguageSeverlib/" .. OutDirPath,
    }
-
 project "UCodeDocumentation"
    location "UCodeDocumentation"
    kind "StaticLib"
@@ -392,8 +392,6 @@ project "UCodeIDE"
 
    filter { "system:Windows","configurations:Published" }
     kind ("WindowedApp")
-
-   
 
    
    
