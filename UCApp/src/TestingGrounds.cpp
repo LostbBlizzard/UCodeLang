@@ -80,14 +80,10 @@ void TestingGround()
 
 	Settings._Type = OutPutType::Lib;
 	Settings._Flags = OptimizationFlags::Stable_ForDebuging;
-	_Compiler.Set_BackEnd(ULangTest::WasmBackEnd::MakeObject);
+	_Compiler.Set_BackEnd(ULangTest::C89Backend::MakeObject);
 	
 	ModuleFile Mfile;
 	ModuleFile::FromFile(&Mfile, CodeTestingModluePath);
-
-
-	std::filesystem::remove_all(Mfile.GetPaths(_Compiler).IntDir);
-	std::filesystem::remove(Mfile.GetPaths(_Compiler).OutFile);
 
 	auto OutData = Mfile.BuildModule(_Compiler, LangIndex);
 	
@@ -95,10 +91,6 @@ void TestingGround()
 	if (!ULangTest::LogErrors(std::cout, _Compiler))
 	{
 		UCodeLang::UClib& MLib = *OutData.CompilerRet.GetValue().OutPut;
-		
-
-		ULangTest::RunTests(false);
-
 
 		RunTests(MLib, OutData.OutputItemPath);
 
@@ -142,7 +134,18 @@ void RunTests(UCodeLang::UClib& MLib,const Path& output)
 {
 	{
 		ULangTest::TestRuner runer;
-		auto info = runer.RunTests(MLib, output, ULangTest::TestMode::WasmBackEnd, [](TestRuner::TestInfo& test)
+
+		ULangTest::TestMode mode = ULangTest::TestMode::UCodeLangBackEnd;
+		if (output.extension() == ".wasm")
+		{
+			mode = ULangTest::TestMode::WasmBackEnd;
+		}
+		else if (output.extension() == ".c")
+		{
+			mode = ULangTest::TestMode::CLang89BackEnd;
+		}
+
+		auto info = runer.RunTests(MLib, output,mode, [](TestRuner::TestInfo& test)
 			{
 				if (test.Passed)
 				{
@@ -175,5 +178,15 @@ void RunTests(UCodeLang::UClib& MLib,const Path& output)
 		{
 			std::cout << "Tests Failed about " << passnumber << "% passed\n";
 		}
+		for (auto& Item : info.Tests)
+		{
+			if (!Item.Passed)
+			{
+				std::cout << Item.TestName << ":Failed" << "\n";
+			}
+		}
+
+			
+
 	}
 }

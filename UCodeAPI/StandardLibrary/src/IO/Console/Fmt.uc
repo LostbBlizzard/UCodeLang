@@ -8,7 +8,8 @@ $Fmt:
   
   ULang::Native::OS_PrintSpan(unsafe Str.Data(),Str.Size());
  
- |Print[imut String& Str] -> void;
+ |Print[imut String& Str] -> void:
+  Print(Str.iStr());
 
  |Println[char Str] -> void:
   Print(Str);

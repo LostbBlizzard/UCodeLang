@@ -31,12 +31,12 @@ $Player[Component]:
 */
 
 
-|main[] => factorial(10);
+|main[]:
+ 
+ int a = 2;
 
+ a = 5;
 
-|factorial[int n] -> int: 
-  if n == 0:
-    ret 1;
-  else:
-    ret n * factorial(n-1);
+ ret a;
 
+//|main1[] => unsafe new int[5];

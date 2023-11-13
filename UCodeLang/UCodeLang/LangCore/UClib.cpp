@@ -10,6 +10,11 @@ UClib::~UClib()
 {
 
 }
+void UClib::Reset()
+{
+	this->~UClib();
+	new (this) UClib;
+}
 using Size_tAsBits = BitMaker::SizeAsBits;
 
 
@@ -376,6 +381,8 @@ void UClib::ToBytes(BitMaker& Output, const TraitMethod& FuncPtrData)
 }
 bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 {
+	Lib->Reset();
+	
 	BitReader reader(Data.Data(),Data.Size());
 	
 

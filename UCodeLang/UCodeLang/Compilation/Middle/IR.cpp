@@ -1426,6 +1426,7 @@ String IRBuilder::ToString()
 		State.StrValue = 0;
 		State.PointerToName.clear();
 		State.TepPushedParameters.clear();
+		State.SSANames.clear();
 		//
 
 		ToString(State, Item.get(), r);
@@ -1801,9 +1802,21 @@ bool IRBuilder::ToString(
 		r += "LowLevel::Unreachable()";
 		break;
 	case IRInstructionType::JumpBlockIf:
-		r += (String)"  JumpIf (" + ToString(State, *I, I->Input()) + ") : [" + std::to_string(I->Target().Value.AsUIntNative) + "]";
+		if (Block->Instructions.size() > i + 1 && Block->Instructions[i + 1]->Type == IRInstructionType::JumpBlock)
+		{
+			r += (String)"  JumpIf (" + ToString(State, *I, I->Input()) + ") : [" + std::to_string(I->Target().Value.AsUIntNative) + "] else [" 
+				+ std::to_string(Block->Instructions[i + 1]->Target().Value.AsUIntNative) + "]";
+		}
+		else 
+		{
+			r += (String)"  JumpIf (" + ToString(State, *I, I->Input()) + ") : [" + std::to_string(I->Target().Value.AsUIntNative) + "]";
+		}
 		break;
 	case IRInstructionType::JumpBlock:
+		if (i != 0 && Block->Instructions[i - 1]->Type == IRInstructionType::JumpBlockIf)
+		{
+			return false;
+		}
 		r += (String)"  Jump : [" + std::to_string(I->Target().Value.AsUIntNative) + "]";
 		break;
 	case IRInstructionType::Ui32Tof32:
@@ -1853,6 +1866,49 @@ bool IRBuilder::ToString(
 		r += " " + State.GetName(I);
 		r += " = ";
 		r += ToString(State, *I, I->Target()) + " -> float32";
+		break;
+	case IRInstructionType::BitWise_And:
+		r += ToStringBinary(State, I, "&");
+		break;
+	case IRInstructionType::BitWise_Or:
+		r += ToStringBinary(State, I, "|");
+		break;
+	case IRInstructionType::BitWise_ShiftL:
+		r += ToStringBinary(State, I, "<<");
+		break;
+	case IRInstructionType::BitWise_ShiftR:
+		r += ToStringBinary(State, I, ">>");
+		break;
+	case IRInstructionType::BitWise_XOr:
+		r += ToStringBinary(State, I, "^");
+		break;
+	case IRInstructionType::BitWise_Not:
+		r += ToString(I->ObjectType);
+		r += " " + State.GetName(I);
+		r += " = ~" + ToString(State, *I, I->Target());
+		break;
+	case IRInstructionType::SMod:
+		r += ToStringBinary(State, I, "%");
+		break;
+	case IRInstructionType::UMod:
+		r += ToStringBinary(State, I, "%");
+		break;
+	case IRInstructionType::SSA_Reassign:
+		r += ToString(I->ObjectType);
+		if (State.SSANames.HasValue(I->Input()))
+		{
+			auto& o = State.SSANames.GetValue(I->Input());
+			o++;
+
+			State.PointerToName.AddValue(I, ToString(State, *I, I->Input()) + "^" + std::to_string(o));
+		}
+		else
+		{
+			State.PointerToName.AddValue(I, ToString(State, *I, I->Input()) + "^2");
+			State.SSANames.AddValue(I->Input(), 2);
+		}
+		r += " " + State.PointerToName.GetValue(I);
+		r += " = " + ToString(State, *I, I->Target());
 		break;
 	default:
 		UCodeLangUnreachable();

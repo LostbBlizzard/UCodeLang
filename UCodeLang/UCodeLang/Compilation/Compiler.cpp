@@ -996,8 +996,12 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 							BytesPtr m;
 							m.Resize(Output.Size());
 							memcpy(m.Data(), Output.Data(), Output.Size());
+							UClib::ToFile(&_BackEndObject->Getliboutput(), ExtraOutputLibPath);
 						}
-						UClib::ToFile(&_BackEndObject->Getliboutput(), Data.OutFile);
+						else
+						{
+							UClib::ToFile(&_BackEndObject->Getliboutput(),Data.OutFile);
+						}
 
 						r = std::move(success);
 
@@ -1096,7 +1100,6 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 
 			if (Data.OutFile.extension() == FileExt::LibWithDot)
 			{
-				
 				CompilationSuccess success = CompilationSuccess(&lib);
 
 				UClib::FromBytes(&lib, bytes.AsSpan());

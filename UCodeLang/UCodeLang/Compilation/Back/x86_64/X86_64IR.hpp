@@ -84,7 +84,6 @@ struct X86_64IR
 		//https://www.ired.team/miscellaneous-reversing-forensics/windows-kernel-internals/linux-x64-calling-convention-stack-frame
 		void SetLinux()
 		{
-			//For testing
 			SetWindows();
 
 			IntegerFunctionArguments = { GReg::RDI,GReg::RSI,GReg::RDX,GReg::r8,GReg::r9 };
@@ -93,8 +92,7 @@ struct X86_64IR
 		//https://developer.apple.com/library/archive/documentation/DeveloperTools/Conceptual/LowLevelABI/140-x86-64_Function_Calling_Conventions/x86_64.html
 		void SetMacOSandIOS()
 		{
-			//For testing
-			SetWindows();
+			SetLinux();//Mac Shares the same ABI
 		}
 
 		//The UCode ABI/calling convention is undefined it may change at anytime.

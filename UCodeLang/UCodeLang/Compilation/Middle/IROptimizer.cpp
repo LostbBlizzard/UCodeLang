@@ -11,6 +11,7 @@
 UCodeLangStart
 
 
+#define RunlogIRState UCodeLangDebug
 
 void IROptimizer::Reset() 
 {
@@ -19,7 +20,6 @@ void IROptimizer::Reset()
 }
 void IROptimizer::Optimized(IRBuilder& IRcode)
 {
-	#define RunlogIRState 1
 	Input = &IRcode;
 
 	_IDChecker.Set_ErrorsOutput(_ErrorsOutput);
@@ -34,6 +34,191 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 	
 	bool didonepass = false;
 	
+	if (Optimization_RemoveIdenticalTypes)
+	{
+		bool Updated = false;
+		Vector<IRSymbolData*> RemovedTypes;
+		do
+		{
+			Updated = false;
+			for (auto& Item1 : Input->_Symbols)
+			{
+				{
+					bool isinlist = false;
+					for (auto& ItemV : RemovedTypes)
+					{
+						if (ItemV == Item1.get())
+						{
+							isinlist = true;
+							break;
+						}
+					}
+					if (isinlist)
+					{
+						continue;
+					}
+				}
+				for (auto& Item2 : Input->_Symbols)
+				{
+					if (&Item2 != &Item1
+						&& Item1->SymType == Item2->SymType)
+					{
+						if (Item1->SymType == IRSymbolType::Struct)
+						{
+							IRStruct* Struct1 = Item1->Get_ExAs<IRStruct>();
+							IRStruct* Struct2 = Item2->Get_ExAs<IRStruct>();
+
+							if (Struct1->Fields.size() == Struct2->Fields.size())
+							{
+								if (Struct1->ObjectSize == Struct2->ObjectSize)
+								{
+									bool isfieldsthesame = true;
+									for (size_t i = 0; i < Struct1->Fields.size(); i++)
+									{
+										auto& Field1 = Struct1->Fields[i];
+										auto& Field2 = Struct2->Fields[i];
+
+										if (Field1.Offset != Field2.Offset
+											|| Field1.Type != Field2.Type)
+										{
+											isfieldsthesame = false;
+											break;
+										}
+
+									}
+
+									if (isfieldsthesame)
+									{
+										bool isinlist = false;
+										for (auto& ItemV : RemovedTypes)
+										{
+											if (ItemV == Item2.get())
+											{
+												isinlist = true;
+												break;
+											}
+										}
+										if (!isinlist)
+										{
+											RemovedTypes.push_back(Item2.get());
+
+											auto id1 = Item1->Type._symbol.ID;
+											auto id2 = Item2->Type._symbol.ID;
+											ReplaceAllTypesTo(id2, id1);
+											Updated = true;
+										}
+									}
+								}
+							}
+							if (Item1->SymType == IRSymbolType::FuncPtr)
+							{
+								IRFuncPtr* Struct1 = Item1->Get_ExAs<IRFuncPtr>();
+								IRFuncPtr* Struct2 = Item2->Get_ExAs<IRFuncPtr>();
+
+								if (Struct1->Pars.size() == Struct2->Pars.size()
+									&& Struct1->Ret == Struct2->Ret)
+								{
+									if (Struct1->Ret == Struct2->Ret)
+									{
+										bool isfieldsthesame = true;
+										for (size_t i = 0; i < Struct1->Pars.size(); i++)
+										{
+											auto& Field1 = Struct1->Pars[i];
+											auto& Field2 = Struct2->Pars[i];
+
+											if (Field1 == Field2)
+											{
+												isfieldsthesame = false;
+												break;
+											}
+										}
+										if (isfieldsthesame)
+										{
+											bool isinlist = false;
+											for (auto& ItemV : RemovedTypes)
+											{
+												if (ItemV == Item2.get())
+												{
+													isinlist = true;
+													break;
+												}
+											}
+											if (!isinlist)
+											{
+												RemovedTypes.push_back(Item2.get());
+
+												auto id1 = Item1->Type._symbol.ID;
+												auto id2 = Item2->Type._symbol.ID;
+												ReplaceAllTypesTo(id2, id1);
+												Updated = true;
+											}
+										}
+									}
+
+								}
+							}
+							if (Item1->SymType == IRSymbolType::StaticArray)
+							{
+								IRStaticArray* Struct1 = Item1->Get_ExAs<IRStaticArray>();
+								IRStaticArray* Struct2 = Item2->Get_ExAs<IRStaticArray>();
+
+								if (Struct1->Count == Struct2->Count &&
+									Struct1->Type == Struct2->Type)
+								{
+
+									bool isinlist = false;
+									for (auto& ItemV : RemovedTypes)
+									{
+										if (ItemV == Item2.get())
+										{
+											isinlist = true;
+											break;
+										}
+									}
+									if (!isinlist)
+									{
+										RemovedTypes.push_back(Item2.get());
+
+										auto id1 = Item1->Type._symbol.ID;
+										auto id2 = Item2->Type._symbol.ID;
+										ReplaceAllTypesTo(id2, id1);
+										Updated = true;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+		} while (Updated);
+
+
+		bool removetypesfromIR = _Settings->_Type != OutPutType::IRAndSymbols;
+		if (removetypesfromIR)
+		{
+			if (Input->_Symbols.size()) {
+				Input->_Symbols.erase(std::remove_if(
+					Input->_Symbols.begin(),
+					Input->_Symbols.end(),
+					[RemovedTypes](Unique_ptr<IRSymbolData>& Item)
+					{
+						bool isinlist = false;
+						for (auto& Item2 : RemovedTypes)
+						{
+							if (Item2 == Item.get())
+							{
+								isinlist = true;
+								break;
+							}
+						}
+
+						return  isinlist;
+					}));
+			}
+		}
+	}
+
 	do 
 	{
 		do
@@ -59,7 +244,7 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 			if (_Settings->_Flags == OptimizationFlags::NoOptimization
 				|| _Settings->_Flags == OptimizationFlags::Debug) { return; }
 			
-			if (true) { return; }
+			//if (true) { return; }
 
 			if (_ErrorsOutput->Has_Errors())
 			{
@@ -272,21 +457,93 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 		}
 	}
 }
+void IROptimizer::ReplaceAllTypesTo(IRidentifierID typetolookfor, IRidentifierID newtype)
+{
+	auto TestType = [typetolookfor,newtype](IRType& Update)
+	{
+			if (Update._symbol.ID == typetolookfor)
+			{
+				Update._symbol.ID = newtype;
+			}
+	};
+
+	for (auto& OtherItem : Input->_Symbols)
+	{
+		if (OtherItem->SymType == IRSymbolType::Struct)
+		{
+			IRStruct* V = OtherItem->Get_ExAs<IRStruct>();
+			for (auto& Item : V->Fields)
+			{
+				TestType(Item.Type);
+			}
+		}
+		else if (OtherItem->SymType == IRSymbolType::FuncPtr)
+		{
+			IRFuncPtr* V = OtherItem->Get_ExAs<IRFuncPtr>();
+
+			TestType(V->Ret);
+
+			for (auto& Item : V->Pars)
+			{
+				TestType(Item);
+			}
+		}
+		else if (OtherItem->SymType == IRSymbolType::StaticArray)
+		{
+			IRStaticArray* V = OtherItem->Get_ExAs<IRStaticArray>();
+
+			TestType(V->Type);
+		}
+		else if (OtherItem->SymType == IRSymbolType::ThreadLocalVarable
+			|| OtherItem->SymType == IRSymbolType::StaticVarable)
+		{
+			IRBufferData* V = OtherItem->Get_ExAs<IRBufferData>();
+			
+			TestType(OtherItem->Type);
+		}
+		else
+		{
+			UCodeLangUnreachable();
+		}
+	}
+	for (auto& OtherItem : Input->Funcs)
+	{
+		for (auto& Item : OtherItem->Pars)
+		{
+			TestType(Item.type);
+		}
+		for (auto& Block : OtherItem->Blocks)
+		{
+			for (auto& Item : Block->Instructions)
+			{
+				TestType(Item->ObjectType);
+			}
+		}
+	}
+}
 
 void IROptimizer::UpdateOptimizationList()
 {
 	auto& Stettings = *_Settings;
 
+	bool IgnoredebugFlag = Stettings.HasArg("IgnoreDebug");
 	bool ForDebuging = (OptimizationFlags_t)Stettings._Flags & (OptimizationFlags_t)OptimizationFlags::Debug;
 	bool ForSize =  (OptimizationFlags_t)Stettings._Flags & (OptimizationFlags_t)OptimizationFlags::ForSize;
 	bool ForSpeed = (OptimizationFlags_t)Stettings._Flags & (OptimizationFlags_t)OptimizationFlags::ForSpeed;
 	ResetOptimizations();
+	
+	bool isdebuging = ForDebuging;
+	if (IgnoredebugFlag)
+	{
+		isdebuging = false;
+	}
+
 	if (ForSize)
 	{
-		if (ForDebuging == false)
+		if (isdebuging == false)
 		{
-			
-			Optimization_RemoveUnsedVarables = true;
+			Optimization_RemoveUnsedNamedVarables = true;
+
 			Optimization_RemoveUnusePars = true;
 			Optimization_RemoveFuncsWithSameBody = true;
 			Optimization_LowerToBodysToCFunctions = false;
@@ -296,7 +553,10 @@ void IROptimizer::UpdateOptimizationList()
 
 			Optimization_FloatFastMath = Stettings.HasFlagArg("ffast-math");
 		}
-
+		Optimization_StrengthReduction = true;
+		Optimization_RemoveIdenticalTypes = true;
+		Optimization_RemoveUnsedVarables = true;
+			
 		
 		Optimization_ConstantFoldVarables = true;
 		Optimization_IndirectMemeberToDirectMemeber = true;
@@ -304,7 +564,7 @@ void IROptimizer::UpdateOptimizationList()
 	}
 	if (ForSpeed)
 	{
-		if (ForDebuging == false)
+		if (isdebuging == false)
 		{
 			Optimization_DestructureStructMembers = true;
 			Optimization_ReorderFunctionsInToHotSpots = true;
@@ -319,6 +579,36 @@ void IROptimizer::UpdateOptimizationList()
 			}
 		}
 		Optimization_ShortFuncInline = true;
+	}
+
+	if (!isdebuging)
+	{
+		Input->_Debug.Symbols.clear();
+
+		for (auto& Item2 : Input->_StaticInit.Blocks)
+		{
+			Item2->DebugInfo.DebugInfo.clear();
+		}
+		for (auto& Item2 : Input->_StaticdeInit.Blocks)
+		{
+			Item2->DebugInfo.DebugInfo.clear();
+		}
+		for (auto& Item2 : Input->_threadInit.Blocks)
+		{
+			Item2->DebugInfo.DebugInfo.clear();
+		}
+		for (auto& Item2 : Input->_threaddeInit.Blocks)
+		{
+			Item2->DebugInfo.DebugInfo.clear();
+		}
+
+		for (auto& Item : Input->Funcs)
+		{
+			for (auto& Item2 : Item->Blocks)
+			{
+				Item2->DebugInfo.DebugInfo.clear();
+			}
+		}
 	}
 }
 void IROptimizer::UpdateCodePass()
@@ -382,9 +672,11 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 
 	for (auto& Block : Func->Blocks)
 	{
+		IRData.clear();
+
 		for (auto& Ins : Block->Instructions)
 		{
-			Get_IRData(Ins.get()).IsReferenced = false;
+			IRData.AddValue(Ins.get(), {});
 		}
 
 		for (size_t i = 0; i < Block->Instructions.size(); i++)
@@ -438,6 +730,32 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 						break;\
 					}\
 
+					#define	ConstantBinaryFoldfloat(bits) \
+					switch (Ins->Type) \
+					{\
+					case IRInstructionType::Add:Ins->Target().Value.Asfloat##bits = Ins->A.Value.AsInt##bits  + Ins->B.Value.Asfloat##bits ;break;\
+					case IRInstructionType::Sub:Ins->Target().Value.Asfloat##bits = Ins->A.Value.AsInt##bits  - Ins->B.Value.Asfloat##bits ;break;\
+					case IRInstructionType::UMult:Ins->Target().Value.Asfloat##bits = Ins->A.Value.AsUInt##bits  * Ins->B.Value.Asfloat##bits ;break;\
+					case IRInstructionType::SMult:Ins->Target().Value.Asfloat##bits  = Ins->A.Value.AsInt##bits  * Ins->B.Value.Asfloat##bits ;break;\
+					case IRInstructionType::UDiv:Ins->Target().Value.Asfloat##bits  = Ins->A.Value.AsUInt##bits  / Ins->B.Value.Asfloat##bits ;break;\
+					case IRInstructionType::SDiv:Ins->Target().Value.Asfloat##bits  = Ins->A.Value.AsInt##bits  / Ins->B.Value.Asfloat##bits ;break;\
+					case IRInstructionType::EqualTo:Ins->Target().Value.Asfloat##bits  = Ins->A.Value.AsInt##bits  == Ins->B.Value.Asfloat##bits ;break;\
+					case IRInstructionType::NotEqualTo:Ins->Target().Value.Asfloat##bits  = Ins->A.Value.AsInt##bits  != Ins->B.Value.Asfloat##bits ;break;\
+					case IRInstructionType::SGreaterThan:Ins->Target().Value.Asfloat##bits = Ins->A.Value.AsInt##bits > Ins->B.Value.Asfloat##bits; break; \
+					case IRInstructionType::SLessThan:Ins->Target().Value.Asfloat##bits = Ins->A.Value.AsInt##bits < Ins->B.Value.Asfloat##bits; break; \
+					case IRInstructionType::SGreaterThanOrEqual:Ins->Target().Value.Asfloat##bits = Ins->A.Value.AsInt##bits >= Ins->B.Value.Asfloat##bits; break; \
+					case IRInstructionType::SLessThanOrEqual:Ins->Target().Value.Asfloat##bits = Ins->A.Value.AsInt##bits <= Ins->B.Value.Asfloat##bits; break; \
+					case IRInstructionType::UGreaterThan:Ins->Target().Value.Asfloat##bits = Ins->A.Value.AsUInt##bits > Ins->B.Value.Asfloat##bits; break; \
+					case IRInstructionType::ULessThan:Ins->Target().Value.Asfloat##bits = Ins->A.Value.AsUInt##bits < Ins->B.Value.Asfloat##bits; break; \
+					case IRInstructionType::UGreaterThanOrEqual:Ins->Target().Value.Asfloat##bits = Ins->A.Value.AsUInt##bits >= Ins->B.Value.Asfloat##bits; break; \
+					case IRInstructionType::ULessThanOrEqual:Ins->Target().Value.Asfloat##bits = Ins->A.Value.AsUInt##bits <= Ins->B.Value.Asfloat##bits; break; \
+					case IRInstructionType::Logical_And:Ins->Target().Value.Asfloat##bits  = Ins->A.Value.AsInt##bits && Ins->B.Value.Asfloat##bits ;break;\
+					case IRInstructionType::Logical_Or:Ins->Target().Value.Asfloat##bits  = Ins->A.Value.AsInt##bits || Ins->B.Value.Asfloat##bits ;break;\
+					default:\
+						UCodeLangUnreachable();\
+						break;\
+					}\
+
 				if (Ins->A.Type == IROperatorType::Value && Ins->B.Type == IROperatorType::Value)
 				{
 					bool ok = true;
@@ -463,9 +781,10 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 						{
 							if (Optimization_FloatFastMath)
 							{
-								//TODO add check for floats
+								//TODO add check  for floats
 							}
-							else {
+							else 
+							{
 								ok = false;
 							}
 						}
@@ -515,19 +834,665 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 						{
 							if (Optimization_FloatFastMath)
 							{
-								//TODO ConstantBinaryFold for floats
+								ConstantBinaryFoldfloat(32);							
 							}
 						}
 						else if (Ins->ObjectType.IsType(IRTypes::f64))
 						{
 							if (Optimization_FloatFastMath)
 							{
-								//TODO ConstantBinaryFold for floats
+								ConstantBinaryFoldfloat(64);
 							}
 						}
 						else
 						{
 							UCodeLangUnreachable();
+						}
+					}
+				}
+			
+
+				if (Optimization_StrengthReduction) 
+				{
+					if (
+						(Ins->Type == IRInstructionType::SMult
+							|| Ins->Type == IRInstructionType::UMult
+							)
+						&& (Ins->A.Type == IROperatorType::Value
+						|| Ins->B.Type == IROperatorType::Value)
+						)
+					{
+						// A * 1 => A
+						// A * 2 => A + A or A * 2 => A << 1
+
+						auto& Op = Ins->A.Type == IROperatorType::Value ? Ins->A : Ins->B;
+						auto& Other = Ins->A.Type != IROperatorType::Value ? Ins->A : Ins->B;
+
+						enum class mode
+						{
+							none,
+							Mult0,
+							Mult1,
+							Mult2,
+							Mult4,
+							Mult8,
+							Mult16,
+							Mult32,
+							Mult64,
+						};
+						mode ok = mode::none;
+						if (Ins->ObjectType.IsType(IRTypes::i8))
+						{
+							if (Op.Value.AsInt8 == 0)
+							{
+								ok = mode::Mult0;
+							}
+							else if (Op.Value.AsInt8 == 1)
+							{
+								ok = mode::Mult1;
+							}
+							else if (Op.Value.AsInt8 == 2)
+							{
+								ok = mode::Mult2;
+							}
+							else if (Op.Value.AsInt8 == 4)
+							{
+								ok = mode::Mult4;
+							}
+							else if (Op.Value.AsInt8 == 8)
+							{
+								ok = mode::Mult8;
+							}
+							else if (Op.Value.AsInt8 == 16)
+							{
+								ok = mode::Mult16;
+							}
+							else if (Op.Value.AsInt8 == 32)
+							{
+								ok = mode::Mult32;
+							}
+							else if (Op.Value.AsInt8 == 64)
+							{
+								ok = mode::Mult64;
+							}
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::i16))
+						{
+							if (Op.Value.AsInt16 == 0)
+							{
+								ok = mode::Mult0;
+							}
+							else if (Op.Value.AsInt16 == 1)
+							{
+								ok = mode::Mult1;
+							}
+							else if (Op.Value.AsInt16 == 2)
+							{
+								ok = mode::Mult2;
+							}
+							else if (Op.Value.AsInt16 == 4)
+							{
+								ok = mode::Mult4;
+							}
+							else if (Op.Value.AsInt16 == 8)
+							{
+								ok = mode::Mult8;
+							}
+							else if (Op.Value.AsInt16 == 16)
+							{
+								ok = mode::Mult16;
+							}
+							else if (Op.Value.AsInt16 == 32)
+							{
+								ok = mode::Mult32;
+							}
+							else if (Op.Value.AsInt16 == 64)
+							{
+								ok = mode::Mult64;
+							}
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::i32))
+						{
+							if (Op.Value.AsInt32 == 0)
+							{
+								ok = mode::Mult0;
+							}
+							else if (Op.Value.AsInt32 == 1)
+							{
+								ok = mode::Mult1;
+							}
+							else if (Op.Value.AsInt32 == 2)
+							{
+								ok = mode::Mult2;
+							}
+							else if (Op.Value.AsInt32 == 4)
+							{
+								ok = mode::Mult4;
+							}
+							else if (Op.Value.AsInt32 == 8)
+							{
+								ok = mode::Mult8;
+							}
+							else if (Op.Value.AsInt32 == 16)
+							{
+								ok = mode::Mult16;
+							}
+							else if (Op.Value.AsInt32 == 32)
+							{
+								ok = mode::Mult32;
+							}
+							else if (Op.Value.AsInt32 == 64)
+							{
+								ok = mode::Mult64;
+							}
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::i64))
+						{
+							if (Op.Value.AsInt64 == 0)
+							{
+								ok = mode::Mult0;
+							}
+							else if (Op.Value.AsInt64 == 1)
+							{
+								ok = mode::Mult1;
+							}
+							else if (Op.Value.AsInt64 == 2)
+							{
+								ok = mode::Mult2;
+							}
+							else if (Op.Value.AsInt64 == 4)
+							{
+								ok = mode::Mult4;
+							}
+							else if (Op.Value.AsInt64 == 8)
+							{
+								ok = mode::Mult8;
+							}
+							else if (Op.Value.AsInt64 == 16)
+							{
+								ok = mode::Mult16;
+							}
+							else if (Op.Value.AsInt64 == 32)
+							{
+								ok = mode::Mult32;
+							}
+							else if (Op.Value.AsInt64 == 64)
+							{
+								ok = mode::Mult64;
+							}
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::f32))
+						{
+							if (Optimization_FloatFastMath)
+							{
+								if (Op.Value.AsInt32 == 0)
+								{
+									ok = mode::Mult0;
+								}
+								else if (Op.Value.Asfloat32 == 1)
+								{
+									ok = mode::Mult1;
+								}
+								else if (Op.Value.Asfloat32 == 2)
+								{
+									ok = mode::Mult2;
+								}
+							}
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::f64))
+						{
+							if (Optimization_FloatFastMath)
+							{
+								if (Op.Value.AsInt8 == 0)
+								{
+									ok = mode::Mult0;
+								}
+								else if (Op.Value.Asfloat64 == 1)
+								{
+									ok = mode::Mult1;
+								}
+								else if (Op.Value.Asfloat64 == 2)
+								{
+									ok = mode::Mult2;
+								}
+							}
+						}
+
+						if (ok == mode::Mult1)
+						{
+							Op = IROperator();
+							Ins->Target() = Other;
+							Ins->Type = IRInstructionType::Load;
+							UpdatedCode();
+						}
+						else if (ok == mode::Mult2)
+						{
+							bool DoAdd = Ins->ObjectType.IsType(IRTypes::f64) || Ins->ObjectType.IsType(IRTypes::f32);
+							if (DoAdd) 
+							{
+								Op = IROperator();
+								Ins->Target() = Other;
+								Ins->Input() = Other;
+								Ins->Type = IRInstructionType::Add;
+							}
+							else
+							{
+								Op = IROperator();
+								Ins->Target() = Other;
+								Ins->Input() = AnyInt64(1);
+								Ins->Type = IRInstructionType::BitWise_ShiftL;
+							}
+							UpdatedCode();
+						}
+						else if (ok == mode::Mult4)
+						{
+							Op = IROperator();
+							Ins->Target() = Other;
+							Ins->Input() = AnyInt64(2);
+							Ins->Type = IRInstructionType::BitWise_ShiftL;
+							UpdatedCode();
+						}
+						else if (ok == mode::Mult8)
+						{
+							Op = IROperator();
+							Ins->Target() = Other;
+							Ins->Input() = AnyInt64(3);
+							Ins->Type = IRInstructionType::BitWise_ShiftL;
+							UpdatedCode();
+						}
+						else if (ok == mode::Mult16)
+						{
+							Op = IROperator();
+							Ins->Target() = Other;
+							Ins->Input() = AnyInt64(4);
+							Ins->Type = IRInstructionType::BitWise_ShiftL;
+							UpdatedCode();
+						}
+						else if (ok == mode::Mult32)
+						{
+							Op = IROperator();
+							Ins->Target() = Other;
+							Ins->Input() = AnyInt64(5);
+							Ins->Type = IRInstructionType::BitWise_ShiftL;
+							UpdatedCode();
+						}
+						else if (ok == mode::Mult64)
+						{
+							Op = IROperator();
+							Ins->Target() = Other;
+							Ins->Input() = AnyInt64(6);
+							Ins->Type = IRInstructionType::BitWise_ShiftL;
+							UpdatedCode();
+						}
+						else if (ok == mode::Mult0)
+						{
+							Op = IROperator();
+							
+							if (Ins->ObjectType.IsType(IRTypes::f64))
+							{
+								Ins->Target() = AnyInt64((float64)0);
+							}
+							else if (Ins->ObjectType.IsType(IRTypes::f32))
+							{
+								Ins->Target() = AnyInt64((float32)0);
+							}
+							else
+							{
+								Ins->Target() = AnyInt64(0);
+							}
+
+							Ins->Type = IRInstructionType::Load;
+							UpdatedCode();
+						}
+						else if (ok == mode::none)
+						{
+
+						}
+						else
+						{
+							UCodeLangUnreachable();
+						}
+					}
+					
+					
+					if (
+						(Ins->Type == IRInstructionType::SDiv
+							|| Ins->Type == IRInstructionType::UDiv
+							)
+						&& (Ins->B.Type == IROperatorType::Value)
+						)
+					{
+						enum class mode
+						{
+							none,
+							Div0,
+							Div1,
+							Div2,
+							Div4,
+							Div8,
+							Div16,
+							Div32,
+							Div64,
+						};
+						auto& Op = Ins->B;
+
+						mode ok = mode::none;
+						if (Ins->ObjectType.IsType(IRTypes::i32))
+						{
+							if (Op.Value.AsInt32 == 0)
+							{
+								ok = mode::Div0;
+							}
+							else if (Op.Value.AsInt32 == 1)
+							{
+								ok = mode::Div1;
+							}
+							else if (Op.Value.AsInt32 == 2)
+							{
+								ok = mode::Div2;
+							}
+							else if (Op.Value.AsInt32 == 4)
+							{
+								ok = mode::Div4;
+							}
+							else if (Op.Value.AsInt32 == 8)
+							{
+								ok = mode::Div8;
+							}
+							else if (Op.Value.AsInt32 == 16)
+							{
+								ok = mode::Div16;
+							}
+							else if (Op.Value.AsInt32 == 32)
+							{
+								ok = mode::Div32;
+							}
+							else if (Op.Value.AsInt32 == 64)
+							{
+								ok = mode::Div64;
+							}
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::i16))
+						{
+							if (Op.Value.AsInt16 == 0)
+							{
+								ok = mode::Div0;
+							}
+							else if (Op.Value.AsInt16 == 1)
+							{
+								ok = mode::Div1;
+							}
+							else if (Op.Value.AsInt16 == 2)
+							{
+								ok = mode::Div2;
+							}
+							else if (Op.Value.AsInt16 == 4)
+							{
+								ok = mode::Div4;
+							}
+							else if (Op.Value.AsInt16 == 8)
+							{
+								ok = mode::Div8;
+							}
+							else if (Op.Value.AsInt16 == 16)
+							{
+								ok = mode::Div16;
+							}
+							else if (Op.Value.AsInt16 == 32)
+							{
+								ok = mode::Div32;
+							}
+							else if (Op.Value.AsInt16 == 64)
+							{
+								ok = mode::Div64;
+							}
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::i8))
+						{
+							if (Op.Value.AsInt8 == 0)
+							{
+								ok = mode::Div0;
+							}
+							else if (Op.Value.AsInt8 == 1)
+							{
+								ok = mode::Div1;
+							}
+							else if (Op.Value.AsInt8 == 2)
+							{
+								ok = mode::Div2;
+							}
+							else if (Op.Value.AsInt8 == 4)
+							{
+								ok = mode::Div4;
+							}
+							else if (Op.Value.AsInt8 == 8)
+							{
+								ok = mode::Div8;
+							}
+							else if (Op.Value.AsInt8 == 16)
+							{
+								ok = mode::Div16;
+							}
+							else if (Op.Value.AsInt8 == 32)
+							{
+								ok = mode::Div32;
+							}
+							else if (Op.Value.AsInt8 == 64)
+							{
+								ok = mode::Div64;
+							}
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::i64))
+						{
+							if (Op.Value.AsInt64 == 0)
+							{
+								ok = mode::Div0;
+							}
+							else if (Op.Value.AsInt64 == 1)
+							{
+								ok = mode::Div1;
+							}
+							else if (Op.Value.AsInt64 == 2)
+							{
+								ok = mode::Div2;
+							}
+							else if (Op.Value.AsInt64 == 4)
+							{
+								ok = mode::Div4;
+							}
+							else if (Op.Value.AsInt64 == 8)
+							{
+								ok = mode::Div8;
+							}
+							else if (Op.Value.AsInt64 == 16)
+							{
+								ok = mode::Div16;
+							}
+							else if (Op.Value.AsInt64 == 32)
+							{
+								ok = mode::Div32;
+							}
+							else if (Op.Value.AsInt64 == 64)
+							{
+								ok = mode::Div64;
+							}
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::f32))
+						{
+							if (Optimization_FloatFastMath) {
+								if (Op.Value.Asfloat32 == 0)
+								{
+									ok = mode::Div0;
+								}
+								else if (Op.Value.Asfloat32 == 1)
+								{
+									ok = mode::Div1;
+								}
+								else if (Op.Value.Asfloat32 == 2)
+								{
+									ok = mode::Div2;
+								}
+								else if (Op.Value.Asfloat32 == 4)
+								{
+									ok = mode::Div4;
+								}
+								else if (Op.Value.Asfloat32 == 8)
+								{
+									ok = mode::Div8;
+								}
+								else if (Op.Value.Asfloat32 == 16)
+								{
+									ok = mode::Div16;
+								}
+								else if (Op.Value.Asfloat32 == 32)
+								{
+									ok = mode::Div32;
+								}
+								else if (Op.Value.Asfloat32 == 64)
+								{
+									ok = mode::Div64;
+								}
+							}
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::f64))
+						{
+							if (Optimization_FloatFastMath) {
+								if (Op.Value.Asfloat64== 0)
+								{
+									ok = mode::Div0;
+								}
+								else if (Op.Value.Asfloat64 == 1)
+								{
+									ok = mode::Div1;
+								}
+								else if (Op.Value.Asfloat64 == 2)
+								{
+									ok = mode::Div2;
+								}
+								else if (Op.Value.Asfloat64 == 4)
+								{
+									ok = mode::Div4;
+								}
+								else if (Op.Value.Asfloat64 == 8)
+								{
+									ok = mode::Div8;
+								}
+								else if (Op.Value.Asfloat64 == 16)
+								{
+									ok = mode::Div16;
+								}
+								else if (Op.Value.Asfloat64 == 32)
+								{
+									ok = mode::Div32;
+								}
+								else if (Op.Value.Asfloat64 == 64)
+								{
+									ok = mode::Div64;
+								}
+							}
+							}
+
+						if (ok == mode::none)
+						{
+
+						}
+						else if (ok == mode::Div0)
+						{
+							//Block->Instructions.insert(Block->Instructions.begin() + i, std::make_unique<IRInstruction>(IRInstructionType::Unreachable));
+							//UpdatedCode();
+						}
+						else if (ok == mode::Div1)
+						{
+							Op = IROperator();
+							Ins->Target() = Ins->A;
+							Ins->Type = IRInstructionType::Load;
+							UpdatedCode();
+						}
+						else if (ok == mode::Div2)
+						{
+							Op = IROperator();
+							Ins->Target() = Ins->A;
+							Ins->Input() = AnyInt64(1);
+							Ins->Type = IRInstructionType::BitWise_ShiftR;
+							UpdatedCode();
+						}
+						else if (ok == mode::Div4)
+						{
+							Op = IROperator();
+							Ins->Target() = Ins->A;
+							Ins->Input() = AnyInt64(2);
+							Ins->Type = IRInstructionType::BitWise_ShiftR;
+							UpdatedCode();
+						}
+						else if (ok == mode::Div8)
+						{
+							Op = IROperator();
+							Ins->Target() = Ins->A;
+							Ins->Input() = AnyInt64(3);
+							Ins->Type = IRInstructionType::BitWise_ShiftR;
+							UpdatedCode();
+						}
+						else if (ok == mode::Div16)
+						{
+							Op = IROperator();
+							Ins->Target() = Ins->A;
+							Ins->Input() = AnyInt64(4);
+							Ins->Type = IRInstructionType::BitWise_ShiftR;
+							UpdatedCode();
+						}
+						else if (ok == mode::Div32)
+						{
+							Op = IROperator();
+							Ins->Target() = Ins->A;
+							Ins->Input() = AnyInt64(5);
+							Ins->Type = IRInstructionType::BitWise_ShiftR;
+							UpdatedCode();
+						}
+						else if (ok == mode::Div64)
+						{
+							Op = IROperator();
+							Ins->Target() = Ins->A;
+							Ins->Input() = AnyInt64(6);
+							Ins->Type = IRInstructionType::BitWise_ShiftR;
+							UpdatedCode();
+						}
+						else 
+						{
+							UCodeLangUnreachable();
+						}
+					}
+
+					if (
+						(Ins->Type == IRInstructionType::SDiv
+							|| Ins->Type == IRInstructionType::UDiv
+							)
+						&& (Ins->B == Ins->A)
+						)
+					{
+						if (Ins->ObjectType.IsType(IRTypes::f64))
+						{
+							if (Optimization_FloatFastMath) 
+							{
+								Ins->Target() = AnyInt64((float64)1);
+								Ins->Type = IRInstructionType::Load;
+								UpdatedCode();
+							}
+
+						}
+						else if (Ins->ObjectType.IsType(IRTypes::f32))
+						{
+							if (Optimization_FloatFastMath) {
+								Ins->Target() = AnyInt64((float32)1);
+								Ins->Type = IRInstructionType::Load;
+								UpdatedCode();
+							}
+
+						}
+						else 
+						{
+							Ins->Target() = AnyInt64(1);
+							Ins->Type = IRInstructionType::Load;
+							UpdatedCode();
 						}
 					}
 				}
@@ -674,6 +1639,14 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 				ConstantFoldOperator(*Ins, Ins->Input(), ReadOrWrite::Read);
 			}
 			else if (Ins->Type == IRInstructionType::ConditionalJump)
+			{
+
+			}
+			else if (Ins->Type == IRInstructionType::JumpBlock)
+			{
+
+			}
+			else if (Ins->Type == IRInstructionType::JumpBlockIf)
 			{
 
 			}
@@ -1148,74 +2121,16 @@ void IROptimizer::ToSSA(IRFunc* Func, SSAState& state)
 	if (Func->Blocks.size() == 0) { return; }
 	UCodeLangAssert(Func->Blocks.size());
 
-	auto Block = Func->Blocks.front().get();
-	UnorderedMap<size_t,size_t> IndexToBlock;
-	for (size_t i = 0; i < Block->Instructions.size(); i++)
+	ControlFlowToBaseBasicBlocks(Func, state);
+
+#if RunlogIRState 
 	{
-		auto& I = Block->Instructions[i];
-		switch (I->Type)
-		{
-		case IRInstructionType::Jump:
-		case IRInstructionType::ConditionalJump:
-			if (!IndexToBlock.HasValue(I->Target().identifier))
-			{
-				IRBlock v;
-
-				Func->Blocks.push_back(std::make_unique<IRBlock>(std::move(v)));
-				IndexToBlock.AddValue(I->Target().identifier,Func->Blocks.size()-1);
-
-
-			}
-			break;
-		}
+		auto S = Input->ToString();
+		std::cout << "-----" << std::endl;
+		std::cout << S;
 	}
-
-
-	IRBlock* OnBlock = Block;
-	auto size = Block->Instructions.size();
-	for (size_t i = 0; i < size; i++)
-	{
-		auto& Ins = Block->Instructions[i];
-
-
-		if (IndexToBlock.HasValue(i))
-		{
-			OnBlock = Func->Blocks[IndexToBlock.GetValue(i)].get();
-		}
-
-		if (Ins->Type == IRInstructionType::Jump)
-		{
-			Ins->Type = IRInstructionType::JumpBlock;
-			Ins->Target().Value = AnyInt64(IndexToBlock.GetValue(Ins->Target().Value.AsUIntNative));
-		}
-		else if (Ins->Type == IRInstructionType::ConditionalJump)
-		{
-			Ins->Type = IRInstructionType::JumpBlockIf;
-			Ins->Target().Value = AnyInt64(IndexToBlock.GetValue(Ins->Target().Value.AsUIntNative));
-		}
-
-		OnBlock->Instructions.push_back(std::move(Ins));
-
-	}
-
-	std::reverse(Func->Blocks.begin() + 1, Func->Blocks.end());
+#endif
 	
-	for (auto& Item : Func->Blocks) 
-	{
-		Item->DebugInfo.DebugInfo.clear();
-		auto& myList = Item->Instructions;
-		myList.erase(
-			std::remove_if(myList.begin(), myList.end(),
-				[](const Unique_ptr<IRInstruction>& o) { return o.get() ==nullptr || o->Type ==IRInstructionType::None; }),
-			myList.end());
-
-	}
-	
-	auto S = Input->ToString();
-
-	std::cout << "-----" << std::endl;
-	std::cout << S;
-	/*
 	for (auto& Block : Func->Blocks)
 	{
 		for (size_t i = 0; i < Block->Instructions.size(); i++)
@@ -1232,11 +2147,10 @@ void IROptimizer::ToSSA(IRFunc* Func, SSAState& state)
 						continue;
 					}
 				}
-				Ins->Type = IRInstructionType::Load;
-				Ins->Target() =Ins->Input();
-				Ins->Input() = IROperator();
+				Ins->Type = IRInstructionType::SSA_Reassign;
+				std::swap(Ins->Target(), Ins->Input());
 
-				state.Map.AddValue(ToUpdate,Ins.get());
+				state.Map.AddValueOrOverWrite(ToUpdate,Ins.get());
 			}
 			else
 			{
@@ -1244,7 +2158,7 @@ void IROptimizer::ToSSA(IRFunc* Func, SSAState& state)
 				{
 					if (state.Map.HasValue(Ins->Target()))
 					{
-						state.Updated.AddValue(&Ins->Target(), Ins->Target());
+						state.Updated.AddValueOrOverWrite(&Ins->Target(), Ins->Target());
 						Ins->Target() = IROperator(state.Map.GetValue(Ins->Target()));
 					}
 				}	
@@ -1253,20 +2167,176 @@ void IROptimizer::ToSSA(IRFunc* Func, SSAState& state)
 				{
 					if (state.Map.HasValue(Ins->Input()))
 					{
-						state.Updated.AddValue(&Ins->Input(), Ins->Input());
+						state.Updated.AddValueOrOverWrite(&Ins->Input(), Ins->Input());
 						Ins->Target() = IROperator(state.Map.GetValue(Ins->Input()));
 					}
 				}
 			}
 		}
 	}
-	*/
+	
+
+	#if RunlogIRState 
+	{
+		auto S = Input->ToString();
+		std::cout << "-----" << std::endl;
+		std::cout << S;
+	}
+	#endif
 }
-void  IROptimizer::UndoSSA(IRFunc* Func, const SSAState& state)
+void IROptimizer::UndoSSA(IRFunc* Func, const SSAState& state)
 {
 	for (auto& Item : state.Updated)
 	{
 		*Item.first = Item.second;
+	}
+}
+
+void IROptimizer::ControlFlowToBaseBasicBlocks(IRFunc* Func, SSAState& state)
+{
+	auto Block = Func->Blocks.front().get();
+	UnorderedMap<size_t, size_t> IndexToBlock;
+	UnorderedMap<size_t, size_t> JumpLToBlock;
+
+	for (size_t i = 0; i < Block->Instructions.size(); i++)
+	{
+		auto& I = Block->Instructions[i];
+		switch (I->Type)
+		{
+		case IRInstructionType::Jump:
+		{
+			if (!IndexToBlock.HasValue(I->Target().Value.AsUIntNative))
+			{
+				IRBlock v;
+
+				Func->Blocks.push_back(std::make_unique<IRBlock>(std::move(v)));
+				IndexToBlock.AddValue(I->Target().Value.AsUIntNative, Func->Blocks.size() - 1);
+
+
+			}
+		}
+		break;
+		case IRInstructionType::ConditionalJump:
+			if (!IndexToBlock.HasValue(I->Target().Value.AsUIntNative))
+			{
+				IRBlock v;
+
+				Func->Blocks.push_back(std::make_unique<IRBlock>(std::move(v)));
+				IndexToBlock.AddValue(I->Target().Value.AsUIntNative, Func->Blocks.size() - 1);
+
+
+			}
+			if (!IndexToBlock.HasValue(i + 1))
+			{
+				IRBlock v;
+
+				Func->Blocks.push_back(std::make_unique<IRBlock>(std::move(v)));
+				IndexToBlock.AddValue(i + 1, Func->Blocks.size() - 1);
+			}
+			break;
+		}
+	}
+
+
+	IRBlock* OnBlock = Block;
+	auto size = Block->Instructions.size();
+	IRInstructionType lasttype = IRInstructionType::None;
+	bool addjumpbecausefallthrough = false;
+
+	for (size_t i = 0; i < size; i++)
+	{
+		auto* Ins = &Block->Instructions[i];
+
+		if ((*Ins)->Type == IRInstructionType::Jump)
+		{
+			int a = 0;
+
+		}
+
+
+
+		if (lasttype == IRInstructionType::ConditionalJump)
+		{
+			auto newblockindex = IndexToBlock.GetValue(i);
+
+
+			OnBlock->Instructions.push_back(
+				std::move(std::make_unique<IRInstruction>(IRInstructionType::JumpBlock, IROperator(newblockindex))
+				));
+
+			OnBlock = Func->Blocks[newblockindex].get();
+			//because of resize
+			Ins = &Block->Instructions[i];
+		}
+		else
+		{
+
+			if (IndexToBlock.HasValue(i))
+			{
+				if (Ins->get()->Type != IRInstructionType::ConditionalJump
+					&& Ins->get()->Type != IRInstructionType::Jump)
+				{
+					int a = 0;
+
+					//for fall through
+					auto Index = IndexToBlock.GetValue(i);
+
+					OnBlock->Instructions.push_back(
+						std::move(std::make_unique<IRInstruction>(IRInstructionType::JumpBlock, IROperator(Index))
+						));
+					OnBlock = Func->Blocks[Index].get();
+					addjumpbecausefallthrough = true;
+
+
+					//because of resize
+					Ins = &Block->Instructions[i];
+
+
+				}
+			}
+			else if (IndexToBlock.HasValue(i))
+			{
+				auto newblockindex = IndexToBlock.GetValue(i);
+
+				if (newblockindex < Func->Blocks.size()) {
+					OnBlock = Func->Blocks[newblockindex].get();
+				}
+				else
+				{
+					OnBlock = Func->Blocks.front().get();
+				}
+
+			}
+		}
+
+
+
+		lasttype = (*Ins)->Type;
+
+		if ((*Ins)->Type == IRInstructionType::Jump)
+		{
+			(*Ins)->Type = IRInstructionType::JumpBlock;
+			(*Ins)->Target().Value = AnyInt64(IndexToBlock.GetValue((*Ins)->Target().Value.AsUIntNative));
+		}
+		else if ((*Ins)->Type == IRInstructionType::ConditionalJump)
+		{
+			(*Ins)->Type = IRInstructionType::JumpBlockIf;
+			(*Ins)->Target().Value = AnyInt64(IndexToBlock.GetValue((*Ins)->Target().Value.AsUIntNative));
+		}
+
+		OnBlock->Instructions.push_back(std::move((*Ins)));
+
+	}
+
+	for (auto& Item : Func->Blocks)
+	{
+		Item->DebugInfo.DebugInfo.clear();
+		auto& myList = Item->Instructions;
+		myList.erase(
+			std::remove_if(myList.begin(), myList.end(),
+				[](const Unique_ptr<IRInstruction>& o) { return o.get() == nullptr || o->Type == IRInstructionType::None; }),
+			myList.end());
+
 	}
 }
 void IROptimizer::InLineFunc(InLineData& Data)

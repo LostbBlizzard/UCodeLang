@@ -111,7 +111,9 @@ Vector<const ClassMethod*> TestRuner::GetTests(const ClassAssembly& Assembly)
 
 					if (hastesttag)
 					{
+
 						tests.push_back(&Func);
+
 					}
 				}
 			}

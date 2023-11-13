@@ -20,6 +20,8 @@ Add##bitsize, Sub##bitsize, MultS##bitsize, MultU##bitsize, DivS##bitsize, DivU#
 LogicalAnd##bitsize, Logicalor##bitsize, LogicalNot##bitsize,\
 equalto##bitsize, notequalto##bitsize, lessthan##bitsize, greaterthan##bitsize, equal_lessthan##bitsize, equal_greaterthan##bitsize,\
 bitwiseAnd##bitsize, bitwiseOr##bitsize, bitwiseLeftShift##bitsize, bitwiseRightShift##bitsize, bitwiseXor##bitsize, bitwise_Not##bitsize,\
+ModS##bitsize,ModU##bitsize,
+
 
 #define AddSetfloat(bitsize)\
 Addf##bitsize,\

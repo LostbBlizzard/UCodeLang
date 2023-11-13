@@ -169,11 +169,16 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 		case TokenType::lessthan:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewULessThan(Ex0, Ex1); break; \
 		case TokenType::greater_than_or_equalto:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewUGreaterThanOrEqual(Ex0, Ex1); break; \
 		case TokenType::less_than_or_equalto:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewULessThanOrEqual(Ex0, Ex1); break; \
+		case TokenType::bitwise_LeftShift:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseShiftL(Ex0, Ex1); break; \
+		case TokenType::bitwise_RightShift:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseShiftR(Ex0, Ex1); break; \
+		case TokenType::bitwise_and:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseAnd(Ex0, Ex1); break; \
+		case TokenType::bitwise_XOr:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseXOr(Ex0, Ex1); break; \
+		case TokenType::bitwise_or:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseOr(Ex0, Ex1); break; \
+		case TokenType::modulo:_IR_LastExpressionField =  _IR_LookingAtIRBlock->NewUModulo(Ex0, Ex1); break; \
 		default:\
 			UCodeLangUnreachable();\
 			break;\
 		}\
-
 
 #define BindaryBuildS(x) switch (Op) \
 			{\
@@ -187,6 +192,12 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 			case TokenType::lessthan:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewSLessThan(Ex0, Ex1); break; \
 			case TokenType::greater_than_or_equalto:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewSGreaterThanOrEqual(Ex0, Ex1); break; \
 			case TokenType::less_than_or_equalto:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewSLessThanOrEqual(Ex0, Ex1); break; \
+			case TokenType::bitwise_LeftShift:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseShiftL(Ex0, Ex1); break; \
+			case TokenType::bitwise_RightShift:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseShiftR(Ex0, Ex1); break; \
+			case TokenType::bitwise_and:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseAnd(Ex0, Ex1); break; \
+			case TokenType::bitwise_XOr:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseXOr(Ex0, Ex1); break; \
+			case TokenType::bitwise_or:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseOr(Ex0, Ex1); break; \
+			case TokenType::modulo:_IR_LastExpressionField =  _IR_LookingAtIRBlock->NewSModulo(Ex0, Ex1); break; \
 			default:\
 				UCodeLangUnreachable(); \
 				break; \
@@ -263,6 +274,14 @@ TypeSymbol SystematicAnalysis::Type_BinaryExpressionShouldRurn(TokenType Op, con
 	case TokenType::less_than_or_equalto:
 	case TokenType::greater_than_or_equalto:
 		V.SetType(TypesEnum::Bool);
+		break;
+	case TokenType::bitwise_LeftShift:
+	case TokenType::bitwise_RightShift:
+	case TokenType::bitwise_and:
+	case TokenType::bitwise_or:
+	case TokenType::bitwise_XOr:
+	case TokenType::modulo:
+		V = Ex0Type;
 		break;
 	default:
 		V.SetType(TypesEnum::Void);

@@ -95,7 +95,7 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 			case InstructionSet::Debug_FuncStart:break;
 			case InstructionSet::Debug_FuncEnd:break;
 			case InstructionSet::Debug_LineEnter:break;
-			case InstructionSet::Storef32v1:
+			case InstructionSet::Store32v1:
 			{
 				auto op = Instruction::IsLoad32(Span<Instruction>::Make(Ins.data(), Ins.size()), i);
 				if (op.has_value())

@@ -46,11 +46,11 @@ public:
 	inline void ClearLibs() { Libs.clear(); }
 	void ClearRunTimeState();
 
-	inline const auto& Get_Code()
+	inline const auto& Get_Code() const
 	{
 		return _Code;
 	}
-	inline const AsmBuffer& Get_ExCode()
+	inline const AsmBuffer& Get_ExCode() const
 	{
 		return _ExCode;
 	}

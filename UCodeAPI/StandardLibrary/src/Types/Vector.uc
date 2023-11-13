@@ -49,14 +49,16 @@ $Vector<T>:
    this[_size - 1] = Val;
 
 
-  //|Push[this&,moved T Val] -> void;
+  |Push[this&,moved T Val] -> void:
+   Resize(_size + 1);
+   this[_size - 1] = Val;
 
   |Insert[this&,uintptr Index,imut T& Item] -> void;
-  //|Insert[this&,uintptr Index,moved T Item] -> void;
+  |Insert[this&,uintptr Index,moved T Item] -> void;
 
   //Not required Functions 
   |Append[this&,imut T[:] Val] -> void;
-  //|Append[this&,moved T[:] Val] -> void;
+  |Append[this&,moved Span<T> Val] -> void;
 
   
   |[][this&,uintptr Index] -> T&:ret _data[Index];

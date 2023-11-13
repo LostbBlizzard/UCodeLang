@@ -1,5 +1,3 @@
-$(&StaticArray_&)sint323 = int32[/1]
-$(&StaticArray_&)sint324 = int32[/1]
 
 |(&StaticInit&)[] -> void:;
 
@@ -10,71 +8,27 @@ $(&StaticArray_&)sint324 = int32[/1]
 |(&threadUnload&)[] -> void:;
 
 //EntryPoint 
-|main[] -> int8:
+|main[] -> int32:
 
  [Block:0]
 
 
 //File:src.uc
-//Line:2
-//Variable:main:H
+//Line:36
+//Variable:main:a
 
-   (&StaticArray_&)sint323 A;
-   int64 B = 4;
-   (&StaticArray_&)sint323* C = &A;
-   int32 D = 1;
-   int64 E = 0;
-   int64 F = E*B;
-   (&StaticArray_&)sint323* G = C+F;
-   *G = D;
+   int32 A;
+   int32 B = 2;
+   A = B;
 
-//Line:3
-//Variable:main:C
+//Line:38
 
-   (&StaticArray_&)sint324 H;
-   int64 I = 4;
-   (&StaticArray_&)sint324* J = &H;
-   int32 K = 1;
-   int64 L = 0;
-   int64 M = L*I;
-   (&StaticArray_&)sint324* N = J+M;
-   *N = K;
+   int32 C = 5;
+   A = C;
 
-//Line:5
+//Line:40
 
-   int32 O = 1;
-   (&StaticArray_&)sint323* P = &A;
-   int64 Q = 0;
-   int64 R = 4;
-   int64 S = Q*R;
-   (&StaticArray_&)sint323* T = P+S;
-   *T = O;
-
-//Line:6
-
-   int32 U = 1;
-   (&StaticArray_&)sint324* V = &H;
-   int64 W = 0;
-   int64 X = 4;
-   int64 Y = W*X;
-   (&StaticArray_&)sint324* Z = V+Y;
-   *Z = U;
-
-//Line:8
-
-   (&StaticArray_&)sint323* [ = &A;
-   int64 \ = 0;
-   int64 ] = 4;
-   int64 ^ = \*];
-   (&StaticArray_&)sint323* _ = [+^;
-   int32 ` = *_;
-   (&StaticArray_&)sint324* a = &H;
-   int64 b = 0;
-   int64 c = 4;
-   int64 d = b*c;
-   (&StaticArray_&)sint324* e = a+d;
-   int32 f = *e;
-   int8 g = `==f;
-   ret = g;
+   int32 D = A;
+   ret = D;
    ret;
 

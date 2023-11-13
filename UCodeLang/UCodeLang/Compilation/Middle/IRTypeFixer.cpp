@@ -206,6 +206,14 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 					UCodeLangUnreachable();
 				}
 			}
+			else if (Ins->Type == IRInstructionType::JumpBlock)
+			{
+
+			}
+			else if (Ins->Type == IRInstructionType::ConditionalJump)
+			{
+
+			}
 			else
 			{
 				UCodeLangUnreachable();

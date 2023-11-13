@@ -428,12 +428,17 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 		else
 			if (Func.ThisPar == Get_FuncInfo::ThisPar_t::PushFromScopedName)
 			{
+				_LookingForTypes.push(Func.Func->Pars[0].Type);
+				
 				_GetExpressionMode.push(GetValueMode::Read);
 				GetMemberTypeSymbolFromVar_t V;
 				Symbol_MemberTypeSymbolFromVar(0, Name._ScopedName.size() - 1, Name, V);
 				_GetExpressionMode.pop();
 
+
 				IRParsList.push_back(IR_Build_Member_AsPointer(V));
+
+				_LookingForTypes.pop();
 			}
 			else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::PushFromLast)
 			{
@@ -625,23 +630,22 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 		_IR_LastExpressionField = _IR_LookingAtIRBlock->NewCallFuncPtr(PtrCall);
 		//
 	}
-	else
-		if (Syb->Type == SymbolType::Func)
-		{
+	else if (Syb->Type == SymbolType::Func)
+	{
 			_IR_LastExpressionField = _IR_LookingAtIRBlock->NewCall(IR_GetIRID(Func.Func));
-		}
-		else if (Syb->Type == SymbolType::StackVarable)
-		{
-			_IR_LastExpressionField = _IR_LookingAtIRBlock->NewCallFuncPtr(Syb->IR_Ins);
-		}
-		else if (Syb->Type == SymbolType::ParameterVarable)
-		{
-			_IR_LastExpressionField = _IR_LookingAtIRBlock->NewCallFuncPtr(Syb->IR_Par);
-		}
-		else
-		{
-			UCodeLangUnreachable();
-		}
+	}
+	else if (Syb->Type == SymbolType::StackVarable)
+	{
+		_IR_LastExpressionField = _IR_LookingAtIRBlock->NewCallFuncPtr(Syb->IR_Ins);
+	}
+	else if (Syb->Type == SymbolType::ParameterVarable)
+	{
+		_IR_LastExpressionField = _IR_LookingAtIRBlock->NewCallFuncPtr(Syb->IR_Par);
+	}
+	else
+	{
+		UCodeLangUnreachable();
+	}
 
 	{
 		auto Tep = _IR_LastExpressionField;
@@ -1133,7 +1137,22 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 	}
 
-	{//unmaped
+
+	//badtype
+	{
+		for (auto& Item : ValueTypes)
+		{
+			if (Item.IsOutPar == false && Item.Type.IsBadType())
+			{
+				Get_FuncInfo V;
+
+				return V;//can't check because we are just testing.
+			}
+		}
+	}
+
+	//unmaped
+	{
 		for (auto& Item : ValueTypes)
 		{
 			if (Type_IsUnMapType(Item.Type))
@@ -1192,6 +1211,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 			}
 		}
 	}
+
 	//Pack
 	{
 		bool IsPack = ValueTypes.size() && ValueTypes.front().Type._Type == TypesEnum::CustomType;
@@ -1274,6 +1294,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 			}
 		}
 	}
+	
 	//TypeInfo
 	{
 		bool IsTypeInfo = ValueTypes.size() && ValueTypes.front().Type.IsTypeInfo();
@@ -1377,6 +1398,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 		}
 	}
+	
 	//compiler
 	{
 		if (Name._ScopedName.size() == 2)
@@ -1601,56 +1623,11 @@ StartSymbolsLoop:
 
 			if (v.has_value())
 			{
-				auto& val = v.value();
-				if (val.has_value())
-				{
-					return val.value();
-				}
-				else
-				{
-					auto FuncSym = NeverNullptr(Item);
-					String NewName = Generic_SymbolGenericFullName(FuncSym, GenericInput);
-					auto FuncIsMade = Symbol_GetSymbol(NewName, SymbolType::Func);
-
-
-
-					if (!FuncIsMade)
-					{
-
-						{
-							if (CheckForGenericInputIsConstantExpression(Info, GenericInput))
-							{
-								continue;
-							}
-						}
-						auto Pointer = std::make_unique<Vector<TypeSymbol>>(std::move(GenericInput));
-						//pointer must be unique so it can't be on the stack
-
-						Generic_GenericFuncInstantiate(FuncSym, *Pointer);
-
-						_TepFuncs.push_back({ std::move(Pointer) });//keep pointer 
-
-
-						FuncSym = Symbol_GetSymbol(NewName, SymbolType::Func).value();
-					}
-					else
-					{
-						FuncSym = FuncIsMade.value();
-					}
-
-
-
-
-					{
-						r = FuncSym->Get_Info<FuncInfo>();
-						FuncSymbol = FuncSym.value();
-
-						OkFunctions.push_back({ ThisParType,r,FuncSymbol });
-					}
-
-				}
+				r = Info;
+				FuncSymbol = Item;
+				T = SymbolType::FuncCall;
+				OkFunctions.push_back({ ThisParType,r,FuncSymbol });
 			}
-			break;
 		}
 		else if (Item->Type == SymbolType::Type_class)
 		{
@@ -1985,6 +1962,7 @@ StartSymbolsLoop:
 		Get_FuncInfo* Ret = nullptr;
 		for (auto& Item : OkFunctions)
 		{
+			Vector<ParInfo> _TepGeneric;
 			IsCompatiblePar CMPPar;
 			if (Item.SymFunc->Type == SymbolType::Func)
 			{
@@ -2000,6 +1978,52 @@ StartSymbolsLoop:
 				else
 				{
 					UCodeLangUnreachable();
+				}
+			}
+			else if (Item.SymFunc->Type == SymbolType::GenericFunc)
+			{
+				CMPPar.SetAsFuncInfo(Item.SymFunc);
+
+				//Get Par type like it was instantiated
+				_TepGeneric.resize(Item.Func->Pars.size());
+
+				Vector<TypeSymbol> GenericInput;
+				auto v = Type_FuncinferGenerics(GenericInput, ValueTypes, Generics, Item.SymFunc, _ThisTypeIsNotNull);
+
+				auto& Generic = Item.Func->_GenericData;
+
+				if (!Generic.IsPack())
+				{
+					//Next code does not work when is Generic Is Pack.
+
+
+
+					const FuncSignatureNode* Signature = &Item.SymFunc->Get_NodeInfo<FuncNode>()->_Signature;
+					
+					if (GenericInput.size() != Signature->_generic._Values.size())
+					{
+						continue;
+					}
+					_Table.AddScope(std::to_string((uintptr_t)Item.Func));
+					
+					for (size_t i = 0; i < Signature->_generic._Values.size(); i++)
+					{
+						auto& Item = Signature->_generic._Values[i];
+
+						auto& Syb = Symbol_AddSymbol(SymbolType::Type_alias, String(Item.token->Value._String),
+							_Table._Scope.ApendedStrings(_Table._Scope.ThisScope, Item.token->Value._String),
+							AccessModifierType::Public);
+
+						Syb.VarType = GenericInput[i];
+					}
+					for (size_t i = 0; i < Signature->_Parameters._Parameters.size(); i++)
+					{
+						auto& Item = Signature->_Parameters._Parameters[i];
+						Type_Convert(Item._Type, _TepGeneric[i].Type);
+					}
+
+					_Table.RemoveScope();
+					CMPPar.Pars = &_TepGeneric;
 				}
 			}
 			else
@@ -2020,6 +2044,60 @@ StartSymbolsLoop:
 		}
 
 		auto RValue = *Ret;
+
+		if (RValue.SymFunc->Type == SymbolType::GenericFunc)
+		{
+			Vector<TypeSymbol> GenericInput;
+			auto Info  = RValue.SymFunc->Get_Info<FuncInfo>();
+			auto v = Type_FuncinferGenerics(GenericInput, ValueTypes, Generics, RValue.SymFunc, _ThisTypeIsNotNull);
+
+			if (v.has_value())
+			{
+				auto& val = v.value();
+				if (val.has_value())
+				{
+					return val.value();
+				}
+				else
+				{
+					auto FuncSym = NeverNullptr(RValue.SymFunc);
+					String NewName = Generic_SymbolGenericFullName(FuncSym, GenericInput);
+					auto FuncIsMade = Symbol_GetSymbol(NewName, SymbolType::Func);
+
+
+
+					if (!FuncIsMade)
+					{
+
+						{
+							UCodeLangAssert(CheckForGenericInputIsConstantExpression(Info, GenericInput) == false);
+						}
+						auto Pointer = std::make_unique<Vector<TypeSymbol>>(std::move(GenericInput));
+						//pointer must be unique so it can't be on the stack
+
+						Generic_GenericFuncInstantiate(FuncSym, *Pointer);
+
+						_TepFuncs.push_back({ std::move(Pointer) });//keep pointer 
+
+
+						FuncSym = Symbol_GetSymbol(NewName, SymbolType::Func).value();
+					}
+					else
+					{
+						FuncSym = FuncIsMade.value();
+					}
+
+					{
+						r = FuncSym->Get_Info<FuncInfo>();
+						FuncSymbol = FuncSym.value();
+						RValue.SymFunc = FuncSymbol;
+						RValue.Func = r;
+					}
+
+				}
+			}
+		}
+
 		Symbol_AccessCheck(RValue.SymFunc, NeverNullptr(Name._ScopedName.back()._token));
 
 

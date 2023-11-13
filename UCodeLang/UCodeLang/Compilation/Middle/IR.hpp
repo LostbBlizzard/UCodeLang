@@ -136,6 +136,8 @@ enum class IRInstructionType : IRInstructionType_t
 	SMult,
 	UDiv,
 	SDiv,
+	SMod,
+	UMod,
 	//bitwise
 	BitWise_And,
 	BitWise_Or,
@@ -228,7 +230,8 @@ enum class IRInstructionType : IRInstructionType_t
 
 	//internal stuff
 	JumpBlock,
-	JumpBlockIf
+	JumpBlockIf,
+	SSA_Reassign,
 };
 
 inline bool IsCommutative(IRInstructionType Value)
@@ -252,7 +255,7 @@ inline bool IsBinary(IRInstructionType Value)
 		|| Value == IRInstructionType::SMult
 		|| Value == IRInstructionType::UDiv
 		|| Value == IRInstructionType::SDiv
-		
+
 		|| Value == IRInstructionType::EqualTo
 		|| Value == IRInstructionType::NotEqualTo
 
@@ -267,7 +270,14 @@ inline bool IsBinary(IRInstructionType Value)
 		|| Value == IRInstructionType::SLessThanOrEqual
 
 		|| Value == IRInstructionType::Logical_And
-		|| Value == IRInstructionType::Logical_Or;
+		|| Value == IRInstructionType::Logical_Or
+		|| Value == IRInstructionType::BitWise_ShiftL
+		|| Value == IRInstructionType::BitWise_ShiftR
+		|| Value == IRInstructionType::BitWise_Or
+		|| Value == IRInstructionType::BitWise_XOr
+		|| Value == IRInstructionType::BitWise_And
+		|| Value == IRInstructionType::SMod
+		|| Value == IRInstructionType::UMod;
 }
 inline bool IsUnary(IRInstructionType Value)
 {
@@ -344,6 +354,7 @@ inline bool IsOperatorValueInTarget(IRInstructionType Value)
 		|| Value == IRInstructionType::Member_Access_Dereference
 		|| Value == IRInstructionType::Member_Access
 		|| Value == IRInstructionType::Reassign
+		|| Value == IRInstructionType::Reassign_dereference
 		|| Value == IRInstructionType::MallocCall
 		|| Value == IRInstructionType::Realloc
 		|| Value == IRInstructionType::Memcpy
@@ -462,6 +473,23 @@ struct IROperator
 		return !this->operator==(Other);
 	}
 };
+UCodeLangEnd
+template <>
+struct std::hash<UCodeLang::IROperator>
+{
+	std::size_t operator()(const UCodeLang::IROperator& k) const
+	{
+		using UCodeLang::IROperator;
+		using namespace UCodeLang;
+		// Compute individual hash values for first,
+		// second and third and combine them using XOR
+		// and bit shifting:
+
+		return ((hash<IROperator_t>()((IROperator_t)k.Type)
+			^ (hash<IRidentifierID>()(k.identifier) << 1)) >> 1);
+	}
+};
+UCodeLangStart
 struct IRInstruction
 {
 	IRInstruction():Type(IRInstructionType::None){}
@@ -815,7 +843,42 @@ struct IRBlock
 	{
 		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::SDiv, IROperator(A), IROperator(B))).get();
 	}
-
+	//bitwise
+	IRInstruction* NewBitWiseShiftL(IRInstruction* A, IRInstruction* B)
+	{
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::BitWise_ShiftL, IROperator(A), IROperator(B))).get();
+	}
+	IRInstruction* NewBitWiseShiftR(IRInstruction* A, IRInstruction* B)
+	{
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::BitWise_ShiftR, IROperator(A), IROperator(B))).get();
+	}
+	IRInstruction* NewBitWiseAnd(IRInstruction* A, IRInstruction* B)
+	{
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::BitWise_And, IROperator(A), IROperator(B))).get();
+	}
+	IRInstruction* NewBitWiseOr(IRInstruction* A, IRInstruction* B)
+	{
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::BitWise_Or, IROperator(A), IROperator(B))).get();
+	}
+	IRInstruction* NewBitWiseXOr(IRInstruction* A, IRInstruction* B)
+	{
+		return  Instructions.emplace_back(new IRInstruction(IRInstructionType::BitWise_XOr, IROperator(A), IROperator(B))).get();
+	}
+	IRInstruction* NewBitWiseNot(IRInstruction* Value)
+	{
+		auto v =  Instructions.emplace_back(new IRInstruction(IRInstructionType::BitWise_Not, IROperator(Value))).get();
+		return v;
+	}
+	IRInstruction* NewUModulo(IRInstruction* A, IRInstruction* B)
+	{
+		auto v = Instructions.emplace_back(new IRInstruction(IRInstructionType::UMod, IROperator(A), IROperator(B))).get();
+		return v;
+	}
+	IRInstruction* NewSModulo(IRInstruction* A, IRInstruction* B)
+	{
+		auto v = Instructions.emplace_back(new IRInstruction(IRInstructionType::SMod, IROperator(A), IROperator(B))).get();
+		return v;
+	}
 	//comparison operators
 	IRInstruction* NewC_Equalto(IRInstruction* A, IRInstruction* B)
 	{
@@ -1730,6 +1793,8 @@ public:
 		UnorderedMap<const IRInstruction*, String> PointerToName;
 		Vector<const IRInstruction*> TepPushedParameters;
 
+		UnorderedMap<IROperator,UInt64> SSANames; 
+
 		size_t StrValue = 0;
 		IRFunc* _Func = nullptr;
 
@@ -1866,18 +1931,3 @@ public:
 
 UCodeLangEnd
 
-template <>
-struct std::hash<UCodeLang::IROperator>
-{
-	std::size_t operator()(const UCodeLang::IROperator& k) const
-	{
-		using UCodeLang::IROperator;
-		using namespace UCodeLang;
-		// Compute individual hash values for first,
-		// second and third and combine them using XOR
-		// and bit shifting:
-
-		return ((hash<IROperator_t>()((IROperator_t)k.Type)
-			^ (hash<IRidentifierID>()(k.identifier) << 1)) >> 1);
-	}
-};

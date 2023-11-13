@@ -107,8 +107,6 @@ It's nowhere near completion.
 
 [WebSite and PlayGround]("https://lostbblizzard.github.io/UCodeLang/")
 
-[Download]()
-
 [Documentation]("UCodeDocumentation/src/SUMMARY.md")
 //Goto "UCodeDocumentation/src/SUMMARY.md" if link does not work
 
@@ -116,6 +114,20 @@ It's nowhere near completion.
 
 [How To Add To Your C++ Project]("UCodeDocumentation/src/ForImplementers.md")
 //Goto "UCodeDocumentation/src/ForImplementers.md" if link does not work
+
+## Download
+
+Run The following in your terminal to install on linux/MacOs.
+```
+curl https://raw.githubusercontent.com/LostbBlizzard/UCodeLang/feature/install.sh | sh
+```
+
+Run The following in your terminal to install on Windows.
+```
+curl.exe https://raw.githubusercontent.com/LostbBlizzard/UCodeLang/feature/install.bat --output ucodelanginstall.bat
+call ucodelanginstall.bat
+del ucodelanginstall.bat
+```
 
 # Example(User)
 

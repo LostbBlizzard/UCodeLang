@@ -763,14 +763,15 @@ SystematicAnalysis::BinaryOverLoadWith_t SystematicAnalysis::Type_HasBinaryOverL
 			|| BinaryOp == TokenType::bitwise_RightShift;
 
 		bool Isbitwise = IsBitShift || BinaryOp == TokenType::bitwise_and
-			|| BinaryOp == TokenType::bitwise_or;
+			|| BinaryOp == TokenType::bitwise_or
+			|| BinaryOp == TokenType::bitwise_XOr;
 
 		bool IslogicalOperator = BinaryOp == TokenType::logical_and
 			|| BinaryOp == TokenType::logical_or;
 
 		if (Type_IsIntType(TypeA))
 		{
-			return { IsMathOp || IsSameValueComparisonOp || IsMathValueComparisonOp || Isbitwise ,{} };
+			return { IsMathOp || IsSameValueComparisonOp || IsMathValueComparisonOp || Isbitwise || BinaryOp == TokenType::modulo ,{} };
 		}
 		if (Type_IsfloatType(TypeA))
 		{
@@ -864,7 +865,7 @@ SystematicAnalysis::CompoundOverLoadWith_t SystematicAnalysis::Type_HasCompoundO
 					String funcName = Syb->FullName;
 					ScopeHelper::GetApendedString(funcName, Item.CompilerName);
 
-					auto& V = GetSymbolsWithName(funcName, SymbolType::Func);
+					auto V = GetSymbolsWithName(funcName, SymbolType::Func);
 
 					for (auto& Item : V)
 					{
@@ -1140,6 +1141,10 @@ SystematicAnalysis::UrinaryOverLoadWith_t SystematicAnalysis::Type_HasUrinaryOve
 			{
 				return { {true} };
 			}
+		}
+		if (Type_IsIntType(TypeA) && Op == TokenType::bitwise_not)
+		{
+			return { {true} };
 		}
 	}
 	return {  };

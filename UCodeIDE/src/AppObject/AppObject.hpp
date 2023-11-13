@@ -240,7 +240,7 @@ private:
 		bool InDebug = true;
 		bool ImportStandardLibrary = false;
 
-		NativeSet OldNativeCpuType = NativeSet::x86;
+		NativeSet OldNativeCpuType = NativeSet::Native;
 	};
 	OutputWindowData OutputWindow;
 
