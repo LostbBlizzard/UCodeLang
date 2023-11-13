@@ -33,8 +33,10 @@ $Player[Component]:
 
 |main[]:
  
- while true:
-  int a = 0;
+ int a = 2;
 
+ a = 5;
+
+ ret a;
 
 //|main1[] => unsafe new int[5];

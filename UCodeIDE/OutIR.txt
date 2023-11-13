@@ -8,28 +8,27 @@
 |(&threadUnload&)[] -> void:;
 
 //EntryPoint 
-|main[] -> void:
+|main[] -> int32:
 
  [Block:0]
 
 
 //File:src.uc
 //Line:36
-   _label1:
+//Variable:main:a
 
-   int8 A = 1;
-   int8 B = !A;
-   gotoif (B) _label0;
+   int32 A;
+   int32 B = 2;
+   A = B;
 
-//Line:37
-//Variable:main:2656975834032:a
+//Line:38
 
-   int32 C;
-   int32 D = 0;
-   C = D;
-   goto _label1;
+   int32 C = 5;
+   A = C;
 
-   _label0:
+//Line:40
 
+   int32 D = A;
+   ret = D;
    ret;
 

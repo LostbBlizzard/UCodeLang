@@ -230,7 +230,8 @@ enum class IRInstructionType : IRInstructionType_t
 
 	//internal stuff
 	JumpBlock,
-	JumpBlockIf
+	JumpBlockIf,
+	SSA_Reassign,
 };
 
 inline bool IsCommutative(IRInstructionType Value)
@@ -472,6 +473,23 @@ struct IROperator
 		return !this->operator==(Other);
 	}
 };
+UCodeLangEnd
+template <>
+struct std::hash<UCodeLang::IROperator>
+{
+	std::size_t operator()(const UCodeLang::IROperator& k) const
+	{
+		using UCodeLang::IROperator;
+		using namespace UCodeLang;
+		// Compute individual hash values for first,
+		// second and third and combine them using XOR
+		// and bit shifting:
+
+		return ((hash<IROperator_t>()((IROperator_t)k.Type)
+			^ (hash<IRidentifierID>()(k.identifier) << 1)) >> 1);
+	}
+};
+UCodeLangStart
 struct IRInstruction
 {
 	IRInstruction():Type(IRInstructionType::None){}
@@ -1775,6 +1793,8 @@ public:
 		UnorderedMap<const IRInstruction*, String> PointerToName;
 		Vector<const IRInstruction*> TepPushedParameters;
 
+		UnorderedMap<IROperator,UInt64> SSANames; 
+
 		size_t StrValue = 0;
 		IRFunc* _Func = nullptr;
 
@@ -1911,18 +1931,3 @@ public:
 
 UCodeLangEnd
 
-template <>
-struct std::hash<UCodeLang::IROperator>
-{
-	std::size_t operator()(const UCodeLang::IROperator& k) const
-	{
-		using UCodeLang::IROperator;
-		using namespace UCodeLang;
-		// Compute individual hash values for first,
-		// second and third and combine them using XOR
-		// and bit shifting:
-
-		return ((hash<IROperator_t>()((IROperator_t)k.Type)
-			^ (hash<IRidentifierID>()(k.identifier) << 1)) >> 1);
-	}
-};

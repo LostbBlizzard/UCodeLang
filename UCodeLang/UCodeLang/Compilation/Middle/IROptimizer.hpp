@@ -130,6 +130,8 @@ private:
 	void ToSSA(IRFunc* Func, SSAState& state);
 	void UndoSSA(IRFunc* Func, const SSAState& state);
 
+	void ControlFlowToBaseBasicBlocks(IRFunc* Func, SSAState& state);
+
 	struct InLineData
 	{
 		IRFunc* Func =nullptr;

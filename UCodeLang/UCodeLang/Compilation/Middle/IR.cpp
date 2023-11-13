@@ -1426,6 +1426,7 @@ String IRBuilder::ToString()
 		State.StrValue = 0;
 		State.PointerToName.clear();
 		State.TepPushedParameters.clear();
+		State.SSANames.clear();
 		//
 
 		ToString(State, Item.get(), r);
@@ -1891,6 +1892,23 @@ bool IRBuilder::ToString(
 		break;
 	case IRInstructionType::UMod:
 		r += ToStringBinary(State, I, "%");
+		break;
+	case IRInstructionType::SSA_Reassign:
+		r += ToString(I->ObjectType);
+		if (State.SSANames.HasValue(I->Input()))
+		{
+			auto& o = State.SSANames.GetValue(I->Input());
+			o++;
+
+			State.PointerToName.AddValue(I, ToString(State, *I, I->Input()) + "^" + std::to_string(o));
+		}
+		else
+		{
+			State.PointerToName.AddValue(I, ToString(State, *I, I->Input()) + "^2");
+			State.SSANames.AddValue(I->Input(), 2);
+		}
+		r += " " + State.PointerToName.GetValue(I);
+		r += " = " + ToString(State, *I, I->Target());
 		break;
 	default:
 		UCodeLangUnreachable();
