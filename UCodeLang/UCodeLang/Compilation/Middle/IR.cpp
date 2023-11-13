@@ -1801,9 +1801,21 @@ bool IRBuilder::ToString(
 		r += "LowLevel::Unreachable()";
 		break;
 	case IRInstructionType::JumpBlockIf:
-		r += (String)"  JumpIf (" + ToString(State, *I, I->Input()) + ") : [" + std::to_string(I->Target().Value.AsUIntNative) + "]";
+		if (Block->Instructions.size() > i + 1 && Block->Instructions[i + 1]->Type == IRInstructionType::JumpBlock)
+		{
+			r += (String)"  JumpIf (" + ToString(State, *I, I->Input()) + ") : [" + std::to_string(I->Target().Value.AsUIntNative) + "] else [" 
+				+ std::to_string(Block->Instructions[i + 1]->Target().Value.AsUIntNative) + "]";
+		}
+		else 
+		{
+			r += (String)"  JumpIf (" + ToString(State, *I, I->Input()) + ") : [" + std::to_string(I->Target().Value.AsUIntNative) + "]";
+		}
 		break;
 	case IRInstructionType::JumpBlock:
+		if (i != 0 && Block->Instructions[i - 1]->Type == IRInstructionType::JumpBlockIf)
+		{
+			return false;
+		}
 		r += (String)"  Jump : [" + std::to_string(I->Target().Value.AsUIntNative) + "]";
 		break;
 	case IRInstructionType::Ui32Tof32:

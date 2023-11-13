@@ -11,6 +11,7 @@
 UCodeLangStart
 
 
+#define RunlogIRState UCodeLangDebug
 
 void IROptimizer::Reset() 
 {
@@ -19,7 +20,6 @@ void IROptimizer::Reset()
 }
 void IROptimizer::Optimized(IRBuilder& IRcode)
 {
-	#define RunlogIRState 1
 	Input = &IRcode;
 
 	_IDChecker.Set_ErrorsOutput(_ErrorsOutput);
@@ -1642,6 +1642,14 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 			{
 
 			}
+			else if (Ins->Type == IRInstructionType::JumpBlock)
+			{
+
+			}
+			else if (Ins->Type == IRInstructionType::JumpBlockIf)
+			{
+
+			}
 			else
 			{
 				UCodeLangUnreachable();
@@ -2115,21 +2123,42 @@ void IROptimizer::ToSSA(IRFunc* Func, SSAState& state)
 
 	auto Block = Func->Blocks.front().get();
 	UnorderedMap<size_t,size_t> IndexToBlock;
+	UnorderedMap<size_t, size_t> JumpLToBlock;
+
 	for (size_t i = 0; i < Block->Instructions.size(); i++)
 	{
 		auto& I = Block->Instructions[i];
 		switch (I->Type)
 		{
 		case IRInstructionType::Jump:
-		case IRInstructionType::ConditionalJump:
-			if (!IndexToBlock.HasValue(I->Target().identifier))
+		{
+			if (!IndexToBlock.HasValue(I->Target().Value.AsUIntNative))
 			{
 				IRBlock v;
 
 				Func->Blocks.push_back(std::make_unique<IRBlock>(std::move(v)));
-				IndexToBlock.AddValue(I->Target().identifier,Func->Blocks.size()-1);
+				IndexToBlock.AddValue(I->Target().Value.AsUIntNative, Func->Blocks.size() - 1);
 
 
+			}
+		}
+		break;
+		case IRInstructionType::ConditionalJump:
+			if (!IndexToBlock.HasValue(I->Target().Value.AsUIntNative))
+			{
+				IRBlock v;
+
+				Func->Blocks.push_back(std::make_unique<IRBlock>(std::move(v)));
+				IndexToBlock.AddValue(I->Target().Value.AsUIntNative, Func->Blocks.size() - 1);
+
+
+			}
+			if (!IndexToBlock.HasValue(i+1))
+			{
+				IRBlock v;
+
+				Func->Blocks.push_back(std::make_unique<IRBlock>(std::move(v)));
+				IndexToBlock.AddValue(i+1, Func->Blocks.size() - 1);
 			}
 			break;
 		}
@@ -2138,33 +2167,94 @@ void IROptimizer::ToSSA(IRFunc* Func, SSAState& state)
 
 	IRBlock* OnBlock = Block;
 	auto size = Block->Instructions.size();
+	IRInstructionType lasttype = IRInstructionType::None;
+	bool addjumpbecausefallthrough = false;
+
 	for (size_t i = 0; i < size; i++)
 	{
-		auto& Ins = Block->Instructions[i];
+		auto* Ins = &Block->Instructions[i];
 
-
-		if (IndexToBlock.HasValue(i))
+		if ((*Ins)->Type == IRInstructionType::Jump)
 		{
-			OnBlock = Func->Blocks[IndexToBlock.GetValue(i)].get();
+			int a = 0;
+
+		}
+		
+
+
+		if (lasttype == IRInstructionType::ConditionalJump)
+		{
+			auto newblockindex = IndexToBlock.GetValue(i); 
+
+
+			OnBlock->Instructions.push_back(
+				std::move(std::make_unique<IRInstruction>(IRInstructionType::JumpBlock, IROperator(newblockindex))
+				));
+				
+			OnBlock = Func->Blocks[newblockindex].get();
+			//because of resize
+			Ins = &Block->Instructions[i];
+		}
+		else 
+		{
+			
+			if (IndexToBlock.HasValue(i))
+			{
+				if (Ins->get()->Type != IRInstructionType::ConditionalJump
+					&& Ins->get()->Type != IRInstructionType::Jump)
+				{
+					int a = 0;
+					
+					//for fall through
+					auto Index = IndexToBlock.GetValue(i);
+
+					OnBlock->Instructions.push_back(
+						std::move(std::make_unique<IRInstruction>(IRInstructionType::JumpBlock, IROperator(Index))
+						));
+					OnBlock = Func->Blocks[Index].get();
+					addjumpbecausefallthrough = true;
+
+
+					//because of resize
+					Ins = &Block->Instructions[i];
+
+					
+				}
+			}
+			else if (IndexToBlock.HasValue(i))
+			{
+				auto newblockindex = IndexToBlock.GetValue(i);
+
+				if (newblockindex < Func->Blocks.size()) {
+					OnBlock = Func->Blocks[newblockindex].get();
+				}
+				else
+				{
+					OnBlock = Func->Blocks.front().get();
+				}
+
+			}
 		}
 
-		if (Ins->Type == IRInstructionType::Jump)
+		
+
+		lasttype = (*Ins)->Type;
+
+		if ((*Ins)->Type == IRInstructionType::Jump)
 		{
-			Ins->Type = IRInstructionType::JumpBlock;
-			Ins->Target().Value = AnyInt64(IndexToBlock.GetValue(Ins->Target().Value.AsUIntNative));
+			(*Ins)->Type = IRInstructionType::JumpBlock;
+			(*Ins)->Target().Value = AnyInt64(IndexToBlock.GetValue((*Ins)->Target().Value.AsUIntNative));
 		}
-		else if (Ins->Type == IRInstructionType::ConditionalJump)
+		else if ((*Ins)->Type == IRInstructionType::ConditionalJump)
 		{
-			Ins->Type = IRInstructionType::JumpBlockIf;
-			Ins->Target().Value = AnyInt64(IndexToBlock.GetValue(Ins->Target().Value.AsUIntNative));
+			(*Ins)->Type = IRInstructionType::JumpBlockIf;
+			(*Ins)->Target().Value = AnyInt64(IndexToBlock.GetValue((*Ins)->Target().Value.AsUIntNative));
 		}
 
-		OnBlock->Instructions.push_back(std::move(Ins));
+		OnBlock->Instructions.push_back(std::move((*Ins)));
 
 	}
 
-	std::reverse(Func->Blocks.begin() + 1, Func->Blocks.end());
-	
 	for (auto& Item : Func->Blocks) 
 	{
 		Item->DebugInfo.DebugInfo.clear();
@@ -2178,8 +2268,12 @@ void IROptimizer::ToSSA(IRFunc* Func, SSAState& state)
 	
 	auto S = Input->ToString();
 
+	#if RunlogIRState 
 	std::cout << "-----" << std::endl;
 	std::cout << S;
+
+	int a = 0;
+	#endif
 	/*
 	for (auto& Block : Func->Blocks)
 	{
