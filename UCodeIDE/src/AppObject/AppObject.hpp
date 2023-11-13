@@ -252,7 +252,7 @@ private:
 	};
 	struct UCodeVMWindow
 	{
-		UCodeVMType VMType = UCodeVMType::Native_Interpreter;
+		UCodeVMType VMType = UCodeVMType::Interpreter;
 		NativeSet NativeCpuType = NativeSet::Native;
 		bool ShowRegisters = false;
 		bool ShowStack = false;

@@ -63,10 +63,15 @@ using namespace UCodeLang;
 	}
 
 
-	const UCodeLang::Array<OptimizationFlags, 1> OptimizationFlagsToCheck
+	const UCodeLang::Array<OptimizationFlags, 4> OptimizationFlagsToCheck
 	{
 		OptimizationFlags::NoOptimization,
-		//OptimizationFlags::ForDebuging,
+		OptimizationFlags::Debug,
+		
+		OptimizationFlags::O_1,
+		OptimizationFlags::ForDebuging,
+
+
 		//OptimizationFlags::ForSize,
 		//OptimizationFlags::ForSpeed,
 		//OptimizationFlags::ForMaxSpeed,
