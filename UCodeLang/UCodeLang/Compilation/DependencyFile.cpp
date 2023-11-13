@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "DependencyFile.hpp"
 #include <fstream>
 
@@ -191,3 +192,5 @@ void DependencyFile::ExternalFileInfo::FromBytes(BitReader& Input, ExternalFileI
 }
 
 UCodeLangEnd
+
+#endif

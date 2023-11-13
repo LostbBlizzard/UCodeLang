@@ -1,4 +1,7 @@
 #pragma once
+
+#ifndef UCodeLangNoCompiler
+
 #include "../LangCore.hpp"
 
 #include "Front/FrontEndObject.hpp"
@@ -125,3 +128,5 @@ private:
 	void Optimize(IRBuilder& IR);
 };
 UCodeLangEnd
+
+#endif

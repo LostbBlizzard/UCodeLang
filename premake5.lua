@@ -217,6 +217,48 @@ project "UCodeLang"
     "%{prj.name}/Dependencies/zycore/include/**.h",
    }
 
+project "UCodeLangNoCompiler"
+   location "UCodeLang"
+   kind "StaticLib"
+   language "C++"
+   defines {"UCodeLangNoCompiler"}
+   
+   
+   targetdir ("Output/%{prj.name}/" .. OutDirPath)
+   objdir ("Output/int/%{prj.name}/" .. OutDirPath)
+   
+   files { 
+     "UCodeLang/**.c",
+     "UCodeLang/**.h",
+     "UCodeLang/**.cpp",
+     "UCodeLang/**.hpp", 
+   }
+   includedirs{
+    "UCodeLang",
+    "UCodeLang/Dependencies/zydis/include",
+    "UCodeLang/Dependencies/zycore/include",
+    "UCodeLang/Dependencies/zydis/src",
+   }
+   removefiles{
+     "UCodeLang/Dependencies/zydis/**.c",
+     "UCodeLang/Dependencies/zycore/**.c",
+
+     "UCodeLang/Dependencies/zydis/**.cpp",
+     "UCodeLang/Dependencies/zycore/**.cpp",
+
+     "UCodeLang/Dependencies/zydis/**.h",
+     "UCodeLang/Dependencies/zycore/**.h",
+   }
+   files { 
+    "UCodeLang/Dependencies/zydis/src/**.c",
+    "UCodeLang/Dependencies/zycore/src/**.c",
+
+    "UCodeLang/Dependencies/zydis/src/**.inc",
+    "UCodeLang/Dependencies/zycore/src/**.inc",
+
+    "UCodeLang/Dependencies/zydis/include/**.h",
+    "UCodeLang/Dependencies/zycore/include/**.h",
+   }
 
 project "UCodeLanguageSeverlib"
    location "UCodeLanguageSeverlib"
@@ -393,7 +435,8 @@ project "UCodeIDE"
    filter { "system:Windows","configurations:Published" }
     kind ("WindowedApp")
 
-   
+   filter { "platforms:Android" }
+    defines {"GLFW_INCLUDE_ES3"}
 
    
    

@@ -1,4 +1,5 @@
 #pragma once
+#ifndef UCodeLangNoCompiler
 #include "Compiler.hpp"
 UCodeLangStart
 
@@ -162,3 +163,5 @@ private:
 
 };
 UCodeLangEnd
+
+#endif

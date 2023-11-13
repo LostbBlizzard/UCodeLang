@@ -1,3 +1,5 @@
+#ifndef UCodeLangNoCompiler
+
 #include "ModuleFile.hpp"
 #include <sstream> 
 #include <fstream>
@@ -784,3 +786,4 @@ bool ModuleFile::FromString(ModuleFile* Lib, const String_view& Data)
 
 UCodeLangEnd
 
+#endif

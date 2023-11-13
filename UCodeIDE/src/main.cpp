@@ -2,7 +2,6 @@
 #include "App.hpp"
 
 
-
 #if defined(PUBLISHED) && UCodeLang_Platform_Windows
 #include <windows.h>
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow)
