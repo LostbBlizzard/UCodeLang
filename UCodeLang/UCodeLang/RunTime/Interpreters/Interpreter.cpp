@@ -363,8 +363,8 @@ void Interpreter::Extecute(Instruction& Inst)
 	 &&Ins_bitwiseRightShift##bitsize, \
 	 &&Ins_bitwiseXor##bitsize, \
 	 &&Ins_bitwise_Not##bitsize, \
-     &&Ins_ModS##bitsize,
-	 &&Ins_ModU##bitsize,
+     &&Ins_ModS##bitsize, \
+	 &&Ins_ModU##bitsize, \
 
 	#define JumpTablefloat(bitsize) \
         &&Ins_Addf##bitsize, \
