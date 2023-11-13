@@ -2121,8 +2121,81 @@ void IROptimizer::ToSSA(IRFunc* Func, SSAState& state)
 	if (Func->Blocks.size() == 0) { return; }
 	UCodeLangAssert(Func->Blocks.size());
 
+	ControlFlowToBaseBasicBlocks(Func, state);
+
+#if RunlogIRState 
+	{
+		auto S = Input->ToString();
+		std::cout << "-----" << std::endl;
+		std::cout << S;
+	}
+#endif
+	
+	for (auto& Block : Func->Blocks)
+	{
+		for (size_t i = 0; i < Block->Instructions.size(); i++)
+		{
+			auto& Ins = Block->Instructions[i];
+
+			if (Ins->Type == IRInstructionType::Reassign)
+			{
+				IROperator ToUpdate = Ins->Target();
+
+				if (Ins->Target().Type == IROperatorType::IRInstruction)
+				{
+					if (Ins->Target().Pointer->Type == IRInstructionType::Member_Access_Dereference) {
+						continue;
+					}
+				}
+				Ins->Type = IRInstructionType::SSA_Reassign;
+				std::swap(Ins->Target(), Ins->Input());
+
+				state.Map.AddValueOrOverWrite(ToUpdate,Ins.get());
+			}
+			else
+			{
+				if (IsOperatorValueInTarget(Ins->Type))
+				{
+					if (state.Map.HasValue(Ins->Target()))
+					{
+						state.Updated.AddValueOrOverWrite(&Ins->Target(), Ins->Target());
+						Ins->Target() = IROperator(state.Map.GetValue(Ins->Target()));
+					}
+				}	
+				
+				if (IsOperatorValueInInput(Ins->Type))
+				{
+					if (state.Map.HasValue(Ins->Input()))
+					{
+						state.Updated.AddValueOrOverWrite(&Ins->Input(), Ins->Input());
+						Ins->Target() = IROperator(state.Map.GetValue(Ins->Input()));
+					}
+				}
+			}
+		}
+	}
+	
+
+	#if RunlogIRState 
+	{
+		auto S = Input->ToString();
+		std::cout << "-----" << std::endl;
+		std::cout << S;
+	}
+	#endif
+}
+void IROptimizer::UndoSSA(IRFunc* Func, const SSAState& state)
+{
+	for (auto& Item : state.Updated)
+	{
+		*Item.first = Item.second;
+	}
+}
+
+void IROptimizer::ControlFlowToBaseBasicBlocks(IRFunc* Func, SSAState& state)
+{
 	auto Block = Func->Blocks.front().get();
-	UnorderedMap<size_t,size_t> IndexToBlock;
+	UnorderedMap<size_t, size_t> IndexToBlock;
 	UnorderedMap<size_t, size_t> JumpLToBlock;
 
 	for (size_t i = 0; i < Block->Instructions.size(); i++)
@@ -2153,12 +2226,12 @@ void IROptimizer::ToSSA(IRFunc* Func, SSAState& state)
 
 
 			}
-			if (!IndexToBlock.HasValue(i+1))
+			if (!IndexToBlock.HasValue(i + 1))
 			{
 				IRBlock v;
 
 				Func->Blocks.push_back(std::make_unique<IRBlock>(std::move(v)));
-				IndexToBlock.AddValue(i+1, Func->Blocks.size() - 1);
+				IndexToBlock.AddValue(i + 1, Func->Blocks.size() - 1);
 			}
 			break;
 		}
@@ -2179,32 +2252,32 @@ void IROptimizer::ToSSA(IRFunc* Func, SSAState& state)
 			int a = 0;
 
 		}
-		
+
 
 
 		if (lasttype == IRInstructionType::ConditionalJump)
 		{
-			auto newblockindex = IndexToBlock.GetValue(i); 
+			auto newblockindex = IndexToBlock.GetValue(i);
 
 
 			OnBlock->Instructions.push_back(
 				std::move(std::make_unique<IRInstruction>(IRInstructionType::JumpBlock, IROperator(newblockindex))
 				));
-				
+
 			OnBlock = Func->Blocks[newblockindex].get();
 			//because of resize
 			Ins = &Block->Instructions[i];
 		}
-		else 
+		else
 		{
-			
+
 			if (IndexToBlock.HasValue(i))
 			{
 				if (Ins->get()->Type != IRInstructionType::ConditionalJump
 					&& Ins->get()->Type != IRInstructionType::Jump)
 				{
 					int a = 0;
-					
+
 					//for fall through
 					auto Index = IndexToBlock.GetValue(i);
 
@@ -2218,7 +2291,7 @@ void IROptimizer::ToSSA(IRFunc* Func, SSAState& state)
 					//because of resize
 					Ins = &Block->Instructions[i];
 
-					
+
 				}
 			}
 			else if (IndexToBlock.HasValue(i))
@@ -2236,7 +2309,7 @@ void IROptimizer::ToSSA(IRFunc* Func, SSAState& state)
 			}
 		}
 
-		
+
 
 		lasttype = (*Ins)->Type;
 
@@ -2255,77 +2328,15 @@ void IROptimizer::ToSSA(IRFunc* Func, SSAState& state)
 
 	}
 
-	for (auto& Item : Func->Blocks) 
+	for (auto& Item : Func->Blocks)
 	{
 		Item->DebugInfo.DebugInfo.clear();
 		auto& myList = Item->Instructions;
 		myList.erase(
 			std::remove_if(myList.begin(), myList.end(),
-				[](const Unique_ptr<IRInstruction>& o) { return o.get() ==nullptr || o->Type ==IRInstructionType::None; }),
+				[](const Unique_ptr<IRInstruction>& o) { return o.get() == nullptr || o->Type == IRInstructionType::None; }),
 			myList.end());
 
-	}
-	
-	auto S = Input->ToString();
-
-	#if RunlogIRState 
-	std::cout << "-----" << std::endl;
-	std::cout << S;
-
-	int a = 0;
-	#endif
-	/*
-	for (auto& Block : Func->Blocks)
-	{
-		for (size_t i = 0; i < Block->Instructions.size(); i++)
-		{
-			auto& Ins = Block->Instructions[i];
-
-			if (Ins->Type == IRInstructionType::Reassign)
-			{
-				IROperator ToUpdate = Ins->Target();
-
-				if (Ins->Target().Type == IROperatorType::IRInstruction)
-				{
-					if (Ins->Target().Pointer->Type == IRInstructionType::Member_Access_Dereference) {
-						continue;
-					}
-				}
-				Ins->Type = IRInstructionType::Load;
-				Ins->Target() =Ins->Input();
-				Ins->Input() = IROperator();
-
-				state.Map.AddValue(ToUpdate,Ins.get());
-			}
-			else
-			{
-				if (IsOperatorValueInTarget(Ins->Type))
-				{
-					if (state.Map.HasValue(Ins->Target()))
-					{
-						state.Updated.AddValue(&Ins->Target(), Ins->Target());
-						Ins->Target() = IROperator(state.Map.GetValue(Ins->Target()));
-					}
-				}	
-				
-				if (IsOperatorValueInInput(Ins->Type))
-				{
-					if (state.Map.HasValue(Ins->Input()))
-					{
-						state.Updated.AddValue(&Ins->Input(), Ins->Input());
-						Ins->Target() = IROperator(state.Map.GetValue(Ins->Input()));
-					}
-				}
-			}
-		}
-	}
-	*/
-}
-void  IROptimizer::UndoSSA(IRFunc* Func, const SSAState& state)
-{
-	for (auto& Item : state.Updated)
-	{
-		*Item.first = Item.second;
 	}
 }
 void IROptimizer::InLineFunc(InLineData& Data)

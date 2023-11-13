@@ -36,6 +36,15 @@ public:
 		Base[key] = Item;
 	}
 
+	void AddValueOrOverWrite(ConstKey key, const Value& Item)
+	{
+		Base[key] = Item;
+	}
+	void AddValueOrOverWrite(ConstKey key, Value&& Item)
+	{
+		Base[key] = Item;
+	}
+
 	bool HasValue(ConstKey key)
 	{
 		return Base.count(key);
