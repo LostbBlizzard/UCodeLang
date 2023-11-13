@@ -76,8 +76,10 @@ workspace "UCodeLang"
 
    filter { "platforms:Web" }
     system "linux"
-    architecture "x86_64"
-
+    architecture "x86"
+    defines { "ZYAN_POSIX" }
+    targetextension (".js")
+   
    filter { "configurations:Debug" }
       defines { "DEBUG" }
       optimize "Debug"
@@ -96,8 +98,6 @@ workspace "UCodeLang"
    filter { "platforms:Web" }
       optimize "Speed"
       symbols "off"
-      defines { "ZYAN_POSIX" }
-      architecture "x86"
    
 project "UCApp"
    location "UCApp"
@@ -349,7 +349,7 @@ project "UCodeIDE"
    }
 
 
-   filter { "system:Windows or system:linux or system:macosx" }
+   filter { "system:Windows or system:linux or system:macosx", "platforms:not Web" }
     prebuildcommands
     {
      UCPathExe.." cpptoulangvm %{prj.location}/src/AppObject/AppAPI.hpp %{prj.location}src/AppObject/AppAPILink.cpp %{prj.location}tepfiles/AppAPI.uc",
@@ -368,9 +368,12 @@ project "UCodeIDE"
    filter { "system:Windows","architecture:x86_64"}
       links {"glew64s.lib","Opengl32.lib"}
 
-    
+   filter { "platforms:Web" }
+      kind "ConsoleApp"   
+      --defines {""}
+  
 
-   filter { "system:linux" }
+   filter { "system:linux","platforms:not Web" }
     kind "ConsoleApp"   
     defines {"_GLFW_X11"}
     links {"GL"}
@@ -425,7 +428,7 @@ group "UCodeAPIs"
   }
 
 
-  filter { "system:Windows or system:linux or system:macosx" }
+  filter { "system:Windows or system:linux or system:macosx", "platforms:not Web" }
    prebuildmessage 'compiling ucodelang files'
    prebuildcommands  
    {
@@ -450,7 +453,7 @@ group "UCodeAPIs"
   }
 
 
-  filter { "system:Windows or system:linux or system:macosx" }
+  filter {"system:Windows or system:linux or system:macosx", "platforms:not Web" }
    prebuildmessage 'compiling ucodelang files'
    prebuildcommands 
    {
@@ -474,7 +477,7 @@ group "UCodeAPIs"
   }
 
   
-  filter { "system:Windows or system:linux or system:macosx" }
+  filter { "system:Windows or system:linux or system:macosx", "platforms:not Web" }
    prebuildmessage 'compiling ucodelang files'
    prebuildcommands 
    {
@@ -497,7 +500,7 @@ group "UCodeAPIs"
    "UCodeAPI/%{prj.name}/ULangModule.ucm",
    }
 
-   filter { "system:Windows or system:linux or system:macosx" }
+   filter {"system:Windows or system:linux or system:macosx", "platforms:not Web" }
     prebuildmessage 'compiling ucodelang files'
     prebuildcommands 
     {
