@@ -154,6 +154,28 @@
         "group": "build",
       },
       {
+        "label": "Build (UCodeIDE) using emscripten",
+        "command": "emmake",
+        "args": [
+          "make",
+          "UCodeIDE",
+          "config=debug_web",
+          "-j4",
+        ],
+        "group": "build",
+      },
+      {
+        "label": "Build (UCodeCL) using emscripten",
+        "command": "emmake",
+        "args": [
+          "make",
+          "UCodelangCL",
+          "config=debug_web",
+          "-j4",
+        ],
+        "group": "build",
+      },
+      {
         "label": "Build Android",
         "command": "make",
         "args": [
