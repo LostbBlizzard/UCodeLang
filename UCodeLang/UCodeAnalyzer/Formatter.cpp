@@ -1,3 +1,5 @@
+
+#ifndef UCodeLangNoCompiler
 #include "Formatter.hpp"
 
 UCodeAnalyzerStart
@@ -346,3 +348,5 @@ void ReFormat(const UF::TypeNode& Node)
 
 }
 UCodeAnalyzerEnd
+
+#endif

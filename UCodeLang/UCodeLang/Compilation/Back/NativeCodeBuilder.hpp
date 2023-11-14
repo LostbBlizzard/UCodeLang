@@ -1,5 +1,4 @@
 #pragma once
-#ifndef UCodeLangNoCompiler
 #include "UCodeLang/LangCore/BitMaker.hpp"
 UCodeLangStart
 
@@ -124,5 +123,3 @@ struct NativeCodeBuilder
 	}
 };
 UCodeLangEnd
-
-#endif

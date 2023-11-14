@@ -1,4 +1,4 @@
-#ifndef UCodeLangNoCompiler
+
 #include "NameDecoratior.hpp"
 
 //#include "UCodeLang/Compilation/Helpers/KeyWords.hpp"
@@ -126,5 +126,3 @@ String NameDecoratior::GetUnDecoratedName(const String& DecoratedName)
 	return DecoratedName;
 }
 UCodeLangEnd
-
-#endif

@@ -1,5 +1,4 @@
 #pragma once
-#ifndef UCodeLangNoCompiler
 
 #include "../UCodeLang/UCodeLang/LangCore/ReflectionData.hpp"
 UCodeLangStart
@@ -16,5 +15,3 @@ public:
 	static String GetUnDecoratedName(const String& DecoratedName);
 };
 UCodeLangEnd
-
-#endif

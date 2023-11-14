@@ -1,4 +1,6 @@
 #pragma once
+
+#ifndef UCodeLangNoCompiler
 #include "../Typedef.hpp"
 UCodeAnalyzerStart
 class CppHelper
@@ -210,3 +212,5 @@ public:
 	static String ToString(const  CppToULangState& State, const SummaryTag& Value);
 };
 UCodeLangEnd
+
+#endif

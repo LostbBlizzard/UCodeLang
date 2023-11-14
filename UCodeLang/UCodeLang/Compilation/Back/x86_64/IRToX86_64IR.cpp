@@ -178,3 +178,5 @@ IRToX86_64IR::IRLoc IRToX86_64IR::LoadOp(const IRInstruction* Value, const IROpe
 	}
 }
 UCodeLangEnd
+
+#endif

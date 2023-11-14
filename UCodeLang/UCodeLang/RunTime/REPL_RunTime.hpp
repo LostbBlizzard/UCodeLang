@@ -1,4 +1,6 @@
 #pragma once
+
+#ifndef UCodeLangNoCompiler
 #include "Interpreters/Interpreter.hpp"
 #include "../Compilation/Compiler.hpp"
 UCodeLangStart
@@ -31,3 +33,5 @@ private:
 };
 
 UCodeLangEnd
+
+#endif

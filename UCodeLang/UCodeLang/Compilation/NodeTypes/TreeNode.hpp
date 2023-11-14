@@ -1,4 +1,6 @@
 #pragma once
+
+#ifndef UCodeLangNoCompiler
 #include "../../LangCore.hpp"
 #include "../Front/FrontEndObject.hpp"
 #include "UCodeLang/LangCore/UClib.hpp"
@@ -201,3 +203,5 @@ struct LibImportNode :FileNode_t, Node
 	ImportMode Mode = ImportMode::IntermediateFile;
 };
 UCodeLangEnd
+
+#endif

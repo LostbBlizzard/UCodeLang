@@ -1,3 +1,5 @@
+
+#ifndef UCodeLangNoCompiler
 #include "CppHelper.hpp"
 #include <iostream>
 #include <filesystem>
@@ -1980,3 +1982,5 @@ bool CppHelper::ParseULangToCppStaticLink(const Path& SrcCpp, const Path& CppLin
 }
 
 UCodeAnalyzerEnd
+
+#endif

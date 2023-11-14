@@ -1,3 +1,5 @@
+#pragma once
+#ifndef UCodeLangNoCompiler
 #include "UAssembly.hpp"
 #include "CompilerTypes.hpp"
 #include "UCodeLang/LangCore/DataType/UnorderedMap.hpp"
@@ -1063,3 +1065,6 @@ size_t UAssembly::BuildHashForSub(const Instruction* Pointer, size_t BufferSize)
 	return std::hash<String_view>()(Item);
 }
 UAssemblyEnd
+
+
+#endif

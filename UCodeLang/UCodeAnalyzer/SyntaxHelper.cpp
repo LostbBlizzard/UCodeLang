@@ -1,3 +1,5 @@
+
+#ifndef UCodeLangNoCompiler
 #include "SyntaxHelper.hpp"
 
 #include "UCodeLang/Compilation/Front/Lexer.hpp"
@@ -76,3 +78,5 @@ String SyntaxHelper::TmLanguageString()
 	return r;
 }
 UCodeAnalyzerEnd
+
+#endif

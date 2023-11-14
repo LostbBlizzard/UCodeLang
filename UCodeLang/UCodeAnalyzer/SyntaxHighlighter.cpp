@@ -1,4 +1,7 @@
+
+#ifndef UCodeLangNoCompiler
 #include "SyntaxHighlighter.hpp"
+
 UCodeAnalyzerStart
 
 using UToken = UCodeLang::Token;
@@ -25,3 +28,5 @@ void SyntaxHighlighter::Parse(StringView Text)
 	}
 }
 UCodeAnalyzerEnd
+
+#endif
