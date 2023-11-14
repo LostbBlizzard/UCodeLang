@@ -1,4 +1,5 @@
 #pragma once
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/LangCore/LangTypes.hpp"
 #include "UCodeLang/LangCore/DataType/UnorderedMap.hpp"
 #include "UCodeLang/LangCore/BitMaker.hpp"
@@ -1931,3 +1932,4 @@ public:
 
 UCodeLangEnd
 
+#endif

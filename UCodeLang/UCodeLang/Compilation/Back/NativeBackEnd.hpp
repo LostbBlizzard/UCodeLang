@@ -1,3 +1,6 @@
+#pragma once
+#ifndef UCodeLangNoCompiler
+
 #include "UCodeLang/LangCore/UCodeLangNameSpace.hpp"
 #include "UCodeLang/LangCore/LangDef.hpp"
 
@@ -37,3 +40,5 @@ using NativeULangBackEnd = void*;
 
 
 UCodeLangEnd
+
+#endif

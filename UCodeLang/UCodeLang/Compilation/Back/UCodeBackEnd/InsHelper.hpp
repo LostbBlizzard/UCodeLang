@@ -1,4 +1,7 @@
 #pragma once
+
+
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/LangCore/Instruction.hpp"
 UCodeLangStart
 
@@ -15,3 +18,5 @@ public:
 };
 
 UCodeLangEnd
+
+#endif

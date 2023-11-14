@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "IRUBChecker.hpp"
 
 #include "IR.hpp"
@@ -21,3 +22,5 @@ void IRUBChecker::CheckForUB(const IRBuilder* Input)
 	_Input = Input;
 }
 UCodeLangEnd
+
+#endif

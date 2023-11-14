@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
 
@@ -569,3 +570,5 @@ void SystematicAnalysis::Generic_InitGenericalias(const GenericValuesNode& Gener
 
 
 UCodeLangFrontEnd
+
+#endif

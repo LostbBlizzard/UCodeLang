@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 #include "UCodeLang/Compilation/Helpers/ParseHelper.hpp"
 UCodeLangFrontStart
@@ -52,3 +53,5 @@ void SystematicAnalysis::OnCharliteralNode(const CharliteralNode* num)
 }
 
 UCodeLangFrontEnd
+
+#endif

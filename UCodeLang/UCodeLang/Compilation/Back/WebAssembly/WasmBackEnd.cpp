@@ -1,4 +1,7 @@
- #include "WasmBackEnd.hpp"
+
+
+#ifndef UCodeLangNoCompiler
+#include "WasmBackEnd.hpp"
 #include "UCodeLang/Compilation/Middle/IR.hpp"
 #include "UCodeLang/Compilation/CompilationSettings.hpp"
 
@@ -292,3 +295,5 @@ void WasmBackEnd::LoadOp(const IRInstruction* ir, const IROperator& Op)
 	}
 }
 UCodeLangEnd
+
+#endif

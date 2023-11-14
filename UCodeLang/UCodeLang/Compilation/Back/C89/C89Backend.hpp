@@ -1,4 +1,6 @@
 #pragma once
+#ifndef UCodeLangNoCompiler
+
 #include "../BackEndInterface.hpp"
 #include "UCodeLang/LangCore/DataType/UnorderedMap.hpp"
 UCodeLangStart
@@ -54,3 +56,5 @@ private:
 
 };
 UCodeLangEnd
+
+#endif

@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "IRToX86IR.hpp"
 UCodeLangStart
 void IRToX86IR::Reset()
@@ -10,3 +11,5 @@ void IRToX86IR::Build(const IRBuilder* builder, X86IR::CleanUpMode mode)
 {
 }
 UCodeLangEnd
+
+#endif

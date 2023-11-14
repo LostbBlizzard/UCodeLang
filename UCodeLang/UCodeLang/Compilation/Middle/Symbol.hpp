@@ -1,4 +1,6 @@
 #pragma once
+
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/LangCore/ScopeHelper.hpp"
 #include "SymbolID.hpp"
 #include "../Front/UCodeFrontEndNameSpace.hpp"
@@ -1060,3 +1062,5 @@ private:
 	UnorderedMap<String, Vector<Symbol*>> NameToSymbol;
 };
 UCodeLangFrontEnd
+
+#endif

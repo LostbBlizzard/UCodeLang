@@ -1,4 +1,5 @@
 #pragma once
+#ifndef UCodeLangNoCompiler
 
 #include "../UCodeLang/UCodeLang/LangCore/ReflectionData.hpp"
 UCodeLangStart
@@ -16,3 +17,4 @@ public:
 };
 UCodeLangEnd
 
+#endif

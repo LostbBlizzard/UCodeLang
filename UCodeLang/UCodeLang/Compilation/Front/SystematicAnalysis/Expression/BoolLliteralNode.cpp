@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 #include "UCodeLang/Compilation/Helpers/ParseHelper.hpp"
 UCodeLangFrontStart
@@ -12,3 +13,5 @@ void SystematicAnalysis::OnBoolliteralNode(const BoolliteralNode* num)
 	_LastLookedAtToken = Nullableptr(num->token);
 }
 UCodeLangFrontEnd
+
+#endif

@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "IRBackEnd.hpp"
 #include "../../Middle/IR.hpp"
 UCodeLangStart
@@ -19,3 +20,5 @@ void IRBackEnd::Build(const IRBuilder* Input)
 }
 BackEndObject* IRBackEnd::MakeObject() { return new IRBackEnd(); }
 UCodeLangEnd
+
+#endif

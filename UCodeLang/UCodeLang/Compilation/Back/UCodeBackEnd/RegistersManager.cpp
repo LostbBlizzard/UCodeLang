@@ -1,3 +1,5 @@
+
+#ifndef UCodeLangNoCompiler
 #include "RegistersManager.hpp"
 UCodeLangStart
 
@@ -18,3 +20,5 @@ void RegistersManager::Reset()
 	}
 }
 UCodeLangEnd
+
+#endif

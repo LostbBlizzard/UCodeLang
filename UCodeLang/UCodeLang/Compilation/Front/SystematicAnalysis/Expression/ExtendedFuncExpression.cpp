@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
 
@@ -130,3 +131,5 @@ TypeSymbol SystematicAnalysis::ExtendedFuncExpressionGetTypeToStart(const TypeSy
 }
 
 UCodeLangFrontEnd
+
+#endif

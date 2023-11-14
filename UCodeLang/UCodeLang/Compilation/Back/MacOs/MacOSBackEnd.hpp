@@ -1,5 +1,6 @@
 #pragma once
 
+#ifndef UCodeLangNoCompiler
 #include "../BackEndInterface.hpp"
 UCodeLangStart
 class MacOSBackEnd : BackEndObject
@@ -15,3 +16,5 @@ public:
 private:
 };
 UCodeLangEnd
+
+#endif

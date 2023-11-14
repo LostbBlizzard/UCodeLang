@@ -1,4 +1,6 @@
 #pragma once
+
+#ifndef UCodeLangNoCompiler
 #include <UCodeLang/LangCore/BitMaker.hpp>
 #include <UCodeLang/LangCore/LangTypes.hpp>
 UCodeLangStart
@@ -745,3 +747,5 @@ public:
 private:
 };
 UCodeLangEnd
+
+#endif

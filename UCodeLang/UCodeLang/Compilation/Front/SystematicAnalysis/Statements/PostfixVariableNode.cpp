@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
 
@@ -163,3 +164,5 @@ void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 
 
 UCodeLangFrontEnd
+
+#endif

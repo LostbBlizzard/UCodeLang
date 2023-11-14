@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 #include "UCodeLang/Compilation/Helpers/ParseHelper.hpp"
 UCodeLangFrontStart
@@ -51,3 +52,5 @@ void SystematicAnalysis::OnFloatLiteralNode(const FloatliteralNode* num)
 }
 
 UCodeLangFrontEnd
+
+#endif

@@ -1,4 +1,6 @@
 #pragma once
+#ifndef UCodeLangNoCompiler
+
 #include "../BackEndInterface.hpp"
 
 UCodeLangStart
@@ -26,3 +28,5 @@ private:
 	String ToString(const IRType& Type);
 };
 UCodeLangEnd
+
+#endif

@@ -1,4 +1,5 @@
 #pragma once
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Helpers/CompilerTypes.hpp"
 UCodeLangStart
 
@@ -121,3 +122,5 @@ protected:
 
 using FrontEndObject_Ptr = FrontEndObject * (*)();
 UCodeLangEnd
+
+#endif

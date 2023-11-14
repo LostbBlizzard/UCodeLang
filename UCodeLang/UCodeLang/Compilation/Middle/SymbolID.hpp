@@ -1,4 +1,6 @@
 #pragma once
+
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/LangCore/ScopeHelper.hpp"
 UCodeLangStart
 
@@ -76,3 +78,5 @@ struct std::hash<UCodeLang::SymbolID>
 
 	}
 };
+
+#endif

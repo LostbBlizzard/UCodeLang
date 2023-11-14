@@ -1,5 +1,5 @@
 #pragma once
-
+#ifndef UCodeLangNoCompiler
 #include "../../LangCore.hpp"
 #include "../Helpers/CompilerTypes.hpp"
 #include "../LexerDefs.h"
@@ -100,3 +100,4 @@ private:
 };
 UCodeLangFrontEnd
 
+#endif

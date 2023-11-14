@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "ELF_File.hpp"
 #include <fstream>
 UCodeLangStart
@@ -152,3 +153,4 @@ BytesPtr ELFFile::ToBytes(const ELFFile& file)
 }
 UCodeLangEnd
 
+#endif

@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
 
@@ -45,3 +46,5 @@ void SystematicAnalysis::IR_Build_UpdateJumpsBreakContiunes(size_t JumpIndex, si
 }
 
 UCodeLangFrontEnd
+
+#endif

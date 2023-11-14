@@ -224,18 +224,18 @@ extern "C"
     void UCodeLangAPIExport UCodeLangCAPI_Init();
     void UCodeLangAPIExport UCodeLangCAPI_DeInit();
 
-
+    #ifndef UCodeLangNoCompiler
     UCodeLangCStruct UCodeLangCAPI_Compiler* UCodeLangAPIExport UCodeLangCAPI_New_Compiler();
     void UCodeLangAPIExport UCodeLangCAPI_Destroy_Compiler(UCodeLangCStruct UCodeLangCAPI_Compiler* Value);
     void UCodeLangAPIExport UCodeLangCAPI_Compiler_BuildTxt(UCodeLangCStruct UCodeLangCAPI_Compiler* This, UCodeLangCStruct UCodeLangCAPI_CharSpan String, UCodeLangCStruct UCodeLangCAPI_CompilerOutput* Output);
-
+    #endif
     UCodeLangCStruct UCodeLangCAPI_RunTimeLangState* UCodeLangAPIExport UCodeLangCAPI_New_RunTimeState();
     void UCodeLangAPIExport UCodeLangCAPI_Destroy_RunTimeState(UCodeLangCStruct UCodeLangCAPI_RunTimeLangState* Value);
 
     UCodeLangCStruct UCodeLangCAPI_Interpreter* UCodeLangAPIExport UCodeLangCAPI_New_Interpreter();
     void UCodeLangAPIExport UCodeLangCAPI_Destroy_Interpreter(UCodeLangCStruct UCodeLangCAPI_Interpreter* Value);
     UCodeLangCStruct UCodeLangCAPI_Interpreter_Return_t UCodeLangAPIExport UCodeLangCAPI_Interpreter_Call(UCodeLangCStruct UCodeLangCAPI_Interpreter* This, UCodeLangCStruct UCodeLangCAPI_CharSpan* FuncName);
-
+    
     //types
     void UCodeLangCAPI_KeepInHFile UCodeLangCAPI_New_CharSpan(UCodeLangCStruct UCodeLangCAPI_CharSpan* This)
     {

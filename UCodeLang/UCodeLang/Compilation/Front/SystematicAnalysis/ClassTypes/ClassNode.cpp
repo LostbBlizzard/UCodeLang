@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
 
@@ -534,3 +535,5 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 }
 
 UCodeLangFrontEnd
+
+#endif

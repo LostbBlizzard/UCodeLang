@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 
 #include "UCodeLang/Compilation/Helpers/NameDecoratior.hpp"
@@ -911,3 +912,5 @@ IRidentifierID SystematicAnalysis::IR_GetIRID(const FuncInfo* Func)
 }
 
 UCodeLangFrontEnd
+
+#endif

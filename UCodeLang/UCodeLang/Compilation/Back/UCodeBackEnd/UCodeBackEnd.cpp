@@ -1,3 +1,5 @@
+
+#ifndef UCodeLangNoCompiler
 #include "UCodeBackEnd.hpp"
 #include "UCodeLang/Compilation/Helpers/InstructionBuilder.hpp"
 #include "UCodeLang/Compilation/Helpers/NameDecoratior.hpp"
@@ -5198,3 +5200,4 @@ void UCodeBackEndObject::BuildLink(const IRidentifier& FuncName, IRFuncLink Link
 }
 UCodeLangEnd
 
+#endif

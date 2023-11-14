@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
 
@@ -37,3 +38,5 @@ void SystematicAnalysis::OnDeferStatement(const DeferStatementNode& node)
 }
 
 UCodeLangFrontEnd
+
+#endif

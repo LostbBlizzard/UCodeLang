@@ -1,4 +1,6 @@
 #pragma once
+
+#ifndef UCodeLangNoCompiler
 #include "../../Middle/IR.hpp"
 #include "../../Middle/IRBackEndHelper.hpp"
 UCodeLangStart
@@ -257,3 +259,5 @@ struct StackInfo
 	}
 };
 UCodeLangEnd
+
+#endif

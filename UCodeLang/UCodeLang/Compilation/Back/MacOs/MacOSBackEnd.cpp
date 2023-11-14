@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "MacOSBackEnd.hpp"
 #include "UCodeLang/Compilation/CompilationSettings.hpp"
 UCodeLangStart
@@ -27,3 +28,5 @@ void MacOSBackEnd::UpdateBackInfo(CompilationBackEndInfo& BackInfo)
 	BackInfo.OutputSet = CompilationBackEndInfo::InsSet::X86;
 }
 UCodeLangEnd
+
+#endif

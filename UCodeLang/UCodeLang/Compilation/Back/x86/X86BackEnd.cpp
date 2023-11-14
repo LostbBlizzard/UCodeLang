@@ -1,3 +1,5 @@
+
+#ifndef UCodeLangNoCompiler
 #include "X86BackEnd.hpp"
 #include "../../Helpers/InstructionBuilder.hpp"
 #include "UCodeLang/Compilation/CompilationSettings.hpp"
@@ -60,3 +62,4 @@ void X86BackEnd_UCodeLib::UpdateBackInfo(CompilationBackEndInfo& BackInfo)
 }
 UCodeLangEnd
 
+#endif

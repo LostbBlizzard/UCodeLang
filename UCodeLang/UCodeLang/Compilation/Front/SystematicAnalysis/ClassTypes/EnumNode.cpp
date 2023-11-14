@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
 
@@ -266,3 +267,5 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 
 
 UCodeLangFrontEnd
+
+#endif

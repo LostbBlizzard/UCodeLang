@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "IROptimizer.hpp"
 #include <iostream>
 #include "../Helpers/CompilationErrors.hpp"
@@ -2542,3 +2543,4 @@ void IROptimizer::InLineSubOperator(InLineData& Data, IROperator& Op, size_t Off
 
 UCodeLangEnd
 
+#endif

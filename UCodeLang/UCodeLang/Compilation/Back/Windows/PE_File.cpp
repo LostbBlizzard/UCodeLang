@@ -1,3 +1,5 @@
+
+#ifndef UCodeLangNoCompiler
 #include "PE_File.hpp"
 #include <fstream>
 #include <filesystem>
@@ -70,3 +72,4 @@ BytesPtr PEFile::ToBytes(const PEFile& file)
 
 UCodeLangEnd
 
+#endif
