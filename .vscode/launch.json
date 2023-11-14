@@ -104,13 +104,31 @@
             ]
         },
         {
-            "name": "Launch Hugo",
+            "name": "Launch Website",
             "request": "launch",
             "program": "hugo sever",
             "args": [],
             "cwd": "${workspaceFolder}/UCodeWebsite",
             "environment": [],
             "preLaunchTask": "Build UCodeWebsite",
+        },
+        {
+            "name": "(Wasm) Launch UCodeIDE",
+            "request": "launch",
+            "program": "hugo sever",
+            "args": [],
+            "cwd": "${workspaceFolder}/UCodeIDE",
+            "environment": [],
+            "preLaunchTask": "Build (UCodeIDE) using emscripten",
+        },
+        {
+            "name": "(Wasm) Launch UCodeCL",
+            "request": "launch",
+            "program": "hugo sever",
+            "args": [],
+            "cwd": "${workspaceFolder}/UCodelangCL",
+            "environment": [],
+            "preLaunchTask": "Build (UCodeCL) using emscripten",
         }
     ]
 }
