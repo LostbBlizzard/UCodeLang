@@ -1,4 +1,4 @@
-
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
 
@@ -72,3 +72,5 @@ void SystematicAnalysis::OnSizeofNode(const SizeofExpresionNode* nod)
 }
 
 UCodeLangFrontEnd
+
+#endif

@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 #include "UCodeLang/Compilation/Helpers/ParseHelper.hpp"
 UCodeLangFrontStart
@@ -109,3 +110,5 @@ void SystematicAnalysis::IR_WriteTo(IRInstruction* IR, const TypeSymbol& Type, c
 
 
 UCodeLangFrontEnd
+
+#endif

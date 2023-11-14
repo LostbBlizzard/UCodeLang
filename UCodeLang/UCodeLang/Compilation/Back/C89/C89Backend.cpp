@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "C89Backend.hpp"
 #include "../../Middle/IR.hpp"
 #include "../../CompilationSettings.hpp"
@@ -1311,3 +1312,4 @@ String C89Backend::ToStringState::GetName(IRInstruction* Ptr)
 
 UCodeLangEnd
 
+#endif

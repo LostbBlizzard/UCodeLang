@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
 
@@ -290,3 +291,5 @@ TypeSymbol SystematicAnalysis::Type_BinaryExpressionShouldRurn(TokenType Op, con
 	return V;
 }
 UCodeLangFrontEnd
+
+#endif

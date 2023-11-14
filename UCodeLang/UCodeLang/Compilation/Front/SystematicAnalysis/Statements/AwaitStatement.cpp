@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
 
@@ -209,3 +210,5 @@ IRInstruction* SystematicAnalysis::MakeFutureFromHandle(const TypeSymbol& Future
 }
 
 UCodeLangFrontEnd
+
+#endif

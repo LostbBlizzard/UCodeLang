@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "IR.hpp"
 #include <fstream>
 #include <UCodeLang/LangCore/TypeNames.hpp>
@@ -2105,3 +2106,4 @@ Vector<const IRDebugIns*> IRBlock::Get_debugfor(const IRInstruction* Value) cons
 
 UCodeLangEnd
 
+#endif

@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
 
@@ -45,3 +46,5 @@ void SystematicAnalysis::Eval_SetOutExpressionEval(const OutExpression* Ex, cons
 }
 
 UCodeLangFrontEnd
+
+#endif

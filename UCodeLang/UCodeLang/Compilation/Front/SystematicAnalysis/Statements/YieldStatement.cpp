@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
 
@@ -114,3 +115,5 @@ void SystematicAnalysis::OnYieldStatement(const YieldStatement& node)
 }
 
 UCodeLangFrontEnd
+
+#endif

@@ -1,3 +1,5 @@
+#ifndef UCodeLangNoCompiler
+
 #include "IRTypeFixer.hpp"
 #include <iostream>
 UCodeLangStart
@@ -408,3 +410,4 @@ void IRTypeFixer::LogErrorCantFindPar(UCodeLang::IROperator& Op)
 }
 UCodeLangEnd
 
+#endif

@@ -1,3 +1,5 @@
+#pragma once
+#ifndef UCodeLangNoCompiler
 #include "IR.hpp"
 
 UCodeLangStart
@@ -32,3 +34,5 @@ struct IRAndOperator
 	}
 };
 UCodeLangEnd
+
+#endif

@@ -1,4 +1,6 @@
 #pragma once
+
+#ifndef UCodeLangNoCompiler
 #include "../BackEndInterface.hpp"
 #include "RegistersManager.hpp"
 #include "UCodeLang/LangCore/UClib.hpp"
@@ -516,3 +518,4 @@ private:
 };
 UCodeLangEnd
 
+#endif

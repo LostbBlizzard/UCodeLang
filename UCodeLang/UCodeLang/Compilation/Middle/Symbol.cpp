@@ -1,5 +1,5 @@
+#ifndef UCodeLangNoCompiler
 #include "Symbol.hpp"
-
 
 UCodeLangFrontStart
 
@@ -132,5 +132,7 @@ Vector<Symbol*>& SymbolTable::GetSymbolsWithName(const String_view& Name)
 	 IDToSymbols.clear();
  }
 
- UCodeLangFrontEnd
+UCodeLangFrontEnd
 
+
+#endif

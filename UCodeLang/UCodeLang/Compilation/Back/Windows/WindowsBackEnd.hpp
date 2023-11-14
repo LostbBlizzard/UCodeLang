@@ -1,4 +1,6 @@
 #pragma once
+
+#ifndef UCodeLangNoCompiler
 #include "../BackEndInterface.hpp"
 UCodeLangStart
 
@@ -17,3 +19,5 @@ public:
 private:
 };
 UCodeLangEnd
+
+#endif

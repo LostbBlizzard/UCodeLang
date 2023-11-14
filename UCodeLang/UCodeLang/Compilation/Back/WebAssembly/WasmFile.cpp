@@ -1,3 +1,5 @@
+
+#ifndef UCodeLangNoCompiler
 #include "WasmFile.hpp"
 #include <fstream>
 UCodeLangStart
@@ -272,3 +274,5 @@ String WasmFile::ToWat(const Expr& Item) const
 	return r;
 }
 UCodeLangEnd
+
+#endif

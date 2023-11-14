@@ -1,3 +1,5 @@
+#ifndef UCodeLangNoCompiler
+
 #include "IRToX86_64IR.hpp"
 UCodeLangStart
 void IRToX86_64IR::Reset()

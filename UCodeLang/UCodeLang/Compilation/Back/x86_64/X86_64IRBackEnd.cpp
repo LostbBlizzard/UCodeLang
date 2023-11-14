@@ -1,3 +1,5 @@
+#ifndef UCodeLangNoCompiler
+
 #include "X86_64IRBackEnd.hpp"
 #include "IRToX86_64IR.hpp"
 UCodeLangStart
@@ -13,3 +15,5 @@ void X86_64IRBackEnd::Build(const IRBuilder* Input)
 	Set_Output(v);
 }
 UCodeLangEnd
+
+#endif

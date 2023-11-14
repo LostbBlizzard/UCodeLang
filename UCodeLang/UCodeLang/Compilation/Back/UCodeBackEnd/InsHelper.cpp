@@ -1,4 +1,6 @@
 #pragma once
+
+#ifndef UCodeLangNoCompiler
 #include "InsHelper.hpp"
 #include "../../Helpers/InstructionBuilder.hpp"
 UCodeLangStart
@@ -71,3 +73,5 @@ void InsHelper::SetWriteReg(Instruction& Op, RegisterID A)
 }
 
 UCodeLangEnd
+
+#endif

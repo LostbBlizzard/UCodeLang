@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
 
@@ -454,3 +455,5 @@ void SystematicAnalysis::IR_Build_Member_Store(const GetMemberTypeSymbolFromVar_
 }
 
 UCodeLangFrontEnd
+
+#endif

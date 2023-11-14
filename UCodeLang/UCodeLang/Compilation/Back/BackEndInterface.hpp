@@ -1,4 +1,5 @@
 #pragma once
+#ifndef UCodeLangNoCompiler
 
 #include "UCodeLang/LangCore/LangTypes.hpp"
 #include <cstring> //memcpy
@@ -92,3 +93,4 @@ using BackEndObject_Ptr = BackEndObject* (*)();
 
 UCodeLangEnd
 
+#endif

@@ -1,4 +1,6 @@
 #pragma once
+#ifndef UCodeLangNoCompiler
+
 #include "IR.hpp"
 #include "IRTypeFixer.hpp"
 #include "IRUBChecker.hpp"
@@ -157,3 +159,5 @@ private:
 };
 
 UCodeLangEnd
+
+#endif

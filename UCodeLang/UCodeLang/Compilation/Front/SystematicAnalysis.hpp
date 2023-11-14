@@ -1,4 +1,6 @@
 #pragma once
+
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/Parser.hpp"
 
 #include "UCodeLang/LangCore/UClib.hpp"
@@ -1892,4 +1894,4 @@ private:
 };
 UCodeLangFrontEnd
 
-
+#endif

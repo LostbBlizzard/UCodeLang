@@ -1,4 +1,6 @@
 #pragma once
+#ifndef UCodeLangNoCompiler
+
 #include "../../LangCore.hpp"
 #include "../Helpers/CompilerTypes.hpp"
 #include "../NodeTypes/TreeNode.hpp"
@@ -703,3 +705,4 @@ private:
 };
 UCodeLangFrontEnd
 
+#endif

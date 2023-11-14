@@ -1,5 +1,6 @@
 #pragma once
 
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/LangCore/DataType/UnorderedMap.hpp"
 #include "../BackEndInterface.hpp"
 #include "WasmFile.hpp"
@@ -53,3 +54,5 @@ private:
 
 };
 UCodeLangEnd
+
+#endif

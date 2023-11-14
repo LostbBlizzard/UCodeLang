@@ -1,3 +1,5 @@
+
+#ifndef UCodeLangNoCompiler
 #include "MachO.hpp"
 #include <fstream>
 UCodeLangStart
@@ -67,3 +69,5 @@ BytesPtr MachO::ToBytes(const MachO& file)
 }
 
 UCodeLangEnd
+
+#endif

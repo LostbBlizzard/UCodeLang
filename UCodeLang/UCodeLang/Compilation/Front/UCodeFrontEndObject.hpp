@@ -1,4 +1,5 @@
 #pragma once
+#ifndef UCodeLangNoCompiler
 #include "FrontEndObject.hpp"
 
 #include "Lexer.hpp"
@@ -66,3 +67,5 @@ private:
 };
 
 UCodeLangFrontEnd
+
+#endif

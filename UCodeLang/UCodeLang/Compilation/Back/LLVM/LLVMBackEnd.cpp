@@ -1,3 +1,5 @@
+#ifndef UCodeLangNoCompiler
+
 #include "LLVMBackEnd.hpp"
 #include "UCodeLang/Compilation/Middle/IR.hpp"
 #include "UCodeLang/Compilation/CompilationSettings.hpp"
@@ -140,3 +142,5 @@ String LLVMBackEnd::ToString(const IRType& Type)
 	return r;
 }
 UCodeLangEnd
+
+#endif

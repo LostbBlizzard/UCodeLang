@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
 
@@ -240,3 +241,5 @@ void SystematicAnalysis::OnCompileTimeIfNode(const CompileTimeIfNode& node, bool
 }
 
 UCodeLangFrontEnd
+
+#endif

@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
 void SystematicAnalysis::OnTrait(const TraitNode& node)
@@ -548,3 +549,5 @@ bool SystematicAnalysis::Type_CanDoTypeToTrait(const TypeSymbol& TypeToCheck, co
 
 
 UCodeLangFrontEnd
+
+#endif

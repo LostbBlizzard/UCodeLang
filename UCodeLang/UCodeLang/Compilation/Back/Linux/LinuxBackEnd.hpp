@@ -1,4 +1,5 @@
 #pragma once
+#ifndef UCodeLangNoCompiler
 #include "../BackEndInterface.hpp"
 UCodeLangStart
 class LinuxBackEnd : BackEndObject
@@ -16,3 +17,5 @@ private:
 };
 
 UCodeLangEnd
+
+#endif

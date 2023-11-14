@@ -1,3 +1,5 @@
+#ifndef UCodeLangNoCompiler
+
 #include "Lexer.hpp"
 #include "../Helpers/KeyWords.hpp"
 
@@ -743,3 +745,5 @@ void Lexer::NameAndKeyWords(ReadingNameState &ReadingState, Token &_Token)
 	}
 }
 UCodeLangFrontEnd
+
+#endif

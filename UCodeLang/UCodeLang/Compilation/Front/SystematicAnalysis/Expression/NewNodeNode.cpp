@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
 void SystematicAnalysis::OnNewNode(const NewExpresionNode* nod)
@@ -183,3 +184,5 @@ void SystematicAnalysis::OnNewNode(const NewExpresionNode* nod)
 }
 
 UCodeLangFrontEnd
+
+#endif

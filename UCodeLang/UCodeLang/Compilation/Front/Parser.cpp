@@ -1,3 +1,5 @@
+#ifndef UCodeLangNoCompiler
+
 #include "Parser.hpp"
 #include "../Helpers/KeyWords.hpp"
 #include "../UAssembly/UAssembly_Parser.hpp"
@@ -5142,3 +5144,5 @@ GotNodeType Parser::GetDeferStatementNode(DeferStatementNode& out)
 	return r;
 }
 UCodeLangFrontEnd
+
+#endif

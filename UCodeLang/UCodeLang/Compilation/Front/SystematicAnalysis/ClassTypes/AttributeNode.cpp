@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
 
@@ -76,3 +77,5 @@ void SystematicAnalysis::OnAttributesNode(const Vector<Unique_ptr<AttributeNode>
 
 
 UCodeLangFrontEnd
+
+#endif

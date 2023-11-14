@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "X86_64UNativeBackEnd.hpp"
 #include "IRToX86_64IR.hpp"
 #include "UCodeLang/Compilation/Middle/IR.hpp"
@@ -123,3 +124,6 @@ void X86_64UNativeBackEnd::UpdateBackInfo(CompilationBackEndInfo& BackInfo)
 	BackInfo.OutputSet = CompilationBackEndInfo::InsSet::X86;
 }
 UCodeLangEnd
+
+
+#endif

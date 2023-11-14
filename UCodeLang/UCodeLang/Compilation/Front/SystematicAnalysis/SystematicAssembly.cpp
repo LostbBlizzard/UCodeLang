@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 #include "UCodeLang/Compilation/Front/Lexer.hpp"
 UCodeLangFrontStart
@@ -1183,3 +1184,5 @@ void SystematicAnalysis::ToIntFile(FileNode_t* File, const Path& path)
 
 
 UCodeLangFrontEnd
+
+#endif
