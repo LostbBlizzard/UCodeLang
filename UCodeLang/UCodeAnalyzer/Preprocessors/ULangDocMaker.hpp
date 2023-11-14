@@ -1,5 +1,6 @@
 #pragma once
 
+#ifndef UCodeLangNoCompiler
 #include "../Typedef.hpp"
 UCodeAnalyzerStart
 class ULangDocMaker
@@ -33,3 +34,5 @@ public:
 	static bool ParseCppfileAndOutULang(const Path& SrcDir, const OutputSettings& Settings, const Path& OutDir);
 };
 UCodeAnalyzerEnd
+
+#endif

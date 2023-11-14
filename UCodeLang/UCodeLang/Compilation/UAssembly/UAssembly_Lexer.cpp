@@ -1,3 +1,5 @@
+
+#ifndef UCodeLangNoCompiler
 #include "UAssembly_Lexer.hpp"
 UAssemblyStart
 
@@ -123,3 +125,5 @@ void Lexer::Lex(const String_view& Text)
 }
 
 UAssemblyEnd
+
+#endif

@@ -1,3 +1,5 @@
+
+#ifndef UCodeLangNoCompiler
 #include "ULangDocMaker.hpp"
 UCodeAnalyzerStart
 bool ULangDocMaker::ParseCppfileAndOutULang(const Path& SrcDir, const OutputSettings& Settings, const Path& OutDir)
@@ -5,3 +7,5 @@ bool ULangDocMaker::ParseCppfileAndOutULang(const Path& SrcDir, const OutputSett
 	return {};
 }
 UCodeAnalyzerEnd
+
+#endif

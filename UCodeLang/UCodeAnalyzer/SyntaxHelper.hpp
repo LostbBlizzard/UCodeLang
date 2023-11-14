@@ -1,4 +1,6 @@
 #pragma once
+
+#ifndef UCodeLangNoCompiler
 #include "Typedef.hpp"
 UCodeAnalyzerStart
 class SyntaxHelper
@@ -15,3 +17,5 @@ public:
 };
 
 UCodeAnalyzerEnd
+
+#endif

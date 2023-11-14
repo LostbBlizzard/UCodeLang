@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UAssembly_Parser.hpp"
 #include "UCodeLang/Compilation/Helpers/ParseHelper.hpp"
 UAssemblyStart
@@ -156,3 +157,6 @@ void Parser::ParseAny8(AnyInt64& Out)
 	NextToken();
 }
 UAssemblyEnd
+
+
+#endif
