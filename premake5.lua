@@ -78,7 +78,7 @@ workspace "UCodeLang"
     system "linux"
     architecture "x86"
     defines { "ZYAN_POSIX" }
-    targetextension (".js")
+    targetextension (".html")
    
    filter { "configurations:Debug" }
       defines { "DEBUG" }
@@ -343,11 +343,9 @@ project "UCodeIDE"
      "%{prj.name}/src/**.cpp",
      "%{prj.name}/src/**.hpp", 
 
+     --
      "%{prj.name}/Dependencies/GLEW/**.h",
-     "%{prj.name}/Dependencies/GLFW/include/**.c",
-     "%{prj.name}/Dependencies/GLFW/include/**.h", 
-     "%{prj.name}/Dependencies/GLFW/src/**.c",
-     "%{prj.name}/Dependencies/GLFW/src/**.h", 
+      
 
      "%{prj.name}/Dependencies/imgui/*.cpp",
      "%{prj.name}/Dependencies/imgui/*.h", 
@@ -362,7 +360,14 @@ project "UCodeIDE"
      "%{prj.name}/Dependencies/imgui/misc/cpp/*.cpp",
      "%{prj.name}/Dependencies/imgui/misc/cpp/*.h", 
    }
-
+   filter { "platforms:not Web" }
+      files { 
+      "%{prj.name}/Dependencies/GLFW/include/**.c",
+      "%{prj.name}/Dependencies/GLFW/include/**.h", 
+      "%{prj.name}/Dependencies/GLFW/src/**.c",
+      "%{prj.name}/Dependencies/GLFW/src/**.h", 
+      }
+   filter {}
    includedirs{
     "%{prj.name}/src",
     "%{prj.name}/Dependencies",
@@ -410,9 +415,11 @@ project "UCodeIDE"
    filter { "system:Windows","architecture:x86_64"}
       links {"glew64s.lib","Opengl32.lib"}
 
+      
    filter { "platforms:Web" }
       kind "ConsoleApp"   
-      --defines {""}
+      links {"glfw"}
+      linkoptions { "-sUSE_GLFW=3"}
   
 
    filter { "system:linux","platforms:not Web" }

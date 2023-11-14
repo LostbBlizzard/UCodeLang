@@ -41,6 +41,19 @@ static AppInfo _This;
 #if UCodeLang_Platform_Windows
 #include <windows.h>
 #endif
+
+#if __EMSCRIPTEN__
+#include "emscripten.h"
+#endif
+
+void loop()
+{
+	std::string line;
+	std::getline(*_This.Input, line);
+
+	String_view Line = line;
+	ParseLine(Line);
+}
 int App::main(int argc, char* argv[])
 {
 	namespace fs = std::filesystem;
@@ -94,15 +107,14 @@ int App::main(int argc, char* argv[])
 		String_view Line = "help";
 		ParseLine(Line);
 		
-		
+		#if __EMSCRIPTEN__
+    	emscripten_set_main_loop(loop, -1, 1);
+    	#else
 		while (_This.EndApp == false)
 		{
-			std::string line;
-			std::getline(*_This.Input, line);
-
-			String_view Line = line;
-			ParseLine(Line);
+			loop();
 		}
+		#endif
 	}
 	else
 	{
