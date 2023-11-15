@@ -18,7 +18,7 @@
 //Variable:main:a
 
    int32 A;
-   int32 B = 2;
+   int32 B = 99;
    A = B;
 
 //Line:38
