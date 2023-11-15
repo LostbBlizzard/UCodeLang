@@ -153,7 +153,16 @@ void AppObject::Init()
         */
       
         UCodeIDEStyle(nullptr);
-        _Editor.SetText(UCodeLang::Compiler::GetTextFromFile("src/AppObject/test.uc"));
+
+
+        auto str = UCodeLang::Compiler::GetTextFromFile("src/AppObject/test.uc");
+        if (str == "*null")
+        {
+            str = "|main[] => 0;";
+        }
+        _Editor.SetText(str);
+        
+        
         UpdateBackEnd();
         CompileText(GetTextEditorString());
 
@@ -1750,7 +1759,7 @@ void AppObject::OnDraw()
 
     {
         #if NoUseThread
-        if (IsRuningCompiler == false)
+        if (IsRuningCompiler == false && NoThreadRetChecked == false)
         {
             auto& compilerret =_NoThreadRuningCompiler;
             OnDoneCompileing(compilerret, _RuningPaths.OutFile);
@@ -3334,7 +3343,6 @@ void AppObject::CompileText(const String& String)
 
     _RuningPaths = std::move(paths);
     
-
     static bool ItWorked = false;
     if (ItWorked == false)
     {
@@ -3344,6 +3352,8 @@ void AppObject::CompileText(const String& String)
     else
     { 
         #if NoUseThread
+
+        NoThreadRetChecked = false;
         _NoThreadRuningCompiler =Func();
         #else
         _RuningCompiler = SendTaskToWorkerThread<UCodeLang::Compiler::CompilerRet>(Func);
@@ -3354,6 +3364,7 @@ void AppObject::CompileText(const String& String)
 
 void AppObject::OnDoneCompileing(UCodeLang::Compiler::CompilerRet& Val, const UCodeAnalyzer::Path& tepoutpath)
 {
+    NoThreadRetChecked = true;
     if (Val.IsValue())
     {
         Errors.clear();

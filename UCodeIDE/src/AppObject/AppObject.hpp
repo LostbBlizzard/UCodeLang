@@ -305,6 +305,7 @@ private:
 	std::future<UCodeLang::Compiler::CompilerRet> _RuningCompiler;
 	UCodeLang::Compiler::CompilerPathData _RuningPaths;
 	UCodeLang::Compiler::CompilerRet _NoThreadRuningCompiler;
+	bool NoThreadRetChecked = false;
 
 	template<typename T, typename... Pars> std::future<T>
 		SendTaskToWorkerThread(std::function<T(Pars...)> Func, Pars... pars)
