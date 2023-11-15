@@ -95,9 +95,6 @@ workspace "UCodeLang"
       optimize "Speed"
       symbols "off"
 
-   filter { "platforms:Web" }
-      optimize "Speed"
-      symbols "off"
    
 project "UCApp"
    location "UCApp"

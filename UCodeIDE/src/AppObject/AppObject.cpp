@@ -3323,9 +3323,14 @@ void AppObject::CompileText(const String& String)
         Func();
     }
     else
-    {
+    { 
+        #if __EMSCRIPTEN__
+        
+        #else
         _RuningCompiler = SendTaskToWorkerThread<UCodeLang::Compiler::CompilerRet>(Func);
+        #endif
     }
+    
 }
 
 void AppObject::OnDoneCompileing(UCodeLang::Compiler::CompilerRet& Val, const UCodeAnalyzer::Path& tepoutpath)

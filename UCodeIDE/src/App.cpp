@@ -10,25 +10,37 @@
 
 UCodeAnalyzer::UCodeIDE::AppObject* appptr =nullptr;
 Window* windowptr =nullptr;
+bool init =false;
 void loop()
 {
-        windowptr->PreDraw();
-        appptr->OnDraw();
-        windowptr->Draw();
+    if (init ==false)
+    {
+        Window::Init();
+
+        windowptr->InitWindow();
+
+        appptr->Init();
+        
+        init =true;
+        #if __EMSCRIPTEN__
+        //emscripten_wget("imgui.ini","imgui.ini");
+
+        #endif 
+    }
+    
+    windowptr->PreDraw();
+    appptr->OnDraw();
+    windowptr->Draw();
 }
 
 int App::main(int argc, char* argv[])
 {
     UCodeAnalyzer::UCodeIDE::AppObject app = UCodeAnalyzer::UCodeIDE::AppObject();
+    
     Window window = Window();
     windowptr =&window;
     appptr = &app;
-
-    Window::Init();
-
-    window.InitWindow();
-    app.Init();
-
+   
     #if __EMSCRIPTEN__
     emscripten_set_main_loop(loop, -1, 1);
     #else
