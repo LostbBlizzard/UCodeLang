@@ -64,7 +64,7 @@ workspace "UCodeLang"
    
    filter { "platforms:Android" }
     system "android"
-    architecture "ARM64"
+    architecture "ARM"
     androidapilevel (22)
     exceptionhandling ("On")
     rtti ("On")
@@ -357,7 +357,7 @@ project "UCodeIDE"
      "%{prj.name}/Dependencies/imgui/misc/cpp/*.cpp",
      "%{prj.name}/Dependencies/imgui/misc/cpp/*.h", 
    }
-   filter { "platforms:not Web" }
+   filter { "platforms:not Web"}
       files { 
       "%{prj.name}/Dependencies/GLFW/include/**.c",
       "%{prj.name}/Dependencies/GLFW/include/**.h", 
@@ -417,7 +417,6 @@ project "UCodeIDE"
       kind "ConsoleApp"   
       links {"glfw"}
       linkoptions { "-sUSE_GLFW=3"}
-  
 
    filter { "system:linux","platforms:not Web" }
     kind "ConsoleApp"   

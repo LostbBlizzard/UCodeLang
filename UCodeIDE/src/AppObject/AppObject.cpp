@@ -47,6 +47,14 @@
 
 UCodeIDEStart
 
+//I dont think threads work in wasm
+
+#if __EMSCRIPTEN__
+#define NoUseThread 1
+#else
+#define NoUseThread 0
+#endif
+
 static UCodeLang::ProfilerDebuger Debuger;
 
 void UCodeIDEStyle(ImGuiStyle* dst)
@@ -102,6 +110,7 @@ void AppObject::Init()
     if (!_IsAppRuning) {
         _IsAppRuning = true;
 
+#if !NoUseThread
         /*
         _LangSeverThread = std::make_unique<std::thread>([this]()
             {
@@ -111,6 +120,7 @@ void AppObject::Init()
                 this->SeverPtr = nullptr;
             });
         */
+#endif
 
 
         {
@@ -1737,12 +1747,21 @@ void AppObject::OnDraw()
     
     ProcessSeverPackets();
 
+
     {
+        #if NoUseThread
+        if (IsRuningCompiler == false)
+        {
+            auto& compilerret =_NoThreadRuningCompiler;
+            OnDoneCompileing(compilerret, _RuningPaths.OutFile);
+        }
+        #else 
         if (IsRuningCompiler == false && _RuningCompiler.valid())
         {
             auto compilerret =_RuningCompiler.get();
             OnDoneCompileing(compilerret, _RuningPaths.OutFile);
         }
+        #endif
     }
 
     bool Doc = true;
@@ -3324,8 +3343,8 @@ void AppObject::CompileText(const String& String)
     }
     else
     { 
-        #if __EMSCRIPTEN__
-        
+        #if NoUseThread
+        _NoThreadRuningCompiler =Func();
         #else
         _RuningCompiler = SendTaskToWorkerThread<UCodeLang::Compiler::CompilerRet>(Func);
         #endif
