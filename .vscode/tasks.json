@@ -177,8 +177,11 @@
       },
       {
         "label": "Build UCodeDocumentation",
-        "command": "UCodeDocumentation/Build.sh",
+        "command": "Build.sh",
         "group": "build",
+        "options": {
+          "cwd": "${workspaceFolder}/UCodeDocumentation"
+        },
       }
     ]
   }
