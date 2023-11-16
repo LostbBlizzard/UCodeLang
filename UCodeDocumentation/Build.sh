@@ -1,2 +1,2 @@
-#tools\mdbook build --dest-dir ../Output/UCodeDocumentation
+./tools/mdbook build --dest-dir ../Output/UCodeDocumentation
 
