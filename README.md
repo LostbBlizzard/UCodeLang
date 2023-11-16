@@ -105,7 +105,10 @@ It's nowhere near completion.
 
 # Downloads & Documentation
 
-[WebSite and PlayGround]("https://lostbblizzard.github.io/UCodeLang/")
+[Website](https://lostbblizzard.github.io/UCodeLang/)
+
+[PlayGround](https://lostbblizzard.github.io/UCodeLang/UCodeIDE/UCodeIDE.html)
+
 
 [Documentation]("UCodeDocumentation/src/SUMMARY.md")
 //Goto "UCodeDocumentation/src/SUMMARY.md" if link does not work
