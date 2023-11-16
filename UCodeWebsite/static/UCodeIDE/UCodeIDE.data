@@ -1,0 +1,103 @@
+[Window][IDE]
+Pos=0,19
+Size=1280,701
+Collapsed=0
+
+[Window][Debug##Default]
+Pos=60,60
+Size=400,400
+Collapsed=0
+
+[Window][ECE Example]
+Pos=278,19
+Size=469,701
+Collapsed=0
+DockId=0x00000003,1
+
+[Window][ShowStyleEditor]
+Pos=749,19
+Size=531,701
+Collapsed=0
+DockId=0x00000004,1
+
+[Window][VM Draw Window]
+Pos=278,19
+Size=469,701
+Collapsed=0
+DockId=0x00000003,2
+
+[Window][Files]
+Pos=0,19
+Size=276,393
+Collapsed=0
+DockId=0x00000005,2
+
+[Window][File.uc]
+Pos=0,19
+Size=276,393
+Collapsed=0
+DockId=0x00000005,1
+
+[Window][Error List]
+Pos=749,19
+Size=531,701
+Collapsed=0
+DockId=0x00000004,2
+
+[Window][Tests]
+Pos=0,19
+Size=276,393
+Collapsed=0
+DockId=0x00000005,3
+
+[Window][Performance]
+Pos=0,19
+Size=276,393
+Collapsed=0
+DockId=0x00000005,0
+
+[Window][Output]
+Pos=749,19
+Size=531,701
+Collapsed=0
+DockId=0x00000004,0
+
+[Window][UCode-VM]
+Pos=278,19
+Size=469,701
+Collapsed=0
+DockId=0x00000003,0
+
+[Window][Stack-Memory]
+Pos=0,414
+Size=276,306
+Collapsed=0
+DockId=0x00000006,3
+
+[Window][Heap-Memory]
+Pos=0,414
+Size=276,306
+Collapsed=0
+DockId=0x00000006,2
+
+[Window][Static-Memory]
+Pos=0,414
+Size=276,306
+Collapsed=0
+DockId=0x00000006,1
+
+[Window][Thread-Memory]
+Pos=0,414
+Size=276,306
+Collapsed=0
+DockId=0x00000006,0
+
+[Docking][Data]
+DockSpace     ID=0x75C425D0 Window=0x12A95043 Pos=78,59 Size=1280,701 Split=X
+  DockNode    ID=0x00000001 Parent=0x75C425D0 SizeRef=362,701 Split=Y Selected=0x86FA2F90
+    DockNode  ID=0x00000005 Parent=0x00000001 SizeRef=412,393 CentralNode=1 Selected=0xE8A99AFF
+    DockNode  ID=0x00000006 Parent=0x00000001 SizeRef=412,306 Selected=0xF835139B
+  DockNode    ID=0x00000002 Parent=0x75C425D0 SizeRef=1002,701 Split=X Selected=0x5593421D
+    DockNode  ID=0x00000003 Parent=0x00000002 SizeRef=469,701 Selected=0x5593421D
+    DockNode  ID=0x00000004 Parent=0x00000002 SizeRef=531,701 Selected=0x0D42FFB9
+
