@@ -416,7 +416,7 @@ project "UCodeIDE"
    filter { "platforms:Web" }
       kind "ConsoleApp"   
       links {"glfw"}
-      linkoptions { "-sUSE_GLFW=3"}
+      linkoptions { "-sUSE_GLFW=3","--preload-file wasmassets"}
 
    filter { "system:linux","platforms:not Web" }
     kind "ConsoleApp"   

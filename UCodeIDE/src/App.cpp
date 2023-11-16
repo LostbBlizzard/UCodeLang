@@ -23,9 +23,16 @@ void loop()
         
         init =true;
         #if __EMSCRIPTEN__
-        //emscripten_wget("imgui.ini","imgui.ini");
-
+        EM_ASM(
+            addEventListener("keydown", function(event) {
+            if (event.keyCode === 32) {
+            event.stopPropagation();
+            }
+            });
+        );
+        ImGui::LoadIniSettingsFromDisk("wasmassets/imgui.ini");
         #endif 
+        
     }
     
     windowptr->PreDraw();
