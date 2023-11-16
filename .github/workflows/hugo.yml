@@ -60,7 +60,7 @@ jobs:
 
       - name: Build UCodeDocumentation
         working-directory: ./UCodeDocumentation
-        run: Build.sh
+        run: ./Build.sh
 
       - name: Build with Hugo
         env:
