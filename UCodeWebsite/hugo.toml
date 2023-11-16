@@ -1,4 +1,4 @@
-baseURL = ''
+baseURL = 'test.com'
 languageCode = 'en-us'
-title = 'UCodeLangWebsite'
-theme = 'hugo-theme-learn'
+title = 'UCodeLang'
+theme = 'ananke'
