@@ -176,12 +176,8 @@
         "group": "build",
       },
       {
-        "label": "Build Android",
-        "command": "make",
-        "args": [
-          "config=debug_android",
-          "-j4",
-        ],
+        "label": "Build UCodeDocumentation",
+        "command": "UCodeDocumentation/Build.sh",
         "group": "build",
       }
     ]
