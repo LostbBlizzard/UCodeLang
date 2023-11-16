@@ -12,13 +12,12 @@ to obtain type info can be done by
 
 
 
-<code>
+```
+|main[] -> void:
+ BoolType B = type(bool);
+ var TypeInfo = typeof(B);
 
-        |main[] -> void:
-         BoolType B = type(bool);
-         var TypeInfo = typeof(B);
-
-</code>
+```
 
 Note typeof is for expressions and will not will never execute the code at runtime.
 
@@ -28,12 +27,10 @@ Use cases can be found on [type info](./TypeInfo.md).
 
 Comparing types can be done below
 
-<code>
-
-        |main[] -> void:
-         var AreTheSameType = type(bool == int);
-
-</code>
+```
+|main[] -> void:
+ var AreTheSameType = type(bool == int);
+```
 
 when comparing types it will return a constant expression Boolean.
 
@@ -51,12 +48,8 @@ here's the list of valid operators.
 #  binding types
 
 using the bind keyword allows to convert [type info](./TypeInfo.md) to a type declaration.
-<code>
-
-        |main[] -> void:
-         var BoolType = type(bool);
-
-
-         bind(BoolType) Item = true;
-
-</code>
+```
+|main[] -> void:
+ var BoolType = type(bool);
+ bind(BoolType) Item = true;
+```

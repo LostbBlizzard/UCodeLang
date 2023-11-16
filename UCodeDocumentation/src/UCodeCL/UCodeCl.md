@@ -4,11 +4,11 @@ The UCodeLang Command-line tool it serves as a Compiler,Runtime,build system and
 
 # Syntax
 
-<code>
+```
 
     uclang [command] <arguments>
 
-</code>
+```
 
 # Commands
 | Name | arguments | Return Exit Code | Description |
@@ -38,17 +38,17 @@ By default uclang build will compile to UCodeVM being 32 or 64 bit if the  curre
 if path not provided it will use the working directory as its input and use a UCodeModule Project in it to Compile.
 
 Example
-<code>
+```
 
     uclang build -c89
 
-</code>
+```
 
-<code>
+```
 
     uclang build -uvm:x86_64
 
-</code>
+```
 
 | Flag | extra | Description |
 |--- |--- |--- |
@@ -68,19 +68,19 @@ Example
 
 By default uclang will try to call the main funcion.
 
-<code>
+```
 
     uclang run
 
-</code>
+```
 
 This can be overwritten and basic arguments can be passed.
 
-<code>
+```
 
     uclang run func(4)
 
-</code>
+```
 
 These flags only apply if path was UCodeLang File,Module,Folder or .ulib.
 | Flag | extra | Description |
