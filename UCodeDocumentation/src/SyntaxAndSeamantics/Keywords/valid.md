@@ -5,13 +5,13 @@ the valid keyword is an expression that returns a [constant expression](../Conce
 the keyword will check if an expression or statements will throw an compile time error.
 
 for example:
-<code>
+```
 
         |main[] -> void:
          bool DoesFuncExist = valid(:Func();); 
          $if DoesFuncExist:
           Console::Log("found func");
-</code>
+```
 
 
 the varable "DoesFuncExist" is false because the compiler will detect that Func cant be found in the scope.

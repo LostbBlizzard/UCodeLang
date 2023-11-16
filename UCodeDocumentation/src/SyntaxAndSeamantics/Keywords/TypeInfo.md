@@ -20,32 +20,31 @@ it can be used also be used as a type by useing the [bind](./type.md) keyword.
 
 It has has the following functions.
 
-<code>
-
-    $typeinfo:
+```
+$typeinfo:
      
-    //Get the Name of the type.
-    |Name[this&] -> char[\];
+  //Get the Name of the type.
+  |Name[this&] -> char[\];
 
-    //Get the Full Name of the type.
-    |FullName[this&] -> char[\];
+  //Get the Full Name of the type.
+  |FullName[this&] -> char[\];
    
-    //Get the TypeID
-    |TypeID[this&] -> uintptr;
+  //Get the TypeID
+  |TypeID[this&] -> uintptr;
       
-    //if it's an Address. Ex:T&
-    |IsAddress[this&] -> bool;
+  //if it's an Address. Ex:T&
+  |IsAddress[this&] -> bool;
 
-    //if it's an AddressArray.  Ex:T[&]
-    |IsAddressArray[this&] -> bool;
+  //if it's an AddressArray.  Ex:T[&]
+  |IsAddressArray[this&] -> bool;
 
-    //if it's an immutable.  Ex: umut T
-    |IsImmutable[this&] -> bool;
+  //if it's an immutable.  Ex: umut T
+  |IsImmutable[this&] -> bool;
 
-    //if it's an Dynamic.  Ex: dynamic<T>
-    |IsDynamic[this&] -> bool;
+  //if it's an Dynamic.  Ex: dynamic<T>
+  |IsDynamic[this&] -> bool;
 
-    //if it's an Moved.  Ex: moved T
+  //if it's an Moved.  Ex: moved T
     |IsMoved[this&] -> bool;
 
     // try get the Class info.
@@ -55,13 +54,13 @@ It has has the following functions.
     |GetEnumInfo[this&,out enuminfo Info] -> bool;
   
 
-</code>
+```
 
 # classinfo
 
 It has has the following functions.
 
-<code>
+```
 
     
 
@@ -81,13 +80,13 @@ It has has the following functions.
     |Fields[this&] -> fieldinfo[\];
 
 
-</code>
+```
 
 # enuminfo
 
 It has has the following functions.
 
-<code>
+```
 
     
 
@@ -116,4 +115,4 @@ It has has the following functions.
     //Gets the type of the Union of the Variant if it is one.
     |TryGetVariantUnion[this&,out variantinfo info] -> bool;
 
-</code>
+```

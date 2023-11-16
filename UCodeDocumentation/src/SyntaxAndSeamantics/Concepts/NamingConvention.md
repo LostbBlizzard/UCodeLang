@@ -10,7 +10,7 @@ int is a keyword and a built-in type
 Int is a user-defined type in Pascal case
 Pascal case should be used consistently throughout the code to maintain clarity and readability. Here is an example of how Pascal case is used in UCode:
 
-<code>
+```
 
     //A user-defined type that represents a point
     $Point: 
@@ -39,4 +39,4 @@ Pascal case should be used consistently throughout the code to maintain clarity 
 
     Console::Log(Distance(origin, target)); //Prints 5
 
-</code>
+```

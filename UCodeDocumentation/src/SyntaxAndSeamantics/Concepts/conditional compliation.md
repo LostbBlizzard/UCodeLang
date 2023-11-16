@@ -20,7 +20,7 @@ does not generate symbols in the if block until evaluated.also the newly added s
 
 for example:
 
-<code>
+```
 
     eval bool Mode = true; //constant expression varable 
   
@@ -34,22 +34,22 @@ for example:
 
      Console::Log(A);
    
-</code>
+```
 
 after evaluating the code gets simplified into.
 
-<code>
+```
 
     |Main[]:
      int A = 1;
      Console::Log(A);
 
-</code>
+```
 
 also works in file scope and namespace scope.
 
 
-<code>
+```
 
     eval bool Mode = true; //constant expression varable
 
@@ -58,15 +58,15 @@ also works in file scope and namespace scope.
     $else
      $CoolInt = uint64;
 
-</code>
+```
 
 after evaluating the code gets simplified into.
 
-<code>
+```
  
     $CoolInt = uint64;
 
-</code>
+```
 
 # $for
 
@@ -74,7 +74,7 @@ the special variant of the for keyword will unwap the list to their own scopes a
 
 note the list must also be a constant expression.
 
-<code>
+```
 
     |Func<X:...>[ParameterPack X]:
      $for [Item : X]:
@@ -84,11 +84,11 @@ note the list must also be a constant expression.
     |main[]:
      Func<int,uint32,uint64>(0,1,2);
 
-</code>
+```
 
 after evaluating the code gets simplified into.
 
-<code>
+```
  
     |Func<int,uint32,int64>[int X1,uint32 X2,int64 X3]:
 
@@ -107,7 +107,7 @@ after evaluating the code gets simplified into.
       bind(ItemT) Buffer = X3;
      |
 
-</code>
+```
 
 # Obj.$Varable/Obj.$Func()
 
@@ -115,7 +115,7 @@ The special variant of the object member access allows to use Varable instead of
 
 for example:
 
-<code>
+```
 
     eval char[\] MemberName = "X";
     $Vec2:
@@ -126,12 +126,12 @@ for example:
      Vec2 Vec = Vec2();
      Vec.$MemberName = 1;
    
-</code>
+```
 
 
 after evaluating the code gets simplified into.
 
-<code>
+```
 
     $Vec2:
      int X;
@@ -140,7 +140,7 @@ after evaluating the code gets simplified into.
     |Main[]:
      Vec.X = 1;
    
-</code>
+```
 
 this alows for simpler serialization and Deserialization and gives more tools for reduceing boilerplate.
 
@@ -150,7 +150,7 @@ this alows for simpler serialization and Deserialization and gives more tools fo
 
 for example:
 
-<code>
+```
 
     
     $Vec2:
@@ -170,4 +170,4 @@ for example:
      Vec2 Value = Pointer(Vec,OtherVec);
      
    
-</code>
+```

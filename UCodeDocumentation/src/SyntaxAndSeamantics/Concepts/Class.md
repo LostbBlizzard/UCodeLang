@@ -7,7 +7,7 @@ Classes are a data type that defines a custom structure with fields and methods.
 Classes can inherit from other classes using the ‘[Type]’ operator.
 Classes can have constructors and destructors using the [new](./ConstructorsAndDestructors.md) and [drop](./ConstructorsAndDestructors.md) keywords.
 
-<code>
+```
 
     $Person;//a class with no members.
 
@@ -25,16 +25,16 @@ Classes can have constructors and destructors using the [new](./ConstructorsAndD
     |drop[this&]:
      Console::Log("Done Working for the Day.");
 
-</code>
+```
 
 
 Classes can have access modifiers for their fields and methods using the [public, private](./Access%20Modifiers.md).
 
-<code>
+```
 
     $Worker[Person]:
      private:
       String name;
      public:
       int age;
-</code>
+```
