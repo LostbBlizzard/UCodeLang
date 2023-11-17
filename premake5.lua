@@ -418,7 +418,11 @@ project "UCodeIDE"
       links {"glfw"}
       linkoptions { "-sUSE_GLFW=3","--preload-file wasmassets"}
       postbuildmessage ("copying output to UCodeWebsite")
-      postbuildcommands { "cp -r %{cfg.buildtarget.directory} %{wks.location}/UCodeWebsite/static/UCodeIDE"}
+      postbuildcommands { 
+         "rm -r %{wks.location}/UCodeWebsite/static/UCodeIDE",
+         "cp -f -r %{cfg.buildtarget.directory}/ %{wks.location}/UCodeWebsite/static/UCodeIDE",
+         "cp %{prj.location}/index.html %{wks.location}/UCodeWebsite/static/UCodeIDE/UCodeIDE.html"
+      }
 
    filter { "system:linux","platforms:not Web" }
     kind "ConsoleApp"   
