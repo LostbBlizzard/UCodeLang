@@ -36,5 +36,9 @@
  [shr](Keywords/shr.md)
  [import](Keywords/import.md)
  [bitcast](Keywords/bitcast.md)
+ [char](Types/char.md)
+ [utf8](Types/char.md)
+ [utf16](Types/char.md)
+ [utf32](Types/char.md)
 
 
