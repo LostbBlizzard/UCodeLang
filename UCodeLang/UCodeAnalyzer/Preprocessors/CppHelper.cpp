@@ -181,7 +181,6 @@ bool CppHelper::ParseCppfileAndOutULangDir(const Path& CppDir, const Path& CppLi
 
 	for (const auto& dirEntry : recursive_directory_iterator(CppDir))
 	{
-		std::cout << dirEntry << std::endl;
 
 
 		bool inlist = false;
