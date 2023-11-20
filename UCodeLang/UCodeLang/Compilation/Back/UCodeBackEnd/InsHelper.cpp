@@ -1,4 +1,3 @@
-#pragma once
 
 #ifndef UCodeLangNoCompiler
 #include "InsHelper.hpp"
