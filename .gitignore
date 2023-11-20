@@ -36,3 +36,6 @@ UCodeIDE/int/
 UCodeIDE/UCodeIDE/intDep.data
 
 ARM64
+/UCodeIDE/OutIR.txt
+/UCodeIDE/src/AppObject/test2.uc
+/UCodeIDE/out.data
