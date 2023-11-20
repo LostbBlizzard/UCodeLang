@@ -2324,6 +2324,8 @@ void AppObject::ShowUCodeVMWindow()
             using Func = int (*)();
             int retvalue = ((Func)functocall)();
 
+
+
             Value = retvalue;
 
         }
