@@ -153,13 +153,23 @@ void AppObject::Init()
         */
       
         UCodeIDEStyle(nullptr);
-
-
-        auto str = UCodeLang::Compiler::GetTextFromFile("src/AppObject/test.uc");
-        if (str == "*null")
+        
+            
+        auto str2 = UCodeLang::Compiler::GetTextFromFile("src/AppObject/test2.uc");
+        String str;
+        if (str2 == "*null")
         {
-            str = "|main[] => 0;";
+            auto str = UCodeLang::Compiler::GetTextFromFile("src/AppObject/test.uc");
+            if (str == "*null")
+            {
+                str = "|main[] => 0;";
+            }
         }
+        else
+        {
+            str = str2;
+        }
+       
         _Editor.SetText(str);
         
         
