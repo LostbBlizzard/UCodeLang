@@ -166,7 +166,43 @@ bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFi
 
 bool CppHelper::ParseCppfileAndOutULangDir(const Path& CppDir, const Path& CppLinkFile, const Path& ULangOut)
 {
-	return false;
+	const char* FileExts[] = { ".hpp",".h" };
+
+
+	using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
+	
+	struct CppFileData
+	{
+		Path path;
+		Vector<SymbolData> Symbols;
+	};
+	Vector<CppFileData> files;
+
+	for (const auto& dirEntry : recursive_directory_iterator(CppDir))
+	{
+		std::cout << dirEntry << std::endl;
+
+
+		bool inlist = false;
+		for (auto& Item : FileExts)
+		{
+			if (Item == dirEntry.path().extension())
+			{
+				inlist = true;
+			}
+		}
+
+		if (inlist)
+		{
+			CppFileData f;
+			f.path = dirEntry.path();
+			ParseCppToSybs(GetString(dirEntry.path()), f.Symbols);
+
+			files.push_back(std::move(f));
+		}
+	}
+
+	return true;
 }
 
 
