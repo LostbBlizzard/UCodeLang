@@ -197,8 +197,8 @@ bool CppHelper::ParseCppfileAndOutULangDir(const Path& CppDir, const Path& CppLi
 		{
 			CppFileData f;
 			f.path = dirEntry.path();
-			ParseCppToSybs(GetString(dirEntry.path()), f.Symbols);
-
+			auto str = GetString(dirEntry.path());
+			ParseCppToSybs(str, f.Symbols);
 
 			if (f.Symbols.size()) {
 				files.push_back(std::move(f));
