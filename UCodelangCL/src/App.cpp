@@ -1267,9 +1267,9 @@ void ParseLine(String_view& Line)
 	}
 	else if (Word1 == "cppdirtoulangvm" || Word1 == "-cppdirtoulangvm")
 	{
-		Path cppfile;
-		Path cpplink;
-		Path ulangout;
+		Path cppfile = GetPath(Line);
+		Path cpplink = GetPath(Line);
+		Path ulangout = GetPath(Line);
 
 		UCodeAnalyzer::CppHelper v;
 		if (v.ParseCppfileAndOutULangDir(cppfile, cpplink, ulangout))
