@@ -51,6 +51,17 @@ jobs:
       - name: Install Node.js dependencies
         working-directory: ./UCodeWebsite
         run: "[[ -f package-lock.json || -f npm-shrinkwrap.json ]] && npm ci || true"
+      
+      - name: Setup MdBook
+        working-directory: ./UCodeDocumentation
+        run: | 
+         chmod +x Build.sh
+         chmod +x tools/mdbook
+
+      - name: Build UCodeDocumentation
+        working-directory: ./UCodeDocumentation
+        run: ./Build.sh
+
       - name: Build with Hugo
         env:
           # For maximum backward compatibility with Hugo modules

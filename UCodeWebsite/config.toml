@@ -1,0 +1,4 @@
+baseURL = 'https://lostbblizzard.github.io/UCodeLang/'
+languageCode = 'en-us'
+title = 'UCodeLang'
+theme = 'ananke'

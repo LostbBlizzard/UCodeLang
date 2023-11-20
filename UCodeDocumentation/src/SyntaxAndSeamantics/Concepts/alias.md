@@ -5,7 +5,7 @@ allows to reference type with an another name.
 also see [import Alias](../Keywords/import.md).
 
 for example.
-<code>
+```
  
     $CoolInt = int;
     |main[]
@@ -13,17 +13,17 @@ for example.
 
      CoolInt Num = 0;//work's like a int.
 
-</code>
+```
 
 A Typed alias can be done like this.
 
-<code>
+```
  
     $CoolInt = !int;
 
-</code>
+```
 this makes the alias that's a completely unique type.
-<code>
+```
  
     $CoolInt = !int;
     |main[]
@@ -31,11 +31,11 @@ this makes the alias that's a completely unique type.
 
      CoolInt Num = 0 -> CoolInt;//must be casted. 
 
-</code>
+```
 
 also alias's can be generic.
-<code>
+```
 
     $FVector<T> = T[];
 
-</code>
+```

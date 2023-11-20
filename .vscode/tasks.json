@@ -176,13 +176,21 @@
         "group": "build",
       },
       {
-        "label": "Build Android",
-        "command": "make",
-        "args": [
-          "config=debug_android",
-          "-j4",
-        ],
+        "label": "Build UCodeDocumentation",
+        "command": "Build.sh",
         "group": "build",
-      }
+        "options": {
+          "cwd": "${workspaceFolder}/UCodeDocumentation"
+        },
+      },
+      {
+        "label": "Launch Website",
+        "command": "hugo",
+        "args": ["server"],
+        "group": "build",
+        "options": {
+          "cwd": "${workspaceFolder}/UCodeWebsite",
+        },
+      },
     ]
   }

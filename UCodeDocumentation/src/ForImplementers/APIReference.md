@@ -4,11 +4,11 @@ The API Reference is spit into Three parts and Compiler and RunTime.
 
 Every thing in UCodeLang in UCodeLang NameSpace
 
-<code>
+```
 
     namespace UC = UCodeLang;
 
-</code>
+```
 
 ## Core
 Basic types that UCodeLang Uses stop isn't part of C++17 standard Library.

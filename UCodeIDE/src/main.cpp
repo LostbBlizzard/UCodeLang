@@ -14,7 +14,6 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine, int i
 #else
 int main(int argc, char* argv[])
 {
-	//auto v = _Entry();
 	return App::main(argc, argv);
 }
 

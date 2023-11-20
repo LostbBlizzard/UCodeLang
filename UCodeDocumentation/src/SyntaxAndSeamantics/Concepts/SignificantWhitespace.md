@@ -3,7 +3,7 @@
 UCode uses whitespace to indicate the structure and indentation of the code. Whitespace is significant in UCode because it affects how the compiler parses and executes the code. For example:
 
 
-<code>
+```
 
 
     //This is a comment
@@ -15,4 +15,4 @@ UCode uses whitespace to indicate the structure and indentation of the code. Whi
 
     //This is a blank line
 
-</code>
+```

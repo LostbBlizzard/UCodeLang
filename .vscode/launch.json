@@ -104,15 +104,6 @@
             ]
         },
         {
-            "name": "Launch Website",
-            "request": "launch",
-            "program": "hugo sever",
-            "args": [],
-            "cwd": "${workspaceFolder}/UCodeWebsite",
-            "environment": [],
-            "preLaunchTask": "Build UCodeWebsite",
-        },
-        {
             "name": "(Wasm) Launch UCodeIDE",
             "request": "launch",
             "program": "hugo sever",
