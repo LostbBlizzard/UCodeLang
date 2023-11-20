@@ -14,7 +14,7 @@ Casting between pointer types can change the address or size of the pointed obje
 Casting between signed and unsigned types can change the sign bit or the value range of the integer.
 Here is an example of how casting is used in UCode:
 
-<code>
+```
 
     float x = 1.23; //Assigns 1.23 to x
     int y = x -> int; //Casts x to int and assigns it to y
@@ -27,4 +27,4 @@ Here is an example of how casting is used in UCode:
     uintptr u = (uintptr) (x -> int&) -> uintptr; //Casts the address of x to uintptr and assigns it to u
     Fmt::Print(u);
 
-</code>
+```
