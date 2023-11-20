@@ -1,7 +1,5 @@
 
 
-/*
-
 $Player[Component]:
  float Speed = 1;
  |Start[this&]:
@@ -28,15 +26,3 @@ $Player[Component]:
   
   if Imgui::KeyDown(ImKey::D):
     pos.X += Speed * deltatime;
-*/
-
-
-|main[]:
- 
- int a = 2;
-
- a = 5;
-
- ret a;
-
-//|main1[] => unsafe new int[5];
