@@ -12,10 +12,27 @@ class Compiler;
 ```
 ## Example
 
+```cpp
+#include <UCodeLang/UCodeLang.hpp>
 
->[!IMPORTANT]
->This Is section Is incomplete
->
+void main()
+{
+  const char* MyUCode = "|main[] => 1;";
+
+  UCodeLang::Compiler myCompiler;
+  auto comilerRet = myCompiler.CompileText(MyUCode);
+
+
+  if (!comilerRet.IsError())
+  { 
+    //your ucode was Compiled
+  }
+  else
+  {
+    //your cide fail to compile
+  }
+}
+```
 
 ## Methods
 | Funcion | Parameters | Return | Description |
