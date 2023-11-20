@@ -6,12 +6,11 @@ the invalid keyword will cause an Error at compile time when the compiler evalua
 
 
 for example:
-<code>
+```
+|main[] -> void:
+  invalid("Error cant find the main implementation.");
 
-        |main[] -> void:
-         invalid("Error cant find the main implementation.");
-
-</code>
+```
 
 the compiler will output the Error:
  
@@ -21,7 +20,6 @@ also works with [vaild keyword](valid.md) as it makes an error.
 
 invalid can take in the parameters 
 
-- [umut char[&]](../Concepts/Stringliteral.md) //constant expression terminated string
 
 - [Span\<char> or StringView](../../Standardlibrary/Types/Classes/StringView.md) //constant expression a span of chars.
 

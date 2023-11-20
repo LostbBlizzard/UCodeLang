@@ -1,4 +1,6 @@
 #pragma once
+
+#ifndef UCodeLangNoCompiler
 #include "X86Builder.hpp"
 #include "IRToX86IR.hpp"
 UCodeLangStart
@@ -38,3 +40,5 @@ public:
 };
 
 UCodeLangEnd
+
+#endif

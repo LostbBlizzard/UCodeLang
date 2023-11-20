@@ -1,3 +1,5 @@
+
+#ifndef UCodeLangNoCompiler
 #include "TreeNode.hpp"
 
 #include "UCodeLang/Compilation/Front/Lexer.hpp"
@@ -26,3 +28,6 @@ LibImportNode::LibImportNode(LibImportNode&& source) : Node(NodeType::LibImportN
 	*/
 }
 UCodeLangEnd
+
+
+#endif

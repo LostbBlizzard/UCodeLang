@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
 
@@ -631,3 +632,5 @@ IRInstruction* SystematicAnalysis::LoadSymbolWhenInLambdaObjectInvoke(const Neve
 	return _IR_LookingAtIRBlock->NewLoad((int)5000000);
 }
 UCodeLangFrontEnd
+
+#endif

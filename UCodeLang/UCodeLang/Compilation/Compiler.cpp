@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "Compiler.hpp"
 #include <fstream>
 #include <filesystem>
@@ -1179,3 +1180,5 @@ void Compiler::Optimize(IRBuilder& IR)
 }
 
 UCodeLangEnd
+
+#endif

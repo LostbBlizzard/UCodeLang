@@ -64,7 +64,7 @@ workspace "UCodeLang"
    
    filter { "platforms:Android" }
     system "android"
-    architecture "ARM64"
+    architecture "ARM"
     androidapilevel (22)
     exceptionhandling ("On")
     rtti ("On")
@@ -76,8 +76,10 @@ workspace "UCodeLang"
 
    filter { "platforms:Web" }
     system "linux"
-    architecture "x86_64"
-
+    architecture "x86"
+    defines { "ZYAN_POSIX" }
+    targetextension (".html")
+   
    filter { "configurations:Debug" }
       defines { "DEBUG" }
       optimize "Debug"
@@ -93,9 +95,6 @@ workspace "UCodeLang"
       optimize "Speed"
       symbols "off"
 
-   filter { "platforms:Web" }
-      optimize "Speed"
-      symbols "off"
    
 project "UCApp"
    location "UCApp"
@@ -125,7 +124,8 @@ project "UCApp"
    removefiles{
      "%{prj.name}/tests/PerformanceTests/**", 
      "%{prj.name}/tests/UCodeFiles/Output/**", 
-     "%{prj.name}/CodeTesting/UCodeFiles/out/**", 
+     "%{prj.name}/src/CodeTesting/out/**", 
+     "%{prj.name}/src/CodeTesting/int/**", 
    }
    includedirs{
     "%{prj.name}/src",
@@ -144,7 +144,6 @@ project "UCApp"
    libdirs { 
       "Output/UCodeLang/" .. OutDirPath,
    }
-
 project "UCodelangCL"
    location "UCodelangCL"
    kind "ConsoleApp"
@@ -217,6 +216,48 @@ project "UCodeLang"
     "%{prj.name}/Dependencies/zycore/include/**.h",
    }
 
+project "UCodeLangNoCompiler"
+   location "UCodeLang"
+   kind "StaticLib"
+   language "C++"
+   defines {"UCodeLangNoCompiler"}
+   
+   
+   targetdir ("Output/%{prj.name}/" .. OutDirPath)
+   objdir ("Output/int/%{prj.name}/" .. OutDirPath)
+   
+   files { 
+     "UCodeLang/**.c",
+     "UCodeLang/**.h",
+     "UCodeLang/**.cpp",
+     "UCodeLang/**.hpp", 
+   }
+   includedirs{
+    "UCodeLang",
+    "UCodeLang/Dependencies/zydis/include",
+    "UCodeLang/Dependencies/zycore/include",
+    "UCodeLang/Dependencies/zydis/src",
+   }
+   removefiles{
+     "UCodeLang/Dependencies/zydis/**.c",
+     "UCodeLang/Dependencies/zycore/**.c",
+
+     "UCodeLang/Dependencies/zydis/**.cpp",
+     "UCodeLang/Dependencies/zycore/**.cpp",
+
+     "UCodeLang/Dependencies/zydis/**.h",
+     "UCodeLang/Dependencies/zycore/**.h",
+   }
+   files { 
+    "UCodeLang/Dependencies/zydis/src/**.c",
+    "UCodeLang/Dependencies/zycore/src/**.c",
+
+    "UCodeLang/Dependencies/zydis/src/**.inc",
+    "UCodeLang/Dependencies/zycore/src/**.inc",
+
+    "UCodeLang/Dependencies/zydis/include/**.h",
+    "UCodeLang/Dependencies/zycore/include/**.h",
+   }
 
 project "UCodeLanguageSeverlib"
    location "UCodeLanguageSeverlib"
@@ -273,7 +314,6 @@ project "UCodeLanguageSever"
       "Output/UCodeLang/" .. OutDirPath,
       "Output/UCodeLanguageSeverlib/" .. OutDirPath,
    }
-
 project "UCodeDocumentation"
    location "UCodeDocumentation"
    kind "StaticLib"
@@ -301,11 +341,9 @@ project "UCodeIDE"
      "%{prj.name}/src/**.cpp",
      "%{prj.name}/src/**.hpp", 
 
+     --
      "%{prj.name}/Dependencies/GLEW/**.h",
-     "%{prj.name}/Dependencies/GLFW/include/**.c",
-     "%{prj.name}/Dependencies/GLFW/include/**.h", 
-     "%{prj.name}/Dependencies/GLFW/src/**.c",
-     "%{prj.name}/Dependencies/GLFW/src/**.h", 
+      
 
      "%{prj.name}/Dependencies/imgui/*.cpp",
      "%{prj.name}/Dependencies/imgui/*.h", 
@@ -320,7 +358,14 @@ project "UCodeIDE"
      "%{prj.name}/Dependencies/imgui/misc/cpp/*.cpp",
      "%{prj.name}/Dependencies/imgui/misc/cpp/*.h", 
    }
-
+   filter { "platforms:not Web"}
+      files { 
+      "%{prj.name}/Dependencies/GLFW/include/**.c",
+      "%{prj.name}/Dependencies/GLFW/include/**.h", 
+      "%{prj.name}/Dependencies/GLFW/src/**.c",
+      "%{prj.name}/Dependencies/GLFW/src/**.h", 
+      }
+   filter {}
    includedirs{
     "%{prj.name}/src",
     "%{prj.name}/Dependencies",
@@ -349,7 +394,7 @@ project "UCodeIDE"
    }
 
 
-   filter { "system:Windows or system:linux or system:macosx" }
+   filter { "system:Windows or system:linux or system:macosx", "platforms:not Web" }
     prebuildcommands
     {
      UCPathExe.." cpptoulangvm %{prj.location}/src/AppObject/AppAPI.hpp %{prj.location}src/AppObject/AppAPILink.cpp %{prj.location}tepfiles/AppAPI.uc",
@@ -368,9 +413,19 @@ project "UCodeIDE"
    filter { "system:Windows","architecture:x86_64"}
       links {"glew64s.lib","Opengl32.lib"}
 
-    
+      
+   filter { "platforms:Web" }
+      kind "ConsoleApp"   
+      links {"glfw"}
+      linkoptions { "-sUSE_GLFW=3","--preload-file wasmassets"}
+      postbuildmessage ("copying output to UCodeWebsite")
+      postbuildcommands { 
+         "rm -r %{wks.location}/UCodeWebsite/static/UCodeIDE",
+         "cp -f -r %{cfg.buildtarget.directory}/ %{wks.location}/UCodeWebsite/static/UCodeIDE",
+         "cp %{prj.location}/index.html %{wks.location}/UCodeWebsite/static/UCodeIDE/UCodeIDE.html"
+      }
 
-   filter { "system:linux" }
+   filter { "system:linux","platforms:not Web" }
     kind "ConsoleApp"   
     defines {"_GLFW_X11"}
     links {"GL"}
@@ -392,8 +447,6 @@ project "UCodeIDE"
 
    filter { "system:Windows","configurations:Published" }
     kind ("WindowedApp")
-
-   
 
    
    
@@ -427,7 +480,7 @@ group "UCodeAPIs"
   }
 
 
-  filter { "system:Windows or system:linux or system:macosx" }
+  filter { "system:Windows or system:linux or system:macosx", "platforms:not Web" }
    prebuildmessage 'compiling ucodelang files'
    prebuildcommands  
    {
@@ -452,7 +505,7 @@ group "UCodeAPIs"
   }
 
 
-  filter { "system:Windows or system:linux or system:macosx" }
+  filter {"system:Windows or system:linux or system:macosx", "platforms:not Web" }
    prebuildmessage 'compiling ucodelang files'
    prebuildcommands 
    {
@@ -476,7 +529,7 @@ group "UCodeAPIs"
   }
 
   
-  filter { "system:Windows or system:linux or system:macosx" }
+  filter { "system:Windows or system:linux or system:macosx", "platforms:not Web" }
    prebuildmessage 'compiling ucodelang files'
    prebuildcommands 
    {
@@ -499,7 +552,7 @@ group "UCodeAPIs"
    "UCodeAPI/%{prj.name}/ULangModule.ucm",
    }
 
-   filter { "system:Windows or system:linux or system:macosx" }
+   filter {"system:Windows or system:linux or system:macosx", "platforms:not Web" }
     prebuildmessage 'compiling ucodelang files'
     prebuildcommands 
     {

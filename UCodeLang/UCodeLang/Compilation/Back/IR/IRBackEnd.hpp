@@ -1,5 +1,5 @@
 #pragma once
-
+#ifndef UCodeLangNoCompiler
 #include "../BackEndInterface.hpp"
 UCodeLangStart
 class IRBackEnd : BackEndObject
@@ -19,3 +19,4 @@ public:
 };
 UCodeLangEnd
 
+#endif

@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
 
@@ -141,3 +142,5 @@ void SystematicAnalysis::OnCompoundStatementNode(const CompoundStatementNode& no
 
 
 UCodeLangFrontEnd
+
+#endif

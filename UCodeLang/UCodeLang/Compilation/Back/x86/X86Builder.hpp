@@ -21,7 +21,9 @@ public:
 	struct GeneralRegisterData
 	{
 		GeneralRegisterDataState State = GeneralRegisterDataState::notUsed;
+		#ifndef UCodeLangNoCompiler
 		IRInstruction* HasValue = nullptr;
+		#endif
 	};
 	using Value8 = NativeCodeBuilder::Value8;
 	using Value16 = NativeCodeBuilder::Value16;

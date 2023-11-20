@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
 
@@ -1563,3 +1564,5 @@ void SystematicAnalysis::StepBuildMember_Access(const ScopedName& Item, TypeSymb
 }
 
 UCodeLangFrontEnd
+
+#endif

@@ -15,4 +15,3 @@ public:
 	static String GetUnDecoratedName(const String& DecoratedName);
 };
 UCodeLangEnd
-

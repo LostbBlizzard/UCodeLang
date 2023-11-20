@@ -105,15 +105,17 @@ It's nowhere near completion.
 
 # Downloads & Documentation
 
-[WebSite and PlayGround]("https://lostbblizzard.github.io/UCodeLang/")
+[Website](https://lostbblizzard.github.io/UCodeLang/)
 
-[Documentation]("UCodeDocumentation/src/SUMMARY.md")
-//Goto "UCodeDocumentation/src/SUMMARY.md" if link does not work
+[PlayGround](https://lostbblizzard.github.io/UCodeLang/UCodeIDE/UCodeIDE.html)
+
+[Documentation](https://lostbblizzard.github.io/UCodeLang/UCodeDocumentation/index.html)
 
 [VSCode Extension](https://marketplace.visualstudio.com/items?itemName=Lostblizzard.ucode-language)
 
-[How To Add To Your C++ Project]("UCodeDocumentation/src/ForImplementers.md")
-//Goto "UCodeDocumentation/src/ForImplementers.md" if link does not work
+[Geting Started for Users](https://lostbblizzard.github.io/UCodeLang/UCodeDocumentation/GetingStartedUsers.html)
+
+[How To Add To Your C++ Project](https://lostbblizzard.github.io/UCodeLang/UCodeDocumentation/ForImplementers.html)
 
 ## Download
 
@@ -248,17 +250,13 @@ both are planned to be removed.
 
 To build the project just download files or run.
 
-<code>
+```
+git clone https://github.com/LostbBlizzard/UCodeLang.git
+```
 
-    git clone https://github.com/LostbBlizzard/UCodeLang.git
-
-</code>
-
-<code>
-
-    cd ./UCodeLang
-
-</code>
+```
+cd ./UCodeLang
+```
 
 After geting the Project Files Run.
 
@@ -270,18 +268,14 @@ After geting the Project Files Run.
 
 - The GNU_Make.sh file(If you use GCC on linux or Mac) and run "make" to build it. or run
 
-<code>
-
-    ./GNU_Make.sh
-
-</code>
+```
+./GNU_Make.sh
+```
 
 
-<code>
-
-    make
-
-</code>
+```
+make
+```
 
 - The XCode.sh file(If you use XCode) and and open the project in XCode.
 

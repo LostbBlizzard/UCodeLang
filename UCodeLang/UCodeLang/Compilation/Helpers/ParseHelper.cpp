@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "ParseHelper.hpp"
 
 UCodeLangStart
@@ -210,3 +211,5 @@ size_t ParseHelper::ParseCharliteralToChar(String_view string, String32& out)
 	return 0;
 }
 UCodeLangEnd
+
+#endif

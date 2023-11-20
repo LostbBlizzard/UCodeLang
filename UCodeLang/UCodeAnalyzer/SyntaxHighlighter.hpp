@@ -1,4 +1,6 @@
 #pragma once
+
+#ifndef UCodeLangNoCompiler
 #include "Typedef.hpp"
 
 #include "IntellisenseData.hpp"
@@ -43,3 +45,5 @@ private:
 
 };
 UCodeAnalyzerEnd
+
+#endif

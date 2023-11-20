@@ -1,4 +1,6 @@
 #include "LanguageServer.hpp"
+
+#ifndef UCodeLangNoCompiler
 UCodeAnalyzerStart
 
 
@@ -86,3 +88,4 @@ void UCFile::AnalyzedParseAndLex()
 
 UCodeAnalyzerEnd
 
+#endif

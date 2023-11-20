@@ -1,4 +1,5 @@
 #pragma once
+#ifndef UCodeLangNoCompiler
 #include "Typedef.hpp"
 #include "UCodeLang/Compilation/Front/Lexer.hpp"
 #include "UCodeLang/Compilation/Front/Parser.hpp"
@@ -161,3 +162,5 @@ private:
 	bool ReFormatFail = false;
 };
 UCodeAnalyzerEnd
+
+#endif

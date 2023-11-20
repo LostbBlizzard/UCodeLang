@@ -1,5 +1,5 @@
 #pragma once
-
+#ifndef UCodeLangNoCompiler
 #include "X86IR.hpp"
 #include "X86Builder.hpp"
 
@@ -32,3 +32,5 @@ private:
 };
 
 UCodeLangEnd
+
+#endif

@@ -1,5 +1,5 @@
 #pragma once
-
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/LangCore/UClib.hpp"
 #include "UAssembly_NameSpace.hpp"
 #include "UCodeLang/Compilation/LexerDefs.h"
@@ -25,3 +25,5 @@ private:
 	CompilationSettings* _Settings = nullptr;
 };
 UAssemblyEnd
+
+#endif

@@ -1,5 +1,6 @@
 #pragma once
 
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/LangCore/UCodeLangNameSpace.hpp"
 #include "UCodeLang/LangCore/LangDef.hpp"
 UCodeLangStart
@@ -28,3 +29,5 @@ private:
 };
 
 UCodeLangEnd
+
+#endif

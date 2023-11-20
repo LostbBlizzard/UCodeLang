@@ -1,4 +1,5 @@
 #pragma once
+#ifndef UCodeLangNoCompiler
 
 #include "../../LangCore.hpp"
 UCodeLangStart
@@ -403,3 +404,5 @@ struct Token
 
 }; 
 UCodeLangEnd
+
+#endif

@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
 ImportBindType SymbolTypeToImportBindType(SymbolType Type)
@@ -231,3 +232,5 @@ void SystematicAnalysis::OnImportNode(const ImportStatement& node)
 
 
 UCodeLangFrontEnd
+
+#endif

@@ -6,6 +6,7 @@ Output/
 *.user
 
 Makefile
+*.make
 
 UCodeAPI/Win32/int/
 UCodeAPI/Win32/out/
@@ -35,3 +36,6 @@ UCodeIDE/int/
 UCodeIDE/UCodeIDE/intDep.data
 
 ARM64
+/UCodeIDE/OutIR.txt
+/UCodeIDE/src/AppObject/test2.uc
+/UCodeIDE/out.data

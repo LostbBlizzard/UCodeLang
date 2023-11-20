@@ -9,14 +9,14 @@ Comparison operators: == , != , < , > , <= , >= (equal to , not equal to , less 
 Assignment operators: = , += , -= , *= , /= , %= (assigns a value to a variable or modifies it by an expression)
 Here is an example of how int is used in UCode:
 
-<code>
+```
 
     int x = 10; //Assigns 10 to x
     int y = x + 5; //Assigns x + 5 to y
     int z = y / 2; //Assigns y / 2 to z
     Console::Log(x,y,z); //Prints 10 15 7
 
-</code>
+```
 
 
 int16 is a data type that represents a 16-bit signed integer. Int16 can store values from -32,768 to 32,767. Int16 supports the same operations as int.
@@ -29,23 +29,23 @@ int16 is a data type that represents a 16-bit signed integer. Int16 can store va
 int64 is a data type that represents a 64-bit signed integer. int64 can store values from -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807. int64 supports the same operations as int.
 
 
-<code>
+```
 
     int16 x = 100; //Assigns 100 to x
     int8 y = x - 50; //Assigns x - 50 to y
     int64 z = y * x; //Assigns y * x to z
     Console::Log(x,y,z); //Prints 100 50 5000
 
-</code>
+```
 
 
 Unsigned ints are data types that represent non-negative integers. They have a ‘u’ prefix before their size, such as uint16, uint8, and uint64. Unsigned ints can store values from 0 to 2^n - 1, where n is the number of bits in the type. For example, uint16 can store values from 0 to 65,535.
 
-<code>
+```
 
     int8 y = -128; //Assigns -128 to y
     //y is represented as 10000000 in binary
-</code>
+```
 
 # uintptr and intptr
 
@@ -61,7 +61,7 @@ On a 64-bit platform, intptr has 64 bits and can store values from -9,223,372,03
 Uintptr and intptr are not directly aliases of other types like size_t in C/C++.
 They are their own distinct types.
 
-<code>
+```
 
     int x = 10; //Assigns 10 to x
     int& p = x; //Assigns the address of x to p
@@ -77,7 +77,7 @@ They are their own distinct types.
 
     uint64 A = u -> int;//is ok.
 
-</code>
+```
 
 
 # byte/sbyte

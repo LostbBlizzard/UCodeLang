@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
 
@@ -745,3 +746,5 @@ TypeSymbol SystematicAnalysis::Assembly_LoadType(const ReflectionTypeInfo& Item)
 }
 
 UCodeLangFrontEnd
+
+#endif

@@ -22,7 +22,7 @@ string? s = “hello” assigns “hello” to s.
 
 float[]? f = null assigns null to f.
 
-<code>
+```
 
     //A function that takes an int and 
     returns an int?
@@ -36,11 +36,11 @@ float[]? f = null assigns null to f.
         else:
          ret [];
     
-</code>
+```
 
 # Optional\<T> Class/Methods: 
 
-<code>
+```
 
     $Optional<T>:
 
@@ -61,13 +61,13 @@ float[]? f = null assigns null to f.
      //Returns The Value if assigned else panic.
      |Value[this&] =>  T;
 
-</code>
+```
 
 # Optional\<T> : Implentation
 
 The Implementation of Optinoal type is a class with two members.One for the 'T' Type Called Value other is a bool for if T is assigned In that order.
 For example:
-<code>
+```
 
     %UCode:
      $Optional<T>:
@@ -81,12 +81,12 @@ For example:
          bool _HasValue;
 
 
-</code>
+```
 
 if T is an [Address](../../../SyntaxAndSeamantics/Concepts/Address.md) The Optional will use a nullptr as its Empty value.
 
 For example:
-<code>
+```
 
     $Optional<T>:
      private:
@@ -105,14 +105,14 @@ For example:
       |IsEmpty[umut this&] => bitcast<uintptr>(_Value) == Nullptr;
 
 
-</code>
+```
 
 the same concept applies to [dynamic traits](../../../SyntaxAndSeamantics/Keywords/dynamic.md).
 
 lastly if T implements the EmptyVariant trait and is not an [Address](../../../SyntaxAndSeamantics/Concepts/Address.md) it will use EmptyVariant Funcions to check and set the Object as showed below.
 
 
-<code>
+```
 
 
     
@@ -142,7 +142,7 @@ lastly if T implements the EmptyVariant trait and is not an [Address](../../../S
       |IsEmpty[umut this&] => _Value.Opt_IsEmpty();
 
 
-</code>
+```
 
 this may be used for types like unique pointer or any object that could have a null state for optimization.
 

@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeFrontEndObject.hpp"
 #include "UCodeLang/Compilation/Compiler.hpp"
 UCodeLangFrontStart
@@ -130,3 +131,5 @@ void UCodeFrontEndObject::BuildIR(const Vector<FileNode_t*>& fileNode)
 	_Analyzer.Analyze(V, L);
 }
 UCodeLangFrontEnd
+
+#endif

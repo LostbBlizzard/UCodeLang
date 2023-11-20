@@ -1,3 +1,5 @@
+#ifndef UCodeLangNoCompiler
+
 #include "IRToX86_64IR.hpp"
 UCodeLangStart
 void IRToX86_64IR::Reset()
@@ -176,3 +178,5 @@ IRToX86_64IR::IRLoc IRToX86_64IR::LoadOp(const IRInstruction* Value, const IROpe
 	}
 }
 UCodeLangEnd
+
+#endif

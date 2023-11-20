@@ -1,3 +1,5 @@
+#ifndef UCodeLangNoCompiler
+
 #include "SystematicAnalysis.hpp"
 #include "UCodeLang/Compilation/Helpers/KeyWords.hpp"
 #include "UCodeLang/Compilation/Helpers/InstructionBuilder.hpp"
@@ -3060,4 +3062,4 @@ void SystematicAnalysis::LogError(ErrorCodes Err, size_t Line, size_t Pos, const
 
 UCodeLangFrontEnd
 
-
+#endif

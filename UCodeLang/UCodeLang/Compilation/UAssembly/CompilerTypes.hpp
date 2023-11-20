@@ -1,4 +1,5 @@
 #pragma once
+#ifndef UCodeLangNoCompiler
 #include "UAssembly_NameSpace.hpp"
 #include "UCodeLang/LangCore/UClib.hpp"
 
@@ -297,3 +298,6 @@ inline auto& Get_InsToInsMapValue()
 	return InsToInsMapValue;
 }
 UAssemblyEnd
+
+
+#endif

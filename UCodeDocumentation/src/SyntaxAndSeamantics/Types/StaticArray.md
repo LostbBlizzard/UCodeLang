@@ -7,7 +7,7 @@
  The syntax for Static Array is below:
  the type int be replaced as any valid type.
 
-<code>
+```
 
     int[/10] Buffer;
     ^ the base type Type
@@ -21,12 +21,12 @@
     int[/10] Buffer;
            ^right bracket
 
-</code>
+```
 
 The Static Array is able to be indexed to address the base type
 or to an [Address Array](AddressArray.md) if [persuaded](../Concepts/TypePersuasion.md).
 
-<code>
+```
 
     int[/4] Buffer = [0,0,0,0];
     int& V = Buffer[3];//last item.
@@ -34,7 +34,7 @@ or to an [Address Array](AddressArray.md) if [persuaded](../Concepts/TypePersuas
     int[&] = Buffer[3];//last Item but as addres Array.
 
     Buffer[3] = 5;//change last Item.
-</code>
+```
 
 Note the Static Array does not do any bounds checking.
 
@@ -44,24 +44,24 @@ if you need bounds checking and other other features use [Array Type](/src/Stand
 
 when the size is not specified for example.
 
-<code>
+```
    
     int[/] = [5,5];
-</code>
+```
 
 The compiler will use the count the Anonymous object construct fields.
 
-<code>
+```
    
     int[/] = [5,5];//two field so type is int[/2]
-</code>
+```
 
 if the type is [var](Var.md)  for example.
 
-<code>
+```
     
     var Hello = [2,2];
-</code>
+```
 
 the compiler will take to take the first Anonymous object construct field as it's base type. and will continue the rules above(when size is not specified).
 
@@ -71,16 +71,16 @@ the compiler will take to take the first Anonymous object construct field as it'
 
 
 
-<code>
+```
 
     char[/] = "Hello World";
 
-</code>
+```
 
 but unlike in C the null char(0x00)
 is not appended at the end of the string.
 
-<code>
+```
 
     char[/] = "Hello World";
     char[/11] = "Hello World";
@@ -88,12 +88,12 @@ is not appended at the end of the string.
     char[/12] = "Hello World";
     //error "Hello World" has 11 Values but char[/12] wants 12.
 
-</code>
+```
 
 if the null char must be appened you can do something like this.
 
-<code>
+```
 
      char[/] = "Hello World\0";
 
-</code>
+```

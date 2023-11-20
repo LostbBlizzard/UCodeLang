@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
 
@@ -1908,3 +1909,5 @@ bool SystematicAnalysis::Type_IsUnMapType(const Symbol& Syb) const
 }
 
 UCodeLangFrontEnd
+
+#endif

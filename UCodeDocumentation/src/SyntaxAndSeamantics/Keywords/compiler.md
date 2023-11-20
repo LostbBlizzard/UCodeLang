@@ -5,11 +5,9 @@ Is a type that refers to systematic analysis part of the compiler. systematic an
 it is used the make new symbols,type,funcions.
 and can used to read compiler data and Settings.
 
-<code>
-
-    bool onwindows = compiler::IsBackendWindows();
-
-</code>
+```
+bool onwindows = compiler::IsBackendWindows();
+```
 
 
 # Methods

@@ -1,8 +1,11 @@
+
+#ifndef UCodeLangNoCompiler
 #include "CppHelper.hpp"
 #include <iostream>
 #include <filesystem>
 #include <fstream>
 #include <UCodeLang/LangCore/ScopeHelper.hpp>
+#include <UCodeLang/LangCore/StringHelper.hpp>
 UCodeAnalyzerStart
 void Replace(String& string, char ToUpdate, char ToChar)
 {
@@ -119,7 +122,9 @@ bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFi
 		ParseCppToSybs(FileText, Symbols);
 	}
 	
+	
 	{
+		auto oldtext = GetString(ULangOut);
 		String R;
 		R += "use ULang;";
 		R += '\n';
@@ -139,17 +144,275 @@ bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFi
 
 		}
 
-		WriteStringToFile(ULangOut, R);
+		if (oldtext != R) {
+			WriteStringToFile(ULangOut, R);
+		}
 	}
 
 	{//Link for Cpp
 		auto CppLinkText = GetString(CppLinkFile);
-		
+		auto oldtext = CppLinkText;
+
 		UpdateCppLinks(CppLinkText, Symbols);
-		WriteStringToFile(CppLinkFile, CppLinkText);
+
+		if (oldtext != CppLinkText) {
+			WriteStringToFile(CppLinkFile, CppLinkText);
+		}
 	}
 	
 
+
+	return true;
+}
+
+bool CppHelper::ParseCppfileAndOutULangDir(const Path& CppDir, const Path& CppLinkFile, const Path& ULangOut)
+{
+	const char* FileExts[] = { ".hpp",".h" };
+
+
+	using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
+	
+	struct CppFileData
+	{
+		Path path;
+		Vector<SymbolData> Symbols;
+	};
+	Vector<CppFileData> files;
+
+	for (const auto& dirEntry : recursive_directory_iterator(CppDir))
+	{
+		std::cout << dirEntry << std::endl;
+
+
+		bool inlist = false;
+		for (auto& Item : FileExts)
+		{
+			if (Item == dirEntry.path().extension())
+			{
+				inlist = true;
+			}
+		}
+
+		if (inlist)
+		{
+			CppFileData f;
+			f.path = dirEntry.path();
+			auto str = GetString(dirEntry.path());
+			ParseCppToSybs(str, f.Symbols);
+
+			if (f.Symbols.size()) {
+				files.push_back(std::move(f));
+			}
+		}
+	}
+
+
+
+	{
+		auto oldtext = GetString(ULangOut);
+		String R;
+		R += "use ULang;";
+		R += '\n';
+		R += '\n';
+		R += '\n';
+
+		CppToULangState state;
+		for (auto& file : files) 
+		{
+			R += "//" + file.path.filename().generic_string();
+			for (auto& Item : file.Symbols)
+			{
+				R += ToString(state, Item);
+			}
+		}
+
+		for (auto& Item : state.InternalNameSpaces)
+		{
+			R += Item.first + "::" + "Internal:\n";
+			R += Item.second;
+
+		}
+
+		if (oldtext != R) {
+			WriteStringToFile(ULangOut, R);
+		}
+	}
+
+
+	{//Link for Cpp
+		auto CppLinkText = GetString(CppLinkFile);
+		auto oldtext = CppLinkText;
+
+		Vector<SymbolData> Symbols;
+		for (auto& file : files)
+		{
+			for (auto& Item : file.Symbols)
+			{
+				Symbols.push_back(std::move(Item));
+			}
+		}
+
+		UpdateCppLinks(CppLinkText, Symbols);
+
+		Vector<String> FileIncudes;
+		for (auto& file : files)
+		{
+			UCodeLang::PathStr basepath;
+			for (size_t i = 0; i < std::min(file.path.native().size(), CppLinkFile.native().size()); i++)
+			{
+				auto Item1 = file.path.native()[i];
+				auto Item2 = CppLinkFile.native()[i];
+
+				if (Item2 == Item1)
+				{
+					basepath += Item1;
+				}
+				else
+				{
+					break;
+				}
+			}
+			if (basepath.size() && basepath.back() == Path::preferred_separator)
+			{
+				basepath.pop_back();
+			}
+
+
+			size_t BackDirCount = 0;
+			{
+				auto pathcopy = CppLinkFile.parent_path();
+				while (pathcopy != basepath)
+				{
+					pathcopy = pathcopy.parent_path();
+					BackDirCount++;
+				}
+			}
+			auto rel = file.path.native().substr(basepath.size());
+			if (rel.front() == Path::preferred_separator)
+			{
+				rel = rel.substr(1);
+			}
+
+			String lnc;
+			for (size_t i = 0; i < BackDirCount; i++)
+			{
+				lnc += "../";
+			}
+			lnc += Path(rel).generic_string();
+
+			FileIncudes.push_back(lnc);
+		}
+		
+		const char* IncudeTextHeader = "//include Made By UCodeAutoLink";
+		const char* IncudeTextEndHeader = "//UCodeAutoLink include End";
+
+		if (UCodeLang::StringHelper::Contains(CppLinkText, IncudeTextHeader))
+		{
+			Vector<String> FileLines;
+			for (size_t i = 0; i < CppLinkText.size(); i++)
+			{
+				String Line;
+
+				while (i < CppLinkText.size() && CppLinkText[i] != '\n')
+				{
+					Line += CppLinkText[i];
+
+					i++;
+				}
+				FileLines.push_back(std::move(Line));
+			}
+
+			bool isinheader = false;
+			String newstr;
+			for (auto& Item : FileLines)
+			{
+				if (UCodeLang::StringHelper::StartWith(Item, IncudeTextHeader))
+				{
+					isinheader = true;
+				}
+				if (UCodeLang::StringHelper::StartWith(Item, IncudeTextEndHeader))
+				{
+					isinheader = false;
+					continue;
+				}
+
+				if (!isinheader)
+				{
+					newstr += Item;
+					newstr += '\n';
+				}
+				CppLinkText = newstr;
+			}
+			
+		}
+
+
+
+		{
+
+			size_t LastIncludeIndex = 0;
+			size_t LineIndex = 0;
+			Vector<String> FileLines;
+			for (size_t i = 0; i < CppLinkText.size(); i++)
+			{
+				String Line;
+
+				while (i < CppLinkText.size() && CppLinkText[i] != '\n')
+				{
+					Line += CppLinkText[i];
+
+					i++;
+				}
+
+				if (UCodeLang::StringHelper::StartWith(Line, "#include"))
+				{
+					LastIncludeIndex = LineIndex;
+				}
+
+
+				LineIndex++;
+
+				FileLines.push_back(std::move(Line));
+			}
+
+
+		
+			{
+				size_t I = 0;
+
+				FileLines.insert(FileLines.begin() + (LastIncludeIndex + I + 1)
+					, IncudeTextHeader);
+
+				I++;
+				for (auto& Item : FileIncudes)
+				{
+					FileLines.insert(FileLines.begin() + (LastIncludeIndex + I + 1)
+						, "#include \"" + Item + "\"");
+
+
+					I++;
+				}
+
+				FileLines.insert(FileLines.begin() + (LastIncludeIndex + I + 1)
+					, IncudeTextEndHeader);
+			}
+
+
+			CppLinkText.clear();
+			for (auto& Item : FileLines)
+			{
+				CppLinkText += Item;
+				CppLinkText += '\n';
+			}
+
+			int a = 0;
+
+		}
+
+		if (oldtext != CppLinkText) {
+			WriteStringToFile(CppLinkFile, CppLinkText);
+		}
+	}
 
 	return true;
 }
@@ -1980,3 +2243,5 @@ bool CppHelper::ParseULangToCppStaticLink(const Path& SrcCpp, const Path& CppLin
 }
 
 UCodeAnalyzerEnd
+
+#endif

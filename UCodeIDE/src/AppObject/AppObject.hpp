@@ -236,7 +236,7 @@ private:
 		bool AutoReload = true;
 		bool AutoHotReload = false;
 
-		UCodeLang::OptimizationFlags Flags = UCodeLang::OptimizationFlags::O_1;
+		UCodeLang::OptimizationFlags Flags = UCodeLang::OptimizationFlags::O_None;
 		bool InDebug = true;
 		bool ImportStandardLibrary = false;
 
@@ -304,7 +304,8 @@ private:
 	bool IsRuningCompiler = false;
 	std::future<UCodeLang::Compiler::CompilerRet> _RuningCompiler;
 	UCodeLang::Compiler::CompilerPathData _RuningPaths;
-
+	UCodeLang::Compiler::CompilerRet _NoThreadRuningCompiler;
+	bool NoThreadRetChecked = false;
 
 	template<typename T, typename... Pars> std::future<T>
 		SendTaskToWorkerThread(std::function<T(Pars...)> Func, Pars... pars)

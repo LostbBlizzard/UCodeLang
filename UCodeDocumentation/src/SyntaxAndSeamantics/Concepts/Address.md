@@ -24,7 +24,7 @@ float& f = g() creates a float reference named f that refers to the return value
 
 Here is an example of how addressing and references are used in UCode:
 
-<code>
+```
 
     int x = 10;
 
@@ -34,13 +34,13 @@ Here is an example of how addressing and references are used in UCode:
     r = 30; //Modifies the value at r
     Console::Log(r); //Prints 30
 
-</code>
+```
 
 # Reassigning references
 
 References can be reassigned by using an Address assignment statement. This changes what value the reference points to. For example:
 
-<code>
+```
 
     int v = 10; //Assigns 10 to v
 
@@ -53,22 +53,22 @@ References can be reassigned by using an Address assignment statement. This chan
     r &= w; //Reassigns r to refer to w
     
     Console::Log(r); //Prints 5
-</code>
+```
 
 Reassigning references should be done with caution, as it may cause unexpected behavior or errors if done incorrectly. For example:
 
-<code>
+```
 
     r &= bitcast<int&>(0); //Reassigns r to refer to a null pointer.
     
     Console::Log(r); //Prints garbage or causes an error
-</code>
+```
 
 Reassigning references to nullptr or invalid memory addresses is not intended by UCode’s standard, as references are always assumed to be pointing to something valid.
 
 If you need a nullable reference type, you can use Type? instead of Type&. Type? maps to [optional<Type>](../../Standardlibrary/Types/Generic/optional.md), which is a wrapper type that can hold either a valid value or nothing (null). For example:
 
-<code>
+```
 
     int? n = []; //Creates an optional int named n
 

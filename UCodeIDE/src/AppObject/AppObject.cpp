@@ -47,6 +47,14 @@
 
 UCodeIDEStart
 
+//I dont think threads work in wasm
+
+#if __EMSCRIPTEN__
+#define NoUseThread 1
+#else
+#define NoUseThread 0
+#endif
+
 static UCodeLang::ProfilerDebuger Debuger;
 
 void UCodeIDEStyle(ImGuiStyle* dst)
@@ -102,6 +110,7 @@ void AppObject::Init()
     if (!_IsAppRuning) {
         _IsAppRuning = true;
 
+#if !NoUseThread
         /*
         _LangSeverThread = std::make_unique<std::thread>([this]()
             {
@@ -111,6 +120,7 @@ void AppObject::Init()
                 this->SeverPtr = nullptr;
             });
         */
+#endif
 
 
         {
@@ -143,7 +153,26 @@ void AppObject::Init()
         */
       
         UCodeIDEStyle(nullptr);
-        _Editor.SetText(UCodeLang::Compiler::GetTextFromFile("src/AppObject/test.uc"));
+        
+            
+        auto str2 = UCodeLang::Compiler::GetTextFromFile("src/AppObject/test2.uc");
+        String str;
+        if (str2 == "*null")
+        {
+            auto str = UCodeLang::Compiler::GetTextFromFile("src/AppObject/test.uc");
+            if (str == "*null")
+            {
+                str = "|main[] => 0;";
+            }
+        }
+        else
+        {
+            str = str2;
+        }
+       
+        _Editor.SetText(str);
+        
+        
         UpdateBackEnd();
         CompileText(GetTextEditorString());
 
@@ -295,8 +324,8 @@ void AppObject::DrawTestMenu()
     struct TestInfo
     {
         TestMode Testmode = TestMode::UCodeLang;
-        size_t MinTestIndex = 0;
-        size_t MaxTestCount = 48;//;//ULangTest::Tests.size();
+        size_t MinTestIndex = 48;
+        size_t MaxTestCount = 60;//;//ULangTest::Tests.size();
 
         size_t ModuleIndex = 0;
         size_t ModuleTestCount = 1;//;//ULangTest::Tests.size();
@@ -1737,12 +1766,21 @@ void AppObject::OnDraw()
     
     ProcessSeverPackets();
 
+
     {
+        #if NoUseThread
+        if (IsRuningCompiler == false && NoThreadRetChecked == false)
+        {
+            auto& compilerret =_NoThreadRuningCompiler;
+            OnDoneCompileing(compilerret, _RuningPaths.OutFile);
+        }
+        #else 
         if (IsRuningCompiler == false && _RuningCompiler.valid())
         {
             auto compilerret =_RuningCompiler.get();
             OnDoneCompileing(compilerret, _RuningPaths.OutFile);
         }
+        #endif
     }
 
     bool Doc = true;
@@ -2295,6 +2333,8 @@ void AppObject::ShowUCodeVMWindow()
 
             using Func = int (*)();
             int retvalue = ((Func)functocall)();
+
+
 
             Value = retvalue;
 
@@ -3315,7 +3355,6 @@ void AppObject::CompileText(const String& String)
 
     _RuningPaths = std::move(paths);
     
-
     static bool ItWorked = false;
     if (ItWorked == false)
     {
@@ -3323,13 +3362,21 @@ void AppObject::CompileText(const String& String)
         Func();
     }
     else
-    {
+    { 
+        #if NoUseThread
+
+        NoThreadRetChecked = false;
+        _NoThreadRuningCompiler =Func();
+        #else
         _RuningCompiler = SendTaskToWorkerThread<UCodeLang::Compiler::CompilerRet>(Func);
+        #endif
     }
+    
 }
 
 void AppObject::OnDoneCompileing(UCodeLang::Compiler::CompilerRet& Val, const UCodeAnalyzer::Path& tepoutpath)
 {
+    NoThreadRetChecked = true;
     if (Val.IsValue())
     {
         Errors.clear();

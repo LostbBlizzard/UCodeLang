@@ -629,6 +629,8 @@ Optional<Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>> ClassAssem
 }
 Optional<ClassAssembly::ParsedValue> ClassAssembly::ParseToValue(const String_view txt, const ClassAssembly& Assembly, Vector<ReflectionTypeInfo> Hints)
 {
+	return {};
+#ifndef UCodeLangNoCompiler
 	if (txt.size()) 
 	{
 		if (txt == "true" || txt == "false")
@@ -670,18 +672,28 @@ Optional<ClassAssembly::ParsedValue> ClassAssembly::ParseToValue(const String_vi
 	}
 
 	return {};
+#endif
 }
 String ClassAssembly::ToString(const ClassMethod::Par& data, const ClassAssembly& Assembly)
 {
+#ifndef UCodeLangNoCompiler
 	return UCodeLang::UAssembly::UAssembly::ToString(data, Assembly);
+#endif 
+	return "";
 }
 String ClassAssembly::ToString(const ReflectionTypeInfo& data, const ClassAssembly& Assembly)
 {
+#ifndef UCodeLangNoCompiler
 	return UCodeLang::UAssembly::UAssembly::ToString(data, Assembly);
+#endif 
+	return "";
 }
 String ClassAssembly::ToString(const TypedRawReflectionData& data, const ClassAssembly& Assembly, bool is32mode)
 {
+#ifndef UCodeLangNoCompiler
 	return UCodeLang::UAssembly::UAssembly::ToString(data,Assembly, is32mode ? UClib::NTypeSize::int32: UClib::NTypeSize::int64);
+#endif 
+	return "";
 }
 String ClassAssembly::ToStringJson(const TypedRawReflectionData& data, const ClassAssembly& Assembly, bool is32mode)
 {

@@ -1,4 +1,6 @@
 #pragma once
+
+#ifndef UCodeLangNoCompiler
 #include "IR.hpp"
 #include "../Helpers/CompilationErrors.hpp"
 
@@ -54,3 +56,5 @@ private:
 	void LogErrorCantFindPar(UCodeLang::IROperator& Op);
 };
 UCodeLangEnd
+
+#endif

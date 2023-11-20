@@ -1,6 +1,6 @@
 # type
 
-<code>
+```
  
     $CoolInt = int;
     |main[]
@@ -8,4 +8,4 @@
 
      CoolInt Num = 0;//work's like a int.
 
-</code>
+```

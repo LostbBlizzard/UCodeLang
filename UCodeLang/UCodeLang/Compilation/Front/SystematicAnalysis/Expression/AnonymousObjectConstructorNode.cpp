@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
 void SystematicAnalysis::OnAnonymousObjectConstructor(const AnonymousObjectConstructorNode* nod)
@@ -167,3 +168,5 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(const AnonymousObjectConst
 	}
 }
 UCodeLangFrontEnd
+
+#endif

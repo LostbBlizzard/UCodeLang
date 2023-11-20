@@ -1,5 +1,5 @@
 #pragma once
-
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/LangCore/UClib.hpp"
 #include "UAssembly_NameSpace.hpp"
 #include "UCodeLang/Compilation/LexerDefs.h"
@@ -54,3 +54,6 @@ private:
 	void ParseAny8(AnyInt64& Out);
 };
 UAssemblyEnd
+
+
+#endif

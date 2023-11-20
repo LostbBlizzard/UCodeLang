@@ -15,7 +15,7 @@ $Vec2:
 
  |Update[this&] => Y;
 
-|main[]:
+|func[]:
  Vec3 A = [];
  Vec2 B = [];
 

@@ -1,3 +1,4 @@
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
 
@@ -322,3 +323,5 @@ bool SystematicAnalysis::Symbol_IsVarableType(SymbolType type) const
 }
 
 UCodeLangFrontEnd
+
+#endif

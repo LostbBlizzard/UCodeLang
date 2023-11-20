@@ -1,4 +1,6 @@
 #pragma once
+
+#ifndef UCodeLangNoCompiler
 #include "Typedef.hpp"
 
 #include "UCodeLang/Compilation/Front/Lexer.hpp"
@@ -27,3 +29,5 @@ private:
 	
 };
 UCodeAnalyzerEnd
+
+#endif

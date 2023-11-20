@@ -1,4 +1,5 @@
 #pragma once
+
 #include "../../LangCore.hpp"
 UCodeLangStart
 
@@ -766,4 +767,3 @@ public:
 	*/
 };
 UCodeLangEnd
-

@@ -1,4 +1,6 @@
 #pragma once
+
+#ifndef UCodeLangNoCompiler
 #include "UCodeLang/LangCore/UClib.hpp"
 #include "UCodeLang/Compilation/CompilationSettings.hpp"
 #include "UCodeLang/Compilation/Helpers/CompilationErrors.hpp"
@@ -63,3 +65,4 @@ private:
 };
 UAssemblyEnd
 
+#endif

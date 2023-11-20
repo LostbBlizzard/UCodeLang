@@ -1,4 +1,4 @@
-
+#ifndef UCodeLangNoCompiler
 #include "FrontEndObject.hpp"
 #include <fstream>
 UCodeLangStart
@@ -39,3 +39,5 @@ Unique_ptr<FileNode_t> FrontEndObject::LoadIntFile(const Path& path)
 }
 
 UCodeLangEnd
+
+#endif
