@@ -6,7 +6,7 @@
 namespace CppLinkTest
 {
 	//This func should have two copys
-	UCodeLangExportSymbol("UCodeLang") void SomeFuncDefault(int V = 5) {}
+	UCodeLangExportSymbol("UCodeLang") void SomeFuncDefault2(int V = 5) {}
 
 	//should be an outfunc
 	UCodeLangExportSymbol("UCodeLang") void SomeFuncPtr(UCodeLangOutPartype(int) V) {}
@@ -22,7 +22,7 @@ namespace CppLinkTest
 	UCodeLangExportSymbol("UCodeLang") void SpanTest(UCodeLang::Span<int> Item) {}
 
 	//should be an outfunc
-	UCodeLangExportSymbol("UCodeLang") void SomeFuncPtrWithInline(UCodeLangOutPartype(int) V) {}
+	UCodeLangExportSymbol("UCodeLang") void SomeFuncPtrWithInline2(UCodeLangOutPartype(int) V) {}
 
 	/// <summary>
 	/// Testing
