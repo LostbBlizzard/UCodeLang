@@ -121,7 +121,9 @@ bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFi
 		ParseCppToSybs(FileText, Symbols);
 	}
 	
+	
 	{
+		auto oldtext = GetString(ULangOut);
 		String R;
 		R += "use ULang;";
 		R += '\n';
@@ -141,19 +143,30 @@ bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFi
 
 		}
 
-		WriteStringToFile(ULangOut, R);
+		if (oldtext != ULangOut) {
+			WriteStringToFile(ULangOut, R);
+		}
 	}
 
 	{//Link for Cpp
 		auto CppLinkText = GetString(CppLinkFile);
-		
+		auto oldtext = CppLinkText;
+
 		UpdateCppLinks(CppLinkText, Symbols);
-		WriteStringToFile(CppLinkFile, CppLinkText);
+
+		if (oldtext != CppLinkText) {
+			WriteStringToFile(CppLinkFile, CppLinkText);
+		}
 	}
 	
 
 
 	return true;
+}
+
+bool CppHelper::ParseCppfileAndOutULangDir(const Path& CppDir, const Path& CppLinkFile, const Path& ULangOut)
+{
+	return false;
 }
 
 
