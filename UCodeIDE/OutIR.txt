@@ -1,3 +1,7 @@
+$Vec2
+ float32 __0; 
+ float32 __1; 
+
 
 |(&StaticInit&)[] -> void:;
 
@@ -7,28 +11,57 @@
 
 |(&threadUnload&)[] -> void:;
 
+|Vec2:(&_new&)^Vec2&,f32,f32[Vec2* (&this&),float32 x,float32 y] -> void:
+
+ [Block:0]
+
+
+//Variable:Vec2:(&_new&):(&this&)
+//Variable:Vec2:(&_new&):x
+//Variable:Vec2:(&_new&):y
+//File:src.uc
+//Line:6
+
+   float32 A = x;
+   (&this&)->__0 = A;
+
+//Line:7
+
+   float32 B = y;
+   (&this&)->__1 = B;
+   ret;
+
+|Vec2:(&_new&)^Vec2&[Vec2* (&this&)] -> void:
+
+ [Block:0]
+
+   ret;
+
 //EntryPoint 
-|main[] -> int32:
+|main[] -> float32:
 
  [Block:0]
 
 
 //File:src.uc
-//Line:36
-//Variable:main:a
+//Line:10
+//Variable:main:V
 
-   int32 A;
-   int32 B = 99;
-   A = B;
+   Vec2 A;
 
-//Line:38
+//Line:0
 
-   int32 C = 5;
-   A = C;
+   Vec2* B = &A;
 
-//Line:40
+//Line:10
 
-   int32 D = A;
-   ret = D;
+   float32 C = 0.000000;
+   float32 D = 0.000000;
+   void E = Vec2:(&_new&)^Vec2&,f32,f32(B,C,D);
+
+//Line:11
+
+   float32 F = A.__0;
+   ret = F;
    ret;
 
