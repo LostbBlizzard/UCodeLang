@@ -4,4 +4,4 @@ $Item[float] enum:
  Blue = 1.6,
 
 
-|main[] => Item::Green;
+|func[] => Item::Green;

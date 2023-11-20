@@ -6,6 +6,6 @@ $Vec2:
   X = x;
   Y = y;
 
-|main[] -> float:
+|func[] -> float:
  Vec2 V = [0.0,0.0];
  ret V.X;

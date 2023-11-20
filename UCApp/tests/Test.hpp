@@ -143,7 +143,7 @@ UCodeTestStart
 
 		TestInfo("Func_1","BasicTests/Func.uc","main",SuccessCondition::RunTimeValue,(int)0),
 		TestInfo("MemberInit","Objects/MemberInit.uc","main",SuccessCondition::RunTimeValue,(int)1),
-		TestInfo("Constructor","Objects/Constructor.uc","main",SuccessCondition::RunTimeValue,(float)0),
+		TestInfo("Constructor","Objects/Constructor.uc","func",SuccessCondition::RunTimeValue,(float)0),
 		TestInfo("MemberCall","Objects/MemberCall.uc","main",SuccessCondition::RunTimeValue,(int)0),
 		TestInfo("pointer_3","Objects/pointer3.uc","main",SuccessCondition::RunTimeValue,(char)'0'),
 		TestInfo("FuncOverloading","Objects/FuncOverloading.uc","main",SuccessCondition::RunTimeValue,(int)0),
@@ -153,10 +153,10 @@ UCodeTestStart
 		TestInfo("factorial","BasicTests/factorial.uc","main",SuccessCondition::RunTimeValue,(int)3628800),
 
 		TestInfo("Enum_1","Objects/Enum.uc","main",SuccessCondition::RunTimeValue,(int)1),
-		TestInfo("Enum_2","Objects/Enum2.uc","main",SuccessCondition::RunTimeValue,(float)1.5),
+		TestInfo("Enum_2","Objects/Enum2.uc","func",SuccessCondition::RunTimeValue,(float)1.5),
 
 		TestInfo("FuncPointer_1","BasicTests/FuncPointer.uc","main",SuccessCondition::RunTimeValue,(int)0),
-		TestInfo("FuncPointer_2","Objects/FuncPointer.uc","main",SuccessCondition::RunTimeValue,(int)0),
+		TestInfo("FuncPointer_2","Objects/FuncPointer.uc","func",SuccessCondition::RunTimeValue,(int)0),
 
 		TestInfo("GenericsParameter","Generics/GenericsParameter.uc","main",SuccessCondition::RunTimeValue,(size_t)0),
 		TestInfo("GenericType","Generics/GenericType.uc","main",SuccessCondition::RunTimeValue,(size_t)0),
