@@ -216,6 +216,8 @@ void C89Backend::AddBaseTypes()
 
 	
 	OutBuffer += '\n';
+	OutBuffer += "void ULangNoOp();";
+	OutBuffer += '\n';
 	
 }
 
@@ -296,6 +298,8 @@ String C89Backend::ToString()
 	r += "\n\n/*file.cpp*/\n\n";
 	{
 		{
+			r += "void ULangNoOp(){}\n";
+
 			ToString(r, &_Input->_StaticInit, State,true);
 			ToString(r, &_Input->_StaticdeInit, State, true);
 			ToString(r, &_Input->_threadInit, State, true);
@@ -727,6 +731,8 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 						r += "\n";
 						r += Tabs;
 						r += Item.second + ":";
+						r += '\n';
+						r += "ULangNoOp();";
 						hasname = true;
 					}
 				}
