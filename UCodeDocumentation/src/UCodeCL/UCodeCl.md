@@ -4,11 +4,10 @@ The UCodeLang Command-line tool it serves as a Compiler,Runtime,build system and
 
 # Syntax
 
-<code>
 
-    uclang [command] <arguments>
-
-</code>
+```
+uclang [command] <arguments>
+```
 
 # Commands
 | Name | arguments | Return Exit Code | Description |
@@ -20,7 +19,8 @@ run | Path(optional),flags(optional) | 0 if succeed else 1. | Builds a UCodeLang
 get | Path(optional) | 0 if succeed else 1. | Downloads the Modules dependencies.
 dump | Path | 0 if succeed else 1. | Builds a UCodeLang File,Module,Folder or .ulib and attempts to convert the output into readable textworks with wasm,window,linux,macos,c89,.ulib,.uir outputs.
 clear | Path| clears a Module a intermediate and output files.
-cpptoulangvm | PatCppPath,CpplinkPath,ulangout | 0 if succeed else 1. | uses C++ source code to create bindings for UCodeVm
+cpptoulangvm | CppPath,CpplinkPath,ulangout | 0 if succeed else 1. | uses C++ source code to create bindings for UCodeVm
+cppdirtoulangvm | CppDir,CpplinkPath,ulangout | 0 if succeed else 1. | uses C++ source files code to create bindings for UCodeVm
 fmt | Path(optional)  | 0 if succeed else 1. |Formats A UCodeLang Module or file.
 index | Path(optional)  | 0 if succeed else 1. | Adds Module to to the Module Index so it can be used/referenced by other module in your system.
 test | Path(optional)  | 0 if succeed else 1. | Runs Tests on your UCodeLang Module Project.
@@ -38,17 +38,13 @@ By default uclang build will compile to UCodeVM being 32 or 64 bit if the  curre
 if path not provided it will use the working directory as its input and use a UCodeModule Project in it to Compile.
 
 Example
-<code>
+```
+uclang build -c89
+```
 
-    uclang build -c89
-
-</code>
-
-<code>
-
-    uclang build -uvm:x86_64
-
-</code>
+```
+uclang build -uvm:x86_64
+```
 
 | Flag | extra | Description |
 |--- |--- |--- |
@@ -68,19 +64,15 @@ Example
 
 By default uclang will try to call the main funcion.
 
-<code>
-
-    uclang run
-
-</code>
+```
+uclang run
+```
 
 This can be overwritten and basic arguments can be passed.
 
-<code>
-
-    uclang run func(4)
-
-</code>
+```
+uclang run func(4)
+```
 
 These flags only apply if path was UCodeLang File,Module,Folder or .ulib.
 | Flag | extra | Description |

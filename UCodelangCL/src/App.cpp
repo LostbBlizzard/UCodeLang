@@ -1249,14 +1249,30 @@ void ParseLine(String_view& Line)
 			_This.ExeRet = EXIT_FAILURE;
 		}
 	}
-	else if (Word1 == "cpptolink" || Word1 == "-cpptoulanglink")
+	else if (Word1 == "cpptoulangvm" || Word1 == "-cpptoulangvm")
+	{
+		Path cppfile = GetPath(Line);
+		Path cpplink = GetPath(Line);
+		Path ulangout = GetPath(Line);
+
+		UCodeAnalyzer::CppHelper v;
+		if (v.ParseCppfileAndOutULang(cppfile, cpplink, ulangout))
+		{
+			_This.ExeRet = EXIT_SUCCESS;
+		}
+		else
+		{
+			_This.ExeRet = EXIT_FAILURE;
+		}
+	}
+	else if (Word1 == "cppdirtoulangvm" || Word1 == "-cppdirtoulangvm")
 	{
 		Path cppfile;
 		Path cpplink;
 		Path ulangout;
 
 		UCodeAnalyzer::CppHelper v;
-		if (v.ParseCppfileAndOutULangLink(cppfile, cpplink, ulangout))
+		if (v.ParseCppfileAndOutULangDir(cppfile, cpplink, ulangout))
 		{
 			_This.ExeRet = EXIT_SUCCESS;
 		}
@@ -1351,6 +1367,8 @@ void ParseLine(String_view& Line)
 		AppPrintin("index         [Path]     :Adds Module to to the Module Index");
 		AppPrintin("update        [Path]     :Updates Module Dependencies");
 		AppPrintin("cpptoulangvm  [CppPath] [UCodeLangBindingPath] [CppVMBindingPath]     :Makes ULang Bindings from C++ Source for UCodeVm");
+		AppPrintin("cppdirtoulangvm [CppDir] [UCodeLangBindingPath] [CppVMBindingPath]     :Makes ULang Bindings from C++ Source files for UCodeVm");
+
 
 		AppPrintin("install [Name] :Installs a UCodeLangModule");
 		AppPrintin("runmod [Name] :runs a Installed UCodeLangModule");
