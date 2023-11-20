@@ -122,6 +122,11 @@ public:
 	/// <param name="ULangOut"></param>
 	/// <returns>if true it worked</returns>
 	static bool ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFile, const Path& ULangOut);
+	
+	
+	static bool ParseCppfileAndOutULangDir(const Path& CppDir, const Path& CppLinkFile, const Path& ULangOut);
+
+
 	static bool ParseCppfileAndOutULangLink(const Path& SrcCpp, const Path& CppLinkFile, const Path& ULangOut);
 	static bool ParseULangToCppStaticLink(const Path& SrcCpp, const Path& CppLinkFile, const Path& ULangOut);
 
