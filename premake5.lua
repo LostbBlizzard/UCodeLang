@@ -216,6 +216,9 @@ project "UCodeLang"
     "%{prj.name}/Dependencies/zycore/include/**.h",
    }
 
+
+
+if not os.host() == "macosx" then
 project "UCodeLangNoCompiler"
    location "UCodeLang"
    kind "StaticLib"
@@ -258,6 +261,7 @@ project "UCodeLangNoCompiler"
     "UCodeLang/Dependencies/zydis/include/**.h",
     "UCodeLang/Dependencies/zycore/include/**.h",
    }
+end
 
 project "UCodeLanguageSeverlib"
    location "UCodeLanguageSeverlib"
