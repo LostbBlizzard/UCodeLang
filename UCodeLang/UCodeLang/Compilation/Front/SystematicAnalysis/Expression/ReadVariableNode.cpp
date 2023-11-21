@@ -1349,7 +1349,8 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 		auto Token = In.Start[In.End - 1]._token;
 
 		bool test = false;
-		if (IsSymbolLambdaObjectClass(ThisParSym) && Token->Type != TokenType::KeyWord_This)
+		if (IsSymbolLambdaObjectClass(ThisParSym) && Token->Type != TokenType::KeyWord_This
+			&& IsLambdaClassSymFromThisPtr(ThisParSym, In._Symbol))
 		{
 			ClassInfo* f = ThisParSym->Get_Info<ClassInfo>();
 			auto parsym = Symbol_GetSymbol(ScopeHelper::ApendedStrings(ThisParSym->FullName, ThisSymbolName), SymbolType::ParameterVarable).value();
@@ -1380,7 +1381,8 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 		const String_view& Str = Token->Type == TokenType::KeyWord_This ? ThisSymbolName : Token->Value._String;
 		ClassInfo* V = objecttypesyb->Get_Info<ClassInfo>();
 
-		if (IsSymbolLambdaObjectClass(objecttypesyb) && Token->Type != TokenType::KeyWord_This)
+		if (IsSymbolLambdaObjectClass(objecttypesyb) && Token->Type != TokenType::KeyWord_This
+			&& IsLambdaClassSymFromThisPtr(objecttypesyb, In._Symbol))
 		{
 			auto ClassSym2 = Symbol_GetSymbol(V->GetField(ThisSymbolName).value()->Type).value();
 			auto CInfo2 = ClassSym2->Get_Info<ClassInfo>();

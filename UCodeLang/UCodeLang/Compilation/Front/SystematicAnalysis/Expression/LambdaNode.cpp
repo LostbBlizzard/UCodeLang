@@ -5,9 +5,11 @@ UCodeLangFrontStart
 void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 {
 	const String LambdaName = CompilerGenerated("Lambda") + std::to_string((uintptr_t)&node);
+
+	const String LambdaClassName = LambdaName + "class";
 	if (_PassType == PassType::GetTypes)
 	{
-		_Table.AddScope(LambdaName);
+		_Table.AddScope(LambdaClassName);
 
 		auto& LambdaSym = Symbol_AddSymbol(SymbolType::LambdaObject, LambdaName, _Table._Scope.ThisScope, AccessModifierType::Public);
 		_Table.AddSymbolID(LambdaSym, Symbol_GetSymbolID(node));
@@ -40,9 +42,8 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 		_Table.RemoveScope();
 	}
 	else if (_PassType == PassType::FixedTypes)
-	{
-
-		_Table.AddScope(LambdaName);
+	{		
+		_Table.AddScope(LambdaClassName);
 
 		auto& LambdaSym = *Symbol_GetSymbol(Symbol_GetSymbolID(node));
 		LambdaInfo* Info = LambdaSym.Get_Info<LambdaInfo>();
@@ -271,9 +272,6 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 
 		if (Info->UsesOuterScope())
 		{
-
-
-			const String LambdaClassName = LambdaName + "class";
 			String FullName = _Table._Scope.ThisScope;
 			ScopeHelper::GetApendedString(FullName, LambdaClassName);
 			auto& SymClass = Symbol_AddSymbol(SymbolType::Type_class, LambdaClassName, FullName, AccessModifierType::Public);
@@ -358,15 +356,21 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 	}
 	else if (_PassType == PassType::BuidCode)
 	{
-		_Table.AddScope(LambdaName);
+		_Table.AddScope(LambdaClassName);
 
 		auto& LambdaSym = _Table.GetSymbol(Symbol_GetSymbolID(node));
 		LambdaInfo* Info = LambdaSym.Get_Info<LambdaInfo>();
 
 		if (Info->UsesOuterScope())
 		{
+			_Table.RemoveScope();
+			_Table.AddScope(LambdaName);
 			const SymbolID ClassSymID = Symbol_GetSymbolID(&node._Capture);
+			_Table.RemoveScope();
+			_Table.AddScope(LambdaClassName);
+
 			auto& SymClass = _Table.GetSymbol(ClassSymID);
+			
 
 			ClassInfo* ClassSymInfo = SymClass.Get_Info<ClassInfo>();
 
@@ -378,8 +382,7 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 
 			auto TepIRObject = _IR_LookingAtIRBlock->NewLoad(ClassTypeIR);
 
-
-
+			
 
 			IRStruct* ClassStruct = _IR_Builder.GetSymbol(ClassTypeIR._symbol)->Get_ExAs<IRStruct>();
 
@@ -510,6 +513,8 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 				FuncStackInfo _FuncData(Info->_ClassCall);
 				_FuncStack.push_back(_FuncData);
 
+
+
 				Push_NewStackFrame();
 				if (node._Statements.has_value())
 				{
@@ -626,9 +631,12 @@ bool SystematicAnalysis::IsSymbolLambdaObjectClass(const NeverNullPtr<Symbol> Sy
 {
 	return StringHelper::StartWith(ScopeHelper::GetNameFromFullName(Sym->FullName), CompilerGenerated("Lambda"));
 }
-IRInstruction* SystematicAnalysis::LoadSymbolWhenInLambdaObjectInvoke(const NeverNullPtr<Symbol> Sym)
+bool SystematicAnalysis::IsLambdaClassSymFromThisPtr(const NeverNullPtr<Symbol> LambdaClassSym, const NeverNullPtr<Symbol> Sym) const
 {
-	return _IR_LookingAtIRBlock->NewLoad((int)5000000);
+	UCodeLangAssert(IsSymbolLambdaObjectClass(LambdaClassSym));
+
+
+	return false;
 }
 UCodeLangFrontEnd
 
