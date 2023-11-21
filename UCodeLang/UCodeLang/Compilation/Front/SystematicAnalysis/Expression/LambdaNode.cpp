@@ -642,7 +642,15 @@ bool SystematicAnalysis::IsSymbolLambdaObjectClass(const NeverNullPtr<Symbol> Sy
 bool SystematicAnalysis::IsLambdaClassSymFromThisPtr(const NeverNullPtr<Symbol> LambdaClassSym, const NeverNullPtr<Symbol> Sym) const
 {
 	UCodeLangAssert(IsSymbolLambdaObjectClass(LambdaClassSym));
+	const ClassInfo* infoLam = LambdaClassSym->Get_Info<ClassInfo>();
+	auto opindx = infoLam->GetFieldIndex(ThisSymbolName);
+	if (opindx.has_value())
+	{
+		auto Sym2 = Symbol_GetSymbol(infoLam->Fields[opindx.value()].Type);
+		auto V = Sym2.value()->Get_Info<ClassInfo>();
 
+		return V->GetField(ScopeHelper::GetNameFromFullName(Sym->FullName)).has_value();
+	}
 
 	return false;
 }
