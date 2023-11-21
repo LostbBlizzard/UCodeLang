@@ -110,7 +110,7 @@ UCodeTestStart
 
 	
 
-	static const Array<TestInfo, 103> Tests
+	static const Array<TestInfo, 107> Tests
 	{
 
 		TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation),
@@ -179,6 +179,11 @@ UCodeTestStart
 		TestInfo("BitWise4", "BasicTests/Bitwise.uc", "main4", SuccessCondition::RunTimeValue, (int)13),
 		TestInfo("BitWise5", "BasicTests/Bitwise.uc", "main5", SuccessCondition::RunTimeValue, (int)12),
 		TestInfo("BitWise6", "BasicTests/Bitwise.uc", "main6", SuccessCondition::RunTimeValue, (int)-6),
+
+		TestInfo("OperatorPrecedent1", "BasicTests/OperatorPrecedent.uc", "main", SuccessCondition::RunTimeValue, (int)7),
+		TestInfo("OperatorPrecedent2", "BasicTests/OperatorPrecedent.uc", "main1", SuccessCondition::RunTimeValue, (int)7),
+		TestInfo("OperatorPrecedent3", "BasicTests/OperatorPrecedent.uc", "main2", SuccessCondition::RunTimeValue, (int)9),
+		TestInfo("OperatorPrecedent4", "BasicTests/OperatorPrecedent.uc", "main3", SuccessCondition::RunTimeValue, (int)-5),
 
 		TestInfo("Lamdba_1","Objects/Lambda.uc","main",SuccessCondition::RunTimeValue,(int)1),
 		TestInfo("Lamdba_2","Objects/Lambda.uc","main2",SuccessCondition::RunTimeValue,(int)5),
