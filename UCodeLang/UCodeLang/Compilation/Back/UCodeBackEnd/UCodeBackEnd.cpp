@@ -661,7 +661,7 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 		BuildLink(FuncName,IR->Linkage);
 	}
 
-	if (FuncName == "StringSpan_t<char>:(&equal&)^StringSpan_t<char>&imut,StringSpan_t<char>&imut")
+	if (FuncName == "Object:Call^Object&")
 	{
 		int a = 0;
 	}
@@ -3964,7 +3964,10 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IROperator&
 			}
 			else
 			{
-				UCodeLangUnreachable();
+
+				auto pos = _Stack.AddWithSize(Ins,GetSize(CompilerRet.ObjectType));
+				CompilerRet.Info = IRlocData_StackPost(pos->Offset);
+
 			}
 
 		
