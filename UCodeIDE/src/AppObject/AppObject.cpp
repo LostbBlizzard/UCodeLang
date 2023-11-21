@@ -315,15 +315,10 @@ void AppObject::DrawTestMenu()
 
     static constexpr size_t TestCount = ULangTest::Tests.size();
 
-    enum class TestMode
-    {
-        UCodeLang,
-        C89,
-        Wasm,
-    };
+    using TestMode = ULangTest::TestMode;
     struct TestInfo
     {
-        TestMode Testmode = TestMode::UCodeLang;
+        TestMode Testmode = TestMode::UCodeLangBackEnd;
         size_t MinTestIndex = 48;
         size_t MaxTestCount = 60;//;//ULangTest::Tests.size();
 
@@ -388,11 +383,11 @@ void AppObject::DrawTestMenu()
 
 
                 Compiler Com;
-                if (Testmod == TestMode::C89)
+                if (Testmod == TestMode::CLang89BackEnd)
                 {
                     Com.Set_BackEnd(C89Backend::MakeObject);
                 }
-                else if (Testmod == TestMode::Wasm)
+                else if (Testmod == TestMode::WasmBackEnd)
                 {
                     Com.Set_BackEnd(WasmBackEnd::MakeObject);
                 }
@@ -475,7 +470,7 @@ void AppObject::DrawTestMenu()
                     return false;
                 }
 
-                if (Testmod == TestMode::UCodeLang)
+                if (Testmod == TestMode::UCodeLangBackEnd)
                 {
                     UClib lib;
                     if (!UClib::FromFile(&lib, OutFilePath))
@@ -547,7 +542,7 @@ void AppObject::DrawTestMenu()
                     State = TestState::Passed;
                     return true;
                 }
-                else if (Testmod == TestMode::C89)
+                else if (Testmod == TestMode::CLang89BackEnd)
                 {
                     UClib& ulib = *Com_r.GetValue().OutPut;
                     auto ufunc = ulib.Get_Assembly().Find_Func(Test.FuncToCall);
@@ -741,7 +736,7 @@ void AppObject::DrawTestMenu()
                     }
                     return true;
                 }
-                else if (Testmod == TestMode::Wasm)
+                else if (Testmod == TestMode::WasmBackEnd)
                 {
                     UClib& ulib = *Com_r.GetValue().OutPut;
                     auto& outfile = Com_r.GetValue().OutFile.value();
@@ -914,9 +909,9 @@ void AppObject::DrawTestMenu()
     {
         static const Vector<ImguiHelper::EnumValue<TestMode>> TestModeList =
         {
-            { "UCodeLang",TestMode::UCodeLang },
-            { "C89",TestMode::C89},
-            { "Wasm",TestMode::Wasm},
+            { "UCodeLang",TestMode::UCodeLangBackEnd},
+            { "C89",TestMode::CLang89BackEnd},
+            { "Wasm",TestMode::WasmBackEnd},
         };
 
 
@@ -941,6 +936,35 @@ void AppObject::DrawTestMenu()
                 if (ImGui::SliderInt("MaxShowTests", &v, TestWindowData.MinTestIndex + 1, ULangTest::Tests.size()))
                 {
                     TestWindowData.MaxTestCount = v;
+                }
+            }
+            {
+                if (ImGui::Button("Run Tests And skip"))
+                {
+                    TestWindowData.MinTestIndex = 0;
+                    TestWindowData.MaxTestCount = ULangTest::Tests.size();
+
+                    TestWindowData.TestAsRan = true;
+                    const auto& Tests = ULangTest::Tests;
+                    for (size_t i = 0; i < TestWindowData.MaxTestCount; i++)
+                    {
+                        auto& ItemTest = ULangTest::Tests[i];
+                        auto& ItemTestOut = TestWindowData.Testinfo[i];
+                        auto& Thread = TestWindowData.Threads[i];
+
+                        if (!ULangTest::ShouldSkipTests(i, TestWindowData.Testmode)) 
+                        {
+                            Thread = std::make_unique< std::future<bool>>(std::async(std::launch::async, [i, testmod = TestWindowData.Testmode]
+                                {
+                                    auto& ItemTest = ULangTest::Tests[i];
+                                    auto& ItemTestOut = TestWindowData.Testinfo[i];
+
+                                    ItemTestOut.State = TestInfo::TestState::Exception;
+                                    ItemTestOut.RunTestForFlag(ItemTest, TestWindowData.Flags, testmod);
+                                    return false;
+                                }));
+                        }
+                    }
                 }
             }
             UCodeLang::OptimizationFlags flags = TestWindowData.Flags;
@@ -3559,4 +3583,5 @@ void AppObject::OnSeverPacket(SPacket&& packet)
         }
     }
 }
+
 UCodeIDEEnd
