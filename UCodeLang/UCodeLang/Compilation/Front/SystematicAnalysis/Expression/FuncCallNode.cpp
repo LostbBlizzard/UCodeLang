@@ -42,6 +42,17 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 			}
 
 			Type_SetFuncRetAsLastEx(Info);
+
+			if (Info.ThisPar == Get_FuncInfo::ThisPar_t::AutoPushThis && _Varable.size())
+			{
+				auto& Data = _Varable.top();
+
+
+				String ThisP = ScopeHelper::ApendedStrings(_FuncStack.front().Pointer->FullName,ThisSymbolName);
+
+				Data._UsedSymbols.push_back(Symbol_GetSymbol(ThisP,SymbolType::ParameterVarable).value().value());
+			}
+
 			_FuncToSyboID.AddValue(symid, std::move(Info));
 		}
 		else
@@ -519,7 +530,26 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 			}
 			else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::AutoPushThis)
 			{
-				IRParsList.push_back(_IR_LookingAtIRBlock->NewLoad(&_IR_LookingAtIRFunc->Pars.front()));
+
+				auto& InFunc = _FuncStack.back().Pointer;
+
+				auto ThisParSym = Symbol_GetSymbol(InFunc->Pars.front().Type).value();
+				if (IsSymbolLambdaObjectClass(ThisParSym))
+				{
+					ClassInfo* f = ThisParSym->Get_Info<ClassInfo>();
+					auto parsym = Symbol_GetSymbol(ScopeHelper::ApendedStrings(ThisParSym->FullName, ThisSymbolName), SymbolType::ParameterVarable).value();
+
+					auto PointerIr = _IR_LookingAtIRBlock->New_Member_Dereference(
+						&_IR_LookingAtIRFunc->Pars.front(),
+						_IR_LookingAtIRFunc->Pars.front().type,
+						f->GetFieldIndex(ThisSymbolName).value());
+
+					IRParsList.push_back(PointerIr);
+				}
+				else
+				{
+					IRParsList.push_back(_IR_LookingAtIRBlock->NewLoad(&_IR_LookingAtIRFunc->Pars.front()));
+				}
 			}
 			else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::PushFromScopedNameDynamicTrait)
 			{
