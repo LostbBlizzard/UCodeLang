@@ -9,12 +9,14 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 	const String LambdaClassName = LambdaName + "class";
 	if (_PassType == PassType::GetTypes)
 	{
-		_Table.AddScope(LambdaClassName);
+		_Table.AddScope(LambdaName);
 
 		auto& LambdaSym = Symbol_AddSymbol(SymbolType::LambdaObject, LambdaName, _Table._Scope.ThisScope, AccessModifierType::Public);
 		_Table.AddSymbolID(LambdaSym, Symbol_GetSymbolID(node));
 		LambdaSym.Info = Unique_ptr<LambdaInfo>(new LambdaInfo());
 
+		_Table.RemoveScope();
+		_Table.AddScope(LambdaClassName);
 
 		for (auto& Item : node._Pars._Parameters)
 		{
@@ -43,11 +45,14 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 	}
 	else if (_PassType == PassType::FixedTypes)
 	{		
-		_Table.AddScope(LambdaClassName);
+		_Table.AddScope(LambdaName);
 
 		auto& LambdaSym = *Symbol_GetSymbol(Symbol_GetSymbolID(node));
 		LambdaInfo* Info = LambdaSym.Get_Info<LambdaInfo>();
 		Info->Ret = TypeSymbol(TypesEnum::Var);
+
+		_Table.RemoveScope();
+		_Table.AddScope(LambdaClassName);
 
 		const Vector<ParInfo>* ParHint = nullptr;
 		const TypeSymbol* RetHint = nullptr;
@@ -356,10 +361,13 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 	}
 	else if (_PassType == PassType::BuidCode)
 	{
-		_Table.AddScope(LambdaClassName);
+		_Table.AddScope(LambdaName);
 
 		auto& LambdaSym = _Table.GetSymbol(Symbol_GetSymbolID(node));
 		LambdaInfo* Info = LambdaSym.Get_Info<LambdaInfo>();
+
+		_Table.RemoveScope();
+		_Table.AddScope(LambdaClassName);
 
 		if (Info->UsesOuterScope())
 		{
