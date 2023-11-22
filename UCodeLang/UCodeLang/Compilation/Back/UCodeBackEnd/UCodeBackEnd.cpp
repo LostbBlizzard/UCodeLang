@@ -3862,6 +3862,19 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 						GiveNameTo(t,Item);
 						return t;
 					}
+					else if (Item->Type == IRInstructionType::Member_Access)
+					{
+						auto Pos = GetIRLocData(Item->Target());
+						const IRStruct* VStruct = _Input->GetSymbol(Pos.ObjectType._symbol)->Get_ExAs<IRStruct>();
+						size_t FieldIndex = Item->Input().Value.AsUIntNative;
+
+						size_t Offset = _Input->GetOffset(VStruct, FieldIndex);
+						AddOffset(Pos, Offset);
+
+						Pos.ObjectType = VStruct->Fields[FieldIndex].Type;
+
+						return Pos;
+					}
 					else
 					{
 						UCodeLangUnreachable();
@@ -4766,13 +4779,19 @@ void UCodeBackEndObject::MoveValuesToState(const RegistersManager& state)
 
 			if (auto val = type.Get_If<const IRInstruction*>())
 			{
-				if (auto stackitem = _Stack.Has((*val)->A.Pointer).value_unchecked())
+				if ((*val)->Type == IRInstructionType::Load)
 				{
-					IRlocData V;
-					V.Info = IRlocData_StackPost(stackitem->Offset);
-					V.ObjectType = stackitem->IR.Get<const IRInstruction*>()->ObjectType;
+					if ((*val)->A.Type == IROperatorType::IRInstruction)
+					{
+						if (auto stackitem = _Stack.Has((*val)->A.Pointer).value_unchecked())
+						{
+							IRlocData V;
+							V.Info = IRlocData_StackPost(stackitem->Offset);
+							V.ObjectType = stackitem->IR.Get<const IRInstruction*>()->ObjectType;
 
-					MoveRegInValue((RegisterID)reg,V, 0);
+							MoveRegInValue((RegisterID)reg, V, 0);
+						}
+					}
 				}
 			}
 		}
