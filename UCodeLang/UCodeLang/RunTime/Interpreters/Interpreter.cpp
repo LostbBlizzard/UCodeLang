@@ -977,7 +977,7 @@ void Interpreter::Extecute(Instruction& Inst)
 		 RegisterID RegOut = Inst.Op_TwoRegInt8.B;
 		 size_t Offset = Inst.Op_TwoRegInt8.C;
 
-		Get_Register(RegOut).Value.AsUIntNative = Get_Register(RegOut).Value.AsUIntNative + Offset;
+		Get_Register(RegOut).Value.AsUIntNative = Get_Register(Ptr).Value.AsUIntNative + Offset;
 	 }
 	 InsBreak();
 	 InsCase(LoadEffectiveAddressS) :
@@ -986,7 +986,7 @@ void Interpreter::Extecute(Instruction& Inst)
 		 RegisterID RegOut = Inst.Op_TwoRegInt8.B;
 		 size_t Offset = Inst.Op_TwoRegInt8.C;
 
-		 Get_Register(RegOut).Value.AsUIntNative = Get_Register(RegOut).Value.AsUIntNative - Offset;
+		 Get_Register(RegOut).Value.AsUIntNative = Get_Register(Ptr).Value.AsUIntNative - Offset;
 	 }
 	 InsBreak();
 	 InsCase(LoadEffectiveAddressX) :
@@ -995,7 +995,7 @@ void Interpreter::Extecute(Instruction& Inst)
 		 RegisterID RegOut = Inst.Op_TwoRegInt8.B;
 		 size_t Offset = Inst.Op_TwoRegInt8.C;
 
-		 Get_Register(RegOut).Value.AsUIntNative = Get_Register(RegOut).Value.AsUIntNative * Offset;
+		 Get_Register(RegOut).Value.AsUIntNative = Get_Register(Ptr).Value.AsUIntNative * Offset;
 	 }
 	 InsBreak();
 	//Linking
