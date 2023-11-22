@@ -1761,6 +1761,10 @@ void SystematicAnalysis::Type_SetFuncRetAsLastEx(const Get_FuncInfo& Info)
 	{
 		_LastExpressionType = Type_GetUnMapType();
 	}
+	else
+	{
+		_LastExpressionType = TypesEnum::Null;
+	}
 }
 NullablePtr<Symbol> SystematicAnalysis::Symbol_GetSymbol(String_view Name, SymbolType Type)
 {

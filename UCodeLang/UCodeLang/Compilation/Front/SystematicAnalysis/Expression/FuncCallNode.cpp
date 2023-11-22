@@ -1228,11 +1228,10 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 		if (HasOutPar)
 		{
 			bool IsControlFlow = false;
-			if (_NodeTypeStack.size() > 1)
+
+			for (int i = _NodeTypeStack.size() - 1; i >= 0; i--)
 			{
-				size_t Index = _NodeTypeStack.size() - 1;
-				Index--;
-				auto& Last = _NodeTypeStack[Index];
+				auto& Last = _NodeTypeStack[i];
 				if (Last == NodeType::IfNode || Last == NodeType::WhileNode || Last == NodeType::DoNode
 					|| Last == NodeType::RetStatementNode
 					|| Last == NodeType::CompileTimeIfNode
@@ -1240,20 +1239,12 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 					)
 				{
 					IsControlFlow = true;
+					break;
 				}
 				else if (_NodeTypeStack.back() == NodeType::CompileTimeIfNode)
 				{
 					IsControlFlow = true;
-				}
-			}
-			if (_NodeTypeStack.size() > 2)
-			{
-				size_t Index = _NodeTypeStack.size() - 1;
-				Index -= 2;
-				auto& Last = _NodeTypeStack[Index];
-				if (Last == NodeType::MatchArm)
-				{
-					IsControlFlow = true;
+					break;
 				}
 			}
 
