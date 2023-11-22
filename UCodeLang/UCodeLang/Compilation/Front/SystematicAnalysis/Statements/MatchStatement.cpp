@@ -57,11 +57,13 @@ void SystematicAnalysis::OnMatchStatement(const MatchStatement& node)
 		{
 			_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
 
-			Type_CanMatch(ToMatchType, node._Expression, Item._Expression, V.ArmData);
+			if (!ToMatchType.IsBadType()) {
+				Type_CanMatch(ToMatchType, node._Expression, Item._Expression, V.ArmData);
 
-			for (auto& Statement : Item._Statements._Nodes)
-			{
-				OnStatement(*Statement);
+				for (auto& Statement : Item._Statements._Nodes)
+				{
+					OnStatement(*Statement);
+				}
 			}
 
 			_Table.RemoveScope();
@@ -73,9 +75,11 @@ void SystematicAnalysis::OnMatchStatement(const MatchStatement& node)
 		{
 			_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
 
-			for (auto& Statement : node._InvaidCase.value()._Nodes)
-			{
-				OnStatement(*Statement);
+			if (!ToMatchType.IsBadType()) {
+				for (auto& Statement : node._InvaidCase.value()._Nodes)
+				{
+					OnStatement(*Statement);
+				}
 			}
 
 			_Table.RemoveScope();

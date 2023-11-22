@@ -1761,6 +1761,10 @@ void SystematicAnalysis::Type_SetFuncRetAsLastEx(const Get_FuncInfo& Info)
 	{
 		_LastExpressionType = Type_GetUnMapType();
 	}
+	else if (Info.SymFunc && Info.SymFunc->Type == SymbolType::Enum_Field)
+	{
+		_LastExpressionType = Symbol_GetSymbol(ScopeHelper::GetReMoveScope(Info.SymFunc->FullName), SymbolType::Enum).value()->VarType;
+	}
 	else
 	{
 		_LastExpressionType = TypesEnum::Null;
