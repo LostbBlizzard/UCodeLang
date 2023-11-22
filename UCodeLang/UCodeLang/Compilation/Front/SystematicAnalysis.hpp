@@ -506,6 +506,7 @@ private:
 		Symbol* SymFunc = nullptr;
 		Optional<Systematic_BuiltInFunctions::Func> _BuiltFunc;
 		bool CantCheckBecauseIsUnMaped = false;
+		Optional<TypeSymbol> BulitInTypeContructer;
 		bool HasFunc()
 		{
 			return Func || _BuiltFunc.has_value();
@@ -1201,6 +1202,7 @@ private:
 	void OnUnsafeExpression(const UnsafeExpression& node);
 	void OnDeferStatement(const DeferStatementNode& node);
 	void OnExpressionNode(const UnaryExpressionNode& node);
+	void OnStatements(const StatementsNode& node);
 
 	TypeSymbol Type_MakeFutureFromType(const TypeSymbol& BaseType);
 	bool Type_IsFuture(const TypeSymbol& Future);

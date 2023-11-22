@@ -952,8 +952,9 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 				}
 				_LastExpressionType = FuncType;
 			}
-
-			return { Get_FuncInfo::ThisPar_t::NoThisPar, nullptr };
+			Get_FuncInfo r = { Get_FuncInfo::ThisPar_t::NoThisPar, nullptr };
+			r.BulitInTypeContructer = _LastExpressionType;
+			return r;
 		}
 
 
