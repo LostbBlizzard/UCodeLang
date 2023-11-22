@@ -3614,10 +3614,10 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 				CompilerRet.ObjectType = GetType(Ins->Target());
 				const IRStruct* VStruct = _Input->GetSymbol(CompilerRet.ObjectType._symbol)->Get_ExAs<IRStruct>();
 
-				size_t Index = Ins->Input().Value.AsUIntNative;
+				const size_t Index = Ins->Input().Value.AsUIntNative;
 				auto& Field = VStruct->Fields[Index];
 
-				size_t FieldOffset = Field.Offset.value();
+				const size_t FieldOffset = Field.Offset.value();
 
 				CompilerRet.ObjectType._Type = IRTypes::pointer;
 				if (FieldOffset == 0)
@@ -3630,7 +3630,36 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 				}
 				else
 				{
-					UCodeLangToDo();
+					if (FieldOffset < 256)
+					{
+						auto pointer = LoadOp(Ins,Ins->Target());
+						RegisterID out = GetRegisterForTep();
+						InstructionBuilder::LoadEffectiveAddressA(_Ins, pointer, FieldOffset, out); PushIns();
+
+
+						CompilerRet.Info = out;
+						return CompilerRet;
+					}
+					else 
+					{
+						RegisterID out = GetRegisterForTep();
+						auto pointer = LoadOp(Ins, Ins->Target());
+						auto offsetsetleft = FieldOffset;
+
+						RegToReg(IRTypes::pointer, pointer, out,false);
+
+						while (offsetsetleft != 0)
+						{
+							auto off = std::min((size_t)255, offsetsetleft);;
+
+							InstructionBuilder::LoadEffectiveAddressA(_Ins, out, off, out); PushIns();
+
+							offsetsetleft -= off;
+						}
+
+						CompilerRet.Info = out;
+						return CompilerRet;
+					}
 				}
 			}
 			else
