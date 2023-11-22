@@ -1156,7 +1156,7 @@ private:
 	IRInstruction* IR_Build_Member_AsPointer(const GetMemberTypeSymbolFromVar_t& In);
 	IRInstruction* IR_Build_Member_AsValue(const GetMemberTypeSymbolFromVar_t& In);
 	void BuildMember_Access(const GetMemberTypeSymbolFromVar_t& In, IRInstruction*& Output);
-	void StepBuildMember_Access(const ScopedName& ITem, TypeSymbol& Last_Type, ScopedName::Operator_t OpType, const GetMemberTypeSymbolFromVar_t& In, IRInstruction*& Output);
+	void StepBuildMember_Access(const ScopedName& ITem, TypeSymbol& Last_Type, ScopedName::Operator_t OpType, const GetMemberTypeSymbolFromVar_t& In, IRInstruction*& Output, Symbol*& LastVarSym);
 	void BuildMember_Reassignment(const GetMemberTypeSymbolFromVar_t& In, const TypeSymbol& Type, IRInstruction* Value);
 	NullablePtr<Symbol> GetTepFuncPtrSyb(const String& TepFuncPtr, const FuncInfo* Finfo);
 	String GetTepFuncPtrName(const FuncInfo* SymbolVar);

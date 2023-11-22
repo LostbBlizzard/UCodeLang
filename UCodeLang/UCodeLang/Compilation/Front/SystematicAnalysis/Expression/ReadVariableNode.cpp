@@ -1332,7 +1332,7 @@ void SystematicAnalysis::BuildMember_Reassignment(const GetMemberTypeSymbolFromV
 void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t& In, IRInstruction*& Output)
 {
 	TypeSymbol Last_Type = In._Symbol->VarType;
-
+	Symbol* LastVarSym = nullptr;
 	//
 
 	if (In._Symbol->Type == SymbolType::Class_Field 
@@ -1425,15 +1425,21 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 			Output = _IR_LookingAtIRBlock->NewLoad_Dereferenc(Output, IR_ConvertToIRType(newtype));
 			Last_Type = newtype;
 		}
+		LastVarSym =Symbol_GetSymbol(ScopeHelper::ApendedStrings(_FuncStack.front().Pointer->FullName, ThisSymbolName),SymbolType::ParameterVarable).value().value();
 	}
 	else if (In._Symbol->Type == SymbolType::Class_Field)
 	{
+		
 		auto token = In.Start[0]._token;
 
 		auto sym  = Symbol_GetSymbol(token->Value._String,SymbolType::Any).value();
 
 		Last_Type = sym->VarType;
-		Output = sym->IR_Ins;
+
+		if (sym->Type == SymbolType::StackVarable) {
+			Output = sym->IR_Ins;
+		}
+		LastVarSym = sym.value();
 	}
 	//
 
@@ -1445,12 +1451,12 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 		auto& Item = In.Start[i];
 		ScopedName::Operator_t OpType = i == 0 ? ScopedName::Operator_t::Null : In.Start[i - 1]._operator;
 
-		StepBuildMember_Access(Item, Last_Type, OpType, In, Output);
+		StepBuildMember_Access(Item, Last_Type, OpType, In, Output, LastVarSym);
 	}
 
 }
 
-void SystematicAnalysis::StepBuildMember_Access(const ScopedName& Item, TypeSymbol& Last_Type, ScopedName::Operator_t OpType, const GetMemberTypeSymbolFromVar_t& In, IRInstruction*& Output)
+void SystematicAnalysis::StepBuildMember_Access(const ScopedName& Item, TypeSymbol& Last_Type, ScopedName::Operator_t OpType, const GetMemberTypeSymbolFromVar_t& In, IRInstruction*& Output, Symbol*& LastVarSym)
 {
 	Symbol* Sym = Symbol_GetSymbol(Last_Type).value_unchecked();
 
@@ -1537,18 +1543,22 @@ void SystematicAnalysis::StepBuildMember_Access(const ScopedName& Item, TypeSymb
 		IRStruct* IRstruct = _IR_Builder.GetSymbol(_Symbol_SybToIRMap.GetValue(Sym->ID))->Get_ExAs<IRStruct>();
 		if (Output == nullptr)
 		{
-			switch (In._Symbol->Type)
+			if (LastVarSym == nullptr)
+			{
+				LastVarSym = In._Symbol;
+			}
+			switch (LastVarSym->Type)
 			{
 			case  SymbolType::StackVarable:
 			{
 				TypeSymbol& TypeSys = Last_Type;
 				if (TypeSys.IsAddress())
 				{
-					Output = _IR_LookingAtIRBlock->New_Member_Dereference(In._Symbol->IR_Ins, IR_ConvertToIRType(Sym->VarType), MemberIndex);
+					Output = _IR_LookingAtIRBlock->New_Member_Dereference(LastVarSym->IR_Ins, IR_ConvertToIRType(Sym->VarType), MemberIndex);
 				}
 				else
 				{
-					Output = _IR_LookingAtIRBlock->New_Member_Access(In._Symbol->IR_Ins, IRstruct, MemberIndex);
+					Output = _IR_LookingAtIRBlock->New_Member_Access(LastVarSym->IR_Ins, IRstruct, MemberIndex);
 				}
 			}
 			break;
@@ -1557,11 +1567,11 @@ void SystematicAnalysis::StepBuildMember_Access(const ScopedName& Item, TypeSymb
 				TypeSymbol& TypeSys = Last_Type;
 				if (TypeSys.IsAddress())
 				{
-					Output = _IR_LookingAtIRBlock->New_Member_Dereference(In._Symbol->IR_Par, IR_ConvertToIRType(Sym->VarType), MemberIndex);
+					Output = _IR_LookingAtIRBlock->New_Member_Dereference(LastVarSym->IR_Par, IR_ConvertToIRType(Sym->VarType), MemberIndex);
 				}
 				else
 				{
-					Output = _IR_LookingAtIRBlock->New_Member_Access(In._Symbol->IR_Par, IRstruct, MemberIndex);
+					Output = _IR_LookingAtIRBlock->New_Member_Access(LastVarSym->IR_Par, IRstruct, MemberIndex);
 				}
 
 			}
@@ -1570,7 +1580,7 @@ void SystematicAnalysis::StepBuildMember_Access(const ScopedName& Item, TypeSymb
 			case SymbolType::StaticVarable:
 			{
 				TypeSymbol& TypeSys = Last_Type;
-				auto id = _IR_Builder.ToID(In._Symbol->FullName);
+				auto id = _IR_Builder.ToID(LastVarSym->FullName);
 				if (TypeSys.IsAddress())
 				{
 					Output = _IR_LookingAtIRBlock->New_Member_Dereference(id, IR_ConvertToIRType(Sym->VarType), MemberIndex);
