@@ -1127,9 +1127,25 @@ void SystematicAnalysis::OnStatement(const Node& node2)
 	case NodeType::YieldStatement:OnYieldStatement(*YieldStatement::As(&node2)); break;
 	case NodeType::UnsafeStatementsNode:OnUnsafeStatement(*UnsafeStatementsNode::As(&node2)); break;
 	case NodeType::DeferStatementNode:OnDeferStatement(*DeferStatementNode::As(&node2)); break;
+	case NodeType::StatementsNode:OnStatements(*StatementsNode::As(&node2)); break;
 	default:UCodeLangUnreachable(); break;
 	}
 	Pop_NodeScope();
+}
+void SystematicAnalysis::OnStatements(const StatementsNode& node)
+{
+	String ScopeName = std::to_string((size_t)&node);
+
+	Push_NewStackFrame();
+	_Table.AddScope(ScopeName);
+
+	for (const auto& node2 : node._Nodes)
+	{
+		OnStatement(*node2);
+	}
+
+	Pop_StackFrame();
+	_Table.RemoveScope();
 }
 void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 {
@@ -1764,6 +1780,10 @@ void SystematicAnalysis::Type_SetFuncRetAsLastEx(const Get_FuncInfo& Info)
 	else if (Info.SymFunc && Info.SymFunc->Type == SymbolType::Enum_Field)
 	{
 		_LastExpressionType = Symbol_GetSymbol(ScopeHelper::GetReMoveScope(Info.SymFunc->FullName), SymbolType::Enum).value()->VarType;
+	}
+	else if (Info.BulitInTypeContructer.has_value())
+	{
+		_LastExpressionType = Info.BulitInTypeContructer.value();
 	}
 	else
 	{
