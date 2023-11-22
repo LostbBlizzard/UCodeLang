@@ -4001,10 +4001,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IROperator&
 			}
 			else
 			{
-
-				auto pos = _Stack.AddWithSize(Ins,GetSize(CompilerRet.ObjectType));
-				CompilerRet.Info = IRlocData_StackPost(pos->Offset);
-
+				CompilerRet = GetIRLocData(Ins);
 			}
 
 		
