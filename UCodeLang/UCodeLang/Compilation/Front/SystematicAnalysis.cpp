@@ -1779,7 +1779,15 @@ void SystematicAnalysis::Type_SetFuncRetAsLastEx(const Get_FuncInfo& Info)
 	}
 	else if (Info.SymFunc && Info.SymFunc->Type == SymbolType::Enum_Field)
 	{
-		_LastExpressionType = Symbol_GetSymbol(ScopeHelper::GetReMoveScope(Info.SymFunc->FullName), SymbolType::Enum).value()->VarType;
+		if (Info.ThisPar == Get_FuncInfo::ThisPar_t::NoThisPar_GetValue_EnumVariant)
+		{
+			_LastExpressionType = TypesEnum::Bool;
+		}
+		else
+		{
+			_LastExpressionType = Symbol_GetSymbol(ScopeHelper::GetReMoveScope(Info.SymFunc->FullName), SymbolType::Enum).value()->VarType;
+			
+		}
 	}
 	else if (Info.BulitInTypeContructer.has_value())
 	{
