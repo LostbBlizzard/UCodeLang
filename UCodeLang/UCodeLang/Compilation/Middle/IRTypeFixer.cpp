@@ -84,7 +84,7 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 				OnOp(*Ins, Ins->Target(),false);
 				if (Ins->Target().Type == IROperatorType::IRInstruction)
 				{
-					auto ClassType = Ins->Target().Pointer->ObjectType;
+					auto ClassType = _Input->GetType(Ins->Target());
 					GetMemberAccessTypeForIns(ClassType, _Input, Ins);
 				}
 				else if (Ins->Target().Type == IROperatorType::IRParameter)

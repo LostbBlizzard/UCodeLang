@@ -63,7 +63,7 @@ using namespace UCodeLang;
 	}
 
 
-	const UCodeLang::Array<OptimizationFlags, 4> OptimizationFlagsToCheck
+	const UCodeLang::Array<OptimizationFlags, 2> OptimizationFlagsToCheck
 	{
 		OptimizationFlags::NoOptimization,
 		OptimizationFlags::Debug,
