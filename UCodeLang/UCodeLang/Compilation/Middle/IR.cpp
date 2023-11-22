@@ -39,7 +39,21 @@ void IRBuilder::Fix_Size(IRStruct* Struct)
 				auto& Item = Struct->Fields[i];
 				if (!Item.Offset.has_value())
 				{
-					size_t fieldsize = GetSize(Struct->Fields[i].Type);
+					if (Item.Type._symbol.ID)
+					{
+						auto Sym = GetSymbol(Item.Type._symbol);
+						if (Sym->SymType == IRSymbolType::Struct)
+						{
+							IRStruct* structInfo = Sym->Get_ExAs<IRStruct>();
+
+							if (structInfo->IsSizeSet == false)
+							{
+								Fix_Size(structInfo);
+							}
+						}
+
+					}
+					size_t fieldsize = GetSize(Item.Type);
 
 					if (fieldsize > CompilerRet)
 					{
@@ -59,7 +73,24 @@ void IRBuilder::Fix_Size(IRStruct* Struct)
 			for (size_t i = 0; i < Struct->Fields.size(); i++)
 			{
 				auto& Item = Struct->Fields[i];
+
+				if (Item.Type._symbol.ID)
+				{
+					auto Sym = GetSymbol(Item.Type._symbol);
+					if (Sym->SymType == IRSymbolType::Struct)
+					{
+						IRStruct* structInfo = Sym->Get_ExAs<IRStruct>();
+
+						if (structInfo->IsSizeSet == false)
+						{
+							Fix_Size(structInfo);
+						}
+					}
+
+				}
+
 				size_t fieldsize = GetSize(Item.Type);
+
 				if (!Item.Offset.has_value())
 				{
 					Item.Offset = CompilerRet;
