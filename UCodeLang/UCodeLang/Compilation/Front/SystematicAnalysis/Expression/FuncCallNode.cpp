@@ -25,7 +25,10 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 	{
 		for (auto& Item : node.Parameters._Nodes)
 		{
-			OnExpressionTypeNode(Item.get(), GetValueMode::Read);
+			if (Item->Get_Type() != NodeType::OutExpression) 
+			{
+				OnExpressionTypeNode(Item.get(), GetValueMode::Read);
+			}
 		}
 	}
 	else if (_PassType == PassType::FixedTypes)
@@ -288,14 +291,24 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 								auto& Syb = _Table.GetSymbol(ID);
 								IRInstruction* ItemMember;
 
+								Optional<size_t> IRFelidIndex;
+								for (size_t i = 0; i < EnumIndex + 1; i++)
+								{
+									auto& VData = EnumSybInfo->VariantData.value().Variants[i];
+									if (VData.Types.size())
+									{
+										IRFelidIndex = IRFelidIndex.has_value() ? IRFelidIndex.value() + 1 : 0;
+									}
+								}
+
 								if (EnumVariantFieldData.ClassSymbol.has_value())
 								{
-									auto Struct = _IR_LookingAtIRBlock->New_Member_Access(ObjUnion, UnionStruct, EnumIndex);
+									auto Struct = _IR_LookingAtIRBlock->New_Member_Access(ObjUnion, UnionStruct, IRFelidIndex.value());
 									ItemMember = _IR_LookingAtIRBlock->New_Member_Access(Struct, VStruct, i - 1);
 								}
 								else
 								{
-									ItemMember = _IR_LookingAtIRBlock->New_Member_Access(ObjUnion, UnionStruct, EnumIndex);
+									ItemMember = _IR_LookingAtIRBlock->New_Member_Access(ObjUnion, UnionStruct, IRFelidIndex.value());
 
 								}
 
@@ -340,7 +353,17 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 								String UnionName = Str_GetEnumVariantUnionName(EnumSybInfo->FullName);
 								IRidentifierID UnionID = _IR_Builder.ToID(UnionName);
 
-								auto ObjectMember = _IR_LookingAtIRBlock->New_Member_Access(UnionMember, _IR_Builder.GetSymbol(UnionID)->Get_ExAs<IRStruct>(), EnumIndex);
+								Optional<size_t> IRFelidIndex;
+								for (size_t i = 0; i < EnumIndex+1; i++)
+								{
+									auto& VData = EnumSybInfo->VariantData.value().Variants[i];
+									if (VData.Types.size())
+									{
+										IRFelidIndex = IRFelidIndex.has_value() ? IRFelidIndex.value() + 1 : 0;
+									}
+								}
+
+								auto ObjectMember = _IR_LookingAtIRBlock->New_Member_Access(UnionMember, _IR_Builder.GetSymbol(UnionID)->Get_ExAs<IRStruct>(), IRFelidIndex.value());
 
 								IRStruct* VStruct = nullptr;
 								if (EnumVariantFieldData.ClassSymbol.has_value())
