@@ -319,7 +319,7 @@ void AppObject::DrawTestMenu()
     struct TestInfo
     {
         TestMode Testmode = TestMode::UCodeLangBackEnd;
-        size_t MinTestIndex = 52;
+        size_t MinTestIndex = 58;
         size_t MaxTestCount = 62;//;//ULangTest::Tests.size();
 
         size_t ModuleIndex = 0;
@@ -938,6 +938,18 @@ void AppObject::DrawTestMenu()
                     TestWindowData.MaxTestCount = v;
                 }
             }
+            UCodeLang::OptimizationFlags flags = TestWindowData.Flags;
+            bool FlagsWasUpdated = false;
+
+            if (ImguiHelper::EnumField("BackEnd", TestWindowData.Testmode, TestModeList))
+            {
+                FlagsWasUpdated = true;
+            }
+
+            if (TestWindowData.DebugMode)
+            {
+                *(UCodeLang::OptimizationFlags_t*)&flags |= (UCodeLang::OptimizationFlags_t)UCodeLang::OptimizationFlags::Debug;
+            }
             {
                 if (ImGui::Button("Run Tests And skip"))
                 {
@@ -954,31 +966,20 @@ void AppObject::DrawTestMenu()
 
                         if (!ULangTest::ShouldSkipTests(i, TestWindowData.Testmode)) 
                         {
-                            Thread = std::make_unique< std::future<bool>>(std::async(std::launch::async, [i, testmod = TestWindowData.Testmode]
+                            Thread = std::make_unique< std::future<bool>>(std::async(std::launch::async, [i, flags, testmod = TestWindowData.Testmode]
                                 {
                                     auto& ItemTest = ULangTest::Tests[i];
                                     auto& ItemTestOut = TestWindowData.Testinfo[i];
 
                                     ItemTestOut.State = TestInfo::TestState::Exception;
-                                    ItemTestOut.RunTestForFlag(ItemTest, TestWindowData.Flags, testmod);
+                                    ItemTestOut.RunTestForFlag(ItemTest, flags, testmod);
                                     return false;
                                 }));
                         }
                     }
                 }
             }
-            UCodeLang::OptimizationFlags flags = TestWindowData.Flags;
-            bool FlagsWasUpdated = false;
-
-            if (ImguiHelper::EnumField("BackEnd", TestWindowData.Testmode, TestModeList))
-            {
-                FlagsWasUpdated = true;
-            }
-
-            if (TestWindowData.DebugMode)
-            {
-                *(UCodeLang::OptimizationFlags_t*)&flags |= (UCodeLang::OptimizationFlags_t)UCodeLang::OptimizationFlags::Debug;
-            }
+           
 
 
             thread_local UCodeLang::UnorderedMap<String, String> Openedfiles;
