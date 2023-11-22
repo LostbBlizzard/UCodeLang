@@ -3043,12 +3043,7 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction* Ins, const  IROperato
 
 		AnyInt64 Value = ToAnyInt(Ins->ObjectType, Op);
 		auto CompilerRet = FindValueInRegister(Value);
-		if (CompilerRet.has_value())
-		{
-			if (!IsDebugMode()) {
-				return CompilerRet.value();
-			}
-		}
+		
 
 		auto V = GetRegisterForTep();
 		switch (Ins->ObjectType._Type)
