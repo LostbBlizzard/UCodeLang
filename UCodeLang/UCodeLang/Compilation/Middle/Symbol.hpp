@@ -652,7 +652,7 @@ public:
 		return {};
 	}
 
-	Optional<size_t> GetFieldIndex(const String_view Name)
+	Optional<size_t> GetFieldIndex(const String_view Name) const
 	{
 		for (size_t i = 0; i < Fields.size(); i++)
 		{

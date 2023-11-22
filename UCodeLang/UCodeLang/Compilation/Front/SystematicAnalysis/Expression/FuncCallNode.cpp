@@ -1125,6 +1125,35 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 					}
 				}
 			}
+			else if (Item->Type == SymbolType::Enum_Field)
+			{
+				String EnumClassFullName = ScopedName;
+				ScopeHelper::ReMoveScope(EnumClassFullName);
+
+				auto EnumSymbolop = Symbol_GetSymbol(EnumClassFullName, SymbolType::Enum);
+				if (EnumSymbolop)
+				{
+					auto EnumSymbol = EnumSymbolop.value();
+					if (EnumSymbol->Type == SymbolType::Enum)
+					{
+						const EnumInfo* Enuminfo = EnumSymbol->Get_Info<EnumInfo>();
+						if (Enuminfo->VariantData.has_value())
+						{
+							auto FeildIndex = Enuminfo->GetFieldIndex(ScopeHelper::GetNameFromFullName(ScopedName));
+							if (FeildIndex.has_value())
+							{
+								auto& VariantInfo = Enuminfo->VariantData.value().Variants[FeildIndex.value()];
+								Infer.reserve(VariantInfo.Types.size());
+								for (auto& Item : VariantInfo.Types)
+								{
+									Infer.push_back({ false,Item });
+								} 
+							}	
+						}
+					}
+
+				}
+			}
 		}
 	}
 
