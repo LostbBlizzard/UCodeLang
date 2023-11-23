@@ -15,8 +15,8 @@ $Item enum:
  int B = 0;
  block:
   var Value =Item::Red([]);
-  B = R;
  
+ B = R;
  if B == 1:
   R = 0;
   block:
