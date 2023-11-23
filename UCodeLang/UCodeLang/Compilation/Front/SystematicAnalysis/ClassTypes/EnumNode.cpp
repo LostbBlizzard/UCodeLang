@@ -263,7 +263,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 
 			DropFunc->PassState = PassType::BuidCode;
 
-			enumInf->FuncDestructer = DropFunc;
+			enumInf->FuncDestructer = V;
 		}
 	}
 
