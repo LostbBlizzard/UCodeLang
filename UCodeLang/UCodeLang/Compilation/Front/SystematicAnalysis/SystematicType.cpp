@@ -156,7 +156,7 @@ bool SystematicAnalysis::Symbol_HasDestructor(const TypeSymbol& TypeToCheck)
 		{
 			auto Classinfo = Sym.value()->Get_Info<EnumInfo>();
 
-			return  false;// Classinfo->HasDestructer;
+			return  Classinfo->HasDestructer;
 		}
 
 	}

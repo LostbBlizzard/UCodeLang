@@ -901,6 +901,20 @@ void SystematicAnalysis::Assembly_AddEnum(const NeverNullPtr<Symbol> ClassSyb)
 	EnumData.BaseType = Assembly_ConvertToType(ClassInf->Basetype);
 	EnumData.TypeID = Type_GetTypeID(TypesEnum::CustomType, Syb.ID);
 
+
+	if (ClassInf->FuncDestructer)
+	{
+		EnumData.DestructorFuncFullName = IR_MangleName(ClassInf->FuncDestructer.value());
+	}
+	if (ClassInf->FuncMoveContructer)
+	{
+		EnumData.MoveFuncFullName = IR_MangleName(ClassInf->FuncMoveContructer.value());
+	}
+	if (ClassInf->FuncCopyContructer)
+	{
+		EnumData.MoveFuncFullName = IR_MangleName(ClassInf->FuncCopyContructer.value());
+	}
+
 	EnumData.Values.resize(ClassInf->Fields.size());
 	for (size_t i = 0; i < ClassInf->Fields.size(); i++)
 	{

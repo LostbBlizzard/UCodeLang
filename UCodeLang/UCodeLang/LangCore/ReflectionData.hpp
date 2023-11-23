@@ -352,6 +352,10 @@ struct Enum_Data
 	Optional<ReflectionCustomTypeID> EnumVariantUnion;//is class
 
 	Vector<EnumValues> Values;
+
+	Optional<String> DestructorFuncFullName;
+	Optional<String> MoveFuncFullName;
+	Optional<String> CopyFuncFullName;
 };
 struct Alias_Data
 {

@@ -241,6 +241,30 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 			}
 		}
 
+		if (enumInf->HasDestructer)
+		{
+
+			auto DropFunc = &Symbol_AddSymbol(SymbolType::Func, ClassDestructorFunc, _Table._Scope.GetApendedString((String)ClassDestructorFunc), AccessModifierType::Public);
+			FuncInfo* V = new FuncInfo();
+			DropFunc->Info.reset(V);
+
+			V->FullName = DropFunc->FullName;
+			V->_FuncType = FuncInfo::FuncType::Drop;
+			V->Ret = TypesEnum::Void;
+			V->FrontParIsUnNamed = true;
+
+			auto ThisParType =TypeSymbol(Syb.ID);
+			ThisParType._IsAddress = true;
+
+			ParInfo parinfo;
+			parinfo.IsOutPar = false;
+			parinfo.Type = ThisParType;
+			V->Pars.push_back(parinfo);
+
+			DropFunc->PassState = PassType::BuidCode;
+
+			enumInf->FuncDestructer = DropFunc;
+		}
 	}
 
 	_LookingForTypes.pop();
@@ -281,7 +305,8 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 			auto oldfunc = _IR_LookingAtIRFunc;
 			auto oldblock = _IR_LookingAtIRBlock;
 
-			_IR_LookingAtIRFunc = _IR_Builder.NewFunc(_IR_Builder.ToID(destructerfuncname),IRTypes::Void);
+			auto DropFunc = Symbol_GetSymbol(ClassDestructorFunc, SymbolType::Func).value();
+			_IR_LookingAtIRFunc = _IR_Builder.NewFunc(IR_GetIRID(DropFunc->Get_Info<FuncInfo>()),IRTypes::Void);
 			
 			{
 				IRPar V;
