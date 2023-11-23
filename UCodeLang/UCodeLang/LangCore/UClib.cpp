@@ -256,6 +256,27 @@ void UClib::ToBytes(BitMaker& Output, const Enum_Data& EnumData)
 		ToBytes(Output,Item2._Data);
 		ToBytes(Output, Item2.EnumVariantType);
 	}
+
+	Output.WriteType(EnumData.DestructorFuncFullName.has_value());
+
+	if (EnumData.DestructorFuncFullName.has_value())
+	{
+		Output.WriteType(EnumData.DestructorFuncFullName.value());
+	}
+
+	Output.WriteType(EnumData.MoveFuncFullName.has_value());
+
+	if (EnumData.MoveFuncFullName.has_value())
+	{
+		Output.WriteType(EnumData.MoveFuncFullName.value());
+	}
+
+	Output.WriteType(EnumData.CopyFuncFullName.has_value());
+
+	if (EnumData.CopyFuncFullName.has_value())
+	{
+		Output.WriteType(EnumData.CopyFuncFullName.value());
+	}
 }
 void UClib::ToBytes(BitMaker& Output, const Alias_Data& Alias)
 {
@@ -816,6 +837,32 @@ void UClib::FromBytes(BitReader& reader, Enum_Data& Enum)
 		reader.ReadType(Item2.Name, Item2.Name);
 		FromBytes(reader,Item2._Data);
 		FromBytes(reader, Item2.EnumVariantType);
+	}
+
+	bool has = false;
+	
+	reader.ReadType(has, has);
+	if (has)
+	{
+		String tep;
+		reader.ReadType(tep);
+		Enum.DestructorFuncFullName = tep;
+	}
+
+	reader.ReadType(has, has);
+	if (has)
+	{
+		String tep;
+		reader.ReadType(tep);
+		Enum.MoveFuncFullName = tep;
+	}
+
+	reader.ReadType(has, has);
+	if (has)
+	{
+		String tep;
+		reader.ReadType(tep);
+		Enum.CopyFuncFullName = tep;
 	}
 }
 void UClib::FromBytes(BitReader& Input, Optional<ReflectionTypeInfo>& Data)
