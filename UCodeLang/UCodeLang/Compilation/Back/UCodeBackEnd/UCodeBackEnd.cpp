@@ -3650,7 +3650,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 
 						while (offsetsetleft != 0)
 						{
-							auto off = std::min((size_t)255, offsetsetleft);;
+							auto off = std::min<size_t>(UINT8_MAX, offsetsetleft);;
 
 							InstructionBuilder::LoadEffectiveAddressA(_Ins, out, off, out); PushIns();
 
@@ -3684,16 +3684,64 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 		}
 		else if (Ins->Type == IRInstructionType::Member_Access)
 		{
-			auto Pos = GetIRLocData(Ins->Target());
-			const IRStruct* VStruct = _Input->GetSymbol(Pos.ObjectType._symbol)->Get_ExAs<IRStruct>();
-			size_t FieldIndex = Ins->Input().Value.AsUIntNative;
+			auto Pos = GetIRLocData(Ins->Target(),GetAddress);
 
-			size_t Offset = _Input->GetOffset(VStruct, FieldIndex);
-			AddOffset(Pos, Offset);
+			if (GetAddress && Pos.ObjectType._Type ==IRTypes::pointer)
+			{
+				auto& lastIns = _OutLayer->_Instructions.back();
+				UCodeLangAssert(lastIns.OpCode == InstructionSet::LoadEffectiveAddressA);
+				
+				const IRStruct* VStruct = _Input->GetSymbol(GetType(Ins->Target())._symbol)->Get_ExAs<IRStruct>();
+				size_t FieldIndex = Ins->Input().Value.AsUIntNative;
+				const size_t Offset = _Input->GetOffset(VStruct, FieldIndex);
 
-			Pos.ObjectType = VStruct->Fields[FieldIndex].Type;
 
-			return Pos;
+				auto offsetleft = Offset;
+				auto PtrReg = lastIns.Op_TwoRegInt8.A;
+				auto OutReg = lastIns.Op_TwoRegInt8.B;
+				
+				while (offsetleft != 0)
+				{
+					
+
+					auto& lastIns = _OutLayer->_Instructions.back();
+					auto& offsetnumber = lastIns.Op_TwoRegInt8.C;
+
+					auto maxpossableoffsetforins = UINT8_MAX - offsetnumber;
+
+					auto offsettosub = offsetleft;
+					if (offsettosub > maxpossableoffsetforins)
+					{
+						offsettosub = maxpossableoffsetforins;
+					}
+
+
+					if (offsettosub != 0)
+					{
+						offsetleft -= offsettosub;
+						offsetnumber += offsettosub;
+					}
+					else 
+					{
+						auto newoffset = std::min<size_t>(UINT8_MAX, offsetleft);
+						InstructionBuilder::LoadEffectiveAddressA(_Ins, OutReg, newoffset, OutReg); PushIns();
+						offsetleft -= newoffset;
+					}
+				}
+				return Pos;
+			}
+			else 
+			{
+				const IRStruct* VStruct = _Input->GetSymbol(Pos.ObjectType._symbol)->Get_ExAs<IRStruct>();
+				size_t FieldIndex = Ins->Input().Value.AsUIntNative;
+
+				size_t Offset = _Input->GetOffset(VStruct, FieldIndex);
+				AddOffset(Pos, Offset);
+
+				Pos.ObjectType = VStruct->Fields[FieldIndex].Type;
+
+				return Pos;
+			}
 		}
 		else
 		{
@@ -3775,7 +3823,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 		}
 		else if (Op.Type == IROperatorType::Get_PointerOf_IRInstruction)
 		{
-			CompilerRet = GetIRLocData(Op.Pointer,true);
+ 			CompilerRet = GetIRLocData(Op.Pointer,true);
 		}
 		else if (Op.Type == IROperatorType::Get_PointerOf_IRParameter)
 		{
@@ -3971,12 +4019,17 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 	}
 	UCodeLangUnreachable();
 }
-UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IROperator& Op)
+UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IROperator& Op, bool GetAddress)
 {
 	if (Op.Type == IROperatorType::IRParameter)
 	{
 		const auto Ins = Op.Parameter;
-		return To(*GetParData(Ins));
+		auto r = To(*GetParData(Ins));
+		if (GetAddress)
+		{
+			return GetPointerOf(r);
+		}
+		return r;
 	}
 	else if (Op.Type == IROperatorType::IRInstruction)
 	{
@@ -3990,6 +4043,11 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IROperator&
 		{
 
 			CompilerRet.Info = InReg.value();
+
+			if (GetAddress)
+			{
+				CompilerRet = GetPointerOf(CompilerRet);
+			}
 		}
 		else
 		{
@@ -3998,10 +4056,14 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IROperator&
 			{
 				CompilerRet.Info = IRlocData_StackPost(Val->Offset);
 				
+				if (GetAddress)
+				{
+					CompilerRet = GetPointerOf(CompilerRet);
+				}
 			}
 			else
 			{
-				CompilerRet = GetIRLocData(Ins);
+				CompilerRet = GetIRLocData(Ins,GetAddress);
 			}
 
 		
@@ -4021,6 +4083,11 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IROperator&
 				CompilerRet.ObjectType = Syb->Type;
 				CompilerRet.Info = IRlocData_StaticPos(Value.Offset);
 
+				if (GetAddress)
+				{
+					CompilerRet = GetPointerOf(CompilerRet);
+				}
+
 				return CompilerRet;
 			}
 			else if (Syb->SymType == IRSymbolType::ThreadLocalVarable)
@@ -4030,6 +4097,12 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IROperator&
 				IRlocData CompilerRet;
 				CompilerRet.ObjectType = Syb->Type;
 				CompilerRet.Info = IRlocData_ThreadPos(Value.Offset);
+
+
+				if (GetAddress)
+				{
+					CompilerRet = GetPointerOf(CompilerRet);
+				}
 
 				return CompilerRet;
 			}
