@@ -33,7 +33,9 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(const AnonymousObjectConst
 				const auto& ArrItemType = StaticArr->Type;
 				for (size_t i = 0; i < nod->_Fields._Nodes.size(); i++)
 				{
+					_LookingForTypes.push(ArrItemType);
 					OnExpressionTypeNode(nod->_Fields._Nodes[i].get(), GetValueMode::Read);
+					_LookingForTypes.pop();
 
 					if (!Type_CanBeImplicitConverted(_LastExpressionType, ArrItemType, false))
 					{
@@ -60,7 +62,10 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(const AnonymousObjectConst
 
 				for (size_t i = 0; i < nod->_Fields._Nodes.size(); i++)
 				{
+					_LookingForTypes.push(ArrItemType);
 					OnExpressionTypeNode(nod->_Fields._Nodes[i].get(), GetValueMode::Read);
+					_LookingForTypes.pop();
+
 
 					IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType, ArrItemType);
 
