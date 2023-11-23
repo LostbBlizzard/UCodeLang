@@ -704,6 +704,10 @@ public:
 	}
 
 	Optional<EnumVariantData> VariantData;
+	bool HasDestructer;
+	bool MoveContructer;
+	bool CopyContructer;
+
 	Generic _GenericData;
 	Optional<SymbolContext> Context;
 };

@@ -31,42 +31,42 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 		return;
 	}
 
-	EnumInfo* ClassInf;
+	EnumInfo* enumInf;
 	if (_PassType == PassType::GetTypes)
 	{
 		_Table.AddSymbolID(Syb, SybID);
 		Syb.NodePtr = node.As();
 
 
-		ClassInf = new EnumInfo();
-		ClassInf->Context = Save_SymbolContextRemoveOneScopeName();
-		ClassInf->FullName = Syb.FullName;
-		Syb.Info.reset(ClassInf);
+		enumInf = new EnumInfo();
+		enumInf->Context = Save_SymbolContextRemoveOneScopeName();
+		enumInf->FullName = Syb.FullName;
+		Syb.Info.reset(enumInf);
 		Syb.VarType.SetType(Syb.ID);
 
-		Generic_InitGenericalias(node._generic, IsgenericInstantiation, ClassInf->_GenericData);
+		Generic_InitGenericalias(node._generic, IsgenericInstantiation, enumInf->_GenericData);
 
 	}
 	else
 	{
-		ClassInf = (EnumInfo*)Syb.Get_Info<EnumInfo>();
+		enumInf = (EnumInfo*)Syb.Get_Info<EnumInfo>();
 	}
 	//add  dependency cycle.
 	EvaluatedEx ex;
 	if (_PassType == PassType::FixedTypes)
 	{
-		Type_ConvertAndValidateType(node._BaseType, ClassInf->Basetype, NodeSyb_t::Any);
-		if (ClassInf->Basetype.IsBadType() || Type_IsUnMapType(ClassInf->Basetype)) { _Table.RemoveScope(); return; }
-		if (!Eavl_ConstantExpressionAbleType(ClassInf->Basetype))
+		Type_ConvertAndValidateType(node._BaseType, enumInf->Basetype, NodeSyb_t::Any);
+		if (enumInf->Basetype.IsBadType() || Type_IsUnMapType(enumInf->Basetype)) { _Table.RemoveScope(); return; }
+		if (!Eavl_ConstantExpressionAbleType(enumInf->Basetype))
 		{
-			LogError_TypeMustBeAnConstantExpressionAble(NeverNullptr(node._BaseType._name._ScopedName.back()._token), ClassInf->Basetype);
+			LogError_TypeMustBeAnConstantExpressionAble(NeverNullptr(node._BaseType._name._ScopedName.back()._token), enumInf->Basetype);
 		}
-		ex = std::move(Eval_MakeEx(ClassInf->Basetype));
+		ex = std::move(Eval_MakeEx(enumInf->Basetype));
 	}
 
 
 	bool HasCheckedForincrementOp = false;
-	_LookingForTypes.push(ClassInf->Basetype);
+	_LookingForTypes.push(enumInf->Basetype);
 
 	for (size_t i = 0; i < node._Values.size(); i++)
 	{
@@ -76,7 +76,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 
 		if (_PassType == PassType::GetTypes)
 		{
-			ClassInf->AddField(ItemName);
+			enumInf->AddField(ItemName);
 
 			if (Item._Expression._Value)
 			{
@@ -94,18 +94,18 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 
 			if (Item._VariantType)
 			{
-				if (!ClassInf->VariantData.has_value())
+				if (!enumInf->VariantData.has_value())
 				{
-					ClassInf->VariantData = EnumVariantData();
+					enumInf->VariantData = EnumVariantData();
 				}
 			}
 		}
 		else if (_PassType == PassType::FixedTypes)
 		{
-			if (ClassInf->VariantData)
+			if (enumInf->VariantData)
 			{
 
-				EnumVariantData& EnumVa = ClassInf->VariantData.value();
+				EnumVariantData& EnumVa = enumInf->VariantData.value();
 
 
 				if (Item._VariantType)
@@ -144,11 +144,17 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 								ClassInf->AddField(Item3._Name.AsString(), Fieldtype);
 
 								NewSize += Type_GetSize(Fieldtype).value_or(0);
+
+								if (Symbol_HasDestructor(Fieldtype)) {
+									enumInf->HasDestructer = true;
+								}
 							}
 							V.ClassSymbol = AnonymousSybID;
 
 							ClassInf->SizeInitialized = true;
 							ClassInf->Size = NewSize;
+
+							
 						}
 
 						EnumVa.Variants.push_back(std::move(V));
@@ -157,7 +163,11 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 					{
 						EnumVariantField V;
 						V.Types.push_back(Type_ConvertAndValidateType(VariantType_, NodeSyb_t::Parameter));
-
+						
+						if (Symbol_HasDestructor(V.Types.front())) {
+							enumInf->HasDestructer = true;
+						}
+						
 						EnumVa.Variants.push_back(std::move(V));
 					}
 				}
@@ -169,11 +179,11 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 
 			}
 
-			auto FieldOpt = ClassInf->GetField(ItemName);
+			auto FieldOpt = enumInf->GetField(ItemName);
 			auto& Field = *FieldOpt.value();
 			if (Item._Expression._Value)
 			{
-				auto& Type = ClassInf->Basetype;
+				auto& Type = enumInf->Basetype;
 
 				auto V = Eval_Evaluate(ex, Type, Item._Expression);
 
@@ -183,7 +193,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 			{
 				if (i != 0)
 				{
-					auto& Type = ClassInf->Basetype;
+					auto& Type = enumInf->Basetype;
 					if (HasCheckedForincrementOp == false)
 					{
 						const NeverNullPtr<Token> LineDataToken = NeverNullptr(Item._Name.token);
@@ -236,7 +246,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 	_LookingForTypes.pop();
 	if (_PassType == PassType::BuidCode)
 	{
-		FileDependency_AddDependencyToCurrentFile(ClassInf->Basetype);
+		FileDependency_AddDependencyToCurrentFile(enumInf->Basetype);
 		if (Syb.Type == SymbolType::Enum) //Dont output type if Generic
 		{
 			Assembly_AddEnum(NeverNullptr(&Syb));
@@ -253,11 +263,135 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 				String_view(&Text[node._EnumName.token->OnPos],
 					node.EndOfClass->OnPos - node._EnumName.token->OnPos);
 
-			GenericClass_Data& VClass = _Lib.Get_Assembly().AddGenericClass((String)ClassInf->Get_Name(), ClassInf->FullName);
+			GenericClass_Data& VClass = _Lib.Get_Assembly().AddGenericClass((String)enumInf->Get_Name(), enumInf->FullName);
 
 			VClass.Base.Implementation = ClassStr + String(ClassBody);
 			VClass.Base.Implementation += "\n\n";
 			
+		}
+
+		bool hasdestructer = false;
+
+
+		if (enumInf->HasDestructer)
+		{
+			String destructerfuncname = enumInf->FullName;
+			ScopeHelper::GetApendedString(destructerfuncname, ClassDestructorFunc);
+
+			auto oldfunc = _IR_LookingAtIRFunc;
+			auto oldblock = _IR_LookingAtIRBlock;
+
+			_IR_LookingAtIRFunc = _IR_Builder.NewFunc(_IR_Builder.ToID(destructerfuncname),IRTypes::Void);
+			
+			{
+				IRPar V;
+				V.identifier = _IR_Builder.ToID(ThisSymbolName);
+				V.type = IR_ConvertToIRType(Syb.VarType);
+				V.type._Type = IRTypes::pointer;
+
+				_IR_LookingAtIRFunc->Pars.push_back(V);
+			}
+			IRPar* ThisPar = &_IR_LookingAtIRFunc->Pars.front();
+			_IR_LookingAtIRBlock = _IR_LookingAtIRFunc->NewBlock(".");
+
+			if (enumInf->VariantData.has_value()) 
+			{
+
+				auto UnionName = Str_GetEnumVariantUnionName(Syb.FullName);
+				auto UnionIRSym = _IR_Builder.GetSymbol(_IR_Builder.ToID(UnionName));
+				auto UnionIRSymStruct = UnionIRSym->Get_ExAs<IRStruct>();
+
+				size_t UnionMemberIndex = 0;
+				for (size_t i = 0; i < enumInf->Fields.size(); i++)
+				{
+					auto& Item = enumInf->Fields[i];
+					auto& V = enumInf->VariantData.value().Variants[i];
+					
+					if (V.Types.size() == 0) { continue; }
+
+					bool isstruct = V.ClassSymbol.has_value();
+
+					if (isstruct)
+					{
+						bool HasDestructInlist = false;
+						for (auto& type : V.Types)
+						{
+							if (Symbol_HasDestructor(type))
+							{
+								HasDestructInlist = true;
+								break;
+							}
+						}
+
+						if (HasDestructInlist)
+						{
+							auto key = _IR_LookingAtIRBlock->New_Member_Dereference(ThisPar, ThisPar->type, EnumVarantKeyIndex);
+							auto unionir = _IR_LookingAtIRBlock->New_Member_Dereference(ThisPar, ThisPar->type, EnumVarantUnionIndex);
+
+							auto check = _IR_LookingAtIRBlock->NewC_NotEqualto(key, LoadEvaluatedEx(Item.Ex, enumInf->Basetype));
+							auto jump = _IR_LookingAtIRBlock->NewConditionalJump(check);
+
+							auto Parstruct =_IR_LookingAtIRBlock->New_Member_Access(unionir, UnionIRSymStruct, UnionMemberIndex);
+
+							for (size_t i = 0; i < V.Types.size(); i++)
+							{
+								auto& type = V.Types[i];
+
+								if (Symbol_HasDestructor(type))
+								{
+									auto Par = _IR_LookingAtIRBlock->NewLoadPtr(_IR_LookingAtIRBlock->New_Member_Access(Parstruct, UnionIRSymStruct, i));
+
+									ObjectToDrop tep;
+									tep.DropType = ObjectToDropType::IRInstructionNoMod;
+									tep.Type = type;
+									tep._Object = Par;
+
+									IR_Build_DestructorCall(tep);
+
+
+								}
+							}
+							_IR_LookingAtIRBlock->UpdateConditionaJump(jump, check, _IR_LookingAtIRBlock->GetIndex());
+
+							_IR_LookingAtIRBlock->NewRet();
+
+						}
+					}
+					else
+					{
+						auto& type = V.Types.front();
+						if (Symbol_HasDestructor(type))
+						{
+
+							auto key = _IR_LookingAtIRBlock->New_Member_Dereference(ThisPar, ThisPar->type, EnumVarantKeyIndex);
+							auto unionir = _IR_LookingAtIRBlock->New_Member_Dereference(ThisPar, ThisPar->type, EnumVarantUnionIndex);
+
+							auto check = _IR_LookingAtIRBlock->NewC_NotEqualto(key, LoadEvaluatedEx(Item.Ex, enumInf->Basetype));
+
+							auto jump = _IR_LookingAtIRBlock->NewConditionalJump(check);
+
+
+							auto Par = _IR_LookingAtIRBlock->NewLoadPtr(_IR_LookingAtIRBlock->New_Member_Access(unionir, UnionIRSymStruct, UnionMemberIndex));
+							
+							ObjectToDrop tep;
+							tep.DropType = ObjectToDropType::IRInstructionNoMod;
+							tep.Type = type;
+							tep._Object = Par;
+
+							IR_Build_DestructorCall(tep);
+
+							_IR_LookingAtIRBlock->UpdateConditionaJump(jump, check, _IR_LookingAtIRBlock->GetIndex());
+
+							_IR_LookingAtIRBlock->NewRet();
+						}
+					}
+					UnionMemberIndex++;
+				}
+			}
+
+
+			_IR_LookingAtIRFunc = oldfunc;
+			_IR_LookingAtIRBlock = oldblock;
 		}
 	}
 

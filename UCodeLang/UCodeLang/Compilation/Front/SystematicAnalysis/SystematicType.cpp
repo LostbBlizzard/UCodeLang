@@ -152,6 +152,13 @@ bool SystematicAnalysis::Symbol_HasDestructor(const TypeSymbol& TypeToCheck)
 
 			return Classinfo->_WillHaveFielddeInit;
 		}
+		else if (Sym && Sym.value()->Type == SymbolType::Enum)
+		{
+			auto Classinfo = Sym.value()->Get_Info<EnumInfo>();
+
+			return  false;// Classinfo->HasDestructer;
+		}
+
 	}
 	return dropfunc.has_value();
 }
