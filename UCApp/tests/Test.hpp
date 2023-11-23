@@ -110,7 +110,7 @@ UCodeTestStart
 
 	
 
-	static const Array<TestInfo, 107> Tests
+	static const Array<TestInfo, 108> Tests
 	{
 
 		TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation),
@@ -196,6 +196,8 @@ UCodeTestStart
 		TestInfo("enumvariant_2","Objects/enumvariant2.uc","main",SuccessCondition::RunTimeValue,(int)10),
 
 		TestInfo("enumvariantdrop","NewAndDrop/enumvariantdrop.uc","main",SuccessCondition::RunTimeValue,(int)1),
+		TestInfo("enumvariantdrop2","NewAndDrop/enumvariantdrop2.uc","main",SuccessCondition::RunTimeValue,(int)4),
+		
 		TestInfo("StaticArrDrop","NewAndDrop/StaticArrDrop.uc","main",SuccessCondition::RunTimeValue,true),
 		TestInfo("dymArr","NewAndDrop/dymArr.uc","main",SuccessCondition::RunTimeValue,true),
 
