@@ -707,6 +707,9 @@ public:
 	bool HasDestructer;
 	bool MoveContructer;
 	bool CopyContructer;
+	Optional<FuncInfo*> FuncDestructer;
+	Optional<FuncInfo*> FuncMoveContructer;
+	Optional<FuncInfo*> FuncCopyContructer;
 
 	Generic _GenericData;
 	Optional<SymbolContext> Context;
