@@ -493,8 +493,13 @@ void AppObject::DrawTestMenu()
                         Interpreter::Return_t r;
                         try
                         {
+                            RunTime.Call(StaticVariablesInitializeFunc);
+                            RunTime.Call(ThreadVariablesInitializeFunc);
+
                             r = RunTime.Call(Test.FuncToCall);
 
+                            RunTime.Call(ThreadVariablesUnLoadFunc);
+                            RunTime.Call(StaticVariablesUnLoadFunc);
                         }
                         catch (const std::exception& ex)
                         {
