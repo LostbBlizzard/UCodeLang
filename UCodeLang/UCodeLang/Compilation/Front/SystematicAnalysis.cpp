@@ -845,8 +845,7 @@ IRidentifierID SystematicAnalysis::IR_Build_ConvertToStaticArray(const Symbol& C
 
 		auto elmsize = Type_GetSize(clasinfo->Type).value();
 
-		//bool UseLoop = clasinfo->Count > 6;
-		bool UseLoop = true;
+		bool UseLoop = clasinfo->Count > 6;
 		if (UseLoop) 
 		{
 			auto Ptr = _IR_LookingAtIRBlock->NewLoad(ThisPar);
