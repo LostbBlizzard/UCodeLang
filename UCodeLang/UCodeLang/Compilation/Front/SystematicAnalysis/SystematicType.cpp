@@ -158,6 +158,12 @@ bool SystematicAnalysis::Symbol_HasDestructor(const TypeSymbol& TypeToCheck)
 
 			return  Classinfo->HasDestructer;
 		}
+		else if (Sym && Sym.value()->Type == SymbolType::Type_StaticArray)
+		{
+			auto Classinfo = Sym.value()->Get_Info<StaticArrayInfo>();
+
+			return  Symbol_HasDestructor(Classinfo->Type);
+		}
 
 	}
 	return dropfunc.has_value();
@@ -1750,6 +1756,32 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 				Info.Count = 0;
 				Info.IsCountInitialized = true;
 
+			}
+
+			if (Symbol_HasDestructor(Info.Type))
+			{
+				auto DropFuncName = ToString(TypeSymbol(Syb->ID));
+				ScopeHelper::GetApendedString(DropFuncName, ClassDestructorFunc);
+
+
+				auto DropFunc = &Symbol_AddSymbol(SymbolType::Func, ClassDestructorFunc, DropFuncName, AccessModifierType::Public);
+				FuncInfo* V = new FuncInfo();
+				DropFunc->Info.reset(V);
+
+				V->FullName = DropFunc->FullName;
+				V->_FuncType = FuncInfo::FuncType::Drop;
+				V->Ret = TypesEnum::Void;
+				V->FrontParIsUnNamed = true;
+
+				auto ThisParType = TypeSymbol(Syb->ID);
+				ThisParType._IsAddress = true;
+
+				ParInfo parinfo;
+				parinfo.IsOutPar = false;
+				parinfo.Type = ThisParType;
+				V->Pars.push_back(parinfo);
+
+				DropFunc->PassState = PassType::BuidCode;
 			}
 		}
 		Out.SetType(Syb->ID);

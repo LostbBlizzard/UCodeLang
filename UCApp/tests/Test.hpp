@@ -110,7 +110,7 @@ UCodeTestStart
 
 	
 
-	static const Array<TestInfo, 108> Tests
+	static const Array<TestInfo, 109> Tests
 	{
 
 		TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation),
@@ -199,6 +199,9 @@ UCodeTestStart
 		TestInfo("enumvariantdrop2","NewAndDrop/enumvariantdrop2.uc","main",SuccessCondition::RunTimeValue,(int)4),
 		
 		TestInfo("StaticArrDrop","NewAndDrop/StaticArrDrop.uc","main",SuccessCondition::RunTimeValue,true),
+		TestInfo("StaticArrDrop2","NewAndDrop/StaticArrDrop2.uc","main",SuccessCondition::RunTimeValue,true),
+
+
 		TestInfo("dymArr","NewAndDrop/dymArr.uc","main",SuccessCondition::RunTimeValue,true),
 
 		TestInfo("trait_1","Objects/trait.uc","main",SuccessCondition::RunTimeValue,(int)1),
@@ -265,9 +268,9 @@ UCodeTestStart
 		size_t End;
 	};
 	static const Vector<SkipTestRange> UCodeVmSkipTests
-		= { {62, Tests.size() } };
+		= { {64, Tests.size() } };
 	static const Vector<SkipTestRange> C89SkipTests
-		= { {62, Tests.size() } };
+		= { {64, Tests.size() } };
 	static const Vector<SkipTestRange> WasmSkipTests
 		= { {4, Tests.size() } };
 
