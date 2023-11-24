@@ -32,10 +32,10 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 
 
 
-		if (!Type_CanBeImplicitConverted(AssignType, ExpressionType, false))
+		if (!Type_CanBeImplicitConverted(ExpressionType, AssignType, false))
 		{
 			auto  Token = _LastLookedAtToken;
-			LogError_CantCastImplicitTypes(Token.value(), AssignType, ExpressionType, false);
+			LogError_CantCastImplicitTypes(Token.value(), ExpressionType, AssignType , false);
 
 		}
 		auto ID = Symbol_GetSymbolID(node);
