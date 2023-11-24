@@ -1134,11 +1134,11 @@ struct IRBlock
 	//
 	void New_Increment(IRInstruction* Object)
 	{
-		NewStore(Object,NewAdd(Object, NewLoad(1)));
+		NewStore(Object,NewAdd(Object, NewLoad(Object->ObjectType, AnyInt64(1))));
 	}
 	void New_Decrement(IRInstruction* Object)
 	{
-		NewStore(Object, NewSub(Object, NewLoad(1)));
+		NewStore(Object, NewSub(Object, NewLoad(Object->ObjectType, AnyInt64(1))));
 	}
 
 	void New_Increment(IRInstruction* Object, IRInstruction* ValueToAdd)
