@@ -79,7 +79,7 @@ void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 				auto Indexir = IR_Load_UIntptr(0);
 
 				size_t JumpLabel = _IR_LookingAtIRBlock->GetIndex();
-				auto Cmpbool = _IR_LookingAtIRBlock->NewC_Equalto(Indexir, Ex0);
+				auto Cmpbool = _IR_LookingAtIRBlock->NewC_Equalto(Indexir, ArrSize);
 
 
 				auto JumpIns = _IR_LookingAtIRBlock->NewConditionalJump(Cmpbool, NullUInt64);
