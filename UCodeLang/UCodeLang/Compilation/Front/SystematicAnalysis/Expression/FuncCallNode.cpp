@@ -483,6 +483,20 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 			{
 
 				bool UseedTopIR = _IR_IRlocations.size() != 0 && _IR_IRlocations.top().UsedlocationIR == false;
+				if (UseedTopIR)
+				{
+					auto Type = Func.Func->Pars[0];
+
+					auto v = IR_ConvertToIRType(Type);
+
+
+
+					if (v._symbol.ID != _IR_IRlocations.top().Value->ObjectType._symbol.ID)
+					{
+						UseedTopIR = false;
+					}
+				}
+			
 				if (!UseedTopIR)
 				{
 					IRLocation_Cotr tep;

@@ -513,7 +513,7 @@ void C89Backend::AddSybToString(UCodeLang::String& r)
 					r += "static " + ToString(Item->Type);
 
 					r += " " + SybName;
-					if (V->Bytes.size())
+					if (V->IsInitialized && V->Bytes.size())
 					{
 						r += "[]";
 						r += " = ";
@@ -551,11 +551,11 @@ void C89Backend::AddSybToString(UCodeLang::String& r)
 						}
 					}
 
-					r += IRhreadLocal + ToString(Item->Type);
+					r += IRhreadLocal + (String)" " + ToString(Item->Type);
 
 					r += " " + SybName;
 
-					if (V->Bytes.size())
+					if (V->IsInitialized && V->Bytes.size())
 					{
 						r += "[]";
 						r += " = ";
