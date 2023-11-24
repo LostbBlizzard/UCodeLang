@@ -1,4 +1,4 @@
-trait Object:
+$Object trait:
  |GetValue[this&] -> int;
 
 $Object_1[Object]:
