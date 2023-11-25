@@ -367,6 +367,8 @@ inline bool IsOperatorValueInInput(IRInstructionType Value)
 {
 	return IsBinary(Value)
 		|| IsLoadValueOnInput(Value)
+		|| Value == IRInstructionType::Reassign
+		|| Value == IRInstructionType::Reassign_dereference
 		|| Value == IRInstructionType::Realloc
 		|| Value == IRInstructionType::Memcpy
 		|| Value == IRInstructionType::Memmove
