@@ -100,7 +100,7 @@ bool SystematicAnalysis::Type_IsAddessAndLValuesRulesfollowed(const TypeSymbol& 
 
 	if (!CheckIsLocation && WantsALocation)
 	{
-		return false;
+		//return false;
 	}
 
 	return (
