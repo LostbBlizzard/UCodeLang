@@ -269,9 +269,48 @@ String WasmFile::ToWat(const Expr& Item) const
 		break;
 	case Expr::Ins::i32load:
 		r += "i32.load ";
+		if (Item.Const.AsUInt32 != Expr::defaultalignment) {
+			r += "align=" + std::to_string(Item.Const.AsUInt32);
+		}
+		if (Item.Const2.AsUInt32 != 0) {
+			r += "offset=" + std::to_string(Item.Const2.AsUInt32);
+		}
 		break;
 	case Expr::Ins::i32store:
 		r += "i32.store ";
+		if (Item.Const.AsUInt32 != Expr::defaultalignment) {
+			r += "align=" + std::to_string(Item.Const.AsUInt32);
+		}
+		if (Item.Const2.AsUInt32 != 0) {
+			r += "offset=" + std::to_string(Item.Const2.AsUInt32);
+		}
+		break;
+	case Expr::Ins::i32add:
+		r += "i32.add ";
+		break;
+	case Expr::Ins::i64add:
+		r += "i64.add ";
+		break;
+	case Expr::Ins::f32add:
+		r += "f32.add ";
+		break;
+	case Expr::Ins::f64add:
+		r += "f64.add ";
+		break;
+	case Expr::Ins::i32sub:
+		r += "i32.sub ";
+		break;
+	case Expr::Ins::i64sub:
+		r += "i64.sub ";
+		break;
+	case Expr::Ins::f32sub:
+		r += "f32.sub ";
+		break;
+	case Expr::Ins::f64sub:
+		r += "f64.sub ";
+		break;
+	case Expr::Ins::Unreachable:
+		r += "unreachable";
 		break;
 	default:
 		UCodeLangUnreachable();
@@ -294,10 +333,17 @@ void WasmFile::Expr::ToBytes(BitMaker& bit) const
 	else if (InsType == Ins::Return
 		|| InsType == Ins::Unreachable
 		|| InsType == Ins::end
-		|| InsType == Ins::i32store
-		|| InsType == Ins::i32load)
+		|| InsType == Ins::i32add
+		|| InsType == Ins::i64add)
 	{
 
+	}
+	else if (InsType == Ins::i32store ||
+		InsType == Ins::i32load)
+	{
+		WriteLEB128(bit, Const.AsUInt32);//alignment
+
+		WriteLEB128(bit, Const2.AsUInt32);//offset
 	}
 	else
 	{
@@ -315,10 +361,19 @@ void WasmFile::Expr::FromBytes(BitReader& bit)
 	else if (InsType == Ins::Return
 		|| InsType == Ins::Unreachable
 		|| InsType == Ins::end
-		|| InsType == Ins::i32store
+		|| InsType == Ins::i32add
+		|| InsType == Ins::i64add)
+	{
+
+	}
+	else if (InsType == Ins::i32store
 		|| InsType == Ins::i32load)
 	{
 
+		ReadLEB128(bit, Const.AsUInt32);//alignment
+
+
+		ReadLEB128(bit, Const2.AsUInt32);//offset
 	}
 	else
 	{
