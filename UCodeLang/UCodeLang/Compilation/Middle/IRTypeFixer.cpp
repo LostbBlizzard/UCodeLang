@@ -116,12 +116,12 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 				if (Ins->Target().Type == IROperatorType::IRInstruction)
 				{
 					auto ClassType = Ins->Target().Pointer->ObjectType;
-					GetMemberAccessTypeForIns(ClassType, _Input, Ins);
+					//GetMemberAccessTypeForIns(ClassType, _Input, Ins);
 				}
 				else if (Ins->Target().Type == IROperatorType::IRParameter)
 				{
 					auto ClassType = Ins->Target().Parameter->type;
-					GetMemberAccessTypeForIns(ClassType, _Input, Ins);
+					//GetMemberAccessTypeForIns(ClassType, _Input, Ins);
 
 					if (!InList(Ins->Target().Parameter, _Func->Pars))
 					{
@@ -131,7 +131,7 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 				else if (Ins->Target().Type == IROperatorType::IRidentifier)
 				{
 					auto ClassType = _Input->GetSymbol(Ins->Target().identifier)->Type;
-					GetMemberAccessTypeForIns(ClassType, _Input, Ins);
+					//GetMemberAccessTypeForIns(ClassType, _Input, Ins);
 				}
 				else
 				{

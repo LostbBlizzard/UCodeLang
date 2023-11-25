@@ -3665,7 +3665,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 			else
 			{
 				IRlocData CompilerRet;
-				CompilerRet.ObjectType = GetType(Ins->Target());
+				CompilerRet.ObjectType = Ins->ObjectType;
 				const IRStruct* VStruct = _Input->GetSymbol(CompilerRet.ObjectType._symbol)->Get_ExAs<IRStruct>();
 
 				size_t Index = Ins->Input().Value.AsUIntNative;
