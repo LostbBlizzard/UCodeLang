@@ -139,8 +139,6 @@ void WasmBackEnd::OnFunc(const IRFunc* Func)
 		auto& Block = Func->Blocks.front();
 		for (auto& ItemV : Block->Instructions)
 		{
-			_funccode->Push_i32_const(1);
-			break;
 			auto Item = ItemV.get();
 			if (Item->Type == IRInstructionType::Load)
 			{

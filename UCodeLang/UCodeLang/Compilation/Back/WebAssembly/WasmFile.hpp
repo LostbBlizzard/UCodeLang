@@ -154,10 +154,22 @@ public:
 			f32load = 0x2a,
 			f64load = 0x2b,
 
+			i32add = 0x6a,
+			i64add = 0x7c,
+			f32add = 0x92,
+			f64add = 0xa0,
+
+
+			i32sub = 0x6b,
+			i64sub = 0x7d,
+			f32sub = 0x93,
+			f64sub = 0xa1,
+
 			end = 0x0b,
 		};
 		Ins InsType= Ins::Unreachable;
 		AnyInt64 Const;
+		AnyInt64 Const2;
 
 		void Unreachable()
 		{
@@ -189,38 +201,55 @@ public:
 			Const = v;
 		}
 
-		void i32_store()
+		static constexpr int defaultalignment = 0x02;
+		void i32_store(int alignment = defaultalignment,int offset = 0)
 		{
 			InsType = Ins::i32store;
+			Const = alignment;
+			Const2 = offset;
 		}
-		void i64_store()
+		void i64_store(int alignment = defaultalignment, int offset = 0)
 		{
 			InsType = Ins::i64store;
+			Const = alignment;
+			Const2 = offset;
 		}
-		void f32_store()
+		void f32_store(int alignment = defaultalignment, int offset = 0)
 		{
 			InsType = Ins::f32store;
+			Const = alignment;
+			Const2 = offset;
 		}
-		void f64_store()
+		void f64_store(int alignment = defaultalignment, int offset = 0)
 		{
 			InsType = Ins::f64store;
+			Const = alignment;
+			Const2 = offset;
 		}
 
-		void i32_load()
+		void i32_load(int alignment = defaultalignment, int offset = 0)
 		{
 			InsType = Ins::i32load;
+			Const = alignment;
+			Const2 = offset;
 		}
-		void i64_load()
+		void i64_load(int alignment = defaultalignment, int offset = 0)
 		{
 			InsType = Ins::i64load;
+			Const = alignment;
+			Const2 = offset;
 		}
-		void f32_load()
+		void f32_load(int alignment = defaultalignment, int offset = 0)
 		{
 			InsType = Ins::f32load;
+			Const = alignment;
+			Const2 = offset;
 		}
-		void f64_load()
+		void f64_load(int alignment = defaultalignment, int offset = 0)
 		{
 			InsType = Ins::f64load;
+			Const = alignment;
+			Const2 = offset;
 		}
 
 		void i32_const(UInt32 v) { i32_const(*(Int32*)&v); }
@@ -229,6 +258,41 @@ public:
 		void end()
 		{
 			InsType = Ins::end;
+		}
+
+
+		void i32_Add()
+		{
+			InsType = Ins::i32add;
+		}
+		void i64_Add()
+		{
+			InsType = Ins::i64add;
+		}
+		void f32_Add()
+		{
+			InsType = Ins::f32add;
+		}
+		void f64_Add()
+		{
+			InsType = Ins::f64add;
+		}
+
+		void i32_Sub()
+		{
+			InsType = Ins::i32sub;
+		}
+		void i64_Sub()
+		{
+			InsType = Ins::i64sub;
+		}
+		void f32_Sub()
+		{
+			InsType = Ins::f32sub;
+		}
+		void f64_Sub()
+		{
+			InsType = Ins::f64sub;
 		}
 
 		void ToBytes(BitMaker& bit) const;
@@ -280,48 +344,49 @@ public:
 			Ins.back().f64_const(v);
 		}
 
-		void Push_i32_store()
+		void Push_i32_store(int alignment = Expr::defaultalignment, int offset = 0)
 		{
 			Ins.push_back({});
-			Ins.back().i32_store();
+			Ins.back().i32_store(alignment, offset);
 		}
-		void Push_i64_store()
+		void Push_i64_store(int alignment = Expr::defaultalignment, int offset = 0)
 		{
 			Ins.push_back({});
-			Ins.back().i64_store();
+			Ins.back().i64_store(alignment, offset);
 		}
-		void Push_f32_store()
+		void Push_f32_store(int alignment = Expr::defaultalignment, int offset = 0)
 		{
 			Ins.push_back({});
-			Ins.back().f32_store();
+			Ins.back().f32_store(alignment, offset);
 		}
-		void Push_f64_store()
+		void Push_f64_store(int alignment = Expr::defaultalignment, int offset = 0)
 		{
 			Ins.push_back({});
-			Ins.back().f64_store();
-		}
-
-		void Push_i32_load()
-		{
-			Ins.push_back({});
-			Ins.back().i32_load();
-		}
-		void Push_i64_load()
-		{
-			Ins.push_back({});
-			Ins.back().i64_load();
+			Ins.back().f64_store(alignment,offset);
 		}
 
-		void Push_f32_load()
+		void Push_i32_load(int alignment = Expr::defaultalignment, int offset = 0)
 		{
 			Ins.push_back({});
-			Ins.back().f32_load();
+			Ins.back().i32_load(alignment, offset);
 		}
-		void Add_f64_load()
+		void Push_i64_load(int alignment = Expr::defaultalignment, int offset = 0)
 		{
 			Ins.push_back({});
-			Ins.back().f64_load();
+			Ins.back().i64_load(alignment, offset);
 		}
+
+		void Push_f32_load(int alignment = Expr::defaultalignment, int offset = 0)
+		{
+			Ins.push_back({});
+			Ins.back().f32_load(alignment, offset);
+		}
+		void Push_f64_load(int alignment = Expr::defaultalignment, int offset = 0)
+		{
+			Ins.push_back({});
+			Ins.back().f64_load(alignment,offset);
+		}
+
 
 
 		void Push_i32_const(UInt32 v) { Push_i32_const(*(Int32*)&v); }
@@ -341,6 +406,51 @@ public:
 		{
 			Ins.push_back({});
 			Ins.back().end();
+		}
+
+
+		void Push_i32_Add()
+		{
+			Ins.push_back({});
+			Ins.back().i32_Add();
+		}
+		void Push_i64_Aadd()
+		{
+			Ins.push_back({});
+			Ins.back().i64_Add();
+		}
+
+		void Push_f32_Add()
+		{
+			Ins.push_back({});
+			Ins.back().f32_Add();
+		}
+		void Push_f64_Add()
+		{
+			Ins.push_back({});
+			Ins.back().f64_Add();
+		}
+
+		void Push_i32_Sub()
+		{
+			Ins.push_back({});
+			Ins.back().i32_Sub();
+		}
+		void Push_i64_Sub()
+		{
+			Ins.push_back({});
+			Ins.back().i64_Sub();
+		}
+
+		void Push_f32_Sub()
+		{
+			Ins.push_back({});
+			Ins.back().f32_Sub();
+		}
+		void Push_f64_Sub()
+		{
+			Ins.push_back({});
+			Ins.back().f64_Sub();
 		}
 	};
 	struct CodeSection
