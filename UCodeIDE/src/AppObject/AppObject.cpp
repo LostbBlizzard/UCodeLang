@@ -172,6 +172,14 @@ void AppObject::Init()
        
         _Editor.SetText(str);
         
+        if (UCodeLang::StringHelper::Contains(str,"//Wasm"))
+        {
+            OutputWindow.Type = BackEndType::WebAssembly;
+        }
+        if (UCodeLang::StringHelper::Contains(str, "//C"))
+        {
+            OutputWindow.Type = BackEndType::C89;
+        }
         
         UpdateBackEnd();
         CompileText(GetTextEditorString());
@@ -2368,6 +2376,53 @@ void AppObject::ShowUCodeVMWindow()
 
             Value = retvalue;
 
+        }
+
+        if (Value.has_value())
+        {
+            ImguiHelper::Int32Field("Retrned", Value.value());
+
+        }
+    }
+    else if (OutputWindow.Type == BackEndType::WebAssembly)
+    {
+        static UCodeLang::Optional<int> Value;
+        if (ImGui::Button("Run Main"))
+        {
+            auto functocall = "main";
+            String JsString = "const wasm = new Uint8Array([";
+
+            std::stringstream ss;
+            ss << "const wasm = new Uint8Array([";
+            auto v = UCodeLang::Compiler::GetBytesFromFile(Outfilepath());
+            for (const auto& b : v) {
+                ss << "0x" << std::hex << static_cast<int>(b) << ", ";
+            }
+            ss << "]);\n";
+            ss << "const m = new WebAssembly.Module(wasm);\n";
+            ss << "const instance = new WebAssembly.Instance(m, {});\n";
+            ss << "console.log(instance.exports.";
+            ss << functocall;
+            ss << "());";
+
+            Path node_file = Path("test.js").native();
+            Path out_file = Path("test.js.out").native();
+
+
+            std::ofstream nf(node_file);
+            nf << ss.str();
+            nf << std::flush;
+
+
+            {
+                std::system(("node " + node_file.generic_string() + " > " + out_file.generic_string()).c_str());
+            }
+
+            std::stringstream ss_out;
+            ss_out << std::ifstream(out_file).rdbuf();
+            auto outstr = ss_out.str();
+
+            Value = std::stoi(outstr);
         }
 
         if (Value.has_value())
