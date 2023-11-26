@@ -2,6 +2,10 @@
 
 #include "IRTypeFixer.hpp"
 #include <iostream>
+
+#include "../CompilationSettings.hpp"
+
+
 UCodeLangStart
 
 
@@ -22,7 +26,7 @@ void IRTypeFixer::Reset()
 void IRTypeFixer::FixTypes(IRBuilder* Input)
 {
 	_Input = Input;
-
+	bool is32mode = _Set->PtrSize == IntSizes::Int32;
 	//FixSize
 	for (auto& Sys : _Input->_Symbols)
 	{
@@ -30,7 +34,7 @@ void IRTypeFixer::FixTypes(IRBuilder* Input)
 		{
 		case IRSymbolType::Struct:
 		{
-			Input->Fix_Size(Sys->Get_ExAs<IRStruct>());
+			Input->Fix_Size(Sys->Get_ExAs<IRStruct>(), is32mode);
 		}
 			break;
 		default:
@@ -49,7 +53,7 @@ void IRTypeFixer::FixTypes(IRBuilder* Input)
 			IRBufferData* b = Sys->Get_ExAs<IRBufferData>();
 			if (b->Bytes.size() == 0) 
 			{
-				b->Bytes.resize(_Input->GetSize(Sys->Type));
+				b->Bytes.resize(_Input->GetSize(Sys->Type, is32mode));
 			}
 		}
 		break;

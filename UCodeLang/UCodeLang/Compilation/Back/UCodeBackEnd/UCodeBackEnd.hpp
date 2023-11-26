@@ -253,7 +253,7 @@ private:
 
 	size_t GetSize(const IRInstruction* Ins)
 	{
-		return _Input->GetSize(Ins->ObjectType);
+		return _Input->GetSize(Ins->ObjectType, Get_Settings().PtrSize ==IntSizes::Int32);
 	}
 	size_t GetSize(const IRStruct* Value)
 	{
@@ -261,7 +261,7 @@ private:
 	}
 	size_t GetSize(const IRType& Value)
 	{
-		return _Input->GetSize(Value);
+		return _Input->GetSize(Value, Get_Settings().PtrSize == IntSizes::Int32);
 	}
 
 

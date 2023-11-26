@@ -1828,10 +1828,10 @@ public:
 	String ToString(ToStringState& State,const IRInstruction& Ins, const IROperator& Value);
 	String ToStringBinary(ToStringState& State, const IRInstruction* Ins, const char* Op);
 	//pre backends
-	void Fix_Size(IRStruct* Struct);
+	void Fix_Size(IRStruct* Struct, bool is32mode);
 	//for backends
 
-	size_t GetSize(const IRType& Type)const;
+	size_t GetSize(const IRType& Type,bool is32mode)const;
 	size_t GetSize(const IRStruct* Struct) const;
 	size_t GetOffset(const IRStruct* Struct, size_t Index) const;
 

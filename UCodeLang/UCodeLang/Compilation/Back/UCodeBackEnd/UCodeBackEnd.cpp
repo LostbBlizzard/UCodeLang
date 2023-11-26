@@ -930,7 +930,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		case IRInstructionType::LoadReturn:
 		{
 			auto V = GetIRLocData(Item, Item->Target());
-			auto ObjectSize = _Input->GetSize(V.ObjectType);
+			auto ObjectSize = GetSize(V.ObjectType);
 			if (ObjectSize <= sizeof(AnyInt64))
 			{
 				MakeIntoRegister(V, { RegisterID::OutPutRegister });
@@ -2255,7 +2255,7 @@ void UCodeBackEndObject::FuncCallEnd(UCodeBackEndObject::FuncCallEndData& Data)
 	for (size_t i = 0; i < V.OverflowedPars.size(); i++)
 	{
 		auto& Item = V.ParsPos[V.OverflowedPars[i]];
-		PopBufferSize += _Input->GetSize(Item.Par->type);
+		PopBufferSize += GetSize(Item.Par->type);
 	}
 
 
@@ -2650,7 +2650,7 @@ void UCodeBackEndObject::BuildUIntToIntCast(const IRInstruction* Ins, const IROp
 	RegisterID A = MakeIntoRegister(Ins, Op);
 	//SetRegister(A,Ins);
 
-	size_t ItemSize = _Input->GetSize(GetType(Op));
+	size_t ItemSize = GetSize(GetType(Op));
 
 
 	while (ItemSize != IntSize)
@@ -2695,7 +2695,7 @@ void UCodeBackEndObject::BuildSIntToIntCast(const IRInstruction* Ins, const IROp
 	RegisterID A = MakeIntoRegister(Ins, Op);
 	//SetRegister(A,Ins);
 
-	size_t ItemSize = _Input->GetSize(GetType(Op));
+	size_t ItemSize = GetSize(GetType(Op));
 
 
 	while (ItemSize != IntSize)
@@ -5179,7 +5179,7 @@ UCodeBackEndObject::FindParsLoc UCodeBackEndObject::GetParsLoc(const Vector<IRPa
 		ParlocData Loc;
 		Loc.Par = &Item;
 
-		auto ParSize = _Input->GetSize(Item.type);
+		auto ParSize = GetSize(Item.type);
 
 		if (IsUseingStack == false && ParSize <= sizeof(AnyInt64))
 		{
@@ -5198,7 +5198,7 @@ UCodeBackEndObject::FindParsLoc UCodeBackEndObject::GetParsLoc(const Vector<IRPa
 		else
 		{
 			Loc.Location = StackPreCall(StackOffset);
-			StackOffset += _Input->GetSize(Item.type);
+			StackOffset += GetSize(Item.type);
 			CompilerRet.OverflowedPars.push_back(i);
 		}
 		CompilerRet.ParsPos.push_back(Loc);

@@ -104,7 +104,7 @@ void X86_64UNativeBackEnd::MakeWapperFuncion(const IRFunc* func)
 		GReg NativeInterpreterThis = Convention.IntegerFunctionArguments[0];
 		for (auto& Item : func->Pars)
 		{
-			auto parsize = _Input->GetSize(Item.type);
+			auto parsize = _Input->GetSize(Item.type, false);
 
 			Func.Add_Ins(Ins::Move(Ins::Move::ConstToReg(parsize, Convention.IntegerFunctionArguments[1])));
 		}
@@ -113,7 +113,7 @@ void X86_64UNativeBackEnd::MakeWapperFuncion(const IRFunc* func)
 
 		if (func->ReturnType._Type != IRTypes::Void)
 		{
-			auto retsize = _Input->GetSize(func->ReturnType);
+			auto retsize = _Input->GetSize(func->ReturnType, false);
 			Func.Add_Ins(Ins::Move(Ins::Move::ConstToReg(retsize, Convention.IntegerReturnValue)));
 		}
 	}
