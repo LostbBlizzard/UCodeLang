@@ -8,7 +8,7 @@
 #include "../src/UCodeLangProjectPaths.hpp"
 #include <UCodeLang/RunTime/TestRuner.hpp>
 
-#include <UCodeLang/Compilation/Back/C89/C89Backend.hpp>
+#include <UCodeLang/Compilation/Back/C11/C11Backend.hpp>
 
 #if UCodeLang_Platform_Windows
 #include <Windows.h>
@@ -415,11 +415,11 @@ UCodeTestStart
 				if (v)
 				{
 
-					auto staticinitname = C89Backend::UpdateToCindentifier(StaticVariablesInitializeFunc);
-					auto threadinitname = C89Backend::UpdateToCindentifier(ThreadVariablesInitializeFunc);
+					auto staticinitname = C11Backend::UpdateToCindentifier(StaticVariablesInitializeFunc);
+					auto threadinitname = C11Backend::UpdateToCindentifier(ThreadVariablesInitializeFunc);
 
-					auto staticdeinitname = C89Backend::UpdateToCindentifier(StaticVariablesUnLoadFunc);
-					auto threaddeinitname = C89Backend::UpdateToCindentifier(ThreadVariablesUnLoadFunc);
+					auto staticdeinitname = C11Backend::UpdateToCindentifier(StaticVariablesUnLoadFunc);
+					auto threaddeinitname = C11Backend::UpdateToCindentifier(ThreadVariablesUnLoadFunc);
 
 
 					#if UCodeLang_Platform_Windows
@@ -448,7 +448,7 @@ UCodeTestStart
 						bool passed = true;
 
 						
-						auto cfuncname = C89Backend::UpdateToCindentifier(TestFunc->DecorationName);
+						auto cfuncname = C11Backend::UpdateToCindentifier(TestFunc->DecorationName);
 						
 						#if UCodeLang_Platform_Windows
 						auto functocall = GetProcAddress(lib, cfuncname.c_str());

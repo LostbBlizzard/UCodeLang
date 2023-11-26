@@ -1,5 +1,5 @@
 #ifndef UCodeLangNoCompiler
-#include "C89Backend.hpp"
+#include "C11Backend.hpp"
 #include "../../Middle/IR.hpp"
 #include "../../CompilationSettings.hpp"
 #include "../../Helpers/CompilationErrors.hpp"
@@ -40,21 +40,21 @@ UCodeLangStart
 
 #define IRReinterpretCastTep "_tep"
 
-C89Backend::C89Backend()
+C11Backend::C11Backend()
 {
 
 }
-C89Backend::~C89Backend()
+C11Backend::~C11Backend()
 {
 
 }
-void C89Backend::Reset()
+void C11Backend::Reset()
 {
 
-	this->~C89Backend();
-	new (this)  C89Backend;
+	this->~C11Backend();
+	new (this)  C11Backend;
 }
-void C89Backend::Build(const IRBuilder* Input)
+void C11Backend::Build(const IRBuilder* Input)
 {
 	_Input = Input; 
 	
@@ -97,7 +97,7 @@ void C89Backend::Build(const IRBuilder* Input)
 	}
 }
 
-void C89Backend::AddTextSignature()
+void C11Backend::AddTextSignature()
 {
 	OutBuffer += "/*Made using UCodeLang C89 Backend.\n";
 	OutBuffer += "\n";
@@ -105,7 +105,7 @@ void C89Backend::AddTextSignature()
 	OutBuffer += "*/\n";
 }
 
-void C89Backend::AddBaseTypes()
+void C11Backend::AddBaseTypes()
 {
 	
 	OutBuffer += "/*defs*/\n\n";
@@ -221,7 +221,7 @@ void C89Backend::AddBaseTypes()
 	
 }
 
-String C89Backend::ToString(const IRType& Type, bool IsUnsigned)
+String C11Backend::ToString(const IRType& Type, bool IsUnsigned)
 
 {
 	switch (Type._Type)
@@ -266,7 +266,7 @@ String C89Backend::ToString(const IRType& Type, bool IsUnsigned)
 	return "void";
 }
 
-String C89Backend::ToString()
+String C11Backend::ToString()
 {
 	String r;
 	ToStringState State;
@@ -355,7 +355,7 @@ String C89Backend::ToString()
 	return r;
 }
 
-void C89Backend::AddSybToString(UCodeLang::String& r)
+void C11Backend::AddSybToString(UCodeLang::String& r)
 {
 	UnorderedMap<IRidentifierID, bool> Vals;
 	Vals.reserve(_Input->_Symbols.size());
@@ -593,7 +593,7 @@ void C89Backend::AddSybToString(UCodeLang::String& r)
 
 
 
-void C89Backend::UpdateCppLinks(UCodeLang::String& r, UCodeLang::IRBufferData* V)
+void C11Backend::UpdateCppLinks(UCodeLang::String& r, UCodeLang::IRBufferData* V)
 {
 	//String_view text = String_view((char*)V->Bytes.data(), V->Bytes.size() - 1);
 	bool IsCString = false;// V->Bytes.size() && _Input->ConstStaticStrings.HasValue(text);
@@ -622,7 +622,7 @@ void C89Backend::UpdateCppLinks(UCodeLang::String& r, UCodeLang::IRBufferData* V
 	}
 }
 
-void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C89Backend::ToStringState& State, bool OutputBody)
+void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C11Backend::ToStringState& State, bool OutputBody)
 {
 	{
 		auto str = FromIDToCindentifier(Item->identifier);
@@ -1135,7 +1135,7 @@ void C89Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 }
 
 
-String C89Backend::ToString(ToStringState& State, IRInstruction& Ins, IROperator& Value)
+String C11Backend::ToString(ToStringState& State, IRInstruction& Ins, IROperator& Value)
 {
 	String r;
 
@@ -1237,7 +1237,7 @@ String C89Backend::ToString(ToStringState& State, IRInstruction& Ins, IROperator
 	return r;
 }
 
-String C89Backend::ToStringBinary(ToStringState& State, IRInstruction* Ins, const char* V)
+String C11Backend::ToStringBinary(ToStringState& State, IRInstruction* Ins, const char* V)
 {
 	String r;
 	r += ToString(Ins->ObjectType);
@@ -1258,7 +1258,7 @@ String C89Backend::ToStringBinary(ToStringState& State, IRInstruction* Ins, cons
 	return r;
 }
 
-String C89Backend::UpdateToCindentifier(const String& Value)
+String C11Backend::UpdateToCindentifier(const String& Value)
 {
 	const char* GoodChar = "qwerttyuiopasdfghjklzxcvbnm1234567890QWERTYUIOPASDFGHJKLZXCVBNM_";
 	size_t GoodCharSize = strlen(GoodChar);
@@ -1293,17 +1293,17 @@ String C89Backend::UpdateToCindentifier(const String& Value)
 	return v;
 }
 
-void C89Backend::UpdateBackInfo(CompilationBackEndInfo& BackInfo)
+void C11Backend::UpdateBackInfo(CompilationBackEndInfo& BackInfo)
 {
-	BackInfo.Output = CompilationBackEndInfo::BackEnd::C89;
+	BackInfo.Output = CompilationBackEndInfo::BackEnd::C11;
 	BackInfo.OutputSet = CompilationBackEndInfo::InsSet::Other;
 }
 
-String C89Backend::FromIDToCindentifier(IRidentifierID Value)
+String C11Backend::FromIDToCindentifier(IRidentifierID Value)
 { 
 	return UpdateToCindentifier(_Input->FromID(Value));
 }
-String C89Backend::ToStringState::GetName(IRInstruction* Ptr)
+String C11Backend::ToStringState::GetName(IRInstruction* Ptr)
 {
 	if (!PointerToName.HasValue(Ptr)) 
 	{

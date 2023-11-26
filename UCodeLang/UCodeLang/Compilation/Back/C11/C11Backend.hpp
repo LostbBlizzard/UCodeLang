@@ -4,11 +4,11 @@
 #include "../BackEndInterface.hpp"
 #include "UCodeLang/LangCore/DataType/UnorderedMap.hpp"
 UCodeLangStart
-class C89Backend : BackEndObject
+class C11Backend : BackEndObject
 {
 public:
-	C89Backend();
-	~C89Backend() override;
+	C11Backend();
+	~C11Backend() override;
 
 	void Reset() override;
 	void Build(const IRBuilder* Input) override;
@@ -20,7 +20,7 @@ public:
 
 	String GetBackEndName()override { return "CLang89"; };
 	String GetOutputExtWithDot()override { return ".c"; }
-	static BackEndObject* MakeObject() { return new C89Backend(); }
+	static BackEndObject* MakeObject() { return new C11Backend(); }
 
 	static String UpdateToCindentifier(const String& Value);
 	void UpdateBackInfo(CompilationBackEndInfo& BackInfo) override;
@@ -45,7 +45,7 @@ private:
 
 	void UpdateCppLinks(UCodeLang::String& r, UCodeLang::IRBufferData* V);
 
-	void ToString(String& r, const IRFunc* Item, C89Backend::ToStringState& State,bool OutputBody = false);
+	void ToString(String& r, const IRFunc* Item, C11Backend::ToStringState& State,bool OutputBody = false);
 
 	String ToString(const IRType& Type,bool IsUnsigned = false);
 

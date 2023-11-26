@@ -129,7 +129,7 @@ using namespace UCodeLang;
 		
 		if (mode == TestMode::CLang89BackEnd)
 		{
-			Com.Set_BackEnd(C89Backend::MakeObject);
+			Com.Set_BackEnd(C11Backend::MakeObject);
 		}
 		else if (mode == TestMode::WasmBackEnd)
 		{
@@ -333,13 +333,13 @@ using namespace UCodeLang;
 
 
 				auto& Assembly = ulib.Get_Assembly();
-				auto cfuncname = C89Backend::UpdateToCindentifier(ufunc->DecorationName);
+				auto cfuncname = C11Backend::UpdateToCindentifier(ufunc->DecorationName);
 
-				auto staticinitname = C89Backend::UpdateToCindentifier(StaticVariablesInitializeFunc);
-                auto threadinitname = C89Backend::UpdateToCindentifier(ThreadVariablesInitializeFunc);
+				auto staticinitname = C11Backend::UpdateToCindentifier(StaticVariablesInitializeFunc);
+                auto threadinitname = C11Backend::UpdateToCindentifier(ThreadVariablesInitializeFunc);
 
-                auto staticdeinitname = C89Backend::UpdateToCindentifier(StaticVariablesUnLoadFunc);
-                auto threaddeinitname = C89Backend::UpdateToCindentifier(ThreadVariablesUnLoadFunc);
+                auto staticdeinitname = C11Backend::UpdateToCindentifier(StaticVariablesUnLoadFunc);
+                auto threaddeinitname = C11Backend::UpdateToCindentifier(ThreadVariablesUnLoadFunc);
 
 
 				#if UCodeLang_Platform_Windows

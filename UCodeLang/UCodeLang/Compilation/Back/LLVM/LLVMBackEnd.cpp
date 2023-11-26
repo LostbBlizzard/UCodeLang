@@ -61,7 +61,7 @@ void LLVMBackEnd::Build(const IRBuilder* Input)
 }
 void LLVMBackEnd::UpdateBackInfo(CompilationBackEndInfo& BackInfo)
 {
-	BackInfo.Output = CompilationBackEndInfo::BackEnd::C89;
+	BackInfo.Output = CompilationBackEndInfo::BackEnd::C11;
 	BackInfo.OutputSet = CompilationBackEndInfo::InsSet::Other;
 }
 void LLVMBackEnd::OnFunc(const IRFunc* Func)
