@@ -661,7 +661,7 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 		BuildLink(FuncName,IR->Linkage);
 	}
 
-	if (FuncName == "Object:Call^Object&")
+	if (FuncName == "main")
 	{
 		int a = 0;
 	}
@@ -4881,9 +4881,13 @@ void UCodeBackEndObject::MoveValuesToState(const RegistersManager& state)
 						{
 							IRlocData V;
 							V.Info = IRlocData_StackPost(stackitem->Offset);
-							V.ObjectType = stackitem->IR.Get<const IRInstruction*>()->ObjectType;
+							V.ObjectType = GetType(stackitem->IR.Get<const IRInstruction*>());
 
-							MoveRegInValue((RegisterID)reg, V, 0);
+							IRlocData R;
+							R.Info = (RegisterID)reg;
+							R.ObjectType = V.ObjectType;
+
+							CopyValues(V,R);
 						}
 					}
 				}
