@@ -9,7 +9,7 @@
 #include "UCodeLang/Compilation/ModuleFile.hpp"
 
 #include "UCodeLang/Compilation/Back/UCodeBackEnd/UCodeBackEnd.hpp"
-#include "UCodeLang/Compilation/Back/C89/C89Backend.hpp"
+#include "UCodeLang/Compilation/Back/C11/C11Backend.hpp"
 #include "UCodeLang/Compilation/Back/IR/IRBackEnd.hpp"
 #include "UCodeLang/Compilation/Back/LLVM/LLVMBackEnd.hpp"
 #include "UCodeLang/Compilation/Back/WebAssembly/WasmBackEnd.hpp"
@@ -393,7 +393,7 @@ void AppObject::DrawTestMenu()
                 Compiler Com;
                 if (Testmod == TestMode::CLang89BackEnd)
                 {
-                    Com.Set_BackEnd(C89Backend::MakeObject);
+                    Com.Set_BackEnd(C11Backend::MakeObject);
                 }
                 else if (Testmod == TestMode::WasmBackEnd)
                 {
@@ -569,13 +569,13 @@ void AppObject::DrawTestMenu()
                         
 
                         auto& Assembly = ulib.Get_Assembly();
-                        auto cfuncname = C89Backend::UpdateToCindentifier(ufunc->DecorationName);
+                        auto cfuncname = C11Backend::UpdateToCindentifier(ufunc->DecorationName);
+                        
+                        auto staticinitname = C11Backend::UpdateToCindentifier(StaticVariablesInitializeFunc);
+                        auto threadinitname = C11Backend::UpdateToCindentifier(ThreadVariablesInitializeFunc);
 
-                        auto staticinitname = C89Backend::UpdateToCindentifier(StaticVariablesInitializeFunc);
-                        auto threadinitname = C89Backend::UpdateToCindentifier(ThreadVariablesInitializeFunc);
-
-                        auto staticdeinitname = C89Backend::UpdateToCindentifier(StaticVariablesUnLoadFunc);
-                        auto threaddeinitname = C89Backend::UpdateToCindentifier(ThreadVariablesUnLoadFunc);
+                        auto staticdeinitname = C11Backend::UpdateToCindentifier(StaticVariablesUnLoadFunc);
+                        auto threaddeinitname = C11Backend::UpdateToCindentifier(ThreadVariablesUnLoadFunc);
 
                         #if UCodeLang_Platform_Windows
                         auto lib = LoadLibrary(dllfile.c_str());
@@ -2232,7 +2232,7 @@ void AppObject::UpdateBackEnd()
         }
         break;
     case BackEndType::C89:
-        _BackEnd = UCodeLang::C89Backend::MakeObject;
+        _BackEnd = UCodeLang::C11Backend::MakeObject;
         break;
     case BackEndType::IR:
         _BackEnd = UCodeLang::IRBackEnd::MakeObject;
@@ -2341,11 +2341,11 @@ void AppObject::ShowUCodeVMWindow()
             UCodeLangAssert(CompileC89ToLib(cfilepath, dllfile));
             
             using namespace  UCodeLang;
-            auto staticinitname = C89Backend::UpdateToCindentifier(StaticVariablesInitializeFunc);
-            auto threadinitname = C89Backend::UpdateToCindentifier(ThreadVariablesInitializeFunc);
+            auto staticinitname = C11Backend::UpdateToCindentifier(StaticVariablesInitializeFunc);
+            auto threadinitname = C11Backend::UpdateToCindentifier(ThreadVariablesInitializeFunc);
 
-            auto staticdeinitname = C89Backend::UpdateToCindentifier(StaticVariablesUnLoadFunc);
-            auto threaddeinitname = C89Backend::UpdateToCindentifier(ThreadVariablesUnLoadFunc);
+            auto staticdeinitname = C11Backend::UpdateToCindentifier(StaticVariablesUnLoadFunc);
+            auto threaddeinitname = C11Backend::UpdateToCindentifier(ThreadVariablesUnLoadFunc);
 
             auto functocallStr = "main";
             #if UCodeLang_Platform_Windows

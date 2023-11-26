@@ -1513,9 +1513,9 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 					R._BuiltFunc = std::move(F);
 					return R;
 				}
-				if (functocall == "IsBackendC89" && ValueTypes.size() == 0)
+				if (functocall == "IsBackendC11" && ValueTypes.size() == 0)
 				{
-					bool RetValue = _Settings->_BackEndInfo.IsC89();
+					bool RetValue = _Settings->_BackEndInfo.IsC11();
 
 					Systematic_BuiltInFunctions::Func F;
 					F.RetType = TypeSymbol(TypesEnum::Bool);

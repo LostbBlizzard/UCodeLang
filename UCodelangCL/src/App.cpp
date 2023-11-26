@@ -15,7 +15,7 @@
 #include "UCodeLang/Compilation/Back/MacOs/MacOSBackEnd.hpp"
 #include "UCodeLang/Compilation/Back/IR/IRBackEnd.hpp"
 #include "UCodeLang/Compilation/Back/WebAssembly/WasmBackEnd.hpp"
-#include "UCodeLang/Compilation/Back/C89/C89Backend.hpp"
+#include "UCodeLang/Compilation/Back/C11/C11Backend.hpp"
 #include "UCodeLang/Compilation/Back/LLVM/LLVMBackEnd.hpp"
 
 #include "UCodeLang/Compilation/Back/x86_64/X86_64UNativeBackEnd.hpp"
@@ -320,9 +320,9 @@ void ParseLine(String_view& Line)
 				}
 
 
-				if (UCodeLang::StringHelper::Contains(Line, "-c89"))
+				if (UCodeLang::StringHelper::Contains(Line, "-c11"))
 				{
-					_Compiler.Set_BackEnd(UCodeLang::C89Backend::MakeObject);
+					_Compiler.Set_BackEnd(UCodeLang::C11Backend::MakeObject);
 				}
 				else if (UCodeLang::StringHelper::Contains(Line, "-llvm"))
 				{

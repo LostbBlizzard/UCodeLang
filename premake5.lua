@@ -580,6 +580,6 @@ group "UCodeAPIs"
    if not os.host() == "macosx" then--MacOs CL build fail because of this. 
    prebuildcommands 
    {
-    --UCPathExe.." build %{prj.location} -c89",
+    --UCPathExe.." build %{prj.location} -c11",
    }
    end
