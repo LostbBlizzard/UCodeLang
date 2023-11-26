@@ -165,9 +165,14 @@ public:
 			f32sub = 0x93,
 			f64sub = 0xa1,
 
+			localget = 0x20,
+			localset = 0x21,
+
+			Call = 0x10,
+
 			end = 0x0b,
 		};
-		Ins InsType= Ins::Unreachable;
+		Ins InsType = Ins::Unreachable;
 		AnyInt64 Const;
 		AnyInt64 Const2;
 
@@ -202,7 +207,7 @@ public:
 		}
 
 		static constexpr int defaultalignment = 0x02;
-		void i32_store(int alignment = defaultalignment,int offset = 0)
+		void i32_store(int alignment = defaultalignment, int offset = 0)
 		{
 			InsType = Ins::i32store;
 			Const = alignment;
@@ -253,7 +258,7 @@ public:
 		}
 
 		void i32_const(UInt32 v) { i32_const(*(Int32*)&v); }
-		void i64_const(UInt64 v)  { i64_const(*(Int64*)&v); }
+		void i64_const(UInt64 v) { i64_const(*(Int64*)&v); }
 
 		void end()
 		{
@@ -293,6 +298,16 @@ public:
 		void f64_Sub()
 		{
 			InsType = Ins::f64sub;
+		}
+		void local_get(UInt32 index)
+		{
+			InsType = Ins::localget;
+			Const = index;
+		}
+		void call(UInt32 index)
+		{
+			InsType = Ins::Call;
+			Const = index;
 		}
 
 		void ToBytes(BitMaker& bit) const;
@@ -414,7 +429,7 @@ public:
 			Ins.push_back({});
 			Ins.back().i32_Add();
 		}
-		void Push_i64_Aadd()
+		void Push_i64_Add()
 		{
 			Ins.push_back({});
 			Ins.back().i64_Add();
@@ -451,6 +466,17 @@ public:
 		{
 			Ins.push_back({});
 			Ins.back().f64_Sub();
+		}
+
+		void Push_local_get(UInt32 index)
+		{
+			Ins.push_back({});
+			Ins.back().local_get(index);
+		}
+		void Push_call(UInt32 funcindex)
+		{
+			Ins.push_back({});
+			Ins.back().call(funcindex);
 		}
 	};
 	struct CodeSection
