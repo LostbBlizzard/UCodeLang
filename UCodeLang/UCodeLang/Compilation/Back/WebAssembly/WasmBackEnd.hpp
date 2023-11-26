@@ -43,9 +43,19 @@ private:
 
 
 	WasmFile::Code* _funccode = nullptr;
+	const IRFunc* _func;
 
 	void OnFunc(const IRFunc* Func);
 
+	struct InsToUpdateMap
+	{
+		size_t FuncIndex;
+		size_t InsIndex;
+
+		IRidentifierID lookingforfunc;
+	};
+	Vector< InsToUpdateMap> InsToUpdate;
+	UnorderedMap< IRidentifierID, size_t> FuncToIndex;
 	
 	WasmType ToType(const IRType& Type);
 	

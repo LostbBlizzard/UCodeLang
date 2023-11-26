@@ -312,6 +312,14 @@ String WasmFile::ToWat(const Expr& Item) const
 	case Expr::Ins::Unreachable:
 		r += "unreachable";
 		break;
+	case Expr::Ins::localget:
+		r += "local.get ";
+		r += std::to_string(Item.Const.AsUInt32);
+		break;
+	case Expr::Ins::Call:
+		r += "call ";
+		r += std::to_string(Item.Const.AsUInt32);
+		break;
 	default:
 		UCodeLangUnreachable();
 		break;
@@ -345,6 +353,14 @@ void WasmFile::Expr::ToBytes(BitMaker& bit) const
 
 		WriteLEB128(bit, Const2.AsUInt32);//offset
 	}
+	else if (InsType == Ins::localget)
+	{
+		WriteLEB128(bit, Const.AsUInt32);//index
+	}
+	else if (InsType == Ins::Call)
+	{
+		WriteLEB128(bit, Const.AsUInt32);//index
+	}
 	else
 	{
 		UCodeLangUnreachable();
@@ -374,6 +390,14 @@ void WasmFile::Expr::FromBytes(BitReader& bit)
 
 
 		ReadLEB128(bit, Const2.AsUInt32);//offset
+	}
+	else if (InsType == Ins::localget)
+	{
+		ReadLEB128(bit, Const.AsUInt32);//index
+	}
+	else if (InsType == Ins::Call)
+	{
+		ReadLEB128(bit, Const.AsUInt32);//index
 	}
 	else
 	{

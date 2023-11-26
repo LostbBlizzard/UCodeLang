@@ -98,6 +98,18 @@ void WasmBackEnd::Build(const IRBuilder* Input)
 		OnFunc(Item.get());
 	}
 	
+	for (auto& Item : InsToUpdate)
+	{
+		auto& Ins = _codeSection->code[Item.FuncIndex].Ins[Item.InsIndex];
+		if (Ins.InsType == WasmFile::Expr::Ins::Call)
+		{
+			Ins.call(FuncToIndex.GetValue(Item.lookingforfunc));
+		}
+		else
+		{
+			UCodeLangUnreachable();
+		}
+	}
 
 	auto outbytes = WasmFile::ToBytes(_Output);
 	Set_Output(BytesView::Make(outbytes.Data(), outbytes.Size()));
@@ -117,6 +129,7 @@ void WasmBackEnd::UpdateBackInfo(CompilationBackEndInfo& BackInfo)
 
 void WasmBackEnd::OnFunc(const IRFunc* Func)
 {
+	_func = Func;
 	Position.clear();
 
 	
@@ -133,6 +146,9 @@ void WasmBackEnd::OnFunc(const IRFunc* Func)
 
 	_codeSection->code.push_back({});
 	_funccode = &_codeSection->code.back();
+
+	FuncToIndex.AddValue(Func->identifier, _codeSection->code.size() - 1);
+
 
 	if (Func->ReturnType._Type != IRTypes::Void)
 	{
@@ -185,12 +201,83 @@ void WasmBackEnd::OnFunc(const IRFunc* Func)
 			{
 
 			}
+			else if (Item->Type == IRInstructionType::PushParameter)
+			{
+				LoadOp(Item, Item->Target());
+			}
+			else if (Item->Type == IRInstructionType::Call)
+			{
+				auto functocall = Item->Target().identifier;
+
+
+				size_t MyPos = Position.size();
+
+				// the offset in memory where to store the number
+				_funccode->Push_i32_const(MyPos);
+
+				
+
+				_funccode->Push_call(0);
+				
+				
+				InsToUpdateMap V;
+				V.FuncIndex = _codeSection->code.size() - 1;
+				V.InsIndex = _funccode->Ins.size() - 1;
+				V.lookingforfunc = functocall;
+				InsToUpdate.push_back(V);
+
+				Position.AddValue(Item, MyPos);
+
+				switch (Item->ObjectType._Type)
+				{
+				case IRTypes::i32:
+					_funccode->Push_i32_store();
+					break;
+				case IRTypes::i64:
+					_funccode->Push_i64_store();
+					break;
+				default:
+					UCodeLangUnreachable();
+					break;
+				}
+			}
 			else if (Item->Type == IRInstructionType::Add)
 			{
+				size_t MyPos = Position.size();
+
+				// the offset in memory where to store the number
+				_funccode->Push_i32_const(MyPos);
+
 				LoadOp(Item, Item->Target());
 				LoadOp(Item, Item->Input());
 
-				//_funccode->
+				switch (Item->ObjectType._Type)
+				{
+				case IRTypes::i32:
+					_funccode->Push_i32_Add();
+					break;
+				case IRTypes::i64:
+					_funccode->Push_i64_Add();
+					break;
+				default:
+					UCodeLangUnreachable();
+					break;
+				}
+
+				Position.AddValue(Item, MyPos);
+
+				switch (Item->ObjectType._Type)
+				{
+				case IRTypes::i32:
+					_funccode->Push_i32_store();
+					break;
+				case IRTypes::i64:
+					_funccode->Push_i64_store();
+					break;
+				default:
+					UCodeLangUnreachable();
+					break;
+				}
 			}
 			else
 			{
@@ -286,6 +373,12 @@ void WasmBackEnd::LoadOp(const IRInstruction* ir, const IROperator& Op)
 
 		_funccode->Push_i32_load();
 
+	}
+	else if (Op.Type == IROperatorType::IRParameter)
+	{
+		size_t parindex = Op.Parameter - (&_func->Pars.front());
+
+		_funccode->Push_local_get(parindex);
 	}
 	else
 	{
