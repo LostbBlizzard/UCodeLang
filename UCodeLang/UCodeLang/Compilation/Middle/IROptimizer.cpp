@@ -224,6 +224,7 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 	{
 		do
 		{
+			_TypeFixer.Set_CompilerSetting(_Settings);
 			_TypeFixer.Set_ErrorsOutput(_ErrorsOutput);
 			_TypeFixer.FixTypes(Input);
 
