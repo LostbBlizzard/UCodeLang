@@ -6,7 +6,9 @@ $Drop:
   R++;
 
 |main[]:
- Drop[/5] = [[],[],[],[],[]];
+
+ block:
+  Drop[/5] A = [[],[],[],[],[]];//will a hard-coded offsets drop the elements.
  
 
  ret R == 5;

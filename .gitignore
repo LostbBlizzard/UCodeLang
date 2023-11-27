@@ -39,3 +39,6 @@ ARM64
 /UCodeIDE/OutIR.txt
 /UCodeIDE/src/AppObject/test2.uc
 /UCodeIDE/out.data
+/UCApp/OutIR.txt
+/UCodeIDE/test.js
+/UCodeIDE/test.js.out

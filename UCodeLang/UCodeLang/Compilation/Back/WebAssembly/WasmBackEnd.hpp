@@ -12,6 +12,7 @@ public:
 	using FuncSection = WasmFile::FuncSection;
 	using CodeSection = WasmFile::CodeSection;
 	using ExportSection = WasmFile::ExportSection;
+	using MemSection = WasmFile::MemSection;
 	using ValType = WasmFile::ValType;
 	using WasmType = WasmFile::WasmType;
 	using FuncType = WasmFile::FuncType;
@@ -38,11 +39,23 @@ private:
 	FuncSection* _funcSection = nullptr;
 	ExportSection* _exportSection = nullptr;
 	CodeSection* _codeSection = nullptr;
+	MemSection* _memSection = nullptr;
+
 
 	WasmFile::Code* _funccode = nullptr;
+	const IRFunc* _func;
 
 	void OnFunc(const IRFunc* Func);
 
+	struct InsToUpdateMap
+	{
+		size_t FuncIndex;
+		size_t InsIndex;
+
+		IRidentifierID lookingforfunc;
+	};
+	Vector< InsToUpdateMap> InsToUpdate;
+	UnorderedMap< IRidentifierID, size_t> FuncToIndex;
 	
 	WasmType ToType(const IRType& Type);
 	

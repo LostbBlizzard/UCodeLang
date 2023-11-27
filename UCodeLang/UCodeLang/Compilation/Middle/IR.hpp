@@ -367,6 +367,8 @@ inline bool IsOperatorValueInInput(IRInstructionType Value)
 {
 	return IsBinary(Value)
 		|| IsLoadValueOnInput(Value)
+		|| Value == IRInstructionType::Reassign
+		|| Value == IRInstructionType::Reassign_dereference
 		|| Value == IRInstructionType::Realloc
 		|| Value == IRInstructionType::Memcpy
 		|| Value == IRInstructionType::Memmove
@@ -1134,11 +1136,11 @@ struct IRBlock
 	//
 	void New_Increment(IRInstruction* Object)
 	{
-		NewStore(Object,NewAdd(Object, NewLoad(1)));
+		NewStore(Object,NewAdd(Object, NewLoad(Object->ObjectType, AnyInt64(1))));
 	}
 	void New_Decrement(IRInstruction* Object)
 	{
-		NewStore(Object, NewSub(Object, NewLoad(1)));
+		NewStore(Object, NewSub(Object, NewLoad(Object->ObjectType, AnyInt64(1))));
 	}
 
 	void New_Increment(IRInstruction* Object, IRInstruction* ValueToAdd)
@@ -1826,10 +1828,10 @@ public:
 	String ToString(ToStringState& State,const IRInstruction& Ins, const IROperator& Value);
 	String ToStringBinary(ToStringState& State, const IRInstruction* Ins, const char* Op);
 	//pre backends
-	void Fix_Size(IRStruct* Struct);
+	void Fix_Size(IRStruct* Struct, bool is32mode);
 	//for backends
 
-	size_t GetSize(const IRType& Type)const;
+	size_t GetSize(const IRType& Type,bool is32mode)const;
 	size_t GetSize(const IRStruct* Struct) const;
 	size_t GetOffset(const IRStruct* Struct, size_t Index) const;
 

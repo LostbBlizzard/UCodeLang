@@ -5,10 +5,10 @@ $Color enum:
 
 
 |main[]:
- Color X = Color::Red(5);
- Color Y = Color::Blue(true);
+ Color X = Color::Red(true);
+ Color Y = Color::Blue(5);
 
- if Color::Blue(Y,out BoolValue) && Color::Red(X,out int IntValue):
+ if Color::Blue(Y,out IntValue) && Color::Red(X,out bool BoolValue):
   if BoolValue == false:
    ret 0;
   else:
@@ -16,4 +16,3 @@ $Color enum:
 
 
  ret 0;
-

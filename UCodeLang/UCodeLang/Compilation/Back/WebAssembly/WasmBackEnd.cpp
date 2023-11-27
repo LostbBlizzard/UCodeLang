@@ -5,7 +5,6 @@
 #include "UCodeLang/Compilation/Middle/IR.hpp"
 #include "UCodeLang/Compilation/CompilationSettings.hpp"
 
-#include "Source.hpp"
 UCodeLangStart
 WasmBackEnd::WasmBackEnd()
 {
@@ -46,6 +45,20 @@ void WasmBackEnd::Build(const IRBuilder* Input)
 	{
 		WasmFile::Section V1;
 
+		WasmFile::MemSection V2;
+		auto& lim = V2.limits.emplace_back();
+
+		lim.hasmax = MemSection::Limits::HasMax::minAmax;
+		lim.min = 1;
+		lim.max = 2;
+
+
+		V1.Type = std::move(V2);
+		_Output.section.push_back(std::move(V1));
+	}
+	{
+		WasmFile::Section V1;
+
 		WasmFile::ExportSection V2;
 
 
@@ -61,12 +74,16 @@ void WasmBackEnd::Build(const IRBuilder* Input)
 		V1.Type = std::move(V2);
 		_Output.section.push_back(std::move(V1));
 	}
+	
+
 
 	_typeSection = &_Output.section[0].Type.Get<WasmFile::TypeSection>();
 	_funcSection = &_Output.section[1].Type.Get<WasmFile::FuncSection>();
-	_exportSection = &_Output.section[2].Type.Get<WasmFile::ExportSection>();
-	_codeSection = &_Output.section[3].Type.Get<WasmFile::CodeSection>();
-	
+	_memSection = &_Output.section[2].Type.Get<WasmFile::MemSection>();
+	_exportSection = &_Output.section[3].Type.Get<WasmFile::ExportSection>();
+	_codeSection = &_Output.section[4].Type.Get<WasmFile::CodeSection>();
+
+
 	OnFunc(&Input->_StaticInit);
 	
 	OnFunc(&Input->_threadInit);
@@ -81,48 +98,22 @@ void WasmBackEnd::Build(const IRBuilder* Input)
 		OnFunc(Item.get());
 	}
 	
+	for (auto& Item : InsToUpdate)
+	{
+		auto& Ins = _codeSection->code[Item.FuncIndex].Ins[Item.InsIndex];
+		if (Ins.InsType == WasmFile::Expr::Ins::Call)
+		{
+			Ins.call(FuncToIndex.GetValue(Item.lookingforfunc));
+		}
+		else
+		{
+			UCodeLangUnreachable();
+		}
+	}
 
 	auto outbytes = WasmFile::ToBytes(_Output);
 	Set_Output(BytesView::Make(outbytes.Data(), outbytes.Size()));
 
-	/*
-	{
-		struct Code : wasmblr::CodeGenerator {
-			Code() : wasmblr::CodeGenerator() {
-				auto add_func = function({}, { i32 }, [&]() {
-					i32.const_(2);
-					//i32.const_(5);
-					});
-				export_(add_func, "main");
-			}
-		};
-
-
-		Code c;
-		auto bytes = c.emit();
-
-		Vector<Byte> outbytelist;
-
-		for (auto& Item : outbytes)
-		{
-			outbytelist.push_back(Item);
-		}
-
-		
-		UCodeLangAssert(outbytelist.size() == bytes.size());
-		for (size_t i = 0; i < outbytelist.size(); i++)
-		{
-			if (outbytelist[i] != bytes[i])
-			{
-				UCodeLangBreakPoint();
-			}
-		}
-		
-
-		int a = 0;
-		//Set_Output(BytesView::Make(bytes.data(), bytes.size()));
-	}
-	*/
 }
 
 BackEndObject* WasmBackEnd::MakeObject()
@@ -138,6 +129,7 @@ void WasmBackEnd::UpdateBackInfo(CompilationBackEndInfo& BackInfo)
 
 void WasmBackEnd::OnFunc(const IRFunc* Func)
 {
+	_func = Func;
 	Position.clear();
 
 	
@@ -155,6 +147,9 @@ void WasmBackEnd::OnFunc(const IRFunc* Func)
 	_codeSection->code.push_back({});
 	_funccode = &_codeSection->code.back();
 
+	FuncToIndex.AddValue(Func->identifier, _codeSection->code.size() - 1);
+
+
 	if (Func->ReturnType._Type != IRTypes::Void)
 	{
 		auto& Block = Func->Blocks.front();
@@ -163,15 +158,27 @@ void WasmBackEnd::OnFunc(const IRFunc* Func)
 			auto Item = ItemV.get();
 			if (Item->Type == IRInstructionType::Load)
 			{
-				size_t MyPos = Position.size() * 4 ;
-				//_funccode->Push_i32_const((UInt32)MyPos);//the offset in memory where to store the number
+				size_t MyPos = Position.size();
 
+				// the offset in memory where to store the number
+				_funccode->Push_i32_const((UInt32)MyPos);
+				
 				LoadOp(Item, Item->Target());
 				
-				//_funccode->Push_i32_store();
-
 				Position.AddValue(Item, MyPos);
 
+				switch (Item->ObjectType._Type)
+				{
+				case IRTypes::i32:
+					_funccode->Push_i32_store();
+					break;
+				case IRTypes::i64:
+					_funccode->Push_i64_store();
+					break;
+				default:
+					UCodeLangUnreachable();
+					break;
+				}
 			}
 			else if (Item->Type == IRInstructionType::LoadNone)
 			{
@@ -184,7 +191,7 @@ void WasmBackEnd::OnFunc(const IRFunc* Func)
 			}
 			else if (Item->Type == IRInstructionType::LoadReturn)
 			{
-				//LoadOp(Item, Item->Target());//Push Value on stack
+				LoadOp(Item, Item->Target());//Push Value on stack
 			}
 			else if (Item->Type == IRInstructionType::Return)
 			{
@@ -193,6 +200,84 @@ void WasmBackEnd::OnFunc(const IRFunc* Func)
 			else if (Item->Type == IRInstructionType::None)
 			{
 
+			}
+			else if (Item->Type == IRInstructionType::PushParameter)
+			{
+				LoadOp(Item, Item->Target());
+			}
+			else if (Item->Type == IRInstructionType::Call)
+			{
+				auto functocall = Item->Target().identifier;
+
+
+				size_t MyPos = Position.size();
+
+				// the offset in memory where to store the number
+				_funccode->Push_i32_const((UInt32)MyPos);
+
+				
+
+				_funccode->Push_call(0);
+				
+				
+				InsToUpdateMap V;
+				V.FuncIndex = _codeSection->code.size() - 1;
+				V.InsIndex = _funccode->Ins.size() - 1;
+				V.lookingforfunc = functocall;
+				InsToUpdate.push_back(V);
+
+				Position.AddValue(Item, MyPos);
+
+				switch (Item->ObjectType._Type)
+				{
+				case IRTypes::i32:
+					_funccode->Push_i32_store();
+					break;
+				case IRTypes::i64:
+					_funccode->Push_i64_store();
+					break;
+				default:
+					UCodeLangUnreachable();
+					break;
+				}
+			}
+			else if (Item->Type == IRInstructionType::Add)
+			{
+				size_t MyPos = Position.size();
+
+				// the offset in memory where to store the number
+				_funccode->Push_i32_const((UInt32)MyPos);
+
+				LoadOp(Item, Item->Target());
+				LoadOp(Item, Item->Input());
+
+				switch (Item->ObjectType._Type)
+				{
+				case IRTypes::i32:
+					_funccode->Push_i32_Add();
+					break;
+				case IRTypes::i64:
+					_funccode->Push_i64_Add();
+					break;
+				default:
+					UCodeLangUnreachable();
+					break;
+				}
+
+				Position.AddValue(Item, MyPos);
+
+				switch (Item->ObjectType._Type)
+				{
+				case IRTypes::i32:
+					_funccode->Push_i32_store();
+					break;
+				case IRTypes::i64:
+					_funccode->Push_i64_store();
+					break;
+				default:
+					UCodeLangUnreachable();
+					break;
+				}
 			}
 			else
 			{
@@ -288,6 +373,12 @@ void WasmBackEnd::LoadOp(const IRInstruction* ir, const IROperator& Op)
 
 		_funccode->Push_i32_load();
 
+	}
+	else if (Op.Type == IROperatorType::IRParameter)
+	{
+		size_t parindex = Op.Parameter - (&_func->Pars.front());
+
+		_funccode->Push_local_get(parindex);
 	}
 	else
 	{

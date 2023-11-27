@@ -506,6 +506,7 @@ private:
 		Symbol* SymFunc = nullptr;
 		Optional<Systematic_BuiltInFunctions::Func> _BuiltFunc;
 		bool CantCheckBecauseIsUnMaped = false;
+		Optional<TypeSymbol> BulitInTypeContructer;
 		bool HasFunc()
 		{
 			return Func || _BuiltFunc.has_value();
@@ -1086,7 +1087,7 @@ private:
 	void OnLambdaNode(const LambdaNode& node);
 
 	bool IsSymbolLambdaObjectClass(const NeverNullPtr<Symbol> Sym) const;
-	IRInstruction* LoadSymbolWhenInLambdaObjectInvoke(const NeverNullPtr<Symbol> Sym);
+	bool IsLambdaClassSymFromThisPtr(const NeverNullPtr<Symbol> LambdaClassSym, const NeverNullPtr<Symbol> Sym) const;
 
 	void OnTrait(const TraitNode& node);
 	void OnTag(const TagTypeNode& node);
@@ -1156,7 +1157,7 @@ private:
 	IRInstruction* IR_Build_Member_AsPointer(const GetMemberTypeSymbolFromVar_t& In);
 	IRInstruction* IR_Build_Member_AsValue(const GetMemberTypeSymbolFromVar_t& In);
 	void BuildMember_Access(const GetMemberTypeSymbolFromVar_t& In, IRInstruction*& Output);
-	void StepBuildMember_Access(const ScopedName& ITem, TypeSymbol& Last_Type, ScopedName::Operator_t OpType, const GetMemberTypeSymbolFromVar_t& In, IRInstruction*& Output);
+	void StepBuildMember_Access(const ScopedName& ITem, TypeSymbol& Last_Type, ScopedName::Operator_t OpType, const GetMemberTypeSymbolFromVar_t& In, IRInstruction*& Output, Symbol*& LastVarSym);
 	void BuildMember_Reassignment(const GetMemberTypeSymbolFromVar_t& In, const TypeSymbol& Type, IRInstruction* Value);
 	NullablePtr<Symbol> GetTepFuncPtrSyb(const String& TepFuncPtr, const FuncInfo* Finfo);
 	String GetTepFuncPtrName(const FuncInfo* SymbolVar);
@@ -1201,6 +1202,7 @@ private:
 	void OnUnsafeExpression(const UnsafeExpression& node);
 	void OnDeferStatement(const DeferStatementNode& node);
 	void OnExpressionNode(const UnaryExpressionNode& node);
+	void OnStatements(const StatementsNode& node);
 
 	TypeSymbol Type_MakeFutureFromType(const TypeSymbol& BaseType);
 	bool Type_IsFuture(const TypeSymbol& Future);

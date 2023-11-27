@@ -26,7 +26,7 @@ void IRBuilder::Reset()
 //uses UCodeLang syntax
 
 
-void IRBuilder::Fix_Size(IRStruct* Struct)
+void IRBuilder::Fix_Size(IRStruct* Struct, bool is32mode)
 {
 	if (Struct->IsSizeSet == false) 
 	{
@@ -39,7 +39,21 @@ void IRBuilder::Fix_Size(IRStruct* Struct)
 				auto& Item = Struct->Fields[i];
 				if (!Item.Offset.has_value())
 				{
-					size_t fieldsize = GetSize(Struct->Fields[i].Type);
+					if (Item.Type._symbol.ID)
+					{
+						auto Sym = GetSymbol(Item.Type._symbol);
+						if (Sym->SymType == IRSymbolType::Struct)
+						{
+							IRStruct* structInfo = Sym->Get_ExAs<IRStruct>();
+
+							if (structInfo->IsSizeSet == false)
+							{
+								Fix_Size(structInfo,is32mode);
+							}
+						}
+
+					}
+					size_t fieldsize = GetSize(Item.Type,is32mode);
 
 					if (fieldsize > CompilerRet)
 					{
@@ -59,7 +73,24 @@ void IRBuilder::Fix_Size(IRStruct* Struct)
 			for (size_t i = 0; i < Struct->Fields.size(); i++)
 			{
 				auto& Item = Struct->Fields[i];
-				size_t fieldsize = GetSize(Item.Type);
+
+				if (Item.Type._symbol.ID)
+				{
+					auto Sym = GetSymbol(Item.Type._symbol);
+					if (Sym->SymType == IRSymbolType::Struct)
+					{
+						IRStruct* structInfo = Sym->Get_ExAs<IRStruct>();
+
+						if (structInfo->IsSizeSet == false)
+						{
+							Fix_Size(structInfo,is32mode);
+						}
+					}
+
+				}
+
+				size_t fieldsize = GetSize(Item.Type, is32mode);
+
 				if (!Item.Offset.has_value())
 				{
 					Item.Offset = CompilerRet;
@@ -75,7 +106,7 @@ void IRBuilder::Fix_Size(IRStruct* Struct)
 
 //for backends
 
-size_t IRBuilder::GetSize(const IRType& Type) const
+size_t IRBuilder::GetSize(const IRType& Type,bool is32mode) const
 {
 	switch (Type._Type)
 	{
@@ -89,7 +120,7 @@ size_t IRBuilder::GetSize(const IRType& Type) const
 	case IRTypes::i64:return 8;
 
 	Pointer:
-	case IRTypes::pointer:return 8;
+	case IRTypes::pointer:return is32mode ? 4 : 8;
 	case IRTypes::IRsymbol:
 	{
 		const IRSymbolData* Sym = GetSymbol(Type._symbol);
@@ -101,7 +132,7 @@ size_t IRBuilder::GetSize(const IRType& Type) const
 		case IRSymbolType::StaticArray:
 		{
 			auto V = Sym->Get_ExAs<IRStaticArray>();
-			return V->Count * GetSize(V->Type);
+			return V->Count * GetSize(V->Type,is32mode);
 		}
 		case IRSymbolType::FuncPtr:goto Pointer;
 		default:

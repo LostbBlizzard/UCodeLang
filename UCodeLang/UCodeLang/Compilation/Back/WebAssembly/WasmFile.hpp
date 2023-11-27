@@ -45,50 +45,8 @@ public:
 		Vector<WasmType> Params;
 		Vector<WasmType> Results;
 
-		void ToBytes(BitMaker& bit) const
-		{
-			bit.WriteType(tag);
-
-			WasmFile::WriteLEB128(bit,(VectorLength)Params.size());
-			for (auto& Item : Params)
-			{
-				bit.WriteType((Byte)Item);
-			}
-
-			WasmFile::WriteLEB128(bit, (VectorLength)Results.size());
-			for (auto& Item : Results)
-			{
-				bit.WriteType((Byte)Item);
-			}
-		}
-		void FromBytes(BitReader& bit)
-		{
-			Tag V =0;
-			bit.ReadType(V);
-
-			{
-				VectorLength Size = 0;
-				WasmFile::ReadLEB128(bit,Size);
-
-				Params.resize(Size);
-
-				for (size_t i = 0; i < Size; i++)
-				{
-					bit.ReadType(*(Byte*)&Params[i]);
-				}
-			}
-			{
-				VectorLength Size = 0;
-				WasmFile::ReadLEB128(bit, Size);
-
-				Results.resize(Size);
-
-				for (size_t i = 0; i < Size; i++)
-				{
-					bit.ReadType(*(Byte*)&Results[i]);
-				}
-			}
-		}
+		void ToBytes(BitMaker& bit) const;
+		void FromBytes(BitReader& bit);
 	};
 
 
@@ -98,46 +56,8 @@ public:
 
 		Vector<FuncType> Types;
 
-		void ToBytes(BitMaker& bit) const
-		{
-			bit.WriteType(SectionNumber);
-
-			BitMaker tep;
-			
-			{
-				WasmFile::WriteLEB128(tep,(VectorLength)Types.size());
-			
-				for (auto& Item : Types)
-				{
-					Item.ToBytes(tep);
-				}
-			}
-			
-			auto& bytes = tep.Get_Bytes();
-			WasmFile::WriteLEB128(bit, (varU32)bytes.size());
-			bit.WriteBytes(bytes.data(), bytes.size());
-		}
-		void FromBytes(BitReader& bit)
-		{
-			varU32 L = 0;
-			WasmFile::ReadLEB128(bit, L);
-
-			auto bytes = bit.ReadBytesAsSpan(L);
-			BitReader v;
-			v.SetBytes(bytes.Data(), bytes.Size());
-
-			{
-				VectorLength typeslength = 0;
-				WasmFile::ReadLEB128(v, typeslength);
-
-				Types.resize(typeslength);
-
-				for (auto& Item : Types)
-				{
-					Item.FromBytes(v);
-				}
-			}
-		}
+		void ToBytes(BitMaker& bit) const;
+		void FromBytes(BitReader& bit);
 	};
 	struct ImportSection
 	{
@@ -148,46 +68,8 @@ public:
 		static constexpr SectionID SectionNumber = 3;
 		Vector<size_t> TypesIndex;
 
-		void ToBytes(BitMaker& bit) const
-		{
-			bit.WriteType(SectionNumber);
-
-			BitMaker tep;
-			
-			{
-				WasmFile::WriteLEB128(tep, (VectorLength)TypesIndex.size());
-
-				for (auto& Item : TypesIndex)
-				{
-					WasmFile::WriteLEB128(tep, (VectorLength)Item);
-				}
-			}
-
-			auto& bytes = tep.Get_Bytes();
-			WasmFile::WriteLEB128(bit, (varU32)bytes.size());
-			bit.WriteBytes(bytes.data(), bytes.size());
-		}
-		void FromBytes(BitReader& bit)
-		{
-			varU32 L = 0;//SectionNumber
-			WasmFile::ReadLEB128(bit, L);
-
-			auto bytes = bit.ReadBytesAsSpan(L);
-			BitReader v;
-			v.SetBytes(bytes.Data(), bytes.Size());
-
-			{
-				VectorLength typeslength = 0;
-				WasmFile::ReadLEB128(v, typeslength);
-
-				TypesIndex.resize(typeslength);
-
-				for (auto& Item : TypesIndex)
-				{
-					WasmFile::ReadLEB128(v, *(varU32*)&Item);
-				}
-			}
-		}
+		void ToBytes(BitMaker& bit) const;
+		void FromBytes(BitReader& bit);
 	};
 	struct TableSection
 	{
@@ -196,6 +78,22 @@ public:
 	struct MemSection
 	{
 		static constexpr SectionID SectionNumber = 5;
+
+		struct Limits
+		{
+			enum class HasMax : Byte 
+			{
+				min,
+				minAmax,
+			};
+			HasMax hasmax = HasMax::min;
+			varU32 min = 0;
+			varU32 max = 0;
+		};
+		Vector< Limits> limits;
+
+		void ToBytes(BitMaker& bit) const;
+		void FromBytes(BitReader& bit);
 	};
 	struct GlobalSection
 	{
@@ -222,52 +120,8 @@ public:
 		static constexpr SectionID SectionNumber = 7;
 		Vector<Export> Exports;
 
-		void ToBytes(BitMaker& bit) const
-		{
-			bit.WriteType(SectionNumber);
-
-			BitMaker tep;
-
-			{
-				WasmFile::WriteLEB128(tep, (VectorLength)Exports.size());
-
-				for (auto& Item : Exports)
-				{
-					Write_String(tep, Item.Name);
-					tep.WriteType((Byte)Item.Tag);
-					WasmFile::WriteLEB128(tep, Item.Index);
-				}
-			}
-
-			auto& bytes = tep.Get_Bytes();
-			WasmFile::WriteLEB128(bit, (varU32)bytes.size());
-			bit.WriteBytes(bytes.data(), bytes.size());
-		}
-		void FromBytes(BitReader& bit)
-		{
-			varU32 L = 0;//SectionNumber
-			WasmFile::ReadLEB128(bit, L);
-
-			auto bytes = bit.ReadBytesAsSpan(L);
-			BitReader v;
-			v.SetBytes(bytes.Data(), bytes.Size());
-
-			{
-				VectorLength exportslength = 0;
-				WasmFile::ReadLEB128(v, exportslength);
-
-				Exports.resize(exportslength);
-
-				for (auto& Item : Exports)
-				{
-					Read_String(v,Item.Name);
-
-					v.ReadType(*(Byte*)&Item.Tag);
-
-					WasmFile::ReadLEB128(v, Item.Index);
-				}
-			}
-		}
+		void ToBytes(BitMaker& bit) const;
+		void FromBytes(BitReader& bit);
 	};
 	struct StartSection
 	{
@@ -300,10 +154,27 @@ public:
 			f32load = 0x2a,
 			f64load = 0x2b,
 
+			i32add = 0x6a,
+			i64add = 0x7c,
+			f32add = 0x92,
+			f64add = 0xa0,
+
+
+			i32sub = 0x6b,
+			i64sub = 0x7d,
+			f32sub = 0x93,
+			f64sub = 0xa1,
+
+			localget = 0x20,
+			localset = 0x21,
+
+			Call = 0x10,
+
 			end = 0x0b,
 		};
-		Ins InsType= Ins::Unreachable;
+		Ins InsType = Ins::Unreachable;
 		AnyInt64 Const;
+		AnyInt64 Const2;
 
 		void Unreachable()
 		{
@@ -335,91 +206,112 @@ public:
 			Const = v;
 		}
 
-		void i32_store()
+		static constexpr int defaultalignment = 0x02;
+		void i32_store(int alignment = defaultalignment, int offset = 0)
 		{
 			InsType = Ins::i32store;
+			Const = alignment;
+			Const2 = offset;
 		}
-		void i64_store()
+		void i64_store(int alignment = defaultalignment, int offset = 0)
 		{
 			InsType = Ins::i64store;
+			Const = alignment;
+			Const2 = offset;
 		}
-		void f32_store()
+		void f32_store(int alignment = defaultalignment, int offset = 0)
 		{
 			InsType = Ins::f32store;
+			Const = alignment;
+			Const2 = offset;
 		}
-		void f64_store()
+		void f64_store(int alignment = defaultalignment, int offset = 0)
 		{
 			InsType = Ins::f64store;
+			Const = alignment;
+			Const2 = offset;
 		}
 
-		void i32_load()
+		void i32_load(int alignment = defaultalignment, int offset = 0)
 		{
 			InsType = Ins::i32load;
+			Const = alignment;
+			Const2 = offset;
 		}
-		void i64_load()
+		void i64_load(int alignment = defaultalignment, int offset = 0)
 		{
 			InsType = Ins::i64load;
+			Const = alignment;
+			Const2 = offset;
 		}
-		void f32_load()
+		void f32_load(int alignment = defaultalignment, int offset = 0)
 		{
 			InsType = Ins::f32load;
+			Const = alignment;
+			Const2 = offset;
 		}
-		void f64_load()
+		void f64_load(int alignment = defaultalignment, int offset = 0)
 		{
 			InsType = Ins::f64load;
+			Const = alignment;
+			Const2 = offset;
 		}
 
 		void i32_const(UInt32 v) { i32_const(*(Int32*)&v); }
-		void i64_const(UInt64 v)  { i64_const(*(Int64*)&v); }
+		void i64_const(UInt64 v) { i64_const(*(Int64*)&v); }
 
 		void end()
 		{
 			InsType = Ins::end;
 		}
 
-		void ToBytes(BitMaker& bit) const
-		{
-			bit.WriteType((Byte)InsType);
-			if (InsType == Ins::i32const)
-			{
-				WriteLEB128(bit, Const.AsUInt32);
-			}
-			else if (InsType == Ins::f32const)
-			{
-				bit.WriteType(Const.Asfloat32);
-			}
-			else if (InsType == Ins::Return
-				|| InsType == Ins::Unreachable
-				|| InsType == Ins::end
-				|| InsType == Ins::i32store
-				|| InsType == Ins::i32load)
-			{
 
-			}
-			else
-			{
-				UCodeLangUnreachable();
-			}
-		}
-		void FromBytes(BitReader& bit)
+		void i32_Add()
 		{
-			bit.ReadType(*(Byte*)&InsType);
-			if (InsType == Ins::i32const)
-			{
-				ReadLEB128(bit, Const.AsUInt32);
-			}
-			else if (InsType == Ins::Return
-				|| InsType == Ins::Unreachable
-				|| InsType == Ins::end
-				|| InsType == Ins::i32store)
-			{
-
-			}
-			else
-			{
-				UCodeLangUnreachable();
-			}
+			InsType = Ins::i32add;
 		}
+		void i64_Add()
+		{
+			InsType = Ins::i64add;
+		}
+		void f32_Add()
+		{
+			InsType = Ins::f32add;
+		}
+		void f64_Add()
+		{
+			InsType = Ins::f64add;
+		}
+
+		void i32_Sub()
+		{
+			InsType = Ins::i32sub;
+		}
+		void i64_Sub()
+		{
+			InsType = Ins::i64sub;
+		}
+		void f32_Sub()
+		{
+			InsType = Ins::f32sub;
+		}
+		void f64_Sub()
+		{
+			InsType = Ins::f64sub;
+		}
+		void local_get(UInt32 index)
+		{
+			InsType = Ins::localget;
+			Const = index;
+		}
+		void call(UInt32 index)
+		{
+			InsType = Ins::Call;
+			Const = index;
+		}
+
+		void ToBytes(BitMaker& bit) const;
+		void FromBytes(BitReader& bit);
 	};
 	struct Locals
 	{
@@ -443,64 +335,8 @@ public:
 		Vector<Locals> locals;
 		Vector<Expr> Ins;
 
-		void ToBytes(BitMaker& bit) const
-		{
-			
-
-			BitMaker tep;
-
-			{
-				WasmFile::WriteLEB128(tep, (VectorLength)locals.size());
-
-				for (auto& Item : locals)
-				{
-					Item.ToBytes(tep);
-				}
-			}
-			{
-
-				for (auto& Item : Ins)
-				{
-					Item.ToBytes(tep);
-				}
-			}
-			
-			varU32 Size = tep.size();
-			WriteLEB128(bit, Size);
-			bit.WriteBytes(tep.data(), tep.size());
-		}
-		void FromBytes(BitReader& bit)
-		{
-			varU32 Size = 0;
-			ReadLEB128(bit, Size);
-		
-
-			{
-				varU32 Count = 0;
-				WasmFile::ReadLEB128(bit, Count);
-				locals.resize(Count);
-
-				for (size_t i = 0; i < Count; i++)
-				{
-					locals[i].FromBytes(bit);
-				}
-			}
-			{
-				Expr val = Expr();
-
-				do
-				{
-					val = Expr();
-
-					val.FromBytes(bit);
-
-					Ins.push_back(std::move(val));
-
-
-				} while (val.InsType != Expr::Ins::end);
-				
-			}
-		}
+		void ToBytes(BitMaker& bit) const;
+		void FromBytes(BitReader& bit);
 
 		void Push_i32_const(Int32 v)
 		{
@@ -523,48 +359,49 @@ public:
 			Ins.back().f64_const(v);
 		}
 
-		void Push_i32_store()
+		void Push_i32_store(int alignment = Expr::defaultalignment, int offset = 0)
 		{
 			Ins.push_back({});
-			Ins.back().i32_store();
+			Ins.back().i32_store(alignment, offset);
 		}
-		void Push_i64_store()
+		void Push_i64_store(int alignment = Expr::defaultalignment, int offset = 0)
 		{
 			Ins.push_back({});
-			Ins.back().i64_store();
+			Ins.back().i64_store(alignment, offset);
 		}
-		void Push_f32_store()
+		void Push_f32_store(int alignment = Expr::defaultalignment, int offset = 0)
 		{
 			Ins.push_back({});
-			Ins.back().f32_store();
+			Ins.back().f32_store(alignment, offset);
 		}
-		void Push_f64_store()
+		void Push_f64_store(int alignment = Expr::defaultalignment, int offset = 0)
 		{
 			Ins.push_back({});
-			Ins.back().f64_store();
-		}
-
-		void Push_i32_load()
-		{
-			Ins.push_back({});
-			Ins.back().i32_load();
-		}
-		void Push_i64_load()
-		{
-			Ins.push_back({});
-			Ins.back().i64_load();
+			Ins.back().f64_store(alignment,offset);
 		}
 
-		void Push_f32_load()
+		void Push_i32_load(int alignment = Expr::defaultalignment, int offset = 0)
 		{
 			Ins.push_back({});
-			Ins.back().f32_load();
+			Ins.back().i32_load(alignment, offset);
 		}
-		void Add_f64_load()
+		void Push_i64_load(int alignment = Expr::defaultalignment, int offset = 0)
 		{
 			Ins.push_back({});
-			Ins.back().f64_load();
+			Ins.back().i64_load(alignment, offset);
 		}
+
+		void Push_f32_load(int alignment = Expr::defaultalignment, int offset = 0)
+		{
+			Ins.push_back({});
+			Ins.back().f32_load(alignment, offset);
+		}
+		void Push_f64_load(int alignment = Expr::defaultalignment, int offset = 0)
+		{
+			Ins.push_back({});
+			Ins.back().f64_load(alignment,offset);
+		}
+
 
 
 		void Push_i32_const(UInt32 v) { Push_i32_const(*(Int32*)&v); }
@@ -585,51 +422,69 @@ public:
 			Ins.push_back({});
 			Ins.back().end();
 		}
+
+
+		void Push_i32_Add()
+		{
+			Ins.push_back({});
+			Ins.back().i32_Add();
+		}
+		void Push_i64_Add()
+		{
+			Ins.push_back({});
+			Ins.back().i64_Add();
+		}
+
+		void Push_f32_Add()
+		{
+			Ins.push_back({});
+			Ins.back().f32_Add();
+		}
+		void Push_f64_Add()
+		{
+			Ins.push_back({});
+			Ins.back().f64_Add();
+		}
+
+		void Push_i32_Sub()
+		{
+			Ins.push_back({});
+			Ins.back().i32_Sub();
+		}
+		void Push_i64_Sub()
+		{
+			Ins.push_back({});
+			Ins.back().i64_Sub();
+		}
+
+		void Push_f32_Sub()
+		{
+			Ins.push_back({});
+			Ins.back().f32_Sub();
+		}
+		void Push_f64_Sub()
+		{
+			Ins.push_back({});
+			Ins.back().f64_Sub();
+		}
+
+		void Push_local_get(UInt32 index)
+		{
+			Ins.push_back({});
+			Ins.back().local_get(index);
+		}
+		void Push_call(UInt32 funcindex)
+		{
+			Ins.push_back({});
+			Ins.back().call(funcindex);
+		}
 	};
 	struct CodeSection
 	{
 		static constexpr SectionID SectionNumber = 10;
 		Vector<Code> code;
-		void ToBytes(BitMaker& bit) const
-		{
-			bit.WriteType(SectionNumber);
-
-			BitMaker tep;
-
-			{
-				WasmFile::WriteLEB128(tep, (VectorLength)code.size());
-
-				for (auto& Item : code)
-				{
-					Item.ToBytes(tep);
-				}
-			}
-
-			auto& bytes = tep.Get_Bytes();
-			WasmFile::WriteLEB128(bit, (varU32)bytes.size());
-			bit.WriteBytes(bytes.data(), bytes.size());
-		}
-		void FromBytes(BitReader& bit)
-		{
-			varU32 L = 0;
-			WasmFile::ReadLEB128(bit, L);
-
-			auto bytes = bit.ReadBytesAsSpan(L);
-			BitReader v;
-			v.SetBytes(bytes.Data(), bytes.Size());
-
-			{
-				VectorLength typeslength = 0;
-				WasmFile::ReadLEB128(v, typeslength);
-
-				code.resize(typeslength);
-
-				for (auto& Item : code)
-				{
-					Item.FromBytes(v);
-				}
-			}
-		}
+		void ToBytes(BitMaker& bit) const;
+		void FromBytes(BitReader& bit);
 
 		//
 		
@@ -642,68 +497,10 @@ public:
 	struct Section
 	{
 		struct None{};
-		Variant<None, TypeSection,FuncSection,ExportSection,CodeSection> Type;
+		Variant<None, TypeSection,FuncSection,ExportSection,CodeSection, MemSection> Type;
 
-		void ToBytes(BitMaker& bit) const
-		{
-			if (auto V = Type.Get_If<TypeSection>())
-			{
-				V->ToBytes(bit);
-			}
-			else if (auto V = Type.Get_If<FuncSection>())
-			{
-				V->ToBytes(bit);
-			}
-			else if (auto V = Type.Get_If<CodeSection>())
-			{
-				V->ToBytes(bit);
-			}
-			else if (auto V = Type.Get_If<ExportSection>())
-			{
-				V->ToBytes(bit);
-			}
-			else
-			{
-				UCodeLangUnreachable();
-			}
-		}
-		void FromBytes(BitReader& bit)
-		{
-			SectionID sectionNumber;
-			bit.ReadType(sectionNumber);
-
-			if (sectionNumber == TypeSection::SectionNumber)
-			{
-				TypeSection r;
-				r.FromBytes(bit);
-				Type = std::move(r);
-			}
-			else if (sectionNumber == FuncSection::SectionNumber)
-			{
-				FuncSection r;
-				r.FromBytes(bit);
-
-				Type = std::move(r);
-			}
-			else if (sectionNumber == CodeSection::SectionNumber)
-			{
-				CodeSection r;
-				r.FromBytes(bit);
-
-				Type = std::move(r);
-			}
-			else if (sectionNumber == ExportSection::SectionNumber)
-			{
-				ExportSection r;
-				r.FromBytes(bit);
-
-				Type = std::move(r);
-			}
-			else
-			{
-				UCodeLangUnreachable();
-			}
-		}
+		void ToBytes(BitMaker& bit) const;
+		void FromBytes(BitReader& bit);
 	};
 
 

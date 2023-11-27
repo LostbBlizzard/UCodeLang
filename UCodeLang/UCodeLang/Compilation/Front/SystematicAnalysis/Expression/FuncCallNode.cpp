@@ -25,7 +25,10 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 	{
 		for (auto& Item : node.Parameters._Nodes)
 		{
-			OnExpressionTypeNode(Item.get(), GetValueMode::Read);
+			if (Item->Get_Type() != NodeType::OutExpression) 
+			{
+				OnExpressionTypeNode(Item.get(), GetValueMode::Read);
+			}
 		}
 	}
 	else if (_PassType == PassType::FixedTypes)
@@ -42,6 +45,17 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 			}
 
 			Type_SetFuncRetAsLastEx(Info);
+
+			if (Info.ThisPar == Get_FuncInfo::ThisPar_t::AutoPushThis && _Varable.size())
+			{
+				auto& Data = _Varable.top();
+
+
+				String ThisP = ScopeHelper::ApendedStrings(_FuncStack.front().Pointer->FullName,ThisSymbolName);
+
+				Data._UsedSymbols.push_back(Symbol_GetSymbol(ThisP,SymbolType::ParameterVarable).value().value());
+			}
+
 			_FuncToSyboID.AddValue(symid, std::move(Info));
 		}
 		else
@@ -277,14 +291,24 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 								auto& Syb = _Table.GetSymbol(ID);
 								IRInstruction* ItemMember;
 
+								Optional<size_t> IRFelidIndex;
+								for (size_t i = 0; i < EnumIndex + 1; i++)
+								{
+									auto& VData = EnumSybInfo->VariantData.value().Variants[i];
+									if (VData.Types.size())
+									{
+										IRFelidIndex = IRFelidIndex.has_value() ? IRFelidIndex.value() + 1 : 0;
+									}
+								}
+
 								if (EnumVariantFieldData.ClassSymbol.has_value())
 								{
-									auto Struct = _IR_LookingAtIRBlock->New_Member_Access(ObjUnion, UnionStruct, EnumIndex);
+									auto Struct = _IR_LookingAtIRBlock->New_Member_Access(ObjUnion, UnionStruct, IRFelidIndex.value());
 									ItemMember = _IR_LookingAtIRBlock->New_Member_Access(Struct, VStruct, i - 1);
 								}
 								else
 								{
-									ItemMember = _IR_LookingAtIRBlock->New_Member_Access(ObjUnion, UnionStruct, EnumIndex);
+									ItemMember = _IR_LookingAtIRBlock->New_Member_Access(ObjUnion, UnionStruct, IRFelidIndex.value());
 
 								}
 
@@ -329,7 +353,17 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 								String UnionName = Str_GetEnumVariantUnionName(EnumSybInfo->FullName);
 								IRidentifierID UnionID = _IR_Builder.ToID(UnionName);
 
-								auto ObjectMember = _IR_LookingAtIRBlock->New_Member_Access(UnionMember, _IR_Builder.GetSymbol(UnionID)->Get_ExAs<IRStruct>(), EnumIndex);
+								Optional<size_t> IRFelidIndex;
+								for (size_t i = 0; i < EnumIndex+1; i++)
+								{
+									auto& VData = EnumSybInfo->VariantData.value().Variants[i];
+									if (VData.Types.size())
+									{
+										IRFelidIndex = IRFelidIndex.has_value() ? IRFelidIndex.value() + 1 : 0;
+									}
+								}
+
+								auto ObjectMember = _IR_LookingAtIRBlock->New_Member_Access(UnionMember, _IR_Builder.GetSymbol(UnionID)->Get_ExAs<IRStruct>(), IRFelidIndex.value());
 
 								IRStruct* VStruct = nullptr;
 								if (EnumVariantFieldData.ClassSymbol.has_value())
@@ -449,6 +483,20 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 			{
 
 				bool UseedTopIR = _IR_IRlocations.size() != 0 && _IR_IRlocations.top().UsedlocationIR == false;
+				if (UseedTopIR)
+				{
+					auto Type = Func.Func->Pars[0];
+
+					auto v = IR_ConvertToIRType(Type);
+
+
+
+					if (v._symbol.ID != _IR_IRlocations.top().Value->ObjectType._symbol.ID)
+					{
+						UseedTopIR = false;
+					}
+				}
+			
 				if (!UseedTopIR)
 				{
 					IRLocation_Cotr tep;
@@ -519,7 +567,26 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 			}
 			else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::AutoPushThis)
 			{
-				IRParsList.push_back(_IR_LookingAtIRBlock->NewLoad(&_IR_LookingAtIRFunc->Pars.front()));
+
+				auto& InFunc = _FuncStack.back().Pointer;
+
+				auto ThisParSym = Symbol_GetSymbol(InFunc->Pars.front().Type).value();
+				if (IsSymbolLambdaObjectClass(ThisParSym))
+				{
+					ClassInfo* f = ThisParSym->Get_Info<ClassInfo>();
+					auto parsym = Symbol_GetSymbol(ScopeHelper::ApendedStrings(ThisParSym->FullName, ThisSymbolName), SymbolType::ParameterVarable).value();
+
+					auto PointerIr = _IR_LookingAtIRBlock->New_Member_Dereference(
+						&_IR_LookingAtIRFunc->Pars.front(),
+						_IR_LookingAtIRFunc->Pars.front().type,
+						f->GetFieldIndex(ThisSymbolName).value());
+
+					IRParsList.push_back(PointerIr);
+				}
+				else
+				{
+					IRParsList.push_back(_IR_LookingAtIRBlock->NewLoad(&_IR_LookingAtIRFunc->Pars.front()));
+				}
 			}
 			else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::PushFromScopedNameDynamicTrait)
 			{
@@ -899,8 +966,9 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 				}
 				_LastExpressionType = FuncType;
 			}
-
-			return { Get_FuncInfo::ThisPar_t::NoThisPar, nullptr };
+			Get_FuncInfo r = { Get_FuncInfo::ThisPar_t::NoThisPar, nullptr };
+			r.BulitInTypeContructer = _LastExpressionType;
+			return r;
 		}
 
 
@@ -1072,6 +1140,35 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 					}
 				}
 			}
+			else if (Item->Type == SymbolType::Enum_Field)
+			{
+				String EnumClassFullName = ScopedName;
+				ScopeHelper::ReMoveScope(EnumClassFullName);
+
+				auto EnumSymbolop = Symbol_GetSymbol(EnumClassFullName, SymbolType::Enum);
+				if (EnumSymbolop)
+				{
+					auto EnumSymbol = EnumSymbolop.value();
+					if (EnumSymbol->Type == SymbolType::Enum)
+					{
+						const EnumInfo* Enuminfo = EnumSymbol->Get_Info<EnumInfo>();
+						if (Enuminfo->VariantData.has_value())
+						{
+							auto FeildIndex = Enuminfo->GetFieldIndex(ScopeHelper::GetNameFromFullName(ScopedName));
+							if (FeildIndex.has_value())
+							{
+								auto& VariantInfo = Enuminfo->VariantData.value().Variants[FeildIndex.value()];
+								Infer.reserve(VariantInfo.Types.size());
+								for (auto& Item : VariantInfo.Types)
+								{
+									Infer.push_back({ false,Item });
+								} 
+							}	
+						}
+					}
+
+				}
+			}
 		}
 	}
 
@@ -1175,11 +1272,10 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 		if (HasOutPar)
 		{
 			bool IsControlFlow = false;
-			if (_NodeTypeStack.size() > 1)
+
+			for (int i = _NodeTypeStack.size() - 1; i >= 0; i--)
 			{
-				size_t Index = _NodeTypeStack.size() - 1;
-				Index--;
-				auto& Last = _NodeTypeStack[Index];
+				auto& Last = _NodeTypeStack[i];
 				if (Last == NodeType::IfNode || Last == NodeType::WhileNode || Last == NodeType::DoNode
 					|| Last == NodeType::RetStatementNode
 					|| Last == NodeType::CompileTimeIfNode
@@ -1187,20 +1283,12 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 					)
 				{
 					IsControlFlow = true;
+					break;
 				}
 				else if (_NodeTypeStack.back() == NodeType::CompileTimeIfNode)
 				{
 					IsControlFlow = true;
-				}
-			}
-			if (_NodeTypeStack.size() > 2)
-			{
-				size_t Index = _NodeTypeStack.size() - 1;
-				Index -= 2;
-				auto& Last = _NodeTypeStack[Index];
-				if (Last == NodeType::MatchArm)
-				{
-					IsControlFlow = true;
+					break;
 				}
 			}
 
@@ -1425,9 +1513,9 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 					R._BuiltFunc = std::move(F);
 					return R;
 				}
-				if (functocall == "IsBackendC89" && ValueTypes.size() == 0)
+				if (functocall == "IsBackendC11" && ValueTypes.size() == 0)
 				{
-					bool RetValue = _Settings->_BackEndInfo.IsC89();
+					bool RetValue = _Settings->_BackEndInfo.IsC11();
 
 					Systematic_BuiltInFunctions::Func F;
 					F.RetType = TypeSymbol(TypesEnum::Bool);

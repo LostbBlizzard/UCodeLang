@@ -1,4 +1,4 @@
-trait Object:
+$Object trait:
  |GetValue[this&] -> int;
 
 $Object_1[Object]:
@@ -19,4 +19,4 @@ $Object_2[Object]:
  
 
  int B = DynObj.GetValue();
- ret A - B + 2;
+ ret (A + B) - 2;

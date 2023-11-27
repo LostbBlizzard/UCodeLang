@@ -267,12 +267,553 @@ String WasmFile::ToWat(const Expr& Item) const
 	case Expr::Ins::Return:
 		r += "return";
 		break;
+	case Expr::Ins::i32load:
+		r += "i32.load ";
+		if (Item.Const.AsUInt32 != Expr::defaultalignment) {
+			r += "align=" + std::to_string(Item.Const.AsUInt32);
+		}
+		if (Item.Const2.AsUInt32 != 0) {
+			r += "offset=" + std::to_string(Item.Const2.AsUInt32);
+		}
+		break;
+	case Expr::Ins::i32store:
+		r += "i32.store ";
+		if (Item.Const.AsUInt32 != Expr::defaultalignment) {
+			r += "align=" + std::to_string(Item.Const.AsUInt32);
+		}
+		if (Item.Const2.AsUInt32 != 0) {
+			r += "offset=" + std::to_string(Item.Const2.AsUInt32);
+		}
+		break;
+	case Expr::Ins::i32add:
+		r += "i32.add ";
+		break;
+	case Expr::Ins::i64add:
+		r += "i64.add ";
+		break;
+	case Expr::Ins::f32add:
+		r += "f32.add ";
+		break;
+	case Expr::Ins::f64add:
+		r += "f64.add ";
+		break;
+	case Expr::Ins::i32sub:
+		r += "i32.sub ";
+		break;
+	case Expr::Ins::i64sub:
+		r += "i64.sub ";
+		break;
+	case Expr::Ins::f32sub:
+		r += "f32.sub ";
+		break;
+	case Expr::Ins::f64sub:
+		r += "f64.sub ";
+		break;
+	case Expr::Ins::Unreachable:
+		r += "unreachable";
+		break;
+	case Expr::Ins::localget:
+		r += "local.get ";
+		r += std::to_string(Item.Const.AsUInt32);
+		break;
+	case Expr::Ins::Call:
+		r += "call ";
+		r += std::to_string(Item.Const.AsUInt32);
+		break;
 	default:
 		UCodeLangUnreachable();
 		break;
 	}
 	return r;
 }
+
+void WasmFile::Expr::ToBytes(BitMaker& bit) const
+{
+	bit.WriteType((Byte)InsType);
+	if (InsType == Ins::i32const)
+	{
+		WriteLEB128(bit, Const.AsUInt32);
+	}
+	else if (InsType == Ins::f32const)
+	{
+		bit.WriteType(Const.Asfloat32);
+	}
+	else if (InsType == Ins::Return
+		|| InsType == Ins::Unreachable
+		|| InsType == Ins::end
+		|| InsType == Ins::i32add
+		|| InsType == Ins::i64add)
+	{
+
+	}
+	else if (InsType == Ins::i32store ||
+		InsType == Ins::i32load)
+	{
+		WriteLEB128(bit, Const.AsUInt32);//alignment
+
+		WriteLEB128(bit, Const2.AsUInt32);//offset
+	}
+	else if (InsType == Ins::localget)
+	{
+		WriteLEB128(bit, Const.AsUInt32);//index
+	}
+	else if (InsType == Ins::Call)
+	{
+		WriteLEB128(bit, Const.AsUInt32);//index
+	}
+	else
+	{
+		UCodeLangUnreachable();
+	}
+}
+
+void WasmFile::Expr::FromBytes(BitReader& bit)
+{
+	bit.ReadType(*(Byte*)&InsType);
+	if (InsType == Ins::i32const)
+	{
+		ReadLEB128(bit, Const.AsUInt32);
+	}
+	else if (InsType == Ins::Return
+		|| InsType == Ins::Unreachable
+		|| InsType == Ins::end
+		|| InsType == Ins::i32add
+		|| InsType == Ins::i64add)
+	{
+
+	}
+	else if (InsType == Ins::i32store
+		|| InsType == Ins::i32load)
+	{
+
+		ReadLEB128(bit, Const.AsUInt32);//alignment
+
+
+		ReadLEB128(bit, Const2.AsUInt32);//offset
+	}
+	else if (InsType == Ins::localget)
+	{
+		ReadLEB128(bit, Const.AsUInt32);//index
+	}
+	else if (InsType == Ins::Call)
+	{
+		ReadLEB128(bit, Const.AsUInt32);//index
+	}
+	else
+	{
+		UCodeLangUnreachable();
+	}
+}
+
+
+void WasmFile::ExportSection::ToBytes(BitMaker& bit) const
+{
+	bit.WriteType(SectionNumber);
+
+	BitMaker tep;
+
+	{
+		WasmFile::WriteLEB128(tep, (VectorLength)Exports.size());
+
+		for (auto& Item : Exports)
+		{
+			Write_String(tep, Item.Name);
+			tep.WriteType((Byte)Item.Tag);
+			WasmFile::WriteLEB128(tep, Item.Index);
+		}
+	}
+
+	auto& bytes = tep.Get_Bytes();
+	WasmFile::WriteLEB128(bit, (varU32)bytes.size());
+	bit.WriteBytes(bytes.data(), bytes.size());
+}
+
+void WasmFile::ExportSection::FromBytes(BitReader& bit)
+{
+	varU32 L = 0;//SectionNumber
+	WasmFile::ReadLEB128(bit, L);
+
+	auto bytes = bit.ReadBytesAsSpan(L);
+	BitReader v;
+	v.SetBytes(bytes.Data(), bytes.Size());
+
+	{
+		VectorLength exportslength = 0;
+		WasmFile::ReadLEB128(v, exportslength);
+
+		Exports.resize(exportslength);
+
+		for (auto& Item : Exports)
+		{
+			Read_String(v, Item.Name);
+
+			v.ReadType(*(Byte*)&Item.Tag);
+
+			WasmFile::ReadLEB128(v, Item.Index);
+		}
+	}
+}
+
+void WasmFile::FuncSection::ToBytes(BitMaker& bit) const
+{
+	bit.WriteType(SectionNumber);
+
+	BitMaker tep;
+
+	{
+		WasmFile::WriteLEB128(tep, (VectorLength)TypesIndex.size());
+
+		for (auto& Item : TypesIndex)
+		{
+			WasmFile::WriteLEB128(tep, (VectorLength)Item);
+		}
+	}
+
+	auto& bytes = tep.Get_Bytes();
+	WasmFile::WriteLEB128(bit, (varU32)bytes.size());
+	bit.WriteBytes(bytes.data(), bytes.size());
+}
+
+void WasmFile::FuncSection::FromBytes(BitReader& bit)
+{
+	varU32 L = 0;//SectionNumber
+	WasmFile::ReadLEB128(bit, L);
+
+	auto bytes = bit.ReadBytesAsSpan(L);
+	BitReader v;
+	v.SetBytes(bytes.Data(), bytes.Size());
+
+	{
+		VectorLength typeslength = 0;
+		WasmFile::ReadLEB128(v, typeslength);
+
+		TypesIndex.resize(typeslength);
+
+		for (auto& Item : TypesIndex)
+		{
+			WasmFile::ReadLEB128(v, *(varU32*)&Item);
+		}
+	}
+}
+
+void WasmFile::TypeSection::ToBytes(BitMaker& bit) const
+{
+	bit.WriteType(SectionNumber);
+
+	BitMaker tep;
+
+	{
+		WasmFile::WriteLEB128(tep, (VectorLength)Types.size());
+
+		for (auto& Item : Types)
+		{
+			Item.ToBytes(tep);
+		}
+	}
+
+	auto& bytes = tep.Get_Bytes();
+	WasmFile::WriteLEB128(bit, (varU32)bytes.size());
+	bit.WriteBytes(bytes.data(), bytes.size());
+}
+
+void WasmFile::TypeSection::FromBytes(BitReader& bit)
+{
+	varU32 L = 0;
+	WasmFile::ReadLEB128(bit, L);
+
+	auto bytes = bit.ReadBytesAsSpan(L);
+	BitReader v;
+	v.SetBytes(bytes.Data(), bytes.Size());
+
+	{
+		VectorLength typeslength = 0;
+		WasmFile::ReadLEB128(v, typeslength);
+
+		Types.resize(typeslength);
+
+		for (auto& Item : Types)
+		{
+			Item.FromBytes(v);
+		}
+	}
+}
+
+void WasmFile::FuncType::ToBytes(BitMaker& bit) const
+{
+	bit.WriteType(tag);
+
+	WasmFile::WriteLEB128(bit, (VectorLength)Params.size());
+	for (auto& Item : Params)
+	{
+		bit.WriteType((Byte)Item);
+	}
+
+	WasmFile::WriteLEB128(bit, (VectorLength)Results.size());
+	for (auto& Item : Results)
+	{
+		bit.WriteType((Byte)Item);
+	}
+}
+
+void WasmFile::FuncType::FromBytes(BitReader& bit)
+{
+	Tag V = 0;
+	bit.ReadType(V);
+
+	{
+		VectorLength Size = 0;
+		WasmFile::ReadLEB128(bit, Size);
+
+		Params.resize(Size);
+
+		for (size_t i = 0; i < Size; i++)
+		{
+			bit.ReadType(*(Byte*)&Params[i]);
+		}
+	}
+	{
+		VectorLength Size = 0;
+		WasmFile::ReadLEB128(bit, Size);
+
+		Results.resize(Size);
+
+		for (size_t i = 0; i < Size; i++)
+		{
+			bit.ReadType(*(Byte*)&Results[i]);
+		}
+	}
+}
+
+void WasmFile::Code::ToBytes(BitMaker& bit) const
+{
+
+
+	BitMaker tep;
+
+	{
+		WasmFile::WriteLEB128(tep, (VectorLength)locals.size());
+
+		for (auto& Item : locals)
+		{
+			Item.ToBytes(tep);
+		}
+	}
+	{
+
+		for (auto& Item : Ins)
+		{
+			Item.ToBytes(tep);
+		}
+	}
+
+	varU32 Size = tep.size();
+	WriteLEB128(bit, Size);
+	bit.WriteBytes(tep.data(), tep.size());
+}
+
+void WasmFile::Code::FromBytes(BitReader& bit)
+{
+	varU32 Size = 0;
+	ReadLEB128(bit, Size);
+
+
+	{
+		varU32 Count = 0;
+		WasmFile::ReadLEB128(bit, Count);
+		locals.resize(Count);
+
+		for (size_t i = 0; i < Count; i++)
+		{
+			locals[i].FromBytes(bit);
+		}
+	}
+	{
+		Expr val = Expr();
+
+		do
+		{
+			val = Expr();
+
+			val.FromBytes(bit);
+
+			Ins.push_back(std::move(val));
+
+
+		} while (val.InsType != Expr::Ins::end);
+
+	}
+}
+
+void WasmFile::CodeSection::ToBytes(BitMaker& bit) const
+{
+	bit.WriteType(SectionNumber);
+
+	BitMaker tep;
+
+	{
+		WasmFile::WriteLEB128(tep, (VectorLength)code.size());
+
+		for (auto& Item : code)
+		{
+			Item.ToBytes(tep);
+		}
+	}
+
+	auto& bytes = tep.Get_Bytes();
+	WasmFile::WriteLEB128(bit, (varU32)bytes.size());
+	bit.WriteBytes(bytes.data(), bytes.size());
+}
+
+void WasmFile::CodeSection::FromBytes(BitReader& bit)
+{
+	varU32 L = 0;
+	WasmFile::ReadLEB128(bit, L);
+
+	auto bytes = bit.ReadBytesAsSpan(L);
+	BitReader v;
+	v.SetBytes(bytes.Data(), bytes.Size());
+
+	{
+		VectorLength typeslength = 0;
+		WasmFile::ReadLEB128(v, typeslength);
+
+		code.resize(typeslength);
+
+		for (auto& Item : code)
+		{
+			Item.FromBytes(v);
+		}
+	}
+}
+
+void WasmFile::Section::ToBytes(BitMaker& bit) const
+{
+	if (auto V = Type.Get_If<TypeSection>())
+	{
+		V->ToBytes(bit);
+	}
+	else if (auto V = Type.Get_If<FuncSection>())
+	{
+		V->ToBytes(bit);
+	}
+	else if (auto V = Type.Get_If<CodeSection>())
+	{
+		V->ToBytes(bit);
+	}
+	else if (auto V = Type.Get_If<ExportSection>())
+	{
+		V->ToBytes(bit);
+	}
+	else if (auto V = Type.Get_If<MemSection>())
+	{
+		V->ToBytes(bit);
+	}
+	else
+	{
+		UCodeLangUnreachable();
+	}
+}
+
+void WasmFile::Section::FromBytes(BitReader& bit)
+{
+	SectionID sectionNumber;
+	bit.ReadType(sectionNumber);
+
+	if (sectionNumber == TypeSection::SectionNumber)
+	{
+		TypeSection r;
+		r.FromBytes(bit);
+		Type = std::move(r);
+	}
+	else if (sectionNumber == FuncSection::SectionNumber)
+	{
+		FuncSection r;
+		r.FromBytes(bit);
+
+		Type = std::move(r);
+	}
+	else if (sectionNumber == CodeSection::SectionNumber)
+	{
+		CodeSection r;
+		r.FromBytes(bit);
+
+		Type = std::move(r);
+	}
+	else if (sectionNumber == ExportSection::SectionNumber)
+	{
+		ExportSection r;
+		r.FromBytes(bit);
+
+		Type = std::move(r);
+	}
+	else if (sectionNumber == MemSection::SectionNumber)
+	{
+		MemSection r;
+		r.FromBytes(bit);
+
+		Type = std::move(r);
+	}
+	else
+	{
+		UCodeLangUnreachable();
+	}
+}
+
+
+void WasmFile::MemSection::ToBytes(BitMaker& bit) const
+{
+	bit.WriteType(SectionNumber);
+
+	BitMaker tep;
+
+	{
+		WasmFile::WriteLEB128(tep, (VectorLength)limits.size());
+
+		for (auto& Item : limits)
+		{
+			tep.WriteType((Byte)Item.hasmax);
+			WasmFile::WriteLEB128(tep, Item.min);
+
+			if (Item.hasmax == WasmFile::MemSection::Limits::HasMax::minAmax) {
+				WasmFile::WriteLEB128(tep, Item.max);
+			}
+		}
+	}
+
+	auto& bytes = tep.Get_Bytes();
+	WasmFile::WriteLEB128(bit, (varU32)bytes.size());
+	bit.WriteBytes(bytes.data(), bytes.size());
+}
+
+void WasmFile::MemSection::FromBytes(BitReader& bit)
+{
+	varU32 L = 0;//SectionNumber
+	WasmFile::ReadLEB128(bit, L);
+
+	auto bytes = bit.ReadBytesAsSpan(L);
+	BitReader v;
+	v.SetBytes(bytes.Data(), bytes.Size());
+
+	{
+		VectorLength typeslength = 0;
+		WasmFile::ReadLEB128(v, typeslength);
+
+		limits.resize(typeslength);
+
+		for (auto& Item : limits)
+		{
+			v.ReadType(*(Byte*)&Item.hasmax);
+			WasmFile::ReadLEB128(v, Item.min);
+			
+			if (Item.hasmax == WasmFile::MemSection::Limits::HasMax::minAmax) {
+				WasmFile::ReadLEB128(v, Item.max);
+			}
+		}
+
+	}
+}
 UCodeLangEnd
 
 #endif
+
+

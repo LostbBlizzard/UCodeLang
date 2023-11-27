@@ -4,7 +4,10 @@
 #include "IR.hpp"
 #include "../Helpers/CompilationErrors.hpp"
 
+
 UCodeLangStart
+
+struct CompilationSettings;
 
 class IRTypeFixer
 {
@@ -20,9 +23,11 @@ public:
 	void Reset();
 	void FixTypes(IRBuilder* Input);
 	UCodeLangForceinline void Set_ErrorsOutput(CompilationErrors* V) { _Errs = V; }
+	UCodeLangForceinline void Set_CompilerSetting(CompilationSettings* V) { _Set = V; }
 private:
 	IRBuilder* _Input=nullptr;
 	CompilationErrors* _Errs=nullptr;
+	CompilationSettings* _Set = nullptr;
 	IRFunc* _Func = nullptr;
 	IRBlock* _Block = nullptr;
 	void OnFunc(IRFunc* Func);

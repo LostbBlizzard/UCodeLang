@@ -43,7 +43,7 @@ struct CompilationBackEndInfo
 	enum class BackEnd :Byte
 	{
 		UCodeVm,
-		C89,
+		C11,
 		Wasm,
 		
 		Windows,
@@ -65,7 +65,7 @@ struct CompilationBackEndInfo
 
 
 	bool IsUCodeVm() { return Output == BackEnd::UCodeVm; }
-	bool IsC89() { return Output == BackEnd::C89; }
+	bool IsC11() { return Output == BackEnd::C11; }
 	bool IsWasm() { return Output == BackEnd::Wasm; }
 
 	bool IsWindows() { return Output == BackEnd::Windows; }

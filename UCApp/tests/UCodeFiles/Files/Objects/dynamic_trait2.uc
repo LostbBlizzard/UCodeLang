@@ -1,4 +1,4 @@
-trait Object;
+$Object trait;
 
 
 
@@ -9,7 +9,7 @@ $Player[Object]:
   a = 1;
 
 |main[]:
- dynamic<Object> Hello = new Player();
+ dynamic<Object> Hello =unsafe new Player();
  
- drop(Hello);
+ unsafe drop(Hello);
  ret a;

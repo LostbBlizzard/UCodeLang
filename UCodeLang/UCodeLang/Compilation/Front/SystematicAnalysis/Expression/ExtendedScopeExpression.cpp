@@ -70,13 +70,13 @@ void SystematicAnalysis::OnExpressionNode(const ExtendedScopeExpression& node)
 		auto GetValue = _GetExpressionMode.top();
 
 		IRInstruction* VPtr = ExpressionIR;
+		Symbol* LastVarSym = V._Symbol;
 
 
-
-		StepBuildMember_Access(node._Extended._ScopedName[0], ExpressionType, node._Operator, V, VPtr);
+		StepBuildMember_Access(node._Extended._ScopedName[0], ExpressionType, node._Operator, V, VPtr, LastVarSym);
 		for (size_t i = 1; i < node._Extended._ScopedName.size(); i++)
 		{
-			StepBuildMember_Access(node._Extended._ScopedName[i], ExpressionType, node._Operator, V, VPtr);
+			StepBuildMember_Access(node._Extended._ScopedName[i], ExpressionType, node._Operator, V, VPtr, LastVarSym);
 		}
 
 		if (IsRead(GetValue))

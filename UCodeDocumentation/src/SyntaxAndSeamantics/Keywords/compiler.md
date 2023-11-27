@@ -13,7 +13,7 @@ bool onwindows = compiler::IsBackendWindows();
 # Methods
 | Funcion | Parameters | Return | Description |
 |--- |--- |--- | --- |
-| IsBackendC89 | None | eval bool | Is true if are targeting the C backend.
+| IsBackendC11 | None | eval bool | Is true if are targeting the C backend.
 | IsBackendWasm | None | eval bool | Is true if we are targeting Wasm for the web.
 |IsBackendUCodeVM | None | eval bool | Is true if we are targeting the UCodeVM.
 | IsBackendWindows | None | eval bool | Is true if we are targeting windows.

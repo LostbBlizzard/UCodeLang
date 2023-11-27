@@ -2,6 +2,10 @@
 
 #include "IRTypeFixer.hpp"
 #include <iostream>
+
+#include "../CompilationSettings.hpp"
+
+
 UCodeLangStart
 
 
@@ -22,7 +26,7 @@ void IRTypeFixer::Reset()
 void IRTypeFixer::FixTypes(IRBuilder* Input)
 {
 	_Input = Input;
-
+	bool is32mode = _Set->PtrSize == IntSizes::Int32;
 	//FixSize
 	for (auto& Sys : _Input->_Symbols)
 	{
@@ -30,7 +34,7 @@ void IRTypeFixer::FixTypes(IRBuilder* Input)
 		{
 		case IRSymbolType::Struct:
 		{
-			Input->Fix_Size(Sys->Get_ExAs<IRStruct>());
+			Input->Fix_Size(Sys->Get_ExAs<IRStruct>(), is32mode);
 		}
 			break;
 		default:
@@ -49,7 +53,7 @@ void IRTypeFixer::FixTypes(IRBuilder* Input)
 			IRBufferData* b = Sys->Get_ExAs<IRBufferData>();
 			if (b->Bytes.size() == 0) 
 			{
-				b->Bytes.resize(_Input->GetSize(Sys->Type));
+				b->Bytes.resize(_Input->GetSize(Sys->Type, is32mode));
 			}
 		}
 		break;
@@ -84,7 +88,7 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 				OnOp(*Ins, Ins->Target(),false);
 				if (Ins->Target().Type == IROperatorType::IRInstruction)
 				{
-					auto ClassType = Ins->Target().Pointer->ObjectType;
+					auto ClassType = _Input->GetType(Ins->Target());
 					GetMemberAccessTypeForIns(ClassType, _Input, Ins);
 				}
 				else if (Ins->Target().Type == IROperatorType::IRParameter)
@@ -116,12 +120,12 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 				if (Ins->Target().Type == IROperatorType::IRInstruction)
 				{
 					auto ClassType = Ins->Target().Pointer->ObjectType;
-					GetMemberAccessTypeForIns(ClassType, _Input, Ins);
+					//GetMemberAccessTypeForIns(ClassType, _Input, Ins);
 				}
 				else if (Ins->Target().Type == IROperatorType::IRParameter)
 				{
 					auto ClassType = Ins->Target().Parameter->type;
-					GetMemberAccessTypeForIns(ClassType, _Input, Ins);
+					//GetMemberAccessTypeForIns(ClassType, _Input, Ins);
 
 					if (!InList(Ins->Target().Parameter, _Func->Pars))
 					{
@@ -131,7 +135,7 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 				else if (Ins->Target().Type == IROperatorType::IRidentifier)
 				{
 					auto ClassType = _Input->GetSymbol(Ins->Target().identifier)->Type;
-					GetMemberAccessTypeForIns(ClassType, _Input, Ins);
+					//GetMemberAccessTypeForIns(ClassType, _Input, Ins);
 				}
 				else
 				{

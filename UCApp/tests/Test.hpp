@@ -8,7 +8,7 @@
 #include "../src/UCodeLangProjectPaths.hpp"
 #include <UCodeLang/RunTime/TestRuner.hpp>
 
-#include <UCodeLang/Compilation/Back/C89/C89Backend.hpp>
+#include <UCodeLang/Compilation/Back/C11/C11Backend.hpp>
 
 #if UCodeLang_Platform_Windows
 #include <Windows.h>
@@ -110,7 +110,7 @@ UCodeTestStart
 
 	
 
-	static const Array<TestInfo, 103> Tests
+	static const Array<TestInfo, 109> Tests
 	{
 
 		TestInfo("main_0","BasicTests/main.uc","Main",SuccessCondition::Compilation),
@@ -180,10 +180,15 @@ UCodeTestStart
 		TestInfo("BitWise5", "BasicTests/Bitwise.uc", "main5", SuccessCondition::RunTimeValue, (int)12),
 		TestInfo("BitWise6", "BasicTests/Bitwise.uc", "main6", SuccessCondition::RunTimeValue, (int)-6),
 
+		TestInfo("OperatorPrecedent1", "BasicTests/OperatorPrecedent.uc", "main", SuccessCondition::RunTimeValue, (int)7),
+		TestInfo("OperatorPrecedent2", "BasicTests/OperatorPrecedent.uc", "main1", SuccessCondition::RunTimeValue, (int)7),
+		TestInfo("OperatorPrecedent3", "BasicTests/OperatorPrecedent.uc", "main2", SuccessCondition::RunTimeValue, (int)9),
+		TestInfo("OperatorPrecedent4", "BasicTests/OperatorPrecedent.uc", "main3", SuccessCondition::RunTimeValue, (int)-5),
+
 		TestInfo("Lamdba_1","Objects/Lambda.uc","main",SuccessCondition::RunTimeValue,(int)1),
 		TestInfo("Lamdba_2","Objects/Lambda.uc","main2",SuccessCondition::RunTimeValue,(int)5),
 		TestInfo("Lamdba_3","Objects/Lambda2.uc","main",SuccessCondition::RunTimeValue,(int)-5),
-		TestInfo("Lamdba_4","Objects/Lambda2.uc","main2",SuccessCondition::RunTimeValue,(int)1),
+		TestInfo("Lamdba_4","Objects/Lambda2.uc","main2",SuccessCondition::RunTimeValue,(int)-4),
 		TestInfo("Lamdba_5","Objects/Lambda3.uc","main",SuccessCondition::RunTimeValue,(int)1),
 		TestInfo("Lamdba_6","Objects/Lambda3.uc","main2",SuccessCondition::RunTimeValue,(int)1),
 
@@ -191,7 +196,12 @@ UCodeTestStart
 		TestInfo("enumvariant_2","Objects/enumvariant2.uc","main",SuccessCondition::RunTimeValue,(int)10),
 
 		TestInfo("enumvariantdrop","NewAndDrop/enumvariantdrop.uc","main",SuccessCondition::RunTimeValue,(int)1),
+		TestInfo("enumvariantdrop2","NewAndDrop/enumvariantdrop2.uc","main",SuccessCondition::RunTimeValue,(int)4),
+		
 		TestInfo("StaticArrDrop","NewAndDrop/StaticArrDrop.uc","main",SuccessCondition::RunTimeValue,true),
+		TestInfo("StaticArrDrop2","NewAndDrop/StaticArrDrop2.uc","main",SuccessCondition::RunTimeValue,true),
+
+
 		TestInfo("dymArr","NewAndDrop/dymArr.uc","main",SuccessCondition::RunTimeValue,true),
 
 		TestInfo("trait_1","Objects/trait.uc","main",SuccessCondition::RunTimeValue,(int)1),
@@ -258,9 +268,9 @@ UCodeTestStart
 		size_t End;
 	};
 	static const Vector<SkipTestRange> UCodeVmSkipTests
-		= { {48, Tests.size() } };
+		= { {68, Tests.size() } };
 	static const Vector<SkipTestRange> C89SkipTests
-		= { {48, Tests.size() } };
+		= { {68, Tests.size() } };
 	static const Vector<SkipTestRange> WasmSkipTests
 		= { {4, Tests.size() } };
 
@@ -405,11 +415,11 @@ UCodeTestStart
 				if (v)
 				{
 
-					auto staticinitname = C89Backend::UpdateToCindentifier(StaticVariablesInitializeFunc);
-					auto threadinitname = C89Backend::UpdateToCindentifier(ThreadVariablesInitializeFunc);
+					auto staticinitname = C11Backend::UpdateToCindentifier(StaticVariablesInitializeFunc);
+					auto threadinitname = C11Backend::UpdateToCindentifier(ThreadVariablesInitializeFunc);
 
-					auto staticdeinitname = C89Backend::UpdateToCindentifier(StaticVariablesUnLoadFunc);
-					auto threaddeinitname = C89Backend::UpdateToCindentifier(ThreadVariablesUnLoadFunc);
+					auto staticdeinitname = C11Backend::UpdateToCindentifier(StaticVariablesUnLoadFunc);
+					auto threaddeinitname = C11Backend::UpdateToCindentifier(ThreadVariablesUnLoadFunc);
 
 
 					#if UCodeLang_Platform_Windows
@@ -438,7 +448,7 @@ UCodeTestStart
 						bool passed = true;
 
 						
-						auto cfuncname = C89Backend::UpdateToCindentifier(TestFunc->DecorationName);
+						auto cfuncname = C11Backend::UpdateToCindentifier(TestFunc->DecorationName);
 						
 						#if UCodeLang_Platform_Windows
 						auto functocall = GetProcAddress(lib, cfuncname.c_str());

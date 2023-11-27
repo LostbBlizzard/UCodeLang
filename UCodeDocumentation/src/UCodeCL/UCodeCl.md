@@ -4,12 +4,9 @@ The UCodeLang Command-line tool it serves as a Compiler,Runtime,build system and
 
 # Syntax
 
-```
 
 ```
 uclang [command] <arguments>
-```
-
 ```
 
 # Commands
@@ -42,15 +39,12 @@ if path not provided it will use the working directory as its input and use a UC
 
 Example
 ```
-
-    uclang build -c89
-
-```
+uclang build -c89
 
 ```
 
-    uclang build -uvm:x86_64
-
+```
+uclang build -uvm:x86_64
 ```
 
 | Flag | extra | Description |
@@ -61,7 +55,7 @@ Example
   -ndebug | none | disable debug mode and removes debug Symbols
   -32 | none | Sets build Target as 32bit Machine 
   -64 | none | Sets build Target as 64bit Machine
-  -c89 | none | build using C BackEnd.
+  -c11 | none | build using C BackEnd.
   -wasm | none | build using the wasm BackEnd.
   -ir | none | Outputs the IR.
   -uvm | this,x86_64,x86,x86,arm_64,arm | Build Native Code for the UCodeVm the .ulib can run on any Operating system(Most of the time) for that cpu chip. 
@@ -72,22 +66,19 @@ Example
 By default uclang will try to call the main funcion.
 
 ```
-
-    uclang run
-
+uclang run
 ```
 
 This can be overwritten and basic arguments can be passed.
 
 ```
-
-    uclang run func(4)
-
+uclang run func(4)
 ```
 
 These flags only apply if path was UCodeLang File,Module,Folder or .ulib.
+
 | Flag | extra | Description |
-|--- |--- |--- |
+|--- |--- | --- |
 -jit | none | Uses the jit compiler compiler instead of the interpreter.
 -03 | none | Activates all optimization.
 -native | none | Compiles native code before running.

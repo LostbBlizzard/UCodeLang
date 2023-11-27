@@ -1,5 +1,21 @@
 # bool
 
->[!IMPORTANT]
->This Is section Is incomplete
->but is implemented in the compiler.
+bool is used to represent a true or false value.
+
+```
+bool boolT = true;
+bool boolF = false;
+```
+
+The bool type is the type used in if statements,while,for and do.
+
+```
+if true:
+ Fmt::Print("Im True");
+```
+
+```
+while true:
+ Fmt::Print("I Loop forever");
+```
+

@@ -652,7 +652,7 @@ public:
 		return {};
 	}
 
-	Optional<size_t> GetFieldIndex(const String_view Name)
+	Optional<size_t> GetFieldIndex(const String_view Name) const
 	{
 		for (size_t i = 0; i < Fields.size(); i++)
 		{
@@ -704,6 +704,13 @@ public:
 	}
 
 	Optional<EnumVariantData> VariantData;
+	bool HasDestructer;
+	bool MoveContructer;
+	bool CopyContructer;
+	Optional<FuncInfo*> FuncDestructer;
+	Optional<FuncInfo*> FuncMoveContructer;
+	Optional<FuncInfo*> FuncCopyContructer;
+
 	Generic _GenericData;
 	Optional<SymbolContext> Context;
 };

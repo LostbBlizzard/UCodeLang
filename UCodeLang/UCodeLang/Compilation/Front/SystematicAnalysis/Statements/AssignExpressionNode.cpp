@@ -32,10 +32,10 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 
 
 
-		if (!Type_CanBeImplicitConverted(AssignType, ExpressionType, false))
+		if (!Type_CanBeImplicitConverted(ExpressionType, AssignType, false))
 		{
 			auto  Token = _LastLookedAtToken;
-			LogError_CantCastImplicitTypes(Token.value(), AssignType, ExpressionType, false);
+			LogError_CantCastImplicitTypes(Token.value(), ExpressionType, AssignType , false);
 
 		}
 		auto ID = Symbol_GetSymbolID(node);
@@ -43,7 +43,7 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 		AssignExpression_Data Data;
 		Data.Op0 = ExpressionType;
 		Data.Op1 = AssignType;
-
+		
 		_AssignExpressionDatas.AddValue(ID, Data);
 	}
 	else if (_PassType == PassType::BuidCode)
@@ -61,7 +61,11 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 		auto ExpressionType = _LastExpressionType;
 		auto ExIR = _IR_LastExpressionField;
 
-		IR_Build_ImplicitConversion(ExIR, ExpressionType, AssignType.Op0);
+
+
+		auto implictype = Type_AreTheSameWithOutMoveAndimmutable(ExpressionType, AssignType.Op1) ? AssignType.Op0 : AssignType.Op1;
+
+		IR_Build_ImplicitConversion(ExIR, ExpressionType, implictype);
 		ExIR = _IR_LastExpressionField;
 
 

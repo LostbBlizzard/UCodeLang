@@ -5,7 +5,7 @@ $Drop:
   R++;
 
 |main[]:
- Drop[&] Item = new Drop[5];
- drop(Item);
+ Drop[&] Item =unsafe new Drop[5];
+ unsafe drop(Item);
 
  ret R == 5;

@@ -819,6 +819,98 @@ IRidentifierID SystematicAnalysis::IR_Build_ConvertToStaticArray(const Symbol& C
 	auto IRStuct = _IR_Builder.NewStaticArray(V,IR_ConvertToIRType(clasinfo->Type),clasinfo->Count);
 
 
+	if (Symbol_HasDestructor(clasinfo->Type))
+	{
+		auto DropFuncName = ToString(TypeSymbol(Class.ID));
+		ScopeHelper::GetApendedString(DropFuncName, ClassDestructorFunc);
+
+		auto oldfunc = _IR_LookingAtIRFunc;
+		auto oldblock = _IR_LookingAtIRBlock;
+
+		auto DropFunc = Symbol_GetSymbol(DropFuncName, SymbolType::Func).value();
+		_IR_LookingAtIRFunc = _IR_Builder.NewFunc(IR_GetIRID(DropFunc->Get_Info<FuncInfo>()), IRTypes::Void);
+		{
+			IRPar Vt;
+			Vt.identifier = _IR_Builder.ToID(ThisSymbolName);
+			Vt.type._symbol = V;
+			Vt.type._Type = IRTypes::pointer;
+
+			_IR_LookingAtIRFunc->Pars.push_back(Vt);
+		}
+		IRPar* ThisPar = &_IR_LookingAtIRFunc->Pars.front();
+		_IR_LookingAtIRBlock = _IR_LookingAtIRFunc->NewBlock(".");
+
+		auto oldpass = _PassType;
+		_PassType = PassType::BuidCode;
+
+		auto elmsize = Type_GetSize(clasinfo->Type).value();
+
+		bool UseLoop = clasinfo->Count > 6;
+		if (UseLoop) 
+		{
+			auto Ptr = _IR_LookingAtIRBlock->NewLoad(ThisPar);
+			//our index
+			auto Indexir = IR_Load_UIntptr(0);
+
+			size_t JumpLabel = _IR_LookingAtIRBlock->GetIndex();
+			auto Cmpbool = _IR_LookingAtIRBlock->NewC_Equalto(Indexir, IR_Load_UIntptr(clasinfo->Count));
+
+
+			auto JumpIns = _IR_LookingAtIRBlock->NewConditionalJump(Cmpbool, NullUInt64);
+
+			auto OffsetIr = _IR_LookingAtIRBlock->New_Index_Vetor(Ptr, Indexir, IR_Load_UIntptr(elmsize));
+
+			//loop on every
+
+			{
+				ObjectToDrop tep;
+				tep._Object = OffsetIr;
+				tep.DropType = ObjectToDropType::IRInstructionNoMod;
+				tep.Type = clasinfo->Type;
+				IR_Build_DestructorCall(tep);//call on Object
+			}
+
+
+			_IR_LookingAtIRBlock->New_Increment(Indexir);//index++
+
+
+
+			_IR_LookingAtIRBlock->NewJump(JumpLabel);
+
+			size_t ThisJumpLable = _IR_LookingAtIRBlock->GetIndex();
+			_IR_LookingAtIRBlock->UpdateConditionaJump(JumpIns, Cmpbool, ThisJumpLable);
+
+
+		}
+		else 
+		{
+			auto accumulatorPtr = _IR_LookingAtIRBlock->NewLoad(ThisPar);
+			for (size_t i = 0; i < clasinfo->Count; i++)
+			{
+
+			auto elmsizeir = IR_Load_UIntptr(elmsize);
+
+				ObjectToDrop tep;
+				tep._Object = accumulatorPtr;
+				tep.DropType = ObjectToDropType::IRInstructionNoMod;
+				tep.Type = clasinfo->Type;
+
+				IR_Build_DestructorCall(tep);
+
+
+				if (i + 1 < clasinfo->Count) {
+					_IR_LookingAtIRBlock->NewStore(accumulatorPtr, _IR_LookingAtIRBlock->NewAdd(elmsizeir, accumulatorPtr));
+				}
+			}
+		}
+		_PassType = oldpass;
+
+		_IR_LookingAtIRBlock->NewRet();
+
+		_IR_LookingAtIRFunc = oldfunc;
+		_IR_LookingAtIRBlock = oldblock;
+	}
+
 	_Symbol_SybToIRMap.AddValue(ClassSybID,V);
 	return V;
 }
@@ -1127,9 +1219,25 @@ void SystematicAnalysis::OnStatement(const Node& node2)
 	case NodeType::YieldStatement:OnYieldStatement(*YieldStatement::As(&node2)); break;
 	case NodeType::UnsafeStatementsNode:OnUnsafeStatement(*UnsafeStatementsNode::As(&node2)); break;
 	case NodeType::DeferStatementNode:OnDeferStatement(*DeferStatementNode::As(&node2)); break;
+	case NodeType::StatementsNode:OnStatements(*StatementsNode::As(&node2)); break;
 	default:UCodeLangUnreachable(); break;
 	}
 	Pop_NodeScope();
+}
+void SystematicAnalysis::OnStatements(const StatementsNode& node)
+{
+	String ScopeName = std::to_string((size_t)&node);
+
+	Push_NewStackFrame();
+	_Table.AddScope(ScopeName);
+
+	for (const auto& node2 : node._Nodes)
+	{
+		OnStatement(*node2);
+	}
+
+	Pop_StackFrame();
+	_Table.RemoveScope();
 }
 void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 {
@@ -1760,6 +1868,26 @@ void SystematicAnalysis::Type_SetFuncRetAsLastEx(const Get_FuncInfo& Info)
 	else if (Info.CantCheckBecauseIsUnMaped)
 	{
 		_LastExpressionType = Type_GetUnMapType();
+	}
+	else if (Info.SymFunc && Info.SymFunc->Type == SymbolType::Enum_Field)
+	{
+		if (Info.ThisPar == Get_FuncInfo::ThisPar_t::NoThisPar_GetValue_EnumVariant)
+		{
+			_LastExpressionType = TypesEnum::Bool;
+		}
+		else
+		{
+			_LastExpressionType = Symbol_GetSymbol(ScopeHelper::GetReMoveScope(Info.SymFunc->FullName), SymbolType::Enum).value()->VarType;
+			
+		}
+	}
+	else if (Info.BulitInTypeContructer.has_value())
+	{
+		_LastExpressionType = Info.BulitInTypeContructer.value();
+	}
+	else
+	{
+		_LastExpressionType = TypesEnum::Null;
 	}
 }
 NullablePtr<Symbol> SystematicAnalysis::Symbol_GetSymbol(String_view Name, SymbolType Type)

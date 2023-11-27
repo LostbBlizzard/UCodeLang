@@ -1756,7 +1756,7 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 					auto opnum = Operator_precedenceBinary(r->_BinaryOp->Type);
 					auto opnum2 = 0;
 
-					if (opnum > opnum2)
+					if (opnum < opnum2)
 					{
 						std::swap(r->_Value0._Value, r->_Value1._Value);
 					}

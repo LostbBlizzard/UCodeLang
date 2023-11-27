@@ -1,5 +1,5 @@
 
-trait Object:
+$Object trait:
  |GetValue[this&] => 1;
 
 $Player[Object];

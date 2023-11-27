@@ -1,23 +1,22 @@
 
-
 int R = 2;
 
 $Drop:
  |drop[this&]:
-  R = 1;
+  R += 1;
 
 $Item enum:
- Red[Drop],
+ Red[Drop,Drop],
  Blue[int],
 
 |main[]:
  
  int B = 0;
  block:
-  var Value =Item::Red([]);
+  var Value =Item::Red([],[]);
  
  B = R;
- if B == 1:
+ if B == 4:
   R = 0;
   block:
    var OtherValue =Item::Blue([]);
