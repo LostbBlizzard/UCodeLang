@@ -5,17 +5,13 @@ The Standard library is intended to be the minimum set of types and members requ
 All of the Standardlibrary is Under The ULang Namespace.
 
 ```
-
-    use ULang;
-
+use ULang;
 ```
 
 All of the Standardlibrary Part of StandardLibarary Module By UCodeLang
 
 ```
-
-    import UCodeLang::StandardLibarary[0:0:0];
-
+import UCodeLang::StandardLibarary[0:0:0];
 ```
 
 ## Sections
