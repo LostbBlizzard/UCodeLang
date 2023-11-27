@@ -161,7 +161,7 @@ void WasmBackEnd::OnFunc(const IRFunc* Func)
 				size_t MyPos = Position.size();
 
 				// the offset in memory where to store the number
-				_funccode->Push_i32_const(MyPos);
+				_funccode->Push_i32_const((UInt32)MyPos);
 				
 				LoadOp(Item, Item->Target());
 				
@@ -213,7 +213,7 @@ void WasmBackEnd::OnFunc(const IRFunc* Func)
 				size_t MyPos = Position.size();
 
 				// the offset in memory where to store the number
-				_funccode->Push_i32_const(MyPos);
+				_funccode->Push_i32_const((UInt32)MyPos);
 
 				
 
@@ -246,7 +246,7 @@ void WasmBackEnd::OnFunc(const IRFunc* Func)
 				size_t MyPos = Position.size();
 
 				// the offset in memory where to store the number
-				_funccode->Push_i32_const(MyPos);
+				_funccode->Push_i32_const((UInt32)MyPos);
 
 				LoadOp(Item, Item->Target());
 				LoadOp(Item, Item->Input());

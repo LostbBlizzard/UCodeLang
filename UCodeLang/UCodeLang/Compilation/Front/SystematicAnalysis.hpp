@@ -1087,7 +1087,7 @@ private:
 	void OnLambdaNode(const LambdaNode& node);
 
 	bool IsSymbolLambdaObjectClass(const NeverNullPtr<Symbol> Sym) const;
-	bool SystematicAnalysis::IsLambdaClassSymFromThisPtr(const NeverNullPtr<Symbol> LambdaClassSym, const NeverNullPtr<Symbol> Sym) const;
+	bool IsLambdaClassSymFromThisPtr(const NeverNullPtr<Symbol> LambdaClassSym, const NeverNullPtr<Symbol> Sym) const;
 
 	void OnTrait(const TraitNode& node);
 	void OnTag(const TagTypeNode& node);
