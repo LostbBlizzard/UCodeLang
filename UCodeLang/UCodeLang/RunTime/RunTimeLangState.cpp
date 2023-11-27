@@ -32,6 +32,9 @@ PtrType Allocator::Malloc(RunTimeLangState& This, NSize_t Size)
 }
 void Allocator::Free(RunTimeLangState& This, PtrType ptr)
 {
+	if (ptr ==nullptr) { return; }
+
+
 	auto& M = _Data.GetValue(ptr);
 	if (_CanReserveData)
 	{
