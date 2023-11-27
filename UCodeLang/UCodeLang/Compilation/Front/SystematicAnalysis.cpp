@@ -1109,6 +1109,7 @@ IRType SystematicAnalysis::IR_ConvertToIRType(const TypeSymbol& Value)
 				{
 					IRStructField V;
 					V.Type = IRType(IRTypes::pointer);
+					V.Type._symbol = _IR_Builder.ToID(Str_GetTraitVStructTableName(syb.FullName));
 					StructIR->Fields.push_back(V);
 				}
 
