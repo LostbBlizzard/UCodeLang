@@ -134,7 +134,7 @@ void UCodeBackEndObject::BuildSymbols()
 		}
 	}
 }
-void  UCodeBackEndObject::BuildFuncs()
+void UCodeBackEndObject::BuildFuncs()
 {
 	if (_Input->_StaticInit.HasInstructions()) {
 		OnFunc(&_Input->_StaticInit);
@@ -4911,11 +4911,6 @@ void UCodeBackEndObject::SynchronizePars()
 
 RegistersManager UCodeBackEndObject::SaveState()
 {
-	//move all values on stack
-	//InstructionBuilder::DoNothing(_Ins); PushIns();
-	//InstructionBuilder::DoNothing(_Ins); PushIns();
-
-
 
 	auto old = _Registers;
 	RegisterID_t reg = (RegisterID_t)-1;
@@ -4927,43 +4922,16 @@ RegistersManager UCodeBackEndObject::SaveState()
 			auto& ItemD = Item.Types.value();
 			if (auto val = ItemD.Get_If<const IRInstruction*>())
 			{
-
 				const IRInstruction* ins = *val;
 
-				if (IsOperatorValueInInput(ins->Type))
+				if (IsReferencedAfterThisIndex(ins))
 				{
-					if (IsReferencedAfterThisIndex(ins->Input())) 
-					{
-						auto Item = ins->Input();
-						auto type = GetType(ins, Item);
-
-						MoveValueToStack(Item.Pointer, type, (RegisterID)reg);
-					}
+					auto type = GetType(ins);
+					MoveValueToStack(ins, type, (RegisterID)reg);
 				}
-				if (IsOperatorValueInTarget(ins->Type))
-				{
-					if (IsReferencedAfterThisIndex(ins->Target()))
-					{
-						auto Item = ins->Target();
-						auto type = GetType(ins, Item);
-
-						MoveValueToStack(Item.Pointer, type, (RegisterID)reg);
-					}
-				}
-
-				if (IsLocation(ins->Type))
-				{
-					ins = *val; 
-					if (IsReferencedAfterThisIndex(ins)) {
-						MoveValueToStack(ins, GetType(ins), (RegisterID)reg);
-					}
-				}
-				
-
 				
 			}
 		}
-		
 	}
 
  	//_Registers.Reset();
