@@ -156,6 +156,7 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 				if (LookMove && HasMoveContructerHasIRFunc(V.Type))
 				{
 					_IR_LastExpressionField = IR_Build_Member_AsPointer(V);
+					V.Type.SetAsAddress();
 				}
 				else if (LookIsAddress == true && AmIsAddress == true)
 				{
@@ -168,6 +169,7 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 				else if (LookIsAddress == true && AmIsAddress == false)
 				{
 					_IR_LastExpressionField = IR_Build_Member_AsPointer(V);
+					V.Type.SetAsAddress();
 				}
 				else if (LookIsAddress == false && AmIsAddress == true)
 				{
