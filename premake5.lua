@@ -323,6 +323,9 @@ project "UCodeDocumentation"
    objdir ("Output/int/%{prj.name}/" .. OutDirPath)
    
    files { "%{prj.name}/ignoreC.c"}
+   files { 
+     "%{prj.name}/src/**.md",
+   }
 
 project "UCodeIDE"
    location "UCodeIDE" 
