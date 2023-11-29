@@ -3250,31 +3250,64 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction* Ins, const  IROperato
 
 void UCodeBackEndObject::StoreValue(const IRInstruction* Ins, const  IROperator& OutputLocationIR, const  IROperator& Input)
 {
-	bool IRusedereference = false;
-	if (OutputLocationIR.Type ==IROperatorType::IRInstruction)
+	if (OutputLocationIR.Type == IROperatorType::IRInstruction)
 	{
 		auto& Item = OutputLocationIR.Pointer;
-		if (Item->Type == IRInstructionType::Member_Access_Dereference)
+		const IRInstruction* VIns = Item;
+
+
+		while (VIns->Type == IRInstructionType::Member_Access)
 		{
-			IRusedereference = true;
+			auto Tar = VIns->Target();
+			if (Tar.Type == IROperatorType::IRInstruction)
+			{
+				VIns = Tar.Pointer;
+			}
+			else
+			{
+				break;
+			}
+
+		}
+
+		if (VIns->Type == IRInstructionType::Member_Access_Dereference)
+		{
+			VIns = Item;
+			size_t Offset = 0;
+			while (VIns->Type == IRInstructionType::Member_Access)
+			{
+				auto V = _Input->GetOffset(
+					_Input->GetSymbol(GetType(VIns->Target())._symbol)->Get_ExAs<IRStruct>()
+					, VIns->Input().Value.AsUIntNative);
+
+				Offset += V;
+				auto Tar = VIns->Target();
+				if (Tar.Type == IROperatorType::IRInstruction)
+				{
+					VIns = Tar.Pointer;
+				}
+				else
+				{
+					break;
+				}
+
+			}
+
+			auto Type = VIns->ObjectType;
+
+			const IRStruct* VStruct = _Input->GetSymbol(Type._symbol)->Get_ExAs<IRStruct>();
+
+			auto Reg = LoadOp(VIns, VIns->Target());
+			size_t FieldOffset = _Input->GetOffset(VStruct, Item->Input().Value.AsUIntNative);
+
+			StoreValueInPointer(Reg, FieldOffset, GetIRLocData(Ins, Input));
+			return;
 		}
 	}
 
+
 	
-	if (IRusedereference)
-	{
-		auto& Item = OutputLocationIR.Pointer;
 
-		auto Type = Item->ObjectType;//GetType(Item, Item->Target());
-
-		const IRStruct* VStruct = _Input->GetSymbol(Type._symbol)->Get_ExAs<IRStruct>();
-
-		auto Reg = LoadOp(Item,Item->Target());
-		size_t FieldOffset = _Input->GetOffset(VStruct, Item->Input().Value.AsUIntNative);
-
-		StoreValueInPointer(Reg,FieldOffset,GetIRLocData(Ins, Input));
-	}
-	else
 	{
 		IRInstruction V;
 		V.ObjectType = GetType(OutputLocationIR);
