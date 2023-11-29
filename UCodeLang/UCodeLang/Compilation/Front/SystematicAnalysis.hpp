@@ -1601,7 +1601,7 @@ private:
 	void Eval_Set_ObjectAs(const TypeSymbol& Input, RawEvaluatedObject& Input2, const void* Object, size_t ObjectSize)
 	{
 		#if UCodeLangDebug
-		if (Input2.ObjectSize == ObjectSize)
+		if (Input2.ObjectSize != ObjectSize)
 		{
 			String TepStr = "type miss-mach when Cpp type To EvaluatedObject'";
 			UCodeLangThrowException(TepStr.c_str());
