@@ -1,5 +1,5 @@
 
-$if compiler::IsBackendC89():
+$if compiler::IsBackendC11():
  $FilePathChar = char;
  $FileHandle = uintptr;
  $Socket = uintptr;
