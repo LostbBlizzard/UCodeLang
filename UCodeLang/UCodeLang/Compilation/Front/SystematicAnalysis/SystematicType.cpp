@@ -86,7 +86,8 @@ bool SystematicAnalysis::Type_IsimmutableRulesfollowed(const TypeSymbol& TypeToC
 	}
 	else if (CmpTypeimm == false && Chechimm == true)
 	{
-		return TypeToCheck.IsAddress() && Type.IsAddress();
+		return true;
+		//return TypeToCheck.IsAddress() && Type.IsAddress();
 		
 	}
 
@@ -701,6 +702,10 @@ bool  SystematicAnalysis::Type_AreTheSameWithOutMoveAndimmutable(const TypeSymbo
 			{
 				return Type_AreTheSameWithOutimmutable(F1->Type, F2->Type);
 			}
+		}
+		if (Type_IsUnMapType(TypeOne) && Type_IsUnMapType(TypeTwo))
+		{
+			return true;
 		}
 
 	}
