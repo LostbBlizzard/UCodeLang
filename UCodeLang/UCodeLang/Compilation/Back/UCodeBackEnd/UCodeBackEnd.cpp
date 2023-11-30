@@ -2100,9 +2100,8 @@ UCodeBackEndObject::FuncCallEndData UCodeBackEndObject::FuncCallStart(const Vect
 	}
 	return FuncCallStart(Tep,RetType);
 }
-Optional< RegisterID> UCodeBackEndObject::FindIRInRegister(const IRInstruction* Value, bool GetAddress)
+Optional< RegisterID> UCodeBackEndObject::FindIRInRegister(const IRInstruction* Value)
 {
-	if (GetAddress) { return {}; }
 	auto R = _Registers.GetInfo(Value);
 	if (R.has_value())
 	{
@@ -3500,12 +3499,17 @@ void UCodeBackEndObject::PushOpStack(const IRInstruction* Ins, const  IROperator
 }
 UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstruction* Ins,bool GetAddress)
 {
-	auto RegInfo = FindIRInRegister(Ins,GetAddress);
+	auto RegInfo = FindIRInRegister(Ins);
 	if (RegInfo.has_value())
 	{
 		UCodeBackEndObject::IRlocData R;
 		R.Info = RegInfo.value();
 		R.ObjectType = GetType(Ins);
+
+		if (GetAddress)
+		{
+			return GetPointerOf(R);
+		}
 		return R;
 	}
 	else if (auto stack = _Stack.Has(Ins).value_unchecked())

@@ -378,7 +378,7 @@ private:
 		return R;
 	}
 
-	Optional<RegisterID> FindIRInRegister(const IRInstruction* Value, bool GetAddress =false);
+	Optional<RegisterID> FindIRInRegister(const IRInstruction* Value);
 	Optional<RegisterID> FindValueInRegister(AnyInt64 Value);
 
 	void FreeRegister(RegisterID ID)
