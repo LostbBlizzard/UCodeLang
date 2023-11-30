@@ -661,7 +661,7 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 		BuildLink(FuncName,IR->Linkage);
 	}
 
-	if (FuncName == "main")
+	if (FuncName == "Span<char>:(&Index&)^Span<char>&,Range_t<uintptr>")
 	{
 		int a = 0;
 	}
@@ -789,7 +789,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 	
 	for (size_t i = 0; i < IR->Instructions.size(); i++)
 	{
-		if (i == 6)
+		if (i == 13)
 		{
 			int a = 0;
 		}
@@ -2919,8 +2919,21 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetPointerOf(const IRlocData& 
 		
 		//make all read/writes point to stack.
 		
-		//auto T = _Registers.GetInfo(*Val);
-		//_Stack.Get(stack.offset)->IR = T.Types.value().Get<const IRInstruction*>();
+		auto T = _Registers.GetInfo(*Val);
+		if (T.Types.has_value()) 
+		{
+			auto& TV = T.Types.value();
+			auto& staicdata = _Stack.Get(stack.offset).value();
+			if (auto v = TV.Get_If<const IRInstruction*>())
+			{
+				staicdata->IR = *v;
+			}
+			else if (auto v = TV.Get_If<IROperator>())
+			{
+				staicdata->IR = *v;
+			}
+
+		}
 
 		FreeRegister(*Val);
 		FreeRegister(R);
