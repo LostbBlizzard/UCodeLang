@@ -2176,53 +2176,26 @@ UCodeBackEndObject::FuncCallEndData  UCodeBackEndObject::FuncCallStart(const Vec
 			if (isreferenced)
 			{
 				WasSet = true;
-				auto VType = type;
-				switch (VType._Type)
+				auto Size = GetSize(type);
+				if (Size <= 1)
 				{
-				case IRTypes::i8:
 					InstructionBuilder::Push8(_Ins, CompilerRet); PushIns();
-					break;
-				case IRTypes::i16:
-					InstructionBuilder::Push16(_Ins, CompilerRet); PushIns();
-					break;
-				bit32labelGG:
-				case IRTypes::f32:
-				case IRTypes::i32:
-					InstructionBuilder::Push32(_Ins, CompilerRet); PushIns();
-					break;
-				bit64labelGG:
-				case IRTypes::f64:
-				case IRTypes::i64:
-					InstructionBuilder::Push64(_Ins, CompilerRet); PushIns();
-					break;
-
-				PointerType:
-				case IRTypes::pointer:
-					if (Get_Settings().PtrSize == IntSizes::Int32)
-					{
-						goto bit32labelGG;
-					}
-					else
-					{
-						goto bit64labelGG;
-					}
-					break;
-				case IRTypes::IRsymbol:
-				{
-					auto syb = _Input->GetSymbol(VType._symbol);
-					if (syb->SymType == IRSymbolType::FuncPtr)
-					{
-						goto PointerType;
-					}
-					else
-					{
-						UCodeLangUnreachable();
-					}
 				}
-				break;
-				default:
+				else if (Size <= 2)
+				{
+					InstructionBuilder::Push16(_Ins, CompilerRet); PushIns();
+				}
+				else if (Size <= 4)
+				{
+					InstructionBuilder::Push32(_Ins, CompilerRet); PushIns();
+				}
+				else if (Size <= 8)
+				{
+					InstructionBuilder::Push64(_Ins, CompilerRet); PushIns();
+				}
+				else
+				{
 					UCodeLangUnreachable();
-					break;
 				}
 			}
 		}
@@ -2377,53 +2350,26 @@ void UCodeBackEndObject::FuncCallEnd(UCodeBackEndObject::FuncCallEndData& Data)
 
 			if (isreferenced)
 			{
-				auto VType = type;
-				switch (VType._Type)
+				auto Size = GetSize(type);
+				if (Size <= 1)
 				{
-				case IRTypes::i8:
 					InstructionBuilder::Pop8(_Ins, CompilerRet); PushIns();
-					break;
-				case IRTypes::i16:
-					InstructionBuilder::Pop16(_Ins, CompilerRet); PushIns();
-					break;
-				bit32labelGG2:
-				case IRTypes::f32:
-				case IRTypes::i32:
-					InstructionBuilder::Pop32(_Ins, CompilerRet); PushIns();
-					break;
-				bit64labelGG2:
-				case IRTypes::f64:
-				case IRTypes::i64:
-					InstructionBuilder::Pop64(_Ins, CompilerRet); PushIns();
-					break;
-
-				PointerType:
-				case IRTypes::pointer:
-					if (Get_Settings().PtrSize == IntSizes::Int32)
-					{
-						goto bit32labelGG2;
-					}
-					else
-					{
-						goto bit64labelGG2;
-					}
-					break;
-				case IRTypes::IRsymbol:
-				{
-					auto syb = _Input->GetSymbol(VType._symbol);
-					if (syb->SymType == IRSymbolType::FuncPtr)
-					{
-						goto PointerType;
-					}
-					else
-					{
-						UCodeLangUnreachable();
-					}
 				}
-				break;
-				default:
+				else if (Size <= 2)
+				{
+					InstructionBuilder::Pop16(_Ins, CompilerRet); PushIns();
+				}
+				else if (Size <= 4)
+				{
+					InstructionBuilder::Pop32(_Ins, CompilerRet); PushIns();
+				}
+				else if (Size <= 8)
+				{
+					InstructionBuilder::Pop64(_Ins, CompilerRet); PushIns();
+				}
+				else
+				{
 					UCodeLangUnreachable();
-					break;
 				}
 			}
 
