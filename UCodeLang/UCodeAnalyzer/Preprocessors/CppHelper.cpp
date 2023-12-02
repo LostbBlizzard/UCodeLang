@@ -216,21 +216,25 @@ bool CppHelper::ParseCppfileAndOutULangDir(const Path& CppDir, const Path& CppLi
 		R += '\n';
 
 		CppToULangState state;
-		for (auto& file : files) 
+		for (auto& file : files)
 		{
+			R += "\n";
 			R += "//" + file.path.filename().generic_string();
+			R += "\n";
+
 			for (auto& Item : file.Symbols)
 			{
 				R += ToString(state, Item);
 			}
+			for (auto& Item : state.InternalNameSpaces)
+			{
+				R += Item.first + "::" + "Internal:\n";
+				R += Item.second;
+
+			}
+			R += "\n";
 		}
 
-		for (auto& Item : state.InternalNameSpaces)
-		{
-			R += Item.first + "::" + "Internal:\n";
-			R += Item.second;
-
-		}
 
 		if (oldtext != R) {
 			WriteStringToFile(ULangOut, R);
