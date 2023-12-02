@@ -626,7 +626,7 @@ newaction {
         print("installing wasm tools for " .. os.target())
         
         if os.istarget("linux") then
-         os.execute("cd ~;git clone https://github.com/emscripten-core/emsdk.git;cd emsdk;git pull;./emsdk install latest;./emsdk activate latest;source ./emsdk_env.sh;")
+         os.execute("cd ~;git clone https://github.com/emscripten-core/emsdk.git;cd emsdk;git pull;./emsdk install latest;./emsdk activate latest;source ./emsdk_env.sh;echo 'source "/home/runner/emsdk/emsdk_env.sh"' >> $HOME/.bash_profile;")
         end
 
         if os.istarget("windows") then
