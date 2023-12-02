@@ -615,7 +615,7 @@ newaction {
 
            os.execute("brew install glfw")
           
-          print("----installing tools completed");
+           print("----installing tools completed");
         end
     end
 }
@@ -626,7 +626,7 @@ newaction {
         print("installing wasm tools for " .. os.target())
         
         if os.istarget("linux") then
-          
+         os.execute("cd ~;git clone https://github.com/emscripten-core/emsdk.git;cd emsdk;git pull;./emsdk install latest;./emsdk activate latest;source ./emsdk_env.sh;")
         end
 
         if os.istarget("windows") then
@@ -642,39 +642,109 @@ newaction {
 ---build
 newaction {
     trigger = "build_UCApp",
-    description = "installs compiler tool/librarys for wasm",
+    description = "builds the UCApp",
     execute = function ()
-        print("installing wasm tools for " .. os.target())
         
         if os.istarget("linux") then
-          
+         os.execute("make UCApp -j4")
         end
 
         if os.istarget("windows") then
-
+         os.execute("msbuild ../UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win64 -maxcpucount")
         end
         
         if os.istarget("macosx") then
-
+         os.execute("make UCApp -j4")
         end
     end
 }
 newaction {
-    trigger = "UCodelangCL",
-    description = "installs compiler tool/librarys for wasm",
+    trigger = "build_UCodelangCL",
+    description = "builds the UCodelangCL",
     execute = function ()
-        print("installing wasm tools for " .. os.target())
         
         if os.istarget("linux") then
-          
+         os.execute("make UCodelangCL -j4")
         end
 
         if os.istarget("windows") then
-
+         os.execute("msbuild ../UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win64 -maxcpucount")
         end
         
         if os.istarget("macosx") then
+         os.execute("make UCodelangCL -j4")
+        end
+    end
+}
+newaction {
+    trigger = "build",
+    description = "builds the everything",
+    execute = function ()
+        
+        if os.istarget("linux") then
+         os.execute("make -j4")
+        end
 
+        if os.istarget("windows") then
+         os.execute("msbuild ../UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win64 -maxcpucount")
+        end
+        
+        if os.istarget("macosx") then
+         os.execute("make -j4")
+        end
+    end
+}
+newaction {
+    trigger = "build_32bit",
+    description = "builds the everything",
+    execute = function ()
+        
+        if os.istarget("linux") then
+         os.execute("make -j4")
+        end
+
+        if os.istarget("windows") then
+         os.execute("msbuild ../UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win64 -maxcpucount")
+        end
+        
+        if os.istarget("macosx") then
+         os.execute("make -j4")
+        end
+    end
+}
+newaction {
+    trigger = "build_published",
+    description = "builds the everything",
+    execute = function ()
+        
+        if os.istarget("linux") then
+         os.execute("make config=published_linux64 -j4")
+        end
+
+        if os.istarget("windows") then
+         os.execute("msbuild ../UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win64 -maxcpucount")
+        end
+        
+        if os.istarget("macosx") then
+         os.execute("make config=published_macos -j4")
+        end
+    end
+}
+newaction {
+    trigger = "build_published_32bit",
+    description = "builds the everything",
+    execute = function ()
+        
+        if os.istarget("linux") then
+         os.execute("make config=published_linux32 -j4")
+        end
+
+        if os.istarget("windows") then
+         os.execute("msbuild ../UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win32 -maxcpucount")
+        end
+        
+        if os.istarget("macosx") then
+         os.execute("make config=published_macos -j4")
         end
     end
 }
@@ -684,7 +754,6 @@ newaction {
     trigger = "test",
     description = "installs compiler tool/librarys for wasm",
     execute = function ()
-        print("installing wasm tools for " .. os.target())
         
         if os.istarget("linux") then
           
@@ -696,6 +765,122 @@ newaction {
         
         if os.istarget("macosx") then
 
+        end
+    end
+}
+newaction {
+    trigger = "test_32bit",
+    description = "runs test for 32bit mode",
+    execute = function ()
+        
+        if os.istarget("linux") then
+          
+        end
+
+        if os.istarget("windows") then
+
+        end
+        
+        if os.istarget("macosx") then
+
+        end
+    end
+}
+
+---clean
+newaction {
+    trigger = "clean",
+    description = "clean project outputs",
+    execute = function ()
+
+        if os.istarget("linux") then
+         os.execute("make clean")
+        end
+
+        if os.istarget("windows") then
+         os.execute("msbuild UCodeLang.sln /t:Clean")
+        end
+        
+        if os.istarget("macosx") then
+         os.execute("make clean")
+        end
+    end
+}
+
+
+--web
+newaction {
+    trigger = "web_build",
+    description = "Builds for the Web",
+    execute = function ()
+
+        if os.istarget("linux") then
+         os.execute("emmake make config=debug_web -j4")
+        end
+
+        if os.istarget("windows") then
+         os.execute("emmake make config=debug_web -j4")
+        end
+        
+        if os.istarget("macosx") then
+         os.execute("emmake make config=debug_web -j4")
+        end
+    end
+}
+newaction {
+    trigger = "web_build_published",
+    description = "Builds for the Web",
+    execute = function ()
+        print("installing wasm tools for " .. os.target())
+        
+        if os.istarget("linux") then
+         os.execute("emmake make config=published_web -j4")
+        end
+
+        if os.istarget("windows") then
+         os.execute("emmake make config=published_web -j4")
+        end
+        
+        if os.istarget("macosx") then
+         os.execute("emmake make config=published_web -j4")
+        end
+    end
+}
+newaction {
+    trigger = "web_build_UCodeIDE",
+    description = "Builds for the Web",
+    execute = function ()
+
+        if os.istarget("linux") then
+         os.execute("emmake make UCodeIDE config=debug_web -j4")
+        end
+
+        if os.istarget("windows") then
+         os.execute("emmake make UCodeIDE config=debug_web -j4")
+        end
+        
+        if os.istarget("macosx") then
+         os.execute("emmake make UCodeIDE config=debug_web -j4")
+        end
+    end
+}
+
+--Docs
+newaction {
+    trigger = "build_Docs",
+    description = "build Docs",
+    execute = function ()
+
+        if os.istarget("linux") then
+         os.execute("cd ./UCodeDocumentation;./tools/mdbook build --dest-dir ../Output/UCodeDocumentation;cp -r ../Output/UCodeDocumentation ../UCodeWebsite/static")
+        end
+
+        if os.istarget("windows") then
+         os.execute("cd UCodeDocumentation;tools/mdbook.exe build --dest-dir ../Output/UCodeDocumentation;cp -r ../Output/UCodeDocumentation ../UCodeWebsite/static")
+        end
+        
+        if os.istarget("macosx") then
+         os.execute("emmake make UCodeIDE config=debug_web -j4")
         end
     end
 }

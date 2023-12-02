@@ -41,14 +41,10 @@ jobs:
         key: ${{ runner.os }}-cl-1
 
     - name: Build 64 bit
-      run: |
-           cd ./BuildTools
-           ./BuildWin64Debug.bat
+      run: ./premake.bat build
 
     - name: Build 32 bit
-      run: |
-           cd ./BuildTools
-           ./BuildWin32Debug.bat
+      run: ./premake.bat build_32bit
 
     - name: Save cached Objs
       id: cache-Objs-save
@@ -58,9 +54,10 @@ jobs:
         key: ${{ steps.cache-objs-restore.outputs.cache-primary-key }}
 
     - name: RunTests for 64 bit
-      run: |
-           cd ./BuildTools
-           ./RunTestsWin64Debug.bat
+      run: ./premake.bat test
+
+    - name: RunTests for 32 bit
+      run: ./premake.bat test_32bit
 
   gmake-linux-build:
    runs-on: ubuntu-latest
@@ -68,19 +65,13 @@ jobs:
    steps:
     - uses: actions/checkout@v3
 
-    - name: Get X11 Packages
-      run: sudo apt-get install libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev
-
-    - name: Get OpenGl Packages
-      run: sudo apt install mesa-common-dev
-
     - name: Make a scripts executable
       run: |
+       chmod +x ./InstallTools.sh
        chmod +x ./GNU_Make.sh
-       chmod +x ./BuildTools/BuildLinux32Debug.sh
-       chmod +x ./BuildTools/BuildLinux64Debug.sh
-       chmod +x ./BuildTools/RunTestsLinux32Debug.sh
-       chmod +x ./BuildTools/RunTestsLinux64Debug.sh
+
+    - name: Run Premake Install
+      run: ./InstallTools.sh
 
     - name: Run Premake
       run: ./GNU_Make.sh
@@ -93,7 +84,7 @@ jobs:
         key: ${{ runner.os }}-cl-1inux
 
     - name: Build 64 bit
-      run: ./BuildTools/BuildLinux64Debug.sh
+      run: ./premake.sh build
 
     - name: Save cached Objs
       if: always()
@@ -104,7 +95,7 @@ jobs:
         key: ${{ steps.cache-objs-restore.outputs.cache-primary-key }}
 
     - name: RunTests for 64 bit
-      run: ./BuildTools/RunTestsLinux64Debug.sh
+      run: ./premake.bat test
 
   clang-macos-build:
    runs-on: macos-latest
@@ -112,17 +103,16 @@ jobs:
    steps:
     - uses: actions/checkout@v3
 
-    - name: Get glfw
-      run: brew install glfw
-    
     - name: Make a scripts executable
       run: |
-       chmod +x ./GNU_MakeMacOS.sh
-       chmod +x ./BuildTools/BuildMacOSDebug.sh
-       chmod +x ./BuildTools/RunTestsMacOSDebug.sh
+       chmod +x ./InstallTools.sh
+       chmod +x ./GNU_Make.sh
+
+    - name: Run Premake Install
+      run: ./InstallTools.sh
 
     - name: Run Premake
-      run: ./GNU_MakeMacOS.sh
+      run: ./GNU_Make.sh
 
     - name: Restore cached objs
       id: cache-objs-restore
@@ -132,7 +122,7 @@ jobs:
         key: ${{ runner.os }}-cl-1
 
     - name: Build 
-      run: ./BuildTools/BuildMacOSDebug.sh
+      run: ./premake.sh build
 
     - name: Save cached Objs
       if: always()
@@ -143,4 +133,39 @@ jobs:
         key: ${{ steps.cache-objs-restore.outputs.cache-primary-key }}
 
     - name: RunTests
-      run: ./BuildTools/RunTestsMacOSDebug.sh
+      run: ./premake.sh test
+
+  gmake-wasm-build:
+   runs-on: ubuntu-latest
+
+   steps:
+    - uses: actions/checkout@v3
+
+    - name: Make a scripts executable
+      run: |
+       chmod +x ./GNU_Make.sh
+
+    - name: Run Premake Install
+      run: ./premake.sh installwasm
+
+    - name: Run Premake
+      run: ./GNU_Make.sh
+    
+    - name: Restore cached objs
+      id: cache-objs-restore
+      uses: actions/cache/restore@v3
+      with:
+        path: ./Output
+        key: ${{ runner.os }}-cl-1inux
+
+    - name: Build Wasm
+      run: ./premake.sh web_build
+
+    - name: Save cached Objs
+      if: always()
+      id: cache-Objs-save
+      uses: actions/cache/save@v3
+      with:
+        path: ./Output
+        key: ${{ steps.cache-objs-restore.outputs.cache-primary-key }}
+
