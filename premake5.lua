@@ -586,3 +586,55 @@ group "UCodeAPIs"
     --UCPathExe.." build %{prj.location} -c11",
    }
    end
+newaction {
+    trigger = "install",
+    description = "installs compiler tool/librarys",
+    execute = function ()
+        print("----installing tools for " .. os.target())
+        
+        if os.istarget("linux") then
+
+          os.execute("sudo apt-get update")
+
+          print("----downloading libx11 Packages")
+          os.execute("sudo apt-get install libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev")
+
+          print("----downloading opengl Packages")
+          os.execute("sudo apt install mesa-common-dev")
+          
+          print("----installing tools completed");
+        end
+
+        if os.istarget("windows") then
+
+        end
+        
+        if os.istarget("macosx") then
+          
+           print("----downloading glfw Packages")
+
+           os.execute("brew install glfw")
+          
+          print("----installing tools completed");
+        end
+    end
+}
+newaction {
+    trigger = "installwasm",
+    description = "installs compiler tool/librarys for wasm",
+    execute = function ()
+        print("installing wasm tools for " .. os.target())
+        
+        if os.istarget("linux") then
+          
+        end
+
+        if os.istarget("windows") then
+
+        end
+        
+        if os.istarget("macosx") then
+
+        end
+    end
+}
