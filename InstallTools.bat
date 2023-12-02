@@ -1,1 +1,1 @@
-././Dependencies/bin/premake/premake5 install
+call Dependencies\bin\premake\premake5.exe install
