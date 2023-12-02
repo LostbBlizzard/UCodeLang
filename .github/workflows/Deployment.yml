@@ -66,15 +66,11 @@ jobs:
           key: ${{ runner.os }}-deployment
 
       - name: Build 64 bit
-        run: |
-           cd ./BuildTools
-           ./BuildWin64Published.bat
+        run: ./premake.bat build
 
       - name: Build 32 bit
         if: ${{ inputs.IsPreRelease == false}}
-        run: |
-           cd ./BuildTools
-           ./BuildWin32Published.bat
+        run: ./premake.bat build_32bit
 
       - name: Save cached Objs
         if: always()
@@ -150,14 +146,14 @@ jobs:
       - name: Make a scripts executable
         run: |
          chmod +x ./InstallTools.sh
-         chmod +x ./GNU_MakeMacOS.sh
+         chmod +x ./GNU_Make.sh
          chmod +x ./BuildTools/RunTestsMacOSDebug.sh
 
       - name: Run Premake Install
         run: ./InstallTools.sh
 
       - name: Run Premake
-        run: ./GNU_MakeMacOS.sh
+        run: ./GNU_Make.sh
 
       - name: Restore cached objs
         id: cache-objs-restore

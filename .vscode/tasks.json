@@ -2,105 +2,36 @@
     "version": "2.0.0",
     "tasks": [
       {
-        "label": "Build UCApp",
-        "osx": {
-          "command": "make",
-          "args": [
-            "UCApp",
-            "-j4"
-          ]
-        },
-        "linux": {
-          "command": "make",
-          "args": [
-            "UCApp",
-            "-j4"
-          ],
-          "problemMatcher": ["$gcc"],
-        },
-        "windows": {
-          "command": "msbuild",
-          "args": [
-            "UCApp/UCApp.vcxproj",
-            "-v:m",
-            "-maxcpucount",
-            "/property:GenerateFullPaths=true"
-          ]
-        },
-        "problemMatcher": [
-          "$msCompile"
-        ],
+        "label": "build UCApp",
+        "command": "./premake5.sh",
+        "windows":{"command": "premake5.bat"},
+
+        "args": ["build_UCApp"],
         "group": "build"
       },
       {
-        "label": "Build UCodeIDE",
-        "osx": {
-          "command": "make",
-          "args": [
-            "UCodeIDE",
-            "-j4"
-          ]
-        },
-        "linux": {
-          "command": "make",
-          "args": [
-            "UCodeIDE",
-            "-j4"
-          ],
-          "problemMatcher": ["$gcc"],
-        },
-        "windows": {
-          "command": "msbuild",
-          "args": [
-            "UCApp/UCApp.vcxproj",
-            "-v:m",
-            "-maxcpucount",
-            "/property:GenerateFullPaths=true"
-          ]
-        },
+        "label": "build_UCodeIDE",
+        "command": "./premake5.sh",
+        "windows":{"command": "premake5.bat"},
+
+        "args": ["build_UCodeIDE"],
         "group": "build"
       },
       {
         "label": "Build UCodelangCL",
-        "osx": {
-          "command": "make",
-          "args": [
-            "UCodelangCL",
-            "-j4"
-          ]
-        },
-        "linux": {
-          "command": "make",
-          "args": [
-            "UCodelangCL",
-            "-j4"
-          ],
-          "problemMatcher": ["$gcc"],
-        },
-        "windows": {
-          "command": "msbuild",
-          "args": [
-            "UCodelangCL/UCodelangCL.vcxproj",
-            "-v:m",
-            "-maxcpucount",
-            "/property:GenerateFullPaths=true"
-          ]
-        },
+        "command": "./premake5.sh",
+        "windows":{"command": "premake5.bat"},
+
+        "args": ["build_UCodelangCL"],
         "group": "build"
       },
       {
         "label": "run UCApp test",
-        "command": "./BuildTools/RunTestsLinux64Debug.sh",
-        "dependsOn": [
-          "Build UCApp"
-        ],
-        "problemMatcher": [
-          "$msCompile"
-        ],
-        "group": {
-          "kind": "test",
-          "isDefault": true
-        },
+        "command": "./premake5.sh",
+        "windows":{"command": "premake5.bat"},
+
+        "args": ["test"],
+        "group": "test"
       },
       {
         "label": "clean",
@@ -122,17 +53,13 @@
             "UCodeLang.sln /t:Clean"
           ]
         },
-        "group": "none"
+        "group": "build"
       },
       {
-        "label": "run premake vs2019",
-        "command": "VS_2019.bat",
-        "group": "none",
-      },
-      {
-        "label": "run premake vs2020",
-        "command": "VS_2020.bat",
-        "group": "none",
+        "label": "run premake",
+        "command": "GNU_Make.sh",
+        "windows": {"command": "VS_2022.bat"},
+        "group": "build"
       },
       {
         "label": "Build UCodeWebsite",
@@ -145,43 +72,26 @@
       },
       {
         "label": "Build using emscripten",
-        "command": "emmake",
-        "args": [
-          "make",
-          "config=debug_web",
-          "-j4",
-        ],
+        "command": "./premake.sh",
+        "windows":{"command": "premake.bat"},
+
+        "args": ["web_build"],
         "group": "build",
       },
       {
         "label": "Build (UCodeIDE) using emscripten",
-        "command": "emmake",
-        "args": [
-          "make",
-          "UCodeIDE",
-          "config=debug_web",
-          "-j4",
-        ],
-        "group": "build",
-      },
-      {
-        "label": "Build (UCodeCL) using emscripten",
-        "command": "emmake",
-        "args": [
-          "make",
-          "UCodelangCL",
-          "config=debug_web",
-          "-j4",
-        ],
+        "command": "./premake.sh",
+        "windows":{"command": "premake.bat"},
+        
+        "args": ["web_build_UCodeIDE"],
         "group": "build",
       },
       {
         "label": "Build UCodeDocumentation",
-        "command": "Build.sh",
+        "command": "./premake.sh",
+        "windows":{"command": "premake.bat"},
+        "args": ["build_Docs"],
         "group": "build",
-        "options": {
-          "cwd": "${workspaceFolder}/UCodeDocumentation"
-        },
       },
       {
         "label": "Launch Website",

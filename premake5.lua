@@ -638,3 +638,64 @@ newaction {
         end
     end
 }
+
+---build
+newaction {
+    trigger = "build_UCApp",
+    description = "installs compiler tool/librarys for wasm",
+    execute = function ()
+        print("installing wasm tools for " .. os.target())
+        
+        if os.istarget("linux") then
+          
+        end
+
+        if os.istarget("windows") then
+
+        end
+        
+        if os.istarget("macosx") then
+
+        end
+    end
+}
+newaction {
+    trigger = "UCodelangCL",
+    description = "installs compiler tool/librarys for wasm",
+    execute = function ()
+        print("installing wasm tools for " .. os.target())
+        
+        if os.istarget("linux") then
+          
+        end
+
+        if os.istarget("windows") then
+
+        end
+        
+        if os.istarget("macosx") then
+
+        end
+    end
+}
+
+---test
+newaction {
+    trigger = "test",
+    description = "installs compiler tool/librarys for wasm",
+    execute = function ()
+        print("installing wasm tools for " .. os.target())
+        
+        if os.istarget("linux") then
+          
+        end
+
+        if os.istarget("windows") then
+
+        end
+        
+        if os.istarget("macosx") then
+
+        end
+    end
+}
