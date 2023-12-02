@@ -2922,7 +2922,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetPointerOf(const IRlocData& 
 		if (T.Types.has_value()) 
 		{
 			auto& TV = T.Types.value();
-			auto& staicdata = _Stack.Get(stack.offset).value();
+			auto staicdata = _Stack.Get(stack.offset).value();
 			if (auto v = TV.Get_If<const IRInstruction*>())
 			{
 				staicdata->IR = *v;
