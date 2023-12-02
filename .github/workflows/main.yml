@@ -156,9 +156,76 @@ jobs:
       uses: actions/cache/restore@v3
       with:
         path: ./Output
-        key: ${{ runner.os }}-cl-1inux
+        key: ${{ runner.os }}-cl-wasm
 
     - name: Build Wasm
+      run: ./premake.sh web_build
+
+    - name: Save cached Objs
+      if: always()
+      id: cache-Objs-save
+      uses: actions/cache/save@v3
+      with:
+        path: ./Output
+        key: ${{ steps.cache-objs-restore.outputs.cache-primary-key }}
+  
+  gmake-android-build:
+   runs-on: ubuntu-latest
+
+   steps:
+    - uses: actions/checkout@v3
+
+    - name: Make a scripts executable
+      run: |
+       chmod +x ./GNU_Make.sh
+
+    - name: Run Premake Install
+      run: ./premake.sh installandroidsdk
+
+    - name: Run Premake
+      run: ./GNU_Make.sh
+    
+    - name: Restore cached objs
+      id: cache-objs-restore
+      uses: actions/cache/restore@v3
+      with:
+        path: ./Output
+        key: ${{ runner.os }}-cl-android
+
+    - name: Build (Arm64)
+      run: ./premake.sh web_build
+
+    - name: Save cached Objs
+      if: always()
+      id: cache-Objs-save
+      uses: actions/cache/save@v3
+      with:
+        path: ./Output
+        key: ${{ steps.cache-objs-restore.outputs.cache-primary-key }}
+  
+  gmake-ios-build:
+   runs-on: "macos-latest"
+   steps:
+    - uses: actions/checkout@v3
+
+    - name: Make a scripts executable
+      run: |
+       chmod +x ./GNU_Make.sh
+
+    - name: Run Premake Install
+      run: ./premake.sh install
+
+    - name: Run Premake
+      run: ./GNU_Make.sh
+    
+    - name: Restore cached objs
+      id: cache-objs-restore
+      uses: actions/cache/restore@v3
+      with:
+        path: ./Output
+        key: ${{ runner.os }}-cl-ios
+
+    - name: Build
       run: ./premake.sh web_build
 
     - name: Save cached Objs
