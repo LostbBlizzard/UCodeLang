@@ -66,11 +66,11 @@ jobs:
           key: ${{ runner.os }}-deployment
 
       - name: Build 64 bit
-        run: ./premake.bat build
+        run: ./premake.bat build_published
 
       - name: Build 32 bit
         if: ${{ inputs.IsPreRelease == false}}
-        run: ./premake.bat build_32bit
+        run: ./premake.bat build_published_32bit
 
       - name: Save cached Objs
         if: always()
@@ -100,8 +100,6 @@ jobs:
         run: |
           chmod +x ./InstallTools.sh
           chmod +x ./GNU_Make.sh
-          chmod +x ./BuildTools/BuildLinux32Published.sh
-          chmod +x ./BuildTools/BuildLinux64Published.sh
 
       - name: Run Premake Install
         run: ./InstallTools.sh
@@ -117,7 +115,7 @@ jobs:
           key: ${{ runner.os }}-deployment
 
       - name: Build 64 bit
-        run: make config=published_linux64 -j4
+        run: ./premake.sh build_published
 
       - name: Save cached Objs
         if: always()
@@ -147,7 +145,6 @@ jobs:
         run: |
          chmod +x ./InstallTools.sh
          chmod +x ./GNU_Make.sh
-         chmod +x ./BuildTools/RunTestsMacOSDebug.sh
 
       - name: Run Premake Install
         run: ./InstallTools.sh
@@ -163,7 +160,7 @@ jobs:
           key: ${{ runner.os }}-deployment
 
       - name: Build 
-        run: make config=published_macos -j4
+        run: ./premake.sh build_published
 
       - name: Save cached 
         if: always()

@@ -35,24 +35,10 @@
       },
       {
         "label": "clean",
-        "osx": {
-          "command": "make",
-          "args": [
-            "clean"
-          ]
-        },
-        "linux": {
-          "command": "make",
-          "args": [
-            "clean"
-          ]
-        },
-        "windows": {
-          "command": "msbuild",
-          "args": [
-            "UCodeLang.sln /t:Clean"
-          ]
-        },
+        "command": "./premake5.sh",
+        "windows":{"command": "premake5.bat"},
+
+        "args": ["clean"],
         "group": "build"
       },
       {
