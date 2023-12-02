@@ -1177,16 +1177,14 @@ void CppHelper::DoEnumType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnal
 
 				
 				if (Exclude==false) {
-					_type.Fields.push_back(std::move(field));
+					if (field.Name.size()) {
+						_type.Fields.push_back(std::move(field));
+					}
 				}
 				
 				if (Scope[i] != ',')
 				{
 					break;
-				}
-				else 
-				{
-					i++;
 				}
 
 			}
