@@ -71,7 +71,7 @@ $Vec2:   //size 8
 
 $Weapon;//size 0
 
-$Player: //32
+$Player: //size 32
  Vec2 pos;//offset 0
  Vector<Weapon> Weapons;//offset 8
 
@@ -235,7 +235,6 @@ int main()
   else 
   {
     //your code some how failed to compile
-    ULangTest::LogErrors(std::cout, myCompiler); 
   }
 }
 ```
@@ -258,27 +257,54 @@ git clone https://github.com/LostbBlizzard/UCodeLang.git
 cd ./UCodeLang
 ```
 
+
 After geting the Project Files Run.
+- The InstallTools.bat file(If Your On Windows)
+```
+InstallTools.bat
+```
+
+- The InstallTools.sh file(If Your On Linux or MacOS)
+```
+./InstallTools.sh
+```
+the Last Step is uneeded if you dont need to build UCodeIDE.
+
+
+
+
+Next Run.
 
 - The VS_2019.bat file(If you use VS 2019) to build vs project files and open the project in visual studio.
+```
+./VS_2019.bat
+```
 
 - The VS_2022.bat file(If you use VS 2022) to build vs project files and open the project in visual studio.
+```
+./VS_2022.bat
+```
 
 - The GNU_Make.bat file(If you use GCC on windows) and run "make" to build it.
-
-- The GNU_Make.sh file(If you use GCC on linux or Mac) and run "make" to build it. or run
-
 ```
 ./GNU_Make.sh
 ```
+```
+make
+```
 
-
+- The GNU_Make.sh file(If you use GCC on linux or Mac) and run "make" to build it. or run
+```
+./GNU_Make.sh
+```
 ```
 make
 ```
 
 - The XCode.sh file(If you use XCode) and and open the project in XCode.
-
+```
+./XCode.sh
+```
 
 
 
