@@ -52,6 +52,9 @@ jobs:
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
 
+      - name: Run Premake Install
+        run: ./InstallTools.bat
+
       - name: Run Premake
         run: ./VS_2019.bat
 
@@ -97,19 +100,16 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Get X11 Packages
-        run: sudo apt-get install libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev
-
-      - name: Get OpenGl Packages
-        run: sudo apt install mesa-common-dev
-
       - name: Make a scripts executable
         run: |
+          chmod +x ./InstallTools.sh
           chmod +x ./GNU_Make.sh
           chmod +x ./BuildTools/BuildLinux32Published.sh
           chmod +x ./BuildTools/BuildLinux64Published.sh
 
-          
+      - name: Run Premake Install
+        run: ./InstallTools.sh
+
       - name: Run Premake
         run: ./GNU_Make.sh
 
@@ -146,14 +146,15 @@ jobs:
     
     steps:
       - uses: actions/checkout@v3
-
-      - name: Get glfw
-        run: brew install glfw
     
       - name: Make a scripts executable
         run: |
+         chmod +x ./InstallTools.sh
          chmod +x ./GNU_MakeMacOS.sh
          chmod +x ./BuildTools/RunTestsMacOSDebug.sh
+
+      - name: Run Premake Install
+        run: ./InstallTools.sh
 
       - name: Run Premake
         run: ./GNU_MakeMacOS.sh
