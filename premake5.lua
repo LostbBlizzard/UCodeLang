@@ -626,7 +626,28 @@ newaction {
         print("installing wasm tools for " .. os.target())
         
         if os.istarget("linux") then
-         os.execute("cd ~;git clone https://github.com/emscripten-core/emsdk.git;cd emsdk;git pull;./emsdk install latest;./emsdk activate latest;source ./emsdk_env.sh;echo 'source "/home/runner/emsdk/emsdk_env.sh"' >> $HOME/.bash_profile;")
+         os.execute("cd ~;git clone https://github.com/emscripten-core/emsdk.git;cd emsdk;git pull;./emsdk install latest;./emsdk activate latest;source ./emsdk_env.sh;")
+         os.execute("echo 'source \"/home/runner/emsdk/emsdk_env.sh\"' >> $HOME/.bash_profile;")
+        end
+
+        if os.istarget("windows") then
+
+        end
+        
+        if os.istarget("macosx") then
+         os.execute("cd ~;git clone https://github.com/emscripten-core/emsdk.git;cd emsdk;git pull;./emsdk install latest;./emsdk activate latest;source ./emsdk_env.sh;")
+         os.execute("echo 'source \"/home/runner/emsdk/emsdk_env.sh\"' >> $HOME/.bash_profile;")
+        end
+    end
+}
+newaction {
+    trigger = "installandroidsdk",
+    description = "installs compiler tool/librarys for android",
+    execute = function ()
+        print("installing wasm tools for " .. os.target())
+        
+        if os.istarget("linux") then
+         os.execute("sudo apt update && sudo apt install android-sdk")
         end
 
         if os.istarget("windows") then
@@ -807,6 +828,26 @@ newaction {
     end
 }
 
+--Docs
+newaction {
+    trigger = "build_Docs",
+    description = "build Docs",
+    execute = function ()
+
+        if os.istarget("linux") then
+         os.execute("cd ./UCodeDocumentation;./tools/mdbook build --dest-dir ../Output/UCodeDocumentation;cp -r ../Output/UCodeDocumentation ../UCodeWebsite/static")
+        end
+
+        if os.istarget("windows") then
+         os.execute("cd UCodeDocumentation;tools/mdbook.exe build --dest-dir ../Output/UCodeDocumentation;cp -r ../Output/UCodeDocumentation ../UCodeWebsite/static")
+        end
+        
+        if os.istarget("macosx") then
+         os.execute("emmake make UCodeIDE config=debug_web -j4")
+        end
+    end
+}
+
 
 --web
 newaction {
@@ -865,22 +906,44 @@ newaction {
     end
 }
 
---Docs
+--android
 newaction {
-    trigger = "build_Docs",
-    description = "build Docs",
+    trigger = "android_build",
+    description = "Builds for Android",
     execute = function ()
 
         if os.istarget("linux") then
-         os.execute("cd ./UCodeDocumentation;./tools/mdbook build --dest-dir ../Output/UCodeDocumentation;cp -r ../Output/UCodeDocumentation ../UCodeWebsite/static")
+        
         end
 
         if os.istarget("windows") then
-         os.execute("cd UCodeDocumentation;tools/mdbook.exe build --dest-dir ../Output/UCodeDocumentation;cp -r ../Output/UCodeDocumentation ../UCodeWebsite/static")
+        
         end
         
         if os.istarget("macosx") then
-         os.execute("emmake make UCodeIDE config=debug_web -j4")
+       
         end
     end
 }
+
+--ios
+newaction {
+    trigger = "ios_build",
+    description = "Builds for Ios",
+    execute = function ()
+
+        if os.istarget("linux") then
+
+        end
+
+        if os.istarget("windows") then
+
+        end
+        
+        if os.istarget("macosx") then
+         
+        end
+    end
+}
+
+
