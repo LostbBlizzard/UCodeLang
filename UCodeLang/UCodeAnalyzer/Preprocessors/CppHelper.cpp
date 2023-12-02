@@ -834,7 +834,15 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 									size_t ParCount = 0;
 									for (auto& Par : Item.Pars)
 									{
-										Linkstr += Par;
+										String tepstr = Par;
+
+										if (tepstr.back() == '*' && Item.MyData->Pars[ParCount].Type.mode ==
+											CppHelper::CPPType::Mode::Address)
+										{
+											tepstr.back() = '&';
+										}
+										Linkstr += tepstr;
+
 
 										Linkstr += " Par";
 										Linkstr += std::to_string(ParCount);
@@ -870,12 +878,6 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 									size_t ParCount = 0;
 									for (auto& Par : Item.Pars)
 									{
-
-										if (Item.MyData->Pars[ParCount].Type.mode ==
-											CppHelper::CPPType::Mode::Address)
-										{
-											Linkstr += "*";
-										}
 										Linkstr += "Par" + std::to_string(ParCount);
 										if (&Par != &Item.Pars.back())
 										{
