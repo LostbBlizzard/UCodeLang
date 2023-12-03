@@ -146,8 +146,9 @@ jobs:
        chmod +x ./GNU_Make.sh
 
     - name: Run Premake Install
-      run: mymindstorm/setup-emsdk@v13
+      uses: mymindstorm/setup-emsdk@v13
 
+      
     - name: Run Premake
       run: ./GNU_Make.sh
     
