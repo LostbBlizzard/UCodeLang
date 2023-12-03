@@ -627,9 +627,9 @@ newaction {
         
         if os.istarget("linux") or os.istarget("macosx") then
 
-         if not os.isfile("~/emsdk/emsdk") then
+         if true then
            os.execute("cd ~;git clone https://github.com/emscripten-core/emsdk.git;cd emsdk;git pull;./emsdk install latest;./emsdk activate latest;source ./emsdk_env.sh;")
-           os.execute("echo 'source \"/home/runner/emsdk/emsdk_env.sh\"' >> $HOME/.bash_profile;")
+           os.execute("echo \'source \"/home/runner/emsdk/emsdk_env.sh\"\' >> $HOME/.bash_profile;")
          else 
            print("emscripten is already installed")
          end
@@ -675,7 +675,7 @@ newaction {
         end
 
         if os.istarget("windows") then
-         os.execute("msbuild ../UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win64 -maxcpucount")
+         os.execute("msbuild UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win64 -maxcpucount")
         end
         
         if os.istarget("macosx") then
@@ -693,7 +693,7 @@ newaction {
         end
 
         if os.istarget("windows") then
-         os.execute("msbuild ../UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win64 -maxcpucount")
+         os.execute("msbuild UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win64 -maxcpucount")
         end
         
         if os.istarget("macosx") then
@@ -711,7 +711,7 @@ newaction {
         end
 
         if os.istarget("windows") then
-         os.execute("msbuild ../UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win64 -maxcpucount")
+         os.execute("msbuild UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win64 -maxcpucount")
         end
         
         if os.istarget("macosx") then
@@ -729,7 +729,7 @@ newaction {
         end
 
         if os.istarget("windows") then
-         os.execute("msbuild ../UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win64 -maxcpucount")
+         os.execute("msbuild UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win64 -maxcpucount")
         end
         
         if os.istarget("macosx") then
@@ -747,7 +747,7 @@ newaction {
         end
 
         if os.istarget("windows") then
-         os.execute("msbuild ../UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win64 -maxcpucount")
+         os.execute("msbuild UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win64 -maxcpucount")
         end
         
         if os.istarget("macosx") then
@@ -765,7 +765,7 @@ newaction {
         end
 
         if os.istarget("windows") then
-         os.execute("msbuild ../UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win32 -maxcpucount")
+         os.execute("msbuild UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win32 -maxcpucount")
         end
         
         if os.istarget("macosx") then
