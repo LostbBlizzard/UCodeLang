@@ -814,6 +814,14 @@ IRidentifierID SystematicAnalysis::IR_Build_ConvertToStaticArray(const Symbol& C
 	}
 	const StaticArrayInfo* clasinfo = Class.Get_Info <StaticArrayInfo>();
 
+
+	if (clasinfo->Type.IsTypeInfo())
+	{
+		IRidentifierID V = 0;
+		_Symbol_SybToIRMap.AddValue(ClassSybID, V);
+		return V;
+	}
+
 	IRidentifierID V = _IR_Builder.ToID(Class.FullName);
 
 

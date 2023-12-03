@@ -268,9 +268,9 @@ UCodeTestStart
 		size_t End;
 	};
 	static const Vector<SkipTestRange> UCodeVmSkipTests
-		= { {72, Tests.size() } };
+		= { {75, Tests.size() } };
 	static const Vector<SkipTestRange> C89SkipTests
-		= { {72, Tests.size() } };
+		= { {75, Tests.size() } };
 	static const Vector<SkipTestRange> WasmSkipTests
 		= { {4, Tests.size() } };
 
