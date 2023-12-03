@@ -169,7 +169,7 @@ jobs:
         path: ./Output
         key: ${{ steps.cache-objs-restore.outputs.cache-primary-key }}
   
-  gmake-android-build:
+  clangntk-android-build:
    runs-on: ubuntu-latest
 
    steps:
