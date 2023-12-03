@@ -17,7 +17,6 @@ on:
 jobs:
 
   msbuild-windows-build:
-    if: 'false'
     runs-on: windows-latest
 
     steps:
@@ -61,7 +60,6 @@ jobs:
       run: ./premake.bat test_32bit
 
   gmake-linux-build:
-   if: 'false'
    runs-on: ubuntu-latest
 
    steps:
@@ -100,7 +98,6 @@ jobs:
       run: ./premake.sh test
 
   clang-macos-build:
-   if: 'false'
    runs-on: macos-latest
 
    steps:
@@ -139,7 +136,6 @@ jobs:
       run: ./premake.sh test
 
   gmake-wasm-build:
-   if: 'false'
    runs-on: ubuntu-latest
 
    steps:
@@ -210,6 +206,7 @@ jobs:
         key: ${{ steps.cache-objs-restore.outputs.cache-primary-key }}
   
   clang-ios-build:
+   if: 'false'
    runs-on: "macos-latest"
    steps:
     - uses: actions/checkout@v3
