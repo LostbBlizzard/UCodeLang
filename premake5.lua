@@ -629,8 +629,7 @@ newaction {
 
          if true then
            os.execute("cd ~;git clone https://github.com/emscripten-core/emsdk.git;cd emsdk;git pull;./emsdk install latest;./emsdk activate latest;source ./emsdk_env.sh;")
-           os.execute("echo \'source \"/home/emsdk/emsdk_env.sh\"\' >> $HOME/.bash_profile;")
-         else 
+        else 
            print("emscripten is already installed")
          end
         end
@@ -877,7 +876,7 @@ newaction {
     execute = function ()
 
         if os.istarget("linux") then
-         os.execute("emmake make config=debug_web -j4")
+         os.execute("source ./emsdk_env.sh;emmake make config=debug_web -j4")
         end
 
         if os.istarget("windows") then
@@ -885,7 +884,7 @@ newaction {
         end
         
         if os.istarget("macosx") then
-         os.execute("emmake make config=debug_web -j4")
+         os.execute("source ./emsdk_env.sh;emmake make config=debug_web -j4")
         end
     end
 }
@@ -962,7 +961,7 @@ newaction {
         end
         
         if os.istarget("macosx") then
-         
+         os.execute("make config=debug_ios -j4")
         end
     end
 }
