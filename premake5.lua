@@ -638,12 +638,29 @@ newaction {
         if os.istarget("windows") then
 
         end
+    end
+}
+newaction {
+    trigger = "installgcc32",
+    description = "installs compiler tool/librarys for linux32",
+    execute = function ()
+        print("----installing gcc32 tools for " .. os.target())
+        
+        if os.istarget("linux") then
+          os.execute("sudo apt-get install gcc-multilib")
+          os.execute("sudo apt-get install g++-multilib")
+        end
+
+        if os.istarget("windows") then
+
+        end
         
         if os.istarget("macosx") then
 
         end
     end
 }
+
 newaction {
     trigger = "installandroidsdk",
     description = "installs compiler tool/librarys for android",
@@ -721,15 +738,15 @@ newaction {
 }
 newaction {
     trigger = "build_32bit",
-    description = "builds the everything",
+    description = "builds everything",
     execute = function ()
         
         if os.istarget("linux") then
-         os.execute("make -j4")
+         os.execute("make config=debug_linux32 -j4")
         end
 
         if os.istarget("windows") then
-         os.execute("msbuild UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win64 -maxcpucount")
+         os.execute("msbuild UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win32 -maxcpucount")
         end
         
         if os.istarget("macosx") then
@@ -739,7 +756,7 @@ newaction {
 }
 newaction {
     trigger = "build_published",
-    description = "builds the everything",
+    description = "builds everything",
     execute = function ()
         
         if os.istarget("linux") then
@@ -781,11 +798,11 @@ newaction {
     execute = function ()
         
         if os.istarget("linux") then
-          
+          os.execute("cd ./UCApp;../Output/UCApp/linux64/Debug/UCApp --RunTests")
         end
 
         if os.istarget("windows") then
-
+          os.execute("cd ./UCApp;../Output/UCApp/Win64/Debug/UCApp.exe --RunTests")
         end
         
         if os.istarget("macosx") then
@@ -799,11 +816,11 @@ newaction {
     execute = function ()
         
         if os.istarget("linux") then
-          
+         os.execute("cd ./UCApp;../Output/UCApp/linux64/Debug/UCApp --RunTests")
         end
 
         if os.istarget("windows") then
-
+         os.execute("cd ./UCApp;../Output/UCApp/Win32/Debug/UCApp.exe --RunTests")
         end
         
         if os.istarget("macosx") then
