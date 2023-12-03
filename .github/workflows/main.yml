@@ -95,7 +95,7 @@ jobs:
         key: ${{ steps.cache-objs-restore.outputs.cache-primary-key }}
 
     - name: RunTests for 64 bit
-      run: ./premake.bat test
+      run: ./premake.sh test
 
   clang-macos-build:
    runs-on: macos-latest
@@ -169,7 +169,7 @@ jobs:
         path: ./Output
         key: ${{ steps.cache-objs-restore.outputs.cache-primary-key }}
   
-  clangntk-android-build:
+  clang-android-build:
    runs-on: ubuntu-latest
 
    steps:
@@ -203,7 +203,7 @@ jobs:
         path: ./Output
         key: ${{ steps.cache-objs-restore.outputs.cache-primary-key }}
   
-  gmake-ios-build:
+  clang-ios-build:
    runs-on: "macos-latest"
    steps:
     - uses: actions/checkout@v3

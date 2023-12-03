@@ -789,15 +789,6 @@ using namespace UCodeLang;
 				Vector<std::future<bool>> List;
 				List.resize(Tests.size());
 
-				
-				//geting gcc on 32 bit is a hassle
-				#if UCodeLang_32BitSytem
-				if (mode == TestMode::CLang89BackEnd) {
-					MyTestInfo.TestsSkiped += Tests.size();
-					continue;
-				}
-				#endif
-
 				if (mode == TestMode::WasmBackEnd && hasnode == false)
 				{
 					MyTestInfo.TestsSkiped += Tests.size();
