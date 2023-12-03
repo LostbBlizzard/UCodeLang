@@ -629,7 +629,7 @@ newaction {
 
          if true then
            os.execute("cd ~;git clone https://github.com/emscripten-core/emsdk.git;cd emsdk;git pull;./emsdk install latest;./emsdk activate latest;source ./emsdk_env.sh;")
-           os.execute("echo \'source \"/home/runner/emsdk/emsdk_env.sh\"\' >> $HOME/.bash_profile;")
+           os.execute("echo \'source \"/home/emsdk/emsdk_env.sh\"\' >> $HOME/.bash_profile;")
          else 
            print("emscripten is already installed")
          end
