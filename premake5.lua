@@ -623,11 +623,16 @@ newaction {
     trigger = "installwasm",
     description = "installs compiler tool/librarys for wasm",
     execute = function ()
-        print("installing wasm tools for " .. os.target())
+        print("----installing wasm tools for " .. os.target())
         
-        if os.istarget("linux") then
-         os.execute("cd ~;git clone https://github.com/emscripten-core/emsdk.git;cd emsdk;git pull;./emsdk install latest;./emsdk activate latest;source ./emsdk_env.sh;")
-         os.execute("echo 'source \"/home/runner/emsdk/emsdk_env.sh\"' >> $HOME/.bash_profile;")
+        if os.istarget("linux") or os.istarget("macosx") then
+
+         if not os.isfile("~/emsdk/emsdk") then
+           os.execute("cd ~;git clone https://github.com/emscripten-core/emsdk.git;cd emsdk;git pull;./emsdk install latest;./emsdk activate latest;source ./emsdk_env.sh;")
+           os.execute("echo 'source \"/home/runner/emsdk/emsdk_env.sh\"' >> $HOME/.bash_profile;")
+         else 
+           print("emscripten is already installed")
+         end
         end
 
         if os.istarget("windows") then
@@ -635,8 +640,7 @@ newaction {
         end
         
         if os.istarget("macosx") then
-         os.execute("cd ~;git clone https://github.com/emscripten-core/emsdk.git;cd emsdk;git pull;./emsdk install latest;./emsdk activate latest;source ./emsdk_env.sh;")
-         os.execute("echo 'source \"/home/runner/emsdk/emsdk_env.sh\"' >> $HOME/.bash_profile;")
+
         end
     end
 }
@@ -644,10 +648,10 @@ newaction {
     trigger = "installandroidsdk",
     description = "installs compiler tool/librarys for android",
     execute = function ()
-        print("installing wasm tools for " .. os.target())
+        print("----installing android sdk tools for " .. os.target())
         
         if os.istarget("linux") then
-         os.execute("sudo apt update && sudo apt install android-sdk")
+         --os.execute("sudo apt update && sudo apt install android-sdk")
         end
 
         if os.istarget("windows") then
