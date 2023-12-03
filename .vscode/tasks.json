@@ -3,40 +3,40 @@
     "tasks": [
       {
         "label": "build UCApp",
-        "command": "./premake5.sh",
-        "windows":{"command": "premake5.bat"},
+        "command": "./premake.sh",
+        "windows":{"command": "premake.bat"},
 
         "args": ["build_UCApp"],
         "group": "build"
       },
       {
         "label": "build_UCodeIDE",
-        "command": "./premake5.sh",
-        "windows":{"command": "premake5.bat"},
+        "command": "./premake.sh",
+        "windows":{"command": "premake.bat"},
 
         "args": ["build_UCodeIDE"],
         "group": "build"
       },
       {
         "label": "Build UCodelangCL",
-        "command": "./premake5.sh",
-        "windows":{"command": "premake5.bat"},
+        "command": "./premake.sh",
+        "windows":{"command": "premake.bat"},
 
         "args": ["build_UCodelangCL"],
         "group": "build"
       },
       {
         "label": "run UCApp test",
-        "command": "./premake5.sh",
-        "windows":{"command": "premake5.bat"},
+        "command": "./premake.sh",
+        "windows":{"command": "premake.bat"},
 
         "args": ["test"],
         "group": "test"
       },
       {
         "label": "clean",
-        "command": "./premake5.sh",
-        "windows":{"command": "premake5.bat"},
+        "command": "./premake.sh",
+        "windows":{"command": "premake.bat"},
 
         "args": ["clean"],
         "group": "build"
