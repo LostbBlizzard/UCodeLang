@@ -327,8 +327,8 @@ void AppObject::DrawTestMenu()
     struct TestInfo
     {
         TestMode Testmode = TestMode::UCodeLangBackEnd;
-        size_t MinTestIndex = 72;
-        size_t MaxTestCount = 75;//;//ULangTest::Tests.size();
+        size_t MinTestIndex = 75;
+        size_t MaxTestCount = 85;//;//ULangTest::Tests.size();
 
         size_t ModuleIndex = 0;
         size_t ModuleTestCount = 1;//;//ULangTest::Tests.size();

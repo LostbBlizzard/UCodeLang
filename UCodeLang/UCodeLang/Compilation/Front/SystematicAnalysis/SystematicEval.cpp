@@ -1044,22 +1044,26 @@ bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const ExtendedFuncExpre
 
 		if (Eval_CanEvalutateFuncCheck(FuncInfo))
 		{
-			ValuePars.resize(FuncInfo.Func->Pars.size());
-
-
-			for (size_t i = 0; i < Pars._Nodes.size(); i++)
+			if (FuncInfo.Func != nullptr)
 			{
-				const TypeSymbol& Par = FuncInfo.Func->Pars[i].Type;
-				auto& Item = Pars._Nodes[i];
 
-				auto Info = Eval_Evaluate(Par, *Item.get());
+				ValuePars.resize(FuncInfo.Func->Pars.size());
 
-				if (!Info.has_value())
+
+				for (size_t i = 0; i < Pars._Nodes.size(); i++)
 				{
-					BadPars = true;
-				}
+					const TypeSymbol& Par = FuncInfo.Func->Pars[i].Type;
+					auto& Item = Pars._Nodes[i];
 
-				ValuePars.push_back(std::move(Info.value()));
+					auto Info = Eval_Evaluate(Par, *Item.get());
+
+					if (!Info.has_value())
+					{
+						BadPars = true;
+					}
+
+					ValuePars.push_back(std::move(Info.value()));
+				}
 			}
 		}
 
