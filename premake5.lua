@@ -589,8 +589,13 @@ group "UCodeAPIs"
 
 function executeorexit(str)
  exit = os.execute(str)
+
  if exit == nil then
-  os.exit(exit)
+  os.exit(1)
+ end 
+
+ if not exit == true then
+  os.exit(1)
  end 
 
 end 
@@ -801,7 +806,7 @@ newaction {
 ---test
 newaction {
     trigger = "test",
-    description = "installs compiler tool/librarys for wasm",
+    description = "runs tests",
     execute = function ()
         
         if os.istarget("linux") then
@@ -809,7 +814,7 @@ newaction {
         end
 
         if os.istarget("windows") then
-          executeorexit("cd ./UCApp;../Output/UCApp/Win64/Debug/UCApp.exe --RunTests")
+          executeorexit("cd ./UCApp && ..\\Output\\UCApp\\Win64\\Debug\\UCApp.exe --RunTests")
         end
         
         if os.istarget("macosx") then

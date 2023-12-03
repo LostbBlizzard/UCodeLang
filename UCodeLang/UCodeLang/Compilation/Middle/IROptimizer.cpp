@@ -234,8 +234,8 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 			{//for debuging
 				auto S = Input->ToString();
 
-				std::cout << "-----" << std::endl;
-				std::cout << S;
+				//std::cout << "-----" << std::endl;
+				//std::cout << S;
 
 				std::ofstream file("OutIR.txt");
 				file << S;

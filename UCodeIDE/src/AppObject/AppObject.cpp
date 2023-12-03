@@ -579,6 +579,7 @@ void AppObject::DrawTestMenu()
 
                         #if UCodeLang_Platform_Windows
                         auto lib = LoadLibrary(dllfile.c_str());
+                        UCodeLangAssert(lib);
                         UCodeLangDefer(FreeLibrary(lib));
                         auto staticinittocall = GetProcAddress(lib,staticinitname.c_str());
                         auto threadinittocall = GetProcAddress(lib,threadinitname.c_str());
@@ -588,6 +589,7 @@ void AppObject::DrawTestMenu()
                         auto functocall = GetProcAddress(lib, cfuncname.c_str());
                         #elif UCodeLang_Platform_Posix
                         auto lib = dlopen(dllfile.c_str(), RTLD_NOW);
+                        UCodeLangAssert(lib);
                         UCodeLangDefer(dlclose(lib));
 
                         auto staticinittocall = dlsym(lib,staticinitname.c_str());
