@@ -41,7 +41,7 @@ void IRUBChecker::CheckForUB(const IRBuilder* Input)
 	{
 		auto& block = *Item->Blocks.front();
 		FuncInfo p;
-		p.ParInfo.resize(Item->Pars.size());
+		p.parInfo.resize(Item->Pars.size());
 
 		for (auto& Item : block.Instructions)
 		{
