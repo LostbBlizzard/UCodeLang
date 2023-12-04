@@ -47,7 +47,7 @@ private:
 	};
 	struct FuncInfo
 	{
-		Vector<ParInfo> ParInfo;
+		Vector<ParInfo> parInfo;
 	};
 	UnorderedMap<const IRFunc*, FuncInfo> FuncInfos;
 };
