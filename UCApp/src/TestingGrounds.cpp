@@ -63,11 +63,12 @@ void TestingGround()
 	auto Path = ModuleIndex::GetModuleIndexFilePath();
 	//if (!std::filesystem::exists(Path))
 	{
-		LangIndex.AddModueToList(UCodeLangVSAPIPath + "\\StandardLibrary\\ULangModule.ucm");
-		LangIndex.AddModueToList(UCodeLangVSAPIPath + "\\Win32\\ULangModule.ucm");
+		namespace fs = std::filesystem;
+		LangIndex.AddModueToList(fs::absolute(UCodeLangVSAPIPath + "\\StandardLibrary\\ULangModule.ucm"));
+		LangIndex.AddModueToList(fs::absolute(UCodeLangVSAPIPath + "\\Win32\\ULangModule.ucm"));
 
-		LangIndex.AddModueToList(UCodeLangVSAPIPath + "\\NStandardLibrary\\ULangModule.ucm");
-		LangIndex.AddModueToList(UCodeLangVSAPIPath + "\\NWin32\\ULangModule.ucm");
+		LangIndex.AddModueToList(fs::absolute(UCodeLangVSAPIPath + "\\NStandardLibrary\\ULangModule.ucm"));
+		LangIndex.AddModueToList(fs::absolute(UCodeLangVSAPIPath + "\\NWin32\\ULangModule.ucm"));
 		ModuleIndex::ToFile(&LangIndex, Path);
 	}
 

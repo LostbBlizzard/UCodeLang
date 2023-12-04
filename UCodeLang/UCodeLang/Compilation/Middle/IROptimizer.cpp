@@ -198,25 +198,24 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 		bool removetypesfromIR = _Settings->_Type != OutPutType::IRAndSymbols;
 		if (removetypesfromIR)
 		{
-			if (Input->_Symbols.size()) {
-				Input->_Symbols.erase(std::remove_if(
-					Input->_Symbols.begin(),
-					Input->_Symbols.end(),
-					[RemovedTypes](Unique_ptr<IRSymbolData>& Item)
+			Input->_Symbols.erase(std::remove_if(
+				Input->_Symbols.begin(),
+				Input->_Symbols.end(),
+				[RemovedTypes](Unique_ptr<IRSymbolData>& Item)
+				{
+					bool isinlist = false;
+					for (auto& Item2 : RemovedTypes)
 					{
-						bool isinlist = false;
-						for (auto& Item2 : RemovedTypes)
+						if (Item2 == Item.get())
 						{
-							if (Item2 == Item.get())
-							{
-								isinlist = true;
-								break;
-							}
+							isinlist = true;
+							break;
 						}
+					}
 
-						return  isinlist;
-					}));
-			}
+					return  isinlist;
+				}), Input->_Symbols.end());
+
 		}
 	}
 
@@ -1652,6 +1651,55 @@ void IROptimizer::UpdateCodePassFunc(IRFunc* Func)
 			{
 
 			}
+			else if (Ins->Type == IRInstructionType::SSA_Reassign)
+			{
+				ConstantFoldOperator(*Ins, Ins->Target(), ReadOrWrite::Write);
+				ConstantFoldOperator(*Ins, Ins->Input(), ReadOrWrite::Read);
+
+
+				if (Optimization_RemoveUnsedVarables)
+				{
+					bool wasused = false;
+					UCodeLangAssert(Ins->Input().Type == IROperatorType::IRInstruction);
+					for (size_t i2 = 0; i2 < i; i2++)
+					{
+						auto Ins2 = Block->Instructions[i2].get();
+						
+						if (IsOperatorValueInTarget(Ins2->Type))
+						{
+							if (Ins2->Target() == Ins->Input())
+							{
+								wasused = true;
+								break;
+
+							}
+						}
+						
+						if (IsOperatorValueInInput(Ins2->Type))
+						{
+							if (Ins2->Input() == Ins->Input())
+							{
+								wasused = true;
+								break;
+
+							}
+						}
+					}
+
+					if (!wasused)
+					{
+						if (Ins->Input().Pointer->Type == IRInstructionType::LoadNone) 
+						{
+							Ins->Input().Pointer->SetAsNone();
+							Ins->Type = IRInstructionType::Load;
+						}
+						else
+						{
+							UCodeLangUnreachable();
+						}
+					}
+				}
+			}
 			else
 			{
 				UCodeLangUnreachable();
@@ -2065,7 +2113,8 @@ void IROptimizer::ConstantFoldOperator(IRInstruction& I, IROperator& Value,ReadO
 		|| Value.Type == IROperatorType::DereferenceOf_IRInstruction)
 	{
 		auto Ptr = Value.Pointer;
-		if (Ptr->Type == IRInstructionType::Load)
+		if (Ptr->Type == IRInstructionType::Load
+			|| Ptr->Type == IRInstructionType::SSA_Reassign)
 		{
 			if (Ptr->Target().Type == IROperatorType::Value)
 			{
@@ -2082,6 +2131,13 @@ void IROptimizer::ConstantFoldOperator(IRInstruction& I, IROperator& Value,ReadO
 			{
 				Value = Ptr->Target();
 				UpdatedCode();
+			}
+			else if (Ptr->Target().Type == IROperatorType::IRInstruction)
+			{
+				//if (Ptr->Target().Pointer->Type == IRInstructionType::SSA_Reassign) {
+					Value = Ptr->Target();
+					UpdatedCode();
+				//}
 			}
 		}
 		else if (Ptr->Type == IRInstructionType::Member_Access_Dereference)
@@ -2188,9 +2244,61 @@ void IROptimizer::ToSSA(IRFunc* Func, SSAState& state)
 }
 void IROptimizer::UndoSSA(IRFunc* Func, const SSAState& state)
 {
-	for (auto& Item : state.Updated)
-	{
-		*Item.first = Item.second;
+	if (Func->Blocks.size()) {
+#if RunlogIRState 
+		{
+			auto S = Input->ToString();
+			std::cout << "-----" << std::endl;
+			std::cout << S;
+		}
+#endif
+
+		auto& Block = Func->Blocks.front();
+		struct Empty {};
+
+		UnorderedMap<IRInstruction*, Empty> SSAs;
+		for (auto& Ins : Block->Instructions)
+		{
+			if (Ins->Type == IRInstructionType::SSA_Reassign)
+			{
+				std::swap(Ins->Target(), Ins->Input());
+				Ins->Type = IRInstructionType::Reassign;
+				SSAs.AddValue(Ins.get(), Empty());
+			}
+		}
+
+		for (auto& Ins : Block->Instructions)
+		{
+			if (IsOperatorValueInTarget(Ins->Type))
+			{
+				auto& Op = Ins->Target();
+				if (Op.Type == IROperatorType::IRInstruction)
+				{
+					if (SSAs.HasValue(Op.Pointer))
+					{
+						Op = Op.Pointer->Input();
+					}
+				}
+			}
+			if (IsOperatorValueInInput(Ins->Type))
+			{
+				auto& Op = Ins->Input();
+				if (Op.Type == IROperatorType::IRInstruction)
+				{
+					if (SSAs.HasValue(Op.Pointer))
+					{
+						Op = Op.Pointer->Input();
+					}
+				}
+			}
+		}
+#if RunlogIRState 
+		{
+			auto S = Input->ToString();
+			std::cout << "-----" << std::endl;
+			std::cout << S;
+		}
+#endif
 	}
 }
 
