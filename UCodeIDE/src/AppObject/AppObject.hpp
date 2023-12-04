@@ -236,7 +236,7 @@ private:
 		bool AutoReload = true;
 		bool AutoHotReload = false;
 
-		UCodeLang::OptimizationFlags Flags = UCodeLang::OptimizationFlags::O_None;
+		UCodeLang::OptimizationFlags Flags = UCodeLang::OptimizationFlags::O_1;
 		bool InDebug = true;
 		bool ImportStandardLibrary = false;
 

@@ -233,6 +233,7 @@ bool CppHelper::ParseCppfileAndOutULangDir(const Path& CppDir, const Path& CppLi
 
 			}
 			R += "\n";
+			state = CppToULangState();
 		}
 
 
