@@ -93,12 +93,6 @@ Despite being made for game engines UCode does not need a VM it can be used by i
 
 or directly to native machine code when that gets done.
 
->[!IMPORTANT]
->UCodeLang Is Not Done!
-UCodeLang is not done and  unstable and lacks documentation.
-and documentation that does exist may be out of date.
-It's nowhere near completion. 
-
 # Supported programming Languages
 
 - [C++](https://github.com/LostbBlizzard/UCodeLang) //This Repository
