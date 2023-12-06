@@ -832,7 +832,7 @@ newaction {
         end
 
         if os.istarget("windows") then
-         executeorexit("cd ./UCApp;../Output/UCApp/Win32/Debug/UCApp.exe --RunTests")
+         executeorexit("cd ./UCApp && ../Output/UCApp/Win32/Debug/UCApp.exe --RunTests")
         end
         
         if os.istarget("macosx") then
@@ -872,11 +872,11 @@ newaction {
         end
 
         if os.istarget("windows") then
-         executeorexit("cd UCodeDocumentation;tools/mdbook.exe build --dest-dir ../Output/UCodeDocumentation;cp -r ../Output/UCodeDocumentation ../UCodeWebsite/static")
+         executeorexit("cd UCodeDocumentation && tools\\mdbook.exe build --dest-dir ..\\Output\\UCodeDocumentation && cp -r ..\\Output\\UCodeDocumentation ..\\UCodeWebsite\\static")
         end
         
         if os.istarget("macosx") then
-         executeorexit("emmake make UCodeIDE config=debug_web -j4")
+
         end
     end
 }
