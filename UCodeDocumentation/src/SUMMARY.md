@@ -129,6 +129,10 @@
   - [Memory](./Standardlibrary/Standardlibrary.md#memory)
     - [Unique_ptr\<T>](./Standardlibrary/Memory/Unique_ptr.md)
     - [Shared_ptr\<T>](./Standardlibrary/Memory/Shared_ptr.md)
+    - [LowLevel](./Standardlibrary/Memory/LowLevel.md)
+    - [Ptr\<T>](./Standardlibrary/Memory/Ptr.md)
+    - [VoidPtr](./Standardlibrary/Memory/VoidPtr.md)
+    - [Ptr\<void>](./Standardlibrary/Memory/VoidPtr.md)
 
   - [IO](./Standardlibrary/Standardlibrary.md#inputoutput-file)
     - [System](./Standardlibrary/Standardlibrary.md#inputoutput-system)
