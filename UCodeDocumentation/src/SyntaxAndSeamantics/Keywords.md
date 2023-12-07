@@ -4,37 +4,82 @@ Keywords are reserved identifiers that have special meanings to the compiler. Th
 this article lists keywords.
 
 
+## Built-in Types
+
+All keywords that can be used as a type.
+
 | Keyword | short Description
 |--- | --- |
- [int](./Types/ints.md) | the int32 type
- [uint](./Types/ints.md) | the uint32 type
- [sint](./Types/ints.md) | the int32 type
- [byte](./Types/ints.md) | the uint8 type
- [enum](./Keywords/Enum.md) | a group of sconstant.
- [imut](./Concepts/imut.md) | value can not be changed.
- [var](./Types/Var.md)  | type inference.
- [this](keywords/this.md) | the current class type.
- [static](Keywords/static.md) | a global varable
- [thread](Keywords/thread.md) | a global varable but one per thread.
- [eval](Keywords/eval.md) |  evaluate the value of the at compile time. 
- [invalid](Keywords/invalid.md) | throw a compile time error. 
- [new](Keywords/new.md) | allocate memory.
- [Panic](Keywords/Panic.md) | throw a unrecoverable runtime time error. 
- [type](Keywords/type.md) | get typeinfo from a type.
- [typeof](Keywords/type.md) | get typeinfo from a expression.
- [typeinfo](Keywords/type.md) |  information about a type.
- [valid](Keywords/valid.md) | check if a statent makes an compile time error.
- [compiler](Keywords/compiler.md) | get compiler setting imformation
- [use](Keywords/use.md) |  allows all the names in a namespace to be used.
- [out](Keywords/out.md) | a foced try-pattern.
- [for](Keywords/for.md) | loop over a list of Items.
- [unq](Keywords/unq.md) | make unique pointer
- [shr](Keywords/shr.md) | make shared pointer
- [import](Keywords/import.md) | use a library.
- [bitcast](Keywords/bitcast.md) | Reinterpret the bytes as something else.
- [char](Types/char.md) | the ASCII character type.
- [utf8](Types/char.md) | the utf8 character type.
- [utf16](Types/char.md) | the utf16 character type.
- [utf32](Types/char.md) | the utf32 character type.
+ [int](./Builtin/ints.md) | the int32 type
+ [byte](./Builtin/ints.md#byte) | the uint8 type
+ [bool](./Builtin/bool.md) | the true or false type
+ [uintptr](./Builtin/ints.md#uintptr) | a unsigned int thats the size of a pointer.
+ [intptr](./Builtin/ints.md#intptr) | a signed int thats the size of a pointer.
+ [float](./Builtin/float.md#float) | the float32 type 
+ [float32](./Builtin/float.md#float32) | An IEEE floating point number.
+ [float64](./Builtin/float.md#float64) | An IEEE floating point number.
+ [char](./Builtin/char.md) | the ASCII character type.
+ [utf8](./Builtin/char.md#utf8) | the utf8 character type.
+ [utf16](./Builtin/char.md#utf16) | the utf16 character type.
+ [utf32](./Builtin/char.md#utf32) | the utf32 character type.
+ [uint8](./Builtin/ints.md#uint8) |  an unsigned int thats the size of a one byte.
+ [uint16](./Builtin/ints.md#uint16) | an unsigned int thats the size of a two bytes.
+ [uint32](./Builtin/ints.md#uint32) | an unsigned int thats the size of a four bytes.
+ [uint64](./Builtin/ints.md#uint64) | an unsigned int thats the size of a eight bytes.
+ [int8](./Builtin/ints.md#int8) | an signed int thats the size of a one byte.
+ [int16](./Builtin/ints.md#int16) | an signed int thats the size of a two bytes.
+ [int32](./Builtin/ints.md#int32) | an signed int thats the size of a four bytes.
+ [int64](./Builtin/ints.md#int64) | an signed int thats the size of a eight bytes.
+ [typeinfo](./Builtin/TypeInfo.md) | read type information.
 
+## type keywords
+All keywords that can be used to make a type.
+| Keyword | short Description
+|--- | --- |
+[enum](./Types/Enum.md) | a group of constants
+[trait](./Types/trait.md) | shareing behavior between types
+[tag](./Types/tag.md) | add information about functions and classes
+[dynamic](./Types/dynamic.md) |  dynamically dispatched traits
 
+## memory keyword
+All keywords that can that deals with memory.
+| Keyword | short Description
+|--- | --- |
+[new](./Memory/new.md) | allocate memory
+[drop](./Memory/drop.md) | free memory. 
+[unsafe](./Memory/unsafe.md) | lets you do unsafe operations.
+[bitcast](./Memory/bitcast.md) | reinterpret the bytes of a type.
+[shr](./Memory/shr.md) | make a shared pointer.
+[unq](./Memory/unq.md) | make a unique pointer.
+
+## varable types keywords
+All keywords that can that deals changes how a varable works.
+| Keyword | short Description
+|--- | --- |
+[static](./VarableTypes/static.md) | global variables
+[thread](./VarableTypes/thread.md) | global variables but one per thread.
+[eval](./VarableTypes/eval.md) | compile time constant expression.
+
+## Compile Time Keywords
+All keywords that can that lets you do stuff at compile time.
+
+| Keyword | short Description
+|--- | --- |
+[compiler](./CompileTime/compiler.md) | read compiler settings
+[invaild](./CompileTime/invalid.md) | throw a compile time error
+[type](./CompileTime/type.md)  | get TypeInfo from an Type
+[typeof](./CompileTime/type.md) | get TypeInfo from an expression
+[bind](./CompileTime/type.md)  | use TypeInfo as a type.
+[valid](./CompileTime/valid.md) | check a statement has errors.
+
+## miscellaneous keywords
+
+All keywords that dont fit in the other categories.
+
+| Keyword | short Description
+|--- | --- |
+[for](./Miscellaneous/for.md) | loop over a list of items
+[import](./Miscellaneous/import.md) | import a library
+[out](./Miscellaneous/out.md) | a second output value
+[panic](./Miscellaneous/Panic.md) | throw a runtime error
+[use](./Miscellaneous/use.md) | use a namespace
