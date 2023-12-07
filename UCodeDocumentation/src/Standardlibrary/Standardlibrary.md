@@ -32,6 +32,11 @@ import UCodeLang::StandardLibarary[0:0:0];
 [String16Span](./Alias/String16Span.md) | Alias | Same As StringSpan_t\<uft16>. Used refer to a contiguous sequence of utf16 characters (text). 
 [String32Span](./Alias/String32Span.md) | Alias | Same As StringSpan_t\<uft32>. Used refer to a contiguous sequence of utf32 characters (text). 
  
+## ReferenceTypes
+| Name | Type | Description |
+|--- | --- |  --- | 
+- [StringSpan_t<\T>](./ReferenceTypes/StringSpan.md)
+- [Span<\T>](./ReferenceTypes/Span.md)
 
 ## Math Types
 | Name | Type | Description |
@@ -69,11 +74,11 @@ import UCodeLang::StandardLibarary[0:0:0];
 | Name | Type | Description |
 |--- | --- |  --- | 
 
-## Ungrouped
+## Miscellaneous
 
 | Name | Type | Description |
 |--- | --- |  --- | 
-[Empty](./Ungrouped/Empty.md) | class | A Zero-sized type. 
+[Empty](./Miscellaneous/Empty.md) | class | A Zero-sized type. 
 
 ## Notes
 
