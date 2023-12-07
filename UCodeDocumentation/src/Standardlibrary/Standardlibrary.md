@@ -35,8 +35,8 @@ import UCodeLang::StandardLibarary[0:0:0];
 ## ReferenceTypes
 | Name | Type | Description |
 |--- | --- |  --- | 
-- [StringSpan_t<\T>](./ReferenceTypes/StringSpan.md)
-- [Span<\T>](./ReferenceTypes/Span.md)
+[StringSpan_t\<T>](./ReferenceTypes/StringSpan.md) | Generic Class | used as a base to  reference a contiguous sequence of any char type.
+[Span\<T>](./ReferenceTypes/Span.md) | Generic Class | used store to reference a contiguous sequence of type T.
 
 ## Math Types
 | Name | Type | Description |
@@ -59,8 +59,12 @@ import UCodeLang::StandardLibarary[0:0:0];
 ## Memory 
 | Name | Type | Description |
 |--- | --- |  --- | 
-[Unique_ptr\<T>](./Types/Generic/Unique_ptr.md)| Generic Class | A Type that Owns and manages another object on the heap.
-[Shared_ptr\<T>](./Types/Generic/Shared_ptr.md)| Generic Class | A Type that Shares ownership  another object on the heap.
+[Unique_ptr\<T>](./Memory/Unique_ptr.md)| Generic Class | A Type that Owns and manages another object on the heap.
+[Shared_ptr\<T>](./Memory/Shared_ptr.md)| Generic Class | A Type that Shares ownership  another object on the heap.
+[LowLevel](./Memory/LowLevel.md)| Class | A Type That has LowLevel funcions like memcpy,memcpy,malloc.
+[Ptr\<T>](./Memory/Ptr.md) | Generic Class | A Type that allows give C pointer semantics.  
+[VoidPtr](./Memory/VoidPtr.md) | Alias | A pointer that has no type with it.
+[Ptr\<void>](./Memory/VoidPtr.md) | Class Specialization | A pointer that has no type with it.
 ## Input/Output System
 | Name | Type | Description |
 |--- | --- |  --- | 
