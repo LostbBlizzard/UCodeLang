@@ -125,7 +125,9 @@
     - [Vec3_t\<T>](./Standardlibrary/Math/Vec3_t.md)
     - [Vec2i_t\<T>](./Standardlibrary/Math/Vec2i_t.md)
     - [Vec3i_t\<T>](./Standardlibrary/Math/Vec3i_t.md)
-
+  - [Error Handleing](./Standardlibrary/Standardlibrary.md#error-handleing)
+    - [Optional](./Standardlibrary/ErrorHandleing/Optional.md)
+    - [Result](./Standardlibrary/ErrorHandleing/Result.md)
   - [Memory](./Standardlibrary/Standardlibrary.md#memory)
     - [Unique_ptr\<T>](./Standardlibrary/Memory/Unique_ptr.md)
     - [Shared_ptr\<T>](./Standardlibrary/Memory/Shared_ptr.md)
@@ -144,9 +146,17 @@
     - [Networking](./Standardlibrary/Standardlibrary.md#inputoutput-networking)
 
     - [Serialization](./Standardlibrary/Standardlibrary.md#ungrouped)
-
   - [Miscellaneous](./Standardlibrary/Standardlibrary.md#miscellaneous)
     - [Empty](./Standardlibrary/Miscellaneous/Empty.md)
+    - [Buffer_t](./Standardlibrary/Miscellaneous/Buffer_t.md)
+    - [StringBuffer_t](./Standardlibrary/Miscellaneous/StringBuffer_t.md)
+    - [Range_t\<T>](./Standardlibrary/Miscellaneous/Ranges.md#range)
+    - [RangeFrom_t\<T>](./Standardlibrary/Miscellaneous/Ranges.md#rangefrom)
+    - [RangeTo_t\<T>](./Standardlibrary/Miscellaneous/Ranges.md#rangeto)
+    - [RangeFull_t\<T>](./Standardlibrary/Miscellaneous/Ranges.md#rangefull_t)
+    - [RangeInclusive_t\<T>](./Standardlibrary/Miscellaneous/Ranges.md#rangeinclusive_t)
+    - [RangeToInclusive_t\<T>](./Standardlibrary/Miscellaneous/Ranges.md#rangetoinclusive_t)
+
 
 - [KeyWords](./SyntaxAndSeamantics/Keywords.md)
   - [Built-in Types](./SyntaxAndSeamantics/Keywords.md#built-in-types)
@@ -155,8 +165,8 @@
     - [bool](./SyntaxAndSeamantics/Builtin/bool.md)
     - [char](./SyntaxAndSeamantics/Builtin/char.md#char)
     - [utf8](./SyntaxAndSeamantics/Builtin/char.md#utf8)
-    - [Utf16](./SyntaxAndSeamantics/Builtin/char.md#utf16)
-    - [Utf32](./SyntaxAndSeamantics/Builtin/char.md#utf32)
+    - [utf16](./SyntaxAndSeamantics/Builtin/char.md#utf16)
+    - [utf32](./SyntaxAndSeamantics/Builtin/char.md#utf32)
     - [float](./SyntaxAndSeamantics/Builtin/float.md)
     - [float32](./SyntaxAndSeamantics/Builtin/float.md#float32)
     - [float64](./SyntaxAndSeamantics/Builtin/float.md#float64)

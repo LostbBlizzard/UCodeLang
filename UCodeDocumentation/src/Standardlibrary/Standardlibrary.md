@@ -24,6 +24,7 @@ import UCodeLang::StandardLibarary[0:0:0];
 [Vector\<T>](./Containers/Vector.md) | Generic Class |  Used to store a List of Items.
 [String_t\<T>](./Containers/String_t.md)| Generic Class. | Used as a base to  store a   sequence of contiguous sequence of any char type.
 
+
 ## Alias Types
 | Name | Type | Description |
 |--- | --- |  --- | 
@@ -53,8 +54,8 @@ import UCodeLang::StandardLibarary[0:0:0];
 ## Error Handleing
 | Name | Type | Description |
 |--- | --- |  --- | 
-[Optional\<T>](./Types/Generic/optional.md) | Generic Enum |  Contains a value or Null 
-[Result\<T,E>](./Types/Generic/optional.md) | Generic Enum | Contains a Success or Error.
+[Optional\<T>](./ErrorHandleing/Optional.md) | Generic Enum |  Contains a value or Null 
+[Result\<T,E>](./ErrorHandleing/Result.md) | Generic Enum | Contains a Success or Error.
 
 ## Memory 
 | Name | Type | Description |
@@ -78,11 +79,21 @@ import UCodeLang::StandardLibarary[0:0:0];
 | Name | Type | Description |
 |--- | --- |  --- | 
 
+
 ## Miscellaneous
 
 | Name | Type | Description |
 |--- | --- |  --- | 
 [Empty](./Miscellaneous/Empty.md) | class | A Zero-sized type. 
+[Buffer_t\<T>](./Miscellaneous/StringBuffer_t.md) | Generic trait | Gives the types that have continuous elements helper funcions such as Sort,Find and Filter.
+[StringBuffer_t\<T>](./Miscellaneous/StringBuffer_t.md) | Generic trait | Gives the types that are strings funcions such as StartWith,EndWith and GetLines.
+[Range_t\<T>](./Miscellaneous/Ranges.md#range) |
+[RangeFrom_t\<T>](./Miscellaneous/Ranges.md#rangefrom) | 
+[RangeTo_t\<T>](./Miscellaneous/Ranges.md#rangeto) | 
+[RangeFull_t\<T>](./Miscellaneous/Ranges.md#rangefull_t) | 
+[RangeInclusive_t\<T>](./Miscellaneous/Ranges.md#rangeinclusive_t) | 
+[RangeToInclusive_t\<T>](./Miscellaneous/Ranges.md#rangetoinclusive_t) | 
+
 
 ## Notes
 
