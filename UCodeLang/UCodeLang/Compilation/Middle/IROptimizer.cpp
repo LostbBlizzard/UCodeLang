@@ -12,8 +12,8 @@
 UCodeLangStart
 
 
-//#define RunlogIRState UCodeLangDebug
-#define RunlogIRState 1
+#define RunlogIRState UCodeLangDebug
+//#define RunlogIRState 1
 
 void IROptimizer::Reset() 
 {
@@ -230,7 +230,7 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 
 			
 
-			#if RunlogIRState
+			//#if RunlogIRState
 			{//for debuging
 				auto S = Input->ToString();
 
@@ -241,7 +241,7 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 				file << S;
 				file.close();
 			}
-			#endif // UCodeLangDebug
+			//#endif // UCodeLangDebug
 
 			if (_Settings->_Flags == OptimizationFlags::NoOptimization
 				|| _Settings->_Flags == OptimizationFlags::Debug) { return; }
@@ -2385,6 +2385,19 @@ void IROptimizer::ConstantFoldOperator(IRInstruction& I, IROperator& Value,ReadO
 				newIns->B = ins->Input();
 
 				Value.Pointer = newIns;
+				UpdatedCode();
+			}
+		}
+	}
+	if (Value.Type == IROperatorType::DereferenceOf_IRInstruction)
+	{
+		auto ins = Value.Pointer;
+		if (ins->Type == IRInstructionType::Load)
+		{
+			auto& op = ins->Target();
+			if (op.Type == IROperatorType::Get_PointerOf_IRInstruction)
+			{
+				Value = ins->Input();
 				UpdatedCode();
 			}
 		}

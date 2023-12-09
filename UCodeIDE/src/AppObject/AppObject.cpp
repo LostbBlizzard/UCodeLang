@@ -330,7 +330,7 @@ void AppObject::DrawTestMenu()
        // size_t MinTestIndex = 75;
        // size_t MaxTestCount = 85;//;//ULangTest::Tests.size();
        size_t MinTestIndex = 0;
-       size_t MaxTestCount = 9;//;//ULangTest::Tests.size();
+       size_t MaxTestCount = 15;//;//ULangTest::Tests.size();
 
 
         size_t ModuleIndex = 0;

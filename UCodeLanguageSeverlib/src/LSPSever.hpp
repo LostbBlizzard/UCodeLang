@@ -291,6 +291,7 @@ public:
            
         return {};
     }
+    size_t PacketCount() { return _SeverPackets.size(); }
    
     //Thread Safe
     void SendPacketToClient(SeverPacket&& Item)
