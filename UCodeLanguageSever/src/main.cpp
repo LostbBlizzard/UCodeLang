@@ -122,22 +122,44 @@ void RunArg(UCodeLang::String_view View)
 				LogMSG("Starting ULang Sever");
 				#endif
 
-				std::thread SeverThread([]()
+				std::mutex severm;
+				std::condition_variable cv;
+
+				std::mutex severout;
+				std::condition_variable outcv;
+				size_t count = 0;
+				size_t count2 = 0;
+
+				std::thread SeverThread([&count2,&count,&cv,&severm,&outcv]()
 					{
 						UCodeLanguageSever::LSPSever Sever;
 						SeverPtr = &Sever;
-
-
-						while (Sever.Step());
+						size_t mycount = 0;
+						size_t oldsize = Sever.PacketCount();
+						while (Sever.Step()) 
+						{
+							std::unique_lock lk(severm);
+							cv.wait(lk, [&] { return count != mycount; });
+							mycount = count;
+							if (oldsize != Sever.PacketCount())
+							{
+								outcv.notify_one();
+								count2++;
+							}
+						}
 						SeverPtr = nullptr;
 					}
 				);
 
 
-				std::thread OutThread([](std::thread* SeverThread)
+				std::thread OutThread([&count2,&severout,&outcv](std::thread* SeverThread)
 					{
+						size_t mycount =0;
 						while (SeverThread->joinable())
 						{
+							std::unique_lock lk(severout);
+							outcv.wait(lk, [&] { return mycount != count2; });
+							mycount = count2;
 							if (SeverPtr)
 							{
 								auto List = SeverPtr->GetPackets();
@@ -173,6 +195,8 @@ void RunArg(UCodeLang::String_view View)
 						#endif
 
 						SeverPtr->AddPacket(std::move(p));
+						cv.notify_one();
+						count++;
 					}
 
 				}
@@ -215,6 +239,11 @@ int main(int argc, char* argv[])
 	#endif // DEBUG
 	#endif
 	LogMSG("Sever main");
+	if (argc == 1)
+	{
+		RunArg(UCodeLang::String_view("start stdio"));
+
+	}
 	for (size_t i = 1; i < argc; i++)
 	{
 		char* Arg = argv[i];
