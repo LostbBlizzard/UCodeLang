@@ -42,14 +42,15 @@ import UCodeLang::StandardLibarary[0:0:0];
 ## Math Types
 | Name | Type | Description |
 |--- | --- |  --- | 
-[Vec2]()  | Alias | Same As Vec2_t\<float>. A vector with X and Y.
-[Vec3]()  | Alias | Same As Vec3_t\<float>. A vector with X and Y.
-[Vec2i]()  | Alias | Same As Vec2i_t\<int>. A vector with X , Y and Z for float types.
-[Vec3i]() | Alias | Same As Vec2i_t\<int>. A Vector with X , Y and Z for int types.
-[Vec2_t\<T>](./Types/Generic/VecTypes.md)  | Generic Class | A Vector Base with X , Y  for int types.
-[Vec3_t\<T>](./Types/Generic/VecTypes.md) | Generic Class | A Vector Base with X , Y , Z for float types.
-[Vec2i_t\<T>](./Types/Generic/VecTypes.md)| Generic Class | A Vector Base with X , Y. for int types.
-[Vec3i_t\<T>](./Types/Generic/VecTypes.md)| Generic Class | A Vector Base with X , Y and Z for int types.
+[Math](./Math/Math.md)  | Class | Contains Mathematical Functions.
+[Vec2](./Math/Vec2.md)  | Alias | Same As Vec2_t\<float>. A vector with X and Y.
+[Vec3](./Math/Vec3.md)  | Alias | Same As Vec3_t\<float>. A vector with X and Y.
+[Vec2i](./Math/Vec2i.md)  | Alias | Same As Vec2i_t\<int>. A vector with X , Y and Z for float types.
+[Vec3i](./Math/Vec3i.md) | Alias | Same As Vec2i_t\<int>. A Vector with X , Y and Z for int types.
+[Vec2_t\<T>](./Math/Vec2_t.md)  | Generic Class | A Vector Base with X , Y  for int types.
+[Vec3_t\<T>](./Math/Vec3_t.md) | Generic Class | A Vector Base with X , Y , Z for float types.
+[Vec2i_t\<T>](./Math/Vec2i_t.md)| Generic Class | A Vector Base with X , Y. for int types.
+[Vec3i_t\<T>](./Math/Vec3_t.md)| Generic Class | A Vector Base with X , Y and Z for int types.
 
 ## Error Handleing
 | Name | Type | Description |

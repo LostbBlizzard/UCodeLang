@@ -15,6 +15,7 @@ Who currently maintains the
 
 The UCodeGameEngine(being worked on) the primary reason The Language was made.
 
+UCodeLang is mainly inspired by [C++](https://en.wikipedia.org/wiki/C%2B%2B),[Rust](https://www.rust-lang.org/),[C#](https://en.wikipedia.org/wiki/C_Sharp_(programming_language)),[Go](https://go.dev/).
 
 ## License
 
