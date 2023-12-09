@@ -28,11 +28,21 @@ The question mark operator, ? allows for easier use of the result type.
 
 It lets.
 ```cpp
+|test[] -> Empty!OpenFileError:
+ var fileop = File::Open("somefile.txt");
+ if Val(fileop,out openedfile):
+   openedfile.Write("Hello");
+   ret Val(Empty());
+ else if Err(fileop,out err):
+   ret err; 
+
 ```
 To become.
 
 ```cpp
-
+|test[] -> Empty!OpenFileError:
+  var tep = (?File::Open("somefile.txt")).Write("Hello");
+  ret Emtpy()
 ```
 
 When starting an expression with ? UCodeLang will check if its an Error and will do an early return if it is.

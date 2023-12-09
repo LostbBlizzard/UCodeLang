@@ -116,6 +116,7 @@
     - [Span\<T>](./Standardlibrary/ReferenceTypes/Span.md)
 
   - [Math](./Standardlibrary/Standardlibrary.md#math-types) 
+    - [Vec2](./Standardlibrary/Math/Math.md)
     - [Vec2](./Standardlibrary/Math/Vec2.md)
     - [Vec3](./Standardlibrary/Math/Vec3.md)
     - [Vec2i](./Standardlibrary/Math/Vec2i.md)
