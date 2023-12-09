@@ -61,6 +61,7 @@ private:
 	IRUBChecker _IDChecker;
 	IRBuilder* Input = nullptr;
 	IRFunc* LookAtfunc = nullptr;
+	IRBlock* lookatblock = nullptr;
 	bool _UpdatedCode = false;
 	void UpdatedCode() { _UpdatedCode = true; }
 	void UpdatedCodeFor(IRFunc* Func) {

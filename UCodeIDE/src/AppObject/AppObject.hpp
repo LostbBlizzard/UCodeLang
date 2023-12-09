@@ -236,8 +236,8 @@ private:
 		bool AutoReload = true;
 		bool AutoHotReload = false;
 
-		UCodeLang::OptimizationFlags Flags = UCodeLang::OptimizationFlags::O_1;
-		bool InDebug = true;
+		UCodeLang::OptimizationFlags Flags = UCodeLang::OptimizationFlags::O_2;
+		bool InDebug = false;
 		bool ImportStandardLibrary = false;
 
 		NativeSet OldNativeCpuType = NativeSet::Native;
