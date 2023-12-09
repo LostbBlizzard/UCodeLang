@@ -141,7 +141,7 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 				{
 
 
-					UCodeLangUnreachable();
+					//UCodeLangUnreachable();
 				}
 				continue;
 			}
