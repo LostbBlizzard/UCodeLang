@@ -29,7 +29,7 @@ Fmt::Print(val.Get()); // 4
 \|Get[imut this&] -> imut T&; | return the address of the pointer.
 \|Get[this&] -> T&; | returns the address of the pointer.
 \|Write[this&,move T val] -> void; | Writes the value at the pointer.
-\|Write[this&,imut T4 val] -> void; | Writes the value at the pointer.
+\|Write[this&,imut T& val] -> void; | Writes the value at the pointer.
 
 ## Notes
 Ptr will always the size of a pointer.

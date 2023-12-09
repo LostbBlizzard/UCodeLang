@@ -116,7 +116,7 @@
     - [Span\<T>](./Standardlibrary/ReferenceTypes/Span.md)
 
   - [Math](./Standardlibrary/Standardlibrary.md#math-types) 
-    - [Vec2](./Standardlibrary/Math/Math.md)
+    - [Math](./Standardlibrary/Math/Math.md)
     - [Vec2](./Standardlibrary/Math/Vec2.md)
     - [Vec3](./Standardlibrary/Math/Vec3.md)
     - [Vec2i](./Standardlibrary/Math/Vec2i.md)
@@ -147,8 +147,14 @@
     - [Networking](./Standardlibrary/Standardlibrary.md#inputoutput-networking)
 
     - [Serialization](./Standardlibrary/Standardlibrary.md#ungrouped)
+  - [Threading](./Standardlibrary/Standardlibrary.md#threading)
+    - [Atomic](./Standardlibrary/Thread/Atomic.md)
+    - [AtomicShared_ptr](./Standardlibrary/Thread/AtomicShared_ptr.md)
+    - [Thread](./Standardlibrary/Thread/Thread.md)
+
   - [Miscellaneous](./Standardlibrary/Standardlibrary.md#miscellaneous)
     - [Empty](./Standardlibrary/Miscellaneous/Empty.md)
+    - [Any](./Standardlibrary/Miscellaneous/Any.md)
     - [Buffer_t](./Standardlibrary/Miscellaneous/Buffer_t.md)
     - [StringBuffer_t](./Standardlibrary/Miscellaneous/StringBuffer_t.md)
     - [Range_t\<T>](./Standardlibrary/Miscellaneous/Ranges.md#range)
