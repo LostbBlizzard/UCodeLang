@@ -17,7 +17,7 @@ export function activate(context: vscode.ExtensionContext)
 	
 	let disposable = vscode.commands.registerCommand('uclang.update', () => 
 	{
-		vscode.window.showInformationMessage('build');
+		client.sendRequest('uclang/updatetools', { a: 2, b: 3 });
 	});
 	let disposable2 = vscode.commands.registerCommand('uclang.restart', () => 
 	{
@@ -51,12 +51,11 @@ export function activate(context: vscode.ExtensionContext)
 		fileEvents: workspace.createFileSystemWatcher('**/.uc')
 	  },
 	  
-	  //outputChannelName: 'ULang Language Server',
+	  outputChannelName: 'UCodeLanguageServer',
 	};
-  
 	client = new LanguageClient(
-	  'languageServer',
-	  'UCodeLanguage Server',
+	  'UCodeLanguageServer',
+	  'UCodeLanguageServer',
 	  serverOptions,
 	  clientOptions
 	);

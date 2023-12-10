@@ -12,6 +12,9 @@
 UCodeLangStart
 
 
+
+#define IsOptimizerStable 0
+
 #define RunlogIRState UCodeLangDebug
 //#define RunlogIRState 1
 
@@ -228,9 +231,11 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 			_TypeFixer.Set_ErrorsOutput(_ErrorsOutput);
 			_TypeFixer.FixTypes(Input);
 
-			
+			#if !IsOptimizerStable
+			return;
+			#endif
 
-			//#if RunlogIRState
+			#if RunlogIRState
 			{//for debuging
 				auto S = Input->ToString();
 
@@ -241,12 +246,10 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 				file << S;
 				file.close();
 			}
-			//#endif // UCodeLangDebug
+			#endif // UCodeLangDebug
 
 			if (_Settings->_Flags == OptimizationFlags::NoOptimization
 				|| _Settings->_Flags == OptimizationFlags::Debug) { return; }
-			
-			//if (true) { return; }
 
 			if (_ErrorsOutput->Has_Errors())
 			{

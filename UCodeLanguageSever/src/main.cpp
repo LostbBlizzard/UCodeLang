@@ -136,15 +136,20 @@ void RunArg(UCodeLang::String_view View)
 						SeverPtr = &Sever;
 						size_t mycount = 0;
 						size_t oldsize = Sever.PacketCount();
-						while (Sever.Step()) 
+
+						bool keepgoing = true;
+						while (keepgoing)
 						{
 							std::unique_lock lk(severm);
 							cv.wait(lk, [&] { return count != mycount; });
 							mycount = count;
+
+							keepgoing = Sever.Step();
+
 							if (oldsize != Sever.PacketCount())
 							{
-								outcv.notify_one();
 								count2++;
+								outcv.notify_one();
 							}
 						}
 						SeverPtr = nullptr;
@@ -169,9 +174,10 @@ void RunArg(UCodeLang::String_view View)
 									LogMSG("Sent Packet:" + Item._Data);
 									#endif
 
+									auto s = Item.ToLanguageServerString();
 
-									std::cout << Item.ToLanguageServerString();
-									std::cout.flush();
+									std::cout << s;
+									//std::cout.flush();
 								}
 							}
 						}
@@ -183,6 +189,7 @@ void RunArg(UCodeLang::String_view View)
 				{
 					char V;
 					std::cin >> V;
+					File << V;
 					auto packet_op = UCodeLanguageSever::ClientPacket::Stream(state, V);
 
 					if (packet_op.has_value())
@@ -195,8 +202,8 @@ void RunArg(UCodeLang::String_view View)
 						#endif
 
 						SeverPtr->AddPacket(std::move(p));
-						cv.notify_one();
 						count++;
+						cv.notify_one();
 					}
 
 				}
@@ -246,9 +253,9 @@ int main(int argc, char* argv[])
 	}
 	for (size_t i = 1; i < argc; i++)
 	{
+		//while (true);
 		char* Arg = argv[i];
 		RunArg(UCodeLang::String_view(Arg));
-		while (true);
 	}
 
 	return 0;
