@@ -70,14 +70,16 @@ extern "C"
     typedef const UCodeLangCAPI_Interpreter UCodeLangCAPI_Const_Interpreter;
 
     UCodeLangCAPI_HardtypedefVoid(void, UCodeLangCAPI_JitInterpreter);
-    typedef const UCodeLangCAPI_Interpreter UCodeLangCAPI_Const_JitInterpreter;
+    typedef const UCodeLangCAPI_JitInterpreter UCodeLangCAPI_Const_JitInterpreter;
 
     UCodeLangCAPI_HardtypedefVoid(void, UCodeLangCAPI_NativeInterpreter);
-    typedef const UCodeLangCAPI_Interpreter UCodeLangCAPI_Const_NativeInterpreter;
+    typedef const UCodeLangCAPI_NativeInterpreter UCodeLangCAPI_Const_NativeInterpreter;
 
     UCodeLangCAPI_HardtypedefVoid(void, UCodeLangCAPI_AnyInterpreter);
-    typedef const UCodeLangCAPI_Interpreter UCodeLangCAPI_Const_AnyInterpreter;
+    typedef const UCodeLangCAPI_AnyInterpreter UCodeLangCAPI_Const_AnyInterpreter;
 
+    UCodeLangCAPI_HardtypedefVoid(void, UCodeLangCAPI_AnyInterpreterPtr);
+    typedef const UCodeLangCAPI_AnyInterpreterPtr UCodeLangCAPI_Const_AnyInterpreterPtr;
 
     UCodeLangCAPI_HardtypedefVoid(void, UCodeLangCAPI_RunTimeLangState);
     typedef const UCodeLangCAPI_RunTimeLangState UCodeLangCAPI_Const_RunTimeLangState;
@@ -219,23 +221,88 @@ extern "C"
     };
 
 
+    UCodeLangCAPI_HardtypedefVoid(void, UCodeLangCAPI_ClassMethod);
+    typedef const UCodeLangCAPI_ClassMethod UCodeLangCAPI_Const_ClassMethod;
+
+
+
     //functions
-
-    void UCodeLangAPIExport UCodeLangCAPI_Init();
-    void UCodeLangAPIExport UCodeLangCAPI_DeInit();
-
     #ifndef UCodeLangNoCompiler
     UCodeLangCStruct UCodeLangCAPI_Compiler* UCodeLangAPIExport UCodeLangCAPI_New_Compiler();
     void UCodeLangAPIExport UCodeLangCAPI_Destroy_Compiler(UCodeLangCStruct UCodeLangCAPI_Compiler* Value);
     void UCodeLangAPIExport UCodeLangCAPI_Compiler_BuildTxt(UCodeLangCStruct UCodeLangCAPI_Compiler* This, UCodeLangCStruct UCodeLangCAPI_CharSpan String, UCodeLangCStruct UCodeLangCAPI_CompilerOutput* Output);
     #endif
+
+    //RunTimeState
+
     UCodeLangCStruct UCodeLangCAPI_RunTimeLangState* UCodeLangAPIExport UCodeLangCAPI_New_RunTimeState();
     void UCodeLangAPIExport UCodeLangCAPI_Destroy_RunTimeState(UCodeLangCStruct UCodeLangCAPI_RunTimeLangState* Value);
 
+    //Interpreter
     UCodeLangCStruct UCodeLangCAPI_Interpreter* UCodeLangAPIExport UCodeLangCAPI_New_Interpreter();
     void UCodeLangAPIExport UCodeLangCAPI_Destroy_Interpreter(UCodeLangCStruct UCodeLangCAPI_Interpreter* Value);
-    UCodeLangCStruct UCodeLangCAPI_Interpreter_Return_t UCodeLangAPIExport UCodeLangCAPI_Interpreter_Call(UCodeLangCStruct UCodeLangCAPI_Interpreter* This, UCodeLangCStruct UCodeLangCAPI_CharSpan* FuncName);
+
+
+    void UCodeLangAPIExport UCodeLangCAPI_Interpreter_Init(UCodeLangCStruct UCodeLangCAPI_Interpreter* This, UCodeLangCStruct UCodeLangCAPI_RunTimeLangState* runtime);
+    void UCodeLangAPIExport UCodeLangCAPI_Interpreter_DeInit(UCodeLangCStruct UCodeLangCAPI_Interpreter* This);
     
+    UCodeLangCStruct UCodeLangCAPI_Interpreter_Return_t UCodeLangAPIExport UCodeLangCAPI_Interpreter_Call(UCodeLangCStruct UCodeLangCAPI_Interpreter* This, UCodeLangCStruct UCodeLangCAPI_CharSpan* FuncName);
+    UCodeLangCStruct UCodeLangCAPI_Interpreter_Return_t UCodeLangAPIExport UCodeLangCAPI_Interpreter_CallA(UCodeLangCStruct UCodeLangCAPI_Interpreter* This, UCodeLangCAPI_UAddress address);
+    UCodeLangCStruct UCodeLangCAPI_Interpreter_Return_t UCodeLangAPIExport UCodeLangCAPI_Interpreter_CallM(UCodeLangCStruct UCodeLangCAPI_Interpreter* This, UCodeLangCStruct UCodeLangCAPI_Const_ClassMethod* method);
+
+    UCodeLangCStruct void UCodeLangAPIExport  UCodeLangCAPI_Interpreter_GetReturn(UCodeLangCAPI_Interpreter* This, void* Output, size_t Outputsize);
+
+    void UCodeLangAPIExport UCodeLangCAPI_Interpreter_PushParameter(UCodeLangCStruct UCodeLangCAPI_Interpreter* This,const void* object,size_t objectsize);
+
+    //Jit Interpreter
+    UCodeLangCStruct UCodeLangCAPI_JitInterpreter* UCodeLangAPIExport UCodeLangCAPI_New_JitInterpreter();
+    void UCodeLangAPIExport UCodeLangCAPI_Destroy_JitInterpreter(UCodeLangCStruct UCodeLangCAPI_JitInterpreter* Value);
+
+
+    void UCodeLangAPIExport UCodeLangCAPI_JitInterpreter_Init(UCodeLangCStruct UCodeLangCAPI_JitInterpreter* This, UCodeLangCStruct UCodeLangCAPI_RunTimeLangState* runtime);
+    void UCodeLangAPIExport UCodeLangCAPI_JitInterpreter_DeInit(UCodeLangCStruct UCodeLangCAPI_JitInterpreter* This);
+
+    UCodeLangCStruct UCodeLangCAPI_Interpreter_Return_t UCodeLangAPIExport UCodeLangCAPI_JitInterpreter_Call(UCodeLangCStruct UCodeLangCAPI_JitInterpreter* This, UCodeLangCStruct UCodeLangCAPI_CharSpan* FuncName);
+    UCodeLangCStruct UCodeLangCAPI_Interpreter_Return_t UCodeLangAPIExport UCodeLangCAPI_JitInterpreter_CallA(UCodeLangCStruct UCodeLangCAPI_JitInterpreter* This, UCodeLangCAPI_UAddress address);
+    UCodeLangCStruct UCodeLangCAPI_Interpreter_Return_t UCodeLangAPIExport UCodeLangCAPI_JitInterpreter_CallM(UCodeLangCStruct UCodeLangCAPI_JitInterpreter* This, UCodeLangCStruct UCodeLangCAPI_Const_ClassMethod* method);
+
+    UCodeLangCStruct void UCodeLangAPIExport  UCodeLangCAPI_JitInterpreter_GetReturn(UCodeLangCAPI_JitInterpreter* This, void* Output, size_t Outputsize);
+
+    void UCodeLangAPIExport UCodeLangCAPI_JitInterpreter_PushParameter(UCodeLangCStruct UCodeLangCAPI_JitInterpreter* This, const void* object, size_t objectsize);
+
+    //Native Interpreter
+    UCodeLangCStruct UCodeLangCAPI_NativeInterpreter* UCodeLangAPIExport UCodeLangCAPI_New_NativeInterpreter();
+    void UCodeLangAPIExport UCodeLangCAPI_Destroy_NativeInterpreter(UCodeLangCStruct UCodeLangCAPI_NativeInterpreter* Value);
+
+
+    void UCodeLangAPIExport UCodeLangCAPI_NativeInterpreter_Init(UCodeLangCStruct UCodeLangCAPI_NativeInterpreter* This, UCodeLangCStruct UCodeLangCAPI_RunTimeLangState* runtime);
+    void UCodeLangAPIExport UCodeLangCAPI_NativeInterpreter_DeInit(UCodeLangCStruct UCodeLangCAPI_NativeInterpreter* This);
+
+    UCodeLangCStruct UCodeLangCAPI_Interpreter_Return_t UCodeLangAPIExport UCodeLangCAPI_NativeInterpreter_Call(UCodeLangCStruct UCodeLangCAPI_NativeInterpreter* This, UCodeLangCStruct UCodeLangCAPI_CharSpan* FuncName);
+    UCodeLangCStruct UCodeLangCAPI_Interpreter_Return_t UCodeLangAPIExport UCodeLangCAPI_NativeInterpreter_CallA(UCodeLangCStruct UCodeLangCAPI_NativeInterpreter* This, UCodeLangCAPI_UAddress address);
+    UCodeLangCStruct UCodeLangCAPI_Interpreter_Return_t UCodeLangAPIExport UCodeLangCAPI_NativeInterpreter_CallM(UCodeLangCStruct UCodeLangCAPI_NativeInterpreter* This, UCodeLangCStruct UCodeLangCAPI_Const_ClassMethod* method);
+
+    UCodeLangCStruct void UCodeLangAPIExport  UCodeLangCAPI_NativeInterpreter_GetReturn(UCodeLangCAPI_NativeInterpreter* This, void* Output, size_t Outputsize);
+
+    void UCodeLangAPIExport UCodeLangCAPI_NativeInterpreter_PushParameter(UCodeLangCStruct UCodeLangCAPI_NativeInterpreter* This, const void* object, size_t objectsize);
+
+    //Any Interpreter
+    UCodeLangCStruct UCodeLangCAPI_AnyInterpreter* UCodeLangAPIExport UCodeLangCAPI_New_AnyInterpreter();
+    void UCodeLangAPIExport UCodeLangCAPI_Destroy_AnyInterpreter(UCodeLangCStruct UCodeLangCAPI_AnyInterpreter* Value);
+
+
+    void UCodeLangAPIExport UCodeLangCAPI_AnyInterpreter_Init(UCodeLangCStruct UCodeLangCAPI_AnyInterpreter* This, UCodeLangCStruct UCodeLangCAPI_RunTimeLangState* runtime);
+    void UCodeLangAPIExport UCodeLangCAPI_AnyInterpreter_DeInit(UCodeLangCStruct UCodeLangCAPI_AnyInterpreter* This);
+
+    UCodeLangCStruct UCodeLangCAPI_Interpreter_Return_t UCodeLangAPIExport UCodeLangCAPI_AnyInterpreter_Call(UCodeLangCStruct UCodeLangCAPI_AnyInterpreter* This, UCodeLangCStruct UCodeLangCAPI_CharSpan* FuncName);
+    UCodeLangCStruct UCodeLangCAPI_Interpreter_Return_t UCodeLangAPIExport UCodeLangCAPI_AnyInterpreter_CallA(UCodeLangCStruct UCodeLangCAPI_AnyInterpreter* This, UCodeLangCAPI_UAddress address);
+    UCodeLangCStruct UCodeLangCAPI_Interpreter_Return_t UCodeLangAPIExport UCodeLangCAPI_AnyInterpreter_CallM(UCodeLangCStruct UCodeLangCAPI_AnyInterpreter* This, UCodeLangCStruct UCodeLangCAPI_Const_ClassMethod* method);
+
+    UCodeLangCStruct void UCodeLangAPIExport  UCodeLangCAPI_AnyInterpreter_GetReturn(UCodeLangCAPI_AnyInterpreter* This, void* Output, size_t Outputsize);
+
+    void UCodeLangAPIExport UCodeLangCAPI_AnyInterpreter_PushParameter(UCodeLangCStruct UCodeLangCAPI_AnyInterpreter* This, const void* object, size_t objectsize);
+
+
     //types
     void UCodeLangCAPI_KeepInHFile UCodeLangCAPI_New_CharSpan(UCodeLangCStruct UCodeLangCAPI_CharSpan* This)
     {

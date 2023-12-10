@@ -128,5 +128,16 @@
   },
   "dependencies": {
     "vscode-languageclient": "^7.0.0"
-  }
+  },
+  "UCodeLanguageServer.trace.server": {
+	"scope": "window",
+	"type": "string",
+	"enum": [
+		"off",
+		"messages",
+		"verbose"
+	],
+	"default": "off",
+	"description": "Echoes communication between Visual Studio Code and the language server onto the \"my-awesome-language-server\" output channel."
+}
 }

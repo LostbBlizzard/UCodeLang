@@ -80,7 +80,7 @@ void TestingGround()
 	UCodeLang::CompilationSettings& Settings = _Compiler.Get_Settings();
 
 	Settings._Type = OutPutType::Lib;
-	Settings._Flags = OptimizationFlags::Stable_ForDebuging;
+	Settings._Flags = OptimizationFlags::ForDebuging;
 	_Compiler.Set_BackEnd(ULangTest::C11Backend::MakeObject);
 	
 	ModuleFile Mfile;
