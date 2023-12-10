@@ -1,7 +1,17 @@
 #include "UCodeLangCAPI.h"
 #include "UCodeLang/UCodeLang.hpp"
 
+#include "UCodeLang/Compilation/Back/C11/C11Backend.hpp"
+#include "UCodeLang/Compilation/Back/UCodeBackEnd/UCodeBackEnd.hpp"
+#include "UCodeLang/Compilation/Back/WebAssembly/WasmBackEnd.hpp"
 
+#include "UCodeLang/Compilation/Back/Linux/LinuxBackEnd.hpp"
+#include "UCodeLang/Compilation/Back/MacOs/MacOSBackEnd.hpp"
+#include "UCodeLang/Compilation/Back/Windows/WindowsBackEnd.hpp"
+
+#include "UCodeLang/Compilation/Back/NativeBackEnd.hpp"
+
+#include "UCodeLang/Compilation/Back/x86_64/X86_64UNativeBackEnd.hpp"
 //Casts
 
 #ifndef UCodeLangNoCompiler
@@ -187,8 +197,6 @@ UCodeLangCAPI_ClassMethod* As(UCodeLang::ClassMethod* Value)
 {
 	return (UCodeLangCAPI_ClassMethod*)Value;
 }
-
-
 const UCodeLang::ClassMethod* As(UCodeLangCAPI_Const_ClassMethod* Value)
 {
 	return (UCodeLang::ClassMethod*)Value;
@@ -196,6 +204,15 @@ const UCodeLang::ClassMethod* As(UCodeLangCAPI_Const_ClassMethod* Value)
 UCodeLangCAPI_Const_ClassMethod* As(const UCodeLang::ClassMethod* Value)
 {
 	return (UCodeLangCAPI_ClassMethod*)Value;
+}
+
+
+UCodeLangCAPI_CompilerOutput As(const UCodeLang::Compiler::CompilerRet& Value)
+{
+	UCodeLangCAPI_CompilerOutput r;
+	r.Success = Value.IsValue();
+
+	return r;
 }
 
 //Funcs
@@ -211,10 +228,119 @@ void  UCodeLangAPIExport UCodeLangCAPI_Destroy_Compiler(UCodeLangCAPI_Compiler* 
 	delete As(Value);
 }
 
-void UCodeLangAPIExport UCodeLangCAPI_Compiler_BuildTxt(UCodeLangCAPI_Compiler* This, UCodeLangCAPI_CharSpan String, UCodeLangCAPI_CompilerOutput* Output)
+UCodeLangCAPI_CompilerOutput UCodeLangAPIExport UCodeLangCAPI_Compiler_CompileText(UCodeLangCAPI_Compiler* This, UCodeLangCAPI_Const_CharSpan String)
 {
-	auto r = As(This)->CompileText(As(&String));
-	Output->Success = r.IsError();
+	return As(As(This)->CompileText(As(&String)));
+}
+UCodeLangCAPI_CompilerOutput UCodeLangAPIExport UCodeLangCAPI_Compiler_CompileFile(UCodeLangCAPI_Compiler* This, UCodeLangCAPI_Const_PathSpan path)
+{
+	return As(As(This)->CompileFileToLib(As(&path)));
+}
+UCodeLangCAPI_CompilerOutput UCodeLangAPIExport UCodeLangCAPI_Compiler_CompileFileToLib(UCodeLangCAPI_Compiler* This, UCodeLangCAPI_Const_PathSpan path, UCodeLangCAPI_Const_PathSpan out)
+{
+	return As(As(This)->CompilePathToObj(As(&path), As(&out)));
+}
+UCodeLangCAPI_CompilerOutput UCodeLangAPIExport UCodeLangCAPI_Compiler_CompileDir(UCodeLangCAPI_Compiler* This, UCodeLangCAPI_Const_PathSpan path, UCodeLangCAPI_Const_PathSpan out)
+{
+	UCodeLang::Compiler::CompilerPathData p;
+	p.FileDir = As(&path);
+	p.OutFile = As(&out);
+	return As(As(This)->CompileFiles(p));
+}
+UCodeLangCAPI_CompilerOutput UCodeLangAPIExport UCodeLangCAPI_Compiler_CompileDirWithInt(UCodeLangCStruct UCodeLangCAPI_Compiler* This, 
+	UCodeLangCStruct UCodeLangCAPI_Const_PathSpan dirpath,
+	UCodeLangCStruct UCodeLangCAPI_Const_PathSpan intpath, 
+	UCodeLangCStruct UCodeLangCAPI_Const_PathSpan outpath)
+{
+	UCodeLang::Compiler::CompilerPathData p;
+	p.FileDir = As(&dirpath);
+	p.IntDir = As(&intpath);
+	p.OutFile = As(&outpath);
+	return As(As(This)->CompileFiles(p));
+}
+UCodeLangCAPI_Const_CharSpan UCodeLangCAPI_Compiler_OutputFileExt(UCodeLangCStruct UCodeLangCAPI_Compiler* This)
+{
+	thread_local UCodeLang::String tep;
+	tep = As(This)->GetOutputExtWithDot();
+
+
+	UCodeLangCAPI_Const_CharSpan v;
+	v.pointer = tep.data();
+	v.size = tep.size();
+	return v;
+}
+
+void UCodeLangCAPI_CompilerSetingsAddFlag(UCodeLangCStruct UCodeLangCAPI_Compiler* This, UCodeLangCStruct UCodeLangCAPI_Const_CharSpan Flag)
+{
+	As(This)->Get_Settings().AddArgFlag((UCodeLang::String)As(&Flag));
+}
+void UCodeLangCAPI_CompilerSetingsAddFlag2(UCodeLangCStruct UCodeLangCAPI_Compiler* This, UCodeLangCStruct UCodeLangCAPI_Const_CharSpan Flag, UCodeLangCStruct UCodeLangCAPI_Const_CharSpan FlagValue)
+{
+	As(This)->Get_Settings().AddArgValue((UCodeLang::String)As(&Flag), (UCodeLang::String)As(&FlagValue));
+}
+void UCodeLangCAPI_ResetCompilerSetings(UCodeLangCStruct UCodeLangCAPI_Compiler* This)
+{
+	As(This)->Get_Settings() = UCodeLang::CompilationSettings();
+}
+void UCodeLangCAPI_CompilerSetings64Mode(UCodeLangCStruct UCodeLangCAPI_Compiler* This)
+{
+	As(This)->Get_Settings().PtrSize = UCodeLang::IntSizes::Int64;
+}
+void UCodeLangCAPI_CompilerSetings32Mode(UCodeLangCStruct UCodeLangCAPI_Compiler* This)
+{
+	As(This)->Get_Settings().PtrSize = UCodeLang::IntSizes::Int32;
+}
+void UCodeLangCAPI_SetBackEndUCode(UCodeLangCStruct UCodeLangCAPI_Compiler* This)
+{
+	As(This)->Set_BackEnd(UCodeLang::UCodeBackEndObject::MakeObject);
+}
+void UCodeLangCAPI_SetBackEndC11(UCodeLangCStruct UCodeLangCAPI_Compiler* This)
+{
+	As(This)->Set_BackEnd(UCodeLang::C11Backend::MakeObject);
+}
+void UCodeLangCAPI_SetBackEndWasm(UCodeLangCStruct UCodeLangCAPI_Compiler* This)
+{
+	As(This)->Set_BackEnd(UCodeLang::WasmBackEnd::MakeObject);
+}
+
+void UCodeLangCAPI_SetBackEndWindows(UCodeLangCStruct UCodeLangCAPI_Compiler* This)
+{
+	As(This)->Set_BackEnd(UCodeLang::WindowsBackEnd::MakeObject);
+}
+void UCodeLangCAPI_SetBackEndLinux(UCodeLangCStruct UCodeLangCAPI_Compiler* This)
+{
+	As(This)->Set_BackEnd(UCodeLang::LinuxBackEnd::MakeObject);
+}
+void UCodeLangCAPI_SetBackEndMacOs(UCodeLangCStruct UCodeLangCAPI_Compiler* This)
+{
+	As(This)->Set_BackEnd(UCodeLang::MacOSBackEnd::MakeObject);
+}
+
+void UCodeLangCAPI_SetBackEndToNative(UCodeLangCStruct UCodeLangCAPI_Compiler* This)
+{
+	#ifdef UCodeLang_HasNoPlatformBackEndBackEnd
+	UCodeLangCAPI_SetBackEndUCode(This);
+	#else 
+	As(This)->Set_BackEnd(UCodeLang::NativePlatformBackEnd::MakeObject);
+	#endif
+}
+void UCodeLangCAPI_SetBackEndToUCodeNative(UCodeLangCStruct UCodeLangCAPI_Compiler* This)
+{
+#ifdef UCodeLang_HasNoNativeULangBackEnd
+	UCodeLangCAPI_SetBackEndUCode(This);
+#else 
+	As(This)->Set_BackEnd(UCodeLang::NativeULangBackEnd::MakeObject);
+#endif
+}
+
+void UCodeLangCAPI_SetBackEndToUCodeNativeX86(UCodeLangCStruct UCodeLangCAPI_Compiler* This)
+{
+	As(This)->Set_BackEnd(UCodeLang::X86_64UNativeBackEnd::MakeObject);
+}
+
+void UCodeLangCAPI_SetBackEndToUCodeNativeArm(UCodeLangCStruct UCodeLangCAPI_Compiler* This)
+{
+	//As(This)->Set_BackEnd(UCodeLang::X86_64UNativeBackEnd::MakeObject);
 }
 #endif
 
