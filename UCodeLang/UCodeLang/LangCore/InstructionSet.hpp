@@ -153,13 +153,6 @@ enum class InstructionSet : InstructionSet_t
 	Link_Bytes,Link_Path,
 	Call_Code,
 
-	//SysCall Set
-	Cout_Char,
-	Cout_Buffer,
-
-	Cout_ReadChar,
-	Cout_ReadBuffer,
-
 	//Debuging Set
 	Debug_FuncStart,
 	Debug_FuncEnd,
