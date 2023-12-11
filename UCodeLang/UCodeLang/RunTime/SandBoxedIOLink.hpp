@@ -5,7 +5,11 @@ UCodeLangStart
 
 struct SandBoxedIOLink
 {
-	void Link(RunTimeLib* lib);
+	struct LinkSettings
+	{
+		bool AddCInAndOut = true;
+	};
+	void Link(RunTimeLib* lib,const LinkSettings& settings ={});
 };
 
 UCodeLangEnd
