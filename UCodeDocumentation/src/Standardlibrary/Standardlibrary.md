@@ -88,12 +88,12 @@ import UCodeLang::StandardLibarary[0:0:0];
 [Empty](./Miscellaneous/Empty.md) | class | A Zero-sized type. 
 [Buffer_t\<T>](./Miscellaneous/StringBuffer_t.md) | Generic trait | Gives the types that have continuous elements helper funcions such as Sort,Find and Filter.
 [StringBuffer_t\<T>](./Miscellaneous/StringBuffer_t.md) | Generic trait | Gives the types that are strings funcions such as StartWith,EndWith and GetLines.
-[Range_t\<T>](./Miscellaneous/Ranges.md#range) |
-[RangeFrom_t\<T>](./Miscellaneous/Ranges.md#rangefrom) | 
-[RangeTo_t\<T>](./Miscellaneous/Ranges.md#rangeto) | 
-[RangeFull_t\<T>](./Miscellaneous/Ranges.md#rangefull_t) | 
-[RangeInclusive_t\<T>](./Miscellaneous/Ranges.md#rangeinclusive_t) | 
-[RangeToInclusive_t\<T>](./Miscellaneous/Ranges.md#rangetoinclusive_t) | 
+[Range_t\<T>](./Miscellaneous/Ranges.md) |
+[RangeFrom_t\<T>](./Miscellaneous/Ranges.md) | 
+[RangeTo_t\<T>](./Miscellaneous/Ranges.md) | 
+[RangeFull_t\<T>](./Miscellaneous/Ranges.md) | 
+[RangeInclusive_t\<T>](./Miscellaneous/Ranges.md) | 
+[RangeToInclusive_t\<T>](./Miscellaneous/Ranges.md) | 
 
 
 ## Notes
