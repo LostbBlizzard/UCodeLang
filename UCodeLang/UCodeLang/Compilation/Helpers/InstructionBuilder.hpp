@@ -655,28 +655,6 @@ public:
 		Out = Instruction(InstructionSet::Call_Code, Instruction::ValUInt16(address));
 	}
 	
-
-	//Sys Calls
-	UCodeLangForceinline static void LogChar(Instruction& Out, RegisterID Char)
-	{
-		Out = Instruction(InstructionSet::Cout_Char, Instruction::OneReg(Char));
-	}
-
-	UCodeLangForceinline static void LogBuffer(Instruction& Out, RegisterID ptr, RegisterID size)
-	{
-		Out = Instruction(InstructionSet::Cout_Buffer, Instruction::TwoReg(ptr,size));
-	}
-
-	UCodeLangForceinline static void ReadChar(Instruction& Out, RegisterID Char)
-	{
-		Out = Instruction(InstructionSet::Cout_ReadChar, Instruction::OneReg(Char));
-	}
-
-	UCodeLangForceinline static void ReadBuffer(Instruction& Out, RegisterID ptr, RegisterID size)
-	{
-		Out = Instruction(InstructionSet::Cout_ReadBuffer, Instruction::TwoReg(ptr,size));
-	}
-	
 	//Debug
 	UCodeLangForceinline static void Debug_FuncStart(Instruction& Out)
 	{

@@ -1055,31 +1055,6 @@ void Interpreter::Extecute(Instruction& Inst)
 		#endif
 	}
 	InsBreak();
-	InsCase(Cout_Char):
-	{
-		char V = Get_Register(Inst.Op_OneReg.A).Value.AsInt8;
-		Get_State()->Log(&V,1);
-	}
-	InsBreak();
-
-	InsCase(Cout_Buffer):
-	{
-		Get_State()->Log((char*)Get_Register(Inst.Op_TwoReg.A).Value.AsPtr, Get_Register(Inst.Op_TwoReg.B).Value.AsUIntNative);
-	}
-	InsBreak();
-
-	InsCase(Cout_ReadChar):
-	{
-		Get_Register(Inst.Op_OneReg.A).Value = Get_State()->ReadChar();
-	}
-	InsBreak();
-
-	InsCase(Cout_ReadBuffer):
-	{
-		Get_State()->ReadChar((char*)Get_Register(Inst.Op_OneReg.A).Value.AsPtr, Get_Register(Inst.Op_OneReg.A).Value.AsUIntNative);
-	}
-	InsBreak();
-	InsCase(Debug_FuncStart):
 	{
 		Get_State()->Get_DebugContext().TryFuncStart(*Get_State(), { this,DebugContext::Type::Interpreter });
 	}

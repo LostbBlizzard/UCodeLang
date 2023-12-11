@@ -5187,23 +5187,7 @@ UCodeBackEndObject::FindParsLoc UCodeBackEndObject::GetParsLoc(const Vector<IRPa
 void UCodeBackEndObject::BuildLink(const IRidentifier& FuncName, IRFuncLink LinkType)
 {
 	auto VFuncName = NameDecoratior::GetUnDecoratedName(FuncName);
-	if(VFuncName == "__LogChar")
-	{
-		InstructionBuilder::LogChar(_Ins, RegisterID::StartParameterRegister); PushIns();
-	}
-	else if (VFuncName == "__LogBuffer")
-	{
-		InstructionBuilder::LogBuffer(_Ins, RegisterID::Parameter1_Register, RegisterID::Parameter2_Register); PushIns();
-	}
-	else if (VFuncName == "__ReadChar")
-	{
-		InstructionBuilder::ReadChar(_Ins,RegisterID::OutPutRegister); PushIns();
-	}
-	else if (VFuncName == "__ReadBuffer")
-	{
-		InstructionBuilder::ReadBuffer(_Ins, RegisterID::Parameter1_Register,RegisterID::Parameter2_Register); PushIns();
-	}
-	else if (VFuncName == "__Malloc")
+	if (VFuncName == "__Malloc")
 	{
 		InstructionBuilder::Malloc(_Ins, RegisterID::StartParameterRegister, RegisterID::OutPutRegister); PushIns();
 	}
