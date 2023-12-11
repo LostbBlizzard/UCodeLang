@@ -33,6 +33,49 @@ const UCodeLangCAPI_Const_Compiler* As(const UCodeLang::Compiler* Value)
 }
 #endif
 
+
+UCodeLang::InterpreterCPPinterface* As(UCodeLangCAPI_InterpreterCPPinterface* Value)
+{
+	return (UCodeLang::InterpreterCPPinterface*)Value;
+}
+
+UCodeLang::RunTimeLib* As(UCodeLangCAPI_RunTimeUClib* Value)
+{
+	return (UCodeLang::RunTimeLib*)Value;
+}
+const UCodeLang::RunTimeLib* As(UCodeLangCAPI_Const_RunTimeUClib* Value)
+{
+	return (UCodeLang::RunTimeLib*)Value;
+}
+
+UCodeLangCAPI_RunTimeUClib* As(UCodeLang::RunTimeLib* Value)
+{
+	return (UCodeLangCAPI_RunTimeUClib*)Value;
+}
+UCodeLangCAPI_Const_RunTimeUClib* As(const UCodeLang::RunTimeLib* Value)
+{
+	return (UCodeLangCAPI_Const_RunTimeUClib*)Value;
+}
+
+
+UCodeLang::UClib* As(UCodeLangCAPI_UClib* Value)
+{
+	return (UCodeLang::UClib*)Value;
+}
+const UCodeLang::UClib* As(UCodeLangCAPI_Const_UClib* Value)
+{
+	return (UCodeLang::UClib*)Value;
+}
+
+UCodeLangCAPI_UClib* As(UCodeLang::UClib* Value)
+{
+	return (UCodeLangCAPI_UClib*)Value;
+}
+UCodeLangCAPI_Const_UClib* As(const UCodeLang::UClib* Value)
+{
+	return (UCodeLangCAPI_Const_UClib*)Value;
+}
+
 UCodeLang::Interpreter* As(UCodeLangCAPI_Interpreter* Value)
 {
 	return (UCodeLang::Interpreter*)Value;
@@ -208,6 +251,18 @@ UCodeLangCAPI_Const_ClassMethod* As(const UCodeLang::ClassMethod* Value)
 
 
 #ifndef UCodeLangNoCompiler
+void UCodeLangCAPI_SetCompilerSetingsDebugFlag(UCodeLangCStruct UCodeLangCAPI_Compiler* This,bool value)
+{
+
+}
+void UCodeLangCAPI_SetCompilerSetingsO1Flag(UCodeLangCStruct UCodeLangCAPI_Compiler* This,bool value)
+{
+
+}
+void UCodeLangCAPI_SetCompilerSetingsO2Flag(UCodeLangCStruct UCodeLangCAPI_Compiler* This,bool value)
+{
+
+}
 UCodeLangCAPI_CompilerOutput As(const UCodeLang::Compiler::CompilerRet& Value)
 {
 	UCodeLangCAPI_CompilerOutput r;
@@ -353,7 +408,20 @@ void UCodeLangAPIExport UCodeLangCAPI_Destroy_RunTimeState(UCodeLangCAPI_RunTime
 {
 	delete As(Value);
 }
+void UCodeLangAPIExport UCodeLangCAPI_RunTimeState_AddLib(UCodeLangCStruct UCodeLangCAPI_RunTimeLangState* Value, UCodeLangCStruct UCodeLangCAPI_RunTimeUClib* lib)
+{
+	As(Value)->AddLib(As(lib));
+}
 
+void UCodeLangAPIExport UCodeLangCAPI_RunTimeState_LinkLibs(UCodeLangCStruct UCodeLangCAPI_RunTimeLangState* Value)
+{
+	As(Value)->LinkLibs();
+}
+
+void UCodeLangAPIExport UCodeLangCAPI_RunTimeState_ClearRunTimeState(UCodeLangCStruct UCodeLangCAPI_RunTimeLangState* Value)
+{
+	As(Value)->ClearRunTimeState();
+}
 //Interpreter
 UCodeLangCAPI_Interpreter* UCodeLangAPIExport UCodeLangCAPI_New_Interpreter()
 {
@@ -518,4 +586,49 @@ void UCodeLangCAPI_AnyInterpreter_Init(UCodeLangCStruct UCodeLangCAPI_AnyInterpr
 void UCodeLangCAPI_AnyInterpreter_DeInit(UCodeLangCStruct UCodeLangCAPI_AnyInterpreter* This)
 {
 	As(This)->UnLoad();
+}
+
+UCodeLangCStruct UCodeLangCAPI_RunTimeUClib* UCodeLangAPIExport UCodeLangCAPI_New_RunTimelib()
+{
+	return As(new UCodeLang::RunTimeLib());
+}
+void UCodeLangAPIExport UCodeLangCAPI_Destroy_RunTimelib(UCodeLangCStruct UCodeLangCAPI_RunTimeUClib* Value)
+{
+	delete As(Value);
+}
+
+
+void UCodeLangCAPI_RunTimeUClib_Init(UCodeLangCStruct UCodeLangCAPI_RunTimeUClib* Value, UCodeLangCStruct UCodeLangCAPI_UClib* lib)
+{
+	As(Value)->Init(As(lib));
+}
+void UCodeLangCAPI_RunTimeUClib_Unload(UCodeLangCStruct UCodeLangCAPI_RunTimeUClib* Value)
+{
+	As(Value)->UnLoad();
+}
+void UCodeLangCAPI_RunTimeUClib_AddCppCall(UCodeLangCStruct UCodeLangCAPI_RunTimeUClib* Value, UCodeLangCAPI_Const_CharSpan funcname, UCodeLangCAPI_CppCall cppcallfuncion, void* nativefuncion)
+{
+	As(Value)->Add_CPPCall<void>((UCodeLang::String)As(&funcname), (UCodeLang::RunTimeLib::CPPCallBack)cppcallfuncion, (UCodeLang::RunTimeLib::NativeCall<void>)nativefuncion);
+}
+void UCodeLangCAPI_RunTimeLib_LinkIO(UCodeLangCStruct UCodeLangCAPI_RunTimeUClib* Value, const UCodeLangCStruct IOLinkSettings* setting)
+{
+	UCodeLang::IOLink::LinkSettings link;
+	link.AddCInAndOut = setting->AddCoutACin;
+	UCodeLang::IOLink::Link(As(Value),link);
+}
+void UCodeLangCAPI_RunTimeLib_LinkIOSandBox(UCodeLangCStruct UCodeLangCAPI_RunTimeUClib* Value, const UCodeLangCStruct IOLinkSettings* setting)
+{
+	UCodeLang::SandBoxedIOLink::LinkSettings link;
+	link.AddCInAndOut = setting->AddCoutACin;
+	UCodeLang::SandBoxedIOLink::Link(As(Value), link);
+}
+
+void UCodeLangCAPI_InterpreterCPPinterface_GetParamter(UCodeLangCStruct UCodeLangCAPI_InterpreterCPPinterface* value, void* output, size_t outsize)
+{
+	UCodeLang::InterpreterCPPinterface::GetParameter_jit(*As(value), output, outsize);
+}
+
+void UCodeLangCAPI_InterpreterCPPinterface_SetReturn(UCodeLangCStruct UCodeLangCAPI_InterpreterCPPinterface* value, void* input, size_t inputsize)
+{
+	UCodeLang::InterpreterCPPinterface::Set_Return_jit(*As(value), input, inputsize);
 }

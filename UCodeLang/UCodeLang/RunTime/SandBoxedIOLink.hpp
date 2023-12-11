@@ -9,7 +9,7 @@ struct SandBoxedIOLink
 	{
 		bool AddCInAndOut = true;
 	};
-	void Link(RunTimeLib* lib,const LinkSettings& settings ={});
+	static void Link(RunTimeLib* lib,const LinkSettings& settings ={});
 };
 
 UCodeLangEnd
