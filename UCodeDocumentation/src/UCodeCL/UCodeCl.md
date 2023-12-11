@@ -19,8 +19,8 @@ uclang [command] <arguments>
 [get](./Commands/Get.md) | Path(optional)  | Downloads the Modules dependencies.
 [dump](./Commands/Dump.md) | Path  | Builds a UCodeLang File,Module,Folder or .ulib and attempts to convert the output into readable textworks with wasm,window,linux,macos,c89,.ulib,.uir outputs.
 [clear](./Commands/Clear.md) | Path| clears a Module a intermediate and output files.
-[cpptoulangvm](./Commands/cpptoulangvm.md#cpptoulangvm) | CppPath,CpplinkPath,ulangout  | uses C++ source code to create bindings for UCodeVm
-[cppdirtoulangvm](./Commands/cpptoulangvm.md#cppdirtoulangvm) | CppDir,CpplinkPath,ulangout  | uses C++ source files code to create bindings for UCodeVm
+[cpptoulangvm](./Commands/cpptoulangvm.md) | CppPath,CpplinkPath,ulangout  | uses C++ source code to create bindings for UCodeVm
+[cppdirtoulangvm](./Commands/cpptoulangvm.md) | CppDir,CpplinkPath,ulangout  | uses C++ source files code to create bindings for UCodeVm
 [fmt](./Commands/Fmt.md) | Path(optional)   |Formats A UCodeLang Module or file.
 [index](./Commands/Index.md) | Path(optional)   | Adds Module to to the Module Index so it can be used/referenced by other module in your system.
 [test](./Commands/Test.md) | Path(optional)   | Runs Tests on your UCodeLang Module Project.

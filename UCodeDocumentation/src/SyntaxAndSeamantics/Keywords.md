@@ -11,25 +11,25 @@ All keywords that can be used as a type.
 | Keyword | short Description
 |--- | --- |
  [int](./Builtin/ints.md) | the int32 type
- [byte](./Builtin/ints.md#byte) | the uint8 type
+ [byte](./Builtin/ints.md) | the uint8 type
  [bool](./Builtin/bool.md) | the true or false type
- [uintptr](./Builtin/ints.md#uintptr) | a unsigned int thats the size of a pointer.
- [intptr](./Builtin/ints.md#intptr) | a signed int thats the size of a pointer.
- [float](./Builtin/float.md#float) | the float32 type 
- [float32](./Builtin/float.md#float32) | An IEEE floating point number.
- [float64](./Builtin/float.md#float64) | An IEEE floating point number.
+ [uintptr](./Builtin/ints.md) | a unsigned int thats the size of a pointer.
+ [intptr](./Builtin/ints.md) | a signed int thats the size of a pointer.
+ [float](./Builtin/float.md) | the float32 type 
+ [float32](./Builtin/float.md) | An IEEE floating point number.
+ [float64](./Builtin/float.md) | An IEEE floating point number.
  [char](./Builtin/char.md) | the ASCII character type.
- [utf8](./Builtin/char.md#utf8) | the utf8 character type.
- [utf16](./Builtin/char.md#utf16) | the utf16 character type.
- [utf32](./Builtin/char.md#utf32) | the utf32 character type.
- [uint8](./Builtin/ints.md#uint8) |  an unsigned int thats the size of a one byte.
- [uint16](./Builtin/ints.md#uint16) | an unsigned int thats the size of a two bytes.
- [uint32](./Builtin/ints.md#uint32) | an unsigned int thats the size of a four bytes.
- [uint64](./Builtin/ints.md#uint64) | an unsigned int thats the size of a eight bytes.
- [int8](./Builtin/ints.md#int8) | an signed int thats the size of a one byte.
- [int16](./Builtin/ints.md#int16) | an signed int thats the size of a two bytes.
- [int32](./Builtin/ints.md#int32) | an signed int thats the size of a four bytes.
- [int64](./Builtin/ints.md#int64) | an signed int thats the size of a eight bytes.
+ [utf8](./Builtin/char.md) | the utf8 character type.
+ [utf16](./Builtin/char.md) | the utf16 character type.
+ [utf32](./Builtin/char.md) | the utf32 character type.
+ [uint8](./Builtin/ints.md) |  an unsigned int thats the size of a one byte.
+ [uint16](./Builtin/ints.md) | an unsigned int thats the size of a two bytes.
+ [uint32](./Builtin/ints.md) | an unsigned int thats the size of a four bytes.
+ [uint64](./Builtin/ints.md) | an unsigned int thats the size of a eight bytes.
+ [int8](./Builtin/ints.md) | an signed int thats the size of a one byte.
+ [int16](./Builtin/ints.md) | an signed int thats the size of a two bytes.
+ [int32](./Builtin/ints.md) | an signed int thats the size of a four bytes.
+ [int64](./Builtin/ints.md) | an signed int thats the size of a eight bytes.
  [typeinfo](./Builtin/TypeInfo.md) | read type information.
 
 ## type keywords
