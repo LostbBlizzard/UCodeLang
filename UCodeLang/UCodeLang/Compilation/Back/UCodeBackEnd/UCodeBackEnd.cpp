@@ -5231,50 +5231,6 @@ void UCodeBackEndObject::BuildLink(const IRidentifier& FuncName, IRFuncLink Link
 	{
 		InstructionBuilder::Free(_Ins, RegisterID::StartParameterRegister); PushIns();
 	}
-	else if (VFuncName == "__FileOpen")
-	{
-		InstructionBuilder::OpenFile(_Ins, RegisterID::Parameter1_Register, RegisterID::Parameter2_Register, RegisterID::OutPutRegister); PushIns();
-	}
-	else if (VFuncName == "__FilePOpen")
-	{
-		InstructionBuilder::OpenPCharFile(_Ins, RegisterID::Parameter1_Register, RegisterID::Parameter2_Register, RegisterID::OutPutRegister); PushIns();
-	}
-	else if (VFuncName == "__FileRead")
-	{
-		InstructionBuilder::File_Read(_Ins, RegisterID::Parameter1_Register, RegisterID::Parameter2_Register, RegisterID::Parameter3_Register); PushIns();
-	}
-	else if (VFuncName == "__FileWrite")
-	{
-		InstructionBuilder::File_Read(_Ins, RegisterID::Parameter1_Register, RegisterID::Parameter2_Register, RegisterID::Parameter3_Register); PushIns();
-	}
-	else if (VFuncName == "__FileIsOpen")
-	{
-		InstructionBuilder::FileIsOpen(_Ins, RegisterID::Parameter1_Register,RegisterID::OutPutRegister); PushIns();
-	}
-	else if (VFuncName == "__FileSetPos")
-	{
-		InstructionBuilder::File_SetPos(_Ins, RegisterID::Parameter1_Register, RegisterID::Parameter2_Register, RegisterID::Parameter3_Register); PushIns();
-	}
-	else if (VFuncName == "__FileGetPos")
-	{
-		InstructionBuilder::File_GetPos(_Ins, RegisterID::Parameter1_Register, RegisterID::OutPutRegister); PushIns();
-	}
-	else if (VFuncName == "__FileExist")
-	{
-		InstructionBuilder::File_Exist(_Ins, RegisterID::Parameter1_Register, RegisterID::Parameter2_Register, RegisterID::OutPutRegister); PushIns();
-	}
-	else if (VFuncName == "__FilePExist")
-	{
-		InstructionBuilder::FilePChar_Exist(_Ins, RegisterID::Parameter1_Register, RegisterID::Parameter2_Register, RegisterID::OutPutRegister); PushIns();
-	}
-	else if (VFuncName == "__FileRemove")
-	{
-		InstructionBuilder::File_Remove(_Ins, RegisterID::Parameter1_Register, RegisterID::Parameter2_Register, RegisterID::OutPutRegister); PushIns();
-	}
-	else if (VFuncName == "__FilePRemove")
-	{
-		InstructionBuilder::FilePChar_Remove(_Ins, RegisterID::Parameter1_Register, RegisterID::Parameter2_Register, RegisterID::OutPutRegister); PushIns();
-	}
 	else
 	{
 		auto Ptr = _Output->AddStaticBytes((String_view)VFuncName);

@@ -676,53 +676,7 @@ public:
 	{
 		Out = Instruction(InstructionSet::Cout_ReadBuffer, Instruction::TwoReg(ptr,size));
 	}
-
-
-	UCodeLangForceinline static void OpenFile(Instruction& Out, RegisterID ptr, RegisterID size, RegisterID out)
-	{
-		Out = Instruction(InstructionSet::File_Open, Instruction::ThreeReg(ptr, size,out));
-	}
-	UCodeLangForceinline static void OpenPCharFile(Instruction& Out, RegisterID ptr, RegisterID size, RegisterID out)
-	{
-		Out = Instruction(InstructionSet::FilePChar_Open, Instruction::ThreeReg(ptr, size, out));
-	}
-	UCodeLangForceinline static void FileIsOpen(Instruction& Out, RegisterID ptr,RegisterID out)
-	{
-		Out = Instruction(InstructionSet::File_IsOpen, Instruction::TwoReg(ptr,out));
-	}
-	UCodeLangForceinline static void File_Read(Instruction& Out, RegisterID file,RegisterID ptr, RegisterID size)
-	{
-		Out = Instruction(InstructionSet::File_Read, Instruction::ThreeReg(file,ptr,size));
-	}
-	UCodeLangForceinline static void File_Write(Instruction& Out, RegisterID file, RegisterID ptr, RegisterID size)
-	{
-		Out = Instruction(InstructionSet::File_Write, Instruction::ThreeReg(file,ptr, size));
-	}
-	UCodeLangForceinline static void File_SetPos(Instruction& Out, RegisterID file, RegisterID ptr, RegisterID mode)
-	{
-		Out = Instruction(InstructionSet::File_SetPos, Instruction::ThreeReg(file, ptr, mode));
-	}
-	UCodeLangForceinline static void File_GetPos(Instruction& Out, RegisterID file, RegisterID out)
-	{
-		Out = Instruction(InstructionSet::File_GetPos, Instruction::TwoReg(file, out));
-	}
-	UCodeLangForceinline static void File_Exist(Instruction& Out, RegisterID ptr, RegisterID size, RegisterID out)
-	{
-		Out = Instruction(InstructionSet::File_Exist, Instruction::ThreeReg(ptr,size, out));
-	}
-	UCodeLangForceinline static void FilePChar_Exist(Instruction& Out, RegisterID ptr, RegisterID size, RegisterID out)
-	{
-		Out = Instruction(InstructionSet::FilePChar_Exist, Instruction::ThreeReg(ptr, size, out));
-	}
-	UCodeLangForceinline static void File_Remove(Instruction& Out, RegisterID ptr, RegisterID size, RegisterID out)
-	{
-		Out = Instruction(InstructionSet::File_Remove, Instruction::ThreeReg(ptr, size,out));
-	}
-	UCodeLangForceinline static void FilePChar_Remove(Instruction& Out, RegisterID ptr, RegisterID size, RegisterID out)
-	{
-		Out = Instruction(InstructionSet::FilePChar_Remove, Instruction::ThreeReg(ptr, size, out));
-	}
-
+	
 	//Debug
 	UCodeLangForceinline static void Debug_FuncStart(Instruction& Out)
 	{
