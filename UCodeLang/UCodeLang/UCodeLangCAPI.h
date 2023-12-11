@@ -85,14 +85,6 @@ extern "C"
     typedef const UCodeLangCAPI_RunTimeLangState UCodeLangCAPI_Const_RunTimeLangState;
 
 
-
-
-    struct UCodeLangCAPI_AnyInterpreterPtr
-    {
-        void* Base;
-    };
-    typedef const UCodeLangCStruct UCodeLangCAPI_AnyInterpreterPtr UCodeLangCAPI_Const_AnyInterpreterPtr;
-
     //structs
     struct UCodeLangCAPI_CharSpan
     {
@@ -244,8 +236,8 @@ extern "C"
     void UCodeLangCAPI_CompilerSetingsAddFlag(UCodeLangCStruct UCodeLangCAPI_Compiler* This, UCodeLangCStruct UCodeLangCAPI_Const_CharSpan Flag);
     void UCodeLangCAPI_CompilerSetingsAddFlag2(UCodeLangCStruct UCodeLangCAPI_Compiler* This, UCodeLangCStruct UCodeLangCAPI_Const_CharSpan Flag, UCodeLangCStruct UCodeLangCAPI_Const_CharSpan FlagValue);
 
-    void UCodeLangCAPI_CompilerSetings64Mode(UCodeLangCStruct UCodeLangCAPI_Compiler* This);
-    void UCodeLangCAPI_CompilerSetings32Mode(UCodeLangCStruct UCodeLangCAPI_Compiler* This);
+    void UCodeLangCAPI_SetCompilerSetings64Mode(UCodeLangCStruct UCodeLangCAPI_Compiler* This);
+    void UCodeLangCAPI_SetCompilerSetings32Mode(UCodeLangCStruct UCodeLangCAPI_Compiler* This);
     //Main BackEnds
     void UCodeLangCAPI_SetBackEndUCode(UCodeLangCStruct UCodeLangCAPI_Compiler* This);
     void UCodeLangCAPI_SetBackEndC11(UCodeLangCStruct UCodeLangCAPI_Compiler* This);

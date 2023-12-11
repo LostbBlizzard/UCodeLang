@@ -207,6 +207,7 @@ UCodeLangCAPI_Const_ClassMethod* As(const UCodeLang::ClassMethod* Value)
 }
 
 
+#ifndef UCodeLangNoCompiler
 UCodeLangCAPI_CompilerOutput As(const UCodeLang::Compiler::CompilerRet& Value)
 {
 	UCodeLangCAPI_CompilerOutput r;
@@ -217,7 +218,6 @@ UCodeLangCAPI_CompilerOutput As(const UCodeLang::Compiler::CompilerRet& Value)
 
 //Funcs
 
-#ifndef UCodeLangNoCompiler
 UCodeLangCAPI_Compiler* UCodeLangAPIExport UCodeLangCAPI_New_Compiler()
 {
 	return As(new UCodeLang::Compiler());
@@ -282,11 +282,11 @@ void UCodeLangCAPI_ResetCompilerSetings(UCodeLangCStruct UCodeLangCAPI_Compiler*
 {
 	As(This)->Get_Settings() = UCodeLang::CompilationSettings();
 }
-void UCodeLangCAPI_CompilerSetings64Mode(UCodeLangCStruct UCodeLangCAPI_Compiler* This)
+void UCodeLangCAPI_SetCompilerSetings64Mode(UCodeLangCStruct UCodeLangCAPI_Compiler* This)
 {
 	As(This)->Get_Settings().PtrSize = UCodeLang::IntSizes::Int64;
 }
-void UCodeLangCAPI_CompilerSetings32Mode(UCodeLangCStruct UCodeLangCAPI_Compiler* This)
+void UCodeLangCAPI_SetCompilerSetings32Mode(UCodeLangCStruct UCodeLangCAPI_Compiler* This)
 {
 	As(This)->Get_Settings().PtrSize = UCodeLang::IntSizes::Int32;
 }
