@@ -7,7 +7,7 @@ UCodeLangStart
 template<typename T, typename... Pars>
 using NativeCall = RunTimeLib::NativeCall<T, Pars...>;
 
-void SandBoxedIOLink::Link(RunTimeLib* lib, const LinkSettings& settings = {})
+void SandBoxedIOLink::Link(RunTimeLib* lib, const LinkSettings& settings)
 {
 
 	if (settings.AddCInAndOut)

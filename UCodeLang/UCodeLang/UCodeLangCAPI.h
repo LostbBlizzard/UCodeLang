@@ -84,6 +84,11 @@ extern "C"
     UCodeLangCAPI_HardtypedefVoid(void, UCodeLangCAPI_RunTimeLangState);
     typedef const UCodeLangCAPI_RunTimeLangState UCodeLangCAPI_Const_RunTimeLangState;
 
+    UCodeLangCAPI_HardtypedefVoid(void, UCodeLangCAPI_UClib);
+    typedef const UCodeLangCAPI_UClib UCodeLangCAPI_Const_UClib;
+
+    UCodeLangCAPI_HardtypedefVoid(void, UCodeLangCAPI_RunTimeUClib);
+    typedef const UCodeLangCAPI_RunTimeUClib UCodeLangCAPI_Const_RunTimeUClib;
 
     //structs
     struct UCodeLangCAPI_CharSpan
@@ -217,6 +222,10 @@ extern "C"
     typedef const UCodeLangCAPI_ClassMethod UCodeLangCAPI_Const_ClassMethod;
 
 
+    UCodeLangCAPI_HardtypedefVoid(void, UCodeLangCAPI_InterpreterCPPinterface);
+    typedef const UCodeLangCAPI_InterpreterCPPinterface UCodeLangCAPI_Const_InterpreterCPPinterface;
+
+    typedef void(*UCodeLangCAPI_CppCall)(UCodeLangCAPI_InterpreterCPPinterface* cppinterface);
 
     //functions
     #ifndef UCodeLangNoCompiler
@@ -235,6 +244,13 @@ extern "C"
     
     void UCodeLangCAPI_CompilerSetingsAddFlag(UCodeLangCStruct UCodeLangCAPI_Compiler* This, UCodeLangCStruct UCodeLangCAPI_Const_CharSpan Flag);
     void UCodeLangCAPI_CompilerSetingsAddFlag2(UCodeLangCStruct UCodeLangCAPI_Compiler* This, UCodeLangCStruct UCodeLangCAPI_Const_CharSpan Flag, UCodeLangCStruct UCodeLangCAPI_Const_CharSpan FlagValue);
+
+
+    void UCodeLangCAPI_SetCompilerSetingsDebugFlag(UCodeLangCStruct UCodeLangCAPI_Compiler* This,bool value);
+    void UCodeLangCAPI_SetCompilerSetingsO1Flag(UCodeLangCStruct UCodeLangCAPI_Compiler* This,bool value);
+    void UCodeLangCAPI_SetCompilerSetingsO2Flag(UCodeLangCStruct UCodeLangCAPI_Compiler* This,bool value);
+
+
 
     void UCodeLangCAPI_SetCompilerSetings64Mode(UCodeLangCStruct UCodeLangCAPI_Compiler* This);
     void UCodeLangCAPI_SetCompilerSetings32Mode(UCodeLangCStruct UCodeLangCAPI_Compiler* This);
@@ -263,6 +279,12 @@ extern "C"
 
     UCodeLangCStruct UCodeLangCAPI_RunTimeLangState* UCodeLangAPIExport UCodeLangCAPI_New_RunTimeState();
     void UCodeLangAPIExport UCodeLangCAPI_Destroy_RunTimeState(UCodeLangCStruct UCodeLangCAPI_RunTimeLangState* Value);
+
+
+    void UCodeLangAPIExport UCodeLangCAPI_RunTimeState_AddLib(UCodeLangCStruct UCodeLangCAPI_RunTimeLangState* Value, UCodeLangCStruct UCodeLangCAPI_RunTimeUClib* lib);
+    void UCodeLangAPIExport UCodeLangCAPI_RunTimeState_LinkLibs(UCodeLangCStruct UCodeLangCAPI_RunTimeLangState* Value);
+    void UCodeLangAPIExport UCodeLangCAPI_RunTimeState_ClearRunTimeState(UCodeLangCStruct UCodeLangCAPI_RunTimeLangState* Value);
+
 
     //Interpreter
     UCodeLangCStruct UCodeLangCAPI_Interpreter* UCodeLangAPIExport UCodeLangCAPI_New_Interpreter();
@@ -327,6 +349,29 @@ extern "C"
     UCodeLangCStruct void UCodeLangAPIExport  UCodeLangCAPI_AnyInterpreter_GetReturn(UCodeLangCAPI_AnyInterpreter* This, void* Output, size_t Outputsize);
 
     void UCodeLangAPIExport UCodeLangCAPI_AnyInterpreter_PushParameter(UCodeLangCStruct UCodeLangCAPI_AnyInterpreter* This, const void* object, size_t objectsize);
+
+
+    //RunTimeLib
+    
+    UCodeLangCStruct UCodeLangCAPI_RunTimeUClib* UCodeLangAPIExport UCodeLangCAPI_New_RunTimelib();
+    void UCodeLangAPIExport UCodeLangCAPI_Destroy_RunTimelib(UCodeLangCStruct UCodeLangCAPI_RunTimeUClib* Value);
+
+    void UCodeLangCAPI_RunTimeUClib_Init(UCodeLangCStruct UCodeLangCAPI_RunTimeUClib* Value, UCodeLangCStruct UCodeLangCAPI_UClib* lib);
+    void UCodeLangCAPI_RunTimeUClib_Unload(UCodeLangCStruct UCodeLangCAPI_RunTimeUClib* Value);
+
+    void UCodeLangCAPI_RunTimeUClib_AddCppCall(UCodeLangCStruct UCodeLangCAPI_RunTimeUClib* Value, UCodeLangCAPI_Const_CharSpan funcname,UCodeLangCAPI_CppCall cppcallfuncion,void* nativefuncion);
+
+    struct IOLinkSettings
+    {
+        bool AddCoutACin;
+    };
+
+    void UCodeLangCAPI_RunTimeLib_LinkIO(UCodeLangCStruct UCodeLangCAPI_RunTimeUClib* Value,const UCodeLangCStruct IOLinkSettings* setting);
+    void UCodeLangCAPI_RunTimeLib_LinkIOSandBox(UCodeLangCStruct UCodeLangCAPI_RunTimeUClib* Value, const UCodeLangCStruct IOLinkSettings* setting);
+    
+    // InterpreterCPPinterface
+    void UCodeLangCAPI_InterpreterCPPinterface_GetParamter(UCodeLangCStruct UCodeLangCAPI_InterpreterCPPinterface* value, void* output, size_t outsize);
+    void UCodeLangCAPI_InterpreterCPPinterface_SetReturn(UCodeLangCStruct UCodeLangCAPI_InterpreterCPPinterface* value, void* input, size_t inputsize);
 
 
     //types

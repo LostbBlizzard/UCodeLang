@@ -3,6 +3,9 @@
 #include "Interpreters/Interpreter.hpp"
 UCodeLangStart
 
+template<typename T, typename... Pars>
+using NativeCall = RunTimeLib::NativeCall<T, Pars...>;
+
 
 void IOLink::Link(RunTimeLib* lib, const LinkSettings& settings)
 {
