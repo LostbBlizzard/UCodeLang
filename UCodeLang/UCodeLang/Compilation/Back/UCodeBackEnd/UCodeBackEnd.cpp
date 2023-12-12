@@ -2801,9 +2801,7 @@ RegisterID UCodeBackEndObject::MakeIntoRegister(const IRlocData& Value, Optional
 
 			
 			auto mainobjsize = GetSize(Value.ObjectType);
-
-			auto newpos = mainobjsize + Val2->offset;
-			_Stack.AddReUpdatePreFunc(PushIns(), newpos- _Stack.PushedOffset);
+			_Stack.AddReUpdatePreFunc(PushIns(), GetPreCallStackOffset2(mainobjsize, Val2->offset));
 		}
 		return Tep;
 	}
@@ -2955,8 +2953,8 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetPointerOf(const IRlocData& 
 		{
 			auto mainobjsize = GetSize(Value.ObjectType);
 
-			auto newpos = mainobjsize + Val2->offset;
-			_Stack.AddReUpdatePreFunc(PushIns(), newpos);
+
+			_Stack.AddReUpdatePreFunc(PushIns(), GetPreCallStackOffset2(mainobjsize,Val2->offset));
 		}
 		else
 		{
@@ -4174,9 +4172,7 @@ void UCodeBackEndObject::MoveRegInValue(RegisterID Value, const IRlocData& To, s
 		}
 
 		auto mainobjsize = GetSize(To.ObjectType);
-
-		auto newpos = mainobjsize + Val->offset;
-		_Stack.AddReUpdatePreFunc(PushIns(), newpos + Offset - _Stack.PushedOffset);
+		_Stack.AddReUpdatePreFunc(PushIns(), GetPreCallStackOffset2(mainobjsize,Val->offset));
 	}
 	else if (auto Val = To.Info.Get_If<IRlocData_StaticPos>())
 	{
@@ -4275,8 +4271,7 @@ void UCodeBackEndObject::MoveValueInReg(const IRlocData& Value, size_t Offset, R
 
 			auto mainobjsize = GetSize(Value.ObjectType);
 
-			auto newpos = mainobjsize + Val2->offset;
-			_Stack.AddReUpdatePreFunc(PushIns(), newpos+Offset- _Stack.PushedOffset);
+			_Stack.AddReUpdatePreFunc(PushIns(), GetPreCallStackOffset2(mainobjsize,Val2->offset +Offset));
 		}
 	}
 	else if (auto Val = Value.Info.Get_If<IRlocData_StaticPos>())

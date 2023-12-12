@@ -234,14 +234,14 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 			
 			#if RunlogIRState
 			{//for debuging
-				auto S = Input->ToString();
+				//auto S = Input->ToString();
 
 				//std::cout << "-----" << std::endl;
 				//std::cout << S;
 
-				std::ofstream file("OutIR.txt");
-				file << S;
-				file.close();
+				//std::ofstream file("OutIR.txt");
+				//file << S;
+				//file.close();
 			}
 			#endif // UCodeLangDebug
 

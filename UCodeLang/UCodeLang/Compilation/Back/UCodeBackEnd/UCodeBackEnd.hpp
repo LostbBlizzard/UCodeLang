@@ -476,6 +476,12 @@ private:
 	IRlocData_StackPost GetFreeStackPos(IRType V);
 	IRlocData GetFreeStackLoc(IRType V);
 
+	size_t GetPreCallStackOffset2(size_t ItemSize, size_t ItemStackOffset)
+	{
+		auto newpos = ItemSize-ItemStackOffset;
+		newpos += 8;//i have no idea why 8+ is needed
+		return newpos - _Stack.PushedOffset;
+	}
 
 	//AddDebuginfo
 	UCodeLang::ULangDebugInfo _DebugInfo;
