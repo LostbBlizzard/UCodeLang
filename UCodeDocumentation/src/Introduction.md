@@ -6,6 +6,12 @@ This guide is an contains everything about the UCodeLang Project it Tools,Standa
 
 The guide is meant to be read in any order. Depending on your use case.
 
+If your a Game engine developer or framework developer go to [Geting Started Implementers](./ForImplementers.md) and [Library API Reference](./ForImplementers/APIReference.md).
+
+If your a normal user go to [Geting Started User](./GetingStartedUsers.md).
+
+If you just want to learn about the language go to [SyntaxAndSemantics](./SyntaxAndSemantics.md) or [Standard library](./Standardlibrary/Standardlibrary.md).
+
 # Credits
 The was Language was designed  and developed by LostBlizzard On [GitHub](https://github.com/LostbBlizzard).
 

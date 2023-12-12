@@ -26,7 +26,7 @@ uclang help
 ```
 
 ## Extension
-Also because we are not in the 1970 lets also download the [VsCode extension](https://marketplace.visualstudio.com/items?itemName=Lostblizzard.ucode-language) to make our lives easier. 
+lets also download the [VsCode extension](https://marketplace.visualstudio.com/items?itemName=Lostblizzard.ucode-language) to make our lives easier. 
 
 just search up UCodeLang by Lost blizzard in your extension tab.
 
