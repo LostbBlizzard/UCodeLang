@@ -313,7 +313,7 @@ UCodeTestStart
 	};
 	static const Array<ModuleTest, 1> ModuleTests
 	{
-		ModuleTest("BuildSystem","Modules/BuildSystem")
+		ModuleTest("Fmt_Print","Modules/StandardLibraryCheck")
 
 	};
 	

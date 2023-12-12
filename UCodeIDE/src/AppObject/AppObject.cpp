@@ -3257,6 +3257,8 @@ void AppObject::FullReloadRunTime()
     LinkAppAPICallsTo(_RuntimeLib);
     ECSExample::ECSLink(_RuntimeLib);
 
+    UCodeLang::SandBoxedIOLink::Link(_RuntimeLib);
+
     _RunTimeState.ClearRunTimeState();
     _RunTimeState.AddLib(&_RuntimeLib);
     _RunTimeState.LinkLibs();

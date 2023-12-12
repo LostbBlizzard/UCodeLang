@@ -40,9 +40,8 @@ $[_global]:
  |OS_PrintClear[] -> void;//ULang:Native:OS_PrintClear
  |OS_Malloc[uIntPtr] -> void;//ULang:Native:OS_Malloc^uptr
  |OS_Free[uint8[&]] -> void;//ULang:Native:OS_Free^u8[&]
- |__Log[imut char[&]] -> void;//__Log^c[&]imut
- |__LogChar[char] -> void;//__LogChar^c
- |__LogBuffer[imut char[&], uIntPtr] -> void;//__LogBuffer^c[&]imut,uptr
+ |putchar[char] -> void;//putchar^c
+ |putspan[imut char[&], uIntPtr] -> void;//putspan^c[&]imut,uptr
  |__ReadChar[] -> char;//__ReadChar
  |__Malloc[uIntPtr] -> uint8[&];//__Malloc^uptr
  |__Free[uint8[&]] -> void;//__Free^u8[&]
@@ -15742,7 +15741,7 @@ $ULang:Vec4f_t<float32>:
    14497 :Debug_LineEnter 
    14498 :StoreRegToReg8 [D],[A]
    14499 :StoreRegToReg8 [A],[D]
-   14500 :Call {__LogChar^c}
+   14500 :Call {putchar^c}
    14504 :Debug_FuncEnd 
    14505 :Ret 
 ---ULang:Native:OS_PrintSpan^c[&]imut,uptr: 
@@ -15756,7 +15755,7 @@ $ULang:Vec4f_t<float32>:
    14509 :StoreRegToReg64 [E],[B]
    14510 :StoreRegToReg64 [A],[D]
    14511 :StoreRegToReg64 [B],[E]
-   14512 :Call {__LogBuffer^c[&]imut,uptr}
+   14512 :Call {putspan^c[&]imut,uptr}
    14516 :Debug_FuncEnd 
    14517 :Ret 
 ---ULang:Native:OS_PrintClear: 
@@ -15787,49 +15786,44 @@ $ULang:Vec4f_t<float32>:
    14535 :Call {__Free^u8[&]}
    14539 :Debug_FuncEnd 
    14540 :Ret 
----__Log^c[&]imut: 
+---putchar^c: 
    14541 :Debug_FuncStart 
-   14542 :CppCallNamed "__Log"
+   14542 :CppCallNamed "putchar"
    14543 :Debug_FuncEnd 
    14544 :Ret 
----__LogChar^c: 
+---putspan^c[&]imut,uptr: 
    14545 :Debug_FuncStart 
-   14546 :Ins 223:3,204,204
+   14546 :CppCallNamed "putspan"
    14547 :Debug_FuncEnd 
    14548 :Ret 
----__LogBuffer^c[&]imut,uptr: 
+---__ReadChar: 
    14549 :Debug_FuncStart 
-   14550 :Ins 224:3,4,204
+   14550 :CppCallNamed "__ReadChar"
    14551 :Debug_FuncEnd 
    14552 :Ret 
----__ReadChar: 
+---__Malloc^uptr: 
    14553 :Debug_FuncStart 
-   14554 :Ins 225:5,204,204
+   14554 :Malloc [D],[F]
    14555 :Debug_FuncEnd 
    14556 :Ret 
----__Malloc^uptr: 
+---__Free^u8[&]: 
    14557 :Debug_FuncStart 
-   14558 :Malloc [D],[F]
+   14558 :Free [D]
    14559 :Debug_FuncEnd 
    14560 :Ret 
----__Free^u8[&]: 
+---__OpenFile^c[&],uptr: 
    14561 :Debug_FuncStart 
-   14562 :Free [D]
+   14562 :CppCallNamed "__OpenFile"
    14563 :Debug_FuncEnd 
    14564 :Ret 
----__OpenFile^c[&],uptr: 
+---__CloseFile^uptr: 
    14565 :Debug_FuncStart 
-   14566 :CppCallNamed "__OpenFile"
+   14566 :CppCallNamed "__CloseFile"
    14567 :Debug_FuncEnd 
    14568 :Ret 
----__CloseFile^uptr: 
+---__IsFileOpen^uptr: 
    14569 :Debug_FuncStart 
-   14570 :CppCallNamed "__CloseFile"
+   14570 :CppCallNamed "__IsFileOpen"
    14571 :Debug_FuncEnd 
    14572 :Ret 
----__IsFileOpen^uptr: 
-   14573 :Debug_FuncStart 
-   14574 :CppCallNamed "__IsFileOpen"
-   14575 :Debug_FuncEnd 
-   14576 :Ret 
 

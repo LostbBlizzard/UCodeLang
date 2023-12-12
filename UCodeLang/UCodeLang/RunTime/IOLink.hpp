@@ -9,7 +9,7 @@ struct IOLink
 	{
 		bool AddCInAndOut = true;
 	};
-	static void Link(RunTimeLib* lib, const LinkSettings& settings = {});
+	static void Link(RunTimeLib& lib, const LinkSettings& settings = {});
 };
 
 UCodeLangEnd

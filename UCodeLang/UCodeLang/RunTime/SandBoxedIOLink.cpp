@@ -7,18 +7,18 @@ UCodeLangStart
 template<typename T, typename... Pars>
 using NativeCall = RunTimeLib::NativeCall<T, Pars...>;
 
-void SandBoxedIOLink::Link(RunTimeLib* lib, const LinkSettings& settings)
+void SandBoxedIOLink::Link(RunTimeLib& lib, const LinkSettings& settings)
 {
 
 	if (settings.AddCInAndOut)
 	{
-		lib->Add_CPPCall("putchar", [](InterpreterCPPinterface& Input)
+		lib.Add_CPPCall("putchar", [](InterpreterCPPinterface& Input)
 		{
 			int Par0 = Input.GetParameter<int>();
 			Input.Set_Return(putchar(Par0));
 		},putchar);
 
-		lib->Add_CPPCall("putspan", [](InterpreterCPPinterface& Input)
+		lib.Add_CPPCall("putspan", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<const char*>();
 				auto Par1 = Input.GetParameter<size_t>();
