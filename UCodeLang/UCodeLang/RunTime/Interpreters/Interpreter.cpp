@@ -1055,6 +1055,8 @@ void Interpreter::Extecute(Instruction& Inst)
 		#endif
 	}
 	InsBreak();
+
+	InsCase(Debug_FuncStart) :
 	{
 		Get_State()->Get_DebugContext().TryFuncStart(*Get_State(), { this,DebugContext::Type::Interpreter });
 	}

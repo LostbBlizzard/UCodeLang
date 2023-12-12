@@ -342,7 +342,13 @@ void WasmFile::Expr::ToBytes(BitMaker& bit) const
 		|| InsType == Ins::Unreachable
 		|| InsType == Ins::end
 		|| InsType == Ins::i32add
-		|| InsType == Ins::i64add)
+		|| InsType == Ins::i64add
+		|| InsType == Ins::f32add
+		|| InsType == Ins::f64add
+		|| InsType == Ins::i32sub
+		|| InsType == Ins::i64sub
+		|| InsType == Ins::f32sub
+		|| InsType == Ins::f64sub)
 	{
 
 	}
@@ -378,7 +384,13 @@ void WasmFile::Expr::FromBytes(BitReader& bit)
 		|| InsType == Ins::Unreachable
 		|| InsType == Ins::end
 		|| InsType == Ins::i32add
-		|| InsType == Ins::i64add)
+		|| InsType == Ins::i64add
+		|| InsType == Ins::f32add
+		|| InsType == Ins::f64add
+		|| InsType == Ins::i32sub
+		|| InsType == Ins::i64sub
+		|| InsType == Ins::f32sub
+		|| InsType == Ins::f64sub)
 	{
 
 	}
