@@ -28,7 +28,10 @@
 # Implementer Guide
 
 - [Geting Started Implementers](./ForImplementers.md)
-
+  - [Compileing Project](./ForImplementers.md)
+  - [Calling C++ from UCodeLang](./ForImplementers/CallingCppfromUCodeLang.md)
+  - [Allowing UCodeLang IO](./ForImplementers/CallingCppfromUCodeLang.md)
+  - [Automatic binding generation](./ForImplementers/Automaticbindinggeneration.md)
 
 - [Library API Reference](./ForImplementers/APIReference.md)
   - [C API Reference](./ForImplementers/Reference/CAPI.md)
