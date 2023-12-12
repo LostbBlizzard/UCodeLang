@@ -614,13 +614,13 @@ void UCodeLangCAPI_RunTimeLib_LinkIO(UCodeLangCStruct UCodeLangCAPI_RunTimeUClib
 {
 	UCodeLang::IOLink::LinkSettings link;
 	link.AddCInAndOut = setting->AddCoutACin;
-	UCodeLang::IOLink::Link(As(Value),link);
+	UCodeLang::IOLink::Link(*As(Value),link);
 }
 void UCodeLangCAPI_RunTimeLib_LinkIOSandBox(UCodeLangCStruct UCodeLangCAPI_RunTimeUClib* Value, const UCodeLangCStruct IOLinkSettings* setting)
 {
 	UCodeLang::SandBoxedIOLink::LinkSettings link;
 	link.AddCInAndOut = setting->AddCoutACin;
-	UCodeLang::SandBoxedIOLink::Link(As(Value), link);
+	UCodeLang::SandBoxedIOLink::Link(*As(Value), link);
 }
 
 void UCodeLangCAPI_InterpreterCPPinterface_GetParamter(UCodeLangCStruct UCodeLangCAPI_InterpreterCPPinterface* value, void* output, size_t outsize)

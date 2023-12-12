@@ -1,6 +1,7 @@
 #include "TestRuner.hpp"
 #include "AnyInterpreter.hpp"
 #include "UCodeLang/LangCore/StringHelper.hpp"
+#include "SandBoxedIOLink.hpp"
 UCodeLangStart
 
 TestRuner::TestsResult TestRuner::RunTests(UClib& lib, InterpreterType Type, Optional<OnTestDone> OnDone)
@@ -28,7 +29,13 @@ TestRuner::TestsResult TestRuner::RunTests(UClib& lib, InterpreterType Type, Opt
 
 	RunTimeLib rlib;
 	rlib.Init(&lib);
+	
+	UCodeLang::SandBoxedIOLink::Link(rlib);
+
 	state.AddLib(&rlib);
+
+	
+
 	state.LinkLibs();
 
 	Interpreter.Init(&state);

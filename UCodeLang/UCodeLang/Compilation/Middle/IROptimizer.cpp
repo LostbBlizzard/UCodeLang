@@ -231,10 +231,7 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 			_TypeFixer.Set_ErrorsOutput(_ErrorsOutput);
 			_TypeFixer.FixTypes(Input);
 
-			#if !IsOptimizerStable
-			return;
-			#endif
-
+			
 			#if RunlogIRState
 			{//for debuging
 				auto S = Input->ToString();
@@ -247,6 +244,11 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 				file.close();
 			}
 			#endif // UCodeLangDebug
+
+			#if !IsOptimizerStable
+			return;
+			#endif
+
 
 			if (_Settings->_Flags == OptimizationFlags::NoOptimization
 				|| _Settings->_Flags == OptimizationFlags::Debug) { return; }
@@ -611,6 +613,7 @@ void IROptimizer::UpdateOptimizationList()
 {
 	auto& Stettings = *_Settings;
 
+
 	bool IgnoredebugFlag = Stettings.HasArg("IgnoreDebug");
 	bool ForDebuging = (OptimizationFlags_t)Stettings._Flags & (OptimizationFlags_t)OptimizationFlags::Debug;
 	bool ForSize =  (OptimizationFlags_t)Stettings._Flags & (OptimizationFlags_t)OptimizationFlags::ForSize;
@@ -621,6 +624,10 @@ void IROptimizer::UpdateOptimizationList()
 		ForSize = true;
 	}
 	ResetOptimizations();
+	
+	#if !IsOptimizerStable
+	return;
+	#endif
 	
 	bool isdebuging = ForDebuging;
 	if (IgnoredebugFlag)
