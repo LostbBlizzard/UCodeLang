@@ -5,6 +5,9 @@
 #include "../BackEndInterface.hpp"
 #include "WasmFile.hpp"
 UCodeLangStart
+
+
+//Uses the Wasm C ABi https://github.com/WebAssembly/tool-conventions/blob/main/BasicCABI.md
 class WasmBackEnd : BackEndObject
 {
 public:
@@ -62,6 +65,14 @@ private:
 	String ToWebName(const IRidentifierID Name);
 	
 	void LoadOp(const IRInstruction* ir, const IROperator& Op);
+
+	struct SaveInfo
+	{
+		const IRInstruction* ir;
+	};
+	SaveInfo StartSave(const IRInstruction* ir);
+
+	void EndSave(SaveInfo& info);
 
 	UnorderedMap<const IRInstruction*,size_t> Position;
 
