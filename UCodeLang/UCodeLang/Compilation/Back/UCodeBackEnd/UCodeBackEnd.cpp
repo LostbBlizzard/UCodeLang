@@ -3325,7 +3325,49 @@ void  UCodeBackEndObject::CopyValueToStack(const IRInstruction* IRName, const IR
 		case IRSymbolType::Struct:
 		{
 			const IRStruct* V = Syb->Get_ExAs<IRStruct>();
-			_Stack.Size += _Input->GetSize(V);
+
+			size_t structsize = _Input->GetSize(V);
+
+			size_t bytestomove = 0;
+
+
+			if (structsize <= 1)
+			{
+				bytestomove = 1;
+			}
+			else if (structsize <= 2)
+			{
+				bytestomove = 2;
+			}
+			else if (structsize <= 4)
+			{
+				bytestomove = 4;
+			}
+			else if (structsize <= 8)
+			{
+				bytestomove = 8;
+			}
+
+			_Stack.Size += bytestomove;
+
+			switch (bytestomove)
+			{
+			case 1:
+				InstructionBuilder::StoreRegOnStackSub8(_Ins, Item, _Stack.Size);
+				break;
+			case 2:
+				InstructionBuilder::StoreRegOnStackSub16(_Ins, Item, _Stack.Size);
+				break;
+			case 4:
+				InstructionBuilder::StoreRegOnStackSub32(_Ins, Item, _Stack.Size);
+				break;
+			case 8:
+				InstructionBuilder::StoreRegOnStackSub64(_Ins, Item, _Stack.Size);
+				break;
+			default:
+				UCodeLangUnreachable();
+				break;
+			}
 		}
 		break;
 		case IRSymbolType::FuncPtr:goto Pointerl;
@@ -3777,6 +3819,17 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 					size_t FieldIndex = Item->Input().Value.AsUIntNative;
 
 					size_t Offset = _Input->GetOffset(VStruct, FieldIndex);
+
+					if (Pos.Info.Is<RegisterID>() && Offset != 0)
+					{
+						auto val = Pos.Info.Get< RegisterID>();
+						IRInstruction* name = Item->Target().Pointer;
+						MoveValueToStack(name, Pos.ObjectType,val);
+					
+						IRlocData_StackPost p;
+						p.offset = _Stack.Has(name).value()->Offset;
+						Pos.Info =std::move(p);
+					}
 
 					AddOffset(Pos, Offset);
 
