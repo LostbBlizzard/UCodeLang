@@ -3822,10 +3822,14 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 
 					if (Pos.Info.Is<RegisterID>() && Offset != 0)
 					{
-						auto val = Pos.Info.Get< RegisterID>();
 						IRInstruction* name = Item->Target().Pointer;
-						MoveValueToStack(name, Pos.ObjectType,val);
-					
+
+						if (!_Stack.Has(name)) 
+						{
+							auto val = Pos.Info.Get< RegisterID>();
+							MoveValueToStack(name, Pos.ObjectType, val);
+						}
+
 						IRlocData_StackPost p;
 						p.offset = _Stack.Has(name).value()->Offset;
 						Pos.Info =std::move(p);
