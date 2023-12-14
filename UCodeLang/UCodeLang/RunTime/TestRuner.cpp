@@ -85,6 +85,66 @@ TestRuner::TestsResult TestRuner::RunTests(UClib& lib, InterpreterType Type, Opt
 
 	return r;
 }
+bool TestRuner::RunTest(UClib& lib, TestRuner::InterpreterType Type, const ClassMethod* testfunc)
+{
+	RunTimeLangState state;
+	AnyInterpreter Interpreter;
+
+
+	TestsResult r;
+	switch (Type)
+	{
+	case InterpreterType::Interpreter:
+		Interpreter.SetAsInterpreter();
+		break;
+	case InterpreterType::JitInterpreter:
+		Interpreter.SetAsJitInterpreter();
+		break;
+	case InterpreterType::NativeInterpreter:
+		Interpreter.SetAsNativeInterpreter();
+		break;
+	default:
+		UCodeLangUnreachable();
+		break;
+	}
+
+	RunTimeLib rlib;
+	rlib.Init(&lib);
+
+	UCodeLang::SandBoxedIOLink::Link(rlib);
+
+	state.AddLib(&rlib);
+
+
+
+	state.LinkLibs();
+
+	Interpreter.Init(&state);
+
+	auto& Assembly = state.Get_Assembly();
+	Vector<const ClassMethod*> tests = GetTests(Assembly);
+	r.Tests.resize(tests.size());
+
+	bool passed = true;
+
+	Interpreter.Call(StaticVariablesInitializeFunc);
+
+	Interpreter.Call(ThreadVariablesInitializeFunc);
+
+	Interpreter.Call(testfunc->DecorationName);
+
+	if (testfunc->RetType._Type == ReflectionTypes::Bool)
+	{
+		passed = Interpreter.Get_Return<bool>();
+	}
+
+	Interpreter.Call(ThreadVariablesUnLoadFunc);
+
+	Interpreter.Call(StaticVariablesUnLoadFunc);
+
+
+	return passed;
+}
 Vector<const ClassMethod*> TestRuner::GetTests(const ClassAssembly& Assembly)
 {
 	Vector<const ClassMethod*> tests;
