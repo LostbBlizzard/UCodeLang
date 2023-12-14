@@ -27,6 +27,8 @@ public:
 	using OnTestDone = std::function<void(TestInfo& test)>;
 	TestsResult RunTests(UClib& lib, InterpreterType Type, Optional<OnTestDone> OnDone = {});
 
+	bool RunTest(UClib& lib, InterpreterType Type, const ClassMethod* testfunc);
+
 	static Vector<const ClassMethod*> GetTests(const ClassAssembly& Assembly);
 private:
 };

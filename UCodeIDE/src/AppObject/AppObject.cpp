@@ -336,6 +336,11 @@ void AppObject::DrawTestMenu()
         size_t ModuleIndex = 0;
         size_t ModuleTestCount = 1;//;//ULangTest::Tests.size();
         bool TestAsRan = false;
+
+        size_t StandardLibraryTestIndex = 0;
+        size_t StandardLibraryTestCount = 1;//;//ULangTest::Tests.size();
+
+
         enum class TestState
         {
             Null,
@@ -1595,6 +1600,177 @@ void AppObject::DrawTestMenu()
                     ImGui::TreePop();
                 }
 
+            }
+        }
+        {
+            ImGui::Separator();
+            ImGui::Text("StandardLibrary Tests");
+
+            struct StandardLibTest
+            {
+                bool TestRan = false;
+                bool TestPassing = false;
+            };
+            static Vector<StandardLibTest> StandardLibraryTestInfo;
+            static UCodeLang::UClib TestLib;
+            static Vector<const UCodeLang::ClassMethod*> StandardLibrarytests;
+            static bool check = false;
+            
+
+
+            {
+                int v = (int)TestWindowData.StandardLibraryTestIndex;
+                if (ImGui::SliderInt("MinShowTests 2", &v, 0, TestWindowData.StandardLibraryTestCount - 1))
+                {
+                    TestWindowData.StandardLibraryTestIndex = v;
+                }
+            }
+            {
+                int v = (int)TestWindowData.StandardLibraryTestCount;
+                if (ImGui::SliderInt("MaxShowTests 2", &v, TestWindowData.StandardLibraryTestIndex + 1, StandardLibrarytests.size() - 1))
+                {
+                    TestWindowData.StandardLibraryTestCount = v;
+                }
+            }
+
+
+            Path StandardLibrarydir = "../UCodeAPI/StandardLibrary";
+
+            if (check == false)
+            {
+                check = true; 
+                UCodeLang::ModuleFile f;
+                f.FromFile(&f, StandardLibrarydir / UCodeLang::ModuleFile::FileNameWithExt);
+
+
+                auto out = f.BuildModule(_Compiler, UCodeLang::ModuleIndex::GetModuleIndex());
+
+                TestLib = std::move(*out.CompilerRet.GetValue().OutPut);
+
+                StandardLibrarytests = UCodeLang::TestRuner::GetTests(TestLib.Get_Assembly());
+
+                StandardLibraryTestInfo.resize(StandardLibrarytests.size());
+            }
+
+            if (ImGui::Button("Build StandardLibrary"))
+            {
+                UCodeLang::ModuleFile f;
+                f.FromFile(&f, StandardLibrarydir / UCodeLang::ModuleFile::FileNameWithExt);
+
+
+                auto out = f.BuildModule(_Compiler, UCodeLang::ModuleIndex::GetModuleIndex());
+
+                TestLib = std::move(*out.CompilerRet.GetValue().OutPut);
+
+
+                StandardLibrarytests = UCodeLang::TestRuner::GetTests(TestLib.Get_Assembly());
+
+                StandardLibraryTestInfo.resize(StandardLibrarytests.size());
+            }
+            if (ImGui::Button("Clean StandardLibrary"))
+            {
+                std::filesystem::remove_all(StandardLibrarydir / "int");
+                std::filesystem::remove_all(StandardLibrarydir / "out");
+            }
+
+            if (ImGui::Button("Run StandardLibrary Tests"))
+            {
+
+                UCodeLang::ModuleFile f;
+                f.FromFile(&f, StandardLibrarydir / UCodeLang::ModuleFile::FileNameWithExt);
+
+
+                auto out = f.BuildModule(_Compiler, UCodeLang::ModuleIndex::GetModuleIndex());
+
+                TestLib = std::move(*out.CompilerRet.GetValue().OutPut);
+
+
+                StandardLibrarytests = UCodeLang::TestRuner::GetTests(TestLib.Get_Assembly());
+
+                StandardLibraryTestInfo.resize(StandardLibrarytests.size());
+
+                UCodeLang::TestRuner::InterpreterType interpreter;
+                /*
+                if (usenative)
+                {
+                    interpreter = TestRuner::InterpreterType::NativeInterpreter;
+                }
+                else if (usejit)
+                {
+                    interpreter = TestRuner::InterpreterType::JitInterpreter;
+                }
+                else
+                */
+                {
+                    interpreter = UCodeLang::TestRuner::InterpreterType::Interpreter;
+                }
+
+                UCodeLang::TestRuner runer;
+                auto info = runer.RunTests(TestLib, interpreter);
+
+                for (size_t i = 0; i < info.Tests.size(); i++)
+                {
+                    StandardLibraryTestInfo[i].TestPassing = info.Tests[i].Passed;
+                    StandardLibraryTestInfo[i].TestRan = true;
+                }
+            }
+
+            for (size_t i = TestWindowData.StandardLibraryTestIndex; i < TestWindowData.StandardLibraryTestCount; i++)
+            {
+                auto& ItemTest = StandardLibrarytests[i];
+                auto& ItemOut = StandardLibraryTestInfo[i];
+
+                ImVec4 buttioncolor;
+
+                if (!ItemOut.TestRan)
+                {
+                    buttioncolor = Colorlightgrey;//gray
+                }
+                else
+                {
+                    if (ItemOut.TestPassing)
+                    {
+                        buttioncolor = ColorGreen;//green
+                    }
+                    else
+                    {
+                        buttioncolor = ColorRed;//red
+                    }
+                }
+
+                String TestV = "Test:";
+                TestV += ItemTest->FullName;
+                ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_Text, buttioncolor);
+                bool isopen = ImGui::TreeNode(TestV.c_str());
+                ImGui::PopStyleColor();
+
+                if (isopen)
+                {
+                    if (ImGui::Button("Run Test"))
+                    {
+                        UCodeLang::TestRuner::InterpreterType interpreter;
+                        /*
+                        if (usenative)
+                        {
+                            interpreter = TestRuner::InterpreterType::NativeInterpreter;
+                        }
+                        else if (usejit)
+                        {
+                            interpreter = TestRuner::InterpreterType::JitInterpreter;
+                        }
+                        else
+                        */
+                        {
+                            interpreter = UCodeLang::TestRuner::InterpreterType::Interpreter;
+                        }
+
+                        UCodeLang::TestRuner runer;
+
+                        StandardLibraryTestInfo[i].TestPassing = runer.RunTest(TestLib, interpreter, ItemTest);
+                        StandardLibraryTestInfo[i].TestRan = true;
+                    }
+                    ImGui::TreePop();
+                }
             }
         }
     }ImGui::End();
