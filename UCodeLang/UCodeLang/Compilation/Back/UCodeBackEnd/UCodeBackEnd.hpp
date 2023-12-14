@@ -476,11 +476,33 @@ private:
 	IRlocData_StackPost GetFreeStackPos(IRType V);
 	IRlocData GetFreeStackLoc(IRType V);
 
+	IRType GetType(StackItem& item)
+	{
+		return GetType(item.IR.Get<const IRInstruction*>());
+	}
+
+	NeverNullPtr<ParlocData> GetPreCallPar(size_t offset)
+	{
+		for (auto& Item : CurrentFuncParPos)
+		{
+			if (auto val = Item.Location.Get_If<StackPreCall>())
+			{
+				auto size = GetSize(Item.Par->type);
+				if (offset >= val->Offset && offset < val->Offset + size)
+				{
+					return NeverNullptr(&Item);
+				}
+			}
+	}
+		UCodeLangUnreachable();
+	}
+
 	size_t GetPreCallStackOffset2(size_t ItemSize, size_t ItemStackOffset)
 	{
+		
 		auto newpos = ItemSize-ItemStackOffset;
-		newpos += 8;//i have no idea why 8+ is needed
-		return newpos - _Stack.PushedOffset;
+		//newpos += ItemSize+8;//i have no idea why 8+ is needed
+		return newpos + _Stack.PushedOffset;
 	}
 
 	//AddDebuginfo
