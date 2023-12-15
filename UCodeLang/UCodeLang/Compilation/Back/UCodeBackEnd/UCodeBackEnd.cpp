@@ -5269,6 +5269,41 @@ void UCodeBackEndObject::BuildLink(const IRidentifier& FuncName, IRFuncLink Link
 	}
 	else
 	{
+		{
+			Optional<size_t> maxparstaticsize;
+			for (auto& Par : CurrentFuncParPos)
+			{
+				if (auto val = Par.Location.Get_If<StackPreCall>())
+				{
+					if (!maxparstaticsize.has_value() || maxparstaticsize.value() < val->Offset)
+					{
+						maxparstaticsize = val->Offset;
+					}
+				}
+			}
+
+			if (maxparstaticsize.has_value())
+			{
+				size_t maxparstaticsize2 = maxparstaticsize.value();
+				if (Get_Settings().PtrSize == IntSizes::Int32)
+				{
+					InstructionBuilder::Store32_V1(_Ins, RegisterID::LinkRegister, (UInt32)maxparstaticsize2); PushIns();
+
+					InstructionBuilder::Store32_V2(_Ins, RegisterID::LinkRegister, (UInt32)maxparstaticsize2); PushIns();
+
+				}
+				else {
+					InstructionBuilder::Store64_V1(_Ins, RegisterID::LinkRegister, (UInt64)maxparstaticsize2); PushIns();
+
+					InstructionBuilder::Store64_V2(_Ins, RegisterID::LinkRegister, (UInt64)maxparstaticsize2); PushIns();
+
+					InstructionBuilder::Store64_V3(_Ins, RegisterID::LinkRegister, (UInt64)maxparstaticsize2); PushIns();
+
+					InstructionBuilder::Store64_V4(_Ins, RegisterID::LinkRegister, (UInt64)maxparstaticsize2); PushIns();
+				}
+			}
+		}
+
 		auto Ptr = _Output->AddStaticBytes((String_view)VFuncName);
 		InstructionBuilder::CPPCall(Ptr, _Ins); PushIns();
 	}
