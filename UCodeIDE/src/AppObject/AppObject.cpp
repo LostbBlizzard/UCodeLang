@@ -1673,6 +1673,57 @@ void AppObject::DrawTestMenu()
                 std::filesystem::remove_all(StandardLibrarydir / "out");
             }
 
+            if (ImGui::Button("Run All StandardLibrary Tests"))
+            {
+
+                UCodeLang::ModuleFile f;
+                f.FromFile(&f, StandardLibrarydir / UCodeLang::ModuleFile::FileNameWithExt);
+
+
+                auto out = f.BuildModule(_Compiler, UCodeLang::ModuleIndex::GetModuleIndex());
+
+                TestLib = std::move(*out.CompilerRet.GetValue().OutPut);
+
+
+                StandardLibrarytests = UCodeLang::TestRuner::GetTests(TestLib.Get_Assembly());
+
+                StandardLibraryTestInfo.resize(StandardLibrarytests.size());
+
+                UCodeLang::TestRuner::InterpreterType interpreter;
+                
+                if (windowdata.VMType == UCodeVMType::Native_Interpreter)
+                {
+                    interpreter = UCodeLang::TestRuner::InterpreterType::NativeInterpreter;
+                }
+                else if (windowdata.VMType ==UCodeVMType::Jit_Interpreter)
+                {
+                    interpreter = UCodeLang::TestRuner::InterpreterType::JitInterpreter;
+                }
+                else
+                {
+                    interpreter = UCodeLang::TestRuner::InterpreterType::Interpreter;
+                }
+
+                UCodeLang::TestRuner runer;
+                if (TestWindowData.Testmode == TestMode::UCodeLangBackEnd)
+                {
+                    auto info = runer.RunTests(TestLib, interpreter);
+
+                    for (size_t i = 0; i < info.Tests.size(); i++)
+                    {
+                        StandardLibraryTestInfo[i].TestPassing = info.Tests[i].Passed;
+                        StandardLibraryTestInfo[i].TestRan = true;
+                    }
+                }
+                else  if (TestWindowData.Testmode == TestMode::CLang89BackEnd) 
+                {
+
+                }
+                else
+                {
+                    UCodeLangUnreachable();
+                }
+            }
             if (ImGui::Button("Run StandardLibrary Tests"))
             {
 
@@ -1690,27 +1741,39 @@ void AppObject::DrawTestMenu()
                 StandardLibraryTestInfo.resize(StandardLibrarytests.size());
 
                 UCodeLang::TestRuner::InterpreterType interpreter;
-                /*
-                if (usenative)
+                if (windowdata.VMType == UCodeVMType::Native_Interpreter)
                 {
-                    interpreter = TestRuner::InterpreterType::NativeInterpreter;
+                    interpreter = UCodeLang::TestRuner::InterpreterType::NativeInterpreter;
                 }
-                else if (usejit)
+                else if (windowdata.VMType == UCodeVMType::Jit_Interpreter)
                 {
-                    interpreter = TestRuner::InterpreterType::JitInterpreter;
+                    interpreter = UCodeLang::TestRuner::InterpreterType::JitInterpreter;
                 }
                 else
-                */
                 {
                     interpreter = UCodeLang::TestRuner::InterpreterType::Interpreter;
                 }
 
                 UCodeLang::TestRuner runer;
-                auto info = runer.RunTests(TestLib, interpreter);
 
-                for (size_t i = 0; i < info.Tests.size(); i++)
+                for (size_t i = TestWindowData.StandardLibraryTestIndex; i < TestWindowData.StandardLibraryTestCount; i++)
                 {
-                    StandardLibraryTestInfo[i].TestPassing = info.Tests[i].Passed;
+                    bool v = false;
+                    
+                    
+                    if (TestWindowData.Testmode == TestMode::UCodeLangBackEnd)
+                    {
+                        v = runer.RunTest(TestLib, interpreter, StandardLibrarytests[i]);
+                    }
+                    else  if (TestWindowData.Testmode == TestMode::CLang89BackEnd)
+                    {
+
+                    }
+                    else
+                    {
+                        UCodeLangUnreachable();
+                    }
+                    StandardLibraryTestInfo[i].TestPassing = v;
                     StandardLibraryTestInfo[i].TestRan = true;
                 }
             }
@@ -1765,8 +1828,21 @@ void AppObject::DrawTestMenu()
                         }
 
                         UCodeLang::TestRuner runer;
+                        bool v = false;
 
-                        StandardLibraryTestInfo[i].TestPassing = runer.RunTest(TestLib, interpreter, ItemTest);
+                        if (TestWindowData.Testmode == TestMode::UCodeLangBackEnd)
+                        {
+                            v = runer.RunTest(TestLib, interpreter, ItemTest);
+                        }
+                        else  if (TestWindowData.Testmode == TestMode::CLang89BackEnd)
+                        {
+
+                        }
+                        else
+                        {
+                            UCodeLangUnreachable();
+                        }
+                        StandardLibraryTestInfo[i].TestPassing = v;
                         StandardLibraryTestInfo[i].TestRan = true;
                     }
                     ImGui::TreePop();

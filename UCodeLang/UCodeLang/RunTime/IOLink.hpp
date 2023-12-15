@@ -8,6 +8,7 @@ struct IOLink
 	struct LinkSettings
 	{
 		bool AddCInAndOut = true;
+		bool AddFileIO = true;
 	};
 	static void Link(RunTimeLib& lib, const LinkSettings& settings = {});
 };
