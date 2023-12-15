@@ -1,6 +1,7 @@
 #pragma once
 #include "SandBoxedIOLink.hpp"
 #include "Interpreters/Interpreter.hpp"
+#include <mutex>
 UCodeLangStart
 
 
@@ -125,24 +126,146 @@ void SandBoxedIOLink::Link(RunTimeLib& lib, const LinkSettings& settings)
 	}
 }
 
+
+std::mutex SandBoxedIOMut;
+
+void  SandBoxedIOLink::Access(std::function<void(FileSystem& sytem)> callback)
+{
+	SandBoxedIOMut.lock(); 
+	callback(system);
+	SandBoxedIOMut.unlock();
+}
+void SandBoxedIOLink::GiveAccessToRealFile(const Path& file, const String& virtualfilepath, bool read, bool write)
+{
+	SandBoxedIOMut.lock();
+
+	system._NextID++;
+	auto newid = system._NextID;
+
+	VirtualFile f;
+	f.Fullname = virtualfilepath;
+	f.FileOpened = true;
+	
+	RealFileLink link;
+	link.path = file;
+	link.read = read;
+	link.write = write;
+
+	f.RealFile = std::move(link);
+
+	system.Files.AddValue(newid, std::move(f));
+
+	SandBoxedIOMut.unlock();
+}
+void SandBoxedIOLink::GiveAccessToRealDirectory(const Path& directory, const String& virtualdirectorypath, bool read, bool write)
+{
+	SandBoxedIOMut.lock();
+
+	SandBoxedIOMut.unlock();
+}
+void SandBoxedIOLink::Reset()
+{
+	SandBoxedIOMut.lock();
+
+	system.Files.clear();
+	system.Directorys.clear();
+
+	SandBoxedIOMut.unlock();
+}
+
+Optional<FileHandle> SandBoxedIOLink::GetfileusingName(String_view filename)
+{
+	for (auto& item : system.Files)
+	{
+		if (item.second.Fullname == filename)
+		{
+			return item.first;
+		}
+	}
+	return {};
+}
+
 FileHandle SandBoxedIOLink::fopen(String_view filename, String_view mode)
 {
-	return FileHandle();
+	FileHandle r;
+	SandBoxedIOMut.lock();
+	auto op = GetfileusingName(filename);
+	if (!op.has_value())
+	{
+		system._NextID++;
+		auto newid = system._NextID;
+
+		VirtualFile f;
+		f.Fullname = filename;
+		f.FileOpened = true;
+
+		system.Files.AddValue(newid, std::move(f));
+
+		r =newid;
+	}
+	else if (op)
+	{
+		auto& F = system.Files.GetValue(op.value());
+		if (!F.FileOpened)
+		{
+			r = op.value();
+		}
+		else {
+			//file alread open
+			r = 0;
+		}
+	}
+	SandBoxedIOMut.unlock();
+
+	return r;
 }
 
 int SandBoxedIOLink::fclose(FileHandle stream)
 {
+	SandBoxedIOMut.lock();
+	auto& f = system.Files.GetValue(stream);
+	f.FileOpened = false;
+	f.Pos = 0;
+
+	SandBoxedIOMut.unlock();
 	return 0;
+
 }
 
 size_t SandBoxedIOLink::fread(void* buffer, size_t size, size_t count, FileHandle stream)
 {
-	return size_t();
+	if (size == 0 || count ==0) { return 0; }
+
+
+	SandBoxedIOMut.lock();
+	auto& f = system.Files.GetValue(stream);
+	memcpy(buffer, f.Bytes.data() + f.Pos, count * size);
+
+	f.Pos += size;
+
+	SandBoxedIOMut.unlock();
+
+	return size;
 }
 
 size_t SandBoxedIOLink::fwrite(void* buffer, size_t size, size_t count, FileHandle stream)
 {
-	return size_t();
+	if (size == 0 || count==0) { return 0; }
+
+
+	SandBoxedIOMut.lock();
+	auto& f = system.Files.GetValue(stream);
+	
+	Byte* start = (Byte*)buffer;
+	Byte* end = (Byte*)buffer + (count * size);
+	
+	f.Bytes.insert(f.Bytes.begin() + f.Pos, start, end);
+	f.Pos += size;
+
+
+	SandBoxedIOMut.unlock();
+
+	return size;
 }
 
 FilePos SandBoxedIOLink::ftell(FileHandle stream)
@@ -152,6 +275,11 @@ FilePos SandBoxedIOLink::ftell(FileHandle stream)
 
 int SandBoxedIOLink::fseek(FileHandle stream, FilePos offset, int origin)
 {
+	SandBoxedIOMut.lock();
+	auto& f = system.Files.GetValue(stream);
+	f.Pos = offset;
+	SandBoxedIOMut.unlock();
+
 	return 0;
 }
 

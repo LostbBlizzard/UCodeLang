@@ -120,17 +120,26 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 				V.Op1 = IndexType;
 				V.Op1._IsAddress = false;
 
-				if (lookingfortype.IsAddressArray())
-				{
-					lookingfor = SourcType;
-					_LastExpressionType = lookingfor;
-				}
-				else if (IsSrcStaticArray)
+				if (IsSrcStaticArray)
 				{
 					auto Syb = Symbol_GetSymbol(SourcType).value();
 					lookingfor = Syb->Get_Info<StaticArrayInfo>()->Type;
-					lookingfor.SetAsAddress();
 
+					if (lookingfortype.IsAddressArray())
+					{
+
+						lookingfor.SetAsAddressArray();
+					}
+					else
+					{
+						lookingfor.SetAsAddress();
+					}
+
+					_LastExpressionType = lookingfor;
+				}
+				else if (lookingfortype.IsAddressArray())
+				{
+					lookingfor = SourcType;
 					_LastExpressionType = lookingfor;
 				}
 				else

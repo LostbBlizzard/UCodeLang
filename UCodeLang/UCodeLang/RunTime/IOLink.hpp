@@ -9,6 +9,7 @@ struct IOLink
 	{
 		bool AddCInAndOut = true;
 		bool AddFileIO = true;
+		bool AddNetworking = true;
 	};
 	static void Link(RunTimeLib& lib, const LinkSettings& settings = {});
 };

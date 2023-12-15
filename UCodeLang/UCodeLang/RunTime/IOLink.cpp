@@ -11,7 +11,11 @@ using FilePos = size_t;
 
 const char* ToCString(String_view p,size_t Par)
 {
-
+	thread_local Array<String, 3> str;
+	
+	
+	str[Par] = p;
+	return str[Par].c_str();
 }
 
 
