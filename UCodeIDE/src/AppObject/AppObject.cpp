@@ -1794,7 +1794,7 @@ void AppObject::DrawTestMenu()
                     auto staticinittocall = dlsym(lib, staticinitname.c_str());
                     auto threadinittocall = dlsym(lib, threadinitname.c_str());
                     auto staticdeinittocall = dlsym(lib, staticdeinitname.c_str());
-                    auto threaddeinittocall = dlsym(lib, threaddeinitname.c_str();
+                    auto threaddeinittocall = dlsym(lib, threaddeinitname.c_str());
                     #endif
 
                     for (size_t i = 0; i < StandardLibraryTestInfo.size(); i++)
@@ -1980,7 +1980,7 @@ void AppObject::DrawTestMenu()
                             auto staticinittocall = dlsym(lib, staticinitname.c_str());
                             auto threadinittocall = dlsym(lib, threadinitname.c_str());
                             auto staticdeinittocall = dlsym(lib, staticdeinitname.c_str());
-                            auto threaddeinittocall = dlsym(lib, threaddeinitname.c_str();
+                            auto threaddeinittocall = dlsym(lib, threaddeinitname.c_str());
                             #endif
 
 
