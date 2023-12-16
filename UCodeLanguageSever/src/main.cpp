@@ -5,6 +5,7 @@
 #include <string>
 #include <thread>
 #include <fstream>
+#include <condition_variable>
 #include <UCodeLang/LangCore/StringHelper.hpp>
 #if UCodeLang_Platform_Windows
 #include <windows.h>
