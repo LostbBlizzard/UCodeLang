@@ -1,4 +1,3 @@
-#pragma once
 #include "IOLink.hpp"
 #include "Interpreters/Interpreter.hpp"
 UCodeLangStart
