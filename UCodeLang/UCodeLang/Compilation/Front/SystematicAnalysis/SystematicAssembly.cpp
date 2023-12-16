@@ -808,6 +808,91 @@ void SystematicAnalysis::Assembly_LoadSymbol(const ClassMethod& Item, Systematic
 		auto Funcinfo = new FuncInfo();
 		Syb.Info.reset(Funcinfo);
 
+		if (Name == ClassConstructorfunc)
+		{
+			Funcinfo->_FuncType = FuncInfo::FuncType::New;
+		}
+		else if (Name == ClassDestructorFunc)
+		{
+			Funcinfo->_FuncType = FuncInfo::FuncType::Drop;
+		}
+		else if (Name == Overload_Cast_Func)
+		{
+			Funcinfo->_FuncType = FuncInfo::FuncType::Cast;
+		}
+		else if (Name == Overload_For_Func)
+		{
+			Funcinfo->_FuncType = FuncInfo::FuncType::For;
+		}
+		else if (Name == Overload_Invoke_Func)
+		{
+			Funcinfo->_FuncType = FuncInfo::FuncType::Invoke;
+		}
+		else if (Name == Overload_Index_Func)
+		{
+			Funcinfo->_FuncType = FuncInfo::FuncType::Index;
+		}
+		else
+		{
+			bool wasset = false;
+			{
+				for (auto& item : Systematic_BinaryOverloadData::data)
+				{
+					if (Name == item.CompilerName)
+					{
+						Funcinfo->_FuncType = item.Type;
+						wasset = true;
+						break;
+					}
+				}
+			}
+			if (wasset == false)
+			{
+				for (auto& item : Systematic_PostfixOverloadData::data)
+				{
+					if (Name == item.CompilerName)
+					{
+						Funcinfo->_FuncType = item.Type;
+						break;
+					}
+				}
+			}
+			if (wasset == false)
+			{
+				for (auto& item : Systematic_UrinaryOverloadData::data)
+				{
+					if (Name == item.CompilerName)
+					{
+						Funcinfo->_FuncType = item.Type;
+						break;
+					}
+				}
+			}
+			if (wasset == false)
+			{
+				for (auto& item : Systematic_CompoundOverloadData::data)
+				{
+					if (Name == item.CompilerName)
+					{
+						Funcinfo->_FuncType = item.Type;
+						break;
+					}
+				}
+			}
+			if (wasset == false)
+			{
+				for (auto& item : Systematic_MemberOverloadData::data)
+				{
+					if (Name == item.CompilerName)
+					{
+						Funcinfo->_FuncType = item.Type;
+						break;
+					}
+				}
+			}
+		}
+
+
 		LoadFuncInfoGetTypes(Funcinfo, Item);
 	}
 	else if (Mode == LoadLibMode::FixTypes)
