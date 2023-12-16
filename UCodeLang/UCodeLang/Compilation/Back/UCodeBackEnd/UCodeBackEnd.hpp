@@ -500,7 +500,7 @@ private:
 	size_t GetPreCallStackOffset2(size_t ItemSize, size_t ItemStackOffset)
 	{
 		
-		auto newpos = ItemSize-ItemStackOffset;
+		auto newpos = ItemSize+ItemStackOffset;
 		//newpos += ItemSize+8;//i have no idea why 8+ is needed
 		return newpos + _Stack.PushedOffset;
 	}
