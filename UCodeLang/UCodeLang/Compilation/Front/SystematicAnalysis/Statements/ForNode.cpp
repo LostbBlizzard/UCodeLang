@@ -265,8 +265,11 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 					_IR_IRlocations.push({ OnVarable ,false });
 				}
 
+				_LookingForTypes.push(syb->VarType);
 
 				OnExpressionTypeNode(node._Traditional_Assignment_Expression._Value.get(), GetValueMode::Read);
+
+				_LookingForTypes.pop();
 
 				IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType, syb->VarType);
 
