@@ -4939,6 +4939,24 @@ void UCodeBackEndObject::MoveValuesToState(const RegistersManager& state)
 						}
 					}
 				}
+				else
+				{
+					//UCodeLangUnreachable();
+				}
+			}
+			else if (auto val = type.Get_If<IROperator>())
+			{
+				IRlocData V =GetIRLocData(*val);
+				
+				IRlocData R;
+				R.Info = (RegisterID)reg;
+				R.ObjectType = V.ObjectType;
+
+				CopyValues(V, R);
+			}
+			else
+			{
+				UCodeLangUnreachable();
 			}
 		}
 	}
@@ -4978,6 +4996,25 @@ RegistersManager UCodeBackEndObject::SaveState()
 					MoveValueToStack(ins, type, (RegisterID)reg);
 				}
 				
+			}
+			else if (auto val = ItemD.Get_If<IROperator>())
+			{
+				const IROperator ins = *val;
+				if (IsReferencedAfterThisIndex(ins))
+				{
+					IRInstruction V;
+					V.Type = IRInstructionType::Load;
+					V.Target() = ins;
+					V.ObjectType = GetType(ins);
+
+					MoveValueToStack(&V, V.ObjectType, (RegisterID)reg);
+
+					_Stack.Has(&V).value()->IR = ins;
+				}
+			}
+			else
+			{
+
 			}
 		}
 	}
