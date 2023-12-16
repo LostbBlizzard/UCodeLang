@@ -337,7 +337,7 @@ void AppObject::DrawTestMenu()
         size_t ModuleTestCount = 1;//;//ULangTest::Tests.size();
         bool TestAsRan = false;
 
-        size_t StandardLibraryTestIndex = 14;
+        size_t StandardLibraryTestIndex = 16;
         size_t StandardLibraryTestCount = 20;//;//ULangTest::Tests.size();
 
 
