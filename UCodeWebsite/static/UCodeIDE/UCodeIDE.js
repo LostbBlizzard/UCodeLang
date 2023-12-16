@@ -4502,18 +4502,6 @@ function dbg(text) {
   }
   }
 
-  function ___syscall_rmdir(path) {
-  try {
-  
-      path = SYSCALLS.getStr(path);
-      FS.rmdir(path);
-      return 0;
-    } catch (e) {
-    if (typeof FS == 'undefined' || !(e.name === 'ErrnoError')) throw e;
-    return -e.errno;
-  }
-  }
-
   function ___syscall_stat64(path, buf) {
   try {
   
@@ -8339,8 +8327,6 @@ var wasmImports = {
   __syscall_newfstatat: ___syscall_newfstatat,
   /** @export */
   __syscall_openat: ___syscall_openat,
-  /** @export */
-  __syscall_rmdir: ___syscall_rmdir,
   /** @export */
   __syscall_stat64: ___syscall_stat64,
   /** @export */
