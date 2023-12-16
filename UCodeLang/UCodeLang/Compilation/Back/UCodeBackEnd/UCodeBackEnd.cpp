@@ -3189,10 +3189,10 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction* Ins, const  IROperato
 	}
 	else if (Op.Type == IROperatorType::DereferenceOf_IRInstruction)
 	{
-		auto Ins = Op.Pointer;
-		auto InsData = GetIRLocData(Ins);
-
-		return ReadValueFromPointer(InsData.ObjectType, MakeIntoRegister(InsData));
+		auto Ins2 = Op.Pointer;
+		auto InsData = GetIRLocData(Ins2);
+		
+		return ReadValueFromPointer(GetType(Ins,Op), MakeIntoRegister(InsData));
 	}
 	else if (Op.Type == IROperatorType::DereferenceOf_IRParameter)
 	{
