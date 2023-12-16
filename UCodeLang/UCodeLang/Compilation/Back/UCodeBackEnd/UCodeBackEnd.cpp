@@ -757,6 +757,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 	Vector<InsToUpdate_t> InsToUpdate;
 	UnorderedMap<size_t, UAddress> IRToUCodeInsPost;
 	UnorderedMap<size_t, UAddress> IRToUCodeInsPre;
+	
 
 	UnorderedMap<IRidentifierID,Optional<RegistersManager>> Jumps;
 	for (size_t i = 0; i < IR->Instructions.size(); i++)
@@ -785,8 +786,26 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		}	
 
 	}
+	bool ReservedforReturn = false;
+	{
+		bool canbeReserved = false;
+		
+		if (lookingatfunc->ReturnType._Type != IRTypes::Void) {
+			canbeReserved = GetSize(lookingatfunc->ReturnType) <= sizeof(AnyInt64);
+		}
+		if (canbeReserved)
+		{
+			ReservedforReturn = true;
+		}
+	}
+	size_t PosReservedforReturn =0;
+	if (ReservedforReturn)
+	{
+		auto v = GetSize(lookingatfunc->ReturnType);
+		auto retpos = _Stack.AddWithSize(nullptr, v);
+		PosReservedforReturn = retpos->Offset;
+	}
 
-	
 	for (size_t i = 0; i < IR->Instructions.size(); i++)
 	{
 		if (i == 13)
@@ -931,13 +950,29 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		{
 			auto V = GetIRLocData(Item, Item->Target());
 			auto ObjectSize = GetSize(V.ObjectType);
-			if (ObjectSize <= sizeof(AnyInt64))
+			
+
+			if (ReservedforReturn)
 			{
-				MakeIntoRegister(V, { RegisterID::OutPutRegister });
+				IRlocData Src = V;
+
+				IRlocData Out;
+				Out.Info = IRlocData_StackPost(PosReservedforReturn);
+				Out.ObjectType = V.ObjectType;
+
+
+				CopyValues(Src, Out);
 			}
 			else
 			{
-				MakeIntoRegister(GetPointerOf(V), { RegisterID::OutPutRegister });
+				if (ObjectSize <= sizeof(AnyInt64))
+				{
+					MakeIntoRegister(V, { RegisterID::OutPutRegister });
+				}
+				else
+				{
+					MakeIntoRegister(GetPointerOf(V), { RegisterID::OutPutRegister });
+				}
 			}
 		}
 		break;
@@ -1980,10 +2015,33 @@ DoneLoop:
 
 	IRToUCodeInsPost.GetOrAdd(IR->Instructions.size()-1,_OutLayer->Get_Instructions().size());
 
+
+	if (ReservedforReturn)
+	{
+		size_t ObjectSize = GetSize(lookingatfunc->ReturnType);
+		IRlocData loc;
+		loc.Info = IRlocData_StackPost(PosReservedforReturn);
+		loc.ObjectType = lookingatfunc->ReturnType;
+
+		
+		if (ObjectSize <= sizeof(AnyInt64))
+		{
+
+			MakeIntoRegister(loc, { RegisterID::OutPutRegister });
+		}
+		else
+		{
+			MakeIntoRegister(GetPointerOf(loc), { RegisterID::OutPutRegister });
+		}
+	}
+
 	if (IsDebugMode())
 	{
 		InstructionBuilder::Debug_FuncEnd(_Ins); PushIns();
 	}
+
+
+
 	InstructionBuilder::Return(ExitState::Success, _Ins); PushIns();
 
 	
