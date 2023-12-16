@@ -1275,6 +1275,17 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 				reg = otherreg;
 			}
 
+			auto& jumpdata = Jumps.GetValue(jumpos);
+			if (jumpdata.has_value())
+			{
+				MoveValuesToState(jumpdata.value());
+			}
+			else
+			{
+				jumpdata = SaveState();
+			}
+
+
 			InstructionBuilder::Jumpv1(NullAddress, _Ins); PushIns();
 			InsToUpdate.push_back({ _OutLayer->Get_Instructions().size(),  jumpos });
 
@@ -1291,16 +1302,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			}
 
 
-			auto& jumpdata = Jumps.GetValue(jumpos);
-			if (jumpdata.has_value())
-			{
-				MoveValuesToState(jumpdata.value());
-			}
-			else
-			{
-				jumpdata = SaveState();
-			}
-
+			
 			this->_Registers.FreeRegister(RegisterID::LinkRegister);
 		}	break;
 		case IRInstructionType::Logical_Not:
