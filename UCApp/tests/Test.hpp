@@ -89,21 +89,21 @@ UCodeTestStart
 	{
 		if (Flags == OptimizationFlags::O_None)
 		{
-			return "flagsnone";
+			return "-None";
 		}
 		String r;
 		auto flags = (OptimizationFlags_t)Flags;
-		if (flags & (OptimizationFlags_t)OptimizationFlags::ForSize)
+		if (flags & (OptimizationFlags_t)OptimizationFlags::O_1)
 		{
-			r += "Size";
+			r += "-01";
 		}
-		if (flags & (OptimizationFlags_t)OptimizationFlags::ForSpeed)
+		if (flags & (OptimizationFlags_t)OptimizationFlags::O_2)
 		{
-			r += "Speed";
+			r += "-02";
 		}
 		if (flags & (OptimizationFlags_t)OptimizationFlags::Debug)
 		{
-			r += "Debug";
+			r += "-Debug";
 		}
 		return r;
 	}

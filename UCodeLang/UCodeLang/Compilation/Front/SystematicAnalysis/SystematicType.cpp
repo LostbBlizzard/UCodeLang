@@ -112,13 +112,6 @@ bool SystematicAnalysis::Type_IsAddessAndLValuesRulesfollowed(const TypeSymbol& 
 }
 bool SystematicAnalysis::Symbol_HasDestructor(const TypeSymbol& TypeToCheck)
 {
-	bool DegBugFlag = (OptimizationFlags_t)_Settings->_Flags & (OptimizationFlags_t)OptimizationFlags::ForDebuging;
-
-
-	if (!DegBugFlag && Type_IsPrimitive(TypeToCheck))
-	{
-		return false;
-	}
 
 	TypeSymbol Tep = TypeToCheck;
 	if (Tep.IsAddress())

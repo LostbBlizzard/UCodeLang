@@ -113,6 +113,8 @@ using namespace UCodeLang;
 
 	bool RunTestForFlag(const TestInfo& Test, OptimizationFlags flag, std::ostream& LogStream, std::ostream& ErrStream, TestMode mode)
 	{
+#define NoTry 0
+
 		#if UCodeLangDebug
 		Compiler::CompilerPathData paths;
 		Compiler Com;
@@ -145,8 +147,10 @@ using namespace UCodeLang;
 
 	
 
+		#if !NoTry 
 		try
 		{
+		#endif
 			if (std::filesystem::is_directory(paths.FileDir))
 			{
 				Com_r = Com.CompileFiles(paths);
@@ -155,12 +159,15 @@ using namespace UCodeLang;
 			{
 				Com_r = Com.CompilePathToObj(paths.FileDir, paths.OutFile);
 			}
+
+		#if !NoTry
 		}
 		catch (const std::exception& ex)
 		{
 			ErrStream << "fail from Compile [exception] '" << ex.what() << "' : " << "'" << Test.TestName << "'" << std::endl;
 			return false;
 		}
+		#endif
 
 		if (Test.Condition == SuccessCondition::Compilation
 			|| Test.Condition == SuccessCondition::CompilationFail)
@@ -224,15 +231,27 @@ using namespace UCodeLang;
 				RunTime.Init(&state);
 
 				Interpreter::Return_t r;
+				#if !NoTry
 				try
 				{
+#endif
+					RunTime.Call(StaticVariablesInitializeFunc);
+
+					RunTime.Call(ThreadVariablesInitializeFunc);
+
 					r = RunTime.Call(Test.FuncToCall);
+
+					RunTime.Call(ThreadVariablesUnLoadFunc);
+
+					RunTime.Call(StaticVariablesUnLoadFunc);
+#if !NoTry
 				}
 				catch (const std::exception& ex)
 				{
 					ErrStream << "fail from test [exception] '" << ex.what() << "' : " << "'" << Test.TestName << "'" << ModeType(flag) << std::endl;
 					return false;
 				}
+#endif
 
 				if (Test.Condition == SuccessCondition::RunTimeValue)
 				{
@@ -252,16 +271,29 @@ using namespace UCodeLang;
 				RunTime.Init(&state);
 
 				Interpreter::Return_t r;
+				#if !NoTry
 				try
 				{
+				#endif
+					RunTime.Call(StaticVariablesInitializeFunc);
+
+					RunTime.Call(ThreadVariablesInitializeFunc);
+
 					r = RunTime.Call(Test.FuncToCall);
+
+					RunTime.Call(ThreadVariablesUnLoadFunc);
+
+					RunTime.Call(StaticVariablesUnLoadFunc);
+				#if !NoTry
 				}
+
 				catch (const std::exception& ex)
 				{
 					RunTime.UnLoad();
 					ErrStream << "fail from jit test [exception] '" << ex.what() << "' : " << "'" << Test.TestName << ModeType(flag) << "'" << std::endl;
 					return false;
 				}
+				#endif
 				RunTime.UnLoad();
 
 				if (Test.Condition == SuccessCondition::RunTimeValue)
@@ -281,8 +313,11 @@ using namespace UCodeLang;
 				RunTime.Init(&state);
 
 				Interpreter::Return_t r;
+
+				#if !NoTry
 				try
 				{
+				#endif
 					RunTime.Call(StaticVariablesInitializeFunc);
 					RunTime.Call(ThreadVariablesInitializeFunc);
 
@@ -290,6 +325,7 @@ using namespace UCodeLang;
 				
 					RunTime.Call(ThreadVariablesUnLoadFunc);
 					RunTime.Call(StaticVariablesUnLoadFunc);
+				#if !NoTry	
 				}
 				catch (const std::exception& ex)
 				{
@@ -297,6 +333,7 @@ using namespace UCodeLang;
 					ErrStream << "fail from UCodeRunTime test [exception] '" << ex.what() << "' : " << "'" << Test.TestName << ModeType(flag) << "'" << std::endl;
 					return false;
 				}
+				#endif
 				RunTime.UnLoad();
 
 
