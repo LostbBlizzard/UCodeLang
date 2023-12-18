@@ -31,7 +31,7 @@ workspace "UCodeLang"
    
    OutDirPath ="%{cfg.platform}/%{cfg.buildcfg}"
 
-   UCPathExeDir = "%{wks.location}Output/UCodelangCL/" .. OutDirPath .. "/"
+   UCPathExeDir = "%{wks.location}/Output/UCodelangCL/" .. OutDirPath .. "/"
    UCPathExeName ="uclang"
    UCPathExe = UCPathExeDir ..  UCPathExeName
 
