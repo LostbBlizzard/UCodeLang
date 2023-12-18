@@ -9,7 +9,7 @@ int main(int argc, char* argv[])
 		char* Item = argv[i];
 		if (UCodeLang::String_view(Item) == "--RunTests")
 		{ 
-			return ULangTest::RunTests();
+			return ULangTest::RunTests(false);
 		}
 	}
 
