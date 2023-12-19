@@ -694,6 +694,18 @@ newaction {
     end
 }
 
+
+newaction {
+    trigger = "installinno",
+    description = "downloads inno setup and puts in output",
+    execute = function ()
+        print("----installing inno setup tools for " .. os.target())
+        
+        executeorexit("git clone https://github.com/LostbBlizzard/installed-inno Dependencies/bin/inno")
+        
+    end
+}
+
 ---build
 newaction {
     trigger = "build_UCApp",
