@@ -788,7 +788,7 @@ newaction {
         end
 
         if os.istarget("windows") then
-         executeorexit("msbuild UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win64 -maxcpucount")
+         executeorexit("msbuild UCodeLang.sln /t:Build /p:Configuration=Published  /p:Platform=Win64 -maxcpucount")
         end
         
         if os.istarget("macosx") then
@@ -806,7 +806,7 @@ newaction {
         end
 
         if os.istarget("windows") then
-         executeorexit("msbuild UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win32 -maxcpucount")
+         executeorexit("msbuild UCodeLang.sln /t:Build /p:Configuration=Published /p:Platform=Win32 -maxcpucount")
         end
         
         if os.istarget("macosx") then
