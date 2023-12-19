@@ -55,6 +55,9 @@ jobs:
       - name: Run Premake Install
         run: ./InstallTools.bat
 
+      - name: Run Premake Install inno
+        run: ./premake.bat installinno
+
       - name: Run Premake
         run: ./VS_2019.bat
 
@@ -72,6 +75,9 @@ jobs:
         if: ${{ inputs.IsPreRelease == false}}
         run: ./premake.bat build_published_32bit
 
+      - name: Build installer
+        run: ./premake.bat buildinstaller
+
       - name: Save cached Objs
         if: always()
         id: cache-Objs-save
@@ -88,6 +94,7 @@ jobs:
            Output/UCodelangCL
            Output/UCodeLanguageSever
            Output/UCodeLang
+           Output/UCodeLangSetup.exe
           retention-days: 1
 
   build-Linux:
@@ -217,10 +224,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Download all workflow run artifacts
-        uses: actions/download-artifact@v3
-
-      - name: Build
-        run:  echo "Do Build Here"
+        uses: actions/download-artifact@v3\
 
       - name: Create Release
         id: create_release
@@ -251,9 +255,18 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./UCodeLang/UCodeLang/UCodeLangCAPI.h
           asset_name: UCodeLangCAPI.h
-          asset_content_type: text/plain 
-      
-     
+          asset_content_type: text/plain
+          
+      - name: Upload Windows Setup
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./Output_Windows/UCodeLangSetup.exe
+          asset_name: UCodeLangCAPI.h
+          asset_content_type: application/octet-stream
+        
       - name: Upload UCodeLangLibWindows64
         uses: actions/upload-release-asset@v1
         env:
