@@ -1001,7 +1001,7 @@ newaction {
         end
 
         if os.istarget("windows") then
-          executeorexit("Dependencies\\bin\\inno\\Compil32.exe  /cc install.iss")
+          executeorexit("Dependencies\\bin\\inno\\ISCC.exe install.iss")
         end
         
         if os.istarget("macosx") then
