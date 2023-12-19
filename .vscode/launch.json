@@ -62,7 +62,7 @@
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/UCApp",
             "environment": [],
-            "preLaunchTask": "Build UCApp",
+            "preLaunchTask": "build UCApp",
             "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [
