@@ -73,12 +73,3 @@ mainly
 
 - A:When the repository Opens (preferably on 1/2/2023 The one year anniversary of makeing the jit project) most features would be done and dont really plan on adding more unless it Just too Good. I'll be around for an extra year to finsh up the other architectures and backends and stabitly.at that point the project will be done and i can go on working on that game engine and go to work on biger and better things.
 
-# Credits
-The was Language was designed  and developed by LostBlizzard On [GitHub](https://github.com/LostbBlizzard).
-
-Who currently maintains the 
-
-- The [UCodeLang](https://github.com/LostbBlizzard/UCodeLang) cplusplus implementation of the language.
-
-The UCodeGameEngine(being worked on) the primary reason The Language was made.
-

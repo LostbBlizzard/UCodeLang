@@ -948,9 +948,12 @@ void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 				{
 					OutType = &tep;
 					tep = _Input->GetType(I.get(), I.get()->Target());
-					r += ToString(I->ObjectType);
-					r += " " + State.GetName(I.get());
-					r += " = ";
+					if (I->ObjectType != IRTypes::Void)
+					{
+						r += ToString(I->ObjectType);
+						r += " " + State.GetName(I.get());
+						r += " = ";
+					}
 					r += ToString(State, *I, I->Target()) + "(";
 					for (auto& Item : State.TepPushedParameters)
 					{

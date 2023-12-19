@@ -283,12 +283,11 @@ void SystematicAnalysis::Debug_Add_SetVarableInfo(const Symbol& Syb, size_t InsI
 	}
 	else
 	{
-		auto irfuncname = _IR_LookingAtIRFunc ? _IR_Builder.FromID(_IR_LookingAtIRFunc->identifier) : "";
-		
-		//auto func = Symbol_GetSymbol(_FuncStack.back().Pointer);
+		auto scope = Syb.FullName.substr(_FuncStack.front().Pointer->FullName.size());
 
-		irvarname = irfuncname + ScopeHelper::_ScopeSep + ScopeHelper::GetNameFromFullName(Syb.FullName);
-		//irvarname = Syb.FullName;
+		auto irfuncname = _IR_LookingAtIRFunc ? _IR_Builder.FromID(_IR_LookingAtIRFunc->identifier) : "";
+
+		irvarname = irfuncname + scope + ScopeHelper::GetNameFromFullName(Syb.FullName);
 	}
 	auto ID = _IR_Builder.ToID(irvarname);
 	IRDebugSetVarableName V;
@@ -329,6 +328,8 @@ void SystematicAnalysis::Debug_Add_SetVarableInfo(const Symbol& Syb, size_t InsI
 		UCodeLangUnreachable();
 		break;
 	}
+
+
 	_IR_Builder._Debug.Symbols.AddValue(ID,std::move(Info));
 }
 const NeverNullPtr<FileNode> SystematicAnalysis::FileDependency_Get_FileUseingSymbol(const NeverNullPtr<Symbol> Syb)
@@ -813,6 +814,14 @@ IRidentifierID SystematicAnalysis::IR_Build_ConvertToStaticArray(const Symbol& C
 	}
 	const StaticArrayInfo* clasinfo = Class.Get_Info <StaticArrayInfo>();
 
+
+	if (clasinfo->Type.IsTypeInfo())
+	{
+		IRidentifierID V = 0;
+		_Symbol_SybToIRMap.AddValue(ClassSybID, V);
+		return V;
+	}
+
 	IRidentifierID V = _IR_Builder.ToID(Class.FullName);
 
 
@@ -1109,6 +1118,7 @@ IRType SystematicAnalysis::IR_ConvertToIRType(const TypeSymbol& Value)
 				{
 					IRStructField V;
 					V.Type = IRType(IRTypes::pointer);
+					V.Type._symbol = _IR_Builder.ToID(Str_GetTraitVStructTableName(syb.FullName));
 					StructIR->Fields.push_back(V);
 				}
 

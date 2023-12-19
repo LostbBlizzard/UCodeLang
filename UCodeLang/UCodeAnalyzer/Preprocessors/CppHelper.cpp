@@ -216,21 +216,26 @@ bool CppHelper::ParseCppfileAndOutULangDir(const Path& CppDir, const Path& CppLi
 		R += '\n';
 
 		CppToULangState state;
-		for (auto& file : files) 
+		for (auto& file : files)
 		{
+			R += "\n";
 			R += "//" + file.path.filename().generic_string();
+			R += "\n";
+
 			for (auto& Item : file.Symbols)
 			{
 				R += ToString(state, Item);
 			}
+			for (auto& Item : state.InternalNameSpaces)
+			{
+				R += Item.first + "::" + "Internal:\n";
+				R += Item.second;
+
+			}
+			R += "\n";
+			state = CppToULangState();
 		}
 
-		for (auto& Item : state.InternalNameSpaces)
-		{
-			R += Item.first + "::" + "Internal:\n";
-			R += Item.second;
-
-		}
 
 		if (oldtext != R) {
 			WriteStringToFile(ULangOut, R);
@@ -830,7 +835,15 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 									size_t ParCount = 0;
 									for (auto& Par : Item.Pars)
 									{
-										Linkstr += Par;
+										String tepstr = Par;
+
+										if (tepstr.back() == '*' && Item.MyData->Pars[ParCount].Type.mode ==
+											CppHelper::CPPType::Mode::Address)
+										{
+											tepstr.back() = '&';
+										}
+										Linkstr += tepstr;
+
 
 										Linkstr += " Par";
 										Linkstr += std::to_string(ParCount);
@@ -866,12 +879,6 @@ void CppHelper::UpdateCppLinks(UCodeAnalyzer::String& CppLinkText, UCodeAnalyzer
 									size_t ParCount = 0;
 									for (auto& Par : Item.Pars)
 									{
-
-										if (Item.MyData->Pars[ParCount].Type.mode ==
-											CppHelper::CPPType::Mode::Address)
-										{
-											Linkstr += "*";
-										}
 										Linkstr += "Par" + std::to_string(ParCount);
 										if (&Par != &Item.Pars.back())
 										{
@@ -1177,16 +1184,14 @@ void CppHelper::DoEnumType(size_t& i, UCodeAnalyzer::String& FileText, UCodeAnal
 
 				
 				if (Exclude==false) {
-					_type.Fields.push_back(std::move(field));
+					if (field.Name.size()) {
+						_type.Fields.push_back(std::move(field));
+					}
 				}
 				
 				if (Scope[i] != ',')
 				{
 					break;
-				}
-				else 
-				{
-					i++;
 				}
 
 			}

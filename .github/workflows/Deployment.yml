@@ -52,6 +52,9 @@ jobs:
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
 
+      - name: Run Premake Install
+        run: ./InstallTools.bat
+
       - name: Run Premake
         run: ./VS_2019.bat
 
@@ -63,15 +66,11 @@ jobs:
           key: ${{ runner.os }}-deployment
 
       - name: Build 64 bit
-        run: |
-           cd ./BuildTools
-           ./BuildWin64Published.bat
+        run: ./premake.bat build_published
 
       - name: Build 32 bit
         if: ${{ inputs.IsPreRelease == false}}
-        run: |
-           cd ./BuildTools
-           ./BuildWin32Published.bat
+        run: ./premake.bat build_published_32bit
 
       - name: Save cached Objs
         if: always()
@@ -97,19 +96,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Get X11 Packages
-        run: sudo apt-get install libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev
-
-      - name: Get OpenGl Packages
-        run: sudo apt install mesa-common-dev
-
       - name: Make a scripts executable
         run: |
+          chmod +x ./InstallTools.sh
           chmod +x ./GNU_Make.sh
-          chmod +x ./BuildTools/BuildLinux32Published.sh
-          chmod +x ./BuildTools/BuildLinux64Published.sh
 
-          
+      - name: Run Premake Install
+        run: ./InstallTools.sh
+
       - name: Run Premake
         run: ./GNU_Make.sh
 
@@ -121,7 +115,7 @@ jobs:
           key: ${{ runner.os }}-deployment
 
       - name: Build 64 bit
-        run: make config=published_linux64 -j4
+        run: ./premake.sh build_published
 
       - name: Save cached Objs
         if: always()
@@ -146,17 +140,17 @@ jobs:
     
     steps:
       - uses: actions/checkout@v3
-
-      - name: Get glfw
-        run: brew install glfw
     
       - name: Make a scripts executable
         run: |
-         chmod +x ./GNU_MakeMacOS.sh
-         chmod +x ./BuildTools/RunTestsMacOSDebug.sh
+         chmod +x ./InstallTools.sh
+         chmod +x ./GNU_Make.sh
+
+      - name: Run Premake Install
+        run: ./InstallTools.sh
 
       - name: Run Premake
-        run: ./GNU_MakeMacOS.sh
+        run: ./GNU_Make.sh
 
       - name: Restore cached objs
         id: cache-objs-restore
@@ -166,7 +160,7 @@ jobs:
           key: ${{ runner.os }}-deployment
 
       - name: Build 
-        run: make config=published_macos -j4
+        run: ./premake.sh build_published
 
       - name: Save cached 
         if: always()

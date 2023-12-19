@@ -86,7 +86,8 @@ bool SystematicAnalysis::Type_IsimmutableRulesfollowed(const TypeSymbol& TypeToC
 	}
 	else if (CmpTypeimm == false && Chechimm == true)
 	{
-		return TypeToCheck.IsAddress() && Type.IsAddress();
+		return true;
+		//return TypeToCheck.IsAddress() && Type.IsAddress();
 		
 	}
 
@@ -111,13 +112,6 @@ bool SystematicAnalysis::Type_IsAddessAndLValuesRulesfollowed(const TypeSymbol& 
 }
 bool SystematicAnalysis::Symbol_HasDestructor(const TypeSymbol& TypeToCheck)
 {
-	bool DegBugFlag = (OptimizationFlags_t)_Settings->_Flags & (OptimizationFlags_t)OptimizationFlags::ForDebuging;
-
-
-	if (!DegBugFlag && Type_IsPrimitive(TypeToCheck))
-	{
-		return false;
-	}
 
 	TypeSymbol Tep = TypeToCheck;
 	if (Tep.IsAddress())
@@ -701,6 +695,10 @@ bool  SystematicAnalysis::Type_AreTheSameWithOutMoveAndimmutable(const TypeSymbo
 			{
 				return Type_AreTheSameWithOutimmutable(F1->Type, F2->Type);
 			}
+		}
+		if (Type_IsUnMapType(TypeOne) && Type_IsUnMapType(TypeTwo))
+		{
+			return true;
 		}
 
 	}

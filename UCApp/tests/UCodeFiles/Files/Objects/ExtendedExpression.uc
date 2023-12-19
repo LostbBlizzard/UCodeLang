@@ -10,10 +10,10 @@ $Player:
  |Pos[this&] -> Vec2&:
   ret _Pos;
 
- |This[this&] => this;
+ |This[this&] -> this&:ret this;
 
 |Hello[] -> Player&:
- static Player P;
+ static Player P = [];
  ret P;
 
 |main[]:

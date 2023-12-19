@@ -94,6 +94,7 @@ void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 					ObjectToDrop Data;
 					Data._Object = OffsetIr;
 					Data.Type = TypeOfArr;
+					Data.Type._IsAddress = false;
 					Data.DropType = ObjectToDropType::IRInstructionNoMod;
 					IR_Build_DestructorCall(Data);//call on Object
 				}

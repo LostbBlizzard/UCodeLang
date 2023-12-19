@@ -198,109 +198,111 @@ void SystematicAnalysis::OnStringLiteral(const StringliteralNode* nod, bool& ret
 		stringtype = StringType::Char;
 	}
 
-	if (_PassType == PassType::FixedTypes)
+
+	bool IsStaticArr = Type_IsStaticCharArr(Type);
+	if (!IsStaticArr) 
 	{
-		//TODO check for valid String,String8,String16,String32
+		if (_PassType == PassType::FixedTypes)
+		{
+			//TODO check for valid String,String8,String16,String32
 
-		TypeSymbol CharType;
-		TypeSymbol SpanStringType;
-		auto Token = NeverNullptr(nod->token);
-		switch (stringtype)
-		{
-		case StringType::Char:
-		{
-			CharType = TypeSymbol(TypesEnum::Char);
-			SpanStringType = Type_GetStringSpan(Token).value_or(TypeSymbol(TypesEnum::Null));
-		}
-		break;
-		case StringType::Utf8:
-		{
-			CharType = TypeSymbol(TypesEnum::Uft8);
-			SpanStringType = Type_GetStringSpan8(Token).value_or(TypeSymbol(TypesEnum::Null));
-		}
-		break;
-		case StringType::Utf16:
-		{
-			CharType = TypeSymbol(TypesEnum::Uft16);
-			SpanStringType = Type_GetStringSpan16(Token).value_or(TypeSymbol(TypesEnum::Null));
-		}
-		break;
-		case StringType::Utf32:
-		{
-			CharType = TypeSymbol(TypesEnum::Uft32);
-			SpanStringType = Type_GetStringSpan32(Token).value_or(TypeSymbol(TypesEnum::Null));
-		}
-		break;
-		default:
-			UCodeLangUnreachable();
-			break;
-		}
-
-		if (!SpanStringType.IsBadType())
-		{
-			FuncInfo* func = nullptr;
+			TypeSymbol CharType;
+			TypeSymbol SpanStringType;
+			auto Token = NeverNullptr(nod->token);
+			switch (stringtype)
 			{
-				String scope = ScopeHelper::ApendedStrings(ToString(SpanStringType), ClassConstructorfunc);
+			case StringType::Char:
+			{
+				CharType = TypeSymbol(TypesEnum::Char);
+				SpanStringType = Type_GetStringSpan(Token).value_or(TypeSymbol(TypesEnum::Null));
+			}
+			break;
+			case StringType::Utf8:
+			{
+				CharType = TypeSymbol(TypesEnum::Uft8);
+				SpanStringType = Type_GetStringSpan8(Token).value_or(TypeSymbol(TypesEnum::Null));
+			}
+			break;
+			case StringType::Utf16:
+			{
+				CharType = TypeSymbol(TypesEnum::Uft16);
+				SpanStringType = Type_GetStringSpan16(Token).value_or(TypeSymbol(TypesEnum::Null));
+			}
+			break;
+			case StringType::Utf32:
+			{
+				CharType = TypeSymbol(TypesEnum::Uft32);
+				SpanStringType = Type_GetStringSpan32(Token).value_or(TypeSymbol(TypesEnum::Null));
+			}
+			break;
+			default:
+				UCodeLangUnreachable();
+				break;
+			}
 
-				auto list = GetSymbolsWithName(scope);
-				for (auto& Item : list)
+			if (!SpanStringType.IsBadType())
+			{
+				FuncInfo* func = nullptr;
 				{
-					if (Item->Type == SymbolType::Func)
+					String scope = ScopeHelper::ApendedStrings(ToString(SpanStringType), ClassConstructorfunc);
+
+					auto list = GetSymbolsWithName(scope);
+					for (auto& Item : list)
 					{
-						FuncInfo* finfo = Item->Get_Info<FuncInfo>();
-						if (finfo->Pars.size() == 3)
+						if (Item->Type == SymbolType::Func)
 						{
-							auto& pointerpar = finfo->Pars[1];
-							auto& sizepar = finfo->Pars[2];
-							if (pointerpar.IsOutPar == true
-								|| sizepar.IsOutPar == true)
+							FuncInfo* finfo = Item->Get_Info<FuncInfo>();
+							if (finfo->Pars.size() == 3)
 							{
-								continue;
+								auto& pointerpar = finfo->Pars[1];
+								auto& sizepar = finfo->Pars[2];
+								if (pointerpar.IsOutPar == true
+									|| sizepar.IsOutPar == true)
+								{
+									continue;
+								}
+								if (pointerpar.Type._Type != CharType._Type)
+								{
+									continue;
+								}
+								if (!pointerpar.Type.IsAddressArray())
+								{
+									continue;
+								}
+								if (sizepar.Type.IsAddress()
+									|| sizepar.Type.IsAddressArray()
+									|| sizepar.Type._Type != TypesEnum::uIntPtr)
+								{
+									continue;
+								}
+								func = finfo;
+								break;
 							}
-							if (pointerpar.Type._Type != CharType._Type)
-							{
-								continue;
-							}
-							if (!pointerpar.Type.IsAddressArray())
-							{
-								continue;
-							}
-							if (sizepar.Type.IsAddress()
-								|| sizepar.Type.IsAddressArray()
-								|| sizepar.Type._Type != TypesEnum::uIntPtr)
-							{
-								continue;
-							}
-							func = finfo;
-							break;
 						}
 					}
 				}
-			}
-			if (func == nullptr)
-			{
-				ParInfo par0;
-				par0.Type = TypeSymbol(SpanStringType._CustomTypeSymbol);
-				par0.Type.SetAsAddress();
+				if (func == nullptr)
+				{
+					ParInfo par0;
+					par0.Type = TypeSymbol(SpanStringType._CustomTypeSymbol);
+					par0.Type.SetAsAddress();
 
-				ParInfo par1;
-				par1.Type = CharType;
-				par1.Type.SetAsimmutable();
-				par1.Type.SetAsAddressArray();
+					ParInfo par1;
+					par1.Type = CharType;
+					par1.Type.SetAsimmutable();
+					par1.Type.SetAsAddressArray();
 
-				ParInfo par2;
-				par2.Type = TypesEnum::uIntPtr;
-				LogError_CantFindFuncError(Token, "new"
-					, {}, { par0,par1,par2 }, TypeSymbol(TypesEnum::Void));
+					ParInfo par2;
+					par2.Type = TypesEnum::uIntPtr;
+					LogError_CantFindFuncError(Token, "new"
+						, {}, { par0,par1,par2 }, TypeSymbol(TypesEnum::Void));
+				}
 			}
+
+			SpanStringType.SetAsimmutable();
+			_LastExpressionType = SpanStringType;
 		}
-
-		SpanStringType.SetAsimmutable();
-		_LastExpressionType = SpanStringType;
 	}
-
-	bool IsStaticArr = Type_IsStaticCharArr(Type);
-
 
 
 	if (IsStaticArr)

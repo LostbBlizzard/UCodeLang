@@ -153,26 +153,6 @@ enum class InstructionSet : InstructionSet_t
 	Link_Bytes,Link_Path,
 	Call_Code,
 
-	//SysCall Set
-	Cout_Char,
-	Cout_Buffer,
-
-	Cout_ReadChar,
-	Cout_ReadBuffer,
-
-	File_Open,
-	FilePChar_Open,
-	File_Close,
-	File_IsOpen,
-	File_Read,
-	File_Write,
-	File_SetPos,
-	File_GetPos,
-	File_Exist,
-	FilePChar_Exist,
-	File_Remove,
-	FilePChar_Remove,
-
 	//Debuging Set
 	Debug_FuncStart,
 	Debug_FuncEnd,

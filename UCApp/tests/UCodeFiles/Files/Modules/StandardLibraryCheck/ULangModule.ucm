@@ -1,0 +1,5 @@
+AuthorName: "UCodeLang"
+ModuleName: "TestsBuildSystem"
+Version: 0:0:0
+
+import UCodeLang::StandardLibarary[0:0:0];

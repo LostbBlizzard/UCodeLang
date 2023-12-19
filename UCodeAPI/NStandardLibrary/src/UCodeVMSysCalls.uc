@@ -6,11 +6,10 @@ $if compiler::IsBackendUCodeVM():
  $Socket = uintptr;
 
  //Cout/Cin
- extern dynamic |__Log[imut char[&] Buff] -> void;
 
- extern dynamic |__LogChar[char Value] -> void;
+ extern dynamic |putchar[char Value] -> void;
 
- extern dynamic |__LogBuffer[imut char[&] Value,uintptr Size] -> void;
+ extern dynamic |putspan[imut char[&] Value,uintptr Size] -> void;
 
  extern dynamic |__ReadChar[] -> char;
 

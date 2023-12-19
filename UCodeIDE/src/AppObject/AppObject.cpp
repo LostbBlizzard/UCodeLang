@@ -327,12 +327,20 @@ void AppObject::DrawTestMenu()
     struct TestInfo
     {
         TestMode Testmode = TestMode::UCodeLangBackEnd;
-        size_t MinTestIndex = 68;
-        size_t MaxTestCount = 75;//;//ULangTest::Tests.size();
+       // size_t MinTestIndex = 75;
+       // size_t MaxTestCount = 85;//;//ULangTest::Tests.size();
+       size_t MinTestIndex = 0;
+       size_t MaxTestCount = 15;//;//ULangTest::Tests.size();
+
 
         size_t ModuleIndex = 0;
         size_t ModuleTestCount = 1;//;//ULangTest::Tests.size();
         bool TestAsRan = false;
+
+        size_t StandardLibraryTestIndex = 16;
+        size_t StandardLibraryTestCount = 20;//;//ULangTest::Tests.size();
+
+
         enum class TestState
         {
             Null,
@@ -579,6 +587,7 @@ void AppObject::DrawTestMenu()
 
                         #if UCodeLang_Platform_Windows
                         auto lib = LoadLibrary(dllfile.c_str());
+                        UCodeLangAssert(lib);
                         UCodeLangDefer(FreeLibrary(lib));
                         auto staticinittocall = GetProcAddress(lib,staticinitname.c_str());
                         auto threadinittocall = GetProcAddress(lib,threadinitname.c_str());
@@ -588,6 +597,7 @@ void AppObject::DrawTestMenu()
                         auto functocall = GetProcAddress(lib, cfuncname.c_str());
                         #elif UCodeLang_Platform_Posix
                         auto lib = dlopen(dllfile.c_str(), RTLD_NOW);
+                        UCodeLangAssert(lib);
                         UCodeLangDefer(dlclose(lib));
 
                         auto staticinittocall = dlsym(lib,staticinitname.c_str());
@@ -1590,6 +1600,422 @@ void AppObject::DrawTestMenu()
                     ImGui::TreePop();
                 }
 
+            }
+        }
+        {
+            ImGui::Separator();
+            ImGui::Text("StandardLibrary Tests");
+
+            struct StandardLibTest
+            {
+                bool TestRan = false;
+                bool TestPassing = false;
+            };
+            static Vector<StandardLibTest> StandardLibraryTestInfo;
+            static UCodeLang::UClib TestLib;
+            static UCodeLang::Path Outpath;
+            static TestMode mode= TestMode::Max;
+            static Vector<const UCodeLang::ClassMethod*> StandardLibrarytests;
+            static bool check = false;
+            static UCodeLang::Compiler _TestCompiler;
+
+
+            {
+                int v = (int)TestWindowData.StandardLibraryTestIndex;
+                if (ImGui::SliderInt("MinShowTests 2", &v, 0, TestWindowData.StandardLibraryTestCount - 1))
+                {
+                    TestWindowData.StandardLibraryTestIndex = v;
+                }
+            }
+            {
+                int v = (int)TestWindowData.StandardLibraryTestCount;
+                if (ImGui::SliderInt("MaxShowTests 2", &v, TestWindowData.StandardLibraryTestIndex + 1, StandardLibrarytests.size() - 1))
+                {
+                    TestWindowData.StandardLibraryTestCount = v;
+                }
+            }
+
+
+            Path StandardLibrarydir = "../UCodeAPI/StandardLibrary";
+
+            if (mode != TestWindowData.Testmode)
+            {
+                check = false;
+            }
+
+            if (check == false)
+            {
+                check = true; 
+                UCodeLang::ModuleFile f;
+                f.FromFile(&f, StandardLibrarydir / UCodeLang::ModuleFile::FileNameWithExt);
+                if (TestWindowData.Testmode == TestMode::UCodeLangBackEnd)
+                {
+                    _TestCompiler.Set_BackEnd(UCodeLang::UCodeBackEndObject::MakeObject);
+                }
+                else if (TestWindowData.Testmode == TestMode::CLang89BackEnd)
+                {
+                    _TestCompiler.Set_BackEnd(UCodeLang::C11Backend::MakeObject);
+                }
+                else if (TestWindowData.Testmode == TestMode::WasmBackEnd)
+                {
+                    _TestCompiler.Set_BackEnd(UCodeLang::WasmBackEnd::MakeObject);
+                }
+                auto out = f.BuildModule(_TestCompiler, UCodeLang::ModuleIndex::GetModuleIndex());
+
+                TestLib = std::move(*out.CompilerRet.GetValue().OutPut);
+
+                StandardLibrarytests = UCodeLang::TestRuner::GetTests(TestLib.Get_Assembly());
+
+                StandardLibraryTestInfo.resize(StandardLibrarytests.size());
+
+                Outpath = out.OutputItemPath;
+                mode = TestWindowData.Testmode;
+            }
+
+            if (ImGui::Button("Build StandardLibrary"))
+            {
+                UCodeLang::ModuleFile f;
+                f.FromFile(&f, StandardLibrarydir / UCodeLang::ModuleFile::FileNameWithExt);
+
+                if (TestWindowData.Testmode == TestMode::UCodeLangBackEnd)
+                {
+                    _TestCompiler.Set_BackEnd(UCodeLang::UCodeBackEndObject::MakeObject);
+                }
+                else if (TestWindowData.Testmode == TestMode::CLang89BackEnd)
+                {
+                    _TestCompiler.Set_BackEnd(UCodeLang::C11Backend::MakeObject);
+                }
+                else if (TestWindowData.Testmode == TestMode::WasmBackEnd)
+                {
+                    _TestCompiler.Set_BackEnd(UCodeLang::WasmBackEnd::MakeObject);
+                }
+
+                auto out = f.BuildModule(_TestCompiler, UCodeLang::ModuleIndex::GetModuleIndex());
+
+                TestLib = std::move(*out.CompilerRet.GetValue().OutPut);
+
+
+                StandardLibrarytests = UCodeLang::TestRuner::GetTests(TestLib.Get_Assembly());
+
+                StandardLibraryTestInfo.resize(StandardLibrarytests.size());
+
+                Outpath = out.OutputItemPath;
+
+                mode = TestWindowData.Testmode;
+            }
+            if (ImGui::Button("Clean StandardLibrary"))
+            {
+                std::filesystem::remove_all(StandardLibrarydir / "int");
+                std::filesystem::remove_all(StandardLibrarydir / "out");
+            }
+
+            if (ImGui::Button("Run All StandardLibrary Tests"))
+            {
+
+                UCodeLang::ModuleFile f;
+                f.FromFile(&f, StandardLibrarydir / UCodeLang::ModuleFile::FileNameWithExt);
+
+                if (TestWindowData.Testmode == TestMode::UCodeLangBackEnd)
+                {
+                    _TestCompiler.Set_BackEnd(UCodeLang::UCodeBackEndObject::MakeObject);
+                }
+                else if (TestWindowData.Testmode == TestMode::CLang89BackEnd)
+                {
+                    _TestCompiler.Set_BackEnd(UCodeLang::C11Backend::MakeObject);
+                }
+                else if (TestWindowData.Testmode == TestMode::WasmBackEnd)
+                {
+                    _TestCompiler.Set_BackEnd(UCodeLang::WasmBackEnd::MakeObject);
+                }
+                auto out = f.BuildModule(_TestCompiler, UCodeLang::ModuleIndex::GetModuleIndex());
+
+                TestLib = std::move(*out.CompilerRet.GetValue().OutPut);
+
+
+                Outpath = out.OutputItemPath;
+                mode = TestWindowData.Testmode;
+                StandardLibrarytests = UCodeLang::TestRuner::GetTests(TestLib.Get_Assembly());
+
+                StandardLibraryTestInfo.resize(StandardLibrarytests.size());
+
+                UCodeLang::TestRuner::InterpreterType interpreter;
+                
+                if (windowdata.VMType == UCodeVMType::Native_Interpreter)
+                {
+                    interpreter = UCodeLang::TestRuner::InterpreterType::NativeInterpreter;
+                }
+                else if (windowdata.VMType ==UCodeVMType::Jit_Interpreter)
+                {
+                    interpreter = UCodeLang::TestRuner::InterpreterType::JitInterpreter;
+                }
+                else
+                {
+                    interpreter = UCodeLang::TestRuner::InterpreterType::Interpreter;
+                }
+
+                UCodeLang::TestRuner runer;
+                if (TestWindowData.Testmode == TestMode::UCodeLangBackEnd)
+                {
+                    auto info = runer.RunTests(TestLib, interpreter);
+
+                    for (size_t i = 0; i < info.Tests.size(); i++)
+                    {
+                        StandardLibraryTestInfo[i].TestPassing = info.Tests[i].Passed;
+                        StandardLibraryTestInfo[i].TestRan = true;
+                    }
+                }
+                else  if (TestWindowData.Testmode == TestMode::CLang89BackEnd) 
+                {
+                    Path dllfile = "out.lib";
+                    auto cfilepath = out.OutputItemPath.native();
+
+                    UCodeLangAssert(CompileC89ToLib(cfilepath, dllfile));
+
+                    using namespace UCodeLang;
+
+                    auto staticinitname =C11Backend::UpdateToCindentifier(StaticVariablesInitializeFunc);
+                    auto threadinitname = C11Backend::UpdateToCindentifier(ThreadVariablesInitializeFunc);
+
+                    auto staticdeinitname = C11Backend::UpdateToCindentifier(StaticVariablesUnLoadFunc);
+                    auto threaddeinitname = C11Backend::UpdateToCindentifier(ThreadVariablesUnLoadFunc);
+
+                    auto functocallStr = "main";
+                    #if UCodeLang_Platform_Windows
+                    auto lib = LoadLibrary(dllfile.c_str());
+                    UCodeLangDefer(FreeLibrary(lib));
+                    auto staticinittocall = GetProcAddress(lib, staticinitname.c_str());
+                    auto threadinittocall = GetProcAddress(lib, threadinitname.c_str());
+                    auto staticdeinittocall = GetProcAddress(lib, staticdeinitname.c_str());
+                    auto threaddeinittocall = GetProcAddress(lib, threaddeinitname.c_str());
+                    #elif UCodeLang_Platform_Posix
+                    auto lib = dlopen(dllfile.c_str(), RTLD_NOW);
+                    UCodeLangDefer(dlclose(lib));
+
+                    auto staticinittocall = dlsym(lib, staticinitname.c_str());
+                    auto threadinittocall = dlsym(lib, threadinitname.c_str());
+                    auto staticdeinittocall = dlsym(lib, staticdeinitname.c_str());
+                    auto threaddeinittocall = dlsym(lib, threaddeinitname.c_str());
+                    #endif
+
+                    for (size_t i = 0; i < StandardLibraryTestInfo.size(); i++)
+                    {
+                        auto& func = StandardLibrarytests[i];
+                        auto functocallStr = C11Backend::UpdateToCindentifier(func->DecorationName);
+                        #if UCodeLang_Platform_Windows
+                        auto functocall = GetProcAddress(lib, functocallStr.c_str());
+                        #elif UCodeLang_Platform_Posix
+                        auto functocall = dlsym(lib, functocallStr.c_str());
+                        #endif
+
+                        bool testpassed = false;
+                        if (func->RetType._Type == ReflectionTypes::Bool)
+                        {
+                            using Func = bool(*)();
+                            testpassed = ((Func)functocall)();
+                        }
+                        else
+                        {
+                            testpassed = true;
+                        }
+
+                        StandardLibraryTestInfo[i].TestPassing = testpassed;
+                        StandardLibraryTestInfo[i].TestRan = true;
+                    }
+                }
+                else
+                {
+                    UCodeLangUnreachable();
+                }
+            }
+            if (ImGui::Button("Run StandardLibrary Tests"))
+            {
+
+                UCodeLang::ModuleFile f;
+                f.FromFile(&f, StandardLibrarydir / UCodeLang::ModuleFile::FileNameWithExt);
+
+                if (TestWindowData.Testmode == TestMode::UCodeLangBackEnd)
+                {
+                    _TestCompiler.Set_BackEnd(UCodeLang::UCodeBackEndObject::MakeObject);
+                }
+                else if (TestWindowData.Testmode == TestMode::CLang89BackEnd)
+                {
+                    _TestCompiler.Set_BackEnd(UCodeLang::C11Backend::MakeObject);
+                }
+                else if (TestWindowData.Testmode == TestMode::WasmBackEnd)
+                {
+                    _TestCompiler.Set_BackEnd(UCodeLang::WasmBackEnd::MakeObject);
+                }
+                auto out = f.BuildModule(_TestCompiler, UCodeLang::ModuleIndex::GetModuleIndex());
+
+                Outpath = out.OutputItemPath;
+
+                mode = TestWindowData.Testmode;
+                TestLib = std::move(*out.CompilerRet.GetValue().OutPut);
+
+
+                StandardLibrarytests = UCodeLang::TestRuner::GetTests(TestLib.Get_Assembly());
+
+                StandardLibraryTestInfo.resize(StandardLibrarytests.size());
+
+                UCodeLang::TestRuner::InterpreterType interpreter;
+                if (windowdata.VMType == UCodeVMType::Native_Interpreter)
+                {
+                    interpreter = UCodeLang::TestRuner::InterpreterType::NativeInterpreter;
+                }
+                else if (windowdata.VMType == UCodeVMType::Jit_Interpreter)
+                {
+                    interpreter = UCodeLang::TestRuner::InterpreterType::JitInterpreter;
+                }
+                else
+                {
+                    interpreter = UCodeLang::TestRuner::InterpreterType::Interpreter;
+                }
+
+                UCodeLang::TestRuner runer;
+
+                for (size_t i = TestWindowData.StandardLibraryTestIndex; i < TestWindowData.StandardLibraryTestCount; i++)
+                {
+                    bool v = false;
+                    
+                    
+                    if (TestWindowData.Testmode == TestMode::UCodeLangBackEnd)
+                    {
+                        v = runer.RunTest(TestLib, interpreter, StandardLibrarytests[i]);
+                    }
+                    else  if (TestWindowData.Testmode == TestMode::CLang89BackEnd)
+                    {
+
+                    }
+                    else
+                    {
+                        UCodeLangUnreachable();
+                    }
+                    StandardLibraryTestInfo[i].TestPassing = v;
+                    StandardLibraryTestInfo[i].TestRan = true;
+                }
+            }
+
+            for (size_t i = TestWindowData.StandardLibraryTestIndex; i < TestWindowData.StandardLibraryTestCount; i++)
+            {
+                auto& ItemTest = StandardLibrarytests[i];
+                auto& ItemOut = StandardLibraryTestInfo[i];
+
+                ImVec4 buttioncolor;
+
+                if (!ItemOut.TestRan)
+                {
+                    buttioncolor = Colorlightgrey;//gray
+                }
+                else
+                {
+                    if (ItemOut.TestPassing)
+                    {
+                        buttioncolor = ColorGreen;//green
+                    }
+                    else
+                    {
+                        buttioncolor = ColorRed;//red
+                    }
+                }
+
+                String TestV = "Test:";
+                TestV += ItemTest->FullName;
+                ImGui::PushStyleColor(ImGuiCol_::ImGuiCol_Text, buttioncolor);
+                bool isopen = ImGui::TreeNode(TestV.c_str());
+                ImGui::PopStyleColor();
+
+                if (isopen)
+                {
+                    if (ImGui::Button("Run Test"))
+                    {
+                        UCodeLang::TestRuner::InterpreterType interpreter;
+                        /*
+                        if (usenative)
+                        {
+                            interpreter = TestRuner::InterpreterType::NativeInterpreter;
+                        }
+                        else if (usejit)
+                        {
+                            interpreter = TestRuner::InterpreterType::JitInterpreter;
+                        }
+                        else
+                        */
+                        {
+                            interpreter = UCodeLang::TestRuner::InterpreterType::Interpreter;
+                        }
+
+                        UCodeLang::TestRuner runer;
+                        bool v = false;
+
+                        if (TestWindowData.Testmode == TestMode::UCodeLangBackEnd)
+                        {
+                            v = runer.RunTest(TestLib, interpreter, ItemTest);
+                        }
+                        else  if (TestWindowData.Testmode == TestMode::CLang89BackEnd)
+                        {
+                            Path dllfile = "out.lib";
+                            auto cfilepath = Outpath.native();
+
+                            UCodeLangAssert(CompileC89ToLib(cfilepath, dllfile));
+
+                            using namespace UCodeLang;
+
+                            auto staticinitname = C11Backend::UpdateToCindentifier(StaticVariablesInitializeFunc);
+                            auto threadinitname = C11Backend::UpdateToCindentifier(ThreadVariablesInitializeFunc);
+
+                            auto staticdeinitname = C11Backend::UpdateToCindentifier(StaticVariablesUnLoadFunc);
+                            auto threaddeinitname = C11Backend::UpdateToCindentifier(ThreadVariablesUnLoadFunc);
+
+                            #if UCodeLang_Platform_Windows
+                            auto lib = LoadLibrary(dllfile.c_str());
+                            UCodeLangDefer(FreeLibrary(lib));
+                            auto staticinittocall = GetProcAddress(lib, staticinitname.c_str());
+                            auto threadinittocall = GetProcAddress(lib, threadinitname.c_str());
+                            auto staticdeinittocall = GetProcAddress(lib, staticdeinitname.c_str());
+                            auto threaddeinittocall = GetProcAddress(lib, threaddeinitname.c_str());
+                            #elif UCodeLang_Platform_Posix
+                            auto lib = dlopen(dllfile.c_str(), RTLD_NOW);
+                            UCodeLangDefer(dlclose(lib));
+
+                            auto staticinittocall = dlsym(lib, staticinitname.c_str());
+                            auto threadinittocall = dlsym(lib, threadinitname.c_str());
+                            auto staticdeinittocall = dlsym(lib, staticdeinitname.c_str());
+                            auto threaddeinittocall = dlsym(lib, threaddeinitname.c_str());
+                            #endif
+
+
+                            auto & func = StandardLibrarytests[i];
+                            auto functocallStr = C11Backend::UpdateToCindentifier(func->DecorationName);
+                            #if UCodeLang_Platform_Windows
+                            auto functocall = GetProcAddress(lib, functocallStr.c_str());
+                            #elif UCodeLang_Platform_Posix
+                            auto functocall = dlsym(lib, functocallStr.c_str());
+                            #endif
+
+                            bool testpassed = false;
+                            if (func->RetType._Type == ReflectionTypes::Bool)
+                            {
+                                using Func = bool(*)();
+                                testpassed = ((Func)functocall)();
+                            }
+                            else
+                            {
+                                testpassed = true;
+                            }
+
+                            StandardLibraryTestInfo[i].TestPassing = testpassed;
+                            StandardLibraryTestInfo[i].TestRan = true;
+
+                        }
+                        else
+                        {
+                            UCodeLangUnreachable();
+                        }
+                        StandardLibraryTestInfo[i].TestPassing = v;
+                        StandardLibraryTestInfo[i].TestRan = true;
+                    }
+                    ImGui::TreePop();
+                }
             }
         }
     }ImGui::End();
@@ -3251,6 +3677,8 @@ void AppObject::FullReloadRunTime()
 
     LinkAppAPICallsTo(_RuntimeLib);
     ECSExample::ECSLink(_RuntimeLib);
+
+    UCodeLang::SandBoxedIOLink::Link(_RuntimeLib);
 
     _RunTimeState.ClearRunTimeState();
     _RunTimeState.AddLib(&_RuntimeLib);

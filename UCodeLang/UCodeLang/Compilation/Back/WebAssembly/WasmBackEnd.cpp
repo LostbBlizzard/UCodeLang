@@ -141,7 +141,30 @@ void WasmBackEnd::OnFunc(const IRFunc* Func)
 	}
 	if (Func->ReturnType._Type != IRTypes::Void)
 	{
-		func.Results.push_back(ToType(Func->ReturnType));
+		if (Func->ReturnType._Type == IRTypes::IRsymbol) 
+		{
+			auto sym = _Input->GetSymbol(Func->ReturnType._symbol);
+			if (sym->SymType == IRSymbolType::FuncPtr)
+			{
+				func.Results.push_back(ToType(Func->ReturnType));
+			}
+			else if (sym->SymType == IRSymbolType::StaticArray)
+			{
+				func.Params.push_back(ToType(IRTypes::pointer));
+			}
+			else if (sym->SymType == IRSymbolType::Struct)
+			{
+				func.Params.push_back(ToType(IRTypes::pointer));
+			}
+			else
+			{
+				UCodeLangUnreachable();
+			}
+		}
+		else 
+		{
+			func.Results.push_back(ToType(Func->ReturnType));
+		}
 	}
 
 	_codeSection->code.push_back({});
@@ -149,7 +172,7 @@ void WasmBackEnd::OnFunc(const IRFunc* Func)
 
 	FuncToIndex.AddValue(Func->identifier, _codeSection->code.size() - 1);
 
-
+	
 	if (Func->ReturnType._Type != IRTypes::Void)
 	{
 		auto& Block = Func->Blocks.front();
@@ -158,27 +181,11 @@ void WasmBackEnd::OnFunc(const IRFunc* Func)
 			auto Item = ItemV.get();
 			if (Item->Type == IRInstructionType::Load)
 			{
-				size_t MyPos = Position.size();
-
-				// the offset in memory where to store the number
-				_funccode->Push_i32_const((UInt32)MyPos);
+				auto v = StartSave(Item);
 				
 				LoadOp(Item, Item->Target());
 				
-				Position.AddValue(Item, MyPos);
-
-				switch (Item->ObjectType._Type)
-				{
-				case IRTypes::i32:
-					_funccode->Push_i32_store();
-					break;
-				case IRTypes::i64:
-					_funccode->Push_i64_store();
-					break;
-				default:
-					UCodeLangUnreachable();
-					break;
-				}
+				EndSave(v);
 			}
 			else if (Item->Type == IRInstructionType::LoadNone)
 			{
@@ -210,12 +217,7 @@ void WasmBackEnd::OnFunc(const IRFunc* Func)
 				auto functocall = Item->Target().identifier;
 
 
-				size_t MyPos = Position.size();
-
-				// the offset in memory where to store the number
-				_funccode->Push_i32_const((UInt32)MyPos);
-
-				
+				auto v = StartSave(Item);
 
 				_funccode->Push_call(0);
 				
@@ -226,27 +228,13 @@ void WasmBackEnd::OnFunc(const IRFunc* Func)
 				V.lookingforfunc = functocall;
 				InsToUpdate.push_back(V);
 
-				Position.AddValue(Item, MyPos);
 
-				switch (Item->ObjectType._Type)
-				{
-				case IRTypes::i32:
-					_funccode->Push_i32_store();
-					break;
-				case IRTypes::i64:
-					_funccode->Push_i64_store();
-					break;
-				default:
-					UCodeLangUnreachable();
-					break;
-				}
+				EndSave(v);
 			}
 			else if (Item->Type == IRInstructionType::Add)
 			{
-				size_t MyPos = Position.size();
-
-				// the offset in memory where to store the number
-				_funccode->Push_i32_const((UInt32)MyPos);
+				
+				auto v = StartSave(Item);
 
 				LoadOp(Item, Item->Target());
 				LoadOp(Item, Item->Input());
@@ -259,25 +247,58 @@ void WasmBackEnd::OnFunc(const IRFunc* Func)
 				case IRTypes::i64:
 					_funccode->Push_i64_Add();
 					break;
+				case IRTypes::f32:
+					_funccode->Push_f32_Add();
+					break;
+				case IRTypes::f64:
+					_funccode->Push_f64_Add();
+					break;
 				default:
 					UCodeLangUnreachable();
 					break;
 				}
 
-				Position.AddValue(Item, MyPos);
+				EndSave(v);
+			}
+			else if (Item->Type == IRInstructionType::Sub)
+			{
+
+				auto v = StartSave(Item);
+
+				LoadOp(Item, Item->Target());
+				LoadOp(Item, Item->Input());
 
 				switch (Item->ObjectType._Type)
 				{
 				case IRTypes::i32:
-					_funccode->Push_i32_store();
+					_funccode->Push_i32_Sub();
 					break;
 				case IRTypes::i64:
-					_funccode->Push_i64_store();
+					_funccode->Push_i64_Sub();
+					break;
+				case IRTypes::f32:
+					_funccode->Push_f32_Sub();
+					break;
+				case IRTypes::f64:
+					_funccode->Push_f64_Sub();
 					break;
 				default:
 					UCodeLangUnreachable();
 					break;
 				}
+
+				EndSave(v);
+			}
+			else if (Item->Type == IRInstructionType::Reassign)
+			{
+				size_t MyPos = Position.GetValue(Item->Target().Pointer);
+
+				_funccode->Push_i32_const((UInt32)MyPos);
+
+				LoadOp(Item, Item->Input());//Push Value on stack
+
+
+				_funccode->Push_i32_store();
 			}
 			else
 			{
@@ -317,6 +338,36 @@ WasmBackEnd::WasmType WasmBackEnd::ToType(const IRType& Type)
 	case IRTypes::f64:
 		return WasmType::f64;
 		break;
+	case IRTypes::pointer:
+		if (Get_Settings().PtrSize == IntSizes::Int32)
+		{
+			return WasmType::i32;
+		}
+		else
+		{
+			return WasmType::i64;
+		}
+		break;
+	case IRTypes::IRsymbol:
+	{
+		auto sym = _Input->GetSymbol(Type._symbol);
+		if (sym->SymType ==IRSymbolType::FuncPtr)
+		{
+			return ToType(IRTypes::pointer);
+		}
+		else if (sym->SymType == IRSymbolType::StaticArray)
+		{//pass by pointer
+			return ToType(IRTypes::pointer);
+		}
+		else if (sym->SymType == IRSymbolType::Struct)
+		{//pass by pointer
+			return ToType(IRTypes::pointer);
+		}
+		else
+		{
+			UCodeLangUnreachable();
+		}
+	}
 	default:
 		UCodeLangUnreachable();
 		break;
@@ -383,6 +434,38 @@ void WasmBackEnd::LoadOp(const IRInstruction* ir, const IROperator& Op)
 	else
 	{
 		UCodeLangUnreachable();
+	}
+}
+WasmBackEnd::SaveInfo WasmBackEnd::StartSave(const IRInstruction* ir)
+{
+	if (ir->ObjectType != IRTypes::Void) {
+		size_t MyPos = Position.size() * 4;
+
+		// the offset in memory where to store the number
+		_funccode->Push_i32_const((UInt32)MyPos);
+
+	}
+	WasmBackEnd::SaveInfo r;
+	r.ir = ir;
+	return r;
+}
+void WasmBackEnd::EndSave(SaveInfo& info)
+{
+	if (info.ir->ObjectType != IRTypes::Void) {
+		Position.AddValue(info.ir, Position.size() * 4);
+
+		switch (info.ir->ObjectType._Type)
+		{
+		case IRTypes::i32:
+			_funccode->Push_i32_store();
+			break;
+		case IRTypes::i64:
+			_funccode->Push_i64_store();
+			break;
+		default:
+			UCodeLangUnreachable();
+			break;
+		}
 	}
 }
 UCodeLangEnd

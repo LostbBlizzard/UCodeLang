@@ -1,5 +1,5 @@
 AuthorName: "UCodeLang"
-ModuleName: "NStandardLibarary"
+ModuleName: "NStandardLibrary"
 Version: 0:0:0
 Src: "src"
 Obj: "int"

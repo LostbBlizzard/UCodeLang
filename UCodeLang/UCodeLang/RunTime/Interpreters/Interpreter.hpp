@@ -585,8 +585,14 @@ public:
 		bool IsBigerRegister = BufferSize > sizeof(Interpreter::Register);
 		if (IsBigerRegister || ParValue == RegisterID::EndParameterRegister)
 		{
-			ParStackOffset += BufferSize;
+			if (ParStackOffset == 0)
+			{
+				size_t startoffset = This._Ptr->Get_Register(RegisterID::LinkRegister).Value.AsAddress;
+				ParStackOffset = startoffset+ BufferSize;
+			}
+
 			auto r = This._Ptr->_CPU.Stack.GetTopOfStackWithoffsetSub(ParStackOffset + sizeof(UAddress));
+			ParStackOffset -= BufferSize;
 			memcpy(Pointer,r,BufferSize);
 		}
 		else

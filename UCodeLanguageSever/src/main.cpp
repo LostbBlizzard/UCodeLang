@@ -5,6 +5,7 @@
 #include <string>
 #include <thread>
 #include <fstream>
+#include <condition_variable>
 #include <UCodeLang/LangCore/StringHelper.hpp>
 #if UCodeLang_Platform_Windows
 #include <windows.h>
@@ -122,22 +123,49 @@ void RunArg(UCodeLang::String_view View)
 				LogMSG("Starting ULang Sever");
 				#endif
 
-				std::thread SeverThread([]()
+				std::mutex severm;
+				std::condition_variable cv;
+
+				std::mutex severout;
+				std::condition_variable outcv;
+				size_t count = 0;
+				size_t count2 = 0;
+
+				std::thread SeverThread([&count2,&count,&cv,&severm,&outcv]()
 					{
 						UCodeLanguageSever::LSPSever Sever;
 						SeverPtr = &Sever;
+						size_t mycount = 0;
+						size_t oldsize = Sever.PacketCount();
 
+						bool keepgoing = true;
+						while (keepgoing)
+						{
+							std::unique_lock lk(severm);
+							cv.wait(lk, [&] { return count != mycount; });
+							mycount = count;
 
-						while (Sever.Step());
+							keepgoing = Sever.Step();
+
+							if (oldsize != Sever.PacketCount())
+							{
+								count2++;
+								outcv.notify_one();
+							}
+						}
 						SeverPtr = nullptr;
 					}
 				);
 
 
-				std::thread OutThread([](std::thread* SeverThread)
+				std::thread OutThread([&count2,&severout,&outcv](std::thread* SeverThread)
 					{
+						size_t mycount =0;
 						while (SeverThread->joinable())
 						{
+							std::unique_lock lk(severout);
+							outcv.wait(lk, [&] { return mycount != count2; });
+							mycount = count2;
 							if (SeverPtr)
 							{
 								auto List = SeverPtr->GetPackets();
@@ -147,9 +175,10 @@ void RunArg(UCodeLang::String_view View)
 									LogMSG("Sent Packet:" + Item._Data);
 									#endif
 
+									auto s = Item.ToLanguageServerString();
 
-									std::cout << Item.ToLanguageServerString();
-									std::cout.flush();
+									std::cout << s;
+									//std::cout.flush();
 								}
 							}
 						}
@@ -161,6 +190,7 @@ void RunArg(UCodeLang::String_view View)
 				{
 					char V;
 					std::cin >> V;
+					File << V;
 					auto packet_op = UCodeLanguageSever::ClientPacket::Stream(state, V);
 
 					if (packet_op.has_value())
@@ -173,6 +203,8 @@ void RunArg(UCodeLang::String_view View)
 						#endif
 
 						SeverPtr->AddPacket(std::move(p));
+						count++;
+						cv.notify_one();
 					}
 
 				}
@@ -215,11 +247,16 @@ int main(int argc, char* argv[])
 	#endif // DEBUG
 	#endif
 	LogMSG("Sever main");
+	if (argc == 1)
+	{
+		RunArg(UCodeLang::String_view("start stdio"));
+
+	}
 	for (size_t i = 1; i < argc; i++)
 	{
+		//while (true);
 		char* Arg = argv[i];
 		RunArg(UCodeLang::String_view(Arg));
-		while (true);
 	}
 
 	return 0;

@@ -586,3 +586,397 @@ group "UCodeAPIs"
     --UCPathExe.." build %{prj.location} -c11",
    }
    end
+
+function executeorexit(str)
+ exit = os.execute(str)
+
+ if exit == nil then
+  os.exit(1)
+ end 
+
+ if not exit == true then
+  os.exit(1)
+ end 
+
+end 
+
+newaction {
+    trigger = "install",
+    description = "installs compiler tool/librarys",
+    execute = function ()
+        print("----installing tools for " .. os.target())
+        
+        if os.istarget("linux") then
+
+          executeorexit("sudo apt-get update")
+
+          print("----downloading libx11 Packages")
+          executeorexit("sudo apt-get install libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev")
+
+          print("----downloading opengl Packages")
+          executeorexit("sudo apt install mesa-common-dev")
+          
+          print("----installing tools completed");
+        end
+
+        if os.istarget("windows") then
+
+        end
+        
+        if os.istarget("macosx") then
+          
+           print("----downloading glfw Packages")
+
+           executeorexit("brew install glfw")
+          
+           print("----installing tools completed");
+        end
+    end
+}
+newaction {
+    trigger = "installwasm",
+    description = "installs compiler tool/librarys for wasm",
+    execute = function ()
+        print("----installing wasm tools for " .. os.target())
+        
+        if os.istarget("linux") or os.istarget("macosx") then
+
+         if true then
+           executeorexit("cd ~;git clone https://github.com/emscripten-core/emsdk.git;cd emsdk;git pull;./emsdk install latest;./emsdk activate latest;source ./emsdk_env.sh;")
+        else 
+           print("emscripten is already installed")
+         end
+        end
+
+        if os.istarget("windows") then
+
+        end
+    end
+}
+newaction {
+    trigger = "installgcc32",
+    description = "installs compiler tool/librarys for linux32",
+    execute = function ()
+        print("----installing gcc32 tools for " .. os.target())
+        
+        if os.istarget("linux") then
+          executeorexit("sudo apt-get install gcc-multilib")
+          executeorexit("sudo apt-get install g++-multilib")
+        end
+
+        if os.istarget("windows") then
+
+        end
+        
+        if os.istarget("macosx") then
+
+        end
+    end
+}
+
+newaction {
+    trigger = "installandroidsdk",
+    description = "installs compiler tool/librarys for android",
+    execute = function ()
+        print("----installing android sdk tools for " .. os.target())
+        
+        if os.istarget("linux") then
+         --executeorexit("sudo apt update && sudo apt install android-sdk")
+        end
+
+        if os.istarget("windows") then
+
+        end
+        
+        if os.istarget("macosx") then
+
+        end
+    end
+}
+
+---build
+newaction {
+    trigger = "build_UCApp",
+    description = "builds the UCApp",
+    execute = function ()
+        if os.istarget("linux") then
+         executeorexit("make UCApp -j4")
+        end
+
+        if os.istarget("windows") then
+         executeorexit("msbuild UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win64 -maxcpucount")
+        end
+        
+        if os.istarget("macosx") then
+         executeorexit("make UCApp -j4")
+        end
+    end
+}
+newaction {
+    trigger = "build_UCodelangCL",
+    description = "builds the UCodelangCL",
+    execute = function ()
+        
+        if os.istarget("linux") then
+         executeorexit("make UCodelangCL -j4")
+        end
+
+        if os.istarget("windows") then
+         executeorexit("msbuild UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win64 -maxcpucount")
+        end
+        
+        if os.istarget("macosx") then
+         executeorexit("make UCodelangCL -j4")
+        end
+    end
+}
+newaction {
+    trigger = "build",
+    description = "builds the everything",
+    execute = function ()
+        
+        if os.istarget("linux") then
+         executeorexit("make -j4")
+        end
+
+        if os.istarget("windows") then
+         executeorexit("msbuild UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win64 -maxcpucount")
+        end
+        
+        if os.istarget("macosx") then
+         executeorexit("make -j4")
+        end
+    end
+}
+newaction {
+    trigger = "build_32bit",
+    description = "builds everything",
+    execute = function ()
+        
+        if os.istarget("linux") then
+         executeorexit("make config=debug_linux32 -j4")
+        end
+
+        if os.istarget("windows") then
+         executeorexit("msbuild UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win32 -maxcpucount")
+        end
+        
+        if os.istarget("macosx") then
+         executeorexit("make -j4")
+        end
+    end
+}
+newaction {
+    trigger = "build_published",
+    description = "builds everything",
+    execute = function ()
+        
+        if os.istarget("linux") then
+         executeorexit("make config=published_linux64 -j4")
+        end
+
+        if os.istarget("windows") then
+         executeorexit("msbuild UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win64 -maxcpucount")
+        end
+        
+        if os.istarget("macosx") then
+         executeorexit("make config=published_macos -j4")
+        end
+    end
+}
+newaction {
+    trigger = "build_published_32bit",
+    description = "builds the everything",
+    execute = function ()
+        
+        if os.istarget("linux") then
+         executeorexit("make config=published_linux32 -j4")
+        end
+
+        if os.istarget("windows") then
+         executeorexit("msbuild UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win32 -maxcpucount")
+        end
+        
+        if os.istarget("macosx") then
+         executeorexit("make config=published_macos -j4")
+        end
+    end
+}
+
+---test
+newaction {
+    trigger = "test",
+    description = "runs tests",
+    execute = function ()
+        
+        if os.istarget("linux") then
+          executeorexit("cd ./UCApp;../Output/UCApp/linux64/Debug/UCApp --RunTests")
+        end
+
+        if os.istarget("windows") then
+          executeorexit("cd ./UCApp && ..\\Output\\UCApp\\Win64\\Debug\\UCApp.exe --RunTests")
+        end
+        
+        if os.istarget("macosx") then
+          executeorexit("cd ./UCApp;../Output/UCApp/MacOS/Debug/UCApp --RunTests")
+        end
+    end
+}
+newaction {
+    trigger = "test_32bit",
+    description = "runs test for 32bit mode",
+    execute = function ()
+        
+        if os.istarget("linux") then
+         executeorexit("cd ./UCApp;../Output/UCApp/linux32/Debug/UCApp --RunTests")
+        end
+
+        if os.istarget("windows") then
+         executeorexit("cd ./UCApp && ..\\Output\\UCApp\\Win32\\Debug\\UCApp.exe --RunTests")
+        end
+        
+        if os.istarget("macosx") then
+
+        end
+    end
+}
+
+---clean
+newaction {
+    trigger = "clean",
+    description = "clean project outputs",
+    execute = function ()
+
+        if os.istarget("linux") then
+         executeorexit("make clean")
+        end
+
+        if os.istarget("windows") then
+         executeorexit("msbuild UCodeLang.sln /t:Clean")
+        end
+        
+        if os.istarget("macosx") then
+         executeorexit("make clean")
+        end
+    end
+}
+
+--Docs
+newaction {
+    trigger = "build_Docs",
+    description = "build Docs",
+    execute = function ()
+
+        if os.istarget("linux") then
+         executeorexit("cd ./UCodeDocumentation;./tools/mdbook build --dest-dir ../Output/UCodeDocumentation;cp -r ../Output/UCodeDocumentation ../UCodeWebsite/static")
+        end
+
+        if os.istarget("windows") then
+         executeorexit("cd UCodeDocumentation && tools\\mdbook.exe build --dest-dir ..\\Output\\UCodeDocumentation && cp -r ..\\Output\\UCodeDocumentation ..\\UCodeWebsite\\static")
+        end
+        
+        if os.istarget("macosx") then
+
+        end
+    end
+}
+
+
+--web
+newaction {
+    trigger = "web_build",
+    description = "Builds for the Web",
+    execute = function ()
+
+        if os.istarget("linux") then
+         executeorexit("source ./emsdk_env.sh;emmake make config=debug_web -j4")
+        end
+
+        if os.istarget("windows") then
+         executeorexit("emmake make config=debug_web -j4")
+        end
+        
+        if os.istarget("macosx") then
+         executeorexit("source ./emsdk_env.sh;emmake make config=debug_web -j4")
+        end
+    end
+}
+newaction {
+    trigger = "web_build_published",
+    description = "Builds for the Web",
+    execute = function ()
+        print("installing wasm tools for " .. os.target())
+        
+        if os.istarget("linux") then
+         executeorexit("emmake make config=published_web -j4")
+        end
+
+        if os.istarget("windows") then
+         executeorexit("emmake make config=published_web -j4")
+        end
+        
+        if os.istarget("macosx") then
+         executeorexit("emmake make config=published_web -j4")
+        end
+    end
+}
+newaction {
+    trigger = "web_build_UCodeIDE",
+    description = "Builds for the Web",
+    execute = function ()
+
+        if os.istarget("linux") then
+         executeorexit("emmake make UCodeIDE config=debug_web -j4")
+        end
+
+        if os.istarget("windows") then
+         executeorexit("emmake make UCodeIDE config=debug_web -j4")
+        end
+        
+        if os.istarget("macosx") then
+         executeorexit("emmake make UCodeIDE config=debug_web -j4")
+        end
+    end
+}
+
+--android
+newaction {
+    trigger = "android_build",
+    description = "Builds for Android",
+    execute = function ()
+
+        if os.istarget("linux") then
+        
+        end
+
+        if os.istarget("windows") then
+        
+        end
+        
+        if os.istarget("macosx") then
+       
+        end
+    end
+}
+
+--ios
+newaction {
+    trigger = "ios_build",
+    description = "Builds for Ios",
+    execute = function ()
+
+        if os.istarget("linux") then
+
+        end
+
+        if os.istarget("windows") then
+
+        end
+        
+        if os.istarget("macosx") then
+         executeorexit("make config=debug_ios -j4")
+        end
+    end
+}
+
+

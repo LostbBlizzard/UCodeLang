@@ -85,8 +85,10 @@ void SystematicAnalysis::OnExpressionNode(const ExtendedFuncExpression& node)
 			}
 
 
-			_FuncToSyboID.AddValue(Symbol_GetSymbolID(node), FuncInfo);
-
+			auto key = Symbol_GetSymbolID(node);
+			if (!_FuncToSyboID.HasValue(key)) {//when using eval system nodes FixedTypes may be call two times
+				_FuncToSyboID.AddValue(key, FuncInfo);
+			}
 
 			Type_SetFuncRetAsLastEx(FuncInfo);
 		}

@@ -5,7 +5,7 @@ $Cool:
  int64 D;//8
 
 |main[]:
- int R = 0;
+ uintptr R = 0;
  
  eval typeinfo TypeCool = type(Cool);
  if TypeCool.GetClassInfo(out typeinfo ClassTypeValue):

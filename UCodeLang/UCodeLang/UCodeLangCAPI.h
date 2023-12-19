@@ -70,26 +70,25 @@ extern "C"
     typedef const UCodeLangCAPI_Interpreter UCodeLangCAPI_Const_Interpreter;
 
     UCodeLangCAPI_HardtypedefVoid(void, UCodeLangCAPI_JitInterpreter);
-    typedef const UCodeLangCAPI_Interpreter UCodeLangCAPI_Const_JitInterpreter;
+    typedef const UCodeLangCAPI_JitInterpreter UCodeLangCAPI_Const_JitInterpreter;
 
     UCodeLangCAPI_HardtypedefVoid(void, UCodeLangCAPI_NativeInterpreter);
-    typedef const UCodeLangCAPI_Interpreter UCodeLangCAPI_Const_NativeInterpreter;
+    typedef const UCodeLangCAPI_NativeInterpreter UCodeLangCAPI_Const_NativeInterpreter;
 
     UCodeLangCAPI_HardtypedefVoid(void, UCodeLangCAPI_AnyInterpreter);
-    typedef const UCodeLangCAPI_Interpreter UCodeLangCAPI_Const_AnyInterpreter;
+    typedef const UCodeLangCAPI_AnyInterpreter UCodeLangCAPI_Const_AnyInterpreter;
 
+    UCodeLangCAPI_HardtypedefVoid(void, UCodeLangCAPI_AnyInterpreterPtr);
+    typedef const UCodeLangCAPI_AnyInterpreterPtr UCodeLangCAPI_Const_AnyInterpreterPtr;
 
     UCodeLangCAPI_HardtypedefVoid(void, UCodeLangCAPI_RunTimeLangState);
     typedef const UCodeLangCAPI_RunTimeLangState UCodeLangCAPI_Const_RunTimeLangState;
 
+    UCodeLangCAPI_HardtypedefVoid(void, UCodeLangCAPI_UClib);
+    typedef const UCodeLangCAPI_UClib UCodeLangCAPI_Const_UClib;
 
-
-
-    struct UCodeLangCAPI_AnyInterpreterPtr
-    {
-        void* Base;
-    };
-    typedef const UCodeLangCStruct UCodeLangCAPI_AnyInterpreterPtr UCodeLangCAPI_Const_AnyInterpreterPtr;
+    UCodeLangCAPI_HardtypedefVoid(void, UCodeLangCAPI_RunTimeUClib);
+    typedef const UCodeLangCAPI_RunTimeUClib UCodeLangCAPI_Const_RunTimeUClib;
 
     //structs
     struct UCodeLangCAPI_CharSpan
@@ -219,23 +218,162 @@ extern "C"
     };
 
 
+    UCodeLangCAPI_HardtypedefVoid(void, UCodeLangCAPI_ClassMethod);
+    typedef const UCodeLangCAPI_ClassMethod UCodeLangCAPI_Const_ClassMethod;
+
+
+    UCodeLangCAPI_HardtypedefVoid(void, UCodeLangCAPI_InterpreterCPPinterface);
+    typedef const UCodeLangCAPI_InterpreterCPPinterface UCodeLangCAPI_Const_InterpreterCPPinterface;
+
+    typedef void(*UCodeLangCAPI_CppCall)(UCodeLangCAPI_InterpreterCPPinterface* cppinterface);
+
     //functions
-
-    void UCodeLangAPIExport UCodeLangCAPI_Init();
-    void UCodeLangAPIExport UCodeLangCAPI_DeInit();
-
     #ifndef UCodeLangNoCompiler
+    //Compile
     UCodeLangCStruct UCodeLangCAPI_Compiler* UCodeLangAPIExport UCodeLangCAPI_New_Compiler();
     void UCodeLangAPIExport UCodeLangCAPI_Destroy_Compiler(UCodeLangCStruct UCodeLangCAPI_Compiler* Value);
-    void UCodeLangAPIExport UCodeLangCAPI_Compiler_BuildTxt(UCodeLangCStruct UCodeLangCAPI_Compiler* This, UCodeLangCStruct UCodeLangCAPI_CharSpan String, UCodeLangCStruct UCodeLangCAPI_CompilerOutput* Output);
+    UCodeLangCAPI_CompilerOutput UCodeLangAPIExport UCodeLangCAPI_Compiler_CompileText(UCodeLangCStruct UCodeLangCAPI_Compiler* This, UCodeLangCStruct UCodeLangCAPI_Const_CharSpan String);
+    UCodeLangCAPI_CompilerOutput UCodeLangAPIExport UCodeLangCAPI_Compiler_CompileFile(UCodeLangCStruct UCodeLangCAPI_Compiler* This, UCodeLangCStruct UCodeLangCAPI_Const_PathSpan path);
+    UCodeLangCAPI_CompilerOutput UCodeLangAPIExport UCodeLangCAPI_Compiler_CompileFileToLib(UCodeLangCStruct UCodeLangCAPI_Compiler* This, UCodeLangCStruct UCodeLangCAPI_Const_PathSpan path, UCodeLangCStruct UCodeLangCAPI_Const_PathSpan outpath);
+    UCodeLangCAPI_CompilerOutput UCodeLangAPIExport UCodeLangCAPI_Compiler_CompileDir(UCodeLangCStruct UCodeLangCAPI_Compiler* This, UCodeLangCStruct UCodeLangCAPI_Const_PathSpan dirpath, UCodeLangCStruct UCodeLangCAPI_Const_PathSpan outpath);
+    UCodeLangCAPI_CompilerOutput UCodeLangAPIExport UCodeLangCAPI_Compiler_CompileDirWithInt(UCodeLangCStruct UCodeLangCAPI_Compiler* This, UCodeLangCStruct UCodeLangCAPI_Const_PathSpan dirpath, UCodeLangCStruct UCodeLangCAPI_Const_PathSpan intpath, UCodeLangCStruct UCodeLangCAPI_Const_PathSpan outpath);
+
+    UCodeLangCAPI_Const_CharSpan UCodeLangCAPI_Compiler_OutputFileExt(UCodeLangCStruct UCodeLangCAPI_Compiler* This);
+
+    void UCodeLangCAPI_ResetCompilerSetings(UCodeLangCStruct UCodeLangCAPI_Compiler* This);
+    
+    void UCodeLangCAPI_CompilerSetingsAddFlag(UCodeLangCStruct UCodeLangCAPI_Compiler* This, UCodeLangCStruct UCodeLangCAPI_Const_CharSpan Flag);
+    void UCodeLangCAPI_CompilerSetingsAddFlag2(UCodeLangCStruct UCodeLangCAPI_Compiler* This, UCodeLangCStruct UCodeLangCAPI_Const_CharSpan Flag, UCodeLangCStruct UCodeLangCAPI_Const_CharSpan FlagValue);
+
+
+    void UCodeLangCAPI_SetCompilerSetingsDebugFlag(UCodeLangCStruct UCodeLangCAPI_Compiler* This,bool value);
+    void UCodeLangCAPI_SetCompilerSetingsO1Flag(UCodeLangCStruct UCodeLangCAPI_Compiler* This,bool value);
+    void UCodeLangCAPI_SetCompilerSetingsO2Flag(UCodeLangCStruct UCodeLangCAPI_Compiler* This,bool value);
+
+
+
+    void UCodeLangCAPI_SetCompilerSetings64Mode(UCodeLangCStruct UCodeLangCAPI_Compiler* This);
+    void UCodeLangCAPI_SetCompilerSetings32Mode(UCodeLangCStruct UCodeLangCAPI_Compiler* This);
+    //Main BackEnds
+    void UCodeLangCAPI_SetBackEndUCode(UCodeLangCStruct UCodeLangCAPI_Compiler* This);
+    void UCodeLangCAPI_SetBackEndC11(UCodeLangCStruct UCodeLangCAPI_Compiler* This);
+    void UCodeLangCAPI_SetBackEndWasm(UCodeLangCStruct UCodeLangCAPI_Compiler* This);
+
+    //Native Plantfrom BackEnds
+    void UCodeLangCAPI_SetBackEndWindows(UCodeLangCStruct UCodeLangCAPI_Compiler* This);
+    void UCodeLangCAPI_SetBackEndLinux(UCodeLangCStruct UCodeLangCAPI_Compiler* This);
+    void UCodeLangCAPI_SetBackEndMacOs(UCodeLangCStruct UCodeLangCAPI_Compiler* This);
+
+    void UCodeLangCAPI_SetBackEndToNative(UCodeLangCStruct UCodeLangCAPI_Compiler* This);
+    void UCodeLangCAPI_SetBackEndToUCodeNative(UCodeLangCStruct UCodeLangCAPI_Compiler* This);
+    
+    //Native Interpreter
+    void UCodeLangCAPI_SetBackEndToUCodeNativeX86(UCodeLangCStruct UCodeLangCAPI_Compiler* This);
+    void UCodeLangCAPI_SetBackEndToUCodeNativeArm(UCodeLangCStruct UCodeLangCAPI_Compiler* This);
+
+    //
+
     #endif
+
+    //RunTimeState
+
     UCodeLangCStruct UCodeLangCAPI_RunTimeLangState* UCodeLangAPIExport UCodeLangCAPI_New_RunTimeState();
     void UCodeLangAPIExport UCodeLangCAPI_Destroy_RunTimeState(UCodeLangCStruct UCodeLangCAPI_RunTimeLangState* Value);
 
+
+    void UCodeLangAPIExport UCodeLangCAPI_RunTimeState_AddLib(UCodeLangCStruct UCodeLangCAPI_RunTimeLangState* Value, UCodeLangCStruct UCodeLangCAPI_RunTimeUClib* lib);
+    void UCodeLangAPIExport UCodeLangCAPI_RunTimeState_LinkLibs(UCodeLangCStruct UCodeLangCAPI_RunTimeLangState* Value);
+    void UCodeLangAPIExport UCodeLangCAPI_RunTimeState_ClearRunTimeState(UCodeLangCStruct UCodeLangCAPI_RunTimeLangState* Value);
+
+
+    //Interpreter
     UCodeLangCStruct UCodeLangCAPI_Interpreter* UCodeLangAPIExport UCodeLangCAPI_New_Interpreter();
     void UCodeLangAPIExport UCodeLangCAPI_Destroy_Interpreter(UCodeLangCStruct UCodeLangCAPI_Interpreter* Value);
-    UCodeLangCStruct UCodeLangCAPI_Interpreter_Return_t UCodeLangAPIExport UCodeLangCAPI_Interpreter_Call(UCodeLangCStruct UCodeLangCAPI_Interpreter* This, UCodeLangCStruct UCodeLangCAPI_CharSpan* FuncName);
+
+
+    void UCodeLangAPIExport UCodeLangCAPI_Interpreter_Init(UCodeLangCStruct UCodeLangCAPI_Interpreter* This, UCodeLangCStruct UCodeLangCAPI_RunTimeLangState* runtime);
+    void UCodeLangAPIExport UCodeLangCAPI_Interpreter_DeInit(UCodeLangCStruct UCodeLangCAPI_Interpreter* This);
     
+    UCodeLangCStruct UCodeLangCAPI_Interpreter_Return_t UCodeLangAPIExport UCodeLangCAPI_Interpreter_Call(UCodeLangCStruct UCodeLangCAPI_Interpreter* This, UCodeLangCStruct UCodeLangCAPI_CharSpan* FuncName);
+    UCodeLangCStruct UCodeLangCAPI_Interpreter_Return_t UCodeLangAPIExport UCodeLangCAPI_Interpreter_CallA(UCodeLangCStruct UCodeLangCAPI_Interpreter* This, UCodeLangCAPI_UAddress address);
+    UCodeLangCStruct UCodeLangCAPI_Interpreter_Return_t UCodeLangAPIExport UCodeLangCAPI_Interpreter_CallM(UCodeLangCStruct UCodeLangCAPI_Interpreter* This, UCodeLangCStruct UCodeLangCAPI_Const_ClassMethod* method);
+
+    UCodeLangCStruct void UCodeLangAPIExport  UCodeLangCAPI_Interpreter_GetReturn(UCodeLangCAPI_Interpreter* This, void* Output, size_t Outputsize);
+
+    void UCodeLangAPIExport UCodeLangCAPI_Interpreter_PushParameter(UCodeLangCStruct UCodeLangCAPI_Interpreter* This,const void* object,size_t objectsize);
+
+    //Jit Interpreter
+    UCodeLangCStruct UCodeLangCAPI_JitInterpreter* UCodeLangAPIExport UCodeLangCAPI_New_JitInterpreter();
+    void UCodeLangAPIExport UCodeLangCAPI_Destroy_JitInterpreter(UCodeLangCStruct UCodeLangCAPI_JitInterpreter* Value);
+
+
+    void UCodeLangAPIExport UCodeLangCAPI_JitInterpreter_Init(UCodeLangCStruct UCodeLangCAPI_JitInterpreter* This, UCodeLangCStruct UCodeLangCAPI_RunTimeLangState* runtime);
+    void UCodeLangAPIExport UCodeLangCAPI_JitInterpreter_DeInit(UCodeLangCStruct UCodeLangCAPI_JitInterpreter* This);
+
+    UCodeLangCStruct UCodeLangCAPI_Interpreter_Return_t UCodeLangAPIExport UCodeLangCAPI_JitInterpreter_Call(UCodeLangCStruct UCodeLangCAPI_JitInterpreter* This, UCodeLangCStruct UCodeLangCAPI_CharSpan* FuncName);
+    UCodeLangCStruct UCodeLangCAPI_Interpreter_Return_t UCodeLangAPIExport UCodeLangCAPI_JitInterpreter_CallA(UCodeLangCStruct UCodeLangCAPI_JitInterpreter* This, UCodeLangCAPI_UAddress address);
+    UCodeLangCStruct UCodeLangCAPI_Interpreter_Return_t UCodeLangAPIExport UCodeLangCAPI_JitInterpreter_CallM(UCodeLangCStruct UCodeLangCAPI_JitInterpreter* This, UCodeLangCStruct UCodeLangCAPI_Const_ClassMethod* method);
+
+    UCodeLangCStruct void UCodeLangAPIExport  UCodeLangCAPI_JitInterpreter_GetReturn(UCodeLangCAPI_JitInterpreter* This, void* Output, size_t Outputsize);
+
+    void UCodeLangAPIExport UCodeLangCAPI_JitInterpreter_PushParameter(UCodeLangCStruct UCodeLangCAPI_JitInterpreter* This, const void* object, size_t objectsize);
+
+    //Native Interpreter
+    UCodeLangCStruct UCodeLangCAPI_NativeInterpreter* UCodeLangAPIExport UCodeLangCAPI_New_NativeInterpreter();
+    void UCodeLangAPIExport UCodeLangCAPI_Destroy_NativeInterpreter(UCodeLangCStruct UCodeLangCAPI_NativeInterpreter* Value);
+
+
+    void UCodeLangAPIExport UCodeLangCAPI_NativeInterpreter_Init(UCodeLangCStruct UCodeLangCAPI_NativeInterpreter* This, UCodeLangCStruct UCodeLangCAPI_RunTimeLangState* runtime);
+    void UCodeLangAPIExport UCodeLangCAPI_NativeInterpreter_DeInit(UCodeLangCStruct UCodeLangCAPI_NativeInterpreter* This);
+
+    UCodeLangCStruct UCodeLangCAPI_Interpreter_Return_t UCodeLangAPIExport UCodeLangCAPI_NativeInterpreter_Call(UCodeLangCStruct UCodeLangCAPI_NativeInterpreter* This, UCodeLangCStruct UCodeLangCAPI_CharSpan* FuncName);
+    UCodeLangCStruct UCodeLangCAPI_Interpreter_Return_t UCodeLangAPIExport UCodeLangCAPI_NativeInterpreter_CallA(UCodeLangCStruct UCodeLangCAPI_NativeInterpreter* This, UCodeLangCAPI_UAddress address);
+    UCodeLangCStruct UCodeLangCAPI_Interpreter_Return_t UCodeLangAPIExport UCodeLangCAPI_NativeInterpreter_CallM(UCodeLangCStruct UCodeLangCAPI_NativeInterpreter* This, UCodeLangCStruct UCodeLangCAPI_Const_ClassMethod* method);
+
+    UCodeLangCStruct void UCodeLangAPIExport  UCodeLangCAPI_NativeInterpreter_GetReturn(UCodeLangCAPI_NativeInterpreter* This, void* Output, size_t Outputsize);
+
+    void UCodeLangAPIExport UCodeLangCAPI_NativeInterpreter_PushParameter(UCodeLangCStruct UCodeLangCAPI_NativeInterpreter* This, const void* object, size_t objectsize);
+
+    //Any Interpreter
+    UCodeLangCStruct UCodeLangCAPI_AnyInterpreter* UCodeLangAPIExport UCodeLangCAPI_New_AnyInterpreter();
+    void UCodeLangAPIExport UCodeLangCAPI_Destroy_AnyInterpreter(UCodeLangCStruct UCodeLangCAPI_AnyInterpreter* Value);
+
+
+    void UCodeLangAPIExport UCodeLangCAPI_AnyInterpreter_Init(UCodeLangCStruct UCodeLangCAPI_AnyInterpreter* This, UCodeLangCStruct UCodeLangCAPI_RunTimeLangState* runtime);
+    void UCodeLangAPIExport UCodeLangCAPI_AnyInterpreter_DeInit(UCodeLangCStruct UCodeLangCAPI_AnyInterpreter* This);
+
+    UCodeLangCStruct UCodeLangCAPI_Interpreter_Return_t UCodeLangAPIExport UCodeLangCAPI_AnyInterpreter_Call(UCodeLangCStruct UCodeLangCAPI_AnyInterpreter* This, UCodeLangCStruct UCodeLangCAPI_CharSpan* FuncName);
+    UCodeLangCStruct UCodeLangCAPI_Interpreter_Return_t UCodeLangAPIExport UCodeLangCAPI_AnyInterpreter_CallA(UCodeLangCStruct UCodeLangCAPI_AnyInterpreter* This, UCodeLangCAPI_UAddress address);
+    UCodeLangCStruct UCodeLangCAPI_Interpreter_Return_t UCodeLangAPIExport UCodeLangCAPI_AnyInterpreter_CallM(UCodeLangCStruct UCodeLangCAPI_AnyInterpreter* This, UCodeLangCStruct UCodeLangCAPI_Const_ClassMethod* method);
+
+    UCodeLangCStruct void UCodeLangAPIExport  UCodeLangCAPI_AnyInterpreter_GetReturn(UCodeLangCAPI_AnyInterpreter* This, void* Output, size_t Outputsize);
+
+    void UCodeLangAPIExport UCodeLangCAPI_AnyInterpreter_PushParameter(UCodeLangCStruct UCodeLangCAPI_AnyInterpreter* This, const void* object, size_t objectsize);
+
+
+    //RunTimeLib
+    
+    UCodeLangCStruct UCodeLangCAPI_RunTimeUClib* UCodeLangAPIExport UCodeLangCAPI_New_RunTimelib();
+    void UCodeLangAPIExport UCodeLangCAPI_Destroy_RunTimelib(UCodeLangCStruct UCodeLangCAPI_RunTimeUClib* Value);
+
+    void UCodeLangCAPI_RunTimeUClib_Init(UCodeLangCStruct UCodeLangCAPI_RunTimeUClib* Value, UCodeLangCStruct UCodeLangCAPI_UClib* lib);
+    void UCodeLangCAPI_RunTimeUClib_Unload(UCodeLangCStruct UCodeLangCAPI_RunTimeUClib* Value);
+
+    void UCodeLangCAPI_RunTimeUClib_AddCppCall(UCodeLangCStruct UCodeLangCAPI_RunTimeUClib* Value, UCodeLangCAPI_Const_CharSpan funcname,UCodeLangCAPI_CppCall cppcallfuncion,void* nativefuncion);
+
+    struct IOLinkSettings
+    {
+        bool AddCoutACin;
+    };
+
+    void UCodeLangCAPI_RunTimeLib_LinkIO(UCodeLangCStruct UCodeLangCAPI_RunTimeUClib* Value,const UCodeLangCStruct IOLinkSettings* setting);
+    void UCodeLangCAPI_RunTimeLib_LinkIOSandBox(UCodeLangCStruct UCodeLangCAPI_RunTimeUClib* Value, const UCodeLangCStruct IOLinkSettings* setting);
+    
+    // InterpreterCPPinterface
+    void UCodeLangCAPI_InterpreterCPPinterface_GetParamter(UCodeLangCStruct UCodeLangCAPI_InterpreterCPPinterface* value, void* output, size_t outsize);
+    void UCodeLangCAPI_InterpreterCPPinterface_SetReturn(UCodeLangCStruct UCodeLangCAPI_InterpreterCPPinterface* value, void* input, size_t inputsize);
+
+
     //types
     void UCodeLangCAPI_KeepInHFile UCodeLangCAPI_New_CharSpan(UCodeLangCStruct UCodeLangCAPI_CharSpan* This)
     {

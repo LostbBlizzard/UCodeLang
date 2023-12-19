@@ -1,6 +1,6 @@
 AuthorName: "UCodeLang"
-ModuleName: "StandardLibarary"
+ModuleName: "StandardLibrary"
 Version: 0:0:0
 NameSpace: ULang
 
-import UCodeLang::NStandardLibarary[0:0:0];
+import UCodeLang::NStandardLibrary[0:0:0];

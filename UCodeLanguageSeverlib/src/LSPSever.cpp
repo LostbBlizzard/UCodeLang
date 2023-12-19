@@ -49,7 +49,7 @@ Optional<SeverPacket> SeverPacket::Stream(StreamState& State, char Char)
 			{
 				if (!IsNum)
 				{
-					State.PacketSize = std::stoi(State.NumberBuffer) - 3;//the \n,\r,\n,\r. and this char
+					State.PacketSize = std::stoi(State.NumberBuffer) -3;//the \n,\r,\n,\r. and this char
 					State.Buffer.clear();
 					State.NumberBuffer.clear();
 
@@ -481,8 +481,8 @@ void LSPSever::Sever_initialize(integer requestid, const json& Params)
 
 	
 	
-	window_logMessage(MessageType::Log, "Hello World Sever Side");
 	SendResponseMessageToClient(requestid,V);
+	window_logMessage(MessageType::Log, "Hello World Sever Side");
 
 	IsInitialized = true;
 

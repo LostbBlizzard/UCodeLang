@@ -1,1 +1,0 @@
-make config=debug_linux32 -j4

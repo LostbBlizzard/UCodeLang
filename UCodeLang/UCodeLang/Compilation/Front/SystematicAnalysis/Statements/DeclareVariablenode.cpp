@@ -186,7 +186,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 					Debug_Add_SetLineNumber(NeverNullptr(node._Name.token), pos);
 
 
-					Debug_Add_SetVarableInfo(*syb, _IR_LookingAtIRBlock->GetIndex());
+					Debug_Add_SetVarableInfo(*syb, pos);
 					if (Type_IsStructPassByRef(syb)) {
 						OnVarable = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(syb->VarType));
 					}

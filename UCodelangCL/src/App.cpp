@@ -271,9 +271,10 @@ void ParseLine(String_view& Line)
 
 	
 		{
-			bool use01 = UCodeLang::StringHelper::Contains(Line, "-01");
-			bool use02 = UCodeLang::StringHelper::Contains(Line, "-02");
-			bool use03 = UCodeLang::StringHelper::Contains(Line, "-03");
+			bool useO0 = UCodeLang::StringHelper::Contains(Line, "-O0");
+			bool use01 = UCodeLang::StringHelper::Contains(Line, "-O1");
+			bool use02 = UCodeLang::StringHelper::Contains(Line, "-O2");
+			bool use03 = UCodeLang::StringHelper::Contains(Line, "-O3");
 			bool usedebug = !(UCodeLang::StringHelper::Contains(Line, "-ndebug") || UCodeLang::StringHelper::Contains(Line, "-nd"));
 			bool use32mode = UCodeLang::StringHelper::Contains(Line, "-32");
 			bool use64mode = UCodeLang::StringHelper::Contains(Line, "-64");
@@ -285,40 +286,25 @@ void ParseLine(String_view& Line)
 				}
 				if (use32mode) {
 					Settings.PtrSize = IntSizes::Int32;
-				}
+				}	
+				Settings._Flags = OptimizationFlags::O_None;
+
 				if (usedebug) 
 				{
 					*(OptimizationFlags_t*)&Settings._Flags |= (OptimizationFlags_t)OptimizationFlags::Debug;
-				}
-				else
-				{
-					*(OptimizationFlags_t*)&Settings._Flags &= ~(OptimizationFlags_t)OptimizationFlags::Debug;
 				}
 				if (use01)
 				{
 					*(OptimizationFlags_t*)&Settings._Flags |= (OptimizationFlags_t)OptimizationFlags::O_1;
 				}
-				else
-				{
-					*(OptimizationFlags_t*)&Settings._Flags &= ~(OptimizationFlags_t)OptimizationFlags::O_1;
-				}
 				if (use02)
 				{
 					*(OptimizationFlags_t*)&Settings._Flags |= (OptimizationFlags_t)OptimizationFlags::O_2;
-				}
-				else
-				{
-					*(OptimizationFlags_t*)&Settings._Flags &= ~(OptimizationFlags_t)OptimizationFlags::O_2;
 				}
 				if (use03)
 				{
 					*(OptimizationFlags_t*)&Settings._Flags |= (OptimizationFlags_t)OptimizationFlags::O_3;
 				}
-				else
-				{
-					*(OptimizationFlags_t*)&Settings._Flags &= ~(OptimizationFlags_t)OptimizationFlags::O_3;
-				}
-
 
 				if (UCodeLang::StringHelper::Contains(Line, "-c11"))
 				{
@@ -1144,6 +1130,30 @@ void ParseLine(String_view& Line)
 			_PathAsPath = std::filesystem::current_path();
 			_Path = _PathAsPath.generic_string();
 		}
+		bool hasoutfile = StringHelper::Contains(Line, ">>");
+		Unique_ptr<std::ofstream> outfile;
+		if (hasoutfile)
+		{
+			bool passedpipe = false;
+			for (size_t i = 0; i < Line.size(); i++)
+			{
+				auto charV = Line[i];
+				if (charV == '>')
+				{
+					passedpipe = true;
+				}
+				else if (passedpipe == true)
+				{
+					Line = Line.substr(i);
+					break;
+				}
+			}
+
+			auto path = GetPath(Line);
+			outfile = std::make_unique<std::ofstream>(Path(path));
+
+			_This.output = outfile.get();
+		}
 
 		if (fs::exists(_PathAsPath))
 		{
@@ -1231,6 +1241,11 @@ void ParseLine(String_view& Line)
 		{
 			AppPrintin("file path must exits.");
 			_This.ExeRet = EXIT_FAILURE;
+		}
+
+		if (hasoutfile)
+		{
+			_This.output = &std::cout;
 		}
 	}
 	else if (Word1 == "cpptoulangvm" || Word1 == "-cpptoulangvm")

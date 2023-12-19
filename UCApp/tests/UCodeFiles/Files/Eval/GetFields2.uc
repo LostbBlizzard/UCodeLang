@@ -5,12 +5,12 @@ $Cool:
  int64 DVal;//7
 
 |main[]:
- int R = 0;
+ uintptr R = 0;
 
  eval typeinfo TypeCool = type(Cool);
  if TypeCool.GetClassInfo(out typeinfo ClassTypeValue):
   $for [var Item : ClassTypeValue.Fields()]:
-    $FieldType = bind(Item.Type());
-    R += sizeof(Item.Type().Name());
+    $FieldType = bind(typeof(Item.Name()));
+    R += sizeof(FieldType);
 
  ret R; 
