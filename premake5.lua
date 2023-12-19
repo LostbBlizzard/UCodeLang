@@ -173,6 +173,8 @@ project "UCodelangCL"
    libdirs { 
       "Output/UCodeLang/" .. OutDirPath,
    }
+   filter { "system:Windows","configurations:Published" or "configurations:Release"  }
+    kind ("WindowedApp")
 project "UCodeLang"
    location "UCodeLang"
    kind "StaticLib"
