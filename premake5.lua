@@ -980,3 +980,19 @@ newaction {
 }
 
 
+newaction {
+    trigger = "buildinstaller",
+    description = "build the installer",
+    execute = function ()
+        
+        if os.istarget("linux") then
+        end
+
+        if os.istarget("windows") then
+          executeorexit("Dependencies\\bin\\inno\\Compil32.exe  /cc install.iss")
+        end
+        
+        if os.istarget("macosx") then
+        end
+    end
+}

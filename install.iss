@@ -35,8 +35,8 @@ SetupIconFile=Logo.ico
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
-Source: "Output\UCodelangCL\Win64\Debug\{#MyAppExeName}"; DestDir: "{app}\bin"; Flags: ignoreversion
-Source: "Output\UCodeLanguageSever\Win64\Debug\uclanglsp.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
+Source: "Output\UCodelangCL\Win64\Published\{#MyAppExeName}"; DestDir: "{app}\bin"; Flags: ignoreversion
+Source: "Output\UCodeLanguageSever\Win64\Published\uclanglsp.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
 Source: "LICENSE.txt"; DestDir: "{app}\bin";
 
 Source: "UCodeAPI\StandardLibrary\*.ucm"; DestDir: "{app}\module\StandardLibrary"; Flags: ignoreversion recursesubdirs
