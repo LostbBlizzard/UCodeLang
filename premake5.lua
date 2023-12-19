@@ -818,7 +818,7 @@ newaction {
         end
         
         if os.istarget("macosx") then
-
+          executeorexit("cd ./UCApp;../Output/UCApp/MacOS/Debug/UCApp --RunTests")
         end
     end
 }
@@ -828,11 +828,11 @@ newaction {
     execute = function ()
         
         if os.istarget("linux") then
-         executeorexit("cd ./UCApp;../Output/UCApp/linux64/Debug/UCApp --RunTests")
+         executeorexit("cd ./UCApp;../Output/UCApp/linux32/Debug/UCApp --RunTests")
         end
 
         if os.istarget("windows") then
-         executeorexit("cd ./UCApp && ../Output/UCApp/Win32/Debug/UCApp.exe --RunTests")
+         executeorexit("cd ./UCApp && ..\\Output\\UCApp\\Win32\\Debug\\UCApp.exe --RunTests")
         end
         
         if os.istarget("macosx") then
