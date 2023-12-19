@@ -832,7 +832,8 @@ using namespace UCodeLang;
 					continue;
 				}
 
-				if (mode == TestMode::CLang89BackEnd && hasgcc == false)
+				//geting 32bit gcc is too much work.
+				if (mode == TestMode::CLang89BackEnd && hasgcc == false || UCodeLang_32BitSytem)
 				{
 					MyTestInfo.TestsSkiped += Tests.size();
 					continue;
