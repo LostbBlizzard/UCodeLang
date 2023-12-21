@@ -361,6 +361,7 @@ void SystematicAnalysis::FileDependency_AddDependencyToCurrentFile(const NeverNu
 
 		}
 
+		/*
 		for (auto& Item : FileData._Imports)
 		{
 
@@ -372,6 +373,7 @@ void SystematicAnalysis::FileDependency_AddDependencyToCurrentFile(const NeverNu
 			}
 
 		}
+		*/
 
 		if (LookingAtSybval->Type == SymbolType::Type_alias
 			|| LookingAtSybval->Type == SymbolType::Hard_Type_alias)
