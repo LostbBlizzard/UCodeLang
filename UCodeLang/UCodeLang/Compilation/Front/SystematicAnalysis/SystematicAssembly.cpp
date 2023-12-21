@@ -28,6 +28,10 @@ void SystematicAnalysis::Assembly_LoadLibSymbols()
 
 	}
 
+
+	UnorderedMap<String,int> AddedSymbols;
+	UnorderedMap<FileNode*, ImportLibInfo> Importinfo;
+
 	while (Mode != LoadLibMode::Done)
 	{
 		for (size_t i = 0; i < _Libs->size(); i++)
@@ -38,13 +42,22 @@ void SystematicAnalysis::Assembly_LoadLibSymbols()
 
 			if (LoadLibMode::GetTypes == Mode)
 			{
+				ImportLibInfo V;
 				for (auto& LibNode : Item->_Assembly.Classes)
 				{
-					_Lib._Assembly.Classes.push_back(Unique_ptr<AssemblyNode>(LibNode.get()));//make ref
-				}
-			}
+					if (!AddedSymbols.HasValue(LibNode->FullName))
+					{
+						AddedSymbols.AddValue(LibNode->FullName,0);
+						V.ClassesToAdd.AddValue(LibNode.get(), 0);
 
-			Assembly_LoadLibSymbols(*Item, Mode);
+						_Lib._Assembly.Classes.push_back(Unique_ptr<AssemblyNode>(LibNode.get()));//make ref
+					}
+				}
+
+				Importinfo.AddValue(&FileNode, std::move(V));
+			}
+			
+			Assembly_LoadLibSymbols(*Item, Importinfo.GetValue(&FileNode), Mode);
 		}
 
 		//
@@ -84,7 +97,7 @@ void SystematicAnalysis::Assembly_LoadLibSymbols()
 	_Lib.Get_Assembly().AddClass(String(globalAssemblyObjectName), String(globalAssemblyObjectName));
 
 }
-void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode Mode)
+void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib,ImportLibInfo& libinfo, LoadLibMode Mode)
 {
 
 	auto OutputType = Output_TypeAsLibType();
@@ -97,8 +110,24 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode M
 		Assembly_LoadClassSymbol(*GlobalObject, Scope, Scope, Mode);
 	}
 	auto libname = _LookingAtFile->FileName;
-
+	
+	
+	Vector<AssemblyNode*> Classes;
+	Classes.reserve(libinfo.ClassesToAdd.size());
 	for (auto& Item : lib.Get_Assembly().Classes)
+	{
+		if (libinfo.ClassesToAdd.HasValue(Item.get())) 
+		{
+			Classes.push_back(Item.get());
+		}
+	}
+
+	std::sort(Classes.begin(), Classes.end(), [](AssemblyNode*& A, AssemblyNode*& B)
+	{
+		return (int)A->Get_Type() > (int)B->Get_Type();
+	});
+
+	for (auto& Item : Classes)
 	{
 		if (Item->FullName == ScopeHelper::_globalAssemblyObject)
 		{
@@ -151,7 +180,7 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode M
 		_Lexer.Set_Settings(_Settings);
 		_Parser.Set_Settings(_Settings);
 
-		for (auto& Item : lib.Get_Assembly().Classes)
+		for (auto& Item : Classes)
 		{
 			Optional<String_view> TextOp;
 			if (Item->Get_Type() == ClassType::GenericClass)
@@ -274,7 +303,7 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode M
 
 		_PassType = PassType::FixedTypes;
 
-		for (auto& Item : lib.Get_Assembly().Classes)
+		for (auto& Item : Classes)
 		{
 
 			if (Item->Get_Type() == ClassType::GenericClass || Item->Get_Type() == ClassType::GenericFunction)

@@ -1234,8 +1234,14 @@ private:
 	
 	void Assembly_ConvertAttributes(const Vector<Unique_ptr<AttributeNode>>& nodes,Vector<UsedTagValueData>& Out);
 	void Assembly_ConvertAttribute(const AttributeNode& nodes, UsedTagValueData& Out);
+
+	struct ImportLibInfo
+	{
+		UnorderedMap<AssemblyNode*, int> ClassesToAdd;
+	};
+
 	void Assembly_LoadLibSymbols();
-	void Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode Mode);
+	void Assembly_LoadLibSymbols(const UClib& lib, ImportLibInfo& libinfo, LoadLibMode Mode);
 
 	void Assembly_LoadClassSymbol(const Class_Data& Item,const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 	void Assembly_LoadEnumSymbol(const Enum_Data& Item,const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
