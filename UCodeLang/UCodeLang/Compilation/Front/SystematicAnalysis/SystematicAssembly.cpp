@@ -42,6 +42,7 @@ void SystematicAnalysis::Assembly_LoadLibSymbols()
 
 			if (LoadLibMode::GetTypes == Mode)
 			{
+				_FilesData.AddValue(NeverNullptr((FileNode_t*)&FileNode), {});
 				ImportLibInfo V;
 				for (auto& LibNode : Item->_Assembly.Classes)
 				{
