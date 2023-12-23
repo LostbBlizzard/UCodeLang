@@ -48,7 +48,8 @@ void SystematicAnalysis::Assembly_LoadLibSymbols()
 				{
 					if (!AddedSymbols.HasValue(LibNode->FullName))
 					{
-						AddedSymbols.AddValue(LibNode->FullName,0);
+
+						AddedSymbols.AddValue(LibNode->FullName, 0);
 						V.ClassesToAdd.AddValue(LibNode.get(), 0);
 
 						_Lib._Assembly.Classes.push_back(Unique_ptr<AssemblyNode>(LibNode.get()));//make ref
@@ -125,7 +126,7 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib,ImportLibInfo&
 
 	std::sort(Classes.begin(), Classes.end(), [](AssemblyNode*& A, AssemblyNode*& B)
 	{
-		return (int)A->Get_Type() > (int)B->Get_Type();
+		return (int)A->Get_Type() < (int)B->Get_Type();
 	});
 
 	for (auto& Item : Classes)
@@ -407,13 +408,21 @@ void SystematicAnalysis::Assembly_LoadClassSymbol(const Class_Data& Item, const 
 
 		Info->Fields.resize(Item.Fields.size());
 
+
+
 		for (size_t i = 0; i < Item.Fields.size(); i++)
 		{
 			const auto& FieldItem = Item.Fields[i];
+			SymbolID id = Symbol_GetSymbolID(&FieldItem);
+			
 			auto& InfoItem = Info->Fields[i];
 
 			InfoItem.Name = FieldItem.Name;
 			//InfoItem.offset = FieldItem.offset;
+
+			auto& FieldSyb = Symbol_AddSymbol(SymbolType::Class_Field, Name,ScopeHelper::ApendedStrings(FullName,FieldItem.Name), AccessModifierType::Public);
+			_Table.AddSymbolID(FieldSyb, id);
+
 		}
 	}
 	else if (Mode == LoadLibMode::FixTypes)
@@ -426,6 +435,11 @@ void SystematicAnalysis::Assembly_LoadClassSymbol(const Class_Data& Item, const 
 			const auto& FieldItem = Item.Fields[i];
 			auto& InfoItem = Info->Fields[i];
 			Assembly_LoadType(FieldItem.Type, InfoItem.Type);
+		
+			SymbolID id = Symbol_GetSymbolID(&FieldItem);
+
+			auto& FieldSyb = Symbol_GetSymbol(id);
+			FieldSyb->VarType = InfoItem.Type;
 		}
 	}
 
