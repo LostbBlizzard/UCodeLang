@@ -560,7 +560,10 @@ void SystematicAnalysis::OnFileNode(const FileNode& File)
 	
 	if (_StartingNameSpace.has_value())
 	{
-		_Table.RemoveScope();
+		for (size_t i = 0; i < ScopeHelper::Get_ScopeCount(_StartingNameSpace.value())+1; i++)
+		{
+			_Table.RemoveScope();
+		}
 	}
 
 	OutofLoop:

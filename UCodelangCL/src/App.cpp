@@ -21,6 +21,7 @@
 #include "UCodeLang/Compilation/Back/x86_64/X86_64UNativeBackEnd.hpp"
 
 #include "UCodeLang/RunTime/TestRuner.hpp"
+#include "UCodeLang/RunTime/SandBoxedIOLink.hpp"
 using namespace UCodeLang;
 
 
@@ -1001,7 +1002,14 @@ void ParseLine(String_view& Line)
 					RunTimeLib lib;
 					lib.Init(&outlib);
 
+					RunTimeLib ioimports;
+					SandBoxedIOLink::Link(ioimports);
+
+					
 					runtime.AddLib(&lib);
+					runtime.AddLib(&ioimports);
+					
+
 					runtime.LinkLibs();
 					
 					interpreter.Init(&runtime);
@@ -1016,7 +1024,7 @@ void ParseLine(String_view& Line)
 					}
 					interpreter.Call(func);
 					auto rettype = func->RetType;
-					size_t retsize = Assembly.GetSize(rettype, is32mode).value();
+					size_t retsize = Assembly.GetSize(rettype, is32mode).value_or(0);
 					TypedRawReflectionData v;
 					v._Type = rettype;
 	

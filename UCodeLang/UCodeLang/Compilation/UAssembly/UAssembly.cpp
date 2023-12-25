@@ -960,6 +960,8 @@ String UAssembly::ToString(const ReflectionTypeInfo& Value, const ReflectionRawD
 	case ReflectionTypes::float64:
 		r += std::to_string(*Data.Get_DataAs<float64>());
 		break;
+	case ReflectionTypes::Void:
+		return "void";
 	default:
 		break;
 	}

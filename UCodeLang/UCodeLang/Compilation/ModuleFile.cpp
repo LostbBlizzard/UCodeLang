@@ -12,6 +12,7 @@
 
 #include <UCodeLang/RunTime/Interpreters/Interpreter.hpp>
 #include <UCodeLang/RunTime/RunTimeLangState.hpp>
+#include <UCodeLang/RunTime/SandBoxedIOLink.hpp>
 
 #include "CompilationSettings.hpp"
 UCodeLangStart
@@ -309,7 +310,7 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 {
 	if (DownloadModules(Modules, LogsOut))
 	{
-		
+
 		Compiler::CompilerPathData paths = GetPaths(Compiler, IsSubModule);
 		Compiler::ExternalFiles ExternFiles;
 		auto& Errs = Compiler.Get_Errors();
@@ -320,22 +321,28 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 
 		bool allowdebugsubmodules = false;
 
+		bool Err = false;
+
+		BuildModuleDependencies(Modules, Errs, Err, Compiler, this->ModuleDependencies, ExternFiles);
+
+		if (Err == false)
 		{
 
 			namespace fs = std::filesystem;
 			if (fs::exists(buildfile))
 			{
+
 				auto OldSettings = Compiler.Get_Settings();
 
 				Compiler.Get_Settings() = CompilationSettings();
 
 				auto oldname = std::move(Errs.FilePath);
 				Errs.FilePath = buildfile;
-				auto build = BuildFile(Compiler.GetTextFromFile(buildfile),Compiler, Modules);
+				auto build = BuildFile(Compiler.GetTextFromFile(buildfile), Compiler, Modules);
 				Errs.FilePath = std::move(oldname);
 
 				Compiler.Get_Settings() = OldSettings;
-				
+
 				if (build.CompilerRet.IsValue())
 				{
 					UClib& buildscriptlib = *build.CompilerRet.GetValue().OutPut;
@@ -350,10 +357,46 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 						buildscriptrlib.Init(&buildscriptlib);
 
 						RunTimeLib BuildSystemlib;
-						//BuildSystemlib.Add_CPPCall("BuildSystem::Build",nullptr, nullptr);
+
+
+						struct APIObject
+						{
+							std::function<bool()> F;
+
+							static bool Build(APIObject* This)
+							{
+								return This->F();
+							}
+						};
+
+						APIObject apiobject;
+
+						ModuleRet CompilerRet = Compiler::CompilerRet(NeverNullptr(&Compiler.Get_Errors()));
+
+						SandBoxedIOLink::Link(BuildSystemlib);
+						//this kind of defeats the point of running code.
+						//but also we don't trust people.
+						//even more so with recursive dependencies
+						//we don't want npm security holes
+						//TODO  
+
+						apiobject.F = [&]() -> bool
+							{
+								CompilerRet.CompilerRet = Compiler.CompileFiles_UseIntDir(paths, ExternFiles);
+								return CompilerRet.CompilerRet.IsValue();
+							};
+
+						BuildSystemlib.Add_CPPCall("ULang:BuildSystem:Internal:BuildSys_Build", [](InterpreterCPPinterface& Input)
+							{
+								auto par = Input.GetParameter<APIObject*>();
+								Input.Set_Return(APIObject::Build(par));
+							}, APIObject::Build);
 
 						RunTimeLangState state;
 						state.AddLib(&buildscriptrlib);
+						state.AddLib(&BuildSystemlib);
+
+
 
 						state.LinkLibs();
 
@@ -362,24 +405,24 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 						runer.Init(&state);
 
 
-						auto itworked = runer.RCall<int>(buildfunction, this);
+						auto itworked = runer.RCall<bool>(buildfunction, &apiobject);
 
 
-						if (itworked == 0)
+						if (itworked)
 						{
-							ModuleRet CompilerRet =Compiler::CompilerRet(NeverNullptr(&Compiler.Get_Errors()));
 							return CompilerRet;
 						}
 						else
 						{
-							ModuleRet CompilerRet =Compiler::CompilerRet(NeverNullptr(&Compiler.Get_Errors()));
+							Compiler.Get_Errors().AddError(ErrorCodes::CouldNotFindFunc, 0, 0, "build funcion returned false");
+							ModuleRet CompilerRet = Compiler::CompilerRet(NeverNullptr(&Compiler.Get_Errors()));
 							return CompilerRet;
 						}
 					}
 					else
 					{
 						Compiler.Get_Errors().AddError(ErrorCodes::ExpectingToken, 0, 0, "Cant find function |build[BuildSystem& system] for build script.");
-						ModuleRet CompilerRet =Compiler::CompilerRet(NeverNullptr(&Compiler.Get_Errors()));
+						ModuleRet CompilerRet = Compiler::CompilerRet(NeverNullptr(&Compiler.Get_Errors()));
 						return CompilerRet;
 					}
 				}
@@ -391,59 +434,52 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 			}
 			else
 			{
-				bool Err = false;
+				auto OldSettings = Compiler.Get_Settings();
 
-				BuildModuleDependencies(Modules, Errs, Err, Compiler, this->ModuleDependencies, ExternFiles);
+#if UCodeLangDebug
+				std::cout << "Building:" << this->ModuleName.ModuleName;
+				std::cout << '\n';
+#endif
 
-				if (Err == false)
+				ModuleRet CompilerRet = Compiler::CompilerRet(NeverNullptr(&Compiler.Get_Errors()));
 				{
-					auto OldSettings = Compiler.Get_Settings();
+					Compiler.Get_Settings()._Type = IsSubModule ? OutPutType::IRAndSymbols : OldSettings._Type;
+					CompilerRet.OutputItemPath = GetPaths(Compiler, IsSubModule).OutFile;
 
-					#if UCodeLangDebug
-					std::cout << "Building:" << this->ModuleName.ModuleName;
-					std::cout << '\n';
-					#endif
-
-					ModuleRet CompilerRet = Compiler::CompilerRet(NeverNullptr(&Compiler.Get_Errors()));
+					if (!allowdebugsubmodules)
 					{
-						Compiler.Get_Settings()._Type = IsSubModule ? OutPutType::IRAndSymbols : OldSettings._Type;
-						CompilerRet.OutputItemPath = GetPaths(Compiler, IsSubModule).OutFile;
-
-						if (!allowdebugsubmodules)
-						{
-							//tell the IROptimizer ignored debug symbols so optimizations can take place since people dont debug submodules often
-							Compiler.Get_Settings().AddArgFlag("IgnoreDebug");
-						}
-
-						if (ForceImport) {
-							Compiler.Get_Settings().AddArgFlag("ForceImport");
-						}
-
-						if (ModuleNameSpace.size())
-						{
-							Compiler.Get_Settings().AddArgValue("StartingNameSpace", ModuleNameSpace);
-						}
-
-						CompilerRet.CompilerRet = Compiler.CompileFiles_UseIntDir(paths, ExternFiles);
+						//tell the IROptimizer ignored debug symbols so optimizations can take place since people dont debug submodules often
+						Compiler.Get_Settings().AddArgFlag("IgnoreDebug");
 					}
 
-					Compiler.Get_Settings() = OldSettings;
-					return CompilerRet;
+					if (ForceImport) {
+						Compiler.Get_Settings().AddArgFlag("ForceImport");
+					}
+
+					if (ModuleNameSpace.size())
+					{
+						Compiler.Get_Settings().AddArgValue("StartingNameSpace", ModuleNameSpace);
+					}
+
+					CompilerRet.CompilerRet = Compiler.CompileFiles_UseIntDir(paths, ExternFiles);
 				}
-				else
-				{
-					ModuleRet CompilerRet = Compiler::CompilerRet(NeverNullptr(&Compiler.Get_Errors()));
-					return CompilerRet;
-				}
+
+				Compiler.Get_Settings() = OldSettings;
+				return CompilerRet;
+
 			}
+
+			{
+				ModuleRet CompilerRet = Compiler::CompilerRet(NeverNullptr(&Compiler.Get_Errors()));
+				return CompilerRet;
+			}
+
 		}
-	}
-	else
-	{
-
-
-		ModuleRet CompilerRet = Compiler::CompilerRet(NeverNullptr(&Compiler.Get_Errors()));
-		return CompilerRet;
+		else
+		{
+			ModuleRet CompilerRet = Compiler::CompilerRet(NeverNullptr(&Compiler.Get_Errors()));
+			return CompilerRet;
+		}
 	}
 }
 
@@ -550,7 +586,7 @@ void ModuleFile::NewInit(String ModuleName, String AuthorName)
 		f.Identifier.MinorVersion = 0;
 
 		f.Identifier.AuthorName = "UCodeLang";
-		f.Identifier.ModuleName = "StandardLibarary";
+		f.Identifier.ModuleName = "StandardLibrary";
 		ModuleDependencies.push_back(std::move(f));
 	}
 }

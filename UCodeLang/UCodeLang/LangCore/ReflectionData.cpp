@@ -697,6 +697,7 @@ String ClassAssembly::ToString(const TypedRawReflectionData& data, const ClassAs
 }
 String ClassAssembly::ToStringJson(const TypedRawReflectionData& data, const ClassAssembly& Assembly, bool is32mode)
 {
+	if (data._Type == ReflectionTypes::Void) { return "void"; }
 	return {};
 }
 ClassAssembly::CompareType_t ClassAssembly::CompareType(const ReflectionTypeInfo& TypeA, const ClassAssembly& TypeAAssembly, const ReflectionTypeInfo& TypeB, const ClassAssembly& TypeBAssembly)
