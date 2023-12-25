@@ -3540,21 +3540,33 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                    // InfoStr = (String)"Ptr:" + std::to_string((uintptr_t)Item._Ptr);
                     InfoStr += "Size:" + std::to_string(Item._Mem.Size);
                     InfoStr += (String)",IsReseved:" + (Item.IsReseved ? "true" : "false");
+                   
+                    bool statckhwasset = false;
+                    
                     if (Staticptr == Item._Ptr)
                     {
                         InfoStr += ",--StaticMem";
+                        statckhwasset = true;
                     }
-                    if (Threadptr == Item._Ptr)
+                    else if (Threadptr == Item._Ptr)
                     {
                         InfoStr += ",--ThreadMem";
+                        statckhwasset = true;
                     }
-                    if (_AnyInterpreter.Get_InterpreterType() == UCodeLang::InterpreterTypes::Interpreter)
+                    else if (_AnyInterpreter.Get_InterpreterType() == UCodeLang::InterpreterTypes::Interpreter)
                     {
                         auto& Inter = _AnyInterpreter.GetAs_Interpreter();
                         if (Inter.GetStackSpan().Data() == Item._Ptr) {
                             InfoStr += ",--StackMem";
+                            statckhwasset = true;
                         }
                     }
+
+                    if (statckhwasset==false)
+                    {
+                        InfoStr += ",--HeapMem";
+                    }
+
                     if (ImGui::TreeNode(InfoStr.c_str()))
                     {
                         Isshowing[i] = true;
