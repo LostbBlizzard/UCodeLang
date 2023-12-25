@@ -36,7 +36,7 @@ $Vector<T>:
        _data[i] = old[i];
 
       uintptr ptr =unsafe bitcast<uintptr>(old);
-      if ptr == uintptr(0):
+      if ptr != uintptr(0):
        unsafe drop(old);
   
   |Clear[this&] -> void:_size = 0;
