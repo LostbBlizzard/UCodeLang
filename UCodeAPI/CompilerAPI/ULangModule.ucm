@@ -1,6 +1,6 @@
 AuthorName: "UCodeLang"
 ModuleName: "CompilerAPI"
 Version: 0:0:0
-NameSpace: CompilerAPI
+NameSpace: ULang::CompilerAPI
 
 import UCodeLang::StandardLibrary[0:0:0];

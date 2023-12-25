@@ -15,7 +15,7 @@ UCodeLangStart
 
 #define IsOptimizerStable 0
 
-#define RunlogIRState UCodeLangDebug && 1
+#define RunlogIRState UCodeLangDebug && 0
 
 
 void IROptimizer::Reset() 

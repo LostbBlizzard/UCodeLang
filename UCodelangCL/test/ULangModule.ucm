@@ -1,0 +1,9 @@
+AuthorName:A
+ModuleName:test
+Version:0:0:0
+
+ForceImport:false
+RemoveUnSafe:false
+NameSpace:test
+
+import UCodeLang::StandardLibarary[0:0:0];

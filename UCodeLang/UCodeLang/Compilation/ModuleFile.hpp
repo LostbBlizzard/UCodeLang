@@ -95,6 +95,7 @@ public:
 		Optional<String> WebLink;
 	};
 	Vector<ModuleDependencie> ModuleDependencies;
+	using LogOut = std::function<void(String mgs)>;
 
 	ModuleFile()
 	{
@@ -111,10 +112,10 @@ public:
 	{
 		return Path(ThisModuleDir) / (String(FileName) + FileExtWithDot);;
 	}
-	bool DownloadModules(const ModuleIndex& Modules, OptionalRef<String> LogsOut = {});
+	bool DownloadModules(const ModuleIndex& Modules, Optional<LogOut> LogsOut = {});
 
-	ModuleRet BuildModule(Compiler& Compiler,const ModuleIndex& Modules,bool IsSubModule = false, OptionalRef<String> LogsOut = {});
-	ModuleRet BuildFile(const String& filestring, Compiler& Compiler, const ModuleIndex& Modules);
+	ModuleRet BuildModule(Compiler& Compiler,const ModuleIndex& Modules,bool IsSubModule = false, Optional<LogOut> LogsOut = {});
+	ModuleRet BuildFile(const String& filestring, Compiler& Compiler, const ModuleIndex& Modules, Optional<LogOut> LogsOut = {});
 	
 	static bool ToFile(const ModuleFile* Lib, const Path& path);
 	static bool FromFile(ModuleFile* Lib, const Path& path);
@@ -154,8 +155,8 @@ public:
 	inline static const Path ModuleOutPath = "out";
 	inline static const Path ModuleBuildfile = "Build.uc";
 
-	inline static const String DefaultSourceFile = "import ULang::{Span,StringSpan,Console};\n\n\n|main[]:\n   Fmt::Println(\"Hello World\");";
-	inline static const String DefaultBuildFile = "import UCodeLang::StandardLibarary[0.0.0];//Build Srcipt Module Imports.\n\n\nimport UCodeLang::{BuildSystem};\n\n\n|build[BuildSystem& system] => system.Build();";
+	inline static const String DefaultSourceFile = "use ULang;\n\n\n|main[]:\n  Fmt::Println(\"Hello World\");";
+	inline static const String DefaultBuildFile = "//Build Script Module Imports \n\nimport UCodeLang::StandardLibrary[0:0:0];\nimport UCodeLang::BuildSystem[0:0:0];\n\n//Your code starts here \nuse ULang;\n\n|build[BuildSystem& system] => system.Build();";
 private:
 	void BuildModuleDependencies(const ModuleIndex& Modules,CompilationErrors& Errs, bool& Err, Compiler& Compiler
 		, const Vector<ModuleDependencie>& ModuleDependencies
