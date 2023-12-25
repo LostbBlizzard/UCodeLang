@@ -15,8 +15,8 @@ UCodeLangStart
 
 #define IsOptimizerStable 0
 
-#define RunlogIRState UCodeLangDebug
-//#define RunlogIRState 1
+#define RunlogIRState UCodeLangDebug && 1
+
 
 void IROptimizer::Reset() 
 {
@@ -234,10 +234,10 @@ void IROptimizer::Optimized(IRBuilder& IRcode)
 			
 			#if RunlogIRState
 			{//for debuging
-				//auto S = Input->ToString();
+				auto S = Input->ToString();
 
-				//std::cout << "-----" << std::endl;
-				//std::cout << S;
+				std::cout << "-----" << std::endl;
+				std::cout << S;
 
 				//std::ofstream file("OutIR.txt");
 				//file << S;
