@@ -1645,7 +1645,7 @@ void AppObject::DrawTestMenu()
 
             if (check == false)
             {
-                check = true; 
+                check = true;
                 UCodeLang::ModuleFile f;
                 f.FromFile(&f, StandardLibrarydir / UCodeLang::ModuleFile::FileNameWithExt);
                 if (TestWindowData.Testmode == TestMode::UCodeLangBackEnd)
@@ -1662,14 +1662,17 @@ void AppObject::DrawTestMenu()
                 }
                 auto out = f.BuildModule(_TestCompiler, UCodeLang::ModuleIndex::GetModuleIndex());
 
-                TestLib = std::move(*out.CompilerRet.GetValue().OutPut);
+                if (out.CompilerRet.IsValue()) 
+                {
+                    TestLib = std::move(*out.CompilerRet.GetValue().OutPut);
 
-                StandardLibrarytests = UCodeLang::TestRuner::GetTests(TestLib.Get_Assembly());
+                    StandardLibrarytests = UCodeLang::TestRuner::GetTests(TestLib.Get_Assembly());
 
-                StandardLibraryTestInfo.resize(StandardLibrarytests.size());
+                    StandardLibraryTestInfo.resize(StandardLibrarytests.size());
 
-                Outpath = out.OutputItemPath;
-                mode = TestWindowData.Testmode;
+                    Outpath = out.OutputItemPath;
+                    mode = TestWindowData.Testmode;
+                }
             }
 
             if (ImGui::Button("Build StandardLibrary"))
@@ -1897,6 +1900,7 @@ void AppObject::DrawTestMenu()
 
             for (size_t i = TestWindowData.StandardLibraryTestIndex; i < TestWindowData.StandardLibraryTestCount; i++)
             {
+                if (StandardLibrarytests.size() < i) { continue; };
                 auto& ItemTest = StandardLibrarytests[i];
                 auto& ItemOut = StandardLibraryTestInfo[i];
 
