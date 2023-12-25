@@ -156,7 +156,7 @@ public:
 	inline static const Path ModuleBuildfile = "Build.uc";
 
 	inline static const String DefaultSourceFile = "use ULang;\n\n\n|main[]:\n  Fmt::Println(\"Hello World\");";
-	inline static const String DefaultBuildFile = "//Build Script Module Imports \n\nimport UCodeLang::StandardLibrary[0:0:0];\nimport UCodeLang::BuildSystem[0:0:0];\n\n//Your code starts here \nuse ULang;\n\n|build[BuildSystem& system] => system.Build();";
+	inline static const String DefaultBuildFile = "//Build Script Module Imports \n\nimport UCodeLang::StandardLibrary[0:0:0];\nimport UCodeLang::BuildSystem[0:0:0];\n\n//Your code starts here \nuse ULang;\nuse ULang::BuildSystem;\n\n|build[BuildSystem& system] => system.Build();";
 private:
 	void BuildModuleDependencies(const ModuleIndex& Modules,CompilationErrors& Errs, bool& Err, Compiler& Compiler
 		, const Vector<ModuleDependencie>& ModuleDependencies
