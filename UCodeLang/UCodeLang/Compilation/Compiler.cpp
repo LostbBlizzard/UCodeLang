@@ -45,7 +45,13 @@ Compiler::CompilerRet Compiler::CompileText(const String_view& Text, const Exter
 	
 
 	if (Item == nullptr || _Errors.Has_Errors()) { return error; }
-	Item->FileName = "src.uc";
+	if (_Errors.FilePath.empty()) {
+		Item->FileName = "src.uc";
+	}
+	else
+	{
+		Item->FileName = _Errors.FilePath;
+	}
 
 
 	Vector<Unique_ptr<FileNode_t>> Files;

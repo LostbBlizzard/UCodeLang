@@ -579,6 +579,13 @@ void ParseLine(String_view& Line)
 			file.close();
 		}
 
+		if (DoGetFlag)
+		{
+			std::ofstream file(NewDir / ".gitignore");
+			file << "int\n out\n";
+			file.close();
+		}
+
 
 		fs::create_directories(NewDir / ModuleFile::ModuleOutPath);
 
@@ -1107,10 +1114,11 @@ void ParseLine(String_view& Line)
 			ModuleIndex _ModuleIndex = ModuleIndex::GetModuleIndex();
 			auto& mod = modfile.value();
 
-			String out;
-			bool ok = mod.DownloadModules(_ModuleIndex, Optionalref(out));
-
-			AppPrintin(out);
+			bool ok = mod.DownloadModules(_ModuleIndex, [](String Msg)
+			{
+					AppPrintin(Msg);
+			});
+;
 			if (ok)
 			{
 				_This.ExeRet = EXIT_SUCCESS;
@@ -1163,7 +1171,6 @@ void ParseLine(String_view& Line)
 				Optional<UClib> libop;
 				if (!buildfile2(_PathAsPath, _Compiler, libop))
 				{
-					AppPrintin("Compiler Fail:");
 					AppPrintin(_Compiler.Get_Errors().ToString());
 					_This.ExeRet = EXIT_FAILURE;
 				}
@@ -1182,7 +1189,6 @@ void ParseLine(String_view& Line)
 					Optional<UClib> libop;
 					if (!buildfile2(_PathAsPath, _Compiler, libop))
 					{
-						AppPrintin("Compiler Fail:");
 						AppPrintin(_Compiler.Get_Errors().ToString());
 						_This.ExeRet = EXIT_FAILURE;
 					}
@@ -1448,7 +1454,6 @@ bool buildfile2(UCodeLang::Path& filetorun, UCodeLang::Compiler& _Compiler, UCod
 				bool ItWorked = module.BuildModule(_Compiler, _ModuleIndex).CompilerRet.IsValue();
 				if (!ItWorked)
 				{
-					*_This.output << "Compiler Fail:\n";
 					*_This.output << _Compiler.Get_Errors().ToString();
 					_This.ExeRet = EXIT_FAILURE;
 				}

@@ -283,7 +283,7 @@ String ModuleFile::ToName(const ModuleIdentifier& ID)
 	R += ID.AuthorName;
 	return R;
 }
-bool ModuleFile::DownloadModules(const ModuleIndex& Modules,OptionalRef<String> LogsOut)
+bool ModuleFile::DownloadModules(const ModuleIndex& Modules,Optional<LogOut> LogsOut)
 {
 
 	for (auto& Item : ModuleDependencies)
@@ -297,7 +297,7 @@ bool ModuleFile::DownloadModules(const ModuleIndex& Modules,OptionalRef<String> 
 
 			if (LogsOut.has_value())
 			{
-				LogsOut.value() += "Download Modules is not added yet";
+				(*LogsOut)("Download Modules is not added yet");
 			}
 			return false;
 		}
@@ -305,16 +305,11 @@ bool ModuleFile::DownloadModules(const ModuleIndex& Modules,OptionalRef<String> 
 
 	return true;
 }
-ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIndex& Modules, bool IsSubModule, OptionalRef<String> LogsOut)
+ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIndex& Modules, bool IsSubModule, Optional<LogOut> LogsOut)
 {
-	String out;
-	if (DownloadModules(Modules,Optionalref(out)))
+	if (DownloadModules(Modules, LogsOut))
 	{
 		
-		if (LogsOut.has_value())
-		{
-			LogsOut.value() += out;
-		}
 		Compiler::CompilerPathData paths = GetPaths(Compiler, IsSubModule);
 		Compiler::ExternalFiles ExternFiles;
 		auto& Errs = Compiler.Get_Errors();
@@ -334,8 +329,10 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 
 				Compiler.Get_Settings() = CompilationSettings();
 
-				
+				auto oldname = std::move(Errs.FilePath);
+				Errs.FilePath = buildfile;
 				auto build = BuildFile(Compiler.GetTextFromFile(buildfile),Compiler, Modules);
+				Errs.FilePath = std::move(oldname);
 
 				Compiler.Get_Settings() = OldSettings;
 				
@@ -443,11 +440,6 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 	}
 	else
 	{
-		if (LogsOut.has_value())
-		{
-			LogsOut.value() += out;
-		}
-		Compiler.Get_Errors().AddError(ErrorCodes::CouldNotFindFunc, 0, 0, "Download Error:" + out);
 
 
 		ModuleRet CompilerRet = Compiler::CompilerRet(NeverNullptr(&Compiler.Get_Errors()));
@@ -467,10 +459,17 @@ void ModuleFile::BuildModuleDependencies(
 		auto V = Modules.FindFile(Item.Identifier);
 		if (!V.has_value())
 		{
-			Errs.AddError(ErrorCodes::ExpectingSequence, 0, 0, "Cant Find Mudule Named " + ToName(Item.Identifier));
+			Errs.AddError(ErrorCodes::ExpectingSequence, 0, 0, "Cant Find Module Named " + ToName(Item.Identifier));
 			Err = true;
+			return;
 		}
-		else
+
+	}
+
+	for (auto& Item : ModuleDependencies)
+	{
+		auto V = Modules.FindFile(Item.Identifier);
+		
 		{
 			const ModuleIndex::IndexModuleFile& Index = Modules._IndexedFiles[V.value()];
 			ModuleFile MFile;
@@ -567,21 +566,95 @@ String ModuleFile::ToStringBytes(const ModuleIdentifier* Value)
 		+ ":" + std::to_string(Value->RevisionVersion);
 	return out;
 }
-ModuleFile::ModuleRet ModuleFile::BuildFile(const String& filestring, Compiler& Compiler, const ModuleIndex& Modules)
+ModuleFile::ModuleRet ModuleFile::BuildFile(const String& filestring, Compiler& Compiler, const ModuleIndex& Modules, Optional<LogOut> LogsOut)
 {
 	auto& Errs = Compiler.Get_Errors();
 	String fileimports = "";
-	String filetext = "$BuildSystem; \n|build[BuildSystem& system] => 0;";
+	String filetext = "";
+
+	{
+
+		size_t ImportEnd = 0;
+		String Line;
+		size_t StartIndex = 0;
+		size_t LineIndex = 0;
+		for (size_t i = 0; i < filestring.size(); i++)
+		{
+			auto item = filestring[i];
+			
+			if (item == '\n')
+			{
+				Line = filestring.substr(StartIndex, i- StartIndex);
+				StartIndex = i+1;
+				if (StringHelper::StartWith(Line, "import"))
+				{
+					fileimports += Line;
+					fileimports += '\n';
+					ImportEnd = LineIndex;
+				}
+				LineIndex++;
+			}
+		}
+
+		size_t LinePassed = 0;
+
+		for (size_t i = 0; i < ImportEnd; i++)
+		{
+			filetext += "\n";//so line numbers line up in errors
+		}
+
+		for (size_t i = 0; i < filestring.size(); i++)
+		{
+			auto item = filestring[i];
+
+			if (item == '\n')
+			{
+				LinePassed++;
+			}
+
+			if (LinePassed > ImportEnd)
+			{
+				filetext += item;
+			}
+		}
+	}
+
 
 	Vector<ModuleDependencie> buildfileDependencies;
+	{
+		String modstr = R"(AuthorName: "UCodeLang"
+ModuleName: "BuildSystem"
+Version: 0:0:0)";
+
+		modstr += "\n";
+		modstr += fileimports;
+
+		ModuleFile mod;
+
+		auto v = FromString(&mod, modstr);
+
+		buildfileDependencies = std::move(mod.ModuleDependencies);
+
+		if (!mod.DownloadModules(Modules, LogsOut))
+		{
+			ModuleRet CompilerRet = Compiler::CompilerRet(NeverNullptr(&Compiler.Get_Errors()));
+			return CompilerRet;
+		}
+	}
+
 	Compiler::ExternalFiles buildExternFiles;
 
 	bool Err = false;
-	BuildModuleDependencies(Modules, Errs, Err, Compiler, buildfileDependencies, buildExternFiles);
 
-	auto buildscriptinfo = Compiler.CompileText(filetext);
+	auto oldname = Errs.FilePath;
+	BuildModuleDependencies(Modules, Errs, Err, Compiler, buildfileDependencies, buildExternFiles);
+	Errs.FilePath = oldname;
+
+
 	if (Err == false)
 	{
+		auto buildscriptinfo = Compiler.CompileText(filetext, buildExternFiles);//TODO cash this file to avoid full builds
+	
 		if (buildscriptinfo.IsValue())
 		{
 			ModuleRet CompilerRet = std::move(buildscriptinfo);
@@ -617,7 +690,7 @@ String ModuleFile::ToStringBytes(const ModuleFile* Lib)
 	out += (String)"RemoveUnSafe:" + (Lib->RemoveUnSafe ? "true" : "false") + "\n";
 	out += "NameSpace:" + Lib->ModuleNameSpace;
 
-	out += "\n";
+	out += "\n\n";
 
 	for (auto& Item : Lib->ModuleDependencies)
 	{
@@ -693,8 +766,23 @@ bool ModuleFile::FromString(ModuleFile* Lib, const String_view& Data)
 					}
 					else if (Item.Value._String == "NameSpace")
 					{
-						if (tokens[i].Type == TokenType::Name) {
-							Lib->ModuleNameSpace = tokens[i].Value._String;
+						if (tokens[i].Type == TokenType::Name) 
+						{
+							while (tokens[i].Type == TokenType::Name) 
+							{
+								Lib->ModuleNameSpace += tokens[i].Value._String;
+								if (i + 2 < tokens.size()
+									&& tokens[i + 1].Type == TokenType::ScopeResolution
+									&& tokens[i + 2].Type == TokenType::Name)
+								{
+									i+=2;
+									Lib->ModuleNameSpace += ScopeHelper::_ScopeSep;
+								}
+								else
+								{
+									break;
+								}
+							}
 						}
 						else
 						{
