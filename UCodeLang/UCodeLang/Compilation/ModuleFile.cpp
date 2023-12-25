@@ -147,7 +147,7 @@ void ModuleIndex::AddModueToList(const Path& path)
 	{
 		IndexModuleFile file;
 		file._ModuleData = modfile.ModuleName;
-		file._ModuleFullPath = path;
+		file._ModuleFullPath = std::filesystem::absolute(path);
 		_IndexedFiles.push_back(std::move(file));
 	}
 }
@@ -489,6 +489,11 @@ void ModuleFile::BuildModuleDependencies(
 					externfilesoutput.Files.push_back(MFile.GetPaths(Compiler, true).OutFile);
 				}
 
+			}
+			else
+			{
+				Errs.AddError(ErrorCodes::ExpectingSequence, 0, 0, "Cant Open Mudule At " + Index._ModuleFullPath.generic_string() + ".it may not exist.");
+				Err = true;
 			}
 
 		}
