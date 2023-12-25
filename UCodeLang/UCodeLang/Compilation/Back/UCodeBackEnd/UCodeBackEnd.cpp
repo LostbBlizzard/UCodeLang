@@ -661,7 +661,7 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 		BuildLink(FuncName,IR->Linkage);
 	}
 
-	if (FuncName == "Span<char>:(&Index&)^Span<char>&,Range_t<uintptr>")
+	if (FuncName == "Vector<sint32>:Push^Vector<sint32>&,i32&imut")
 	{
 		int a = 0;
 	}
@@ -5155,6 +5155,40 @@ UCodeBackEndObject::WeightType UCodeBackEndObject::IsReferencedAfterThisIndexWei
 	}
 	return CompilerRet - NextUseOffset;
 }
+
+enum class IRRefOpType
+{
+	Value,
+	IRidentifier,
+	IRInstruction,
+	IRParameter,
+};
+IRRefOpType GetRefOpType(IROperatorType type)
+{
+	switch (type)
+	{
+	case IROperatorType::Value:
+		return IRRefOpType::Value;
+	case IROperatorType::IRidentifier:
+	case IROperatorType::Get_PointerOf_IRidentifier:
+		return IRRefOpType::IRidentifier;
+		break;
+	case IROperatorType::DereferenceOf_IRInstruction:
+	case IROperatorType::Get_PointerOf_IRInstruction:
+	case IROperatorType::IRInstruction:
+		return IRRefOpType::IRInstruction;
+		break;
+	case IROperatorType::DereferenceOf_IRParameter:
+	case IROperatorType::IRParameter:
+	case IROperatorType::Get_PointerOf_IRParameter:
+		return IRRefOpType::IRParameter;
+		break;
+	default:
+		UCodeLangUnreachable();
+		break;
+	}
+}
+
 bool  UCodeBackEndObject::IsReferenceingTheSame(const IROperator& Test, const IROperator& Other)
 {
 	if (Test.Type == IROperatorType::Value)
@@ -5162,23 +5196,20 @@ bool  UCodeBackEndObject::IsReferenceingTheSame(const IROperator& Test, const IR
 		return false;
 	}
 
-	if (Test.Type == Other.Type)
+	auto v = GetRefOpType(Test.Type);
+
+	if (v== GetRefOpType(Other.Type))
 	{
 		bool r =false;
-		switch (Test.Type)
+		switch (v)
 		{
-		case IROperatorType::IRidentifier:
-		case IROperatorType::Get_PointerOf_IRidentifier:
+		case IRRefOpType::IRidentifier:
 			r = Test.identifier == Other.identifier;
 			break;
-		case IROperatorType::DereferenceOf_IRInstruction:
-		case IROperatorType::Get_PointerOf_IRInstruction:
-		case IROperatorType::IRInstruction:
+		case IRRefOpType::IRInstruction:
 			r = Test.Pointer == Other.Pointer;
 			break;
-		case IROperatorType::DereferenceOf_IRParameter:
-		case IROperatorType::IRParameter:
-		case IROperatorType::Get_PointerOf_IRParameter:
+		case IRRefOpType::IRParameter:
 			r = Test.Parameter == Other.Parameter;
 			break;
 		default:
