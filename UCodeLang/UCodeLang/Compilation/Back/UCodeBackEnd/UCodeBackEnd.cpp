@@ -955,9 +955,23 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 							//StoreValue(Item, IROperator(Item), Item->Target());
 						}
 					}
+					else if (auto op = regva.Get_If<const IRInstruction*>())
+					{
+						auto& o = *op;
+
+						bool set = true;
+						if (o->Type ==IRInstructionType::Member_Access_Dereference)
+						{
+							o = false;
+						}
+						
+						if (set) {
+							RegWillBeUsed(reg);
+						}
+					}
 					else 
 					{
-						RegWillBeUsed(reg);
+						//RegWillBeUsed(reg);
 					}
 				}
 			}
