@@ -1,0 +1,6 @@
+AuthorName: "UCodeLang"
+ModuleName: "BuildSystem"
+Version: 0:0:0
+NameSpace: BuildSystem
+
+import UCodeLang::StandardLibrary[0:0:0];

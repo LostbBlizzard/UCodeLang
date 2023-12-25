@@ -1,8 +1,0 @@
-AuthorName: "UCodeLang"
-ModuleName: "Win32"
-Version: 0:0:0
-Src: "src"
-Obj: "int"
-Out: "out"
-
-import UCodeLang::NWin32[0:0:0];
