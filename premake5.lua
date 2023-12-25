@@ -519,8 +519,8 @@ group "UCodeAPIs"
     UCPathExe.." index %{prj.location}",
     --UCPathExe.." build %{prj.location}"
    }
- project "Win32"
-  location "UCodeAPI/Win32"
+ project "CompilerAPI"
+  location "UCodeAPI/CompilerAPI"
   kind "StaticLib"
   language "C++"
 
@@ -528,7 +528,7 @@ group "UCodeAPIs"
   objdir ("Output/int/%{prj.name}/" .. OutDirPath)
 
   
-  dependson {"UCodelangCL","NWin32"}
+  dependson {"UCodelangCL","StandardLibrary"}
   files { 
   "UCodeAPI/%{prj.name}/ignoreC.c",
   "UCodeAPI/%{prj.name}/src/**.uc",
@@ -541,10 +541,10 @@ group "UCodeAPIs"
    prebuildcommands 
    {
      UCPathExe.." index %{prj.location}",
-     --UCPathExe.." build %{prj.location}"
+     UCPathExe.." build %{prj.location}"
    }
- project "NWin32"
-   location "UCodeAPI/NWin32"
+ project "BuildSystem"
+   location "UCodeAPI/BuildSystem"
    kind "StaticLib"
    language "C++"
 
@@ -564,33 +564,9 @@ group "UCodeAPIs"
     prebuildcommands 
     {
      UCPathExe.." index %{prj.location}",
-     --UCPathExe.." build %{prj.location}"
+     UCPathExe.." build %{prj.location}"
     }
- project "Example"
-   location "UCodeAPI/Example"
-   kind "ConsoleApp"
-   language "C++"
-
-   targetdir ("Output/%{prj.name}/" .. OutDirPath)
-   objdir ("Output/int/%{prj.name}/" .. OutDirPath)
-
-   
-   dependson {"StandardLibrary","UCodelangCL"}
-   files { 
-   "UCodeAPI/%{prj.name}/out/CLang89/Example.c",
-   "UCodeAPI/%{prj.name}/src/**.uc",
-   "UCodeAPI/%{prj.name}/ULangModule.ucm",
-   }
-
-   prebuildmessage 'compiling ucodelang files'
-
-   if not os.host() == "macosx" then--MacOs CL build fail because of this. 
-   prebuildcommands 
-   {
-    --UCPathExe.." build %{prj.location} -c11",
-   }
-   end
-
+ 
 function executeorexit(str)
  exit = os.execute(str)
 
