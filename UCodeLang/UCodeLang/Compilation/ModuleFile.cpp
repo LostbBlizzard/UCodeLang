@@ -382,6 +382,13 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 
 						apiobject.F = [&]() -> bool
 							{
+								if (LogsOut.has_value())
+								{
+									Compiler.SetLog([&]()
+										{
+											(*LogsOut)("Building:" + this->ModuleName.ModuleName);
+										});
+								}
 								CompilerRet.CompilerRet = Compiler.CompileFiles_UseIntDir(paths, ExternFiles);
 								return CompilerRet.CompilerRet.IsValue();
 							};
@@ -436,10 +443,14 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 			{
 				auto OldSettings = Compiler.Get_Settings();
 
-#if UCodeLangDebug
-				std::cout << "Building:" << this->ModuleName.ModuleName;
-				std::cout << '\n';
-#endif
+
+				if (LogsOut.has_value())
+				{
+					Compiler.SetLog([&]()
+					{
+							(*LogsOut)("Building:" + this->ModuleName.ModuleName);
+					});
+				}
 
 				ModuleRet CompilerRet = Compiler::CompilerRet(NeverNullptr(&Compiler.Get_Errors()));
 				{
@@ -578,6 +589,8 @@ void ModuleFile::NewInit(String ModuleName, String AuthorName)
 	this->ModuleName.ModuleName = ModuleName;
 	this->ModuleName.AuthorName = AuthorName;
 	this->ModuleNameSpace = ModuleName;
+	
+	this->RemoveUnSafe = true;
 	{
 		
 		ModuleDependencie f;

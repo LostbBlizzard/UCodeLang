@@ -1459,7 +1459,10 @@ bool buildfile2(UCodeLang::Path& filetorun, UCodeLang::Compiler& _Compiler, UCod
 				_This.ExeRet = EXIT_FAILURE;
 			}
 			else {
-				bool ItWorked = module.BuildModule(_Compiler, _ModuleIndex).CompilerRet.IsValue();
+				bool ItWorked = module.BuildModule(_Compiler, _ModuleIndex,false, [](String msg)
+					{
+						AppPrintin(msg);
+					}).CompilerRet.IsValue();
 				if (!ItWorked)
 				{
 					*_This.output << _Compiler.Get_Errors().ToString();
@@ -1542,7 +1545,10 @@ bool buildfile2(UCodeLang::Path& filetorun, UCodeLang::Compiler& _Compiler, UCod
 		}
 		else 
 		{
-			bool ItWorked = module.BuildModule(_Compiler, _ModuleIndex).CompilerRet.IsValue();
+			bool ItWorked = module.BuildModule(_Compiler, _ModuleIndex,false, [](String msg)
+				{
+					AppPrintin(msg);
+				}).CompilerRet.IsValue();
 			if (!ItWorked)
 			{
 				*_This.output << "Compiler Fail:\n";

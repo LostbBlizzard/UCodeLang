@@ -952,6 +952,10 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 	bool sholdcompile = Files.size() || !fs::exists(Data.OutFile);
 	if (sholdcompile && !_Errors.Has_Errors())
 	{
+		if (_rebuildcallback.has_value())
+		{
+			(*_rebuildcallback)();
+		}
 
 		if (CanFindDependencyBeforIR) 
 		{
