@@ -22,6 +22,7 @@
 
 #include "UCodeLang/RunTime/TestRuner.hpp"
 #include "UCodeLang/RunTime/SandBoxedIOLink.hpp"
+#include "ConsoleColor.hpp"
 using namespace UCodeLang;
 
 
@@ -785,20 +786,41 @@ void ParseLine(String_view& Line)
 			}
 
 			TestRuner runer;
-			auto info = runer.RunTests(lib, interpreter, [](TestRuner::TestInfo& test)
+			Vector<String> failingtest;
+			auto info = runer.RunTests(lib, interpreter, [&](TestRuner::TestInfo& test)
 			{
 					if (test.Passed)
 					{
+						print_color(color_green);
 						AppPrintin("Test :" << test.TestName << " Passed");
+						print_color_reset();
 					}
 					else
 					{
+						print_color(color_red);
 						AppPrintin("Test :" << test.TestName << " Fail");
+						print_color_reset();
+
+						failingtest.push_back(test.TestName);
 					}
 			});
 			bool passed = info.TestCount == info.TestPassedCount;
 			AppPrintin("Ran all " << info.TestCount << " Tests");
 			
+			if (!passed)
+			{
+				AppPrint("----")
+				AppPrint(std::to_string(info.TestCount  - info.TestPassedCount));
+				AppPrintin(" Failing Tests");
+				for (auto& Item : failingtest)
+				{
+					print_color(color_red);
+					AppPrintin("-" << Item);
+				}
+				print_color_reset();
+				AppPrintin("----");
+			}
+
 			int passnumber;
 			if (info.TestPassedCount)
 			{
@@ -812,12 +834,34 @@ void ParseLine(String_view& Line)
 			
 			if (passed)
 			{
+				print_color(color_green);
 				AppPrintin("Tests Passed.all 100% of tests passed");
+				print_color_reset();
 				_This.ExeRet = EXIT_SUCCESS;
 			}
 			else
 			{
+				if (passnumber < 50)
+				{
+					print_color(color_red);
+				}
+				else if (passnumber < 70)
+				{
+					print_color(color_orange);
+				}
+				else if (passnumber < 100)
+				{
+					print_color(color_yellow);
+				}
+				else if (passnumber == 100)
+				{
+					print_color(color_green);
+				}
+
+
 				AppPrintin("Tests Failed about " << passnumber << "% passed");
+
+				print_color_reset();
 
 				_This.ExeRet = EXIT_FAILURE;
 			}
@@ -1465,7 +1509,29 @@ bool buildfile2(UCodeLang::Path& filetorun, UCodeLang::Compiler& _Compiler, UCod
 					}).CompilerRet.IsValue();
 				if (!ItWorked)
 				{
-					*_This.output << _Compiler.Get_Errors().ToString();
+
+					for (auto& Item : _Compiler.Get_Errors().Get_Errors())
+					{
+						if (CompilationErrors::IsError(Item._Code))
+						{
+							print_color(color_red);
+						}
+						else if (CompilationErrors::IsWarning(Item._Code))
+						{
+							print_color(color_yellow);
+						}
+						else if (CompilationErrors::IsHint(Item._Code))
+						{
+							print_color(color_white);
+						}
+						else 
+						{
+							print_color(color_white);
+						}
+						AppPrintin(Item.ToString());
+					}
+					print_color_reset();
+
 					_This.ExeRet = EXIT_FAILURE;
 				}
 				else
@@ -1517,7 +1583,6 @@ bool buildfile2(UCodeLang::Path& filetorun, UCodeLang::Compiler& _Compiler, UCod
 		
 		if (!ItWorked)
 		{
-			*_This.output << "Compiler Fail:\n";
 			*_This.output << _Compiler.Get_Errors().ToString();
 			_This.ExeRet = EXIT_FAILURE;
 		}
