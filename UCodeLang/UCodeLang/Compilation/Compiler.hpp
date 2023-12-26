@@ -113,6 +113,10 @@ public:
 	{
 		_rebuildcallback = log;
 	}
+	void RemoveLog()
+	{
+		_rebuildcallback = {};
+	}
 
 	Compiler();
 private:

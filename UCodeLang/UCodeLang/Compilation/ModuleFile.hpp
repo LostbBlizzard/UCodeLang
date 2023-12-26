@@ -160,7 +160,7 @@ public:
 private:
 	void BuildModuleDependencies(const ModuleIndex& Modules,CompilationErrors& Errs, bool& Err, Compiler& Compiler
 		, const Vector<ModuleDependencie>& ModuleDependencies
-		, Compiler::ExternalFiles& externfilesoutput);
+		, Compiler::ExternalFiles& externfilesoutput, Optional<LogOut> LogsOut);
 
 };
 UCodeLangEnd

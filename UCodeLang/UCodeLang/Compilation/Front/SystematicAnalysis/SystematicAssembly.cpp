@@ -5,11 +5,40 @@ UCodeLangFrontStart
 
 void SystematicAnalysis::Assembly_ConvertAttributes(const Vector<Unique_ptr<AttributeNode>>& nodes, Vector<UsedTagValueData>& Out)
 {
-	Out.resize(nodes.size());
-	for (size_t i = 0; i < nodes.size(); i++)
+	bool IsSubModule = _Settings->_Type == OutPutType::IRAndSymbols;
+	bool AddSubModuleTests = !IsSubModule;
+
+
+	if (AddSubModuleTests) 
 	{
-		Assembly_ConvertAttribute(*nodes[i], Out[i]);
+		Out.resize(nodes.size());
+		for (size_t i = 0; i < nodes.size(); i++)
+		{
+			Assembly_ConvertAttribute(*nodes[i], Out[i]);
+		}
 	}
+	else
+	{
+		for (size_t i = 0; i < nodes.size(); i++)
+		{
+			auto& Item = nodes[i];
+
+			String str;
+			Item->_ScopedName.GetScopedName(str);
+			{
+				//good enough for now
+				//TODO verify that it's the actual test tag in StandardLibrary
+				bool istesttag = StringHelper::EndWith(str, "Test");
+
+				if (istesttag)
+				{
+					continue;
+				}
+			}
+			Assembly_ConvertAttribute(*nodes[i], Out.emplace_back());
+		}
+	}
+
 }
 void SystematicAnalysis::Assembly_ConvertAttribute(const AttributeNode& nodes, UsedTagValueData& Out)
 {

@@ -323,7 +323,7 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 
 		bool Err = false;
 
-		BuildModuleDependencies(Modules, Errs, Err, Compiler, this->ModuleDependencies, ExternFiles);
+		BuildModuleDependencies(Modules, Errs, Err, Compiler, this->ModuleDependencies, ExternFiles, LogsOut);
 
 		if (Err == false)
 		{
@@ -451,6 +451,10 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 							(*LogsOut)("Building:" + this->ModuleName.ModuleName);
 					});
 				}
+				else
+				{
+					Compiler.RemoveLog();
+				}
 
 				ModuleRet CompilerRet = Compiler::CompilerRet(NeverNullptr(&Compiler.Get_Errors()));
 				{
@@ -499,7 +503,7 @@ void ModuleFile::BuildModuleDependencies(
 	CompilationErrors& Errs, bool& Err,
 	Compiler& Compiler,
 	const Vector<ModuleDependencie>& ModuleDependencies,
-	Compiler::ExternalFiles& externfilesoutput)
+	Compiler::ExternalFiles& externfilesoutput, Optional<LogOut> LogsOut)
 {
 	for (auto& Item : ModuleDependencies)
 	{
@@ -522,7 +526,7 @@ void ModuleFile::BuildModuleDependencies(
 			ModuleFile MFile;
 			if (ModuleFile::FromFile(&MFile, Index._ModuleFullPath))
 			{
-				auto BuildData = MFile.BuildModule(Compiler, Modules, true);
+				auto BuildData = MFile.BuildModule(Compiler, Modules, true,LogsOut);
 				if (BuildData.CompilerRet.IsError())
 				{
 					Errs.FilePath = GetFullPathName();
@@ -696,7 +700,7 @@ Version: 0:0:0)";
 	bool Err = false;
 
 	auto oldname = Errs.FilePath;
-	BuildModuleDependencies(Modules, Errs, Err, Compiler, buildfileDependencies, buildExternFiles);
+	BuildModuleDependencies(Modules, Errs, Err, Compiler, buildfileDependencies, buildExternFiles,LogsOut);
 	Errs.FilePath = oldname;
 
 
