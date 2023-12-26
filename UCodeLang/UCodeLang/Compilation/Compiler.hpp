@@ -16,6 +16,8 @@ class Compiler
 {
 
 public:
+
+	using OnRebuild = std::function<void()>;
 	struct CompilationSuccess
 	{
 		NeverNullPtr<UClib> OutPut;
@@ -107,6 +109,10 @@ public:
 		obj->UpdateBackInfo(V);
 		return V;
 	}
+	void SetLog(OnRebuild log)
+	{
+		_rebuildcallback = log;
+	}
 
 	Compiler();
 private:
@@ -118,7 +124,8 @@ private:
 	IROptimizer _Optimizer;
 	//Back
 	Unique_ptr<BackEndObject> _BackEndObject;
-
+	//Log
+	Optional<OnRebuild> _rebuildcallback;
 
 	FrontEndObject_Ptr _FrontEnd = nullptr;
 	BackEndObject_Ptr _BackEnd = nullptr;
