@@ -370,6 +370,8 @@ struct Eval_Data
 struct Tag_Data
 {
 	ReflectionCustomTypeID TypeID = {};
+	Vector<ClassField> Fields;
+	Vector<ClassMethod> Methods;
 	~Tag_Data()
 	{
 
