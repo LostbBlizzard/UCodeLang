@@ -8,6 +8,9 @@
 
 #include "UCodeLang/Compilation/ModuleFile.hpp"
 
+
+#include "UCodeLang/LangCore/Version.hpp"
+
 #include "UCodeLang/Compilation/Back/UCodeBackEnd/UCodeBackEnd.hpp"
 #include "UCodeLang/Compilation/Back/C11/C11Backend.hpp"
 #include "UCodeLang/Compilation/Back/IR/IRBackEnd.hpp"

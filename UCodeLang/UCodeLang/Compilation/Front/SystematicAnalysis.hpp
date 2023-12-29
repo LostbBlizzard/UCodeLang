@@ -542,6 +542,24 @@ private:
 		bool HasValue = false;
 		Optional<Symbol*> Value;
 	};
+
+	using EvalPointer = UInt32;
+	
+	struct EvalSharedState
+	{
+		UnorderedMap<EvalPointer,RawEvaluatedObject*> ActivePointers;
+
+		EvalPointer _NextEvalPointer = {};
+		
+		
+		EvalPointer GetNewEvalPointer()
+		{
+			auto v = _NextEvalPointer;
+			_NextEvalPointer++;
+			return v;
+		}
+
+	};
 	struct EvalFuncData
 	{
 		UnorderedMap<SymbolID, RawEvaluatedObject> Pars;

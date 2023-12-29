@@ -139,9 +139,9 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 		{
 			auto& Class = Item->Get_ClassData();
 
-			for (auto Item2 : Class.Attributes.Attributes)
+			for (auto& Item2 : Class.Attributes.Attributes)
 			{
-				ToString(Item2,Assembly);
+				r += ToString(Item2,Assembly);
 			}
 			r += "$" + Item->FullName + ":\n";
 			
@@ -154,10 +154,10 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 			}
 			r += "\n";
 
-			for (auto Item2 : Class.Methods)
+			for (auto& Item2 : Class.Methods)
 			{
 				r += " ";
-				for (auto Item3 : Item2.Attributes.Attributes)
+				for (auto& Item3 : Item2.Attributes.Attributes)
 				{
 					r += ToString(Item3, Assembly);
 				}
@@ -258,8 +258,49 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 		case ClassType::Tag:
 		{
 			r += "$" + Item->FullName + " tag:\n";
-			auto& TagData= Item->Get_TagData();
 
+			auto& TagData= Item->Get_TagData();
+			for (auto& Item2 : TagData.Fields)
+			{
+				r += " " + ToString(Item2.Type, Assembly) + " " + Item2.Name + ";//Offset " + std::to_string(Item2.offset) + "\n";
+			}
+			r += "\n";
+
+			for (auto& Item2 : TagData.Methods)
+			{
+				r += " ";
+				for (auto& Item3 : Item2.Attributes.Attributes)
+				{
+					r += ToString(Item3, Assembly);
+				}
+
+				r += "|" + ScopeHelper::GetNameFromFullName(Item2.FullName) + "[";
+
+				for (auto& Item3 : Item2.ParsType)
+				{
+					if (&Item3 == &Item2.ParsType.front() && Item2.IsThisFunction)
+					{
+
+						if (Item3.Type.Isimmutable())
+						{
+							r += "umut ";
+						}
+
+						r += "this&";
+					}
+					else
+					{
+						r += ToString(Item3, Assembly);
+					}
+					if (&Item3 != &Item2.ParsType.back()) {
+						r += ", ";
+					}
+				}
+				r += "] -> " + ToString(Item2.RetType, Assembly) + ";";
+				r += "//" + Item2.DecorationName + '\n';
+
+			}
+			r += "\n\n";
 		}
 		break;
 		case ClassType::Trait:

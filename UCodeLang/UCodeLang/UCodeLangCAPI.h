@@ -227,7 +227,12 @@ extern "C"
 
     typedef void(*UCodeLangCAPI_CppCall)(UCodeLangCAPI_InterpreterCPPinterface* cppinterface);
 
-    //functions
+   
+    //functions 
+    UCodeLangAPIExport uint32_t UCodeLangCAPI_VersionMajor();
+    UCodeLangAPIExport uint32_t UCodeLangCAPI_VersionMinor();
+    UCodeLangAPIExport uint32_t UCodeLangCAPI_VersionPatch();
+    UCodeLangAPIExport uint32_t UCodeLangCAPI_VersionNumber();
     #ifndef UCodeLangNoCompiler
     //Compile
     UCodeLangCStruct UCodeLangCAPI_Compiler* UCodeLangAPIExport UCodeLangCAPI_New_Compiler();

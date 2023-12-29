@@ -1,5 +1,6 @@
 #include "UClib.hpp"
 #include <fstream>
+#include "UCodeLang/LangCore/Version.hpp"
 UCodeLangStart
 
 UClib::UClib() : LibEndianess(BitConverter::InputOutEndian)
@@ -17,9 +18,14 @@ void UClib::Reset()
 }
 using Size_tAsBits = BitMaker::SizeAsBits;
 
+#if UCodeLangDebug
+const unsigned char UClibSignature[] = "LBlib32";
+#else
+const unsigned char UClibSignature[]= "LBlib";
+#endif
 
-const unsigned char UClibSignature[]= "Lost_blizzard_Ulib";
 constexpr size_t UClibSignature_Size = sizeof(UClibSignature);
+
 
 BytesPtr UClib::ToRawBytes(const UClib* Lib)
 {
@@ -31,8 +37,7 @@ BytesPtr UClib::ToRawBytes(const UClib* Lib)
 	{
 		Output.WriteType((Size_tAsBits)UClibSignature_Size);
 		Output.WriteBytes(UClibSignature, UClibSignature_Size);
-
-		Output.WriteType((InstructionSet_t)InstructionSet::MAXVALUE);
+		Output.WriteType((UInt32)UCodeLangVersionNumber);
 	}
 
 	Output.WriteType((NTypeSize_t)Lib->BitSize);
@@ -440,9 +445,9 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 		reader.Increment_offset(UClibSignature_Size);
 
 
-		InstructionSet Value = InstructionSet::DoNothing;
-		reader.ReadType(*(InstructionSet_t*)&Value, *(InstructionSet_t*)&Value);
-		if (Value != InstructionSet::MAXVALUE)
+		UInt32 Value = 0;
+		reader.ReadType(Value,Value);
+		if (Value != UCodeLangVersionNumber)
 		{
 			return false;
 		}

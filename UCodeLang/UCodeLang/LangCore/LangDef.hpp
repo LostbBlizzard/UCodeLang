@@ -4,11 +4,6 @@
 #include "UCodeLangNameSpace.hpp"
 #endif
 
-
-#define UCodeLangMajorVersion 0
-#define UCodeLangMinorVersion 2
-#define UCodeLangPatchVersion 3
-
 #if defined(_MSC_VER)
 #define UCodeLangMSVC 1
 #else

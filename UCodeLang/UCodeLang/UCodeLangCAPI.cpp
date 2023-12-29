@@ -1,5 +1,6 @@
 #include "UCodeLangCAPI.h"
 #include "UCodeLang/UCodeLang.hpp"
+#include "UCodeLang/LangCore/Version.hpp"
 
 #include "UCodeLang/Compilation/Back/C11/C11Backend.hpp"
 #include "UCodeLang/Compilation/Back/UCodeBackEnd/UCodeBackEnd.hpp"
@@ -247,6 +248,25 @@ const UCodeLang::ClassMethod* As(UCodeLangCAPI_Const_ClassMethod* Value)
 UCodeLangCAPI_Const_ClassMethod* As(const UCodeLang::ClassMethod* Value)
 {
 	return (UCodeLangCAPI_ClassMethod*)Value;
+}
+
+
+uint32_t UCodeLangCAPI_VersionMajor()
+{
+	return UCodeLangMajorVersion;
+}
+uint32_t UCodeLangCAPI_VersionMinor()
+{
+	return UCodeLangMinorVersion;
+}
+uint32_t UCodeLangCAPI_VersionPatch()
+{
+
+	return UCodeLangPatchVersion;
+}
+uint32_t UCodeLangCAPI_VersionNumber()
+{
+	return UCodeLangVersionNumber;
 }
 
 
