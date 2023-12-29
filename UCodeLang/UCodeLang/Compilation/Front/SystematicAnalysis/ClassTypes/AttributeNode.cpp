@@ -17,8 +17,11 @@ void SystematicAnalysis::OnAttributeNode(const AttributeNode& node)
 
 		auto SybID = Symbol_GetSymbolID(node);
 		auto& Syb = Symbol_AddSymbol(SymbolType::UsedTag, CompilerGeneratedStart + V + CompilerGeneratedEnd, CompilerGeneratedStart + V + CompilerGeneratedEnd, AccessModifierType::Private);
-		Syb.Info.reset(new UsedTagInfo());
 		
+
+		UsedTagInfo* info = new UsedTagInfo();
+		Syb.Info.reset(info);
+
 		_Table.AddSymbolID(Syb, SybID);
 
 		auto AttOp = Symbol_GetSymbol(V, SymbolType::Tag_class);
@@ -159,23 +162,51 @@ void SystematicAnalysis::OnAttributeNode(const AttributeNode& node)
 				if (FuncToCall.has_value())
 				{
 					auto& callingfunc = (*FuncToCall);
+					FuncInfo* finfo = callingfunc->Get_Info<FuncInfo>();
+
 
 					EvalFuncData state;
 
 					Vector<EvaluatedEx> Val;
 					Val.resize(EvalParsInfo.size() + 1);
+				
 
-					Val[0] = {};
+					auto& thispointertype = *callingfunc->Get_Info<FuncInfo>()->GetObjectForCall();
 
+					EvaluatedEx ThisVal;
+					auto classtype = thispointertype;
+					classtype._IsAddress = false;
+
+					ThisVal = Eval_MakeEx(classtype);
+
+					EvalSharedState newevalstate;
+					Val[0] = Eval_MakeEx(thispointertype);
+					
+					Eval_Set_ObjectAs(Val[0], newevalstate.GivePointerAccess(&ThisVal));
+
+					_SharedEvalStates.push_back(std::move(newevalstate));
+
+					
 					for (size_t i = 0; i < EvalParsInfo.size(); i++)
 					{
 						auto& Item = EvalParsInfo[i];
 						auto& Out = Val[i + 1];
 
 						Out = std::move(Item);
+
+
 					}
 
-					Eval_EvalutateFunc(state, callingfunc, Val);
+
+					_Eval_FuncStackFrames.push_back(Unique_ptr<EvalFuncData>(new EvalFuncData(std::move(state))));
+					
+					Eval_EvalutateFunc(*_Eval_FuncStackFrames.back(), callingfunc, Val);
+					
+					_Eval_FuncStackFrames.pop_back();
+
+					_SharedEvalStates.pop_back();
+
+					info->RawObj = std::move(ThisVal.EvaluatedObject);
 				}
 				else
 				{
