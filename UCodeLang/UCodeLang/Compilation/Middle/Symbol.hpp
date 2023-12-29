@@ -880,12 +880,10 @@ public:
 
 };
 
-class TagInfo :public Symbol_Info
+class TagInfo :public ClassInfo
 {
 public:
-	Generic _GenericData;
-	Optional<SymbolContext> Context;
-
+	
 };
 class DeclareVariableInfo :public Symbol_Info
 {
@@ -894,6 +892,12 @@ public:
 	size_t LineNumber = 0;
 
 	Optional<SymbolContext> Context;
+};
+
+class UsedTagInfo :public Symbol_Info
+{
+public:
+	RawEvaluatedObject RawObj;
 };
 
 class Symbol
