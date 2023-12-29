@@ -547,9 +547,14 @@ private:
 	
 	struct EvalSharedState
 	{
-		UnorderedMap<EvalPointer,RawEvaluatedObject*> ActivePointers;
+		struct MemLoc
+		{
+			TypeSymbol type;
+			RawEvaluatedObject* pointer;
+		};
+		UnorderedMap<EvalPointer, MemLoc> ActivePointers;
 
-		EvalPointer _NextEvalPointer = {};
+		EvalPointer _NextEvalPointer = 1;//must non non-zero because people will use 0 as a invaild pointer
 		
 		
 		EvalPointer GetNewEvalPointer()
@@ -559,6 +564,65 @@ private:
 			return v;
 		}
 
+		EvalPointer GivePointerAccess(TypeSymbol type,RawEvaluatedObject* pointer)
+		{
+			auto r = GetNewEvalPointer();
+			
+			ActivePointers.AddValue(r,{ type,pointer });
+
+			return r;
+		}
+		EvalPointer GivePointerAccess(EvaluatedEx* pointer)
+		{
+			return GivePointerAccess(pointer->Type, &pointer->EvaluatedObject);
+		}
+
+		void RemoveAccess(RawEvaluatedObject* pointer)
+		{
+			for (auto& Item : ActivePointers)
+			{
+				if (Item.second.pointer == pointer)
+				{
+					return;
+				}
+			}
+			UCodeLangUnreachable();
+		}
+		void RemoveAccess(EvaluatedEx* pointer)
+		{
+			RemoveAccess(&pointer->EvaluatedObject);
+		}
+
+		bool PointerWrite(EvalPointer pointer, size_t offset, RawEvaluatedObject& val)
+		{
+			if (ActivePointers.HasValue(pointer))
+			{
+				auto& p = ActivePointers.GetValue(pointer);
+				
+				void* ptr = p.pointer->Object_AsPointer.get() + offset;
+
+
+
+				UCodeLangAssert((p.pointer->ObjectSize -offset) >= val.ObjectSize);
+				
+				memcpy(ptr, val.Object_AsPointer.get(), val.ObjectSize);
+			}
+			else
+			{
+				return false;
+			}
+		}
+		bool PointerRead(EvalPointer pointer, size_t offset, RawEvaluatedObject& out)
+		{
+			if (ActivePointers.HasValue(pointer))
+			{
+				return false;
+			}
+			else
+			{
+				return false;
+			}
+		}
 	};
 	struct EvalFuncData
 	{
@@ -824,7 +888,16 @@ private:
 	Stack<GetValueMode> _GetExpressionMode;
 	Stack<VarableUseData> _Varable;
 	Vector<Unique_ptr<EvalFuncData>> _Eval_FuncStackFrames;
+	Vector<EvalSharedState> _SharedEvalStates;
 	
+	NullablePtr<EvalSharedState> GetSharedEval()
+	{
+		if (_SharedEvalStates.size())
+		{
+			return &_SharedEvalStates.front();
+		}
+		return {};
+	}
 	
 	//To Fix Types being Loaded out of order.
 	Vector<LibLoadTypeSeter> _Lib_TypesToFix;
@@ -1572,7 +1645,15 @@ private:
 	template<typename T> T* Eval_Get_ObjectAs(const TypeSymbol& Input, const RawEvaluatedObject& Input2)
 	{
 		#if UCodeLangDebug
-		if (Input2.ObjectSize != sizeof(T))
+		if ((Input.IsAddress() || Input.IsAddressArray()))
+		{
+			if (sizeof(T) != sizeof(EvalPointer))
+			{
+				String TepStr = "type miss-mach when EvaluatedObject To Cpp type '" + (String)typeid(T).name() + "' ";
+				UCodeLangThrowException(TepStr.c_str());
+			}
+		}
+		else if (Input2.ObjectSize != sizeof(T))
 		{
 			String TepStr = "type miss-mach when EvaluatedObject To Cpp type '" + (String)typeid(T).name() + "' ";
 			UCodeLangThrowException(TepStr.c_str());
@@ -1588,7 +1669,15 @@ private:
 	template<typename T> const T* Eval_Get_ObjectAs(const TypeSymbol& Input, const RawEvaluatedObject& Input2) const
 	{
 		#if UCodeLangDebug
-		if (Input2.ObjectSize != sizeof(T))
+		if ((Input.IsAddress() || Input.IsAddressArray()))
+		{
+			if (sizeof(T) != sizeof(EvalPointer))
+			{
+				String TepStr = "type miss-mach when EvaluatedObject To Cpp type '" + (String)typeid(T).name() + "' ";
+				UCodeLangThrowException(TepStr.c_str());
+			}
+		}
+		else if (Input2.ObjectSize != sizeof(T))
 		{
 			String TepStr = "type miss-mach when EvaluatedObject To Cpp type '" + (String)typeid(T).name() + "' ";
 			UCodeLangThrowException(TepStr.c_str());
@@ -1604,7 +1693,15 @@ private:
 	template<typename T> void Eval_Set_ObjectAs(const TypeSymbol& Input, RawEvaluatedObject& Input2, const T& Value)
 	{
 		#if UCodeLangDebug
-		if (Input2.ObjectSize != sizeof(T))
+		if (Input.IsAddress() || Input.IsAddressArray())
+		{
+			if (sizeof(EvalPointer) != sizeof(Value))
+			{
+				String TepStr = "type miss-mach when Cpp type To EvaluatedObject'" + (String)typeid(T).name() + "' ";
+				UCodeLangThrowException(TepStr.c_str());
+			}
+		}
+		else if (Input2.ObjectSize != sizeof(T))
 		{
 			String TepStr = "type miss-mach when Cpp type To EvaluatedObject'" + (String)typeid(T).name() + "' ";
 			UCodeLangThrowException(TepStr.c_str());
@@ -1625,7 +1722,15 @@ private:
 	void Eval_Set_ObjectAs(const TypeSymbol& Input, RawEvaluatedObject& Input2, const void* Object, size_t ObjectSize)
 	{
 		#if UCodeLangDebug
-		if (Input2.ObjectSize != ObjectSize)
+		if (Input.IsAddress() || Input.IsAddressArray())
+		{
+			if (sizeof(EvalPointer) != ObjectSize)
+			{
+				String TepStr = "type miss-mach when Cpp type To EvaluatedObject'"; 
+				UCodeLangThrowException(TepStr.c_str());
+			}
+		}
+		else if (Input2.ObjectSize != ObjectSize)
 		{
 			String TepStr = "type miss-mach when Cpp type To EvaluatedObject'";
 			UCodeLangThrowException(TepStr.c_str());
@@ -1799,6 +1904,8 @@ private:
 	Optional<EvaluatedEx> Eval_EvaluateToAnyType(const ExpressionNodeType& node);
 	String ToString(const TypeSymbol& Type, const RawEvaluatedObject& Data) const;
 	IRInstruction* IR_RawObjectDataToCString(const RawEvaluatedObject& EvalObject);
+
+	bool EvalStore(EvalFuncData& State, const ExpressionNodeType& Storenode, EvaluatedEx& In);
 	//IR
 	void IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNode& Name, const ValueParametersNode& Pars);
 	void IR_Build_FuncCall(const TypeSymbol& Type, const Get_FuncInfo& Func, const ValueParametersNode& ValuePars);

@@ -459,7 +459,7 @@ bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const ValueExpressionNo
 	case NodeType::ReadVariableNode:
 	{
 		ReadVariableNode* nod = ReadVariableNode::As(node._Value.get());
-		Eval_Evaluate(Out, *nod);
+		return Eval_Evaluate(Out, *nod);
 	}
 	break;
 	case NodeType::CMPTypesNode:
@@ -1094,20 +1094,29 @@ bool SystematicAnalysis::Eval_EvalutateFunc(EvalFuncData& State, const NeverNull
 	const FuncInfo* funcInfo = Func->Get_Info<FuncInfo>();
 	Set_SymbolContext(funcInfo->Context.value());
 	{
-		_Table.AddScope("__EvalFunc");
-
+		_Table._Scope.ThisScope = Func->FullName;
+		
 		const FuncNode& Body = *Func->Get_NodeInfo<FuncNode>();
 
 		State.Pars.reserve(Pars.size());
-		for (size_t i = 0; i < State.Pars.size(); i++)
+		for (size_t i = 0; i < Pars.size(); i++)
 		{
 			auto ID = Symbol_GetSymbolID(Body._Signature._Parameters._Parameters[i]);
 			State.Pars.AddValue(ID, Pars[i].EvaluatedObject);
 		}
-		State.Ret.ObjectSize = Type_GetSize(funcInfo->Ret).value();
-		State.Ret.Object_AsPointer.reset(new Byte[State.Ret.ObjectSize]);
+		if (funcInfo->Ret._Type != TypesEnum::Void)
+		{
+			State.Ret.ObjectSize = Type_GetSize(funcInfo->Ret).value();
+			State.Ret.Object_AsPointer.reset(new Byte[State.Ret.ObjectSize]);
+		}
 		State.FuncSyb = Func.value();
+
+		{
+			FuncStackInfo v = { (FuncInfo*)funcInfo };
+			_FuncStack.push_back(std::move(v));
+		}
 		//
+		_Table.AddScope("__EvalFunc");
 
 
 		for (auto& Item : Body._Body.value()._Statements._Nodes)
@@ -1122,11 +1131,103 @@ bool SystematicAnalysis::Eval_EvalutateFunc(EvalFuncData& State, const NeverNull
 
 		}
 
+		{
+			_FuncStack.pop_back();
+		}
+
 		_Table.RemoveScope();
 	}
 
 	Set_SymbolContext(std::move(Conxet));
 	return !Fail;
+}
+
+bool SystematicAnalysis::EvalStore(EvalFuncData& State, const ExpressionNodeType& Storenode, EvaluatedEx& In)
+{
+	switch (Storenode._Value.get()->Get_Type())
+	{
+	case NodeType::ValueExpressionNode:
+	{
+		const ValueExpressionNode* v = ValueExpressionNode::As(Storenode._Value.get());
+
+		switch (v->_Value.get()->Get_Type())
+		{
+		case NodeType::ReadVariableNode:
+		{
+			ReadVariableNode* nod = ReadVariableNode::As(v->_Value.get());
+
+			String Scope;
+			NullablePtr<Symbol> oldsyb;
+			for (size_t i = 0; i < nod->_VariableName._ScopedName.size(); i++)
+			{
+				auto& item = nod->_VariableName._ScopedName[i];
+				
+				bool isstart = i == 0;
+				bool islast = i == nod->_VariableName._ScopedName.size() - 1;
+
+				if (oldsyb.has_value())
+				{
+					return false;
+				}
+				else
+				{
+					Scope += item._token->Value._String;
+
+					auto syb = Symbol_GetSymbol(Scope, SymbolType::Any);
+
+					if (syb.has_value())
+					{
+						if (islast)
+						{
+							auto Sym = syb.value();
+							
+							if (Sym->Type == SymbolType::Class_Field)
+							{
+								auto& frame = _Eval_FuncStackFrames.back();
+
+								auto ThisSym = Symbol_GetSymbol(
+									ScopeHelper::ApendedStrings(frame->FuncSyb->FullName, ThisSymbolName)
+									, SymbolType::ParameterVarable);
+
+								auto& Par = frame->Pars.GetValue(ThisSym.value()->ID);
+								
+								auto p = *Eval_Get_ObjectAs<EvalPointer>(ThisSym.value()->VarType, Par);
+
+								size_t offset = 0;
+
+								GetSharedEval().value()->PointerWrite(p, offset, In.EvaluatedObject);
+						
+								return true;
+							}
+							else
+							{
+								return false;
+							}
+						}
+						else
+						{
+							return false;
+						}
+					}
+					else
+					{
+						return false;
+					}
+
+				}
+			} 
+		}
+		break;
+		default:
+			return false;
+			break;
+		}
+
+	}break;
+	default:
+		break;
+	}
+	return false;
 }
 bool SystematicAnalysis::Eval_EvalutateStatement(EvalFuncData& State, const Node* node)
 {
@@ -1141,6 +1242,26 @@ bool SystematicAnalysis::Eval_EvalutateStatement(EvalFuncData& State, const Node
 		}
 		return Val.has_value();
 	}
+	case NodeType::AssignExpressionNode:
+	{
+		const AssignExpressionNode* Node = AssignExpressionNode::As(node);
+		auto& assign = Node->_ToAssign;
+
+		 OnExpressionTypeNode(assign,GetValueMode::Write);
+		 auto StoreType = _LastExpressionType;
+
+		 _LookingForTypes.push(std::move(StoreType));
+		 auto ex = Eval_Evaluate(StoreType, Node->_Expression);
+		 _LookingForTypes.pop();
+
+		 if (!ex.has_value())
+		 {
+			 return false;
+		 }
+		
+		 return EvalStore(State, assign, ex.value());
+	}
+	break;
 	default:
 		return false;
 		UCodeLangUnreachable();
@@ -1166,6 +1287,24 @@ bool SystematicAnalysis::Eval_EvalutateScopedName(EvaluatedEx& Out, size_t Start
 			Out.Type = V.Type;
 			return true;
 		}
+		else if (V._Symbol->Type == SymbolType::ParameterVarable)
+		{
+			if (_Eval_FuncStackFrames.size())
+			{
+				auto& StatckFrame = _Eval_FuncStackFrames.back();
+
+				if (StatckFrame->Pars.HasValue(V._Symbol->ID))
+				{
+					auto& par = StatckFrame->Pars.GetValue(V._Symbol->ID);
+					
+					Out.EvaluatedObject = par;
+					return true;
+				}
+
+			}
+
+		}
+
 	}
 	return false;
 }

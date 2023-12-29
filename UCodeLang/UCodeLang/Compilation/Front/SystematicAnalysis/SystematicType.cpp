@@ -348,6 +348,19 @@ bool SystematicAnalysis::Type_GetSize(const TypeSymbol& Type, size_t& OutSize)
 			OutSize = Type_GetSize(pointer).value() * 2;
 			return true;
 		}
+		else if (V.Type == SymbolType::Tag_class)
+		{
+			TagInfo* info = V.Get_Info<TagInfo>();
+			size_t r = 0;
+
+			for (auto& Item : info->Fields)
+			{
+				r += Type_GetSize(Item.Type).value();
+			}
+
+			OutSize = r;
+			return true;
+		}
 		else if (V.Type == SymbolType::Unmaped_Generic_Type)
 		{
 			OutSize = 0;

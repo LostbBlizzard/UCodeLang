@@ -141,7 +141,11 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 
 			for (auto& Item2 : Class.Attributes.Attributes)
 			{
-				r += ToString(Item2,Assembly);
+				r += ToString(Item2,Assembly,Lib->BitSize);
+			}
+			if (Class.Attributes.Attributes.size())
+			{
+				r += '\n';
 			}
 			r += "$" + Item->FullName + ":\n";
 			
@@ -159,7 +163,11 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 				r += " ";
 				for (auto& Item3 : Item2.Attributes.Attributes)
 				{
-					r += ToString(Item3, Assembly);
+					r += ToString(Item3, Assembly, Lib->BitSize);
+				}
+				if (Class.Attributes.Attributes.size())
+				{
+					r += '\n';
 				}
 
 				r += "|" + ScopeHelper::GetNameFromFullName(Item2.FullName) + "[";
@@ -271,7 +279,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 				r += " ";
 				for (auto& Item3 : Item2.Attributes.Attributes)
 				{
-					r += ToString(Item3, Assembly);
+					r += ToString(Item3, Assembly, Lib->BitSize);
 				}
 
 				r += "|" + ScopeHelper::GetNameFromFullName(Item2.FullName) + "[";
@@ -1008,7 +1016,7 @@ String UAssembly::ToString(const ReflectionTypeInfo& Value, const ReflectionRawD
 	}
 	return r;
 }
-String UAssembly::ToString(const UsedTagValueData& Value, const ClassAssembly& Assembly)
+String UAssembly::ToString(const UsedTagValueData& Value, const ClassAssembly& Assembly, UClib::NTypeSize PtrSize)
 {
 	String R;
 
@@ -1022,6 +1030,39 @@ String UAssembly::ToString(const UsedTagValueData& Value, const ClassAssembly& A
 	else
 	{
 		R += "?";
+	}
+
+	if (node && node->Get_Type() == ClassType::Tag)
+	{
+		auto& tagdata = node->Get_TagData();
+
+		if (tagdata.Fields.size())
+		{
+			R += "(";
+
+			auto& Fields = node->Get_TagData().Fields;
+			for (auto& Item : Fields)
+			{
+				void* p = (void*)((uintptr_t)Item.offset + (uintptr_t)Value._Data.Get_Data());
+
+				TypedRawReflectionData r;
+				r._Data.Bytes.reset((Byte*)p);
+				r._Data.Size = Assembly.GetSize(Item.Type, PtrSize == UClib::NTypeSize::int32).value_or(0);
+				
+				r._Type = Item.Type;
+
+				R += ToString(r,Assembly, PtrSize);
+
+				r._Data.Bytes.release();
+
+				if (&Item != &Fields.back())
+				{
+					R += ",";
+				}
+			}
+
+			R += ")";
+		}
 	}
 
 	R += "]";

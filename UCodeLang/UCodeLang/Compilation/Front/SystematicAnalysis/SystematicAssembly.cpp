@@ -44,6 +44,11 @@ void SystematicAnalysis::Assembly_ConvertAttribute(const AttributeNode& nodes, U
 {
 	auto Syb = Symbol_GetSymbol(Symbol_GetSymbolID(nodes));
 	Out.TypeID = Type_GetTypeID(TypesEnum::CustomType, Syb->VarType._CustomTypeSymbol);
+
+	auto& p = Syb->Get_Info<UsedTagInfo>()->RawObj;
+	Out._Data.Resize(p.ObjectSize);
+
+	memcpy(Out._Data.Bytes.get(),p.Object_AsPointer.get(), p.ObjectSize);
 }
 void SystematicAnalysis::Assembly_LoadLibSymbols()
 {
