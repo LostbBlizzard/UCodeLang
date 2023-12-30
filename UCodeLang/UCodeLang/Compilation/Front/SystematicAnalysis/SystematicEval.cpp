@@ -1187,13 +1187,41 @@ bool SystematicAnalysis::EvalStore(EvalFuncData& State, const ExpressionNodeType
 
 								auto ThisSym = Symbol_GetSymbol(
 									ScopeHelper::ApendedStrings(frame->FuncSyb->FullName, ThisSymbolName)
-									, SymbolType::ParameterVarable);
+									, SymbolType::ParameterVarable).value();
 
-								auto& Par = frame->Pars.GetValue(ThisSym.value()->ID);
-								
-								auto p = *Eval_Get_ObjectAs<EvalPointer>(ThisSym.value()->VarType, Par);
 
 								size_t offset = 0;
+								{
+									auto P = ThisSym->VarType;
+									P._IsAddress = false;
+
+									auto v = Symbol_GetSymbol(P._CustomTypeSymbol);
+								
+									String_view FieldName = item._token->Value._String;
+									if (v->Type == SymbolType::Tag_class)
+									{
+										TagInfo* pp = v->Get_Info<TagInfo>();
+
+										size_t tepoffset = 0;
+
+										for (size_t i = 0; i < pp->GetFieldIndex(FieldName).value(); i++)
+										{
+											auto& field = pp->Fields[i];
+											tepoffset += Type_GetSize(field.Type).value_or(0);
+										}
+
+										offset = tepoffset;
+									}
+									else
+									{
+										UCodeLangUnreachable();
+									}
+								}
+
+								auto& Par = frame->Pars.GetValue(ThisSym->ID);
+								
+								auto p = *Eval_Get_ObjectAs<EvalPointer>(ThisSym->VarType, Par);
+
 
 								GetSharedEval().value()->PointerWrite(p, offset, In.EvaluatedObject);
 						
