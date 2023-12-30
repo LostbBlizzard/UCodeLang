@@ -1140,6 +1140,28 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 					}
 				}
 			}
+			else if (Item->Type == SymbolType::Tag_class)
+			{
+				TagInfo* V = Item->Get_Info<TagInfo>();
+				Symbol_Update_ClassSym_ToFixedTypes(Item);
+				String Scope = V->FullName;
+				ScopeHelper::GetApendedString(Scope, ClassConstructorfunc);
+
+				auto ConstructorSymbols = GetSymbolsWithName(Scope, SymbolType::Any);
+
+
+				for (auto& Item2 : ConstructorSymbols)
+				{
+					FuncInfo* Info = Item2->Get_Info<FuncInfo>();
+					bool PushThisPar = Info->IsObjectCall();
+
+					size_t parcount = PushThisPar ? Pars._Nodes.size() + 1 : Pars._Nodes.size();
+					if (Info->Pars.size() == parcount) {
+						Infer = Info->Pars;
+						Inferautopushtis = PushThisPar;
+					}
+				}
+			}
 			else if (Item->Type == SymbolType::Enum_Field)
 			{
 				String EnumClassFullName = ScopedName;
@@ -1999,6 +2021,129 @@ StartSymbolsLoop:
 							return Symbol_GetEnumVariantFunc(EnumSymbol, FieldIndex, Item, Pars, NeverNullptr(Name._ScopedName.back()._token), ValueTypes);
 						}
 					}
+				}
+			}
+		}
+		else if (Item->Type == SymbolType::Tag_class)
+		{
+			TagInfo* V = Item->Get_Info<TagInfo>();
+			Symbol_Update_ClassSym_ToFixedTypes(Item);
+			String Scope = V->FullName;
+			ScopeHelper::GetApendedString(Scope, ClassConstructorfunc);
+
+			auto ConstructorSymbols = GetSymbolsWithName(Scope, SymbolType::Any);
+
+
+			for (auto& Item2 : ConstructorSymbols)
+			{
+				if (Item2->Type == SymbolType::Func)
+				{
+					FuncInfo* Info = Item2->Get_Info<FuncInfo>();
+					bool PushThisPar = Info->IsObjectCall();
+
+
+					if (PushThisPar)
+					{
+						TypeSymbol V;
+						V.SetType(Item->ID);
+						V.SetAsAddress();
+						V.SetAsMoved();
+						ValueTypes.insert(ValueTypes.begin(), { false,V });
+					}
+
+					IsCompatiblePar CMPPar;
+					CMPPar.SetAsFuncInfo(Item2);
+
+					bool Compatible = Type_IsCompatible(CMPPar, ValueTypes, _ThisTypeIsNotNull, NeverNullptr(Name._ScopedName.back()._token));
+
+					if (PushThisPar)
+					{
+						ValueTypes.erase(ValueTypes.begin());
+					}
+
+					if (!Compatible)
+					{
+						continue;
+					}
+
+					{
+						r = Info;
+						FuncSymbol = Item2;
+						T = SymbolType::FuncCall;
+						OkFunctions.push_back({ PushThisPar ? Get_FuncInfo::ThisPar_t::OnIRlocationStack : ThisParType,r,FuncSymbol });
+					}
+				}
+				else if (Item2->Type == SymbolType::GenericFunc)
+				{
+					FuncInfo* Info = Item2->Get_Info<FuncInfo>();
+					bool PushThisPar = Info->IsObjectCall();
+
+
+					if (PushThisPar)
+					{
+						TypeSymbol V;
+						V.SetType(Item->ID);
+						V.SetAsAddress();
+						V.SetAsMoved();
+						ValueTypes.insert(ValueTypes.begin(), { false,V });
+					}
+
+
+					Vector<TypeSymbol> GenericInput;
+					auto v = Type_FuncinferGenerics(GenericInput, ValueTypes, Generics, Item2, _ThisTypeIsNotNull);
+
+					if (v.has_value())
+					{
+						auto& val = v.value();
+						if (val.has_value())
+						{
+							return val.value();
+						}
+						else
+						{
+							auto FuncSym = NeverNullptr(Item2);
+							String NewName = Generic_SymbolGenericFullName(FuncSym, GenericInput);
+							auto FuncIsMade = Symbol_GetSymbol(NewName, SymbolType::Func);
+
+
+
+							if (!FuncIsMade)
+							{
+
+								{
+									if (CheckForGenericInputIsConstantExpression(Info, GenericInput))
+									{
+										continue;
+									}
+								}
+								auto Pointer = std::make_unique<Vector<TypeSymbol>>(std::move(GenericInput));
+								//pointer must be unique so it can't be on the stack
+
+								Generic_GenericFuncInstantiate(FuncSym, *Pointer);
+								_TepFuncs.push_back({ std::move(Pointer) });//keep pointer 
+								FuncSym = Symbol_GetSymbol(NewName, SymbolType::Func).value();
+							}
+							else
+							{
+								FuncSym = FuncIsMade.value();
+							}
+
+
+							{
+								r = FuncSym->Get_Info<FuncInfo>();
+								FuncSymbol = FuncSym.value();
+								T = SymbolType::FuncCall;
+								OkFunctions.push_back({ PushThisPar ? Get_FuncInfo::ThisPar_t::OnIRlocationStack : ThisParType,r,FuncSymbol });
+							}
+
+						}
+					}
+
+					if (PushThisPar)
+					{
+						ValueTypes.erase(ValueTypes.begin());
+					}
+
 				}
 			}
 		}

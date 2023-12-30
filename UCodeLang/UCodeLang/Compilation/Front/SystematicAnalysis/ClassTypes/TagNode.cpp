@@ -36,7 +36,10 @@ void SystematicAnalysis::OnTag(const TagTypeNode& node)
 		Syb.Info.reset(info);
 		info->Context = Save_SymbolContextRemoveOneScopeName();
 		Generic_InitGenericalias(node._generic, IsgenericInstantiation, info->_GenericData);
+
+		info->FullName = Syb.FullName;
 	}
+	Syb.PassState = _PassType;
 
 	TagInfo* info = Syb.Get_Info<TagInfo>();
 
@@ -45,10 +48,16 @@ void SystematicAnalysis::OnTag(const TagTypeNode& node)
 	val.Syb = &Syb;
 	_ClassStack.push(std::move(val));
 
-	if (!Isgeneric_t)
+	bool CheckgenericForErr = (Isgeneric_t && (_PassType == PassType::GetTypes || _PassType == PassType::FixedTypes));
+	if (!Isgeneric_t || CheckgenericForErr)
 	{
 		if (_PassType != PassType::BuidCode)
 		{
+			if (CheckgenericForErr)
+			{
+				_Table.AddScope(GenericTestStr);
+				Syb.FullName = _Table._Scope.ThisScope;
+			}
 			for (const auto& node : node._Nodes)
 			{
 				Push_ToNodeScope(*node.get());
@@ -68,6 +77,12 @@ void SystematicAnalysis::OnTag(const TagTypeNode& node)
 				default:break;
 				}
 				Pop_NodeScope();
+			}
+
+			if (CheckgenericForErr)
+			{
+				_Table.RemoveScope();
+				Syb.FullName = _Table._Scope.ThisScope;
 			}
 		}
 		if (_PassType == PassType::FixedTypes)
