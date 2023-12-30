@@ -8,6 +8,9 @@
 
 #include "UCodeLang/Compilation/ModuleFile.hpp"
 
+
+#include "UCodeLang/LangCore/Version.hpp"
+
 #include "UCodeLang/Compilation/Back/UCodeBackEnd/UCodeBackEnd.hpp"
 #include "UCodeLang/Compilation/Back/C11/C11Backend.hpp"
 #include "UCodeLang/Compilation/Back/IR/IRBackEnd.hpp"
@@ -1645,7 +1648,7 @@ void AppObject::DrawTestMenu()
 
             if (check == false)
             {
-                check = true; 
+                check = true;
                 UCodeLang::ModuleFile f;
                 f.FromFile(&f, StandardLibrarydir / UCodeLang::ModuleFile::FileNameWithExt);
                 if (TestWindowData.Testmode == TestMode::UCodeLangBackEnd)
@@ -1662,14 +1665,17 @@ void AppObject::DrawTestMenu()
                 }
                 auto out = f.BuildModule(_TestCompiler, UCodeLang::ModuleIndex::GetModuleIndex());
 
-                TestLib = std::move(*out.CompilerRet.GetValue().OutPut);
+                if (out.CompilerRet.IsValue()) 
+                {
+                    TestLib = std::move(*out.CompilerRet.GetValue().OutPut);
 
-                StandardLibrarytests = UCodeLang::TestRuner::GetTests(TestLib.Get_Assembly());
+                    StandardLibrarytests = UCodeLang::TestRuner::GetTests(TestLib.Get_Assembly());
 
-                StandardLibraryTestInfo.resize(StandardLibrarytests.size());
+                    StandardLibraryTestInfo.resize(StandardLibrarytests.size());
 
-                Outpath = out.OutputItemPath;
-                mode = TestWindowData.Testmode;
+                    Outpath = out.OutputItemPath;
+                    mode = TestWindowData.Testmode;
+                }
             }
 
             if (ImGui::Button("Build StandardLibrary"))
@@ -1897,6 +1903,7 @@ void AppObject::DrawTestMenu()
 
             for (size_t i = TestWindowData.StandardLibraryTestIndex; i < TestWindowData.StandardLibraryTestCount; i++)
             {
+                if (StandardLibrarytests.size() < i) { continue; };
                 auto& ItemTest = StandardLibrarytests[i];
                 auto& ItemOut = StandardLibraryTestInfo[i];
 
@@ -2776,6 +2783,8 @@ void AppObject::ShowUCodeVMWindow()
             auto functocallStr = "main";
             #if UCodeLang_Platform_Windows
             auto lib = LoadLibrary(dllfile.c_str());
+            UCodeLangAssert(lib);
+
             UCodeLangDefer(FreeLibrary(lib));
             auto staticinittocall = GetProcAddress(lib, staticinitname.c_str());
             auto threadinittocall = GetProcAddress(lib, threadinitname.c_str());
@@ -2785,6 +2794,8 @@ void AppObject::ShowUCodeVMWindow()
             auto functocall = GetProcAddress(lib, functocallStr);
             #elif UCodeLang_Platform_Posix
             auto lib = dlopen(dllfile.c_str(), RTLD_NOW);
+            UCodeLangAssert(lib);
+
             UCodeLangDefer(dlclose(lib));
 
             auto staticinittocall = dlsym(lib, staticinitname.c_str());
@@ -2795,10 +2806,22 @@ void AppObject::ShowUCodeVMWindow()
             auto functocall = dlsym(lib, functocallStr);
             #endif
 
+
+            using FuncV = void(*)();
+            if (functocallStr != "main") {
+                ((FuncV)staticinittocall)();
+
+                ((FuncV)threadinittocall)();
+            }
+
             using Func = int (*)();
             int retvalue = ((Func)functocall)();
 
+            if (functocallStr != "main") {
+                ((FuncV)threaddeinittocall)();
 
+                ((FuncV)staticdeinittocall)();
+            }
 
             Value = retvalue;
 
@@ -3520,21 +3543,33 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                    // InfoStr = (String)"Ptr:" + std::to_string((uintptr_t)Item._Ptr);
                     InfoStr += "Size:" + std::to_string(Item._Mem.Size);
                     InfoStr += (String)",IsReseved:" + (Item.IsReseved ? "true" : "false");
+                   
+                    bool statckhwasset = false;
+                    
                     if (Staticptr == Item._Ptr)
                     {
                         InfoStr += ",--StaticMem";
+                        statckhwasset = true;
                     }
-                    if (Threadptr == Item._Ptr)
+                    else if (Threadptr == Item._Ptr)
                     {
                         InfoStr += ",--ThreadMem";
+                        statckhwasset = true;
                     }
-                    if (_AnyInterpreter.Get_InterpreterType() == UCodeLang::InterpreterTypes::Interpreter)
+                    else if (_AnyInterpreter.Get_InterpreterType() == UCodeLang::InterpreterTypes::Interpreter)
                     {
                         auto& Inter = _AnyInterpreter.GetAs_Interpreter();
                         if (Inter.GetStackSpan().Data() == Item._Ptr) {
                             InfoStr += ",--StackMem";
+                            statckhwasset = true;
                         }
                     }
+
+                    if (statckhwasset==false)
+                    {
+                        InfoStr += ",--HeapMem";
+                    }
+
                     if (ImGui::TreeNode(InfoStr.c_str()))
                     {
                         Isshowing[i] = true;

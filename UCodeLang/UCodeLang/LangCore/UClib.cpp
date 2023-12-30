@@ -1,5 +1,6 @@
 #include "UClib.hpp"
 #include <fstream>
+#include "UCodeLang/LangCore/Version.hpp"
 UCodeLangStart
 
 UClib::UClib() : LibEndianess(BitConverter::InputOutEndian)
@@ -17,9 +18,14 @@ void UClib::Reset()
 }
 using Size_tAsBits = BitMaker::SizeAsBits;
 
+#if UCodeLangDebug
+const unsigned char UClibSignature[] = "LBlib32";
+#else
+const unsigned char UClibSignature[]= "LBlib";
+#endif
 
-const unsigned char UClibSignature[]= "Lost_blizzard_Ulib";
 constexpr size_t UClibSignature_Size = sizeof(UClibSignature);
+
 
 BytesPtr UClib::ToRawBytes(const UClib* Lib)
 {
@@ -31,8 +37,7 @@ BytesPtr UClib::ToRawBytes(const UClib* Lib)
 	{
 		Output.WriteType((Size_tAsBits)UClibSignature_Size);
 		Output.WriteBytes(UClibSignature, UClibSignature_Size);
-
-		Output.WriteType((InstructionSet_t)InstructionSet::MAXVALUE);
+		Output.WriteType((UInt32)UCodeLangVersionNumber);
 	}
 
 	Output.WriteType((NTypeSize_t)Lib->BitSize);
@@ -329,6 +334,18 @@ void UClib::ToBytes(BitMaker& Output, const ClassField& Item2)
 void UClib::ToBytes(BitMaker& Output, const Tag_Data& Data)
 {
 	Output.WriteType(Data.TypeID);
+
+	Output.WriteType((Size_tAsBits)Data.Fields.size());
+	for (auto& Item2 : Data.Fields)
+	{
+		ToBytes(Output, Item2);
+	}
+
+	Output.WriteType((Size_tAsBits)Data.Methods.size());
+	for (auto& Item2 : Data.Methods)
+	{
+		ToBytes(Output, Item2);
+	}
 }
 void UClib::ToBytes(BitMaker& Output, const UsedTagValueData& Data)
 {
@@ -409,14 +426,13 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 
 	//Signature
 	{
-		union 
-		{
-			Size_tAsBits bits_Size_tAsBits= 0;
-			size_t bits;
-		};
+
+		Size_tAsBits bits_Size_tAsBits = 0;
+		size_t bits;
+
 
 		reader.ReadType(bits_Size_tAsBits, bits_Size_tAsBits);
-		
+
 		bits = bits_Size_tAsBits;
 
 		if (bits != UClibSignature_Size) { return false; }
@@ -427,11 +443,11 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 			if (Bit != UClibSignature[i]) { return false; }
 		}
 		reader.Increment_offset(UClibSignature_Size);
-	
-		
-		InstructionSet Value= InstructionSet::DoNothing;
-		reader.ReadType(*(InstructionSet_t*)&Value, *(InstructionSet_t*)&Value);
-		if (Value != InstructionSet::MAXVALUE)
+
+
+		UInt32 Value = 0;
+		reader.ReadType(Value,Value);
+		if (Value != UCodeLangVersionNumber)
 		{
 			return false;
 		}
@@ -449,11 +465,9 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 
 	{//StaticBytes
 
-		union
-		{
-			Size_tAsBits bits = 0;
-			size_t bits_Size;
-		};
+		Size_tAsBits bits = 0;
+		size_t bits_Size;
+
 
 		reader.ReadType(bits, bits);
 		bits_Size = bits;
@@ -467,12 +481,9 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 	}
 
 	{//ThreadBytes
+		Size_tAsBits bits = 0;
+		size_t bits_Size;
 
-		union
-		{
-			Size_tAsBits bits = 0;
-			size_t bits_Size;
-		};
 
 		reader.ReadType(bits, bits);
 		bits_Size = bits;
@@ -487,11 +498,9 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 
 	{//DebugBytes
 
-		union
-		{
-			Size_tAsBits bits = 0;
-			size_t bits_Size;
-		};
+		Size_tAsBits bits = 0;
+		size_t bits_Size;
+
 
 		reader.ReadType(bits, bits);
 		bits_Size = bits;
@@ -509,11 +518,10 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 
 
 	{//Layers
-		union
-		{
-			Size_tAsBits bits = 0;
-			size_t bits_Size;
-		};
+
+		Size_tAsBits bits = 0;
+		size_t bits_Size;
+
 
 		reader.ReadType(bits, bits);
 		bits_Size = bits;
@@ -565,11 +573,9 @@ void UClib::FromBytes(BitReader& Input, CodeLayer& Data)
 		CodeLayer::UCodeByteCode V;
 		{// Instructions
 
-			union
-			{
-				Size_tAsBits bits = 0;
-				size_t bits_Size;
-			};
+			Size_tAsBits bits = 0;
+			size_t bits_Size;
+
 
 			Input.ReadType(bits, bits);
 			bits_Size = bits;
@@ -632,11 +638,10 @@ void UClib::FromBytes(BitReader& Input, CodeLayer& Data)
 		}
 
 		{// _NameToPtr
-			union
-			{
+			
 				Size_tAsBits bits = 0;
 				size_t bits_Size;
-			};
+			
 
 			Input.ReadType(bits, bits);
 			bits_Size = bits;
@@ -647,17 +652,16 @@ void UClib::FromBytes(BitReader& Input, CodeLayer& Data)
 			for (size_t i = 0; i < bits_Size; i++)
 			{
 				String V1;
-				union
-				{
-					Size_tAsBits V2 = 0;
-					size_t V2bits_Size;
-				};
+
+				Size_tAsBits V2 = 0;
+				size_t V2bits_Size;
+
 				Input.ReadType(V1, V1);
 
 				Input.ReadType(V2, V2);
 				V2bits_Size = V2;
 
-				V._NameToPtr.AddValue(V1,V2);
+				V._NameToPtr.AddValue(V1, V2);
 			}
 
 			bool HasDebugInfo = false;
@@ -682,11 +686,10 @@ void UClib::FromBytes(BitReader& Input, CodeLayer& Data)
 		Input.ReadType(V._Code, V._Code);
 
 		{// _NameToPtr
-			union
-			{
+			
 				Size_tAsBits bits = 0;
 				size_t bits_Size;
-			};
+			
 
 			Input.ReadType(bits, bits);
 			bits_Size = bits;
@@ -697,11 +700,10 @@ void UClib::FromBytes(BitReader& Input, CodeLayer& Data)
 			for (size_t i = 0; i < bits_Size; i++)
 			{
 				String V1;
-				union
-				{
-					Size_tAsBits V2 = 0;
-					size_t V2bits_Size;
-				};
+				
+				Size_tAsBits V2 = 0;
+				size_t V2bits_Size;
+				
 				Input.ReadType(V1, V1);
 
 				Input.ReadType(V2, V2);
@@ -723,11 +725,10 @@ void UClib::FromBytes(BitReader& Input, CodeLayer& Data)
 }
 void UClib::FromBytes(BitReader& reader, ClassAssembly& Assembly)
 {
-	union
-	{
+	
 		Size_tAsBits bits = 0;
 		size_t bits_Size;
-	};
+	
 	reader.ReadType(bits, bits);
 	bits_Size = bits;
 
@@ -821,12 +822,11 @@ void UClib::FromBytes(BitReader& reader, Enum_Data& Enum)
 	FromBytes(reader, Enum.BaseType);
 	FromBytes(reader, Enum.EnumVariantUnion);
 
-	union
-	{
-		Size_tAsBits  Sizebits = 0;
-		size_t Size;
 
-	};
+	Size_tAsBits  Sizebits = 0;
+	size_t Size;
+
+
 	reader.ReadType(Sizebits, Sizebits);
 	Size = Sizebits;
 
@@ -835,12 +835,12 @@ void UClib::FromBytes(BitReader& reader, Enum_Data& Enum)
 	{
 		auto& Item2 = Enum.Values[i2];
 		reader.ReadType(Item2.Name, Item2.Name);
-		FromBytes(reader,Item2._Data);
+		FromBytes(reader, Item2._Data);
 		FromBytes(reader, Item2.EnumVariantType);
 	}
 
 	bool has = false;
-	
+
 	reader.ReadType(has, has);
 	if (has)
 	{
@@ -887,11 +887,10 @@ void UClib::FromBytes(BitReader& reader, Class_Data& Class)
 	FromBytes(reader, Class.Attributes);
 
 	{
-		union
-		{
-			Size_tAsBits  Feld_Sizebits = 0;
-			size_t Feld_Size;
-		};
+
+		Size_tAsBits  Feld_Sizebits = 0;
+		size_t Feld_Size;
+
 		reader.ReadType(Feld_Sizebits, Feld_Sizebits);
 		Feld_Size = Feld_Sizebits;
 
@@ -904,11 +903,10 @@ void UClib::FromBytes(BitReader& reader, Class_Data& Class)
 	}
 
 	{
-		union
-		{
-			Size_tAsBits  Methods_Sizebits = 0;
-			size_t Methods_Size;
-		};
+
+		Size_tAsBits  Methods_Sizebits = 0;
+		size_t Methods_Size;
+
 		reader.ReadType(Methods_Sizebits, Methods_Sizebits);
 		Methods_Size = Methods_Sizebits;
 
@@ -949,11 +947,10 @@ void UClib::FromBytes(BitReader& Input, Trait_Data& Data)
 {
 	Input.ReadType(Data.TypeID, Data.TypeID);
 	{
-		union
-		{
+
 			Size_tAsBits  Feld_Sizebits = 0;
 			size_t Feld_Size;
-		};
+		
 		Input.ReadType(Feld_Sizebits, Feld_Sizebits);
 		Feld_Size = Feld_Sizebits;
 
@@ -966,11 +963,10 @@ void UClib::FromBytes(BitReader& Input, Trait_Data& Data)
 	}
 
 	{
-		union
-		{
-			Size_tAsBits  Methods_Sizebits = 0;
-			size_t Methods_Size;
-		};
+
+		Size_tAsBits  Methods_Sizebits = 0;
+		size_t Methods_Size;
+
 		Input.ReadType(Methods_Sizebits, Methods_Sizebits);
 		Methods_Size = Methods_Sizebits;
 
@@ -1030,13 +1026,12 @@ void UClib::FromBytes(BitReader& Input, TraitMethod& Data)
 		Data.FuncBody = std::move(str);
 	}
 }
-void UClib::FromBytes(BitReader& reader,Vector<UsedTagValueData>& Attributes)
+void UClib::FromBytes(BitReader& reader, Vector<UsedTagValueData>& Attributes)
 {
-	union
-	{
-		Size_tAsBits  Attributes_Sizebits = 0;
-		size_t Attributes_Size;
-	};
+
+	Size_tAsBits  Attributes_Sizebits = 0;
+	size_t Attributes_Size;
+
 	reader.ReadType(Attributes_Sizebits, Attributes_Sizebits);
 	Attributes_Size = Attributes_Sizebits;
 
@@ -1073,6 +1068,38 @@ void UClib::FromBytes(BitReader& reader, Alias_Data& Alias)
 void UClib::FromBytes(BitReader& Input, Tag_Data& Data)
 {
 	Input.ReadType(Data.TypeID, Data.TypeID);
+
+	{
+
+		Size_tAsBits  Feld_Sizebits = 0;
+		size_t Feld_Size;
+
+		Input.ReadType(Feld_Sizebits, Feld_Sizebits);
+		Feld_Size = Feld_Sizebits;
+
+		Data.Fields.resize(Feld_Size);
+		for (size_t i2 = 0; i2 < Feld_Size; i2++)
+		{
+			auto& Item2 = Data.Fields[i2];
+			FromBytes(Input, Item2);
+		}
+	}
+
+	{
+
+		Size_tAsBits  Methods_Sizebits = 0;
+		size_t Methods_Size;
+
+		Input.ReadType(Methods_Sizebits, Methods_Sizebits);
+		Methods_Size = Methods_Sizebits;
+
+		Data.Methods.resize(Methods_Size);
+		for (size_t i2 = 0; i2 < Methods_Size; i2++)
+		{
+			auto& Item2 = Data.Methods[i2];
+			FromBytes(Input, Item2);
+		}
+	}
 }
 void UClib::FromBytes(BitReader& Input, UsedTagValueData& Data)
 {
@@ -1089,11 +1116,9 @@ void UClib::FromBytes(BitReader& Input, ClassMethod& Data)
 	FromBytes(Input, Data.RetType);
 
 	{
-		union
-		{
 			Size_tAsBits bits_Size_tAsBits = 0;
 			size_t bits;
-		};
+		
 
 		Input.ReadType(bits_Size_tAsBits, bits_Size_tAsBits);
 

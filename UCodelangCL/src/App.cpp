@@ -21,6 +21,8 @@
 #include "UCodeLang/Compilation/Back/x86_64/X86_64UNativeBackEnd.hpp"
 
 #include "UCodeLang/RunTime/TestRuner.hpp"
+#include "UCodeLang/RunTime/SandBoxedIOLink.hpp"
+#include "ConsoleColor.hpp"
 using namespace UCodeLang;
 
 
@@ -579,6 +581,13 @@ void ParseLine(String_view& Line)
 			file.close();
 		}
 
+		if (DoGetFlag)
+		{
+			std::ofstream file(NewDir / ".gitignore");
+			file << "int\n out\n";
+			file.close();
+		}
+
 
 		fs::create_directories(NewDir / ModuleFile::ModuleOutPath);
 
@@ -777,20 +786,41 @@ void ParseLine(String_view& Line)
 			}
 
 			TestRuner runer;
-			auto info = runer.RunTests(lib, interpreter, [](TestRuner::TestInfo& test)
+			Vector<String> failingtest;
+			auto info = runer.RunTests(lib, interpreter, [&](TestRuner::TestInfo& test)
 			{
 					if (test.Passed)
 					{
+						print_color(color_green);
 						AppPrintin("Test :" << test.TestName << " Passed");
+						print_color_reset();
 					}
 					else
 					{
+						print_color(color_red);
 						AppPrintin("Test :" << test.TestName << " Fail");
+						print_color_reset();
+
+						failingtest.push_back(test.TestName);
 					}
 			});
 			bool passed = info.TestCount == info.TestPassedCount;
 			AppPrintin("Ran all " << info.TestCount << " Tests");
 			
+			if (!passed)
+			{
+				AppPrint("----")
+				AppPrint(std::to_string(info.TestCount  - info.TestPassedCount));
+				AppPrintin(" Failing Tests");
+				for (auto& Item : failingtest)
+				{
+					print_color(color_red);
+					AppPrintin("-" << Item);
+				}
+				print_color_reset();
+				AppPrintin("----");
+			}
+
 			int passnumber;
 			if (info.TestPassedCount)
 			{
@@ -804,12 +834,34 @@ void ParseLine(String_view& Line)
 			
 			if (passed)
 			{
+				print_color(color_green);
 				AppPrintin("Tests Passed.all 100% of tests passed");
+				print_color_reset();
 				_This.ExeRet = EXIT_SUCCESS;
 			}
 			else
 			{
+				if (passnumber < 50)
+				{
+					print_color(color_red);
+				}
+				else if (passnumber < 70)
+				{
+					print_color(color_orange);
+				}
+				else if (passnumber < 100)
+				{
+					print_color(color_yellow);
+				}
+				else if (passnumber == 100)
+				{
+					print_color(color_green);
+				}
+
+
 				AppPrintin("Tests Failed about " << passnumber << "% passed");
+
+				print_color_reset();
 
 				_This.ExeRet = EXIT_FAILURE;
 			}
@@ -994,7 +1046,14 @@ void ParseLine(String_view& Line)
 					RunTimeLib lib;
 					lib.Init(&outlib);
 
+					RunTimeLib ioimports;
+					SandBoxedIOLink::Link(ioimports);
+
+					
 					runtime.AddLib(&lib);
+					runtime.AddLib(&ioimports);
+					
+
 					runtime.LinkLibs();
 					
 					interpreter.Init(&runtime);
@@ -1009,7 +1068,7 @@ void ParseLine(String_view& Line)
 					}
 					interpreter.Call(func);
 					auto rettype = func->RetType;
-					size_t retsize = Assembly.GetSize(rettype, is32mode).value();
+					size_t retsize = Assembly.GetSize(rettype, is32mode).value_or(0);
 					TypedRawReflectionData v;
 					v._Type = rettype;
 	
@@ -1107,10 +1166,11 @@ void ParseLine(String_view& Line)
 			ModuleIndex _ModuleIndex = ModuleIndex::GetModuleIndex();
 			auto& mod = modfile.value();
 
-			String out;
-			bool ok = mod.DownloadModules(_ModuleIndex, Optionalref(out));
-
-			AppPrintin(out);
+			bool ok = mod.DownloadModules(_ModuleIndex, [](String Msg)
+			{
+					AppPrintin(Msg);
+			});
+;
 			if (ok)
 			{
 				_This.ExeRet = EXIT_SUCCESS;
@@ -1163,7 +1223,6 @@ void ParseLine(String_view& Line)
 				Optional<UClib> libop;
 				if (!buildfile2(_PathAsPath, _Compiler, libop))
 				{
-					AppPrintin("Compiler Fail:");
 					AppPrintin(_Compiler.Get_Errors().ToString());
 					_This.ExeRet = EXIT_FAILURE;
 				}
@@ -1182,7 +1241,6 @@ void ParseLine(String_view& Line)
 					Optional<UClib> libop;
 					if (!buildfile2(_PathAsPath, _Compiler, libop))
 					{
-						AppPrintin("Compiler Fail:");
 						AppPrintin(_Compiler.Get_Errors().ToString());
 						_This.ExeRet = EXIT_FAILURE;
 					}
@@ -1445,11 +1503,35 @@ bool buildfile2(UCodeLang::Path& filetorun, UCodeLang::Compiler& _Compiler, UCod
 				_This.ExeRet = EXIT_FAILURE;
 			}
 			else {
-				bool ItWorked = module.BuildModule(_Compiler, _ModuleIndex).CompilerRet.IsValue();
+				bool ItWorked = module.BuildModule(_Compiler, _ModuleIndex,false, [](String msg)
+					{
+						AppPrintin(msg);
+					}).CompilerRet.IsValue();
 				if (!ItWorked)
 				{
-					*_This.output << "Compiler Fail:\n";
-					*_This.output << _Compiler.Get_Errors().ToString();
+
+					for (auto& Item : _Compiler.Get_Errors().Get_Errors())
+					{
+						if (CompilationErrors::IsError(Item._Code))
+						{
+							print_color(color_red);
+						}
+						else if (CompilationErrors::IsWarning(Item._Code))
+						{
+							print_color(color_yellow);
+						}
+						else if (CompilationErrors::IsHint(Item._Code))
+						{
+							print_color(color_white);
+						}
+						else 
+						{
+							print_color(color_white);
+						}
+						AppPrintin(Item.ToString());
+					}
+					print_color_reset();
+
 					_This.ExeRet = EXIT_FAILURE;
 				}
 				else
@@ -1501,7 +1583,6 @@ bool buildfile2(UCodeLang::Path& filetorun, UCodeLang::Compiler& _Compiler, UCod
 		
 		if (!ItWorked)
 		{
-			*_This.output << "Compiler Fail:\n";
 			*_This.output << _Compiler.Get_Errors().ToString();
 			_This.ExeRet = EXIT_FAILURE;
 		}
@@ -1529,7 +1610,10 @@ bool buildfile2(UCodeLang::Path& filetorun, UCodeLang::Compiler& _Compiler, UCod
 		}
 		else 
 		{
-			bool ItWorked = module.BuildModule(_Compiler, _ModuleIndex).CompilerRet.IsValue();
+			bool ItWorked = module.BuildModule(_Compiler, _ModuleIndex,false, [](String msg)
+				{
+					AppPrintin(msg);
+				}).CompilerRet.IsValue();
 			if (!ItWorked)
 			{
 				*_This.output << "Compiler Fail:\n";

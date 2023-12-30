@@ -5,16 +5,50 @@ UCodeLangFrontStart
 
 void SystematicAnalysis::Assembly_ConvertAttributes(const Vector<Unique_ptr<AttributeNode>>& nodes, Vector<UsedTagValueData>& Out)
 {
-	Out.resize(nodes.size());
-	for (size_t i = 0; i < nodes.size(); i++)
+	bool IsSubModule = _Settings->_Type == OutPutType::IRAndSymbols;
+	bool AddSubModuleTests = !IsSubModule;
+
+
+	if (AddSubModuleTests) 
 	{
-		Assembly_ConvertAttribute(*nodes[i], Out[i]);
+		Out.resize(nodes.size());
+		for (size_t i = 0; i < nodes.size(); i++)
+		{
+			Assembly_ConvertAttribute(*nodes[i], Out[i]);
+		}
 	}
+	else
+	{
+		for (size_t i = 0; i < nodes.size(); i++)
+		{
+			auto& Item = nodes[i];
+
+			String str;
+			Item->_ScopedName.GetScopedName(str);
+			{
+				//good enough for now
+				//TODO verify that it's the actual test tag in StandardLibrary
+				bool istesttag = StringHelper::EndWith(str, "Test");
+
+				if (istesttag)
+				{
+					continue;
+				}
+			}
+			Assembly_ConvertAttribute(*nodes[i], Out.emplace_back());
+		}
+	}
+
 }
 void SystematicAnalysis::Assembly_ConvertAttribute(const AttributeNode& nodes, UsedTagValueData& Out)
 {
 	auto Syb = Symbol_GetSymbol(Symbol_GetSymbolID(nodes));
 	Out.TypeID = Type_GetTypeID(TypesEnum::CustomType, Syb->VarType._CustomTypeSymbol);
+
+	auto& p = Syb->Get_Info<UsedTagInfo>()->RawObj;
+	Out._Data.Resize(p.ObjectSize);
+
+	memcpy(Out._Data.Bytes.get(),p.Object_AsPointer.get(), p.ObjectSize);
 }
 void SystematicAnalysis::Assembly_LoadLibSymbols()
 {
@@ -28,6 +62,10 @@ void SystematicAnalysis::Assembly_LoadLibSymbols()
 
 	}
 
+
+	UnorderedMap<String,int> AddedSymbols;
+	UnorderedMap<FileNode*, ImportLibInfo> Importinfo;
+
 	while (Mode != LoadLibMode::Done)
 	{
 		for (size_t i = 0; i < _Libs->size(); i++)
@@ -38,13 +76,24 @@ void SystematicAnalysis::Assembly_LoadLibSymbols()
 
 			if (LoadLibMode::GetTypes == Mode)
 			{
+				_FilesData.AddValue(NeverNullptr((FileNode_t*)&FileNode), {});
+				ImportLibInfo V;
 				for (auto& LibNode : Item->_Assembly.Classes)
 				{
-					_Lib._Assembly.Classes.push_back(Unique_ptr<AssemblyNode>(LibNode.get()));//make ref
-				}
-			}
+					if (!AddedSymbols.HasValue(LibNode->FullName))
+					{
 
-			Assembly_LoadLibSymbols(*Item, Mode);
+						AddedSymbols.AddValue(LibNode->FullName, 0);
+						V.ClassesToAdd.AddValue(LibNode.get(), 0);
+
+						_Lib._Assembly.Classes.push_back(Unique_ptr<AssemblyNode>(LibNode.get()));//make ref
+					}
+				}
+
+				Importinfo.AddValue(&FileNode, std::move(V));
+			}
+			
+			Assembly_LoadLibSymbols(*Item, Importinfo.GetValue(&FileNode), Mode);
 		}
 
 		//
@@ -84,7 +133,7 @@ void SystematicAnalysis::Assembly_LoadLibSymbols()
 	_Lib.Get_Assembly().AddClass(String(globalAssemblyObjectName), String(globalAssemblyObjectName));
 
 }
-void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode Mode)
+void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib,ImportLibInfo& libinfo, LoadLibMode Mode)
 {
 
 	auto OutputType = Output_TypeAsLibType();
@@ -97,8 +146,24 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode M
 		Assembly_LoadClassSymbol(*GlobalObject, Scope, Scope, Mode);
 	}
 	auto libname = _LookingAtFile->FileName;
-
+	
+	
+	Vector<AssemblyNode*> Classes;
+	Classes.reserve(libinfo.ClassesToAdd.size());
 	for (auto& Item : lib.Get_Assembly().Classes)
+	{
+		if (libinfo.ClassesToAdd.HasValue(Item.get())) 
+		{
+			Classes.push_back(Item.get());
+		}
+	}
+
+	std::sort(Classes.begin(), Classes.end(), [](AssemblyNode*& A, AssemblyNode*& B)
+	{
+		return (int)A->Get_Type() < (int)B->Get_Type();
+	});
+
+	for (auto& Item : Classes)
 	{
 		if (Item->FullName == ScopeHelper::_globalAssemblyObject)
 		{
@@ -151,7 +216,7 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode M
 		_Lexer.Set_Settings(_Settings);
 		_Parser.Set_Settings(_Settings);
 
-		for (auto& Item : lib.Get_Assembly().Classes)
+		for (auto& Item : Classes)
 		{
 			Optional<String_view> TextOp;
 			if (Item->Get_Type() == ClassType::GenericClass)
@@ -274,7 +339,7 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, LoadLibMode M
 
 		_PassType = PassType::FixedTypes;
 
-		for (auto& Item : lib.Get_Assembly().Classes)
+		for (auto& Item : Classes)
 		{
 
 			if (Item->Get_Type() == ClassType::GenericClass || Item->Get_Type() == ClassType::GenericFunction)
@@ -377,13 +442,21 @@ void SystematicAnalysis::Assembly_LoadClassSymbol(const Class_Data& Item, const 
 
 		Info->Fields.resize(Item.Fields.size());
 
+
+
 		for (size_t i = 0; i < Item.Fields.size(); i++)
 		{
 			const auto& FieldItem = Item.Fields[i];
+			SymbolID id = Symbol_GetSymbolID(&FieldItem);
+			
 			auto& InfoItem = Info->Fields[i];
 
 			InfoItem.Name = FieldItem.Name;
 			//InfoItem.offset = FieldItem.offset;
+
+			auto& FieldSyb = Symbol_AddSymbol(SymbolType::Class_Field, Name,ScopeHelper::ApendedStrings(FullName,FieldItem.Name), AccessModifierType::Public);
+			_Table.AddSymbolID(FieldSyb, id);
+
 		}
 	}
 	else if (Mode == LoadLibMode::FixTypes)
@@ -396,6 +469,11 @@ void SystematicAnalysis::Assembly_LoadClassSymbol(const Class_Data& Item, const 
 			const auto& FieldItem = Item.Fields[i];
 			auto& InfoItem = Info->Fields[i];
 			Assembly_LoadType(FieldItem.Type, InfoItem.Type);
+		
+			SymbolID id = Symbol_GetSymbolID(&FieldItem);
+
+			auto& FieldSyb = Symbol_GetSymbol(id);
+			FieldSyb->VarType = InfoItem.Type;
 		}
 	}
 

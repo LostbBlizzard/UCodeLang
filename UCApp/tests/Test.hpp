@@ -100,7 +100,7 @@ inline String ModeType(OptimizationFlags Flags)
 	return r;
 }
 
-static const Array<TestInfo, 109> Tests{
+static const Array<TestInfo, 111> Tests{
 
 	TestInfo("main_0", "BasicTests/main.uc", "Main", SuccessCondition::Compilation),
 
@@ -245,6 +245,9 @@ static const Array<TestInfo, 109> Tests{
 	TestInfo("StressTest1", "StressTest/StressTest1.uc", "main", SuccessCondition::RunTimeValue, (int)6),
 
 	TestInfo("GenericOverload", "Generics/GenericsOverload.uc", "main", SuccessCondition::RunTimeValue, (int)1),
+
+	TestInfo("Attribute Contruct", "Eval/Attribute.uc","", SuccessCondition::Compilation),
+	TestInfo("Attribute Contruct 2", "Eval/Attribute2.uc","", SuccessCondition::Compilation),
 };
 
 struct SkipTestRange

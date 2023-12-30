@@ -35,6 +35,8 @@ UCodeIDE/tepfiles/
 UCodeIDE/int/
 UCodeIDE/UCodeIDE/intDep.data
 
+Dependencies/bin/inno
+
 ARM64
 /UCodeIDE/OutIR.txt
 /UCodeIDE/src/AppObject/test2.uc

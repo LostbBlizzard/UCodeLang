@@ -173,6 +173,10 @@ project "UCodelangCL"
    libdirs { 
       "Output/UCodeLang/" .. OutDirPath,
    }
+   filter { "system:Windows","configurations:Published"}
+    kind ("WindowedApp")
+   filter { "system:Windows","configurations:Release"  }
+    kind ("WindowedApp")
 project "UCodeLang"
    location "UCodeLang"
    kind "StaticLib"
@@ -515,8 +519,8 @@ group "UCodeAPIs"
     UCPathExe.." index %{prj.location}",
     --UCPathExe.." build %{prj.location}"
    }
- project "Win32"
-  location "UCodeAPI/Win32"
+ project "CompilerAPI"
+  location "UCodeAPI/CompilerAPI"
   kind "StaticLib"
   language "C++"
 
@@ -524,7 +528,7 @@ group "UCodeAPIs"
   objdir ("Output/int/%{prj.name}/" .. OutDirPath)
 
   
-  dependson {"UCodelangCL","NWin32"}
+  dependson {"UCodelangCL","StandardLibrary"}
   files { 
   "UCodeAPI/%{prj.name}/ignoreC.c",
   "UCodeAPI/%{prj.name}/src/**.uc",
@@ -537,10 +541,10 @@ group "UCodeAPIs"
    prebuildcommands 
    {
      UCPathExe.." index %{prj.location}",
-     --UCPathExe.." build %{prj.location}"
+     UCPathExe.." build %{prj.location}"
    }
- project "NWin32"
-   location "UCodeAPI/NWin32"
+ project "BuildSystem"
+   location "UCodeAPI/BuildSystem"
    kind "StaticLib"
    language "C++"
 
@@ -560,33 +564,9 @@ group "UCodeAPIs"
     prebuildcommands 
     {
      UCPathExe.." index %{prj.location}",
-     --UCPathExe.." build %{prj.location}"
+     UCPathExe.." build %{prj.location}"
     }
- project "Example"
-   location "UCodeAPI/Example"
-   kind "ConsoleApp"
-   language "C++"
-
-   targetdir ("Output/%{prj.name}/" .. OutDirPath)
-   objdir ("Output/int/%{prj.name}/" .. OutDirPath)
-
-   
-   dependson {"StandardLibrary","UCodelangCL"}
-   files { 
-   "UCodeAPI/%{prj.name}/out/CLang89/Example.c",
-   "UCodeAPI/%{prj.name}/src/**.uc",
-   "UCodeAPI/%{prj.name}/ULangModule.ucm",
-   }
-
-   prebuildmessage 'compiling ucodelang files'
-
-   if not os.host() == "macosx" then--MacOs CL build fail because of this. 
-   prebuildcommands 
-   {
-    --UCPathExe.." build %{prj.location} -c11",
-   }
-   end
-
+ 
 function executeorexit(str)
  exit = os.execute(str)
 
@@ -694,6 +674,18 @@ newaction {
     end
 }
 
+
+newaction {
+    trigger = "installinno",
+    description = "downloads inno setup and puts in output",
+    execute = function ()
+        print("----installing inno setup tools for " .. os.target())
+        
+        executeorexit("git clone https://github.com/LostbBlizzard/installed-inno Dependencies/bin/inno")
+        
+    end
+}
+
 ---build
 newaction {
     trigger = "build_UCApp",
@@ -776,7 +768,7 @@ newaction {
         end
 
         if os.istarget("windows") then
-         executeorexit("msbuild UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win64 -maxcpucount")
+         executeorexit("msbuild UCodeLang.sln /t:Build /p:Configuration=Published  /p:Platform=Win64 -maxcpucount")
         end
         
         if os.istarget("macosx") then
@@ -794,7 +786,7 @@ newaction {
         end
 
         if os.istarget("windows") then
-         executeorexit("msbuild UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win32 -maxcpucount")
+         executeorexit("msbuild UCodeLang.sln /t:Build /p:Configuration=Published /p:Platform=Win32 -maxcpucount")
         end
         
         if os.istarget("macosx") then
@@ -980,3 +972,19 @@ newaction {
 }
 
 
+newaction {
+    trigger = "buildinstaller",
+    description = "build the installer",
+    execute = function ()
+        
+        if os.istarget("linux") then
+        end
+
+        if os.istarget("windows") then
+          executeorexit("Dependencies\\bin\\inno\\ISCC.exe install.iss")
+        end
+        
+        if os.istarget("macosx") then
+        end
+    end
+}

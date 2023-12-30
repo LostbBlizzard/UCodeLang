@@ -361,6 +361,7 @@ void SystematicAnalysis::FileDependency_AddDependencyToCurrentFile(const NeverNu
 
 		}
 
+		/*
 		for (auto& Item : FileData._Imports)
 		{
 
@@ -372,6 +373,7 @@ void SystematicAnalysis::FileDependency_AddDependencyToCurrentFile(const NeverNu
 			}
 
 		}
+		*/
 
 		if (LookingAtSybval->Type == SymbolType::Type_alias
 			|| LookingAtSybval->Type == SymbolType::Hard_Type_alias)
@@ -558,7 +560,10 @@ void SystematicAnalysis::OnFileNode(const FileNode& File)
 	
 	if (_StartingNameSpace.has_value())
 	{
-		_Table.RemoveScope();
+		for (size_t i = 0; i < ScopeHelper::Get_ScopeCount(_StartingNameSpace.value())+1; i++)
+		{
+			_Table.RemoveScope();
+		}
 	}
 
 	OutofLoop:

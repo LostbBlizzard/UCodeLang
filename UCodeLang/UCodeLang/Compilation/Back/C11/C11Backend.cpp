@@ -179,9 +179,12 @@ void C11Backend::AddBaseTypes()
 	OutBuffer += "#else\n";
 	OutBuffer += "#define " + (String)IRForceinlineDefineName + " inline\n";
 	OutBuffer += "#endif\n\n";
-
-	//OutBuffer += "#if " + (String)IRMSVCDefineName + "\n";
-	OutBuffer += "#define " + (String)IRhreadLocal + " \n";
+	
+	OutBuffer += "#ifdef __cplusplus\n";
+	OutBuffer += "#define " + (String)IRhreadLocal + " thread_local\n";
+	OutBuffer += "#else \n";
+	OutBuffer += "#define " + (String)IRhreadLocal + " _Thread_local\n";
+	OutBuffer += "#endif\n";
 	//OutBuffer += "#elif " + (String)IRGNUCDefineName + "\n";
 	//OutBuffer += "#define " + (String)IRThreadLocal  + " __attribute__((always_inline))\n";
 	//OutBuffer += "#else\n";

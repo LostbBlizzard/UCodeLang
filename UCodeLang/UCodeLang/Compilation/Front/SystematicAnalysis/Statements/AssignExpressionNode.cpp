@@ -61,7 +61,19 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 		auto ExpressionType = _LastExpressionType;
 		auto ExIR = _IR_LastExpressionField;
 
+		if (Symbol_HasDestructor(AssignType.Op0))
+		{
+			ObjectToDrop dropinfo;
+			dropinfo.DropType = ObjectToDropType::IRInstruction;
+			dropinfo._Object = ExIR;
+			dropinfo.Type = ExpressionType;
 
+			IR_Build_DestructorCall(dropinfo);
+
+			_IR_LastExpressionField = ExIR ;
+		}
+
+			
 
 		auto implictype = Type_AreTheSameWithOutMoveAndimmutable(ExpressionType, AssignType.Op1) ? AssignType.Op0 : AssignType.Op1;
 

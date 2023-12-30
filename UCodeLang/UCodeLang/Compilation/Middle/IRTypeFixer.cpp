@@ -68,7 +68,7 @@ void IRTypeFixer::FixTypes(IRBuilder* Input)
 
 	OnFunc(&_Input->_threadInit);
 
-	OnFunc(&_Input->_threadInit);
+	OnFunc(&_Input->_threaddeInit);
 
 	for (auto& Func : _Input->Funcs)
 	{

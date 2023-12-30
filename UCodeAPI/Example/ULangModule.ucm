@@ -1,8 +1,0 @@
-AuthorName:LostBlizzard
-ModuleName:Example
-Version:0:0:0
-
-ForceImport:false
-RemoveUnSafe:false
-NameSpace:Example
-//import UCodeLang::StandardLibarary[0:0:0];
