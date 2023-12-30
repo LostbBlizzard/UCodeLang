@@ -70,6 +70,11 @@ void SystematicAnalysis::OnAttributeNode(const AttributeNode& node)
 			auto Tag = AttOp.value();
 
 			String functocall;
+
+			_LookingForTypes.push(TypesEnum::Void);
+			auto f = Type_GetFunc(Tag->VarType, node._Parameters);
+			_LookingForTypes.pop();
+
 			if (Tag->Type == SymbolType::Generic_Tag)
 			{
 
@@ -87,85 +92,46 @@ void SystematicAnalysis::OnAttributeNode(const AttributeNode& node)
 			}
 			else
 			{
-				Vector<ParInfo> InferedParInfo;
-				for (auto& Item : FuncCalls)
-				{
-					if (Item->Type == SymbolType::Func)
-					{
-						FuncInfo* finfo = Item->Get_Info<FuncInfo>();
-							
-						if (finfo->Pars.size()-1 == node._Parameters._Nodes.size())
-						{
-							InferedParInfo = finfo->Pars;
-						}
-					}
-				}
+				_LookingForTypes.push(TypesEnum::Void);
+				auto f = Type_GetFunc(Tag->VarType, node._Parameters);
+				_LookingForTypes.pop();
+
 
 				Vector<EvaluatedEx> EvalParsInfo;
-				for (size_t i = 0; i < node._Parameters._Nodes.size(); i++)
-				{
-					auto& Item = node._Parameters._Nodes[i];
-
-
-
-					TypeSymbol lookingfor;
-					if (i + 1 < InferedParInfo.size())
-					{
-						lookingfor = InferedParInfo[i + 1].Type;
-					}
-
-					auto& ex = EvalParsInfo.emplace_back();
-
-					_LookingForTypes.push(lookingfor);
-					OnExpressionNode(*ValueExpressionNode::As(Item.get()));
-					
-					ex = Eval_MakeEx(_LastExpressionType);
-
-					auto b = Eval_Evaluate_t(ex, Item.get(), GetValueMode::Read);
-
-					_LookingForTypes.pop();
-
-					if (!b)
-					{
-						return;
-					}
-				
-				}
-				
-				int a = 10;
-				Vector<Symbol> A;
 				Optional<NeverNullPtr<Symbol>> FuncToCall;
-				
-				
-				for (auto& Item : FuncCalls)
+				if (f.Func)
 				{
-					bool next = false;
+					FuncToCall = NeverNullptr(f.SymFunc);
 
-					if (Item->Type == SymbolType::Func)
+					EvalParsInfo.resize(f.Func->Pars.size()-1);
+
+					for (size_t i = 0; i < node._Parameters._Nodes.size(); i++)
 					{
-						FuncInfo* finfo = Item->Get_Info<FuncInfo>();
+						auto& parnode = node._Parameters._Nodes[i];
+						auto& type = f.Func->Pars[i+1];
 
-						if (finfo->Pars.size() - 1 == EvalParsInfo.size())
+						ExpressionNodeType V;
+						V._Value.reset(parnode.get());
+
+						_LookingForTypes.push(type.Type);
+						auto op = Eval_Evaluate(type.Type,V);
+						_LookingForTypes.pop();
+
+						V._Value.release();
+
+
+						if (op.has_value())
 						{
-							for (size_t i = 0; i < EvalParsInfo.size(); i++)
-							{
-								auto& ItemP = finfo->Pars[i+1];
-								auto& ItemV = EvalParsInfo[i];
-
-								if (!Eval_CanEvaluateImplicitConversionConstant(ItemV.Type,ItemP.Type))
-								{
-									next = true;
-									break;
-								}
-							}
-
-							if (next == false)
-							{
-								FuncToCall = Item;
-							}
+							EvalParsInfo[i] = op.value();
 						}
+						else
+						{
+							return;
+						}
+						
 					}
 				}
+
 
 				if (FuncToCall.has_value())
 				{
@@ -177,7 +143,7 @@ void SystematicAnalysis::OnAttributeNode(const AttributeNode& node)
 
 					Vector<EvaluatedEx> Val;
 					Val.resize(EvalParsInfo.size() + 1);
-				
+
 
 					auto& thispointertype = *callingfunc->Get_Info<FuncInfo>()->GetObjectForCall();
 
@@ -189,12 +155,12 @@ void SystematicAnalysis::OnAttributeNode(const AttributeNode& node)
 
 					EvalSharedState newevalstate;
 					Val[0] = Eval_MakeEx(thispointertype);
-					
+
 					Eval_Set_ObjectAs(Val[0], newevalstate.GivePointerAccess(&ThisVal));
 
 					_SharedEvalStates.push_back(std::move(newevalstate));
 
-					
+
 					for (size_t i = 0; i < EvalParsInfo.size(); i++)
 					{
 						auto& Item = EvalParsInfo[i];
@@ -207,27 +173,14 @@ void SystematicAnalysis::OnAttributeNode(const AttributeNode& node)
 
 
 					_Eval_FuncStackFrames.push_back(Unique_ptr<EvalFuncData>(new EvalFuncData(std::move(state))));
-					
+
 					Eval_EvalutateFunc(*_Eval_FuncStackFrames.back(), callingfunc, Val);
-					
+
 					_Eval_FuncStackFrames.pop_back();
 
 					_SharedEvalStates.pop_back();
 
 					info->RawObj = std::move(ThisVal.EvaluatedObject);
-				}
-				else
-				{
-					Vector<ParInfo> p;
-					p.resize(node._Parameters._Nodes.size());
-
-					for (size_t i = 0; i < EvalParsInfo.size(); i++)
-					{
-						 p[i].Type = EvalParsInfo[i].Type;
-					}
-
-					LogError_CantFindFuncError(NeverNullptr(node._ScopedName._ScopedName.front()._token), functocall,
-						{}, p, {});
 				}
 			}
 
