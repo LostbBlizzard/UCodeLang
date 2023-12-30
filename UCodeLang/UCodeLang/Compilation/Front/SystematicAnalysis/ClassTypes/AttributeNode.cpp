@@ -69,7 +69,15 @@ void SystematicAnalysis::OnAttributeNode(const AttributeNode& node)
 		{
 			auto Tag = AttOp.value();
 
-			auto functocall = ScopeHelper::ApendedStrings(Tag->FullName, ClassConstructorfunc);
+			String functocall;
+			if (Tag->Type == SymbolType::Generic_Tag)
+			{
+
+			}
+			else
+			{
+				functocall = ScopeHelper::ApendedStrings(Tag->FullName, ClassConstructorfunc);
+			}
 			auto FuncCalls = GetSymbolsWithName(functocall,SymbolType::Func);
 			
 			
