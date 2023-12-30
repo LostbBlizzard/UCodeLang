@@ -5162,6 +5162,8 @@ enum class IRRefOpType
 	IRidentifier,
 	IRInstruction,
 	IRParameter,
+
+	FuncPointer,
 };
 IRRefOpType GetRefOpType(IROperatorType type)
 {
@@ -5182,6 +5184,9 @@ IRRefOpType GetRefOpType(IROperatorType type)
 	case IROperatorType::IRParameter:
 	case IROperatorType::Get_PointerOf_IRParameter:
 		return IRRefOpType::IRParameter;
+		break;
+	case IROperatorType::Get_Func_Pointer:
+		return IRRefOpType::FuncPointer;
 		break;
 	default:
 		UCodeLangUnreachable();
