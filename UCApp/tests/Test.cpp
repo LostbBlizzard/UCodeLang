@@ -723,6 +723,7 @@ using namespace UCodeLang;
 	struct StandardLibraryTestInfo
 	{
 		bool ProjectCompiled = true;
+		bool PassedTests = false;
 	};
 
 
@@ -737,6 +738,14 @@ using namespace UCodeLang;
 		ModuleFile::FromFile(&Mfile, UCodeLangVSAPIPath + "\\StandardLibrary\\ULangModule.ucm");
 
 		Compiler compiler;
+		if (mode == TestMode::CLang89BackEnd)
+		{
+			compiler.Set_BackEnd(C11Backend::MakeObject);
+		}
+		else if (mode == TestMode::WasmBackEnd)
+		{
+			compiler.Set_BackEnd(WasmBackEnd::MakeObject);
+		}
 
 
 		auto index = ModuleIndex::GetModuleIndex();
@@ -747,46 +756,147 @@ using namespace UCodeLang;
 
 		if (OutData.CompilerRet.IsValue())
 		{
-			UCodeLang::UClib MLib;
-			UCodeLangAssert(UClib::FromFile(&MLib, OutData.OutputItemPath));
-			
+			Out.ProjectCompiled = true;
+			if (mode == TestMode::UCodeLangBackEnd)
+			{
+
+				UCodeLang::UClib MLib;
+				UCodeLangAssert(UClib::FromFile(&MLib, OutData.OutputItemPath));
 
 
-			UCodeLang::TestRuner runer;
-			auto info = runer.RunTests(MLib, UCodeLang::TestRuner::InterpreterType::Interpreter, [](TestRuner::TestInfo& test)
-				{
-					if (test.Passed)
+
+				UCodeLang::TestRuner runer;
+				auto info = runer.RunTests(MLib, UCodeLang::TestRuner::InterpreterType::Interpreter, [](TestRuner::TestInfo& test)
 					{
-						std::cout << "Test :" << test.TestName << " Passed\n";
+						if (test.Passed)
+						{
+							std::cout << "Test :" << test.TestName << " Passed\n";
+						}
+						else
+						{
+							std::cout << "Test :" << test.TestName << " Fail\n";
+						}
+					});
+
+				bool passed = info.TestCount == info.TestPassedCount;
+				std::cout << "Ran all " << info.TestCount << " Tests\n";
+
+				int passnumber;
+				if (info.TestPassedCount)
+				{
+					passnumber = ((float)info.TestPassedCount / (float)info.TestCount) * 100;
+				}
+				else
+				{
+					passnumber = 100;
+				}
+
+
+				std::cout << TestModeToName(mode) << " ";
+				if (passed)
+				{
+					Out.PassedTests = true;
+					std::cout << "Tests Passed.all 100% of tests passed\n";
+				}
+				else
+				{
+					std::cout << "Tests Failed about " << passnumber << "% passed\n";
+				}
+			}
+			else if (mode == TestMode::CLang89BackEnd)
+			{
+				auto& rlib = OutData.CompilerRet.GetValue().OutPut;
+				auto tests = UCodeLang::TestRuner::GetTests(rlib->Get_Assembly());
+				UCodeLang::TestRuner::TestsResult info;
+				info.TestCount = tests.size();
+
+				auto cfilepath = OutData.OutputItemPath;
+				Path dllfile = OutData.OutputItemPath.native() + Path(".lib").native();
+
+				UCodeLangAssert(CompileC89ToLib(cfilepath, dllfile));
+
+				auto staticinitname = C11Backend::UpdateToCindentifier(StaticVariablesInitializeFunc);
+				auto threadinitname = C11Backend::UpdateToCindentifier(ThreadVariablesInitializeFunc);
+
+				auto staticdeinitname = C11Backend::UpdateToCindentifier(StaticVariablesUnLoadFunc);
+				auto threaddeinitname = C11Backend::UpdateToCindentifier(ThreadVariablesUnLoadFunc);
+
+
+				#if UCodeLang_Platform_Windows
+				auto lib = LoadLibrary(dllfile.c_str());
+				UCodeLangDefer(FreeLibrary(lib));
+				auto staticinittocall = GetProcAddress(lib, staticinitname.c_str());
+				auto threadinittocall = GetProcAddress(lib, threadinitname.c_str());
+				auto staticdeinittocall = GetProcAddress(lib, staticdeinitname.c_str());
+				auto threaddeinittocall = GetProcAddress(lib, threaddeinitname.c_str());
+				#elif UCodeLang_Platform_Posix
+				auto lib = dlopen(dllfile.c_str(), RTLD_NOW);
+				UCodeLangDefer(dlclose(lib));
+
+				auto staticinittocall = dlsym(lib, staticinitname.c_str());
+				auto threadinittocall = dlsym(lib, threadinitname.c_str());
+				auto staticdeinittocall = dlsym(lib, staticdeinitname.c_str());
+				auto threaddeinittocall = dlsym(lib, threaddeinitname.c_str());
+				#endif
+				for (auto& Item : tests)
+				{
+					auto functocallStr = C11Backend::UpdateToCindentifier(Item->DecorationName);
+					#if UCodeLang_Platform_Windows
+					auto functocall = GetProcAddress(lib, functocallStr.c_str());
+					#elif UCodeLang_Platform_Posix
+					auto functocall = dlsym(lib, functocallStr.c_str());
+					#endif
+
+					bool testpassed = false;
+					if (Item->RetType._Type == ReflectionTypes::Bool)
+					{
+						using Func = bool(*)();
+						testpassed = ((Func)functocall)();
 					}
 					else
 					{
-						std::cout << "Test :" << test.TestName << " Fail\n";
+						testpassed = true;
 					}
-				});
 
-			bool passed = info.TestCount == info.TestPassedCount;
-			std::cout << "Ran all " << info.TestCount << " Tests\n";
+					if (testpassed)
+					{
+						std::cout << "Test :" << Item->FullName << " Passed\n";
+						info.TestCount++;
+					}
+					else
+					{
+						std::cout << "Test :" << Item->FullName<< " Fail\n";
+					}
+				}
 
-			int passnumber;
-			if (info.TestPassedCount)
-			{
-				passnumber = ((float)info.TestPassedCount / (float)info.TestCount) * 100;
+
+				int passnumber;
+				if (info.TestPassedCount)
+				{
+					passnumber = ((float)info.TestPassedCount / (float)info.TestCount) * 100;
+				}
+				else
+				{
+					passnumber = 100;
+				}
+
+				bool passed = info.TestCount == info.TestPassedCount;
+				std::cout << "Ran all " << info.TestCount << " Tests\n";
+
+				std::cout << TestModeToName(mode) << " ";
+				if (passed)
+				{
+					Out.PassedTests = true;
+					std::cout << "Tests Passed.all 100% of tests passed\n";
+				}
+				else
+				{
+					std::cout << "Tests Failed about " << passnumber << "% passed\n";
+				}
 			}
 			else
 			{
-				passnumber = 100;
-			}
-
-
-			std::cout << TestModeToName(mode) << " ";
-			if (passed)
-			{
-				std::cout << "Tests Passed.all 100% of tests passed\n";
-			}
-			else
-			{
-				std::cout << "Tests Failed about " << passnumber << "% passed\n";
+				UCodeLangUnreachable();
 			}
 		}
 
@@ -807,8 +917,8 @@ using namespace UCodeLang;
 
 		Array< StandardLibraryTestInfo, BackEndsCount> StandardTestInfo;
 
-		bool rununitTest = true;
-		bool runStandardLibraryTest = false;
+		bool rununitTest = false;
+		bool runStandardLibraryTest = true;
 		bool runincrementalcompilationTestOnStandardLibrary = false;
 
 		bool hasgcc = system("gcc -v") == EXIT_SUCCESS;
@@ -920,10 +1030,10 @@ using namespace UCodeLang;
 				auto index = ModuleIndex::GetModuleIndex();
 
 				index.AddModueToList(UCodeLangVSAPIPath + "\\StandardLibrary\\ULangModule.ucm");
-				index.AddModueToList(UCodeLangVSAPIPath + "\\Win32\\ULangModule.ucm");
+				index.AddModueToList(UCodeLangVSAPIPath + "\\CompilerAPI\\ULangModule.ucm");
 
 				index.AddModueToList(UCodeLangVSAPIPath + "\\NStandardLibrary\\ULangModule.ucm");
-				index.AddModueToList(UCodeLangVSAPIPath + "\\NWin32\\ULangModule.ucm");
+				index.AddModueToList(UCodeLangVSAPIPath + "\\BuildSystem\\ULangModule.ucm");
 				
 				ModuleIndex::SaveModuleIndex(index);
 			}
@@ -931,6 +1041,10 @@ using namespace UCodeLang;
 			{
 				auto& MyTestInfo = StandardTestInfo[i];
 				TestMode mode = (TestMode)i;
+
+				if (mode == TestMode::WasmBackEnd) { continue; }
+
+
 				RunStandardLibraryTests(MyTestInfo, mode);
 			}
 		}
@@ -1019,6 +1133,13 @@ using namespace UCodeLang;
 		for (auto& Item : TestInfo)
 		{
 			if (Item.TestsFail)
+			{
+				isok = false;
+			}
+		}
+		for (auto& Item : StandardTestInfo)
+		{
+			if (Item.ProjectCompiled == false || Item.PassedTests == false)
 			{
 				isok = false;
 			}

@@ -254,8 +254,9 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 						auto Syb = Symbol_GetSymbol(MoveSybID);
 						auto irfuncid = IR_GetIRID(Syb->Get_Info<FuncInfo>());
 
-
-						auto tep = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(ExType));
+						auto v = ExType;
+						v._IsAddress = false;
+						auto tep = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(v));
 
 						_IR_LookingAtIRBlock->NewPushParameter(_IR_LookingAtIRBlock->NewLoadPtr(tep));
 
