@@ -911,6 +911,12 @@ public:
 
 	Vector<const ClassMethod*> Find_Funcs(const String_view& FullName) const
 	{
+		auto v = ((ClassAssembly*)this)->Find_Funcs(FullName);
+		return *(Vector<const ClassMethod*>*)&v;
+	}
+
+	Vector<const ClassMethod*> Find_FuncsUsingName(const String_view& Name) const
+	{
 		Vector<const ClassMethod*> r;
 		for (auto& Item : Classes)
 		{
@@ -918,8 +924,9 @@ public:
 			{
 				for (auto& Item2 : Item->Get_ClassData().Methods)
 				{
-					if (Item2.DecorationName == FullName
-						|| Item2.FullName == FullName)
+					if (Item2.DecorationName == Name
+						|| Item2.FullName == Name
+						|| ScopeHelper::GetNameFromFullName(Item2.FullName) == Name)
 					{
 						r.push_back(&Item2);
 					}
@@ -929,7 +936,6 @@ public:
 		}
 		return r;
 	}
-
 
 	const AssemblyNode* Find_Node(ReflectionCustomTypeID TypeID) const;
 	AssemblyNode* Find_Node(ReflectionCustomTypeID TypeID);

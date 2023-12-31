@@ -148,26 +148,24 @@ extern "C"
     
     enum UCodeLangCAPI_RegisterID : UCodeLangCAPI_RegisterID_t
     {
-            A, B, C, D, E, F,
+        A, B, C, D, E, F,
 
-            //
-            StartRegister = (UCodeLangCAPI_RegisterID_t)A,
-            EndRegister = (UCodeLangCAPI_RegisterID_t)F,
-
-
-            ThisRegister = (UCodeLangCAPI_RegisterID_t)D,
-            InPutRegister = (UCodeLangCAPI_RegisterID_t)E,
-            OuPutRegister = (UCodeLangCAPI_RegisterID_t)F,
-
-            MathOuPutRegister = OuPutRegister,
-            BoolRegister = OuPutRegister,
-            BitwiseRegister = OuPutRegister,
-
-            StartParameterRegister = (UCodeLangCAPI_RegisterID_t)D,//the range the runtime will pass function Parameters into Registers
-            EndParameterRegister = (UCodeLangCAPI_RegisterID_t)F + 1,
+        //
+        StartRegister = (UCodeLangCAPI_RegisterID_t)A,
+        EndRegister = (UCodeLangCAPI_RegisterID_t)F,
 
 
-        };
+        ThisRegister = (UCodeLangCAPI_RegisterID_t)D,
+        InPutRegister = (UCodeLangCAPI_RegisterID_t)E,
+        OuPutRegister = (UCodeLangCAPI_RegisterID_t)F,
+
+        MathOuPutRegister = OuPutRegister,
+        BoolRegister = OuPutRegister,
+        BitwiseRegister = OuPutRegister,
+
+        StartParameterRegister = (UCodeLangCAPI_RegisterID_t)D,//the range the runtime will pass function Parameters into Registers
+        EndParameterRegister = (UCodeLangCAPI_RegisterID_t)F + 1,
+
     };
     union UCodeLangCAPI_AnyInt64
     {
