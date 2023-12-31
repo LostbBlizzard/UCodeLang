@@ -419,7 +419,7 @@ void ParseLine(String_view& Line)
 	{
 		*_This.output << "use \"build\" and not \"--build\"\n";
 	}
-	else if (Word1 == "index" || Word1 == "-i")
+	else if (Word1 == "index")
 	{
 		auto _Path = GetPath(Line);
 		auto _PathAsPath = Path(_Path);
@@ -454,7 +454,7 @@ void ParseLine(String_view& Line)
 			_This.ExeRet =EXIT_FAILURE;
 		}
 	}
-	else if (Word1 == "modules" || Word1 == "-m")
+	else if (Word1 == "modules")
 	{
 		UCodeLang::ModuleIndex f = UCodeLang::ModuleIndex::GetModuleIndex();
 
@@ -472,7 +472,7 @@ void ParseLine(String_view& Line)
 
 		* _This.output << Path(ret);
 	}
-	else if (Word1 == "path" || Word1 == "-p")
+	else if (Word1 == "path")
 	{
 		UCodeLang::Path::string_type exepath;
 		
@@ -487,13 +487,13 @@ void ParseLine(String_view& Line)
 
 		* _This.output << Path(exepath) << '\n';
 	}
-	else if (Word1 == "globalpath" || Word1 == "-gp")
+	else if (Word1 == "globalpath")
 	{
 		auto ucodebinpath = UCodeLang::LangInfo::GetUCodeGlobalDirectory();
 
 		AppPrintin(Path(ucodebinpath));
 	}
-	else if (Word1 == "modulepath" || Word1 == "-mp")
+	else if (Word1 == "modulepath")
 	{
 		auto ucodebinpath = UCodeLang::LangInfo::GetUCodeGlobalModulesDownloads();
 
@@ -509,7 +509,7 @@ void ParseLine(String_view& Line)
 	{
 		*_This.output << Path(UCodeLang::LangInfo::VersionName);
 	}
-	else if (Word1 == "new" || Word1 == "-n")
+	else if (Word1 == "new")
 	{
 		
 		std::string TepNameBuffer;
@@ -600,7 +600,7 @@ void ParseLine(String_view& Line)
 		f.AddModueToList(modePath);
 		UCodeLang::ModuleIndex::SaveModuleIndex(f);
 	}
-	else if (Word1 == "fmt" || Word1 == "-f")
+	else if (Word1 == "fmt")
 	{
 		String _Path = String(GetPath(Line));
 		if (_Path.size())
@@ -643,11 +643,11 @@ void ParseLine(String_view& Line)
 			}
 		}
 	}
-	else if (Word1 == "doc" || Word1 == "-dc")
+	else if (Word1 == "doc")
 	{
 		//Generate documentation
 	}
-	else if (Word1 == "debug" || Word1 == "-d")
+	else if (Word1 == "debug")
 	{
 		bool debugruning = false;
 		while (debugruning)
@@ -655,7 +655,7 @@ void ParseLine(String_view& Line)
 
 		}
 	}
-	else if (Word1 == "eval" || Word1 == "-e")
+	else if (Word1 == "eval")
 	{
 		bool debugruning = false;
 		while (debugruning)
@@ -663,7 +663,7 @@ void ParseLine(String_view& Line)
 
 		}
 	}
-	else if (Word1 == "test" || Word1 == "-t")
+	else if (Word1 == "test")
 	{
 		bool use01 = UCodeLang::StringHelper::Contains(Line, "-01");
 		bool use02 = UCodeLang::StringHelper::Contains(Line, "-02");
@@ -867,7 +867,7 @@ void ParseLine(String_view& Line)
 			}
 		}
 	}
-	else if (Word1 == "run" || Word1 == "-r")
+	else if (Word1 == "run")
 	{
 		bool usejit = UCodeLang::StringHelper::Contains(Word1, "-jit");
 		
@@ -1003,7 +1003,7 @@ void ParseLine(String_view& Line)
 				Vector<ClassAssembly::ParsedValue> Pars;
 				Pars.resize(Parstxt.size());
 				const ClassMethod* func = nullptr;
-				auto funcs = Assembly.Find_Funcs(functocall);
+				auto funcs = Assembly.Find_FuncsUsingName(functocall);
 				for (auto& Item : funcs)
 				{
 					if (Item->ParsType.size() == Parstxt.size())
@@ -1092,7 +1092,7 @@ void ParseLine(String_view& Line)
 				}
 				else
 				{
-					AppPrint("Cant find function '" << func << '[');
+					AppPrint("Cant find function '" << functocall << '[');
 					for (auto& Item : Pars)
 					{
 						AppPrint(ClassAssembly::ToString(Item.GetType(),Assembly));
@@ -1111,7 +1111,7 @@ void ParseLine(String_view& Line)
 			_This.ExeRet = EXIT_FAILURE;
 		}
 	}
-	else if (Word1 == "get" || Word1 == "-g")
+	else if (Word1 == "get")
 	{
 		String _Path = String(GetPath(Line));
 		auto _PathAsPath = Path(_Path);
@@ -1181,7 +1181,7 @@ void ParseLine(String_view& Line)
 			}
 		}
 	}
-	else if (Word1 == "dump" || Word1 == "-dp")
+	else if (Word1 == "dump")
 	{
 		String _Path = String(GetPath(Line));
 		auto _PathAsPath = Path(_Path);
@@ -1306,7 +1306,7 @@ void ParseLine(String_view& Line)
 			_This.output = &std::cout;
 		}
 	}
-	else if (Word1 == "cpptoulangvm" || Word1 == "-cpptoulangvm")
+	else if (Word1 == "cpptoulangvm")
 	{
 		Path cppfile = GetPath(Line);
 		Path cpplink = GetPath(Line);
@@ -1322,7 +1322,7 @@ void ParseLine(String_view& Line)
 			_This.ExeRet = EXIT_FAILURE;
 		}
 	}
-	else if (Word1 == "cpptoulangvm" || Word1 == "-cpptoulangvm")
+	else if (Word1 == "cpptoulangvm")
 	{
 		Path cppfile = GetPath(Line);
 		Path cpplink = GetPath(Line);
@@ -1338,7 +1338,7 @@ void ParseLine(String_view& Line)
 			_This.ExeRet = EXIT_FAILURE;
 		}
 	}
-	else if (Word1 == "cppdirtoulangvm" || Word1 == "-cppdirtoulangvm")
+	else if (Word1 == "cppdirtoulangvm")
 	{
 		Path cppfile = GetPath(Line);
 		Path cpplink = GetPath(Line);
@@ -1354,7 +1354,7 @@ void ParseLine(String_view& Line)
 			_This.ExeRet = EXIT_FAILURE;
 		}
 	}
-	else if (Word1 == "ulangtocpp" || Word1 == "-ulangtocpp")
+	else if (Word1 == "ulangtocpp")
 	{
 		Path cppfile;
 		Path cpplink;
@@ -1370,7 +1370,7 @@ void ParseLine(String_view& Line)
 			_This.ExeRet = EXIT_FAILURE;
 		}
 	}
-	else if (Word1 == "clear" || Word1 == "-cc")
+	else if (Word1 == "clean")
 	{
 		String _Path = String(GetPath(Line));
 		auto _PathAsPath = Path(_Path);
@@ -1392,13 +1392,62 @@ void ParseLine(String_view& Line)
 
 			fs::remove_all(intpath);
 			fs::remove_all(outpath);
+
+			_This.ExeRet = EXIT_SUCCESS;
 		}
 		else
 		{
 			_This.ExeRet = EXIT_FAILURE;
 		}
 	}
-	else if (Word1 == "runlines" || Word1 == "-el")
+	else if (Word1 == "cleanall")
+	{
+		UCodeLang::ModuleIndex f = UCodeLang::ModuleIndex::GetModuleIndex();
+		f.RemoveDeletedModules();
+		UCodeLang::ModuleIndex::SaveModuleIndex(f);
+
+
+		for (auto& Item : f._IndexedFiles)
+		{
+			Path dirpath = Item._ModuleFullPath.parent_path();
+		
+			auto intpath = dirpath / "int";
+			auto outpath = dirpath / "out";
+
+			size_t filesremoved = fs::remove_all(intpath);
+			filesremoved += fs::remove_all(outpath);
+		
+			if (filesremoved)
+			{
+				AppPrintin("--cleaned" << Item._ModuleFullPath);
+			}
+		}
+
+		_This.ExeRet = EXIT_SUCCESS;
+	}
+	else if (Word1 == "buildall")
+	{
+		UCodeLang::ModuleIndex f = UCodeLang::ModuleIndex::GetModuleIndex();
+		f.RemoveDeletedModules();
+		UCodeLang::ModuleIndex::SaveModuleIndex(f);
+
+
+		Compiler _Compiler;
+		for (auto& Item : f._IndexedFiles)
+		{
+			auto m = ModuleFile::OpenFile(Item._ModuleFullPath);
+			if (m.has_value())
+			{
+				m.value().BuildModule(_Compiler, f,false,
+					[](UCodeLang::String l)
+					{
+						AppPrintin(l);
+					});
+			}
+		}
+		_This.ExeRet = EXIT_SUCCESS;
+	}
+	else if (Word1 == "runlines")
 	{
 		std::ifstream file(Path(GetPath(Line)));
 		if (file.is_open())
@@ -1413,11 +1462,11 @@ void ParseLine(String_view& Line)
 			file.close();
 		}
 	}
-	else if (Word1 == "out" || Word1 == "-o")
+	else if (Word1 == "out")
 	{
 		//set the output
 	}
-	else if (Word1 == "reindex" || Word1 == "-ri")
+	else if (Word1 == "reindex")
 	{
 		UCodeLang::ModuleIndex f = UCodeLang::ModuleIndex::GetModuleIndex();
 		f.RemoveDeletedModules();

@@ -69,24 +69,12 @@ void SystematicAnalysis::OnAttributeNode(const AttributeNode& node)
 		{
 			auto Tag = AttOp.value();
 
-			String functocall;
-
-			_LookingForTypes.push(TypesEnum::Void);
-			auto f = Type_GetFunc(Tag->VarType, node._Parameters);
-			_LookingForTypes.pop();
-
-			if (Tag->Type == SymbolType::Generic_Tag)
-			{
-
-			}
-			else
-			{
-				functocall = ScopeHelper::ApendedStrings(Tag->FullName, ClassConstructorfunc);
-			}
+			String functocall = ScopeHelper::ApendedStrings(Tag->FullName, ClassConstructorfunc);
+			
 			auto FuncCalls = GetSymbolsWithName(functocall,SymbolType::Func);
 			
 			
-			if (FuncCalls.size() == 0 && node._Parameters._Nodes.size())
+			if (FuncCalls.size() == 0 && node._Parameters._Nodes.size()==0)
 			{
 
 			}
