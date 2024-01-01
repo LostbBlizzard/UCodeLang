@@ -492,7 +492,7 @@ group "UCodeAPIs"
    prebuildcommands  
    {
     UCPathExe.." index %{prj.location}",
-    -- UCPathExe.." build %{prj.location}"
+    UCPathExe.." build %{prj.location}"
    }
   
  project "NStandardLibrary"
@@ -517,7 +517,7 @@ group "UCodeAPIs"
    prebuildcommands 
    {
     UCPathExe.." index %{prj.location}",
-    --UCPathExe.." build %{prj.location}"
+    UCPathExe.." build %{prj.location}"
    }
  project "CompilerAPI"
   location "UCodeAPI/CompilerAPI"
@@ -552,7 +552,7 @@ group "UCodeAPIs"
    objdir ("Output/int/%{prj.name}/" .. OutDirPath)
 
    
-   dependson {"UCodelangCL"}
+   dependson {"UCodelangCL","StandardLibrary"}
    files { 
    "UCodeAPI/%{prj.name}/ignoreC.c",
    "UCodeAPI/%{prj.name}/src/**.uc",
