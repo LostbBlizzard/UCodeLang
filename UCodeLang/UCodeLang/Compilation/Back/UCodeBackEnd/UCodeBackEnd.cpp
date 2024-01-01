@@ -1239,7 +1239,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			
 			if (Reg < (RegisterID_t)RegisterID::EndParameterRegister)
 			{
-				if (IsPrimitive(GetType(Item)))
+				if (GetSize(GetType(Item)) <= sizeof(AnyInt64))
 				{
 					RegWillBeUsed(_InputPar);
 					LoadOpToReg(Item, Item->Target(), _InputPar);
