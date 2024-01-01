@@ -178,7 +178,7 @@ bool IsList(String_view List, char V)
 
 #define Worddef Letersdef Numdef NameChardef
 
-#define PathDef Letersdef Numdef ":/\\.+()-"
+#define PathDef Letersdef Numdef ":/\\.+()-/" 
 
 String_view GetWord_t(String_view& Line,String_view GoodChars_t)
 {
@@ -470,7 +470,7 @@ void ParseLine(String_view& Line)
 		}
 		ret += "]";
 
-		* _This.output << Path(ret);
+		AppPrintin(Path(ret));
 	}
 	else if (Word1 == "path")
 	{
@@ -507,7 +507,7 @@ void ParseLine(String_view& Line)
 	}
 	else if (Word1 == "version" || Word1 == "-v")
 	{
-		*_This.output << Path(UCodeLang::LangInfo::VersionName);
+		AppPrintin(Path(UCodeLang::LangInfo::VersionName));
 	}
 	else if (Word1 == "new")
 	{
@@ -649,11 +649,142 @@ void ParseLine(String_view& Line)
 	}
 	else if (Word1 == "debug")
 	{
-		bool debugruning = false;
-		while (debugruning)
+		String _Path = String(GetPath(Line));
+		auto _PathAsPath = Path(_Path);
+		if (_Path.size() == 0)
 		{
-
+			_PathAsPath = std::filesystem::current_path();
+			_Path = _PathAsPath.generic_string();
 		}
+		else if (fs::exists(_PathAsPath) && _PathAsPath.extension() == UCodeLang::ModuleFile::FileExtWithDot)
+		{
+			_PathAsPath = _PathAsPath.parent_path();
+			_Path = _PathAsPath.generic_string();
+		}
+		else if (fs::exists(_PathAsPath))
+		{
+			_PathAsPath = _PathAsPath;
+			_Path = _PathAsPath.generic_string();
+		}
+
+		Compiler _Compiler;
+		Optional<UClib> libop;
+		if (!buildfile2(_PathAsPath, _Compiler, libop))
+		{
+			_This.ExeRet = EXIT_FAILURE;
+		}
+		else
+		{
+			auto& lib = *libop;
+
+			_This.ExeRet = EXIT_SUCCESS;
+
+			struct TCPConnection
+			{
+
+			};
+
+			struct ExternalProgramRuner
+			{
+				const UClib* lib;
+				UCodeLang::Variant<TCPConnection> Connection;
+
+			};
+
+			auto program = ExternalProgramRuner();
+			program.lib =&lib;
+
+
+			while (true)
+			{
+
+				std::string line;
+				std::getline(*_This.Input, line);
+
+				std::string_view lineview =line;
+
+				String_view Cmp = GetWord(lineview);
+			
+				if (Cmp == "help")
+				{
+					AppPrintin("Usage: [command] [args]");
+
+
+					AppPrintin("---");
+					AppPrintin("close : ends debug mode");
+					AppPrintin("start : start the debuger");
+					AppPrintin("stop  : stops the debuger");
+					AppPrintin("run : runs funcion");
+				}
+				else if (Cmp == "start")
+				{
+
+				}
+				else if (Cmp == "stop")
+				{
+
+				}
+				else if (Cmp == "continue")
+				{
+
+				}
+				else if (Cmp == "break")
+				{
+
+				}
+				else if (Cmp == "break")
+				{
+
+
+				}
+				else if (Cmp == "watch")
+				{
+
+				}
+				else if (Cmp == "rwatch")
+				{
+
+				}
+				else if (Cmp == "awatch")
+				{
+
+				}
+				else if (Cmp == "run")
+				{
+					String_view func = GetWord(lineview);
+					if (func.size() ==0)
+					{
+						func = "main";
+					}
+
+					int a = 10;
+
+
+
+				}
+				else if (Cmp == "delete")
+				{
+
+				}
+				else if (Cmp == "hotreload")
+				{
+
+				}
+				else if (Cmp == "reload")
+				{
+
+				}
+				else if (Cmp == "close")
+				{
+					break;
+				}
+				else
+				{
+					AppPrintin("bad command use the \"help\" command for help");
+				}
+			}
+		}
+
 	}
 	else if (Word1 == "eval")
 	{
