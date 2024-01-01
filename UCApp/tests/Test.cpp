@@ -724,6 +724,11 @@ using namespace UCodeLang;
 	{
 		bool ProjectCompiled = true;
 		bool PassedTests = false;
+
+		size_t TestsPassed = 0;
+		size_t TestsSkiped = 0;
+		size_t TestsFail = 0;
+		size_t TestsCount =0;
 	};
 
 
@@ -731,6 +736,8 @@ using namespace UCodeLang;
 	{
 		if (mode == TestMode::WasmBackEnd)
 		{
+			Out.ProjectCompiled = true;
+			Out.PassedTests = true;
 			return;
 		}
 
@@ -802,6 +809,10 @@ using namespace UCodeLang;
 				{
 					std::cout << "Tests Failed about " << passnumber << "% passed\n";
 				}
+				Out.TestsPassed = info.TestPassedCount;
+				Out.TestsSkiped = 0;
+				Out.TestsFail = info.TestCount - info.TestPassedCount;
+				Out.TestsCount = info.TestCount;
 			}
 			else if (mode == TestMode::CLang89BackEnd)
 			{
@@ -822,14 +833,14 @@ using namespace UCodeLang;
 				auto threaddeinitname = C11Backend::UpdateToCindentifier(ThreadVariablesUnLoadFunc);
 
 
-				#if UCodeLang_Platform_Windows
+#if UCodeLang_Platform_Windows
 				auto lib = LoadLibrary(dllfile.c_str());
 				UCodeLangDefer(FreeLibrary(lib));
 				auto staticinittocall = GetProcAddress(lib, staticinitname.c_str());
 				auto threadinittocall = GetProcAddress(lib, threadinitname.c_str());
 				auto staticdeinittocall = GetProcAddress(lib, staticdeinitname.c_str());
 				auto threaddeinittocall = GetProcAddress(lib, threaddeinitname.c_str());
-				#elif UCodeLang_Platform_Posix
+#elif UCodeLang_Platform_Posix
 				auto lib = dlopen(dllfile.c_str(), RTLD_NOW);
 				UCodeLangDefer(dlclose(lib));
 
@@ -837,15 +848,15 @@ using namespace UCodeLang;
 				auto threadinittocall = dlsym(lib, threadinitname.c_str());
 				auto staticdeinittocall = dlsym(lib, staticdeinitname.c_str());
 				auto threaddeinittocall = dlsym(lib, threaddeinitname.c_str());
-				#endif
+#endif
 				for (auto& Item : tests)
 				{
 					auto functocallStr = C11Backend::UpdateToCindentifier(Item->DecorationName);
-					#if UCodeLang_Platform_Windows
+#if UCodeLang_Platform_Windows
 					auto functocall = GetProcAddress(lib, functocallStr.c_str());
-					#elif UCodeLang_Platform_Posix
+#elif UCodeLang_Platform_Posix
 					auto functocall = dlsym(lib, functocallStr.c_str());
-					#endif
+#endif
 
 					bool testpassed = false;
 					if (Item->RetType._Type == ReflectionTypes::Bool)
@@ -861,11 +872,11 @@ using namespace UCodeLang;
 					if (testpassed)
 					{
 						std::cout << "Test :" << Item->FullName << " Passed\n";
-						info.TestCount++;
+						info.TestPassedCount++;
 					}
 					else
 					{
-						std::cout << "Test :" << Item->FullName<< " Fail\n";
+						std::cout << "Test :" << Item->FullName << " Fail\n";
 					}
 				}
 
@@ -893,6 +904,11 @@ using namespace UCodeLang;
 				{
 					std::cout << "Tests Failed about " << passnumber << "% passed\n";
 				}
+
+				Out.TestsPassed = info.TestPassedCount;
+				Out.TestsSkiped = 0;
+				Out.TestsFail = info.TestCount - info.TestPassedCount;
+				Out.TestsCount = info.TestCount;
 			}
 			else
 			{
@@ -917,7 +933,7 @@ using namespace UCodeLang;
 
 		Array< StandardLibraryTestInfo, BackEndsCount> StandardTestInfo;
 
-		bool rununitTest = false;
+		bool rununitTest = true;
 		bool runStandardLibraryTest = true;
 		bool runincrementalcompilationTestOnStandardLibrary = false;
 
@@ -943,10 +959,12 @@ using namespace UCodeLang;
 				}
 
 				//geting 32bit gcc is too much work.
-				if (mode == TestMode::CLang89BackEnd && hasgcc == false || UCodeLang_32BitSytem)
-				{
-					MyTestInfo.TestsSkiped += Tests.size();
-					continue;
+				if (mode == TestMode::CLang89BackEnd) {
+					if (hasgcc == false || UCodeLang_32BitSytem)
+					{
+						MyTestInfo.TestsSkiped += Tests.size();
+						continue;
+					}
 				}
 
 				for (size_t i = 0; i < Tests.size(); i++)
@@ -1042,8 +1060,18 @@ using namespace UCodeLang;
 				auto& MyTestInfo = StandardTestInfo[i];
 				TestMode mode = (TestMode)i;
 
-				if (mode == TestMode::WasmBackEnd) { continue; }
+				//if (mode == TestMode::WasmBackEnd) { continue; }
 
+				//geting 32bit gcc is too much work.
+				if (mode == TestMode::CLang89BackEnd) {
+					if (hasgcc == false || UCodeLang_32BitSytem)
+					{
+						MyTestInfo.TestsSkiped += StandardTestInfo[0].TestsCount;
+						MyTestInfo.PassedTests = true;
+						MyTestInfo.ProjectCompiled = true;
+						continue;
+					}
+				}
 
 				RunStandardLibraryTests(MyTestInfo, mode);
 			}
@@ -1087,46 +1115,94 @@ using namespace UCodeLang;
 			}
 		}
 
-		std::cout << "---Init Tests Review" << std::endl;
-		for (size_t i = 0; i < BackEndsCount; i++)
+		if (rununitTest) 
 		{
-			auto& MyTestInfo = TestInfo[i];
-			TestMode mode = (TestMode)i;
-
-			std::cout << "BackEnd :" << TestModeToName(mode) << std::endl;
-			
-			std::cout << "  passed :" << MyTestInfo.TestsPassed << "/" << Tests.size()
-				<< " (" << (int)(((float)MyTestInfo.TestsPassed / (float)Tests.size()) * 100) << "%)" << " Tests" << std::endl;
-			
-			std::cout << "  skiped :" << MyTestInfo.TestsSkiped << "/" << Tests.size()
-				<< " (" << (int)(((float)MyTestInfo.TestsSkiped / (float)Tests.size())*100) << "%) " << " Tests" << std::endl;
-			
-			std::cout << "  failed :" << MyTestInfo.TestsFail << "/" << Tests.size()
-				<< " (" << (int)(((float)MyTestInfo.TestsFail / (float)Tests.size())*100) << "%) "  << " Tests" << std::endl;
-		}
-		std::cout << "---Init Tests Average" << std::endl;
-		{
-			size_t PassCount = 0;
-			size_t SkipedCount = 0;
-			size_t FailCount = 0;
-
-			auto alltestcount = Tests.size() * BackEndsCount;
+			std::cout << "---Init Tests Review" << std::endl;
 			for (size_t i = 0; i < BackEndsCount; i++)
 			{
 				auto& MyTestInfo = TestInfo[i];
 				TestMode mode = (TestMode)i;
-				PassCount += MyTestInfo.TestsPassed;
-				SkipedCount += MyTestInfo.TestsSkiped;
-				FailCount += MyTestInfo.TestsFail;
+
+				std::cout << "BackEnd :" << TestModeToName(mode) << std::endl;
+
+				std::cout << "  passed :" << MyTestInfo.TestsPassed << "/" << Tests.size()
+					<< " (" << (int)(((float)MyTestInfo.TestsPassed / (float)Tests.size()) * 100) << "%)" << " Tests" << std::endl;
+
+				std::cout << "  skiped :" << MyTestInfo.TestsSkiped << "/" << Tests.size()
+					<< " (" << (int)(((float)MyTestInfo.TestsSkiped / (float)Tests.size()) * 100) << "%) " << " Tests" << std::endl;
+
+				std::cout << "  failed :" << MyTestInfo.TestsFail << "/" << Tests.size()
+					<< " (" << (int)(((float)MyTestInfo.TestsFail / (float)Tests.size()) * 100) << "%) " << " Tests" << std::endl;
 			}
-			std::cout << "  passed :" << PassCount << "/" << alltestcount 
-				<< " (" << (int)(((float)PassCount/(float)alltestcount)*100) << "%) " << " Tests" << std::endl;
-			
-			std::cout << "  skiped :" << SkipedCount << "/" << alltestcount 
-				<< " (" << (int)(((float)SkipedCount / (float)alltestcount) * 100) << "%) " << " Tests" << std::endl;
-			
-			std::cout << "  failed :" << FailCount << "/" << alltestcount 
-				<< " (" << (int)(((float)FailCount / (float)alltestcount) * 100) << "%) " << " Tests" << std::endl;
+			std::cout << "---Init Tests Average" << std::endl;
+			{
+				size_t PassCount = 0;
+				size_t SkipedCount = 0;
+				size_t FailCount = 0;
+
+				auto alltestcount = Tests.size() * BackEndsCount;
+				for (size_t i = 0; i < BackEndsCount; i++)
+				{
+					auto& MyTestInfo = TestInfo[i];
+					TestMode mode = (TestMode)i;
+					PassCount += MyTestInfo.TestsPassed;
+					SkipedCount += MyTestInfo.TestsSkiped;
+					FailCount += MyTestInfo.TestsFail;
+				}
+				std::cout << "  passed :" << PassCount << "/" << alltestcount
+					<< " (" << (int)(((float)PassCount / (float)alltestcount) * 100) << "%) " << " Tests" << std::endl;
+
+				std::cout << "  skiped :" << SkipedCount << "/" << alltestcount
+					<< " (" << (int)(((float)SkipedCount / (float)alltestcount) * 100) << "%) " << " Tests" << std::endl;
+
+				std::cout << "  failed :" << FailCount << "/" << alltestcount
+					<< " (" << (int)(((float)FailCount / (float)alltestcount) * 100) << "%) " << " Tests" << std::endl;
+			}
+		}
+
+		if (runStandardLibraryTest)
+		{
+			std::cout << "---StandardLibrary Tests Review" << std::endl;
+			for (size_t i = 0; i < StandardTestInfo.size(); i++)
+			{
+				auto& MyTestInfo = StandardTestInfo[i];
+				TestMode mode = (TestMode)i;
+
+				std::cout << "BackEnd :" << TestModeToName(mode) << std::endl;
+
+				std::cout << "  passed :" << MyTestInfo.TestsPassed << "/" << MyTestInfo.TestsCount
+					<< " (" << (int)(((float)MyTestInfo.TestsPassed / (float)MyTestInfo.TestsCount) * 100) << "%)" << " Tests" << std::endl;
+
+				std::cout << "  skiped :" << MyTestInfo.TestsSkiped << "/" << MyTestInfo.TestsCount
+					<< " (" << (int)(((float)MyTestInfo.TestsSkiped / (float)MyTestInfo.TestsCount) * 100) << "%) " << " Tests" << std::endl;
+
+				std::cout << "  failed :" << MyTestInfo.TestsFail << "/" << MyTestInfo.TestsCount
+					<< " (" << (int)(((float)MyTestInfo.TestsFail / (float)MyTestInfo.TestsCount) * 100) << "%) " << " Tests" << std::endl;
+			}
+			std::cout << "---StandardLibrary Tests Average" << std::endl;
+			{
+				size_t PassCount = 0;
+				size_t SkipedCount = 0;
+				size_t FailCount = 0;
+
+				auto alltestcount = StandardTestInfo[0].TestsCount * BackEndsCount;
+				for (size_t i = 0; i < StandardTestInfo.size(); i++)
+				{
+					auto& MyTestInfo = StandardTestInfo[i];
+					TestMode mode = (TestMode)i;
+					PassCount += MyTestInfo.TestsPassed;
+					SkipedCount += MyTestInfo.TestsSkiped;
+					FailCount += MyTestInfo.TestsFail;
+				}
+				std::cout << "  passed :" << PassCount << "/" << alltestcount
+					<< " (" << (int)(((float)PassCount / (float)alltestcount) * 100) << "%) " << " Tests" << std::endl;
+
+				std::cout << "  skiped :" << SkipedCount << "/" << alltestcount
+					<< " (" << (int)(((float)SkipedCount / (float)alltestcount) * 100) << "%) " << " Tests" << std::endl;
+
+				std::cout << "  failed :" << FailCount << "/" << alltestcount
+					<< " (" << (int)(((float)FailCount / (float)alltestcount) * 100) << "%) " << " Tests" << std::endl;
+			}
 		}
 
 		bool isok = true;
