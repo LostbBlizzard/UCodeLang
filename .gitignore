@@ -45,4 +45,4 @@ ARM64
 /UCodeIDE/test.js
 /UCodeIDE/test.js.out
 .vscode
-.code-workspace
+*.code-workspace

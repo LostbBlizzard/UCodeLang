@@ -53,21 +53,7 @@ end
 -- VS Code only scans for project files inside the project's directory, so symlink them into
 -- the project's directory.
 function m.files(prj)
-	local node_path = ''
-	local tr = project.getsourcetree(prj)
-	tree.traverse(tr, {
-		onbranchenter = function(node, depth)
-			node_path = node_path .. '/' .. node.name
-		end,
-		onbranchexit = function(node, depth)
-			node_path = node_path:sub(1, node_path:len()-(node.name:len()+1))
-		end,
-		onleaf = function(node, depth)
-			local full_path = prj.location .. node_path
-			os.mkdir(full_path)
-			symlink(node.abspath, full_path)
-		end
-	}, true)
+	
 end
 
 
