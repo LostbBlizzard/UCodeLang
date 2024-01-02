@@ -123,7 +123,7 @@ function m.vscode_launch(prj)
 		else
 			_p(1, ',{')
 		end
-			_p(2, '"name": "%s: Build and debug",', prj.name)
+			_p(2, '"name": "%s (%s): Build and debug",', prj.name,cfg.platform)
 			_p(2, '"type": "cppdbg",')
 			_p(2, '"request": "launch",')
 			_p(2, '"program": "%s/%s",', cfg.buildtarget.directory, prj.name)
