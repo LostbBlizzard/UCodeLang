@@ -44,3 +44,5 @@ ARM64
 /UCApp/OutIR.txt
 /UCodeIDE/test.js
 /UCodeIDE/test.js.out
+
+.vscode
