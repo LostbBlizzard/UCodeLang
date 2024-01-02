@@ -115,15 +115,10 @@ or directly to native machine code when that gets done.
 
 Run The following in your terminal to install on linux/MacOs.
 ```
-curl https://raw.githubusercontent.com/LostbBlizzard/UCodeLang/feature/install.sh | sh
+curl https://raw.githubusercontent.com/LostbBlizzard/UCodeLang/master/install.sh | sh
 ```
 
-Run The following in your terminal to install on Windows.
-```
-curl.exe https://raw.githubusercontent.com/LostbBlizzard/UCodeLang/feature/install.bat --output ucodelanginstall.bat
-call ucodelanginstall.bat
-del ucodelanginstall.bat
-```
+Or Download and run the [UCodeLangSetup.exe](https://github.com/LostbBlizzard/UCodeLang/releases/latest/download/UCodeLangSetup.exe) on the [latest release](https://github.com/LostbBlizzard/UCodeLang/releases/latest) for Windows.
 
 # Example(User)
 
