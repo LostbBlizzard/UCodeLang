@@ -77,8 +77,7 @@ struct SandBoxedIOLink
 	void GiveAccessToRealFile(const Path& file,const String& virtualfilepath, bool read = true, bool write = false);
 	void GiveAccessToRealDirectory(const Path& directory, const String& virtualdirectorypath, bool read = true, bool write = false);
 private:
-	
-	inline static size_t MaxVirtualStorageSize = (255 * 1024 * 1024) * 20;//20 MB
+	inline static size_t MaxVirtualStorageSize = size_t(255) * size_t(1024) * size_t(1024) * size_t(20); // 20 MB
 	inline static FileSystem system;
 
 	static Optional<FileHandle> GetfileusingName(String_view filename);
