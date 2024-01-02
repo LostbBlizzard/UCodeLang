@@ -79,7 +79,7 @@ function m.vscode_tasks(prj)
 	end
 			_p(2, '"args": [],')
 			_p(2, '"options": {')
-				_p(3, '"cwd": "${workspaceFolder}/../"')
+				_p(3, '"cwd": "${workspaceFolder}/"')
 			_p(2, '},')
 			_p(2, '"problemMatcher": [')
 				_p(3, '"$gcc"')
