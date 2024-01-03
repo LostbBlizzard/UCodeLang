@@ -31,29 +31,61 @@ add this to your main file.
 
 The Code Above will compile your UCodeString.
 
-now lets try to run it.
+Now lets try to run it.
 
-let's first set up your state this type can Upload your UCode libraries(.ulib)
+let's first set up your runtime state this type can Load your UCode libraries(.ulib)
+
+```cpp
+UCodeLang::RunTimeLangState State;
+```
 
 and then initialize RunTimeLib useing our Compiled code.
 
+```cpp
+UCodeLang::RunTimeLib Lib;
+Lib.Init(comilerRet.OutPut);//initialize RunTimeLib useing our Compiled code.
+```
+
 add RunTimeLib and
 then Link all the Link libraries together.
-
+```cpp
+State.AddLib(&Lib);//Add RunTimeLib
+State.LinkLibs();//Link libraries
+```
 then initialize the UCodeLang::Interpreter.
 
+```cpp
+UCodeLang::Interpreter interpreter;
+interpreter.Init(&State);
+```
 then call StaticVariablesInitializeFunc to call initialize our Static Varables.
 
+```cpp
+interpreter.Call(StaticVariablesInitializeFunc);//initialize our Static Varables.
+```
 
 then call ThreadVariablesInitializeFunc to call initialize our Thread local Varables or this case Interpreter local Varables.
 
+```cpp
+interpreter.Call(ThreadVariablesInitializeFunc);//initialize thread local/Interpreter local Varables.
+```
+
 then call main with Interpreter.RMain<int>
+```cpp
+int Value = interpreter.RCall<int>("main");//Call main
+```
 
 after we call our Thread local Varables destructors.
 and call our Static Varables destructors.
-
+```cpp
+interpreter.Call(ThreadVariablesUnLoadFunc);//Call  Thread local Varables destructors.
+```
 not doing so may cause memory leaks or leaving Hardware resources open like files network sockets ect.
+```cpp
+interpreter.Call(StaticVariablesUnLoadFunc);//Call Static Varables destructors.
+```
 
+Here the completed file.
 ```cpp
 #include <UCodeLang/UCodeLang.hpp>
 
@@ -98,84 +130,6 @@ int main()
 }
 ```
 
-See not too hard.
-but what if we want to add our c++ functionality so UCode can Call our C++ Code.
+But how do we call C++ from UCodeLang.
 
-it's also pretty easy all we have to do add our C++ Funcion before we link our code and add our ULang signature funcion before we compile.
-
-```cpp
-#include <UCodeLang/UCodeLang.hpp>
-
-//Our Native Funcion
-int MyCppFunc(int A)
-{
-    return A + 5;
-}
-
-//Our Interpreter Funcion Wapper.
-void UCodeLangAPI ULang_MyCppFunc(InterpreterCPPinterface& Input)
-{
-	int A = Input.GetParameter<int>();
-	Input.Set_Return(MyCppFunc(A));
-}
-
-int main()
-{
-
-  UCodeLang::String MyUCode = "|main[] => MyCppFunc(5);\n";
-  MyUCode += "extern dynamic |MyCppFunc[int A] -> int;\n";//our ULang signature that maps to Cpp Code Funcion.
-  UCodeLang::Compiler myCompiler;
-  auto comilerRet = myCompiler.CompileText(MyUCode);
-
-
-  if (comilerRet._State == UCodeLang::Compiler::CompilerState::Success)
-  { 
-    //your ucode was Compiled
-    UCodeLang::RunTimeLangState State;
-
-    UCodeLang::RunTimeLib Lib;
-	Lib.Init(comilerRet.OutPut);//initialize RunTimeLib useing our Compiled code.
-
-    UCodeLang::RunTimeLib CppLib;
-    Lib.Add_CPPCall("MyCppFunc", ULang_MyCppFunc, MyCppFunc);//Add Our Interpreter Funcion Wapper.
-    //Also Add the Native CppCall this is for JiT compilation. this is optional but makes the CPPCall a bit slower if not added.
-
-
-    State.AddLib(&CppLib);//Add our Cpp funcions.
-    State.AddLib(&Lib);//Add RunTimeLib
-    State.LinkLibs();//Link libraries
-   
-    UCodeLang::Interpreter interpreter;
-    interpreter.Init(&State);
-
-    interpreter.Call(StaticVariablesInitializeFunc);//initialize our Static Varables.
-	interpreter.Call(ThreadVariablesInitializeFunc);//initialize thread local/Interpreter local Varables.
-
-    int Value = interpreter.RCall<int>("main");//Call main
-    std::cout << " Got Value " << Value;
-
-
-	interpreter.Call(ThreadVariablesUnLoadFunc);//Call  Thread local Varables destructors.
-    interpreter.Call(StaticVariablesUnLoadFunc);//Call Static Varables destructors.
-  }
-  else 
-  {
-    //your ucode some how failed  
-    ULangTest::LogErrors(std::cout, myCompiler); 
-  }
-}
-```
-
-and that's the basics now your ready to explore the rest of this Project Library.
-
-Note this tutorial is just small example you should look at the [Project Library](./Project.md) on you should properly set it up and the UCodeLang Type life.
-
-Try looking these:
-
- - [Proper Setup]
-
- - Debuging(Steping,inspecting Varables).
-
- - Backends
-
- - Jit-interpreter and Native-interpreter.
+- [Next Part](./CallingCppfromUCodeLang.md)

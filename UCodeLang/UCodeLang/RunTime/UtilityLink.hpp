@@ -4,13 +4,14 @@
 UCodeLangStart
 
 
-//Math,SIMD and every thing that wouldn't fit in [IO/SandBoxed]Link
+//Math,SIMD,Atomic,Hardware and every thing that wouldn't fit in [IO/SandBoxed]Link
 struct UtilityLink
 {
 	struct LinkSettings
 	{
 		bool AddMath = true;
 		bool AddSIMD = true;
+		bool AddThreading = true;
 	};
 
 
