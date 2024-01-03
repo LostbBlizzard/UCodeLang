@@ -1,8 +1,9 @@
 #include "UtilityLink.hpp"
+#include "Interpreters/Interpreter.hpp"
+
 
 #include <cmath>
-
-#include "Interpreters/Interpreter.hpp"
+#include <mutex>
 UCodeLangStart
 
 void UtilityLink::Link(RunTimeLib& lib, const LinkSettings& settings)
@@ -424,6 +425,10 @@ void UtilityLink::Link(RunTimeLib& lib, const LinkSettings& settings)
 	if (settings.AddSIMD)
 	{
 
+	}
+	if (settings.AddMutex)
+	{
+		
 	}
 }
 
