@@ -1909,26 +1909,11 @@ NullablePtr<Symbol> SystematicAnalysis::Symbol_GetSymbol(String_view Name, Symbo
 {
 	auto& Symbols = GetSymbolsWithName(Name,Type);
 	auto Symbol = Symbols.size() ? Symbols[0] : nullptr;
-
-	if (Symbol && Symbol->Type == SymbolType::ParameterVarable)
-	{
-		for (auto& Item : Symbols)
-		{
-			ParameterInfo* p = Item->Get_Info<ParameterInfo>();
-			if (p->MyFunc == Context_GetCuruntFunc().value().value())
-			{
-				return Item;
-			}
-		}
-	}
-
 	return Symbol;
 }
 const NullablePtr<Symbol> SystematicAnalysis::Symbol_GetSymbol(String_view Name, SymbolType Type) const
 {
-	auto& Symbols = GetSymbolsWithName(Name, Type);
-	auto Symbol = Symbols.size() ? Symbols[0] : nullptr;
-	return Nullableptr(Symbol);
+	return  const_cast<SystematicAnalysis*>(this)->Symbol_GetSymbol(Name, Type);
 }
 
 void SystematicAnalysis::OnTypeToValueNode(const TypeToValueNode& node)
