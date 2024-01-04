@@ -236,6 +236,77 @@ void SystematicAnalysis::FuncRetCheck(const Token& Name, const NeverNullPtr<Symb
 }
 
 
+
+#define FunctionOverloadStartSymbol "{<!"
+#define FunctionOverloadEndSymbol "!<}"
+
+constexpr size_t FunctionOverloadStartSymbolSize = sizeof(FunctionOverloadStartSymbol)-1;
+constexpr size_t FunctionOverloadEndSymbolSize = sizeof(FunctionOverloadEndSymbol)-1;
+
+
+String SystematicAnalysis::RemoveSymboolFuncOverloadMangling(const String_view fullname)
+{
+	bool IsAdding = true;
+
+	String r;
+	for (size_t i = 0; i < fullname.size(); i++)
+	{
+		char v = fullname[i];
+		if (IsAdding)
+		{
+			bool isstartofFuncoverload = false;
+			for (size_t i2 = 0; i2 < std::min(FunctionOverloadStartSymbolSize, fullname.size() - i); i2++)
+			{
+				char OverloadChar = FunctionOverloadStartSymbol[i2];
+				if (fullname[i + i2] !=OverloadChar)
+				{
+					break;
+				}
+
+				if (i2 == FunctionOverloadStartSymbolSize-1)
+				{
+					isstartofFuncoverload = true;
+				}
+			}
+			if (isstartofFuncoverload)
+			{
+				IsAdding = false;
+				i += FunctionOverloadStartSymbolSize - 1;
+			}
+
+			if (IsAdding)
+			{
+				r += v;
+			}
+		}
+		else
+		{
+			bool isstartofendFuncoverload = false;
+			for (size_t i2 = 0; i2 < std::min(FunctionOverloadEndSymbolSize, fullname.size() - i); i2++)
+			{
+				char OverloadChar = FunctionOverloadEndSymbol[i2];
+				if (fullname[i + i2] != OverloadChar)
+				{
+					break;
+				}
+
+				if (i2 == FunctionOverloadEndSymbolSize - 1)
+				{
+					isstartofendFuncoverload = true;
+				}
+			}
+
+			if (isstartofendFuncoverload)
+			{
+				IsAdding = true;
+				i += FunctionOverloadEndSymbolSize - 1;
+			}
+		}
+	}
+
+	return r;
+}
+
 void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 {
 
@@ -259,7 +330,22 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		FuncName = _Generic_GenericSymbolStack.top()._IR_GenericFuncName;
 	}
 
-	_Table.AddScope(FuncName);
+
+	String t;
+	if (node._Signature._Parameters._Parameters.size())
+	{
+		t = FunctionOverloadStartSymbol;
+	}
+	for (auto& item : node._Signature._Parameters._Parameters)
+	{
+		t += item._Type.AsString();
+	}
+	if (node._Signature._Parameters._Parameters.size())
+	{
+		t += FunctionOverloadEndSymbol;
+	}
+	t += FuncName;
+	_Table.AddScope(t);
 	auto FullName = _Table._Scope.ThisScope;
 
 
@@ -688,8 +774,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		Class_Data* Ptr = Assembly_GetAssemblyClass(FullName);
 
 		ClassMethod V;
-		V.FullName = FullName;
-		V.DecorationName = DecName;
+		V.FullName = RemoveSymboolFuncOverloadMangling(FullName);
+		V.DecorationName = RemoveSymboolFuncOverloadMangling(DecName);
 		V.RetType = Assembly_ConvertToType(Info->Ret);
 		;
 
@@ -907,7 +993,7 @@ String SystematicAnalysis::IR_MangleName(const FuncInfo* Func)
 
 IRidentifierID SystematicAnalysis::IR_GetIRID(const FuncInfo* Func)
 {
-	auto FuncName = IR_MangleName(Func);
+	auto FuncName = RemoveSymboolFuncOverloadMangling(IR_MangleName(Func));
 	return _IR_Builder.ToID(FuncName);
 }
 

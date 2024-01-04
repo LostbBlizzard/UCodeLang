@@ -1663,6 +1663,7 @@ void AppObject::DrawTestMenu()
                 {
                     _TestCompiler.Set_BackEnd(UCodeLang::WasmBackEnd::MakeObject);
                 }
+                /*
                 auto out = f.BuildModule(_TestCompiler, UCodeLang::ModuleIndex::GetModuleIndex());
 
                 if (out.CompilerRet.IsValue()) 
@@ -1676,6 +1677,7 @@ void AppObject::DrawTestMenu()
                     Outpath = out.OutputItemPath;
                     mode = TestWindowData.Testmode;
                 }
+                */
             }
 
             if (ImGui::Button("Build StandardLibrary"))

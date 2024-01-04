@@ -1136,6 +1136,12 @@ private:
 	void OnUseingNode(const UsingNode& node);
 
 	void Generic_InitGenericalias(const GenericValuesNode& GenericList, bool IsgenericInstantiation, Generic& Out);
+	
+	//Because we support function overloading
+	//we need a way for symbols FullNames to not Clash
+	//OnFuncNode will Mangling those symbol and this will remove it
+	String RemoveSymboolFuncOverloadMangling(const String_view fullname);
+	
 	void OnFuncNode(const FuncNode& node);
 	String GetImplementationFromFunc(String_view filetext, const Token* nametoken, const Token* endtoken);
 	void Node_InStatetements(bool Value);
