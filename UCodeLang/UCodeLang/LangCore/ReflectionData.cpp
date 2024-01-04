@@ -1260,6 +1260,11 @@ Optional<ClassAssembly::InfoSpan_t> ClassAssembly::IsSpan_t(const ReflectionType
 	return Optional<InfoSpan_t>();
 }
 
+Optional<ClassAssembly::InfoMap_t> ClassAssembly::IsMap_t(const ReflectionTypeInfo& Type) const
+{
+	return Optional<InfoMap_t>();
+}
+
 
 
 AssemblyNode::AssemblyNode(ClassType type) : Type(type)

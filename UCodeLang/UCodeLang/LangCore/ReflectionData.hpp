@@ -1278,5 +1278,14 @@ public:
 	};
 	// includes type aliases
 	Optional<InfoSpan_t> IsSpan_t(const ReflectionTypeInfo& Type) const;
+
+
+	struct InfoMap_t
+	{
+		ReflectionTypeInfo KeyType;
+		ReflectionTypeInfo MappedType;
+	};
+	// includes type aliases
+	Optional<InfoMap_t> IsMap_t(const ReflectionTypeInfo& Type) const;
 };
 UCodeLangEnd
