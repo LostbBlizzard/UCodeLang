@@ -16,3 +16,13 @@ Tests:
   int[:] span = List[uintptr(1)..2];
 
   ret span.Size() == 1 && span[uintptr(0)] == 15;
+
+ [SkipedTest]
+ |Vector_3[]:
+  int[] List = [];
+  List.Push(5);
+  List.Push(15);
+
+  List.Insert(1,20);
+
+  ret List[0] == 5 && List[1] == 20 && List[2] == 15;
