@@ -23,7 +23,7 @@
     - [cpptoulangvm](./UCodeCL/Commands/cpptoulangvm.md)
     - [cppdirtoulangvm](./UCodeCL/Commands/cppdirtoulangvm.md)
     - [test](./UCodeCL/Commands/Test.md)
-    - [update](./UCodeCL/Commands/update.md)
+    - [update](./UCodeCL/Commands/Update.md)
     - [updatetools](./UCodeCL/Commands/Updatetools.md)
     - [uninstalltools](./UCodeCL/Commands/Uninstalltools.md)
     - [index](./UCodeCL/Commands/Index.md)
