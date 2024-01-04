@@ -85,7 +85,7 @@ ProjectRoot > ./uclang cpptoulangvm [CppPath] [UCodeLangOut] [CppVMLinkPath]
 
 now the UCodeLangOut will have all funcion and type boilerplate and CppVMLinkPath will have all the Add_CPPCall funcions.
 
-and if you have your API in multiple C++ files you can use cppdirtoulangvm to search inside directories.it even automatically includes the .h/.hpp files.
+and if you have your API in multiple C++ files you can use [cppdirtoulangvm](../UCodeCL/Commands/cppdirtoulangvm.md) to search inside directories.it even automatically includes the .h/.hpp files.
 ```
 ProjectRoot > ./uclang cppdirtoulangvm [CppDir] [UCodeLangOut] [CppVMLinkPath]
 ```

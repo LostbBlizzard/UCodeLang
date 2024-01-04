@@ -12,7 +12,7 @@ uclang [command] <arguments>
 # Commands
 | Name | arguments | Description |
 |--- |--- |--- |
-[help](./Commands/New.md) | none | Outputs all the all the available commands.
+[help](./Commands/Help.md) | none | Outputs all the all the available commands.
 [new](./Commands/New.md) | none   | makes a new UCodeLang Module Project.
 [build](./Commands/Build.md) | Path(optional),flags(optional)  | Builds a UCodeLang File,Module,Folder.
 [run](./Commands/Run.md) | Path(optional),flags(optional)  | Builds a UCodeLang File,Module,Folder or .ulib and runs it. [See More](#Run-Command)
@@ -21,7 +21,7 @@ uclang [command] <arguments>
 [clean](./Commands/Clean.md) | Path| clears a Module a intermediate and output files.
 [cleanall](./Commands/Cleanall.md) | none | clears all Modules on the system intermediate and output files.
 [cpptoulangvm](./Commands/cpptoulangvm.md) | CppPath,CpplinkPath,ulangout  | uses C++ source code to create bindings for UCodeVm
-[cppdirtoulangvm](./Commands/cpptoulangvm.md) | CppDir,CpplinkPath,ulangout  | uses C++ source files code to create bindings for UCodeVm
+[cppdirtoulangvm](./Commands/cppdirtoulangvm.md) | CppDir,CpplinkPath,ulangout  | uses C++ source files code to create bindings for UCodeVm
 [fmt](./Commands/Fmt.md) | Path(optional)   |Formats A UCodeLang Module or file.
 [index](./Commands/Index.md) | Path(optional)   | Adds Module to to the Module Index so it can be used/referenced by other module in your system.
 [test](./Commands/Test.md) | Path(optional)   | Runs Tests on your UCodeLang Module Project.

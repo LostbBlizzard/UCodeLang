@@ -2,7 +2,7 @@
 
 Example
 ```
-uclang Install <WebLink>
+uclang Install [WebLink]
 ```
 
 downloads a Module from the Web and added it the module system index.
