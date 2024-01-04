@@ -2,7 +2,7 @@
 
 Example
 ```
-uclang uninstallmod <modulename>
+uclang uninstallmod [modulename]
 ```
 
 Uninstall the module and it's unused dependencies.

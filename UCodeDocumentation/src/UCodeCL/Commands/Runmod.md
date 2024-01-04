@@ -4,13 +4,13 @@ runs a module on the system.
 By default uclang will try to call the main funcion.
 
 ```
-uclang runmod <module>
+uclang runmod [module]
 ```
 
 This can be overwritten and basic arguments can be passed.
 
 ```
-uclang runmod <module> func(4)
+uclang runmod [module] func(4)
 ```
 
 The exit code is 0 if compilation succeed or 1 for compilation fail or if it panic or returns an error if the return type is an result type.
