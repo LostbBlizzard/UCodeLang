@@ -1423,7 +1423,7 @@ private:
 	NullablePtr<Symbol> Symbol_GetSymbol(String_view Name, SymbolType Type);
 	NeverNullPtr<Symbol> Symbol_GetSymbol(const FuncInfo* Info)
 	{
-		return Symbol_GetSymbol(Info->FullName, SymbolType::Func).value();
+		return Symbol_GetSymbol(RemoveSymboolFuncOverloadMangling(Info->FullName), SymbolType::Func).value();
 	}
 	NullablePtr<Symbol> Symbol_GetSymbol(const TypeSymbol& Info)
 	{

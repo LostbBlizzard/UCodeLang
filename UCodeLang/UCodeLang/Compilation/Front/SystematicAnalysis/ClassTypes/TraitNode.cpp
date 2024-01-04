@@ -327,8 +327,8 @@ void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo
 		{
 			FuncInfo* Info = Item.Syb->Get_Info<FuncInfo>();
 
-			auto FuncName = Info->Get_Name();
-			auto& List = GetSymbolsWithName(Info->Get_Name());
+			auto FuncName =RemoveSymboolFuncOverloadMangling(Info->Get_Name());
+			auto& List = GetSymbolsWithName(FuncName);
 
 			bool HasFunc = false;
 
