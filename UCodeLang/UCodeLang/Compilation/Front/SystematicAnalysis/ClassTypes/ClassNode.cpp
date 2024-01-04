@@ -320,7 +320,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 				auto OldBlock = _IR_LookingAtIRBlock;
 				//
 
-				auto FuncSyb = Symbol_GetSymbol(_Table._Scope.GetApendedString((String)ClassDestructorFunc), SymbolType::Func).value();
+				auto FuncSyb = Symbol_GetSymbol(RemoveSymboolFuncOverloadMangling(_Table._Scope.GetApendedString((String)ClassDestructorFunc)), SymbolType::Func).value();
 				auto Funcinfo = FuncSyb->Get_Info<FuncInfo>();
 
 				_IR_LookingAtIRFunc = _IR_Builder.NewFunc(IR_GetIRID(Funcinfo), IR_ConvertToIRType(Funcinfo->Ret));
@@ -337,7 +337,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 
 				if (ClassInf->_WillHaveFielddeInit)
 				{
-					auto ClassInit = _Table._Scope.GetApendedString((String)ClassDeInitializefuncName);
+					auto ClassInit = RemoveSymboolFuncOverloadMangling(_Table._Scope.GetApendedString((String)ClassDeInitializefuncName));
 
 					_IR_LookingAtIRBlock->NewPushParameter(_IR_LookingAtIRBlock->NewLoad(&_IR_LookingAtIRFunc->Pars.front()));
 					_IR_LookingAtIRBlock->NewCall(_IR_Builder.ToID(ClassInit));
@@ -384,7 +384,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 
 				FuncInfo V = FuncInfo();
 				{
-					V.FullName = _Table._Scope.GetApendedString((String)ClassDeInitializefuncName);
+					V.FullName = RemoveSymboolFuncOverloadMangling(_Table._Scope.GetApendedString((String)ClassDeInitializefuncName));
 					V._FuncType = FuncInfo::FuncType::Drop;
 					V.Ret = TypesEnum::Void;
 
@@ -423,7 +423,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 
 				FuncInfo V = FuncInfo();
 				{
-					V.FullName = _Table._Scope.GetApendedString((String)ClassConstructorfunc);
+					V.FullName = RemoveSymboolFuncOverloadMangling(_Table._Scope.GetApendedString((String)ClassConstructorfunc));
 					V._FuncType = FuncInfo::FuncType::New;
 					V.Ret = TypesEnum::Void;
 
@@ -449,7 +449,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 				{
 					if (ClassInf->_ClassFieldInit)
 					{
-						auto ClassInit = _Table._Scope.GetApendedString((String)ClassInitializefuncName);
+						auto ClassInit = RemoveSymboolFuncOverloadMangling(_Table._Scope.GetApendedString((String)ClassInitializefuncName));
 
 						_IR_LookingAtIRBlock->NewPushParameter(_IR_LookingAtIRBlock->NewLoad(&_IR_LookingAtIRFunc->Pars.front()));
 						_IR_LookingAtIRBlock->NewCall(_IR_Builder.ToID(ClassInit));
@@ -462,8 +462,8 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 				
 				{
 					ClassMethod V2;
-					V2.FullName = V.FullName;
-					V2.DecorationName = _IR_Builder.FromID(_IR_LookingAtIRFunc->identifier);
+					V2.FullName = RemoveSymboolFuncOverloadMangling(V.FullName);
+					V2.DecorationName = RemoveSymboolFuncOverloadMangling(_IR_Builder.FromID(_IR_LookingAtIRFunc->identifier));
 					V2.RetType = Assembly_ConvertToType(V.Ret);
 
 
@@ -481,7 +481,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 						F.Type = Assembly_ConvertToType(Item.Type);
 					}
 
-					Class_Data* Ptr = _Lib.Get_Assembly().Find_Class(Syb.FullName);
+					Class_Data* Ptr = _Lib.Get_Assembly().Find_Class(RemoveSymboolFuncOverloadMangling(Syb.FullName));
 					Ptr->Methods.push_back(std::move(V2));
 				}
 				//
@@ -522,7 +522,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 				String_view(&Text[Node._className.token->OnPos],
 					Node.EndOfClass->OnPos - Node._className.token->OnPos + offset);
 
-			GenericClass_Data& VClass = _Lib.Get_Assembly().AddGenericClass((String)ClassInf->Get_Name(), ClassInf->FullName);
+			GenericClass_Data& VClass = _Lib.Get_Assembly().AddGenericClass((String)ClassInf->Get_Name(), RemoveSymboolFuncOverloadMangling(ClassInf->FullName));
 
 			VClass.Base.Implementation = ClassStr + String(ClassBody);
 			VClass.Base.Implementation += "\n\n";
