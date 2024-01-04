@@ -40,4 +40,11 @@ SandBoxedIOLink::Link(Lib);
 //You can only pick SandBoxedIOLink or IOLink because thay add the same funcions
 ```
 ## Module System
-To add the StandardLibrary we need a Library. 
+To add the StandardLibrary we need to use the Module System. 
+
+
+
+
+Now you know the basics to get started makeing your framework.
+
+Use the [API Reference](./APIReference.md) to see what other useful funcions and classes are in UCodeLang.

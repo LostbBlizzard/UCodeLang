@@ -4,10 +4,11 @@ By default uclang build will compile to UCodeVM being 32 or 64 bit if the  curre
 
 if path not provided it will use the working directory as its input and use a UCodeModule Project in it to Compile.
 
+The exit is 0 if compilation succeed or 1 for compilation fail.
+
 Example
 ```
 uclang build -c89
-
 ```
 
 ```
@@ -27,3 +28,6 @@ uclang build -uvm:x86_64
   -ir | none | Outputs the IR.
   -uvm | this,x86_64,x86,x86,arm_64,arm | Build Native Code for the UCodeVm the .ulib can run on any Operating system(Most of the time) for that cpu chip. 
  -native | this,linux,windows,mac | Build Native Code Executable
+
+
+ 
