@@ -982,7 +982,7 @@ void SystematicAnalysis::LoadFuncInfoFixTypes(FuncInfo *Funcinfo, const ClassMet
 void SystematicAnalysis::Assembly_AddClass(const Vector<Unique_ptr<AttributeNode>> &attributes, const NeverNullPtr<Symbol> ClassSyb)
 {
 	const ClassInfo *Class = ClassSyb->Get_Info<ClassInfo>();
-	Class_Data &VClass = _Lib.Get_Assembly().AddClass((String)Class->Get_Name(), Class->FullName);
+	Class_Data &VClass = _Lib.Get_Assembly().AddClass((String)Class->Get_Name(), RemoveSymboolFuncOverloadMangling(Class->FullName));
 
 	TypeSymbol AsType = TypeSymbol(ClassSyb->ID);
 
@@ -1031,7 +1031,7 @@ void SystematicAnalysis::Assembly_AddEnum(const NeverNullPtr<Symbol> ClassSyb)
 	auto &Syb = *ClassSyb;
 	const EnumInfo *ClassInf = Syb.Get_Info<EnumInfo>();
 
-	Enum_Data &EnumData = _Lib.Get_Assembly().AddEnum(ScopeHelper::GetNameFromFullName(Syb.FullName), Syb.FullName);
+	Enum_Data &EnumData = _Lib.Get_Assembly().AddEnum(ScopeHelper::GetNameFromFullName(Syb.FullName), RemoveSymboolFuncOverloadMangling(Syb.FullName));
 	EnumData.BaseType = Assembly_ConvertToType(ClassInf->Basetype);
 	EnumData.TypeID = Type_GetTypeID(TypesEnum::CustomType, Syb.ID);
 
