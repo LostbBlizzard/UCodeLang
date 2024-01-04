@@ -426,7 +426,7 @@ void UtilityLink::Link(RunTimeLib& lib, const LinkSettings& settings)
 	{
 
 	}
-	if (settings.AddMutex)
+	if (settings.AddThreading)
 	{
 		
 	}
