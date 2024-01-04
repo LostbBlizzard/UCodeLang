@@ -739,4 +739,72 @@ private:
 	bool is32bit = false;
 };
 
+//follows std::unordered_map class kind of
+//a wrapper to make use UCodeMaps easier.
+struct ReflectionMap
+{
+public:
+	using Info_t = ClassAssembly::InfoString_t;
+	ReflectionMap() {}
+	~ReflectionMap() {}
+
+	bool empty()
+	{
+		return size() != 0;
+	}
+	size_t size()
+	{
+		return 0;
+	}
+	inline size_t max_size()
+	{
+		return SIZE_MAX;
+	}
+
+	void clear()
+	{
+
+	}
+	void insert(void* key, void* maptype)
+	{
+
+	}
+	void erase(void* key)
+	{
+
+	}
+	bool haskey(void* key)
+	{
+		return false;
+	}
+	void* at(void* key)
+	{
+		return nullptr;
+	}
+
+	void Set(void* UObject, const Info_t* Info,
+		AnyInterpreterPtr ptr,
+		const ClassAssembly& assembly,
+		bool is32bit)
+	{
+		SetUObject(UObject);
+		SetInfo(Info);
+		SetInterpreter(ptr);
+	}
+	inline void SetUObject(void* UObject) { _UObject = UObject; }
+	inline void SetInfo(const Info_t* Info) { _Info = Info; }
+	inline void SetInterpreter(AnyInterpreterPtr ptr) { _ptr = ptr; }
+	inline void SetAssembly(const ClassAssembly& assembly, bool is32bit)
+	{
+		this->assembly = &assembly;
+		this->is32bit = is32bit;
+	}
+private:
+	void* _UObject = nullptr;
+	AnyInterpreterPtr _ptr;
+	const Info_t* _Info = nullptr;
+	const ClassAssembly* assembly = nullptr;
+	bool is32bit = false;
+};
+
 UCodeLangEnd
