@@ -1070,23 +1070,24 @@ Optional<ClassAssembly::InfoVector_t> ClassAssembly::IsVector_t(const Reflection
 					{
 						if (Item->ParsType.size() == 3)
 						{
-							auto& ElemPar = Item->ParsType[1];
+							if (Item->ParsType[1].Type._Type == ReflectionTypes::uIntPtr) {
+								auto& ElemPar = Item->ParsType[2];
 
-							if (ElemPar.IsOutPar == false
-								&& ElemPar.Type._CustomTypeID == ElementType._CustomTypeID
-								&& ElemPar.Type.IsAddressArray() == false)
-							{
+								if (ElemPar.IsOutPar == false
+									&& ElemPar.Type._CustomTypeID == ElementType._CustomTypeID
+									&& ElemPar.Type.IsAddressArray() == false)
+								{
 
-								if (InsertMovedMethod == nullptr && ElemPar.Type.IsMovedType())
-								{
-									InsertMovedMethod = Item;
-								}
-								if (InsertCopyMethod == nullptr && ElemPar.Type.IsAddress())
-								{
-									InsertCopyMethod = Item;
+									if (InsertMovedMethod == nullptr && ElemPar.Type.IsMovedType())
+									{
+										InsertMovedMethod = Item;
+									}
+									if (InsertCopyMethod == nullptr && ElemPar.Type.IsAddress())
+									{
+										InsertCopyMethod = Item;
+									}
 								}
 							}
-
 						}
 					}
 				}
@@ -1265,7 +1266,7 @@ Optional<ClassAssembly::InfoMap_t> ClassAssembly::IsMap_t(const ReflectionTypeIn
 	return Optional<InfoMap_t>();
 }
 
-Optional<InfoArray_t> ClassAssembly::IsArray_t(const ReflectionTypeInfo& Type) const
+Optional<ClassAssembly::InfoArray_t> ClassAssembly::IsArray_t(const ReflectionTypeInfo& Type) const
 {
 	return Optional<InfoArray_t>();
 }

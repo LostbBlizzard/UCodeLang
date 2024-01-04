@@ -33,7 +33,7 @@ $Vector<T>:
       _capacity = Size;
       _data = unsafe new T[Size];
       for [uintptr i = 0;i < oldsize;i++]:
-       _data[i] = old[i];
+       _data[i] = move old[i];
 
       uintptr ptr =unsafe bitcast<uintptr>(old);
       if ptr != uintptr(0):
@@ -53,12 +53,52 @@ $Vector<T>:
    Resize(_size + 1);
    this[_size - 1] = Val;
 
-  |Insert[this&,uintptr Index,imut T& Item] -> void;
-  |Insert[this&,uintptr Index,moved T Item] -> void;
+  |Insert[this&,uintptr Index,imut T& Item] -> void:
+   Resize(_size + 1);
+
+   //shift all the elements
+   uintptr i = _size - 2;
+   while true:
+    _data[i+1] =move _data[i];
+    
+    if i == Index: break;
+
+    i--;
+
+   _data[Index] = Item;
+
+  |Insert[this&,uintptr Index,moved T Item] -> void:
+   Resize(_size + 1);
+
+   //shift all the elements
+   uintptr i = _size - 2;
+   while true:
+    _data[i+1] =move _data[i];
+    
+    if i == Index: break;
+
+    i--;
+
+   _data[Index] = Item;
 
   //Not required Functions 
-  |Append[this&,imut T[:] Val] -> void;
-  |Append[this&,moved Span<T> Val] -> void;
+  |Append[this&,imut T[:] Val] -> void:
+   var oldsize = _size;
+   Resize(_size + Val.Size());
+
+   for [uintptr i = 0;i < Val.Size();i++]:
+       _data[oldsize+i] = Val[i];
+
+  |Append[this&,moved Span<T> Val] -> void:
+   var oldsize = _size;
+   Resize(_size + Val.Size());
+
+   for [uintptr i = 0;i < Val.Size();i++]:
+       _data[oldsize+i] = move Val[i];
+
+  |Insert[this&,uintptr Index,imut T[:] Val] -> void;
+  
+  |Insert[this&,uintptr Index,moved Span<T> Val] -> void;
 
   
   |[][this&,uintptr Index] -> T&:ret _data[Index];

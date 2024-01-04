@@ -280,8 +280,6 @@ private:
 	bool is32bit = false;
 };
 
-
-
 //follows std::string class kind of
 //a wrapper to make use UCodeString easier.
 struct ReflectionString
@@ -806,7 +804,6 @@ private:
 	const ClassAssembly* assembly = nullptr;
 	bool is32bit = false;
 };
-
 
 //follows std::array class kind of
 //a wrapper to make use UCodeArray easier.
