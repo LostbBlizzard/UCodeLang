@@ -26,6 +26,7 @@ Types related to compiling and its Output.
 ## RunTime
 Types related to The UCodeVM/RunTime.
 
+
 | Name | Type | Description |
 |--- | --- |  --- | 
 [RunTimeLib](./Reference/RunTime/RunTimeLib.md) | Class | The BackEnd to output C Code.
@@ -33,10 +34,15 @@ Types related to The UCodeVM/RunTime.
 [AnyInterpreter](./Reference/RunTime/AnyInterpreter.md) | Class | A wapper over Interpreter,JitInterpreter and NativeInterpreter.
 [Interpreter](./Reference/RunTime/Interpreter.md) | Class | The Default Interpreter. 
 [JitInterpreter](./Reference/RunTime/JitInterpreter.md) | Class | The Jit Interpreter.
-[NativeInterpreter](./Reference/RunTime/NativeInterpreter.md) | Class | Runs Precompiled Native Code.
+[NativeInterpreter](./Reference/RunTime/NativeInterpreter.md) | Class | Runs Precompiled Native Code. 
+[IOLink](./Reference/RunTime/IOLink.md) | Class | Adds CppCalls for direct access to the file system,network and other IO.
+[SandBoxedIOLink](./Reference/RunTime/SandBoxedIOLink.md) | Class |Adds CppCalls for SandBoxed direct access to the file system,network and other IO.
+[UtilityLink](./Reference/RunTime/SandBoxedIOLink.md) | Class |  Adds CppCalls for everything else that doesn't fit in IO.
 
 ## Analysis
 Types related to The Analyzing UCodeLang ,UCodeLang Output or its Runtime.
+
+
 | Name | Type | Description |
 |--- | --- |  --- | 
 [ReflectionVector](./Reference/Analysis/ReflectionVector.md) | Class | Lets you use UCodeLang Vectors in a Easy Way.
@@ -44,6 +50,13 @@ Types related to The Analyzing UCodeLang ,UCodeLang Output or its Runtime.
 
 ## Core
 Basic types that UCodeLang Uses stop isn't part of C++17 standard Library.
+| Name | Type | Description |
+|--- | --- |  --- | 
+Result | Generic class | A type holding a returned value or an error code.
+NeverNullPtr | Generic class | A pointer that should never be null.
+NullablePtr | Generic class | A pointer that could be null.
+Variant | Generic class | A wapper over std::variant give it more functions.
+Span | Generic class | A contiguous sequence of objects
 
 ## C API
 UCodeLang Has a [C API](./Reference/CAPI.md) for using UCodeLang in Programming Languages other than C++.

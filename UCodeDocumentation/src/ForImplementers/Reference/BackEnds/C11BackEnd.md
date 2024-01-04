@@ -19,7 +19,7 @@ void main()
 {
     UCodeLang::Compiler _Compiler;
     _Compiler.Set_BackEnd(UCodeLang::C11Backend::MakeObject);
-    //You set the backend to output C89 Code.
+    //You set the backend to output C11 Code.
 }
 
 ```
