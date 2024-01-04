@@ -53,14 +53,10 @@ jobs:
         run: "[[ -f package-lock.json || -f npm-shrinkwrap.json ]] && npm ci || true"
       
       - name: Setup MdBook
-        working-directory: ./UCodeDocumentation
-        run: | 
-         chmod +x Build.sh
-         chmod +x tools/mdbook
+        run: chmod +x premake.sh
 
       - name: Build UCodeDocumentation
-        working-directory: ./UCodeDocumentation
-        run: ./Build.sh
+        run: ./premake.sh build_Docs
 
       - name: Build with Hugo
         env:
