@@ -1287,5 +1287,15 @@ public:
 	};
 	// includes type aliases
 	Optional<InfoMap_t> IsMap_t(const ReflectionTypeInfo& Type) const;
+
+
+	struct InfoArray_t
+	{
+		ReflectionTypeInfo ElementType;
+		const ClassMethod* Data_Method = nullptr;//|Data[imut this&] -> ElementType[&];
+		const ClassMethod* Size_Method = nullptr;//|Size[imut this&] -> uintptr;
+	};
+	// includes type aliases
+	Optional<InfoArray_t> IsArray_t(const ReflectionTypeInfo& Type) const;
 };
 UCodeLangEnd

@@ -1265,6 +1265,11 @@ Optional<ClassAssembly::InfoMap_t> ClassAssembly::IsMap_t(const ReflectionTypeIn
 	return Optional<InfoMap_t>();
 }
 
+Optional<InfoArray_t> ClassAssembly::IsArray_t(const ReflectionTypeInfo& Type) const
+{
+	return Optional<InfoArray_t>();
+}
+
 
 
 AssemblyNode::AssemblyNode(ClassType type) : Type(type)
