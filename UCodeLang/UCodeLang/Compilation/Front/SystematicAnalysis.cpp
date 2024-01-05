@@ -1235,6 +1235,7 @@ void SystematicAnalysis::OnStatement(const Node& node2)
 	case NodeType::UnsafeStatementsNode:OnUnsafeStatement(*UnsafeStatementsNode::As(&node2)); break;
 	case NodeType::DeferStatementNode:OnDeferStatement(*DeferStatementNode::As(&node2)); break;
 	case NodeType::StatementsNode:OnStatements(*StatementsNode::As(&node2)); break;
+	case NodeType::PanicNode:OnPanicStatement(*PanicNode::As(&node2)); break;
 	default:UCodeLangUnreachable(); break;
 	}
 	Pop_NodeScope();

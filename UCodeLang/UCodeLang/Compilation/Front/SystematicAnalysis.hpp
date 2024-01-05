@@ -1300,6 +1300,7 @@ private:
 	void OnDeferStatement(const DeferStatementNode& node);
 	void OnExpressionNode(const UnaryExpressionNode& node);
 	void OnStatements(const StatementsNode& node);
+	void OnPanicStatement(const PanicNode& node);
 
 	TypeSymbol Type_MakeFutureFromType(const TypeSymbol& BaseType);
 	bool Type_IsFuture(const TypeSymbol& Future);
