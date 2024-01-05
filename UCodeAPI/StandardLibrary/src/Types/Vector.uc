@@ -41,8 +41,17 @@ $Vector<T>:
   
   |Clear[this&] -> void:_size = 0;
 
-  |Pop[this&] -> T;
-  |Remove[this&,uintptr Index] -> T;
+  |Pop[this&] -> T:
+   var r = move this[_size - 1];
+   _size--;
+   ret r;
+
+  |Remove[this&,uintptr Index] -> T:
+   $if compiler::IsDebug():
+     if Index >= _size:panic("Index is out of bounds");
+
+   var r = move this[_size - 1];
+   
 
   |Push[this&,imut T& Val] -> void:
    Resize(_size + 1);
@@ -101,8 +110,16 @@ $Vector<T>:
   |Insert[this&,uintptr Index,moved Span<T> Val] -> void;
 
   
-  |[][this&,uintptr Index] -> T&:ret _data[Index];
-  |[][imut this&,uintptr Index] -> imut T&:ret _data[Index];
+  |[][this&,uintptr Index] -> T&:
+    $if compiler::IsDebug():
+      if Index >= _size:panic("Index is out of bounds");
+
+    ret _data[Index];
+  |[][imut this&,uintptr Index] -> imut T&:
+    $if compiler::IsDebug():
+      if Index >= _size:panic("Index is out of bounds");
+    
+    ret _data[Index];
 
 
   //Span

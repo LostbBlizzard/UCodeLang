@@ -38,8 +38,16 @@ $StringSpan_t<T>:
   |ToStr[MySpan& span] -> this: ret unsafe [span.Data(),span.Size()];
   |ToStr[imut MySpan& span] -> this:ret unsafe [span.Data(),span.Size()];
 
-  |[][this&,uintptr Index] -> T&:ret _data[Index];
-  |[][imut this&,uintptr Index] -> imut T&:ret _data[Index];
+  |[][this&,uintptr Index] -> T&:
+    $if compiler::IsDebug():
+      if Index >= _size:panic("Index is out of bounds");
+
+    ret _data[Index];
+  |[][imut this&,uintptr Index] -> imut T&:
+    $if compiler::IsDebug():
+      if Index >= _size:panic("Index is out of bounds");
+
+    ret _data[Index];
 
   |[][this&,Range_t<uintptr> Range] -> this:ret ToStr(AsSpan()[Range]);
   |[][imut this&,Range_t<uintptr> Range] -> this:ret ToStr(AsSpan()[Range]);
