@@ -981,7 +981,7 @@ String SystematicAnalysis::IR_MangleName(const FuncInfo* Func)
 {
 	if (Func->IsExternC)
 	{
-		return Func->FullName;
+		return RemoveSymboolFuncOverloadMangling(Func->FullName);
 	}
 	else
 	{

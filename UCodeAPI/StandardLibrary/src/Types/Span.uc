@@ -15,8 +15,16 @@ $Span<T>:
   unsafe |iData[imut this&] => _data;
   
 
-  |[][this&,uintptr Index] -> T&:ret _data[Index];
-  |[][imut this&,uintptr Index] -> imut T&:ret _data[Index];
+  |[][this&,uintptr Index] -> T&:
+    $if compiler::IsDebug():
+      if Index >= _size:panic("Index is out of bounds");
+
+    ret _data[Index];
+  |[][imut this&,uintptr Index] -> imut T&:
+    $if compiler::IsDebug():
+      if Index >= _size:panic("Index is out of bounds");
+    
+    ret _data[Index];
 
   |[][this&,Range_t<uintptr> Range] -> this:ret unsafe [_data[Range.Start()],Range.End() - Range.Start()];
   |[][imut this&,Range_t<uintptr> Range] -> this:ret unsafe [_data[Range.Start()],Range.End() - Range.Start()];
