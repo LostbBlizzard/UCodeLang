@@ -47,7 +47,7 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 				auto Syb = SybOp.value();
 				if (Syb->Type == SymbolType::Type_class)
 				{
-
+					/*
 					String funcName = Syb->FullName;
 					ScopeHelper::GetApendedString(funcName, Overload_Index_Func);
 
@@ -60,6 +60,8 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 							gesstype = func->Pars[1].Type;
 						}
 					}
+					*/
+					gesstype.SetType(TypesEnum::uIntPtr);
 				}
 			}
 		}

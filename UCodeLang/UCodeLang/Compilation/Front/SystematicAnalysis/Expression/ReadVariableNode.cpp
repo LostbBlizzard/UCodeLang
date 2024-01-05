@@ -476,7 +476,7 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 			if (Type_IsUnMapType(*ObjectType))
 			{
 				Out.Type = *Func->GetObjectForCall();
-				Out._Symbol = Symbol_GetSymbol(ScopeHelper::ApendedStrings(Symbol_GetSymbol(Func)->FullName, ThisSymbolName), SymbolType::ParameterVarable)
+				Out._Symbol = Symbol_GetSymbol(ScopeHelper::ApendedStrings(Func->FullName, ThisSymbolName), SymbolType::ParameterVarable)
 					.value().value();
 
 

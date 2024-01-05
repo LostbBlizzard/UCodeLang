@@ -340,7 +340,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	{
 		if (item._Type._IsAddess){t += "&";}
 		if (item._Type._Isimmutable){t += "imut";}
-		if (item._Type._IsTypedMoved){t += "imut";}
+		if (item._Type._IsTypedMoved){t += "mov";}
 		if (item._Type._IsDynamic){t += "dyn";}
 		t += item._Type.AsString();
 		if (&item != &node._Signature._Parameters._Parameters.back())
