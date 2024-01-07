@@ -23,7 +23,7 @@ void SystematicAnalysis::OnPanicStatement(const PanicNode& node)
 		auto typesyb = Symbol_GetSymbol(ex);
 		if (typesyb)
 		{
-			auto& typev = typesyb.value();
+			auto typev = typesyb.value();
 			if (Type_IsStringSpan(ex) || Type_IsString(ex))
 			{
 				isstrlike = true;
@@ -41,7 +41,7 @@ void SystematicAnalysis::OnPanicStatement(const PanicNode& node)
 				auto func1Op= Symbol_GetSymbol(ScopeHelper::ApendedStrings(typev->FullName, "Data"), SymbolType::Func);
 				if (func1Op.has_value())
 				{
-					auto& func1 = func1Op.value();
+					auto func1 = func1Op.value();
 
 					if (func1->Type == SymbolType::Func)
 					{
@@ -61,7 +61,7 @@ void SystematicAnalysis::OnPanicStatement(const PanicNode& node)
 				auto func2Op = Symbol_GetSymbol(ScopeHelper::ApendedStrings(typev->FullName, "Size"), SymbolType::Func);
 				if (func2Op.has_value())
 				{
-					auto& func2 = func2Op.value();
+					auto func2 = func2Op.value();
 
 					if (func2->Type == SymbolType::Func)
 					{
@@ -130,7 +130,7 @@ void SystematicAnalysis::OnPanicStatement(const PanicNode& node)
 
 		if (Type_IsStringSpan(ex) || Type_IsString(ex))
 		{
-			auto& typev = Symbol_GetSymbol(ex).value();
+			auto  typev = Symbol_GetSymbol(ex).value();
 
 			auto func1 = Symbol_GetSymbol(ScopeHelper::ApendedStrings(typev->FullName, "Data"), SymbolType::Func).value();
 			auto func2 = Symbol_GetSymbol(ScopeHelper::ApendedStrings(typev->FullName, "Size"), SymbolType::Func).value();

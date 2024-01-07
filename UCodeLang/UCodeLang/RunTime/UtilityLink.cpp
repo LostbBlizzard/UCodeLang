@@ -18,13 +18,13 @@ void UtilityLink::Link(RunTimeLib& lib, const LinkSettings& settings)
 			{
 				auto Par0 = Input.GetParameter<float>();
 				Input.Set_Return(std::cos(Par0));
-			}, std::cos);
+			},(float(*)(float)) std::cos);
 
 		lib.Add_CPPCall<float64>("cos", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float64>();
 				Input.Set_Return(std::cos(Par0));
-			}, std::cos);
+			},(float64(*)(float64)) std::cos);
 
 
 
@@ -32,13 +32,13 @@ void UtilityLink::Link(RunTimeLib& lib, const LinkSettings& settings)
 			{
 				auto Par0 = Input.GetParameter<float>();
 				Input.Set_Return(std::sin(Par0));
-			}, std::sin);
+			},(float(*)(float)) std::sin);
 
 		lib.Add_CPPCall<float64>("sin", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float64>();
 				Input.Set_Return(std::sin(Par0));
-			}, std::sin);
+			},(float64(*)(float64)) std::sin);
 
 
 
@@ -46,52 +46,52 @@ void UtilityLink::Link(RunTimeLib& lib, const LinkSettings& settings)
 			{
 				auto Par0 = Input.GetParameter<float>();
 				Input.Set_Return(std::tan(Par0));
-			}, std::tan);
+			},(float(*)(float))std::tan);
 
 		lib.Add_CPPCall<float64>("tan", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float64>();
 				Input.Set_Return(std::tan(Par0));
-			}, std::tan);
+			},(float64(*)(float64)) std::tan);
 
 
 		lib.Add_CPPCall<float>("acosf", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float>();
 				Input.Set_Return(std::acos(Par0));
-			}, std::acos);
+			},(float(*)(float)) std::acos);
 
 		lib.Add_CPPCall<float64>("acos", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float64>();
 				Input.Set_Return(std::acos(Par0));
-			}, std::acos);
+			},(float64(*)(float64)) std::acos);
 
 
 		lib.Add_CPPCall<float>("asinf", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float>();
 				Input.Set_Return(std::asin(Par0));
-			}, std::asin);
+			},(float(*)(float)) std::asin);
 
 		lib.Add_CPPCall<float64>("asins", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float64>();
 				Input.Set_Return(std::asin(Par0));
-			}, std::asin);
+			},(float64(*)(float64)) std::asin);
 
 
 		lib.Add_CPPCall<float>("atanf", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float>();
 				Input.Set_Return(std::atan(Par0));
-			}, std::atan);
+			},(float(*)(float)) std::atan);
 
 		lib.Add_CPPCall<float64>("atan", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float64>();
 				Input.Set_Return(std::atan(Par0));
-			}, std::atan);
+			},(float64(*)(float64)) std::atan);
 
 
 		lib.Add_CPPCall<float>("atan2f", [](InterpreterCPPinterface& Input)
@@ -99,15 +99,15 @@ void UtilityLink::Link(RunTimeLib& lib, const LinkSettings& settings)
 				auto Par0 = Input.GetParameter<float>();
 				auto Par1 = Input.GetParameter<float>();
 				Input.Set_Return(std::atan2(Par0, Par1));
-			}, std::atan2);
+			},(float(*)(float,float)) std::atan2);
 
-		lib.Add_CPPCall<float64>("atan", [](InterpreterCPPinterface& Input)
+		lib.Add_CPPCall<float64>("atan2", [](InterpreterCPPinterface& Input)
 			{
 
 				auto Par0 = Input.GetParameter<float64>();
 				auto Par1 = Input.GetParameter<float64>();
 				Input.Set_Return(std::atan2(Par0, Par1));
-			}, std::atan2);
+			},(float64(*)(float64,float64)) std::atan2);
 
 		//Hyperbolic functions
 
@@ -115,13 +115,13 @@ void UtilityLink::Link(RunTimeLib& lib, const LinkSettings& settings)
 			{
 				auto Par0 = Input.GetParameter<float>();
 				Input.Set_Return(std::cosh(Par0));
-			}, std::cosh);
+			},(float(*)(float)) std::cosh);
 
 		lib.Add_CPPCall<float64>("cosh", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float64>();
 				Input.Set_Return(std::cosh(Par0));
-			}, std::cosh);
+			},(float64(*)(float64)) std::cosh);
 
 
 
@@ -129,64 +129,64 @@ void UtilityLink::Link(RunTimeLib& lib, const LinkSettings& settings)
 			{
 				auto Par0 = Input.GetParameter<float>();
 				Input.Set_Return(std::sinh(Par0));
-			}, std::sinh);
+			},(float(*)(float)) std::sinh);
 
 		lib.Add_CPPCall<float64>("sinh", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float64>();
 				Input.Set_Return(std::sinh(Par0));
-			}, std::sinh);
+			},(float64(*)(float64)) std::sinh);
 
 
 		lib.Add_CPPCall<float>("tanhf", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float>();
 				Input.Set_Return(std::tanh(Par0));
-			}, std::tanh);
+			},(float(*)(float)) std::tanh);
 
 		lib.Add_CPPCall<float64>("tanh", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float64>();
 				Input.Set_Return(std::tanh(Par0));
-			}, std::tanh);
+			},(float64(*)(float64)) std::tanh);
 
 
 		lib.Add_CPPCall<float>("acoshf", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float>();
 				Input.Set_Return(std::acosh(Par0));
-			}, std::acosh);
+			},(float(*)(float)) std::acosh);
 
 		lib.Add_CPPCall<float64>("acosh", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float64>();
 				Input.Set_Return(std::acosh(Par0));
-			}, std::acosh);
+			},(float64(*)(float64)) std::acosh);
 
 
 		lib.Add_CPPCall<float>("acoshf", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float>();
 				Input.Set_Return(std::asinh(Par0));
-			}, std::asinh);
+			},(float(*)(float)) std::asinh);
 
 		lib.Add_CPPCall<float64>("asinh", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float64>();
 				Input.Set_Return(std::asinh(Par0));
-			}, std::asinh);
+			},(float64(*)(float64)) std::asinh);
 
 		lib.Add_CPPCall<float>("atanhf", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float>();
 				Input.Set_Return(std::atanh(Par0));
-			}, std::atanh);
+			},(float(*)(float)) std::atanh);
 
 		lib.Add_CPPCall<float64>("atanh", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float64>();
 				Input.Set_Return(std::atanh(Par0));
-			}, std::atanh);
+			},(float64(*)(float64)) std::atanh);
 
 
 		//Exponential and logarithmic functions
@@ -194,177 +194,177 @@ void UtilityLink::Link(RunTimeLib& lib, const LinkSettings& settings)
 			{
 				auto Par0 = Input.GetParameter<float>();
 				Input.Set_Return(std::exp(Par0));
-			}, std::exp);
+			},(float(*)(float)) std::exp);
 
 		lib.Add_CPPCall<float64>("exp", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float64>();
 				Input.Set_Return(std::exp(Par0));
-			}, std::exp);
+			},(float64(*)(float64)) std::exp);
 
 		lib.Add_CPPCall<float>("frexpf", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float>();
 				Input.Set_Return(std::exp(Par0));
-			}, std::exp);
+			},(float(*)(float)) std::exp);
 
 		lib.Add_CPPCall<float64>("frexp", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float64>();
 				Input.Set_Return(std::exp(Par0));
-			}, std::exp);
+			},(float64(*)(float64)) std::exp);
 
 		lib.Add_CPPCall<float>("ldexpf", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float>();
 				auto Par1 = Input.GetParameter<int>();
 				Input.Set_Return(std::ldexp(Par0, Par1));
-			}, std::ldexp);
+			},(float(*)(float,int)) std::ldexp);
 
 		lib.Add_CPPCall<float64>("ldexp", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float64>();
 				auto Par1 = Input.GetParameter<int>();
 				Input.Set_Return(std::ldexp(Par0, Par1));
-			}, std::ldexp);
+			},(float64(*)(float64,int)) std::ldexp);
 
 		lib.Add_CPPCall<float>("logf", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float>();
 				Input.Set_Return(std::log(Par0));
-			}, std::log);
+			},(float(*)(float)) std::log);
 
 		lib.Add_CPPCall<float64>("log", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float64>();
 				Input.Set_Return(std::log(Par0));
-			}, std::log);
+			},(float64(*)(float64)) std::log);
 
 		lib.Add_CPPCall<float>("log10f", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float>();
 				Input.Set_Return(std::log10(Par0));
-			}, std::log10);
+			},(float(*)(float)) std::log10);
 
 		lib.Add_CPPCall<float64>("log10", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float64>();
 				Input.Set_Return(std::log10(Par0));
-			}, std::log10);
+			},(float64(*)(float64)) std::log10);
 
 		lib.Add_CPPCall<float>("modf", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float>();
 				auto Par1 = Input.GetParameter<float*>();
 				Input.Set_Return(std::modf(Par0, Par1));
-			}, std::modf);
+			},(float(*)(float,float*)) std::modf);
 
 		lib.Add_CPPCall<float64>("modff", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float64>();
 				auto Par1 = Input.GetParameter<float64*>();
 				Input.Set_Return(std::modf(Par0, Par1));
-			}, std::modf);
+			},(float64(*)(float64,float64*)) std::modf);
 
 		lib.Add_CPPCall<float>("exp2f", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float>();
 				Input.Set_Return(std::exp2(Par0));
-			}, std::exp2);
+			},(float(*)(float)) std::exp2);
 
 		lib.Add_CPPCall<float64>("exp2", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float64>();
 				Input.Set_Return(std::exp2(Par0));
-			}, std::exp2);
+			},(float64(*)(float64)) std::exp2);
 
 		lib.Add_CPPCall<float>("expm1f", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float>();
 				Input.Set_Return(std::expm1(Par0));
-			}, std::expm1);
+			},(float(*)(float)) std::expm1);
 
 		lib.Add_CPPCall<float64>("expm1", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float64>();
 				Input.Set_Return(std::expm1(Par0));
-			}, std::expm1);
+			},(float64(*)(float64)) std::expm1);
 
 		lib.Add_CPPCall<int, float>("ilogbf", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float>();
 				Input.Set_Return(std::ilogb(Par0));
-			}, std::ilogb);
+			},(int(*)(float))std::ilogb);
 
 		lib.Add_CPPCall<int,float64>("ilogb", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float64>();
 				Input.Set_Return(std::ilogb(Par0));
-			}, std::ilogb);
+			},(int(*)(float64)) std::ilogb);
 
 		lib.Add_CPPCall<float>("log1pf", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float>();
 				Input.Set_Return(std::log1p(Par0));
-			}, std::log1p);
+			},(float(*)(float)) std::log1p);
 
 		lib.Add_CPPCall<float64>("log1p", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float64>();
 				Input.Set_Return(std::log1p(Par0));
-			}, std::log1p);
+			},(float64(*)(float64)) std::log1p);
 
 		lib.Add_CPPCall<float>("log2f", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float>();
 				Input.Set_Return(std::log2(Par0));
-			}, std::log2);
+			},(float(*)(float)) std::log2);
 
 		lib.Add_CPPCall<float64>("log2", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float64>();
 				Input.Set_Return(std::log2(Par0));
-			}, std::log2);
+			},(float64(*)(float64)) std::log2);
 
 		lib.Add_CPPCall<float>("logbf", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float>();
 				Input.Set_Return(std::logb(Par0));
-			}, std::logb);
+			},(float(*)(float)) std::logb);
 
 		lib.Add_CPPCall<float64>("logb", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float64>();
 				Input.Set_Return(std::logb(Par0));
-			}, std::logb);
+			},(float64(*)(float64))std::logb);
 
 		lib.Add_CPPCall<float>("scalbnf", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float>();
 				auto Par1 = Input.GetParameter<int>();
 				Input.Set_Return(std::scalbn(Par0, Par1));
-			}, std::scalbn);
+			},(float(*)(float,int)) std::scalbn);
 
 		lib.Add_CPPCall<float64>("scalbn", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float64>();
 				auto Par1 = Input.GetParameter<int>();
 				Input.Set_Return(std::scalbn(Par0, Par1));
-			}, std::scalbn);
+			},(float64(*)(float64,int)) std::scalbn);
 
 		lib.Add_CPPCall<float>("scalblnf", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float>();
 				auto Par1 = Input.GetParameter<int>();
 				Input.Set_Return(std::scalbln(Par0, Par1));
-			}, std::scalbln);
+			},(float(*)(float,long int))std::scalbln);
 
 		lib.Add_CPPCall<float64>("scalbln", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float64>();
 				auto Par1 = Input.GetParameter<int>();
 				Input.Set_Return(std::scalbln(Par0, Par1));
-			}, std::scalbln);
+			},(float64(*)(float64,long int))std::scalbln);
 
 		//Power functions
 		lib.Add_CPPCall<float>("powf", [](InterpreterCPPinterface& Input)
@@ -372,38 +372,38 @@ void UtilityLink::Link(RunTimeLib& lib, const LinkSettings& settings)
 				auto Par0 = Input.GetParameter<float>();
 				auto Par1 = Input.GetParameter<float>();
 				Input.Set_Return(std::pow(Par0, Par1));
-			}, std::pow);
+			},(float(*)(float,float)) std::pow);
 
 		lib.Add_CPPCall<float64>("pow", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float64>();
 				auto Par1 = Input.GetParameter<float64>();
 				Input.Set_Return(std::pow(Par0, Par1));
-			}, std::pow);
+			},(float64(*)(float64,float64)) std::pow);
 
 		lib.Add_CPPCall<float>("sqrtf", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float>();
 				Input.Set_Return(std::sqrt(Par0));
-			}, std::sqrt);
+			},(float(*)(float))std::sqrt);
 
 		lib.Add_CPPCall<float64>("sqrt", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float64>();
 				Input.Set_Return(std::sqrt(Par0));
-			}, std::sqrt);
+			},(float64(*)(float64)) std::sqrt);
 
 		lib.Add_CPPCall<float>("cbrtf", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float>();
 				Input.Set_Return(std::cbrt(Par0));
-			}, std::cbrt);
+			},(float(*)(float)) std::cbrt);
 
 		lib.Add_CPPCall<float64>("cbrt", [](InterpreterCPPinterface& Input)
 			{
 				auto Par0 = Input.GetParameter<float64>();
 				Input.Set_Return(std::cbrt(Par0));
-			}, std::cbrt);
+			},(float64(*)(float64)) std::cbrt);
 
 		lib.Add_CPPCall<float,float,float>("hypotf", [](InterpreterCPPinterface& Input)
 			{
