@@ -12,6 +12,10 @@ struct UtilityLink
 		bool AddMath = true;
 		bool AddSIMD = true;
 		bool AddThreading = true;
+		LinkSettings()
+	  {
+			
+		}
 	};
 
 
