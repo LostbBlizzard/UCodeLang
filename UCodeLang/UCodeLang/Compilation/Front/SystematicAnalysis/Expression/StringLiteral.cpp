@@ -2,6 +2,28 @@
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 #include "UCodeLang/Compilation/Helpers/ParseHelper.hpp"
 UCodeLangFrontStart
+bool SystematicAnalysis::Type_IsStringSpan(const TypeSymbol& type)
+{
+	auto symOp = Symbol_GetSymbol(type);
+	if (symOp.has_value())
+	{
+		auto sym = symOp.value();
+		auto& name = sym->FullName;
+		return StringHelper::Contains(name, UCodeLangStringSpanType);
+	}
+	return false;
+}
+bool SystematicAnalysis::Type_IsString(const TypeSymbol& type)
+{
+	auto symOp = Symbol_GetSymbol(type);
+	if (symOp.has_value())
+	{
+		auto sym = symOp.value();
+		auto& name = sym->FullName;
+		return StringHelper::Contains(name, UCodeLangStringType);
+	}
+	return false;
+}
 bool SystematicAnalysis::Type_IsStringSpan8(const TypeSymbol& type)
 {
 	auto symOp = Symbol_GetSymbol(type);

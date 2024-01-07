@@ -1942,6 +1942,12 @@ bool IRBuilder::ToString(
 		r += " " + State.PointerToName.GetValue(I);
 		r += " = " + ToString(State, *I, I->Target());
 		break;
+	case IRInstructionType::ThrowException:
+		r += "throw ";
+		r += ToString(State, *I, I->A);
+		r += ",";
+		r += ToString(State, *I, I->B);
+		break;
 	default:
 		UCodeLangUnreachable();
 		break;

@@ -4103,7 +4103,7 @@ GotNodeType Parser::GetPanicNode(PanicNode& out)
 		ExpressionNodeType V;
 		GetExpressionTypeNode(V);
 		
-		
+		out._KeyWord = Token;
 		out._StringExpression._Value = std::move(V._Value);
 	}
 

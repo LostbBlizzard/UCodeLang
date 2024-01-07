@@ -1405,9 +1405,11 @@ struct IRBlock
 	{
 		Instructions.emplace_back(new IRInstruction(IRInstructionType::CleanupFuncCall, IROperator(identifier)));
 	}
-	void ThrowException(IRInstruction* Msg)
+	void ThrowException(IRInstruction* Msgpointer, IRInstruction* Msgsize)
 	{
-		Instructions.emplace_back(new IRInstruction(IRInstructionType::ThrowException, IROperator(Msg)));
+		Instructions.emplace_back(new IRInstruction(IRInstructionType::ThrowException,
+			IROperator(Msgpointer)
+		, IROperator(Msgsize)));
 	}
 	/*
 	CatchException,
