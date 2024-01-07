@@ -2399,6 +2399,12 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock *IR)
 			SetRegister(V, Item);
 		}
 		break;
+		case IRInstructionType::ThrowException:
+		{
+			RegisterID A = MakeIntoRegister(Item, Item->A);
+			RegisterID B = MakeIntoRegister(Item, Item->B);
+
+		}break;
 		default:
 			UCodeLangUnreachable();
 			break;

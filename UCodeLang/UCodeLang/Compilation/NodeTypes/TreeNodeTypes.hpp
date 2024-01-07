@@ -1125,6 +1125,8 @@ struct PanicNode :Node
 	{
 
 	}
+
+	const Token* _KeyWord = nullptr;
 	ExpressionNodeType  _StringExpression;
 	AddforNode(PanicNode);
 };

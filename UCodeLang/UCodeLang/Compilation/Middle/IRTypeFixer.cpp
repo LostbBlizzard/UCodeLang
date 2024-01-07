@@ -220,6 +220,10 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 			{
 
 			}
+			else if (Ins->Type == IRInstructionType::ThrowException)
+			{
+
+			}
 			else
 			{
 				UCodeLangUnreachable();
