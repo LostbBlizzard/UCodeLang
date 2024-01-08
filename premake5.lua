@@ -1,4 +1,5 @@
 require "vscode"
+require "export-compile-commands"
 
 workspace "UCodeLang"
    configurations { "Debug", "Release","Published" }
