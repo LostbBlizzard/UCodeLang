@@ -1,11 +1,12 @@
 #pragma once
 #include "../RunTimeLangState.hpp"
 #include "..//../LangCore.hpp"
+#include "UCodeLang/LangCore/LangDef.hpp"
 #include "UCodeLang/LangCore/LangTypes.hpp"
 #include "ParameterPassingHelper.hpp"
+#include "UCodeLang/LangCore/ReflectionData.hpp"
+#include "UCodeLang/RunTime/InterpreterError.hpp"
 UCodeLangStart
-
-
 class InterpreterCPPinterface;
 class Jit_Interpreter;
 class ProfilerDebuger;
@@ -173,6 +174,58 @@ public:
 		}
 		return {};
 	}
+	//Error Calls
+	Optional<InterpretorError> XCall(UAddress address)
+	{
+		Call(address);
+		return  CheckForIntperpreterError();
+	}
+
+	Optional<InterpretorError> XCall(const ClassMethod* Function)	
+	{
+		return XCall(Function->DecorationName);
+	}
+
+	Optional<InterpretorError> XCall(const String& FuncionName)
+	{	
+		UCodeLangAssert(CheckIfFunctionExist(FuncionName));
+		return XCall(_State->FindAddress(FuncionName).value());
+	}
+	template<typename T, typename... Args>
+	Result<T,InterpretorError> RXCall(UAddress address, Args... parameters)
+	{
+		PushParameters(parameters...);
+		auto r = XCall(address);
+		if (r.has_value())
+		{
+			return r.value();
+		}
+		return Get_Return<T>();
+	}
+
+	template<typename T,typename... Args>
+	Result<T,InterpretorError> RXCall(const ClassMethod* Funcion, Args... parameters)
+	{
+		return RXCall<T>(Funcion->DecorationName,parameters...);
+	}
+
+	template<typename T,typename... Args>
+	Result<T,InterpretorError> RXCall(const String&  FuncionName, Args... parameters)
+	{
+   	UCodeLangAssert(CheckIfFunctionExist(FuncionName));
+		return RXCall<T>(_State->FindAddress(FuncionName,parameters...));
+	}
+	template<typename T,typename... Args>
+	Result<T,InterpretorError> RXThisCall(const ClassMethod* Funcion,PtrType This, Args... parameters)
+	{
+		return RXCall<T>(Funcion->DecorationName,This,parameters...);
+	}
+
+	template<typename T,typename... Args>
+	Result<T,InterpretorError> RXThisCall(const String&  FuncionName,PtrType This, Args... parameters)
+	{
+		return RXCall<T>(FuncionName,This,parameters...);
+	}
 	//
 
 	template<typename... Args> void PushParameters(Args&&... parameters)
@@ -215,7 +268,8 @@ public:
 	}
 	void Get_Return(void* Output, size_t OutputSize);
 
-	inline void* GetThreadPtr()
+	Optional<InterpretorError> CheckForIntperpreterError();
+		inline void* GetThreadPtr()
 	{
 		return _CPU.ThreadRegister;
 	}
@@ -271,9 +325,8 @@ private:
 		}
 
 	};
-	
-	
-	struct CPUData
+	void ThrowInterpreterError(String_view ErrorMsg);
+struct CPUData
 	{
 		UAddress ProgramCounter=NullAddress;
 		CPUReturn_t RetValue;

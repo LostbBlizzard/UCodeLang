@@ -209,6 +209,59 @@ public:
 
 	//Makes UClib with the Generated native code and be used for fast reloading just link it in RunTimeState instead of the compiled byte-code.
 	UClib GetStateAsLib();
+
+	Optional<InterpretorError> XCall(UAddress address)
+	{
+		Call(address);
+		return  CheckForIntperpreterError();
+	}
+
+	Optional<InterpretorError> XCall(const ClassMethod* Function)	
+	{
+		return XCall(Function->DecorationName);
+	}
+
+	Optional<InterpretorError> XCall(const String& FuncionName)
+	{	
+		UCodeLangAssert(CheckIfFunctionExist(FuncionName));
+		return XCall(Get_State()->FindAddress(FuncionName).value());
+	}
+	template<typename T, typename... Args>
+	Result<T,InterpretorError> RXCall(UAddress address, Args... parameters)
+	{
+		PushParameters(parameters...);
+		auto r = XCall(address);
+		if (r.has_value())
+		{
+			return r.value();
+		}
+		return Get_Return<T>();
+	}
+
+	template<typename T,typename... Args>
+	Result<T,InterpretorError> RXCall(const ClassMethod* Funcion, Args... parameters)
+	{
+		return RXCall<T>(Funcion->DecorationName,parameters...);
+	}
+
+	template<typename T,typename... Args>
+	Result<T,InterpretorError> RXCall(const String&  FuncionName, Args... parameters)
+	{
+   	UCodeLangAssert(CheckIfFunctionExist(FuncionName));
+		return RXCall<T>(Get_State()->FindAddress(FuncionName,parameters...));
+	}
+	template<typename T,typename... Args>
+	Result<T,InterpretorError> RXThisCall(const ClassMethod* Funcion,PtrType This, Args... parameters)
+	{
+		return RXCall<T>(Funcion->DecorationName,This,parameters...);
+	}
+
+	template<typename T,typename... Args>
+	Result<T,InterpretorError> RXThisCall(const String&  FuncionName,PtrType This, Args... parameters)
+	{
+		return RXCall<T>(FuncionName,This,parameters...);
+	}
+	Optional<InterpretorError> CheckForIntperpreterError();
 private:
 	
 	#if UCodeLangDebug
