@@ -88,6 +88,11 @@ struct JitRuningState
 
 thread_local JitRuningState _ThisState = {};
 
+Optional<InterpretorError> Jit_Interpreter::CheckForIntperpreterError()
+{
+	return {};
+}
+
 Interpreter::Return_t Jit_Interpreter::Call(UAddress address)
 {
 #if HasNoSupportforJit

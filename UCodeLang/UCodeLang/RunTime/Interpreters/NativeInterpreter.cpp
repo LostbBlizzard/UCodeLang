@@ -35,4 +35,8 @@ void NativeInterpreter::Get_Return(void* Output, size_t OutputSize)
 {
 
 }
+Optional<InterpretorError> CheckForIntperpreterError()
+{
+	return {};
+}
 UCodeLangEnd

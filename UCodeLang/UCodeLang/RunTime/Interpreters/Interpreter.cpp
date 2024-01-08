@@ -145,6 +145,15 @@ Interpreter::Return_t Interpreter::Call(UAddress address)
 }
 
 
+void Interpreter::ThrowInterpreterError(String_view ErrorMsg)
+{
+	
+}
+Optional<InterpretorError> Interpreter::CheckForIntperpreterError()
+{
+	return {};
+}
+	
 #if UCodeLangGNUC || UCodeLangClang
 #define HasLabelAsValues 1
 #else
