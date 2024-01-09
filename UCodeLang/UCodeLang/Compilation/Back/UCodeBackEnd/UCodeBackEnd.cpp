@@ -1,4 +1,10 @@
 
+#include "UCodeLang/Compilation/Middle/IR.hpp"
+#include "UCodeLang/LangCore/DataType/UnorderedMap.hpp"
+#include "UCodeLang/LangCore/Instruction.hpp"
+#include "UCodeLang/LangCore/InstructionSet.hpp"
+#include "UCodeLang/LangCore/LangDef.hpp"
+#include "UCodeLang/LangCore/LangTypes.hpp"
 #ifndef UCodeLangNoCompiler
 #include "UCodeBackEnd.hpp"
 #include "UCodeLang/Compilation/Helpers/InstructionBuilder.hpp"
@@ -481,6 +487,61 @@ void UCodeBackEndObject::LinkFuncs()
 		else
 		{
 			UCodeLangUnreachable();
+		}
+	}
+
+
+	if (ThrowJumps.size())
+	{
+		struct FuncThatMayThrowInfo
+		{
+			size_t StackSize = 0;
+		};
+		UnorderedMap<const IRFunc*, FuncThatMayThrowInfo> FuncThrowinfo;
+		for (auto& Item : _Input->Funcs)
+		{
+			bool HasThrow = false;
+
+			for (auto& block : Item->Blocks)
+			{
+				for (auto& ins : block->Instructions)
+				{
+					if (ins->Type == IRInstructionType::ThrowException)
+					{
+						HasThrow = true;
+					}
+				}
+			}
+
+			if (HasThrow)
+			{
+				FuncThatMayThrowInfo Val;
+
+				Optional<UAddress> funcpos;
+				for (auto& Item2 : _Funcpos)
+				{
+					if (Item2._FuncID == Item->identifier)
+					{
+						funcpos = Item2.Index;
+						break;
+					}
+				}
+				UCodeLangAssert(funcpos.has_value());
+
+
+				UAddress pos = funcpos.value();
+
+				if (IsDebugMode())
+				{
+					//skip StartNewFuncIns
+					pos++;
+				}
+			  Instruction& Ins = InsList[pos];
+				//
+
+
+				FuncThrowinfo.AddValue(Item.get(), std::move(Val));
+			}
 		}
 	}
 }
@@ -2404,6 +2465,16 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			RegisterID A = MakeIntoRegister(Item, Item->A);
 			RegisterID B = MakeIntoRegister(Item, Item->B);
 
+			ThrowJumps.push_back(_OutLayer->Get_Instructions().size());
+
+			InstructionBuilder::Jumpv1(0, _Ins); PushIns();
+			InstructionBuilder::Jumpv2(0, _Ins); PushIns();
+			if (Get_Settings().PtrSize == IntSizes::Int64)
+			{
+				InstructionBuilder::Jumpv3(0, _Ins); PushIns();
+				InstructionBuilder::Jumpv4(0, _Ins); PushIns();
+
+			}
 		}break;
 		default:
 			UCodeLangUnreachable();
