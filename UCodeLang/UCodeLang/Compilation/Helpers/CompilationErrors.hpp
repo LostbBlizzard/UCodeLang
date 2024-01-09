@@ -15,7 +15,7 @@ enum class ErrorCodes : ErrorCodes_t
 	TipEnd,
 	//Warnings
 	WarningsStart = TipEnd,
-	
+
 	TypeCastWarning,
 
 
@@ -41,7 +41,7 @@ enum class ErrorCodes : ErrorCodes_t
 	BackEndError,
 
 	InternalCompilerError,
-	
+
 	LinkEnd,
 };
 class CompilationErrors
@@ -54,8 +54,8 @@ public:
 		size_t Line;
 		size_t Pos;
 		String _Msg;
-		
-		
+
+
 		Error(ErrorCodes Code) :_Code(Code), Line(0), Pos(0)
 		{
 
@@ -84,22 +84,22 @@ public:
 
 		bool operator==(const Error& Other) const
 		{
-			return _Code == Other._Code && 
-				Line == Other.Line && 
-				Pos == Other.Pos && 
-				File == Other.File && 
+			return _Code == Other._Code &&
+				Line == Other.Line &&
+				Pos == Other.Pos &&
+				File == Other.File &&
 				_Msg == Other._Msg;
 		}
 		bool operator!=(const Error& Other) const
 		{
 			return !this->operator==(Other);
 		}
-	}; 
+	};
 	inline static bool IsWarning(ErrorCodes Code)
-		{
-			return (ErrorCodes_t)Code > (ErrorCodes_t)ErrorCodes::WarningsStart &&
-				   (ErrorCodes_t)Code < (ErrorCodes_t)ErrorCodes::WarningsEnd;
-		}
+	{
+		return (ErrorCodes_t)Code > (ErrorCodes_t)ErrorCodes::WarningsStart &&
+			(ErrorCodes_t)Code < (ErrorCodes_t)ErrorCodes::WarningsEnd;
+	}
 	inline static bool IsError(ErrorCodes Code)
 	{
 		return (ErrorCodes_t)Code > (ErrorCodes_t)ErrorCodes::SyntaxStart &&
@@ -113,14 +113,14 @@ public:
 	{
 		return false;
 	}
-	inline void AddError(const ErrorCodes _Error, size_t Line,size_t Pos,const String& Msg)
+	inline void AddError(const ErrorCodes _Error, size_t Line, size_t Pos, const String& Msg)
 	{
 		Error& r = AddError(_Error, Line, Pos);
 		r._Msg = Msg;
 	};
 	inline Error& AddError(const ErrorCodes _Error)
 	{
-		return AddError(_Error,-1 , -1);
+		return AddError(_Error, -1, -1);
 	};
 	inline Error& AddError(const ErrorCodes _Error, size_t Line, size_t Pos)
 	{
@@ -134,7 +134,7 @@ public:
 		return _Errors.back();
 	};
 	inline auto& Get_Errors() { return  _Errors; };
-	
+
 	bool Has_Errors()
 	{
 		for (const auto& Item : _Errors)

@@ -81,7 +81,7 @@ struct NativeCodeBuilder
 			BufferToUpdate[i] = Value[i];
 		}
 	}
-	static inline void SubByteR(Byte* BufferToUpdate,const Byte* Value, size_t Size)
+	static inline void SubByteR(Byte* BufferToUpdate, const Byte* Value, size_t Size)
 	{
 		for (size_t i = Size - 1; i != (size_t)-1; i--)
 		{
@@ -93,11 +93,11 @@ struct NativeCodeBuilder
 	{
 		if (BitConverter::_CPUEndian == Endian::Big)
 		{
-			SubByte(BufferToUpdate,Value, Size);
+			SubByte(BufferToUpdate, Value, Size);
 		}
 		else
 		{
-			SubByteR(BufferToUpdate,Value, Size);
+			SubByteR(BufferToUpdate, Value, Size);
 		}
 	}
 	static inline void SubByte_little_endian(Byte* BufferToUpdate, const Byte* Value, size_t Size)
@@ -115,11 +115,11 @@ struct NativeCodeBuilder
 
 	template<typename T>static void SubByte_t_little_endian(Byte* BufferToUpdate, const T& Value)
 	{
-		SubByte_little_endian(BufferToUpdate,(const Byte*)&Value, sizeof(Value));
+		SubByte_little_endian(BufferToUpdate, (const Byte*)&Value, sizeof(Value));
 	}
 	template<typename T>static void SubByte_t_Big_endian(Byte* BufferToUpdate, const T& Value)
 	{
-		SubByte_Big_endian(BufferToUpdate,(const Byte*)&Value, sizeof(Value));
+		SubByte_Big_endian(BufferToUpdate, (const Byte*)&Value, sizeof(Value));
 	}
 };
 UCodeLangEnd

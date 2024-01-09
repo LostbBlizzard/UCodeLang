@@ -33,15 +33,15 @@ class Lexer
 		MultLine,
 	};
 public:
-	Lexer(){}
-	~Lexer(){}
+	Lexer() {}
+	~Lexer() {}
 	void Reset();
 	void Lex(const String_view& Text);
 
 	UCodeLangForceinline Vector<Token>& Get_Tokens() { return _Tokens; }
 	UCodeLangForceinline void Set_ErrorsOutput(CompilationErrors* V) { _ErrorsOutput = V; }
 	UCodeLangForceinline void Set_Settings(CompilationSettings* V) { _Settings = V; }
-	UCodeLangForceinline bool Get_LexerSuccess() {return _LexerSuccess;};
+	UCodeLangForceinline bool Get_LexerSuccess() { return _LexerSuccess; };
 	UCodeLangForceinline size_t Get_OnLine()
 	{
 		return OnLine;
@@ -56,11 +56,11 @@ private:
 	bool _LexerSuccess = false;
 	CompilationErrors* _ErrorsOutput = nullptr;
 	CompilationSettings* _Settings = nullptr;
-	
-	
+
+
 	Token _Token;
-	size_t NameBufferStart= NameBufferNullValue;
-	size_t NameBufferEnd=0;
+	size_t NameBufferStart = NameBufferNullValue;
+	size_t NameBufferEnd = 0;
 	static constexpr size_t NameBufferNullValue = -1;
 	UCodeLangForceinline size_t NameBufferSize()
 	{
@@ -69,7 +69,7 @@ private:
 	}
 	UCodeLangForceinline String_view Get_NameBuffer()
 	{
-		return _Text.substr(NameBufferStart,NameBufferSize());
+		return _Text.substr(NameBufferStart, NameBufferSize());
 	}
 	UCodeLangForceinline void ClearNameBuffer()
 	{
@@ -85,17 +85,17 @@ private:
 	size_t TextIndex = 0;
 	size_t OnLinePos = 0;
 	CommentState  CommentState = CommentState::NoComment;
-	char NextChar ='\0';
+	char NextChar = '\0';
 	ReadingNameState ReadingState = ReadingNameState::Name;
 
 	using TokenInedex = size_t;
 	Vector<TokenInedex> Indentations;
-	
-	
+
+
 	bool DoIndentation(bool& IsIndentationing, char Char, size_t& IndentationLevel, size_t& LastIndentationLevel, UCodeLang::Token& _Token);
 
-	
-	
+
+
 	void NameAndKeyWords(ReadingNameState& ReadingState, Token& _Token);
 };
 UCodeLangFrontEnd

@@ -18,7 +18,7 @@ UCodeLangFrontStart void Lexer::Reset()
 
 
 }
-void Lexer::Lex(const String_view &Text)
+void Lexer::Lex(const String_view& Text)
 {
 #define GetNextChar(offset) Text.size() > (TextIndex + offset) ? Text[TextIndex + offset] : '\0';
 	Reset();
@@ -548,7 +548,7 @@ void Lexer::Lex(const String_view &Text)
 		default:
 			if (_ErrorsOutput)
 			{
-				auto &Error = _ErrorsOutput->AddError(ErrorCodes::UnknownChar, OnLine, TextIndex);
+				auto& Error = _ErrorsOutput->AddError(ErrorCodes::UnknownChar, OnLine, TextIndex);
 
 				String A(1, Char);
 				Error._Msg = "UnknownChar \'" + A + "\' ";
@@ -568,7 +568,7 @@ void Lexer::Lex(const String_view &Text)
 	{
 		if (_ErrorsOutput)
 		{
-			auto &Error = _ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, OnLine, Text.size());
+			auto& Error = _ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, OnLine, Text.size());
 
 			Error._Msg = "ExpectingSequence \' */ \' To End MultLine Comment";
 		};
@@ -582,7 +582,7 @@ void Lexer::Lex(const String_view &Text)
 
 	_LexerSuccess = !_ErrorsOutput->Has_Errors();
 }
-bool Lexer::DoIndentation(bool &IsIndentationing, char Char, size_t &IndentationLevel, size_t &LastIndentationLevel, UCodeLang::Token &_Token)
+bool Lexer::DoIndentation(bool& IsIndentationing, char Char, size_t& IndentationLevel, size_t& LastIndentationLevel, UCodeLang::Token& _Token)
 {
 	if (IsIndentationing)
 	{
@@ -620,7 +620,7 @@ bool Lexer::DoIndentation(bool &IsIndentationing, char Char, size_t &Indentation
 					for (auto it = Indentations.rbegin(); it != Indentations.rend();)
 					{
 						auto Item_ = *it;
-						Token &Item = _Tokens[Item_];
+						Token& Item = _Tokens[Item_];
 						size_t IndentationLvl = Item.Value._Size_t;
 						if (IndentationLvl > IndentationLevel)
 						{
@@ -643,7 +643,7 @@ bool Lexer::DoIndentation(bool &IsIndentationing, char Char, size_t &Indentation
 	}
 	return false;
 }
-void Lexer::NameAndKeyWords(ReadingNameState &ReadingState, Token &_Token)
+void Lexer::NameAndKeyWords(ReadingNameState& ReadingState, Token& _Token)
 {
 
 	if (NameBufferStart != NameBufferNullValue)

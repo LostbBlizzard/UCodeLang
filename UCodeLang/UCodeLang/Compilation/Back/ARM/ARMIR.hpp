@@ -3,5 +3,5 @@
 UCodeLangStart
 class ARMIR
 {
-}; 
+};
 UCodeLangEnd

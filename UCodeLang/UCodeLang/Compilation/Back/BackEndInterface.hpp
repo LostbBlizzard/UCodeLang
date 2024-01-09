@@ -15,7 +15,7 @@ struct IROperator;
 struct IRType;
 struct IRBufferData;
 using IRidentifierID = UInt64;
-	
+
 enum class BackEndObjectOutputType
 {
 	UCLib,
@@ -71,7 +71,7 @@ public:
 		_OutputLib = output;
 	}
 protected:
-	
+
 	inline void Set_Output(String_view output)
 	{
 		Set_Output(BytesView((Byte*)output.data(), output.size()));
@@ -88,7 +88,7 @@ private:
 	UClib* _OutputLib;
 };
 
-using BackEndObject_Ptr = BackEndObject* (*)();
+using BackEndObject_Ptr = BackEndObject * (*)();
 
 
 UCodeLangEnd

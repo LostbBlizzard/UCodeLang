@@ -26,7 +26,7 @@ void WasmBackEnd::Build(const IRBuilder* Input)
 
 	{
 		WasmFile::Section V1;
-		
+
 		WasmFile::TypeSection V2;
 
 
@@ -74,7 +74,7 @@ void WasmBackEnd::Build(const IRBuilder* Input)
 		V1.Type = std::move(V2);
 		_Output.section.push_back(std::move(V1));
 	}
-	
+
 
 
 	_typeSection = &_Output.section[0].Type.Get<WasmFile::TypeSection>();
@@ -85,7 +85,7 @@ void WasmBackEnd::Build(const IRBuilder* Input)
 
 
 	OnFunc(&Input->_StaticInit);
-	
+
 	OnFunc(&Input->_threadInit);
 
 	OnFunc(&Input->_threaddeInit);
@@ -97,7 +97,7 @@ void WasmBackEnd::Build(const IRBuilder* Input)
 	{
 		OnFunc(Item.get());
 	}
-	
+
 	for (auto& Item : InsToUpdate)
 	{
 		auto& Ins = _codeSection->code[Item.FuncIndex].Ins[Item.InsIndex];
@@ -132,7 +132,7 @@ void WasmBackEnd::OnFunc(const IRFunc* Func)
 	_func = Func;
 	Position.clear();
 
-	
+
 	FuncType func;
 	func.Params.resize(Func->Pars.size());
 	for (size_t i = 0; i < func.Params.size(); i++)
@@ -141,7 +141,7 @@ void WasmBackEnd::OnFunc(const IRFunc* Func)
 	}
 	if (Func->ReturnType._Type != IRTypes::Void)
 	{
-		if (Func->ReturnType._Type == IRTypes::IRsymbol) 
+		if (Func->ReturnType._Type == IRTypes::IRsymbol)
 		{
 			auto sym = _Input->GetSymbol(Func->ReturnType._symbol);
 			if (sym->SymType == IRSymbolType::FuncPtr)
@@ -161,7 +161,7 @@ void WasmBackEnd::OnFunc(const IRFunc* Func)
 				UCodeLangUnreachable();
 			}
 		}
-		else 
+		else
 		{
 			func.Results.push_back(ToType(Func->ReturnType));
 		}
@@ -172,7 +172,7 @@ void WasmBackEnd::OnFunc(const IRFunc* Func)
 
 	FuncToIndex.AddValue(Func->identifier, _codeSection->code.size() - 1);
 
-	
+
 	if (Func->ReturnType._Type != IRTypes::Void)
 	{
 		auto& Block = Func->Blocks.front();
@@ -182,9 +182,9 @@ void WasmBackEnd::OnFunc(const IRFunc* Func)
 			if (Item->Type == IRInstructionType::Load)
 			{
 				auto v = StartSave(Item);
-				
+
 				LoadOp(Item, Item->Target());
-				
+
 				EndSave(v);
 			}
 			else if (Item->Type == IRInstructionType::LoadNone)
@@ -220,8 +220,8 @@ void WasmBackEnd::OnFunc(const IRFunc* Func)
 				auto v = StartSave(Item);
 
 				_funccode->Push_call(0);
-				
-				
+
+
 				InsToUpdateMap V;
 				V.FuncIndex = _codeSection->code.size() - 1;
 				V.InsIndex = _funccode->Ins.size() - 1;
@@ -233,7 +233,7 @@ void WasmBackEnd::OnFunc(const IRFunc* Func)
 			}
 			else if (Item->Type == IRInstructionType::Add)
 			{
-				
+
 				auto v = StartSave(Item);
 
 				LoadOp(Item, Item->Target());
@@ -303,12 +303,12 @@ void WasmBackEnd::OnFunc(const IRFunc* Func)
 			else
 			{
 				UCodeLangUnreachable();
-			}	
+			}
 		}
 	}
-	
+
 	_funccode->Push_End();
-	
+
 
 	_funcSection->TypesIndex.push_back(_typeSection->Types.size());
 	_typeSection->Types.push_back(std::move(func));
@@ -351,7 +351,7 @@ WasmBackEnd::WasmType WasmBackEnd::ToType(const IRType& Type)
 	case IRTypes::IRsymbol:
 	{
 		auto sym = _Input->GetSymbol(Type._symbol);
-		if (sym->SymType ==IRSymbolType::FuncPtr)
+		if (sym->SymType == IRSymbolType::FuncPtr)
 		{
 			return ToType(IRTypes::pointer);
 		}

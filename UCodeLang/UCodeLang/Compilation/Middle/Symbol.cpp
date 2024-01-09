@@ -7,7 +7,7 @@ UCodeLangFrontStart
 size_t SymbolTable::GetUseingIndex() { return Useings.size(); }
 void SymbolTable::RemovePopUseing(size_t Index)
 {
-	size_t toremove =Useings.size() - Index;
+	size_t toremove = Useings.size() - Index;
 	for (size_t i = 0; i < toremove; i++)
 	{
 		Useings.pop_back();
@@ -33,7 +33,7 @@ void SymbolTable::GetSymbolsInNameSpace(const String_view& NameSpace, const Stri
 		ScopeHelper::ReMoveScope(TepNameSpace);
 		String FullName = TepNameSpace.size() ?
 			TepNameSpace + ScopeHelper::_ScopeSep + (String)Name : (String)Name;
-		
+
 		if (NameToSymbol.HasValue(FullName))
 		{
 			auto& List = NameToSymbol.GetValue(FullName);
@@ -74,63 +74,63 @@ Vector<Symbol*>& SymbolTable::GetSymbolsWithName(const String_view& Name)
 	return Tep;
 }
 
- const Vector<const Symbol*>& SymbolTable::GetSymbolsWithName(const String_view& Name, SymbolType Type) const
- {
-	 auto& r = GetSymbolsWithName(Name);
+const Vector<const Symbol*>& SymbolTable::GetSymbolsWithName(const String_view& Name, SymbolType Type) const
+{
+	auto& r = GetSymbolsWithName(Name);
 
 
-	 return r;
- }
+	return r;
+}
 
 
- void SymbolTable::GetSymbolsInNameSpace(const String_view& NameSpace, const String_view& Name, Vector<const Symbol*>& Output) const
- {
-	 SymbolTable* v = (SymbolTable*)this;
-	 return v->GetSymbolsInNameSpace(NameSpace, Name, (Vector<Symbol*>&)Output);
- }
+void SymbolTable::GetSymbolsInNameSpace(const String_view& NameSpace, const String_view& Name, Vector<const Symbol*>& Output) const
+{
+	SymbolTable* v = (SymbolTable*)this;
+	return v->GetSymbolsInNameSpace(NameSpace, Name, (Vector<Symbol*>&)Output);
+}
 
- Vector<const Symbol*>& SymbolTable::GetSymbolsWithName(const String_view& Name) const
- {
-	 thread_local Vector<const Symbol*> Tep;
-	 Tep.clear();
-
-
-	 GetSymbolsInNameSpace(_Scope.ThisScope, Name, Tep);
-	 for (auto& Item : Useings)
-	 {
-		 GetSymbolsInNameSpace(Item, Name, Tep);
-	 }
-
-	 return Tep;
- }
-
- Symbol& SymbolTable::AddSymbol(SymbolType type, const String& Name, const String& FullName, AccessModifierType Access)
- {
-	 Symbols.push_back(std::make_unique<Symbol>(type, FullName));
-	 auto& Item = *Symbols.back();
-
-	 Item.Access = Access;
+Vector<const Symbol*>& SymbolTable::GetSymbolsWithName(const String_view& Name) const
+{
+	thread_local Vector<const Symbol*> Tep;
+	Tep.clear();
 
 
-	 NameToSymbol.GetOrAdd(FullName, {}).push_back(&Item);
+	GetSymbolsInNameSpace(_Scope.ThisScope, Name, Tep);
+	for (auto& Item : Useings)
+	{
+		GetSymbolsInNameSpace(Item, Name, Tep);
+	}
+
+	return Tep;
+}
+
+Symbol& SymbolTable::AddSymbol(SymbolType type, const String& Name, const String& FullName, AccessModifierType Access)
+{
+	Symbols.push_back(std::make_unique<Symbol>(type, FullName));
+	auto& Item = *Symbols.back();
+
+	Item.Access = Access;
 
 
-	 return Item;
- }
+	NameToSymbol.GetOrAdd(FullName, {}).push_back(&Item);
 
- void SymbolTable::AddSymbolID(Symbol& Syb, SymbolID ID)
- {
-	 Syb.ID = ID;
-	 IDToSymbols.AddValue(ID,&Syb);
- }
 
- void SymbolTable::Reset()
- {
-	 ClearUseings();
-	 _Scope.ThisScope.clear();
-	 Symbols.clear();
-	 IDToSymbols.clear();
- }
+	return Item;
+}
+
+void SymbolTable::AddSymbolID(Symbol& Syb, SymbolID ID)
+{
+	Syb.ID = ID;
+	IDToSymbols.AddValue(ID, &Syb);
+}
+
+void SymbolTable::Reset()
+{
+	ClearUseings();
+	_Scope.ThisScope.clear();
+	Symbols.clear();
+	IDToSymbols.clear();
+}
 
 UCodeLangFrontEnd
 

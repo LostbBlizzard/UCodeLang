@@ -30,12 +30,12 @@ public:
 		String CompilerName;
 		FuncInfo::FuncType Type;
 		Data(TokenType t, String compilerName, FuncInfo::FuncType f)
-			:token(t), CompilerName(compilerName),Type(f)
+			:token(t), CompilerName(compilerName), Type(f)
 		{
 
 		}
 	};
-	inline static const Array<Data,4> data =
+	inline static const Array<Data, 4> data =
 	{
 		Data(TokenType::plus,Overload_Plus_Func,FuncInfo::FuncType::plus),
 		Data(TokenType::minus,Overload_minus_Func,FuncInfo::FuncType::minus),
@@ -189,7 +189,7 @@ public:
 	{
 		for (auto& Item : data)
 		{
-			if (Item.token== type)
+			if (Item.token == type)
 			{
 				return Opt(&Item);
 			}
@@ -218,7 +218,7 @@ struct Systematic_BuiltInFunctions
 {
 public:
 
-	enum class ID 
+	enum class ID
 	{
 		Null,
 		TypeInfo_GetName,
@@ -226,10 +226,10 @@ public:
 
 		Max,
 	};
-	
+
 	struct FunctionPar
 	{
-		bool IsOutPar =false;
+		bool IsOutPar = false;
 		TypeSymbol Type;
 		const Node* ExpressionNode = nullptr;
 	};
@@ -264,7 +264,7 @@ public:
 
 	struct ClassField
 	{
-		const ClassInfo* _ClassInfo =nullptr;
+		const ClassInfo* _ClassInfo = nullptr;
 		const FieldInfo* Field = nullptr;
 	};
 	struct EnumField
@@ -273,7 +273,7 @@ public:
 		const EnumFieldInfo* Field = nullptr;
 	};
 
-	static Optional<Func> GetFunction(const String_view Name,const Vector<FunctionPar>& Pars, SystematicAnalysis& This);
+	static Optional<Func> GetFunction(const String_view Name, const Vector<FunctionPar>& Pars, SystematicAnalysis& This);
 };
 
 
@@ -312,11 +312,11 @@ public:
 	}
 
 
-	
+
 	struct FileNodeData
 	{
 		Vector<NeverNullPtr<FileNode_t>> _Dependencys;
-	
+
 		struct ImportData
 		{
 			String ImportSymbolFullName;
@@ -324,14 +324,14 @@ public:
 
 
 			Vector<String> _TepSymbolFullNames;
-			bool* IsImportUsed =nullptr;
+			bool* IsImportUsed = nullptr;
 		};
 		Vector<ImportData> _Imports;
 		struct SpanData
 		{
 			size_t Index = 0;
 			size_t Count = 0;
-	
+
 
 			static SpanData NewWithNewIndex(size_t Index, size_t EndIndex)
 			{
@@ -343,7 +343,7 @@ public:
 		};
 		SpanData AssemblyInfoSpan;
 		SpanData GlobalObjectMethodInfoSpan;
-		
+
 		SpanData IRInitStaticSpan;
 		SpanData IRInitThreadSpan;
 		SpanData IRDeInitStaticSpan;
@@ -406,7 +406,7 @@ private:
 	struct ObjectToDrop
 	{
 		ObjectToDropType DropType = ObjectToDropType::IRInstruction;
-		SymbolID ID ;
+		SymbolID ID;
 
 
 		IROperator _Operator;
@@ -480,7 +480,7 @@ private:
 		Read,
 		Write,
 		ReadAndWrite,
-	
+
 		WritePointerReassment,
 	};
 
@@ -544,7 +544,7 @@ private:
 	};
 
 	using EvalPointer = UInt32;
-	
+
 	struct EvalSharedState
 	{
 		struct MemLoc
@@ -555,8 +555,8 @@ private:
 		UnorderedMap<EvalPointer, MemLoc> ActivePointers;
 
 		EvalPointer _NextEvalPointer = 1;//must non non-zero because people will use 0 as a invaild pointer
-		
-		
+
+
 		EvalPointer GetNewEvalPointer()
 		{
 			auto v = _NextEvalPointer;
@@ -564,11 +564,11 @@ private:
 			return v;
 		}
 
-		EvalPointer GivePointerAccess(TypeSymbol type,RawEvaluatedObject* pointer)
+		EvalPointer GivePointerAccess(TypeSymbol type, RawEvaluatedObject* pointer)
 		{
 			auto r = GetNewEvalPointer();
-			
-			ActivePointers.AddValue(r,{ type,pointer });
+
+			ActivePointers.AddValue(r, { type,pointer });
 
 			return r;
 		}
@@ -598,13 +598,13 @@ private:
 			if (ActivePointers.HasValue(pointer))
 			{
 				auto& p = ActivePointers.GetValue(pointer);
-				
+
 				void* ptr = p.pointer->Object_AsPointer.get() + offset;
 
 
 
-				UCodeLangAssert((p.pointer->ObjectSize -offset) >= val.ObjectSize);
-				
+				UCodeLangAssert((p.pointer->ObjectSize - offset) >= val.ObjectSize);
+
 				memcpy(ptr, val.Object_AsPointer.get(), val.ObjectSize);
 			}
 			else
@@ -629,7 +629,7 @@ private:
 		UnorderedMap<SymbolID, RawEvaluatedObject> Pars;
 		RawEvaluatedObject Ret;
 
-		UnorderedMap<SymbolID,RawEvaluatedObject> Vars;
+		UnorderedMap<SymbolID, RawEvaluatedObject> Vars;
 
 		const Symbol* FuncSyb = nullptr;
 		const FuncInfo* Get_funcInfo()
@@ -664,7 +664,7 @@ private:
 	{
 		Shared_ptr<MatchAutoPassEnum> _AutoPassEnum;
 		//c++ does not like this not copying but it need to work for Vectors should be Unique_ptr or just it self.
-	
+
 		MatchAutoPassEnum& Get_AutoPassEnum()
 		{
 			return *_AutoPassEnum.get();
@@ -692,13 +692,13 @@ private:
 	};
 	struct AwaitData
 	{
-		
+
 	};
 	struct YieldData
 	{
-		
+
 	};
-	
+
 	enum class Jumps_t
 	{
 		Continue,
@@ -723,7 +723,7 @@ private:
 	};
 	struct CompileTimeforNode
 	{
-		Symbol* SybToLoopOver=nullptr;
+		Symbol* SybToLoopOver = nullptr;
 		Vector<Symbol*> SybItems;
 	};
 	struct VarableMemberData
@@ -750,7 +750,7 @@ private:
 		const TypeSymbol* ToGetTypeFrom = nullptr;
 		TypeSymbol* TypeToFix = nullptr;
 	};
-	
+
 	struct  IsCompatiblePar
 	{
 		const Vector<ParInfo>* Pars;
@@ -770,7 +770,7 @@ private:
 			Ret = &Info->Ret;
 			this->Item = Item;
 		}
-	};	
+	};
 	struct StrExELav
 	{
 
@@ -800,21 +800,21 @@ private:
 		GenericFuncInfo Info;
 		Vector<TypeSymbol> Types;
 	};
-	
+
 	//Members
 	CompilationErrors* _ErrorsOutput = nullptr;
 	CompilationSettings* _Settings = nullptr;
 	UClib _Lib;
 
 	PassType _PassType = PassType::Null;
-	
+
 	const Vector<NeverNullPtr<FileNode>>* _Files = nullptr;
 	const Vector<NeverNullPtr<UClib>>* _Libs = nullptr;
 	const Vector<Path>* _LibsNames = nullptr;
 	Vector<FileNode> _LibsFiles;
 	SymbolTable _Table;
 
-	UnorderedMap<String,UnorderedMap<const void*, SymbolID>> _SybIdMap;
+	UnorderedMap<String, UnorderedMap<const void*, SymbolID>> _SybIdMap;
 	uintptr_t _IDIndex = 0;
 	//Args
 	bool _ForceImportArgWasPassed = false;
@@ -825,7 +825,7 @@ private:
 
 
 	const FileNode* _LookingAtFile = nullptr;
-	UnorderedMap<NeverNullPtr<FileNode_t>,Shared_ptr<FileNodeData>> _FilesData;
+	UnorderedMap<NeverNullPtr<FileNode_t>, Shared_ptr<FileNodeData>> _FilesData;
 	UnorderedMap<SymbolID, BinaryExpressionNode_Data> _BinaryExpressionNode_Datas;
 	UnorderedMap<SymbolID, IndexedExpresion_Data> _IndexedExpresion_Datas;
 	UnorderedMap<SymbolID, PostFixExpressionNode_Data> _PostFix_Datas;
@@ -845,7 +845,7 @@ private:
 
 	struct Test
 	{
-		const CompileTimeIfNode* node=nullptr;
+		const CompileTimeIfNode* node = nullptr;
 		SymbolContext Context;
 		SymbolID _SymID;
 	};
@@ -858,7 +858,7 @@ private:
 
 	Vector<FuncStackInfo> _FuncStack;
 
-	
+
 	NullablePtr<Token> _LastLookedAtToken = nullptr;
 
 	Vector<NodeType> _NodeTypeStack;
@@ -889,7 +889,7 @@ private:
 	Stack<VarableUseData> _Varable;
 	Vector<Unique_ptr<EvalFuncData>> _Eval_FuncStackFrames;
 	Vector<EvalSharedState> _SharedEvalStates;
-	
+
 	NullablePtr<EvalSharedState> GetSharedEval()
 	{
 		if (_SharedEvalStates.size())
@@ -898,7 +898,7 @@ private:
 		}
 		return {};
 	}
-	
+
 	//To Fix Types being Loaded out of order.
 	Vector<LibLoadTypeSeter> _Lib_TypesToFix;
 
@@ -910,7 +910,7 @@ private:
 	Vector<NeverNullPtr<Symbol>> _InlineEnums;
 
 	Vector<Unique_ptr<String>> StringsFromLoadLib;
-	
+
 	Vector<Unique_ptr<FileNode>> NodesFromLoadLib;
 	Vector<Unique_ptr<Vector<Token>>> TokensFromLoadLib;
 
@@ -962,7 +962,7 @@ private:
 	{
 		SymbolContext R;
 		R.File = _LookingAtFile;
-		R.Scope.ThisScope =ScopeHelper::GetReMoveScope(_Table._Scope.ThisScope);
+		R.Scope.ThisScope = ScopeHelper::GetReMoveScope(_Table._Scope.ThisScope);
 		R.Useings = _Table.Useings;
 		R._ClassStack = _ClassStack;
 
@@ -995,7 +995,7 @@ private:
 	}
 
 
-	void Push_ExtendedErr(String Err,const NeverNullPtr<Token> token)
+	void Push_ExtendedErr(String Err, const NeverNullPtr<Token> token)
 	{
 		_ExtendedErr.push_back(Err + ". On line " + std::to_string(token->OnLine));
 	}
@@ -1005,10 +1005,10 @@ private:
 	}
 
 	void Lib_BuildLibs(bool DoIR);
-	void Lib_BuildLib(const UClib& lib, const Path& LibName,bool DoIR);
+	void Lib_BuildLib(const UClib& lib, const Path& LibName, bool DoIR);
 	static bool IsWrite(GetValueMode Value)
 	{
-		return Value == GetValueMode::Write 
+		return Value == GetValueMode::Write
 			|| Value == GetValueMode::WritePointerReassment || Value == GetValueMode::ReadAndWrite;
 	}
 	static bool IsRead(GetValueMode Value)
@@ -1040,7 +1040,7 @@ private:
 	IRType IR_ConvertToIRType(const TypeSymbol& Value);
 	void Push_NewStackFrame();
 	void Pop_StackFrame();
-	TypeSymbol& Type_Get_LookingForType() 
+	TypeSymbol& Type_Get_LookingForType()
 	{
 		return _LookingForTypes.top();
 	}
@@ -1136,12 +1136,12 @@ private:
 	void OnUseingNode(const UsingNode& node);
 
 	void Generic_InitGenericalias(const GenericValuesNode& GenericList, bool IsgenericInstantiation, Generic& Out);
-	
+
 	//Because we support function overloading
 	//we need a way for symbols FullNames to not Clash
 	//OnFuncNode will Mangling those symbol and this will remove it
 	String RemoveSymboolFuncOverloadMangling(const String_view fullname);
-	
+
 	void OnFuncNode(const FuncNode& node);
 	String GetImplementationFromFunc(String_view filetext, const Token* nametoken, const Token* endtoken);
 	void Node_InStatetements(bool Value);
@@ -1158,13 +1158,13 @@ private:
 	void OnAttributeNode(const AttributeNode& node);
 	void OnAttributesNode(const Vector<Unique_ptr<AttributeNode>>& nodes);
 	void OnDeclareVariablenode(const DeclareVariableNode& node, DeclareStaticVariableNode_t type);
-	
+
 	void IR_Build_OnStoreVarable(bool IsStructObjectPassRef, IRInstruction* OnVarable, Symbol* syb, const SymbolID& sybId);
 	void IR_Build_AddDestructorToStack(const NeverNullPtr<Symbol> syb, const SymbolID& sybId, IRInstruction* OnVarable);
 	void IR_Build_AddDestructorToStack(const TypeSymbol& Type, IRInstruction* OnVarable);
-	void Type_DeclareVariableTypeCheck(TypeSymbol& VarType,const TypeSymbol& Ex, const NeverNullPtr<Token> Token);
+	void Type_DeclareVariableTypeCheck(TypeSymbol& VarType, const TypeSymbol& Ex, const NeverNullPtr<Token> Token);
 	void Type_DeclareVarableCheck(TypeSymbol& VarType, const Node* Ex, const NeverNullPtr<Token> Token);
-	
+
 	void OnAssignExpressionNode(const AssignExpressionNode& node);
 	void OnIfNode(const IfNode& node);
 	void OnWhileNode(const WhileNode& node);
@@ -1174,7 +1174,7 @@ private:
 
 	void OnDeclareEvalVariableNode(const DeclareEvalVariableNode& node);
 	void FuncRetCheck(const Token& Name, const NeverNullPtr<Symbol> FuncSyb, const FuncInfo* Func);
-	
+
 	void OnForNode(const ForNode& node);
 
 	void IR_Build_UpdateJumpsBreakContiunes(size_t JumpIndex, size_t BoolCode, size_t BreakCode);
@@ -1191,12 +1191,12 @@ private:
 	void OnBitCast(const BitCastExpression& node);
 	void OnImportNode(const ImportStatement& node);
 
-	void OnCompileTimeIfNode(const CompileTimeIfNode& node,bool IsInFunc =true);
+	void OnCompileTimeIfNode(const CompileTimeIfNode& node, bool IsInFunc = true);
 
 	void OnCompileTimeforNode(const CompileTimeForNode& node);
 	void CompileTimeforNodeEvaluateStatements(const CompileTimeForNode& node);
 
-	
+
 	TypeSymbol Type_GetUnMapType();
 	bool Type_IsUnMapType(const TypeSymbol& Type) const;
 	bool Type_IsUnMapType(const Symbol& Type) const;
@@ -1204,18 +1204,18 @@ private:
 	void OnCompareTypesNode(const CMPTypesNode& node);
 	bool Type_Compare(const TypeSymbol& Type0, const TypeSymbol& Type1, const NeverNullPtr<Token> Value);
 
-	
+
 
 	String Str_GetClassWithTraitVTableName(const String& ClassFullName, const String& TraitFullName);
 	String Str_GetTraitVTableName(const String& TraitName);
 	String Str_GetTraitVStructTableName(const String& TraitName);
 
-	void Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo* ClassInfo,const NeverNullPtr<Symbol> Trait, const NeverNullPtr<Token> ClassNameToken);
+	void Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo* ClassInfo, const NeverNullPtr<Symbol> Trait, const NeverNullPtr<Token> ClassNameToken);
 
-	void Symbol_BuildTrait(const NeverNullPtr<Symbol> Syb,ClassInfo* ClassInfo, const NeverNullPtr<Symbol> Trait, const NeverNullPtr<Token> ClassNameToken);
+	void Symbol_BuildTrait(const NeverNullPtr<Symbol> Syb, ClassInfo* ClassInfo, const NeverNullPtr<Symbol> Trait, const NeverNullPtr<Token> ClassNameToken);
 
 
-	NeverNullPtr<Symbol> Symbol_MakeNewDropFuncSymbol(ClassInfo* ClassInfo,const TypeSymbol& ClassAsType);
+	NeverNullPtr<Symbol> Symbol_MakeNewDropFuncSymbol(ClassInfo* ClassInfo, const TypeSymbol& ClassAsType);
 	void IR_Build_FuncDropUsingFields(const ClassInfo* ClassInfo, const IRType& ThisPar);
 
 
@@ -1239,7 +1239,7 @@ private:
 	}
 	bool Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameNode& node, size_t Index, ScopedName::Operator_t OpType, GetMemberTypeSymbolFromVar_t& Out);
 
-	
+
 
 	void IR_Build_MemberDereferencStore(const GetMemberTypeSymbolFromVar_t& In, IRInstruction* Value);
 	void IR_Build_Member_Store(const GetMemberTypeSymbolFromVar_t& In, IRInstruction* Value);
@@ -1291,7 +1291,7 @@ private:
 	void OnExpressionToTypeValueNode(const ExpressionToTypeValueNode& node);
 	void OnAwaitExpression(const AwaitExpression& node);
 	void OnYieldExpression(const YieldExpression& node);
-	
+
 	void OnAwaitStatement(const AwaitStatement& node);
 	void OnYieldStatement(const YieldStatement& node);
 
@@ -1316,21 +1316,21 @@ private:
 	void OnTypeToValueNode(const TypeToValueNode& node);
 	void OnMatchStatement(const MatchStatement& node);
 	void Type_CanMatch(const TypeSymbol& MatchItem, const ExpressionNodeType& MatchValueNode, const ExpressionNodeType& node, MatchArmData& Data);
-	
+
 
 	bool MatchShouldOutPassEnumValue(const ExpressionNodeType& node);
 	void MatchAutoPassEnumValueStart(MatchAutoPassEnum& V, const ExpressionNodeType& node, const ValueExpressionNode* Val, const FuncCallNode* Call);
 	void MatchAutoPassEnd(MatchAutoPassEnum& V);
 	void TryError_AllValuesAreMatched(const TypeSymbol& MatchItem, const MatchArmData& Data);
-	
-	
-	BuildMatch_ret IR_Build_Match(const TypeSymbol& MatchItem, const ExpressionNodeType& MatchValueNode,IRInstruction* Item, BuildMatch_State& State, MatchArm& Arm, const ExpressionNodeType& ArmEx);
+
+
+	BuildMatch_ret IR_Build_Match(const TypeSymbol& MatchItem, const ExpressionNodeType& MatchValueNode, IRInstruction* Item, BuildMatch_State& State, MatchArm& Arm, const ExpressionNodeType& ArmEx);
 	BuildMatch_ret IR_Build_InvaildMatch(const TypeSymbol& MatchItem, IRInstruction* Item, const BuildMatch_State& State);
 	void IR_Build_Match(BuildMatch_ret& Value, const BuildMatch_State& State);
 	void IR_Build_MatchState(const BuildMatch_State& State);
 
-	
-	void Assembly_ConvertAttributes(const Vector<Unique_ptr<AttributeNode>>& nodes,Vector<UsedTagValueData>& Out);
+
+	void Assembly_ConvertAttributes(const Vector<Unique_ptr<AttributeNode>>& nodes, Vector<UsedTagValueData>& Out);
 	void Assembly_ConvertAttribute(const AttributeNode& nodes, UsedTagValueData& Out);
 
 	struct ImportLibInfo
@@ -1341,8 +1341,8 @@ private:
 	void Assembly_LoadLibSymbols();
 	void Assembly_LoadLibSymbols(const UClib& lib, ImportLibInfo& libinfo, LoadLibMode Mode);
 
-	void Assembly_LoadClassSymbol(const Class_Data& Item,const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
-	void Assembly_LoadEnumSymbol(const Enum_Data& Item,const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
+	void Assembly_LoadClassSymbol(const Class_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
+	void Assembly_LoadEnumSymbol(const Enum_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 	void Assembly_LoadAliasSymbol(const Alias_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 	void Assembly_LoadTagSymbol(const Tag_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 	void Assembly_LoadTraitSymbol(const Trait_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
@@ -1363,9 +1363,9 @@ private:
 	{
 		return   Output_Type() == OutPutType::Lib ? LibType::Lib : LibType::Dll;
 	}
-	
+
 	static String Str_GetFuncAnonymousObjectFullName(const String& FullFuncName);
-	void Assembly_AddClass(const Vector<Unique_ptr<AttributeNode>>& attributes,const NeverNullPtr<Symbol> ClassSyb);
+	void Assembly_AddClass(const Vector<Unique_ptr<AttributeNode>>& attributes, const NeverNullPtr<Symbol> ClassSyb);
 	ReflectionTypeInfo Assembly_ConvertToType(const TypeSymbol& Type);
 
 	void Assembly_AddEnum(const NeverNullPtr<Symbol> ClassSyb);
@@ -1394,7 +1394,7 @@ private:
 	{
 		String R;
 
-		if (Type.IsOutPar) 
+		if (Type.IsOutPar)
 		{
 			R += "out ";
 		}
@@ -1407,19 +1407,19 @@ private:
 	{
 		return TokenStringHelper::ToString(Type);
 	}
-	
+
 
 
 	void Type_Convert(const TypeNode& V, TypeSymbol& Out);
 
 	NullablePtr<Symbol> Generic_InstantiateOrFindGenericSymbol(const NeverNullPtr<Token> Token, const UseGenericsNode& GenericsVals, const String_view& Name);
 
-	
-	void Type_ConvertAndValidateType(const TypeNode& V, TypeSymbol& Out,NodeSyb_t Syb);
-	TypeSymbol Type_ConvertAndValidateType(const TypeNode& V, NodeSyb_t Syb);
-	bool Type_ValidateType(const TypeSymbol& V,const NeverNullPtr<Token> Token,NodeSyb_t Syb);
 
-	
+	void Type_ConvertAndValidateType(const TypeNode& V, TypeSymbol& Out, NodeSyb_t Syb);
+	TypeSymbol Type_ConvertAndValidateType(const TypeNode& V, NodeSyb_t Syb);
+	bool Type_ValidateType(const TypeSymbol& V, const NeverNullPtr<Token> Token, NodeSyb_t Syb);
+
+
 
 	NullablePtr<Symbol> Symbol_GetSymbol(String_view Name, SymbolType Type);
 	NeverNullPtr<Symbol> Symbol_GetSymbol(const FuncInfo* Info)
@@ -1471,7 +1471,7 @@ private:
 	{
 		return  GetSymbolsWithName((String_view)Name);
 	}
-	
+
 	Vector<Symbol*>& GetSymbolsWithName(const String_view& Name, SymbolType Type)
 	{
 		return GetSymbolsWithName(Name);
@@ -1486,7 +1486,7 @@ private:
 
 	const NullablePtr<FuncInfo> Context_GetCuruntFunc() const
 	{
-		if (_FuncStack.size()) 
+		if (_FuncStack.size())
 		{
 			return _FuncStack.back().Pointer;
 		}
@@ -1508,7 +1508,7 @@ private:
 
 		return false;
 	}
-	
+
 
 	void Symbol_RedefinitionCheck(const NeverNullPtr<Symbol> Syb, const NeverNullPtr<Token> Value);
 	void Symbol_RedefinitionCheck(const String_view FullName, SymbolType Type, const NeverNullPtr<Token> Value);
@@ -1524,7 +1524,7 @@ private:
 
 	bool HasMoveContructerHasIRFunc(const TypeSymbol& ExType);
 	bool IR_Build_ImplicitConversion(IRInstruction* Ex, const TypeSymbol ExType, const TypeSymbol& ToType);
-	void IR_Build_ExplicitConversion(IRInstruction* Ex, const TypeSymbol ExType, const TypeSymbol& ToType,const CastExpressionNode_Data& Data);
+	void IR_Build_ExplicitConversion(IRInstruction* Ex, const TypeSymbol ExType, const TypeSymbol& ToType, const CastExpressionNode_Data& Data);
 
 	bool Type_IsSIntType(const TypeSymbol& TypeToCheck) const;
 	bool Type_IsUIntType(const TypeSymbol& TypeToCheck) const;
@@ -1579,8 +1579,8 @@ private:
 
 
 
-	Get_FuncInfo Type_GetFunc(const TypeSymbol& Name,const ValueParametersNode& Pars);
-	Get_FuncInfo Type_GetFunc(const ScopedNameNode& Name,const ValueParametersNode& Pars,TypeSymbol Ret);
+	Get_FuncInfo Type_GetFunc(const TypeSymbol& Name, const ValueParametersNode& Pars);
+	Get_FuncInfo Type_GetFunc(const ScopedNameNode& Name, const ValueParametersNode& Pars, TypeSymbol Ret);
 
 	Optional<Optional<Get_FuncInfo>> Type_FuncinferGenerics(Vector<TypeSymbol>& GenericInput, const Vector<ParInfo>& ValueTypes
 		, const UseGenericsNode* Generics
@@ -1592,13 +1592,13 @@ private:
 	void Type_RemoveTypeattributes(TypeSymbol& tep_);
 
 
-	Get_FuncInfo Symbol_GetEnumVariantFunc(NeverNullPtr<Symbol> EnumSyb, size_t FieldIndex, NeverNullPtr<Symbol> EnumFieldSyb, const ValueParametersNode& Pars,const NeverNullPtr<Token> Token,const Vector<ParInfo>& ValueTypes);
+	Get_FuncInfo Symbol_GetEnumVariantFunc(NeverNullPtr<Symbol> EnumSyb, size_t FieldIndex, NeverNullPtr<Symbol> EnumFieldSyb, const ValueParametersNode& Pars, const NeverNullPtr<Token> Token, const Vector<ParInfo>& ValueTypes);
 	void Symbol_SetOutExpression(const OutExpression* Ex, const TypeSymbol& TypeToSet);
 
 	NeverNullPtr<Symbol> Symbol_GetSymbolFromExpression(const NeverNullPtr<OutExpression> Ex);
 
 	void Type_SetFuncRetAsLastEx(const Get_FuncInfo& Info);
-	
+
 	bool Type_HasDefaultConstructorFunc(const TypeSymbol& Type) const;
 
 	bool Type_IsCompatible(const IsCompatiblePar& FuncPar, const Vector<ParInfo>& ValueTypes, bool _ThisTypeIsNotNull, const NeverNullPtr<Token> Token);
@@ -1654,7 +1654,7 @@ private:
 	const void* Eval_Get_Object(const EvaluatedEx& Input) const;
 	template<typename T> T* Eval_Get_ObjectAs(const TypeSymbol& Input, const RawEvaluatedObject& Input2)
 	{
-		#if UCodeLangDebug
+#if UCodeLangDebug
 		if ((Input.IsAddress() || Input.IsAddressArray()))
 		{
 			if (sizeof(T) != sizeof(EvalPointer))
@@ -1668,7 +1668,7 @@ private:
 			String TepStr = "type miss-mach when EvaluatedObject To Cpp type '" + (String)typeid(T).name() + "' ";
 			UCodeLangThrowException(TepStr.c_str());
 		}
-		#endif // DEBUG
+#endif // DEBUG
 		return (T*)Eval_Get_Object(Input, Input2);
 	}
 	template<typename T> T* Eval_Get_ObjectAs(const EvaluatedEx& Input)
@@ -1678,7 +1678,7 @@ private:
 
 	template<typename T> const T* Eval_Get_ObjectAs(const TypeSymbol& Input, const RawEvaluatedObject& Input2) const
 	{
-		#if UCodeLangDebug
+#if UCodeLangDebug
 		if ((Input.IsAddress() || Input.IsAddressArray()))
 		{
 			if (sizeof(T) != sizeof(EvalPointer))
@@ -1692,7 +1692,7 @@ private:
 			String TepStr = "type miss-mach when EvaluatedObject To Cpp type '" + (String)typeid(T).name() + "' ";
 			UCodeLangThrowException(TepStr.c_str());
 		}
-		#endif // DEBUG
+#endif // DEBUG
 		return (T*)Eval_Get_Object(Input, Input2);
 	}
 	template<typename T> const T* Eval_Get_ObjectAs(const EvaluatedEx& Input) const
@@ -1702,7 +1702,7 @@ private:
 
 	template<typename T> void Eval_Set_ObjectAs(const TypeSymbol& Input, RawEvaluatedObject& Input2, const T& Value)
 	{
-		#if UCodeLangDebug
+#if UCodeLangDebug
 		if (Input.IsAddress() || Input.IsAddressArray())
 		{
 			if (sizeof(EvalPointer) != sizeof(Value))
@@ -1716,27 +1716,27 @@ private:
 			String TepStr = "type miss-mach when Cpp type To EvaluatedObject'" + (String)typeid(T).name() + "' ";
 			UCodeLangThrowException(TepStr.c_str());
 		}
-		#endif // DEBUG
-		
+#endif // DEBUG
+
 		auto Ptr = (T*)Eval_Get_Object(Input, Input2);
 		*Ptr = Value;
 	}
-	template<typename T> void Eval_Set_ObjectAs(EvaluatedEx& Input,const T& Value)
+	template<typename T> void Eval_Set_ObjectAs(EvaluatedEx& Input, const T& Value)
 	{
-		return Eval_Set_ObjectAs<T>(Input.Type, Input.EvaluatedObject,Value);
+		return Eval_Set_ObjectAs<T>(Input.Type, Input.EvaluatedObject, Value);
 	}
-	void Eval_Set_ObjectAs(EvaluatedEx& Input,const void* Object, size_t ObjectSize)
+	void Eval_Set_ObjectAs(EvaluatedEx& Input, const void* Object, size_t ObjectSize)
 	{
 		return Eval_Set_ObjectAs(Input.Type, Input.EvaluatedObject, Object, ObjectSize);
 	}
 	void Eval_Set_ObjectAs(const TypeSymbol& Input, RawEvaluatedObject& Input2, const void* Object, size_t ObjectSize)
 	{
-		#if UCodeLangDebug
+#if UCodeLangDebug
 		if (Input.IsAddress() || Input.IsAddressArray())
 		{
 			if (sizeof(EvalPointer) != ObjectSize)
 			{
-				String TepStr = "type miss-mach when Cpp type To EvaluatedObject'"; 
+				String TepStr = "type miss-mach when Cpp type To EvaluatedObject'";
 				UCodeLangThrowException(TepStr.c_str());
 			}
 		}
@@ -1745,7 +1745,7 @@ private:
 			String TepStr = "type miss-mach when Cpp type To EvaluatedObject'";
 			UCodeLangThrowException(TepStr.c_str());
 		}
-		#endif // DEBUG
+#endif // DEBUG
 
 
 
@@ -1753,9 +1753,9 @@ private:
 		auto Ptr = (Byte*)Eval_Get_Object(Input, Input2);
 		memcpy(Ptr, Object, ObjectSize);
 	}
-	
-	using TypeInstantiateFunc = void(SystematicAnalysis::*)(const NeverNullPtr<Symbol> Symbol,const Vector<TypeSymbol>& GenericInput);
-	NullablePtr<Symbol> Generic_InstantiateOrFindGenericSymbol(const NeverNullPtr<Token> Name,const NeverNullPtr<Symbol> Symbol,const GenericValuesNode& SymbolGenericValues,const Generic& GenericData,const UseGenericsNode& UseNode,TypeInstantiateFunc Instantiate)
+
+	using TypeInstantiateFunc = void(SystematicAnalysis::*)(const NeverNullPtr<Symbol> Symbol, const Vector<TypeSymbol>& GenericInput);
+	NullablePtr<Symbol> Generic_InstantiateOrFindGenericSymbol(const NeverNullPtr<Token> Name, const NeverNullPtr<Symbol> Symbol, const GenericValuesNode& SymbolGenericValues, const Generic& GenericData, const UseGenericsNode& UseNode, TypeInstantiateFunc Instantiate)
 	{
 		if (GenericData._Genericlist.size() != UseNode._Values.size())
 		{
@@ -1788,7 +1788,7 @@ private:
 
 				if (InputTypeIsConstantExpression != GenericInfo.IsConstantExpression())
 				{
-					const NeverNullPtr<Token> nodeToken =NeverNullptr(Tnode._name._ScopedName.back()._token);
+					const NeverNullPtr<Token> nodeToken = NeverNullptr(Tnode._name._ScopedName.back()._token);
 					auto& GenericNo = SymbolGenericValues._Values[i];
 					if (InputTypeIsConstantExpression)
 					{
@@ -1812,7 +1812,7 @@ private:
 		if (!FuncIsMade.has_value())
 		{
 			(*this.*Instantiate)(Symbol, *GenericInput);
-			
+
 			_TepFuncs.push_back({ std::move(GenericInput) });
 		}
 
@@ -1824,7 +1824,7 @@ private:
 		UCodeLangAssert(Symbol->ValidState == SymbolValidState::valid);
 
 		TypeInstantiateFunc Func = &SystematicAnalysis::Generic_TypeInstantiate;
-		return Generic_InstantiateOrFindGenericSymbol(Name, Symbol, SymbolGenericValues, GenericData, UseNode,Func);
+		return Generic_InstantiateOrFindGenericSymbol(Name, Symbol, SymbolGenericValues, GenericData, UseNode, Func);
 	}
 	NullablePtr<Symbol> Generic_InstantiateOrFindGeneric_Trait(const NeverNullPtr<Token> Name, const NeverNullPtr<Symbol> Symbol, const GenericValuesNode& SymbolGenericValues, const Generic& GenericData, const UseGenericsNode& UseNode)
 	{
@@ -1880,13 +1880,13 @@ private:
 	bool Eval_EvalutateFunc(EvaluatedEx& Out, const TypeSymbol& Type, const Get_FuncInfo& Func, const Vector<EvaluatedEx>& ValuePars);
 	bool Eval_Evaluate(EvaluatedEx& Out, const ExtendedScopeExpression& node);
 	bool Eval_Evaluate(EvaluatedEx& Out, const ExtendedFuncExpression& node);
-	
+
 	EvaluatedEx Eval_Evaluate_GetPointer();
 
 	bool Eval_EvalutateFunc(EvalFuncData& State, const NeverNullPtr<Symbol> Func, const Vector<EvaluatedEx>& Pars);
 	bool Eval_EvalutateStatement(EvalFuncData& State, const Node* node);
 
-		
+
 
 	bool Eval_EvalutateScopedName(EvaluatedEx& Out, size_t Start, size_t End, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& OtherOut);
 	bool Eval_EvalutateScopedName(EvaluatedEx& Out, size_t Start, const ScopedNameNode& node, GetMemberTypeSymbolFromVar_t& OtherOut)
@@ -1984,11 +1984,11 @@ private:
 	void LogError_CantUseThisInStaticFunction(const NeverNullPtr<Token> Token);
 	void LogError_FuncDependencyCycle(const NeverNullPtr<Token> Token, const FuncInfo* Value);
 
-	void LogError_GenericInputWantsaExpressionNotType(const NeverNullPtr<Token> Token,const String_view NameOfPar);
+	void LogError_GenericInputWantsaExpressionNotType(const NeverNullPtr<Token> Token, const String_view NameOfPar);
 	void LogError_GenericInputWantsaTypeNotExpression(const NeverNullPtr<Token> Token, const String_view NameOfPar);
-	
+
 	void LogError_ExpectedSymbolToBea(const NeverNullPtr<Token> Token, const Symbol& Syb, SymbolType Value);
-	
+
 	void LogError_CanIncorrectStaticArrCount(const NeverNullPtr<Token> Token, const TypeSymbol& Type, size_t Count, size_t FuncCount);
 	void LogError_BeMoreSpecifiicWithStaticArrSize(const NeverNullPtr<Token> Token, const TypeSymbol& Type);
 	void LogError_BinaryOverloadPars(const Token& Name, const FuncInfo* Func);
@@ -2008,24 +2008,24 @@ private:
 	void LogError_LogParPackIsNotLast(const NeverNullPtr<Token> Token);
 	void LogError_ParPackTypeIsNotLast(const NeverNullPtr<Token> Token);
 	void LogError(ErrorCodes Err, const String& MSG, const NeverNullPtr<Token> Token);
-	void LogError(ErrorCodes Err,size_t Line,size_t Pos, const String& MSG);
+	void LogError(ErrorCodes Err, size_t Line, size_t Pos, const String& MSG);
 	void LogError_LogWantedAVariable(const NeverNullPtr<Token>& Item, Symbol* TepSyb);
-	void LogError_CantBindTypeItNotTypeInfo(const NeverNullPtr<Token> Token,TypeSymbol& Type);
+	void LogError_CantBindTypeItNotTypeInfo(const NeverNullPtr<Token> Token, TypeSymbol& Type);
 	void LogError_CantUseTypeVoidHere(const NeverNullPtr<Token> Token);
 	void LogError_UseingTypeinfoInNonEvalVarable(const NeverNullPtr<Token> Token);
 	void LogError_UseingTypeinfoInEvalFuncPar(const NeverNullPtr<Token> Token);
 	void LogError_CantOutputTypeinfo(const NeverNullPtr<Token> Token);
-	void LogError_DoesNotHaveForOverload(const NeverNullPtr<Token> Token,TypeSymbol& ExType);
+	void LogError_DoesNotHaveForOverload(const NeverNullPtr<Token> Token, TypeSymbol& ExType);
 	void LogError_CantgussTypesTheresnoassignment(const NeverNullPtr<Token> Token);
 	void LogError_MissingFunctionforTrait(const String_view& FuncName, const FuncInfo* Info, const NeverNullPtr<Symbol> Trait, const NeverNullPtr<Token> ClassNameToken);
 	void LogError_CantUseOutInOverloadFunc(const Token& Name);
 	void LogError_yieldnotAsync(const NeverNullPtr<Token> token);
 	void LogError_UseScopeResolutionAndNotDot(const NeverNullPtr<Symbol>& Sym, const NeverNullPtr<Token>& ItemToken);
 	void LogError_UseDotAndNotScopeResolution(const NeverNullPtr<Symbol>& Sym, const NeverNullPtr<Token>& ItemToken);
-	void LogError_TypeIsNotCopyable(const NeverNullPtr<Token> Token,const TypeSymbol& Ex0Type);
+	void LogError_TypeIsNotCopyable(const NeverNullPtr<Token> Token, const TypeSymbol& Ex0Type);
 
 	ReadVarErrorCheck_t TryLogError_OnReadVar(String_view VarName, const NeverNullPtr<Token> Token, const NullablePtr<Symbol> Syb);
-	void TryLogError_OnWritingVar(NeverNullPtr<Symbol> Symbol, const NeverNullPtr<Token> Token,const String_view Name);
+	void TryLogError_OnWritingVar(NeverNullPtr<Symbol> Symbol, const NeverNullPtr<Token> Token, const String_view Name);
 
 	String ToString(SymbolType Value) const;
 	Class_Data* Assembly_GetAssemblyClass(const String& FullName);

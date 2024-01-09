@@ -28,13 +28,13 @@ void LLVMBackEnd::Build(const IRBuilder* Input)
 			for (size_t i = 0; i < V->Fields.size(); i++)
 			{
 				auto& Field = V->Fields[i];
-		 		 _OutStr += ToString(V->Fields[i].Type);
-			
-				 if (&Field != &V->Fields.back())
-				 {
-					 _OutStr += ",";
-				 }
-				 _OutStr += '\n';
+				_OutStr += ToString(V->Fields[i].Type);
+
+				if (&Field != &V->Fields.back())
+				{
+					_OutStr += ",";
+				}
+				_OutStr += '\n';
 			}
 
 			_OutStr += "}\n\n";
@@ -116,7 +116,7 @@ String LLVMBackEnd::ToString(const IRType& Type)
 		break;
 	case IRTypes::pointer:
 	{
-		auto Syb =_Input->GetSymbol(Type._symbol);
+		auto Syb = _Input->GetSymbol(Type._symbol);
 		if (Syb)
 		{
 			r += _Input->FromID(Syb->identifier) + "*";

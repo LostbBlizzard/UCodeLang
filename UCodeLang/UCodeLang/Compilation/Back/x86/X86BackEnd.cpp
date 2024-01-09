@@ -10,24 +10,24 @@ void X86BackEnd::Reset()
 	/*
 	_CodeGen.Reset();
 	*/
-	
+
 }
 
 void X86BackEnd::Build(const IRBuilder* Input)
 {
-/*
-	_CodeGen.Build(Input);
-	Vector<Byte>& Output = _CodeGen._Output._Output.ByteOutput;
+	/*
+		_CodeGen.Build(Input);
+		Vector<Byte>& Output = _CodeGen._Output._Output.ByteOutput;
 
-	Set_Output(BytesView(Output.data(), Output.size()));//output bytes
+		Set_Output(BytesView(Output.data(), Output.size()));//output bytes
 
-*/
+	*/
 }
 
 void X86BackEnd::UpdateBackInfo(CompilationBackEndInfo& BackInfo)
 {
 	BackInfo.Output = CompilationBackEndInfo::BackEnd::Other;
-	BackInfo.OutputSet= CompilationBackEndInfo::InsSet::X86;
+	BackInfo.OutputSet = CompilationBackEndInfo::InsSet::X86;
 }
 
 void X86BackEnd_UCodeLib::Reset()

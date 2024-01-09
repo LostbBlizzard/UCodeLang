@@ -110,7 +110,7 @@ String NameDecoratior::DecoratedNameType(const Par& Type)
 		R += "mov";
 	}
 
-	
+
 
 	return R;
 }

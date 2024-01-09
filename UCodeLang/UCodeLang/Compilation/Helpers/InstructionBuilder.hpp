@@ -159,7 +159,7 @@ Out = Instruction(InstructionSet::equaltof##bitsize, Instruction::ThreeReg(reg, 
 }\
 
 #pragma endregion
-	
+
 class InstructionBuilder
 {
 public:
@@ -204,7 +204,7 @@ public:
 
 	UCodeLangForceinline static void CallIf(UAddress address, RegisterID Bool, Instruction& Out)
 	{
-		Out = Instruction(InstructionSet::CallIf, Instruction::RegUInt16(Bool,address));
+		Out = Instruction(InstructionSet::CallIf, Instruction::RegUInt16(Bool, address));
 	}
 	UCodeLangForceinline static void CallReg(RegisterID Reg, Instruction& Out)
 	{
@@ -240,7 +240,7 @@ public:
 
 		Out = Instruction(InstructionSet::Jumpv4, Instruction::ValUInt16(Val));
 	}
-	UCodeLangForceinline static void Jumpifv2(UInt64 address,RegisterID Bool, Instruction& Out)
+	UCodeLangForceinline static void Jumpifv2(UInt64 address, RegisterID Bool, Instruction& Out)
 	{
 		UInt16& Val = ((UInt16*)(&address))[1];
 
@@ -272,22 +272,22 @@ public:
 	}
 	*/
 
-	
+
 	//set 8
-	
+
 	UCodeLangForceinline static void Store8(Instruction& Out, RegisterID reg, Int8 Value) \
-	{ 
-		Store8(Out, reg, *(UInt8*)&Value); 
+	{
+		Store8(Out, reg, *(UInt8*)&Value);
 	}
 	UCodeLangForceinline static void Store8(Instruction& Out, RegisterID reg, UInt8 Value)\
 	{
-		Out = Instruction(InstructionSet::Store8, Instruction::RegUInt8(reg,Value)); 
+		Out = Instruction(InstructionSet::Store8, Instruction::RegUInt8(reg, Value));
 	}
 
 	BuilderIntSet(8)
-	//set 16 
-	
-	UCodeLangForceinline static void Store16(Instruction& Out, RegisterID reg, Int16 Value) \
+		//set 16 
+
+		UCodeLangForceinline static void Store16(Instruction& Out, RegisterID reg, Int16 Value) \
 	{
 		Store16(Out, reg, *(UInt16*)&Value);
 	}
@@ -295,12 +295,12 @@ public:
 	{
 		Out = Instruction(InstructionSet::Store16, Instruction::RegUInt16(reg, Value));
 	}
-	
+
 	BuilderIntSet(16)
-	//set 32 
-	
-	//Loading 32bit
-	UCodeLangForceinline static void Store32_V1(Instruction& Out, RegisterID reg, Int32 Value) \
+		//set 32 
+
+		//Loading 32bit
+		UCodeLangForceinline static void Store32_V1(Instruction& Out, RegisterID reg, Int32 Value) \
 	{
 		Store32_V1(Out, reg, *(UInt32*)&Value);
 	}
@@ -321,16 +321,16 @@ public:
 
 		Out = Instruction(InstructionSet::Store32v2, Instruction::RegUInt16(reg, Val));
 	}
-	
+
 	BuilderIntSet(32)
-	//set 64 
-	
-	//Loading 64bit
-	UCodeLangForceinline static void Store64_V1(Instruction& Out, RegisterID reg,UInt64 Value) \
+		//set 64 
+
+		//Loading 64bit
+		UCodeLangForceinline static void Store64_V1(Instruction& Out, RegisterID reg, UInt64 Value) \
 	{
 		Store64_V1(Out, reg, *(Int64*)&Value);
 	}
-	UCodeLangForceinline static void Store64_V1(Instruction& Out, RegisterID reg,Int64 Value)\
+	UCodeLangForceinline static void Store64_V1(Instruction& Out, RegisterID reg, Int64 Value)\
 	{
 		UInt16& Val = ((UInt16*)(&Value))[0];
 
@@ -371,10 +371,10 @@ public:
 	}
 	BuilderIntSet(64)
 
-	//float set 32
+		//float set 32
 
-	UCodeLangForceinline static void Storef32_V1(Instruction& Out, RegisterID reg, float32 Value) \
-	{ 
+		UCodeLangForceinline static void Storef32_V1(Instruction& Out, RegisterID reg, float32 Value) \
+	{
 		UInt16& Val = ((UInt16*)(&Value))[0];
 
 		Out = Instruction(InstructionSet::Storef32v1, Instruction::RegUInt16(reg, Val));
@@ -387,9 +387,9 @@ public:
 	}
 
 	BuilderfloatSet(32)
-	//float set 64
+		//float set 64
 
-	UCodeLangForceinline static void Storef64_V1(Instruction& Out, RegisterID reg, float64 Value) \
+		UCodeLangForceinline static void Storef64_V1(Instruction& Out, RegisterID reg, float64 Value) \
 	{
 		UInt16& Val = ((UInt16*)(&Value))[0];
 
@@ -417,8 +417,8 @@ public:
 
 	BuilderfloatSet(64)
 
-	//Casting
-	UCodeLangForceinline static void SInt8ToSInt16(Instruction& Out, RegisterID Regin, RegisterID  Regout)
+		//Casting
+		UCodeLangForceinline static void SInt8ToSInt16(Instruction& Out, RegisterID Regin, RegisterID  Regout)
 	{
 		Out = Instruction(InstructionSet::SInt8ToSInt16, Instruction::TwoReg(Regin, Regout));
 	}
@@ -530,7 +530,7 @@ public:
 	}
 
 	//Stack,Thread,Static
-	UCodeLangForceinline static void GetPointerOfStack(Instruction& Out, RegisterID out,UInt16 offset)
+	UCodeLangForceinline static void GetPointerOfStack(Instruction& Out, RegisterID out, UInt16 offset)
 	{
 		Out = Instruction(InstructionSet::GetPointerOfStack, Instruction::RegUInt16(out, offset));
 	}
@@ -556,7 +556,7 @@ public:
 	{
 		Out = Instruction(InstructionSet::DecrementStackPointer, Instruction::OneReg(Value));
 	}
-	
+
 	//C funcs
 	UCodeLangForceinline static void Malloc(Instruction& Out, RegisterID regin, RegisterID regout)
 	{
@@ -568,9 +568,9 @@ public:
 	}
 
 
-	UCodeLangForceinline static void PointerMemberLoad8(Instruction& Out,RegisterID Ptr,RegisterID RegOut, UInt8 Offset)
+	UCodeLangForceinline static void PointerMemberLoad8(Instruction& Out, RegisterID Ptr, RegisterID RegOut, UInt8 Offset)
 	{
-		Out = Instruction(InstructionSet::PointerMemberLoad8, Instruction::TwoRegInt8(Ptr,RegOut,Offset));
+		Out = Instruction(InstructionSet::PointerMemberLoad8, Instruction::TwoRegInt8(Ptr, RegOut, Offset));
 	}
 	UCodeLangForceinline static void PointerMemberLoad16(Instruction& Out, RegisterID Ptr, RegisterID RegOut, UInt8 Offset)
 	{
@@ -604,7 +604,7 @@ public:
 	//EffectiveAddress
 	UCodeLangForceinline static void LoadEffectiveAddressA(Instruction& Out, RegisterID Ptr, UInt8 Offset, RegisterID RegOut)
 	{
-		Out = Instruction(InstructionSet::LoadEffectiveAddressA, Instruction::TwoRegInt8(Ptr, RegOut,Offset));
+		Out = Instruction(InstructionSet::LoadEffectiveAddressA, Instruction::TwoRegInt8(Ptr, RegOut, Offset));
 	}
 	UCodeLangForceinline static void LoadEffectiveAddressS(Instruction& Out, RegisterID Ptr, UInt8 Offset, RegisterID RegOut)
 	{
@@ -626,15 +626,15 @@ public:
 		Out = Instruction(InstructionSet::Calloc, Instruction::TwoReg(regin, regout));
 	}
 
-	
+
 	UCodeLangForceinline static void Realloc(Instruction& Out, RegisterID ptr, RegisterID size, RegisterID output)
 	{
-		Out = Instruction(InstructionSet::ReAlloc, Instruction::ThreeReg(ptr, size,output));
+		Out = Instruction(InstructionSet::ReAlloc, Instruction::ThreeReg(ptr, size, output));
 	}
 
 	UCodeLangForceinline static void Memset(Instruction& Out, RegisterID Ptr, RegisterID Val, RegisterID size)
 	{
-		Out = Instruction(InstructionSet::Memset, Instruction::ThreeReg(Ptr,Val,size));
+		Out = Instruction(InstructionSet::Memset, Instruction::ThreeReg(Ptr, Val, size));
 	}
 
 	//Value is in Out
@@ -654,7 +654,7 @@ public:
 	{
 		Out = Instruction(InstructionSet::Call_Code, Instruction::ValUInt16(address));
 	}
-	
+
 	//Debug
 	UCodeLangForceinline static void Debug_FuncStart(Instruction& Out)
 	{
@@ -669,7 +669,7 @@ public:
 		Out = Instruction(InstructionSet::Debug_LineEnter, Instruction::NoneOp());
 	}
 
-	
+
 	//Others
 	/*
 	UCodeLangForceinline static void GenInst(Intermediate_Set Inst, const UInt64 Value0, const UInt64 Value1, Instruction& Out)
