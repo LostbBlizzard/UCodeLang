@@ -1,5 +1,6 @@
 #pragma once
 
+#include "UCodeLang/LangCore/LangTypes.hpp"
 #ifndef UCodeLangNoCompiler
 #include "../BackEndInterface.hpp"
 #include "RegistersManager.hpp"
@@ -204,6 +205,7 @@ private:
 	UCodeFunc* BuildingFunc = nullptr;
 	Optimizations _Optimizations;
 	const IRFunc* lookingatfunc = nullptr;
+	Vector<size_t> ThrowJumps;
 	//code
 	bool IsPrimitive(const IRType& type)
 	{
