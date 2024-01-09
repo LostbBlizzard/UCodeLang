@@ -19,7 +19,7 @@ public:
 	}
 	SymbolID(SymbolID&& Src) noexcept
 	{
-		 Base = Src.Base;
+		Base = Src.Base;
 	}
 
 	SymbolID& operator=(const SymbolID& Src) noexcept
@@ -34,7 +34,7 @@ public:
 	}
 	explicit SymbolID(uintptr_t Value)
 	{
-		Base =Value;
+		Base = Value;
 	}
 	bool operator==(const SymbolID& other) const
 	{

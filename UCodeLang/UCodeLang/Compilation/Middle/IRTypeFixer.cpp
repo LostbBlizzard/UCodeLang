@@ -14,11 +14,11 @@ void IRTypeFixer::Reset()
 
 	auto ErrorsOutput = _Errs;
 
-	
+
 	this->~IRTypeFixer();
 	new (this)  IRTypeFixer;
-	
-	
+
+
 	this->_Errs = ErrorsOutput;
 
 }
@@ -36,7 +36,7 @@ void IRTypeFixer::FixTypes(IRBuilder* Input)
 		{
 			Input->Fix_Size(Sys->Get_ExAs<IRStruct>(), is32mode);
 		}
-			break;
+		break;
 		default:
 			break;
 		}
@@ -51,7 +51,7 @@ void IRTypeFixer::FixTypes(IRBuilder* Input)
 		case IRSymbolType::StaticVarable:
 		{
 			IRBufferData* b = Sys->Get_ExAs<IRBufferData>();
-			if (b->Bytes.size() == 0) 
+			if (b->Bytes.size() == 0)
 			{
 				b->Bytes.resize(_Input->GetSize(Sys->Type, is32mode));
 			}
@@ -85,7 +85,7 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 		{
 			if (Ins->Type == IRInstructionType::Member_Access)
 			{
-				OnOp(*Ins, Ins->Target(),false);
+				OnOp(*Ins, Ins->Target(), false);
 				if (Ins->Target().Type == IROperatorType::IRInstruction)
 				{
 					auto ClassType = _Input->GetType(Ins->Target());
@@ -103,7 +103,7 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 				}
 				else if (Ins->Target().Type == IROperatorType::IRidentifier)
 				{
-					auto ClassType =_Input->GetSymbol(Ins->Target().identifier)->Type;
+					auto ClassType = _Input->GetSymbol(Ins->Target().identifier)->Type;
 					GetMemberAccessTypeForIns(ClassType, _Input, Ins);
 
 				}
@@ -116,7 +116,7 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 			}
 			else if (Ins->Type == IRInstructionType::Member_Access_Dereference)
 			{
-				OnOp(*Ins, Ins->Target(),false);
+				OnOp(*Ins, Ins->Target(), false);
 				if (Ins->Target().Type == IROperatorType::IRInstruction)
 				{
 					auto ClassType = Ins->Target().Pointer->ObjectType;
@@ -205,9 +205,9 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 				}
 				else
 				{
-					#if UCodeLangDebug
+#if UCodeLangDebug
 					auto funcname = _Input->FromID(Ins->Target().identifier);
-					#endif
+#endif
 
 					UCodeLangUnreachable();
 				}
@@ -264,7 +264,7 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op, bool UpdateInsType)
 		|| Op.Type == IROperatorType::Get_PointerOf_IRParameter
 		|| Op.Type == IROperatorType::Get_PointerOf_IRidentifier)
 	{
-		if (UpdateInsType) 
+		if (UpdateInsType)
 		{
 			IRSymbol Symval = 0;
 			if (Op.Type == IROperatorType::Get_PointerOf_IRInstruction)
@@ -305,7 +305,7 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op, bool UpdateInsType)
 			{
 				LogCantFindInsInBlock(Op.Pointer);
 			}
-			
+
 		}
 	}
 	else if (Op.Type == IROperatorType::IRParameter
@@ -316,7 +316,7 @@ void IRTypeFixer::OnOp(IRInstruction& Ins, IROperator& Op, bool UpdateInsType)
 		}
 
 		UCodeLangAssert(InList(Op.Parameter, _Func->Pars));
-		if (!InList(Op.Parameter,_Func->Pars))
+		if (!InList(Op.Parameter, _Func->Pars))
 		{
 			LogErrorCantFindPar(Op);
 		}
@@ -383,12 +383,12 @@ void IRTypeFixer::LogCantFindInsInBlock(IRInstruction* Ins)
 void IRTypeFixer::LogErrorCantFindPar(UCodeLang::IROperator& Op)
 {
 	IRPar* Par = Op.Parameter;
-	auto ParName= _Input->FromID(Par->identifier);
+	auto ParName = _Input->FromID(Par->identifier);
 	String MSG = "InternalCompilerError: the IR Function does not have the name Parameter Named '" + ParName + "'";
 
 	MSG += "the pointer is pointing to ";
 
-	IRFunc* Func =nullptr;
+	IRFunc* Func = nullptr;
 	for (auto& Item : _Input->Funcs)
 	{
 		for (auto& ItemPar : Item->Pars)
@@ -414,7 +414,7 @@ void IRTypeFixer::LogErrorCantFindPar(UCodeLang::IROperator& Op)
 
 	MSG += "and not '" + _Input->FromID(_Func->identifier) + "'";
 
-	_Errs->AddError(ErrorCodes::InternalCompilerError, 0, 0,MSG);
+	_Errs->AddError(ErrorCodes::InternalCompilerError, 0, 0, MSG);
 }
 UCodeLangEnd
 

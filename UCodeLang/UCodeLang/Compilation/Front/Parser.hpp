@@ -12,12 +12,12 @@
 #include "UCodeFrontEndNameSpace.hpp"
 UCodeLangFrontStart
 class Parser
-{	
+{
 public:
 	static constexpr TokenType declareFunc = TokenType::bitwise_or;
 	static constexpr TokenType declareFuncParsStart = TokenType::Left_Bracket;
 	static constexpr TokenType declareFuncParsEnd = TokenType::Right_Bracket;
-	
+
 	static constexpr TokenType AnonymousObjectStart = TokenType::Left_Bracket;
 	static constexpr TokenType AnonymousObjectEnd = TokenType::Right_Bracket;
 
@@ -26,20 +26,20 @@ public:
 
 	static constexpr TokenType CastStart = TokenType::Left_Bracket;
 	static constexpr TokenType CastEnd = TokenType::Right_Bracket;
-	
+
 	static constexpr TokenType SizeofStart = TokenType::Left_Parentheses;
 	static constexpr TokenType SizeofEnd = TokenType::Right_Parentheses;
-	
-	
 
-	Parser(){}
-	~Parser(){}
+
+
+	Parser() {}
+	~Parser() {}
 	void Reset();
-	UCodeLangForceinline void Set_ErrorsOutput(CompilationErrors* V){_ErrorsOutput = V;}
+	UCodeLangForceinline void Set_ErrorsOutput(CompilationErrors* V) { _ErrorsOutput = V; }
 	UCodeLangForceinline void Set_Settings(CompilationSettings* V) { _Settings = V; }
 
-	
-	void Parse(const String_view FileText,const Vector<Token>& Tokens);
+
+	void Parse(const String_view FileText, const Vector<Token>& Tokens);
 	UCodeLangForceinline bool Get_ParseSucces() { return _ParseSuccess; }
 	UCodeLangForceinline FileNode& Get_Tree() { return _Tree; }
 private:
@@ -85,7 +85,7 @@ private:
 			_ErrorsOutput->AddError(ErrorCodes::TreeAnalyerError, Token->OnLine, Token->OnPos, "You can't put the Tag '" + (String)F->_ScopedName._ScopedName.front()._token->Value._String + "' here.");
 		}
 	}
-	
+
 	void AccessStart()
 	{
 		_AccessModifier.push(AccessModifierType::Default);
@@ -96,7 +96,7 @@ private:
 		_AccessModifier.pop();
 	}
 
-	
+
 	void SetNotTopScope()
 	{
 		TopScope++;
@@ -129,7 +129,7 @@ private:
 	inline const Token* TryPeekNextToken(size_t offset)
 	{
 		size_t Index = _TokenIndex + offset;
-		if (Index < _Nodes->size()) 
+		if (Index < _Nodes->size())
 		{
 			return &_Nodes->at(Index);
 		}
@@ -142,7 +142,7 @@ private:
 	UCodeLangForceinline const Token* TryGetToken() { return TryPeekNextToken(0); }
 	UCodeLangForceinline void NextToken() { _TokenIndex++; }
 	UCodeLangForceinline void NextToken(size_t offfset) { _TokenIndex += offfset; }
-	
+
 	void TokenTypeCheck(const Token* Value, TokenType Type);
 
 	inline static GotNodeType Merge(GotNodeType A, GotNodeType B)
@@ -153,7 +153,7 @@ private:
 		}
 		return GotNodeType::failed;
 	}
-	
+
 	TryGetNode GetNamespaceNode()
 	{
 		NamespaceNode* V = NamespaceNode::Gen();
@@ -167,18 +167,18 @@ private:
 		Node* V = nullptr;
 		auto r = GetClassTypeNode(V);
 		TrippedCheck(r);
-		return { r,V};
+		return { r,V };
 	}
 	GotNodeType GetClassTypeNode(Node*& out);
 	GotNodeType DoClassType(ClassNode* output, const Token* ClassToken, GenericValuesNode& TepGenerics, const Token* ColonToken);
 	void ClassTypeAccessModifierInerScope(Vector<Unique_ptr<Node>>& Out);
-	
+
 	TryGetNode GetFuncNode()
 	{
 		FuncNode* V = FuncNode::Gen();
 		auto r = GetFuncNode(*V);
 		TrippedCheck(r);
-		return {r,V->As()};
+		return { r,V->As() };
 	}
 	GotNodeType GetStatementsorStatementNode(StatementsNode& out);
 	GotNodeType GetStatement(Node*& out);
@@ -203,11 +203,11 @@ private:
 		return { r,V->As() };
 	}
 	GotNodeType GetStatements(StatementsNode& out);
-	
+
 	GotNodeType GetFuncNode(FuncNode& out);
 	GotNodeType GetFuncSignatureNode(FuncSignatureNode& out);
 	GotNodeType GetFuncBodyNode(FuncBodyNode& out);
-	GotNodeType GetNamedParametersNode(NamedParametersNode& out,bool CanHaveOutPar =false);
+	GotNodeType GetNamedParametersNode(NamedParametersNode& out, bool CanHaveOutPar = false);
 
 	GotNodeType GetValueParameterNode(Node*& out);
 	GotNodeType GetValueParametersNode(ValueParametersNode& out);
@@ -231,7 +231,7 @@ private:
 		NameCheck_t Type = NameCheck_t::Null;
 		GotNodeType Gotnode = GotNodeType::Null;
 	};
-	GetNameCheck_ret GetNameCheck(ScopedNameNode& out,bool CanHaveVarableName = false);
+	GetNameCheck_ret GetNameCheck(ScopedNameNode& out, bool CanHaveVarableName = false);
 
 	struct GetNameCheck_ret2
 	{
@@ -240,14 +240,14 @@ private:
 	};
 	GetNameCheck_ret2 GetNameCheck2(ScopedNameNode& out, bool CanHaveVarableName = false);
 
-	GotNodeType GetType(TypeNode*& out,bool ignoreRighthandOFtype =false,bool ignoreleftHandType = true,bool CanUseInlineEnum = true);
-	GotNodeType GetType(TypeNode& out, bool ignoreRighthandOFtype = false, bool ignoreleftHandType = true,bool CanUseInlineEnum =true);
+	GotNodeType GetType(TypeNode*& out, bool ignoreRighthandOFtype = false, bool ignoreleftHandType = true, bool CanUseInlineEnum = true);
+	GotNodeType GetType(TypeNode& out, bool ignoreRighthandOFtype = false, bool ignoreleftHandType = true, bool CanUseInlineEnum = true);
 	GotNodeType GetNumericType(TypeNode& out);
 
 
 	GotNodeType GetExpressionNode(Node*& out);
 	GotNodeType GetExpressionNode(ValueExpressionNode& out);
-	
+
 	GotNodeType GetExpressionTypeNode(Node*& out);
 	GotNodeType GetExpressionTypeNode(ExpressionNodeType& out);
 
@@ -306,9 +306,9 @@ private:
 		TrippedCheck(r);
 		return { r,V->As() };
 	}
-	GotNodeType GetDeclareVariable(DeclareVariableNode& out, bool ignoreleftHandType =false);
+	GotNodeType GetDeclareVariable(DeclareVariableNode& out, bool ignoreleftHandType = false);
 
-	
+
 
 	TryGetNode GetAssignExpression()
 	{
@@ -319,14 +319,14 @@ private:
 	}
 	GotNodeType GetAssignExpression(AssignExpressionNode& out);
 
-	TryGetNode GetPostfixStatement(bool DoSemicolon =true)
+	TryGetNode GetPostfixStatement(bool DoSemicolon = true)
 	{
 		PostfixVariableNode* V = PostfixVariableNode::Gen();
-		auto r = GetPostfixStatement(*V,DoSemicolon);
+		auto r = GetPostfixStatement(*V, DoSemicolon);
 		TrippedCheck(r);
 		return { r,V->As() };
 	}
-	GotNodeType GetPostfixStatement(PostfixVariableNode& out,bool DoSemicolon = true);
+	GotNodeType GetPostfixStatement(PostfixVariableNode& out, bool DoSemicolon = true);
 
 	TryGetNode GetCompoundStatement()
 	{
@@ -369,11 +369,11 @@ private:
 	GotNodeType GetDoNode(DoNode& out);
 
 
-	GotNodeType DoEnumType(EnumNode* output, const Token* ClassToken, GenericValuesNode& TepGenerics,InheritedTypeData& Inherited);
+	GotNodeType DoEnumType(EnumNode* output, const Token* ClassToken, GenericValuesNode& TepGenerics, InheritedTypeData& Inherited);
 	GotNodeType GetEnumValueNode(EnumValueNode& out);
 
 	GotNodeType DoTagType(TagTypeNode* output, const Token* ClassToken, GenericValuesNode& TepGenerics, InheritedTypeData& Inherited);
-	
+
 
 	TryGetNode GetFuncCallStatementNode()
 	{
@@ -413,7 +413,7 @@ private:
 
 	TryGetNode GetNewExpresionNode()
 	{
-		NewExpresionNode* V =NewExpresionNode::Gen();
+		NewExpresionNode* V = NewExpresionNode::Gen();
 		auto r = GetNewExpresionNode(*V);
 		TrippedCheck(r);
 		return { r,V->As() };
@@ -480,7 +480,7 @@ private:
 	GotNodeType GetShortLambdaNode(LambdaNode& out);
 
 	GotNodeType DoTraitType(TraitNode* output, const Token* ClassToken, GenericValuesNode& TepGenerics, InheritedTypeData& Inherited);
-	
+
 
 	void TraitAccessModifierInerScope(Vector< Unique_ptr<Node>>& Out);
 
@@ -508,7 +508,7 @@ private:
 		return _AccessModifier.size() ? _AccessModifier.top() : AccessModifierType::Default;
 	}
 
-	
+
 	TryGetNode GetInvalidNode()
 	{
 		InvalidNode* V = InvalidNode::Gen();
@@ -555,11 +555,11 @@ private:
 	}
 	GotNodeType GetEvalDeclare(Node*& out);
 
-	
+
 	TryGetNode GetCompileTimeIf(bool IsInFunc = true)
 	{
 		CompileTimeIfNode* V = CompileTimeIfNode::Gen();
-		auto r = GetCompileTimeIf(V,IsInFunc);
+		auto r = GetCompileTimeIf(V, IsInFunc);
 		TrippedCheck(r);
 		return { r,V };
 	}
@@ -601,14 +601,14 @@ private:
 		Node* V = nullptr;
 		auto r = GetUnqExpresionNode(V);
 		TrippedCheck(r);
-		return { r,V};
+		return { r,V };
 	}
 
 	GotNodeType GetUnqExpresionNode(Node*& out);
 
 	void SmartPointerNewArray(TypeNode& TypeNode, const Token* Token, FuncCallNode* OutNode, Node* ArrayCountexpression, String_view SmartPointerName, String_view SmartPoinerMakeFunc);
 
-	void SmartPointerNewToFuncName(TypeNode& TypeNode,ValueParametersNode& Pars, const Token* Token, FuncCallNode* OutNode, String_view SmartPointerName, String_view SmartPoinerMakeFunc);
+	void SmartPointerNewToFuncName(TypeNode& TypeNode, ValueParametersNode& Pars, const Token* Token, FuncCallNode* OutNode, String_view SmartPointerName, String_view SmartPoinerMakeFunc);
 
 	TryGetNode GetShrExpresionNode()
 	{
@@ -682,7 +682,7 @@ private:
 
 	GotNodeType GetUnsafeStatementNode(UnsafeStatementsNode& out);
 
-	
+
 	TryGetNode GetUnsafeExpression()
 	{
 		UnsafeExpression* V = UnsafeExpression::Gen();

@@ -4,15 +4,15 @@
 UCodeLangStart
 namespace x86_64
 {
-	
+
 	enum class GeneralRegisters : Byte
 	{
 		RAX = 0,//Accumulator register.  
 		RCX = 1,//Counter register
 		RDX = 2,//Data register
 		RBX = 3,//Base registe
-		
-	
+
+
 		RSP = 4,
 		RBP = 5,
 		RSI = 6,
@@ -80,7 +80,7 @@ namespace x86_64
 		default:return x86::GeneralRegisters::Null;
 		}
 	}
-	
+
 	enum class Rm : Byte
 	{
 		RAX = 0,//Accumulator register.  
@@ -105,10 +105,10 @@ namespace x86_64
 		Direct = 0xC0,
 		Disp8 = 0x40,
 		Disp32 = 0x80,
-	
+
 	};
-	
-	inline Byte modrm(GeneralRegisters src, GeneralRegisters dst) 
+
+	inline Byte modrm(GeneralRegisters src, GeneralRegisters dst)
 	{
 		BitByte Value = BitByte(0);
 		Value.SetValue(0, false);
@@ -121,7 +121,7 @@ namespace x86_64
 	inline Byte modrm(GeneralRegisters src, IndrGeneralRegister dst) {
 		return ((Byte)ModRM::Indirect) | ((GetIndex(src)) << 3) | GetIndex(dst._Reg);
 	}
-	inline Array<Byte,2> modrm(GeneralRegisters src, GeneralRegisters dst,UInt8 offset) 
+	inline Array<Byte, 2> modrm(GeneralRegisters src, GeneralRegisters dst, UInt8 offset)
 	{
 		Array<Byte, 2> R;
 		R[0] = (3 << 6) | ((Byte)src << 3) | (Byte)dst;
@@ -138,7 +138,7 @@ namespace x86_64
 		Reg_bit_4 = 4,
 		Reg_bit_3 = 3,
 
-		RM_bit_2= 2,
+		RM_bit_2 = 2,
 		RM_bit_1 = 1,
 		RM_bit_0 = 0,
 	};

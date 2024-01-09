@@ -56,14 +56,14 @@ void C11Backend::Reset()
 }
 void C11Backend::Build(const IRBuilder* Input)
 {
-	_Input = Input; 
-	
+	_Input = Input;
+
 	if (Get_Settings()._Type == OutPutType::IRAndSymbols)
 	{
 		if (HasLibOutput())
 		{
 			auto _OutLayer = Getliboutput().AddLayer(UCode_CodeLayer_IR_Name);
-			CodeLayer::JustData V; 
+			CodeLayer::JustData V;
 			V._Data = Input->ToBytes().MoveToVector();
 			_OutLayer->_Data = std::move(V);
 
@@ -71,7 +71,7 @@ void C11Backend::Build(const IRBuilder* Input)
 		else
 		{
 			OutBuffer += "/*Made using UCodeLang C89 Backend.Next Part is an IR Binary this will be used when linking.*/";
-			
+
 			auto Data = Input->ToBytes();
 			OutBuffer += String_view((char*)Data.Data(), Data.Size());
 
@@ -86,12 +86,12 @@ void C11Backend::Build(const IRBuilder* Input)
 		//types
 		AddBaseTypes();
 
-		
+
 		//in C89 need to reoder all struct types definitions befor there used
 
 		OutBuffer += ToString();
 
-		
+
 
 		Set_Output(OutBuffer);
 	}
@@ -107,9 +107,9 @@ void C11Backend::AddTextSignature()
 
 void C11Backend::AddBaseTypes()
 {
-	
+
 	OutBuffer += "/*defs*/\n\n";
-	
+
 	OutBuffer += "#if defined(_MSC_VER)\n";
 	OutBuffer += "#define " + (String)IRMSVCDefineName + " 1 \n";
 	OutBuffer += "#else\n";
@@ -134,13 +134,13 @@ void C11Backend::AddBaseTypes()
 	OutBuffer += "#define " + (String)IRWindowsDefineName + " 0 \n";
 	OutBuffer += "#endif\n\n";
 
-	
+
 	OutBuffer += "#if __gnu_linux__ || __linux__\n";
 	OutBuffer += "#define " + (String)IRLinuxDefineName + " 1 \n";
 	OutBuffer += "#else\n";
 	OutBuffer += "#define " + (String)IRLinuxDefineName + " 0 \n";
 	OutBuffer += "#endif\n\n";
-	
+
 	OutBuffer += "#if __APPLE__ && __MACH__\n";
 	OutBuffer += "#define " + (String)IRMacOSDefineName + " 1 \n";
 	OutBuffer += "#else\n";
@@ -158,7 +158,7 @@ void C11Backend::AddBaseTypes()
 
 	OutBuffer += "#else\n";
 	OutBuffer += "#define UCodeLang_Platform_IPHONE 0\n";
-	OutBuffer += "#endif\n\n"; 
+	OutBuffer += "#endif\n\n";
 
 	OutBuffer += "#if __ANDROID__\n";
 	OutBuffer += "#define " + (String)IRANDROIDDefineName + " 1 \n";
@@ -179,7 +179,7 @@ void C11Backend::AddBaseTypes()
 	OutBuffer += "#else\n";
 	OutBuffer += "#define " + (String)IRForceinlineDefineName + " inline\n";
 	OutBuffer += "#endif\n\n";
-	
+
 	OutBuffer += "#ifdef __cplusplus\n";
 	OutBuffer += "#define " + (String)IRhreadLocal + " thread_local\n";
 	OutBuffer += "#else \n";
@@ -209,7 +209,7 @@ void C11Backend::AddBaseTypes()
 	OutBuffer += "#endif\n\n";
 
 	OutBuffer += "/*includes*/\n\n";
-	
+
 	OutBuffer += "#include <inttypes.h>\n";
 	OutBuffer += "#include <stdlib.h>\n";
 
@@ -217,11 +217,11 @@ void C11Backend::AddBaseTypes()
 	OutBuffer += "typedef float float32_t;\n";
 	OutBuffer += "typedef double float64_t;\n";
 
-	
+
 	OutBuffer += '\n';
 	OutBuffer += "void ULangNoOp();";
 	OutBuffer += '\n';
-	
+
 }
 
 String C11Backend::ToString(const IRType& Type, bool IsUnsigned)
@@ -232,11 +232,11 @@ String C11Backend::ToString(const IRType& Type, bool IsUnsigned)
 	case IRTypes::i8:return IsUnsigned ? "uint8_t" : "int8_t";
 	case IRTypes::i16:return IsUnsigned ? "uint16_t" : "int16_t";
 	case IRTypes::i32:return IsUnsigned ? "uint32_t" : "int32_t";
-	case IRTypes::i64:return IsUnsigned ? "uint64_t"  : "int64_t";
+	case IRTypes::i64:return IsUnsigned ? "uint64_t" : "int64_t";
 	case IRTypes::f32:return "float32_t";
 	case IRTypes::f64:return "float64_t";
 
-	
+
 	case IRTypes::Void:return "void";
 
 	case IRTypes::pointer:
@@ -303,7 +303,7 @@ String C11Backend::ToString()
 		{
 			r += "void ULangNoOp(){}\n";
 
-			ToString(r, &_Input->_StaticInit, State,true);
+			ToString(r, &_Input->_StaticInit, State, true);
 			ToString(r, &_Input->_StaticdeInit, State, true);
 			ToString(r, &_Input->_threadInit, State, true);
 			ToString(r, &_Input->_threaddeInit, State, true);
@@ -320,26 +320,26 @@ String C11Backend::ToString()
 
 			}
 
-			if (_Input->EntryPoint.has_value()) 
+			if (_Input->EntryPoint.has_value())
 			{
 				r += "int main(int argc, char** argv)\n";
-				
+
 				r += "{\n";
 
 				r += FromIDToCindentifier(_Input->_StaticInit.identifier) + "();\n";
 				r += FromIDToCindentifier(_Input->_threadInit.identifier) + "();\n\n";
-				
+
 				auto IsVoid = _Input->GetFunc(_Input->EntryPoint.value())->ReturnType._Type == IRTypes::Void;
-				
+
 				if (!IsVoid)
 				{
 					r += "int exitcode = ";
 				}
-				
+
 				r += IRFuncEntryPointName;
 				r += "();\n";
-				
-				r += + "\n" + FromIDToCindentifier(_Input->_threaddeInit.identifier) + "();\n";
+
+				r += +"\n" + FromIDToCindentifier(_Input->_threaddeInit.identifier) + "();\n";
 				r += FromIDToCindentifier(_Input->_StaticdeInit.identifier) + "();\n";
 
 				if (!IsVoid)
@@ -600,7 +600,7 @@ void C11Backend::UpdateCppLinks(UCodeLang::String& r, UCodeLang::IRBufferData* V
 {
 	//String_view text = String_view((char*)V->Bytes.data(), V->Bytes.size() - 1);
 	bool IsCString = false;// V->Bytes.size() && _Input->ConstStaticStrings.HasValue(text);
-	
+
 	r += ";\n";
 	return;
 
@@ -672,25 +672,25 @@ void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 
 		if (Item->ReturnType != IRTypes::Void)
 		{
-			r +=  "\n ";
+			r += "\n ";
 			r += ToString(Item->ReturnType) + " " + (String)IRReturnValue ";";
-			r +=  "\n";
+			r += "\n";
 		}
-		
+
 		for (auto& Block : Item->Blocks)
 		{
 
 			r += Tabs + "/*Block*/ \n";
 
-			
+
 
 			UnorderedMap<size_t, String> Names;
 			for (size_t i = 0; i < Block->Instructions.size(); i++)
 			{
-				
-				
-				
-				
+
+
+
+
 				auto& I = Block->Instructions[i];
 				switch (I->Type)
 				{
@@ -700,7 +700,7 @@ void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					if (!Names.HasValue(I->Target().identifier))
 					{
 						auto LabelName = "_label" + std::to_string(Names.size());
-						Names.AddValue(I->Target().identifier,LabelName);
+						Names.AddValue(I->Target().identifier, LabelName);
 					}
 					break;
 				}
@@ -758,8 +758,8 @@ void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 				switch (I->Type)
 				{
 				case IRInstructionType::LoadReturn:
-				{	
-					
+				{
+
 					bool docast = _Func->ReturnType != _Input->GetType(I.get(), I->Target());
 					r += (String)IRReturnValue + " = ";
 					if (docast)
@@ -781,9 +781,9 @@ void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					r += ToString(I->ObjectType);
 					r += " " + State.GetName(I.get());
 					r += " = ";
-					
-					bool docast = I->ObjectType != _Input->GetType(I.get(),I->Target());
-					
+
+					bool docast = I->ObjectType != _Input->GetType(I.get(), I->Target());
+
 					if (docast)
 					{
 						r += "(" + ToString(I->ObjectType) + ")(";
@@ -794,7 +794,7 @@ void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					{
 						r += ")";
 					}
-				}	
+				}
 				break;
 				case IRInstructionType::Reassign:
 					r += ToString(State, *I, I->Target());
@@ -980,11 +980,11 @@ void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					}
 					break;
 				case IRInstructionType::Member_Access:
-					State.PointerToName.AddValue(I.get(),ToString(State, *I, I->Target()) + ".__" + std::to_string(I->Input().Value.AsUIntNative));
+					State.PointerToName.AddValue(I.get(), ToString(State, *I, I->Target()) + ".__" + std::to_string(I->Input().Value.AsUIntNative));
 					goto GoOver;
 					break;
 				case IRInstructionType::Member_Access_Dereference:
-					State.PointerToName.AddValue(I.get(),ToString(State, *I, I->Target()) + "->__" + std::to_string(I->Input().Value.AsUIntNative));
+					State.PointerToName.AddValue(I.get(), ToString(State, *I, I->Target()) + "->__" + std::to_string(I->Input().Value.AsUIntNative));
 					goto GoOver;
 					break;
 				case IRInstructionType::MallocCall:
@@ -1033,14 +1033,14 @@ void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					r += " " + valname + IRReinterpretCastTep;
 					r += " = ";
 					r += "*(";
-					r += ToString(tep,true);
+					r += ToString(tep, true);
 					r += "*)&";
 
 					r += ToString(State, *I, I->Target());
 
 					r += ";\n ";
 
-					r += ToString(I->ObjectType,true);
+					r += ToString(I->ObjectType, true);
 					r += " " + valname + (String)IRReinterpretCastTep + (String)"2";
 					r += " = ";
 
@@ -1058,7 +1058,7 @@ void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					r += ToString(I->ObjectType);
 					r += "*)&";
 					r += valname + String(IRReinterpretCastTep) + String("2");
-				}	
+				}
 				break;
 				case IRInstructionType::Unreachable:
 					r += IRUnreachableDefineName;
@@ -1119,7 +1119,7 @@ void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					r += " " + State.GetName(I.get());
 					r += " = ~" + ToString(State, *I, I->Target());
 					break;
-			default:
+				default:
 					UCodeLangUnreachable();
 					break;
 				}
@@ -1129,7 +1129,7 @@ void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 			}
 			State.PointerToName.clear();
 		}
-		
+
 
 		r += "\n}";
 	}
@@ -1149,7 +1149,7 @@ String C11Backend::ToString(ToStringState& State, IRInstruction& Ins, IROperator
 	{
 		;
 	}
-	
+
 	if (Ins.Type != IRInstructionType::Member_Access
 		&& Ins.Type != IRInstructionType::Member_Access_Dereference) {
 
@@ -1224,7 +1224,7 @@ String C11Backend::ToString(ToStringState& State, IRInstruction& Ins, IROperator
 	break;
 	case IROperatorType::DereferenceOf_IRParameter:
 	{
-		r +=  "*(" + ToString(*OutType) + "*)" + FromIDToCindentifier(Value.Parameter->identifier);
+		r += "*(" + ToString(*OutType) + "*)" + FromIDToCindentifier(Value.Parameter->identifier);
 	}
 	break;
 	case IROperatorType::Get_PointerOf_IRParameter:
@@ -1256,7 +1256,7 @@ String C11Backend::ToStringBinary(ToStringState& State, IRInstruction* Ins, cons
 		r += "(" + ToString(Ins->ObjectType) + ")(";
 	}
 	r += ToString(State, *Ins, Ins->A) + String(V) + ToString(State, *Ins, Ins->B);
-	
+
 	if (docast)
 	{
 		r += ")";
@@ -1306,18 +1306,18 @@ void C11Backend::UpdateBackInfo(CompilationBackEndInfo& BackInfo)
 }
 
 String C11Backend::FromIDToCindentifier(IRidentifierID Value)
-{ 
+{
 	return UpdateToCindentifier(_Input->FromID(Value));
 }
 String C11Backend::ToStringState::GetName(IRInstruction* Ptr)
 {
-	if (!PointerToName.HasValue(Ptr)) 
+	if (!PointerToName.HasValue(Ptr))
 	{
 
 		auto V = "tep" + std::to_string(Num);
 		Num++;
 		PointerToName.AddValue(Ptr, V);
-		
+
 	}
 	return PointerToName.GetValue(Ptr);
 }

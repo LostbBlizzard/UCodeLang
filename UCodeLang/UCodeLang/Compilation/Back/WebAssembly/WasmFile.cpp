@@ -49,7 +49,7 @@ constexpr char WasmFileMagic[5] = "\0asm";
 UInt32 WasmFileMagicAsInt = *(UInt32*)&WasmFileMagic;
 
 
-void WasmFile::ReadLEB128(BitReader& bit,WasmFile::varU32& out)
+void WasmFile::ReadLEB128(BitReader& bit, WasmFile::varU32& out)
 {
 	varU32 result = 0;
 	varU32 shift = 0;
@@ -64,7 +64,7 @@ void WasmFile::ReadLEB128(BitReader& bit,WasmFile::varU32& out)
 	}
 	out = result;
 }
-void WasmFile::WriteLEB128(BitMaker& bit,WasmFile::varU32 value)
+void WasmFile::WriteLEB128(BitMaker& bit, WasmFile::varU32 value)
 {
 	do {
 		Byte byte = value & 0x7f;
@@ -91,8 +91,8 @@ bool WasmFile::FromBytes(WasmFile& file, const BytesView Bytes)
 	if (magic == WasmFileMagicAsInt)
 	{
 		bit.ReadType(file.Version);
-		
-		
+
+
 		while (bit.Get_offset() != Bytes.Size())
 		{
 			file.section.push_back({});
@@ -107,7 +107,7 @@ bool WasmFile::FromBytes(WasmFile& file, const BytesView Bytes)
 BytesPtr WasmFile::ToBytes(const WasmFile& file)
 {
 
-	BitMaker bit;	
+	BitMaker bit;
 	const auto oldEndian = BitConverter::InputOutEndian;
 	BitConverter::InputOutEndian = Endian::little;
 	UCodeLangDefer(BitConverter::InputOutEndian = oldEndian);
@@ -120,7 +120,7 @@ BytesPtr WasmFile::ToBytes(const WasmFile& file)
 	{
 		file.section[i].ToBytes(bit);
 	}
-	
+
 
 	return bit.AsBytePtrAndMove();
 }
@@ -143,7 +143,7 @@ String WasmFile::ToWat() const
 	{
 		if (auto Val = Item.Type.Get_If<ExportSection>())
 		{
-			ExportVal= Val;
+			ExportVal = Val;
 		}
 	}
 
@@ -205,7 +205,7 @@ String WasmFile::ToWat(const FuncType& Item) const
 	r += "(func ";
 
 
-	if (Item.Params.size()) 
+	if (Item.Params.size())
 	{
 		r += "(param ";
 		for (auto& item : Item.Params)
@@ -816,7 +816,7 @@ void WasmFile::MemSection::FromBytes(BitReader& bit)
 		{
 			v.ReadType(*(Byte*)&Item.hasmax);
 			WasmFile::ReadLEB128(v, Item.min);
-			
+
 			if (Item.hasmax == WasmFile::MemSection::Limits::HasMax::minAmax) {
 				WasmFile::ReadLEB128(v, Item.max);
 			}

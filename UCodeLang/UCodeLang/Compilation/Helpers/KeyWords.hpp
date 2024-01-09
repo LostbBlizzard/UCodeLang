@@ -55,7 +55,7 @@ inline const char* S_KeyWord_move = "move";
 
 inline const char* S_KeyWord_if = "if";
 inline const char* S_KeyWord_else = "else";
-inline const char* S_KeyWord_while  = "while";
+inline const char* S_KeyWord_while = "while";
 inline const char* S_KeyWord_for = "for";
 inline const char* S_KeyWord_do = "do";
 
@@ -91,7 +91,7 @@ inline const char* S_KeyWord_unq = "unq";
 inline const char* S_KeyWord_shr = "shr";
 
 inline const char* S_KeyWord_null = "null";
-inline const char* S_KeyWord_nullptr= "nullptr";
+inline const char* S_KeyWord_nullptr = "nullptr";
 
 inline const char* S_KeyWord_extern = "extern";
 
@@ -121,7 +121,7 @@ struct KeyWord
 {
 	const char* keyWord;
 	TokenType token;
-	constexpr KeyWord(const char* word, TokenType T):keyWord(word),token(T)
+	constexpr KeyWord(const char* word, TokenType T) :keyWord(word), token(T)
 	{
 
 	}
@@ -131,7 +131,7 @@ inline KeyWord KeyWords[] =
 
 
 	//Types	
-	
+
 	KeyWord(S_KeyWord_Int8,TokenType::KeyWord_SInt8),
 	KeyWord(S_KeyWord_Int16,TokenType::KeyWord_SInt16),
 	KeyWord(S_KeyWord_Int32,TokenType::KeyWord_SInt32),
@@ -146,10 +146,10 @@ inline KeyWord KeyWords[] =
 
 	KeyWord(S_KeyWord_byte,TokenType::KeyWord_UInt8),
 	KeyWord(S_KeyWord_sbyte,TokenType::KeyWord_SInt8),
-	
+
 	KeyWord(S_KeyWord_char,TokenType::KeyWord_Char),
 	KeyWord(S_KeyWord_bool,TokenType::KeyWord_Bool),
-	
+
 	KeyWord(S_KeyWord_float32,TokenType::KeyWord_float32),
 	KeyWord(S_KeyWord_float,TokenType::KeyWord_float32),
 	KeyWord(S_KeyWord_float64,TokenType::KeyWord_float64),

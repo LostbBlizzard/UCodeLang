@@ -26,15 +26,15 @@ public:
 	using ModRM = x86_64::ModRM;
 	using Rm = x86_64::Rm;
 	using IndrReg = x86_64::IndrGeneralRegister;
-	X86_64Builder(){}
-	~X86_64Builder(){}
+	X86_64Builder() {}
+	~X86_64Builder() {}
 
 	//
 	void PushByte(Byte Value)
 	{
 		_Base._Output.PushByte(Value);
 	}
-	
+
 
 	void PushByte(const Byte* Value, size_t Size)
 	{
@@ -48,7 +48,7 @@ public:
 	{
 		_Base._Output.PushByte_little_endian((const Byte*)&Value, sizeof(Value));
 	}
-	
+
 
 	template<typename T>
 	struct Near
@@ -138,21 +138,21 @@ public:
 	};
 	using Sub8 = Sub<Value8>;
 
-	using Sub16 =Sub<Value16>;
+	using Sub16 = Sub<Value16>;
 
-	using Sub32 =Sub<Value32>;
+	using Sub32 = Sub<Value32>;
 
-	using Sub64 =Sub<Value64>;
+	using Sub64 = Sub<Value64>;
 
-	using Subu8 =Sub<Valueu8>;
+	using Subu8 = Sub<Valueu8>;
 
-	using Subu16 =Sub<Valueu16>;
+	using Subu16 = Sub<Valueu16>;
 
-	using Subu32 =Sub<Valueu32>;
+	using Subu32 = Sub<Valueu32>;
 
-	using Subu64 =Sub<Valueu64>;
+	using Subu64 = Sub<Valueu64>;
 
-	#define ImportUseing86x64Gen \
+#define ImportUseing86x64Gen \
 	using GReg = X86_64Builder::GReg; \
     using FReg = X86_64Builder::FReg; \
 	using ModRM = X86_64Builder::ModRM; \
@@ -194,14 +194,14 @@ public:
 	using Subu16 = X86_64Builder::Subu16; \
 	using Subu32 = X86_64Builder::Subu32; \
 	using Subu64 = X86_64Builder::Subu64; 
-	
+
 	//x86_64 instructions
 
 
 
-	inline void syscall(){_Base.syscall();}
-	inline void ret(){_Base.ret();}
-	inline size_t GetIndex() {return _Base.GetIndex(); }
+	inline void syscall() { _Base.syscall(); }
+	inline void ret() { _Base.ret(); }
+	inline size_t GetIndex() { return _Base.GetIndex(); }
 	inline Byte* GetData(size_t offset) { return _Base.GetData(offset); }
 	inline Byte* GetData() { return GetData(0); }
 	inline size_t Size() const { return _Base.Size(); }
@@ -218,7 +218,7 @@ public:
 		_Base.PushByte(0xd0 + x86_64::GetIndex(Value));
 	}
 	//
-	
+
 	void mov(GReg Reg, Value8 Value);
 	void mov(GReg Reg, Value16 Value);
 	void mov(GReg Reg, Value32 Value);
@@ -227,16 +227,16 @@ public:
 	void mov8(GReg dest, GReg src);
 	void mov16(GReg dest, GReg src);
 	void mov32(GReg dest, GReg src);
-	void mov64(GReg dest,GReg src);
-	
+	void mov64(GReg dest, GReg src);
+
 	void mov64(IndrReg dest, GReg src);
-	void mov64(GReg dest,IndrReg src);
+	void mov64(GReg dest, IndrReg src);
 
 	void mov64(GReg dest, IndrReg src, Value8 src_offset);
 	void mov64(IndrReg dest, Value8 dest_offset, GReg src);
 	/// loads the address of a variable into register
-	void lea(GReg dest,IndrReg src,Value8 scale, GReg index, UInt64 disp);
-	/* 
+	void lea(GReg dest, IndrReg src, Value8 scale, GReg index, UInt64 disp);
+	/*
 	inline  void push8(GReg Reg);
 	{
 		UCodeLangThrowException("not added");
@@ -284,7 +284,7 @@ public:
 
 	//dest := src - Value;
 	void sub32(GReg dest, Value32 Value);
-	
+
 	//dest := src - Value;
 	void sub64(GReg dest, Value64 Value);
 	//dest := src - dest;

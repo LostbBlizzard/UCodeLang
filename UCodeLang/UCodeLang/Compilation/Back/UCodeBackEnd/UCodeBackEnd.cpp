@@ -31,11 +31,11 @@ void UCodeBackEndObject::Reset()
 }
 void UCodeBackEndObject::BuildSymbols()
 {
-	for (auto &Item : _Input->_Symbols)
+	for (auto& Item : _Input->_Symbols)
 	{
 		if (Item->SymType == IRSymbolType::StaticVarable || Item->SymType == IRSymbolType::ThreadLocalVarable)
 		{
-			const IRBufferData *ItemBuf = Item->Get_ExAs<IRBufferData>();
+			const IRBufferData* ItemBuf = Item->Get_ExAs<IRBufferData>();
 
 			size_t Offset = Item->SymType == IRSymbolType::StaticVarable ? _Output->Get_StaticBytes().size() : _Output->Get_ThreadBytes().size();
 			size_t ItemSize = ItemBuf->Bytes.size();
@@ -43,10 +43,10 @@ void UCodeBackEndObject::BuildSymbols()
 			StaticMemoryManager::StaticMemInfo newinfo;
 			newinfo.Offset = Offset;
 
-			const IRDebugSymbol *Symbol = nullptr;
+			const IRDebugSymbol* Symbol = nullptr;
 			if (IsDebugMode())
 			{
-				for (auto &Item2 : _Input->_Debug.Symbols)
+				for (auto& Item2 : _Input->_Debug.Symbols)
 				{
 					if (Item2.first == Item->identifier)
 					{
@@ -148,12 +148,12 @@ void UCodeBackEndObject::BuildFuncs()
 	{
 		OnFunc(&_Input->_threaddeInit);
 	}
-	for (auto &Item : _Input->Funcs)
+	for (auto& Item : _Input->Funcs)
 	{
 		OnFunc(Item.get());
 	}
 }
-void UCodeBackEndObject::Build(const IRBuilder *Input)
+void UCodeBackEndObject::Build(const IRBuilder* Input)
 {
 	_Input = Input;
 	_Output = &Get_Output();
@@ -200,7 +200,7 @@ void UCodeBackEndObject::AddDebugInfo()
 		V->_Data = std::move(V2);
 	}
 }
-UCodeBackEndObject::IRlocData UCodeBackEndObject::To(const ParlocData &Value)
+UCodeBackEndObject::IRlocData UCodeBackEndObject::To(const ParlocData& Value)
 {
 	IRlocData r;
 	r.ObjectType = Value.Par->type;
@@ -209,7 +209,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::To(const ParlocData &Value)
 	{
 		for (size_t i = 0; i < _Registers.Registers.size(); i++)
 		{
-			auto &Item = _Registers.Registers[i];
+			auto& Item = _Registers.Registers[i];
 
 			if (Item.Types.has_value())
 			{
@@ -243,7 +243,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::To(const ParlocData &Value)
 	}
 	return r;
 }
-UCodeBackEndObject::BinaryOpRet UCodeBackEndObject::DoBinaryOpValues(const IRInstruction *IR)
+UCodeBackEndObject::BinaryOpRet UCodeBackEndObject::DoBinaryOpValues(const IRInstruction* IR)
 {
 	RegisterID V = GetRegisterOut(IR);
 	RegWillBeUsed(V);
@@ -262,11 +262,11 @@ UCodeBackEndObject::BinaryOpRet UCodeBackEndObject::DoBinaryOpValues(const IRIns
 	{
 		FreeRegister(A);
 	}
-	return {A, B, V};
+	return { A, B, V };
 }
 void UCodeBackEndObject::UpdateOptimizations()
 {
-	auto &Settings = Get_Settings();
+	auto& Settings = Get_Settings();
 	bool Debug = (OptimizationFlags_t)Settings._Flags & (OptimizationFlags_t)OptimizationFlags::Debug;
 	bool ForSize = (OptimizationFlags_t)Settings._Flags & (OptimizationFlags_t)OptimizationFlags::ForSize;
 	bool ForSpeed = (OptimizationFlags_t)Settings._Flags & (OptimizationFlags_t)OptimizationFlags::ForSpeed;
@@ -289,14 +289,14 @@ void UCodeBackEndObject::DoOptimizations()
 
 	if (_Optimizations.InlineFunctionCopys)
 	{
-		UnorderedMap<size_t, UCodeFunc *> FuncsHash;
-		for (auto &Item : Funcs)
+		UnorderedMap<size_t, UCodeFunc*> FuncsHash;
+		for (auto& Item : Funcs)
 		{
 			UCodeLangUnreachable();
 			// Item->_Hash = UAssembly::UAssembly::BuildHashForSub(Item->_Ins.data(), Item->_Ins.size());
 		}
 
-		for (auto &Item : Funcs)
+		for (auto& Item : Funcs)
 		{
 			if (Item->_AutoJumpTo)
 			{
@@ -304,7 +304,7 @@ void UCodeBackEndObject::DoOptimizations()
 			}
 
 			size_t Hash = Item->_Hash.value();
-			for (auto &Item2 : Funcs)
+			for (auto& Item2 : Funcs)
 			{
 				if (Item2->_AutoJumpTo)
 				{
@@ -344,7 +344,7 @@ void UCodeBackEndObject::DoPostOptimizations()
 	for (size_t i = 0; i < _OutLayer->_Instructions.size(); i++)
 	{
 		auto oldindex = i;
-		auto &Item = _OutLayer->_Instructions[i];
+		auto& Item = _OutLayer->_Instructions[i];
 		size_t FuncSize = 0;
 		while (i < _OutLayer->_Instructions.size())
 		{
@@ -360,7 +360,7 @@ void UCodeBackEndObject::DoPostOptimizations()
 		Span<Instruction> FuncBody = Span<Instruction>::Make(&Item, FuncSize);
 		for (size_t i = 0; i < FuncBody.Size(); i++)
 		{
-			auto &Item = FuncBody[i];
+			auto& Item = FuncBody[i];
 			if (Item.OpCode == InstructionSet::Store8)
 			{
 				if (Item.Op_RegUInt8.B == 0)
@@ -379,7 +379,7 @@ void UCodeBackEndObject::DoPostOptimizations()
 			}
 			else if (Item.OpCode == InstructionSet::Store32v1)
 			{
-				auto &Other = FuncBody[i + 1];
+				auto& Other = FuncBody[i + 1];
 
 				if (Item.Op_RegUInt16.B == 0 && Other.Op_RegUInt16.B == 0)
 				{
@@ -392,9 +392,9 @@ void UCodeBackEndObject::DoPostOptimizations()
 			}
 			else if (Item.OpCode == InstructionSet::Store64v1)
 			{
-				auto &Other = FuncBody[i + 1];
-				auto &Other2 = FuncBody[i + 2];
-				auto &Other3 = FuncBody[i + 3];
+				auto& Other = FuncBody[i + 1];
+				auto& Other2 = FuncBody[i + 2];
+				auto& Other3 = FuncBody[i + 3];
 
 				if (Item.Op_RegUInt16.B == 0 && Other2.Op_RegUInt16.B == 0 && Other3.Op_RegUInt16.B == 0)
 				{
@@ -416,7 +416,7 @@ void UCodeBackEndObject::DoPostOptimizations()
 				auto output = Item.Op_TwoReg.B;
 				for (int i2 = i - 1; i2 >= 0; i2--)
 				{
-					auto &ItemV = FuncBody[i2];
+					auto& ItemV = FuncBody[i2];
 					if (InsHelper::WriteReg(ItemV, input))
 					{
 						InsHelper::SetWriteReg(ItemV, output);
@@ -428,7 +428,7 @@ void UCodeBackEndObject::DoPostOptimizations()
 	}
 	for (size_t i = 0; i < _OutLayer->_Instructions.size(); i++)
 	{
-		auto &Item = _OutLayer->_Instructions[i];
+		auto& Item = _OutLayer->_Instructions[i];
 
 		if (Item.OpCode == InstructionSet::DoNothing)
 		{
@@ -438,13 +438,13 @@ void UCodeBackEndObject::DoPostOptimizations()
 }
 void UCodeBackEndObject::LinkFuncs()
 {
-	auto &InsList = _OutLayer->Get_Instructions();
-	for (auto &Item : FuncsToLink)
+	auto& InsList = _OutLayer->Get_Instructions();
+	for (auto& Item : FuncsToLink)
 	{
-		Instruction &Ins = InsList[Item.Index];
+		Instruction& Ins = InsList[Item.Index];
 
 		Optional<UAddress> funcpos;
-		for (auto &Item2 : _Funcpos)
+		for (auto& Item2 : _Funcpos)
 		{
 			if (Item2._FuncID == Item._FuncID)
 			{
@@ -486,15 +486,15 @@ void UCodeBackEndObject::LinkFuncs()
 }
 void UCodeBackEndObject::RegWillBeUsed(RegisterID Value)
 {
-	auto &Info = _Registers.GetInfo(Value);
+	auto& Info = _Registers.GetInfo(Value);
 
 	if (Info.Types.has_value())
 	{
-		auto &TypesValue = Info.Types.value();
+		auto& TypesValue = Info.Types.value();
 
 		bool isreferenced = false;
 		IRType type;
-		if (auto Item = TypesValue.Get_If<const IRInstruction *>())
+		if (auto Item = TypesValue.Get_If<const IRInstruction*>())
 		{
 			if (IsReferencedAfterThisIndex(*Item))
 			{
@@ -566,26 +566,26 @@ void UCodeBackEndObject::RegWillBeUsed(RegisterID Value)
 		}
 	}
 }
-void UCodeBackEndObject::OnFunc(const IRFunc *IR)
+void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 {
 	lookingatfunc = IR;
 	// build code
 	UAddress FuncStart = _OutLayer->GetLastInstruction() + 1;
 
-	for (auto &Item : IR->Pars)
+	for (auto& Item : IR->Pars)
 	{
 		VarableInfo U;
 		U.DeclaredLine = 0;
 		U.DeclaredPos = 0;
 		U.FileDeclaredIn = "n/a.uc";
 
-		const IRDebugSymbol *Symbol = nullptr;
+		const IRDebugSymbol* Symbol = nullptr;
 
 		IRidentifier ParId = _Input->FromID(IR->identifier) + ":" + _Input->FromID(Item.identifier);
 
 		if (IsDebugMode())
 		{
-			for (auto &Item2 : _Input->_Debug.Symbols)
+			for (auto& Item2 : _Input->_Debug.Symbols)
 			{
 				if (_Input->FromID(Item2.first) == ParId)
 				{
@@ -664,7 +664,7 @@ void UCodeBackEndObject::OnFunc(const IRFunc *IR)
 		RegisterID V = RegisterID::A;
 
 		auto Ptr = Get_Settings().PtrSize;
-		auto &instr = _OutLayer->Get_Instructions();
+		auto& instr = _OutLayer->Get_Instructions();
 
 		InstructionBuilder::IncrementStackPointer(_Ins, V);
 		instr.insert(instr.begin() + FuncStart, _Ins);
@@ -690,7 +690,7 @@ void UCodeBackEndObject::OnFunc(const IRFunc *IR)
 
 		for (size_t i = LinkedCallsIndex; i < FuncsToLink.size(); i++)
 		{
-			auto &Item = FuncsToLink[i];
+			auto& Item = FuncsToLink[i];
 
 			if (Ptr == IntSizes::Int32)
 			{
@@ -704,7 +704,7 @@ void UCodeBackEndObject::OnFunc(const IRFunc *IR)
 
 		for (size_t i = 0; i < _DebugInfo.DebugInfo.size(); i++)
 		{
-			auto &Item = _DebugInfo.DebugInfo[i];
+			auto& Item = _DebugInfo.DebugInfo[i];
 			auto Ins = Item.Get_Ins();
 			if (Ins.has_value())
 			{
@@ -725,12 +725,12 @@ void UCodeBackEndObject::OnFunc(const IRFunc *IR)
 	V._FuncID = IR->identifier;
 	_Funcpos.push_back(V);
 }
-void UCodeBackEndObject::OnBlock(const IRBlock *IR)
+void UCodeBackEndObject::OnBlock(const IRBlock* IR)
 {
 	LookingBlock = IR;
 	OnBlockBuildCode(IR);
 }
-void UCodeBackEndObject::OnBlockBuildCode(const IRBlock *IR)
+void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 {
 	struct InsToUpdate_t
 	{
@@ -744,7 +744,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock *IR)
 	UnorderedMap<IRidentifierID, Optional<RegistersManager>> Jumps;
 	for (size_t i = 0; i < IR->Instructions.size(); i++)
 	{
-		auto &I = IR->Instructions[i];
+		auto& I = IR->Instructions[i];
 		auto jumpos = I->Target().Value.AsUIntNative;
 		switch (I->Type)
 		{
@@ -782,13 +782,13 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock *IR)
 			ReservedforReturn = false;
 			for (size_t i = 0; i < IR->Instructions.size(); i++)
 			{
-				auto &Item_ = IR->Instructions[i];
+				auto& Item_ = IR->Instructions[i];
 				if (Item_->Type == IRInstructionType::LoadReturn)
 				{
 					for (size_t i2 = i + 1; i2 < IR->Instructions.size(); i2++)
 					{
 
-						auto &Item2_ = IR->Instructions[i2];
+						auto& Item2_ = IR->Instructions[i2];
 						if (Item2_->Type != IRInstructionType::Return && Item2_->Type != IRInstructionType::None)
 						{
 							ReservedforReturn = true;
@@ -816,11 +816,11 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock *IR)
 			int a = 0;
 		}
 
-		auto &Item_ = IR->Instructions[i];
+		auto& Item_ = IR->Instructions[i];
 		auto Item = Item_.get();
 		Index = i;
 
-		for (auto &JumpItem : Jumps)
+		for (auto& JumpItem : Jumps)
 		{
 			if (JumpItem.first == i)
 			{
@@ -840,7 +840,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock *IR)
 		if (i != 0 && IR->Instructions[i - 1]->Type == IRInstructionType::ConditionalJump)
 		{
 
-			for (auto &JumpItem : Jumps)
+			for (auto& JumpItem : Jumps)
 			{
 				if (JumpItem.first == i - 2)
 				{
@@ -864,7 +864,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock *IR)
 		{
 			auto lastIRIndex = i;
 			auto DebugInfo = IR->DebugInfo.Get_debugfor(lastIRIndex);
-			for (auto &Item : DebugInfo)
+			for (auto& Item : DebugInfo)
 			{
 				auto InsIndex = (IRToUCodeInsPre.GetValue(i));
 
@@ -921,7 +921,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock *IR)
 				RegisterID reg = V.Info.Get<RegisterID>();
 				if (_Registers.GetInfo(reg).Types.has_value())
 				{
-					auto &regva = _Registers.GetInfo(reg).Types.value();
+					auto& regva = _Registers.GetInfo(reg).Types.value();
 					if (auto op = regva.Get_If<IROperator>())
 					{
 						if (op->Type == IROperatorType::IRParameter)
@@ -934,9 +934,9 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock *IR)
 							// StoreValue(Item, IROperator(Item), Item->Target());
 						}
 					}
-					else if (auto op = regva.Get_If<const IRInstruction *>())
+					else if (auto op = regva.Get_If<const IRInstruction*>())
 					{
-						auto &o = *op;
+						auto& o = *op;
 
 						bool set = true;
 						if (o->Type == IRInstructionType::Member_Access_Dereference)
@@ -981,11 +981,11 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock *IR)
 			{
 				if (ObjectSize <= sizeof(AnyInt64))
 				{
-					MakeIntoRegister(V, {RegisterID::OutPutRegister});
+					MakeIntoRegister(V, { RegisterID::OutPutRegister });
 				}
 				else
 				{
-					MakeIntoRegister(GetPointerOf(V), {RegisterID::OutPutRegister});
+					MakeIntoRegister(GetPointerOf(V), { RegisterID::OutPutRegister });
 				}
 			}
 		}
@@ -1059,7 +1059,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock *IR)
 			RegisterID A = BOpVals.A;
 			RegisterID B = BOpVals.B;
 			RegisterID V = BOpVals.V;
-			auto &Object_t = Item->ObjectType;
+			auto& Object_t = Item->ObjectType;
 			switch (Object_t._Type)
 			{
 			case IRTypes::i8:
@@ -1344,7 +1344,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock *IR)
 		break;
 		case IRInstructionType::PushParameter:
 		{
-			RegisterID_t &Reg = *(RegisterID_t *)&_InputPar;
+			RegisterID_t& Reg = *(RegisterID_t*)&_InputPar;
 
 			if (Reg < (RegisterID_t)RegisterID::EndParameterRegister)
 			{
@@ -1418,7 +1418,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock *IR)
 		case IRInstructionType::Jump:
 		{
 			auto jumpos = Item->Target().Value.AsUIntNative;
-			auto &jumpdata = Jumps.GetValue(jumpos);
+			auto& jumpdata = Jumps.GetValue(jumpos);
 
 			RegWillBeUsed(RegisterID::LinkRegister);
 
@@ -1433,7 +1433,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock *IR)
 
 			InstructionBuilder::Jumpv1(NullAddress, _Ins);
 			PushIns();
-			InsToUpdate.push_back({_OutLayer->Get_Instructions().size(), jumpos});
+			InsToUpdate.push_back({ _OutLayer->Get_Instructions().size(), jumpos });
 
 			InstructionBuilder::Jumpv2(NullAddress, _Ins);
 			PushIns();
@@ -1464,7 +1464,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock *IR)
 				reg = otherreg;
 			}
 
-			auto &jumpdata = Jumps.GetValue(jumpos);
+			auto& jumpdata = Jumps.GetValue(jumpos);
 			if (jumpdata.has_value())
 			{
 				MoveValuesToState(jumpdata.value());
@@ -1476,7 +1476,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock *IR)
 
 			InstructionBuilder::Jumpv1(NullAddress, _Ins);
 			PushIns();
-			InsToUpdate.push_back({_OutLayer->Get_Instructions().size(), jumpos});
+			InsToUpdate.push_back({ _OutLayer->Get_Instructions().size(), jumpos });
 
 			if (Get_Settings().PtrSize == IntSizes::Int64)
 			{
@@ -2432,11 +2432,11 @@ DoneLoop:
 		if (ObjectSize <= sizeof(AnyInt64))
 		{
 
-			MakeIntoRegister(loc, {RegisterID::OutPutRegister});
+			MakeIntoRegister(loc, { RegisterID::OutPutRegister });
 		}
 		else
 		{
-			MakeIntoRegister(GetPointerOf(loc), {RegisterID::OutPutRegister});
+			MakeIntoRegister(GetPointerOf(loc), { RegisterID::OutPutRegister });
 		}
 	}
 
@@ -2451,17 +2451,17 @@ DoneLoop:
 
 	UpdateVarableLocs();
 
-	for (auto &Item : InsToUpdate)
+	for (auto& Item : InsToUpdate)
 	{
-		auto &Inst = _OutLayer->Get_Instructions();
+		auto& Inst = _OutLayer->Get_Instructions();
 		size_t Index = Item.InsToUpdate - 1;
 
 		auto offset = Get_Settings().PtrSize == IntSizes::Int32 ? 1 : 3;
-		Instruction &Ins = _OutLayer->Get_Instructions()[Index + offset];
+		Instruction& Ins = _OutLayer->Get_Instructions()[Index + offset];
 		UAddress JumpPos = IRToUCodeInsPre.GetValue(Item.Jumpto) - 1;
 		UAddress JumpPos2 = IRToUCodeInsPost.GetValue(Item.Jumpto - 1);
 
-		Instruction &InsToJumpOn = _OutLayer->Get_Instructions()[JumpPos + 1];
+		Instruction& InsToJumpOn = _OutLayer->Get_Instructions()[JumpPos + 1];
 
 		if (_Stack.Size)
 		{
@@ -2519,7 +2519,7 @@ DoneLoop:
 		}
 	}
 }
-void UCodeBackEndObject::GiveFuncReturnName(const IRType &ReturnType, const IRInstruction *Item)
+void UCodeBackEndObject::GiveFuncReturnName(const IRType& ReturnType, const IRInstruction* Item)
 {
 	if (ReturnType._Type != IRTypes::Void)
 	{
@@ -2542,19 +2542,19 @@ void UCodeBackEndObject::GiveFuncReturnName(const IRType &ReturnType, const IRIn
 		}
 	}
 }
-UCodeBackEndObject::FuncCallEndData UCodeBackEndObject::FuncCallStart(const Vector<IRType> &Pars, const IRType &RetType)
+UCodeBackEndObject::FuncCallEndData UCodeBackEndObject::FuncCallStart(const Vector<IRType>& Pars, const IRType& RetType)
 {
 	Vector<IRPar> Tep;
 	Tep.resize(Pars.size());
 	for (size_t i = 0; i < Pars.size(); i++)
 	{
-		auto &Item = Pars[i];
-		auto &TepItem = Tep[i];
+		auto& Item = Pars[i];
+		auto& TepItem = Tep[i];
 		TepItem.type = Item;
 	}
 	return FuncCallStart(Tep, RetType);
 }
-Optional<RegisterID> UCodeBackEndObject::FindIRInRegister(const IRInstruction *Value)
+Optional<RegisterID> UCodeBackEndObject::FindIRInRegister(const IRInstruction* Value)
 {
 	auto R = _Registers.GetInfo(Value);
 	if (R.has_value())
@@ -2574,12 +2574,12 @@ Optional<RegisterID> UCodeBackEndObject::FindValueInRegister(AnyInt64 Value)
 
 	for (size_t i = 0; i < _Registers.Registers.size(); i++)
 	{
-		auto &Item = _Registers.Registers[i];
+		auto& Item = _Registers.Registers[i];
 
 		if (Item.Types.has_value())
 		{
-			auto &ItemValue = Item.Types.value();
-			if (auto IR = ItemValue.Get_If<const IRInstruction *>())
+			auto& ItemValue = Item.Types.value();
+			if (auto IR = ItemValue.Get_If<const IRInstruction*>())
 			{
 				auto IRV = *IR;
 				if (IRV->Type == IRInstructionType::Load)
@@ -2596,25 +2596,25 @@ Optional<RegisterID> UCodeBackEndObject::FindValueInRegister(AnyInt64 Value)
 	return {};
 }
 
-UCodeBackEndObject::FuncCallEndData UCodeBackEndObject::FuncCallStart(const Vector<IRPar> &Pars, const IRType &RetType)
+UCodeBackEndObject::FuncCallEndData UCodeBackEndObject::FuncCallStart(const Vector<IRPar>& Pars, const IRType& RetType)
 {
 	FuncCallRet(RetType);
 	for (RegisterID_t i = (RegisterID_t)RegisterID::StartRegister; i < (RegisterID_t)RegisterID::EndRegister + 1; i++)
 	{
 		RegisterID CompilerRet = (RegisterID)i;
-		auto &Item = _Registers.Registers[i];
+		auto& Item = _Registers.Registers[i];
 
 		bool WasSet = false;
 		if (Item.Types.has_value())
 		{
-			auto &ItemTypes = Item.Types.value();
+			auto& ItemTypes = Item.Types.value();
 
 			bool isreferenced = false;
 			IRType type;
 
-			if (auto IRV = ItemTypes.Get_If<const IRInstruction *>())
+			if (auto IRV = ItemTypes.Get_If<const IRInstruction*>())
 			{
-				auto &IR = *IRV;
+				auto& IR = *IRV;
 				isreferenced = IsReferencedAfterThisIndex(IR);
 				type = GetType(IR);
 			}
@@ -2668,16 +2668,16 @@ UCodeBackEndObject::FuncCallEndData UCodeBackEndObject::FuncCallStart(const Vect
 	r.Pars = Pars;
 	return r;
 }
-void UCodeBackEndObject::FuncCallRet(const IRType &RetType)
+void UCodeBackEndObject::FuncCallRet(const IRType& RetType)
 {
 	if (RetType._Type != IRTypes::Void)
 	{
 		RegWillBeUsed(RegisterID::OutPutRegister);
 	}
 }
-void UCodeBackEndObject::FuncCallEnd(UCodeBackEndObject::FuncCallEndData &Data)
+void UCodeBackEndObject::FuncCallEnd(UCodeBackEndObject::FuncCallEndData& Data)
 {
-	auto &old = _Registers.Registers;
+	auto& old = _Registers.Registers;
 	auto V = GetParsLoc(Data.Pars);
 
 	_Registers.Registers = old;
@@ -2685,7 +2685,7 @@ void UCodeBackEndObject::FuncCallEnd(UCodeBackEndObject::FuncCallEndData &Data)
 	size_t PopBufferSize = 0;
 	for (size_t i = 0; i < V.OverflowedPars.size(); i++)
 	{
-		auto &Item = V.ParsPos[V.OverflowedPars[i]];
+		auto& Item = V.ParsPos[V.OverflowedPars[i]];
 		PopBufferSize += GetSize(Item.Par->type);
 	}
 
@@ -2784,17 +2784,17 @@ void UCodeBackEndObject::FuncCallEnd(UCodeBackEndObject::FuncCallEndData &Data)
 	for (int i = (int)RegisterID::EndRegister + 1 - 1; i >= (int)RegisterID::StartRegister; i--)
 	{
 		RegisterID CompilerRet = (RegisterID)i;
-		auto &Item = _Registers.Registers[i];
+		auto& Item = _Registers.Registers[i];
 		if (Item.Types.has_value())
 		{
-			auto &ItemTypes = Item.Types.value();
+			auto& ItemTypes = Item.Types.value();
 
 			bool isreferenced = false;
 			IRType type;
 
-			if (auto IRV = ItemTypes.Get_If<const IRInstruction *>())
+			if (auto IRV = ItemTypes.Get_If<const IRInstruction*>())
 			{
-				auto &IR = *IRV;
+				auto& IR = *IRV;
 				isreferenced = IsReferencedAfterThisIndex(IR);
 				type = GetType(IR);
 			}
@@ -2835,7 +2835,7 @@ void UCodeBackEndObject::FuncCallEnd(UCodeBackEndObject::FuncCallEndData &Data)
 		}
 	}
 }
-void UCodeBackEndObject::AddOffset(IRlocData &Pos, size_t Offset)
+void UCodeBackEndObject::AddOffset(IRlocData& Pos, size_t Offset)
 {
 	if (auto Val = Pos.Info.Get_If<IRlocData_StackPost>())
 	{
@@ -2886,15 +2886,15 @@ void UCodeBackEndObject::DropStack()
 		PushIns();
 	}
 
-	for (auto &Item : _Stack.Reupdates)
+	for (auto& Item : _Stack.Reupdates)
 	{
-		Instruction &Ins = _OutLayer->Get_Instructions()[Item.InsIndex];
+		Instruction& Ins = _OutLayer->Get_Instructions()[Item.InsIndex];
 		// if (Item.PostFunc)
 		{
 			size_t NewOffset = 0;
 			size_t PointerSize = (Get_Settings().PtrSize == IntSizes::Int32)
-									 ? 4
-									 : 8;
+				? 4
+				: 8;
 			if (!Item.PostFunc)
 			{
 
@@ -2984,11 +2984,11 @@ void UCodeBackEndObject::DropStack()
 void UCodeBackEndObject::DropPars()
 {
 }
-void UCodeBackEndObject::StoreValueInPointer(const IRType &ObjectType, RegisterID Pointer, const IROperator &Value, IRInstruction *Ins)
+void UCodeBackEndObject::StoreValueInPointer(const IRType& ObjectType, RegisterID Pointer, const IROperator& Value, IRInstruction* Ins)
 {
 	StoreValueInPointer(ObjectType, Pointer, LoadOp(Ins, Value));
 }
-void UCodeBackEndObject::StoreValueInPointer(const IRType &ObjectType, RegisterID Pointer, RegisterID Value)
+void UCodeBackEndObject::StoreValueInPointer(const IRType& ObjectType, RegisterID Pointer, RegisterID Value)
 {
 	switch (ObjectType._Type)
 	{
@@ -3028,7 +3028,7 @@ void UCodeBackEndObject::StoreValueInPointer(const IRType &ObjectType, RegisterI
 	}
 	FreeRegister(Value);
 }
-RegisterID UCodeBackEndObject::ReadValueFromPointer(const IRType &ObjectType, RegisterID Pointer)
+RegisterID UCodeBackEndObject::ReadValueFromPointer(const IRType& ObjectType, RegisterID Pointer)
 {
 	auto Out = GetRegisterForTep();
 	switch (ObjectType._Type)
@@ -3073,7 +3073,7 @@ RegisterID UCodeBackEndObject::ReadValueFromPointer(const IRType &ObjectType, Re
 	_Registers.FreeRegister(Out);
 	return Out;
 }
-void UCodeBackEndObject::BuildUIntToIntCast(const IRInstruction *Ins, const IROperator &Op, size_t IntSize)
+void UCodeBackEndObject::BuildUIntToIntCast(const IRInstruction* Ins, const IROperator& Op, size_t IntSize)
 {
 	RegisterID V = GetRegisterForTep();
 	RegisterID A = MakeIntoRegister(Ins, Op);
@@ -3136,12 +3136,12 @@ void UCodeBackEndObject::BuildUIntToIntCast(const IRInstruction *Ins, const IROp
 	// FreeRegister(A);
 	SetRegister(V, Ins);
 }
-RegisterID UCodeBackEndObject::GetRegisterOut(const IRInstruction *Item)
+RegisterID UCodeBackEndObject::GetRegisterOut(const IRInstruction* Item)
 {
 	auto r = RegisterID::OutPutRegister;
 	return r;
 }
-void UCodeBackEndObject::BuildSIntToIntCast(const IRInstruction *Ins, const IROperator &Op, size_t IntSize)
+void UCodeBackEndObject::BuildSIntToIntCast(const IRInstruction* Ins, const IROperator& Op, size_t IntSize)
 {
 	RegisterID V = GetRegisterForTep();
 	RegisterID A = MakeIntoRegister(Ins, Op);
@@ -3204,7 +3204,7 @@ void UCodeBackEndObject::BuildSIntToIntCast(const IRInstruction *Ins, const IROp
 	// FreeRegister(A);
 	SetRegister(V, Ins);
 }
-void UCodeBackEndObject::StoreValueInPointer(RegisterID Pointer, size_t Pointerofset, const IRlocData &Value)
+void UCodeBackEndObject::StoreValueInPointer(RegisterID Pointer, size_t Pointerofset, const IRlocData& Value)
 {
 	size_t ObjectSize = GetSize(Value.ObjectType);
 	size_t Offset = Pointerofset;
@@ -3277,7 +3277,7 @@ void UCodeBackEndObject::StoreValueInPointer(RegisterID Pointer, size_t Pointero
 		}
 	}
 }
-RegisterID UCodeBackEndObject::MakeIntoRegister(const IRlocData &Value, Optional<RegisterID> RegisterToPut)
+RegisterID UCodeBackEndObject::MakeIntoRegister(const IRlocData& Value, Optional<RegisterID> RegisterToPut)
 {
 	if (Value.Info.Is<RegisterID>())
 	{
@@ -3385,7 +3385,7 @@ RegisterID UCodeBackEndObject::MakeIntoRegister(const IRlocData &Value, Optional
 	}
 	UCodeLangUnreachable();
 }
-void UCodeBackEndObject::GiveNameTo(const IRlocData &Value, const IRInstruction *Name)
+void UCodeBackEndObject::GiveNameTo(const IRlocData& Value, const IRInstruction* Name)
 {
 	if (Value.Info.Is<RegisterID>())
 	{
@@ -3420,7 +3420,7 @@ void UCodeBackEndObject::GiveNameTo(const IRlocData &Value, const IRInstruction 
 		UCodeLangUnreachable();
 	}
 }
-UCodeBackEndObject::IRlocData UCodeBackEndObject::GetPointerOf(const IRlocData &Value)
+UCodeBackEndObject::IRlocData UCodeBackEndObject::GetPointerOf(const IRlocData& Value)
 {
 	if (auto Val = Value.Info.Get_If<RegisterID>())
 	{
@@ -3445,9 +3445,9 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetPointerOf(const IRlocData &
 		auto T = _Registers.GetInfo(*Val);
 		if (T.Types.has_value())
 		{
-			auto &TV = T.Types.value();
+			auto& TV = T.Types.value();
 			auto staicdata = _Stack.Get(stack.offset).value();
-			if (auto v = TV.Get_If<const IRInstruction *>())
+			if (auto v = TV.Get_If<const IRInstruction*>())
 			{
 				staicdata->IR = *v;
 			}
@@ -3518,7 +3518,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetPointerOf(const IRlocData &
 	}
 	UCodeLangUnreachable();
 }
-RegisterID UCodeBackEndObject::LoadOp(const IRInstruction *Ins, const IROperator &Op)
+RegisterID UCodeBackEndObject::LoadOp(const IRInstruction* Ins, const IROperator& Op)
 {
 	if (Op.Type == IROperatorType::Value)
 	{
@@ -3695,7 +3695,7 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction *Ins, const IROperator
 		{
 			if (Syb->SymType == IRSymbolType::StaticVarable)
 			{
-				StaticMemoryManager::StaticMemInfo &Value = _StaticMemory._List.GetValue(Op.identifier);
+				StaticMemoryManager::StaticMemInfo& Value = _StaticMemory._List.GetValue(Op.identifier);
 
 				auto V = GetRegisterForTep();
 				InstructionBuilder::GetPointerOfStaticMem(_Ins, V, Value.Offset);
@@ -3705,7 +3705,7 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction *Ins, const IROperator
 			}
 			else if (Syb->SymType == IRSymbolType::ThreadLocalVarable)
 			{
-				StaticMemoryManager::StaticMemInfo &Value = _ThreadMemory._List.GetValue(Op.identifier);
+				StaticMemoryManager::StaticMemInfo& Value = _ThreadMemory._List.GetValue(Op.identifier);
 
 				auto V = GetRegisterForTep();
 				InstructionBuilder::GetPointerOfThreadMem(_Ins, V, Value.Offset);
@@ -3747,12 +3747,12 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction *Ins, const IROperator
 	UCodeLangUnreachable();
 }
 
-void UCodeBackEndObject::StoreValue(const IRInstruction *Ins, const IROperator &OutputLocationIR, const IROperator &Input)
+void UCodeBackEndObject::StoreValue(const IRInstruction* Ins, const IROperator& OutputLocationIR, const IROperator& Input)
 {
 	if (OutputLocationIR.Type == IROperatorType::IRInstruction)
 	{
-		auto &Item = OutputLocationIR.Pointer;
-		const IRInstruction *VIns = Item;
+		auto& Item = OutputLocationIR.Pointer;
+		const IRInstruction* VIns = Item;
 
 		while (VIns->Type == IRInstructionType::Member_Access)
 		{
@@ -3790,7 +3790,7 @@ void UCodeBackEndObject::StoreValue(const IRInstruction *Ins, const IROperator &
 
 			auto Type = VIns->ObjectType;
 
-			const IRStruct *VStruct = _Input->GetSymbol(Type._symbol)->Get_ExAs<IRStruct>();
+			const IRStruct* VStruct = _Input->GetSymbol(Type._symbol)->Get_ExAs<IRStruct>();
 
 			auto Reg = LoadOp(VIns, VIns->Target());
 			size_t FieldOffset = _Input->GetOffset(VStruct, Item->Input().Value.AsUIntNative);
@@ -3815,7 +3815,7 @@ void UCodeBackEndObject::StoreValue(const IRInstruction *Ins, const IROperator &
 		CopyValues(Src, Out);
 	}
 }
-void UCodeBackEndObject::CopyValueToStack(const IRInstruction *IRName, const IRType &ObjectType, RegisterID Item)
+void UCodeBackEndObject::CopyValueToStack(const IRInstruction* IRName, const IRType& ObjectType, RegisterID Item)
 {
 	size_t StackPos = _Stack.Size;
 	switch (ObjectType._Type)
@@ -3860,7 +3860,7 @@ void UCodeBackEndObject::CopyValueToStack(const IRInstruction *IRName, const IRT
 		{
 		case IRSymbolType::Struct:
 		{
-			const IRStruct *V = Syb->Get_ExAs<IRStruct>();
+			const IRStruct* V = Syb->Get_ExAs<IRStruct>();
 
 			size_t structsize = _Input->GetSize(V);
 
@@ -3921,12 +3921,12 @@ void UCodeBackEndObject::CopyValueToStack(const IRInstruction *IRName, const IRT
 	_Stack.Add(IRName, StackPos);
 	_Stack.AddReUpdatePostFunc(PushIns(), StackPos);
 }
-void UCodeBackEndObject::MoveValueToStack(const IRInstruction *IRName, const IRType &ObjectType, RegisterID Item)
+void UCodeBackEndObject::MoveValueToStack(const IRInstruction* IRName, const IRType& ObjectType, RegisterID Item)
 {
 	CopyValueToStack(IRName, ObjectType, Item);
 	_Registers.FreeRegister(Item);
 }
-void UCodeBackEndObject::LoadOpToReg(const IRInstruction *Ins, const IROperator &Op, RegisterID Out)
+void UCodeBackEndObject::LoadOpToReg(const IRInstruction* Ins, const IROperator& Op, RegisterID Out)
 {
 	auto Pos = GetIRLocData(Ins, Op);
 	MakeIntoRegister(Pos, Out);
@@ -3949,7 +3949,7 @@ void UCodeBackEndObject::RegToReg(IRTypes Type, RegisterID In, RegisterID Out, b
 			PushIns();
 		}
 		break;
-		Int32L:
+	Int32L:
 		case IRTypes::f32:
 		case IRTypes::i32:
 		{
@@ -3958,7 +3958,7 @@ void UCodeBackEndObject::RegToReg(IRTypes Type, RegisterID In, RegisterID Out, b
 		}
 		break;
 
-		Int64L:
+	Int64L:
 		case IRTypes::f64:
 		case IRTypes::i64:
 		{
@@ -3966,7 +3966,7 @@ void UCodeBackEndObject::RegToReg(IRTypes Type, RegisterID In, RegisterID Out, b
 			PushIns();
 		}
 		break;
-		Pointer:
+	Pointer:
 		case IRTypes::pointer:
 			switch (Get_Settings().PtrSize)
 			{
@@ -3993,12 +3993,12 @@ void UCodeBackEndObject::RegToReg(IRTypes Type, RegisterID In, RegisterID Out, b
 
 // MSVC is unable to use operator= on UCodeLang::Variant so this fixed it.
 template <typename T>
-T copy(const T &V)
+T copy(const T& V)
 {
 	return V;
 }
 
-void UCodeBackEndObject::PushOpStack(const IRInstruction *Ins, const IROperator &Op)
+void UCodeBackEndObject::PushOpStack(const IRInstruction* Ins, const IROperator& Op)
 {
 	auto Info = GetIRLocData(Ins, Op);
 
@@ -4083,7 +4083,7 @@ void UCodeBackEndObject::PushOpStack(const IRInstruction *Ins, const IROperator 
 		}
 	}
 }
-UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstruction *Ins, bool GetAddress)
+UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstruction* Ins, bool GetAddress)
 {
 	auto RegInfo = FindIRInRegister(Ins);
 	if (RegInfo.has_value())
@@ -4192,10 +4192,10 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 			{
 				IRlocData CompilerRet;
 				CompilerRet.ObjectType = GetType(Ins->Target());
-				const IRStruct *VStruct = _Input->GetSymbol(CompilerRet.ObjectType._symbol)->Get_ExAs<IRStruct>();
+				const IRStruct* VStruct = _Input->GetSymbol(CompilerRet.ObjectType._symbol)->Get_ExAs<IRStruct>();
 
 				const size_t Index = Ins->Input().Value.AsUIntNative;
-				auto &Field = VStruct->Fields[Index];
+				auto& Field = VStruct->Fields[Index];
 
 				const size_t FieldOffset = Field.Offset.value();
 
@@ -4248,10 +4248,10 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 			{
 				IRlocData CompilerRet;
 				CompilerRet.ObjectType = Ins->ObjectType;
-				const IRStruct *VStruct = _Input->GetSymbol(CompilerRet.ObjectType._symbol)->Get_ExAs<IRStruct>();
+				const IRStruct* VStruct = _Input->GetSymbol(CompilerRet.ObjectType._symbol)->Get_ExAs<IRStruct>();
 
 				size_t Index = Ins->Input().Value.AsUIntNative;
-				auto &Field = VStruct->Fields[Index];
+				auto& Field = VStruct->Fields[Index];
 
 				size_t FieldOffset = Field.Offset.value();
 
@@ -4270,10 +4270,10 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 
 			if (GetAddress && Pos.ObjectType._Type == IRTypes::pointer)
 			{
-				auto &lastIns = _OutLayer->_Instructions.back();
+				auto& lastIns = _OutLayer->_Instructions.back();
 				UCodeLangAssert(lastIns.OpCode == InstructionSet::LoadEffectiveAddressA);
 
-				const IRStruct *VStruct = _Input->GetSymbol(GetType(Ins->Target())._symbol)->Get_ExAs<IRStruct>();
+				const IRStruct* VStruct = _Input->GetSymbol(GetType(Ins->Target())._symbol)->Get_ExAs<IRStruct>();
 				size_t FieldIndex = Ins->Input().Value.AsUIntNative;
 				const size_t Offset = _Input->GetOffset(VStruct, FieldIndex);
 
@@ -4284,8 +4284,8 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 				while (offsetleft != 0)
 				{
 
-					auto &lastIns = _OutLayer->_Instructions.back();
-					auto &offsetnumber = lastIns.Op_TwoRegInt8.C;
+					auto& lastIns = _OutLayer->_Instructions.back();
+					auto& offsetnumber = lastIns.Op_TwoRegInt8.C;
 
 					auto maxpossableoffsetforins = UINT8_MAX - offsetnumber;
 
@@ -4312,7 +4312,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 			}
 			else
 			{
-				const IRStruct *VStruct = _Input->GetSymbol(Pos.ObjectType._symbol)->Get_ExAs<IRStruct>();
+				const IRStruct* VStruct = _Input->GetSymbol(Pos.ObjectType._symbol)->Get_ExAs<IRStruct>();
 				size_t FieldIndex = Ins->Input().Value.AsUIntNative;
 
 				size_t Offset = _Input->GetOffset(VStruct, FieldIndex);
@@ -4330,7 +4330,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 	}
 	UCodeLangUnreachable();
 }
-UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstruction *Ins, const IROperator &Op, bool GetAddress)
+UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstruction* Ins, const IROperator& Op, bool GetAddress)
 {
 	bool IsPrimitive = _Input->IsPrimitive(GetType(Ins, Op));
 	if (IsPrimitive)
@@ -4358,14 +4358,14 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 				else if (Item->Type == IRInstructionType::Member_Access)
 				{
 					auto Pos = GetIRLocData(Item->Target());
-					const IRStruct *VStruct = _Input->GetSymbol(Pos.ObjectType._symbol)->Get_ExAs<IRStruct>();
+					const IRStruct* VStruct = _Input->GetSymbol(Pos.ObjectType._symbol)->Get_ExAs<IRStruct>();
 					size_t FieldIndex = Item->Input().Value.AsUIntNative;
 
 					size_t Offset = _Input->GetOffset(VStruct, FieldIndex);
 
 					if (Pos.Info.Is<RegisterID>() && Offset != 0)
 					{
-						IRInstruction *name = Item->Target().Pointer;
+						IRInstruction* name = Item->Target().Pointer;
 
 						if (!_Stack.Has(name))
 						{
@@ -4429,13 +4429,13 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 			{
 				if (Syb->SymType == IRSymbolType::StaticVarable)
 				{
-					const auto &Mem = _StaticMemory._List.GetValue(Op.identifier);
+					const auto& Mem = _StaticMemory._List.GetValue(Op.identifier);
 					CompilerRet.Info = IRlocData_StaticPos(Mem.Offset);
 					CompilerRet.ObjectType = Syb->Type;
 				}
 				else if (Syb->SymType == IRSymbolType::ThreadLocalVarable)
 				{
-					const auto &Mem = _ThreadMemory._List.GetValue(Op.identifier);
+					const auto& Mem = _ThreadMemory._List.GetValue(Op.identifier);
 					CompilerRet.Info = IRlocData_ThreadPos(Mem.Offset);
 					CompilerRet.ObjectType = Syb->Type;
 				}
@@ -4464,13 +4464,13 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 			{
 				if (Syb->SymType == IRSymbolType::StaticVarable)
 				{
-					const auto &Mem = _StaticMemory._List.GetValue(Op.identifier);
+					const auto& Mem = _StaticMemory._List.GetValue(Op.identifier);
 					CompilerRet.Info = IRlocData_StaticPos(Mem.Offset);
 					CompilerRet.ObjectType = Syb->Type;
 				}
 				else if (Syb->SymType == IRSymbolType::ThreadLocalVarable)
 				{
-					const auto &Mem = _ThreadMemory._List.GetValue(Op.identifier);
+					const auto& Mem = _ThreadMemory._List.GetValue(Op.identifier);
 					CompilerRet.Info = IRlocData_ThreadPos(Mem.Offset);
 					CompilerRet.ObjectType = Syb->Type;
 				}
@@ -4530,7 +4530,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 					else if (Item->Type == IRInstructionType::Member_Access)
 					{
 						auto Pos = GetIRLocData(Item->Target());
-						const IRStruct *VStruct = _Input->GetSymbol(Pos.ObjectType._symbol)->Get_ExAs<IRStruct>();
+						const IRStruct* VStruct = _Input->GetSymbol(Pos.ObjectType._symbol)->Get_ExAs<IRStruct>();
 						size_t FieldIndex = Item->Input().Value.AsUIntNative;
 
 						size_t Offset = _Input->GetOffset(VStruct, FieldIndex);
@@ -4555,12 +4555,12 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 			{
 				if (Syb->SymType == IRSymbolType::StaticVarable)
 				{
-					const auto &Mem = _StaticMemory._List.GetValue(Op.identifier);
+					const auto& Mem = _StaticMemory._List.GetValue(Op.identifier);
 					CompilerRet.Info = IRlocData_StaticPos(Mem.Offset);
 				}
 				else if (Syb->SymType == IRSymbolType::ThreadLocalVarable)
 				{
-					const auto &Mem = _ThreadMemory._List.GetValue(Op.identifier);
+					const auto& Mem = _ThreadMemory._List.GetValue(Op.identifier);
 					CompilerRet.Info = IRlocData_ThreadPos(Mem.Offset);
 				}
 				else
@@ -4612,7 +4612,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 	}
 	UCodeLangUnreachable();
 }
-UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IROperator &Op, bool GetAddress)
+UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IROperator& Op, bool GetAddress)
 {
 	if (Op.Type == IROperatorType::IRParameter)
 	{
@@ -4668,7 +4668,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IROperator 
 		{
 			if (Syb->SymType == IRSymbolType::StaticVarable)
 			{
-				StaticMemoryManager::StaticMemInfo &Value = _StaticMemory._List.GetValue(Op.identifier);
+				StaticMemoryManager::StaticMemInfo& Value = _StaticMemory._List.GetValue(Op.identifier);
 
 				IRlocData CompilerRet;
 				CompilerRet.ObjectType = Syb->Type;
@@ -4683,7 +4683,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IROperator 
 			}
 			else if (Syb->SymType == IRSymbolType::ThreadLocalVarable)
 			{
-				StaticMemoryManager::StaticMemInfo &Value = _ThreadMemory._List.GetValue(Op.identifier);
+				StaticMemoryManager::StaticMemInfo& Value = _ThreadMemory._List.GetValue(Op.identifier);
 
 				IRlocData CompilerRet;
 				CompilerRet.ObjectType = Syb->Type;
@@ -4711,7 +4711,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IROperator 
 		UCodeLangUnreachable();
 	}
 }
-void UCodeBackEndObject::MoveRegInValue(RegisterID Value, const IRlocData &To, size_t Offset)
+void UCodeBackEndObject::MoveRegInValue(RegisterID Value, const IRlocData& To, size_t Offset)
 {
 	auto Size = GetSize(To.ObjectType);
 	if (auto Val = To.Info.Get_If<RegisterID>())
@@ -4834,7 +4834,7 @@ void UCodeBackEndObject::MoveRegInValue(RegisterID Value, const IRlocData &To, s
 		UCodeLangUnreachable();
 	}
 }
-void UCodeBackEndObject::MoveValueInReg(const IRlocData &Value, size_t Offset, RegisterID To)
+void UCodeBackEndObject::MoveValueInReg(const IRlocData& Value, size_t Offset, RegisterID To)
 {
 	auto Size = GetSize(Value.ObjectType);
 	if (auto Val = Value.Info.Get_If<RegisterID>())
@@ -4943,7 +4943,7 @@ void UCodeBackEndObject::MoveValueInReg(const IRlocData &Value, size_t Offset, R
 		UCodeLangUnreachable();
 	}
 }
-void UCodeBackEndObject::ReadValueFromPointer(RegisterID Pointer, size_t Pointerofset, const IRlocData &Out)
+void UCodeBackEndObject::ReadValueFromPointer(RegisterID Pointer, size_t Pointerofset, const IRlocData& Out)
 {
 	auto Size = GetSize(Out.ObjectType);
 	if (auto Val = Out.Info.Get_If<RegisterID>())
@@ -5004,7 +5004,7 @@ void UCodeBackEndObject::ReadValueFromPointer(RegisterID Pointer, size_t Pointer
 		UCodeLangUnreachable();
 	}
 }
-void UCodeBackEndObject::CopyValues(const IRlocData &Src, const IRlocData &Out, bool DerefSrc, bool DerefOut)
+void UCodeBackEndObject::CopyValues(const IRlocData& Src, const IRlocData& Out, bool DerefSrc, bool DerefOut)
 {
 	auto Size = GetSize(Src.ObjectType);
 	size_t Offset = 0;
@@ -5224,14 +5224,14 @@ RegisterID UCodeBackEndObject::GetRegisterForTep()
 		for (RegisterID_t i = (RegisterID_t)RegisterID::StartRegister; i < (RegisterID_t)RegisterID::EndRegister; i++)
 		{
 			RegisterID Register = (RegisterID)i;
-			auto &Item = _Registers.Registers[i];
+			auto& Item = _Registers.Registers[i];
 			if (Item.Types.has_value())
 			{
-				auto &ItemValue = Item.Types.value();
+				auto& ItemValue = Item.Types.value();
 
-				if (auto IR = ItemValue.Get_If<const IRInstruction *>())
+				if (auto IR = ItemValue.Get_If<const IRInstruction*>())
 				{
-					auto &IRV = *IR;
+					auto& IRV = *IR;
 					if (!IsReferencedAfterThisIndex(IRV))
 					{
 						return Register;
@@ -5253,13 +5253,13 @@ RegisterID UCodeBackEndObject::GetRegisterForTep()
 		for (RegisterID_t i = 0; i < BuffSize; i++)
 		{
 			RegisterID CompilerRet = (RegisterID)i;
-			auto &Item = _Registers.Registers[i];
+			auto& Item = _Registers.Registers[i];
 
 			if (Item.Types.has_value())
 			{
-				auto &ItemValue = Item.Types.value();
+				auto& ItemValue = Item.Types.value();
 
-				if (auto IR = ItemValue.Get_If<const IRInstruction *>())
+				if (auto IR = ItemValue.Get_If<const IRInstruction*>())
 				{
 					RegisterWeights[i] = IsReferencedAfterThisIndexWeighted(*IR);
 				}
@@ -5286,7 +5286,7 @@ RegisterID UCodeBackEndObject::GetRegisterForTep()
 	}
 	return Item.value();
 }
-AnyInt64 UCodeBackEndObject::ToAnyInt(const IRType &ObjectType, const IROperator &Op)
+AnyInt64 UCodeBackEndObject::ToAnyInt(const IRType& ObjectType, const IROperator& Op)
 {
 	AnyInt64 Value;
 	switch (ObjectType._Type)
@@ -5353,9 +5353,9 @@ enum class TypeRegVal
 	IRAndOp,
 	Val
 };
-TypeRegVal Get(Variant<AnyInt64, const IRInstruction *, IROperator, IRAndOperator> &Item)
+TypeRegVal Get(Variant<AnyInt64, const IRInstruction*, IROperator, IRAndOperator>& Item)
 {
-	if (Item.Is<const IRInstruction *>())
+	if (Item.Is<const IRInstruction*>())
 	{
 		return TypeRegVal::IRIns;
 	}
@@ -5380,8 +5380,8 @@ void UCodeBackEndObject::UpdateVarableLocs()
 
 		for (size_t i = 0; i < _Registers.Registers.size(); i++)
 		{
-			auto &OldItemInfo = _OldVarableLocRegisters.Registers[i];
-			auto &Item2 = _Registers.Registers[i];
+			auto& OldItemInfo = _OldVarableLocRegisters.Registers[i];
+			auto& Item2 = _Registers.Registers[i];
 			RegisterID RegValue = (RegisterID)i;
 
 			bool CanSet = Item2.Types.has_value() != OldItemInfo.Types.has_value();
@@ -5404,9 +5404,9 @@ void UCodeBackEndObject::UpdateVarableLocs()
 					}
 					else
 					{
-						if (auto val = Item2.Types.value().Get_If<const IRInstruction *>())
+						if (auto val = Item2.Types.value().Get_If<const IRInstruction*>())
 						{
-							CanSet = *val != OldItemInfo.Types.value().Get<const IRInstruction *>();
+							CanSet = *val != OldItemInfo.Types.value().Get<const IRInstruction*>();
 						}
 						else if (auto val = Item2.Types.value().Get_If<IROperator>())
 						{
@@ -5420,14 +5420,14 @@ void UCodeBackEndObject::UpdateVarableLocs()
 			{
 				if (Item2.Types.has_value())
 				{
-					auto &TypesV = Item2.Types.value();
+					auto& TypesV = Item2.Types.value();
 
-					if (auto Ir = TypesV.Get_If<const IRInstruction *>())
+					if (auto Ir = TypesV.Get_If<const IRInstruction*>())
 					{
-						auto &IrItem = *Ir;
+						auto& IrItem = *Ir;
 						auto DebugIns = LookingBlock->Get_debugfor(IrItem);
 
-						for (auto &Item : DebugIns)
+						for (auto& Item : DebugIns)
 						{
 							if (auto Irsetvar = Item->Debug.Get_If<IRDebugSetVarableName>())
 							{
@@ -5472,19 +5472,19 @@ void UCodeBackEndObject::UpdateVarableLocs()
 		}
 	}
 }
-void UCodeBackEndObject::MoveValuesToState(const RegistersManager &state)
+void UCodeBackEndObject::MoveValuesToState(const RegistersManager& state)
 {
 
 	RegisterID_t reg = (RegisterID_t)-1;
-	for (auto &Item : state.Registers)
+	for (auto& Item : state.Registers)
 	{
 		reg++;
 
 		if (Item.Types.has_value())
 		{
-			auto &type = Item.Types.value();
+			auto& type = Item.Types.value();
 
-			if (auto val = type.Get_If<const IRInstruction *>())
+			if (auto val = type.Get_If<const IRInstruction*>())
 			{
 				if ((*val)->Type == IRInstructionType::Load)
 				{
@@ -5494,7 +5494,7 @@ void UCodeBackEndObject::MoveValuesToState(const RegistersManager &state)
 						{
 							IRlocData V;
 							V.Info = IRlocData_StackPost(stackitem->Offset);
-							V.ObjectType = GetType(stackitem->IR.Get<const IRInstruction *>());
+							V.ObjectType = GetType(stackitem->IR.Get<const IRInstruction*>());
 
 							IRlocData R;
 							R.Info = (RegisterID)reg;
@@ -5531,7 +5531,7 @@ void UCodeBackEndObject::MoveValuesToState(const RegistersManager &state)
 
 void UCodeBackEndObject::SynchronizePars()
 {
-	for (auto &Item : CurrentFuncParPos)
+	for (auto& Item : CurrentFuncParPos)
 	{
 		if (Item.Location.Is<RegisterID>())
 		{
@@ -5545,15 +5545,15 @@ RegistersManager UCodeBackEndObject::SaveState()
 
 	auto old = _Registers;
 	RegisterID_t reg = (RegisterID_t)-1;
-	for (auto &Item : _Registers.Registers)
+	for (auto& Item : _Registers.Registers)
 	{
 		reg++;
 		if (Item.Types.has_value())
 		{
-			auto &ItemD = Item.Types.value();
-			if (auto val = ItemD.Get_If<const IRInstruction *>())
+			auto& ItemD = Item.Types.value();
+			if (auto val = ItemD.Get_If<const IRInstruction*>())
 			{
-				const IRInstruction *ins = *val;
+				const IRInstruction* ins = *val;
 
 				if (IsReferencedAfterThisIndex(ins))
 				{
@@ -5585,7 +5585,7 @@ RegistersManager UCodeBackEndObject::SaveState()
 	//_Registers.Reset();
 	return old;
 }
-UCodeBackEndObject::WeightType UCodeBackEndObject::IsReferencedAfterThisIndexWeighted(const IROperator &Op)
+UCodeBackEndObject::WeightType UCodeBackEndObject::IsReferencedAfterThisIndexWeighted(const IROperator& Op)
 {
 	WeightType CompilerRet = 0;
 	WeightType NextUseOffset = 0;
@@ -5662,7 +5662,7 @@ IRRefOpType GetRefOpType(IROperatorType type)
 	}
 }
 
-bool UCodeBackEndObject::IsReferenceingTheSame(const IROperator &Test, const IROperator &Other)
+bool UCodeBackEndObject::IsReferenceingTheSame(const IROperator& Test, const IROperator& Other)
 {
 	if (Test.Type == IROperatorType::Value)
 	{
@@ -5714,7 +5714,7 @@ bool UCodeBackEndObject::IsReferenceingTheSame(const IROperator &Test, const IRO
 
 	return false;
 }
-bool UCodeBackEndObject::IsReferencedAfterThisIndex(const IROperator &Op)
+bool UCodeBackEndObject::IsReferencedAfterThisIndex(const IROperator& Op)
 {
 	// size_t i = Index+1 does not work because binaryOp relies on this to not trash first item register
 	for (size_t i = Index; i < LookingBlock->Instructions.size(); i++)
@@ -5739,17 +5739,17 @@ bool UCodeBackEndObject::IsReferencedAfterThisIndex(const IROperator &Op)
 	}
 	return false;
 }
-void UCodeBackEndObject::SynchronizePar(ParlocData *Par)
+void UCodeBackEndObject::SynchronizePar(ParlocData* Par)
 {
 
 	for (size_t i = 0; i < RegistersManager::RegisterSize; i++)
 	{
-		auto &Info = _Registers.Registers[i];
+		auto& Info = _Registers.Registers[i];
 		if (Info.Types.has_value())
 		{
-			if (auto IR = Info.Types.value().Get_If<const IRInstruction *>())
+			if (auto IR = Info.Types.value().Get_If<const IRInstruction*>())
 			{
-				const IRInstruction *IRV = *IR;
+				const IRInstruction* IRV = *IR;
 				if (IsLookingAtPar(IRV, Par->Par))
 				{
 					// Par->Location = (RegisterID)i;
@@ -5760,7 +5760,7 @@ void UCodeBackEndObject::SynchronizePar(ParlocData *Par)
 			{
 				IROperator V = *Op;
 
-				if (V == IROperator((IRPar *)Par->Par))
+				if (V == IROperator((IRPar*)Par->Par))
 				{
 					Par->Location = (RegisterID)i;
 					break;
@@ -5770,11 +5770,11 @@ void UCodeBackEndObject::SynchronizePar(ParlocData *Par)
 	}
 	for (size_t i = 0; i < _Stack.Items.size(); i++)
 	{
-		auto &Item = *_Stack.Items[i];
+		auto& Item = *_Stack.Items[i];
 
-		if (auto ptrOp = Item.IR.Get_If<const IRInstruction *>())
+		if (auto ptrOp = Item.IR.Get_If<const IRInstruction*>())
 		{
-			auto &ptr = *ptrOp;
+			auto& ptr = *ptrOp;
 			if (ptr == nullptr)
 			{
 				continue;
@@ -5786,7 +5786,7 @@ void UCodeBackEndObject::SynchronizePar(ParlocData *Par)
 		}
 		else if (auto ptrOp = Item.IR.Get_If<IROperator>())
 		{
-			auto &ptr = *ptrOp;
+			auto& ptr = *ptrOp;
 			if (ptr.Type == IROperatorType::IRParameter && ptr.Parameter == Par->Par)
 			{
 				Par->Location = StackPostCall(Item.Offset);
@@ -5796,33 +5796,33 @@ void UCodeBackEndObject::SynchronizePar(ParlocData *Par)
 
 	if (auto val = Par->Location.Get_If<RegisterID>())
 	{
-		_Registers.GetInfo(*val).Types = IROperator((IRPar *)Par->Par);
+		_Registers.GetInfo(*val).Types = IROperator((IRPar*)Par->Par);
 	}
 }
-UCodeBackEndObject::FindParsLoc UCodeBackEndObject::GetParsLoc(const Vector<IRType> &Pars, bool SetReg)
+UCodeBackEndObject::FindParsLoc UCodeBackEndObject::GetParsLoc(const Vector<IRType>& Pars, bool SetReg)
 {
 	Vector<IRPar> Tep;
 	Tep.resize(Pars.size());
 	for (size_t i = 0; i < Pars.size(); i++)
 	{
-		auto &Item = Pars[i];
-		auto &TepItem = Tep[i];
+		auto& Item = Pars[i];
+		auto& TepItem = Tep[i];
 		TepItem.type = Item;
 	}
 	return GetParsLoc(Tep, SetReg);
 }
-UCodeBackEndObject::FindParsLoc UCodeBackEndObject::GetParsLoc(const Vector<IRPar> &Pars, bool SetReg)
+UCodeBackEndObject::FindParsLoc UCodeBackEndObject::GetParsLoc(const Vector<IRPar>& Pars, bool SetReg)
 {
 	FindParsLoc CompilerRet;
 
 	auto V = RegisterID::StartParameterRegister;
-	RegisterID_t &V2 = (RegisterID_t &)V;
+	RegisterID_t& V2 = (RegisterID_t&)V;
 	size_t StackOffset = 0;
 	bool IsUseingStack = false;
 
 	for (size_t i = 0; i < Pars.size(); i++)
 	{
-		auto &Item = Pars[i];
+		auto& Item = Pars[i];
 
 		ParlocData Loc;
 		Loc.Par = &Item;
@@ -5855,18 +5855,18 @@ UCodeBackEndObject::FindParsLoc UCodeBackEndObject::GetParsLoc(const Vector<IRPa
 
 	for (size_t i = 0; i < CompilerRet.OverflowedPars.size() / 2; i++) // flip offsets
 	{
-		auto &Item0 = CompilerRet.ParsPos[CompilerRet.OverflowedPars[i]];
-		auto &Item1 = CompilerRet.ParsPos[CompilerRet.OverflowedPars[CompilerRet.OverflowedPars.size() - 1 - i]];
+		auto& Item0 = CompilerRet.ParsPos[CompilerRet.OverflowedPars[i]];
+		auto& Item1 = CompilerRet.ParsPos[CompilerRet.OverflowedPars[CompilerRet.OverflowedPars.size() - 1 - i]];
 
-		auto &Item0StackOffSet = Item0.Location.Get<StackPreCall>().Offset;
-		auto &Item1StackOffSet = Item1.Location.Get<StackPreCall>().Offset;
+		auto& Item0StackOffSet = Item0.Location.Get<StackPreCall>().Offset;
+		auto& Item1StackOffSet = Item1.Location.Get<StackPreCall>().Offset;
 
 		std::swap(Item0StackOffSet, Item1StackOffSet);
 	}
 
 	return CompilerRet;
 }
-void UCodeBackEndObject::BuildLink(const IRidentifier &FuncName, IRFuncLink LinkType)
+void UCodeBackEndObject::BuildLink(const IRidentifier& FuncName, IRFuncLink LinkType)
 {
 	auto VFuncName = NameDecoratior::GetUnDecoratedName(FuncName);
 	if (VFuncName == "__Malloc")
@@ -5908,7 +5908,7 @@ void UCodeBackEndObject::BuildLink(const IRidentifier &FuncName, IRFuncLink Link
 	{
 		{
 			Optional<size_t> maxparstaticsize;
-			for (auto &Par : CurrentFuncParPos)
+			for (auto& Par : CurrentFuncParPos)
 			{
 				if (auto val = Par.Location.Get_If<StackPreCall>())
 				{

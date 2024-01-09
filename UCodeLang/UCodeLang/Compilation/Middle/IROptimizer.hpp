@@ -33,7 +33,7 @@ struct IROptimizationFuncData
 {
 public:
 	Optional<size_t> FuncBodyHash;
-	InlineState Inlinestate= InlineState::Null;
+	InlineState Inlinestate = InlineState::Null;
 	bool BodyWasRemoved = false;
 	bool FuncBodyWasUpdated = false;
 	Optional<SSAState> SsA;
@@ -52,7 +52,7 @@ public:
 
 
 	void Optimized(IRBuilder& IRcode);
-	
+
 	bool IsIsolatedandIndependent = false;
 private:
 	CompilationErrors* _ErrorsOutput = nullptr;
@@ -114,7 +114,7 @@ private:
 		Optimization_FloatFastMath = false;
 	}
 	//
-	
+
 
 	void ReplaceAllTypesTo(IRidentifierID typetolookfor, IRidentifierID newtype);
 
@@ -126,9 +126,9 @@ private:
 	void UpdateCallWhenParWasRemoved(IRFunc* Item, const IRFunc* Func, const IRFunc& NewFunc, size_t i);
 	void DoInlines(IRFunc* Func);
 	void DoInlines(IRFunc* Func, IRBlock* Block);
-	void ConstantFoldOperator(IRInstruction& I,IROperator& Value,ReadOrWrite OpType);
+	void ConstantFoldOperator(IRInstruction& I, IROperator& Value, ReadOrWrite OpType);
 
-	
+
 
 	void ToSSA(IRFunc* Func, SSAState& state);
 	void UndoSSA(IRFunc* Func, const SSAState& state);
@@ -137,7 +137,7 @@ private:
 
 	struct InLineData
 	{
-		IRFunc* Func =nullptr;
+		IRFunc* Func = nullptr;
 		IRBlock* Block = nullptr;
 		size_t CallIndex = 0;
 		Vector<IRInstruction*> InlinedPushedPars;
@@ -145,7 +145,7 @@ private:
 	};
 
 	void InLineFunc(InLineData& Data);
-	void InLineSubOperator(InLineData& Data, IROperator& Op,size_t Offset);
+	void InLineSubOperator(InLineData& Data, IROperator& Op, size_t Offset);
 
 	struct IRInstructionInfo
 	{

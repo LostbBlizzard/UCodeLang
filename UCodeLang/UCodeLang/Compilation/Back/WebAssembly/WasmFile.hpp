@@ -81,7 +81,7 @@ public:
 
 		struct Limits
 		{
-			enum class HasMax : Byte 
+			enum class HasMax : Byte
 			{
 				min,
 				minAmax,
@@ -108,7 +108,7 @@ public:
 		global = 4,
 	};
 
-		
+
 	struct Export
 	{
 		String Name;
@@ -377,7 +377,7 @@ public:
 		void Push_f64_store(int alignment = Expr::defaultalignment, int offset = 0)
 		{
 			Ins.push_back({});
-			Ins.back().f64_store(alignment,offset);
+			Ins.back().f64_store(alignment, offset);
 		}
 
 		void Push_i32_load(int alignment = Expr::defaultalignment, int offset = 0)
@@ -399,7 +399,7 @@ public:
 		void Push_f64_load(int alignment = Expr::defaultalignment, int offset = 0)
 		{
 			Ins.push_back({});
-			Ins.back().f64_load(alignment,offset);
+			Ins.back().f64_load(alignment, offset);
 		}
 
 
@@ -487,7 +487,7 @@ public:
 		void FromBytes(BitReader& bit);
 
 		//
-		
+
 
 	};
 	struct DataSection
@@ -496,8 +496,8 @@ public:
 	};
 	struct Section
 	{
-		struct None{};
-		Variant<None, TypeSection,FuncSection,ExportSection,CodeSection, MemSection> Type;
+		struct None {};
+		Variant<None, TypeSection, FuncSection, ExportSection, CodeSection, MemSection> Type;
 
 		void ToBytes(BitMaker& bit) const;
 		void FromBytes(BitReader& bit);
@@ -509,14 +509,14 @@ public:
 
 	static bool FromFile(const Path& path, WasmFile& file);
 	static bool ToFile(const WasmFile& file, const Path& path);
-	
+
 	static bool FromBytes(WasmFile& file, const BytesView Bytes);
-	
+
 	static BytesPtr ToBytes(const WasmFile& file);
 
 	static void ReadLEB128(BitReader& bit, WasmFile::varU32& out);
 	static void WriteLEB128(BitMaker& bit, WasmFile::varU32 value);
-	static void Write_String(BitMaker& bit,const String& str) 
+	static void Write_String(BitMaker& bit, const String& str)
 	{
 		bit.WriteType((Byte)str.size());
 		for (const auto& c : str) {

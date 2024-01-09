@@ -40,7 +40,7 @@ void X86_64UNativeBackEnd::Build(const IRBuilder* Input)
 		//x8664_ir.AddNewFunc(GetRetID);
 
 
-		
+
 		MakeWapperFuncion(&_Input->_StaticInit);
 		MakeWapperFuncion(&_Input->_threadInit);
 
@@ -63,7 +63,7 @@ void X86_64UNativeBackEnd::Build(const IRBuilder* Input)
 		}
 		_OutLayer->_Code.reserve(MaxBuffersize);
 
-		UnorderedMap<IRidentifierID,size_t> Funcoffsets;
+		UnorderedMap<IRidentifierID, size_t> Funcoffsets;
 		for (auto& Item : Info.Funcs)
 		{
 			Funcoffsets.AddValue(Item.Func, _OutLayer->_Code.size());
@@ -85,7 +85,7 @@ void X86_64UNativeBackEnd::Build(const IRBuilder* Input)
 }
 void X86_64UNativeBackEnd::MakeWapperFuncion(const IRFunc* func)
 {
-	for (auto& ABI : ABIList) 
+	for (auto& ABI : ABIList)
 	{
 		auto newname = "cpp-" + _Input->FromID(func->identifier) + "-[" + ABI.OS + "]";
 		auto newnameid = std::hash<String>()(newname);
@@ -94,7 +94,7 @@ void X86_64UNativeBackEnd::MakeWapperFuncion(const IRFunc* func)
 
 
 		auto& Convention = x8664_ir.CallingConventions.GetValue(ABI.id);
-		
+
 		newidnames.AddValue(newnameid, newname);
 		newids.push_back({ func->identifier,Func.funcID });
 

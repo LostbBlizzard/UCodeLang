@@ -222,7 +222,7 @@ UCodeLangCAPI_Interpreter_RetState As(UCodeLang::Interpreter::RetState Value)
 	{
 	case UCodeLang::Interpreter::RetState::Null:return { UCodeLangCAPI_Interpreter_RetState::Null };
 	case UCodeLang::Interpreter::RetState::Success:return { UCodeLangCAPI_Interpreter_RetState::Success };
-	case UCodeLang::Interpreter::RetState::Error:return {UCodeLangCAPI_Interpreter_RetState::Error};
+	case UCodeLang::Interpreter::RetState::Error:return { UCodeLangCAPI_Interpreter_RetState::Error };
 	case UCodeLang::Interpreter::RetState::Error_Function_doesnt_exist:return { UCodeLangCAPI_Interpreter_RetState::Null };
 	default:return { UCodeLangCAPI_Interpreter_RetState::Null };
 	}
@@ -230,7 +230,7 @@ UCodeLangCAPI_Interpreter_RetState As(UCodeLang::Interpreter::RetState Value)
 
 UCodeLangCAPI_Interpreter_Return_t As(UCodeLang::Interpreter::Return_t Value)
 {
-	return {As(Value._Succeed),As(Value.ReturnValue)};
+	return { As(Value._Succeed),As(Value.ReturnValue) };
 }
 
 UCodeLang::ClassMethod* As(UCodeLangCAPI_ClassMethod* Value)
@@ -271,15 +271,15 @@ uint32_t UCodeLangCAPI_VersionNumber()
 
 
 #ifndef UCodeLangNoCompiler
-void UCodeLangCAPI_SetCompilerSetingsDebugFlag(UCodeLangCStruct UCodeLangCAPI_Compiler* This,bool value)
+void UCodeLangCAPI_SetCompilerSetingsDebugFlag(UCodeLangCStruct UCodeLangCAPI_Compiler* This, bool value)
 {
 
 }
-void UCodeLangCAPI_SetCompilerSetingsO1Flag(UCodeLangCStruct UCodeLangCAPI_Compiler* This,bool value)
+void UCodeLangCAPI_SetCompilerSetingsO1Flag(UCodeLangCStruct UCodeLangCAPI_Compiler* This, bool value)
 {
 
 }
-void UCodeLangCAPI_SetCompilerSetingsO2Flag(UCodeLangCStruct UCodeLangCAPI_Compiler* This,bool value)
+void UCodeLangCAPI_SetCompilerSetingsO2Flag(UCodeLangCStruct UCodeLangCAPI_Compiler* This, bool value)
 {
 
 }
@@ -322,9 +322,9 @@ UCodeLangCAPI_CompilerOutput UCodeLangAPIExport UCodeLangCAPI_Compiler_CompileDi
 	p.OutFile = As(&out);
 	return As(As(This)->CompileFiles(p));
 }
-UCodeLangCAPI_CompilerOutput UCodeLangAPIExport UCodeLangCAPI_Compiler_CompileDirWithInt(UCodeLangCStruct UCodeLangCAPI_Compiler* This, 
+UCodeLangCAPI_CompilerOutput UCodeLangAPIExport UCodeLangCAPI_Compiler_CompileDirWithInt(UCodeLangCStruct UCodeLangCAPI_Compiler* This,
 	UCodeLangCStruct UCodeLangCAPI_Const_PathSpan dirpath,
-	UCodeLangCStruct UCodeLangCAPI_Const_PathSpan intpath, 
+	UCodeLangCStruct UCodeLangCAPI_Const_PathSpan intpath,
 	UCodeLangCStruct UCodeLangCAPI_Const_PathSpan outpath)
 {
 	UCodeLang::Compiler::CompilerPathData p;
@@ -393,11 +393,11 @@ void UCodeLangCAPI_SetBackEndMacOs(UCodeLangCStruct UCodeLangCAPI_Compiler* This
 
 void UCodeLangCAPI_SetBackEndToNative(UCodeLangCStruct UCodeLangCAPI_Compiler* This)
 {
-	#ifdef UCodeLang_HasNoPlatformBackEndBackEnd
+#ifdef UCodeLang_HasNoPlatformBackEndBackEnd
 	UCodeLangCAPI_SetBackEndUCode(This);
-	#else 
+#else 
 	As(This)->Set_BackEnd(UCodeLang::NativePlatformBackEnd::MakeObject);
-	#endif
+#endif
 }
 void UCodeLangCAPI_SetBackEndToUCodeNative(UCodeLangCStruct UCodeLangCAPI_Compiler* This)
 {
@@ -468,7 +468,7 @@ UCodeLangCAPI_Interpreter_Return_t UCodeLangAPIExport UCodeLangCAPI_Interpreter_
 
 void UCodeLangAPIExport UCodeLangCAPI_Interpreter_GetReturn(UCodeLangCAPI_Interpreter* This, void* Output, size_t OutputSize)
 {
-	return  As(This)->Get_Return(Output,OutputSize);
+	return  As(This)->Get_Return(Output, OutputSize);
 }
 
 void UCodeLangAPIExport UCodeLangCAPI_Interpreter_PushParameter(UCodeLangCAPI_Interpreter* This, const void* object, size_t objectsize)
@@ -634,7 +634,7 @@ void UCodeLangCAPI_RunTimeLib_LinkIO(UCodeLangCStruct UCodeLangCAPI_RunTimeUClib
 {
 	UCodeLang::IOLink::LinkSettings link;
 	link.AddCInAndOut = setting->AddCoutACin;
-	UCodeLang::IOLink::Link(*As(Value),link);
+	UCodeLang::IOLink::Link(*As(Value), link);
 }
 void UCodeLangCAPI_RunTimeLib_LinkIOSandBox(UCodeLangCStruct UCodeLangCAPI_RunTimeUClib* Value, const UCodeLangCStruct IOLinkSettings* setting)
 {

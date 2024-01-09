@@ -19,16 +19,16 @@ void IRUBChecker::Reset()
 
 
 template<typename T>
-size_t GetIndex(const Span<T> span,const T* index)
+size_t GetIndex(const Span<T> span, const T* index)
 {
 	size_t i = index - &span[0];
-	
-	#if UCodeLangDebug
+
+#if UCodeLangDebug
 	if (i > index)
 	{
 		UCodeLangThrowException("bad index");
 	}
-	#endif
+#endif
 	return i;
 
 }
@@ -47,7 +47,7 @@ void IRUBChecker::CheckForUB(const IRBuilder* Input)
 		{
 			if (Item->Type == IRInstructionType::Reassign)
 			{
-				
+
 			}
 		}
 

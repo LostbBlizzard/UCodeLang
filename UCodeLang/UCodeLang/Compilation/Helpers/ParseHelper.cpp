@@ -66,7 +66,7 @@ size_t ParseHelper::ParseStringliteralToString(String_view string, String& out)
 		String_view V = String_view(string.data() + i, string.size() - i);
 
 		size_t CompilerRet = ParseCharliteralToChar(V, out);
-		if (CompilerRet==0)
+		if (CompilerRet == 0)
 		{
 			return i;
 		}
@@ -128,7 +128,7 @@ size_t ParseHelper::ParseCharliteralToChar(String_view string, String& out)
 	{
 		if (string.size() >= 1)
 		{
-			
+
 
 			struct MyStruct
 			{
@@ -160,14 +160,14 @@ size_t ParseHelper::ParseCharliteralToChar(String_view string, String& out)
 				MyStruct{ 'n','\n' },
 			};
 			Optional<char> Char2;
-			for (auto& Item : EscapeSequences) 
+			for (auto& Item : EscapeSequences)
 			{
 				if (Item.Input == string[1])
 				{
 					Char2 = Item.Output;
 				}
 			}
-			if (Char2.has_value()) 
+			if (Char2.has_value())
 			{
 				out += Char2.value();
 				return 1;
