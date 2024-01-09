@@ -278,7 +278,8 @@ inline bool IsBinary(IRInstructionType Value)
 		|| Value == IRInstructionType::BitWise_XOr
 		|| Value == IRInstructionType::BitWise_And
 		|| Value == IRInstructionType::SMod
-		|| Value == IRInstructionType::UMod;
+		|| Value == IRInstructionType::UMod
+		|| Value == IRInstructionType::ThrowException;
 }
 inline bool IsUnary(IRInstructionType Value)
 {

@@ -93,7 +93,7 @@ void SystematicAnalysis::OnPanicStatement(const PanicNode& node)
 						{},
 						par, dataret);
 				}
-				if (hasdatafunc == false)
+				if (hassizefunc== false)
 				{
 					auto func = ScopeHelper::ApendedStrings(typev->FullName, "Size");
 
