@@ -166,7 +166,8 @@ enum class InstructionSet : InstructionSet_t
 	Await_IsDone,
 	Await_GetValue,
 	Await_FreeTask,
-		
+	//
+	SetPanicMsg,	
 
 	MAXVALUE,
 };

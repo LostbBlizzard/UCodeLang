@@ -206,6 +206,7 @@ private:
 	Optimizations _Optimizations;
 	const IRFunc* lookingatfunc = nullptr;
 	Vector<size_t> ThrowJumps;
+	UnorderedMap< const IRFunc*,size_t> FuncStackSizes;
 	//code
 	bool IsPrimitive(const IRType& type)
 	{
