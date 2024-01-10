@@ -671,6 +671,11 @@ public:
 
 
 	//Others
+	UCodeLangForceinline static void SetPanicMsg(Instruction& Out,RegisterID ptr, RegisterID size)
+	{
+		Out = Instruction(InstructionSet::SetPanicMsg, Instruction::TwoReg(ptr, size));
+	}
+	
 	/*
 	UCodeLangForceinline static void GenInst(Intermediate_Set Inst, const UInt64 Value0, const UInt64 Value1, Instruction& Out)
 	{

@@ -491,57 +491,85 @@ void UCodeBackEndObject::LinkFuncs()
 	}
 
 
-	if (ThrowJumps.size())
+
 	{
 		struct FuncThatMayThrowInfo
 		{
 			size_t StackSize = 0;
 		};
 		UnorderedMap<const IRFunc*, FuncThatMayThrowInfo> FuncThrowinfo;
+
 		for (auto& Item : _Input->Funcs)
 		{
-			bool HasThrow = false;
 
-			for (auto& block : Item->Blocks)
+		}
+
+		UAddress FuncUnwindingStart = _OutLayer->GetLastInstruction() + 1;
+
+		for (auto& Index : ThrowJumps)
+		{
+			auto f = FuncUnwindingStart - 1;
+			InstructionBuilder::Callv1(f, InsList[Index + 0]);
+			InstructionBuilder::Callv2(f, InsList[Index + 1]);
+
+			if (Get_Settings().PtrSize == IntSizes::Int64)
 			{
-				for (auto& ins : block->Instructions)
+				InstructionBuilder::Callv3(f, InsList[Index + 2]);
+				InstructionBuilder::Callv4(f, InsList[Index + 3]);
+			}
+		}
+
+		if (true)
+		{
+			_OutLayer->Add_NameToInstruction(FuncUnwindingStart, "ThrowExceptionStr");
+			InstructionBuilder::SetPanicMsg(_Ins,RegisterID::Parameter1_Register, RegisterID::Parameter2_Register); PushIns();
+			{
+				auto f = FuncUnwindingStart + 1;
+				f += 1;
+
+				auto trashregister = RegisterID::A;
+
+				if (Get_Settings().PtrSize == IntSizes::Int64)
 				{
-					if (ins->Type == IRInstructionType::ThrowException)
+					InstructionBuilder::Pop64(_Ins, trashregister); PushIns();
+					f += 4;
+				}
+				else
+				{
+					InstructionBuilder::Pop32(_Ins, trashregister); PushIns();
+					f += 2;
+				}
+
+				{
+					InstructionBuilder::Jumpv1(f, _Ins); PushIns();
+					InstructionBuilder::Jumpv2(f, _Ins); PushIns();
+
+					if (Get_Settings().PtrSize == IntSizes::Int64)
 					{
-						HasThrow = true;
+						InstructionBuilder::Jumpv3(f, _Ins); PushIns();
+						InstructionBuilder::Jumpv4(f, _Ins); PushIns();
 					}
 				}
 			}
+			InstructionBuilder::Return(ExitState::Success, _Ins);PushIns();
 
-			if (HasThrow)
+			
+			_OutLayer->Add_NameToInstruction(_OutLayer->GetLastInstruction() + 1, "StackUnwinding");
 			{
-				FuncThatMayThrowInfo Val;
-
-				Optional<UAddress> funcpos;
-				for (auto& Item2 : _Funcpos)
+				auto lastinsref = RegisterID::A;
+				if (Get_Settings().PtrSize == IntSizes::Int64)
 				{
-					if (Item2._FuncID == Item->identifier)
-					{
-						funcpos = Item2.Index;
-						break;
-					}
+					InstructionBuilder::Pop64(_Ins, lastinsref); PushIns();
 				}
-				UCodeLangAssert(funcpos.has_value());
-
-
-				UAddress pos = funcpos.value();
-
-				if (IsDebugMode())
+				else
 				{
-					//skip StartNewFuncIns
-					pos++;
+					InstructionBuilder::Pop32(_Ins, lastinsref); PushIns();
 				}
-			  Instruction& Ins = InsList[pos];
-				//
 
+				//to-do do the stackunwinding
 
-				FuncThrowinfo.AddValue(Item.get(), std::move(Val));
 			}
+			InstructionBuilder::Return(ExitState::Success, _Ins);PushIns();
 		}
 	}
 }
@@ -776,6 +804,9 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 		_DebugInfo.Add_UDebugSetFuncStackFrameSize(_Stack.Size, FuncStart);
 	}
 
+
+	FuncStackSizes.AddValue(IR,_Stack.Size);
+
 	_Stack.Reset();
 	_Registers.Reset();
 	ClearVarableLocs();
@@ -785,6 +816,7 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 	V.Index = FuncStart - 1;
 	V._FuncID = IR->identifier;
 	_Funcpos.push_back(V);
+
 }
 void UCodeBackEndObject::OnBlock(const IRBlock* IR)
 {
@@ -2462,19 +2494,27 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		break;
 		case IRInstructionType::ThrowException:
 		{
-			RegisterID A = MakeIntoRegister(Item, Item->A);
-			RegisterID B = MakeIntoRegister(Item, Item->B);
+			auto BOpVals = DoBinaryOpValues(Item);
+			RegisterID A = BOpVals.A;
+			RegisterID B = BOpVals.B;
 
-			ThrowJumps.push_back(_OutLayer->Get_Instructions().size());
+			
+			UCodeLangAssert(B != RegisterID::Parameter1_Register);
+			UCodeLangAssert(A != RegisterID::Parameter2_Register);
 
-			InstructionBuilder::Jumpv1(0, _Ins); PushIns();
-			InstructionBuilder::Jumpv2(0, _Ins); PushIns();
+			RegToReg(IRTypes::pointer, A, RegisterID::Parameter1_Register, false);
+			RegToReg(IRTypes::pointer, B, RegisterID::Parameter2_Register, false);
+
+			InstructionBuilder::Callv1(0, _Ins); PushIns();
+			InstructionBuilder::Callv2(0, _Ins); PushIns();
 			if (Get_Settings().PtrSize == IntSizes::Int64)
 			{
-				InstructionBuilder::Jumpv3(0, _Ins); PushIns();
-				InstructionBuilder::Jumpv4(0, _Ins); PushIns();
+				InstructionBuilder::Callv3(0, _Ins); PushIns();
+				InstructionBuilder::Callv4(0, _Ins); PushIns();
 
 			}
+			ThrowJumps.push_back(_OutLayer->Get_Instructions().size() + 1);
+
 		}break;
 		default:
 			UCodeLangUnreachable();
