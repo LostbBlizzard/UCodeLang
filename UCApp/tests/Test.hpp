@@ -100,7 +100,7 @@ inline String ModeType(OptimizationFlags Flags)
 	return r;
 }
 
-static const Array<TestInfo, 111> Tests{
+static const Array<TestInfo, 112> Tests{
 
 	TestInfo("main_0", "BasicTests/main.uc", "Main", SuccessCondition::Compilation),
 
@@ -248,6 +248,8 @@ static const Array<TestInfo, 111> Tests{
 
 	TestInfo("Attribute Contruct", "Eval/Attribute.uc","", SuccessCondition::Compilation),
 	TestInfo("Attribute Contruct 2", "Eval/Attribute2.uc","", SuccessCondition::Compilation),
+
+	TestInfo("defer2", "Objects/defer2.uc", "main", SuccessCondition::RunTimeValue, (int)64),
 };
 
 struct SkipTestRange
