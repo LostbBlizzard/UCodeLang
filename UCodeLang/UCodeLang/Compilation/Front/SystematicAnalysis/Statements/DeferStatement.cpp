@@ -66,10 +66,60 @@ void SystematicAnalysis::OnDeferStatement(const DeferStatementNode& node)
 		auto& LambdaSym = *Symbol_GetSymbol(Symbol_GetSymbolID(node));
 		LambdaInfo* Info = LambdaSym.Get_Info<LambdaInfo>();
 
-		for (auto& Item : node._Base._Nodes)
+		auto classSymname = LambdaName + "_";
+		
+		auto& ClassSym = Symbol_AddSymbol(SymbolType::Type_class, classSymname, classSymname, AccessModifierType::Public);
+		ClassInfo* val = new ClassInfo();
+		ClassSym.Info.reset(val);
+		_Table.AddSymbolID(ClassSym, Symbol_GetSymbolID(val));
+
+		auto& DropFunc = Symbol_AddSymbol(SymbolType::Func, ClassDestructorFunc,ScopeHelper::ApendedStrings(classSymname, ClassDestructorFunc), AccessModifierType::Public);
+		FuncInfo* DropFuncInfo = new FuncInfo();
+		DropFunc.Info.reset(DropFuncInfo);
+		DropFuncInfo->Ret = TypesEnum::Void;
+
+		DropFuncInfo->FullName = DropFunc.FullName;
+
+
+		auto lambdatype = TypeSymbol(ClassSym.ID);
+
+		ParInfo par;
+		par.Type = lambdatype;
+		par.Type._IsAddress = true;
+		DropFuncInfo->Pars.push_back(par);
+		
+		IRInstruction* tep =_IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(lambdatype));
+		
+		IR_Build_AddDestructorToStack(lambdatype, tep);
 		{
-			OnStatement(*Item);
-		}//only for tests shold be updated
+			auto oldFunc = _IR_LookingAtIRFunc;
+			auto oldblock = _IR_LookingAtIRBlock;
+			//
+
+			_IR_LookingAtIRFunc = _IR_Builder.NewFunc(IR_MangleName(DropFuncInfo), IR_ConvertToIRType(DropFuncInfo->Ret));
+	
+			auto tepp = lambdatype;
+			tepp._IsAddress = true;
+
+			IRPar p; 
+			p.type = IR_ConvertToIRType(tepp);
+			p.identifier = _IR_Builder.ToID(ThisSymbolName);
+
+			_IR_LookingAtIRFunc->Pars.push_back(p);
+
+
+			_IR_LookingAtIRBlock = _IR_LookingAtIRFunc->NewBlock(".");
+
+			for (auto& Item : node._Base._Nodes)
+			{
+				OnStatement(*Item);
+			}
+
+			_IR_LookingAtIRBlock->NewRet();
+			//
+			_IR_LookingAtIRFunc = oldFunc;
+			_IR_LookingAtIRBlock = oldblock;
+		}
 	}
 }
 
