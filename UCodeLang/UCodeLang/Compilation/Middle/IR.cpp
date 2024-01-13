@@ -1708,6 +1708,7 @@ bool IRBuilder::ToString(
 		r += Names.GetValue(I->Target().identifier);
 		break;
 	case IRInstructionType::Call:
+	case IRInstructionType::CleanupFuncCall:
 	{
 		r += ToString(I->ObjectType);
 		r += " " + State.GetName(I);
@@ -1723,6 +1724,11 @@ bool IRBuilder::ToString(
 		}
 		State.TepPushedParameters.clear();
 		r += ")";
+
+		if (I->Type == IRInstructionType::CleanupFuncCall)
+		{
+			r += "//CleanupFunc";
+		}
 	}break;
 	case IRInstructionType::Reassign_dereference:
 		r += "*" + ToString(State, *I, I->Target());
