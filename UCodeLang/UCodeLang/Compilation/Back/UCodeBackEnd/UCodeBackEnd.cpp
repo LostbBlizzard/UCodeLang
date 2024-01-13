@@ -1460,6 +1460,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		}
 		break;
 		case IRInstructionType::Call:
+		case IRInstructionType::CleanupFuncCall:
 		{
 			auto FuncInfo = _Input->GetFunc(Item->Target().identifier);
 			auto FData = FuncCallStart(FuncInfo->Pars, FuncInfo->ReturnType);

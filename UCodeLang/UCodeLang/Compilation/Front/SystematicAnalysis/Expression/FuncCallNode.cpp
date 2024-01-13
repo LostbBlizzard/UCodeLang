@@ -750,21 +750,21 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 
 	if (_LookingForTypes.size() && Type_Get_LookingForType().IsnotAn(TypesEnum::Void) && PushIRStackRet)//constructors are just void functions so just set last as the input this
 	{
+		if (ScopeHelper::GetNameFromFullName(Syb->FullName) == ClassConstructorfunc) {
+			_IR_LastExpressionField = PushIRStackRet;
+			_LastExpressionType = Func.Func->Pars.front().Type;
 
-		_IR_LastExpressionField = PushIRStackRet;
-		_LastExpressionType = Func.Func->Pars.front().Type;
 
+			if (Type_Get_LookingForType().IsAddress())
+			{
+				_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoadPtr(_IR_LastExpressionField);
+			}
+			else
+			{
+				_LastExpressionType._IsAddress = false;
+			}
 
-		if (Type_Get_LookingForType().IsAddress())
-		{
-			_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoadPtr(_IR_LastExpressionField);
 		}
-		else
-		{
-			_LastExpressionType._IsAddress = false;
-		}
-
-
 	}
 	else
 	{
@@ -2792,6 +2792,28 @@ void SystematicAnalysis::IR_Build_DestructorCall(const ObjectToDrop& Object)
 				ValueParametersNode Vtemp;
 				IR_Build_FuncCall(Object.Type, FuncInfo, Vtemp);
 
+
+				if (_IR_LastExpressionField->Type == IRInstructionType::Call)
+				{
+					if (Object._Object != nullptr)
+					{
+						Optional<size_t> FieldIndex;
+
+						for (size_t i = 0; i < _IR_LookingAtIRBlock->Instructions.size(); i++)
+						{
+							auto& Item = _IR_LookingAtIRBlock->Instructions[i];
+
+							if (Item.get() == Object._Object)
+							{
+								FieldIndex = i;
+								break;
+							}
+						}
+
+						_IR_LastExpressionField->Type = IRInstructionType::CleanupFuncCall;
+						_IR_LastExpressionField->B = IROperator(AnyInt64(FieldIndex.value()));
+					}
+				}
 
 				_IR_IRlocations.pop();
 			}

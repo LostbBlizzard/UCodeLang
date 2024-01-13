@@ -225,6 +225,10 @@ enum class IRInstructionType : IRInstructionType_t
 	ThrowException,
 	CatchException,
 
+	//this is not the same as a funcion call
+	//but give info to BackEnd on what happens if when panicing
+	CleanupCall,
+
 	//compiler intrinsics
 	Unreachable,
 	Assume,
@@ -1402,9 +1406,17 @@ struct IRBlock
 	{
 		Instructions.emplace_back(new IRInstruction(IRInstructionType::Assume));
 	}
-	void CleanupFuncCall(IRidentifierID identifier)
+	void CleanupFuncCall(IRidentifierID identifier, size_t CallOnlyIfAfterWhenExceptionThrown)
 	{
-		Instructions.emplace_back(new IRInstruction(IRInstructionType::CleanupFuncCall, IROperator(identifier)));
+		Instructions.emplace_back(new IRInstruction(IRInstructionType::CleanupFuncCall, 
+			IROperator(identifier),
+			IROperator(AnyInt64(CallOnlyIfAfterWhenExceptionThrown))));
+	}
+	void CleanupCall(IRidentifierID identifier, size_t CallOnlyIfAfterWhenExceptionThrown)
+	{
+		Instructions.emplace_back(new IRInstruction(IRInstructionType::CleanupCall,
+			IROperator(identifier),
+			IROperator(AnyInt64(CallOnlyIfAfterWhenExceptionThrown))));
 	}
 	void ThrowException(IRInstruction* Msgpointer, IRInstruction* Msgsize)
 	{

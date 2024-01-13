@@ -196,7 +196,7 @@ void IRTypeFixer::OnFunc(IRFunc* Func)
 					}
 				}
 			}
-			else if (Ins->Type == IRInstructionType::Call)
+			else if (Ins->Type == IRInstructionType::Call || Ins->Type == IRInstructionType::CleanupFuncCall)
 			{
 				auto Item = _Input->GetFunc(Ins->Target().identifier);
 				if (Item)
