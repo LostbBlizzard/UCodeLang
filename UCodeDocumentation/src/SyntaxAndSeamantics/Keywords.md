@@ -80,6 +80,7 @@ All keywords that dont fit in the other categories.
 |--- | --- |
 [for](./Miscellaneous/for.md) | loop over a list of items
 [import](./Miscellaneous/import.md) | import a library
-[out](./Miscellaneous/out.md) | a second output value
-[panic](./Miscellaneous/Panic.md) | throw a runtime error
+[out](./Miscellaneous/out.md) | a second output value.
+[panic](./Miscellaneous/panic.md) | throw a runtime error.
+[defer](./Miscellaneous/defer.md) | throw a runtime error.
 [use](./Miscellaneous/use.md) | use a namespace
