@@ -230,6 +230,7 @@
     - [for](./SyntaxAndSeamantics/Miscellaneous/for.md)
     - [import](./SyntaxAndSeamantics/Miscellaneous/import.md)
     - [out](./SyntaxAndSeamantics/Miscellaneous/out.md)
-    - [panic](./SyntaxAndSeamantics/Miscellaneous/Panic.md)
     - [use](./SyntaxAndSeamantics/Miscellaneous/use.md)
+    - [panic](./SyntaxAndSeamantics/Miscellaneous/panic.md)
+    - [defer](./SyntaxAndSeamantics/Miscellaneous/defer.md)
 
