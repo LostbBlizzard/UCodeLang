@@ -476,15 +476,28 @@ bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const ValueExpressionNo
 	break;
 	case NodeType::TypeToValueNode:
 	{
+		auto oldpasstype = _PassType;
+		_PassType = PassType::FixedTypes;
+
 		OnTypeToValueNode(*TypeToValueNode::As(node._Value.get()));
 		Eval_Set_ObjectAs(Out, _LastExpressionType);
+	
+		_PassType = oldpasstype;
+
 		return true;
 	}
 	break;
 	case NodeType::ExpressionToTypeValueNode:
 	{
+		auto oldpasstype = _PassType;
+
+		_PassType = PassType::FixedTypes;
+
 		OnExpressionToTypeValueNode(*ExpressionToTypeValueNode::As(node._Value.get()));
 		Eval_Set_ObjectAs(Out, _LastExpressionType);
+	
+		_PassType = oldpasstype;
+		
 		return true;
 	}
 	break;
@@ -772,8 +785,11 @@ Optional<SystematicAnalysis::EvaluatedEx> SystematicAnalysis::Eval_Evaluate(cons
 }
 bool SystematicAnalysis::Eval_EvaluateToAnyType(EvaluatedEx& Out, const ExpressionNodeType& node)
 {
+	//Nodes like type and typeof dont will throw an error if _PassType == PassType::Build
+	auto oldpasstype = _PassType;
+	_PassType = PassType::FixedTypes;
 	OnExpressionTypeNode(node._Value.get(), GetValueMode::Read);//check
-
+	_PassType = oldpasstype;
 
 	EvaluatedEx ex1 = Eval_MakeEx(_LastExpressionType);
 	bool CompilerRet = Eval_Evaluate_t(ex1, node._Value.get(), GetValueMode::Read);
