@@ -823,7 +823,17 @@ bool SystematicAnalysis::Eval_EvalutateValidNode(EvaluatedEx& Out, const ValidNo
 }
 bool SystematicAnalysis::Eval_EvalutateFunc(EvaluatedEx& Out, const FuncCallNode& node)
 {
-	Get_FuncInfo FuncInfo = Type_GetFunc(node._FuncName, node.Parameters, Type_Get_LookingForType());
+	Get_FuncInfo FuncInfo;
+	
+	auto symid = Symbol_GetSymbolID(node);
+	if (_FuncToSyboID.HasValue(symid))
+	{
+		FuncInfo = _FuncToSyboID.GetValue(symid);
+	}
+	else
+	{
+		FuncInfo = Type_GetFunc(node._FuncName, node.Parameters, Type_Get_LookingForType());
+	}
 
 	if (Eval_CanEvalutateFuncCheck(FuncInfo))
 	{
