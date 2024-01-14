@@ -1609,24 +1609,22 @@ void ParseLine(String_view& Line)
 	else if (Word1 == "help" || Word1 == "-h")
 	{
 		AppPrintin("Usage: uclang [command] [args]");
-		*_This.output << "put help info here.\n";
 
 		AppPrintin("new           [Path]     :Makes a new Module Project");
 		AppPrintin("build         [Path]     :Builds the UCode file,Module,folder");
 		AppPrintin("run           [Path] <FunctionName(<Args>)>    :run the UCode file,Module,folder,.ulib");
 		AppPrintin("test          [Path]     :Runs Tests the UCode file,Module,folder,.ulib");
 		AppPrintin("dump          [Path]     :Convert the UCode file,Module,folder,.ulib to Readable Text");
+		AppPrintin("clean         [Path]     :Clean all projects Output and intermediate.");
+		AppPrintin("cleanall                 :Cleans all projects Output and intermediate.");
 		AppPrintin("fmt           [Path]     :Format the UCode file,Module,folder");
 		AppPrintin("index         [Path]     :Adds Module to to the Module Index");
 		AppPrintin("update        [Path]     :Updates Module Dependencies");
 		AppPrintin("cpptoulangvm  [CppPath] [UCodeLangBindingPath] [CppVMBindingPath]     :Makes ULang Bindings from C++ Source for UCodeVm");
 		AppPrintin("cppdirtoulangvm [CppDir] [UCodeLangBindingPath] [CppVMBindingPath]     :Makes ULang Bindings from C++ Source files for UCodeVm");
-
-
 		AppPrintin("install [Name] :Installs a UCodeLangModule");
 		AppPrintin("runmod [Name] :runs a Installed UCodeLangModule");
 		AppPrintin("uninstallmod [Name] :uninstalls a Installed UCodeLangModule");
-
 		AppPrintin("updatetools [Name] :updates UCodeLangTools");
 		AppPrintin("uninstalltools [Name] :uninstalls UCodeLangTools");
 		AppPrintin("exit : closes the window");
