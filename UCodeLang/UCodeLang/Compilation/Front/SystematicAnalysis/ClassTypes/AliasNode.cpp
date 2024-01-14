@@ -105,6 +105,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 		{
 			if (node._AliasType == AliasType::Type)
 			{
+				Syb.PassState = PassType::FixedTypes;
 				Type_ConvertAndValidateType(node._Type, Syb.VarType, NodeSyb_t::Any);
 			}
 			else
