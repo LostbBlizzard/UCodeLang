@@ -1313,7 +1313,7 @@ TokenType_Name:
 		TokenTypeCheck(ParToken, FuncCallStart);
 		NextToken();
 
-		GetType(V->_Type);
+		GetType(V->_Type,false,false);
 
 		auto Par2Token = TryGetToken();
 		TokenTypeCheck(Par2Token, FuncCallEnd);
