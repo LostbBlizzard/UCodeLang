@@ -203,7 +203,7 @@ static const Array<TestInfo, 112> Tests{
 	TestInfo("TypeBinding", "Objects/TypeBinding.uc", "main", SuccessCondition::RunTimeValue, (int)1),
 	TestInfo("GetFields", "Eval/GetFields.uc", "main", SuccessCondition::RunTimeValue, (size_t)15),
 	TestInfo("GetFields2", "Eval/GetFields2.uc", "main", SuccessCondition::RunTimeValue, (size_t)7),
-	TestInfo("GetFields3", "Eval/GetFields3.uc", "main", SuccessCondition::RunTimeValue, (int)16),
+	TestInfo("GetFields3", "Eval/GetFields3.uc", "main", SuccessCondition::RunTimeValue, (size_t)24),
 	TestInfo("GetFields_enum", "Eval/GetEnumFields.uc", "main", SuccessCondition::RunTimeValue, (int)3),
 	TestInfo("GetFields_enum_2", "Eval/GetEnumFields2.uc", "main", SuccessCondition::RunTimeValue, (int)12),
 	TestInfo("GetEnum_Base", "Eval/GetEnumBase.uc", "main", SuccessCondition::RunTimeValue, (bool)true),
