@@ -1368,10 +1368,16 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 		_LastLookedAtToken = Nullableptr(V._name._ScopedName.back()._token);
 
 
-		UseGenericsNode& _generic = *V._name._ScopedName.back()._generic.get();
-		if (_generic._Values.size())
+		NullablePtr<UseGenericsNode> _generic;
+		if (V._name._ScopedName.back()._generic.get())
 		{
-			auto Val = Generic_InstantiateOrFindGenericSymbol(NeverNullptr(V._name._ScopedName.back()._token), _generic, Name);
+			_generic = V._name._ScopedName.back()._generic.get();
+		}
+		if (_generic.has_value() && _generic.value()->_Values.size())
+		{
+			const UseGenericsNode* _genericval = _generic.value().value();
+
+			auto Val = Generic_InstantiateOrFindGenericSymbol(NeverNullptr(V._name._ScopedName.back()._token), *_genericval, Name);
 			if (!Val.has_value()) { return; }
 			SybV = Val.value().value();
 		}
