@@ -1120,7 +1120,7 @@ bool SystematicAnalysis::Eval_EvalutateFunc(EvalFuncData& State, const NeverNull
 	const FuncInfo* funcInfo = Func->Get_Info<FuncInfo>();
 	Set_SymbolContext(funcInfo->Context.value());
 	{
-		_Table._Scope.ThisScope = Func->FullName;
+		_Table._Scope.ThisScope = funcInfo->FullName;
 		
 		const FuncNode& Body = *Func->Get_NodeInfo<FuncNode>();
 
@@ -1212,7 +1212,7 @@ bool SystematicAnalysis::EvalStore(EvalFuncData& State, const ExpressionNodeType
 								auto& frame = _Eval_FuncStackFrames.back();
 
 								auto ThisSym = Symbol_GetSymbol(
-									ScopeHelper::ApendedStrings(frame->FuncSyb->FullName, ThisSymbolName)
+									ScopeHelper::ApendedStrings(frame->FuncSyb->Get_Info<FuncInfo>()->FullName, ThisSymbolName)
 									, SymbolType::ParameterVarable).value();
 
 
@@ -1301,19 +1301,23 @@ bool SystematicAnalysis::Eval_EvalutateStatement(EvalFuncData& State, const Node
 		const AssignExpressionNode* Node = AssignExpressionNode::As(node);
 		auto& assign = Node->_ToAssign;
 
-		 OnExpressionTypeNode(assign,GetValueMode::Write);
-		 auto StoreType = _LastExpressionType;
 
-		 _LookingForTypes.push(std::move(StoreType));
-		 auto ex = Eval_Evaluate(StoreType, Node->_Expression);
-		 _LookingForTypes.pop();
+		_LookingForTypes.push(TypesEnum::Any);
+		OnExpressionTypeNode(assign, GetValueMode::Write);
+		_LookingForTypes.pop();
 
-		 if (!ex.has_value())
-		 {
-			 return false;
-		 }
-		
-		 return EvalStore(State, assign, ex.value());
+		auto StoreType = _LastExpressionType;
+
+		_LookingForTypes.push(std::move(StoreType));
+		auto ex = Eval_Evaluate(StoreType, Node->_Expression);
+		_LookingForTypes.pop();
+
+		if (!ex.has_value())
+		{
+			return false;
+		}
+
+		return EvalStore(State, assign, ex.value());
 	}
 	break;
 	default:
