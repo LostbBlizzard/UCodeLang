@@ -96,6 +96,9 @@ or directly to native machine code when that gets done.
 # Supported programming Languages
 
 - [C++](https://github.com/LostbBlizzard/UCodeLang) //This Repository
+- [Rust](https://github.com/LostbBlizzard/ucodelang-rust) //rust binding,with idiomatic rust wappers and rust related tools for UCodeLang
+- [Zig](https://github.com/LostbBlizzard/ucodelang-zig) //zig binding,with idiomatic zig wappers and zig related tools for UCodeLang
+- [C](https://github.com/LostbBlizzard/UCodeLang/releases/latest) //Just Copy UCodeLangCAPI.h and the steal a static library from the [releases](https://github.com/LostbBlizzard/UCodeLang/releases/latest)
 
 # Downloads & Documentation
 
