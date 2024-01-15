@@ -101,6 +101,15 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 
 void SystematicAnalysis::IR_WriteTo(IRInstruction* IR, const IROperator& Value)
 {
+	if (Value.Type == IROperatorType::DereferenceOf_IRParameter)
+	{
+		//Because of Out Parameters
+		IROperator op = Value;
+		op.Type = IROperatorType::IRParameter;
+		IR_WriteToDef(IR, op);
+		return;
+	}
+
 	_IR_LookingAtIRBlock->NewStore((IRInstruction*)nullptr, IR);
 	auto& Item = _IR_LookingAtIRBlock->Instructions.back();
 	Item->Target() = Value;
