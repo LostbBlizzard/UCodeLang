@@ -471,7 +471,7 @@ void SystematicAnalysis::TryError_AllValuesAreMatched(const NeverNullPtr<Token> 
 			hasval.resize(allvals.size());
 			Vector<size_t> extrasamevalue;
 
-			auto aresame = [&](const TypeSymbol& MatchItem,RawEvaluatedObject a, RawEvaluatedObject b) -> bool
+			auto aresame = [&](const TypeSymbol& MatchItem, const RawEvaluatedObject& a,const RawEvaluatedObject& b) -> bool
 			{
 					auto v = Type_GetSize(MatchItem).value_or(0);
 
@@ -486,8 +486,10 @@ void SystematicAnalysis::TryError_AllValuesAreMatched(const NeverNullPtr<Token> 
 						break;
 					}
 			};
-			for (auto& Item : evalarmvalues)
+			for (size_t ix = 0; ix < evalarmvalues.size(); ix++)
 			{
+				auto& Item = evalarmvalues[ix];
+
 				for (size_t i = 0; i < allvals.size(); i++)
 				{
 					auto& Item2 = allvals[i];
@@ -497,25 +499,28 @@ void SystematicAnalysis::TryError_AllValuesAreMatched(const NeverNullPtr<Token> 
 					if (issameval)
 					{
 
-						for (size_t i2 = 0; i2 < allvals.size(); i2++)
+						for (size_t i2 = 0; i2 < evalarmvalues.size(); i2++)
 						{
-							bool issameval3 = aresame(MatchItem, allvals[i2], Item2);
-							if (i2 != i) 
+							if (i2 != ix)
 							{
-								bool allreadyhasvalue = false;
-
-								for (auto& v : extrasamevalue)
+								bool issameval3 = aresame(MatchItem, evalarmvalues[i2], Item2);
+								if (issameval3) 
 								{
-									if (v == i2)
+									bool allreadyhasvalue = false;
+
+									for (auto& v : extrasamevalue)
 									{
-										allreadyhasvalue = true;
-										break;
+										if (aresame(MatchItem,evalarmvalues[v],Item2))
+										{
+											allreadyhasvalue = true;
+											break;
+										}
 									}
-								}
 
-								if (allreadyhasvalue == false) 
-								{
-									extrasamevalue.push_back(i2);
+									if (allreadyhasvalue == false)
+									{
+										extrasamevalue.push_back(i2);
+									}
 								}
 							}
 						}
@@ -544,7 +549,17 @@ void SystematicAnalysis::TryError_AllValuesAreMatched(const NeverNullPtr<Token> 
 			}
 			for (auto& item : extrasamevalue)
 			{
+				auto& Item2 = allvals[item];
+				String msg;
 
+				msg += "'the value '";
+
+				msg += ToString(MatchItem, Item2);
+
+				msg += "'";
+				msg += " is matched more then once";
+
+				LogError(ErrorCodes::InValidName, msg, Token);
 			}
 		}
 
