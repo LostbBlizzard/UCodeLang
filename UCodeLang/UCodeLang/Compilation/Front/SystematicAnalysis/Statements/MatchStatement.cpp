@@ -755,9 +755,15 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 
 			Type_CanMatch(ToMatchType, node._Expression, Item._Expression, V.ArmData);
 
+			_LookingForTypes.push(MatchAssignmentType);
+
 			OnExpressionTypeNode(Item._AssignmentExpression, GetValueMode::Read);
+
+			_LookingForTypes.pop();
+
 			auto AssignmentType = _LastExpressionType;
 			
+
 			if (MatchAssignmentType.IsAn(TypesEnum::Var))
 			{
 				MatchAssignmentType = AssignmentType;
@@ -781,7 +787,12 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 		{
 			_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
 
+			_LookingForTypes.push(MatchAssignmentType);
+
 			OnExpressionTypeNode(node._InvaidCase.value(), GetValueMode::Read);
+			
+			_LookingForTypes.pop();
+
 			auto AssignmentType = _LastExpressionType;
 			if (!Type_CanBeImplicitConverted(AssignmentType, MatchAssignmentType))
 			{
@@ -807,6 +818,8 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 
 		V._MatchAssignmentType = MatchAssignmentType;
 		_MatchExpressionDatas.AddValue(Symbol_GetSymbolID(node), std::move(V));
+
+		_LastExpressionType = MatchAssignmentType;
 	}
 	else if (_PassType == PassType::BuidCode)
 	{
@@ -887,6 +900,9 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 		_LookingForTypes.pop();
 
 		_IR_LastExpressionField = OutEx;
+
+
+		_LastExpressionType = V._MatchAssignmentType;
 	}
 }
 void SystematicAnalysis::Assembly_LoadType(const ReflectionTypeInfo& Item, TypeSymbol& Out)
