@@ -4661,6 +4661,7 @@ GotNodeType Parser::GetMatchStatement(MatchStatement& out)
 {
 	auto MatchToken = TryGetToken(); TokenTypeCheck(MatchToken, TokenType::KeyWord_match);
 	NextToken();
+	out._Token = MatchToken;
 
 	GetExpressionTypeNode(out._Expression);
 
@@ -4718,6 +4719,8 @@ GotNodeType Parser::GetMatchExpression(MatchExpression& out)
 {
 	auto MatchToken = TryGetToken(); TokenTypeCheck(MatchToken, TokenType::KeyWord_match);
 	NextToken();
+
+	out._Token = MatchToken;
 
 	GetExpressionTypeNode(out._Expression);
 

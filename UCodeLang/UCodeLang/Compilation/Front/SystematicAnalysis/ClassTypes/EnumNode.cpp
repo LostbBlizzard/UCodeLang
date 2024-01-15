@@ -61,7 +61,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 		{
 			LogError_TypeMustBeAnConstantExpressionAble(NeverNullptr(node._BaseType._name._ScopedName.back()._token), enumInf->Basetype);
 		}
-		ex = std::move(Eval_MakeEx(enumInf->Basetype));
+		ex = Eval_MakeEx(enumInf->Basetype);
 	}
 
 
