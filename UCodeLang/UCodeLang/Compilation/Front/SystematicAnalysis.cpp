@@ -2518,6 +2518,26 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type, const RawEvaluatedOb
 		{
 			goto Sint32Case;
 		}
+	case TypesEnum::CustomType:
+	{
+		auto syb = Symbol_GetSymbol(Type).value();
+
+		if (syb->Type == SymbolType::Enum)
+		{
+			EnumInfo* info = syb->Get_Info<EnumInfo>();
+
+			//UCodeLangAssert(Data.ObjectSize == Type_GetSize(Type));
+
+			for (auto& Item : info->Fields)
+			{
+				if (memcmp(Item.Ex.Object_AsPointer.get(), Data.Object_AsPointer.get(), Data.ObjectSize) == 0)
+				{
+					return ScopeHelper::ApendedStrings(syb->FullName, Item.Name);
+				}
+			}
+		}
+		
+	}break;
 	default:
 		break;
 	}
