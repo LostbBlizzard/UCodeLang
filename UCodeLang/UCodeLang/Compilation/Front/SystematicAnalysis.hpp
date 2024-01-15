@@ -1321,7 +1321,7 @@ private:
 	bool MatchShouldOutPassEnumValue(const ExpressionNodeType& node);
 	void MatchAutoPassEnumValueStart(MatchAutoPassEnum& V, const ExpressionNodeType& node, const ValueExpressionNode* Val, const FuncCallNode* Call);
 	void MatchAutoPassEnd(MatchAutoPassEnum& V);
-	void TryError_AllValuesAreMatched(const TypeSymbol& MatchItem, const MatchArmData& Data);
+	void TryError_AllValuesAreMatched(const NeverNullPtr<Token> Token, const TypeSymbol& MatchItem, const MatchArmData& Data,const Vector<NeverNullPtr<ExpressionNodeType>>& _Arms);
 
 
 	BuildMatch_ret IR_Build_Match(const TypeSymbol& MatchItem, const ExpressionNodeType& MatchValueNode, IRInstruction* Item, BuildMatch_State& State, MatchArm& Arm, const ExpressionNodeType& ArmEx);

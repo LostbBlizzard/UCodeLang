@@ -1297,6 +1297,7 @@ struct MatchStatementArm
 
 struct MatchStatement : Node
 {
+	const Token* _Token = nullptr;
 	ExpressionNodeType _Expression;
 	Vector<MatchStatementArm> _Arms;
 	Optional<StatementsNode> _InvaidCase;
@@ -1316,6 +1317,7 @@ struct MatchExpressionArm
 };
 struct MatchExpression : Node
 {
+	const Token* _Token = nullptr;
 	ExpressionNodeType _Expression;
 	Vector<MatchExpressionArm> _Arms;
 	Optional<ExpressionNodeType> _InvaidCase;

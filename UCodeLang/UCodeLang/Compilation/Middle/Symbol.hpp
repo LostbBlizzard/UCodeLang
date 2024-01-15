@@ -582,18 +582,32 @@ struct RawEvaluatedObject
 	{
 
 	}
-	RawEvaluatedObject(const RawEvaluatedObject& ToCopyFrom)
+	RawEvaluatedObject(const RawEvaluatedObject& ToCopyFrom) noexcept
 		:Object_AsPointer(new Byte[ToCopyFrom.ObjectSize]), ObjectSize(ToCopyFrom.ObjectSize)
 	{
 		memcpy(Object_AsPointer.get(), ToCopyFrom.Object_AsPointer.get(), ToCopyFrom.ObjectSize);
 	}
-	RawEvaluatedObject& operator=(const RawEvaluatedObject& ToCopyFrom)
+	RawEvaluatedObject& operator=(const RawEvaluatedObject& ToCopyFrom) noexcept
 	{
 		Object_AsPointer.reset(new Byte[ToCopyFrom.ObjectSize]);
 		ObjectSize = ToCopyFrom.ObjectSize;
 
 		memcpy(Object_AsPointer.get(), ToCopyFrom.Object_AsPointer.get(), ToCopyFrom.ObjectSize);
 
+		return *this;
+	}
+
+	RawEvaluatedObject(RawEvaluatedObject&& ToCopyFrom) noexcept
+		:Object_AsPointer(std::move(ToCopyFrom.Object_AsPointer)), ObjectSize(ToCopyFrom.ObjectSize)
+	{
+		ToCopyFrom.ObjectSize = 0;
+	}
+	RawEvaluatedObject& operator=(RawEvaluatedObject&& ToCopyFrom) noexcept
+	{
+		Object_AsPointer = std::move(ToCopyFrom.Object_AsPointer);
+		ObjectSize = ToCopyFrom.ObjectSize;
+
+		ToCopyFrom.ObjectSize = 0;
 		return *this;
 	}
 };
