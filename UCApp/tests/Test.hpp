@@ -100,7 +100,7 @@ inline String ModeType(OptimizationFlags Flags)
 	return r;
 }
 
-static const Array<TestInfo, 112> Tests{
+static const Array<TestInfo, 113> Tests{
 
 	TestInfo("main_0", "BasicTests/main.uc", "Main", SuccessCondition::Compilation),
 
@@ -210,6 +210,7 @@ static const Array<TestInfo, 112> Tests{
 
 	TestInfo("MatchAllSet", "BasicTests/MatchAllSet.uc", "main", SuccessCondition::CompilationFail),
 	TestInfo("MatchAllSet_2", "BasicTests/MatchAllSet2.uc", "main", SuccessCondition::CompilationFail),
+	TestInfo("MatchSameValueError", "BasicTests/MatchSameValueError.uc", "main", SuccessCondition::CompilationFail),
 
 	TestInfo("outfunc_1", "BasicTests/outfunc.uc", "main", SuccessCondition::RunTimeValue, (int)10),
 	TestInfo("outfunc_2", "BasicTests/outfunc2.uc", "main", SuccessCondition::RunTimeValue, (int)10),
