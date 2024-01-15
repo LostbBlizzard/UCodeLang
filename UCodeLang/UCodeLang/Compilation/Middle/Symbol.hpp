@@ -655,7 +655,7 @@ public:
 		Basetype = Symbol;
 	}
 
-	Optional<EnumFieldInfo*> GetField(const String_view Name)
+	NullablePtr<EnumFieldInfo> GetField(const String_view Name)
 	{
 		for (auto& Item : Fields)
 		{
