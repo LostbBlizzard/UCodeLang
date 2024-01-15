@@ -100,6 +100,44 @@ or directly to native machine code when that gets done.
 - [Zig](https://github.com/LostbBlizzard/ucodelang-zig) //zig binding,with idiomatic zig wappers and zig related tools for UCodeLang
 - [C](https://github.com/LostbBlizzard/UCodeLang/releases/latest) //Just Copy UCodeLangCAPI.h and the steal a static library from the [releases](https://github.com/LostbBlizzard/UCodeLang/releases/latest)
 
+# Features
+
+## Langue Features
+- [Constructors,Destructor]()
+- [Copy Constructors]()
+- [Move semantics]()
+- [rust enums]()
+- [Defer]()
+- [No implicit conversions]()
+- [Unsafe operations are behind like memory allocation are behind the unsafe keyword]()  
+- [Rust like traits(working on)]()
+- [Go like concurrency(working on)]()
+- [Easy to use binary(working on) and Json(working on) serialization in Standard Library]()
+- [No Macros]()
+- [operator overloading]()
+- [function overloading]()
+- [generics]()
+- [Attributing tag system like C#]()
+- [panic and value base errors]()
+- [good compiled time analysis]()
+
+## Library/Runtime Freatures
+- Optional Runtime SandBoxing
+- Flexible runtime
+  - Code can be [jited](), [interpreted]() or [precompiled to native code]() all working on the same runtime.
+  - Runtime threading model can made for any threading Style (task based, event loop,etcetera)
+- [A Wasm BackEnd]()
+- [A C11 BackEnd]()
+- [Code be compiled to Native Executables for Linux(working on),Windows(working on) and Mac(working on)]()
+- [Able to view all classes,funcions,trait after compileing]()
+- [Able to strip output unneeded classes]()
+- [Able to catch Panic if you like]()
+- [Debuging]()
+
+## Tooling Freatures
+- [Automatic Binding Generation]()
+- [Language server(working on)]()
+
 # Downloads & Documentation
 
 [Website](https://lostbblizzard.github.io/UCodeLang/)
