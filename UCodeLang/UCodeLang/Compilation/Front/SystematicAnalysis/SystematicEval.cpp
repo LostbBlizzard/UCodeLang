@@ -1358,6 +1358,21 @@ bool SystematicAnalysis::Eval_EvalutateScopedName(EvaluatedEx& Out, size_t Start
 			}
 
 		}
+		else if (V._Symbol->Type == SymbolType::Enum_Field)
+		{
+			const String FieldName = ScopeHelper::GetNameFromFullName(V._Symbol->FullName);
+			String enumsybfullname = V._Symbol->FullName;
+			ScopeHelper::ReMoveScope(enumsybfullname);
+			
+			auto v = Symbol_GetSymbol(enumsybfullname,SymbolType::Enum).value();
+			EnumInfo* info = v->Get_Info<EnumInfo>();
+			
+			auto field = info->GetField(FieldName).value();
+
+			Out.EvaluatedObject = field->Ex;
+			Out.Type = V.Type;
+			return true;
+		}
 
 	}
 	return false;
