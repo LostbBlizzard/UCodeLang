@@ -195,19 +195,31 @@ size_t ParseHelper::ParseCharliteralToChar(String_view string, String& out)
 size_t ParseHelper::ParseCharliteralToChar(String_view string, String8& out)
 {
 	//TODO fully add Utf8 stuport.
-	out += Utf8(0);
+
+	for (size_t i = 0; i < string.size(); i++)
+	{
+		out += Utf8(0);
+	}
 	return 0;
 }
 size_t ParseHelper::ParseCharliteralToChar(String_view string, String16& out)
 {
 	//TODO fully add Utf16 stuport.
-	out += Utf16(0);
+	
+	for (size_t i = 0; i < string.size(); i++)
+	{
+		out += Utf16(0);
+	}
 	return 0;
 }
 size_t ParseHelper::ParseCharliteralToChar(String_view string, String32& out)
 {
 	//TODO fully add Utf32 stuport.
-	out += Utf32(0);
+	
+	for (size_t i = 0; i < string.size(); i++)
+	{
+		out += Utf32(0);
+	}
 	return 0;
 }
 UCodeLangEnd
