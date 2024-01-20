@@ -609,7 +609,11 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 		if (_Varable.size())
 		{
 			auto& Data = _Varable.top();
-			Data._UsedSymbols.push_back(Out._Symbol);
+
+			if (Out._Symbol->Type == SymbolType::ParameterVarable || Out._Symbol->Type == SymbolType::StackVarable) 
+			{
+				Data._UsedSymbols.push_back(Out._Symbol);
+			}
 		}
 		return true;
 	}
