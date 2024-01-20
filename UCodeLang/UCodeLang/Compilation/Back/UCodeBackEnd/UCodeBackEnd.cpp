@@ -594,7 +594,7 @@ void UCodeBackEndObject::RegWillBeUsed(RegisterID Value)
 				if (V.has_value() && V != Value)
 				{
 					SetRegister(V.value(), *Item);
-					RegToReg(type._Type, Value, V.value(), false);
+					RegToReg(type, Value, V.value(), false);
 				}
 				else
 				{
@@ -3396,7 +3396,7 @@ RegisterID UCodeBackEndObject::MakeIntoRegister(const IRlocData& Value, Optional
 		auto V = Value.Info.Get<RegisterID>();
 		if (RegisterToPut.has_value())
 		{
-			RegToReg(Value.ObjectType._Type, V, RegisterToPut.value(), false);
+			RegToReg(Value.ObjectType, V, RegisterToPut.value(), false);
 			V = RegisterToPut.value();
 		}
 		return V;
@@ -4043,18 +4043,20 @@ void UCodeBackEndObject::LoadOpToReg(const IRInstruction* Ins, const IROperator&
 	auto Pos = GetIRLocData(Ins, Op);
 	MakeIntoRegister(Pos, Out);
 }
-void UCodeBackEndObject::RegToReg(IRTypes Type, RegisterID In, RegisterID Out, bool IsCopy)
+void UCodeBackEndObject::RegToReg(IRType Type, RegisterID In, RegisterID Out, bool IsCopy)
 {
 	if (In != Out)
 	{
-		switch (Type)
+		switch (Type._Type)
 		{
+	Int8L:
 		case IRTypes::i8:
 		{
 			InstructionBuilder::StoreRegToReg8(_Ins, In, Out);
 			PushIns();
 		}
 		break;
+	Int16L:
 		case IRTypes::i16:
 		{
 			InstructionBuilder::StoreRegToReg16(_Ins, In, Out);
@@ -4093,8 +4095,43 @@ void UCodeBackEndObject::RegToReg(IRTypes Type, RegisterID In, RegisterID Out, b
 			break;
 		case IRTypes::IRsymbol:
 		{
-			goto Pointer;
-		} // FuncPtrs
+			auto Sym = _Input->GetSymbol(Type._symbol);
+
+			switch (Sym->SymType)
+			{
+			case IRSymbolType::Struct:
+			{
+				auto structsize = GetSize(Type._symbol);
+
+				if (structsize == 1)
+				{
+					goto Int8L;
+				}
+				else if (structsize <= 2)
+				{
+					goto Int16L;
+				}
+				else if (structsize <= 4)
+				{
+					goto Int32L;
+				}
+				else if (structsize <= 8)
+				{
+					goto Int64L;
+				}
+				else 
+				{
+
+					UCodeLangUnreachable();
+				}
+			}
+			break;
+			case IRSymbolType::FuncPtr:goto Pointer;
+			default:
+				UCodeLangUnreachable();
+				break;
+			}
+		}
 		break;
 		default:
 			UCodeLangUnreachable();
