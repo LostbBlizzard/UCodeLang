@@ -78,13 +78,15 @@ void SystematicAnalysis::OnExpressionNode(const UnaryExpressionNode& node)
 					{
 						size_t NoneIndexKey = 0;
 						size_t SomeIndexKey = 0;
-						const RawEvaluatedObject* SomeEnumVal =nullptr;
+						const RawEvaluatedObject* SomeEnumVal = nullptr;
 						const RawEvaluatedObject* NoneEnumVal = nullptr;
+						Optional<SymbolID> enumsometypeclasssym;
 						for (size_t i = 0; i < info->VariantData.value().Variants.size(); i++)
 						{
 							auto& Item = info->VariantData.value().Variants[i];
 							if (Item.Types.size() == 1)
 							{
+								enumsometypeclasssym = Item.ClassSymbol;
 								SomeIndexKey = i;
 								SomeEnumVal = &info->Fields[i].Ex;
 							}
@@ -96,16 +98,18 @@ void SystematicAnalysis::OnExpressionNode(const UnaryExpressionNode& node)
 						}
 						const IRStruct* structir = _IR_Builder.GetSymbol(IR_ConvertToIRType(lasttype)._symbol)->Get_ExAs<IRStruct>();
 
-						
+
+						UCodeLangAssert(NoneEnumVal);
+						UCodeLangAssert(SomeEnumVal);
 
 						auto Ptr = ex;
 
 						auto key = _IR_LookingAtIRBlock->New_Member_Access(ex, structir, EnumVarantKeyIndex);
-						
-						auto same = _IR_LookingAtIRBlock->NewC_Equalto(key,LoadEvaluatedEx(*SomeEnumVal,info->Basetype));
+
+						auto same = _IR_LookingAtIRBlock->NewC_Equalto(key, LoadEvaluatedEx(*SomeEnumVal, info->Basetype));
 
 						auto  V = _IR_LookingAtIRBlock->NewConditionalJump(same);
-						
+
 						//ret nothing
 						{
 
@@ -113,7 +117,7 @@ void SystematicAnalysis::OnExpressionNode(const UnaryExpressionNode& node)
 							auto funcret = _FuncStack.front().Pointer->Ret;
 							auto v = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(funcret));
 							auto retkey = _IR_LookingAtIRBlock->New_Member_Access(v, structir, EnumVarantKeyIndex);
-							
+
 
 							auto info = Symbol_GetSymbol(funcret).value()->Get_Info<EnumInfo>();
 							const RawEvaluatedObject* NoneEnumVal = nullptr;
@@ -125,7 +129,7 @@ void SystematicAnalysis::OnExpressionNode(const UnaryExpressionNode& node)
 									NoneEnumVal = &info->Fields[i].Ex;
 								}
 							}
-							
+
 							_IR_LookingAtIRBlock->NewStore(retkey, LoadEvaluatedEx(*NoneEnumVal, info->Basetype));
 
 							_IR_LookingAtIRBlock->NewRetValue(v);
@@ -139,9 +143,17 @@ void SystematicAnalysis::OnExpressionNode(const UnaryExpressionNode& node)
 
 
 						auto unionV = _IR_LookingAtIRBlock->New_Member_Access(ex, structir, EnumVarantUnionIndex);
+						auto eumv = _IR_LookingAtIRBlock->New_Member_Access(unionV, _IR_Builder.GetSymbol(unionV->ObjectType._symbol)->Get_ExAs<IRStruct>(), SomeIndexKey);
 
-						_IR_LastExpressionField = _IR_LookingAtIRBlock->New_Member_Access(unionV, _IR_Builder.GetSymbol(unionV->ObjectType._symbol)->Get_ExAs<IRStruct>(), SomeIndexKey);
-
+						if (enumsometypeclasssym.has_value())
+						{
+							auto v = IR_ConvertToIRType(TypeSymbol(enumsometypeclasssym.value()));
+							_IR_LastExpressionField = _IR_LookingAtIRBlock->New_Member_Access(eumv, _IR_Builder.GetSymbol(v._symbol)->Get_ExAs<IRStruct>(),0);
+						}
+						else 
+						{
+							_IR_LastExpressionField = eumv;
+						}
 					}
 					else if (StringHelper::StartWith(name,UCode_ResultType))
 					{
