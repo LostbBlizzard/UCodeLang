@@ -199,7 +199,6 @@ void SystematicAnalysis::OnExpressionNode(const UnaryExpressionNode& node)
 							//
 							if (funcretir == lasttypeir) //if return type is the same as the Ex Err value
 							{
-								//there may be a bug because we think the enum field index is the same as the IR field Index but not all enum field all have varants. 
 								auto retkey = _IR_LookingAtIRBlock->New_Member_Access(v, structir, EnumVarantKeyIndex);
 								auto retunion = _IR_LookingAtIRBlock->New_Member_Access(v, structir, EnumVarantUnionIndex);
 
