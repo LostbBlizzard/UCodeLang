@@ -7,4 +7,4 @@
  utf16 V3 = 'A';
  utf32 V4 = 'A';
 
- ret sizeof(V1) + sizeof(V2) + sizeof(V3) + sizeof(V4);
+ ret sizeof(bind(typeof(V1))) + sizeof(bind(typeof(V2))) + sizeof(bind(typeof(V3))) + sizeof(bind(typeof(V4)));
