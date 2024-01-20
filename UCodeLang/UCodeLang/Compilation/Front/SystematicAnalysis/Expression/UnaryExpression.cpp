@@ -134,7 +134,7 @@ void SystematicAnalysis::OnExpressionNode(const UnaryExpressionNode& node)
 						_IR_LookingAtIRBlock->UpdateConditionaJump(V, same, _IR_LookingAtIRBlock->InsCount());
 
 						auto unionV = _IR_LookingAtIRBlock->New_Member_Access(ex, structir, EnumVarantUnionIndex);
-						auto eumv = _IR_LookingAtIRBlock->New_Member_Access(unionV, _IR_Builder.GetSymbol(unionV->ObjectType._symbol)->Get_ExAs<IRStruct>(), SomeIndexKey);
+						auto eumv = _IR_LookingAtIRBlock->New_Member_Access(unionV, _IR_Builder.GetSymbol(unionV->ObjectType._symbol)->Get_ExAs<IRStruct>(), 0);
 
 						if (enumsometypeclasssym.has_value())
 						{
