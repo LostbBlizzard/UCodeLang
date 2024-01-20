@@ -100,7 +100,7 @@ inline String ModeType(OptimizationFlags Flags)
 	return r;
 }
 
-static const Array<TestInfo, 112> Tests{
+static const Array<TestInfo, 114> Tests{
 
 	TestInfo("main_0", "BasicTests/main.uc", "Main", SuccessCondition::Compilation),
 
@@ -228,6 +228,8 @@ static const Array<TestInfo, 112> Tests{
 	TestInfo("UsescopeAndnotdot_2", "Objects/UsescopeAndnotdot2.uc", "main", SuccessCondition::CompilationFail),
 	TestInfo("OptionalOp", "Syntax/OptionalOp.uc", "main", SuccessCondition::RunTimeValue, (int)5),
 	TestInfo("ResultOp", "Syntax/ResultOp.uc", "main", SuccessCondition::RunTimeValue, (int)5),
+	TestInfo("OptionalOp2", "Syntax/OptionalOp2.uc", "main", SuccessCondition::RunTimeValue, (int)5),
+	TestInfo("ResultOp2", "Syntax/ResultOp2.uc", "main", SuccessCondition::RunTimeValue, (int)5),
 	TestInfo("MoveContruct", "Objects/MoveContruct.uc", "main", SuccessCondition::RunTimeValue, (bool)true),
 	TestInfo("CopyContruct", "Objects/CopyContruct.uc", "main", SuccessCondition::RunTimeValue, (bool)true),
 
