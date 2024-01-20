@@ -4994,7 +4994,12 @@ void UCodeBackEndObject::MoveValueInReg(const IRlocData& Value, size_t Offset, R
 		}
 		else
 		{
-			UCodeLangUnreachable();
+			auto type = Value.ObjectType;
+			IRlocData loc;
+			loc.ObjectType = type;
+			loc.Info = GetFreeStackPos(type);
+
+			MoveValueInReg(loc, Offset, To);
 		}
 	}
 	else if (Value.Info.Is<IRlocData_StackPost>() || Value.Info.Is<IRlocData_StackPre>())
