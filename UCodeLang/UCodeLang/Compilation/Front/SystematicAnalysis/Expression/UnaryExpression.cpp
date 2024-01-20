@@ -122,15 +122,6 @@ void SystematicAnalysis::OnExpressionNode(const UnaryExpressionNode& node)
 
 
 							auto info = Symbol_GetSymbol(funcret).value()->Get_Info<EnumInfo>();
-							const RawEvaluatedObject* NoneEnumVal = nullptr;
-							for (size_t i = 0; i < info->VariantData.value().Variants.size(); i++)
-							{
-								auto& Item = info->VariantData.value().Variants[i];
-								if (Item.Types.size() == 0)
-								{
-									NoneEnumVal = &info->Fields[i].Ex;
-								}
-							}
 
 							_IR_LookingAtIRBlock->NewStore(retkey, LoadEvaluatedEx(*NoneEnumVal, info->Basetype));
 
@@ -141,8 +132,6 @@ void SystematicAnalysis::OnExpressionNode(const UnaryExpressionNode& node)
 							_IR_Rets.push_back(tep);
 						}
 						_IR_LookingAtIRBlock->UpdateConditionaJump(V, same, _IR_LookingAtIRBlock->InsCount());
-
-
 
 						auto unionV = _IR_LookingAtIRBlock->New_Member_Access(ex, structir, EnumVarantUnionIndex);
 						auto eumv = _IR_LookingAtIRBlock->New_Member_Access(unionV, _IR_Builder.GetSymbol(unionV->ObjectType._symbol)->Get_ExAs<IRStruct>(), SomeIndexKey);
@@ -157,9 +146,110 @@ void SystematicAnalysis::OnExpressionNode(const UnaryExpressionNode& node)
 							_IR_LastExpressionField = eumv;
 						}
 					}
-					else if (StringHelper::StartWith(name,UCode_ResultType))
+					else if (StringHelper::StartWith(name, UCode_ResultType))
 					{
+						size_t Indexval = 0;
+						size_t Indexerr = 0;
+						{
+							const Symbol* Resultgeneric = Symbol_GetSymbol(UCode_ResultType, SymbolType::Generic_Enum).value().value();
+							const EnumInfo* ResultgenericInfo = Resultgeneric->Get_Info<EnumInfo>();
 
+
+							if (ResultgenericInfo->VariantData.value().Variants[0].Types.front()._CustomTypeSymbol == ResultgenericInfo->_GenericData._Genericlist[0].SybID)
+							{
+								Indexval = 0;
+								Indexerr = 1;
+							}
+							else
+							{
+								Indexval = 1;
+								Indexerr = 0;
+							}
+						}
+
+						const RawEvaluatedObject* ValEnumVal = &info->Fields[Indexval].Ex;
+						const RawEvaluatedObject* ErrEnumVal = &info->Fields[Indexerr].Ex;
+						Optional<SymbolID> enumValtypeclasssym;
+						Optional<SymbolID> enumErrtypeclasssym;
+						{
+							auto& variantinfo = info->VariantData.value();
+
+							enumValtypeclasssym = variantinfo.Variants[Indexval].ClassSymbol;
+							enumErrtypeclasssym = variantinfo.Variants[Indexerr].ClassSymbol;
+						}
+
+						auto lasttypeir = IR_ConvertToIRType(lasttype);
+						const IRStruct* structir = _IR_Builder.GetSymbol(lasttypeir._symbol)->Get_ExAs<IRStruct>();
+
+						auto Ptr = ex;
+
+						auto key = _IR_LookingAtIRBlock->New_Member_Access(ex, structir, EnumVarantKeyIndex);
+
+						auto same = _IR_LookingAtIRBlock->NewC_Equalto(key, LoadEvaluatedEx(*ValEnumVal, info->Basetype));
+
+						auto  V = _IR_LookingAtIRBlock->NewConditionalJump(same);
+
+						//ret nothing
+						{
+							auto funcret = _FuncStack.front().Pointer->Ret;
+							auto funcretir = IR_ConvertToIRType(funcret);
+							auto v = _IR_LookingAtIRBlock->NewLoad(funcretir);
+
+
+							//
+							if (funcretir == lasttypeir) //if return type is the same as the Ex Err value
+							{
+								//there may be a bug because we think the enum field index is the same as the IR field Index but not all enum field all have varants. 
+								auto retkey = _IR_LookingAtIRBlock->New_Member_Access(v, structir, EnumVarantKeyIndex);
+								auto retunion = _IR_LookingAtIRBlock->New_Member_Access(v, structir, EnumVarantUnionIndex);
+
+								auto info = Symbol_GetSymbol(funcret).value()->Get_Info<EnumInfo>();
+
+								_IR_LookingAtIRBlock->NewStore(retkey, LoadEvaluatedEx(*ErrEnumVal, info->Basetype));
+
+								auto unionV = _IR_LookingAtIRBlock->New_Member_Access(ex, structir, EnumVarantUnionIndex);
+
+								IRStruct* t = _IR_Builder.GetSymbol(unionV->ObjectType._symbol)->Get_ExAs<IRStruct>();
+
+								auto eumv = _IR_LookingAtIRBlock->New_Member_Access(unionV,t, Indexerr);
+
+								auto unionstore = _IR_LookingAtIRBlock->New_Member_Access(retunion, t, Indexerr);
+
+								if (enumErrtypeclasssym.has_value())
+								{
+									eumv = _IR_LookingAtIRBlock->New_Member_Access(eumv, t,0);
+									unionstore = _IR_LookingAtIRBlock->New_Member_Access(unionstore, t, 0);
+								}
+								//missing copy or move
+
+								
+
+								_IR_LookingAtIRBlock->NewStore(unionstore, eumv);
+
+								_IR_LookingAtIRBlock->NewRetValue(v);
+							}
+							else{
+								UCodeLangUnreachable();
+							}
+
+							RetData tep;
+							tep.JumpIns = _IR_LookingAtIRBlock->NewJump(0);
+							_IR_Rets.push_back(tep);
+						}
+						_IR_LookingAtIRBlock->UpdateConditionaJump(V, same, _IR_LookingAtIRBlock->InsCount());
+
+						auto unionV = _IR_LookingAtIRBlock->New_Member_Access(ex, structir, EnumVarantUnionIndex);
+						auto eumv = _IR_LookingAtIRBlock->New_Member_Access(unionV, _IR_Builder.GetSymbol(unionV->ObjectType._symbol)->Get_ExAs<IRStruct>(), Indexval);
+
+						if (enumValtypeclasssym.has_value())
+						{
+							auto v = IR_ConvertToIRType(TypeSymbol(enumValtypeclasssym.value()));
+							_IR_LastExpressionField = _IR_LookingAtIRBlock->New_Member_Access(eumv, _IR_Builder.GetSymbol(v._symbol)->Get_ExAs<IRStruct>(), 0);
+						}
+						else
+						{
+							_IR_LastExpressionField = eumv;
+						}
 					}
 
 

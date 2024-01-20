@@ -1149,7 +1149,51 @@ SystematicAnalysis::UrinaryOverLoadWith_t SystematicAnalysis::Type_HasUrinaryOve
 				{
 					EnumInfo* info = Syb->Get_Info<EnumInfo>();
 
-					if (info->Fields.size() != 2)
+					const Symbol* Resultgeneric = Symbol_GetSymbol(UCode_ResultType,SymbolType::Generic_Enum).value().value();
+					const EnumInfo* ResultgenericInfo = Resultgeneric->Get_Info<EnumInfo>();
+
+					if (info->Fields.size() != 2 || !info->VariantData.has_value())
+					{
+						return {};
+					}
+
+					if (ResultgenericInfo->_GenericData._Genericlist.size() == 2
+						&& ResultgenericInfo->Fields.size() != 2 || !ResultgenericInfo->VariantData.has_value())
+					{
+						return {};
+					}
+
+					size_t Indexval = 0;
+					size_t Indexerr = 0;
+
+					if (ResultgenericInfo->VariantData.value().Variants[0].Types.front()._CustomTypeSymbol == ResultgenericInfo->_GenericData._Genericlist[0].SybID)
+					{
+						Indexval = 0;
+						Indexerr = 1;
+					}
+					else
+					{
+						Indexval = 1;
+						Indexerr = 0;
+					}
+
+					UCodeLangAssert(Indexval != Indexerr);
+
+					auto& variantinfo = info->VariantData.value().Variants;
+
+					EnumVariantField* hasval = &variantinfo[Indexval];
+					EnumVariantField* haserr = &variantinfo[Indexerr];
+
+					if (hasval && haserr)
+					{
+						auto rettype = hasval->Types[0];
+
+
+						_LastExpressionType = rettype;//Should return rettype and not set _LastExpressionType
+
+						return { {true} };
+					}
+					else
 					{
 						return {};
 					}
