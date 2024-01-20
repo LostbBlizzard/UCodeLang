@@ -20,6 +20,8 @@ void SystematicAnalysis::OnExpressionNode(const UnaryExpressionNode& node)
 		if (!Info.HasValue)
 		{
 			LogError_CantFindUnaryOpForTypes(BinaryOp, extype);
+			
+			_LastExpressionType = TypesEnum::Null;
 		}
 		else
 		{
