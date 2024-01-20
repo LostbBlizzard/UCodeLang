@@ -1319,7 +1319,7 @@ private:
 
 
 	bool MatchShouldOutPassEnumValue(const ExpressionNodeType& node);
-	void MatchAutoPassEnumValueStart(MatchAutoPassEnum& V, const ExpressionNodeType& node, const ValueExpressionNode* Val, const FuncCallNode* Call);
+	void MatchAutoPassEnumValueStart(MatchAutoPassEnum& V, const ExpressionNodeType& matchval, const ValueExpressionNode* Val, const FuncCallNode* Call);
 	void MatchAutoPassEnd(MatchAutoPassEnum& V);
 	void TryError_AllValuesAreMatched(const NeverNullPtr<Token> Token, const TypeSymbol& MatchItem, const MatchArmData& Data,const Vector<NeverNullPtr<ExpressionNodeType>>& _Arms);
 
@@ -1920,6 +1920,10 @@ private:
 	void IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNode& Name, const ValueParametersNode& Pars);
 	void IR_Build_FuncCall(const TypeSymbol& Type, const Get_FuncInfo& Func, const ValueParametersNode& ValuePars);
 	void IR_Build_DestructorCall(const ObjectToDrop& Object);
+	void IR_Build_EnumOut(NeverNullPtr<Symbol> EnumSymbol, size_t EnumIndex, const ValueParametersNode& Pars);
+	void IR_Build_EnumOut(NeverNullPtr<Symbol> EnumSymbol,IRInstruction* ThisEnum, size_t EnumIndex, const ValueParametersNode& Pars,size_t StartIndex =0);
+
+
 
 	IRInstruction* IR_Load_UIntptr(UAddress Value);
 	IRInstruction* IR_Load_SIntptr(SIntNative Value);

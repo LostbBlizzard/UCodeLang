@@ -191,6 +191,9 @@ bool SystematicAnalysis::MatchShouldOutPassEnumValue(const ExpressionNodeType& n
 }
 void SystematicAnalysis::MatchAutoPassEnumValueStart(MatchAutoPassEnum& V, const ExpressionNodeType& node, const ValueExpressionNode* Val, const FuncCallNode* Call)
 {
+	auto SymName = "";
+	auto& sym = Symbol_AddSymbol(SymbolType::StackVarable, SymName, SymName, AccessModifierType::Private);
+
 	V.Func._FuncName._ScopedName = Call->_FuncName._ScopedName;
 
 	V.Func.Parameters._Nodes.resize(Call->Parameters._Nodes.size() + 1);
@@ -622,16 +625,10 @@ SystematicAnalysis::BuildMatch_ret SystematicAnalysis::IR_Build_Match(const Type
 					const ValueExpressionNode* Val = ValueExpressionNode::As(ArmEx._Value.get());
 					const FuncCallNode* Call = FuncCallNode::As(Val->_Value.get());
 
-					auto& Ptr = Arm.Get_AutoPassEnum();
+					String FieldName = "";
+					Call->_FuncName.GetScopedName(FieldName);
 
-					MatchAutoPassEnumValueStart(Ptr, MatchValueNode, Val, Call);
-
-
-					_LookingForTypes.push(MatchItem);
-					OnExpressionTypeNode(Ptr.NewNode, GetValueMode::Read);
-					_LookingForTypes.pop();
-
-					MatchAutoPassEnd(Ptr);
+					IR_Build_EnumOut(Syb, _IR_LookingAtIRBlock->NewLoadPtr(Item), eInfo->GetFieldIndex(FieldName).value(), Call->Parameters,0);
 
 					auto Type = _LastExpressionType;
 					auto ArmExIR = _IR_LastExpressionField;
