@@ -406,7 +406,14 @@ private:
 
 	RegisterID LoadOp(const IRInstruction* Ins, const IROperator& Op);
 	void LoadOpToReg(const IRInstruction* Ins, const IROperator& Op, RegisterID Out);
-	void RegToReg(IRTypes Type, RegisterID In, RegisterID Out, bool IsCopy);
+	void RegToReg(IRTypes Type, RegisterID In, RegisterID Out, bool IsCopy)
+	{
+		IRType v;
+		v._Type = Type;
+		UCodeLangAssert(Type != IRTypes::IRsymbol);
+		RegToReg(v, In, Out, IsCopy);
+	}
+	void RegToReg(IRType Type, RegisterID In, RegisterID Out, bool IsCopy);
 	void PushOpStack(const IRInstruction* Ins, const IROperator& Op);
 	void LogicalNot(IRTypes Type, RegisterID In, RegisterID Out);
 	void BuildLink(const IRidentifier& FuncName, IRFuncLink LinkType);
