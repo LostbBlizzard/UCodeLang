@@ -40,6 +40,60 @@ mainly
   - Compile time power
 
 
+# Supported programming Languages
+
+- [C++](https://github.com/LostbBlizzard/UCodeLang) //This Repository
+- [Rust](https://github.com/LostbBlizzard/ucodelang-rust) //rust binding,with idiomatic rust wappers and rust related tools for UCodeLang
+- [Zig](https://github.com/LostbBlizzard/ucodelang-zig) //zig binding,with idiomatic zig wappers and zig related tools for UCodeLang
+- [C](https://github.com/LostbBlizzard/UCodeLang/releases/latest) //Just Copy UCodeLangCAPI.h and the steal a static library from the [releases](https://github.com/LostbBlizzard/UCodeLang/releases/latest)
+
+# Features
+
+Completely focused and specialized on Game Development and Game Engines.
+
+## Langue Features
+- [Constructors,Destructor]()
+- [Copy Constructors]()
+- [Move semantics]()
+- [rust enums]()
+- [Defer]()
+- [No implicit conversions]()
+- [Unsafe operations are behind like memory allocation are behind the unsafe keyword]()  
+- [Rust like traits(working on)]()
+- [Go like concurrency(working on)]()
+- [Easy to use binary(working on) and Json(working on) serialization in Standard Library]()
+- [No Macros]()
+- [operator overloading]()
+- [function overloading]()
+- [generics]()
+- [Attributing tag system like C#]()
+- [panic and value base errors]()
+- [good compiled time analysis]()
+- [A standard Library designed for game development]()
+- [Module System]()
+
+
+And More.
+
+## Library/Runtime Freatures
+- Optional Runtime SandBoxing
+- Flexible runtime
+  - Code can be [jited](), [interpreted]() or [precompiled to native code]() all working on the same runtime.
+  - Runtime threading model can made for any threading Style (task based, event loop,etcetera)
+- [A Wasm BackEnd]()
+- [A C11 BackEnd]()
+- [Code be compiled to Native Executables for Linux(working on),Windows(working on) and Mac(working on)]()
+- [Able to view all classes,funcions,trait after compileing]()
+- [Able to strip output unneeded classes]()
+- [Able to catch Panic if you like]()
+- [Debuging]()
+- [Module System]()
+
+
+## Tooling Freatures
+- [Automatic Binding Generation]()
+- [Language server(working on)]()
+
 # Why use this Programming Language.
 
 This Language was made because the lack of suitable scripting languages
@@ -62,23 +116,28 @@ $Player:
 
 ```
 
-After compiling will become  
+After compiling we will get assembly data that can be used to see all classes ,funcions and Fields.
+So it can be used in your inspector like most popular game engines.
+
+the text below assume you compiled for a 64 CPU
+The VM is CPU agnostic except for CPU pointer sizes.
+it needs to be compiled for 64-bit or 32-bit which is trivial to do.
 
 ```
-$Vec2:   //size 8
- float x;//offset 0
- float y;//offset 4
+$Vec2:   //class size 8
+ float x;//field offset 0
+ float y;//field offset 4
 
 $Weapon;//size 0
 
-$Player: //size 32
- Vec2 pos;//offset 0
- Vector<Weapon> Weapons;//offset 8
+$Player: //class size 32
+ Vec2 pos;//field offset 0
+ Vector<Weapon> Weapons;//field offset [8-12 depending if the compiler added padding]
 
-$Vector<Weapon>: //size 24
- Weapon[&] _Data; //offset 0
- uintptr _Size; //offset 8
- uintptr _Capacity; //offset 16
+$Vector<Weapon>: //class size 24
+ Weapon[&] _Data; //field offset 0
+ uintptr _Size; //field offset 8
+ uintptr _Capacity; //field offset 16
 
 ```
 
@@ -89,54 +148,18 @@ also since we're making a new Language we can learn past languages mistakes with
 removing exceptions and more.
 
 
-Despite being made for game engines UCode does not need a VM it can be used by itself and can be compiled directly to C(the only thing that really works the intermediate representation is practically just C).
+Despite being made for game engines UCode does not need a VM it can be used by itself and can be compiled directly to C,Wasm and Native platform librarys.
 
 or directly to native machine code when that gets done.
 
-# Supported programming Languages
+# Why you should not use this Programming Language.
 
-- [C++](https://github.com/LostbBlizzard/UCodeLang) //This Repository
-- [Rust](https://github.com/LostbBlizzard/ucodelang-rust) //rust binding,with idiomatic rust wappers and rust related tools for UCodeLang
-- [Zig](https://github.com/LostbBlizzard/ucodelang-zig) //zig binding,with idiomatic zig wappers and zig related tools for UCodeLang
-- [C](https://github.com/LostbBlizzard/UCodeLang/releases/latest) //Just Copy UCodeLangCAPI.h and the steal a static library from the [releases](https://github.com/LostbBlizzard/UCodeLang/releases/latest)
+If your use case only needs a small language and will not be spending most of its time in the scripting language
+you shold use [lua](https://github.com/lua/lua).
 
-# Features
+If you need static typing and C++ low-level ness but ok to have a Garbage Collector use [Mono C#](https://github.com/mono/mono) or [Terra](https://github.com/terralang/terra).
 
-## Langue Features
-- [Constructors,Destructor]()
-- [Copy Constructors]()
-- [Move semantics]()
-- [rust enums]()
-- [Defer]()
-- [No implicit conversions]()
-- [Unsafe operations are behind like memory allocation are behind the unsafe keyword]()  
-- [Rust like traits(working on)]()
-- [Go like concurrency(working on)]()
-- [Easy to use binary(working on) and Json(working on) serialization in Standard Library]()
-- [No Macros]()
-- [operator overloading]()
-- [function overloading]()
-- [generics]()
-- [Attributing tag system like C#]()
-- [panic and value base errors]()
-- [good compiled time analysis]()
 
-## Library/Runtime Freatures
-- Optional Runtime SandBoxing
-- Flexible runtime
-  - Code can be [jited](), [interpreted]() or [precompiled to native code]() all working on the same runtime.
-  - Runtime threading model can made for any threading Style (task based, event loop,etcetera)
-- [A Wasm BackEnd]()
-- [A C11 BackEnd]()
-- [Code be compiled to Native Executables for Linux(working on),Windows(working on) and Mac(working on)]()
-- [Able to view all classes,funcions,trait after compileing]()
-- [Able to strip output unneeded classes]()
-- [Able to catch Panic if you like]()
-- [Debuging]()
-
-## Tooling Freatures
-- [Automatic Binding Generation]()
-- [Language server(working on)]()
 
 # Downloads & Documentation
 
