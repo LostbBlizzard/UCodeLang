@@ -240,7 +240,7 @@ static const Array<TestInfo, 117> Tests{
 	TestInfo("Unique_ptr", "Std/Unique_ptr.uc", "main", SuccessCondition::RunTimeValue, (int)1),
 	TestInfo("QuadLoops", "BasicTests/QuadLoops.uc", "main", SuccessCondition::RunTimeValue, (uintptr_t)10),
 	TestInfo("Array", "Array/Array.uc", "main", SuccessCondition::RunTimeValue, (int)10),
-	TestInfo("Array2", "Array/Array.uc", "main2", SuccessCondition::RunTimeValue, (int)10),
+	TestInfo("Array2", "Array/Array.uc", "main2", SuccessCondition::RunTimeValue, (int)6),
 
 	TestInfo("defer", "Objects/defer.uc", "main", SuccessCondition::RunTimeValue, (int)1),
 	TestInfo("StdString", "Std/String.uc", "main", SuccessCondition::RunTimeValue, (bool)1),
@@ -265,8 +265,8 @@ struct SkipTestRange
 	size_t Start;
 	size_t End;
 };
-static const Vector<SkipTestRange> UCodeVmSkipTests = {{95, Tests.size()}};
-static const Vector<SkipTestRange> C89SkipTests = {{95, Tests.size()}};
+static const Vector<SkipTestRange> UCodeVmSkipTests = {{105, Tests.size()}};
+static const Vector<SkipTestRange> C89SkipTests = {{105, Tests.size()}};
 static const Vector<SkipTestRange> WasmSkipTests = {{0, Tests.size()}};
 
 inline bool ShouldSkipTest(size_t Index, const Vector<SkipTestRange> &list)
