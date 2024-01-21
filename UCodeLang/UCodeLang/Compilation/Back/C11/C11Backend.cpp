@@ -927,6 +927,7 @@ void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					r += Names.GetValue(I->Target().identifier);
 					r += "; }";
 					break;
+				case IRInstructionType::CleanupFuncCall:
 				case IRInstructionType::Call:
 				{
 					if (I->ObjectType != IRTypes::Void)
