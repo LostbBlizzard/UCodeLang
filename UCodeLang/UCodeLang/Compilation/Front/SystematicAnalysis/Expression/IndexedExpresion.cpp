@@ -302,7 +302,7 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 			_LastExpressionType = lookingfor;
 
 
-
+			auto beforex = _IR_LastExpressionField;
 
 			if (IsRead(_GetExpressionMode.top()))
 			{
@@ -327,11 +327,12 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 
 			if (IsWrite(_GetExpressionMode.top()))
 			{
-				_IR_LastStoreField = IROperator(_IR_LastExpressionField);
+				_IR_LastStoreField = IROperator(beforex);
 				_LastExpressionType = lookingfor;
 			}
 
-			if (_GetExpressionMode.top() == GetValueMode::ReadAndWrite)
+			if (_GetExpressionMode.top() == GetValueMode::ReadAndWrite && 
+				_LookingForTypes.top()._IsAddress ==true)
 			{
 				auto p = _LookingForTypes.top();
 				p._IsAddress = false;
