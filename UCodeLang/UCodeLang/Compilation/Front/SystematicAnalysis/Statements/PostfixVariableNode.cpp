@@ -155,6 +155,7 @@ void SystematicAnalysis::OnPostfixVariableNode(const PostfixVariableNode& node)
 			}
 			break;
 			default:
+				UCodeLangUnreachable();
 				break;
 			}
 			IR_WriteTo(_IR_LastExpressionField, Type, _IR_LastStoreField);
