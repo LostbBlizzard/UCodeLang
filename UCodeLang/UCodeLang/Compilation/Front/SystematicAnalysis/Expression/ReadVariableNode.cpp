@@ -160,7 +160,14 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 				}
 				else if (LookIsAddress == true && AmIsAddress == true)
 				{
-					_IR_LastExpressionField = IR_Build_Member_GetValue(V);
+					if (_GetExpressionMode.top() == GetValueMode::ReadAndWrite) 
+					{
+						_IR_LastExpressionField = IR_Build_Member_AsValue(V);
+					}
+					else
+					{
+						_IR_LastExpressionField = IR_Build_Member_GetValue(V);
+					}
 				}
 				else if (LookIsAddress == false && AmIsAddress == false)
 				{
