@@ -322,12 +322,23 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 						_LastExpressionType._IsAddress = false;
 					}
 				}
+				
 			}
 
 			if (IsWrite(_GetExpressionMode.top()))
 			{
 				_IR_LastStoreField = IROperator(_IR_LastExpressionField);
 				_LastExpressionType = lookingfor;
+			}
+
+			if (_GetExpressionMode.top() == GetValueMode::ReadAndWrite)
+			{
+				auto p = _LookingForTypes.top();
+				p._IsAddress = false;
+
+				_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad_Dereferenc(_IR_LastExpressionField
+						, IR_ConvertToIRType(p));
+
 			}
 		}
 
