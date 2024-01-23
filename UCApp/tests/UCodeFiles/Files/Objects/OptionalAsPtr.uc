@@ -9,7 +9,7 @@ $Optional<T> enum:
  ret sizeof(int&?) == sizeof(uintptr);
 
 
-|NullOp2[]:
+|NullOp2[] -> int:
  int p = 10;
  int&? V = Opt(p);
 
