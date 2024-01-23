@@ -628,8 +628,13 @@ SystematicAnalysis::BuildMatch_ret SystematicAnalysis::IR_Build_Match(const Type
 					String FieldName = "";
 					Call->_FuncName.GetScopedName(FieldName);
 
+					IRInstruction* obj = Item;
+					if (!eInfo->IsOptionalAddress())
+					{
+						obj = _IR_LookingAtIRBlock->NewLoadPtr(Item);
+					}
 
-					IR_Build_EnumOut(Syb, _IR_LookingAtIRBlock->NewLoadPtr(Item), eInfo->GetFieldIndex(ScopeHelper::GetNameFromFullName(FieldName)).value(), Call->Parameters,0);
+					IR_Build_EnumOut(Syb,obj,  eInfo->GetFieldIndex(ScopeHelper::GetNameFromFullName(FieldName)).value(), Call->Parameters,0);
 
 					auto Type = _LastExpressionType;
 					auto ArmExIR = _IR_LastExpressionField;
