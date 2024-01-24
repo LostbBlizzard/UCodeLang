@@ -82,8 +82,34 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 			LogError_CantBeIndexWithType(Token.value(), SourcType, IndexType);
 
 		}
+		else
+		{
+			bool isnativearraytype = false;
+			if (SourcType.IsAddressArray())
+			{
+				isnativearraytype = true;
+			}
+			else
+			{
+				auto SymOp = Symbol_GetSymbol(SourcType);
+				if (auto Sym = SymOp.value_unchecked())
+				{
+					if (Sym->Type == SymbolType::Type_StaticArray)
+					{
+						isnativearraytype = true;
+					}
+				}
+			}
 
-
+			if (isnativearraytype)
+			{
+				if (!IsInUnSafeBlock())
+				{
+					auto Token = _LastLookedAtToken.value();
+					LogError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "Cant Index Native Array Type '" + ToString(SourcType) + "' in safe mode.");
+				}
+			}
+		}
 
 
 
