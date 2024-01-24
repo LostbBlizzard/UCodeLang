@@ -19,12 +19,12 @@ $Span<T>:
     $if compiler::IsDebug():
       if Index >= _size:panic("Index is out of bounds");
 
-    ret _data[Index];
+    ret unsafe _data[Index];
   |[][imut this&,uintptr Index] -> imut T&:
     $if compiler::IsDebug():
       if Index >= _size:panic("Index is out of bounds");
     
-    ret _data[Index];
+    ret unsafe _data[Index];
 
   |[][this&,Range_t<uintptr> Range] -> this:ret unsafe [_data[Range.Start()],Range.End() - Range.Start()];
   |[][imut this&,Range_t<uintptr> Range] -> this:ret unsafe [_data[Range.Start()],Range.End() - Range.Start()];

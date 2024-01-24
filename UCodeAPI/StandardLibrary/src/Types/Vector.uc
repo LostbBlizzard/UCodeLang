@@ -33,7 +33,7 @@ $Vector<T>:
       _capacity = Size;
       _data = unsafe new T[Size];
       for [uintptr i = 0;i < oldsize;i++]:
-       _data[i] = move old[i];
+       unsafe _data[i] = move old[i];
 
       uintptr ptr =unsafe bitcast<uintptr>(old);
       if ptr != uintptr(0):
@@ -68,13 +68,13 @@ $Vector<T>:
    //shift all the elements
    uintptr i = _size - 2;
    while true:
-    _data[i+1] =move _data[i];
+    unsafe _data[i+1] =move _data[i];
     
     if i == Index: break;
 
     i--;
 
-   _data[Index] = Item;
+   unsafe _data[Index] = Item;
 
   |Insert[this&,uintptr Index,moved T Item] -> void:
    Resize(_size + 1);
@@ -82,13 +82,13 @@ $Vector<T>:
    //shift all the elements
    uintptr i = _size - 2;
    while true:
-    _data[i+1] =move _data[i];
+    unsafe _data[i+1] =move _data[i];
     
     if i == Index: break;
 
     i--;
 
-   _data[Index] = Item;
+   unsafe _data[Index] = Item;
 
   //Not required Functions 
   |Append[this&,imut T[:] Val] -> void:
@@ -96,14 +96,14 @@ $Vector<T>:
    Resize(_size + Val.Size());
 
    for [uintptr i = 0;i < Val.Size();i++]:
-       _data[oldsize+i] = Val[i];
+       unsafe _data[oldsize+i] = Val[i];
 
   |Append[this&,moved Span<T> Val] -> void:
    var oldsize = _size;
    Resize(_size + Val.Size());
 
    for [uintptr i = 0;i < Val.Size();i++]:
-       _data[oldsize+i] = move Val[i];
+       unsafe _data[oldsize+i] = move Val[i];
 
   |Insert[this&,uintptr Index,imut T[:] Val] -> void;
   
@@ -114,12 +114,12 @@ $Vector<T>:
     $if compiler::IsDebug():
       if Index >= _size:panic("Index is out of bounds");
 
-    ret _data[Index];
+    ret unsafe _data[Index];
   |[][imut this&,uintptr Index] -> imut T&:
     $if compiler::IsDebug():
       if Index >= _size:panic("Index is out of bounds");
     
-    ret _data[Index];
+    ret unsafe _data[Index];
 
 
   //Span
