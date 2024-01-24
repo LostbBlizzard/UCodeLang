@@ -987,7 +987,8 @@ struct IndexedExpresionNode :Node
 
 	}
 	AddforNode(IndexedExpresionNode);
-
+	
+	const Token* _token;
 	ExpressionNodeType _SourceExpression;// ex[SomeEx]
 	ExpressionNodeType _IndexExpression;// SomeVar[ex]
 };
