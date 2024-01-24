@@ -78,8 +78,8 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 		auto HasInfo = Type_HasIndexedOverLoadWith(SourcType, IndexType);
 		if (!HasInfo.HasValue)
 		{
-			auto  Token = _LastLookedAtToken;
-			LogError_CantBeIndexWithType(Token.value(), SourcType, IndexType);
+			auto  Token =NeverNullptr(node._token);
+			LogError_CantBeIndexWithType(Token, SourcType, IndexType);
 
 		}
 		else
@@ -105,7 +105,7 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 			{
 				if (!IsInUnSafeBlock())
 				{
-					auto Token = _LastLookedAtToken.value();
+					auto Token = NeverNullptr(node._token);
 					LogError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "Cant Index Native Array Type '" + ToString(SourcType) + "' in safe mode.");
 				}
 			}

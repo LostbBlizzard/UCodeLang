@@ -1585,6 +1585,7 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 			auto V = GetExpressionTypeNode(IndexExNode->_IndexExpression);
 			IndexExNode->_SourceExpression._Value = Unique_ptr<Node>(r_out);
 
+			IndexExNode->_token = Token2;
 			r_out = IndexExNode->As();
 
 			Token2 = TryGetToken();
