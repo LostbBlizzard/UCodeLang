@@ -9,7 +9,7 @@ $Ptr<T>:
   T& _base;
  public:
   |new[this&,T& base]:
-   _base =: base;
+   unsafe _base =: base;
   
   |Get[this&] -> T&:ret _base;
   |Get[imut this&] -> imut T&:ret _base;
@@ -23,7 +23,7 @@ $Ptr<T>:
 
   |~>[imut this&] -> imut T&:ret Get();
 
-  |ReassignTo[this&,T& newbase]:_base =: newbase;
+  |ReassignTo[this&,T& newbase]:unsafe _base =: newbase;
 
 
 
