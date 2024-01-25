@@ -9,6 +9,12 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 	{
 		OnExpressionTypeNode(node._Expression._Value.get(), GetValueMode::Read);
 		OnExpressionTypeNode(node._ToAssign._Value.get(), GetValueMode::Write);
+
+		if (node._ReassignAddress && !IsInUnSafeBlock())
+		{
+			auto Token = NeverNullptr(node._Token);
+			LogError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "Cant use Address Resassignment in safe mode.");
+		}
 	}
 	else if (_PassType == PassType::FixedTypes)
 	{
