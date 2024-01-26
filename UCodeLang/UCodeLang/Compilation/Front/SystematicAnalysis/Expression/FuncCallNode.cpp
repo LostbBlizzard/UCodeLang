@@ -2556,7 +2556,114 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 		}
 	}
 
-	return { {} };
+	bool cangenericinputbeused = false;
+
+	bool isinputcountgood = false;
+	
+	if (IsParPack)
+	{	
+		isinputcountgood = true;
+	}
+	else
+	{
+		isinputcountgood = GenericInput.size() == Info->_GenericData._Genericlist.size();
+	}
+
+	if (isinputcountgood)
+	{
+		cangenericinputbeused = true;
+
+		const FuncNode* fnode = Item->Get_NodeInfo<FuncNode>();
+
+		const auto& fpars = fnode->_Signature._Parameters._Parameters;		
+		const auto& fInput = GenericInput;
+		const auto& fgenericnode = fnode->_Signature._generic;
+
+		//We cant use Type_Convert because if Generic it will generate unneeded IR,Symbols.
+		// if cangenericinputbeused becomes false
+		// and have a way to roleback would be a headache
+		// so we just lazy attempt Convert compare the possible Symbol name with the Par.
+
+		//Lambda because it's never used any were else
+		std::function<Optional<String>(const TypeNode&)> lazyattemp;
+
+		
+		lazyattemp = [this,&lazyattemp,&fInput,&fgenericnode,&fpars](const TypeNode& node) -> Optional<String>
+		{
+				if (node._name._ScopedName.back()._token->Type== TokenType::Name)
+				{
+					String fullname;
+					node._name.GetScopedName(fullname);
+
+					for (size_t i = 0; i < fgenericnode._Values.size(); i++)
+					{
+						auto& gnode = fgenericnode._Values[i];
+						auto& fin = fInput[i];
+
+						if (gnode.AsString() == fullname)
+						{
+							return ToString(fin);
+						}
+					}
+					
+					auto sym = Symbol_GetSymbol(fullname, SymbolType::Type);
+					if (sym)
+					{
+						const auto typegenics = node._name._ScopedName.back()._generic.get();
+						bool hasgenics = typegenics ?  typegenics->_Values.size() : 0;
+
+						if (hasgenics)
+						{
+							fullname += "<";
+
+							for (auto& Item : typegenics->_Values)
+							{
+								fullname += lazyattemp(Item).value_or("");
+
+								if (&Item != &typegenics->_Values.back())
+								{
+									fullname += ",";
+								}
+							}
+
+
+							fullname += ">";
+						}
+						return fullname;
+					}
+				}
+				return {};
+		};
+
+		for (size_t i = 0; i < fpars.size(); i++)
+		{
+			auto& Item = fpars[i];
+			auto& Par = ValueTypes[i].Type;
+			auto sym = lazyattemp(Item._Type);
+
+			if (sym.has_value())
+			{
+				auto symname = sym.value();
+				auto parname = ToString(Par);
+				
+				if (symname != parname)
+				{
+					cangenericinputbeused = false;
+					break;
+				}
+			}
+		}
+
+	
+	}
+
+	if (cangenericinputbeused) {
+		return { {} };
+	}
+	else
+	{
+		return {};
+	}
 }
 SystematicAnalysis::Get_FuncInfo SystematicAnalysis::Symbol_GetEnumVariantFunc(NeverNullPtr<Symbol> EnumSyb, size_t FieldIndex, NeverNullPtr<Symbol> EnumFieldSyb, const ValueParametersNode& Pars, const NeverNullPtr<Token> Token, const Vector<ParInfo>& ValueTypes)
 {
