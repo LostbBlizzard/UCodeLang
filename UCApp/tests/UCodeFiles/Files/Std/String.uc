@@ -28,7 +28,7 @@ $String_t<T>:
   _capacity = string._size;
 
   for [uintptr i = uintptr(0);i < string._size;i++]:
-   _data[i] = string._data[i];
+   unsafe _data[i] = string._data[i];
 
  |drop[this&]:
   uintptr ptr =unsafe bitcast<uintptr>(_data);
@@ -44,7 +44,7 @@ $String_t<T>:
    _capacity = size;
    _data = unsafe new T[size];
    for [uintptr i = uintptr(0);i < oldsize;i++]:
-     _data[i] = old[i];
+     unsafe _data[i] = old[i];
 
    uintptr ptr =unsafe bitcast<uintptr>(old);
    if ptr != uintptr(0):
@@ -63,7 +63,7 @@ $String_t<T>:
   _size = newsize; 
   
   for [uintptr i = uintptr(0);i < newsize;i++]:
-     _data[i + oldsize] = string._data[i];
+     unsafe _data[i + oldsize] = string._data[i];
 
 
 $StringSpan = StringSpan_t<char>;

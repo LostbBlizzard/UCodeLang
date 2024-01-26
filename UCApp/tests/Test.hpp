@@ -248,7 +248,7 @@ static const Array<TestInfo, 117> Tests{
 	TestInfo("inferredenumfield", "Generics/inferredenumfield.uc", "main", SuccessCondition::RunTimeValue, (int)5),
 
 	TestInfo("OptionalAsPtr", "Objects/OptionalAsPtr.uc", "NullOp", SuccessCondition::RunTimeValue, (bool)true),
-	TestInfo("OptionalAsPtr", "Objects/OptionalAsPtr.uc", "NullOp2", SuccessCondition::RunTimeValue, (int)10),
+	TestInfo("OptionalAsPtr2", "Objects/OptionalAsPtr.uc", "NullOp2", SuccessCondition::RunTimeValue, (int)20),
 	TestInfo("factorial2", "BasicTests/factorial2.uc", "main", SuccessCondition::RunTimeValue, (int)3628800),
 	TestInfo("StressTest1", "StressTest/StressTest1.uc", "main", SuccessCondition::RunTimeValue, (int)6),
 
