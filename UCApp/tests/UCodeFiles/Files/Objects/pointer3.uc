@@ -1,7 +1,7 @@
 $Item:
  char& V;
  |new[this&]:
-  V =: unsafe new char('A');
+  unsafe V =: unsafe new char('A');
 
 |main[]:
  Item item = [];
