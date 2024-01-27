@@ -562,6 +562,9 @@ void SystematicAnalysis::OnFileNode(const FileNode& File)
 		case NodeType::CompileTimeIfNode:
 			OnCompileTimeIfNode(*CompileTimeIfNode::As(node.get()), false);
 			break;
+		case NodeType::ForTypeNode:
+			OnForTypeNode(*ForTypeNode::As(node.get()));
+			break;
 		default:
 			UCodeLangUnreachable();
 			break;

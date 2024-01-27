@@ -14,6 +14,7 @@
 UCodeLangFrontStart
 
 #define GenericTestStr CompilerGenerated("___GenericTest")
+#define ForTypeScope CompilerGenerated("ForType")
 
 constexpr size_t EnumVarantKeyIndex = 0;
 constexpr size_t EnumVarantUnionIndex = 1;
@@ -1301,6 +1302,8 @@ private:
 	void OnExpressionNode(const UnaryExpressionNode& node);
 	void OnStatements(const StatementsNode& node);
 	void OnPanicStatement(const PanicNode& node);
+	void OnForTypeNode(const ForTypeNode& node);
+
 
 	TypeSymbol Type_MakeFutureFromType(const TypeSymbol& BaseType);
 	bool Type_IsFuture(const TypeSymbol& Future);
