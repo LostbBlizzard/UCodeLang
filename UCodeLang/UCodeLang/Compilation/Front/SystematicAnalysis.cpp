@@ -235,6 +235,19 @@ void SystematicAnalysis::BuildCode()
 
 			}
 			break;
+			case SymbolType::Tag_class:
+			{
+				auto Info = Symbol->Get_Info<TagInfo>();
+				auto node = TagTypeNode::As(Symbol->Get_NodeInfo<Node>());
+
+
+				Set_SymbolContext(std::move(Info->Context.value()));
+				OnTag(*node);
+				Info->Context = SaveAndMove_SymbolContext();
+
+
+			}
+			break;
 			default:
 				UCodeLangUnreachable();
 				break;
