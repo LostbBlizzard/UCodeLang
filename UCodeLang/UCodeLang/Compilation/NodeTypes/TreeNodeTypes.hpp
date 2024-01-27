@@ -1438,4 +1438,21 @@ struct UnaryExpressionNode :Node
 	ExpressionNodeType _Value0;
 	const Token* _UnaryOp = nullptr;
 };
+
+struct ForTypeNode :Node
+{
+	ForTypeNode() : Node(NodeType::ForTypeNode)
+	{
+
+	}
+	ForTypeNode(ForTypeNode&& Source) = default;
+	AddforNode(ForTypeNode);
+
+	Vector<Unique_ptr<FuncNode>> _Nodes;
+
+	TypeNode _typetoaddto;
+	GenericValuesNode _generic;
+	const Token* EndOfClass = nullptr;
+};
+
 UCodeLangFrontEnd

@@ -702,6 +702,18 @@ private:
 	}
 
 	GotNodeType GetDeferStatementNode(DeferStatementNode& out);
+
+	TryGetNode GetForTypeNode()
+	{
+		ForTypeNode* V = ForTypeNode::Gen();
+		auto r = GetForTypeNode(*V);
+		TrippedCheck(r);
+		return { r,V->As() };
+	}
+
+	GotNodeType GetForTypeNode(ForTypeNode& out);
+
+
 };
 UCodeLangFrontEnd
 

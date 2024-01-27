@@ -106,6 +106,7 @@ void Parser::Parse(const String_view FileText, const Vector<Token>& Tokens)
 		case TokenType::KeyWord_eval:V = GetEvalDeclare(); break;
 		case TokenType::KeyWord_Import:V = GetImportStatement(); break;
 		case TokenType::KeyWord_ClassIf:V = GetCompileTimeIf(false); break;
+		case TokenType::KeyWord_ClassFor:V = GetForTypeNode(); break;
 		default: GetDeclareVariableNoObject(V); break;
 		}
 
@@ -235,6 +236,7 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 		case TokenType::KeyWord_Thread:V = GetDeclareThreadVariable(); break;
 		case TokenType::KeyWord_imut:V = GetimutVariableDeclare(); break;
 		case TokenType::KeyWord_eval:V = GetEvalDeclare(); break;
+		case TokenType::KeyWord_ClassFor:V = GetForTypeNode(); break;
 		default: GetDeclareVariableNoObject(V); break;
 		}
 
@@ -485,6 +487,7 @@ GotNodeType Parser::DoClassType(ClassNode* output, const Token* ClassToken, Gene
 		case TokenType::KeyWord_Thread:V = GetDeclareThreadVariable(); break;
 		case TokenType::KeyWord_imut:V = GetimutVariableDeclare(); break;
 		case TokenType::KeyWord_eval:V = GetEvalDeclare(); break;
+		case TokenType::KeyWord_ClassFor:V = GetForTypeNode(); break;
 		case TokenType::KeyWorld_public:
 		{
 			NextToken(); TokenTypeCheck(TryGetToken(), TokenType::Colon); NextToken();
@@ -4378,6 +4381,7 @@ GotNodeType Parser::GetCompileTimeIf(CompileTimeIfNode*& out, bool IsInFunc)
 			case TokenType::KeyWord_imut:V = GetimutVariableDeclare(); break;
 			case TokenType::KeyWord_eval:V = GetEvalDeclare(); break;
 			case TokenType::Left_Bracket:V = GetAttribute(); break;
+			case TokenType::KeyWord_ClassFor:V = GetForTypeNode(); break;
 			default:
 				break;
 			}
@@ -5146,6 +5150,35 @@ GotNodeType Parser::GetDeferStatementNode(DeferStatementNode& out)
 	auto r = GetStatement(nodeptr);
 	out._Base._Nodes.push_back(Unique_ptr<Node>(nodeptr));
 	return r;
+}
+GotNodeType Parser::GetForTypeNode(ForTypeNode& out)
+{
+	TokenTypeCheck(TryGetToken(), TokenType::KeyWord_ClassFor);
+	NextToken();
+
+	TryGetGeneric(out._generic);
+
+	GetType(out._typetoaddto);
+
+	TokenTypeCheck(TryGetToken(), TokenType::Colon);
+	NextToken();
+
+	auto StartToken = TryGetToken(); TokenTypeCheck(StartToken, TokenType::StartTab);
+	NextToken();
+
+	while (TryGetToken()->Type != TokenType::EndTab)
+	{
+		auto f =new FuncNode();
+		
+		out._Nodes.push_back(Unique_ptr<FuncNode>(f));
+		
+		GetFuncNode(*f);
+	}
+
+	auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::EndTab);
+	NextToken();
+
+	return GotNodeType::Success;
 }
 UCodeLangFrontEnd
 
