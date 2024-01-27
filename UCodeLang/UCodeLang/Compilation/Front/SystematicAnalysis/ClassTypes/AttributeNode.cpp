@@ -50,7 +50,7 @@ void SystematicAnalysis::OnAttributeNode(const AttributeNode& node)
 				}
 				else
 				{
-					LogError_ExpectedSymbolToBea(token, *Att, SymbolType::Tag_class);
+					//LogError_ExpectedSymbolToBea(token, *Att, SymbolType::Tag_class);
 				}
 			}
 			else

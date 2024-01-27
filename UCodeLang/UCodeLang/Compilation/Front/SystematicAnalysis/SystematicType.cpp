@@ -1816,7 +1816,7 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 			{
 				Info.Count = 0;
 				Info.IsCountInitialized = true;
-
+				Info.IsCountError = true;
 			}
 
 			if (Symbol_HasDestructor(Info.Type))

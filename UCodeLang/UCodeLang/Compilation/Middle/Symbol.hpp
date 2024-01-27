@@ -771,7 +771,7 @@ public:
 	TypeSymbol Type;
 	size_t Count = 0;
 	bool IsCountInitialized = false;
-
+	bool IsCountError = false;
 	ExpressionNodeType* Exnode = nullptr;
 
 	StaticArrayInfo()

@@ -376,7 +376,7 @@ void SystematicAnalysis::OnStringLiteral(const StringliteralNode* nod, bool& ret
 			}
 			else
 			{
-				if (StaticArr->Count != BufferSize)
+				if (StaticArr->Count != BufferSize && StaticArr->IsCountError == false)
 				{
 					const NeverNullPtr<Token> Token = _LastLookedAtToken.value();
 					LogError_CanIncorrectStaticArrCount(Token, Type, BufferSize, StaticArr->Count);
