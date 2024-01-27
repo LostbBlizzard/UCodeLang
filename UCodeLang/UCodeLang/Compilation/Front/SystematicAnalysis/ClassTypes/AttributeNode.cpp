@@ -57,7 +57,6 @@ void SystematicAnalysis::OnAttributeNode(const AttributeNode& node)
 			{
 				LogError_ExpectedSymbolToBea(token, *Att, SymbolType::Tag_class);
 			}
-			Syb.VarType = TypeSymbol(Att->ID);
 		}
 		else
 		{
@@ -89,6 +88,9 @@ void SystematicAnalysis::OnAttributeNode(const AttributeNode& node)
 				Optional<NeverNullPtr<Symbol>> FuncToCall;
 				if (f.Func)
 				{
+					Syb.VarType = f.Func->Pars[0].Type;
+
+
 					FuncToCall = NeverNullptr(f.SymFunc);
 
 					EvalParsInfo.resize(f.Func->Pars.size()-1);
