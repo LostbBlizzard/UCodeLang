@@ -1200,6 +1200,30 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 				}
 			}
+			else if (Item->Type == SymbolType::Generic_Tag)
+			{
+				TagInfo* V = Item->Get_Info<TagInfo>();
+				Symbol_Update_ClassSym_ToFixedTypes(Item);
+				String Scope = V->FullName;
+				ScopeHelper::GetApendedString(Scope, GenericTestStr);
+				ScopeHelper::GetApendedString(Scope, ClassConstructorfunc);
+				
+				auto ConstructorSymbols = GetSymbolsWithName(Scope, SymbolType::Any);
+
+
+				for (auto& Item2 : ConstructorSymbols)
+				{
+					FuncInfo* Info = Item2->Get_Info<FuncInfo>();
+					bool PushThisPar = Info->IsObjectCall();
+
+					size_t parcount = PushThisPar ? Pars._Nodes.size() + 1 : Pars._Nodes.size();
+					if (Info->Pars.size() == parcount) {
+						Infer = Info->Pars;
+						Inferautopushtis = PushThisPar;
+					}
+				}
+			}
+
 		}
 	}
 
@@ -2155,6 +2179,264 @@ StartSymbolsLoop:
 
 				}
 			}
+		}
+		else if (Item->Type == SymbolType::Generic_Tag)
+		{
+			Symbol_Update_ClassSym_ToFixedTypes(Item);
+			TagInfo* V = Item->Get_Info<TagInfo>();
+
+			const TagTypeNode& node = *Item->Get_NodeInfo<TagTypeNode>();
+			
+			NullablePtr<Symbol>  classsymop;
+			/*
+			auto classsybOp = Generic_InstantiateOrFindGeneric_Class(
+				NeverNullptr(Name._ScopedName.front()._token),
+				Item,
+				node._generic, V->_GenericData, *Generics);
+
+			if (classsybOp.has_value())
+			{
+				auto classsyb = classsybOp.value();
+				String Scope = classsyb->FullName;
+				ScopeHelper::GetApendedString(Scope, ClassConstructorfunc);
+
+				auto ConstructorSymbols = GetSymbolsWithName(Scope, SymbolType::Any);
+
+
+				for (auto& Item2 : ConstructorSymbols)
+				{
+					if (Item2->Type == SymbolType::Func)
+					{
+						FuncInfo* Info = Item2->Get_Info<FuncInfo>();
+						bool PushThisPar = Info->IsObjectCall();
+					}
+				}
+			}
+			*/
+			{
+				String Scope = V->FullName;
+				ScopeHelper::GetApendedString(Scope, GenericTestStr);
+				ScopeHelper::GetApendedString(Scope, ClassConstructorfunc);
+
+				auto ConstructorSymbols = GetSymbolsWithName(Scope, SymbolType::Any);
+				for (auto& FuncItem : ConstructorSymbols)
+				{
+					if (FuncItem->Type == SymbolType::Func)
+					{
+						const FuncInfo* finfo = FuncItem->Get_Info<FuncInfo>();
+						const FuncNode* fnode = FuncItem->Get_NodeInfo<FuncNode>();
+
+						Vector<Variant<TypeSymbol, EvaluatedEx>> genericinput;
+						genericinput.resize(V->_GenericData.GetMinimumCount());
+
+						for (size_t i = 1; i < finfo->Pars.size(); i++)
+						{
+							auto& Par = finfo->Pars[i];
+							auto& ParNode = fnode->_Signature._Parameters._Parameters[i];
+							auto& InputType = ValueTypes[i - 1];
+
+							Optional<size_t> GenericExIndex;
+
+							{
+								for (auto& Item : ParNode._Type._name._ScopedName)
+								{
+									if (ParNode._Type._node.get())
+									{
+										auto n = ExpressionNodeType::As(ParNode._Type._node.get());
+										if (n->_Value->Get_Type() == NodeType::ValueExpressionNode)
+										{
+											auto vn = ValueExpressionNode::As(n->_Value.get());
+
+											if (vn->_Value->Get_Type() == NodeType::ReadVariableNode)
+											{
+												auto readvarnode = ReadVariableNode::As(vn->_Value.get());
+
+												String varname;
+												readvarnode->_VariableName.GetScopedName(varname);
+
+
+												for (size_t i = 0; i < node._generic._Values.size(); i++)
+												{
+													auto& g = node._generic._Values[i];
+
+													if (varname == g.AsStringView())
+													{
+														GenericExIndex = i;
+														break;
+													}
+												}
+											}
+										}
+										if (GenericExIndex.has_value())
+										{
+											break;
+										}
+									}
+								}
+							}
+
+
+							if (GenericExIndex.has_value())
+							{
+								auto gindex = GenericExIndex.value();
+								auto insym = Symbol_GetSymbol(InputType.Type);
+								auto parsym = Symbol_GetSymbol(Par.Type);
+
+								if (insym.has_value() && parsym.has_value())
+								{
+									auto in = insym.value();
+									auto pa = parsym.value();
+
+									if (in->Type == pa->Type && in->Type == SymbolType::Type_StaticArray)
+									{
+										StaticArrayInfo* ininfo = in->Get_Info<StaticArrayInfo>();
+
+										auto v = Eval_MakeEx(TypesEnum::uIntPtr);
+										if (_Settings->PtrSize == IntSizes::Int32)
+										{
+											Eval_Set_ObjectAs(v, (UInt32)ininfo->Count);
+										}
+										else
+										{
+											Eval_Set_ObjectAs(v, (UInt64)ininfo->Count);
+										}
+
+										genericinput[gindex] = std::move(v);
+									}
+								}
+							}
+						}
+
+
+						bool isgenericok = false;
+
+						UCodeLangAssert(!V->_GenericData.IsPack());
+
+						if (genericinput.size() == V->_GenericData._Genericlist.size())
+						{
+							isgenericok = true;
+							for (size_t i = 0; i < genericinput.size(); i++)
+							{
+								auto& ginput = genericinput[i];
+								auto& glist = V->_GenericData._Genericlist[i];
+
+								bool isginputEx = ginput.Is<EvaluatedEx>();
+								bool isglistEx = glist.IsConstantExpression();
+
+								if (isginputEx != isglistEx)
+								{
+									isgenericok = false;
+									break;
+								}
+							}
+						}
+
+
+						if (isgenericok)
+						{
+							Vector<TypeSymbol> in;
+							in.resize(genericinput.size());
+
+							for (size_t i = 0; i < genericinput.size(); i++)
+							{
+								auto& input = genericinput[i];
+								TypeSymbol t;
+
+								if (auto tep = input.Get_If<TypeSymbol>())
+								{
+									t = *tep;
+								}
+								else
+								{
+									auto& v = input.Get< EvaluatedEx>();
+
+									auto& sym = Symbol_AddSymbol(SymbolType::ConstantExpression, "", "", AccessModifierType::Private);
+									_Table.AddSymbolID(sym, Symbol_GetSymbolID(&sym));
+
+									ConstantExpressionInfo* info = new ConstantExpressionInfo();
+
+									info->Ex = std::move(v.EvaluatedObject);
+									sym.VarType = v.Type;
+
+									sym.Info.reset(info);
+
+									t = TypeSymbol(sym.ID);
+								}
+
+								in[i] = t;
+							}
+
+							String NewName = Generic_SymbolGenericFullName(Item, in);
+							auto FuncIsMade = Symbol_GetSymbol(NewName, SymbolType::Tag_class);
+
+							if (!FuncIsMade)
+							{
+								Generic_TypeInstantiate_Tag(Item, in);
+							}
+
+							auto newtagsym = FuncIsMade ? FuncIsMade : Symbol_GetSymbol(NewName, SymbolType::Tag_class);
+
+
+							classsymop = newtagsym;
+						}
+					}
+				}
+			}
+
+			if (classsymop.has_value())
+			{
+				auto classsyb = classsymop.value();
+				String Scope = classsyb->FullName;
+				ScopeHelper::GetApendedString(Scope, ClassConstructorfunc);
+
+				auto ConstructorSymbols = GetSymbolsWithName(Scope, SymbolType::Any);
+
+
+				for (auto& Item2 : ConstructorSymbols)
+				{
+					if (Item2->Type == SymbolType::Func)
+					{
+						if (Item2->Type == SymbolType::Func)
+						{
+							FuncInfo* Info = Item2->Get_Info<FuncInfo>();
+							bool PushThisPar = Info->IsObjectCall();
+
+
+							if (PushThisPar)
+							{
+								TypeSymbol V;
+								V.SetType(classsyb->ID);
+								V.SetAsAddress();
+								ValueTypes.insert(ValueTypes.begin(), { false,V });
+							}
+
+							IsCompatiblePar CMPPar;
+							CMPPar.SetAsFuncInfo(Item2);
+
+							bool Compatible = Type_IsCompatible(CMPPar, ValueTypes, _ThisTypeIsNotNull, NeverNullptr(Name._ScopedName.back()._token));
+
+							if (PushThisPar)
+							{
+								ValueTypes.erase(ValueTypes.begin());
+							}
+
+							if (!Compatible)
+							{
+								continue;
+							}
+
+							{
+								r = Info;
+								FuncSymbol = Item2;
+								T = SymbolType::FuncCall;
+								OkFunctions.push_back({ PushThisPar ? Get_FuncInfo::ThisPar_t::OnIRlocationStack : ThisParType,r,FuncSymbol });
+							}
+						}
+					}
+				}
+			}
+
+
 		}
 	ContinueOutloop:continue;
 	}
