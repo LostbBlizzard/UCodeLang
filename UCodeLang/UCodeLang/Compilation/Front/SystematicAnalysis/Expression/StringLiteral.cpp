@@ -383,6 +383,11 @@ void SystematicAnalysis::OnStringLiteral(const StringliteralNode* nod, bool& ret
 					_LastExpressionType.SetType(TypesEnum::Null);
 					return;
 				}
+				else if (StaticArr->IsCountError)
+				{
+					_LastExpressionType = Type_GetStaticArrayType(StaticArr->Type, V.size());
+					return;
+				}
 			}
 		}
 
