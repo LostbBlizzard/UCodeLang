@@ -88,7 +88,8 @@ enum class NodeType :UInt8
 	UnsafeExpression,
 	UnsafeStatementsNode,
 	DeferStatementNode,
-	UnaryExpressionNode
+	UnaryExpressionNode,
+	ForTypeNode,
 };
 
 
