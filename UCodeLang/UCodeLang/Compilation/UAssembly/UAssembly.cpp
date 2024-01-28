@@ -1015,6 +1015,61 @@ String UAssembly::ToString(const ReflectionTypeInfo& Value, const ReflectionRawD
 		break;
 	case ReflectionTypes::Void:
 		return "void";
+	case ReflectionTypes::CustomType:
+	{
+		auto node = Assembly.Find_Node(Value._CustomTypeID);
+
+		if (node)
+		{
+				switch (node->Get_Type())
+				{
+				case ClassType::StaticArray:
+				{
+					const auto& info = node->Get_StaticArray();
+
+					if (info.BaseType._Type == ReflectionTypes::Char)
+					{
+						r += "\"";
+						for (size_t i = 0; i < info.Count; i++)
+						{
+							r += (char)Data.Bytes[i];
+						}
+						r += "\"";
+					}
+					else 
+					{
+						auto elmsize =Assembly.GetSize(info.BaseType, PtrSize == UClib::NTypeSize::int32);
+						
+						if (!elmsize.has_value()) {
+							return r;
+						}
+						r += "[";
+						
+						
+						for (size_t i = 0; i < info.Count; i++)
+						{
+							ReflectionRawData elm;
+							elm.Bytes.reset((Byte*)(((uintptr_t)Data.Bytes.get()) + (i * elmsize.value())));
+
+							elm.Size = elmsize.value();
+							r += ToString(info.BaseType, ReflectionRawData(), Assembly, PtrSize);
+						
+							elm.Bytes.release();
+
+							if (i != info.Count - 1)
+							{
+								r += ",";
+							}
+						}
+						r += "]";
+					}
+				}break;
+				default:
+					break;
+				}
+		}
+	}
+	break;
 	default:
 		break;
 	}
