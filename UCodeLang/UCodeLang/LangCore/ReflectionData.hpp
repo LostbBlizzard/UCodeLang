@@ -408,6 +408,7 @@ struct ThreadVar_Data
 };
 struct StaticArray_Data
 {
+	ReflectionCustomTypeID TypeID = {};
 	ReflectionTypeInfo BaseType;
 	size_t Count = 0;
 	~StaticArray_Data()

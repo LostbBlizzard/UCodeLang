@@ -27,6 +27,7 @@ const AssemblyNode* ClassAssembly::Find_Node(ReflectionCustomTypeID TypeID) cons
 		case ClassType::FuncPtr:break;
 		case ClassType::GenericClass:break;
 		case ClassType::GenericFunction:break;
+		case ClassType::StaticArray:Value = Item->Get_StaticArray().TypeID; break;
 		default:
 			UCodeLangUnreachable();
 			break;

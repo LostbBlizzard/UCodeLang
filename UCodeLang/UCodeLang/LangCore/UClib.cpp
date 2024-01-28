@@ -145,6 +145,13 @@ void UClib::ToBytes(BitMaker& Output, const ClassAssembly& Assembly)
 			ToBytes(Output, TagData);
 		}
 		break;
+		case ClassType::StaticArray:
+		{
+			auto& TagData = Item->Get_StaticArray();
+
+			ToBytes(Output, TagData);
+		}
+		break;
 		default:
 			UCodeLangUnreachable();
 			break;
@@ -401,6 +408,12 @@ void UClib::ToBytes(BitMaker& Output, const GenericClass_Data& FuncPtrData)
 void UClib::ToBytes(BitMaker& Output, const GenericFunction_Data& FuncPtrData)
 {
 	ToBytes(Output,FuncPtrData.Base);
+}
+void UClib::ToBytes(BitMaker& Output, const StaticArray_Data& FuncPtrData)
+{
+	Output.WriteType(FuncPtrData.TypeID);
+	ToBytes(Output,FuncPtrData.BaseType);
+	Output.WriteType((BitMaker::SizeAsBits)FuncPtrData.Count);
 }
 void UClib::ToBytes(BitMaker& Output, const GenericBase_Data& FuncPtrData)
 {
@@ -725,9 +738,8 @@ void UClib::FromBytes(BitReader& Input, CodeLayer& Data)
 }
 void UClib::FromBytes(BitReader& reader, ClassAssembly& Assembly)
 {
-	
-		Size_tAsBits bits = 0;
-		size_t bits_Size;
+	Size_tAsBits bits = 0;
+	size_t bits_Size;
 	
 	reader.ReadType(bits, bits);
 	bits_Size = bits;
@@ -794,6 +806,12 @@ void UClib::FromBytes(BitReader& reader, ClassAssembly& Assembly)
 		case ClassType::GenericFunction:
 		{
 			auto& Tag = _Node.Get_GenericFunctionData();
+			FromBytes(reader, Tag);
+		}
+		break;
+		case ClassType::StaticArray:
+		{
+			auto& Tag = _Node.Get_StaticArray();
 			FromBytes(reader, Tag);
 		}
 		break;
@@ -1025,6 +1043,14 @@ void UClib::FromBytes(BitReader& Input, TraitMethod& Data)
 
 		Data.FuncBody = std::move(str);
 	}
+}
+void UClib::FromBytes(BitReader& Input, StaticArray_Data& Data)
+{
+	Input.ReadType(Data.TypeID, Data.TypeID);
+	FromBytes(Input,Data.BaseType);
+
+	Size_tAsBits Size = 0;
+	Input.ReadType(Data.Count);
 }
 void UClib::FromBytes(BitReader& reader, Vector<UsedTagValueData>& Attributes)
 {

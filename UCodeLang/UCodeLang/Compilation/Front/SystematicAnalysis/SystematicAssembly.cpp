@@ -1145,7 +1145,8 @@ void SystematicAnalysis::Assembly_AddStaticArray(const NeverNullPtr<Symbol> Clas
 	if (!Assembly.Find_Node(AssemblyName))
 	{
 		auto& node = Assembly.AddStaticArray(AssemblyName, AssemblyName);
-
+	
+		node.TypeID = Type_GetTypeID(TypesEnum::CustomType, ClassSyb->ID);
 		node.Count = info->Count;
 		node.BaseType = Assembly_ConvertToType(info->Type);
 	}

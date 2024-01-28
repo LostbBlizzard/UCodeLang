@@ -333,7 +333,11 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 			r += "---\n";
 		}
 		break;
-		default:
+		case ClassType::StaticArray:
+		{
+		}
+		break;
+		efault:
 			UCodeLangUnreachable();
 			break;
 		} 
