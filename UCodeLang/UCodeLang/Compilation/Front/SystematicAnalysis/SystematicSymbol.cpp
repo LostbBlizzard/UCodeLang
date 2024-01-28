@@ -150,6 +150,20 @@ void SystematicAnalysis::Symbol_Update_ThreadAndStatic_ToFixedTypes(NeverNullPtr
 		Set_SymbolContext(std::move(OldContext));
 	}
 }
+void SystematicAnalysis::Symbol_Update_ForType_ToFixedTypes(NeverNullPtr<Symbol> Sym)
+{
+	if (Sym->PassState == PassType::GetTypes)
+	{
+		ForTypeInfo* info = Sym->Get_Info<ForTypeInfo>();
+
+		auto OldContext = SaveAndMove_SymbolContext();
+		Set_SymbolContext(info->Context.value());
+
+		OnForTypeNode(*Sym->Get_NodeInfo<ForTypeNode>());
+
+		Set_SymbolContext(std::move(OldContext));
+	}
+}
 void SystematicAnalysis::Symbol_Update_Sym_ToFixedTypes(NeverNullPtr<Symbol> Sym)
 {
 	switch (Sym->Type)

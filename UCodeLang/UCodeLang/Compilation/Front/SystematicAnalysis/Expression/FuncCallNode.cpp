@@ -1003,6 +1003,39 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 	Vector<ParInfo> Infer;
 	bool Inferautopushtis = false;
 
+	{//for type
+		auto fortypeSyms = GetSymbolsWithName(ForTypeScope,SymbolType::ForType);
+
+		for (auto& Item : fortypeSyms)
+		{
+			if (Item->Type == SymbolType::ForType)
+			{
+				Symbol_Update_ForType_ToFixedTypes(Item);
+			
+				bool isreferringtomytype = false;
+
+				auto fortype = Item->VarType;
+
+				if (ThisParType == Get_FuncInfo::ThisPar_t::PushFromScopedName)
+				{
+					auto v = _ThisType;
+					v._IsAddress = false;
+					isreferringtomytype = Type_AreTheSame(v, fortype);
+				}
+
+				if (isreferringtomytype)
+				{
+					ForTypeInfo* info = Item->Get_Info<ForTypeInfo>();
+
+					for (auto& Item : info->Funcs)
+					{
+						Symbols.push_back(Item);
+					}
+				}			
+			}
+		}
+	}
+
 	{
 
 		for (auto& Item : Symbols)
