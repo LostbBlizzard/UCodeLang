@@ -917,6 +917,13 @@ public:
 	RawEvaluatedObject RawObj;
 };
 
+class ForTypeInfo :public Symbol_Info
+{
+public:
+	Optional<SymbolContext> Context;
+	Vector<Symbol*> Funcs;
+};
+
 class Symbol
 {
 public:

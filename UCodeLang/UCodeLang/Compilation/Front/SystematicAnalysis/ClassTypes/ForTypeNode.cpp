@@ -15,6 +15,13 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 		_Table.AddSymbolID(Sym, SymID);
 		Sym.NodePtr = &node;
 
+		ForTypeInfo* info = new ForTypeInfo();
+		Sym.Info.reset(info);
+
+		info->Context = Save_SymbolContext();
+
+		Sym.PassState = _PassType;
+
 		_Table.RemoveScope();
 	}
 	else if (_PassType == PassType::FixedTypes)
@@ -26,7 +33,13 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 		{
 			LogError(ErrorCodes::InValidType, "Cant add funcions to the primitive type '" + ToString(type) + "' ",NeverNullptr(node._typetoaddto._name._ScopedName.front()._token));
 		}
-	
+
+		auto sym = Symbol_GetSymbol(SymID);
+		sym->PassState = PassType::FixedTypes;
+		sym->VarType = type;
+
+		auto forinfo = sym->Get_Info<ForTypeInfo>();
+
 		ClassStackInfo info;
 		info.Syb = Symbol_GetSymbol(type).value_unchecked();
 
@@ -37,7 +50,14 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 		_PassType = PassType::GetTypes;
 		for (auto& Item : node._Nodes)
 		{
+			size_t index = _Table.Symbols.size();
+
 			OnFuncNode(*Item);
+
+			auto& newSym = _Table.Symbols[index];
+	
+			forinfo->Funcs.push_back(newSym.get());
+
 		}
 				
 		_PassType = PassType::FixedTypes;
@@ -51,6 +71,11 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 	}
 	else if (_PassType ==PassType::BuidCode)
 	{
+
+		auto sym = Symbol_GetSymbol(SymID);
+		sym->PassState = PassType::BuidCode;
+
+
 		_Table.AddScope(ForTypeScope);
 
 		for (auto& Item : node._Nodes)
