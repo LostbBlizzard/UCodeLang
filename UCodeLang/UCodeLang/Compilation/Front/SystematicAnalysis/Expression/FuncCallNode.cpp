@@ -1022,6 +1022,20 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 					v._IsAddress = false;
 					isreferringtomytype = Type_AreTheSame(v, fortype);
 				}
+				else
+				{
+					auto scope = ScopedName;
+					ScopeHelper::ReMoveScope(scope);
+
+					auto v = Symbol_GetSymbol(scope, SymbolType::Type);
+
+					if (v.has_value())
+					{
+						TypeSymbol v2 = TypeSymbol(v.value()->ID);
+						isreferringtomytype = Type_AreTheSame(v2, fortype);
+					}
+
+				}
 
 				if (isreferringtomytype)
 				{
