@@ -1372,6 +1372,7 @@ private:
 	ReflectionTypeInfo Assembly_ConvertToType(const TypeSymbol& Type);
 
 	void Assembly_AddEnum(const NeverNullPtr<Symbol> ClassSyb);
+	void Assembly_AddStaticArray(const NeverNullPtr<Symbol> ClassSyb);
 
 	TypeSymbolID Type_GetTypeID(TypesEnum Type, SymbolID SymbolId);
 	TypeSymbol Type_GetStaticArrayType(const TypeSymbol& BaseType, size_t Size);

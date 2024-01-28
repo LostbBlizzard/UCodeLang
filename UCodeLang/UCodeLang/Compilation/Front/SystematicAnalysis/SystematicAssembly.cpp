@@ -1134,6 +1134,23 @@ void SystematicAnalysis::Assembly_AddEnum(const NeverNullPtr<Symbol> ClassSyb)
 		EnumUnion.Size = MaxSize;
 	}
 }
+void SystematicAnalysis::Assembly_AddStaticArray(const NeverNullPtr<Symbol> ClassSyb)
+{
+	const StaticArrayInfo* info = ClassSyb->Get_Info<StaticArrayInfo>();
+
+	String AssemblyName = ToString(info->Type) + "[/" + std::to_string(info->Count) + "]";
+
+	auto& Assembly = _Lib.Get_Assembly();
+
+	if (!Assembly.Find_Node(AssemblyName))
+	{
+		auto& node = Assembly.AddStaticArray(AssemblyName, AssemblyName);
+
+		node.Count = info->Count;
+		node.BaseType = Assembly_ConvertToType(info->Type);
+	}
+}
+
 Class_Data *SystematicAnalysis::Assembly_GetAssemblyClass(const String &FullName)
 {
 	if (_ClassStack.empty())
