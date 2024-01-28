@@ -1308,7 +1308,19 @@ TypeSymbolID SystematicAnalysis::Type_GetTypeID(TypesEnum Type, SymbolID SymbolI
 	case TypesEnum::CustomType:
 	{
 		auto Syb = Symbol_GetSymbol(SymbolId);
-		R = (ReflectionCustomTypeID)std::hash<String>()(Syb->FullName);
+		String ReflectionName;
+		if (Syb->Type == SymbolType::Type_StaticArray)
+		{
+			const StaticArrayInfo* info = Syb->Get_Info<StaticArrayInfo>();
+			ReflectionName = ToString(info->Type) + "[/" + std::to_string(info->Count) + "]";
+		}
+		else
+		{
+			ReflectionName = Syb->FullName;
+		}
+
+
+		R = (ReflectionCustomTypeID)std::hash<String>()(ReflectionName);
 	}
 	break;
 	default:

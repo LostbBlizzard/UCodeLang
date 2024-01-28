@@ -408,6 +408,8 @@ struct ThreadVar_Data
 };
 struct StaticArray_Data
 {
+	ReflectionTypeInfo BaseType;
+	size_t Count = 0;
 	~StaticArray_Data()
 	{
 
@@ -720,7 +722,17 @@ public:
 		r.Name = Name;
 		r.FullName = FullName;
 		return r.Get_GenericFunctionData();
+	}	
+	inline StaticArray_Data& AddStaticArray(const String& Name, const String& FullName = "")
+	{
+		auto V = std::make_unique<AssemblyNode>(ClassType::StaticArray);
+		Classes.push_back(std::move(V));
+		auto& r = *Classes.back();
+		r.Name = Name;
+		r.FullName = FullName;
+		return r.Get_StaticArray();
 	}
+	
 	static void PushCopyClasses(const ClassAssembly& source, ClassAssembly& Out);
 	AssemblyNode* Find_Node(const String& Name, const String& Scope ="")
 	{

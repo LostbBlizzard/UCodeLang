@@ -177,6 +177,13 @@ void SystematicAnalysis::BuildCode()
 
 			}
 		}
+		for (auto& Symbol : _Table.Symbols)
+		{
+			if (Symbol->Type == SymbolType::Type_StaticArray)
+			{
+				Assembly_AddStaticArray(NeverNullptr(Symbol.get()));
+			}
+		}
 	}
 	{
 		auto oldcontext = SaveAndMove_SymbolContext();
