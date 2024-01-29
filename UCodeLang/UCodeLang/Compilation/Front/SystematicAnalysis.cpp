@@ -255,6 +255,22 @@ void SystematicAnalysis::BuildCode()
 
 			}
 			break;
+			case SymbolType::ForType:
+			{
+				auto Info = Symbol->Get_Info<ForTypeInfo>();
+				auto node = ForTypeNode::As(Symbol->Get_NodeInfo<Node>());
+
+
+				Set_SymbolContext(std::move(Info->Context.value()));
+				
+				_Table._Scope.ReMoveScope();
+
+				OnForTypeNode(*node);
+				Info->Context = SaveAndMove_SymbolContext();
+
+
+			}
+			break;
 			default:
 				UCodeLangUnreachable();
 				break;
