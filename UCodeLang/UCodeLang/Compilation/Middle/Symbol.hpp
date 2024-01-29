@@ -920,7 +920,8 @@ public:
 class ForTypeInfo :public Symbol_Info
 {
 public:
-	Optional<SymbolContext> Context;
+	Optional<SymbolContext> Context;	
+	Generic _GenericData;
 	Vector<Symbol*> Funcs;
 };
 
