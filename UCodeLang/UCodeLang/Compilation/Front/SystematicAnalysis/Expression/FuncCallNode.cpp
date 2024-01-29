@@ -1192,7 +1192,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 							}
 						}
 
-						Vector<NeverNullPtr<Symbol>> generics;
+						Vector<TypeSymbol> generics;
 
 						UCodeLangAssert(!GenericData->IsPack());
 						for (auto& item : MyBaseTypeGenericData->_Genericlist)
@@ -1208,19 +1208,31 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 							{
 								String scope = ScopeHelper::ApendedStrings(mytypestr, GenericAliasName);
 
-								auto v = Symbol_GetSymbol(scope, SymbolType::Any).value();
+								mytypegenericalias = Symbol_GetSymbol(scope, SymbolType::Any).value();
 							}
 
-							generics.push_back(mytypegenericalias);
+							generics.push_back(TypeSymbol(mytypegenericalias->VarType));
 						}
 
-						bool hasthisformade = false;
+					
+						auto newsymname = Generic_SymbolGenericFullName(Item, generics);
+						auto hasthisformade = Symbol_GetSymbol(newsymname,SymbolType::ForType);
 
-
-						if (hasthisformade == false)
+						if (!hasthisformade.has_value())
 						{
-							int a = 0;
+							Generic_TypeInstantiate_ForType(NeverNullptr(Item), generics);
+							hasthisformade = Symbol_GetSymbol(newsymname,SymbolType::ForType);
 						}
+		
+						{
+							ForTypeInfo* info = hasthisformade.value()->Get_Info<ForTypeInfo>();
+
+							for (auto& Item : info->Funcs)
+							{
+								Symbols.push_back(Item);
+							}
+						}
+	
 					}
 
 				}

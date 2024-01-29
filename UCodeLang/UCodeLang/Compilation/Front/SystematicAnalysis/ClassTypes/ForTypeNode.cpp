@@ -6,52 +6,49 @@ UCodeLangFrontStart
 
 void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 {
+	const bool IsgenericInstantiation = _Generic_GenericSymbolStack.size() && _Generic_GenericSymbolStack.top().NodeTarget == &node;
+	const bool Isgeneric = node._generic._Values.size();
+	const bool Isgeneric_t = Isgeneric && IsgenericInstantiation == false;
+
+	String ScopeName = ForTypeScope;
+	if (IsgenericInstantiation)
+	{
+		ScopeName = _Generic_GenericSymbolStack.top()._IR_GenericFuncName;
+	}
+
+	_Table.AddScope(ScopeName);
+
+
 	auto SymID = Symbol_GetSymbolID(node);
-	
+
+	_Table.RemoveScope();
+
+
 	if (_PassType == PassType::GetTypes)
 	{
-		if (node._generic._Values.size() == 0)
-		{
-			_Table.AddScope(ForTypeScope);
+		_Table.AddScope(ScopeName);
 
-			auto& Sym = Symbol_AddSymbol(SymbolType::ForType, ForTypeScope, _Table._Scope.ThisScope, AccessModifierType::Default);
-			_Table.AddSymbolID(Sym, SymID);
-			Sym.NodePtr = &node;
+		auto& Sym = Symbol_AddSymbol(Isgeneric_t ? SymbolType::GenericForType : SymbolType::ForType, ForTypeScope, _Table._Scope.ThisScope, AccessModifierType::Default);
+		_Table.AddSymbolID(Sym, SymID);
+		Sym.NodePtr = &node;
 
-			ForTypeInfo* info = new ForTypeInfo();
-			Sym.Info.reset(info);
+		ForTypeInfo* info = new ForTypeInfo();
+		Sym.Info.reset(info);
 
-			info->Context = Save_SymbolContext();
+		info->Context = Save_SymbolContext();
 
-			Sym.PassState = _PassType;
+		Sym.PassState = _PassType;
 
-			_Table.RemoveScope();
-		}
-		else
-		{
-			_Table.AddScope(ForTypeScope);
+		Generic_InitGenericalias(node._generic, IsgenericInstantiation, info->_GenericData);
 
-			auto& Sym = Symbol_AddSymbol(SymbolType::GenericForType, ForTypeScope, _Table._Scope.ThisScope, AccessModifierType::Default);
-			_Table.AddSymbolID(Sym, SymID);
-			Sym.NodePtr = &node;
-
-			ForTypeInfo* info = new ForTypeInfo();
-			Sym.Info.reset(info);
-
-			info->Context = Save_SymbolContext();
-
-			Sym.PassState = _PassType;
-
-
-			Generic_InitGenericalias(node._generic,false, info->_GenericData);
-			
-			_Table.RemoveScope();
-		}
+		_Table.RemoveScope();
 	}
 	else if (_PassType == PassType::FixedTypes)
-	{	
-		if (node._generic._Values.size() == 0)
+	{
+		if (node._generic._Values.size() == 0 || IsgenericInstantiation)
 		{
+
+			_Table.AddScope(ScopeName);
 
 			auto type = Type_ConvertAndValidateType(node._typetoaddto, NodeSyb_t::Any);
 
@@ -70,8 +67,6 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 			info.Syb = Symbol_GetSymbol(type).value_unchecked();
 
 			_ClassStack.push(info);
-
-			_Table.AddScope(ForTypeScope);
 
 			_PassType = PassType::GetTypes;
 			for (auto& Item : node._Nodes)
@@ -98,13 +93,15 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 	}
 	else if (_PassType == PassType::BuidCode)
 	{
-		if (node._generic._Values.size() == 0)
+		if (node._generic._Values.size() == 0 || IsgenericInstantiation)
 		{
+
+			_Table.AddScope(ScopeName);
+			
+
 			auto sym = Symbol_GetSymbol(SymID);
 			sym->PassState = PassType::BuidCode;
 
-
-			_Table.AddScope(ForTypeScope);
 
 			for (auto& Item : node._Nodes)
 			{

@@ -392,6 +392,66 @@ void SystematicAnalysis::Generic_TypeInstantiate_Tag(const NeverNullPtr<Symbol> 
 
 	FileDependency_AddDependencyToCurrentFile(Tag);
 }
+void SystematicAnalysis::Generic_TypeInstantiate_ForType(const NeverNullPtr<Symbol> Tag, const Vector<TypeSymbol>& GenericInput)
+{
+	UCodeLangAssert(Tag->Type == SymbolType::GenericForType);
+
+	const String NewName = Generic_SymbolGenericName(Tag, GenericInput);
+	const String FullName = Generic_SymbolGenericFullName(Tag, GenericInput);
+	const ForTypeNode* node = ForTypeNode::As(Tag->Get_NodeInfo<Node>());
+
+	const ForTypeInfo* classInfo = Tag->Get_Info<ForTypeInfo>();
+
+	{
+		auto& GenericData = classInfo->_GenericData;
+		Push_GenericInfo(NewName, GenericInput, Tag, GenericData);
+	}
+	{
+		Push_ExtendedErr(Generic_GetGenericExtendedErrValue(classInfo->_GenericData, node->_generic, GenericInput), NeverNullptr(node->_typetoaddto._name._ScopedName.front()._token));
+	}
+	{
+		auto OldContext = SaveAndMove_SymbolContext();
+		auto Oldpasstype = _PassType;
+		auto Olderrcount = _ErrorsOutput->Get_ErrorCount();
+
+		Set_SymbolContext(classInfo->Context.value());
+
+		_Table._Scope.ThisScope = ScopeHelper::GetReMoveScope(FullName);
+
+		size_t NewSymbolIndex = _Table.Symbols.size();
+
+		_PassType = PassType::GetTypes;
+		OnForTypeNode(*node);
+
+
+		auto& addedSymbol = *_Table.Symbols[NewSymbolIndex].get();
+
+		UCodeLangAssert(addedSymbol.FullName == NewName);
+		UCodeLangAssert(addedSymbol.Type == SymbolType::ForType);
+		UCodeLangAssert(addedSymbol.PassState == PassType::GetTypes);
+
+
+		if (_ErrorsOutput->Get_ErrorCount() <= Olderrcount)
+		{
+			_PassType = PassType::FixedTypes;
+			OnForTypeNode(*node);
+
+			UCodeLangAssert(addedSymbol.PassState == PassType::FixedTypes);
+		}
+
+
+		Pop_AddToGeneratedGenricSymbol(addedSymbol, GenericInput);
+		//
+		Set_SymbolContext(std::move(OldContext));
+		_PassType = Oldpasstype;
+		//
+	}
+	{
+		Pop_ExtendedErr();
+	}
+
+	FileDependency_AddDependencyToCurrentFile(Tag);
+}
 
 GenericData::Type SystematicAnalysis::Generic_TypeToGenericDataType(GenericValueNode::GenericType type)
 {

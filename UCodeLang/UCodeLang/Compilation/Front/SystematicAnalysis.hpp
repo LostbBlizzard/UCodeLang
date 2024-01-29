@@ -1651,6 +1651,8 @@ private:
 	void Generic_TypeInstantiate_Alias(const NeverNullPtr<Symbol> Alias, const Vector<TypeSymbol>& Type);
 	void Generic_TypeInstantiate_Enum(const NeverNullPtr<Symbol> Enum, const Vector<TypeSymbol>& Type);
 	void Generic_TypeInstantiate_Tag(const NeverNullPtr<Symbol> Trait, const Vector<TypeSymbol>& Type);
+	void Generic_TypeInstantiate_ForType(const NeverNullPtr<Symbol> ForType, const Vector<TypeSymbol>& Type);
+
 
 	EvaluatedEx Eval_MakeEx(const TypeSymbol& Type);
 	RawEvaluatedObject Eval_MakeExr(const TypeSymbol& Type);
