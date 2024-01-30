@@ -21,7 +21,7 @@ using Size_tAsBits = BitMaker::SizeAsBits;
 #if UCodeLangDebug
 const unsigned char UClibSignature[] = "LBlib32";
 #else
-const unsigned char UClibSignature[]= "LBlib";
+const unsigned char UClibSignature[] = "LBlib";
 #endif
 
 constexpr size_t UClibSignature_Size = sizeof(UClibSignature);
@@ -60,7 +60,7 @@ BytesPtr UClib::ToRawBytes(const UClib* Lib)
 		Output.WriteType((Size_tAsBits)Lib->_DebugBytes.size());
 		Output.WriteBytes(Lib->_DebugBytes.data(), Lib->_DebugBytes.size());
 	}
-	
+
 	{//Layers
 		Output.WriteType((Size_tAsBits)Lib->_Layers.size());
 		for (auto& Item : Lib->_Layers)
@@ -161,7 +161,7 @@ void UClib::ToBytes(BitMaker& Output, const ClassAssembly& Assembly)
 void UClib::ToBytes(BitMaker& Output, const CodeLayer& Data)
 {
 	Output.WriteType(Data._Name);
-	
+
 	Output.WriteType((CodeLayer::DataTypes_t)Data.GetDataType());
 
 	if (auto Val = Data._Data.Get_If<CodeLayer::JustData>())
@@ -184,8 +184,8 @@ void UClib::ToBytes(BitMaker& Output, const CodeLayer& Data)
 		}
 
 		Output.WriteType(Val->DebugInfo.has_value());
-		
-		if (Val->DebugInfo.has_value()) 
+
+		if (Val->DebugInfo.has_value())
 		{
 			ULangDebugInfo::ToBytes(Output, Val->DebugInfo.value());
 		}
@@ -215,8 +215,8 @@ void UClib::ToBytes(BitMaker& Output, const ReflectionRawData& Data)
 }
 void UClib::ToBytes(BitMaker& Output, const TypedRawReflectionData& Data)
 {
-	ToBytes(Output,Data._Type);
-	ToBytes(Output,Data._Data);
+	ToBytes(Output, Data._Type);
+	ToBytes(Output, Data._Data);
 }
 void UClib::ToBytes(BitMaker& Output, const Optional<ReflectionCustomTypeID>& Data)
 {
@@ -265,7 +265,7 @@ void UClib::ToBytes(BitMaker& Output, const Enum_Data& EnumData)
 	for (auto& Item2 : EnumData.Values)
 	{
 		Output.WriteType(Item2.Name);
-		ToBytes(Output,Item2._Data);
+		ToBytes(Output, Item2._Data);
 		ToBytes(Output, Item2.EnumVariantType);
 	}
 
@@ -368,7 +368,7 @@ void UClib::ToBytes(BitMaker& Output, const ClassMethod& Data)
 	Output.WriteType((Size_tAsBits)Data.ParsType.size());
 	for (auto& Item : Data.ParsType)
 	{
-		ToBytes(Output,Item);
+		ToBytes(Output, Item);
 	}
 	Output.WriteType(Data.IsThisFunction);
 	Output.WriteType(Data.IsUnsafe);
@@ -403,16 +403,16 @@ void UClib::ToBytes(BitMaker& Output, const FuncPtr_Data& FuncPtrData)
 }
 void UClib::ToBytes(BitMaker& Output, const GenericClass_Data& FuncPtrData)
 {
-	ToBytes(Output,FuncPtrData.Base);
+	ToBytes(Output, FuncPtrData.Base);
 }
 void UClib::ToBytes(BitMaker& Output, const GenericFunction_Data& FuncPtrData)
 {
-	ToBytes(Output,FuncPtrData.Base);
+	ToBytes(Output, FuncPtrData.Base);
 }
 void UClib::ToBytes(BitMaker& Output, const StaticArray_Data& FuncPtrData)
 {
 	Output.WriteType(FuncPtrData.TypeID);
-	ToBytes(Output,FuncPtrData.BaseType);
+	ToBytes(Output, FuncPtrData.BaseType);
 	Output.WriteType((BitMaker::SizeAsBits)FuncPtrData.Count);
 }
 void UClib::ToBytes(BitMaker& Output, const GenericBase_Data& FuncPtrData)
@@ -421,10 +421,10 @@ void UClib::ToBytes(BitMaker& Output, const GenericBase_Data& FuncPtrData)
 }
 void UClib::ToBytes(BitMaker& Output, const TraitMethod& FuncPtrData)
 {
-	ToBytes(Output,FuncPtrData.method);
+	ToBytes(Output, FuncPtrData.method);
 
 	Output.WriteType(FuncPtrData.FuncBody.has_value());
-	
+
 	if (FuncPtrData.FuncBody.has_value())
 	{
 		Output.WriteType(FuncPtrData.FuncBody.value());
@@ -433,9 +433,9 @@ void UClib::ToBytes(BitMaker& Output, const TraitMethod& FuncPtrData)
 bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 {
 	Lib->Reset();
-	
-	BitReader reader(Data.Data(),Data.Size());
-	
+
+	BitReader reader(Data.Data(), Data.Size());
+
 
 	//Signature
 	{
@@ -459,7 +459,7 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 
 
 		UInt32 Value = 0;
-		reader.ReadType(Value,Value);
+		reader.ReadType(Value, Value);
 		if (Value != UCodeLangVersionNumber)
 		{
 			return false;
@@ -472,7 +472,7 @@ bool UClib::FromBytes(UClib* Lib, const BytesView& Data)
 	reader.ReadType(*(LibType_t*)&Lib->_LibType, *(NTypeSize_t*)&Lib->_LibType);
 
 	reader.ReadType(*(Endian_t*)&Lib->LibEndianess, *(Endian_t*)&Lib->LibEndianess);
-	
+
 	auto Old = BitConverter::InputOutEndian;
 	BitConverter::InputOutEndian = Lib->LibEndianess;
 
@@ -603,7 +603,7 @@ void UClib::FromBytes(BitReader& Input, CodeLayer& Data)
 
 		bool WillNeedtoSwapBytes = BitConverter::_CPUEndian != BitConverter::InputOutEndian;
 
-		if (WillNeedtoSwapBytes) 
+		if (WillNeedtoSwapBytes)
 		{
 			for (auto& Item : V._Instructions)
 			{
@@ -651,10 +651,10 @@ void UClib::FromBytes(BitReader& Input, CodeLayer& Data)
 		}
 
 		{// _NameToPtr
-			
-				Size_tAsBits bits = 0;
-				size_t bits_Size;
-			
+
+			Size_tAsBits bits = 0;
+			size_t bits_Size;
+
 
 			Input.ReadType(bits, bits);
 			bits_Size = bits;
@@ -690,7 +690,7 @@ void UClib::FromBytes(BitReader& Input, CodeLayer& Data)
 			Data._Data = std::move(V);
 		}
 
-		
+
 	}
 	break;
 	case CodeLayer::DataTypes::MachineCode:
@@ -699,10 +699,10 @@ void UClib::FromBytes(BitReader& Input, CodeLayer& Data)
 		Input.ReadType(V._Code, V._Code);
 
 		{// _NameToPtr
-			
-				Size_tAsBits bits = 0;
-				size_t bits_Size;
-			
+
+			Size_tAsBits bits = 0;
+			size_t bits_Size;
+
 
 			Input.ReadType(bits, bits);
 			bits_Size = bits;
@@ -713,16 +713,16 @@ void UClib::FromBytes(BitReader& Input, CodeLayer& Data)
 			for (size_t i = 0; i < bits_Size; i++)
 			{
 				String V1;
-				
+
 				Size_tAsBits V2 = 0;
 				size_t V2bits_Size;
-				
+
 				Input.ReadType(V1, V1);
 
 				Input.ReadType(V2, V2);
 				V2bits_Size = V2;
 
-				V._NameToPtr.AddValue(V1,V2);
+				V._NameToPtr.AddValue(V1, V2);
 			}
 
 			Input.ReadType(V.DebugInfo, V.DebugInfo);
@@ -740,7 +740,7 @@ void UClib::FromBytes(BitReader& reader, ClassAssembly& Assembly)
 {
 	Size_tAsBits bits = 0;
 	size_t bits_Size;
-	
+
 	reader.ReadType(bits, bits);
 	bits_Size = bits;
 
@@ -966,9 +966,9 @@ void UClib::FromBytes(BitReader& Input, Trait_Data& Data)
 	Input.ReadType(Data.TypeID, Data.TypeID);
 	{
 
-			Size_tAsBits  Feld_Sizebits = 0;
-			size_t Feld_Size;
-		
+		Size_tAsBits  Feld_Sizebits = 0;
+		size_t Feld_Size;
+
 		Input.ReadType(Feld_Sizebits, Feld_Sizebits);
 		Feld_Size = Feld_Sizebits;
 
@@ -1047,10 +1047,11 @@ void UClib::FromBytes(BitReader& Input, TraitMethod& Data)
 void UClib::FromBytes(BitReader& Input, StaticArray_Data& Data)
 {
 	Input.ReadType(Data.TypeID, Data.TypeID);
-	FromBytes(Input,Data.BaseType);
+	FromBytes(Input, Data.BaseType);
 
 	Size_tAsBits Size = 0;
-	Input.ReadType(Data.Count);
+	Input.ReadType(Size, Size);
+	Data.Count = Size;
 }
 void UClib::FromBytes(BitReader& reader, Vector<UsedTagValueData>& Attributes)
 {
@@ -1142,9 +1143,9 @@ void UClib::FromBytes(BitReader& Input, ClassMethod& Data)
 	FromBytes(Input, Data.RetType);
 
 	{
-			Size_tAsBits bits_Size_tAsBits = 0;
-			size_t bits;
-		
+		Size_tAsBits bits_Size_tAsBits = 0;
+		size_t bits;
+
 
 		Input.ReadType(bits_Size_tAsBits, bits_Size_tAsBits);
 
@@ -1153,7 +1154,7 @@ void UClib::FromBytes(BitReader& Input, ClassMethod& Data)
 
 		for (size_t i = 0; i < bits; i++)
 		{
-			FromBytes(Input,Data.ParsType[i]);
+			FromBytes(Input, Data.ParsType[i]);
 		}
 	}
 	Input.ReadType(Data.IsThisFunction);
@@ -1171,12 +1172,12 @@ void UClib::FromBytes(BitReader& Input, ReflectionTypeInfo& Data)
 	Input.ReadType(Data._IsAddressArray, Data._IsAddressArray);
 	Input.ReadType(Data._Isimmutable, Data._Isimmutable);
 	Input.ReadType(Data._IsDynamic, Data._IsDynamic);
-	Input.ReadType(*(ReflectionMoveData_t*)&Data._MoveData,*(ReflectionMoveData_t*)&Data._MoveData);
+	Input.ReadType(*(ReflectionMoveData_t*)&Data._MoveData, *(ReflectionMoveData_t*)&Data._MoveData);
 }
-void UClib::FixRawValue(Endian AssemblyEndian, NTypeSize BitSize,const ClassAssembly& Types, ReflectionRawData& RawValue, const ReflectionTypeInfo& Type)
+void UClib::FixRawValue(Endian AssemblyEndian, NTypeSize BitSize, const ClassAssembly& Types, ReflectionRawData& RawValue, const ReflectionTypeInfo& Type)
 {
 	auto CPUEndian = BitConverter::_CPUEndian;
-	
+
 	if (CPUEndian != AssemblyEndian)
 	{
 		switch (Type._Type)
@@ -1187,8 +1188,8 @@ void UClib::FixRawValue(Endian AssemblyEndian, NTypeSize BitSize,const ClassAsse
 			BitConverter::Byte16* Ptr = (BitConverter::Byte16*)RawValue.Get_Data();
 			Ptr->FlpBytes();
 		}
-			break;
-		Bit32Type:
+		break;
+	Bit32Type:
 		case ReflectionTypes::sInt32:
 		case ReflectionTypes::uInt32:
 		case ReflectionTypes::float32:
@@ -1196,8 +1197,8 @@ void UClib::FixRawValue(Endian AssemblyEndian, NTypeSize BitSize,const ClassAsse
 			BitConverter::Byte32* Ptr = (BitConverter::Byte32*)RawValue.Get_Data();
 			Ptr->FlpBytes();
 		}
-			break;
-			Bit64Type:
+		break;
+	Bit64Type:
 		case ReflectionTypes::sInt64:
 		case ReflectionTypes::uInt64:
 		case ReflectionTypes::float64:
@@ -1205,7 +1206,7 @@ void UClib::FixRawValue(Endian AssemblyEndian, NTypeSize BitSize,const ClassAsse
 			BitConverter::Byte64* Ptr = (BitConverter::Byte64*)RawValue.Get_Data();
 			Ptr->FlpBytes();
 		}
-			break;
+		break;
 		case ReflectionTypes::uIntPtr:
 		case ReflectionTypes::sIntPtr:
 		{
@@ -1240,7 +1241,7 @@ void UClib::FixAssemblyRawValues(Endian AssemblyEndian, NTypeSize BitSize, const
 
 			for (auto& Item : Data.Values)
 			{
-				FixRawValue(AssemblyEndian, BitSize,Assembly, Item._Data, Data.BaseType);
+				FixRawValue(AssemblyEndian, BitSize, Assembly, Item._Data, Data.BaseType);
 			}
 		}
 		break;
@@ -1281,13 +1282,13 @@ bool UClib::FromFile(UClib* Lib, const Path& path)
 		File.read((char*)Bits.Data(), Bits.Size());
 		File.close();
 		auto V = FromBytes(Lib, Bits.AsSpan());
-		
+
 		return V;
 	}
 	else
 	{
 		return false;
 	}
-	
+
 }
 UCodeLangEnd
