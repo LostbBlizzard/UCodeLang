@@ -78,7 +78,7 @@ $String = String_t<char>;
  Txt += Str2;
 
 
- // bool sizegood = Txt._size == uintptr(11);
- // bool chargood = Txt._data[Txt._size - 1] == 'd';
+ bool sizegood = Txt._size == uintptr(11);
+ bool chargood = unsafe Txt._data[Txt._size - 1] == 'd';
  
- // ret sizegood && chargood;
+ ret sizegood && chargood;
