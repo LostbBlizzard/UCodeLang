@@ -13,7 +13,7 @@ Tests:
   List.Push(5);
   List.Push(15);
 
-  int[:] span = List[uintptr(1)..2];
+  int[:] span = List[uintptr(1)..uintptr(2)];
 
   ret span.Size() == 1 && span[uintptr(0)] == 15;
 

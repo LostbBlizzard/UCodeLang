@@ -1021,7 +1021,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 						{
 							// givename = false;
 							auto newreg = GetRegisterForTep();
-							RegToReg(op->Parameter->type._Type, reg, newreg, false);
+							RegToReg(op->Parameter->type, reg, newreg, false);
 							V.Info = newreg;
 
 							// StoreValue(Item, IROperator(Item), Item->Target());
