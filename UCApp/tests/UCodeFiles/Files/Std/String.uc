@@ -62,7 +62,7 @@ $String_t<T>:
 
   _size = newsize; 
   
-  for [uintptr i = uintptr(0);i < newsize;i++]:
+  for [uintptr i = uintptr(0);i < string._size;i++]:
      unsafe _data[i + oldsize] = string._data[i];
 
 
