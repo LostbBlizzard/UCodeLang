@@ -75,7 +75,7 @@ void SystematicAnalysis::OnAttributeNode(const AttributeNode& node)
 			
 			if (FuncCalls.size() == 0 && node._Parameters._Nodes.size()==0)
 			{
-
+				Syb.VarType = TypeSymbol(AttOp.value()->ID);
 			}
 			else
 			{
