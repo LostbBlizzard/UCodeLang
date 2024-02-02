@@ -14,7 +14,7 @@ ULang::Native:
   $if compiler::IsBackendC11():
    
    for [uintptr i = 0;i < Size;i++]:
-     OS_PrintChar(Buffer[i]);
+     OS_PrintChar(unsafe Buffer[i]);
 
   $else:
    putspan(Buffer,Size);
