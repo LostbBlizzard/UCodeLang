@@ -1120,6 +1120,9 @@ void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					r += " " + State.GetName(I.get());
 					r += " = ~" + ToString(State, *I, I->Target());
 					break;
+				case IRInstructionType::ThrowException:
+
+					break;
 				default:
 					UCodeLangUnreachable();
 					break;
